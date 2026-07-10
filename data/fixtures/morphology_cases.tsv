@@ -155,7 +155,7 @@ query	pos	text	expected	feature
 아니다	adjective	내 것이 아니면 돌려주세요.	match	regular
 아니다	adjective	그것은 제 답이 아닙니다.	match	regular
 아니다	adjective	정답이 아니어도 괜찮다.	match	regular
-아니다	adjective	정답이 아녀서 틀렸다.	no-match	regular
+아니다	adjective	정답이 아녀서 틀렸다.	no-match	no-i-eo-contraction
 짓다	verb	새 집을 짓고 있다.	match	s-irregular
 짓다	verb	건물을 짓는 인부가 바쁘다.	match	s-irregular
 짓다	verb	지난해 지은 집이 완성됐다.	match	s-irregular

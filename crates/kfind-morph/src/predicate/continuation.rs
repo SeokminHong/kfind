@@ -16,7 +16,24 @@ struct Suffix {
 }
 
 const A_OR_EO_SUFFIXES: &[Suffix] = &[
+    suffix(
+        "졌습니다",
+        &[
+            "ending.auxiliary-jida",
+            "ending.past",
+            "ending.polite-declarative",
+        ],
+    ),
     suffix("서도", &["ending.aoeo-seo", "particle.additive"]),
+    suffix(
+        "졌다",
+        &["ending.auxiliary-jida", "ending.past", "ending.final-da"],
+    ),
+    suffix("지면", &["ending.auxiliary-jida", "ending.conditional"]),
+    suffix("지고", &["ending.auxiliary-jida", "ending.connective-go"]),
+    suffix("진", &["ending.auxiliary-jida", "ending.past-adnominal"]),
+    suffix("질", &["ending.auxiliary-jida", "ending.future-adnominal"]),
+    suffix("지다", &["ending.auxiliary-jida", "ending.final-da"]),
     suffix("서", &["ending.aoeo-seo"]),
     suffix("도", &["ending.connective-do"]),
     suffix("야", &["ending.connective-ya"]),
@@ -29,6 +46,8 @@ const PAST_SUFFIXES: &[Suffix] = &[
     suffix("으면", &["ending.conditional"]),
     suffix("지만", &["ending.connective-jiman"]),
     suffix("는데", &["ending.connective-neunde"]),
+    suffix("다고", &["ending.quotative-go"]),
+    suffix("던", &["ending.retrospective-adnominal"]),
     suffix("다", &["ending.final-da"]),
     suffix("고", &["ending.connective-go"]),
 ];
@@ -146,5 +165,20 @@ mod tests {
         let future = verify_predicate_continuation(ContinuationState::Future, "걷겠", "습니다")
             .expect("valid continuation");
         assert_eq!(future.token_end, "걷겠습니다".len());
+    }
+
+    #[test]
+    fn accepts_gold_retrospective_quotative_and_change_suffixes() {
+        let retrospective = verify_predicate_continuation(ContinuationState::Past, "예뻤", "던")
+            .expect("retrospective adnominal");
+        assert_eq!(retrospective.consumed_bytes, "던".len());
+
+        let quotative = verify_predicate_continuation(ContinuationState::Past, "되었", "다고")
+            .expect("quotative connective");
+        assert_eq!(quotative.consumed_bytes, "다고".len());
+
+        let changed = verify_predicate_continuation(ContinuationState::AOrEo, "빨라", "졌다")
+            .expect("change auxiliary");
+        assert_eq!(changed.consumed_bytes, "졌다".len());
     }
 }

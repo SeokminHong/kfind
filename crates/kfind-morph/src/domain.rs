@@ -115,6 +115,7 @@ impl PredicateFlags {
     pub const EU_DROP: Self = Self(1 << 0);
     pub const RIEUL_DROP: Self = Self(1 << 1);
     pub const ALLOW_UNCONTRACTED: Self = Self(1 << 2);
+    pub const NO_I_EO_CONTRACTION: Self = Self(1 << 3);
 
     #[must_use]
     pub const fn contains(self, other: Self) -> bool {

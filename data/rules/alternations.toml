@@ -3,7 +3,7 @@ schema_version = 1
 [[alternation]]
 id = "lexical.regular"
 kind = "Regular"
-flags = ["EU_DROP", "RIEUL_DROP"]
+flags = ["EU_DROP", "RIEUL_DROP", "NO_I_EO_CONTRACTION"]
 ending_ids = ["ending.final-da", "ending.connective-go", "ending.connective-ji", "ending.adverbial-ge", "ending.present-adnominal", "ending.past-adnominal", "ending.future-adnominal", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.future", "ending.honorific", "ending.conditional", "ending.coordinate-myeo", "ending.polite-declarative", "ending.nominalizer"]
 
 [[alternation]]

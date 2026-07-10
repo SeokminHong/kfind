@@ -78,7 +78,7 @@ initial = "a-or-eo"
 forms = ["아", "어"]
 required = []
 forbidden = []
-next = ["ending.connective-seo", "ending.connective-do", "ending.connective-ya", "ending.polite-yo", "ending.imperative-ra"]
+next = ["ending.connective-seo", "ending.connective-do", "ending.connective-ya", "ending.polite-yo", "ending.imperative-ra", "ending.auxiliary-jida"]
 terminal = true
 
 [[ending]]
@@ -98,7 +98,7 @@ initial = "a-or-eo"
 forms = ["았", "었"]
 required = []
 forbidden = []
-next = ["ending.final-da", "ending.declarative", "ending.polite-declarative", "ending.conditional", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go"]
+next = ["ending.final-da", "ending.polite-declarative", "ending.conditional", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go", "ending.retrospective-adnominal", "ending.quotative-go"]
 terminal = true
 
 [[ending]]
@@ -174,11 +174,41 @@ terminal = true
 [[ending]]
 id = "ending.declarative"
 category = "final"
+initial = "attach-nieun"
+forms = ["ㄴ다", "는다"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.retrospective-adnominal"
+category = "adnominal"
 initial = "other"
-forms = ["다"]
+forms = ["던"]
 required = []
 forbidden = []
 next = []
+terminal = true
+
+[[ending]]
+id = "ending.quotative-go"
+category = "connective"
+initial = "other"
+forms = ["다고"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.auxiliary-jida"
+category = "prefinal"
+initial = "other"
+forms = ["지"]
+required = []
+forbidden = []
+next = ["ending.past", "ending.final-da", "ending.conditional", "ending.connective-go", "ending.past-adnominal", "ending.future-adnominal", "ending.polite-declarative"]
 terminal = true
 
 [[ending]]

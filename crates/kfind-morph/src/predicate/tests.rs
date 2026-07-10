@@ -222,6 +222,30 @@ fn ha_rieul_and_copula_rules_cover_required_forms() {
 }
 
 #[test]
+fn action_present_declarative_and_copula_past_are_compiled() {
+    let action = entry("검증하다", PredicatePos::Verb, LexicalAlternation::Ha);
+    let action_surfaces = surfaces(&action);
+    assert!(action_surfaces.contains("검증한다"));
+
+    let copula = entry("이다", PredicatePos::Copula, LexicalAlternation::Copula);
+    let copula_surfaces = surfaces(&copula);
+    assert!(copula_surfaces.contains("이었"));
+}
+
+#[test]
+fn lexical_flag_can_forbid_i_eo_contraction() {
+    let mut negative = entry(
+        "아니다",
+        PredicatePos::Adjective,
+        LexicalAlternation::Regular,
+    );
+    negative.flags = PredicateFlags::NO_I_EO_CONTRACTION;
+    let surfaces = surfaces(&negative);
+    assert!(surfaces.contains("아니어"));
+    assert!(!surfaces.contains("아녀"));
+}
+
+#[test]
 fn branches_stop_before_productive_suffix_chains() {
     let branches =
         generate_predicate_branches(&entry("걷다", PredicatePos::Verb, LexicalAlternation::DToL))

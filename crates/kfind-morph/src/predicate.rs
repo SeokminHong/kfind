@@ -13,7 +13,7 @@ pub use continuation::{PredicateContinuationMatch, verify_predicate_continuation
 
 use alternation::{
     aeo_surfaces, conditional_surface, eu_anchor, future_adnominal, past_adnominal,
-    polite_declarative, present_adnominal,
+    polite_declarative, present_adnominal, present_declarative,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -200,6 +200,12 @@ fn compile_productive(
             present_adnominal(stem)?,
             ContinuationState::Terminal,
         );
+        push_derived(
+            branches,
+            entry,
+            present_declarative(stem)?,
+            ContinuationState::Terminal,
+        );
     }
     push_derived(
         branches,
@@ -256,6 +262,17 @@ fn compile_copula(entry: &PredicateEntry, stem: &str, branches: &mut Vec<Surface
             vec![rule("lexical.copula"), rule(ending_rule)],
         );
     }
+
+    let past = add_final(&format!("{stem}어"), JONG_SSANGSIOT)
+        .expect("copula vowel ending accepts a past final");
+    push_branch(
+        branches,
+        entry,
+        past,
+        stem.len(),
+        ContinuationState::Past,
+        vec![rule("lexical.copula"), rule("ending.past")],
+    );
 }
 
 fn push_derived(

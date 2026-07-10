@@ -247,6 +247,7 @@ fn predicate_analysis(record: &kfind_data::PredicateRecord, source: AnalysisSour
                 | match flag.as_str() {
                     "EU_DROP" => PredicateFlags::EU_DROP,
                     "RIEUL_DROP" => PredicateFlags::RIEUL_DROP,
+                    "NO_I_EO_CONTRACTION" => PredicateFlags::NO_I_EO_CONTRACTION,
                     _ => PredicateFlags::NONE,
                 }
         });

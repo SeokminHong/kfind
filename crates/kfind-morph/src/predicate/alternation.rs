@@ -18,10 +18,10 @@ pub(super) fn aeo_surfaces(
         .into_iter()
         .collect::<Vec<_>>();
     match entry.alternation {
-        LexicalAlternation::Regular => regular_aeo(stem, lexical_rule),
+        LexicalAlternation::Regular => regular_aeo(entry, stem, lexical_rule),
         LexicalAlternation::DToL => {
             let altered = require_and_replace_final(entry, stem, JONG_DIGEUT, JONG_RIEUL)?;
-            regular_aeo(&altered, lexical_rule)
+            regular_aeo(entry, &altered, lexical_rule)
         }
         LexicalAlternation::DropS => {
             let altered = require_and_drop_final(entry, stem, JONG_SIOT)?;
@@ -125,7 +125,11 @@ pub(super) fn aeo_surfaces(
     }
 }
 
-fn regular_aeo(stem: &str, base_rules: Vec<RuleId>) -> Result<Vec<DerivedSurface>, GenerateError> {
+fn regular_aeo(
+    entry: &PredicateEntry,
+    stem: &str,
+    base_rules: Vec<RuleId>,
+) -> Result<Vec<DerivedSurface>, GenerateError> {
     let last = decompose_syllable(stem.chars().next_back().expect("stem"))
         .ok_or_else(|| GenerateError::InvalidLemma(stem.into()))?;
     if last.jongseong != JONG_NONE {
@@ -170,11 +174,16 @@ fn regular_aeo(stem: &str, base_rules: Vec<RuleId>) -> Result<Vec<DerivedSurface
         }
         JUNG_I => {
             surfaces.push(derived(format!("{stem}어"), stem.len(), base_rules.clone()));
-            surfaces.push(derived(
-                replace_last_vowel(stem, JUNG_YEO).expect("valid vowel replacement"),
-                stem.len(),
-                with_rule(base_rules, "contraction.i-eo"),
-            ));
+            if !entry
+                .flags
+                .contains(crate::PredicateFlags::NO_I_EO_CONTRACTION)
+            {
+                surfaces.push(derived(
+                    replace_last_vowel(stem, JUNG_YEO).expect("valid vowel replacement"),
+                    stem.len(),
+                    with_rule(base_rules, "contraction.i-eo"),
+                ));
+            }
         }
         JUNG_EU => {
             let harmony_vowel = preceding_harmony_vowel(stem).unwrap_or(JUNG_EO);
@@ -275,6 +284,28 @@ pub(super) fn present_adnominal(stem: &str) -> Result<DerivedSurface, GenerateEr
         format!("{base}는"),
         core_len,
         vec![rule("ending.present-adnominal")],
+    ))
+}
+
+pub(super) fn present_declarative(stem: &str) -> Result<DerivedSurface, GenerateError> {
+    let last = stem.chars().next_back().expect("stem");
+    let syllable =
+        decompose_syllable(last).ok_or_else(|| GenerateError::InvalidLemma(stem.into()))?;
+    let (base, surface) = if syllable.jongseong == JONG_NONE {
+        let base = add_final(stem, JONG_NIEUN).expect("vowel-final stem");
+        let surface = format!("{base}다");
+        (base, surface)
+    } else if syllable.jongseong == JONG_RIEUL {
+        let base = replace_last_final(stem, JONG_NIEUN).expect("rieul-final stem");
+        let surface = format!("{base}다");
+        (base, surface)
+    } else {
+        (stem.to_owned(), format!("{stem}는다"))
+    };
+    Ok(derived(
+        surface,
+        base.len(),
+        vec![rule("ending.declarative")],
     ))
 }
 
