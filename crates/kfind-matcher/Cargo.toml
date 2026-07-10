@@ -6,8 +6,10 @@ rust-version.workspace = true
 repository.workspace = true
 
 [dependencies]
+aho-corasick.workspace = true
 kfind-morph.workspace = true
 kfind-query.workspace = true
+memchr.workspace = true
 
 [lints]
 workspace = true
