@@ -21,7 +21,7 @@
 ### 0.2 토큰 경계와 phrase 거리
 
 - 토큰 문자는 Unicode 문자·숫자·결합 문자와 `_`다. 한글 완성형과 자모도 토큰 문자에 포함한다.
-- `smart`는 품사 verifier가 허용된 조사·어미를 소비한 token span의 바깥 경계를 검사한다. 체언, literal, 한 음절 atom은 core 시작도 토큰 경계여야 한다.
+- `smart`는 품사 verifier가 허용된 조사·어미를 소비한 token span의 바깥 경계를 검사한다. 체언, literal, 한 음절 atom은 core 시작도 토큰 경계여야 한다. 단, 조사를 직접 검색할 때는 붙은 조사를 찾을 수 있도록 core 왼쪽 경계 대신 바로 앞 host와 조사 이형태 조건을 검증한다.
 - `token`은 모든 품사에서 core 시작과 완성된 token span 끝의 토큰 경계를 검사한다.
 - `any`는 좌우 경계를 검사하지 않는다.
 - phrase의 `max-gap`은 앞 atom의 `token.end`와 다음 atom의 `token.start` 사이에 있는 Unicode scalar 수다. 음수이거나 순서가 뒤집힌 span은 결합하지 않는다.
@@ -734,7 +734,7 @@ right condition: 토큰 경계 또는 다음 한국어 토큰 시작
 과 ↔ 와
 ```
 
-한 음절 조사 검색은 hit가 많으므로 스마트 경계를 반드시 적용한다. `--boundary any`에서만 임의 부분 문자열을 허용한다.
+한 음절 조사 검색은 hit가 많으므로 `smart`에서 바로 앞 host의 받침 조건과 조사 뒤 토큰 경계를 검증한다. `token`은 독립 토큰 경계를 요구하고, `--boundary any`에서만 host 검증 없는 임의 부분 문자열을 허용한다.
 
 ### 10.7 감탄사
 

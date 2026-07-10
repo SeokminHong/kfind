@@ -35,7 +35,9 @@ pub(super) fn normalize_and_merge(
     let mut branches = Vec::<SurfaceBranch>::new();
     for draft in drafts {
         for (anchor, core_mapping) in normalized_forms(&draft, mode, atom_index)? {
-            let boundary_proof = boundary_proof(boundary, draft.smart_left, one_scalar_atom);
+            let allow_attached = matches!(draft.verifier, BranchVerifier::DirectParticle { .. });
+            let boundary_proof =
+                boundary_proof(boundary, draft.smart_left, one_scalar_atom, allow_attached);
             let key = BranchKey {
                 anchor: anchor.as_bytes().into(),
                 verifier: draft.verifier.clone(),
@@ -68,6 +70,7 @@ fn boundary_proof(
     policy: BoundaryPolicy,
     smart_left: bool,
     one_scalar_anchor: bool,
+    allow_attached: bool,
 ) -> BoundaryProof {
     match policy {
         BoundaryPolicy::Any => BoundaryProof {
@@ -81,7 +84,7 @@ fn boundary_proof(
             one_scalar_anchor,
         },
         BoundaryPolicy::Smart => BoundaryProof {
-            require_left: smart_left || one_scalar_anchor,
+            require_left: smart_left || (one_scalar_anchor && !allow_attached),
             require_right: true,
             one_scalar_anchor,
         },

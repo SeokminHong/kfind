@@ -34,6 +34,9 @@ pub enum BranchVerifier {
         allowed_rule_ids: Arc<[RuleId]>,
         blocked_rule_ids: Arc<[RuleId]>,
     },
+    DirectParticle {
+        rule_id: RuleId,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -47,6 +50,7 @@ impl BranchVerifier {
     pub fn accepts_rule_path(&self, rules: &[RuleId]) -> bool {
         match self {
             Self::Exact => rules.is_empty(),
+            Self::DirectParticle { .. } => rules.is_empty(),
             Self::Predicate {
                 allowed_rule_ids, ..
             } => rules.iter().all(|rule| {

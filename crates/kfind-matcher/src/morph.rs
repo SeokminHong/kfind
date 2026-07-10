@@ -180,6 +180,14 @@ impl MorphMatcher {
                 }
                 (matched.consumed_bytes, matched.rule_path)
             }
+            BranchVerifier::DirectParticle { rule_id } => {
+                if requires_direct_particle_host(branch)
+                    && !self.accepts_direct_particle(haystack, &hit.span, rule_id)
+                {
+                    return None;
+                }
+                (0, Vec::new())
+            }
         };
         let consumed_bytes = if let Some(normalized) = normalized_following.as_deref() {
             map_normalized_prefix(following, normalized, normalized_consumed_bytes)?
@@ -207,6 +215,60 @@ impl MorphMatcher {
             origins: extend_origins(&branch.origins, &suffix_rules),
         })
     }
+
+    fn accepts_direct_particle(
+        &self,
+        haystack: &[u8],
+        anchor_span: &Range<usize>,
+        rule_id: &RuleId,
+    ) -> bool {
+        let Some(anchor_bytes) = haystack.get(anchor_span.clone()) else {
+            return false;
+        };
+        let Ok(anchor) = std::str::from_utf8(anchor_bytes) else {
+            return false;
+        };
+        let Some(left_bytes) = haystack.get(..anchor_span.start) else {
+            return false;
+        };
+        let normalized_anchor = anchor.nfc().collect::<String>();
+        let normalized_left = valid_utf8_suffix(left_bytes).nfc().collect::<String>();
+        let Some(previous) = normalized_left.chars().next_back() else {
+            return false;
+        };
+        if !crate::is_token_character(previous) {
+            return false;
+        }
+        let normalized_context = format!("{normalized_left}{normalized_anchor}");
+        if self
+            .particle_verifier
+            .model()
+            .allomorphs
+            .iter()
+            .any(|form| {
+                &form.rule_id == rule_id
+                    && form.surface.len() > normalized_anchor.len()
+                    && form.surface.ends_with(&normalized_anchor)
+                    && normalized_context.ends_with(form.surface.as_ref())
+            })
+        {
+            return false;
+        }
+
+        self.particle_verifier
+            .model()
+            .allomorphs
+            .iter()
+            .any(|form| {
+                form.surface.as_ref() == normalized_anchor
+                    && &form.rule_id == rule_id
+                    && form.condition.accepts(previous)
+            })
+    }
+}
+
+fn requires_direct_particle_host(branch: &SurfaceBranch) -> bool {
+    !branch.boundary.require_left && branch.boundary.require_right
 }
 
 fn accepts_environment(

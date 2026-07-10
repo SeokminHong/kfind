@@ -275,9 +275,23 @@ fn compile_analysis(
             }
         }
         Morphology::Particle(particle) => {
-            let rules = particle.rule_id.iter().cloned().collect::<Vec<_>>();
             for variant in &particle.variants {
-                output.push(exact_branch(variant, analysis_index, rules.clone(), true));
+                if let Some(rule_id) = &particle.rule_id {
+                    output.push(DraftBranch {
+                        anchor: variant.to_string(),
+                        verifier: BranchVerifier::DirectParticle {
+                            rule_id: rule_id.clone(),
+                        },
+                        core_mapping: CoreMapping::WholeAnchor,
+                        origin: Origin {
+                            analysis_index,
+                            rule_path: vec![rule_id.clone()],
+                        },
+                        smart_left: false,
+                    });
+                } else {
+                    output.push(exact_branch(variant, analysis_index, Vec::new(), true));
+                }
             }
         }
         Morphology::Exact => unreachable!("exact morphology returned above"),

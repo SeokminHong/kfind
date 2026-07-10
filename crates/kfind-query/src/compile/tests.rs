@@ -133,6 +133,33 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
 }
 
 #[test]
+fn smart_direct_particle_uses_host_verification_instead_of_a_left_boundary() {
+    let smart = compile_query("는", &CompileOptions::default(), &analyzer()).unwrap();
+    assert!(smart.atoms[0].branches.iter().all(|branch| {
+        matches!(branch.verifier, BranchVerifier::DirectParticle { .. })
+            && !branch.boundary.require_left
+            && branch.boundary.require_right
+            && branch.boundary.one_scalar_anchor
+    }));
+
+    let token = compile_query(
+        "는",
+        &CompileOptions {
+            boundary: BoundaryPolicy::Token,
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    assert!(
+        token.atoms[0]
+            .branches
+            .iter()
+            .all(|branch| branch.boundary.require_left && branch.boundary.require_right)
+    );
+}
+
+#[test]
 fn smart_one_scalar_rule_uses_the_source_atom_not_generated_surfaces() {
     let plan = compile_query("이다", &CompileOptions::default(), &analyzer()).unwrap();
     for surface in ["인", "일"] {

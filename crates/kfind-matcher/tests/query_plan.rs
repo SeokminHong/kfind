@@ -2,7 +2,8 @@ use std::sync::Arc;
 
 use kfind_matcher::MorphMatcher;
 use kfind_query::{
-    CompileOptions, LexiconQueryAnalyzer, Lexicons, NormalizationMode, compile_query,
+    BoundaryPolicy, CompileOptions, LexiconQueryAnalyzer, Lexicons, NormalizationMode,
+    compile_query,
 };
 use unicode_normalization::UnicodeNormalization;
 
@@ -151,6 +152,50 @@ fn nominal_overrides_replace_the_same_base_particle_path() {
         let topic = format!("{query}는");
         assert!(matcher.find_at_with_meta(topic.as_bytes(), 0).is_some());
     }
+}
+
+#[test]
+fn direct_particle_plans_validate_the_attached_host_in_smart_mode() {
+    for (query, accepted, rejected) in [
+        ("는", ["사용자는", "권한은"], ["사용자은", "권한는"]),
+        ("로", ["길로", "학교로"], ["길으로", "집로"]),
+    ] {
+        let matcher = compile(query, CompileOptions::default());
+        for text in accepted {
+            assert!(
+                matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+                "direct particle query {query:?} rejected {text:?}"
+            );
+        }
+        for text in rejected {
+            assert!(
+                matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+                "direct particle query {query:?} accepted {text:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn direct_particle_plans_preserve_token_and_any_boundary_modes() {
+    let token = compile(
+        "는",
+        CompileOptions {
+            boundary: BoundaryPolicy::Token,
+            ..CompileOptions::default()
+        },
+    );
+    assert!(token.find_at_with_meta("는".as_bytes(), 0).is_some());
+    assert!(token.find_at_with_meta("사용자는".as_bytes(), 0).is_none());
+
+    let any = compile(
+        "는",
+        CompileOptions {
+            boundary: BoundaryPolicy::Any,
+            ..CompileOptions::default()
+        },
+    );
+    assert!(any.find_at_with_meta("권한는".as_bytes(), 0).is_some());
 }
 
 fn compile(query: &str, options: CompileOptions) -> MorphMatcher {
