@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
@@ -113,9 +114,9 @@ impl MorphMatcher {
     }
 
     fn find_phrase_at(&self, haystack: &[u8], at: usize) -> Option<PhraseMatch> {
-        let text = std::str::from_utf8(haystack).ok()?;
+        let text = phrase_join_text(haystack);
         let atom_spans = self.collect_atom_spans(haystack, at);
-        let matches = join_phrase_spans(text, &atom_spans, self.plan.phrase_policy).ok()?;
+        let matches = join_phrase_spans(&text, &atom_spans, self.plan.phrase_policy).ok()?;
         matches.into_iter().min_by(compare_phrase_matches)
     }
 
@@ -384,6 +385,31 @@ fn valid_utf8_prefix(bytes: &[u8]) -> &str {
         Err(error) => std::str::from_utf8(&bytes[..error.valid_up_to()])
             .expect("from_utf8 valid_up_to is always valid UTF-8"),
     }
+}
+
+fn phrase_join_text(bytes: &[u8]) -> Cow<'_, str> {
+    if let Ok(text) = std::str::from_utf8(bytes) {
+        return Cow::Borrowed(text);
+    }
+
+    let mut sanitized = bytes.to_vec();
+    let mut offset = 0;
+    while let Err(error) = std::str::from_utf8(&sanitized[offset..]) {
+        let invalid_start = offset + error.valid_up_to();
+        let invalid_len = error
+            .error_len()
+            .unwrap_or_else(|| sanitized.len().saturating_sub(invalid_start))
+            .max(1);
+        let invalid_end = invalid_start
+            .saturating_add(invalid_len)
+            .min(sanitized.len());
+        sanitized[invalid_start..invalid_end].fill(b'\n');
+        offset = invalid_end;
+    }
+    Cow::Owned(
+        String::from_utf8(sanitized)
+            .expect("replacing every invalid byte with ASCII yields valid UTF-8"),
+    )
 }
 
 fn valid_utf8_suffix(bytes: &[u8]) -> &str {

@@ -187,6 +187,44 @@ fn phrase_join_preserves_order_and_unicode_scalar_gap() {
 }
 
 #[test]
+fn phrase_join_ignores_invalid_utf8_outside_the_candidate_range() {
+    let first = atom(
+        BoundaryPolicy::Smart,
+        vec![nominal_branch("권한", rules(&["particle.object"]))],
+    );
+    let second = atom(BoundaryPolicy::Smart, vec![exact_branch("검증했다", true)]);
+    let matcher = matcher(vec![first, second], 4);
+    let mut bytes = b"prefix".to_vec();
+    bytes.push(0xff);
+    let phrase_start = bytes.len();
+    bytes.extend_from_slice(" 권한을 먼저 검증했다 suffix".as_bytes());
+    bytes.push(0xfe);
+
+    let matched = matcher
+        .find_at_with_meta(&bytes, 0)
+        .expect("invalid bytes outside the phrase must not suppress the match");
+    assert_eq!(
+        matched.span,
+        phrase_start + " ".len()..phrase_start + " 권한을 먼저 검증했다".len()
+    );
+}
+
+#[test]
+fn phrase_join_does_not_cross_an_invalid_utf8_gap() {
+    let first = atom(
+        BoundaryPolicy::Smart,
+        vec![nominal_branch("권한", rules(&["particle.object"]))],
+    );
+    let second = atom(BoundaryPolicy::Smart, vec![exact_branch("검증했다", true)]);
+    let matcher = matcher(vec![first, second], 24);
+    let mut bytes = "권한을 ".as_bytes().to_vec();
+    bytes.push(0xff);
+    bytes.extend_from_slice(" 검증했다".as_bytes());
+
+    assert!(matcher.find_at_with_meta(&bytes, 0).is_none());
+}
+
+#[test]
 fn grep_matcher_adapter_returns_verified_token_range() {
     let matcher = matcher(
         vec![atom(
