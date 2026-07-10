@@ -437,9 +437,12 @@ dependencies = [
 name = "kfind-testkit"
 version = "0.1.0"
 dependencies = [
+ "kfind-data",
  "kfind-matcher",
  "kfind-morph",
  "kfind-query",
+ "unicode-general-category",
+ "unicode-normalization",
 ]
 
 [[package]]
