@@ -85,9 +85,31 @@ pub fn build_walker(
                 .build()
                 .map_err(|error| WalkConfigError::FileType(error.to_string()))?,
         );
+        if !options.hidden && !options.selected_types.is_empty() {
+            builder.filter_entry(|entry| entry.depth() == 0 || !is_hidden(entry));
+        }
     }
 
     Ok(builder.build_parallel())
+}
+
+fn is_hidden(entry: &ignore::DirEntry) -> bool {
+    if entry.file_name().to_string_lossy().starts_with('.') {
+        return true;
+    }
+
+    #[cfg(windows)]
+    {
+        use std::os::windows::fs::MetadataExt as _;
+
+        const FILE_ATTRIBUTE_HIDDEN: u32 = 0x2;
+        return entry
+            .metadata()
+            .is_ok_and(|metadata| metadata.file_attributes() & FILE_ATTRIBUTE_HIDDEN != 0);
+    }
+
+    #[cfg(not(windows))]
+    false
 }
 
 #[derive(Debug)]
@@ -331,5 +353,46 @@ mod tests {
         );
 
         assert_eq!(files, [PathBuf::from("guide.mdx")]);
+    }
+
+    #[test]
+    fn file_type_filters_preserve_hidden_policy() {
+        let tree = TempTree::new();
+        tree.write("visible.rs", "visible");
+        let hidden = tree.write(".hidden.rs", "hidden");
+        let rust_files = |hidden_files| {
+            collect_files(
+                build_walker(
+                    std::slice::from_ref(&tree.0),
+                    &WalkOptions {
+                        hidden: hidden_files,
+                        selected_types: vec!["rust".to_owned()],
+                        ..WalkOptions::default()
+                    },
+                )
+                .unwrap(),
+            )
+        };
+
+        assert_eq!(
+            relative_files(&tree.0, rust_files(false)),
+            [PathBuf::from("visible.rs")]
+        );
+        assert_eq!(
+            relative_files(&tree.0, rust_files(true)),
+            [PathBuf::from(".hidden.rs"), PathBuf::from("visible.rs")]
+        );
+
+        let explicit = collect_files(
+            build_walker(
+                std::slice::from_ref(&hidden),
+                &WalkOptions {
+                    selected_types: vec!["rust".to_owned()],
+                    ..WalkOptions::default()
+                },
+            )
+            .unwrap(),
+        );
+        assert_eq!(explicit, [hidden]);
     }
 }
