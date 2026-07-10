@@ -146,13 +146,13 @@ pub struct Args {
     #[arg(short = 'A', long, value_name = "NUM")]
     pub after_context: Option<usize>,
 
-    #[arg(short = 'l', long)]
+    #[arg(short = 'l', long, conflicts_with_all = ["count", "quiet", "json"])]
     pub files_with_matches: bool,
 
-    #[arg(short = 'c', long)]
+    #[arg(short = 'c', long, conflicts_with_all = ["quiet", "json"])]
     pub count: bool,
 
-    #[arg(short = 'q', long)]
+    #[arg(short = 'q', long, conflicts_with = "json")]
     pub quiet: bool,
 
     #[arg(long)]
@@ -164,7 +164,7 @@ pub struct Args {
     #[arg(long)]
     pub column: bool,
 
-    #[arg(long)]
+    #[arg(long, conflicts_with = "json")]
     pub explain_query: bool,
 
     #[arg(long)]

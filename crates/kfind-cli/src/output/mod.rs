@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::io::{self, Write};
+use std::path::Path;
 
 use kfind_query::QueryPlan;
 use kfind_search::FileSearchResult;
@@ -186,4 +187,8 @@ impl Error for OutputError {
             Self::Json(error) => Some(error),
         }
     }
+}
+
+pub(crate) fn write_safe_path(writer: &mut impl Write, path: &Path) -> io::Result<()> {
+    text::write_safe_bytes(writer, &text::path_bytes(path))
 }

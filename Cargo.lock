@@ -353,6 +353,7 @@ version = "0.1.0"
 dependencies = [
  "base64",
  "clap",
+ "kfind-data",
  "kfind-matcher",
  "kfind-morph",
  "kfind-query",
