@@ -14,6 +14,18 @@ pub struct WalkOptions {
     pub current_dir: Option<PathBuf>,
 }
 
+#[must_use]
+pub fn resolve_search_paths(paths: &[PathBuf], stdin_is_terminal: bool) -> Vec<PathBuf> {
+    if !paths.is_empty() {
+        return paths.to_vec();
+    }
+    if stdin_is_terminal {
+        vec![PathBuf::from(".")]
+    } else {
+        vec![PathBuf::from("-")]
+    }
+}
+
 pub fn build_walker(
     paths: &[PathBuf],
     options: &WalkOptions,
@@ -191,6 +203,15 @@ mod tests {
         let error = unwrap_build_error(build_walker(&[], &WalkOptions::default()));
 
         assert_eq!(error.to_string(), "at least one search path is required");
+    }
+
+    #[test]
+    fn omitted_paths_select_stdin_or_current_directory() {
+        assert_eq!(resolve_search_paths(&[], false), [PathBuf::from("-")]);
+        assert_eq!(resolve_search_paths(&[], true), [PathBuf::from(".")]);
+
+        let explicit = [PathBuf::from("src"), PathBuf::from("-")];
+        assert_eq!(resolve_search_paths(&explicit, true), explicit);
     }
 
     #[test]
