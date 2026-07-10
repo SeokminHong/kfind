@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use serde::Deserialize;
 use serde::de::DeserializeOwned;
 
@@ -30,6 +32,7 @@ pub enum EndingInitial {
     AttachNieun,
     AttachRieul,
     AttachBieup,
+    AttachMieum,
     Other,
 }
 
@@ -128,6 +131,46 @@ pub struct RuleSources<'a> {
     pub particles: &'a str,
 }
 
+#[derive(Debug, Default)]
+pub(super) struct RuleLocations {
+    by_id: BTreeMap<(String, String), SourceLocation>,
+}
+
+impl RuleLocations {
+    fn from_sources(sources: RuleSources<'_>) -> Self {
+        let mut locations = Self::default();
+        for (source, input) in [
+            ("data/rules/endings.toml", sources.endings),
+            ("data/rules/alternations.toml", sources.alternations),
+            ("data/rules/contractions.toml", sources.contractions),
+            ("data/rules/derivations.toml", sources.derivations),
+            ("data/rules/particles.toml", sources.particles),
+        ] {
+            for (index, line) in input.lines().enumerate() {
+                let trimmed = line.trim();
+                let Some(id) = trimmed
+                    .strip_prefix("id = \"")
+                    .and_then(|value| value.strip_suffix('"'))
+                else {
+                    continue;
+                };
+                locations
+                    .by_id
+                    .entry((source.to_owned(), id.to_owned()))
+                    .or_insert_with(|| SourceLocation::at_line(source, index + 1));
+            }
+        }
+        locations
+    }
+
+    pub(super) fn get(&self, source: &str, id: &str) -> SourceLocation {
+        self.by_id
+            .get(&(source.to_owned(), id.to_owned()))
+            .cloned()
+            .unwrap_or_else(|| SourceLocation::new(source))
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct EndingsFile {
@@ -191,6 +234,7 @@ struct ParticlesFile {
 }
 
 pub fn parse_rule_set(sources: RuleSources<'_>) -> Result<RuleSet, DataError> {
+    let locations = RuleLocations::from_sources(sources);
     let endings_file: EndingsFile = parse_toml("data/rules/endings.toml", sources.endings)?;
     require_schema("data/rules/endings.toml", endings_file.schema_version)?;
     if endings_file.max_continuation_depth == 0 || endings_file.max_continuation_depth > 4 {
@@ -274,7 +318,7 @@ pub fn parse_rule_set(sources: RuleSources<'_>) -> Result<RuleSet, DataError> {
         derivations,
         particles: particles_file.particles,
     };
-    validate_rules(&rules)?;
+    validate_rules(&rules, &locations)?;
     Ok(rules)
 }
 

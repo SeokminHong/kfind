@@ -3,11 +3,13 @@ use std::io::BufRead;
 
 use unicode_normalization::UnicodeNormalization;
 
-use crate::binary::PosLexiconEntry;
+use crate::binary::{ApprovedPosLexicon, PosLexiconEntry};
 use crate::lexicon::DataFinePos;
 use crate::{DataError, DataErrorKind};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+/// Unapproved extraction output. Predicate entries in this value must not be
+/// passed to the release encoder before gold approval.
 pub struct MecabExtraction {
     entries: Vec<PosLexiconEntry>,
     pub rows_read: usize,
@@ -18,20 +20,61 @@ pub struct MecabExtraction {
     pub normalized_headwords: usize,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct GoldApprovedMecabLexicon {
+    pos_lexicon: ApprovedPosLexicon,
+}
+
+impl GoldApprovedMecabLexicon {
+    pub fn pos_lexicon(&self) -> &ApprovedPosLexicon {
+        &self.pos_lexicon
+    }
+
+    pub fn into_pos_lexicon(self) -> ApprovedPosLexicon {
+        self.pos_lexicon
+    }
+}
+
 impl MecabExtraction {
     pub fn candidates(&self) -> &[PosLexiconEntry] {
         &self.entries
     }
 
-    pub fn retain_gold_approved_predicates(
+    pub fn approve_predicates(
         &self,
         approved: &BTreeSet<PosLexiconEntry>,
-    ) -> Vec<PosLexiconEntry> {
-        self.entries
+    ) -> GoldApprovedMecabLexicon {
+        let entries = self
+            .entries
             .iter()
             .filter(|entry| !entry.pos.is_predicate() || approved.contains(*entry))
             .cloned()
-            .collect()
+            .collect();
+        GoldApprovedMecabLexicon {
+            pos_lexicon: ApprovedPosLexicon::from_entries(entries),
+        }
+    }
+
+    /// Merges extraction output from multiple mecab-ko-dic CSV files while
+    /// keeping the combined value behind the gold-approval boundary.
+    pub fn merge(mut self, other: Self) -> Self {
+        let entries_before_deduplication = self.entries.len() + other.entries.len();
+        self.entries.extend(other.entries);
+        self.entries.sort_unstable();
+        self.entries.dedup();
+
+        self.rows_read += other.rows_read;
+        self.skipped_analysis_rows += other.skipped_analysis_rows;
+        self.skipped_unsupported_pos += other.skipped_unsupported_pos;
+        self.duplicate_entries +=
+            other.duplicate_entries + entries_before_deduplication - self.entries.len();
+        self.predicate_candidates_requiring_gold = self
+            .entries
+            .iter()
+            .filter(|entry| entry.pos.is_predicate())
+            .count();
+        self.normalized_headwords += other.normalized_headwords;
+        self
     }
 }
 

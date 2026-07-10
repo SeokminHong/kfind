@@ -78,7 +78,7 @@ initial = "a-or-eo"
 forms = ["아", "어"]
 required = []
 forbidden = []
-next = []
+next = ["ending.connective-seo", "ending.connective-do", "ending.connective-ya", "ending.polite-yo", "ending.imperative-ra"]
 terminal = true
 
 [[ending]]
@@ -98,7 +98,87 @@ initial = "a-or-eo"
 forms = ["았", "었"]
 required = []
 forbidden = []
-next = ["ending.final-da", "ending.polite-declarative"]
+next = ["ending.final-da", "ending.declarative", "ending.polite-declarative", "ending.conditional", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go"]
+terminal = true
+
+[[ending]]
+id = "ending.connective-seo"
+category = "connective"
+initial = "other"
+forms = ["서"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.connective-do"
+category = "connective"
+initial = "other"
+forms = ["도"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.connective-ya"
+category = "connective"
+initial = "other"
+forms = ["야"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.polite-yo"
+category = "final"
+initial = "other"
+forms = ["요"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.imperative-ra"
+category = "final"
+initial = "other"
+forms = ["라"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.connective-jiman"
+category = "connective"
+initial = "other"
+forms = ["지만"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.connective-neunde"
+category = "connective"
+initial = "other"
+forms = ["는데"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.declarative"
+category = "final"
+initial = "other"
+forms = ["다"]
+required = []
+forbidden = []
+next = []
 terminal = true
 
 [[ending]]
@@ -154,7 +234,7 @@ terminal = true
 [[ending]]
 id = "ending.nominalizer"
 category = "nominalizer"
-initial = "attach-nieun"
+initial = "attach-mieum"
 forms = ["ㅁ", "음"]
 required = []
 forbidden = []

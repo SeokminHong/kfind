@@ -60,3 +60,345 @@ query	pos	text	expected	feature
 나	pronoun	내가 확인했다.	match	pronoun-override
 너	pronoun	네가 확인했다.	match	pronoun-override
 저	pronoun	제가 확인했다.	match	pronoun-override
+걷다	verb	아침마다 공원을 걷고 돌아온다.	match	d-irregular
+걷다	verb	강변을 걷는 사람이 많다.	match	d-irregular
+걷다	verb	오늘 걸은 거리를 기록했다.	match	d-irregular
+걷다	verb	내일 걸을 길을 미리 살폈다.	match	d-irregular
+걷다	verb	천천히 걸으시면 됩니다.	match	d-irregular
+걷다	verb	손님이 오래 걸었습니다.	match	d-irregular
+걷다	verb	비가 왔지만 계속 걸었다.	match	d-irregular
+걷다	verb	커튼을 걷어 햇빛을 들였다.	match	regular
+걷다	verb	바지를 걷고 개울을 건넜다.	match	regular
+걷다	verb	천막을 걷는 작업이 시작됐다.	match	regular
+걷다	verb	소매를 걷으면 편하다.	match	regular
+듣다	verb	안내를 듣고 출발했다.	match	d-irregular
+듣다	verb	음악을 듣는 시간이 좋다.	match	d-irregular
+듣다	verb	방금 들은 소식을 전했다.	match	d-irregular
+듣다	verb	내일 들을 강의를 골랐다.	match	d-irregular
+듣다	verb	설명을 들으시면 이해됩니다.	match	d-irregular
+듣다	verb	질문을 잘 들었습니다.	match	d-irregular
+듣다	verb	노래를 듣어 보았다.	no-match	d-irregular
+듣다	verb	설명을 듣었다.	no-match	d-irregular
+듣다	verb	강의를 걸으면 좋다.	no-match	d-irregular
+싣다	verb	상자를 싣고 창고로 갔다.	match	d-irregular
+싣다	verb	화물을 싣는 차량이 도착했다.	match	d-irregular
+싣다	verb	배에 실은 짐을 확인했다.	match	d-irregular
+싣다	verb	차에 실을 장비를 골랐다.	match	d-irregular
+싣다	verb	짐을 실으면 문이 닫히지 않는다.	match	d-irregular
+싣다	verb	화물을 실으셨다.	match	d-irregular
+싣다	verb	짐을 싣어 보냈다.	no-match	d-irregular
+묻다	verb	주민에게 길을 묻고 출발했다.	match	d-irregular
+묻다	verb	경찰이 물은 내용을 적었다.	match	d-irregular
+묻다	verb	담당자에게 물으면 알 수 있다.	match	d-irregular
+묻다	verb	씨앗을 흙에 묻고 물을 주었다.	match	regular
+묻다	verb	땅에 묻은 상자를 찾았다.	match	regular
+묻다	verb	흙에 묻으면 오래 보관된다.	match	regular
+묻다	verb	길을 무러 보았다.	no-match	d-irregular
+먹다	verb	아침을 먹고 학교에 갔다.	match	regular
+먹다	verb	밥을 먹는 아이가 웃었다.	match	regular
+먹다	verb	방금 먹은 빵이 따뜻했다.	match	regular
+먹다	verb	점심에 먹을 메뉴를 정했다.	match	regular
+먹다	verb	약을 먹으면 곧 나아진다.	match	regular
+먹다	verb	저는 채소를 잘 먹습니다.	match	regular
+먹다	verb	밥을 먹어 배가 불렀다.	match	regular
+먹다	verb	밥을 먹아 보았다.	no-match	regular
+가다	verb	친구와 함께 가고 싶다.	match	regular
+가다	verb	서울로 가는 기차를 탔다.	match	regular
+가다	verb	어제 간 식당이 조용했다.	match	regular
+가다	verb	내일 갈 장소를 정했다.	match	regular
+가다	verb	지금 가면 늦지 않는다.	match	regular
+가다	verb	저는 먼저 갑니다.	match	regular
+가다	verb	학교에 가어 공부했다.	no-match	regular
+보다	verb	영화를 보고 집에 왔다.	match	regular
+보다	verb	창밖을 보는 아이가 있다.	match	regular
+보다	verb	어제 본 공연이 훌륭했다.	match	regular
+보다	verb	주말에 볼 영화를 골랐다.	match	regular
+보다	verb	직접 보면 이해하기 쉽다.	match	regular
+보다	verb	결과를 자세히 봅니다.	match	regular
+보다	verb	자료를 보았지만 답을 못 찾았다.	match	regular
+보다	verb	문서를 봤는데 문제가 없었다.	match	regular
+보다	verb	문서를 보어 확인했다.	no-match	regular
+되다	verb	계획대로 되고 있다.	match	regular
+되다	verb	도움이 되는 자료를 모았다.	match	regular
+되다	verb	이미 된 일을 되돌릴 수 없다.	match	regular
+되다	verb	앞으로 될 일을 준비했다.	match	regular
+되다	verb	준비가 되면 연락해 주세요.	match	regular
+되다	verb	곧 준비가 됩니다.	match	regular
+되다	verb	작업이 되었다고 알렸다.	match	regular
+되다	verb	설정이 됐지만 다시 확인했다.	match	regular
+되다	verb	준비가 되여 있다.	no-match	regular
+믿다	verb	친구를 믿고 기다렸다.	match	regular
+믿다	verb	약속을 믿는 사람이 많다.	match	regular
+믿다	verb	내가 믿은 이야기는 사실이었다.	match	regular
+믿다	verb	앞으로 믿을 기준이 필요하다.	match	regular
+믿다	verb	서로 믿으면 힘이 된다.	match	regular
+믿다	verb	저는 그 말을 믿습니다.	match	regular
+믿다	verb	그의 설명을 믿어 보기로 했다.	match	regular
+믿다	verb	친구의 말을 밀어 보았다.	no-match	regular
+벗다	verb	외투를 벗고 방에 들어갔다.	match	regular
+벗다	verb	신발을 벗는 곳이다.	match	regular
+벗다	verb	방금 벗은 옷을 걸었다.	match	regular
+벗다	verb	나중에 벗을 장갑을 챙겼다.	match	regular
+벗다	verb	모자를 벗으면 시원하다.	match	regular
+벗다	verb	두꺼운 외투를 벗어 두었다.	match	regular
+벗다	verb	외투를 버어 두었다.	no-match	regular
+좋다	adjective	날씨가 좋아 산책했다.	match	regular
+좋다	adjective	기분이 좋았다.	match	regular
+좋다	adjective	좋은 소식을 들었다.	match	regular
+좋다	adjective	더 좋을 방법을 찾았다.	match	regular
+좋다	adjective	상태가 좋으면 출발한다.	match	regular
+좋다	adjective	결과가 조아 보인다.	no-match	regular
+아니다	adjective	그 답은 아니고 다른 답이다.	match	regular
+아니다	adjective	사실이 아니어서 정정했다.	match	regular
+아니다	adjective	범인이 아닌 사람이 풀려났다.	match	regular
+아니다	adjective	정답이 아닐 가능성이 있다.	match	regular
+아니다	adjective	내 것이 아니면 돌려주세요.	match	regular
+아니다	adjective	그것은 제 답이 아닙니다.	match	regular
+아니다	adjective	정답이 아니어도 괜찮다.	match	regular
+아니다	adjective	정답이 아녀서 틀렸다.	no-match	regular
+짓다	verb	새 집을 짓고 있다.	match	s-irregular
+짓다	verb	건물을 짓는 인부가 바쁘다.	match	s-irregular
+짓다	verb	지난해 지은 집이 완성됐다.	match	s-irregular
+짓다	verb	앞으로 지을 학교를 설계했다.	match	s-irregular
+짓다	verb	집을 지으면 마당도 만들겠다.	match	s-irregular
+짓다	verb	창고를 지으셨다.	match	s-irregular
+짓다	verb	집을 짓어 올렸다.	no-match	s-irregular
+낫다	adjective	감기가 나아 다행이다.	match	s-irregular
+낫다	adjective	어제보다 나은 선택이다.	match	s-irregular
+낫다	adjective	상태가 나으면 퇴원한다.	match	s-irregular
+낫다	adjective	증상이 낫아 보인다.	no-match	s-irregular
+잇다	verb	실을 이어 매듭을 지었다.	match	s-irregular
+잇다	verb	세대를 잇는 전통이다.	match	s-irregular
+잇다	verb	두 길을 이은 다리를 건넜다.	match	s-irregular
+잇다	verb	두 점을 이으면 선이 된다.	match	s-irregular
+잇다	verb	두 선을 잇어 그렸다.	no-match	s-irregular
+돕다	verb	이웃을 도와 짐을 옮겼다.	match	b-irregular-wa
+돕다	verb	서로 도우면 일이 빨리 끝난다.	match	b-irregular-wa
+돕다	verb	나를 도운 친구에게 감사했다.	match	b-irregular-wa
+돕다	verb	앞으로 도울 사람을 찾았다.	match	b-irregular-wa
+돕다	verb	모두가 돕고 나섰다.	match	b-irregular-wa
+돕다	verb	어려운 이웃을 돕습니다.	match	b-irregular-wa
+돕다	verb	친구를 돕어 주었다.	no-match	b-irregular-wa
+눕다	verb	잠시 누워 눈을 감았다.	match	b-irregular-wo
+눕다	verb	침대에 누우면 편안하다.	match	b-irregular-wo
+눕다	verb	바닥에 누운 아이가 잠들었다.	match	b-irregular-wo
+눕다	verb	잠깐 누울 자리를 찾았다.	match	b-irregular-wo
+눕다	verb	소파에 눕고 싶다.	match	b-irregular-wo
+눕다	verb	침대에 눕습니다.	match	b-irregular-wo
+눕다	verb	침대에 눕어 쉬었다.	no-match	b-irregular-wo
+아름답다	adjective	노을이 아름다워 모두 멈춰 섰다.	match	b-irregular-wo
+아름답다	adjective	더 아름다운 정원을 만들었다.	match	b-irregular-wo
+아름답다	adjective	풍경이 아름다우면 오래 머문다.	match	b-irregular-wo
+아름답다	adjective	아름다울 장면을 상상했다.	match	b-irregular-wo
+아름답다	adjective	경치가 아름답어 보였다.	no-match	b-irregular-wo
+파랗다	adjective	바다가 파래 보였다.	match	h-irregular
+파랗다	adjective	파란 셔츠를 골랐다.	match	h-irregular
+파랗다	adjective	하늘이 파라면 비가 오지 않는다.	match	h-irregular
+파랗다	adjective	하늘이 파랗고 맑았다.	match	h-irregular
+파랗다	adjective	하늘이 파랗어 보였다.	no-match	h-irregular
+그렇다	adjective	결과가 그래 모두 놀랐다.	match	h-irregular
+그렇다	adjective	그런 이유라면 이해한다.	match	h-irregular
+그렇다	adjective	사정이 그러면 기다리겠다.	match	h-irregular
+그렇다	adjective	상황이 그렇고 답답했다.	match	h-irregular
+그렇다	adjective	상황이 그렇어 보인다.	no-match	h-irregular
+빠르다	adjective	응답이 빨라 만족스럽다.	match	reu-irregular
+빠르다	adjective	더 빠른 길을 선택했다.	match	reu-irregular
+빠르다	adjective	처리가 빠르면 좋겠다.	match	reu-irregular
+빠르다	adjective	가장 빠를 방법을 찾았다.	match	reu-irregular
+빠르다	adjective	속도가 빠르고 안정적이다.	match	reu-irregular
+빠르다	adjective	처리가 빠르어졌다.	no-match	reu-irregular
+부르다	verb	친구를 불러 함께 갔다.	match	reu-irregular
+부르다	verb	노래를 부르는 아이가 있다.	match	reu-irregular
+부르다	verb	어제 부른 노래를 기억한다.	match	reu-irregular
+부르다	verb	내일 부를 곡을 연습했다.	match	reu-irregular
+부르다	verb	이름을 부르면 대답한다.	match	reu-irregular
+부르다	verb	이름을 부르어 보았다.	no-match	reu-irregular
+모르다	verb	답을 몰라 질문했다.	match	reu-irregular
+모르다	verb	내가 모르는 내용이 많다.	match	reu-irregular
+모르다	verb	미처 몰랐던 사실을 알았다.	match	reu-irregular
+모르다	verb	모르면 먼저 물어보세요.	match	reu-irregular
+모르다	verb	정답을 모르어 망설였다.	no-match	reu-irregular
+푸르다	adjective	들판이 푸르러 눈이 시원했다.	match	reo-irregular
+푸르다	adjective	산이 더욱 푸르러졌다.	match	reo-irregular
+푸르다	adjective	푸른 숲길을 걸었다.	match	reo-irregular
+푸르다	adjective	숲이 푸르면 마음이 편하다.	match	reo-irregular
+푸르다	adjective	바다가 푸르고 깊었다.	match	reo-irregular
+푸르다	adjective	숲이 푸러 보였다.	no-match	reo-irregular
+쓰다	verb	편지를 써 우체통에 넣었다.	match	eu-drop
+쓰다	verb	글을 쓰는 습관을 들였다.	match	eu-drop
+쓰다	verb	어제 쓴 메모를 찾았다.	match	eu-drop
+쓰다	verb	내일 쓸 종이를 준비했다.	match	eu-drop
+쓰다	verb	연필로 쓰면 잘 보인다.	match	eu-drop
+쓰다	verb	글을 쓰어 두었다.	no-match	eu-drop
+크다	adjective	아이가 몰라보게 커 있었다.	match	eu-drop
+크다	adjective	큰 상자를 옮겼다.	match	eu-drop
+크다	adjective	더 클 집을 알아보았다.	match	eu-drop
+크다	adjective	규모가 크면 시간이 걸린다.	match	eu-drop
+크다	adjective	상자가 크어 보였다.	no-match	eu-drop
+예쁘다	adjective	꽃이 예뻐 사진을 찍었다.	match	eu-drop
+예쁘다	adjective	예쁜 그릇을 선물했다.	match	eu-drop
+예쁘다	adjective	더 예쁠 색을 골랐다.	match	eu-drop
+예쁘다	adjective	옷이 예쁘면 사고 싶다.	match	eu-drop
+예쁘다	adjective	옷이 예쁘어 눈에 띄었다.	no-match	eu-drop
+푸다	verb	우물에서 물을 퍼 올렸다.	match	u-irregular
+푸다	verb	국을 퍼 그릇에 담았다.	match	u-irregular
+푸다	verb	물을 푸는 도구를 찾았다.	match	u-irregular
+푸다	verb	그릇에 푼 국을 식탁에 놓았다.	match	u-irregular
+푸다	verb	물을 푸면 바닥이 보인다.	match	u-irregular
+푸다	verb	물을 푸어 올렸다.	no-match	u-irregular
+하다	verb	숙제를 하고 잠자리에 들었다.	match	ha
+하다	verb	운동을 하는 사람이 많다.	match	ha
+하다	verb	어제 한 일을 기록했다.	match	ha
+하다	verb	내일 할 일을 정리했다.	match	ha
+하다	verb	지금 하면 금방 끝난다.	match	ha
+하다	verb	제가 먼저 합니다.	match	ha
+하다	verb	그 일을 하어 두었다.	no-match	ha
+검증하다	verb	입력을 검증하고 저장했다.	match	ha
+검증하다	verb	권한을 검증하는 코드를 고쳤다.	match	ha
+검증하다	verb	어제 검증한 결과를 공유했다.	match	ha
+검증하다	verb	내일 검증할 항목을 정리했다.	match	ha
+검증하다	verb	조건을 검증하면 오류를 줄일 수 있다.	match	ha
+검증하다	verb	서버가 요청을 검증합니다.	match	ha
+검증하다	verb	권한을 검증하어 보았다.	no-match	ha
+살다	verb	시골에서 살고 농사를 짓는다.	match	rieul-drop
+살다	verb	혼자 사는 집이 넓다.	match	rieul-drop
+살다	verb	오래 산 마을을 떠났다.	match	rieul-drop
+살다	verb	앞으로 살 집을 구했다.	match	rieul-drop
+살다	verb	여기서 살면 편리하다.	match	rieul-drop
+살다	verb	이곳에서 살는 사람이다.	no-match	rieul-drop
+알다	verb	답을 알고 손을 들었다.	match	rieul-drop
+알다	verb	사실을 아는 사람이 없다.	match	rieul-drop
+알다	verb	내가 안 내용을 설명했다.	match	rieul-drop
+알다	verb	곧 알 사실을 숨기지 않았다.	match	rieul-drop
+알다	verb	저는 그 사실을 압니다.	match	rieul-drop
+알다	verb	사실을 알는 사람이 없다.	no-match	rieul-drop
+만들다	verb	모형을 만들고 사진을 찍었다.	match	rieul-drop
+만들다	verb	가구를 만드는 공방이다.	match	rieul-drop
+만들다	verb	직접 만든 빵을 나누었다.	match	rieul-drop
+만들다	verb	내일 만들 계획을 세웠다.	match	rieul-drop
+만들다	verb	저희가 직접 만듭니다.	match	rieul-drop
+만들다	verb	가구를 만들는 공방이다.	no-match	rieul-drop
+이다	copula	그는 학생이다.	match	copula
+이다	copula	학생이어서 규칙을 지켰다.	match	copula
+이다	copula	학생이어도 참여할 수 있다.	match	copula
+이다	copula	학생인 친구가 도착했다.	match	copula
+이다	copula	학생일 때 많이 배웠다.	match	copula
+이다	copula	문제는 시간이었다.	match	copula
+이다	copula	그는 학생이고 친구는 교사다.	match	copula
+이다	copula	그는 학생이여서 참석했다.	no-match	copula
+사용자	noun	사용자가 설정을 바꾸었다.	match	particle-final-pair
+사용자	noun	사용자를 목록에 추가했다.	match	particle-final-pair
+사용자	noun	사용자와 관리자가 대화했다.	match	particle-final-pair
+사용자	noun	사용자로 등록했다.	match	particle-euro-ro
+사용자	noun	사용자에게 메일을 보냈다.	match	particle-chain
+사용자	noun	사용자한테 결과를 알렸다.	match	particle-chain
+사용자	noun	사용자께 안내문을 드렸다.	match	particle-chain
+사용자	noun	사용자의 권한을 확인했다.	match	particle-chain
+사용자	noun	사용자에게는 권한이 있다.	match	particle-chain
+사용자	noun	사용자에게만 보이는 메뉴다.	match	particle-chain
+사용자	noun	사용자들도 결과를 받았다.	match	particle-chain
+사용자	noun	사용자들만 입장할 수 있다.	match	particle-chain
+사용자	noun	사용자들로 파일을 분류했다.	match	particle-chain
+사용자	noun	사용자들으로 파일을 분류했다.	no-match	particle-euro-ro
+권한	noun	권한이 있어야 접근할 수 있다.	match	particle-final-pair
+권한	noun	권한을 먼저 확인했다.	match	particle-final-pair
+권한	noun	권한과 역할을 함께 저장했다.	match	particle-final-pair
+권한	noun	권한으로 접근 범위를 나누었다.	match	particle-euro-ro
+권한	noun	권한에서 파생된 규칙이다.	match	particle-chain
+권한	noun	권한부터 다시 검토했다.	match	particle-chain
+권한	noun	권한만 변경했다.	match	particle-chain
+권한	noun	권한도 함께 삭제했다.	match	particle-chain
+권한	noun	권한가 있어야 한다.	no-match	particle-final-pair
+권한	noun	권한를 확인했다.	no-match	particle-final-pair
+권한	noun	권한와 역할을 저장했다.	no-match	particle-final-pair
+권한	noun	권한로 범위를 나누었다.	no-match	particle-euro-ro
+길	noun	길이 멀어도 계속 걸었다.	match	particle-final-pair
+길	noun	길을 따라 천천히 걸었다.	match	particle-final-pair
+길	noun	길과 강이 나란히 이어졌다.	match	particle-final-pair
+길	noun	길은 산 아래로 이어졌다.	match	particle-final-pair
+길	noun	길에서도 표지판이 보였다.	match	particle-chain
+길	noun	길부터 다시 살펴보았다.	match	particle-chain
+길	noun	길만 따라가면 된다.	match	particle-chain
+길	noun	길가 넓게 이어졌다.	no-match	particle-final-pair
+길	noun	길를 따라 걸었다.	no-match	particle-final-pair
+길	noun	길와 강이 만났다.	no-match	particle-final-pair
+검증	noun	검증이 끝나 결과를 보냈다.	match	particle-final-pair
+검증	noun	검증을 다시 수행했다.	match	particle-final-pair
+검증	noun	검증과 배포를 자동화했다.	match	particle-final-pair
+검증	noun	검증으로 오류를 줄였다.	match	particle-euro-ro
+검증	noun	검증에서 발견된 문제다.	match	particle-chain
+검증	noun	검증만 먼저 실행했다.	match	particle-chain
+검증	noun	검증를 다시 수행했다.	no-match	particle-final-pair
+검증	noun	검증로 오류를 줄였다.	no-match	particle-euro-ro
+기술	noun	기술은 빠르게 변한다.	match	particle-final-pair
+기술	noun	기술이 발전했다.	match	particle-final-pair
+기술	noun	기술을 문서에 정리했다.	match	particle-final-pair
+기술	noun	기술로 문제를 해결했다.	match	particle-euro-ro
+기술	noun	기술으로 문제를 해결했다.	no-match	particle-euro-ro
+단순	noun	단순을 목표로 구조를 고쳤다.	match	particle-final-pair
+단순	noun	단순으로 분류한 항목이다.	match	particle-euro-ro
+단순	noun	단순로 분류한 항목이다.	no-match	particle-euro-ro
+나	pronoun	내가 먼저 문을 열었다.	match	pronoun-override
+나	pronoun	나는 내일 출발한다.	match	particle-final-pair
+나	pronoun	나를 믿어 주세요.	match	particle-final-pair
+나	pronoun	나가 먼저 확인했다.	no-match	pronoun-override
+너	pronoun	네가 고른 책이 좋다.	match	pronoun-override
+너	pronoun	너는 어떤 생각이니.	match	particle-final-pair
+너	pronoun	너를 기다리고 있었다.	match	particle-final-pair
+너	pronoun	너가 고른 책이다.	no-match	pronoun-override
+저	pronoun	제가 직접 설명하겠습니다.	match	pronoun-override
+저	pronoun	저는 처음 왔습니다.	match	particle-final-pair
+저	pronoun	저를 따라오세요.	match	particle-final-pair
+저	pronoun	저가 직접 설명했다.	no-match	pronoun-override
+권한	noun	사용자권한을 한 단어로 저장했다.	no-match	particle-final-pair
+권한	noun	권한관리 화면을 열었다.	no-match	particle-final-pair
+권한	noun	사용자의 권한을 확인했다.	match	particle-final-pair
+길	noun	길잡이가 앞장섰다.	no-match	particle-final-pair
+길	noun	산길을 천천히 걸었다.	no-match	particle-final-pair
+길	noun	좁은 길을 천천히 걸었다.	match	particle-final-pair
+새	determiner	새 기능을 문서에 추가했다.	match	regular
+새	determiner	새 사용자가 가입했다.	match	regular
+새	determiner	새로운 기능을 공개했다.	no-match	regular
+새	noun	새가 창문 위에 앉았다.	match	particle-final-pair
+새	noun	새를 멀리서 바라보았다.	match	particle-final-pair
+새	noun	새로운 소식이 도착했다.	no-match	particle-final-pair
+빨리	adverb	빨리 문을 닫아 주세요.	match	regular
+빨리	adverb	일을 빨리도 끝냈다.	no-match	regular
+잘	adverb	설명을 잘 이해했다.	match	regular
+잘	adverb	잘못된 값을 고쳤다.	no-match	regular
+아	interjection	아, 이제 이해했다.	match	regular
+아	interjection	아래쪽 버튼을 눌렀다.	no-match	regular
+n:권한 v:검증하다	literal	권한을 검증했다.	match	ha
+n:권한 v:검증하다	literal	권한 검증하는 코드를 확인했다.	match	ha
+n:권한 v:검증하다	literal	권한을 먼저 확인한 뒤 검증한다.	match	ha
+n:권한 v:검증하다	literal	권한을 꼼꼼히 검증했습니다.	match	ha
+n:권한 v:검증하다	literal	검증을 마친 뒤 권한을 부여했다.	no-match	ha
+n:사용자 n:권한	literal	사용자의 권한을 확인했다.	match	particle-chain
+n:사용자 n:권한	literal	사용자에게 새 권한을 부여했다.	match	particle-chain
+n:사용자 n:권한	literal	권한별 사용자 목록을 만들었다.	no-match	particle-chain
+det:새 n:기술	literal	새 기술을 제품에 적용했다.	match	regular
+det:새 n:기술	literal	기술을 새 방식으로 설명했다.	no-match	regular
+n:길 v:걷다	literal	길을 천천히 걸었다.	match	d-irregular
+n:길 v:걷다	literal	걸어서 새로운 길을 찾았다.	no-match	d-irregular
+lit:걸어	literal	길을 걸어 집에 갔다.	match	homonym-union
+lit:걸어	literal	전화를 걸어 보았다.	match	homonym-union
+lit:걸어	literal	길을 걸었다.	no-match	homonym-union
+는	particle	사용자는 설정을 바꾸었다.	match	particle-final-pair
+는	particle	권한은 관리자에게 있다.	match	particle-final-pair
+는	particle	기능을 새로 만들었다.	no-match	particle-final-pair
+가	particle	사용자가 문을 열었다.	match	particle-final-pair
+가	particle	권한이 충분하다.	match	particle-final-pair
+가	particle	친구와 함께 걸었다.	no-match	particle-final-pair
+을	particle	사용자를 목록에 넣었다.	match	particle-final-pair
+을	particle	권한을 다시 확인했다.	match	particle-final-pair
+을	particle	마을에 도착했다.	no-match	particle-final-pair
+과	particle	권한과 역할을 저장했다.	match	particle-final-pair
+과	particle	사용자와 관리자가 대화했다.	match	particle-final-pair
+로	particle	길로 곧장 들어섰다.	match	particle-euro-ro
+로	particle	권한으로 범위를 제한했다.	match	particle-euro-ro
+로	particle	길으로 곧장 들어섰다.	no-match	particle-euro-ro
+하나	numeral	하나가 아직 남아 있다.	match	particle-final-pair
+하나	numeral	하나를 골라 주세요.	match	particle-final-pair
+하나	numeral	하나의 원칙을 세웠다.	match	particle-chain
+하나	numeral	하나만 먼저 처리했다.	match	particle-chain
+하나	numeral	하나부터 차례로 세었다.	match	particle-chain

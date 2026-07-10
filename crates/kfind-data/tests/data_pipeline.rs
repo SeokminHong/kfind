@@ -22,7 +22,7 @@ fn repository_data_is_complete_and_valid() {
     let data = load_data_dir(data_root()).expect("repository data should validate");
 
     assert!(data.warnings.is_empty());
-    assert!(data.fixtures.len() >= 50);
+    assert!(data.fixtures.len() >= 300);
     assert!(
         data.lexicon
             .predicates
@@ -41,13 +41,49 @@ fn repository_data_is_complete_and_valid() {
     assert_eq!(data.rules.max_continuation_depth, 4);
     assert!(ids.contains("particle.direction"));
     assert!(ids.contains("particle.plural"));
+    for verifier_rule in [
+        "particle.source.egeseo",
+        "particle.source.hanteseo",
+        "particle.limit.ggaji",
+        "particle.even.jocha",
+        "particle.even.majeo",
+    ] {
+        assert!(ids.contains(verifier_rule), "missing {verifier_rule}");
+    }
     assert!(ids.contains("ending.honorific"));
+    for continuation in [
+        "ending.connective-jiman",
+        "ending.connective-neunde",
+        "ending.polite-yo",
+        "ending.connective-do",
+        "ending.connective-ya",
+        "ending.imperative-ra",
+    ] {
+        assert!(ids.contains(continuation), "missing {continuation}");
+    }
+    let nominalizer = data
+        .rules
+        .endings
+        .iter()
+        .find(|rule| rule.id == "ending.nominalizer")
+        .unwrap();
+    assert_eq!(nominalizer.initial, kfind_data::EndingInitial::AttachMieum);
 
     let pos_entries = collect_pos_entries(&data.lexicon);
     assert!(
         pos_entries
+            .entries()
             .iter()
             .any(|entry| { entry.lemma == "으로" && entry.pos == DataFinePos::Jkb })
+    );
+    assert_eq!(data.lexicon.predicate_analyses("걷다").count(), 2);
+    assert_eq!(
+        pos_entries
+            .entries()
+            .iter()
+            .filter(|entry| entry.lemma == "걷다" && entry.pos == DataFinePos::Vv)
+            .count(),
+        1
     );
     assert!(decode_pos_lexicon(&encode_pos_lexicon(&pos_entries).unwrap()).is_ok());
 
@@ -55,6 +91,8 @@ fn repository_data_is_complete_and_valid() {
     assert!(metadata.contains("mecab-ko-dic-2.1.1-20180720.tar.gz"));
     assert!(metadata.contains("fd62d3d6d8fa85145528065fabad4d7cb20f6b2201e71be4081a4e9701a5b330"));
     assert!(metadata.contains("Apache-2.0"));
+    assert!(metadata.contains("--bin kfind-data-extract-mecab"));
+    assert!(metadata.contains("data/lexicon/predicates.tsv"));
 }
 
 #[test]
@@ -178,6 +216,65 @@ fn user_lexicon_toml_supports_replace_and_reports_semantic_lines() {
         *error.kind,
         DataErrorKind::InvalidPredicateLemma(_)
     ));
+
+    let invalid_second_record = concat!(
+        "[[predicate]]\n",
+        "lemma = \"걷다\"\n",
+        "pos = \"verb\"\n",
+        "alternation = \"Regular\"\n",
+        "\n",
+        "[[predicate]]\n",
+        "lemma = \"듣다\"\n",
+        "pos = \"not-a-predicate\"\n",
+        "alternation = \"DToL\"\n",
+    );
+    let error = parse_user_lexicon_toml("user.toml", invalid_second_record, &rules).unwrap_err();
+    assert_eq!(error.location.line, Some(8));
+    assert!(matches!(
+        *error.kind,
+        DataErrorKind::InvalidValue { ref field, .. } if field == "pos"
+    ));
+}
+
+#[test]
+fn user_lexicon_append_and_replace_preserve_duplicate_lemma_analyses() {
+    let valid = load_data_dir(data_root()).unwrap();
+    let append_source = concat!(
+        "[[predicate]]\n",
+        "lemma = \"걷다\"\n",
+        "pos = \"verb\"\n",
+        "alternation = \"Regular\"\n",
+        "\n",
+        "[[predicate]]\n",
+        "lemma = \"걷다\"\n",
+        "pos = \"verb\"\n",
+        "alternation = \"DToL\"\n",
+    );
+    let user = parse_user_lexicon_toml("user.toml", append_source, &valid.rules).unwrap();
+    let mut appended = valid.lexicon.clone();
+    appended.apply_user_lexicon(user);
+    assert_eq!(appended.predicate_analyses("걷다").count(), 4);
+
+    let replace_source = append_source.replacen(
+        "alternation = \"Regular\"",
+        "alternation = \"Regular\"\nreplace = true",
+        1,
+    );
+    let user = parse_user_lexicon_toml("user.toml", &replace_source, &valid.rules).unwrap();
+    let mut replaced = valid.lexicon;
+    replaced.apply_user_lexicon(user);
+    let analyses = replaced.predicate_analyses("걷다").collect::<Vec<_>>();
+    assert_eq!(analyses.len(), 2);
+    assert!(
+        analyses
+            .iter()
+            .any(|entry| entry.alternation == DataAlternation::Regular)
+    );
+    assert!(
+        analyses
+            .iter()
+            .any(|entry| entry.alternation == DataAlternation::DToL)
+    );
 }
 
 #[test]
@@ -220,29 +317,76 @@ fn rule_parser_rejects_duplicate_and_unknown_rule_ids() {
         *error.kind,
         DataErrorKind::UnknownRuleId(ref id) if id == "ending.missing"
     ));
+    assert!(error.location.line.is_some());
+}
+
+#[test]
+fn rule_parser_rejects_unknown_features_and_nonterminal_leaves() {
+    let endings = read("rules/endings.toml").replacen(
+        "required = []",
+        "required = [\"not-a-morphology-feature\"]",
+        1,
+    );
+    let parse = |endings: &str| {
+        parse_rule_set(RuleSources {
+            endings,
+            alternations: &read("rules/alternations.toml"),
+            contractions: &read("rules/contractions.toml"),
+            derivations: &read("rules/derivations.toml"),
+            particles: &read("rules/particles.toml"),
+        })
+    };
+    let error = parse(&endings).unwrap_err();
+    assert!(matches!(
+        *error.kind,
+        DataErrorKind::InvalidValue { ref field, .. } if field == "required"
+    ));
+    assert!(error.location.line.is_some());
+
+    let endings = format!(
+        "{}\n[[ending]]\nid = \"ending.nonterminal-leaf\"\ncategory = \"final\"\ninitial = \"other\"\nforms = [\"테스트\"]\nrequired = []\nforbidden = []\nnext = []\nterminal = false\n",
+        read("rules/endings.toml")
+    );
+    let error = parse(&endings).unwrap_err();
+    assert!(matches!(
+        *error.kind,
+        DataErrorKind::InvalidValue { ref field, .. } if field == "terminal"
+    ));
+    assert!(error.location.line.is_some());
+}
+
+#[test]
+fn particle_lexicon_variants_must_match_their_rule_forms() {
+    let valid = load_data_dir(data_root()).unwrap();
+    let mut lexicon = valid.lexicon.clone();
+    let subject = lexicon
+        .particles
+        .iter_mut()
+        .find(|record| record.rule_id == "particle.subject")
+        .unwrap();
+    subject.variants = vec!["이".to_owned()];
+
+    let error = validate_data(lexicon, valid.rules, valid.fixtures, Vec::new()).unwrap_err();
+    assert!(matches!(
+        *error.kind,
+        DataErrorKind::InvalidValue { ref field, .. } if field == "variants"
+    ));
 }
 
 #[test]
 fn compact_pos_binary_round_trips_sorted_deduplicated_entries() {
-    let input = vec![
-        PosLexiconEntry {
-            lemma: "사용자".to_owned(),
-            pos: DataFinePos::Nng,
-        },
-        PosLexiconEntry {
-            lemma: "걷다".to_owned(),
-            pos: DataFinePos::Vv,
-        },
-        PosLexiconEntry {
-            lemma: "걷다".to_owned(),
-            pos: DataFinePos::Vv,
-        },
-        PosLexiconEntry {
-            lemma: "걷다".to_owned(),
-            pos: DataFinePos::Nng,
-        },
-    ];
-
+    let csv = concat!(
+        "사용자,1,1,1,NNG,*,T,사용자,*,*,*,*\n",
+        "걷,1,1,1,VV,*,T,걷,*,*,*,*\n",
+        "걷,1,1,1,VV,*,T,걷,*,*,*,*\n",
+        "걷다,1,1,1,NNG,*,T,걷다,*,*,*,*\n",
+    );
+    let extraction = extract_mecab_ko_dic("test.csv", Cursor::new(csv)).unwrap();
+    let approved = BTreeSet::from([PosLexiconEntry {
+        lemma: "걷다".to_owned(),
+        pos: DataFinePos::Vv,
+    }]);
+    let input = extraction.approve_predicates(&approved).into_pos_lexicon();
     let encoded = encode_pos_lexicon(&input).unwrap();
     let decoded = decode_pos_lexicon(&encoded).unwrap();
     assert_eq!(decoded.entries().len(), 3);
@@ -285,7 +429,8 @@ fn mecab_extractor_marks_predicates_for_gold_filtering() {
         lemma: "가다".to_owned(),
         pos: DataFinePos::Vv,
     }]);
-    let filtered = extraction.retain_gold_approved_predicates(&approved);
+    let filtered = extraction.approve_predicates(&approved);
+    let filtered = filtered.pos_lexicon().entries();
     assert!(filtered.iter().any(|entry| entry.lemma == "가다"));
     assert!(!filtered.iter().any(|entry| entry.lemma == "가까워다"));
     assert!(filtered.iter().any(|entry| entry.lemma == "사용자"));

@@ -81,16 +81,17 @@ fn validate_lexicon_rule_references(
     let ids = rules.all_ids().collect::<BTreeSet<_>>();
     for predicate in &lexicon.predicates {
         let alternation_id = predicate.alternation.rule_id();
-        if !ids.contains(alternation_id) {
+        let alternation_rule = rules
+            .alternations
+            .iter()
+            .find(|rule| rule.id == alternation_id && rule.kind == predicate.alternation);
+        if alternation_rule.is_none() {
             return Err(DataError::new(
                 SourceLocation::new("data/lexicon/predicates.tsv"),
                 DataErrorKind::UnknownRuleId(alternation_id.to_owned()),
             ));
         }
-        let allowed_flags = rules
-            .alternations
-            .iter()
-            .find(|rule| rule.kind == predicate.alternation)
+        let allowed_flags = alternation_rule
             .map(|rule| {
                 rule.flags
                     .iter()
@@ -135,10 +136,34 @@ fn validate_lexicon_rule_references(
         }
     }
     for particle in &lexicon.particles {
-        if !ids.contains(particle.rule_id.as_str()) {
+        let Some(rule) = rules
+            .particles
+            .iter()
+            .find(|rule| rule.id == particle.rule_id)
+        else {
             return Err(DataError::new(
                 SourceLocation::new("data/lexicon/particles.tsv"),
                 DataErrorKind::UnknownRuleId(particle.rule_id.clone()),
+            ));
+        };
+        let variants = particle
+            .variants
+            .iter()
+            .map(String::as_str)
+            .collect::<BTreeSet<_>>();
+        let forms = rule
+            .forms
+            .iter()
+            .map(String::as_str)
+            .collect::<BTreeSet<_>>();
+        if variants != forms {
+            return Err(DataError::new(
+                SourceLocation::new("data/lexicon/particles.tsv"),
+                DataErrorKind::InvalidValue {
+                    field: "variants".to_owned(),
+                    value: particle.variants.join("|"),
+                    reason: format!("{} 규칙의 forms와 정확히 일치해야 합니다", particle.rule_id),
+                },
             ));
         }
     }

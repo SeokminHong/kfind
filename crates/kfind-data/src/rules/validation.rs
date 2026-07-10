@@ -1,11 +1,11 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::validation::{require_nfc, require_rule_id};
-use crate::{DataError, DataErrorKind, SourceLocation};
+use crate::{DataError, DataErrorKind};
 
-use super::{ParticleSelection, RuleSet, invalid_value};
+use super::{ParticleSelection, RuleLocations, RuleSet};
 
-pub(super) fn validate_rules(rules: &RuleSet) -> Result<(), DataError> {
+pub(super) fn validate_rules(rules: &RuleSet, locations: &RuleLocations) -> Result<(), DataError> {
     let mut ids = BTreeMap::<&str, &str>::new();
     for (source, id) in rules
         .endings
@@ -36,24 +36,27 @@ pub(super) fn validate_rules(rules: &RuleSet) -> Result<(), DataError> {
                 .map(|rule| ("data/rules/particles.toml", rule.id.as_str())),
         )
     {
-        require_rule_id(source, id)?;
+        require_rule_id(source, id).map_err(|mut error| {
+            error.location = locations.get(source, id);
+            error
+        })?;
         if ids.insert(id, source).is_some() {
             return Err(DataError::new(
-                SourceLocation::new(source),
+                locations.get(source, id),
                 DataErrorKind::DuplicateRuleId(id.to_owned()),
             ));
         }
     }
 
-    validate_endings(rules)?;
-    validate_alternations(rules)?;
-    validate_contractions(rules)?;
-    validate_derivations(rules)?;
-    validate_particles(rules)?;
+    validate_endings(rules, locations)?;
+    validate_alternations(rules, locations)?;
+    validate_contractions(rules, locations)?;
+    validate_derivations(rules, locations)?;
+    validate_particles(rules, locations)?;
     Ok(())
 }
 
-fn validate_endings(rules: &RuleSet) -> Result<(), DataError> {
+fn validate_endings(rules: &RuleSet, locations: &RuleLocations) -> Result<(), DataError> {
     let source = "data/rules/endings.toml";
     let ending_ids = rules
         .endings
@@ -61,19 +64,23 @@ fn validate_endings(rules: &RuleSet) -> Result<(), DataError> {
         .map(|rule| rule.id.as_str())
         .collect::<BTreeSet<_>>();
     for rule in &rules.endings {
-        validate_forms(source, &rule.forms)?;
+        validate_forms(source, &rule.id, &rule.forms, locations)?;
+        validate_features(source, &rule.id, &rule.required, &rule.forbidden, locations)?;
         let required = rule.required.iter().collect::<BTreeSet<_>>();
         if let Some(conflict) = rule.forbidden.iter().find(|item| required.contains(item)) {
-            return Err(invalid_value(
+            return Err(invalid_rule_value(
+                locations,
                 source,
+                &rule.id,
                 "forbidden",
-                conflict.to_string(),
+                conflict,
                 "required feature와 겹칩니다",
             ));
         }
         for next in &rule.next {
-            require_reference(source, next, &ending_ids)?;
+            require_reference(source, &rule.id, next, &ending_ids, locations)?;
         }
+        validate_terminal_transition(source, &rule.id, rule.terminal, &rule.next, locations)?;
     }
     validate_graph_depth(
         source,
@@ -82,10 +89,11 @@ fn validate_endings(rules: &RuleSet) -> Result<(), DataError> {
             .endings
             .iter()
             .map(|rule| (rule.id.as_str(), rule.next.as_slice())),
+        locations,
     )
 }
 
-fn validate_alternations(rules: &RuleSet) -> Result<(), DataError> {
+fn validate_alternations(rules: &RuleSet, locations: &RuleLocations) -> Result<(), DataError> {
     let source = "data/rules/alternations.toml";
     let ending_ids = rules
         .endings
@@ -95,21 +103,23 @@ fn validate_alternations(rules: &RuleSet) -> Result<(), DataError> {
     let mut kinds = BTreeSet::new();
     for rule in &rules.alternations {
         if !kinds.insert(rule.kind) {
-            return Err(invalid_value(
+            return Err(invalid_rule_value(
+                locations,
                 source,
+                &rule.id,
                 "kind",
                 rule.kind.as_str(),
                 "alternation kind는 하나의 규범 규칙만 가져야 합니다",
             ));
         }
         for ending_id in &rule.ending_ids {
-            require_reference(source, ending_id, &ending_ids)?;
+            require_reference(source, &rule.id, ending_id, &ending_ids, locations)?;
         }
     }
     Ok(())
 }
 
-fn validate_contractions(rules: &RuleSet) -> Result<(), DataError> {
+fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(), DataError> {
     let source = "data/rules/contractions.toml";
     let ending_ids = rules
         .endings
@@ -123,36 +133,52 @@ fn validate_contractions(rules: &RuleSet) -> Result<(), DataError> {
             ("right", rule.right.as_str()),
             ("result", rule.result.as_str()),
         ] {
-            require_nfc(source, None, field, value)?;
+            require_nfc(source, locations.get(source, &rule.id).line, field, value)?;
             if value.is_empty() {
-                return Err(invalid_value(source, field, value, "비어 있습니다"));
+                return Err(invalid_rule_value(
+                    locations,
+                    source,
+                    &rule.id,
+                    field,
+                    value,
+                    "비어 있습니다",
+                ));
             }
         }
         for ending_id in &rule.ending_ids {
-            require_reference(source, ending_id, &ending_ids)?;
+            require_reference(source, &rule.id, ending_id, &ending_ids, locations)?;
         }
     }
     Ok(())
 }
 
-fn validate_derivations(rules: &RuleSet) -> Result<(), DataError> {
+fn validate_derivations(rules: &RuleSet, locations: &RuleLocations) -> Result<(), DataError> {
     let source = "data/rules/derivations.toml";
     let all_ids = rules.all_ids().collect::<BTreeSet<_>>();
     for rule in &rules.derivations {
-        require_nfc(source, None, "suffix", &rule.suffix)?;
+        require_nfc(
+            source,
+            locations.get(source, &rule.id).line,
+            "suffix",
+            &rule.suffix,
+        )?;
         if rule.suffix.is_empty() || rule.source_pos.is_empty() {
-            return Err(invalid_value(
+            return Err(invalid_rule_value(
+                locations,
                 source,
+                &rule.id,
                 "derivation",
                 &rule.id,
                 "suffix와 source_pos가 필요합니다",
             ));
         }
         if let Some(alternation_id) = &rule.alternation_id {
-            require_reference(source, alternation_id, &all_ids)?;
+            require_reference(source, &rule.id, alternation_id, &all_ids, locations)?;
             if !alternation_id.starts_with("lexical.") {
-                return Err(invalid_value(
+                return Err(invalid_rule_value(
+                    locations,
                     source,
+                    &rule.id,
                     "alternation_id",
                     alternation_id,
                     "lexical.* 규칙이어야 합니다",
@@ -163,7 +189,7 @@ fn validate_derivations(rules: &RuleSet) -> Result<(), DataError> {
     Ok(())
 }
 
-fn validate_particles(rules: &RuleSet) -> Result<(), DataError> {
+fn validate_particles(rules: &RuleSet, locations: &RuleLocations) -> Result<(), DataError> {
     let source = "data/rules/particles.toml";
     let particle_ids = rules
         .particles
@@ -171,15 +197,17 @@ fn validate_particles(rules: &RuleSet) -> Result<(), DataError> {
         .map(|rule| rule.id.as_str())
         .collect::<BTreeSet<_>>();
     for rule in &rules.particles {
-        validate_forms(source, &rule.forms)?;
+        validate_forms(source, &rule.id, &rule.forms, locations)?;
         let expected_forms = match rule.selection {
             ParticleSelection::Literal => None,
             ParticleSelection::FinalPair | ParticleSelection::EuroRo => Some(2),
         };
         if let Some(expected) = expected_forms {
             if rule.forms.len() != expected {
-                return Err(invalid_value(
+                return Err(invalid_rule_value(
+                    locations,
                     source,
+                    &rule.id,
                     "forms",
                     rule.forms.join("|"),
                     "선택 규칙은 정확히 두 이형태를 가져야 합니다",
@@ -187,8 +215,9 @@ fn validate_particles(rules: &RuleSet) -> Result<(), DataError> {
             }
         }
         for next in &rule.next {
-            require_reference(source, next, &particle_ids)?;
+            require_reference(source, &rule.id, next, &particle_ids, locations)?;
         }
+        validate_terminal_transition(source, &rule.id, rule.terminal, &rule.next, locations)?;
     }
     validate_graph_depth(
         source,
@@ -197,13 +226,82 @@ fn validate_particles(rules: &RuleSet) -> Result<(), DataError> {
             .particles
             .iter()
             .map(|rule| (rule.id.as_str(), rule.next.as_slice())),
+        locations,
     )
 }
 
-fn validate_forms(source: &str, forms: &[String]) -> Result<(), DataError> {
-    if forms.is_empty() {
-        return Err(invalid_value(
+fn validate_features(
+    source: &str,
+    id: &str,
+    required: &[String],
+    forbidden: &[String],
+    locations: &RuleLocations,
+) -> Result<(), DataError> {
+    const KNOWN: &[&str] = &[
+        "action-verb",
+        "descriptive-verb",
+        "copula",
+        "vowel-final",
+        "consonant-final",
+        "rieul-final",
+        "light-vowel",
+        "dark-vowel",
+        "special-ha",
+        "special-i",
+        "special-ani",
+        "special-o",
+        "special-itda",
+    ];
+    let known = KNOWN.iter().copied().collect::<BTreeSet<_>>();
+    for (field, features) in [("required", required), ("forbidden", forbidden)] {
+        let mut seen = BTreeSet::new();
+        for feature in features {
+            if !known.contains(feature.as_str()) || !seen.insert(feature) {
+                return Err(invalid_rule_value(
+                    locations,
+                    source,
+                    id,
+                    field,
+                    feature,
+                    "알려진 고유 morphology feature여야 합니다",
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn validate_terminal_transition(
+    source: &str,
+    id: &str,
+    terminal: bool,
+    next: &[String],
+    locations: &RuleLocations,
+) -> Result<(), DataError> {
+    if !terminal && next.is_empty() {
+        return Err(invalid_rule_value(
+            locations,
             source,
+            id,
+            "terminal",
+            id,
+            "nonterminal 규칙에는 하나 이상의 next 전이가 필요합니다",
+        ));
+    }
+    Ok(())
+}
+
+fn validate_forms(
+    source: &str,
+    id: &str,
+    forms: &[String],
+    locations: &RuleLocations,
+) -> Result<(), DataError> {
+    if forms.is_empty() {
+        return Err(invalid_rule_value(
+            locations,
+            source,
+            id,
             "forms",
             "",
             "하나 이상의 표면형이 필요합니다",
@@ -211,10 +309,12 @@ fn validate_forms(source: &str, forms: &[String]) -> Result<(), DataError> {
     }
     let mut seen = BTreeSet::new();
     for form in forms {
-        require_nfc(source, None, "forms", form)?;
+        require_nfc(source, locations.get(source, id).line, "forms", form)?;
         if form.is_empty() || !seen.insert(form) {
-            return Err(invalid_value(
+            return Err(invalid_rule_value(
+                locations,
                 source,
+                id,
                 "forms",
                 form,
                 "비어 있거나 중복된 표면형입니다",
@@ -228,8 +328,10 @@ fn validate_graph_depth<'a>(
     source: &str,
     limit: u8,
     rules: impl Iterator<Item = (&'a str, &'a [String])>,
+    locations: &RuleLocations,
 ) -> Result<(), DataError> {
     let graph = rules.collect::<BTreeMap<_, _>>();
+
     fn visit<'a>(
         source: &str,
         id: &'a str,
@@ -237,18 +339,23 @@ fn validate_graph_depth<'a>(
         active: &mut BTreeSet<&'a str>,
         depth: u8,
         limit: u8,
+        locations: &RuleLocations,
     ) -> Result<(), DataError> {
         if depth > limit {
-            return Err(invalid_value(
+            return Err(invalid_rule_value(
+                locations,
                 source,
+                id,
                 "continuation",
                 id,
                 "max_continuation_depth를 초과합니다",
             ));
         }
         if !active.insert(id) {
-            return Err(invalid_value(
+            return Err(invalid_rule_value(
+                locations,
                 source,
+                id,
                 "continuation",
                 id,
                 "순환 전이는 허용하지 않습니다",
@@ -256,7 +363,7 @@ fn validate_graph_depth<'a>(
         }
         if let Some(next) = graph.get(id) {
             for next_id in *next {
-                visit(source, next_id, graph, active, depth + 1, limit)?;
+                visit(source, next_id, graph, active, depth + 1, limit, locations)?;
             }
         }
         active.remove(id);
@@ -264,18 +371,50 @@ fn validate_graph_depth<'a>(
     }
 
     for id in graph.keys().copied() {
-        visit(source, id, &graph, &mut BTreeSet::new(), 1, limit)?;
+        visit(
+            source,
+            id,
+            &graph,
+            &mut BTreeSet::new(),
+            1,
+            limit,
+            locations,
+        )?;
     }
     Ok(())
 }
 
-fn require_reference(source: &str, id: &str, known: &BTreeSet<&str>) -> Result<(), DataError> {
+fn require_reference(
+    source: &str,
+    owner_id: &str,
+    id: &str,
+    known: &BTreeSet<&str>,
+    locations: &RuleLocations,
+) -> Result<(), DataError> {
     if known.contains(id) {
         Ok(())
     } else {
         Err(DataError::new(
-            SourceLocation::new(source),
+            locations.get(source, owner_id),
             DataErrorKind::UnknownRuleId(id.to_owned()),
         ))
     }
+}
+
+fn invalid_rule_value(
+    locations: &RuleLocations,
+    source: &str,
+    owner_id: &str,
+    field: &str,
+    value: impl Into<String>,
+    reason: &str,
+) -> DataError {
+    DataError::new(
+        locations.get(source, owner_id),
+        DataErrorKind::InvalidValue {
+            field: field.to_owned(),
+            value: value.into(),
+            reason: reason.to_owned(),
+        },
+    )
 }

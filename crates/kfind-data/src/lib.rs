@@ -10,7 +10,8 @@ mod tsv;
 mod validation;
 
 pub use binary::{
-    DecodedPosLexicon, PosLexiconEntry, collect_pos_entries, decode_pos_lexicon, encode_pos_lexicon,
+    ApprovedPosLexicon, DecodedPosLexicon, PosLexiconEntry, collect_pos_entries,
+    decode_pos_lexicon, encode_pos_lexicon,
 };
 pub use error::{DataError, DataErrorKind, DataWarning, SourceLocation};
 pub use fixture::{ExpectedMatch, FixturePos, MorphologyCase, parse_morphology_cases_tsv};
@@ -20,7 +21,7 @@ pub use lexicon::{
     UserPredicateRecord, parse_lexicons, parse_modifiers_tsv, parse_nominals_tsv,
     parse_particles_tsv, parse_predicates_tsv, parse_user_lexicon_toml,
 };
-pub use mecab::{MecabExtraction, extract_mecab_ko_dic};
+pub use mecab::{GoldApprovedMecabLexicon, MecabExtraction, extract_mecab_ko_dic};
 pub use rules::{
     AlternationRule, ContractionRule, DerivationRule, EndingCategory, EndingInitial, EndingRule,
     ParticleSelection, ParticleTransitionRule, RuleSet, RuleSources, parse_rule_set,

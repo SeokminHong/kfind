@@ -1,6 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use serde::Deserialize;
+use toml::Spanned;
 
 use crate::rules::RuleSet;
 use crate::validation::{require_nfc, require_rule_id};
@@ -30,9 +31,9 @@ pub struct UserNominalRecord {
 #[serde(deny_unknown_fields)]
 struct RawUserLexicon {
     #[serde(default, rename = "predicate")]
-    predicates: Vec<RawPredicate>,
+    predicates: Vec<Spanned<RawPredicate>>,
     #[serde(default, rename = "nominal")]
-    nominals: Vec<RawNominal>,
+    nominals: Vec<Spanned<RawNominal>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -87,12 +88,18 @@ pub fn parse_user_lexicon_toml(
     let predicates = raw
         .predicates
         .into_iter()
-        .map(|raw| parse_predicate(source, input, raw, rules, &known_rules))
+        .map(|raw| {
+            let lines = predicate_lines(input, raw.span());
+            parse_predicate(source, raw.into_inner(), lines, rules, &known_rules)
+        })
         .collect::<Result<Vec<_>, _>>()?;
     let nominals = raw
         .nominals
         .into_iter()
-        .map(|raw| parse_nominal(source, input, raw, &known_rules))
+        .map(|raw| {
+            let lines = nominal_lines(input, raw.span());
+            parse_nominal(source, raw.into_inner(), lines, &known_rules)
+        })
         .collect::<Result<Vec<_>, _>>()?;
     validate_override_conflicts(source, &predicates, &nominals)?;
     Ok(UserLexicon {
@@ -103,32 +110,36 @@ pub fn parse_user_lexicon_toml(
 
 fn parse_predicate(
     source: &str,
-    input: &str,
     raw: RawPredicate,
+    lines: PredicateLines,
     rules: &RuleSet,
     known_rules: &BTreeSet<&str>,
 ) -> Result<UserPredicateRecord, DataError> {
-    let line = value_line(input, &raw.lemma);
-    require_nfc(source, line, "lemma", &raw.lemma)?;
+    require_nfc(source, lines.lemma, "lemma", &raw.lemma)?;
     if raw.lemma.strip_suffix('다').is_none_or(str::is_empty) {
         return Err(semantic_error(
             source,
-            line,
+            lines.lemma,
             DataErrorKind::InvalidPredicateLemma(raw.lemma),
         ));
     }
-    let pos = parse_predicate_pos(source, line, &raw.pos)?;
+    let pos = parse_predicate_pos(source, lines.pos, &raw.pos)?;
     let alternation = DataAlternation::parse(&raw.alternation).ok_or_else(|| {
         invalid_value(
             source,
-            line,
+            lines.alternation,
             "alternation",
             &raw.alternation,
             "알려진 lexical alternation이 아닙니다",
         )
     })?;
-    require_known_rule(source, line, alternation.rule_id(), known_rules)?;
-    let flags = parse_flags(source, line, raw.flags)?;
+    require_known_rule(
+        source,
+        lines.alternation,
+        alternation.rule_id(),
+        known_rules,
+    )?;
+    let flags = parse_flags(source, lines.flags, raw.flags)?;
     let allowed_flags = rules
         .alternations
         .iter()
@@ -146,13 +157,13 @@ fn parse_predicate(
     {
         return Err(invalid_value(
             source,
-            line,
+            lines.flags,
             "flags",
             flag,
             "alternation 규칙에 선언되지 않은 flag입니다",
         ));
     }
-    let overrides = parse_overrides(source, line, raw.overrides, known_rules)?;
+    let overrides = parse_overrides(source, lines.overrides, raw.overrides, known_rules)?;
     Ok(UserPredicateRecord {
         entry: PredicateRecord {
             lemma: raw.lemma,
@@ -209,18 +220,23 @@ fn validate_override_conflicts(
 
 fn parse_nominal(
     source: &str,
-    input: &str,
     raw: RawNominal,
+    lines: NominalLines,
     known_rules: &BTreeSet<&str>,
 ) -> Result<UserNominalRecord, DataError> {
-    let line = value_line(input, &raw.surface);
-    require_nfc(source, line, "surface", &raw.surface)?;
+    require_nfc(source, lines.surface, "surface", &raw.surface)?;
     if raw.surface.is_empty() {
-        return Err(invalid_value(source, line, "surface", "", "비어 있습니다"));
+        return Err(invalid_value(
+            source,
+            lines.surface,
+            "surface",
+            "",
+            "비어 있습니다",
+        ));
     }
-    let pos = parse_nominal_pos(source, line, &raw.pos)?;
-    let flags = parse_flags(source, line, raw.flags)?;
-    let overrides = parse_overrides(source, line, raw.overrides, known_rules)?;
+    let pos = parse_nominal_pos(source, lines.pos, &raw.pos)?;
+    let flags = parse_flags(source, lines.flags, raw.flags)?;
+    let overrides = parse_overrides(source, lines.overrides, raw.overrides, known_rules)?;
     Ok(UserNominalRecord {
         entry: NominalRecord {
             lemma: raw.surface,
@@ -385,11 +401,51 @@ fn semantic_error(source: &str, line: Option<usize>, kind: DataErrorKind) -> Dat
     DataError::new(location, kind)
 }
 
-fn value_line(input: &str, value: &str) -> Option<usize> {
-    input
+#[derive(Clone, Copy)]
+struct PredicateLines {
+    lemma: Option<usize>,
+    pos: Option<usize>,
+    alternation: Option<usize>,
+    flags: Option<usize>,
+    overrides: Option<usize>,
+}
+
+#[derive(Clone, Copy)]
+struct NominalLines {
+    surface: Option<usize>,
+    pos: Option<usize>,
+    flags: Option<usize>,
+    overrides: Option<usize>,
+}
+
+fn predicate_lines(input: &str, span: std::ops::Range<usize>) -> PredicateLines {
+    PredicateLines {
+        lemma: key_line(input, span.clone(), "lemma"),
+        pos: key_line(input, span.clone(), "pos"),
+        alternation: key_line(input, span.clone(), "alternation"),
+        flags: key_line(input, span.clone(), "flags"),
+        overrides: key_line(input, span, "[[predicate.override]]"),
+    }
+}
+
+fn nominal_lines(input: &str, span: std::ops::Range<usize>) -> NominalLines {
+    NominalLines {
+        surface: key_line(input, span.clone(), "surface"),
+        pos: key_line(input, span.clone(), "pos"),
+        flags: key_line(input, span.clone(), "flags"),
+        overrides: key_line(input, span, "[[nominal.override]]"),
+    }
+}
+
+fn key_line(input: &str, span: std::ops::Range<usize>, key: &str) -> Option<usize> {
+    let prefix_line_count = input[..span.start]
+        .bytes()
+        .filter(|byte| *byte == b'\n')
+        .count();
+    input[span]
         .lines()
-        .position(|line| line.contains(value))
-        .map(|index| index + 1)
+        .position(|line| line.trim_start().starts_with(key))
+        .map(|relative| prefix_line_count + relative + 1)
 }
 
 fn set_span_location(location: &mut SourceLocation, input: &str, offset: usize) {
@@ -398,7 +454,9 @@ fn set_span_location(location: &mut SourceLocation, input: &str, offset: usize) 
     location.column = Some(
         prefix
             .rsplit_once('\n')
-            .map_or(prefix.len(), |(_, tail)| tail.len())
+            .map_or(prefix, |(_, tail)| tail)
+            .chars()
+            .count()
             + 1,
     );
 }

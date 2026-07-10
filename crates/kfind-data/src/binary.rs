@@ -5,7 +5,10 @@ use crate::validation::require_nfc;
 use crate::{DataError, DataErrorKind, SourceLocation};
 
 const MAGIC: &[u8; 8] = b"KFPOS\0\x01\0";
-const MAX_ENTRY_COUNT: u32 = 10_000_000;
+const MAX_ENTRY_COUNT: u32 = 1_000_000;
+const MAX_BINARY_BYTES: usize = 128 * 1024 * 1024;
+const MAX_DECODED_LEMMA_BYTES: usize = 64 * 1024 * 1024;
+const MIN_ENCODED_ENTRY_BYTES: usize = 3;
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct PosLexiconEntry {
@@ -18,8 +21,34 @@ pub struct DecodedPosLexicon {
     entries: Box<[PosLexiconEntry]>,
 }
 
-pub fn collect_pos_entries(lexicon: &LexiconData) -> Vec<PosLexiconEntry> {
-    let mut entries = lexicon
+/// Validated input for the POS-only binary artifact.
+///
+/// This artifact answers coarse lexicon lookup only. Predicate alternations,
+/// flags, overrides, and duplicate analyses remain in [`LexiconData`].
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ApprovedPosLexicon {
+    entries: Box<[PosLexiconEntry]>,
+}
+
+impl ApprovedPosLexicon {
+    pub fn entries(&self) -> &[PosLexiconEntry] {
+        &self.entries
+    }
+
+    pub(crate) fn from_entries(mut entries: Vec<PosLexiconEntry>) -> Self {
+        entries.sort_unstable();
+        entries.dedup();
+        Self {
+            entries: entries.into_boxed_slice(),
+        }
+    }
+}
+
+/// Collects the POS index from a validated core lexicon.
+///
+/// Callers must retain `lexicon` as the source of full predicate analyses.
+pub fn collect_pos_entries(lexicon: &LexiconData) -> ApprovedPosLexicon {
+    let entries = lexicon
         .predicates
         .iter()
         .map(|record| PosLexiconEntry {
@@ -45,9 +74,7 @@ pub fn collect_pos_entries(lexicon: &LexiconData) -> Vec<PosLexiconEntry> {
                 })
         }))
         .collect::<Vec<_>>();
-    entries.sort_unstable();
-    entries.dedup();
-    entries
+    ApprovedPosLexicon::from_entries(entries)
 }
 
 impl DecodedPosLexicon {
@@ -65,16 +92,16 @@ impl DecodedPosLexicon {
     }
 }
 
-pub fn encode_pos_lexicon(entries: &[PosLexiconEntry]) -> Result<Vec<u8>, DataError> {
-    let mut entries = entries.to_vec();
-    for entry in &entries {
+pub fn encode_pos_lexicon(lexicon: &ApprovedPosLexicon) -> Result<Vec<u8>, DataError> {
+    let entries = lexicon.entries();
+    let mut decoded_lemma_bytes = 0_usize;
+    for entry in entries {
         require_nfc("POS lexicon encoder", None, "lemma", &entry.lemma)?;
         if entry.lemma.is_empty() {
             return Err(binary_error("표제어가 비어 있습니다"));
         }
+        decoded_lemma_bytes = checked_decoded_bytes(decoded_lemma_bytes, entry.lemma.len())?;
     }
-    entries.sort_unstable();
-    entries.dedup();
     let count = u32::try_from(entries.len())
         .map_err(|_| binary_error("entry 수가 u32 범위를 초과합니다"))?;
     if count > MAX_ENTRY_COUNT {
@@ -85,7 +112,7 @@ pub fn encode_pos_lexicon(entries: &[PosLexiconEntry]) -> Result<Vec<u8>, DataEr
     output.extend_from_slice(MAGIC);
     output.extend_from_slice(&count.to_le_bytes());
     let mut previous = "";
-    for entry in &entries {
+    for entry in entries {
         let prefix = common_char_boundary_prefix(previous, &entry.lemma);
         let suffix = &entry.lemma.as_bytes()[prefix..];
         write_varint(&mut output, prefix as u32);
@@ -97,10 +124,16 @@ pub fn encode_pos_lexicon(entries: &[PosLexiconEntry]) -> Result<Vec<u8>, DataEr
         output.push(entry.pos.code());
         previous = &entry.lemma;
     }
+    if output.len() > MAX_BINARY_BYTES {
+        return Err(binary_error("binary 파일 크기 상한을 초과합니다"));
+    }
     Ok(output)
 }
 
 pub fn decode_pos_lexicon(input: &[u8]) -> Result<DecodedPosLexicon, DataError> {
+    if input.len() > MAX_BINARY_BYTES {
+        return Err(binary_error("binary 파일 크기 상한을 초과합니다"));
+    }
     if input.len() < MAGIC.len() + 4 || &input[..MAGIC.len()] != MAGIC {
         return Err(binary_error(
             "magic 또는 format version이 올바르지 않습니다",
@@ -111,8 +144,17 @@ pub fn decode_pos_lexicon(input: &[u8]) -> Result<DecodedPosLexicon, DataError> 
     if count > MAX_ENTRY_COUNT {
         return Err(binary_error("entry 수 상한을 초과합니다"));
     }
-    let mut entries = Vec::<PosLexiconEntry>::with_capacity(count as usize);
+    let count = count as usize;
+    let remaining = input.len() - cursor;
+    if count > remaining / MIN_ENCODED_ENTRY_BYTES {
+        return Err(binary_error("entry 수가 binary 크기와 일치하지 않습니다"));
+    }
+    let mut entries = Vec::<PosLexiconEntry>::new();
+    entries
+        .try_reserve_exact(count)
+        .map_err(|_| binary_error("entry 저장 공간을 할당할 수 없습니다"))?;
     let mut previous = String::new();
+    let mut decoded_lemma_bytes = 0_usize;
     for _ in 0..count {
         let prefix = read_varint(input, &mut cursor)? as usize;
         let suffix_len = read_varint(input, &mut cursor)? as usize;
@@ -125,7 +167,15 @@ pub fn decode_pos_lexicon(input: &[u8]) -> Result<DecodedPosLexicon, DataError> 
             .checked_add(suffix_len)
             .filter(|end| *end < input.len())
             .ok_or_else(|| binary_error("suffix가 binary 범위를 벗어납니다"))?;
-        let mut lemma_bytes = previous.as_bytes()[..prefix].to_vec();
+        let lemma_len = prefix
+            .checked_add(suffix_len)
+            .ok_or_else(|| binary_error("표제어 길이가 overflow했습니다"))?;
+        decoded_lemma_bytes = checked_decoded_bytes(decoded_lemma_bytes, lemma_len)?;
+        let mut lemma_bytes = Vec::new();
+        lemma_bytes
+            .try_reserve_exact(lemma_len)
+            .map_err(|_| binary_error("표제어 저장 공간을 할당할 수 없습니다"))?;
+        lemma_bytes.extend_from_slice(&previous.as_bytes()[..prefix]);
         lemma_bytes.extend_from_slice(&input[cursor..suffix_end]);
         cursor = suffix_end;
         let pos = DataFinePos::from_code(input[cursor])
@@ -153,6 +203,16 @@ pub fn decode_pos_lexicon(input: &[u8]) -> Result<DecodedPosLexicon, DataError> 
     Ok(DecodedPosLexicon {
         entries: entries.into_boxed_slice(),
     })
+}
+
+fn checked_decoded_bytes(current: usize, additional: usize) -> Result<usize, DataError> {
+    let total = current
+        .checked_add(additional)
+        .ok_or_else(|| binary_error("decoded lemma byte 수가 overflow했습니다"))?;
+    if total > MAX_DECODED_LEMMA_BYTES {
+        return Err(binary_error("decoded lemma byte 수 상한을 초과합니다"));
+    }
+    Ok(total)
 }
 
 fn common_char_boundary_prefix(left: &str, right: &str) -> usize {
@@ -210,4 +270,50 @@ fn binary_error(message: &str) -> DataError {
         SourceLocation::new("POS lexicon binary"),
         DataErrorKind::Binary(message.to_owned()),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn decode_rejects_inflated_count_before_reserving_entries() {
+        let mut input = MAGIC.to_vec();
+        input.extend_from_slice(&MAX_ENTRY_COUNT.to_le_bytes());
+
+        let error = decode_pos_lexicon(&input).unwrap_err();
+        assert!(matches!(*error.kind, DataErrorKind::Binary(_)));
+    }
+
+    #[test]
+    fn decoded_lemma_byte_limit_is_checked_with_overflow_protection() {
+        assert!(checked_decoded_bytes(MAX_DECODED_LEMMA_BYTES, 1).is_err());
+        assert!(checked_decoded_bytes(usize::MAX, 1).is_err());
+    }
+
+    #[test]
+    fn approved_entries_are_sorted_and_deduplicated_before_encoding() {
+        let approved = ApprovedPosLexicon::from_entries(vec![
+            PosLexiconEntry {
+                lemma: "사용자".to_owned(),
+                pos: DataFinePos::Nng,
+            },
+            PosLexiconEntry {
+                lemma: "걷다".to_owned(),
+                pos: DataFinePos::Vv,
+            },
+            PosLexiconEntry {
+                lemma: "걷다".to_owned(),
+                pos: DataFinePos::Vv,
+            },
+            PosLexiconEntry {
+                lemma: "걷다".to_owned(),
+                pos: DataFinePos::Nng,
+            },
+        ]);
+
+        let decoded = decode_pos_lexicon(&encode_pos_lexicon(&approved).unwrap()).unwrap();
+        assert_eq!(decoded.entries().len(), 3);
+        assert_eq!(decoded.lookup("걷다").len(), 2);
+    }
 }
