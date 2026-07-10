@@ -16,7 +16,7 @@ use kfind_search::{
     SearchRunError, SearchSummary, WalkOptions, execute_search_with_stdin, resolve_search_paths,
 };
 
-use crate::output::write_safe_path;
+use crate::output::{write_safe_path, write_safe_text};
 use crate::{Args, EncodingArg, OutputError, OutputOptions, OutputWriter, SortArg};
 
 const FULL_POS_FILE: &str = "lexicon.bin";
@@ -211,7 +211,8 @@ fn write_issue(writer: &mut impl Write, issue: &kfind_search::SearchIssue) -> io
         write_safe_path(writer, path)?;
         writer.write_all(b": ")?;
     }
-    writeln!(writer, "{}", issue.message)
+    write_safe_text(writer, &issue.message)?;
+    writer.write_all(b"\n")
 }
 
 fn output_error_as_io(error: OutputError) -> io::Error {

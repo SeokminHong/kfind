@@ -103,6 +103,23 @@ fn search_issues_are_reported_and_return_two() {
 }
 
 #[test]
+fn search_issue_paths_and_messages_escape_control_characters() {
+    let issue = kfind_search::SearchIssue {
+        kind: kfind_search::SearchIssueKind::Walk,
+        path: Some(PathBuf::from("bad\t\u{1b}.txt")),
+        message: "ignore\nfailed\u{1b}".to_owned(),
+    };
+    let mut stderr = Vec::new();
+
+    write_issue(&mut stderr, &issue).unwrap();
+
+    assert_eq!(
+        String::from_utf8(stderr).unwrap(),
+        "kfind: bad\\t\\u{001B}.txt: ignore\\nfailed\\u{001B}\n"
+    );
+}
+
+#[test]
 fn explicit_missing_data_directory_is_an_error() {
     let temp = TempDir::new();
     let args =
