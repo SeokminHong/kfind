@@ -1,0 +1,96 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Install the MSRV toolchain
+        run: |
+          rustup toolchain install 1.85.0 --profile minimal
+          rustup default 1.85.0
+
+      - name: Validate release metadata
+        id: metadata
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          package_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "kfind-cli") | .version')
+          project_license=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "kfind-cli") | .license')
+          test "$version" = "$package_version"
+          test -n "$project_license"
+          test "$project_license" != "null"
+          printf 'version=%s\n' "$version" >>"$GITHUB_OUTPUT"
+          printf 'license=%s\n' "$project_license" >>"$GITHUB_OUTPUT"
+
+      - name: Test the release source
+        run: |
+          cargo test --workspace --locked
+          cargo clippy --workspace --all-targets --locked -- -D warnings
+
+      - name: Build release artifacts
+        env:
+          VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          mkdir -p dist/assets
+          scripts/build-full-pos.sh dist/full-pos
+          cargo run --locked --package kfind-testkit --bin verify-gold -- dist/full-pos/lexicon.bin
+          cargo run --locked --package kfind-cli --features distribution-assets --bin kfind-generate-assets -- dist/assets
+          git archive --format=tar.gz --prefix="kfind-${VERSION}/" --output="dist/kfind-${VERSION}.tar.gz" "$GITHUB_SHA"
+          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -czf "dist/kfind-full-pos-${VERSION}.tar.gz" -C dist/full-pos .
+          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -czf "dist/kfind-assets-${VERSION}.tar.gz" -C dist/assets .
+
+      - name: Render the tap formula
+        env:
+          VERSION: ${{ steps.metadata.outputs.version }}
+          PROJECT_LICENSE: ${{ steps.metadata.outputs.license }}
+        run: |
+          source_sha=$(sha256sum "dist/kfind-${VERSION}.tar.gz" | awk '{print $1}')
+          full_pos_sha=$(sha256sum "dist/kfind-full-pos-${VERSION}.tar.gz" | awk '{print $1}')
+          assets_sha=$(sha256sum "dist/kfind-assets-${VERSION}.tar.gz" | awk '{print $1}')
+          scripts/render-homebrew-formula.sh "$VERSION" "$source_sha" "$full_pos_sha" "$assets_sha" "$PROJECT_LICENSE" dist/kfind.rb
+
+      - name: Publish the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "dist/kfind-${VERSION}.tar.gz" \
+            "dist/kfind-full-pos-${VERSION}.tar.gz" \
+            "dist/kfind-assets-${VERSION}.tar.gz" \
+            --verify-tag \
+            --generate-notes \
+            --title "kfind ${VERSION}"
+
+      - name: Open the Homebrew tap pull request
+        env:
+          GH_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+          VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          gh repo clone SeokminHong/homebrew-brew dist/tap
+          cd dist/tap
+          git switch -c "kfind-v${VERSION}"
+          install -m 0644 ../kfind.rb Formula/kfind.rb
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/kfind.rb
+          git commit -m "kfind ${VERSION}"
+          git push --set-upstream origin "kfind-v${VERSION}"
+          printf '## Summary\n\n- publish kfind %s\n- install the full POS lexicon and generated CLI assets\n\n## Test\n\n- `brew test-bot --only-formulae`\n' "$VERSION" >../tap-pr.md
+          gh pr create \
+            --repo SeokminHong/homebrew-brew \
+            --base main \
+            --head "kfind-v${VERSION}" \
+            --title "kfind ${VERSION}" \
+            --body-file ../tap-pr.md
