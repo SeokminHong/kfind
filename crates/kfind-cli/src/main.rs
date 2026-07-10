@@ -1,3 +1,6 @@
+use clap::Parser;
+use kfind_cli::Args;
+
 fn main() {
-    println!("kfind 0.1.0");
+    let _args = Args::parse();
 }
