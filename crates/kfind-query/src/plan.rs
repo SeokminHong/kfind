@@ -1,0 +1,94 @@
+use std::ops::Range;
+use std::sync::Arc;
+
+use kfind_morph::{ContinuationState, RuleId};
+
+use crate::{Analysis, BoundaryPolicy, PhrasePolicy, PlanLimits};
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QueryPlan {
+    pub raw_query: Box<str>,
+    pub atoms: Vec<AtomPlan>,
+    pub phrase_policy: PhrasePolicy,
+    pub limits: PlanLimits,
+    pub diagnostics: Vec<QueryDiagnostic>,
+    pub estimated_matcher_bytes: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AtomPlan {
+    pub analyses: Vec<Analysis>,
+    pub branches: Vec<SurfaceBranch>,
+    pub boundary: BoundaryPolicy,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum BranchVerifier {
+    Exact,
+    Predicate {
+        continuation: ContinuationState,
+        allowed_rule_ids: Arc<[RuleId]>,
+    },
+    NominalParticles {
+        allowed_rule_ids: Arc<[RuleId]>,
+    },
+}
+
+impl BranchVerifier {
+    #[must_use]
+    pub fn accepts_rule_path(&self, rules: &[RuleId]) -> bool {
+        match self {
+            Self::Exact => rules.is_empty(),
+            Self::Predicate {
+                allowed_rule_ids, ..
+            }
+            | Self::NominalParticles { allowed_rule_ids } => rules.iter().all(|rule| {
+                allowed_rule_ids
+                    .binary_search_by_key(&rule.as_str(), |known| known.as_str())
+                    .is_ok()
+            }),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum CoreMapping {
+    WholeAnchor,
+    PrefixBytes(usize),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SurfaceBranch {
+    pub anchor: Box<[u8]>,
+    pub verifier: BranchVerifier,
+    pub core_mapping: CoreMapping,
+    pub origins: Vec<Origin>,
+    pub boundary: BoundaryProof,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct BoundaryProof {
+    pub require_left: bool,
+    pub require_right: bool,
+    pub one_scalar_anchor: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct Origin {
+    pub analysis_index: u16,
+    pub rule_path: Vec<RuleId>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct VerifiedSpan {
+    pub core: Range<usize>,
+    pub token: Range<usize>,
+    pub origins: Vec<Origin>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum QueryDiagnostic {
+    FullPosLexiconUnavailable,
+    UnregisteredDaLiteralOnly { atom_index: usize, lemma: Box<str> },
+    VerifierVocabularyRestricted { excluded_rule_ids: Box<[RuleId]> },
+}
