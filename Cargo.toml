@@ -1,6 +1,31 @@
-[package]
-name = "kfind"
+[workspace]
+members = [
+  "crates/kfind-cli",
+  "crates/kfind-data",
+  "crates/kfind-matcher",
+  "crates/kfind-morph",
+  "crates/kfind-query",
+  "crates/kfind-search",
+  "crates/kfind-testkit",
+]
+resolver = "3"
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.85"
+repository = "https://github.com/SeokminHong/kfind"
 
-[dependencies]
+[workspace.dependencies]
+kfind-data = { path = "crates/kfind-data" }
+kfind-matcher = { path = "crates/kfind-matcher" }
+kfind-morph = { path = "crates/kfind-morph" }
+kfind-query = { path = "crates/kfind-query" }
+kfind-search = { path = "crates/kfind-search" }
+kfind-testkit = { path = "crates/kfind-testkit" }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = "warn"

@@ -1,0 +1,13 @@
+[package]
+name = "kfind-search"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[dependencies]
+kfind-matcher.workspace = true
+kfind-query.workspace = true
+
+[lints]
+workspace = true

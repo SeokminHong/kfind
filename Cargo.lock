@@ -3,5 +3,51 @@
 version = 4
 
 [[package]]
-name = "kfind"
+name = "kfind-cli"
 version = "0.1.0"
+dependencies = [
+ "kfind-matcher",
+ "kfind-morph",
+ "kfind-query",
+ "kfind-search",
+]
+
+[[package]]
+name = "kfind-data"
+version = "0.1.0"
+
+[[package]]
+name = "kfind-matcher"
+version = "0.1.0"
+dependencies = [
+ "kfind-morph",
+ "kfind-query",
+]
+
+[[package]]
+name = "kfind-morph"
+version = "0.1.0"
+
+[[package]]
+name = "kfind-query"
+version = "0.1.0"
+dependencies = [
+ "kfind-morph",
+]
+
+[[package]]
+name = "kfind-search"
+version = "0.1.0"
+dependencies = [
+ "kfind-matcher",
+ "kfind-query",
+]
+
+[[package]]
+name = "kfind-testkit"
+version = "0.1.0"
+dependencies = [
+ "kfind-matcher",
+ "kfind-morph",
+ "kfind-query",
+]

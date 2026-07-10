@@ -1,0 +1,15 @@
+[package]
+name = "kfind-testkit"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+kfind-matcher.workspace = true
+kfind-morph.workspace = true
+kfind-query.workspace = true
+
+[lints]
+workspace = true
