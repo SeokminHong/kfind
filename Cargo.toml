@@ -17,12 +17,16 @@ rust-version = "1.85"
 repository = "https://github.com/SeokminHong/kfind"
 
 [workspace.dependencies]
+aho-corasick = "1.1.4"
+clap = { version = "4.6.1", features = ["derive", "wrap_help"] }
+ignore = "0.4.28"
 kfind-data = { path = "crates/kfind-data" }
 kfind-matcher = { path = "crates/kfind-matcher" }
 kfind-morph = { path = "crates/kfind-morph" }
 kfind-query = { path = "crates/kfind-query" }
 kfind-search = { path = "crates/kfind-search" }
 kfind-testkit = { path = "crates/kfind-testkit" }
+memchr = "2.8.3"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
