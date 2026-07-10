@@ -195,7 +195,7 @@ impl Lexicons {
 
     fn insert_full_pos(&mut self, entry: &PosLexiconEntry) {
         let fine_pos = data_fine_pos(entry.pos);
-        let analysis = default_analysis(&entry.lemma, entry.pos, AnalysisSource::BuiltinLexicon);
+        let analysis = default_analysis(&entry.lemma, entry.pos, AnalysisSource::FullPosLexicon);
         self.insert_analysis(
             entry.lemma.clone().into_boxed_str(),
             analysis,

@@ -15,7 +15,7 @@
 - 어미, 조사 연쇄, 파생 규칙의 정확한 허용 목록과 전이는 저장소의 버전 관리되는 `data/rules` 파일을 규범 데이터로 삼는다. 목록 밖 조합은 생성하지 않는다.
 - full POS lexicon은 `mecab-ko-dic 2.1.1-20180720`의 Apache-2.0 데이터를 bootstrap 원본으로 사용한다. 빌드 시 표제어와 품사만 추출하고, 런타임 문장 분석 데이터와 알고리즘은 포함하지 않는다.
 - 배포 데이터에는 원본 버전, 출처, 라이선스, 추출 명령과 체크섬을 기록한다.
-- auto 품사 품질 기준은 300개 이상의 프로젝트 gold case에서 기대 분석을 모두 포함하고 금지 분석을 포함하지 않는 것이다. 핵심 불규칙 fixture는 core lexicon만으로도 100% 통과해야 한다.
+- auto 품사 품질 기준은 300개 이상의 프로젝트 gold case마다 명시된 기대 품사 분석을 포함하고, match case를 auto 계획으로 찾는 것이다. no-match case는 동음이의어 합집합이 다른 품사 경로로 찾을 수 있으므로 fixture 품사를 강제해 해당 분석의 금지 형태를 검증한다. 핵심 불규칙 fixture는 core lexicon만으로도 100% 통과해야 한다.
 - full POS lexicon이 없으면 core lexicon으로 계속 실행하되, `--explain-query`와 명시적 사전 진단 요청에서 preview 상태와 누락 경로를 출력한다.
 
 ### 0.2 토큰 경계와 phrase 거리
@@ -39,6 +39,8 @@
 - tap은 `SeokminHong/homebrew-brew`, formula는 `Formula/kfind.rb`를 사용한다.
 - 사용자 설치 명령은 `brew install seokminhong/brew/kfind`다.
 - formula 변경은 tap `main`에 직접 push하지 않는다. 브랜치 PR의 CI가 모두 통과한 뒤 `pr-pull`을 적용한다.
+- `vX.Y.Z` tag workflow는 고정 checksum으로 full POS lexicon을 재생성하고 source, full POS, man/completion 산출물을 GitHub release에 올린 뒤 `TAP_GITHUB_TOKEN`으로 tap formula PR을 연다. `pr-pull` label은 CI 확인 뒤 사람이 적용한다.
+- full POS resource에는 `lexicon.bin`, 생성 manifest, `mecab-ko-dic`의 `COPYING`을 함께 넣는다. formula는 이를 `share/kfind`와 `share/doc/kfind/LICENSES`에 설치한다.
 - kfind 자체 라이선스는 M6 배포 산출물을 만들기 전에 저장소 소유자가 확정한다.
 
 ## 1. 문서 목적

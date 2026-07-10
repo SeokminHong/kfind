@@ -11,4 +11,6 @@ extractor_api = "kfind_data::extract_mecab_ko_dic"
 extract_command = "cargo run -p kfind-data --bin kfind-data-extract-mecab -- data/lexicon/predicates.tsv data/generated/lexicon.bin mecab-ko-dic-2.1.1-20180720/*.csv"
 approval_input = "data/lexicon/predicates.tsv"
 extracted_fields = ["surface", "part-of-speech"]
+artifact_sha256 = "3cf1465d30a612bcc7b4fc0d33f409919cec28191bb270d477cdad0720662534"
+artifact_license_path = "LICENSES/mecab-ko-dic-COPYING"
 distribution_policy = "Predicate candidates must pass approve_predicates with the gold approval TSV before distribution. Runtime analysis tables are excluded."

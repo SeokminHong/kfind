@@ -42,18 +42,54 @@ pub struct GoldHarness {
 
 impl GoldHarness {
     pub fn embedded() -> Result<Self, DataError> {
-        let lexicons = Arc::new(Lexicons::embedded()?);
+        Self::new(Lexicons::embedded()?)
+    }
+
+    pub fn with_full_pos(full_pos: &[u8]) -> Result<Self, DataError> {
+        Self::new(Lexicons::embedded_with(Some(full_pos), None)?)
+    }
+
+    fn new(lexicons: Lexicons) -> Result<Self, DataError> {
         Ok(Self {
-            analyzer: LexiconQueryAnalyzer::new(lexicons),
+            analyzer: LexiconQueryAnalyzer::new(Arc::new(lexicons)),
         })
     }
 
     pub fn evaluate(&self, case: &MorphologyCase) -> Result<GoldCaseOutcome, GoldCaseError> {
+        self.evaluate_with_pos(
+            case,
+            (case.pos != FixturePos::Literal).then(|| fixture_coarse_pos(case.pos)),
+        )
+    }
+
+    pub fn evaluate_auto(&self, case: &MorphologyCase) -> Result<GoldCaseOutcome, GoldCaseError> {
+        self.evaluate_with_pos(case, None)
+    }
+
+    pub fn auto_includes_expected_pos(&self, case: &MorphologyCase) -> Result<bool, GoldCaseError> {
+        if case.pos == FixturePos::Literal {
+            return Ok(true);
+        }
+        let plan = compile_query(&case.query, &CompileOptions::default(), &self.analyzer)
+            .map_err(GoldCaseError::Compile)?;
+        let expected = fixture_coarse_pos(case.pos);
+        Ok(plan.atoms.len() == 1
+            && plan.atoms[0]
+                .analyses
+                .iter()
+                .any(|analysis| analysis.coarse_pos == expected))
+    }
+
+    fn evaluate_with_pos(
+        &self,
+        case: &MorphologyCase,
+        pos: Option<CoarsePos>,
+    ) -> Result<GoldCaseOutcome, GoldCaseError> {
         let options = CompileOptions::resolve(CompileOptionOverrides {
-            pos: (case.pos != FixturePos::Literal).then(|| fixture_coarse_pos(case.pos)),
+            pos,
             ..CompileOptionOverrides::default()
         })
-        .expect("fixture POS overrides never conflict");
+        .expect("gold POS overrides never conflict");
         let plan =
             compile_query(&case.query, &options, &self.analyzer).map_err(GoldCaseError::Compile)?;
         let matcher = MorphMatcher::new(Arc::new(plan)).map_err(GoldCaseError::Matcher)?;

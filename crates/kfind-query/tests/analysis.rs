@@ -58,7 +58,8 @@ fn full_pos_adds_homonymous_pos_without_replacing_core_entries() {
     assert!(
         analyses
             .iter()
-            .any(|analysis| analysis.coarse_pos == CoarsePos::Noun)
+            .any(|analysis| analysis.coarse_pos == CoarsePos::Noun
+                && analysis.source == AnalysisSource::FullPosLexicon)
     );
     assert!(
         analyses
