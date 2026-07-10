@@ -143,6 +143,25 @@ fn overlapping_anchors_select_leftmost_longest_verified_token() {
 }
 
 #[test]
+fn repeated_single_atom_matches_advance_without_changing_leftmost_longest() {
+    let mut short = exact_branch("가", false);
+    short.boundary = proof(false, false, true);
+    let mut long = exact_branch("가가", false);
+    long.boundary = proof(false, false, false);
+    let matcher = matcher(vec![atom(BoundaryPolicy::Any, vec![short, long])], 24);
+    let text = "가가 ".repeat(2_048);
+
+    let matches = matcher.find_all_with_meta(text.as_bytes());
+
+    assert_eq!(matches.len(), 2_048);
+    assert!(
+        matches
+            .iter()
+            .all(|matched| matched.span.len() == "가가".len())
+    );
+}
+
+#[test]
 fn identical_verified_spans_merge_origins_independent_of_branch_order() {
     let mut first = exact_branch("권한", true);
     first.origins = vec![origin(1, &["source.b"]), origin(0, &["source.a"])];
@@ -326,6 +345,7 @@ fn matcher(atoms: Vec<AtomPlan>, max_gap: usize) -> MorphMatcher {
         raw_query: "test".into(),
         atoms,
         phrase_policy: PhrasePolicy { max_gap },
+        normalization: kfind_query::NormalizationMode::Nfc,
         limits: PlanLimits::default(),
         diagnostics: Vec::new(),
         estimated_matcher_bytes: 0,

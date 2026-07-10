@@ -24,6 +24,7 @@ pub struct MorphMatcher {
     plan: Arc<QueryPlan>,
     anchor_engine: AnchorEngine,
     anchor_branches: Vec<Box<[BranchRef]>>,
+    max_anchor_bytes: usize,
     particle_verifier: ParticleVerifier,
 }
 
@@ -42,6 +43,7 @@ impl MorphMatcher {
         }
 
         let (anchors, anchor_branches) = unique_anchors(&plan);
+        let max_anchor_bytes = anchors.iter().map(|anchor| anchor.len()).max().unwrap_or(0);
         let anchor_engine = AnchorEngine::new_with_limits(
             &anchors,
             AnchorBuildLimits {
@@ -53,6 +55,7 @@ impl MorphMatcher {
             plan,
             anchor_engine,
             anchor_branches,
+            max_anchor_bytes,
             particle_verifier: ParticleVerifier::default(),
         })
     }
@@ -96,6 +99,11 @@ impl MorphMatcher {
     fn find_single_atom_at(&self, haystack: &[u8], at: usize) -> Option<PhraseMatch> {
         let mut best = None;
         for hit in self.anchor_engine.hits(haystack, at) {
+            if best.as_ref().is_some_and(|matched: &VerifiedSpan| {
+                hit.span.end > matched.token.start.saturating_add(self.max_anchor_bytes)
+            }) {
+                break;
+            }
             for branch_ref in &self.anchor_branches[hit.anchor_index] {
                 if branch_ref.atom_index != 0 {
                     continue;
