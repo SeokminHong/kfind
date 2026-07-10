@@ -28,17 +28,14 @@ pub(super) fn normalize_and_merge(
     drafts: Vec<DraftBranch>,
     mode: NormalizationMode,
     boundary: BoundaryPolicy,
+    one_scalar_atom: bool,
     atom_index: usize,
 ) -> Result<Vec<SurfaceBranch>, CompileError> {
     let mut indices = HashMap::<BranchKey, usize>::new();
     let mut branches = Vec::<SurfaceBranch>::new();
     for draft in drafts {
         for (anchor, core_mapping) in normalized_forms(&draft, mode, atom_index)? {
-            let boundary_proof = boundary_proof(
-                boundary,
-                draft.smart_left,
-                draft.anchor.chars().count() == 1,
-            );
+            let boundary_proof = boundary_proof(boundary, draft.smart_left, one_scalar_atom);
             let key = BranchKey {
                 anchor: anchor.as_bytes().into(),
                 verifier: draft.verifier.clone(),

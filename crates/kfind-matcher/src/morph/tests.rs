@@ -1,8 +1,8 @@
 use grep_matcher::Matcher;
 use kfind_morph::{ContinuationState, RuleId};
 use kfind_query::{
-    AtomPlan, BoundaryPolicy, BoundaryProof, BranchVerifier, CoreMapping, Origin, PhrasePolicy,
-    PlanLimits, QueryPlan, SurfaceBranch,
+    AtomPlan, BoundaryPolicy, BoundaryProof, BranchEnvironment, BranchVerifier, CoreMapping,
+    Origin, PhrasePolicy, PlanLimits, QueryPlan, SurfaceBranch,
 };
 use unicode_normalization::UnicodeNormalization;
 
@@ -249,6 +249,40 @@ fn nfd_branches_verify_nfc_morphology_and_preserve_original_offsets() {
     assert_eq!(matched.atoms[0].core.end, nominal_anchor.len());
 }
 
+#[test]
+fn contracted_vowel_environment_checks_left_context_without_lemma_special_cases() {
+    let mut branch = predicate_branch(
+        "여서",
+        "여".len(),
+        ContinuationState::Terminal,
+        rules(&[]),
+        vec![origin(0, &["lexical.copula", "ending.aoeo-seo"])],
+    );
+    let BranchVerifier::Predicate { environment, .. } = &mut branch.verifier else {
+        unreachable!("predicate branch helper returned another verifier")
+    };
+    *environment = BranchEnvironment::ContractedAfterVowel {
+        uncontracted_prefix: "이".into(),
+    };
+    let matcher = matcher(vec![atom(BoundaryPolicy::Smart, vec![branch])], 24);
+
+    assert!(
+        matcher
+            .find_at_with_meta("학교여서".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        matcher
+            .find_at_with_meta("학생이여서".as_bytes(), 0)
+            .is_none()
+    );
+    assert!(matcher.find_at_with_meta("여서".as_bytes(), 0).is_none());
+
+    let mut malformed = vec![0xff];
+    malformed.extend_from_slice("학교여서".as_bytes());
+    assert!(matcher.find_at_with_meta(&malformed, 0).is_some());
+}
+
 fn matcher(atoms: Vec<AtomPlan>, max_gap: usize) -> MorphMatcher {
     MorphMatcher::new(Arc::new(QueryPlan {
         raw_query: "test".into(),
@@ -282,7 +316,10 @@ fn exact_branch(anchor: &str, require_left: bool) -> SurfaceBranch {
 fn nominal_branch(anchor: &str, allowed_rule_ids: Arc<[RuleId]>) -> SurfaceBranch {
     SurfaceBranch {
         anchor: anchor.as_bytes().into(),
-        verifier: BranchVerifier::NominalParticles { allowed_rule_ids },
+        verifier: BranchVerifier::NominalParticles {
+            allowed_rule_ids,
+            blocked_rule_ids: Arc::from([]),
+        },
         core_mapping: CoreMapping::WholeAnchor,
         origins: vec![origin(0, &[])],
         boundary: proof(true, true, anchor.chars().count() == 1),
@@ -301,6 +338,7 @@ fn predicate_branch(
         verifier: BranchVerifier::Predicate {
             continuation,
             allowed_rule_ids,
+            environment: BranchEnvironment::Unrestricted,
         },
         core_mapping: CoreMapping::PrefixBytes(core_len),
         origins,

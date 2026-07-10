@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use kfind_morph::{CoarsePos, ContinuationState, verify_predicate_continuation};
+use kfind_morph::{CoarsePos, ContinuationState, RuleId, verify_predicate_continuation};
 
 use super::*;
 use crate::{BoundaryPolicy, CompileOptionOverrides, Lexicons, NormalizationMode, PlanLimits};
@@ -133,6 +133,20 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
 }
 
 #[test]
+fn smart_one_scalar_rule_uses_the_source_atom_not_generated_surfaces() {
+    let plan = compile_query("이다", &CompileOptions::default(), &analyzer()).unwrap();
+    for surface in ["인", "일"] {
+        let branch = plan.atoms[0]
+            .branches
+            .iter()
+            .find(|branch| branch.anchor.as_ref() == surface.as_bytes())
+            .unwrap_or_else(|| panic!("missing copula branch {surface}"));
+        assert!(!branch.boundary.one_scalar_anchor);
+        assert!(!branch.boundary.require_left);
+    }
+}
+
+#[test]
 fn analysis_and_memory_limits_fail_observably() {
     let options = CompileOptions {
         limits: PlanLimits {
@@ -260,6 +274,20 @@ fn derivation_nominal_particle_and_override_branches_use_distinct_verifiers() {
             .iter()
             .any(|branch| branch.anchor.as_ref() == "내가".as_bytes())
     );
+    let base = pronoun.atoms[0]
+        .branches
+        .iter()
+        .find(|branch| branch.anchor.as_ref() == "나".as_bytes())
+        .expect("pronoun base branch");
+    assert!(
+        !base
+            .verifier
+            .accepts_rule_path(&[RuleId::from("particle.subject")])
+    );
+    assert!(
+        base.verifier
+            .accepts_rule_path(&[RuleId::from("particle.topic")])
+    );
 }
 
 #[test]
@@ -288,4 +316,5 @@ fn normalization_none_preserves_raw_jamo_while_nfc_composes_it() {
         nfc_plan.atoms[0].branches[0].anchor.as_ref(),
         "가".as_bytes()
     );
+    assert!(!nfc_plan.atoms[0].branches[0].boundary.one_scalar_anchor);
 }

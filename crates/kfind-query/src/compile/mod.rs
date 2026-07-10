@@ -3,9 +3,9 @@ use std::sync::Arc;
 
 use crate::lexicons::{data_fine_pos, predicate_from_derivation};
 use crate::{
-    Analysis, AnalysisSource, AtomPlan, BranchVerifier, CompileError, CompileErrorKind,
-    CompileOptions, CoreMapping, ExpandMode, LexiconQueryAnalyzer, Morphology, Origin,
-    QueryAnalyzer, QueryAtom, QueryDiagnostic, QueryPlan, SurfaceBranch, parse_query,
+    Analysis, AnalysisSource, AtomPlan, BranchEnvironment, BranchVerifier, CompileError,
+    CompileErrorKind, CompileOptions, CoreMapping, ExpandMode, LexiconQueryAnalyzer, Morphology,
+    Origin, QueryAnalyzer, QueryAtom, QueryDiagnostic, QueryPlan, SurfaceBranch, parse_query,
 };
 use kfind_data::DerivationRule;
 use kfind_morph::{RuleId, generate_predicate_branches};
@@ -15,6 +15,7 @@ mod normalization;
 use normalization::{DraftBranch, normalize_and_merge, normalize_atom};
 
 const BRANCH_OVERHEAD_BYTES: usize = 64;
+const COPULA_CONTRACTED_AOEO_RULE_ID: &str = "ending.aoeo-seo";
 const INTERNAL_PROVENANCE_IDS: &[&str] = &[
     "contraction.eu-drop",
     "contraction.h-irregular",
@@ -98,6 +99,7 @@ pub fn compile_query(
     let mut uses_predicate_verifier = false;
     let mut uses_nominal_verifier = false;
     for (atom_index, atom) in ast.atoms.iter().enumerate() {
+        let one_scalar_atom = atom.raw.chars().count() == 1;
         let normalized = normalize_atom(atom, options.normalization);
         let mut effective = normalized.clone();
         effective.forced_pos = effective.forced_pos.or(options.global_pos);
@@ -139,8 +141,13 @@ pub fn compile_query(
                 &mut drafts,
             )?;
         }
-        let branches =
-            normalize_and_merge(drafts, options.normalization, options.boundary, atom_index)?;
+        let branches = normalize_and_merge(
+            drafts,
+            options.normalization,
+            options.boundary,
+            one_scalar_atom,
+            atom_index,
+        )?;
         if branches.is_empty() {
             return Err(CompileError::new(
                 Some(atom_index),
@@ -232,10 +239,12 @@ fn compile_analysis(
             output,
         )?,
         Morphology::Nominal(nominal) => {
+            let blocked_rule_ids = blocked_override_rules(nominal);
             output.push(DraftBranch {
                 anchor: analysis.lemma.to_string(),
                 verifier: BranchVerifier::NominalParticles {
                     allowed_rule_ids: Arc::clone(particle_rules),
+                    blocked_rule_ids,
                 },
                 core_mapping: CoreMapping::WholeAnchor,
                 origin: Origin {
@@ -288,6 +297,7 @@ fn compile_predicate(
     let branches = generate_predicate_branches(predicate)
         .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?;
     for branch in branches {
+        let environment = predicate_environment(predicate, &branch);
         let mut rule_path = prefix_rules.clone();
         rule_path.extend(branch.rule_path);
         let unsupported = rule_path
@@ -304,6 +314,7 @@ fn compile_predicate(
             verifier: BranchVerifier::Predicate {
                 continuation: branch.continuation,
                 allowed_rule_ids: Arc::clone(allowed_rules),
+                environment,
             },
             core_mapping: CoreMapping::PrefixBytes(branch.core_len),
             origin: Origin {
@@ -353,6 +364,7 @@ fn compile_derivations(
                 anchor: derived_lemma,
                 verifier: BranchVerifier::NominalParticles {
                     allowed_rule_ids: Arc::clone(particle_rules),
+                    blocked_rule_ids: Arc::from([]),
                 },
                 core_mapping: CoreMapping::WholeAnchor,
                 origin: Origin {
@@ -371,6 +383,43 @@ fn compile_derivations(
         }
     }
     Ok(())
+}
+
+fn blocked_override_rules(nominal: &crate::NominalMorphology) -> Arc<[RuleId]> {
+    let mut rules = nominal
+        .overrides
+        .iter()
+        .map(|override_form| override_form.rule_id.clone())
+        .collect::<Vec<_>>();
+    rules.sort();
+    rules.dedup();
+    rules.into()
+}
+
+fn predicate_environment(
+    predicate: &kfind_morph::PredicateEntry,
+    branch: &kfind_morph::SurfaceBranchSpec,
+) -> BranchEnvironment {
+    let is_contracted_copula_aoeo = predicate.alternation
+        == kfind_morph::LexicalAlternation::Copula
+        && branch
+            .rule_path
+            .iter()
+            .any(|rule| rule.as_str() == COPULA_CONTRACTED_AOEO_RULE_ID);
+    if !is_contracted_copula_aoeo {
+        return BranchEnvironment::Unrestricted;
+    }
+
+    let Some(stem) = predicate.lemma.strip_suffix('다') else {
+        return BranchEnvironment::Unrestricted;
+    };
+    if branch.anchor.starts_with(stem) {
+        BranchEnvironment::Unrestricted
+    } else {
+        BranchEnvironment::ContractedAfterVowel {
+            uncontracted_prefix: stem.into(),
+        }
+    }
 }
 
 fn derivation_accepts(rule: &DerivationRule, analysis: &Analysis) -> bool {

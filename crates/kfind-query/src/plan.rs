@@ -28,10 +28,18 @@ pub enum BranchVerifier {
     Predicate {
         continuation: ContinuationState,
         allowed_rule_ids: Arc<[RuleId]>,
+        environment: BranchEnvironment,
     },
     NominalParticles {
         allowed_rule_ids: Arc<[RuleId]>,
+        blocked_rule_ids: Arc<[RuleId]>,
     },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum BranchEnvironment {
+    Unrestricted,
+    ContractedAfterVowel { uncontracted_prefix: Box<str> },
 }
 
 impl BranchVerifier {
@@ -41,11 +49,21 @@ impl BranchVerifier {
             Self::Exact => rules.is_empty(),
             Self::Predicate {
                 allowed_rule_ids, ..
-            }
-            | Self::NominalParticles { allowed_rule_ids } => rules.iter().all(|rule| {
+            } => rules.iter().all(|rule| {
                 allowed_rule_ids
                     .binary_search_by_key(&rule.as_str(), |known| known.as_str())
                     .is_ok()
+            }),
+            Self::NominalParticles {
+                allowed_rule_ids,
+                blocked_rule_ids,
+            } => rules.iter().all(|rule| {
+                allowed_rule_ids
+                    .binary_search_by_key(&rule.as_str(), |known| known.as_str())
+                    .is_ok()
+                    && blocked_rule_ids
+                        .binary_search_by_key(&rule.as_str(), |blocked| blocked.as_str())
+                        .is_err()
             }),
         }
     }

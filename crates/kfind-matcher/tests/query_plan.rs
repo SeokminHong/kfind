@@ -95,6 +95,64 @@ fn compiled_canonical_plan_matches_nfd_inflection() {
     assert_eq!(matched.span.end, text.len());
 }
 
+#[test]
+fn compiled_copula_plan_accepts_attached_adnominals_and_licensed_contraction() {
+    let matcher = compile("이다", CompileOptions::default());
+
+    for text in [
+        "학생인 친구가 도착했다.",
+        "학생일 때 많이 배웠다.",
+        "학교여서 도보로 갔다.",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "compiled copula plan rejected {text}"
+        );
+    }
+    assert!(
+        matcher
+            .find_at_with_meta("학생이여서 참석했다.".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
+fn compiled_copula_environment_is_canonical_normalization_safe() {
+    let options = CompileOptions {
+        normalization: NormalizationMode::Canonical,
+        ..CompileOptions::default()
+    };
+    let matcher = compile("이다", options);
+    let accepted = "학교여서".nfd().collect::<String>();
+    let rejected = "학생이여서".nfd().collect::<String>();
+
+    assert!(matcher.find_at_with_meta(accepted.as_bytes(), 0).is_some());
+    assert!(matcher.find_at_with_meta(rejected.as_bytes(), 0).is_none());
+}
+
+#[test]
+fn nominal_overrides_replace_the_same_base_particle_path() {
+    for (query, override_form, rejected) in [
+        ("나", "내가", "나가"),
+        ("너", "네가", "너가"),
+        ("저", "제가", "저가"),
+    ] {
+        let matcher = compile(query, CompileOptions::default());
+        assert!(
+            matcher
+                .find_at_with_meta(override_form.as_bytes(), 0)
+                .is_some(),
+            "{query} must accept {override_form}"
+        );
+        assert!(
+            matcher.find_at_with_meta(rejected.as_bytes(), 0).is_none(),
+            "{query} must reject {rejected}"
+        );
+        let topic = format!("{query}는");
+        assert!(matcher.find_at_with_meta(topic.as_bytes(), 0).is_some());
+    }
+}
+
 fn compile(query: &str, options: CompileOptions) -> MorphMatcher {
     let lexicons = Arc::new(Lexicons::embedded().expect("embedded lexicons must be valid"));
     let analyzer = LexiconQueryAnalyzer::new(lexicons);

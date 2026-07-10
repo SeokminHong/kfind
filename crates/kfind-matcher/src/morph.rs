@@ -7,8 +7,8 @@ use std::sync::Arc;
 use grep_matcher::{Match, Matcher, NoCaptures, NoError};
 use kfind_morph::{ParticleVerifier, RuleId, verify_predicate_continuation};
 use kfind_query::{
-    BranchVerifier, CoreMapping, Origin, PhraseMatch, QueryPlan, SurfaceBranch, VerifiedSpan,
-    join_phrase_spans,
+    BranchEnvironment, BranchVerifier, CoreMapping, Origin, PhraseMatch, QueryPlan, SurfaceBranch,
+    VerifiedSpan, join_phrase_spans,
 };
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
@@ -153,7 +153,14 @@ impl MorphMatcher {
         let verifier_following = normalized_following.as_deref().unwrap_or(following);
         let (normalized_consumed_bytes, suffix_rules) = match &branch.verifier {
             BranchVerifier::Exact => (0, Vec::new()),
-            BranchVerifier::Predicate { continuation, .. } => {
+            BranchVerifier::Predicate {
+                continuation,
+                environment,
+                ..
+            } => {
+                if !accepts_environment(environment, haystack, hit.span.start) {
+                    return None;
+                }
                 let matched = verify_predicate_continuation(
                     *continuation,
                     verifier_anchor,
@@ -200,6 +207,40 @@ impl MorphMatcher {
             origins: extend_origins(&branch.origins, &suffix_rules),
         })
     }
+}
+
+fn accepts_environment(
+    environment: &BranchEnvironment,
+    haystack: &[u8],
+    anchor_start: usize,
+) -> bool {
+    match environment {
+        BranchEnvironment::Unrestricted => true,
+        BranchEnvironment::ContractedAfterVowel {
+            uncontracted_prefix,
+        } => {
+            let Some(left_bytes) = haystack.get(..anchor_start) else {
+                return false;
+            };
+            let left = valid_utf8_suffix(left_bytes);
+            let normalized_left = left.nfc().collect::<String>();
+            let normalized_prefix = uncontracted_prefix.nfc().collect::<String>();
+            accepts_contracted_after_vowel(&normalized_left, &normalized_prefix)
+        }
+    }
+}
+
+fn accepts_contracted_after_vowel(left: &str, uncontracted_prefix: &str) -> bool {
+    let Some(previous) = left.chars().next_back() else {
+        return false;
+    };
+    if kfind_morph::has_final(previous) {
+        return false;
+    }
+
+    left.strip_suffix(uncontracted_prefix)
+        .and_then(|host| host.chars().next_back())
+        .is_none_or(|host_final| !kfind_morph::has_final(host_final))
 }
 
 impl Matcher for MorphMatcher {
@@ -280,6 +321,25 @@ fn valid_utf8_prefix(bytes: &[u8]) -> &str {
         Ok(text) => text,
         Err(error) => std::str::from_utf8(&bytes[..error.valid_up_to()])
             .expect("from_utf8 valid_up_to is always valid UTF-8"),
+    }
+}
+
+fn valid_utf8_suffix(bytes: &[u8]) -> &str {
+    let mut remaining = &bytes[bytes.len().saturating_sub(MAX_VERIFIER_BYTES)..];
+    loop {
+        match std::str::from_utf8(remaining) {
+            Ok(text) => return text,
+            Err(error) => {
+                let invalid_len = error
+                    .error_len()
+                    .unwrap_or_else(|| remaining.len().saturating_sub(error.valid_up_to()));
+                let skip = error.valid_up_to().saturating_add(invalid_len);
+                if skip >= remaining.len() {
+                    return "";
+                }
+                remaining = &remaining[skip..];
+            }
+        }
     }
 }
 
