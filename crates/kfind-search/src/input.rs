@@ -92,15 +92,51 @@ impl FileSearchResult {
     }
 }
 
+/// Reusable, single-threaded file search state.
+///
+/// Create one value per traversal worker so that `grep-searcher` can reuse its
+/// scratch buffers without sharing mutable state between workers.
+pub struct InputSearcher {
+    searcher: Searcher,
+    options: InputOptions,
+}
+
+impl InputSearcher {
+    pub fn new(options: InputOptions) -> Result<Self, InputSearchError> {
+        Ok(Self {
+            searcher: build_searcher(options)?,
+            options,
+        })
+    }
+
+    pub fn search_path(
+        &mut self,
+        matcher: &MorphMatcher,
+        path: &Path,
+    ) -> Result<FileSearchResult, InputSearchError> {
+        let mut sink = MatchSink::new(path.to_path_buf(), matcher, self.options.capture_records);
+        self.searcher.search_path(matcher, path, &mut sink)?;
+        Ok(sink.finish())
+    }
+
+    pub fn search_reader(
+        &mut self,
+        matcher: &MorphMatcher,
+        display_path: PathBuf,
+        reader: impl Read,
+    ) -> Result<FileSearchResult, InputSearchError> {
+        let mut sink = MatchSink::new(display_path, matcher, self.options.capture_records);
+        self.searcher.search_reader(matcher, reader, &mut sink)?;
+        Ok(sink.finish())
+    }
+}
+
 pub fn search_path(
     matcher: &MorphMatcher,
     path: &Path,
     options: InputOptions,
 ) -> Result<FileSearchResult, InputSearchError> {
-    let mut searcher = build_searcher(options)?;
-    let mut sink = MatchSink::new(path.to_path_buf(), matcher, options.capture_records);
-    searcher.search_path(matcher, path, &mut sink)?;
-    Ok(sink.finish())
+    InputSearcher::new(options)?.search_path(matcher, path)
 }
 
 pub fn search_reader(
@@ -109,10 +145,7 @@ pub fn search_reader(
     reader: impl Read,
     options: InputOptions,
 ) -> Result<FileSearchResult, InputSearchError> {
-    let mut searcher = build_searcher(options)?;
-    let mut sink = MatchSink::new(display_path, matcher, options.capture_records);
-    searcher.search_reader(matcher, reader, &mut sink)?;
-    Ok(sink.finish())
+    InputSearcher::new(options)?.search_reader(matcher, display_path, reader)
 }
 
 fn build_searcher(options: InputOptions) -> Result<Searcher, InputSearchError> {
