@@ -1,0 +1,57 @@
+schema_version = 1
+
+[[contraction]]
+id = "contraction.o-a"
+kind = "vowel-compose"
+left = "ㅗ"
+right = "ㅏ"
+result = "ㅘ"
+ending_ids = ["ending.aoeo", "ending.aoeo-seo", "ending.past"]
+
+[[contraction]]
+id = "contraction.u-eo"
+kind = "vowel-compose"
+left = "ㅜ"
+right = "ㅓ"
+result = "ㅝ"
+ending_ids = ["ending.aoeo", "ending.aoeo-seo", "ending.past"]
+
+[[contraction]]
+id = "contraction.oe-eo"
+kind = "vowel-compose"
+left = "ㅚ"
+right = "ㅓ"
+result = "ㅙ"
+ending_ids = ["ending.aoeo", "ending.aoeo-seo", "ending.past"]
+
+[[contraction]]
+id = "contraction.i-eo"
+kind = "vowel-compose"
+left = "ㅣ"
+right = "ㅓ"
+result = "ㅕ"
+ending_ids = ["ending.aoeo", "ending.aoeo-seo", "ending.past"]
+
+[[contraction]]
+id = "contraction.ha-yeo"
+kind = "stem-rewrite"
+left = "하"
+right = "여"
+result = "해"
+ending_ids = ["ending.aoeo", "ending.aoeo-seo"]
+
+[[contraction]]
+id = "contraction.ha-past"
+kind = "stem-rewrite"
+left = "하"
+right = "였"
+result = "했"
+ending_ids = ["ending.past"]
+
+[[contraction]]
+id = "contraction.si-past"
+kind = "stem-rewrite"
+left = "시"
+right = "었"
+result = "셨"
+ending_ids = ["ending.past"]

@@ -1,0 +1,62 @@
+query	pos	text	expected	feature
+걷다	verb	길을 걸어 갔다.	match	d-irregular
+걷다	verb	어제 많이 걸었다.	match	d-irregular
+걷다	verb	매일 걸으면 건강해진다.	match	d-irregular
+걷다	verb	천천히 걸으셨다.	match	d-irregular
+걷다	verb	전화를 걸어 봤다.	match	homonym-union
+걷다	verb	먼지를 걷어 냈다.	match	regular
+걷다	verb	소매를 걷었다.	match	regular
+듣다	verb	노래를 들어 봤다.	match	d-irregular
+듣다	verb	설명을 들었다.	match	d-irregular
+듣다	verb	잘 들으면 이해된다.	match	d-irregular
+듣다	verb	전화를 걸어 봤다.	no-match	d-irregular
+싣다	verb	짐을 실어 보냈다.	match	d-irregular
+묻다	verb	길을 물어 봤다.	match	d-irregular
+묻다	verb	흙을 묻어 두었다.	match	regular
+짓다	verb	집을 지어 올렸다.	match	s-irregular
+낫다	adjective	상태가 나아 보인다.	match	s-irregular
+잇다	verb	두 점을 이어 그렸다.	match	s-irregular
+돕다	verb	서로 도와 해결했다.	match	b-irregular-wa
+눕다	verb	침대에 누워 쉬었다.	match	b-irregular-wo
+아름답다	adjective	풍경이 아름다워 보인다.	match	b-irregular-wo
+파랗다	adjective	하늘이 파래 보인다.	match	h-irregular
+파랗다	adjective	파란 하늘을 보았다.	match	h-irregular
+그렇다	adjective	상황이 그래 보인다.	match	h-irregular
+그렇다	adjective	그런 결과를 예상했다.	match	h-irregular
+빠르다	adjective	처리가 빨라졌다.	match	reu-irregular
+부르다	verb	이름을 불러 보았다.	match	reu-irregular
+모르다	verb	정답을 몰라 망설였다.	match	reu-irregular
+푸르다	adjective	숲이 푸르러 보인다.	match	reo-irregular
+쓰다	verb	문서를 써 두었다.	match	eu-drop
+크다	adjective	상자가 너무 커 보인다.	match	eu-drop
+예쁘다	adjective	꽃이 예뻐 보인다.	match	eu-drop
+예쁘다	adjective	예뻤던 장면이다.	match	eu-drop
+예쁘다	adjective	예쁜 꽃을 보았다.	match	eu-drop
+예쁘다	adjective	예쁠 것 같다.	match	eu-drop
+예쁘다	adjective	예쁘어 보인다.	no-match	eu-drop
+푸다	verb	물을 퍼 올렸다.	match	u-irregular
+하다	verb	일을 해 두었다.	match	ha
+하다	verb	어제 일을 했다.	match	ha
+검증하다	verb	권한을 검증해 보았다.	match	ha
+검증하다	verb	권한을 검증했다.	match	ha
+먹다	verb	밥을 먹었다.	match	regular
+가다	verb	집에 갔다.	match	regular
+보다	verb	문서를 보아 확인했다.	match	regular
+보다	verb	문서를 봐 두었다.	match	regular
+되다	verb	준비가 되어 있다.	match	regular
+되다	verb	준비가 돼 있다.	match	regular
+살다	verb	이곳에 사는 사람이다.	match	rieul-drop
+살다	verb	이곳에 삽니다.	match	rieul-drop
+살다	verb	오래 살고 싶다.	match	rieul-drop
+이다	copula	학생이고 개발자다.	match	copula
+이다	copula	학생인 사람이다.	match	copula
+이다	copula	학생일 가능성이 있다.	match	copula
+사용자	noun	사용자들에게 알렸다.	match	particle-chain
+사용자	noun	사용자들로부터 받았다.	match	particle-chain
+길	noun	길로 들어섰다.	match	particle-euro-ro
+길	noun	길으로 들어섰다.	no-match	particle-euro-ro
+권한	noun	권한은 필요하다.	match	particle-final-pair
+권한	noun	권한는 필요하다.	no-match	particle-final-pair
+나	pronoun	내가 확인했다.	match	pronoun-override
+너	pronoun	네가 확인했다.	match	pronoun-override
+저	pronoun	제가 확인했다.	match	pronoun-override

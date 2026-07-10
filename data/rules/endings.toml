@@ -1,0 +1,162 @@
+schema_version = 1
+max_continuation_depth = 4
+
+[[ending]]
+id = "ending.final-da"
+category = "final"
+initial = "consonant"
+forms = ["다"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.connective-go"
+category = "connective"
+initial = "consonant"
+forms = ["고"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.connective-ji"
+category = "connective"
+initial = "consonant"
+forms = ["지"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.adverbial-ge"
+category = "adverbial"
+initial = "consonant"
+forms = ["게"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.present-adnominal"
+category = "adnominal"
+initial = "consonant"
+forms = ["는"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.past-adnominal"
+category = "adnominal"
+initial = "attach-nieun"
+forms = ["은", "ㄴ"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.future-adnominal"
+category = "adnominal"
+initial = "attach-rieul"
+forms = ["을", "ㄹ"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.aoeo"
+category = "connective"
+initial = "a-or-eo"
+forms = ["아", "어"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.aoeo-seo"
+category = "connective"
+initial = "a-or-eo"
+forms = ["아서", "어서"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.past"
+category = "prefinal"
+initial = "a-or-eo"
+forms = ["았", "었"]
+required = []
+forbidden = []
+next = ["ending.final-da", "ending.polite-declarative"]
+terminal = true
+
+[[ending]]
+id = "ending.future"
+category = "prefinal"
+initial = "consonant"
+forms = ["겠"]
+required = []
+forbidden = []
+next = ["ending.final-da", "ending.polite-declarative"]
+terminal = true
+
+[[ending]]
+id = "ending.honorific"
+category = "prefinal"
+initial = "eu"
+forms = ["시", "으시"]
+required = []
+forbidden = []
+next = ["ending.past", "ending.future", "ending.final-da", "ending.polite-declarative"]
+terminal = false
+
+[[ending]]
+id = "ending.conditional"
+category = "connective"
+initial = "eu"
+forms = ["면", "으면"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.coordinate-myeo"
+category = "connective"
+initial = "eu"
+forms = ["며", "으며"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.polite-declarative"
+category = "final"
+initial = "attach-bieup"
+forms = ["ㅂ니다", "습니다"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.nominalizer"
+category = "nominalizer"
+initial = "attach-nieun"
+forms = ["ㅁ", "음"]
+required = []
+forbidden = []
+next = []
+terminal = true

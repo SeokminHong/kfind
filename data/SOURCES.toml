@@ -1,0 +1,12 @@
+schema_version = 1
+
+[[source]]
+name = "mecab-ko-dic"
+version = "2.1.1-20180720"
+url = "https://bitbucket.org/eunjeon/mecab-ko-dic/downloads/mecab-ko-dic-2.1.1-20180720.tar.gz"
+sha256 = "fd62d3d6d8fa85145528065fabad4d7cb20f6b2201e71be4081a4e9701a5b330"
+license = "Apache-2.0"
+license_file = "COPYING"
+extractor_api = "kfind_data::extract_mecab_ko_dic"
+extracted_fields = ["surface", "part-of-speech"]
+distribution_policy = "Predicate candidates must be filtered through retain_gold_approved_predicates before distribution. Runtime analysis tables are excluded."

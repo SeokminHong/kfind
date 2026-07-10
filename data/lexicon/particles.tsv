@@ -1,0 +1,15 @@
+lemma	pos	rule_id	variants	flags
+가	JKS	particle.subject	이|가	
+과	JC	particle.comitative	과|와	
+는	JX	particle.topic	은|는	
+도	JX	particle.additive	도	
+로	JKB	particle.direction	으로|로	RIEUL_AS_VOWEL
+만	JX	particle.only	만	
+부터	JX	particle.from	부터	
+에게	JKB	particle.dative	에게|한테|께	
+에	JKB	particle.locative	에	
+에서	JKB	particle.source	에서	
+와	JC	particle.comitative	과|와	
+을	JKO	particle.object	을|를	
+의	JKG	particle.genitive	의	
+이	JKS	particle.subject	이|가	

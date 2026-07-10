@@ -1,0 +1,37 @@
+lemma	pos	alternation	flags	overrides
+가다	VV	Regular		
+걷다	VV	DToL		
+걷다	VV	Regular		
+검증하다	VV	Ha		
+그렇다	VA	DropH		
+낫다	VA	DropS		
+눕다	VV	BToWo		
+되다	VV	Regular		
+돕다	VV	BToWa		
+듣다	VV	DToL		
+만들다	VV	Regular	RIEUL_DROP	
+먹다	VV	Regular		
+모르다	VV	ReuDoubleL		
+묻다	VV	DToL		
+묻다	VV	Regular		
+믿다	VV	Regular		
+보다	VV	Regular		
+부르다	VV	ReuDoubleL		
+벗다	VV	Regular		
+빠르다	VA	ReuDoubleL		
+살다	VV	Regular	RIEUL_DROP	
+싣다	VV	DToL		
+쓰다	VV	Regular	EU_DROP	
+아니다	VCN	Regular		
+아름답다	VA	BToWo		
+알다	VV	Regular	RIEUL_DROP	
+예쁘다	VA	Regular	EU_DROP	
+이다	VCP	Copula		
+잇다	VV	DropS		
+좋다	VA	Regular		
+짓다	VV	DropS		
+크다	VA	Regular	EU_DROP	
+파랗다	VA	DropH		
+푸다	VV	UToEo		
+푸르다	VA	Reo		
+하다	VV	Ha		

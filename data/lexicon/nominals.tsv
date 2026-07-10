@@ -1,0 +1,10 @@
+lemma	pos	flags	overrides
+검증	NNG	DERIVABLE	
+권한	NNG		
+길	NNG		
+나	NP		particle.subject=내가
+너	NP		particle.subject=네가
+단순	NNG	DERIVABLE	
+사용자	NNG		
+저	NP		particle.subject=제가
+기술	NNG	DERIVABLE	

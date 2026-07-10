@@ -1,0 +1,55 @@
+schema_version = 1
+
+[[derivation]]
+id = "derivation.jeok"
+suffix = "적"
+source_pos = ["NNG", "NNP"]
+result_pos = "NNG"
+
+[[derivation]]
+id = "derivation.hada"
+suffix = "하다"
+source_pos = ["NNG", "NNP"]
+result_pos = "VV"
+alternation_id = "lexical.ha"
+
+[[derivation]]
+id = "derivation.doeda"
+suffix = "되다"
+source_pos = ["NNG", "NNP"]
+result_pos = "VV"
+alternation_id = "lexical.regular"
+
+[[derivation]]
+id = "derivation.sikida"
+suffix = "시키다"
+source_pos = ["NNG", "NNP"]
+result_pos = "VV"
+alternation_id = "lexical.regular"
+
+[[derivation]]
+id = "derivation.seureopda"
+suffix = "스럽다"
+source_pos = ["NNG", "NNP"]
+result_pos = "VA"
+alternation_id = "lexical.b-to-wo"
+
+[[derivation]]
+id = "derivation.dapda"
+suffix = "답다"
+source_pos = ["NNG", "NNP"]
+result_pos = "VA"
+alternation_id = "lexical.b-to-wo"
+
+[[derivation]]
+id = "derivation.ropda"
+suffix = "롭다"
+source_pos = ["NNG", "NNP"]
+result_pos = "VA"
+alternation_id = "lexical.b-to-wo"
+
+[[derivation]]
+id = "derivation.hwa"
+suffix = "화"
+source_pos = ["NNG", "NNP"]
+result_pos = "NNG"

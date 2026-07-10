@@ -1,0 +1,92 @@
+schema_version = 1
+
+[[particle]]
+id = "particle.plural"
+forms = ["들"]
+selection = "literal"
+next = ["particle.subject", "particle.object", "particle.topic", "particle.comitative", "particle.direction", "particle.dative", "particle.locative", "particle.source", "particle.from", "particle.genitive", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.subject"
+forms = ["이", "가"]
+selection = "final-pair"
+next = ["particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.object"
+forms = ["을", "를"]
+selection = "final-pair"
+next = ["particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.topic"
+forms = ["은", "는"]
+selection = "final-pair"
+next = []
+terminal = true
+
+[[particle]]
+id = "particle.comitative"
+forms = ["과", "와"]
+selection = "final-pair"
+next = ["particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.direction"
+forms = ["으로", "로"]
+selection = "euro-ro"
+next = ["particle.from", "particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.dative"
+forms = ["에게", "한테", "께"]
+selection = "literal"
+next = ["particle.from", "particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.locative"
+forms = ["에"]
+selection = "literal"
+next = ["particle.from", "particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.source"
+forms = ["에서"]
+selection = "literal"
+next = ["particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.from"
+forms = ["부터"]
+selection = "literal"
+next = ["particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.genitive"
+forms = ["의"]
+selection = "literal"
+next = ["particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.additive"
+forms = ["도"]
+selection = "literal"
+next = []
+terminal = true
+
+[[particle]]
+id = "particle.only"
+forms = ["만"]
+selection = "literal"
+next = []
+terminal = true
