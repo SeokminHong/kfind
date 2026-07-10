@@ -7,9 +7,12 @@ repository.workspace = true
 
 [dependencies]
 aho-corasick.workspace = true
+grep-matcher.workspace = true
 kfind-morph.workspace = true
 kfind-query.workspace = true
 memchr.workspace = true
+unicode-general-category.workspace = true
+unicode-normalization.workspace = true
 
 [lints]
 workspace = true

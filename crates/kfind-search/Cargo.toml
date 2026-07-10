@@ -6,6 +6,8 @@ rust-version.workspace = true
 repository.workspace = true
 
 [dependencies]
+crossbeam-channel.workspace = true
+grep-searcher.workspace = true
 ignore.workspace = true
 kfind-matcher.workspace = true
 kfind-query.workspace = true
