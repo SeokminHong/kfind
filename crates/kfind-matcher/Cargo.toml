@@ -14,5 +14,8 @@ memchr.workspace = true
 unicode-general-category.workspace = true
 unicode-normalization.workspace = true
 
+[dev-dependencies]
+proptest.workspace = true
+
 [lints]
 workspace = true

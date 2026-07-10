@@ -1,0 +1,31 @@
+[package]
+name = "kfind-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+rust-version = "1.85"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+kfind-matcher = { path = "../crates/kfind-matcher" }
+kfind-query = { path = "../crates/kfind-query" }
+libfuzzer-sys = "0.4.10"
+
+[[bin]]
+name = "query_lexer"
+path = "fuzz_targets/query_lexer.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "matcher_bytes"
+path = "fuzz_targets/matcher_bytes.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]
+resolver = "3"

@@ -9,4 +9,4 @@ repository.workspace = true
 workspace = true
 
 [dev-dependencies]
-proptest = "1.7"
+proptest.workspace = true
