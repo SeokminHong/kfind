@@ -1,7 +1,7 @@
 use std::ops::Range;
 use std::sync::Arc;
 
-use kfind_morph::{ContinuationState, ParticleTransition, RuleId};
+use kfind_morph::{ContinuationState, ParticleTransition, PredicatePos, RuleId};
 
 use crate::{Analysis, BoundaryPolicy, NormalizationMode, PhrasePolicy, PlanLimits};
 
@@ -29,6 +29,7 @@ pub enum BranchVerifier {
     Exact,
     Predicate {
         continuation: ContinuationState,
+        pos: PredicatePos,
         allowed_rule_ids: Arc<[RuleId]>,
         environment: BranchEnvironment,
     },
