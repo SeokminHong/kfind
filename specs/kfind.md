@@ -1224,6 +1224,8 @@ crates/
 
 ## 19. 참조 구현과 검증 전략
 
+reference backend는 production anchor 계획과 결과 타입만 공유한다. 서술어 continuation과 조사 연쇄 판정은 production verifier를 호출하지 않고 별도 순회 구현으로 계산해 동일 결함을 공유하지 않게 한다.
+
 ### 19.1 최적화 엔진과 참조 엔진을 분리한다
 
 프로덕션 엔진은 앵커와 verifier를 사용한다.

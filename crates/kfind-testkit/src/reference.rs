@@ -4,7 +4,7 @@ use std::fmt::{self, Display, Formatter};
 use std::ops::Range;
 use std::sync::Arc;
 
-use kfind_morph::{ParticleVerifier, RuleId, verify_predicate_continuation};
+use kfind_morph::{ContinuationState, PredicatePos, RuleId};
 use kfind_query::{
     BranchEnvironment, BranchVerifier, CoreMapping, Origin, PhraseJoinError, PhraseMatch,
     QueryPlan, SurfaceBranch, VerifiedSpan, join_phrase_spans,
@@ -15,7 +15,6 @@ use unicode_normalization::{UnicodeNormalization, is_nfc};
 #[derive(Debug)]
 pub struct ReferenceMatcher {
     plan: Arc<QueryPlan>,
-    particle_verifier: ParticleVerifier,
 }
 
 impl ReferenceMatcher {
@@ -42,10 +41,7 @@ impl ReferenceMatcher {
                 }
             }
         }
-        Ok(Self {
-            plan,
-            particle_verifier: ParticleVerifier::default(),
-        })
+        Ok(Self { plan })
     }
 
     #[must_use]
@@ -144,25 +140,20 @@ impl ReferenceMatcher {
                 if !accepts_environment(environment, text, start) {
                     return None;
                 }
-                let matched = verify_predicate_continuation(
-                    *continuation,
-                    *pos,
-                    verifier_anchor,
-                    verifier_following,
-                )?;
-                if !branch.verifier.accepts_rule_path(&matched.rule_path) {
+                let (consumed, rules) =
+                    reference_predicate_continuation(*continuation, *pos, verifier_following)?;
+                if !branch.verifier.accepts_rule_path(&rules) {
                     return None;
                 }
-                (matched.consumed_bytes, matched.rule_path)
+                (consumed, rules)
             }
             BranchVerifier::NominalParticles { .. } => {
-                let matched = self
-                    .particle_verifier
-                    .verify_prefix(verifier_anchor, verifier_following);
-                if !branch.verifier.accepts_rule_path(&matched.rule_path) {
+                let (consumed, rules) =
+                    self.reference_particles(verifier_anchor, verifier_following);
+                if !branch.verifier.accepts_rule_path(&rules) {
                     return None;
                 }
-                (matched.consumed_bytes, matched.rule_path)
+                (consumed, rules)
             }
             BranchVerifier::DirectParticle { rule_id } => {
                 if requires_direct_particle_host(branch)
@@ -211,31 +202,405 @@ impl ReferenceMatcher {
             return false;
         }
         let normalized_context = format!("{normalized_left}{normalized_anchor}");
-        if self
-            .particle_verifier
-            .model()
-            .allomorphs
-            .iter()
-            .any(|form| {
-                &form.rule_id == rule_id
-                    && form.surface.len() > normalized_anchor.len()
-                    && form.surface.ends_with(&normalized_anchor)
-                    && normalized_context.ends_with(form.surface.as_ref())
-            })
-        {
+        if REFERENCE_PARTICLES.iter().any(|form| {
+            form.rule_id == rule_id.as_str()
+                && form.surface.len() > normalized_anchor.len()
+                && form.surface.ends_with(&normalized_anchor)
+                && normalized_context.ends_with(form.surface)
+        }) {
             return false;
         }
 
-        self.particle_verifier
-            .model()
-            .allomorphs
-            .iter()
-            .any(|form| {
-                form.surface.as_ref() == normalized_anchor
-                    && &form.rule_id == rule_id
-                    && form.condition.accepts(previous)
-            })
+        REFERENCE_PARTICLES.iter().any(|form| {
+            form.surface == normalized_anchor
+                && form.rule_id == rule_id.as_str()
+                && form.condition.accepts(previous)
+        })
     }
+
+    fn reference_particles(&self, core: &str, following: &str) -> (usize, Vec<RuleId>) {
+        let mut consumed = 0;
+        let mut previous = core.chars().next_back();
+        let mut rules = Vec::new();
+
+        if following.starts_with('들') {
+            consumed += '들'.len_utf8();
+            previous = Some('들');
+            rules.push(RuleId::from("particle.plural"));
+        }
+        if let Some(form) = self.longest_reference_particle(
+            &following[consumed..],
+            previous,
+            rules.last(),
+            ReferenceParticleRole::Case,
+        ) {
+            consumed += form.surface.len();
+            previous = form.surface.chars().next_back();
+            rules.push(RuleId::from(form.rule_id));
+        }
+        for _ in 0..2 {
+            let Some(form) = self.longest_reference_particle(
+                &following[consumed..],
+                previous,
+                rules.last(),
+                ReferenceParticleRole::Auxiliary,
+            ) else {
+                break;
+            };
+            consumed += form.surface.len();
+            previous = form.surface.chars().next_back();
+            rules.push(RuleId::from(form.rule_id));
+        }
+        (consumed, rules)
+    }
+
+    fn longest_reference_particle(
+        &self,
+        following: &str,
+        previous: Option<char>,
+        previous_rule: Option<&RuleId>,
+        role: ReferenceParticleRole,
+    ) -> Option<&'static ReferenceParticle> {
+        let previous = previous?;
+        REFERENCE_PARTICLES
+            .iter()
+            .filter(|form| {
+                form.role == role
+                    && following.starts_with(form.surface)
+                    && form.condition.accepts(previous)
+                    && self.reference_transition_allows(previous_rule, form.rule_id)
+            })
+            .max_by_key(|form| form.surface.len())
+    }
+
+    fn reference_transition_allows(&self, previous: Option<&RuleId>, next: &str) -> bool {
+        let Some(previous) = previous else {
+            return true;
+        };
+        self.plan
+            .particle_transitions
+            .iter()
+            .find(|transition| transition.rule_id == *previous)
+            .is_some_and(|transition| transition.next.iter().any(|rule| rule.as_str() == next))
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum ReferenceParticleRole {
+    Case,
+    Auxiliary,
+}
+
+#[derive(Clone, Copy, Debug)]
+enum ReferenceFinalCondition {
+    Any,
+    Vowel,
+    Consonant,
+    VowelOrRieul,
+    ConsonantExceptRieul,
+}
+
+impl ReferenceFinalCondition {
+    fn accepts(self, previous: char) -> bool {
+        match self {
+            Self::Any => true,
+            Self::Vowel => !kfind_morph::has_final(previous),
+            Self::Consonant => kfind_morph::has_final(previous),
+            Self::VowelOrRieul => {
+                !kfind_morph::has_final(previous) || kfind_morph::has_rieul_final(previous)
+            }
+            Self::ConsonantExceptRieul => {
+                kfind_morph::has_final(previous) && !kfind_morph::has_rieul_final(previous)
+            }
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+struct ReferenceParticle {
+    surface: &'static str,
+    rule_id: &'static str,
+    role: ReferenceParticleRole,
+    condition: ReferenceFinalCondition,
+}
+
+const fn reference_particle(
+    surface: &'static str,
+    rule_id: &'static str,
+    role: ReferenceParticleRole,
+    condition: ReferenceFinalCondition,
+) -> ReferenceParticle {
+    ReferenceParticle {
+        surface,
+        rule_id,
+        role,
+        condition,
+    }
+}
+
+const REFERENCE_PARTICLES: &[ReferenceParticle] = &[
+    reference_particle(
+        "에게서",
+        "particle.source.egeseo",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "한테서",
+        "particle.source.hanteseo",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "으로",
+        "particle.direction",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::ConsonantExceptRieul,
+    ),
+    reference_particle(
+        "로",
+        "particle.direction",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::VowelOrRieul,
+    ),
+    reference_particle(
+        "에게",
+        "particle.dative",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "한테",
+        "particle.dative",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "께",
+        "particle.dative",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "에서",
+        "particle.source",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "에",
+        "particle.locative",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "의",
+        "particle.genitive",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "이",
+        "particle.subject",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Consonant,
+    ),
+    reference_particle(
+        "가",
+        "particle.subject",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Vowel,
+    ),
+    reference_particle(
+        "을",
+        "particle.object",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Consonant,
+    ),
+    reference_particle(
+        "를",
+        "particle.object",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Vowel,
+    ),
+    reference_particle(
+        "과",
+        "particle.comitative",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Consonant,
+    ),
+    reference_particle(
+        "와",
+        "particle.comitative",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Vowel,
+    ),
+    reference_particle(
+        "은",
+        "particle.topic",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Consonant,
+    ),
+    reference_particle(
+        "는",
+        "particle.topic",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Vowel,
+    ),
+    reference_particle(
+        "도",
+        "particle.additive",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "만",
+        "particle.only",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "까지",
+        "particle.limit.ggaji",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "부터",
+        "particle.from",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "조차",
+        "particle.even.jocha",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "마저",
+        "particle.even.majeo",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Any,
+    ),
+];
+
+#[derive(Clone, Copy)]
+struct ReferenceSuffix {
+    surface: &'static str,
+    rules: &'static [&'static str],
+}
+
+const fn reference_suffix(
+    surface: &'static str,
+    rules: &'static [&'static str],
+) -> ReferenceSuffix {
+    ReferenceSuffix { surface, rules }
+}
+
+fn reference_predicate_continuation(
+    state: ContinuationState,
+    pos: PredicatePos,
+    following: &str,
+) -> Option<(usize, Vec<RuleId>)> {
+    const AEO: &[ReferenceSuffix] = &[
+        reference_suffix(
+            "졌습니다",
+            &[
+                "ending.auxiliary-jida",
+                "ending.past",
+                "ending.polite-declarative",
+            ],
+        ),
+        reference_suffix("서도", &["ending.aoeo-seo", "particle.additive"]),
+        reference_suffix(
+            "졌다",
+            &["ending.auxiliary-jida", "ending.past", "ending.final-da"],
+        ),
+        reference_suffix("지면", &["ending.auxiliary-jida", "ending.conditional"]),
+        reference_suffix("지고", &["ending.auxiliary-jida", "ending.connective-go"]),
+        reference_suffix("진", &["ending.auxiliary-jida", "ending.past-adnominal"]),
+        reference_suffix("질", &["ending.auxiliary-jida", "ending.future-adnominal"]),
+        reference_suffix("지다", &["ending.auxiliary-jida", "ending.final-da"]),
+        reference_suffix("서", &["ending.aoeo-seo"]),
+        reference_suffix("도", &["ending.connective-do"]),
+        reference_suffix("야", &["ending.connective-ya"]),
+        reference_suffix("요", &["ending.polite-yo"]),
+        reference_suffix("라", &["ending.imperative-ra"]),
+    ];
+    const PAST: &[ReferenceSuffix] = &[
+        reference_suffix("습니다", &["ending.polite-declarative"]),
+        reference_suffix("으면", &["ending.conditional"]),
+        reference_suffix("지만", &["ending.connective-jiman"]),
+        reference_suffix("는데", &["ending.connective-neunde"]),
+        reference_suffix("다고", &["ending.quotative-go"]),
+        reference_suffix("던", &["ending.retrospective-adnominal"]),
+        reference_suffix("다", &["ending.final-da"]),
+        reference_suffix("고", &["ending.connective-go"]),
+    ];
+    const FUTURE: &[ReferenceSuffix] = &[
+        reference_suffix("습니다", &["ending.polite-declarative"]),
+        reference_suffix("지만", &["ending.connective-jiman"]),
+        reference_suffix("는데", &["ending.connective-neunde"]),
+        reference_suffix("다", &["ending.final-da"]),
+        reference_suffix("고", &["ending.connective-go"]),
+    ];
+    const EU: &[ReferenceSuffix] = &[
+        reference_suffix(
+            "시겠습니다",
+            &[
+                "ending.honorific",
+                "ending.future",
+                "ending.polite-declarative",
+            ],
+        ),
+        reference_suffix(
+            "셨습니다",
+            &[
+                "ending.honorific",
+                "ending.past",
+                "ending.polite-declarative",
+            ],
+        ),
+        reference_suffix(
+            "셨다",
+            &["ending.honorific", "ending.past", "ending.final-da"],
+        ),
+        reference_suffix("십니다", &["ending.honorific", "ending.polite-declarative"]),
+        reference_suffix("시다", &["ending.honorific", "ending.final-da"]),
+        reference_suffix("시면", &["ending.honorific", "ending.conditional"]),
+        reference_suffix("신", &["ending.honorific", "ending.past-adnominal"]),
+        reference_suffix("실", &["ending.honorific", "ending.future-adnominal"]),
+        reference_suffix("면", &["ending.conditional"]),
+        reference_suffix("며", &["ending.coordinate-myeo"]),
+    ];
+
+    let candidates = match state {
+        ContinuationState::Terminal => return Some((0, Vec::new())),
+        ContinuationState::AOrEo => AEO,
+        ContinuationState::Past => PAST,
+        ContinuationState::Future => FUTURE,
+        ContinuationState::Eu => EU,
+    };
+    let matched = candidates
+        .iter()
+        .filter(|suffix| {
+            following.starts_with(suffix.surface)
+                && (!suffix.rules.contains(&"ending.imperative-ra") || pos.is_action())
+        })
+        .max_by_key(|suffix| suffix.surface.len());
+    if matched.is_none() && state == ContinuationState::Eu {
+        return None;
+    }
+    Some(matched.map_or_else(
+        || (0, Vec::new()),
+        |suffix| {
+            (
+                suffix.surface.len(),
+                suffix.rules.iter().copied().map(RuleId::from).collect(),
+            )
+        },
+    ))
 }
 
 fn requires_direct_particle_host(branch: &SurfaceBranch) -> bool {
@@ -454,6 +819,8 @@ mod tests {
         "전화를 걸어 보았다. 예쁜 꽃과 파란 하늘을 보았다.\n",
         "사용자권한은 별도 식별자다. 권한을 다시 검증했습니다.\n",
         "학생인 친구는 학교여서 가까운 길로 갔다. 집으로 돌아왔다.\n",
+        "천천히 걸으시겠습니다. 꽃이 예뻐라.\n",
+        "사용자는은 오류다. 사용자도만 오류다.\n",
     );
 
     #[test]
@@ -462,6 +829,7 @@ mod tests {
         for query in [
             "걷다",
             "예쁘다",
+            "사용자",
             "n:사용자 n:권한",
             "n:권한 v:검증하다",
             "lit:걸어",
