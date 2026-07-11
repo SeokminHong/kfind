@@ -202,6 +202,7 @@ fn build_searcher(options: InputOptions) -> Result<Searcher, InputSearchError> {
     let mut builder = SearcherBuilder::new();
     builder
         .line_number(true)
+        .multi_line(true)
         .before_context(options.before_context)
         .after_context(options.after_context)
         .binary_detection(BinaryDetection::quit(b'\0'))
@@ -448,6 +449,27 @@ mod tests {
         assert_eq!(
             &line.bytes[line.matches[0].span.clone()],
             "권한은".as_bytes()
+        );
+    }
+
+    #[test]
+    fn quoted_literal_can_match_across_lines() {
+        let result = search_reader(
+            &matcher("\"권한\n검증\""),
+            PathBuf::from("multiline.txt"),
+            "앞\n권한\n검증\n뒤\n".as_bytes(),
+            InputOptions::default(),
+        )
+        .unwrap();
+
+        assert_eq!(result.matching_lines, 1);
+        let SearchRecord::Line(line) = &result.records[0] else {
+            panic!("expected multiline match")
+        };
+        assert_eq!(line.line_number, Some(2));
+        assert_eq!(
+            &line.bytes[line.matches[0].span.clone()],
+            "권한\n검증".as_bytes()
         );
     }
 
