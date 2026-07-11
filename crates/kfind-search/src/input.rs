@@ -5,10 +5,12 @@ use std::path::{Path, PathBuf};
 
 use grep_searcher::{
     BinaryDetection, Encoding, Searcher, SearcherBuilder, Sink, SinkContext, SinkContextKind,
-    SinkMatch,
+    SinkError, SinkMatch,
 };
 use kfind_matcher::MorphMatcher;
 use kfind_query::PhraseMatch;
+
+const MAX_MATCHES_PER_LINE: usize = 65_536;
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum InputEncoding {
@@ -262,7 +264,7 @@ impl<F> Sink for MatchSink<'_, F>
 where
     F: FnMut(SearchRecord) -> bool,
 {
-    type Error = io::Error;
+    type Error = InputSearchError;
 
     fn matched(
         &mut self,
@@ -271,7 +273,7 @@ where
     ) -> Result<bool, Self::Error> {
         self.result.matching_lines += 1;
         let matches = if self.capture_records {
-            self.matcher.find_all_with_meta(matched.bytes())
+            collect_line_matches(self.matcher, matched.bytes(), MAX_MATCHES_PER_LINE)?
         } else {
             Vec::new()
         };
@@ -317,9 +319,27 @@ where
     }
 }
 
+fn collect_line_matches(
+    matcher: &MorphMatcher,
+    bytes: &[u8],
+    limit: usize,
+) -> Result<Vec<PhraseMatch>, InputSearchError> {
+    let mut matches = Vec::new();
+    let mut at = 0;
+    while let Some(matched) = matcher.find_at_with_meta(bytes, at) {
+        if matches.len() == limit {
+            return Err(InputSearchError::MatchLimitExceeded { limit });
+        }
+        at = matched.span.end;
+        matches.push(matched);
+    }
+    Ok(matches)
+}
+
 #[derive(Debug)]
 pub enum InputSearchError {
     Encoding(String),
+    MatchLimitExceeded { limit: usize },
     Io(io::Error),
 }
 
@@ -327,6 +347,9 @@ impl Display for InputSearchError {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Encoding(error) => write!(formatter, "invalid input encoding: {error}"),
+            Self::MatchLimitExceeded { limit } => {
+                write!(formatter, "matches per line exceed limit {limit}")
+            }
             Self::Io(error) => Display::fmt(error, formatter),
         }
     }
@@ -336,8 +359,18 @@ impl Error for InputSearchError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::Io(error) => Some(error),
-            Self::Encoding(_) => None,
+            Self::Encoding(_) | Self::MatchLimitExceeded { .. } => None,
         }
+    }
+}
+
+impl SinkError for InputSearchError {
+    fn error_message<T: Display>(message: T) -> Self {
+        Self::Io(io::Error::other(message.to_string()))
+    }
+
+    fn error_io(error: io::Error) -> Self {
+        Self::Io(error)
     }
 }
 
@@ -461,6 +494,17 @@ mod tests {
                 kind: SearchLineKind::AfterContext,
                 ..
             })
+        ));
+    }
+
+    #[test]
+    fn line_match_metadata_stops_at_the_configured_limit() {
+        let matcher = matcher("권한");
+        let error = collect_line_matches(&matcher, "권한 권한 권한".as_bytes(), 2).unwrap_err();
+
+        assert!(matches!(
+            error,
+            InputSearchError::MatchLimitExceeded { limit: 2 }
         ));
     }
 }

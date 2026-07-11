@@ -302,6 +302,9 @@ fn search_issue_detail(message: &str, language: Language) -> Cow<'_, str> {
         if let Some(detail) = message.strip_prefix("invalid input encoding: ") {
             return Cow::Owned(format!("입력 인코딩이 올바르지 않습니다: {detail}"));
         }
+        if let Some(limit) = message.strip_prefix("matches per line exceed limit ") {
+            return Cow::Owned(format!("줄별 match 수가 제한 {limit}을 초과했습니다"));
+        }
         if message == "panic without a string payload" {
             return Cow::Borrowed("문자열 정보 없이 panic이 발생했습니다");
         }

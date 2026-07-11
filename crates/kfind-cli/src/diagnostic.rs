@@ -372,6 +372,14 @@ fn write_input_error(
             "{}: {error}",
             language.select("invalid input encoding", "입력 인코딩이 올바르지 않습니다")
         ),
+        InputSearchError::MatchLimitExceeded { limit } => write!(
+            formatter,
+            "{} {limit}",
+            language.select(
+                "matches per line exceed limit",
+                "줄별 match 수가 제한을 초과했습니다:"
+            )
+        ),
         InputSearchError::Io(error) => write!(
             formatter,
             "{}: {error}",
