@@ -1060,7 +1060,7 @@ sample.txt:3: 길을 걸었습니다.
 {"type":"match","path":"sample.txt","line":3,"text":"길을 걸었습니다.","spans":[{"core":{"start":7,"end":10},"token":{"start":7,"end":22},"surface":"걸었습니다","origins":[{"lemma":"걷다","pos":"verb","rules":["lexical.d-to-l","ending.past","ending.polite-declarative"]}]}]}
 ```
 
-offset은 UTF-8 바이트 기준임을 명시한다. 선택적으로 scalar column도 제공한다.
+유효한 UTF-8 text의 offset은 `utf8-bytes`, raw byte text의 offset은 `bytes`로 명시한다. 선택적으로 scalar column도 제공한다.
 
 ## 16. 데이터 사양
 

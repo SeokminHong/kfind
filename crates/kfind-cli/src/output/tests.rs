@@ -189,6 +189,7 @@ fn json_uses_base64_for_non_utf8_text() {
     assert!(value["text"].is_null());
     assert_eq!(value["text_base64"], "/xs=");
     assert_eq!(value["encoding"], "bytes");
+    assert_eq!(value["offset_unit"], "bytes");
 }
 
 #[cfg(unix)]

@@ -65,6 +65,12 @@ struct JsonLine {
 impl JsonLine {
     fn new(path: &Path, line: &SearchLine, plan: &QueryPlan, include_column: bool) -> Self {
         let is_match = line.kind == SearchLineKind::Match;
+        let content = line_content(&line.bytes);
+        let offset_unit = if std::str::from_utf8(content).is_ok() {
+            "utf8-bytes"
+        } else {
+            "bytes"
+        };
         Self {
             record_type: if is_match { "match" } else { "context" },
             path: JsonPath::new(path),
@@ -73,9 +79,9 @@ impl JsonLine {
                 .then(|| first_scalar_column(line))
                 .flatten(),
             context_kind: context_kind(line.kind),
-            text: JsonText::new(line_content(&line.bytes)),
+            text: JsonText::new(content),
             spans: json_spans(line, plan),
-            offset_unit: "utf8-bytes",
+            offset_unit,
         }
     }
 }
