@@ -25,6 +25,22 @@ fn compiled_predicate_plan_matches_irregular_and_homonymous_surfaces() {
 }
 
 #[test]
+fn compiled_predicate_plan_rejects_a_surface_attached_as_a_particle() {
+    let matcher = compile("가다", CompileOptions::default());
+
+    assert!(
+        matcher
+            .find_at_with_meta("친구가 먹었다.".as_bytes(), 0)
+            .is_none()
+    );
+    assert!(
+        matcher
+            .find_at_with_meta("친구가 간다.".as_bytes(), 0)
+            .is_some()
+    );
+}
+
+#[test]
 fn compiled_plans_reject_unlicensed_predicate_and_particle_surfaces() {
     let pretty = compile("예쁘다", CompileOptions::default());
     assert!(
