@@ -116,6 +116,18 @@ fn compiled_nominal_plan_keeps_core_and_consumed_particle_span() {
 }
 
 #[test]
+fn compiled_nominal_plan_enforces_particle_transitions() {
+    let matcher = compile("사용자", CompileOptions::default());
+
+    for text in ["사용자는은", "사용자도만"] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+            "accepted forbidden particle chain {text}"
+        );
+    }
+}
+
+#[test]
 fn compiled_phrase_plan_joins_verified_atoms_without_a_surface_product() {
     let mut options = CompileOptions::default();
     options.phrase.max_gap = 4;

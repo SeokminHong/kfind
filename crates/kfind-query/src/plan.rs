@@ -1,7 +1,7 @@
 use std::ops::Range;
 use std::sync::Arc;
 
-use kfind_morph::{ContinuationState, RuleId};
+use kfind_morph::{ContinuationState, ParticleTransition, RuleId};
 
 use crate::{Analysis, BoundaryPolicy, NormalizationMode, PhrasePolicy, PlanLimits};
 
@@ -13,6 +13,7 @@ pub struct QueryPlan {
     pub normalization: NormalizationMode,
     pub limits: PlanLimits,
     pub diagnostics: Vec<QueryDiagnostic>,
+    pub particle_transitions: Arc<[ParticleTransition]>,
     pub estimated_matcher_bytes: usize,
 }
 

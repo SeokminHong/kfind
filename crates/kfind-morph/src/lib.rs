@@ -17,7 +17,7 @@ pub use hangul::{
 };
 pub use particle::{
     FinalCondition, ParticleAllomorph, ParticleChainModel, ParticleKind, ParticleMatch,
-    ParticleRole, ParticleVerifier,
+    ParticleRole, ParticleTransition, ParticleVerifier,
 };
 pub use predicate::{
     GenerateError, PredicateContinuationMatch, generate_predicate_branches,

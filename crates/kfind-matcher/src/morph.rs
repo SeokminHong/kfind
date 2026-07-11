@@ -6,7 +6,7 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use grep_matcher::{LineMatchKind, LineTerminator, Match, Matcher, NoCaptures, NoError};
-use kfind_morph::{ParticleVerifier, RuleId, verify_predicate_continuation};
+use kfind_morph::{ParticleChainModel, ParticleVerifier, RuleId, verify_predicate_continuation};
 use kfind_query::{
     BranchEnvironment, BranchVerifier, CoreMapping, Origin, PhraseMatch, QueryPlan, SurfaceBranch,
     VerifiedSpan, join_phrase_spans,
@@ -53,13 +53,17 @@ impl MorphMatcher {
                 max_memory_bytes: plan.limits.max_matcher_bytes,
             },
         )?;
+        let particle_verifier = ParticleVerifier::new(ParticleChainModel {
+            transitions: Arc::clone(&plan.particle_transitions),
+            ..ParticleChainModel::default()
+        });
         Ok(Self {
             plan,
             anchor_engine,
             anchor_branches,
             max_anchor_bytes,
             is_line_local,
-            particle_verifier: ParticleVerifier::default(),
+            particle_verifier,
         })
     }
 
