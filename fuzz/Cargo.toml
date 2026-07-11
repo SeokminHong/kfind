@@ -9,9 +9,13 @@ rust-version = "1.85"
 cargo-fuzz = true
 
 [dependencies]
+kfind-cli = { path = "../crates/kfind-cli" }
+kfind-data = { path = "../crates/kfind-data" }
 kfind-matcher = { path = "../crates/kfind-matcher" }
 kfind-query = { path = "../crates/kfind-query" }
+kfind-search = { path = "../crates/kfind-search" }
 libfuzzer-sys = "0.4.10"
+serde_json = "1.0.140"
 
 [[bin]]
 name = "query_lexer"
@@ -23,6 +27,27 @@ bench = false
 [[bin]]
 name = "matcher_bytes"
 path = "fuzz_targets/matcher_bytes.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "user_lexicon"
+path = "fuzz_targets/user_lexicon.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "json_output"
+path = "fuzz_targets/json_output.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "binary_detection"
+path = "fuzz_targets/binary_detection.rs"
 test = false
 doc = false
 bench = false

@@ -1246,15 +1246,15 @@ expected: match
 
 ### 19.4 fuzz
 
-대상:
+target과 경계:
 
-- 잘못된 UTF-8
-- 매우 긴 combining sequence
-- malformed 사용자 사전
-- query lexer
-- suffix verifier
-- JSON 출력
-- binary detection 경계
+| target | 경계 |
+| --- | --- |
+| `query_lexer` | 잘못된 UTF-8을 포함한 임의 query, 매우 긴 combining sequence, lexer와 compile limit |
+| `matcher_bytes` | 임의 byte 입력의 anchor 탐색, suffix verifier, match span 범위 |
+| `user_lexicon` | malformed 사용자 사전 TOML의 구문·의미 검증 |
+| `json_output` | 임의 byte line과 검증된 match metadata의 JSON Lines 직렬화 |
+| `binary_detection` | 임의 위치의 최초 NUL과 NUL이 없는 입력의 binary 판별 경계 |
 
 ### 19.5 gold corpus
 
