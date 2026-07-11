@@ -171,6 +171,7 @@ impl MorphMatcher {
             BranchVerifier::Exact => (0, Vec::new()),
             BranchVerifier::Predicate {
                 continuation,
+                pos,
                 environment,
                 ..
             } => {
@@ -179,6 +180,7 @@ impl MorphMatcher {
                 }
                 let matched = verify_predicate_continuation(
                     *continuation,
+                    *pos,
                     verifier_anchor,
                     verifier_following,
                 )?;

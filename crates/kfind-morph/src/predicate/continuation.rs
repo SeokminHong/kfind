@@ -1,4 +1,4 @@
-use crate::{ContinuationState, RuleId};
+use crate::{ContinuationState, PredicatePos, RuleId};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PredicateContinuationMatch {
@@ -62,6 +62,14 @@ const FUTURE_SUFFIXES: &[Suffix] = &[
 
 const EU_SUFFIXES: &[Suffix] = &[
     suffix(
+        "시겠습니다",
+        &[
+            "ending.honorific",
+            "ending.future",
+            "ending.polite-declarative",
+        ],
+    ),
+    suffix(
         "셨습니다",
         &[
             "ending.honorific",
@@ -86,6 +94,7 @@ const EU_SUFFIXES: &[Suffix] = &[
 #[must_use]
 pub fn verify_predicate_continuation(
     state: ContinuationState,
+    pos: PredicatePos,
     anchor: &str,
     following: &str,
 ) -> Option<PredicateContinuationMatch> {
@@ -101,7 +110,10 @@ pub fn verify_predicate_continuation(
 
     let suffix = candidates
         .iter()
-        .filter(|suffix| following.starts_with(suffix.surface))
+        .filter(|suffix| {
+            following.starts_with(suffix.surface)
+                && (!suffix.rules.contains(&"ending.imperative-ra") || pos.is_action())
+        })
         .max_by_key(|suffix| suffix.surface.len());
     if suffix.is_none() && state == ContinuationState::Eu {
         return None;
@@ -131,9 +143,13 @@ mod tests {
 
     #[test]
     fn past_state_consumes_a_bounded_suffix() {
-        let matched =
-            verify_predicate_continuation(ContinuationState::Past, "걸었", "습니다. 다음")
-                .expect("valid continuation");
+        let matched = verify_predicate_continuation(
+            ContinuationState::Past,
+            PredicatePos::Verb,
+            "걸었",
+            "습니다. 다음",
+        )
+        .expect("valid continuation");
         assert_eq!(matched.consumed_bytes, "습니다".len());
         assert_eq!(matched.token_end, "걸었습니다".len());
         assert_eq!(matched.rule_path[0].as_str(), "ending.polite-declarative");
@@ -141,45 +157,103 @@ mod tests {
 
     #[test]
     fn eu_state_requires_a_licensed_suffix() {
-        let matched = verify_predicate_continuation(ContinuationState::Eu, "걸으", "셨다.")
-            .expect("valid continuation");
+        let matched = verify_predicate_continuation(
+            ContinuationState::Eu,
+            PredicatePos::Verb,
+            "걸으",
+            "셨다.",
+        )
+        .expect("valid continuation");
         assert_eq!(matched.token_end, "걸으셨다".len());
-        assert!(verify_predicate_continuation(ContinuationState::Eu, "걸으", "xyz").is_none());
+        assert!(
+            verify_predicate_continuation(ContinuationState::Eu, PredicatePos::Verb, "걸으", "xyz")
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn continuation_respects_ending_paths_and_pos_requirements() {
+        let future = verify_predicate_continuation(
+            ContinuationState::Eu,
+            PredicatePos::Verb,
+            "걸으",
+            "시겠습니다",
+        )
+        .expect("honorific future path");
+        assert_eq!(future.token_end, "걸으시겠습니다".len());
+
+        assert!(
+            verify_predicate_continuation(ContinuationState::AOrEo, PredicatePos::Verb, "가", "라")
+                .is_some()
+        );
+        let adjective = verify_predicate_continuation(
+            ContinuationState::AOrEo,
+            PredicatePos::Adjective,
+            "예뻐",
+            "라",
+        )
+        .expect("completed vowel anchor remains valid");
+        assert_eq!(adjective.consumed_bytes, 0);
     }
 
     #[test]
     fn terminal_and_completed_vowel_states_accept_a_boundary() {
         for state in [ContinuationState::Terminal, ContinuationState::AOrEo] {
-            let matched =
-                verify_predicate_continuation(state, "걸어", " 갔다").expect("boundary is valid");
+            let matched = verify_predicate_continuation(state, PredicatePos::Verb, "걸어", " 갔다")
+                .expect("boundary is valid");
             assert_eq!(matched.consumed_bytes, 0);
         }
     }
 
     #[test]
     fn uses_the_longest_vowel_and_future_continuations() {
-        let aeo = verify_predicate_continuation(ContinuationState::AOrEo, "걸어", "서도 좋다")
-            .expect("valid continuation");
+        let aeo = verify_predicate_continuation(
+            ContinuationState::AOrEo,
+            PredicatePos::Verb,
+            "걸어",
+            "서도 좋다",
+        )
+        .expect("valid continuation");
         assert_eq!(aeo.token_end, "걸어서도".len());
         assert_eq!(aeo.rule_path.len(), 2);
 
-        let future = verify_predicate_continuation(ContinuationState::Future, "걷겠", "습니다")
-            .expect("valid continuation");
+        let future = verify_predicate_continuation(
+            ContinuationState::Future,
+            PredicatePos::Verb,
+            "걷겠",
+            "습니다",
+        )
+        .expect("valid continuation");
         assert_eq!(future.token_end, "걷겠습니다".len());
     }
 
     #[test]
     fn accepts_gold_retrospective_quotative_and_change_suffixes() {
-        let retrospective = verify_predicate_continuation(ContinuationState::Past, "예뻤", "던")
-            .expect("retrospective adnominal");
+        let retrospective = verify_predicate_continuation(
+            ContinuationState::Past,
+            PredicatePos::Adjective,
+            "예뻤",
+            "던",
+        )
+        .expect("retrospective adnominal");
         assert_eq!(retrospective.consumed_bytes, "던".len());
 
-        let quotative = verify_predicate_continuation(ContinuationState::Past, "되었", "다고")
-            .expect("quotative connective");
+        let quotative = verify_predicate_continuation(
+            ContinuationState::Past,
+            PredicatePos::Verb,
+            "되었",
+            "다고",
+        )
+        .expect("quotative connective");
         assert_eq!(quotative.consumed_bytes, "다고".len());
 
-        let changed = verify_predicate_continuation(ContinuationState::AOrEo, "빨라", "졌다")
-            .expect("change auxiliary");
+        let changed = verify_predicate_continuation(
+            ContinuationState::AOrEo,
+            PredicatePos::Adjective,
+            "빨라",
+            "졌다",
+        )
+        .expect("change auxiliary");
         assert_eq!(changed.consumed_bytes, "졌다".len());
     }
 }

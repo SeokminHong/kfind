@@ -383,6 +383,7 @@ fn compile_predicate(
             anchor: branch.anchor.into(),
             verifier: BranchVerifier::Predicate {
                 continuation: branch.continuation,
+                pos: predicate.pos,
                 allowed_rule_ids: Arc::clone(allowed_rules),
                 environment,
             },

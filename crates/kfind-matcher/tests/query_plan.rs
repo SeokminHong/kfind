@@ -15,6 +15,7 @@ fn compiled_predicate_plan_matches_irregular_and_homonymous_surfaces() {
         "길을 걸어 갔다.",
         "손님이 오래 걸었습니다.",
         "천천히 걸으셨다.",
+        "천천히 걸으시겠습니다.",
         "전화를 걸어 봤다.",
     ] {
         assert!(
@@ -22,6 +23,19 @@ fn compiled_predicate_plan_matches_irregular_and_homonymous_surfaces() {
             "compiled 걷다 plan rejected {text}"
         );
     }
+}
+
+#[test]
+fn compiled_predicate_plan_applies_ending_pos_requirements() {
+    let verb = compile("가다", CompileOptions::default());
+    let adjective = compile("예쁘다", CompileOptions::default());
+
+    assert!(verb.find_at_with_meta("어서 가라".as_bytes(), 0).is_some());
+    assert!(
+        adjective
+            .find_at_with_meta("꽃이 예뻐라".as_bytes(), 0)
+            .is_none()
+    );
 }
 
 #[test]

@@ -137,6 +137,7 @@ impl ReferenceMatcher {
             BranchVerifier::Exact => (0, Vec::new()),
             BranchVerifier::Predicate {
                 continuation,
+                pos,
                 environment,
                 ..
             } => {
@@ -145,6 +146,7 @@ impl ReferenceMatcher {
                 }
                 let matched = verify_predicate_continuation(
                     *continuation,
+                    *pos,
                     verifier_anchor,
                     verifier_following,
                 )?;

@@ -440,6 +440,7 @@ fn predicate_branch(
         anchor: anchor.as_bytes().into(),
         verifier: BranchVerifier::Predicate {
             continuation,
+            pos: kfind_morph::PredicatePos::Verb,
             allowed_rule_ids,
             environment: BranchEnvironment::Unrestricted,
         },

@@ -1,6 +1,8 @@
 use std::sync::Arc;
 
-use kfind_morph::{CoarsePos, ContinuationState, RuleId, verify_predicate_continuation};
+use kfind_morph::{
+    CoarsePos, ContinuationState, PredicatePos, RuleId, verify_predicate_continuation,
+};
 
 use super::*;
 use crate::{BoundaryPolicy, CompileOptionOverrides, Lexicons, NormalizationMode, PlanLimits};
@@ -260,8 +262,13 @@ fn required_predicate_surfaces_survive_rule_vocabulary_validation() {
         })
         .expect("걷다 must retain its Eu continuation branch");
     for following in ["면", "셨다"] {
-        let matched = verify_predicate_continuation(ContinuationState::Eu, "걸으", following)
-            .expect("required continuation");
+        let matched = verify_predicate_continuation(
+            ContinuationState::Eu,
+            PredicatePos::Verb,
+            "걸으",
+            following,
+        )
+        .expect("required continuation");
         assert!(eu.verifier.accepts_rule_path(&matched.rule_path));
     }
 
