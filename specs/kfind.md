@@ -14,6 +14,7 @@
 - gold corpus에 포함된 현재 평서형 `-ㄴ다/는다`, 회상 관형형 `-던`, 인용 연결형 `-다고`, 상태 변화 보조 용언 `-아/어지다`도 v0.1의 제한된 continuation vocabulary에 포함한다.
 - 어미, 조사 연쇄, 파생 규칙의 정확한 허용 목록과 전이는 저장소의 버전 관리되는 `data/rules` 파일을 규범 데이터로 삼는다. 목록 밖 조합은 생성하지 않는다.
 - full POS lexicon은 `mecab-ko-dic 2.1.1-20180720`의 Apache-2.0 데이터를 bootstrap 원본으로 사용한다. 빌드 시 표제어와 품사만 추출하고, 런타임 문장 분석 데이터와 알고리즘은 포함하지 않는다.
+- full POS lexicon의 용언 품사 후보도 POS 전용 산출물에 보존한다. 동일 표제어에 core 용언 분석이 하나라도 있으면 full POS 용언 분석은 추가하지 않고 core 분석을 우선한다. 그 밖의 용언은 해당 품사의 제한된 규칙형 분석으로 사용한다.
 - 배포 데이터에는 원본 버전, 출처, 라이선스, 추출 명령과 체크섬을 기록한다.
 - auto 품사 품질 기준은 300개 이상의 프로젝트 gold case마다 명시된 기대 품사 분석을 포함하고, match case를 auto 계획으로 찾는 것이다. no-match case는 동음이의어 합집합이 다른 품사 경로로 찾을 수 있으므로 fixture 품사를 강제해 해당 분석의 금지 형태를 검증한다. 핵심 불규칙 fixture는 core lexicon만으로도 100% 통과해야 한다.
 - full POS lexicon이 없으면 core lexicon으로 계속 실행하되, `--explain-query`와 명시적 사전 진단 요청에서 `preview (core lexicon only)` 상태와 자동 탐색한 모든 후보 경로를 우선순위대로 출력한다. 로드했을 때는 `loaded`와 선택된 경로를 출력한다.
@@ -1150,7 +1151,7 @@ surface = "LLM"
 
 런타임 분석기를 쓰지 않더라도 `auto` 품사 판별에는 폭넓은 표제어 데이터가 필요하다. 다음 자료는 런타임 엔진이 아니라 릴리스 데이터 생성 단계에서만 평가한다.
 
-- `mecab-ko-dic`: 표제어·품사 후보의 bootstrap 자료. MeCab이나 Lindera의 문장 분석 알고리즘은 사용하지 않는다. 원본 CSV를 그대로 신뢰하지 않고, headword 추출과 중복 정리 후 gold corpus를 통과한 항목만 배포한다.
+- `mecab-ko-dic`: 표제어·품사 후보의 bootstrap 자료. MeCab이나 Lindera의 문장 분석 알고리즘은 사용하지 않는다. headword와 품사만 추출·정규화·중복 제거하며, 상세 활용 정보는 core 사전과 gold corpus로 관리한다.
 - KoParadigm: 용언·어미 분류와 활용 결과의 오프라인 참조 자료. Python 런타임 의존성으로 두지 않고, 규칙 설계와 differential fixture 생성에만 사용한다.
 - 국립국어원 사전 자료: 라이선스와 재배포 조건을 충족하는 범위에서 품사와 활용 검증 자료로 사용한다.
 

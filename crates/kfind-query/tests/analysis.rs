@@ -2,8 +2,8 @@ use std::collections::BTreeSet;
 use std::sync::Arc;
 
 use kfind_data::{
-    DataFinePos, LexiconData, NominalRecord, collect_pos_entries, encode_pos_lexicon,
-    parse_user_lexicon_toml,
+    DataAlternation, DataFinePos, LexiconData, NominalRecord, PredicateRecord, collect_pos_entries,
+    encode_pos_lexicon, parse_user_lexicon_toml,
 };
 use kfind_morph::{CoarsePos, LexicalAlternation};
 use kfind_query::{
@@ -71,6 +71,57 @@ fn full_pos_adds_homonymous_pos_without_replacing_core_entries() {
         !plan
             .diagnostics
             .contains(&QueryDiagnostic::FullPosLexiconUnavailable)
+    );
+}
+
+#[test]
+fn full_pos_adds_regular_analysis_for_non_core_predicates() {
+    let full_data = LexiconData {
+        predicates: vec![PredicateRecord {
+            lemma: "달리다".to_owned(),
+            pos: DataFinePos::Vv,
+            alternation: DataAlternation::Regular,
+            flags: BTreeSet::new(),
+            overrides: Vec::new(),
+        }],
+        ..LexiconData::default()
+    };
+    let binary = encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap();
+    let lexicons = Arc::new(Lexicons::embedded_with(Some(&binary), None).unwrap());
+    let analyzer = LexiconQueryAnalyzer::new(lexicons);
+    let analyses = analyzer.analyze(&atom("달리다")).unwrap();
+
+    assert!(analyses.iter().any(|analysis| {
+        analysis.source == AnalysisSource::FullPosLexicon
+            && matches!(
+                &analysis.morphology,
+                Morphology::Predicate(predicate)
+                    if predicate.alternation == LexicalAlternation::Regular
+            )
+    }));
+}
+
+#[test]
+fn core_predicate_analysis_suppresses_full_pos_homonyms() {
+    let full_data = LexiconData {
+        predicates: vec![PredicateRecord {
+            lemma: "걷다".to_owned(),
+            pos: DataFinePos::Va,
+            alternation: DataAlternation::Regular,
+            flags: BTreeSet::new(),
+            overrides: Vec::new(),
+        }],
+        ..LexiconData::default()
+    };
+    let binary = encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap();
+    let lexicons = Arc::new(Lexicons::embedded_with(Some(&binary), None).unwrap());
+    let analyzer = LexiconQueryAnalyzer::new(lexicons);
+    let analyses = analyzer.analyze(&atom("걷다")).unwrap();
+
+    assert!(
+        analyses
+            .iter()
+            .all(|analysis| analysis.source != AnalysisSource::FullPosLexicon)
     );
 }
 

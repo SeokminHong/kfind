@@ -4,7 +4,7 @@ set -euo pipefail
 readonly SOURCE_NAME="mecab-ko-dic-2.1.1-20180720"
 readonly SOURCE_URL="https://bitbucket.org/eunjeon/mecab-ko-dic/downloads/${SOURCE_NAME}.tar.gz"
 readonly SOURCE_SHA256="fd62d3d6d8fa85145528065fabad4d7cb20f6b2201e71be4081a4e9701a5b330"
-readonly LEXICON_SHA256="3cf1465d30a612bcc7b4fc0d33f409919cec28191bb270d477cdad0720662534"
+readonly LEXICON_SHA256="dbf7f8f282e14cef7b4962dd217bda89456dc908aed3e59f7b5e4a58edbb3a79"
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 output_directory=${1:-"${repo_root}/data/generated/full-pos"}
@@ -35,7 +35,6 @@ mkdir -p "${stage}/LICENSES"
 
 cd "${repo_root}"
 cargo run --locked --package kfind-data --bin kfind-data-extract-mecab -- \
-  data/lexicon/predicates.tsv \
   "${stage}/lexicon.bin" \
   "${source_directory}"/*.csv
 

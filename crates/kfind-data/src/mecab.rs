@@ -1,4 +1,3 @@
-use std::collections::BTreeSet;
 use std::io::BufRead;
 
 use unicode_normalization::UnicodeNormalization;
@@ -8,31 +7,15 @@ use crate::lexicon::DataFinePos;
 use crate::{DataError, DataErrorKind};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-/// Unapproved extraction output. Predicate entries in this value must not be
-/// passed to the release encoder before gold approval.
+/// Normalized POS-only extraction output.
 pub struct MecabExtraction {
     entries: Vec<PosLexiconEntry>,
     pub rows_read: usize,
     pub skipped_analysis_rows: usize,
     pub skipped_unsupported_pos: usize,
     pub duplicate_entries: usize,
-    pub predicate_candidates_requiring_gold: usize,
+    pub predicate_candidates: usize,
     pub normalized_headwords: usize,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct GoldApprovedMecabLexicon {
-    pos_lexicon: ApprovedPosLexicon,
-}
-
-impl GoldApprovedMecabLexicon {
-    pub fn pos_lexicon(&self) -> &ApprovedPosLexicon {
-        &self.pos_lexicon
-    }
-
-    pub fn into_pos_lexicon(self) -> ApprovedPosLexicon {
-        self.pos_lexicon
-    }
 }
 
 impl MecabExtraction {
@@ -40,23 +23,11 @@ impl MecabExtraction {
         &self.entries
     }
 
-    pub fn approve_predicates(
-        &self,
-        approved: &BTreeSet<PosLexiconEntry>,
-    ) -> GoldApprovedMecabLexicon {
-        let entries = self
-            .entries
-            .iter()
-            .filter(|entry| !entry.pos.is_predicate() || approved.contains(*entry))
-            .cloned()
-            .collect();
-        GoldApprovedMecabLexicon {
-            pos_lexicon: ApprovedPosLexicon::from_entries(entries),
-        }
+    pub fn into_pos_lexicon(self) -> ApprovedPosLexicon {
+        ApprovedPosLexicon::from_entries(self.entries)
     }
 
-    /// Merges extraction output from multiple mecab-ko-dic CSV files while
-    /// keeping the combined value behind the gold-approval boundary.
+    /// Merges extraction output from multiple mecab-ko-dic CSV files.
     pub fn merge(mut self, other: Self) -> Self {
         let entries_before_deduplication = self.entries.len() + other.entries.len();
         self.entries.extend(other.entries);
@@ -68,7 +39,7 @@ impl MecabExtraction {
         self.skipped_unsupported_pos += other.skipped_unsupported_pos;
         self.duplicate_entries +=
             other.duplicate_entries + entries_before_deduplication - self.entries.len();
-        self.predicate_candidates_requiring_gold = self
+        self.predicate_candidates = self
             .entries
             .iter()
             .filter(|entry| entry.pos.is_predicate())
@@ -133,7 +104,7 @@ pub fn extract_mecab_ko_dic(
     let original_count = entries.len();
     entries.dedup();
     let duplicate_entries = original_count - entries.len();
-    let predicate_candidates_requiring_gold = entries
+    let predicate_candidates = entries
         .iter()
         .filter(|entry| entry.pos.is_predicate())
         .count();
@@ -143,7 +114,7 @@ pub fn extract_mecab_ko_dic(
         skipped_analysis_rows,
         skipped_unsupported_pos,
         duplicate_entries,
-        predicate_candidates_requiring_gold,
+        predicate_candidates,
         normalized_headwords,
     })
 }
