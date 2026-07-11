@@ -20,6 +20,16 @@ Results are written to `target/morph-benchmark/report.json` and `report.md`.
 After the image is built, the container runs with `--network none`.
 `scripts/compare-morphology.sh` is an alias for the same benchmark.
 
+Render the committed report charts from the same JSON:
+
+```sh
+python3 tools/morph-compare/render_charts.py \
+  target/morph-benchmark/report.json docs/benchmarks/assets
+```
+
+See the [comparison analysis](../../docs/benchmarks/2026-07-12-morphology-comparison.md)
+and [improvement handoff](../../docs/benchmarks/2026-07-12-morphology-handoff.md).
+
 To run the image directly:
 
 ```sh

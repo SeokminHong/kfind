@@ -18,6 +18,17 @@ scripts/benchmark-morphology.sh
 컨테이너는 `--network none`으로 실행된다. `scripts/compare-morphology.sh`도 같은
 벤치마크를 실행한다.
 
+같은 JSON에서 문서용 차트를 재현한다.
+
+```sh
+python3 tools/morph-compare/render_charts.py \
+  target/morph-benchmark/report.json docs/benchmarks/assets
+```
+
+[비교 분석](../../docs/benchmarks/2026-07-12-morphology-comparison.md)과
+[개선 핸드오프](../../docs/benchmarks/2026-07-12-morphology-handoff.md)에 결과와 후속 순서를
+정리했다.
+
 직접 실행하려면 다음 명령을 사용한다.
 
 ```sh
