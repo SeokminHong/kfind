@@ -402,3 +402,13 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 하나	numeral	하나의 원칙을 세웠다.	match	particle-chain
 하나	numeral	하나만 먼저 처리했다.	match	particle-chain
 하나	numeral	하나부터 차례로 세었다.	match	particle-chain
+아니다	adjective	나빴던 건 신호등이 아니라, 타이밍이 아니라, 내 수많은 망설임이었다.	match	corpus.klue.dp.train.81
+만들다	verb	13일 오후(한국시각) 소치올림픽 여자 쇼트트랙 500m 경기에서 값진 동메달을 획득한 박승희가 경기 후 취재진과 나눈 인터뷰 내용을 이미지로 만들었습니다.	match	corpus.klue.dp.train.1207
+걷다	verb	관광객들은 에펠탑 중간에 설치된 이 유리 바닥에서 마치 허공 위를 걷는 것 같은 스릴을 경험할 수 있다고 합니다.	match	corpus.klue.dp.train.1250
+듣다	verb	1심에서 조 전 청장은 2010년 3월께 유력인사에게 우연히 차명계좌 얘기를 들었고, 같은 해 8월 강연 내용이 보도된 이후 12월께 검찰 관계자 2명에게서 더욱 자세한 얘기를 들었다고 진술한 바 있다.	match	corpus.klue.dp.train.2587
+좋다	adjective	정진석 이정현 당현실 냉정하게 봐야…물러나는게 좋다종합	no-match	corpus.klue.ynat.train.00011
+좋다	adjective	안녕하세요. 문화역서울 284은 어떠신가요? 평점도 4점으로 방문객들에게 좋은 평가를 받고 있습니다.	match	corpus.klue.wos.train.00000
+좋다	adjective	중간에 화면이 좀 끊기는것 빼곤 넘 좋았어요~	match	corpus.nsmc.test.9911421
+보다	verb	발연기 도저히 못보겠다 진짜 이렇게 연기를 못할거라곤 상상도 못했네	no-match	corpus.nsmc.test.10107726
+만들다	verb	50번은 봤네요어쩜 이렇게 잘만들었을까	no-match	corpus.nsmc.test.9844172
+아름답다	adjective	청춘은 아름답다 그 아름다움은 이성을 흔들어 놓는다. 찰나의 아름다움을 잘 포착한 섬세하고 아름다운 수채화같은 퀴어영화이다.	match	corpus.nsmc.test.6900881
