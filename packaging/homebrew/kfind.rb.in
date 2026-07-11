@@ -23,7 +23,7 @@ class Kfind < Formula
     system "cargo", "install", *std_cargo_args(path: "crates/kfind-cli")
 
     resource("full-pos-lexicon").stage do
-      (share/"kfind").install "lexicon.bin", "MANIFEST.toml"
+      pkgshare.install "lexicon.bin", "MANIFEST.toml"
       (share/"doc/kfind/LICENSES").install "LICENSES/mecab-ko-dic-COPYING"
     end
 
