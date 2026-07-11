@@ -40,9 +40,13 @@ fail() {
     exit 2
 }
 
-for command in cargo rg /usr/bin/time awk find sort stat; do
+for command in cargo git rg /usr/bin/time awk find sort stat; do
     command -v "$command" >/dev/null 2>&1 || fail "required command not found: $command"
 done
+
+revision_commit=${KFIND_BENCH_REVISION:-$(git -C "$ROOT" rev-parse HEAD)}
+git -C "$ROOT" cat-file -e "${revision_commit}^{commit}" 2>/dev/null ||
+    fail "benchmark revision is not a repository commit: $revision_commit"
 if command -v shasum >/dev/null 2>&1; then
     SHA256_COMMAND=(shasum -a 256)
 elif command -v sha256sum >/dev/null 2>&1; then
@@ -254,7 +258,7 @@ else
     rss_source='/usr/bin/time -v (KiB converted to bytes)'
 fi
 memory_gib=$(awk -v bytes="$memory_bytes" 'BEGIN { printf "%.1f GiB", bytes / 1073741824 }')
-revision=${KFIND_BENCH_REVISION:-$(git -C "$ROOT" rev-parse HEAD)}
+revision=$revision_commit
 if [[ -z "${KFIND_BENCH_REVISION:-}" && -n "$(git -C "$ROOT" status --porcelain)" ]]; then
     revision="$revision (working tree changes)"
 fi

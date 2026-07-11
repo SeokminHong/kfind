@@ -51,7 +51,7 @@
 - 인수 기준 9의 기준 corpus는 정확히 1 GiB(1,073,741,824 bytes), 한글 line 선택 비율 20%, 한글 line 중 NFD 선택 비율 50%, 고정 seed `0x004b46494e44`를 사용한다.
 - 파일 구성은 1,000개의 64 KiB 작은 파일과 남은 bytes를 균등 분배한 24개의 큰 파일로 고정한다. 생성물은 `target/` 아래에 두고 보고서 생성 뒤 기본적으로 삭제한다.
 - 낮은 hit 비율 비교는 생성 문장에 없는 고정 literal을 `kfind --literal --quiet --no-ignore`와 `rg -F --quiet --no-ignore`로 각각 전체 scan한다. 두 명령의 종료 코드 1은 정상적인 no-match 결과다.
-- 보고서는 corpus 설정과 checksum, Git revision, CPU, memory, storage, OS, 도구 버전, 실제 명령, 각 run의 wall time·throughput·maximum RSS, median 비교값을 기록한다.
+- 보고서는 corpus 설정과 checksum, 저장소에서 commit object로 해석되는 Git revision, CPU, memory, storage, OS, 도구 버전, 실제 명령, 각 run의 wall time·throughput·maximum RSS, median 비교값을 기록한다.
 - 기본 측정은 한 번의 warm-up 뒤 warm-cache 3회를 수행한다. timer 정밀도를 확보하기 위해 각 run은 동일 scan 10회의 합산 시간을 측정해 1회당 평균을 기록한다. 권한이 필요한 cache purge를 자동 실행하지 않으며 cold-cache 결과를 측정하지 않았으면 보고서에 명시한다.
 
 ## 1. 문서 목적
