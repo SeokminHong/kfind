@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 use kfind_query::QueryPlan;
 use kfind_search::{FileSearchResult, SearchLineKind, SearchRecord};
 
-use crate::{Args, ColorArg};
+use crate::{Args, ColorArg, Language};
 
 mod explain;
 mod json;
@@ -52,6 +52,7 @@ pub struct OutputOptions {
     pub column: bool,
     pub explain_match: bool,
     pub color: ResolvedColor,
+    pub language: Language,
 }
 
 impl Default for OutputOptions {
@@ -64,6 +65,7 @@ impl Default for OutputOptions {
             column: false,
             explain_match: false,
             color: ResolvedColor::Disabled,
+            language: Language::English,
         }
     }
 }
@@ -71,6 +73,16 @@ impl Default for OutputOptions {
 impl OutputOptions {
     #[must_use]
     pub fn from_args(args: &Args, stdout_is_terminal: bool, multiple_inputs: bool) -> Self {
+        Self::from_args_with_language(args, Language::English, stdout_is_terminal, multiple_inputs)
+    }
+
+    #[must_use]
+    pub fn from_args_with_language(
+        args: &Args,
+        language: Language,
+        stdout_is_terminal: bool,
+        multiple_inputs: bool,
+    ) -> Self {
         let mode = if args.quiet {
             OutputMode::Quiet
         } else if args.files_with_matches {
@@ -105,6 +117,7 @@ impl OutputOptions {
             column: args.column,
             explain_match: args.explain_match,
             color,
+            language,
         }
     }
 
@@ -129,7 +142,8 @@ impl<W: Write> OutputWriter<W> {
     }
 
     pub fn write_query_plan(&mut self, plan: &QueryPlan) -> Result<(), OutputError> {
-        explain::write_query_plan(&mut self.writer, plan, None).map_err(OutputError::Io)
+        explain::write_query_plan(&mut self.writer, plan, None, self.options.language)
+            .map_err(OutputError::Io)
     }
 
     pub(crate) fn write_query_plan_with_full_pos(
@@ -137,7 +151,13 @@ impl<W: Write> OutputWriter<W> {
         plan: &QueryPlan,
         full_pos: &FullPosStatus,
     ) -> Result<(), OutputError> {
-        explain::write_query_plan(&mut self.writer, plan, Some(full_pos)).map_err(OutputError::Io)
+        explain::write_query_plan(
+            &mut self.writer,
+            plan,
+            Some(full_pos),
+            self.options.language,
+        )
+        .map_err(OutputError::Io)
     }
 
     pub fn write_file(

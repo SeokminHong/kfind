@@ -23,7 +23,7 @@ pub(super) fn write_standard(
             SearchRecord::Line(line) => {
                 write_line(writer, &result.path, line, options)?;
                 if options.explain_match && line.kind == SearchLineKind::Match {
-                    explain::write_match_explanations(writer, line, plan)?;
+                    explain::write_match_explanations(writer, line, plan, options.language)?;
                 }
             }
         }

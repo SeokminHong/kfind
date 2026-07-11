@@ -287,14 +287,78 @@ fn explain_query_reports_full_pos_preview_candidates_and_loaded_path() {
 }
 
 #[test]
+fn explain_text_uses_the_selected_language() {
+    let plan = query_plan();
+    let mut query = OutputWriter::new(
+        Vec::new(),
+        OutputOptions {
+            language: Language::Korean,
+            ..OutputOptions::default()
+        },
+    );
+    query.write_query_plan(&plan).unwrap();
+    let query = String::from_utf8(query.into_inner()).unwrap();
+    assert!(query.contains("쿼리: 걷다"));
+    assert!(query.contains("요소[0]:"));
+    assert!(query.contains("분석:"));
+    assert!(query.contains("품사: 동사"));
+    assert!(query.contains("정규화: nfc"));
+    assert!(!query.contains("query:"));
+
+    let records = vec![SearchRecord::Line(match_line(1, "걸어\n".as_bytes()))];
+    let mut matched = OutputWriter::new(
+        Vec::new(),
+        OutputOptions {
+            explain_match: true,
+            language: Language::Korean,
+            ..OutputOptions::default()
+        },
+    );
+    matched.write_file(&result(records, 1), &plan).unwrap();
+    let matched = String::from_utf8(matched.into_inner()).unwrap();
+    assert!(matched.contains("생성_표제어: 걷다"));
+    assert!(matched.contains("일치[0]:"));
+    assert!(matched.contains("요소[0]:"));
+    assert!(matched.contains("토큰: 걸어"));
+    assert!(matched.contains("핵심: 걸"));
+    assert!(matched.contains("규칙:"));
+}
+
+#[test]
+fn json_output_is_locale_independent() {
+    let plan = query_plan();
+    let records = vec![SearchRecord::Line(match_line(
+        3,
+        "길을 걸어 갔다.\n".as_bytes(),
+    ))];
+    let render = |language| {
+        let mut output = OutputWriter::new(
+            Vec::new(),
+            OutputOptions {
+                mode: OutputMode::JsonLines,
+                language,
+                ..OutputOptions::default()
+            },
+        );
+        output
+            .write_file(&result(records.clone(), 1), &plan)
+            .unwrap();
+        output.into_inner()
+    };
+
+    assert_eq!(render(Language::English), render(Language::Korean));
+}
+
+#[test]
 fn args_resolve_auto_color_and_filename_policy() {
     let args = Args::try_parse_from(["kfind", "걷다"]).unwrap();
-    let options = OutputOptions::from_args(&args, true, true);
+    let options = OutputOptions::from_args_with_language(&args, Language::English, true, true);
     assert_eq!(options.color, ResolvedColor::Enabled);
     assert!(options.with_filename());
 
     let json_args = Args::try_parse_from(["kfind", "--json", "걷다"]).unwrap();
-    let json_options = OutputOptions::from_args(&json_args, true, false);
+    let json_options =
+        OutputOptions::from_args_with_language(&json_args, Language::English, true, false);
     assert_eq!(json_options.color, ResolvedColor::Disabled);
 }
 

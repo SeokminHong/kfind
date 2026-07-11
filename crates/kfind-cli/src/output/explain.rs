@@ -10,42 +10,47 @@ use kfind_search::SearchLine;
 use super::FullPosStatus;
 use super::text::write_safe_bytes;
 use super::write_safe_path;
+use crate::Language;
 
 pub(super) fn write_query_plan(
     writer: &mut impl Write,
     plan: &QueryPlan,
     full_pos: Option<&FullPosStatus>,
+    language: Language,
 ) -> io::Result<()> {
-    writer.write_all(b"query: ")?;
+    write_label(writer, language, "query", "쿼리", 0)?;
     write_safe_bytes(writer, plan.raw_query.as_bytes())?;
     writer.write_all(b"\n")?;
     if let Some(full_pos) = full_pos {
-        write_full_pos_status(writer, full_pos)?;
+        write_full_pos_status(writer, full_pos, language)?;
     }
 
     for (atom_index, atom) in plan.atoms.iter().enumerate() {
-        writeln!(writer, "atom[{atom_index}]:")?;
-        writer.write_all(b"  analyses:\n")?;
+        writeln!(writer, "{}[{atom_index}]:", language.select("atom", "요소"))?;
+        write_section_label(writer, language, "analyses", "분석", 2)?;
         for analysis in &atom.analyses {
-            writer.write_all(b"    - lemma: ")?;
+            writer.write_all(b"    - ")?;
+            write_label(writer, language, "lemma", "표제어", 0)?;
             write_safe_bytes(writer, analysis.lemma.as_bytes())?;
-            writeln!(writer, "\n      pos: {}", pos_label(analysis.coarse_pos))?;
+            writer.write_all(b"\n")?;
+            write_label(writer, language, "pos", "품사", 6)?;
             writeln!(
                 writer,
-                "      fine_pos: {}",
-                fine_pos_label(analysis.fine_pos)
+                "{}",
+                explain_pos_label(analysis.coarse_pos, language)
             )?;
-            writeln!(writer, "      source: {}", source_label(analysis.source))?;
+            write_label(writer, language, "fine_pos", "세부_품사", 6)?;
+            writeln!(writer, "{}", fine_pos_label(analysis.fine_pos))?;
+            write_label(writer, language, "source", "출처", 6)?;
+            writeln!(writer, "{}", source_label(analysis.source))?;
             if let Morphology::Predicate(predicate) = &analysis.morphology {
-                writeln!(
-                    writer,
-                    "      alternation: {}",
-                    alternation_label(predicate.alternation)
-                )?;
+                write_label(writer, language, "alternation", "교체_규칙", 6)?;
+                writeln!(writer, "{}", alternation_label(predicate.alternation))?;
             }
         }
-        writeln!(writer, "  branches: {}", atom.branches.len())?;
-        writer.write_all(b"  anchors:\n")?;
+        write_label(writer, language, "branches", "분기_수", 2)?;
+        writeln!(writer, "{}", atom.branches.len())?;
+        write_section_label(writer, language, "anchors", "앵커", 2)?;
         let anchors = atom
             .branches
             .iter()
@@ -62,40 +67,57 @@ pub(super) fn write_query_plan(
             .map(|branch| &branch.verifier)
             .collect::<HashSet<_>>()
             .len();
-        writeln!(writer, "  verifier_states: {verifier_states}")?;
+        write_label(writer, language, "verifier_states", "검증기_상태_수", 2)?;
+        writeln!(writer, "{verifier_states}")?;
     }
-    writeln!(writer, "max_gap: {}", plan.phrase_policy.max_gap)?;
-    writeln!(
+    write_label(writer, language, "max_gap", "최대_거리", 0)?;
+    writeln!(writer, "{}", plan.phrase_policy.max_gap)?;
+    write_label(writer, language, "normalization", "정규화", 0)?;
+    writeln!(writer, "{}", normalization_label(plan.normalization))?;
+    write_label(
         writer,
-        "normalization: {}",
-        normalization_label(plan.normalization)
+        language,
+        "estimated_matcher_bytes",
+        "예상_검색기_바이트",
+        0,
     )?;
-    writeln!(
-        writer,
-        "estimated_matcher_bytes: {}",
-        plan.estimated_matcher_bytes
-    )?;
+    writeln!(writer, "{}", plan.estimated_matcher_bytes)?;
     if !plan.diagnostics.is_empty() {
-        writer.write_all(b"diagnostics:\n")?;
+        write_section_label(writer, language, "diagnostics", "진단", 0)?;
         for diagnostic in &plan.diagnostics {
             writer.write_all(b"  - ")?;
-            write_diagnostic(writer, diagnostic)?;
+            write_diagnostic(writer, diagnostic, language)?;
             writer.write_all(b"\n")?;
         }
     }
     Ok(())
 }
 
-fn write_full_pos_status(writer: &mut impl Write, status: &FullPosStatus) -> io::Result<()> {
-    writer.write_all(b"full_pos:\n")?;
+fn write_full_pos_status(
+    writer: &mut impl Write,
+    status: &FullPosStatus,
+    language: Language,
+) -> io::Result<()> {
+    write_section_label(writer, language, "full_pos", "전체_품사_사전", 0)?;
     match status {
         FullPosStatus::Loaded { path } => {
-            writer.write_all(b"  status: loaded\n  path: ")?;
+            write_label(writer, language, "status", "상태", 2)?;
+            writeln!(writer, "{}", language.select("loaded", "불러옴"))?;
+            write_label(writer, language, "path", "경로", 2)?;
             write_safe_path(writer, path)?;
             writer.write_all(b"\n")
         }
         FullPosStatus::Preview { candidate_paths } => {
-            writer.write_all(b"  status: preview (core lexicon only)\n  candidate_paths:\n")?;
+            write_label(writer, language, "status", "상태", 2)?;
+            writeln!(
+                writer,
+                "{}",
+                language.select(
+                    "preview (core lexicon only)",
+                    "미리보기 (core lexicon만 사용)"
+                )
+            )?;
+            write_section_label(writer, language, "candidate_paths", "후보_경로", 2)?;
             for path in candidate_paths {
                 writer.write_all(b"    - ")?;
                 write_safe_path(writer, path)?;
@@ -110,33 +132,52 @@ pub(super) fn write_match_explanations(
     writer: &mut impl Write,
     line: &SearchLine,
     plan: &QueryPlan,
+    language: Language,
 ) -> io::Result<()> {
     for (match_index, matched) in line.matches.iter().enumerate() {
-        writeln!(writer, "  match[{match_index}]:")?;
+        writeln!(
+            writer,
+            "  {}[{match_index}]:",
+            language.select("match", "일치")
+        )?;
         for (atom_index, span) in matched.atoms.iter().enumerate() {
-            writeln!(writer, "    atom[{atom_index}]:")?;
-            writer.write_all(b"      token: ")?;
-            write_span(writer, &line.bytes, span, true)?;
-            writer.write_all(b"\n      core: ")?;
-            write_span(writer, &line.bytes, span, false)?;
-            writer.write_all(b"\n      origins:\n")?;
+            writeln!(
+                writer,
+                "    {}[{atom_index}]:",
+                language.select("atom", "요소")
+            )?;
+            write_label(writer, language, "token", "토큰", 6)?;
+            write_span(writer, &line.bytes, span, true, language)?;
+            writer.write_all(b"\n")?;
+            write_label(writer, language, "core", "핵심", 6)?;
+            write_span(writer, &line.bytes, span, false, language)?;
+            writer.write_all(b"\n")?;
+            write_section_label(writer, language, "origins", "생성_근거", 6)?;
             for origin in &span.origins {
                 let analysis = plan
                     .atoms
                     .get(atom_index)
                     .and_then(|atom| atom.analyses.get(usize::from(origin.analysis_index)));
-                writer.write_all(b"        - generated_from: ")?;
+                writer.write_all(b"        - ")?;
+                write_label(writer, language, "generated_from", "생성_표제어", 0)?;
                 if let Some(analysis) = analysis {
                     write_safe_bytes(writer, analysis.lemma.as_bytes())?;
+                    writer.write_all(b"\n")?;
+                    write_label(writer, language, "pos", "품사", 10)?;
                     writeln!(
                         writer,
-                        "\n          pos: {}",
-                        pos_label(analysis.coarse_pos)
+                        "{}",
+                        explain_pos_label(analysis.coarse_pos, language)
                     )?;
                 } else {
-                    writeln!(writer, "analysis[{}]", origin.analysis_index)?;
+                    writeln!(
+                        writer,
+                        "{}[{}]",
+                        language.select("analysis", "분석"),
+                        origin.analysis_index
+                    )?;
                 }
-                writer.write_all(b"          rules:")?;
+                write_label(writer, language, "rules", "규칙", 10)?;
                 if origin.rule_path.is_empty() {
                     writer.write_all(b" []\n")?;
                 } else {
@@ -156,34 +197,106 @@ fn write_span(
     bytes: &[u8],
     span: &VerifiedSpan,
     token: bool,
+    language: Language,
 ) -> io::Result<()> {
     let range = if token { &span.token } else { &span.core };
     if let Some(surface) = bytes.get(range.clone()) {
         write_safe_bytes(writer, surface)
     } else {
-        writer.write_all(b"<invalid-span>")
+        writer.write_all(
+            language
+                .select("<invalid-span>", "<올바르지-않은-span>")
+                .as_bytes(),
+        )
     }
 }
 
-fn write_diagnostic(writer: &mut impl Write, diagnostic: &QueryDiagnostic) -> io::Result<()> {
+fn write_diagnostic(
+    writer: &mut impl Write,
+    diagnostic: &QueryDiagnostic,
+    language: Language,
+) -> io::Result<()> {
     match diagnostic {
-        QueryDiagnostic::FullPosLexiconUnavailable => {
-            writer.write_all(b"full POS lexicon unavailable")
-        }
+        QueryDiagnostic::FullPosLexiconUnavailable => writer.write_all(
+            language
+                .select(
+                    "full POS lexicon unavailable",
+                    "full POS lexicon을 사용할 수 없습니다",
+                )
+                .as_bytes(),
+        ),
         QueryDiagnostic::UnregisteredDaLiteralOnly { atom_index, lemma } => {
-            write!(
-                writer,
-                "atom[{atom_index}] unregistered -da lemma is literal-only: "
+            write!(writer, "{}[{atom_index}] ", language.select("atom", "요소"))?;
+            writer.write_all(
+                language
+                    .select(
+                        "unregistered -da lemma is literal-only: ",
+                        "등록되지 않은 `다` 표제어는 literal로만 검색합니다: ",
+                    )
+                    .as_bytes(),
             )?;
             write_safe_bytes(writer, lemma.as_bytes())
         }
         QueryDiagnostic::VerifierVocabularyRestricted { excluded_rule_ids } => {
-            writer.write_all(b"verifier vocabulary excluded rules:")?;
+            writer.write_all(
+                language
+                    .select(
+                        "verifier vocabulary excluded rules:",
+                        "verifier vocabulary에서 제외된 규칙:",
+                    )
+                    .as_bytes(),
+            )?;
             for rule in excluded_rule_ids {
                 write!(writer, " {rule}")?;
             }
             Ok(())
         }
+    }
+}
+
+fn write_label(
+    writer: &mut impl Write,
+    language: Language,
+    english: &'static str,
+    korean: &'static str,
+    indent: usize,
+) -> io::Result<()> {
+    for _ in 0..indent {
+        writer.write_all(b" ")?;
+    }
+    writer.write_all(language.select(english, korean).as_bytes())?;
+    writer.write_all(b": ")
+}
+
+fn write_section_label(
+    writer: &mut impl Write,
+    language: Language,
+    english: &'static str,
+    korean: &'static str,
+    indent: usize,
+) -> io::Result<()> {
+    for _ in 0..indent {
+        writer.write_all(b" ")?;
+    }
+    writer.write_all(language.select(english, korean).as_bytes())?;
+    writer.write_all(b":\n")
+}
+
+const fn explain_pos_label(pos: CoarsePos, language: Language) -> &'static str {
+    match language {
+        Language::English => pos_label(pos),
+        Language::Korean => match pos {
+            CoarsePos::Noun => "명사",
+            CoarsePos::Pronoun => "대명사",
+            CoarsePos::Numeral => "수사",
+            CoarsePos::Verb => "동사",
+            CoarsePos::Adjective => "형용사",
+            CoarsePos::Determiner => "관형사",
+            CoarsePos::Adverb => "부사",
+            CoarsePos::Particle => "조사",
+            CoarsePos::Interjection => "감탄사",
+            CoarsePos::Literal => "literal",
+        },
     }
 }
 
