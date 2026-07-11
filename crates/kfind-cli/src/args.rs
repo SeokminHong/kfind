@@ -73,6 +73,7 @@ pub enum SortArg {
     name = "kfind",
     version,
     disable_help_flag = true,
+    disable_version_flag = true,
     args_conflicts_with_subcommands = true
 )]
 pub struct Args {
@@ -181,6 +182,9 @@ pub struct Args {
 
     #[arg(long, action = ArgAction::Help)]
     pub help: Option<bool>,
+
+    #[arg(short = 'V', long, action = ArgAction::Version)]
+    pub version: Option<bool>,
 }
 
 impl Args {
