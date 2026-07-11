@@ -116,6 +116,14 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
         smart_predicate.atoms[0]
             .branches
             .iter()
+            .all(|branch| branch.boundary.require_left)
+    );
+
+    let smart_copula = compile_query("이다", &CompileOptions::default(), &analyzer()).unwrap();
+    assert!(
+        smart_copula.atoms[0]
+            .branches
+            .iter()
             .all(|branch| !branch.boundary.require_left)
     );
 

@@ -336,7 +336,7 @@ fn compile_predicate(
                 analysis_index,
                 rule_path,
             },
-            smart_left: false,
+            smart_left: predicate.alternation != kfind_morph::LexicalAlternation::Copula,
         });
     }
     Ok(())
