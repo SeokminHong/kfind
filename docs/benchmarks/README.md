@@ -27,3 +27,5 @@ cargo bench -p kfind-testkit --bench query_matcher -- query_compile
 
 빠른 smoke 측정에는 마지막에 `--quick`을 추가한다. 목표 판정에는 기본 sample 설정과
 `target/criterion/query_compile/*/new/sample.json`의 1회당 시간 p95를 사용한다.
+
+기준 결과는 [2026-07-11 query compile 보고서](2026-07-11-query-compile.md)에 기록한다.
