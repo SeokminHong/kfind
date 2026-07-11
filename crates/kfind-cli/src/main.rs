@@ -26,6 +26,7 @@ fn main() -> ExitCode {
 
     match run_with_io(
         &args,
+        language,
         stdin.lock(),
         &mut stdout,
         &mut stderr,
@@ -34,7 +35,7 @@ fn main() -> ExitCode {
     ) {
         Ok(status) => ExitCode::from(status.code()),
         Err(error) => {
-            let _ = writeln!(stderr, "kfind: {error}");
+            let _ = writeln!(stderr, "kfind: {}", error.localized(language));
             ExitCode::from(ExitStatus::Error.code())
         }
     }

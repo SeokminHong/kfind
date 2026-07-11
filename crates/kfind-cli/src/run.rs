@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::env;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
@@ -17,7 +18,7 @@ use kfind_search::{
 };
 
 use crate::output::{FullPosStatus, write_safe_path, write_safe_text};
-use crate::{Args, EncodingArg, OutputError, OutputOptions, OutputWriter, SortArg};
+use crate::{Args, EncodingArg, Language, OutputError, OutputOptions, OutputWriter, SortArg};
 
 const FULL_POS_FILE: &str = "lexicon.bin";
 
@@ -38,6 +39,7 @@ impl ExitStatus {
 
 pub fn run_with_io<R, W, E>(
     args: &Args,
+    language: Language,
     stdin: R,
     stdout: &mut W,
     stderr: &mut E,
@@ -58,8 +60,12 @@ where
         Arc::new(compile_query(&args.query, &options, &analyzer).map_err(CliError::Compile)?);
     let matcher = Arc::new(MorphMatcher::new(Arc::clone(&plan)).map_err(CliError::Matcher)?);
     let paths = resolve_search_paths(&args.paths, stdin_is_terminal);
-    let output_options =
-        OutputOptions::from_args(args, stdout_is_terminal, should_print_filenames(&paths));
+    let output_options = OutputOptions::from_args_with_language(
+        args,
+        language,
+        stdout_is_terminal,
+        should_print_filenames(&paths),
+    );
     let mut output = OutputWriter::new(stdout, output_options);
 
     if args.explain_query {
@@ -80,7 +86,7 @@ where
         SearchEvent::FileEnd(result) => {
             output.write_file(result, &plan).map_err(output_error_as_io)
         }
-        SearchEvent::Issue(issue) => write_issue(stderr, issue),
+        SearchEvent::Issue(issue) => write_issue(stderr, issue, language),
     })
     .map_err(CliError::Search)?;
 
@@ -258,14 +264,52 @@ fn should_print_filenames(paths: &[PathBuf]) -> bool {
             .any(|path| path != Path::new("-") && path.is_dir())
 }
 
-fn write_issue(writer: &mut impl Write, issue: &kfind_search::SearchIssue) -> io::Result<()> {
+fn write_issue(
+    writer: &mut impl Write,
+    issue: &kfind_search::SearchIssue,
+    language: Language,
+) -> io::Result<()> {
     writer.write_all(b"kfind: ")?;
     if let Some(path) = &issue.path {
         write_safe_path(writer, path)?;
         writer.write_all(b": ")?;
     }
-    write_safe_text(writer, &issue.message)?;
+    write_safe_text(writer, search_issue_context(language, issue.kind))?;
+    writer.write_all(b": ")?;
+    write_safe_text(writer, &search_issue_detail(&issue.message, language))?;
     writer.write_all(b"\n")
+}
+
+const fn search_issue_context(
+    language: Language,
+    kind: kfind_search::SearchIssueKind,
+) -> &'static str {
+    match kind {
+        kfind_search::SearchIssueKind::Walk => {
+            language.select("file traversal failed", "파일 탐색 실패")
+        }
+        kfind_search::SearchIssueKind::Input => {
+            language.select("input search failed", "입력 검색 실패")
+        }
+        kfind_search::SearchIssueKind::WorkerPanic => {
+            language.select("search worker panicked", "검색 worker가 중단됨")
+        }
+    }
+}
+
+fn search_issue_detail(message: &str, language: Language) -> Cow<'_, str> {
+    if language == Language::Korean {
+        if let Some(detail) = message.strip_prefix("invalid input encoding: ") {
+            return Cow::Owned(format!("입력 인코딩이 올바르지 않습니다: {detail}"));
+        }
+        if message == "panic without a string payload" {
+            return Cow::Borrowed("문자열 정보 없이 panic이 발생했습니다");
+        }
+        if message == "file search stream closed before completion" {
+            return Cow::Borrowed("파일 검색 stream이 완료 전에 닫혔습니다");
+        }
+    }
+    Cow::Borrowed(message)
 }
 
 fn output_error_as_io(error: OutputError) -> io::Error {
