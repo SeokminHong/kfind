@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="600" viewBox="0 0 1120 600" role="img" aria-labelledby="title desc">
+<title id="title">Held-out morphology quality</title>
+<desc id="desc">Grouped bars compare accuracy, precision, recall, and F1 for kfind, Kiwi, and Lindera.</desc>
+
+<style>
+  .background { fill: #ffffff; }
+  text { fill: #111827; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .muted { fill: #4b5563; }
+  .grid { stroke: #d1d5db; stroke-width: 1; }
+  .axis { stroke: #6b7280; stroke-width: 1; }
+  @media (prefers-color-scheme: dark) {
+    .background { fill: #0d1117; }
+    text { fill: #f3f4f6; }
+    .muted { fill: #9ca3af; }
+    .grid { stroke: #374151; }
+    .axis { stroke: #9ca3af; }
+  }
+</style>
+
+<rect class="background" width="1120" height="600"/>
+<text x="80.0" y="38.0" text-anchor="start">Held-out morphology quality</text>
+<text x="80.0" y="62.0" text-anchor="start" class="muted">1,000 balanced lemma/POS presence cases · percent</text>
+<line class="grid" x1="80" y1="524.0" x2="1088" y2="524.0"/>
+<text x="70.0" y="529.0" text-anchor="end" class="muted">0</text>
+<line class="grid" x1="80" y1="436.4" x2="1088" y2="436.4"/>
+<text x="70.0" y="441.4" text-anchor="end" class="muted">20</text>
+<line class="grid" x1="80" y1="348.8" x2="1088" y2="348.8"/>
+<text x="70.0" y="353.8" text-anchor="end" class="muted">40</text>
+<line class="grid" x1="80" y1="261.2" x2="1088" y2="261.2"/>
+<text x="70.0" y="266.2" text-anchor="end" class="muted">60</text>
+<line class="grid" x1="80" y1="173.6" x2="1088" y2="173.6"/>
+<text x="70.0" y="178.6" text-anchor="end" class="muted">80</text>
+<line class="grid" x1="80" y1="86.0" x2="1088" y2="86.0"/>
+<text x="70.0" y="91.0" text-anchor="end" class="muted">100</text>
+<rect x="122.0" y="150.8" width="48.0" height="373.2" rx="3" fill="#2563eb"/>
+<text x="146.0" y="142.8" text-anchor="middle">85.20</text>
+<rect x="182.0" y="118.4" width="48.0" height="405.6" rx="3" fill="#059669"/>
+<text x="206.0" y="110.4" text-anchor="middle">92.60</text>
+<rect x="242.0" y="132.9" width="48.0" height="391.1" rx="3" fill="#d97706"/>
+<text x="266.0" y="124.9" text-anchor="middle">89.30</text>
+<text x="206.0" y="552.0" text-anchor="middle">Accuracy</text>
+<rect x="374.0" y="87.2" width="48.0" height="436.8" rx="3" fill="#2563eb"/>
+<text x="398.0" y="79.2" text-anchor="middle">99.72</text>
+<rect x="434.0" y="86.0" width="48.0" height="438.0" rx="3" fill="#059669"/>
+<text x="458.0" y="78.0" text-anchor="middle">100.00</text>
+<rect x="494.0" y="86.0" width="48.0" height="438.0" rx="3" fill="#d97706"/>
+<text x="518.0" y="78.0" text-anchor="middle">100.00</text>
+<text x="458.0" y="552.0" text-anchor="middle">Precision</text>
+<rect x="626.0" y="214.8" width="48.0" height="309.2" rx="3" fill="#2563eb"/>
+<text x="650.0" y="206.8" text-anchor="middle">70.60</text>
+<rect x="686.0" y="150.8" width="48.0" height="373.2" rx="3" fill="#059669"/>
+<text x="710.0" y="142.8" text-anchor="middle">85.20</text>
+<rect x="746.0" y="179.7" width="48.0" height="344.3" rx="3" fill="#d97706"/>
+<text x="770.0" y="171.7" text-anchor="middle">78.60</text>
+<text x="710.0" y="552.0" text-anchor="middle">Recall</text>
+<rect x="878.0" y="161.9" width="48.0" height="362.1" rx="3" fill="#2563eb"/>
+<text x="902.0" y="153.9" text-anchor="middle">82.67</text>
+<rect x="938.0" y="121.0" width="48.0" height="403.0" rx="3" fill="#059669"/>
+<text x="962.0" y="113.0" text-anchor="middle">92.01</text>
+<rect x="998.0" y="138.5" width="48.0" height="385.5" rx="3" fill="#d97706"/>
+<text x="1022.0" y="130.5" text-anchor="middle">88.02</text>
+<text x="962.0" y="552.0" text-anchor="middle">F1</text>
+<rect x="80.0" y="565.0" width="16.0" height="16.0" rx="2" fill="#2563eb"/>
+<text x="104.0" y="578.0" text-anchor="start">kfind</text>
+<rect x="198.0" y="565.0" width="16.0" height="16.0" rx="2" fill="#059669"/>
+<text x="222.0" y="578.0" text-anchor="start">kiwi</text>
+<rect x="316.0" y="565.0" width="16.0" height="16.0" rx="2" fill="#d97706"/>
+<text x="340.0" y="578.0" text-anchor="start">lindera</text>
+</svg>
