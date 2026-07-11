@@ -5,7 +5,7 @@ use std::fmt::{self, Display, Formatter};
 use std::ops::Range;
 use std::sync::Arc;
 
-use grep_matcher::{Match, Matcher, NoCaptures, NoError};
+use grep_matcher::{LineMatchKind, LineTerminator, Match, Matcher, NoCaptures, NoError};
 use kfind_morph::{ParticleVerifier, RuleId, verify_predicate_continuation};
 use kfind_query::{
     BranchEnvironment, BranchVerifier, CoreMapping, Origin, PhraseMatch, QueryPlan, SurfaceBranch,
@@ -25,6 +25,7 @@ pub struct MorphMatcher {
     anchor_engine: AnchorEngine,
     anchor_branches: Vec<Box<[BranchRef]>>,
     max_anchor_bytes: usize,
+    is_line_local: bool,
     particle_verifier: ParticleVerifier,
 }
 
@@ -44,6 +45,7 @@ impl MorphMatcher {
 
         let (anchors, anchor_branches) = unique_anchors(&plan);
         let max_anchor_bytes = anchors.iter().map(|anchor| anchor.len()).max().unwrap_or(0);
+        let is_line_local = anchors.iter().all(|anchor| !anchor.contains(&b'\n'));
         let anchor_engine = AnchorEngine::new_with_limits(
             &anchors,
             AnchorBuildLimits {
@@ -56,6 +58,7 @@ impl MorphMatcher {
             anchor_engine,
             anchor_branches,
             max_anchor_bytes,
+            is_line_local,
             particle_verifier: ParticleVerifier::default(),
         })
     }
@@ -326,6 +329,18 @@ impl Matcher for MorphMatcher {
 
     fn new_captures(&self) -> Result<Self::Captures, Self::Error> {
         Ok(NoCaptures::new())
+    }
+
+    fn line_terminator(&self) -> Option<LineTerminator> {
+        self.is_line_local.then(|| LineTerminator::byte(b'\n'))
+    }
+
+    fn find_candidate_line(&self, haystack: &[u8]) -> Result<Option<LineMatchKind>, Self::Error> {
+        Ok(self
+            .anchor_engine
+            .hits(haystack, 0)
+            .next()
+            .map(|hit| LineMatchKind::Candidate(hit.span.start)))
     }
 }
 

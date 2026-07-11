@@ -1,4 +1,4 @@
-use grep_matcher::Matcher;
+use grep_matcher::{LineMatchKind, LineTerminator, Matcher};
 use kfind_morph::{ContinuationState, RuleId};
 use kfind_query::{
     AtomPlan, BoundaryPolicy, BoundaryProof, BranchEnvironment, BranchVerifier, CoreMapping,
@@ -257,6 +257,50 @@ fn grep_matcher_adapter_returns_verified_token_range() {
         .unwrap()
         .expect("grep matcher should find a token");
     assert_eq!((matched.start(), matched.end()), (0, "사용자는".len()));
+}
+
+#[test]
+fn grep_matcher_advertises_raw_anchor_candidates_for_line_local_plans() {
+    let matcher = matcher(
+        vec![atom(
+            BoundaryPolicy::Smart,
+            vec![exact_branch("권한", true)],
+        )],
+        24,
+    );
+    let text = "사용자권한\n권한";
+
+    assert_eq!(
+        Matcher::line_terminator(&matcher),
+        Some(LineTerminator::byte(b'\n'))
+    );
+    assert!(matches!(
+        Matcher::find_candidate_line(&matcher, text.as_bytes()).unwrap(),
+        Some(LineMatchKind::Candidate(at)) if at == "사용자".len()
+    ));
+    assert!(
+        Matcher::find(&matcher, "사용자권한".as_bytes())
+            .unwrap()
+            .is_none()
+    );
+    assert!(
+        Matcher::find(&matcher, "권한".as_bytes())
+            .unwrap()
+            .is_some()
+    );
+}
+
+#[test]
+fn grep_matcher_keeps_newline_literal_plans_on_the_safe_path() {
+    let matcher = matcher(
+        vec![atom(
+            BoundaryPolicy::Any,
+            vec![exact_branch("권한\n검증", false)],
+        )],
+        24,
+    );
+
+    assert_eq!(Matcher::line_terminator(&matcher), None);
 }
 
 #[test]

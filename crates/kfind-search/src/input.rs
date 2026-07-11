@@ -398,6 +398,27 @@ mod tests {
     }
 
     #[test]
+    fn raw_anchor_candidates_are_verified_within_their_line() {
+        let result = search_reader(
+            &matcher("권한"),
+            PathBuf::from("candidates.txt"),
+            "사용자권한\n권한은 있다.\n".as_bytes(),
+            InputOptions::default(),
+        )
+        .unwrap();
+
+        assert_eq!(result.matching_lines, 1);
+        let SearchRecord::Line(line) = &result.records[0] else {
+            panic!("expected matching line")
+        };
+        assert_eq!(line.line_number, Some(2));
+        assert_eq!(
+            &line.bytes[line.matches[0].span.clone()],
+            "권한은".as_bytes()
+        );
+    }
+
+    #[test]
     fn binary_input_stops_at_nul() {
         let result = search_reader(
             &matcher("걷다"),
