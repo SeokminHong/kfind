@@ -81,6 +81,13 @@ fn contractions_keep_the_required_uncontracted_forms() {
         LexicalAlternation::Regular,
     ));
     assert_has_all(&changed, &["되어", "돼", "되었다", "됐다"]);
+
+    let turn_on = surfaces(&entry(
+        "켜다",
+        PredicatePos::Verb,
+        LexicalAlternation::Regular,
+    ));
+    assert_has_all(&turn_on, &["켜어", "켜", "켜었다", "켰다"]);
 }
 
 #[test]

@@ -33,6 +33,14 @@ result = "ㅕ"
 ending_ids = ["ending.aoeo", "ending.aoeo-seo", "ending.past"]
 
 [[contraction]]
+id = "contraction.yeo-eo"
+kind = "vowel-compose"
+left = "ㅕ"
+right = "ㅓ"
+result = "ㅕ"
+ending_ids = ["ending.aoeo", "ending.aoeo-seo", "ending.past"]
+
+[[contraction]]
 id = "contraction.ha-yeo"
 kind = "stem-rewrite"
 left = "하"
