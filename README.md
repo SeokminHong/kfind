@@ -82,11 +82,12 @@ cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo bench -p kfind-testkit --bench query_matcher
-scripts/compare-morphology.sh
+scripts/benchmark-morphology.sh
 ```
 
 The morphology fixture contains 413 positive and negative cases. The Docker
-comparison tool runs real-corpus cases through `kfind`, Kiwi, and Lindera. Fuzz
+benchmark runs 1,000 cases generated from independent UD Korean-Kaist and KSL
+test splits through `kfind`, Kiwi, and Lindera. Fuzz
 targets for query parsing and malformed matcher input live in `fuzz/`.
 
 The implementation contract and release acceptance criteria are in
@@ -96,7 +97,9 @@ The implementation contract and release acceptance criteria are in
 
 kfind source code and project-authored data are available under the
 [MIT License](LICENSE). The Homebrew full POS resource preserves the separate
-Apache-2.0 notice from `mecab-ko-dic` under `share/doc/kfind/LICENSES`.
+Apache-2.0 notice from `mecab-ko-dic` under `share/doc/kfind/LICENSES`. UD source
+and derived fixtures in the benchmark image remain under CC BY-SA 4.0, with a
+per-source notice included in the image.
 
 ## Release
 

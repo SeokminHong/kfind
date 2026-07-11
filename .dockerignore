@@ -1,4 +1,4 @@
 .git
-target
+**/target
 fuzz/target
 data/generated/full-pos
