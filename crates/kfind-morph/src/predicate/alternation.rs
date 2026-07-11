@@ -208,6 +208,14 @@ fn regular_aeo(
                 with_rule(base_rules, "contraction.identical-vowel"),
             ));
         }
+        JUNG_YEO => {
+            surfaces.push(derived(format!("{stem}어"), stem.len(), base_rules.clone()));
+            surfaces.push(derived(
+                stem.to_owned(),
+                stem.len(),
+                with_rule(base_rules, "contraction.yeo-eo"),
+            ));
+        }
         _ => {
             let suffix = if is_light_vowel(last.jungseong) {
                 "아"
