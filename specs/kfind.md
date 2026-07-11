@@ -1319,6 +1319,19 @@ verification
 output
 ```
 
+query compile 목표는 lexicon을 미리 로드한 같은 analyzer를 재사용하고 다음 두 입력을 각각
+`query_compile/single_atom`과 `query_compile/phrase_8_atoms` Criterion benchmark로 측정한다.
+
+```text
+single_atom: 걷다
+phrase_8_atoms: n:사용자 n:권한 v:검증하다 adj:예쁘다 det:새 adv:빨리 n:기술 v:걷다
+```
+
+p95는 Criterion `new/sample.json`의 각 sample에 대해 `times[i] / iters[i]`로 계산한
+1회당 nanoseconds를 오름차순으로 정렬하고 nearest-rank 방식으로 선택한다. 정식 목표 판정은
+기본 sample 설정으로 수행한다. `--quick` 결과는 benchmark가 실행되는지만 확인하는 smoke
+측정이며 목표 판정에 사용하지 않는다.
+
 `--count`, `--quiet`, 기본 출력, JSON을 별도로 측정한다. cold cache와 warm cache 결과를 구분한다.
 
 인수 기준 9의 `rg -F` 비교 runner는 동일 corpus와 no-match literal을 대상으로 `--quiet` warm-cache scan을 측정한다. 처리량은 정확한 corpus bytes를 wall time으로 나눈 값이고, maximum RSS의 단위와 수집 도구를 보고서에 함께 쓴다.

@@ -9,17 +9,43 @@ const MATCHING_LINE: &str = "길을 걸어 갔다. 권한을 검증했습니다.
 const NON_MATCHING_LINE: &str = "사용자는 새 문서를 읽고 접근 정책을 확인했습니다.\n";
 const CORPUS_LINES: usize = 1_024;
 const MATCH_EVERY_LINES: usize = 64;
+const SINGLE_ATOM_QUERY: &str = "걷다";
+const PHRASE_8_ATOMS_QUERY: &str =
+    "n:사용자 n:권한 v:검증하다 adj:예쁘다 det:새 adv:빨리 n:기술 v:걷다";
 
 fn query_compile(criterion: &mut Criterion) {
     let analyzer = analyzer();
     let options = CompileOptions::default();
 
-    criterion.bench_function("query/compile_predicate", |bencher| {
+    let single_atom = compile_query(SINGLE_ATOM_QUERY, &options, &analyzer)
+        .expect("single-atom benchmark query must compile");
+    assert_eq!(single_atom.atoms.len(), 1);
+    let phrase = compile_query(PHRASE_8_ATOMS_QUERY, &options, &analyzer)
+        .expect("phrase benchmark query must compile");
+    assert_eq!(phrase.atoms.len(), 8);
+
+    let mut group = criterion.benchmark_group("query_compile");
+    group.bench_function("single_atom", |bencher| {
         bencher.iter(|| {
-            compile_query(black_box("걷다"), black_box(&options), black_box(&analyzer))
-                .expect("benchmark query must compile")
+            compile_query(
+                black_box(SINGLE_ATOM_QUERY),
+                black_box(&options),
+                black_box(&analyzer),
+            )
+            .expect("single-atom benchmark query must compile")
         });
     });
+    group.bench_function("phrase_8_atoms", |bencher| {
+        bencher.iter(|| {
+            compile_query(
+                black_box(PHRASE_8_ATOMS_QUERY),
+                black_box(&options),
+                black_box(&analyzer),
+            )
+            .expect("phrase benchmark query must compile")
+        });
+    });
+    group.finish();
 }
 
 fn matcher_scan(criterion: &mut Criterion) {
