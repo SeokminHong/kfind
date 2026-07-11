@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "ud_release": "2.18",
+  "seed": "kfind-morph-benchmark-v1",
+  "positive_quotas_per_source": {
+    "noun": 90,
+    "verb": 60,
+    "adjective": 40,
+    "adverb": 25,
+    "pronoun": 15,
+    "determiner": 10,
+    "numeral": 10
+  },
+  "sources": [
+    {
+      "name": "ud-korean-kaist",
+      "description": "UD Korean-Kaist test split",
+      "data_file": "ko_kaist-ud-test.conllu",
+      "data_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-Kaist/r2.18/ko_kaist-ud-test.conllu",
+      "data_sha256": "fd94dc89afb01d1f7f340a46d567e0f27ae6903a70d7b6f650b49f7427f83b97",
+      "license": "CC BY-SA 4.0",
+      "license_file": "ko_kaist-LICENSE.txt",
+      "license_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-Kaist/r2.18/LICENSE.txt",
+      "license_sha256": "899b1804a12ebc090b96339614eede1b64b686721b650a71430b55b5235f7f79"
+    },
+    {
+      "name": "ud-korean-ksl",
+      "description": "UD Korean-KSL test split",
+      "data_file": "ko_ksl-ud-test.conllu",
+      "data_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-KSL/r2.18/ko_ksl-ud-test.conllu",
+      "data_sha256": "62574d11b83f62217494a53fd2a7cbf75b7fc3fe5df74021a91e66df65149033",
+      "license": "CC BY-SA 4.0",
+      "license_file": "ko_ksl-LICENSE.txt",
+      "license_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-KSL/r2.18/LICENSE.txt",
+      "license_sha256": "899b1804a12ebc090b96339614eede1b64b686721b650a71430b55b5235f7f79"
+    }
+  ]
+}
