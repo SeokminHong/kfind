@@ -52,7 +52,7 @@ where
     E: Write + Send,
 {
     let options = args.compile_options().map_err(CliError::Options)?;
-    let loaded_lexicons = load_lexicons(args)?;
+    let loaded_lexicons = load_lexicons(args, options.requires_full_pos_lexicon())?;
     let full_pos_status = loaded_lexicons.full_pos;
     let lexicons = Arc::new(loaded_lexicons.lexicons);
     let analyzer = LexiconQueryAnalyzer::new(lexicons);
@@ -106,15 +106,17 @@ struct LoadedLexicons {
     full_pos: FullPosStatus,
 }
 
-fn load_lexicons(args: &Args) -> Result<LoadedLexicons, CliError> {
+fn load_lexicons(args: &Args, load_full_pos: bool) -> Result<LoadedLexicons, CliError> {
     let mut lexicons = Lexicons::embedded().map_err(CliError::Data)?;
-    let full_pos = resolve_full_pos(args)?;
-    if let FullPosStatus::Loaded { path } = &full_pos {
-        let bytes = fs::read(path).map_err(|source| CliError::Read {
-            path: path.clone(),
-            source,
-        })?;
-        lexicons.load_full_pos(&bytes).map_err(CliError::Data)?;
+    let resolved_full_pos = resolve_full_pos(args)?;
+    if load_full_pos {
+        if let FullPosStatus::Loaded { path } = &resolved_full_pos {
+            let bytes = fs::read(path).map_err(|source| CliError::Read {
+                path: path.clone(),
+                source,
+            })?;
+            lexicons.load_full_pos(&bytes).map_err(CliError::Data)?;
+        }
     }
     if let Some(path) = user_lexicon_path(args) {
         let source = fs::read_to_string(&path).map_err(|source| CliError::Read {
@@ -125,7 +127,14 @@ fn load_lexicons(args: &Args) -> Result<LoadedLexicons, CliError> {
             .map_err(CliError::Data)?;
         lexicons.merge_user(&user);
     }
-    Ok(LoadedLexicons { lexicons, full_pos })
+    Ok(LoadedLexicons {
+        lexicons,
+        full_pos: if load_full_pos {
+            resolved_full_pos
+        } else {
+            FullPosStatus::NotRequired
+        },
+    })
 }
 
 fn resolve_full_pos(args: &Args) -> Result<FullPosStatus, CliError> {

@@ -143,6 +143,31 @@ fn explicit_missing_data_directory_is_an_error() {
 }
 
 #[test]
+fn literal_query_does_not_decode_full_pos_lexicon() {
+    let temp = TempDir::new();
+    temp.write("lexicon.bin", "not a lexicon");
+    let input = temp.write("input.txt", "no match\n");
+    let args = Args::try_parse_from([
+        "kfind",
+        "--literal",
+        "--explain-query",
+        "--data-dir",
+        temp.0.to_str().unwrap(),
+        "missing",
+        input.to_str().unwrap(),
+    ])
+    .unwrap();
+
+    let (status, stdout, stderr) = run(args, &[], true);
+
+    assert_eq!(status, ExitStatus::NoMatch);
+    let stdout = String::from_utf8(stdout).unwrap();
+    assert!(stdout.contains("status: not required (literal query)"));
+    assert!(!stdout.contains("full POS lexicon unavailable"));
+    assert!(stderr.is_empty());
+}
+
+#[test]
 fn search_issue_context_is_localized() {
     let issue = kfind_search::SearchIssue {
         kind: kfind_search::SearchIssueKind::Input,

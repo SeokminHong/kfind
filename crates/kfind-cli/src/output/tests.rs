@@ -255,7 +255,7 @@ fn explain_outputs_show_the_plan_and_match_provenance() {
 }
 
 #[test]
-fn explain_query_reports_full_pos_preview_candidates_and_loaded_path() {
+fn explain_query_reports_each_full_pos_status() {
     let plan = query_plan();
     let candidates = [
         PathBuf::from("first/missing/lexicon.bin"),
@@ -285,6 +285,13 @@ fn explain_query_reports_full_pos_preview_candidates_and_loaded_path() {
     let text = String::from_utf8(output.into_inner()).unwrap();
     assert!(text.contains("status: loaded"));
     assert!(text.contains("path: share/kfind/lexicon.bin"));
+
+    let mut output = OutputWriter::new(Vec::new(), OutputOptions::default());
+    output
+        .write_query_plan_with_full_pos(&plan, &FullPosStatus::NotRequired)
+        .unwrap();
+    let text = String::from_utf8(output.into_inner()).unwrap();
+    assert!(text.contains("status: not required (literal query)"));
 }
 
 #[test]
