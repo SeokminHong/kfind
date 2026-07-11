@@ -1,6 +1,9 @@
 use std::fs::{self, File};
 use std::io::{self, BufWriter, Write};
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
+
+use unicode_normalization::UnicodeNormalization;
 
 const KOREAN_LINES: &[&str] = &[
     "길을 걸어 갔다. 권한을 검증했습니다.\n",
@@ -20,7 +23,10 @@ const ASCII_LINES: &[&str] = &[
 pub struct CorpusConfig {
     pub total_bytes: u64,
     pub file_count: usize,
+    pub small_file_count: usize,
+    pub small_file_bytes: u64,
     pub korean_percent: u8,
+    pub nfd_percent: u8,
     pub seed: u64,
 }
 
@@ -32,6 +38,33 @@ impl CorpusConfig {
         if self.korean_percent > 100 {
             return Err(CorpusConfigError::InvalidKoreanPercent(self.korean_percent));
         }
+        if self.nfd_percent > 100 {
+            return Err(CorpusConfigError::InvalidNfdPercent(self.nfd_percent));
+        }
+        if self.small_file_count > self.file_count {
+            return Err(CorpusConfigError::TooManySmallFiles {
+                small: self.small_file_count,
+                total: self.file_count,
+            });
+        }
+        let small_bytes = (self.small_file_count as u64)
+            .checked_mul(self.small_file_bytes)
+            .ok_or(CorpusConfigError::FileSizeOverflow)?;
+        if small_bytes > self.total_bytes {
+            return Err(CorpusConfigError::SmallFilesExceedTotal);
+        }
+        let large_count = self.file_count - self.small_file_count;
+        if large_count == 0 && small_bytes != self.total_bytes {
+            return Err(CorpusConfigError::UnassignedBytes);
+        }
+        if self.small_file_count > 0 && large_count > 0 {
+            let minimum_large_bytes = (large_count as u64)
+                .checked_mul(self.small_file_bytes)
+                .ok_or(CorpusConfigError::FileSizeOverflow)?;
+            if self.total_bytes - small_bytes < minimum_large_bytes {
+                return Err(CorpusConfigError::LargeFilesSmallerThanSmallFiles);
+            }
+        }
         Ok(self)
     }
 }
@@ -40,6 +73,12 @@ impl CorpusConfig {
 pub enum CorpusConfigError {
     ZeroFiles,
     InvalidKoreanPercent(u8),
+    InvalidNfdPercent(u8),
+    TooManySmallFiles { small: usize, total: usize },
+    FileSizeOverflow,
+    SmallFilesExceedTotal,
+    UnassignedBytes,
+    LargeFilesSmallerThanSmallFiles,
 }
 
 impl std::fmt::Display for CorpusConfigError {
@@ -52,6 +91,25 @@ impl std::fmt::Display for CorpusConfigError {
                     "korean_percent must be between 0 and 100, got {percent}"
                 )
             }
+            Self::InvalidNfdPercent(percent) => {
+                write!(
+                    formatter,
+                    "nfd_percent must be between 0 and 100, got {percent}"
+                )
+            }
+            Self::TooManySmallFiles { small, total } => write!(
+                formatter,
+                "small_file_count ({small}) must not exceed file_count ({total})"
+            ),
+            Self::FileSizeOverflow => formatter.write_str("corpus file sizes overflow u64"),
+            Self::SmallFilesExceedTotal => {
+                formatter.write_str("small files exceed total corpus bytes")
+            }
+            Self::UnassignedBytes => formatter.write_str(
+                "all files are small files but their sizes do not equal total corpus bytes",
+            ),
+            Self::LargeFilesSmallerThanSmallFiles => formatter
+                .write_str("large files must be at least as large as the configured small files"),
         }
     }
 }
@@ -65,6 +123,10 @@ pub struct CorpusStats {
     pub files_written: usize,
     pub korean_lines: u64,
     pub ascii_lines: u64,
+    pub nfc_korean_lines: u64,
+    pub nfd_korean_lines: u64,
+    pub small_files_written: usize,
+    pub large_files_written: usize,
     pub seed: u64,
 }
 
@@ -74,6 +136,7 @@ pub fn generate_corpus_tree(
 ) -> Result<CorpusStats, CorpusGenerateError> {
     let config = config.validate()?;
     fs::create_dir_all(root).map_err(CorpusGenerateError::Io)?;
+    remove_generated_files(root)?;
 
     let mut rng = DeterministicRng::new(config.seed);
     let mut stats = CorpusStats {
@@ -82,10 +145,14 @@ pub fn generate_corpus_tree(
         files_written: 0,
         korean_lines: 0,
         ascii_lines: 0,
+        nfc_korean_lines: 0,
+        nfd_korean_lines: 0,
+        small_files_written: 0,
+        large_files_written: 0,
         seed: config.seed,
     };
     for index in 0..config.file_count {
-        let target_bytes = bytes_for_file(config.total_bytes, config.file_count, index);
+        let target_bytes = bytes_for_file(config, index);
         let path = root.join(format!("corpus-{index:05}.txt"));
         let file = File::create(path).map_err(CorpusGenerateError::Io)?;
         let mut writer = BufWriter::new(file);
@@ -93,32 +160,64 @@ pub fn generate_corpus_tree(
             &mut writer,
             target_bytes,
             config.korean_percent,
+            config.nfd_percent,
             &mut rng,
             &mut stats,
         )?;
         writer.flush().map_err(CorpusGenerateError::Io)?;
         stats.files_written += 1;
+        if index < config.small_file_count {
+            stats.small_files_written += 1;
+        } else {
+            stats.large_files_written += 1;
+        }
     }
     Ok(stats)
+}
+
+fn remove_generated_files(root: &Path) -> Result<(), CorpusGenerateError> {
+    for entry in fs::read_dir(root).map_err(CorpusGenerateError::Io)? {
+        let entry = entry.map_err(CorpusGenerateError::Io)?;
+        let name = entry.file_name();
+        let Some(name) = name.to_str() else {
+            continue;
+        };
+        let Some(index) = name
+            .strip_prefix("corpus-")
+            .and_then(|name| name.strip_suffix(".txt"))
+        else {
+            continue;
+        };
+        if index.len() == 5 && index.bytes().all(|byte| byte.is_ascii_digit()) {
+            fs::remove_file(entry.path()).map_err(CorpusGenerateError::Io)?;
+        }
+    }
+    Ok(())
 }
 
 fn write_corpus_file(
     writer: &mut impl Write,
     target_bytes: u64,
     korean_percent: u8,
+    nfd_percent: u8,
     rng: &mut DeterministicRng,
     stats: &mut CorpusStats,
 ) -> Result<(), CorpusGenerateError> {
     let mut remaining = target_bytes;
     while remaining > 0 {
         let korean = rng.below(100) < u64::from(korean_percent);
-        let choices = if korean { KOREAN_LINES } else { ASCII_LINES };
-        let line = choices[rng.below(choices.len() as u64) as usize].as_bytes();
+        let nfd = korean && rng.below(100) < u64::from(nfd_percent);
+        let line = select_line(korean, nfd, rng);
         if line.len() as u64 <= remaining {
             writer.write_all(line).map_err(CorpusGenerateError::Io)?;
             remaining -= line.len() as u64;
             if korean {
                 stats.korean_lines += 1;
+                if nfd {
+                    stats.nfd_korean_lines += 1;
+                } else {
+                    stats.nfc_korean_lines += 1;
+                }
             } else {
                 stats.ascii_lines += 1;
             }
@@ -130,6 +229,27 @@ fn write_corpus_file(
     }
     stats.bytes_written += target_bytes;
     Ok(())
+}
+
+fn select_line(korean: bool, nfd: bool, rng: &mut DeterministicRng) -> &'static [u8] {
+    if !korean {
+        return ASCII_LINES[rng.below(ASCII_LINES.len() as u64) as usize].as_bytes();
+    }
+    let index = rng.below(KOREAN_LINES.len() as u64) as usize;
+    if nfd {
+        return nfd_korean_lines()[index].as_bytes();
+    }
+    KOREAN_LINES[index].as_bytes()
+}
+
+fn nfd_korean_lines() -> &'static [String] {
+    static LINES: OnceLock<Vec<String>> = OnceLock::new();
+    LINES.get_or_init(|| {
+        KOREAN_LINES
+            .iter()
+            .map(|line| line.nfd().collect::<String>())
+            .collect()
+    })
 }
 
 fn write_ascii_padding(
@@ -148,10 +268,16 @@ fn write_ascii_padding(
     Ok(())
 }
 
-fn bytes_for_file(total: u64, files: usize, index: usize) -> u64 {
-    let files = files as u64;
-    let base = total / files;
-    base + u64::from((index as u64) < total % files)
+fn bytes_for_file(config: CorpusConfig, index: usize) -> u64 {
+    if index < config.small_file_count {
+        return config.small_file_bytes;
+    }
+    let small_total = config.small_file_count as u64 * config.small_file_bytes;
+    let large_total = config.total_bytes - small_total;
+    let large_count = (config.file_count - config.small_file_count) as u64;
+    let large_index = (index - config.small_file_count) as u64;
+    let base = large_total / large_count;
+    base + u64::from(large_index < large_total % large_count)
 }
 
 #[derive(Debug)]
@@ -235,7 +361,10 @@ mod tests {
             CorpusConfig {
                 total_bytes: 10_003,
                 file_count: 7,
+                small_file_count: 2,
+                small_file_bytes: 256,
                 korean_percent: 20,
+                nfd_percent: 50,
                 seed: 42,
             },
         )
@@ -259,6 +388,15 @@ mod tests {
         assert_eq!(actual_size, 10_003);
         assert!(stats.korean_lines > 0);
         assert!(stats.ascii_lines > 0);
+        assert!(stats.nfc_korean_lines > 0);
+        assert!(stats.nfd_korean_lines > 0);
+        assert_eq!(stats.small_files_written, 2);
+        assert_eq!(stats.large_files_written, 5);
+        assert_eq!(
+            fs::metadata(temp.0.join("corpus-00000.txt")).unwrap().len(),
+            256
+        );
+        assert!(fs::metadata(temp.0.join("corpus-00002.txt")).unwrap().len() > 256);
     }
 
     #[test]
@@ -268,7 +406,10 @@ mod tests {
         let config = CorpusConfig {
             total_bytes: 2_048,
             file_count: 2,
+            small_file_count: 0,
+            small_file_bytes: 0,
             korean_percent: 80,
+            nfd_percent: 50,
             seed: 7,
         };
 
@@ -285,15 +426,60 @@ mod tests {
     }
 
     #[test]
+    fn regeneration_removes_stale_generated_files_only() {
+        let temp = TempDir::new();
+        let mut config = CorpusConfig {
+            total_bytes: 3_000,
+            file_count: 3,
+            small_file_count: 0,
+            small_file_bytes: 0,
+            korean_percent: 20,
+            nfd_percent: 0,
+            seed: 1,
+        };
+        generate_corpus_tree(&temp.0, config).unwrap();
+        fs::write(temp.0.join("keep.txt"), "user file").unwrap();
+
+        config.total_bytes = 2_000;
+        config.file_count = 2;
+        generate_corpus_tree(&temp.0, config).unwrap();
+
+        assert!(!temp.0.join("corpus-00002.txt").exists());
+        assert_eq!(
+            fs::read_to_string(temp.0.join("keep.txt")).unwrap(),
+            "user file"
+        );
+    }
+
+    #[test]
     fn invalid_configuration_is_rejected() {
         let error = CorpusConfig {
             total_bytes: 1,
             file_count: 0,
+            small_file_count: 0,
+            small_file_bytes: 0,
             korean_percent: 20,
+            nfd_percent: 0,
             seed: 1,
         }
         .validate()
         .unwrap_err();
         assert_eq!(error, CorpusConfigError::ZeroFiles);
+    }
+
+    #[test]
+    fn invalid_mixed_file_layout_is_rejected() {
+        let error = CorpusConfig {
+            total_bytes: 100,
+            file_count: 2,
+            small_file_count: 1,
+            small_file_bytes: 75,
+            korean_percent: 20,
+            nfd_percent: 50,
+            seed: 1,
+        }
+        .validate()
+        .unwrap_err();
+        assert_eq!(error, CorpusConfigError::LargeFilesSmallerThanSmallFiles);
     }
 }

@@ -44,6 +44,14 @@
 - full POS resource에는 `lexicon.bin`, 생성 manifest, `mecab-ko-dic`의 `COPYING`을 함께 넣는다. formula는 이를 `share/kfind`와 `share/doc/kfind/LICENSES`에 설치한다.
 - kfind 자체 라이선스는 M6 배포 산출물을 만들기 전에 저장소 소유자가 확정한다.
 
+### 0.5 재현 가능한 성능 기준
+
+- 인수 기준 9의 기준 corpus는 정확히 1 GiB(1,073,741,824 bytes), 한글 line 선택 비율 20%, 한글 line 중 NFD 선택 비율 50%, 고정 seed `0x004b46494e44`를 사용한다.
+- 파일 구성은 1,000개의 64 KiB 작은 파일과 남은 bytes를 균등 분배한 24개의 큰 파일로 고정한다. 생성물은 `target/` 아래에 두고 보고서 생성 뒤 기본적으로 삭제한다.
+- 낮은 hit 비율 비교는 생성 문장에 없는 고정 literal을 `kfind --literal --quiet --no-ignore`와 `rg -F --quiet --no-ignore`로 각각 전체 scan한다. 두 명령의 종료 코드 1은 정상적인 no-match 결과다.
+- 보고서는 corpus 설정과 checksum, Git revision, CPU, memory, storage, OS, 도구 버전, 실제 명령, 각 run의 wall time·throughput·maximum RSS, median 비교값을 기록한다.
+- 기본 측정은 한 번의 warm-up 뒤 warm-cache 3회를 수행한다. timer 정밀도를 확보하기 위해 각 run은 동일 scan 10회의 합산 시간을 측정해 1회당 평균을 기록한다. 권한이 필요한 cache purge를 자동 실행하지 않으며 cold-cache 결과를 측정하지 않았으면 보고서에 명시한다.
+
 ## 1. 문서 목적
 
 `kfind`는 입력한 한국어 표제어 또는 짧은 구를 조사 결합, 어미 결합, 불규칙 활용과 일부 생산적 파생 규칙에 따라 검색 계획으로 컴파일하고, 소스 코드와 문서 파일을 빠르게 탐색하는 CLI 도구다.
@@ -1293,6 +1301,8 @@ NFD corpus
 UTF-16 fixture
 ```
 
+corpus 생성기는 전체 bytes, 파일 수, 작은 파일 수와 크기, 한글 line 선택 비율, 한글 line의 NFD 선택 비율, seed를 명시적으로 받는다. 같은 설정과 seed는 byte 단위로 동일한 파일 tree를 생성해야 한다. NFC/NFD와 한글 비율은 완전한 line을 선택하는 비율이며, 파일 끝의 exact-size padding은 ASCII로 채운다.
+
 ### 20.3 측정 구간
 
 다음 시간을 분리한다.
@@ -1308,6 +1318,8 @@ output
 ```
 
 `--count`, `--quiet`, 기본 출력, JSON을 별도로 측정한다. cold cache와 warm cache 결과를 구분한다.
+
+인수 기준 9의 `rg -F` 비교 runner는 동일 corpus와 no-match literal을 대상으로 `--quiet` warm-cache scan을 측정한다. 처리량은 정확한 corpus bytes를 wall time으로 나눈 값이고, maximum RSS의 단위와 수집 도구를 보고서에 함께 쓴다.
 
 ### 20.4 회귀 정책
 
