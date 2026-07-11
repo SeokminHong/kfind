@@ -82,9 +82,11 @@ cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo bench -p kfind-testkit --bench query_matcher
+scripts/compare-morphology.sh
 ```
 
-형태론 fixture에는 일치·불일치 사례 403개가 있습니다. 쿼리 파싱과 잘못된 matcher
+형태론 fixture에는 일치·불일치 사례 413개가 있습니다. Docker 비교 도구는 실제 코퍼스
+사례를 `kfind`, Kiwi, Lindera로 실행합니다. 쿼리 파싱과 잘못된 matcher
 입력을 위한 fuzz target은 `fuzz/`에 있습니다.
 
 구현 규약과 릴리스 인수 기준은

@@ -82,10 +82,12 @@ cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo bench -p kfind-testkit --bench query_matcher
+scripts/compare-morphology.sh
 ```
 
-The morphology fixture contains 403 positive and negative cases. Fuzz targets
-for query parsing and malformed matcher input live in `fuzz/`.
+The morphology fixture contains 413 positive and negative cases. The Docker
+comparison tool runs real-corpus cases through `kfind`, Kiwi, and Lindera. Fuzz
+targets for query parsing and malformed matcher input live in `fuzz/`.
 
 The implementation contract and release acceptance criteria are in
 [`specs/kfind.md`](specs/kfind.md).
