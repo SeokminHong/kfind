@@ -27,7 +27,7 @@ impl Default for AnchorBuildLimits {
 #[derive(Debug)]
 pub enum AnchorEngine {
     One {
-        finder: Finder<'static>,
+        finder: Box<Finder<'static>>,
         anchor_len: usize,
     },
     Many(AhoCorasick),
@@ -46,7 +46,7 @@ impl AnchorEngine {
 
         if anchors.len() == 1 {
             let engine = Self::One {
-                finder: Finder::new(&anchors[0]).into_owned(),
+                finder: Box::new(Finder::new(&anchors[0]).into_owned()),
                 anchor_len: anchors[0].len(),
             };
             return enforce_memory_limit(engine, limits.max_memory_bytes);

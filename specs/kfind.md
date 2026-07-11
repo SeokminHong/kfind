@@ -784,11 +784,11 @@ literal과 토큰 경계만 적용한다.
 ### 11.2 적응형 matcher
 
 ```text
-branch 1개: memchr::memmem::Finder의 owned variant
+branch 1개: Box에 보관한 memchr::memmem::Finder의 owned variant
 branch 2개 이상: Aho-Corasick standard match kind의 overlapping search
 ```
 
-단일 앵커 Finder는 `Finder::new(needle).into_owned()`로 구성한다. 후보가 겹칠 수 있으므로 Aho-Corasick에서는 overlapping hit를 받고, 검증 후 가장 왼쪽의 가장 긴 token span을 선택한다.
+단일 앵커 Finder는 `Finder::new(needle).into_owned()`로 구성하고 platform별 Finder 내부 크기가 `AnchorEngine` 전체 크기를 키우지 않도록 Box에 보관한다. 후보가 겹칠 수 있으므로 Aho-Corasick에서는 overlapping hit를 받고, 검증 후 가장 왼쪽의 가장 긴 token span을 선택한다.
 
 ### 11.3 branch 제한
 
@@ -1544,7 +1544,7 @@ matcher 쪽:
 
 ```rust
 pub enum AnchorEngine {
-    One(memchr::memmem::Finder<'static>), // into_owned()로 구성
+    One(Box<memchr::memmem::Finder<'static>>), // into_owned()로 구성
     Many(aho_corasick::AhoCorasick),
 }
 
