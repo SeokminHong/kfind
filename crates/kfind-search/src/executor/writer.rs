@@ -13,6 +13,7 @@ use super::{
 
 pub(super) enum WorkerEvent {
     File(FileStream),
+    Completed(FileSearchResult),
     Issue(SearchIssue),
 }
 
@@ -70,6 +71,13 @@ where
             WorkerEvent::File(stream) => {
                 write_file_stream(stream, &mut summary, &cancelled, options, &mut callback)?
             }
+            WorkerEvent::Completed(result) => write_search_event(
+                SearchEvent::FileEnd(result),
+                &mut summary,
+                &cancelled,
+                options,
+                &mut callback,
+            )?,
             WorkerEvent::Issue(issue) => write_search_event(
                 SearchEvent::Issue(issue),
                 &mut summary,
@@ -88,6 +96,7 @@ where
 fn collect_completed_event(event: WorkerEvent) -> CompletedEvent {
     match event {
         WorkerEvent::Issue(issue) => CompletedEvent::Issue(issue),
+        WorkerEvent::Completed(result) => CompletedEvent::File(result),
         WorkerEvent::File(stream) => {
             let mut records = Vec::new();
             for message in stream.receiver {

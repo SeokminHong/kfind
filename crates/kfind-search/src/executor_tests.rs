@@ -172,10 +172,8 @@ fn quiet_stops_after_the_first_global_match() {
     assert!(summary.has_match);
     assert_eq!(summary.searched_files, 1);
     assert_eq!(summary.matching_lines, 1);
-    assert_eq!(events.len(), 3);
-    assert!(matches!(events[0], SearchEvent::FileStart { .. }));
-    assert!(matches!(events[1], SearchEvent::Record { .. }));
-    assert!(matches!(events[2], SearchEvent::FileEnd(_)));
+    assert_eq!(events.len(), 1);
+    assert!(matches!(events[0], SearchEvent::FileEnd(_)));
 }
 
 #[test]

@@ -174,6 +174,7 @@ where
     let mut input_options = config.input;
     if config.execution.quiet {
         input_options.stop_after_first_match = true;
+        input_options.capture_records = false;
     }
     let mut stdin_searcher = InputSearcher::new(input_options).map_err(SearchRunError::Input)?;
     let (file_paths, search_stdin) = split_paths(&config.paths);
@@ -199,6 +200,7 @@ where
                 &sender,
                 &cancelled,
                 capacity,
+                input_options.capture_records,
             );
         }
         if !cancelled.load(Ordering::Acquire) {
@@ -210,6 +212,7 @@ where
                     &sender,
                     Arc::clone(&cancelled),
                     capacity,
+                    input_options.capture_records,
                 );
             }
         }
@@ -244,8 +247,20 @@ fn send_stdin(
     sender: &Sender<WorkerEvent>,
     cancelled: &AtomicBool,
     capacity: usize,
+    stream_records: bool,
 ) {
     let path = PathBuf::from("-");
+    if !stream_records {
+        let event = match panic::catch_unwind(AssertUnwindSafe(|| {
+            searcher.search_reader(matcher, path.clone(), stdin)
+        })) {
+            Ok(Ok(result)) => WorkerEvent::Completed(result),
+            Ok(Err(error)) => WorkerEvent::Issue(SearchIssue::input(path, &error)),
+            Err(payload) => WorkerEvent::Issue(SearchIssue::worker_panic(Some(path), payload)),
+        };
+        send_worker_event(sender, cancelled, event);
+        return;
+    }
     let (stream_sender, stream_receiver) = bounded(capacity);
     if !send_worker_event(
         sender,
@@ -277,6 +292,7 @@ fn run_walker(
     sender: &Sender<WorkerEvent>,
     cancelled: Arc<AtomicBool>,
     capacity: usize,
+    stream_records: bool,
 ) {
     let initialization_error_sent = Arc::new(AtomicBool::new(false));
     let traversal = panic::catch_unwind(AssertUnwindSafe(|| {
@@ -311,7 +327,15 @@ fn run_walker(
                 };
                 let panic_path = entry_path(&entry);
                 match panic::catch_unwind(AssertUnwindSafe(|| {
-                    process_entry(entry, searcher, &matcher, &sender, &cancelled, capacity)
+                    process_entry(
+                        entry,
+                        searcher,
+                        &matcher,
+                        &sender,
+                        &cancelled,
+                        capacity,
+                        stream_records,
+                    )
                 })) {
                     Ok(state) => state,
                     Err(payload) => {
@@ -346,6 +370,7 @@ fn process_entry(
     sender: &Sender<WorkerEvent>,
     cancelled: &AtomicBool,
     capacity: usize,
+    stream_records: bool,
 ) -> WalkState {
     let entry = match entry {
         Ok(entry) => entry,
@@ -375,6 +400,13 @@ fn process_entry(
     }
 
     let path = entry.into_path();
+    if !stream_records {
+        let event = match searcher.search_path(matcher, &path) {
+            Ok(result) => WorkerEvent::Completed(result),
+            Err(error) => WorkerEvent::Issue(SearchIssue::input(path, &error)),
+        };
+        return send_worker_state(sender, cancelled, event);
+    }
     let (stream_sender, stream_receiver) = bounded(capacity);
     if !send_worker_event(
         sender,
