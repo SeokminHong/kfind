@@ -235,6 +235,8 @@ fn explain_outputs_show_the_plan_and_match_provenance() {
     let query = String::from_utf8(query.into_inner()).unwrap();
     assert!(query.contains("query: 걷다"));
     assert!(query.contains("alternation: d-to-l"));
+    assert!(query.contains("  verifier_states:"));
+    assert!(query.contains("normalization: nfc"));
     assert!(query.contains("estimated_matcher_bytes:"));
 
     let records = vec![SearchRecord::Line(match_line(1, "걸어\n".as_bytes()))];
@@ -249,6 +251,39 @@ fn explain_outputs_show_the_plan_and_match_provenance() {
     let matched = String::from_utf8(matched.into_inner()).unwrap();
     assert!(matched.contains("generated_from: 걷다"));
     assert!(matched.contains("- lexical.d-to-l"));
+}
+
+#[test]
+fn explain_query_reports_full_pos_preview_candidates_and_loaded_path() {
+    let plan = query_plan();
+    let candidates = [
+        PathBuf::from("first/missing/lexicon.bin"),
+        PathBuf::from("second/missing/lexicon.bin"),
+    ];
+    let preview = FullPosStatus::Preview {
+        candidate_paths: candidates.clone().into(),
+    };
+    let mut output = OutputWriter::new(Vec::new(), OutputOptions::default());
+    output
+        .write_query_plan_with_full_pos(&plan, &preview)
+        .unwrap();
+    let text = String::from_utf8(output.into_inner()).unwrap();
+
+    assert!(text.contains("status: preview (core lexicon only)"));
+    let first = text.find("first/missing/lexicon.bin").unwrap();
+    let second = text.find("second/missing/lexicon.bin").unwrap();
+    assert!(first < second);
+
+    let loaded = FullPosStatus::Loaded {
+        path: PathBuf::from("share/kfind/lexicon.bin"),
+    };
+    let mut output = OutputWriter::new(Vec::new(), OutputOptions::default());
+    output
+        .write_query_plan_with_full_pos(&plan, &loaded)
+        .unwrap();
+    let text = String::from_utf8(output.into_inner()).unwrap();
+    assert!(text.contains("status: loaded"));
+    assert!(text.contains("path: share/kfind/lexicon.bin"));
 }
 
 #[test]

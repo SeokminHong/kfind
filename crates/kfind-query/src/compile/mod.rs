@@ -204,6 +204,7 @@ pub fn compile_query(
         raw_query: source.into(),
         atoms: atom_plans,
         phrase_policy: ast.phrase,
+        normalization: options.normalization,
         limits: options.limits,
         diagnostics,
         estimated_matcher_bytes,

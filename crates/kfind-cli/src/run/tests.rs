@@ -131,3 +131,30 @@ fn explicit_missing_data_directory_is_an_error() {
 
     assert!(matches!(error, CliError::MissingData(_)));
 }
+
+#[test]
+fn missing_full_pos_candidates_are_preserved_for_preview_diagnostics() {
+    let temp = TempDir::new();
+    let candidates = vec![temp.0.join("first.bin"), temp.0.join("second.bin")];
+
+    let status = select_full_pos(candidates.clone());
+
+    assert_eq!(
+        status,
+        FullPosStatus::Preview {
+            candidate_paths: candidates.into_boxed_slice(),
+        }
+    );
+}
+
+#[test]
+fn full_pos_selection_uses_the_first_existing_candidate() {
+    let temp = TempDir::new();
+    let selected = temp.write("lexicon.bin", "data");
+    let candidates = vec![temp.0.join("missing.bin"), selected.clone()];
+
+    assert_eq!(
+        select_full_pos(candidates),
+        FullPosStatus::Loaded { path: selected }
+    );
+}

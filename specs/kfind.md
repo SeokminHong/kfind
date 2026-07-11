@@ -16,7 +16,8 @@
 - full POS lexicon은 `mecab-ko-dic 2.1.1-20180720`의 Apache-2.0 데이터를 bootstrap 원본으로 사용한다. 빌드 시 표제어와 품사만 추출하고, 런타임 문장 분석 데이터와 알고리즘은 포함하지 않는다.
 - 배포 데이터에는 원본 버전, 출처, 라이선스, 추출 명령과 체크섬을 기록한다.
 - auto 품사 품질 기준은 300개 이상의 프로젝트 gold case마다 명시된 기대 품사 분석을 포함하고, match case를 auto 계획으로 찾는 것이다. no-match case는 동음이의어 합집합이 다른 품사 경로로 찾을 수 있으므로 fixture 품사를 강제해 해당 분석의 금지 형태를 검증한다. 핵심 불규칙 fixture는 core lexicon만으로도 100% 통과해야 한다.
-- full POS lexicon이 없으면 core lexicon으로 계속 실행하되, `--explain-query`와 명시적 사전 진단 요청에서 preview 상태와 누락 경로를 출력한다.
+- full POS lexicon이 없으면 core lexicon으로 계속 실행하되, `--explain-query`와 명시적 사전 진단 요청에서 `preview (core lexicon only)` 상태와 자동 탐색한 모든 후보 경로를 우선순위대로 출력한다. 로드했을 때는 `loaded`와 선택된 경로를 출력한다.
+- `--explain-query`는 계획 전체의 Unicode 정규화 모드와 atom별 verifier state 수를 출력한다. verifier state 수는 해당 atom의 branch들이 참조하는 서로 다른 verifier 구성의 수다.
 
 ### 0.2 토큰 경계와 phrase 거리
 

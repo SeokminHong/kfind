@@ -1,16 +1,27 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashSet};
 use std::io::{self, Write};
 
 use kfind_morph::{CoarsePos, FinePos, LexicalAlternation};
-use kfind_query::{AnalysisSource, Morphology, QueryDiagnostic, QueryPlan, VerifiedSpan};
+use kfind_query::{
+    AnalysisSource, Morphology, NormalizationMode, QueryDiagnostic, QueryPlan, VerifiedSpan,
+};
 use kfind_search::SearchLine;
 
+use super::FullPosStatus;
 use super::text::write_safe_bytes;
+use super::write_safe_path;
 
-pub(super) fn write_query_plan(writer: &mut impl Write, plan: &QueryPlan) -> io::Result<()> {
+pub(super) fn write_query_plan(
+    writer: &mut impl Write,
+    plan: &QueryPlan,
+    full_pos: Option<&FullPosStatus>,
+) -> io::Result<()> {
     writer.write_all(b"query: ")?;
     write_safe_bytes(writer, plan.raw_query.as_bytes())?;
     writer.write_all(b"\n")?;
+    if let Some(full_pos) = full_pos {
+        write_full_pos_status(writer, full_pos)?;
+    }
 
     for (atom_index, atom) in plan.atoms.iter().enumerate() {
         writeln!(writer, "atom[{atom_index}]:")?;
@@ -45,8 +56,20 @@ pub(super) fn write_query_plan(writer: &mut impl Write, plan: &QueryPlan) -> io:
             write_safe_bytes(writer, anchor)?;
             writer.write_all(b"\n")?;
         }
+        let verifier_states = atom
+            .branches
+            .iter()
+            .map(|branch| &branch.verifier)
+            .collect::<HashSet<_>>()
+            .len();
+        writeln!(writer, "  verifier_states: {verifier_states}")?;
     }
     writeln!(writer, "max_gap: {}", plan.phrase_policy.max_gap)?;
+    writeln!(
+        writer,
+        "normalization: {}",
+        normalization_label(plan.normalization)
+    )?;
     writeln!(
         writer,
         "estimated_matcher_bytes: {}",
@@ -61,6 +84,26 @@ pub(super) fn write_query_plan(writer: &mut impl Write, plan: &QueryPlan) -> io:
         }
     }
     Ok(())
+}
+
+fn write_full_pos_status(writer: &mut impl Write, status: &FullPosStatus) -> io::Result<()> {
+    writer.write_all(b"full_pos:\n")?;
+    match status {
+        FullPosStatus::Loaded { path } => {
+            writer.write_all(b"  status: loaded\n  path: ")?;
+            write_safe_path(writer, path)?;
+            writer.write_all(b"\n")
+        }
+        FullPosStatus::Preview { candidate_paths } => {
+            writer.write_all(b"  status: preview (core lexicon only)\n  candidate_paths:\n")?;
+            for path in candidate_paths {
+                writer.write_all(b"    - ")?;
+                write_safe_path(writer, path)?;
+                writer.write_all(b"\n")?;
+            }
+            Ok(())
+        }
+    }
 }
 
 pub(super) fn write_match_explanations(
@@ -141,6 +184,14 @@ fn write_diagnostic(writer: &mut impl Write, diagnostic: &QueryDiagnostic) -> io
             }
             Ok(())
         }
+    }
+}
+
+const fn normalization_label(normalization: NormalizationMode) -> &'static str {
+    match normalization {
+        NormalizationMode::Nfc => "nfc",
+        NormalizationMode::Canonical => "canonical",
+        NormalizationMode::None => "none",
     }
 }
 

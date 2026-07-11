@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::io::{self, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use kfind_query::QueryPlan;
 use kfind_search::{FileSearchResult, SearchLineKind, SearchRecord};
@@ -35,6 +35,12 @@ pub enum FilenameMode {
 pub enum ResolvedColor {
     Enabled,
     Disabled,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) enum FullPosStatus {
+    Loaded { path: PathBuf },
+    Preview { candidate_paths: Box<[PathBuf]> },
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -123,7 +129,15 @@ impl<W: Write> OutputWriter<W> {
     }
 
     pub fn write_query_plan(&mut self, plan: &QueryPlan) -> Result<(), OutputError> {
-        explain::write_query_plan(&mut self.writer, plan).map_err(OutputError::Io)
+        explain::write_query_plan(&mut self.writer, plan, None).map_err(OutputError::Io)
+    }
+
+    pub(crate) fn write_query_plan_with_full_pos(
+        &mut self,
+        plan: &QueryPlan,
+        full_pos: &FullPosStatus,
+    ) -> Result<(), OutputError> {
+        explain::write_query_plan(&mut self.writer, plan, Some(full_pos)).map_err(OutputError::Io)
     }
 
     pub fn write_file(

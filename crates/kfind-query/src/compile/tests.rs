@@ -327,6 +327,7 @@ fn normalization_none_preserves_raw_jamo_while_nfc_composes_it() {
     })
     .unwrap();
     let none_plan = compile_query(raw, &none, &analyzer()).unwrap();
+    assert_eq!(none_plan.normalization, NormalizationMode::None);
     assert_eq!(
         none_plan.atoms[0].branches[0].anchor.as_ref(),
         raw.as_bytes()
@@ -339,6 +340,7 @@ fn normalization_none_preserves_raw_jamo_while_nfc_composes_it() {
     })
     .unwrap();
     let nfc_plan = compile_query(raw, &nfc, &analyzer()).unwrap();
+    assert_eq!(nfc_plan.normalization, NormalizationMode::Nfc);
     assert_eq!(
         nfc_plan.atoms[0].branches[0].anchor.as_ref(),
         "가".as_bytes()

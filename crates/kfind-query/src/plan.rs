@@ -3,13 +3,14 @@ use std::sync::Arc;
 
 use kfind_morph::{ContinuationState, RuleId};
 
-use crate::{Analysis, BoundaryPolicy, PhrasePolicy, PlanLimits};
+use crate::{Analysis, BoundaryPolicy, NormalizationMode, PhrasePolicy, PlanLimits};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct QueryPlan {
     pub raw_query: Box<str>,
     pub atoms: Vec<AtomPlan>,
     pub phrase_policy: PhrasePolicy,
+    pub normalization: NormalizationMode,
     pub limits: PlanLimits,
     pub diagnostics: Vec<QueryDiagnostic>,
     pub estimated_matcher_bytes: usize,

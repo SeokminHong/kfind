@@ -16,7 +16,7 @@ use kfind_search::{
     SearchRunError, SearchSummary, WalkOptions, execute_search_with_stdin, resolve_search_paths,
 };
 
-use crate::output::{write_safe_path, write_safe_text};
+use crate::output::{FullPosStatus, write_safe_path, write_safe_text};
 use crate::{Args, EncodingArg, OutputError, OutputOptions, OutputWriter, SortArg};
 
 const FULL_POS_FILE: &str = "lexicon.bin";
@@ -50,7 +50,9 @@ where
     E: Write + Send,
 {
     let options = args.compile_options().map_err(CliError::Options)?;
-    let lexicons = Arc::new(load_lexicons(args)?);
+    let loaded_lexicons = load_lexicons(args)?;
+    let full_pos_status = loaded_lexicons.full_pos;
+    let lexicons = Arc::new(loaded_lexicons.lexicons);
     let analyzer = LexiconQueryAnalyzer::new(lexicons);
     let plan =
         Arc::new(compile_query(&args.query, &options, &analyzer).map_err(CliError::Compile)?);
@@ -61,7 +63,7 @@ where
     let mut output = OutputWriter::new(stdout, output_options);
 
     if args.explain_query {
-        if let Err(error) = output.write_query_plan(&plan) {
+        if let Err(error) = output.write_query_plan_with_full_pos(&plan, &full_pos_status) {
             if error.is_broken_pipe() {
                 return Ok(ExitStatus::Match);
             }
@@ -93,10 +95,19 @@ where
     Ok(status_from_summary(summary))
 }
 
-fn load_lexicons(args: &Args) -> Result<Lexicons, CliError> {
+struct LoadedLexicons {
+    lexicons: Lexicons,
+    full_pos: FullPosStatus,
+}
+
+fn load_lexicons(args: &Args) -> Result<LoadedLexicons, CliError> {
     let mut lexicons = Lexicons::embedded().map_err(CliError::Data)?;
-    if let Some(path) = full_pos_path(args)? {
-        let bytes = fs::read(&path).map_err(|source| CliError::Read { path, source })?;
+    let full_pos = resolve_full_pos(args)?;
+    if let FullPosStatus::Loaded { path } = &full_pos {
+        let bytes = fs::read(path).map_err(|source| CliError::Read {
+            path: path.clone(),
+            source,
+        })?;
         lexicons.load_full_pos(&bytes).map_err(CliError::Data)?;
     }
     if let Some(path) = user_lexicon_path(args) {
@@ -108,43 +119,79 @@ fn load_lexicons(args: &Args) -> Result<Lexicons, CliError> {
             .map_err(CliError::Data)?;
         lexicons.merge_user(&user);
     }
-    Ok(lexicons)
+    Ok(LoadedLexicons { lexicons, full_pos })
 }
 
-fn full_pos_path(args: &Args) -> Result<Option<PathBuf>, CliError> {
+fn resolve_full_pos(args: &Args) -> Result<FullPosStatus, CliError> {
     if let Some(directory) = &args.data_dir {
         let path = directory.join(FULL_POS_FILE);
         return if path.is_file() {
-            Ok(Some(path))
+            Ok(FullPosStatus::Loaded { path })
         } else {
             Err(CliError::MissingData(path))
         };
     }
 
+    Ok(select_full_pos(auto_full_pos_candidates()))
+}
+
+fn auto_full_pos_candidates() -> Vec<PathBuf> {
     let mut candidates = Vec::new();
     if let Some(directory) = env::var_os("KFIND_DATA_DIR") {
-        candidates.push(PathBuf::from(directory).join(FULL_POS_FILE));
+        push_candidate(
+            &mut candidates,
+            PathBuf::from(directory).join(FULL_POS_FILE),
+        );
     }
     if let Ok(executable) = env::current_exe() {
         if let Some(prefix) = executable.parent().and_then(Path::parent) {
-            candidates.push(prefix.join("share/kfind").join(FULL_POS_FILE));
+            push_candidate(
+                &mut candidates,
+                prefix.join("share/kfind").join(FULL_POS_FILE),
+            );
         }
     }
     if let Some(directory) = env::var_os("XDG_DATA_HOME") {
-        candidates.push(PathBuf::from(directory).join("kfind").join(FULL_POS_FILE));
+        push_candidate(
+            &mut candidates,
+            PathBuf::from(directory).join("kfind").join(FULL_POS_FILE),
+        );
     } else if let Some(home) = env::var_os("HOME") {
-        candidates.push(
+        push_candidate(
+            &mut candidates,
             PathBuf::from(home)
                 .join(".local/share/kfind")
                 .join(FULL_POS_FILE),
         );
     }
-    candidates.extend([
+    for path in [
+        PathBuf::from("data/generated/full-pos").join(FULL_POS_FILE),
         PathBuf::from("data/generated").join(FULL_POS_FILE),
         PathBuf::from("/opt/homebrew/share/kfind").join(FULL_POS_FILE),
         PathBuf::from("/usr/local/share/kfind").join(FULL_POS_FILE),
-    ]);
-    Ok(candidates.into_iter().find(|path| path.is_file()))
+    ] {
+        push_candidate(&mut candidates, path);
+    }
+    candidates
+}
+
+fn push_candidate(candidates: &mut Vec<PathBuf>, path: PathBuf) {
+    if !candidates.contains(&path) {
+        candidates.push(path);
+    }
+}
+
+fn select_full_pos(candidates: Vec<PathBuf>) -> FullPosStatus {
+    candidates
+        .iter()
+        .find(|path| path.is_file())
+        .cloned()
+        .map_or_else(
+            || FullPosStatus::Preview {
+                candidate_paths: candidates.into_boxed_slice(),
+            },
+            |path| FullPosStatus::Loaded { path },
+        )
 }
 
 fn user_lexicon_path(args: &Args) -> Option<PathBuf> {
