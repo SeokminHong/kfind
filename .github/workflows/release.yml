@@ -18,7 +18,7 @@ jobs:
 
       - name: Install the MSRV toolchain
         run: |
-          rustup toolchain install 1.85.0 --profile minimal
+          rustup toolchain install 1.85.0 --profile minimal --component clippy
           rustup default 1.85.0
 
       - name: Validate release metadata
