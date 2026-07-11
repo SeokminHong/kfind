@@ -17,6 +17,19 @@ static NEXT_TEMP_DIR: AtomicUsize = AtomicUsize::new(0);
 
 struct TempTree(PathBuf);
 
+struct CountingReader<R> {
+    inner: R,
+    bytes_read: Arc<AtomicUsize>,
+}
+
+impl<R: io::Read> io::Read for CountingReader<R> {
+    fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+        let read = self.inner.read(buffer)?;
+        self.bytes_read.fetch_add(read, Ordering::Relaxed);
+        Ok(read)
+    }
+}
+
 impl TempTree {
     fn new() -> Self {
         let sequence = NEXT_TEMP_DIR.fetch_add(1, Ordering::Relaxed);
@@ -198,6 +211,39 @@ fn repeated_stdin_paths_are_read_once() {
     assert_eq!(events[0].path(), Some(Path::new("-")));
     assert!(matches!(events[1], SearchEvent::Record { .. }));
     assert!(matches!(events[2], SearchEvent::FileEnd(_)));
+}
+
+#[test]
+fn default_output_consumes_high_hit_records_before_eof() {
+    const HIGH_HIT_LINES: usize = 20_000;
+
+    let corpus = "걸어\n".repeat(HIGH_HIT_LINES).into_bytes();
+    let corpus_bytes = corpus.len();
+    let bytes_read = Arc::new(AtomicUsize::new(0));
+    let records_seen = Arc::new(AtomicUsize::new(0));
+    let reader = CountingReader {
+        inner: io::Cursor::new(corpus),
+        bytes_read: Arc::clone(&bytes_read),
+    };
+    let mut search = config(vec![PathBuf::from("-")]);
+    search.execution.channel_capacity = 1;
+    let callback_records = Arc::clone(&records_seen);
+
+    let summary = execute_search_with_stdin(matcher(), search, reader, move |event| {
+        if matches!(event, SearchEvent::Record { .. }) {
+            callback_records.fetch_add(1, Ordering::Relaxed);
+            return Err(io::Error::new(io::ErrorKind::BrokenPipe, "closed"));
+        }
+        Ok(())
+    })
+    .unwrap();
+
+    assert!(summary.output_closed);
+    assert_eq!(records_seen.load(Ordering::Relaxed), 1);
+    assert!(
+        bytes_read.load(Ordering::Relaxed) < corpus_bytes,
+        "search buffered the complete high-hit input before delivering a record"
+    );
 }
 
 #[test]
