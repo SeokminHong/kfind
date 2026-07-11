@@ -196,12 +196,19 @@ impl Lexicons {
     fn insert_full_pos(&mut self, entry: &PosLexiconEntry) {
         let fine_pos = data_fine_pos(entry.pos);
         let analysis = default_analysis(&entry.lemma, entry.pos, AnalysisSource::FullPosLexicon);
+        let has_core_predicate = entry.pos.is_predicate()
+            && self
+                .lookup(&entry.lemma)
+                .iter()
+                .any(|existing| matches!(existing.morphology, Morphology::Predicate(_)));
         self.insert_analysis(
             entry.lemma.clone().into_boxed_str(),
             analysis,
-            self.lookup(&entry.lemma)
-                .iter()
-                .any(|existing| existing.fine_pos == fine_pos),
+            has_core_predicate
+                || self
+                    .lookup(&entry.lemma)
+                    .iter()
+                    .any(|existing| existing.fine_pos == fine_pos),
         );
     }
 

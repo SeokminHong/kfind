@@ -92,7 +92,7 @@ fn repository_data_is_complete_and_valid() {
     assert!(metadata.contains("fd62d3d6d8fa85145528065fabad4d7cb20f6b2201e71be4081a4e9701a5b330"));
     assert!(metadata.contains("Apache-2.0"));
     assert!(metadata.contains("--bin kfind-data-extract-mecab"));
-    assert!(metadata.contains("data/lexicon/predicates.tsv"));
+    assert!(metadata.contains("normalized headwords and POS only"));
 }
 
 #[test]
@@ -382,11 +382,7 @@ fn compact_pos_binary_round_trips_sorted_deduplicated_entries() {
         "걷다,1,1,1,NNG,*,T,걷다,*,*,*,*\n",
     );
     let extraction = extract_mecab_ko_dic("test.csv", Cursor::new(csv)).unwrap();
-    let approved = BTreeSet::from([PosLexiconEntry {
-        lemma: "걷다".to_owned(),
-        pos: DataFinePos::Vv,
-    }]);
-    let input = extraction.approve_predicates(&approved).into_pos_lexicon();
+    let input = extraction.into_pos_lexicon();
     let encoded = encode_pos_lexicon(&input).unwrap();
     let decoded = decode_pos_lexicon(&encoded).unwrap();
     assert_eq!(decoded.entries().len(), 3);
@@ -403,7 +399,7 @@ fn compact_pos_binary_round_trips_sorted_deduplicated_entries() {
 }
 
 #[test]
-fn mecab_extractor_marks_predicates_for_gold_filtering() {
+fn mecab_extractor_preserves_predicate_pos_candidates() {
     let csv = concat!(
         "가,1,1,1,VV,*,F,가,*,*,*,*\n",
         "가까워,1,1,1,VV,*,F,가까워,*,*,*,*\n",
@@ -423,17 +419,27 @@ fn mecab_extractor_marks_predicates_for_gold_filtering() {
     }));
     assert_eq!(extraction.skipped_analysis_rows, 1);
     assert_eq!(extraction.skipped_unsupported_pos, 1);
-    assert_eq!(extraction.predicate_candidates_requiring_gold, 2);
+    assert_eq!(extraction.predicate_candidates, 2);
 
-    let approved = BTreeSet::from([PosLexiconEntry {
-        lemma: "가다".to_owned(),
-        pos: DataFinePos::Vv,
-    }]);
-    let filtered = extraction.approve_predicates(&approved);
-    let filtered = filtered.pos_lexicon().entries();
-    assert!(filtered.iter().any(|entry| entry.lemma == "가다"));
-    assert!(!filtered.iter().any(|entry| entry.lemma == "가까워다"));
-    assert!(filtered.iter().any(|entry| entry.lemma == "사용자"));
+    let pos_lexicon = extraction.into_pos_lexicon();
+    assert!(
+        pos_lexicon
+            .entries()
+            .iter()
+            .any(|entry| entry.lemma == "가다")
+    );
+    assert!(
+        pos_lexicon
+            .entries()
+            .iter()
+            .any(|entry| entry.lemma == "가까워다")
+    );
+    assert!(
+        pos_lexicon
+            .entries()
+            .iter()
+            .any(|entry| entry.lemma == "사용자")
+    );
 }
 
 #[test]
