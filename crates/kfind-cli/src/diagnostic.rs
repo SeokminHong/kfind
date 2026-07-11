@@ -1,4 +1,5 @@
 use std::fmt::{self, Display, Formatter};
+use std::io::{self, Write};
 
 use kfind_matcher::{AnchorBuildError, MorphMatcherBuildError};
 use kfind_morph::{CoarsePos, GenerateError};
@@ -62,6 +63,16 @@ impl CliError {
     pub const fn localized(&self, language: Language) -> LocalizedCliError<'_> {
         LocalizedCliError::new(self, language)
     }
+}
+
+pub fn write_cli_error(
+    writer: &mut impl Write,
+    error: &CliError,
+    language: Language,
+) -> io::Result<()> {
+    writer.write_all(b"kfind: ")?;
+    crate::output::write_safe_text(writer, &error.localized(language).to_string())?;
+    writer.write_all(b"\n")
 }
 
 fn write_compile_option(

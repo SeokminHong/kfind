@@ -12,7 +12,7 @@ pub use args::{
     Args, BoundaryArg, ColorArg, EncodingArg, ExpandArg, NormalizationArg, PosArg, SortArg,
 };
 pub use assets::{AssetGenerationError, DistributionAssets, generate_distribution_assets};
-pub use diagnostic::LocalizedCliError;
+pub use diagnostic::{LocalizedCliError, write_cli_error};
 pub use locale::Language;
 pub use output::{
     FilenameMode, OutputError, OutputMode, OutputOptions, OutputWriter, ResolvedColor,
