@@ -28,8 +28,8 @@ jobs:
           package_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "kfind-cli") | .version')
           project_license=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "kfind-cli") | .license')
           test "$version" = "$package_version"
-          test -n "$project_license"
-          test "$project_license" != "null"
+          test "$project_license" = "MIT"
+          test -f LICENSE
           printf 'version=%s\n' "$version" >>"$GITHUB_OUTPUT"
           printf 'license=%s\n' "$project_license" >>"$GITHUB_OUTPUT"
 

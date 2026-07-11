@@ -42,7 +42,7 @@
 - formula 변경은 tap `main`에 직접 push하지 않는다. 브랜치 PR의 CI가 모두 통과한 뒤 `pr-pull`을 적용한다.
 - `vX.Y.Z` tag workflow는 고정 checksum으로 full POS lexicon을 재생성하고 source, full POS, man/completion 산출물을 GitHub release에 올린 뒤 `TAP_GITHUB_TOKEN`으로 tap formula PR을 연다. `pr-pull` label은 CI 확인 뒤 사람이 적용한다.
 - full POS resource에는 `lexicon.bin`, 생성 manifest, `mecab-ko-dic`의 `COPYING`을 함께 넣는다. formula는 이를 `share/kfind`와 `share/doc/kfind/LICENSES`에 설치한다.
-- kfind 자체 라이선스는 M6 배포 산출물을 만들기 전에 저장소 소유자가 확정한다.
+- kfind 소스 코드와 프로젝트가 직접 작성한 내장 데이터는 MIT 라이선스로 배포한다. 외부 full POS resource의 Apache-2.0 고지는 별도 `LICENSES` 디렉터리에 보존한다.
 
 ### 0.5 재현 가능한 성능 기준
 
@@ -1354,8 +1354,7 @@ branch 수 2배 이상 증가
 초기에는 공식 core가 아니라 custom tap으로 배포한다.
 
 ```bash
-brew tap OWNER/kfind
-brew install kfind
+brew install seokminhong/brew/kfind
 ```
 
 릴리스 구성:

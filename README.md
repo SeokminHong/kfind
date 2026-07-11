@@ -81,6 +81,12 @@ for query parsing and malformed matcher input live in `fuzz/`.
 The implementation contract and release acceptance criteria are in
 [`specs/kfind.md`](specs/kfind.md).
 
+## License
+
+kfind source code and project-authored data are available under the
+[MIT License](LICENSE). The Homebrew full POS resource preserves the separate
+Apache-2.0 notice from `mecab-ko-dic` under `share/doc/kfind/LICENSES`.
+
 ## Release
 
 Pushing a matching `vX.Y.Z` tag runs the release workflow. It rebuilds and
@@ -89,5 +95,4 @@ Formula PR against `SeokminHong/homebrew-brew`. The tap's `pr-pull` label is
 applied only after its Formula tests pass.
 
 The release workflow requires a `TAP_GITHUB_TOKEN` secret with write access to
-the tap. It also refuses to publish until the project license is present in
-Cargo package metadata.
+the tap. It validates the MIT Cargo package metadata before publishing.
