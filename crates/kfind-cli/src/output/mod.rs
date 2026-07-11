@@ -4,7 +4,7 @@ use std::io::{self, Write};
 use std::path::Path;
 
 use kfind_query::QueryPlan;
-use kfind_search::FileSearchResult;
+use kfind_search::{FileSearchResult, SearchLineKind, SearchRecord};
 
 use crate::{Args, ColorArg};
 
@@ -146,6 +146,38 @@ impl<W: Write> OutputWriter<W> {
             OutputMode::JsonLines => json::write_file(&mut self.writer, result, plan, self.options),
             OutputMode::Quiet => Ok(()),
         }
+    }
+
+    pub(crate) fn write_record(
+        &mut self,
+        path: &Path,
+        record: &SearchRecord,
+        plan: &QueryPlan,
+    ) -> Result<(), OutputError> {
+        if !matches!(
+            self.options.mode,
+            OutputMode::Standard | OutputMode::JsonLines
+        ) {
+            return Ok(());
+        }
+        let matching_lines = u64::from(matches!(
+            record,
+            SearchRecord::Line(line) if line.kind == SearchLineKind::Match
+        ));
+        let matched_spans = match record {
+            SearchRecord::Line(line) => Some(line.matches.len() as u64),
+            SearchRecord::ContextBreak => Some(0),
+        };
+        self.write_file(
+            &FileSearchResult {
+                path: path.to_path_buf(),
+                records: vec![record.clone()],
+                matching_lines,
+                matched_spans,
+                binary_byte_offset: None,
+            },
+            plan,
+        )
     }
 
     pub fn flush(&mut self) -> Result<(), OutputError> {

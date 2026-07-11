@@ -71,7 +71,13 @@ where
 
     let config = search_config(args, paths);
     let summary = execute_search_with_stdin(matcher, config, stdin, |event| match event {
-        SearchEvent::File(result) => output.write_file(result, &plan).map_err(output_error_as_io),
+        SearchEvent::FileStart { .. } => Ok(()),
+        SearchEvent::Record { path, record } => output
+            .write_record(path, record, &plan)
+            .map_err(output_error_as_io),
+        SearchEvent::FileEnd(result) => {
+            output.write_file(result, &plan).map_err(output_error_as_io)
+        }
         SearchEvent::Issue(issue) => write_issue(stderr, issue),
     })
     .map_err(CliError::Search)?;

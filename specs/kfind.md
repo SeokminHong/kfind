@@ -75,7 +75,7 @@
   → 바이트 단위 검색
   → 앵커 hit 주변만 형태 규칙 검증
   → phrase span 결합
-  → buffered output
+  → bounded streaming output
 ```
 
 기본 실행 경로에는 Kiwi, Lindera, MeCab 계열 분석기를 포함하지 않는다. 런타임 모델 다운로드도 하지 않는다.
@@ -869,18 +869,19 @@ atom 2 spans
 
 ```text
 WalkParallel workers
-  → bounded channel
+  → bounded per-file record stream
+  → bounded file-stream channel
   → single writer thread
   → BufWriter<StdoutLock>
 ```
 
-기본 출력 순서는 파일 시스템 순회 순서를 보장하지 않는다. 한 파일의 결과는 연속 블록으로 출력한다.
+기본 출력은 match와 context record를 검색 중에 bounded stream으로 전달한다. writer는 선택한 file stream을 끝까지 비운 뒤 다음 stream을 처리하므로 한 파일의 결과는 연속 블록으로 출력한다. 대기 중인 worker는 bounded stream에 backpressure를 받으며, 기본 경로의 결과 메모리는 corpus 또는 전체 match 수가 아니라 worker 수와 channel capacity에 의해 제한된다. 기본 출력 순서는 파일 시스템 순회 순서를 보장하지 않는다.
 
 ```text
 --sort path
 ```
 
-정렬 옵션은 결과를 버퍼링하므로 기본값이 아니며, 병렬 성능이 낮아질 수 있음을 도움말에 명시한다.
+정렬 옵션만 모든 file stream을 완성된 결과로 버퍼링한 뒤 path로 정렬한다. 따라서 기본값이 아니며, 결과 수에 비례해 메모리를 사용하고 병렬 성능이 낮아질 수 있음을 도움말에 명시한다.
 
 broken pipe는 정상 종료로 처리한다.
 

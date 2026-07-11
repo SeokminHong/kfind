@@ -83,8 +83,10 @@ fn parallel_results_are_delivered_as_complete_file_blocks() {
     let file_results = events
         .iter()
         .filter_map(|event| match event {
-            SearchEvent::File(result) => Some(result),
-            SearchEvent::Issue(_) => None,
+            SearchEvent::FileEnd(result) => Some(result),
+            SearchEvent::FileStart { .. } | SearchEvent::Record { .. } | SearchEvent::Issue(_) => {
+                None
+            }
         })
         .collect::<Vec<_>>();
 
@@ -93,12 +95,30 @@ fn parallel_results_are_delivered_as_complete_file_blocks() {
     assert_eq!(summary.matching_lines, 3);
     assert_eq!(summary.errors, 0);
     assert_eq!(file_results.len(), 3);
-    assert!(file_results.iter().all(|result| {
-        result.records.iter().all(|record| match record {
-            crate::SearchRecord::Line(line) => line.line_number.is_some(),
-            crate::SearchRecord::ContextBreak => true,
-        })
-    }));
+    assert!(file_results.iter().all(|result| result.records.is_empty()));
+
+    let mut active_path = None;
+    for event in &events {
+        match event {
+            SearchEvent::FileStart { path } => {
+                assert!(
+                    active_path.replace(path).is_none(),
+                    "file blocks interleaved"
+                );
+            }
+            SearchEvent::Record { path, record } => {
+                assert_eq!(active_path, Some(path));
+                if let crate::SearchRecord::Line(line) = record {
+                    assert!(line.line_number.is_some());
+                }
+            }
+            SearchEvent::FileEnd(result) => {
+                assert_eq!(active_path.take(), Some(&result.path));
+            }
+            SearchEvent::Issue(_) => {}
+        }
+    }
+    assert!(active_path.is_none());
 }
 
 #[test]
@@ -152,7 +172,10 @@ fn quiet_stops_after_the_first_global_match() {
     assert!(summary.has_match);
     assert_eq!(summary.searched_files, 1);
     assert_eq!(summary.matching_lines, 1);
-    assert_eq!(events.len(), 1);
+    assert_eq!(events.len(), 3);
+    assert!(matches!(events[0], SearchEvent::FileStart { .. }));
+    assert!(matches!(events[1], SearchEvent::Record { .. }));
+    assert!(matches!(events[2], SearchEvent::FileEnd(_)));
 }
 
 #[test]
@@ -173,8 +196,10 @@ fn repeated_stdin_paths_are_read_once() {
 
     assert_eq!(summary.searched_files, 1);
     assert_eq!(summary.matching_lines, 1);
-    assert_eq!(events.len(), 1);
+    assert_eq!(events.len(), 3);
     assert_eq!(events[0].path(), Some(Path::new("-")));
+    assert!(matches!(events[1], SearchEvent::Record { .. }));
+    assert!(matches!(events[2], SearchEvent::FileEnd(_)));
 }
 
 #[test]

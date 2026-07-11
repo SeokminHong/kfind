@@ -8,14 +8,18 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 
-use crossbeam_channel::{Receiver, Sender, bounded};
+use crossbeam_channel::{Sender, bounded};
 use ignore::{DirEntry, Error as IgnoreError, WalkParallel, WalkState};
 use kfind_matcher::MorphMatcher;
 
 use crate::{
-    FileSearchResult, InputOptions, InputSearchError, InputSearcher, WalkConfigError, WalkOptions,
-    build_walker,
+    FileSearchResult, InputOptions, InputSearchError, InputSearcher, SearchRecord, WalkConfigError,
+    WalkOptions, build_walker,
 };
+
+mod writer;
+
+use writer::{FileMessage, FileStream, WorkerEvent, write_events};
 
 const DEFAULT_CHANNEL_CAPACITY: usize = 64;
 
@@ -93,7 +97,9 @@ impl SearchIssue {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SearchEvent {
-    File(FileSearchResult),
+    FileStart { path: PathBuf },
+    Record { path: PathBuf, record: SearchRecord },
+    FileEnd(FileSearchResult),
     Issue(SearchIssue),
 }
 
@@ -101,13 +107,14 @@ impl SearchEvent {
     #[must_use]
     pub fn path(&self) -> Option<&Path> {
         match self {
-            Self::File(result) => Some(&result.path),
+            Self::FileStart { path } | Self::Record { path, .. } => Some(path),
+            Self::FileEnd(result) => Some(&result.path),
             Self::Issue(issue) => issue.path.as_deref(),
         }
     }
 
     fn has_match(&self) -> bool {
-        matches!(self, Self::File(result) if result.has_match())
+        matches!(self, Self::FileEnd(result) if result.has_match())
     }
 }
 
@@ -124,7 +131,7 @@ pub struct SearchSummary {
 impl SearchSummary {
     fn observe(&mut self, event: &SearchEvent) {
         match event {
-            SearchEvent::File(result) => {
+            SearchEvent::FileEnd(result) => {
                 self.searched_files += 1;
                 self.matching_lines += result.matching_lines;
                 if result.has_match() {
@@ -133,6 +140,7 @@ impl SearchSummary {
                 }
             }
             SearchEvent::Issue(_) => self.errors += 1,
+            SearchEvent::FileStart { .. } | SearchEvent::Record { .. } => {}
         }
     }
 }
@@ -174,7 +182,7 @@ where
         .transpose()
         .map_err(SearchRunError::Walk)?;
     let capacity = config.execution.channel_capacity.max(1);
-    let (sender, receiver) = bounded(capacity);
+    let (sender, receiver) = bounded::<WorkerEvent>(capacity);
     let cancelled = Arc::new(AtomicBool::new(false));
 
     thread::scope(|scope| {
@@ -184,7 +192,14 @@ where
             scope.spawn(move || write_events(receiver, writer_cancelled, execution, callback));
 
         if search_stdin && !cancelled.load(Ordering::Acquire) {
-            send_stdin(&mut stdin_searcher, &matcher, stdin, &sender, &cancelled);
+            send_stdin(
+                &mut stdin_searcher,
+                &matcher,
+                stdin,
+                &sender,
+                &cancelled,
+                capacity,
+            );
         }
         if !cancelled.load(Ordering::Acquire) {
             if let Some(walker) = walker {
@@ -194,6 +209,7 @@ where
                     input_options,
                     &sender,
                     Arc::clone(&cancelled),
+                    capacity,
                 );
             }
         }
@@ -225,26 +241,42 @@ fn send_stdin(
     searcher: &mut InputSearcher,
     matcher: &MorphMatcher,
     stdin: impl Read,
-    sender: &Sender<SearchEvent>,
+    sender: &Sender<WorkerEvent>,
     cancelled: &AtomicBool,
+    capacity: usize,
 ) {
     let path = PathBuf::from("-");
-    let event = match panic::catch_unwind(AssertUnwindSafe(|| {
-        searcher.search_reader(matcher, path.clone(), stdin)
-    })) {
-        Ok(Ok(result)) => SearchEvent::File(result),
-        Ok(Err(error)) => SearchEvent::Issue(SearchIssue::input(path, &error)),
-        Err(payload) => SearchEvent::Issue(SearchIssue::worker_panic(Some(path), payload)),
+    let (stream_sender, stream_receiver) = bounded(capacity);
+    if !send_worker_event(
+        sender,
+        cancelled,
+        WorkerEvent::File(FileStream {
+            path: path.clone(),
+            receiver: stream_receiver,
+        }),
+    ) {
+        return;
+    }
+    let result = panic::catch_unwind(AssertUnwindSafe(|| {
+        searcher.search_reader_stream(matcher, path.clone(), stdin, |record| {
+            send_file_message(&stream_sender, cancelled, FileMessage::Record(record))
+        })
+    }));
+    let message = match result {
+        Ok(Ok(result)) => FileMessage::Finished(result),
+        Ok(Err(error)) => FileMessage::Issue(SearchIssue::input(path, &error)),
+        Err(payload) => FileMessage::Issue(SearchIssue::worker_panic(Some(path), payload)),
     };
-    send_event(sender, cancelled, event);
+    send_file_message(&stream_sender, cancelled, message);
 }
 
 fn run_walker(
     walker: WalkParallel,
     matcher: Arc<MorphMatcher>,
     input_options: InputOptions,
-    sender: &Sender<SearchEvent>,
+    sender: &Sender<WorkerEvent>,
     cancelled: Arc<AtomicBool>,
+    capacity: usize,
 ) {
     let initialization_error_sent = Arc::new(AtomicBool::new(false));
     let traversal = panic::catch_unwind(AssertUnwindSafe(|| {
@@ -257,10 +289,10 @@ fn run_walker(
                 Ok(searcher) => Some(searcher),
                 Err(error) => {
                     if !initialization_error_sent.swap(true, Ordering::AcqRel) {
-                        send_event(
+                        send_worker_event(
                             &sender,
                             &cancelled,
-                            SearchEvent::Issue(SearchIssue {
+                            WorkerEvent::Issue(SearchIssue {
                                 kind: SearchIssueKind::Input,
                                 path: None,
                                 message: error.to_string(),
@@ -279,14 +311,14 @@ fn run_walker(
                 };
                 let panic_path = entry_path(&entry);
                 match panic::catch_unwind(AssertUnwindSafe(|| {
-                    process_entry(entry, searcher, &matcher, &sender, &cancelled)
+                    process_entry(entry, searcher, &matcher, &sender, &cancelled, capacity)
                 })) {
                     Ok(state) => state,
                     Err(payload) => {
-                        if send_event(
+                        if send_worker_event(
                             &sender,
                             &cancelled,
-                            SearchEvent::Issue(SearchIssue::worker_panic(panic_path, payload)),
+                            WorkerEvent::Issue(SearchIssue::worker_panic(panic_path, payload)),
                         ) {
                             WalkState::Continue
                         } else {
@@ -299,10 +331,10 @@ fn run_walker(
     }));
 
     if let Err(payload) = traversal {
-        send_event(
+        send_worker_event(
             sender,
             &cancelled,
-            SearchEvent::Issue(SearchIssue::worker_panic(None, payload)),
+            WorkerEvent::Issue(SearchIssue::worker_panic(None, payload)),
         );
     }
 }
@@ -311,25 +343,26 @@ fn process_entry(
     entry: Result<DirEntry, IgnoreError>,
     searcher: &mut InputSearcher,
     matcher: &MorphMatcher,
-    sender: &Sender<SearchEvent>,
+    sender: &Sender<WorkerEvent>,
     cancelled: &AtomicBool,
+    capacity: usize,
 ) -> WalkState {
     let entry = match entry {
         Ok(entry) => entry,
         Err(error) => {
-            return send_state(
+            return send_worker_state(
                 sender,
                 cancelled,
-                SearchEvent::Issue(SearchIssue::walk(&error)),
+                WorkerEvent::Issue(SearchIssue::walk(&error)),
             );
         }
     };
 
     if let Some(error) = entry.error() {
-        if !send_event(
+        if !send_worker_event(
             sender,
             cancelled,
-            SearchEvent::Issue(SearchIssue::walk(error)),
+            WorkerEvent::Issue(SearchIssue::walk(error)),
         ) {
             return WalkState::Quit;
         }
@@ -342,88 +375,56 @@ fn process_entry(
     }
 
     let path = entry.into_path();
-    let event = match searcher.search_path(matcher, &path) {
-        Ok(result) => SearchEvent::File(result),
-        Err(error) => SearchEvent::Issue(SearchIssue::input(path, &error)),
+    let (stream_sender, stream_receiver) = bounded(capacity);
+    if !send_worker_event(
+        sender,
+        cancelled,
+        WorkerEvent::File(FileStream {
+            path: path.clone(),
+            receiver: stream_receiver,
+        }),
+    ) {
+        return WalkState::Quit;
+    }
+    let message = match searcher.search_path_stream(matcher, &path, |record| {
+        send_file_message(&stream_sender, cancelled, FileMessage::Record(record))
+    }) {
+        Ok(result) => FileMessage::Finished(result),
+        Err(error) => FileMessage::Issue(SearchIssue::input(path, &error)),
     };
-    send_state(sender, cancelled, event)
-}
-
-fn send_state(
-    sender: &Sender<SearchEvent>,
-    cancelled: &AtomicBool,
-    event: SearchEvent,
-) -> WalkState {
-    if send_event(sender, cancelled, event) {
+    if send_file_message(&stream_sender, cancelled, message) {
         WalkState::Continue
     } else {
         WalkState::Quit
     }
 }
 
-fn send_event(sender: &Sender<SearchEvent>, cancelled: &AtomicBool, event: SearchEvent) -> bool {
+fn send_worker_state(
+    sender: &Sender<WorkerEvent>,
+    cancelled: &AtomicBool,
+    event: WorkerEvent,
+) -> WalkState {
+    if send_worker_event(sender, cancelled, event) {
+        WalkState::Continue
+    } else {
+        WalkState::Quit
+    }
+}
+
+fn send_worker_event(
+    sender: &Sender<WorkerEvent>,
+    cancelled: &AtomicBool,
+    event: WorkerEvent,
+) -> bool {
     !cancelled.load(Ordering::Acquire) && sender.send(event).is_ok()
 }
 
-fn write_events<F>(
-    receiver: Receiver<SearchEvent>,
-    cancelled: Arc<AtomicBool>,
-    options: ExecutionOptions,
-    mut callback: F,
-) -> Result<SearchSummary, SearchRunError>
-where
-    F: FnMut(&SearchEvent) -> io::Result<()>,
-{
-    let mut summary = SearchSummary::default();
-    if options.order == ResultOrder::Path && !options.quiet {
-        let mut events = receiver.iter().collect::<Vec<_>>();
-        events.sort_by(|left, right| left.path().cmp(&right.path()));
-        for event in events {
-            if !write_event(&event, &mut summary, &cancelled, &mut callback)? {
-                break;
-            }
-        }
-        return Ok(summary);
-    }
-
-    for event in receiver {
-        let stop_after_event = options.quiet && event.has_match();
-        if stop_after_event {
-            cancelled.store(true, Ordering::Release);
-        }
-        if !write_event(&event, &mut summary, &cancelled, &mut callback)? || stop_after_event {
-            break;
-        }
-    }
-    Ok(summary)
-}
-
-fn write_event<F>(
-    event: &SearchEvent,
-    summary: &mut SearchSummary,
+fn send_file_message(
+    sender: &Sender<FileMessage>,
     cancelled: &AtomicBool,
-    callback: &mut F,
-) -> Result<bool, SearchRunError>
-where
-    F: FnMut(&SearchEvent) -> io::Result<()>,
-{
-    summary.observe(event);
-    match panic::catch_unwind(AssertUnwindSafe(|| callback(event))) {
-        Ok(Ok(())) => Ok(true),
-        Ok(Err(error)) if error.kind() == io::ErrorKind::BrokenPipe => {
-            cancelled.store(true, Ordering::Release);
-            summary.output_closed = true;
-            Ok(false)
-        }
-        Ok(Err(error)) => {
-            cancelled.store(true, Ordering::Release);
-            Err(SearchRunError::Output(error))
-        }
-        Err(payload) => {
-            cancelled.store(true, Ordering::Release);
-            Err(SearchRunError::CallbackPanic(panic_message(payload)))
-        }
-    }
+    message: FileMessage,
+) -> bool {
+    !cancelled.load(Ordering::Acquire) && sender.send(message).is_ok()
 }
 
 fn entry_path(entry: &Result<DirEntry, IgnoreError>) -> Option<PathBuf> {

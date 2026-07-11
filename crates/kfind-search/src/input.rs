@@ -114,9 +114,13 @@ impl InputSearcher {
         matcher: &MorphMatcher,
         path: &Path,
     ) -> Result<FileSearchResult, InputSearchError> {
-        let mut sink = MatchSink::new(path.to_path_buf(), matcher, self.options.capture_records);
-        self.searcher.search_path(matcher, path, &mut sink)?;
-        Ok(sink.finish())
+        let mut records = Vec::new();
+        let mut result = self.search_path_stream(matcher, path, |record| {
+            records.push(record);
+            true
+        })?;
+        result.records = records;
+        Ok(result)
     }
 
     pub fn search_reader(
@@ -125,7 +129,45 @@ impl InputSearcher {
         display_path: PathBuf,
         reader: impl Read,
     ) -> Result<FileSearchResult, InputSearchError> {
-        let mut sink = MatchSink::new(display_path, matcher, self.options.capture_records);
+        let mut records = Vec::new();
+        let mut result = self.search_reader_stream(matcher, display_path, reader, |record| {
+            records.push(record);
+            true
+        })?;
+        result.records = records;
+        Ok(result)
+    }
+
+    pub(crate) fn search_path_stream<F>(
+        &mut self,
+        matcher: &MorphMatcher,
+        path: &Path,
+        emit: F,
+    ) -> Result<FileSearchResult, InputSearchError>
+    where
+        F: FnMut(SearchRecord) -> bool,
+    {
+        let mut sink = MatchSink::new(
+            path.to_path_buf(),
+            matcher,
+            self.options.capture_records,
+            emit,
+        );
+        self.searcher.search_path(matcher, path, &mut sink)?;
+        Ok(sink.finish())
+    }
+
+    pub(crate) fn search_reader_stream<F>(
+        &mut self,
+        matcher: &MorphMatcher,
+        display_path: PathBuf,
+        reader: impl Read,
+        emit: F,
+    ) -> Result<FileSearchResult, InputSearchError>
+    where
+        F: FnMut(SearchRecord) -> bool,
+    {
+        let mut sink = MatchSink::new(display_path, matcher, self.options.capture_records, emit);
         self.searcher.search_reader(matcher, reader, &mut sink)?;
         Ok(sink.finish())
     }
@@ -167,14 +209,18 @@ fn build_searcher(options: InputOptions) -> Result<Searcher, InputSearchError> {
     Ok(builder.build())
 }
 
-struct MatchSink<'a> {
+struct MatchSink<'a, F> {
     result: FileSearchResult,
     matcher: &'a MorphMatcher,
     capture_records: bool,
+    emit: F,
 }
 
-impl<'a> MatchSink<'a> {
-    fn new(path: PathBuf, matcher: &'a MorphMatcher, capture_records: bool) -> Self {
+impl<'a, F> MatchSink<'a, F>
+where
+    F: FnMut(SearchRecord) -> bool,
+{
+    fn new(path: PathBuf, matcher: &'a MorphMatcher, capture_records: bool, emit: F) -> Self {
         Self {
             result: FileSearchResult {
                 path,
@@ -185,6 +231,7 @@ impl<'a> MatchSink<'a> {
             },
             matcher,
             capture_records,
+            emit,
         }
     }
 
@@ -192,26 +239,29 @@ impl<'a> MatchSink<'a> {
         self.result
     }
 
-    fn push_context(&mut self, context: &SinkContext<'_>) {
+    fn emit_context(&mut self, context: &SinkContext<'_>) -> bool {
         if !self.capture_records {
-            return;
+            return true;
         }
         let kind = match context.kind() {
             SinkContextKind::Before => SearchLineKind::BeforeContext,
             SinkContextKind::After => SearchLineKind::AfterContext,
             SinkContextKind::Other => SearchLineKind::OtherContext,
         };
-        self.result.records.push(SearchRecord::Line(SearchLine {
+        (self.emit)(SearchRecord::Line(SearchLine {
             kind,
             line_number: context.line_number(),
             absolute_byte_offset: context.absolute_byte_offset(),
             bytes: context.bytes().to_vec(),
             matches: Vec::new(),
-        }));
+        }))
     }
 }
 
-impl Sink for MatchSink<'_> {
+impl<F> Sink for MatchSink<'_, F>
+where
+    F: FnMut(SearchRecord) -> bool,
+{
     type Error = io::Error;
 
     fn matched(
@@ -229,13 +279,13 @@ impl Sink for MatchSink<'_> {
             *count += matches.len() as u64;
         }
         if self.capture_records {
-            self.result.records.push(SearchRecord::Line(SearchLine {
+            return Ok((self.emit)(SearchRecord::Line(SearchLine {
                 kind: SearchLineKind::Match,
                 line_number: matched.line_number(),
                 absolute_byte_offset: matched.absolute_byte_offset(),
                 bytes: matched.bytes().to_vec(),
                 matches,
-            }));
+            })));
         }
         Ok(true)
     }
@@ -245,13 +295,12 @@ impl Sink for MatchSink<'_> {
         _searcher: &Searcher,
         context: &SinkContext<'_>,
     ) -> Result<bool, Self::Error> {
-        self.push_context(context);
-        Ok(true)
+        Ok(self.emit_context(context))
     }
 
     fn context_break(&mut self, _searcher: &Searcher) -> Result<bool, Self::Error> {
         if self.capture_records {
-            self.result.records.push(SearchRecord::ContextBreak);
+            return Ok((self.emit)(SearchRecord::ContextBreak));
         }
         Ok(true)
     }
