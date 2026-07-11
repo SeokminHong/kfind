@@ -36,6 +36,7 @@ fn run(args: Args, stdin: &[u8], stdin_is_terminal: bool) -> (ExitStatus, Vec<u8
     let mut stderr = Vec::new();
     let status = run_with_io(
         &args,
+        Language::English,
         stdin,
         &mut stdout,
         &mut stderr,
@@ -111,11 +112,11 @@ fn search_issue_paths_and_messages_escape_control_characters() {
     };
     let mut stderr = Vec::new();
 
-    write_issue(&mut stderr, &issue).unwrap();
+    write_issue(&mut stderr, &issue, Language::English).unwrap();
 
     assert_eq!(
         String::from_utf8(stderr).unwrap(),
-        "kfind: bad\\t\\u{001B}.txt: ignore\\nfailed\\u{001B}\n"
+        "kfind: bad\\t\\u{001B}.txt: file traversal failed: ignore\\nfailed\\u{001B}\n"
     );
 }
 
@@ -127,9 +128,46 @@ fn explicit_missing_data_directory_is_an_error() {
     let mut stdout = Vec::new();
     let mut stderr = Vec::new();
 
-    let error = run_with_io(&args, &[][..], &mut stdout, &mut stderr, false, false).unwrap_err();
+    let error = run_with_io(
+        &args,
+        Language::English,
+        &[][..],
+        &mut stdout,
+        &mut stderr,
+        false,
+        false,
+    )
+    .unwrap_err();
 
     assert!(matches!(error, CliError::MissingData(_)));
+}
+
+#[test]
+fn search_issue_context_is_localized() {
+    let issue = kfind_search::SearchIssue {
+        kind: kfind_search::SearchIssueKind::Input,
+        path: Some(PathBuf::from("sample.txt")),
+        message: "invalid input encoding: malformed UTF-16".to_owned(),
+    };
+    let mut stderr = Vec::new();
+
+    write_issue(&mut stderr, &issue, Language::Korean).unwrap();
+
+    assert_eq!(
+        String::from_utf8(stderr).unwrap(),
+        "kfind: sample.txt: 입력 검색 실패: 입력 인코딩이 올바르지 않습니다: malformed UTF-16\n"
+    );
+}
+
+#[test]
+fn product_owned_search_issue_details_are_localized() {
+    assert_eq!(
+        search_issue_detail(
+            "file search stream closed before completion",
+            Language::Korean
+        ),
+        "파일 검색 stream이 완료 전에 닫혔습니다"
+    );
 }
 
 #[test]

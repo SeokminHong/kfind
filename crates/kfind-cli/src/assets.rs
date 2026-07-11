@@ -4,10 +4,10 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use clap::CommandFactory;
 use clap_complete::{Shell, generate};
 
-use crate::Args;
+use crate::Language;
+use crate::parse::localized_command;
 
 const PROGRAM_NAME: &str = "kfind";
 
@@ -67,7 +67,7 @@ pub fn generate_distribution_assets(
     };
 
     let mut man_page = Vec::new();
-    clap_mangen::Man::new(Args::command())
+    clap_mangen::Man::new(localized_command(Language::English))
         .render(&mut man_page)
         .map_err(AssetGenerationError::RenderManPage)?;
     write_file(&assets.man_page, &man_page)?;
@@ -93,7 +93,7 @@ fn write_file(path: &Path, contents: &[u8]) -> Result<(), AssetGenerationError> 
 }
 
 fn render_completion(shell: Shell) -> Vec<u8> {
-    let mut command = Args::command();
+    let mut command = localized_command(Language::English);
     let mut completion = Vec::new();
     generate(shell, &mut command, PROGRAM_NAME, &mut completion);
     completion
@@ -127,6 +127,7 @@ mod tests {
         );
 
         assert!(first_contents[0].contains("kfind"));
+        assert!(first_contents[0].contains("Fast Korean lemma"));
         assert!(first_contents[1].contains("_kfind"));
         assert!(first_contents[2].contains("#compdef kfind"));
         assert!(first_contents[3].contains("complete -c kfind"));
