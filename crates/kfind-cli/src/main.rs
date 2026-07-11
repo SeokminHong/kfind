@@ -1,4 +1,4 @@
-use kfind_cli::{ExitStatus, Language, parse_args_from, run_with_io};
+use kfind_cli::{ExitStatus, Language, parse_args_from, run_with_io, write_cli_error};
 use std::env;
 use std::io::{self, BufWriter, IsTerminal, Write};
 use std::process::ExitCode;
@@ -35,7 +35,7 @@ fn main() -> ExitCode {
     ) {
         Ok(status) => ExitCode::from(status.code()),
         Err(error) => {
-            let _ = writeln!(stderr, "kfind: {}", error.localized(language));
+            let _ = write_cli_error(&mut stderr, &error, language);
             ExitCode::from(ExitStatus::Error.code())
         }
     }

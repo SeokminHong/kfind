@@ -65,6 +65,19 @@ fn runtime_errors_are_localized_after_parsing() {
 }
 
 #[test]
+fn initialization_errors_escape_terminal_control_characters() {
+    let output = run(
+        &[("LC_ALL", "C")],
+        &["--data-dir", "bad\u{1b}[31m\npath", "걷다"],
+    );
+
+    assert_eq!(output.status.code(), Some(2));
+    assert!(!output.stderr.contains(&0x1b));
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    assert!(stderr.contains(r"bad\u{001B}[31m\npath"));
+}
+
+#[test]
 fn locale_reaches_explain_output() {
     let output = run(&[("LANG", "ko_KR.UTF-8")], &["걷다", "--explain-query"]);
     assert_eq!(output.status.code(), Some(1));
