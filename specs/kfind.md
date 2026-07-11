@@ -1322,24 +1322,46 @@ query	pos	text	expected	feature
 
 ### 19.6 외부 분석기 비교
 
-Kiwi와 Lindera 비교는 저장소의 개발 전용 검증으로 실행하며 제품 바이너리,
-Homebrew 의존성, 기본 검색 경로에 포함하지 않는다. 비교 환경은 버전을 고정한 단일
-Docker 이미지로 구성하고, 이미지 빌드 이후에는 네트워크 없이 실행할 수 있어야 한다.
+Kiwi와 Lindera 비교는 저장소의 개발 전용 검증으로 실행하며 제품 바이너리, Homebrew
+의존성, 기본 검색 경로에 포함하지 않는다. 제품 fixture는 `kfind` 자체 회귀 검증에만
+사용하고 외부 분석기와의 우열 점수에는 사용하지 않는다. 비교 환경은 버전을 고정한
+단일 Docker 이미지로 구성하고, 이미지 빌드 이후에는 네트워크 없이 실행할 수 있어야
+한다. adapter 오류와 실행 실패는 성공 결과로 대체하지 않는다.
 
-기본 비교 집합은 `morphology_cases.tsv`의 `corpus.*` 실제 문장이다. `kfind`는 fixture의
-`match`와 `no-match`를 모두 제품 기대값과 비교한다. Kiwi와 Lindera는 `match` 항목에서
-기대 표제어와 호환 품사를 회수했는지만 점수화한다. `no-match` 항목은 형태 분석 실패를
-뜻하지 않을 수 있으므로 분석 결과를 기록하되 정확도 분모에는 포함하지 않는다.
+### 19.7 독립 형태소 벤치마크
 
-각 adapter는 원시 형태소, 원시 품사, 정규화한 표제어 후보를 보존한다. 용언 표제어
-정규화는 분석기가 반환한 VV, VA, VX, VCP, VCN, XSV, XSA 계열 어간에 `다`를 붙이는
-명시적 규칙만 사용한다. Lindera의 복합 분석 표현은 세부 형태소를 분해해 같은 규칙으로
-정규화한다.
-동음이의어 최적 경로와 `kfind`의 합집합 정책이 다른 경우 자동으로 제품 결함으로
-판정하지 않는다.
+기성 분석기와의 품질 비교는 제품 fixture와 분리한 held-out corpus로 수행한다. 기본
+데이터는 Universal Dependencies 2.18의 Korean-Kaist와 Korean-KSL test split이며, 원문과
+라이선스 파일의 URL·SHA-256·라이선스를 manifest에 고정한다. 다운로드와 fixture 생성은
+이미지 빌드 단계에서 끝내고 실제 벤치마크는 네트워크 없이 실행한다.
 
-보고서는 도구 버전, case별 기대값과 관측값, positive recall, 실행 시간을 JSON과
-사람이 읽는 표로 출력한다. adapter 오류와 실행 실패는 성공 결과로 대체하지 않는다.
+fixture는 도구 출력과 무관한 고정 seed로 생성한다. 각 corpus에서 명사 90, 동사 60,
+형용사 40, 부사 25, 대명사 15, 관형사 10, 수사 10개를 positive로 선택한다. 같은 corpus의
+다른 문장 중 동일 표제어·품사가 gold에 없는 문장을 deterministic negative로 하나씩
+대응시켜 총 1,000개와 positive/negative 1:1 균형을 유지한다. 정렬과 샘플링은 원본 파일
+순서가 아니라 case 식별자의 SHA-256 순서를 사용한다.
+
+gold 후보는 CoNLL-U의 정렬된 lemma/XPOS 형태소 쌍에서 추출하고, lemma가 축약된 KAIST
+어절은 `OrigLemma`를 우선 사용한다. 지원 품사에 속하고 표제어가 한글 음절로만 구성된
+형태소만 포함한다. VV·VA·VX·VCP·VCN과 이에 대응하는 KAIST 용언 태그는 어간에 `다`를
+붙여 사전형으로 정규화한다. 형태소 수와 XPOS 수가 끝까지 다른 어절, 접사·조사·어미,
+외국어·숫자·기호는 제외한다. negative는 모든 어절의 lemma/XPOS가 정렬된 문장에서만
+선택한다. 이 필터와 제외 건수는 metadata에 기록한다.
+
+세 도구는 동일한 `(문장, 표제어, 품사)` 존재 여부를 예측한다. positive는 예측 span이
+gold 어절의 UTF-8 byte span과 겹쳐야 true positive이고, negative는 문장 어디에서든 같은
+표제어·품사를 반환하면 false positive다. 도구마다 accuracy, precision, recall, F1과
+TP·FP·TN·FN을 계산하고 corpus별·품사별 결과 및 실패 case를 함께 보존한다.
+
+성능 측정은 데이터 준비를 제외하고 분석기 초기화를 한 번만 수행한 뒤 동일한 1,000개
+case 순서를 한 프로세스에서 처리한다. 초기화 시간, 전체 처리 시간, case/s, p50·p95
+latency와 peak RSS를 따로 보고한다. `kfind`는 질의 컴파일과 검색, Kiwi와 Lindera는 문장
+분석과 표제어·품사 조회를 포함한 end-to-end 검색 경로를 측정한다. 이 수치는 서로 다른
+검색 전략의 제품 작업량 비교이며 순수 형태소 tokenizer 처리량으로 표현하지 않는다.
+
+최종 보고서는 fixture SHA-256, seed, source별 case 수, 도구와 데이터 버전, 전체·source별·
+품사별 품질 지표, 성능 지표, adapter 오류를 JSON과 Markdown으로 기록한다. 1,000개 미만,
+class/source/POS quota 불충족, source hash 불일치, adapter 오류가 있으면 실행을 실패시킨다.
 
 ## 20. 성능 사양
 
