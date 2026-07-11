@@ -1,0 +1,20 @@
+[package]
+name = "morph-benchmark-runner"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+anyhow = "1.0.102"
+kfind-data = { path = "../../../crates/kfind-data" }
+kfind-matcher = { path = "../../../crates/kfind-matcher" }
+kfind-morph = { path = "../../../crates/kfind-morph" }
+kfind-query = { path = "../../../crates/kfind-query" }
+lindera = { version = "=4.0.0", default-features = false, features = ["embed-ko-dic"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+
+[lints.rust]
+unsafe_code = "forbid"
