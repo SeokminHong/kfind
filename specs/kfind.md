@@ -1,7 +1,7 @@
 # kfind 기술 사양서
 
-문서 상태: Draft 1.1  
-대상 릴리스: v0.1.0  
+문서 상태: Draft 1.2
+대상 릴리스: v0.1.1
 임시 제품명: `kfind`
 
 ## 0. v0.1 구현 기준
@@ -54,6 +54,12 @@
 - 전역 품사가 literal로 확정된 `--literal`과 `--pos literal` 쿼리는 full POS lexicon을 읽거나 디코딩하지 않는다. `--explain-query`는 `not required (literal query)` 상태를 출력하고 full POS lexicon 누락 진단을 내지 않는다.
 - 보고서는 corpus 설정과 checksum, 저장소에서 commit object로 해석되는 Git revision, CPU, memory, storage, OS, 도구 버전, 실제 명령, 각 run의 wall time·throughput·maximum RSS, median 비교값을 기록한다.
 - 기본 측정은 한 번의 warm-up 뒤 warm-cache 3회를 수행한다. timer 정밀도를 확보하기 위해 각 run은 동일 scan 10회의 합산 시간을 측정해 1회당 평균을 기록한다. 권한이 필요한 cache purge를 자동 실행하지 않으며 cold-cache 결과를 측정하지 않았으면 보고서에 명시한다.
+
+### 0.6 v0.1.1 릴리스 범위
+
+- v0.1.1은 v0.1.0의 CLI와 형태 검색 계약을 유지하는 안정화 릴리스다.
+- 형태 규칙, 품사 사전, 검색·출력 경계의 리뷰 수정과 독립 reference verifier를 포함한다.
+- 1 GiB low-hit benchmark는 20절의 wall time, 처리량, RSS 목표를 모두 통과해야 한다.
 
 ## 1. 문서 목적
 
