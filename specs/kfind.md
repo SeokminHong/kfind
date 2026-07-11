@@ -731,7 +731,7 @@ right condition: 토큰 경계 또는 다음 한국어 토큰 시작
 
 ### 10.5 부사
 
-기본은 literal과 스마트 경계다. `--expand derivation`에서만 제한된 보조사 결합을 허용한다.
+기본은 literal과 스마트 경계다. `--expand derivation`에서만 규칙 데이터에 등록된 보조사 결합을 허용하고 격조사는 허용하지 않는다.
 
 ```text
 빨리

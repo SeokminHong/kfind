@@ -8,7 +8,7 @@ use crate::{
     Origin, QueryAnalyzer, QueryAtom, QueryDiagnostic, QueryPlan, SurfaceBranch, parse_query,
 };
 use kfind_data::DerivationRule;
-use kfind_morph::{RuleId, generate_predicate_branches};
+use kfind_morph::{CoarsePos, RuleId, generate_predicate_branches};
 
 mod normalization;
 
@@ -60,6 +60,15 @@ const MORPH_PARTICLE_RULE_IDS: &[&str] = &[
     "particle.even.jocha",
     "particle.even.majeo",
 ];
+const ADVERB_PARTICLE_RULE_IDS: &[&str] = &[
+    "particle.topic",
+    "particle.additive",
+    "particle.only",
+    "particle.limit.ggaji",
+    "particle.from",
+    "particle.even.jocha",
+    "particle.even.majeo",
+];
 
 pub fn compile_query(
     source: &str,
@@ -86,6 +95,8 @@ pub fn compile_query(
         .collect::<HashSet<_>>();
     let allowed_predicate_rules = allowed_rules(&known_rule_ids, |_| true);
     let allowed_particle_rules = allowed_rules(&known_rule_ids, |id| id.starts_with("particle."));
+    let allowed_adverb_particle_rules =
+        allowed_rules(&known_rule_ids, |id| ADVERB_PARTICLE_RULE_IDS.contains(&id));
     let mut diagnostics = Vec::new();
     if !analyzer.lexicons().full_pos_loaded() {
         diagnostics.push(QueryDiagnostic::FullPosLexiconUnavailable);
@@ -94,8 +105,11 @@ pub fn compile_query(
 
     let mut atom_plans = Vec::with_capacity(ast.atoms.len());
     let mut total_branches = 0;
-    let mut estimated_matcher_bytes =
-        shared_rule_bytes(&allowed_predicate_rules, &allowed_particle_rules);
+    let mut estimated_matcher_bytes = shared_rule_bytes(&[
+        &allowed_predicate_rules,
+        &allowed_particle_rules,
+        &allowed_adverb_particle_rules,
+    ]);
     let mut uses_predicate_verifier = false;
     let mut uses_nominal_verifier = false;
     for (atom_index, atom) in ast.atoms.iter().enumerate() {
@@ -136,6 +150,7 @@ pub fn compile_query(
                 analyzer,
                 &allowed_predicate_rules,
                 &allowed_particle_rules,
+                &allowed_adverb_particle_rules,
                 &known_rule_ids,
                 &mut excluded_rules,
                 &mut drafts,
@@ -220,12 +235,34 @@ fn compile_analysis(
     analyzer: &LexiconQueryAnalyzer,
     predicate_rules: &Arc<[RuleId]>,
     particle_rules: &Arc<[RuleId]>,
+    adverb_particle_rules: &Arc<[RuleId]>,
     known_rule_ids: &HashSet<&str>,
     excluded_rules: &mut Vec<RuleId>,
     output: &mut Vec<DraftBranch>,
 ) -> Result<(), CompileError> {
-    if options.expand == ExpandMode::Literal || matches!(analysis.morphology, Morphology::Exact) {
+    if options.expand == ExpandMode::Literal {
         output.push(exact_branch(atom_surface, analysis_index, Vec::new(), true));
+        return Ok(());
+    }
+
+    if matches!(analysis.morphology, Morphology::Exact) {
+        if options.expand == ExpandMode::Derivation && analysis.coarse_pos == CoarsePos::Adverb {
+            output.push(DraftBranch {
+                anchor: atom_surface.to_owned(),
+                verifier: BranchVerifier::NominalParticles {
+                    allowed_rule_ids: Arc::clone(adverb_particle_rules),
+                    blocked_rule_ids: Arc::from([]),
+                },
+                core_mapping: CoreMapping::WholeAnchor,
+                origin: Origin {
+                    analysis_index,
+                    rule_path: Vec::new(),
+                },
+                smart_left: true,
+            });
+        } else {
+            output.push(exact_branch(atom_surface, analysis_index, Vec::new(), true));
+        }
         return Ok(());
     }
 
@@ -491,10 +528,10 @@ fn is_unregistered_da_literal(atom: &QueryAtom, analyses: &[Analysis]) -> bool {
         && analyses[0].coarse_pos == kfind_morph::CoarsePos::Literal
 }
 
-fn shared_rule_bytes(predicate: &[RuleId], particle: &[RuleId]) -> usize {
-    predicate
+fn shared_rule_bytes(rule_sets: &[&[RuleId]]) -> usize {
+    rule_sets
         .iter()
-        .chain(particle)
+        .flat_map(|rules| rules.iter())
         .map(|rule| rule.as_str().len())
         .sum()
 }

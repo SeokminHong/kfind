@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use kfind_matcher::MorphMatcher;
 use kfind_query::{
-    BoundaryPolicy, CompileOptions, LexiconQueryAnalyzer, Lexicons, NormalizationMode,
+    BoundaryPolicy, CompileOptions, ExpandMode, LexiconQueryAnalyzer, Lexicons, NormalizationMode,
     compile_query,
 };
 use unicode_normalization::UnicodeNormalization;
@@ -37,6 +37,28 @@ fn compiled_predicate_plan_rejects_a_surface_attached_as_a_particle() {
         matcher
             .find_at_with_meta("친구가 간다.".as_bytes(), 0)
             .is_some()
+    );
+}
+
+#[test]
+fn derivation_adverb_plan_matches_only_auxiliary_particles() {
+    let matcher = compile(
+        "빨리",
+        CompileOptions {
+            expand: ExpandMode::Derivation,
+            ..CompileOptions::default()
+        },
+    );
+
+    assert!(
+        matcher
+            .find_at_with_meta("일을 빨리도 끝냈다.".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        matcher
+            .find_at_with_meta("빨리가 답이다.".as_bytes(), 0)
+            .is_none()
     );
 }
 

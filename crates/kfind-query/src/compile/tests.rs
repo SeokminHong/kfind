@@ -326,6 +326,39 @@ fn derivation_nominal_particle_and_override_branches_use_distinct_verifiers() {
 }
 
 #[test]
+fn derivation_allows_adverb_auxiliaries_but_not_case_particles() {
+    let options = CompileOptions {
+        expand: ExpandMode::Derivation,
+        ..CompileOptions::default()
+    };
+
+    for query in ["빨리", "잘"] {
+        let plan = compile_query(query, &options, &analyzer()).unwrap();
+        let branch = plan.atoms[0]
+            .branches
+            .iter()
+            .find(|branch| branch.anchor.as_ref() == query.as_bytes())
+            .expect("adverb base branch");
+
+        assert!(
+            branch
+                .verifier
+                .accepts_rule_path(&[RuleId::from("particle.additive")])
+        );
+        assert!(
+            branch
+                .verifier
+                .accepts_rule_path(&[RuleId::from("particle.only")])
+        );
+        assert!(
+            !branch
+                .verifier
+                .accepts_rule_path(&[RuleId::from("particle.subject")])
+        );
+    }
+}
+
+#[test]
 fn normalization_none_preserves_raw_jamo_while_nfc_composes_it() {
     let raw = "가";
     let none = CompileOptions::resolve(CompileOptionOverrides {
