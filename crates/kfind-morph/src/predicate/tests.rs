@@ -36,6 +36,8 @@ fn test_surfaces(branch: &SurfaceBranchSpec) -> Vec<String> {
             format!("{}면", branch.anchor),
             format!("{}며", branch.anchor),
             format!("{}셨다", branch.anchor),
+            format!("{}시다", branch.anchor),
+            format!("{}십니다", branch.anchor),
         ],
     }
 }
@@ -63,7 +65,26 @@ fn regular_stems_cover_consonant_and_vowel_endings() {
         PredicatePos::Verb,
         LexicalAlternation::Regular,
     ));
-    assert_has_all(&go, &["가", "갔다", "가는", "간", "갈"]);
+    assert_has_all(
+        &go,
+        &[
+            "가",
+            "갔다",
+            "가는",
+            "간",
+            "갈",
+            "가시다",
+            "가셨다",
+            "가십니다",
+        ],
+    );
+
+    let live = surfaces(&entry(
+        "살다",
+        PredicatePos::Verb,
+        LexicalAlternation::Regular,
+    ));
+    assert_has_all(&live, &["사시다", "사셨다", "사십니다", "사시면"]);
 }
 
 #[test]

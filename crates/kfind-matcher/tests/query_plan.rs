@@ -38,6 +38,16 @@ fn compiled_predicate_plan_rejects_a_surface_attached_as_a_particle() {
             .find_at_with_meta("친구가 간다.".as_bytes(), 0)
             .is_some()
     );
+    assert!(
+        matcher
+            .find_at_with_meta("어르신이 가셨다.".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        matcher
+            .find_at_with_meta("내일 가십니다.".as_bytes(), 0)
+            .is_some()
+    );
 }
 
 #[test]

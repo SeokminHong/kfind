@@ -254,7 +254,35 @@ pub(super) fn conditional_surface(
     entry: &PredicateEntry,
     stem: &str,
 ) -> Result<Option<DerivedSurface>, GenerateError> {
-    let (base, mut rules) = match entry.alternation {
+    let Some((base, mut rules)) = conditional_base(entry, stem)? else {
+        return Ok(None);
+    };
+    let core_len = base.len();
+    rules.push(rule("ending.conditional"));
+    Ok(Some(derived(format!("{base}면"), core_len, rules)))
+}
+
+pub(super) fn honorific_anchor(
+    entry: &PredicateEntry,
+    stem: &str,
+) -> Result<Option<DerivedSurface>, GenerateError> {
+    if entry.alternation == LexicalAlternation::Regular
+        && has_rieul_final(stem.chars().next_back().expect("stem"))
+    {
+        return Ok(None);
+    }
+    let Some((base, rules)) = conditional_base(entry, stem)? else {
+        return Ok(None);
+    };
+    let core_len = base.len();
+    Ok(Some(derived(base, core_len, rules)))
+}
+
+fn conditional_base(
+    entry: &PredicateEntry,
+    stem: &str,
+) -> Result<Option<(String, Vec<RuleId>)>, GenerateError> {
+    let base = match entry.alternation {
         LexicalAlternation::BToWa | LexicalAlternation::BToWo => {
             let lexical_rule = alternation_rule(entry.alternation)
                 .expect("B irregular alternation has a provenance rule");
@@ -267,9 +295,7 @@ pub(super) fn conditional_surface(
         LexicalAlternation::Suppletive => return Ok(None),
         _ => (stem.to_owned(), Vec::new()),
     };
-    let core_len = base.len();
-    rules.push(rule("ending.conditional"));
-    Ok(Some(derived(format!("{base}면"), core_len, rules)))
+    Ok(Some(base))
 }
 
 pub(super) fn present_adnominal(stem: &str) -> Result<DerivedSurface, GenerateError> {
