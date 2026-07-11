@@ -3,7 +3,10 @@
 use std::error::Error;
 use std::fmt;
 
-use crate::hangul::{JONG_SSANGSIOT, add_final, decompose_syllable};
+use crate::hangul::{
+    JONG_SSANGSIOT, JUNG_YEO, add_final, decompose_syllable, drop_last_final, has_rieul_final,
+    replace_last_vowel,
+};
 use crate::{ContinuationState, LexicalAlternation, PredicateEntry, RuleId, SurfaceBranchSpec};
 
 mod alternation;
@@ -12,8 +15,8 @@ mod continuation;
 pub use continuation::{PredicateContinuationMatch, verify_predicate_continuation};
 
 use alternation::{
-    aeo_surfaces, conditional_surface, eu_anchor, future_adnominal, past_adnominal,
-    polite_declarative, present_adnominal, present_declarative,
+    aeo_surfaces, conditional_surface, eu_anchor, future_adnominal, honorific_anchor,
+    past_adnominal, polite_declarative, present_adnominal, present_declarative,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -191,6 +194,13 @@ fn compile_productive(
         );
     } else if let Some(conditional) = conditional_surface(entry, stem)? {
         push_derived(branches, entry, conditional, ContinuationState::Terminal);
+        if entry.alternation == LexicalAlternation::Regular
+            && has_rieul_final(stem.chars().next_back().expect("stem"))
+        {
+            compile_rieul_honorific(entry, stem, branches);
+        } else if let Some(honorific) = honorific_anchor(entry, stem)? {
+            push_derived(branches, entry, honorific, ContinuationState::Eu);
+        }
     }
 
     if entry.pos.is_action() {
@@ -227,6 +237,62 @@ fn compile_productive(
     );
 
     Ok(())
+}
+
+fn compile_rieul_honorific(
+    entry: &PredicateEntry,
+    stem: &str,
+    branches: &mut Vec<SurfaceBranchSpec>,
+) {
+    let base = drop_last_final(stem).expect("rieul-final stem");
+    let core_len = base.len();
+    let past_base = replace_last_vowel(&format!("{base}시"), JUNG_YEO)
+        .expect("honorific syllable accepts a vowel replacement");
+    let past =
+        add_final(&past_base, JONG_SSANGSIOT).expect("honorific syllable accepts a past final");
+    push_branch(
+        branches,
+        entry,
+        past,
+        core_len,
+        ContinuationState::Past,
+        vec![
+            rule("ending.honorific"),
+            rule("contraction.si-past"),
+            rule("ending.past"),
+        ],
+    );
+    for (surface, rules) in [
+        (
+            format!("{base}시다"),
+            vec![rule("ending.honorific"), rule("ending.final-da")],
+        ),
+        (
+            format!("{base}십니다"),
+            vec![rule("ending.honorific"), rule("ending.polite-declarative")],
+        ),
+        (
+            format!("{base}시면"),
+            vec![rule("ending.honorific"), rule("ending.conditional")],
+        ),
+        (
+            format!("{base}신"),
+            vec![rule("ending.honorific"), rule("ending.past-adnominal")],
+        ),
+        (
+            format!("{base}실"),
+            vec![rule("ending.honorific"), rule("ending.future-adnominal")],
+        ),
+    ] {
+        push_branch(
+            branches,
+            entry,
+            surface,
+            core_len,
+            ContinuationState::Terminal,
+            rules,
+        );
+    }
 }
 
 fn compile_copula(entry: &PredicateEntry, stem: &str, branches: &mut Vec<SurfaceBranchSpec>) {
