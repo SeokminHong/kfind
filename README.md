@@ -1,5 +1,7 @@
 # kfind
 
+[English](README.md) | [한국어](README.ko.md)
+
 Fast Korean lemma and inflection search for code and documents.
 
 `kfind` compiles a Korean lemma or short phrase into bounded surface anchors,
@@ -46,6 +48,13 @@ the complete CLI contract.
 
 `--explain-query` prints inferred analyses and compiled anchors.
 `--explain-match` prints the lemma and rule path behind each match.
+
+## Display language
+
+Human-readable help, errors, diagnostics, and `--explain-*` output follow the
+first non-empty value of `LC_ALL`, `LC_MESSAGES`, and `LANG`. A `ko` locale
+selects Korean; all other values use English. Option names, accepted values,
+JSON fields, and exit codes do not change with the locale.
 
 ## Lexicon data
 

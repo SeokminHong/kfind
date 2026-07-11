@@ -1,5 +1,7 @@
 # Generated data
 
+[English](README.md) | [한국어](README.ko.md)
+
 `lexicon.bin` is produced from validated POS entries with
 `kfind_data::encode_pos_lexicon`. Generated binaries are release artifacts and
 are not edited by hand.
