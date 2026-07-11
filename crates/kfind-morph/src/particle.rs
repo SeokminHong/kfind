@@ -1,5 +1,7 @@
 //! Nominal particle allomorphs and bounded particle-chain verification.
 
+use std::sync::Arc;
+
 use crate::RuleId;
 use crate::hangul::{decompose_syllable, has_final, has_rieul_final};
 
@@ -81,8 +83,25 @@ impl ParticleAllomorph {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParticleTransition {
+    pub rule_id: RuleId,
+    pub next: Box<[RuleId]>,
+}
+
+impl ParticleTransition {
+    #[must_use]
+    pub fn new(rule_id: impl Into<RuleId>, next: impl Into<Box<[RuleId]>>) -> Self {
+        Self {
+            rule_id: rule_id.into(),
+            next: next.into(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParticleChainModel {
     pub allomorphs: Box<[ParticleAllomorph]>,
+    pub transitions: Arc<[ParticleTransition]>,
     pub allow_plural: bool,
     pub max_auxiliaries: usize,
 }
@@ -130,6 +149,7 @@ impl Default for ParticleChainModel {
         ];
         Self {
             allomorphs: Box::new(forms),
+            transitions: Arc::from([]),
             allow_plural: true,
             max_auxiliaries: 2,
         }
@@ -167,29 +187,41 @@ impl ParticleVerifier {
         let mut consumed = 0;
         let mut rule_path = Vec::new();
         let mut previous = core.chars().next_back();
+        let mut previous_rule = None;
 
         if self.model.allow_plural && following.starts_with('들') {
             consumed += '들'.len_utf8();
             previous = Some('들');
-            rule_path.push(RuleId::from("particle.plural"));
+            let plural = RuleId::from("particle.plural");
+            rule_path.push(plural.clone());
+            previous_rule = Some(plural);
         }
 
-        if let Some(case) = self.longest_match(&following[consumed..], previous, ParticleRole::Case)
-        {
+        if let Some(case) = self.longest_match(
+            &following[consumed..],
+            previous,
+            previous_rule.as_ref(),
+            ParticleRole::Case,
+        ) {
             consumed += case.surface.len();
             previous = case.surface.chars().next_back();
             rule_path.push(case.rule_id.clone());
+            previous_rule = Some(case.rule_id.clone());
         }
 
         for _ in 0..self.model.max_auxiliaries {
-            let Some(auxiliary) =
-                self.longest_match(&following[consumed..], previous, ParticleRole::Auxiliary)
-            else {
+            let Some(auxiliary) = self.longest_match(
+                &following[consumed..],
+                previous,
+                previous_rule.as_ref(),
+                ParticleRole::Auxiliary,
+            ) else {
                 break;
             };
             consumed += auxiliary.surface.len();
             previous = auxiliary.surface.chars().next_back();
             rule_path.push(auxiliary.rule_id.clone());
+            previous_rule = Some(auxiliary.rule_id.clone());
         }
 
         ParticleMatch {
@@ -210,6 +242,7 @@ impl ParticleVerifier {
         &self,
         remaining: &str,
         previous: Option<char>,
+        previous_rule: Option<&RuleId>,
         role: ParticleRole,
     ) -> Option<&ParticleAllomorph> {
         let previous = previous?;
@@ -220,8 +253,23 @@ impl ParticleVerifier {
                 form.role == role
                     && remaining.starts_with(form.surface.as_ref())
                     && form.condition.accepts(previous)
+                    && self.transition_allows(previous_rule, &form.rule_id)
             })
             .max_by_key(|form| form.surface.len())
+    }
+
+    fn transition_allows(&self, previous: Option<&RuleId>, next: &RuleId) -> bool {
+        let Some(previous) = previous else {
+            return true;
+        };
+        if self.model.transitions.is_empty() {
+            return true;
+        }
+        self.model
+            .transitions
+            .iter()
+            .find(|transition| transition.rule_id == *previous)
+            .is_some_and(|transition| transition.next.contains(next))
     }
 }
 
@@ -310,5 +358,21 @@ mod tests {
         let verifier = ParticleVerifier::default();
         assert!(verifier.verify_exact("LLM", "로").is_none());
         assert!(verifier.verify_exact("LLM", "으로").is_none());
+    }
+
+    #[test]
+    fn transition_graph_rejects_unlisted_particle_chains() {
+        let transitions = [
+            ParticleTransition::new("particle.topic", Vec::<RuleId>::new().into_boxed_slice()),
+            ParticleTransition::new("particle.additive", Vec::<RuleId>::new().into_boxed_slice()),
+        ];
+        let verifier = ParticleVerifier::new(ParticleChainModel {
+            transitions: Arc::from(transitions),
+            ..ParticleChainModel::default()
+        });
+
+        assert!(verifier.verify_exact("사용자", "는").is_some());
+        assert!(verifier.verify_exact("사용자", "는은").is_none());
+        assert!(verifier.verify_exact("사용자", "도만").is_none());
     }
 }

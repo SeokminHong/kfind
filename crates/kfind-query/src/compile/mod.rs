@@ -8,7 +8,7 @@ use crate::{
     Origin, QueryAnalyzer, QueryAtom, QueryDiagnostic, QueryPlan, SurfaceBranch, parse_query,
 };
 use kfind_data::DerivationRule;
-use kfind_morph::{CoarsePos, RuleId, generate_predicate_branches};
+use kfind_morph::{CoarsePos, ParticleTransition, RuleId, generate_predicate_branches};
 
 mod normalization;
 
@@ -97,6 +97,23 @@ pub fn compile_query(
     let allowed_particle_rules = allowed_rules(&known_rule_ids, |id| id.starts_with("particle."));
     let allowed_adverb_particle_rules =
         allowed_rules(&known_rule_ids, |id| ADVERB_PARTICLE_RULE_IDS.contains(&id));
+    let particle_transitions = analyzer
+        .lexicons()
+        .rules()
+        .particles
+        .iter()
+        .map(|rule| {
+            ParticleTransition::new(
+                rule.id.clone(),
+                rule.next
+                    .iter()
+                    .cloned()
+                    .map(RuleId::from)
+                    .collect::<Vec<_>>()
+                    .into_boxed_slice(),
+            )
+        })
+        .collect::<Vec<_>>();
     let mut diagnostics = Vec::new();
     if !analyzer.lexicons().full_pos_loaded() {
         diagnostics.push(QueryDiagnostic::FullPosLexiconUnavailable);
@@ -222,6 +239,7 @@ pub fn compile_query(
         normalization: options.normalization,
         limits: options.limits,
         diagnostics,
+        particle_transitions: particle_transitions.into(),
         estimated_matcher_bytes,
     })
 }

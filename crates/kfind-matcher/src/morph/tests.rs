@@ -392,6 +392,7 @@ fn matcher(atoms: Vec<AtomPlan>, max_gap: usize) -> MorphMatcher {
         normalization: kfind_query::NormalizationMode::Nfc,
         limits: PlanLimits::default(),
         diagnostics: Vec::new(),
+        particle_transitions: Arc::from([]),
         estimated_matcher_bytes: 0,
     }))
     .unwrap()

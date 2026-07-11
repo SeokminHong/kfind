@@ -618,6 +618,7 @@ special-ha, special-i, special-ani, special-o, special-itda
 
 - 받침 유무에 따른 `은/는`, `이/가`, `을/를`, `과/와`
 - `로/으로`의 ㄹ 받침 예외
+- 조사 연쇄는 `data/rules/particles.toml`의 `next` 전이만 허용한다.
 - `-(으)면`, `-(으)며`, `-(으)ㄴ`, `-(으)ㄹ`
 - ㄹ 받침 뒤 특정 자음 어미에서의 ㄹ 탈락
 - 어간 말음 `ㅡ`와 `-아/-어` 결합
