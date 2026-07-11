@@ -78,6 +78,7 @@ jobs:
           GH_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
           VERSION: ${{ steps.metadata.outputs.version }}
         run: |
+          gh auth setup-git
           gh repo clone SeokminHong/homebrew-brew dist/tap
           cd dist/tap
           git switch -c "kfind-v${VERSION}"
