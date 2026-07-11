@@ -115,7 +115,7 @@ pub fn compile_query(
         })
         .collect::<Vec<_>>();
     let mut diagnostics = Vec::new();
-    if !analyzer.lexicons().full_pos_loaded() {
+    if options.requires_full_pos_lexicon() && !analyzer.lexicons().full_pos_loaded() {
         diagnostics.push(QueryDiagnostic::FullPosLexiconUnavailable);
     }
     let mut excluded_rules = Vec::new();

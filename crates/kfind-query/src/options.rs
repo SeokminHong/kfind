@@ -105,6 +105,11 @@ impl CompileOptions {
             limits: overrides.limits.unwrap_or_default(),
         })
     }
+
+    #[must_use]
+    pub const fn requires_full_pos_lexicon(&self) -> bool {
+        !matches!(self.global_pos, Some(CoarsePos::Literal))
+    }
 }
 
 /// Values that may be explicitly supplied by the CLI.
@@ -154,6 +159,7 @@ mod tests {
         assert_eq!(options.normalization, NormalizationMode::Nfc);
         assert_eq!(options.phrase.max_gap, 24);
         assert_eq!(options.limits, PlanLimits::default());
+        assert!(options.requires_full_pos_lexicon());
     }
 
     #[test]
@@ -166,6 +172,7 @@ mod tests {
 
         assert_eq!(options.expand, ExpandMode::Literal);
         assert_eq!(options.global_pos, Some(CoarsePos::Literal));
+        assert!(!options.requires_full_pos_lexicon());
     }
 
     #[test]
@@ -183,6 +190,17 @@ mod tests {
                 expand: ExpandMode::Derivation
             }
         );
+    }
+
+    #[test]
+    fn explicit_literal_pos_does_not_require_full_pos_lexicon() {
+        let options = CompileOptions::resolve(CompileOptionOverrides {
+            pos: Some(CoarsePos::Literal),
+            ..CompileOptionOverrides::default()
+        })
+        .unwrap();
+
+        assert!(!options.requires_full_pos_lexicon());
     }
 
     #[test]

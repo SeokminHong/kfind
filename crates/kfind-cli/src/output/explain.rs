@@ -125,6 +125,14 @@ fn write_full_pos_status(
             }
             Ok(())
         }
+        FullPosStatus::NotRequired => {
+            write_label(writer, language, "status", "상태", 2)?;
+            writeln!(
+                writer,
+                "{}",
+                language.select("not required (literal query)", "불필요 (literal 쿼리)")
+            )
+        }
     }
 }
 
