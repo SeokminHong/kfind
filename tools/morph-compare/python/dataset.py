@@ -334,18 +334,25 @@ def sha256(path: Path) -> str:
 
 
 def build_dataset(
-    manifest_path: Path, sources_dir: Path, output: Path, metadata_path: Path
+    manifest_path: Path,
+    sources_dir: Path,
+    output: Path,
+    metadata_path: Path,
+    split_name: str = "test",
 ) -> dict[str, object]:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if manifest.get("schema_version") != 1:
+    if manifest.get("schema_version") != 2:
         raise ValueError("unsupported source manifest schema")
     quotas = manifest["positive_quotas_per_source"]
     seed = manifest["seed"]
     all_cases = []
     source_metadata = []
     for source in manifest["sources"]:
-        source_path = sources_dir / source["data_file"]
-        if sha256(source_path) != source["data_sha256"]:
+        split = source["splits"].get(split_name)
+        if split is None:
+            raise ValueError(f"source {source['name']} has no {split_name} split")
+        source_path = sources_dir / split["data_file"]
+        if sha256(source_path) != split["data_sha256"]:
             raise ValueError(f"source hash mismatch: {source['name']}")
         sentences, parsing = parse_conllu(source["name"], source_path)
         positives = select_positives(sentences, quotas, seed)
@@ -355,10 +362,11 @@ def build_dataset(
         source_metadata.append(
             {
                 "name": source["name"],
-                "description": source["description"],
-                "data_file": source["data_file"],
-                "data_url": source["data_url"],
-                "data_sha256": source["data_sha256"],
+                "description": f"{source['description']} {split_name} split",
+                "split": split_name,
+                "data_file": split["data_file"],
+                "data_url": split["data_url"],
+                "data_sha256": split["data_sha256"],
                 "license": source["license"],
                 "license_file": source["license_file"],
                 "parsing": parsing,
@@ -379,6 +387,7 @@ def build_dataset(
             )
     metadata = {
         "schema_version": 1,
+        "split": split_name,
         "ud_release": manifest["ud_release"],
         "seed": seed,
         "fixture_sha256": sha256(output),
@@ -400,8 +409,11 @@ def main() -> None:
     parser.add_argument("--sources", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--metadata", type=Path, required=True)
+    parser.add_argument("--split", choices=("dev", "test"), default="test")
     args = parser.parse_args()
-    metadata = build_dataset(args.manifest, args.sources, args.output, args.metadata)
+    metadata = build_dataset(
+        args.manifest, args.sources, args.output, args.metadata, args.split
+    )
     print(json.dumps(metadata, ensure_ascii=False, indent=2))
 
 

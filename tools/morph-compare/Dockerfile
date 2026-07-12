@@ -11,7 +11,14 @@ RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
         --manifest sources.json \
         --sources /corpora \
         --output /benchmark/cases.jsonl \
-        --metadata /benchmark/metadata.json
+        --metadata /benchmark/metadata.json \
+        --split test \
+    && python python/dataset.py \
+        --manifest sources.json \
+        --sources /corpora \
+        --output /benchmark/dev-cases.jsonl \
+        --metadata /benchmark/dev-metadata.json \
+        --split dev
 
 FROM rust:${RUST_VERSION}-bookworm AS runner-builder
 WORKDIR /src

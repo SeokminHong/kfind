@@ -35,10 +35,15 @@ def fetch(url: str, expected_sha256: str, destination: Path) -> None:
 
 def fetch_manifest(manifest_path: Path, output: Path) -> None:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if manifest.get("schema_version") != 1:
+    if manifest.get("schema_version") != 2:
         raise ValueError("unsupported source manifest schema")
     for source in manifest["sources"]:
-        fetch(source["data_url"], source["data_sha256"], output / source["data_file"])
+        for split in source["splits"].values():
+            fetch(
+                split["data_url"],
+                split["data_sha256"],
+                output / split["data_file"],
+            )
         fetch(
             source["license_url"],
             source["license_sha256"],

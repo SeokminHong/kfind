@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "ud_release": "2.18",
   "seed": "kfind-morph-benchmark-v1",
   "positive_quotas_per_source": {
@@ -14,10 +14,19 @@
   "sources": [
     {
       "name": "ud-korean-kaist",
-      "description": "UD Korean-Kaist test split",
-      "data_file": "ko_kaist-ud-test.conllu",
-      "data_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-Kaist/r2.18/ko_kaist-ud-test.conllu",
-      "data_sha256": "fd94dc89afb01d1f7f340a46d567e0f27ae6903a70d7b6f650b49f7427f83b97",
+      "description": "UD Korean-Kaist",
+      "splits": {
+        "test": {
+          "data_file": "ko_kaist-ud-test.conllu",
+          "data_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-Kaist/r2.18/ko_kaist-ud-test.conllu",
+          "data_sha256": "fd94dc89afb01d1f7f340a46d567e0f27ae6903a70d7b6f650b49f7427f83b97"
+        },
+        "dev": {
+          "data_file": "ko_kaist-ud-dev.conllu",
+          "data_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-Kaist/r2.18/ko_kaist-ud-dev.conllu",
+          "data_sha256": "a1ce2dceee65683c2df3b0cce96c83d01e5ff67756060b998fe01d8bc8ca4faa"
+        }
+      },
       "license": "CC BY-SA 4.0",
       "license_file": "ko_kaist-LICENSE.txt",
       "license_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-Kaist/r2.18/LICENSE.txt",
@@ -25,10 +34,19 @@
     },
     {
       "name": "ud-korean-ksl",
-      "description": "UD Korean-KSL test split",
-      "data_file": "ko_ksl-ud-test.conllu",
-      "data_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-KSL/r2.18/ko_ksl-ud-test.conllu",
-      "data_sha256": "62574d11b83f62217494a53fd2a7cbf75b7fc3fe5df74021a91e66df65149033",
+      "description": "UD Korean-KSL",
+      "splits": {
+        "test": {
+          "data_file": "ko_ksl-ud-test.conllu",
+          "data_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-KSL/r2.18/ko_ksl-ud-test.conllu",
+          "data_sha256": "62574d11b83f62217494a53fd2a7cbf75b7fc3fe5df74021a91e66df65149033"
+        },
+        "dev": {
+          "data_file": "ko_ksl-ud-dev.conllu",
+          "data_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-KSL/r2.18/ko_ksl-ud-dev.conllu",
+          "data_sha256": "b986979df5137ab1554e7c38a0d7257ce7182a7e76eb82b586610733a289e15b"
+        }
+      },
       "license": "CC BY-SA 4.0",
       "license_file": "ko_ksl-LICENSE.txt",
       "license_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-KSL/r2.18/LICENSE.txt",
