@@ -18,7 +18,12 @@ RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
         --sources /corpora \
         --output /benchmark/dev-cases.jsonl \
         --metadata /benchmark/dev-metadata.json \
-        --split dev
+        --split dev \
+    && python python/local_context_dataset.py \
+        --manifest sources.json \
+        --sources /corpora \
+        --output /benchmark/local-context-cases.jsonl \
+        --metadata /benchmark/local-context-metadata.json
 
 FROM rust:${RUST_VERSION}-bookworm AS runner-builder
 WORKDIR /src
