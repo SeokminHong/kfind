@@ -1,4 +1,7 @@
 use std::cmp::Ordering;
+use std::collections::BTreeMap;
+
+use serde::Serialize;
 
 use crate::lexicon::{DataFinePos, LexiconData};
 use crate::validation::require_nfc;
@@ -19,6 +22,18 @@ pub struct PosLexiconEntry {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DecodedPosLexicon {
     entries: Box<[PosLexiconEntry]>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct PosLexiconStats {
+    pub schema_version: u32,
+    pub entry_count: usize,
+    pub unique_lemma_count: usize,
+    pub predicate_entry_count: usize,
+    pub predicate_lemma_count: usize,
+    pub pos_conflict_lemma_count: usize,
+    pub predicate_pos_conflict_lemma_count: usize,
+    pub entries_by_pos: BTreeMap<String, usize>,
 }
 
 /// Validated input for the POS-only binary artifact.
@@ -89,6 +104,46 @@ impl DecodedPosLexicon {
         let end =
             self.entries[start..].partition_point(|entry| entry.lemma.as_str() == lemma) + start;
         &self.entries[start..end]
+    }
+
+    pub fn stats(&self) -> PosLexiconStats {
+        let mut entries_by_pos = BTreeMap::new();
+        let mut unique_lemma_count = 0;
+        let mut predicate_entry_count = 0;
+        let mut predicate_lemma_count = 0;
+        let mut pos_conflict_lemma_count = 0;
+        let mut predicate_pos_conflict_lemma_count = 0;
+        let mut at = 0;
+        while at < self.entries.len() {
+            let lemma = &self.entries[at].lemma;
+            let end = self.entries[at..].partition_point(|entry| entry.lemma == *lemma) + at;
+            let analyses = &self.entries[at..end];
+            unique_lemma_count += 1;
+            pos_conflict_lemma_count += usize::from(analyses.len() > 1);
+            let predicate_analyses = analyses
+                .iter()
+                .filter(|entry| entry.pos.is_predicate())
+                .count();
+            predicate_entry_count += predicate_analyses;
+            predicate_lemma_count += usize::from(predicate_analyses > 0);
+            predicate_pos_conflict_lemma_count += usize::from(predicate_analyses > 1);
+            for entry in analyses {
+                *entries_by_pos
+                    .entry(entry.pos.as_str().to_owned())
+                    .or_default() += 1;
+            }
+            at = end;
+        }
+        PosLexiconStats {
+            schema_version: 1,
+            entry_count: self.entries.len(),
+            unique_lemma_count,
+            predicate_entry_count,
+            predicate_lemma_count,
+            pos_conflict_lemma_count,
+            predicate_pos_conflict_lemma_count,
+            entries_by_pos,
+        }
     }
 }
 
@@ -315,5 +370,18 @@ mod tests {
         let decoded = decode_pos_lexicon(&encode_pos_lexicon(&approved).unwrap()).unwrap();
         assert_eq!(decoded.entries().len(), 3);
         assert_eq!(decoded.lookup("걷다").len(), 2);
+        assert_eq!(
+            decoded.stats(),
+            PosLexiconStats {
+                schema_version: 1,
+                entry_count: 3,
+                unique_lemma_count: 2,
+                predicate_entry_count: 1,
+                predicate_lemma_count: 1,
+                pos_conflict_lemma_count: 1,
+                predicate_pos_conflict_lemma_count: 0,
+                entries_by_pos: BTreeMap::from([("NNG".to_owned(), 2), ("VV".to_owned(), 1),]),
+            }
+        );
     }
 }

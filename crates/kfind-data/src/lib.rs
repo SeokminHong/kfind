@@ -10,7 +10,7 @@ mod tsv;
 mod validation;
 
 pub use binary::{
-    ApprovedPosLexicon, DecodedPosLexicon, PosLexiconEntry, collect_pos_entries,
+    ApprovedPosLexicon, DecodedPosLexicon, PosLexiconEntry, PosLexiconStats, collect_pos_entries,
     decode_pos_lexicon, encode_pos_lexicon,
 };
 pub use error::{DataError, DataErrorKind, DataWarning, SourceLocation};
