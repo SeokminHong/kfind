@@ -6,7 +6,7 @@
 관련 문서:
 
 - [형태소 검색 개선 핸드오프](2026-07-12-morphology-handoff.md)
-- [local lattice 비용 실패 분석](2026-07-12-lattice-cost-analysis.md)
+- [local lattice 비용 분석](2026-07-12-lattice-cost-analysis.md)
 - [VCP 지정사 smart-boundary 계획](2026-07-12-copula-boundary-plan.md)
 - [사전 확장 전략](../lexicon-scaling.md)
 - [prefix index 비교 결과](2026-07-12-morph-index-comparison.md)
@@ -241,15 +241,13 @@ P2는 다음 무결한 작업 단위로 나눈다.
 
 1. 지정사 판별 fixture 생성과 metadata 검증을 추가한다. (완료)
 2. fixture를 benchmark report에 연결하고 source·raw tag·class별 baseline을 기록한다. (완료)
-3. 백업 branch의 morphology resource 생성·검증을 최신 `main` 위에 재구성한다. (완료)
+3. morphology resource 생성·검증 경로를 재구성한다. (완료)
 4. bounded 어절 추출과 NFC 원문 offset mapping을 별도 작업 단위로 재구성한다. (완료)
 5. lattice path와 N-best shadow report를 연결한다. (완료)
 6. source 분석 보존형 schema 3으로 완전 경로와 query component 판정을 복구한다. (완료)
 7. gold target recall은 회복했지만 non-gold target 구분력이 부족하므로 P3는 보류한다. (완료)
 
-다음 작업은 별도 blind source에서 비용 분포와 non-gold 오수용 원인을 확인하는 것이다.
-그 전에는 threshold나 검색 결과를 변경하지 않는다.
-
-각 단위는 독립적으로 포맷·lint·workspace test를 통과한 뒤 커밋한다. 백업 branch
-`codex/morph-lattice-shadow-backup-20260712-203332`는 prototype 참고 자료로만 사용하고,
-PR #26 이전 fixture 의미를 최신 `main`에 그대로 되살리지 않는다.
+다음 작업은 blind source와 라이선스, 고정 split, sampling·정렬 규칙, artifact digest와
+기존 dev/test 중복 방지 조건을 스펙에 확정하는 것이다.
+그 다음 비용 분포와 non-gold 오수용 원인을 확인하며, 그 전에는 threshold나 검색 결과를
+변경하지 않는다.

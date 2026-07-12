@@ -151,6 +151,9 @@
   shadow counter의 confusion matrix를 별도 보고한다.
 - 지정사 판별 slice에서 accept/reject 비용이나 threshold를 조정하지 않는다. P2 shadow가
   양성 경로와 어휘 내부 음성을 구분하는 판별력을 보인 뒤 별도 blind source로 확인한다.
+- P3 전 blind 평가의 source와 라이선스, 고정 split, sampling·정렬 규칙, artifact digest와
+  dev/test 중복 방지 조건을 스펙에 먼저 확정한다.
+  이 계약이 없으면 현재 dev 비용 분포로 threshold를 선택하거나 제품 판정에 적용하지 않는다.
 
 ## 1. 문서 목적
 

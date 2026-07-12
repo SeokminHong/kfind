@@ -2,23 +2,18 @@
 
 기준 보고서: [2026-07-12 형태소 비교 분석](2026-07-12-morphology-comparison.md)
 
-다음 작업 계획: [선택적 국소 형태 추론 P2](2026-07-12-selective-morphology-plan.md)
+완료한 P2 계획: [선택적 국소 형태 추론](2026-07-12-selective-morphology-plan.md)
 
-비용 실패 분석: [local lattice 비용 실패 분석](2026-07-12-lattice-cost-analysis.md)
+비용 분석: [local lattice 비용 분석](2026-07-12-lattice-cost-analysis.md)
 
 fixture SHA-256: `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21ff`
 
 ## 현재 상태
 
-- 기준 `main`: `e7b9711` (`test(kfind/morph): establish copula evidence for lattice work`)
-- 최신 `main` CI 통과, 열린 PR·issue 없음
-- 작업 branch: `codex/morphology-resource-rebuild`
 - P0 context 계측과 P1 packed Double-Array 선택 완료
 - P2 source 분석 보존형 morphology resource schema 3 완료
 - P2 bounded 어절 추출과 NFC 원문 offset mapping 재구성 완료
 - P2 local lattice·N-best shadow report 완료
-- 이전 P2 prototype은 로컬 백업 branch
-  `codex/morph-lattice-shadow-backup-20260712-203332`에 참고용으로 보존
 
 - kfind embedded profile: F1 82.81%, recall 70.80%, precision 99.72%
 - 품질 순위: Kiwi 92.01% > Lindera 88.02% > kfind 82.81%
@@ -265,14 +260,10 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. 별도 blind source에서 schema 3 비용 분포와 판별력을 확인한다.
-2. non-gold target 오수용을 source·표면형·선택 경로별로 분류한다.
-3. 검증 전에는 threshold, fixture 가중치나 검색 결과를 변경하지 않는다.
+1. blind source와 라이선스, 고정 split, sampling·정렬 규칙, artifact digest와 기존
+   dev/test 중복 방지 조건을 스펙에 확정한다.
+2. 확정한 blind source에서 schema 3 비용 분포와 판별력을 확인한다.
+3. non-gold target 오수용을 source·표면형·선택 경로별로 분류한다.
+4. 검증 전에는 threshold, fixture 가중치나 검색 결과를 변경하지 않는다.
 
-이어갈 때:
-
-```console
-git switch codex/morphology-resource-rebuild
-git status --short
-scripts/benchmark-morphology.sh
-```
+이 계약을 확정하기 전에는 평가 fixture나 threshold를 추가하지 않는다.
