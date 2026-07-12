@@ -2,7 +2,8 @@
 
 [English](README.md)
 
-이 개발 도구는 동일한 held-out 사례를 `kfind`, Kiwi, Lindera로 처리한다. 외부 분석기와
+이 개발 도구는 동일한 held-out 사례를 `kfind` embedded/full-POS 프로필,
+Kiwi, Lindera로 처리한다. 외부 분석기와
 corpus는 제품 바이너리나 기본 검색 경로에 포함되지 않는다.
 
 fixture는 Universal Dependencies 2.18의 Korean-Kaist와 Korean-KSL test split에서
@@ -16,7 +17,8 @@ scripts/benchmark-morphology.sh
 
 결과는 `target/morph-benchmark/report.json`과 `report.md`에 생성된다. 이미지를 빌드한 뒤
 컨테이너는 `--network none`으로 실행된다. `scripts/compare-morphology.sh`도 같은
-벤치마크를 실행한다.
+벤치마크를 실행한다. 이미지 빌드는 고정 checksum의 full-POS artifact를 생성하며,
+artifact가 없거나 검증에 실패하면 벤치마크를 중단한다.
 
 같은 JSON에서 문서용 차트를 재현한다.
 
@@ -43,7 +45,9 @@ docker run --rm --network none \
 세 도구 모두 문장 안에 gold 표제어·품사가 존재하는지 판정한다. positive는 예측 span이
 gold 어절 span과 겹쳐야 하며, negative는 같은 표제어·품사를 반환하면 false positive다.
 보고서는 accuracy, precision, recall, F1, source/POS별 결과, 실패 span과 초기화·처리량·
-지연·peak RSS를 기록한다.
+지연·peak RSS를 기록한다. `kfind` 프로필별 버전·artifact SHA-256와 full-POS에서
+회복된 false negative, 계속 실패한 false negative, 새로 발생한 false negative를
+별도 목록으로 남긴다.
 
 성능 수치는 각 도구를 한 번 초기화한 뒤 질의부터 결과 판정까지 처리한 제품 작업량이다.
 순수 tokenizer 처리량 비교가 아니다.

@@ -32,7 +32,8 @@ cargo bench -p kfind-testkit --bench query_matcher -- query_compile
 
 ## Morphology comparison
 
-독립된 UD Korean-Kaist·KSL test split에서 `kfind`, Kiwi, Lindera의 lemma/POS/span 품질과
+독립된 UD Korean-Kaist·KSL test split에서 `kfind` embedded/full-POS, Kiwi, Lindera의
+lemma/POS/span 품질과
 end-to-end 비용을 비교한다.
 
 ```console
