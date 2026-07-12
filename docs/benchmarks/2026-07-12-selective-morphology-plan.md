@@ -1,6 +1,6 @@
 # 선택적 국소 형태 추론 작업 계획
 
-상태: P0 완료, P1 대기
+상태: P0 완료, P1 진행 중
 적용 시점: v0.1.1 이후 실험 범위
 
 관련 문서:
@@ -102,10 +102,13 @@ enum ContextRequirement {
 
 ### P1. prefix 사전 자료구조 선택
 
-1. 현재 full-POS artifact에서 표면형·품사·연결 ID를 분리한 benchmark fixture를 만든다.
+1. full-POS와 같은 고정 source snapshot에서 원본 표면형·품사·좌/우 연결 ID·비용을 보존한
+   별도 morphology-index benchmark fixture를 만든다. 정규화된 query 표제어 artifact와
+   corpus-side 분석 artifact는 분리한다.
 2. packed Double-Array trie와 FST 후보를 exact lookup, prefix 열거, 초기화, RSS로 비교한다.
 3. resident core와 mmap full resource의 cold/warm 동작을 각각 측정한다.
-4. 선택한 형식에 schema version, source digest, 통계와 검증기를 추가한다.
+4. 두 후보가 공유하는 container에 schema version, source digest, 통계, section digest와
+   검증기를 추가한 뒤 측정 결과로 index 형식을 선택한다.
 
 완료 조건:
 

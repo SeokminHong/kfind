@@ -81,6 +81,19 @@
   범위다. 같은 범위를 가리키는 여러 branch hit는 한 번만 센다.
 - local 분석으로 결과를 필터링하기 전에는 스펙을 먼저 갱신해 정책 이름, 기본값, resource
   누락·손상·상한 초과 동작과 JSON/explain 출력을 확정한다.
+- query-side `full POS`와 corpus-side `morphology index`는 같은 고정 source snapshot에서
+  생성하되 별도 산출물로 유지한다. `full POS`는 정규화된 표제어와 품사를 저장하고,
+  `morphology index`는 원본 표면형별 품사·좌/우 연결 ID·단어 비용을 손실 없이 보존한다.
+- `morphology index`는 표면형 prefix index와 분석 payload table을 분리한다. 같은 표면형의
+  복수 분석은 하나의 key가 가리키는 payload group에 모두 보존한다.
+- `morphology index` container는 schema version, source archive SHA-256, entry·고유 표면형·
+  품사별 통계, index와 payload의 길이·SHA-256을 포함한다. loader는 내용을 노출하기 전에
+  이 값을 모두 검증하고 손상, schema 불일치, source digest 불일치를 구분해 보고한다.
+- P1은 packed Double-Array trie와 FST를 동일한 key·payload로 비교하는 개발용 측정이다.
+  자료구조 선택과 container 추가만으로 query 분석이나 검색 결과를 변경하지 않는다.
+- resident 측정은 container 전체를 읽어 검증한 뒤 조회하고, mmap 측정은 읽기 전용으로
+  고정된 artifact를 mapping해 동일한 검증을 수행한다. cold와 warm 실행은 별도 프로세스로
+  측정하며 exact lookup, common-prefix 열거, 초기화 시간과 peak RSS를 함께 기록한다.
 
 ## 1. 문서 목적
 
