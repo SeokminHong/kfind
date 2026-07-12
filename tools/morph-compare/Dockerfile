@@ -18,8 +18,10 @@ WORKDIR /src
 COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
 COPY data ./data
+COPY scripts/build-full-pos.sh ./scripts/build-full-pos.sh
 COPY tools/morph-compare/runner ./tools/morph-compare/runner
-RUN cargo build \
+RUN scripts/build-full-pos.sh /benchmark/full-pos \
+    && cargo build \
     --locked \
     --release \
     --manifest-path tools/morph-compare/runner/Cargo.toml \
@@ -52,6 +54,7 @@ COPY --from=runner-builder \
     /usr/local/bin/morph-benchmark-runner
 COPY --from=corpus-builder /benchmark /opt/morph-benchmark/data
 COPY --from=corpus-builder /corpora/*LICENSE.txt /opt/morph-benchmark/licenses/
+COPY --from=runner-builder /benchmark/full-pos /opt/morph-benchmark/full-pos
 COPY tools/morph-compare/benchmark.py /opt/morph-benchmark/benchmark.py
 COPY tools/morph-compare/python /opt/morph-benchmark/python
 COPY tools/morph-compare/sources.json /opt/morph-benchmark/sources.json

@@ -7,8 +7,6 @@ import hashlib
 import importlib.metadata
 import json
 import math
-import os
-import platform
 import resource
 import subprocess
 import sys
@@ -26,14 +24,12 @@ from python.adapters import (
     lindera_candidates,
     spans_overlap,
 )
+from python.report import KFIND_PROFILES, build_report, render_markdown
 
 
 DEFAULT_CASES = Path("/opt/morph-benchmark/data/cases.jsonl")
 DEFAULT_METADATA = Path("/opt/morph-benchmark/data/metadata.json")
 DEFAULT_RUNNER = Path("/usr/local/bin/morph-benchmark-runner")
-BACKENDS = ("kfind", "kiwi", "lindera")
-
-
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -120,8 +116,12 @@ def matching_candidate_spans(
 
 
 def evaluate_kfind(
-    cases: list[dict[str, object]], summary: dict[str, object]
+    cases: list[dict[str, object]], summary: dict[str, object], backend: str
 ) -> tuple[dict[str, bool], dict[str, list[dict[str, object]]], dict[str, object]]:
+    case_ids = [case["id"] for case in cases]
+    result_ids = [result["id"] for result in summary["results"]]
+    if result_ids != case_ids:
+        raise ValueError(f"{backend} result order differs from fixture order")
     results = {result["id"]: result for result in summary["results"]}
     predictions = {}
     matches = {}
@@ -129,7 +129,7 @@ def evaluate_kfind(
     for case in cases:
         result = results.get(case["id"])
         if result is None:
-            raise ValueError(f"kfind omitted case {case['id']}")
+            raise ValueError(f"{backend} omitted case {case['id']}")
         spans = result["spans"]
         predictions[case["id"]] = span_prediction(case, spans)
         matches[case["id"]] = spans
@@ -224,231 +224,6 @@ def performance(summary: dict[str, object], latencies: list[float]) -> dict[str,
     }
 
 
-def quality_metrics(
-    cases: list[dict[str, object]], predictions: dict[str, bool]
-) -> dict[str, object]:
-    tp = fp = tn = fn = 0
-    for case in cases:
-        expected = bool(case["expected"])
-        predicted = predictions[case["id"]]
-        if expected and predicted:
-            tp += 1
-        elif expected:
-            fn += 1
-        elif predicted:
-            fp += 1
-        else:
-            tn += 1
-    precision = tp / (tp + fp) if tp + fp else 0.0
-    recall = tp / (tp + fn) if tp + fn else 0.0
-    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
-    return {
-        "cases": len(cases),
-        "tp": tp,
-        "fp": fp,
-        "tn": tn,
-        "fn": fn,
-        "accuracy_percent": round(100 * (tp + tn) / len(cases), 2),
-        "precision_percent": round(100 * precision, 2),
-        "recall_percent": round(100 * recall, 2),
-        "f1_percent": round(100 * f1, 2),
-    }
-
-
-def grouped_quality(
-    cases: list[dict[str, object]], predictions: dict[str, bool], key: str
-) -> dict[str, dict[str, object]]:
-    groups: dict[str, list[dict[str, object]]] = defaultdict(list)
-    for case in cases:
-        groups[str(case[key])].append(case)
-    return {
-        name: quality_metrics(group_cases, predictions)
-        for name, group_cases in sorted(groups.items())
-    }
-
-
-def build_report(
-    cases: list[dict[str, object]],
-    metadata: dict[str, object],
-    versions: dict[str, str],
-    predictions: dict[str, dict[str, bool]],
-    matches: dict[str, dict[str, list[dict[str, object]]]],
-    performance_metrics: dict[str, dict[str, object]],
-) -> dict[str, object]:
-    quality = {
-        backend: {
-            "overall": quality_metrics(cases, predictions[backend]),
-            "by_source": grouped_quality(cases, predictions[backend], "source"),
-            "by_pos": grouped_quality(cases, predictions[backend], "pos"),
-        }
-        for backend in BACKENDS
-    }
-    failures = []
-    for case in cases:
-        backend_predictions = {
-            backend: predictions[backend][case["id"]] for backend in BACKENDS
-        }
-        if all(value == case["expected"] for value in backend_predictions.values()):
-            continue
-        failures.append(
-            {
-                "case": case,
-                "predictions": backend_predictions,
-                "matching_spans": {
-                    backend: matches[backend][case["id"]] for backend in BACKENDS
-                },
-            }
-        )
-    return {
-        "schema_version": 1,
-        "task": "sentence lemma/POS presence with positive gold-span overlap",
-        "dataset": metadata,
-        "versions": versions,
-        "environment": environment_metadata(),
-        "quality": quality,
-        "performance": performance_metrics,
-        "failures": failures,
-        "adapter_errors": [],
-    }
-
-
-def environment_metadata() -> dict[str, object]:
-    memory_kib = None
-    meminfo = Path("/proc/meminfo")
-    if meminfo.exists():
-        total = next(
-            (line for line in meminfo.read_text().splitlines() if line.startswith("MemTotal:")),
-            None,
-        )
-        if total is not None:
-            memory_kib = int(total.split()[1])
-    return {
-        "platform": platform.platform(),
-        "machine": platform.machine(),
-        "logical_cpu_count": os.cpu_count(),
-        "memory_kib": memory_kib,
-        "python": platform.python_version(),
-    }
-
-
-def render_markdown(report: dict[str, object]) -> str:
-    dataset = report["dataset"]
-    lines = [
-        "# kfind / Kiwi / Lindera held-out morphology benchmark",
-        "",
-        f"- fixture: `{dataset['fixture_sha256']}`",
-        f"- cases: {dataset['cases']} ({dataset['positive_cases']} positive, "
-        f"{dataset['negative_cases']} negative)",
-        f"- seed: `{dataset['seed']}`",
-        f"- UD release: {dataset['ud_release']}",
-        f"- environment: `{report['environment']['platform']}` / "
-        f"{report['environment']['logical_cpu_count']} logical CPUs",
-        "",
-        "## Sources",
-        "",
-        "| source | license | SHA-256 |",
-        "| --- | --- | --- |",
-    ]
-    for source in dataset["sources"]:
-        lines.append(
-            f"| [{source['name']}]({source['data_url']}) | {source['license']} | "
-            f"`{source['data_sha256']}` |"
-        )
-    lines.extend(
-        [
-            "",
-            "## Overall quality",
-            "",
-            "| backend | accuracy | precision | recall | F1 | TP | FP | TN | FN |",
-            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
-        ]
-    )
-    for backend in BACKENDS:
-        metrics = report["quality"][backend]["overall"]
-        lines.append(
-            f"| {backend} | {metrics['accuracy_percent']}% | {metrics['precision_percent']}% | "
-            f"{metrics['recall_percent']}% | {metrics['f1_percent']}% | {metrics['tp']} | "
-            f"{metrics['fp']} | {metrics['tn']} | {metrics['fn']} |"
-        )
-    lines.extend(
-        [
-            "",
-            "## End-to-end performance",
-            "",
-            "| backend | init | cases/s | p50 | p95 | peak RSS |",
-            "| --- | ---: | ---: | ---: | ---: | ---: |",
-        ]
-    )
-    for backend in BACKENDS:
-        metrics = report["performance"][backend]
-        rss = metrics["peak_rss_kib"]
-        rss_text = f"{rss / 1024:.1f} MiB" if rss is not None else "n/a"
-        lines.append(
-            f"| {backend} | {metrics['initialization_seconds']:.4f}s | "
-            f"{metrics['cases_per_second']} | {metrics['latency_p50_ms']}ms | "
-            f"{metrics['latency_p95_ms']}ms | {rss_text} |"
-        )
-    lines.extend(["", "## Quality by source", ""])
-    lines.extend(
-        [
-            "| source | backend | accuracy | precision | recall | F1 |",
-            "| --- | --- | ---: | ---: | ---: | ---: |",
-        ]
-    )
-    sources = sorted(report["quality"]["kfind"]["by_source"])
-    for source in sources:
-        for backend in BACKENDS:
-            metrics = report["quality"][backend]["by_source"][source]
-            lines.append(
-                f"| {source} | {backend} | {metrics['accuracy_percent']}% | "
-                f"{metrics['precision_percent']}% | {metrics['recall_percent']}% | "
-                f"{metrics['f1_percent']}% |"
-            )
-    lines.extend(["", "## Quality by POS", ""])
-    lines.extend(
-        [
-            "| POS | backend | accuracy | precision | recall | F1 |",
-            "| --- | --- | ---: | ---: | ---: | ---: |",
-        ]
-    )
-    parts_of_speech = sorted(report["quality"]["kfind"]["by_pos"])
-    for pos in parts_of_speech:
-        for backend in BACKENDS:
-            metrics = report["quality"][backend]["by_pos"][pos]
-            lines.append(
-                f"| {pos} | {backend} | {metrics['accuracy_percent']}% | "
-                f"{metrics['precision_percent']}% | {metrics['recall_percent']}% | "
-                f"{metrics['f1_percent']}% |"
-            )
-    lines.extend(
-        [
-            "",
-            f"## Failures ({len(report['failures'])} cases)",
-            "",
-            "| case | source | query/POS | expected | kfind | Kiwi | Lindera |",
-            "| --- | --- | --- | --- | --- | --- | --- |",
-        ]
-    )
-    for failure in report["failures"][:30]:
-        case = failure["case"]
-        predicted = failure["predictions"]
-        lines.append(
-            f"| {case['id']} | {case['source']} | {case['query']}/{case['pos']} | "
-            f"{case['expected']} | {predicted['kfind']} | {predicted['kiwi']} | "
-            f"{predicted['lindera']} |"
-        )
-    if len(report["failures"]) > 30:
-        lines.extend(["", "The JSON report contains every failure and matching span."])
-    lines.extend(
-        [
-            "",
-            "Performance measures each backend's end-to-end search path after one initialization; "
-            "it is not a tokenizer-only throughput comparison.",
-        ]
-    )
-    return "\n".join(lines) + "\n"
-
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--cases", type=Path, default=DEFAULT_CASES)
@@ -464,11 +239,15 @@ def main() -> int:
         cases = load_cases(args.cases)
         metadata = json.loads(args.metadata.read_text(encoding="utf-8"))
         validate_dataset(args.cases, cases, metadata)
-        kfind_summary = run_native_backend(args.runner, "kfind", args.cases)
+        kfind_summaries = {
+            profile: run_native_backend(args.runner, profile, args.cases)
+            for profile in KFIND_PROFILES
+        }
         lindera_summary = run_native_backend(args.runner, "lindera", args.cases)
-        kfind_predictions, kfind_matches, kfind_performance = evaluate_kfind(
-            cases, kfind_summary
-        )
+        kfind_results = {
+            profile: evaluate_kfind(cases, kfind_summaries[profile], profile)
+            for profile in KFIND_PROFILES
+        }
         kiwi_predictions, kiwi_matches, kiwi_performance = evaluate_kiwi(cases)
         lindera_predictions, lindera_matches, lindera_performance = evaluate_lindera(
             cases, lindera_summary
@@ -477,22 +256,48 @@ def main() -> int:
             cases,
             metadata,
             {
-                "kfind": f"kfind {kfind_summary['version']}",
-                "kiwi": importlib.metadata.version("kiwipiepy"),
-                "lindera": f"lindera {lindera_summary['version']}",
+                profile: {
+                    "backend": kfind_summaries[profile]["backend"],
+                    "version": kfind_summaries[profile]["version"],
+                    "profile": kfind_summaries[profile]["profile"],
+                    "lexicon_artifact_sha256": kfind_summaries[profile][
+                        "lexicon_artifact_sha256"
+                    ],
+                }
+                for profile in KFIND_PROFILES
+            }
+            | {
+                "kiwi": {
+                    "backend": "kiwi",
+                    "version": importlib.metadata.version("kiwipiepy"),
+                    "profile": None,
+                    "lexicon_artifact_sha256": None,
+                },
+                "lindera": {
+                    "backend": lindera_summary["backend"],
+                    "version": lindera_summary["version"],
+                    "profile": None,
+                    "lexicon_artifact_sha256": None,
+                },
             },
             {
-                "kfind": kfind_predictions,
+                profile: kfind_results[profile][0] for profile in KFIND_PROFILES
+            }
+            | {
                 "kiwi": kiwi_predictions,
                 "lindera": lindera_predictions,
             },
             {
-                "kfind": kfind_matches,
+                profile: kfind_results[profile][1] for profile in KFIND_PROFILES
+            }
+            | {
                 "kiwi": kiwi_matches,
                 "lindera": lindera_matches,
             },
             {
-                "kfind": kfind_performance,
+                profile: kfind_results[profile][2] for profile in KFIND_PROFILES
+            }
+            | {
                 "kiwi": kiwi_performance,
                 "lindera": lindera_performance,
             },
