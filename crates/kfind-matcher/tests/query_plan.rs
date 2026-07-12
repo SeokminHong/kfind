@@ -235,6 +235,9 @@ fn smart_copula_disambiguation_fixtures_preserve_union_results() {
             "union result differed for {:?}; future local expectation is {}",
             fixture.text, fixture.local_expected
         );
+        let counters = matcher.verification_counters(fixture.text.as_bytes());
+        assert_eq!(counters.local_lattice_candidate_hits, 1);
+        assert_eq!(counters.unique_analysis_windows, 1);
     }
 }
 

@@ -1,5 +1,5 @@
 use std::borrow::Cow;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::ops::Range;
@@ -8,12 +8,12 @@ use std::sync::Arc;
 use grep_matcher::{LineMatchKind, LineTerminator, Match, Matcher, NoCaptures, NoError};
 use kfind_morph::{ParticleChainModel, ParticleVerifier, RuleId, verify_predicate_continuation};
 use kfind_query::{
-    BranchEnvironment, BranchVerifier, CoreMapping, Origin, PhraseMatch, QueryPlan, SurfaceBranch,
-    VerifiedSpan, join_phrase_spans,
+    BranchEnvironment, BranchVerifier, ContextRequirement, CoreMapping, Origin, PhraseMatch,
+    QueryPlan, SurfaceBranch, VerifiedSpan, join_phrase_spans,
 };
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
-use crate::boundary::accepts_requirements;
+use crate::boundary::{accepts_requirements, surrounding_token_span};
 use crate::{AnchorBuildError, AnchorBuildLimits, AnchorEngine, AnchorHit};
 
 const MAX_VERIFIER_BYTES: usize = 256;
@@ -27,6 +27,14 @@ pub struct MorphMatcher {
     max_anchor_bytes: usize,
     is_line_local: bool,
     particle_verifier: ParticleVerifier,
+}
+
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+pub struct VerificationCounters {
+    pub raw_anchor_hits: usize,
+    pub verified_branch_hits: usize,
+    pub local_lattice_candidate_hits: usize,
+    pub unique_analysis_windows: usize,
 }
 
 impl MorphMatcher {
@@ -101,6 +109,30 @@ impl MorphMatcher {
             matches.push(matched);
         }
         matches
+    }
+
+    #[must_use]
+    pub fn verification_counters(&self, haystack: &[u8]) -> VerificationCounters {
+        let mut counters = VerificationCounters::default();
+        let mut analysis_windows = HashSet::new();
+        for hit in self.anchor_engine.hits(haystack, 0) {
+            counters.raw_anchor_hits += 1;
+            for branch_ref in &self.anchor_branches[hit.anchor_index] {
+                let branch =
+                    &self.plan.atoms[branch_ref.atom_index].branches[branch_ref.branch_index];
+                let Some(candidate) = self.verify_branch(haystack, &hit, branch) else {
+                    continue;
+                };
+                counters.verified_branch_hits += 1;
+                if branch.context_requirement == ContextRequirement::EojeolLattice {
+                    counters.local_lattice_candidate_hits += 1;
+                    let window = surrounding_token_span(haystack, candidate.token);
+                    analysis_windows.insert((window.start, window.end));
+                }
+            }
+        }
+        counters.unique_analysis_windows = analysis_windows.len();
+        counters
     }
 
     fn find_single_atom_at(&self, haystack: &[u8], at: usize) -> Option<PhraseMatch> {
