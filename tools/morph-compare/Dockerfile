@@ -26,6 +26,7 @@ COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
 COPY data ./data
 COPY scripts/build-full-pos.sh ./scripts/build-full-pos.sh
+COPY scripts/lib/full-pos-source.sh ./scripts/lib/full-pos-source.sh
 COPY tools/morph-compare/runner ./tools/morph-compare/runner
 RUN scripts/build-full-pos.sh /benchmark/full-pos \
     && cargo build \

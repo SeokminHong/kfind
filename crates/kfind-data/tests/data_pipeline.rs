@@ -5,8 +5,8 @@ use std::path::{Path, PathBuf};
 use kfind_data::{
     DataAlternation, DataErrorKind, DataFinePos, DataWarning, LexiconSources, NominalRecord,
     PosLexiconEntry, RuleSources, SurfaceOverride, collect_pos_entries, decode_pos_lexicon,
-    encode_pos_lexicon, extract_mecab_ko_dic, load_data_dir, parse_lexicons, parse_predicates_tsv,
-    parse_rule_set, parse_user_lexicon_toml, validate_data,
+    encode_pos_lexicon, extract_mecab_ko_dic, extract_mecab_morphology, load_data_dir,
+    parse_lexicons, parse_predicates_tsv, parse_rule_set, parse_user_lexicon_toml, validate_data,
 };
 
 fn data_root() -> PathBuf {
@@ -466,6 +466,46 @@ fn mecab_extractor_rejects_contextual_copula_surfaces() {
             },
         ]
     );
+}
+
+#[test]
+fn mecab_morphology_extractor_preserves_context_and_surface_entries() {
+    let csv = concat!(
+        "이,11,12,-120,VCP,*,F,이,*,*,*,*\n",
+        "보이,21,22,340,VCP,*,F,보이,Preanalysis,*,*,*\n",
+        "걸어,31,32,450,VV,*,F,걷,Inflect,*,*,*\n",
+        "기호,1,1,1,SY,*,F,기호,*,*,*,*\n",
+    );
+    let extraction = extract_mecab_morphology("morph.csv", Cursor::new(csv)).unwrap();
+
+    assert_eq!(extraction.rows_read, 4);
+    assert_eq!(extraction.skipped_unsupported_pos, 1);
+    assert_eq!(extraction.entries().len(), 3);
+    assert!(extraction.entries().iter().any(|entry| {
+        entry.surface == "보이"
+            && entry.pos == DataFinePos::Vcp
+            && entry.left_id == 21
+            && entry.right_id == 22
+            && entry.word_cost == 340
+    }));
+    assert!(extraction.entries().iter().any(|entry| {
+        entry.surface == "걸어"
+            && entry.pos == DataFinePos::Vv
+            && entry.left_id == 31
+            && entry.right_id == 32
+            && entry.word_cost == 450
+    }));
+}
+
+#[test]
+fn mecab_morphology_extractor_rejects_invalid_context_fields() {
+    let csv = "사용자,left,1,1,NNG,*,T,사용자,*,*,*,*\n";
+    let error = extract_mecab_morphology("morph.csv", Cursor::new(csv)).unwrap_err();
+
+    assert!(matches!(
+        *error.kind,
+        DataErrorKind::InvalidValue { ref field, .. } if field == "left_id"
+    ));
 }
 
 #[test]

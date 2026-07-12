@@ -1,6 +1,6 @@
 # 선택적 국소 형태 추론 작업 계획
 
-상태: P0 완료, P1 대기
+상태: P0·P1 완료, P2 대기
 적용 시점: v0.1.1 이후 실험 범위
 
 관련 문서:
@@ -8,6 +8,7 @@
 - [형태소 검색 개선 핸드오프](2026-07-12-morphology-handoff.md)
 - [copula smart-boundary 계획](2026-07-12-copula-boundary-plan.md)
 - [사전 확장 전략](../lexicon-scaling.md)
+- [prefix index 비교 결과](2026-07-12-morph-index-comparison.md)
 
 ## 결정
 
@@ -102,16 +103,27 @@ enum ContextRequirement {
 
 ### P1. prefix 사전 자료구조 선택
 
-1. 현재 full-POS artifact에서 표면형·품사·연결 ID를 분리한 benchmark fixture를 만든다.
+1. full-POS와 같은 고정 source snapshot에서 원본 표면형·품사·좌/우 연결 ID·비용을 보존한
+   별도 morphology-index benchmark fixture를 만든다. 정규화된 query 표제어 artifact와
+   corpus-side 분석 artifact는 분리한다.
 2. packed Double-Array trie와 FST 후보를 exact lookup, prefix 열거, 초기화, RSS로 비교한다.
 3. resident core와 mmap full resource의 cold/warm 동작을 각각 측정한다.
-4. 선택한 형식에 schema version, source digest, 통계와 검증기를 추가한다.
+4. 두 후보가 공유하는 container에 schema version, source digest, 통계, section digest와
+   검증기를 추가한 뒤 측정 결과로 index 형식을 선택한다.
 
 완료 조건:
 
 - 60만 표제어 규모에서 prefix 열거 비용과 peak RSS가 보고된다.
 - 손상, schema 불일치, source digest 불일치가 명시적 오류가 된다.
 - 자료구조 변경만으로 query 분석 결과가 달라지지 않는다.
+
+결과:
+
+- 729,173개 표면형과 757,627개 분석을 같은 payload로 측정했다.
+- packed Double-Array trie는 FST보다 index가 7,452,614 bytes 크지만 exact lookup은 약 6배,
+  common-prefix 열거는 약 4.3배 빨랐고 peak RSS는 28.1 MiB로 게이트 안이었다.
+- P2의 full morphology index는 읽기 전용 mmap Double-Array를 사용한다. FST 구현은 비교
+  기준으로만 유지한다.
 
 ### P2. 어절-local lattice shadow mode
 

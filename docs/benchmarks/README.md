@@ -45,3 +45,14 @@ python3 tools/morph-compare/render_charts.py \
 - [2026-07-12 비교 분석](2026-07-12-morphology-comparison.md)
 - [후속 개선 핸드오프](2026-07-12-morphology-handoff.md)
 - [선택적 국소 형태 추론 작업 계획](2026-07-12-selective-morphology-plan.md)
+
+## Morphology prefix index
+
+고정 MeCab snapshot의 표면형·품사·연결 ID·비용을 보존한 morphology index에서 packed
+Double-Array trie와 FST의 크기, 초기화, exact lookup, common-prefix 열거와 RSS를 비교한다.
+
+```console
+scripts/benchmark-morph-index.sh
+```
+
+- [2026-07-12 prefix index 비교 결과](2026-07-12-morph-index-comparison.md)
