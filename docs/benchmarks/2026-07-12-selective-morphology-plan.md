@@ -162,10 +162,10 @@ enum ContextRequirement {
 - KSL VCP는 precision 82.76%, recall 45.04%로 가장 약한 그룹이다. 비용이나 threshold를
   조정하기 전에 lattice path가 이 그룹의 양성과 음성을 구분하는지 확인한다.
 - `EojeolLattice` 대상은 1,160개 case의 1,647개 hit이며 두 kfind profile에서 동일하다.
-- `kfind-data`의 schema 2 resource는 729,173개 표면형, 757,627개 분석과
-  3,822×2,693 연결 비용 행렬, `char.def`, `unk.def`를 보존한다.
+- `kfind-data`의 schema 3 resource는 773,105개 표면형, 815,725개 source 분석과
+  3,822×2,693 연결 비용 행렬, `char.def`의 모든 class와 `unk.def` 분석을 보존한다.
 - 고정 source에서 생성한 `morphology.bin` SHA-256은
-  `c9aae9746c29a2848d4e5bff3b15d81601f795ba4d65cd893a7eefe9a2490ca6`다.
+  `50bbaa64b06a080c7fa09c13e21090388a1c0f5109ed413546e0004ce7794f23`다.
 - loader는 schema, source digest, section digest, payload offset·record, context ID·행렬 크기를
   검증한다. 이 resource는 아직 CLI와 matcher에 연결하지 않았다.
 - `AnalysisWindow`는 target을 포함하는 Unicode token 범위를 원문 256 bytes, NFC 64 scalar
@@ -175,14 +175,14 @@ enum ContextRequirement {
   Unicode 문자열의 안정 경계 round-trip을 검증했으며 검색 결과는 바꾸지 않는다.
 - report schema 4는 resource SHA-256, candidate별 원문·NFC span, 포함·미포함
   최저 비용, cost margin과 최대 4개의 완전 경로를 보존한다.
-- 1,647개 candidate 중 1,621개는 `reject`, 26개는 `NoCompletePath`였다. 양성은
-  reject 1,545개·경로 없음 20개, 음성은 reject 76개·경로 없음 6개다.
-- 1,620개 candidate에서 포함·미포함 경로가 모두 존재했고 모두 미포함 비용이
-  낮았다. margin 중앙값은 4,744였다. 나머지 한 건은 미포함 경로만 있었다.
-- node는 최대 89개로 4,096개 상한을 넘지 않았다. N-best는 모두 4개 이하였고,
-  두 경로가 있는 경우 각 최저 경로를 모두 포함했다.
+- 1,647개 candidate가 모두 평가됐고 `accept` 1,423개, `reject` 224개다. 오류와
+  `ambiguous`는 없다.
+- candidate target과 fixture gold span을 대조하면 gold target은 935개 중 885개를
+  수용하고 non-gold target은 712개 중 174개만 거절한다.
+- node는 최대 175개로 4,096개 상한을 넘지 않았다. N-best는 모두 4개 이하다.
 - shadow 평가는 시간·RSS 측정 뒤에 실행되며 union 결과를 필터링하지 않는다.
-  현재 source 비용만으로는 양성·음성을 구분하지 못하므로 P3를 진행하지 않는다.
+  gold target recall은 94.65%지만 non-gold target reject 비율이 24.44%이므로 P3를
+  진행하지 않는다.
 
 다음 lattice shadow 구현은 완료했다.
 
@@ -244,12 +244,11 @@ P2는 다음 무결한 작업 단위로 나눈다.
 3. 백업 branch의 morphology resource 생성·검증을 최신 `main` 위에 재구성한다. (완료)
 4. bounded 어절 추출과 NFC 원문 offset mapping을 별도 작업 단위로 재구성한다. (완료)
 5. lattice path와 N-best shadow report를 연결한다. (완료)
-6. 평가 결과 source 비용만으로는 판별력이 없어 P3는 보류한다. (완료)
+6. source 분석 보존형 schema 3으로 완전 경로와 query component 판정을 복구한다. (완료)
+7. gold target recall은 회복했지만 non-gold target 구분력이 부족하므로 P3는 보류한다. (완료)
 
-원인 분석 결과 query-side 품사 필터가 corpus resource의 어미·접사·숫자와 복합 `Inflect`
-분석을 제거한 것이 확인되었다. 다음 작업은 source 분석 보존형 schema와 축약형의 query
-component 포함 조건을 스펙에 확정하는 것이다. 그 전에는 threshold나 검색 결과를 변경하지
-않는다.
+다음 작업은 별도 blind source에서 비용 분포와 non-gold 오수용 원인을 확인하는 것이다.
+그 전에는 threshold나 검색 결과를 변경하지 않는다.
 
 각 단위는 독립적으로 포맷·lint·workspace test를 통과한 뒤 커밋한다. 백업 branch
 `codex/morph-lattice-shadow-backup-20260712-203332`는 prototype 참고 자료로만 사용하고,

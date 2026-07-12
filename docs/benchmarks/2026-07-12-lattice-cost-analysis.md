@@ -1,74 +1,51 @@
-# local lattice 비용 실패 분석
+# local lattice 비용 분석
 
 대상: 지정사 local-context 2,916건의 schema 4 shadow report
 
 ## 결론
 
-현재 lattice가 모든 candidate를 `reject`한 원인은 threshold가 아니라 morphology resource의
-분석 행 누락이다. query-side 품사 집합을 corpus-side resource 필터로 재사용하면서 어미,
-접사, 숫자와 복합 `Inflect` 분석이 제거되었다. 연결 비용 행렬의 방향과 합산은 MeCab 계약과
-일치한다.
+schema 2에서 모든 candidate가 `reject`된 원인은 threshold가 아니라 morphology resource의
+분석 행 누락이었다. query-side 품사 집합을 corpus-side 필터로 재사용하면서 어미, 접사,
+숫자와 복합 `Inflect` 분석이 제거되었다.
 
-P3 판정 적용은 보류한다. 다음 resource schema를 정할 때 query 품사와 corpus 분석 품사를
-분리하고, 축약형의 복합 분석이 query를 포함하는 조건을 먼저 확정해야 한다.
+schema 3은 source 분석과 모든 unknown class를 보존해 1,647개 candidate를 모두 평가한다.
+gold target recall은 94.65%지만 non-gold target reject 비율은 24.44%다. source 최저 비용은
+경로 존재 문제를 해결했지만 제품 판정에 필요한 구분력은 부족하므로 P3 적용은 보류한다.
 
-## `NoCompletePath`
+## schema 2 실패 원인
 
-- 오류 candidate는 26개, 고유 분석 어절은 16개다.
-- 모든 어절이 숫자를 포함한다. 예: `1주일`, `1박2일`, `68억이다`, `12명이고`.
-- lattice는 HANGUL 미등록어 node만 만든다. source의 `NUMERIC` unknown class와 `SN` 분석은
-  사용하지 않는다.
-- 숫자 byte 구간을 덮는 node가 없으므로 BOS에서 EOS까지 완전 경로가 만들어지지 않는다.
+- 오류 candidate는 26개, 고유 분석 어절은 16개였다.
+- 모든 오류 어절이 숫자를 포함했다. 예: `1주일`, `1박2일`, `68억이다`, `12명이고`.
+- HANGUL 미등록어 node만 구성해 source의 `NUMERIC` unknown class와 `SN` 분석을 사용하지
+  못했다.
+- source 816,283개 행 중 57,923개를 제외했고, `Inflect` 44,820개 중 723개만 보존했다.
+- `EC`, `EF`, `EP`, `ETM`, `ETN`, `XR`, `XSN`, `NNBC`가 경로에서 누락됐다.
 
-## resource 손실
+이 누락 때문에 `것이다`는 실제 `것/NNB + 이/VCP + 다/EF` 대신
+`것/NNB + 이/JKS + 다/MAG`를 최저 경로로 선택했다. `인`, `일`의 `VCP+ETM` 복합 행도
+단일 query 품사만 저장하는 schema로는 표현할 수 없었다.
 
-| 항목 | source 행 | 현재 보존 | 제외 |
-| --- | ---: | ---: | ---: |
-| 전체 | 816,283 | 758,360 | 57,923 |
-| `Inflect` | 44,820 | 723 | 44,097 |
+## schema 3 결과
 
-`EC` 2,547개, `EF` 1,821개, `EP` 51개, `ETM` 133개, `ETN` 14개는 모두 제외된다.
-`XR`, `XSN`, `NNBC`도 query 품사 집합에 없으므로 경로 node가 되지 않는다.
+resource는 NFC 표면형 773,105개와 source 분석 815,725개, 3,822×2,693 연결 비용 행렬을
+보존한다. SHA-256은
+`50bbaa64b06a080c7fa09c13e21090388a1c0f5109ed413546e0004ce7794f23`다.
 
-이 누락 때문에 실제 어미 경로 대신 동음이의 품사로 어절을 완성한다. `것이다`의 현재
-최저 미포함 경로는 `것/NNB + 이/JKS + 다/MAG`이고, 최저 포함 경로는
-`것/NNB + 이/VCP + 다/JX`다. source의 `다/EF`는 어느 경로에도 없다.
-
-## 비용 근거
-
-candidate target과 fixture gold span을 대조해 case label 안의 다른 anchor를 분리했다.
-
-| target 종류 | 평가 candidate | total margin 중앙값 | word delta 중앙값 | connection delta 중앙값 |
+| target 종류 | candidate | accept | reject | accept 비율 |
 | --- | ---: | ---: | ---: | ---: |
-| gold target | 925 | 4,744 | 343 | 2,551 |
-| non-gold target | 695 | 5,091 | 3,294 | 927 |
+| gold target | 935 | 885 | 50 | 94.65% |
+| non-gold target | 712 | 538 | 174 | 75.56% |
 
-gold target에서도 모두 미포함 경로가 낮다. 실제 지정사 target의 reject는 주로 누락된
-어미·복합 분석 때문에 잘못된 연결을 선택한 결과다.
+- 1,647개 candidate가 모두 `evaluated`였고 오류와 `ambiguous`는 없었다.
+- 전체 판정은 `accept` 1,423개, `reject` 224개다.
+- 완전 경로는 candidate마다 최대 4개, node는 최대 175개로 상한 안에 있다.
+- report 경로에 `VCP+ETM` 등 복합 품사가 원문 그대로 남는다.
+- union 검색 결과, CLI와 timed 성능 경로는 바뀌지 않는다.
 
-동일 source 비용으로 대표 경로를 다시 계산하면 다음과 같다.
-
-| 표면형 | 현재 경로 | source 분석 경로 | 비용 차이 |
-| --- | ---: | ---: | ---: |
-| `것이다` | 포함 7,342 / 미포함 3,157 | `것/NNB + 이/VCP + 다/EF` 2,001 | source 경로가 미포함보다 1,156 낮음 |
-| `인` | atomic `VCP` tail 6,626 | `VCP+ETM` tail 1,958 | 4,668 감소 |
-| `일` | atomic `VCP` tail 6,031 | `VCP+ETM` tail 2,821 | 3,210 감소 |
-
-`인`과 `일`의 복합 행은 표면형 하나에 지정사와 관형형 어미가 함께 들어간다. 현재 schema는
-단일 `DataFinePos`만 저장하므로 이 분석을 표현할 수 없다.
-
-## 다음 계약 선택
-
-권장안은 corpus-side morphology schema를 source 분석 보존형으로 바꾸는 것이다.
-
-1. query tag의 `DataFinePos`와 corpus node 품사를 분리한다.
-2. 기본 어미·접사·단위 명사와 모든 source unknown class를 보존한다.
-3. `Inflect`의 품사열과 expression을 보존한다.
-4. 축약된 한 음절 node가 query component를 포함하는 조건을 스펙에 정의한다.
-5. resource를 다시 생성한 뒤 같은 2,916건에서 판별력을 재측정한다.
-
-최소 품사 몇 개와 VCP 행만 추가하는 방식은 다른 활용에서 같은 누락을 반복하고 source 비용의
-의미를 다시 훼손하므로 권장하지 않는다.
+case label에는 동일 문장의 다른 anchor도 포함될 수 있어 판별력은 candidate target과 fixture
+gold span의 byte 중첩으로 계산했다. 이 기준에서 precision은 62.19%, recall은 94.65%,
+specificity는 24.44%다. threshold를 추가하기 전에 별도 blind source에서 비용 분포와
+non-gold 오수용 원인을 확인해야 한다.
 
 MeCab의 CSV와 연결 행렬 형식은 [공식 사전 구조 문서](https://taku910.github.io/mecab/dic-detail.html)를
 기준으로 대조했다.

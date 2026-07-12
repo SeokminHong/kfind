@@ -14,15 +14,15 @@ fixture SHA-256: `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21
 - 최신 `main` CI 통과, 열린 PR·issue 없음
 - 작업 branch: `codex/morphology-resource-rebuild`
 - P0 context 계측과 P1 packed Double-Array 선택 완료
-- P2 morphology resource 생성·검증 재구성 완료
+- P2 source 분석 보존형 morphology resource schema 3 완료
 - P2 bounded 어절 추출과 NFC 원문 offset mapping 재구성 완료
 - P2 local lattice·N-best shadow report 완료
-- P2 prototype은 로컬 백업 branch
-  `codex/morph-lattice-shadow-backup-20260712-203332`에 보존되어 있으나 최신 `main`에는 미반영
+- 이전 P2 prototype은 로컬 백업 branch
+  `codex/morph-lattice-shadow-backup-20260712-203332`에 참고용으로 보존
 
 - kfind embedded profile: F1 82.81%, recall 70.80%, precision 99.72%
 - 품질 순위: Kiwi 92.01% > Lindera 88.02% > kfind 82.81%
-- kfind 비용: 16,630.9 cases/s, p95 0.1366 ms, peak RSS 5.0 MiB (5회 median)
+- kfind 비용: 16,863.3 cases/s, p95 0.1362 ms, peak RSS 5.0 MiB (5회 median)
 - kfind 오류: FN 146, FP 1
 - 가장 큰 FN 영역: 명사 71, 동사 32, 형용사 25
 
@@ -77,21 +77,21 @@ profile의 FN은 146개다.
   Lindera는 89.43%/97.59%다.
 - `EojeolLattice` 대상은 1,160개 case의 1,647개 hit이다. 현재 union 결과는 유지하며 이
   baseline을 P2 lattice path 판별력 평가에 사용한다.
-- `kfind-data`에 packed Double-Array morphology resource 생성·검증 경로를 재구성했다.
-  resource는 729,173개 표면형, 757,627개 분석, 3,822×2,693 연결 비용 행렬과 미등록어
-  정의를 보존하며 SHA-256은
-  `c9aae9746c29a2848d4e5bff3b15d81601f795ba4d65cd893a7eefe9a2490ca6`다.
+- `kfind-data`의 corpus-side resource를 schema 3으로 갱신했다. resource는 773,105개
+  NFC 표면형, 815,725개 source 분석, 3,822×2,693 연결 비용 행렬, 모든 문자 class와
+  미등록어 분석을 보존하며 SHA-256은
+  `50bbaa64b06a080c7fa09c13e21090388a1c0f5109ed413546e0004ce7794f23`다.
 - schema·source·section digest, payload·context 범위 검증 실패를 구분한다. CLI와 matcher는
   아직 resource를 로드하지 않으므로 union 검색 결과는 변하지 않는다.
 - `AnalysisWindow`는 검증 target 주변의 Unicode token을 최대 256 raw bytes와 64 NFC
   scalar로 제한하고 원문·NFC의 안정된 byte 경계를 양방향 매핑한다. UTF-8 오류와 상한 초과는
   명시적 오류다. lattice shadow는 성능 측정 뒤에 실행되며 검색 결과를 바꾸지 않는다.
-- 1,647개 lattice candidate 중 양성 1,545개와 음성 76개가 `reject`였고,
-  양성 20개와 음성 6개는 `NoCompletePath`였다. `accept`와 `ambiguous`는 없었다.
-- 1,620개에서 포함·미포함 경로가 모두 존재했지만 모두 미포함 비용이
-  낮았다. 현재 비용은 지정사 양성·음성을 구분하지 못하므로 P3는 보류한다.
-- [1 GiB low-hit 보고서](2026-07-12-1gib-mixed.md)는 kfind 0.0490초, rg 0.0410초,
-  wall 1.195배, rg 대비 throughput 83.7%, RSS 7.31 MiB로 v0.1 게이트를 통과했다.
+- 1,647개 lattice candidate를 모두 평가해 `accept` 1,423개, `reject` 224개를 얻었다.
+  오류와 `ambiguous`는 없다.
+- gold target 935개 중 885개를 수용하지만 non-gold target 712개 중 174개만 거절한다.
+  non-gold reject 비율 24.44%로 제품 판정에는 부족해 P3는 보류한다.
+- [1 GiB low-hit 보고서](2026-07-12-1gib-mixed.md)는 kfind와 rg 모두 0.0470초,
+  throughput 21,787.23 MiB/s, kfind RSS 7.23 MiB로 v0.1 게이트를 통과했다.
 
 dev 명사 FN 70개 중 64개는 사전 누락이 아니라 smart boundary 거부다. 합성어 substring
 계약을 완화하면 hard-negative 정밀도와 충돌하므로 이번 어휘 보강에는 포함하지 않았다.
@@ -265,11 +265,9 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. corpus-side morphology resource가 query tag와 독립적으로 source 품사·`Inflect` 분석을
-   보존하는 schema를 스펙에 확정한다.
-2. `인`, `일`처럼 한 음절에 합성된 node의 query component 포함 조건을 확정한다.
-3. 모든 source unknown class를 사용할지 범위를 확정한다.
-4. 계약 확정 전에는 threshold, fixture 가중치나 검색 결과를 변경하지 않는다.
+1. 별도 blind source에서 schema 3 비용 분포와 판별력을 확인한다.
+2. non-gold target 오수용을 source·표면형·선택 경로별로 분류한다.
+3. 검증 전에는 threshold, fixture 가중치나 검색 결과를 변경하지 않는다.
 
 이어갈 때:
 
