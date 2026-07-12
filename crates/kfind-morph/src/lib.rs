@@ -1,6 +1,7 @@
 //! Korean syllable operations, lexicons, and morphology rules.
 
 mod domain;
+mod lattice;
 
 pub mod hangul;
 pub mod particle;
@@ -14,6 +15,10 @@ pub use domain::{
 pub use hangul::{
     Syllable, add_final, compose_syllable, decompose_syllable, drop_final, drop_last_final,
     has_final, has_rieul_final, replace_final, replace_last_final, replace_last_vowel,
+};
+pub use lattice::{
+    DEFAULT_LATTICE_NODE_LIMIT, LocalLatticeDecision, LocalLatticeError, LocalLatticeNode,
+    LocalLatticePath, LocalLatticeReport, evaluate_local_lattice,
 };
 pub use particle::{
     FinalCondition, ParticleAllomorph, ParticleChainModel, ParticleKind, ParticleMatch,
