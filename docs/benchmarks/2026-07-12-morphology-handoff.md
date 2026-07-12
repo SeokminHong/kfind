@@ -2,7 +2,7 @@
 
 기준 보고서: [2026-07-12 형태소 비교 분석](2026-07-12-morphology-comparison.md)
 
-다음 작업 계획: [선택적 국소 형태 추론](2026-07-12-selective-morphology-plan.md)
+다음 작업 계획: [선택적 국소 형태 추론 P1](2026-07-12-selective-morphology-plan.md)
 
 fixture SHA-256: `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21ff`
 
@@ -46,6 +46,10 @@ profile의 FN은 146개다.
   별도 후속 범위다.
 - MeCab의 문맥용 계사 표면형 14개를 표제어 후보에서 제외했다. `보이다`는 동사·보조 동사
   분석만 보존하고, 비정규 copula stem은 형태 생성 전에 거부한다.
+- smart copula branch를 `EojeolLattice` 대상으로 표시했다. token·any와 literal 경로는
+  대상이 아니며 기본 union 결과는 변하지 않는다.
+- shadow report schema 3은 case별 raw anchor hit, verifier 통과 branch hit, local 대상,
+  고유 분석 어절과 대상 anchor·좌우 boundary 요구사항을 성능 측정 구간 밖에서 기록한다.
 
 dev 명사 FN 70개 중 64개는 사전 누락이 아니라 smart boundary 거부다. 합성어 substring
 계약을 완화하면 hard-negative 정밀도와 충돌하므로 이번 어휘 보강에는 포함하지 않았다.
@@ -105,9 +109,9 @@ observed span: 매일의 마지막 음절
 - corpus 단어 denylist와 fixture 전용 branch를 추가하지 않는다.
 - 기존 copula positive와 `--boundary any` 계약을 유지한다.
 
-### P0. 선택적 국소 형태 추론의 계약과 측정을 고정한다 (다음 작업)
+### P0. 선택적 국소 형태 추론의 계약과 측정을 고정한다 (완료)
 
-[새 작업 계획](2026-07-12-selective-morphology-plan.md)의 P0만 먼저 수행한다.
+[새 작업 계획](2026-07-12-selective-morphology-plan.md)의 P0를 수행했다.
 
 1. `boundary`와 `disambiguation`, union 기본값과 shadow 측정 범위를 스펙에 추가한다.
 2. query branch의 context requirement를 표현하되 검색 결과는 바꾸지 않는다.
