@@ -195,6 +195,97 @@ fn core_predicate_analysis_suppresses_full_pos_homonyms() {
 }
 
 #[test]
+fn user_replace_suppresses_lazy_full_pos_category() {
+    let full_data = LexiconData {
+        predicates: vec![PredicateRecord {
+            lemma: "달리다".to_owned(),
+            pos: DataFinePos::Vv,
+            alternation: DataAlternation::Regular,
+            flags: BTreeSet::new(),
+            overrides: Vec::new(),
+        }],
+        ..LexiconData::default()
+    };
+    let binary = encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap();
+    let mut lexicons = Lexicons::embedded_with(Some(&binary), None).unwrap();
+    let user = parse_user_lexicon_toml(
+        "user.toml",
+        concat!(
+            "[[predicate]]\n",
+            "lemma = \"달리다\"\n",
+            "pos = \"verb\"\n",
+            "alternation = \"DToL\"\n",
+            "replace = true\n",
+        ),
+        lexicons.rules(),
+    )
+    .unwrap();
+    lexicons.merge_user(&user);
+    let analyzer = LexiconQueryAnalyzer::new(Arc::new(lexicons));
+
+    let analyses = analyzer.analyze(&atom("달리다")).unwrap();
+
+    assert_eq!(analyses.len(), 1);
+    assert_eq!(analyses[0].source, AnalysisSource::UserLexicon);
+    assert!(matches!(
+        &analyses[0].morphology,
+        Morphology::Predicate(predicate)
+            if predicate.alternation == LexicalAlternation::DToL
+    ));
+}
+
+#[test]
+fn user_append_preserves_lazy_full_pos_candidate() {
+    let full_data = LexiconData {
+        predicates: vec![PredicateRecord {
+            lemma: "달리다".to_owned(),
+            pos: DataFinePos::Vv,
+            alternation: DataAlternation::Regular,
+            flags: BTreeSet::new(),
+            overrides: Vec::new(),
+        }],
+        ..LexiconData::default()
+    };
+    let binary = encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap();
+    let mut lexicons = Lexicons::embedded_with(Some(&binary), None).unwrap();
+    let user = parse_user_lexicon_toml(
+        "user.toml",
+        concat!(
+            "[[predicate]]\n",
+            "lemma = \"달리다\"\n",
+            "pos = \"verb\"\n",
+            "alternation = \"DToL\"\n",
+        ),
+        lexicons.rules(),
+    )
+    .unwrap();
+    lexicons.merge_user(&user);
+    let analyzer = LexiconQueryAnalyzer::new(Arc::new(lexicons));
+
+    let analyses = analyzer.analyze(&atom("달리다")).unwrap();
+
+    assert_eq!(analyses.len(), 2);
+    assert_eq!(analyses[0].source, AnalysisSource::FullPosLexicon);
+    assert_eq!(analyses[1].source, AnalysisSource::UserLexicon);
+    assert!(analyses.iter().any(|analysis| {
+        analysis.source == AnalysisSource::FullPosLexicon
+            && matches!(
+                &analysis.morphology,
+                Morphology::Predicate(predicate)
+                    if predicate.alternation == LexicalAlternation::Regular
+            )
+    }));
+    assert!(analyses.iter().any(|analysis| {
+        analysis.source == AnalysisSource::UserLexicon
+            && matches!(
+                &analysis.morphology,
+                Morphology::Predicate(predicate)
+                    if predicate.alternation == LexicalAlternation::DToL
+            )
+    }));
+}
+
+#[test]
 fn user_replace_removes_only_the_matching_morphology_category() {
     let mut lexicons = Lexicons::embedded().unwrap();
     let user = parse_user_lexicon_toml(

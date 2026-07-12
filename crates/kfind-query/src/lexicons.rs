@@ -1,10 +1,11 @@
-use std::collections::BTreeMap;
+use std::borrow::Cow;
+use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
 use kfind_data::{
-    DataAlternation, DataError, DataFinePos, DerivationRule, LexiconData, LexiconSources,
-    PosLexiconEntry, RuleSet, RuleSources, UserLexicon, decode_pos_lexicon, parse_lexicons,
-    parse_rule_set,
+    DataAlternation, DataError, DataFinePos, DecodedPosLexicon, DerivationRule, LexiconData,
+    LexiconSources, PosLexiconEntry, RuleSet, RuleSources, UserLexicon, decode_pos_lexicon,
+    parse_lexicons, parse_rule_set,
 };
 use kfind_morph::{
     CoarsePos, ContinuationState, FinePos, LexicalAlternation, PredicateEntry, PredicateFlags,
@@ -27,9 +28,11 @@ const PARTICLE_RULES: &str = include_str!("../../../data/rules/particles.toml");
 
 #[derive(Debug, Clone)]
 pub struct Lexicons {
-    entries: BTreeMap<Box<str>, Vec<Analysis>>,
+    materialized_entries: BTreeMap<Box<str>, Vec<Analysis>>,
     rules: Arc<RuleSet>,
-    full_pos_loaded: bool,
+    full_pos: Option<DecodedPosLexicon>,
+    replaced_full_predicates: BTreeSet<Box<str>>,
+    replaced_full_nominals: BTreeSet<Box<str>>,
 }
 
 impl Lexicons {
@@ -48,9 +51,11 @@ impl Lexicons {
             particles: PARTICLE_RULES,
         })?;
         let mut result = Self {
-            entries: BTreeMap::new(),
+            materialized_entries: BTreeMap::new(),
             rules: Arc::new(rules),
-            full_pos_loaded: false,
+            full_pos: None,
+            replaced_full_predicates: BTreeSet::new(),
+            replaced_full_nominals: BTreeSet::new(),
         };
         result.insert_core(&lexicon);
         Ok(result)
@@ -71,11 +76,7 @@ impl Lexicons {
     }
 
     pub fn load_full_pos(&mut self, input: &[u8]) -> Result<(), DataError> {
-        let decoded = decode_pos_lexicon(input)?;
-        for entry in decoded.entries() {
-            self.insert_full_pos(entry);
-        }
-        self.full_pos_loaded = true;
+        self.full_pos = Some(decode_pos_lexicon(input)?);
         Ok(())
     }
 
@@ -83,6 +84,8 @@ impl Lexicons {
         for record in &user.predicates {
             if record.replace {
                 self.remove_morphology(&record.entry.lemma, MorphologyKind::Predicate);
+                self.replaced_full_predicates
+                    .insert(record.entry.lemma.clone().into_boxed_str());
             }
             self.insert_analysis(
                 record.entry.lemma.clone().into_boxed_str(),
@@ -93,6 +96,8 @@ impl Lexicons {
         for record in &user.nominals {
             if record.replace {
                 self.remove_morphology(&record.entry.lemma, MorphologyKind::Nominal);
+                self.replaced_full_nominals
+                    .insert(record.entry.lemma.clone().into_boxed_str());
             }
             self.insert_analysis(
                 record.entry.lemma.clone().into_boxed_str(),
@@ -108,8 +113,33 @@ impl Lexicons {
     }
 
     #[must_use]
-    pub fn lookup(&self, surface: &str) -> &[Analysis] {
-        self.entries.get(surface).map_or(&[], Vec::as_slice)
+    pub fn lookup(&self, surface: &str) -> Cow<'_, [Analysis]> {
+        let materialized = self
+            .materialized_entries
+            .get(surface)
+            .map(Vec::as_slice)
+            .unwrap_or(&[]);
+        let Some(full_pos) = &self.full_pos else {
+            return Cow::Borrowed(materialized);
+        };
+        let candidates = full_pos.lookup(surface);
+        if candidates.is_empty() {
+            return Cow::Borrowed(materialized);
+        }
+
+        let mut analyses = materialized
+            .iter()
+            .filter(|analysis| analysis.source != AnalysisSource::UserLexicon)
+            .cloned()
+            .collect::<Vec<_>>();
+        self.append_full_pos_analyses(surface, candidates, &mut analyses);
+        analyses.extend(
+            materialized
+                .iter()
+                .filter(|analysis| analysis.source == AnalysisSource::UserLexicon)
+                .cloned(),
+        );
+        Cow::Owned(analyses)
     }
 
     #[must_use]
@@ -118,8 +148,8 @@ impl Lexicons {
     }
 
     #[must_use]
-    pub const fn full_pos_loaded(&self) -> bool {
-        self.full_pos_loaded
+    pub fn full_pos_loaded(&self) -> bool {
+        self.full_pos.is_some()
     }
 
     pub(crate) fn productive_predicate(&self, lemma: &str) -> Option<Analysis> {
@@ -193,7 +223,38 @@ impl Lexicons {
         }
     }
 
-    fn insert_full_pos(&mut self, entry: &PosLexiconEntry) {
+    fn append_full_pos_analyses(
+        &self,
+        lemma: &str,
+        candidates: &[PosLexiconEntry],
+        analyses: &mut Vec<Analysis>,
+    ) {
+        let has_core_predicate = analyses.iter().any(|analysis| {
+            analysis.source == AnalysisSource::BuiltinLexicon
+                && matches!(analysis.morphology, Morphology::Predicate(_))
+        });
+        for entry in candidates {
+            let fine_pos = data_fine_pos(entry.pos);
+            let suppressed_by_user = (entry.pos.is_predicate()
+                && self.replaced_full_predicates.contains(lemma))
+                || (entry.pos.is_nominal() && self.replaced_full_nominals.contains(lemma));
+            let duplicates_core = analyses.iter().any(|analysis| {
+                analysis.source == AnalysisSource::BuiltinLexicon && analysis.fine_pos == fine_pos
+            });
+            if suppressed_by_user
+                || (entry.pos.is_predicate() && has_core_predicate)
+                || duplicates_core
+            {
+                continue;
+            }
+            let analysis = self.full_pos_analysis(entry);
+            if !analyses.contains(&analysis) {
+                analyses.push(analysis);
+            }
+        }
+    }
+
+    fn full_pos_analysis(&self, entry: &PosLexiconEntry) -> Analysis {
         let fine_pos = data_fine_pos(entry.pos);
         let productive_alternation = entry.pos.is_predicate().then(|| {
             self.productive_predicate(&entry.lemma)
@@ -203,40 +264,26 @@ impl Lexicons {
                     _ => None,
                 })
         });
-        let analysis = default_analysis(
+        default_analysis(
             &entry.lemma,
             entry.pos,
             productive_alternation.flatten(),
             AnalysisSource::FullPosLexicon,
-        );
-        let has_core_predicate = entry.pos.is_predicate()
-            && self.lookup(&entry.lemma).iter().any(|existing| {
-                existing.source != AnalysisSource::FullPosLexicon
-                    && matches!(existing.morphology, Morphology::Predicate(_))
-            });
-        self.insert_analysis(
-            entry.lemma.clone().into_boxed_str(),
-            analysis,
-            has_core_predicate
-                || self
-                    .lookup(&entry.lemma)
-                    .iter()
-                    .any(|existing| existing.fine_pos == fine_pos),
-        );
+        )
     }
 
     fn insert_analysis(&mut self, key: Box<str>, analysis: Analysis, skip: bool) {
         if skip {
             return;
         }
-        let entries = self.entries.entry(key).or_default();
+        let entries = self.materialized_entries.entry(key).or_default();
         if !entries.contains(&analysis) {
             entries.push(analysis);
         }
     }
 
     fn remove_morphology(&mut self, lemma: &str, kind: MorphologyKind) {
-        if let Some(entries) = self.entries.get_mut(lemma) {
+        if let Some(entries) = self.materialized_entries.get_mut(lemma) {
             entries.retain(|analysis| kind.does_not_match(&analysis.morphology));
         }
     }
@@ -469,4 +516,36 @@ fn alternation_from_rule_id(id: &str) -> Option<LexicalAlternation> {
         "lexical.suppletive" => LexicalAlternation::Suppletive,
         _ => return None,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use kfind_data::{NominalRecord, collect_pos_entries, encode_pos_lexicon};
+
+    use super::*;
+
+    #[test]
+    fn loading_full_pos_does_not_materialize_all_entries() {
+        let mut lexicons = Lexicons::embedded().unwrap();
+        let materialized_before = lexicons.materialized_entries.len();
+        let full_data = LexiconData {
+            nominals: vec![NominalRecord {
+                lemma: "대규모사전".to_owned(),
+                pos: DataFinePos::Nng,
+                flags: BTreeSet::new(),
+                overrides: Vec::new(),
+            }],
+            ..LexiconData::default()
+        };
+        let binary = encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap();
+
+        lexicons.load_full_pos(&binary).unwrap();
+
+        assert_eq!(lexicons.materialized_entries.len(), materialized_before);
+        assert!(lexicons.lookup("없는표제어").is_empty());
+        assert!(lexicons.lookup("대규모사전").iter().any(|analysis| {
+            analysis.source == AnalysisSource::FullPosLexicon
+                && analysis.fine_pos == FinePos::CommonNoun
+        }));
+    }
 }

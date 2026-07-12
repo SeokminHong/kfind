@@ -16,6 +16,8 @@
 - 어미, 조사 연쇄, 파생 규칙의 정확한 허용 목록과 전이는 저장소의 버전 관리되는 `data/rules` 파일을 규범 데이터로 삼는다. 목록 밖 조합은 생성하지 않는다.
 - full POS lexicon은 `mecab-ko-dic 2.1.1-20180720`의 Apache-2.0 데이터를 bootstrap 원본으로 사용한다. 빌드 시 표제어와 품사만 추출하고, 런타임 문장 분석 데이터와 알고리즘은 포함하지 않는다. `Inflect`와 `Preanalysis` 행은 제외하며, 문맥용 지정사 표면형은 표제어로 승격하지 않고 `VCP=이`, `VCN=아니`만 기본형으로 정규화한다.
 - full POS lexicon의 용언 품사 후보도 POS 전용 산출물에 보존한다. 동일 표제어에 core 용언 분석이 하나라도 있으면 full POS 용언 분석은 추가하지 않고 core 분석을 우선한다. 그 밖의 용언은 해당 품사와 일치하는 생산적 접미 규칙을 먼저 적용하고, 일치하는 규칙이 없을 때만 제한된 규칙형 분석을 사용한다.
+- full POS runtime resource는 검증된 정렬 lookup index로 보존한다. CLI, Rust library와 WASM binding은 초기화할 때 전체 entry를 일반 분석 map으로 전개하지 않으며, query atom의 표제어를 조회할 때 일치하는 품사 후보만 `Analysis`로 만든다.
+- 지연 조회에서도 기존 우선순위를 보존한다. core 용언은 같은 표제어의 full POS 용언을 억제하고, core의 같은 세부 품사는 중복하지 않는다. user lexicon의 append는 full POS 후보를 보존하며 `replace = true`는 해당 morphology category의 core와 full POS 후보를 모두 대체한다.
 - core lexicon은 전체 표제어 목록이 아니라 불규칙 활용, 품사 중의성, 기능어, 표면형 override를 담는 예외 계층이다. 일반 표제어 coverage는 full POS resource가 담당하고, core entry 수를 corpus recall에 맞춰 무제한 늘리지 않는다.
 - full POS 산출물은 전체 entry 수, 고유 표제어 수, 품사별 entry 수를 기계 판독 가능한 통계 파일로 포함한다. source를 추가하거나 갱신할 때는 이 통계와 충돌·제외 건수의 변화를 검토한다.
 - 공개 사전은 고정된 전체 내려받기 snapshot만 릴리스 입력으로 사용한다. 원본 URL·버전 또는 생성 일자·SHA-256·라이선스·추출 필드·추출기 버전을 기록하며, 인증키가 필요한 live API 응답은 릴리스 빌드 입력이나 런타임 의존성으로 사용하지 않는다.
@@ -57,6 +59,7 @@
 - 파일 구성은 1,000개의 64 KiB 작은 파일과 남은 bytes를 균등 분배한 24개의 큰 파일로 고정한다. 생성물은 `target/` 아래에 두고 보고서 생성 뒤 기본적으로 삭제한다.
 - 낮은 hit 비율 비교는 생성 문장에 없는 고정 literal을 `kfind --literal --quiet --no-ignore`와 `rg -F --quiet --no-ignore`로 각각 전체 scan한다. 두 명령의 종료 코드 1은 정상적인 no-match 결과다.
 - 전역 품사가 literal로 확정된 `--literal`과 `--pos literal` 쿼리는 full POS lexicon을 읽거나 디코딩하지 않는다. `--explain-query`는 `not required (literal query)` 상태를 출력하고 full POS lexicon 누락 진단을 내지 않는다.
+- full POS startup 측정은 같은 고정 artifact로 native CLI의 빈 입력 auto query와 Node WASM의 `Kfind.withFullPos`를 각각 실행한다. warm process 3회 이상의 초기화 시간과 peak RSS 또는 process RSS 증가량을 기록하며 literal scan benchmark와 분리한다.
 - 보고서는 corpus 설정과 checksum, 저장소에서 commit object로 해석되는 Git revision, CPU, memory, storage, OS, 도구 버전, 실제 명령, 각 run의 wall time·throughput·maximum RSS, median 비교값을 기록한다.
 - 기본 측정은 한 번의 warm-up 뒤 warm-cache 3회를 수행한다. timer 정밀도를 확보하기 위해 각 run은 동일 scan 10회의 합산 시간을 측정해 1회당 평균을 기록한다. 권한이 필요한 cache purge를 자동 실행하지 않으며 cold-cache 결과를 측정하지 않았으면 보고서에 명시한다.
 
