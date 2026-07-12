@@ -8,9 +8,10 @@ import json
 from pathlib import Path
 
 
-BACKENDS = ("kfind", "kiwi", "lindera")
+BACKENDS = ("kfind-embedded", "kfind-full-pos", "kiwi", "lindera")
 COLORS = {
-    "kfind": "#2563eb",
+    "kfind-embedded": "#2563eb",
+    "kfind-full-pos": "#7c3aed",
     "kiwi": "#059669",
     "lindera": "#d97706",
 }
@@ -87,7 +88,7 @@ def render_quality(report: dict[str, object]) -> str:
     gap = 12
     for group_index, (label, key) in enumerate(metrics):
         center = left + group_width * (group_index + 0.5)
-        start = center - (len(BACKENDS) * bar_width + 2 * gap) / 2
+        start = center - (len(BACKENDS) * bar_width + (len(BACKENDS) - 1) * gap) / 2
         for backend_index, backend in enumerate(BACKENDS):
             value = float(report["quality"][backend]["overall"][key])
             x = start + backend_index * (bar_width + gap)
@@ -101,12 +102,12 @@ def render_quality(report: dict[str, object]) -> str:
     for backend in BACKENDS:
         body.append(rect(legend_x, legend_y - 13, 16, 16, COLORS[backend], 2))
         body.append(text(legend_x + 24, legend_y, backend))
-        legend_x += 118
+        legend_x += 190
     return svg_document(
         width,
         height,
         "Held-out morphology quality",
-        "Grouped bars compare accuracy, precision, recall, and F1 for kfind, Kiwi, and Lindera.",
+        "Grouped bars compare accuracy, precision, recall, and F1 for both kfind profiles, Kiwi, and Lindera.",
         body,
     )
 
@@ -148,7 +149,7 @@ def render_performance(report: dict[str, object]) -> str:
             body.append(rect(bar_x, row_y + 7, bar_width, 25, COLORS[backend]))
             rendered = f"{value:.1f}" if value >= 10 else f"{value:.4f}"
             body.append(text(bar_x + bar_max_width + 8, row_y + 25, f"{rendered} {unit}"))
-        axis_y = chart_top + 3 * 60
+        axis_y = chart_top + len(BACKENDS) * 60
         body.append(f'<line class="axis" x1="{panel_x + label_width}" y1="{axis_y}" '
                     f'x2="{panel_x + label_width + bar_max_width}" y2="{axis_y}"/>')
     return svg_document(
