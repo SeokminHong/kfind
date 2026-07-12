@@ -418,3 +418,5 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 아쉽다	adjective	아쉬운 결과가 남았다.	match	b-irregular
 쉽다	adjective	쉬운 방법을 선택했다.	match	b-irregular
 춥다	adjective	추운 날씨에 외출했다.	match	b-irregular
+살다	verb	서울에 살며 학교에 다닌다.	match	regular
+돕다	verb	서로 도우며 문제를 해결했다.	match	b-irregular

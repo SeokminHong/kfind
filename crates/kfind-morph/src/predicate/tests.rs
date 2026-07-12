@@ -84,7 +84,14 @@ fn regular_stems_cover_consonant_and_vowel_endings() {
         PredicatePos::Verb,
         LexicalAlternation::Regular,
     ));
-    assert_has_all(&live, &["사시다", "사셨다", "사십니다", "사시면"]);
+    assert_has_all(&live, &["살며", "사시다", "사셨다", "사십니다", "사시면"]);
+
+    let rare = surfaces(&entry(
+        "드물다",
+        PredicatePos::Adjective,
+        LexicalAlternation::Regular,
+    ));
+    assert_has_all(&rare, &["드물며"]);
 }
 
 #[test]
@@ -161,7 +168,7 @@ fn s_and_b_irregulars_are_lexical() {
         PredicatePos::Verb,
         LexicalAlternation::BToWa,
     ));
-    assert!(help.contains("도와"));
+    assert_has_all(&help, &["도와", "도우며"]);
     let lie = surfaces(&entry(
         "눕다",
         PredicatePos::Verb,

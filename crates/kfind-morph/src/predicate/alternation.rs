@@ -270,6 +270,18 @@ pub(super) fn conditional_surface(
     Ok(Some(derived(format!("{base}면"), core_len, rules)))
 }
 
+pub(super) fn coordinate_surface(
+    entry: &PredicateEntry,
+    stem: &str,
+) -> Result<Option<DerivedSurface>, GenerateError> {
+    let Some((base, mut rules)) = conditional_base(entry, stem)? else {
+        return Ok(None);
+    };
+    let core_len = base.len();
+    rules.push(rule("ending.coordinate-myeo"));
+    Ok(Some(derived(format!("{base}며"), core_len, rules)))
+}
+
 pub(super) fn honorific_anchor(
     entry: &PredicateEntry,
     stem: &str,

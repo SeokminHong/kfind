@@ -15,8 +15,8 @@ mod continuation;
 pub use continuation::{PredicateContinuationMatch, verify_predicate_continuation};
 
 use alternation::{
-    aeo_surfaces, conditional_surface, eu_anchor, future_adnominal, honorific_anchor,
-    past_adnominal, polite_declarative, present_adnominal, present_declarative,
+    aeo_surfaces, conditional_surface, coordinate_surface, eu_anchor, future_adnominal,
+    honorific_anchor, past_adnominal, polite_declarative, present_adnominal, present_declarative,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -194,6 +194,9 @@ fn compile_productive(
         );
     } else if let Some(conditional) = conditional_surface(entry, stem)? {
         push_derived(branches, entry, conditional, ContinuationState::Terminal);
+        if let Some(coordinate) = coordinate_surface(entry, stem)? {
+            push_derived(branches, entry, coordinate, ContinuationState::Terminal);
+        }
         if entry.alternation == LexicalAlternation::Regular
             && has_rieul_final(stem.chars().next_back().expect("stem"))
         {
