@@ -105,7 +105,7 @@ impl QueryAnalyzer for LexiconQueryAnalyzer {
 
         let exact = self.lexicons.lookup(&atom.raw);
         if !exact.is_empty() {
-            return Ok(exact.to_vec());
+            return Ok(exact.into_owned());
         }
         if let Some(productive) = self.lexicons.productive_predicate(&atom.raw) {
             return Ok(vec![productive]);
