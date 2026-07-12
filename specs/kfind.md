@@ -113,6 +113,17 @@
   span과 NFC byte span은 양방향으로 변환할 수 있어야 하며, 합성·결합 중간처럼 안정되지 않은
   경계와 범위 밖 입력은 변환하지 않는다. 이 단위에서는 resource 조회, lattice 판정과 검색
   결과 변경을 추가하지 않는다.
+- P2의 세 번째 구현 단위는 NFC 분석 어절에 morphology resource의 사전 node와 HANGUL
+  미등록어 node를 구성한다. lattice node는 중복 제거 뒤 최대 4,096개이며, 비용은 source의
+  단어 비용과 BOS/EOS를 포함한 연결 비용만 합산한다. fixture 전용 가중치와 corpus 단어
+  목록은 사용하지 않는다.
+- query 포함 경로는 query 품사와 같은 사전 node가 NFC query span을 덮는 완전 경로다. 포함·
+  미포함 최저 비용을 각각 계산하고 낮은 쪽을 `accept` 또는 `reject`, 동률을 `ambiguous`로
+  기록한다. 한쪽 경로만 있으면 그 경로의 판정을 사용하고, 완전 경로가 없으면 명시적 오류다.
+- shadow evidence는 cost margin과 최대 4개의 최저 비용 완전 경로를 보존한다. 포함·미포함
+  경로가 모두 있으면 각 최저 경로를 반드시 포함하고 남은 자리를 전체 비용 순으로 채운다.
+  window·node 상한 초과, resource 누락·손상·source 불일치와 평가 오류를 구분하며 threshold와
+  검색 결과 필터링은 적용하지 않는다.
 - P2 lattice 구현 전에 고정 UD 2.18 Korean-Kaist·Korean-KSL dev 원문에서 지정사 판별
   slice를 생성한다. 양성은 정렬된 gold `JP=이`, `VCP=이`, `VCN=아니` 분석을 occurrence별로
   모두 보존한다. 다른 VCP/VCN 표면형은 양성으로 바꾸지 않고 제외 사유와 수를 기록한다.
