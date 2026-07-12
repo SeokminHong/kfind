@@ -14,7 +14,7 @@
 - gold corpus에 포함된 현재 평서형 `-ㄴ다/는다`, 회상 관형형 `-던`, 인용 연결형 `-다고`, 상태 변화 보조 용언 `-아/어지다`도 v0.1의 제한된 continuation vocabulary에 포함한다.
 - 실제 코퍼스에서 확인된 해요체 과거형 `-았어요/-었어요`와 부정 지정사 `아니다`의 연결형 `아니라`도 v0.1의 제한된 continuation vocabulary에 포함한다.
 - 어미, 조사 연쇄, 파생 규칙의 정확한 허용 목록과 전이는 저장소의 버전 관리되는 `data/rules` 파일을 규범 데이터로 삼는다. 목록 밖 조합은 생성하지 않는다.
-- full POS lexicon은 `mecab-ko-dic 2.1.1-20180720`의 Apache-2.0 데이터를 bootstrap 원본으로 사용한다. 빌드 시 표제어와 품사만 추출하고, 런타임 문장 분석 데이터와 알고리즘은 포함하지 않는다. `Inflect`와 `Preanalysis` 행은 제외하며, 문맥용 계사 표면형은 표제어로 승격하지 않고 `VCP=이`, `VCN=아니`만 기본형으로 정규화한다.
+- full POS lexicon은 `mecab-ko-dic 2.1.1-20180720`의 Apache-2.0 데이터를 bootstrap 원본으로 사용한다. 빌드 시 표제어와 품사만 추출하고, 런타임 문장 분석 데이터와 알고리즘은 포함하지 않는다. `Inflect`와 `Preanalysis` 행은 제외하며, 문맥용 지정사 표면형은 표제어로 승격하지 않고 `VCP=이`, `VCN=아니`만 기본형으로 정규화한다.
 - full POS lexicon의 용언 품사 후보도 POS 전용 산출물에 보존한다. 동일 표제어에 core 용언 분석이 하나라도 있으면 full POS 용언 분석은 추가하지 않고 core 분석을 우선한다. 그 밖의 용언은 해당 품사와 일치하는 생산적 접미 규칙을 먼저 적용하고, 일치하는 규칙이 없을 때만 제한된 규칙형 분석을 사용한다.
 - core lexicon은 전체 표제어 목록이 아니라 불규칙 활용, 품사 중의성, 기능어, 표면형 override를 담는 예외 계층이다. 일반 표제어 coverage는 full POS resource가 담당하고, core entry 수를 corpus recall에 맞춰 무제한 늘리지 않는다.
 - full POS 산출물은 전체 entry 수, 고유 표제어 수, 품사별 entry 수를 기계 판독 가능한 통계 파일로 포함한다. source를 추가하거나 갱신할 때는 이 통계와 충돌·제외 건수의 변화를 검토한다.
@@ -73,8 +73,10 @@
 - v0.1.1은 모든 생성 가능한 분석을 인정하는 기존 homonym union을 유지한다. 새 CLI 옵션과
   corpus-side 형태 분석에 따른 결과 필터링은 추가하지 않는다.
 - query branch는 향후 어절-local 분석이 필요한지 `None` 또는 `EojeolLattice`로 표시할 수
-  있다. `smart`에서 앞 host에 붙는 copula branch는 `EojeolLattice` 대상이며, 이 표시는
+  있다. `smart`에서 앞 host에 붙는 VCP 지정사 branch는 `EojeolLattice` 대상이며, 이 표시는
   v0.1.1의 match 결과를 바꾸지 않는다.
+- `학생일`, `책일`은 사전 표제어가 아니라 각각 체언 host `학생`, `책`과 VCP 관형형 표면
+  `일`의 결합을 검증하는 어절 fixture다.
 - benchmark shadow 진단은 raw anchor hit, 기존 verifier를 통과한 branch hit,
   `EojeolLattice` 대상 hit, 서로 다른 분석 어절 범위를 성능 측정 구간 밖에서 기록한다.
 - shadow 단계의 분석 어절 범위는 대상 hit에서 좌우 Unicode token character가 이어지는 최대
@@ -726,7 +728,7 @@ anchor: 사용자
 right verifier:
   plural: 들?
   particle chain: 조사와 보조사 제한 조합
-  optional copula: 이다 계열, 설정 시
+  optional VCP predicate: 이다 계열, 설정 시
 ```
 
 예:
@@ -1211,7 +1213,7 @@ surface = "LLM"
 
 런타임 분석기를 쓰지 않더라도 `auto` 품사 판별에는 폭넓은 표제어 데이터가 필요하다. 다음 자료는 런타임 엔진이 아니라 릴리스 데이터 생성 단계에서만 평가한다.
 
-- `mecab-ko-dic`: 표제어·품사 후보의 bootstrap 자료. MeCab이나 Lindera의 문장 분석 알고리즘은 사용하지 않는다. 독립 어휘 행의 headword와 품사만 추출·정규화·중복 제거하며, `Inflect`·`Preanalysis`와 문맥용 계사 표면형은 제외한다. 상세 활용 정보는 core 사전과 gold corpus로 관리한다.
+- `mecab-ko-dic`: 표제어·품사 후보의 bootstrap 자료. MeCab이나 Lindera의 문장 분석 알고리즘은 사용하지 않는다. 독립 어휘 행의 headword와 품사만 추출·정규화·중복 제거하며, `Inflect`·`Preanalysis`와 문맥용 지정사 표면형은 제외한다. 상세 활용 정보는 core 사전과 gold corpus로 관리한다.
 - KoParadigm: 용언·어미 분류와 활용 결과의 오프라인 참조 자료. Python 런타임 의존성으로 두지 않고, 규칙 설계와 differential fixture 생성에만 사용한다.
 - 국립국어원 사전 자료: 라이선스와 재배포 조건을 충족하는 범위에서 품사와 활용 검증 자료로 사용한다. 전체 내려받기 snapshot은 릴리스 후보 데이터고, Open API는 snapshot 갱신 후보를 조사하는 개발 도구로만 사용한다.
 

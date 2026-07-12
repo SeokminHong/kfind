@@ -8,27 +8,42 @@ use kfind_query::{
 use unicode_normalization::UnicodeNormalization;
 
 #[derive(Clone, Copy)]
-struct CopulaDisambiguationFixture {
+struct VcpBoundaryFixture {
+    case_name: &'static str,
     text: &'static str,
-    union_expected: bool,
-    local_expected: bool,
+    gold_vcp: bool,
 }
 
-const COPULA_DISAMBIGUATION_FIXTURES: [CopulaDisambiguationFixture; 3] = [
-    CopulaDisambiguationFixture {
-        text: "매일 운동한다.",
-        union_expected: true,
-        local_expected: false,
+const VCP_BOUNDARY_FIXTURES: [VcpBoundaryFixture; 6] = [
+    VcpBoundaryFixture {
+        case_name: "ud-korean-ksl/dev/KH-B100001-32-1-8",
+        text: "매일 양복이 입고 너무 비싼 장소를 돌어간다.",
+        gold_vcp: false,
     },
-    CopulaDisambiguationFixture {
+    VcpBoundaryFixture {
+        case_name: "constructed/student+VCP-ETM",
         text: "학생일 가능성이 있다.",
-        union_expected: true,
-        local_expected: true,
+        gold_vcp: true,
     },
-    CopulaDisambiguationFixture {
+    VcpBoundaryFixture {
+        case_name: "constructed/book+VCP-ETM",
         text: "책일 가능성이 있다.",
-        union_expected: true,
-        local_expected: true,
+        gold_vcp: true,
+    },
+    VcpBoundaryFixture {
+        case_name: "ud-korean-ksl/dev/KH-B200000-2-3224",
+        text: "고전소설인 책에서 생각보다 심한 사회 문제가 반영했다.",
+        gold_vcp: true,
+    },
+    VcpBoundaryFixture {
+        case_name: "ud-korean-ksl/dev/KH-C100007-2-5589",
+        text: "근데, 가장 의미가 있은 날은 고등학교 출업한 날이다.",
+        gold_vcp: true,
+    },
+    VcpBoundaryFixture {
+        case_name: "ud-korean-ksl/dev/KH-B200085-42-2-12",
+        text: "하지만, 보고 나니까 우정에 대한 영화인 것을 알게 됐다.",
+        gold_vcp: true,
     },
 ];
 
@@ -196,17 +211,20 @@ fn compiled_canonical_plan_matches_nfd_inflection() {
 }
 
 #[test]
-fn compiled_copula_plan_accepts_attached_adnominals_and_licensed_contraction() {
+fn compiled_vcp_plan_accepts_corpus_attestations_and_licensed_contraction() {
     let matcher = compile("이다", CompileOptions::default());
 
-    for text in [
-        "학생인 친구가 도착했다.",
-        "학생일 때 많이 배웠다.",
-        "학교여서 도보로 갔다.",
-    ] {
+    for fixture in VCP_BOUNDARY_FIXTURES
+        .iter()
+        .filter(|fixture| fixture.gold_vcp)
+    {
         assert!(
-            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
-            "compiled copula plan rejected {text}"
+            matcher
+                .find_at_with_meta(fixture.text.as_bytes(), 0)
+                .is_some(),
+            "compiled VCP plan rejected {} ({})",
+            fixture.case_name,
+            fixture.text
         );
     }
     assert!(
@@ -217,7 +235,7 @@ fn compiled_copula_plan_accepts_attached_adnominals_and_licensed_contraction() {
 }
 
 #[test]
-fn smart_copula_disambiguation_fixtures_preserve_union_results() {
+fn smart_vcp_corpus_fixtures_preserve_union_results() {
     let matcher = compile("이다", CompileOptions::default());
     assert!(
         matcher.plan().atoms[0]
@@ -226,14 +244,14 @@ fn smart_copula_disambiguation_fixtures_preserve_union_results() {
             .all(|branch| { branch.context_requirement == ContextRequirement::EojeolLattice })
     );
 
-    for fixture in COPULA_DISAMBIGUATION_FIXTURES {
-        let actual = matcher
-            .find_at_with_meta(fixture.text.as_bytes(), 0)
-            .is_some();
-        assert_eq!(
-            actual, fixture.union_expected,
-            "union result differed for {:?}; future local expectation is {}",
-            fixture.text, fixture.local_expected
+    for fixture in VCP_BOUNDARY_FIXTURES {
+        assert!(
+            matcher
+                .find_at_with_meta(fixture.text.as_bytes(), 0)
+                .is_some(),
+            "union result differed for {} ({})",
+            fixture.case_name,
+            fixture.text
         );
         let counters = matcher.verification_counters(fixture.text.as_bytes());
         assert_eq!(counters.local_lattice_candidate_hits, 1);
@@ -242,19 +260,22 @@ fn smart_copula_disambiguation_fixtures_preserve_union_results() {
 }
 
 #[test]
-fn canonical_copula_disambiguation_fixtures_preserve_union_results() {
+fn canonical_vcp_corpus_fixtures_preserve_union_results() {
     let options = CompileOptions {
         normalization: NormalizationMode::Canonical,
         ..CompileOptions::default()
     };
     let matcher = compile("이다", options);
 
-    for fixture in COPULA_DISAMBIGUATION_FIXTURES {
+    for fixture in VCP_BOUNDARY_FIXTURES {
         let decomposed = fixture.text.nfd().collect::<String>();
         assert!(
             matcher
                 .find_at_with_meta(decomposed.as_bytes(), 0)
-                .is_some()
+                .is_some(),
+            "canonical union result differed for {} ({})",
+            fixture.case_name,
+            fixture.text
         );
     }
     assert!(
@@ -266,7 +287,7 @@ fn canonical_copula_disambiguation_fixtures_preserve_union_results() {
 }
 
 #[test]
-fn compiled_copula_environment_is_canonical_normalization_safe() {
+fn compiled_vcp_environment_is_canonical_normalization_safe() {
     let options = CompileOptions {
         normalization: NormalizationMode::Canonical,
         ..CompileOptions::default()
