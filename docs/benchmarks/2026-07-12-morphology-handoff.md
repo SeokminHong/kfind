@@ -8,6 +8,12 @@ fixture SHA-256: `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21
 
 ## 현재 상태
 
+- 기준 `main`: `6ccffec` (`fix(kfind/morph): distinguish VCP forms from headwords`)
+- 최신 `main` CI 통과, 열린 PR·issue 없음
+- P0 context 계측과 P1 packed Double-Array 선택 완료
+- P2 prototype은 로컬 백업 branch
+  `codex/morph-lattice-shadow-backup-20260712-203332`에 보존되어 있으나 최신 `main`에는 미반영
+
 - kfind embedded profile: F1 82.81%, recall 70.80%, precision 99.72%
 - 품질 순위: Kiwi 92.01% > Lindera 88.02% > kfind 82.81%
 - kfind 비용: 17,805.0 cases/s, p95 0.1270 ms, peak RSS 4.9 MiB (5회 median)
@@ -56,6 +62,11 @@ profile의 FN은 146개다.
   28.1 MiB였고 FST보다 exact lookup은 약 6배, common-prefix 열거는 약 4.3배 빨랐다.
 - morphology index container는 schema, source SHA-256, 통계, section 길이와 SHA-256을
   검증하며 손상·schema·source 불일치를 구분한다. 기본 검색 결과는 변하지 않는다.
+- 기존 품사 quota에서는 local 후보가 너무 적어 P2 비용 모델을 평가할 수 없다. 고정 dev
+  원문을 전수 확인한 결과 canonical 지정사 gold는 1,601건이고, 완전 정렬 문장에서 대상
+  surface cue를 포함하지만 같은 gold 분석이 없는 음성은 1,315건이다.
+- 다음 작업은 이 2,916건을 독립 fixture로 고정하고 union 결과와 shadow counter를
+  source·raw tag·class별로 보고하는 것이다. lattice 코드는 그 baseline 이후 재구성한다.
 
 dev 명사 FN 70개 중 64개는 사전 누락이 아니라 smart boundary 거부다. 합성어 substring
 계약을 완화하면 hard-negative 정밀도와 충돌하므로 이번 어휘 보강에는 포함하지 않았다.

@@ -100,6 +100,18 @@
   사용한다. FST보다 큰 artifact를 허용하는 대신 exact lookup과 common-prefix 열거 지연을
   줄이며, 읽기 전용 full resource는 mmap으로 공유한다. source 확장 뒤 peak RSS가 40 MiB를
   넘거나 index 크기가 배포 병목이 되면 동일 benchmark로 FST 선택을 다시 검토한다.
+- P2 lattice 구현 전에 고정 UD 2.18 Korean-Kaist·Korean-KSL dev 원문에서 지정사 판별
+  slice를 생성한다. 양성은 정렬된 gold `JP=이`, `VCP=이`, `VCN=아니` 분석을 occurrence별로
+  모두 보존한다. 다른 VCP/VCN 표면형은 양성으로 바꾸지 않고 제외 사유와 수를 기록한다.
+- 지정사 음성은 완전히 정렬된 dev 문장 중 스펙의 지정사 활용에서 독립적으로 고정한
+  surface cue를 포함하지만 같은 표제어·품사 gold 분석이 없는 문장을 source·raw tag·
+  표제어별로 전수 선택한다. 도구의 예측이나 컴파일된 anchor 목록은 fixture 선택에 사용하지
+  않는다.
+- 지정사 판별 fixture는 source data SHA-256, 고정 seed, fixture SHA-256, source·raw tag·
+  positive/negative별 case 수를 기록한다. 이 slice는 성능 측정에서 제외하고 union 결과와
+  shadow counter의 confusion matrix를 별도 보고한다.
+- 지정사 판별 slice에서 accept/reject 비용이나 threshold를 조정하지 않는다. P2 shadow가
+  양성 경로와 어휘 내부 음성을 구분하는 판별력을 보인 뒤 별도 blind source로 확인한다.
 
 ## 1. 문서 목적
 
