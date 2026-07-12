@@ -78,11 +78,33 @@ impl AnalysisWindow {
         Some(self.raw_span.start.checked_add(start)?..self.raw_span.start.checked_add(end)?)
     }
 
+    #[must_use]
+    pub fn normalized_span(&self, original: Range<usize>) -> Option<Range<usize>> {
+        if original.start < self.raw_span.start
+            || original.start > original.end
+            || original.end > self.raw_span.end
+        {
+            return None;
+        }
+        let relative_start = original.start.checked_sub(self.raw_span.start)?;
+        let relative_end = original.end.checked_sub(self.raw_span.start)?;
+        let start = self.normalized_boundary(relative_start)?;
+        let end = self.normalized_boundary(relative_end)?;
+        Some(start..end)
+    }
+
     fn raw_boundary(&self, normalized: usize) -> Option<usize> {
         self.normalized_to_raw
             .binary_search_by_key(&normalized, |(offset, _)| *offset)
             .ok()
             .map(|index| self.normalized_to_raw[index].1)
+    }
+
+    fn normalized_boundary(&self, raw: usize) -> Option<usize> {
+        self.normalized_to_raw
+            .binary_search_by_key(&raw, |(_, offset)| *offset)
+            .ok()
+            .map(|index| self.normalized_to_raw[index].0)
     }
 }
 
@@ -137,6 +159,7 @@ impl Error for AnalysisWindowError {}
 #[cfg(test)]
 mod tests {
     use super::*;
+    use proptest::prelude::*;
 
     #[test]
     fn extracts_the_surrounding_eojeol_and_maps_nfc_offsets() {
@@ -179,6 +202,10 @@ mod tests {
             window.original_span("매".len().."매일".len()),
             Some(target_start..raw_end)
         );
+        assert_eq!(
+            window.normalized_span(target_start..raw_end),
+            Some("매".len().."매일".len())
+        );
         assert_eq!(window.original_span(0..1), None);
     }
 
@@ -220,5 +247,33 @@ mod tests {
             AnalysisWindow::extract(&[0xff], 0..1, DEFAULT_ANALYSIS_WINDOW_LIMITS),
             Err(AnalysisWindowError::InvalidUtf8)
         );
+    }
+
+    proptest! {
+        #[test]
+        fn stable_nfc_boundaries_round_trip(
+            characters in prop::collection::vec(any::<char>(), 0..64)
+        ) {
+            let raw = characters.into_iter().collect::<String>();
+            let normalized = raw.nfc().collect::<String>();
+            let normalized_to_raw = stable_normalized_boundaries(&raw, &normalized);
+            let raw_start = 11;
+            let window = AnalysisWindow {
+                raw_span: raw_start..raw_start + raw.len(),
+                normalized,
+                normalized_to_raw,
+            };
+
+            for &(normalized, raw) in &window.normalized_to_raw {
+                prop_assert_eq!(
+                    window.original_span(normalized..normalized),
+                    Some(raw_start + raw..raw_start + raw)
+                );
+                prop_assert_eq!(
+                    window.normalized_span(raw_start + raw..raw_start + raw),
+                    Some(normalized..normalized)
+                );
+            }
+        }
     }
 }
