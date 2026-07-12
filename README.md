@@ -27,6 +27,35 @@ To build the current checkout with Rust 1.85 or newer:
 cargo install --locked --path crates/kfind-cli
 ```
 
+## Library
+
+The `kfind` crate exposes the same query compiler and morphology matcher for
+in-memory UTF-8 input:
+
+```rust
+use kfind::{CompileOptions, Engine};
+
+let engine = Engine::embedded().expect("embedded data should be valid");
+let matcher = engine
+    .compile("걷다", &CompileOptions::default())
+    .expect("query should compile");
+let text = "길을 걸어 갔다.";
+let matches = matcher.find_all(text.as_bytes());
+
+assert_eq!(&text[matches[0].span.clone()], "걸어");
+```
+
+The library and its core dependencies support Rust 1.85's
+`wasm32-unknown-unknown` target:
+
+```sh
+rustup target add wasm32-unknown-unknown --toolchain 1.85.0
+cargo +1.85.0 build --locked --package kfind --target wasm32-unknown-unknown
+```
+
+This target support is for Rust library consumers. JavaScript bindings and
+package generation are not included yet.
+
 ## Usage
 
 ```text
