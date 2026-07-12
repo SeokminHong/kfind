@@ -1,6 +1,6 @@
 # kfind 기술 사양서
 
-문서 상태: Draft 1.2
+문서 상태: Draft 1.3
 대상 릴리스: v0.1.1
 임시 제품명: `kfind`
 
@@ -65,6 +65,22 @@
 - v0.1.1은 v0.1.0의 CLI와 형태 검색 계약을 유지하는 안정화 릴리스다.
 - 형태 규칙, 품사 사전, 검색·출력 경계의 리뷰 수정과 독립 reference verifier를 포함한다.
 - 1 GiB low-hit benchmark는 20절의 wall time, 처리량, RSS 목표를 모두 통과해야 한다.
+
+### 0.7 선택적 국소 형태 추론 준비
+
+- 문자열의 좌우 경계를 판정하는 `boundary`와 가능한 형태 분석을 선택하는
+  `disambiguation`은 별도 정책 축이다.
+- v0.1.1은 모든 생성 가능한 분석을 인정하는 기존 homonym union을 유지한다. 새 CLI 옵션과
+  corpus-side 형태 분석에 따른 결과 필터링은 추가하지 않는다.
+- query branch는 향후 어절-local 분석이 필요한지 `None` 또는 `EojeolLattice`로 표시할 수
+  있다. `smart`에서 앞 host에 붙는 copula branch는 `EojeolLattice` 대상이며, 이 표시는
+  v0.1.1의 match 결과를 바꾸지 않는다.
+- benchmark shadow 진단은 raw anchor hit, 기존 verifier를 통과한 branch hit,
+  `EojeolLattice` 대상 hit, 서로 다른 분석 어절 범위를 성능 측정 구간 밖에서 기록한다.
+- shadow 단계의 분석 어절 범위는 대상 hit에서 좌우 Unicode token character가 이어지는 최대
+  범위다. 같은 범위를 가리키는 여러 branch hit는 한 번만 센다.
+- local 분석으로 결과를 필터링하기 전에는 스펙을 먼저 갱신해 정책 이름, 기본값, resource
+  누락·손상·상한 초과 동작과 JSON/explain 출력을 확정한다.
 
 ## 1. 문서 목적
 
@@ -478,6 +494,12 @@ pub struct SurfaceBranch {
     pub right: RightVerifier,
     pub core_mapping: CoreMapping,
     pub origins: Vec<Origin>,
+    pub context_requirement: ContextRequirement,
+}
+
+pub enum ContextRequirement {
+    None,
+    EojeolLattice,
 }
 
 pub struct Origin {
@@ -884,6 +906,7 @@ anchor hit
 ```
 
 후보 없는 buffer 구간에는 줄별 matcher 호출, Unicode scalar 순회, 형태 규칙 실행을 하지 않는다.
+v0.1.1의 shadow 진단은 위 검증이 끝난 후보의 계측만 추가하며 검색 결과를 거부하지 않는다.
 
 ### 12.4 phrase 결합
 
