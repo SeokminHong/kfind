@@ -118,6 +118,7 @@ def build_report(
     performance_metrics: dict[str, dict[str, object]],
     kfind_diagnostics: dict[str, dict[str, dict[str, object] | None]],
     shadow_verification: dict[str, dict[str, dict[str, object]]],
+    include_performance: bool = True,
 ) -> dict[str, object]:
     quality = {}
     has_slices = all("slice" in case for case in cases)
@@ -130,6 +131,14 @@ def build_report(
         if has_slices:
             backend_quality["by_slice"] = grouped_quality(
                 cases, predictions[backend], "slice"
+            )
+        if all("target_raw_tag" in case for case in cases):
+            backend_quality["by_target_raw_tag"] = grouped_quality(
+                cases, predictions[backend], "target_raw_tag"
+            )
+        if all("target_group" in case for case in cases):
+            backend_quality["by_target_group"] = grouped_quality(
+                cases, predictions[backend], "target_group"
             )
         quality[backend] = backend_quality
     failures = []
@@ -173,7 +182,7 @@ def build_report(
         "versions": versions,
         "environment": environment_metadata(),
         "quality": quality,
-        "performance": performance_metrics,
+        "performance": performance_metrics if include_performance else None,
         "kfind_profile_comparison": kfind_profile_comparison(
             cases, predictions, matches
         ),
@@ -276,6 +285,7 @@ def render_markdown(report: dict[str, object]) -> str:
     append_profile_comparison(lines, report)
     append_failures(lines, report)
     append_development_summary(lines, report.get("development"))
+    append_local_context_summary(lines, report.get("local_context"))
     append_hard_negative_summary(lines, report.get("hard_negatives"))
     lines.extend(
         [
@@ -482,3 +492,71 @@ def append_hard_negative_summary(
                 f"{metrics['hard_negative_precision_percent']}% | "
                 f"{metrics['fp']} | {metrics['tn']} |"
             )
+
+
+def append_local_context_summary(
+    lines: list[str], local_context: dict[str, object] | None
+) -> None:
+    if local_context is None:
+        return
+    dataset = local_context["dataset"]
+    lines.extend(
+        [
+            "",
+            "## Copula local-context slice",
+            "",
+            f"- fixture: `{dataset['fixture_sha256']}`",
+            f"- cases: {dataset['cases']} ({dataset['positive_cases']} positive, "
+            f"{dataset['negative_cases']} negative)",
+            "- excluded from performance measurements",
+            "",
+            "| backend | precision | recall | F1 | TP | FP | TN | FN |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for backend in BACKENDS:
+        metrics = local_context["quality"][backend]["overall"]
+        lines.append(
+            f"| {backend} | {metrics['precision_percent']}% | "
+            f"{metrics['recall_percent']}% | {metrics['f1_percent']}% | "
+            f"{metrics['tp']} | {metrics['fp']} | {metrics['tn']} | "
+            f"{metrics['fn']} |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "| source/raw tag | backend | precision | recall | TP | FP | TN | FN |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    target_groups = sorted(
+        local_context["quality"]["kfind-embedded"]["by_target_group"]
+    )
+    for target_group in target_groups:
+        for backend in BACKENDS:
+            metrics = local_context["quality"][backend]["by_target_group"][
+                target_group
+            ]
+            lines.append(
+                f"| {target_group} | {backend} | "
+                f"{metrics['precision_percent']}% | "
+                f"{metrics['recall_percent']}% | {metrics['tp']} | "
+                f"{metrics['fp']} | {metrics['tn']} | {metrics['fn']} |"
+            )
+
+    lines.extend(
+        [
+            "",
+            "| profile | local candidates | analysis windows | cases with candidates |",
+            "| --- | ---: | ---: | ---: |",
+        ]
+    )
+    for profile in KFIND_PROFILES:
+        shadow = local_context["shadow_verification"][profile]
+        totals = shadow["totals"]
+        lines.append(
+            f"| {profile} | {totals['local_lattice_candidate_hits']} | "
+            f"{totals['unique_analysis_windows']} | "
+            f"{shadow['cases_with_local_candidates']} |"
+        )

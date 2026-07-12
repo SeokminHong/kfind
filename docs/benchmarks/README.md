@@ -34,7 +34,8 @@ cargo bench -p kfind-testkit --bench query_matcher -- query_compile
 
 독립된 UD Korean-Kaist·KSL test split에서 `kfind` embedded/full-POS, Kiwi, Lindera의
 lemma/POS/span 품질과
-end-to-end 비용을 비교한다.
+end-to-end 비용을 비교한다. dev의 VCP/VCN 지정사 판별 slice는 성능 측정에서 제외하고
+source·raw tag별 confusion matrix와 local-context shadow 대상 수를 함께 기록한다.
 
 ```console
 scripts/benchmark-morphology.sh

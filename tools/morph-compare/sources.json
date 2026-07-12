@@ -2,6 +2,43 @@
   "schema_version": 2,
   "ud_release": "2.18",
   "seed": "kfind-morph-benchmark-v1",
+  "local_context": {
+    "seed": "kfind-vcp-vcn-dev-v1",
+    "split": "dev",
+    "expected_excluded_candidates": 1,
+    "analyses": [
+      {
+        "source": "ud-korean-kaist",
+        "raw_tag": "jp",
+        "raw_lemma": "이",
+        "query": "이다",
+        "pos": "adjective",
+        "negative_surface_cues": ["이", "인", "일", "이어", "여", "였"],
+        "positive_cases": 1198,
+        "negative_cases": 855
+      },
+      {
+        "source": "ud-korean-ksl",
+        "raw_tag": "vcp",
+        "raw_lemma": "이",
+        "query": "이다",
+        "pos": "adjective",
+        "negative_surface_cues": ["이", "인", "일", "이어", "여", "였"],
+        "positive_cases": 373,
+        "negative_cases": 459
+      },
+      {
+        "source": "ud-korean-ksl",
+        "raw_tag": "vcn",
+        "raw_lemma": "아니",
+        "query": "아니다",
+        "pos": "adjective",
+        "negative_surface_cues": ["아니", "아닌", "아닐", "아닙"],
+        "positive_cases": 30,
+        "negative_cases": 1
+      }
+    ]
+  },
   "positive_quotas_per_source": {
     "noun": 90,
     "verb": 60,

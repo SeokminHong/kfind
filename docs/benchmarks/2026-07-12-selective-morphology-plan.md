@@ -1,6 +1,6 @@
 # 선택적 국소 형태 추론 작업 계획
 
-상태: P0·P1 완료, P2 대기
+상태: P0·P1·P2 지정사 판별 slice 완료, P2 lattice shadow 재구성 대기
 적용 시점: v0.1.1 이후 실험 범위
 
 관련 문서:
@@ -132,6 +132,38 @@ enum ContextRequirement {
 
 ### P2. 어절-local lattice shadow mode
 
+구현에 앞서 기존 품사 quota와 분리한 지정사 판별 slice를 고정한다.
+
+1. UD 2.18 Korean-Kaist·Korean-KSL dev 원문의 canonical `JP=이`, `VCP=이`, `VCN=아니`
+   gold occurrence를 모두 양성으로 보존한다.
+2. 완전히 정렬된 문장 중 지정사 활용에서 고정한 surface cue를 포함하지만 같은
+   표제어·품사 gold가 없는 문장을 어휘 내부 음성으로 전수 선택한다.
+3. source·raw tag·positive/negative별 confusion matrix와 shadow 대상 수를 별도 report로
+   기록한다. 기존 1,000건 test와 품사 quota는 변경하지 않는다.
+4. 비정규 지정사 표면형은 양성으로 승격하지 않고 제외 이유와 수를 metadata에 남긴다.
+
+현재 고정 dev 원문에서 예상되는 규모는 양성 1,601건, 음성 1,315건이다. 이 fixture 결과를
+확인하기 전에는 백업 prototype의 비용 모델이나 threshold를 제품 판정에 적용하지 않는다.
+
+지정사 판별 slice 완료 조건:
+
+- source hash, seed, fixture digest와 source·raw tag·class별 case 수가 고정된다.
+- fixture 선택이 kfind·Kiwi·Lindera 출력이나 query anchor에 의존하지 않는다.
+- union 검색 결과와 shadow 대상 수가 같은 report에서 비교된다.
+- 실제 검색 결과와 CLI는 변하지 않는다.
+
+결과:
+
+- fixture SHA-256은 `1e06951581c84f02a4013e8410c113337c1389d3dcc2028b322f887bb181b494`다.
+- 양성 1,601건과 음성 1,315건을 고정했다. 비정규 `VCP=있` 1건은 제외 사유로 기록한다.
+- kfind embedded/full-POS는 TP 961, FP 76, TN 1,239, FN 640으로 동일했다. precision은
+  92.67%, recall은 60.02%다.
+- KSL VCP는 precision 82.76%, recall 45.04%로 가장 약한 그룹이다. 비용이나 threshold를
+  조정하기 전에 lattice path가 이 그룹의 양성과 음성을 구분하는지 확인한다.
+- `EojeolLattice` 대상은 1,160개 case의 1,647개 hit이며 두 kfind profile에서 동일하다.
+
+그 뒤 lattice shadow를 다음 순서로 구현한다.
+
 1. anchor를 포함한 bounded 어절과 원문 offset mapping을 추출한다.
 2. 사전 node, 조사·어미 node, 미등록어 node와 연결 비용을 구성한다.
 3. query 분석을 포함하는 최저 비용과 포함하지 않는 최저 비용을 함께 계산한다.
@@ -181,14 +213,16 @@ enum ContextRequirement {
 품질 threshold와 비용 모델은 dev split에서 정한다. 기존 test split은 regression baseline으로만
 사용하고, 기본 정책 변경 전에는 별도 blind source와 확장된 hard-negative를 확인한다.
 
-## 첫 구현 범위
+## 다음 구현 범위
 
-첫 구현은 P0만 수행하고 다음 무결한 작업 단위로 나눈다.
+P2는 다음 무결한 작업 단위로 나눈다.
 
-1. 스펙에 정책 축과 shadow 범위를 추가한다.
-2. context requirement, VCP 조합 fixture, corpus 기반 VCP/VCN fixture를 추가하되 결과를
-   바꾸지 않는다.
-3. counter와 report schema를 추가하고 benchmark로 호출 수를 고정한다.
+1. 지정사 판별 fixture 생성과 metadata 검증을 추가한다. (완료)
+2. fixture를 benchmark report에 연결하고 source·raw tag·class별 baseline을 기록한다. (완료)
+3. 백업 branch의 morphology resource와 bounded offset mapping을 최신 `main` 위에 재구성한다.
+4. lattice path와 N-best shadow report를 연결한다.
+5. 성능·품질 게이트를 통과한 뒤 P3 진행 여부를 결정한다.
 
-각 단위는 독립적으로 포맷·lint·workspace test를 통과한 뒤 커밋한다. P0에는 lattice와 사전
-형식을 추가하지 않는다. 측정 결과를 검토한 뒤 P1의 자료구조 후보를 확정한다.
+각 단위는 독립적으로 포맷·lint·workspace test를 통과한 뒤 커밋한다. 백업 branch
+`codex/morph-lattice-shadow-backup-20260712-203332`는 prototype 참고 자료로만 사용하고,
+PR #26 이전 fixture 의미를 최신 `main`에 그대로 되살리지 않는다.
