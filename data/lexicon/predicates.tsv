@@ -22,7 +22,7 @@ lemma	pos	alternation	flags	overrides
 살다	VV	Regular	RIEUL_DROP	
 싣다	VV	DToL		
 쓰다	VV	Regular	EU_DROP	
-아니다	VCN	Regular	NO_I_EO_CONTRACTION	
+아니다	VCN	Regular	NO_I_EO_CONTRACTION	ending.connective-ra=아니라
 아름답다	VA	BToWo		
 알다	VV	Regular	RIEUL_DROP	
 예쁘다	VA	Regular	EU_DROP	

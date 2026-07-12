@@ -29,3 +29,17 @@ cargo bench -p kfind-testkit --bench query_matcher -- query_compile
 `target/criterion/query_compile/*/new/sample.json`의 1회당 시간 p95를 사용한다.
 
 기준 결과는 [2026-07-11 query compile 보고서](2026-07-11-query-compile.md)에 기록한다.
+
+## Morphology comparison
+
+독립된 UD Korean-Kaist·KSL test split에서 `kfind`, Kiwi, Lindera의 lemma/POS/span 품질과
+end-to-end 비용을 비교한다.
+
+```console
+scripts/benchmark-morphology.sh
+python3 tools/morph-compare/render_charts.py \
+  target/morph-benchmark/report.json docs/benchmarks/assets
+```
+
+- [2026-07-12 비교 분석](2026-07-12-morphology-comparison.md)
+- [후속 개선 핸드오프](2026-07-12-morphology-handoff.md)

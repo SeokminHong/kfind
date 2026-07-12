@@ -537,6 +537,7 @@ fn reference_predicate_continuation(
         reference_suffix("던", &["ending.retrospective-adnominal"]),
         reference_suffix("다", &["ending.final-da"]),
         reference_suffix("고", &["ending.connective-go"]),
+        reference_suffix("어요", &["ending.past-polite-yo"]),
     ];
     const FUTURE: &[ReferenceSuffix] = &[
         reference_suffix("습니다", &["ending.polite-declarative"]),

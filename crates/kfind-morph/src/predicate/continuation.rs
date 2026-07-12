@@ -50,6 +50,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
     suffix("던", &["ending.retrospective-adnominal"]),
     suffix("다", &["ending.final-da"]),
     suffix("고", &["ending.connective-go"]),
+    suffix("어요", &["ending.past-polite-yo"]),
 ];
 
 const FUTURE_SUFFIXES: &[Suffix] = &[
@@ -153,6 +154,16 @@ mod tests {
         assert_eq!(matched.consumed_bytes, "습니다".len());
         assert_eq!(matched.token_end, "걸었습니다".len());
         assert_eq!(matched.rule_path[0].as_str(), "ending.polite-declarative");
+
+        let informal = verify_predicate_continuation(
+            ContinuationState::Past,
+            PredicatePos::Adjective,
+            "좋았",
+            "어요",
+        )
+        .expect("past polite continuation");
+        assert_eq!(informal.token_end, "좋았어요".len());
+        assert_eq!(informal.rule_path[0].as_str(), "ending.past-polite-yo");
     }
 
     #[test]
