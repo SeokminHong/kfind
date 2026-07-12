@@ -16,6 +16,10 @@ use lindera::segmenter::Segmenter;
 use lindera::tokenizer::Tokenizer;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
+
+const FULL_POS_LEXICON: &str = "/opt/morph-benchmark/full-pos/lexicon.bin";
+const FULL_POS_LEXICON_ENV: &str = "KFIND_FULL_POS_LEXICON";
 
 #[derive(Debug, Deserialize)]
 struct Case {
@@ -29,6 +33,8 @@ struct Case {
 struct Summary {
     backend: String,
     version: String,
+    profile: Option<String>,
+    lexicon_artifact_sha256: Option<String>,
     initialization_seconds: f64,
     evaluation_seconds: f64,
     peak_rss_kib: Option<u64>,
@@ -49,6 +55,21 @@ struct RawToken {
     details: Vec<String>,
 }
 
+#[derive(Clone, Copy)]
+enum KfindProfile {
+    Embedded,
+    FullPos,
+}
+
+impl KfindProfile {
+    const fn name(self) -> &'static str {
+        match self {
+            Self::Embedded => "embedded",
+            Self::FullPos => "full-pos",
+        }
+    }
+}
+
 fn main() -> Result<()> {
     let arguments = std::env::args().skip(1).collect::<Vec<_>>();
     if arguments.len() != 3 {
@@ -56,7 +77,8 @@ fn main() -> Result<()> {
     }
     let cases = load_cases(Path::new(&arguments[1]))?;
     let summary = match arguments[0].as_str() {
-        "kfind" => run_kfind(&cases)?,
+        "kfind" | "kfind-embedded" => run_kfind(&cases, KfindProfile::Embedded)?,
+        "kfind-full-pos" => run_kfind(&cases, KfindProfile::FullPos)?,
         "lindera" => run_lindera(&cases)?,
         backend => bail!("unknown backend {backend:?}"),
     };
@@ -80,9 +102,28 @@ fn load_cases(path: &Path) -> Result<Vec<Case>> {
         .collect()
 }
 
-fn run_kfind(cases: &[Case]) -> Result<Summary> {
+fn run_kfind(cases: &[Case], profile: KfindProfile) -> Result<Summary> {
     let initialization_started = Instant::now();
-    let analyzer = LexiconQueryAnalyzer::new(Arc::new(Lexicons::embedded()?));
+    let (lexicons, lexicon_artifact_sha256) = match profile {
+        KfindProfile::Embedded => (Lexicons::embedded()?, None),
+        KfindProfile::FullPos => {
+            let configured_path = std::env::var_os(FULL_POS_LEXICON_ENV)
+                .map(std::path::PathBuf::from)
+                .unwrap_or_else(|| FULL_POS_LEXICON.into());
+            let artifact = fs::read(&configured_path).with_context(|| {
+                format!(
+                    "full-pos profile requires lexicon artifact {}",
+                    configured_path.display()
+                )
+            })?;
+            let digest = format!("{:x}", Sha256::digest(&artifact));
+            (
+                Lexicons::embedded_with(Some(&artifact), None)?,
+                Some(digest),
+            )
+        }
+    };
+    let analyzer = LexiconQueryAnalyzer::new(Arc::new(lexicons));
     let initialization_seconds = initialization_started.elapsed().as_secs_f64();
     let evaluation_started = Instant::now();
     let mut results = Vec::with_capacity(cases.len());
@@ -102,6 +143,8 @@ fn run_kfind(cases: &[Case]) -> Result<Summary> {
     Ok(Summary {
         backend: "kfind".to_owned(),
         version: env!("CARGO_PKG_VERSION").to_owned(),
+        profile: Some(profile.name().to_owned()),
+        lexicon_artifact_sha256,
         initialization_seconds,
         evaluation_seconds: evaluation_started.elapsed().as_secs_f64(),
         peak_rss_kib: peak_rss_kib(),
@@ -162,6 +205,8 @@ fn run_lindera(cases: &[Case]) -> Result<Summary> {
     Ok(Summary {
         backend: "lindera".to_owned(),
         version: "4.0.0".to_owned(),
+        profile: None,
+        lexicon_artifact_sha256: None,
         initialization_seconds,
         evaluation_seconds: evaluation_started.elapsed().as_secs_f64(),
         peak_rss_kib: peak_rss_kib(),
