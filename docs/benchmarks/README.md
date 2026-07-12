@@ -32,6 +32,12 @@ cargo bench -p kfind-testkit --bench query_matcher -- query_compile
 
 기준 결과는 [2026-07-11 query compile 보고서](2026-07-11-query-compile.md)에 기록한다.
 
+## Full POS startup
+
+native CLI와 Node WASM이 full POS resource를 초기화하는 시간과 RSS를 literal scan과 분리해
+측정한다. 최신 비교는 [2026-07-13 full POS 지연 조회 보고서](2026-07-13-full-pos-startup.md)에
+기록한다.
+
 ## Morphology comparison
 
 독립된 UD Korean-Kaist·KSL test split에서 `kfind` embedded/full-POS, Kiwi, Lindera의
