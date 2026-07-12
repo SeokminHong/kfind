@@ -94,16 +94,56 @@ def kfind_profile_comparison(
 
 def shadow_verification_summary(
     by_case: dict[str, dict[str, object]],
+    cases: list[dict[str, object]] | None = None,
 ) -> dict[str, object]:
     totals = {
         name: sum(int(counters[name]) for counters in by_case.values())
         for name in SHADOW_COUNTERS
     }
+    statuses: dict[str, int] = defaultdict(int)
+    decisions: dict[str, int] = defaultdict(int)
+    case_metadata = {str(case["id"]): case for case in cases or []}
+    outcomes_by_class: dict[str, dict[str, int]] = defaultdict(
+        lambda: defaultdict(int)
+    )
+    outcomes_by_target_group: dict[str, dict[str, int]] = defaultdict(
+        lambda: defaultdict(int)
+    )
+    for case_id, counters in by_case.items():
+        case = case_metadata.get(case_id)
+        for evidence in counters.get("lattice", []):
+            status = str(evidence["status"])
+            decision = evidence.get("decision")
+            outcome = str(decision) if decision is not None else status
+            statuses[status] += 1
+            if decision is not None:
+                decisions[str(decision)] += 1
+            if case is not None:
+                class_name = "positive" if bool(case["expected"]) else "negative"
+                outcomes_by_class[class_name][outcome] += 1
+                target_group = case.get("target_group")
+                if target_group is not None:
+                    outcomes_by_target_group[str(target_group)][outcome] += 1
+
+    def sorted_outcomes(
+        grouped: dict[str, dict[str, int]],
+    ) -> dict[str, dict[str, int]]:
+        return {
+            group: dict(sorted(counts.items()))
+            for group, counts in sorted(grouped.items())
+        }
+
     return {
         "totals": totals,
         "cases_with_local_candidates": sum(
             counters["local_lattice_candidate_hits"] > 0
             for counters in by_case.values()
+        ),
+        "lattice_statuses": dict(sorted(statuses.items())),
+        "lattice_decisions": dict(sorted(decisions.items())),
+        "lattice_outcomes_by_class": sorted_outcomes(outcomes_by_class),
+        "lattice_outcomes_by_target_group": sorted_outcomes(
+            outcomes_by_target_group
         ),
         "by_case": by_case,
     }
@@ -176,7 +216,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 3,
+        "schema_version": 4,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "versions": versions,
@@ -187,7 +227,9 @@ def build_report(
             cases, predictions, matches
         ),
         "shadow_verification": {
-            profile: shadow_verification_summary(shadow_verification[profile])
+            profile: shadow_verification_summary(
+                shadow_verification[profile], cases
+            )
             for profile in KFIND_PROFILES
         },
         "failures": failures,
@@ -269,16 +311,17 @@ def render_markdown(report: dict[str, object]) -> str:
             "",
             "## Versions and profiles",
             "",
-            "| result | backend | version | profile | lexicon artifact SHA-256 |",
-            "| --- | --- | --- | --- | --- |",
+            "| result | backend | version | profile | lexicon SHA-256 | morphology SHA-256 |",
+            "| --- | --- | --- | --- | --- | --- |",
         ]
     )
     for result_name in BACKENDS:
         version = report["versions"][result_name]
         artifact = version["lexicon_artifact_sha256"] or "n/a"
+        morphology = version.get("morphology_artifact_sha256") or "n/a"
         lines.append(
             f"| {result_name} | {version['backend']} | {version['version']} | "
-            f"{version['profile'] or 'n/a'} | `{artifact}` |"
+            f"{version['profile'] or 'n/a'} | `{artifact}` | `{morphology}` |"
         )
     append_quality_sections(lines, report)
     append_shadow_verification(lines, report)
@@ -397,6 +440,15 @@ def append_shadow_verification(
             f"{totals['unique_analysis_windows']} | "
             f"{summary['cases_with_local_candidates']} |"
         )
+        statuses = ", ".join(
+            f"{name}={count}"
+            for name, count in summary["lattice_statuses"].items()
+        ) or "none"
+        decisions = ", ".join(
+            f"{name}={count}"
+            for name, count in summary["lattice_decisions"].items()
+        ) or "none"
+        lines.append(f"- {profile}: statuses {statuses}; decisions {decisions}")
 
 
 def append_profile_comparison(lines: list[str], report: dict[str, object]) -> None:
@@ -560,3 +612,50 @@ def append_local_context_summary(
             f"{totals['unique_analysis_windows']} | "
             f"{shadow['cases_with_local_candidates']} |"
         )
+
+    lines.extend(
+        [
+            "",
+            "| profile | class | accept | reject | ambiguous | other |",
+            "| --- | --- | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for profile in KFIND_PROFILES:
+        outcomes = local_context["shadow_verification"][profile].get(
+            "lattice_outcomes_by_class", {}
+        )
+        for class_name in ("positive", "negative"):
+            counts = outcomes.get(class_name, {})
+            other = sum(
+                count
+                for outcome, count in counts.items()
+                if outcome not in {"accept", "reject", "ambiguous"}
+            )
+            lines.append(
+                f"| {profile} | {class_name} | {counts.get('accept', 0)} | "
+                f"{counts.get('reject', 0)} | {counts.get('ambiguous', 0)} | "
+                f"{other} |"
+            )
+
+    lines.extend(
+        [
+            "",
+            "| profile | source/raw tag | accept | reject | ambiguous | other |",
+            "| --- | --- | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for profile in KFIND_PROFILES:
+        outcomes = local_context["shadow_verification"][profile].get(
+            "lattice_outcomes_by_target_group", {}
+        )
+        for target_group, counts in outcomes.items():
+            other = sum(
+                count
+                for outcome, count in counts.items()
+                if outcome not in {"accept", "reject", "ambiguous"}
+            )
+            lines.append(
+                f"| {profile} | {target_group} | {counts.get('accept', 0)} | "
+                f"{counts.get('reject', 0)} | {counts.get('ambiguous', 0)} | "
+                f"{other} |"
+            )

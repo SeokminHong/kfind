@@ -1,3 +1,5 @@
+mod shadow;
+
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, BufWriter};
 use std::path::Path;
@@ -5,6 +7,9 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use anyhow::{Context, Result, bail};
+use kfind_data::{
+    DataErrorKind, DecodedMorphologyResource, decode_morphology_resource, parse_sha256,
+};
 use kfind_matcher::{MorphMatcher, VerificationCounters};
 use kfind_morph::CoarsePos;
 use kfind_query::{
@@ -19,8 +24,14 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
+use shadow::diagnose_lattice_candidate;
+
 const FULL_POS_LEXICON: &str = "/opt/morph-benchmark/full-pos/lexicon.bin";
 const FULL_POS_LEXICON_ENV: &str = "KFIND_FULL_POS_LEXICON";
+const MORPHOLOGY_RESOURCE: &str = "/opt/morph-benchmark/morphology/morphology.bin";
+const MORPHOLOGY_RESOURCE_ENV: &str = "KFIND_MORPHOLOGY_RESOURCE";
+const MORPHOLOGY_SOURCE_SHA256: &str =
+    "fd62d3d6d8fa85145528065fabad4d7cb20f6b2201e71be4081a4e9701a5b330";
 
 #[derive(Debug, Deserialize)]
 struct Case {
@@ -39,6 +50,7 @@ struct Summary {
     version: String,
     profile: Option<String>,
     lexicon_artifact_sha256: Option<String>,
+    morphology_artifact_sha256: Option<String>,
     initialization_seconds: f64,
     evaluation_seconds: f64,
     peak_rss_kib: Option<u64>,
@@ -73,6 +85,7 @@ struct ShadowVerificationCounters {
     local_lattice_candidate_hits: usize,
     unique_analysis_windows: usize,
     local_branches: Vec<ShadowBranchEvidence>,
+    lattice: Vec<ShadowLatticeEvidence>,
 }
 
 #[derive(Debug, Serialize)]
@@ -83,14 +96,66 @@ struct ShadowBranchEvidence {
     require_right: bool,
 }
 
+#[derive(Debug, Serialize)]
+struct ShadowLatticeEvidence {
+    status: &'static str,
+    atom_index: usize,
+    analysis_index: u16,
+    fine_pos: &'static str,
+    target: Span,
+    window: Option<ShadowWindowEvidence>,
+    decision: Option<&'static str>,
+    include_cost: Option<i64>,
+    exclude_cost: Option<i64>,
+    cost_margin: Option<i64>,
+    node_count: Option<usize>,
+    paths: Vec<ShadowPathEvidence>,
+    error: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct ShadowWindowEvidence {
+    raw: Span,
+    normalized: String,
+}
+
+#[derive(Debug, Serialize)]
+struct ShadowPathEvidence {
+    cost: i64,
+    includes_query: bool,
+    nodes: Vec<ShadowNodeEvidence>,
+}
+
+#[derive(Debug, Serialize)]
+struct ShadowNodeEvidence {
+    normalized: Span,
+    original: Option<Span>,
+    pos: Option<&'static str>,
+    word_cost: i32,
+    unknown: bool,
+}
+
+#[derive(Clone, Copy)]
+enum ShadowResource<'a> {
+    Loaded(&'a DecodedMorphologyResource<'a>),
+    Missing,
+    Corrupt,
+    SourceMismatch,
+}
+
 impl ShadowVerificationCounters {
-    fn new(counters: VerificationCounters, local_branches: Vec<ShadowBranchEvidence>) -> Self {
+    fn new(
+        counters: VerificationCounters,
+        local_branches: Vec<ShadowBranchEvidence>,
+        lattice: Vec<ShadowLatticeEvidence>,
+    ) -> Self {
         Self {
             raw_anchor_hits: counters.raw_anchor_hits,
             verified_branch_hits: counters.verified_branch_hits,
             local_lattice_candidate_hits: counters.local_lattice_candidate_hits,
             unique_analysis_windows: counters.unique_analysis_windows,
             local_branches,
+            lattice,
         }
     }
 }
@@ -182,16 +247,56 @@ fn run_kfind(cases: &[Case], profile: KfindProfile) -> Result<Summary> {
     }
     let evaluation_seconds = evaluation_started.elapsed().as_secs_f64();
     let peak_rss_kib = peak_rss_kib();
+    let morphology_path = std::env::var_os(MORPHOLOGY_RESOURCE_ENV)
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| MORPHOLOGY_RESOURCE.into());
+    let morphology_bytes = match fs::read(&morphology_path) {
+        Ok(bytes) => Some(bytes),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
+        Err(error) => {
+            return Err(error).with_context(|| {
+                format!(
+                    "failed to read morphology resource {}",
+                    morphology_path.display()
+                )
+            });
+        }
+    };
+    let morphology_artifact_sha256 = morphology_bytes
+        .as_ref()
+        .map(|artifact| format!("{:x}", Sha256::digest(artifact)));
+    let morphology_source_digest = parse_sha256(MORPHOLOGY_SOURCE_SHA256)?;
+    let morphology = morphology_bytes.as_deref().map(|artifact| {
+        decode_morphology_resource(
+            &morphology_path.display().to_string(),
+            artifact,
+            &morphology_source_digest,
+        )
+    });
+    let shadow_resource = match &morphology {
+        Some(Ok(resource)) => ShadowResource::Loaded(resource),
+        Some(Err(error))
+            if matches!(
+                error.kind.as_ref(),
+                DataErrorKind::MorphologyResourceSourceMismatch
+            ) =>
+        {
+            ShadowResource::SourceMismatch
+        }
+        Some(Err(_)) => ShadowResource::Corrupt,
+        None => ShadowResource::Missing,
+    };
     for (case, result) in cases.iter().zip(&mut results) {
         result["failure_diagnostic"] = serde_json::to_value(diagnose_failure(case, &analyzer)?)?;
         result["shadow_verification"] =
-            serde_json::to_value(diagnose_verification(case, &analyzer)?)?;
+            serde_json::to_value(diagnose_verification(case, &analyzer, shadow_resource)?)?;
     }
     Ok(Summary {
         backend: "kfind".to_owned(),
         version: env!("CARGO_PKG_VERSION").to_owned(),
         profile: Some(profile.name().to_owned()),
         lexicon_artifact_sha256,
+        morphology_artifact_sha256,
         initialization_seconds,
         evaluation_seconds,
         peak_rss_kib,
@@ -202,6 +307,7 @@ fn run_kfind(cases: &[Case], profile: KfindProfile) -> Result<Summary> {
 fn diagnose_verification(
     case: &Case,
     analyzer: &LexiconQueryAnalyzer,
+    resource: ShadowResource<'_>,
 ) -> Result<ShadowVerificationCounters> {
     let options = CompileOptions::resolve(CompileOptionOverrides {
         pos: Some(parse_pos(&case.pos)?),
@@ -228,9 +334,15 @@ fn diagnose_verification(
         })
         .collect();
     let matcher = MorphMatcher::new(Arc::new(plan))?;
+    let lattice = matcher
+        .local_analysis_candidates(case.text.as_bytes())
+        .iter()
+        .map(|candidate| diagnose_lattice_candidate(candidate, resource))
+        .collect();
     Ok(ShadowVerificationCounters::new(
         matcher.verification_counters(case.text.as_bytes()),
         local_branches,
+        lattice,
     ))
 }
 
@@ -345,6 +457,7 @@ fn run_lindera(cases: &[Case]) -> Result<Summary> {
         version: "4.0.0".to_owned(),
         profile: None,
         lexicon_artifact_sha256: None,
+        morphology_artifact_sha256: None,
         initialization_seconds,
         evaluation_seconds: evaluation_started.elapsed().as_secs_f64(),
         peak_rss_kib: peak_rss_kib(),
@@ -415,10 +528,11 @@ mod tests {
     }
 
     #[test]
-    fn shadow_diagnostic_counts_copula_analysis_windows() {
+    fn shadow_diagnostic_counts_vcp_analysis_windows() {
         let counters = diagnose_verification(
             &positive_case("이다", "adjective", "매일 운동한다."),
             &analyzer(),
+            ShadowResource::Missing,
         )
         .unwrap();
 
@@ -429,5 +543,11 @@ mod tests {
         assert!(counters.local_branches.iter().any(|branch| {
             branch.anchor == "일" && !branch.require_left && branch.require_right
         }));
+        assert!(
+            counters
+                .lattice
+                .iter()
+                .all(|evidence| evidence.status == "resource-missing")
+        );
     }
 }

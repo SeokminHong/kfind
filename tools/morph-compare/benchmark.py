@@ -374,6 +374,9 @@ def evaluate_dataset(
             "lexicon_artifact_sha256": kfind[profile][5][
                 "lexicon_artifact_sha256"
             ],
+            "morphology_artifact_sha256": kfind[profile][5][
+                "morphology_artifact_sha256"
+            ],
         }
         for profile in KFIND_PROFILES
     }
@@ -384,12 +387,14 @@ def evaluate_dataset(
                 "version": importlib.metadata.version("kiwipiepy"),
                 "profile": None,
                 "lexicon_artifact_sha256": None,
+                "morphology_artifact_sha256": None,
             },
             "lindera": {
                 "backend": lindera[3]["backend"],
                 "version": lindera[3]["version"],
                 "profile": None,
                 "lexicon_artifact_sha256": None,
+                "morphology_artifact_sha256": None,
             },
         }
     )
@@ -448,7 +453,6 @@ def main() -> int:
         )
         hard_cases = load_cases(args.hard_negatives)
         hard_metadata = validate_hard_negatives(args.hard_negatives, hard_cases)
-
         if args.smoke:
             with tempfile.TemporaryDirectory() as directory:
                 smoke_path = Path(directory) / "smoke-cases.jsonl"
