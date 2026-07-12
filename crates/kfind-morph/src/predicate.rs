@@ -88,6 +88,17 @@ pub fn generate_predicate_branches(
         vec![rule("ending.final-da")],
     );
 
+    if entry.alternation != LexicalAlternation::Suppletive {
+        push_branch(
+            &mut branches,
+            entry,
+            format!("{stem}기"),
+            stem.len(),
+            ContinuationState::Terminal,
+            vec![rule("ending.nominalizer-gi")],
+        );
+    }
+
     if entry.alternation == LexicalAlternation::Copula {
         compile_copula(entry, stem, &mut branches)?;
     } else if entry.alternation != LexicalAlternation::Suppletive {

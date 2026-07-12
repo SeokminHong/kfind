@@ -67,6 +67,7 @@ query	pos	text	expected	feature
 걷다	verb	천천히 걸으시면 됩니다.	match	d-irregular
 걷다	verb	손님이 오래 걸었습니다.	match	d-irregular
 걷다	verb	비가 왔지만 계속 걸었다.	match	d-irregular
+걷다	verb	매일 걷기 운동을 한다.	match	d-irregular
 걷다	verb	커튼을 걷어 햇빛을 들였다.	match	regular
 걷다	verb	바지를 걷고 개울을 건넜다.	match	regular
 걷다	verb	천막을 걷는 작업이 시작됐다.	match	regular
@@ -261,6 +262,7 @@ query	pos	text	expected	feature
 검증하다	verb	서버가 요청을 검증합니다.	match	ha
 검증하다	verb	권한을 검증하여 결과를 기록했다.	match	ha
 검증하다	verb	권한을 검증하였다.	match	ha
+검증하다	verb	권한을 검증하기 전에 확인했다.	match	ha
 검증하다	verb	권한을 검증하어 보았다.	no-match	ha
 살다	verb	시골에서 살고 농사를 짓는다.	match	rieul-drop
 살다	verb	혼자 사는 집이 넓다.	match	rieul-drop

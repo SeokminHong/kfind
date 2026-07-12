@@ -6,15 +6,15 @@ fixture SHA-256: `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21
 
 ## 현재 상태
 
-- kfind embedded profile: F1 82.67%, recall 70.60%, precision 99.72%
-- 품질 순위: Kiwi 92.01% > Lindera 88.02% > kfind 82.67%
-- kfind 비용: 17,616.5 cases/s, p95 0.1293 ms, peak RSS 4.9 MiB (5회 median)
-- kfind 오류: FN 147, FP 1
-- 가장 큰 FN 영역: 명사 71, 동사 33, 형용사 25
+- kfind embedded profile: F1 82.81%, recall 70.80%, precision 99.72%
+- 품질 순위: Kiwi 92.01% > Lindera 88.02% > kfind 82.81%
+- kfind 비용: 17,805.0 cases/s, p95 0.1270 ms, peak RSS 4.9 MiB (5회 median)
+- kfind 오류: FN 146, FP 1
+- 가장 큰 FN 영역: 명사 71, 동사 32, 형용사 25
 
 benchmark runner는 embedded/full-POS profile을 같은 fixture에서 비교한다. full-POS의
 생산적 용언 활용을 보존하도록 수정한 뒤 test split에서 recovered 0, regressed 0이며 두
-profile의 FN은 147개다.
+profile의 FN은 146개다.
 
 ## 2026-07-12 진행 결과
 
@@ -36,6 +36,9 @@ profile의 FN은 147개다.
 - `하다` 계열의 비축약 `하여/하였다`를 보존해 dev의 `의하여`, `대하여`를 회복했다. dev
   TP는 361에서 363, recall은 72.20%에서 72.60%로 늘었고 용언 `continuation-rejected`는
   6건에서 4건으로 줄었다. test와 hard-negative 결과는 변하지 않았다.
+- 어간에 직접 붙는 `-기` 명사형을 추가해 dev의 `무너지기`, `있기`, `살아남기`를
+  회복했다. dev TP는 363에서 366, recall은 72.60%에서 73.20%로 늘었고 test TP도 FP 증가
+  없이 353에서 354로 늘었다. hard-negative 결과는 변하지 않았다.
 - MeCab의 문맥용 계사 표면형 14개를 표제어 후보에서 제외했다. `보이다`는 동사·보조 동사
   분석만 보존하고, 비정규 copula stem은 형태 생성 전에 거부한다.
 

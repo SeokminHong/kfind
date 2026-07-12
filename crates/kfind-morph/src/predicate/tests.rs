@@ -264,6 +264,26 @@ fn ha_rieul_and_copula_rules_cover_required_forms() {
 }
 
 #[test]
+fn gi_nominalization_uses_the_lexical_stem() {
+    for (predicate, expected) in [
+        (
+            entry("걷다", PredicatePos::Verb, LexicalAlternation::DToL),
+            "걷기",
+        ),
+        (
+            entry("검증하다", PredicatePos::Verb, LexicalAlternation::Ha),
+            "검증하기",
+        ),
+        (
+            entry("이다", PredicatePos::Copula, LexicalAlternation::Copula),
+            "이기",
+        ),
+    ] {
+        assert!(surfaces(&predicate).contains(expected));
+    }
+}
+
+#[test]
 fn action_present_declarative_and_copula_past_are_compiled() {
     let action = entry("검증하다", PredicatePos::Verb, LexicalAlternation::Ha);
     let action_surfaces = surfaces(&action);
