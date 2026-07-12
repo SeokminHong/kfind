@@ -10,13 +10,14 @@ fixture SHA-256: `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21
 
 - 기준 `main`: `6ccffec` (`fix(kfind/morph): distinguish VCP forms from headwords`)
 - 최신 `main` CI 통과, 열린 PR·issue 없음
+- 작업 branch: `codex/vcp-vcn-evaluation-slice`
 - P0 context 계측과 P1 packed Double-Array 선택 완료
 - P2 prototype은 로컬 백업 branch
   `codex/morph-lattice-shadow-backup-20260712-203332`에 보존되어 있으나 최신 `main`에는 미반영
 
 - kfind embedded profile: F1 82.81%, recall 70.80%, precision 99.72%
 - 품질 순위: Kiwi 92.01% > Lindera 88.02% > kfind 82.81%
-- kfind 비용: 17,805.0 cases/s, p95 0.1270 ms, peak RSS 4.9 MiB (5회 median)
+- kfind 비용: 15,781.8 cases/s, p95 0.1447 ms, peak RSS 4.9 MiB (5회 median)
 - kfind 오류: FN 146, FP 1
 - 가장 큰 FN 영역: 명사 71, 동사 32, 형용사 25
 
@@ -62,11 +63,15 @@ profile의 FN은 146개다.
   28.1 MiB였고 FST보다 exact lookup은 약 6배, common-prefix 열거는 약 4.3배 빨랐다.
 - morphology index container는 schema, source SHA-256, 통계, section 길이와 SHA-256을
   검증하며 손상·schema·source 불일치를 구분한다. 기본 검색 결과는 변하지 않는다.
-- 기존 품사 quota에서는 local 후보가 너무 적어 P2 비용 모델을 평가할 수 없다. 고정 dev
-  원문을 전수 확인한 결과 canonical 지정사 gold는 1,601건이고, 완전 정렬 문장에서 대상
-  surface cue를 포함하지만 같은 gold 분석이 없는 음성은 1,315건이다.
-- 다음 작업은 이 2,916건을 독립 fixture로 고정하고 union 결과와 shadow counter를
-  source·raw tag·class별로 보고하는 것이다. lattice 코드는 그 baseline 이후 재구성한다.
+- 지정사 판별 fixture `1e06951581c84f02a4013e8410c113337c1389d3dcc2028b322f887bb181b494`에
+  canonical gold 1,601건과 surface cue 음성 1,315건을 고정했다. 비정규 `VCP=있` 1건은
+  양성으로 승격하지 않고 제외 사유로 기록한다.
+- kfind embedded/full-POS는 지정사 slice에서 TP 961, FP 76, TN 1,239, FN 640으로 동일하다.
+  precision은 92.67%, recall은 60.02%다.
+- KSL VCP는 precision 82.76%, recall 45.04%로 가장 약하다. Kiwi는 96.28%/97.05%,
+  Lindera는 89.43%/97.59%다.
+- `EojeolLattice` 대상은 1,160개 case의 1,647개 hit이다. 현재 union 결과는 유지하며 이
+  baseline을 P2 lattice path 판별력 평가에 사용한다.
 
 dev 명사 FN 70개 중 64개는 사전 누락이 아니라 smart boundary 거부다. 합성어 substring
 계약을 완화하면 hard-negative 정밀도와 충돌하므로 이번 어휘 보강에는 포함하지 않았다.
@@ -237,3 +242,19 @@ scripts/benchmark-morph-index.sh
 report의 fixture SHA-256, source hash, case 수, class/source/POS quota가 바뀌면 의도된 dataset
 변경인지 먼저 확인한다. 품질 개선은 전체 F1만 보지 말고 POS별 recall, hard-negative
 precision, initialization, p95, RSS를 함께 비교한다.
+
+## 다음 작업
+
+1. 백업 branch의 morphology resource 생성·검증 커밋을 최신 `main` 기준으로 재구성한다.
+2. bounded 어절 추출과 NFC 원문 offset mapping을 별도 작업 단위로 옮긴다.
+3. 2,916건 fixture에서 query 포함/미포함 최저 비용과 N-best path를 shadow report에 연결한다.
+4. KSL VCP confusion matrix와 성능 게이트를 확인하기 전에는 threshold나 검색 결과를 바꾸지
+   않는다.
+
+이어갈 때:
+
+```console
+git switch codex/vcp-vcn-evaluation-slice
+git status --short
+scripts/benchmark-morphology.sh
+```
