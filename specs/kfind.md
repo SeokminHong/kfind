@@ -639,6 +639,10 @@ special-ha, special-i, special-ani, special-o, special-itda
 - 모음 축약과 준말. `ㅕ` 말음 규칙 어간은 `-어`의 축약형도 보존한다 (`켜어`, `켜`).
 - 자음 어미의 종성 결합
 
+v0.1.0의 `-기` 명사형 branch는 token 경계에서 끝나며 체언 조사 verifier로 전이하지 않는다.
+따라서 `걷다`는 `걷기`, `걷기 운동`을 찾지만 `걷기가`, `걷기를`은 찾지 않는다. 명사형 뒤
+조사 연쇄는 predicate nominalizer에서 nominal particle verifier로 전이하는 별도 후속 범위다.
+
 ### 9.4 어휘 사전이 필요한 교체
 
 다음은 철자만으로 안정적으로 판별하지 않는다.
