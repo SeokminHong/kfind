@@ -6,6 +6,9 @@ rust-version.workspace = true
 repository.workspace = true
 license.workspace = true
 
+[dependencies]
+kfind-data.workspace = true
+
 [lints]
 workspace = true
 

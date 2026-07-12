@@ -14,12 +14,13 @@ fixture SHA-256: `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21
 - P0 context 계측과 P1 packed Double-Array 선택 완료
 - P2 morphology resource 생성·검증 재구성 완료
 - P2 bounded 어절 추출과 NFC 원문 offset mapping 재구성 완료
+- P2 local lattice·N-best shadow report 완료
 - P2 prototype은 로컬 백업 branch
   `codex/morph-lattice-shadow-backup-20260712-203332`에 보존되어 있으나 최신 `main`에는 미반영
 
 - kfind embedded profile: F1 82.81%, recall 70.80%, precision 99.72%
 - 품질 순위: Kiwi 92.01% > Lindera 88.02% > kfind 82.81%
-- kfind 비용: 16,682.3 cases/s, p95 0.1357 ms, peak RSS 4.9 MiB (5회 median)
+- kfind 비용: 16,630.9 cases/s, p95 0.1366 ms, peak RSS 5.0 MiB (5회 median)
 - kfind 오류: FN 146, FP 1
 - 가장 큰 FN 영역: 명사 71, 동사 32, 형용사 25
 
@@ -57,8 +58,8 @@ profile의 FN은 146개다.
   분석만 보존하고, 비정규 VCP stem은 형태 생성 전에 거부한다.
 - smart VCP 지정사 branch를 `EojeolLattice` 대상으로 표시했다. token·any와 literal 경로는
   대상이 아니며 기본 union 결과는 변하지 않는다.
-- shadow report schema 3은 case별 raw anchor hit, verifier 통과 branch hit, local 대상,
-  고유 분석 어절과 대상 anchor·좌우 boundary 요구사항을 성능 측정 구간 밖에서 기록한다.
+- shadow report schema 4는 case별 raw anchor hit, verifier 통과 branch hit, local 대상,
+  원문·NFC span, 포함·미포함 최저 비용, cost margin과 N-best 경로를 기록한다.
 - query-side full POS와 corpus-side morphology index를 분리했다. morphology index는 같은 고정
   MeCab snapshot에서 원본 표면형·품사·좌/우 연결 ID·비용을 보존한다.
 - 729,173개 표면형 비교에서 packed Double-Array trie를 P2 형식으로 선택했다. mmap peak RSS는
@@ -82,9 +83,13 @@ profile의 FN은 146개다.
   아직 resource를 로드하지 않으므로 union 검색 결과는 변하지 않는다.
 - `AnalysisWindow`는 검증 target 주변의 Unicode token을 최대 256 raw bytes와 64 NFC
   scalar로 제한하고 원문·NFC의 안정된 byte 경계를 양방향 매핑한다. UTF-8 오류와 상한 초과는
-  명시적 오류이며 lattice와 검색 결과에는 아직 연결하지 않았다.
-- [1 GiB low-hit 보고서](2026-07-12-1gib-mixed.md)는 kfind 0.0450초, rg 0.0430초,
-  wall 1.047배와 RSS 7.28 MiB로 모든 게이트를 통과했다.
+  명시적 오류다. lattice shadow는 성능 측정 뒤에 실행되며 검색 결과를 바꾸지 않는다.
+- 1,647개 lattice candidate 중 양성 1,545개와 음성 76개가 `reject`였고,
+  양성 20개와 음성 6개는 `NoCompletePath`였다. `accept`와 `ambiguous`는 없었다.
+- 1,620개에서 포함·미포함 경로가 모두 존재했지만 모두 미포함 비용이
+  낮았다. 현재 비용은 지정사 양성·음성을 구분하지 못하므로 P3는 보류한다.
+- [1 GiB low-hit 보고서](2026-07-12-1gib-mixed.md)는 kfind 0.0490초, rg 0.0410초,
+  wall 1.195배, rg 대비 throughput 83.7%, RSS 7.31 MiB로 v0.1 게이트를 통과했다.
 
 dev 명사 FN 70개 중 64개는 사전 누락이 아니라 smart boundary 거부다. 합성어 substring
 계약을 완화하면 hard-negative 정밀도와 충돌하므로 이번 어휘 보강에는 포함하지 않았다.
@@ -258,9 +263,11 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. 2,916건 fixture에서 query 포함/미포함 최저 비용과 N-best path를 shadow report에 연결한다.
-2. KSL VCP confusion matrix와 성능 게이트를 확인하기 전에는 threshold나 검색 결과를 바꾸지
-   않는다.
+1. 26개 `NoCompletePath`의 어절·node 구성을 분류해 완전 경로가 끊기는 원인을
+   확정한다.
+2. query 포함 경로의 비용이 전부 높은 이유를 source의 node·연결 비용 의미와
+   대조한다.
+3. 원인 분석 전에 threshold, fixture 가중치나 검색 결과를 변경하지 않는다.
 
 이어갈 때:
 

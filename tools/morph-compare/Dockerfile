@@ -31,9 +31,11 @@ COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
 COPY data ./data
 COPY scripts/build-full-pos.sh ./scripts/build-full-pos.sh
+COPY scripts/build-morphology-resource.sh ./scripts/build-morphology-resource.sh
 COPY scripts/lib/full-pos-source.sh ./scripts/lib/full-pos-source.sh
 COPY tools/morph-compare/runner ./tools/morph-compare/runner
 RUN scripts/build-full-pos.sh /benchmark/full-pos \
+    && scripts/build-morphology-resource.sh /benchmark/morphology \
     && cargo build \
     --locked \
     --release \
@@ -68,6 +70,7 @@ COPY --from=runner-builder \
 COPY --from=corpus-builder /benchmark /opt/morph-benchmark/data
 COPY --from=corpus-builder /corpora/*LICENSE.txt /opt/morph-benchmark/licenses/
 COPY --from=runner-builder /benchmark/full-pos /opt/morph-benchmark/full-pos
+COPY --from=runner-builder /benchmark/morphology /opt/morph-benchmark/morphology
 COPY tools/morph-compare/benchmark.py /opt/morph-benchmark/benchmark.py
 COPY tools/morph-compare/hard-negatives.jsonl /opt/morph-benchmark/hard-negatives.jsonl
 COPY tools/morph-compare/python /opt/morph-benchmark/python

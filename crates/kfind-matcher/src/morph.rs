@@ -16,6 +16,10 @@ use unicode_normalization::{UnicodeNormalization, is_nfc};
 use crate::boundary::{accepts_requirements, surrounding_token_span};
 use crate::{AnchorBuildError, AnchorBuildLimits, AnchorEngine, AnchorHit};
 
+mod candidates;
+
+pub use candidates::LocalAnalysisCandidate;
+
 const MAX_VERIFIER_BYTES: usize = 256;
 
 /// A query-plan matcher backed by one shared set of unique anchors.

@@ -136,19 +136,32 @@ class ShadowVerificationTests(unittest.TestCase):
                 "local_lattice_candidate_hits": 0,
                 "unique_analysis_windows": 0,
             },
-            "copula": {
+            "vcp": {
                 "raw_anchor_hits": 2,
                 "verified_branch_hits": 2,
                 "local_lattice_candidate_hits": 2,
                 "unique_analysis_windows": 1,
+                "lattice": [
+                    {"status": "evaluated", "decision": "accept"},
+                    {"status": "limit-exceeded", "decision": None},
+                ],
             },
         }
+        cases = [
+            {"id": "none", "expected": False},
+            {"id": "vcp", "expected": True, "target_group": "sample/vcp"},
+        ]
 
-        summary = shadow_verification_summary(by_case)
+        summary = shadow_verification_summary(by_case, cases)
 
         self.assertEqual(2, summary["totals"]["raw_anchor_hits"])
         self.assertEqual(2, summary["totals"]["local_lattice_candidate_hits"])
         self.assertEqual(1, summary["cases_with_local_candidates"])
+        self.assertEqual({"accept": 1}, summary["lattice_decisions"])
+        self.assertEqual(
+            {"accept": 1, "limit-exceeded": 1},
+            summary["lattice_outcomes_by_class"]["positive"],
+        )
         self.assertEqual(by_case, summary["by_case"])
 
 
@@ -184,6 +197,13 @@ class LocalContextSummaryTests(unittest.TestCase):
                         "unique_analysis_windows": 1,
                     },
                     "cases_with_local_candidates": 1,
+                    "lattice_outcomes_by_class": {
+                        "positive": {"accept": 1, "reject": 1},
+                        "negative": {"reject": 2},
+                    },
+                    "lattice_outcomes_by_target_group": {
+                        "sample/vcp": {"accept": 1, "reject": 2}
+                    },
                 }
                 for profile in KFIND_PROFILES
             },
@@ -196,6 +216,8 @@ class LocalContextSummaryTests(unittest.TestCase):
         self.assertIn("## Copula local-context slice", rendered)
         self.assertIn("| sample/vcp | kfind-embedded | 75.0% | 60.0%", rendered)
         self.assertIn("| kfind-embedded | 2 | 1 | 1 |", rendered)
+        self.assertIn("| kfind-embedded | positive | 1 | 1 | 0 | 0 |", rendered)
+        self.assertIn("| kfind-embedded | sample/vcp | 1 | 2 | 0 | 0 |", rendered)
 
 
 if __name__ == "__main__":
