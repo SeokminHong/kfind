@@ -29,6 +29,8 @@ cargo install --locked --path crates/kfind-cli
 
 ## 라이브러리
 
+### Rust
+
 `kfind` crate는 메모리의 UTF-8 입력을 검색할 수 있도록 CLI와 같은 쿼리 컴파일러와
 형태 matcher를 제공합니다.
 
@@ -50,11 +52,31 @@ assert_eq!(&text[matches[0].span.clone()], "걸어");
 
 ```sh
 rustup target add wasm32-unknown-unknown --toolchain 1.85.0
-cargo +1.85.0 build --locked --package kfind --target wasm32-unknown-unknown
+cargo +1.85.0 build --locked --package kfind-wasm --target wasm32-unknown-unknown
 ```
 
-이 target 지원은 Rust 라이브러리 사용자를 위한 것입니다. JavaScript binding과
-package 생성은 아직 포함하지 않습니다.
+### JavaScript
+
+Unscoped `kfind` npm package는 브라우저 bundler용 ESM WebAssembly binding과 생성된
+TypeScript 선언을 제공합니다.
+
+```js
+import { Kfind } from "kfind";
+
+const engine = new Kfind();
+const matcher = engine.compile("걷다");
+const text = "😀 길을 걸어 갔다.";
+const matches = matcher.findAll(text);
+
+console.log(text.slice(matches[0].start, matches[0].end)); // 걸어
+```
+
+JavaScript offset은 UTF-16 code unit 기준입니다. 패키지는 아직 registry에 게시하지
+않았습니다. 로컬에서 배포 산출물을 생성하고 검사할 수 있습니다.
+
+```sh
+pnpm --dir packages/kfind run pack:check
+```
 
 ## 사용법
 
@@ -112,6 +134,7 @@ cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo bench -p kfind-testkit --bench query_matcher
 scripts/benchmark-morphology.sh
+pnpm --dir packages/kfind run pack:check
 ```
 
 형태론 fixture에는 일치·불일치 사례 413개가 있습니다. Docker 벤치마크는 독립된
