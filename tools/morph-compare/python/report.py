@@ -115,17 +115,28 @@ def build_report(
         }
         if all(value == case["expected"] for value in backend_predictions.values()):
             continue
+        profile_causes = {
+            profile: classify_primary_cause(
+                case,
+                backend_predictions,
+                profile,
+                matches[profile][case["id"]],
+                kfind_diagnostics[profile][case["id"]],
+            )
+            for profile in KFIND_PROFILES
+        }
+        profile_cause_evidence = {
+            profile: kfind_diagnostics[profile][case["id"]]
+            for profile in KFIND_PROFILES
+        }
         failures.append(
             {
                 "case": case,
                 "predictions": backend_predictions,
-                "primary_cause": classify_primary_cause(
-                    case,
-                    backend_predictions,
-                    matches["kfind-embedded"][case["id"]],
-                    kfind_diagnostics["kfind-embedded"][case["id"]],
-                ),
-                "cause_evidence": kfind_diagnostics["kfind-embedded"][case["id"]],
+                "primary_cause": profile_causes["kfind-embedded"],
+                "cause_evidence": profile_cause_evidence["kfind-embedded"],
+                "profile_causes": profile_causes,
+                "profile_cause_evidence": profile_cause_evidence,
                 "matching_spans": {
                     backend: matches[backend][case["id"]] for backend in BACKENDS
                 },
@@ -150,10 +161,13 @@ def build_report(
 def classify_primary_cause(
     case: dict[str, object],
     predictions: dict[str, bool],
-    embedded_spans: list[dict[str, object]],
+    profile: str,
+    profile_spans: list[dict[str, object]],
     diagnostic: dict[str, object] | None,
 ) -> str | None:
-    if not case["expected"] or predictions["kfind-embedded"]:
+    if profile not in KFIND_PROFILES:
+        raise ValueError(f"unknown kfind profile {profile}")
+    if not case["expected"] or predictions[profile]:
         return None
     if not predictions["kiwi"] and not predictions["lindera"]:
         return "gold-or-adapter"
@@ -161,7 +175,7 @@ def classify_primary_cause(
         raise ValueError(f"missing kfind diagnostic for positive case {case['id']}")
     if not diagnostic["auto_has_expected_pos_analysis"]:
         return "lexicon-missing"
-    if embedded_spans:
+    if profile_spans:
         return "span-mismatch"
     if diagnostic["any_boundary_gold_overlap"]:
         return "boundary-rejected"
@@ -340,8 +354,8 @@ def append_failures(lines: list[str], report: dict[str, object]) -> None:
             "",
             f"## Failures ({len(report['failures'])} cases)",
             "",
-            "| case | source | query/POS | cause | expected | kfind embedded | kfind full-POS | Kiwi | Lindera |",
-            "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+            "| case | source | query/POS | embedded cause | full-POS cause | expected | kfind embedded | kfind full-POS | Kiwi | Lindera |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
     for failure in report["failures"][:30]:
@@ -349,7 +363,9 @@ def append_failures(lines: list[str], report: dict[str, object]) -> None:
         predicted = failure["predictions"]
         lines.append(
             f"| {case['id']} | {case['source']} | {case['query']}/{case['pos']} | "
-            f"{failure['primary_cause'] or 'n/a'} | {case['expected']} | "
+            f"{failure['profile_causes']['kfind-embedded'] or 'n/a'} | "
+            f"{failure['profile_causes']['kfind-full-pos'] or 'n/a'} | "
+            f"{case['expected']} | "
             f"{predicted['kfind-embedded']} | "
             f"{predicted['kfind-full-pos']} | {predicted['kiwi']} | "
             f"{predicted['lindera']} |"

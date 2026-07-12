@@ -55,6 +55,9 @@ class PrimaryCauseTests(unittest.TestCase):
     def classify(
         self,
         *,
+        profile: str = "kfind-embedded",
+        embedded: bool = False,
+        full_pos: bool = False,
         kiwi: bool = True,
         lindera: bool = True,
         spans: list[dict[str, object]] | None = None,
@@ -65,11 +68,12 @@ class PrimaryCauseTests(unittest.TestCase):
         return classify_primary_cause(
             {"id": "case", "expected": True},
             {
-                "kfind-embedded": False,
-                "kfind-full-pos": False,
+                "kfind-embedded": embedded,
+                "kfind-full-pos": full_pos,
                 "kiwi": kiwi,
                 "lindera": lindera,
             },
+            profile,
             spans or [],
             {
                 "auto_has_expected_pos_analysis": auto_analysis,
@@ -89,6 +93,13 @@ class PrimaryCauseTests(unittest.TestCase):
             "continuation-rejected", self.classify(anchor_overlap=True)
         )
         self.assertEqual("surface-missing", self.classify())
+
+    def test_profile_prediction_is_classified_independently(self) -> None:
+        self.assertIsNone(self.classify(profile="kfind-full-pos", full_pos=True))
+        self.assertEqual(
+            "surface-missing",
+            self.classify(profile="kfind-full-pos", embedded=True),
+        )
 
 
 class QualityMetricsTests(unittest.TestCase):
