@@ -89,6 +89,13 @@ pub struct SurfaceBranch {
     pub core_mapping: CoreMapping,
     pub origins: Vec<Origin>,
     pub boundary: BoundaryProof,
+    pub context_requirement: ContextRequirement,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ContextRequirement {
+    None,
+    EojeolLattice,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

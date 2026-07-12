@@ -1,8 +1,8 @@
 use grep_matcher::{LineMatchKind, LineTerminator, Matcher};
 use kfind_morph::{ContinuationState, RuleId};
 use kfind_query::{
-    AtomPlan, BoundaryPolicy, BoundaryProof, BranchEnvironment, BranchVerifier, CoreMapping,
-    Origin, PhrasePolicy, PlanLimits, QueryPlan, SurfaceBranch,
+    AtomPlan, BoundaryPolicy, BoundaryProof, BranchEnvironment, BranchVerifier, ContextRequirement,
+    CoreMapping, Origin, PhrasePolicy, PlanLimits, QueryPlan, SurfaceBranch,
 };
 use unicode_normalization::UnicodeNormalization;
 
@@ -413,6 +413,7 @@ fn exact_branch(anchor: &str, require_left: bool) -> SurfaceBranch {
         core_mapping: CoreMapping::WholeAnchor,
         origins: vec![origin(0, &[])],
         boundary: proof(require_left, true, anchor.chars().count() == 1),
+        context_requirement: ContextRequirement::None,
     }
 }
 
@@ -426,6 +427,7 @@ fn nominal_branch(anchor: &str, allowed_rule_ids: Arc<[RuleId]>) -> SurfaceBranc
         core_mapping: CoreMapping::WholeAnchor,
         origins: vec![origin(0, &[])],
         boundary: proof(true, true, anchor.chars().count() == 1),
+        context_requirement: ContextRequirement::None,
     }
 }
 
@@ -447,6 +449,7 @@ fn predicate_branch(
         core_mapping: CoreMapping::PrefixBytes(core_len),
         origins,
         boundary: proof(false, true, anchor.chars().count() == 1),
+        context_requirement: ContextRequirement::None,
     }
 }
 
