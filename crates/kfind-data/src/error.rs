@@ -70,6 +70,12 @@ pub enum DataErrorKind {
     },
     Toml(String),
     Binary(String),
+    MorphologyResourceSchema {
+        expected: u32,
+        actual: u32,
+    },
+    MorphologyResourceSourceMismatch,
+    MorphologyResourceCorrupt(String),
     MissingFixtureCoverage(String),
 }
 
@@ -121,6 +127,16 @@ impl Display for DataErrorKind {
             ),
             Self::Toml(message) => write!(formatter, "TOML 스키마 오류: {message}"),
             Self::Binary(message) => write!(formatter, "POS lexicon binary 오류: {message}"),
+            Self::MorphologyResourceSchema { expected, actual } => write!(
+                formatter,
+                "morphology resource schema가 올바르지 않습니다: expected {expected}, got {actual}"
+            ),
+            Self::MorphologyResourceSourceMismatch => {
+                formatter.write_str("morphology resource source digest가 일치하지 않습니다")
+            }
+            Self::MorphologyResourceCorrupt(message) => {
+                write!(formatter, "morphology resource가 손상되었습니다: {message}")
+            }
             Self::MissingFixtureCoverage(feature) => {
                 write!(
                     formatter,

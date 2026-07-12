@@ -89,8 +89,8 @@
 - `morphology index`는 표면형 prefix index와 분석 payload table을 분리한다. 같은 표면형의
   복수 분석은 하나의 key가 가리키는 payload group에 모두 보존한다.
 - `morphology index` container는 schema version, source archive SHA-256, entry·고유 표면형·
-  품사별 통계, index와 payload의 길이·SHA-256을 포함한다. loader는 내용을 노출하기 전에
-  이 값을 모두 검증하고 손상, schema 불일치, source digest 불일치를 구분해 보고한다.
+  품사별 통계, 각 section의 길이·SHA-256을 포함한다. loader는 내용을 노출하기 전에 이 값을
+  모두 검증하고 손상, schema 불일치, source digest 불일치를 구분해 보고한다.
 - P1은 packed Double-Array trie와 FST를 동일한 key·payload로 비교하는 개발용 측정이다.
   자료구조 선택과 container 추가만으로 query 분석이나 검색 결과를 변경하지 않는다.
 - resident 측정은 container 전체를 읽어 검증한 뒤 조회하고, mmap 측정은 읽기 전용으로
@@ -100,6 +100,12 @@
   사용한다. FST보다 큰 artifact를 허용하는 대신 exact lookup과 common-prefix 열거 지연을
   줄이며, 읽기 전용 full resource는 mmap으로 공유한다. source 확장 뒤 peak RSS가 40 MiB를
   넘거나 index 크기가 배포 병목이 되면 동일 benchmark로 FST 선택을 다시 검토한다.
+- P2의 첫 구현 단위는 benchmark 자료구조를 `kfind-data`의 재현 가능한 resource 생성·검증
+  경로로 옮긴다. resource는 index와 분석 payload에 더해 같은 source의 `matrix.def`,
+  `char.def`, `unk.def`를 보존한다. 생성기는 CSV의 모든 context ID, 완전한 연결 비용 행렬과
+  미등록어 정의를 검증하고, 생성 결과를 다시 decode해 검증한 뒤 artifact와 manifest를 쓴다.
+  이 단위에서는 CLI와 matcher가 resource를 로드하지 않으며 query 분석과 검색 결과를 바꾸지
+  않는다.
 - P2 lattice 구현 전에 고정 UD 2.18 Korean-Kaist·Korean-KSL dev 원문에서 지정사 판별
   slice를 생성한다. 양성은 정렬된 gold `JP=이`, `VCP=이`, `VCN=아니` 분석을 occurrence별로
   모두 보존한다. 다른 VCP/VCN 표면형은 양성으로 바꾸지 않고 제외 사유와 수를 기록한다.

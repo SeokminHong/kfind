@@ -1,6 +1,6 @@
 # 선택적 국소 형태 추론 작업 계획
 
-상태: P0·P1·P2 지정사 판별 slice 완료, P2 lattice shadow 재구성 대기
+상태: P0·P1·P2 지정사 판별 slice·resource 재구성 완료, bounded offset mapping 대기
 적용 시점: v0.1.1 이후 실험 범위
 
 관련 문서:
@@ -161,6 +161,12 @@ enum ContextRequirement {
 - KSL VCP는 precision 82.76%, recall 45.04%로 가장 약한 그룹이다. 비용이나 threshold를
   조정하기 전에 lattice path가 이 그룹의 양성과 음성을 구분하는지 확인한다.
 - `EojeolLattice` 대상은 1,160개 case의 1,647개 hit이며 두 kfind profile에서 동일하다.
+- `kfind-data`의 schema 2 resource는 729,173개 표면형, 757,627개 분석과
+  3,822×2,693 연결 비용 행렬, `char.def`, `unk.def`를 보존한다.
+- 고정 source에서 생성한 `morphology.bin` SHA-256은
+  `c9aae9746c29a2848d4e5bff3b15d81601f795ba4d65cd893a7eefe9a2490ca6`다.
+- loader는 schema, source digest, section digest, payload offset·record, context ID·행렬 크기를
+  검증한다. 이 resource는 아직 CLI와 matcher에 연결하지 않았다.
 
 그 뒤 lattice shadow를 다음 순서로 구현한다.
 
@@ -219,9 +225,10 @@ P2는 다음 무결한 작업 단위로 나눈다.
 
 1. 지정사 판별 fixture 생성과 metadata 검증을 추가한다. (완료)
 2. fixture를 benchmark report에 연결하고 source·raw tag·class별 baseline을 기록한다. (완료)
-3. 백업 branch의 morphology resource와 bounded offset mapping을 최신 `main` 위에 재구성한다.
-4. lattice path와 N-best shadow report를 연결한다.
-5. 성능·품질 게이트를 통과한 뒤 P3 진행 여부를 결정한다.
+3. 백업 branch의 morphology resource 생성·검증을 최신 `main` 위에 재구성한다. (완료)
+4. bounded 어절 추출과 NFC 원문 offset mapping을 별도 작업 단위로 재구성한다.
+5. lattice path와 N-best shadow report를 연결한다.
+6. 성능·품질 게이트를 통과한 뒤 P3 진행 여부를 결정한다.
 
 각 단위는 독립적으로 포맷·lint·workspace test를 통과한 뒤 커밋한다. 백업 branch
 `codex/morph-lattice-shadow-backup-20260712-203332`는 prototype 참고 자료로만 사용하고,

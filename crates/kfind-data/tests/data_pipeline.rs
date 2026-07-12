@@ -6,7 +6,8 @@ use kfind_data::{
     DataAlternation, DataErrorKind, DataFinePos, DataWarning, LexiconSources, NominalRecord,
     PosLexiconEntry, RuleSources, SurfaceOverride, collect_pos_entries, decode_pos_lexicon,
     encode_pos_lexicon, extract_mecab_ko_dic, extract_mecab_morphology, load_data_dir,
-    parse_lexicons, parse_predicates_tsv, parse_rule_set, parse_user_lexicon_toml, validate_data,
+    parse_lexicons, parse_mecab_connection_matrix, parse_predicates_tsv, parse_rule_set,
+    parse_user_lexicon_toml, validate_data,
 };
 
 fn data_root() -> PathBuf {
@@ -505,6 +506,35 @@ fn mecab_morphology_extractor_rejects_invalid_context_fields() {
     assert!(matches!(
         *error.kind,
         DataErrorKind::InvalidValue { ref field, .. } if field == "left_id"
+    ));
+}
+
+#[test]
+fn mecab_connection_matrix_preserves_unordered_costs() {
+    let matrix = "2 3\n1 2 -7\n0 0 1\n1 0 5\n0 2 3\n0 1 -2\n1 1 4\n";
+    let parsed = parse_mecab_connection_matrix("matrix.def", Cursor::new(matrix)).unwrap();
+
+    assert_eq!(parsed.right_contexts(), 2);
+    assert_eq!(parsed.left_contexts(), 3);
+    assert_eq!(parsed.connection_cost(0, 1), Some(-2));
+    assert_eq!(parsed.connection_cost(1, 2), Some(-7));
+    assert_eq!(parsed.connection_cost(2, 0), None);
+}
+
+#[test]
+fn mecab_connection_matrix_rejects_missing_and_duplicate_costs() {
+    let missing =
+        parse_mecab_connection_matrix("matrix.def", Cursor::new("1 2\n0 0 1\n")).unwrap_err();
+    assert!(matches!(
+        *missing.kind,
+        DataErrorKind::InvalidValue { ref field, .. } if field == "matrix_entries"
+    ));
+
+    let duplicate = parse_mecab_connection_matrix("matrix.def", Cursor::new("1 1\n0 0 1\n0 0 2\n"))
+        .unwrap_err();
+    assert!(matches!(
+        *duplicate.kind,
+        DataErrorKind::InvalidValue { ref field, .. } if field == "duplicate_context"
     ));
 }
 

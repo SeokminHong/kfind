@@ -90,6 +90,28 @@ pub(super) fn write_error(
             language.select("POS lexicon binary error", "POS lexicon binary 오류"),
             translate_detail(message, language)
         ),
+        DataErrorKind::MorphologyResourceSchema { expected, actual } => write!(
+            formatter,
+            "{}: {} {expected}, {} {actual}",
+            language.select(
+                "invalid morphology resource schema",
+                "morphology resource schema가 올바르지 않습니다"
+            ),
+            language.select("expected", "기대값"),
+            language.select("got", "실제값")
+        ),
+        DataErrorKind::MorphologyResourceSourceMismatch => formatter.write_str(language.select(
+            "morphology resource source digest mismatch",
+            "morphology resource source digest가 일치하지 않습니다",
+        )),
+        DataErrorKind::MorphologyResourceCorrupt(message) => write!(
+            formatter,
+            "{}: {message}",
+            language.select(
+                "corrupt morphology resource",
+                "morphology resource가 손상되었습니다"
+            )
+        ),
         DataErrorKind::MissingFixtureCoverage(feature) => write!(
             formatter,
             "{} `{feature}`",

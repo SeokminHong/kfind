@@ -8,10 +8,11 @@ fixture SHA-256: `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21
 
 ## 현재 상태
 
-- 기준 `main`: `6ccffec` (`fix(kfind/morph): distinguish VCP forms from headwords`)
+- 기준 `main`: `e7b9711` (`test(kfind/morph): establish copula evidence for lattice work`)
 - 최신 `main` CI 통과, 열린 PR·issue 없음
-- 작업 branch: `codex/vcp-vcn-evaluation-slice`
+- 작업 branch: `codex/morphology-resource-rebuild`
 - P0 context 계측과 P1 packed Double-Array 선택 완료
+- P2 morphology resource 생성·검증 재구성 완료
 - P2 prototype은 로컬 백업 branch
   `codex/morph-lattice-shadow-backup-20260712-203332`에 보존되어 있으나 최신 `main`에는 미반영
 
@@ -72,6 +73,12 @@ profile의 FN은 146개다.
   Lindera는 89.43%/97.59%다.
 - `EojeolLattice` 대상은 1,160개 case의 1,647개 hit이다. 현재 union 결과는 유지하며 이
   baseline을 P2 lattice path 판별력 평가에 사용한다.
+- `kfind-data`에 packed Double-Array morphology resource 생성·검증 경로를 재구성했다.
+  resource는 729,173개 표면형, 757,627개 분석, 3,822×2,693 연결 비용 행렬과 미등록어
+  정의를 보존하며 SHA-256은
+  `c9aae9746c29a2848d4e5bff3b15d81601f795ba4d65cd893a7eefe9a2490ca6`다.
+- schema·source·section digest, payload·context 범위 검증 실패를 구분한다. CLI와 matcher는
+  아직 resource를 로드하지 않으므로 union 검색 결과는 변하지 않는다.
 
 dev 명사 FN 70개 중 64개는 사전 누락이 아니라 smart boundary 거부다. 합성어 substring
 계약을 완화하면 hard-negative 정밀도와 충돌하므로 이번 어휘 보강에는 포함하지 않았다.
@@ -245,16 +252,15 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. 백업 branch의 morphology resource 생성·검증 커밋을 최신 `main` 기준으로 재구성한다.
-2. bounded 어절 추출과 NFC 원문 offset mapping을 별도 작업 단위로 옮긴다.
-3. 2,916건 fixture에서 query 포함/미포함 최저 비용과 N-best path를 shadow report에 연결한다.
-4. KSL VCP confusion matrix와 성능 게이트를 확인하기 전에는 threshold나 검색 결과를 바꾸지
+1. bounded 어절 추출과 NFC 원문 offset mapping을 별도 작업 단위로 옮긴다.
+2. 2,916건 fixture에서 query 포함/미포함 최저 비용과 N-best path를 shadow report에 연결한다.
+3. KSL VCP confusion matrix와 성능 게이트를 확인하기 전에는 threshold나 검색 결과를 바꾸지
    않는다.
 
 이어갈 때:
 
 ```console
-git switch codex/vcp-vcn-evaluation-slice
+git switch codex/morphology-resource-rebuild
 git status --short
 scripts/benchmark-morphology.sh
 ```

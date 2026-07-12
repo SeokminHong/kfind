@@ -37,6 +37,7 @@ memchr = "2.8.3"
 proptest = "1.7.0"
 unicode-general-category = "1.1.0"
 unicode-normalization = "0.1"
+yada = "0.5.1"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
