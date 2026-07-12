@@ -29,6 +29,8 @@ cargo install --locked --path crates/kfind-cli
 
 ## Library
 
+### Rust
+
 The `kfind` crate exposes the same query compiler and morphology matcher for
 in-memory UTF-8 input:
 
@@ -50,11 +52,31 @@ The library and its core dependencies support Rust 1.85's
 
 ```sh
 rustup target add wasm32-unknown-unknown --toolchain 1.85.0
-cargo +1.85.0 build --locked --package kfind --target wasm32-unknown-unknown
+cargo +1.85.0 build --locked --package kfind-wasm --target wasm32-unknown-unknown
 ```
 
-This target support is for Rust library consumers. JavaScript bindings and
-package generation are not included yet.
+### JavaScript
+
+The unscoped `kfind` npm package provides ESM WebAssembly bindings and generated
+TypeScript declarations for browser bundlers:
+
+```js
+import { Kfind } from "kfind";
+
+const engine = new Kfind();
+const matcher = engine.compile("걷다");
+const text = "😀 길을 걸어 갔다.";
+const matches = matcher.findAll(text);
+
+console.log(text.slice(matches[0].start, matches[0].end)); // 걸어
+```
+
+JavaScript offsets use UTF-16 code units. The package has not been published to
+the registry yet. Its release artifact can be built and checked locally:
+
+```sh
+pnpm --dir packages/kfind run pack:check
+```
 
 ## Usage
 
@@ -112,6 +134,7 @@ cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo bench -p kfind-testkit --bench query_matcher
 scripts/benchmark-morphology.sh
+pnpm --dir packages/kfind run pack:check
 ```
 
 The morphology fixture contains 413 positive and negative cases. The Docker

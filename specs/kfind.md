@@ -1,6 +1,6 @@
 # kfind 기술 사양서
 
-문서 상태: Draft 1.5
+문서 상태: Draft 1.6
 대상 릴리스: v0.1.1
 임시 제품명: `kfind`
 
@@ -178,6 +178,17 @@
   `analysisIndex`, `rulePath` provenance를 보존한다.
 - 기본 CI는 Linux와 Apple Silicon macOS에서 네이티브 테스트를 실행하고, Linux에서
   MSRV의 `kfind-wasm` build를 검사한다.
+
+### 0.9 npm package
+
+- npm package 이름은 unscoped `kfind`다. `wasm-pack`의 `bundler` target으로 ESM
+  JavaScript glue, WASM binary와 TypeScript declaration을 생성한다.
+- npm 산출물은 브라우저 bundler용 release package로 생성한다. 별도의 Node target
+  산출물로 같은 공개 API를 smoke test하고 `npm pack --dry-run`으로 게시 파일과 metadata를
+  검증한다.
+- npm package 검증은 package version과 Cargo version의 일치, TypeScript declaration의
+  공개 signature, JavaScript 오류와 UTF-16 offset 계약을 확인한다.
+- 기본 CI는 npm package build, Node smoke test와 pack 검사를 실행한다.
 
 ## 1. 문서 목적
 
@@ -1781,6 +1792,8 @@ Homebrew tap과 bottles
 14. 공개 Rust 라이브러리가 동일한 query plan과 matcher를 사용해 메모리 입력을 검색한다.
 15. 공개 라이브러리와 핵심 의존 crate가 Rust 1.85의 `wasm32-unknown-unknown` target에서
     빌드된다.
+16. `kfind` npm 산출물의 Node smoke test, TypeScript declaration 검사와
+    `npm pack --dry-run`이 통과한다.
 
 ## 25. 권장 초기 코드 인터페이스
 

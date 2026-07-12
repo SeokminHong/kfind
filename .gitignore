@@ -2,3 +2,6 @@
 /data/generated/*.bin
 /data/generated/full-pos/
 /dist/
+/packages/kfind/generated/
+/packages/kfind/LICENSE
+/packages/kfind/*.tgz
