@@ -6,6 +6,30 @@ use crate::binary::{ApprovedPosLexicon, PosLexiconEntry};
 use crate::lexicon::DataFinePos;
 use crate::{DataError, DataErrorKind};
 
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct MecabMorphologyEntry {
+    pub surface: String,
+    pub pos: DataFinePos,
+    pub left_id: u16,
+    pub right_id: u16,
+    pub word_cost: i32,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MecabMorphologyExtraction {
+    entries: Vec<MecabMorphologyEntry>,
+    pub rows_read: usize,
+    pub skipped_unsupported_pos: usize,
+    pub duplicate_entries: usize,
+    pub normalized_surfaces: usize,
+}
+
+impl MecabMorphologyExtraction {
+    pub fn entries(&self) -> &[MecabMorphologyEntry] {
+        &self.entries
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 /// Normalized POS-only extraction output.
 pub struct MecabExtraction {
@@ -127,6 +151,67 @@ pub fn extract_mecab_ko_dic(
     })
 }
 
+pub fn extract_mecab_morphology(
+    source: &str,
+    reader: impl BufRead,
+) -> Result<MecabMorphologyExtraction, DataError> {
+    let mut entries = Vec::new();
+    let mut rows_read = 0;
+    let mut skipped_unsupported_pos = 0;
+    let mut normalized_surfaces = 0;
+
+    for (line_index, line) in reader.lines().enumerate() {
+        let line_number = line_index + 1;
+        let line = line.map_err(|error| {
+            DataError::line(source, line_number, DataErrorKind::Io(error.to_string()))
+        })?;
+        let line = line.trim_end_matches('\r');
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        rows_read += 1;
+        let fields = parse_csv_record(source, line_number, line)?;
+        if fields.len() < 12 {
+            return Err(DataError::line(
+                source,
+                line_number,
+                DataErrorKind::InvalidFieldCount {
+                    expected: 12,
+                    actual: fields.len(),
+                },
+            ));
+        }
+        let Some(pos) = DataFinePos::parse(&fields[4]) else {
+            skipped_unsupported_pos += 1;
+            continue;
+        };
+        let original = fields[0].as_str();
+        if original.is_empty() {
+            return Err(invalid_value(source, line_number, "surface", original));
+        }
+        let surface = original.nfc().collect::<String>();
+        normalized_surfaces += usize::from(surface != original);
+        entries.push(MecabMorphologyEntry {
+            surface,
+            pos,
+            left_id: parse_integer(source, line_number, "left_id", &fields[1])?,
+            right_id: parse_integer(source, line_number, "right_id", &fields[2])?,
+            word_cost: parse_integer(source, line_number, "word_cost", &fields[3])?,
+        });
+    }
+
+    entries.sort_unstable();
+    let original_count = entries.len();
+    entries.dedup();
+    Ok(MecabMorphologyExtraction {
+        duplicate_entries: original_count - entries.len(),
+        entries,
+        rows_read,
+        skipped_unsupported_pos,
+        normalized_surfaces,
+    })
+}
+
 fn is_canonical_copula_stem(pos: DataFinePos, surface: &str) -> bool {
     match pos {
         DataFinePos::Vcp => surface == "이",
@@ -190,4 +275,13 @@ fn invalid_value(source: &str, line: usize, field: &str, value: &str) -> DataErr
             reason: "mecab-ko-dic CSV 스키마에 맞지 않습니다".to_owned(),
         },
     )
+}
+
+fn parse_integer<T>(source: &str, line: usize, field: &str, value: &str) -> Result<T, DataError>
+where
+    T: std::str::FromStr,
+{
+    value
+        .parse()
+        .map_err(|_| invalid_value(source, line, field, value))
 }
