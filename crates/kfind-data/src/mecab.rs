@@ -6,6 +6,40 @@ use crate::binary::{ApprovedPosLexicon, PosLexiconEntry};
 use crate::lexicon::DataFinePos;
 use crate::{DataError, DataErrorKind};
 
+const MAX_CONNECTION_COSTS: usize = 1 << 24;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MecabConnectionMatrix {
+    right_contexts: u16,
+    left_contexts: u16,
+    costs: Vec<i16>,
+}
+
+impl MecabConnectionMatrix {
+    #[must_use]
+    pub fn right_contexts(&self) -> u16 {
+        self.right_contexts
+    }
+
+    #[must_use]
+    pub fn left_contexts(&self) -> u16 {
+        self.left_contexts
+    }
+
+    #[must_use]
+    pub fn costs(&self) -> &[i16] {
+        &self.costs
+    }
+
+    #[must_use]
+    pub fn connection_cost(&self, right_id: u16, left_id: u16) -> Option<i16> {
+        let index = usize::from(right_id)
+            .checked_mul(usize::from(self.left_contexts))?
+            .checked_add(usize::from(left_id))?;
+        self.costs.get(index).copied()
+    }
+}
+
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct MecabMorphologyEntry {
     pub surface: String,
@@ -212,6 +246,110 @@ pub fn extract_mecab_morphology(
     })
 }
 
+pub fn parse_mecab_connection_matrix(
+    source: &str,
+    reader: impl BufRead,
+) -> Result<MecabConnectionMatrix, DataError> {
+    let mut lines = reader.lines().enumerate();
+    let (header_line, header) = next_matrix_line(source, &mut lines)?.ok_or_else(|| {
+        DataError::line(
+            source,
+            1,
+            DataErrorKind::InvalidHeader {
+                expected: "RIGHT_CONTEXTS LEFT_CONTEXTS".to_owned(),
+                actual: String::new(),
+            },
+        )
+    })?;
+    let header_fields = header.split_whitespace().collect::<Vec<_>>();
+    if header_fields.len() != 2 {
+        return Err(DataError::line(
+            source,
+            header_line,
+            DataErrorKind::InvalidFieldCount {
+                expected: 2,
+                actual: header_fields.len(),
+            },
+        ));
+    }
+    let right_contexts =
+        parse_integer::<u16>(source, header_line, "right_contexts", header_fields[0])?;
+    let left_contexts =
+        parse_integer::<u16>(source, header_line, "left_contexts", header_fields[1])?;
+    let cost_count = usize::from(right_contexts)
+        .checked_mul(usize::from(left_contexts))
+        .filter(|count| *count > 0 && *count <= MAX_CONNECTION_COSTS)
+        .ok_or_else(|| invalid_value(source, header_line, "matrix_dimensions", &header))?;
+    let mut costs = vec![0_i16; cost_count];
+    let mut seen = vec![0_u8; cost_count.div_ceil(8)];
+    let mut parsed_costs = 0;
+
+    while let Some((line_number, line)) = next_matrix_line(source, &mut lines)? {
+        let fields = line.split_whitespace().collect::<Vec<_>>();
+        if fields.len() != 3 {
+            return Err(DataError::line(
+                source,
+                line_number,
+                DataErrorKind::InvalidFieldCount {
+                    expected: 3,
+                    actual: fields.len(),
+                },
+            ));
+        }
+        let right_id = parse_integer::<u16>(source, line_number, "right_id", fields[0])?;
+        let left_id = parse_integer::<u16>(source, line_number, "left_id", fields[1])?;
+        if right_id >= right_contexts || left_id >= left_contexts {
+            return Err(invalid_value(source, line_number, "context_id", &line));
+        }
+        let index = usize::from(right_id) * usize::from(left_contexts) + usize::from(left_id);
+        let mask = 1_u8 << (index % 8);
+        if seen[index / 8] & mask != 0 {
+            return Err(invalid_value(
+                source,
+                line_number,
+                "duplicate_context",
+                &line,
+            ));
+        }
+        seen[index / 8] |= mask;
+        costs[index] = parse_integer(source, line_number, "cost", fields[2])?;
+        parsed_costs += 1;
+    }
+    if parsed_costs != cost_count {
+        return Err(invalid_value(
+            source,
+            header_line,
+            "matrix_entries",
+            &parsed_costs.to_string(),
+        ));
+    }
+    Ok(MecabConnectionMatrix {
+        right_contexts,
+        left_contexts,
+        costs,
+    })
+}
+
+fn next_matrix_line(
+    source: &str,
+    lines: &mut impl Iterator<Item = (usize, std::io::Result<String>)>,
+) -> Result<Option<(usize, String)>, DataError> {
+    for (line_index, line) in lines {
+        let line_number = line_index + 1;
+        let line = line.map_err(|error| {
+            DataError::line(source, line_number, DataErrorKind::Io(error.to_string()))
+        })?;
+        let content = line
+            .split_once('#')
+            .map_or(line.as_str(), |(value, _)| value)
+            .trim();
+        if !content.is_empty() {
+            return Ok(Some((line_number, content.to_owned())));
+        }
+    }
+    Ok(None)
+}
+
 fn is_canonical_copula_stem(pos: DataFinePos, surface: &str) -> bool {
     match pos {
         DataFinePos::Vcp => surface == "이",
@@ -272,7 +410,7 @@ fn invalid_value(source: &str, line: usize, field: &str, value: &str) -> DataErr
         DataErrorKind::InvalidValue {
             field: field.to_owned(),
             value: value.to_owned(),
-            reason: "mecab-ko-dic CSV 스키마에 맞지 않습니다".to_owned(),
+            reason: "mecab-ko-dic 스키마에 맞지 않습니다".to_owned(),
         },
     )
 }
