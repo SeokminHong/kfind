@@ -60,12 +60,16 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install minimum Rust
-        run: rustup toolchain install 1.85.0 --profile minimal
+        run: |
+          rustup toolchain install 1.85.0 --profile minimal
+          rustup target add wasm32-unknown-unknown --toolchain 1.85.0
       - name: Check all targets
         run: |
           cargo +1.85.0 check --workspace --all-targets --locked
           cargo +1.85.0 check --manifest-path tools/morph-index-benchmark/Cargo.toml \
             --all-targets --locked
+      - name: Check WASM library
+        run: cargo +1.85.0 check --package kfind --target wasm32-unknown-unknown --locked
 
   morphology-smoke:
     name: Morphology smoke

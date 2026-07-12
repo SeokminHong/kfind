@@ -1,5 +1,6 @@
 [workspace]
 members = [
+  "crates/kfind",
   "crates/kfind-cli",
   "crates/kfind-data",
   "crates/kfind-matcher",
@@ -27,6 +28,7 @@ criterion = "0.7.0"
 grep-matcher = "0.1.8"
 grep-searcher = "0.1.16"
 ignore = "0.4.28"
+kfind = { path = "crates/kfind" }
 kfind-data = { path = "crates/kfind-data" }
 kfind-matcher = { path = "crates/kfind-matcher" }
 kfind-morph = { path = "crates/kfind-morph" }

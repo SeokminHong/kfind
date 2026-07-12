@@ -560,6 +560,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "kfind"
+version = "0.1.1"
+dependencies = [
+ "kfind-data",
+ "kfind-matcher",
+ "kfind-query",
+]
+
+[[package]]
 name = "kfind-cli"
 version = "0.1.1"
 dependencies = [
