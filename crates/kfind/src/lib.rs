@@ -11,7 +11,11 @@ use kfind_matcher::{MorphMatcher, MorphMatcherBuildError};
 use kfind_query::{LexiconQueryAnalyzer, compile_query};
 
 pub use kfind_data::DataError;
-pub use kfind_query::{CompileError, CompileOptions, Lexicons, PhraseMatch, QueryPlan};
+pub use kfind_morph::CoarsePos;
+pub use kfind_query::{
+    BoundaryPolicy, CompileError, CompileOptionError, CompileOptionOverrides, CompileOptions,
+    ExpandMode, Lexicons, NormalizationMode, PhraseMatch, QueryPlan, VerifiedSpan,
+};
 
 /// Reusable lexicon and query-analysis state.
 #[derive(Clone, Debug)]

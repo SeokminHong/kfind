@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "crates/kfind",
+  "crates/kfind-wasm",
   "crates/kfind-cli",
   "crates/kfind-data",
   "crates/kfind-matcher",
@@ -28,6 +29,7 @@ criterion = "0.7.0"
 grep-matcher = "0.1.8"
 grep-searcher = "0.1.16"
 ignore = "0.4.28"
+js-sys = "0.3.103"
 kfind = { path = "crates/kfind" }
 kfind-data = { path = "crates/kfind-data" }
 kfind-matcher = { path = "crates/kfind-matcher" }
@@ -37,8 +39,10 @@ kfind-search = { path = "crates/kfind-search" }
 kfind-testkit = { path = "crates/kfind-testkit" }
 memchr = "2.8.3"
 proptest = "1.7.0"
+serde-wasm-bindgen = "0.6.5"
 unicode-general-category = "1.1.0"
 unicode-normalization = "0.1"
+wasm-bindgen = "0.2.126"
 yada = "0.5.1"
 
 [workspace.lints.rust]
