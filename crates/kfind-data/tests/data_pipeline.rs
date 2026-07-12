@@ -5,9 +5,9 @@ use std::path::{Path, PathBuf};
 use kfind_data::{
     DataAlternation, DataErrorKind, DataFinePos, DataWarning, LexiconSources, NominalRecord,
     PosLexiconEntry, RuleSources, SurfaceOverride, collect_pos_entries, decode_pos_lexicon,
-    encode_pos_lexicon, extract_mecab_ko_dic, extract_mecab_morphology, load_data_dir,
-    parse_lexicons, parse_mecab_connection_matrix, parse_predicates_tsv, parse_rule_set,
-    parse_user_lexicon_toml, validate_data,
+    encode_pos_lexicon, extract_mecab_ko_dic, extract_mecab_morphology,
+    extract_mecab_source_morphology, load_data_dir, parse_lexicons, parse_mecab_connection_matrix,
+    parse_predicates_tsv, parse_rule_set, parse_user_lexicon_toml, validate_data,
 };
 
 fn data_root() -> PathBuf {
@@ -507,6 +507,33 @@ fn mecab_morphology_extractor_rejects_invalid_context_fields() {
         *error.kind,
         DataErrorKind::InvalidValue { ref field, .. } if field == "left_id"
     ));
+}
+
+#[test]
+fn mecab_source_morphology_preserves_all_pos_and_analysis_fields() {
+    let csv = concat!(
+        "다,3,5,2700,EF,*,F,다,*,*,*,*\n",
+        "인,2240,10,894,VCP+ETM,*,T,인,Inflect,VCP,ETM,이/VCP/*+ᆫ/ETM/*\n",
+        "기호,1,1,1,SY,*,F,기호,*,*,*,*\n",
+    );
+    let extraction = extract_mecab_source_morphology("source.csv", Cursor::new(csv)).unwrap();
+
+    assert_eq!(extraction.rows_read, 3);
+    assert_eq!(extraction.entries().len(), 3);
+    assert!(
+        extraction.entries().iter().any(|entry| {
+            entry.surface == "다" && entry.pos == "EF" && entry.word_cost == 2700
+        })
+    );
+    assert!(extraction.entries().iter().any(|entry| {
+        entry.surface == "인"
+            && entry.pos == "VCP+ETM"
+            && entry.analysis_type == "Inflect"
+            && entry.start_pos == "VCP"
+            && entry.end_pos == "ETM"
+            && entry.expression == "이/VCP/*+ᆫ/ETM/*"
+    }));
+    assert!(extraction.entries().iter().any(|entry| entry.pos == "SY"));
 }
 
 #[test]

@@ -49,6 +49,33 @@ pub struct MecabMorphologyEntry {
     pub word_cost: i32,
 }
 
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct MecabSourceMorphologyEntry {
+    pub surface: String,
+    pub pos: String,
+    pub left_id: u16,
+    pub right_id: u16,
+    pub word_cost: i32,
+    pub analysis_type: String,
+    pub start_pos: String,
+    pub end_pos: String,
+    pub expression: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MecabSourceMorphologyExtraction {
+    entries: Vec<MecabSourceMorphologyEntry>,
+    pub rows_read: usize,
+    pub duplicate_entries: usize,
+    pub normalized_surfaces: usize,
+}
+
+impl MecabSourceMorphologyExtraction {
+    pub fn entries(&self) -> &[MecabSourceMorphologyEntry] {
+        &self.entries
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MecabMorphologyExtraction {
     entries: Vec<MecabMorphologyEntry>,
@@ -242,6 +269,68 @@ pub fn extract_mecab_morphology(
         entries,
         rows_read,
         skipped_unsupported_pos,
+        normalized_surfaces,
+    })
+}
+
+pub fn extract_mecab_source_morphology(
+    source: &str,
+    reader: impl BufRead,
+) -> Result<MecabSourceMorphologyExtraction, DataError> {
+    let mut entries = Vec::new();
+    let mut rows_read = 0;
+    let mut normalized_surfaces = 0;
+
+    for (line_index, line) in reader.lines().enumerate() {
+        let line_number = line_index + 1;
+        let line = line.map_err(|error| {
+            DataError::line(source, line_number, DataErrorKind::Io(error.to_string()))
+        })?;
+        let line = line.trim_end_matches('\r');
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        rows_read += 1;
+        let fields = parse_csv_record(source, line_number, line)?;
+        if fields.len() < 12 {
+            return Err(DataError::line(
+                source,
+                line_number,
+                DataErrorKind::InvalidFieldCount {
+                    expected: 12,
+                    actual: fields.len(),
+                },
+            ));
+        }
+        let original = fields[0].as_str();
+        if original.is_empty() {
+            return Err(invalid_value(source, line_number, "surface", original));
+        }
+        if fields[4].is_empty() {
+            return Err(invalid_value(source, line_number, "pos", &fields[4]));
+        }
+        let surface = original.nfc().collect::<String>();
+        normalized_surfaces += usize::from(surface != original);
+        entries.push(MecabSourceMorphologyEntry {
+            surface,
+            pos: fields[4].clone(),
+            left_id: parse_integer(source, line_number, "left_id", &fields[1])?,
+            right_id: parse_integer(source, line_number, "right_id", &fields[2])?,
+            word_cost: parse_integer(source, line_number, "word_cost", &fields[3])?,
+            analysis_type: fields[8].clone(),
+            start_pos: fields[9].clone(),
+            end_pos: fields[10].clone(),
+            expression: fields[11].clone(),
+        });
+    }
+
+    entries.sort_unstable();
+    let original_count = entries.len();
+    entries.dedup();
+    Ok(MecabSourceMorphologyExtraction {
+        duplicate_entries: original_count - entries.len(),
+        entries,
+        rows_read,
         normalized_surfaces,
     })
 }
