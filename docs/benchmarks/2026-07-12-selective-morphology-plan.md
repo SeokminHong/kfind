@@ -1,6 +1,6 @@
 # 선택적 국소 형태 추론 작업 계획
 
-상태: P0·P1·P2 지정사 판별 slice·resource·bounded offset mapping 완료, lattice path 대기
+상태: P0·P1·P2 lattice shadow 완료, 제품 판정 적용 보류
 적용 시점: v0.1.1 이후 실험 범위
 
 관련 문서:
@@ -172,14 +172,24 @@ enum ContextRequirement {
   순회하지 않고 거부한다.
 - NFC의 안정된 경계는 원문 절대 byte span과 양방향으로 변환한다. 한글 분해형과 임의
   Unicode 문자열의 안정 경계 round-trip을 검증했으며 검색 결과는 바꾸지 않는다.
+- report schema 4는 resource SHA-256, candidate별 원문·NFC span, 포함·미포함
+  최저 비용, cost margin과 최대 4개의 완전 경로를 보존한다.
+- 1,647개 candidate 중 1,621개는 `reject`, 26개는 `NoCompletePath`였다. 양성은
+  reject 1,545개·경로 없음 20개, 음성은 reject 76개·경로 없음 6개다.
+- 1,620개 candidate에서 포함·미포함 경로가 모두 존재했고 모두 미포함 비용이
+  낮았다. margin 중앙값은 4,744였다. 나머지 한 건은 미포함 경로만 있었다.
+- node는 최대 89개로 4,096개 상한을 넘지 않았다. N-best는 모두 4개 이하였고,
+  두 경로가 있는 경우 각 최저 경로를 모두 포함했다.
+- shadow 평가는 시간·RSS 측정 뒤에 실행되며 union 결과를 필터링하지 않는다.
+  현재 source 비용만으로는 양성·음성을 구분하지 못하므로 P3를 진행하지 않는다.
 
-그 뒤 lattice shadow를 다음 순서로 구현한다.
+다음 lattice shadow 구현은 완료했다.
 
-1. anchor를 포함한 bounded 어절과 원문 offset mapping을 추출한다.
-2. 사전 node, 조사·어미 node, 미등록어 node와 연결 비용을 구성한다.
-3. query 분석을 포함하는 최저 비용과 포함하지 않는 최저 비용을 함께 계산한다.
-4. N-best와 cost margin을 report에 기록하되 검색 결과는 필터링하지 않는다.
-5. worker별 scratch와 소형 어절 cache로 반복 할당과 lock을 제거한다.
+1. anchor를 포함한 bounded 어절과 원문 offset mapping을 추출한다. (완료)
+2. 사전 node, 조사·어미 node, 미등록어 node와 연결 비용을 구성한다. (완료)
+3. query 분석을 포함하는 최저 비용과 포함하지 않는 최저 비용을 함께 계산한다. (완료)
+4. N-best와 cost margin을 report에 기록하되 검색 결과는 필터링하지 않는다. (완료)
+5. worker별 scratch와 소형 어절 cache는 제품 검색 경로에 적용할 때 다룬다.
 
 완료 조건:
 
@@ -232,8 +242,12 @@ P2는 다음 무결한 작업 단위로 나눈다.
 2. fixture를 benchmark report에 연결하고 source·raw tag·class별 baseline을 기록한다. (완료)
 3. 백업 branch의 morphology resource 생성·검증을 최신 `main` 위에 재구성한다. (완료)
 4. bounded 어절 추출과 NFC 원문 offset mapping을 별도 작업 단위로 재구성한다. (완료)
-5. lattice path와 N-best shadow report를 연결한다.
-6. 성능·품질 게이트를 통과한 뒤 P3 진행 여부를 결정한다.
+5. lattice path와 N-best shadow report를 연결한다. (완료)
+6. 평가 결과 source 비용만으로는 판별력이 없어 P3는 보류한다. (완료)
+
+다음 작업은 26개 `NoCompletePath`의 원인과 query 포함 경로의 비용이 일관되게
+불리한 이유를 source node·연결 비용 의미와 대조하는 분석이다. 분석 전에 threshold나
+검색 결과를 변경하지 않는다.
 
 각 단위는 독립적으로 포맷·lint·workspace test를 통과한 뒤 커밋한다. 백업 branch
 `codex/morph-lattice-shadow-backup-20260712-203332`는 prototype 참고 자료로만 사용하고,
