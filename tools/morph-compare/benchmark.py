@@ -26,9 +26,12 @@ from python.adapters import (
 from python.report import KFIND_PROFILES, build_report, render_markdown
 from python.validation import (
     load_cases,
-    sha256,
+    select_smoke_cases,
+    smoke_metadata,
     validate_dataset,
     validate_hard_negatives,
+    validate_local_context_dataset,
+    write_cases,
 )
 
 
@@ -36,44 +39,15 @@ DEFAULT_CASES = Path("/opt/morph-benchmark/data/cases.jsonl")
 DEFAULT_METADATA = Path("/opt/morph-benchmark/data/metadata.json")
 DEFAULT_DEV_CASES = Path("/opt/morph-benchmark/data/dev-cases.jsonl")
 DEFAULT_DEV_METADATA = Path("/opt/morph-benchmark/data/dev-metadata.json")
+DEFAULT_LOCAL_CONTEXT_CASES = Path(
+    "/opt/morph-benchmark/data/local-context-cases.jsonl"
+)
+DEFAULT_LOCAL_CONTEXT_METADATA = Path(
+    "/opt/morph-benchmark/data/local-context-metadata.json"
+)
 DEFAULT_HARD_NEGATIVES = Path("/opt/morph-benchmark/hard-negatives.jsonl")
 DEFAULT_RUNNER = Path("/usr/local/bin/morph-benchmark-runner")
 DEFAULT_RUNS = 5
-def select_smoke_cases(cases: list[dict[str, object]]) -> list[dict[str, object]]:
-    selected_ids = set()
-    selected_groups = set()
-    for case in cases:
-        group = (case["source"], case["pos"], case["expected"])
-        if group not in selected_groups:
-            selected_groups.add(group)
-            selected_ids.add(case["id"])
-    return [case for case in cases if case["id"] in selected_ids]
-
-
-def write_cases(path: Path, cases: list[dict[str, object]]) -> None:
-    with path.open("w", encoding="utf-8") as fixture_file:
-        for case in cases:
-            fixture_file.write(
-                json.dumps(case, ensure_ascii=False, sort_keys=True) + "\n"
-            )
-
-
-def smoke_metadata(
-    cases_path: Path,
-    cases: list[dict[str, object]],
-    development_metadata: dict[str, object],
-) -> dict[str, object]:
-    return {
-        "schema_version": 1,
-        "split": "dev-smoke",
-        "fixture_sha256": sha256(cases_path),
-        "cases": len(cases),
-        "positive_cases": sum(bool(case["expected"]) for case in cases),
-        "negative_cases": sum(not case["expected"] for case in cases),
-        "seed": development_metadata["seed"],
-        "ud_release": development_metadata["ud_release"],
-        "sources": development_metadata["sources"],
-    }
 
 
 def run_native_backend(
@@ -440,6 +414,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--metadata", type=Path, default=DEFAULT_METADATA)
     parser.add_argument("--dev-cases", type=Path, default=DEFAULT_DEV_CASES)
     parser.add_argument("--dev-metadata", type=Path, default=DEFAULT_DEV_METADATA)
+    parser.add_argument(
+        "--local-context-cases", type=Path, default=DEFAULT_LOCAL_CONTEXT_CASES
+    )
+    parser.add_argument(
+        "--local-context-metadata", type=Path, default=DEFAULT_LOCAL_CONTEXT_METADATA
+    )
     parser.add_argument("--hard-negatives", type=Path, default=DEFAULT_HARD_NEGATIVES)
     parser.add_argument("--runner", type=Path, default=DEFAULT_RUNNER)
     parser.add_argument("--runs", type=int, default=DEFAULT_RUNS)
@@ -459,16 +439,38 @@ def main() -> int:
         dev_cases = load_cases(args.dev_cases)
         dev_metadata = json.loads(args.dev_metadata.read_text(encoding="utf-8"))
         validate_dataset(args.dev_cases, dev_cases, dev_metadata)
+        local_context_cases = load_cases(args.local_context_cases)
+        local_context_metadata = json.loads(
+            args.local_context_metadata.read_text(encoding="utf-8")
+        )
+        validate_local_context_dataset(
+            args.local_context_cases, local_context_cases, local_context_metadata
+        )
         hard_cases = load_cases(args.hard_negatives)
         hard_metadata = validate_hard_negatives(args.hard_negatives, hard_cases)
 
         if args.smoke:
             with tempfile.TemporaryDirectory() as directory:
                 smoke_path = Path(directory) / "smoke-cases.jsonl"
+                local_context_smoke_path = (
+                    Path(directory) / "local-context-smoke-cases.jsonl"
+                )
                 smoke_cases = select_smoke_cases(dev_cases)
+                local_context_smoke_cases = select_smoke_cases(
+                    local_context_cases,
+                    ("source", "target_raw_tag", "expected"),
+                )
                 write_cases(smoke_path, smoke_cases)
+                write_cases(local_context_smoke_path, local_context_smoke_cases)
                 baseline = evaluate_dataset(
                     smoke_cases, smoke_path, args.runner, 1, True
+                )
+                local_context = evaluate_dataset(
+                    local_context_smoke_cases,
+                    local_context_smoke_path,
+                    args.runner,
+                    1,
+                    False,
                 )
                 report = build_report(
                     smoke_cases,
@@ -480,12 +482,35 @@ def main() -> int:
                     baseline["diagnostics"],
                     baseline["shadow_verification"],
                 )
+                report["local_context"] = build_report(
+                    local_context_smoke_cases,
+                    smoke_metadata(
+                        local_context_smoke_path,
+                        local_context_smoke_cases,
+                        local_context_metadata,
+                        "dev-local-context-smoke",
+                    ),
+                    local_context["versions"],
+                    local_context["predictions"],
+                    local_context["matches"],
+                    local_context["performance"],
+                    local_context["diagnostics"],
+                    local_context["shadow_verification"],
+                    include_performance=False,
+                )
                 return write_report(args.output, report)
 
         baseline = evaluate_dataset(cases, args.cases, args.runner, args.runs, True)
         development = evaluate_dataset(dev_cases, args.dev_cases, args.runner, 1, False)
         hard_negatives = evaluate_dataset(
             hard_cases, args.hard_negatives, args.runner, 1, False
+        )
+        local_context = evaluate_dataset(
+            local_context_cases,
+            args.local_context_cases,
+            args.runner,
+            1,
+            False,
         )
         report = build_report(
             cases,
@@ -516,6 +541,17 @@ def main() -> int:
             hard_negatives["performance"],
             hard_negatives["diagnostics"],
             hard_negatives["shadow_verification"],
+        )
+        report["local_context"] = build_report(
+            local_context_cases,
+            local_context_metadata,
+            local_context["versions"],
+            local_context["predictions"],
+            local_context["matches"],
+            local_context["performance"],
+            local_context["diagnostics"],
+            local_context["shadow_verification"],
+            include_performance=False,
         )
         return write_report(args.output, report)
     except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:
