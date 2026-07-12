@@ -94,6 +94,10 @@
 - resident 측정은 container 전체를 읽어 검증한 뒤 조회하고, mmap 측정은 읽기 전용으로
   고정된 artifact를 mapping해 동일한 검증을 수행한다. cold와 warm 실행은 별도 프로세스로
   측정하며 exact lookup, common-prefix 열거, 초기화 시간과 peak RSS를 함께 기록한다.
+- P1의 729,173개 표면형 측정 결과에 따라 full morphology index는 packed Double-Array trie를
+  사용한다. FST보다 큰 artifact를 허용하는 대신 exact lookup과 common-prefix 열거 지연을
+  줄이며, 읽기 전용 full resource는 mmap으로 공유한다. source 확장 뒤 peak RSS가 40 MiB를
+  넘거나 index 크기가 배포 병목이 되면 동일 benchmark로 FST 선택을 다시 검토한다.
 
 ## 1. 문서 목적
 

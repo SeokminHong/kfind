@@ -2,7 +2,7 @@
 
 기준 보고서: [2026-07-12 형태소 비교 분석](2026-07-12-morphology-comparison.md)
 
-다음 작업 계획: [선택적 국소 형태 추론 P1](2026-07-12-selective-morphology-plan.md)
+다음 작업 계획: [선택적 국소 형태 추론 P2](2026-07-12-selective-morphology-plan.md)
 
 fixture SHA-256: `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21ff`
 
@@ -50,6 +50,12 @@ profile의 FN은 146개다.
   대상이 아니며 기본 union 결과는 변하지 않는다.
 - shadow report schema 3은 case별 raw anchor hit, verifier 통과 branch hit, local 대상,
   고유 분석 어절과 대상 anchor·좌우 boundary 요구사항을 성능 측정 구간 밖에서 기록한다.
+- query-side full POS와 corpus-side morphology index를 분리했다. morphology index는 같은 고정
+  MeCab snapshot에서 원본 표면형·품사·좌/우 연결 ID·비용을 보존한다.
+- 729,173개 표면형 비교에서 packed Double-Array trie를 P2 형식으로 선택했다. mmap peak RSS는
+  28.1 MiB였고 FST보다 exact lookup은 약 6배, common-prefix 열거는 약 4.3배 빨랐다.
+- morphology index container는 schema, source SHA-256, 통계, section 길이와 SHA-256을
+  검증하며 손상·schema·source 불일치를 구분한다. 기본 검색 결과는 변하지 않는다.
 
 dev 명사 FN 70개 중 64개는 사전 누락이 아니라 smart boundary 거부다. 합성어 substring
 계약을 완화하면 hard-negative 정밀도와 충돌하므로 이번 어휘 보강에는 포함하지 않았다.
@@ -206,7 +212,12 @@ cargo test --workspace --locked
 cargo fmt --manifest-path tools/morph-compare/runner/Cargo.toml -- --check
 cargo clippy --locked --manifest-path tools/morph-compare/runner/Cargo.toml \
   --all-targets -- -D warnings
+cargo fmt --manifest-path tools/morph-index-benchmark/Cargo.toml -- --check
+cargo clippy --locked --manifest-path tools/morph-index-benchmark/Cargo.toml \
+  --all-targets -- -D warnings
+cargo test --locked --manifest-path tools/morph-index-benchmark/Cargo.toml
 scripts/benchmark-morphology.sh
+scripts/benchmark-morph-index.sh
 ```
 
 report의 fixture SHA-256, source hash, case 수, class/source/POS quota가 바뀌면 의도된 dataset
