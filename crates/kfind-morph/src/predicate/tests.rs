@@ -110,6 +110,13 @@ fn contractions_keep_the_required_uncontracted_forms() {
     ));
     assert_has_all(&changed, &["되어", "돼", "되었다", "됐다"]);
 
+    let validate = surfaces(&entry(
+        "검증하다",
+        PredicatePos::Verb,
+        LexicalAlternation::Ha,
+    ));
+    assert_has_all(&validate, &["검증하여", "검증해", "검증하였다", "검증했다"]);
+
     let turn_on = surfaces(&entry(
         "켜다",
         PredicatePos::Verb,

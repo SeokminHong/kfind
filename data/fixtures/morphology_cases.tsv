@@ -259,6 +259,8 @@ query	pos	text	expected	feature
 검증하다	verb	내일 검증할 항목을 정리했다.	match	ha
 검증하다	verb	조건을 검증하면 오류를 줄일 수 있다.	match	ha
 검증하다	verb	서버가 요청을 검증합니다.	match	ha
+검증하다	verb	권한을 검증하여 결과를 기록했다.	match	ha
+검증하다	verb	권한을 검증하였다.	match	ha
 검증하다	verb	권한을 검증하어 보았다.	no-match	ha
 살다	verb	시골에서 살고 농사를 짓는다.	match	rieul-drop
 살다	verb	혼자 사는 집이 넓다.	match	rieul-drop

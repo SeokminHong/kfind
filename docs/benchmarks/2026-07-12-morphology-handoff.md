@@ -33,6 +33,9 @@ profile의 FN은 147개다.
   `lexicon-missing`은 embedded 38건, full-POS 0건이다.
 - `-며/으며` 연결형을 보강해 dev TP가 360에서 361로 늘었고 recall은 72.20%다. test와
   hard-negative 결과는 변하지 않았다.
+- `하다` 계열의 비축약 `하여/하였다`를 보존해 dev의 `의하여`, `대하여`를 회복했다. dev
+  TP는 361에서 363, recall은 72.20%에서 72.60%로 늘었고 용언 `continuation-rejected`는
+  6건에서 4건으로 줄었다. test와 hard-negative 결과는 변하지 않았다.
 - MeCab의 문맥용 계사 표면형 14개를 표제어 후보에서 제외했다. `보이다`는 동사·보조 동사
   분석만 보존하고, 비정규 copula stem은 형태 생성 전에 거부한다.
 
