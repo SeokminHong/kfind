@@ -63,6 +63,7 @@ def with_target(
     record.update(
         {
             "slice": slice_name,
+            "target_group": f"{target.source}/{target.raw_tag}",
             "target_raw_tag": target.raw_tag,
             "target_raw_lemma": target.raw_lemma,
         }

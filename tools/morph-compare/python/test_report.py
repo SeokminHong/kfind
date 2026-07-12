@@ -1,6 +1,9 @@
 import unittest
 
 from report import (
+    BACKENDS,
+    KFIND_PROFILES,
+    append_local_context_summary,
     classify_primary_cause,
     kfind_profile_comparison,
     quality_metrics,
@@ -147,6 +150,52 @@ class ShadowVerificationTests(unittest.TestCase):
         self.assertEqual(2, summary["totals"]["local_lattice_candidate_hits"])
         self.assertEqual(1, summary["cases_with_local_candidates"])
         self.assertEqual(by_case, summary["by_case"])
+
+
+class LocalContextSummaryTests(unittest.TestCase):
+    def test_renders_confusion_matrix_and_shadow_counts(self) -> None:
+        metrics = {
+            "precision_percent": 75.0,
+            "recall_percent": 60.0,
+            "f1_percent": 66.67,
+            "tp": 3,
+            "fp": 1,
+            "tn": 4,
+            "fn": 2,
+        }
+        local_context = {
+            "dataset": {
+                "fixture_sha256": "fixture",
+                "cases": 10,
+                "positive_cases": 5,
+                "negative_cases": 5,
+            },
+            "quality": {
+                backend: {
+                    "overall": metrics,
+                    "by_target_group": {"sample/vcp": metrics},
+                }
+                for backend in BACKENDS
+            },
+            "shadow_verification": {
+                profile: {
+                    "totals": {
+                        "local_lattice_candidate_hits": 2,
+                        "unique_analysis_windows": 1,
+                    },
+                    "cases_with_local_candidates": 1,
+                }
+                for profile in KFIND_PROFILES
+            },
+        }
+        lines: list[str] = []
+
+        append_local_context_summary(lines, local_context)
+
+        rendered = "\n".join(lines)
+        self.assertIn("## Copula local-context slice", rendered)
+        self.assertIn("| sample/vcp | kfind-embedded | 75.0% | 60.0%", rendered)
+        self.assertIn("| kfind-embedded | 2 | 1 | 1 |", rendered)
 
 
 if __name__ == "__main__":
