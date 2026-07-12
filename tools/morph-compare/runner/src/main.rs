@@ -8,7 +8,8 @@ use anyhow::{Context, Result, bail};
 use kfind_matcher::MorphMatcher;
 use kfind_morph::CoarsePos;
 use kfind_query::{
-    CompileOptionOverrides, CompileOptions, LexiconQueryAnalyzer, Lexicons, compile_query,
+    BoundaryPolicy, CompileOptionOverrides, CompileOptions, LexiconQueryAnalyzer, Lexicons,
+    compile_query,
 };
 use lindera::dictionary::load_dictionary;
 use lindera::mode::Mode;
@@ -27,6 +28,9 @@ struct Case {
     query: String,
     pos: String,
     text: String,
+    expected: bool,
+    gold_byte_start: Option<usize>,
+    gold_byte_end: Option<usize>,
 }
 
 #[derive(Debug, Serialize)]
@@ -53,6 +57,13 @@ struct RawToken {
     byte_start: usize,
     byte_end: usize,
     details: Vec<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct FailureDiagnostic {
+    auto_has_expected_pos_analysis: bool,
+    gold_anchor_overlap: bool,
+    any_boundary_gold_overlap: bool,
 }
 
 #[derive(Clone, Copy)]
@@ -140,16 +151,77 @@ fn run_kfind(cases: &[Case], profile: KfindProfile) -> Result<Summary> {
         let latency_ms = case_started.elapsed().as_secs_f64() * 1_000.0;
         results.push(json!({"id": case.id, "latency_ms": latency_ms, "spans": spans}));
     }
+    let evaluation_seconds = evaluation_started.elapsed().as_secs_f64();
+    let peak_rss_kib = peak_rss_kib();
+    for (case, result) in cases.iter().zip(&mut results) {
+        result["failure_diagnostic"] = serde_json::to_value(diagnose_failure(case, &analyzer)?)?;
+    }
     Ok(Summary {
         backend: "kfind".to_owned(),
         version: env!("CARGO_PKG_VERSION").to_owned(),
         profile: Some(profile.name().to_owned()),
         lexicon_artifact_sha256,
         initialization_seconds,
-        evaluation_seconds: evaluation_started.elapsed().as_secs_f64(),
-        peak_rss_kib: peak_rss_kib(),
+        evaluation_seconds,
+        peak_rss_kib,
         results,
     })
+}
+
+fn diagnose_failure(
+    case: &Case,
+    analyzer: &LexiconQueryAnalyzer,
+) -> Result<Option<FailureDiagnostic>> {
+    if !case.expected {
+        return Ok(None);
+    }
+    let expected_pos = parse_pos(&case.pos)?;
+    let gold = case
+        .gold_byte_start
+        .zip(case.gold_byte_end)
+        .with_context(|| format!("positive case {} has no gold span", case.id))?;
+    let gold_range = gold.0..gold.1;
+    let auto_plan = compile_query(&case.query, &CompileOptions::default(), analyzer)
+        .with_context(|| format!("failed to compile auto diagnostic for case {}", case.id))?;
+    let auto_has_expected_pos_analysis = auto_plan.atoms[0]
+        .analyses
+        .iter()
+        .any(|analysis| analysis.coarse_pos == expected_pos);
+
+    let mut any_options = CompileOptions::resolve(CompileOptionOverrides {
+        pos: Some(expected_pos),
+        ..CompileOptionOverrides::default()
+    })?;
+    any_options.boundary = BoundaryPolicy::Any;
+    let any_plan = compile_query(&case.query, &any_options, analyzer)
+        .with_context(|| format!("failed to compile boundary diagnostic for case {}", case.id))?;
+    let gold_anchor_overlap = any_plan.atoms[0].branches.iter().any(|branch| {
+        case.text
+            .as_bytes()
+            .get(gold_range.clone())
+            .is_some_and(|gold_text| contains_bytes(gold_text, &branch.anchor))
+    });
+    let any_matcher = MorphMatcher::new(Arc::new(any_plan))?;
+    let any_boundary_gold_overlap = find_all_spans(&any_matcher, &case.text)
+        .iter()
+        .any(|span| ranges_overlap(span.byte_start..span.byte_end, gold_range.clone()));
+    Ok(Some(FailureDiagnostic {
+        auto_has_expected_pos_analysis,
+        gold_anchor_overlap,
+        any_boundary_gold_overlap,
+    }))
+}
+
+fn contains_bytes(haystack: &[u8], needle: &[u8]) -> bool {
+    !needle.is_empty()
+        && needle.len() <= haystack.len()
+        && haystack
+            .windows(needle.len())
+            .any(|window| window == needle)
+}
+
+fn ranges_overlap(left: std::ops::Range<usize>, right: std::ops::Range<usize>) -> bool {
+    left.start < right.end && right.start < left.end
 }
 
 fn find_all_spans(matcher: &MorphMatcher, text: &str) -> Vec<Span> {
@@ -231,4 +303,48 @@ fn peak_rss_kib() -> Option<u64> {
     let status = fs::read_to_string("/proc/self/status").ok()?;
     let line = status.lines().find(|line| line.starts_with("VmHWM:"))?;
     line.split_whitespace().nth(1)?.parse().ok()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn analyzer() -> LexiconQueryAnalyzer {
+        LexiconQueryAnalyzer::new(Arc::new(Lexicons::embedded().unwrap()))
+    }
+
+    fn positive_case(query: &str, pos: &str, text: &str) -> Case {
+        Case {
+            id: "test".to_owned(),
+            query: query.to_owned(),
+            pos: pos.to_owned(),
+            text: text.to_owned(),
+            expected: true,
+            gold_byte_start: Some(0),
+            gold_byte_end: Some(text.len()),
+        }
+    }
+
+    #[test]
+    fn diagnostic_observes_missing_auto_pos_analysis() {
+        let diagnostic =
+            diagnose_failure(&positive_case("미등록다", "verb", "미등록다"), &analyzer())
+                .unwrap()
+                .unwrap();
+
+        assert!(!diagnostic.auto_has_expected_pos_analysis);
+        assert!(diagnostic.gold_anchor_overlap);
+    }
+
+    #[test]
+    fn diagnostic_compares_smart_and_any_boundaries() {
+        let diagnostic =
+            diagnose_failure(&positive_case("권한", "noun", "사용자권한"), &analyzer())
+                .unwrap()
+                .unwrap();
+
+        assert!(diagnostic.auto_has_expected_pos_analysis);
+        assert!(diagnostic.gold_anchor_overlap);
+        assert!(diagnostic.any_boundary_gold_overlap);
+    }
 }

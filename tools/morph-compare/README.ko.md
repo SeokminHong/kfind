@@ -6,19 +6,28 @@
 Kiwi, Lindera로 처리한다. 외부 분석기와
 corpus는 제품 바이너리나 기본 검색 경로에 포함되지 않는다.
 
-fixture는 Universal Dependencies 2.18의 Korean-Kaist와 Korean-KSL test split에서
-생성한다. URL, SHA-256, CC BY-SA 4.0 라이선스는 `sources.json`에 고정되어 있다. 각
-source에서 품사별 250개 positive를 선택하고 같은 source의 deterministic negative를
-대응시켜 총 1,000개를 만든다.
+fixture는 Universal Dependencies 2.18의 Korean-Kaist와 Korean-KSL test/dev split에서
+생성한다. URL, SHA-256, CC BY-SA 4.0 라이선스는 `sources.json`에 고정되어 있다. split별로
+각 source에서 품사별 250개 positive를 선택하고 같은 source의 deterministic negative를
+대응시켜 총 1,000개를 만든다. 개발은 dev split으로 수행하고 test split은 regression
+baseline으로 유지한다.
 
 ```sh
 scripts/benchmark-morphology.sh
 ```
 
-결과는 `target/morph-benchmark/report.json`과 `report.md`에 생성된다. 이미지를 빌드한 뒤
+기본 실행은 backend별 1회 warm-up 뒤 5회 측정한다. 결과는
+`target/morph-benchmark/report.json`과 `report.md`에 생성된다. 이미지를 빌드한 뒤
 컨테이너는 `--network none`으로 실행된다. `scripts/compare-morphology.sh`도 같은
 벤치마크를 실행한다. 이미지 빌드는 고정 checksum의 full-POS artifact를 생성하며,
 artifact가 없거나 검증에 실패하면 벤치마크를 중단한다.
+
+CI용 deterministic smoke set은 dev fixture의 source/POS/expected 조합마다 첫 case를
+선택한다.
+
+```sh
+KFIND_MORPH_SMOKE=1 KFIND_MORPH_RUNS=1 scripts/benchmark-morphology.sh
+```
 
 같은 JSON에서 문서용 차트를 재현한다.
 
@@ -45,9 +54,11 @@ docker run --rm --network none \
 세 도구 모두 문장 안에 gold 표제어·품사가 존재하는지 판정한다. positive는 예측 span이
 gold 어절 span과 겹쳐야 하며, negative는 같은 표제어·품사를 반환하면 false positive다.
 보고서는 accuracy, precision, recall, F1, source/POS별 결과, 실패 span과 초기화·처리량·
-지연·peak RSS를 기록한다. `kfind` 프로필별 버전·artifact SHA-256와 full-POS에서
-회복된 false negative, 계속 실패한 false negative, 새로 발생한 false negative를
-별도 목록으로 남긴다.
+지연·peak RSS를 기록한다. test 결과에는 dev 결과와 5개 slice의 version-controlled
+hard-negative 결과가 함께 포함된다. kfind false negative에는 자동 판정한
+`primary_cause`와 근거를 남긴다. `kfind` 프로필별 버전·artifact SHA-256와 full-POS에서
+회복된 false negative, 계속 실패한 false negative, 새로 발생한 false negative를 별도
+목록으로 남긴다.
 
-성능 수치는 각 도구를 한 번 초기화한 뒤 질의부터 결과 판정까지 처리한 제품 작업량이다.
-순수 tokenizer 처리량 비교가 아니다.
+성능 수치는 각 도구의 질의부터 결과 판정까지 처리한 제품 작업량이다. 보고서는 측정 run의
+median과 min/max를 기록한다. 순수 tokenizer 처리량 비교가 아니다.

@@ -58,3 +58,12 @@ jobs:
         run: rustup toolchain install 1.85.0 --profile minimal
       - name: Check all targets
         run: cargo +1.85.0 check --workspace --all-targets --locked
+
+  morphology-smoke:
+    name: Morphology smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run deterministic smoke benchmark
+        run: KFIND_MORPH_SMOKE=1 KFIND_MORPH_RUNS=1 scripts/benchmark-morphology.sh

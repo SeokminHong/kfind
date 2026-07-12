@@ -26,6 +26,7 @@ def quality_metrics(
             tn += 1
     precision = tp / (tp + fp) if tp + fp else 0.0
     recall = tp / (tp + fn) if tp + fn else 0.0
+    negative_precision = tn / (tn + fp) if tn + fp else 0.0
     f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
     return {
         "cases": len(cases),
@@ -35,6 +36,7 @@ def quality_metrics(
         "fn": fn,
         "accuracy_percent": round(100 * (tp + tn) / len(cases), 2),
         "precision_percent": round(100 * precision, 2),
+        "hard_negative_precision_percent": round(100 * negative_precision, 2),
         "recall_percent": round(100 * recall, 2),
         "f1_percent": round(100 * f1, 2),
     }
@@ -91,15 +93,21 @@ def build_report(
     predictions: dict[str, dict[str, bool]],
     matches: dict[str, dict[str, list[dict[str, object]]]],
     performance_metrics: dict[str, dict[str, object]],
+    kfind_diagnostics: dict[str, dict[str, dict[str, object] | None]],
 ) -> dict[str, object]:
-    quality = {
-        backend: {
+    quality = {}
+    has_slices = all("slice" in case for case in cases)
+    for backend in BACKENDS:
+        backend_quality = {
             "overall": quality_metrics(cases, predictions[backend]),
             "by_source": grouped_quality(cases, predictions[backend], "source"),
             "by_pos": grouped_quality(cases, predictions[backend], "pos"),
         }
-        for backend in BACKENDS
-    }
+        if has_slices:
+            backend_quality["by_slice"] = grouped_quality(
+                cases, predictions[backend], "slice"
+            )
+        quality[backend] = backend_quality
     failures = []
     for case in cases:
         backend_predictions = {
@@ -111,6 +119,13 @@ def build_report(
             {
                 "case": case,
                 "predictions": backend_predictions,
+                "primary_cause": classify_primary_cause(
+                    case,
+                    backend_predictions,
+                    matches["kfind-embedded"][case["id"]],
+                    kfind_diagnostics["kfind-embedded"][case["id"]],
+                ),
+                "cause_evidence": kfind_diagnostics["kfind-embedded"][case["id"]],
                 "matching_spans": {
                     backend: matches[backend][case["id"]] for backend in BACKENDS
                 },
@@ -130,6 +145,29 @@ def build_report(
         "failures": failures,
         "adapter_errors": [],
     }
+
+
+def classify_primary_cause(
+    case: dict[str, object],
+    predictions: dict[str, bool],
+    embedded_spans: list[dict[str, object]],
+    diagnostic: dict[str, object] | None,
+) -> str | None:
+    if not case["expected"] or predictions["kfind-embedded"]:
+        return None
+    if not predictions["kiwi"] and not predictions["lindera"]:
+        return "gold-or-adapter"
+    if diagnostic is None:
+        raise ValueError(f"missing kfind diagnostic for positive case {case['id']}")
+    if not diagnostic["auto_has_expected_pos_analysis"]:
+        return "lexicon-missing"
+    if embedded_spans:
+        return "span-mismatch"
+    if diagnostic["any_boundary_gold_overlap"]:
+        return "boundary-rejected"
+    if diagnostic["gold_anchor_overlap"]:
+        return "continuation-rejected"
+    return "surface-missing"
 
 
 def environment_metadata() -> dict[str, object]:
@@ -194,6 +232,8 @@ def render_markdown(report: dict[str, object]) -> str:
     append_quality_sections(lines, report)
     append_profile_comparison(lines, report)
     append_failures(lines, report)
+    append_development_summary(lines, report.get("development"))
+    append_hard_negative_summary(lines, report.get("hard_negatives"))
     lines.extend(
         [
             "",
@@ -232,7 +272,7 @@ def append_performance(lines: list[str], report: dict[str, object]) -> None:
             "",
             "## End-to-end performance",
             "",
-            "| backend | init | cases/s | p50 | p95 | peak RSS |",
+            "| backend | runs | init median | cases/s median [min, max] | p95 median [min, max] | peak RSS median [min, max] |",
             "| --- | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
@@ -240,10 +280,20 @@ def append_performance(lines: list[str], report: dict[str, object]) -> None:
         metrics = report["performance"][backend]
         rss = metrics["peak_rss_kib"]
         rss_text = f"{rss / 1024:.1f} MiB" if rss is not None else "n/a"
+        rss_min = metrics["run_min"]["peak_rss_kib"]
+        rss_max = metrics["run_max"]["peak_rss_kib"]
+        rss_range = (
+            f"[{rss_min / 1024:.1f}, {rss_max / 1024:.1f}] MiB"
+            if rss_min is not None and rss_max is not None
+            else "n/a"
+        )
         lines.append(
-            f"| {backend} | {metrics['initialization_seconds']:.4f}s | "
-            f"{metrics['cases_per_second']} | {metrics['latency_p50_ms']}ms | "
-            f"{metrics['latency_p95_ms']}ms | {rss_text} |"
+            f"| {backend} | {metrics['runs']} | {metrics['initialization_seconds']:.4f}s | "
+            f"{metrics['cases_per_second']} "
+            f"[{metrics['run_min']['cases_per_second']}, {metrics['run_max']['cases_per_second']}] | "
+            f"{metrics['latency_p95_ms']}ms "
+            f"[{metrics['run_min']['latency_p95_ms']}, {metrics['run_max']['latency_p95_ms']}] | "
+            f"{rss_text} {rss_range} |"
         )
 
 
@@ -290,8 +340,8 @@ def append_failures(lines: list[str], report: dict[str, object]) -> None:
             "",
             f"## Failures ({len(report['failures'])} cases)",
             "",
-            "| case | source | query/POS | expected | kfind embedded | kfind full-POS | Kiwi | Lindera |",
-            "| --- | --- | --- | --- | --- | --- | --- | --- |",
+            "| case | source | query/POS | cause | expected | kfind embedded | kfind full-POS | Kiwi | Lindera |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
     for failure in report["failures"][:30]:
@@ -299,9 +349,65 @@ def append_failures(lines: list[str], report: dict[str, object]) -> None:
         predicted = failure["predictions"]
         lines.append(
             f"| {case['id']} | {case['source']} | {case['query']}/{case['pos']} | "
-            f"{case['expected']} | {predicted['kfind-embedded']} | "
+            f"{failure['primary_cause'] or 'n/a'} | {case['expected']} | "
+            f"{predicted['kfind-embedded']} | "
             f"{predicted['kfind-full-pos']} | {predicted['kiwi']} | "
             f"{predicted['lindera']} |"
         )
     if len(report["failures"]) > 30:
         lines.extend(["", "The JSON report contains every failure and matching span."])
+
+
+def append_development_summary(
+    lines: list[str], development: dict[str, object] | None
+) -> None:
+    if development is None:
+        return
+    dataset = development["dataset"]
+    lines.extend(
+        [
+            "",
+            "## Development split",
+            "",
+            f"- fixture: `{dataset['fixture_sha256']}`",
+            f"- cases: {dataset['cases']}",
+            "",
+            "| backend | precision | recall | F1 | TP | FP | FN |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for backend in BACKENDS:
+        metrics = development["quality"][backend]["overall"]
+        lines.append(
+            f"| {backend} | {metrics['precision_percent']}% | "
+            f"{metrics['recall_percent']}% | {metrics['f1_percent']}% | "
+            f"{metrics['tp']} | {metrics['fp']} | {metrics['fn']} |"
+        )
+
+
+def append_hard_negative_summary(
+    lines: list[str], hard_negatives: dict[str, object] | None
+) -> None:
+    if hard_negatives is None:
+        return
+    lines.extend(
+        [
+            "",
+            "## Hard negatives",
+            "",
+            f"- fixture: `{hard_negatives['dataset']['fixture_sha256']}`",
+            f"- cases: {hard_negatives['dataset']['cases']}",
+            "",
+            "| slice | backend | hard-negative precision | FP | TN |",
+            "| --- | --- | ---: | ---: | ---: |",
+        ]
+    )
+    slices = sorted(hard_negatives["quality"]["kfind-embedded"]["by_slice"])
+    for slice_name in slices:
+        for backend in BACKENDS:
+            metrics = hard_negatives["quality"][backend]["by_slice"][slice_name]
+            lines.append(
+                f"| {slice_name} | {backend} | "
+                f"{metrics['hard_negative_precision_percent']}% | "
+                f"{metrics['fp']} | {metrics['tn']} |"
+            )

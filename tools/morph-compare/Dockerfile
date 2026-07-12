@@ -63,6 +63,7 @@ COPY --from=corpus-builder /benchmark /opt/morph-benchmark/data
 COPY --from=corpus-builder /corpora/*LICENSE.txt /opt/morph-benchmark/licenses/
 COPY --from=runner-builder /benchmark/full-pos /opt/morph-benchmark/full-pos
 COPY tools/morph-compare/benchmark.py /opt/morph-benchmark/benchmark.py
+COPY tools/morph-compare/hard-negatives.jsonl /opt/morph-benchmark/hard-negatives.jsonl
 COPY tools/morph-compare/python /opt/morph-benchmark/python
 COPY tools/morph-compare/sources.json /opt/morph-benchmark/sources.json
 
