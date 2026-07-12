@@ -6,7 +6,7 @@
 관련 문서:
 
 - [형태소 검색 개선 핸드오프](2026-07-12-morphology-handoff.md)
-- [copula smart-boundary 계획](2026-07-12-copula-boundary-plan.md)
+- [VCP 지정사 smart-boundary 계획](2026-07-12-copula-boundary-plan.md)
 - [사전 확장 전략](../lexicon-scaling.md)
 - [prefix index 비교 결과](2026-07-12-morph-index-comparison.md)
 
@@ -30,7 +30,9 @@ v0.1.1의 homonym union과 CLI 동작은 이 계획만으로 바꾸지 않는다
 
 - 현재 embedded profile은 17,805.0 cases/s, p95 0.1270 ms, peak RSS 4.9 MiB다.
 - full-POS는 dev의 `lexicon-missing`을 0으로 줄이지만 `boundary-rejected` 97건이 남는다.
-- `매일`의 `일`과 `학생일`의 `일`은 anchor와 인접 Unicode 문자만으로 구분할 수 없다.
+- `매일`의 어휘 내부 `일`과 `학생일`, `책일`의 VCP 관형형 후보 `일`은 anchor와 인접
+  Unicode 문자만으로 구분할 수 없다. `학생일`, `책일` 전체를 사전 표제어로 가정하지 않고
+  체언 host와 VCP 활용의 결합으로 다룬다.
 - 전체 문장 분석은 현재 low-hit scan과 작은 RSS의 장점을 약화한다.
 
 따라서 사전 크기 확대나 boundary 예외 추가가 아니라 후보 hit에 한정한 분석이 필요하다.
@@ -91,13 +93,16 @@ enum ContextRequirement {
 1. `boundary`와 `disambiguation`의 책임, union 기본값과 shadow 측정 범위를 스펙에 추가한다.
 2. branch에 필요한 context 수준을 표현하되 검색 결과는 바꾸지 않는다.
 3. raw anchor hit, verifier 통과, lattice 대상, 고유 어절 수를 측정하는 counter를 추가한다.
-4. copula 정상 부착형, 어휘 내부 표면형, 한 음절 경계, NFC/NFD fixture를 고정한다.
+4. `학생일`, `책일`은 형태 조합 회귀 fixture로 유지한다. 실제 dev corpus에서는 VCP/VCN
+   지정사 분석, 어휘 내부 표면형, 한 음절 경계, NFC/NFD case를 고정한다. 조합 fixture만으로
+   품질 threshold를 정하지 않는다.
 5. 현재 `union` 결과와 향후 `local` 기대 결과를 fixture metadata에서 구분한다.
 
 완료 조건:
 
 - low-hit literal 실행의 lattice 대상이 0이다.
-- `매일`, `학생일`, `책일`의 branch와 경계 근거가 report에 남는다.
+- `매일`, `학생일`, `책일`의 branch 근거와 dev corpus의 모든 `EojeolLattice` 대상 branch가
+  report에 남는다.
 - 기본 CLI와 match 결과가 변하지 않는다.
 - 다음 단계의 성능 측정에 필요한 invocation count가 재현된다.
 
@@ -135,8 +140,12 @@ enum ContextRequirement {
 
 완료 조건:
 
-- `매일`에서는 reject 경로, `학생일`과 `책일`에서는 accept 경로가 우세하다.
-- 정상 copula·조사·활용 fixture의 가능한 경로가 보존된다.
+- dev corpus의 `EojeolLattice` 후보를 source·gold 형태 분석·선택 경로별로 집계한다.
+- 정상 VCP/VCN·조사·활용 case의 가능한 경로가 보존되며, 특정 조합 어절에 맞춘 비용이나
+  사전 항목을 추가하지 않는다.
+- `학생일`, `책일`의 VCP 관형형 경로를 형태 조합 회귀로 보존한다.
+- accept/reject threshold와 품질 기준은 이름을 정해 만든 소수 예시가 아니라 dev split에서
+  정하고, 별도 blind source에서 확인한다.
 - 상한 초과와 resource 누락이 report에 드러난다.
 - 아래 성능 게이트를 통과한다.
 
@@ -166,7 +175,7 @@ enum ContextRequirement {
 | morphology 처리량 | 15,100 cases/s 이상 |
 | morphology p95 | 0.159 ms 이하 |
 | peak RSS | 40 MiB 이하 |
-| copula local 품질 | `매일` TN, 정상 `학생일`·`책일` 유지 |
+| VCP/VCN local 품질 | `학생일`·`책일` 조합 회귀와 dev confusion matrix 보고, threshold는 blind source 확인 전 미적용 |
 | union 호환성 | 기존 fixture 결과 불변 |
 
 품질 threshold와 비용 모델은 dev split에서 정한다. 기존 test split은 regression baseline으로만
@@ -177,7 +186,8 @@ enum ContextRequirement {
 첫 구현은 P0만 수행하고 다음 무결한 작업 단위로 나눈다.
 
 1. 스펙에 정책 축과 shadow 범위를 추가한다.
-2. context requirement와 copula fixture를 추가하되 결과를 바꾸지 않는다.
+2. context requirement, VCP 조합 fixture, corpus 기반 VCP/VCN fixture를 추가하되 결과를
+   바꾸지 않는다.
 3. counter와 report schema를 추가하고 benchmark로 호출 수를 고정한다.
 
 각 단위는 독립적으로 포맷·lint·workspace test를 통과한 뒤 커밋한다. P0에는 lattice와 사전

@@ -29,7 +29,7 @@ profile의 FN은 146개다.
 - 5개 slice, 10개 hard negative를 별도 metric으로 기록한다. embedded는 7 TN, 3 FP다.
 - 기본 성능 측정은 1회 warm-up 뒤 5회 실행하고 median/min/max를 기록한다. CI는 28개 dev
   smoke case를 실행한다.
-- copula FP는 [homonym union 정책](2026-07-12-copula-boundary-plan.md)을 유지하고 matcher를
+- VCP 지정사 FP는 [homonym union 정책](2026-07-12-copula-boundary-plan.md)을 유지하고 matcher를
   변경하지 않기로 확정했다.
 - full POS artifact는 632,667개 entry와 614,794개 고유 표제어를 포함한다. dev의
   `lexicon-missing`은 embedded 38건, full-POS 0건이다.
@@ -44,9 +44,9 @@ profile의 FN은 146개다.
 - 현재 `-기` branch는 token 경계에서 끝나므로 `걷기가`, `걷기를`처럼 명사형 뒤에 조사가
   붙은 어절은 찾지 않는다. nominalizer에서 nominal particle verifier로 전이하는 작업은
   별도 후속 범위다.
-- MeCab의 문맥용 계사 표면형 14개를 표제어 후보에서 제외했다. `보이다`는 동사·보조 동사
-  분석만 보존하고, 비정규 copula stem은 형태 생성 전에 거부한다.
-- smart copula branch를 `EojeolLattice` 대상으로 표시했다. token·any와 literal 경로는
+- MeCab의 문맥용 지정사 표면형 14개를 표제어 후보에서 제외했다. `보이다`는 동사·보조 동사
+  분석만 보존하고, 비정규 VCP stem은 형태 생성 전에 거부한다.
+- smart VCP 지정사 branch를 `EojeolLattice` 대상으로 표시했다. token·any와 literal 경로는
   대상이 아니며 기본 union 결과는 변하지 않는다.
 - shadow report schema 3은 case별 raw anchor hit, verifier 통과 branch hit, local 대상,
   고유 분석 어절과 대상 anchor·좌우 boundary 요구사항을 성능 측정 구간 밖에서 기록한다.
@@ -95,7 +95,7 @@ scripts/benchmark-morphology.sh
 - full-POS artifact가 없으면 조용히 embedded로 대체하지 않고 실패한다.
 - profile별 fixture·case 순서가 동일하다.
 
-### P0. copula false positive 정책을 확정한다 (완료)
+### P0. VCP 지정사 false positive 정책을 확정한다 (완료)
 
 case:
 
@@ -105,15 +105,16 @@ text: 매일 아러바이트가도 있습니다.
 observed span: 매일의 마지막 음절
 ```
 
-현재 query-side matcher가 가진 anchor와 인접 문자만으로 `매일`의 `일`과 정상 부착형
-`학생일`의 `일`을 구분할 수 없다. v0.1.1은 homonym union을 유지하므로 matcher와 기본 검색
-결과를 바꾸지 않는다. 해당 case는 알려진 정책 한계로 기록한다.
+현재 query-side matcher가 가진 anchor와 인접 문자만으로 `매일`의 어휘 내부 `일`과
+`학생일`, `책일`의 VCP 관형형 `일`을 구분할 수 없다. 두 조합형은 사전 표제어가 아니라
+체언 host와 VCP 활용의 결합이다. v0.1.1은 homonym union을 유지하므로 matcher와 기본 검색
+결과를 바꾸지 않는다. 실제 UD dev corpus의 VCP/VCN 분석으로 후속 품질을 측정한다.
 
 완료 조건:
 
-- 정책 선택과 제약이 [copula 계획](2026-07-12-copula-boundary-plan.md)에 기록되어 있다.
+- 정책 선택과 제약이 [VCP 지정사 계획](2026-07-12-copula-boundary-plan.md)에 기록되어 있다.
 - corpus 단어 denylist와 fixture 전용 branch를 추가하지 않는다.
-- 기존 copula positive와 `--boundary any` 계약을 유지한다.
+- 기존 VCP/VCN positive와 `--boundary any` 계약을 유지한다.
 
 ### P0. 선택적 국소 형태 추론의 계약과 측정을 고정한다 (완료)
 
@@ -122,12 +123,14 @@ observed span: 매일의 마지막 음절
 1. `boundary`와 `disambiguation`, union 기본값과 shadow 측정 범위를 스펙에 추가한다.
 2. query branch의 context requirement를 표현하되 검색 결과는 바꾸지 않는다.
 3. anchor hit와 lattice 대상 수를 측정하는 counter를 추가한다.
-4. copula 정상형·어휘 내부 표면형·NFC/NFD fixture를 고정한다.
+4. `학생일`, `책일`의 조합 회귀와 corpus 기반 VCP/VCN 정상형·어휘 내부 표면형·NFC/NFD
+   fixture를 고정한다.
 
 완료 조건:
 
 - low-hit literal의 lattice 대상은 0이다.
-- `매일`, `학생일`, `책일`의 판정 근거가 report에 남는다.
+- `매일`, `학생일`, `책일`의 branch 근거와 dev corpus의 모든 local 대상 판정 근거가
+  report에 남는다.
 - 기본 CLI와 union 결과가 변하지 않는다.
 
 ### P1. FN 147개를 원인별로 분류한다 (완료)
