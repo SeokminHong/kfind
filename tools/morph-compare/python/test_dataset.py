@@ -5,6 +5,7 @@ from pathlib import Path
 
 from dataset import locate_token_spans, normalize_gold, parse_conllu, sha256
 from local_context_dataset import build_local_context_dataset
+from validation import validate_local_context_dataset
 
 
 class DatasetTests(unittest.TestCase):
@@ -126,6 +127,7 @@ class DatasetTests(unittest.TestCase):
             )
             cases = [json.loads(line) for line in output.read_text().splitlines()]
             fixture_digest = sha256(output)
+            validate_local_context_dataset(output, cases, metadata)
 
         self.assertEqual(
             (metadata["positive_cases"], metadata["negative_cases"]), (1, 1)

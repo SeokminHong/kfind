@@ -13,6 +13,7 @@ HARD_NEGATIVE_SLICES = {
     "same-surface-different-lemma",
     "one-syllable-boundary",
 }
+LOCAL_CONTEXT_SLICES = {"gold-copula", "surface-without-gold"}
 
 
 def sha256(path: Path) -> str:
@@ -24,16 +25,63 @@ def load_cases(path: Path) -> list[dict[str, object]]:
         return [json.loads(line) for line in fixture_file if line.strip()]
 
 
+def select_smoke_cases(
+    cases: list[dict[str, object]],
+    group_keys: tuple[str, ...] = ("source", "pos", "expected"),
+) -> list[dict[str, object]]:
+    selected_ids = set()
+    selected_groups = set()
+    for case in cases:
+        group = tuple(case[key] for key in group_keys)
+        if group not in selected_groups:
+            selected_groups.add(group)
+            selected_ids.add(case["id"])
+    return [case for case in cases if case["id"] in selected_ids]
+
+
+def write_cases(path: Path, cases: list[dict[str, object]]) -> None:
+    with path.open("w", encoding="utf-8") as fixture_file:
+        for case in cases:
+            fixture_file.write(
+                json.dumps(case, ensure_ascii=False, sort_keys=True) + "\n"
+            )
+
+
+def smoke_metadata(
+    cases_path: Path,
+    cases: list[dict[str, object]],
+    development_metadata: dict[str, object],
+    split: str = "dev-smoke",
+) -> dict[str, object]:
+    return {
+        "schema_version": 1,
+        "split": split,
+        "fixture_sha256": sha256(cases_path),
+        "cases": len(cases),
+        "positive_cases": sum(bool(case["expected"]) for case in cases),
+        "negative_cases": sum(not case["expected"] for case in cases),
+        "seed": development_metadata["seed"],
+        "ud_release": development_metadata["ud_release"],
+        "sources": development_metadata["sources"],
+    }
+
+
+def validate_fixture_identity(
+    cases_path: Path, cases: list[dict[str, object]], metadata: dict[str, object]
+) -> None:
+    if sha256(cases_path) != metadata["fixture_sha256"]:
+        raise ValueError("fixture SHA-256 does not match metadata")
+    case_ids = {case["id"] for case in cases}
+    if len(case_ids) != len(cases):
+        raise ValueError("benchmark case IDs are not unique")
+
+
 def validate_dataset(
     cases_path: Path, cases: list[dict[str, object]], metadata: dict[str, object]
 ) -> None:
     if len(cases) != 1_000 or metadata["cases"] != 1_000:
         raise ValueError("benchmark requires exactly 1,000 cases")
-    if sha256(cases_path) != metadata["fixture_sha256"]:
-        raise ValueError("fixture SHA-256 does not match metadata")
-    expected_ids = {case["id"] for case in cases}
-    if len(expected_ids) != len(cases):
-        raise ValueError("benchmark case IDs are not unique")
+    validate_fixture_identity(cases_path, cases, metadata)
     positives = sum(bool(case["expected"]) for case in cases)
     if positives != 500:
         raise ValueError(f"benchmark requires 500 positive cases, got {positives}")
@@ -77,3 +125,45 @@ def validate_hard_negatives(
         "ud_release": "n/a",
         "sources": [],
     }
+
+
+def validate_local_context_dataset(
+    cases_path: Path, cases: list[dict[str, object]], metadata: dict[str, object]
+) -> None:
+    if metadata.get("split") != "dev-local-context":
+        raise ValueError("local-context fixture must use the dev-local-context split")
+    if len(cases) != metadata.get("cases"):
+        raise ValueError("local-context case count differs from metadata")
+    validate_fixture_identity(cases_path, cases, metadata)
+    slices = {str(case.get("slice")) for case in cases}
+    if slices != LOCAL_CONTEXT_SLICES:
+        raise ValueError(
+            f"local-context slices differ: expected {sorted(LOCAL_CONTEXT_SLICES)}, "
+            f"got {sorted(slices)}"
+        )
+    positive_cases = sum(bool(case["expected"]) for case in cases)
+    if positive_cases != metadata.get("positive_cases"):
+        raise ValueError("local-context positive count differs from metadata")
+    if len(cases) - positive_cases != metadata.get("negative_cases"):
+        raise ValueError("local-context negative count differs from metadata")
+
+    actual_counts: dict[tuple[str, str, bool], int] = defaultdict(int)
+    for case in cases:
+        key = (
+            str(case["source"]),
+            str(case["target_raw_tag"]),
+            bool(case["expected"]),
+        )
+        actual_counts[key] += 1
+    expected_counts: dict[tuple[str, str, bool], int] = {}
+    expected_groups = set()
+    for group in metadata["group_counts"]:
+        source = str(group["source"])
+        raw_tag = str(group["raw_tag"])
+        expected_groups.add((source, raw_tag))
+        expected_counts[(source, raw_tag, True)] = int(group["positive_cases"])
+        expected_counts[(source, raw_tag, False)] = int(group["negative_cases"])
+    if len(expected_groups) != len(metadata["group_counts"]):
+        raise ValueError("local-context metadata groups are not unique")
+    if dict(actual_counts) != expected_counts:
+        raise ValueError("local-context source/tag/class counts differ from metadata")
