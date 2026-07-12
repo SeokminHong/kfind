@@ -13,6 +13,7 @@ pub struct MecabExtraction {
     pub rows_read: usize,
     pub skipped_analysis_rows: usize,
     pub skipped_unsupported_pos: usize,
+    pub skipped_noncanonical_copula_rows: usize,
     pub duplicate_entries: usize,
     pub predicate_candidates: usize,
     pub normalized_headwords: usize,
@@ -37,6 +38,7 @@ impl MecabExtraction {
         self.rows_read += other.rows_read;
         self.skipped_analysis_rows += other.skipped_analysis_rows;
         self.skipped_unsupported_pos += other.skipped_unsupported_pos;
+        self.skipped_noncanonical_copula_rows += other.skipped_noncanonical_copula_rows;
         self.duplicate_entries +=
             other.duplicate_entries + entries_before_deduplication - self.entries.len();
         self.predicate_candidates = self
@@ -57,6 +59,7 @@ pub fn extract_mecab_ko_dic(
     let mut rows_read = 0;
     let mut skipped_analysis_rows = 0;
     let mut skipped_unsupported_pos = 0;
+    let mut skipped_noncanonical_copula_rows = 0;
     let mut normalized_headwords = 0;
 
     for (line_index, line) in reader.lines().enumerate() {
@@ -92,6 +95,10 @@ pub fn extract_mecab_ko_dic(
         if original.is_empty() {
             return Err(invalid_value(source, line_number, "surface", original));
         }
+        if !is_canonical_copula_stem(pos, original) {
+            skipped_noncanonical_copula_rows += 1;
+            continue;
+        }
         let mut lemma = original.nfc().collect::<String>();
         normalized_headwords += usize::from(lemma != original);
         if pos.is_predicate() && !lemma.ends_with('다') {
@@ -113,10 +120,19 @@ pub fn extract_mecab_ko_dic(
         rows_read,
         skipped_analysis_rows,
         skipped_unsupported_pos,
+        skipped_noncanonical_copula_rows,
         duplicate_entries,
         predicate_candidates,
         normalized_headwords,
     })
+}
+
+fn is_canonical_copula_stem(pos: DataFinePos, surface: &str) -> bool {
+    match pos {
+        DataFinePos::Vcp => surface == "이",
+        DataFinePos::Vcn => surface == "아니",
+        _ => true,
+    }
 }
 
 fn parse_csv_record(source: &str, line: usize, input: &str) -> Result<Vec<String>, DataError> {

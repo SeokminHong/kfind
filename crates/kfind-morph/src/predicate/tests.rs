@@ -310,3 +310,14 @@ fn branches_stop_before_productive_suffix_chains() {
             .any(|branch| branch.anchor.as_ref() == "걷게")
     );
 }
+
+#[test]
+fn copula_rejects_noncanonical_stems() {
+    let error = generate_predicate_branches(&entry(
+        "보이다",
+        PredicatePos::Copula,
+        LexicalAlternation::Copula,
+    ))
+    .expect_err("copula morphology is defined only for 이다");
+    assert!(matches!(error, GenerateError::AlternationMismatch { .. }));
+}

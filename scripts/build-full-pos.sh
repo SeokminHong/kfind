@@ -4,7 +4,7 @@ set -euo pipefail
 readonly SOURCE_NAME="mecab-ko-dic-2.1.1-20180720"
 readonly SOURCE_URL="https://bitbucket.org/eunjeon/mecab-ko-dic/downloads/${SOURCE_NAME}.tar.gz"
 readonly SOURCE_SHA256="fd62d3d6d8fa85145528065fabad4d7cb20f6b2201e71be4081a4e9701a5b330"
-readonly LEXICON_SHA256="dbf7f8f282e14cef7b4962dd217bda89456dc908aed3e59f7b5e4a58edbb3a79"
+readonly LEXICON_SHA256="012a2ecfc9ee049cb48f655eb240fa2ed6fc739dfde01526078a976549246e88"
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 output_directory=${1:-"${repo_root}/data/generated/full-pos"}

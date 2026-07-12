@@ -102,6 +102,40 @@ fn full_pos_adds_regular_analysis_for_non_core_predicates() {
 }
 
 #[test]
+fn full_pos_preserves_multiple_predicate_pos_candidates() {
+    let full_data = LexiconData {
+        predicates: vec![
+            PredicateRecord {
+                lemma: "나쁘다".to_owned(),
+                pos: DataFinePos::Vv,
+                alternation: DataAlternation::Regular,
+                flags: BTreeSet::new(),
+                overrides: Vec::new(),
+            },
+            PredicateRecord {
+                lemma: "나쁘다".to_owned(),
+                pos: DataFinePos::Va,
+                alternation: DataAlternation::Regular,
+                flags: BTreeSet::new(),
+                overrides: Vec::new(),
+            },
+        ],
+        ..LexiconData::default()
+    };
+    let binary = encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap();
+    let analyzer = LexiconQueryAnalyzer::new(Arc::new(
+        Lexicons::embedded_with(Some(&binary), None).unwrap(),
+    ));
+    let analyses = analyzer.analyze(&atom("나쁘다")).unwrap();
+
+    assert_eq!(analyses.len(), 2);
+    assert!(analyses.iter().all(|analysis| {
+        analysis.source == AnalysisSource::FullPosLexicon
+            && matches!(analysis.coarse_pos, CoarsePos::Verb | CoarsePos::Adjective)
+    }));
+}
+
+#[test]
 fn full_pos_preserves_productive_alternation_for_non_core_predicates() {
     let full_data = LexiconData {
         predicates: vec![PredicateRecord {

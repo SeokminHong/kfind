@@ -89,7 +89,7 @@ pub fn generate_predicate_branches(
     );
 
     if entry.alternation == LexicalAlternation::Copula {
-        compile_copula(entry, stem, &mut branches);
+        compile_copula(entry, stem, &mut branches)?;
     } else if entry.alternation != LexicalAlternation::Suppletive {
         compile_productive(entry, stem, &mut branches)?;
     }
@@ -298,7 +298,17 @@ fn compile_rieul_honorific(
     }
 }
 
-fn compile_copula(entry: &PredicateEntry, stem: &str, branches: &mut Vec<SurfaceBranchSpec>) {
+fn compile_copula(
+    entry: &PredicateEntry,
+    stem: &str,
+    branches: &mut Vec<SurfaceBranchSpec>,
+) -> Result<(), GenerateError> {
+    if stem != "이" {
+        return Err(GenerateError::AlternationMismatch {
+            lemma: entry.lemma.clone(),
+            alternation: entry.alternation,
+        });
+    }
     for (surface, continuation, ending_rule) in [
         (
             format!("{stem}고"),
@@ -342,6 +352,7 @@ fn compile_copula(entry: &PredicateEntry, stem: &str, branches: &mut Vec<Surface
         ContinuationState::Past,
         vec![rule("lexical.copula"), rule("ending.past")],
     );
+    Ok(())
 }
 
 fn push_derived(

@@ -443,6 +443,32 @@ fn mecab_extractor_preserves_predicate_pos_candidates() {
 }
 
 #[test]
+fn mecab_extractor_rejects_contextual_copula_surfaces() {
+    let csv = concat!(
+        "이,1,1,1,VCP,*,F,이,*,*,*,*\n",
+        "보이,1,1,1,VCP,*,F,보이,*,*,*,*\n",
+        "아니,1,1,1,VCN,*,F,아니,*,*,*,*\n",
+        "아닌,1,1,1,VCN,*,T,아닌,*,*,*,*\n",
+    );
+    let extraction = extract_mecab_ko_dic("copula.csv", Cursor::new(csv)).unwrap();
+
+    assert_eq!(extraction.skipped_noncanonical_copula_rows, 2);
+    assert_eq!(
+        extraction.candidates(),
+        &[
+            PosLexiconEntry {
+                lemma: "아니다".to_owned(),
+                pos: DataFinePos::Vcn,
+            },
+            PosLexiconEntry {
+                lemma: "이다".to_owned(),
+                pos: DataFinePos::Vcp,
+            },
+        ]
+    );
+}
+
+#[test]
 fn individual_lexicon_sources_parse_with_repository_schema() {
     let (lexicon, warnings) = parse_lexicons(LexiconSources {
         predicates: &read("lexicon/predicates.tsv"),

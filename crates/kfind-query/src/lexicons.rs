@@ -210,10 +210,10 @@ impl Lexicons {
             AnalysisSource::FullPosLexicon,
         );
         let has_core_predicate = entry.pos.is_predicate()
-            && self
-                .lookup(&entry.lemma)
-                .iter()
-                .any(|existing| matches!(existing.morphology, Morphology::Predicate(_)));
+            && self.lookup(&entry.lemma).iter().any(|existing| {
+                existing.source != AnalysisSource::FullPosLexicon
+                    && matches!(existing.morphology, Morphology::Predicate(_))
+            });
         self.insert_analysis(
             entry.lemma.clone().into_boxed_str(),
             analysis,
