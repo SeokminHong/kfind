@@ -195,7 +195,20 @@ impl Lexicons {
 
     fn insert_full_pos(&mut self, entry: &PosLexiconEntry) {
         let fine_pos = data_fine_pos(entry.pos);
-        let analysis = default_analysis(&entry.lemma, entry.pos, AnalysisSource::FullPosLexicon);
+        let productive_alternation = entry.pos.is_predicate().then(|| {
+            self.productive_predicate(&entry.lemma)
+                .filter(|analysis| analysis.coarse_pos == fine_pos.coarse())
+                .and_then(|analysis| match analysis.morphology {
+                    Morphology::Predicate(predicate) => Some(predicate.alternation),
+                    _ => None,
+                })
+        });
+        let analysis = default_analysis(
+            &entry.lemma,
+            entry.pos,
+            productive_alternation.flatten(),
+            AnalysisSource::FullPosLexicon,
+        );
         let has_core_predicate = entry.pos.is_predicate()
             && self
                 .lookup(&entry.lemma)
@@ -317,17 +330,22 @@ fn exact_fine_analysis(lemma: &str, fine_pos: FinePos, source: AnalysisSource) -
     }
 }
 
-fn default_analysis(lemma: &str, pos: DataFinePos, source: AnalysisSource) -> Analysis {
+fn default_analysis(
+    lemma: &str,
+    pos: DataFinePos,
+    productive_alternation: Option<LexicalAlternation>,
+    source: AnalysisSource,
+) -> Analysis {
     if pos.is_predicate() {
         let predicate_pos = predicate_pos(pos);
         let predicate = PredicateEntry::new(
             lemma,
             predicate_pos,
-            if pos == DataFinePos::Vcp {
+            productive_alternation.unwrap_or(if pos == DataFinePos::Vcp {
                 LexicalAlternation::Copula
             } else {
                 LexicalAlternation::Regular
-            },
+            }),
         );
         Analysis {
             lemma: lemma.into(),

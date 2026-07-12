@@ -102,6 +102,41 @@ fn full_pos_adds_regular_analysis_for_non_core_predicates() {
 }
 
 #[test]
+fn full_pos_preserves_productive_alternation_for_non_core_predicates() {
+    let full_data = LexiconData {
+        predicates: vec![PredicateRecord {
+            lemma: "커스텀하다".to_owned(),
+            pos: DataFinePos::Vv,
+            alternation: DataAlternation::Regular,
+            flags: BTreeSet::new(),
+            overrides: Vec::new(),
+        }],
+        ..LexiconData::default()
+    };
+    let binary = encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap();
+    let lexicons = Arc::new(Lexicons::embedded_with(Some(&binary), None).unwrap());
+    let analyzer = LexiconQueryAnalyzer::new(lexicons);
+    let analyses = analyzer.analyze(&atom("커스텀하다")).unwrap();
+
+    assert!(analyses.iter().any(|analysis| {
+        analysis.source == AnalysisSource::FullPosLexicon
+            && matches!(
+                &analysis.morphology,
+                Morphology::Predicate(predicate)
+                    if predicate.alternation == LexicalAlternation::Ha
+            )
+    }));
+    let plan = compile_query("커스텀하다", &CompileOptions::default(), &analyzer).unwrap();
+    let anchors = plan.atoms[0]
+        .branches
+        .iter()
+        .map(|branch| String::from_utf8_lossy(&branch.anchor))
+        .collect::<BTreeSet<_>>();
+    assert!(anchors.contains("커스텀해"));
+    assert!(!anchors.contains("커스텀핬"));
+}
+
+#[test]
 fn core_predicate_analysis_suppresses_full_pos_homonyms() {
     let full_data = LexiconData {
         predicates: vec![PredicateRecord {
