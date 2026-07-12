@@ -24,7 +24,8 @@ pub use lexicon::{
 };
 pub use mecab::{
     MecabConnectionMatrix, MecabExtraction, MecabMorphologyEntry, MecabMorphologyExtraction,
-    extract_mecab_ko_dic, extract_mecab_morphology, parse_mecab_connection_matrix,
+    MecabSourceMorphologyEntry, MecabSourceMorphologyExtraction, extract_mecab_ko_dic,
+    extract_mecab_morphology, extract_mecab_source_morphology, parse_mecab_connection_matrix,
 };
 pub use morphology::{
     DecodedMorphologyResource, MorphologyAnalysis, MorphologyResourceStats,

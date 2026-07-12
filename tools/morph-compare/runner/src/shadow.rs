@@ -105,7 +105,7 @@ fn lattice_evidence(
                 .map(|node| ShadowNodeEvidence {
                     original: window.original_span(node.span.clone()).map(span),
                     normalized: span(node.span),
-                    pos: node.pos.map(DataFinePos::as_str),
+                    pos: node.pos,
                     word_cost: node.word_cost,
                     unknown: node.unknown,
                 })

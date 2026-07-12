@@ -5,31 +5,36 @@ use yada::DoubleArray;
 use yada::builder::DoubleArrayBuilder;
 
 use crate::{
-    DataError, DataErrorKind, DataFinePos, MecabConnectionMatrix, MecabMorphologyEntry,
-    SourceLocation,
+    DataError, DataErrorKind, MecabConnectionMatrix, MecabSourceMorphologyEntry, SourceLocation,
 };
 
+mod payload;
+
+use payload::{PayloadView, StringTable};
+
 const MAGIC: &[u8; 8] = b"KFMORPH\0";
-const SCHEMA_VERSION: u32 = 2;
+const SCHEMA_VERSION: u32 = 3;
 const INDEX_KIND_DOUBLE_ARRAY: u8 = 1;
-const POS_COUNT: usize = 23;
-const HEADER_LEN: usize = 356;
-const ANALYSIS_BYTES: usize = 12;
-const SECTION_COUNT: usize = 5;
+const HEADER_LEN: usize = 304;
+const SECTION_COUNT: usize = 6;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct MorphologyAnalysis {
-    pub pos: DataFinePos,
+pub struct MorphologyAnalysis<'a> {
+    pub pos: &'a str,
     pub left_id: u16,
     pub right_id: u16,
     pub word_cost: i32,
+    pub analysis_type: &'a str,
+    pub start_pos: &'a str,
+    pub end_pos: &'a str,
+    pub expression: &'a str,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MorphologyResourceStats {
     pub surface_count: u32,
     pub analysis_count: u32,
-    pub pos_counts: [u32; POS_COUNT],
+    pub pos_counts: BTreeMap<String, u32>,
     pub right_contexts: u16,
     pub left_contexts: u16,
 }
@@ -37,13 +42,14 @@ pub struct MorphologyResourceStats {
 pub struct DecodedMorphologyResource<'a> {
     stats: MorphologyResourceStats,
     index: DoubleArray<&'a [u8]>,
-    payload: &'a [u8],
+    payload: PayloadView<'a>,
+    strings: StringTable<'a>,
     matrix: &'a [u8],
     char_def: &'a [u8],
     unk_def: &'a [u8],
 }
 
-impl DecodedMorphologyResource<'_> {
+impl<'a> DecodedMorphologyResource<'a> {
     #[must_use]
     pub fn stats(&self) -> &MorphologyResourceStats {
         &self.stats
@@ -52,10 +58,10 @@ impl DecodedMorphologyResource<'_> {
     pub fn common_prefixes(
         &self,
         input: &[u8],
-        mut emit: impl FnMut(usize, &[MorphologyAnalysis]),
+        mut emit: impl FnMut(usize, &[MorphologyAnalysis<'a>]),
     ) {
         for (group, length) in self.index.common_prefix_search(input) {
-            if let Some(analyses) = self.analysis_group(group) {
+            if let Some(analyses) = self.payload.group(group, &self.strings) {
                 emit(length, &analyses);
             }
         }
@@ -83,34 +89,11 @@ impl DecodedMorphologyResource<'_> {
     pub fn unk_def(&self) -> &[u8] {
         self.unk_def
     }
-
-    fn analysis_group(&self, group: u32) -> Option<Vec<MorphologyAnalysis>> {
-        if group >= self.stats.surface_count {
-            return None;
-        }
-        let offsets_start = 8_usize;
-        let start_offset =
-            offsets_start.checked_add(usize::try_from(group).ok()?.checked_mul(4)?)?;
-        let end_offset = start_offset.checked_add(4)?;
-        let start = usize::try_from(read_u32_at(self.payload, start_offset)?).ok()?;
-        let end = usize::try_from(read_u32_at(self.payload, end_offset)?).ok()?;
-        let records_start = offsets_start
-            .checked_add((usize::try_from(self.stats.surface_count).ok()? + 1).checked_mul(4)?)?;
-        (start..end)
-            .map(|index| {
-                let offset = records_start.checked_add(index.checked_mul(ANALYSIS_BYTES)?)?;
-                decode_analysis(
-                    self.payload
-                        .get(offset..offset.checked_add(ANALYSIS_BYTES)?)?,
-                )
-            })
-            .collect()
-    }
 }
 
 pub fn encode_morphology_resource(
     source_digest: [u8; 32],
-    entries: &[MecabMorphologyEntry],
+    entries: &[MecabSourceMorphologyEntry],
     matrix: &MecabConnectionMatrix,
     char_def: &[u8],
     unk_def: &[u8],
@@ -121,7 +104,7 @@ pub fn encode_morphology_resource(
     if char_def.is_empty() || unk_def.is_empty() {
         return Err(binary_error("unknown-word definitions are empty"));
     }
-    let mut grouped = BTreeMap::<String, Vec<MecabMorphologyEntry>>::new();
+    let mut grouped = BTreeMap::<String, Vec<MecabSourceMorphologyEntry>>::new();
     for entry in entries {
         if entry.right_id >= matrix.right_contexts() || entry.left_id >= matrix.left_contexts() {
             return Err(binary_error("morphology entry context ID is out of range"));
@@ -148,16 +131,23 @@ pub fn encode_morphology_resource(
         .collect::<Result<Vec<_>, DataError>>()?;
     let index = DoubleArrayBuilder::build(&keys)
         .ok_or_else(|| binary_error("failed to build packed Double-Array index"))?;
-    let (payload, analysis_count, pos_counts) = encode_payload(&groups)?;
+    let payload = payload::encode(&groups)?;
     let matrix_bytes = encode_matrix(matrix);
     let stats = MorphologyResourceStats {
         surface_count: u32::try_from(groups.len()).map_err(binary_conversion_error)?,
-        analysis_count,
-        pos_counts,
+        analysis_count: payload.analysis_count,
+        pos_counts: BTreeMap::new(),
         right_contexts: matrix.right_contexts(),
         left_contexts: matrix.left_contexts(),
     };
-    let sections: [&[u8]; SECTION_COUNT] = [&index, &payload, &matrix_bytes, char_def, unk_def];
+    let sections: [&[u8]; SECTION_COUNT] = [
+        &index,
+        &payload.bytes,
+        &payload.strings,
+        &matrix_bytes,
+        char_def,
+        unk_def,
+    ];
     let mut output = Vec::with_capacity(
         HEADER_LEN + sections.iter().map(|section| section.len()).sum::<usize>(),
     );
@@ -168,9 +158,6 @@ pub fn encode_morphology_resource(
     output.extend_from_slice(&source_digest);
     output.extend_from_slice(&stats.surface_count.to_le_bytes());
     output.extend_from_slice(&stats.analysis_count.to_le_bytes());
-    for count in stats.pos_counts {
-        output.extend_from_slice(&count.to_le_bytes());
-    }
     output.extend_from_slice(&u32::from(stats.right_contexts).to_le_bytes());
     output.extend_from_slice(&u32::from(stats.left_contexts).to_le_bytes());
     for section in sections {
@@ -230,16 +217,6 @@ pub fn decode_morphology_resource<'a>(
         read_u32(input, &mut cursor).map_err(|message| resource_error(source, message))?;
     let analysis_count =
         read_u32(input, &mut cursor).map_err(|message| resource_error(source, message))?;
-    let mut pos_counts = [0_u32; POS_COUNT];
-    for count in &mut pos_counts {
-        *count = read_u32(input, &mut cursor).map_err(|message| resource_error(source, message))?;
-    }
-    if pos_counts.iter().copied().map(u64::from).sum::<u64>() != u64::from(analysis_count) {
-        return Err(resource_error(
-            source,
-            "POS counts do not equal analysis count",
-        ));
-    }
     let right_contexts = read_context_count(source, input, &mut cursor, "right")?;
     let left_contexts = read_context_count(source, input, &mut cursor, "left")?;
     let mut lengths = [0_usize; SECTION_COUNT];
@@ -263,6 +240,16 @@ pub fn decode_morphology_resource<'a>(
             return Err(resource_error(source, "section digest mismatch"));
         }
     }
+    let strings = StringTable::parse(source, sections[2])?;
+    let (payload, pos_counts) = PayloadView::parse(
+        source,
+        sections[1],
+        surface_count,
+        analysis_count,
+        right_contexts,
+        left_contexts,
+        &strings,
+    )?;
     let stats = MorphologyResourceStats {
         surface_count,
         analysis_count,
@@ -270,12 +257,11 @@ pub fn decode_morphology_resource<'a>(
         right_contexts,
         left_contexts,
     };
-    validate_payload(source, sections[1], &stats)?;
-    validate_matrix(source, sections[2], &stats)?;
+    validate_matrix(source, sections[3], &stats)?;
     if sections[0].is_empty() || sections[0].len() % 4 != 0 {
         return Err(resource_error(source, "invalid Double-Array section"));
     }
-    if sections[3].is_empty() || sections[4].is_empty() {
+    if sections[4].is_empty() || sections[5].is_empty() {
         return Err(resource_error(
             source,
             "empty unknown-word definition section",
@@ -284,10 +270,11 @@ pub fn decode_morphology_resource<'a>(
     Ok(DecodedMorphologyResource {
         stats,
         index: DoubleArray::new(sections[0]),
-        payload: sections[1],
-        matrix: sections[2],
-        char_def: sections[3],
-        unk_def: sections[4],
+        payload,
+        strings,
+        matrix: sections[3],
+        char_def: sections[4],
+        unk_def: sections[5],
     })
 }
 
@@ -317,101 +304,12 @@ fn hex_digit(byte: u8) -> Option<u8> {
     }
 }
 
-fn encode_payload(
-    groups: &[(String, Vec<MecabMorphologyEntry>)],
-) -> Result<(Vec<u8>, u32, [u32; POS_COUNT]), DataError> {
-    let analysis_count = u32::try_from(groups.iter().map(|(_, group)| group.len()).sum::<usize>())
-        .map_err(binary_conversion_error)?;
-    let mut output = Vec::new();
-    output.extend_from_slice(
-        &u32::try_from(groups.len())
-            .map_err(binary_conversion_error)?
-            .to_le_bytes(),
-    );
-    output.extend_from_slice(&analysis_count.to_le_bytes());
-    let mut offset = 0_u32;
-    output.extend_from_slice(&offset.to_le_bytes());
-    for (_, group) in groups {
-        offset = offset
-            .checked_add(u32::try_from(group.len()).map_err(binary_conversion_error)?)
-            .ok_or_else(|| binary_error("analysis offset overflow"))?;
-        output.extend_from_slice(&offset.to_le_bytes());
-    }
-    let mut pos_counts = [0_u32; POS_COUNT];
-    for (_, group) in groups {
-        for entry in group {
-            let pos = usize::from(entry.pos.code());
-            pos_counts[pos] = pos_counts[pos]
-                .checked_add(1)
-                .ok_or_else(|| binary_error("POS count overflow"))?;
-            output.push(entry.pos.code());
-            output.extend_from_slice(&[0; 3]);
-            output.extend_from_slice(&entry.left_id.to_le_bytes());
-            output.extend_from_slice(&entry.right_id.to_le_bytes());
-            output.extend_from_slice(&entry.word_cost.to_le_bytes());
-        }
-    }
-    Ok((output, analysis_count, pos_counts))
-}
-
 fn encode_matrix(matrix: &MecabConnectionMatrix) -> Vec<u8> {
     let mut output = Vec::with_capacity(matrix.costs().len() * 2);
     for cost in matrix.costs() {
         output.extend_from_slice(&cost.to_le_bytes());
     }
     output
-}
-
-fn validate_payload(
-    source: &str,
-    input: &[u8],
-    stats: &MorphologyResourceStats,
-) -> Result<(), DataError> {
-    let offsets = usize::try_from(stats.surface_count)
-        .map_err(|error| resource_error(source, &error.to_string()))?
-        .checked_add(1)
-        .ok_or_else(|| resource_error(source, "payload offset count overflow"))?;
-    let records_start = 8_usize
-        .checked_add(
-            offsets
-                .checked_mul(4)
-                .ok_or_else(|| resource_error(source, "payload offsets overflow"))?,
-        )
-        .ok_or_else(|| resource_error(source, "payload header overflow"))?;
-    let expected_len = records_start
-        .checked_add(
-            usize::try_from(stats.analysis_count)
-                .map_err(|error| resource_error(source, &error.to_string()))?
-                .checked_mul(ANALYSIS_BYTES)
-                .ok_or_else(|| resource_error(source, "payload records overflow"))?,
-        )
-        .ok_or_else(|| resource_error(source, "payload length overflow"))?;
-    if input.len() != expected_len
-        || read_u32_at(input, 0) != Some(stats.surface_count)
-        || read_u32_at(input, 4) != Some(stats.analysis_count)
-    {
-        return Err(resource_error(source, "payload counts or length mismatch"));
-    }
-    let mut previous = 0_u32;
-    for index in 0..offsets {
-        let offset = read_u32_at(input, 8 + index * 4)
-            .ok_or_else(|| resource_error(source, "truncated payload offset"))?;
-        if offset < previous || offset > stats.analysis_count || (index == 0 && offset != 0) {
-            return Err(resource_error(source, "invalid payload offset order"));
-        }
-        previous = offset;
-    }
-    if previous != stats.analysis_count {
-        return Err(resource_error(source, "final payload offset mismatch"));
-    }
-    for index in 0..usize::try_from(stats.analysis_count)
-        .map_err(|error| resource_error(source, &error.to_string()))?
-    {
-        let offset = records_start + index * ANALYSIS_BYTES;
-        decode_analysis(&input[offset..offset + ANALYSIS_BYTES])
-            .ok_or_else(|| resource_error(source, "invalid analysis record"))?;
-    }
-    Ok(())
 }
 
 fn validate_matrix(
@@ -451,18 +349,6 @@ fn split_sections<'a>(
     Ok(sections)
 }
 
-fn decode_analysis(input: &[u8]) -> Option<MorphologyAnalysis> {
-    if input.len() != ANALYSIS_BYTES || input[1..4] != [0; 3] {
-        return None;
-    }
-    Some(MorphologyAnalysis {
-        pos: DataFinePos::from_code(input[0])?,
-        left_id: u16::from_le_bytes(input[4..6].try_into().ok()?),
-        right_id: u16::from_le_bytes(input[6..8].try_into().ok()?),
-        word_cost: i32::from_le_bytes(input[8..12].try_into().ok()?),
-    })
-}
-
 fn read_context_count(
     source: &str,
     input: &[u8],
@@ -488,7 +374,7 @@ fn read_array<const N: usize>(input: &[u8], cursor: &mut usize) -> Result<[u8; N
     bytes.try_into().map_err(|_| "invalid header field")
 }
 
-fn read_u32_at(input: &[u8], offset: usize) -> Option<u32> {
+pub(super) fn read_u32_at(input: &[u8], offset: usize) -> Option<u32> {
     Some(u32::from_le_bytes(
         input.get(offset..offset.checked_add(4)?)?.try_into().ok()?,
     ))
@@ -498,18 +384,18 @@ fn sha256(input: &[u8]) -> [u8; 32] {
     Sha256::digest(input).into()
 }
 
-fn binary_conversion_error(error: impl ToString) -> DataError {
+pub(super) fn binary_conversion_error(error: impl ToString) -> DataError {
     binary_error(&error.to_string())
 }
 
-fn binary_error(message: &str) -> DataError {
+pub(super) fn binary_error(message: &str) -> DataError {
     DataError::new(
         SourceLocation::new("morphology-resource"),
         DataErrorKind::Binary(message.to_owned()),
     )
 }
 
-fn resource_error(source: &str, message: &str) -> DataError {
+pub(super) fn resource_error(source: &str, message: &str) -> DataError {
     DataError::new(
         SourceLocation::new(source),
         DataErrorKind::MorphologyResourceCorrupt(message.to_owned()),

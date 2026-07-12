@@ -130,7 +130,7 @@ struct ShadowPathEvidence {
 struct ShadowNodeEvidence {
     normalized: Span,
     original: Option<Span>,
-    pos: Option<&'static str>,
+    pos: Option<String>,
     word_cost: i32,
     unknown: bool,
 }

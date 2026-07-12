@@ -6,6 +6,10 @@ use std::ops::Range;
 
 use kfind_data::{DataFinePos, DecodedMorphologyResource, MorphologyAnalysis};
 
+mod unknown;
+
+use unknown::{UnknownAnalysis, UnknownDictionary};
+
 pub const DEFAULT_LATTICE_NODE_LIMIT: usize = 4_096;
 const N_BEST: usize = 4;
 const BOS_EOS_CONTEXT_ID: u16 = 0;
@@ -20,7 +24,7 @@ pub enum LocalLatticeDecision {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LocalLatticeNode {
     pub span: Range<usize>,
-    pub pos: Option<DataFinePos>,
+    pub pos: Option<String>,
     pub word_cost: i32,
     pub unknown: bool,
 }
@@ -56,8 +60,8 @@ pub fn evaluate_local_lattice(
     {
         return Err(LocalLatticeError::InvalidQuerySpan);
     }
-    let unknown = UnknownModel::parse(resource)?;
-    let nodes = build_nodes(resource, text, &query_span, query_pos, unknown, node_limit)?;
+    let unknown = UnknownDictionary::parse(resource)?;
+    let nodes = build_nodes(resource, text, &query_span, query_pos, &unknown, node_limit)?;
     let completed = best_paths(resource, text.len(), &nodes)?;
     let include_cost = completed
         .iter()
@@ -110,92 +114,10 @@ pub fn evaluate_local_lattice(
     })
 }
 
-#[derive(Clone, Copy, Debug)]
-struct UnknownModel {
-    invoke: bool,
-    group: bool,
-    max_length: usize,
-    left_id: u16,
-    right_id: u16,
-    word_cost: i32,
-}
-
-impl UnknownModel {
-    fn parse(resource: &DecodedMorphologyResource<'_>) -> Result<Self, LocalLatticeError> {
-        let char_def = std::str::from_utf8(resource.char_def())
-            .map_err(|_| LocalLatticeError::InvalidUnknownModel)?;
-        let definition = char_def
-            .lines()
-            .map(strip_comment)
-            .find(|line| line.split_whitespace().next() == Some("HANGUL"))
-            .ok_or(LocalLatticeError::InvalidUnknownModel)?;
-        let fields = definition.split_whitespace().collect::<Vec<_>>();
-        if fields.len() != 4 {
-            return Err(LocalLatticeError::InvalidUnknownModel);
-        }
-        let invoke = parse_flag(fields[1])?;
-        let group = parse_flag(fields[2])?;
-        let max_length = fields[3]
-            .parse::<usize>()
-            .map_err(|_| LocalLatticeError::InvalidUnknownModel)?;
-        if max_length == 0 {
-            return Err(LocalLatticeError::InvalidUnknownModel);
-        }
-
-        let unk_def = std::str::from_utf8(resource.unk_def())
-            .map_err(|_| LocalLatticeError::InvalidUnknownModel)?;
-        let fields = unk_def
-            .lines()
-            .map(strip_comment)
-            .find(|line| line.split(',').next() == Some("HANGUL"))
-            .map(|line| line.split(',').collect::<Vec<_>>())
-            .filter(|fields| fields.len() >= 4)
-            .ok_or(LocalLatticeError::InvalidUnknownModel)?;
-        let model = Self {
-            invoke,
-            group,
-            max_length,
-            left_id: parse_unknown_field(fields[1])?,
-            right_id: parse_unknown_field(fields[2])?,
-            word_cost: parse_unknown_field(fields[3])?,
-        };
-        if resource
-            .connection_cost(model.right_id, BOS_EOS_CONTEXT_ID)
-            .is_none()
-            || resource
-                .connection_cost(BOS_EOS_CONTEXT_ID, model.left_id)
-                .is_none()
-        {
-            return Err(LocalLatticeError::InvalidUnknownModel);
-        }
-        Ok(model)
-    }
-}
-
-fn parse_flag(value: &str) -> Result<bool, LocalLatticeError> {
-    match value {
-        "0" => Ok(false),
-        "1" => Ok(true),
-        _ => Err(LocalLatticeError::InvalidUnknownModel),
-    }
-}
-
-fn parse_unknown_field<T: std::str::FromStr>(value: &str) -> Result<T, LocalLatticeError> {
-    value
-        .parse()
-        .map_err(|_| LocalLatticeError::InvalidUnknownModel)
-}
-
-fn strip_comment(line: &str) -> &str {
-    line.split_once('#')
-        .map_or(line, |(content, _)| content)
-        .trim()
-}
-
 #[derive(Clone, Debug)]
 struct Node {
     span: Range<usize>,
-    pos: Option<DataFinePos>,
+    pos: Option<String>,
     left_id: u16,
     right_id: u16,
     word_cost: i32,
@@ -206,16 +128,16 @@ struct Node {
 impl Node {
     fn dictionary(
         span: Range<usize>,
-        analysis: MorphologyAnalysis,
+        analysis: MorphologyAnalysis<'_>,
         query_span: &Range<usize>,
         query_pos: DataFinePos,
     ) -> Self {
-        let query_match = analysis.pos == query_pos
+        let query_match = analysis.pos.split('+').any(|pos| pos == query_pos.as_str())
             && span.start <= query_span.start
             && span.end >= query_span.end;
         Self {
             span,
-            pos: Some(analysis.pos),
+            pos: Some(analysis.pos.to_owned()),
             left_id: analysis.left_id,
             right_id: analysis.right_id,
             word_cost: analysis.word_cost,
@@ -224,13 +146,13 @@ impl Node {
         }
     }
 
-    fn unknown(span: Range<usize>, model: UnknownModel) -> Self {
+    fn unknown(span: Range<usize>, analysis: &UnknownAnalysis) -> Self {
         Self {
             span,
-            pos: None,
-            left_id: model.left_id,
-            right_id: model.right_id,
-            word_cost: model.word_cost,
+            pos: Some(analysis.pos.clone()),
+            left_id: analysis.left_id,
+            right_id: analysis.right_id,
+            word_cost: analysis.word_cost,
             unknown: true,
             query_match: false,
         }
@@ -239,7 +161,7 @@ impl Node {
     fn summary(&self) -> LocalLatticeNode {
         LocalLatticeNode {
             span: self.span.clone(),
-            pos: self.pos,
+            pos: self.pos.clone(),
             word_cost: self.word_cost,
             unknown: self.unknown,
         }
@@ -251,11 +173,11 @@ fn build_nodes(
     text: &str,
     query_span: &Range<usize>,
     query_pos: DataFinePos,
-    unknown: UnknownModel,
+    unknown: &UnknownDictionary,
     node_limit: usize,
 ) -> Result<Vec<Node>, LocalLatticeError> {
     let mut nodes = Vec::new();
-    for (start, character) in text.char_indices() {
+    for (start, _) in text.char_indices() {
         let before_dictionary = nodes.len();
         resource.common_prefixes(&text.as_bytes()[start..], |length, analyses| {
             let end = start + length;
@@ -268,8 +190,8 @@ fn build_nodes(
             }
         });
         let has_dictionary = nodes.len() > before_dictionary;
-        if is_hangul(character) && (unknown.invoke || !has_dictionary) {
-            add_unknown_nodes(&mut nodes, text, start, unknown);
+        for (end, analysis) in unknown.nodes_at(text, start, has_dictionary) {
+            nodes.push(Node::unknown(start..end, analysis));
         }
         if nodes.len() > node_limit {
             return Err(LocalLatticeError::NodeLimit {
@@ -283,7 +205,7 @@ fn build_nodes(
             left.span.start,
             left.span.end,
             left.unknown,
-            left.pos,
+            left.pos.as_deref(),
             left.left_id,
             left.right_id,
             left.word_cost,
@@ -292,7 +214,7 @@ fn build_nodes(
                 right.span.start,
                 right.span.end,
                 right.unknown,
-                right.pos,
+                right.pos.as_deref(),
                 right.left_id,
                 right.right_id,
                 right.word_cost,
@@ -307,29 +229,6 @@ fn build_nodes(
             && left.unknown == right.unknown
     });
     Ok(nodes)
-}
-
-fn add_unknown_nodes(nodes: &mut Vec<Node>, text: &str, start: usize, model: UnknownModel) {
-    let ends = text[start..]
-        .char_indices()
-        .take_while(|(_, character)| is_hangul(*character))
-        .map(|(offset, character)| start + offset + character.len_utf8())
-        .collect::<Vec<_>>();
-    for end in ends.iter().copied().take(model.max_length) {
-        nodes.push(Node::unknown(start..end, model));
-    }
-    if model.group && ends.len() > model.max_length {
-        if let Some(end) = ends.last().copied() {
-            nodes.push(Node::unknown(start..end, model));
-        }
-    }
-}
-
-fn is_hangul(character: char) -> bool {
-    matches!(
-        character,
-        '\u{ac00}'..='\u{d7a3}' | '\u{1100}'..='\u{11ff}' | '\u{3130}'..='\u{318f}'
-    )
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

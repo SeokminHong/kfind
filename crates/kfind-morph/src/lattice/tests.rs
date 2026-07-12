@@ -1,7 +1,7 @@
 use std::io::Cursor;
 
 use kfind_data::{
-    MecabMorphologyEntry, decode_morphology_resource, encode_morphology_resource,
+    MecabSourceMorphologyEntry, decode_morphology_resource, encode_morphology_resource,
     parse_mecab_connection_matrix,
 };
 
@@ -61,12 +61,47 @@ fn node_limit_is_observable() {
     assert!(matches!(error, LocalLatticeError::NodeLimit { .. }));
 }
 
+#[test]
+fn compound_pos_component_can_satisfy_query() {
+    let bytes = fixture_resource();
+    let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
+    let report = evaluate_local_lattice(
+        &resource,
+        "인",
+        0.."인".len(),
+        DataFinePos::Vcp,
+        DEFAULT_LATTICE_NODE_LIMIT,
+    )
+    .unwrap();
+
+    assert_eq!(report.decision, LocalLatticeDecision::Accept);
+    assert_eq!(report.paths[0].nodes[0].pos.as_deref(), Some("VCP+ETM"));
+}
+
+#[test]
+fn numeric_unknown_class_keeps_a_complete_path() {
+    let bytes = fixture_resource();
+    let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
+    let report = evaluate_local_lattice(
+        &resource,
+        "4일",
+        "4".len().."4일".len(),
+        DataFinePos::Vcp,
+        DEFAULT_LATTICE_NODE_LIMIT,
+    )
+    .unwrap();
+
+    assert!(report.paths.iter().all(|path| path.nodes[0].unknown));
+}
+
 fn fixture_resource() -> Vec<u8> {
     let entries = [
         entry("매", DataFinePos::Nng, 1, 1, 30),
         entry("매일", DataFinePos::Mag, 1, 1, 1),
         entry("일", DataFinePos::Nng, 1, 1, 20),
         entry("일", DataFinePos::Vcp, 1, 1, 1),
+        source_entry("인", "NNG", 1, 1, 20),
+        source_entry("인", "VCP+ETM", 1, 1, 1),
     ];
     let matrix = parse_mecab_connection_matrix(
         "matrix.def",
@@ -77,8 +112,8 @@ fn fixture_resource() -> Vec<u8> {
         [9; 32],
         &entries,
         &matrix,
-        b"HANGUL 0 1 2\n",
-        b"HANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
+        b"DEFAULT 0 1 0\nNUMERIC 1 1 0\nHANGUL 0 1 2\n0x0030..0x0039 NUMERIC\n0xAC00..0xD7A3 HANGUL\n",
+        b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nNUMERIC,1,1,100,SN,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
     )
     .unwrap()
 }
@@ -89,12 +124,26 @@ fn entry(
     left_id: u16,
     right_id: u16,
     word_cost: i32,
-) -> MecabMorphologyEntry {
-    MecabMorphologyEntry {
+) -> MecabSourceMorphologyEntry {
+    source_entry(surface, pos.as_str(), left_id, right_id, word_cost)
+}
+
+fn source_entry(
+    surface: &str,
+    pos: &str,
+    left_id: u16,
+    right_id: u16,
+    word_cost: i32,
+) -> MecabSourceMorphologyEntry {
+    MecabSourceMorphologyEntry {
         surface: surface.to_owned(),
-        pos,
+        pos: pos.to_owned(),
         left_id,
         right_id,
         word_cost,
+        analysis_type: "*".to_owned(),
+        start_pos: "*".to_owned(),
+        end_pos: "*".to_owned(),
+        expression: "*".to_owned(),
     }
 }
