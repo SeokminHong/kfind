@@ -33,9 +33,41 @@ coverage에는 적합하지만 활용 분류를 직접 제공하지 않으므로
 - [우리말샘 Open API](https://opendict.korean.go.kr/service/openApiInfo)는 표제어, 품사, 활용·준말 필드를 제공한다.
 - [표준국어대사전 Open API](https://stdict.korean.go.kr/openapi/openApiInfo.do)도 표제어, 품사, 활용 필드를 제공한다.
 
-세 누리집의 일반 텍스트는 CC BY-SA 2.0 KR 정책이다. 파생 artifact는 소스 코드와 분리하고
-저작자 표시·동일조건변경허락 고지를 포함한다. 출전이 있는 용례와 멀티미디어는 수집하지
-않는다.
+세 누리집의 일반 텍스트는 CC BY-SA 2.0 KR 정책이다. [한국어기초사전 저작권
+정책](https://krdict.korean.go.kr/kor/kboardPolicy/copyRightTermsInfo), [우리말샘 저작권
+정책](https://opendict.korean.go.kr/service/copyrightPolicy), [표준국어대사전 저작권
+정책](https://stdict.korean.go.kr/join/copyrightPolicy.do)을 snapshot별로 다시 확인한다.
+파생 artifact는 소스 코드와 분리하고 저작자 표시·동일조건변경허락 고지를 포함한다. 출전이
+있는 용례와 멀티미디어는 수집하지 않는다.
+
+## 현재 측정
+
+`mecab-ko-dic 2.1.1-20180720` 산출물은 다음 규모다.
+
+- 품사 entry 632,667개
+- 고유 표제어 614,794개
+- 용언 표제어 9,407개
+- 둘 이상의 품사를 가진 표제어 16,650개
+- 둘 이상의 용언 품사를 가진 표제어 383개
+
+dev FN을 profile별로 분류하면 embedded의 `lexicon-missing`은 38건이고 full-POS는 0건이다.
+full-POS의 남은 주요 원인은 `boundary-rejected` 97건, `surface-missing` 8건,
+`continuation-rejected` 6건이다. 현재 병목은 전체 표제어 수보다 활용 metadata와 경계다.
+
+## 표제어 위생
+
+MeCab CSV의 표면형을 모두 사전 표제어로 볼 수는 없다. `VCP.csv`에는 `이다`의 어간 `이`
+외에도 `보이`, `사이` 같은 문맥용 표면형이 있다. 이를 기계적으로 `-다`형으로 바꾸면
+`보이다`, `사이다`라는 잘못된 계사 분석이 생긴다. extractor는 `VCP=이`, `VCN=아니`만
+받고 나머지 14개 계사 표면형을 제외한다. 형태 생성기도 `이다` 이외의 copula stem을
+거부한다.
+
+VV·VA·VX 후보도 공개 사전 snapshot과 교차 검증하기 전에는 활용 metadata로 승격하지
+않는다. MeCab full POS는 품사 후보 계층이며 core의 불규칙 분류를 덮어쓰지 않는다.
+
+미등록 `-다` 입력을 모두 용언으로 간주하지 않는다. `가볍다`처럼 검증된 표제어는 core의
+`ㅂ` 불규칙 분석을 사용하지만 미등록·오입력 `-다`형은 literal과 진단만 생성한다. 사전에
+없는 신규 용언은 `--pos verb|adjective` 또는 user lexicon으로 명시할 수 있다.
 
 ## 수집 계약
 
@@ -45,6 +77,27 @@ coverage에는 적합하지만 활용 분류를 직접 제공하지 않으므로
 4. NFC 정규화, 지원 품사 mapping, 중복 제거, 제외 이유를 재현한다.
 5. 산출물에 source별 입력·출력·충돌 count와 라이선스를 포함한다.
 6. Open API는 갱신 후보와 소수 항목 검증에만 사용한다.
+
+## 한국어기초사전 importer 계획
+
+구현 범위는 다음 작업으로 분리한다.
+
+1. 전체 내려받기에서 표제어·품사·활용을 선택한 JSON 또는 XML snapshot을 받는다.
+2. 원본은 저장소 밖 cache에 두고 생성 일자, 요청 옵션, SHA-256, 라이선스만 manifest에
+   고정한다.
+3. importer는 원본 schema를 내부 `lemma`, `pos`, `conjugations`, `source_id` 후보로 바꾸고
+   NFC 정규화·중복 제거·제외 이유를 기록한다.
+4. 작은 schema fixture로 parser를 테스트하되 실제 사전 본문은 test fixture에 복제하지
+   않는다.
+5. MeCab과 품사가 일치하는 표제어, 충돌하는 표제어, 한 source에만 있는 표제어를 각각
+   report한다.
+6. 활용형은 자동 반영하지 않고 현재 생성 규칙과 일치 여부를 비교한 `alternation candidate`
+   report로 낸다.
+7. 검토된 결과만 enriched morphology artifact로 만들고 core > enriched morphology > MeCab
+   POS 후보 순으로 우선한다.
+
+Open API adapter를 함께 만들더라도 기본 경로는 snapshot importer다. API adapter는
+source ID로 소수 충돌 항목을 재확인하고 새 snapshot 필요 여부를 판단하는 도구로 한정한다.
 
 ## 활용 metadata 승격
 
@@ -58,6 +111,13 @@ report에 남긴다.
 1. 현재 full POS artifact의 entry·표제어·품사 통계를 고정한다.
 2. benchmark 원인을 embedded/full-POS별로 분리한다.
 3. 생산 가능한 continuation 누락을 사전 추가보다 먼저 수정한다.
-4. 한국어기초사전 snapshot importer를 추가해 MeCab 품사와 교차 검증한다.
+4. 한국어기초사전 snapshot importer를 추가해 MeCab 품사와 표제어 기본형을 교차 검증한다.
 5. 활용형 기반 enriched morphology artifact schema를 설계한다.
 6. 새로운 blind source에서 품질과 hard-negative 정밀도를 확인한다.
+
+## blind 평가 게이트
+
+새 규칙과 사전 source가 확정된 뒤 기존 dev/test와 다른 한국어 treebank source를 고정한다.
+URL·라이선스·SHA-256·quota를 먼저 기록하고 결과를 한 번 확인한다. blind 결과를 확인한 뒤
+case별 core entry나 예외 branch를 추가하지 않는다. 실패 분석은 다음 개발 주기의 dev
+입력으로만 사용한다.

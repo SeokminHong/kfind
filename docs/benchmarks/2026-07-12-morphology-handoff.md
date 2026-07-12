@@ -27,11 +27,19 @@ profile의 FN은 147개다.
 - 5개 slice, 10개 hard negative를 별도 metric으로 기록한다. embedded는 7 TN, 3 FP다.
 - 기본 성능 측정은 1회 warm-up 뒤 5회 실행하고 median/min/max를 기록한다. CI는 28개 dev
   smoke case를 실행한다.
-- copula FP는 matcher를 변경하지 않고
-  [별도 정책 계획](2026-07-12-copula-boundary-plan.md)만 확정했다.
+- copula FP는 [homonym union 정책](2026-07-12-copula-boundary-plan.md)을 유지하고 matcher를
+  변경하지 않기로 확정했다.
+- full POS artifact는 632,667개 entry와 614,794개 고유 표제어를 포함한다. dev의
+  `lexicon-missing`은 embedded 38건, full-POS 0건이다.
+- `-며/으며` 연결형을 보강해 dev TP가 360에서 361로 늘었고 recall은 72.20%다. test와
+  hard-negative 결과는 변하지 않았다.
+- MeCab의 문맥용 계사 표면형 14개를 표제어 후보에서 제외했다. `보이다`는 동사·보조 동사
+  분석만 보존하고, 비정규 copula stem은 형태 생성 전에 거부한다.
 
 dev 명사 FN 70개 중 64개는 사전 누락이 아니라 smart boundary 거부다. 합성어 substring
 계약을 완화하면 hard-negative 정밀도와 충돌하므로 이번 어휘 보강에는 포함하지 않았다.
+[명사 경계 계획](2026-07-12-nominal-boundary-plan.md)에서 별도 mode와 복합어 resource
+선택지를 분리했다.
 
 ## 재현
 
