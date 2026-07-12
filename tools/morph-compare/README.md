@@ -63,6 +63,8 @@ with five slices. Each kfind false negative records an automatic `primary_cause`
 and its evidence.
 The report also records each `kfind` profile and artifact SHA-256, plus separate
 lists of recovered, still-missed, and newly regressed false negatives.
+Shadow verification records raw anchor hits, verified branch hits, local-lattice
+candidates, and unique analysis windows per case outside the timed evaluation.
 
 Performance covers each backend's end-to-end query-to-decision workload and
 reports the median and min/max across measured runs. It is not a tokenizer-only

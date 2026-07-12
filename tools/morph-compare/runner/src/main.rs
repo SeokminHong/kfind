@@ -5,11 +5,11 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use anyhow::{Context, Result, bail};
-use kfind_matcher::MorphMatcher;
+use kfind_matcher::{MorphMatcher, VerificationCounters};
 use kfind_morph::CoarsePos;
 use kfind_query::{
-    BoundaryPolicy, CompileOptionOverrides, CompileOptions, LexiconQueryAnalyzer, Lexicons,
-    compile_query,
+    BoundaryPolicy, CompileOptionOverrides, CompileOptions, ContextRequirement,
+    LexiconQueryAnalyzer, Lexicons, compile_query,
 };
 use lindera::dictionary::load_dictionary;
 use lindera::mode::Mode;
@@ -64,6 +64,35 @@ struct FailureDiagnostic {
     auto_has_expected_pos_analysis: bool,
     gold_anchor_overlap: bool,
     any_boundary_gold_overlap: bool,
+}
+
+#[derive(Debug, Serialize)]
+struct ShadowVerificationCounters {
+    raw_anchor_hits: usize,
+    verified_branch_hits: usize,
+    local_lattice_candidate_hits: usize,
+    unique_analysis_windows: usize,
+    local_branches: Vec<ShadowBranchEvidence>,
+}
+
+#[derive(Debug, Serialize)]
+struct ShadowBranchEvidence {
+    atom_index: usize,
+    anchor: String,
+    require_left: bool,
+    require_right: bool,
+}
+
+impl ShadowVerificationCounters {
+    fn new(counters: VerificationCounters, local_branches: Vec<ShadowBranchEvidence>) -> Self {
+        Self {
+            raw_anchor_hits: counters.raw_anchor_hits,
+            verified_branch_hits: counters.verified_branch_hits,
+            local_lattice_candidate_hits: counters.local_lattice_candidate_hits,
+            unique_analysis_windows: counters.unique_analysis_windows,
+            local_branches,
+        }
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -155,6 +184,8 @@ fn run_kfind(cases: &[Case], profile: KfindProfile) -> Result<Summary> {
     let peak_rss_kib = peak_rss_kib();
     for (case, result) in cases.iter().zip(&mut results) {
         result["failure_diagnostic"] = serde_json::to_value(diagnose_failure(case, &analyzer)?)?;
+        result["shadow_verification"] =
+            serde_json::to_value(diagnose_verification(case, &analyzer)?)?;
     }
     Ok(Summary {
         backend: "kfind".to_owned(),
@@ -166,6 +197,41 @@ fn run_kfind(cases: &[Case], profile: KfindProfile) -> Result<Summary> {
         peak_rss_kib,
         results,
     })
+}
+
+fn diagnose_verification(
+    case: &Case,
+    analyzer: &LexiconQueryAnalyzer,
+) -> Result<ShadowVerificationCounters> {
+    let options = CompileOptions::resolve(CompileOptionOverrides {
+        pos: Some(parse_pos(&case.pos)?),
+        ..CompileOptionOverrides::default()
+    })?;
+    let plan = compile_query(&case.query, &options, analyzer)
+        .with_context(|| format!("failed to compile shadow diagnostic for case {}", case.id))?;
+    let local_branches = plan
+        .atoms
+        .iter()
+        .enumerate()
+        .flat_map(|(atom_index, atom)| {
+            atom.branches
+                .iter()
+                .filter(|branch| branch.context_requirement == ContextRequirement::EojeolLattice)
+                .map(move |branch| ShadowBranchEvidence {
+                    atom_index,
+                    anchor: std::str::from_utf8(&branch.anchor)
+                        .expect("compiled query anchors are valid UTF-8")
+                        .to_owned(),
+                    require_left: branch.boundary.require_left,
+                    require_right: branch.boundary.require_right,
+                })
+        })
+        .collect();
+    let matcher = MorphMatcher::new(Arc::new(plan))?;
+    Ok(ShadowVerificationCounters::new(
+        matcher.verification_counters(case.text.as_bytes()),
+        local_branches,
+    ))
 }
 
 fn diagnose_failure(
@@ -346,5 +412,22 @@ mod tests {
         assert!(diagnostic.auto_has_expected_pos_analysis);
         assert!(diagnostic.gold_anchor_overlap);
         assert!(diagnostic.any_boundary_gold_overlap);
+    }
+
+    #[test]
+    fn shadow_diagnostic_counts_copula_analysis_windows() {
+        let counters = diagnose_verification(
+            &positive_case("이다", "adjective", "매일 운동한다."),
+            &analyzer(),
+        )
+        .unwrap();
+
+        assert_eq!(counters.raw_anchor_hits, 1);
+        assert_eq!(counters.verified_branch_hits, 1);
+        assert_eq!(counters.local_lattice_candidate_hits, 1);
+        assert_eq!(counters.unique_analysis_windows, 1);
+        assert!(counters.local_branches.iter().any(|branch| {
+            branch.anchor == "일" && !branch.require_left && branch.require_right
+        }));
     }
 }
