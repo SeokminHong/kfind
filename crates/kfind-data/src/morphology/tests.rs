@@ -6,9 +6,9 @@ use crate::parse_mecab_connection_matrix;
 #[test]
 fn resource_round_trips_prefixes_costs_and_source_definitions() {
     let entries = vec![
-        entry("가", DataFinePos::Nng, 1, 1, 10),
-        entry("가", DataFinePos::Vv, 1, 0, 20),
-        entry("가다", DataFinePos::Vv, 0, 1, 30),
+        entry("가", "NNG", 1, 1, 10),
+        entry("가", "VV", 1, 0, 20),
+        entry("가다", "VV+EF", 0, 1, 30),
     ];
     let matrix = parse_mecab_connection_matrix(
         "matrix.def",
@@ -34,6 +34,8 @@ fn resource_round_trips_prefixes_costs_and_source_definitions() {
     assert_eq!(prefixes[0].0, "가".len());
     assert_eq!(prefixes[0].1.len(), 2);
     assert_eq!(prefixes[1].0, "가다".len());
+    assert_eq!(prefixes[1].1[0].pos, "VV+EF");
+    assert_eq!(decoded.stats().pos_counts["VV+EF"], 1);
     assert_eq!(decoded.connection_cost(1, 0), Some(3));
     assert_eq!(decoded.char_def(), b"HANGUL 0 1 2\n");
 }
@@ -43,7 +45,7 @@ fn resource_rejects_source_and_section_corruption() {
     let matrix = parse_mecab_connection_matrix("matrix.def", Cursor::new("1 1\n0 0 1\n")).unwrap();
     let mut bytes = encode_morphology_resource(
         [3; 32],
-        &[entry("가", DataFinePos::Nng, 0, 0, 1)],
+        &[entry("가", "NNG", 0, 0, 1)],
         &matrix,
         b"char",
         b"unknown",
@@ -66,16 +68,20 @@ fn sha256_parser_rejects_non_ascii_input_without_panicking() {
 
 fn entry(
     surface: &str,
-    pos: DataFinePos,
+    pos: &str,
     left_id: u16,
     right_id: u16,
     word_cost: i32,
-) -> MecabMorphologyEntry {
-    MecabMorphologyEntry {
+) -> MecabSourceMorphologyEntry {
+    MecabSourceMorphologyEntry {
         surface: surface.to_owned(),
-        pos,
+        pos: pos.to_owned(),
         left_id,
         right_id,
         word_cost,
+        analysis_type: "*".to_owned(),
+        start_pos: "*".to_owned(),
+        end_pos: "*".to_owned(),
+        expression: "*".to_owned(),
     }
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly MORPHOLOGY_SHA256="c9aae9746c29a2848d4e5bff3b15d81601f795ba4d65cd893a7eefe9a2490ca6"
+readonly MORPHOLOGY_SHA256="50bbaa64b06a080c7fa09c13e21090388a1c0f5109ed413546e0004ce7794f23"
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 source "${repo_root}/scripts/lib/full-pos-source.sh"
@@ -27,7 +27,7 @@ if [[ "${resource_sha}" != "${MORPHOLOGY_SHA256}" ]]; then
   exit 1
 fi
 cat >"${output_directory}/MANIFEST.toml" <<EOF
-schema_version = 2
+schema_version = 3
 source = "${FULL_POS_SOURCE_NAME}"
 source_url = "${FULL_POS_SOURCE_URL}"
 source_sha256 = "${FULL_POS_SOURCE_SHA256}"

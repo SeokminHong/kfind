@@ -4,7 +4,7 @@ use std::io::BufReader;
 use std::path::{Path, PathBuf};
 
 use kfind_data::{
-    decode_morphology_resource, encode_morphology_resource, extract_mecab_morphology,
+    decode_morphology_resource, encode_morphology_resource, extract_mecab_source_morphology,
     parse_mecab_connection_matrix, parse_sha256,
 };
 
@@ -31,7 +31,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut entries = Vec::new();
     for csv in &arguments[5..] {
         let path = Path::new(csv);
-        let extraction = extract_mecab_morphology(
+        let extraction = extract_mecab_source_morphology(
             &path.display().to_string(),
             BufReader::new(File::open(path)?),
         )?;
