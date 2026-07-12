@@ -256,7 +256,29 @@ fn smart_vcp_corpus_fixtures_preserve_union_results() {
         let counters = matcher.verification_counters(fixture.text.as_bytes());
         assert_eq!(counters.local_lattice_candidate_hits, 1);
         assert_eq!(counters.unique_analysis_windows, 1);
+        let candidates = matcher.local_analysis_candidates(fixture.text.as_bytes());
+        assert!(!candidates.is_empty());
+        assert!(candidates.iter().all(|candidate| {
+            candidate.fine_pos == kfind_morph::FinePos::Copula
+                && candidate
+                    .window
+                    .as_ref()
+                    .is_ok_and(|window| fixture.text.contains(window.normalized()))
+        }));
     }
+}
+
+#[test]
+fn local_analysis_candidates_preserve_window_limit_errors() {
+    let matcher = compile("이다", CompileOptions::default());
+    let text = format!("{}인", "가".repeat(90));
+    let candidates = matcher.local_analysis_candidates(text.as_bytes());
+
+    assert!(!candidates.is_empty());
+    assert!(candidates.iter().all(|candidate| matches!(
+        candidate.window,
+        Err(kfind_matcher::AnalysisWindowError::RawBytes { .. })
+    )));
 }
 
 #[test]
