@@ -4,6 +4,8 @@
 
 다음 작업 계획: [선택적 국소 형태 추론 P2](2026-07-12-selective-morphology-plan.md)
 
+비용 실패 분석: [local lattice 비용 실패 분석](2026-07-12-lattice-cost-analysis.md)
+
 fixture SHA-256: `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21ff`
 
 ## 현재 상태
@@ -263,11 +265,11 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. 26개 `NoCompletePath`의 어절·node 구성을 분류해 완전 경로가 끊기는 원인을
-   확정한다.
-2. query 포함 경로의 비용이 전부 높은 이유를 source의 node·연결 비용 의미와
-   대조한다.
-3. 원인 분석 전에 threshold, fixture 가중치나 검색 결과를 변경하지 않는다.
+1. corpus-side morphology resource가 query tag와 독립적으로 source 품사·`Inflect` 분석을
+   보존하는 schema를 스펙에 확정한다.
+2. `인`, `일`처럼 한 음절에 합성된 node의 query component 포함 조건을 확정한다.
+3. 모든 source unknown class를 사용할지 범위를 확정한다.
+4. 계약 확정 전에는 threshold, fixture 가중치나 검색 결과를 변경하지 않는다.
 
 이어갈 때:
 

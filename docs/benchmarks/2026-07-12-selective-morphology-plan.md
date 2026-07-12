@@ -6,6 +6,7 @@
 관련 문서:
 
 - [형태소 검색 개선 핸드오프](2026-07-12-morphology-handoff.md)
+- [local lattice 비용 실패 분석](2026-07-12-lattice-cost-analysis.md)
 - [VCP 지정사 smart-boundary 계획](2026-07-12-copula-boundary-plan.md)
 - [사전 확장 전략](../lexicon-scaling.md)
 - [prefix index 비교 결과](2026-07-12-morph-index-comparison.md)
@@ -245,9 +246,10 @@ P2는 다음 무결한 작업 단위로 나눈다.
 5. lattice path와 N-best shadow report를 연결한다. (완료)
 6. 평가 결과 source 비용만으로는 판별력이 없어 P3는 보류한다. (완료)
 
-다음 작업은 26개 `NoCompletePath`의 원인과 query 포함 경로의 비용이 일관되게
-불리한 이유를 source node·연결 비용 의미와 대조하는 분석이다. 분석 전에 threshold나
-검색 결과를 변경하지 않는다.
+원인 분석 결과 query-side 품사 필터가 corpus resource의 어미·접사·숫자와 복합 `Inflect`
+분석을 제거한 것이 확인되었다. 다음 작업은 source 분석 보존형 schema와 축약형의 query
+component 포함 조건을 스펙에 확정하는 것이다. 그 전에는 threshold나 검색 결과를 변경하지
+않는다.
 
 각 단위는 독립적으로 포맷·lint·workspace test를 통과한 뒤 커밋한다. 백업 branch
 `codex/morph-lattice-shadow-backup-20260712-203332`는 prototype 참고 자료로만 사용하고,
