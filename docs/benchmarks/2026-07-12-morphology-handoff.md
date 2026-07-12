@@ -2,6 +2,8 @@
 
 기준 보고서: [2026-07-12 형태소 비교 분석](2026-07-12-morphology-comparison.md)
 
+다음 작업 계획: [선택적 국소 형태 추론](2026-07-12-selective-morphology-plan.md)
+
 fixture SHA-256: `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21ff`
 
 ## 현재 상태
@@ -18,7 +20,7 @@ profile의 FN은 146개다.
 
 ## 2026-07-12 진행 결과
 
-- FN 147개에 `primary_cause`와 판정 근거를 자동 기록한다: `boundary-rejected` 67,
+- 초기 기준 FN 147개에 `primary_cause`와 판정 근거를 자동 기록한다: `boundary-rejected` 67,
   `continuation-rejected` 2, `gold-or-adapter` 23, `lexicon-missing` 50,
   `span-mismatch` 3, `surface-missing` 2.
 - dev split을 별도 고정했다. ㅂ 불규칙 형용사 `가볍다`, `무겁다`, `무섭다`, `아쉽다`,
@@ -83,7 +85,7 @@ scripts/benchmark-morphology.sh
 - full-POS artifact가 없으면 조용히 embedded로 대체하지 않고 실패한다.
 - profile별 fixture·case 순서가 동일하다.
 
-### P0. 단일 false positive를 고정한다 (정책 계획 완료, 구현 보류)
+### P0. copula false positive 정책을 확정한다 (완료)
 
 case:
 
@@ -93,15 +95,30 @@ text: 매일 아러바이트가도 있습니다.
 observed span: 매일의 마지막 음절
 ```
 
-한 음절 copula anchor가 복합 명사 내부에서 통과하는 경로를 `compile_query`의 branch와
-`BoundaryVerifier` 양쪽에서 추적한다. `이다`의 올바른 copula 축약은 유지하면서 명사 내부
-substring만 거부하는 회귀 fixture를 먼저 추가한다.
+현재 query-side matcher가 가진 anchor와 인접 문자만으로 `매일`의 `일`과 정상 부착형
+`학생일`의 `일`을 구분할 수 없다. v0.1.1은 homonym union을 유지하므로 matcher와 기본 검색
+결과를 바꾸지 않는다. 해당 case는 알려진 정책 한계로 기록한다.
 
 완료 조건:
 
-- 위 case가 TN으로 바뀐다.
-- 기존 copula positive와 contraction fixture가 모두 유지된다.
-- `--boundary any`의 명시적 substring 동작은 바꾸지 않는다.
+- 정책 선택과 제약이 [copula 계획](2026-07-12-copula-boundary-plan.md)에 기록되어 있다.
+- corpus 단어 denylist와 fixture 전용 branch를 추가하지 않는다.
+- 기존 copula positive와 `--boundary any` 계약을 유지한다.
+
+### P0. 선택적 국소 형태 추론의 계약과 측정을 고정한다 (다음 작업)
+
+[새 작업 계획](2026-07-12-selective-morphology-plan.md)의 P0만 먼저 수행한다.
+
+1. `boundary`와 `disambiguation`, union 기본값과 shadow 측정 범위를 스펙에 추가한다.
+2. query branch의 context requirement를 표현하되 검색 결과는 바꾸지 않는다.
+3. anchor hit와 lattice 대상 수를 측정하는 counter를 추가한다.
+4. copula 정상형·어휘 내부 표면형·NFC/NFD fixture를 고정한다.
+
+완료 조건:
+
+- low-hit literal의 lattice 대상은 0이다.
+- `매일`, `학생일`, `책일`의 판정 근거가 report에 남는다.
+- 기본 CLI와 union 결과가 변하지 않는다.
 
 ### P1. FN 147개를 원인별로 분류한다 (완료)
 

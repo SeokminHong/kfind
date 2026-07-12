@@ -44,3 +44,4 @@ python3 tools/morph-compare/render_charts.py \
 
 - [2026-07-12 비교 분석](2026-07-12-morphology-comparison.md)
 - [후속 개선 핸드오프](2026-07-12-morphology-handoff.md)
+- [선택적 국소 형태 추론 작업 계획](2026-07-12-selective-morphology-plan.md)
