@@ -412,3 +412,11 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 보다	verb	발연기 도저히 못보겠다 진짜 이렇게 연기를 못할거라곤 상상도 못했네	no-match	corpus.nsmc.test.10107726
 만들다	verb	50번은 봤네요어쩜 이렇게 잘만들었을까	no-match	corpus.nsmc.test.9844172
 아름답다	adjective	청춘은 아름답다 그 아름다움은 이성을 흔들어 놓는다. 찰나의 아름다움을 잘 포착한 섬세하고 아름다운 수채화같은 퀴어영화이다.	match	corpus.nsmc.test.6900881
+가볍다	adjective	가벼운 짐을 들었다.	match	b-irregular
+무겁다	adjective	무거운 문을 열었다.	match	b-irregular
+무섭다	adjective	무서운 이야기를 들었다.	match	b-irregular
+아쉽다	adjective	아쉬운 결과가 남았다.	match	b-irregular
+쉽다	adjective	쉬운 방법을 선택했다.	match	b-irregular
+춥다	adjective	추운 날씨에 외출했다.	match	b-irregular
+살다	verb	서울에 살며 학교에 다닌다.	match	regular
+돕다	verb	서로 도우며 문제를 해결했다.	match	b-irregular

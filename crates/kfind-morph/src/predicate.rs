@@ -15,8 +15,8 @@ mod continuation;
 pub use continuation::{PredicateContinuationMatch, verify_predicate_continuation};
 
 use alternation::{
-    aeo_surfaces, conditional_surface, eu_anchor, future_adnominal, honorific_anchor,
-    past_adnominal, polite_declarative, present_adnominal, present_declarative,
+    aeo_surfaces, conditional_surface, coordinate_surface, eu_anchor, future_adnominal,
+    honorific_anchor, past_adnominal, polite_declarative, present_adnominal, present_declarative,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -89,7 +89,7 @@ pub fn generate_predicate_branches(
     );
 
     if entry.alternation == LexicalAlternation::Copula {
-        compile_copula(entry, stem, &mut branches);
+        compile_copula(entry, stem, &mut branches)?;
     } else if entry.alternation != LexicalAlternation::Suppletive {
         compile_productive(entry, stem, &mut branches)?;
     }
@@ -194,6 +194,9 @@ fn compile_productive(
         );
     } else if let Some(conditional) = conditional_surface(entry, stem)? {
         push_derived(branches, entry, conditional, ContinuationState::Terminal);
+        if let Some(coordinate) = coordinate_surface(entry, stem)? {
+            push_derived(branches, entry, coordinate, ContinuationState::Terminal);
+        }
         if entry.alternation == LexicalAlternation::Regular
             && has_rieul_final(stem.chars().next_back().expect("stem"))
         {
@@ -295,7 +298,17 @@ fn compile_rieul_honorific(
     }
 }
 
-fn compile_copula(entry: &PredicateEntry, stem: &str, branches: &mut Vec<SurfaceBranchSpec>) {
+fn compile_copula(
+    entry: &PredicateEntry,
+    stem: &str,
+    branches: &mut Vec<SurfaceBranchSpec>,
+) -> Result<(), GenerateError> {
+    if stem != "이" {
+        return Err(GenerateError::AlternationMismatch {
+            lemma: entry.lemma.clone(),
+            alternation: entry.alternation,
+        });
+    }
     for (surface, continuation, ending_rule) in [
         (
             format!("{stem}고"),
@@ -339,6 +352,7 @@ fn compile_copula(entry: &PredicateEntry, stem: &str, branches: &mut Vec<Surface
         ContinuationState::Past,
         vec![rule("lexical.copula"), rule("ending.past")],
     );
+    Ok(())
 }
 
 fn push_derived(

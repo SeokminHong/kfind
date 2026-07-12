@@ -1,5 +1,6 @@
 lemma	pos	alternation	flags	overrides
 가다	VV	Regular		
+가볍다	VA	BToWo		
 걷다	VV	DToL		
 걷다	VV	Regular		
 검증하다	VV	Ha		
@@ -12,6 +13,8 @@ lemma	pos	alternation	flags	overrides
 만들다	VV	Regular	RIEUL_DROP	
 먹다	VV	Regular		
 모르다	VV	ReuDoubleL		
+무겁다	VA	BToWo		
+무섭다	VA	BToWo		
 묻다	VV	DToL		
 묻다	VV	Regular		
 믿다	VV	Regular		
@@ -24,12 +27,15 @@ lemma	pos	alternation	flags	overrides
 쓰다	VV	Regular	EU_DROP	
 아니다	VCN	Regular	NO_I_EO_CONTRACTION	ending.connective-ra=아니라
 아름답다	VA	BToWo		
+아쉽다	VA	BToWo		
 알다	VV	Regular	RIEUL_DROP	
 예쁘다	VA	Regular	EU_DROP	
 이다	VCP	Copula		
 잇다	VV	DropS		
 좋다	VA	Regular		
 짓다	VV	DropS		
+쉽다	VA	BToWo		
+춥다	VA	BToWo		
 크다	VA	Regular	EU_DROP	
 파랗다	VA	DropH		
 푸다	VV	UToEo		

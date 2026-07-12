@@ -1,6 +1,6 @@
 import unittest
 
-from report import kfind_profile_comparison
+from report import classify_primary_cause, kfind_profile_comparison, quality_metrics
 
 
 class KfindProfileComparisonTests(unittest.TestCase):
@@ -49,6 +49,74 @@ class KfindProfileComparisonTests(unittest.TestCase):
             ["regressed"],
             [item["case"]["id"] for item in comparison["regressed_with_full_pos"]],
         )
+
+
+class PrimaryCauseTests(unittest.TestCase):
+    def classify(
+        self,
+        *,
+        profile: str = "kfind-embedded",
+        embedded: bool = False,
+        full_pos: bool = False,
+        kiwi: bool = True,
+        lindera: bool = True,
+        spans: list[dict[str, object]] | None = None,
+        auto_analysis: bool = True,
+        any_overlap: bool = False,
+        anchor_overlap: bool = False,
+    ) -> str | None:
+        return classify_primary_cause(
+            {"id": "case", "expected": True},
+            {
+                "kfind-embedded": embedded,
+                "kfind-full-pos": full_pos,
+                "kiwi": kiwi,
+                "lindera": lindera,
+            },
+            profile,
+            spans or [],
+            {
+                "auto_has_expected_pos_analysis": auto_analysis,
+                "any_boundary_gold_overlap": any_overlap,
+                "gold_anchor_overlap": anchor_overlap,
+            },
+        )
+
+    def test_cause_priority_is_deterministic(self) -> None:
+        self.assertEqual(
+            "gold-or-adapter", self.classify(kiwi=False, lindera=False)
+        )
+        self.assertEqual("lexicon-missing", self.classify(auto_analysis=False))
+        self.assertEqual("span-mismatch", self.classify(spans=[{"byte_start": 1}]))
+        self.assertEqual("boundary-rejected", self.classify(any_overlap=True))
+        self.assertEqual(
+            "continuation-rejected", self.classify(anchor_overlap=True)
+        )
+        self.assertEqual("surface-missing", self.classify())
+
+    def test_profile_prediction_is_classified_independently(self) -> None:
+        self.assertIsNone(self.classify(profile="kfind-full-pos", full_pos=True))
+        self.assertEqual(
+            "surface-missing",
+            self.classify(profile="kfind-full-pos", embedded=True),
+        )
+
+
+class QualityMetricsTests(unittest.TestCase):
+    def test_hard_negative_precision_counts_true_negatives(self) -> None:
+        cases = [
+            {"id": "true-negative", "expected": False},
+            {"id": "false-positive", "expected": False},
+        ]
+
+        metrics = quality_metrics(
+            cases,
+            {"true-negative": False, "false-positive": True},
+        )
+
+        self.assertEqual(50.0, metrics["hard_negative_precision_percent"])
+        self.assertEqual(1, metrics["tn"])
+        self.assertEqual(1, metrics["fp"])
 
 
 if __name__ == "__main__":
