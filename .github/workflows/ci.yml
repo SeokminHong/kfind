@@ -71,6 +71,27 @@ jobs:
       - name: Check WASM library
         run: cargo +1.85.0 check --package kfind-wasm --target wasm32-unknown-unknown --locked
 
+  npm-package:
+    name: npm package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Rust
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup target add wasm32-unknown-unknown --toolchain stable
+      - name: Install wasm-pack
+        run: cargo install wasm-pack --version 0.15.0 --locked
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - name: Build and validate the package
+        run: pnpm --dir packages/kfind run pack:check
+
   morphology-smoke:
     name: Morphology smoke
     runs-on: ubuntu-24.04
