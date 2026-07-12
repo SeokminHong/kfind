@@ -5,6 +5,7 @@ mod error;
 mod fixture;
 mod lexicon;
 mod mecab;
+mod morphology;
 mod rules;
 mod tsv;
 mod validation;
@@ -24,6 +25,10 @@ pub use lexicon::{
 pub use mecab::{
     MecabConnectionMatrix, MecabExtraction, MecabMorphologyEntry, MecabMorphologyExtraction,
     extract_mecab_ko_dic, extract_mecab_morphology, parse_mecab_connection_matrix,
+};
+pub use morphology::{
+    DecodedMorphologyResource, MorphologyAnalysis, MorphologyResourceStats,
+    decode_morphology_resource, encode_morphology_resource, parse_sha256,
 };
 pub use rules::{
     AlternationRule, ContractionRule, DerivationRule, EndingCategory, EndingInitial, EndingRule,

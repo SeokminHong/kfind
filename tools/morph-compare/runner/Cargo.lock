@@ -843,8 +843,10 @@ name = "kfind-data"
 version = "0.1.1"
 dependencies = [
  "serde",
+ "sha2",
  "toml",
  "unicode-normalization",
+ "yada",
 ]
 
 [[package]]
@@ -2229,6 +2231,12 @@ dependencies = [
  "libc",
  "rustix",
 ]
+
+[[package]]
+name = "yada"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aed111bd9e48a802518765906cbdadf0b45afb72b9c81ab049a3b86252adffdd"
 
 [[package]]
 name = "yoke"
