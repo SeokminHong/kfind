@@ -290,3 +290,13 @@ required = []
 forbidden = []
 next = []
 terminal = true
+
+[[ending]]
+id = "ending.nominalizer-gi"
+category = "nominalizer"
+initial = "consonant"
+forms = ["기"]
+required = []
+forbidden = []
+next = []
+terminal = true

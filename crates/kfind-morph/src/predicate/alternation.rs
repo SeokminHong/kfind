@@ -101,12 +101,19 @@ pub(super) fn aeo_surfaces(
             if !stem.ends_with('하') {
                 return Err(mismatch(entry));
             }
-            let surface = replace_last_vowel(stem, JUNG_AE).ok_or_else(|| mismatch(entry))?;
-            Ok(vec![DerivedSurface {
-                core_len: surface.len(),
-                surface,
-                rules: vec![rule("lexical.ha"), rule("contraction.ha-yeo")],
-            }])
+            let contracted = replace_last_vowel(stem, JUNG_AE).ok_or_else(|| mismatch(entry))?;
+            Ok(vec![
+                DerivedSurface {
+                    surface: format!("{stem}여"),
+                    core_len: stem.len(),
+                    rules: lexical_rule.clone(),
+                },
+                DerivedSurface {
+                    core_len: contracted.len(),
+                    surface: contracted,
+                    rules: with_rule(lexical_rule, "contraction.ha-yeo"),
+                },
+            ])
         }
         LexicalAlternation::UToEo => {
             let last = decompose_syllable(stem.chars().next_back().expect("stem"))
