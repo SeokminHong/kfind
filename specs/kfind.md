@@ -124,6 +124,21 @@
   경로가 모두 있으면 각 최저 경로를 반드시 포함하고 남은 자리를 전체 비용 순으로 채운다.
   window·node 상한 초과, resource 누락·손상·source 불일치와 평가 오류를 구분하며 threshold와
   검색 결과 필터링은 적용하지 않는다.
+- P2의 네 번째 구현 단위는 corpus-side morphology resource를 schema 3으로 갱신한다.
+  query tag용 `DataFinePos`는 corpus CSV 행의 필터로 사용하지 않는다. 유효한 context ID와
+  비용을 가진 모든 source 행을 NFC 표면형별로 보존하고, 단일·복합 POS 열과 type·start POS·
+  end POS·expression을 함께 저장한다. NFC 표면형과 이 분석 metadata가 모두 같은 행만
+  중복 제거한다.
+- schema 3 lattice는 `char.def`의 모든 문자 class와 각 class에 대응하는 `unk.def` 분석을
+  사용한다. class의 invoke·group·length 설정을 따르되 분석 어절과 node 상한을 넘지 않는다.
+  source 정의가 없거나 잘못된 문자 class와 unknown 분석은 명시적 resource 오류다.
+- 단일 사전 node는 POS가 query 품사와 같고 node span이 NFC query span을 덮으면 query를
+  포함한다. 복합 node는 source POS 열의 component 중 query 품사가 있고 node span이 query
+  span을 덮으면 포함한다. 축약으로 component 내부 byte 경계가 NFC의 안정 경계와 일치하지
+  않아도 source가 선언한 node 전체를 해당 component의 근거로 사용하며 내부 경계를 추정하지
+  않는다.
+- schema 3 전환은 shadow 판정만 바꾼다. query 분석, union 검색 결과, CLI와 성능 측정 구간은
+  변경하지 않으며 새 비용이나 threshold를 추가하지 않는다.
 - P2 lattice 구현 전에 고정 UD 2.18 Korean-Kaist·Korean-KSL dev 원문에서 지정사 판별
   slice를 생성한다. 양성은 정렬된 gold `JP=이`, `VCP=이`, `VCN=아니` 분석을 occurrence별로
   모두 보존한다. 다른 VCP/VCN 표면형은 양성으로 바꾸지 않고 제외 사유와 수를 기록한다.
