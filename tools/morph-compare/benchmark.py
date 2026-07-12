@@ -200,6 +200,7 @@ def evaluate_kfind(
     dict[str, list[dict[str, object]]],
     dict[str, object],
     dict[str, dict[str, object] | None],
+    dict[str, dict[str, object]],
 ]:
     case_ids = [case["id"] for case in cases]
     result_ids = [result["id"] for result in summary["results"]]
@@ -209,6 +210,7 @@ def evaluate_kfind(
     predictions = {}
     matches = {}
     diagnostics = {}
+    shadow_verification = {}
     latencies = []
     for case in cases:
         result = results.get(case["id"])
@@ -218,8 +220,15 @@ def evaluate_kfind(
         predictions[case["id"]] = span_prediction(case, spans)
         matches[case["id"]] = spans
         diagnostics[case["id"]] = result["failure_diagnostic"]
+        shadow_verification[case["id"]] = result["shadow_verification"]
         latencies.append(float(result["latency_ms"]))
-    return predictions, matches, performance(summary, latencies), diagnostics
+    return (
+        predictions,
+        matches,
+        performance(summary, latencies),
+        diagnostics,
+        shadow_verification,
+    )
 
 
 def evaluate_lindera(
@@ -347,6 +356,7 @@ def evaluate_kfind_runs(
     dict[str, list[dict[str, object]]],
     dict[str, object],
     dict[str, dict[str, object] | None],
+    dict[str, dict[str, object]],
     dict[str, object],
 ]:
     if warmup:
@@ -363,6 +373,10 @@ def evaluate_kfind_runs(
             raise ValueError(f"{profile} predictions changed between measured runs")
         if evaluation[3] != first[3]:
             raise ValueError(f"{profile} diagnostics changed between measured runs")
+        if evaluation[4] != first[4]:
+            raise ValueError(
+                f"{profile} shadow verification changed between measured runs"
+            )
     return (
         first[0],
         first[1],
@@ -370,6 +384,7 @@ def evaluate_kfind_runs(
             [evaluation[2] for evaluation in evaluations], int(warmup)
         ),
         first[3],
+        first[4],
         summaries[0],
     )
 
@@ -448,10 +463,10 @@ def evaluate_dataset(
     kiwi = evaluate_kiwi_runs(cases, runs, warmup)
     versions = {
         profile: {
-            "backend": kfind[profile][4]["backend"],
-            "version": kfind[profile][4]["version"],
-            "profile": kfind[profile][4]["profile"],
-            "lexicon_artifact_sha256": kfind[profile][4][
+            "backend": kfind[profile][5]["backend"],
+            "version": kfind[profile][5]["version"],
+            "profile": kfind[profile][5]["profile"],
+            "lexicon_artifact_sha256": kfind[profile][5][
                 "lexicon_artifact_sha256"
             ],
         }
@@ -482,6 +497,9 @@ def evaluate_dataset(
         "performance": {profile: kfind[profile][2] for profile in KFIND_PROFILES}
         | {"kiwi": kiwi[2], "lindera": lindera[2]},
         "diagnostics": {profile: kfind[profile][3] for profile in KFIND_PROFILES},
+        "shadow_verification": {
+            profile: kfind[profile][4] for profile in KFIND_PROFILES
+        },
     }
 
 
@@ -529,6 +547,7 @@ def main() -> int:
                     baseline["matches"],
                     baseline["performance"],
                     baseline["diagnostics"],
+                    baseline["shadow_verification"],
                 )
                 return write_report(args.output, report)
 
@@ -545,6 +564,7 @@ def main() -> int:
             baseline["matches"],
             baseline["performance"],
             baseline["diagnostics"],
+            baseline["shadow_verification"],
         )
         report["development"] = build_report(
             dev_cases,
@@ -554,6 +574,7 @@ def main() -> int:
             development["matches"],
             development["performance"],
             development["diagnostics"],
+            development["shadow_verification"],
         )
         report["hard_negatives"] = build_report(
             hard_cases,
@@ -563,6 +584,7 @@ def main() -> int:
             hard_negatives["matches"],
             hard_negatives["performance"],
             hard_negatives["diagnostics"],
+            hard_negatives["shadow_verification"],
         )
         return write_report(args.output, report)
     except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:

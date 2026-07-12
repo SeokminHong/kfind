@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use unicode_normalization::UnicodeNormalization;
 
 use crate::{
-    BoundaryPolicy, BoundaryProof, BranchVerifier, CompileError, CompileErrorKind, CoreMapping,
-    NormalizationMode, Origin, QueryAtom, SurfaceBranch,
+    BoundaryPolicy, BoundaryProof, BranchVerifier, CompileError, CompileErrorKind,
+    ContextRequirement, CoreMapping, NormalizationMode, Origin, QueryAtom, SurfaceBranch,
 };
 
 #[derive(Clone)]
@@ -22,6 +22,7 @@ struct BranchKey {
     verifier: BranchVerifier,
     core_mapping: CoreMapping,
     boundary: BoundaryProof,
+    context_requirement: ContextRequirement,
 }
 
 pub(super) fn normalize_and_merge(
@@ -38,11 +39,13 @@ pub(super) fn normalize_and_merge(
             let allow_attached = matches!(draft.verifier, BranchVerifier::DirectParticle { .. });
             let boundary_proof =
                 boundary_proof(boundary, draft.smart_left, one_scalar_atom, allow_attached);
+            let context_requirement = context_requirement(&draft.verifier, boundary_proof);
             let key = BranchKey {
                 anchor: anchor.as_bytes().into(),
                 verifier: draft.verifier.clone(),
                 core_mapping,
                 boundary: boundary_proof,
+                context_requirement,
             };
             if let Some(index) = indices.get(&key).copied() {
                 let origins = &mut branches[index].origins;
@@ -59,11 +62,29 @@ pub(super) fn normalize_and_merge(
                     core_mapping: key.core_mapping,
                     origins: vec![draft.origin.clone()],
                     boundary: key.boundary,
+                    context_requirement: key.context_requirement,
                 });
             }
         }
     }
     Ok(branches)
+}
+
+fn context_requirement(verifier: &BranchVerifier, boundary: BoundaryProof) -> ContextRequirement {
+    if !boundary.require_left
+        && boundary.require_right
+        && matches!(
+            verifier,
+            BranchVerifier::Predicate {
+                pos: kfind_morph::PredicatePos::Copula,
+                ..
+            }
+        )
+    {
+        ContextRequirement::EojeolLattice
+    } else {
+        ContextRequirement::None
+    }
 }
 
 fn boundary_proof(

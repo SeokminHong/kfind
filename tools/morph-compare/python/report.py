@@ -7,6 +7,12 @@ from collections import defaultdict
 
 KFIND_PROFILES = ("kfind-embedded", "kfind-full-pos")
 BACKENDS = (*KFIND_PROFILES, "kiwi", "lindera")
+SHADOW_COUNTERS = (
+    "raw_anchor_hits",
+    "verified_branch_hits",
+    "local_lattice_candidate_hits",
+    "unique_analysis_windows",
+)
 
 
 def quality_metrics(
@@ -86,6 +92,23 @@ def kfind_profile_comparison(
     }
 
 
+def shadow_verification_summary(
+    by_case: dict[str, dict[str, object]],
+) -> dict[str, object]:
+    totals = {
+        name: sum(int(counters[name]) for counters in by_case.values())
+        for name in SHADOW_COUNTERS
+    }
+    return {
+        "totals": totals,
+        "cases_with_local_candidates": sum(
+            counters["local_lattice_candidate_hits"] > 0
+            for counters in by_case.values()
+        ),
+        "by_case": by_case,
+    }
+
+
 def build_report(
     cases: list[dict[str, object]],
     metadata: dict[str, object],
@@ -94,6 +117,7 @@ def build_report(
     matches: dict[str, dict[str, list[dict[str, object]]]],
     performance_metrics: dict[str, dict[str, object]],
     kfind_diagnostics: dict[str, dict[str, dict[str, object] | None]],
+    shadow_verification: dict[str, dict[str, dict[str, object]]],
 ) -> dict[str, object]:
     quality = {}
     has_slices = all("slice" in case for case in cases)
@@ -143,7 +167,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "versions": versions,
@@ -153,6 +177,10 @@ def build_report(
         "kfind_profile_comparison": kfind_profile_comparison(
             cases, predictions, matches
         ),
+        "shadow_verification": {
+            profile: shadow_verification_summary(shadow_verification[profile])
+            for profile in KFIND_PROFILES
+        },
         "failures": failures,
         "adapter_errors": [],
     }
@@ -244,6 +272,7 @@ def render_markdown(report: dict[str, object]) -> str:
             f"{version['profile'] or 'n/a'} | `{artifact}` |"
         )
     append_quality_sections(lines, report)
+    append_shadow_verification(lines, report)
     append_profile_comparison(lines, report)
     append_failures(lines, report)
     append_development_summary(lines, report.get("development"))
@@ -332,6 +361,32 @@ def append_grouped_quality(
                 f"{metrics['precision_percent']}% | {metrics['recall_percent']}% | "
                 f"{metrics['f1_percent']}% |"
             )
+
+
+def append_shadow_verification(
+    lines: list[str], report: dict[str, object]
+) -> None:
+    lines.extend(
+        [
+            "",
+            "## Shadow verification",
+            "",
+            "Counters are collected outside the timed evaluation and do not change matches.",
+            "",
+            "| profile | raw anchor hits | verified branch hits | local candidates | unique analysis windows | cases with local candidates |",
+            "| --- | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for profile in KFIND_PROFILES:
+        summary = report["shadow_verification"][profile]
+        totals = summary["totals"]
+        lines.append(
+            f"| {profile} | {totals['raw_anchor_hits']} | "
+            f"{totals['verified_branch_hits']} | "
+            f"{totals['local_lattice_candidate_hits']} | "
+            f"{totals['unique_analysis_windows']} | "
+            f"{summary['cases_with_local_candidates']} |"
+        )
 
 
 def append_profile_comparison(lines: list[str], report: dict[str, object]) -> None:

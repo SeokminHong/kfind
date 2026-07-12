@@ -63,7 +63,30 @@ fn is_boundary_after(haystack: &[u8], at: usize) -> bool {
     next_character(haystack, at).is_none_or(|character| !is_token_character(character))
 }
 
+pub(crate) fn surrounding_token_span(haystack: &[u8], span: Range<usize>) -> Range<usize> {
+    let mut start = span.start;
+    while let Some((previous_start, character)) = previous_character_with_start(haystack, start) {
+        if !is_token_character(character) {
+            break;
+        }
+        start = previous_start;
+    }
+
+    let mut end = span.end;
+    while let Some((next_end, character)) = next_character_with_end(haystack, end) {
+        if !is_token_character(character) {
+            break;
+        }
+        end = next_end;
+    }
+    start..end
+}
+
 fn previous_character(haystack: &[u8], at: usize) -> Option<char> {
+    previous_character_with_start(haystack, at).map(|(_, character)| character)
+}
+
+fn previous_character_with_start(haystack: &[u8], at: usize) -> Option<(usize, char)> {
     if at == 0 || at > haystack.len() {
         return None;
     }
@@ -72,11 +95,15 @@ fn previous_character(haystack: &[u8], at: usize) -> Option<char> {
         let text = std::str::from_utf8(&haystack[start..at]).ok()?;
         let mut characters = text.chars();
         let character = characters.next()?;
-        characters.next().is_none().then_some(character)
+        characters.next().is_none().then_some((start, character))
     })
 }
 
 fn next_character(haystack: &[u8], at: usize) -> Option<char> {
+    next_character_with_end(haystack, at).map(|(_, character)| character)
+}
+
+fn next_character_with_end(haystack: &[u8], at: usize) -> Option<(usize, char)> {
     if at >= haystack.len() {
         return None;
     }
@@ -85,7 +112,7 @@ fn next_character(haystack: &[u8], at: usize) -> Option<char> {
         let text = std::str::from_utf8(&haystack[at..end]).ok()?;
         let mut characters = text.chars();
         let character = characters.next()?;
-        characters.next().is_none().then_some(character)
+        characters.next().is_none().then_some((end, character))
     })
 }
 
@@ -155,5 +182,17 @@ mod tests {
         let reversed = Range { start: 2, end: 1 };
         assert!(!verifier(BoundaryPolicy::Any, false).accepts(b"abc", reversed, 0..3));
         assert!(!verifier(BoundaryPolicy::Any, false).accepts(b"abc", 0..4, 0..4));
+    }
+
+    #[test]
+    fn surrounding_token_span_expands_to_orthographic_boundaries() {
+        let text = "앞 매일_일 뒤";
+        let start = text.find('일').unwrap();
+        let span = start..start + '일'.len_utf8();
+
+        assert_eq!(
+            &text[surrounding_token_span(text.as_bytes(), span)],
+            "매일_일"
+        );
     }
 }

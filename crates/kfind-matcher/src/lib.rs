@@ -6,4 +6,4 @@ mod morph;
 
 pub use anchor::{AnchorBuildError, AnchorBuildLimits, AnchorEngine, AnchorHit, AnchorHits};
 pub use boundary::{BoundaryVerifier, is_token_character};
-pub use morph::{MorphMatcher, MorphMatcherBuildError};
+pub use morph::{MorphMatcher, MorphMatcherBuildError, VerificationCounters};

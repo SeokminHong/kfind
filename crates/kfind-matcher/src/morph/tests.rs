@@ -1,8 +1,8 @@
 use grep_matcher::{LineMatchKind, LineTerminator, Matcher};
 use kfind_morph::{ContinuationState, RuleId};
 use kfind_query::{
-    AtomPlan, BoundaryPolicy, BoundaryProof, BranchEnvironment, BranchVerifier, CoreMapping,
-    Origin, PhrasePolicy, PlanLimits, QueryPlan, SurfaceBranch,
+    AtomPlan, BoundaryPolicy, BoundaryProof, BranchEnvironment, BranchVerifier, ContextRequirement,
+    CoreMapping, Origin, PhrasePolicy, PlanLimits, QueryPlan, SurfaceBranch,
 };
 use unicode_normalization::UnicodeNormalization;
 
@@ -158,6 +158,38 @@ fn repeated_single_atom_matches_advance_without_changing_leftmost_longest() {
         matches
             .iter()
             .all(|matched| matched.span.len() == "가가".len())
+    );
+}
+
+#[test]
+fn verification_counters_isolate_local_lattice_candidates() {
+    let mut contextual = exact_branch("일", false);
+    contextual.context_requirement = ContextRequirement::EojeolLattice;
+    let contextual_matcher = matcher(vec![atom(BoundaryPolicy::Smart, vec![contextual])], 24);
+    let text = "매일 학생일";
+
+    assert_eq!(
+        contextual_matcher.verification_counters(text.as_bytes()),
+        VerificationCounters {
+            raw_anchor_hits: 2,
+            verified_branch_hits: 2,
+            local_lattice_candidate_hits: 2,
+            unique_analysis_windows: 2,
+        }
+    );
+
+    let literal_matcher = matcher(
+        vec![atom(BoundaryPolicy::Smart, vec![exact_branch("일", false)])],
+        24,
+    );
+    assert_eq!(
+        literal_matcher.verification_counters(text.as_bytes()),
+        VerificationCounters {
+            raw_anchor_hits: 2,
+            verified_branch_hits: 2,
+            local_lattice_candidate_hits: 0,
+            unique_analysis_windows: 0,
+        }
     );
 }
 
@@ -413,6 +445,7 @@ fn exact_branch(anchor: &str, require_left: bool) -> SurfaceBranch {
         core_mapping: CoreMapping::WholeAnchor,
         origins: vec![origin(0, &[])],
         boundary: proof(require_left, true, anchor.chars().count() == 1),
+        context_requirement: ContextRequirement::None,
     }
 }
 
@@ -426,6 +459,7 @@ fn nominal_branch(anchor: &str, allowed_rule_ids: Arc<[RuleId]>) -> SurfaceBranc
         core_mapping: CoreMapping::WholeAnchor,
         origins: vec![origin(0, &[])],
         boundary: proof(true, true, anchor.chars().count() == 1),
+        context_requirement: ContextRequirement::None,
     }
 }
 
@@ -447,6 +481,7 @@ fn predicate_branch(
         core_mapping: CoreMapping::PrefixBytes(core_len),
         origins,
         boundary: proof(false, true, anchor.chars().count() == 1),
+        context_requirement: ContextRequirement::None,
     }
 }
 

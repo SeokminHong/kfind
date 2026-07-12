@@ -1,6 +1,11 @@
 import unittest
 
-from report import classify_primary_cause, kfind_profile_comparison, quality_metrics
+from report import (
+    classify_primary_cause,
+    kfind_profile_comparison,
+    quality_metrics,
+    shadow_verification_summary,
+)
 
 
 class KfindProfileComparisonTests(unittest.TestCase):
@@ -117,6 +122,31 @@ class QualityMetricsTests(unittest.TestCase):
         self.assertEqual(50.0, metrics["hard_negative_precision_percent"])
         self.assertEqual(1, metrics["tn"])
         self.assertEqual(1, metrics["fp"])
+
+
+class ShadowVerificationTests(unittest.TestCase):
+    def test_aggregates_counters_and_preserves_case_evidence(self) -> None:
+        by_case = {
+            "none": {
+                "raw_anchor_hits": 0,
+                "verified_branch_hits": 0,
+                "local_lattice_candidate_hits": 0,
+                "unique_analysis_windows": 0,
+            },
+            "copula": {
+                "raw_anchor_hits": 2,
+                "verified_branch_hits": 2,
+                "local_lattice_candidate_hits": 2,
+                "unique_analysis_windows": 1,
+            },
+        }
+
+        summary = shadow_verification_summary(by_case)
+
+        self.assertEqual(2, summary["totals"]["raw_anchor_hits"])
+        self.assertEqual(2, summary["totals"]["local_lattice_candidate_hits"])
+        self.assertEqual(1, summary["cases_with_local_candidates"])
+        self.assertEqual(by_case, summary["by_case"])
 
 
 if __name__ == "__main__":

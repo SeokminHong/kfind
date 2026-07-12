@@ -2,10 +2,35 @@ use std::sync::Arc;
 
 use kfind_matcher::MorphMatcher;
 use kfind_query::{
-    BoundaryPolicy, CompileOptions, ExpandMode, LexiconQueryAnalyzer, Lexicons, NormalizationMode,
-    compile_query,
+    BoundaryPolicy, CompileOptions, ContextRequirement, ExpandMode, LexiconQueryAnalyzer, Lexicons,
+    NormalizationMode, compile_query,
 };
 use unicode_normalization::UnicodeNormalization;
+
+#[derive(Clone, Copy)]
+struct CopulaDisambiguationFixture {
+    text: &'static str,
+    union_expected: bool,
+    local_expected: bool,
+}
+
+const COPULA_DISAMBIGUATION_FIXTURES: [CopulaDisambiguationFixture; 3] = [
+    CopulaDisambiguationFixture {
+        text: "매일 운동한다.",
+        union_expected: true,
+        local_expected: false,
+    },
+    CopulaDisambiguationFixture {
+        text: "학생일 가능성이 있다.",
+        union_expected: true,
+        local_expected: true,
+    },
+    CopulaDisambiguationFixture {
+        text: "책일 가능성이 있다.",
+        union_expected: true,
+        local_expected: true,
+    },
+];
 
 #[test]
 fn compiled_predicate_plan_matches_irregular_and_homonymous_surfaces() {
@@ -188,6 +213,55 @@ fn compiled_copula_plan_accepts_attached_adnominals_and_licensed_contraction() {
         matcher
             .find_at_with_meta("학생이여서 참석했다.".as_bytes(), 0)
             .is_none()
+    );
+}
+
+#[test]
+fn smart_copula_disambiguation_fixtures_preserve_union_results() {
+    let matcher = compile("이다", CompileOptions::default());
+    assert!(
+        matcher.plan().atoms[0]
+            .branches
+            .iter()
+            .all(|branch| { branch.context_requirement == ContextRequirement::EojeolLattice })
+    );
+
+    for fixture in COPULA_DISAMBIGUATION_FIXTURES {
+        let actual = matcher
+            .find_at_with_meta(fixture.text.as_bytes(), 0)
+            .is_some();
+        assert_eq!(
+            actual, fixture.union_expected,
+            "union result differed for {:?}; future local expectation is {}",
+            fixture.text, fixture.local_expected
+        );
+        let counters = matcher.verification_counters(fixture.text.as_bytes());
+        assert_eq!(counters.local_lattice_candidate_hits, 1);
+        assert_eq!(counters.unique_analysis_windows, 1);
+    }
+}
+
+#[test]
+fn canonical_copula_disambiguation_fixtures_preserve_union_results() {
+    let options = CompileOptions {
+        normalization: NormalizationMode::Canonical,
+        ..CompileOptions::default()
+    };
+    let matcher = compile("이다", options);
+
+    for fixture in COPULA_DISAMBIGUATION_FIXTURES {
+        let decomposed = fixture.text.nfd().collect::<String>();
+        assert!(
+            matcher
+                .find_at_with_meta(decomposed.as_bytes(), 0)
+                .is_some()
+        );
+    }
+    assert!(
+        matcher.plan().atoms[0]
+            .branches
+            .iter()
+            .all(|branch| { branch.context_requirement == ContextRequirement::EojeolLattice })
     );
 }
 

@@ -29,6 +29,6 @@ pub use options::{
 };
 pub use phrase::{PhraseMatch, join_phrase_spans};
 pub use plan::{
-    AtomPlan, BoundaryProof, BranchEnvironment, BranchVerifier, CoreMapping, Origin,
-    QueryDiagnostic, QueryPlan, SurfaceBranch, VerifiedSpan,
+    AtomPlan, BoundaryProof, BranchEnvironment, BranchVerifier, ContextRequirement, CoreMapping,
+    Origin, QueryDiagnostic, QueryPlan, SurfaceBranch, VerifiedSpan,
 };
