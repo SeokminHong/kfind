@@ -69,7 +69,7 @@ jobs:
           cargo +1.85.0 check --manifest-path tools/morph-index-benchmark/Cargo.toml \
             --all-targets --locked
       - name: Check WASM library
-        run: cargo +1.85.0 check --package kfind --target wasm32-unknown-unknown --locked
+        run: cargo +1.85.0 check --package kfind-wasm --target wasm32-unknown-unknown --locked
 
   morphology-smoke:
     name: Morphology smoke
