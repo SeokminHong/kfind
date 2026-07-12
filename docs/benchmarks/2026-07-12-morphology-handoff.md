@@ -13,12 +13,13 @@ fixture SHA-256: `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21
 - 작업 branch: `codex/morphology-resource-rebuild`
 - P0 context 계측과 P1 packed Double-Array 선택 완료
 - P2 morphology resource 생성·검증 재구성 완료
+- P2 bounded 어절 추출과 NFC 원문 offset mapping 재구성 완료
 - P2 prototype은 로컬 백업 branch
   `codex/morph-lattice-shadow-backup-20260712-203332`에 보존되어 있으나 최신 `main`에는 미반영
 
 - kfind embedded profile: F1 82.81%, recall 70.80%, precision 99.72%
 - 품질 순위: Kiwi 92.01% > Lindera 88.02% > kfind 82.81%
-- kfind 비용: 15,781.8 cases/s, p95 0.1447 ms, peak RSS 4.9 MiB (5회 median)
+- kfind 비용: 16,682.3 cases/s, p95 0.1357 ms, peak RSS 4.9 MiB (5회 median)
 - kfind 오류: FN 146, FP 1
 - 가장 큰 FN 영역: 명사 71, 동사 32, 형용사 25
 
@@ -79,6 +80,11 @@ profile의 FN은 146개다.
   `c9aae9746c29a2848d4e5bff3b15d81601f795ba4d65cd893a7eefe9a2490ca6`다.
 - schema·source·section digest, payload·context 범위 검증 실패를 구분한다. CLI와 matcher는
   아직 resource를 로드하지 않으므로 union 검색 결과는 변하지 않는다.
+- `AnalysisWindow`는 검증 target 주변의 Unicode token을 최대 256 raw bytes와 64 NFC
+  scalar로 제한하고 원문·NFC의 안정된 byte 경계를 양방향 매핑한다. UTF-8 오류와 상한 초과는
+  명시적 오류이며 lattice와 검색 결과에는 아직 연결하지 않았다.
+- [1 GiB low-hit 보고서](2026-07-12-1gib-mixed.md)는 kfind 0.0450초, rg 0.0430초,
+  wall 1.047배와 RSS 7.28 MiB로 모든 게이트를 통과했다.
 
 dev 명사 FN 70개 중 64개는 사전 누락이 아니라 smart boundary 거부다. 합성어 substring
 계약을 완화하면 hard-negative 정밀도와 충돌하므로 이번 어휘 보강에는 포함하지 않았다.
@@ -252,9 +258,8 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. bounded 어절 추출과 NFC 원문 offset mapping을 별도 작업 단위로 옮긴다.
-2. 2,916건 fixture에서 query 포함/미포함 최저 비용과 N-best path를 shadow report에 연결한다.
-3. KSL VCP confusion matrix와 성능 게이트를 확인하기 전에는 threshold나 검색 결과를 바꾸지
+1. 2,916건 fixture에서 query 포함/미포함 최저 비용과 N-best path를 shadow report에 연결한다.
+2. KSL VCP confusion matrix와 성능 게이트를 확인하기 전에는 threshold나 검색 결과를 바꾸지
    않는다.
 
 이어갈 때:

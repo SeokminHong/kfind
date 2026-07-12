@@ -106,6 +106,13 @@
   미등록어 정의를 검증하고, 생성 결과를 다시 decode해 검증한 뒤 artifact와 manifest를 쓴다.
   이 단위에서는 CLI와 matcher가 resource를 로드하지 않으며 query 분석과 검색 결과를 바꾸지
   않는다.
+- P2의 두 번째 구현 단위는 검증된 non-empty target span을 포함하는 Unicode token 범위를
+  분석 어절로 추출한다. 원문 범위는 최대 256 bytes, NFC 문자열은 최대 64 Unicode scalar로
+  제한하며 잘못된 범위, UTF-8 오류와 각 상한 초과를 구분한다.
+- 분석 어절은 NFC의 안정된 경계마다 원문 상대 byte offset을 보존한다. 원문 절대 byte
+  span과 NFC byte span은 양방향으로 변환할 수 있어야 하며, 합성·결합 중간처럼 안정되지 않은
+  경계와 범위 밖 입력은 변환하지 않는다. 이 단위에서는 resource 조회, lattice 판정과 검색
+  결과 변경을 추가하지 않는다.
 - P2 lattice 구현 전에 고정 UD 2.18 Korean-Kaist·Korean-KSL dev 원문에서 지정사 판별
   slice를 생성한다. 양성은 정렬된 gold `JP=이`, `VCP=이`, `VCN=아니` 분석을 occurrence별로
   모두 보존한다. 다른 VCP/VCN 표면형은 양성으로 바꾸지 않고 제외 사유와 수를 기록한다.

@@ -82,6 +82,40 @@ pub(crate) fn surrounding_token_span(haystack: &[u8], span: Range<usize>) -> Ran
     start..end
 }
 
+pub(crate) fn bounded_surrounding_token_span(
+    haystack: &[u8],
+    span: Range<usize>,
+    max_bytes: usize,
+) -> Result<Range<usize>, usize> {
+    if span.len() > max_bytes {
+        return Err(span.len());
+    }
+    let mut start = span.start;
+    while let Some((previous_start, character)) = previous_character_with_start(haystack, start) {
+        if !is_token_character(character) {
+            break;
+        }
+        let minimum = span.end - previous_start;
+        if minimum > max_bytes {
+            return Err(minimum);
+        }
+        start = previous_start;
+    }
+
+    let mut end = span.end;
+    while let Some((next_end, character)) = next_character_with_end(haystack, end) {
+        if !is_token_character(character) {
+            break;
+        }
+        let minimum = next_end - start;
+        if minimum > max_bytes {
+            return Err(minimum);
+        }
+        end = next_end;
+    }
+    Ok(start..end)
+}
+
 fn previous_character(haystack: &[u8], at: usize) -> Option<char> {
     previous_character_with_start(haystack, at).map(|(_, character)| character)
 }
@@ -193,6 +227,22 @@ mod tests {
         assert_eq!(
             &text[surrounding_token_span(text.as_bytes(), span)],
             "매일_일"
+        );
+    }
+
+    #[test]
+    fn bounded_token_span_stops_after_proving_the_limit_is_exceeded() {
+        let text = "가나다라마바사";
+        let start = text.find('라').unwrap();
+        let span = start..start + '라'.len_utf8();
+
+        assert_eq!(
+            bounded_surrounding_token_span(text.as_bytes(), span.clone(), text.len()),
+            Ok(0..text.len())
+        );
+        assert_eq!(
+            bounded_surrounding_token_span(text.as_bytes(), span, 8),
+            Err(9)
         );
     }
 }

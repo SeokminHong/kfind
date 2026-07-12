@@ -1,6 +1,6 @@
 # 선택적 국소 형태 추론 작업 계획
 
-상태: P0·P1·P2 지정사 판별 slice·resource 재구성 완료, bounded offset mapping 대기
+상태: P0·P1·P2 지정사 판별 slice·resource·bounded offset mapping 완료, lattice path 대기
 적용 시점: v0.1.1 이후 실험 범위
 
 관련 문서:
@@ -167,6 +167,11 @@ enum ContextRequirement {
   `c9aae9746c29a2848d4e5bff3b15d81601f795ba4d65cd893a7eefe9a2490ca6`다.
 - loader는 schema, source digest, section digest, payload offset·record, context ID·행렬 크기를
   검증한다. 이 resource는 아직 CLI와 matcher에 연결하지 않았다.
+- `AnalysisWindow`는 target을 포함하는 Unicode token 범위를 원문 256 bytes, NFC 64 scalar
+  안에서 추출한다. 잘못된 범위·UTF-8·상한 초과를 구분하고 상한을 넘는 token은 전체를
+  순회하지 않고 거부한다.
+- NFC의 안정된 경계는 원문 절대 byte span과 양방향으로 변환한다. 한글 분해형과 임의
+  Unicode 문자열의 안정 경계 round-trip을 검증했으며 검색 결과는 바꾸지 않는다.
 
 그 뒤 lattice shadow를 다음 순서로 구현한다.
 
@@ -226,7 +231,7 @@ P2는 다음 무결한 작업 단위로 나눈다.
 1. 지정사 판별 fixture 생성과 metadata 검증을 추가한다. (완료)
 2. fixture를 benchmark report에 연결하고 source·raw tag·class별 baseline을 기록한다. (완료)
 3. 백업 branch의 morphology resource 생성·검증을 최신 `main` 위에 재구성한다. (완료)
-4. bounded 어절 추출과 NFC 원문 offset mapping을 별도 작업 단위로 재구성한다.
+4. bounded 어절 추출과 NFC 원문 offset mapping을 별도 작업 단위로 재구성한다. (완료)
 5. lattice path와 N-best shadow report를 연결한다.
 6. 성능·품질 게이트를 통과한 뒤 P3 진행 여부를 결정한다.
 
