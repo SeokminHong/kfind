@@ -250,6 +250,9 @@
   소유하고 여러 matcher에서 재사용하며 query compile마다 다시 decode하지 않는다. resource가 없는
   engine에서 `NominalComponent`가 필요한 smart plan을 compile하면 명시적
   `ComponentResourceRequired` 오류를 반환하고 기존 경계 판정으로 fallback하지 않는다.
+- 생성 후 `Engine::load_component_resource(component_resource)`와 JavaScript
+  `loadComponentResource(componentResource)`로 resource를 명시적으로 초기화하거나 교체할 수 있다.
+  새 bytes를 모두 검증한 뒤에만 상태를 교체하며 실패하면 기존에 검증된 resource를 유지한다.
 - engine은 component resource가 초기화되었는지 getter로 노출한다. resource가 필요 없는 literal,
   `token`, `any`와 component branch가 없는 plan은 resource 없는 engine에서 그대로 compile한다.
 - 라이브러리 matcher는 UTF-8 byte slice에서 겹치지 않는 match와 형태 분석 provenance를
@@ -261,7 +264,8 @@
   npm package metadata와 게시 workflow는 별도 작업 단위다.
 - JavaScript API는 `new Kfind(componentResource?)`와
   `Kfind.withFullPos(fullPos, componentResource?)`, 재사용 가능한 `Matcher`를 만드는 `compile`,
-  UTF-16 JavaScript 문자열을 검색하는 `findAll`을 제공한다. resource 인자는 `Uint8Array`다.
+  수동 `loadComponentResource`, UTF-16 JavaScript 문자열을 검색하는 `findAll`을 제공한다.
+  resource 인자는 `Uint8Array`다.
   component bytes를 명시했을 때 빈 bytes, 손상, schema·source mismatch는
   `failed to initialize kfind` JavaScript `Error`다. component가 없는 인스턴스의 component smart
   compile은 `failed to compile query` JavaScript `Error`이며 자동 load나 fallback을 수행하지 않는다.
