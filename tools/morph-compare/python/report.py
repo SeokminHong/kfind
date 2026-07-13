@@ -140,9 +140,15 @@ def build_report(
     shadow_verification: dict[str, dict[str, dict[str, object]]],
     include_performance: bool = True,
 ) -> dict[str, object]:
+    backends = tuple(predictions)
+    if tuple(versions) != backends or tuple(matches) != backends:
+        raise ValueError("versions, predictions, and matches must use the same backends")
+    reference_backends = tuple(
+        backend for backend in backends if backend not in KFIND_PROFILES
+    )
     quality = {}
     has_slices = all("slice" in case for case in cases)
-    for backend in BACKENDS:
+    for backend in backends:
         backend_quality = {
             "overall": quality_metrics(cases, predictions[backend]),
             "by_source": grouped_quality(cases, predictions[backend], "source"),
@@ -164,7 +170,7 @@ def build_report(
     failures = []
     for case in cases:
         backend_predictions = {
-            backend: predictions[backend][case["id"]] for backend in BACKENDS
+            backend: predictions[backend][case["id"]] for backend in backends
         }
         if all(value == case["expected"] for value in backend_predictions.values()):
             continue
@@ -175,6 +181,7 @@ def build_report(
                 profile,
                 matches[profile][case["id"]],
                 kfind_diagnostics[profile][case["id"]],
+                reference_backends,
             )
             for profile in KFIND_PROFILES
         }
@@ -191,7 +198,7 @@ def build_report(
                 "profile_causes": profile_causes,
                 "profile_cause_evidence": profile_cause_evidence,
                 "matching_spans": {
-                    backend: matches[backend][case["id"]] for backend in BACKENDS
+                    backend: matches[backend][case["id"]] for backend in backends
                 },
             }
         )
@@ -199,6 +206,8 @@ def build_report(
         "schema_version": 12,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
+        "backends": list(backends),
+        "reference_backends": list(reference_backends),
         "versions": versions,
         "environment": environment_metadata(),
         "quality": quality,
@@ -223,12 +232,15 @@ def classify_primary_cause(
     profile: str,
     profile_spans: list[dict[str, object]],
     diagnostic: dict[str, object] | None,
+    reference_backends: tuple[str, ...] = ("kiwi", "lindera"),
 ) -> str | None:
     if profile not in KFIND_PROFILES:
         raise ValueError(f"unknown kfind profile {profile}")
     if not case["expected"] or predictions[profile]:
         return None
-    if not predictions["kiwi"] and not predictions["lindera"]:
+    if len(reference_backends) >= 2 and all(
+        not predictions[backend] for backend in reference_backends
+    ):
         return "gold-or-adapter"
     if diagnostic is None:
         raise ValueError(f"missing kfind diagnostic for positive case {case['id']}")
@@ -265,8 +277,9 @@ def environment_metadata() -> dict[str, object]:
 
 def render_markdown(report: dict[str, object]) -> str:
     dataset = report["dataset"]
+    backends = report.get("backends", list(BACKENDS))
     lines = [
-        "# kfind profiles / Kiwi / Lindera held-out morphology benchmark",
+        "# Held-out morphology benchmark",
         "",
         f"- fixture: `{dataset['fixture_sha256']}`",
         f"- cases: {dataset['cases']} ({dataset['positive_cases']} positive, "
@@ -295,7 +308,7 @@ def render_markdown(report: dict[str, object]) -> str:
             "| --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
-    for result_name in BACKENDS:
+    for result_name in backends:
         version = report["versions"][result_name]
         artifact = version["lexicon_artifact_sha256"] or "n/a"
         morphology = version.get("morphology_artifact_sha256") or "n/a"
@@ -335,7 +348,7 @@ def append_quality_sections(lines: list[str], report: dict[str, object]) -> None
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
-    for backend in BACKENDS:
+    for backend in report["backends"]:
         metrics = report["quality"][backend]["overall"]
         lines.append(
             f"| {backend} | {metrics['accuracy_percent']}% | {metrics['precision_percent']}% | "
@@ -357,7 +370,7 @@ def append_performance(lines: list[str], report: dict[str, object]) -> None:
             "| --- | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
-    for backend in BACKENDS:
+    for backend in report["performance"]:
         metrics = report["performance"][backend]
         rss = metrics["peak_rss_kib"]
         rss_text = f"{rss / 1024:.1f} MiB" if rss is not None else "n/a"
@@ -523,9 +536,10 @@ def append_grouped_quality(
             "| --- | --- | ---: | ---: | ---: | ---: |",
         ]
     )
-    groups = sorted(report["quality"]["kfind-embedded"][key])
+    backends = report["backends"]
+    groups = sorted(report["quality"][backends[0]][key])
     for group in groups:
-        for backend in BACKENDS:
+        for backend in backends:
             metrics = report["quality"][backend][key][group]
             lines.append(
                 f"| {group} | {backend} | {metrics['accuracy_percent']}% | "
@@ -549,13 +563,18 @@ def append_profile_comparison(lines: list[str], report: dict[str, object]) -> No
 
 
 def append_failures(lines: list[str], report: dict[str, object]) -> None:
+    backends = report["backends"]
     lines.extend(
         [
             "",
             f"## Failures ({len(report['failures'])} cases)",
             "",
-            "| case | source | query/POS | embedded cause | full-POS cause | expected | kfind embedded | kfind full-POS | Kiwi | Lindera |",
-            "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+            "| case | source | query/POS | embedded cause | full-POS cause | expected | "
+            + " | ".join(backends)
+            + " |",
+            "| --- | --- | --- | --- | --- | --- | "
+            + " | ".join("---" for _ in backends)
+            + " |",
         ]
     )
     for failure in report["failures"][:30]:
@@ -566,9 +585,8 @@ def append_failures(lines: list[str], report: dict[str, object]) -> None:
             f"{failure['profile_causes']['kfind-embedded'] or 'n/a'} | "
             f"{failure['profile_causes']['kfind-full-pos'] or 'n/a'} | "
             f"{case['expected']} | "
-            f"{predicted['kfind-embedded']} | "
-            f"{predicted['kfind-full-pos']} | {predicted['kiwi']} | "
-            f"{predicted['lindera']} |"
+            + " | ".join(str(predicted[backend]) for backend in backends)
+            + " |"
         )
     if len(report["failures"]) > 30:
         lines.extend(["", "The JSON report contains every failure and matching span."])
@@ -592,7 +610,7 @@ def append_development_summary(
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
-    for backend in BACKENDS:
+    for backend in development.get("backends", list(BACKENDS)):
         metrics = development["quality"][backend]["overall"]
         lines.append(
             f"| {backend} | {metrics['precision_percent']}% | "
@@ -621,7 +639,7 @@ def append_hard_negative_summary(
     )
     slices = sorted(hard_negatives["quality"]["kfind-embedded"]["by_slice"])
     for slice_name in slices:
-        for backend in BACKENDS:
+        for backend in hard_negatives.get("backends", list(BACKENDS)):
             metrics = hard_negatives["quality"][backend]["by_slice"][slice_name]
             lines.append(
                 f"| {slice_name} | {backend} | "
@@ -651,7 +669,8 @@ def append_local_context_summary(
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
-    for backend in BACKENDS:
+    backends = local_context.get("backends", list(BACKENDS))
+    for backend in backends:
         metrics = local_context["quality"][backend]["overall"]
         lines.append(
             f"| {backend} | {metrics['precision_percent']}% | "
@@ -668,10 +687,10 @@ def append_local_context_summary(
         ]
     )
     target_groups = sorted(
-        local_context["quality"]["kfind-embedded"]["by_target_group"]
+        local_context["quality"][backends[0]]["by_target_group"]
     )
     for target_group in target_groups:
-        for backend in BACKENDS:
+        for backend in backends:
             metrics = local_context["quality"][backend]["by_target_group"][
                 target_group
             ]
