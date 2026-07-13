@@ -81,6 +81,9 @@
   README는 `--help`를 별도로 읽지 않아도 검색 기능, 쿼리 문법, 옵션의 값·기본값·주요 충돌,
   출력 형식과 종료 코드를 이해할 수 있어야 한다. 최신 benchmark는 workload, 측정일·revision과
   원본 보고서 링크를 함께 요약하고, 품질·CLI 처리량·초기화 비용처럼 단위가 다른 지표를 분리한다.
+  제품 persona와 고정 외부 분석기 snapshot을 비교하는 최신 표와 대표 차트도 README에 직접
+  싣는다. persona별 입력의 품사 지정 여부, 외부 분석기 버전과 task workload 조건을 함께 적고,
+  동일 입력의 형태소 분석기 순위나 순수 tokenizer 처리량으로 해석하지 않도록 비교 경계를 밝힌다.
   승인된 benchmark 보고서나 생성 차트가 바뀌면 영어·한국어 README의 요약 수치와 대표 차트도
   같은 변경에서 갱신한다. README 차트의 값과 source report가 일치하는지 검증한다.
 - `--column`은 v0.1 정식 옵션이며 1부터 시작하는 Unicode scalar 열을 출력한다.
