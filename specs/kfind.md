@@ -1777,6 +1777,21 @@ target confusion matrix, recall·precision, `accept`·`reject`·`ambiguous`·`un
 case별 비용·origin 판정을 보존한다. 기본 benchmark와 GSD regression 명령은 PUD fixture를
 읽거나 평가하지 않는다.
 
+투영 입력은 matcher가 phrase 결합과 non-overlap 선택을 하기 전의 검증된 atom 후보다. 후보는
+`atom_index`, core·token byte span과 origin의 `analysis_index`·`rule_path`를 보존한다. lattice
+evidence는 같은 `atom_index`, core span, `analysis_index`, `rule_path`의 contextual origin에만
+연결한다. `decision`이 `accept` 또는 `ambiguous`면 origin을 유지하고, `decision`이 없는 모든
+status는 `unresolved`로 유지한다. `reject`만 제거한다. lattice evidence와 연결되지 않은
+non-contextual origin은 유지한다. origin이 하나도 남지 않은 atom 후보만 버리고, 남은 후보를
+matcher와 같은 leftmost-longest 순서로 선택한다. PUD unseen fixture는 single-atom query만
+허용하며 phrase 재결합은 제품 정책 구현 단계에서 같은 origin 필터 뒤에 적용한다.
+
+`copula_policy_projection`은 `policy: "copula-lattice"`와 `profiles`를 가진다. 각 profile은
+`target_confusion_matrix`, `target_precision_percent`, `gold_recall_percent`, 네 outcome의
+`origin_outcomes`, `by_case`를 기록한다. 각 case는 expected·gold span, union·projected prediction과
+span, 후보 origin별 contextual 여부·outcome·status·include/exclude cost·cost margin을 보존한다.
+outcome 집계는 위 identity로 중복 제거한 contextual origin만 세며 비용 threshold를 두지 않는다.
+
 밀봉된 fixture는 `copula-lattice` 후보로 한 번 평가한다. gold target recall 80.00%
 이상, target-level precision 99.00% 이상, `unresolved` 0개, revised hard-negative 신규 FP
 0개와 기존 Kaist·KSL dev/test 품질 gate를 모두 만족해야 한다. 통과하면
