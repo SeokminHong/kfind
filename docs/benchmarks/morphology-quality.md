@@ -11,11 +11,11 @@ FP 0을 동시에 유지해야 한다.
 | --- | ---: | ---: | ---: | ---: |
 | dev embedded smart | 432 / 2 / 68 | 99.54% | 86.4% | 92.51% |
 | dev full-POS smart | 436 / 2 / 64 | 99.54% | 87.2% | 92.96% |
-| test embedded smart | 408 / 1 / 92 | 99.76% | 81.6% | 89.77% |
-| test full-POS smart | 413 / 1 / 87 | 99.76% | 82.6% | 90.37% |
+| test embedded smart | 408 / 0 / 92 | 100.00% | 81.6% | 89.87% |
+| test full-POS smart | 413 / 0 / 87 | 100.00% | 82.6% | 90.47% |
 
-세부 품사와 성능 결과는 [smart component 검색 근거](2026-07-13-smart-component-evidence.md)에
-둔다.
+세부 품사와 성능 결과는
+[User smart precision 품질·성능](2026-07-14-user-smart-precision.md)에 둔다.
 
 ## 제품 workflow 판정
 

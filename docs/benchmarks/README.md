@@ -54,7 +54,7 @@ scripts/benchmark-morphology.sh
 pnpm --dir packages/kfind run benchmark:startup
 ```
 
-최신 수치는 [smart component 검색 근거](2026-07-13-smart-component-evidence.md)에 기록한다.
+최신 수치는 [User smart precision 품질·성능](2026-07-14-user-smart-precision.md)에 기록한다.
 
 ## Morphology comparison
 
@@ -89,7 +89,8 @@ python3 tools/morph-compare/render_charts.py \
 
 - [2026-07-12 비교 기준선](2026-07-12-morphology-comparison.md)
 - [2026-07-13 제품 workflow 형태소 벤치마크](2026-07-13-product-workflows.md)
-- [현재 smart component 품질·성능](2026-07-13-smart-component-evidence.md)
+- [2026-07-14 User smart precision 품질·성능](2026-07-14-user-smart-precision.md)
+- [2026-07-13 smart component 품질·성능](2026-07-13-smart-component-evidence.md)
 - [형태소 검색 개선 핸드오프](morphology-handoff.md)
 - [선택적 국소 형태 추론 계약](selective-morphology.md)
 - [형태소 검색 품질 검증 계약](morphology-quality.md)

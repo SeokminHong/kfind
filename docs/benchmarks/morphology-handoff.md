@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [User smart precision 품질·성능](2026-07-14-user-smart-precision.md)
 - [smart component 검색 근거](2026-07-13-smart-component-evidence.md)
 - [copula lattice 폐기 판정](2026-07-13-copula-unseen-evaluation.md)
 - [형태소 benchmark 사용법](README.md#morphology-comparison)
@@ -50,7 +51,7 @@
 
 full-POS `smart`가 embedded보다 추가로 찾는 5건은 모두 명사다. `token`과 `any`에서는 두
 lexicon profile의 품질이 같다. 세부 품사, 처리량, latency, RSS와 외부 분석기 비교는
-[smart component 검색 근거](2026-07-13-smart-component-evidence.md)를 기준으로 한다.
+[User smart precision 품질·성능](2026-07-14-user-smart-precision.md)을 기준으로 한다.
 
 품사를 생략하는 사람용 1,000-case fixture에서 full-POS `smart`는 TP 410, FP 0, FN 90,
 precision 100.00%, recall 82.0%, F1 90.11%다. embedded `smart`도 TP 315, FP 0, FN 185다.
