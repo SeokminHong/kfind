@@ -1746,7 +1746,7 @@ nominal competitor 33건, whole-window competitor 13건, segmented other 3건, s
 | license SHA-256 | `b278eb53fe50b8bb7fa0d90fb8536c35fdcaa80f9d63812cb51db539555d2a89` |
 | seed | `kfind-vcp-pud-unseen-v1` |
 | sort scope | `unseen-context-order` |
-| expected fixture SHA-256 | `3a6310ea65aa0fd43af90f77dc2ab9208cff4d4d544cce2a444c006ee64f35bc` |
+| expected fixture SHA-256 | `d02cd5e78ebc4d02d626ead6206b3ed1dddc6d4c71d7a19543981699e45ebebd` |
 
 양성은 `UPOS=AUX`, `XPOS=VC`, `DEPREL=cop`, `LEMMA=이`를 모두 만족하는 436개
 occurrence다. PUD adapter는 이 표식을 raw tag `VC`, raw lemma `이`, query `이다`,
@@ -1755,6 +1755,8 @@ POS `adjective`, `morph_index=0`으로 직렬화한다. 같은 source copula 표
 `sources.json`의 PUD source만 `pud-copula` adapter를 선언한다. 이 adapter는 위 세 구조
 표식을 모두 만족하는 token만 지정사 candidate로 투영하고 lemma `_`도 제외 집계를 위해
 보존한다. 기존 Korean-Kaist·KSL·GSD parser와 기본 benchmark source 선택은 바꾸지 않는다.
+gold span은 token 정렬기가 반환한 UTF-8 byte offset을 그대로 기록하며 문자 offset으로 다시
+변환하지 않는다.
 
 음성은 토큰이 `# text`와 완전히 정렬되고 `이`, `인`, `일`, `이어`, `여`, `였` 중
 하나가 있으며, lemma와 관계없이 `UPOS=AUX`, `XPOS=VC`, `DEPREL=cop`인 token이 없는
