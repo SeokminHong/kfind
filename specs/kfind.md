@@ -78,6 +78,12 @@
 - component startup 측정은 resource 없는 Rust/WASM engine 초기화와 47,859,711-byte compact
   resource를 명시한 초기화를 분리한다. full POS도 component 유무를 나눠 warm process 3회 이상의
   초기화 시간과 peak RSS 또는 process RSS 증가량을 기록하며 literal scan benchmark와 분리한다.
+- morphology 비교 보고서는 동일한 1,000-case test fixture에서 embedded와 full POS 각각의
+  `smart`, `token`, `any` 경계 정책을 별도 profile로 측정한다. `smart` profile만 compact
+  component resource를 초기화하며 `token`과 `any`는 해당 resource를 읽거나 검증하지 않는다.
+  각 profile은 fresh process에서 1회 warm-up 뒤 5회 측정하고 query compile과 match를 포함한
+  initialization, cases/s, p95 latency와 peak RSS의 median/min/max를 기록한다. 품질은 같은 실행의
+  TP, FP, TN, FN, precision, recall과 F1을 기록한다. shadow 진단은 이 측정 구간에 포함하지 않는다.
 - 보고서는 corpus 설정과 checksum, 저장소에서 commit object로 해석되는 Git revision, CPU, memory, storage, OS, 도구 버전, 실제 명령, 각 run의 wall time·throughput·maximum RSS, median 비교값을 기록한다.
 - 기본 측정은 한 번의 warm-up 뒤 warm-cache 3회를 수행한다. timer 정밀도를 확보하기 위해 각 run은 동일 scan 10회의 합산 시간을 측정해 1회당 평균을 기록한다. 권한이 필요한 cache purge를 자동 실행하지 않으며 cold-cache 결과를 측정하지 않았으면 보고서에 명시한다.
 
@@ -210,6 +216,11 @@
   TP 413/FP 1/FN 87이다. dev는 각각 TP 432/FP 2/FN 68, TP 436/FP 2/FN 64다. test component
   projection 비교 embedded 84건, full-POS 123건과 component hard-negative 5건은 불일치 0이며
   hard-negative component candidate는 모두 `reject`다.
+- report schema 10의 동일 test 비교에서 `token`은 두 lexicon profile 모두 TP 354/FP 0/FN 146,
+  `any`는 TP 479/FP 11/FN 21로 같다. full-POS의 `smart` 품질 이점은 embedded가 찾지 못한 명사
+  5건으로 한정되며 recall은 1.0%p, F1은 0.60%p 높다. 5회 중앙값 기준 full-POS `smart`는
+  embedded `smart`보다 초기화가 146.02 ms 길고 peak RSS가 41.11 MiB 크며, 처리량은 13.64%
+  낮고 p95 latency는 21.19% 높다.
 - CLI의 기본 boundary policy는 `smart`다. 기본 CLI query를 compile한 plan에
   `NominalComponent` branch가 있으면 설치된 compact component resource를 자동으로 찾아 한 번
   검증하고 검색에 사용한다. resource가 필요하지만 누락·손상된 경우 초기화 오류로 종료하며 기존
