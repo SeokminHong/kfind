@@ -128,10 +128,13 @@ def validate_hard_negatives(
 
 
 def validate_local_context_dataset(
-    cases_path: Path, cases: list[dict[str, object]], metadata: dict[str, object]
+    cases_path: Path,
+    cases: list[dict[str, object]],
+    metadata: dict[str, object],
+    expected_split: str = "dev-local-context",
 ) -> None:
-    if metadata.get("split") != "dev-local-context":
-        raise ValueError("local-context fixture must use the dev-local-context split")
+    if metadata.get("split") != expected_split:
+        raise ValueError(f"local-context fixture must use the {expected_split} split")
     if len(cases) != metadata.get("cases"):
         raise ValueError("local-context case count differs from metadata")
     validate_fixture_identity(cases_path, cases, metadata)
@@ -165,5 +168,9 @@ def validate_local_context_dataset(
         expected_counts[(source, raw_tag, False)] = int(group["negative_cases"])
     if len(expected_groups) != len(metadata["group_counts"]):
         raise ValueError("local-context metadata groups are not unique")
-    if dict(actual_counts) != expected_counts:
+    unexpected_groups = set(actual_counts) - set(expected_counts)
+    count_mismatch = any(
+        actual_counts[key] != expected for key, expected in expected_counts.items()
+    )
+    if unexpected_groups or count_mismatch:
         raise ValueError("local-context source/tag/class counts differ from metadata")

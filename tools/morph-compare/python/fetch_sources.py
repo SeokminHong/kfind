@@ -8,6 +8,8 @@ import json
 import urllib.request
 from pathlib import Path
 
+from dataset import manifest_sources_by_name
+
 
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
@@ -35,9 +37,7 @@ def fetch(url: str, expected_sha256: str, destination: Path) -> None:
 
 def fetch_manifest(manifest_path: Path, output: Path) -> None:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if manifest.get("schema_version") != 2:
-        raise ValueError("unsupported source manifest schema")
-    for source in manifest["sources"]:
+    for source in manifest_sources_by_name(manifest).values():
         for split in source["splits"].values():
             fetch(
                 split["data_url"],

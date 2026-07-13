@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import unicodedata
 from collections import Counter
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -10,6 +12,7 @@ from dataset import (
     BenchmarkCase,
     GoldCandidate,
     Sentence,
+    manifest_sources_by_name,
     parse_conllu,
     positive_case,
     rank,
@@ -136,25 +139,89 @@ def excluded_copulas(
     return excluded
 
 
+def load_source_split(
+    source: dict[str, object], split_name: str, sources_dir: Path
+) -> tuple[dict[str, object], list[Sentence], dict[str, int]]:
+    split = source["splits"].get(split_name)
+    if split is None:
+        raise ValueError(f"source {source['name']} has no {split_name} split")
+    source_path = sources_dir / split["data_file"]
+    if sha256(source_path) != split["data_sha256"]:
+        raise ValueError(f"source hash mismatch: {source['name']}")
+    sentences, parsing = parse_conllu(str(source["name"]), source_path)
+    return split, sentences, parsing
+
+
+def text_digests(sentences: list[Sentence]) -> set[str]:
+    return {
+        hashlib.sha256(
+            unicodedata.normalize("NFC", sentence.text).encode("utf-8")
+        ).hexdigest()
+        for sentence in sentences
+    }
+
+
+def validate_disjoint_sources(
+    config: dict[str, object],
+    sources: dict[str, dict[str, object]],
+    sources_dir: Path,
+    target_sentences: dict[str, list[Sentence]],
+) -> list[dict[str, object]]:
+    target_digests = {
+        digest
+        for sentences in target_sentences.values()
+        for digest in text_digests(sentences)
+    }
+    checks = []
+    seen = set()
+    for reference in config.get("disjoint_from", []):
+        key = (str(reference["source"]), str(reference["split"]))
+        if key in seen:
+            raise ValueError(f"duplicate disjoint source: {key[0]}/{key[1]}")
+        seen.add(key)
+        source = sources.get(key[0])
+        if source is None:
+            raise ValueError(f"disjoint source is unknown: {key[0]}")
+        split, sentences, _ = load_source_split(source, key[1], sources_dir)
+        overlap_count = len(target_digests & text_digests(sentences))
+        if overlap_count:
+            raise ValueError(
+                f"blind source overlaps {key[0]}/{key[1]}: {overlap_count} sentences"
+            )
+        checks.append(
+            {
+                "source": key[0],
+                "split": key[1],
+                "data_sha256": split["data_sha256"],
+                "overlap_sentences": overlap_count,
+            }
+        )
+    return checks
+
+
 def build_local_context_dataset(
     manifest_path: Path,
     sources_dir: Path,
     output: Path,
     metadata_path: Path,
+    config_name: str = "local_context",
 ) -> dict[str, object]:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if manifest.get("schema_version") != 2:
-        raise ValueError("unsupported source manifest schema")
-    config = manifest["local_context"]
+    sources = manifest_sources_by_name(manifest)
+    config = manifest.get(config_name)
+    if not isinstance(config, dict):
+        raise ValueError(f"source manifest has no {config_name} config")
     split_name = str(config["split"])
+    metadata_split = str(config["metadata_split"])
     seed = str(config["seed"])
+    sort_scope = str(config["sort_scope"])
     targets = [TargetAnalysis.from_manifest(item) for item in config["analyses"]]
     if not targets or any(not target.negative_surface_cues for target in targets):
         raise ValueError("local-context analyses require negative surface cues")
     if len(set(targets)) != len(targets):
         raise ValueError("local-context analyses are not unique")
-    source_names = {str(source["name"]) for source in manifest["sources"]}
-    unknown_sources = sorted({target.source for target in targets} - source_names)
+    target_source_names = list(dict.fromkeys(target.source for target in targets))
+    unknown_sources = sorted(set(target_source_names) - sources.keys())
     if unknown_sources:
         raise ValueError(
             f"local-context analyses reference unknown sources: {unknown_sources}"
@@ -164,14 +231,11 @@ def build_local_context_dataset(
     group_counts = []
     source_metadata = []
     excluded: Counter[str] = Counter()
-    for source in manifest["sources"]:
-        split = source["splits"].get(split_name)
-        if split is None:
-            raise ValueError(f"source {source['name']} has no {split_name} split")
-        source_path = sources_dir / split["data_file"]
-        if sha256(source_path) != split["data_sha256"]:
-            raise ValueError(f"source hash mismatch: {source['name']}")
-        sentences, parsing = parse_conllu(source["name"], source_path)
+    target_sentences = {}
+    for source_name in target_source_names:
+        source = sources[source_name]
+        split, sentences, parsing = load_source_split(source, split_name, sources_dir)
+        target_sentences[source_name] = sentences
         source_targets = [target for target in targets if target.source == source["name"]]
         excluded.update(excluded_copulas(sentences, source_targets))
         source_positive_count = source_negative_count = 0
@@ -194,24 +258,31 @@ def build_local_context_dataset(
         source_metadata.append(
             {
                 "name": source["name"],
+                "revision": source.get("revision", f"r{manifest['ud_release']}"),
+                "revision_commit": source.get("revision_commit"),
                 "split": split_name,
                 "data_file": split["data_file"],
                 "data_url": split["data_url"],
                 "data_sha256": split["data_sha256"],
                 "license": source["license"],
                 "license_file": source["license_file"],
+                "license_url": source["license_url"],
+                "license_sha256": source["license_sha256"],
                 "parsing": parsing,
                 "positive_cases": source_positive_count,
                 "negative_cases": source_negative_count,
             }
         )
 
+    overlap_checks = validate_disjoint_sources(
+        config, sources, sources_dir, target_sentences
+    )
     if sum(excluded.values()) != int(config["expected_excluded_candidates"]):
         raise ValueError(
             "local-context excluded candidate count mismatch: "
             f"expected {config['expected_excluded_candidates']}, got {sum(excluded.values())}"
         )
-    all_cases.sort(key=lambda case: rank(seed, "local-context-order", case["id"]))
+    all_cases.sort(key=lambda case: rank(seed, sort_scope, case["id"]))
     case_ids = {str(case["id"]) for case in all_cases}
     if len(case_ids) != len(all_cases):
         raise ValueError("local-context case IDs are not unique")
@@ -220,17 +291,30 @@ def build_local_context_dataset(
     with output.open("w", encoding="utf-8") as fixture_file:
         for case in all_cases:
             fixture_file.write(json.dumps(case, ensure_ascii=False, sort_keys=True) + "\n")
+    fixture_sha256 = sha256(output)
+    expected_fixture_sha256 = config.get("expected_fixture_sha256")
+    if (
+        expected_fixture_sha256 is not None
+        and fixture_sha256 != expected_fixture_sha256
+    ):
+        output.unlink()
+        raise ValueError(
+            f"{config_name} fixture hash mismatch: expected "
+            f"{expected_fixture_sha256}, got {fixture_sha256}"
+        )
     metadata = {
         "schema_version": 1,
-        "split": "dev-local-context",
+        "split": metadata_split,
+        "config": config_name,
         "ud_release": manifest["ud_release"],
         "seed": seed,
-        "fixture_sha256": sha256(output),
+        "fixture_sha256": fixture_sha256,
         "cases": len(all_cases),
         "positive_cases": sum(bool(case["expected"]) for case in all_cases),
         "negative_cases": sum(not case["expected"] for case in all_cases),
         "group_counts": group_counts,
         "excluded_candidates": dict(sorted(excluded.items())),
+        "overlap_checks": overlap_checks,
         "sources": source_metadata,
     }
     metadata_path.write_text(
@@ -245,9 +329,10 @@ def main() -> None:
     parser.add_argument("--sources", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--metadata", type=Path, required=True)
+    parser.add_argument("--config", default="local_context")
     args = parser.parse_args()
     metadata = build_local_context_dataset(
-        args.manifest, args.sources, args.output, args.metadata
+        args.manifest, args.sources, args.output, args.metadata, args.config
     )
     print(json.dumps(metadata, ensure_ascii=False, indent=2))
 
