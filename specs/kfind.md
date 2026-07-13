@@ -664,7 +664,7 @@ HashMap<BranchKey, SmallVec<[Origin; 2]>>
 --unicode-normalization none       입력 바이트를 그대로 사용
 ```
 
-`canonical`은 완전한 임의 혼합 정규화 비교가 아니라, 쿼리 branch의 NFC·NFD 두 형태를 검색하는 모드다.
+`canonical`은 완전한 임의 혼합 정규화 비교가 아니라, 쿼리 branch의 NFC·NFD 두 형태를 검색하는 모드다. Exact branch는 선택된 형태의 anchor bytes 자체가 검증 결과이므로 anchor 뒤 입력을 NFC로 변환하지 않는다. 형태 continuation을 소비하는 branch만 bounded suffix를 NFC로 변환하고 원문 byte offset으로 다시 매핑한다.
 
 ### 8.2 필요한 음절 연산
 
