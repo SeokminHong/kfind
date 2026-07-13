@@ -504,6 +504,8 @@ fn reference_predicate_continuation(
     following: &str,
 ) -> Option<(usize, Vec<RuleId>)> {
     const AEO: &[ReferenceSuffix] = &[
+        reference_suffix("가고", &["ending.auxiliary-gada", "ending.connective-go"]),
+        reference_suffix("가야", &["ending.auxiliary-gada", "ending.connective-ya"]),
         reference_suffix(
             "졌습니다",
             &[

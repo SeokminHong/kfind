@@ -78,7 +78,7 @@ initial = "a-or-eo"
 forms = ["아", "어"]
 required = []
 forbidden = []
-next = ["ending.connective-seo", "ending.connective-do", "ending.connective-ya", "ending.polite-yo", "ending.imperative-ra", "ending.auxiliary-jida"]
+next = ["ending.connective-seo", "ending.connective-do", "ending.connective-ya", "ending.polite-yo", "ending.imperative-ra", "ending.auxiliary-gada", "ending.auxiliary-jida"]
 terminal = true
 
 [[ending]]
@@ -220,6 +220,16 @@ required = []
 forbidden = []
 next = []
 terminal = true
+
+[[ending]]
+id = "ending.auxiliary-gada"
+category = "prefinal"
+initial = "other"
+forms = ["가"]
+required = []
+forbidden = []
+next = ["ending.connective-go", "ending.connective-ya"]
+terminal = false
 
 [[ending]]
 id = "ending.auxiliary-jida"

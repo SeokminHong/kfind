@@ -16,6 +16,8 @@ struct Suffix {
 }
 
 const A_OR_EO_SUFFIXES: &[Suffix] = &[
+    suffix("가고", &["ending.auxiliary-gada", "ending.connective-go"]),
+    suffix("가야", &["ending.auxiliary-gada", "ending.connective-ya"]),
     suffix(
         "졌습니다",
         &[
@@ -280,5 +282,42 @@ mod tests {
         )
         .expect("change auxiliary");
         assert_eq!(changed.consumed_bytes, "졌다".len());
+    }
+
+    #[test]
+    fn accepts_bounded_progression_auxiliary_suffixes() {
+        let coordinate = verify_predicate_continuation(
+            ContinuationState::AOrEo,
+            PredicatePos::Verb,
+            "망해",
+            "가고 있다",
+        )
+        .expect("progression coordinate");
+        assert_eq!(coordinate.consumed_bytes, "가고".len());
+        assert_eq!(
+            coordinate.rule_path,
+            ["ending.auxiliary-gada", "ending.connective-go"]
+                .into_iter()
+                .map(RuleId::from)
+                .collect::<Vec<_>>()
+        );
+
+        let required = verify_predicate_continuation(
+            ContinuationState::AOrEo,
+            PredicatePos::Verb,
+            "만들어",
+            "가야 한다",
+        )
+        .expect("progression requirement");
+        assert_eq!(required.consumed_bytes, "가야".len());
+
+        let unsupported = verify_predicate_continuation(
+            ContinuationState::AOrEo,
+            PredicatePos::Verb,
+            "해",
+            "가며 배운다",
+        )
+        .expect("completed vowel anchor remains valid");
+        assert_eq!(unsupported.consumed_bytes, 0);
     }
 }
