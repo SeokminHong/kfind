@@ -4,6 +4,9 @@
 
 Korean lemma and inflection matching for JavaScript, powered by WebAssembly.
 
+The package is not published to the npm registry yet. The install command below applies after the
+first registry release.
+
 ```sh
 pnpm add kfind
 ```

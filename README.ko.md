@@ -164,16 +164,20 @@ pnpm --dir packages/kfind run benchmark:startup
 pnpm --dir packages/kfind run pack:check
 ```
 
-형태론 fixture에는 일치·불일치 사례 413개가 있습니다. Docker 벤치마크는 독립된
+형태론 fixture에는 일치·불일치 사례 452개가 있습니다. Docker 벤치마크는 독립된
 UD Korean-Kaist·KSL test split에서 생성한 1,000개 사례를 `kfind`, Kiwi, Lindera로
 실행합니다. 쿼리 파싱과 잘못된 matcher
 입력을 위한 fuzz target은 `fuzz/`에 있습니다.
 
-벤치마크 이미지의 UD 원문·파생 fixture는 별도의 CC BY-SA 4.0 조건을 따르며 이미지에
-source별 라이선스 고지를 포함합니다.
-
 구현 규약과 릴리스 인수 기준은
 [`specs/kfind.md`](specs/kfind.md)에 있습니다.
+
+## 라이선스
+
+kfind 소스 코드와 프로젝트가 작성한 데이터는 [MIT 라이선스](LICENSE)를 따릅니다.
+Homebrew full POS resource는 `mecab-ko-dic`의 Apache-2.0 고지를
+`share/doc/kfind/LICENSES`에 별도로 보존합니다. 벤치마크 이미지의 UD 원문과 파생 fixture는
+source별 CC BY-SA 4.0 조건을 따릅니다.
 
 ## 릴리스
 

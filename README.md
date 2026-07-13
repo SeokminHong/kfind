@@ -166,7 +166,7 @@ pnpm --dir packages/kfind run benchmark:startup
 pnpm --dir packages/kfind run pack:check
 ```
 
-The morphology fixture contains 413 positive and negative cases. The Docker
+The morphology fixture contains 452 positive and negative cases. The Docker
 benchmark runs 1,000 cases generated from independent UD Korean-Kaist and KSL
 test splits through `kfind`, Kiwi, and Lindera. Fuzz
 targets for query parsing and malformed matcher input live in `fuzz/`.
