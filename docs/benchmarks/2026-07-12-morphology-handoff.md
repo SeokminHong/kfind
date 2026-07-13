@@ -348,15 +348,18 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. 기본 `smart` 결과를 바꾸기 전에 CLI·Rust/WASM API, explain/JSON과 배포 resource 실패
-   정책을 스펙에 확정한다.
-2. 정상 지정사 gold reject 13개는 별도 P3 범위에서 기존 Kaist·KSL dev 원인을 분류한다.
-3. 다음 제품 판정용 unseen source를 결과 확인 전에 고정한다.
+1. compact schema 1 decoder를 engine이 소유하고 matcher들이 재사용하는 제품 loader로 옮긴다.
+2. component branch가 있는 `smart` 계획에만 resource를 연결하고 `accept` candidate를 match로
+   복구한다. 누락·손상·schema·source mismatch는 초기화 오류로 종료한다.
+3. Homebrew는 `share/kfind`, npm은 별도 `assets` 파일로 artifact를 설치하고 WASM 생성자가
+   외부 bytes를 받도록 패키징 smoke를 추가한다.
+4. 정상 지정사 gold reject 13개는 별도 P3 범위에서 기존 Kaist·KSL dev 원인을 분류한다.
+5. 다음 제품 판정용 unseen source를 결과 확인 전에 고정한다.
 
 Korean-GSD 결과에 맞춘 비용·threshold·fixture 가중치 변경은 금지한다.
 
 ## 다음 세션 시작점
 
 component shadow, source path 분류, compact projection 배포 비용과 shadow 판정 동등성 검증은
-완료됐지만 아직 검색 결과를 바꾸지 않는다. 다음 작업은 CLI·Rust/WASM API, explain/JSON과
-배포 resource 실패 정책 확정이다. 이 계약 전에는 matcher에 resource loader를 연결하지 않는다.
+완료됐지만 아직 검색 결과를 바꾸지 않는다. fail-fast native 초기화와 외부 정적 asset을 받는
+WASM 계약은 확정했다. 다음 작업은 compact decoder를 제품 owning loader로 옮기는 것이다.

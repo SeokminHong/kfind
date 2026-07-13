@@ -88,5 +88,6 @@ shadow 비교는 동일 candidate의 decision, 비용, node 수와 N-best path p
 
 report schema 8 실행에서 embedded test/dev/hard-negative 84/87/5건과 full-POS
 123/115/8건의 비교가 모두 일치했다. compact artifact SHA-256은
-`5fc46a151e41485dc4b4a3a931135c0f490913f2c2c908b9d87adb87a7c14efd`다. 제품 계약 확정 전까지
-이 artifact와 decoder는 benchmark 전용으로 유지한다.
+`5fc46a151e41485dc4b4a3a931135c0f490913f2c2c908b9d87adb87a7c14efd`다. 제품은 component
+branch가 있는 `smart` 계획에서 이 resource를 필수로 검증하고 오류를 초기화 실패로 처리한다.
+WASM은 bytes를 포함하지 않고 외부 호스팅 또는 별도 정적 asset에서 전달받는다.
