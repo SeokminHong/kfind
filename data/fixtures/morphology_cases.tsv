@@ -444,3 +444,9 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 먹다	verb	어제 밥을 먹었느냐?	match	regular
 하다	verb	무엇을 했느냐도 논점이다.	no-match	ha
 하다	verb	무엇을 했느냐는는 문제다.	no-match	ha
+좋다	adjective	상황이 좋으니 계속 진행한다.	match	regular
+살다	verb	서울에 사니 이동이 편하다.	match	regular
+먹다	verb	그가 끝까지 먹으리라고 생각했다.	match	regular
+가다	verb	그가 먼저 가리라고 생각했다.	match	regular
+좋다	adjective	상황이 좋으니는 계속 진행한다.	no-match	regular
+먹다	verb	그가 먹으리라고도 생각했다.	no-match	regular
