@@ -164,6 +164,10 @@
 - compact container는 schema, source SHA-256, section length·digest, UTF-8 POS table, payload offset,
   context ID, component scoring field와 matrix 범위를 검증한다. dev·hard-negative component 판정의
   동등성을 별도 확인하기 전에는 제품 loader나 matcher에 연결하지 않는다.
+- 고정 source 773,105개 surface와 815,725개 analysis 비교에서 compact projection을 다음
+  배포 후보로 선택한다. full 대비 artifact는 66.32%, mmap peak RSS는 약 49.47 MiB, mmap
+  초기화는 138.60~139.14 ms다. exact/common-prefix analysis hit와 scoring checksum은 동일하다.
+  이 선택은 제품 적용이 아니라 다음 shadow 판정 동등성 검증의 입력을 확정한다.
 - P2의 네 번째 구현 단위는 corpus-side morphology resource를 schema 3으로 갱신한다.
   query tag용 `DataFinePos`는 corpus CSV 행의 필터로 사용하지 않는다. 유효한 context ID와
   비용을 가진 모든 source 행을 NFC 표면형별로 보존하고, 단일·복합 POS 열과 type·start POS·
