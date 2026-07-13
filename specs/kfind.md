@@ -1752,6 +1752,9 @@ nominal competitor 33건, whole-window competitor 13건, segmented other 3건, s
 occurrence다. PUD adapter는 이 표식을 raw tag `VC`, raw lemma `이`, query `이다`,
 POS `adjective`, `morph_index=0`으로 직렬화한다. 같은 source copula 표식이지만 lemma가
 `_`인 22개는 gold와 음성에서 모두 제외하고 metadata의 excluded count로 고정한다.
+`sources.json`의 PUD source만 `pud-copula` adapter를 선언한다. 이 adapter는 위 세 구조
+표식을 모두 만족하는 token만 지정사 candidate로 투영하고 lemma `_`도 제외 집계를 위해
+보존한다. 기존 Korean-Kaist·KSL·GSD parser와 기본 benchmark source 선택은 바꾸지 않는다.
 
 음성은 토큰이 `# text`와 완전히 정렬되고 `이`, `인`, `일`, `이어`, `여`, `였` 중
 하나가 있으며, lemma와 관계없이 `UPOS=AUX`, `XPOS=VC`, `DEPREL=cop`인 token이 없는
