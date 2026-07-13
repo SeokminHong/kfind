@@ -4,7 +4,7 @@ set -euo pipefail
 
 site_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 repo_root="$(cd "$site_dir/.." && pwd)"
-wasm_dir="$site_dir/public/wasm"
+wasm_dir="$site_dir/src/generated-wasm"
 benchmark_dir="$site_dir/public/benchmarks"
 
 rm -rf "$wasm_dir" "$benchmark_dir"

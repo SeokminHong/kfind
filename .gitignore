@@ -9,6 +9,8 @@
 /site/node_modules/
 /site/dist/
 /site/public/benchmarks/
-/site/public/wasm/
+/site/src/generated-wasm/
 /site/.wrangler/
 /.wrangler/
+/.playwright-cli/
+/output/playwright/
