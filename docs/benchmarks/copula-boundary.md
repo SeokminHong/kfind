@@ -13,16 +13,15 @@
 corpus 단어 denylist와 fixture 전용 branch는 허용하지 않는다. `--boundary any`의 substring
 계약과 기존 VCP/VCN positive는 유지한다.
 
-## 제품 후보 계약
+## benchmark 후보 계약
 
-- 정책 이름은 `copula-lattice`, 기본값은 `union`이다.
-- `copula-lattice`는 `smart` VCP contextual origin에만 적용하고 기존 compact resource를
-  사용한다. resource가 필요한 plan의 초기화 오류는 fallback하지 않는다.
+- `copula-lattice`는 `smart` VCP contextual origin과 기존 compact resource를 사용하는
+  report-only 투영이다.
 - lattice `reject`만 contextual origin에서 제거한다. `accept`, `ambiguous`, 상한·평가 오류인
   `unresolved`는 유지하며 추가 비용 threshold는 없다.
-- JSON과 `--explain-match`는 반환된 contextual origin의 outcome·비용·margin과
-  `unresolved` reason을 보존한다. 거부 경로는 benchmark 보고서에 남긴다.
-- UD Korean-PUD unseen gate를 통과하기 전에는 공개 제품 옵션으로 노출하지 않는다.
+- schema 13 JSON은 outcome·비용·margin과 `unresolved` reason, 거부 경로를 보존한다.
+- UD Korean-PUD unseen gate를 통과하지 못했으므로 CLI·Rust library·WASM 옵션으로 노출하지
+  않는다.
 
 ## 검증 범위
 
@@ -39,10 +38,12 @@ corpus 단어 denylist와 fixture 전용 branch는 허용하지 않는다. `--bo
 1,007건 중 reject는 50건이다. segmented nominal competitor 33건, whole-window competitor
 13건, segmented other 3건, segmented predicate 1건이며 두 lexicon profile의 결과는 같다.
 
-## 후속 작업
+[지정사 lattice unseen 제품 판정](2026-07-13-copula-unseen-evaluation.md)에서 투영 precision은
+100.00%, recall은 65.37%였다. recall 80.00% gate 실패로 제품 후보를 닫았다.
 
-1. PUD source adapter와 fixture 생성을 구현해 스펙의 expected digest를 검증한다.
-2. `copula-lattice` 투영을 benchmark에 연결하고 밀봉된 fixture를 한 번 평가한다.
-3. 모든 gate를 통과하면 opt-in 제품 정책을 구현하고, 실패하면 union을 유지한다.
+## 확정 판정
+
+- 지정사 검색은 homonym union을 유지한다.
+- lattice 비용과 판정은 regression용 shadow report에서만 보존한다.
 
 Kaist·KSL test, Korean-GSD 및 PUD 결과에 맞춰 비용·threshold·fixture 선택을 변경하지 않는다.

@@ -49,7 +49,7 @@ FP 0을 동시에 유지해야 한다.
 - Korean-Kaist·KSL test: 고정 회귀 확인
 - revised hard-negative: 경계 정밀도와 신규 FP 확인
 - Korean-GSD 지정사 fixture: 고정 regression baseline
-- UD Korean-PUD r2.18 test: 지정사 필터링 제품 판정용 unseen 검증
+- UD Korean-PUD r2.18 test: 완료된 지정사 필터링 제품 판정용 unseen 검증
 - 외부 분석기 스냅샷: 같은 test fixture에서 Kiwi·Lindera·MeCab-ko·KOMORAN 품질·성능 비교
 
 Kaist·KSL test, Korean-GSD와 PUD 결과에 맞춰 규칙, 비용, threshold와 fixture 선택을 변경하지
@@ -59,6 +59,13 @@ Kaist·KSL test, Korean-GSD와 PUD 결과에 맞춰 규칙, 비용, threshold와
 PUD fixture는 양성 436개, 음성 485개, excluded source copula 22개와 expected digest
 `d02cd5e78ebc4d02d626ead6206b3ed1dddc6d4c71d7a19543981699e45ebebd`를 사용한다.
 Kaist·KSL dev/test와 GSD test의 NFC 문장 hash 중복은 0건이다.
+
+## 지정사 제품 판정
+
+PUD sealed fixture의 `copula-lattice` 투영은 두 kfind profile에서 TP 285, FP 0, TN 485,
+FN 151, precision 100.00%, recall 65.37%였다. recall 80.00% gate를 통과하지 못했으므로
+공개 정책을 추가하지 않고 homonym union과 shadow 계측을 유지한다. 세부 결과와 report digest는
+[지정사 lattice unseen 제품 판정](2026-07-13-copula-unseen-evaluation.md)에 둔다.
 
 ## 실패 분류
 
@@ -81,5 +88,4 @@ Korean-Kaist·KSL dev의 지정사 gold-aligned lattice candidate는 1,007건이
 reject 50건이다. 오거부 원인은
 [지정사 lattice dev gold 진단](2026-07-13-copula-dev-diagnosis.md)을 기준으로 한다.
 
-1. PUD source adapter로 밀봉된 fixture digest를 검증한 뒤 `copula-lattice`를 한 번 평가한다.
-2. `-기` 명사형 뒤 조사 continuation은 독립 규칙과 hard-negative로 검증한다.
+1. `-기` 명사형 뒤 조사 continuation을 독립 규칙과 hard-negative로 검증한다.

@@ -22,11 +22,9 @@ KFIND_MORPH_BLIND=1 scripts/benchmark-morphology.sh target/morph-blind-report
 ```
 
 PUD 전용 entrypoint는 제품 검색 동작을 바꾸지 않고 `copula-lattice` 후보 정책을 report
-schema 13으로 투영한다.
-
-```sh
-KFIND_MORPH_UNSEEN=1 scripts/benchmark-morphology.sh target/morph-unseen-report
-```
+schema 13으로 투영했다. 밀봉된 제품 판정은 완료되었으며 비용·threshold·fixture를 조정하거나
+판정을 반복하는 용도로 실행하지 않는다. 명령과 결과 digest는
+[unseen 제품 판정](../../docs/benchmarks/2026-07-13-copula-unseen-evaluation.md)에 고정한다.
 
 ```sh
 scripts/benchmark-morphology.sh

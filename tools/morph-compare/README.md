@@ -23,12 +23,11 @@ The GSD fixture is evaluated only as a regression baseline:
 KFIND_MORPH_BLIND=1 scripts/benchmark-morphology.sh target/morph-blind-report
 ```
 
-The PUD entrypoint projects the `copula-lattice` candidate policy into report
-schema 13 without changing product search behavior:
-
-```sh
-KFIND_MORPH_UNSEEN=1 scripts/benchmark-morphology.sh target/morph-unseen-report
-```
+The PUD entrypoint projected the `copula-lattice` candidate policy into report
+schema 13 without changing product search behavior. The sealed product decision
+is complete; do not rerun it to tune costs, thresholds, or fixture selection.
+The command and result digest are pinned in the
+[unseen product decision](../../docs/benchmarks/2026-07-13-copula-unseen-evaluation.md).
 
 ```sh
 scripts/benchmark-morphology.sh
