@@ -1,8 +1,8 @@
 use std::io::Cursor;
 
 use kfind_data::{
-    MecabSourceMorphologyEntry, decode_morphology_resource, encode_morphology_resource,
-    parse_mecab_connection_matrix,
+    MecabSourceMorphologyEntry, decode_component_resource, decode_morphology_resource,
+    encode_component_resource, encode_morphology_resource, parse_mecab_connection_matrix,
 };
 
 use super::*;
@@ -96,6 +96,23 @@ fn exact_component_path_accepts_a_matching_node_span() {
 }
 
 #[test]
+fn compact_component_resource_supports_exact_path_evaluation() {
+    let bytes = compact_fixture_resource();
+    let resource = decode_component_resource("fixture", bytes, &[9; 32]).unwrap();
+    let report = evaluate_local_component_paths(
+        &resource,
+        "사용자권한",
+        "사용자".len().."사용자권한".len(),
+        DataFinePos::Nng,
+        DEFAULT_LATTICE_NODE_LIMIT,
+    )
+    .unwrap();
+
+    assert_eq!(report.decision, LocalLatticeDecision::Accept);
+    assert!(report.paths.iter().any(|path| path.includes_query));
+}
+
+#[test]
 fn exact_component_path_rejects_a_crossing_substring() {
     let bytes = fixture_resource();
     let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
@@ -130,6 +147,21 @@ fn numeric_unknown_class_keeps_a_complete_path() {
 }
 
 fn fixture_resource() -> Vec<u8> {
+    let (entries, matrix, char_def, unk_def) = fixture_parts();
+    encode_morphology_resource([9; 32], &entries, &matrix, char_def, unk_def).unwrap()
+}
+
+fn compact_fixture_resource() -> Vec<u8> {
+    let (entries, matrix, char_def, unk_def) = fixture_parts();
+    encode_component_resource([9; 32], &entries, &matrix, char_def, unk_def).unwrap()
+}
+
+fn fixture_parts() -> (
+    [MecabSourceMorphologyEntry; 12],
+    kfind_data::MecabConnectionMatrix,
+    &'static [u8],
+    &'static [u8],
+) {
     let entries = [
         entry("매", DataFinePos::Nng, 1, 1, 30),
         entry("매일", DataFinePos::Mag, 1, 1, 1),
@@ -149,14 +181,12 @@ fn fixture_resource() -> Vec<u8> {
         Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
     )
     .unwrap();
-    encode_morphology_resource(
-        [9; 32],
-        &entries,
-        &matrix,
+    (
+        entries,
+        matrix,
         b"DEFAULT 0 1 0\nNUMERIC 1 1 0\nHANGUL 0 1 2\n0x0030..0x0039 NUMERIC\n0xAC00..0xD7A3 HANGUL\n",
         b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nNUMERIC,1,1,100,SN,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
     )
-    .unwrap()
 }
 
 fn entry(
