@@ -37,8 +37,7 @@ cargo install --locked --path crates/kfind-cli
 ```rust
 use kfind::{CompileOptions, Engine};
 
-let component_resource = std::fs::read("morphology-component-compact.kfc")?;
-let engine = Engine::new(component_resource)?;
+let engine = Engine::new()?;
 let matcher = engine
     .compile("걷다", &CompileOptions::default())
     .expect("query should compile");
@@ -47,6 +46,10 @@ let matches = matcher.find_all(text.as_bytes());
 
 assert_eq!(&text[matches[0].span.clone()], "걸어");
 ```
+
+Component-aware smart 명사 검색은 명시적 초기화가 필요합니다. Engine 생성 시
+`Engine::with_component_resource`를 사용하거나 기존 mutable engine에서 해당 query를
+compile하기 전에 `load_component_resource`를 호출합니다.
 
 라이브러리와 핵심 의존 crate는 Rust 1.85의 `wasm32-unknown-unknown` target을
 지원합니다.
@@ -64,9 +67,7 @@ TypeScript 선언을 제공합니다.
 ```js
 import { Kfind } from "kfind";
 
-const response = await fetch("/assets/morphology-component-compact.kfc");
-const componentResource = new Uint8Array(await response.arrayBuffer());
-const engine = new Kfind(componentResource);
+const engine = new Kfind();
 const matcher = engine.compile("걷다");
 const text = "😀 길을 걸어 갔다.";
 const matches = matcher.findAll(text);
@@ -76,8 +77,10 @@ console.log(text.slice(matches[0].start, matches[0].end)); // 걸어
 
 JavaScript offset은 UTF-16 code unit 기준입니다. Component resource는 WASM binary와
 분리된 `kfind/assets/morphology-component-compact.kfc`로 배포합니다. 이를 정적
-asset으로 복사하거나 별도 호스트에 둔 뒤 bytes를 로드합니다. 패키지는 아직 registry에
-게시하지 않았습니다. 로컬에서 배포 산출물을 생성하고 검사할 수 있습니다.
+asset으로 복사하거나 별도 호스트에 둘 수 있습니다. Resource 없이 `Kfind`를 만들면 45.6 MiB
+asset을 로드하지 않습니다. Component-aware smart 명사 검색을 사용할 애플리케이션만 생성자에
+bytes를 전달하거나 해당 query를 compile하기 전에 `loadComponentResource`를 호출합니다.
+패키지는 아직 registry에 게시하지 않았습니다. 로컬에서 배포 산출물을 생성하고 검사할 수 있습니다.
 
 ```sh
 pnpm --dir packages/kfind run pack:check

@@ -11,9 +11,7 @@ pnpm add kfind
 ```js
 import { Kfind } from "kfind";
 
-const response = await fetch("/assets/morphology-component-compact.kfc");
-const componentResource = new Uint8Array(await response.arrayBuffer());
-const engine = new Kfind(componentResource);
+const engine = new Kfind();
 const matcher = engine.compile("걷다");
 const text = "길을 걸어 갔다.";
 const matches = matcher.findAll(text);
@@ -27,8 +25,9 @@ console.log(text.slice(matches[0].start, matches[0].end)); // 걸어
 
 Match offset은 UTF-16 code unit 기준이므로 `String.prototype.slice`에 바로 사용할 수
 있습니다. `kfind/assets/morphology-component-compact.kfc`를 정적 asset으로 복사하거나
-별도 호스트에 올린 뒤 생성자에 bytes를 전달합니다. WASM binary에는 이 데이터가 포함되지
-않습니다. 선택적인 full POS binary는
-`Kfind.withFullPos(componentResource, fullPos)`로 로드할 수 있습니다.
+별도 호스트에 올릴 수 있습니다. Component-aware smart 명사 검색을 사용할 때만 생성자에
+bytes를 전달하거나 query compile 전에 `loadComponentResource`를 호출합니다. WASM binary에는
+이 데이터가 포함되지 않습니다. 선택적인 full POS binary는
+`Kfind.withFullPos(fullPos, componentResource?)`로 로드할 수 있습니다.
 
 이 패키지는 브라우저 bundler용 ESM module입니다.

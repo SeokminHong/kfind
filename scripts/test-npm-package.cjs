@@ -10,9 +10,9 @@ if (!modulePath || !declarationPath || !componentPath) {
 }
 
 const { Kfind } = require(path.resolve(modulePath));
-const componentResource = fs.readFileSync(componentPath);
-const engine = new Kfind(componentResource);
+const engine = new Kfind();
 assert.equal(engine.fullPosLoaded, false);
+assert.equal(engine.componentResourceLoaded, false);
 
 const matcher = engine.compile("걷다");
 const text = "😀 길을 걸어 갔다.";
@@ -34,11 +34,25 @@ assert.throws(
   /literal conflicts with --expand/,
 );
 assert.throws(() => engine.compile("걷다", { unknown: true }), /unknown field/);
+assert.throws(
+  () => engine.compile("권한"),
+  /component resource is required for this smart query/,
+);
+
+const componentResource = fs.readFileSync(componentPath);
+engine.loadComponentResource(componentResource);
+assert.equal(engine.componentResourceLoaded, true);
+
 assert.throws(() => new Kfind(new Uint8Array([0])), /failed to initialize/);
 assert.throws(
-  () => Kfind.withFullPos(componentResource, new Uint8Array([0])),
+  () => Kfind.withFullPos(new Uint8Array([0])),
   /failed to initialize/,
 );
+assert.throws(
+  () => engine.loadComponentResource(new Uint8Array([0])),
+  /failed to initialize/,
+);
+assert.equal(engine.componentResourceLoaded, true);
 
 const componentMatch = engine.compile("권한");
 assert.equal(componentMatch.findAll("사용자권한").length, 1);
@@ -47,13 +61,25 @@ const crossingSubstring = engine.compile("학교");
 assert.equal(crossingSubstring.findAll("대학교").length, 0);
 crossingSubstring.free();
 
+const preloaded = new Kfind(componentResource);
+assert.equal(preloaded.componentResourceLoaded, true);
+preloaded.free();
+
 const declarations = fs.readFileSync(declarationPath, "utf8");
 assert.match(declarations, /interface CompileOptions/);
-assert.match(declarations, /constructor\(component_resource: Uint8Array\)/);
 assert.match(
   declarations,
-  /withFullPos\(component_resource: Uint8Array, full_pos: Uint8Array\)/,
+  /constructor\(component_resource\?: Uint8Array \| null\)/,
 );
+assert.match(
+  declarations,
+  /withFullPos\(full_pos: Uint8Array, component_resource\?: Uint8Array \| null\)/,
+);
+assert.match(
+  declarations,
+  /loadComponentResource\(component_resource: Uint8Array\): void/,
+);
+assert.match(declarations, /readonly componentResourceLoaded: boolean/);
 assert.match(declarations, /compile\(query: string, options\?: CompileOptions\): Matcher/);
 assert.match(declarations, /findAll\(text: string\): readonly Match\[\]/);
 
