@@ -31,6 +31,12 @@ BOUNDARY_COLORS = {
     ("embedded", "any"): "#4d7c0f",
     ("full-pos", "any"): "#a3e635",
 }
+HUMAN_UNTAGGED_SERIES = (
+    ("embedded", "smart"),
+    ("embedded", "any"),
+    ("full-pos", "smart"),
+    ("full-pos", "any"),
+)
 STYLE = """
 <style>
   .background { fill: #ffffff; }
@@ -315,6 +321,77 @@ def render_boundary_performance(report: dict[str, object]) -> str:
     )
 
 
+def render_human_untagged_quality(report: dict[str, object]) -> str:
+    width, height = 1120, 620
+    left, right, top, bottom = 80, 32, 86, 116
+    plot_width = width - left - right
+    plot_height = height - top - bottom
+    metrics = (
+        ("Precision", "precision_percent"),
+        ("Recall", "recall_percent"),
+        ("F1", "f1_percent"),
+    )
+    human = report["human_untagged"]
+    body = [
+        text(left, 38, "Human untagged search quality"),
+        text(
+            left,
+            62,
+            "1,000 balanced lemma-presence cases · no POS option or atom tag",
+            "muted",
+        ),
+    ]
+    for tick in range(0, 101, 20):
+        y = top + plot_height * (1 - tick / 100)
+        body.append(
+            f'<line class="grid" x1="{left}" y1="{y:.1f}" '
+            f'x2="{width-right}" y2="{y:.1f}"/>'
+        )
+        body.append(text(left - 10, y + 5, tick, "muted", "end"))
+    group_width = plot_width / len(metrics)
+    bar_width = 56
+    gap = 14
+    for group_index, (label, key) in enumerate(metrics):
+        center = left + group_width * (group_index + 0.5)
+        start = center - (
+            len(HUMAN_UNTAGGED_SERIES) * bar_width
+            + (len(HUMAN_UNTAGGED_SERIES) - 1) * gap
+        ) / 2
+        for series_index, (profile, boundary) in enumerate(HUMAN_UNTAGGED_SERIES):
+            value = float(
+                human["profiles"][profile]["boundaries"][boundary]["quality"][key]
+            )
+            x = start + series_index * (bar_width + gap)
+            bar_height = plot_height * value / 100
+            y = top + plot_height - bar_height
+            body.append(
+                rect(x, y, bar_width, bar_height, BOUNDARY_COLORS[(profile, boundary)])
+            )
+            body.append(text(x + bar_width / 2, y - 8, f"{value:.2f}", anchor="middle"))
+        body.append(text(center, top + plot_height + 28, label, anchor="middle"))
+    for index, (profile, boundary) in enumerate(HUMAN_UNTAGGED_SERIES):
+        legend_x = left + (index % 2) * 430
+        legend_y = height - 48 + (index // 2) * 28
+        body.append(
+            rect(
+                legend_x,
+                legend_y - 13,
+                16,
+                16,
+                BOUNDARY_COLORS[(profile, boundary)],
+                2,
+            )
+        )
+        body.append(text(legend_x + 24, legend_y, f"{profile} · {boundary}"))
+    return svg_document(
+        width,
+        height,
+        "Human untagged search quality",
+        "Grouped bars compare precision, recall, and F1 for untagged queries across two lexicon profiles and two boundary policies.",
+        body,
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("report", type=Path)
@@ -335,6 +412,10 @@ def main() -> None:
         )
         (args.output / f"{args.prefix}boundary-performance.svg").write_text(
             render_boundary_performance(report), encoding="utf-8"
+        )
+    if "human_untagged" in report:
+        (args.output / f"{args.prefix}human-untagged-quality.svg").write_text(
+            render_human_untagged_quality(report), encoding="utf-8"
         )
 
 
