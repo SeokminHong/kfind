@@ -92,17 +92,30 @@ pnpm --dir packages/kfind run pack:check
 kfind [OPTIONS] <QUERY> [PATH]...
 ```
 
-CLI의 기본값은 `--boundary smart`입니다. Compile된 plan에 component 근거가 필요하면 설치된
-component resource를 CLI가 자동으로 찾아 검증하며, 필요 없는 plan은 asset을 로드하지
-않습니다. Rust와 npm 라이브러리는 caller가 bytes를 전달한 경우에만 선택적으로 사용합니다.
-
-쿼리에 품사 태그를 명시할 수 있습니다.
+사람이 대화형으로 사용할 때는 품사를 생략할 수 있습니다. 기본 auto 품사와 `smart` 경계는
+정확한 결과를 우선하며, 설치된 full POS lexicon이 있으면 자동으로 사용합니다.
 
 ```sh
-kfind 'n:사용자 v:검증하다' .
+kfind 걷다 src
+kfind 사용자 src docs
 kfind 'lit:걸어' data.txt
-kfind 걷다 --expand inflection --json .
 ```
+
+에이전트 자동화에서는 모든 형태 atom의 품사를 명시하고 `any`, 내장 사전과 JSON Lines
+출력을 사용합니다.
+
+```sh
+kfind --embedded --boundary any --pos verb --json 걷다 src docs
+kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
+```
+
+에이전트는 결과 문맥을 확인해 false positive를 제거해야 합니다. 후보가 너무 많으면 검색
+path·glob을 좁히거나 `smart` 경계로 다시 검색합니다.
+
+Compile된 `smart` plan에 component 근거가 필요하면 설치된 component resource를 CLI가
+자동으로 찾아 검증하며, 필요 없는 plan은 asset을 로드하지 않습니다. Rust와 npm 라이브러리는
+caller가 bytes를 전달한 경우에만 선택적으로 사용합니다. `--embedded`는 full POS lexicon만
+건너뜁니다.
 
 주요 검색 옵션으로 `--glob`, `--type`, `--hidden`, `--no-ignore`,
 `--encoding`, 문맥 출력 옵션(`-A`, `-B`, `-C`), `--count`,
@@ -128,6 +141,7 @@ kfind 걷다 --expand inflection --json .
 전체 품사 파일이 없어도 핵심 사전과 휴리스틱을 사용해 검색을 계속합니다.
 `--explain-query`는 이 프리뷰 상태를 표시합니다. `--data-dir` 또는
 `KFIND_DATA_DIR`로 데이터 디렉터리를 직접 선택할 수 있습니다.
+`--embedded`를 사용하면 full POS 탐색과 decode를 명시적으로 건너뜁니다.
 
 고정되고 체크섬 검증을 거친 `mecab-ko-dic` 소스에서 전체 품사 산출물을
 재현할 수 있습니다.

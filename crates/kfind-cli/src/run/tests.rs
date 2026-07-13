@@ -200,6 +200,58 @@ fn literal_query_does_not_resolve_the_component_resource() {
 }
 
 #[test]
+fn embedded_mode_does_not_decode_full_pos_lexicon() {
+    let temp = TempDir::new();
+    temp.write(FULL_POS_FILE, "not a lexicon");
+    let input = temp.write("input.txt", "길을 걸었다.\n");
+    let args = Args::try_parse_from([
+        "kfind",
+        "--embedded",
+        "--boundary",
+        "any",
+        "--pos",
+        "verb",
+        "--explain-query",
+        "--data-dir",
+        temp.0.to_str().unwrap(),
+        "걷다",
+        input.to_str().unwrap(),
+    ])
+    .unwrap();
+
+    let (status, stdout, stderr) = run(args, &[], true);
+
+    assert_eq!(status, ExitStatus::Match);
+    let stdout = String::from_utf8(stdout).unwrap();
+    assert!(stdout.contains("status: not required (embedded mode)"));
+    assert!(stdout.contains("길을 걸었다."));
+    assert!(stderr.is_empty());
+}
+
+#[test]
+fn embedded_mode_still_requires_component_evidence_for_smart_queries() {
+    let temp = TempDir::new();
+    let mut args = component_args(&temp, "권한");
+    args.embedded = true;
+    let mut stdout = Vec::new();
+    let mut stderr = Vec::new();
+
+    let error = run_with_io(
+        &args,
+        Language::English,
+        "사용자권한\n".as_bytes(),
+        &mut stdout,
+        &mut stderr,
+        false,
+        false,
+    )
+    .unwrap_err();
+
+    assert!(matches!(error, CliError::MissingComponent(_)));
+    assert!(stdout.is_empty());
+}
+
+#[test]
 fn nominal_component_query_requires_the_explicit_resource() {
     let temp = TempDir::new();
     let args = component_args(&temp, "권한");

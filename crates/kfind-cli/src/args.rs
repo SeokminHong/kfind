@@ -100,6 +100,10 @@ pub struct Args {
     #[arg(long)]
     pub literal: bool,
 
+    /// Use only the lexicon embedded in the binary.
+    #[arg(long)]
+    pub embedded: bool,
+
     /// Maximum Unicode scalar gap between phrase atoms. Defaults to 24.
     #[arg(long)]
     pub max_gap: Option<usize>,

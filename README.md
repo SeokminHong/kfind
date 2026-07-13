@@ -93,18 +93,31 @@ pnpm --dir packages/kfind run pack:check
 kfind [OPTIONS] <QUERY> [PATH]...
 ```
 
-The CLI defaults to `--boundary smart`. When the compiled plan needs component
-evidence, the CLI resolves and validates the installed component resource
-automatically. Plans that do not need it leave the asset unloaded. Rust and npm
-library callers opt in by supplying the bytes themselves.
-
-Queries may use explicit part-of-speech tags:
+For interactive use, part-of-speech tagging is optional. The default auto POS
+and `smart` boundary mode favor precise results and use the installed full POS
+lexicon when available:
 
 ```sh
-kfind 'n:사용자 v:검증하다' .
+kfind 걷다 src
+kfind 사용자 src docs
 kfind 'lit:걸어' data.txt
-kfind 걷다 --expand inflection --json .
 ```
+
+For agent automation, specify the POS of every morphology atom and use `any`,
+the embedded lexicon, and JSON Lines output:
+
+```sh
+kfind --embedded --boundary any --pos verb --json 걷다 src docs
+kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
+```
+
+The agent should inspect context and discard false positives. Narrow the path or
+glob, or retry with `smart` boundaries when the candidate set is too large.
+
+When a compiled `smart` plan needs component evidence, the CLI resolves and
+validates the installed component resource automatically. Plans that do not
+need it leave the asset unloaded. Rust and npm library callers opt in by
+supplying the bytes themselves. `--embedded` skips only the full POS lexicon.
 
 Useful search options include `--glob`, `--type`, `--hidden`, `--no-ignore`,
 `--encoding`, context flags (`-A`, `-B`, `-C`), `--count`,
@@ -130,6 +143,7 @@ network access is never required.
 Without the full POS file, searches continue with the core lexicon and
 heuristics. `--explain-query` reports that preview state. An explicit data
 directory can be selected with `--data-dir` or `KFIND_DATA_DIR`.
+Use `--embedded` to skip full POS resolution and decoding explicitly.
 
 The full POS artifact is reproducible from the pinned, checksum-verified
 `mecab-ko-dic` source:

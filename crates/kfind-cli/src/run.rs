@@ -20,7 +20,7 @@ use kfind_search::{
     SearchRunError, SearchSummary, WalkOptions, execute_search_with_stdin, resolve_search_paths,
 };
 
-use crate::output::{FullPosStatus, write_safe_path, write_safe_text};
+use crate::output::{FullPosNotRequiredReason, FullPosStatus, write_safe_path, write_safe_text};
 use crate::{Args, EncodingArg, Language, OutputError, OutputOptions, OutputWriter, SortArg};
 
 const FULL_POS_FILE: &str = "lexicon.bin";
@@ -56,7 +56,14 @@ where
     E: Write + Send,
 {
     let options = args.compile_options().map_err(CliError::Options)?;
-    let loaded_lexicons = load_lexicons(args, options.requires_full_pos_lexicon())?;
+    let full_pos_mode = if args.embedded {
+        FullPosMode::Disabled(FullPosNotRequiredReason::EmbeddedMode)
+    } else if options.requires_full_pos_lexicon() {
+        FullPosMode::Auto
+    } else {
+        FullPosMode::Disabled(FullPosNotRequiredReason::LiteralQuery)
+    };
+    let loaded_lexicons = load_lexicons(args, full_pos_mode)?;
     let full_pos_status = loaded_lexicons.full_pos;
     let lexicons = Arc::new(loaded_lexicons.lexicons);
     let analyzer = LexiconQueryAnalyzer::new(lexicons);
@@ -117,20 +124,27 @@ struct LoadedLexicons {
     full_pos: FullPosStatus,
 }
 
-fn load_lexicons(args: &Args, load_full_pos: bool) -> Result<LoadedLexicons, CliError> {
+#[derive(Clone, Copy)]
+enum FullPosMode {
+    Auto,
+    Disabled(FullPosNotRequiredReason),
+}
+
+fn load_lexicons(args: &Args, full_pos_mode: FullPosMode) -> Result<LoadedLexicons, CliError> {
     let mut lexicons = Lexicons::embedded().map_err(CliError::Data)?;
-    let full_pos = if load_full_pos {
-        let resolved_full_pos = resolve_full_pos(args)?;
-        if let FullPosStatus::Loaded { path } = &resolved_full_pos {
-            let bytes = fs::read(path).map_err(|source| CliError::Read {
-                path: path.clone(),
-                source,
-            })?;
-            lexicons.load_full_pos(&bytes).map_err(CliError::Data)?;
+    let full_pos = match full_pos_mode {
+        FullPosMode::Auto => {
+            let resolved_full_pos = resolve_full_pos(args)?;
+            if let FullPosStatus::Loaded { path } = &resolved_full_pos {
+                let bytes = fs::read(path).map_err(|source| CliError::Read {
+                    path: path.clone(),
+                    source,
+                })?;
+                lexicons.load_full_pos(&bytes).map_err(CliError::Data)?;
+            }
+            resolved_full_pos
         }
-        resolved_full_pos
-    } else {
-        FullPosStatus::NotRequired
+        FullPosMode::Disabled(reason) => FullPosStatus::NotRequired(reason),
     };
     if let Some(path) = user_lexicon_path(args) {
         let source = fs::read_to_string(&path).map_err(|source| CliError::Read {

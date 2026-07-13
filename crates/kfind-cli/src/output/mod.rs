@@ -41,7 +41,13 @@ pub enum ResolvedColor {
 pub(crate) enum FullPosStatus {
     Loaded { path: PathBuf },
     Preview { candidate_paths: Box<[PathBuf]> },
-    NotRequired,
+    NotRequired(FullPosNotRequiredReason),
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum FullPosNotRequiredReason {
+    EmbeddedMode,
+    LiteralQuery,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
