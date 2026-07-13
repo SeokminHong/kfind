@@ -99,10 +99,12 @@ smart/any. It reports binary quality and performance plus intended-POS plan
 coverage, multi-POS plan rate, and literal fallback rate. Its F1 is not combined
 with the explicit-POS task because the negative definition differs.
 
-The `User precision shadow` section separates query-POS ambiguity from corpus
-homonyms and reports baseline versus projected precision and recall on dev and
-test. The whole-token lexical projection only removes existing strict-subspan
-predicate candidates and runs outside the timed product result path.
+The `Cross-persona User precision diagnostic` section separates query-POS
+ambiguity from corpus homonyms and reports baseline versus projected precision
+and recall on dev and test. Query-POS ambiguity is expected auto-union behavior,
+not a User product false positive. The whole-token lexical projection only
+removes existing strict-subspan predicate candidates and runs outside the timed
+product result path.
 
 The `Product workflows` section first presents recall, throughput, and false-
 positive candidate count for agent use with `embedded + any + explicit POS`,

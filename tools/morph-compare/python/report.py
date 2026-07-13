@@ -526,13 +526,14 @@ def append_user_precision_shadow(
     lines.extend(
         [
             "",
-            "## User precision shadow",
+            "## Cross-persona User precision diagnostic",
             "",
             "The projection removes predicate-only strict-subspan origins only when the "
             "surrounding token has exclusively non-predicate exact lexical analyses. "
-            "Product matches are unchanged.",
+            "Product matches are unchanged. Query-POS ambiguity is an expected auto-union "
+            "diagnostic, not a User product false positive.",
             "",
-            "| split | baseline precision | baseline recall | projected precision | projected recall | corpus homonym FP | query POS ambiguity FP |",
+            "| split | baseline precision | baseline recall | projected precision | projected recall | corpus homonym FP | query POS ambiguity diagnostic |",
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
@@ -600,7 +601,7 @@ def append_external_baselines(lines: list[str], report: dict[str, object]) -> No
     lines.extend(
         [
             "",
-            "## Product persona and external comparison",
+            "## Cross-persona diagnostic and external snapshots",
             "",
             "All rows use the same 1,000-case explicit-POS fixture and gold. Agent keeps "
             "explicit POS, User omits POS with full-POS + smart, and external analyzers "
@@ -608,9 +609,10 @@ def append_external_baselines(lines: list[str], report: dict[str, object]) -> No
             "rows are pinned snapshots. Every performance row uses one discarded warm-up "
             "and five measured fresh processes.",
             "",
-            "This is a persona-adjusted product comparison, not an identical-input backend "
-            "ranking. The User row includes query planning and ambiguity, while the "
-            "explicit-POS gold counts matches for another POS as errors.",
+            "This is a cross-persona diagnostic, not a backend ranking or a User product "
+            "quality gate. The User row includes query planning and ambiguity, while the "
+            "explicit-POS gold counts matches for another POS as errors. Product User "
+            "quality comes from the untagged workflow and Human untagged sections.",
             "",
             "| backend | precision | recall | F1 | init median | cases/s median | "
             "p95 median | peak RSS |",
@@ -649,7 +651,7 @@ def append_external_baselines(lines: list[str], report: dict[str, object]) -> No
     lines.extend(
         [
             "- the separate Human untagged section uses production-like negatives and is "
-            "not part of this comparison",
+            "the User product quality source of truth",
             "",
             "### External snapshot ranges",
             "",
