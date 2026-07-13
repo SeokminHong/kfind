@@ -23,12 +23,14 @@ corpus 단어 denylist와 fixture 전용 branch는 허용하지 않는다. `--bo
 [지정사 lattice 독립 평가](2026-07-13-copula-blind-evaluation.md)에는 source 정렬 불일치 2건을
 제외하고 정상 VCP gold reject 13개가 남아 있다.
 
+[지정사 lattice dev gold 진단](2026-07-13-copula-dev-diagnosis.md)의 gold-aligned candidate
+1,007건 중 reject는 50건이다. segmented nominal competitor 33건, whole-window competitor
+13건, segmented other 3건, segmented predicate 1건이며 두 lexicon profile의 결과는 같다.
+
 ## 후속 작업
 
-1. Korean-GSD의 정상 VCP gold reject 13개에서 확인한 lattice 오거부 유형을
-   Korean-Kaist·KSL dev positive 전체에서 분류한다.
-2. 결과 필터링 정책과 resource 오류, 상한 초과, JSON/explain 계약을 스펙에 정의한다.
-3. 별도 unseen source와 fixture를 결과 확인 전에 고정한다.
-4. dev에서 정한 정책을 unseen source로 검증한 뒤 제품 적용 여부를 판단한다.
+1. 결과 필터링 정책과 resource 오류, 상한 초과, JSON/explain 계약을 스펙에 정의한다.
+2. 별도 unseen source와 fixture를 결과 확인 전에 고정한다.
+3. dev에서 정한 정책을 unseen source로 검증한 뒤 제품 적용 여부를 판단한다.
 
 Korean-GSD 결과에 맞춰 비용, threshold와 fixture 가중치를 변경하지 않는다.

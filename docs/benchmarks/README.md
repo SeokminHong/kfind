@@ -79,6 +79,7 @@ python3 tools/morph-compare/render_charts.py \
 - [형태소 검색 품질 검증 계약](morphology-quality.md)
 - [명사 smart-boundary 계약](nominal-boundary.md)
 - [VCP 지정사 smart-boundary 계약](copula-boundary.md)
+- [지정사 lattice dev gold 진단](2026-07-13-copula-dev-diagnosis.md)
 - [지정사 lattice 독립 평가](2026-07-13-copula-blind-evaluation.md)
 - [local lattice 비용 분석](2026-07-12-lattice-cost-analysis.md)
 

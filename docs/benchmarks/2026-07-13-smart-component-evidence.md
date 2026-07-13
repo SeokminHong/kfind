@@ -215,6 +215,7 @@ embedded 처리량은 Kiwi의 5.39배이고 peak RSS는 51.0 MiB로 Kiwi 661.5 M
 
 ## 후속 검증
 
-Korean-GSD의 정상 VCP gold reject 13개에서 확인한 lattice 오거부 유형은 별도 지정사 필터링
-작업에서 Korean-Kaist·KSL dev positive 전체를 대상으로 분류한다. 제품 판정은 결과를 보기 전에
-고정한 unseen source로 검증하며 Korean-GSD 결과에 맞춰 비용이나 threshold를 바꾸지 않는다.
+지정사 dev gold-aligned lattice candidate 1,007건 중 reject 50건의 구조별 분류는
+[지정사 lattice dev gold 진단](2026-07-13-copula-dev-diagnosis.md)을 기준으로 한다. 제품 판정은
+결과를 보기 전에 고정한 unseen source로 검증하며 Korean-GSD 결과에 맞춰 비용이나 threshold를
+바꾸지 않는다.

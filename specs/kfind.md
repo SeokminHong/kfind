@@ -1700,13 +1700,14 @@ prediction, span, lattice 비용·경로를 보존하고 Markdown은 품질과 s
 둔다.
 
 source 분해가 원문 표면과 맞지 않는 2개를 제외하면 정상 VCP gold reject가 13개 남아 있다.
-지정사 결과 필터링은 적용하지 않는다. 후속 작업은 Korean-Kaist·KSL dev에서 같은 실패 원인을
-분류하고 별도 unseen source를 고정한 뒤 진행한다.
+Korean-Kaist·KSL dev local-context positive에서 gold span과 겹치는 `EojeolLattice` candidate는
+1,007건이며 accept 957건, reject 50건, ambiguous 0건이다. reject의 primary cause는 segmented
+nominal competitor 33건, whole-window competitor 13건, segmented other 3건, segmented predicate
+1건이다. embedded와 full-POS 결과는 같다.
 
-dev 원인 분류 대상은 local-context positive 중 `EojeolLattice` candidate가 `reject` 또는
-`ambiguous`인 occurrence다. 보고서는 case ID, source·raw tag, 표면형과 분석 window, gold·candidate
-span, include·exclude 최저 비용과 경로, lattice outcome과 primary cause를 보존한다. embedded와
-full-POS를 분리하고 이 진단 비용은 성능 측정에서 제외한다.
+보고서는 case ID, source·raw tag, 표면형과 분석 window, gold·candidate span, include·exclude 최저
+비용과 경로, lattice outcome과 primary cause를 보존한다. 이 진단 비용은 성능 측정에서 제외한다.
+지정사 결과 필터링은 적용하지 않으며 별도 unseen source를 고정한 뒤 제품 정책을 검증한다.
 
 ## 20. 성능 사양
 
