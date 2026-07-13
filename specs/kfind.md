@@ -143,6 +143,16 @@
 - 제품 verifier 구현 게이트는 서로 다른 dev 명사 FN 30개 이상의 component 근거, revised
   hard-negative 오수용 0개와 기존 검색 결과 불변이다. gate 미달이면 `smart` 결과를 변경하지
   않는다.
+- component 경로 분류는 case별 `accept`와 `reject` 각각에서 해당 판정 비용이 가장 낮은
+  evidence 하나를 선택한다. 선택한 evidence에서는 같은 판정의 최저 비용 완전 경로를 사용하고,
+  동률이면 node span·POS 순으로 정렬한 첫 경로를 사용한다. 분류는 query span의 token 내 위치,
+  query node를 제외한 POS 계열, unknown node 유무와 POS sequence를 기록한다.
+- `accept` 경로 유형은 `numeric-unit`, `derivational-continuation`, `copular-continuation`,
+  `nominal-compound`, `particle-continuation`, `exact-token`, `mixed` 중 하나다. P1 일반 규칙
+  후보는 `numeric-unit`과 `derivational-continuation`만 별도 표시하며, 후보 표시는 제품 규칙
+  채택이나 검색 결과 변경을 뜻하지 않는다. `reject`는 query node가 없는 최저 경쟁 경로를
+  `unknown`, `nominal`, `predicate`, `mixed`로 분류하고 POS sequence와 unknown 여부를 보존한다.
+- component 경로 분류가 포함된 benchmark report schema는 7이다.
 - P2의 네 번째 구현 단위는 corpus-side morphology resource를 schema 3으로 갱신한다.
   query tag용 `DataFinePos`는 corpus CSV 행의 필터로 사용하지 않는다. 유효한 context ID와
   비용을 가진 모든 source 행을 NFC 표면형별로 보존하고, 단일·복합 POS 열과 type·start POS·
