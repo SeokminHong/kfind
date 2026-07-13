@@ -14,6 +14,11 @@ class Kfind < Formula
     sha256 "@FULL_POS_SHA256@"
   end
 
+  resource "component-resource" do
+    url "https://github.com/SeokminHong/kfind/releases/download/v@VERSION@/kfind-component-@VERSION@.tar.gz"
+    sha256 "@COMPONENT_SHA256@"
+  end
+
   resource "distribution-assets" do
     url "https://github.com/SeokminHong/kfind/releases/download/v@VERSION@/kfind-assets-@VERSION@.tar.gz"
     sha256 "@ASSETS_SHA256@"
@@ -25,6 +30,11 @@ class Kfind < Formula
     resource("full-pos-lexicon").stage do
       pkgshare.install "lexicon.bin", "MANIFEST.toml"
       (share/"doc/kfind/LICENSES").install "LICENSES/mecab-ko-dic-COPYING"
+    end
+
+    resource("component-resource").stage do
+      pkgshare.install "morphology-component-compact.kfc"
+      pkgshare.install "MANIFEST.toml" => "component-MANIFEST.toml"
     end
 
     resource("distribution-assets").stage do
@@ -45,5 +55,10 @@ class Kfind < Formula
     explain = shell_output("#{bin}/kfind 아주 #{sample} --explain-query")
     assert_match "source: full-pos-lexicon", explain
     refute_match "full POS lexicon unavailable", explain
+
+    component = testpath/"component.txt"
+    component.write("사용자권한을 확인했다.\n대학교를 방문했다.\n")
+    assert_match "사용자권한", shell_output("#{bin}/kfind 권한 #{component}")
+    assert_empty shell_output("#{bin}/kfind 학교 #{component}", 1)
   end
 end

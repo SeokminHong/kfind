@@ -1,24 +1,29 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -ne 6 ]]; then
-  echo "usage: render-homebrew-formula.sh VERSION SOURCE_SHA256 FULL_POS_SHA256 ASSETS_SHA256 LICENSE OUTPUT" >&2
+if [[ $# -ne 7 ]]; then
+  echo "usage: render-homebrew-formula.sh VERSION SOURCE_SHA256 FULL_POS_SHA256 COMPONENT_SHA256 ASSETS_SHA256 LICENSE OUTPUT" >&2
   exit 2
 fi
 
 version=$1
 source_sha256=$2
 full_pos_sha256=$3
-assets_sha256=$4
-project_license=$5
-output=$6
+component_sha256=$4
+assets_sha256=$5
+project_license=$6
+output=$7
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
 if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$ ]]; then
   echo "invalid release version: ${version}" >&2
   exit 2
 fi
-for checksum in "${source_sha256}" "${full_pos_sha256}" "${assets_sha256}"; do
+for checksum in \
+  "${source_sha256}" \
+  "${full_pos_sha256}" \
+  "${component_sha256}" \
+  "${assets_sha256}"; do
   if [[ ! "${checksum}" =~ ^[0-9a-f]{64}$ ]]; then
     echo "invalid sha256: ${checksum}" >&2
     exit 2
@@ -50,6 +55,7 @@ sed \
   -e "s|@VERSION@|$(escape_sed "${version}")|g" \
   -e "s|@SOURCE_SHA256@|${source_sha256}|g" \
   -e "s|@FULL_POS_SHA256@|${full_pos_sha256}|g" \
+  -e "s|@COMPONENT_SHA256@|${component_sha256}|g" \
   -e "s|@ASSETS_SHA256@|${assets_sha256}|g" \
   -e "s|@FORMULA_LICENSE@|$(escape_sed "${formula_license}")|g" \
   "${repo_root}/packaging/homebrew/kfind.rb.in" >"${output}"
