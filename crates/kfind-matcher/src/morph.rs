@@ -8,8 +8,8 @@ use std::sync::Arc;
 use grep_matcher::{LineMatchKind, LineTerminator, Match, Matcher, NoCaptures, NoError};
 use kfind_data::{ComponentResource, DataFinePos};
 use kfind_morph::{
-    DEFAULT_LATTICE_NODE_LIMIT, FinePos, LocalLatticeDecision, ParticleChainModel,
-    ParticleVerifier, RuleId, evaluate_local_component_decision, verify_predicate_continuation,
+    DEFAULT_LATTICE_NODE_LIMIT, FinePos, LocalComponentEvaluator, LocalLatticeDecision,
+    ParticleChainModel, ParticleVerifier, RuleId, verify_predicate_continuation,
 };
 use kfind_query::{
     BranchEnvironment, BranchVerifier, ContextRequirement, CoreMapping, Origin, PhraseMatch,
@@ -35,7 +35,7 @@ pub struct MorphMatcher {
     max_anchor_bytes: usize,
     is_line_local: bool,
     particle_verifier: ParticleVerifier,
-    component_resource: Option<Arc<ComponentResource>>,
+    component_evaluator: Option<Arc<LocalComponentEvaluator>>,
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -55,12 +55,22 @@ impl MorphMatcher {
         plan: Arc<QueryPlan>,
         component_resource: Arc<ComponentResource>,
     ) -> Result<Self, MorphMatcherBuildError> {
-        Self::build(plan, Some(component_resource))
+        Self::with_component_evaluator(
+            plan,
+            Arc::new(LocalComponentEvaluator::new(component_resource)),
+        )
+    }
+
+    pub fn with_component_evaluator(
+        plan: Arc<QueryPlan>,
+        component_evaluator: Arc<LocalComponentEvaluator>,
+    ) -> Result<Self, MorphMatcherBuildError> {
+        Self::build(plan, Some(component_evaluator))
     }
 
     fn build(
         plan: Arc<QueryPlan>,
-        component_resource: Option<Arc<ComponentResource>>,
+        component_evaluator: Option<Arc<LocalComponentEvaluator>>,
     ) -> Result<Self, MorphMatcherBuildError> {
         if plan.atoms.is_empty() {
             return Err(MorphMatcherBuildError::EmptyPlan);
@@ -95,7 +105,7 @@ impl MorphMatcher {
             max_anchor_bytes,
             is_line_local,
             particle_verifier,
-            component_resource,
+            component_evaluator,
         })
     }
 
@@ -423,9 +433,10 @@ impl MorphMatcher {
         if whole_token == candidate.token {
             return true;
         }
-        let Some(resource) = self.component_resource.as_deref() else {
+        let Some(evaluator) = self.component_evaluator.as_deref() else {
             return true;
         };
+        let resource = evaluator.resource();
         let token = &haystack[whole_token];
         let mut has_exact_analysis = false;
         let mut has_predicate_or_unknown = false;
@@ -463,7 +474,7 @@ impl MorphMatcher {
         atom_index: usize,
         branch: &SurfaceBranch,
     ) -> bool {
-        let Some(resource) = &self.component_resource else {
+        let Some(evaluator) = &self.component_evaluator else {
             return false;
         };
         let Ok(window) = crate::AnalysisWindow::extract(
@@ -489,14 +500,14 @@ impl MorphMatcher {
             .filter_map(|analysis| component_pos(analysis.fine_pos))
             .collect::<HashSet<_>>();
         query_positions.into_iter().any(|query_pos| {
-            evaluate_local_component_decision(
-                resource.as_ref(),
-                window.normalized(),
-                query_span.clone(),
-                query_pos,
-                DEFAULT_LATTICE_NODE_LIMIT,
-            )
-            .is_ok_and(|decision| decision == LocalLatticeDecision::Accept)
+            evaluator
+                .evaluate_decision(
+                    window.normalized(),
+                    query_span.clone(),
+                    query_pos,
+                    DEFAULT_LATTICE_NODE_LIMIT,
+                )
+                .is_ok_and(|decision| decision == LocalLatticeDecision::Accept)
         })
     }
 

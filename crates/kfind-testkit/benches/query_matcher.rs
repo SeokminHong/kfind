@@ -9,7 +9,7 @@ use kfind_data::{
 };
 use kfind_matcher::MorphMatcher;
 use kfind_morph::{
-    DEFAULT_LATTICE_NODE_LIMIT, evaluate_local_component_decision, evaluate_local_component_paths,
+    DEFAULT_LATTICE_NODE_LIMIT, LocalComponentEvaluator, evaluate_local_component_paths,
 };
 use kfind_query::{CompileOptions, LexiconQueryAnalyzer, Lexicons, compile_query};
 
@@ -91,22 +91,22 @@ fn matcher_scan(criterion: &mut Criterion) {
 }
 
 fn local_lattice(criterion: &mut Criterion) {
-    let resource = component_resource();
+    let resource = Arc::new(component_resource());
+    let evaluator = LocalComponentEvaluator::new(Arc::clone(&resource));
     let cases = [
         ("사용자권한", "사용자".len(), "사용자권한".len()),
         ("대학교", "대".len(), "대학교".len()),
         ("공공", 0, "공".len()),
     ];
     let decisions = cases.map(|(text, start, end)| {
-        evaluate_local_component_paths(
-            &resource,
-            text,
-            start..end,
-            DataFinePos::Nng,
-            DEFAULT_LATTICE_NODE_LIMIT,
-        )
-        .expect("benchmark lattice must have a complete path")
-        .decision
+        evaluator
+            .evaluate_decision(
+                text,
+                start..end,
+                DataFinePos::Nng,
+                DEFAULT_LATTICE_NODE_LIMIT,
+            )
+            .expect("benchmark lattice must have a complete path")
     });
     assert_eq!(
         decisions,
@@ -122,14 +122,14 @@ fn local_lattice(criterion: &mut Criterion) {
     group.bench_function("component_decision", |bencher| {
         bencher.iter(|| {
             for (text, start, end) in cases {
-                let decision = evaluate_local_component_decision(
-                    black_box(&resource),
-                    black_box(text),
-                    start..end,
-                    DataFinePos::Nng,
-                    DEFAULT_LATTICE_NODE_LIMIT,
-                )
-                .expect("benchmark lattice must have a complete path");
+                let decision = black_box(&evaluator)
+                    .evaluate_decision(
+                        black_box(text),
+                        start..end,
+                        DataFinePos::Nng,
+                        DEFAULT_LATTICE_NODE_LIMIT,
+                    )
+                    .expect("benchmark lattice must have a complete path");
                 black_box(decision);
             }
         });
@@ -139,7 +139,7 @@ fn local_lattice(criterion: &mut Criterion) {
             for (text, start, end) in cases {
                 black_box(
                     evaluate_local_component_paths(
-                        black_box(&resource),
+                        black_box(resource.as_ref()),
                         black_box(text),
                         start..end,
                         DataFinePos::Nng,

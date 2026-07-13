@@ -7,9 +7,11 @@ use std::ops::Range;
 use kfind_data::{ComponentResource, DataFinePos, DecodedMorphologyResource};
 
 mod decision;
+mod evaluator;
 mod unknown;
 
 use decision::{LocalLatticeCosts, best_costs};
+pub use evaluator::LocalComponentEvaluator;
 use unknown::{UnknownAnalysis, UnknownDictionary};
 
 pub const DEFAULT_LATTICE_NODE_LIMIT: usize = 4_096;
@@ -241,6 +243,12 @@ fn build_local_nodes(
     query_pos: DataFinePos,
     node_limit: usize,
 ) -> Result<Vec<Node>, LocalLatticeError> {
+    validate_query_span(text, &query_span)?;
+    let unknown = UnknownDictionary::parse(resource)?;
+    build_nodes(resource, text, &query_span, query_pos, &unknown, node_limit)
+}
+
+fn validate_query_span(text: &str, query_span: &Range<usize>) -> Result<(), LocalLatticeError> {
     if query_span.start >= query_span.end
         || query_span.end > text.len()
         || !text.is_char_boundary(query_span.start)
@@ -248,8 +256,7 @@ fn build_local_nodes(
     {
         return Err(LocalLatticeError::InvalidQuerySpan);
     }
-    let unknown = UnknownDictionary::parse(resource)?;
-    build_nodes(resource, text, &query_span, query_pos, &unknown, node_limit)
+    Ok(())
 }
 
 #[derive(Clone, Debug)]
