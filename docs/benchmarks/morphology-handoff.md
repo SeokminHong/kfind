@@ -9,6 +9,7 @@
 - [User smart precision 품질·성능](2026-07-14-user-smart-precision.md)
 - [Agent precision shadow 판정](2026-07-14-agent-precision-shadow.md)
 - [`-기` 명사형 조사 continuation 품질·성능](2026-07-14-gi-particle-continuation.md)
+- [국소 lattice 제품 경로 최적화](2026-07-14-local-lattice-optimization.md)
 - [smart component 검색 근거](2026-07-13-smart-component-evidence.md)
 - [copula lattice 폐기 판정](2026-07-13-copula-unseen-evaluation.md)
 - [형태소 benchmark 사용법](README.md#morphology-comparison)
@@ -41,6 +42,9 @@
   동일 입력의 backend 순위가 아니라 실제 입력 조건을 반영한 비교다.
 - compact component artifact는 Homebrew의 `share/kfind`와 npm의 별도 정적 asset으로
   배포한다. WASM binary에는 artifact bytes를 포함하지 않는다.
+- 제품 matcher의 local lattice는 query 포함·제외별 최저 비용만 계산한다. N-best 경로는
+  shadow 진단에서만 생성하며 두 경로의 판정과 최저 비용은 같다. unknown model은 component
+  evaluator마다 한 번 파싱하고 Engine이 matcher 사이에서 공유한다.
 
 ## 품질 기준선
 
@@ -54,8 +58,9 @@
 | embedded/full-POS | any | 479 / 11 / 21 | 97.76% | 95.8% | 96.77% |
 
 full-POS `smart`가 embedded보다 추가로 찾는 5건은 모두 명사다. `token`과 `any`에서는 두
-lexicon profile의 품질이 같다. 세부 품사, 처리량, latency, RSS와 외부 분석기 비교는
-[User smart precision 품질·성능](2026-07-14-user-smart-precision.md)을 기준으로 한다.
+lexicon profile의 품질이 같다. 세부 품사와 품질 계약은
+[User smart precision 품질·성능](2026-07-14-user-smart-precision.md), 현재 처리량과 latency는
+[국소 lattice 제품 경로 최적화](2026-07-14-local-lattice-optimization.md)를 기준으로 한다.
 
 품사를 생략하는 사람용 1,000-case fixture에서 full-POS `smart`는 TP 411, FP 0, FN 89,
 precision 100.00%, recall 82.2%, F1 90.23%다. embedded `smart`는 TP 315, FP 0, FN 185다.
@@ -135,6 +140,7 @@ pnpm --dir packages/kfind run benchmark:startup
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
+cargo bench -p kfind-testkit --bench query_matcher -- local_lattice
 cargo fmt --manifest-path tools/morph-index-benchmark/Cargo.toml -- --check
 cargo clippy --locked --manifest-path tools/morph-index-benchmark/Cargo.toml \
   --all-targets -- -D warnings
