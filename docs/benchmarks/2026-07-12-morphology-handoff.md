@@ -72,11 +72,11 @@ profile의 FN은 146개다.
 - 지정사 판별 fixture `1e06951581c84f02a4013e8410c113337c1389d3dcc2028b322f887bb181b494`에
   canonical gold 1,601건과 surface cue 음성 1,315건을 고정했다. 비정규 `VCP=있` 1건은
   양성으로 승격하지 않고 제외 사유로 기록한다.
-- kfind embedded/full-POS는 지정사 slice에서 TP 962, FP 76, TN 1,239, FN 639로 동일하다.
-  precision은 92.68%, recall은 60.09%다.
-- KSL VCP는 precision 82.76%, recall 45.04%로 가장 약하다. Kiwi는 96.28%/97.05%,
+- kfind embedded/full-POS는 지정사 slice에서 TP 1,033, FP 78, TN 1,237, FN 568로 동일하다.
+  precision은 92.98%, recall은 64.52%다.
+- KSL VCP는 precision 85.43%, recall 56.57%로 가장 약하다. Kiwi는 96.28%/97.05%,
   Lindera는 89.43%/97.59%다.
-- `EojeolLattice` 대상은 1,160개 case의 1,652개 hit이다. 현재 union 결과는 유지하며 이
+- `EojeolLattice` 대상은 1,226개 case의 1,740개 hit이다. 현재 union 결과는 유지하며 이
   baseline을 P2 lattice path 판별력 평가에 사용한다.
 - `kfind-data`의 corpus-side resource를 schema 3으로 갱신했다. resource는 773,105개
   NFC 표면형, 815,725개 source 분석, 3,822×2,693 연결 비용 행렬, 모든 문자 class와
@@ -87,10 +87,10 @@ profile의 FN은 146개다.
 - `AnalysisWindow`는 검증 target 주변의 Unicode token을 최대 256 raw bytes와 64 NFC
   scalar로 제한하고 원문·NFC의 안정된 byte 경계를 양방향 매핑한다. UTF-8 오류와 상한 초과는
   명시적 오류다. lattice shadow는 성능 측정 뒤에 실행되며 검색 결과를 바꾸지 않는다.
-- 1,652개 lattice candidate를 모두 평가해 `accept` 1,428개, `reject` 224개를 얻었다.
+- 1,740개 lattice candidate를 모두 평가해 `accept` 1,515개, `reject` 225개를 얻었다.
   오류와 `ambiguous`는 없다.
-- gold target 936개 중 886개를 수용하지만 non-gold target 716개 중 174개만 거절한다.
-  non-gold reject 비율 24.30%로 제품 판정에는 부족해 P3는 보류한다.
+- gold target 1,007개 중 957개를 수용하지만 non-gold target 733개 중 175개만 거절한다.
+  non-gold reject 비율 23.87%로 제품 판정에는 부족해 P3는 보류한다.
 - [1 GiB low-hit 보고서](2026-07-12-1gib-mixed.md)는 kfind와 rg 모두 0.0470초,
   throughput 21,787.23 MiB/s, kfind RSS 7.23 MiB로 v0.1 게이트를 통과했다.
 - blind 평가는 UD Korean-GSD r2.18 test split으로 확정했다. CC BY-SA 4.0 source와 license
@@ -234,6 +234,13 @@ dev의 `불렀을` 1건과 `좋았을` 2건을 근거로 과거 선어말어미 
 coverage 단위는 기존 `ending.polite-declarative`로 표면에 `입니다`가 남는 높임 평서형만
 생성한다. `겁니다`와 `-다/-라` 축약, local filtering은 별도 범위로 두며 union precision은
 P1의 2%p 하락 guardrail을 지켜야 한다.
+
+`입니다` branch는 dev에서 gold 71개를 회복하고 음성 2개를 추가했다. 한 음성은 `미오씨
+입니다`를 분리하고 VCP를 VV로 둔 source 정렬·tag 이상이고, 다른 하나는 동사
+`움직입니다`다. dev 지정사 precision은 92.68%에서 92.98%, recall은 60.09%에서 64.52%로
+올랐다. blind regression도 TP 149→173,
+FP 68→69로 precision 71.49%, recall 53.89%다. 새 blind gold candidate 24개는 lattice가
+수용하고 `보입니다` 음성 1개는 거절했다. 기본 union과 P3 보류 정책은 유지한다.
 
 ### P2. benchmark의 판별력을 높인다 (완료)
 
