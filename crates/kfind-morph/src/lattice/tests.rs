@@ -84,8 +84,8 @@ fn exact_component_path_accepts_a_matching_node_span() {
     let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
     let report = evaluate_local_component_paths(
         &resource,
-        "매일",
-        "매".len().."매일".len(),
+        "사용자권한",
+        "사용자".len().."사용자권한".len(),
         DataFinePos::Nng,
         DEFAULT_LATTICE_NODE_LIMIT,
     )
@@ -109,7 +109,8 @@ fn exact_component_path_rejects_a_crossing_substring() {
     .unwrap();
 
     assert_eq!(report.decision, LocalLatticeDecision::Reject);
-    assert!(report.paths.iter().all(|path| !path.includes_query));
+    assert!(report.paths.iter().any(|path| path.includes_query));
+    assert!(report.paths.iter().any(|path| !path.includes_query));
 }
 
 #[test]
@@ -136,7 +137,12 @@ fn fixture_resource() -> Vec<u8> {
         entry("일", DataFinePos::Vcp, 1, 1, 1),
         source_entry("인", "NNG", 1, 1, 20),
         source_entry("인", "VCP+ETM", 1, 1, 1),
-        entry("대학교", DataFinePos::Nng, 1, 1, 1),
+        entry("대학교", DataFinePos::Nng, 1, 1, -5_000),
+        source_entry("대", "XPN", 1, 1, 5_000),
+        entry("학교", DataFinePos::Nng, 1, 1, 5_000),
+        entry("사용자", DataFinePos::Nng, 1, 1, -5_000),
+        entry("권한", DataFinePos::Nng, 1, 1, -5_000),
+        entry("사용자권한", DataFinePos::Nng, 1, 1, 5_000),
     ];
     let matrix = parse_mecab_connection_matrix(
         "matrix.def",

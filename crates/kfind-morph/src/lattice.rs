@@ -116,23 +116,15 @@ fn evaluate_local_paths(
         .filter(|path| !path.includes_query)
         .map(|path| path.cost)
         .min();
-    let decision = match (constraint, include_cost, exclude_cost) {
-        (QueryConstraint::ExactSpan, Some(_), _) => LocalLatticeDecision::Accept,
-        (QueryConstraint::ExactSpan, None, Some(_)) => LocalLatticeDecision::Reject,
-        (QueryConstraint::ExactSpan, None, None) => {
-            return Err(LocalLatticeError::NoCompletePath);
-        }
-        (QueryConstraint::CoveringPos, Some(include), Some(exclude)) => match include.cmp(&exclude)
-        {
+    let decision = match (include_cost, exclude_cost) {
+        (Some(include), Some(exclude)) => match include.cmp(&exclude) {
             Ordering::Less => LocalLatticeDecision::Accept,
             Ordering::Greater => LocalLatticeDecision::Reject,
             Ordering::Equal => LocalLatticeDecision::Ambiguous,
         },
-        (QueryConstraint::CoveringPos, Some(_), None) => LocalLatticeDecision::Accept,
-        (QueryConstraint::CoveringPos, None, Some(_)) => LocalLatticeDecision::Reject,
-        (QueryConstraint::CoveringPos, None, None) => {
-            return Err(LocalLatticeError::NoCompletePath);
-        }
+        (Some(_), None) => LocalLatticeDecision::Accept,
+        (None, Some(_)) => LocalLatticeDecision::Reject,
+        (None, None) => return Err(LocalLatticeError::NoCompletePath),
     };
     let cost_margin = include_cost
         .zip(exclude_cost)
