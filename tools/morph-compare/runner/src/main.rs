@@ -7,10 +7,8 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use anyhow::{Context, Result, bail};
-use kfind_data::{
-    DataErrorKind, DecodedMorphologyResource, decode_morphology_resource, parse_sha256,
-};
-use kfind_matcher::{MorphMatcher, VerificationCounters};
+use kfind_data::{DataErrorKind, decode_morphology_resource, parse_sha256};
+use kfind_matcher::MorphMatcher;
 use kfind_morph::CoarsePos;
 use kfind_query::{
     BoundaryPolicy, CompileOptionOverrides, CompileOptions, ContextRequirement,
@@ -24,7 +22,10 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
-use shadow::{diagnose_component_candidate, diagnose_lattice_candidate};
+use shadow::{
+    ShadowBranchEvidence, ShadowResource, ShadowVerificationCounters, diagnose_component_candidate,
+    diagnose_lattice_candidate,
+};
 
 const FULL_POS_LEXICON: &str = "/opt/morph-benchmark/full-pos/lexicon.bin";
 const FULL_POS_LEXICON_ENV: &str = "KFIND_FULL_POS_LEXICON";
@@ -76,109 +77,6 @@ struct FailureDiagnostic {
     auto_has_expected_pos_analysis: bool,
     gold_anchor_overlap: bool,
     any_boundary_gold_overlap: bool,
-}
-
-#[derive(Debug, Serialize)]
-struct ShadowVerificationCounters {
-    raw_anchor_hits: usize,
-    verified_branch_hits: usize,
-    local_lattice_candidate_hits: usize,
-    unique_analysis_windows: usize,
-    nominal_component_candidate_hits: usize,
-    unique_component_windows: usize,
-    local_branches: Vec<ShadowBranchEvidence>,
-    component_branches: Vec<ShadowBranchEvidence>,
-    lattice: Vec<ShadowLatticeEvidence>,
-    component: Vec<ShadowLatticeEvidence>,
-}
-
-#[derive(Debug, Serialize)]
-struct ShadowBranchEvidence {
-    atom_index: usize,
-    anchor: String,
-    require_left: bool,
-    require_right: bool,
-}
-
-#[derive(Debug, Serialize)]
-struct ShadowLatticeEvidence {
-    status: &'static str,
-    atom_index: usize,
-    analysis_index: u16,
-    fine_pos: &'static str,
-    target: Span,
-    window: Option<ShadowWindowEvidence>,
-    decision: Option<&'static str>,
-    include_cost: Option<i64>,
-    exclude_cost: Option<i64>,
-    cost_margin: Option<i64>,
-    node_count: Option<usize>,
-    paths: Vec<ShadowPathEvidence>,
-    error: Option<String>,
-}
-
-#[derive(Debug, Serialize)]
-struct ShadowWindowEvidence {
-    raw: Span,
-    normalized: String,
-}
-
-#[derive(Debug, Serialize)]
-struct ShadowPathEvidence {
-    cost: i64,
-    includes_query: bool,
-    nodes: Vec<ShadowNodeEvidence>,
-}
-
-#[derive(Debug, Serialize)]
-struct ShadowNodeEvidence {
-    normalized: Span,
-    original: Option<Span>,
-    pos: Option<String>,
-    word_cost: i32,
-    unknown: bool,
-}
-
-#[derive(Clone, Copy)]
-enum ShadowResource<'a> {
-    Loaded(&'a DecodedMorphologyResource<'a>),
-    Missing,
-    Corrupt,
-    SourceMismatch,
-}
-
-impl ShadowVerificationCounters {
-    fn new(
-        counters: VerificationCounters,
-        local_branches: Vec<ShadowBranchEvidence>,
-        component_branches: Vec<ShadowBranchEvidence>,
-        lattice: Vec<ShadowLatticeEvidence>,
-        component: Vec<ShadowLatticeEvidence>,
-    ) -> Self {
-        Self {
-            raw_anchor_hits: counters.raw_anchor_hits,
-            verified_branch_hits: counters.verified_branch_hits,
-            local_lattice_candidate_hits: counters.local_lattice_candidate_hits,
-            unique_analysis_windows: counters.unique_analysis_windows,
-            nominal_component_candidate_hits: counters.nominal_component_candidate_hits,
-            unique_component_windows: counters.unique_component_windows,
-            local_branches,
-            component_branches,
-            lattice,
-            component,
-        }
-    }
-}
-
-impl ShadowResource<'_> {
-    const fn unavailable_status(self) -> Option<&'static str> {
-        match self {
-            Self::Loaded(_) => None,
-            Self::Missing => Some("resource-missing"),
-            Self::Corrupt => Some("resource-corrupt"),
-            Self::SourceMismatch => Some("source-mismatch"),
-        }
-    }
 }
 
 #[derive(Clone, Copy)]

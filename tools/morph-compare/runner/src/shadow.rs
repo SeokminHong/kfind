@@ -1,14 +1,115 @@
-use kfind_data::DataFinePos;
-use kfind_matcher::{AnalysisWindowError, LocalAnalysisCandidate};
+use kfind_data::{DataFinePos, DecodedMorphologyResource};
+use kfind_matcher::{AnalysisWindowError, LocalAnalysisCandidate, VerificationCounters};
 use kfind_morph::{
     DEFAULT_LATTICE_NODE_LIMIT, FinePos, LocalLatticeDecision, LocalLatticeReport,
     evaluate_local_component_paths, evaluate_local_lattice,
 };
+use serde::Serialize;
 
-use super::{
-    ShadowLatticeEvidence, ShadowNodeEvidence, ShadowPathEvidence, ShadowResource,
-    ShadowWindowEvidence, Span,
-};
+use super::Span;
+
+#[derive(Debug, Serialize)]
+pub(super) struct ShadowVerificationCounters {
+    pub(super) raw_anchor_hits: usize,
+    pub(super) verified_branch_hits: usize,
+    pub(super) local_lattice_candidate_hits: usize,
+    pub(super) unique_analysis_windows: usize,
+    pub(super) nominal_component_candidate_hits: usize,
+    pub(super) unique_component_windows: usize,
+    pub(super) local_branches: Vec<ShadowBranchEvidence>,
+    component_branches: Vec<ShadowBranchEvidence>,
+    pub(super) lattice: Vec<ShadowLatticeEvidence>,
+    component: Vec<ShadowLatticeEvidence>,
+}
+
+#[derive(Debug, Serialize)]
+pub(super) struct ShadowBranchEvidence {
+    pub(super) atom_index: usize,
+    pub(super) anchor: String,
+    pub(super) require_left: bool,
+    pub(super) require_right: bool,
+}
+
+#[derive(Debug, Serialize)]
+pub(super) struct ShadowLatticeEvidence {
+    pub(super) status: &'static str,
+    atom_index: usize,
+    analysis_index: u16,
+    fine_pos: &'static str,
+    target: Span,
+    window: Option<ShadowWindowEvidence>,
+    decision: Option<&'static str>,
+    include_cost: Option<i64>,
+    exclude_cost: Option<i64>,
+    cost_margin: Option<i64>,
+    node_count: Option<usize>,
+    paths: Vec<ShadowPathEvidence>,
+    error: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct ShadowWindowEvidence {
+    raw: Span,
+    normalized: String,
+}
+
+#[derive(Debug, Serialize)]
+struct ShadowPathEvidence {
+    cost: i64,
+    includes_query: bool,
+    nodes: Vec<ShadowNodeEvidence>,
+}
+
+#[derive(Debug, Serialize)]
+struct ShadowNodeEvidence {
+    normalized: Span,
+    original: Option<Span>,
+    pos: Option<String>,
+    word_cost: i32,
+    unknown: bool,
+}
+
+#[derive(Clone, Copy)]
+pub(super) enum ShadowResource<'a> {
+    Loaded(&'a DecodedMorphologyResource<'a>),
+    Missing,
+    Corrupt,
+    SourceMismatch,
+}
+
+impl ShadowVerificationCounters {
+    pub(super) fn new(
+        counters: VerificationCounters,
+        local_branches: Vec<ShadowBranchEvidence>,
+        component_branches: Vec<ShadowBranchEvidence>,
+        lattice: Vec<ShadowLatticeEvidence>,
+        component: Vec<ShadowLatticeEvidence>,
+    ) -> Self {
+        Self {
+            raw_anchor_hits: counters.raw_anchor_hits,
+            verified_branch_hits: counters.verified_branch_hits,
+            local_lattice_candidate_hits: counters.local_lattice_candidate_hits,
+            unique_analysis_windows: counters.unique_analysis_windows,
+            nominal_component_candidate_hits: counters.nominal_component_candidate_hits,
+            unique_component_windows: counters.unique_component_windows,
+            local_branches,
+            component_branches,
+            lattice,
+            component,
+        }
+    }
+}
+
+impl ShadowResource<'_> {
+    pub(super) const fn unavailable_status(self) -> Option<&'static str> {
+        match self {
+            Self::Loaded(_) => None,
+            Self::Missing => Some("resource-missing"),
+            Self::Corrupt => Some("resource-corrupt"),
+            Self::SourceMismatch => Some("source-mismatch"),
+        }
+    }
+}
 
 pub(super) fn diagnose_lattice_candidate(
     candidate: &LocalAnalysisCandidate,
