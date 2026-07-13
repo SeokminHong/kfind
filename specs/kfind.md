@@ -1039,6 +1039,8 @@ atom 2 spans
 
 표면형 후보들의 데카르트 곱을 정규식으로 만들지 않는다.
 
+`find_all_with_meta`의 phrase 경로는 입력의 anchor와 atom span을 한 번 수집하고 phrase 후보를 한 번 결합한 뒤 leftmost-longest 순서로 non-overlapping 결과를 선택한다. match 하나를 반환할 때마다 남은 전체 입력의 anchor와 span 결합을 다시 계산하지 않는다.
+
 ### 12.5 병렬 출력
 
 각 worker는 독립된 `Searcher`, scratch buffer, matcher cursor를 가진다.
@@ -1679,6 +1681,8 @@ query compile 목표는 lexicon을 미리 로드한 같은 analyzer를 재사용
 single_atom: 걷다
 phrase_8_atoms: n:사용자 n:권한 v:검증하다 adj:예쁘다 det:새 adv:빨리 n:기술 v:걷다
 ```
+
+`matcher/phrase_find_all`은 1,024개 line 중 4개마다 `n:길 v:걷다`가 일치하는 고정 corpus를 메모리 입력으로 사용한다. 전체 phrase match를 반환하는 한 번의 호출을 측정해 match 수에 따른 반복 anchor scan과 span 결합 회귀를 감시한다.
 
 p95는 Criterion `new/sample.json`의 각 sample에 대해 `times[i] / iters[i]`로 계산한
 1회당 nanoseconds를 오름차순으로 정렬하고 nearest-rank 방식으로 선택한다. 정식 목표 판정은

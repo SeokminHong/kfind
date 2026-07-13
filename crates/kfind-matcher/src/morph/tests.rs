@@ -238,6 +238,21 @@ fn phrase_join_preserves_order_and_unicode_scalar_gap() {
 }
 
 #[test]
+fn phrase_find_all_selects_non_overlapping_matches_in_order() {
+    let first = atom(BoundaryPolicy::Smart, vec![exact_branch("권한", true)]);
+    let second = atom(BoundaryPolicy::Smart, vec![exact_branch("검증", true)]);
+    let matcher = matcher(vec![first, second], 1);
+    let text = "권한 검증 권한 검증";
+
+    let matches = matcher.find_all_with_meta(text.as_bytes());
+
+    assert_eq!(matches.len(), 2);
+    assert_eq!(&text[matches[0].span.clone()], "권한 검증");
+    assert_eq!(&text[matches[1].span.clone()], "권한 검증");
+    assert!(matches[0].span.end <= matches[1].span.start);
+}
+
+#[test]
 fn phrase_join_ignores_invalid_utf8_outside_the_candidate_range() {
     let first = atom(
         BoundaryPolicy::Smart,
