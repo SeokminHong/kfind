@@ -7,7 +7,10 @@ use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use kfind_data::{DataError, parse_user_lexicon_toml};
+use kfind_data::{
+    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataError, decode_component_resource,
+    parse_user_lexicon_toml,
+};
 use kfind_matcher::{MorphMatcher, MorphMatcherBuildError};
 use kfind_query::{
     CompileError, CompileOptionError, LexiconQueryAnalyzer, Lexicons, compile_query,
@@ -17,10 +20,11 @@ use kfind_search::{
     SearchRunError, SearchSummary, WalkOptions, execute_search_with_stdin, resolve_search_paths,
 };
 
-use crate::output::{FullPosStatus, write_safe_path, write_safe_text};
+use crate::output::{FullPosNotRequiredReason, FullPosStatus, write_safe_path, write_safe_text};
 use crate::{Args, EncodingArg, Language, OutputError, OutputOptions, OutputWriter, SortArg};
 
 const FULL_POS_FILE: &str = "lexicon.bin";
+const COMPONENT_RESOURCE_FILE: &str = "morphology-component-compact.kfc";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[repr(u8)]
@@ -52,13 +56,27 @@ where
     E: Write + Send,
 {
     let options = args.compile_options().map_err(CliError::Options)?;
-    let loaded_lexicons = load_lexicons(args, options.requires_full_pos_lexicon())?;
+    let full_pos_mode = if args.embedded {
+        FullPosMode::Disabled(FullPosNotRequiredReason::EmbeddedMode)
+    } else if options.requires_full_pos_lexicon() {
+        FullPosMode::Auto
+    } else {
+        FullPosMode::Disabled(FullPosNotRequiredReason::LiteralQuery)
+    };
+    let loaded_lexicons = load_lexicons(args, full_pos_mode)?;
     let full_pos_status = loaded_lexicons.full_pos;
     let lexicons = Arc::new(loaded_lexicons.lexicons);
     let analyzer = LexiconQueryAnalyzer::new(lexicons);
     let plan =
         Arc::new(compile_query(&args.query, &options, &analyzer).map_err(CliError::Compile)?);
-    let matcher = Arc::new(MorphMatcher::new(Arc::clone(&plan)).map_err(CliError::Matcher)?);
+    let matcher = if plan.requires_component_resource() {
+        let resource = Arc::new(load_component_resource(args)?);
+        MorphMatcher::with_component_resource(Arc::clone(&plan), resource)
+    } else {
+        MorphMatcher::new(Arc::clone(&plan))
+    }
+    .map(Arc::new)
+    .map_err(CliError::Matcher)?;
     let paths = resolve_search_paths(&args.paths, stdin_is_terminal);
     let output_options = OutputOptions::from_args_with_language(
         args,
@@ -106,18 +124,28 @@ struct LoadedLexicons {
     full_pos: FullPosStatus,
 }
 
-fn load_lexicons(args: &Args, load_full_pos: bool) -> Result<LoadedLexicons, CliError> {
+#[derive(Clone, Copy)]
+enum FullPosMode {
+    Auto,
+    Disabled(FullPosNotRequiredReason),
+}
+
+fn load_lexicons(args: &Args, full_pos_mode: FullPosMode) -> Result<LoadedLexicons, CliError> {
     let mut lexicons = Lexicons::embedded().map_err(CliError::Data)?;
-    let resolved_full_pos = resolve_full_pos(args)?;
-    if load_full_pos {
-        if let FullPosStatus::Loaded { path } = &resolved_full_pos {
-            let bytes = fs::read(path).map_err(|source| CliError::Read {
-                path: path.clone(),
-                source,
-            })?;
-            lexicons.load_full_pos(&bytes).map_err(CliError::Data)?;
+    let full_pos = match full_pos_mode {
+        FullPosMode::Auto => {
+            let resolved_full_pos = resolve_full_pos(args)?;
+            if let FullPosStatus::Loaded { path } = &resolved_full_pos {
+                let bytes = fs::read(path).map_err(|source| CliError::Read {
+                    path: path.clone(),
+                    source,
+                })?;
+                lexicons.load_full_pos(&bytes).map_err(CliError::Data)?;
+            }
+            resolved_full_pos
         }
-    }
+        FullPosMode::Disabled(reason) => FullPosStatus::NotRequired(reason),
+    };
     if let Some(path) = user_lexicon_path(args) {
         let source = fs::read_to_string(&path).map_err(|source| CliError::Read {
             path: path.clone(),
@@ -127,14 +155,45 @@ fn load_lexicons(args: &Args, load_full_pos: bool) -> Result<LoadedLexicons, Cli
             .map_err(CliError::Data)?;
         lexicons.merge_user(&user);
     }
-    Ok(LoadedLexicons {
-        lexicons,
-        full_pos: if load_full_pos {
-            resolved_full_pos
-        } else {
-            FullPosStatus::NotRequired
-        },
-    })
+    Ok(LoadedLexicons { lexicons, full_pos })
+}
+
+fn load_component_resource(args: &Args) -> Result<ComponentResource, CliError> {
+    let path = resolve_component_resource(args)?;
+    let bytes = fs::read(&path).map_err(|source| CliError::Read {
+        path: path.clone(),
+        source,
+    })?;
+    decode_component_resource(
+        &path.to_string_lossy(),
+        bytes,
+        &COMPONENT_RESOURCE_SOURCE_DIGEST,
+    )
+    .map_err(CliError::Data)
+}
+
+fn resolve_component_resource(args: &Args) -> Result<PathBuf, CliError> {
+    if let Some(directory) = &args.data_dir {
+        return require_component_candidate(vec![directory.join(COMPONENT_RESOURCE_FILE)]);
+    }
+    if let Some(directory) = env::var_os("KFIND_DATA_DIR") {
+        return require_component_candidate(vec![
+            PathBuf::from(directory).join(COMPONENT_RESOURCE_FILE),
+        ]);
+    }
+    require_component_candidate(auto_component_candidates())
+}
+
+fn require_component_candidate(candidates: Vec<PathBuf>) -> Result<PathBuf, CliError> {
+    candidates
+        .iter()
+        .find(|path| path.is_file())
+        .cloned()
+        .ok_or_else(|| CliError::MissingComponent(candidates.into_boxed_slice()))
+}
+
+fn auto_component_candidates() -> Vec<PathBuf> {
+    auto_data_candidates(COMPONENT_RESOURCE_FILE)
 }
 
 fn resolve_full_pos(args: &Args) -> Result<FullPosStatus, CliError> {
@@ -184,6 +243,35 @@ fn auto_full_pos_candidates() -> Vec<PathBuf> {
         PathBuf::from("data/generated").join(FULL_POS_FILE),
         PathBuf::from("/opt/homebrew/share/kfind").join(FULL_POS_FILE),
         PathBuf::from("/usr/local/share/kfind").join(FULL_POS_FILE),
+    ] {
+        push_candidate(&mut candidates, path);
+    }
+    candidates
+}
+
+fn auto_data_candidates(file: &str) -> Vec<PathBuf> {
+    let mut candidates = Vec::new();
+    if let Ok(executable) = env::current_exe() {
+        if let Some(prefix) = executable.parent().and_then(Path::parent) {
+            push_candidate(&mut candidates, prefix.join("share/kfind").join(file));
+        }
+    }
+    if let Some(directory) = env::var_os("XDG_DATA_HOME") {
+        push_candidate(
+            &mut candidates,
+            PathBuf::from(directory).join("kfind").join(file),
+        );
+    } else if let Some(home) = env::var_os("HOME") {
+        push_candidate(
+            &mut candidates,
+            PathBuf::from(home).join(".local/share/kfind").join(file),
+        );
+    }
+    for path in [
+        PathBuf::from("data/generated/component").join(file),
+        PathBuf::from("data/generated").join(file),
+        PathBuf::from("/opt/homebrew/share/kfind").join(file),
+        PathBuf::from("/usr/local/share/kfind").join(file),
     ] {
         push_candidate(&mut candidates, path);
     }
@@ -351,6 +439,7 @@ pub enum CliError {
     Output(OutputError),
     Read { path: PathBuf, source: io::Error },
     MissingData(PathBuf),
+    MissingComponent(Box<[PathBuf]>),
     Stderr(io::Error),
 }
 
@@ -369,6 +458,13 @@ impl Display for CliError {
             Self::MissingData(path) => {
                 write!(formatter, "full POS lexicon is missing: {}", path.display())
             }
+            Self::MissingComponent(paths) => {
+                formatter.write_str("component resource is missing")?;
+                for path in paths {
+                    write!(formatter, ": {}", path.display())?;
+                }
+                Ok(())
+            }
             Self::Stderr(error) => write!(formatter, "failed to write diagnostics: {error}"),
         }
     }
@@ -384,7 +480,7 @@ impl Error for CliError {
             Self::Search(error) => Some(error),
             Self::Output(error) => Some(error),
             Self::Read { source, .. } | Self::Stderr(source) => Some(source),
-            Self::MissingData(_) => None,
+            Self::MissingData(_) | Self::MissingComponent(_) => None,
         }
     }
 }

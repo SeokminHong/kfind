@@ -17,6 +17,17 @@ pub struct QueryPlan {
     pub estimated_matcher_bytes: usize,
 }
 
+impl QueryPlan {
+    #[must_use]
+    pub fn requires_component_resource(&self) -> bool {
+        self.atoms.iter().any(|atom| {
+            atom.branches
+                .iter()
+                .any(|branch| branch.context_requirement == ContextRequirement::NominalComponent)
+        })
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AtomPlan {
     pub analyses: Vec<Analysis>,
@@ -96,6 +107,7 @@ pub struct SurfaceBranch {
 pub enum ContextRequirement {
     None,
     EojeolLattice,
+    NominalComponent,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

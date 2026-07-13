@@ -11,6 +11,8 @@ fixture는 Universal Dependencies 2.18의 Korean-Kaist와 Korean-KSL test/dev sp
 각 source에서 품사별 250개 positive를 선택하고 같은 source의 deterministic negative를
 대응시켜 총 1,000개를 만든다. 개발은 dev split으로 수행하고 test split은 regression
 baseline으로 유지한다.
+이미지는 사람의 무품사 사용을 위한 별도 1,000-case fixture도 만든다. 쿼리는 품사를
+생략하며, negative 문장에는 해당 표제어가 지원하는 어떤 품사로도 존재하지 않는다.
 이미지 빌드는 밀봉된 Korean-GSD blind local-context fixture도 생성·검증한다. 기본
 벤치마크는 이 fixture를 로드하거나 평가하지 않는다.
 최초 평가 결과는 benchmark handoff에 기록했다. 이후 실행은 regression 확인에만 사용한다.
@@ -40,7 +42,8 @@ KFIND_MORPH_SMOKE=1 KFIND_MORPH_RUNS=1 scripts/benchmark-morphology.sh
 
 ```sh
 python3 tools/morph-compare/render_charts.py \
-  target/morph-benchmark/report.json docs/benchmarks/assets
+  target/morph-benchmark/report.json docs/benchmarks/assets \
+  --prefix smart-component-
 ```
 
 [비교 분석](../../docs/benchmarks/2026-07-12-morphology-comparison.md)과
@@ -70,4 +73,12 @@ shadow 검증은 성능 측정 구간 밖에서 case별 raw anchor hit, verifier
 local-lattice 대상과 고유 분석 어절 수를 기록한다.
 
 성능 수치는 각 도구의 질의부터 결과 판정까지 처리한 제품 작업량이다. 보고서는 측정 run의
-median과 min/max를 기록한다. 순수 tokenizer 처리량 비교가 아니다.
+median과 min/max를 기록한다. 순수 tokenizer 처리량 비교가 아니다. 전체 test 보고서는 두
+kfind lexicon profile의 smart, token, any도 비교하며 smart만 component resource를 로드한다.
+별도 startup 표는 resource 없는 embedded/full-POS engine과 같은 engine에서 component를
+명시적으로 로드한 경우를 비교한다. 각 profile은 새 process에서 1회 warm-up 뒤 초기화 시간과
+peak RSS를 최소 3회 측정한다.
+
+`Human untagged search` 절은 embedded/full-POS와 smart/any를 별도로 비교한다. 품질·성능과
+함께 기대 품사 plan 포함률, multi-POS plan 비율, literal fallback 비율을 기록한다. negative
+정의가 다른 명시적 품사 task와 F1 순위를 합치지 않는다.

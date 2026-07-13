@@ -10,6 +10,27 @@ use crate::Language;
 use crate::parse::localized_command;
 
 const PROGRAM_NAME: &str = "kfind";
+const MAN_WORKFLOWS: &str = r#".SH WORKFLOWS
+.SS Interactive use
+Part-of-speech tagging is optional for interactive searches. The default auto
+POS and smart boundary mode favor precise results and use the installed full
+POS lexicon when available.
+.PP
+.EX
+kfind 걷다 src
+kfind 사용자 src docs
+.EE
+.SS Agent automation
+Agents should specify the part of speech for every morphology atom and use
+unrestricted boundaries, the embedded lexicon, and JSON Lines output.
+.PP
+.EX
+kfind --embedded --boundary any --pos verb --json 걷다 src docs
+kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
+.EE
+The agent must inspect context and discard false positives. Narrow the path or
+glob, or retry with smart boundaries when the candidate set is too large.
+"#;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DistributionAssets {
@@ -70,6 +91,7 @@ pub fn generate_distribution_assets(
     clap_mangen::Man::new(localized_command(Language::English))
         .render(&mut man_page)
         .map_err(AssetGenerationError::RenderManPage)?;
+    man_page.extend_from_slice(MAN_WORKFLOWS.as_bytes());
     write_file(&assets.man_page, &man_page)?;
     write_file(&assets.bash_completion, &render_completion(Shell::Bash))?;
     write_file(&assets.zsh_completion, &render_completion(Shell::Zsh))?;
@@ -128,6 +150,10 @@ mod tests {
 
         assert!(first_contents[0].contains("kfind"));
         assert!(first_contents[0].contains("Fast Korean lemma"));
+        assert!(first_contents[0].contains(".SH WORKFLOWS"));
+        assert!(first_contents[0].contains(".SS Interactive use"));
+        assert!(first_contents[0].contains(".SS Agent automation"));
+        assert!(first_contents[0].contains("--embedded --boundary any --pos verb --json"));
         assert!(first_contents[1].contains("_kfind"));
         assert!(first_contents[2].contains("#compdef kfind"));
         assert!(first_contents[3].contains("complete -c kfind"));

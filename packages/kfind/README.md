@@ -24,7 +24,12 @@ console.log(text.slice(matches[0].start, matches[0].end)); // 걸어
 values and the complete match provenance shape.
 
 Match offsets use UTF-16 code units, so they can be passed directly to
-`String.prototype.slice`. The package contains the embedded core lexicon. Load
-an optional full POS binary with `Kfind.withFullPos(bytes)`.
+`String.prototype.slice`. Copy
+`kfind/assets/morphology-component-compact.kfc` to your static assets or host it
+separately. Applications using component-aware smart noun searches can pass its
+bytes to the constructor or call `loadComponentResource` before compiling those
+queries. Unlike the CLI, the package never resolves or fetches the asset
+automatically. The WASM binary does not contain this data. Load an optional full POS
+binary with `Kfind.withFullPos(fullPos, componentResource?)`.
 
 The package is an ESM module intended for browser bundlers.

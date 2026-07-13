@@ -1,8 +1,15 @@
+use std::io::Cursor;
+
 use grep_matcher::{LineMatchKind, LineTerminator, Matcher};
-use kfind_morph::{ContinuationState, RuleId};
+use kfind_data::{
+    ComponentResource, MecabSourceMorphologyEntry, decode_component_resource,
+    encode_component_resource, parse_mecab_connection_matrix,
+};
+use kfind_morph::{CoarsePos, ContinuationState, FinePos, RuleId};
 use kfind_query::{
-    AtomPlan, BoundaryPolicy, BoundaryProof, BranchEnvironment, BranchVerifier, ContextRequirement,
-    CoreMapping, Origin, PhrasePolicy, PlanLimits, QueryPlan, SurfaceBranch,
+    Analysis, AnalysisSource, AtomPlan, BoundaryPolicy, BoundaryProof, BranchEnvironment,
+    BranchVerifier, ContextRequirement, CoreMapping, Morphology, NominalMorphology, Origin,
+    PhrasePolicy, PlanLimits, QueryPlan, SurfaceBranch,
 };
 use unicode_normalization::UnicodeNormalization;
 
@@ -127,6 +134,50 @@ fn smart_left_boundary_rejects_compounds_but_any_accepts_them() {
 }
 
 #[test]
+fn compact_component_accepts_only_the_lower_cost_exact_path() {
+    let resource = Arc::new(component_resource());
+    let accepted = component_matcher("권한", Arc::clone(&resource));
+    let rejected = component_matcher("학교", resource);
+
+    let matched = accepted
+        .find_at_with_meta("사용자권한".as_bytes(), 0)
+        .expect("lower-cost exact component path should match");
+    assert_eq!(matched.span, "사용자".len().."사용자권한".len());
+    assert!(rejected.find_at_with_meta("대학교".as_bytes(), 0).is_none());
+}
+
+#[test]
+fn nominal_component_without_a_resource_keeps_the_boundary_rejection() {
+    let mut branch = nominal_branch("권한", rules(&[]));
+    branch.context_requirement = ContextRequirement::NominalComponent;
+    let mut atom = atom(BoundaryPolicy::Smart, vec![branch]);
+    atom.analyses.push(nominal_analysis("권한"));
+    let matcher = matcher(vec![atom], 24);
+
+    assert!(
+        matcher
+            .find_at_with_meta("사용자권한".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
+fn nominal_component_does_not_bypass_a_rejected_particle_allomorph() {
+    let matcher = component_matcher("권한", Arc::new(component_resource()));
+
+    assert!(
+        matcher
+            .find_at_with_meta("사용자권한는".as_bytes(), 0)
+            .is_none()
+    );
+    assert!(
+        matcher
+            .find_at_with_meta("사용자권한는관리".as_bytes(), 0)
+            .is_some()
+    );
+}
+
+#[test]
 fn overlapping_anchors_select_leftmost_longest_verified_token() {
     let mut short = exact_branch("가", false);
     short.boundary = proof(false, false, true);
@@ -175,6 +226,8 @@ fn verification_counters_isolate_local_lattice_candidates() {
             verified_branch_hits: 2,
             local_lattice_candidate_hits: 2,
             unique_analysis_windows: 2,
+            nominal_component_candidate_hits: 0,
+            unique_component_windows: 0,
         }
     );
 
@@ -189,6 +242,27 @@ fn verification_counters_isolate_local_lattice_candidates() {
             verified_branch_hits: 2,
             local_lattice_candidate_hits: 0,
             unique_analysis_windows: 0,
+            nominal_component_candidate_hits: 0,
+            unique_component_windows: 0,
+        }
+    );
+}
+
+#[test]
+fn verification_counters_isolate_boundary_rejected_nominal_components() {
+    let mut contextual = nominal_branch("권한", rules(&["particle.topic"]));
+    contextual.context_requirement = ContextRequirement::NominalComponent;
+    let matcher = matcher(vec![atom(BoundaryPolicy::Smart, vec![contextual])], 24);
+
+    assert_eq!(
+        matcher.verification_counters("사용자권한은 권한은".as_bytes()),
+        VerificationCounters {
+            raw_anchor_hits: 2,
+            verified_branch_hits: 1,
+            local_lattice_candidate_hits: 0,
+            unique_analysis_windows: 0,
+            nominal_component_candidate_hits: 1,
+            unique_component_windows: 1,
         }
     );
 }
@@ -480,6 +554,75 @@ fn matcher(atoms: Vec<AtomPlan>, max_gap: usize) -> MorphMatcher {
         estimated_matcher_bytes: 0,
     }))
     .unwrap()
+}
+
+fn component_matcher(anchor: &str, resource: Arc<ComponentResource>) -> MorphMatcher {
+    let mut branch = nominal_branch(anchor, rules(&[]));
+    branch.context_requirement = ContextRequirement::NominalComponent;
+    let mut atom = atom(BoundaryPolicy::Smart, vec![branch]);
+    atom.analyses.push(nominal_analysis(anchor));
+    let plan = QueryPlan {
+        raw_query: anchor.into(),
+        atoms: vec![atom],
+        phrase_policy: PhrasePolicy { max_gap: 24 },
+        normalization: kfind_query::NormalizationMode::Nfc,
+        limits: PlanLimits::default(),
+        diagnostics: Vec::new(),
+        particle_transitions: Arc::from([]),
+        estimated_matcher_bytes: 0,
+    };
+    MorphMatcher::with_component_resource(Arc::new(plan), resource).unwrap()
+}
+
+fn nominal_analysis(lemma: &str) -> Analysis {
+    Analysis {
+        lemma: lemma.into(),
+        coarse_pos: CoarsePos::Noun,
+        fine_pos: FinePos::CommonNoun,
+        morphology: Morphology::Nominal(NominalMorphology::default()),
+        source: AnalysisSource::Forced,
+    }
+}
+
+fn component_resource() -> ComponentResource {
+    let entries = [
+        component_entry("사용자", "NNG", -5_000),
+        component_entry("권한", "NNG", -5_000),
+        component_entry("사용자권한", "NNG", 5_000),
+        component_entry("대", "XPN", 5_000),
+        component_entry("학교", "NNG", 5_000),
+        component_entry("대학교", "NNG", -5_000),
+        component_entry("는", "JX", 0),
+        component_entry("는관리", "NNG", -5_000),
+    ];
+    let matrix = parse_mecab_connection_matrix(
+        "matrix.def",
+        Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
+    )
+    .unwrap();
+    let bytes = encode_component_resource(
+        [7; 32],
+        &entries,
+        &matrix,
+        b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
+        b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
+    )
+    .unwrap();
+    decode_component_resource("fixture", bytes, &[7; 32]).unwrap()
+}
+
+fn component_entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorphologyEntry {
+    MecabSourceMorphologyEntry {
+        surface: surface.to_owned(),
+        pos: pos.to_owned(),
+        left_id: 1,
+        right_id: 1,
+        word_cost,
+        analysis_type: "*".to_owned(),
+        start_pos: "*".to_owned(),
+        end_pos: "*".to_owned(),
+        expression: "*".to_owned(),
+    }
 }
 
 fn atom(boundary: BoundaryPolicy, branches: Vec<SurfaceBranch>) -> AtomPlan {

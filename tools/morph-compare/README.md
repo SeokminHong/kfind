@@ -12,6 +12,8 @@ BY-SA 4.0 licenses are pinned in `sources.json`. For each split, the generator
 selects 250 POS-stratified positive cases from each source and pairs each with a
 deterministic negative from the same source, producing 1,000 cases. Development
 uses the development fixture; the test fixture remains the regression baseline.
+The image also builds a separate 1,000-case human-usage fixture. Its queries omit
+POS, and each negative excludes the query lemma under every supported POS.
 The image build also generates and validates the sealed Korean-GSD blind
 local-context fixture. The default benchmark does not load or evaluate it.
 The first evaluation is recorded in the benchmark handoff. Subsequent runs use
@@ -44,7 +46,8 @@ Render the committed report charts from the same JSON:
 
 ```sh
 python3 tools/morph-compare/render_charts.py \
-  target/morph-benchmark/report.json docs/benchmarks/assets
+  target/morph-benchmark/report.json docs/benchmarks/assets \
+  --prefix smart-component-
 ```
 
 See the [comparison analysis](../../docs/benchmarks/2026-07-12-morphology-comparison.md)
@@ -76,4 +79,14 @@ candidates, and unique analysis windows per case outside the timed evaluation.
 
 Performance covers each backend's end-to-end query-to-decision workload and
 reports the median and min/max across measured runs. It is not a tokenizer-only
-throughput comparison.
+throughput comparison. The full test report also compares smart, token, and any
+for both kfind lexicon profiles; only smart loads the component resource. A
+separate startup table compares resource-less embedded and full-POS engines with
+the same engines after explicit component loading.
+Each startup profile runs in a fresh process after one warm-up and records at
+least three initialization-time and peak-RSS samples.
+
+The `Human untagged search` section separately compares embedded/full-POS with
+smart/any. It reports binary quality and performance plus intended-POS plan
+coverage, multi-POS plan rate, and literal fallback rate. Its F1 is not combined
+with the explicit-POS task because the negative definition differs.

@@ -37,7 +37,7 @@ in-memory UTF-8 input:
 ```rust
 use kfind::{CompileOptions, Engine};
 
-let engine = Engine::embedded().expect("embedded data should be valid");
+let engine = Engine::new()?;
 let matcher = engine
     .compile("걷다", &CompileOptions::default())
     .expect("query should compile");
@@ -46,6 +46,10 @@ let matches = matcher.find_all(text.as_bytes());
 
 assert_eq!(&text[matches[0].span.clone()], "걸어");
 ```
+
+Component-aware smart noun searches require explicit initialization. Use
+`Engine::with_component_resource` when constructing the engine or call
+`load_component_resource` on an existing mutable engine before compiling such a query.
 
 The library and its core dependencies support Rust 1.85's
 `wasm32-unknown-unknown` target:
@@ -71,8 +75,13 @@ const matches = matcher.findAll(text);
 console.log(text.slice(matches[0].start, matches[0].end)); // 걸어
 ```
 
-JavaScript offsets use UTF-16 code units. The package has not been published to
-the registry yet. Its release artifact can be built and checked locally:
+JavaScript offsets use UTF-16 code units. The package publishes the component
+resource as `kfind/assets/morphology-component-compact.kfc`, separate from the
+WASM binary. Constructing `Kfind` without it avoids loading the 45.6 MiB asset.
+Applications that use component-aware smart noun searches can pass the bytes to
+the constructor or call `loadComponentResource` before compiling those queries.
+The package has not been published to the registry yet. Its release artifact can
+be built and checked locally:
 
 ```sh
 pnpm --dir packages/kfind run pack:check
@@ -84,13 +93,31 @@ pnpm --dir packages/kfind run pack:check
 kfind [OPTIONS] <QUERY> [PATH]...
 ```
 
-Queries may use explicit part-of-speech tags:
+For interactive use, part-of-speech tagging is optional. The default auto POS
+and `smart` boundary mode favor precise results and use the installed full POS
+lexicon when available:
 
 ```sh
-kfind 'n:사용자 v:검증하다' .
+kfind 걷다 src
+kfind 사용자 src docs
 kfind 'lit:걸어' data.txt
-kfind 걷다 --expand inflection --json .
 ```
+
+For agent automation, specify the POS of every morphology atom and use `any`,
+the embedded lexicon, and JSON Lines output:
+
+```sh
+kfind --embedded --boundary any --pos verb --json 걷다 src docs
+kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
+```
+
+The agent should inspect context and discard false positives. Narrow the path or
+glob, or retry with `smart` boundaries when the candidate set is too large.
+
+When a compiled `smart` plan needs component evidence, the CLI resolves and
+validates the installed component resource automatically. Plans that do not
+need it leave the asset unloaded. Rust and npm library callers opt in by
+supplying the bytes themselves. `--embedded` skips only the full POS lexicon.
 
 Useful search options include `--glob`, `--type`, `--hidden`, `--no-ignore`,
 `--encoding`, context flags (`-A`, `-B`, `-C`), `--count`,
@@ -116,6 +143,7 @@ network access is never required.
 Without the full POS file, searches continue with the core lexicon and
 heuristics. `--explain-query` reports that preview state. An explicit data
 directory can be selected with `--data-dir` or `KFIND_DATA_DIR`.
+Use `--embedded` to skip full POS resolution and decoding explicitly.
 
 The full POS artifact is reproducible from the pinned, checksum-verified
 `mecab-ko-dic` source:
@@ -134,6 +162,7 @@ cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo bench -p kfind-testkit --bench query_matcher
 scripts/benchmark-morphology.sh
+pnpm --dir packages/kfind run benchmark:startup
 pnpm --dir packages/kfind run pack:check
 ```
 

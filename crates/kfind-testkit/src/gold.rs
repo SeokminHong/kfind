@@ -3,7 +3,8 @@ use std::fmt::{self, Display, Formatter};
 use std::sync::Arc;
 
 use kfind_data::{
-    DataError, DataWarning, ExpectedMatch, FixturePos, MorphologyCase, parse_morphology_cases_tsv,
+    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataError, DataWarning, ExpectedMatch,
+    FixturePos, MorphologyCase, decode_component_resource, parse_morphology_cases_tsv,
 };
 use kfind_matcher::{MorphMatcher, MorphMatcherBuildError};
 use kfind_morph::CoarsePos;
@@ -38,21 +39,53 @@ pub const fn fixture_coarse_pos(pos: FixturePos) -> CoarsePos {
 #[derive(Debug, Clone)]
 pub struct GoldHarness {
     analyzer: LexiconQueryAnalyzer,
+    component_resource: Option<Arc<ComponentResource>>,
 }
 
 impl GoldHarness {
     pub fn embedded() -> Result<Self, DataError> {
-        Self::new(Lexicons::embedded()?)
+        Ok(Self::new(Lexicons::embedded()?, None))
     }
 
     pub fn with_full_pos(full_pos: &[u8]) -> Result<Self, DataError> {
-        Self::new(Lexicons::embedded_with(Some(full_pos), None)?)
+        Ok(Self::new(
+            Lexicons::embedded_with(Some(full_pos), None)?,
+            None,
+        ))
     }
 
-    fn new(lexicons: Lexicons) -> Result<Self, DataError> {
-        Ok(Self {
+    pub fn with_component(component_resource: Vec<u8>) -> Result<Self, DataError> {
+        let component_resource = decode_component_resource(
+            "component resource",
+            component_resource,
+            &COMPONENT_RESOURCE_SOURCE_DIGEST,
+        )?;
+        Ok(Self::new(
+            Lexicons::embedded()?,
+            Some(Arc::new(component_resource)),
+        ))
+    }
+
+    pub fn with_full_pos_and_component(
+        component_resource: Vec<u8>,
+        full_pos: &[u8],
+    ) -> Result<Self, DataError> {
+        let component_resource = decode_component_resource(
+            "component resource",
+            component_resource,
+            &COMPONENT_RESOURCE_SOURCE_DIGEST,
+        )?;
+        Ok(Self::new(
+            Lexicons::embedded_with(Some(full_pos), None)?,
+            Some(Arc::new(component_resource)),
+        ))
+    }
+
+    fn new(lexicons: Lexicons, component_resource: Option<Arc<ComponentResource>>) -> Self {
+        Self {
             analyzer: LexiconQueryAnalyzer::new(Arc::new(lexicons)),
-        })
+            component_resource,
+        }
     }
 
     pub fn evaluate(&self, case: &MorphologyCase) -> Result<GoldCaseOutcome, GoldCaseError> {
@@ -92,7 +125,12 @@ impl GoldHarness {
         .expect("gold POS overrides never conflict");
         let plan =
             compile_query(&case.query, &options, &self.analyzer).map_err(GoldCaseError::Compile)?;
-        let matcher = MorphMatcher::new(Arc::new(plan)).map_err(GoldCaseError::Matcher)?;
+        let matcher = if let Some(resource) = &self.component_resource {
+            MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(resource))
+        } else {
+            MorphMatcher::new(Arc::new(plan))
+        }
+        .map_err(GoldCaseError::Matcher)?;
         let actual_match = matcher.find_at_with_meta(case.text.as_bytes(), 0).is_some();
         Ok(GoldCaseOutcome {
             expected_match: case.expected == ExpectedMatch::Match,
@@ -140,6 +178,12 @@ impl Error for GoldCaseError {
 
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
+
+    use kfind_data::{
+        MecabSourceMorphologyEntry, encode_component_resource, parse_mecab_connection_matrix,
+    };
+
     use super::*;
 
     const EXPECTED_CASES: usize = 452;
@@ -154,9 +198,16 @@ mod tests {
         );
 
         let harness = GoldHarness::embedded().expect("embedded lexicons must be valid");
+        let component_harness =
+            GoldHarness::with_component(component_fixture()).expect("component fixture is valid");
         let mut failures = Vec::new();
         for case in &cases {
-            match harness.evaluate(case) {
+            let selected = if case.feature == "nominal-component" {
+                &component_harness
+            } else {
+                &harness
+            };
+            match selected.evaluate(case) {
                 Ok(outcome) if outcome.matches_expectation() => {}
                 Ok(outcome) => failures.push(format!(
                     "query={:?} pos={:?} feature={} text={:?}: expected_match={}, actual_match={}",
@@ -188,5 +239,46 @@ mod tests {
         assert_eq!(fixture_coarse_pos(FixturePos::Copula), CoarsePos::Adjective);
         assert_eq!(fixture_coarse_pos(FixturePos::Verb), CoarsePos::Verb);
         assert_eq!(fixture_coarse_pos(FixturePos::Literal), CoarsePos::Literal);
+    }
+
+    fn component_fixture() -> Vec<u8> {
+        let entries = [
+            entry("사용자", "NNG", -5_000),
+            entry("권한", "NNG", -5_000),
+            entry("사용자권한", "NNG", 5_000),
+            entry("관리", "NNG", -5_000),
+            entry("권한관리", "NNG", 5_000),
+            entry("산", "NNG", -5_000),
+            entry("길", "NNG", -5_000),
+            entry("산길", "NNG", 5_000),
+            entry("을", "JKO", 0),
+        ];
+        let matrix = parse_mecab_connection_matrix(
+            "matrix.def",
+            Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
+        )
+        .unwrap();
+        encode_component_resource(
+            COMPONENT_RESOURCE_SOURCE_DIGEST,
+            &entries,
+            &matrix,
+            b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
+            b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
+        )
+        .unwrap()
+    }
+
+    fn entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorphologyEntry {
+        MecabSourceMorphologyEntry {
+            surface: surface.to_owned(),
+            pos: pos.to_owned(),
+            left_id: 1,
+            right_id: 1,
+            word_cost,
+            analysis_type: "*".to_owned(),
+            start_pos: "*".to_owned(),
+            end_pos: "*".to_owned(),
+            expression: "*".to_owned(),
+        }
     }
 }

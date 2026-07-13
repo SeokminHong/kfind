@@ -102,6 +102,10 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
             .iter()
             .all(|branch| branch.boundary.require_left)
     );
+    assert!(smart_noun.atoms[0].branches.iter().any(|branch| {
+        matches!(branch.verifier, BranchVerifier::NominalParticles { .. })
+            && branch.context_requirement == ContextRequirement::NominalComponent
+    }));
 
     let any_options = CompileOptions {
         boundary: BoundaryPolicy::Any,
@@ -113,6 +117,12 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
             .branches
             .iter()
             .all(|branch| !branch.boundary.require_left && !branch.boundary.require_right)
+    );
+    assert!(
+        any_noun.atoms[0]
+            .branches
+            .iter()
+            .all(|branch| branch.context_requirement != ContextRequirement::NominalComponent)
     );
 
     let smart_predicate =

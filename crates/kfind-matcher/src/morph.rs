@@ -6,7 +6,11 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use grep_matcher::{LineMatchKind, LineTerminator, Match, Matcher, NoCaptures, NoError};
-use kfind_morph::{ParticleChainModel, ParticleVerifier, RuleId, verify_predicate_continuation};
+use kfind_data::{ComponentResource, DataFinePos};
+use kfind_morph::{
+    DEFAULT_LATTICE_NODE_LIMIT, FinePos, LocalLatticeDecision, ParticleChainModel,
+    ParticleVerifier, RuleId, evaluate_local_component_paths, verify_predicate_continuation,
+};
 use kfind_query::{
     BranchEnvironment, BranchVerifier, ContextRequirement, CoreMapping, Origin, PhraseMatch,
     QueryPlan, SurfaceBranch, VerifiedSpan, join_phrase_spans,
@@ -31,6 +35,7 @@ pub struct MorphMatcher {
     max_anchor_bytes: usize,
     is_line_local: bool,
     particle_verifier: ParticleVerifier,
+    component_resource: Option<Arc<ComponentResource>>,
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
@@ -39,10 +44,26 @@ pub struct VerificationCounters {
     pub verified_branch_hits: usize,
     pub local_lattice_candidate_hits: usize,
     pub unique_analysis_windows: usize,
+    pub nominal_component_candidate_hits: usize,
+    pub unique_component_windows: usize,
 }
 
 impl MorphMatcher {
     pub fn new(plan: Arc<QueryPlan>) -> Result<Self, MorphMatcherBuildError> {
+        Self::build(plan, None)
+    }
+
+    pub fn with_component_resource(
+        plan: Arc<QueryPlan>,
+        component_resource: Arc<ComponentResource>,
+    ) -> Result<Self, MorphMatcherBuildError> {
+        Self::build(plan, Some(component_resource))
+    }
+
+    fn build(
+        plan: Arc<QueryPlan>,
+        component_resource: Option<Arc<ComponentResource>>,
+    ) -> Result<Self, MorphMatcherBuildError> {
         if plan.atoms.is_empty() {
             return Err(MorphMatcherBuildError::EmptyPlan);
         }
@@ -76,6 +97,7 @@ impl MorphMatcher {
             max_anchor_bytes,
             is_line_local,
             particle_verifier,
+            component_resource,
         })
     }
 
@@ -158,12 +180,13 @@ impl MorphMatcher {
     pub fn verification_counters(&self, haystack: &[u8]) -> VerificationCounters {
         let mut counters = VerificationCounters::default();
         let mut analysis_windows = HashSet::new();
+        let mut component_windows = HashSet::new();
         for hit in self.anchor_engine.hits(haystack, 0) {
             counters.raw_anchor_hits += 1;
             for branch_ref in &self.anchor_branches[hit.anchor_index] {
                 let branch =
                     &self.plan.atoms[branch_ref.atom_index].branches[branch_ref.branch_index];
-                let Some(candidate) = self.verify_branch_with_metadata(
+                let Some(candidate) = self.verify_branch_without_boundary(
                     haystack,
                     &hit,
                     branch,
@@ -171,6 +194,14 @@ impl MorphMatcher {
                 ) else {
                     continue;
                 };
+                if !self.accepts_token_boundary(haystack, &candidate, branch) {
+                    if branch.context_requirement == ContextRequirement::NominalComponent {
+                        counters.nominal_component_candidate_hits += 1;
+                        let window = surrounding_token_span(haystack, candidate.core);
+                        component_windows.insert((window.start, window.end));
+                    }
+                    continue;
+                }
                 counters.verified_branch_hits += 1;
                 if branch.context_requirement == ContextRequirement::EojeolLattice {
                     counters.local_lattice_candidate_hits += 1;
@@ -180,6 +211,7 @@ impl MorphMatcher {
             }
         }
         counters.unique_analysis_windows = analysis_windows.len();
+        counters.unique_component_windows = component_windows.len();
         counters
     }
 
@@ -209,9 +241,13 @@ impl MorphMatcher {
                     continue;
                 }
                 let branch = &self.plan.atoms[0].branches[branch_ref.branch_index];
-                let Some(candidate) =
-                    self.verify_branch_with_metadata(haystack, &hit, branch, metadata)
-                else {
+                let Some(candidate) = self.verify_branch_with_metadata(
+                    haystack,
+                    &hit,
+                    branch_ref.atom_index,
+                    branch,
+                    metadata,
+                ) else {
                     continue;
                 };
                 merge_best_span(&mut best, candidate);
@@ -247,9 +283,13 @@ impl MorphMatcher {
             for branch_ref in &self.anchor_branches[hit.anchor_index] {
                 let atom = &self.plan.atoms[branch_ref.atom_index];
                 let branch = &atom.branches[branch_ref.branch_index];
-                if let Some(span) =
-                    self.verify_branch_with_metadata(haystack, &hit, branch, metadata)
-                {
+                if let Some(span) = self.verify_branch_with_metadata(
+                    haystack,
+                    &hit,
+                    branch_ref.atom_index,
+                    branch,
+                    metadata,
+                ) {
                     atom_spans[branch_ref.atom_index].push(span);
                 }
             }
@@ -260,16 +300,20 @@ impl MorphMatcher {
         atom_spans
     }
 
-    fn verify_branch(
+    fn verify_branch_with_metadata(
         &self,
         haystack: &[u8],
         hit: &AnchorHit,
+        atom_index: usize,
         branch: &SurfaceBranch,
+        metadata: MatchMetadata,
     ) -> Option<VerifiedSpan> {
-        self.verify_branch_with_metadata(haystack, hit, branch, MatchMetadata::Provenance)
+        let candidate = self.verify_branch_without_boundary(haystack, hit, branch, metadata)?;
+        self.accepts_branch(haystack, &candidate, atom_index, branch)
+            .then_some(candidate)
     }
 
-    fn verify_branch_with_metadata(
+    fn verify_branch_without_boundary(
         &self,
         haystack: &[u8],
         hit: &AnchorHit,
@@ -341,16 +385,6 @@ impl MorphMatcher {
             return None;
         }
         let token = hit.span.start..token_end;
-        if !accepts_requirements(
-            haystack,
-            core.clone(),
-            token.clone(),
-            branch.boundary.require_left,
-            branch.boundary.require_right,
-        ) {
-            return None;
-        }
-
         Some(VerifiedSpan {
             core,
             token,
@@ -359,6 +393,96 @@ impl MorphMatcher {
                 MatchMetadata::Provenance => extend_origins(&branch.origins, &suffix_rules),
             },
         })
+    }
+
+    fn accepts_branch(
+        &self,
+        haystack: &[u8],
+        candidate: &VerifiedSpan,
+        atom_index: usize,
+        branch: &SurfaceBranch,
+    ) -> bool {
+        self.accepts_token_boundary(haystack, candidate, branch)
+            || (branch.context_requirement == ContextRequirement::NominalComponent
+                && self.accepts_nominal_component(haystack, candidate, atom_index, branch))
+    }
+
+    fn accepts_token_boundary(
+        &self,
+        haystack: &[u8],
+        candidate: &VerifiedSpan,
+        branch: &SurfaceBranch,
+    ) -> bool {
+        accepts_requirements(
+            haystack,
+            candidate.core.clone(),
+            candidate.token.clone(),
+            branch.boundary.require_left,
+            branch.boundary.require_right,
+        )
+    }
+
+    fn accepts_nominal_component(
+        &self,
+        haystack: &[u8],
+        candidate: &VerifiedSpan,
+        atom_index: usize,
+        branch: &SurfaceBranch,
+    ) -> bool {
+        let Some(resource) = &self.component_resource else {
+            return false;
+        };
+        let Ok(window) = crate::AnalysisWindow::extract(
+            haystack,
+            candidate.core.clone(),
+            crate::DEFAULT_ANALYSIS_WINDOW_LIMITS,
+        ) else {
+            return false;
+        };
+        let Some(query_span) = window.normalized_span(candidate.core.clone()) else {
+            return false;
+        };
+        if self.has_rejected_particle_suffix(candidate, window.normalized(), &query_span) {
+            return false;
+        }
+        let Some(atom) = self.plan.atoms.get(atom_index) else {
+            return false;
+        };
+        let query_positions = branch
+            .origins
+            .iter()
+            .filter_map(|origin| atom.analyses.get(usize::from(origin.analysis_index)))
+            .filter_map(|analysis| component_pos(analysis.fine_pos))
+            .collect::<HashSet<_>>();
+        query_positions.into_iter().any(|query_pos| {
+            evaluate_local_component_paths(
+                resource.as_ref(),
+                window.normalized(),
+                query_span.clone(),
+                query_pos,
+                DEFAULT_LATTICE_NODE_LIMIT,
+            )
+            .is_ok_and(|report| report.decision == LocalLatticeDecision::Accept)
+        })
+    }
+
+    fn has_rejected_particle_suffix(
+        &self,
+        candidate: &VerifiedSpan,
+        normalized_window: &str,
+        query_span: &Range<usize>,
+    ) -> bool {
+        if candidate.token.end != candidate.core.end {
+            return false;
+        }
+        let Some(suffix) = normalized_window.get(query_span.end..) else {
+            return false;
+        };
+        self.particle_verifier
+            .model()
+            .allomorphs
+            .iter()
+            .any(|form| suffix == form.surface.as_ref())
     }
 
     fn accepts_direct_particle(
@@ -410,6 +534,29 @@ impl MorphMatcher {
                     && form.condition.accepts(previous)
             })
     }
+}
+
+fn component_pos(pos: FinePos) -> Option<DataFinePos> {
+    Some(match pos {
+        FinePos::CommonNoun => DataFinePos::Nng,
+        FinePos::ProperNoun => DataFinePos::Nnp,
+        FinePos::DependentNoun => DataFinePos::Nnb,
+        FinePos::Pronoun => DataFinePos::Np,
+        FinePos::Numeral => DataFinePos::Nr,
+        FinePos::Verb => DataFinePos::Vv,
+        FinePos::Adjective => DataFinePos::Va,
+        FinePos::AuxiliaryVerb | FinePos::AuxiliaryAdjective => DataFinePos::Vx,
+        FinePos::Copula => DataFinePos::Vcp,
+        FinePos::Determiner => DataFinePos::Mm,
+        FinePos::GeneralAdverb => DataFinePos::Mag,
+        FinePos::ConjunctiveAdverb => DataFinePos::Maj,
+        FinePos::Interjection => DataFinePos::Ic,
+        FinePos::Particle
+        | FinePos::Foreign
+        | FinePos::Number
+        | FinePos::Code
+        | FinePos::Literal => return None,
+    })
 }
 
 fn normalized_verifier_text<'a>(

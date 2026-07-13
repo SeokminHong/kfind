@@ -288,10 +288,23 @@ fn explain_query_reports_each_full_pos_status() {
 
     let mut output = OutputWriter::new(Vec::new(), OutputOptions::default());
     output
-        .write_query_plan_with_full_pos(&plan, &FullPosStatus::NotRequired)
+        .write_query_plan_with_full_pos(
+            &plan,
+            &FullPosStatus::NotRequired(FullPosNotRequiredReason::LiteralQuery),
+        )
         .unwrap();
     let text = String::from_utf8(output.into_inner()).unwrap();
     assert!(text.contains("status: not required (literal query)"));
+
+    let mut output = OutputWriter::new(Vec::new(), OutputOptions::default());
+    output
+        .write_query_plan_with_full_pos(
+            &plan,
+            &FullPosStatus::NotRequired(FullPosNotRequiredReason::EmbeddedMode),
+        )
+        .unwrap();
+    let text = String::from_utf8(output.into_inner()).unwrap();
+    assert!(text.contains("status: not required (embedded mode)"));
 }
 
 #[test]

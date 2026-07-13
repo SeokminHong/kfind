@@ -7,6 +7,8 @@ from dataset import (
     locate_token_spans,
     normalize_gold,
     parse_conllu,
+    positive_case,
+    select_untagged_negative,
     select_manifest_sources,
     sha256,
 )
@@ -63,6 +65,42 @@ class DatasetTests(unittest.TestCase):
             ("있다", "verb"),
             {(item.query, item.pos) for item in sentences[0].candidates},
         )
+
+    def test_untagged_negative_excludes_the_query_under_every_pos(self) -> None:
+        fixture = """# sent_id = positive
+# text = 새가 난다.
+1\t새가\t새+가\tNOUN\tNNG+JKS\t_\t2\tnsubj\t_\t_
+2\t난다\t날+ㄴ다\tVERB\tVV+EF\t_\t0\troot\t_\tSpaceAfter=No
+3\t.\t.\tPUNCT\tSF\t_\t2\tpunct\t_\t_
+
+# sent_id = other-pos
+# text = 새 기능이다.
+1\t새\t새\tDET\tMM\t_\t2\tdet\t_\t_
+2\t기능이다\t기능+이+다\tVERB\tNNG+VCP+EF\t_\t0\troot\t_\tSpaceAfter=No
+3\t.\t.\tPUNCT\tSF\t_\t2\tpunct\t_\t_
+
+# sent_id = absent
+# text = 헌 기능이다.
+1\t헌\t헌\tDET\tMM\t_\t2\tdet\t_\t_
+2\t기능이다\t기능+이+다\tVERB\tNNG+VCP+EF\t_\t0\troot\t_\tSpaceAfter=No
+3\t.\t.\tPUNCT\tSF\t_\t2\tpunct\t_\t_
+
+"""
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "sample.conllu"
+            path.write_text(fixture, encoding="utf-8")
+            sentences, _ = parse_conllu("sample", path)
+
+        noun = next(
+            candidate
+            for candidate in sentences[0].candidates
+            if candidate.query == "새" and candidate.pos == "noun"
+        )
+        negative = select_untagged_negative(
+            positive_case(noun), sentences, "test-seed"
+        )
+
+        self.assertEqual("absent", negative.sent_id)
 
     def test_local_context_dataset_preserves_gold_and_surface_negatives(self) -> None:
         fixture = """# sent_id = positive

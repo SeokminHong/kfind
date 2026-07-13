@@ -4,7 +4,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::ops::Range;
 
-use kfind_data::{DataFinePos, DecodedMorphologyResource, MorphologyAnalysis};
+use kfind_data::{ComponentResource, DataFinePos, DecodedMorphologyResource};
 
 mod unknown;
 
@@ -13,6 +13,116 @@ use unknown::{UnknownAnalysis, UnknownDictionary};
 pub const DEFAULT_LATTICE_NODE_LIMIT: usize = 4_096;
 const N_BEST: usize = 4;
 const BOS_EOS_CONTEXT_ID: u16 = 0;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct LocalLatticeAnalysis<'a> {
+    pub pos: &'a str,
+    pub left_id: u16,
+    pub right_id: u16,
+    pub word_cost: i32,
+}
+
+pub trait LocalLatticeResource {
+    fn common_prefixes<'a>(
+        &'a self,
+        input: &[u8],
+        emit: &mut dyn FnMut(usize, LocalLatticeAnalysis<'a>),
+    );
+
+    fn connection_cost(&self, right_id: u16, left_id: u16) -> Option<i16>;
+
+    fn right_contexts(&self) -> u16;
+
+    fn left_contexts(&self) -> u16;
+
+    fn char_def(&self) -> &[u8];
+
+    fn unk_def(&self) -> &[u8];
+}
+
+impl LocalLatticeResource for DecodedMorphologyResource<'_> {
+    fn common_prefixes<'a>(
+        &'a self,
+        input: &[u8],
+        emit: &mut dyn FnMut(usize, LocalLatticeAnalysis<'a>),
+    ) {
+        self.common_prefixes(input, |length, analyses| {
+            for analysis in analyses {
+                emit(
+                    length,
+                    LocalLatticeAnalysis {
+                        pos: analysis.pos,
+                        left_id: analysis.left_id,
+                        right_id: analysis.right_id,
+                        word_cost: analysis.word_cost,
+                    },
+                );
+            }
+        });
+    }
+
+    fn connection_cost(&self, right_id: u16, left_id: u16) -> Option<i16> {
+        self.connection_cost(right_id, left_id)
+    }
+
+    fn right_contexts(&self) -> u16 {
+        self.stats().right_contexts
+    }
+
+    fn left_contexts(&self) -> u16 {
+        self.stats().left_contexts
+    }
+
+    fn char_def(&self) -> &[u8] {
+        self.char_def()
+    }
+
+    fn unk_def(&self) -> &[u8] {
+        self.unk_def()
+    }
+}
+
+impl LocalLatticeResource for ComponentResource {
+    fn common_prefixes<'a>(
+        &'a self,
+        input: &[u8],
+        emit: &mut dyn FnMut(usize, LocalLatticeAnalysis<'a>),
+    ) {
+        self.common_prefixes(input, |length, analyses| {
+            for analysis in analyses {
+                emit(
+                    length,
+                    LocalLatticeAnalysis {
+                        pos: analysis.pos,
+                        left_id: analysis.left_id,
+                        right_id: analysis.right_id,
+                        word_cost: analysis.word_cost,
+                    },
+                );
+            }
+        });
+    }
+
+    fn connection_cost(&self, right_id: u16, left_id: u16) -> Option<i16> {
+        self.connection_cost(right_id, left_id)
+    }
+
+    fn right_contexts(&self) -> u16 {
+        self.right_contexts()
+    }
+
+    fn left_contexts(&self) -> u16 {
+        self.left_contexts()
+    }
+
+    fn char_def(&self) -> &[u8] {
+        self.char_def()
+    }
+
+    fn unk_def(&self) -> &[u8] {
+        self.unk_def()
+    }
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LocalLatticeDecision {
@@ -47,11 +157,46 @@ pub struct LocalLatticeReport {
 }
 
 pub fn evaluate_local_lattice(
-    resource: &DecodedMorphologyResource<'_>,
+    resource: &dyn LocalLatticeResource,
     text: &str,
     query_span: Range<usize>,
     query_pos: DataFinePos,
     node_limit: usize,
+) -> Result<LocalLatticeReport, LocalLatticeError> {
+    evaluate_local_paths(
+        resource,
+        text,
+        query_span,
+        query_pos,
+        node_limit,
+        QueryConstraint::CoveringPos,
+    )
+}
+
+pub fn evaluate_local_component_paths(
+    resource: &dyn LocalLatticeResource,
+    text: &str,
+    query_span: Range<usize>,
+    query_pos: DataFinePos,
+    node_limit: usize,
+) -> Result<LocalLatticeReport, LocalLatticeError> {
+    evaluate_local_paths(
+        resource,
+        text,
+        query_span,
+        query_pos,
+        node_limit,
+        QueryConstraint::ExactSpan,
+    )
+}
+
+fn evaluate_local_paths(
+    resource: &dyn LocalLatticeResource,
+    text: &str,
+    query_span: Range<usize>,
+    query_pos: DataFinePos,
+    node_limit: usize,
+    constraint: QueryConstraint,
 ) -> Result<LocalLatticeReport, LocalLatticeError> {
     if query_span.start >= query_span.end
         || query_span.end > text.len()
@@ -61,7 +206,15 @@ pub fn evaluate_local_lattice(
         return Err(LocalLatticeError::InvalidQuerySpan);
     }
     let unknown = UnknownDictionary::parse(resource)?;
-    let nodes = build_nodes(resource, text, &query_span, query_pos, &unknown, node_limit)?;
+    let nodes = build_nodes(
+        resource,
+        text,
+        &query_span,
+        query_pos,
+        constraint,
+        &unknown,
+        node_limit,
+    )?;
     let completed = best_paths(resource, text.len(), &nodes)?;
     let include_cost = completed
         .iter()
@@ -125,16 +278,28 @@ struct Node {
     query_match: bool,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum QueryConstraint {
+    CoveringPos,
+    ExactSpan,
+}
+
 impl Node {
     fn dictionary(
         span: Range<usize>,
-        analysis: MorphologyAnalysis<'_>,
+        analysis: LocalLatticeAnalysis<'_>,
         query_span: &Range<usize>,
         query_pos: DataFinePos,
+        constraint: QueryConstraint,
     ) -> Self {
-        let query_match = analysis.pos.split('+').any(|pos| pos == query_pos.as_str())
-            && span.start <= query_span.start
-            && span.end >= query_span.end;
+        let matches_pos = analysis.pos.split('+').any(|pos| pos == query_pos.as_str());
+        let query_match = matches_pos
+            && match constraint {
+                QueryConstraint::CoveringPos => {
+                    span.start <= query_span.start && span.end >= query_span.end
+                }
+                QueryConstraint::ExactSpan => span == *query_span,
+            };
         Self {
             span,
             pos: Some(analysis.pos.to_owned()),
@@ -169,24 +334,27 @@ impl Node {
 }
 
 fn build_nodes(
-    resource: &DecodedMorphologyResource<'_>,
+    resource: &dyn LocalLatticeResource,
     text: &str,
     query_span: &Range<usize>,
     query_pos: DataFinePos,
+    constraint: QueryConstraint,
     unknown: &UnknownDictionary,
     node_limit: usize,
 ) -> Result<Vec<Node>, LocalLatticeError> {
     let mut nodes = Vec::new();
     for (start, _) in text.char_indices() {
         let before_dictionary = nodes.len();
-        resource.common_prefixes(&text.as_bytes()[start..], |length, analyses| {
+        resource.common_prefixes(&text.as_bytes()[start..], &mut |length, analysis| {
             let end = start + length;
             if end <= text.len() && text.is_char_boundary(end) {
-                nodes.extend(
-                    analyses.iter().copied().map(|analysis| {
-                        Node::dictionary(start..end, analysis, query_span, query_pos)
-                    }),
-                );
+                nodes.push(Node::dictionary(
+                    start..end,
+                    analysis,
+                    query_span,
+                    query_pos,
+                    constraint,
+                ));
             }
         });
         let has_dictionary = nodes.len() > before_dictionary;
@@ -239,7 +407,7 @@ struct PathState {
 }
 
 fn best_paths(
-    resource: &DecodedMorphologyResource<'_>,
+    resource: &dyn LocalLatticeResource,
     text_len: usize,
     nodes: &[Node],
 ) -> Result<Vec<PathState>, LocalLatticeError> {

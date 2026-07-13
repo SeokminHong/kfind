@@ -1,7 +1,12 @@
 use std::fs;
+use std::io::Cursor;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use clap::Parser;
+use kfind_data::{
+    MecabSourceMorphologyEntry, encode_component_resource, encode_pos_lexicon,
+    extract_mecab_ko_dic, parse_mecab_connection_matrix,
+};
 
 use super::*;
 
@@ -21,6 +26,12 @@ impl TempDir {
     fn write(&self, name: &str, text: &str) -> PathBuf {
         let path = self.0.join(name);
         fs::write(&path, text).unwrap();
+        path
+    }
+
+    fn write_bytes(&self, name: &str, bytes: &[u8]) -> PathBuf {
+        let path = self.0.join(name);
+        fs::write(&path, bytes).unwrap();
         path
     }
 }
@@ -168,6 +179,149 @@ fn literal_query_does_not_decode_full_pos_lexicon() {
 }
 
 #[test]
+fn literal_query_does_not_resolve_the_component_resource() {
+    let temp = TempDir::new();
+    let input = temp.write("input.txt", "missing\n");
+    let args = Args::try_parse_from([
+        "kfind",
+        "--literal",
+        "--data-dir",
+        temp.0.to_str().unwrap(),
+        "missing",
+        input.to_str().unwrap(),
+    ])
+    .unwrap();
+
+    let (status, stdout, stderr) = run(args, &[], true);
+
+    assert_eq!(status, ExitStatus::Match);
+    assert_eq!(stdout, b"missing\n");
+    assert!(stderr.is_empty());
+}
+
+#[test]
+fn embedded_mode_does_not_decode_full_pos_lexicon() {
+    let temp = TempDir::new();
+    temp.write(FULL_POS_FILE, "not a lexicon");
+    let input = temp.write("input.txt", "길을 걸었다.\n");
+    let args = Args::try_parse_from([
+        "kfind",
+        "--embedded",
+        "--boundary",
+        "any",
+        "--pos",
+        "verb",
+        "--explain-query",
+        "--data-dir",
+        temp.0.to_str().unwrap(),
+        "걷다",
+        input.to_str().unwrap(),
+    ])
+    .unwrap();
+
+    let (status, stdout, stderr) = run(args, &[], true);
+
+    assert_eq!(status, ExitStatus::Match);
+    let stdout = String::from_utf8(stdout).unwrap();
+    assert!(stdout.contains("status: not required (embedded mode)"));
+    assert!(stdout.contains("길을 걸었다."));
+    assert!(stderr.is_empty());
+}
+
+#[test]
+fn embedded_mode_still_requires_component_evidence_for_smart_queries() {
+    let temp = TempDir::new();
+    let mut args = component_args(&temp, "권한");
+    args.embedded = true;
+    let mut stdout = Vec::new();
+    let mut stderr = Vec::new();
+
+    let error = run_with_io(
+        &args,
+        Language::English,
+        "사용자권한\n".as_bytes(),
+        &mut stdout,
+        &mut stderr,
+        false,
+        false,
+    )
+    .unwrap_err();
+
+    assert!(matches!(error, CliError::MissingComponent(_)));
+    assert!(stdout.is_empty());
+}
+
+#[test]
+fn nominal_component_query_requires_the_explicit_resource() {
+    let temp = TempDir::new();
+    let args = component_args(&temp, "권한");
+    let mut stdout = Vec::new();
+    let mut stderr = Vec::new();
+
+    let error = run_with_io(
+        &args,
+        Language::English,
+        "사용자권한\n".as_bytes(),
+        &mut stdout,
+        &mut stderr,
+        false,
+        false,
+    )
+    .unwrap_err();
+
+    assert!(matches!(error, CliError::MissingComponent(_)));
+    assert!(stdout.is_empty());
+}
+
+#[test]
+fn corrupt_component_resource_fails_before_output() {
+    let temp = TempDir::new();
+    temp.write(COMPONENT_RESOURCE_FILE, "not a component resource");
+    let args = component_args(&temp, "권한");
+    let mut stdout = Vec::new();
+    let mut stderr = Vec::new();
+
+    let error = run_with_io(
+        &args,
+        Language::English,
+        "사용자권한\n".as_bytes(),
+        &mut stdout,
+        &mut stderr,
+        false,
+        false,
+    )
+    .unwrap_err();
+
+    assert!(matches!(
+        error,
+        CliError::Data(DataError {
+            kind,
+            ..
+        }) if matches!(kind.as_ref(), kfind_data::DataErrorKind::ComponentResourceCorrupt(_))
+    ));
+    assert!(stdout.is_empty());
+}
+
+#[test]
+fn default_smart_loads_component_resource_and_rejects_crossing_substrings() {
+    let temp = TempDir::new();
+    temp.write_bytes(COMPONENT_RESOURCE_FILE, &component_resource());
+    let accepted_args = component_args(&temp, "권한");
+    assert_eq!(
+        accepted_args.compile_options().unwrap().boundary,
+        kfind_query::BoundaryPolicy::Smart
+    );
+
+    let accepted = run(accepted_args, "사용자권한\n".as_bytes(), false);
+    assert_eq!(accepted.0, ExitStatus::Match);
+    assert_eq!(accepted.1, "사용자권한\n".as_bytes());
+
+    let rejected = run(component_args(&temp, "학교"), "대학교\n".as_bytes(), false);
+    assert_eq!(rejected.0, ExitStatus::NoMatch);
+    assert!(rejected.1.is_empty());
+}
+
+#[test]
 fn search_issue_context_is_localized() {
     let issue = kfind_search::SearchIssue {
         kind: kfind_search::SearchIssueKind::Input,
@@ -220,4 +374,64 @@ fn full_pos_selection_uses_the_first_existing_candidate() {
         select_full_pos(candidates),
         FullPosStatus::Loaded { path: selected }
     );
+}
+
+fn component_args(temp: &TempDir, query: &str) -> Args {
+    temp.write_bytes(FULL_POS_FILE, &full_pos_resource());
+    Args::try_parse_from([
+        "kfind",
+        "--pos",
+        "noun",
+        "--data-dir",
+        temp.0.to_str().unwrap(),
+        query,
+    ])
+    .unwrap()
+}
+
+fn full_pos_resource() -> Vec<u8> {
+    let extraction = extract_mecab_ko_dic(
+        "fixture.csv",
+        Cursor::new("권한,1,1,0,NNG,*,T,권한,*,*,*,*\n학교,1,1,0,NNG,*,T,학교,*,*,*,*\n"),
+    )
+    .unwrap();
+    encode_pos_lexicon(&extraction.into_pos_lexicon()).unwrap()
+}
+
+fn component_resource() -> Vec<u8> {
+    let entries = [
+        component_entry("사용자", "NNG", -5_000),
+        component_entry("권한", "NNG", -5_000),
+        component_entry("사용자권한", "NNG", 5_000),
+        component_entry("대", "XPN", 5_000),
+        component_entry("학교", "NNG", 5_000),
+        component_entry("대학교", "NNG", -5_000),
+    ];
+    let matrix = parse_mecab_connection_matrix(
+        "matrix.def",
+        Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
+    )
+    .unwrap();
+    encode_component_resource(
+        COMPONENT_RESOURCE_SOURCE_DIGEST,
+        &entries,
+        &matrix,
+        b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
+        b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
+    )
+    .unwrap()
+}
+
+fn component_entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorphologyEntry {
+    MecabSourceMorphologyEntry {
+        surface: surface.to_owned(),
+        pos: pos.to_owned(),
+        left_id: 1,
+        right_id: 1,
+        word_cost,
+        analysis_type: "*".to_owned(),
+        start_pos: "*".to_owned(),
+        end_pos: "*".to_owned(),
+        expression: "*".to_owned(),
+    }
 }

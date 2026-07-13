@@ -43,6 +43,11 @@ const HELP_TEXT: &[(&str, &str, &str)] = &[
         "형태 확장 없이 쿼리 문자열만 검색합니다.",
     ),
     (
+        "embedded",
+        "Skip the full POS lexicon and use only the embedded lexicon.",
+        "full POS lexicon을 건너뛰고 내장 사전만 사용합니다.",
+    ),
+    (
         "max_gap",
         "Set the maximum Unicode scalar gap between phrase atoms (default: 24).",
         "구를 구성하는 atom 사이의 최대 Unicode scalar 거리를 지정합니다(기본값: 24).",
@@ -164,8 +169,8 @@ const HELP_TEXT: &[(&str, &str, &str)] = &[
     ),
     (
         "data_dir",
-        "Read the full POS lexicon from PATH.",
-        "PATH에서 full POS lexicon을 읽습니다.",
+        "Read external data resources from PATH.",
+        "PATH에서 외부 데이터 resource를 읽습니다.",
     ),
     (
         "user_lexicon",
@@ -506,7 +511,7 @@ mod tests {
         assert!(!korean.contains("Usage:"));
         assert!(!korean.contains("[default:"));
         assert!(!korean.contains("[possible values:"));
-        for token in ["--pos", "--expand", "auto", "verb", "--help"] {
+        for token in ["--pos", "--expand", "--embedded", "auto", "verb", "--help"] {
             assert!(english.contains(token));
             assert!(korean.contains(token));
         }

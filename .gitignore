@@ -3,5 +3,6 @@
 /data/generated/full-pos/
 /dist/
 /packages/kfind/generated/
+/packages/kfind/assets/
 /packages/kfind/LICENSE
 /packages/kfind/*.tgz

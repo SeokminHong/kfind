@@ -4,8 +4,9 @@ use std::sync::Arc;
 use crate::lexicons::{data_fine_pos, predicate_from_derivation};
 use crate::{
     Analysis, AnalysisSource, AtomPlan, BranchEnvironment, BranchVerifier, CompileError,
-    CompileErrorKind, CompileOptions, CoreMapping, ExpandMode, LexiconQueryAnalyzer, Morphology,
-    Origin, QueryAnalyzer, QueryAtom, QueryDiagnostic, QueryPlan, SurfaceBranch, parse_query,
+    CompileErrorKind, CompileOptions, ContextRequirement, CoreMapping, ExpandMode,
+    LexiconQueryAnalyzer, Morphology, Origin, QueryAnalyzer, QueryAtom, QueryDiagnostic, QueryPlan,
+    SurfaceBranch, parse_query,
 };
 use kfind_data::DerivationRule;
 use kfind_morph::{CoarsePos, ParticleTransition, RuleId, generate_predicate_branches};
@@ -277,6 +278,7 @@ fn compile_analysis(
                     rule_path: Vec::new(),
                 },
                 smart_left: true,
+                context_requirement: ContextRequirement::None,
             });
         } else {
             output.push(exact_branch(atom_surface, analysis_index, Vec::new(), true));
@@ -308,6 +310,11 @@ fn compile_analysis(
                     rule_path: Vec::new(),
                 },
                 smart_left: true,
+                context_requirement: if analysis.coarse_pos == CoarsePos::Noun {
+                    ContextRequirement::NominalComponent
+                } else {
+                    ContextRequirement::None
+                },
             });
             for override_form in &nominal.overrides {
                 output.push(exact_branch(
@@ -344,6 +351,7 @@ fn compile_analysis(
                             rule_path: vec![rule_id.clone()],
                         },
                         smart_left: false,
+                        context_requirement: ContextRequirement::None,
                     });
                 } else {
                     output.push(exact_branch(variant, analysis_index, Vec::new(), true));
@@ -393,6 +401,7 @@ fn compile_predicate(
                 rule_path,
             },
             smart_left: predicate.alternation != kfind_morph::LexicalAlternation::Copula,
+            context_requirement: ContextRequirement::None,
         });
     }
     Ok(())
@@ -443,6 +452,7 @@ fn compile_derivations(
                     rule_path: derivation_path,
                 },
                 smart_left: true,
+                context_requirement: ContextRequirement::NominalComponent,
             });
         } else {
             output.push(exact_branch(
@@ -514,6 +524,7 @@ fn exact_branch(
             rule_path,
         },
         smart_left,
+        context_requirement: ContextRequirement::None,
     }
 }
 

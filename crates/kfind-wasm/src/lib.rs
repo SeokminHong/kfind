@@ -72,22 +72,47 @@ pub struct Kfind {
 #[wasm_bindgen]
 impl Kfind {
     #[wasm_bindgen(constructor)]
-    pub fn new() -> Result<Kfind, JsError> {
-        Engine::embedded()
+    pub fn new(component_resource: Option<Vec<u8>>) -> Result<Kfind, JsError> {
+        let engine = match component_resource {
+            Some(component_resource) => Engine::with_component_resource(component_resource),
+            None => Engine::new(),
+        };
+        engine
             .map(|inner| Self { inner })
-            .map_err(|error| JsError::new(&format!("failed to initialize kfind: {error}")))
+            .map_err(initialization_error)
     }
 
     #[wasm_bindgen(js_name = withFullPos)]
-    pub fn with_full_pos(full_pos: &[u8]) -> Result<Kfind, JsError> {
-        Engine::with_full_pos(full_pos)
+    pub fn with_full_pos(
+        full_pos: &[u8],
+        component_resource: Option<Vec<u8>>,
+    ) -> Result<Kfind, JsError> {
+        let engine = match component_resource {
+            Some(component_resource) => {
+                Engine::with_full_pos_and_component(full_pos, component_resource)
+            }
+            None => Engine::with_full_pos(full_pos),
+        };
+        engine
             .map(|inner| Self { inner })
-            .map_err(|error| JsError::new(&format!("failed to initialize kfind: {error}")))
+            .map_err(initialization_error)
+    }
+
+    #[wasm_bindgen(js_name = loadComponentResource)]
+    pub fn load_component_resource(&mut self, component_resource: Vec<u8>) -> Result<(), JsError> {
+        self.inner
+            .load_component_resource(component_resource)
+            .map_err(initialization_error)
     }
 
     #[wasm_bindgen(getter, js_name = fullPosLoaded)]
     pub fn full_pos_loaded(&self) -> bool {
         self.inner.full_pos_loaded()
+    }
+
+    #[wasm_bindgen(getter, js_name = componentResourceLoaded)]
+    pub fn component_resource_loaded(&self) -> bool {
+        self.inner.component_resource_loaded()
     }
 
     #[wasm_bindgen(skip_typescript)]
@@ -98,6 +123,10 @@ impl Kfind {
             .map(|inner| Matcher { inner })
             .map_err(|error| JsError::new(&format!("failed to compile query: {error}")))
     }
+}
+
+fn initialization_error(error: kfind::DataError) -> JsError {
+    JsError::new(&format!("failed to initialize kfind: {error}"))
 }
 
 /// A compiled query exposed to JavaScript.

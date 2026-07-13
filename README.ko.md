@@ -37,7 +37,7 @@ cargo install --locked --path crates/kfind-cli
 ```rust
 use kfind::{CompileOptions, Engine};
 
-let engine = Engine::embedded().expect("embedded data should be valid");
+let engine = Engine::new()?;
 let matcher = engine
     .compile("걷다", &CompileOptions::default())
     .expect("query should compile");
@@ -46,6 +46,10 @@ let matches = matcher.find_all(text.as_bytes());
 
 assert_eq!(&text[matches[0].span.clone()], "걸어");
 ```
+
+Component-aware smart 명사 검색은 명시적 초기화가 필요합니다. Engine 생성 시
+`Engine::with_component_resource`를 사용하거나 기존 mutable engine에서 해당 query를
+compile하기 전에 `load_component_resource`를 호출합니다.
 
 라이브러리와 핵심 의존 crate는 Rust 1.85의 `wasm32-unknown-unknown` target을
 지원합니다.
@@ -71,8 +75,12 @@ const matches = matcher.findAll(text);
 console.log(text.slice(matches[0].start, matches[0].end)); // 걸어
 ```
 
-JavaScript offset은 UTF-16 code unit 기준입니다. 패키지는 아직 registry에 게시하지
-않았습니다. 로컬에서 배포 산출물을 생성하고 검사할 수 있습니다.
+JavaScript offset은 UTF-16 code unit 기준입니다. Component resource는 WASM binary와
+분리된 `kfind/assets/morphology-component-compact.kfc`로 배포합니다. 이를 정적
+asset으로 복사하거나 별도 호스트에 둘 수 있습니다. Resource 없이 `Kfind`를 만들면 45.6 MiB
+asset을 로드하지 않습니다. Component-aware smart 명사 검색을 사용할 애플리케이션만 생성자에
+bytes를 전달하거나 해당 query를 compile하기 전에 `loadComponentResource`를 호출합니다.
+패키지는 아직 registry에 게시하지 않았습니다. 로컬에서 배포 산출물을 생성하고 검사할 수 있습니다.
 
 ```sh
 pnpm --dir packages/kfind run pack:check
@@ -84,13 +92,30 @@ pnpm --dir packages/kfind run pack:check
 kfind [OPTIONS] <QUERY> [PATH]...
 ```
 
-쿼리에 품사 태그를 명시할 수 있습니다.
+사람이 대화형으로 사용할 때는 품사를 생략할 수 있습니다. 기본 auto 품사와 `smart` 경계는
+정확한 결과를 우선하며, 설치된 full POS lexicon이 있으면 자동으로 사용합니다.
 
 ```sh
-kfind 'n:사용자 v:검증하다' .
+kfind 걷다 src
+kfind 사용자 src docs
 kfind 'lit:걸어' data.txt
-kfind 걷다 --expand inflection --json .
 ```
+
+에이전트 자동화에서는 모든 형태 atom의 품사를 명시하고 `any`, 내장 사전과 JSON Lines
+출력을 사용합니다.
+
+```sh
+kfind --embedded --boundary any --pos verb --json 걷다 src docs
+kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
+```
+
+에이전트는 결과 문맥을 확인해 false positive를 제거해야 합니다. 후보가 너무 많으면 검색
+path·glob을 좁히거나 `smart` 경계로 다시 검색합니다.
+
+Compile된 `smart` plan에 component 근거가 필요하면 설치된 component resource를 CLI가
+자동으로 찾아 검증하며, 필요 없는 plan은 asset을 로드하지 않습니다. Rust와 npm 라이브러리는
+caller가 bytes를 전달한 경우에만 선택적으로 사용합니다. `--embedded`는 full POS lexicon만
+건너뜁니다.
 
 주요 검색 옵션으로 `--glob`, `--type`, `--hidden`, `--no-ignore`,
 `--encoding`, 문맥 출력 옵션(`-A`, `-B`, `-C`), `--count`,
@@ -116,6 +141,7 @@ kfind 걷다 --expand inflection --json .
 전체 품사 파일이 없어도 핵심 사전과 휴리스틱을 사용해 검색을 계속합니다.
 `--explain-query`는 이 프리뷰 상태를 표시합니다. `--data-dir` 또는
 `KFIND_DATA_DIR`로 데이터 디렉터리를 직접 선택할 수 있습니다.
+`--embedded`를 사용하면 full POS 탐색과 decode를 명시적으로 건너뜁니다.
 
 고정되고 체크섬 검증을 거친 `mecab-ko-dic` 소스에서 전체 품사 산출물을
 재현할 수 있습니다.
@@ -134,6 +160,7 @@ cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo bench -p kfind-testkit --bench query_matcher
 scripts/benchmark-morphology.sh
+pnpm --dir packages/kfind run benchmark:startup
 pnpm --dir packages/kfind run pack:check
 ```
 

@@ -1,6 +1,7 @@
 //! Build-time validation and compilation for kfind data files.
 
 mod binary;
+mod component;
 mod error;
 mod fixture;
 mod lexicon;
@@ -13,6 +14,10 @@ mod validation;
 pub use binary::{
     ApprovedPosLexicon, DecodedPosLexicon, PosLexiconEntry, PosLexiconStats, collect_pos_entries,
     decode_pos_lexicon, encode_pos_lexicon,
+};
+pub use component::{
+    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentAnalysis, ComponentResource, ComponentResourceStats,
+    decode_component_resource, encode_component_resource,
 };
 pub use error::{DataError, DataErrorKind, DataWarning, SourceLocation};
 pub use fixture::{ExpectedMatch, FixturePos, MorphologyCase, parse_morphology_cases_tsv};

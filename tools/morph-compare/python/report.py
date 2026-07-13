@@ -4,15 +4,24 @@ import os
 import platform
 from collections import defaultdict
 
+try:
+    from .shadow_report import (
+        KFIND_PROFILES,
+        append_component_shadow_table,
+        append_shadow_verification,
+        classify_component_paths,
+        shadow_verification_summary,
+    )
+except ImportError:
+    from shadow_report import (
+        KFIND_PROFILES,
+        append_component_shadow_table,
+        append_shadow_verification,
+        classify_component_paths,
+        shadow_verification_summary,
+    )
 
-KFIND_PROFILES = ("kfind-embedded", "kfind-full-pos")
 BACKENDS = (*KFIND_PROFILES, "kiwi", "lindera")
-SHADOW_COUNTERS = (
-    "raw_anchor_hits",
-    "verified_branch_hits",
-    "local_lattice_candidate_hits",
-    "unique_analysis_windows",
-)
 
 
 def quality_metrics(
@@ -60,6 +69,34 @@ def grouped_quality(
     }
 
 
+def untagged_plan_metrics(
+    cases: list[dict[str, object]],
+    diagnostics: dict[str, dict[str, object]],
+) -> dict[str, object]:
+    positive_cases = [case for case in cases if case["expected"]]
+    positive_diagnostics = [diagnostics[case["id"]] for case in positive_cases]
+    total = len(positive_diagnostics)
+    if total == 0:
+        raise ValueError("untagged plan metrics require positive cases")
+
+    def summarize(field: str) -> tuple[int, float]:
+        count = sum(bool(diagnostic[field]) for diagnostic in positive_diagnostics)
+        return count, round(100 * count / total, 2)
+
+    expected_count, expected_percent = summarize("expected_pos_present")
+    multi_count, multi_percent = summarize("multi_coarse_pos")
+    literal_count, literal_percent = summarize("literal_fallback")
+    return {
+        "positive_cases": total,
+        "expected_pos_present": expected_count,
+        "expected_pos_present_percent": expected_percent,
+        "multi_coarse_pos": multi_count,
+        "multi_coarse_pos_percent": multi_percent,
+        "literal_fallback": literal_count,
+        "literal_fallback_percent": literal_percent,
+    }
+
+
 def kfind_profile_comparison(
     cases: list[dict[str, object]],
     predictions: dict[str, dict[str, bool]],
@@ -89,63 +126,6 @@ def kfind_profile_comparison(
         "recovered_with_full_pos": recovered,
         "still_failing_with_full_pos": still_failing,
         "regressed_with_full_pos": regressed,
-    }
-
-
-def shadow_verification_summary(
-    by_case: dict[str, dict[str, object]],
-    cases: list[dict[str, object]] | None = None,
-) -> dict[str, object]:
-    totals = {
-        name: sum(int(counters[name]) for counters in by_case.values())
-        for name in SHADOW_COUNTERS
-    }
-    statuses: dict[str, int] = defaultdict(int)
-    decisions: dict[str, int] = defaultdict(int)
-    case_metadata = {str(case["id"]): case for case in cases or []}
-    outcomes_by_class: dict[str, dict[str, int]] = defaultdict(
-        lambda: defaultdict(int)
-    )
-    outcomes_by_target_group: dict[str, dict[str, int]] = defaultdict(
-        lambda: defaultdict(int)
-    )
-    for case_id, counters in by_case.items():
-        case = case_metadata.get(case_id)
-        for evidence in counters.get("lattice", []):
-            status = str(evidence["status"])
-            decision = evidence.get("decision")
-            outcome = str(decision) if decision is not None else status
-            statuses[status] += 1
-            if decision is not None:
-                decisions[str(decision)] += 1
-            if case is not None:
-                class_name = "positive" if bool(case["expected"]) else "negative"
-                outcomes_by_class[class_name][outcome] += 1
-                target_group = case.get("target_group")
-                if target_group is not None:
-                    outcomes_by_target_group[str(target_group)][outcome] += 1
-
-    def sorted_outcomes(
-        grouped: dict[str, dict[str, int]],
-    ) -> dict[str, dict[str, int]]:
-        return {
-            group: dict(sorted(counts.items()))
-            for group, counts in sorted(grouped.items())
-        }
-
-    return {
-        "totals": totals,
-        "cases_with_local_candidates": sum(
-            counters["local_lattice_candidate_hits"] > 0
-            for counters in by_case.values()
-        ),
-        "lattice_statuses": dict(sorted(statuses.items())),
-        "lattice_decisions": dict(sorted(decisions.items())),
-        "lattice_outcomes_by_class": sorted_outcomes(outcomes_by_class),
-        "lattice_outcomes_by_target_group": sorted_outcomes(
-            outcomes_by_target_group
-        ),
-        "by_case": by_case,
     }
 
 
@@ -216,7 +196,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 4,
+        "schema_version": 11,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "versions": versions,
@@ -311,19 +291,24 @@ def render_markdown(report: dict[str, object]) -> str:
             "",
             "## Versions and profiles",
             "",
-            "| result | backend | version | profile | lexicon SHA-256 | morphology SHA-256 |",
-            "| --- | --- | --- | --- | --- | --- |",
+            "| result | backend | version | profile | lexicon SHA-256 | morphology SHA-256 | component SHA-256 |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
     for result_name in BACKENDS:
         version = report["versions"][result_name]
         artifact = version["lexicon_artifact_sha256"] or "n/a"
         morphology = version.get("morphology_artifact_sha256") or "n/a"
+        component = version.get("component_artifact_sha256") or "n/a"
         lines.append(
             f"| {result_name} | {version['backend']} | {version['version']} | "
-            f"{version['profile'] or 'n/a'} | `{artifact}` | `{morphology}` |"
+            f"{version['profile'] or 'n/a'} | `{artifact}` | `{morphology}` | "
+            f"`{component}` |"
         )
     append_quality_sections(lines, report)
+    append_boundary_comparison(lines, report.get("boundary_comparison"))
+    append_human_untagged(lines, report.get("human_untagged"))
+    append_component_startup(lines, report.get("component_startup"))
     append_shadow_verification(lines, report)
     append_profile_comparison(lines, report)
     append_failures(lines, report)
@@ -393,6 +378,139 @@ def append_performance(lines: list[str], report: dict[str, object]) -> None:
         )
 
 
+def append_boundary_comparison(
+    lines: list[str], comparison: dict[str, object] | None
+) -> None:
+    if comparison is None:
+        return
+    lines.extend(
+        [
+            "",
+            "## Boundary policy comparison",
+            "",
+            "The same fixture is compiled and matched for every profile. Smart loads the "
+            "component resource; token and any do not.",
+            "",
+            "| profile | boundary | precision | recall | F1 | init median | cases/s median [min, max] | p95 median [min, max] | peak RSS |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for profile, results in comparison["profiles"].items():
+        for boundary in comparison["boundaries"]:
+            result = results[boundary]
+            quality = result["quality"]
+            performance = result["performance"]
+            rss = performance["peak_rss_kib"]
+            rss_text = f"{rss / 1024:.1f} MiB" if rss is not None else "n/a"
+            lines.append(
+                f"| {profile} | {boundary} | {quality['precision_percent']}% | "
+                f"{quality['recall_percent']}% | {quality['f1_percent']}% | "
+                f"{performance['initialization_seconds']:.4f}s | "
+                f"{performance['cases_per_second']} "
+                f"[{performance['run_min']['cases_per_second']}, "
+                f"{performance['run_max']['cases_per_second']}] | "
+                f"{performance['latency_p95_ms']}ms "
+                f"[{performance['run_min']['latency_p95_ms']}, "
+                f"{performance['run_max']['latency_p95_ms']}] | {rss_text} |"
+            )
+
+
+def append_component_startup(
+    lines: list[str], startup: dict[str, dict[str, object]] | None
+) -> None:
+    if startup is None:
+        return
+    lines.extend(
+        [
+            "",
+            "## Optional component startup",
+            "",
+            "Each profile runs in a fresh process after one discarded warm-up. Component profiles "
+            "construct the resource-less engine first, then explicitly load the component asset.",
+            "",
+            "| profile | runs | base init median [min, max] | component load median [min, max] | total init median [min, max] | base peak RSS | final peak RSS |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for profile, metrics in startup.items():
+        lines.append(
+            f"| {profile} | {metrics['runs']} | "
+            f"{format_seconds(metrics, 'base_initialization_seconds')} | "
+            f"{format_seconds(metrics, 'component_initialization_seconds')} | "
+            f"{format_seconds(metrics, 'initialization_seconds')} | "
+            f"{format_rss(metrics['base_peak_rss_kib'])} | "
+            f"{format_rss(metrics['peak_rss_kib'])} |"
+        )
+
+
+def append_human_untagged(
+    lines: list[str], human: dict[str, object] | None
+) -> None:
+    if human is None:
+        return
+    dataset = human["dataset"]
+    lines.extend(
+        [
+            "",
+            "## Human untagged search",
+            "",
+            "The query is compiled without a global POS or atom tag. A negative sentence "
+            "contains no supported POS analysis for the query lemma.",
+            "",
+            f"- fixture: `{dataset['fixture_sha256']}`",
+            f"- cases: {dataset['cases']} ({dataset['positive_cases']} positive, "
+            f"{dataset['negative_cases']} negative)",
+            "",
+            "| profile | boundary | precision | recall | F1 | TP | FP | TN | FN | init median | cases/s median | p95 median | peak RSS |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for profile, profile_result in human["profiles"].items():
+        for boundary in human["boundaries"]:
+            result = profile_result["boundaries"][boundary]
+            quality = result["quality"]
+            performance = result["performance"]
+            lines.append(
+                f"| {profile} | {boundary} | {quality['precision_percent']}% | "
+                f"{quality['recall_percent']}% | {quality['f1_percent']}% | "
+                f"{quality['tp']} | {quality['fp']} | {quality['tn']} | "
+                f"{quality['fn']} | {performance['initialization_seconds']:.4f}s | "
+                f"{performance['cases_per_second']} | "
+                f"{performance['latency_p95_ms']}ms | "
+                f"{format_rss(performance['peak_rss_kib'])} |"
+            )
+    lines.extend(
+        [
+            "",
+            "| profile | positive plans | intended POS present | multi-POS plan | literal fallback |",
+            "| --- | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for profile, profile_result in human["profiles"].items():
+        plan = profile_result["plan"]
+        lines.append(
+            f"| {profile} | {plan['positive_cases']} | "
+            f"{plan['expected_pos_present_percent']}% "
+            f"({plan['expected_pos_present']}) | "
+            f"{plan['multi_coarse_pos_percent']}% ({plan['multi_coarse_pos']}) | "
+            f"{plan['literal_fallback_percent']}% ({plan['literal_fallback']}) |"
+        )
+
+
+def format_seconds(metrics: dict[str, object], name: str) -> str:
+    value = metrics[name]
+    if value is None:
+        return "n/a"
+    return (
+        f"{value:.4f}s [{metrics['run_min'][name]:.4f}, "
+        f"{metrics['run_max'][name]:.4f}]"
+    )
+
+
+def format_rss(value: int | float | None) -> str:
+    return f"{value / 1024:.1f} MiB" if value is not None else "n/a"
+
+
 def append_grouped_quality(
     lines: list[str], report: dict[str, object], label: str, key: str
 ) -> None:
@@ -414,41 +532,6 @@ def append_grouped_quality(
                 f"{metrics['precision_percent']}% | {metrics['recall_percent']}% | "
                 f"{metrics['f1_percent']}% |"
             )
-
-
-def append_shadow_verification(
-    lines: list[str], report: dict[str, object]
-) -> None:
-    lines.extend(
-        [
-            "",
-            "## Shadow verification",
-            "",
-            "Counters are collected outside the timed evaluation and do not change matches.",
-            "",
-            "| profile | raw anchor hits | verified branch hits | local candidates | unique analysis windows | cases with local candidates |",
-            "| --- | ---: | ---: | ---: | ---: | ---: |",
-        ]
-    )
-    for profile in KFIND_PROFILES:
-        summary = report["shadow_verification"][profile]
-        totals = summary["totals"]
-        lines.append(
-            f"| {profile} | {totals['raw_anchor_hits']} | "
-            f"{totals['verified_branch_hits']} | "
-            f"{totals['local_lattice_candidate_hits']} | "
-            f"{totals['unique_analysis_windows']} | "
-            f"{summary['cases_with_local_candidates']} |"
-        )
-        statuses = ", ".join(
-            f"{name}={count}"
-            for name, count in summary["lattice_statuses"].items()
-        ) or "none"
-        decisions = ", ".join(
-            f"{name}={count}"
-            for name, count in summary["lattice_decisions"].items()
-        ) or "none"
-        lines.append(f"- {profile}: statuses {statuses}; decisions {decisions}")
 
 
 def append_profile_comparison(lines: list[str], report: dict[str, object]) -> None:
@@ -516,6 +599,7 @@ def append_development_summary(
             f"{metrics['recall_percent']}% | {metrics['f1_percent']}% | "
             f"{metrics['tp']} | {metrics['fp']} | {metrics['fn']} |"
         )
+    append_component_shadow_table(lines, development["shadow_verification"])
 
 
 def append_hard_negative_summary(
@@ -544,6 +628,7 @@ def append_hard_negative_summary(
                 f"{metrics['hard_negative_precision_percent']}% | "
                 f"{metrics['fp']} | {metrics['tn']} |"
             )
+    append_component_shadow_table(lines, hard_negatives["shadow_verification"])
 
 
 def append_local_context_summary(

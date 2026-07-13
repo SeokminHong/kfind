@@ -357,8 +357,8 @@ query	pos	text	expected	feature
 저	pronoun	저는 처음 왔습니다.	match	particle-final-pair
 저	pronoun	저를 따라오세요.	match	particle-final-pair
 저	pronoun	저가 직접 설명했다.	no-match	pronoun-override
-권한	noun	사용자권한을 한 단어로 저장했다.	no-match	particle-final-pair
-권한	noun	권한관리 화면을 열었다.	no-match	particle-final-pair
+권한	noun	사용자권한을 한 단어로 저장했다.	match	nominal-component
+권한	noun	권한관리 화면을 열었다.	match	nominal-component
 권한	noun	사용자의 권한을 확인했다.	match	particle-final-pair
 길	noun	길잡이가 앞장섰다.	no-match	particle-final-pair
 길	noun	산길을 천천히 걸었다.	no-match	particle-final-pair

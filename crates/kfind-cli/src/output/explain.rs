@@ -7,9 +7,9 @@ use kfind_query::{
 };
 use kfind_search::SearchLine;
 
-use super::FullPosStatus;
 use super::text::write_safe_bytes;
 use super::write_safe_path;
+use super::{FullPosNotRequiredReason, FullPosStatus};
 use crate::Language;
 
 pub(super) fn write_query_plan(
@@ -125,13 +125,17 @@ fn write_full_pos_status(
             }
             Ok(())
         }
-        FullPosStatus::NotRequired => {
+        FullPosStatus::NotRequired(reason) => {
             write_label(writer, language, "status", "상태", 2)?;
-            writeln!(
-                writer,
-                "{}",
-                language.select("not required (literal query)", "불필요 (literal 쿼리)")
-            )
+            let (english, korean) = match reason {
+                FullPosNotRequiredReason::EmbeddedMode => {
+                    ("not required (embedded mode)", "불필요 (embedded 모드)")
+                }
+                FullPosNotRequiredReason::LiteralQuery => {
+                    ("not required (literal query)", "불필요 (literal 쿼리)")
+                }
+            };
+            writeln!(writer, "{}", language.select(english, korean))
         }
     }
 }

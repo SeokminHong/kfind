@@ -9,6 +9,7 @@ license.workspace = true
 [dependencies]
 aho-corasick.workspace = true
 grep-matcher.workspace = true
+kfind-data.workspace = true
 kfind-morph.workspace = true
 kfind-query.workspace = true
 memchr.workspace = true

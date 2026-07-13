@@ -76,6 +76,13 @@ pub enum DataErrorKind {
     },
     MorphologyResourceSourceMismatch,
     MorphologyResourceCorrupt(String),
+    ComponentResourceBuild(String),
+    ComponentResourceSchema {
+        expected: u32,
+        actual: u32,
+    },
+    ComponentResourceSourceMismatch,
+    ComponentResourceCorrupt(String),
     MissingFixtureCoverage(String),
 }
 
@@ -136,6 +143,19 @@ impl Display for DataErrorKind {
             }
             Self::MorphologyResourceCorrupt(message) => {
                 write!(formatter, "morphology resource가 손상되었습니다: {message}")
+            }
+            Self::ComponentResourceBuild(message) => {
+                write!(formatter, "component resource 생성 오류: {message}")
+            }
+            Self::ComponentResourceSchema { expected, actual } => write!(
+                formatter,
+                "component resource schema가 올바르지 않습니다: expected {expected}, got {actual}"
+            ),
+            Self::ComponentResourceSourceMismatch => {
+                formatter.write_str("component resource source digest가 일치하지 않습니다")
+            }
+            Self::ComponentResourceCorrupt(message) => {
+                write!(formatter, "component resource가 손상되었습니다: {message}")
             }
             Self::MissingFixtureCoverage(feature) => {
                 write!(

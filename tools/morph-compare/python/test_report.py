@@ -3,11 +3,17 @@ import unittest
 from report import (
     BACKENDS,
     KFIND_PROFILES,
+    append_boundary_comparison,
+    append_component_shadow_table,
+    append_component_startup,
+    append_human_untagged,
     append_local_context_summary,
+    classify_component_paths,
     classify_primary_cause,
     kfind_profile_comparison,
     quality_metrics,
     shadow_verification_summary,
+    untagged_plan_metrics,
 )
 
 
@@ -127,6 +133,163 @@ class QualityMetricsTests(unittest.TestCase):
         self.assertEqual(1, metrics["fp"])
 
 
+class ComponentStartupTests(unittest.TestCase):
+    def test_renders_resource_less_and_explicit_component_profiles(self) -> None:
+        metric = {
+            "runs": 3,
+            "base_initialization_seconds": 0.01,
+            "component_initialization_seconds": None,
+            "initialization_seconds": 0.01,
+            "base_peak_rss_kib": 10240,
+            "peak_rss_kib": 10240,
+            "run_min": {
+                "base_initialization_seconds": 0.009,
+                "component_initialization_seconds": None,
+                "initialization_seconds": 0.009,
+                "base_peak_rss_kib": 10240,
+                "peak_rss_kib": 10240,
+            },
+            "run_max": {
+                "base_initialization_seconds": 0.011,
+                "component_initialization_seconds": None,
+                "initialization_seconds": 0.011,
+                "base_peak_rss_kib": 10240,
+                "peak_rss_kib": 10240,
+            },
+        }
+        lines: list[str] = []
+
+        append_component_startup(lines, {"embedded": metric})
+
+        rendered = "\n".join(lines)
+        self.assertIn("## Optional component startup", rendered)
+        self.assertIn("| embedded | 3 | 0.0100s [0.0090, 0.0110] | n/a |", rendered)
+
+
+class BoundaryComparisonTests(unittest.TestCase):
+    def test_renders_quality_and_performance_for_each_policy(self) -> None:
+        performance = {
+            "runs": 5,
+            "initialization_seconds": 0.1,
+            "cases_per_second": 1000.0,
+            "latency_p95_ms": 0.5,
+            "peak_rss_kib": 10240,
+            "run_min": {"cases_per_second": 900.0, "latency_p95_ms": 0.4},
+            "run_max": {"cases_per_second": 1100.0, "latency_p95_ms": 0.6},
+        }
+        quality = {
+            "precision_percent": 99.0,
+            "recall_percent": 80.0,
+            "f1_percent": 88.49,
+        }
+        comparison = {
+            "boundaries": ["smart", "token", "any"],
+            "profiles": {
+                profile: {
+                    boundary: {"quality": quality, "performance": performance}
+                    for boundary in ("smart", "token", "any")
+                }
+                for profile in ("embedded", "full-pos")
+            },
+        }
+        lines: list[str] = []
+
+        append_boundary_comparison(lines, comparison)
+
+        rendered = "\n".join(lines)
+        self.assertIn("## Boundary policy comparison", rendered)
+        self.assertIn(
+            "| full-pos | any | 99.0% | 80.0% | 88.49% | 0.1000s |",
+            rendered,
+        )
+
+
+class HumanUntaggedTests(unittest.TestCase):
+    def test_aggregates_positive_plan_usability(self) -> None:
+        cases = [
+            {"id": "positive-a", "expected": True},
+            {"id": "positive-b", "expected": True},
+            {"id": "negative", "expected": False},
+        ]
+        diagnostics = {
+            "positive-a": {
+                "expected_pos_present": True,
+                "multi_coarse_pos": True,
+                "literal_fallback": False,
+            },
+            "positive-b": {
+                "expected_pos_present": False,
+                "multi_coarse_pos": False,
+                "literal_fallback": True,
+            },
+            "negative": {
+                "expected_pos_present": False,
+                "multi_coarse_pos": False,
+                "literal_fallback": False,
+            },
+        }
+
+        metrics = untagged_plan_metrics(cases, diagnostics)
+
+        self.assertEqual(50.0, metrics["expected_pos_present_percent"])
+        self.assertEqual(50.0, metrics["multi_coarse_pos_percent"])
+        self.assertEqual(50.0, metrics["literal_fallback_percent"])
+
+    def test_renders_quality_performance_and_plan_metrics(self) -> None:
+        performance = {
+            "initialization_seconds": 0.01,
+            "cases_per_second": 1200.0,
+            "latency_p95_ms": 0.4,
+            "peak_rss_kib": 10240,
+        }
+        quality = {
+            "precision_percent": 90.0,
+            "recall_percent": 80.0,
+            "f1_percent": 84.71,
+            "tp": 8,
+            "fp": 1,
+            "tn": 9,
+            "fn": 2,
+        }
+        human = {
+            "dataset": {
+                "fixture_sha256": "untagged-fixture",
+                "cases": 20,
+                "positive_cases": 10,
+                "negative_cases": 10,
+            },
+            "boundaries": ["smart", "any"],
+            "profiles": {
+                "embedded": {
+                    "plan": {
+                        "positive_cases": 10,
+                        "expected_pos_present": 8,
+                        "expected_pos_present_percent": 80.0,
+                        "multi_coarse_pos": 3,
+                        "multi_coarse_pos_percent": 30.0,
+                        "literal_fallback": 2,
+                        "literal_fallback_percent": 20.0,
+                    },
+                    "boundaries": {
+                        boundary: {
+                            "quality": quality,
+                            "performance": performance,
+                        }
+                        for boundary in ("smart", "any")
+                    },
+                }
+            },
+        }
+        lines: list[str] = []
+
+        append_human_untagged(lines, human)
+
+        rendered = "\n".join(lines)
+        self.assertIn("## Human untagged search", rendered)
+        self.assertIn("| embedded | any | 90.0% | 80.0% | 84.71% |", rendered)
+        self.assertIn("| embedded | 10 | 80.0% (8) | 30.0% (3) |", rendered)
+
+
 class ShadowVerificationTests(unittest.TestCase):
     def test_aggregates_counters_and_preserves_case_evidence(self) -> None:
         by_case = {
@@ -135,15 +298,24 @@ class ShadowVerificationTests(unittest.TestCase):
                 "verified_branch_hits": 0,
                 "local_lattice_candidate_hits": 0,
                 "unique_analysis_windows": 0,
+                "nominal_component_candidate_hits": 0,
+                "unique_component_windows": 0,
             },
             "vcp": {
                 "raw_anchor_hits": 2,
                 "verified_branch_hits": 2,
                 "local_lattice_candidate_hits": 2,
                 "unique_analysis_windows": 1,
+                "nominal_component_candidate_hits": 1,
+                "unique_component_windows": 1,
+                "component_projection_comparisons": 1,
+                "component_projection_mismatches": 0,
                 "lattice": [
                     {"status": "evaluated", "decision": "accept"},
                     {"status": "limit-exceeded", "decision": None},
+                ],
+                "component": [
+                    {"status": "evaluated", "decision": "accept"},
                 ],
             },
         }
@@ -157,12 +329,129 @@ class ShadowVerificationTests(unittest.TestCase):
         self.assertEqual(2, summary["totals"]["raw_anchor_hits"])
         self.assertEqual(2, summary["totals"]["local_lattice_candidate_hits"])
         self.assertEqual(1, summary["cases_with_local_candidates"])
+        self.assertEqual(1, summary["cases_with_component_candidates"])
         self.assertEqual({"accept": 1}, summary["lattice_decisions"])
         self.assertEqual(
             {"accept": 1, "limit-exceeded": 1},
             summary["lattice_outcomes_by_class"]["positive"],
         )
+        self.assertEqual({"accept": 1}, summary["component_decisions"])
+        self.assertEqual({"accept": 1}, summary["component_cases_by_decision"])
+        self.assertEqual(
+            {"accept": 1}, summary["component_outcomes_by_class"]["positive"]
+        )
+        self.assertEqual(
+            {"comparisons": 1, "mismatches": 0},
+            summary["component_projection_equivalence"],
+        )
         self.assertEqual(by_case, summary["by_case"])
+
+    def test_classifies_lowest_cost_component_paths(self) -> None:
+        target = {"byte_start": 3, "byte_end": 9}
+        window = {"raw": {"byte_start": 3, "byte_end": 12}}
+        query_node = {
+            "original": target,
+            "pos": "NNG",
+            "unknown": False,
+        }
+        suffix_node = {
+            "original": {"byte_start": 9, "byte_end": 12},
+            "pos": "XSV",
+            "unknown": False,
+        }
+        unknown_node = {
+            "original": {"byte_start": 3, "byte_end": 12},
+            "pos": "UNKNOWN",
+            "unknown": True,
+        }
+        by_case = {
+            "accept": {
+                "component": [
+                    {
+                        "decision": "accept",
+                        "include_cost": 10,
+                        "target": target,
+                        "window": window,
+                        "paths": [
+                            {
+                                "cost": 10,
+                                "includes_query": True,
+                                "nodes": [query_node, suffix_node],
+                            }
+                        ],
+                    },
+                    {
+                        "decision": "accept",
+                        "include_cost": 20,
+                        "target": target,
+                        "window": window,
+                        "paths": [
+                            {
+                                "cost": 20,
+                                "includes_query": True,
+                                "nodes": [query_node],
+                            }
+                        ],
+                    },
+                ]
+            },
+            "reject": {
+                "component": [
+                    {
+                        "decision": "reject",
+                        "exclude_cost": 5,
+                        "target": target,
+                        "window": window,
+                        "paths": [
+                            {
+                                "cost": 5,
+                                "includes_query": False,
+                                "nodes": [unknown_node],
+                            }
+                        ],
+                    }
+                ]
+            },
+        }
+        metadata = {
+            "accept": {"expected": True},
+            "reject": {"expected": True},
+        }
+
+        classification = classify_component_paths(by_case, metadata)
+
+        self.assertEqual(
+            {"derivational-continuation": 1},
+            classification["path_types_by_class"]["positive"]["accept"],
+        )
+        self.assertEqual(
+            {"unknown": 1},
+            classification["path_types_by_class"]["positive"]["reject"],
+        )
+        self.assertEqual(
+            {"derivational-continuation": 1},
+            classification["p1_rule_candidates_by_class"]["positive"],
+        )
+        self.assertEqual(
+            "prefix",
+            classification["by_case"]["accept"]["decisions"]["accept"][
+                "target_position"
+            ],
+        )
+
+    def test_renders_component_case_decisions(self) -> None:
+        shadow = {
+            profile: {
+                "cases_with_component_candidates": 5,
+                "component_cases_by_decision": {"accept": 3, "reject": 2},
+            }
+            for profile in KFIND_PROFILES
+        }
+        lines: list[str] = []
+
+        append_component_shadow_table(lines, shadow)
+
+        self.assertIn("| kfind-embedded | 5 | 3 | 2 |", "\n".join(lines))
 
 
 class LocalContextSummaryTests(unittest.TestCase):

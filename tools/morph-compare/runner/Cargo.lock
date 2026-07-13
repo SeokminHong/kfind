@@ -839,6 +839,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "kfind"
+version = "0.1.1"
+dependencies = [
+ "kfind-data",
+ "kfind-matcher",
+ "kfind-morph",
+ "kfind-query",
+]
+
+[[package]]
 name = "kfind-data"
 version = "0.1.1"
 dependencies = [
@@ -855,6 +865,7 @@ version = "0.1.1"
 dependencies = [
  "aho-corasick",
  "grep-matcher",
+ "kfind-data",
  "kfind-morph",
  "kfind-query",
  "memchr",
@@ -1026,6 +1037,7 @@ name = "morph-benchmark-runner"
 version = "0.1.1"
 dependencies = [
  "anyhow",
+ "kfind",
  "kfind-data",
  "kfind-matcher",
  "kfind-morph",

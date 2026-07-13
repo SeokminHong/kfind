@@ -20,6 +20,7 @@
   ],
   "files": [
     "generated",
+    "assets",
     "LICENSE",
     "README.ko.md"
   ],
@@ -29,9 +30,11 @@
     ".": {
       "types": "./generated/kfind.d.ts",
       "import": "./generated/kfind.js"
-    }
+    },
+    "./assets/morphology-component-compact.kfc": "./assets/morphology-component-compact.kfc"
   },
   "scripts": {
+    "benchmark:startup": "../../scripts/benchmark-npm-startup.sh",
     "build": "../../scripts/build-npm-package.sh",
     "test": "../../scripts/test-npm-package.sh",
     "pack:check": "../../scripts/check-npm-package.sh"

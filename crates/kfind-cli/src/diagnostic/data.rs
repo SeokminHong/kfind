@@ -112,6 +112,36 @@ pub(super) fn write_error(
                 "morphology resource가 손상되었습니다"
             )
         ),
+        DataErrorKind::ComponentResourceBuild(message) => write!(
+            formatter,
+            "{}: {message}",
+            language.select(
+                "component resource build error",
+                "component resource 생성 오류"
+            )
+        ),
+        DataErrorKind::ComponentResourceSchema { expected, actual } => write!(
+            formatter,
+            "{}: {} {expected}, {} {actual}",
+            language.select(
+                "invalid component resource schema",
+                "component resource schema가 올바르지 않습니다"
+            ),
+            language.select("expected", "기대값"),
+            language.select("got", "실제값")
+        ),
+        DataErrorKind::ComponentResourceSourceMismatch => formatter.write_str(language.select(
+            "component resource source digest mismatch",
+            "component resource source digest가 일치하지 않습니다",
+        )),
+        DataErrorKind::ComponentResourceCorrupt(message) => write!(
+            formatter,
+            "{}: {message}",
+            language.select(
+                "corrupt component resource",
+                "component resource가 손상되었습니다"
+            )
+        ),
         DataErrorKind::MissingFixtureCoverage(feature) => write!(
             formatter,
             "{} `{feature}`",

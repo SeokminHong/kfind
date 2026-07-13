@@ -38,12 +38,28 @@ native CLI와 Node WASM이 full POS resource를 초기화하는 시간과 RSS를
 측정한다. 최신 비교는 [2026-07-13 full POS 지연 조회 보고서](2026-07-13-full-pos-startup.md)에
 기록한다.
 
+## Optional component startup
+
+resource 없는 Rust/WASM engine과 생성 후 compact component resource를 수동 초기화한 engine의
+시간과 RSS를 분리해 측정한다. native 결과는 morphology report의 `component_startup`, WASM
+결과는 별도 JSON에 기록한다.
+
+```console
+scripts/benchmark-morphology.sh
+pnpm --dir packages/kfind run benchmark:startup
+```
+
+최신 수치는 [smart component 검색 근거](2026-07-13-smart-component-evidence.md)에 기록한다.
+
 ## Morphology comparison
 
 독립된 UD Korean-Kaist·KSL test split에서 `kfind` embedded/full-POS, Kiwi, Lindera의
 lemma/POS/span 품질과
 end-to-end 비용을 비교한다. dev의 VCP/VCN 지정사 판별 slice는 성능 측정에서 제외하고
 source·raw tag별 confusion matrix와 local-context shadow 대상 수를 함께 기록한다.
+별도 human fixture는 품사 옵션과 atom 태그를 생략하고, query 표제어가 어떤 지원 품사로도
+없는 문장을 negative로 사용한다. embedded/full-POS의 smart/any 품질·성능과 auto plan
+사용성을 같은 보고서의 `human_untagged` 절에 기록한다.
 
 ```console
 scripts/benchmark-morphology.sh

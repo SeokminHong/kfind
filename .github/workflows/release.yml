@@ -44,10 +44,14 @@ jobs:
         run: |
           mkdir -p dist/assets
           scripts/build-full-pos.sh dist/full-pos
-          cargo run --locked --package kfind-testkit --bin verify-gold -- dist/full-pos/lexicon.bin
+          scripts/build-component-resource.sh dist/component
+          cargo run --locked --package kfind-testkit --bin verify-gold -- \
+            dist/full-pos/lexicon.bin \
+            dist/component/morphology-component-compact.kfc
           cargo run --locked --package kfind-cli --features distribution-assets --bin kfind-generate-assets -- dist/assets
           git archive --format=tar.gz --prefix="kfind-${VERSION}/" --output="dist/kfind-${VERSION}.tar.gz" "$GITHUB_SHA"
           tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -czf "dist/kfind-full-pos-${VERSION}.tar.gz" -C dist/full-pos .
+          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -czf "dist/kfind-component-${VERSION}.tar.gz" -C dist/component .
           tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -czf "dist/kfind-assets-${VERSION}.tar.gz" -C dist/assets .
 
       - name: Render the tap formula
@@ -57,8 +61,9 @@ jobs:
         run: |
           source_sha=$(sha256sum "dist/kfind-${VERSION}.tar.gz" | awk '{print $1}')
           full_pos_sha=$(sha256sum "dist/kfind-full-pos-${VERSION}.tar.gz" | awk '{print $1}')
+          component_sha=$(sha256sum "dist/kfind-component-${VERSION}.tar.gz" | awk '{print $1}')
           assets_sha=$(sha256sum "dist/kfind-assets-${VERSION}.tar.gz" | awk '{print $1}')
-          scripts/render-homebrew-formula.sh "$VERSION" "$source_sha" "$full_pos_sha" "$assets_sha" "$PROJECT_LICENSE" dist/kfind.rb
+          scripts/render-homebrew-formula.sh "$VERSION" "$source_sha" "$full_pos_sha" "$component_sha" "$assets_sha" "$PROJECT_LICENSE" dist/kfind.rb
 
       - name: Publish the GitHub release
         env:
@@ -68,6 +73,7 @@ jobs:
           gh release create "$GITHUB_REF_NAME" \
             "dist/kfind-${VERSION}.tar.gz" \
             "dist/kfind-full-pos-${VERSION}.tar.gz" \
+            "dist/kfind-component-${VERSION}.tar.gz" \
             "dist/kfind-assets-${VERSION}.tar.gz" \
             --verify-tag \
             --generate-notes \
@@ -88,7 +94,7 @@ jobs:
           git add Formula/kfind.rb
           git commit -m "kfind ${VERSION}"
           git push --set-upstream origin "kfind-v${VERSION}"
-          printf '## Summary\n\n- publish kfind %s\n- install the full POS lexicon and generated CLI assets\n\n## Test\n\n- `brew test-bot --only-formulae`\n' "$VERSION" >../tap-pr.md
+          printf '## Summary\n\n- publish kfind %s\n- install morphology resources and generated CLI assets\n\n## Test\n\n- `brew test-bot --only-formulae`\n' "$VERSION" >../tap-pr.md
           gh pr create \
             --repo SeokminHong/homebrew-brew \
             --base main \
