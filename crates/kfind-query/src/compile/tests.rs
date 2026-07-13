@@ -172,6 +172,8 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
 #[test]
 fn smart_direct_particle_uses_host_verification_instead_of_a_left_boundary() {
     let smart = compile_query("는", &CompileOptions::default(), &analyzer()).unwrap();
+    assert_eq!(smart.atoms[0].branches.len(), 1);
+    assert_eq!(smart.atoms[0].branches[0].anchor.as_ref(), "는".as_bytes());
     assert!(smart.atoms[0].branches.iter().all(|branch| {
         matches!(branch.verifier, BranchVerifier::DirectParticle { .. })
             && !branch.boundary.require_left
@@ -267,6 +269,55 @@ fn analysis_and_memory_limits_fail_observably() {
         *error.kind,
         CompileErrorKind::ContinuationDepthExceeded { .. }
     ));
+}
+
+#[test]
+fn direct_particle_allomorph_expansion_requires_an_explicit_pos_in_smart_mode() {
+    let untagged = compile_query("이", &CompileOptions::default(), &analyzer()).unwrap();
+    assert!(
+        untagged.atoms[0]
+            .branches
+            .iter()
+            .any(|branch| branch.anchor.as_ref() == "이".as_bytes())
+    );
+    assert!(
+        untagged.atoms[0]
+            .branches
+            .iter()
+            .all(|branch| branch.anchor.as_ref() != "가".as_bytes())
+    );
+
+    let forced = compile_query(
+        "이",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Particle),
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    assert!(["이", "가"].iter().all(|surface| {
+        forced.atoms[0]
+            .branches
+            .iter()
+            .any(|branch| branch.anchor.as_ref() == surface.as_bytes())
+    }));
+
+    let any = compile_query(
+        "이",
+        &CompileOptions {
+            boundary: BoundaryPolicy::Any,
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    assert!(["이", "가"].iter().all(|surface| {
+        any.atoms[0]
+            .branches
+            .iter()
+            .any(|branch| branch.anchor.as_ref() == surface.as_bytes())
+    }));
 }
 
 #[test]

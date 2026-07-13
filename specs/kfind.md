@@ -32,7 +32,7 @@
 ### 0.2 토큰 경계와 phrase 거리
 
 - 토큰 문자는 Unicode 문자·숫자·결합 문자와 `_`다. 한글 완성형과 자모도 토큰 문자에 포함한다.
-- `smart`는 품사 verifier가 허용된 조사·어미를 소비한 token span의 바깥 경계를 검사한다. 체언, literal, 한 음절 atom은 core 시작도 토큰 경계여야 한다. 단, 조사를 직접 검색할 때는 붙은 조사를 찾을 수 있도록 core 왼쪽 경계 대신 바로 앞 host와 조사 이형태 조건을 검증한다.
+- `smart`는 품사 verifier가 허용된 조사·어미를 소비한 token span의 바깥 경계를 검사한다. 체언, literal, 한 음절 atom은 core 시작도 토큰 경계여야 한다. 단, 조사를 직접 검색할 때는 붙은 조사를 찾을 수 있도록 core 왼쪽 경계 대신 바로 앞 host와 조사 이형태 조건을 검증한다. 무품사 입력은 사용자가 쓴 조사 표면형만 찾고, 조사 이형태 묶음 확장은 명시적 조사 품사 입력에서만 사용한다.
 - 일반 용언의 `smart` token span은 core에서 시작한다. 따라서 `가다` 검색은 `친구가`의 붙은 조사 `가`를 활용형으로 인정하지 않는다. 지정사처럼 앞 host에 붙는 분석만 별도 왼쪽 환경 검증을 사용한다.
 - `token`은 모든 품사에서 core 시작과 완성된 token span 끝의 토큰 경계를 검사한다.
 - `any`는 좌우 경계를 검사하지 않는다.
@@ -148,6 +148,9 @@
 - `whole-token-lexical` 검증은 기존 `any` candidate를 추가하지 않고 `smart`의 predicate branch만
   필터링한다. `token`과 `any` 결과는 바꾸지 않으며, 평가 fixture·gold·지표 정의도 변경하지 않는다.
   폐기한 copula lattice와 경로 비용 비교는 복원하지 않는다.
+- `smart` 무품사 query의 direct-particle branch는 입력과 같은 표면형만 만든다. 다른 조사
+  이형태까지 검색하려면 전역 `--pos particle` 또는 atom 품사 태그를 명시한다. 이 제한은
+  `smart`에만 적용하며 `token`, `any`와 평가 fixture·gold·지표 정의를 바꾸지 않는다.
 - precision 개선은 현재 `boundary=any`가 만드는 candidate 집합의 부분집합만 선택한다. `any`
   밖의 span을 새로 만들거나 coverage를 넓히는 변경은 이 작업 범위에서 제외한다. User profile을
   먼저 검증하고, Agent profile은 같은 상한 아래에서 후속 작업으로 다룬다.
@@ -1008,7 +1011,7 @@ right condition: 토큰 경계 또는 다음 한국어 토큰 시작
 
 ### 10.6 조사
 
-조사를 직접 검색할 때는 이형태 묶음을 사용할 수 있다.
+조사를 직접 검색할 때 품사를 명시하면 이형태 묶음을 사용할 수 있다.
 
 ```text
 으로 ↔ 로
@@ -1019,6 +1022,8 @@ right condition: 토큰 경계 또는 다음 한국어 토큰 시작
 ```
 
 한 음절 조사 검색은 hit가 많으므로 `smart`에서 바로 앞 host의 받침 조건과 조사 뒤 토큰 경계를 검증한다. `token`은 독립 토큰 경계를 요구하고, `--boundary any`에서만 host 검증 없는 임의 부분 문자열을 허용한다.
+품사를 생략한 `smart` 검색은 입력한 조사 표면형만 사용한다. 예를 들어 `이`는 붙은 `이`를
+찾되 `가`까지 확장하지 않으며, `--pos particle 이`는 `이 ↔ 가` 묶음을 모두 찾는다.
 
 ### 10.7 감탄사
 
