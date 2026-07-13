@@ -7,6 +7,7 @@
 
 - [기술 사양서](../../specs/kfind.md)
 - [User smart precision 품질·성능](2026-07-14-user-smart-precision.md)
+- [Agent precision shadow 판정](2026-07-14-agent-precision-shadow.md)
 - [smart component 검색 근거](2026-07-13-smart-component-evidence.md)
 - [copula lattice 폐기 판정](2026-07-13-copula-unseen-evaluation.md)
 - [형태소 benchmark 사용법](README.md#morphology-comparison)
@@ -84,18 +85,16 @@ fixture·gold·지표 정의와 `any`의 TP 479 / FP 11 / FN 21은 바꾸지 않
 - Agent precision 후보는 먼저 `embedded + any` 결과에 대한 benchmark shadow로만 측정한다.
   timed 결과와 제품 `any` 결과는 유지하고, bounded local lattice의 include/exclude 완전 경로
   존재 여부와 생성 근거를 development·hard-negative에서 분류한다.
+- Agent shadow의 `include-path` 투영은 development TP를 484에서 444로 줄이면서 FP 15를
+  유지했다. `include-only`는 FP를 0으로 줄이지만 TP도 10으로 줄였다. 제품 matcher와 `any`
+  정책은 변경하지 않는다.
+- Korean-Kaist·KSL dev의 실제 지정사 token과 겹치는 `이다` candidate 1,174개는 모두 include와
+  exclude 완전 경로가 함께 존재했다. 지정사 split만 가능한 최소 대조가 없으므로 문맥 복구를
+  구현하지 않는다.
 
 ## 이어갈 작업
 
-1. Agent benchmark shadow에 query 품사, 생성 근거, core·token·whole-token span, exact 분석과
-   bounded local lattice의 include/exclude 완전 경로 존재 여부를 기록한다. 비용은 판정에 쓰지
-   않는다.
-2. development와 hard-negative에서 규칙을 고정한 뒤 User test precision 100.00%와 Agent의
-   기존 true positive를 보존하면서 false positive가 감소하는지 한 번 판정한다. `any` 밖의 span을
-   만들지 않는다.
-3. exclude 완전 경로가 없고 지정사 split 완전 경로만 있는 자연 문장 최소 대조가 확인될 때만
-   문맥 복구를 제품 후보로 검토한다.
-4. `-기` 명사형 뒤 조사 continuation을 독립 규칙과 hard-negative 단위로 다룬다.
+1. `-기` 명사형 뒤 조사 continuation을 독립 규칙과 hard-negative 단위로 다룬다.
 
 ## 재현과 검증
 
