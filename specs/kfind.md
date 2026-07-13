@@ -1595,6 +1595,15 @@ fixture 생성 단계는 source·parsing 통계, case 수와 digest만 노출한
 사용하며, 그 결과에 맞춰 비용·threshold·fixture 가중치를 바꾼 구현은 별도 unseen source에서
 다시 검증해야 한다. blind report만으로 union 검색 결과나 기본 정책을 변경하지 않는다.
 
+`tools/morph-compare/sources.json` schema 3은 전체 source 목록과 기본 품질 benchmark에 참여하는
+source 이름을 분리한다. Korean-GSD를 추가해도 기존 Kaist·KSL dev/test 1,000-case fixture의
+구성·digest는 바뀌지 않아야 한다. 지정사 생성기는 config 이름을 받아 dev와 blind fixture에
+같은 선택·직렬화 검증을 적용한다. blind config는 비교할 기존 source·split과 예상 fixture
+digest를 함께 선언하며 중복이나 digest 불일치를 생성 오류로 처리한다.
+
+Docker corpus build는 blind fixture와 metadata를 `/opt/morph-benchmark/data`에 포함하되 최초
+blind report를 구현하는 별도 작업 전에는 `benchmark.py`에 입력하거나 backend로 평가하지 않는다.
+
 ## 20. 성능 사양
 
 ### 20.1 목표
