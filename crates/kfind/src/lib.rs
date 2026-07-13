@@ -307,7 +307,8 @@ mod tests {
             .compile("이다", &CompileOptions::default())
             .unwrap();
         assert!(smart.find_all("매일".as_bytes()).is_empty());
-        assert_eq!(smart.find_all("학생일".as_bytes()).len(), 1);
+        assert!(smart.find_all("그건 매일 수도 있어".as_bytes()).is_empty());
+        assert_eq!(smart.find_all("학생일 수도 있어".as_bytes()).len(), 1);
 
         let any = without_component
             .compile(
