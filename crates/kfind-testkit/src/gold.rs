@@ -142,7 +142,7 @@ impl Error for GoldCaseError {
 mod tests {
     use super::*;
 
-    const EXPECTED_CASES: usize = 427;
+    const EXPECTED_CASES: usize = 432;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {

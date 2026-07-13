@@ -289,6 +289,23 @@ pub(super) fn coordinate_surface(
     Ok(Some(derived(format!("{base}며"), core_len, rules)))
 }
 
+pub(super) fn intentive_surface(
+    entry: &PredicateEntry,
+    stem: &str,
+) -> Result<Option<DerivedSurface>, GenerateError> {
+    if let Some(mut base) = eu_anchor(entry, stem)? {
+        base.surface.push_str("려고");
+        base.rules.push(rule("ending.intentive-ryeogo"));
+        return Ok(Some(base));
+    }
+    let Some((base, mut rules)) = conditional_base(entry, stem)? else {
+        return Ok(None);
+    };
+    let core_len = base.len();
+    rules.push(rule("ending.intentive-ryeogo"));
+    Ok(Some(derived(format!("{base}려고"), core_len, rules)))
+}
+
 pub(super) fn honorific_anchor(
     entry: &PredicateEntry,
     stem: &str,

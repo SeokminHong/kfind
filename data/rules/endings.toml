@@ -272,6 +272,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.intentive-ryeogo"
+category = "connective"
+initial = "eu"
+forms = ["려고", "으려고"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.polite-declarative"
 category = "final"
 initial = "attach-bieup"

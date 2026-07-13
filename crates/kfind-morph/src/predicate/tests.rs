@@ -95,6 +95,33 @@ fn regular_stems_cover_consonant_and_vowel_endings() {
 }
 
 #[test]
+fn action_predicates_cover_intentive_connectives() {
+    for (predicate, expected) in [
+        (
+            entry("꾀하다", PredicatePos::Verb, LexicalAlternation::Ha),
+            "꾀하려고",
+        ),
+        (
+            entry("먹다", PredicatePos::Verb, LexicalAlternation::Regular),
+            "먹으려고",
+        ),
+        (
+            entry("듣다", PredicatePos::Verb, LexicalAlternation::DToL),
+            "들으려고",
+        ),
+        (
+            entry("돕다", PredicatePos::Verb, LexicalAlternation::BToWa),
+            "도우려고",
+        ),
+    ] {
+        assert!(surfaces(&predicate).contains(expected));
+    }
+
+    let adjective = entry("좋다", PredicatePos::Adjective, LexicalAlternation::Regular);
+    assert!(!surfaces(&adjective).contains("좋으려고"));
+}
+
+#[test]
 fn contractions_keep_the_required_uncontracted_forms() {
     let see = surfaces(&entry(
         "보다",

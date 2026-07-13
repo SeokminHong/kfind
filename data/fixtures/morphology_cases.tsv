@@ -426,3 +426,8 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 춥다	adjective	추운 날씨에 외출했다.	match	b-irregular
 살다	verb	서울에 살며 학교에 다닌다.	match	regular
 돕다	verb	서로 도우며 문제를 해결했다.	match	b-irregular
+꾀하다	verb	성과를 꾀하려고 계획을 세웠다.	match	ha
+먹다	verb	밥을 먹으려고 자리에 앉았다.	match	regular
+듣다	verb	설명을 들으려고 가까이 갔다.	match	d-irregular
+돕다	verb	친구를 도우려고 먼저 나섰다.	match	b-irregular
+좋다	adjective	기분이 좋으려고 웃었다.	no-match	regular
