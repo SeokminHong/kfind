@@ -75,7 +75,9 @@
 - 전역 품사가 literal로 확정된 `--literal`과 `--pos literal` 쿼리는 full POS lexicon을 읽거나 디코딩하지 않는다. `--explain-query`는 `not required (literal query)` 상태를 출력하고 full POS lexicon 누락 진단을 내지 않는다.
 - 같은 literal 계획은 compact component resource도 resolve, mmap 또는 검증하지 않는다. component
   resource startup은 component branch가 있는 `smart` query와 분리해 측정한다.
-- full POS startup 측정은 같은 고정 artifact로 native CLI의 빈 입력 auto query와 Node WASM의 `Kfind.withFullPos`를 각각 실행한다. warm process 3회 이상의 초기화 시간과 peak RSS 또는 process RSS 증가량을 기록하며 literal scan benchmark와 분리한다.
+- component startup 측정은 resource 없는 Rust/WASM engine 초기화와 47,859,711-byte compact
+  resource를 명시한 초기화를 분리한다. full POS도 component 유무를 나눠 warm process 3회 이상의
+  초기화 시간과 peak RSS 또는 process RSS 증가량을 기록하며 literal scan benchmark와 분리한다.
 - 보고서는 corpus 설정과 checksum, 저장소에서 commit object로 해석되는 Git revision, CPU, memory, storage, OS, 도구 버전, 실제 명령, 각 run의 wall time·throughput·maximum RSS, median 비교값을 기록한다.
 - 기본 측정은 한 번의 warm-up 뒤 warm-cache 3회를 수행한다. timer 정밀도를 확보하기 위해 각 run은 동일 scan 10회의 합산 시간을 측정해 1회당 평균을 기록한다. 권한이 필요한 cache purge를 자동 실행하지 않으며 cold-cache 결과를 측정하지 않았으면 보고서에 명시한다.
 
@@ -240,12 +242,16 @@
 
 ### 0.8 Rust 라이브러리와 WASM 대상
 
-- `kfind` 파사드 crate의 기본 초기화는 호출자가 제공한 compact component resource bytes를
-  필수로 검증한다. 공개 생성자는 `Engine::new(component_resource)`와
-  `Engine::with_full_pos(component_resource, full_pos)`이며 resource 오류는 `DataError`로 반환한다.
-  resource가 없는 engine을 만든 뒤 기존 `smart`로 fallback하는 공개 생성자는 제공하지 않는다.
-- caller-configured lexicon 초기화도 compact component resource를 함께 요구한다. 검증된 resource는
-  engine이 소유하고 여러 matcher에서 재사용하며 query compile마다 다시 decode하지 않는다.
+- `kfind` 파사드 crate의 `Engine::new()`와 `Engine::with_full_pos(full_pos)`는 compact component
+  resource를 초기화하지 않는다. `Engine::with_component_resource(component_resource)`와
+  `Engine::with_full_pos_and_component(full_pos, component_resource)`가 resource를 명시적으로 검증한다.
+  caller-configured lexicon도 resource 없는 생성자와 resource를 명시한 생성자를 분리한다.
+- component resource는 생성 이후 first-use에 자동 fetch·load하지 않는다. 검증된 resource는 engine이
+  소유하고 여러 matcher에서 재사용하며 query compile마다 다시 decode하지 않는다. resource가 없는
+  engine에서 `NominalComponent`가 필요한 smart plan을 compile하면 명시적
+  `ComponentResourceRequired` 오류를 반환하고 기존 경계 판정으로 fallback하지 않는다.
+- engine은 component resource가 초기화되었는지 getter로 노출한다. resource가 필요 없는 literal,
+  `token`, `any`와 component branch가 없는 plan은 resource 없는 engine에서 그대로 compile한다.
 - 라이브러리 matcher는 UTF-8 byte slice에서 겹치지 않는 match와 형태 분석 provenance를
   반환한다. 파일 순회, 인코딩 판별, 출력 형식과 CLI locale 처리는 라이브러리 API에
   포함하지 않는다.
@@ -253,10 +259,12 @@
   Rust 1.85에서 `wasm32-unknown-unknown` 대상으로 빌드되어야 한다.
 - `kfind-wasm`은 `wasm-bindgen` JavaScript glue와 TypeScript declaration을 생성한다.
   npm package metadata와 게시 workflow는 별도 작업 단위다.
-- JavaScript API는 `new Kfind(componentResource)`와
-  `Kfind.withFullPos(componentResource, fullPos)`, 재사용 가능한 `Matcher`를 만드는 `compile`,
-  UTF-16 JavaScript 문자열을 검색하는 `findAll`을 제공한다. 두 resource 인자는 `Uint8Array`다.
-  빈 bytes, 손상, schema·source mismatch는 `failed to initialize kfind` JavaScript `Error`다.
+- JavaScript API는 `new Kfind(componentResource?)`와
+  `Kfind.withFullPos(fullPos, componentResource?)`, 재사용 가능한 `Matcher`를 만드는 `compile`,
+  UTF-16 JavaScript 문자열을 검색하는 `findAll`을 제공한다. resource 인자는 `Uint8Array`다.
+  component bytes를 명시했을 때 빈 bytes, 손상, schema·source mismatch는
+  `failed to initialize kfind` JavaScript `Error`다. component가 없는 인스턴스의 component smart
+  compile은 `failed to compile query` JavaScript `Error`이며 자동 load나 fallback을 수행하지 않는다.
 - WASM binary에는 compact component resource bytes를 `include_bytes!` 또는 동등한 방식으로
   포함하지 않는다. binding은 URL fetch, filesystem과 bundler asset resolution을 수행하지 않으며
   호출자가 외부 호스팅 URL 또는 별도 정적 asset에서 bytes를 읽어 생성자에 전달한다.
@@ -282,9 +290,9 @@
 - npm 산출물은 브라우저 bundler용 release package로 생성한다. 별도의 Node target
   산출물로 같은 공개 API를 smoke test하고 `npm pack --dry-run`으로 게시 파일과 metadata를
   검증한다.
-- npm package 검증은 package version과 Cargo version의 일치, TypeScript declaration의
-  resource 인자 signature, JavaScript 초기화 오류, component positive/crossing negative와 UTF-16
-  offset 계약을 확인한다.
+- npm package 검증은 package version과 Cargo version의 일치, TypeScript declaration의 optional
+  resource signature, resource 없는 non-component compile, resource 없는 component smart 오류,
+  JavaScript 초기화 오류, component positive/crossing negative와 UTF-16 offset 계약을 확인한다.
 - 기본 CI는 npm package build, Node smoke test와 pack 검사를 실행한다.
 
 ## 1. 문서 목적
