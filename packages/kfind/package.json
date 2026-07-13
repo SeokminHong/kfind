@@ -34,6 +34,7 @@
     "./assets/morphology-component-compact.kfc": "./assets/morphology-component-compact.kfc"
   },
   "scripts": {
+    "benchmark:startup": "../../scripts/benchmark-npm-startup.sh",
     "build": "../../scripts/build-npm-package.sh",
     "test": "../../scripts/test-npm-package.sh",
     "pack:check": "../../scripts/check-npm-package.sh"
