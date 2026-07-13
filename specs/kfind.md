@@ -1604,6 +1604,13 @@ digest를 함께 선언하며 중복이나 digest 불일치를 생성 오류로 
 Docker corpus build는 blind fixture와 metadata를 `/opt/morph-benchmark/data`에 포함하되 최초
 blind report를 구현하는 별도 작업 전에는 `benchmark.py`에 입력하거나 backend로 평가하지 않는다.
 
+최초 평가는 `KFIND_MORPH_BLIND=1 scripts/benchmark-morphology.sh
+target/morph-blind-report`로만 실행한다. 전용 entrypoint는 blind metadata의 split·case 수·
+fixture digest를 다시 검증하고 각 backend를 warm-up 없이 한 번 평가한다. JSON은 case별
+prediction, span, lattice 비용·경로를 보존하고 Markdown은 품질과 shadow 판정을 요약한다.
+기본 benchmark 명령은 blind fixture를 계속 읽지 않는다. 최초 성공 report의 결과를 문서에
+기록한 뒤 fixture를 regression baseline으로 전환한다.
+
 ## 20. 성능 사양
 
 ### 20.1 목표
