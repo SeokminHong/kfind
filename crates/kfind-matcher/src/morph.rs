@@ -135,7 +135,7 @@ impl MorphMatcher {
 
     fn find_all_phrases_with_meta(&self, haystack: &[u8]) -> Vec<PhraseMatch> {
         let text = phrase_join_text(haystack);
-        let atom_spans = self.collect_atom_spans(haystack, 0);
+        let atom_spans = self.collect_atom_spans(haystack, 0, MatchMetadata::Provenance);
         let Ok(mut candidates) = join_phrase_spans(&text, &atom_spans, self.plan.phrase_policy)
         else {
             return Vec::new();
