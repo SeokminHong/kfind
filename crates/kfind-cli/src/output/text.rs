@@ -18,17 +18,28 @@ pub(super) fn write_standard(
     options: OutputOptions,
 ) -> io::Result<()> {
     for record in &result.records {
-        match record {
-            SearchRecord::ContextBreak => writer.write_all(b"--\n")?,
-            SearchRecord::Line(line) => {
-                write_line(writer, &result.path, line, options)?;
-                if options.explain_match && line.kind == SearchLineKind::Match {
-                    explain::write_match_explanations(writer, line, plan, options.language)?;
-                }
-            }
-        }
+        write_record(writer, &result.path, record, plan, options)?;
     }
     Ok(())
+}
+
+pub(super) fn write_record(
+    writer: &mut impl Write,
+    path: &Path,
+    record: &SearchRecord,
+    plan: &QueryPlan,
+    options: OutputOptions,
+) -> io::Result<()> {
+    match record {
+        SearchRecord::ContextBreak => writer.write_all(b"--\n"),
+        SearchRecord::Line(line) => {
+            write_line(writer, path, line, options)?;
+            if options.explain_match && line.kind == SearchLineKind::Match {
+                explain::write_match_explanations(writer, line, plan, options.language)?;
+            }
+            Ok(())
+        }
+    }
 }
 
 pub(super) fn write_count(

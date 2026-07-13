@@ -19,21 +19,31 @@ pub(super) fn write_file(
     options: OutputOptions,
 ) -> Result<(), OutputError> {
     for record in &result.records {
-        match record {
-            SearchRecord::Line(line) => {
-                let value = JsonLine::new(&result.path, line, plan, options.column);
-                write_json_line(writer, &value)?;
-            }
-            SearchRecord::ContextBreak => {
-                let value = JsonContextBreak {
-                    record_type: "context_break",
-                    path: JsonPath::new(&result.path),
-                };
-                write_json_line(writer, &value)?;
-            }
-        }
+        write_record(writer, &result.path, record, plan, options)?;
     }
     Ok(())
+}
+
+pub(super) fn write_record(
+    writer: &mut impl Write,
+    path: &Path,
+    record: &SearchRecord,
+    plan: &QueryPlan,
+    options: OutputOptions,
+) -> Result<(), OutputError> {
+    match record {
+        SearchRecord::Line(line) => {
+            let value = JsonLine::new(path, line, plan, options.column);
+            write_json_line(writer, &value)
+        }
+        SearchRecord::ContextBreak => {
+            let value = JsonContextBreak {
+                record_type: "context_break",
+                path: JsonPath::new(path),
+            };
+            write_json_line(writer, &value)
+        }
+    }
 }
 
 fn write_json_line(writer: &mut impl Write, value: &impl Serialize) -> Result<(), OutputError> {
