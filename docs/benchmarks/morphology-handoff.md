@@ -10,6 +10,7 @@
 - [Agent precision shadow 판정](2026-07-14-agent-precision-shadow.md)
 - [`-기` 명사형 조사 continuation 품질·성능](2026-07-14-gi-particle-continuation.md)
 - [국소 lattice 제품 경로 최적화](2026-07-14-local-lattice-optimization.md)
+- [Development false negative 진단](2026-07-14-development-fn-diagnostics.md)
 - [smart component 검색 근거](2026-07-13-smart-component-evidence.md)
 - [copula lattice 폐기 판정](2026-07-13-copula-unseen-evaluation.md)
 - [형태소 benchmark 사용법](README.md#morphology-comparison)
@@ -100,25 +101,26 @@ fixture·gold·지표 정의와 `any`의 TP 479 / FP 11 / FN 21은 바꾸지 않
 - Korean-Kaist·KSL dev의 실제 지정사 token과 겹치는 `이다` candidate 1,174개는 모두 include와
   exclude 완전 경로가 함께 존재했다. 지정사 split만 가능한 최소 대조가 없으므로 문맥 복구를
   구현하지 않는다.
+- full-POS `smart`의 development positive FN 64건은 원인×품사와 any-boundary provenance로
+  고정한다. `boundary-rejected` 44건 중 verb 14건과 adjective 6건이 predicate slice며,
+  20건 모두 core·token span과 origin별 analysis index·rule path를 가진다. 가장 반복된 단일
+  path는 `ending.connective-ji` 4건이다.
 
 ## 이어갈 작업
 
 현재 승인된 제품 정책 변경은 없다. 다음 후보는 test fixture를 규칙 선택에 사용하지 않고
 development와 hard-negative에서 먼저 판정한다.
 
-1. full-POS `smart`의 development positive FN 64건을 원인·품사·rule path로 고정한다.
-   `boundary-rejected`가 44건으로 가장 크고, 이 중 verb 14건과 adjective 6건을 첫 predicate
-   slice로 삼는다. JSON failure evidence에는 `any` match의 core·token span과 origin별 analysis
-   index·rule path를 보존하고, Markdown에는 full-POS FN의 원인×품사 집계와 predicate slice의
-   전체 case를 표시한다. fixture/report 계측만 추가하고 matcher는 바꾸지 않는다.
-2. predicate slice에서 공통 continuation을 찾으면 최소 positive 대조와 같은 표면형의
-   hard-negative를 먼저 추가한다. development TP가 늘고 FP가 증가하지 않으며 기존
-   hard-negative에 새 FP가 없을 때만 한 종류의 rule path를 제품 후보로 연다. held-out test는
-   규칙 고정 뒤 회귀 판정에만 사용한다.
-3. 무품사 full-POS plan의 누락을 별도 development 지표로 만든다. 현재 test에서는 positive
+1. `ending.connective-ji` 4건에서 any token이 gold의 왼쪽·오른쪽·내부 어디에 놓이는지 먼저
+   분리한다. 같은 위치 유형의 최소 positive 대조는 development evidence로 고정하고 같은
+   표면형 negative는 version-controlled hard-negative에 추가한다. 이 단계에서는 matcher를
+   바꾸지 않는다. 한 위치 유형에서 development TP가 늘고 FP가 증가하지 않으며 기존
+   hard-negative에 새 FP가 없을 때만 제품 후보로 연다. held-out test는 규칙 고정 뒤 회귀
+   판정에만 사용한다.
+2. 무품사 full-POS plan의 누락을 별도 development 지표로 만든다. 현재 test에서는 positive
    500건 중 기대 품사가 plan에 없는 경우가 18건이고 literal fallback은 5건이다. plan 확장은
    새 development 근거와 User precision 100.00% 보존을 함께 만족할 때만 검토한다.
-4. Agent precision은 include/exclude lattice 존재 여부와 다른 독립 근거가 정의될 때만 shadow를
+3. Agent precision은 include/exclude lattice 존재 여부와 다른 독립 근거가 정의될 때만 shadow를
    다시 연다. gate는 development TP 484 보존, FP 15 미만, hard-negative 새 FP 0을 모두
    요구하며 `include-path`와 `include-only` 투영은 재사용하지 않는다.
 
