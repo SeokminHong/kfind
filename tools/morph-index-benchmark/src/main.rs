@@ -2,6 +2,7 @@ mod artifact;
 mod dataset;
 mod index;
 mod measure;
+mod storage;
 
 use std::fs;
 use std::path::PathBuf;
@@ -10,7 +11,8 @@ use anyhow::{Context, Result};
 use artifact::{IndexKind, build_container, parse_digest, validate_container};
 use clap::{Parser, Subcommand, ValueEnum};
 use dataset::Dataset;
-use measure::{StorageMode, probe};
+use measure::probe;
+use storage::StorageMode;
 
 #[derive(Debug, Parser)]
 #[command(about = "Build and compare morphology prefix indexes")]
