@@ -135,17 +135,11 @@ fn compile_productive(
     stem: &str,
     branches: &mut Vec<SurfaceBranchSpec>,
 ) -> Result<(), GenerateError> {
-    push_branch(
-        branches,
-        entry,
-        format!("{stem}고"),
-        stem.len(),
-        ContinuationState::Terminal,
-        vec![rule("ending.connective-go")],
-    );
     for (suffix, ending_rule) in [
+        ("고", "ending.connective-go"),
         ("지", "ending.connective-ji"),
         ("게", "ending.adverbial-ge"),
+        ("더라도", "ending.concessive-deorado"),
     ] {
         push_branch(
             branches,
