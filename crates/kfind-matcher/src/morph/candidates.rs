@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::ops::Range;
 
-use kfind_morph::FinePos;
+use kfind_morph::{FinePos, RuleId};
 use kfind_query::ContextRequirement;
 
 use super::MorphMatcher;
@@ -12,6 +12,7 @@ pub struct LocalAnalysisCandidate {
     pub context_requirement: ContextRequirement,
     pub atom_index: usize,
     pub analysis_index: u16,
+    pub rule_path: Vec<RuleId>,
     pub fine_pos: FinePos,
     pub target: Range<usize>,
     pub window: Result<AnalysisWindow, AnalysisWindowError>,
@@ -53,6 +54,7 @@ impl MorphMatcher {
                         origin.analysis_index,
                         candidate.core.start,
                         candidate.core.end,
+                        origin.rule_path.clone(),
                         analysis.fine_pos,
                     );
                     if !seen.insert(key) {
@@ -62,6 +64,7 @@ impl MorphMatcher {
                         context_requirement: branch.context_requirement,
                         atom_index: branch_ref.atom_index,
                         analysis_index: origin.analysis_index,
+                        rule_path: origin.rule_path.clone(),
                         fine_pos: analysis.fine_pos,
                         target: candidate.core.clone(),
                         window: AnalysisWindow::extract(

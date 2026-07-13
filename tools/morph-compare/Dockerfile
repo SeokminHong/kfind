@@ -95,12 +95,15 @@ COPY --from=runner-builder /benchmark/morphology /opt/morph-benchmark/morphology
 COPY --from=runner-builder /benchmark/component /opt/morph-benchmark/component
 COPY tools/morph-compare/benchmark.py /opt/morph-benchmark/benchmark.py
 COPY tools/morph-compare/blind_benchmark.py /opt/morph-benchmark/blind_benchmark.py
+COPY tools/morph-compare/unseen_benchmark.py /opt/morph-benchmark/unseen_benchmark.py
+COPY tools/morph-compare/test_unseen_benchmark.py /opt/morph-benchmark/test_unseen_benchmark.py
 COPY tools/morph-compare/hard-negatives.jsonl /opt/morph-benchmark/hard-negatives.jsonl
 COPY tools/morph-compare/python /opt/morph-benchmark/python
 COPY tools/morph-compare/sources.json /opt/morph-benchmark/sources.json
 
 WORKDIR /opt/morph-benchmark
 RUN python -m unittest discover --start-directory python --pattern 'test_*.py' \
+    && python -m unittest test_unseen_benchmark.py \
     && useradd --create-home --uid 10001 runner \
     && mkdir /output \
     && chown runner:runner /output

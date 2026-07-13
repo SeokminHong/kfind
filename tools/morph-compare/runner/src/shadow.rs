@@ -37,6 +37,7 @@ pub(super) struct ShadowLatticeEvidence {
     pub(super) status: &'static str,
     atom_index: usize,
     analysis_index: u16,
+    rule_path: Vec<String>,
     fine_pos: &'static str,
     target: Span,
     window: Option<ShadowWindowEvidence>,
@@ -145,6 +146,11 @@ fn diagnose_candidate(
         status,
         atom_index: candidate.atom_index,
         analysis_index: candidate.analysis_index,
+        rule_path: candidate
+            .rule_path
+            .iter()
+            .map(|rule| rule.as_str().to_owned())
+            .collect(),
         fine_pos: fine_pos_name(candidate.fine_pos),
         target: span(candidate.target.clone()),
         window: candidate

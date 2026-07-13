@@ -193,6 +193,7 @@ def evaluate_kfind(
     dict[str, object],
     dict[str, dict[str, object] | None],
     dict[str, dict[str, object]],
+    dict[str, list[dict[str, object]]],
 ]:
     case_ids = [case["id"] for case in cases]
     result_ids = [result["id"] for result in summary["results"]]
@@ -203,6 +204,7 @@ def evaluate_kfind(
     matches = {}
     diagnostics = {}
     shadow_verification = {}
+    policy_candidates = {}
     latencies = []
     for case in cases:
         result = results.get(case["id"])
@@ -213,6 +215,12 @@ def evaluate_kfind(
         matches[case["id"]] = spans
         diagnostics[case["id"]] = result["failure_diagnostic"]
         shadow_verification[case["id"]] = result["shadow_verification"]
+        candidates = result.get("policy_candidates")
+        if candidates is None:
+            candidates = []
+        if not isinstance(candidates, list):
+            raise ValueError(f"{backend} returned invalid policy candidates")
+        policy_candidates[case["id"]] = candidates
         latencies.append(float(result["latency_ms"]))
     return (
         predictions,
@@ -220,6 +228,7 @@ def evaluate_kfind(
         performance(summary, latencies),
         diagnostics,
         shadow_verification,
+        policy_candidates,
     )
 
 
@@ -391,6 +400,7 @@ def evaluate_kfind_runs(
     dict[str, object],
     dict[str, dict[str, object] | None],
     dict[str, dict[str, object]],
+    dict[str, list[dict[str, object]]],
     dict[str, object],
 ]:
     if warmup:
@@ -411,6 +421,10 @@ def evaluate_kfind_runs(
             raise ValueError(
                 f"{profile} shadow verification changed between measured runs"
             )
+        if evaluation[5] != first[5]:
+            raise ValueError(
+                f"{profile} policy candidates changed between measured runs"
+            )
     return (
         first[0],
         first[1],
@@ -419,6 +433,7 @@ def evaluate_kfind_runs(
         ),
         first[3],
         first[4],
+        first[5],
         summaries[0],
     )
 
@@ -681,16 +696,16 @@ def evaluate_dataset(
     kiwi = evaluate_kiwi_runs(cases, runs, warmup)
     versions = {
         profile: {
-            "backend": kfind[profile][5]["backend"],
-            "version": kfind[profile][5]["version"],
-            "profile": kfind[profile][5]["profile"],
-            "lexicon_artifact_sha256": kfind[profile][5][
+            "backend": kfind[profile][6]["backend"],
+            "version": kfind[profile][6]["version"],
+            "profile": kfind[profile][6]["profile"],
+            "lexicon_artifact_sha256": kfind[profile][6][
                 "lexicon_artifact_sha256"
             ],
-            "morphology_artifact_sha256": kfind[profile][5][
+            "morphology_artifact_sha256": kfind[profile][6][
                 "morphology_artifact_sha256"
             ],
-            "component_artifact_sha256": kfind[profile][5][
+            "component_artifact_sha256": kfind[profile][6][
                 "component_artifact_sha256"
             ],
         }
@@ -727,6 +742,9 @@ def evaluate_dataset(
         "diagnostics": {profile: kfind[profile][3] for profile in KFIND_PROFILES},
         "shadow_verification": {
             profile: kfind[profile][4] for profile in KFIND_PROFILES
+        },
+        "policy_candidates": {
+            profile: kfind[profile][5] for profile in KFIND_PROFILES
         },
     }
 
