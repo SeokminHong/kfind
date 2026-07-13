@@ -15,6 +15,37 @@ docs/guide.md:12: 길을 걸어 갔다.
 src/example.txt:8: 손님이 오래 걸었습니다.
 ```
 
+## Purpose
+
+`kfind` is a query-directed text matcher for agents and interactive search. It
+turns a short Korean lemma or phrase into a bounded search plan, then returns
+candidate spans and morphology provenance from files or in-memory text. Agents
+can retrieve a broad candidate set quickly and use surrounding context for the
+final judgment; people can choose the more selective default workflow.
+
+Morphology is a means of planning and verifying a search, not the product's
+output. `kfind` does not analyze every sentence in the input corpus.
+
+## Goals and non-goals
+
+Goals:
+
+- Compile short queries into bounded plans and scan large text collections with
+  low overhead.
+- Provide tested recall and precision for the supported Korean morphology while
+  preserving matched spans, lemmas, POS, and rule provenance.
+- Offer reproducible offline behavior through the CLI, Rust library, and
+  JavaScript/WebAssembly package.
+
+Non-goals:
+
+- A general-purpose sentence tokenizer or morphology analyzer, or a backend
+  optimized to lead morphology-analyzer throughput rankings.
+- Semantic search, synonym or paraphrase expansion, and contextual homonym
+  disambiguation.
+- Complete reverse analysis of arbitrary surface forms or unrestricted coverage
+  of every Korean construction.
+
 ## Features
 
 - Finds noun-particle combinations, predicate endings, irregular inflections,
@@ -289,6 +320,8 @@ files.
 | --- | ---: | ---: | ---: | ---: |
 | Agent: embedded + `any` + explicit POS | 479 / 11 / 21 | 17.3 ms | 5,793.3 MiB/s | 7.2 MiB |
 | Human: full POS + `smart` + untagged | 410 / 0 / 90 | 313.1 ms | 319.3 MiB/s | 91.6 MiB |
+
+![Product workflow quality and CLI cost](docs/benchmarks/assets/2026-07-14-user-smart-precision-product-workflows.svg)
 
 The agent and human quality rows use different negative-query contracts, so
 they describe their product workflows rather than a head-to-head backend rank.

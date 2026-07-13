@@ -14,10 +14,37 @@ docs/guide.md:12: 길을 걸어 갔다.
 src/example.txt:8: 손님이 오래 걸었습니다.
 ```
 
+## 목적
+
+`kfind`는 에이전트와 사람의 대화형 검색을 위한 쿼리 중심 text matcher입니다. 짧은
+한국어 표제어나 구(句)를 bounded search plan으로 만들고, 파일 또는 메모리 text에서 후보 span과
+형태 생성 근거를 반환합니다. 에이전트는 넓은 후보를 빠르게 수집한 뒤 주변 문맥으로 최종
+판단할 수 있고, 사람은 더 선택적인 기본 workflow를 사용할 수 있습니다.
+
+형태 지식은 검색 계획과 match 검증을 위한 수단이며 제품의 출력 자체가 아닙니다. `kfind`는
+입력 corpus의 모든 문장을 분석하지 않습니다.
+
+## Goal / non-goal
+
+Goal:
+
+- 짧은 query를 bounded plan으로 컴파일하고 큰 text collection을 낮은 overhead로 scan합니다.
+- 지원하는 한국어 형태 범위에서 검증된 recall·precision과 match span, 표제어, 품사, 규칙
+  provenance를 제공합니다.
+- CLI, Rust library와 JavaScript/WebAssembly package에서 재현 가능한 offline 동작을
+  제공합니다.
+
+Non-goal:
+
+- 일반 목적 문장 tokenizer·형태소 분석기 또는 형태소 분석기 처리량 순위를 목표로 최적화한
+  backend입니다.
+- Semantic search, 동의어·바꿔쓰기 확장과 문맥 기반 동음이의어 구분입니다.
+- 임의 표면형의 완전한 역분석이나 모든 한국어 구성의 제한 없는 지원입니다.
+
 ## 주요 기능
 
 - 표제어에서 명사·조사 결합, 용언 어미, 불규칙 활용과 일부 생산적 파생형을 찾습니다.
-- atom마다 품사를 지정한 순서형 한 줄 구 검색을 지원합니다.
+- atom마다 품사를 지정한 순서형 한 줄 구(句) 검색을 지원합니다.
 - 대화형 검색의 정확도를 위한 `smart` 경계와 자동화의 재현율을 위한 `any` 경계를
   제공합니다.
 - ignore 규칙, glob, 파일 유형, 숨김 파일 제어, stdin과 명시적 인코딩을 지원하며 파일을
@@ -50,7 +77,7 @@ kfind 걷다 src docs
 # 표제어를 명사로 해석하고 올바른 조사까지 소비합니다.
 kfind --pos noun 사용자 src
 
-# 순서가 있는 구를 검색합니다. atom마다 품사를 지정할 수 있습니다.
+# 순서가 있는 구(句)를 검색합니다. atom마다 품사를 지정할 수 있습니다.
 kfind 'n:권한 v:검증하다' src --max-gap 24
 
 # 형태 확장 없이 입력 문자열을 literal로 검색합니다.
@@ -83,7 +110,7 @@ kfind --embedded --boundary any --pos verb --json 걷다 src docs
 
 ### 쿼리 문법
 
-atom은 공백으로 구분합니다. 따옴표 안의 구는 하나의 literal atom이 되고, 백슬래시는
+atom은 공백으로 구분합니다. 따옴표 안의 구(句)는 하나의 literal atom이 되고, 백슬래시는
 다음 문자를 escape합니다. 지원하는 품사 태그는 다음과 같습니다.
 
 | 태그 | 품사 |
@@ -105,7 +132,7 @@ kfind 'det:새 n:기능' docs
 kfind 'lit:걸어' data.txt
 ```
 
-구의 atom은 같은 줄에서 순서대로 나타나야 합니다. `--max-gap`은 앞의 검증된 token 끝과
+구(句)의 atom은 같은 줄에서 순서대로 나타나야 합니다. `--max-gap`은 앞의 검증된 token 끝과
 다음 token 시작 사이의 Unicode scalar 수를 제한합니다. 전역 `--pos`와 atom 태그를 함께
 사용할 때는 품사가 같아야 합니다.
 
@@ -157,7 +184,7 @@ kfind [OPTIONS] <QUERY> [PATH]...
 | `--boundary <POLICY>` | `smart`(기본값), `token`, `any` | match 경계 검증 방식을 선택합니다. |
 | `--literal` | 사용 안 함 | `--expand literal --pos literal`의 단축 옵션입니다. 충돌하는 `--expand`나 `--pos` 값은 오류입니다. |
 | `--embedded` | 사용 안 함 | full POS 탐색과 decode를 건너뜁니다. `smart` plan은 component resource가 여전히 필요할 수 있습니다. |
-| `--max-gap <NUM>` | `24` | 인접한 구 atom 사이의 최대 Unicode scalar 거리를 지정합니다. |
+| `--max-gap <NUM>` | `24` | 인접한 구(句) atom 사이의 최대 Unicode scalar 거리를 지정합니다. |
 | `--unicode-normalization <MODE>` | `nfc`(기본값), `canonical`, `none` | NFC만 사용하거나, NFC·NFD pattern을 함께 생성하거나, 정규화 없이 입력 byte를 검색합니다. |
 
 ### 파일과 입력
@@ -277,6 +304,8 @@ resource 초기화와 literal scan을 하나의 점수로 합치지 않습니다
 | --- | ---: | ---: | ---: | ---: |
 | Agent: embedded + `any` + explicit POS | 479 / 11 / 21 | 17.3 ms | 5,793.3 MiB/s | 7.2 MiB |
 | Human: full POS + `smart` + untagged | 410 / 0 / 90 | 313.1 ms | 319.3 MiB/s | 91.6 MiB |
+
+![제품 workflow별 품질과 CLI 비용](docs/benchmarks/assets/2026-07-14-user-smart-precision-product-workflows.svg)
 
 Agent와 Human 품질 행은 negative query 계약이 서로 다르므로 backend 순위가 아니라 각 제품
 workflow를 설명합니다. Human 행은 2026-07-14 후보 revision `b2d3c93`의 결과이며, 변경되지

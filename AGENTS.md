@@ -27,3 +27,8 @@
 - 성능 문서화가 필요한 변경은 `docs/benchmarks`의 기존 구조에 맞춰 날짜별 보고서,
   인덱스, 생성 차트와 snapshot을 갱신한다. 생성물의 수치가 원본 report와 일치하는지
   검증한다.
+- 승인된 benchmark 보고서나 생성 차트가 추가·변경되면 같은 작업에서 `README.md`와
+  `README.ko.md`의 benchmark 요약 수치, 측정일·revision, 원본 보고서 링크와 대표 차트를
+  반드시 최신 결과로 갱신한다. README 표와 차트의 값이 source report·생성물과 일치하는지
+  검증하고, 품질·CLI 처리량·초기화 비용처럼 단위가 다른 workload를 하나의 점수나 순위로
+  합치지 않는다.
