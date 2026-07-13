@@ -2,7 +2,7 @@ use kfind_data::DataFinePos;
 use kfind_matcher::{AnalysisWindowError, LocalAnalysisCandidate};
 use kfind_morph::{
     DEFAULT_LATTICE_NODE_LIMIT, FinePos, LocalLatticeDecision, LocalLatticeReport,
-    evaluate_local_lattice,
+    evaluate_local_component_paths, evaluate_local_lattice,
 };
 
 use super::{
@@ -13,6 +13,27 @@ use super::{
 pub(super) fn diagnose_lattice_candidate(
     candidate: &LocalAnalysisCandidate,
     resource: ShadowResource<'_>,
+) -> ShadowLatticeEvidence {
+    diagnose_candidate(candidate, resource, ShadowEvaluation::Lattice)
+}
+
+pub(super) fn diagnose_component_candidate(
+    candidate: &LocalAnalysisCandidate,
+    resource: ShadowResource<'_>,
+) -> ShadowLatticeEvidence {
+    diagnose_candidate(candidate, resource, ShadowEvaluation::Component)
+}
+
+#[derive(Clone, Copy)]
+enum ShadowEvaluation {
+    Lattice,
+    Component,
+}
+
+fn diagnose_candidate(
+    candidate: &LocalAnalysisCandidate,
+    resource: ShadowResource<'_>,
+    evaluation: ShadowEvaluation,
 ) -> ShadowLatticeEvidence {
     let base = |status, error| ShadowLatticeEvidence {
         status,
@@ -64,13 +85,23 @@ pub(super) fn diagnose_lattice_candidate(
             Some("query span does not map to stable NFC boundaries".to_owned()),
         );
     };
-    match evaluate_local_lattice(
-        resource,
-        window.normalized(),
-        query_span,
-        query_pos,
-        DEFAULT_LATTICE_NODE_LIMIT,
-    ) {
+    let report = match evaluation {
+        ShadowEvaluation::Lattice => evaluate_local_lattice(
+            resource,
+            window.normalized(),
+            query_span,
+            query_pos,
+            DEFAULT_LATTICE_NODE_LIMIT,
+        ),
+        ShadowEvaluation::Component => evaluate_local_component_paths(
+            resource,
+            window.normalized(),
+            query_span,
+            query_pos,
+            DEFAULT_LATTICE_NODE_LIMIT,
+        ),
+    };
+    match report {
         Ok(report) => lattice_evidence(base("evaluated", None), window, report),
         Err(error @ kfind_morph::LocalLatticeError::NodeLimit { .. }) => {
             base("limit-exceeded", Some(error.to_string()))

@@ -39,6 +39,8 @@ pub struct VerificationCounters {
     pub verified_branch_hits: usize,
     pub local_lattice_candidate_hits: usize,
     pub unique_analysis_windows: usize,
+    pub nominal_component_candidate_hits: usize,
+    pub unique_component_windows: usize,
 }
 
 impl MorphMatcher {
@@ -158,12 +160,13 @@ impl MorphMatcher {
     pub fn verification_counters(&self, haystack: &[u8]) -> VerificationCounters {
         let mut counters = VerificationCounters::default();
         let mut analysis_windows = HashSet::new();
+        let mut component_windows = HashSet::new();
         for hit in self.anchor_engine.hits(haystack, 0) {
             counters.raw_anchor_hits += 1;
             for branch_ref in &self.anchor_branches[hit.anchor_index] {
                 let branch =
                     &self.plan.atoms[branch_ref.atom_index].branches[branch_ref.branch_index];
-                let Some(candidate) = self.verify_branch_with_metadata(
+                let Some(candidate) = self.verify_branch_without_boundary(
                     haystack,
                     &hit,
                     branch,
@@ -171,6 +174,14 @@ impl MorphMatcher {
                 ) else {
                     continue;
                 };
+                if !self.accepts_branch_boundary(haystack, &candidate, branch) {
+                    if branch.context_requirement == ContextRequirement::NominalComponent {
+                        counters.nominal_component_candidate_hits += 1;
+                        let window = surrounding_token_span(haystack, candidate.core);
+                        component_windows.insert((window.start, window.end));
+                    }
+                    continue;
+                }
                 counters.verified_branch_hits += 1;
                 if branch.context_requirement == ContextRequirement::EojeolLattice {
                     counters.local_lattice_candidate_hits += 1;
@@ -180,6 +191,7 @@ impl MorphMatcher {
             }
         }
         counters.unique_analysis_windows = analysis_windows.len();
+        counters.unique_component_windows = component_windows.len();
         counters
     }
 
@@ -260,16 +272,19 @@ impl MorphMatcher {
         atom_spans
     }
 
-    fn verify_branch(
+    fn verify_branch_with_metadata(
         &self,
         haystack: &[u8],
         hit: &AnchorHit,
         branch: &SurfaceBranch,
+        metadata: MatchMetadata,
     ) -> Option<VerifiedSpan> {
-        self.verify_branch_with_metadata(haystack, hit, branch, MatchMetadata::Provenance)
+        let candidate = self.verify_branch_without_boundary(haystack, hit, branch, metadata)?;
+        self.accepts_branch_boundary(haystack, &candidate, branch)
+            .then_some(candidate)
     }
 
-    fn verify_branch_with_metadata(
+    fn verify_branch_without_boundary(
         &self,
         haystack: &[u8],
         hit: &AnchorHit,
@@ -341,16 +356,6 @@ impl MorphMatcher {
             return None;
         }
         let token = hit.span.start..token_end;
-        if !accepts_requirements(
-            haystack,
-            core.clone(),
-            token.clone(),
-            branch.boundary.require_left,
-            branch.boundary.require_right,
-        ) {
-            return None;
-        }
-
         Some(VerifiedSpan {
             core,
             token,
@@ -359,6 +364,21 @@ impl MorphMatcher {
                 MatchMetadata::Provenance => extend_origins(&branch.origins, &suffix_rules),
             },
         })
+    }
+
+    fn accepts_branch_boundary(
+        &self,
+        haystack: &[u8],
+        candidate: &VerifiedSpan,
+        branch: &SurfaceBranch,
+    ) -> bool {
+        accepts_requirements(
+            haystack,
+            candidate.core.clone(),
+            candidate.token.clone(),
+            branch.boundary.require_left,
+            branch.boundary.require_right,
+        )
     }
 
     fn accepts_direct_particle(

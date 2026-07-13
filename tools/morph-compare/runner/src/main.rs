@@ -24,7 +24,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
-use shadow::diagnose_lattice_candidate;
+use shadow::{diagnose_component_candidate, diagnose_lattice_candidate};
 
 const FULL_POS_LEXICON: &str = "/opt/morph-benchmark/full-pos/lexicon.bin";
 const FULL_POS_LEXICON_ENV: &str = "KFIND_FULL_POS_LEXICON";
@@ -84,8 +84,12 @@ struct ShadowVerificationCounters {
     verified_branch_hits: usize,
     local_lattice_candidate_hits: usize,
     unique_analysis_windows: usize,
+    nominal_component_candidate_hits: usize,
+    unique_component_windows: usize,
     local_branches: Vec<ShadowBranchEvidence>,
+    component_branches: Vec<ShadowBranchEvidence>,
     lattice: Vec<ShadowLatticeEvidence>,
+    component: Vec<ShadowLatticeEvidence>,
 }
 
 #[derive(Debug, Serialize)]
@@ -147,15 +151,32 @@ impl ShadowVerificationCounters {
     fn new(
         counters: VerificationCounters,
         local_branches: Vec<ShadowBranchEvidence>,
+        component_branches: Vec<ShadowBranchEvidence>,
         lattice: Vec<ShadowLatticeEvidence>,
+        component: Vec<ShadowLatticeEvidence>,
     ) -> Self {
         Self {
             raw_anchor_hits: counters.raw_anchor_hits,
             verified_branch_hits: counters.verified_branch_hits,
             local_lattice_candidate_hits: counters.local_lattice_candidate_hits,
             unique_analysis_windows: counters.unique_analysis_windows,
+            nominal_component_candidate_hits: counters.nominal_component_candidate_hits,
+            unique_component_windows: counters.unique_component_windows,
             local_branches,
+            component_branches,
             lattice,
+            component,
+        }
+    }
+}
+
+impl ShadowResource<'_> {
+    const fn unavailable_status(self) -> Option<&'static str> {
+        match self {
+            Self::Loaded(_) => None,
+            Self::Missing => Some("resource-missing"),
+            Self::Corrupt => Some("resource-corrupt"),
+            Self::SourceMismatch => Some("source-mismatch"),
         }
     }
 }
@@ -333,16 +354,54 @@ fn diagnose_verification(
                 })
         })
         .collect();
-    let matcher = MorphMatcher::new(Arc::new(plan))?;
-    let lattice = matcher
-        .local_analysis_candidates(case.text.as_bytes())
+    let component_branches = plan
+        .atoms
         .iter()
+        .enumerate()
+        .flat_map(|(atom_index, atom)| {
+            atom.branches
+                .iter()
+                .filter(|branch| branch.context_requirement == ContextRequirement::NominalComponent)
+                .map(move |branch| ShadowBranchEvidence {
+                    atom_index,
+                    anchor: std::str::from_utf8(&branch.anchor)
+                        .expect("compiled query anchors are valid UTF-8")
+                        .to_owned(),
+                    require_left: branch.boundary.require_left,
+                    require_right: branch.boundary.require_right,
+                })
+        })
+        .collect();
+    let matcher = MorphMatcher::new(Arc::new(plan))?;
+    let candidates = matcher.local_analysis_candidates(case.text.as_bytes());
+    let component_candidates = candidates
+        .iter()
+        .filter(|candidate| candidate.context_requirement == ContextRequirement::NominalComponent)
+        .collect::<Vec<_>>();
+    let required_resource_error = (!component_candidates.is_empty())
+        .then(|| resource.unavailable_status())
+        .flatten();
+    if let Some(status) = required_resource_error {
+        bail!(
+            "nominal component shadow for case {} requires a valid morphology resource: {status}",
+            case.id
+        );
+    }
+    let lattice = candidates
+        .iter()
+        .filter(|candidate| candidate.context_requirement == ContextRequirement::EojeolLattice)
         .map(|candidate| diagnose_lattice_candidate(candidate, resource))
+        .collect();
+    let component = component_candidates
+        .into_iter()
+        .map(|candidate| diagnose_component_candidate(candidate, resource))
         .collect();
     Ok(ShadowVerificationCounters::new(
         matcher.verification_counters(case.text.as_bytes()),
         local_branches,
+        component_branches,
         lattice,
+        component,
     ))
 }
 
@@ -540,6 +599,8 @@ mod tests {
         assert_eq!(counters.verified_branch_hits, 1);
         assert_eq!(counters.local_lattice_candidate_hits, 1);
         assert_eq!(counters.unique_analysis_windows, 1);
+        assert_eq!(counters.nominal_component_candidate_hits, 0);
+        assert_eq!(counters.unique_component_windows, 0);
         assert!(counters.local_branches.iter().any(|branch| {
             branch.anchor == "일" && !branch.require_left && branch.require_right
         }));
@@ -549,5 +610,17 @@ mod tests {
                 .iter()
                 .all(|evidence| evidence.status == "resource-missing")
         );
+    }
+
+    #[test]
+    fn nominal_component_shadow_requires_a_valid_resource() {
+        let error = diagnose_verification(
+            &positive_case("권한", "noun", "사용자권한"),
+            &analyzer(),
+            ShadowResource::Missing,
+        )
+        .unwrap_err();
+
+        assert!(error.to_string().contains("resource-missing"));
     }
 }

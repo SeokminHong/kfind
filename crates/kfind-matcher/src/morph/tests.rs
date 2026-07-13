@@ -175,6 +175,8 @@ fn verification_counters_isolate_local_lattice_candidates() {
             verified_branch_hits: 2,
             local_lattice_candidate_hits: 2,
             unique_analysis_windows: 2,
+            nominal_component_candidate_hits: 0,
+            unique_component_windows: 0,
         }
     );
 
@@ -189,6 +191,27 @@ fn verification_counters_isolate_local_lattice_candidates() {
             verified_branch_hits: 2,
             local_lattice_candidate_hits: 0,
             unique_analysis_windows: 0,
+            nominal_component_candidate_hits: 0,
+            unique_component_windows: 0,
+        }
+    );
+}
+
+#[test]
+fn verification_counters_isolate_boundary_rejected_nominal_components() {
+    let mut contextual = nominal_branch("권한", rules(&["particle.topic"]));
+    contextual.context_requirement = ContextRequirement::NominalComponent;
+    let matcher = matcher(vec![atom(BoundaryPolicy::Smart, vec![contextual])], 24);
+
+    assert_eq!(
+        matcher.verification_counters("사용자권한은 권한은".as_bytes()),
+        VerificationCounters {
+            raw_anchor_hits: 2,
+            verified_branch_hits: 1,
+            local_lattice_candidate_hits: 0,
+            unique_analysis_windows: 0,
+            nominal_component_candidate_hits: 1,
+            unique_component_windows: 1,
         }
     );
 }
