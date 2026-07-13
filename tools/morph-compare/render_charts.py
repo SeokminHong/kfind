@@ -133,7 +133,10 @@ def render_quality(report: dict[str, object]) -> str:
             bar_height = plot_height * value / 100
             y = top + plot_height - bar_height
             body.append(rect(x, y, bar_width, bar_height, COLORS[backend]))
-            body.append(text(x + bar_width / 2, y - 8, f"{value:.2f}", anchor="middle"))
+            label_y = y - 8 - (backend_index % 2) * 16
+            body.append(
+                text(x + bar_width / 2, label_y, f"{value:.2f}", anchor="middle")
+            )
         body.append(text(center, top + plot_height + 28, label, anchor="middle"))
     for index, backend in enumerate(backends):
         column = index % 3
@@ -199,6 +202,164 @@ def render_performance(report: dict[str, object]) -> str:
         height,
         "End-to-end morphology performance",
         "Four horizontal bar panels compare throughput, initialization time, p95 latency, and peak RSS.",
+        body,
+    )
+
+
+def render_product_workflows(report: dict[str, object]) -> str:
+    workflows = report["product_workflows"]
+    agent = workflows["agent"]
+    human = workflows["human"]
+    width, height = 1280, 660
+    body = [
+        text(52, 38, "Product workflow benchmark", anchor="start"),
+        text(
+            52,
+            62,
+            "Agent: embedded · any · explicit POS  |  Human: full-POS · smart · untagged",
+            "muted",
+        ),
+    ]
+
+    quality_x, quality_y = 52, 112
+    quality_label_width = 190
+    quality_bar_width = 360
+    quality_rows = (
+        (
+            "Agent · recall",
+            float(agent["quality"]["recall_percent"]),
+            COLORS["kfind-embedded"],
+        ),
+        (
+            "Human · precision",
+            float(human["quality"]["precision_percent"]),
+            COLORS["kfind-full-pos"],
+        ),
+        (
+            "Human · recall",
+            float(human["quality"]["recall_percent"]),
+            COLORS["kfind-full-pos"],
+        ),
+        (
+            "Human · POS plan",
+            float(human["plan"]["expected_pos_present_percent"]),
+            COLORS["kfind-full-pos"],
+        ),
+    )
+    body.append(text(quality_x, quality_y - 28, "Quality and query usability · percent"))
+    for tick in range(0, 101, 25):
+        x = quality_x + quality_label_width + quality_bar_width * tick / 100
+        body.append(
+            f'<line class="grid" x1="{x:.1f}" y1="{quality_y - 8}" '
+            f'x2="{x:.1f}" y2="{quality_y + 250}"/>'
+        )
+        body.append(text(x, quality_y + 278, tick, "muted", "middle"))
+    for index, (label, value, color) in enumerate(quality_rows):
+        row_y = quality_y + index * 64
+        body.append(text(quality_x, row_y + 24, label))
+        bar_x = quality_x + quality_label_width
+        body.append(rect(bar_x, row_y + 7, quality_bar_width * value / 100, 25, color))
+        body.append(text(bar_x + quality_bar_width + 12, row_y + 25, f"{value:.2f}%"))
+
+    throughput_x, throughput_y = 700, 112
+    throughput_label_width = 100
+    throughput_bar_width = 350
+    throughput_rows = (
+        (
+            "Agent",
+            float(agent["performance"]["cases_per_second"]),
+            COLORS["kfind-embedded"],
+        ),
+        (
+            "Human",
+            float(human["performance"]["cases_per_second"]),
+            COLORS["kfind-full-pos"],
+        ),
+    )
+    maximum_throughput = max(value for _, value, _ in throughput_rows) * 1.08
+    body.append(text(throughput_x, throughput_y - 28, "Throughput · cases/s"))
+    for index, (label, value, color) in enumerate(throughput_rows):
+        row_y = throughput_y + index * 64
+        body.append(text(throughput_x, row_y + 24, label))
+        bar_x = throughput_x + throughput_label_width
+        body.append(
+            rect(
+                bar_x,
+                row_y + 7,
+                throughput_bar_width * value / maximum_throughput,
+                25,
+                color,
+            )
+        )
+        body.append(
+            text(
+                bar_x + throughput_bar_width + 12,
+                row_y + 25,
+                f"{value:,.1f}",
+            )
+        )
+
+    initialization_y = 340
+    initialization_rows = (
+        (
+            "Agent",
+            float(agent["performance"]["initialization_seconds"]) * 1_000,
+            COLORS["kfind-embedded"],
+        ),
+        (
+            "Human",
+            float(human["performance"]["initialization_seconds"]) * 1_000,
+            COLORS["kfind-full-pos"],
+        ),
+    )
+    maximum_initialization = max(value for _, value, _ in initialization_rows) * 1.08
+    body.append(text(throughput_x, initialization_y - 28, "Initialization · ms"))
+    for index, (label, value, color) in enumerate(initialization_rows):
+        row_y = initialization_y + index * 64
+        body.append(text(throughput_x, row_y + 24, label))
+        bar_x = throughput_x + throughput_label_width
+        body.append(
+            rect(
+                bar_x,
+                row_y + 7,
+                throughput_bar_width * value / maximum_initialization,
+                25,
+                color,
+            )
+        )
+        body.append(
+            text(
+                bar_x + throughput_bar_width + 12,
+                row_y + 25,
+                f"{value:,.2f}",
+            )
+        )
+
+    body.extend(
+        [
+            text(
+                52,
+                592,
+                f"Agent false-positive candidates: {agent['quality']['fp']}",
+            ),
+            text(
+                700,
+                592,
+                "Library default: embedded engine without optional resources",
+            ),
+            text(
+                700,
+                620,
+                "Optional: full-POS lexicon and component resource",
+                "muted",
+            ),
+        ]
+    )
+    return svg_document(
+        width,
+        height,
+        "Product workflow benchmark",
+        "Quality, throughput, and initialization compare the agent embedded-any workflow with the human full-POS-smart workflow.",
         body,
     )
 
@@ -418,6 +579,10 @@ def main() -> None:
     (args.output / f"{args.prefix}morphology-performance.svg").write_text(
         render_performance(report), encoding="utf-8"
     )
+    if "product_workflows" in report:
+        (args.output / f"{args.prefix}product-workflows.svg").write_text(
+            render_product_workflows(report), encoding="utf-8"
+        )
     if "boundary_comparison" in report:
         (args.output / f"{args.prefix}boundary-quality.svg").write_text(
             render_boundary_quality(report), encoding="utf-8"
