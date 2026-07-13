@@ -7,6 +7,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use anyhow::{Context, Result, bail};
+use kfind::Engine;
 use kfind_data::{
     COMPONENT_RESOURCE_SOURCE_DIGEST, DataErrorKind, decode_component_resource,
     decode_morphology_resource, parse_sha256,
@@ -64,6 +65,20 @@ struct Summary {
     results: Vec<Value>,
 }
 
+#[derive(Debug, Serialize)]
+struct StartupSummary {
+    backend: String,
+    version: String,
+    profile: String,
+    base_initialization_seconds: f64,
+    component_initialization_seconds: Option<f64>,
+    initialization_seconds: f64,
+    base_peak_rss_kib: Option<u64>,
+    peak_rss_kib: Option<u64>,
+    full_pos_loaded: bool,
+    component_resource_loaded: bool,
+}
+
 #[derive(Debug, Eq, PartialEq, Serialize)]
 struct Span {
     byte_start: usize,
@@ -91,6 +106,43 @@ enum KfindProfile {
     FullPos,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum StartupProfile {
+    Embedded,
+    EmbeddedComponent,
+    FullPos,
+    FullPosComponent,
+}
+
+impl StartupProfile {
+    fn parse(value: &str) -> Result<Self> {
+        match value {
+            "embedded" => Ok(Self::Embedded),
+            "embedded-component" => Ok(Self::EmbeddedComponent),
+            "full-pos" => Ok(Self::FullPos),
+            "full-pos-component" => Ok(Self::FullPosComponent),
+            _ => bail!("unknown startup profile {value:?}"),
+        }
+    }
+
+    const fn name(self) -> &'static str {
+        match self {
+            Self::Embedded => "embedded",
+            Self::EmbeddedComponent => "embedded-component",
+            Self::FullPos => "full-pos",
+            Self::FullPosComponent => "full-pos-component",
+        }
+    }
+
+    const fn full_pos(self) -> bool {
+        matches!(self, Self::FullPos | Self::FullPosComponent)
+    }
+
+    const fn component(self) -> bool {
+        matches!(self, Self::EmbeddedComponent | Self::FullPosComponent)
+    }
+}
+
 impl KfindProfile {
     const fn name(self) -> &'static str {
         match self {
@@ -103,7 +155,15 @@ impl KfindProfile {
 fn main() -> Result<()> {
     let arguments = std::env::args().skip(1).collect::<Vec<_>>();
     if arguments.len() != 3 {
-        bail!("usage: morph-benchmark-runner BACKEND CASES.jsonl OUTPUT.json");
+        bail!(
+            "usage: morph-benchmark-runner BACKEND CASES.jsonl OUTPUT.json\n\
+             or: morph-benchmark-runner startup PROFILE OUTPUT.json"
+        );
+    }
+    if arguments[0] == "startup" {
+        let summary = run_kfind_startup(StartupProfile::parse(&arguments[1])?)?;
+        serde_json::to_writer_pretty(BufWriter::new(File::create(&arguments[2])?), &summary)?;
+        return Ok(());
     }
     let cases = load_cases(Path::new(&arguments[1]))?;
     let summary = match arguments[0].as_str() {
@@ -114,6 +174,58 @@ fn main() -> Result<()> {
     };
     serde_json::to_writer_pretty(BufWriter::new(File::create(&arguments[2])?), &summary)?;
     Ok(())
+}
+
+fn run_kfind_startup(profile: StartupProfile) -> Result<StartupSummary> {
+    let base_started = Instant::now();
+    let mut engine = if profile.full_pos() {
+        let configured_path = std::env::var_os(FULL_POS_LEXICON_ENV)
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| FULL_POS_LEXICON.into());
+        let artifact = fs::read(&configured_path).with_context(|| {
+            format!(
+                "full-pos startup profile requires lexicon artifact {}",
+                configured_path.display()
+            )
+        })?;
+        Engine::with_full_pos(&artifact)?
+    } else {
+        Engine::new()?
+    };
+    let base_initialization_seconds = base_started.elapsed().as_secs_f64();
+    let base_peak_rss_kib = peak_rss_kib();
+
+    let component_initialization_seconds = if profile.component() {
+        let component_started = Instant::now();
+        let component_path = std::env::var_os(COMPONENT_RESOURCE_ENV)
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| COMPONENT_RESOURCE.into());
+        let component_bytes = fs::read(&component_path).with_context(|| {
+            format!(
+                "component startup profile requires resource {}",
+                component_path.display()
+            )
+        })?;
+        engine.load_component_resource(component_bytes)?;
+        Some(component_started.elapsed().as_secs_f64())
+    } else {
+        None
+    };
+    let initialization_seconds =
+        base_initialization_seconds + component_initialization_seconds.unwrap_or_default();
+
+    Ok(StartupSummary {
+        backend: "kfind".to_owned(),
+        version: env!("CARGO_PKG_VERSION").to_owned(),
+        profile: profile.name().to_owned(),
+        base_initialization_seconds,
+        component_initialization_seconds,
+        initialization_seconds,
+        base_peak_rss_kib,
+        peak_rss_kib: peak_rss_kib(),
+        full_pos_loaded: engine.full_pos_loaded(),
+        component_resource_loaded: engine.component_resource_loaded(),
+    })
 }
 
 fn load_cases(path: &Path) -> Result<Vec<Case>> {

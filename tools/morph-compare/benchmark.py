@@ -48,6 +48,12 @@ DEFAULT_LOCAL_CONTEXT_METADATA = Path(
 DEFAULT_HARD_NEGATIVES = Path("/opt/morph-benchmark/hard-negatives.jsonl")
 DEFAULT_RUNNER = Path("/usr/local/bin/morph-benchmark-runner")
 DEFAULT_RUNS = 5
+STARTUP_PROFILES = (
+    "embedded",
+    "embedded-component",
+    "full-pos",
+    "full-pos-component",
+)
 
 
 def run_native_backend(
@@ -63,6 +69,22 @@ def run_native_backend(
         if result.returncode != 0:
             raise RuntimeError(
                 f"{backend} runner failed with exit {result.returncode}: "
+                f"{result.stderr.strip()}"
+            )
+        return json.loads(output.read_text(encoding="utf-8"))
+
+
+def run_native_startup_profile(runner: Path, profile: str) -> dict[str, object]:
+    with tempfile.TemporaryDirectory() as directory:
+        output = Path(directory) / f"{profile}.json"
+        result = subprocess.run(
+            [str(runner), "startup", profile, str(output)],
+            text=True,
+            capture_output=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"{profile} startup runner failed with exit {result.returncode}: "
                 f"{result.stderr.strip()}"
             )
         return json.loads(output.read_text(encoding="utf-8"))
@@ -226,16 +248,27 @@ def performance(summary: dict[str, object], latencies: list[float]) -> dict[str,
 def aggregate_performance(
     runs: list[dict[str, object]], warmup_runs: int
 ) -> dict[str, object]:
+    return aggregate_metrics(
+        runs,
+        warmup_runs,
+        (
+            "initialization_seconds",
+            "evaluation_seconds",
+            "cases_per_second",
+            "latency_p50_ms",
+            "latency_p95_ms",
+            "peak_rss_kib",
+        ),
+    )
+
+
+def aggregate_metrics(
+    runs: list[dict[str, object]],
+    warmup_runs: int,
+    metric_names: tuple[str, ...],
+) -> dict[str, object]:
     if not runs:
         raise ValueError("at least one measured run is required")
-    metric_names = (
-        "initialization_seconds",
-        "evaluation_seconds",
-        "cases_per_second",
-        "latency_p50_ms",
-        "latency_p95_ms",
-        "peak_rss_kib",
-    )
     result: dict[str, object] = {"runs": len(runs), "warmup_runs": warmup_runs}
     minimum = {}
     maximum = {}
@@ -247,6 +280,37 @@ def aggregate_performance(
     result["run_min"] = minimum
     result["run_max"] = maximum
     return result
+
+
+def evaluate_component_startup(
+    runner: Path, runs: int
+) -> dict[str, dict[str, object]]:
+    measured_runs = max(3, runs)
+    results = {}
+    metric_names = (
+        "base_initialization_seconds",
+        "component_initialization_seconds",
+        "initialization_seconds",
+        "base_peak_rss_kib",
+        "peak_rss_kib",
+    )
+    for profile in STARTUP_PROFILES:
+        run_native_startup_profile(runner, profile)
+        summaries = [
+            run_native_startup_profile(runner, profile)
+            for _ in range(measured_runs)
+        ]
+        expected_full_pos = profile.startswith("full-pos")
+        expected_component = profile.endswith("-component")
+        if any(
+            summary["profile"] != profile
+            or summary["full_pos_loaded"] != expected_full_pos
+            or summary["component_resource_loaded"] != expected_component
+            for summary in summaries
+        ):
+            raise ValueError(f"{profile} startup state differs from its profile")
+        results[profile] = aggregate_metrics(summaries, 1, metric_names)
+    return results
 
 
 def evaluate_kfind_runs(
@@ -507,6 +571,9 @@ def main() -> int:
                     local_context["shadow_verification"],
                     include_performance=False,
                 )
+                report["component_startup"] = evaluate_component_startup(
+                    args.runner, args.runs
+                )
                 return write_report(args.output, report)
 
         baseline = evaluate_dataset(cases, args.cases, args.runner, args.runs, True)
@@ -561,6 +628,9 @@ def main() -> int:
             local_context["diagnostics"],
             local_context["shadow_verification"],
             include_performance=False,
+        )
+        report["component_startup"] = evaluate_component_startup(
+            args.runner, args.runs
         )
         return write_report(args.output, report)
     except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:

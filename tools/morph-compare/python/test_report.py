@@ -4,6 +4,7 @@ from report import (
     BACKENDS,
     KFIND_PROFILES,
     append_component_shadow_table,
+    append_component_startup,
     append_local_context_summary,
     classify_component_paths,
     classify_primary_cause,
@@ -127,6 +128,39 @@ class QualityMetricsTests(unittest.TestCase):
         self.assertEqual(50.0, metrics["hard_negative_precision_percent"])
         self.assertEqual(1, metrics["tn"])
         self.assertEqual(1, metrics["fp"])
+
+
+class ComponentStartupTests(unittest.TestCase):
+    def test_renders_resource_less_and_explicit_component_profiles(self) -> None:
+        metric = {
+            "runs": 3,
+            "base_initialization_seconds": 0.01,
+            "component_initialization_seconds": None,
+            "initialization_seconds": 0.01,
+            "base_peak_rss_kib": 10240,
+            "peak_rss_kib": 10240,
+            "run_min": {
+                "base_initialization_seconds": 0.009,
+                "component_initialization_seconds": None,
+                "initialization_seconds": 0.009,
+                "base_peak_rss_kib": 10240,
+                "peak_rss_kib": 10240,
+            },
+            "run_max": {
+                "base_initialization_seconds": 0.011,
+                "component_initialization_seconds": None,
+                "initialization_seconds": 0.011,
+                "base_peak_rss_kib": 10240,
+                "peak_rss_kib": 10240,
+            },
+        }
+        lines: list[str] = []
+
+        append_component_startup(lines, {"embedded": metric})
+
+        rendered = "\n".join(lines)
+        self.assertIn("## Optional component startup", rendered)
+        self.assertIn("| embedded | 3 | 0.0100s [0.0090, 0.0110] | n/a |", rendered)
 
 
 class ShadowVerificationTests(unittest.TestCase):

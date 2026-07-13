@@ -168,7 +168,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 8,
+        "schema_version": 9,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "versions": versions,
@@ -278,6 +278,7 @@ def render_markdown(report: dict[str, object]) -> str:
             f"`{component}` |"
         )
     append_quality_sections(lines, report)
+    append_component_startup(lines, report.get("component_startup"))
     append_shadow_verification(lines, report)
     append_profile_comparison(lines, report)
     append_failures(lines, report)
@@ -345,6 +346,48 @@ def append_performance(lines: list[str], report: dict[str, object]) -> None:
             f"[{metrics['run_min']['latency_p95_ms']}, {metrics['run_max']['latency_p95_ms']}] | "
             f"{rss_text} {rss_range} |"
         )
+
+
+def append_component_startup(
+    lines: list[str], startup: dict[str, dict[str, object]] | None
+) -> None:
+    if startup is None:
+        return
+    lines.extend(
+        [
+            "",
+            "## Optional component startup",
+            "",
+            "Each profile runs in a fresh process after one discarded warm-up. Component profiles "
+            "construct the resource-less engine first, then explicitly load the component asset.",
+            "",
+            "| profile | runs | base init median [min, max] | component load median [min, max] | total init median [min, max] | base peak RSS | final peak RSS |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for profile, metrics in startup.items():
+        lines.append(
+            f"| {profile} | {metrics['runs']} | "
+            f"{format_seconds(metrics, 'base_initialization_seconds')} | "
+            f"{format_seconds(metrics, 'component_initialization_seconds')} | "
+            f"{format_seconds(metrics, 'initialization_seconds')} | "
+            f"{format_rss(metrics['base_peak_rss_kib'])} | "
+            f"{format_rss(metrics['peak_rss_kib'])} |"
+        )
+
+
+def format_seconds(metrics: dict[str, object], name: str) -> str:
+    value = metrics[name]
+    if value is None:
+        return "n/a"
+    return (
+        f"{value:.4f}s [{metrics['run_min'][name]:.4f}, "
+        f"{metrics['run_max'][name]:.4f}]"
+    )
+
+
+def format_rss(value: int | float | None) -> str:
+    return f"{value / 1024:.1f} MiB" if value is not None else "n/a"
 
 
 def append_grouped_quality(

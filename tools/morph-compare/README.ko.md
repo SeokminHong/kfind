@@ -70,4 +70,7 @@ shadow 검증은 성능 측정 구간 밖에서 case별 raw anchor hit, verifier
 local-lattice 대상과 고유 분석 어절 수를 기록한다.
 
 성능 수치는 각 도구의 질의부터 결과 판정까지 처리한 제품 작업량이다. 보고서는 측정 run의
-median과 min/max를 기록한다. 순수 tokenizer 처리량 비교가 아니다.
+median과 min/max를 기록한다. 순수 tokenizer 처리량 비교가 아니다. 별도 startup 표는
+resource 없는 embedded/full-POS engine과 같은 engine에서 component를 명시적으로 로드한
+경우를 비교한다. 각 profile은 새 process에서 1회 warm-up 뒤 초기화 시간과 peak RSS를
+최소 3회 측정한다.
