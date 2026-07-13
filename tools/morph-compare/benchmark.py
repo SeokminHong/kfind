@@ -24,6 +24,7 @@ from python.report import (
     product_workflows,
     render_markdown,
     untagged_plan_metrics,
+    user_precision_shadow_summary,
 )
 from python.validation import (
     load_cases,
@@ -433,6 +434,7 @@ def evaluate_untagged_profile_runs(
     run_native_untagged_profile(runner, profile, boundary, cases_path)
     evaluations = []
     diagnostics = []
+    precision_shadows = []
     summaries = []
     for _ in range(runs):
         summary = run_native_untagged_profile(
@@ -446,8 +448,16 @@ def evaluate_untagged_profile_runs(
                 for result in summary["results"]
             }
         )
+        precision_shadows.append(
+            {
+                result["id"]: result["user_precision_shadow"]
+                for result in summary["results"]
+            }
+        )
     first = evaluations[0]
-    for evaluation, plan_diagnostics in zip(evaluations[1:], diagnostics[1:]):
+    for evaluation, plan_diagnostics, precision_shadow_diagnostics in zip(
+        evaluations[1:], diagnostics[1:], precision_shadows[1:]
+    ):
         if evaluation[0] != first[0] or evaluation[1] != first[1]:
             raise ValueError(
                 f"untagged {profile}/{boundary} predictions changed between runs"
@@ -455,6 +465,10 @@ def evaluate_untagged_profile_runs(
         if plan_diagnostics != diagnostics[0]:
             raise ValueError(
                 f"untagged {profile}/{boundary} plans changed between runs"
+            )
+        if precision_shadow_diagnostics != precision_shadows[0]:
+            raise ValueError(
+                f"untagged {profile}/{boundary} precision shadow changed between runs"
             )
     expected_component = boundary == "smart"
     if any(
@@ -477,6 +491,26 @@ def evaluate_untagged_profile_runs(
         for case in cases
         if first[0][case["id"]] != bool(case["expected"])
     ]
+    precision_shadow = None
+    if all(shadow is not None for shadow in precision_shadows[0].values()):
+        typed_shadows = {
+            case_id: shadow
+            for case_id, shadow in precision_shadows[0].items()
+            if shadow is not None
+        }
+        projected_predictions = {
+            case["id"]: span_prediction(
+                case, typed_shadows[case["id"]]["projected_spans"]
+            )
+            for case in cases
+        }
+        precision_shadow = user_precision_shadow_summary(
+            cases,
+            first[0],
+            projected_predictions,
+            diagnostics[0],
+            typed_shadows,
+        )
     return (
         {
             "quality": quality_metrics(cases, first[0]),
@@ -491,6 +525,7 @@ def evaluate_untagged_profile_runs(
                 "component_artifact_sha256"
             ],
             "failures": failures,
+            "precision_shadow": precision_shadow,
         },
         diagnostics[0],
     )
@@ -547,6 +582,18 @@ def evaluate_product_persona_comparison(
         untagged_plan_metrics(cases, diagnostics),
         metadata,
     )
+
+
+def evaluate_user_precision_development(
+    cases: list[dict[str, object]],
+    cases_path: Path,
+    runner: Path,
+) -> dict[str, object]:
+    result, diagnostics = evaluate_untagged_profile_runs(
+        cases, cases_path, runner, "full-pos", "smart", 1
+    )
+    result["plan"] = untagged_plan_metrics(cases, diagnostics)
+    return result
 
 
 def evaluate_dataset(
@@ -767,6 +814,11 @@ def main() -> int:
             args.runner,
             args.runs,
             report["boundary_comparison"],
+        )
+        report["user_precision_development"] = evaluate_user_precision_development(
+            dev_cases,
+            args.dev_cases,
+            args.runner,
         )
         report["product_use_cases"] = measure_product_workflows(
             runs=args.runs, smoke=False

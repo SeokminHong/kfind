@@ -97,6 +97,56 @@ def untagged_plan_metrics(
     }
 
 
+def user_precision_shadow_summary(
+    cases: list[dict[str, object]],
+    baseline_predictions: dict[str, bool],
+    projected_predictions: dict[str, bool],
+    plan_diagnostics: dict[str, dict[str, object]],
+    shadows: dict[str, dict[str, object]],
+) -> dict[str, object]:
+    causes = {
+        "query-pos-ambiguity": 0,
+        "corpus-homonym": 0,
+        "unclassified": 0,
+    }
+    false_positives = []
+    for case in cases:
+        case_id = str(case["id"])
+        if case["expected"] or not baseline_predictions[case_id]:
+            continue
+        shadow = shadows[case_id]
+        whole_token_evidence = shadow["whole_token_lexical"]
+        if whole_token_evidence:
+            cause = "corpus-homonym"
+        elif plan_diagnostics[case_id]["multi_coarse_pos"]:
+            cause = "query-pos-ambiguity"
+        else:
+            cause = "unclassified"
+        causes[cause] += 1
+        false_positives.append(
+            {
+                "case": case,
+                "cause": cause,
+                "matched_coarse_pos": shadow["matched_coarse_pos"],
+                "whole_token_lexical": whole_token_evidence,
+                "projected_prediction": projected_predictions[case_id],
+            }
+        )
+
+    policies = {shadow["policy"] for shadow in shadows.values()}
+    if len(policies) != 1:
+        raise ValueError("User precision shadow policies differ between cases")
+    return {
+        "policy": policies.pop(),
+        "quality": quality_metrics(cases, projected_predictions),
+        "removed_matches": sum(
+            int(shadow["removed_matches"]) for shadow in shadows.values()
+        ),
+        "baseline_false_positive_causes": causes,
+        "false_positives": false_positives,
+    }
+
+
 def product_workflows(
     boundary_comparison: dict[str, object], human_untagged: dict[str, object]
 ) -> dict[str, object]:
@@ -160,6 +210,7 @@ def product_persona_comparison(
                 "quality": user_result["quality"],
                 "performance": user_result["performance"],
                 "plan": user_plan,
+                "precision_shadow": user_result.get("precision_shadow"),
             },
         },
     }
@@ -387,6 +438,7 @@ def render_markdown(report: dict[str, object]) -> str:
             f"`{component}` |"
         )
     append_product_workflows(lines, report)
+    append_user_precision_shadow(lines, report)
     append_external_baselines(lines, report)
     append_product_use_cases(lines, report.get("product_use_cases"))
     append_quality_sections(lines, report)
@@ -447,6 +499,52 @@ def append_product_workflows(lines: list[str], report: dict[str, object]) -> Non
             "- workflows are not combined into one score",
         ]
     )
+
+
+def append_user_precision_shadow(
+    lines: list[str], report: dict[str, object]
+) -> None:
+    persona = report.get("product_persona_comparison")
+    if persona is None:
+        return
+    test_row = persona["rows"]["user"]
+    test_shadow = test_row.get("precision_shadow")
+    if test_shadow is None:
+        return
+    rows = [("test", test_row["quality"], test_shadow)]
+    development = report.get("user_precision_development")
+    if development is not None:
+        rows.insert(
+            0,
+            (
+                "development",
+                development["quality"],
+                development["precision_shadow"],
+            ),
+        )
+
+    lines.extend(
+        [
+            "",
+            "## User precision shadow",
+            "",
+            "The projection removes predicate-only strict-subspan origins only when the "
+            "surrounding token has exclusively non-predicate exact lexical analyses. "
+            "Product matches are unchanged.",
+            "",
+            "| split | baseline precision | baseline recall | projected precision | projected recall | corpus homonym FP | query POS ambiguity FP |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for split, baseline, shadow in rows:
+        projected = shadow["quality"]
+        causes = shadow["baseline_false_positive_causes"]
+        lines.append(
+            f"| {split} | {baseline['precision_percent']}% | "
+            f"{baseline['recall_percent']}% | {projected['precision_percent']}% | "
+            f"{projected['recall_percent']}% | {causes['corpus-homonym']} | "
+            f"{causes['query-pos-ambiguity']} |"
+        )
 
 
 def append_product_use_cases(
