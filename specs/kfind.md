@@ -94,7 +94,8 @@
 - query branch는 향후 어절-local 분석이 필요한지 `None`, `EojeolLattice` 또는
   `NominalComponent`로 표시할 수 있다. `smart`에서 앞 host에 붙는 VCP 지정사 branch는
   `EojeolLattice`, 기존 token 경계에서 거부될 수 있는 명사 branch는 `NominalComponent`
-  대상이다. 두 표시는 union match 결과를 바꾸지 않는다.
+  대상이다. `EojeolLattice`는 shadow 계측만 수행한다. `NominalComponent`는 검증된 compact
+  resource에서 component evaluator가 `accept`한 candidate만 match로 복구한다.
 - `학생일`, `책일`은 사전 표제어가 아니라 각각 체언 host `학생`, `책`과 VCP 관형형 표면
   `일`의 결합을 검증하는 어절 fixture다.
 - benchmark shadow 진단은 raw anchor hit, 기존 verifier를 통과한 branch hit,
@@ -200,6 +201,13 @@
   source SHA-256, section digest와 모든 payload·matrix·unknown 범위를 검증하며 오류를 fallback하지
   않는다. `NominalComponent` candidate는 동일 evaluator의 `accept`만 match로 복구하고 `reject`,
   `ambiguous`, 평가 오류와 상한 초과는 거부한다.
+- component 복구는 기존 조사 이형태 판정을 우회하지 않는다. nominal verifier가 소비하지 못한
+  query 뒤 어절 suffix 전체가 알려진 조사 이형태와 같으면 component evaluator가 `accept`해도
+  거부한다.
+- 제품 판정을 적용한 고정 1,000-case test에서 embedded는 TP 408/FP 1/FN 92, full-POS는
+  TP 413/FP 1/FN 87이다. dev는 각각 TP 432/FP 2/FN 68, TP 436/FP 2/FN 64다. test component
+  projection 비교 embedded 84건, full-POS 123건과 component hard-negative 5건은 불일치 0이며
+  hard-negative component candidate는 모두 `reject`다.
 - P2의 네 번째 구현 단위는 corpus-side morphology resource를 schema 3으로 갱신한다.
   query tag용 `DataFinePos`는 corpus CSV 행의 필터로 사용하지 않는다. 유효한 context ID와
   비용을 가진 모든 source 행을 NFC 표면형별로 보존하고, 단일·복합 POS 열과 type·start POS·

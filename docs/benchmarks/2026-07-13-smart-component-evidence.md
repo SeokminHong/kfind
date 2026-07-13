@@ -2,7 +2,8 @@
 
 측정일: 2026-07-13
 
-기준 보고서: `target/morph-benchmark-after/report.json`
+기준 보고서: `target/morph-benchmark-component-projection-equivalence/report.json`,
+`target/morph-benchmark-product/report.json`
 
 ## 결정
 
@@ -70,7 +71,7 @@ full-POS는 같은 candidate에서 복수 분석을 보존하므로 evidence 합
 hard-negative의 component candidate 5개는 두 profile에서 모두 reject했다. 기본 test·dev
 검색 결과는 변하지 않았다.
 
-## 다음 단계
+## 제품 전환 결과
 
 embedded accept 61개는 derivational continuation 23, nominal compound 22, particle
 continuation 8, copular continuation 7, mixed 1이다. P1 일반 규칙 후보는 derivational 23개이고
@@ -84,10 +85,34 @@ scoring checksum은 full resource와 동일하다. compact projection을 다음 
 변경을 검토한다.
 
 shadow 비교는 동일 candidate의 decision, 비용, node 수와 N-best path provenance 전체를
-대조한다. compact artifact 오류나 불일치는 benchmark 실패이며 제품 검색 결과에는 반영하지 않는다.
+대조한다. compact artifact 오류나 불일치는 benchmark를 실패시킨다. 제품은 검증된 compact
+artifact만 사용하며 초기화 오류를 기존 경계 판정으로 fallback하지 않는다.
 
 report schema 8 실행에서 embedded test/dev/hard-negative 84/87/5건과 full-POS
 123/115/8건의 비교가 모두 일치했다. compact artifact SHA-256은
 `5fc46a151e41485dc4b4a3a931135c0f490913f2c2c908b9d87adb87a7c14efd`다. 제품은 component
 branch가 있는 `smart` 계획에서 이 resource를 필수로 검증하고 오류를 초기화 실패로 처리한다.
 WASM은 bytes를 포함하지 않고 외부 호스팅 또는 별도 정적 asset에서 전달받는다.
+
+제품 matcher를 적용한 1,000-case test와 dev 결과는 다음과 같다.
+
+| split/profile | TP | FP | FN | recall |
+| --- | ---: | ---: | ---: | ---: |
+| test embedded | 408 | 1 | 92 | 81.6% |
+| test full-POS | 413 | 1 | 87 | 82.6% |
+| dev embedded | 432 | 2 | 68 | 86.4% |
+| dev full-POS | 436 | 2 | 64 | 87.2% |
+
+shadow 기준과 비교하면 test TP는 embedded 53건, full-POS 58건 증가했고 FP는 변하지 않았다.
+dev TP는 각각 56건, 60건 증가했고 FP는 변하지 않았다. test의 compact/full projection 비교는
+embedded 84건과 full-POS 123건 모두 일치했다. revised hard-negative의 component candidate
+5건은 두 profile에서 모두 거부됐다.
+
+component resource 초기화를 포함한 5회 중앙값은 embedded 0.2823초·50.9 MiB,
+full-POS 0.4260초·92.1 MiB다. Homebrew는 별도 formula resource로 설치하고 npm은 WASM과
+분리된 정적 asset으로 게시한다.
+
+## 다음 단계
+
+정상 지정사 gold reject 13개는 별도 P3 범위에서 dev 원인을 분류한다. 이후 제품 판정은 결과를
+보기 전에 고정한 unseen source로 검증하며 Korean-GSD 결과에 맞춰 비용이나 threshold를 바꾸지 않는다.
