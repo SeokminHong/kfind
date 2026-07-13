@@ -99,11 +99,16 @@
   실행한다. Query, 입력 text, expand·boundary·POS·normalization·max gap을 바꿀 수 있고,
   UTF-16 span에 맞춰 match를 강조하며 surface와 provenance를 표시한다.
 - Playground 입력은 browser 밖으로 보내지 않는다. Full POS와 45 MiB 이상의 compact component
-  resource는 기본 demo에 포함하지 않으며, resource가 필요한 `smart` plan의 compile 오류와
-  embedded preview의 한계를 숨기지 않는다.
+  resource는 기본 demo에 포함하지 않는다. 사용자가 고급 `smart` 지원을 요청할 때만 같은 origin의
+  Pages Function에서 component resource를 한 번 내려받아 기존 WASM engine에 load한다.
+- Component resource는 25 MiB 단일 값 제한이 있는 Workers KV가 아니라 `kfind-assets` R2 bucket에
+  둔다. Pages Function은 `KFIND_ASSETS` binding으로 고정 object를 읽어 body를 buffering하지 않고
+  stream하며 content type, ETag와 cache header를 보존한다. R2 object가 없거나 손상되면 embedded
+  preview로 조용히 fallback하지 않고 playground에 오류를 표시한다.
 - `site` package는 WASM과 benchmark chart를 source artifact에서 재현해 정적 `dist`를 만든다.
-  배포는 `pnpm dlx wrangler pages deploy`의 direct upload를 사용하고, production branch는
-  `main`, Pages project 이름은 `kfind`로 고정한다.
+  배포 전에 같은 source에서 component resource를 생성해 R2에 upload한다. Site 배포는
+  `pnpm dlx wrangler pages deploy`의 direct upload를 사용하고, production branch는 `main`,
+  Pages project 이름은 `kfind`로 고정한다.
 
 ### 0.5 Homebrew 대상
 
