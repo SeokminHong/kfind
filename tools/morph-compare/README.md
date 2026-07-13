@@ -14,6 +14,12 @@ deterministic negative from the same source, producing 1,000 cases. Development
 uses the development fixture; the test fixture remains the regression baseline.
 The image build also generates and validates the sealed Korean-GSD blind
 local-context fixture. The default benchmark does not load or evaluate it.
+The first evaluation is recorded in the benchmark handoff. Subsequent runs use
+the fixture only as a regression baseline:
+
+```sh
+KFIND_MORPH_BLIND=1 scripts/benchmark-morphology.sh target/morph-blind-report
+```
 
 ```sh
 scripts/benchmark-morphology.sh

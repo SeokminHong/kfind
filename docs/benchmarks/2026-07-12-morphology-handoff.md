@@ -94,6 +94,9 @@ profile의 FN은 146개다.
 - manifest schema 3에서 기본 benchmark source와 blind source를 분리했다. Docker build는
   blind fixture와 metadata를 생성·검증하지만 기본 runner에는 전달하지 않는다. smoke
   benchmark는 기존 dev local-context 결과만 평가한 채 통과했다.
+- [Korean-GSD blind 평가](2026-07-13-copula-blind-evaluation.md)를 최초 1회 실행했다. 중복
+  제거한 candidate에서 gold accept는 127/142, non-gold reject는 97/101이다. 정상 gold
+  reject가 최소 13개 남아 P3는 계속 보류한다. fixture는 regression baseline으로 전환했다.
 
 dev 명사 FN 70개 중 64개는 사전 누락이 아니라 smart boundary 거부다. 합성어 substring
 계약을 완화하면 hard-negative 정밀도와 충돌하므로 이번 어휘 보강에는 포함하지 않았다.
@@ -267,9 +270,9 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. blind fixture를 명시적 일회성 report 경로에 연결한다.
-2. 변경하지 않은 schema 3 판정으로 비용 분포와 판별력을 한 번 측정한다.
-3. non-gold target 오수용을 source·표면형·선택 경로별로 분류한다.
-4. 결과를 확인한 뒤 fixture는 regression baseline으로만 사용한다.
+1. 정상 gold reject 13개를 기존 Kaist·KSL dev에서 원인별로 분류한다.
+2. 비용·threshold 후보는 dev에서만 정한다.
+3. 다음 제품 판정용 unseen source를 먼저 고정한다.
+4. 그 전에는 P3 filtering과 기본 검색 결과를 변경하지 않는다.
 
-최초 blind report 전에는 threshold, fixture 가중치나 검색 결과를 변경하지 않는다.
+Korean-GSD 결과에 맞춘 비용·threshold·fixture 가중치 변경은 금지한다.

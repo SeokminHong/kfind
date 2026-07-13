@@ -13,6 +13,11 @@ fixture는 Universal Dependencies 2.18의 Korean-Kaist와 Korean-KSL test/dev sp
 baseline으로 유지한다.
 이미지 빌드는 밀봉된 Korean-GSD blind local-context fixture도 생성·검증한다. 기본
 벤치마크는 이 fixture를 로드하거나 평가하지 않는다.
+최초 평가 결과는 benchmark handoff에 기록했다. 이후 실행은 regression 확인에만 사용한다.
+
+```sh
+KFIND_MORPH_BLIND=1 scripts/benchmark-morphology.sh target/morph-blind-report
+```
 
 ```sh
 scripts/benchmark-morphology.sh
