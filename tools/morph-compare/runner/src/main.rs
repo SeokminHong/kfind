@@ -101,6 +101,26 @@ struct FailureDiagnostic {
     auto_has_expected_pos_analysis: bool,
     gold_anchor_overlap: bool,
     any_boundary_gold_overlap: bool,
+    any_boundary_gold_matches: Vec<DiagnosticMatch>,
+}
+
+#[derive(Debug, Eq, PartialEq, Serialize)]
+struct DiagnosticMatch {
+    core: DiagnosticSpan,
+    token: DiagnosticSpan,
+    origins: Vec<DiagnosticOrigin>,
+}
+
+#[derive(Debug, Eq, PartialEq, Serialize)]
+struct DiagnosticSpan {
+    byte_start: usize,
+    byte_end: usize,
+}
+
+#[derive(Debug, Eq, PartialEq, Serialize)]
+struct DiagnosticOrigin {
+    analysis_index: u16,
+    rule_path: Vec<String>,
 }
 
 #[derive(Debug, Eq, PartialEq, Serialize)]
@@ -693,13 +713,40 @@ fn diagnose_failure(
             .is_some_and(|gold_text| contains_bytes(gold_text, &branch.anchor))
     });
     let any_matcher = MorphMatcher::new(Arc::new(any_plan))?;
-    let any_boundary_gold_overlap = find_all_spans(&any_matcher, &case.text)
-        .iter()
-        .any(|span| ranges_overlap(span.byte_start..span.byte_end, gold_range.clone()));
+    let any_boundary_gold_matches = any_matcher
+        .find_all_with_meta(case.text.as_bytes())
+        .into_iter()
+        .flat_map(|matched| matched.atoms)
+        .filter(|atom| ranges_overlap(atom.token.clone(), gold_range.clone()))
+        .map(|atom| DiagnosticMatch {
+            core: DiagnosticSpan {
+                byte_start: atom.core.start,
+                byte_end: atom.core.end,
+            },
+            token: DiagnosticSpan {
+                byte_start: atom.token.start,
+                byte_end: atom.token.end,
+            },
+            origins: atom
+                .origins
+                .into_iter()
+                .map(|origin| DiagnosticOrigin {
+                    analysis_index: origin.analysis_index,
+                    rule_path: origin
+                        .rule_path
+                        .into_iter()
+                        .map(|rule| rule.as_str().to_owned())
+                        .collect(),
+                })
+                .collect(),
+        })
+        .collect::<Vec<_>>();
+    let any_boundary_gold_overlap = !any_boundary_gold_matches.is_empty();
     Ok(Some(FailureDiagnostic {
         auto_has_expected_pos_analysis,
         gold_anchor_overlap,
         any_boundary_gold_overlap,
+        any_boundary_gold_matches,
     }))
 }
 
@@ -856,6 +903,28 @@ mod tests {
         assert!(diagnostic.auto_has_expected_pos_analysis);
         assert!(diagnostic.gold_anchor_overlap);
         assert!(diagnostic.any_boundary_gold_overlap);
+        assert_eq!(diagnostic.any_boundary_gold_matches.len(), 1);
+        assert_eq!(
+            diagnostic.any_boundary_gold_matches[0].token,
+            DiagnosticSpan {
+                byte_start: "사용자".len(),
+                byte_end: "사용자권한".len(),
+            }
+        );
+    }
+
+    #[test]
+    fn diagnostic_preserves_any_boundary_rule_paths() {
+        let diagnostic = diagnose_failure(&positive_case("먹다", "verb", "먹었다"), &analyzer())
+            .unwrap()
+            .unwrap();
+
+        assert!(
+            diagnostic.any_boundary_gold_matches[0]
+                .origins
+                .iter()
+                .any(|origin| !origin.rule_path.is_empty())
+        );
     }
 
     #[test]
