@@ -4,7 +4,8 @@
 
 기준 보고서: `target/morph-benchmark-component-projection-equivalence/report.json`,
 `target/morph-benchmark-product/report.json`,
-`target/morph-benchmark-optional-init/report.json`
+`target/morph-benchmark-optional-init/report.json`,
+`target/morph-benchmark-boundary/report.json`
 
 ## 결정
 
@@ -137,8 +138,43 @@ component profile은 resource 없는 engine을 먼저 만든 뒤 47,859,711-byte
 | full-POS + component | 101.67 ms | 908.00 ms | 123.1 / 214.6 MiB |
 
 제품 smart 경로가 component를 사용하는 기존 end-to-end 5회 중앙값은 embedded
-0.2916초·50.9 MiB, full-POS 0.4252초·92.1 MiB다. Homebrew는 별도 formula resource로
+0.2829초·51.0 MiB, full-POS 0.4290초·92.1 MiB다. Homebrew는 별도 formula resource로
 설치하고 npm은 1,134,114-byte WASM과 분리된 정적 asset으로 게시한다.
+
+## embedded/full-POS와 경계 정책 비교
+
+embedded는 불규칙 활용, 품사 중의성, 기능어와 표면형 override를 담는 core 예외 계층이다.
+full-POS는 이 계층에 MeCab 기반 632,667개 품사 entry와 614,794개 표제어의 지연 lookup index를
+추가한다. 두 profile은 같은 query compiler와 matcher를 사용하며, 차이는 query 표제어의 분석
+후보 coverage다.
+
+동일한 1,000-case test를 Linux/aarch64의 fresh process에서 1회 warm-up 뒤 5회 측정했다.
+`smart`만 component resource를 읽고, `token`과 `any`는 읽지 않는다. 시간은 query compile과
+match를 포함한다.
+
+![lexicon profile 및 경계별 품질](assets/smart-component-boundary-quality.svg)
+
+![lexicon profile 및 경계별 성능](assets/smart-component-boundary-performance.svg)
+
+| lexicon | boundary | TP / FP / FN | precision | recall | F1 | init | cases/s | p95 | RSS |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| embedded | smart | 408 / 1 / 92 | 99.76% | 81.6% | 89.77% | 282.94 ms | 10,982.7 | 0.2379 ms | 51.0 MiB |
+| embedded | token | 354 / 0 / 146 | 100.00% | 70.8% | 82.90% | 1.13 ms | 15,822.0 | 0.1425 ms | 5.2 MiB |
+| embedded | any | 479 / 11 / 21 | 97.76% | 95.8% | 96.77% | 1.11 ms | 15,854.6 | 0.1422 ms | 5.3 MiB |
+| full-POS | smart | 413 / 1 / 87 | 99.76% | 82.6% | 90.37% | 428.96 ms | 9,485.0 | 0.2883 ms | 92.1 MiB |
+| full-POS | token | 354 / 0 / 146 | 100.00% | 70.8% | 82.90% | 144.39 ms | 14,586.4 | 0.1804 ms | 46.4 MiB |
+| full-POS | any | 479 / 11 / 21 | 97.76% | 95.8% | 96.77% | 141.27 ms | 14,581.3 | 0.1792 ms | 46.4 MiB |
+
+full-POS `smart`는 embedded `smart`보다 recall 1.0%p, F1 0.60%p 높다. 추가로 찾은 5건은
+`기지`, `것`, `옥스브리지`, `삼성`, `한국`이며 모두 명사다. 그 대가로 초기화는 146.02 ms,
+peak RSS는 41.11 MiB 늘고 처리량은 13.64% 낮으며 p95는 21.19% 높다. `token`은 추가 분석을
+경계에서 거부하고 `any`는 분석 없이 이미 span을 허용하므로 이 fixture에서 full-POS의 품질
+이점이 없다.
+
+embedded `smart`는 `token`보다 recall 10.8%p와 F1 6.87%p를 얻는 대신 처리량이 30.59%
+낮고 p95가 66.95% 높다. `any`는 recall과 F1이 가장 높지만 FP가 11건으로 `smart`의 1건보다
+10건 많다. 따라서 `any`의 balanced fixture F1은 형태·경계 검증을 생략한 부분 문자열 검색의
+정확성을 뜻하지 않는다.
 
 ## 외부 분석기 비교
 
@@ -150,7 +186,7 @@ profile은 component resource를 사용하는 제품 `smart` 경로다.
 ![형태소 검색 성능 비교](assets/smart-component-morphology-performance.svg)
 
 full-POS의 F1은 90.37%로 Kiwi 92.01%보다 1.64%p 낮고 Lindera 88.02%보다 2.35%p 높다.
-embedded 처리량은 Kiwi의 5.49배이고 peak RSS는 50.9 MiB로 Kiwi 661.0 MiB의 7.7%다.
+embedded 처리량은 Kiwi의 5.39배이고 peak RSS는 51.0 MiB로 Kiwi 661.5 MiB의 7.7%다.
 
 재현 명령은 `scripts/benchmark-morphology.sh`와
 `pnpm --dir packages/kfind run benchmark:startup`이다.

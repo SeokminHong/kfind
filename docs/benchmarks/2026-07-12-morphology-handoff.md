@@ -146,6 +146,10 @@ profile의 FN은 145개다.
 - report schema 9의 native startup 5회 중앙값은 embedded resource 없음 1.09 ms·3.4 MiB,
   component 수동 load 149.82 ms·최종 49.1 MiB다. full-POS는 resource 없음
   127.47 ms·46.0 MiB, component 추가 후 총 277.76 ms·87.6 MiB다.
+- report schema 10은 embedded/full-POS 각각의 `smart`, `token`, `any`를 같은 1,000-case test에서
+  비교한다. full-POS `smart`는 embedded보다 recall 1.0%p, F1 0.60%p 높지만 초기화가
+  146.02 ms 길고 RSS가 41.11 MiB 크며 처리량이 13.64% 낮다. `token`과 `any`의 품질은 두
+  lexicon profile에서 같다. `smart`만 component resource를 로드한다.
 - Node 24/WASM 3회 중앙값은 embedded resource 없음 11.20 ms·68.8 MiB, component 수동 load
   913.47 ms·최종 186.1 MiB다. full-POS는 resource 없음 101.48 ms·123.1 MiB, component
   추가 후 총 1.010초·214.6 MiB다. WASM 1,134,114 bytes와 component 47,859,711 bytes는
@@ -169,6 +173,8 @@ pnpm --dir packages/kfind run benchmark:startup
 - `target/morph-benchmark/report.md`: 사람이 읽는 요약
 - `docs/benchmarks/assets/morphology-quality.svg`: 품질 차트
 - `docs/benchmarks/assets/morphology-performance.svg`: 성능 차트
+- `docs/benchmarks/assets/smart-component-boundary-quality.svg`: lexicon/boundary 품질 차트
+- `docs/benchmarks/assets/smart-component-boundary-performance.svg`: lexicon/boundary 성능 차트
 
 입력 source, SHA-256, quota, seed는 `tools/morph-compare/sources.json`에 있다. Docker image
 빌드 뒤 실제 평가는 `--network none`으로 실행된다.
@@ -370,5 +376,6 @@ compact schema 1 owning loader, 제품 `NominalComponent` accept 복구, optiona
 component 초기화, Homebrew formula resource와 npm 외부 정적 asset 패키징을 완료했다.
 resource 없는 Rust/WASM engine은 component asset을 읽지 않고, component smart compile은
 명시적 load 전까지 오류다. 1,000-case test에서 embedded TP 408/FP 1/FN 92, full-POS
-TP 413/FP 1/FN 87이며 component projection 불일치는 0이다. 다음 작업은 P3 지정사 gold
-reject 원인 분류다.
+TP 413/FP 1/FN 87이며 component projection 불일치는 0이다. full-POS의 추가 TP 5건은 모두
+명사이고 `token`과 `any`에서는 품질 이점이 없다. 다음 작업은 P3 지정사 gold reject 원인
+분류다.
