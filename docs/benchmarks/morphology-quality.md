@@ -26,6 +26,9 @@ FP 0을 동시에 유지해야 한다.
 - 라이브러리는 resource 없는 embedded engine을 기본으로 측정하고 full-POS lexicon과 component
   resource 초기화를 선택 비용으로 분리한다.
 - 전체 lexicon·boundary 행렬은 원인 분석에 사용하며 workflow들을 하나의 점수로 합치지 않는다.
+- 실제 CLI 비용은 고정 100 MiB source corpus에서 에이전트 JSON 경로와 사람 기본 출력 경로를
+  fresh process로 측정한다. fixture runner의 query별 compile·match 처리량과 CLI wall time·corpus
+  처리량을 같은 지표로 해석하지 않는다.
 
 ## 데이터 역할
 

@@ -110,8 +110,24 @@
   기록한다. positive query plan의 기대 품사 포함률, 둘 이상의 coarse POS를 만든 plan 비율,
   literal fallback 비율도 함께 기록한다. 이 결과는 명시적 품사 task와 gold 의미가 다르므로
   하나의 F1 순위로 합치지 않는다.
+- 제품 workflow의 실제 CLI 비용은 morphology fixture의 query별 compile·match 처리량과 분리해
+  고정 100 MiB source corpus에서 측정한다. corpus는 1,000개 파일, 작은 파일 976개 x 64 KiB,
+  큰 파일 24개, 생성 한글 line 5%, 그중 NFD 50%, seed `0x004b46494e44`를 사용한다. 별도 64 KiB
+  fixture 파일에 `학교에서 새 문서를 검토했다.` 한 줄만 match로 넣고 나머지는 ASCII padding으로
+  채운다.
+- 에이전트 CLI use case는 `--embedded --boundary any --pos noun --json 학교`, 사람 CLI use case는
+  설치 data directory를 지정한 기본 `학교` 검색이다. 두 명령은 같은 corpus에서 정확히 한 줄을
+  출력해야 한다. 한 번의 warm-up 뒤 fresh process 5회의 wall time, corpus 처리량과 maximum RSS를
+  기록하며 stdout 직렬화는 측정에 포함하고 destination write는 `/dev/null`로 보낸다.
+- 사람 CLI use case는 full POS lexicon과 필요한 compact component resource의 자동 해석을 포함한다.
+  라이브러리 use case는 같은 보고서의 resource 없는 embedded, embedded + component, full POS,
+  full POS + component 초기화 결과로 분리한다. CLI와 라이브러리 결과를 하나의 처리량 점수로
+  합치지 않는다.
 - 보고서는 corpus 설정과 checksum, 저장소에서 commit object로 해석되는 Git revision, CPU, memory, storage, OS, 도구 버전, 실제 명령, 각 run의 wall time·throughput·maximum RSS, median 비교값을 기록한다.
-- 기본 측정은 한 번의 warm-up 뒤 warm-cache 3회를 수행한다. timer 정밀도를 확보하기 위해 각 run은 동일 scan 10회의 합산 시간을 측정해 1회당 평균을 기록한다. 권한이 필요한 cache purge를 자동 실행하지 않으며 cold-cache 결과를 측정하지 않았으면 보고서에 명시한다.
+- 1 GiB low-hit `rg -F` 비교는 한 번의 warm-up 뒤 warm-cache 3회를 수행한다. timer 정밀도를
+  확보하기 위해 각 run은 동일 scan 10회의 합산 시간을 측정해 1회당 평균을 기록한다. 권한이
+  필요한 cache purge를 자동 실행하지 않으며 cold-cache 결과를 측정하지 않았으면 보고서에
+  명시한다.
 
 ### 0.6 선택적 국소 형태 추론
 
