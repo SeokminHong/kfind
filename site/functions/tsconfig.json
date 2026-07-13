@@ -1,0 +1,10 @@
+{
+  "extends": "@seokminhong/configs/tsconfig/base",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "types": ["@cloudflare/workers-types"]
+  },
+  "include": [".", "../worker-configuration.d.ts"]
+}

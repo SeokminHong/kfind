@@ -1,0 +1,6 @@
+dist
+node_modules
+.wrangler
+public/benchmarks
+src/generated-wasm
+worker-configuration.d.ts

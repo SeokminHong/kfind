@@ -92,6 +92,35 @@ jobs:
       - name: Build and validate the package
         run: pnpm --dir packages/kfind run pack:check
 
+  site:
+    name: Documentation site
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Rust
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup target add wasm32-unknown-unknown --toolchain stable
+      - name: Install wasm-pack
+        run: cargo install wasm-pack --version 0.15.0 --locked
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: site/pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm --dir site install --frozen-lockfile
+      - name: Validate and build the site
+        run: |
+          pnpm --dir site run format:check
+          pnpm --dir site run lint
+          pnpm --dir site run types:check
+          pnpm --dir site run build
+
   morphology-smoke:
     name: Morphology smoke
     runs-on: ubuntu-24.04

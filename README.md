@@ -1,6 +1,7 @@
 # kfind
 
-[English](README.md) | [한국어](README.ko.md)
+[English](README.md) | [한국어](README.ko.md) |
+[Documentation & playground](https://kfind.pages.dev)
 
 Fast Korean lemma and inflection search for code and documents.
 

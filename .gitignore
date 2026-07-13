@@ -6,3 +6,11 @@
 /packages/kfind/assets/
 /packages/kfind/LICENSE
 /packages/kfind/*.tgz
+/site/node_modules/
+/site/dist/
+/site/public/benchmarks/
+/site/src/generated-wasm/
+/site/.wrangler/
+/.wrangler/
+/.playwright-cli/
+/output/playwright/

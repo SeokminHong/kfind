@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="한국어 표제어·활용형 text matcher kfind의 기술 문서와 WebAssembly playground"
+    />
+    <meta name="theme-color" content="#ffffff" />
+    <meta property="og:title" content="kfind 문서" />
+    <meta
+      property="og:description"
+      content="kfind의 목적, 검색 계약, 옵션, 벤치마크와 WebAssembly playground"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://kfind.pages.dev" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>kfind 문서</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">본문으로 건너뛰기</a>
+
+    <header class="docs-header">
+      <div class="header-inner">
+        <a class="brand" href="#top" aria-label="kfind 문서 처음으로">
+          <span class="brand-mark" aria-hidden="true">k/</span>
+          <span>kfind</span>
+          <span class="brand-suffix">문서</span>
+        </a>
+        <nav class="header-links" aria-label="외부 문서">
+          <a href="https://github.com/SeokminHong/kfind">GitHub</a>
+          <a href="https://github.com/SeokminHong/kfind/blob/main/README.ko.md"
+            >README</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <div class="docs-shell">
+      <aside class="docs-sidebar" aria-label="문서 목차">
+        <nav>
+          <p>개요</p>
+          <a href="#top">소개</a>
+          <a href="#purpose">목적과 범위</a>
+          <a href="#model">검색 모델</a>
+          <a href="#workflows">사용 방식</a>
+          <p>사용</p>
+          <a href="#playground">Playground</a>
+          <a href="#query-language">Query 문법</a>
+          <a href="#boundary">Boundary</a>
+          <a href="#install">설치</a>
+          <p>측정</p>
+          <a href="#benchmarks">벤치마크</a>
+        </nav>
+      </aside>
+
+      <main class="docs-content" id="content">
+        <article>
+          <header class="document-intro" id="top">
+            <p class="document-kind">kfind 0.1.1</p>
+            <h1>kfind</h1>
+            <p class="lead">
+              한국어 표제어와 활용형을 파일 및 메모리의 텍스트에서 찾는
+              query-directed matcher입니다. 쿼리를 유한한 검색 계획으로 한 번
+              컴파일하고, 입력 텍스트는 anchor scan과 후보 검증으로 처리합니다.
+            </p>
+            <div class="document-links">
+              <a href="#playground">WebAssembly playground</a>
+              <a href="https://github.com/SeokminHong/kfind">소스 저장소</a>
+              <a
+                href="https://github.com/SeokminHong/kfind/blob/main/README.ko.md"
+                >전체 CLI 참조</a
+              >
+            </div>
+            <div class="note" role="note">
+              <strong>처리 범위</strong>
+              <p>
+                형태 지식은 쿼리 확장과 match 검증에 사용합니다. 검색 대상
+                전체를 형태소 분석하거나 문장의 의미를 판별하지 않습니다.
+              </p>
+            </div>
+          </header>
+
+          <section class="doc-section" id="purpose">
+            <h2>목적과 범위</h2>
+            <p>
+              kfind의 결과물은 후속 자동화나 사람이 바로 사용할 수 있는 match
+              span과 생성 규칙입니다. 범용 한국어 분석 결과를 만드는 것은 목표가
+              아닙니다.
+            </p>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Goal</th>
+                    <th scope="col">Non-goal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>짧은 query를 bounded plan으로 컴파일</td>
+                    <td>문장 전체의 형태소 분석과 tokenization</td>
+                  </tr>
+                  <tr>
+                    <td>대규모 text를 anchor 중심으로 scan</td>
+                    <td>문맥 의미 판별과 semantic search</td>
+                  </tr>
+                  <tr>
+                    <td>match span, 품사, 생성 규칙 반환</td>
+                    <td>임의 표면형의 완전한 역분석</td>
+                  </tr>
+                  <tr>
+                    <td>CLI, Rust, JavaScript에서 같은 검색 계약 유지</td>
+                    <td>형태소 분석기 자체의 최고 속도 경쟁</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="doc-section" id="model">
+            <h2>검색 모델</h2>
+            <ol class="steps">
+              <li>
+                <strong>Compile</strong>
+                <p>
+                  표제어, 품사, 경계 옵션을 유한한 표면형과 verifier로 만듭니다.
+                </p>
+              </li>
+              <li>
+                <strong>Scan</strong>
+                <p>
+                  입력 전체를 형태 분석하지 않고 byte-oriented matcher로 후보를
+                  찾습니다.
+                </p>
+              </li>
+              <li>
+                <strong>Verify</strong>
+                <p>
+                  boundary 정책과 형태 규칙으로 후보 span을 검증하고
+                  provenance를 반환합니다.
+                </p>
+              </li>
+            </ol>
+          </section>
+
+          <section class="doc-section" id="workflows">
+            <h2>사용 방식</h2>
+            <p>
+              같은 엔진에서 자동화는 recall을, 대화형 검색은 precision을 우선할
+              수 있습니다.
+            </p>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">항목</th>
+                    <th scope="col">자동화</th>
+                    <th scope="col">대화형 검색</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">우선순위</th>
+                    <td>recall</td>
+                    <td>precision</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">품사</th>
+                    <td>명시</td>
+                    <td>자동</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Boundary</th>
+                    <td><code>any</code></td>
+                    <td><code>smart</code></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">출력</th>
+                    <td>JSON Lines와 provenance</td>
+                    <td>터미널 text</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <pre><code>kfind --embedded --boundary any --pos verb --json 걷다 src docs
+kfind 걷다 src docs</code></pre>
+          </section>
+
+          <section class="doc-section playground-section" id="playground">
+            <div class="section-title-row">
+              <div>
+                <h2>WebAssembly playground</h2>
+                <p>
+                  입력은 브라우저 안에서 처리하며 분석 API로 전송하지 않습니다.
+                </p>
+              </div>
+              <div
+                class="wasm-state"
+                id="wasm-status"
+                role="status"
+                aria-live="polite"
+              >
+                <span class="state-dot"></span>
+                <span>WASM engine을 불러오는 중…</span>
+              </div>
+            </div>
+
+            <div class="playground-layout">
+              <form class="playground-controls" id="playground-form">
+                <div class="field field-query">
+                  <label for="query-input">Query</label>
+                  <input
+                    id="query-input"
+                    name="query"
+                    value="걷다"
+                    autocomplete="off"
+                  />
+                  <p>atom 태그 예: <code>n:사용자 v:검증하다</code></p>
+                </div>
+
+                <fieldset class="preset-fieldset">
+                  <legend>예시</legend>
+                  <div class="preset-list">
+                    <button type="button" data-preset="predicate">
+                      용언 활용
+                    </button>
+                    <button type="button" data-preset="phrase">
+                      구(句) 검색
+                    </button>
+                    <button type="button" data-preset="component">
+                      합성명사 smart
+                    </button>
+                    <button type="button" data-preset="literal">Literal</button>
+                  </div>
+                </fieldset>
+
+                <div class="option-grid">
+                  <div class="field">
+                    <label for="pos-select">품사</label>
+                    <select id="pos-select" name="pos">
+                      <option value="auto">자동</option>
+                      <option value="noun">명사</option>
+                      <option value="verb" selected>동사</option>
+                      <option value="adjective">형용사</option>
+                      <option value="particle">조사</option>
+                      <option value="literal">Literal</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="boundary-select">경계</label>
+                    <select id="boundary-select" name="boundary">
+                      <option value="smart" selected>smart</option>
+                      <option value="token">token</option>
+                      <option value="any">any</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="expand-select">확장</label>
+                    <select id="expand-select" name="expand">
+                      <option value="inflection" selected>inflection</option>
+                      <option value="derivation">derivation</option>
+                      <option value="literal">literal</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="normalization-select">정규화</label>
+                    <select id="normalization-select" name="normalization">
+                      <option value="nfc" selected>NFC</option>
+                      <option value="canonical">NFC + NFD</option>
+                      <option value="none">없음</option>
+                    </select>
+                  </div>
+                  <div class="field field-gap">
+                    <label for="max-gap-input">구(句) 최대 간격</label>
+                    <input
+                      id="max-gap-input"
+                      name="maxGap"
+                      type="number"
+                      min="0"
+                      value="16"
+                    />
+                  </div>
+                </div>
+
+                <div class="field field-text">
+                  <div class="field-label-row">
+                    <label for="text-input">검색할 text</label>
+                    <span id="text-count">0자</span>
+                  </div>
+                  <textarea id="text-input" name="text" rows="8">
+오늘은 공원을 걸었다.
+내일도 천천히 걷고 싶다.
+산책길을 걷는 사람을 만났다.</textarea>
+                </div>
+
+                <button
+                  class="run-button"
+                  id="run-button"
+                  type="submit"
+                  disabled
+                >
+                  검색 실행
+                </button>
+
+                <div class="resource-loader" id="resource-loader">
+                  <div>
+                    <strong>고급 smart 리소스</strong>
+                    <span id="resource-status"
+                      >필요한 경우 R2에서 45.6 MiB를 받습니다.</span
+                    >
+                  </div>
+                  <button id="resource-button" type="button" disabled>
+                    Component asset 불러오기
+                  </button>
+                </div>
+              </form>
+
+              <div class="playground-output" aria-live="polite">
+                <div class="output-head">
+                  <div>
+                    <p class="output-label">결과</p>
+                    <p id="result-summary">WASM engine을 준비하고 있습니다.</p>
+                  </div>
+                  <span class="execution-time" id="execution-time">— ms</span>
+                </div>
+                <div
+                  class="result-preview"
+                  id="result-preview"
+                  tabindex="0"
+                ></div>
+
+                <div class="match-section">
+                  <p class="output-label">Matches &amp; provenance</p>
+                  <ol class="match-list" id="match-list"></ol>
+                </div>
+
+                <details class="raw-details">
+                  <summary>Raw match JSON</summary>
+                  <pre id="raw-output">[]</pre>
+                </details>
+              </div>
+            </div>
+
+            <div class="note playground-note" role="note">
+              <strong>smart 리소스 로딩</strong>
+              <p>
+                기본 WASM에는 embedded lexicon만 포함합니다. component
+                resource가 필요한 검색에서만 same-origin Pages Function이 R2
+                객체를 스트리밍하고, WASM engine이 검증 후 사용합니다.
+              </p>
+            </div>
+          </section>
+
+          <section class="doc-section" id="query-language">
+            <h2>Query 문법</h2>
+            <p>
+              공백은 atom을 나누고 따옴표는 하나의 literal atom을 만듭니다. 여러
+              atom은 같은 줄에서 순서대로 나타나야 하며
+              <code>--max-gap</code>으로 간격을 제한합니다.
+            </p>
+            <pre><code>n:권한 v:검증하다
+"Hello, world!"</code></pre>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">태그</th>
+                    <th scope="col">품사</th>
+                    <th scope="col">태그</th>
+                    <th scope="col">품사</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>n:</code></td>
+                    <td>명사</td>
+                    <td><code>pro:</code></td>
+                    <td>대명사</td>
+                  </tr>
+                  <tr>
+                    <td><code>num:</code></td>
+                    <td>수사</td>
+                    <td><code>v:</code></td>
+                    <td>동사</td>
+                  </tr>
+                  <tr>
+                    <td><code>adj:</code></td>
+                    <td>형용사</td>
+                    <td><code>det:</code></td>
+                    <td>관형사</td>
+                  </tr>
+                  <tr>
+                    <td><code>adv:</code></td>
+                    <td>부사</td>
+                    <td><code>j:</code></td>
+                    <td>조사</td>
+                  </tr>
+                  <tr>
+                    <td><code>intj:</code></td>
+                    <td>감탄사</td>
+                    <td><code>lit:</code></td>
+                    <td>literal</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="doc-section" id="boundary">
+            <h2>Boundary 정책</h2>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">값</th>
+                    <th scope="col">동작</th>
+                    <th scope="col">주요 용도</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>smart</code></td>
+                    <td>품사와 완성 token span을 검증</td>
+                    <td>대화형 검색 기본값</td>
+                  </tr>
+                  <tr>
+                    <td><code>token</code></td>
+                    <td>모든 core와 token span 바깥에 엄격한 경계 요구</td>
+                    <td>독립 token 일치</td>
+                  </tr>
+                  <tr>
+                    <td><code>any</code></td>
+                    <td>좌우 경계를 요구하지 않음</td>
+                    <td>recall 중심 자동화</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="reference-link">
+              옵션, 출력 형식, 종료 코드 전체 목록은
+              <a
+                href="https://github.com/SeokminHong/kfind/blob/main/README.ko.md"
+                >한국어 README</a
+              >에서 확인할 수 있습니다.
+            </p>
+          </section>
+
+          <section class="doc-section" id="benchmarks">
+            <h2>벤치마크</h2>
+            <p>
+              품질, end-to-end CLI 처리량, 초기화, literal scan은 서로 다른
+              workload와 metric family로 측정합니다. 아래 수치는 동일 입력의
+              순수 tokenizer 속도 순위가 아닙니다.
+            </p>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">Workload</th>
+                    <th scope="col">대표 지표</th>
+                    <th scope="col">처리량</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Agent · explicit POS</td>
+                    <td>Recall 95.80%</td>
+                    <td>14,879.5 cases/s</td>
+                  </tr>
+                  <tr>
+                    <td>User · untagged</td>
+                    <td>Precision 100.00%</td>
+                    <td>7,197.3 cases/s</td>
+                  </tr>
+                  <tr>
+                    <td>1 GiB literal scan</td>
+                    <td>Median 0.047 s</td>
+                    <td>21,787 MiB/s</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <figure class="benchmark-figure">
+              <img
+                src="/benchmarks/product-workflows.svg"
+                alt="Agent와 User workflow의 품질, 처리량, 초기화, p95 latency와 RSS 비교"
+                loading="lazy"
+              />
+              <figcaption>
+                Agent와 User workflow는 품사 입력과 품질 우선순위가 다릅니다.
+              </figcaption>
+            </figure>
+            <figure class="benchmark-figure">
+              <img
+                src="/benchmarks/external-comparison.svg"
+                alt="kfind Agent, User와 Kiwi, Lindera, MeCab-ko, KOMORAN의 품질 및 실행 비용 비교"
+                loading="lazy"
+              />
+              <figcaption>
+                같은 1,000-case gold를 사용한 외부 backend 비교입니다. User
+                workflow만 품사를 제거한 실제 persona 입력입니다.
+              </figcaption>
+            </figure>
+            <ul class="reference-list">
+              <li>
+                <a
+                  href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-user-smart-precision.md"
+                  >최신 품질·성능 보고서</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/README.md"
+                  >Benchmark contract와 전체 인덱스</a
+                >
+              </li>
+            </ul>
+          </section>
+
+          <section class="doc-section" id="install">
+            <h2>설치와 사용</h2>
+            <h3>Homebrew</h3>
+            <pre><code>brew install seokminhong/brew/kfind</code></pre>
+            <h3>Rust</h3>
+            <pre><code>use kfind::{CompileOptions, Engine};</code></pre>
+            <h3>WebAssembly</h3>
+            <pre><code>import { Kfind } from "kfind";</code></pre>
+          </section>
+        </article>
+
+        <footer class="docs-footer">
+          <span>kfind 0.1.1</span>
+          <a href="https://github.com/SeokminHong/kfind/blob/main/LICENSE"
+            >MIT License</a
+          >
+        </footer>
+      </main>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
