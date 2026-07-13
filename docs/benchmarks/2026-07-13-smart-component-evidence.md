@@ -82,3 +82,6 @@ mmap peak RSS는 49.47 MiB, 초기화는 138.60~139.14 ms이며 exact/common-pre
 scoring checksum은 full resource와 동일하다. compact projection을 다음 shadow 판정 동등성
 검증 대상으로 선택한다. CLI·API·출력과 resource 실패 정책을 확정한 뒤에만 기본 `smart`
 변경을 검토한다.
+
+shadow 비교는 동일 candidate의 decision, 비용, node 수와 N-best path provenance 전체를
+대조한다. compact artifact 오류나 불일치는 benchmark 실패이며 제품 검색 결과에는 반영하지 않는다.

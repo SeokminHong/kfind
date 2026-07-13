@@ -344,8 +344,9 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. compact lattice projection으로 dev·hard-negative component 판정과 provenance가 full resource와
-   동등한지 shadow에서 검증한다.
+1. compact lattice projection으로 dev·hard-negative의 같은 component candidate를 다시 평가해
+   decision, 비용, node 수와 N-best path provenance를 full resource와 필드 단위로 비교한다.
+   비교 수는 candidate 수와 같아야 하고 불일치나 compact artifact 오류는 benchmark를 실패시킨다.
 2. 기본 `smart` 결과를 바꾸기 전에 CLI·Rust/WASM API, explain/JSON과 배포 resource 실패
    정책을 스펙에 확정한다.
 3. 정상 지정사 gold reject 13개는 별도 P3 범위에서 기존 Kaist·KSL dev 원인을 분류한다.

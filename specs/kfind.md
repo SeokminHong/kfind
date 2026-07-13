@@ -168,6 +168,15 @@
   배포 후보로 선택한다. full 대비 artifact는 66.32%, mmap peak RSS는 약 49.47 MiB, mmap
   초기화는 138.60~139.14 ms다. exact/common-prefix analysis hit와 scoring checksum은 동일하다.
   이 선택은 제품 적용이 아니라 다음 shadow 판정 동등성 검증의 입력을 확정한다.
+- shadow 판정 동등성은 같은 component candidate를 full resource와 compact projection으로 각각
+  평가해 decision, include/exclude cost, cost margin, node count와 보고 경로의 cost·query 포함
+  여부·node span·POS·word cost·unknown 여부를 비교한다. 비교 수가 candidate 수와 같고 불일치가
+  0이어야 한다. compact artifact 누락·손상·source 불일치는 fallback하지 않고 benchmark를
+  실패시킨다.
+- 이 비교를 위해 local lattice evaluator는 benchmark가 구현할 수 있는 읽기 전용 resource
+  계약만 받는다. compact decoder와 artifact 경로는 benchmark 전용으로 유지하며 제품 loader,
+  matcher, CLI와 Rust/WASM API에는 연결하지 않는다.
+- compact 판정 동등성 지표가 포함된 benchmark report schema는 8이다.
 - P2의 네 번째 구현 단위는 corpus-side morphology resource를 schema 3으로 갱신한다.
   query tag용 `DataFinePos`는 corpus CSV 행의 필터로 사용하지 않는다. 유효한 context ID와
   비용을 가진 모든 source 행을 NFC 표면형별로 보존하고, 단일·복합 POS 열과 type·start POS·
