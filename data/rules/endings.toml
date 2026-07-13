@@ -98,7 +98,7 @@ initial = "a-or-eo"
 forms = ["았", "었"]
 required = []
 forbidden = []
-next = ["ending.final-da", "ending.polite-declarative", "ending.past-polite-yo", "ending.conditional", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go", "ending.future-adnominal", "ending.retrospective-adnominal", "ending.quotative-go"]
+next = ["ending.final-da", "ending.polite-declarative", "ending.past-polite-yo", "ending.conditional", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go", "ending.future-adnominal", "ending.retrospective-adnominal", "ending.quotative-go", "ending.interrogative-neunya"]
 terminal = true
 
 [[ending]]
@@ -216,6 +216,16 @@ id = "ending.quotative-go"
 category = "connective"
 initial = "other"
 forms = ["다고"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.interrogative-neunya"
+category = "final"
+initial = "other"
+forms = ["느냐"]
 required = []
 forbidden = []
 next = []

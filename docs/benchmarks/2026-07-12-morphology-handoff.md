@@ -17,7 +17,7 @@ fixture SHA-256: `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21
 
 - kfind embedded profile: F1 82.81%, recall 70.80%, precision 99.72%
 - 품질 순위: Kiwi 92.01% > Lindera 88.02% > kfind 82.81%
-- kfind 비용: 16,863.4 cases/s, p95 0.1351 ms, peak RSS 5.0 MiB (5회 median)
+- kfind 비용: 16,975.4 cases/s, p95 0.1333 ms, peak RSS 5.0 MiB (5회 median)
 - kfind 오류: FN 146, FP 1
 - 가장 큰 FN 영역: 명사 71, 동사 32, 형용사 25
 
@@ -58,6 +58,9 @@ profile의 FN은 146개다.
   `만들어가야`, `넓혀가고`를 회복했다. embedded·full-POS TP는 369에서 372,
   recall은 73.80%에서 74.40%, 동사 recall은 79.17%에서 81.67%로 늘었다. test와
   hard-negative 결과는 변하지 않았다.
+- 과거형 뒤 의문 종결형 `느냐`와 주제 보조사 `는` 연쇄를 추가해 dev의 `했느냐는`을
+  회복했다. embedded·full-POS TP는 372에서 373, recall은 74.40%에서 74.60%, 동사
+  recall은 81.67%에서 82.50%로 늘었다. test와 hard-negative 결과는 변하지 않았다.
 - 현재 `-기` branch는 token 경계에서 끝나므로 `걷기가`, `걷기를`처럼 명사형 뒤에 조사가
   붙은 어절은 찾지 않는다. nominalizer에서 nominal particle verifier로 전이하는 작업은
   별도 후속 범위다.
@@ -250,9 +253,9 @@ dev의 `망해가고`, `만들어가야`, `넓혀가고`를 근거로 진행 방
 보강했다. corpus에서 확인된 `가고`, `가야` 연쇄만 소비하고 다른 boundary 규칙은
 완화하지 않았다.
 
-dev의 `했느냐는`은 과거 `했` anchor 뒤의 의문 종결형 `느냐`와 주제 보조사 `는`을 같은
-어절에서 소비해야 한다. bare `느냐`와 `느냐는` 두 연쇄만 다음 P1 규칙 보강 범위로
-고정한다.
+dev의 `했느냐는` 원문 분석 `하+었+느냐+는` (`pvg+ep+ef+jxt`)을 근거로 과거형 뒤
+의문 종결형 `느냐`를 보강했다. bare `느냐`와 주제 보조사가 붙은 `느냐는` 두 연쇄만
+소비하고 다른 조사나 추가 어미는 허용하지 않았다.
 
 ### P2. benchmark의 판별력을 높인다 (완료)
 
@@ -307,7 +310,7 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. P1의 남은 용언 실패에서 과거형 뒤 의문 종결형 `-느냐`를 우선 검증한다.
+1. full-POS의 남은 용언 `continuation-rejected`인 `바쁘니`, `얻으리라고`를 우선 검증한다.
 2. P1 명사 `boundary-rejected`는 기존 합성어 hard-negative를 보존하는 범위에서만 다룬다.
 3. 정상 gold reject 13개를 기존 Kaist·KSL dev에서 원인별로 분류한다.
 4. P3 비용·threshold 후보는 dev에서만 정한다.

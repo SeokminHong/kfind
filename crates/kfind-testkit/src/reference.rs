@@ -532,10 +532,12 @@ fn reference_predicate_continuation(
     ];
     const PAST: &[ReferenceSuffix] = &[
         reference_suffix("습니다", &["ending.polite-declarative"]),
+        reference_suffix("느냐는", &["ending.interrogative-neunya", "particle.topic"]),
         reference_suffix("으면", &["ending.conditional"]),
         reference_suffix("지만", &["ending.connective-jiman"]),
         reference_suffix("는데", &["ending.connective-neunde"]),
         reference_suffix("다고", &["ending.quotative-go"]),
+        reference_suffix("느냐", &["ending.interrogative-neunya"]),
         reference_suffix("던", &["ending.retrospective-adnominal"]),
         reference_suffix("을", &["ending.future-adnominal"]),
         reference_suffix("다", &["ending.final-da"]),
