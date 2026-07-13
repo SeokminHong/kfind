@@ -87,6 +87,10 @@ profile의 FN은 146개다.
   non-gold reject 비율 24.44%로 제품 판정에는 부족해 P3는 보류한다.
 - [1 GiB low-hit 보고서](2026-07-12-1gib-mixed.md)는 kfind와 rg 모두 0.0470초,
   throughput 21,787.23 MiB/s, kfind RSS 7.23 MiB로 v0.1 게이트를 통과했다.
+- blind 평가는 UD Korean-GSD r2.18 test split으로 확정했다. CC BY-SA 4.0 source와 license
+  digest, 전수 선택·정렬 규칙, 기존 Kaist·KSL dev/test와의 NFC 문장 중복 0건을 스펙에
+  고정했다. fixture는 781개이며 SHA-256은
+  `4be12e060c4bc3faf35b78bb3c9189cafb49e7c885108383c0dd1fb5aeb1b188`이다.
 
 dev 명사 FN 70개 중 64개는 사전 누락이 아니라 smart boundary 거부다. 합성어 substring
 계약을 완화하면 hard-negative 정밀도와 충돌하므로 이번 어휘 보강에는 포함하지 않았다.
@@ -260,10 +264,9 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. blind source와 라이선스, 고정 split, sampling·정렬 규칙, artifact digest와 기존
-   dev/test 중복 방지 조건을 스펙에 확정한다.
-2. 확정한 blind source에서 schema 3 비용 분포와 판별력을 확인한다.
+1. 고정한 blind fixture 생성·검증 경로를 benchmark에 추가한다.
+2. 변경하지 않은 schema 3 판정으로 비용 분포와 판별력을 한 번 측정한다.
 3. non-gold target 오수용을 source·표면형·선택 경로별로 분류한다.
-4. 검증 전에는 threshold, fixture 가중치나 검색 결과를 변경하지 않는다.
+4. 결과를 확인한 뒤 fixture는 regression baseline으로만 사용한다.
 
-이 계약을 확정하기 전에는 평가 fixture나 threshold를 추가하지 않는다.
+최초 blind report 전에는 threshold, fixture 가중치나 검색 결과를 변경하지 않는다.
