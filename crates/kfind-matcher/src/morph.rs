@@ -89,6 +89,21 @@ impl MorphMatcher {
         &self.anchor_engine
     }
 
+    /// Finds the next non-overlapping query match without morphology provenance.
+    #[must_use]
+    pub fn find_span_at(&self, haystack: &[u8], at: usize) -> Option<Range<usize>> {
+        if at > haystack.len() {
+            return None;
+        }
+        if self.plan.atoms.len() == 1 {
+            return self
+                .find_single_atom_best(haystack, at, MatchMetadata::SpanOnly)
+                .map(|span| span.token);
+        }
+        self.find_phrase_at_with_metadata(haystack, at, MatchMetadata::SpanOnly)
+            .map(|matched| matched.span)
+    }
+
     /// Finds the next non-overlapping query match with its atom metadata.
     #[must_use]
     pub fn find_at_with_meta(&self, haystack: &[u8], at: usize) -> Option<PhraseMatch> {
@@ -124,7 +139,12 @@ impl MorphMatcher {
             for branch_ref in &self.anchor_branches[hit.anchor_index] {
                 let branch =
                     &self.plan.atoms[branch_ref.atom_index].branches[branch_ref.branch_index];
-                let Some(candidate) = self.verify_branch(haystack, &hit, branch) else {
+                let Some(candidate) = self.verify_branch_with_metadata(
+                    haystack,
+                    &hit,
+                    branch,
+                    MatchMetadata::SpanOnly,
+                ) else {
                     continue;
                 };
                 counters.verified_branch_hits += 1;
@@ -140,6 +160,19 @@ impl MorphMatcher {
     }
 
     fn find_single_atom_at(&self, haystack: &[u8], at: usize) -> Option<PhraseMatch> {
+        self.find_single_atom_best(haystack, at, MatchMetadata::Provenance)
+            .map(|span| PhraseMatch {
+                span: span.token.clone(),
+                atoms: vec![span],
+            })
+    }
+
+    fn find_single_atom_best(
+        &self,
+        haystack: &[u8],
+        at: usize,
+        metadata: MatchMetadata,
+    ) -> Option<VerifiedSpan> {
         let mut best = None;
         for hit in self.anchor_engine.hits(haystack, at) {
             if best.as_ref().is_some_and(|matched: &VerifiedSpan| {
@@ -152,32 +185,47 @@ impl MorphMatcher {
                     continue;
                 }
                 let branch = &self.plan.atoms[0].branches[branch_ref.branch_index];
-                let Some(candidate) = self.verify_branch(haystack, &hit, branch) else {
+                let Some(candidate) =
+                    self.verify_branch_with_metadata(haystack, &hit, branch, metadata)
+                else {
                     continue;
                 };
                 merge_best_span(&mut best, candidate);
             }
         }
-        best.map(|span| PhraseMatch {
-            span: span.token.clone(),
-            atoms: vec![span],
-        })
+        best
     }
 
     fn find_phrase_at(&self, haystack: &[u8], at: usize) -> Option<PhraseMatch> {
+        self.find_phrase_at_with_metadata(haystack, at, MatchMetadata::Provenance)
+    }
+
+    fn find_phrase_at_with_metadata(
+        &self,
+        haystack: &[u8],
+        at: usize,
+        metadata: MatchMetadata,
+    ) -> Option<PhraseMatch> {
         let text = phrase_join_text(haystack);
-        let atom_spans = self.collect_atom_spans(haystack, at);
+        let atom_spans = self.collect_atom_spans(haystack, at, metadata);
         let matches = join_phrase_spans(&text, &atom_spans, self.plan.phrase_policy).ok()?;
         matches.into_iter().min_by(compare_phrase_matches)
     }
 
-    fn collect_atom_spans(&self, haystack: &[u8], at: usize) -> Vec<Vec<VerifiedSpan>> {
+    fn collect_atom_spans(
+        &self,
+        haystack: &[u8],
+        at: usize,
+        metadata: MatchMetadata,
+    ) -> Vec<Vec<VerifiedSpan>> {
         let mut atom_spans = vec![Vec::new(); self.plan.atoms.len()];
         for hit in self.anchor_engine.hits(haystack, at) {
             for branch_ref in &self.anchor_branches[hit.anchor_index] {
                 let atom = &self.plan.atoms[branch_ref.atom_index];
                 let branch = &atom.branches[branch_ref.branch_index];
-                if let Some(span) = self.verify_branch(haystack, &hit, branch) {
+                if let Some(span) =
+                    self.verify_branch_with_metadata(haystack, &hit, branch, metadata)
+                {
                     atom_spans[branch_ref.atom_index].push(span);
                 }
             }
@@ -193,6 +241,16 @@ impl MorphMatcher {
         haystack: &[u8],
         hit: &AnchorHit,
         branch: &SurfaceBranch,
+    ) -> Option<VerifiedSpan> {
+        self.verify_branch_with_metadata(haystack, hit, branch, MatchMetadata::Provenance)
+    }
+
+    fn verify_branch_with_metadata(
+        &self,
+        haystack: &[u8],
+        hit: &AnchorHit,
+        branch: &SurfaceBranch,
+        metadata: MatchMetadata,
     ) -> Option<VerifiedSpan> {
         let anchor = std::str::from_utf8(haystack.get(hit.span.clone())?).ok()?;
         let core = mapped_core(&hit.span, branch.core_mapping, anchor)?;
@@ -266,7 +324,10 @@ impl MorphMatcher {
         Some(VerifiedSpan {
             core,
             token,
-            origins: extend_origins(&branch.origins, &suffix_rules),
+            origins: match metadata {
+                MatchMetadata::SpanOnly => Vec::new(),
+                MatchMetadata::Provenance => extend_origins(&branch.origins, &suffix_rules),
+            },
         })
     }
 
@@ -365,8 +426,8 @@ impl Matcher for MorphMatcher {
 
     fn find_at(&self, haystack: &[u8], at: usize) -> Result<Option<Match>, Self::Error> {
         Ok(self
-            .find_at_with_meta(haystack, at)
-            .map(|matched| Match::new(matched.span.start, matched.span.end)))
+            .find_span_at(haystack, at)
+            .map(|span| Match::new(span.start, span.end)))
     }
 
     fn new_captures(&self) -> Result<Self::Captures, Self::Error> {
@@ -384,6 +445,12 @@ impl Matcher for MorphMatcher {
             .next()
             .map(|hit| LineMatchKind::Candidate(hit.span.start)))
     }
+}
+
+#[derive(Clone, Copy)]
+enum MatchMetadata {
+    SpanOnly,
+    Provenance,
 }
 
 #[derive(Debug, Clone, Copy)]

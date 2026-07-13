@@ -292,6 +292,24 @@ fn grep_matcher_adapter_returns_verified_token_range() {
 }
 
 #[test]
+fn span_only_search_matches_the_metadata_range() {
+    let matcher = matcher(
+        vec![atom(
+            BoundaryPolicy::Smart,
+            vec![nominal_branch("사용자", rules(&["particle.topic"]))],
+        )],
+        24,
+    );
+    let text = "사용자는".as_bytes();
+
+    let span = matcher.find_span_at(text, 0).expect("span-only match");
+    let matched = matcher.find_at_with_meta(text, 0).expect("metadata match");
+
+    assert_eq!(span, matched.span);
+    assert!(!matched.atoms[0].origins.is_empty());
+}
+
+#[test]
 fn grep_matcher_advertises_raw_anchor_candidates_for_line_local_plans() {
     let matcher = matcher(
         vec![atom(
