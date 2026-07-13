@@ -57,5 +57,5 @@ cost margin은 최소 321, 중앙값 1,438, p95 4,076, 최대 5,169다.
 - dev의 정상 지정사 gold도 명사·고유명사·용언 경쟁 경로보다 비용이 높을 수 있다.
 - lattice `reject`를 그대로 제품 필터로 적용하지 않는다.
 - 단일 비용 threshold를 이 결과만으로 선택하지 않는다.
-- 정책과 출력 계약을 스펙에 정의하고 별도 unseen source를 고정하기 전까지 homonym union을
-  유지한다.
+- `copula-lattice` 후보는 UD Korean-PUD r2.18의 밀봉된 fixture로 검증하며, gate 판정 전까지
+  homonym union을 유지한다.
