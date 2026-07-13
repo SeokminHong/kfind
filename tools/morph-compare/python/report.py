@@ -12,6 +12,8 @@ SHADOW_COUNTERS = (
     "verified_branch_hits",
     "local_lattice_candidate_hits",
     "unique_analysis_windows",
+    "nominal_component_candidate_hits",
+    "unique_component_windows",
 )
 
 
@@ -102,11 +104,16 @@ def shadow_verification_summary(
     }
     statuses: dict[str, int] = defaultdict(int)
     decisions: dict[str, int] = defaultdict(int)
+    component_statuses: dict[str, int] = defaultdict(int)
+    component_decisions: dict[str, int] = defaultdict(int)
     case_metadata = {str(case["id"]): case for case in cases or []}
     outcomes_by_class: dict[str, dict[str, int]] = defaultdict(
         lambda: defaultdict(int)
     )
     outcomes_by_target_group: dict[str, dict[str, int]] = defaultdict(
+        lambda: defaultdict(int)
+    )
+    component_outcomes_by_class: dict[str, dict[str, int]] = defaultdict(
         lambda: defaultdict(int)
     )
     for case_id, counters in by_case.items():
@@ -124,6 +131,16 @@ def shadow_verification_summary(
                 target_group = case.get("target_group")
                 if target_group is not None:
                     outcomes_by_target_group[str(target_group)][outcome] += 1
+        for evidence in counters.get("component", []):
+            status = str(evidence["status"])
+            decision = evidence.get("decision")
+            outcome = str(decision) if decision is not None else status
+            component_statuses[status] += 1
+            if decision is not None:
+                component_decisions[str(decision)] += 1
+            if case is not None:
+                class_name = "positive" if bool(case["expected"]) else "negative"
+                component_outcomes_by_class[class_name][outcome] += 1
 
     def sorted_outcomes(
         grouped: dict[str, dict[str, int]],
@@ -139,11 +156,20 @@ def shadow_verification_summary(
             counters["local_lattice_candidate_hits"] > 0
             for counters in by_case.values()
         ),
+        "cases_with_component_candidates": sum(
+            counters["nominal_component_candidate_hits"] > 0
+            for counters in by_case.values()
+        ),
         "lattice_statuses": dict(sorted(statuses.items())),
         "lattice_decisions": dict(sorted(decisions.items())),
         "lattice_outcomes_by_class": sorted_outcomes(outcomes_by_class),
         "lattice_outcomes_by_target_group": sorted_outcomes(
             outcomes_by_target_group
+        ),
+        "component_statuses": dict(sorted(component_statuses.items())),
+        "component_decisions": dict(sorted(component_decisions.items())),
+        "component_outcomes_by_class": sorted_outcomes(
+            component_outcomes_by_class
         ),
         "by_case": by_case,
     }
@@ -216,7 +242,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 4,
+        "schema_version": 5,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "versions": versions,
@@ -426,8 +452,8 @@ def append_shadow_verification(
             "",
             "Counters are collected outside the timed evaluation and do not change matches.",
             "",
-            "| profile | raw anchor hits | verified branch hits | local candidates | unique analysis windows | cases with local candidates |",
-            "| --- | ---: | ---: | ---: | ---: | ---: |",
+            "| profile | raw anchor hits | verified branch hits | lattice candidates | lattice windows | component candidates | component windows | cases with component candidates |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
     for profile in KFIND_PROFILES:
@@ -438,7 +464,9 @@ def append_shadow_verification(
             f"{totals['verified_branch_hits']} | "
             f"{totals['local_lattice_candidate_hits']} | "
             f"{totals['unique_analysis_windows']} | "
-            f"{summary['cases_with_local_candidates']} |"
+            f"{totals['nominal_component_candidate_hits']} | "
+            f"{totals['unique_component_windows']} | "
+            f"{summary['cases_with_component_candidates']} |"
         )
         statuses = ", ".join(
             f"{name}={count}"
@@ -449,6 +477,18 @@ def append_shadow_verification(
             for name, count in summary["lattice_decisions"].items()
         ) or "none"
         lines.append(f"- {profile}: statuses {statuses}; decisions {decisions}")
+        component_statuses = ", ".join(
+            f"{name}={count}"
+            for name, count in summary["component_statuses"].items()
+        ) or "none"
+        component_decisions = ", ".join(
+            f"{name}={count}"
+            for name, count in summary["component_decisions"].items()
+        ) or "none"
+        lines.append(
+            f"- {profile} component: statuses {component_statuses}; "
+            f"decisions {component_decisions}"
+        )
 
 
 def append_profile_comparison(lines: list[str], report: dict[str, object]) -> None:

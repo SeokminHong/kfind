@@ -135,15 +135,22 @@ class ShadowVerificationTests(unittest.TestCase):
                 "verified_branch_hits": 0,
                 "local_lattice_candidate_hits": 0,
                 "unique_analysis_windows": 0,
+                "nominal_component_candidate_hits": 0,
+                "unique_component_windows": 0,
             },
             "vcp": {
                 "raw_anchor_hits": 2,
                 "verified_branch_hits": 2,
                 "local_lattice_candidate_hits": 2,
                 "unique_analysis_windows": 1,
+                "nominal_component_candidate_hits": 1,
+                "unique_component_windows": 1,
                 "lattice": [
                     {"status": "evaluated", "decision": "accept"},
                     {"status": "limit-exceeded", "decision": None},
+                ],
+                "component": [
+                    {"status": "evaluated", "decision": "accept"},
                 ],
             },
         }
@@ -157,10 +164,15 @@ class ShadowVerificationTests(unittest.TestCase):
         self.assertEqual(2, summary["totals"]["raw_anchor_hits"])
         self.assertEqual(2, summary["totals"]["local_lattice_candidate_hits"])
         self.assertEqual(1, summary["cases_with_local_candidates"])
+        self.assertEqual(1, summary["cases_with_component_candidates"])
         self.assertEqual({"accept": 1}, summary["lattice_decisions"])
         self.assertEqual(
             {"accept": 1, "limit-exceeded": 1},
             summary["lattice_outcomes_by_class"]["positive"],
+        )
+        self.assertEqual({"accept": 1}, summary["component_decisions"])
+        self.assertEqual(
+            {"accept": 1}, summary["component_outcomes_by_class"]["positive"]
         )
         self.assertEqual(by_case, summary["by_case"])
 
