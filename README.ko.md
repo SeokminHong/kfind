@@ -165,8 +165,9 @@ pnpm --dir packages/kfind run pack:check
 ```
 
 형태론 fixture에는 일치·불일치 사례 452개가 있습니다. Docker 벤치마크는 독립된
-UD Korean-Kaist·KSL test split에서 생성한 1,000개 사례를 `kfind`, Kiwi, Lindera로
-실행합니다. 쿼리 파싱과 잘못된 matcher
+UD Korean-Kaist·KSL test split에서 생성한 1,000개 사례로 `kfind`를 측정하고, Kiwi,
+Lindera, MeCab-ko, KOMORAN의 고정 품질·성능 스냅샷과 비교합니다. 외부 스냅샷은 fixture,
+adapter, schema 또는 고정 버전이 바뀔 때만 갱신합니다. 쿼리 파싱과 잘못된 matcher
 입력을 위한 fuzz target은 `fuzz/`에 있습니다.
 
 구현 규약과 릴리스 인수 기준은

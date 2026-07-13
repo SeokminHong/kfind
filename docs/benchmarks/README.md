@@ -58,23 +58,40 @@ pnpm --dir packages/kfind run benchmark:startup
 
 ## Morphology comparison
 
-독립된 UD Korean-Kaist·KSL test split에서 `kfind` embedded/full-POS, Kiwi, Lindera의
-lemma/POS/span 품질과
-end-to-end 비용을 비교한다. dev의 VCP/VCN 지정사 판별 slice는 성능 측정에서 제외하고
-source·raw tag별 confusion matrix와 local-context shadow 대상 수를 함께 기록한다.
+독립된 UD Korean-Kaist·KSL test split에서 `kfind` embedded/full-POS를 실행하고
+Kiwi·Lindera·MeCab-ko·KOMORAN의 고정 품질·성능 스냅샷과 lemma/POS/span task를 비교한다.
+기본 실행은 kfind만 다시 측정하고 외부 결과는 저장된 스냅샷에서 읽는다. dev의 VCP/VCN
+지정사 판별 slice는 성능 측정에서 제외하고 source·raw tag별 confusion matrix와
+local-context shadow 대상 수를 함께 기록한다.
 Docker corpus build는 Korean-GSD blind fixture와 Korean-PUD unseen fixture를 별도 생성한다.
 PUD fixture는 전용 평가 entrypoint가 연결되기 전까지 backend에 입력하지 않는다.
 별도 human fixture는 품사 옵션과 atom 태그를 생략하고, query 표제어가 어떤 지원 품사로도
 없는 문장을 negative로 사용한다. embedded/full-POS의 smart/any 품질·성능과 auto plan
 사용성을 같은 보고서의 `human_untagged` 절에 기록한다.
+보고서의 `product_workflows`는 에이전트용 `embedded + any + 명시적 품사`와 사람용
+`full-POS + smart + 무품사`를 먼저 제시하고, 전체 profile 행렬은 진단 자료로 둔다.
+`product_use_cases`는 같은 두 profile을 100 MiB·1,000파일 고정 코퍼스의 독립 CLI
+process로 실행하여 wall time, 처리량, peak RSS를 기록한다. 라이브러리 resource 조합의
+초기화 시간과 peak RSS는 CLI workload와 분리한다.
+`product-workflows.svg`는 profile별 precision·recall·F1·FP 후보와 실제 CLI 비용을 함께
+표시하고 두 측정 단위가 다름을 명시한다.
+`product-external-comparison.svg`는 같은 explicit-POS fixture와 gold에서 Agent, User와 외부
+분석기 4종의 precision·recall·F1, 초기화, 처리량, p95와 peak RSS를 표시한다. Agent와 외부
+분석기는 품사를 명시하고 User는 같은 query에서 품사를 제거한다. 따라서 동일 입력의 backend
+순위가 아니라 실제 persona 입력을 반영한 제품 비교로 해석한다.
+
+외부 스냅샷은 test fixture, 성능 schema나 고정한 도구·어댑터 설정이 바뀔 때만 갱신한다.
+기본 명령은 fixture·schema 불일치에서 자동 실행하거나 오래된 결과를 쓰지 않고 실패한다.
 
 ```console
 scripts/benchmark-morphology.sh
+scripts/refresh-morph-baselines.sh
 python3 tools/morph-compare/render_charts.py \
   target/morph-benchmark/report.json docs/benchmarks/assets
 ```
 
 - [2026-07-12 비교 기준선](2026-07-12-morphology-comparison.md)
+- [2026-07-13 제품 workflow 형태소 벤치마크](2026-07-13-product-workflows.md)
 - [현재 smart component 품질·성능](2026-07-13-smart-component-evidence.md)
 - [형태소 검색 개선 핸드오프](morphology-handoff.md)
 - [선택적 국소 형태 추론 계약](selective-morphology.md)

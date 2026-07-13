@@ -6,11 +6,16 @@ from report import (
     append_boundary_comparison,
     append_component_shadow_table,
     append_component_startup,
+    append_external_baselines,
     append_human_untagged,
     append_local_context_summary,
+    append_product_workflows,
+    append_product_use_cases,
     classify_component_paths,
     classify_primary_cause,
     kfind_profile_comparison,
+    product_persona_comparison,
+    product_workflows,
     quality_metrics,
     shadow_verification_summary,
     untagged_plan_metrics,
@@ -131,6 +136,48 @@ class QualityMetricsTests(unittest.TestCase):
         self.assertEqual(50.0, metrics["hard_negative_precision_percent"])
         self.assertEqual(1, metrics["tn"])
         self.assertEqual(1, metrics["fp"])
+
+
+class ProductUseCaseTests(unittest.TestCase):
+    def test_renders_fresh_process_cli_metrics(self) -> None:
+        performance = {
+            "runs": 3,
+            "wall_seconds": 0.2,
+            "throughput_mib_s": 500.0,
+            "peak_rss_kib": 20480,
+            "run_min": {
+                "wall_seconds": 0.1,
+                "throughput_mib_s": 450.0,
+                "peak_rss_kib": 19000,
+            },
+            "run_max": {
+                "wall_seconds": 0.3,
+                "throughput_mib_s": 550.0,
+                "peak_rss_kib": 21000,
+            },
+        }
+        use_cases = {
+            "profile": "standard",
+            "cache": "warm cache",
+            "corpus": {"bytes": 104857600, "files": 1000, "sha256": "abc"},
+            "workflows": {
+                name: {
+                    "output": output,
+                    "command": f"kfind {name}",
+                    "matching_lines": 1,
+                    "performance": performance,
+                }
+                for name, output in (("agent", "JSON Lines"), ("human", "default text"))
+            },
+        }
+        lines: list[str] = []
+
+        append_product_use_cases(lines, use_cases)
+
+        rendered = "\n".join(lines)
+        self.assertIn("## Product CLI use cases", rendered)
+        self.assertIn("| agent | JSON Lines | 0.2000s [0.1000, 0.3000]", rendered)
+        self.assertIn("20.0 MiB", rendered)
 
 
 class ComponentStartupTests(unittest.TestCase):
@@ -288,6 +335,155 @@ class HumanUntaggedTests(unittest.TestCase):
         self.assertIn("## Human untagged search", rendered)
         self.assertIn("| embedded | any | 90.0% | 80.0% | 84.71% |", rendered)
         self.assertIn("| embedded | 10 | 80.0% (8) | 30.0% (3) |", rendered)
+
+
+class ProductWorkflowTests(unittest.TestCase):
+    def test_selects_agent_and_human_product_profiles(self) -> None:
+        agent = {
+            "quality": {
+                "precision_percent": 60.0,
+                "recall_percent": 95.0,
+                "f1_percent": 73.55,
+                "fp": 20,
+            },
+            "performance": {"cases_per_second": 5000.0},
+        }
+        human = {
+            "quality": {
+                "precision_percent": 90.0,
+                "recall_percent": 85.0,
+                "f1_percent": 87.43,
+                "fp": 5,
+            },
+            "performance": {"cases_per_second": 1000.0},
+        }
+        plan = {"expected_pos_present_percent": 92.0}
+        boundary_comparison = {
+            "profiles": {
+                "embedded": {"any": agent},
+            }
+        }
+        human_untagged = {
+            "profiles": {
+                "full-pos": {
+                    "plan": plan,
+                    "boundaries": {"smart": human},
+                }
+            }
+        }
+
+        workflows = product_workflows(boundary_comparison, human_untagged)
+
+        self.assertEqual("explicit POS", workflows["agent"]["input"])
+        self.assertIs(agent["quality"], workflows["agent"]["quality"])
+        self.assertEqual("untagged", workflows["human"]["input"])
+        self.assertIs(human["quality"], workflows["human"]["quality"])
+        self.assertEqual(
+            "embedded engine without optional resources",
+            workflows["library"]["default"],
+        )
+
+        lines: list[str] = []
+        append_product_workflows(lines, {"product_workflows": workflows})
+        rendered = "\n".join(lines)
+        self.assertIn("| agent | explicit POS | embedded | any |", rendered)
+        self.assertIn("| human | untagged | full-pos | smart |", rendered)
+        self.assertIn("workflows are not combined into one score", rendered)
+
+    def test_builds_persona_comparison_from_same_fixture(self) -> None:
+        agent = {
+            "quality": {"precision_percent": 97.0},
+            "performance": {"cases_per_second": 14000.0},
+        }
+        user = {
+            "quality": {"precision_percent": 99.0},
+            "performance": {"cases_per_second": 7000.0},
+        }
+        comparison = product_persona_comparison(
+            {"profiles": {"embedded": {"any": agent}}},
+            user,
+            {"expected_pos_present_percent": 96.0},
+            {"fixture_sha256": "fixture"},
+        )
+
+        self.assertEqual("explicit POS", comparison["rows"]["agent"]["input"])
+        self.assertEqual("POS omitted", comparison["rows"]["user"]["input"])
+        self.assertIs(agent["quality"], comparison["rows"]["agent"]["quality"])
+        self.assertIs(user["quality"], comparison["rows"]["user"]["quality"])
+        self.assertEqual("fixture", comparison["dataset"]["fixture_sha256"])
+
+    def test_renders_external_quality_and_performance_snapshots(self) -> None:
+        lines: list[str] = []
+        performance = {
+            "runs": 5,
+            "initialization_seconds": 0.25,
+            "cases_per_second": 2500.0,
+            "latency_p95_ms": 0.5,
+            "peak_rss_kib": 20480,
+            "run_min": {
+                "initialization_seconds": 0.2,
+                "cases_per_second": 2400.0,
+                "latency_p95_ms": 0.4,
+                "peak_rss_kib": 19000,
+            },
+            "run_max": {
+                "initialization_seconds": 0.3,
+                "cases_per_second": 2600.0,
+                "latency_p95_ms": 0.6,
+                "peak_rss_kib": 21000,
+            },
+        }
+        quality = {
+            "precision_percent": 100.0,
+            "recall_percent": 80.0,
+            "f1_percent": 88.89,
+        }
+
+        append_external_baselines(
+            lines,
+            {
+                "product_persona_comparison": {
+                    "rows": {
+                        "agent": {
+                            "label": "Agent",
+                            "quality": quality,
+                            "performance": performance,
+                        },
+                        "user": {
+                            "label": "User",
+                            "quality": quality,
+                            "performance": performance,
+                        },
+                    }
+                },
+                "quality": {"kiwi": {"overall": quality}},
+                "external_baselines": {
+                    "environment": {
+                        "platform": "Linux-aarch64",
+                        "logical_cpus": 10,
+                        "python": "3.12.13",
+                    },
+                    "performance": {"kiwi": performance},
+                    "availability": {
+                        "kiwi": {"status": "available"},
+                        "komoran": {
+                            "status": "unavailable",
+                            "reason": "not captured",
+                        },
+                    }
+                }
+            },
+        )
+
+        rendered = "\n".join(lines)
+        self.assertIn("## Product persona and external comparison", rendered)
+        self.assertIn("| Agent | 100.0% | 80.0% |", rendered)
+        self.assertIn("| User | 100.0% | 80.0% |", rendered)
+        self.assertIn("| kiwi | 100.0% | 80.0% |", rendered)
+        self.assertIn("| kiwi | available | 5 | 0.2500s", rendered)
+        self.assertIn(
+            "| komoran | unavailable: not captured | n/a |", rendered
+        )
 
 
 class ShadowVerificationTests(unittest.TestCase):

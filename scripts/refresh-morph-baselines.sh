@@ -1,0 +1,25 @@
+#!/bin/sh
+set -eu
+
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+BASE_IMAGE=${KFIND_MORPH_IMAGE:-kfind-morph-benchmark:local}
+REFRESH_IMAGE=${KFIND_MORPH_REFRESH_IMAGE:-kfind-morph-baseline-refresh:local}
+BACKENDS=${KFIND_MORPH_BASELINE_BACKENDS:-kiwi,lindera,mecab-ko,komoran}
+
+docker build \
+    --file "$ROOT/tools/morph-compare/Dockerfile" \
+    --tag "$BASE_IMAGE" \
+    "$ROOT"
+docker build \
+    --build-arg "BASE_IMAGE=$BASE_IMAGE" \
+    --file "$ROOT/tools/morph-compare/external/Dockerfile" \
+    --tag "$REFRESH_IMAGE" \
+    "$ROOT"
+docker run \
+    --rm \
+    --network none \
+    --user "$(id -u):$(id -g)" \
+    --volume "$ROOT/tools/morph-compare/external:/snapshot" \
+    "$REFRESH_IMAGE" \
+    --backends "$BACKENDS" \
+    --output /snapshot/baselines.json

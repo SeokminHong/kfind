@@ -167,9 +167,12 @@ pnpm --dir packages/kfind run pack:check
 ```
 
 The morphology fixture contains 452 positive and negative cases. The Docker
-benchmark runs 1,000 cases generated from independent UD Korean-Kaist and KSL
-test splits through `kfind`, Kiwi, and Lindera. Fuzz
-targets for query parsing and malformed matcher input live in `fuzz/`.
+benchmark measures `kfind` on 1,000 cases generated from independent UD
+Korean-Kaist and KSL test splits, then compares it with pinned quality and
+performance snapshots for Kiwi, Lindera, MeCab-ko, and KOMORAN. External
+snapshots are refreshed only when their fixture, adapter, schema, or pinned
+version changes. Fuzz targets for query parsing and malformed matcher input
+live in `fuzz/`.
 
 The implementation contract and release acceptance criteria are in
 [`specs/kfind.md`](specs/kfind.md).

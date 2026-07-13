@@ -97,6 +97,74 @@ def untagged_plan_metrics(
     }
 
 
+def product_workflows(
+    boundary_comparison: dict[str, object], human_untagged: dict[str, object]
+) -> dict[str, object]:
+    agent = boundary_comparison["profiles"]["embedded"]["any"]
+    human_profile = human_untagged["profiles"]["full-pos"]
+    human = human_profile["boundaries"]["smart"]
+    return {
+        "agent": {
+            "input": "explicit POS",
+            "lexicon": "embedded",
+            "boundary": "any",
+            "quality": agent["quality"],
+            "performance": agent["performance"],
+            "primary_metrics": ["recall_percent", "cases_per_second"],
+        },
+        "human": {
+            "input": "untagged",
+            "lexicon": "full-pos",
+            "boundary": "smart",
+            "quality": human["quality"],
+            "performance": human["performance"],
+            "plan": human_profile["plan"],
+            "primary_metrics": [
+                "precision_percent",
+                "recall_percent",
+                "expected_pos_present_percent",
+            ],
+        },
+        "library": {
+            "default": "embedded engine without optional resources",
+            "optional": ["full-pos lexicon", "component resource"],
+        },
+    }
+
+
+def product_persona_comparison(
+    boundary_comparison: dict[str, object],
+    user_result: dict[str, object],
+    user_plan: dict[str, object],
+    dataset: dict[str, object],
+) -> dict[str, object]:
+    agent = boundary_comparison["profiles"]["embedded"]["any"]
+    return {
+        "task": "persona-adjusted sentence lemma/POS presence",
+        "gold": "explicit lemma/POS with positive gold-span overlap",
+        "dataset": dataset,
+        "rows": {
+            "agent": {
+                "label": "Agent",
+                "input": "explicit POS",
+                "lexicon": "embedded",
+                "boundary": "any",
+                "quality": agent["quality"],
+                "performance": agent["performance"],
+            },
+            "user": {
+                "label": "User",
+                "input": "POS omitted",
+                "lexicon": "full-pos",
+                "boundary": "smart",
+                "quality": user_result["quality"],
+                "performance": user_result["performance"],
+                "plan": user_plan,
+            },
+        },
+    }
+
+
 def kfind_profile_comparison(
     cases: list[dict[str, object]],
     predictions: dict[str, dict[str, bool]],
@@ -140,9 +208,15 @@ def build_report(
     shadow_verification: dict[str, dict[str, dict[str, object]]],
     include_performance: bool = True,
 ) -> dict[str, object]:
+    backends = tuple(predictions)
+    if tuple(versions) != backends or tuple(matches) != backends:
+        raise ValueError("versions, predictions, and matches must use the same backends")
+    reference_backends = tuple(
+        backend for backend in backends if backend not in KFIND_PROFILES
+    )
     quality = {}
     has_slices = all("slice" in case for case in cases)
-    for backend in BACKENDS:
+    for backend in backends:
         backend_quality = {
             "overall": quality_metrics(cases, predictions[backend]),
             "by_source": grouped_quality(cases, predictions[backend], "source"),
@@ -164,7 +238,7 @@ def build_report(
     failures = []
     for case in cases:
         backend_predictions = {
-            backend: predictions[backend][case["id"]] for backend in BACKENDS
+            backend: predictions[backend][case["id"]] for backend in backends
         }
         if all(value == case["expected"] for value in backend_predictions.values()):
             continue
@@ -175,6 +249,7 @@ def build_report(
                 profile,
                 matches[profile][case["id"]],
                 kfind_diagnostics[profile][case["id"]],
+                reference_backends,
             )
             for profile in KFIND_PROFILES
         }
@@ -191,7 +266,7 @@ def build_report(
                 "profile_causes": profile_causes,
                 "profile_cause_evidence": profile_cause_evidence,
                 "matching_spans": {
-                    backend: matches[backend][case["id"]] for backend in BACKENDS
+                    backend: matches[backend][case["id"]] for backend in backends
                 },
             }
         )
@@ -199,6 +274,8 @@ def build_report(
         "schema_version": 12,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
+        "backends": list(backends),
+        "reference_backends": list(reference_backends),
         "versions": versions,
         "environment": environment_metadata(),
         "quality": quality,
@@ -223,12 +300,15 @@ def classify_primary_cause(
     profile: str,
     profile_spans: list[dict[str, object]],
     diagnostic: dict[str, object] | None,
+    reference_backends: tuple[str, ...] = ("kiwi", "lindera"),
 ) -> str | None:
     if profile not in KFIND_PROFILES:
         raise ValueError(f"unknown kfind profile {profile}")
     if not case["expected"] or predictions[profile]:
         return None
-    if not predictions["kiwi"] and not predictions["lindera"]:
+    if len(reference_backends) >= 2 and all(
+        not predictions[backend] for backend in reference_backends
+    ):
         return "gold-or-adapter"
     if diagnostic is None:
         raise ValueError(f"missing kfind diagnostic for positive case {case['id']}")
@@ -265,8 +345,9 @@ def environment_metadata() -> dict[str, object]:
 
 def render_markdown(report: dict[str, object]) -> str:
     dataset = report["dataset"]
+    backends = report.get("backends", list(BACKENDS))
     lines = [
-        "# kfind profiles / Kiwi / Lindera held-out morphology benchmark",
+        "# Held-out morphology benchmark",
         "",
         f"- fixture: `{dataset['fixture_sha256']}`",
         f"- cases: {dataset['cases']} ({dataset['positive_cases']} positive, "
@@ -295,7 +376,7 @@ def render_markdown(report: dict[str, object]) -> str:
             "| --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
-    for result_name in BACKENDS:
+    for result_name in backends:
         version = report["versions"][result_name]
         artifact = version["lexicon_artifact_sha256"] or "n/a"
         morphology = version.get("morphology_artifact_sha256") or "n/a"
@@ -305,6 +386,9 @@ def render_markdown(report: dict[str, object]) -> str:
             f"{version['profile'] or 'n/a'} | `{artifact}` | `{morphology}` | "
             f"`{component}` |"
         )
+    append_product_workflows(lines, report)
+    append_external_baselines(lines, report)
+    append_product_use_cases(lines, report.get("product_use_cases"))
     append_quality_sections(lines, report)
     append_boundary_comparison(lines, report.get("boundary_comparison"))
     append_human_untagged(lines, report.get("human_untagged"))
@@ -318,11 +402,204 @@ def render_markdown(report: dict[str, object]) -> str:
     lines.extend(
         [
             "",
-            "Performance measures each backend's end-to-end search path after one initialization; "
-            "it is not a tokenizer-only throughput comparison.",
+            "The current run measures kfind. External analyzer quality and performance are "
+            "pinned snapshots captured by an explicit refresh against the same fixture and "
+            "workload.",
         ]
     )
     return "\n".join(lines) + "\n"
+
+
+def append_product_workflows(lines: list[str], report: dict[str, object]) -> None:
+    workflows = report.get("product_workflows")
+    if workflows is None:
+        return
+    lines.extend(
+        [
+            "",
+            "## Product workflows",
+            "",
+            "Agent search prioritizes recall and throughput; false positives are candidates "
+            "for context inspection. Human search prioritizes precise untagged results.",
+            "",
+            "| workflow | input | lexicon | boundary | precision | recall | F1 | FP candidates | cases/s |",
+            "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for name in ("agent", "human"):
+        workflow = workflows[name]
+        quality = workflow["quality"]
+        performance = workflow["performance"]
+        lines.append(
+            f"| {name} | {workflow['input']} | {workflow['lexicon']} | "
+            f"{workflow['boundary']} | {quality['precision_percent']}% | "
+            f"{quality['recall_percent']}% | {quality['f1_percent']}% | "
+            f"{quality['fp']} | {performance['cases_per_second']} |"
+        )
+    human_plan = workflows["human"]["plan"]
+    lines.extend(
+        [
+            "",
+            f"- human intended-POS plan coverage: "
+            f"{human_plan['expected_pos_present_percent']}%",
+            f"- library default: {workflows['library']['default']}",
+            "- library optional resources: "
+            + ", ".join(workflows["library"]["optional"]),
+            "- workflows are not combined into one score",
+        ]
+    )
+
+
+def append_product_use_cases(
+    lines: list[str], use_cases: dict[str, object] | None
+) -> None:
+    if use_cases is None:
+        return
+    corpus = use_cases["corpus"]
+    lines.extend(
+        [
+            "",
+            "## Product CLI use cases",
+            "",
+            "Fresh-process CLI measurements include startup, query compilation, filesystem "
+            "walk, scan, verification, and output serialization.",
+            "",
+            f"- profile: {use_cases['profile']}",
+            f"- corpus: {corpus['bytes']} bytes across {corpus['files']} files; "
+            f"SHA-256 `{corpus['sha256']}`",
+            f"- cache: {use_cases['cache']}",
+            "",
+            "| workflow | output | wall | throughput | peak RSS | matching lines |",
+            "| --- | --- | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for name in ("agent", "human"):
+        workflow = use_cases["workflows"][name]
+        performance = workflow["performance"]
+        lines.append(
+            f"| {name} | {workflow['output']} | "
+            f"{performance['wall_seconds']:.4f}s "
+            f"[{performance['run_min']['wall_seconds']:.4f}, "
+            f"{performance['run_max']['wall_seconds']:.4f}] | "
+            f"{performance['throughput_mib_s']:.2f} MiB/s | "
+            f"{format_rss(performance['peak_rss_kib'])} | "
+            f"{workflow['matching_lines']} |"
+        )
+    lines.extend(
+        [
+            "",
+            f"- agent command: `{use_cases['workflows']['agent']['command']}`",
+            f"- human command: `{use_cases['workflows']['human']['command']}`",
+            "- library resource combinations are reported separately under optional "
+            "component startup",
+        ]
+    )
+
+
+def append_external_baselines(lines: list[str], report: dict[str, object]) -> None:
+    snapshot = report.get("external_baselines")
+    if snapshot is None:
+        return
+    lines.extend(
+        [
+            "",
+            "## Product persona and external comparison",
+            "",
+            "All rows use the same 1,000-case explicit-POS fixture and gold. Agent keeps "
+            "explicit POS, User omits POS with full-POS + smart, and external analyzers "
+            "keep explicit POS. Agent and User are measured in the current run; external "
+            "rows are pinned snapshots. Every performance row uses one discarded warm-up "
+            "and five measured fresh processes.",
+            "",
+            "This is a persona-adjusted product comparison, not an identical-input backend "
+            "ranking. The User row includes query planning and ambiguity, while the "
+            "explicit-POS gold counts matches for another POS as errors.",
+            "",
+            "| backend | precision | recall | F1 | init median | cases/s median | "
+            "p95 median | peak RSS |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    persona = report.get("product_persona_comparison")
+    quality_by_backend = report.get("quality")
+    performance_by_backend = snapshot.get("performance")
+    if (
+        persona is not None
+        and quality_by_backend is not None
+        and performance_by_backend is not None
+    ):
+        for name in ("agent", "user"):
+            row = persona["rows"][name]
+            append_comparison_row(
+                lines, row["label"], row["quality"], row["performance"]
+            )
+        for backend, performance in performance_by_backend.items():
+            quality = quality_by_backend[backend]["overall"]
+            append_comparison_row(lines, backend, quality, performance)
+    else:
+        lines.append("| unavailable | n/a | n/a | n/a | n/a | n/a | n/a | n/a |")
+
+    environment = snapshot.get("environment")
+    if environment is not None:
+        lines.extend(
+            [
+                "",
+                f"- external snapshot environment: {environment['platform']}; "
+                f"{environment['logical_cpus']} logical CPUs; Python "
+                f"{environment['python']}",
+            ]
+        )
+    lines.extend(
+        [
+            "- the separate Human untagged section uses production-like negatives and is "
+            "not part of this comparison",
+            "",
+            "### External snapshot ranges",
+            "",
+            "| backend | status | runs | init [min, max] | cases/s [min, max] | "
+            "p95 [min, max] | peak RSS [min, max] |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for backend, availability in snapshot["availability"].items():
+        status = availability["status"]
+        if availability.get("reason"):
+            status += f": {availability['reason']}"
+        performance = (performance_by_backend or {}).get(backend)
+        if performance is None:
+            lines.append(f"| {backend} | {status} | n/a | n/a | n/a | n/a | n/a |")
+            continue
+        minimum = performance["run_min"]
+        maximum = performance["run_max"]
+        lines.append(
+            f"| {backend} | {status} | {performance['runs']} | "
+            f"{performance['initialization_seconds']:.4f}s "
+            f"[{minimum['initialization_seconds']:.4f}, "
+            f"{maximum['initialization_seconds']:.4f}] | "
+            f"{performance['cases_per_second']} "
+            f"[{minimum['cases_per_second']}, {maximum['cases_per_second']}] | "
+            f"{performance['latency_p95_ms']}ms "
+            f"[{minimum['latency_p95_ms']}, {maximum['latency_p95_ms']}] | "
+            f"{format_rss(performance['peak_rss_kib'])} "
+            f"[{format_rss(minimum['peak_rss_kib'])}, "
+            f"{format_rss(maximum['peak_rss_kib'])}] |"
+        )
+
+
+def append_comparison_row(
+    lines: list[str],
+    backend: str,
+    quality: dict[str, object],
+    performance: dict[str, object],
+) -> None:
+    lines.append(
+        f"| {backend} | {quality['precision_percent']}% | "
+        f"{quality['recall_percent']}% | {quality['f1_percent']}% | "
+        f"{performance['initialization_seconds']:.4f}s | "
+        f"{performance['cases_per_second']} | "
+        f"{performance['latency_p95_ms']}ms | "
+        f"{format_rss(performance['peak_rss_kib'])} |"
+    )
 
 
 def append_quality_sections(lines: list[str], report: dict[str, object]) -> None:
@@ -335,7 +612,7 @@ def append_quality_sections(lines: list[str], report: dict[str, object]) -> None
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
-    for backend in BACKENDS:
+    for backend in report["backends"]:
         metrics = report["quality"][backend]["overall"]
         lines.append(
             f"| {backend} | {metrics['accuracy_percent']}% | {metrics['precision_percent']}% | "
@@ -357,7 +634,7 @@ def append_performance(lines: list[str], report: dict[str, object]) -> None:
             "| --- | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
-    for backend in BACKENDS:
+    for backend in report["performance"]:
         metrics = report["performance"][backend]
         rss = metrics["peak_rss_kib"]
         rss_text = f"{rss / 1024:.1f} MiB" if rss is not None else "n/a"
@@ -523,9 +800,10 @@ def append_grouped_quality(
             "| --- | --- | ---: | ---: | ---: | ---: |",
         ]
     )
-    groups = sorted(report["quality"]["kfind-embedded"][key])
+    backends = report["backends"]
+    groups = sorted(report["quality"][backends[0]][key])
     for group in groups:
-        for backend in BACKENDS:
+        for backend in backends:
             metrics = report["quality"][backend][key][group]
             lines.append(
                 f"| {group} | {backend} | {metrics['accuracy_percent']}% | "
@@ -549,13 +827,18 @@ def append_profile_comparison(lines: list[str], report: dict[str, object]) -> No
 
 
 def append_failures(lines: list[str], report: dict[str, object]) -> None:
+    backends = report["backends"]
     lines.extend(
         [
             "",
             f"## Failures ({len(report['failures'])} cases)",
             "",
-            "| case | source | query/POS | embedded cause | full-POS cause | expected | kfind embedded | kfind full-POS | Kiwi | Lindera |",
-            "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+            "| case | source | query/POS | embedded cause | full-POS cause | expected | "
+            + " | ".join(backends)
+            + " |",
+            "| --- | --- | --- | --- | --- | --- | "
+            + " | ".join("---" for _ in backends)
+            + " |",
         ]
     )
     for failure in report["failures"][:30]:
@@ -566,9 +849,8 @@ def append_failures(lines: list[str], report: dict[str, object]) -> None:
             f"{failure['profile_causes']['kfind-embedded'] or 'n/a'} | "
             f"{failure['profile_causes']['kfind-full-pos'] or 'n/a'} | "
             f"{case['expected']} | "
-            f"{predicted['kfind-embedded']} | "
-            f"{predicted['kfind-full-pos']} | {predicted['kiwi']} | "
-            f"{predicted['lindera']} |"
+            + " | ".join(str(predicted[backend]) for backend in backends)
+            + " |"
         )
     if len(report["failures"]) > 30:
         lines.extend(["", "The JSON report contains every failure and matching span."])
@@ -592,7 +874,7 @@ def append_development_summary(
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
-    for backend in BACKENDS:
+    for backend in development.get("backends", list(BACKENDS)):
         metrics = development["quality"][backend]["overall"]
         lines.append(
             f"| {backend} | {metrics['precision_percent']}% | "
@@ -621,7 +903,7 @@ def append_hard_negative_summary(
     )
     slices = sorted(hard_negatives["quality"]["kfind-embedded"]["by_slice"])
     for slice_name in slices:
-        for backend in BACKENDS:
+        for backend in hard_negatives.get("backends", list(BACKENDS)):
             metrics = hard_negatives["quality"][backend]["by_slice"][slice_name]
             lines.append(
                 f"| {slice_name} | {backend} | "
@@ -651,7 +933,8 @@ def append_local_context_summary(
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
-    for backend in BACKENDS:
+    backends = local_context.get("backends", list(BACKENDS))
+    for backend in backends:
         metrics = local_context["quality"][backend]["overall"]
         lines.append(
             f"| {backend} | {metrics['precision_percent']}% | "
@@ -668,10 +951,10 @@ def append_local_context_summary(
         ]
     )
     target_groups = sorted(
-        local_context["quality"]["kfind-embedded"]["by_target_group"]
+        local_context["quality"][backends[0]]["by_target_group"]
     )
     for target_group in target_groups:
-        for backend in BACKENDS:
+        for backend in backends:
             metrics = local_context["quality"][backend]["by_target_group"][
                 target_group
             ]
