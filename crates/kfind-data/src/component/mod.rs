@@ -67,6 +67,11 @@ impl ComponentResource {
         &self.stats
     }
 
+    #[must_use]
+    pub fn into_bytes(self) -> Box<[u8]> {
+        self.bytes
+    }
+
     pub fn common_prefixes<'a>(
         &'a self,
         input: &[u8],

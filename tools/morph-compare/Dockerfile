@@ -38,13 +38,13 @@ COPY crates ./crates
 COPY data ./data
 COPY scripts/build-full-pos.sh ./scripts/build-full-pos.sh
 COPY scripts/build-morphology-resource.sh ./scripts/build-morphology-resource.sh
-COPY scripts/build-component-shadow-resource.sh ./scripts/build-component-shadow-resource.sh
+COPY scripts/build-component-resource.sh ./scripts/build-component-resource.sh
 COPY scripts/lib/full-pos-source.sh ./scripts/lib/full-pos-source.sh
 COPY tools/morph-compare/runner ./tools/morph-compare/runner
 COPY tools/morph-index-benchmark ./tools/morph-index-benchmark
 RUN scripts/build-full-pos.sh /benchmark/full-pos \
     && scripts/build-morphology-resource.sh /benchmark/morphology \
-    && scripts/build-component-shadow-resource.sh /benchmark/component \
+    && scripts/build-component-resource.sh /benchmark/component \
     && cargo build \
     --locked \
     --release \

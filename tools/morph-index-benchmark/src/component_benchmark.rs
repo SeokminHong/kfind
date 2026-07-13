@@ -8,11 +8,11 @@ use anyhow::{Context, Result, ensure};
 use clap::ValueEnum;
 use kfind_data::{
     DecodedMorphologyResource, MecabSourceMorphologyEntry, decode_morphology_resource,
-    encode_morphology_resource, extract_mecab_source_morphology, parse_mecab_connection_matrix,
+    encode_component_resource, encode_morphology_resource, extract_mecab_source_morphology,
+    parse_mecab_connection_matrix,
 };
 use morph_index_benchmark::component_artifact::{
     CompactComponentAnalysis, CompactComponentResource, decode_compact_component_resource,
-    encode_compact_component_resource,
 };
 use serde::Serialize;
 
@@ -98,13 +98,8 @@ pub fn build_component_resources(input: ComponentBuildInput<'_>) -> Result<()> {
     let entries = load_entries(input.csv)?;
     let full =
         encode_morphology_resource(input.source_digest, &entries, &matrix, &char_def, &unk_def)?;
-    let compact = encode_compact_component_resource(
-        input.source_digest,
-        &entries,
-        &matrix,
-        &char_def,
-        &unk_def,
-    )?;
+    let compact =
+        encode_component_resource(input.source_digest, &entries, &matrix, &char_def, &unk_def)?;
     let full_view =
         decode_morphology_resource("full benchmark resource", &full, &input.source_digest)?;
     let compact_view = decode_compact_component_resource(&compact, &input.source_digest)?;
