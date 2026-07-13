@@ -75,9 +75,10 @@
   `disambiguation`은 별도 정책 축이다.
 - v0.1.1은 모든 생성 가능한 분석을 인정하는 기존 homonym union을 유지한다. 새 CLI 옵션과
   corpus-side 형태 분석에 따른 결과 필터링은 추가하지 않는다.
-- query branch는 향후 어절-local 분석이 필요한지 `None` 또는 `EojeolLattice`로 표시할 수
-  있다. `smart`에서 앞 host에 붙는 VCP 지정사 branch는 `EojeolLattice` 대상이며, 이 표시는
-  v0.1.1의 match 결과를 바꾸지 않는다.
+- query branch는 향후 어절-local 분석이 필요한지 `None`, `EojeolLattice` 또는
+  `NominalComponent`로 표시할 수 있다. `smart`에서 앞 host에 붙는 VCP 지정사 branch는
+  `EojeolLattice`, 기존 token 경계에서 거부될 수 있는 명사 branch는 `NominalComponent`
+  대상이다. 두 표시는 union match 결과를 바꾸지 않는다.
 - `학생일`, `책일`은 사전 표제어가 아니라 각각 체언 host `학생`, `책`과 VCP 관형형 표면
   `일`의 결합을 검증하는 어절 fixture다.
 - benchmark shadow 진단은 raw anchor hit, 기존 verifier를 통과한 branch hit,
@@ -127,6 +128,18 @@
   경로가 모두 있으면 각 최저 경로를 반드시 포함하고 남은 자리를 전체 비용 순으로 채운다.
   window·node 상한 초과, resource 누락·손상·source 불일치와 평가 오류를 구분하며 threshold와
   검색 결과 필터링은 적용하지 않는다.
+- nominal component shadow는 기존 `smart` 경계에서 거부된 `NominalComponent` branch만
+  수집한다. 각 candidate는 원문 core span과 이를 포함하는 bounded Unicode token window를
+  보존하며 기존 match로 반환하지 않는다.
+- component 근거는 morphology resource의 완전 경로에서 query 표제어·품사와 같은 node의
+  span이 NFC query span과 정확히 일치할 때만 성립한다. query span을 덮는 더 큰 node나 여러
+  component 경계를 가로지르는 substring은 근거가 아니다.
+- component shadow report는 resource 조회, component accept/reject와 path provenance를 VCP
+  lattice 지표와 분리한다. component 계측이 요청된 benchmark는 resource 누락·손상·source
+  불일치를 fallback하지 않고 실패시키며, 기본 CLI와 embedded/full-POS union 결과는 유지한다.
+- 제품 verifier 구현 게이트는 서로 다른 dev 명사 FN 30개 이상의 component 근거, revised
+  hard-negative 오수용 0개와 기존 검색 결과 불변이다. gate 미달이면 `smart` 결과를 변경하지
+  않는다.
 - P2의 네 번째 구현 단위는 corpus-side morphology resource를 schema 3으로 갱신한다.
   query tag용 `DataFinePos`는 corpus CSV 행의 필터로 사용하지 않는다. 유효한 context ID와
   비용을 가진 모든 source 행을 NFC 표면형별로 보존하고, 단일·복합 POS 열과 type·start POS·
@@ -610,6 +623,7 @@ pub struct SurfaceBranch {
 pub enum ContextRequirement {
     None,
     EojeolLattice,
+    NominalComponent,
 }
 
 pub struct Origin {
