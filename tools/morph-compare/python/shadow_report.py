@@ -80,6 +80,7 @@ def shadow_verification_summary(
             component_cases_by_decision[decision] += 1
 
     path_classification = classify_component_paths(by_case, case_metadata)
+    copula_gold_diagnosis = diagnose_copula_gold_lattice(by_case, case_metadata)
 
     def sorted_outcomes(
         grouped: dict[str, dict[str, int]],
@@ -114,12 +115,158 @@ def shadow_verification_summary(
             component_outcomes_by_class
         ),
         "component_path_classification": path_classification,
+        "copula_gold_diagnosis": copula_gold_diagnosis,
         "component_projection_equivalence": {
             "comparisons": projection_comparisons,
             "mismatches": projection_mismatches,
         },
         "by_case": by_case,
     }
+
+
+def diagnose_copula_gold_lattice(
+    by_case: dict[str, dict[str, object]],
+    case_metadata: dict[str, dict[str, object]],
+) -> dict[str, object]:
+    outcomes: dict[str, int] = defaultdict(int)
+    failures_by_cause: dict[str, int] = defaultdict(int)
+    failures_by_target_group: dict[str, dict[str, int]] = defaultdict(
+        lambda: defaultdict(int)
+    )
+    failures: list[dict[str, object]] = []
+    for case_id in sorted(by_case):
+        case = case_metadata.get(case_id)
+        if (
+            case is None
+            or case.get("slice") != "gold-copula"
+            or not bool(case.get("expected"))
+        ):
+            continue
+        gold_span = _gold_span(case)
+        for evidence in by_case[case_id].get("lattice", []):
+            if not isinstance(evidence, dict) or not _spans_overlap(
+                gold_span, _required_span(evidence, "target")
+            ):
+                continue
+            outcome = str(evidence.get("decision") or evidence["status"])
+            outcomes[outcome] += 1
+            if outcome not in {"reject", "ambiguous"}:
+                continue
+            include_path = _select_lattice_path(evidence, True, "include_cost")
+            exclude_path = _select_lattice_path(evidence, False, "exclude_cost")
+            if include_path is None or exclude_path is None:
+                raise ValueError(
+                    f"copula gold diagnosis for {case_id} lacks selected paths"
+                )
+            cause = _lattice_competitor_type(evidence, exclude_path)
+            target_group = str(case["target_group"])
+            failures_by_cause[cause] += 1
+            failures_by_target_group[target_group][cause] += 1
+            failures.append(
+                {
+                    "case_id": case_id,
+                    "source": case["source"],
+                    "target_group": target_group,
+                    "target_raw_tag": case["target_raw_tag"],
+                    "sent_id": case["sent_id"],
+                    "text": case["text"],
+                    "gold_span": {
+                        "byte_start": gold_span[0],
+                        "byte_end": gold_span[1],
+                    },
+                    "candidate_span": evidence["target"],
+                    "window": evidence["window"],
+                    "outcome": outcome,
+                    "primary_cause": cause,
+                    "include_cost": evidence["include_cost"],
+                    "exclude_cost": evidence["exclude_cost"],
+                    "cost_margin": evidence["cost_margin"],
+                    "include_path": include_path,
+                    "exclude_path": exclude_path,
+                }
+            )
+    return {
+        "gold_candidate_outcomes": dict(sorted(outcomes.items())),
+        "failures_by_cause": dict(sorted(failures_by_cause.items())),
+        "failures_by_target_group": {
+            group: dict(sorted(causes.items()))
+            for group, causes in sorted(failures_by_target_group.items())
+        },
+        "failures": failures,
+    }
+
+
+def _gold_span(case: dict[str, object]) -> tuple[int, int]:
+    start = case.get("gold_byte_start")
+    end = case.get("gold_byte_end")
+    if not isinstance(start, int) or not isinstance(end, int):
+        raise ValueError(f"copula gold case {case['id']} has no gold span")
+    return (start, end)
+
+
+def _required_span(
+    value: dict[str, object], key: str
+) -> tuple[int, int]:
+    span = value.get(key)
+    if not isinstance(span, dict):
+        raise ValueError(f"lattice evidence has no {key} span")
+    start = span.get("byte_start")
+    end = span.get("byte_end")
+    if not isinstance(start, int) or not isinstance(end, int):
+        raise ValueError(f"lattice evidence has an invalid {key} span")
+    return (start, end)
+
+
+def _spans_overlap(left: tuple[int, int], right: tuple[int, int]) -> bool:
+    return left[0] < right[1] and right[0] < left[1]
+
+
+def _select_lattice_path(
+    evidence: dict[str, object], includes_query: bool, cost_key: str
+) -> dict[str, object] | None:
+    selected_cost = evidence.get(cost_key)
+    paths = evidence.get("paths")
+    if not isinstance(selected_cost, int) or not isinstance(paths, list):
+        return None
+    candidates = [
+        path
+        for path in paths
+        if isinstance(path, dict)
+        and path.get("includes_query") is includes_query
+        and path.get("cost") == selected_cost
+    ]
+    return min(candidates, key=_component_path_sort_key) if candidates else None
+
+
+def _lattice_competitor_type(
+    evidence: dict[str, object], path: dict[str, object]
+) -> str:
+    nodes = [node for node in path.get("nodes", []) if isinstance(node, dict)]
+    components = [
+        component
+        for node in nodes
+        for component in str(node.get("pos") or "").split("+")
+        if component
+    ]
+    if any(bool(node.get("unknown")) for node in nodes):
+        return "unknown-competitor"
+    window = evidence.get("window")
+    if not isinstance(window, dict):
+        raise ValueError("lattice evidence has no analysis window")
+    window_span = _required_span(window, "raw")
+    if len(nodes) == 1 and _node_span(nodes[0]) == window_span:
+        return "whole-window-competitor"
+    if any(
+        component.startswith(("V", "E")) or component in {"XSV", "XSA"}
+        for component in components
+    ):
+        return "segmented-predicate-competitor"
+    if components and all(
+        _is_nominal(component) or component.startswith("J")
+        for component in components
+    ):
+        return "segmented-nominal-competitor"
+    return "segmented-other-competitor"
 
 
 def classify_component_paths(
