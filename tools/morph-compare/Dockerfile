@@ -19,6 +19,13 @@ RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
         --output /benchmark/dev-cases.jsonl \
         --metadata /benchmark/dev-metadata.json \
         --split dev \
+    && python python/dataset.py \
+        --manifest sources.json \
+        --sources /corpora \
+        --output /benchmark/human-untagged-cases.jsonl \
+        --metadata /benchmark/human-untagged-metadata.json \
+        --split test \
+        --query-mode untagged \
     && python python/local_context_dataset.py \
         --manifest sources.json \
         --sources /corpora \

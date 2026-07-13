@@ -4,7 +4,7 @@ import argparse
 import hashlib
 import json
 from collections import Counter, defaultdict
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Iterable
 
@@ -329,6 +329,38 @@ def select_negative(
     raise ValueError(f"no negative sentence found for {positive.id}")
 
 
+def select_untagged_negative(
+    positive: BenchmarkCase, sentences: list[Sentence], seed: str
+) -> BenchmarkCase:
+    ordered = sorted(
+        sentences,
+        key=lambda sentence: rank(
+            seed, "untagged-negative", positive.id, sentence.source, sentence.sent_id
+        ),
+    )
+    for sentence in ordered:
+        if sentence.sent_id == positive.sent_id or not sentence.fully_aligned:
+            continue
+        if positive.query in {candidate.query for candidate in sentence.candidates}:
+            continue
+        return BenchmarkCase(
+            id=f"untagged-neg:{positive.id}:{sentence.sent_id}",
+            source=sentence.source,
+            sent_id=sentence.sent_id,
+            query=positive.query,
+            pos=positive.pos,
+            text=sentence.text,
+            expected=False,
+            gold_byte_start=None,
+            gold_byte_end=None,
+            gold_token_id=None,
+            gold_raw_lemma=None,
+            gold_raw_tag=None,
+            paired_positive_id=positive.id,
+        )
+    raise ValueError(f"no untagged negative sentence found for {positive.id}")
+
+
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -366,7 +398,10 @@ def build_dataset(
     output: Path,
     metadata_path: Path,
     split_name: str = "test",
+    query_mode: str = "explicit-pos",
 ) -> dict[str, object]:
+    if query_mode not in {"explicit-pos", "untagged"}:
+        raise ValueError(f"unsupported query mode: {query_mode}")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     sources = select_manifest_sources(manifest, manifest["benchmark_sources"])
     quotas = manifest["positive_quotas_per_source"]
@@ -382,7 +417,15 @@ def build_dataset(
             raise ValueError(f"source hash mismatch: {source['name']}")
         sentences, parsing = parse_conllu(source["name"], source_path)
         positives = select_positives(sentences, quotas, seed)
-        negatives = [select_negative(case, sentences, seed) for case in positives]
+        if query_mode == "untagged":
+            positives = [
+                replace(case, id=f"untagged:{case.id}") for case in positives
+            ]
+            negatives = [
+                select_untagged_negative(case, sentences, seed) for case in positives
+            ]
+        else:
+            negatives = [select_negative(case, sentences, seed) for case in positives]
         all_cases.extend(positives)
         all_cases.extend(negatives)
         source_metadata.append(
@@ -414,6 +457,7 @@ def build_dataset(
     metadata = {
         "schema_version": 1,
         "split": split_name,
+        "query_mode": query_mode,
         "ud_release": manifest["ud_release"],
         "seed": seed,
         "fixture_sha256": sha256(output),
@@ -436,9 +480,17 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--metadata", type=Path, required=True)
     parser.add_argument("--split", choices=("dev", "test"), default="test")
+    parser.add_argument(
+        "--query-mode", choices=("explicit-pos", "untagged"), default="explicit-pos"
+    )
     args = parser.parse_args()
     metadata = build_dataset(
-        args.manifest, args.sources, args.output, args.metadata, args.split
+        args.manifest,
+        args.sources,
+        args.output,
+        args.metadata,
+        args.split,
+        args.query_mode,
     )
     print(json.dumps(metadata, ensure_ascii=False, indent=2))
 

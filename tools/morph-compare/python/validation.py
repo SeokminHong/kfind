@@ -100,6 +100,22 @@ def validate_dataset(
                     )
 
 
+def validate_untagged_dataset(
+    cases_path: Path, cases: list[dict[str, object]], metadata: dict[str, object]
+) -> None:
+    validate_dataset(cases_path, cases, metadata)
+    if metadata.get("query_mode") != "untagged":
+        raise ValueError("untagged benchmark requires query_mode=untagged")
+    positive_ids = {str(case["id"]) for case in cases if case["expected"]}
+    for case in cases:
+        if case["expected"]:
+            if not str(case["id"]).startswith("untagged:pos:"):
+                raise ValueError("untagged positive case ID has an invalid prefix")
+            continue
+        if case.get("paired_positive_id") not in positive_ids:
+            raise ValueError("untagged negative does not reference a positive case")
+
+
 def validate_hard_negatives(
     cases_path: Path, cases: list[dict[str, object]]
 ) -> dict[str, object]:
