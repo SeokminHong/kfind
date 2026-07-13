@@ -16,6 +16,8 @@ struct Suffix {
 }
 
 const A_OR_EO_SUFFIXES: &[Suffix] = &[
+    suffix("가고", &["ending.auxiliary-gada", "ending.connective-go"]),
+    suffix("가야", &["ending.auxiliary-gada", "ending.connective-ya"]),
     suffix(
         "졌습니다",
         &[
@@ -43,10 +45,12 @@ const A_OR_EO_SUFFIXES: &[Suffix] = &[
 
 const PAST_SUFFIXES: &[Suffix] = &[
     suffix("습니다", &["ending.polite-declarative"]),
+    suffix("느냐는", &["ending.interrogative-neunya", "particle.topic"]),
     suffix("으면", &["ending.conditional"]),
     suffix("지만", &["ending.connective-jiman"]),
     suffix("는데", &["ending.connective-neunde"]),
     suffix("다고", &["ending.quotative-go"]),
+    suffix("느냐", &["ending.interrogative-neunya"]),
     suffix("던", &["ending.retrospective-adnominal"]),
     suffix("을", &["ending.future-adnominal"]),
     suffix("다", &["ending.final-da"]),
@@ -280,5 +284,79 @@ mod tests {
         )
         .expect("change auxiliary");
         assert_eq!(changed.consumed_bytes, "졌다".len());
+    }
+
+    #[test]
+    fn accepts_bounded_progression_auxiliary_suffixes() {
+        let coordinate = verify_predicate_continuation(
+            ContinuationState::AOrEo,
+            PredicatePos::Verb,
+            "망해",
+            "가고 있다",
+        )
+        .expect("progression coordinate");
+        assert_eq!(coordinate.consumed_bytes, "가고".len());
+        assert_eq!(
+            coordinate.rule_path,
+            ["ending.auxiliary-gada", "ending.connective-go"]
+                .into_iter()
+                .map(RuleId::from)
+                .collect::<Vec<_>>()
+        );
+
+        let required = verify_predicate_continuation(
+            ContinuationState::AOrEo,
+            PredicatePos::Verb,
+            "만들어",
+            "가야 한다",
+        )
+        .expect("progression requirement");
+        assert_eq!(required.consumed_bytes, "가야".len());
+
+        let unsupported = verify_predicate_continuation(
+            ContinuationState::AOrEo,
+            PredicatePos::Verb,
+            "해",
+            "가며 배운다",
+        )
+        .expect("completed vowel anchor remains valid");
+        assert_eq!(unsupported.consumed_bytes, 0);
+    }
+
+    #[test]
+    fn accepts_bounded_past_interrogative_suffixes() {
+        let topicalized = verify_predicate_continuation(
+            ContinuationState::Past,
+            PredicatePos::Verb,
+            "했",
+            "느냐는 문제",
+        )
+        .expect("topicalized past interrogative");
+        assert_eq!(topicalized.consumed_bytes, "느냐는".len());
+        assert_eq!(
+            topicalized.rule_path,
+            ["ending.interrogative-neunya", "particle.topic"]
+                .into_iter()
+                .map(RuleId::from)
+                .collect::<Vec<_>>()
+        );
+
+        let bare = verify_predicate_continuation(
+            ContinuationState::Past,
+            PredicatePos::Verb,
+            "먹었",
+            "느냐?",
+        )
+        .expect("bare past interrogative");
+        assert_eq!(bare.consumed_bytes, "느냐".len());
+
+        let unsupported = verify_predicate_continuation(
+            ContinuationState::Past,
+            PredicatePos::Verb,
+            "했",
+            "느냐도 논점이다",
+        )
+        .expect("past interrogative remains valid");
+        assert_eq!(unsupported.consumed_bytes, "느냐".len());
     }
 }

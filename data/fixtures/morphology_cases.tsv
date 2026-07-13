@@ -436,3 +436,11 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 좋다	adjective	결과가 좋았을 때를 기억한다.	match	regular
 먹다	verb	밥을 먹었을 때 연락했다.	match	regular
 먹다	verb	밥을 먹었을을 기억한다.	no-match	regular
+하다	verb	일을 해가고 있다.	match	ha
+만들다	verb	협업 방식을 만들어가야 한다.	match	regular
+하다	verb	일을 해가며 배운다.	no-match	ha
+만들다	verb	계획을 만들어가야고 믿는다.	no-match	regular
+하다	verb	무엇을 했느냐는 문제다.	match	ha
+먹다	verb	어제 밥을 먹었느냐?	match	regular
+하다	verb	무엇을 했느냐도 논점이다.	no-match	ha
+하다	verb	무엇을 했느냐는는 문제다.	no-match	ha
