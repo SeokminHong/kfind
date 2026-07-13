@@ -271,7 +271,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 13,
+        "schema_version": 14,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "backends": list(backends),
@@ -923,7 +923,76 @@ def append_development_summary(
             f"{metrics['recall_percent']}% | {metrics['f1_percent']}% | "
             f"{metrics['tp']} | {metrics['fp']} | {metrics['fn']} |"
         )
+    append_development_failure_diagnostics(lines, development)
     append_component_shadow_table(lines, development["shadow_verification"])
+
+
+def append_development_failure_diagnostics(
+    lines: list[str], development: dict[str, object]
+) -> None:
+    full_pos_failures = [
+        failure
+        for failure in development["failures"]
+        if failure["case"]["expected"]
+        and not failure["predictions"]["kfind-full-pos"]
+    ]
+    counts: dict[tuple[str, str], int] = defaultdict(int)
+    for failure in full_pos_failures:
+        key = (
+            failure["profile_causes"]["kfind-full-pos"],
+            failure["case"]["pos"],
+        )
+        counts[key] += 1
+    lines.extend(
+        [
+            "",
+            "### full-POS positive false negatives",
+            "",
+            "| primary cause | POS | cases |",
+            "| --- | --- | ---: |",
+        ]
+    )
+    for (cause, pos), count in sorted(counts.items()):
+        lines.append(f"| {cause} | {pos} | {count} |")
+
+    predicate_failures = [
+        failure
+        for failure in full_pos_failures
+        if failure["profile_causes"]["kfind-full-pos"] == "boundary-rejected"
+        and failure["case"]["pos"] in {"verb", "adjective"}
+    ]
+    lines.extend(
+        [
+            "",
+            "### Predicate boundary-rejected slice",
+            "",
+            "| case | query/POS | gold surface | any-boundary rule paths |",
+            "| --- | --- | --- | --- |",
+        ]
+    )
+    for failure in predicate_failures:
+        case = failure["case"]
+        evidence = failure["profile_cause_evidence"]["kfind-full-pos"]
+        paths = {
+            tuple(origin["rule_path"])
+            for matched in evidence["any_boundary_gold_matches"]
+            for origin in matched["origins"]
+        }
+        if not paths:
+            raise ValueError(
+                f"boundary-rejected predicate {case['id']} has no rule-path evidence"
+            )
+        rendered_paths = "<br>".join(
+            " -> ".join(path) if path else "(lexical)" for path in sorted(paths)
+        )
+        gold_bytes = case["text"].encode("utf-8")[
+            case["gold_byte_start"] : case["gold_byte_end"]
+        ]
+        gold_surface = gold_bytes.decode("utf-8")
+        lines.append(
+            f"| {case['id']} | {case['query']}/{case['pos']} | {gold_surface} | "
+            f"{rendered_paths} |"
+        )
 
 
 def append_hard_negative_summary(

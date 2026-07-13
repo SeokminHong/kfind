@@ -6,6 +6,7 @@ from report import (
     append_boundary_comparison,
     append_component_shadow_table,
     append_component_startup,
+    append_development_failure_diagnostics,
     append_external_baselines,
     append_human_untagged,
     append_product_workflows,
@@ -118,6 +119,67 @@ class PrimaryCauseTests(unittest.TestCase):
             "surface-missing",
             self.classify(profile="kfind-full-pos", embedded=True),
         )
+
+
+class DevelopmentFailureDiagnosticTests(unittest.TestCase):
+    @staticmethod
+    def failure(
+        case_id: str, query: str, pos: str, cause: str, rule_path: list[str]
+    ) -> dict[str, object]:
+        text = query.removesuffix("다") + "었다" if pos == "verb" else query
+        return {
+            "case": {
+                "id": case_id,
+                "query": query,
+                "pos": pos,
+                "text": text,
+                "expected": True,
+                "gold_byte_start": 0,
+                "gold_byte_end": len(text.encode("utf-8")),
+            },
+            "predictions": {"kfind-full-pos": False},
+            "profile_causes": {"kfind-full-pos": cause},
+            "profile_cause_evidence": {
+                "kfind-full-pos": {
+                    "any_boundary_gold_matches": [
+                        {"origins": [{"analysis_index": 0, "rule_path": rule_path}]}
+                    ]
+                }
+            },
+        }
+
+    def test_renders_full_pos_cause_pos_counts_and_predicate_rule_paths(self) -> None:
+        development = {
+            "failures": [
+                self.failure(
+                    "verb-case", "먹다", "verb", "boundary-rejected", ["ending.past"]
+                ),
+                self.failure(
+                    "adjective-case",
+                    "예쁘다",
+                    "adjective",
+                    "boundary-rejected",
+                    ["ending.adnominal"],
+                ),
+                self.failure("noun-case", "학교", "noun", "surface-missing", []),
+            ]
+        }
+        lines: list[str] = []
+
+        append_development_failure_diagnostics(lines, development)
+
+        rendered = "\n".join(lines)
+        self.assertIn("| boundary-rejected | adjective | 1 |", rendered)
+        self.assertIn("| boundary-rejected | verb | 1 |", rendered)
+        self.assertIn("| surface-missing | noun | 1 |", rendered)
+        self.assertIn(
+            "| verb-case | 먹다/verb | 먹었다 | ending.past |", rendered
+        )
+        self.assertIn(
+            "| adjective-case | 예쁘다/adjective | 예쁘다 | ending.adnominal |",
+            rendered,
+        )
+        self.assertNotIn("| noun-case |", rendered)
 
 
 class QualityMetricsTests(unittest.TestCase):
