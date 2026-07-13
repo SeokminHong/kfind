@@ -1,4 +1,7 @@
 mod artifact;
+mod component_artifact;
+mod component_benchmark;
+mod component_payload;
 mod dataset;
 mod index;
 mod measure;
@@ -10,6 +13,9 @@ use std::path::PathBuf;
 use anyhow::{Context, Result};
 use artifact::{IndexKind, build_container, parse_digest, validate_container};
 use clap::{Parser, Subcommand, ValueEnum};
+use component_benchmark::{
+    ComponentBuildInput, ComponentFormat, build_component_resources, probe_component_resource,
+};
 use dataset::Dataset;
 use measure::probe;
 use storage::StorageMode;
@@ -39,6 +45,33 @@ enum Command {
     Probe {
         #[arg(long)]
         source_sha256: String,
+        #[arg(long, value_enum)]
+        storage: StorageArg,
+        #[arg(long, default_value_t = 20)]
+        iterations: usize,
+        #[arg(long)]
+        queries: PathBuf,
+        artifact: PathBuf,
+    },
+    BuildComponents {
+        #[arg(long)]
+        source_sha256: String,
+        #[arg(long)]
+        output: PathBuf,
+        #[arg(long)]
+        matrix: PathBuf,
+        #[arg(long)]
+        char_def: PathBuf,
+        #[arg(long)]
+        unk_def: PathBuf,
+        #[arg(required = true)]
+        csv: Vec<PathBuf>,
+    },
+    ProbeComponent {
+        #[arg(long)]
+        source_sha256: String,
+        #[arg(long, value_enum)]
+        format: ComponentFormat,
         #[arg(long, value_enum)]
         storage: StorageArg,
         #[arg(long, default_value_t = 20)]
@@ -85,6 +118,45 @@ fn main() -> Result<()> {
                 StorageArg::Mmap => StorageMode::Mmap,
             };
             let report = probe(
+                &artifact,
+                &queries,
+                &parse_digest(&source_sha256)?,
+                storage,
+                iterations,
+            )?;
+            println!("{}", serde_json::to_string_pretty(&report)?);
+            Ok(())
+        }
+        Command::BuildComponents {
+            source_sha256,
+            output,
+            matrix,
+            char_def,
+            unk_def,
+            csv,
+        } => build_component_resources(ComponentBuildInput {
+            source_sha256: &source_sha256,
+            source_digest: parse_digest(&source_sha256)?,
+            output: &output,
+            matrix: &matrix,
+            char_def: &char_def,
+            unk_def: &unk_def,
+            csv: &csv,
+        }),
+        Command::ProbeComponent {
+            source_sha256,
+            format,
+            storage,
+            iterations,
+            queries,
+            artifact,
+        } => {
+            let storage = match storage {
+                StorageArg::Resident => StorageMode::Resident,
+                StorageArg::Mmap => StorageMode::Mmap,
+            };
+            let report = probe_component_resource(
+                format,
                 &artifact,
                 &queries,
                 &parse_digest(&source_sha256)?,
