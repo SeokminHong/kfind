@@ -134,6 +134,9 @@
 - component 근거는 morphology resource의 완전 경로에서 query 표제어·품사와 같은 node의
   span이 NFC query span과 정확히 일치할 때만 성립한다. query span을 덮는 더 큰 node나 여러
   component 경계를 가로지르는 substring은 근거가 아니다.
+- component 판정은 exact node를 포함한 완전 경로와 제외한 완전 경로의 최저 비용을 비교한다.
+  include가 낮으면 `accept`, exclude가 낮으면 `reject`, 동률이면 `ambiguous`다. 한쪽 경로만
+  있으면 그 경로를 따르며 exact node를 포함한 고비용 경로의 존재만으로 수용하지 않는다.
 - component shadow report는 resource 조회, component accept/reject와 path provenance를 VCP
   lattice 지표와 분리한다. component 계측이 요청된 benchmark는 resource 누락·손상·source
   불일치를 fallback하지 않고 실패시키며, 기본 CLI와 embedded/full-POS union 결과는 유지한다.
