@@ -162,6 +162,42 @@ fn nominal_component_without_a_resource_keeps_the_boundary_rejection() {
 }
 
 #[test]
+fn predicate_lexical_rejects_only_non_predicate_strict_subspans() {
+    let mut branch = exact_branch("일", false);
+    branch.context_requirement = ContextRequirement::PredicateLexical;
+    let matcher = contextual_matcher(vec![branch], Arc::new(component_resource()));
+
+    assert!(matcher.find_at_with_meta("매일".as_bytes(), 0).is_none());
+    assert!(matcher.find_at_with_meta("일".as_bytes(), 0).is_some());
+    assert!(matcher.find_at_with_meta("교사일".as_bytes(), 0).is_some());
+    assert!(matcher.find_at_with_meta("학생일".as_bytes(), 0).is_some());
+    assert!(matcher.find_at_with_meta("책일".as_bytes(), 0).is_some());
+}
+
+#[test]
+fn predicate_lexical_rejection_preserves_another_query_branch() {
+    let mut predicate = exact_branch("일", false);
+    predicate.context_requirement = ContextRequirement::PredicateLexical;
+    let mut exact = exact_branch("일", false);
+    exact.origins = vec![origin(1, &[])];
+    let matcher = contextual_matcher(vec![predicate, exact], Arc::new(component_resource()));
+
+    let matched = matcher
+        .find_at_with_meta("매일".as_bytes(), 0)
+        .expect("the non-predicate query branch should remain");
+    assert_eq!(matched.atoms[0].origins, vec![origin(1, &[])]);
+}
+
+#[test]
+fn any_boundary_keeps_the_same_copula_candidate() {
+    let mut branch = exact_branch("일", false);
+    branch.boundary = proof(false, false, false);
+    let matcher = matcher(vec![atom(BoundaryPolicy::Any, vec![branch])], 24);
+
+    assert!(matcher.find_at_with_meta("매일".as_bytes(), 0).is_some());
+}
+
+#[test]
 fn nominal_component_does_not_bypass_a_rejected_particle_allomorph() {
     let matcher = component_matcher("권한", Arc::new(component_resource()));
 
@@ -536,6 +572,23 @@ fn component_matcher(anchor: &str, resource: Arc<ComponentResource>) -> MorphMat
     MorphMatcher::with_component_resource(Arc::new(plan), resource).unwrap()
 }
 
+fn contextual_matcher(
+    branches: Vec<SurfaceBranch>,
+    resource: Arc<ComponentResource>,
+) -> MorphMatcher {
+    let plan = QueryPlan {
+        raw_query: "test".into(),
+        atoms: vec![atom(BoundaryPolicy::Smart, branches)],
+        phrase_policy: PhrasePolicy { max_gap: 24 },
+        normalization: kfind_query::NormalizationMode::Nfc,
+        limits: PlanLimits::default(),
+        diagnostics: Vec::new(),
+        particle_transitions: Arc::from([]),
+        estimated_matcher_bytes: 0,
+    };
+    MorphMatcher::with_component_resource(Arc::new(plan), resource).unwrap()
+}
+
 fn nominal_analysis(lemma: &str) -> Analysis {
     Analysis {
         lemma: lemma.into(),
@@ -554,6 +607,9 @@ fn component_resource() -> ComponentResource {
         component_entry("대", "XPN", 5_000),
         component_entry("학교", "NNG", 5_000),
         component_entry("대학교", "NNG", -5_000),
+        component_entry("매일", "MAG", -5_000),
+        component_entry("교사일", "VCP", -5_000),
+        component_entry("학생일", "NNG+VCP+ETM", -5_000),
         component_entry("는", "JX", 0),
         component_entry("는관리", "NNG", -5_000),
     ];

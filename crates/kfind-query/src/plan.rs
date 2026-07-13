@@ -21,9 +21,12 @@ impl QueryPlan {
     #[must_use]
     pub fn requires_component_resource(&self) -> bool {
         self.atoms.iter().any(|atom| {
-            atom.branches
-                .iter()
-                .any(|branch| branch.context_requirement == ContextRequirement::NominalComponent)
+            atom.branches.iter().any(|branch| {
+                matches!(
+                    branch.context_requirement,
+                    ContextRequirement::PredicateLexical | ContextRequirement::NominalComponent
+                )
+            })
         })
     }
 }
@@ -106,6 +109,7 @@ pub struct SurfaceBranch {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ContextRequirement {
     None,
+    PredicateLexical,
     NominalComponent,
 }
 

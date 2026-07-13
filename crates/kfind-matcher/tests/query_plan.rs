@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use kfind_matcher::MorphMatcher;
+use kfind_morph::CoarsePos;
 use kfind_query::{
     BoundaryPolicy, CompileOptions, ContextRequirement, ExpandMode, LexiconQueryAnalyzer, Lexicons,
     NormalizationMode, compile_query,
@@ -246,7 +247,7 @@ fn smart_vcp_corpus_fixtures_preserve_union_results() {
         matcher.plan().atoms[0]
             .branches
             .iter()
-            .all(|branch| branch.context_requirement == ContextRequirement::None)
+            .all(|branch| branch.context_requirement == ContextRequirement::PredicateLexical)
     );
 
     for fixture in VCP_BOUNDARY_FIXTURES {
@@ -297,7 +298,7 @@ fn canonical_vcp_corpus_fixtures_preserve_union_results() {
         matcher.plan().atoms[0]
             .branches
             .iter()
-            .all(|branch| branch.context_requirement == ContextRequirement::None)
+            .all(|branch| branch.context_requirement == ContextRequirement::PredicateLexical)
     );
 }
 
@@ -340,11 +341,15 @@ fn nominal_overrides_replace_the_same_base_particle_path() {
 
 #[test]
 fn direct_particle_plans_validate_the_attached_host_in_smart_mode() {
+    let options = CompileOptions {
+        global_pos: Some(CoarsePos::Particle),
+        ..CompileOptions::default()
+    };
     for (query, accepted, rejected) in [
         ("는", ["사용자는", "권한은"], ["사용자은", "권한는"]),
         ("로", ["길로", "학교로"], ["길으로", "집로"]),
     ] {
-        let matcher = compile(query, CompileOptions::default());
+        let matcher = compile(query, options.clone());
         for text in accepted {
             assert!(
                 matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
@@ -358,6 +363,22 @@ fn direct_particle_plans_validate_the_attached_host_in_smart_mode() {
             );
         }
     }
+}
+
+#[test]
+fn untagged_smart_direct_particle_keeps_the_typed_surface() {
+    let smart = compile("이", CompileOptions::default());
+    assert!(smart.find_at_with_meta("집이".as_bytes(), 0).is_some());
+    assert!(smart.find_at_with_meta("날씨가".as_bytes(), 0).is_none());
+
+    let any = compile(
+        "이",
+        CompileOptions {
+            boundary: BoundaryPolicy::Any,
+            ..CompileOptions::default()
+        },
+    );
+    assert!(any.find_at_with_meta("날씨가".as_bytes(), 0).is_some());
 }
 
 #[test]

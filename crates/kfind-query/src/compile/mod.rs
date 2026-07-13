@@ -338,7 +338,13 @@ fn compile_analysis(
             }
         }
         Morphology::Particle(particle) => {
-            for variant in &particle.variants {
+            let expand_allomorphs = options.boundary != crate::BoundaryPolicy::Smart
+                || analysis.source == AnalysisSource::Forced;
+            for variant in particle
+                .variants
+                .iter()
+                .filter(|variant| expand_allomorphs || variant.as_ref() == atom_surface)
+            {
                 if let Some(rule_id) = &particle.rule_id {
                     output.push(DraftBranch {
                         anchor: variant.to_string(),
@@ -401,7 +407,12 @@ fn compile_predicate(
                 rule_path,
             },
             smart_left: predicate.alternation != kfind_morph::LexicalAlternation::Copula,
-            context_requirement: ContextRequirement::None,
+            context_requirement: if predicate.alternation == kfind_morph::LexicalAlternation::Copula
+            {
+                ContextRequirement::PredicateLexical
+            } else {
+                ContextRequirement::None
+            },
         });
     }
     Ok(())
