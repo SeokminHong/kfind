@@ -79,20 +79,8 @@ def lindera_morphemes(
         start = int(token["byte_start"])
         end = int(token["byte_end"])
         details = [str(value) for value in token.get("details", [])]
-        expression = details[7] if len(details) > 7 else "*"
-        if expression not in {"", "*"}:
-            parsed = []
-            for part in expression.split("+"):
-                fields = part.split("/")
-                if len(fields) >= 2 and fields[0] and fields[1] != "*":
-                    parsed.append((fields[0], fields[1], start, end))
-            if parsed:
-                morphemes.extend(parsed)
-                continue
         surface = str(token.get("surface", ""))
-        tag = details[0] if details else ""
-        if surface and tag:
-            morphemes.append((surface, tag, start, end))
+        morphemes.extend(token_morphemes(surface, details, start, end))
     return morphemes
 
 
@@ -103,6 +91,73 @@ def lindera_candidates(tokens: Iterable[dict[str, object]]) -> set[CandidateSpan
         for form, tag, start, end in morphemes
         if (normalized := candidate(form, tag, start, end)) is not None
     }
+    return candidates
+
+
+def token_morphemes(
+    surface: str, details: list[str], start: int, end: int
+) -> list[tuple[str, str, int, int]]:
+    expression = details[7] if len(details) > 7 else "*"
+    if expression not in {"", "*"}:
+        parsed = []
+        for part in expression.split("+"):
+            fields = part.split("/")
+            if len(fields) >= 2 and fields[0] and fields[1] != "*":
+                parsed.append((fields[0], fields[1], start, end))
+        if parsed:
+            return parsed
+    tag = details[0] if details else ""
+    return [(surface, tag, start, end)] if surface and tag else []
+
+
+def mecab_candidates(text: str, parsed: str) -> set[CandidateSpan]:
+    byte_offsets = character_to_byte_offsets(text)
+    character_start = 0
+    morphemes = []
+    for line in parsed.splitlines():
+        if line == "EOS":
+            break
+        if "\t" not in line:
+            raise ValueError(f"invalid MeCab-ko output line {line!r}")
+        surface, feature_text = line.split("\t", 1)
+        token_start = text.find(surface, character_start)
+        if token_start < 0:
+            raise ValueError(f"MeCab-ko surface {surface!r} is absent from input")
+        token_end = token_start + len(surface)
+        morphemes.extend(
+            token_morphemes(
+                surface,
+                feature_text.split(","),
+                byte_offsets[token_start],
+                byte_offsets[token_end],
+            )
+        )
+        character_start = token_end
+    return {
+        normalized
+        for form, tag, start, end in morphemes
+        if (normalized := candidate(form, tag, start, end)) is not None
+    }
+
+
+def komoran_candidates(
+    text: str, tokens: Iterable[dict[str, object]]
+) -> set[CandidateSpan]:
+    byte_offsets = character_to_byte_offsets(text)
+    candidates = set()
+    for token in tokens:
+        begin = int(token["begin"])
+        end = int(token["end"])
+        if begin < 0 or begin >= end or end >= len(byte_offsets):
+            raise ValueError(f"invalid KOMORAN token span {begin}..{end}")
+        normalized = candidate(
+            str(token["morph"]),
+            str(token["pos"]),
+            byte_offsets[begin],
+            byte_offsets[end],
+        )
+        if normalized is not None:
+            candidates.add(normalized)
     return candidates
 
 
