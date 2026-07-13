@@ -431,3 +431,7 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 듣다	verb	설명을 들으려고 가까이 갔다.	match	d-irregular
 돕다	verb	친구를 도우려고 먼저 나섰다.	match	b-irregular
 좋다	adjective	기분이 좋으려고 웃었다.	no-match	regular
+부르다	verb	친구들이 노래를 불렀을 때 감동했다.	match	reu-irregular
+좋다	adjective	결과가 좋았을 때를 기억한다.	match	regular
+먹다	verb	밥을 먹었을 때 연락했다.	match	regular
+먹다	verb	밥을 먹었을을 기억한다.	no-match	regular

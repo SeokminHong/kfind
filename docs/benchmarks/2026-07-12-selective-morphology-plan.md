@@ -157,11 +157,11 @@ enum ContextRequirement {
 
 - fixture SHA-256은 `1e06951581c84f02a4013e8410c113337c1389d3dcc2028b322f887bb181b494`다.
 - 양성 1,601건과 음성 1,315건을 고정했다. 비정규 `VCP=있` 1건은 제외 사유로 기록한다.
-- kfind embedded/full-POS는 TP 961, FP 76, TN 1,239, FN 640으로 동일했다. precision은
-  92.67%, recall은 60.02%다.
+- kfind embedded/full-POS는 TP 962, FP 76, TN 1,239, FN 639로 동일했다. precision은
+  92.68%, recall은 60.09%다.
 - KSL VCP는 precision 82.76%, recall 45.04%로 가장 약한 그룹이다. 비용이나 threshold를
   조정하기 전에 lattice path가 이 그룹의 양성과 음성을 구분하는지 확인한다.
-- `EojeolLattice` 대상은 1,160개 case의 1,647개 hit이며 두 kfind profile에서 동일하다.
+- `EojeolLattice` 대상은 1,160개 case의 1,652개 hit이며 두 kfind profile에서 동일하다.
 - `kfind-data`의 schema 3 resource는 773,105개 표면형, 815,725개 source 분석과
   3,822×2,693 연결 비용 행렬, `char.def`의 모든 class와 `unk.def` 분석을 보존한다.
 - 고정 source에서 생성한 `morphology.bin` SHA-256은
@@ -175,13 +175,13 @@ enum ContextRequirement {
   Unicode 문자열의 안정 경계 round-trip을 검증했으며 검색 결과는 바꾸지 않는다.
 - report schema 4는 resource SHA-256, candidate별 원문·NFC span, 포함·미포함
   최저 비용, cost margin과 최대 4개의 완전 경로를 보존한다.
-- 1,647개 candidate가 모두 평가됐고 `accept` 1,423개, `reject` 224개다. 오류와
+- 1,652개 candidate가 모두 평가됐고 `accept` 1,428개, `reject` 224개다. 오류와
   `ambiguous`는 없다.
-- candidate target과 fixture gold span을 대조하면 gold target은 935개 중 885개를
-  수용하고 non-gold target은 712개 중 174개만 거절한다.
+- candidate target과 fixture gold span을 대조하면 gold target은 936개 중 886개를
+  수용하고 non-gold target은 716개 중 174개만 거절한다.
 - node는 최대 175개로 4,096개 상한을 넘지 않았다. N-best는 모두 4개 이하다.
 - shadow 평가는 시간·RSS 측정 뒤에 실행되며 union 결과를 필터링하지 않는다.
-  gold target recall은 94.65%지만 non-gold target reject 비율이 24.44%이므로 P3를
+  gold target recall은 94.66%지만 non-gold target reject 비율이 24.30%이므로 P3를
   진행하지 않는다.
 
 다음 lattice shadow 구현은 완료했다.

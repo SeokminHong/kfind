@@ -98,7 +98,7 @@ initial = "a-or-eo"
 forms = ["았", "었"]
 required = []
 forbidden = []
-next = ["ending.final-da", "ending.polite-declarative", "ending.past-polite-yo", "ending.conditional", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go", "ending.retrospective-adnominal", "ending.quotative-go"]
+next = ["ending.final-da", "ending.polite-declarative", "ending.past-polite-yo", "ending.conditional", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go", "ending.future-adnominal", "ending.retrospective-adnominal", "ending.quotative-go"]
 terminal = true
 
 [[ending]]
