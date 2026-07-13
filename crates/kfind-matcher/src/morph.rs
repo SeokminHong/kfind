@@ -9,7 +9,7 @@ use grep_matcher::{LineMatchKind, LineTerminator, Match, Matcher, NoCaptures, No
 use kfind_data::{ComponentResource, DataFinePos};
 use kfind_morph::{
     DEFAULT_LATTICE_NODE_LIMIT, FinePos, LocalLatticeDecision, ParticleChainModel,
-    ParticleVerifier, RuleId, evaluate_local_component_paths, verify_predicate_continuation,
+    ParticleVerifier, RuleId, evaluate_local_component_decision, verify_predicate_continuation,
 };
 use kfind_query::{
     BranchEnvironment, BranchVerifier, ContextRequirement, CoreMapping, Origin, PhraseMatch,
@@ -489,14 +489,14 @@ impl MorphMatcher {
             .filter_map(|analysis| component_pos(analysis.fine_pos))
             .collect::<HashSet<_>>();
         query_positions.into_iter().any(|query_pos| {
-            evaluate_local_component_paths(
+            evaluate_local_component_decision(
                 resource.as_ref(),
                 window.normalized(),
                 query_span.clone(),
                 query_pos,
                 DEFAULT_LATTICE_NODE_LIMIT,
             )
-            .is_ok_and(|report| report.decision == LocalLatticeDecision::Accept)
+            .is_ok_and(|decision| decision == LocalLatticeDecision::Accept)
         })
     }
 

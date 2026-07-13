@@ -8,7 +8,9 @@ use kfind_data::{
     decode_component_resource, encode_component_resource, parse_mecab_connection_matrix,
 };
 use kfind_matcher::MorphMatcher;
-use kfind_morph::{DEFAULT_LATTICE_NODE_LIMIT, evaluate_local_component_paths};
+use kfind_morph::{
+    DEFAULT_LATTICE_NODE_LIMIT, evaluate_local_component_decision, evaluate_local_component_paths,
+};
 use kfind_query::{CompileOptions, LexiconQueryAnalyzer, Lexicons, compile_query};
 
 const MATCHING_LINE: &str = "길을 걸어 갔다. 권한을 검증했습니다.\n";
@@ -120,15 +122,14 @@ fn local_lattice(criterion: &mut Criterion) {
     group.bench_function("component_decision", |bencher| {
         bencher.iter(|| {
             for (text, start, end) in cases {
-                let decision = evaluate_local_component_paths(
+                let decision = evaluate_local_component_decision(
                     black_box(&resource),
                     black_box(text),
                     start..end,
                     DataFinePos::Nng,
                     DEFAULT_LATTICE_NODE_LIMIT,
                 )
-                .expect("benchmark lattice must have a complete path")
-                .decision;
+                .expect("benchmark lattice must have a complete path");
                 black_box(decision);
             }
         });

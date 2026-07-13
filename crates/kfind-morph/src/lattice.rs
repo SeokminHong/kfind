@@ -6,8 +6,10 @@ use std::ops::Range;
 
 use kfind_data::{ComponentResource, DataFinePos, DecodedMorphologyResource};
 
+mod decision;
 mod unknown;
 
+use decision::{LocalLatticeCosts, best_costs};
 use unknown::{UnknownAnalysis, UnknownDictionary};
 
 pub const DEFAULT_LATTICE_NODE_LIMIT: usize = 4_096;
@@ -166,6 +168,27 @@ pub fn evaluate_local_component_paths(
     evaluate_local_paths(resource, text, query_span, query_pos, node_limit)
 }
 
+pub fn evaluate_local_component_decision(
+    resource: &dyn LocalLatticeResource,
+    text: &str,
+    query_span: Range<usize>,
+    query_pos: DataFinePos,
+    node_limit: usize,
+) -> Result<LocalLatticeDecision, LocalLatticeError> {
+    evaluate_local_costs(resource, text, query_span, query_pos, node_limit)?.decision()
+}
+
+fn evaluate_local_costs(
+    resource: &dyn LocalLatticeResource,
+    text: &str,
+    query_span: Range<usize>,
+    query_pos: DataFinePos,
+    node_limit: usize,
+) -> Result<LocalLatticeCosts, LocalLatticeError> {
+    let nodes = build_local_nodes(resource, text, query_span, query_pos, node_limit)?;
+    best_costs(resource, text.len(), &nodes)
+}
+
 fn evaluate_local_paths(
     resource: &dyn LocalLatticeResource,
     text: &str,
@@ -173,45 +196,22 @@ fn evaluate_local_paths(
     query_pos: DataFinePos,
     node_limit: usize,
 ) -> Result<LocalLatticeReport, LocalLatticeError> {
-    if query_span.start >= query_span.end
-        || query_span.end > text.len()
-        || !text.is_char_boundary(query_span.start)
-        || !text.is_char_boundary(query_span.end)
-    {
-        return Err(LocalLatticeError::InvalidQuerySpan);
-    }
-    let unknown = UnknownDictionary::parse(resource)?;
-    let nodes = build_nodes(resource, text, &query_span, query_pos, &unknown, node_limit)?;
+    let nodes = build_local_nodes(resource, text, query_span, query_pos, node_limit)?;
     let completed = best_paths(resource, text.len(), &nodes)?;
-    let include_cost = completed
-        .iter()
-        .filter(|path| path.includes_query)
-        .map(|path| path.cost)
-        .min();
-    let exclude_cost = completed
-        .iter()
-        .filter(|path| !path.includes_query)
-        .map(|path| path.cost)
-        .min();
-    let decision = match (include_cost, exclude_cost) {
-        (Some(include), Some(exclude)) => match include.cmp(&exclude) {
-            Ordering::Less => LocalLatticeDecision::Accept,
-            Ordering::Greater => LocalLatticeDecision::Reject,
-            Ordering::Equal => LocalLatticeDecision::Ambiguous,
-        },
-        (Some(_), None) => LocalLatticeDecision::Accept,
-        (None, Some(_)) => LocalLatticeDecision::Reject,
-        (None, None) => return Err(LocalLatticeError::NoCompletePath),
+    let costs = LocalLatticeCosts {
+        include: completed
+            .iter()
+            .filter(|path| path.includes_query)
+            .map(|path| path.cost)
+            .min(),
+        exclude: completed
+            .iter()
+            .filter(|path| !path.includes_query)
+            .map(|path| path.cost)
+            .min(),
     };
-    let cost_margin = include_cost
-        .zip(exclude_cost)
-        .map(|(include, exclude)| {
-            include
-                .checked_sub(exclude)
-                .and_then(i64::checked_abs)
-                .ok_or(LocalLatticeError::CostOverflow)
-        })
-        .transpose()?;
+    let decision = costs.decision()?;
+    let cost_margin = costs.margin()?;
     let paths = select_report_paths(&completed)
         .into_iter()
         .map(|path| LocalLatticePath {
@@ -226,12 +226,30 @@ fn evaluate_local_paths(
         .collect();
     Ok(LocalLatticeReport {
         decision,
-        include_cost,
-        exclude_cost,
+        include_cost: costs.include,
+        exclude_cost: costs.exclude,
         cost_margin,
         node_count: nodes.len(),
         paths,
     })
+}
+
+fn build_local_nodes(
+    resource: &dyn LocalLatticeResource,
+    text: &str,
+    query_span: Range<usize>,
+    query_pos: DataFinePos,
+    node_limit: usize,
+) -> Result<Vec<Node>, LocalLatticeError> {
+    if query_span.start >= query_span.end
+        || query_span.end > text.len()
+        || !text.is_char_boundary(query_span.start)
+        || !text.is_char_boundary(query_span.end)
+    {
+        return Err(LocalLatticeError::InvalidQuerySpan);
+    }
+    let unknown = UnknownDictionary::parse(resource)?;
+    build_nodes(resource, text, &query_span, query_pos, &unknown, node_limit)
 }
 
 #[derive(Clone, Debug)]
