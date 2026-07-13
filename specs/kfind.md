@@ -177,6 +177,11 @@
   계약만 받는다. compact decoder와 artifact 경로는 benchmark 전용으로 유지하며 제품 loader,
   matcher, CLI와 Rust/WASM API에는 연결하지 않는다.
 - compact 판정 동등성 지표가 포함된 benchmark report schema는 8이다.
+- 고정 report schema 8 실행에서 full/compact component 비교는 embedded test 84, dev 87,
+  hard-negative 5건과 full-POS test 123, dev 115, hard-negative 8건이며 불일치는 모두 0이다.
+  compact artifact SHA-256은
+  `5fc46a151e41485dc4b4a3a931135c0f490913f2c2c908b9d87adb87a7c14efd`다. test TP 355/FP 1/FN 145,
+  dev TP 376/FP 2/FN 124와 hard-negative 검색 결과는 변하지 않는다.
 - P2의 네 번째 구현 단위는 corpus-side morphology resource를 schema 3으로 갱신한다.
   query tag용 `DataFinePos`는 corpus CSV 행의 필터로 사용하지 않는다. 유효한 context ID와
   비용을 가진 모든 source 행을 NFC 표면형별로 보존하고, 단일·복합 POS 열과 type·start POS·

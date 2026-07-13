@@ -136,6 +136,10 @@ profile의 FN은 145개다.
 - compact lattice projection은 고정 source의 exact/common-prefix analysis hit와 scoring
   checksum을 full resource와 동일하게 유지한다. artifact는 47,859,711 bytes로 full의
   66.32%이며 mmap peak RSS 49.47 MiB, 초기화 138.60~139.14 ms로 배포 비용 gate를 통과했다.
+- report schema 8은 같은 component candidate의 full/compact decision, 비용, node 수와 N-best
+  provenance를 비교한다. embedded test/dev/hard-negative 84/87/5건과 full-POS 123/115/8건은
+  모두 일치했다. compact artifact SHA-256은
+  `5fc46a151e41485dc4b4a3a931135c0f490913f2c2c908b9d87adb87a7c14efd`다.
 
 dev 명사 FN 70개 중 64개는 사전 누락이 아니라 smart boundary 거부다. 합성어 substring
 계약을 완화하면 hard-negative 정밀도와 충돌하므로 이번 어휘 보강에는 포함하지 않았다.
@@ -344,18 +348,15 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. compact lattice projection으로 dev·hard-negative의 같은 component candidate를 다시 평가해
-   decision, 비용, node 수와 N-best path provenance를 full resource와 필드 단위로 비교한다.
-   비교 수는 candidate 수와 같아야 하고 불일치나 compact artifact 오류는 benchmark를 실패시킨다.
-2. 기본 `smart` 결과를 바꾸기 전에 CLI·Rust/WASM API, explain/JSON과 배포 resource 실패
+1. 기본 `smart` 결과를 바꾸기 전에 CLI·Rust/WASM API, explain/JSON과 배포 resource 실패
    정책을 스펙에 확정한다.
-3. 정상 지정사 gold reject 13개는 별도 P3 범위에서 기존 Kaist·KSL dev 원인을 분류한다.
-4. 다음 제품 판정용 unseen source를 결과 확인 전에 고정한다.
+2. 정상 지정사 gold reject 13개는 별도 P3 범위에서 기존 Kaist·KSL dev 원인을 분류한다.
+3. 다음 제품 판정용 unseen source를 결과 확인 전에 고정한다.
 
 Korean-GSD 결과에 맞춘 비용·threshold·fixture 가중치 변경은 금지한다.
 
 ## 다음 세션 시작점
 
-component shadow, source path 분류와 compact projection 배포 비용 비교는 완료됐지만 아직 검색
-결과를 바꾸지 않는다. 다음 구현 단위는 compact projection의 dev·hard-negative shadow 판정
-동등성 검증이다. 제품 계약을 확정하기 전에는 matcher에 resource loader를 연결하지 않는다.
+component shadow, source path 분류, compact projection 배포 비용과 shadow 판정 동등성 검증은
+완료됐지만 아직 검색 결과를 바꾸지 않는다. 다음 작업은 CLI·Rust/WASM API, explain/JSON과
+배포 resource 실패 정책 확정이다. 이 계약 전에는 matcher에 resource loader를 연결하지 않는다.

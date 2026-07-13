@@ -85,3 +85,8 @@ scoring checksum은 full resource와 동일하다. compact projection을 다음 
 
 shadow 비교는 동일 candidate의 decision, 비용, node 수와 N-best path provenance 전체를
 대조한다. compact artifact 오류나 불일치는 benchmark 실패이며 제품 검색 결과에는 반영하지 않는다.
+
+report schema 8 실행에서 embedded test/dev/hard-negative 84/87/5건과 full-POS
+123/115/8건의 비교가 모두 일치했다. compact artifact SHA-256은
+`5fc46a151e41485dc4b4a3a931135c0f490913f2c2c908b9d87adb87a7c14efd`다. 제품 계약 확정 전까지
+이 artifact와 decoder는 benchmark 전용으로 유지한다.
