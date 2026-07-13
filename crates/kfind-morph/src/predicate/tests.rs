@@ -35,6 +35,8 @@ fn test_surfaces(branch: &SurfaceBranchSpec) -> Vec<String> {
         ContinuationState::Eu => vec![
             format!("{}면", branch.anchor),
             format!("{}며", branch.anchor),
+            format!("{}니", branch.anchor),
+            format!("{}리라고", branch.anchor),
             format!("{}셨다", branch.anchor),
             format!("{}시다", branch.anchor),
             format!("{}십니다", branch.anchor),
@@ -119,6 +121,62 @@ fn action_predicates_cover_intentive_connectives() {
 
     let adjective = entry("좋다", PredicatePos::Adjective, LexicalAlternation::Regular);
     assert!(!surfaces(&adjective).contains("좋으려고"));
+}
+
+#[test]
+fn productive_predicates_cover_reason_connectives() {
+    for (predicate, expected) in [
+        (
+            entry(
+                "바쁘다",
+                PredicatePos::Adjective,
+                LexicalAlternation::Regular,
+            ),
+            "바쁘니",
+        ),
+        (
+            entry("먹다", PredicatePos::Verb, LexicalAlternation::Regular),
+            "먹으니",
+        ),
+        (
+            entry("살다", PredicatePos::Verb, LexicalAlternation::Regular),
+            "사니",
+        ),
+        (
+            entry("듣다", PredicatePos::Verb, LexicalAlternation::DToL),
+            "들으니",
+        ),
+        (
+            entry("돕다", PredicatePos::Verb, LexicalAlternation::BToWa),
+            "도우니",
+        ),
+    ] {
+        assert!(surfaces(&predicate).contains(expected));
+    }
+}
+
+#[test]
+fn productive_predicates_cover_prospective_quotatives() {
+    for (predicate, expected) in [
+        (
+            entry("얻다", PredicatePos::Verb, LexicalAlternation::Regular),
+            "얻으리라고",
+        ),
+        (
+            entry("가다", PredicatePos::Verb, LexicalAlternation::Regular),
+            "가리라고",
+        ),
+        (
+            entry("듣다", PredicatePos::Verb, LexicalAlternation::DToL),
+            "들으리라고",
+        ),
+        (
+            entry("돕다", PredicatePos::Verb, LexicalAlternation::BToWa),
+            "도우리라고",
+        ),
+    ] {
+        assert!(surfaces(&predicate).contains(expected));
+    }
 }
 
 #[test]

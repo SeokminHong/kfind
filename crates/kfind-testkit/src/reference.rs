@@ -552,6 +552,7 @@ fn reference_predicate_continuation(
         reference_suffix("고", &["ending.connective-go"]),
     ];
     const EU: &[ReferenceSuffix] = &[
+        reference_suffix("리라고", &["ending.prospective-quotative"]),
         reference_suffix(
             "시겠습니다",
             &[
@@ -579,6 +580,7 @@ fn reference_predicate_continuation(
         reference_suffix("실", &["ending.honorific", "ending.future-adnominal"]),
         reference_suffix("면", &["ending.conditional"]),
         reference_suffix("며", &["ending.coordinate-myeo"]),
+        reference_suffix("니", &["ending.connective-ni"]),
     ];
 
     let candidates = match state {

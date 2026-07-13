@@ -212,6 +212,7 @@ fn compile_productive(
         if entry.alternation == LexicalAlternation::Regular
             && has_rieul_final(stem.chars().next_back().expect("stem"))
         {
+            compile_rieul_eu_endings(entry, stem, branches);
             compile_rieul_honorific(entry, stem, branches);
         } else if let Some(honorific) = honorific_anchor(entry, stem)? {
             push_derived(branches, entry, honorific, ContinuationState::Eu);
@@ -255,6 +256,30 @@ fn compile_productive(
     );
 
     Ok(())
+}
+
+fn compile_rieul_eu_endings(
+    entry: &PredicateEntry,
+    stem: &str,
+    branches: &mut Vec<SurfaceBranchSpec>,
+) {
+    let dropped = drop_last_final(stem).expect("rieul-final stem");
+    push_branch(
+        branches,
+        entry,
+        format!("{dropped}니"),
+        dropped.len(),
+        ContinuationState::Terminal,
+        vec![rule("ending.connective-ni")],
+    );
+    push_branch(
+        branches,
+        entry,
+        format!("{stem}리라고"),
+        stem.len(),
+        ContinuationState::Terminal,
+        vec![rule("ending.prospective-quotative")],
+    );
 }
 
 fn compile_rieul_honorific(

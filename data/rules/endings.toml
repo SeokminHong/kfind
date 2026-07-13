@@ -292,6 +292,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.connective-ni"
+category = "connective"
+initial = "eu"
+forms = ["니", "으니"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.prospective-quotative"
+category = "connective"
+initial = "eu"
+forms = ["리라고", "으리라고"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.intentive-ryeogo"
 category = "connective"
 initial = "eu"

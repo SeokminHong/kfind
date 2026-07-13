@@ -67,6 +67,7 @@ const FUTURE_SUFFIXES: &[Suffix] = &[
 ];
 
 const EU_SUFFIXES: &[Suffix] = &[
+    suffix("리라고", &["ending.prospective-quotative"]),
     suffix(
         "시겠습니다",
         &[
@@ -94,6 +95,7 @@ const EU_SUFFIXES: &[Suffix] = &[
     suffix("실", &["ending.honorific", "ending.future-adnominal"]),
     suffix("면", &["ending.conditional"]),
     suffix("며", &["ending.coordinate-myeo"]),
+    suffix("니", &["ending.connective-ni"]),
 ];
 
 /// Consumes the longest suffix accepted by a predicate branch's verifier state.
@@ -185,6 +187,24 @@ mod tests {
             verify_predicate_continuation(ContinuationState::Eu, PredicatePos::Verb, "걸으", "xyz")
                 .is_none()
         );
+
+        let connective = verify_predicate_continuation(
+            ContinuationState::Eu,
+            PredicatePos::Adjective,
+            "좋으",
+            "니 계속한다",
+        )
+        .expect("reason connective");
+        assert_eq!(connective.token_end, "좋으니".len());
+
+        let prospective = verify_predicate_continuation(
+            ContinuationState::Eu,
+            PredicatePos::Verb,
+            "얻으",
+            "리라고 생각했다",
+        )
+        .expect("prospective quotative");
+        assert_eq!(prospective.token_end, "얻으리라고".len());
     }
 
     #[test]
