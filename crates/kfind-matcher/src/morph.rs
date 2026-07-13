@@ -318,6 +318,7 @@ impl MorphMatcher {
             BranchVerifier::Predicate {
                 continuation,
                 pos,
+                nominal_particle_transition,
                 environment,
                 ..
             } => {
@@ -336,13 +337,24 @@ impl MorphMatcher {
                 if !branch.verifier.accepts_rule_path(&matched.rule_path) {
                     return None;
                 }
+                let mut normalized_consumed = matched.consumed_bytes;
+                let mut rule_path = matched.rule_path;
+                if *nominal_particle_transition {
+                    let particle = self.particle_verifier.verify_prefix(
+                        &verifier_anchor,
+                        &verifier_following[normalized_consumed..],
+                    );
+                    normalized_consumed =
+                        normalized_consumed.checked_add(particle.consumed_bytes)?;
+                    rule_path.extend(particle.rule_path);
+                }
                 let consumed_bytes = match &verifier_following {
-                    Cow::Borrowed(_) => matched.consumed_bytes,
+                    Cow::Borrowed(_) => normalized_consumed,
                     Cow::Owned(normalized) => {
-                        map_normalized_prefix(following, normalized, matched.consumed_bytes)?
+                        map_normalized_prefix(following, normalized, normalized_consumed)?
                     }
                 };
-                (consumed_bytes, matched.rule_path)
+                (consumed_bytes, rule_path)
             }
             BranchVerifier::NominalParticles { .. } => {
                 let following = valid_utf8_prefix(&haystack[hit.span.end..]);

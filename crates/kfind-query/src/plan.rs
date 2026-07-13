@@ -45,6 +45,7 @@ pub enum BranchVerifier {
         continuation: ContinuationState,
         pos: PredicatePos,
         allowed_rule_ids: Arc<[RuleId]>,
+        nominal_particle_transition: bool,
         environment: BranchEnvironment,
     },
     NominalParticles {

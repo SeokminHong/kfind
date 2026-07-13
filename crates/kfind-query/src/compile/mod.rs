@@ -393,12 +393,16 @@ fn compile_predicate(
             excluded_rules.extend(unsupported);
             continue;
         }
+        let nominal_particle_transition = rule_path
+            .last()
+            .is_some_and(|rule| rule.as_str() == "ending.nominalizer-gi");
         output.push(DraftBranch {
             anchor: branch.anchor.into(),
             verifier: BranchVerifier::Predicate {
                 continuation: branch.continuation,
                 pos: predicate.pos,
                 allowed_rule_ids: Arc::clone(allowed_rules),
+                nominal_particle_transition,
                 environment,
             },
             core_mapping: CoreMapping::PrefixBytes(branch.core_len),

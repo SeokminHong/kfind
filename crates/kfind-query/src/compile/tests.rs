@@ -367,6 +367,27 @@ fn required_predicate_surfaces_survive_rule_vocabulary_validation() {
 }
 
 #[test]
+fn only_gi_nominalizer_branches_enable_particle_transition() {
+    let walking = compile_query("걷다", &CompileOptions::default(), &analyzer()).unwrap();
+    for branch in &walking.atoms[0].branches {
+        let BranchVerifier::Predicate {
+            nominal_particle_transition,
+            ..
+        } = &branch.verifier
+        else {
+            continue;
+        };
+        let has_gi_origin = branch.origins.iter().any(|origin| {
+            origin
+                .rule_path
+                .last()
+                .is_some_and(|rule| rule.as_str() == "ending.nominalizer-gi")
+        });
+        assert_eq!(*nominal_particle_transition, has_gi_origin);
+    }
+}
+
+#[test]
 fn derivation_nominal_particle_and_override_branches_use_distinct_verifiers() {
     let derivation_options = CompileOptions {
         expand: ExpandMode::Derivation,

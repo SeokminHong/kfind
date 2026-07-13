@@ -689,6 +689,7 @@ fn predicate_branch(
             continuation,
             pos: kfind_morph::PredicatePos::Verb,
             allowed_rule_ids,
+            nominal_particle_transition: false,
             environment: BranchEnvironment::Unrestricted,
         },
         core_mapping: CoreMapping::PrefixBytes(core_len),

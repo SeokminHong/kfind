@@ -68,8 +68,13 @@ query	pos	text	expected	feature
 걷다	verb	손님이 오래 걸었습니다.	match	d-irregular
 걷다	verb	비가 왔지만 계속 걸었다.	match	d-irregular
 걷다	verb	매일 걷기 운동을 한다.	match	d-irregular
-걷다	verb	매일 걷기가 즐겁다.	no-match	d-irregular
-걷다	verb	오래 걷기를 권했다.	no-match	d-irregular
+걷다	verb	매일 걷기가 즐겁다.	match	nominalizer-gi-particle
+걷다	verb	오래 걷기를 권했다.	match	nominalizer-gi-particle
+걷다	verb	걷기에서도 배운다.	match	nominalizer-gi-particle-chain
+걷다	verb	걷기이 어렵다.	no-match	nominalizer-gi-particle-allomorph
+걷다	verb	걷기을 권했다.	no-match	nominalizer-gi-particle-allomorph
+걷다	verb	걷기으로 충분하다.	no-match	nominalizer-gi-particle-allomorph
+걷다	verb	걷기가를 권했다.	no-match	nominalizer-gi-particle-chain
 걷다	verb	커튼을 걷어 햇빛을 들였다.	match	regular
 걷다	verb	바지를 걷고 개울을 건넜다.	match	regular
 걷다	verb	천막을 걷는 작업이 시작됐다.	match	regular

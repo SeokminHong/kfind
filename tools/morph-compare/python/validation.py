@@ -10,6 +10,7 @@ HARD_NEGATIVE_SLICES = {
     "homonymous-other-pos",
     "compound-substring",
     "attached-predecessor-predicate",
+    "nominalizer-particle",
     "same-surface-different-lemma",
     "one-syllable-boundary",
 }
