@@ -15,7 +15,7 @@ baseline으로 유지한다.
 생략하며, negative 문장에는 해당 표제어가 지원하는 어떤 품사로도 존재하지 않는다.
 이미지 빌드는 밀봉된 Korean-GSD blind local-context fixture도 생성·검증한다. 기본
 벤치마크는 이 fixture를 로드하거나 평가하지 않는다.
-최초 평가 결과는 benchmark handoff에 기록했다. 이후 실행은 regression 확인에만 사용한다.
+이 fixture는 regression 확인에만 사용한다.
 
 ```sh
 KFIND_MORPH_BLIND=1 scripts/benchmark-morphology.sh target/morph-blind-report
@@ -46,9 +46,9 @@ python3 tools/morph-compare/render_charts.py \
   --prefix smart-component-
 ```
 
-[비교 분석](../../docs/benchmarks/2026-07-12-morphology-comparison.md)과
-[개선 핸드오프](../../docs/benchmarks/2026-07-12-morphology-handoff.md)에 결과와 후속 순서를
-정리했다.
+[현재 제품 근거](../../docs/benchmarks/2026-07-13-smart-component-evidence.md)와
+[개선 핸드오프](../../docs/benchmarks/morphology-handoff.md)에 결과와 후속 작업을
+정리한다.
 
 직접 실행하려면 다음 명령을 사용한다.
 
