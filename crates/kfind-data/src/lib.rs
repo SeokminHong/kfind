@@ -16,8 +16,8 @@ pub use binary::{
     decode_pos_lexicon, encode_pos_lexicon,
 };
 pub use component::{
-    ComponentAnalysis, ComponentResource, ComponentResourceStats, decode_component_resource,
-    encode_component_resource,
+    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentAnalysis, ComponentResource, ComponentResourceStats,
+    decode_component_resource, encode_component_resource,
 };
 pub use error::{DataError, DataErrorKind, DataWarning, SourceLocation};
 pub use fixture::{ExpectedMatch, FixturePos, MorphologyCase, parse_morphology_cases_tsv};

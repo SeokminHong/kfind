@@ -72,15 +72,15 @@ pub struct Kfind {
 #[wasm_bindgen]
 impl Kfind {
     #[wasm_bindgen(constructor)]
-    pub fn new() -> Result<Kfind, JsError> {
-        Engine::embedded()
+    pub fn new(component_resource: &[u8]) -> Result<Kfind, JsError> {
+        Engine::new(component_resource)
             .map(|inner| Self { inner })
             .map_err(|error| JsError::new(&format!("failed to initialize kfind: {error}")))
     }
 
     #[wasm_bindgen(js_name = withFullPos)]
-    pub fn with_full_pos(full_pos: &[u8]) -> Result<Kfind, JsError> {
-        Engine::with_full_pos(full_pos)
+    pub fn with_full_pos(component_resource: &[u8], full_pos: &[u8]) -> Result<Kfind, JsError> {
+        Engine::with_full_pos(component_resource, full_pos)
             .map(|inner| Self { inner })
             .map_err(|error| JsError::new(&format!("failed to initialize kfind: {error}")))
     }

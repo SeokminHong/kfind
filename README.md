@@ -37,7 +37,8 @@ in-memory UTF-8 input:
 ```rust
 use kfind::{CompileOptions, Engine};
 
-let engine = Engine::embedded().expect("embedded data should be valid");
+let component_resource = std::fs::read("morphology-component-compact.kfc")?;
+let engine = Engine::new(component_resource)?;
 let matcher = engine
     .compile("걷다", &CompileOptions::default())
     .expect("query should compile");
