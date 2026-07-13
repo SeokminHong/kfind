@@ -153,6 +153,17 @@
   채택이나 검색 결과 변경을 뜻하지 않는다. `reject`는 query node가 없는 최저 경쟁 경로를
   `unknown`, `nominal`, `predicate`, `mixed`로 분류하고 POS sequence와 unknown 여부를 보존한다.
 - component 경로 분류가 포함된 benchmark report schema는 7이다.
+- compact component projection은 benchmark 전용 schema 1 container다. full resource와 같은
+  NFC surface Double-Array, 모든 source node의 POS·left/right context ID·word cost, 연결 비용
+  행렬과 `char.def`·`unk.def`를 보존한다. 판정에 사용하지 않는 analysis type·start/end POS·
+  expression만 제외하며 POS를 query-side 지원 범주로 필터링하지 않는다.
+- full resource와 compact projection 비교는 같은 source SHA-256과 exact/common-prefix workload를
+  사용한다. 두 artifact의 lookup은 surface length, POS, context ID와 word cost로 계산한 checksum과
+  analysis hit 수가 같아야 한다. artifact bytes, resident/mmap 초기화, lookup 지연과 peak RSS는
+  cold/warm 별도 프로세스로 기록한다.
+- compact container는 schema, source SHA-256, section length·digest, UTF-8 POS table, payload offset,
+  context ID, component scoring field와 matrix 범위를 검증한다. dev·hard-negative component 판정의
+  동등성을 별도 확인하기 전에는 제품 loader나 matcher에 연결하지 않는다.
 - P2의 네 번째 구현 단위는 corpus-side morphology resource를 schema 3으로 갱신한다.
   query tag용 `DataFinePos`는 corpus CSV 행의 필터로 사용하지 않는다. 유효한 context ID와
   비용을 가진 모든 source 행을 NFC 표면형별로 보존하고, 단일·복합 POS 열과 type·start POS·

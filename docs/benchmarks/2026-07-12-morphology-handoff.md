@@ -130,6 +130,9 @@ profile의 FN은 145개다.
 - component report schema 6은 candidate·window 수, case별 exact path provenance와 고유
   accept/reject case 수를 VCP lattice 지표와 분리한다. component candidate가 있는데 morphology
   resource가 누락·손상·source 불일치이면 benchmark를 실패시킨다.
+- component report schema 7은 case별 최저 비용 accept/reject 경로를 분류한다. embedded accept
+  61개는 derivational 23, nominal compound 22, particle 8, copular 7, mixed 1이며 P1 일반 규칙
+  후보는 derivational 23개다. reject evidence 16개는 positive 14개 case에 걸쳐 있다.
 
 dev 명사 FN 70개 중 64개는 사전 누락이 아니라 smart boundary 거부다. 합성어 substring
 계약을 완화하면 hard-negative 정밀도와 충돌하므로 이번 어휘 보강에는 포함하지 않았다.
@@ -338,19 +341,17 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. component accept 61개와 reject 16개 dev positive를 source path 유형과 P1 일반 규칙
-   중복 여부로 분류한다.
-2. full morphology resource와 compact nominal projection의 artifact 크기, lookup, 초기화,
+1. full morphology resource와 판정 동등 compact lattice projection의 artifact 크기, lookup, 초기화,
    mmap RSS를 비교한다.
-3. 기본 `smart` 결과를 바꾸기 전에 CLI·Rust/WASM API, explain/JSON과 배포 resource 실패
+2. 기본 `smart` 결과를 바꾸기 전에 CLI·Rust/WASM API, explain/JSON과 배포 resource 실패
    정책을 스펙에 확정한다.
-4. 정상 지정사 gold reject 13개는 별도 P3 범위에서 기존 Kaist·KSL dev 원인을 분류한다.
-5. 다음 제품 판정용 unseen source를 결과 확인 전에 고정한다.
+3. 정상 지정사 gold reject 13개는 별도 P3 범위에서 기존 Kaist·KSL dev 원인을 분류한다.
+4. 다음 제품 판정용 unseen source를 결과 확인 전에 고정한다.
 
 Korean-GSD 결과에 맞춘 비용·threshold·fixture 가중치 변경은 금지한다.
 
 ## 다음 세션 시작점
 
-component shadow는 완료 게이트를 통과했지만 아직 검색 결과를 바꾸지 않는다. 다음 구현 단위는
-accept/reject source path 분류와 compact nominal projection 비교다. full resource를 그대로
-배포할지 결정하기 전에는 matcher에 resource loader를 연결하지 않는다.
+component shadow와 source path 분류는 완료됐지만 아직 검색 결과를 바꾸지 않는다. 다음 구현
+단위는 full resource와 compact lattice projection 비교다. 배포 artifact를 결정하기 전에는
+matcher에 resource loader를 연결하지 않는다.
