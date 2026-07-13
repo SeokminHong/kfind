@@ -389,13 +389,47 @@ class ProductWorkflowTests(unittest.TestCase):
         self.assertIn("| human | untagged | full-pos | smart |", rendered)
         self.assertIn("workflows are not combined into one score", rendered)
 
-    def test_labels_external_results_as_snapshots(self) -> None:
+    def test_renders_external_quality_and_performance_snapshots(self) -> None:
         lines: list[str] = []
+        performance = {
+            "runs": 5,
+            "initialization_seconds": 0.25,
+            "cases_per_second": 2500.0,
+            "latency_p95_ms": 0.5,
+            "peak_rss_kib": 20480,
+            "run_min": {
+                "initialization_seconds": 0.2,
+                "cases_per_second": 2400.0,
+                "latency_p95_ms": 0.4,
+                "peak_rss_kib": 19000,
+            },
+            "run_max": {
+                "initialization_seconds": 0.3,
+                "cases_per_second": 2600.0,
+                "latency_p95_ms": 0.6,
+                "peak_rss_kib": 21000,
+            },
+        }
+        quality = {
+            "precision_percent": 100.0,
+            "recall_percent": 80.0,
+            "f1_percent": 88.89,
+        }
 
         append_external_baselines(
             lines,
             {
+                "product_workflows": {
+                    "agent": {"quality": quality, "performance": performance}
+                },
+                "quality": {"kiwi": {"overall": quality}},
                 "external_baselines": {
+                    "environment": {
+                        "platform": "Linux-aarch64",
+                        "logical_cpus": 10,
+                        "python": "3.12.13",
+                    },
+                    "performance": {"kiwi": performance},
                     "availability": {
                         "kiwi": {"status": "available"},
                         "komoran": {
@@ -408,9 +442,13 @@ class ProductWorkflowTests(unittest.TestCase):
         )
 
         rendered = "\n".join(lines)
-        self.assertIn("External analyzers are not executed", rendered)
-        self.assertIn("| kiwi | available |", rendered)
-        self.assertIn("| komoran | unavailable: not captured |", rendered)
+        self.assertIn("## Explicit-POS agent and external comparison", rendered)
+        self.assertIn("| Agent embedded + any | 100.0% | 80.0% |", rendered)
+        self.assertIn("| kiwi | 100.0% | 80.0% |", rendered)
+        self.assertIn("| kiwi | available | 5 | 0.2500s", rendered)
+        self.assertIn(
+            "| komoran | unavailable: not captured | n/a |", rendered
+        )
 
 
 class ShadowVerificationTests(unittest.TestCase):

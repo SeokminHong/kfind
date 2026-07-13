@@ -353,8 +353,8 @@ def render_markdown(report: dict[str, object]) -> str:
             f"{version['profile'] or 'n/a'} | `{artifact}` | `{morphology}` | "
             f"`{component}` |"
         )
-    append_external_baselines(lines, report)
     append_product_workflows(lines, report)
+    append_external_baselines(lines, report)
     append_product_use_cases(lines, report.get("product_use_cases"))
     append_quality_sections(lines, report)
     append_boundary_comparison(lines, report.get("boundary_comparison"))
@@ -369,9 +369,9 @@ def render_markdown(report: dict[str, object]) -> str:
     lines.extend(
         [
             "",
-            "Performance measures each backend's end-to-end search path after one initialization; "
-            "the live table includes only kfind profiles. External analyzers are quality "
-            "snapshots and are not timed in the current run.",
+            "The current run measures kfind. External analyzer quality and performance are "
+            "pinned snapshots captured by an explicit refresh against the same fixture and "
+            "workload.",
         ]
     )
     return "\n".join(lines) + "\n"
@@ -470,20 +470,100 @@ def append_external_baselines(lines: list[str], report: dict[str, object]) -> No
     lines.extend(
         [
             "",
-            "## External quality snapshots",
+            "## Explicit-POS agent and external comparison",
             "",
-            "External analyzers are not executed in this benchmark run. Their normalized "
-            "results are bound to the fixture digest above.",
+            "The Agent row is measured in the current run. External rows are pinned quality "
+            "and performance snapshots bound to the same 1,000-case explicit-POS fixture. "
+            "Every performance row uses one discarded warm-up and five measured fresh "
+            "processes.",
             "",
-            "| backend | status |",
-            "| --- | --- |",
+            "| backend | precision | recall | F1 | init median | cases/s median | "
+            "p95 median | peak RSS |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    workflows = report.get("product_workflows")
+    quality_by_backend = report.get("quality")
+    performance_by_backend = snapshot.get("performance")
+    if (
+        workflows is not None
+        and quality_by_backend is not None
+        and performance_by_backend is not None
+    ):
+        agent = workflows["agent"]
+        append_explicit_pos_row(
+            lines,
+            "Agent embedded + any",
+            agent["quality"],
+            agent["performance"],
+        )
+        for backend, performance in performance_by_backend.items():
+            quality = quality_by_backend[backend]["overall"]
+            append_explicit_pos_row(lines, backend, quality, performance)
+    else:
+        lines.append("| unavailable | n/a | n/a | n/a | n/a | n/a | n/a | n/a |")
+
+    environment = snapshot.get("environment")
+    if environment is not None:
+        lines.extend(
+            [
+                "",
+                f"- external snapshot environment: {environment['platform']}; "
+                f"{environment['logical_cpus']} logical CPUs; Python "
+                f"{environment['python']}",
+            ]
+        )
+    lines.extend(
+        [
+            "- Human full-POS + smart is reported separately because its untagged "
+            "negative-case definition differs",
+            "",
+            "### External snapshot ranges",
+            "",
+            "| backend | status | runs | init [min, max] | cases/s [min, max] | "
+            "p95 [min, max] | peak RSS [min, max] |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
     for backend, availability in snapshot["availability"].items():
         status = availability["status"]
         if availability.get("reason"):
             status += f": {availability['reason']}"
-        lines.append(f"| {backend} | {status} |")
+        performance = (performance_by_backend or {}).get(backend)
+        if performance is None:
+            lines.append(f"| {backend} | {status} | n/a | n/a | n/a | n/a | n/a |")
+            continue
+        minimum = performance["run_min"]
+        maximum = performance["run_max"]
+        lines.append(
+            f"| {backend} | {status} | {performance['runs']} | "
+            f"{performance['initialization_seconds']:.4f}s "
+            f"[{minimum['initialization_seconds']:.4f}, "
+            f"{maximum['initialization_seconds']:.4f}] | "
+            f"{performance['cases_per_second']} "
+            f"[{minimum['cases_per_second']}, {maximum['cases_per_second']}] | "
+            f"{performance['latency_p95_ms']}ms "
+            f"[{minimum['latency_p95_ms']}, {maximum['latency_p95_ms']}] | "
+            f"{format_rss(performance['peak_rss_kib'])} "
+            f"[{format_rss(minimum['peak_rss_kib'])}, "
+            f"{format_rss(maximum['peak_rss_kib'])}] |"
+        )
+
+
+def append_explicit_pos_row(
+    lines: list[str],
+    backend: str,
+    quality: dict[str, object],
+    performance: dict[str, object],
+) -> None:
+    lines.append(
+        f"| {backend} | {quality['precision_percent']}% | "
+        f"{quality['recall_percent']}% | {quality['f1_percent']}% | "
+        f"{performance['initialization_seconds']:.4f}s | "
+        f"{performance['cases_per_second']} | "
+        f"{performance['latency_p95_ms']}ms | "
+        f"{format_rss(performance['peak_rss_kib'])} |"
+    )
 
 
 def append_quality_sections(lines: list[str], report: dict[str, object]) -> None:

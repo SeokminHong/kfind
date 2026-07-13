@@ -44,6 +44,7 @@ HUMAN_UNTAGGED_SERIES = (
     ("full-pos", "smart"),
     ("full-pos", "any"),
 )
+EXTERNAL_BACKENDS = ("kiwi", "lindera", "mecab-ko", "komoran")
 STYLE = """
 <style>
   .background { fill: #ffffff; }
@@ -577,6 +578,145 @@ def render_product_use_cases(report: dict[str, object]) -> str:
     )
 
 
+def explicit_pos_comparison(
+    report: dict[str, object],
+) -> tuple[tuple[str, dict[str, object], dict[str, object], str], ...]:
+    agent = report["product_workflows"]["agent"]
+    rows = [
+        (
+            "Agent",
+            agent["quality"],
+            agent["performance"],
+            COLORS["kfind-embedded"],
+        )
+    ]
+    external_performance = report["external_baselines"]["performance"]
+    for backend in EXTERNAL_BACKENDS:
+        if backend not in external_performance:
+            continue
+        rows.append(
+            (
+                backend,
+                report["quality"][backend]["overall"],
+                external_performance[backend],
+                COLORS[backend],
+            )
+        )
+    return tuple(rows)
+
+
+def render_product_external_comparison(report: dict[str, object]) -> str:
+    rows = explicit_pos_comparison(report)
+    width, height = 1280, 1040
+    body = [
+        text(52, 38, "Explicit-POS quality and performance"),
+        text(
+            52,
+            62,
+            "Same 1,000 held-out cases · Agent embedded + any · "
+            "one warm-up + five measured runs",
+            "muted",
+        ),
+    ]
+
+    quality_panels = (
+        (52, "Precision", "precision_percent"),
+        (455, "Recall", "recall_percent"),
+        (858, "F1", "f1_percent"),
+    )
+    for panel_x, label, key in quality_panels:
+        body.append(text(panel_x, 112, f"{label} · percent"))
+        label_width = 92
+        bar_width = 190
+        for index, (backend, quality, _, color) in enumerate(rows):
+            row_y = 140 + index * 48
+            value = float(quality[key])
+            body.append(text(panel_x, row_y + 24, backend))
+            body.append(
+                rect(
+                    panel_x + label_width,
+                    row_y + 7,
+                    bar_width * value / 100,
+                    25,
+                    color,
+                )
+            )
+            body.append(
+                text(
+                    panel_x + label_width + bar_width + 10,
+                    row_y + 25,
+                    f"{value:.2f}%",
+                )
+            )
+
+    performance_panels = (
+        (52, 446, "Throughput", "cases_per_second", "cases/s", True),
+        (680, 446, "Initialization", "initialization_seconds", "s", False),
+        (52, 736, "p95 latency", "latency_p95_ms", "ms", False),
+        (680, 736, "Peak RSS", "peak_rss_kib", "MiB", False),
+    )
+    for panel_x, panel_y, label, key, unit, higher_better in performance_panels:
+        values = []
+        for backend, _, performance, color in rows:
+            value = float(performance[key])
+            if key == "peak_rss_kib":
+                value /= 1024
+            values.append((backend, value, color))
+        maximum = max(value for _, value, _ in values) * 1.08
+        direction = "higher is better" if higher_better else "lower is better"
+        body.append(text(panel_x, panel_y, label))
+        body.append(text(panel_x + 548, panel_y, direction, "muted", "end"))
+        label_width = 112
+        bar_width = 275
+        for index, (backend, value, color) in enumerate(values):
+            row_y = panel_y + 24 + index * 46
+            body.append(text(panel_x, row_y + 24, backend))
+            body.append(
+                rect(
+                    panel_x + label_width,
+                    row_y + 7,
+                    bar_width * value / maximum,
+                    25,
+                    color,
+                )
+            )
+            body.append(
+                text(
+                    panel_x + label_width + bar_width + 10,
+                    row_y + 25,
+                    f"{metric_value(value, unit)} {unit}",
+                )
+            )
+
+    body.extend(
+        [
+            text(
+                52,
+                1010,
+                "Agent is measured in the current run; external analyzers use "
+                "pinned refresh snapshots",
+                "muted",
+            ),
+            text(
+                1228,
+                1010,
+                "Human smart is separate because its untagged negative definition differs",
+                "muted",
+                "end",
+            ),
+        ]
+    )
+    return svg_document(
+        width,
+        height,
+        "Explicit-POS quality and performance",
+        "Five rows compare Agent embedded plus any, Kiwi, Lindera, MeCab-ko, and "
+        "KOMORAN on precision, recall, F1, throughput, initialization, p95 latency, "
+        "and peak RSS.",
+        body,
+    )
+
+
 def render_boundary_quality(report: dict[str, object]) -> str:
     width, height = 1280, 680
     left, right, top, bottom = 80, 32, 86, 116
@@ -799,6 +939,10 @@ def main() -> None:
     if "product_use_cases" in report:
         (args.output / f"{args.prefix}product-use-cases.svg").write_text(
             render_product_use_cases(report), encoding="utf-8"
+        )
+    if "product_workflows" in report and "external_baselines" in report:
+        (args.output / f"{args.prefix}product-external-comparison.svg").write_text(
+            render_product_external_comparison(report), encoding="utf-8"
         )
     if "boundary_comparison" in report:
         (args.output / f"{args.prefix}boundary-quality.svg").write_text(
