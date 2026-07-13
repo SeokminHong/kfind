@@ -1,8 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use kfind_data::DecodedMorphologyResource;
-
-use super::LocalLatticeError;
+use super::{LocalLatticeError, LocalLatticeResource};
 
 #[derive(Clone, Debug)]
 pub(super) struct UnknownAnalysis {
@@ -34,7 +32,7 @@ pub(super) struct UnknownDictionary {
 }
 
 impl UnknownDictionary {
-    pub fn parse(resource: &DecodedMorphologyResource<'_>) -> Result<Self, LocalLatticeError> {
+    pub fn parse(resource: &dyn LocalLatticeResource) -> Result<Self, LocalLatticeError> {
         let char_def = std::str::from_utf8(resource.char_def())
             .map_err(|_| LocalLatticeError::InvalidUnknownModel)?;
         let mut classes = BTreeMap::new();
@@ -99,8 +97,8 @@ impl UnknownDictionary {
                 word_cost: parse_field(fields[3])?,
                 pos: fields[4].to_owned(),
             };
-            if analysis.left_id >= resource.stats().left_contexts
-                || analysis.right_id >= resource.stats().right_contexts
+            if analysis.left_id >= resource.left_contexts()
+                || analysis.right_id >= resource.right_contexts()
             {
                 return Err(LocalLatticeError::InvalidUnknownModel);
             }

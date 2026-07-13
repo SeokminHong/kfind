@@ -17,8 +17,9 @@ pub use hangul::{
     has_final, has_rieul_final, replace_final, replace_last_final, replace_last_vowel,
 };
 pub use lattice::{
-    DEFAULT_LATTICE_NODE_LIMIT, LocalLatticeDecision, LocalLatticeError, LocalLatticeNode,
-    LocalLatticePath, LocalLatticeReport, evaluate_local_component_paths, evaluate_local_lattice,
+    DEFAULT_LATTICE_NODE_LIMIT, LocalLatticeAnalysis, LocalLatticeDecision, LocalLatticeError,
+    LocalLatticeNode, LocalLatticePath, LocalLatticeReport, LocalLatticeResource,
+    evaluate_local_component_paths, evaluate_local_lattice,
 };
 pub use particle::{
     FinalCondition, ParticleAllomorph, ParticleChainModel, ParticleKind, ParticleMatch,
