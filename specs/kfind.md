@@ -123,6 +123,10 @@
   라이브러리 use case는 같은 보고서의 resource 없는 embedded, embedded + component, full POS,
   full POS + component 초기화 결과로 분리한다. CLI와 라이브러리 결과를 하나의 처리량 점수로
   합치지 않는다.
+- 제품 profile 차트는 실제 CLI wall time·처리량·maximum RSS만 단독으로 비교하지 않는다. 같은
+  profile의 held-out precision·recall·F1과 false-positive 후보 수를 나란히 표시하여 Agent의
+  recall 우선과 사람 CLI의 precision 우선 trade-off를 보존한다. 품질 fixture와 CLI corpus가
+  다른 측정임을 차트에 명시하고 하나의 종합 점수로 합치지 않는다.
 - 보고서는 corpus 설정과 checksum, 저장소에서 commit object로 해석되는 Git revision, CPU, memory, storage, OS, 도구 버전, 실제 명령, 각 run의 wall time·throughput·maximum RSS, median 비교값을 기록한다.
 - 1 GiB low-hit `rg -F` 비교는 한 번의 warm-up 뒤 warm-cache 3회를 수행한다. timer 정밀도를
   확보하기 위해 각 run은 동일 scan 10회의 합산 시간을 측정해 1회당 평균을 기록한다. 권한이

@@ -29,6 +29,9 @@ FP 0을 동시에 유지해야 한다.
 - 실제 CLI 비용은 고정 100 MiB source corpus에서 에이전트 JSON 경로와 사람 기본 출력 경로를
   fresh process로 측정한다. fixture runner의 query별 compile·match 처리량과 CLI wall time·corpus
   처리량을 같은 지표로 해석하지 않는다.
+- 제품 profile 차트는 각 workflow의 precision·recall·F1·false-positive 후보 수와 실제 CLI
+  wall time·corpus 처리량·peak RSS를 함께 보여 준다. 품질 fixture와 CLI corpus는 측정 단위가
+  다르며 하나의 종합 점수로 합치지 않는다.
 
 ## 데이터 역할
 
