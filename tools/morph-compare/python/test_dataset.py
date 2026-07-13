@@ -3,8 +3,17 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from dataset import locate_token_spans, normalize_gold, parse_conllu, sha256
-from local_context_dataset import build_local_context_dataset
+from dataset import (
+    locate_token_spans,
+    normalize_gold,
+    parse_conllu,
+    select_manifest_sources,
+    sha256,
+)
+from local_context_dataset import (
+    build_local_context_dataset,
+    validate_disjoint_sources,
+)
 from validation import validate_local_context_dataset
 
 
@@ -83,11 +92,14 @@ class DatasetTests(unittest.TestCase):
             source_path = root / "sample.conllu"
             source_path.write_text(fixture, encoding="utf-8")
             manifest = {
-                "schema_version": 2,
+                "schema_version": 3,
                 "ud_release": "test",
+                "benchmark_sources": ["sample"],
                 "local_context": {
                     "seed": "test-seed",
                     "split": "dev",
+                    "metadata_split": "dev-local-context",
+                    "sort_scope": "local-context-order",
                     "expected_excluded_candidates": 1,
                     "analyses": [
                         {
@@ -114,6 +126,8 @@ class DatasetTests(unittest.TestCase):
                         },
                         "license": "test",
                         "license_file": "LICENSE",
+                        "license_url": "https://example.invalid/LICENSE",
+                        "license_sha256": "unused",
                     }
                 ],
             }
@@ -128,6 +142,15 @@ class DatasetTests(unittest.TestCase):
             cases = [json.loads(line) for line in output.read_text().splitlines()]
             fixture_digest = sha256(output)
             validate_local_context_dataset(output, cases, metadata)
+            metadata["group_counts"].append(
+                {
+                    "source": "sample",
+                    "raw_tag": "vcn",
+                    "positive_cases": 0,
+                    "negative_cases": 0,
+                }
+            )
+            validate_local_context_dataset(output, cases, metadata)
 
         self.assertEqual(
             (metadata["positive_cases"], metadata["negative_cases"]), (1, 1)
@@ -140,6 +163,50 @@ class DatasetTests(unittest.TestCase):
             metadata["excluded_candidates"], {"sample:jp:있:있다": 1}
         )
         self.assertEqual(metadata["fixture_sha256"], fixture_digest)
+
+    def test_manifest_source_selection_is_explicit(self) -> None:
+        manifest = {
+            "schema_version": 3,
+            "sources": [{"name": "development"}, {"name": "blind"}],
+        }
+        self.assertEqual(
+            [
+                source["name"]
+                for source in select_manifest_sources(manifest, ["blind"])
+            ],
+            ["blind"],
+        )
+
+    def test_blind_context_rejects_normalized_sentence_overlap(self) -> None:
+        fixture = """# sent_id = overlap
+# text = 학생이다.
+1\t학생이다\t학생+이+다\tVERB\tncn+jp+ef\t_\t0\troot\t_\tSpaceAfter=No
+2\t.\t.\tPUNCT\tsf\t_\t1\tpunct\t_\t_
+
+"""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            reference_path = root / "reference.conllu"
+            reference_path.write_text(fixture, encoding="utf-8")
+            target_sentences, _ = parse_conllu("blind", reference_path)
+            sources = {
+                "reference": {
+                    "name": "reference",
+                    "splits": {
+                        "dev": {
+                            "data_file": reference_path.name,
+                            "data_sha256": sha256(reference_path),
+                        }
+                    },
+                }
+            }
+            config = {
+                "disjoint_from": [{"source": "reference", "split": "dev"}]
+            }
+            with self.assertRaisesRegex(ValueError, "overlaps reference/dev"):
+                validate_disjoint_sources(
+                    config, sources, root, {"blind": target_sentences}
+                )
 
 
 if __name__ == "__main__":

@@ -333,6 +333,33 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def manifest_sources_by_name(
+    manifest: dict[str, object],
+) -> dict[str, dict[str, object]]:
+    if manifest.get("schema_version") != 3:
+        raise ValueError("unsupported source manifest schema")
+    sources = manifest.get("sources")
+    if not isinstance(sources, list) or not sources:
+        raise ValueError("source manifest requires sources")
+    indexed = {str(source["name"]): source for source in sources}
+    if len(indexed) != len(sources):
+        raise ValueError("source manifest names are not unique")
+    return indexed
+
+
+def select_manifest_sources(
+    manifest: dict[str, object], names: Iterable[object]
+) -> list[dict[str, object]]:
+    source_names = [str(name) for name in names]
+    if len(set(source_names)) != len(source_names):
+        raise ValueError("selected source names are not unique")
+    indexed = manifest_sources_by_name(manifest)
+    unknown = [name for name in source_names if name not in indexed]
+    if unknown:
+        raise ValueError(f"selected sources are unknown: {unknown}")
+    return [indexed[name] for name in source_names]
+
+
 def build_dataset(
     manifest_path: Path,
     sources_dir: Path,
@@ -341,13 +368,12 @@ def build_dataset(
     split_name: str = "test",
 ) -> dict[str, object]:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if manifest.get("schema_version") != 2:
-        raise ValueError("unsupported source manifest schema")
+    sources = select_manifest_sources(manifest, manifest["benchmark_sources"])
     quotas = manifest["positive_quotas_per_source"]
     seed = manifest["seed"]
     all_cases = []
     source_metadata = []
-    for source in manifest["sources"]:
+    for source in sources:
         split = source["splits"].get(split_name)
         if split is None:
             raise ValueError(f"source {source['name']} has no {split_name} split")
@@ -376,7 +402,7 @@ def build_dataset(
         )
 
     all_cases.sort(key=lambda case: rank(seed, "case-order", case.id))
-    expected_count = 2 * len(manifest["sources"]) * sum(quotas.values())
+    expected_count = 2 * len(sources) * sum(quotas.values())
     if len(all_cases) != expected_count:
         raise ValueError(f"expected {expected_count} cases, generated {len(all_cases)}")
     output.parent.mkdir(parents=True, exist_ok=True)

@@ -87,6 +87,16 @@ profile의 FN은 146개다.
   non-gold reject 비율 24.44%로 제품 판정에는 부족해 P3는 보류한다.
 - [1 GiB low-hit 보고서](2026-07-12-1gib-mixed.md)는 kfind와 rg 모두 0.0470초,
   throughput 21,787.23 MiB/s, kfind RSS 7.23 MiB로 v0.1 게이트를 통과했다.
+- blind 평가는 UD Korean-GSD r2.18 test split으로 확정했다. CC BY-SA 4.0 source와 license
+  digest, 전수 선택·정렬 규칙, 기존 Kaist·KSL dev/test와의 NFC 문장 중복 0건을 스펙에
+  고정했다. fixture는 781개이며 SHA-256은
+  `4be12e060c4bc3faf35b78bb3c9189cafb49e7c885108383c0dd1fb5aeb1b188`이다.
+- manifest schema 3에서 기본 benchmark source와 blind source를 분리했다. Docker build는
+  blind fixture와 metadata를 생성·검증하지만 기본 runner에는 전달하지 않는다. smoke
+  benchmark는 기존 dev local-context 결과만 평가한 채 통과했다.
+- [Korean-GSD blind 평가](2026-07-13-copula-blind-evaluation.md)를 최초 1회 실행했다. 중복
+  제거한 candidate에서 gold accept는 127/142, non-gold reject는 97/101이다. 정상 gold
+  reject가 최소 13개 남아 P3는 계속 보류한다. fixture는 regression baseline으로 전환했다.
 
 dev 명사 FN 70개 중 64개는 사전 누락이 아니라 smart boundary 거부다. 합성어 substring
 계약을 완화하면 hard-negative 정밀도와 충돌하므로 이번 어휘 보강에는 포함하지 않았다.
@@ -260,10 +270,9 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. blind source와 라이선스, 고정 split, sampling·정렬 규칙, artifact digest와 기존
-   dev/test 중복 방지 조건을 스펙에 확정한다.
-2. 확정한 blind source에서 schema 3 비용 분포와 판별력을 확인한다.
-3. non-gold target 오수용을 source·표면형·선택 경로별로 분류한다.
-4. 검증 전에는 threshold, fixture 가중치나 검색 결과를 변경하지 않는다.
+1. 정상 gold reject 13개를 기존 Kaist·KSL dev에서 원인별로 분류한다.
+2. 비용·threshold 후보는 dev에서만 정한다.
+3. 다음 제품 판정용 unseen source를 먼저 고정한다.
+4. 그 전에는 P3 filtering과 기본 검색 결과를 변경하지 않는다.
 
-이 계약을 확정하기 전에는 평가 fixture나 threshold를 추가하지 않는다.
+Korean-GSD 결과에 맞춘 비용·threshold·fixture 가중치 변경은 금지한다.

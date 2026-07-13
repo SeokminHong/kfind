@@ -154,9 +154,8 @@
   shadow counter의 confusion matrix를 별도 보고한다.
 - 지정사 판별 slice에서 accept/reject 비용이나 threshold를 조정하지 않는다. P2 shadow가
   양성 경로와 어휘 내부 음성을 구분하는 판별력을 보인 뒤 별도 blind source로 확인한다.
-- P3 전 blind 평가의 source와 라이선스, 고정 split, sampling·정렬 규칙, artifact digest와
-  dev/test 중복 방지 조건을 스펙에 먼저 확정한다.
-  이 계약이 없으면 현재 dev 비용 분포로 threshold를 선택하거나 제품 판정에 적용하지 않는다.
+- P3 전 blind 평가는 19.8절의 고정 Korean-GSD fixture를 사용한다. 최초 결과를 읽기 전에는
+  schema 3 판정 규칙, 비용과 threshold를 변경하지 않는다.
 
 ### 0.8 Rust 라이브러리와 WASM 대상
 
@@ -1554,6 +1553,70 @@ SHA-256로 생성해 사용한다. test 1,000개 baseline은 변경하지 않는
 도구 출력과 무관한 버전 관리 fixture로 두고 slice별 precision을 전체 품질과 분리해
 보고한다. CI smoke set은 dev fixture에서 source·품사·class별 고정 case를
 deterministic하게 추출하고, 수동 벤치마크는 dev·test·hard-negative 전체를 사용한다.
+
+### 19.8 지정사 lattice blind 평가
+
+P3 전 지정사 lattice 판별력은 기존 Korean-Kaist·KSL과 별개인 UD Korean-GSD의 고정
+test split에서 한 번 확인한다.
+
+| 항목 | 값 |
+| --- | --- |
+| source | UD Korean-GSD r2.18 (`02c343e4e1e3180069f637e68a791ec6b96dd33a`) test split |
+| data URL | `https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-GSD/r2.18/ko_gsd-ud-test.conllu` |
+| data SHA-256 | `3d1df99bda4800235e14bcfd915baf706eafa1a3935a75ffd32420a51e57f5aa` |
+| license | CC BY-SA 4.0 |
+| license URL | `https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-GSD/r2.18/LICENSE.txt` |
+| license SHA-256 | `899b1804a12ebc090b96339614eede1b64b686721b650a71430b55b5235f7f79` |
+| seed | `kfind-vcp-vcn-blind-v1` |
+| fixture SHA-256 | `4be12e060c4bc3faf35b78bb3c9189cafb49e7c885108383c0dd1fb5aeb1b188` |
+
+fixture는 dev 지정사 판별 slice와 같은 정규화와 case schema를 사용한다. 양성은 gold
+`VCP=이`, `VCN=아니` 분석을 occurrence별로 전수 보존한다. 음성은 완전히 정렬된 문장 중
+각 분석에 고정된 surface cue가 있지만 같은 표제어·품사 gold가 없는 문장을 전수 보존한다.
+도구 출력, query anchor와 비용은 선택에 사용하지 않는다. quota sampling은 하지 않는다.
+
+| raw tag | positive | negative |
+| --- | ---: | ---: |
+| VCP | 311 | 460 |
+| VCN | 10 | 0 |
+| 합계 | 321 | 460 |
+
+case는 UTF-8 JSON Lines로 기록하고 object key를 사전순으로 직렬화한다. 각 줄은 LF로 끝난다.
+순서는 `SHA-256(seed + NUL + "blind-context-order" + NUL + case_id)` byte 순이다. source
+hash, 위 그룹별 case 수, 전체 781개와 fixture hash가 다르면 생성을 실패시킨다.
+
+중복 검사는 Korean-GSD test와 manifest에 고정된 Korean-Kaist·KSL dev/test의 모든
+`# text`를 NFC로 정규화한 UTF-8 SHA-256 집합으로 수행한다. 교집합은 0개여야 하며 하나라도
+있으면 해당 문장을 조용히 제외하지 않고 생성을 실패시킨다.
+
+fixture 생성 단계는 source·parsing 통계, case 수와 digest만 노출한다. backend 예측, lattice
+비용과 path는 최초 blind report 전에는 출력하지 않는다. 최초 report는 변경하지 않은 schema 3
+판정의 비용 분포와 판별력만 기록한다. 결과를 확인한 뒤 이 fixture는 regression baseline으로만
+사용하며, 그 결과에 맞춰 비용·threshold·fixture 가중치를 바꾼 구현은 별도 unseen source에서
+다시 검증해야 한다. blind report만으로 union 검색 결과나 기본 정책을 변경하지 않는다.
+
+`tools/morph-compare/sources.json` schema 3은 전체 source 목록과 기본 품질 benchmark에 참여하는
+source 이름을 분리한다. Korean-GSD를 추가해도 기존 Kaist·KSL dev/test 1,000-case fixture의
+구성·digest는 바뀌지 않아야 한다. 지정사 생성기는 config 이름을 받아 dev와 blind fixture에
+같은 선택·직렬화 검증을 적용한다. blind config는 비교할 기존 source·split과 예상 fixture
+digest를 함께 선언하며 중복이나 digest 불일치를 생성 오류로 처리한다.
+
+Docker corpus build는 blind fixture와 metadata를 `/opt/morph-benchmark/data`에 포함하되 기본
+`benchmark.py`에는 입력하지 않는다.
+
+최초 평가는 `KFIND_MORPH_BLIND=1 scripts/benchmark-morphology.sh
+target/morph-blind-report`로만 실행한다. 전용 entrypoint는 blind metadata의 split·case 수·
+fixture digest를 다시 검증하고 각 backend를 warm-up 없이 한 번 평가한다. JSON은 case별
+prediction, span, lattice 비용·경로를 보존하고 Markdown은 품질과 shadow 판정을 요약한다.
+기본 benchmark 명령은 blind fixture를 계속 읽지 않는다. 최초 성공 report의 결과를 문서에
+기록한 뒤 fixture를 regression baseline으로 전환한다.
+
+2026-07-13 최초 report는 7d233a6에서 생성했다. JSON SHA-256은
+`fab077bc4d9b76a0d4e75977e8af0e8ffea8f702612e9c2a8e280ac56c1f076a`다. 문장 안의 모든 gold
+occurrence를 합쳐 candidate를 중복 제거하면 gold target 142개 중 127개를 수용하고 non-gold
+target 101개 중 97개를 거절한다. gold target 15개를 거절하므로 P3는 계속 보류한다. 이 결과로
+비용·threshold·검색 결과를 변경하지 않으며 Korean-GSD fixture는 regression baseline으로만
+사용한다.
 
 ## 20. 성능 사양
 

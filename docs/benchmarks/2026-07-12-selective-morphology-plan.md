@@ -247,7 +247,19 @@ P2는 다음 무결한 작업 단위로 나눈다.
 6. source 분석 보존형 schema 3으로 완전 경로와 query component 판정을 복구한다. (완료)
 7. gold target recall은 회복했지만 non-gold target 구분력이 부족하므로 P3는 보류한다. (완료)
 
-다음 작업은 blind source와 라이선스, 고정 split, sampling·정렬 규칙, artifact digest와
-기존 dev/test 중복 방지 조건을 스펙에 확정하는 것이다.
-그 다음 비용 분포와 non-gold 오수용 원인을 확인하며, 그 전에는 threshold나 검색 결과를
-변경하지 않는다.
+blind 평가는 UD Korean-GSD r2.18 test split의 781개 지정사 case로 확정했다. source와
+license digest, 전수 선택·정렬 규칙, 기존 dev/test와의 NFC 문장 중복 0건, fixture
+SHA-256 `4be12e060c4bc3faf35b78bb3c9189cafb49e7c885108383c0dd1fb5aeb1b188`은 스펙
+19.8절에 고정했다.
+
+manifest schema 3과 Docker build에 fixture 생성·검증 경로를 추가했다. 기존 1,000-case
+test/dev fixture와 dev local-context digest는 유지되며 기본 runner는 blind fixture를 평가하지
+않는다.
+
+최초 blind report를 실행했다. 중복 제거한 candidate에서 gold target accept는 127/142,
+non-gold target reject는 97/101이다. non-gold 구분력은 확인했지만 정상 gold reject가 최소
+13개 남아 P3는 계속 보류한다. 상세 결과는
+[Korean-GSD blind 평가](2026-07-13-copula-blind-evaluation.md)에 기록했다.
+
+다음 작업은 정상 gold reject를 기존 dev에서 분류하고 다음 unseen source를 고정하는 것이다.
+Korean-GSD 결과에 맞춰 비용, threshold나 검색 결과를 변경하지 않는다.
