@@ -242,6 +242,10 @@ P1의 2%p 하락 guardrail을 지켜야 한다.
 FP 68→69로 precision 71.49%, recall 53.89%다. 새 blind gold candidate 24개는 lattice가
 수용하고 `보입니다` 음성 1개는 거절했다. 기본 union과 P3 보류 정책은 유지한다.
 
+dev의 `망해가고`, `만들어가야`와 full-POS의 `넓혀가고`는 `-아/어` anchor 뒤의 보조
+용언을 smart boundary가 거부한다. 진행 방향 `-아/어가다` 중 corpus에서 확인된
+`가고`, `가야` 연쇄만 다음 P1 규칙 보강 범위로 고정한다.
+
 ### P2. benchmark의 판별력을 높인다 (완료)
 
 현재 negative는 쉬워 precision 차이가 거의 나타나지 않는다. 도구 출력과 독립적인 규칙으로
