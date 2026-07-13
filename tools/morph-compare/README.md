@@ -121,3 +121,6 @@ query compilation, filesystem walking, scanning, verification, and output
 serialization. It reports throughput and peak RSS alongside wall time, while
 library resource initialization remains a separate cost. The generated
 `product-use-cases.svg` preserves that separation.
+The generated `product-workflows.svg` places profile precision, recall, F1, and
+false-positive candidates beside actual CLI wall time, throughput, and peak RSS
+while labeling their separate fixture and corpus units.

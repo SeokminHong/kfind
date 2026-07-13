@@ -208,11 +208,12 @@ def render_performance(report: dict[str, object]) -> str:
 
 def render_product_workflows(report: dict[str, object]) -> str:
     workflows = report["product_workflows"]
+    use_cases = report["product_use_cases"]["workflows"]
     agent = workflows["agent"]
     human = workflows["human"]
-    width, height = 1280, 660
+    width, height = 1280, 710
     body = [
-        text(52, 38, "Product workflow benchmark", anchor="start"),
+        text(52, 38, "Product profile trade-offs", anchor="start"),
         text(
             52,
             62,
@@ -222,12 +223,22 @@ def render_product_workflows(report: dict[str, object]) -> str:
     ]
 
     quality_x, quality_y = 52, 112
-    quality_label_width = 190
-    quality_bar_width = 360
+    quality_label_width = 150
+    quality_bar_width = 330
     quality_rows = (
+        (
+            "Agent · precision",
+            float(agent["quality"]["precision_percent"]),
+            COLORS["kfind-embedded"],
+        ),
         (
             "Agent · recall",
             float(agent["quality"]["recall_percent"]),
+            COLORS["kfind-embedded"],
+        ),
+        (
+            "Agent · F1",
+            float(agent["quality"]["f1_percent"]),
             COLORS["kfind-embedded"],
         ),
         (
@@ -241,125 +252,169 @@ def render_product_workflows(report: dict[str, object]) -> str:
             COLORS["kfind-full-pos"],
         ),
         (
-            "Human · POS plan",
-            float(human["plan"]["expected_pos_present_percent"]),
+            "Human · F1",
+            float(human["quality"]["f1_percent"]),
             COLORS["kfind-full-pos"],
         ),
     )
-    body.append(text(quality_x, quality_y - 28, "Quality and query usability · percent"))
+    body.append(text(quality_x, quality_y - 28, "Held-out profile quality · percent"))
     for tick in range(0, 101, 25):
         x = quality_x + quality_label_width + quality_bar_width * tick / 100
         body.append(
             f'<line class="grid" x1="{x:.1f}" y1="{quality_y - 8}" '
-            f'x2="{x:.1f}" y2="{quality_y + 250}"/>'
+            f'x2="{x:.1f}" y2="{quality_y + 282}"/>'
         )
-        body.append(text(x, quality_y + 278, tick, "muted", "middle"))
+        body.append(text(x, quality_y + 308, tick, "muted", "middle"))
     for index, (label, value, color) in enumerate(quality_rows):
-        row_y = quality_y + index * 64
+        row_y = quality_y + index * 48
         body.append(text(quality_x, row_y + 24, label))
         bar_x = quality_x + quality_label_width
         body.append(rect(bar_x, row_y + 7, quality_bar_width * value / 100, 25, color))
         body.append(text(bar_x + quality_bar_width + 12, row_y + 25, f"{value:.2f}%"))
 
-    throughput_x, throughput_y = 700, 112
-    throughput_label_width = 100
-    throughput_bar_width = 350
-    throughput_rows = (
+    false_positive_y = 476
+    false_positive_rows = (
         (
             "Agent",
-            float(agent["performance"]["cases_per_second"]),
+            float(agent["quality"]["fp"]),
             COLORS["kfind-embedded"],
         ),
         (
             "Human",
-            float(human["performance"]["cases_per_second"]),
+            float(human["quality"]["fp"]),
             COLORS["kfind-full-pos"],
         ),
     )
-    maximum_throughput = max(value for _, value, _ in throughput_rows) * 1.08
-    body.append(text(throughput_x, throughput_y - 28, "Throughput · cases/s"))
-    for index, (label, value, color) in enumerate(throughput_rows):
-        row_y = throughput_y + index * 64
-        body.append(text(throughput_x, row_y + 24, label))
-        bar_x = throughput_x + throughput_label_width
+    maximum_false_positives = max(value for _, value, _ in false_positive_rows) * 1.08
+    negative_cases = int(agent["quality"]["fp"]) + int(agent["quality"]["tn"])
+    body.append(
+        text(
+            quality_x,
+            false_positive_y - 28,
+            f"False-positive candidates · {negative_cases} negative cases",
+        )
+    )
+    for index, (label, value, color) in enumerate(false_positive_rows):
+        row_y = false_positive_y + index * 48
+        body.append(text(quality_x, row_y + 24, label))
+        bar_x = quality_x + quality_label_width
         body.append(
             rect(
                 bar_x,
                 row_y + 7,
-                throughput_bar_width * value / maximum_throughput,
+                quality_bar_width * value / maximum_false_positives,
                 25,
                 color,
             )
         )
-        body.append(
-            text(
-                bar_x + throughput_bar_width + 12,
-                row_y + 25,
-                f"{value:,.1f}",
-            )
-        )
+        body.append(text(bar_x + quality_bar_width + 12, row_y + 25, f"{value:.0f}"))
 
-    initialization_y = 340
-    initialization_rows = (
+    performance_x = 700
+    performance_label_width = 100
+    performance_bar_width = 350
+    performance_panels = (
         (
-            "Agent",
-            float(agent["performance"]["initialization_seconds"]) * 1_000,
-            COLORS["kfind-embedded"],
+            112,
+            "Fresh-process CLI wall time · ms · lower is better",
+            (
+                (
+                    "Agent",
+                    float(use_cases["agent"]["performance"]["wall_seconds"])
+                    * 1_000,
+                    COLORS["kfind-embedded"],
+                ),
+                (
+                    "Human",
+                    float(use_cases["human"]["performance"]["wall_seconds"])
+                    * 1_000,
+                    COLORS["kfind-full-pos"],
+                ),
+            ),
+            lambda value: f"{value:.1f} ms",
         ),
         (
-            "Human",
-            float(human["performance"]["initialization_seconds"]) * 1_000,
-            COLORS["kfind-full-pos"],
+            284,
+            "100 MiB CLI throughput · MiB/s · higher is better",
+            (
+                (
+                    "Agent",
+                    float(use_cases["agent"]["performance"]["throughput_mib_s"]),
+                    COLORS["kfind-embedded"],
+                ),
+                (
+                    "Human",
+                    float(use_cases["human"]["performance"]["throughput_mib_s"]),
+                    COLORS["kfind-full-pos"],
+                ),
+            ),
+            lambda value: f"{value:,.1f}",
+        ),
+        (
+            456,
+            "Fresh-process CLI peak RSS · MiB · lower is better",
+            (
+                (
+                    "Agent",
+                    float(use_cases["agent"]["performance"]["peak_rss_kib"])
+                    / 1024,
+                    COLORS["kfind-embedded"],
+                ),
+                (
+                    "Human",
+                    float(use_cases["human"]["performance"]["peak_rss_kib"])
+                    / 1024,
+                    COLORS["kfind-full-pos"],
+                ),
+            ),
+            lambda value: f"{value:.1f} MiB",
         ),
     )
-    maximum_initialization = max(value for _, value, _ in initialization_rows) * 1.08
-    body.append(text(throughput_x, initialization_y - 28, "Initialization · ms"))
-    for index, (label, value, color) in enumerate(initialization_rows):
-        row_y = initialization_y + index * 64
-        body.append(text(throughput_x, row_y + 24, label))
-        bar_x = throughput_x + throughput_label_width
-        body.append(
-            rect(
-                bar_x,
-                row_y + 7,
-                throughput_bar_width * value / maximum_initialization,
-                25,
-                color,
+    for panel_y, label, rows, formatter in performance_panels:
+        maximum = max(value for _, value, _ in rows) * 1.08
+        body.append(text(performance_x, panel_y - 28, label))
+        for index, (row_label, value, color) in enumerate(rows):
+            row_y = panel_y + index * 48
+            body.append(text(performance_x, row_y + 24, row_label))
+            bar_x = performance_x + performance_label_width
+            body.append(
+                rect(
+                    bar_x,
+                    row_y + 7,
+                    performance_bar_width * value / maximum,
+                    25,
+                    color,
+                )
             )
-        )
-        body.append(
-            text(
-                bar_x + throughput_bar_width + 12,
-                row_y + 25,
-                f"{value:,.2f}",
+            body.append(
+                text(
+                    bar_x + performance_bar_width + 12,
+                    row_y + 25,
+                    formatter(value),
+                )
             )
-        )
 
     body.extend(
         [
             text(
                 52,
-                592,
-                f"Agent false-positive candidates: {agent['quality']['fp']}",
-            ),
-            text(
-                700,
-                592,
-                "Library default: embedded engine without optional resources",
-            ),
-            text(
-                700,
-                620,
-                "Optional: full-POS lexicon and component resource",
+                648,
+                "Quality: separate 1,000-case held-out fixtures",
                 "muted",
+            ),
+            text(
+                1228,
+                648,
+                "CLI cost: 100 MiB across 1,000 files · one match · warm cache",
+                "muted",
+                "end",
             ),
         ]
     )
     return svg_document(
         width,
         height,
-        "Product workflow benchmark",
-        "Quality, throughput, and initialization compare the agent embedded-any workflow with the human full-POS-smart workflow.",
+        "Product profile trade-offs",
+        "Precision, recall, F1, and false-positive candidates are shown beside fresh-process CLI wall time, throughput, and peak RSS for the agent and human profiles.",
         body,
     )
 

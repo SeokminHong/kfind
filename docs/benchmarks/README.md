@@ -72,6 +72,8 @@ PUD fixture는 전용 평가 entrypoint가 연결되기 전까지 backend에 입
 `product_use_cases`는 같은 두 profile을 100 MiB·1,000파일 고정 코퍼스의 독립 CLI
 process로 실행하여 wall time, 처리량, peak RSS를 기록한다. 라이브러리 resource 조합의
 초기화 시간과 peak RSS는 CLI workload와 분리한다.
+`product-workflows.svg`는 profile별 precision·recall·F1·FP 후보와 실제 CLI 비용을 함께
+표시하고 두 측정 단위가 다름을 명시한다.
 
 외부 스냅샷은 test fixture나 고정한 도구·어댑터 설정이 바뀔 때만 갱신한다. 기본 명령은
 fixture·schema 불일치에서 자동 실행하거나 오래된 결과를 쓰지 않고 실패한다.

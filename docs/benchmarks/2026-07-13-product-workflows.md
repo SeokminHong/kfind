@@ -14,6 +14,15 @@
 - 라이브러리 기본값은 optional resource가 없는 embedded engine이다. full-POS lexicon과
   component resource는 초기화 시간과 메모리를 감수하는 명시적 선택지다.
 
+## 제품 profile trade-off
+
+![제품 profile별 품질과 실제 CLI 비용](assets/product-workflows.svg)
+
+Agent profile은 recall 95.80%와 6,291.4 MiB/s 처리량을 얻는 대신 FP 후보가 11건이다.
+사람 CLI profile은 precision 99.76%와 FP 1건을 얻지만 recall은 82.00%, 처리량은
+332.1 MiB/s다. 품질은 profile별 1,000-case held-out fixture, CLI 비용은 아래 고정 source
+corpus에서 측정했으며 하나의 종합 점수로 합치지 않는다.
+
 ## 실제 CLI 사용 케이스 성능
 
 ![제품 사용 케이스별 CLI 및 라이브러리 비용](assets/product-use-cases.svg)
@@ -38,8 +47,6 @@
 라이브러리는 검색 workload와 합산하지 않고 resource 조합별 초기화 비용을 따로 기록한다.
 
 ## fixture 단위 workflow 품질과 성능
-
-![제품 workflow별 핵심 지표](assets/product-workflows.svg)
 
 | workflow | TP / FP / FN | precision | recall | init | cases/s | p95 | peak RSS |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
