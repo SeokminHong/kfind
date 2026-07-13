@@ -106,9 +106,33 @@ impl MorphMatcher {
     /// This is intended for matched lines that need JSON or explain metadata.
     #[must_use]
     pub fn find_all_with_meta(&self, haystack: &[u8]) -> Vec<PhraseMatch> {
+        if self.plan.atoms.len() > 1 {
+            return self.find_all_phrases_with_meta(haystack);
+        }
         let mut matches = Vec::new();
         let mut at = 0;
         while let Some(matched) = self.find_at_with_meta(haystack, at) {
+            at = matched.span.end;
+            matches.push(matched);
+        }
+        matches
+    }
+
+    fn find_all_phrases_with_meta(&self, haystack: &[u8]) -> Vec<PhraseMatch> {
+        let text = phrase_join_text(haystack);
+        let atom_spans = self.collect_atom_spans(haystack, 0);
+        let Ok(mut candidates) = join_phrase_spans(&text, &atom_spans, self.plan.phrase_policy)
+        else {
+            return Vec::new();
+        };
+        candidates.sort_by(compare_phrase_matches);
+
+        let mut matches = Vec::new();
+        let mut at = 0;
+        for matched in candidates {
+            if matched.span.start < at {
+                continue;
+            }
             at = matched.span.end;
             matches.push(matched);
         }
