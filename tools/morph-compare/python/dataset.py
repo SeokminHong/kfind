@@ -133,7 +133,103 @@ def locate_token_spans(text: str, forms: Iterable[str]) -> list[tuple[int, int]]
     return spans
 
 
-def parse_conllu(source: str, path: Path) -> tuple[list[Sentence], dict[str, int]]:
+def morpheme_candidates(
+    source: str,
+    sent_id: str,
+    text: str,
+    row: list[str],
+    byte_start: int,
+    byte_end: int,
+    stats: Counter[str],
+) -> tuple[list[GoldCandidate], bool]:
+    lemmas = row[2].split("+")
+    tags = row[4].split("+")
+    original_lemma = next(
+        (
+            field.removeprefix("OrigLemma=")
+            for field in row[9].split("|")
+            if field.startswith("OrigLemma=")
+        ),
+        None,
+    )
+    if len(lemmas) != len(tags) and original_lemma is not None:
+        lemmas = original_lemma.split("+")
+        stats["orig_lemma_tokens"] += 1
+    if len(lemmas) != len(tags):
+        stats["unaligned_tokens"] += 1
+        return [], False
+
+    candidates = []
+    for morph_index, (lemma, tag) in enumerate(zip(lemmas, tags)):
+        normalized = normalize_gold(lemma, tag)
+        if normalized is None:
+            if tag.lower() not in TAG_TO_POS:
+                stats["unsupported_morphemes"] += 1
+            else:
+                stats["non_hangul_morphemes"] += 1
+            continue
+        query, pos = normalized
+        candidates.append(
+            GoldCandidate(
+                source=source,
+                sent_id=sent_id,
+                text=text,
+                token_id=row[0],
+                morph_index=morph_index,
+                query=query,
+                pos=pos,
+                byte_start=byte_start,
+                byte_end=byte_end,
+                raw_lemma=lemma,
+                raw_tag=tag,
+            )
+        )
+    return candidates, True
+
+
+def pud_copula_candidates(
+    source: str,
+    sent_id: str,
+    text: str,
+    row: list[str],
+    byte_start: int,
+    byte_end: int,
+    stats: Counter[str],
+) -> tuple[list[GoldCandidate], bool]:
+    if (row[3], row[4], row[7]) != ("AUX", "VC", "cop"):
+        return [], True
+    stats["source_copula_tokens"] += 1
+    if row[2] == "_":
+        stats["source_copula_missing_lemma"] += 1
+    return [
+        GoldCandidate(
+            source=source,
+            sent_id=sent_id,
+            text=text,
+            token_id=row[0],
+            morph_index=0,
+            query="이다",
+            pos="adjective",
+            byte_start=byte_start,
+            byte_end=byte_end,
+            raw_lemma=row[2],
+            raw_tag=row[4],
+        )
+    ], True
+
+
+SOURCE_ROW_ADAPTERS = {
+    "morpheme": morpheme_candidates,
+    "pud-copula": pud_copula_candidates,
+}
+
+
+def parse_conllu(
+    source: str, path: Path, adapter: str = "morpheme"
+) -> tuple[list[Sentence], dict[str, int]]:
+    row_adapter = SOURCE_ROW_ADAPTERS.get(adapter)
+    if row_adapter is None:
+        raise ValueError(f"unsupported source adapter: {adapter}")
     sentences = []
     stats: Counter[str] = Counter()
     sent_id = None
@@ -153,52 +249,29 @@ def parse_conllu(source: str, path: Path) -> tuple[list[Sentence], dict[str, int
         fully_aligned = True
         for row, (byte_start, byte_end) in zip(token_rows, spans):
             stats["tokens"] += 1
-            lemmas = row[2].split("+")
-            tags = row[4].split("+")
-            original_lemma = next(
-                (
-                    field.removeprefix("OrigLemma=")
-                    for field in row[9].split("|")
-                    if field.startswith("OrigLemma=")
-                ),
-                None,
+            row_candidates, row_aligned = row_adapter(
+                source,
+                sent_id,
+                text,
+                row,
+                byte_start,
+                byte_end,
+                stats,
             )
-            if len(lemmas) != len(tags) and original_lemma is not None:
-                lemmas = original_lemma.split("+")
-                stats["orig_lemma_tokens"] += 1
-            if len(lemmas) != len(tags):
-                stats["unaligned_tokens"] += 1
+            if not row_aligned:
                 fully_aligned = False
-                continue
-            for morph_index, (lemma, tag) in enumerate(zip(lemmas, tags)):
-                normalized = normalize_gold(lemma, tag)
-                if normalized is None:
-                    if tag.lower() not in TAG_TO_POS:
-                        stats["unsupported_morphemes"] += 1
-                    else:
-                        stats["non_hangul_morphemes"] += 1
-                    continue
-                query, pos = normalized
-                key = (query, pos, byte_start, byte_end)
+            for candidate in row_candidates:
+                key = (
+                    candidate.query,
+                    candidate.pos,
+                    candidate.byte_start,
+                    candidate.byte_end,
+                )
                 if key in seen:
                     stats["duplicate_morphemes"] += 1
                     continue
                 seen.add(key)
-                candidates.append(
-                    GoldCandidate(
-                        source=source,
-                        sent_id=sent_id,
-                        text=text,
-                        token_id=row[0],
-                        morph_index=morph_index,
-                        query=query,
-                        pos=pos,
-                        byte_start=byte_start,
-                        byte_end=byte_end,
-                        raw_lemma=lemma,
-                        raw_tag=tag,
-                    )
-                )
+                candidates.append(candidate)
                 stats["eligible_morphemes"] += 1
         sentences.append(
             Sentence(source, sent_id, text, tuple(candidates), fully_aligned)

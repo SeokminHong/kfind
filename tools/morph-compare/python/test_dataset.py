@@ -215,6 +215,102 @@ class DatasetTests(unittest.TestCase):
             ["blind"],
         )
 
+    def test_pud_adapter_preserves_source_copula_exclusions(self) -> None:
+        fixture = """# sent_id = positive
+# text = 학생 이다.
+1\t학생\t학생\tNOUN\tNNG\t_\t0\troot\t_\t_
+2\t이다\t이\tAUX\tVC\tMood=Ind\t1\tcop\t_\tSpaceAfter=No
+3\t.\t.\tPUNCT\tSF\t_\t1\tpunct\t_\t_
+
+# sent_id = excluded
+# text = 기능 이다.
+1\t기능\t기능\tNOUN\tNNG\t_\t0\troot\t_\t_
+2\t이다\t_\tAUX\tVC\tMood=Ind\t1\tcop\t_\tSpaceAfter=No
+3\t.\t.\tPUNCT\tSF\t_\t1\tpunct\t_\t_
+
+# sent_id = negative
+# text = 매일 운동한다.
+1\t매일\t매일\tNOUN\tNNG\t_\t2\tobl\t_\t_
+2\t운동한다\t운동하다\tVERB\tVV\t_\t0\troot\t_\tSpaceAfter=No
+3\t.\t.\tPUNCT\tSF\t_\t2\tpunct\t_\t_
+
+"""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source_path = root / "sample.conllu"
+            source_path.write_text(fixture, encoding="utf-8")
+            manifest = {
+                "schema_version": 3,
+                "ud_release": "test",
+                "unseen_local_context": {
+                    "seed": "test-seed",
+                    "split": "test",
+                    "metadata_split": "unseen-local-context",
+                    "sort_scope": "unseen-context-order",
+                    "expected_excluded_candidates": 1,
+                    "analyses": [
+                        {
+                            "source": "sample",
+                            "raw_tag": "vc",
+                            "raw_lemma": "이",
+                            "query": "이다",
+                            "pos": "adjective",
+                            "negative_surface_cues": ["이", "인", "일"],
+                            "positive_cases": 1,
+                            "negative_cases": 1,
+                        }
+                    ],
+                },
+                "sources": [
+                    {
+                        "name": "sample",
+                        "adapter": "pud-copula",
+                        "splits": {
+                            "test": {
+                                "data_file": source_path.name,
+                                "data_url": "https://example.invalid/sample.conllu",
+                                "data_sha256": sha256(source_path),
+                            }
+                        },
+                        "license": "test",
+                        "license_file": "LICENSE",
+                        "license_url": "https://example.invalid/LICENSE",
+                        "license_sha256": "unused",
+                    }
+                ],
+            }
+            manifest_path = root / "sources.json"
+            output = root / "cases.jsonl"
+            metadata_path = root / "metadata.json"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+            metadata = build_local_context_dataset(
+                manifest_path,
+                root,
+                output,
+                metadata_path,
+                "unseen_local_context",
+            )
+            cases = [json.loads(line) for line in output.read_text().splitlines()]
+            validate_local_context_dataset(
+                output, cases, metadata, "unseen-local-context"
+            )
+
+        positive = next(case for case in cases if case["expected"])
+        negative = next(case for case in cases if not case["expected"])
+        self.assertEqual(positive["id"], "pos:sample:positive:2:0")
+        self.assertEqual(positive["gold_raw_tag"], "VC")
+        self.assertEqual(
+            (positive["gold_byte_start"], positive["gold_byte_end"]), (7, 13)
+        )
+        self.assertEqual(positive["target_group"], "sample/vc")
+        self.assertEqual(negative["sent_id"], "negative")
+        self.assertEqual(metadata["excluded_candidates"], {"sample:vc:_:이다": 1})
+        self.assertEqual(metadata["sources"][0]["parsing"]["source_copula_tokens"], 2)
+        self.assertEqual(
+            metadata["sources"][0]["parsing"]["source_copula_missing_lemma"], 1
+        )
+
     def test_blind_context_rejects_normalized_sentence_overlap(self) -> None:
         fixture = """# sent_id = overlap
 # text = 학생이다.
