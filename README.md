@@ -331,6 +331,30 @@ agent quality contract is detailed in the 2026-07-13 workflow report.
 - [2026-07-14 smart-precision quality and performance](docs/benchmarks/2026-07-14-user-smart-precision.md)
 - [2026-07-13 product workflow methodology and external snapshots](docs/benchmarks/2026-07-13-product-workflows.md)
 
+### External analyzer comparison
+
+The table below uses the same 1,000-case explicit-POS fixture and gold. The
+Agent row and the pinned external analyzers receive explicit POS; the User row
+removes POS from the same queries to represent interactive use. Agent and User
+were measured on 2026-07-14. External rows reuse snapshots whose fixture,
+schema, version, and configuration did not change.
+
+| Backend | Input and version | TP / FP / FN | Precision | Recall | F1 | Init | Cases/s | p95 | Peak RSS |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Agent | embedded + `any`, explicit POS | 479 / 11 / 21 | 97.76% | 95.80% | 96.77% | 0.0012 s | 14,879.5 | 0.1553 ms | 5.3 MiB |
+| User | full POS + `smart`, untagged | 410 / 0 / 90 | 100.00% | 82.00% | 90.11% | 0.4408 s | 7,197.3 | 0.4323 ms | 92.0 MiB |
+| Kiwi | snapshot 0.23.2, model 0.23.0, explicit POS | 426 / 0 / 74 | 100.00% | 85.20% | 92.01% | 1.7204 s | 1,672.0 | 1.1904 ms | 528.2 MiB |
+| Lindera | snapshot 4.0.0, embedded-ko-dic, explicit POS | 393 / 0 / 107 | 100.00% | 78.60% | 88.02% | 0.0301 s | 15,609.1 | 0.1113 ms | 193.1 MiB |
+| MeCab-ko | snapshot 1.0.2, dictionary 1.0.0, explicit POS | 403 / 0 / 97 | 100.00% | 80.60% | 89.26% | 0.0003 s | 10,789.7 | 0.1940 ms | 102.8 MiB |
+| KOMORAN | snapshot 3.3.9, FULL, explicit POS | 406 / 0 / 94 | 100.00% | 81.20% | 89.62% | 1.1589 s | 1,669.4 | 1.2370 ms | 686.6 MiB |
+
+![Persona-adjusted quality and performance against pinned external analyzers](docs/benchmarks/assets/2026-07-14-user-smart-precision-product-external-comparison.svg)
+
+This is a product task workload comparison, not a same-input backend ranking or
+pure tokenizer benchmark. Each backend includes its own query preparation,
+analysis, and matching costs; the User row additionally includes automatic POS
+planning and ambiguity.
+
 ### Scan, startup, and query compilation
 
 | Workload | Result | Measurement |
