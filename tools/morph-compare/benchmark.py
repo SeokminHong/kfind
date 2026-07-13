@@ -23,7 +23,13 @@ from python.adapters import (
     lindera_candidates,
     spans_overlap,
 )
-from python.report import KFIND_PROFILES, build_report, quality_metrics, render_markdown
+from python.report import (
+    KFIND_PROFILES,
+    build_report,
+    quality_metrics,
+    render_markdown,
+    untagged_plan_metrics,
+)
 from python.validation import (
     load_cases,
     select_smoke_cases,
@@ -31,6 +37,7 @@ from python.validation import (
     validate_dataset,
     validate_hard_negatives,
     validate_local_context_dataset,
+    validate_untagged_dataset,
     write_cases,
 )
 
@@ -39,6 +46,12 @@ DEFAULT_CASES = Path("/opt/morph-benchmark/data/cases.jsonl")
 DEFAULT_METADATA = Path("/opt/morph-benchmark/data/metadata.json")
 DEFAULT_DEV_CASES = Path("/opt/morph-benchmark/data/dev-cases.jsonl")
 DEFAULT_DEV_METADATA = Path("/opt/morph-benchmark/data/dev-metadata.json")
+DEFAULT_HUMAN_UNTAGGED_CASES = Path(
+    "/opt/morph-benchmark/data/human-untagged-cases.jsonl"
+)
+DEFAULT_HUMAN_UNTAGGED_METADATA = Path(
+    "/opt/morph-benchmark/data/human-untagged-metadata.json"
+)
 DEFAULT_LOCAL_CONTEXT_CASES = Path(
     "/opt/morph-benchmark/data/local-context-cases.jsonl"
 )
@@ -55,6 +68,7 @@ STARTUP_PROFILES = (
     "full-pos-component",
 )
 BOUNDARY_POLICIES = ("smart", "token", "any")
+HUMAN_BOUNDARY_POLICIES = ("smart", "any")
 
 
 def run_native_backend(
@@ -96,6 +110,31 @@ def run_native_boundary_profile(
             raise RuntimeError(
                 f"{profile}/{boundary} runner failed with exit {result.returncode}: "
                 f"{result.stderr.strip()}"
+            )
+        return json.loads(output.read_text(encoding="utf-8"))
+
+
+def run_native_untagged_profile(
+    runner: Path, profile: str, boundary: str, cases_path: Path
+) -> dict[str, object]:
+    with tempfile.TemporaryDirectory() as directory:
+        output = Path(directory) / f"untagged-{profile}-{boundary}.json"
+        result = subprocess.run(
+            [
+                str(runner),
+                "untagged",
+                profile,
+                boundary,
+                str(cases_path),
+                str(output),
+            ],
+            text=True,
+            capture_output=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"untagged {profile}/{boundary} runner failed with exit "
+                f"{result.returncode}: {result.stderr.strip()}"
             )
         return json.loads(output.read_text(encoding="utf-8"))
 
@@ -460,6 +499,114 @@ def evaluate_boundary_comparison(
     }
 
 
+def evaluate_untagged_profile_runs(
+    cases: list[dict[str, object]],
+    cases_path: Path,
+    runner: Path,
+    profile: str,
+    boundary: str,
+    runs: int,
+) -> tuple[dict[str, object], dict[str, dict[str, object]]]:
+    run_native_untagged_profile(runner, profile, boundary, cases_path)
+    evaluations = []
+    diagnostics = []
+    summaries = []
+    for _ in range(runs):
+        summary = run_native_untagged_profile(
+            runner, profile, boundary, cases_path
+        )
+        summaries.append(summary)
+        evaluations.append(evaluate_kfind(cases, summary, f"{profile}/{boundary}"))
+        diagnostics.append(
+            {
+                result["id"]: result["plan_diagnostic"]
+                for result in summary["results"]
+            }
+        )
+    first = evaluations[0]
+    for evaluation, plan_diagnostics in zip(evaluations[1:], diagnostics[1:]):
+        if evaluation[0] != first[0] or evaluation[1] != first[1]:
+            raise ValueError(
+                f"untagged {profile}/{boundary} predictions changed between runs"
+            )
+        if plan_diagnostics != diagnostics[0]:
+            raise ValueError(
+                f"untagged {profile}/{boundary} plans changed between runs"
+            )
+    expected_component = boundary == "smart"
+    if any(
+        summary["profile"] != profile
+        or summary["boundary"] != boundary
+        or (summary["component_artifact_sha256"] is not None)
+        != expected_component
+        for summary in summaries
+    ):
+        raise ValueError(
+            f"untagged {profile}/{boundary} resource state differs from its profile"
+        )
+    failures = [
+        {
+            "case": case,
+            "predicted": first[0][case["id"]],
+            "matching_spans": first[1][case["id"]],
+            "plan_diagnostic": diagnostics[0][case["id"]],
+        }
+        for case in cases
+        if first[0][case["id"]] != bool(case["expected"])
+    ]
+    return (
+        {
+            "quality": quality_metrics(cases, first[0]),
+            "performance": aggregate_performance(
+                [evaluation[2] for evaluation in evaluations], warmup_runs=1
+            ),
+            "component_resource_loaded": expected_component,
+            "lexicon_artifact_sha256": summaries[0][
+                "lexicon_artifact_sha256"
+            ],
+            "component_artifact_sha256": summaries[0][
+                "component_artifact_sha256"
+            ],
+            "failures": failures,
+        },
+        diagnostics[0],
+    )
+
+
+def evaluate_human_untagged(
+    cases: list[dict[str, object]],
+    metadata: dict[str, object],
+    cases_path: Path,
+    runner: Path,
+    runs: int,
+) -> dict[str, object]:
+    profiles = {}
+    for backend in KFIND_PROFILES:
+        profile = backend.removeprefix("kfind-")
+        boundaries = {}
+        plan_diagnostics = None
+        for boundary in HUMAN_BOUNDARY_POLICIES:
+            result, current_diagnostics = evaluate_untagged_profile_runs(
+                cases, cases_path, runner, profile, boundary, runs
+            )
+            if plan_diagnostics is not None and current_diagnostics != plan_diagnostics:
+                raise ValueError(
+                    f"untagged {profile} plan differs between boundary policies"
+                )
+            plan_diagnostics = current_diagnostics
+            boundaries[boundary] = result
+        profiles[profile] = {
+            "plan": untagged_plan_metrics(cases, plan_diagnostics or {}),
+            "boundaries": boundaries,
+        }
+    return {
+        "task": "sentence lemma presence from an untagged query",
+        "dataset": metadata,
+        "boundaries": list(HUMAN_BOUNDARY_POLICIES),
+        "profiles": profiles,
+    }
+
+
 def evaluate_lindera_runs(
     cases: list[dict[str, object]],
     runner: Path,
@@ -591,6 +738,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dev-cases", type=Path, default=DEFAULT_DEV_CASES)
     parser.add_argument("--dev-metadata", type=Path, default=DEFAULT_DEV_METADATA)
     parser.add_argument(
+        "--human-untagged-cases", type=Path, default=DEFAULT_HUMAN_UNTAGGED_CASES
+    )
+    parser.add_argument(
+        "--human-untagged-metadata",
+        type=Path,
+        default=DEFAULT_HUMAN_UNTAGGED_METADATA,
+    )
+    parser.add_argument(
         "--local-context-cases", type=Path, default=DEFAULT_LOCAL_CONTEXT_CASES
     )
     parser.add_argument(
@@ -615,6 +770,15 @@ def main() -> int:
         dev_cases = load_cases(args.dev_cases)
         dev_metadata = json.loads(args.dev_metadata.read_text(encoding="utf-8"))
         validate_dataset(args.dev_cases, dev_cases, dev_metadata)
+        human_untagged_cases = load_cases(args.human_untagged_cases)
+        human_untagged_metadata = json.loads(
+            args.human_untagged_metadata.read_text(encoding="utf-8")
+        )
+        validate_untagged_dataset(
+            args.human_untagged_cases,
+            human_untagged_cases,
+            human_untagged_metadata,
+        )
         local_context_cases = load_cases(args.local_context_cases)
         local_context_metadata = json.loads(
             args.local_context_metadata.read_text(encoding="utf-8")
@@ -630,12 +794,21 @@ def main() -> int:
                 local_context_smoke_path = (
                     Path(directory) / "local-context-smoke-cases.jsonl"
                 )
+                human_untagged_smoke_path = (
+                    Path(directory) / "human-untagged-smoke-cases.jsonl"
+                )
                 smoke_cases = select_smoke_cases(dev_cases)
+                human_untagged_smoke_cases = select_smoke_cases(
+                    human_untagged_cases
+                )
                 local_context_smoke_cases = select_smoke_cases(
                     local_context_cases,
                     ("source", "target_raw_tag", "expected"),
                 )
                 write_cases(smoke_path, smoke_cases)
+                write_cases(
+                    human_untagged_smoke_path, human_untagged_smoke_cases
+                )
                 write_cases(local_context_smoke_path, local_context_smoke_cases)
                 baseline = evaluate_dataset(
                     smoke_cases, smoke_path, args.runner, 1, True
@@ -678,6 +851,18 @@ def main() -> int:
                 )
                 report["boundary_comparison"] = evaluate_boundary_comparison(
                     smoke_cases, smoke_path, args.runner, 1, baseline
+                )
+                report["human_untagged"] = evaluate_human_untagged(
+                    human_untagged_smoke_cases,
+                    smoke_metadata(
+                        human_untagged_smoke_path,
+                        human_untagged_smoke_cases,
+                        human_untagged_metadata,
+                        "test-human-untagged-smoke",
+                    ),
+                    human_untagged_smoke_path,
+                    args.runner,
+                    1,
                 )
                 return write_report(args.output, report)
 
@@ -739,6 +924,13 @@ def main() -> int:
         )
         report["boundary_comparison"] = evaluate_boundary_comparison(
             cases, args.cases, args.runner, args.runs, baseline
+        )
+        report["human_untagged"] = evaluate_human_untagged(
+            human_untagged_cases,
+            human_untagged_metadata,
+            args.human_untagged_cases,
+            args.runner,
+            args.runs,
         )
         return write_report(args.output, report)
     except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:
