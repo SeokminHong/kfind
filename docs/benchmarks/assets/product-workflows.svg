@@ -58,25 +58,25 @@
 <text x="544.0" y="549.0" text-anchor="start">1</text>
 <text x="700.0" y="84.0" text-anchor="start">Fresh-process CLI wall time · ms · lower is better</text>
 <text x="700.0" y="136.0" text-anchor="start">Agent</text>
-<rect x="800.0" y="119.0" width="17.1" height="25.0" rx="3" fill="#2563eb"/>
-<text x="1162.0" y="137.0" text-anchor="start">15.9 ms</text>
+<rect x="800.0" y="119.0" width="18.3" height="25.0" rx="3" fill="#2563eb"/>
+<text x="1162.0" y="137.0" text-anchor="start">18.0 ms</text>
 <text x="700.0" y="184.0" text-anchor="start">Human</text>
 <rect x="800.0" y="167.0" width="324.1" height="25.0" rx="3" fill="#7c3aed"/>
-<text x="1162.0" y="185.0" text-anchor="start">301.1 ms</text>
+<text x="1162.0" y="185.0" text-anchor="start">317.3 ms</text>
 <text x="700.0" y="256.0" text-anchor="start">100 MiB CLI throughput · MiB/s · higher is better</text>
 <text x="700.0" y="308.0" text-anchor="start">Agent</text>
 <rect x="800.0" y="291.0" width="324.1" height="25.0" rx="3" fill="#2563eb"/>
-<text x="1162.0" y="309.0" text-anchor="start">6,291.4</text>
+<text x="1162.0" y="309.0" text-anchor="start">5,570.2</text>
 <text x="700.0" y="356.0" text-anchor="start">Human</text>
-<rect x="800.0" y="339.0" width="17.1" height="25.0" rx="3" fill="#7c3aed"/>
-<text x="1162.0" y="357.0" text-anchor="start">332.1</text>
+<rect x="800.0" y="339.0" width="18.3" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="1162.0" y="357.0" text-anchor="start">315.2</text>
 <text x="700.0" y="428.0" text-anchor="start">Fresh-process CLI peak RSS · MiB · lower is better</text>
 <text x="700.0" y="480.0" text-anchor="start">Agent</text>
-<rect x="800.0" y="463.0" width="24.9" height="25.0" rx="3" fill="#2563eb"/>
-<text x="1162.0" y="481.0" text-anchor="start">7.0 MiB</text>
+<rect x="800.0" y="463.0" width="25.4" height="25.0" rx="3" fill="#2563eb"/>
+<text x="1162.0" y="481.0" text-anchor="start">7.2 MiB</text>
 <text x="700.0" y="528.0" text-anchor="start">Human</text>
 <rect x="800.0" y="511.0" width="324.1" height="25.0" rx="3" fill="#7c3aed"/>
-<text x="1162.0" y="529.0" text-anchor="start">91.5 MiB</text>
+<text x="1162.0" y="529.0" text-anchor="start">91.6 MiB</text>
 <text x="52.0" y="648.0" text-anchor="start" class="muted">Quality: separate 1,000-case held-out fixtures</text>
 <text x="1228.0" y="648.0" text-anchor="end" class="muted">CLI cost: 100 MiB across 1,000 files · one match · warm cache</text>
 </svg>

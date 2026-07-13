@@ -22,38 +22,38 @@
 <text x="52.0" y="62.0" text-anchor="start" class="muted">Fresh CLI process · warm filesystem cache · 100 MiB across 1,000 files · one match</text>
 <text x="52.0" y="112.0" text-anchor="start">Wall time · ms · lower is better</text>
 <text x="52.0" y="168.0" text-anchor="start">Agent</text>
-<rect x="124.0" y="151.0" width="9.7" height="25.0" rx="3" fill="#2563eb"/>
-<text x="332.0" y="169.0" text-anchor="start">15.9 ms</text>
+<rect x="124.0" y="151.0" width="10.4" height="25.0" rx="3" fill="#2563eb"/>
+<text x="332.0" y="169.0" text-anchor="start">18.0 ms</text>
 <text x="52.0" y="232.0" text-anchor="start">Human</text>
 <rect x="124.0" y="215.0" width="183.3" height="25.0" rx="3" fill="#7c3aed"/>
-<text x="332.0" y="233.0" text-anchor="start">301.1 ms</text>
+<text x="332.0" y="233.0" text-anchor="start">317.3 ms</text>
 <text x="455.0" y="112.0" text-anchor="start">Throughput · MiB/s · higher is better</text>
 <text x="455.0" y="168.0" text-anchor="start">Agent</text>
 <rect x="527.0" y="151.0" width="183.3" height="25.0" rx="3" fill="#2563eb"/>
-<text x="735.0" y="169.0" text-anchor="start">6,291.4</text>
+<text x="735.0" y="169.0" text-anchor="start">5,570.2</text>
 <text x="455.0" y="232.0" text-anchor="start">Human</text>
-<rect x="527.0" y="215.0" width="9.7" height="25.0" rx="3" fill="#7c3aed"/>
-<text x="735.0" y="233.0" text-anchor="start">332.1</text>
+<rect x="527.0" y="215.0" width="10.4" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="735.0" y="233.0" text-anchor="start">315.2</text>
 <text x="858.0" y="112.0" text-anchor="start">Peak RSS · MiB · lower is better</text>
 <text x="858.0" y="168.0" text-anchor="start">Agent</text>
-<rect x="930.0" y="151.0" width="14.1" height="25.0" rx="3" fill="#2563eb"/>
-<text x="1138.0" y="169.0" text-anchor="start">7.0 MiB</text>
+<rect x="930.0" y="151.0" width="14.4" height="25.0" rx="3" fill="#2563eb"/>
+<text x="1138.0" y="169.0" text-anchor="start">7.2 MiB</text>
 <text x="858.0" y="232.0" text-anchor="start">Human</text>
 <rect x="930.0" y="215.0" width="183.3" height="25.0" rx="3" fill="#7c3aed"/>
-<text x="1138.0" y="233.0" text-anchor="start">91.5 MiB</text>
+<text x="1138.0" y="233.0" text-anchor="start">91.6 MiB</text>
 <text x="52.0" y="374.0" text-anchor="start">Library initialization · ms · lower is better</text>
 <text x="52.0" y="430.0" text-anchor="start">Embedded</text>
-<rect x="242.0" y="413.0" width="0.8" height="25.0" rx="3" fill="#2563eb"/>
-<text x="487.0" y="431.0" text-anchor="start">1.1 ms</text>
+<rect x="242.0" y="413.0" width="0.9" height="25.0" rx="3" fill="#2563eb"/>
+<text x="487.0" y="431.0" text-anchor="start">1.2 ms</text>
 <text x="52.0" y="488.0" text-anchor="start">Embedded + component</text>
-<rect x="242.0" y="471.0" width="118.5" height="25.0" rx="3" fill="#2563eb"/>
-<text x="487.0" y="489.0" text-anchor="start">151.0 ms</text>
+<rect x="242.0" y="471.0" width="116.8" height="25.0" rx="3" fill="#2563eb"/>
+<text x="487.0" y="489.0" text-anchor="start">157.1 ms</text>
 <text x="52.0" y="546.0" text-anchor="start">Full-POS</text>
-<rect x="242.0" y="529.0" width="101.0" height="25.0" rx="3" fill="#7c3aed"/>
-<text x="487.0" y="547.0" text-anchor="start">128.6 ms</text>
+<rect x="242.0" y="529.0" width="102.5" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="487.0" y="547.0" text-anchor="start">137.9 ms</text>
 <text x="52.0" y="604.0" text-anchor="start">Full-POS + component</text>
 <rect x="242.0" y="587.0" width="217.6" height="25.0" rx="3" fill="#7c3aed"/>
-<text x="487.0" y="605.0" text-anchor="start">277.2 ms</text>
+<text x="487.0" y="605.0" text-anchor="start">292.7 ms</text>
 <text x="680.0" y="374.0" text-anchor="start">Library peak RSS · MiB · lower is better</text>
 <text x="680.0" y="430.0" text-anchor="start">Embedded</text>
 <rect x="870.0" y="413.0" width="8.5" height="25.0" rx="3" fill="#2563eb"/>

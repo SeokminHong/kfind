@@ -44,7 +44,7 @@ FP 0을 동시에 유지해야 한다.
 - revised hard-negative: 경계 정밀도와 신규 FP 확인
 - Korean-GSD 지정사 fixture: 고정 regression baseline
 - UD Korean-PUD r2.18 test: 지정사 필터링 제품 판정용 unseen 검증
-- 외부 분석기 스냅샷: 같은 test fixture에서 Kiwi·Lindera·MeCab-ko·KOMORAN 품질 비교
+- 외부 분석기 스냅샷: 같은 test fixture에서 Kiwi·Lindera·MeCab-ko·KOMORAN 품질·성능 비교
 
 Kaist·KSL test, Korean-GSD와 PUD 결과에 맞춰 규칙, 비용, threshold와 fixture 선택을 변경하지
 않는다.

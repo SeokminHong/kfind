@@ -3,8 +3,8 @@
 [한국어](README.ko.md)
 
 This development tool runs the `kfind` embedded/full-POS profiles on the same
-held-out cases and compares them with pinned quality snapshots from Kiwi,
-Lindera, MeCab-ko, and KOMORAN. External analyzers and corpora are not part of
+held-out cases and compares them with pinned quality and performance snapshots
+from Kiwi, Lindera, MeCab-ko, and KOMORAN. External analyzers and corpora are not part of
 the product binary or default search path.
 
 Fixtures are generated from the Universal Dependencies 2.18 Korean-Kaist and
@@ -51,9 +51,10 @@ source/POS/expected combination:
 KFIND_MORPH_SMOKE=1 KFIND_MORPH_RUNS=1 scripts/benchmark-morphology.sh
 ```
 
-Refresh the external snapshot explicitly only when the test fixture or pinned
-external tool and adapter configuration changes. The default benchmark fails
-with this command when the fixture or snapshot schema does not match:
+Refresh the external snapshot explicitly only when the test fixture,
+performance schema, or pinned external tool and adapter configuration changes.
+The default benchmark fails with this command when the fixture or snapshot
+schema does not match:
 
 ```sh
 scripts/refresh-morph-baselines.sh
@@ -95,9 +96,11 @@ Shadow verification records raw anchor hits, verified branch hits, local-lattice
 candidates, and unique analysis windows per case outside the timed evaluation.
 
 Current performance covers kfind's end-to-end query-to-decision workload and
-reports the median and min/max across measured runs. External analyzer quality
-snapshots do not appear in the current performance table. The full test report also compares smart, token, and any
-for both kfind lexicon profiles; only smart loads the component resource. A
+reports the median and min/max across measured runs. The explicit-POS comparison
+places the current Agent measurement beside pinned quality and performance
+snapshots for all four external analyzers. The full test report also compares
+smart, token, and any for both kfind lexicon profiles; only smart loads the
+component resource. A
 separate startup table compares resource-less embedded and full-POS engines with
 the same engines after explicit component loading.
 Each startup profile runs in a fresh process after one warm-up and records at
@@ -124,3 +127,6 @@ library resource initialization remains a separate cost. The generated
 The generated `product-workflows.svg` places profile precision, recall, F1, and
 false-positive candidates beside actual CLI wall time, throughput, and peak RSS
 while labeling their separate fixture and corpus units.
+The generated `product-external-comparison.svg` compares Agent, Kiwi, Lindera,
+MeCab-ko, and KOMORAN on precision, recall, F1, initialization, throughput, p95,
+and peak RSS for the same explicit-POS task.

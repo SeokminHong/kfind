@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="1040" viewBox="0 0 1280 1040" role="img" aria-labelledby="title desc">
+<title id="title">Explicit-POS quality and performance</title>
+<desc id="desc">Five rows compare Agent embedded plus any, Kiwi, Lindera, MeCab-ko, and KOMORAN on precision, recall, F1, throughput, initialization, p95 latency, and peak RSS.</desc>
+
+<style>
+  .background { fill: #ffffff; }
+  text { fill: #111827; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .muted { fill: #4b5563; }
+  .grid { stroke: #d1d5db; stroke-width: 1; }
+  .axis { stroke: #6b7280; stroke-width: 1; }
+  @media (prefers-color-scheme: dark) {
+    .background { fill: #0d1117; }
+    text { fill: #f3f4f6; }
+    .muted { fill: #9ca3af; }
+    .grid { stroke: #374151; }
+    .axis { stroke: #9ca3af; }
+  }
+</style>
+
+<rect class="background" width="1280" height="1040"/>
+<text x="52.0" y="38.0" text-anchor="start">Explicit-POS quality and performance</text>
+<text x="52.0" y="62.0" text-anchor="start" class="muted">Same 1,000 held-out cases · Agent embedded + any · one warm-up + five measured runs</text>
+<text x="52.0" y="112.0" text-anchor="start">Precision · percent</text>
+<text x="52.0" y="164.0" text-anchor="start">Agent</text>
+<rect x="144.0" y="147.0" width="185.7" height="25.0" rx="3" fill="#2563eb"/>
+<text x="344.0" y="165.0" text-anchor="start">97.76%</text>
+<text x="52.0" y="212.0" text-anchor="start">kiwi</text>
+<rect x="144.0" y="195.0" width="190.0" height="25.0" rx="3" fill="#059669"/>
+<text x="344.0" y="213.0" text-anchor="start">100.00%</text>
+<text x="52.0" y="260.0" text-anchor="start">lindera</text>
+<rect x="144.0" y="243.0" width="190.0" height="25.0" rx="3" fill="#d97706"/>
+<text x="344.0" y="261.0" text-anchor="start">100.00%</text>
+<text x="52.0" y="308.0" text-anchor="start">mecab-ko</text>
+<rect x="144.0" y="291.0" width="190.0" height="25.0" rx="3" fill="#dc2626"/>
+<text x="344.0" y="309.0" text-anchor="start">100.00%</text>
+<text x="52.0" y="356.0" text-anchor="start">komoran</text>
+<rect x="144.0" y="339.0" width="190.0" height="25.0" rx="3" fill="#0891b2"/>
+<text x="344.0" y="357.0" text-anchor="start">100.00%</text>
+<text x="455.0" y="112.0" text-anchor="start">Recall · percent</text>
+<text x="455.0" y="164.0" text-anchor="start">Agent</text>
+<rect x="547.0" y="147.0" width="182.0" height="25.0" rx="3" fill="#2563eb"/>
+<text x="747.0" y="165.0" text-anchor="start">95.80%</text>
+<text x="455.0" y="212.0" text-anchor="start">kiwi</text>
+<rect x="547.0" y="195.0" width="161.9" height="25.0" rx="3" fill="#059669"/>
+<text x="747.0" y="213.0" text-anchor="start">85.20%</text>
+<text x="455.0" y="260.0" text-anchor="start">lindera</text>
+<rect x="547.0" y="243.0" width="149.3" height="25.0" rx="3" fill="#d97706"/>
+<text x="747.0" y="261.0" text-anchor="start">78.60%</text>
+<text x="455.0" y="308.0" text-anchor="start">mecab-ko</text>
+<rect x="547.0" y="291.0" width="153.1" height="25.0" rx="3" fill="#dc2626"/>
+<text x="747.0" y="309.0" text-anchor="start">80.60%</text>
+<text x="455.0" y="356.0" text-anchor="start">komoran</text>
+<rect x="547.0" y="339.0" width="154.3" height="25.0" rx="3" fill="#0891b2"/>
+<text x="747.0" y="357.0" text-anchor="start">81.20%</text>
+<text x="858.0" y="112.0" text-anchor="start">F1 · percent</text>
+<text x="858.0" y="164.0" text-anchor="start">Agent</text>
+<rect x="950.0" y="147.0" width="183.9" height="25.0" rx="3" fill="#2563eb"/>
+<text x="1150.0" y="165.0" text-anchor="start">96.77%</text>
+<text x="858.0" y="212.0" text-anchor="start">kiwi</text>
+<rect x="950.0" y="195.0" width="174.8" height="25.0" rx="3" fill="#059669"/>
+<text x="1150.0" y="213.0" text-anchor="start">92.01%</text>
+<text x="858.0" y="260.0" text-anchor="start">lindera</text>
+<rect x="950.0" y="243.0" width="167.2" height="25.0" rx="3" fill="#d97706"/>
+<text x="1150.0" y="261.0" text-anchor="start">88.02%</text>
+<text x="858.0" y="308.0" text-anchor="start">mecab-ko</text>
+<rect x="950.0" y="291.0" width="169.6" height="25.0" rx="3" fill="#dc2626"/>
+<text x="1150.0" y="309.0" text-anchor="start">89.26%</text>
+<text x="858.0" y="356.0" text-anchor="start">komoran</text>
+<rect x="950.0" y="339.0" width="170.3" height="25.0" rx="3" fill="#0891b2"/>
+<text x="1150.0" y="357.0" text-anchor="start">89.62%</text>
+<text x="52.0" y="446.0" text-anchor="start">Throughput</text>
+<text x="600.0" y="446.0" text-anchor="end" class="muted">higher is better</text>
+<text x="52.0" y="494.0" text-anchor="start">Agent</text>
+<rect x="164.0" y="477.0" width="239.6" height="25.0" rx="3" fill="#2563eb"/>
+<text x="449.0" y="495.0" text-anchor="start">14687.1 cases/s</text>
+<text x="52.0" y="540.0" text-anchor="start">kiwi</text>
+<rect x="164.0" y="523.0" width="27.3" height="25.0" rx="3" fill="#059669"/>
+<text x="449.0" y="541.0" text-anchor="start">1672.0 cases/s</text>
+<text x="52.0" y="586.0" text-anchor="start">lindera</text>
+<rect x="164.0" y="569.0" width="254.6" height="25.0" rx="3" fill="#d97706"/>
+<text x="449.0" y="587.0" text-anchor="start">15609.1 cases/s</text>
+<text x="52.0" y="632.0" text-anchor="start">mecab-ko</text>
+<rect x="164.0" y="615.0" width="176.0" height="25.0" rx="3" fill="#dc2626"/>
+<text x="449.0" y="633.0" text-anchor="start">10789.7 cases/s</text>
+<text x="52.0" y="678.0" text-anchor="start">komoran</text>
+<rect x="164.0" y="661.0" width="27.2" height="25.0" rx="3" fill="#0891b2"/>
+<text x="449.0" y="679.0" text-anchor="start">1669.4 cases/s</text>
+<text x="680.0" y="446.0" text-anchor="start">Initialization</text>
+<text x="1228.0" y="446.0" text-anchor="end" class="muted">lower is better</text>
+<text x="680.0" y="494.0" text-anchor="start">Agent</text>
+<rect x="792.0" y="477.0" width="0.2" height="25.0" rx="3" fill="#2563eb"/>
+<text x="1077.0" y="495.0" text-anchor="start">0.0012 s</text>
+<text x="680.0" y="540.0" text-anchor="start">kiwi</text>
+<rect x="792.0" y="523.0" width="254.6" height="25.0" rx="3" fill="#059669"/>
+<text x="1077.0" y="541.0" text-anchor="start">1.7204 s</text>
+<text x="680.0" y="586.0" text-anchor="start">lindera</text>
+<rect x="792.0" y="569.0" width="4.5" height="25.0" rx="3" fill="#d97706"/>
+<text x="1077.0" y="587.0" text-anchor="start">0.0301 s</text>
+<text x="680.0" y="632.0" text-anchor="start">mecab-ko</text>
+<rect x="792.0" y="615.0" width="0.0" height="25.0" rx="3" fill="#dc2626"/>
+<text x="1077.0" y="633.0" text-anchor="start">0.0003 s</text>
+<text x="680.0" y="678.0" text-anchor="start">komoran</text>
+<rect x="792.0" y="661.0" width="171.5" height="25.0" rx="3" fill="#0891b2"/>
+<text x="1077.0" y="679.0" text-anchor="start">1.1589 s</text>
+<text x="52.0" y="736.0" text-anchor="start">p95 latency</text>
+<text x="600.0" y="736.0" text-anchor="end" class="muted">lower is better</text>
+<text x="52.0" y="784.0" text-anchor="start">Agent</text>
+<rect x="164.0" y="767.0" width="32.8" height="25.0" rx="3" fill="#2563eb"/>
+<text x="449.0" y="785.0" text-anchor="start">0.1592 ms</text>
+<text x="52.0" y="830.0" text-anchor="start">kiwi</text>
+<rect x="164.0" y="813.0" width="245.0" height="25.0" rx="3" fill="#059669"/>
+<text x="449.0" y="831.0" text-anchor="start">1.1904 ms</text>
+<text x="52.0" y="876.0" text-anchor="start">lindera</text>
+<rect x="164.0" y="859.0" width="22.9" height="25.0" rx="3" fill="#d97706"/>
+<text x="449.0" y="877.0" text-anchor="start">0.1113 ms</text>
+<text x="52.0" y="922.0" text-anchor="start">mecab-ko</text>
+<rect x="164.0" y="905.0" width="39.9" height="25.0" rx="3" fill="#dc2626"/>
+<text x="449.0" y="923.0" text-anchor="start">0.1940 ms</text>
+<text x="52.0" y="968.0" text-anchor="start">komoran</text>
+<rect x="164.0" y="951.0" width="254.6" height="25.0" rx="3" fill="#0891b2"/>
+<text x="449.0" y="969.0" text-anchor="start">1.2370 ms</text>
+<text x="680.0" y="736.0" text-anchor="start">Peak RSS</text>
+<text x="1228.0" y="736.0" text-anchor="end" class="muted">lower is better</text>
+<text x="680.0" y="784.0" text-anchor="start">Agent</text>
+<rect x="792.0" y="767.0" width="2.0" height="25.0" rx="3" fill="#2563eb"/>
+<text x="1077.0" y="785.0" text-anchor="start">5.3 MiB</text>
+<text x="680.0" y="830.0" text-anchor="start">kiwi</text>
+<rect x="792.0" y="813.0" width="195.9" height="25.0" rx="3" fill="#059669"/>
+<text x="1077.0" y="831.0" text-anchor="start">528.2 MiB</text>
+<text x="680.0" y="876.0" text-anchor="start">lindera</text>
+<rect x="792.0" y="859.0" width="71.6" height="25.0" rx="3" fill="#d97706"/>
+<text x="1077.0" y="877.0" text-anchor="start">193.1 MiB</text>
+<text x="680.0" y="922.0" text-anchor="start">mecab-ko</text>
+<rect x="792.0" y="905.0" width="38.1" height="25.0" rx="3" fill="#dc2626"/>
+<text x="1077.0" y="923.0" text-anchor="start">102.8 MiB</text>
+<text x="680.0" y="968.0" text-anchor="start">komoran</text>
+<rect x="792.0" y="951.0" width="254.6" height="25.0" rx="3" fill="#0891b2"/>
+<text x="1077.0" y="969.0" text-anchor="start">686.6 MiB</text>
+<text x="52.0" y="1010.0" text-anchor="start" class="muted">Agent is measured in the current run; external analyzers use pinned refresh snapshots</text>
+<text x="1228.0" y="1010.0" text-anchor="end" class="muted">Human smart is separate because its untagged negative definition differs</text>
+</svg>
