@@ -56,10 +56,22 @@ prefix에는 `문학작품`, `고집스러운`, `환경보호`처럼 오른쪽 c
 근거가 없을 때 거부하는 경계-crossing negative로 유지하고, `역사과목 → 사과` 같은
 component 경계 교차 case를 추가한다.
 
-## 다음 계측
+## shadow 결과
 
-1. smart boundary에서 거부된 명사 anchor와 전체 Unicode token window를 수집한다.
-2. morphology resource로 complete path를 구성한다.
-3. query lemma/POS와 정확히 같은 node span을 포함하는 path와 제외하는 path를 함께 기록한다.
-4. component evidence가 있는 dev FN 수와 revised hard-negative 오수용 수를 report에 추가한다.
-5. 검색 결과는 shadow gate를 통과하기 전까지 변경하지 않는다.
+기존 `smart` 경계에서 거부된 명사 branch만 평가했다. component exact node 포함·제외 완전
+경로의 최저 비용을 비교한 결과는 다음과 같다.
+
+| profile | candidate case | accept evidence | reject evidence | 고유 accept case |
+| --- | ---: | ---: | ---: | ---: |
+| embedded | 75 | 70 | 17 | 61 |
+| full-POS | 75 | 74 | 41 | 65 |
+
+full-POS는 같은 candidate에서 복수 분석을 보존하므로 evidence 합계가 더 크다. revised
+hard-negative의 component candidate 5개는 두 profile에서 모두 reject했다. 기본 test·dev
+검색 결과는 변하지 않았다.
+
+## 다음 단계
+
+1. accept 61개와 reject 16개 dev positive의 source path 유형을 분류한다.
+2. full resource와 compact nominal projection의 배포 비용을 비교한다.
+3. CLI·API·출력과 resource 실패 정책을 확정한 뒤에만 기본 `smart` 변경을 검토한다.

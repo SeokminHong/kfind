@@ -19,6 +19,7 @@ fixture SHA-256: `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21
 - P2 bounded 어절 추출과 NFC 원문 offset mapping 재구성 완료
 - P2 local lattice·N-best shadow report 완료
 - P1 일반 양보 연결형 `-더라도` 완료
+- P0 nominal component shadow 계측 완료
 
 - kfind embedded profile: F1 82.94%, recall 71.00%, precision 99.72%
 - 품질 순위: Kiwi 92.01% > Lindera 88.02% > kfind 82.94%
@@ -122,6 +123,13 @@ profile의 FN은 145개다.
 - [Korean-GSD blind 평가](2026-07-13-copula-blind-evaluation.md)를 최초 1회 실행했다. 중복
   제거한 candidate에서 gold accept는 127/142, non-gold reject는 97/101이다. 정상 gold
   reject가 최소 13개 남아 P3는 계속 보류한다. fixture는 regression baseline으로 전환했다.
+- nominal component shadow는 경계에서 거부된 명사 branch만 별도 수집한다. exact node를
+  포함한 완전 경로와 제외한 완전 경로의 최저 비용을 비교한 결과 dev 고유 accept는 embedded
+  61건, full-POS 65건이다. revised hard-negative 5개 candidate는 두 profile에서 모두
+  reject했다. test TP 355/FP 1/FN 145와 dev TP 376/FP 2/FN 124는 변하지 않았다.
+- component report schema 6은 candidate·window 수, case별 exact path provenance와 고유
+  accept/reject case 수를 VCP lattice 지표와 분리한다. component candidate가 있는데 morphology
+  resource가 누락·손상·source 불일치이면 benchmark를 실패시킨다.
 
 dev 명사 FN 70개 중 64개는 사전 누락이 아니라 smart boundary 거부다. 합성어 substring
 계약을 완화하면 hard-negative 정밀도와 충돌하므로 이번 어휘 보강에는 포함하지 않았다.
@@ -330,57 +338,19 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. recall 80% 계획 P0에서 dev 명사 `boundary-rejected` 64개의 morphology resource
-   component path를 shadow 계측한다.
-2. `사용자권한 → 권한`을 positive로 바꾸고 component 경계-crossing negative를 고정한다.
-3. 정상 지정사 gold reject 13개는 별도 P3 범위에서 기존 Kaist·KSL dev 원인을 분류한다.
-4. 다음 제품 판정용 unseen source를 결과 확인 전에 고정한다.
-5. 그 전에는 지정사 P3 filtering과 기본 검색 결과를 변경하지 않는다.
+1. component accept 61개와 reject 16개 dev positive를 source path 유형과 P1 일반 규칙
+   중복 여부로 분류한다.
+2. full morphology resource와 compact nominal projection의 artifact 크기, lookup, 초기화,
+   mmap RSS를 비교한다.
+3. 기본 `smart` 결과를 바꾸기 전에 CLI·Rust/WASM API, explain/JSON과 배포 resource 실패
+   정책을 스펙에 확정한다.
+4. 정상 지정사 gold reject 13개는 별도 P3 범위에서 기존 Kaist·KSL dev 원인을 분류한다.
+5. 다음 제품 판정용 unseen source를 결과 확인 전에 고정한다.
 
 Korean-GSD 결과에 맞춘 비용·threshold·fixture 가중치 변경은 금지한다.
 
 ## 다음 세션 시작점
 
-현재 matcher의 `smart` 결과는 아직 orthographic token 경계를 사용한다. 승인된 다음 계약은
-검증된 형태 분석의 완전한 component span도 `smart`에서 허용하는 것이다. dev 명사
-`boundary-rejected` 64개는 query 위치 기준 prefix 49, 내부 13, suffix 2이며, 57개는 Kiwi와
-Lindera가 모두 같은 lemma/POS로 찾았다.
-
-첫 구현 단위는 검색 결과를 바꾸지 않는 component shadow 계측이다.
-
-1. `specs/kfind.md`에 component-aware `smart`와 resource 누락·손상 동작을 먼저 확정한다.
-2. nominal smart branch에 VCP 판정과 구분되는 context requirement를 추가한다.
-3. matcher는 기존 경계에서 거부된 nominal anchor의 core span과 bounded Unicode token window를
-   수집하되 기본 match로 반환하지 않는다.
-4. morphology resource의 complete path에서 query lemma/POS와 정확히 같은 node span을 포함한
-   경로와 제외한 경로를 분리한다. query를 덮기만 하는 node는 component 근거가 아니다.
-5. runner/report는 component accept/reject를 VCP lattice 지표와 분리해 기록한다.
-6. `사용자권한 → 권한`은 shadow positive, `대학교 → 학교`와 component 경계 교차 substring은
-   shadow negative로 평가한다.
-
-시작할 코드 위치:
-
-- `crates/kfind-query/src/plan.rs`: context requirement
-- `crates/kfind-query/src/compile/normalization.rs`: smart nominal branch 표시
-- `crates/kfind-matcher/src/morph/candidates.rs`: boundary-rejected candidate 수집
-- `crates/kfind-morph/src/lattice.rs`: exact component span 판정
-- `tools/morph-compare/runner/src/shadow.rs`: 판정 evidence
-- `tools/morph-compare/python/report.py`: component 전용 metric
-
-재현과 검증:
-
-```console
-git fetch origin main
-git status --short --branch
-scripts/benchmark-morphology.sh target/morph-benchmark-before-components
-cargo fmt --all -- --check
-cargo clippy --workspace --all-targets --locked -- -D warnings
-cargo test --workspace --locked
-cargo fmt --manifest-path tools/morph-compare/runner/Cargo.toml -- --check
-cargo clippy --locked --manifest-path tools/morph-compare/runner/Cargo.toml \
-  --all-targets -- -D warnings
-scripts/benchmark-morphology.sh target/morph-benchmark-components
-```
-
-shadow 완료 게이트는 dev component 근거 30개 이상, revised hard-negative 오수용 0개,
-기본 embedded/full-POS 검색 결과 불변이다.
+component shadow는 완료 게이트를 통과했지만 아직 검색 결과를 바꾸지 않는다. 다음 구현 단위는
+accept/reject source path 분류와 compact nominal projection 비교다. full resource를 그대로
+배포할지 결정하기 전에는 matcher에 resource loader를 연결하지 않는다.
