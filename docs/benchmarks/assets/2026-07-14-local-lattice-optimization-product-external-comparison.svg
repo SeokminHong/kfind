@@ -44,8 +44,8 @@
 <rect x="547.0" y="147.0" width="182.0" height="25.0" rx="3" fill="#2563eb"/>
 <text x="747.0" y="165.0" text-anchor="start">95.80%</text>
 <text x="455.0" y="208.0" text-anchor="start">User</text>
-<rect x="547.0" y="191.0" width="155.8" height="25.0" rx="3" fill="#7c3aed"/>
-<text x="747.0" y="209.0" text-anchor="start">82.00%</text>
+<rect x="547.0" y="191.0" width="156.2" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="747.0" y="209.0" text-anchor="start">82.20%</text>
 <text x="455.0" y="252.0" text-anchor="start">Kiwi</text>
 <rect x="547.0" y="235.0" width="161.9" height="25.0" rx="3" fill="#059669"/>
 <text x="747.0" y="253.0" text-anchor="start">85.20%</text>
@@ -63,8 +63,8 @@
 <rect x="950.0" y="147.0" width="183.9" height="25.0" rx="3" fill="#2563eb"/>
 <text x="1150.0" y="165.0" text-anchor="start">96.77%</text>
 <text x="858.0" y="208.0" text-anchor="start">User</text>
-<rect x="950.0" y="191.0" width="171.2" height="25.0" rx="3" fill="#7c3aed"/>
-<text x="1150.0" y="209.0" text-anchor="start">90.11%</text>
+<rect x="950.0" y="191.0" width="171.4" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="1150.0" y="209.0" text-anchor="start">90.23%</text>
 <text x="858.0" y="252.0" text-anchor="start">Kiwi</text>
 <rect x="950.0" y="235.0" width="174.8" height="25.0" rx="3" fill="#059669"/>
 <text x="1150.0" y="253.0" text-anchor="start">92.01%</text>
@@ -81,21 +81,21 @@
 <text x="600.0" y="438.0" text-anchor="end" class="muted">higher is better</text>
 <text x="52.0" y="486.0" text-anchor="start">Agent</text>
 <rect x="164.0" y="469.0" width="254.6" height="25.0" rx="3" fill="#2563eb"/>
-<text x="449.0" y="487.0" text-anchor="start">15821.7 cases/s</text>
+<text x="449.0" y="487.0" text-anchor="start">15757.1 cases/s</text>
 <text x="52.0" y="529.0" text-anchor="start">User</text>
-<rect x="164.0" y="512.0" width="191.4" height="25.0" rx="3" fill="#7c3aed"/>
-<text x="449.0" y="530.0" text-anchor="start">11893.6 cases/s</text>
+<rect x="164.0" y="512.0" width="191.5" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="449.0" y="530.0" text-anchor="start">11850.6 cases/s</text>
 <text x="52.0" y="572.0" text-anchor="start">Kiwi</text>
-<rect x="164.0" y="555.0" width="26.9" height="25.0" rx="3" fill="#059669"/>
+<rect x="164.0" y="555.0" width="27.0" height="25.0" rx="3" fill="#059669"/>
 <text x="449.0" y="573.0" text-anchor="start">1672.0 cases/s</text>
 <text x="52.0" y="615.0" text-anchor="start">Lindera</text>
-<rect x="164.0" y="598.0" width="251.2" height="25.0" rx="3" fill="#d97706"/>
+<rect x="164.0" y="598.0" width="252.2" height="25.0" rx="3" fill="#d97706"/>
 <text x="449.0" y="616.0" text-anchor="start">15609.1 cases/s</text>
 <text x="52.0" y="658.0" text-anchor="start">MeCab-ko</text>
-<rect x="164.0" y="641.0" width="173.6" height="25.0" rx="3" fill="#dc2626"/>
+<rect x="164.0" y="641.0" width="174.4" height="25.0" rx="3" fill="#dc2626"/>
 <text x="449.0" y="659.0" text-anchor="start">10789.7 cases/s</text>
 <text x="52.0" y="701.0" text-anchor="start">KOMORAN</text>
-<rect x="164.0" y="684.0" width="26.9" height="25.0" rx="3" fill="#0891b2"/>
+<rect x="164.0" y="684.0" width="27.0" height="25.0" rx="3" fill="#0891b2"/>
 <text x="449.0" y="702.0" text-anchor="start">1669.4 cases/s</text>
 <text x="680.0" y="438.0" text-anchor="start">Initialization</text>
 <text x="1228.0" y="438.0" text-anchor="end" class="muted">lower is better</text>
@@ -103,8 +103,8 @@
 <rect x="792.0" y="469.0" width="0.2" height="25.0" rx="3" fill="#2563eb"/>
 <text x="1077.0" y="487.0" text-anchor="start">0.0011 s</text>
 <text x="680.0" y="529.0" text-anchor="start">User</text>
-<rect x="792.0" y="512.0" width="63.0" height="25.0" rx="3" fill="#7c3aed"/>
-<text x="1077.0" y="530.0" text-anchor="start">0.4254 s</text>
+<rect x="792.0" y="512.0" width="63.4" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="1077.0" y="530.0" text-anchor="start">0.4282 s</text>
 <text x="680.0" y="572.0" text-anchor="start">Kiwi</text>
 <rect x="792.0" y="555.0" width="254.6" height="25.0" rx="3" fill="#059669"/>
 <text x="1077.0" y="573.0" text-anchor="start">1.7204 s</text>
@@ -120,11 +120,11 @@
 <text x="52.0" y="744.0" text-anchor="start">p95 latency</text>
 <text x="600.0" y="744.0" text-anchor="end" class="muted">lower is better</text>
 <text x="52.0" y="792.0" text-anchor="start">Agent</text>
-<rect x="164.0" y="775.0" width="29.5" height="25.0" rx="3" fill="#2563eb"/>
-<text x="449.0" y="793.0" text-anchor="start">0.1431 ms</text>
+<rect x="164.0" y="775.0" width="29.4" height="25.0" rx="3" fill="#2563eb"/>
+<text x="449.0" y="793.0" text-anchor="start">0.1430 ms</text>
 <text x="52.0" y="835.0" text-anchor="start">User</text>
-<rect x="164.0" y="818.0" width="42.6" height="25.0" rx="3" fill="#7c3aed"/>
-<text x="449.0" y="836.0" text-anchor="start">0.2068 ms</text>
+<rect x="164.0" y="818.0" width="42.7" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="449.0" y="836.0" text-anchor="start">0.2076 ms</text>
 <text x="52.0" y="878.0" text-anchor="start">Kiwi</text>
 <rect x="164.0" y="861.0" width="245.0" height="25.0" rx="3" fill="#059669"/>
 <text x="449.0" y="879.0" text-anchor="start">1.1904 ms</text>
@@ -141,7 +141,7 @@
 <text x="1228.0" y="744.0" text-anchor="end" class="muted">lower is better</text>
 <text x="680.0" y="792.0" text-anchor="start">Agent</text>
 <rect x="792.0" y="775.0" width="2.0" height="25.0" rx="3" fill="#2563eb"/>
-<text x="1077.0" y="793.0" text-anchor="start">5.3 MiB</text>
+<text x="1077.0" y="793.0" text-anchor="start">5.4 MiB</text>
 <text x="680.0" y="835.0" text-anchor="start">User</text>
 <rect x="792.0" y="818.0" width="34.1" height="25.0" rx="3" fill="#7c3aed"/>
 <text x="1077.0" y="836.0" text-anchor="start">92.0 MiB</text>

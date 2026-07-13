@@ -319,14 +319,14 @@ files.
 
 | Workflow | Quality (TP / FP / FN) | CLI wall | Throughput | Peak RSS |
 | --- | ---: | ---: | ---: | ---: |
-| Agent: embedded + `any` + explicit POS | 479 / 11 / 21 | 16.1 ms | 6,193.6 MiB/s | 7.0 MiB |
-| Human: full POS + `smart` + untagged | 410 / 0 / 90 | 301.5 ms | 331.6 MiB/s | 91.5 MiB |
+| Agent: embedded + `any` + explicit POS | 479 / 11 / 21 | 16.7 ms | 6,001.0 MiB/s | 7.0 MiB |
+| Human: full POS + `smart` + untagged | 411 / 0 / 89 | 303.6 ms | 329.4 MiB/s | 91.5 MiB |
 
 ![Product workflow quality and CLI cost](docs/benchmarks/assets/2026-07-14-local-lattice-optimization-product-workflows.svg)
 
 The agent and human quality rows use different negative-query contracts, so
 they describe their product workflows rather than a head-to-head backend rank.
-The human row is from the 2026-07-14 candidate revision `10dd69a`; the unchanged
+The human row is from the 2026-07-14 candidate revision `60eff37`; the unchanged
 agent quality contract is detailed in the 2026-07-13 workflow report.
 
 - [2026-07-14 local-lattice product-path optimization](docs/benchmarks/2026-07-14-local-lattice-optimization.md)
@@ -343,8 +343,8 @@ schema, version, and configuration did not change.
 
 | Backend | Input and version | TP / FP / FN | Precision | Recall | F1 | Init | Cases/s | p95 | Peak RSS |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Agent | embedded + `any`, explicit POS | 479 / 11 / 21 | 97.76% | 95.80% | 96.77% | 0.0011 s | 15,821.7 | 0.1431 ms | 5.3 MiB |
-| User | full POS + `smart`, untagged | 410 / 0 / 90 | 100.00% | 82.00% | 90.11% | 0.4254 s | 11,893.6 | 0.2068 ms | 92.0 MiB |
+| Agent | embedded + `any`, explicit POS | 479 / 11 / 21 | 97.76% | 95.80% | 96.77% | 0.0011 s | 15,757.1 | 0.1430 ms | 5.4 MiB |
+| User | full POS + `smart`, untagged | 411 / 0 / 89 | 100.00% | 82.20% | 90.23% | 0.4282 s | 11,850.6 | 0.2076 ms | 92.0 MiB |
 | Kiwi | snapshot 0.23.2, model 0.23.0, explicit POS | 426 / 0 / 74 | 100.00% | 85.20% | 92.01% | 1.7204 s | 1,672.0 | 1.1904 ms | 528.2 MiB |
 | Lindera | snapshot 4.0.0, embedded-ko-dic, explicit POS | 393 / 0 / 107 | 100.00% | 78.60% | 88.02% | 0.0301 s | 15,609.1 | 0.1113 ms | 193.1 MiB |
 | MeCab-ko | snapshot 1.0.2, dictionary 1.0.0, explicit POS | 403 / 0 / 97 | 100.00% | 80.60% | 89.26% | 0.0003 s | 10,789.7 | 0.1940 ms | 102.8 MiB |
