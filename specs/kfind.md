@@ -90,7 +90,22 @@
 - `--count`는 파일별로 검증된 span이 하나 이상 있는 줄의 수를 출력한다.
 - EUC-KR은 명시적 `--encoding euc-kr`에서 지원한다. `auto`는 BOM 기반 UTF-16과 UTF-8만 판별한다.
 
-### 0.4 Homebrew 대상
+### 0.4 Web 문서와 playground
+
+- 공개 문서와 playground는 `https://kfind.pages.dev`의 정적 Cloudflare Pages site로 배포한다.
+  문서는 제품 목적과 goal/non-goal, 검색 model, query 문법, 사람·에이전트 workflow, 주요 옵션,
+  최신 제품·외부 benchmark를 설명하고 전체 README와 source report로 연결한다.
+- playground는 현재 source의 `kfind-wasm`을 browser용 WebAssembly로 빌드해 embedded lexicon으로
+  실행한다. Query, 입력 text, expand·boundary·POS·normalization·max gap을 바꿀 수 있고,
+  UTF-16 span에 맞춰 match를 강조하며 surface와 provenance를 표시한다.
+- Playground 입력은 browser 밖으로 보내지 않는다. Full POS와 45 MiB 이상의 compact component
+  resource는 기본 demo에 포함하지 않으며, resource가 필요한 `smart` plan의 compile 오류와
+  embedded preview의 한계를 숨기지 않는다.
+- `site` package는 WASM과 benchmark chart를 source artifact에서 재현해 정적 `dist`를 만든다.
+  배포는 `pnpm dlx wrangler pages deploy`의 direct upload를 사용하고, production branch는
+  `main`, Pages project 이름은 `kfind`로 고정한다.
+
+### 0.5 Homebrew 대상
 
 - tap은 `SeokminHong/homebrew-brew`, formula는 `Formula/kfind.rb`를 사용한다.
 - 사용자 설치 명령은 `brew install seokminhong/brew/kfind`다.
@@ -102,7 +117,7 @@
   resource로 component positive와 crossing-substring negative를 모두 실행한다.
 - kfind 소스 코드와 프로젝트가 직접 작성한 내장 데이터는 MIT 라이선스로 배포한다. 외부 full POS resource의 Apache-2.0 고지는 별도 `LICENSES` 디렉터리에 보존한다.
 
-### 0.5 재현 가능한 성능 기준
+### 0.6 재현 가능한 성능 기준
 
 - 인수 기준 9의 기준 corpus는 정확히 1 GiB(1,073,741,824 bytes), 한글 line 선택 비율 20%, 한글 line 중 NFD 선택 비율 50%, 고정 seed `0x004b46494e44`를 사용한다.
 - 파일 구성은 1,000개의 64 KiB 작은 파일과 남은 bytes를 균등 분배한 24개의 큰 파일로 고정한다. 생성물은 `target/` 아래에 두고 보고서 생성 뒤 기본적으로 삭제한다.
