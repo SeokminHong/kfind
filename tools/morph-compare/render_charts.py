@@ -138,7 +138,7 @@ def render_performance(report: dict[str, object]) -> str:
         direction = "higher is better" if higher_better else "lower is better"
         body.append(text(panel_x + panel_width, panel_y, direction, "muted", "end"))
         chart_top = panel_y + 28
-        label_width = 68
+        label_width = 150
         bar_max_width = panel_width - label_width - 140
         for index, backend in enumerate(BACKENDS):
             row_y = chart_top + index * 60

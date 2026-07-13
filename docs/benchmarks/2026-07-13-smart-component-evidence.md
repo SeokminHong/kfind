@@ -3,7 +3,8 @@
 측정일: 2026-07-13
 
 기준 보고서: `target/morph-benchmark-component-projection-equivalence/report.json`,
-`target/morph-benchmark-product/report.json`
+`target/morph-benchmark-product/report.json`,
+`target/morph-benchmark-optional-init/report.json`
 
 ## 결정
 
@@ -138,6 +139,18 @@ component profile은 resource 없는 engine을 먼저 만든 뒤 47,859,711-byte
 제품 smart 경로가 component를 사용하는 기존 end-to-end 5회 중앙값은 embedded
 0.2916초·50.9 MiB, full-POS 0.4252초·92.1 MiB다. Homebrew는 별도 formula resource로
 설치하고 npm은 1,134,114-byte WASM과 분리된 정적 asset으로 게시한다.
+
+## 외부 분석기 비교
+
+Linux/aarch64에서 동일한 1,000-case test fixture를 1회 warm-up 뒤 5회 측정했다. kfind 두
+profile은 component resource를 사용하는 제품 `smart` 경로다.
+
+![형태소 검색 품질 비교](assets/smart-component-morphology-quality.svg)
+
+![형태소 검색 성능 비교](assets/smart-component-morphology-performance.svg)
+
+full-POS의 F1은 90.37%로 Kiwi 92.01%보다 1.64%p 낮고 Lindera 88.02%보다 2.35%p 높다.
+embedded 처리량은 Kiwi의 5.49배이고 peak RSS는 50.9 MiB로 Kiwi 661.0 MiB의 7.7%다.
 
 재현 명령은 `scripts/benchmark-morphology.sh`와
 `pnpm --dir packages/kfind run benchmark:startup`이다.

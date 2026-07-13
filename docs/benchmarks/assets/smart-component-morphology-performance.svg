@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+<title id="title">End-to-end morphology performance</title>
+<desc id="desc">Four horizontal bar panels compare throughput, initialization time, p95 latency, and peak RSS.</desc>
+
+<style>
+  .background { fill: #ffffff; }
+  text { fill: #111827; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .muted { fill: #4b5563; }
+  .grid { stroke: #d1d5db; stroke-width: 1; }
+  .axis { stroke: #6b7280; stroke-width: 1; }
+  @media (prefers-color-scheme: dark) {
+    .background { fill: #0d1117; }
+    text { fill: #f3f4f6; }
+    .muted { fill: #9ca3af; }
+    .grid { stroke: #374151; }
+    .axis { stroke: #9ca3af; }
+  }
+</style>
+
+<rect class="background" width="1280" height="720"/>
+<text x="52.0" y="38.0" text-anchor="start">End-to-end performance and memory</text>
+<text x="52.0" y="62.0" text-anchor="start" class="muted">Single initialization · 1,000 cases · lower is better except throughput</text>
+<text x="52.0" y="96.0" text-anchor="start">Throughput</text>
+<text x="600.0" y="96.0" text-anchor="end" class="muted">higher is better</text>
+<text x="52.0" y="148.0" text-anchor="start">kfind-embedded</text>
+<rect x="202.0" y="131.0" width="213.6" height="25.0" rx="3" fill="#2563eb"/>
+<text x="468.0" y="149.0" text-anchor="start">10991.6 cases/s</text>
+<text x="52.0" y="208.0" text-anchor="start">kfind-full-pos</text>
+<rect x="202.0" y="191.0" width="182.9" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="468.0" y="209.0" text-anchor="start">9410.0 cases/s</text>
+<text x="52.0" y="268.0" text-anchor="start">kiwi</text>
+<rect x="202.0" y="251.0" width="38.9" height="25.0" rx="3" fill="#059669"/>
+<text x="468.0" y="269.0" text-anchor="start">2001.2 cases/s</text>
+<text x="52.0" y="328.0" text-anchor="start">lindera</text>
+<rect x="202.0" y="311.0" width="230.4" height="25.0" rx="3" fill="#d97706"/>
+<text x="468.0" y="329.0" text-anchor="start">11851.5 cases/s</text>
+<line class="axis" x1="202" y1="364" x2="460" y2="364"/>
+<text x="680.0" y="96.0" text-anchor="start">Initialization</text>
+<text x="1228.0" y="96.0" text-anchor="end" class="muted">lower is better</text>
+<text x="680.0" y="148.0" text-anchor="start">kfind-embedded</text>
+<rect x="830.0" y="131.0" width="46.2" height="25.0" rx="3" fill="#2563eb"/>
+<text x="1096.0" y="149.0" text-anchor="start">0.2916 s</text>
+<text x="680.0" y="208.0" text-anchor="start">kfind-full-pos</text>
+<rect x="830.0" y="191.0" width="67.4" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="1096.0" y="209.0" text-anchor="start">0.4252 s</text>
+<text x="680.0" y="268.0" text-anchor="start">kiwi</text>
+<rect x="830.0" y="251.0" width="230.4" height="25.0" rx="3" fill="#059669"/>
+<text x="1096.0" y="269.0" text-anchor="start">1.4538 s</text>
+<text x="680.0" y="328.0" text-anchor="start">lindera</text>
+<rect x="830.0" y="311.0" width="4.4" height="25.0" rx="3" fill="#d97706"/>
+<text x="1096.0" y="329.0" text-anchor="start">0.0275 s</text>
+<line class="axis" x1="830" y1="364" x2="1088" y2="364"/>
+<text x="52.0" y="390.0" text-anchor="start">p95 latency</text>
+<text x="600.0" y="390.0" text-anchor="end" class="muted">lower is better</text>
+<text x="52.0" y="442.0" text-anchor="start">kfind-embedded</text>
+<rect x="202.0" y="425.0" width="57.2" height="25.0" rx="3" fill="#2563eb"/>
+<text x="468.0" y="443.0" text-anchor="start">0.2413 ms</text>
+<text x="52.0" y="502.0" text-anchor="start">kfind-full-pos</text>
+<rect x="202.0" y="485.0" width="66.7" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="468.0" y="503.0" text-anchor="start">0.2812 ms</text>
+<text x="52.0" y="562.0" text-anchor="start">kiwi</text>
+<rect x="202.0" y="545.0" width="230.4" height="25.0" rx="3" fill="#059669"/>
+<text x="468.0" y="563.0" text-anchor="start">0.9710 ms</text>
+<text x="52.0" y="622.0" text-anchor="start">lindera</text>
+<rect x="202.0" y="605.0" width="33.7" height="25.0" rx="3" fill="#d97706"/>
+<text x="468.0" y="623.0" text-anchor="start">0.1422 ms</text>
+<line class="axis" x1="202" y1="658" x2="460" y2="658"/>
+<text x="680.0" y="390.0" text-anchor="start">Peak RSS</text>
+<text x="1228.0" y="390.0" text-anchor="end" class="muted">lower is better</text>
+<text x="680.0" y="442.0" text-anchor="start">kfind-embedded</text>
+<rect x="830.0" y="425.0" width="17.7" height="25.0" rx="3" fill="#2563eb"/>
+<text x="1096.0" y="443.0" text-anchor="start">50.9 MiB</text>
+<text x="680.0" y="502.0" text-anchor="start">kfind-full-pos</text>
+<rect x="830.0" y="485.0" width="32.1" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="1096.0" y="503.0" text-anchor="start">92.1 MiB</text>
+<text x="680.0" y="562.0" text-anchor="start">kiwi</text>
+<rect x="830.0" y="545.0" width="230.4" height="25.0" rx="3" fill="#059669"/>
+<text x="1096.0" y="563.0" text-anchor="start">661.0 MiB</text>
+<text x="680.0" y="622.0" text-anchor="start">lindera</text>
+<rect x="830.0" y="605.0" width="67.8" height="25.0" rx="3" fill="#d97706"/>
+<text x="1096.0" y="623.0" text-anchor="start">194.6 MiB</text>
+<line class="axis" x1="830" y1="658" x2="1088" y2="658"/>
+</svg>
