@@ -383,6 +383,25 @@ fn nfd_branches_verify_nfc_morphology_and_preserve_original_offsets() {
 }
 
 #[test]
+fn exact_nfd_branch_preserves_the_compiled_anchor_span() {
+    let anchor = "권한".nfd().collect::<String>();
+    let matcher = matcher(
+        vec![atom(
+            BoundaryPolicy::Smart,
+            vec![exact_branch(&anchor, true)],
+        )],
+        24,
+    );
+    let text = "권한 확인".nfd().collect::<String>();
+
+    let matched = matcher
+        .find_at_with_meta(text.as_bytes(), 0)
+        .expect("exact NFD anchor should match without extending the token");
+
+    assert_eq!(matched.span, 0..anchor.len());
+}
+
+#[test]
 fn contracted_vowel_environment_checks_left_context_without_lemma_special_cases() {
     let mut branch = predicate_branch(
         "여서",

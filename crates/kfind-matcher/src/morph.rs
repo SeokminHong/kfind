@@ -196,14 +196,7 @@ impl MorphMatcher {
     ) -> Option<VerifiedSpan> {
         let anchor = std::str::from_utf8(haystack.get(hit.span.clone())?).ok()?;
         let core = mapped_core(&hit.span, branch.core_mapping, anchor)?;
-        let following = valid_utf8_prefix(&haystack[hit.span.end..]);
-        let normalized_anchor = (!is_nfc(anchor)).then(|| anchor.nfc().collect::<String>());
-        let normalized_following = normalized_anchor
-            .is_some()
-            .then(|| following.nfc().collect::<String>());
-        let verifier_anchor = normalized_anchor.as_deref().unwrap_or(anchor);
-        let verifier_following = normalized_following.as_deref().unwrap_or(following);
-        let (normalized_consumed_bytes, suffix_rules) = match &branch.verifier {
+        let (consumed_bytes, suffix_rules) = match &branch.verifier {
             BranchVerifier::Exact => (0, Vec::new()),
             BranchVerifier::Predicate {
                 continuation,
@@ -214,25 +207,43 @@ impl MorphMatcher {
                 if !accepts_environment(environment, haystack, hit.span.start) {
                     return None;
                 }
+                let following = valid_utf8_prefix(&haystack[hit.span.end..]);
+                let (verifier_anchor, verifier_following) =
+                    normalized_verifier_text(anchor, following);
                 let matched = verify_predicate_continuation(
                     *continuation,
                     *pos,
-                    verifier_anchor,
-                    verifier_following,
+                    &verifier_anchor,
+                    &verifier_following,
                 )?;
                 if !branch.verifier.accepts_rule_path(&matched.rule_path) {
                     return None;
                 }
-                (matched.consumed_bytes, matched.rule_path)
+                let consumed_bytes = match &verifier_following {
+                    Cow::Borrowed(_) => matched.consumed_bytes,
+                    Cow::Owned(normalized) => {
+                        map_normalized_prefix(following, normalized, matched.consumed_bytes)?
+                    }
+                };
+                (consumed_bytes, matched.rule_path)
             }
             BranchVerifier::NominalParticles { .. } => {
+                let following = valid_utf8_prefix(&haystack[hit.span.end..]);
+                let (verifier_anchor, verifier_following) =
+                    normalized_verifier_text(anchor, following);
                 let matched = self
                     .particle_verifier
-                    .verify_prefix(verifier_anchor, verifier_following);
+                    .verify_prefix(&verifier_anchor, &verifier_following);
                 if !branch.verifier.accepts_rule_path(&matched.rule_path) {
                     return None;
                 }
-                (matched.consumed_bytes, matched.rule_path)
+                let consumed_bytes = match &verifier_following {
+                    Cow::Borrowed(_) => matched.consumed_bytes,
+                    Cow::Owned(normalized) => {
+                        map_normalized_prefix(following, normalized, matched.consumed_bytes)?
+                    }
+                };
+                (consumed_bytes, matched.rule_path)
             }
             BranchVerifier::DirectParticle { rule_id } => {
                 if requires_direct_particle_host(branch)
@@ -242,11 +253,6 @@ impl MorphMatcher {
                 }
                 (0, Vec::new())
             }
-        };
-        let consumed_bytes = if let Some(normalized) = normalized_following.as_deref() {
-            map_normalized_prefix(following, normalized, normalized_consumed_bytes)?
-        } else {
-            normalized_consumed_bytes
         };
         let token_end = hit.span.end.checked_add(consumed_bytes)?;
         if token_end > haystack.len() || !is_utf8_boundary(haystack, token_end) {
@@ -319,6 +325,19 @@ impl MorphMatcher {
                     && form.condition.accepts(previous)
             })
     }
+}
+
+fn normalized_verifier_text<'a>(
+    anchor: &'a str,
+    following: &'a str,
+) -> (Cow<'a, str>, Cow<'a, str>) {
+    if is_nfc(anchor) {
+        return (Cow::Borrowed(anchor), Cow::Borrowed(following));
+    }
+    (
+        Cow::Owned(anchor.nfc().collect()),
+        Cow::Owned(following.nfc().collect()),
+    )
 }
 
 fn requires_direct_particle_host(branch: &SurfaceBranch) -> bool {
