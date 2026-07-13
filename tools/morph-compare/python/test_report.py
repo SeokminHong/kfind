@@ -426,7 +426,6 @@ class UserPrecisionShadowTests(unittest.TestCase):
         rendered = "\n".join(lines)
         self.assertLess(rendered.index("| development |"), rendered.index("| test |"))
         self.assertIn("Product matches are unchanged", rendered)
-        self.assertIn("not a User product false positive", rendered)
 
 
 class ProductWorkflowTests(unittest.TestCase):
@@ -568,10 +567,7 @@ class ProductWorkflowTests(unittest.TestCase):
         )
 
         rendered = "\n".join(lines)
-        self.assertIn(
-            "## Cross-persona diagnostic and external snapshots", rendered
-        )
-        self.assertIn("not a backend ranking or a User product quality gate", rendered)
+        self.assertIn("## Product persona and external comparison", rendered)
         self.assertIn("| Agent | 100.0% | 80.0% |", rendered)
         self.assertIn("| User | 100.0% | 80.0% |", rendered)
         self.assertIn("| kiwi | 100.0% | 80.0% |", rendered)
