@@ -43,6 +43,42 @@
       }
     ]
   },
+  "blind_local_context": {
+    "seed": "kfind-vcp-vcn-blind-v1",
+    "split": "test",
+    "metadata_split": "blind-local-context",
+    "sort_scope": "blind-context-order",
+    "expected_fixture_sha256": "4be12e060c4bc3faf35b78bb3c9189cafb49e7c885108383c0dd1fb5aeb1b188",
+    "expected_excluded_candidates": 0,
+    "disjoint_from": [
+      {"source": "ud-korean-kaist", "split": "dev"},
+      {"source": "ud-korean-kaist", "split": "test"},
+      {"source": "ud-korean-ksl", "split": "dev"},
+      {"source": "ud-korean-ksl", "split": "test"}
+    ],
+    "analyses": [
+      {
+        "source": "ud-korean-gsd",
+        "raw_tag": "vcp",
+        "raw_lemma": "이",
+        "query": "이다",
+        "pos": "adjective",
+        "negative_surface_cues": ["이", "인", "일", "이어", "여", "였"],
+        "positive_cases": 311,
+        "negative_cases": 460
+      },
+      {
+        "source": "ud-korean-gsd",
+        "raw_tag": "vcn",
+        "raw_lemma": "아니",
+        "query": "아니다",
+        "pos": "adjective",
+        "negative_surface_cues": ["아니", "아닌", "아닐", "아닙"],
+        "positive_cases": 10,
+        "negative_cases": 0
+      }
+    ]
+  },
   "positive_quotas_per_source": {
     "noun": 90,
     "verb": 60,
@@ -91,6 +127,23 @@
       "license": "CC BY-SA 4.0",
       "license_file": "ko_ksl-LICENSE.txt",
       "license_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-KSL/r2.18/LICENSE.txt",
+      "license_sha256": "899b1804a12ebc090b96339614eede1b64b686721b650a71430b55b5235f7f79"
+    },
+    {
+      "name": "ud-korean-gsd",
+      "description": "UD Korean-GSD",
+      "revision": "r2.18",
+      "revision_commit": "02c343e4e1e3180069f637e68a791ec6b96dd33a",
+      "splits": {
+        "test": {
+          "data_file": "ko_gsd-ud-test.conllu",
+          "data_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-GSD/r2.18/ko_gsd-ud-test.conllu",
+          "data_sha256": "3d1df99bda4800235e14bcfd915baf706eafa1a3935a75ffd32420a51e57f5aa"
+        }
+      },
+      "license": "CC BY-SA 4.0",
+      "license_file": "ko_gsd-LICENSE.txt",
+      "license_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-GSD/r2.18/LICENSE.txt",
       "license_sha256": "899b1804a12ebc090b96339614eede1b64b686721b650a71430b55b5235f7f79"
     }
   ]

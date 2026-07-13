@@ -23,7 +23,13 @@ RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
         --manifest sources.json \
         --sources /corpora \
         --output /benchmark/local-context-cases.jsonl \
-        --metadata /benchmark/local-context-metadata.json
+        --metadata /benchmark/local-context-metadata.json \
+    && python python/local_context_dataset.py \
+        --manifest sources.json \
+        --sources /corpora \
+        --config blind_local_context \
+        --output /benchmark/blind-local-context-cases.jsonl \
+        --metadata /benchmark/blind-local-context-metadata.json
 
 FROM rust:${RUST_VERSION}-bookworm AS runner-builder
 WORKDIR /src

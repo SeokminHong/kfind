@@ -12,6 +12,7 @@ from dataset import (
 )
 from local_context_dataset import (
     build_local_context_dataset,
+    validate_disjoint_sources,
 )
 from validation import validate_local_context_dataset
 
@@ -175,6 +176,38 @@ class DatasetTests(unittest.TestCase):
             ],
             ["blind"],
         )
+
+    def test_blind_context_rejects_normalized_sentence_overlap(self) -> None:
+        fixture = """# sent_id = overlap
+# text = 학생이다.
+1\t학생이다\t학생+이+다\tVERB\tncn+jp+ef\t_\t0\troot\t_\tSpaceAfter=No
+2\t.\t.\tPUNCT\tsf\t_\t1\tpunct\t_\t_
+
+"""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            reference_path = root / "reference.conllu"
+            reference_path.write_text(fixture, encoding="utf-8")
+            target_sentences, _ = parse_conllu("blind", reference_path)
+            sources = {
+                "reference": {
+                    "name": "reference",
+                    "splits": {
+                        "dev": {
+                            "data_file": reference_path.name,
+                            "data_sha256": sha256(reference_path),
+                        }
+                    },
+                }
+            }
+            config = {
+                "disjoint_from": [{"source": "reference", "split": "dev"}]
+            }
+            with self.assertRaisesRegex(ValueError, "overlaps reference/dev"):
+                validate_disjoint_sources(
+                    config, sources, root, {"blind": target_sentences}
+                )
+
 
 if __name__ == "__main__":
     unittest.main()
