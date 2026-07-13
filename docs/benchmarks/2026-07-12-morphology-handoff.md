@@ -8,6 +8,8 @@
 
 다음 계획: [recall 80% 작업 계획](2026-07-13-recall-80-plan.md)
 
+component 근거: [smart component 검색 근거](2026-07-13-smart-component-evidence.md)
+
 fixture SHA-256: `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21ff`
 
 ## 현재 상태
@@ -328,11 +330,57 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. recall 80% 계획 P0에서 dev 명사 `boundary-rejected` 64개의 회복 가능 상한을 계측한다.
-2. 기존 합성어 hard-negative를 보존하는 일반 규칙·source component 근거가 30개 이상인지
-   확인한다.
+1. recall 80% 계획 P0에서 dev 명사 `boundary-rejected` 64개의 morphology resource
+   component path를 shadow 계측한다.
+2. `사용자권한 → 권한`을 positive로 바꾸고 component 경계-crossing negative를 고정한다.
 3. 정상 지정사 gold reject 13개는 별도 P3 범위에서 기존 Kaist·KSL dev 원인을 분류한다.
 4. 다음 제품 판정용 unseen source를 결과 확인 전에 고정한다.
 5. 그 전에는 지정사 P3 filtering과 기본 검색 결과를 변경하지 않는다.
 
 Korean-GSD 결과에 맞춘 비용·threshold·fixture 가중치 변경은 금지한다.
+
+## 다음 세션 시작점
+
+현재 matcher의 `smart` 결과는 아직 orthographic token 경계를 사용한다. 승인된 다음 계약은
+검증된 형태 분석의 완전한 component span도 `smart`에서 허용하는 것이다. dev 명사
+`boundary-rejected` 64개는 query 위치 기준 prefix 49, 내부 13, suffix 2이며, 57개는 Kiwi와
+Lindera가 모두 같은 lemma/POS로 찾았다.
+
+첫 구현 단위는 검색 결과를 바꾸지 않는 component shadow 계측이다.
+
+1. `specs/kfind.md`에 component-aware `smart`와 resource 누락·손상 동작을 먼저 확정한다.
+2. nominal smart branch에 VCP 판정과 구분되는 context requirement를 추가한다.
+3. matcher는 기존 경계에서 거부된 nominal anchor의 core span과 bounded Unicode token window를
+   수집하되 기본 match로 반환하지 않는다.
+4. morphology resource의 complete path에서 query lemma/POS와 정확히 같은 node span을 포함한
+   경로와 제외한 경로를 분리한다. query를 덮기만 하는 node는 component 근거가 아니다.
+5. runner/report는 component accept/reject를 VCP lattice 지표와 분리해 기록한다.
+6. `사용자권한 → 권한`은 shadow positive, `대학교 → 학교`와 component 경계 교차 substring은
+   shadow negative로 평가한다.
+
+시작할 코드 위치:
+
+- `crates/kfind-query/src/plan.rs`: context requirement
+- `crates/kfind-query/src/compile/normalization.rs`: smart nominal branch 표시
+- `crates/kfind-matcher/src/morph/candidates.rs`: boundary-rejected candidate 수집
+- `crates/kfind-morph/src/lattice.rs`: exact component span 판정
+- `tools/morph-compare/runner/src/shadow.rs`: 판정 evidence
+- `tools/morph-compare/python/report.py`: component 전용 metric
+
+재현과 검증:
+
+```console
+git fetch origin main
+git status --short --branch
+scripts/benchmark-morphology.sh target/morph-benchmark-before-components
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo test --workspace --locked
+cargo fmt --manifest-path tools/morph-compare/runner/Cargo.toml -- --check
+cargo clippy --locked --manifest-path tools/morph-compare/runner/Cargo.toml \
+  --all-targets -- -D warnings
+scripts/benchmark-morphology.sh target/morph-benchmark-components
+```
+
+shadow 완료 게이트는 dev component 근거 30개 이상, revised hard-negative 오수용 0개,
+기본 embedded/full-POS 검색 결과 불변이다.
