@@ -127,10 +127,15 @@
   profile의 held-out precision·recall·F1과 false-positive 후보 수를 나란히 표시하여 Agent의
   recall 우선과 사람 CLI의 precision 우선 trade-off를 보존한다. 품질 fixture와 CLI corpus가
   다른 측정임을 차트에 명시하고 하나의 종합 점수로 합치지 않는다.
-- 외부 비교 차트는 동일한 explicit-POS fixture에서 에이전트 `embedded + any`와 Kiwi, Lindera,
-  MeCab-ko, KOMORAN의 precision·recall·F1, 초기화 시간, cases/s, p95 latency와 peak RSS를 함께
-  표시한다. 사람용 무품사 profile은 negative 정의가 달라 이 순위에 섞지 않고 제품 profile
-  차트에 별도로 둔다.
+- 제품 persona 비교 차트는 동일한 1,000-case explicit-POS fixture와 gold를 사용해 Agent, User,
+  Kiwi, Lindera, MeCab-ko, KOMORAN의 precision·recall·F1, 초기화 시간, cases/s, p95 latency와
+  peak RSS를 함께 표시한다. Agent는 `embedded + any`에 품사를 명시하고, User는 같은 query에서
+  품사를 제거한 `full-POS + smart`, 외부 분석기는 품사를 명시한 고정 snapshot을 사용한다. 차트
+  행 label에는 입력의 품사 여부를 넣지 않고 인접한 문서에서 조건을 설명한다.
+- 이 차트는 동일 입력의 backend 순위가 아니라 실제 persona 입력을 반영한 제품 비교다. User는
+  품사 자동 계획과 모호성 비용을 포함하고, 다른 품사의 lemma match도 explicit-POS gold에 따라
+  오답으로 계산하므로 유리한 조건으로 해석하지 않는다. 별도 무품사 fixture의 사람용 profile은
+  negative 정의가 다르므로 제품 profile 검증에만 사용한다.
 - 외부 분석기 성능은 각 backend를 fresh process에서 1회 warm-up 뒤 5회 측정해 품질 결과와 함께
   version-controlled snapshot에 저장한다. 기본 benchmark는 snapshot을 읽으며 test fixture,
   adapter·성능 schema 또는 고정 버전·설정이 바뀔 때만 외부 snapshot을 다시 측정한다. snapshot
