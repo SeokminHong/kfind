@@ -9,8 +9,16 @@ except ImportError:
     from adapters import spans_overlap
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 EXTERNAL_BACKENDS = ("kiwi", "lindera", "mecab-ko", "komoran")
+PERFORMANCE_FIELDS = (
+    "initialization_seconds",
+    "evaluation_seconds",
+    "cases_per_second",
+    "latency_p50_ms",
+    "latency_p95_ms",
+    "peak_rss_kib",
+)
 
 
 def load_external_baselines(
@@ -77,17 +85,48 @@ def load_external_baselines(
             "configuration": configuration,
             "snapshot": True,
         }
-        if entry.get("performance") is not None:
-            performance[backend] = entry["performance"]
+        performance[backend] = validate_performance(
+            backend, entry.get("performance")
+        )
         availability[backend] = {"status": status}
+    environment = snapshot.get("environment")
+    if not isinstance(environment, dict):
+        raise ValueError("external baseline has no environment")
     return {
         "versions": versions,
         "predictions": predictions,
         "matches": matches,
         "performance": performance,
         "availability": availability,
-        "environment": snapshot.get("environment"),
+        "environment": environment,
     }
+
+
+def validate_performance(backend: str, value: object) -> dict[str, object]:
+    if not isinstance(value, dict):
+        raise ValueError(f"external baseline {backend} has no performance")
+    if not isinstance(value.get("runs"), int) or value["runs"] < 1:
+        raise ValueError(f"external baseline {backend} has invalid performance runs")
+    if not isinstance(value.get("warmup_runs"), int) or value["warmup_runs"] < 1:
+        raise ValueError(f"external baseline {backend} has invalid warm-up runs")
+    for field in PERFORMANCE_FIELDS:
+        if not isinstance(value.get(field), (int, float)):
+            raise ValueError(
+                f"external baseline {backend} has invalid performance {field}"
+            )
+    for range_name in ("run_min", "run_max"):
+        measured_range = value.get(range_name)
+        if not isinstance(measured_range, dict):
+            raise ValueError(
+                f"external baseline {backend} has no performance {range_name}"
+            )
+        for field in PERFORMANCE_FIELDS:
+            if not isinstance(measured_range.get(field), (int, float)):
+                raise ValueError(
+                    f"external baseline {backend} has invalid "
+                    f"{range_name} {field}"
+                )
+    return value
 
 
 def validate_results(

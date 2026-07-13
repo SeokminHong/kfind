@@ -6,12 +6,16 @@ import argparse
 import base64
 import importlib.metadata
 import json
+import os
+import platform
+import resource
 import subprocess
 import sys
+import tempfile
+import time
+from collections.abc import Callable
 from pathlib import Path
-
-import mecab_ko
-from kiwipiepy import Kiwi
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -19,24 +23,30 @@ from benchmark import (
     DEFAULT_CASES,
     DEFAULT_METADATA,
     DEFAULT_RUNNER,
+    aggregate_performance,
     matching_candidate_spans,
+    percentile,
+    performance as native_performance,
     run_native_backend,
 )
 from python.adapters import (
+    CandidateSpan,
     komoran_candidates,
+    kiwi_candidates,
     lindera_candidates,
     mecab_candidates,
-    kiwi_candidates,
 )
 from python.external_baselines import EXTERNAL_BACKENDS, SCHEMA_VERSION
 from python.validation import load_cases, validate_dataset
 
 
 KOMORAN_CLASSPATH = "/opt/morph-benchmark/external:/opt/morph-benchmark/external/komoran.jar"
+DEFAULT_RUNS = 5
 
 
 def results_from_candidates(
-    cases: list[dict[str, object]], candidates_by_id: dict[str, set[object]]
+    cases: list[dict[str, object]],
+    candidates_by_id: dict[str, set[CandidateSpan]],
 ) -> list[dict[str, object]]:
     return [
         {
@@ -49,19 +59,70 @@ def results_from_candidates(
     ]
 
 
-def capture_kiwi(cases: list[dict[str, object]]) -> dict[str, object]:
-    kiwi = Kiwi()
-    kiwi.tokenize("")
-    candidates = {
-        str(case["id"]): kiwi_candidates(
-            str(case["text"]), kiwi.tokenize(str(case["text"]))
-        )
-        for case in cases
+def performance_metrics(
+    initialization_seconds: float,
+    evaluation_seconds: float,
+    latencies_ms: list[float],
+    peak_rss_kib: int,
+) -> dict[str, object]:
+    return {
+        "initialization_seconds": round(initialization_seconds, 6),
+        "evaluation_seconds": round(evaluation_seconds, 6),
+        "cases_per_second": round(len(latencies_ms) / evaluation_seconds, 1),
+        "latency_p50_ms": round(percentile(latencies_ms, 0.50), 4),
+        "latency_p95_ms": round(percentile(latencies_ms, 0.95), 4),
+        "peak_rss_kib": peak_rss_kib,
     }
+
+
+def capture_python_backend(
+    cases: list[dict[str, object]],
+    initialize: Callable[[], Any],
+    analyze: Callable[[Any, str], set[CandidateSpan]],
+    version: str,
+    configuration: dict[str, object],
+) -> dict[str, object]:
+    initialization_started = time.perf_counter()
+    backend = initialize()
+    initialization_seconds = time.perf_counter() - initialization_started
+    results = []
+    latencies_ms = []
+    evaluation_started = time.perf_counter()
+    for case in cases:
+        case_started = time.perf_counter()
+        candidates = analyze(backend, str(case["text"]))
+        matching_spans = matching_candidate_spans(case, candidates)
+        latencies_ms.append((time.perf_counter() - case_started) * 1_000)
+        results.append({"id": case["id"], "matching_spans": matching_spans})
+    evaluation_seconds = time.perf_counter() - evaluation_started
+    peak_rss_kib = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     return available(
+        version,
+        configuration,
+        results,
+        performance_metrics(
+            initialization_seconds,
+            evaluation_seconds,
+            latencies_ms,
+            peak_rss_kib,
+        ),
+    )
+
+
+def capture_kiwi(cases: list[dict[str, object]]) -> dict[str, object]:
+    from kiwipiepy import Kiwi
+
+    def initialize() -> Any:
+        kiwi = Kiwi()
+        kiwi.tokenize("")
+        return kiwi
+
+    return capture_python_backend(
+        cases,
+        initialize,
+        lambda kiwi, text: kiwi_candidates(text, kiwi.tokenize(text)),
         importlib.metadata.version("kiwipiepy"),
         {"model": importlib.metadata.version("kiwipiepy_model")},
-        results_from_candidates(cases, candidates),
     )
 
 
@@ -78,22 +139,27 @@ def capture_lindera(
         str(summary["version"]),
         {"dictionary": "embedded-ko-dic"},
         results_from_candidates(cases, candidates),
+        native_performance(
+            summary,
+            [float(result["latency_ms"]) for result in summary["results"]],
+        ),
     )
 
 
 def capture_mecab(cases: list[dict[str, object]]) -> dict[str, object]:
-    tagger = mecab_ko.Tagger()
-    tagger.parse("")
-    candidates = {
-        str(case["id"]): mecab_candidates(
-            str(case["text"]), tagger.parse(str(case["text"]))
-        )
-        for case in cases
-    }
-    return available(
+    import mecab_ko
+
+    def initialize() -> Any:
+        tagger = mecab_ko.Tagger()
+        tagger.parse("")
+        return tagger
+
+    return capture_python_backend(
+        cases,
+        initialize,
+        lambda tagger, text: mecab_candidates(text, tagger.parse(text)),
         importlib.metadata.version("mecab-ko"),
         {"dictionary": importlib.metadata.version("mecab-ko-dic")},
-        results_from_candidates(cases, candidates),
     )
 
 
@@ -101,18 +167,33 @@ def capture_komoran(cases: list[dict[str, object]]) -> dict[str, object]:
     encoded = "\n".join(
         base64.b64encode(str(case["text"]).encode()).decode() for case in cases
     )
+    process_started = time.perf_counter()
     process = subprocess.run(
         ["java", "-cp", KOMORAN_CLASSPATH, "KomoranRunner"],
         input=encoded + "\n",
         text=True,
         capture_output=True,
     )
+    process_seconds = time.perf_counter() - process_started
     if process.returncode != 0:
         raise RuntimeError(f"KOMORAN failed: {process.stderr.strip()}")
+    performance_lines = [
+        line for line in process.stderr.splitlines() if line.startswith("KFIND_PERF\t")
+    ]
+    if len(performance_lines) != 1:
+        raise ValueError("KOMORAN did not return one performance summary")
+    _, initialization_ns, evaluation_ns, encoded_latencies = performance_lines[0].split(
+        "\t"
+    )
+    java_evaluation_seconds = int(evaluation_ns) / 1_000_000_000
+    latencies_ms = [
+        int(value) / 1_000_000 for value in filter(None, encoded_latencies.split(","))
+    ]
     output_lines = process.stdout.splitlines()
     if len(output_lines) != len(cases):
         raise ValueError("KOMORAN result count differs from fixture")
-    candidates = {}
+    parsing_started = time.perf_counter()
+    results = []
     for case, line in zip(cases, output_lines):
         tokens = []
         for encoded_token in filter(None, line.split(";")):
@@ -125,22 +206,127 @@ def capture_komoran(cases: list[dict[str, object]]) -> dict[str, object]:
                     "end": int(end),
                 }
             )
-        candidates[str(case["id"])] = komoran_candidates(str(case["text"]), tokens)
+        candidates = komoran_candidates(str(case["text"]), tokens)
+        results.append(
+            {
+                "id": case["id"],
+                "matching_spans": matching_candidate_spans(case, candidates),
+            }
+        )
+    parsing_seconds = time.perf_counter() - parsing_started
+    if len(latencies_ms) != len(cases):
+        raise ValueError("KOMORAN latency count differs from fixture")
+    per_case_parsing_ms = parsing_seconds * 1_000 / len(cases)
+    latencies_ms = [value + per_case_parsing_ms for value in latencies_ms]
+    evaluation_seconds = java_evaluation_seconds + parsing_seconds
+    initialization_seconds = max(
+        int(initialization_ns) / 1_000_000_000,
+        process_seconds - java_evaluation_seconds,
+    )
+    peak_rss_kib = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss
     return available(
         "3.3.9",
         {"model": "FULL"},
-        results_from_candidates(cases, candidates),
+        results,
+        performance_metrics(
+            initialization_seconds,
+            evaluation_seconds,
+            latencies_ms,
+            peak_rss_kib,
+        ),
     )
 
 
 def available(
-    version: str, configuration: dict[str, object], results: list[dict[str, object]]
+    version: str,
+    configuration: dict[str, object],
+    results: list[dict[str, object]],
+    performance: dict[str, object],
 ) -> dict[str, object]:
     return {
         "status": "available",
         "version": version,
         "configuration": configuration,
         "results": results,
+        "performance": performance,
+    }
+
+
+def capture_once(
+    backend: str,
+    cases: list[dict[str, object]],
+    cases_path: Path,
+    runner: Path,
+) -> dict[str, object]:
+    captures = {
+        "kiwi": lambda: capture_kiwi(cases),
+        "lindera": lambda: capture_lindera(cases, cases_path, runner),
+        "mecab-ko": lambda: capture_mecab(cases),
+        "komoran": lambda: capture_komoran(cases),
+    }
+    return captures[backend]()
+
+
+def capture_backend_runs(
+    backend: str,
+    cases_path: Path,
+    metadata_path: Path,
+    runner: Path,
+    runs: int,
+) -> dict[str, object]:
+    def run_worker() -> dict[str, object]:
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / f"{backend}.json"
+            process = subprocess.run(
+                [
+                    sys.executable,
+                    str(Path(__file__).resolve()),
+                    "--worker-backend",
+                    backend,
+                    "--cases",
+                    str(cases_path),
+                    "--metadata",
+                    str(metadata_path),
+                    "--runner",
+                    str(runner),
+                    "--output",
+                    str(output),
+                ],
+                text=True,
+                capture_output=True,
+            )
+            if process.returncode != 0:
+                raise RuntimeError(
+                    f"{backend} performance worker failed with exit "
+                    f"{process.returncode}: {process.stderr.strip()}"
+                )
+            return json.loads(output.read_text(encoding="utf-8"))
+
+    run_worker()
+    measured = [run_worker() for _ in range(runs)]
+    first = measured[0]
+    for result in measured[1:]:
+        if result["version"] != first["version"]:
+            raise ValueError(f"{backend} version changed between measured runs")
+        if result["configuration"] != first["configuration"]:
+            raise ValueError(f"{backend} configuration changed between measured runs")
+        if result["results"] != first["results"]:
+            raise ValueError(f"{backend} results changed between measured runs")
+    return available(
+        str(first["version"]),
+        dict(first["configuration"]),
+        list(first["results"]),
+        aggregate_performance(
+            [dict(result["performance"]) for result in measured], warmup_runs=1
+        ),
+    )
+
+
+def snapshot_environment() -> dict[str, object]:
+    return {
+        "platform": platform.platform(),
+        "logical_cpus": os.cpu_count(),
+        "python": platform.python_version(),
     }
 
 
@@ -150,6 +336,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--metadata", type=Path, default=DEFAULT_METADATA)
     parser.add_argument("--runner", type=Path, default=DEFAULT_RUNNER)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--runs", type=int, default=DEFAULT_RUNS)
+    parser.add_argument("--worker-backend", choices=EXTERNAL_BACKENDS)
     parser.add_argument(
         "--backends", default=",".join(EXTERNAL_BACKENDS), help="comma-separated"
     )
@@ -165,26 +353,37 @@ def main() -> int:
     cases = load_cases(args.cases)
     metadata = json.loads(args.metadata.read_text(encoding="utf-8"))
     validate_dataset(args.cases, cases, metadata)
+    if args.worker_backend is not None:
+        result = capture_once(args.worker_backend, cases, args.cases, args.runner)
+        args.output.write_text(
+            json.dumps(result, ensure_ascii=False, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        return 0
     backends = {
         backend: {"status": "unavailable", "reason": "snapshot not captured"}
         for backend in EXTERNAL_BACKENDS
     }
     if args.output.exists():
         current = json.loads(args.output.read_text(encoding="utf-8"))
-        if current.get("fixture_sha256") == metadata["fixture_sha256"]:
+        if (
+            current.get("schema_version") == SCHEMA_VERSION
+            and current.get("fixture_sha256") == metadata["fixture_sha256"]
+        ):
             backends.update(current.get("backends", {}))
-    captures = {
-        "kiwi": lambda: capture_kiwi(cases),
-        "lindera": lambda: capture_lindera(cases, args.cases, args.runner),
-        "mecab-ko": lambda: capture_mecab(cases),
-        "komoran": lambda: capture_komoran(cases),
-    }
     for backend in selected:
-        backends[backend] = captures[backend]()
+        backends[backend] = capture_backend_runs(
+            backend,
+            args.cases,
+            args.metadata,
+            args.runner,
+            max(DEFAULT_RUNS, args.runs),
+        )
     snapshot = {
         "schema_version": SCHEMA_VERSION,
         "fixture_sha256": metadata["fixture_sha256"],
         "case_count": len(cases),
+        "environment": snapshot_environment(),
         "backends": backends,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)

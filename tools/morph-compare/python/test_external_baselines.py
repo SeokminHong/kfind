@@ -30,18 +30,38 @@ class ExternalBaselineTests(unittest.TestCase):
             {"id": "negative", "matching_spans": []},
         ]
         self.snapshot = {
-            "schema_version": 1,
+            "schema_version": 2,
             "fixture_sha256": "fixture",
             "case_count": 2,
+            "environment": {"platform": "test"},
             "backends": {
                 backend: {
                     "status": "available",
                     "version": "1.0",
                     "configuration": {},
                     "results": result,
+                    "performance": self.performance(),
                 }
                 for backend in EXTERNAL_BACKENDS
             },
+        }
+
+    @staticmethod
+    def performance() -> dict[str, object]:
+        metrics = {
+            "initialization_seconds": 0.1,
+            "evaluation_seconds": 0.2,
+            "cases_per_second": 10.0,
+            "latency_p50_ms": 1.0,
+            "latency_p95_ms": 2.0,
+            "peak_rss_kib": 1024,
+        }
+        return {
+            "runs": 5,
+            "warmup_runs": 1,
+            **metrics,
+            "run_min": metrics,
+            "run_max": metrics,
         }
 
     def load(self) -> dict[str, object]:
@@ -75,6 +95,12 @@ class ExternalBaselineTests(unittest.TestCase):
         self.snapshot["fixture_sha256"] = "stale"
 
         with self.assertRaisesRegex(ValueError, "refresh-morph-baselines"):
+            self.load()
+
+    def test_rejects_missing_performance(self) -> None:
+        del self.snapshot["backends"]["kiwi"]["performance"]
+
+        with self.assertRaisesRegex(ValueError, "kiwi has no performance"):
             self.load()
 
 
