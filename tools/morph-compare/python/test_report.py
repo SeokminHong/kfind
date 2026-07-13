@@ -5,6 +5,7 @@ from report import (
     KFIND_PROFILES,
     append_component_shadow_table,
     append_local_context_summary,
+    classify_component_paths,
     classify_primary_cause,
     kfind_profile_comparison,
     quality_metrics,
@@ -177,6 +178,99 @@ class ShadowVerificationTests(unittest.TestCase):
             {"accept": 1}, summary["component_outcomes_by_class"]["positive"]
         )
         self.assertEqual(by_case, summary["by_case"])
+
+    def test_classifies_lowest_cost_component_paths(self) -> None:
+        target = {"byte_start": 3, "byte_end": 9}
+        window = {"raw": {"byte_start": 3, "byte_end": 12}}
+        query_node = {
+            "original": target,
+            "pos": "NNG",
+            "unknown": False,
+        }
+        suffix_node = {
+            "original": {"byte_start": 9, "byte_end": 12},
+            "pos": "XSV",
+            "unknown": False,
+        }
+        unknown_node = {
+            "original": {"byte_start": 3, "byte_end": 12},
+            "pos": "UNKNOWN",
+            "unknown": True,
+        }
+        by_case = {
+            "accept": {
+                "component": [
+                    {
+                        "decision": "accept",
+                        "include_cost": 10,
+                        "target": target,
+                        "window": window,
+                        "paths": [
+                            {
+                                "cost": 10,
+                                "includes_query": True,
+                                "nodes": [query_node, suffix_node],
+                            }
+                        ],
+                    },
+                    {
+                        "decision": "accept",
+                        "include_cost": 20,
+                        "target": target,
+                        "window": window,
+                        "paths": [
+                            {
+                                "cost": 20,
+                                "includes_query": True,
+                                "nodes": [query_node],
+                            }
+                        ],
+                    },
+                ]
+            },
+            "reject": {
+                "component": [
+                    {
+                        "decision": "reject",
+                        "exclude_cost": 5,
+                        "target": target,
+                        "window": window,
+                        "paths": [
+                            {
+                                "cost": 5,
+                                "includes_query": False,
+                                "nodes": [unknown_node],
+                            }
+                        ],
+                    }
+                ]
+            },
+        }
+        metadata = {
+            "accept": {"expected": True},
+            "reject": {"expected": True},
+        }
+
+        classification = classify_component_paths(by_case, metadata)
+
+        self.assertEqual(
+            {"derivational-continuation": 1},
+            classification["path_types_by_class"]["positive"]["accept"],
+        )
+        self.assertEqual(
+            {"unknown": 1},
+            classification["path_types_by_class"]["positive"]["reject"],
+        )
+        self.assertEqual(
+            {"derivational-continuation": 1},
+            classification["p1_rule_candidates_by_class"]["positive"],
+        )
+        self.assertEqual(
+            "prefix",
+            classification["by_case"]["accept"]["decisions"]["accept"][
+                "target_position"
+            ],
+        )
 
     def test_renders_component_case_decisions(self) -> None:
         shadow = {

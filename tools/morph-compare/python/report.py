@@ -9,6 +9,7 @@ try:
         KFIND_PROFILES,
         append_component_shadow_table,
         append_shadow_verification,
+        classify_component_paths,
         shadow_verification_summary,
     )
 except ImportError:
@@ -16,6 +17,7 @@ except ImportError:
         KFIND_PROFILES,
         append_component_shadow_table,
         append_shadow_verification,
+        classify_component_paths,
         shadow_verification_summary,
     )
 
@@ -166,7 +168,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 6,
+        "schema_version": 7,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "versions": versions,
