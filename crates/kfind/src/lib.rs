@@ -22,40 +22,69 @@ pub use kfind_query::{
 #[derive(Clone, Debug)]
 pub struct Engine {
     analyzer: LexiconQueryAnalyzer,
-    component_resource: Arc<ComponentResource>,
+    component_resource: Option<Arc<ComponentResource>>,
 }
 
 impl Engine {
-    /// Creates an engine with the embedded core lexicon and a component resource.
-    pub fn new(component_resource: impl Into<Vec<u8>>) -> Result<Self, DataError> {
-        Self::from_lexicons(component_resource, Lexicons::embedded()?)
+    /// Creates an engine with the embedded core lexicon.
+    pub fn new() -> Result<Self, DataError> {
+        Ok(Self::from_lexicons(Lexicons::embedded()?))
     }
 
-    /// Creates an engine with embedded data, a component resource, and a full POS lexicon.
-    pub fn with_full_pos(
+    /// Creates an engine with embedded data and a component resource.
+    pub fn with_component_resource(
         component_resource: impl Into<Vec<u8>>,
-        full_pos: &[u8],
     ) -> Result<Self, DataError> {
-        Self::from_lexicons(
-            component_resource,
+        Self::from_lexicons_with_component(Lexicons::embedded()?, component_resource)
+    }
+
+    /// Creates an engine with embedded data and a full POS lexicon.
+    pub fn with_full_pos(full_pos: &[u8]) -> Result<Self, DataError> {
+        Ok(Self::from_lexicons(Lexicons::embedded_with(
+            Some(full_pos),
+            None,
+        )?))
+    }
+
+    /// Creates an engine with embedded data, a full POS lexicon, and a component resource.
+    pub fn with_full_pos_and_component(
+        full_pos: &[u8],
+        component_resource: impl Into<Vec<u8>>,
+    ) -> Result<Self, DataError> {
+        Self::from_lexicons_with_component(
             Lexicons::embedded_with(Some(full_pos), None)?,
+            component_resource,
         )
     }
 
-    /// Creates an engine from a component resource and caller-configured lexicons.
-    pub fn from_lexicons(
-        component_resource: impl Into<Vec<u8>>,
+    /// Creates an engine from caller-configured lexicons.
+    #[must_use]
+    pub fn from_lexicons(lexicons: Lexicons) -> Self {
+        Self {
+            analyzer: LexiconQueryAnalyzer::new(Arc::new(lexicons)),
+            component_resource: None,
+        }
+    }
+
+    /// Creates an engine from caller-configured lexicons and a component resource.
+    pub fn from_lexicons_with_component(
         lexicons: Lexicons,
+        component_resource: impl Into<Vec<u8>>,
     ) -> Result<Self, DataError> {
-        let component_resource = decode_component_resource(
-            "component resource",
-            component_resource.into(),
-            &COMPONENT_RESOURCE_SOURCE_DIGEST,
-        )?;
         Ok(Self {
             analyzer: LexiconQueryAnalyzer::new(Arc::new(lexicons)),
-            component_resource: Arc::new(component_resource),
+            component_resource: Some(decode_component(component_resource)?),
         })
+    }
+
+    /// Validates and installs a component resource for subsequent smart queries.
+    pub fn load_component_resource(
+        &mut self,
+        component_resource: impl Into<Vec<u8>>,
+    ) -> Result<(), DataError> {
+        let component_resource = decode_component(component_resource)?;
+        self.component_resource = Some(component_resource);
+        Ok(())
     }
 
     /// Reports whether this engine includes the optional full POS lexicon.
@@ -64,16 +93,29 @@ impl Engine {
         self.analyzer.lexicons().full_pos_loaded()
     }
 
+    /// Reports whether this engine includes the optional component resource.
+    #[must_use]
+    pub fn component_resource_loaded(&self) -> bool {
+        self.component_resource.is_some()
+    }
+
     /// Compiles a query into a matcher that can be reused across inputs.
     pub fn compile(
         &self,
         query: &str,
         options: &CompileOptions,
     ) -> Result<Matcher, CompileMatcherError> {
-        let plan = compile_query(query, options, &self.analyzer)?;
-        MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(&self.component_resource))
-            .map(Matcher::from)
-            .map_err(CompileMatcherError::from)
+        let plan = Arc::new(compile_query(query, options, &self.analyzer)?);
+        let matcher = if plan.requires_component_resource() {
+            let resource = self
+                .component_resource
+                .as_ref()
+                .ok_or(CompileMatcherError::ComponentResourceRequired)?;
+            MorphMatcher::with_component_resource(plan, Arc::clone(resource))
+        } else {
+            MorphMatcher::new(plan)
+        }?;
+        Ok(Matcher::from(matcher))
     }
 }
 
@@ -113,6 +155,7 @@ impl From<MorphMatcher> for Matcher {
 #[derive(Debug)]
 pub enum CompileMatcherError {
     Compile(CompileError),
+    ComponentResourceRequired,
     Matcher(MorphMatcherBuildError),
 }
 
@@ -120,6 +163,9 @@ impl Display for CompileMatcherError {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Compile(error) => Display::fmt(error, formatter),
+            Self::ComponentResourceRequired => {
+                formatter.write_str("component resource is required for this smart query")
+            }
             Self::Matcher(error) => Display::fmt(error, formatter),
         }
     }
@@ -129,6 +175,7 @@ impl Error for CompileMatcherError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::Compile(error) => Some(error),
+            Self::ComponentResourceRequired => None,
             Self::Matcher(error) => Some(error),
         }
     }
@@ -144,6 +191,17 @@ impl From<MorphMatcherBuildError> for CompileMatcherError {
     fn from(error: MorphMatcherBuildError) -> Self {
         Self::Matcher(error)
     }
+}
+
+fn decode_component(
+    component_resource: impl Into<Vec<u8>>,
+) -> Result<Arc<ComponentResource>, DataError> {
+    decode_component_resource(
+        "component resource",
+        component_resource.into(),
+        &COMPONENT_RESOURCE_SOURCE_DIGEST,
+    )
+    .map(Arc::new)
 }
 
 #[cfg(test)]
@@ -189,14 +247,15 @@ mod tests {
 
     #[test]
     fn invalid_full_pos_data_fails_during_engine_creation() {
-        let error = Engine::with_full_pos(component_resource(), b"not a lexicon").unwrap_err();
+        let error = Engine::with_full_pos(b"not a lexicon").unwrap_err();
 
         assert!(error.to_string().contains("binary"));
     }
 
     #[test]
     fn invalid_component_data_fails_during_engine_creation() {
-        let error = Engine::new(b"not a component resource".as_slice()).unwrap_err();
+        let error =
+            Engine::with_component_resource(b"not a component resource".as_slice()).unwrap_err();
 
         assert!(error.to_string().contains("component resource"));
     }
@@ -209,8 +268,52 @@ mod tests {
         assert!(matches!(error, CompileMatcherError::Compile(_)));
     }
 
+    #[test]
+    fn component_smart_query_requires_explicit_initialization() {
+        let mut engine = Engine::new().unwrap();
+        let options = CompileOptions::resolve(CompileOptionOverrides {
+            pos: Some(CoarsePos::Noun),
+            ..CompileOptionOverrides::default()
+        })
+        .unwrap();
+
+        let error = engine.compile("권한", &options).unwrap_err();
+
+        assert!(matches!(
+            error,
+            CompileMatcherError::ComponentResourceRequired
+        ));
+
+        engine
+            .load_component_resource(component_resource())
+            .unwrap();
+        let matcher = engine.compile("권한", &options).unwrap();
+        assert_eq!(matcher.find_all("권한".as_bytes()).len(), 1);
+    }
+
+    #[test]
+    fn explicit_component_initialization_is_observable() {
+        let mut without_component = Engine::new().unwrap();
+        let with_component = Engine::with_component_resource(component_resource()).unwrap();
+
+        assert!(!without_component.component_resource_loaded());
+        assert!(with_component.component_resource_loaded());
+
+        without_component
+            .load_component_resource(component_resource())
+            .unwrap();
+        assert!(without_component.component_resource_loaded());
+
+        assert!(
+            without_component
+                .load_component_resource(b"not a component resource".as_slice())
+                .is_err()
+        );
+        assert!(without_component.component_resource_loaded());
+    }
+
     fn test_engine() -> Engine {
-        Engine::new(component_resource()).unwrap()
+        Engine::new().unwrap()
     }
 
     fn component_resource() -> Vec<u8> {

@@ -62,7 +62,7 @@ where
     let analyzer = LexiconQueryAnalyzer::new(lexicons);
     let plan =
         Arc::new(compile_query(&args.query, &options, &analyzer).map_err(CliError::Compile)?);
-    let matcher = if requires_component_resource(&plan) {
+    let matcher = if plan.requires_component_resource() {
         let resource = Arc::new(load_component_resource(args)?);
         MorphMatcher::with_component_resource(Arc::clone(&plan), resource)
     } else {
@@ -142,14 +142,6 @@ fn load_lexicons(args: &Args, load_full_pos: bool) -> Result<LoadedLexicons, Cli
         lexicons.merge_user(&user);
     }
     Ok(LoadedLexicons { lexicons, full_pos })
-}
-
-fn requires_component_resource(plan: &kfind_query::QueryPlan) -> bool {
-    plan.atoms.iter().any(|atom| {
-        atom.branches.iter().any(|branch| {
-            branch.context_requirement == kfind_query::ContextRequirement::NominalComponent
-        })
-    })
 }
 
 fn load_component_resource(args: &Args) -> Result<ComponentResource, CliError> {
