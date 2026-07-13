@@ -12,6 +12,8 @@ BY-SA 4.0 licenses are pinned in `sources.json`. For each split, the generator
 selects 250 POS-stratified positive cases from each source and pairs each with a
 deterministic negative from the same source, producing 1,000 cases. Development
 uses the development fixture; the test fixture remains the regression baseline.
+The image also builds a separate 1,000-case human-usage fixture. Its queries omit
+POS, and each negative excludes the query lemma under every supported POS.
 The image build also generates and validates the sealed Korean-GSD blind
 local-context fixture. The default benchmark does not load or evaluate it.
 The first evaluation is recorded in the benchmark handoff. Subsequent runs use
@@ -83,3 +85,8 @@ separate startup table compares resource-less embedded and full-POS engines with
 the same engines after explicit component loading.
 Each startup profile runs in a fresh process after one warm-up and records at
 least three initialization-time and peak-RSS samples.
+
+The `Human untagged search` section separately compares embedded/full-POS with
+smart/any. It reports binary quality and performance plus intended-POS plan
+coverage, multi-POS plan rate, and literal fallback rate. Its F1 is not combined
+with the explicit-POS task because the negative definition differs.

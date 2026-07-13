@@ -57,6 +57,9 @@ pnpm --dir packages/kfind run benchmark:startup
 lemma/POS/span 품질과
 end-to-end 비용을 비교한다. dev의 VCP/VCN 지정사 판별 slice는 성능 측정에서 제외하고
 source·raw tag별 confusion matrix와 local-context shadow 대상 수를 함께 기록한다.
+별도 human fixture는 품사 옵션과 atom 태그를 생략하고, query 표제어가 어떤 지원 품사로도
+없는 문장을 negative로 사용한다. embedded/full-POS의 smart/any 품질·성능과 auto plan
+사용성을 같은 보고서의 `human_untagged` 절에 기록한다.
 
 ```console
 scripts/benchmark-morphology.sh
