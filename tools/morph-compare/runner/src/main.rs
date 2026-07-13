@@ -1,5 +1,4 @@
 mod shadow;
-mod user_precision_shadow;
 
 use std::collections::BTreeSet;
 use std::fs::{self, File};
@@ -31,7 +30,6 @@ use sha2::{Digest, Sha256};
 use shadow::{
     ShadowBranchEvidence, ShadowResource, ShadowVerificationCounters, diagnose_component_candidate,
 };
-use user_precision_shadow::diagnose_user_precision_shadow;
 
 const FULL_POS_LEXICON: &str = "/opt/morph-benchmark/full-pos/lexicon.bin";
 const FULL_POS_LEXICON_ENV: &str = "KFIND_FULL_POS_LEXICON";
@@ -82,7 +80,7 @@ struct StartupSummary {
     component_resource_loaded: bool,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+#[derive(Debug, Eq, PartialEq, Serialize)]
 struct Span {
     byte_start: usize,
     byte_end: usize,
@@ -422,16 +420,12 @@ fn run_kfind(
             "failure_diagnostic": null,
             "plan_diagnostic": null,
             "shadow_verification": {},
-            "user_precision_shadow": null,
         }));
     }
     let evaluation_seconds = evaluation_started.elapsed().as_secs_f64();
     let peak_rss_kib = peak_rss_kib();
     if matches!(query_mode, KfindQueryMode::Untagged) {
         append_untagged_plan_diagnostics(cases, &mut results, &analyzer)?;
-        if let Some(resource) = component_resource.as_ref() {
-            append_user_precision_shadow(cases, &mut results, &analyzer, boundary, resource)?;
-        }
     }
     let morphology_artifact_sha256 = if include_diagnostics {
         append_kfind_diagnostics(cases, &mut results, &analyzer, &component_resource)?
@@ -451,46 +445,6 @@ fn run_kfind(
         peak_rss_kib,
         results,
     })
-}
-
-fn append_user_precision_shadow(
-    cases: &[Case],
-    results: &mut [Value],
-    analyzer: &LexiconQueryAnalyzer,
-    boundary: KfindBoundary,
-    component_resource: &Arc<kfind_data::ComponentResource>,
-) -> Result<()> {
-    for (case, result) in cases.iter().zip(results.iter_mut()) {
-        let options = CompileOptions::resolve(CompileOptionOverrides {
-            boundary: Some(boundary.policy()),
-            ..CompileOptionOverrides::default()
-        })?;
-        let plan = compile_query(&case.query, &options, analyzer).with_context(|| {
-            format!(
-                "failed to compile User precision shadow for case {}",
-                case.id
-            )
-        })?;
-        let matcher = MorphMatcher::with_component_resource(
-            Arc::new(plan.clone()),
-            Arc::clone(component_resource),
-        )?;
-        let matches = matcher.find_all_with_meta(case.text.as_bytes());
-        let (baseline_spans, shadow) = diagnose_user_precision_shadow(
-            &plan,
-            &matches,
-            &case.text,
-            component_resource.as_ref(),
-        );
-        if serde_json::to_value(&baseline_spans)? != result["spans"] {
-            bail!(
-                "User precision shadow changed baseline spans for case {}",
-                case.id
-            );
-        }
-        result["user_precision_shadow"] = serde_json::to_value(shadow)?;
-    }
-    Ok(())
 }
 
 fn append_untagged_plan_diagnostics(

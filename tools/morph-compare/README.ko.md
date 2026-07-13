@@ -88,10 +88,6 @@ peak RSS를 최소 3회 측정한다.
 함께 기대 품사 plan 포함률, multi-POS plan 비율, literal fallback 비율을 기록한다. negative
 정의가 다른 명시적 품사 task와 F1 순위를 합치지 않는다.
 
-`User precision shadow` 절은 query POS ambiguity와 corpus homonym을 분리하고 dev·test의
-baseline 대비 projected precision·recall을 기록한다. whole-token lexical projection은 기존
-strict-subspan predicate candidate만 제거하며 제품 결과와 성능 측정 구간에는 영향을 주지 않는다.
-
 `Product workflows` 절은 에이전트용 `embedded + any + 명시적 품사`의 recall·처리량과
 false-positive 후보 수, 사람용 `full-POS + smart + 무품사`의 precision·recall·plan 포함률을
 먼저 보여 준다. 라이브러리는 resource 없는 embedded engine을 기본값으로 두고 full-POS와

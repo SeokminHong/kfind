@@ -10,7 +10,6 @@ from report import (
     append_human_untagged,
     append_product_workflows,
     append_product_use_cases,
-    append_user_precision_shadow,
     classify_component_paths,
     classify_primary_cause,
     kfind_profile_comparison,
@@ -19,7 +18,6 @@ from report import (
     quality_metrics,
     shadow_verification_summary,
     untagged_plan_metrics,
-    user_precision_shadow_summary,
 )
 
 
@@ -336,96 +334,6 @@ class HumanUntaggedTests(unittest.TestCase):
         self.assertIn("## Human untagged search", rendered)
         self.assertIn("| embedded | any | 90.0% | 80.0% | 84.71% |", rendered)
         self.assertIn("| embedded | 10 | 80.0% (8) | 30.0% (3) |", rendered)
-
-
-class UserPrecisionShadowTests(unittest.TestCase):
-    def test_separates_corpus_and_query_ambiguity_false_positives(self) -> None:
-        cases = [
-            {"id": "positive", "expected": True},
-            {"id": "homonym", "expected": False},
-            {"id": "ambiguous", "expected": False},
-            {"id": "negative", "expected": False},
-        ]
-        baseline = {
-            "positive": True,
-            "homonym": True,
-            "ambiguous": True,
-            "negative": False,
-        }
-        projected = {
-            "positive": True,
-            "homonym": False,
-            "ambiguous": True,
-            "negative": False,
-        }
-        plans = {
-            case["id"]: {"multi_coarse_pos": case["id"] == "ambiguous"}
-            for case in cases
-        }
-        shadows = {
-            case["id"]: {
-                "policy": "whole-token-lexical",
-                "removed_matches": int(case["id"] == "homonym"),
-                "matched_coarse_pos": [],
-                "whole_token_lexical": (
-                    [{"rejected": True}] if case["id"] == "homonym" else []
-                ),
-            }
-            for case in cases
-        }
-
-        summary = user_precision_shadow_summary(
-            cases, baseline, projected, plans, shadows
-        )
-
-        self.assertEqual(50.0, summary["quality"]["precision_percent"])
-        self.assertEqual(
-            {
-                "query-pos-ambiguity": 1,
-                "corpus-homonym": 1,
-                "unclassified": 0,
-            },
-            summary["baseline_false_positive_causes"],
-        )
-        self.assertEqual(1, summary["removed_matches"])
-
-    def test_renders_development_before_test(self) -> None:
-        shadow = {
-            "quality": {"precision_percent": 100.0, "recall_percent": 80.0},
-            "baseline_false_positive_causes": {
-                "corpus-homonym": 1,
-                "query-pos-ambiguity": 2,
-            },
-        }
-        lines: list[str] = []
-
-        append_user_precision_shadow(
-            lines,
-            {
-                "product_persona_comparison": {
-                    "rows": {
-                        "user": {
-                            "quality": {
-                                "precision_percent": 99.0,
-                                "recall_percent": 80.0,
-                            },
-                            "precision_shadow": shadow,
-                        }
-                    }
-                },
-                "user_precision_development": {
-                    "quality": {
-                        "precision_percent": 98.0,
-                        "recall_percent": 81.0,
-                    },
-                    "precision_shadow": shadow,
-                },
-            },
-        )
-
-        rendered = "\n".join(lines)
-        self.assertLess(rendered.index("| development |"), rendered.index("| test |"))
-        self.assertIn("Product matches are unchanged", rendered)
 
 
 class ProductWorkflowTests(unittest.TestCase):
