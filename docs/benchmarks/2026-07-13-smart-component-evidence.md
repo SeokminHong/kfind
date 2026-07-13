@@ -108,9 +108,39 @@ dev TP는 각각 56건, 60건 증가했고 FP는 변하지 않았다. test의 co
 embedded 84건과 full-POS 123건 모두 일치했다. revised hard-negative의 component candidate
 5건은 두 profile에서 모두 거부됐다.
 
-component resource 초기화를 포함한 5회 중앙값은 embedded 0.2823초·50.9 MiB,
-full-POS 0.4260초·92.1 MiB다. Homebrew는 별도 formula resource로 설치하고 npm은 WASM과
-분리된 정적 asset으로 게시한다.
+component resource는 engine 생성이나 첫 smart compile에서 자동으로 읽지 않는다. resource 없는
+engine도 literal과 component branch가 없는 smart query를 compile할 수 있다. component branch가
+필요한 query는 명시적 load 전까지 오류를 반환하며 기존 경계 판정으로 fallback하지 않는다.
+생성자 선로딩과 생성 후 수동 load를 모두 지원하고, 수동 교체 검증이 실패하면 기존 resource를
+유지한다.
+
+Linux/aarch64 native 공개 API를 새 process에서 1회 warm-up 뒤 5회 측정한 결과는 다음과 같다.
+component profile은 resource 없는 engine을 먼저 만든 뒤 47,859,711-byte artifact를 파일에서
+읽어 `load_component_resource`로 초기화한다.
+
+| profile | base init 중앙값 | component load 중앙값 | 최종 peak RSS |
+| --- | ---: | ---: | ---: |
+| embedded | 1.09 ms | 미로드 | 3.4 MiB |
+| embedded + component | 1.15 ms | 149.82 ms | 49.1 MiB |
+| full-POS | 127.47 ms | 미로드 | 46.0 MiB |
+| full-POS + component | 127.66 ms | 150.00 ms | 87.6 MiB |
+
+같은 artifact를 macOS arm64의 Node 24/WASM에서 1회 warm-up 뒤 3회 측정했다. WASM module load는
+공통 선행 비용으로 제외하고 engine 초기화와 process RSS를 기록했다.
+
+| profile | base init 중앙값 | component load 중앙값 | base / 최종 RSS |
+| --- | ---: | ---: | ---: |
+| embedded | 11.20 ms | 미로드 | 68.8 / 68.9 MiB |
+| embedded + component | 11.13 ms | 913.47 ms | 69.1 / 186.1 MiB |
+| full-POS | 101.48 ms | 미로드 | 123.1 / 123.1 MiB |
+| full-POS + component | 101.67 ms | 908.00 ms | 123.1 / 214.6 MiB |
+
+제품 smart 경로가 component를 사용하는 기존 end-to-end 5회 중앙값은 embedded
+0.2916초·50.9 MiB, full-POS 0.4252초·92.1 MiB다. Homebrew는 별도 formula resource로
+설치하고 npm은 1,134,114-byte WASM과 분리된 정적 asset으로 게시한다.
+
+재현 명령은 `scripts/benchmark-morphology.sh`와
+`pnpm --dir packages/kfind run benchmark:startup`이다.
 
 ## 다음 단계
 
