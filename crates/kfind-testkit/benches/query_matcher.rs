@@ -9,7 +9,9 @@ const MATCHING_LINE: &str = "길을 걸어 갔다. 권한을 검증했습니다.
 const NON_MATCHING_LINE: &str = "사용자는 새 문서를 읽고 접근 정책을 확인했습니다.\n";
 const CORPUS_LINES: usize = 1_024;
 const MATCH_EVERY_LINES: usize = 64;
+const PHRASE_MATCH_EVERY_LINES: usize = 4;
 const SINGLE_ATOM_QUERY: &str = "걷다";
+const PHRASE_QUERY: &str = "n:길 v:걷다";
 const PHRASE_8_ATOMS_QUERY: &str =
     "n:사용자 n:권한 v:검증하다 adj:예쁘다 det:새 adv:빨리 n:기술 v:걷다";
 
@@ -53,7 +55,7 @@ fn matcher_scan(criterion: &mut Criterion) {
     let plan = compile_query("걷다", &CompileOptions::default(), &analyzer)
         .expect("benchmark query must compile");
     let matcher = MorphMatcher::new(Arc::new(plan)).expect("benchmark matcher must build");
-    let corpus = deterministic_corpus();
+    let corpus = deterministic_corpus(MATCH_EVERY_LINES);
     assert_eq!(
         matcher.find_all_with_meta(&corpus).len(),
         CORPUS_LINES / MATCH_EVERY_LINES
@@ -63,13 +65,27 @@ fn matcher_scan(criterion: &mut Criterion) {
     group.bench_function("scan_deterministic_corpus", |bencher| {
         bencher.iter(|| matcher.find_all_with_meta(black_box(&corpus)));
     });
+
+    let phrase_plan = compile_query(PHRASE_QUERY, &CompileOptions::default(), &analyzer)
+        .expect("phrase benchmark query must compile");
+    let phrase_matcher =
+        MorphMatcher::new(Arc::new(phrase_plan)).expect("phrase benchmark matcher must build");
+    let phrase_corpus = deterministic_corpus(PHRASE_MATCH_EVERY_LINES);
+    assert_eq!(
+        phrase_matcher.find_all_with_meta(&phrase_corpus).len(),
+        CORPUS_LINES / PHRASE_MATCH_EVERY_LINES
+    );
+    group.throughput(Throughput::Bytes(phrase_corpus.len() as u64));
+    group.bench_function("phrase_find_all", |bencher| {
+        bencher.iter(|| phrase_matcher.find_all_with_meta(black_box(&phrase_corpus)));
+    });
     group.finish();
 }
 
-fn deterministic_corpus() -> Vec<u8> {
+fn deterministic_corpus(match_every_lines: usize) -> Vec<u8> {
     let mut corpus = String::with_capacity(NON_MATCHING_LINE.len() * CORPUS_LINES);
     for line_index in 0..CORPUS_LINES {
-        let line = if line_index % MATCH_EVERY_LINES == 0 {
+        let line = if line_index % match_every_lines == 0 {
             MATCHING_LINE
         } else {
             NON_MATCHING_LINE
