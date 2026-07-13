@@ -136,6 +136,23 @@
   품사 자동 계획과 모호성 비용을 포함하고, 다른 품사의 lemma match도 explicit-POS gold에 따라
   오답으로 계산하므로 유리한 조건으로 해석하지 않는다. 별도 무품사 fixture의 사람용 profile은
   negative 정의가 다르므로 제품 profile 검증에만 사용한다.
+- User precision 오탐은 `query-pos-ambiguity`와 `corpus-homonym`으로 분리한다. 전자는 여러
+  coarse POS를 포함한 무품사 query plan의 match에 corpus homonym 근거가 없는 경우, 후자는
+  predicate 생성형이 문장 안의 다른 lexical 표면형과 겹친 경우다. gold POS는 보고서 원인
+  분류에만 사용하며 제품 query plan이나 match를 변경하는 근거로 주입하지 않는다.
+- corpus homonym의 첫 대안은 기존 non-overlapping match만 대상으로 하는 `whole-token-lexical`
+  shadow projection이다. predicate origin의 match가 같은 Unicode token의 strict subspan이고
+  compact component resource에서 token 전체의 exact 분석이 모두 non-predicate일 때 해당 origin을
+  제거한 결과를 별도 계산한다. match가 token 전체와 같은 동형 표면형은 원인 증거만 기록하고
+  제거하지 않는다. exact 분석에 predicate가 하나라도 있거나 다른 query origin이 남으면 match를
+  유지하며 새 candidate를 만들지 않는다.
+- 이 projection은 성능 측정 밖에서 실행하고 기본 검색 결과를 바꾸지 않는다. dev fixture에서
+  User precision과 recall 변화를 먼저 고정한 뒤, test는 회귀 기록에만 쓰고 문장 hash가 겹치지
+  않는 sealed unseen fixture에서 다시 통과하기 전에는 제품 verifier로 승격하지 않는다. 폐기한
+  copula lattice와 경로 비용 비교는 복원하지 않는다.
+- precision 개선은 현재 `boundary=any`가 만드는 candidate 집합의 부분집합만 선택한다. `any`
+  밖의 span을 새로 만들거나 coverage를 넓히는 변경은 이 작업 범위에서 제외한다. User profile을
+  먼저 검증하고, Agent profile은 같은 상한 아래에서 후속 작업으로 다룬다.
 - 외부 분석기 성능은 각 backend를 fresh process에서 1회 warm-up 뒤 5회 측정해 품질 결과와 함께
   version-controlled snapshot에 저장한다. 기본 benchmark는 snapshot을 읽으며 test fixture,
   adapter·성능 schema 또는 고정 버전·설정이 바뀔 때만 외부 snapshot을 다시 측정한다. snapshot
