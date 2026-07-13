@@ -1,5 +1,6 @@
 mod shadow;
 
+use std::collections::BTreeSet;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, BufWriter};
 use std::path::Path;
@@ -101,6 +102,14 @@ struct FailureDiagnostic {
     any_boundary_gold_overlap: bool,
 }
 
+#[derive(Debug, Eq, PartialEq, Serialize)]
+struct UntaggedPlanDiagnostic {
+    expected_pos_present: bool,
+    coarse_pos: Vec<&'static str>,
+    multi_coarse_pos: bool,
+    literal_fallback: bool,
+}
+
 #[derive(Clone, Copy)]
 enum KfindProfile {
     Embedded,
@@ -112,6 +121,12 @@ enum KfindBoundary {
     Smart,
     Token,
     Any,
+}
+
+#[derive(Clone, Copy)]
+enum KfindQueryMode {
+    ExplicitPos,
+    Untagged,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -203,11 +218,11 @@ fn main() -> Result<()> {
     let arguments = std::env::args().skip(1).collect::<Vec<_>>();
     if arguments
         .first()
-        .is_some_and(|argument| argument == "boundary")
+        .is_some_and(|argument| matches!(argument.as_str(), "boundary" | "untagged"))
     {
         if arguments.len() != 5 {
             bail!(
-                "usage: morph-benchmark-runner boundary PROFILE BOUNDARY CASES.jsonl OUTPUT.json"
+                "usage: morph-benchmark-runner {{boundary|untagged}} PROFILE BOUNDARY CASES.jsonl OUTPUT.json"
             );
         }
         let cases = load_cases(Path::new(&arguments[3]))?;
@@ -216,6 +231,11 @@ fn main() -> Result<()> {
             KfindProfile::parse(&arguments[1])?,
             KfindBoundary::parse(&arguments[2])?,
             false,
+            if arguments[0] == "untagged" {
+                KfindQueryMode::Untagged
+            } else {
+                KfindQueryMode::ExplicitPos
+            },
         )?;
         serde_json::to_writer_pretty(BufWriter::new(File::create(&arguments[4])?), &summary)?;
         return Ok(());
@@ -224,7 +244,7 @@ fn main() -> Result<()> {
         bail!(
             "usage: morph-benchmark-runner BACKEND CASES.jsonl OUTPUT.json\n\
              or: morph-benchmark-runner startup PROFILE OUTPUT.json\n\
-             or: morph-benchmark-runner boundary PROFILE BOUNDARY CASES.jsonl OUTPUT.json"
+             or: morph-benchmark-runner {{boundary|untagged}} PROFILE BOUNDARY CASES.jsonl OUTPUT.json"
         );
     }
     if arguments[0] == "startup" {
@@ -234,10 +254,20 @@ fn main() -> Result<()> {
     }
     let cases = load_cases(Path::new(&arguments[1]))?;
     let summary = match arguments[0].as_str() {
-        "kfind" | "kfind-embedded" => {
-            run_kfind(&cases, KfindProfile::Embedded, KfindBoundary::Smart, true)?
-        }
-        "kfind-full-pos" => run_kfind(&cases, KfindProfile::FullPos, KfindBoundary::Smart, true)?,
+        "kfind" | "kfind-embedded" => run_kfind(
+            &cases,
+            KfindProfile::Embedded,
+            KfindBoundary::Smart,
+            true,
+            KfindQueryMode::ExplicitPos,
+        )?,
+        "kfind-full-pos" => run_kfind(
+            &cases,
+            KfindProfile::FullPos,
+            KfindBoundary::Smart,
+            true,
+            KfindQueryMode::ExplicitPos,
+        )?,
         "lindera" => run_lindera(&cases)?,
         backend => bail!("unknown backend {backend:?}"),
     };
@@ -318,6 +348,7 @@ fn run_kfind(
     profile: KfindProfile,
     boundary: KfindBoundary,
     include_diagnostics: bool,
+    query_mode: KfindQueryMode,
 ) -> Result<Summary> {
     let initialization_started = Instant::now();
     let (component_resource, component_artifact_sha256) = if boundary.requires_component() {
@@ -367,7 +398,10 @@ fn run_kfind(
         let case_started = Instant::now();
         let options = CompileOptions::resolve(CompileOptionOverrides {
             boundary: Some(boundary.policy()),
-            pos: Some(parse_pos(&case.pos)?),
+            pos: match query_mode {
+                KfindQueryMode::ExplicitPos => Some(parse_pos(&case.pos)?),
+                KfindQueryMode::Untagged => None,
+            },
             ..CompileOptionOverrides::default()
         })?;
         let plan = compile_query(&case.query, &options, &analyzer)
@@ -385,11 +419,15 @@ fn run_kfind(
             "latency_ms": latency_ms,
             "spans": spans,
             "failure_diagnostic": null,
+            "plan_diagnostic": null,
             "shadow_verification": {},
         }));
     }
     let evaluation_seconds = evaluation_started.elapsed().as_secs_f64();
     let peak_rss_kib = peak_rss_kib();
+    if matches!(query_mode, KfindQueryMode::Untagged) {
+        append_untagged_plan_diagnostics(cases, &mut results, &analyzer)?;
+    }
     let morphology_artifact_sha256 = if include_diagnostics {
         append_kfind_diagnostics(cases, &mut results, &analyzer, &component_resource)?
     } else {
@@ -408,6 +446,52 @@ fn run_kfind(
         peak_rss_kib,
         results,
     })
+}
+
+fn append_untagged_plan_diagnostics(
+    cases: &[Case],
+    results: &mut [Value],
+    analyzer: &LexiconQueryAnalyzer,
+) -> Result<()> {
+    for (case, result) in cases.iter().zip(results.iter_mut()) {
+        result["plan_diagnostic"] = serde_json::to_value(diagnose_untagged_plan(case, analyzer)?)?;
+    }
+    Ok(())
+}
+
+fn diagnose_untagged_plan(
+    case: &Case,
+    analyzer: &LexiconQueryAnalyzer,
+) -> Result<UntaggedPlanDiagnostic> {
+    let plan = compile_query(&case.query, &CompileOptions::default(), analyzer)
+        .with_context(|| format!("failed to compile untagged diagnostic for case {}", case.id))?;
+    let coarse_pos = plan.atoms[0]
+        .analyses
+        .iter()
+        .map(|analysis| analysis.coarse_pos)
+        .collect::<BTreeSet<_>>();
+    let expected_pos_present = coarse_pos.contains(&parse_pos(&case.pos)?);
+    Ok(UntaggedPlanDiagnostic {
+        expected_pos_present,
+        coarse_pos: coarse_pos.iter().copied().map(coarse_pos_name).collect(),
+        multi_coarse_pos: coarse_pos.len() > 1,
+        literal_fallback: coarse_pos.len() == 1 && coarse_pos.contains(&CoarsePos::Literal),
+    })
+}
+
+const fn coarse_pos_name(pos: CoarsePos) -> &'static str {
+    match pos {
+        CoarsePos::Noun => "noun",
+        CoarsePos::Pronoun => "pronoun",
+        CoarsePos::Numeral => "numeral",
+        CoarsePos::Verb => "verb",
+        CoarsePos::Adjective => "adjective",
+        CoarsePos::Determiner => "determiner",
+        CoarsePos::Adverb => "adverb",
+        CoarsePos::Particle => "particle",
+        CoarsePos::Interjection => "interjection",
+        CoarsePos::Literal => "literal",
+    }
 }
 
 fn append_kfind_diagnostics(
@@ -719,8 +803,9 @@ mod tests {
     use std::io::Cursor;
 
     use kfind_data::{
-        DataFinePos, MecabSourceMorphologyEntry, decode_morphology_resource,
-        encode_morphology_resource, parse_mecab_connection_matrix,
+        DataFinePos, LexiconData, MecabSourceMorphologyEntry, NominalRecord, collect_pos_entries,
+        decode_morphology_resource, encode_morphology_resource, encode_pos_lexicon,
+        parse_mecab_connection_matrix,
     };
 
     use super::*;
@@ -770,6 +855,43 @@ mod tests {
         assert!(diagnostic.auto_has_expected_pos_analysis);
         assert!(diagnostic.gold_anchor_overlap);
         assert!(diagnostic.any_boundary_gold_overlap);
+    }
+
+    #[test]
+    fn untagged_plan_reports_expected_and_ambiguous_pos() {
+        let full_data = LexiconData {
+            nominals: vec![NominalRecord {
+                lemma: "새".to_owned(),
+                pos: DataFinePos::Nng,
+                flags: BTreeSet::new(),
+                overrides: Vec::new(),
+            }],
+            ..LexiconData::default()
+        };
+        let binary = encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap();
+        let analyzer = LexiconQueryAnalyzer::new(Arc::new(
+            Lexicons::embedded_with(Some(&binary), None).unwrap(),
+        ));
+
+        let diagnostic =
+            diagnose_untagged_plan(&positive_case("새", "noun", "새"), &analyzer).unwrap();
+
+        assert!(diagnostic.expected_pos_present);
+        assert_eq!(diagnostic.coarse_pos, ["noun", "determiner"]);
+        assert!(diagnostic.multi_coarse_pos);
+        assert!(!diagnostic.literal_fallback);
+    }
+
+    #[test]
+    fn untagged_plan_reports_literal_fallback() {
+        let diagnostic =
+            diagnose_untagged_plan(&positive_case("미등록다", "verb", "미등록다"), &analyzer())
+                .unwrap();
+
+        assert!(!diagnostic.expected_pos_present);
+        assert_eq!(diagnostic.coarse_pos, ["literal"]);
+        assert!(!diagnostic.multi_coarse_pos);
+        assert!(diagnostic.literal_fallback);
     }
 
     #[test]
