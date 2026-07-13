@@ -6,6 +6,8 @@
 
 비용 분석: [local lattice 비용 분석](2026-07-12-lattice-cost-analysis.md)
 
+다음 계획: [recall 80% 작업 계획](2026-07-13-recall-80-plan.md)
+
 fixture SHA-256: `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21ff`
 
 ## 현재 상태
@@ -326,10 +328,11 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. P1 명사 `boundary-rejected`는 기존 합성어 hard-negative를 보존하는 범위에서만 다룬다.
-2. 정상 gold reject 13개를 기존 Kaist·KSL dev에서 원인별로 분류한다.
-3. P3 비용·threshold 후보는 dev에서만 정한다.
-4. 다음 제품 판정용 unseen source를 먼저 고정한다.
-5. 그 전에는 P3 filtering과 기본 검색 결과를 변경하지 않는다.
+1. recall 80% 계획 P0에서 dev 명사 `boundary-rejected` 64개의 회복 가능 상한을 계측한다.
+2. 기존 합성어 hard-negative를 보존하는 일반 규칙·source component 근거가 30개 이상인지
+   확인한다.
+3. 정상 지정사 gold reject 13개는 별도 P3 범위에서 기존 Kaist·KSL dev 원인을 분류한다.
+4. 다음 제품 판정용 unseen source를 결과 확인 전에 고정한다.
+5. 그 전에는 지정사 P3 filtering과 기본 검색 결과를 변경하지 않는다.
 
 Korean-GSD 결과에 맞춘 비용·threshold·fixture 가중치 변경은 금지한다.

@@ -1565,6 +1565,12 @@ SHA-256로 생성해 사용한다. test 1,000개 baseline은 변경하지 않는
 보고한다. CI smoke set은 dev fixture에서 source·품사·class별 고정 case를
 deterministic하게 추출하고, 수동 벤치마크는 dev·test·hard-negative 전체를 사용한다.
 
+다음 품질 개선 목표는 dev recall 80.00% 이상과 precision 99.00% 이상을 동시에 만족하는
+것이다. historical test는 규칙 선택에 사용하지 않고 회귀만 기록한다. 최종 품질 주장은
+구현 전에 source·fixture를 고정하고 기존 corpus와 문장 hash 중복이 없는 unseen 평가에서도
+같은 기준을 통과해야 한다. 기본 `smart`를 변경하는 구현은 기존 hard-negative에 새 FP를
+추가하지 않아야 하며, 이 조건을 만족하지 못하면 별도 boundary policy로 분리한다.
+
 ### 19.8 지정사 lattice blind 평가
 
 P3 전 지정사 lattice 판별력은 기존 Korean-Kaist·KSL과 별개인 UD Korean-GSD의 고정
