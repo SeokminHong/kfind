@@ -13,13 +13,7 @@ esac
 
 mkdir -p "$OUTPUT_DIR"
 
-if [ "${KFIND_MORPH_BLIND:-0}" = "1" ] && { [ "${KFIND_MORPH_UNSEEN:-0}" = "1" ] || [ "${KFIND_MORPH_SMOKE:-0}" = "1" ]; }; then
-    echo "KFIND_MORPH_BLIND cannot be combined with KFIND_MORPH_UNSEEN or KFIND_MORPH_SMOKE" >&2
-    exit 2
-elif [ "${KFIND_MORPH_UNSEEN:-0}" = "1" ] && [ "${KFIND_MORPH_SMOKE:-0}" = "1" ]; then
-    echo "KFIND_MORPH_UNSEEN and KFIND_MORPH_SMOKE cannot be combined" >&2
-    exit 2
-elif [ "${KFIND_MORPH_SMOKE:-0}" = "1" ]; then
+if [ "${KFIND_MORPH_SMOKE:-0}" = "1" ]; then
     set -- --smoke
 else
     set --
@@ -30,34 +24,12 @@ docker build \
     --tag "$IMAGE" \
     "$ROOT"
 
-if [ "${KFIND_MORPH_BLIND:-0}" = "1" ]; then
-    docker run \
-        --rm \
-        --network none \
-        --user "$(id -u):$(id -g)" \
-        --volume "$OUTPUT_DIR:/output" \
-        --entrypoint python \
-        "$IMAGE" \
-        /opt/morph-benchmark/blind_benchmark.py \
-        --output /output/report.json
-elif [ "${KFIND_MORPH_UNSEEN:-0}" = "1" ]; then
-    docker run \
-        --rm \
-        --network none \
-        --user "$(id -u):$(id -g)" \
-        --volume "$OUTPUT_DIR:/output" \
-        --entrypoint python \
-        "$IMAGE" \
-        /opt/morph-benchmark/unseen_benchmark.py \
-        --output /output/report.json
-else
-    docker run \
-        --rm \
-        --network none \
-        --user "$(id -u):$(id -g)" \
-        --volume "$OUTPUT_DIR:/output" \
-        "$IMAGE" \
-        --runs "$RUNS" \
-        "$@" \
-        --output /output/report.json
-fi
+docker run \
+    --rm \
+    --network none \
+    --user "$(id -u):$(id -g)" \
+    --volume "$OUTPUT_DIR:/output" \
+    "$IMAGE" \
+    --runs "$RUNS" \
+    "$@" \
+    --output /output/report.json

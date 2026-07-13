@@ -13,18 +13,6 @@ fixture는 Universal Dependencies 2.18의 Korean-Kaist와 Korean-KSL test/dev sp
 baseline으로 유지한다.
 이미지는 사람의 무품사 사용을 위한 별도 1,000-case fixture도 만든다. 쿼리는 품사를
 생략하며, negative 문장에는 해당 표제어가 지원하는 어떤 품사로도 존재하지 않는다.
-이미지 빌드는 밀봉된 Korean-GSD blind와 Korean-PUD unseen local-context fixture도
-생성·검증한다. 기본 벤치마크는 두 fixture를 로드하지 않는다. GSD fixture는 regression
-확인에만 사용한다.
-
-```sh
-KFIND_MORPH_BLIND=1 scripts/benchmark-morphology.sh target/morph-blind-report
-```
-
-PUD 전용 entrypoint는 제품 검색 동작을 바꾸지 않고 `copula-lattice` 후보 정책을 report
-schema 13으로 투영했다. 밀봉된 제품 판정은 완료되었으며 비용·threshold·fixture를 조정하거나
-판정을 반복하는 용도로 실행하지 않는다. 명령과 결과 digest는
-[unseen 제품 판정](../../docs/benchmarks/2026-07-13-copula-unseen-evaluation.md)에 고정한다.
 
 ```sh
 scripts/benchmark-morphology.sh

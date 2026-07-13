@@ -8,74 +8,19 @@ use kfind_data::{
 use super::*;
 
 #[test]
-fn vcp_constraint_rejects_lexical_maeil_and_preserves_both_best_paths() {
-    let bytes = fixture_resource();
-    let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
-
-    let maeil = evaluate_local_lattice(
-        &resource,
-        "매일",
-        "매".len().."매일".len(),
-        DataFinePos::Vcp,
-        DEFAULT_LATTICE_NODE_LIMIT,
-    )
-    .unwrap();
-    assert_eq!(maeil.decision, LocalLatticeDecision::Reject);
-    assert!(maeil.exclude_cost < maeil.include_cost);
-    assert!(maeil.paths.iter().any(|path| path.includes_query));
-    assert!(maeil.paths.iter().any(|path| !path.includes_query));
-    assert!(maeil.paths.len() <= N_BEST);
-}
-
-#[test]
-fn unknown_hangul_keeps_a_complete_non_query_path() {
-    let bytes = fixture_resource();
-    let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
-    let report = evaluate_local_lattice(
-        &resource,
-        "미등록",
-        "미등".len().."미등록".len(),
-        DataFinePos::Vcp,
-        DEFAULT_LATTICE_NODE_LIMIT,
-    )
-    .unwrap();
-
-    assert_eq!(report.decision, LocalLatticeDecision::Reject);
-    assert_eq!(report.include_cost, None);
-    assert!(report.paths[0].nodes.iter().all(|node| node.unknown));
-}
-
-#[test]
 fn node_limit_is_observable() {
     let bytes = fixture_resource();
     let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
-    let error = evaluate_local_lattice(
+    let error = evaluate_local_component_paths(
         &resource,
-        "매일",
-        "매".len().."매일".len(),
-        DataFinePos::Vcp,
+        "사용자권한",
+        "사용자".len().."사용자권한".len(),
+        DataFinePos::Nng,
         1,
     )
     .unwrap_err();
 
     assert!(matches!(error, LocalLatticeError::NodeLimit { .. }));
-}
-
-#[test]
-fn compound_pos_component_can_satisfy_query() {
-    let bytes = fixture_resource();
-    let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
-    let report = evaluate_local_lattice(
-        &resource,
-        "인",
-        0.."인".len(),
-        DataFinePos::Vcp,
-        DEFAULT_LATTICE_NODE_LIMIT,
-    )
-    .unwrap();
-
-    assert_eq!(report.decision, LocalLatticeDecision::Accept);
-    assert_eq!(report.paths[0].nodes[0].pos.as_deref(), Some("VCP+ETM"));
 }
 
 #[test]
@@ -128,22 +73,6 @@ fn exact_component_path_rejects_a_crossing_substring() {
     assert_eq!(report.decision, LocalLatticeDecision::Reject);
     assert!(report.paths.iter().any(|path| path.includes_query));
     assert!(report.paths.iter().any(|path| !path.includes_query));
-}
-
-#[test]
-fn numeric_unknown_class_keeps_a_complete_path() {
-    let bytes = fixture_resource();
-    let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
-    let report = evaluate_local_lattice(
-        &resource,
-        "4일",
-        "4".len().."4일".len(),
-        DataFinePos::Vcp,
-        DEFAULT_LATTICE_NODE_LIMIT,
-    )
-    .unwrap();
-
-    assert!(report.paths.iter().all(|path| path.nodes[0].unknown));
 }
 
 fn fixture_resource() -> Vec<u8> {

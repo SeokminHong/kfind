@@ -156,23 +156,6 @@ pub struct LocalLatticeReport {
     pub paths: Vec<LocalLatticePath>,
 }
 
-pub fn evaluate_local_lattice(
-    resource: &dyn LocalLatticeResource,
-    text: &str,
-    query_span: Range<usize>,
-    query_pos: DataFinePos,
-    node_limit: usize,
-) -> Result<LocalLatticeReport, LocalLatticeError> {
-    evaluate_local_paths(
-        resource,
-        text,
-        query_span,
-        query_pos,
-        node_limit,
-        QueryConstraint::CoveringPos,
-    )
-}
-
 pub fn evaluate_local_component_paths(
     resource: &dyn LocalLatticeResource,
     text: &str,
@@ -180,14 +163,7 @@ pub fn evaluate_local_component_paths(
     query_pos: DataFinePos,
     node_limit: usize,
 ) -> Result<LocalLatticeReport, LocalLatticeError> {
-    evaluate_local_paths(
-        resource,
-        text,
-        query_span,
-        query_pos,
-        node_limit,
-        QueryConstraint::ExactSpan,
-    )
+    evaluate_local_paths(resource, text, query_span, query_pos, node_limit)
 }
 
 fn evaluate_local_paths(
@@ -196,7 +172,6 @@ fn evaluate_local_paths(
     query_span: Range<usize>,
     query_pos: DataFinePos,
     node_limit: usize,
-    constraint: QueryConstraint,
 ) -> Result<LocalLatticeReport, LocalLatticeError> {
     if query_span.start >= query_span.end
         || query_span.end > text.len()
@@ -206,15 +181,7 @@ fn evaluate_local_paths(
         return Err(LocalLatticeError::InvalidQuerySpan);
     }
     let unknown = UnknownDictionary::parse(resource)?;
-    let nodes = build_nodes(
-        resource,
-        text,
-        &query_span,
-        query_pos,
-        constraint,
-        &unknown,
-        node_limit,
-    )?;
+    let nodes = build_nodes(resource, text, &query_span, query_pos, &unknown, node_limit)?;
     let completed = best_paths(resource, text.len(), &nodes)?;
     let include_cost = completed
         .iter()
@@ -278,28 +245,15 @@ struct Node {
     query_match: bool,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum QueryConstraint {
-    CoveringPos,
-    ExactSpan,
-}
-
 impl Node {
     fn dictionary(
         span: Range<usize>,
         analysis: LocalLatticeAnalysis<'_>,
         query_span: &Range<usize>,
         query_pos: DataFinePos,
-        constraint: QueryConstraint,
     ) -> Self {
         let matches_pos = analysis.pos.split('+').any(|pos| pos == query_pos.as_str());
-        let query_match = matches_pos
-            && match constraint {
-                QueryConstraint::CoveringPos => {
-                    span.start <= query_span.start && span.end >= query_span.end
-                }
-                QueryConstraint::ExactSpan => span == *query_span,
-            };
+        let query_match = matches_pos && span == *query_span;
         Self {
             span,
             pos: Some(analysis.pos.to_owned()),
@@ -338,7 +292,6 @@ fn build_nodes(
     text: &str,
     query_span: &Range<usize>,
     query_pos: DataFinePos,
-    constraint: QueryConstraint,
     unknown: &UnknownDictionary,
     node_limit: usize,
 ) -> Result<Vec<Node>, LocalLatticeError> {
@@ -353,7 +306,6 @@ fn build_nodes(
                     analysis,
                     query_span,
                     query_pos,
-                    constraint,
                 ));
             }
         });

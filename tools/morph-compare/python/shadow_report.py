@@ -8,8 +8,6 @@ KFIND_PROFILES = ("kfind-embedded", "kfind-full-pos")
 SHADOW_COUNTERS = (
     "raw_anchor_hits",
     "verified_branch_hits",
-    "local_lattice_candidate_hits",
-    "unique_analysis_windows",
     "nominal_component_candidate_hits",
     "unique_component_windows",
 )
@@ -31,36 +29,15 @@ def shadow_verification_summary(
         int(counters.get("component_projection_mismatches", 0))
         for counters in by_case.values()
     )
-    statuses: dict[str, int] = defaultdict(int)
-    decisions: dict[str, int] = defaultdict(int)
     component_statuses: dict[str, int] = defaultdict(int)
     component_decisions: dict[str, int] = defaultdict(int)
     component_cases_by_decision: dict[str, int] = defaultdict(int)
     case_metadata = {str(case["id"]): case for case in cases or []}
-    outcomes_by_class: dict[str, dict[str, int]] = defaultdict(
-        lambda: defaultdict(int)
-    )
-    outcomes_by_target_group: dict[str, dict[str, int]] = defaultdict(
-        lambda: defaultdict(int)
-    )
     component_outcomes_by_class: dict[str, dict[str, int]] = defaultdict(
         lambda: defaultdict(int)
     )
     for case_id, counters in by_case.items():
         case = case_metadata.get(case_id)
-        for evidence in counters.get("lattice", []):
-            status = str(evidence["status"])
-            decision = evidence.get("decision")
-            outcome = str(decision) if decision is not None else status
-            statuses[status] += 1
-            if decision is not None:
-                decisions[str(decision)] += 1
-            if case is not None:
-                class_name = "positive" if bool(case["expected"]) else "negative"
-                outcomes_by_class[class_name][outcome] += 1
-                target_group = case.get("target_group")
-                if target_group is not None:
-                    outcomes_by_target_group[str(target_group)][outcome] += 1
         for evidence in counters.get("component", []):
             status = str(evidence["status"])
             decision = evidence.get("decision")
@@ -80,8 +57,6 @@ def shadow_verification_summary(
             component_cases_by_decision[decision] += 1
 
     path_classification = classify_component_paths(by_case, case_metadata)
-    copula_gold_diagnosis = diagnose_copula_gold_lattice(by_case, case_metadata)
-
     def sorted_outcomes(
         grouped: dict[str, dict[str, int]],
     ) -> dict[str, dict[str, int]]:
@@ -92,19 +67,9 @@ def shadow_verification_summary(
 
     return {
         "totals": totals,
-        "cases_with_local_candidates": sum(
-            counters["local_lattice_candidate_hits"] > 0
-            for counters in by_case.values()
-        ),
         "cases_with_component_candidates": sum(
             counters["nominal_component_candidate_hits"] > 0
             for counters in by_case.values()
-        ),
-        "lattice_statuses": dict(sorted(statuses.items())),
-        "lattice_decisions": dict(sorted(decisions.items())),
-        "lattice_outcomes_by_class": sorted_outcomes(outcomes_by_class),
-        "lattice_outcomes_by_target_group": sorted_outcomes(
-            outcomes_by_target_group
         ),
         "component_statuses": dict(sorted(component_statuses.items())),
         "component_decisions": dict(sorted(component_decisions.items())),
@@ -115,158 +80,12 @@ def shadow_verification_summary(
             component_outcomes_by_class
         ),
         "component_path_classification": path_classification,
-        "copula_gold_diagnosis": copula_gold_diagnosis,
         "component_projection_equivalence": {
             "comparisons": projection_comparisons,
             "mismatches": projection_mismatches,
         },
         "by_case": by_case,
     }
-
-
-def diagnose_copula_gold_lattice(
-    by_case: dict[str, dict[str, object]],
-    case_metadata: dict[str, dict[str, object]],
-) -> dict[str, object]:
-    outcomes: dict[str, int] = defaultdict(int)
-    failures_by_cause: dict[str, int] = defaultdict(int)
-    failures_by_target_group: dict[str, dict[str, int]] = defaultdict(
-        lambda: defaultdict(int)
-    )
-    failures: list[dict[str, object]] = []
-    for case_id in sorted(by_case):
-        case = case_metadata.get(case_id)
-        if (
-            case is None
-            or case.get("slice") != "gold-copula"
-            or not bool(case.get("expected"))
-        ):
-            continue
-        gold_span = _gold_span(case)
-        for evidence in by_case[case_id].get("lattice", []):
-            if not isinstance(evidence, dict) or not _spans_overlap(
-                gold_span, _required_span(evidence, "target")
-            ):
-                continue
-            outcome = str(evidence.get("decision") or evidence["status"])
-            outcomes[outcome] += 1
-            if outcome not in {"reject", "ambiguous"}:
-                continue
-            include_path = _select_lattice_path(evidence, True, "include_cost")
-            exclude_path = _select_lattice_path(evidence, False, "exclude_cost")
-            if include_path is None or exclude_path is None:
-                raise ValueError(
-                    f"copula gold diagnosis for {case_id} lacks selected paths"
-                )
-            cause = _lattice_competitor_type(evidence, exclude_path)
-            target_group = str(case["target_group"])
-            failures_by_cause[cause] += 1
-            failures_by_target_group[target_group][cause] += 1
-            failures.append(
-                {
-                    "case_id": case_id,
-                    "source": case["source"],
-                    "target_group": target_group,
-                    "target_raw_tag": case["target_raw_tag"],
-                    "sent_id": case["sent_id"],
-                    "text": case["text"],
-                    "gold_span": {
-                        "byte_start": gold_span[0],
-                        "byte_end": gold_span[1],
-                    },
-                    "candidate_span": evidence["target"],
-                    "window": evidence["window"],
-                    "outcome": outcome,
-                    "primary_cause": cause,
-                    "include_cost": evidence["include_cost"],
-                    "exclude_cost": evidence["exclude_cost"],
-                    "cost_margin": evidence["cost_margin"],
-                    "include_path": include_path,
-                    "exclude_path": exclude_path,
-                }
-            )
-    return {
-        "gold_candidate_outcomes": dict(sorted(outcomes.items())),
-        "failures_by_cause": dict(sorted(failures_by_cause.items())),
-        "failures_by_target_group": {
-            group: dict(sorted(causes.items()))
-            for group, causes in sorted(failures_by_target_group.items())
-        },
-        "failures": failures,
-    }
-
-
-def _gold_span(case: dict[str, object]) -> tuple[int, int]:
-    start = case.get("gold_byte_start")
-    end = case.get("gold_byte_end")
-    if not isinstance(start, int) or not isinstance(end, int):
-        raise ValueError(f"copula gold case {case['id']} has no gold span")
-    return (start, end)
-
-
-def _required_span(
-    value: dict[str, object], key: str
-) -> tuple[int, int]:
-    span = value.get(key)
-    if not isinstance(span, dict):
-        raise ValueError(f"lattice evidence has no {key} span")
-    start = span.get("byte_start")
-    end = span.get("byte_end")
-    if not isinstance(start, int) or not isinstance(end, int):
-        raise ValueError(f"lattice evidence has an invalid {key} span")
-    return (start, end)
-
-
-def _spans_overlap(left: tuple[int, int], right: tuple[int, int]) -> bool:
-    return left[0] < right[1] and right[0] < left[1]
-
-
-def _select_lattice_path(
-    evidence: dict[str, object], includes_query: bool, cost_key: str
-) -> dict[str, object] | None:
-    selected_cost = evidence.get(cost_key)
-    paths = evidence.get("paths")
-    if not isinstance(selected_cost, int) or not isinstance(paths, list):
-        return None
-    candidates = [
-        path
-        for path in paths
-        if isinstance(path, dict)
-        and path.get("includes_query") is includes_query
-        and path.get("cost") == selected_cost
-    ]
-    return min(candidates, key=_component_path_sort_key) if candidates else None
-
-
-def _lattice_competitor_type(
-    evidence: dict[str, object], path: dict[str, object]
-) -> str:
-    nodes = [node for node in path.get("nodes", []) if isinstance(node, dict)]
-    components = [
-        component
-        for node in nodes
-        for component in str(node.get("pos") or "").split("+")
-        if component
-    ]
-    if any(bool(node.get("unknown")) for node in nodes):
-        return "unknown-competitor"
-    window = evidence.get("window")
-    if not isinstance(window, dict):
-        raise ValueError("lattice evidence has no analysis window")
-    window_span = _required_span(window, "raw")
-    if len(nodes) == 1 and _node_span(nodes[0]) == window_span:
-        return "whole-window-competitor"
-    if any(
-        component.startswith(("V", "E")) or component in {"XSV", "XSA"}
-        for component in components
-    ):
-        return "segmented-predicate-competitor"
-    if components and all(
-        _is_nominal(component) or component.startswith("J")
-        for component in components
-    ):
-        return "segmented-nominal-competitor"
-    return "segmented-other-competitor"
 
 
 def classify_component_paths(
@@ -482,12 +301,12 @@ def append_shadow_verification(
     lines.extend(
         [
             "",
-            "## Shadow verification",
+            "## Component verification",
             "",
             "Counters are collected outside the timed evaluation and do not change matches.",
             "",
-            "| profile | raw anchor hits | verified branch hits | lattice candidates | lattice windows | component candidates | component windows | cases with component candidates |",
-            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+            "| profile | raw anchor hits | verified branch hits | component candidates | component windows | cases with component candidates |",
+            "| --- | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
     for profile in KFIND_PROFILES:
@@ -496,21 +315,10 @@ def append_shadow_verification(
         lines.append(
             f"| {profile} | {totals['raw_anchor_hits']} | "
             f"{totals['verified_branch_hits']} | "
-            f"{totals['local_lattice_candidate_hits']} | "
-            f"{totals['unique_analysis_windows']} | "
             f"{totals['nominal_component_candidate_hits']} | "
             f"{totals['unique_component_windows']} | "
             f"{summary['cases_with_component_candidates']} |"
         )
-        statuses = ", ".join(
-            f"{name}={count}"
-            for name, count in summary["lattice_statuses"].items()
-        ) or "none"
-        decisions = ", ".join(
-            f"{name}={count}"
-            for name, count in summary["lattice_decisions"].items()
-        ) or "none"
-        lines.append(f"- {profile}: statuses {statuses}; decisions {decisions}")
         component_statuses = ", ".join(
             f"{name}={count}"
             for name, count in summary["component_statuses"].items()

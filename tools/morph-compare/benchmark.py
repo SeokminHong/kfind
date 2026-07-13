@@ -31,7 +31,6 @@ from python.validation import (
     smoke_metadata,
     validate_dataset,
     validate_hard_negatives,
-    validate_local_context_dataset,
     validate_untagged_dataset,
     write_cases,
 )
@@ -47,12 +46,6 @@ DEFAULT_HUMAN_UNTAGGED_CASES = Path(
 )
 DEFAULT_HUMAN_UNTAGGED_METADATA = Path(
     "/opt/morph-benchmark/data/human-untagged-metadata.json"
-)
-DEFAULT_LOCAL_CONTEXT_CASES = Path(
-    "/opt/morph-benchmark/data/local-context-cases.jsonl"
-)
-DEFAULT_LOCAL_CONTEXT_METADATA = Path(
-    "/opt/morph-benchmark/data/local-context-metadata.json"
 )
 DEFAULT_HARD_NEGATIVES = Path("/opt/morph-benchmark/hard-negatives.jsonl")
 DEFAULT_EXTERNAL_BASELINES = Path(
@@ -192,7 +185,6 @@ def evaluate_kfind(
     dict[str, object],
     dict[str, dict[str, object] | None],
     dict[str, dict[str, object]],
-    dict[str, list[dict[str, object]]],
 ]:
     case_ids = [case["id"] for case in cases]
     result_ids = [result["id"] for result in summary["results"]]
@@ -203,7 +195,6 @@ def evaluate_kfind(
     matches = {}
     diagnostics = {}
     shadow_verification = {}
-    policy_candidates = {}
     latencies = []
     for case in cases:
         result = results.get(case["id"])
@@ -214,12 +205,6 @@ def evaluate_kfind(
         matches[case["id"]] = spans
         diagnostics[case["id"]] = result["failure_diagnostic"]
         shadow_verification[case["id"]] = result["shadow_verification"]
-        candidates = result.get("policy_candidates")
-        if candidates is None:
-            candidates = []
-        if not isinstance(candidates, list):
-            raise ValueError(f"{backend} returned invalid policy candidates")
-        policy_candidates[case["id"]] = candidates
         latencies.append(float(result["latency_ms"]))
     return (
         predictions,
@@ -227,7 +212,6 @@ def evaluate_kfind(
         performance(summary, latencies),
         diagnostics,
         shadow_verification,
-        policy_candidates,
     )
 
 
@@ -330,7 +314,6 @@ def evaluate_kfind_runs(
     dict[str, object],
     dict[str, dict[str, object] | None],
     dict[str, dict[str, object]],
-    dict[str, list[dict[str, object]]],
     dict[str, object],
 ]:
     if warmup:
@@ -351,10 +334,6 @@ def evaluate_kfind_runs(
             raise ValueError(
                 f"{profile} shadow verification changed between measured runs"
             )
-        if evaluation[5] != first[5]:
-            raise ValueError(
-                f"{profile} policy candidates changed between measured runs"
-            )
     return (
         first[0],
         first[1],
@@ -363,7 +342,6 @@ def evaluate_kfind_runs(
         ),
         first[3],
         first[4],
-        first[5],
         summaries[0],
     )
 
@@ -586,16 +564,16 @@ def evaluate_dataset(
     }
     versions = {
         profile: {
-            "backend": kfind[profile][6]["backend"],
-            "version": kfind[profile][6]["version"],
-            "profile": kfind[profile][6]["profile"],
-            "lexicon_artifact_sha256": kfind[profile][6][
+            "backend": kfind[profile][5]["backend"],
+            "version": kfind[profile][5]["version"],
+            "profile": kfind[profile][5]["profile"],
+            "lexicon_artifact_sha256": kfind[profile][5][
                 "lexicon_artifact_sha256"
             ],
-            "morphology_artifact_sha256": kfind[profile][6][
+            "morphology_artifact_sha256": kfind[profile][5][
                 "morphology_artifact_sha256"
             ],
-            "component_artifact_sha256": kfind[profile][6][
+            "component_artifact_sha256": kfind[profile][5][
                 "component_artifact_sha256"
             ],
         }
@@ -609,9 +587,6 @@ def evaluate_dataset(
         "diagnostics": {profile: kfind[profile][3] for profile in KFIND_PROFILES},
         "shadow_verification": {
             profile: kfind[profile][4] for profile in KFIND_PROFILES
-        },
-        "policy_candidates": {
-            profile: kfind[profile][5] for profile in KFIND_PROFILES
         },
     }
 
@@ -629,12 +604,6 @@ def parse_args() -> argparse.Namespace:
         "--human-untagged-metadata",
         type=Path,
         default=DEFAULT_HUMAN_UNTAGGED_METADATA,
-    )
-    parser.add_argument(
-        "--local-context-cases", type=Path, default=DEFAULT_LOCAL_CONTEXT_CASES
-    )
-    parser.add_argument(
-        "--local-context-metadata", type=Path, default=DEFAULT_LOCAL_CONTEXT_METADATA
     )
     parser.add_argument("--hard-negatives", type=Path, default=DEFAULT_HARD_NEGATIVES)
     parser.add_argument(
@@ -667,21 +636,11 @@ def main() -> int:
             human_untagged_cases,
             human_untagged_metadata,
         )
-        local_context_cases = load_cases(args.local_context_cases)
-        local_context_metadata = json.loads(
-            args.local_context_metadata.read_text(encoding="utf-8")
-        )
-        validate_local_context_dataset(
-            args.local_context_cases, local_context_cases, local_context_metadata
-        )
         hard_cases = load_cases(args.hard_negatives)
         hard_metadata = validate_hard_negatives(args.hard_negatives, hard_cases)
         if args.smoke:
             with tempfile.TemporaryDirectory() as directory:
                 smoke_path = Path(directory) / "smoke-cases.jsonl"
-                local_context_smoke_path = (
-                    Path(directory) / "local-context-smoke-cases.jsonl"
-                )
                 human_untagged_smoke_path = (
                     Path(directory) / "human-untagged-smoke-cases.jsonl"
                 )
@@ -689,24 +648,12 @@ def main() -> int:
                 human_untagged_smoke_cases = select_smoke_cases(
                     human_untagged_cases
                 )
-                local_context_smoke_cases = select_smoke_cases(
-                    local_context_cases,
-                    ("source", "target_raw_tag", "expected"),
-                )
                 write_cases(smoke_path, smoke_cases)
                 write_cases(
                     human_untagged_smoke_path, human_untagged_smoke_cases
                 )
-                write_cases(local_context_smoke_path, local_context_smoke_cases)
                 baseline = evaluate_dataset(
                     smoke_cases, smoke_path, args.runner, 1, True
-                )
-                local_context = evaluate_dataset(
-                    local_context_smoke_cases,
-                    local_context_smoke_path,
-                    args.runner,
-                    1,
-                    False,
                 )
                 report = build_report(
                     smoke_cases,
@@ -717,22 +664,6 @@ def main() -> int:
                     baseline["performance"],
                     baseline["diagnostics"],
                     baseline["shadow_verification"],
-                )
-                report["local_context"] = build_report(
-                    local_context_smoke_cases,
-                    smoke_metadata(
-                        local_context_smoke_path,
-                        local_context_smoke_cases,
-                        local_context_metadata,
-                        "dev-local-context-smoke",
-                    ),
-                    local_context["versions"],
-                    local_context["predictions"],
-                    local_context["matches"],
-                    local_context["performance"],
-                    local_context["diagnostics"],
-                    local_context["shadow_verification"],
-                    include_performance=False,
                 )
                 report["component_startup"] = evaluate_component_startup(
                     args.runner, args.runs
@@ -778,13 +709,6 @@ def main() -> int:
         hard_negatives = evaluate_dataset(
             hard_cases, args.hard_negatives, args.runner, 1, False
         )
-        local_context = evaluate_dataset(
-            local_context_cases,
-            args.local_context_cases,
-            args.runner,
-            1,
-            False,
-        )
         report = build_report(
             cases,
             metadata,
@@ -819,17 +743,6 @@ def main() -> int:
             hard_negatives["performance"],
             hard_negatives["diagnostics"],
             hard_negatives["shadow_verification"],
-        )
-        report["local_context"] = build_report(
-            local_context_cases,
-            local_context_metadata,
-            local_context["versions"],
-            local_context["predictions"],
-            local_context["matches"],
-            local_context["performance"],
-            local_context["diagnostics"],
-            local_context["shadow_verification"],
-            include_performance=False,
         )
         report["component_startup"] = evaluate_component_startup(
             args.runner, args.runs

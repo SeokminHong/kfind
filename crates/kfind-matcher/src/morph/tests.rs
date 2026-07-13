@@ -213,42 +213,6 @@ fn repeated_single_atom_matches_advance_without_changing_leftmost_longest() {
 }
 
 #[test]
-fn verification_counters_isolate_local_lattice_candidates() {
-    let mut contextual = exact_branch("일", false);
-    contextual.context_requirement = ContextRequirement::EojeolLattice;
-    let contextual_matcher = matcher(vec![atom(BoundaryPolicy::Smart, vec![contextual])], 24);
-    let text = "매일 학생일";
-
-    assert_eq!(
-        contextual_matcher.verification_counters(text.as_bytes()),
-        VerificationCounters {
-            raw_anchor_hits: 2,
-            verified_branch_hits: 2,
-            local_lattice_candidate_hits: 2,
-            unique_analysis_windows: 2,
-            nominal_component_candidate_hits: 0,
-            unique_component_windows: 0,
-        }
-    );
-
-    let literal_matcher = matcher(
-        vec![atom(BoundaryPolicy::Smart, vec![exact_branch("일", false)])],
-        24,
-    );
-    assert_eq!(
-        literal_matcher.verification_counters(text.as_bytes()),
-        VerificationCounters {
-            raw_anchor_hits: 2,
-            verified_branch_hits: 2,
-            local_lattice_candidate_hits: 0,
-            unique_analysis_windows: 0,
-            nominal_component_candidate_hits: 0,
-            unique_component_windows: 0,
-        }
-    );
-}
-
-#[test]
 fn verification_counters_isolate_boundary_rejected_nominal_components() {
     let mut contextual = nominal_branch("권한", rules(&["particle.topic"]));
     contextual.context_requirement = ContextRequirement::NominalComponent;
@@ -259,8 +223,6 @@ fn verification_counters_isolate_boundary_rejected_nominal_components() {
         VerificationCounters {
             raw_anchor_hits: 2,
             verified_branch_hits: 1,
-            local_lattice_candidate_hits: 0,
-            unique_analysis_windows: 0,
             nominal_component_candidate_hits: 1,
             unique_component_windows: 1,
         }
