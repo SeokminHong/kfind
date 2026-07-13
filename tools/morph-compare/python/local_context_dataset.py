@@ -20,7 +20,7 @@ from dataset import (
 )
 
 
-COPULA_TAGS = {"jp", "vcp", "vcn"}
+COPULA_TAGS = {"jp", "vc", "vcp", "vcn"}
 
 
 @dataclass(frozen=True)
@@ -148,7 +148,9 @@ def load_source_split(
     source_path = sources_dir / split["data_file"]
     if sha256(source_path) != split["data_sha256"]:
         raise ValueError(f"source hash mismatch: {source['name']}")
-    sentences, parsing = parse_conllu(str(source["name"]), source_path)
+    sentences, parsing = parse_conllu(
+        str(source["name"]), source_path, str(source.get("adapter", "morpheme"))
+    )
     return split, sentences, parsing
 
 

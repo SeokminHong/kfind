@@ -263,6 +263,17 @@ fn smart_vcp_corpus_fixtures_preserve_union_results() {
         assert_eq!(counters.unique_analysis_windows, 1);
         let candidates = matcher.local_analysis_candidates(fixture.text.as_bytes());
         assert!(!candidates.is_empty());
+        let atom_candidates = matcher.diagnostic_atom_candidates(fixture.text.as_bytes());
+        assert_eq!(atom_candidates.len(), 1);
+        for candidate in &candidates {
+            assert!(atom_candidates[0].iter().any(|span| {
+                span.core == candidate.target
+                    && span.origins.iter().any(|origin| {
+                        origin.analysis_index == candidate.analysis_index
+                            && origin.rule_path == candidate.rule_path
+                    })
+            }));
+        }
         assert!(candidates.iter().all(|candidate| {
             candidate.fine_pos == kfind_morph::FinePos::Copula
                 && candidate

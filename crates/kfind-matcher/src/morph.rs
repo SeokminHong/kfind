@@ -155,6 +155,14 @@ impl MorphMatcher {
         matches
     }
 
+    /// Returns every verified atom candidate before phrase and non-overlap selection.
+    ///
+    /// This is intended for diagnostics that simulate contextual origin policies.
+    #[must_use]
+    pub fn diagnostic_atom_candidates(&self, haystack: &[u8]) -> Vec<Vec<VerifiedSpan>> {
+        self.collect_atom_spans(haystack, 0, MatchMetadata::Provenance)
+    }
+
     fn find_all_phrases_with_meta(&self, haystack: &[u8]) -> Vec<PhraseMatch> {
         let text = phrase_join_text(haystack);
         let atom_spans = self.collect_atom_spans(haystack, 0, MatchMetadata::Provenance);

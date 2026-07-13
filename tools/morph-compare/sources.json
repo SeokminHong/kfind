@@ -79,6 +79,33 @@
       }
     ]
   },
+  "unseen_local_context": {
+    "seed": "kfind-vcp-pud-unseen-v1",
+    "split": "test",
+    "metadata_split": "unseen-local-context",
+    "sort_scope": "unseen-context-order",
+    "expected_fixture_sha256": "d02cd5e78ebc4d02d626ead6206b3ed1dddc6d4c71d7a19543981699e45ebebd",
+    "expected_excluded_candidates": 22,
+    "disjoint_from": [
+      {"source": "ud-korean-kaist", "split": "dev"},
+      {"source": "ud-korean-kaist", "split": "test"},
+      {"source": "ud-korean-ksl", "split": "dev"},
+      {"source": "ud-korean-ksl", "split": "test"},
+      {"source": "ud-korean-gsd", "split": "test"}
+    ],
+    "analyses": [
+      {
+        "source": "ud-korean-pud",
+        "raw_tag": "vc",
+        "raw_lemma": "이",
+        "query": "이다",
+        "pos": "adjective",
+        "negative_surface_cues": ["이", "인", "일", "이어", "여", "였"],
+        "positive_cases": 436,
+        "negative_cases": 485
+      }
+    ]
+  },
   "positive_quotas_per_source": {
     "noun": 90,
     "verb": 60,
@@ -145,6 +172,24 @@
       "license_file": "ko_gsd-LICENSE.txt",
       "license_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-GSD/r2.18/LICENSE.txt",
       "license_sha256": "899b1804a12ebc090b96339614eede1b64b686721b650a71430b55b5235f7f79"
+    },
+    {
+      "name": "ud-korean-pud",
+      "description": "UD Korean-PUD",
+      "revision": "r2.18",
+      "revision_commit": "e942f9c5e9351f37bcb8f202bb9df70f78c60d35",
+      "adapter": "pud-copula",
+      "splits": {
+        "test": {
+          "data_file": "ko_pud-ud-test.conllu",
+          "data_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-PUD/r2.18/ko_pud-ud-test.conllu",
+          "data_sha256": "55f9c8d465400e070664c5319091d31ce35a16ec220b0bebc5e3c9b12f530948"
+        }
+      },
+      "license": "CC BY-SA 3.0",
+      "license_file": "ko_pud-LICENSE.txt",
+      "license_url": "https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-PUD/r2.18/LICENSE.txt",
+      "license_sha256": "b278eb53fe50b8bb7fa0d90fb8536c35fdcaa80f9d63812cb51db539555d2a89"
     }
   ]
 }
