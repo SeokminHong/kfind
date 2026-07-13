@@ -1,6 +1,7 @@
 # kfind
 
-[English](README.md) | [한국어](README.ko.md)
+[English](README.md) | [한국어](README.ko.md) |
+[기술 문서와 Playground](https://kfind.pages.dev)
 
 한국어 표제어와 활용형을 빠르게 찾는 코드·문서 검색 CLI입니다.
 
