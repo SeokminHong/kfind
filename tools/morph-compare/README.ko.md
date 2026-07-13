@@ -102,3 +102,8 @@ peak RSS를 최소 3회 측정한다.
 false-positive 후보 수, 사람용 `full-POS + smart + 무품사`의 precision·recall·plan 포함률을
 먼저 보여 준다. 라이브러리는 resource 없는 embedded engine을 기본값으로 두고 full-POS와
 component resource를 선택 비용으로 분리한다. 이 workflow들을 하나의 점수로 합치지 않는다.
+
+`Product CLI use cases` 절은 100 MiB·1,000파일 고정 코퍼스에서 두 workflow를 독립 CLI
+process로 실행한다. 시작, query compile, 파일 순회, scan, verification과 출력 직렬화를 포함한
+wall time·처리량·peak RSS를 기록한다. 라이브러리 resource 조합의 초기화 비용은 이 측정과
+합산하지 않는다. 같은 JSON의 `product-use-cases.svg`가 두 비용을 분리해 보여 준다.

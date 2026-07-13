@@ -69,6 +69,9 @@ PUD fixture는 전용 평가 entrypoint가 연결되기 전까지 backend에 입
 사용성을 같은 보고서의 `human_untagged` 절에 기록한다.
 보고서의 `product_workflows`는 에이전트용 `embedded + any + 명시적 품사`와 사람용
 `full-POS + smart + 무품사`를 먼저 제시하고, 전체 profile 행렬은 진단 자료로 둔다.
+`product_use_cases`는 같은 두 profile을 100 MiB·1,000파일 고정 코퍼스의 독립 CLI
+process로 실행하여 wall time, 처리량, peak RSS를 기록한다. 라이브러리 resource 조합의
+초기화 시간과 peak RSS는 CLI workload와 분리한다.
 
 외부 스냅샷은 test fixture나 고정한 도구·어댑터 설정이 바뀔 때만 갱신한다. 기본 명령은
 fixture·schema 불일치에서 자동 실행하거나 오래된 결과를 쓰지 않고 실패한다.

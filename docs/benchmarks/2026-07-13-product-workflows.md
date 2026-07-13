@@ -1,7 +1,7 @@
 # 제품 workflow 형태소 벤치마크
 
 - 측정일: 2026-07-13
-- 측정 revision: `b1965c1`
+- 측정 revision: `9d4d87e`
 - 환경: Linux/aarch64, 10 logical CPUs, Python 3.12.13, Docker
 - 반복: 1회 warm-up 뒤 5회 측정의 중앙값
 
@@ -14,18 +14,44 @@
 - 라이브러리 기본값은 optional resource가 없는 embedded engine이다. full-POS lexicon과
   component resource는 초기화 시간과 메모리를 감수하는 명시적 선택지다.
 
+## 실제 CLI 사용 케이스 성능
+
+![제품 사용 케이스별 CLI 및 라이브러리 비용](assets/product-use-cases.svg)
+
+| use case | wall | throughput | peak RSS | 출력 |
+| --- | ---: | ---: | ---: | --- |
+| Agent: embedded + any + explicit POS | 15.9 ms | 6,291.4 MiB/s | 7.0 MiB | JSON Lines |
+| Human: full-POS + smart + untagged | 301.1 ms | 332.1 MiB/s | 91.5 MiB | 기본 text |
+
+100 MiB를 1,000개 파일에 나눈 고정 코퍼스에서 `학교`가 포함된 한 줄만 반환했다. 각 행은
+독립 CLI process로 시작하며 query compile, 파일 순회, scan, verification과 출력 직렬화를
+모두 포함한다. 파일시스템 cache warm-up 1회 뒤 5회 측정한 중앙값이다. 코퍼스 SHA-256은
+`7692072cb7bff9261c1fa5933bde41b27e558170818eeac6d07cabdd673815ff`다.
+
+| library resource | initialization | peak RSS |
+| --- | ---: | ---: |
+| embedded | 1.1 ms | 3.4 MiB |
+| embedded + component | 151.0 ms | 49.1 MiB |
+| full-POS | 128.6 ms | 46.0 MiB |
+| full-POS + component | 277.2 ms | 87.6 MiB |
+
+라이브러리는 검색 workload와 합산하지 않고 resource 조합별 초기화 비용을 따로 기록한다.
+
+## fixture 단위 workflow 품질과 성능
+
 ![제품 workflow별 핵심 지표](assets/product-workflows.svg)
 
 | workflow | TP / FP / FN | precision | recall | init | cases/s | p95 | peak RSS |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Agent: embedded + any + explicit POS | 479 / 11 / 21 | 97.76% | 95.80% | 1.10 ms | 15,714.3 | 0.1439 ms | 5.35 MiB |
-| Human: full-POS + smart + untagged | 410 / 1 / 90 | 99.76% | 82.00% | 422.85 ms | 7,990.3 | 0.3676 ms | 92.09 MiB |
+| Agent: embedded + any + explicit POS | 479 / 11 / 21 | 97.76% | 95.80% | 1.10 ms | 15,790.0 | 0.1440 ms | 5.35 MiB |
+| Human: full-POS + smart + untagged | 410 / 1 / 90 | 99.76% | 82.00% | 424.63 ms | 8,036.3 | 0.3628 ms | 92.09 MiB |
 
 에이전트 workflow의 FP 11건은 strict boundary 오류 수보다 후속 문맥 검토 후보 수로 해석한다.
 사람용 workflow에서는 기대 품사가 자동 plan에 포함된 비율이 96.4%(482/500), literal
 fallback은 1.0%(5/500)였다.
 
-두 workflow는 각각 explicit-POS fixture와 untagged fixture를 사용한다. positive gold span은
+이 표의 throughput은 CLI 파일 검색이 아니라 초기화된 runner에서 query와 문장을 평가한
+속도다. 두 workflow는 각각 explicit-POS fixture와 untagged fixture를 사용한다. positive gold span은
 같지만 negative의 의미가 다르므로 두 행의 F1을 합쳐 순위를 매기지 않는다. 두 fixture는 각각
 1,000건이며 positive와 negative가 500건씩이다.
 

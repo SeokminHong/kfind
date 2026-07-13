@@ -114,3 +114,10 @@ then precision, recall, and plan coverage for human use with
 `full-POS + smart + untagged`. The library keeps a resource-less embedded engine
 as its default and exposes full-POS and component resources as explicit costs.
 The workflows are not combined into one score.
+
+The `Product CLI use cases` section runs both workflows as independent CLI
+processes over a fixed 100 MiB, 1,000-file corpus. Wall time includes startup,
+query compilation, filesystem walking, scanning, verification, and output
+serialization. It reports throughput and peak RSS alongside wall time, while
+library resource initialization remains a separate cost. The generated
+`product-use-cases.svg` preserves that separation.
