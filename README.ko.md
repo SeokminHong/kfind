@@ -64,7 +64,9 @@ TypeScript 선언을 제공합니다.
 ```js
 import { Kfind } from "kfind";
 
-const engine = new Kfind();
+const response = await fetch("/assets/morphology-component-compact.kfc");
+const componentResource = new Uint8Array(await response.arrayBuffer());
+const engine = new Kfind(componentResource);
 const matcher = engine.compile("걷다");
 const text = "😀 길을 걸어 갔다.";
 const matches = matcher.findAll(text);
@@ -72,8 +74,10 @@ const matches = matcher.findAll(text);
 console.log(text.slice(matches[0].start, matches[0].end)); // 걸어
 ```
 
-JavaScript offset은 UTF-16 code unit 기준입니다. 패키지는 아직 registry에 게시하지
-않았습니다. 로컬에서 배포 산출물을 생성하고 검사할 수 있습니다.
+JavaScript offset은 UTF-16 code unit 기준입니다. Component resource는 WASM binary와
+분리된 `kfind/assets/morphology-component-compact.kfc`로 배포합니다. 이를 정적
+asset으로 복사하거나 별도 호스트에 둔 뒤 bytes를 로드합니다. 패키지는 아직 registry에
+게시하지 않았습니다. 로컬에서 배포 산출물을 생성하고 검사할 수 있습니다.
 
 ```sh
 pnpm --dir packages/kfind run pack:check

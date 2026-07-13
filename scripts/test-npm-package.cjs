@@ -2,13 +2,16 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const [modulePath, declarationPath] = process.argv.slice(2);
-if (!modulePath || !declarationPath) {
-  throw new Error("usage: test-npm-package.cjs MODULE_PATH DECLARATION_PATH");
+const [modulePath, declarationPath, componentPath] = process.argv.slice(2);
+if (!modulePath || !declarationPath || !componentPath) {
+  throw new Error(
+    "usage: test-npm-package.cjs MODULE_PATH DECLARATION_PATH COMPONENT_PATH",
+  );
 }
 
 const { Kfind } = require(path.resolve(modulePath));
-const engine = new Kfind();
+const componentResource = fs.readFileSync(componentPath);
+const engine = new Kfind(componentResource);
 assert.equal(engine.fullPosLoaded, false);
 
 const matcher = engine.compile("걷다");
@@ -31,10 +34,26 @@ assert.throws(
   /literal conflicts with --expand/,
 );
 assert.throws(() => engine.compile("걷다", { unknown: true }), /unknown field/);
-assert.throws(() => Kfind.withFullPos(new Uint8Array([0])), /failed to initialize/);
+assert.throws(() => new Kfind(new Uint8Array([0])), /failed to initialize/);
+assert.throws(
+  () => Kfind.withFullPos(componentResource, new Uint8Array([0])),
+  /failed to initialize/,
+);
+
+const componentMatch = engine.compile("권한");
+assert.equal(componentMatch.findAll("사용자권한").length, 1);
+componentMatch.free();
+const crossingSubstring = engine.compile("학교");
+assert.equal(crossingSubstring.findAll("대학교").length, 0);
+crossingSubstring.free();
 
 const declarations = fs.readFileSync(declarationPath, "utf8");
 assert.match(declarations, /interface CompileOptions/);
+assert.match(declarations, /constructor\(component_resource: Uint8Array\)/);
+assert.match(
+  declarations,
+  /withFullPos\(component_resource: Uint8Array, full_pos: Uint8Array\)/,
+);
 assert.match(declarations, /compile\(query: string, options\?: CompileOptions\): Matcher/);
 assert.match(declarations, /findAll\(text: string\): readonly Match\[\]/);
 

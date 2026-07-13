@@ -20,6 +20,7 @@
   ],
   "files": [
     "generated",
+    "assets",
     "LICENSE",
     "README.ko.md"
   ],
@@ -29,7 +30,8 @@
     ".": {
       "types": "./generated/kfind.d.ts",
       "import": "./generated/kfind.js"
-    }
+    },
+    "./assets/morphology-component-compact.kfc": "./assets/morphology-component-compact.kfc"
   },
   "scripts": {
     "build": "../../scripts/build-npm-package.sh",

@@ -64,7 +64,9 @@ TypeScript declarations for browser bundlers:
 ```js
 import { Kfind } from "kfind";
 
-const engine = new Kfind();
+const response = await fetch("/assets/morphology-component-compact.kfc");
+const componentResource = new Uint8Array(await response.arrayBuffer());
+const engine = new Kfind(componentResource);
 const matcher = engine.compile("걷다");
 const text = "😀 길을 걸어 갔다.";
 const matches = matcher.findAll(text);
@@ -72,8 +74,11 @@ const matches = matcher.findAll(text);
 console.log(text.slice(matches[0].start, matches[0].end)); // 걸어
 ```
 
-JavaScript offsets use UTF-16 code units. The package has not been published to
-the registry yet. Its release artifact can be built and checked locally:
+JavaScript offsets use UTF-16 code units. The package publishes the component
+resource as `kfind/assets/morphology-component-compact.kfc`, separate from the
+WASM binary. Copy it to static assets or host it separately before loading the
+bytes. The package has not been published to the registry yet. Its release
+artifact can be built and checked locally:
 
 ```sh
 pnpm --dir packages/kfind run pack:check
