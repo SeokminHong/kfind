@@ -28,7 +28,7 @@ FP 0을 동시에 유지해야 한다.
 Kaist·KSL test, Korean-GSD와 PUD 결과에 맞춰 규칙, 비용, threshold와 fixture 선택을 변경하지
 않는다.
 PUD fixture는 양성 436개, 음성 485개, excluded source copula 22개와 expected digest
-`3a6310ea65aa0fd43af90f77dc2ab9208cff4d4d544cce2a444c006ee64f35bc`를 사용한다.
+`d02cd5e78ebc4d02d626ead6206b3ed1dddc6d4c71d7a19543981699e45ebebd`를 사용한다.
 Kaist·KSL dev/test와 GSD test의 NFC 문장 hash 중복은 0건이다.
 
 ## 실패 분류
