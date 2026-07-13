@@ -1007,7 +1007,7 @@ pub struct MorphMatcher {
 }
 ```
 
-`find_at`은 다음 검증된 token span의 바이트 범위를 반환한다. 설명용 메타데이터는 매칭된 줄에 대해서만 `find_all_with_meta`로 다시 계산한다.
+`grep_matcher::Matcher::find_at`은 다음 검증된 token span의 바이트 범위만 반환하며 origin과 rule path를 복제하거나 병합하지 않는다. 설명용 메타데이터는 매칭된 줄에 대해서만 `find_all_with_meta`로 다시 계산한다.
 
 ### 12.3 검증 단계
 
