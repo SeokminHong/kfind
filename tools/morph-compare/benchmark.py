@@ -15,6 +15,7 @@ from python.adapters import (
     CandidateSpan,
     spans_overlap,
 )
+from python.agent_shadow import build_agent_shadow_report
 from python.external_baselines import load_external_baselines
 from python.report import (
     KFIND_PROFILES,
@@ -126,6 +127,24 @@ def run_native_untagged_profile(
         if result.returncode != 0:
             raise RuntimeError(
                 f"untagged {profile}/{boundary} runner failed with exit "
+                f"{result.returncode}: {result.stderr.strip()}"
+            )
+        return json.loads(output.read_text(encoding="utf-8"))
+
+
+def run_native_agent_shadow(
+    runner: Path, cases_path: Path
+) -> dict[str, object]:
+    with tempfile.TemporaryDirectory() as directory:
+        output = Path(directory) / "agent-shadow.json"
+        result = subprocess.run(
+            [str(runner), "agent-shadow", str(cases_path), str(output)],
+            text=True,
+            capture_output=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                "Agent shadow runner failed with exit "
                 f"{result.returncode}: {result.stderr.strip()}"
             )
         return json.loads(output.read_text(encoding="utf-8"))
@@ -699,6 +718,12 @@ def main() -> int:
                 report["product_use_cases"] = measure_product_workflows(
                     runs=1, smoke=True
                 )
+                report["agent_precision_shadow"] = {
+                    "development": build_agent_shadow_report(
+                        smoke_cases,
+                        run_native_agent_shadow(args.runner, smoke_path),
+                    )
+                }
                 return write_report(args.output, report)
 
         baseline = evaluate_dataset(cases, args.cases, args.runner, args.runs, True)
@@ -771,6 +796,20 @@ def main() -> int:
         report["product_use_cases"] = measure_product_workflows(
             runs=args.runs, smoke=False
         )
+        report["agent_precision_shadow"] = {
+            "development": build_agent_shadow_report(
+                dev_cases,
+                run_native_agent_shadow(args.runner, args.dev_cases),
+            ),
+            "hard_negatives": build_agent_shadow_report(
+                hard_cases,
+                run_native_agent_shadow(args.runner, args.hard_negatives),
+            ),
+            "test": build_agent_shadow_report(
+                cases,
+                run_native_agent_shadow(args.runner, args.cases),
+            ),
+        }
         return write_report(args.output, report)
     except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:
         print(f"benchmark failed: {error}", file=sys.stderr)

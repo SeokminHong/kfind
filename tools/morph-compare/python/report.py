@@ -271,7 +271,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 12,
+        "schema_version": 13,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "backends": list(backends),
@@ -389,6 +389,7 @@ def render_markdown(report: dict[str, object]) -> str:
     append_product_workflows(lines, report)
     append_external_baselines(lines, report)
     append_product_use_cases(lines, report.get("product_use_cases"))
+    append_agent_precision_shadow(lines, report.get("agent_precision_shadow"))
     append_quality_sections(lines, report)
     append_boundary_comparison(lines, report.get("boundary_comparison"))
     append_human_untagged(lines, report.get("human_untagged"))
@@ -407,6 +408,48 @@ def render_markdown(report: dict[str, object]) -> str:
         ]
     )
     return "\n".join(lines) + "\n"
+
+
+def append_agent_precision_shadow(
+    lines: list[str], shadow: dict[str, object] | None
+) -> None:
+    if shadow is None:
+        return
+    lines.extend(
+        [
+            "",
+            "## Agent precision shadow",
+            "",
+            "This diagnostic runs after timed evaluation and does not change `any` matches.",
+            "",
+            "| dataset | policy | TP | FP | FN | precision | recall | F1 |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for dataset, result in shadow.items():
+        for policy, metrics in result["projections"].items():
+            lines.append(
+                f"| {dataset} | {policy} | {metrics['true_positive']} | "
+                f"{metrics['false_positive']} | {metrics['false_negative']} | "
+                f"{metrics['precision']:.2%} | {metrics['recall']:.2%} | "
+                f"{metrics['f1']:.2%} |"
+            )
+
+    lines.extend(
+        [
+            "",
+            "| dataset | path presence | gold overlap | negative span | other span |",
+            "| --- | --- | ---: | ---: | ---: |",
+        ]
+    )
+    for dataset, result in shadow.items():
+        for path_presence, outcomes in result["by_path_presence"].items():
+            lines.append(
+                f"| {dataset} | {path_presence} | "
+                f"{outcomes.get('gold-overlap', 0)} | "
+                f"{outcomes.get('negative-span', 0)} | "
+                f"{outcomes.get('positive-other-span', 0)} |"
+            )
 
 
 def append_product_workflows(lines: list[str], report: dict[str, object]) -> None:

@@ -1,3 +1,4 @@
+mod agent_shadow;
 mod shadow;
 
 use std::collections::BTreeSet;
@@ -27,6 +28,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
+use agent_shadow::diagnose_agent_shadow;
 use shadow::{
     ShadowBranchEvidence, ShadowResource, ShadowVerificationCounters, diagnose_component_candidate,
 };
@@ -217,6 +219,37 @@ fn main() -> Result<()> {
     let arguments = std::env::args().skip(1).collect::<Vec<_>>();
     if arguments
         .first()
+        .is_some_and(|argument| argument == "agent-shadow")
+    {
+        if arguments.len() != 3 {
+            bail!("usage: morph-benchmark-runner agent-shadow CASES.jsonl OUTPUT.json");
+        }
+        let cases = load_cases(Path::new(&arguments[1]))?;
+        let lexicons = Lexicons::embedded()?;
+        let analyzer = LexiconQueryAnalyzer::new(Arc::new(lexicons));
+        let morphology_path = std::env::var_os(MORPHOLOGY_RESOURCE_ENV)
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| MORPHOLOGY_RESOURCE.into());
+        let morphology_bytes = fs::read(&morphology_path).with_context(|| {
+            format!(
+                "Agent shadow requires morphology resource {}",
+                morphology_path.display()
+            )
+        })?;
+        let morphology_artifact_sha256 = format!("{:x}", Sha256::digest(&morphology_bytes));
+        let source_digest = parse_sha256(MORPHOLOGY_SOURCE_SHA256)?;
+        let morphology = decode_morphology_resource(
+            &morphology_path.display().to_string(),
+            &morphology_bytes,
+            &source_digest,
+        )?;
+        let summary =
+            diagnose_agent_shadow(&cases, &analyzer, &morphology, morphology_artifact_sha256)?;
+        serde_json::to_writer_pretty(BufWriter::new(File::create(&arguments[2])?), &summary)?;
+        return Ok(());
+    }
+    if arguments
+        .first()
         .is_some_and(|argument| matches!(argument.as_str(), "boundary" | "untagged"))
     {
         if arguments.len() != 5 {
@@ -243,6 +276,7 @@ fn main() -> Result<()> {
         bail!(
             "usage: morph-benchmark-runner BACKEND CASES.jsonl OUTPUT.json\n\
              or: morph-benchmark-runner startup PROFILE OUTPUT.json\n\
+             or: morph-benchmark-runner agent-shadow CASES.jsonl OUTPUT.json\n\
              or: morph-benchmark-runner {{boundary|untagged}} PROFILE BOUNDARY CASES.jsonl OUTPUT.json"
         );
     }
