@@ -69,6 +69,34 @@ def grouped_quality(
     }
 
 
+def untagged_plan_metrics(
+    cases: list[dict[str, object]],
+    diagnostics: dict[str, dict[str, object]],
+) -> dict[str, object]:
+    positive_cases = [case for case in cases if case["expected"]]
+    positive_diagnostics = [diagnostics[case["id"]] for case in positive_cases]
+    total = len(positive_diagnostics)
+    if total == 0:
+        raise ValueError("untagged plan metrics require positive cases")
+
+    def summarize(field: str) -> tuple[int, float]:
+        count = sum(bool(diagnostic[field]) for diagnostic in positive_diagnostics)
+        return count, round(100 * count / total, 2)
+
+    expected_count, expected_percent = summarize("expected_pos_present")
+    multi_count, multi_percent = summarize("multi_coarse_pos")
+    literal_count, literal_percent = summarize("literal_fallback")
+    return {
+        "positive_cases": total,
+        "expected_pos_present": expected_count,
+        "expected_pos_present_percent": expected_percent,
+        "multi_coarse_pos": multi_count,
+        "multi_coarse_pos_percent": multi_percent,
+        "literal_fallback": literal_count,
+        "literal_fallback_percent": literal_percent,
+    }
+
+
 def kfind_profile_comparison(
     cases: list[dict[str, object]],
     predictions: dict[str, dict[str, bool]],
@@ -168,7 +196,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 10,
+        "schema_version": 11,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "versions": versions,
@@ -279,6 +307,7 @@ def render_markdown(report: dict[str, object]) -> str:
         )
     append_quality_sections(lines, report)
     append_boundary_comparison(lines, report.get("boundary_comparison"))
+    append_human_untagged(lines, report.get("human_untagged"))
     append_component_startup(lines, report.get("component_startup"))
     append_shadow_verification(lines, report)
     append_profile_comparison(lines, report)
@@ -411,6 +440,60 @@ def append_component_startup(
             f"{format_seconds(metrics, 'initialization_seconds')} | "
             f"{format_rss(metrics['base_peak_rss_kib'])} | "
             f"{format_rss(metrics['peak_rss_kib'])} |"
+        )
+
+
+def append_human_untagged(
+    lines: list[str], human: dict[str, object] | None
+) -> None:
+    if human is None:
+        return
+    dataset = human["dataset"]
+    lines.extend(
+        [
+            "",
+            "## Human untagged search",
+            "",
+            "The query is compiled without a global POS or atom tag. A negative sentence "
+            "contains no supported POS analysis for the query lemma.",
+            "",
+            f"- fixture: `{dataset['fixture_sha256']}`",
+            f"- cases: {dataset['cases']} ({dataset['positive_cases']} positive, "
+            f"{dataset['negative_cases']} negative)",
+            "",
+            "| profile | boundary | precision | recall | F1 | TP | FP | TN | FN | init median | cases/s median | p95 median | peak RSS |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for profile, profile_result in human["profiles"].items():
+        for boundary in human["boundaries"]:
+            result = profile_result["boundaries"][boundary]
+            quality = result["quality"]
+            performance = result["performance"]
+            lines.append(
+                f"| {profile} | {boundary} | {quality['precision_percent']}% | "
+                f"{quality['recall_percent']}% | {quality['f1_percent']}% | "
+                f"{quality['tp']} | {quality['fp']} | {quality['tn']} | "
+                f"{quality['fn']} | {performance['initialization_seconds']:.4f}s | "
+                f"{performance['cases_per_second']} | "
+                f"{performance['latency_p95_ms']}ms | "
+                f"{format_rss(performance['peak_rss_kib'])} |"
+            )
+    lines.extend(
+        [
+            "",
+            "| profile | positive plans | intended POS present | multi-POS plan | literal fallback |",
+            "| --- | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for profile, profile_result in human["profiles"].items():
+        plan = profile_result["plan"]
+        lines.append(
+            f"| {profile} | {plan['positive_cases']} | "
+            f"{plan['expected_pos_present_percent']}% "
+            f"({plan['expected_pos_present']}) | "
+            f"{plan['multi_coarse_pos_percent']}% ({plan['multi_coarse_pos']}) | "
+            f"{plan['literal_fallback_percent']}% ({plan['literal_fallback']}) |"
         )
 
 

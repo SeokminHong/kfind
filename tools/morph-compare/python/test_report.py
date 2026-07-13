@@ -6,12 +6,14 @@ from report import (
     append_boundary_comparison,
     append_component_shadow_table,
     append_component_startup,
+    append_human_untagged,
     append_local_context_summary,
     classify_component_paths,
     classify_primary_cause,
     kfind_profile_comparison,
     quality_metrics,
     shadow_verification_summary,
+    untagged_plan_metrics,
 )
 
 
@@ -200,6 +202,92 @@ class BoundaryComparisonTests(unittest.TestCase):
             "| full-pos | any | 99.0% | 80.0% | 88.49% | 0.1000s |",
             rendered,
         )
+
+
+class HumanUntaggedTests(unittest.TestCase):
+    def test_aggregates_positive_plan_usability(self) -> None:
+        cases = [
+            {"id": "positive-a", "expected": True},
+            {"id": "positive-b", "expected": True},
+            {"id": "negative", "expected": False},
+        ]
+        diagnostics = {
+            "positive-a": {
+                "expected_pos_present": True,
+                "multi_coarse_pos": True,
+                "literal_fallback": False,
+            },
+            "positive-b": {
+                "expected_pos_present": False,
+                "multi_coarse_pos": False,
+                "literal_fallback": True,
+            },
+            "negative": {
+                "expected_pos_present": False,
+                "multi_coarse_pos": False,
+                "literal_fallback": False,
+            },
+        }
+
+        metrics = untagged_plan_metrics(cases, diagnostics)
+
+        self.assertEqual(50.0, metrics["expected_pos_present_percent"])
+        self.assertEqual(50.0, metrics["multi_coarse_pos_percent"])
+        self.assertEqual(50.0, metrics["literal_fallback_percent"])
+
+    def test_renders_quality_performance_and_plan_metrics(self) -> None:
+        performance = {
+            "initialization_seconds": 0.01,
+            "cases_per_second": 1200.0,
+            "latency_p95_ms": 0.4,
+            "peak_rss_kib": 10240,
+        }
+        quality = {
+            "precision_percent": 90.0,
+            "recall_percent": 80.0,
+            "f1_percent": 84.71,
+            "tp": 8,
+            "fp": 1,
+            "tn": 9,
+            "fn": 2,
+        }
+        human = {
+            "dataset": {
+                "fixture_sha256": "untagged-fixture",
+                "cases": 20,
+                "positive_cases": 10,
+                "negative_cases": 10,
+            },
+            "boundaries": ["smart", "any"],
+            "profiles": {
+                "embedded": {
+                    "plan": {
+                        "positive_cases": 10,
+                        "expected_pos_present": 8,
+                        "expected_pos_present_percent": 80.0,
+                        "multi_coarse_pos": 3,
+                        "multi_coarse_pos_percent": 30.0,
+                        "literal_fallback": 2,
+                        "literal_fallback_percent": 20.0,
+                    },
+                    "boundaries": {
+                        boundary: {
+                            "quality": quality,
+                            "performance": performance,
+                        }
+                        for boundary in ("smart", "any")
+                    },
+                }
+            },
+        }
+        lines: list[str] = []
+
+        append_human_untagged(lines, human)
+
+        rendered = "\n".join(lines)
+        self.assertIn("## Human untagged search", rendered)
+        self.assertIn("| embedded | any | 90.0% | 80.0% | 84.71% |", rendered)
+        self.assertIn("| embedded | 10 | 80.0% (8) | 30.0% (3) |", rendered)
 
 
 class ShadowVerificationTests(unittest.TestCase):
