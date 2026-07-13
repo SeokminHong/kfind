@@ -7,7 +7,10 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use anyhow::{Context, Result, bail};
-use kfind_data::{DataErrorKind, decode_morphology_resource, parse_sha256};
+use kfind_data::{
+    COMPONENT_RESOURCE_SOURCE_DIGEST, DataErrorKind, decode_component_resource,
+    decode_morphology_resource, parse_sha256,
+};
 use kfind_matcher::MorphMatcher;
 use kfind_morph::CoarsePos;
 use kfind_query::{
@@ -18,7 +21,6 @@ use lindera::dictionary::load_dictionary;
 use lindera::mode::Mode;
 use lindera::segmenter::Segmenter;
 use lindera::tokenizer::Tokenizer;
-use morph_index_benchmark::component_artifact::decode_compact_component_resource;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -132,6 +134,21 @@ fn load_cases(path: &Path) -> Result<Vec<Case>> {
 
 fn run_kfind(cases: &[Case], profile: KfindProfile) -> Result<Summary> {
     let initialization_started = Instant::now();
+    let component_path = std::env::var_os(COMPONENT_RESOURCE_ENV)
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| COMPONENT_RESOURCE.into());
+    let component_bytes = fs::read(&component_path).with_context(|| {
+        format!(
+            "kfind profile requires component resource {}",
+            component_path.display()
+        )
+    })?;
+    let component_artifact_sha256 = format!("{:x}", Sha256::digest(&component_bytes));
+    let component_resource = Arc::new(decode_component_resource(
+        &component_path.display().to_string(),
+        component_bytes,
+        &COMPONENT_RESOURCE_SOURCE_DIGEST,
+    )?);
     let (lexicons, lexicon_artifact_sha256) = match profile {
         KfindProfile::Embedded => (Lexicons::embedded()?, None),
         KfindProfile::FullPos => {
@@ -163,7 +180,8 @@ fn run_kfind(cases: &[Case], profile: KfindProfile) -> Result<Summary> {
         })?;
         let plan = compile_query(&case.query, &options, &analyzer)
             .with_context(|| format!("failed to compile case {}", case.id))?;
-        let matcher = MorphMatcher::new(Arc::new(plan))?;
+        let matcher =
+            MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(&component_resource))?;
         let spans = find_all_spans(&matcher, &case.text);
         let latency_ms = case_started.elapsed().as_secs_f64() * 1_000.0;
         results.push(json!({"id": case.id, "latency_ms": latency_ms, "spans": spans}));
@@ -209,32 +227,7 @@ fn run_kfind(cases: &[Case], profile: KfindProfile) -> Result<Summary> {
         Some(Err(_)) => ShadowResource::Corrupt,
         None => ShadowResource::Missing,
     };
-    let component_path = std::env::var_os(COMPONENT_RESOURCE_ENV)
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|| COMPONENT_RESOURCE.into());
-    let component_bytes = match fs::read(&component_path) {
-        Ok(bytes) => Some(bytes),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
-        Err(error) => {
-            return Err(error).with_context(|| {
-                format!(
-                    "failed to read component resource {}",
-                    component_path.display()
-                )
-            });
-        }
-    };
-    let component_artifact_sha256 = component_bytes
-        .as_ref()
-        .map(|artifact| format!("{:x}", Sha256::digest(artifact)));
-    let component = component_bytes
-        .as_deref()
-        .map(|artifact| decode_compact_component_resource(artifact, &morphology_source_digest));
-    let component_shadow_resource = match &component {
-        Some(Ok(resource)) => ShadowResource::Loaded(resource),
-        Some(Err(_)) => ShadowResource::Corrupt,
-        None => ShadowResource::Missing,
-    };
+    let component_shadow_resource = ShadowResource::Loaded(component_resource.as_ref());
     for (case, result) in cases.iter().zip(&mut results) {
         result["failure_diagnostic"] = serde_json::to_value(diagnose_failure(case, &analyzer)?)?;
         result["shadow_verification"] = serde_json::to_value(diagnose_verification(
@@ -250,7 +243,7 @@ fn run_kfind(cases: &[Case], profile: KfindProfile) -> Result<Summary> {
         profile: Some(profile.name().to_owned()),
         lexicon_artifact_sha256,
         morphology_artifact_sha256,
-        component_artifact_sha256,
+        component_artifact_sha256: Some(component_artifact_sha256),
         initialization_seconds,
         evaluation_seconds,
         peak_rss_kib,
