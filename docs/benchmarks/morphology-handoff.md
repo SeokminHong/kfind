@@ -78,14 +78,24 @@ fixture·gold·지표 정의와 `any`의 TP 479 / FP 11 / FN 21은 바꾸지 않
 - `그건 매일 수도 있어`는 `매일/MAG + 수/NNB+도/JX + 있어` 경로가 완전하므로 위 문맥 예외의
   positive가 아니다. 구현 전에는 전체-token 경로가 실제로 불가능한 최소 대조 fixture를 먼저
   확보한다.
+- Korean-Kaist·KSL dev의 실제 지정사 annotation에는 `예이다`, `생명인데`, `것인가를`처럼
+  `any`에는 있고 `smart`가 제거한 gold token이 130개 있다. annotation의 split만으로
+  whole-token 완전 경로의 부재를 증명하지 않으므로 제품 복구 근거로 사용하지 않는다.
+- Agent precision 후보는 먼저 `embedded + any` 결과에 대한 benchmark shadow로만 측정한다.
+  timed 결과와 제품 `any` 결과는 유지하고, bounded local lattice의 include/exclude 완전 경로
+  존재 여부와 생성 근거를 development·hard-negative에서 분류한다.
 
 ## 이어갈 작업
 
-1. 전체-token 경로가 실제로 불가능하고 지정사 split만 가능한 자연 문장 최소 대조 fixture를
-   먼저 확보한다. 이 근거가 없으면 문맥 복구를 구현하지 않는다.
-2. User test precision 100.00%를 고정한 채 Agent precision을 현재 `any` candidate 범위 안에서
-   개선한다. `any` 밖의 span을 만들지 않는다.
-3. `-기` 명사형 뒤 조사 continuation을 독립 규칙과 hard-negative 단위로 다룬다.
+1. Agent benchmark shadow에 query 품사, 생성 근거, core·token·whole-token span, exact 분석과
+   bounded local lattice의 include/exclude 완전 경로 존재 여부를 기록한다. 비용은 판정에 쓰지
+   않는다.
+2. development와 hard-negative에서 규칙을 고정한 뒤 User test precision 100.00%와 Agent의
+   기존 true positive를 보존하면서 false positive가 감소하는지 한 번 판정한다. `any` 밖의 span을
+   만들지 않는다.
+3. exclude 완전 경로가 없고 지정사 split 완전 경로만 있는 자연 문장 최소 대조가 확인될 때만
+   문맥 복구를 제품 후보로 검토한다.
+4. `-기` 명사형 뒤 조사 continuation을 독립 규칙과 hard-negative 단위로 다룬다.
 
 ## 재현과 검증
 

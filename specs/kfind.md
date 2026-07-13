@@ -177,6 +177,16 @@
 - precision 개선은 현재 `boundary=any`가 만드는 candidate 집합의 부분집합만 선택한다. `any`
   밖의 span을 새로 만들거나 coverage를 넓히는 변경은 이 작업 범위에서 제외한다. User profile을
   먼저 검증하고, Agent profile은 같은 상한 아래에서 후속 작업으로 다룬다.
+- Agent precision 후보 정책은 제품 동작에 넣기 전에 benchmark shadow로만 평가한다. shadow는
+  `embedded + any + 명시적 품사`의 결과를 입력으로 사용하며 candidate를 추가하지 않는다.
+  query 품사, 생성 근거와 rule path, core·token·whole-token span, exact whole-token 분석과 bounded
+  local lattice의 include/exclude 완전 경로 존재 여부를 성능 측정 구간 밖에서 기록한다.
+- Agent shadow의 규칙 선택에는 development와 hard-negative fixture만 사용한다. held-out test는
+  규칙을 고정한 뒤 한 번의 회귀 판정에만 사용한다. 제품 후보는 User test precision 100.00%와
+  Agent의 기존 true positive를 보존하고 false positive를 줄이며 hard-negative의 새 false
+  positive가 없을 때만 검토한다. 비용 우열만으로 지정사 branch를 복구하거나 제거하지 않는다.
+- shadow 계측은 기존 `any` 결과, CLI 옵션과 resource 초기화 계약을 바꾸지 않는다. 제품 정책으로
+  승격할 때는 공개 profile과 필요한 resource의 시작 시간·RSS 계약을 별도로 정의한다.
 - 외부 분석기 성능은 각 backend를 fresh process에서 1회 warm-up 뒤 5회 측정해 품질 결과와 함께
   version-controlled snapshot에 저장한다. 기본 benchmark는 snapshot을 읽으며 test fixture,
   adapter·성능 schema 또는 고정 버전·설정이 바뀔 때만 외부 snapshot을 다시 측정한다. snapshot
