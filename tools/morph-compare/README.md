@@ -2,9 +2,10 @@
 
 [한국어](README.ko.md)
 
-This development tool runs the same held-out cases through the `kfind`
-embedded/full-POS profiles, Kiwi, and Lindera. External analyzers and corpora
-are not part of the product binary or default search path.
+This development tool runs the `kfind` embedded/full-POS profiles on the same
+held-out cases and compares them with pinned quality snapshots from Kiwi,
+Lindera, MeCab-ko, and KOMORAN. External analyzers and corpora are not part of
+the product binary or default search path.
 
 Fixtures are generated from the Universal Dependencies 2.18 Korean-Kaist and
 Korean-KSL test and development splits. Their URLs, SHA-256 digests, and CC
@@ -33,8 +34,10 @@ KFIND_MORPH_UNSEEN=1 scripts/benchmark-morphology.sh target/morph-unseen-report
 scripts/benchmark-morphology.sh
 ```
 
-The default run performs one warm-up and five measured runs per backend. Results
-are written to `target/morph-benchmark/report.json` and `report.md`.
+The default run performs one warm-up and five measured runs per kfind profile.
+It does not execute external analyzers; it reads only the version-controlled
+snapshot bound to the test fixture SHA-256. Results are written to
+`target/morph-benchmark/report.json` and `report.md`.
 After the image is built, the container runs with `--network none`.
 `scripts/compare-morphology.sh` is an alias for the same benchmark.
 The image build creates the pinned full-POS artifact and fails if its checksum
@@ -46,6 +49,14 @@ source/POS/expected combination:
 
 ```sh
 KFIND_MORPH_SMOKE=1 KFIND_MORPH_RUNS=1 scripts/benchmark-morphology.sh
+```
+
+Refresh the external snapshot explicitly only when the test fixture or pinned
+external tool and adapter configuration changes. The default benchmark fails
+with this command when the fixture or snapshot schema does not match:
+
+```sh
+scripts/refresh-morph-baselines.sh
 ```
 
 Render the committed report charts from the same JSON:
@@ -83,9 +94,9 @@ lists of recovered, still-missed, and newly regressed false negatives.
 Shadow verification records raw anchor hits, verified branch hits, local-lattice
 candidates, and unique analysis windows per case outside the timed evaluation.
 
-Performance covers each backend's end-to-end query-to-decision workload and
-reports the median and min/max across measured runs. It is not a tokenizer-only
-throughput comparison. The full test report also compares smart, token, and any
+Current performance covers kfind's end-to-end query-to-decision workload and
+reports the median and min/max across measured runs. External analyzer quality
+snapshots do not appear in the current performance table. The full test report also compares smart, token, and any
 for both kfind lexicon profiles; only smart loads the component resource. A
 separate startup table compares resource-less embedded and full-POS engines with
 the same engines after explicit component loading.
@@ -96,3 +107,10 @@ The `Human untagged search` section separately compares embedded/full-POS with
 smart/any. It reports binary quality and performance plus intended-POS plan
 coverage, multi-POS plan rate, and literal fallback rate. Its F1 is not combined
 with the explicit-POS task because the negative definition differs.
+
+The `Product workflows` section first presents recall, throughput, and false-
+positive candidate count for agent use with `embedded + any + explicit POS`,
+then precision, recall, and plan coverage for human use with
+`full-POS + smart + untagged`. The library keeps a resource-less embedded engine
+as its default and exposes full-POS and component resources as explicit costs.
+The workflows are not combined into one score.

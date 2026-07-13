@@ -31,6 +31,9 @@
 - benchmark runner는 성능 측정 밖에서 non-overlap 선택 전 atom 후보와 origin을 보존한다.
   `unseen_benchmark.py`는 lattice evidence를 origin에 연결해 `reject`만 제거하고 schema 13의
   `copula_policy_projection`을 생성한다. 이 투영은 제품 검색 결과를 바꾸지 않는다.
+- 기본 morphology benchmark는 kfind 프로필만 다시 실행한다. Kiwi·Lindera·MeCab-ko·KOMORAN
+  품질은 test fixture와 어댑터 schema에 묶인 저장소 스냅샷을 읽고, fixture나 고정한 비교기
+  설정이 바뀔 때만 `scripts/refresh-morph-baselines.sh`로 갱신한다.
 - compact component artifact는 Homebrew의 `share/kfind`와 npm의 별도 정적 asset으로
   배포한다. WASM binary에는 artifact bytes를 포함하지 않는다.
 
@@ -89,6 +92,7 @@ Kaist·KSL test, Korean-GSD 및 PUD 결과를 본 뒤 비용·threshold·fixture
 
 ```console
 scripts/benchmark-morphology.sh
+scripts/refresh-morph-baselines.sh
 KFIND_MORPH_BLIND=1 scripts/benchmark-morphology.sh target/morph-blind-report
 KFIND_MORPH_UNSEEN=1 scripts/benchmark-morphology.sh target/morph-unseen-report
 scripts/benchmark-morph-index.sh
