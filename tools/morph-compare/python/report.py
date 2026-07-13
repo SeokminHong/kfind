@@ -106,6 +106,7 @@ def shadow_verification_summary(
     decisions: dict[str, int] = defaultdict(int)
     component_statuses: dict[str, int] = defaultdict(int)
     component_decisions: dict[str, int] = defaultdict(int)
+    component_cases_by_decision: dict[str, int] = defaultdict(int)
     case_metadata = {str(case["id"]): case for case in cases or []}
     outcomes_by_class: dict[str, dict[str, int]] = defaultdict(
         lambda: defaultdict(int)
@@ -141,6 +142,13 @@ def shadow_verification_summary(
             if case is not None:
                 class_name = "positive" if bool(case["expected"]) else "negative"
                 component_outcomes_by_class[class_name][outcome] += 1
+        case_decisions = {
+            str(evidence["decision"])
+            for evidence in counters.get("component", [])
+            if evidence.get("decision") is not None
+        }
+        for decision in case_decisions:
+            component_cases_by_decision[decision] += 1
 
     def sorted_outcomes(
         grouped: dict[str, dict[str, int]],
@@ -168,6 +176,9 @@ def shadow_verification_summary(
         ),
         "component_statuses": dict(sorted(component_statuses.items())),
         "component_decisions": dict(sorted(component_decisions.items())),
+        "component_cases_by_decision": dict(
+            sorted(component_cases_by_decision.items())
+        ),
         "component_outcomes_by_class": sorted_outcomes(
             component_outcomes_by_class
         ),
@@ -242,7 +253,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 5,
+        "schema_version": 6,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "versions": versions,
@@ -556,6 +567,7 @@ def append_development_summary(
             f"{metrics['recall_percent']}% | {metrics['f1_percent']}% | "
             f"{metrics['tp']} | {metrics['fp']} | {metrics['fn']} |"
         )
+    append_component_shadow_table(lines, development["shadow_verification"])
 
 
 def append_hard_negative_summary(
@@ -584,6 +596,26 @@ def append_hard_negative_summary(
                 f"{metrics['hard_negative_precision_percent']}% | "
                 f"{metrics['fp']} | {metrics['tn']} |"
             )
+    append_component_shadow_table(lines, hard_negatives["shadow_verification"])
+
+
+def append_component_shadow_table(
+    lines: list[str], shadow_verification: dict[str, object]
+) -> None:
+    lines.extend(
+        [
+            "",
+            "| profile | component candidate cases | accept cases | reject cases |",
+            "| --- | ---: | ---: | ---: |",
+        ]
+    )
+    for profile in KFIND_PROFILES:
+        summary = shadow_verification[profile]
+        decisions = summary["component_cases_by_decision"]
+        lines.append(
+            f"| {profile} | {summary['cases_with_component_candidates']} | "
+            f"{decisions.get('accept', 0)} | {decisions.get('reject', 0)} |"
+        )
 
 
 def append_local_context_summary(

@@ -3,6 +3,7 @@ import unittest
 from report import (
     BACKENDS,
     KFIND_PROFILES,
+    append_component_shadow_table,
     append_local_context_summary,
     classify_primary_cause,
     kfind_profile_comparison,
@@ -171,10 +172,25 @@ class ShadowVerificationTests(unittest.TestCase):
             summary["lattice_outcomes_by_class"]["positive"],
         )
         self.assertEqual({"accept": 1}, summary["component_decisions"])
+        self.assertEqual({"accept": 1}, summary["component_cases_by_decision"])
         self.assertEqual(
             {"accept": 1}, summary["component_outcomes_by_class"]["positive"]
         )
         self.assertEqual(by_case, summary["by_case"])
+
+    def test_renders_component_case_decisions(self) -> None:
+        shadow = {
+            profile: {
+                "cases_with_component_candidates": 5,
+                "component_cases_by_decision": {"accept": 3, "reject": 2},
+            }
+            for profile in KFIND_PROFILES
+        }
+        lines: list[str] = []
+
+        append_component_shadow_table(lines, shadow)
+
+        self.assertIn("| kfind-embedded | 5 | 3 | 2 |", "\n".join(lines))
 
 
 class LocalContextSummaryTests(unittest.TestCase):
