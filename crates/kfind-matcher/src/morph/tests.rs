@@ -162,6 +162,22 @@ fn nominal_component_without_a_resource_keeps_the_boundary_rejection() {
 }
 
 #[test]
+fn nominal_component_does_not_bypass_a_rejected_particle_allomorph() {
+    let matcher = component_matcher("권한", Arc::new(component_resource()));
+
+    assert!(
+        matcher
+            .find_at_with_meta("사용자권한는".as_bytes(), 0)
+            .is_none()
+    );
+    assert!(
+        matcher
+            .find_at_with_meta("사용자권한는관리".as_bytes(), 0)
+            .is_some()
+    );
+}
+
+#[test]
 fn overlapping_anchors_select_leftmost_longest_verified_token() {
     let mut short = exact_branch("가", false);
     short.boundary = proof(false, false, true);
@@ -576,6 +592,8 @@ fn component_resource() -> ComponentResource {
         component_entry("대", "XPN", 5_000),
         component_entry("학교", "NNG", 5_000),
         component_entry("대학교", "NNG", -5_000),
+        component_entry("는", "JX", 0),
+        component_entry("는관리", "NNG", -5_000),
     ];
     let matrix = parse_mecab_connection_matrix(
         "matrix.def",

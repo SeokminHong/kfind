@@ -442,6 +442,9 @@ impl MorphMatcher {
         let Some(query_span) = window.normalized_span(candidate.core.clone()) else {
             return false;
         };
+        if self.has_rejected_particle_suffix(candidate, window.normalized(), &query_span) {
+            return false;
+        }
         let Some(atom) = self.plan.atoms.get(atom_index) else {
             return false;
         };
@@ -461,6 +464,25 @@ impl MorphMatcher {
             )
             .is_ok_and(|report| report.decision == LocalLatticeDecision::Accept)
         })
+    }
+
+    fn has_rejected_particle_suffix(
+        &self,
+        candidate: &VerifiedSpan,
+        normalized_window: &str,
+        query_span: &Range<usize>,
+    ) -> bool {
+        if candidate.token.end != candidate.core.end {
+            return false;
+        }
+        let Some(suffix) = normalized_window.get(query_span.end..) else {
+            return false;
+        };
+        self.particle_verifier
+            .model()
+            .allomorphs
+            .iter()
+            .any(|form| suffix == form.surface.as_ref())
     }
 
     fn accepts_direct_particle(
