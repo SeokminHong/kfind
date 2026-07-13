@@ -32,6 +32,10 @@ FP 0을 동시에 유지해야 한다.
 - 제품 profile 차트는 각 workflow의 precision·recall·F1·false-positive 후보 수와 실제 CLI
   wall time·corpus 처리량·peak RSS를 함께 보여 준다. 품질 fixture와 CLI corpus는 측정 단위가
   다르며 하나의 종합 점수로 합치지 않는다.
+- 외부 비교는 explicit-POS fixture에서 Agent `embedded + any`, Kiwi, Lindera, MeCab-ko,
+  KOMORAN의 precision·recall·F1과 fixture 처리 성능을 함께 보여 준다. 외부 성능은 snapshot
+  갱신 시 fresh process 1회 warm-up 뒤 5회 측정하며 기본 benchmark에서는 다시 실행하지 않는다.
+  사람용 무품사 profile은 negative 정의가 달라 외부 순위에 넣지 않는다.
 
 ## 데이터 역할
 

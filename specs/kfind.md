@@ -127,6 +127,14 @@
   profile의 held-out precision·recall·F1과 false-positive 후보 수를 나란히 표시하여 Agent의
   recall 우선과 사람 CLI의 precision 우선 trade-off를 보존한다. 품질 fixture와 CLI corpus가
   다른 측정임을 차트에 명시하고 하나의 종합 점수로 합치지 않는다.
+- 외부 비교 차트는 동일한 explicit-POS fixture에서 에이전트 `embedded + any`와 Kiwi, Lindera,
+  MeCab-ko, KOMORAN의 precision·recall·F1, 초기화 시간, cases/s, p95 latency와 peak RSS를 함께
+  표시한다. 사람용 무품사 profile은 negative 정의가 달라 이 순위에 섞지 않고 제품 profile
+  차트에 별도로 둔다.
+- 외부 분석기 성능은 각 backend를 fresh process에서 1회 warm-up 뒤 5회 측정해 품질 결과와 함께
+  version-controlled snapshot에 저장한다. 기본 benchmark는 snapshot을 읽으며 test fixture,
+  adapter·성능 schema 또는 고정 버전·설정이 바뀔 때만 외부 snapshot을 다시 측정한다. snapshot
+  환경과 현재 kfind 환경을 모두 표시하고 환경이 다른 결과를 현재 run처럼 표현하지 않는다.
 - 보고서는 corpus 설정과 checksum, 저장소에서 commit object로 해석되는 Git revision, CPU, memory, storage, OS, 도구 버전, 실제 명령, 각 run의 wall time·throughput·maximum RSS, median 비교값을 기록한다.
 - 1 GiB low-hit `rg -F` 비교는 한 번의 warm-up 뒤 warm-cache 3회를 수행한다. timer 정밀도를
   확보하기 위해 각 run은 동일 scan 10회의 합산 시간을 측정해 1회당 평균을 기록한다. 권한이
@@ -1632,8 +1640,8 @@ gold 어절의 UTF-8 byte span과 겹쳐야 true positive이고, negative는 문
 표제어·품사를 반환하면 false positive다. 도구마다 accuracy, precision, recall, F1과
 TP·FP·TN·FN을 계산하고 corpus별·품사별 결과 및 실패 case를 함께 보존한다.
 
-외부 분석기의 정규화된 결과는 test fixture SHA-256, adapter schema, 도구·사전·모델 버전과
-설정에 묶인 version-controlled snapshot으로 보존한다. 기본 benchmark는 snapshot을 읽고
+외부 분석기의 정규화된 결과와 성능은 test fixture SHA-256, adapter·성능 schema,
+도구·사전·모델 버전과 설정에 묶인 version-controlled snapshot으로 보존한다. 기본 benchmark는 snapshot을 읽고
 `kfind`만 다시 실행한다. fixture SHA-256 또는 adapter schema가 다르면 자동으로 외부 분석기를
 실행하거나 오래된 결과를 사용하지 않고 refresh 명령과 함께 실패한다. 도구·사전·모델 버전과
 설정은 snapshot을 명시적으로 갱신할 때만 바꾼다.
