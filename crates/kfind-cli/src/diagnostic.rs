@@ -46,6 +46,16 @@ impl Display for LocalizedCliError<'_> {
                     .select("full POS lexicon is missing", "full POS lexicon이 없습니다"),
                 path.display()
             ),
+            CliError::MissingComponent(paths) => {
+                formatter.write_str(self.language.select(
+                    "component resource is missing",
+                    "component resource가 없습니다",
+                ))?;
+                for path in paths {
+                    write!(formatter, ": {}", path.display())?;
+                }
+                Ok(())
+            }
             CliError::Stderr(error) => write!(
                 formatter,
                 "{}: {error}",
