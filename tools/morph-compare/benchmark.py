@@ -377,6 +377,9 @@ def evaluate_dataset(
             "morphology_artifact_sha256": kfind[profile][5][
                 "morphology_artifact_sha256"
             ],
+            "component_artifact_sha256": kfind[profile][5][
+                "component_artifact_sha256"
+            ],
         }
         for profile in KFIND_PROFILES
     }
@@ -388,6 +391,7 @@ def evaluate_dataset(
                 "profile": None,
                 "lexicon_artifact_sha256": None,
                 "morphology_artifact_sha256": None,
+                "component_artifact_sha256": None,
             },
             "lindera": {
                 "backend": lindera[3]["backend"],
@@ -395,6 +399,7 @@ def evaluate_dataset(
                 "profile": None,
                 "lexicon_artifact_sha256": None,
                 "morphology_artifact_sha256": None,
+                "component_artifact_sha256": None,
             },
         }
     )

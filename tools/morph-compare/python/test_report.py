@@ -147,6 +147,8 @@ class ShadowVerificationTests(unittest.TestCase):
                 "unique_analysis_windows": 1,
                 "nominal_component_candidate_hits": 1,
                 "unique_component_windows": 1,
+                "component_projection_comparisons": 1,
+                "component_projection_mismatches": 0,
                 "lattice": [
                     {"status": "evaluated", "decision": "accept"},
                     {"status": "limit-exceeded", "decision": None},
@@ -176,6 +178,10 @@ class ShadowVerificationTests(unittest.TestCase):
         self.assertEqual({"accept": 1}, summary["component_cases_by_decision"])
         self.assertEqual(
             {"accept": 1}, summary["component_outcomes_by_class"]["positive"]
+        )
+        self.assertEqual(
+            {"comparisons": 1, "mismatches": 0},
+            summary["component_projection_equivalence"],
         )
         self.assertEqual(by_case, summary["by_case"])
 

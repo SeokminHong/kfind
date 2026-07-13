@@ -168,7 +168,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 7,
+        "schema_version": 8,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "versions": versions,
@@ -263,17 +263,19 @@ def render_markdown(report: dict[str, object]) -> str:
             "",
             "## Versions and profiles",
             "",
-            "| result | backend | version | profile | lexicon SHA-256 | morphology SHA-256 |",
-            "| --- | --- | --- | --- | --- | --- |",
+            "| result | backend | version | profile | lexicon SHA-256 | morphology SHA-256 | component SHA-256 |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
     for result_name in BACKENDS:
         version = report["versions"][result_name]
         artifact = version["lexicon_artifact_sha256"] or "n/a"
         morphology = version.get("morphology_artifact_sha256") or "n/a"
+        component = version.get("component_artifact_sha256") or "n/a"
         lines.append(
             f"| {result_name} | {version['backend']} | {version['version']} | "
-            f"{version['profile'] or 'n/a'} | `{artifact}` | `{morphology}` |"
+            f"{version['profile'] or 'n/a'} | `{artifact}` | `{morphology}` | "
+            f"`{component}` |"
         )
     append_quality_sections(lines, report)
     append_shadow_verification(lines, report)

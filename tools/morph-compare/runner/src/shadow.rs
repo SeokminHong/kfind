@@ -1,8 +1,8 @@
-use kfind_data::{DataFinePos, DecodedMorphologyResource};
+use kfind_data::DataFinePos;
 use kfind_matcher::{AnalysisWindowError, LocalAnalysisCandidate, VerificationCounters};
 use kfind_morph::{
     DEFAULT_LATTICE_NODE_LIMIT, FinePos, LocalLatticeDecision, LocalLatticeReport,
-    evaluate_local_component_paths, evaluate_local_lattice,
+    LocalLatticeResource, evaluate_local_component_paths, evaluate_local_lattice,
 };
 use serde::Serialize;
 
@@ -16,6 +16,8 @@ pub(super) struct ShadowVerificationCounters {
     pub(super) unique_analysis_windows: usize,
     pub(super) nominal_component_candidate_hits: usize,
     pub(super) unique_component_windows: usize,
+    pub(super) component_projection_comparisons: usize,
+    pub(super) component_projection_mismatches: usize,
     pub(super) local_branches: Vec<ShadowBranchEvidence>,
     component_branches: Vec<ShadowBranchEvidence>,
     pub(super) lattice: Vec<ShadowLatticeEvidence>,
@@ -30,7 +32,7 @@ pub(super) struct ShadowBranchEvidence {
     pub(super) require_right: bool,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Eq, PartialEq, Serialize)]
 pub(super) struct ShadowLatticeEvidence {
     pub(super) status: &'static str,
     atom_index: usize,
@@ -47,20 +49,20 @@ pub(super) struct ShadowLatticeEvidence {
     error: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Eq, PartialEq, Serialize)]
 struct ShadowWindowEvidence {
     raw: Span,
     normalized: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Eq, PartialEq, Serialize)]
 struct ShadowPathEvidence {
     cost: i64,
     includes_query: bool,
     nodes: Vec<ShadowNodeEvidence>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Eq, PartialEq, Serialize)]
 struct ShadowNodeEvidence {
     normalized: Span,
     original: Option<Span>,
@@ -71,7 +73,7 @@ struct ShadowNodeEvidence {
 
 #[derive(Clone, Copy)]
 pub(super) enum ShadowResource<'a> {
-    Loaded(&'a DecodedMorphologyResource<'a>),
+    Loaded(&'a dyn LocalLatticeResource),
     Missing,
     Corrupt,
     SourceMismatch,
@@ -84,6 +86,7 @@ impl ShadowVerificationCounters {
         component_branches: Vec<ShadowBranchEvidence>,
         lattice: Vec<ShadowLatticeEvidence>,
         component: Vec<ShadowLatticeEvidence>,
+        component_projection_comparisons: usize,
     ) -> Self {
         Self {
             raw_anchor_hits: counters.raw_anchor_hits,
@@ -92,6 +95,8 @@ impl ShadowVerificationCounters {
             unique_analysis_windows: counters.unique_analysis_windows,
             nominal_component_candidate_hits: counters.nominal_component_candidate_hits,
             unique_component_windows: counters.unique_component_windows,
+            component_projection_comparisons,
+            component_projection_mismatches: 0,
             local_branches,
             component_branches,
             lattice,

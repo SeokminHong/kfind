@@ -18,6 +18,7 @@ use lindera::dictionary::load_dictionary;
 use lindera::mode::Mode;
 use lindera::segmenter::Segmenter;
 use lindera::tokenizer::Tokenizer;
+use morph_index_benchmark::component_artifact::decode_compact_component_resource;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -31,6 +32,8 @@ const FULL_POS_LEXICON: &str = "/opt/morph-benchmark/full-pos/lexicon.bin";
 const FULL_POS_LEXICON_ENV: &str = "KFIND_FULL_POS_LEXICON";
 const MORPHOLOGY_RESOURCE: &str = "/opt/morph-benchmark/morphology/morphology.bin";
 const MORPHOLOGY_RESOURCE_ENV: &str = "KFIND_MORPHOLOGY_RESOURCE";
+const COMPONENT_RESOURCE: &str = "/opt/morph-benchmark/component/morphology-component-compact.kfc";
+const COMPONENT_RESOURCE_ENV: &str = "KFIND_COMPONENT_RESOURCE";
 const MORPHOLOGY_SOURCE_SHA256: &str =
     "fd62d3d6d8fa85145528065fabad4d7cb20f6b2201e71be4081a4e9701a5b330";
 
@@ -52,13 +55,14 @@ struct Summary {
     profile: Option<String>,
     lexicon_artifact_sha256: Option<String>,
     morphology_artifact_sha256: Option<String>,
+    component_artifact_sha256: Option<String>,
     initialization_seconds: f64,
     evaluation_seconds: f64,
     peak_rss_kib: Option<u64>,
     results: Vec<Value>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Eq, PartialEq, Serialize)]
 struct Span {
     byte_start: usize,
     byte_end: usize,
@@ -205,10 +209,40 @@ fn run_kfind(cases: &[Case], profile: KfindProfile) -> Result<Summary> {
         Some(Err(_)) => ShadowResource::Corrupt,
         None => ShadowResource::Missing,
     };
+    let component_path = std::env::var_os(COMPONENT_RESOURCE_ENV)
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| COMPONENT_RESOURCE.into());
+    let component_bytes = match fs::read(&component_path) {
+        Ok(bytes) => Some(bytes),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
+        Err(error) => {
+            return Err(error).with_context(|| {
+                format!(
+                    "failed to read component resource {}",
+                    component_path.display()
+                )
+            });
+        }
+    };
+    let component_artifact_sha256 = component_bytes
+        .as_ref()
+        .map(|artifact| format!("{:x}", Sha256::digest(artifact)));
+    let component = component_bytes
+        .as_deref()
+        .map(|artifact| decode_compact_component_resource(artifact, &morphology_source_digest));
+    let component_shadow_resource = match &component {
+        Some(Ok(resource)) => ShadowResource::Loaded(resource),
+        Some(Err(_)) => ShadowResource::Corrupt,
+        None => ShadowResource::Missing,
+    };
     for (case, result) in cases.iter().zip(&mut results) {
         result["failure_diagnostic"] = serde_json::to_value(diagnose_failure(case, &analyzer)?)?;
-        result["shadow_verification"] =
-            serde_json::to_value(diagnose_verification(case, &analyzer, shadow_resource)?)?;
+        result["shadow_verification"] = serde_json::to_value(diagnose_verification(
+            case,
+            &analyzer,
+            shadow_resource,
+            component_shadow_resource,
+        )?)?;
     }
     Ok(Summary {
         backend: "kfind".to_owned(),
@@ -216,6 +250,7 @@ fn run_kfind(cases: &[Case], profile: KfindProfile) -> Result<Summary> {
         profile: Some(profile.name().to_owned()),
         lexicon_artifact_sha256,
         morphology_artifact_sha256,
+        component_artifact_sha256,
         initialization_seconds,
         evaluation_seconds,
         peak_rss_kib,
@@ -227,6 +262,7 @@ fn diagnose_verification(
     case: &Case,
     analyzer: &LexiconQueryAnalyzer,
     resource: ShadowResource<'_>,
+    component_resource: ShadowResource<'_>,
 ) -> Result<ShadowVerificationCounters> {
     let options = CompileOptions::resolve(CompileOptionOverrides {
         pos: Some(parse_pos(&case.pos)?),
@@ -285,21 +321,42 @@ fn diagnose_verification(
             case.id
         );
     }
+    let required_component_error = (!component_candidates.is_empty())
+        .then(|| component_resource.unavailable_status())
+        .flatten();
+    if let Some(status) = required_component_error {
+        bail!(
+            "nominal component shadow for case {} requires a valid compact resource: {status}",
+            case.id
+        );
+    }
     let lattice = candidates
         .iter()
         .filter(|candidate| candidate.context_requirement == ContextRequirement::EojeolLattice)
         .map(|candidate| diagnose_lattice_candidate(candidate, resource))
         .collect();
-    let component = component_candidates
-        .into_iter()
-        .map(|candidate| diagnose_component_candidate(candidate, resource))
-        .collect();
+    let mut component = Vec::with_capacity(component_candidates.len());
+    for candidate in component_candidates {
+        let full_evidence = diagnose_component_candidate(candidate, resource);
+        let compact_evidence = diagnose_component_candidate(candidate, component_resource);
+        if full_evidence != compact_evidence {
+            bail!(
+                "component projection differs for case {} atom {} analysis {}",
+                case.id,
+                candidate.atom_index,
+                candidate.analysis_index
+            );
+        }
+        component.push(full_evidence);
+    }
+    let component_projection_comparisons = component.len();
     Ok(ShadowVerificationCounters::new(
         matcher.verification_counters(case.text.as_bytes()),
         local_branches,
         component_branches,
         lattice,
         component,
+        component_projection_comparisons,
     ))
 }
 
@@ -415,6 +472,7 @@ fn run_lindera(cases: &[Case]) -> Result<Summary> {
         profile: None,
         lexicon_artifact_sha256: None,
         morphology_artifact_sha256: None,
+        component_artifact_sha256: None,
         initialization_seconds,
         evaluation_seconds: evaluation_started.elapsed().as_secs_f64(),
         peak_rss_kib: peak_rss_kib(),
@@ -443,6 +501,13 @@ fn peak_rss_kib() -> Option<u64> {
 
 #[cfg(test)]
 mod tests {
+    use std::io::Cursor;
+
+    use kfind_data::{
+        DataFinePos, MecabSourceMorphologyEntry, decode_morphology_resource,
+        encode_morphology_resource, parse_mecab_connection_matrix,
+    };
+
     use super::*;
 
     fn analyzer() -> LexiconQueryAnalyzer {
@@ -490,6 +555,7 @@ mod tests {
             &positive_case("이다", "adjective", "매일 운동한다."),
             &analyzer(),
             ShadowResource::Missing,
+            ShadowResource::Missing,
         )
         .unwrap();
 
@@ -516,9 +582,81 @@ mod tests {
             &positive_case("권한", "noun", "사용자권한"),
             &analyzer(),
             ShadowResource::Missing,
+            ShadowResource::Missing,
         )
         .unwrap_err();
 
         assert!(error.to_string().contains("resource-missing"));
+    }
+
+    #[test]
+    fn nominal_component_shadow_compares_projection_evidence() {
+        let bytes = component_fixture_resource(20);
+        let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
+        let counters = diagnose_verification(
+            &positive_case("권한", "noun", "사용자권한"),
+            &analyzer(),
+            ShadowResource::Loaded(&resource),
+            ShadowResource::Loaded(&resource),
+        )
+        .unwrap();
+
+        assert_eq!(
+            counters.component_projection_comparisons,
+            counters.nominal_component_candidate_hits
+        );
+        assert_eq!(counters.component_projection_mismatches, 0);
+    }
+
+    #[test]
+    fn nominal_component_shadow_rejects_projection_differences() {
+        let full_bytes = component_fixture_resource(20);
+        let compact_bytes = component_fixture_resource(2_000);
+        let full = decode_morphology_resource("full", &full_bytes, &[9; 32]).unwrap();
+        let compact = decode_morphology_resource("compact", &compact_bytes, &[9; 32]).unwrap();
+        let error = diagnose_verification(
+            &positive_case("권한", "noun", "사용자권한"),
+            &analyzer(),
+            ShadowResource::Loaded(&full),
+            ShadowResource::Loaded(&compact),
+        )
+        .unwrap_err();
+
+        assert!(error.to_string().contains("component projection differs"));
+    }
+
+    fn component_fixture_resource(component_cost: i32) -> Vec<u8> {
+        let entries = [
+            source_entry("사용자", -5_000),
+            source_entry("권한", component_cost),
+            source_entry("사용자권한", 5_000),
+        ];
+        let matrix = parse_mecab_connection_matrix(
+            "matrix.def",
+            Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
+        )
+        .unwrap();
+        encode_morphology_resource(
+            [9; 32],
+            &entries,
+            &matrix,
+            b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
+            b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
+        )
+        .unwrap()
+    }
+
+    fn source_entry(surface: &str, word_cost: i32) -> MecabSourceMorphologyEntry {
+        MecabSourceMorphologyEntry {
+            surface: surface.to_owned(),
+            pos: DataFinePos::Nng.as_str().to_owned(),
+            left_id: 1,
+            right_id: 1,
+            word_cost,
+            analysis_type: "*".to_owned(),
+            start_pos: "*".to_owned(),
+            end_pos: "*".to_owned(),
+            expression: "*".to_owned(),
+        }
     }
 }

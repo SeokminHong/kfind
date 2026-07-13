@@ -23,6 +23,14 @@ def shadow_verification_summary(
         name: sum(int(counters[name]) for counters in by_case.values())
         for name in SHADOW_COUNTERS
     }
+    projection_comparisons = sum(
+        int(counters.get("component_projection_comparisons", 0))
+        for counters in by_case.values()
+    )
+    projection_mismatches = sum(
+        int(counters.get("component_projection_mismatches", 0))
+        for counters in by_case.values()
+    )
     statuses: dict[str, int] = defaultdict(int)
     decisions: dict[str, int] = defaultdict(int)
     component_statuses: dict[str, int] = defaultdict(int)
@@ -106,6 +114,10 @@ def shadow_verification_summary(
             component_outcomes_by_class
         ),
         "component_path_classification": path_classification,
+        "component_projection_equivalence": {
+            "comparisons": projection_comparisons,
+            "mismatches": projection_mismatches,
+        },
         "by_case": by_case,
     }
 
@@ -362,7 +374,9 @@ def append_shadow_verification(
         ) or "none"
         lines.append(
             f"- {profile} component: statuses {component_statuses}; "
-            f"decisions {component_decisions}"
+            f"decisions {component_decisions}; projection comparisons "
+            f"{summary['component_projection_equivalence']['comparisons']}; "
+            f"mismatches {summary['component_projection_equivalence']['mismatches']}"
         )
 
 
