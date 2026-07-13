@@ -14,7 +14,7 @@ struct VcpBoundaryFixture {
     gold_vcp: bool,
 }
 
-const VCP_BOUNDARY_FIXTURES: [VcpBoundaryFixture; 6] = [
+const VCP_BOUNDARY_FIXTURES: [VcpBoundaryFixture; 7] = [
     VcpBoundaryFixture {
         case_name: "ud-korean-ksl/dev/KH-B100001-32-1-8",
         text: "매일 양복이 입고 너무 비싼 장소를 돌어간다.",
@@ -43,6 +43,11 @@ const VCP_BOUNDARY_FIXTURES: [VcpBoundaryFixture; 6] = [
     VcpBoundaryFixture {
         case_name: "ud-korean-ksl/dev/KH-B200085-42-2-12",
         text: "하지만, 보고 나니까 우정에 대한 영화인 것을 알게 됐다.",
+        gold_vcp: true,
+    },
+    VcpBoundaryFixture {
+        case_name: "ud-korean-ksl/dev/KH-B100002-32-1-3",
+        text: "고향은 12월부터 3월까지 겨울입니다.",
         gold_vcp: true,
     },
 ];

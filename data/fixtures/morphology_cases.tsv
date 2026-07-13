@@ -285,6 +285,7 @@ query	pos	text	expected	feature
 만들다	verb	저희가 직접 만듭니다.	match	rieul-drop
 만들다	verb	가구를 만들는 공방이다.	no-match	rieul-drop
 이다	copula	그는 학생이다.	match	copula
+이다	copula	고향은 12월부터 3월까지 겨울입니다.	match	copula
 이다	copula	학생이어서 규칙을 지켰다.	match	copula
 이다	copula	학생이어도 참여할 수 있다.	match	copula
 이다	copula	학생인 친구가 도착했다.	match	copula
