@@ -48,6 +48,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
     suffix("는데", &["ending.connective-neunde"]),
     suffix("다고", &["ending.quotative-go"]),
     suffix("던", &["ending.retrospective-adnominal"]),
+    suffix("을", &["ending.future-adnominal"]),
     suffix("다", &["ending.final-da"]),
     suffix("고", &["ending.connective-go"]),
     suffix("어요", &["ending.past-polite-yo"]),
@@ -257,6 +258,19 @@ mod tests {
         )
         .expect("quotative connective");
         assert_eq!(quotative.consumed_bytes, "다고".len());
+
+        let past_adnominal = verify_predicate_continuation(
+            ContinuationState::Past,
+            PredicatePos::Verb,
+            "불렀",
+            "을 때",
+        )
+        .expect("past adnominal");
+        assert_eq!(past_adnominal.token_end, "불렀을".len());
+        assert_eq!(
+            past_adnominal.rule_path[0].as_str(),
+            "ending.future-adnominal"
+        );
 
         let changed = verify_predicate_continuation(
             ContinuationState::AOrEo,

@@ -535,6 +535,7 @@ fn reference_predicate_continuation(
         reference_suffix("는데", &["ending.connective-neunde"]),
         reference_suffix("다고", &["ending.quotative-go"]),
         reference_suffix("던", &["ending.retrospective-adnominal"]),
+        reference_suffix("을", &["ending.future-adnominal"]),
         reference_suffix("다", &["ending.final-da"]),
         reference_suffix("고", &["ending.connective-go"]),
         reference_suffix("어요", &["ending.past-polite-yo"]),

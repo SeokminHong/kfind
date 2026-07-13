@@ -16,7 +16,8 @@ pub use continuation::{PredicateContinuationMatch, verify_predicate_continuation
 
 use alternation::{
     aeo_surfaces, conditional_surface, coordinate_surface, eu_anchor, future_adnominal,
-    honorific_anchor, past_adnominal, polite_declarative, present_adnominal, present_declarative,
+    honorific_anchor, intentive_surface, past_adnominal, polite_declarative, present_adnominal,
+    present_declarative,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -218,6 +219,9 @@ fn compile_productive(
     }
 
     if entry.pos.is_action() {
+        if let Some(intentive) = intentive_surface(entry, stem)? {
+            push_derived(branches, entry, intentive, ContinuationState::Terminal);
+        }
         push_derived(
             branches,
             entry,
