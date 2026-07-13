@@ -60,18 +60,38 @@ RUN scripts/build-full-pos.sh /benchmark/full-pos \
     && cargo build \
     --locked \
     --release \
+    -p kfind-cli \
+    --bin kfind \
+    -p kfind-testkit \
+    --bin generate-corpus \
+    && cargo build \
+    --locked \
+    --release \
     --manifest-path tools/morph-compare/runner/Cargo.toml \
-    && strip tools/morph-compare/runner/target/release/morph-benchmark-runner
+    && strip \
+    target/release/kfind \
+    target/release/generate-corpus \
+    tools/morph-compare/runner/target/release/morph-benchmark-runner
 
 FROM python:${PYTHON_VERSION}-slim-bookworm AS runtime
 COPY --from=runner-builder \
     /src/tools/morph-compare/runner/target/release/morph-benchmark-runner \
     /usr/local/bin/morph-benchmark-runner
+COPY --from=runner-builder /src/target/release/kfind /usr/local/bin/kfind
+COPY --from=runner-builder \
+    /src/target/release/generate-corpus \
+    /usr/local/bin/generate-corpus
 COPY --from=corpus-builder /benchmark /opt/morph-benchmark/data
 COPY --from=corpus-builder /corpora/*LICENSE.txt /opt/morph-benchmark/licenses/
 COPY --from=runner-builder /benchmark/full-pos /opt/morph-benchmark/full-pos
 COPY --from=runner-builder /benchmark/morphology /opt/morph-benchmark/morphology
 COPY --from=runner-builder /benchmark/component /opt/morph-benchmark/component
+COPY --from=runner-builder \
+    /benchmark/full-pos/lexicon.bin \
+    /opt/morph-benchmark/product-data/lexicon.bin
+COPY --from=runner-builder \
+    /benchmark/component/morphology-component-compact.kfc \
+    /opt/morph-benchmark/product-data/morphology-component-compact.kfc
 COPY tools/morph-compare/benchmark.py /opt/morph-benchmark/benchmark.py
 COPY tools/morph-compare/blind_benchmark.py /opt/morph-benchmark/blind_benchmark.py
 COPY tools/morph-compare/unseen_benchmark.py /opt/morph-benchmark/unseen_benchmark.py

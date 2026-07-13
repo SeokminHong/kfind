@@ -34,6 +34,7 @@ from python.validation import (
     validate_untagged_dataset,
     write_cases,
 )
+from python.workflows.performance import measure_product_workflows
 
 
 DEFAULT_CASES = Path("/opt/morph-benchmark/data/cases.jsonl")
@@ -734,6 +735,9 @@ def main() -> int:
                 report["product_workflows"] = product_workflows(
                     report["boundary_comparison"], report["human_untagged"]
                 )
+                report["product_use_cases"] = measure_product_workflows(
+                    runs=1, smoke=True
+                )
                 return write_report(args.output, report)
 
         baseline = evaluate_dataset(cases, args.cases, args.runner, args.runs, True)
@@ -812,6 +816,9 @@ def main() -> int:
         )
         report["product_workflows"] = product_workflows(
             report["boundary_comparison"], report["human_untagged"]
+        )
+        report["product_use_cases"] = measure_product_workflows(
+            runs=args.runs, smoke=False
         )
         return write_report(args.output, report)
     except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:

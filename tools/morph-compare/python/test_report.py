@@ -10,6 +10,7 @@ from report import (
     append_human_untagged,
     append_local_context_summary,
     append_product_workflows,
+    append_product_use_cases,
     classify_component_paths,
     classify_primary_cause,
     kfind_profile_comparison,
@@ -134,6 +135,48 @@ class QualityMetricsTests(unittest.TestCase):
         self.assertEqual(50.0, metrics["hard_negative_precision_percent"])
         self.assertEqual(1, metrics["tn"])
         self.assertEqual(1, metrics["fp"])
+
+
+class ProductUseCaseTests(unittest.TestCase):
+    def test_renders_fresh_process_cli_metrics(self) -> None:
+        performance = {
+            "runs": 3,
+            "wall_seconds": 0.2,
+            "throughput_mib_s": 500.0,
+            "peak_rss_kib": 20480,
+            "run_min": {
+                "wall_seconds": 0.1,
+                "throughput_mib_s": 450.0,
+                "peak_rss_kib": 19000,
+            },
+            "run_max": {
+                "wall_seconds": 0.3,
+                "throughput_mib_s": 550.0,
+                "peak_rss_kib": 21000,
+            },
+        }
+        use_cases = {
+            "profile": "standard",
+            "cache": "warm cache",
+            "corpus": {"bytes": 104857600, "files": 1000, "sha256": "abc"},
+            "workflows": {
+                name: {
+                    "output": output,
+                    "command": f"kfind {name}",
+                    "matching_lines": 1,
+                    "performance": performance,
+                }
+                for name, output in (("agent", "JSON Lines"), ("human", "default text"))
+            },
+        }
+        lines: list[str] = []
+
+        append_product_use_cases(lines, use_cases)
+
+        rendered = "\n".join(lines)
+        self.assertIn("## Product CLI use cases", rendered)
+        self.assertIn("| agent | JSON Lines | 0.2000s [0.1000, 0.3000]", rendered)
+        self.assertIn("20.0 MiB", rendered)
 
 
 class ComponentStartupTests(unittest.TestCase):

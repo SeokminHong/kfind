@@ -355,6 +355,7 @@ def render_markdown(report: dict[str, object]) -> str:
         )
     append_external_baselines(lines, report)
     append_product_workflows(lines, report)
+    append_product_use_cases(lines, report.get("product_use_cases"))
     append_quality_sections(lines, report)
     append_boundary_comparison(lines, report.get("boundary_comparison"))
     append_human_untagged(lines, report.get("human_untagged"))
@@ -412,6 +413,52 @@ def append_product_workflows(lines: list[str], report: dict[str, object]) -> Non
             "- library optional resources: "
             + ", ".join(workflows["library"]["optional"]),
             "- workflows are not combined into one score",
+        ]
+    )
+
+
+def append_product_use_cases(
+    lines: list[str], use_cases: dict[str, object] | None
+) -> None:
+    if use_cases is None:
+        return
+    corpus = use_cases["corpus"]
+    lines.extend(
+        [
+            "",
+            "## Product CLI use cases",
+            "",
+            "Fresh-process CLI measurements include startup, query compilation, filesystem "
+            "walk, scan, verification, and output serialization.",
+            "",
+            f"- profile: {use_cases['profile']}",
+            f"- corpus: {corpus['bytes']} bytes across {corpus['files']} files; "
+            f"SHA-256 `{corpus['sha256']}`",
+            f"- cache: {use_cases['cache']}",
+            "",
+            "| workflow | output | wall | throughput | peak RSS | matching lines |",
+            "| --- | --- | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for name in ("agent", "human"):
+        workflow = use_cases["workflows"][name]
+        performance = workflow["performance"]
+        lines.append(
+            f"| {name} | {workflow['output']} | "
+            f"{performance['wall_seconds']:.4f}s "
+            f"[{performance['run_min']['wall_seconds']:.4f}, "
+            f"{performance['run_max']['wall_seconds']:.4f}] | "
+            f"{performance['throughput_mib_s']:.2f} MiB/s | "
+            f"{format_rss(performance['peak_rss_kib'])} | "
+            f"{workflow['matching_lines']} |"
+        )
+    lines.extend(
+        [
+            "",
+            f"- agent command: `{use_cases['workflows']['agent']['command']}`",
+            f"- human command: `{use_cases['workflows']['human']['command']}`",
+            "- library resource combinations are reported separately under optional "
+            "component startup",
         ]
     )
 
