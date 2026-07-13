@@ -92,6 +92,10 @@ pnpm --dir packages/kfind run pack:check
 kfind [OPTIONS] <QUERY> [PATH]...
 ```
 
+CLI의 기본값은 `--boundary smart`입니다. Compile된 plan에 component 근거가 필요하면 설치된
+component resource를 CLI가 자동으로 찾아 검증하며, 필요 없는 plan은 asset을 로드하지
+않습니다. Rust와 npm 라이브러리는 caller가 bytes를 전달한 경우에만 선택적으로 사용합니다.
+
 쿼리에 품사 태그를 명시할 수 있습니다.
 
 ```sh

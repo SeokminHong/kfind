@@ -251,15 +251,16 @@ fn corrupt_component_resource_fails_before_output() {
 }
 
 #[test]
-fn component_resource_accepts_positive_and_rejects_crossing_substrings() {
+fn default_smart_loads_component_resource_and_rejects_crossing_substrings() {
     let temp = TempDir::new();
     temp.write_bytes(COMPONENT_RESOURCE_FILE, &component_resource());
-
-    let accepted = run(
-        component_args(&temp, "권한"),
-        "사용자권한\n".as_bytes(),
-        false,
+    let accepted_args = component_args(&temp, "권한");
+    assert_eq!(
+        accepted_args.compile_options().unwrap().boundary,
+        kfind_query::BoundaryPolicy::Smart
     );
+
+    let accepted = run(accepted_args, "사용자권한\n".as_bytes(), false);
     assert_eq!(accepted.0, ExitStatus::Match);
     assert_eq!(accepted.1, "사용자권한\n".as_bytes());
 

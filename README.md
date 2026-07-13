@@ -93,6 +93,11 @@ pnpm --dir packages/kfind run pack:check
 kfind [OPTIONS] <QUERY> [PATH]...
 ```
 
+The CLI defaults to `--boundary smart`. When the compiled plan needs component
+evidence, the CLI resolves and validates the installed component resource
+automatically. Plans that do not need it leave the asset unloaded. Rust and npm
+library callers opt in by supplying the bytes themselves.
+
 Queries may use explicit part-of-speech tags:
 
 ```sh
