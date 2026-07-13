@@ -7,7 +7,7 @@
 `target/morph-benchmark-optional-init/report.json`,
 `target/morph-benchmark-boundary/report.json`
 
-## 결정
+## 제품 계약
 
 `smart`는 query가 문자열 token의 바깥 경계에 있을 때뿐 아니라, 검증된 형태 분석의 완전한
 component span과 일치할 때도 검색 결과로 인정한다. 이 증명은 query component의 왼쪽과
@@ -52,12 +52,10 @@ prefix에는 `문학작품`, `고집스러운`, `환경보호`처럼 오른쪽 c
 추가보다 corpus-side component 분석이 recall 상한을 높일 가능성이 크다는 근거다. 제품
 판정은 외부 분석기 출력이 아니라 고정 morphology resource의 source 분석으로 다시 측정한다.
 
-## fixture 변경 방향
+## fixture 계약
 
-현재 `사용자권한 → 권한`을 no-match로 둔 fixture와 hard-negative는 승인된 계약과 충돌한다.
-제품 결과를 바꾸는 구현 단위에서 positive로 전환한다. `대학교 → 학교`는 source component
-근거가 없을 때 거부하는 경계-crossing negative로 유지하고, `역사과목 → 사과` 같은
-component 경계 교차 case를 추가한다.
+`사용자권한 → 권한`은 positive다. `대학교 → 학교`는 source component 근거가 없을 때
+거부하고, `역사과목 → 사과`는 component 경계를 가로지르는 negative로 유지한다.
 
 ## shadow 결과
 
@@ -82,9 +80,7 @@ unknown 3, predicate 경쟁 2개 case로 분류됐다.
 
 고정 source에서 compact lattice projection은 full artifact의 66.32%인 47,859,711 bytes다.
 mmap peak RSS는 49.47 MiB, 초기화는 138.60~139.14 ms이며 exact/common-prefix analysis hit와
-scoring checksum은 full resource와 동일하다. compact projection을 다음 shadow 판정 동등성
-검증 대상으로 선택한다. CLI·API·출력과 resource 실패 정책을 확정한 뒤에만 기본 `smart`
-변경을 검토한다.
+scoring checksum은 full resource와 동일하다. 제품 `smart`는 이 compact projection을 사용한다.
 
 shadow 비교는 동일 candidate의 decision, 비용, node 수와 N-best path provenance 전체를
 대조한다. compact artifact 오류나 불일치는 benchmark를 실패시킨다. 제품은 검증된 compact
@@ -217,7 +213,8 @@ embedded 처리량은 Kiwi의 5.39배이고 peak RSS는 51.0 MiB로 Kiwi 661.5 M
 재현 명령은 `scripts/benchmark-morphology.sh`와
 `pnpm --dir packages/kfind run benchmark:startup`이다.
 
-## 다음 단계
+## 후속 검증
 
-정상 지정사 gold reject 13개는 별도 P3 범위에서 dev 원인을 분류한다. 이후 제품 판정은 결과를
-보기 전에 고정한 unseen source로 검증하며 Korean-GSD 결과에 맞춰 비용이나 threshold를 바꾸지 않는다.
+정상 지정사 gold reject 13개는 별도 지정사 필터링 작업에서 dev 원인을 분류한다. 제품 판정은
+결과를 보기 전에 고정한 unseen source로 검증하며 Korean-GSD 결과에 맞춰 비용이나 threshold를
+바꾸지 않는다.

@@ -16,8 +16,7 @@ The image also builds a separate 1,000-case human-usage fixture. Its queries omi
 POS, and each negative excludes the query lemma under every supported POS.
 The image build also generates and validates the sealed Korean-GSD blind
 local-context fixture. The default benchmark does not load or evaluate it.
-The first evaluation is recorded in the benchmark handoff. Subsequent runs use
-the fixture only as a regression baseline:
+The fixture is evaluated only as a regression baseline:
 
 ```sh
 KFIND_MORPH_BLIND=1 scripts/benchmark-morphology.sh target/morph-blind-report
@@ -50,8 +49,8 @@ python3 tools/morph-compare/render_charts.py \
   --prefix smart-component-
 ```
 
-See the [comparison analysis](../../docs/benchmarks/2026-07-12-morphology-comparison.md)
-and [improvement handoff](../../docs/benchmarks/2026-07-12-morphology-handoff.md).
+See the [current product evidence](../../docs/benchmarks/2026-07-13-smart-component-evidence.md)
+and [improvement handoff](../../docs/benchmarks/morphology-handoff.md).
 
 To run the image directly:
 

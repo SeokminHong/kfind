@@ -4,6 +4,9 @@
 
 WebAssembly로 실행되는 JavaScript용 한국어 표제어·활용형 matcher입니다.
 
+이 패키지는 아직 npm registry에 게시되지 않았습니다. 아래 설치 명령은 첫 registry 릴리스
+이후에 사용할 수 있습니다.
+
 ```sh
 pnpm add kfind
 ```

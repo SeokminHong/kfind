@@ -1,5 +1,10 @@
 # Benchmarks
 
+날짜가 붙은 보고서는 해당 측정의 입력, 환경과 결과를 보존한다. 현재 제품 계약은
+[`specs/kfind.md`](../../specs/kfind.md), 이어갈 작업은
+[형태소 검색 개선 핸드오프](morphology-handoff.md)를 기준으로 한다. 활성 계약 문서는
+완료 이력을 누적하지 않고 현재 기술 계약과 남은 검증만 유지한다.
+
 `scripts/benchmark-1gib.sh`는 고정 seed로 1 GiB mixed corpus를 생성하고 `kfind --literal --quiet --no-ignore`와 `rg -F --quiet --no-ignore`의 warm-cache 전체 scan을 비교한다.
 
 최신 기준 결과는 [2026-07-12 1 GiB 보고서](2026-07-12-1gib-mixed.md)에 기록한다.
@@ -67,9 +72,14 @@ python3 tools/morph-compare/render_charts.py \
   target/morph-benchmark/report.json docs/benchmarks/assets
 ```
 
-- [2026-07-12 비교 분석](2026-07-12-morphology-comparison.md)
-- [후속 개선 핸드오프](2026-07-12-morphology-handoff.md)
-- [선택적 국소 형태 추론 작업 계획](2026-07-12-selective-morphology-plan.md)
+- [2026-07-12 비교 기준선](2026-07-12-morphology-comparison.md)
+- [현재 smart component 품질·성능](2026-07-13-smart-component-evidence.md)
+- [형태소 검색 개선 핸드오프](morphology-handoff.md)
+- [선택적 국소 형태 추론 계약](selective-morphology.md)
+- [형태소 검색 품질 검증 계약](morphology-quality.md)
+- [명사 smart-boundary 계약](nominal-boundary.md)
+- [VCP 지정사 smart-boundary 계약](copula-boundary.md)
+- [지정사 lattice 독립 평가](2026-07-13-copula-blind-evaluation.md)
 - [local lattice 비용 분석](2026-07-12-lattice-cost-analysis.md)
 
 ## Morphology prefix index

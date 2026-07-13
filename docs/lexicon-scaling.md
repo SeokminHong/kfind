@@ -40,7 +40,7 @@ coverage에는 적합하지만 활용 분류를 직접 제공하지 않으므로
 파생 artifact는 소스 코드와 분리하고 저작자 표시·동일조건변경허락 고지를 포함한다. 출전이
 있는 용례와 멀티미디어는 수집하지 않는다.
 
-## 현재 측정
+## 현재 제품 기준선
 
 `mecab-ko-dic 2.1.1-20180720` 산출물은 다음 규모다.
 
@@ -50,9 +50,19 @@ coverage에는 적합하지만 활용 분류를 직접 제공하지 않으므로
 - 둘 이상의 품사를 가진 표제어 16,650개
 - 둘 이상의 용언 품사를 가진 표제어 383개
 
-dev FN을 profile별로 분류하면 embedded의 `lexicon-missing`은 38건이고 full-POS는 0건이다.
-full-POS의 남은 주요 원인은 `boundary-rejected` 97건, `surface-missing` 8건,
-`continuation-rejected` 6건이다. 현재 병목은 전체 표제어 수보다 활용 metadata와 경계다.
+component-aware `smart`를 사용하는 현재 1,000-case test와 dev 결과는 다음과 같다.
+
+| fixture/profile | TP / FP / FN | recall |
+| --- | ---: | ---: |
+| test embedded | 408 / 1 / 92 | 81.6% |
+| test full-POS | 413 / 1 / 87 | 82.6% |
+| dev embedded | 432 / 2 / 68 | 86.4% |
+| dev full-POS | 436 / 2 / 64 | 87.2% |
+
+명시적 품사 test에서 full-POS가 추가로 찾는 5건은 모두 명사다. 품사를 생략한 사람용
+fixture에서는 기대 품사 plan 포함률이 embedded 46.8%, full-POS 96.4%다. full-POS의 주된
+제품 가치는 auto 품사 coverage이며, 남은 명시적 품사 품질은 활용 metadata와 경계 규칙의
+영향이 더 크다.
 
 ## 표제어 위생
 
@@ -108,12 +118,10 @@ report에 남긴다.
 
 ## 우선순위
 
-1. 현재 full POS artifact의 entry·표제어·품사 통계를 고정한다.
-2. benchmark 원인을 embedded/full-POS별로 분리한다.
-3. 생산 가능한 continuation 누락을 사전 추가보다 먼저 수정한다.
-4. 한국어기초사전 snapshot importer를 추가해 MeCab 품사와 표제어 기본형을 교차 검증한다.
-5. 활용형 기반 enriched morphology artifact schema를 설계한다.
-6. 새로운 blind source에서 품질과 hard-negative 정밀도를 확인한다.
+1. 한국어기초사전 snapshot importer로 MeCab 품사와 표제어 기본형을 교차 검증한다.
+2. source별 일치·충돌·단독 표제어와 활용 후보를 재현 가능한 report로 만든다.
+3. 검증된 활용 metadata만 enriched morphology artifact로 승격한다.
+4. 새로운 unseen source에서 auto 품사 coverage와 hard-negative 정밀도를 확인한다.
 
 ## blind 평가 게이트
 
