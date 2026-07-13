@@ -6,3 +6,9 @@
 /packages/kfind/assets/
 /packages/kfind/LICENSE
 /packages/kfind/*.tgz
+/site/node_modules/
+/site/dist/
+/site/public/benchmarks/
+/site/public/wasm/
+/site/.wrangler/
+/.wrangler/
