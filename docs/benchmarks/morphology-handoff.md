@@ -17,13 +17,17 @@
   `--boundary any --embedded --json`을 사용한다.
 - `smart`의 명사 branch는 문자열 token 경계 또는 compact component resource의 완전한 형태
   component 근거가 있어야 한다. component 경계를 가로지르는 substring은 거부한다.
-- CLI는 `NominalComponent` branch가 있는 plan에서 compact component resource를 자동으로
+- CLI는 `NominalComponent` 또는 `PredicateLexical` branch가 있는 plan에서 compact component resource를 자동으로
   해석한다. 필요 resource의 누락·손상·schema 또는 source 불일치는 초기화 오류이며 경계
   판정으로 fallback하지 않는다.
 - Rust/WASM engine은 full POS와 component bytes를 자동으로 찾지 않는다. caller가 생성자나
   load API로 명시하며, resource가 없는 component `smart` compile은 오류다.
-- `이다/아니다` 계열은 homonym union을 유지한다. copula 전용 lattice 분기와 shadow 계측,
-  PUD/GSD 전용 실행 경로는 유지하지 않는다.
+- `smart`의 지정사 strict-subspan match는 token 전체의 exact 분석이 모두 non-predicate일 때
+  해당 predicate branch만 거부한다. token 전체 match, predicate·미해석 분석, 다른 query
+  branch는 유지한다.
+- `smart` 무품사 조사 검색은 입력한 표면형만 사용한다. 이형태 묶음 확장은 명시적 조사 품사
+  입력에서 유지하며 `token`과 `any` 계획은 바꾸지 않는다.
+- copula 전용 lattice 분기와 shadow 계측, PUD/GSD 전용 실행 경로는 복원하지 않는다.
 - 기본 morphology benchmark는 kfind 프로필만 다시 실행한다. Kiwi·Lindera·MeCab-ko·KOMORAN
   품질은 test fixture와 어댑터 schema에 묶인 저장소 스냅샷을 읽고, fixture나 고정한 비교기
   설정이 바뀔 때만 `scripts/refresh-morph-baselines.sh`로 갱신한다.
@@ -39,8 +43,8 @@
 
 | lexicon | boundary | TP / FP / FN | precision | recall | F1 |
 | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| embedded | smart | 408 / 1 / 92 | 99.76% | 81.6% | 89.77% |
-| full-POS | smart | 413 / 1 / 87 | 99.76% | 82.6% | 90.37% |
+| embedded | smart | 408 / 0 / 92 | 100.00% | 81.6% | 89.87% |
+| full-POS | smart | 413 / 0 / 87 | 100.00% | 82.6% | 90.47% |
 | embedded/full-POS | token | 354 / 0 / 146 | 100.00% | 70.8% | 82.90% |
 | embedded/full-POS | any | 479 / 11 / 21 | 97.76% | 95.8% | 96.77% |
 
@@ -48,19 +52,15 @@ full-POS `smart`가 embedded보다 추가로 찾는 5건은 모두 명사다. `t
 lexicon profile의 품질이 같다. 세부 품사, 처리량, latency, RSS와 외부 분석기 비교는
 [smart component 검색 근거](2026-07-13-smart-component-evidence.md)를 기준으로 한다.
 
-품사를 생략하는 사람용 1,000-case fixture에서 full-POS `smart`는 TP 410, FP 1, FN 90,
-precision 99.76%, recall 82.0%, F1 90.01%다. embedded `smart`는 기대 품사를 plan에 포함하는
+품사를 생략하는 사람용 1,000-case fixture에서 full-POS `smart`는 TP 410, FP 0, FN 90,
+precision 100.00%, recall 82.0%, F1 90.11%다. embedded `smart`도 TP 315, FP 0, FN 185다.
+embedded `smart`는 기대 품사를 plan에 포함하는
 비율이 46.8%이므로 사람용 기본 경로를 대신하지 않는다.
 
-explicit-POS test fixture의 품사를 제거한 User persona는 full-POS `smart`에서 TP 410, FP 2,
-FN 90, precision 99.51%, recall 82.0%다. 오탐은 `이다 -> 매일`의 corpus homonym 1건과
-`이`의 조사 이형태 match를 determiner gold로 평가한 query POS ambiguity 1건이다. dev의 5건도
-corpus homonym 1건과 query POS ambiguity 4건으로 나뉜다.
-
-`whole-token-lexical` shadow는 dev의 TP 433 / FP 5 / FN 67을 바꾸지 않는다. test에서는
-`이다 -> 매일` 1건만 제거해 TP 410 / FP 1 / FN 90, precision 99.76%, recall 82.0%가 된다.
-dev 이득이 없으므로 제품 verifier로 승격하지 않는다. `살다 -> 사실`은 compact resource에도
-`VV+EP+ETM` exact 분석이 있어 whole-token 사전 존재만으로 안전하게 제거할 수 없다.
+explicit-POS test fixture의 품사를 제거한 User persona도 full-POS `smart`에서 TP 410, FP 0,
+FN 90, precision 100.00%, recall 82.0%, F1 90.11%다. `이다 -> 매일`은 whole-token lexical
+근거로, determiner query `이 -> 날씨가`는 무품사 조사 이형태 확장을 제한해 제거했다.
+fixture·gold·지표 정의와 `any`의 TP 479 / FP 11 / FN 21은 바꾸지 않았다.
 
 ## 현재 경계
 
@@ -71,15 +71,20 @@ dev 이득이 없으므로 제품 verifier로 승격하지 않는다. `살다 ->
   span은 거부한다.
 - component resource가 필요한 `smart` query의 fail-fast 동작은 호환성 계약이다. optional
   resource가 필요한 caller는 query compile 전에 resource를 준비해야 한다.
+- whole-token 분석은 지정사 strict-subspan보다 우선한다. 향후 문맥 예외는 bounded local
+  분석에서 whole-token을 포함하는 완전 경로가 없고 candidate를 포함하는 split 완전 경로만
+  있을 때만 match를 복구한다. 경로 비용 우열만으로 이 결정을 뒤집지 않는다.
+- `그건 매일 수도 있어`는 `매일/MAG + 수/NNB+도/JX + 있어` 경로가 완전하므로 위 문맥 예외의
+  positive가 아니다. 구현 전에는 전체-token 경로가 실제로 불가능한 최소 대조 fixture를 먼저
+  확보한다.
 
 ## 이어갈 작업
 
-1. User의 query POS ambiguity를 자동 union으로 유지할지, 모호한 query에 품사 선택을 요구할지
-   제품 계약을 정한다. gold POS를 제품 입력에 주입하지 않는다.
-2. corpus homonym은 dev에서 recall을 잃지 않는 새 근거가 생기기 전까지 shadow로만 유지하며
-   copula lattice를 복원하지 않는다.
-3. User 계약을 정한 뒤 Agent precision을 현재 `any` candidate 범위 안에서 개선한다.
-4. `-기` 명사형 뒤 조사 continuation을 독립 규칙과 hard-negative 단위로 다룬다.
+1. 전체-token 경로가 실제로 불가능하고 지정사 split만 가능한 자연 문장 최소 대조 fixture를
+   먼저 확보한다. 이 근거가 없으면 문맥 복구를 구현하지 않는다.
+2. User test precision 100.00%를 고정한 채 Agent precision을 현재 `any` candidate 범위 안에서
+   개선한다. `any` 밖의 span을 만들지 않는다.
+3. `-기` 명사형 뒤 조사 continuation을 독립 규칙과 hard-negative 단위로 다룬다.
 
 ## 재현과 검증
 
