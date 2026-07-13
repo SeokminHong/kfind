@@ -1,7 +1,5 @@
 mod artifact;
-mod component_artifact;
 mod component_benchmark;
-mod component_payload;
 mod dataset;
 mod index;
 mod measure;

@@ -10,12 +10,12 @@ use kfind_data::{
     DecodedMorphologyResource, MecabSourceMorphologyEntry, decode_morphology_resource,
     encode_morphology_resource, extract_mecab_source_morphology, parse_mecab_connection_matrix,
 };
-use serde::Serialize;
-
-use crate::component_artifact::{
+use morph_index_benchmark::component_artifact::{
     CompactComponentAnalysis, CompactComponentResource, decode_compact_component_resource,
     encode_compact_component_resource,
 };
+use serde::Serialize;
+
 use crate::dataset::Workload;
 use crate::storage::{ArtifactBytes, StorageMode, peak_rss_bytes};
 

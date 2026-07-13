@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 use anyhow::{Result, ensure};
 use kfind_data::{MecabConnectionMatrix, MecabSourceMorphologyEntry};
+use kfind_morph::{LocalLatticeAnalysis, LocalLatticeResource};
 use sha2::{Digest, Sha256};
 use yada::DoubleArray;
 use yada::builder::DoubleArrayBuilder;
@@ -74,6 +75,48 @@ impl<'a> CompactComponentResource<'a> {
     }
 
     pub fn unk_def(&self) -> &[u8] {
+        self.unk_def
+    }
+}
+
+impl LocalLatticeResource for CompactComponentResource<'_> {
+    fn common_prefixes<'a>(
+        &'a self,
+        input: &[u8],
+        emit: &mut dyn FnMut(usize, LocalLatticeAnalysis<'a>),
+    ) {
+        self.common_prefixes(input, |length, analyses| {
+            for analysis in analyses {
+                emit(
+                    length,
+                    LocalLatticeAnalysis {
+                        pos: analysis.pos,
+                        left_id: analysis.left_id,
+                        right_id: analysis.right_id,
+                        word_cost: analysis.word_cost,
+                    },
+                );
+            }
+        });
+    }
+
+    fn connection_cost(&self, right_id: u16, left_id: u16) -> Option<i16> {
+        self.connection_cost(right_id, left_id)
+    }
+
+    fn right_contexts(&self) -> u16 {
+        self.stats.right_contexts
+    }
+
+    fn left_contexts(&self) -> u16 {
+        self.stats.left_contexts
+    }
+
+    fn char_def(&self) -> &[u8] {
+        self.char_def
+    }
+
+    fn unk_def(&self) -> &[u8] {
         self.unk_def
     }
 }
@@ -305,7 +348,11 @@ fn sha256(input: &[u8]) -> [u8; 32] {
 mod tests {
     use std::io::Cursor;
 
-    use kfind_data::parse_mecab_connection_matrix;
+    use kfind_data::{
+        DataFinePos, decode_morphology_resource, encode_morphology_resource,
+        parse_mecab_connection_matrix,
+    };
+    use kfind_morph::{DEFAULT_LATTICE_NODE_LIMIT, evaluate_local_component_paths};
 
     use super::*;
 
@@ -358,6 +405,47 @@ mod tests {
                 .to_string()
                 .contains("section digest")
         );
+    }
+
+    #[test]
+    fn compact_resource_is_lattice_equivalent_to_full_resource() {
+        let entries = [
+            entry("가", "NNG", 1, 1, 10),
+            entry("가나", "NNG+JX", 1, 1, 20),
+        ];
+        let matrix = parse_mecab_connection_matrix(
+            "matrix.def",
+            Cursor::new("2 2\n0 0 1\n0 1 2\n1 0 3\n1 1 4\n"),
+        )
+        .unwrap();
+        let char_def = b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n";
+        let unk_def = b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n";
+        let full_bytes =
+            encode_morphology_resource([7; 32], &entries, &matrix, char_def, unk_def).unwrap();
+        let compact_bytes =
+            encode_compact_component_resource([7; 32], &entries, &matrix, char_def, unk_def)
+                .unwrap();
+        let full = decode_morphology_resource("full", &full_bytes, &[7; 32]).unwrap();
+        let compact = decode_compact_component_resource(&compact_bytes, &[7; 32]).unwrap();
+
+        let full_report = evaluate_local_component_paths(
+            &full,
+            "가나",
+            0.."가".len(),
+            DataFinePos::Nng,
+            DEFAULT_LATTICE_NODE_LIMIT,
+        )
+        .unwrap();
+        let compact_report = evaluate_local_component_paths(
+            &compact,
+            "가나",
+            0.."가".len(),
+            DataFinePos::Nng,
+            DEFAULT_LATTICE_NODE_LIMIT,
+        )
+        .unwrap();
+
+        assert_eq!(compact_report, full_report);
     }
 
     fn fixture_resource() -> Vec<u8> {
