@@ -96,11 +96,13 @@ Shadow verification records raw anchor hits, verified branch hits, local-lattice
 candidates, and unique analysis windows per case outside the timed evaluation.
 
 Current performance covers kfind's end-to-end query-to-decision workload and
-reports the median and min/max across measured runs. The explicit-POS comparison
-places the current Agent measurement beside pinned quality and performance
-snapshots for all four external analyzers. The full test report also compares
-smart, token, and any for both kfind lexicon profiles; only smart loads the
-component resource. A
+reports the median and min/max across measured runs. The product-persona
+comparison uses the same explicit-POS fixture and gold for Agent, User, and all
+four external analyzers. Agent and the external adapters keep explicit POS;
+User removes POS from the same query and runs full-POS + smart. It is a
+persona-adjusted product comparison, not an identical-input backend ranking.
+The full test report also compares smart, token, and any for both kfind lexicon
+profiles; only smart loads the component resource. A
 separate startup table compares resource-less embedded and full-POS engines with
 the same engines after explicit component loading.
 Each startup profile runs in a fresh process after one warm-up and records at
@@ -127,6 +129,7 @@ library resource initialization remains a separate cost. The generated
 The generated `product-workflows.svg` places profile precision, recall, F1, and
 false-positive candidates beside actual CLI wall time, throughput, and peak RSS
 while labeling their separate fixture and corpus units.
-The generated `product-external-comparison.svg` compares Agent, Kiwi, Lindera,
-MeCab-ko, and KOMORAN on precision, recall, F1, initialization, throughput, p95,
-and peak RSS for the same explicit-POS task.
+The generated `product-external-comparison.svg` compares Agent, User, Kiwi,
+Lindera, MeCab-ko, and KOMORAN on precision, recall, F1, initialization,
+throughput, p95, and peak RSS. Its row labels contain only persona or backend
+names; the input conditions are documented alongside the chart.

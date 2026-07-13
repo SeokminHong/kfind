@@ -34,6 +34,9 @@
 - 기본 morphology benchmark는 kfind 프로필만 다시 실행한다. Kiwi·Lindera·MeCab-ko·KOMORAN
   품질은 test fixture와 어댑터 schema에 묶인 저장소 스냅샷을 읽고, fixture나 고정한 비교기
   설정이 바뀔 때만 `scripts/refresh-morph-baselines.sh`로 갱신한다.
+- 제품 persona 비교는 같은 explicit-POS fixture와 gold를 사용한다. Agent와 외부 분석기는
+  품사를 명시하고 User는 같은 query의 품사를 제거한 `full-POS + smart`로 실행한다. 이 결과는
+  동일 입력의 backend 순위가 아니라 실제 입력 조건을 반영한 비교다.
 - compact component artifact는 Homebrew의 `share/kfind`와 npm의 별도 정적 asset으로
   배포한다. WASM binary에는 artifact bytes를 포함하지 않는다.
 

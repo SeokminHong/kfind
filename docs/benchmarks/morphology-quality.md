@@ -32,10 +32,16 @@ FP 0을 동시에 유지해야 한다.
 - 제품 profile 차트는 각 workflow의 precision·recall·F1·false-positive 후보 수와 실제 CLI
   wall time·corpus 처리량·peak RSS를 함께 보여 준다. 품질 fixture와 CLI corpus는 측정 단위가
   다르며 하나의 종합 점수로 합치지 않는다.
-- 외부 비교는 explicit-POS fixture에서 Agent `embedded + any`, Kiwi, Lindera, MeCab-ko,
-  KOMORAN의 precision·recall·F1과 fixture 처리 성능을 함께 보여 준다. 외부 성능은 snapshot
-  갱신 시 fresh process 1회 warm-up 뒤 5회 측정하며 기본 benchmark에서는 다시 실행하지 않는다.
-  사람용 무품사 profile은 negative 정의가 달라 외부 순위에 넣지 않는다.
+- 제품 persona 비교는 같은 explicit-POS fixture와 gold에서 Agent, User, Kiwi, Lindera,
+  MeCab-ko, KOMORAN의 precision·recall·F1과 fixture 처리 성능을 함께 보여 준다. Agent와 외부
+  분석기는 품사를 명시하고, User는 같은 query의 품사를 제거해 `full-POS + smart`로 실행한다.
+  차트 label에는 persona와 backend명만 표시하고 품사 입력 조건은 본문에서 설명한다.
+- 이 결과는 동일 입력의 backend 순위가 아니라 실제 persona 입력을 반영한 제품 비교다. User는
+  자동 품사 계획과 모호성 비용을 포함하고, 다른 품사의 lemma match도 explicit-POS gold에서
+  오답으로 계산된다. 별도 사람용 무품사 fixture는 production-like negative를 검증하며 이 비교에
+  섞지 않는다.
+- 외부 성능은 snapshot 갱신 시 fresh process 1회 warm-up 뒤 5회 측정하며 기본 benchmark에서는
+  다시 실행하지 않는다.
 
 ## 데이터 역할
 
