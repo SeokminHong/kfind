@@ -1,8 +1,14 @@
 use std::hint::black_box;
+use std::io::Cursor;
 use std::sync::Arc;
 
 use criterion::{Criterion, Throughput, criterion_group, criterion_main};
+use kfind_data::{
+    COMPONENT_RESOURCE_SOURCE_DIGEST, DataFinePos, MecabSourceMorphologyEntry,
+    decode_component_resource, encode_component_resource, parse_mecab_connection_matrix,
+};
 use kfind_matcher::MorphMatcher;
+use kfind_morph::{DEFAULT_LATTICE_NODE_LIMIT, evaluate_local_component_paths};
 use kfind_query::{CompileOptions, LexiconQueryAnalyzer, Lexicons, compile_query};
 
 const MATCHING_LINE: &str = "길을 걸어 갔다. 권한을 검증했습니다.\n";
@@ -82,6 +88,70 @@ fn matcher_scan(criterion: &mut Criterion) {
     group.finish();
 }
 
+fn local_lattice(criterion: &mut Criterion) {
+    let resource = component_resource();
+    let cases = [
+        ("사용자권한", "사용자".len(), "사용자권한".len()),
+        ("대학교", "대".len(), "대학교".len()),
+        ("공공", 0, "공".len()),
+    ];
+    let decisions = cases.map(|(text, start, end)| {
+        evaluate_local_component_paths(
+            &resource,
+            text,
+            start..end,
+            DataFinePos::Nng,
+            DEFAULT_LATTICE_NODE_LIMIT,
+        )
+        .expect("benchmark lattice must have a complete path")
+        .decision
+    });
+    assert_eq!(
+        decisions,
+        [
+            kfind_morph::LocalLatticeDecision::Accept,
+            kfind_morph::LocalLatticeDecision::Reject,
+            kfind_morph::LocalLatticeDecision::Ambiguous,
+        ]
+    );
+
+    let mut group = criterion.benchmark_group("local_lattice");
+    group.throughput(Throughput::Elements(cases.len() as u64));
+    group.bench_function("component_decision", |bencher| {
+        bencher.iter(|| {
+            for (text, start, end) in cases {
+                let decision = evaluate_local_component_paths(
+                    black_box(&resource),
+                    black_box(text),
+                    start..end,
+                    DataFinePos::Nng,
+                    DEFAULT_LATTICE_NODE_LIMIT,
+                )
+                .expect("benchmark lattice must have a complete path")
+                .decision;
+                black_box(decision);
+            }
+        });
+    });
+    group.bench_function("component_report", |bencher| {
+        bencher.iter(|| {
+            for (text, start, end) in cases {
+                black_box(
+                    evaluate_local_component_paths(
+                        black_box(&resource),
+                        black_box(text),
+                        start..end,
+                        DataFinePos::Nng,
+                        DEFAULT_LATTICE_NODE_LIMIT,
+                    )
+                    .expect("benchmark lattice must have a complete path"),
+                );
+            }
+        });
+    });
+    group.finish();
+}
+
 fn deterministic_corpus(match_every_lines: usize) -> Vec<u8> {
     let mut corpus = String::with_capacity(NON_MATCHING_LINE.len() * CORPUS_LINES);
     for line_index in 0..CORPUS_LINES {
@@ -100,5 +170,47 @@ fn analyzer() -> LexiconQueryAnalyzer {
     LexiconQueryAnalyzer::new(Arc::new(lexicons))
 }
 
-criterion_group!(benches, query_compile, matcher_scan);
+fn component_resource() -> kfind_data::ComponentResource {
+    let entries = [
+        component_entry("사용자", "NNG", -5_000),
+        component_entry("권한", "NNG", -5_000),
+        component_entry("사용자권한", "NNG", 5_000),
+        component_entry("대학교", "NNG", -5_000),
+        component_entry("대", "XPN", 5_000),
+        component_entry("학교", "NNG", 5_000),
+        component_entry("공", "NNG", 0),
+        component_entry("공공", "NNG", 0),
+    ];
+    let matrix = parse_mecab_connection_matrix(
+        "matrix.def",
+        Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
+    )
+    .expect("benchmark matrix must be valid");
+    let bytes = encode_component_resource(
+        COMPONENT_RESOURCE_SOURCE_DIGEST,
+        &entries,
+        &matrix,
+        b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
+        b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
+    )
+    .expect("benchmark component resource must encode");
+    decode_component_resource("benchmark", bytes, &COMPONENT_RESOURCE_SOURCE_DIGEST)
+        .expect("benchmark component resource must decode")
+}
+
+fn component_entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorphologyEntry {
+    MecabSourceMorphologyEntry {
+        surface: surface.to_owned(),
+        pos: pos.to_owned(),
+        left_id: 1,
+        right_id: 1,
+        word_cost,
+        analysis_type: "*".to_owned(),
+        start_pos: "*".to_owned(),
+        end_pos: "*".to_owned(),
+        expression: "*".to_owned(),
+    }
+}
+
+criterion_group!(benches, query_compile, matcher_scan, local_lattice);
 criterion_main!(benches);
