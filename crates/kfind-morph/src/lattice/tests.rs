@@ -79,6 +79,40 @@ fn compound_pos_component_can_satisfy_query() {
 }
 
 #[test]
+fn exact_component_path_accepts_a_matching_node_span() {
+    let bytes = fixture_resource();
+    let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
+    let report = evaluate_local_component_paths(
+        &resource,
+        "매일",
+        "매".len().."매일".len(),
+        DataFinePos::Nng,
+        DEFAULT_LATTICE_NODE_LIMIT,
+    )
+    .unwrap();
+
+    assert_eq!(report.decision, LocalLatticeDecision::Accept);
+    assert!(report.paths.iter().any(|path| path.includes_query));
+}
+
+#[test]
+fn exact_component_path_rejects_a_crossing_substring() {
+    let bytes = fixture_resource();
+    let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
+    let report = evaluate_local_component_paths(
+        &resource,
+        "대학교",
+        "대".len().."대학교".len(),
+        DataFinePos::Nng,
+        DEFAULT_LATTICE_NODE_LIMIT,
+    )
+    .unwrap();
+
+    assert_eq!(report.decision, LocalLatticeDecision::Reject);
+    assert!(report.paths.iter().all(|path| !path.includes_query));
+}
+
+#[test]
 fn numeric_unknown_class_keeps_a_complete_path() {
     let bytes = fixture_resource();
     let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
@@ -102,6 +136,7 @@ fn fixture_resource() -> Vec<u8> {
         entry("일", DataFinePos::Vcp, 1, 1, 1),
         source_entry("인", "NNG", 1, 1, 20),
         source_entry("인", "VCP+ETM", 1, 1, 1),
+        entry("대학교", DataFinePos::Nng, 1, 1, 1),
     ];
     let matrix = parse_mecab_connection_matrix(
         "matrix.def",

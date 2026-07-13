@@ -18,7 +18,7 @@ pub use hangul::{
 };
 pub use lattice::{
     DEFAULT_LATTICE_NODE_LIMIT, LocalLatticeDecision, LocalLatticeError, LocalLatticeNode,
-    LocalLatticePath, LocalLatticeReport, evaluate_local_lattice,
+    LocalLatticePath, LocalLatticeReport, evaluate_local_component_paths, evaluate_local_lattice,
 };
 pub use particle::{
     FinalCondition, ParticleAllomorph, ParticleChainModel, ParticleKind, ParticleMatch,

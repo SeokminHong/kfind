@@ -53,6 +53,41 @@ pub fn evaluate_local_lattice(
     query_pos: DataFinePos,
     node_limit: usize,
 ) -> Result<LocalLatticeReport, LocalLatticeError> {
+    evaluate_local_paths(
+        resource,
+        text,
+        query_span,
+        query_pos,
+        node_limit,
+        QueryConstraint::CoveringPos,
+    )
+}
+
+pub fn evaluate_local_component_paths(
+    resource: &DecodedMorphologyResource<'_>,
+    text: &str,
+    query_span: Range<usize>,
+    query_pos: DataFinePos,
+    node_limit: usize,
+) -> Result<LocalLatticeReport, LocalLatticeError> {
+    evaluate_local_paths(
+        resource,
+        text,
+        query_span,
+        query_pos,
+        node_limit,
+        QueryConstraint::ExactSpan,
+    )
+}
+
+fn evaluate_local_paths(
+    resource: &DecodedMorphologyResource<'_>,
+    text: &str,
+    query_span: Range<usize>,
+    query_pos: DataFinePos,
+    node_limit: usize,
+    constraint: QueryConstraint,
+) -> Result<LocalLatticeReport, LocalLatticeError> {
     if query_span.start >= query_span.end
         || query_span.end > text.len()
         || !text.is_char_boundary(query_span.start)
@@ -61,7 +96,15 @@ pub fn evaluate_local_lattice(
         return Err(LocalLatticeError::InvalidQuerySpan);
     }
     let unknown = UnknownDictionary::parse(resource)?;
-    let nodes = build_nodes(resource, text, &query_span, query_pos, &unknown, node_limit)?;
+    let nodes = build_nodes(
+        resource,
+        text,
+        &query_span,
+        query_pos,
+        constraint,
+        &unknown,
+        node_limit,
+    )?;
     let completed = best_paths(resource, text.len(), &nodes)?;
     let include_cost = completed
         .iter()
@@ -73,15 +116,23 @@ pub fn evaluate_local_lattice(
         .filter(|path| !path.includes_query)
         .map(|path| path.cost)
         .min();
-    let decision = match (include_cost, exclude_cost) {
-        (Some(include), Some(exclude)) => match include.cmp(&exclude) {
+    let decision = match (constraint, include_cost, exclude_cost) {
+        (QueryConstraint::ExactSpan, Some(_), _) => LocalLatticeDecision::Accept,
+        (QueryConstraint::ExactSpan, None, Some(_)) => LocalLatticeDecision::Reject,
+        (QueryConstraint::ExactSpan, None, None) => {
+            return Err(LocalLatticeError::NoCompletePath);
+        }
+        (QueryConstraint::CoveringPos, Some(include), Some(exclude)) => match include.cmp(&exclude)
+        {
             Ordering::Less => LocalLatticeDecision::Accept,
             Ordering::Greater => LocalLatticeDecision::Reject,
             Ordering::Equal => LocalLatticeDecision::Ambiguous,
         },
-        (Some(_), None) => LocalLatticeDecision::Accept,
-        (None, Some(_)) => LocalLatticeDecision::Reject,
-        (None, None) => return Err(LocalLatticeError::NoCompletePath),
+        (QueryConstraint::CoveringPos, Some(_), None) => LocalLatticeDecision::Accept,
+        (QueryConstraint::CoveringPos, None, Some(_)) => LocalLatticeDecision::Reject,
+        (QueryConstraint::CoveringPos, None, None) => {
+            return Err(LocalLatticeError::NoCompletePath);
+        }
     };
     let cost_margin = include_cost
         .zip(exclude_cost)
@@ -125,16 +176,28 @@ struct Node {
     query_match: bool,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum QueryConstraint {
+    CoveringPos,
+    ExactSpan,
+}
+
 impl Node {
     fn dictionary(
         span: Range<usize>,
         analysis: MorphologyAnalysis<'_>,
         query_span: &Range<usize>,
         query_pos: DataFinePos,
+        constraint: QueryConstraint,
     ) -> Self {
-        let query_match = analysis.pos.split('+').any(|pos| pos == query_pos.as_str())
-            && span.start <= query_span.start
-            && span.end >= query_span.end;
+        let matches_pos = analysis.pos.split('+').any(|pos| pos == query_pos.as_str());
+        let query_match = matches_pos
+            && match constraint {
+                QueryConstraint::CoveringPos => {
+                    span.start <= query_span.start && span.end >= query_span.end
+                }
+                QueryConstraint::ExactSpan => span == *query_span,
+            };
         Self {
             span,
             pos: Some(analysis.pos.to_owned()),
@@ -173,6 +236,7 @@ fn build_nodes(
     text: &str,
     query_span: &Range<usize>,
     query_pos: DataFinePos,
+    constraint: QueryConstraint,
     unknown: &UnknownDictionary,
     node_limit: usize,
 ) -> Result<Vec<Node>, LocalLatticeError> {
@@ -182,11 +246,9 @@ fn build_nodes(
         resource.common_prefixes(&text.as_bytes()[start..], |length, analyses| {
             let end = start + length;
             if end <= text.len() && text.is_char_boundary(end) {
-                nodes.extend(
-                    analyses.iter().copied().map(|analysis| {
-                        Node::dictionary(start..end, analysis, query_span, query_pos)
-                    }),
-                );
+                nodes.extend(analyses.iter().copied().map(|analysis| {
+                    Node::dictionary(start..end, analysis, query_span, query_pos, constraint)
+                }));
             }
         });
         let has_dictionary = nodes.len() > before_dictionary;
