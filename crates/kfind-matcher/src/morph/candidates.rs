@@ -37,7 +37,7 @@ impl MorphMatcher {
                 ) else {
                     continue;
                 };
-                let boundary_accepted = self.accepts_branch_boundary(haystack, &candidate, branch);
+                let boundary_accepted = self.accepts_token_boundary(haystack, &candidate, branch);
                 if boundary_accepted
                     != (branch.context_requirement == ContextRequirement::EojeolLattice)
                 {
