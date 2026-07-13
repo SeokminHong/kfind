@@ -1703,6 +1703,11 @@ source 분해가 원문 표면과 맞지 않는 2개를 제외하면 정상 VCP 
 지정사 결과 필터링은 적용하지 않는다. 후속 작업은 Korean-Kaist·KSL dev에서 같은 실패 원인을
 분류하고 별도 unseen source를 고정한 뒤 진행한다.
 
+dev 원인 분류 대상은 local-context positive 중 `EojeolLattice` candidate가 `reject` 또는
+`ambiguous`인 occurrence다. 보고서는 case ID, source·raw tag, 표면형과 분석 window, gold·candidate
+span, include·exclude 최저 비용과 경로, lattice outcome과 primary cause를 보존한다. embedded와
+full-POS를 분리하고 이 진단 비용은 성능 측정에서 제외한다.
+
 ## 20. 성능 사양
 
 ### 20.1 목표

@@ -25,7 +25,8 @@ corpus 단어 denylist와 fixture 전용 branch는 허용하지 않는다. `--bo
 
 ## 후속 작업
 
-1. Korean-Kaist·KSL dev에서 같은 gold reject 원인을 분류한다.
+1. Korean-GSD의 정상 VCP gold reject 13개에서 확인한 lattice 오거부 유형을
+   Korean-Kaist·KSL dev positive 전체에서 분류한다.
 2. 결과 필터링 정책과 resource 오류, 상한 초과, JSON/explain 계약을 스펙에 정의한다.
 3. 별도 unseen source와 fixture를 결과 확인 전에 고정한다.
 4. dev에서 정한 정책을 unseen source로 검증한 뒤 제품 적용 여부를 판단한다.

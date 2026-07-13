@@ -215,6 +215,6 @@ embedded 처리량은 Kiwi의 5.39배이고 peak RSS는 51.0 MiB로 Kiwi 661.5 M
 
 ## 후속 검증
 
-정상 지정사 gold reject 13개는 별도 지정사 필터링 작업에서 dev 원인을 분류한다. 제품 판정은
-결과를 보기 전에 고정한 unseen source로 검증하며 Korean-GSD 결과에 맞춰 비용이나 threshold를
-바꾸지 않는다.
+Korean-GSD의 정상 VCP gold reject 13개에서 확인한 lattice 오거부 유형은 별도 지정사 필터링
+작업에서 Korean-Kaist·KSL dev positive 전체를 대상으로 분류한다. 제품 판정은 결과를 보기 전에
+고정한 unseen source로 검증하며 Korean-GSD 결과에 맞춰 비용이나 threshold를 바꾸지 않는다.

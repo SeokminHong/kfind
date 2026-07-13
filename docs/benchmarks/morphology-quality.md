@@ -46,6 +46,7 @@ embedded와 full-POS 원인을 분리하고, 분류용 추가 compile·검색은
 
 ## 남은 검증
 
-1. 지정사 정상 gold reject 13개의 dev 원인을 분류한다.
+1. Korean-GSD의 정상 VCP gold reject 13개에서 확인한 lattice 오거부 유형을
+   Korean-Kaist·KSL dev positive 전체에서 분류한다.
 2. 지정사 필터링용 unseen source를 고정하고 제품 게이트를 검증한다.
 3. `-기` 명사형 뒤 조사 continuation은 독립 규칙과 hard-negative로 검증한다.
