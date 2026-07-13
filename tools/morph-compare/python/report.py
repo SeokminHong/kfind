@@ -196,7 +196,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 11,
+        "schema_version": 12,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "versions": versions,
@@ -744,3 +744,47 @@ def append_local_context_summary(
                 f"{counts.get('reject', 0)} | {counts.get('ambiguous', 0)} | "
                 f"{other} |"
             )
+
+    lines.extend(
+        [
+            "",
+            "### Gold-aligned copula lattice diagnosis",
+            "",
+            "Only candidates overlapping each positive case's gold span are counted.",
+            "",
+            "| profile | accept | reject | ambiguous | other |",
+            "| --- | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for profile in KFIND_PROFILES:
+        diagnosis = local_context["shadow_verification"][profile][
+            "copula_gold_diagnosis"
+        ]
+        outcomes = diagnosis["gold_candidate_outcomes"]
+        other = sum(
+            count
+            for outcome, count in outcomes.items()
+            if outcome not in {"accept", "reject", "ambiguous"}
+        )
+        lines.append(
+            f"| {profile} | {outcomes.get('accept', 0)} | "
+            f"{outcomes.get('reject', 0)} | {outcomes.get('ambiguous', 0)} | "
+            f"{other} |"
+        )
+
+    lines.extend(
+        [
+            "",
+            "| profile | source/raw tag | primary cause | occurrences |",
+            "| --- | --- | --- | ---: |",
+        ]
+    )
+    for profile in KFIND_PROFILES:
+        grouped = local_context["shadow_verification"][profile][
+            "copula_gold_diagnosis"
+        ]["failures_by_target_group"]
+        for target_group, causes in grouped.items():
+            for cause, count in causes.items():
+                lines.append(
+                    f"| {profile} | {target_group} | {cause} | {count} |"
+                )

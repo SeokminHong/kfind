@@ -439,6 +439,84 @@ class ShadowVerificationTests(unittest.TestCase):
             ],
         )
 
+    def test_diagnoses_only_gold_aligned_copula_candidates(self) -> None:
+        gold_span = {"byte_start": 3, "byte_end": 9}
+        include_path = {
+            "cost": 20,
+            "includes_query": True,
+            "nodes": [
+                {
+                    "original": {"byte_start": 6, "byte_end": 9},
+                    "pos": "VCP+ETM",
+                    "unknown": False,
+                }
+            ],
+        }
+        exclude_path = {
+            "cost": 10,
+            "includes_query": False,
+            "nodes": [
+                {
+                    "original": {"byte_start": 3, "byte_end": 9},
+                    "pos": "NNG",
+                    "unknown": False,
+                }
+            ],
+        }
+        rejected = {
+            "status": "evaluated",
+            "decision": "reject",
+            "target": {"byte_start": 6, "byte_end": 9},
+            "window": {"raw": gold_span, "normalized": "격인"},
+            "include_cost": 20,
+            "exclude_cost": 10,
+            "cost_margin": 10,
+            "paths": [exclude_path, include_path],
+        }
+        unrelated = rejected | {
+            "target": {"byte_start": 12, "byte_end": 15},
+            "window": {
+                "raw": {"byte_start": 12, "byte_end": 18},
+                "normalized": "제일",
+            },
+        }
+        by_case = {
+            "vcp": {
+                "raw_anchor_hits": 2,
+                "verified_branch_hits": 2,
+                "local_lattice_candidate_hits": 2,
+                "unique_analysis_windows": 2,
+                "nominal_component_candidate_hits": 0,
+                "unique_component_windows": 0,
+                "lattice": [rejected, unrelated],
+            }
+        }
+        cases = [
+            {
+                "id": "vcp",
+                "source": "sample",
+                "sent_id": "sentence",
+                "text": "격인 제일",
+                "expected": True,
+                "slice": "gold-copula",
+                "target_group": "sample/vcp",
+                "target_raw_tag": "vcp",
+                "gold_byte_start": 3,
+                "gold_byte_end": 9,
+            }
+        ]
+
+        diagnosis = shadow_verification_summary(by_case, cases)[
+            "copula_gold_diagnosis"
+        ]
+
+        self.assertEqual({"reject": 1}, diagnosis["gold_candidate_outcomes"])
+        self.assertEqual(
+            {"whole-window-competitor": 1}, diagnosis["failures_by_cause"]
+        )
+        self.assertEqual(1, len(diagnosis["failures"]))
+        self.assertEqual("vcp", diagnosis["failures"][0]["target_raw_tag"])
+
     def test_renders_component_case_decisions(self) -> None:
         shadow = {
             profile: {
@@ -493,6 +571,12 @@ class LocalContextSummaryTests(unittest.TestCase):
                     "lattice_outcomes_by_target_group": {
                         "sample/vcp": {"accept": 1, "reject": 2}
                     },
+                    "copula_gold_diagnosis": {
+                        "gold_candidate_outcomes": {"accept": 3, "reject": 1},
+                        "failures_by_target_group": {
+                            "sample/vcp": {"whole-window-competitor": 1}
+                        },
+                    },
                 }
                 for profile in KFIND_PROFILES
             },
@@ -507,6 +591,11 @@ class LocalContextSummaryTests(unittest.TestCase):
         self.assertIn("| kfind-embedded | 2 | 1 | 1 |", rendered)
         self.assertIn("| kfind-embedded | positive | 1 | 1 | 0 | 0 |", rendered)
         self.assertIn("| kfind-embedded | sample/vcp | 1 | 2 | 0 | 0 |", rendered)
+        self.assertIn("| kfind-embedded | 3 | 1 | 0 | 0 |", rendered)
+        self.assertIn(
+            "| kfind-embedded | sample/vcp | whole-window-competitor | 1 |",
+            rendered,
+        )
 
 
 if __name__ == "__main__":
