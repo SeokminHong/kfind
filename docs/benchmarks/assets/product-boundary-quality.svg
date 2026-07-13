@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="680" viewBox="0 0 1280 680" role="img" aria-labelledby="title desc">
+<title id="title">kfind quality by lexicon profile and boundary</title>
+<desc id="desc">Grouped bars compare precision, recall, and F1 across embedded and full-POS profiles using smart, token, and any boundaries.</desc>
+
+<style>
+  .background { fill: #ffffff; }
+  text { fill: #111827; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .muted { fill: #4b5563; }
+  .grid { stroke: #d1d5db; stroke-width: 1; }
+  .axis { stroke: #6b7280; stroke-width: 1; }
+  @media (prefers-color-scheme: dark) {
+    .background { fill: #0d1117; }
+    text { fill: #f3f4f6; }
+    .muted { fill: #9ca3af; }
+    .grid { stroke: #374151; }
+    .axis { stroke: #9ca3af; }
+  }
+</style>
+
+<rect class="background" width="1280" height="680"/>
+<text x="80.0" y="38.0" text-anchor="start">kfind quality by lexicon profile and boundary</text>
+<text x="80.0" y="62.0" text-anchor="start" class="muted">1,000 balanced lemma/POS presence cases · percent</text>
+<line class="grid" x1="80" y1="564.0" x2="1248" y2="564.0"/>
+<text x="70.0" y="569.0" text-anchor="end" class="muted">0</text>
+<line class="grid" x1="80" y1="468.4" x2="1248" y2="468.4"/>
+<text x="70.0" y="473.4" text-anchor="end" class="muted">20</text>
+<line class="grid" x1="80" y1="372.8" x2="1248" y2="372.8"/>
+<text x="70.0" y="377.8" text-anchor="end" class="muted">40</text>
+<line class="grid" x1="80" y1="277.2" x2="1248" y2="277.2"/>
+<text x="70.0" y="282.2" text-anchor="end" class="muted">60</text>
+<line class="grid" x1="80" y1="181.6" x2="1248" y2="181.6"/>
+<text x="70.0" y="186.6" text-anchor="end" class="muted">80</text>
+<line class="grid" x1="80" y1="86.0" x2="1248" y2="86.0"/>
+<text x="70.0" y="91.0" text-anchor="end" class="muted">100</text>
+<rect x="105.7" y="87.1" width="48.0" height="476.9" rx="3" fill="#2563eb"/>
+<text x="129.7" y="79.1" text-anchor="middle">99.76</text>
+<rect x="163.7" y="86.0" width="48.0" height="478.0" rx="3" fill="#d97706"/>
+<text x="187.7" y="78.0" text-anchor="middle">100.00</text>
+<rect x="221.7" y="96.7" width="48.0" height="467.3" rx="3" fill="#4d7c0f"/>
+<text x="245.7" y="88.7" text-anchor="middle">97.76</text>
+<rect x="279.7" y="87.1" width="48.0" height="476.9" rx="3" fill="#60a5fa"/>
+<text x="303.7" y="79.1" text-anchor="middle">99.76</text>
+<rect x="337.7" y="86.0" width="48.0" height="478.0" rx="3" fill="#fbbf24"/>
+<text x="361.7" y="78.0" text-anchor="middle">100.00</text>
+<rect x="395.7" y="96.7" width="48.0" height="467.3" rx="3" fill="#a3e635"/>
+<text x="419.7" y="88.7" text-anchor="middle">97.76</text>
+<text x="274.7" y="592.0" text-anchor="middle">Precision</text>
+<rect x="495.0" y="174.0" width="48.0" height="390.0" rx="3" fill="#2563eb"/>
+<text x="519.0" y="166.0" text-anchor="middle">81.60</text>
+<rect x="553.0" y="225.6" width="48.0" height="338.4" rx="3" fill="#d97706"/>
+<text x="577.0" y="217.6" text-anchor="middle">70.80</text>
+<rect x="611.0" y="106.1" width="48.0" height="457.9" rx="3" fill="#4d7c0f"/>
+<text x="635.0" y="98.1" text-anchor="middle">95.80</text>
+<rect x="669.0" y="169.2" width="48.0" height="394.8" rx="3" fill="#60a5fa"/>
+<text x="693.0" y="161.2" text-anchor="middle">82.60</text>
+<rect x="727.0" y="225.6" width="48.0" height="338.4" rx="3" fill="#fbbf24"/>
+<text x="751.0" y="217.6" text-anchor="middle">70.80</text>
+<rect x="785.0" y="106.1" width="48.0" height="457.9" rx="3" fill="#a3e635"/>
+<text x="809.0" y="98.1" text-anchor="middle">95.80</text>
+<text x="664.0" y="592.0" text-anchor="middle">Recall</text>
+<rect x="884.3" y="134.9" width="48.0" height="429.1" rx="3" fill="#2563eb"/>
+<text x="908.3" y="126.9" text-anchor="middle">89.77</text>
+<rect x="942.3" y="167.7" width="48.0" height="396.3" rx="3" fill="#d97706"/>
+<text x="966.3" y="159.7" text-anchor="middle">82.90</text>
+<rect x="1000.3" y="101.4" width="48.0" height="462.6" rx="3" fill="#4d7c0f"/>
+<text x="1024.3" y="93.4" text-anchor="middle">96.77</text>
+<rect x="1058.3" y="132.0" width="48.0" height="432.0" rx="3" fill="#60a5fa"/>
+<text x="1082.3" y="124.0" text-anchor="middle">90.37</text>
+<rect x="1116.3" y="167.7" width="48.0" height="396.3" rx="3" fill="#fbbf24"/>
+<text x="1140.3" y="159.7" text-anchor="middle">82.90</text>
+<rect x="1174.3" y="101.4" width="48.0" height="462.6" rx="3" fill="#a3e635"/>
+<text x="1198.3" y="93.4" text-anchor="middle">96.77</text>
+<text x="1053.3" y="592.0" text-anchor="middle">F1</text>
+<rect x="80.0" y="617.0" width="16.0" height="16.0" rx="2" fill="#2563eb"/>
+<text x="104.0" y="630.0" text-anchor="start">embedded · smart</text>
+<rect x="440.0" y="617.0" width="16.0" height="16.0" rx="2" fill="#d97706"/>
+<text x="464.0" y="630.0" text-anchor="start">embedded · token</text>
+<rect x="800.0" y="617.0" width="16.0" height="16.0" rx="2" fill="#4d7c0f"/>
+<text x="824.0" y="630.0" text-anchor="start">embedded · any</text>
+<rect x="80.0" y="645.0" width="16.0" height="16.0" rx="2" fill="#60a5fa"/>
+<text x="104.0" y="658.0" text-anchor="start">full-pos · smart</text>
+<rect x="440.0" y="645.0" width="16.0" height="16.0" rx="2" fill="#fbbf24"/>
+<text x="464.0" y="658.0" text-anchor="start">full-pos · token</text>
+<rect x="800.0" y="645.0" width="16.0" height="16.0" rx="2" fill="#a3e635"/>
+<text x="824.0" y="658.0" text-anchor="start">full-pos · any</text>
+</svg>

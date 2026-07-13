@@ -81,6 +81,7 @@ python3 tools/morph-compare/render_charts.py \
 ```
 
 - [2026-07-12 비교 기준선](2026-07-12-morphology-comparison.md)
+- [2026-07-13 제품 workflow 형태소 벤치마크](2026-07-13-product-workflows.md)
 - [현재 smart component 품질·성능](2026-07-13-smart-component-evidence.md)
 - [형태소 검색 개선 핸드오프](morphology-handoff.md)
 - [선택적 국소 형태 추론 계약](selective-morphology.md)
