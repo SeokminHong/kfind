@@ -292,6 +292,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.concessive-deorado"
+category = "connective"
+initial = "other"
+forms = ["더라도"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.connective-ni"
 category = "connective"
 initial = "eu"

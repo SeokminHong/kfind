@@ -156,6 +156,19 @@ fn productive_predicates_cover_reason_connectives() {
 }
 
 #[test]
+fn productive_predicates_cover_concessive_connectives() {
+    for predicate in [
+        entry("먹다", PredicatePos::Verb, LexicalAlternation::Regular),
+        entry("듣다", PredicatePos::Verb, LexicalAlternation::DToL),
+        entry("돕다", PredicatePos::Verb, LexicalAlternation::BToWa),
+        entry("파랗다", PredicatePos::Adjective, LexicalAlternation::DropH),
+    ] {
+        let stem = predicate.lemma.strip_suffix('다').expect("predicate lemma");
+        assert!(surfaces(&predicate).contains(&format!("{stem}더라도")));
+    }
+}
+
+#[test]
 fn productive_predicates_cover_prospective_quotatives() {
     for (predicate, expected) in [
         (

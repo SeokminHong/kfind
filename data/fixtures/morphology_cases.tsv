@@ -450,3 +450,4 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 가다	verb	그가 먼저 가리라고 생각했다.	match	regular
 좋다	adjective	상황이 좋으니는 계속 진행한다.	no-match	regular
 먹다	verb	그가 먹으리라고도 생각했다.	no-match	regular
+죽다	verb	죽더라도 고통은 남는다.	match	predicate-concessive-deorado
