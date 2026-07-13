@@ -132,6 +132,39 @@ def product_workflows(
     }
 
 
+def product_persona_comparison(
+    boundary_comparison: dict[str, object],
+    user_result: dict[str, object],
+    user_plan: dict[str, object],
+    dataset: dict[str, object],
+) -> dict[str, object]:
+    agent = boundary_comparison["profiles"]["embedded"]["any"]
+    return {
+        "task": "persona-adjusted sentence lemma/POS presence",
+        "gold": "explicit lemma/POS with positive gold-span overlap",
+        "dataset": dataset,
+        "rows": {
+            "agent": {
+                "label": "Agent",
+                "input": "explicit POS",
+                "lexicon": "embedded",
+                "boundary": "any",
+                "quality": agent["quality"],
+                "performance": agent["performance"],
+            },
+            "user": {
+                "label": "User",
+                "input": "POS omitted",
+                "lexicon": "full-pos",
+                "boundary": "smart",
+                "quality": user_result["quality"],
+                "performance": user_result["performance"],
+                "plan": user_plan,
+            },
+        },
+    }
+
+
 def kfind_profile_comparison(
     cases: list[dict[str, object]],
     predictions: dict[str, dict[str, bool]],
@@ -470,36 +503,39 @@ def append_external_baselines(lines: list[str], report: dict[str, object]) -> No
     lines.extend(
         [
             "",
-            "## Explicit-POS agent and external comparison",
+            "## Product persona and external comparison",
             "",
-            "The Agent row is measured in the current run. External rows are pinned quality "
-            "and performance snapshots bound to the same 1,000-case explicit-POS fixture. "
-            "Every performance row uses one discarded warm-up and five measured fresh "
-            "processes.",
+            "All rows use the same 1,000-case explicit-POS fixture and gold. Agent keeps "
+            "explicit POS, User omits POS with full-POS + smart, and external analyzers "
+            "keep explicit POS. Agent and User are measured in the current run; external "
+            "rows are pinned snapshots. Every performance row uses one discarded warm-up "
+            "and five measured fresh processes.",
+            "",
+            "This is a persona-adjusted product comparison, not an identical-input backend "
+            "ranking. The User row includes query planning and ambiguity, while the "
+            "explicit-POS gold counts matches for another POS as errors.",
             "",
             "| backend | precision | recall | F1 | init median | cases/s median | "
             "p95 median | peak RSS |",
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
-    workflows = report.get("product_workflows")
+    persona = report.get("product_persona_comparison")
     quality_by_backend = report.get("quality")
     performance_by_backend = snapshot.get("performance")
     if (
-        workflows is not None
+        persona is not None
         and quality_by_backend is not None
         and performance_by_backend is not None
     ):
-        agent = workflows["agent"]
-        append_explicit_pos_row(
-            lines,
-            "Agent embedded + any",
-            agent["quality"],
-            agent["performance"],
-        )
+        for name in ("agent", "user"):
+            row = persona["rows"][name]
+            append_comparison_row(
+                lines, row["label"], row["quality"], row["performance"]
+            )
         for backend, performance in performance_by_backend.items():
             quality = quality_by_backend[backend]["overall"]
-            append_explicit_pos_row(lines, backend, quality, performance)
+            append_comparison_row(lines, backend, quality, performance)
     else:
         lines.append("| unavailable | n/a | n/a | n/a | n/a | n/a | n/a | n/a |")
 
@@ -515,8 +551,8 @@ def append_external_baselines(lines: list[str], report: dict[str, object]) -> No
         )
     lines.extend(
         [
-            "- Human full-POS + smart is reported separately because its untagged "
-            "negative-case definition differs",
+            "- the separate Human untagged section uses production-like negatives and is "
+            "not part of this comparison",
             "",
             "### External snapshot ranges",
             "",
@@ -550,7 +586,7 @@ def append_external_baselines(lines: list[str], report: dict[str, object]) -> No
         )
 
 
-def append_explicit_pos_row(
+def append_comparison_row(
     lines: list[str],
     backend: str,
     quality: dict[str, object],

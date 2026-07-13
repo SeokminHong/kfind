@@ -14,6 +14,7 @@ from report import (
     classify_component_paths,
     classify_primary_cause,
     kfind_profile_comparison,
+    product_persona_comparison,
     product_workflows,
     quality_metrics,
     shadow_verification_summary,
@@ -389,6 +390,28 @@ class ProductWorkflowTests(unittest.TestCase):
         self.assertIn("| human | untagged | full-pos | smart |", rendered)
         self.assertIn("workflows are not combined into one score", rendered)
 
+    def test_builds_persona_comparison_from_same_fixture(self) -> None:
+        agent = {
+            "quality": {"precision_percent": 97.0},
+            "performance": {"cases_per_second": 14000.0},
+        }
+        user = {
+            "quality": {"precision_percent": 99.0},
+            "performance": {"cases_per_second": 7000.0},
+        }
+        comparison = product_persona_comparison(
+            {"profiles": {"embedded": {"any": agent}}},
+            user,
+            {"expected_pos_present_percent": 96.0},
+            {"fixture_sha256": "fixture"},
+        )
+
+        self.assertEqual("explicit POS", comparison["rows"]["agent"]["input"])
+        self.assertEqual("POS omitted", comparison["rows"]["user"]["input"])
+        self.assertIs(agent["quality"], comparison["rows"]["agent"]["quality"])
+        self.assertIs(user["quality"], comparison["rows"]["user"]["quality"])
+        self.assertEqual("fixture", comparison["dataset"]["fixture_sha256"])
+
     def test_renders_external_quality_and_performance_snapshots(self) -> None:
         lines: list[str] = []
         performance = {
@@ -419,8 +442,19 @@ class ProductWorkflowTests(unittest.TestCase):
         append_external_baselines(
             lines,
             {
-                "product_workflows": {
-                    "agent": {"quality": quality, "performance": performance}
+                "product_persona_comparison": {
+                    "rows": {
+                        "agent": {
+                            "label": "Agent",
+                            "quality": quality,
+                            "performance": performance,
+                        },
+                        "user": {
+                            "label": "User",
+                            "quality": quality,
+                            "performance": performance,
+                        },
+                    }
                 },
                 "quality": {"kiwi": {"overall": quality}},
                 "external_baselines": {
@@ -442,8 +476,9 @@ class ProductWorkflowTests(unittest.TestCase):
         )
 
         rendered = "\n".join(lines)
-        self.assertIn("## Explicit-POS agent and external comparison", rendered)
-        self.assertIn("| Agent embedded + any | 100.0% | 80.0% |", rendered)
+        self.assertIn("## Product persona and external comparison", rendered)
+        self.assertIn("| Agent | 100.0% | 80.0% |", rendered)
+        self.assertIn("| User | 100.0% | 80.0% |", rendered)
         self.assertIn("| kiwi | 100.0% | 80.0% |", rendered)
         self.assertIn("| kiwi | available | 5 | 0.2500s", rendered)
         self.assertIn(

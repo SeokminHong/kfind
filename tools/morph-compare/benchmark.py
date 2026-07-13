@@ -19,6 +19,7 @@ from python.external_baselines import load_external_baselines
 from python.report import (
     KFIND_PROFILES,
     build_report,
+    product_persona_comparison,
     quality_metrics,
     product_workflows,
     render_markdown,
@@ -551,6 +552,25 @@ def evaluate_human_untagged(
     }
 
 
+def evaluate_product_persona_comparison(
+    cases: list[dict[str, object]],
+    metadata: dict[str, object],
+    cases_path: Path,
+    runner: Path,
+    runs: int,
+    boundary_comparison: dict[str, object],
+) -> dict[str, object]:
+    user_result, diagnostics = evaluate_untagged_profile_runs(
+        cases, cases_path, runner, "full-pos", "smart", runs
+    )
+    return product_persona_comparison(
+        boundary_comparison,
+        user_result,
+        untagged_plan_metrics(cases, diagnostics),
+        metadata,
+    )
+
+
 def evaluate_dataset(
     cases: list[dict[str, object]],
     cases_path: Path,
@@ -735,6 +755,16 @@ def main() -> int:
                 report["product_workflows"] = product_workflows(
                     report["boundary_comparison"], report["human_untagged"]
                 )
+                report["product_persona_comparison"] = (
+                    evaluate_product_persona_comparison(
+                        smoke_cases,
+                        smoke_metadata(smoke_path, smoke_cases, dev_metadata),
+                        smoke_path,
+                        args.runner,
+                        1,
+                        report["boundary_comparison"],
+                    )
+                )
                 report["product_use_cases"] = measure_product_workflows(
                     runs=1, smoke=True
                 )
@@ -816,6 +846,14 @@ def main() -> int:
         )
         report["product_workflows"] = product_workflows(
             report["boundary_comparison"], report["human_untagged"]
+        )
+        report["product_persona_comparison"] = evaluate_product_persona_comparison(
+            cases,
+            metadata,
+            args.cases,
+            args.runner,
+            args.runs,
+            report["boundary_comparison"],
         )
         report["product_use_cases"] = measure_product_workflows(
             runs=args.runs, smoke=False
