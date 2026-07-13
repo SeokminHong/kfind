@@ -7,8 +7,9 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::sync::Arc;
 
-use kfind_data::{COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, decode_component_resource};
+use kfind_data::{COMPONENT_RESOURCE_SOURCE_DIGEST, decode_component_resource};
 use kfind_matcher::{MorphMatcher, MorphMatcherBuildError};
+use kfind_morph::LocalComponentEvaluator;
 use kfind_query::{LexiconQueryAnalyzer, compile_query};
 
 pub use kfind_data::DataError;
@@ -22,7 +23,7 @@ pub use kfind_query::{
 #[derive(Clone, Debug)]
 pub struct Engine {
     analyzer: LexiconQueryAnalyzer,
-    component_resource: Option<Arc<ComponentResource>>,
+    component_evaluator: Option<Arc<LocalComponentEvaluator>>,
 }
 
 impl Engine {
@@ -62,7 +63,7 @@ impl Engine {
     pub fn from_lexicons(lexicons: Lexicons) -> Self {
         Self {
             analyzer: LexiconQueryAnalyzer::new(Arc::new(lexicons)),
-            component_resource: None,
+            component_evaluator: None,
         }
     }
 
@@ -73,7 +74,7 @@ impl Engine {
     ) -> Result<Self, DataError> {
         Ok(Self {
             analyzer: LexiconQueryAnalyzer::new(Arc::new(lexicons)),
-            component_resource: Some(decode_component(component_resource)?),
+            component_evaluator: Some(decode_component(component_resource)?),
         })
     }
 
@@ -82,8 +83,8 @@ impl Engine {
         &mut self,
         component_resource: impl Into<Vec<u8>>,
     ) -> Result<(), DataError> {
-        let component_resource = decode_component(component_resource)?;
-        self.component_resource = Some(component_resource);
+        let component_evaluator = decode_component(component_resource)?;
+        self.component_evaluator = Some(component_evaluator);
         Ok(())
     }
 
@@ -96,7 +97,7 @@ impl Engine {
     /// Reports whether this engine includes the optional component resource.
     #[must_use]
     pub fn component_resource_loaded(&self) -> bool {
-        self.component_resource.is_some()
+        self.component_evaluator.is_some()
     }
 
     /// Compiles a query into a matcher that can be reused across inputs.
@@ -107,11 +108,11 @@ impl Engine {
     ) -> Result<Matcher, CompileMatcherError> {
         let plan = Arc::new(compile_query(query, options, &self.analyzer)?);
         let matcher = if plan.requires_component_resource() {
-            let resource = self
-                .component_resource
+            let evaluator = self
+                .component_evaluator
                 .as_ref()
                 .ok_or(CompileMatcherError::ComponentResourceRequired)?;
-            MorphMatcher::with_component_resource(plan, Arc::clone(resource))
+            MorphMatcher::with_component_evaluator(plan, Arc::clone(evaluator))
         } else {
             MorphMatcher::new(plan)
         }?;
@@ -195,12 +196,14 @@ impl From<MorphMatcherBuildError> for CompileMatcherError {
 
 fn decode_component(
     component_resource: impl Into<Vec<u8>>,
-) -> Result<Arc<ComponentResource>, DataError> {
+) -> Result<Arc<LocalComponentEvaluator>, DataError> {
     decode_component_resource(
         "component resource",
         component_resource.into(),
         &COMPONENT_RESOURCE_SOURCE_DIGEST,
     )
+    .map(Arc::new)
+    .map(LocalComponentEvaluator::new)
     .map(Arc::new)
 }
 

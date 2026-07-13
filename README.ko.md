@@ -297,21 +297,22 @@ resource 초기화와 literal scan을 하나의 점수로 합치지 않습니다
 
 ### 제품 workflow
 
-최신 smart precision 측정은 Linux/aarch64에서 한 번의 warm-up 뒤 fresh process 5회의
+최신 local lattice 측정은 Linux/aarch64에서 한 번의 warm-up 뒤 fresh process 5회의
 중앙값을 사용했습니다. 품질 fixture는 1,000건이고 CLI workload는 1,000개 파일로 나눈
 고정 100 MiB corpus입니다.
 
 | workflow | 품질(TP / FP / FN) | CLI wall | 처리량 | peak RSS |
 | --- | ---: | ---: | ---: | ---: |
-| Agent: embedded + `any` + explicit POS | 479 / 11 / 21 | 17.3 ms | 5,793.3 MiB/s | 7.2 MiB |
-| Human: full POS + `smart` + untagged | 410 / 0 / 90 | 313.1 ms | 319.3 MiB/s | 91.6 MiB |
+| Agent: embedded + `any` + explicit POS | 479 / 11 / 21 | 16.7 ms | 6,001.0 MiB/s | 7.0 MiB |
+| Human: full POS + `smart` + untagged | 411 / 0 / 89 | 303.6 ms | 329.4 MiB/s | 91.5 MiB |
 
-![제품 workflow별 품질과 CLI 비용](docs/benchmarks/assets/2026-07-14-user-smart-precision-product-workflows.svg)
+![제품 workflow별 품질과 CLI 비용](docs/benchmarks/assets/2026-07-14-local-lattice-optimization-product-workflows.svg)
 
 Agent와 Human 품질 행은 negative query 계약이 서로 다르므로 backend 순위가 아니라 각 제품
-workflow를 설명합니다. Human 행은 2026-07-14 후보 revision `b2d3c93`의 결과이며, 변경되지
+workflow를 설명합니다. Human 행은 2026-07-14 후보 revision `60eff37`의 결과이며, 변경되지
 않은 Agent 품질 계약은 2026-07-13 workflow 보고서에 기록되어 있습니다.
 
+- [2026-07-14 국소 lattice 제품 경로 최적화](docs/benchmarks/2026-07-14-local-lattice-optimization.md)
 - [2026-07-14 smart precision 품질·성능](docs/benchmarks/2026-07-14-user-smart-precision.md)
 - [2026-07-13 제품 workflow 방법론과 외부 snapshot](docs/benchmarks/2026-07-13-product-workflows.md)
 
@@ -324,14 +325,14 @@ Agent와 User는 2026-07-14에 측정했습니다. 외부 행은 fixture, schema
 
 | backend | 입력·버전 | TP / FP / FN | precision | recall | F1 | init | cases/s | p95 | peak RSS |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Agent | embedded + `any`, 품사 명시 | 479 / 11 / 21 | 97.76% | 95.80% | 96.77% | 0.0012초 | 14,879.5 | 0.1553 ms | 5.3 MiB |
-| User | full POS + `smart`, 품사 생략 | 410 / 0 / 90 | 100.00% | 82.00% | 90.11% | 0.4408초 | 7,197.3 | 0.4323 ms | 92.0 MiB |
+| Agent | embedded + `any`, 품사 명시 | 479 / 11 / 21 | 97.76% | 95.80% | 96.77% | 0.0011초 | 15,757.1 | 0.1430 ms | 5.4 MiB |
+| User | full POS + `smart`, 품사 생략 | 411 / 0 / 89 | 100.00% | 82.20% | 90.23% | 0.4282초 | 11,850.6 | 0.2076 ms | 92.0 MiB |
 | Kiwi | snapshot 0.23.2, model 0.23.0, 품사 명시 | 426 / 0 / 74 | 100.00% | 85.20% | 92.01% | 1.7204초 | 1,672.0 | 1.1904 ms | 528.2 MiB |
 | Lindera | snapshot 4.0.0, embedded-ko-dic, 품사 명시 | 393 / 0 / 107 | 100.00% | 78.60% | 88.02% | 0.0301초 | 15,609.1 | 0.1113 ms | 193.1 MiB |
 | MeCab-ko | snapshot 1.0.2, dictionary 1.0.0, 품사 명시 | 403 / 0 / 97 | 100.00% | 80.60% | 89.26% | 0.0003초 | 10,789.7 | 0.1940 ms | 102.8 MiB |
 | KOMORAN | snapshot 3.3.9, FULL, 품사 명시 | 406 / 0 / 94 | 100.00% | 81.20% | 89.62% | 1.1589초 | 1,669.4 | 1.2370 ms | 686.6 MiB |
 
-![제품 persona와 고정 외부 분석기의 품질·성능 비교](docs/benchmarks/assets/2026-07-14-user-smart-precision-product-external-comparison.svg)
+![제품 persona와 고정 외부 분석기의 품질·성능 비교](docs/benchmarks/assets/2026-07-14-local-lattice-optimization-product-external-comparison.svg)
 
 이는 제품 task workload 비교이며 동일 입력의 backend 순위나 순수 tokenizer benchmark가
 아닙니다. 각 backend 고유의 query 준비·분석·matching 비용을 포함하고, User 행에는 자동 품사

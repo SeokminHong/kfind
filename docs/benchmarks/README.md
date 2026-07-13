@@ -56,6 +56,17 @@ pnpm --dir packages/kfind run benchmark:startup
 
 최신 수치는 [User smart precision 품질·성능](2026-07-14-user-smart-precision.md)에 기록한다.
 
+## Local component lattice
+
+제품용 component 판정과 N-best 진단 보고서를 같은 고정 fixture에서 분리해 측정한다.
+
+```console
+cargo bench -p kfind-testkit --bench query_matcher -- local_lattice
+```
+
+최신 비교는 [국소 lattice 제품 경로 최적화](2026-07-14-local-lattice-optimization.md)에
+기록한다.
+
 ## Morphology comparison
 
 독립된 UD Korean-Kaist·KSL test split에서 `kfind` embedded/full-POS를 실행하고
@@ -92,6 +103,7 @@ python3 tools/morph-compare/render_charts.py \
 - [2026-07-14 User smart precision 품질·성능](2026-07-14-user-smart-precision.md)
 - [2026-07-14 Agent precision shadow 판정](2026-07-14-agent-precision-shadow.md)
 - [2026-07-14 `-기` 명사형 조사 continuation 품질·성능](2026-07-14-gi-particle-continuation.md)
+- [2026-07-14 국소 lattice 제품 경로 최적화](2026-07-14-local-lattice-optimization.md)
 - [2026-07-13 smart component 품질·성능](2026-07-13-smart-component-evidence.md)
 - [형태소 검색 개선 핸드오프](morphology-handoff.md)
 - [선택적 국소 형태 추론 계약](selective-morphology.md)

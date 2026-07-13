@@ -75,6 +75,57 @@ fn exact_component_path_rejects_a_crossing_substring() {
     assert!(report.paths.iter().any(|path| !path.includes_query));
 }
 
+#[test]
+fn decision_only_evaluation_matches_diagnostic_costs() {
+    let bytes = fixture_resource();
+    let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
+    let cases = [
+        (
+            "사용자권한",
+            "사용자".len().."사용자권한".len(),
+            LocalLatticeDecision::Accept,
+        ),
+        (
+            "대학교",
+            "대".len().."대학교".len(),
+            LocalLatticeDecision::Reject,
+        ),
+        ("공공", 0.."공".len(), LocalLatticeDecision::Ambiguous),
+    ];
+
+    for (text, query_span, expected) in cases {
+        let decision = evaluate_local_component_decision(
+            &resource,
+            text,
+            query_span.clone(),
+            DataFinePos::Nng,
+            DEFAULT_LATTICE_NODE_LIMIT,
+        )
+        .unwrap();
+        let costs = evaluate_local_costs(
+            &resource,
+            text,
+            query_span.clone(),
+            DataFinePos::Nng,
+            DEFAULT_LATTICE_NODE_LIMIT,
+        )
+        .unwrap();
+        let report = evaluate_local_component_paths(
+            &resource,
+            text,
+            query_span,
+            DataFinePos::Nng,
+            DEFAULT_LATTICE_NODE_LIMIT,
+        )
+        .unwrap();
+
+        assert_eq!(decision, expected);
+        assert_eq!(decision, report.decision);
+        assert_eq!(costs.include, report.include_cost);
+        assert_eq!(costs.exclude, report.exclude_cost);
+    }
+}
+
 fn fixture_resource() -> Vec<u8> {
     let (entries, matrix, char_def, unk_def) = fixture_parts();
     encode_morphology_resource([9; 32], &entries, &matrix, char_def, unk_def).unwrap()
@@ -86,7 +137,7 @@ fn compact_fixture_resource() -> Vec<u8> {
 }
 
 fn fixture_parts() -> (
-    [MecabSourceMorphologyEntry; 12],
+    [MecabSourceMorphologyEntry; 14],
     kfind_data::MecabConnectionMatrix,
     &'static [u8],
     &'static [u8],
@@ -104,6 +155,8 @@ fn fixture_parts() -> (
         entry("사용자", DataFinePos::Nng, 1, 1, -5_000),
         entry("권한", DataFinePos::Nng, 1, 1, -5_000),
         entry("사용자권한", DataFinePos::Nng, 1, 1, 5_000),
+        entry("공", DataFinePos::Nng, 1, 1, 0),
+        entry("공공", DataFinePos::Nng, 1, 1, 0),
     ];
     let matrix = parse_mecab_connection_matrix(
         "matrix.def",
