@@ -25,24 +25,7 @@ RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
         --output /benchmark/human-untagged-cases.jsonl \
         --metadata /benchmark/human-untagged-metadata.json \
         --split test \
-        --query-mode untagged \
-    && python python/local_context_dataset.py \
-        --manifest sources.json \
-        --sources /corpora \
-        --output /benchmark/local-context-cases.jsonl \
-        --metadata /benchmark/local-context-metadata.json \
-    && python python/local_context_dataset.py \
-        --manifest sources.json \
-        --sources /corpora \
-        --config blind_local_context \
-        --output /benchmark/blind-local-context-cases.jsonl \
-        --metadata /benchmark/blind-local-context-metadata.json \
-    && python python/local_context_dataset.py \
-        --manifest sources.json \
-        --sources /corpora \
-        --config unseen_local_context \
-        --output /benchmark/unseen-local-context-cases.jsonl \
-        --metadata /benchmark/unseen-local-context-metadata.json
+        --query-mode untagged
 
 FROM rust:${RUST_VERSION}-bookworm AS runner-builder
 WORKDIR /src
@@ -93,9 +76,6 @@ COPY --from=runner-builder \
     /benchmark/component/morphology-component-compact.kfc \
     /opt/morph-benchmark/product-data/morphology-component-compact.kfc
 COPY tools/morph-compare/benchmark.py /opt/morph-benchmark/benchmark.py
-COPY tools/morph-compare/blind_benchmark.py /opt/morph-benchmark/blind_benchmark.py
-COPY tools/morph-compare/unseen_benchmark.py /opt/morph-benchmark/unseen_benchmark.py
-COPY tools/morph-compare/test_unseen_benchmark.py /opt/morph-benchmark/test_unseen_benchmark.py
 COPY tools/morph-compare/hard-negatives.jsonl /opt/morph-benchmark/hard-negatives.jsonl
 COPY tools/morph-compare/external/baselines.json /opt/morph-benchmark/external-baselines.json
 COPY tools/morph-compare/python /opt/morph-benchmark/python
@@ -103,7 +83,6 @@ COPY tools/morph-compare/sources.json /opt/morph-benchmark/sources.json
 
 WORKDIR /opt/morph-benchmark
 RUN python -m unittest discover --start-directory python --pattern 'test_*.py' \
-    && python -m unittest test_unseen_benchmark.py \
     && useradd --create-home --uid 10001 runner \
     && mkdir /output \
     && chown runner:runner /output

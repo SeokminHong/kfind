@@ -106,7 +106,6 @@ pub struct SurfaceBranch {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ContextRequirement {
     None,
-    EojeolLattice,
     NominalComponent,
 }
 

@@ -8,7 +8,6 @@ from report import (
     append_component_startup,
     append_external_baselines,
     append_human_untagged,
-    append_local_context_summary,
     append_product_workflows,
     append_product_use_cases,
     classify_component_paths,
@@ -492,24 +491,16 @@ class ShadowVerificationTests(unittest.TestCase):
             "none": {
                 "raw_anchor_hits": 0,
                 "verified_branch_hits": 0,
-                "local_lattice_candidate_hits": 0,
-                "unique_analysis_windows": 0,
                 "nominal_component_candidate_hits": 0,
                 "unique_component_windows": 0,
             },
-            "vcp": {
+            "component": {
                 "raw_anchor_hits": 2,
                 "verified_branch_hits": 2,
-                "local_lattice_candidate_hits": 2,
-                "unique_analysis_windows": 1,
                 "nominal_component_candidate_hits": 1,
                 "unique_component_windows": 1,
                 "component_projection_comparisons": 1,
                 "component_projection_mismatches": 0,
-                "lattice": [
-                    {"status": "evaluated", "decision": "accept"},
-                    {"status": "limit-exceeded", "decision": None},
-                ],
                 "component": [
                     {"status": "evaluated", "decision": "accept"},
                 ],
@@ -517,20 +508,13 @@ class ShadowVerificationTests(unittest.TestCase):
         }
         cases = [
             {"id": "none", "expected": False},
-            {"id": "vcp", "expected": True, "target_group": "sample/vcp"},
+            {"id": "component", "expected": True},
         ]
 
         summary = shadow_verification_summary(by_case, cases)
 
         self.assertEqual(2, summary["totals"]["raw_anchor_hits"])
-        self.assertEqual(2, summary["totals"]["local_lattice_candidate_hits"])
-        self.assertEqual(1, summary["cases_with_local_candidates"])
         self.assertEqual(1, summary["cases_with_component_candidates"])
-        self.assertEqual({"accept": 1}, summary["lattice_decisions"])
-        self.assertEqual(
-            {"accept": 1, "limit-exceeded": 1},
-            summary["lattice_outcomes_by_class"]["positive"],
-        )
         self.assertEqual({"accept": 1}, summary["component_decisions"])
         self.assertEqual({"accept": 1}, summary["component_cases_by_decision"])
         self.assertEqual(
@@ -635,84 +619,6 @@ class ShadowVerificationTests(unittest.TestCase):
             ],
         )
 
-    def test_diagnoses_only_gold_aligned_copula_candidates(self) -> None:
-        gold_span = {"byte_start": 3, "byte_end": 9}
-        include_path = {
-            "cost": 20,
-            "includes_query": True,
-            "nodes": [
-                {
-                    "original": {"byte_start": 6, "byte_end": 9},
-                    "pos": "VCP+ETM",
-                    "unknown": False,
-                }
-            ],
-        }
-        exclude_path = {
-            "cost": 10,
-            "includes_query": False,
-            "nodes": [
-                {
-                    "original": {"byte_start": 3, "byte_end": 9},
-                    "pos": "NNG",
-                    "unknown": False,
-                }
-            ],
-        }
-        rejected = {
-            "status": "evaluated",
-            "decision": "reject",
-            "target": {"byte_start": 6, "byte_end": 9},
-            "window": {"raw": gold_span, "normalized": "격인"},
-            "include_cost": 20,
-            "exclude_cost": 10,
-            "cost_margin": 10,
-            "paths": [exclude_path, include_path],
-        }
-        unrelated = rejected | {
-            "target": {"byte_start": 12, "byte_end": 15},
-            "window": {
-                "raw": {"byte_start": 12, "byte_end": 18},
-                "normalized": "제일",
-            },
-        }
-        by_case = {
-            "vcp": {
-                "raw_anchor_hits": 2,
-                "verified_branch_hits": 2,
-                "local_lattice_candidate_hits": 2,
-                "unique_analysis_windows": 2,
-                "nominal_component_candidate_hits": 0,
-                "unique_component_windows": 0,
-                "lattice": [rejected, unrelated],
-            }
-        }
-        cases = [
-            {
-                "id": "vcp",
-                "source": "sample",
-                "sent_id": "sentence",
-                "text": "격인 제일",
-                "expected": True,
-                "slice": "gold-copula",
-                "target_group": "sample/vcp",
-                "target_raw_tag": "vcp",
-                "gold_byte_start": 3,
-                "gold_byte_end": 9,
-            }
-        ]
-
-        diagnosis = shadow_verification_summary(by_case, cases)[
-            "copula_gold_diagnosis"
-        ]
-
-        self.assertEqual({"reject": 1}, diagnosis["gold_candidate_outcomes"])
-        self.assertEqual(
-            {"whole-window-competitor": 1}, diagnosis["failures_by_cause"]
-        )
-        self.assertEqual(1, len(diagnosis["failures"]))
-        self.assertEqual("vcp", diagnosis["failures"][0]["target_raw_tag"])
-
     def test_renders_component_case_decisions(self) -> None:
         shadow = {
             profile: {
@@ -726,72 +632,6 @@ class ShadowVerificationTests(unittest.TestCase):
         append_component_shadow_table(lines, shadow)
 
         self.assertIn("| kfind-embedded | 5 | 3 | 2 |", "\n".join(lines))
-
-
-class LocalContextSummaryTests(unittest.TestCase):
-    def test_renders_confusion_matrix_and_shadow_counts(self) -> None:
-        metrics = {
-            "precision_percent": 75.0,
-            "recall_percent": 60.0,
-            "f1_percent": 66.67,
-            "tp": 3,
-            "fp": 1,
-            "tn": 4,
-            "fn": 2,
-        }
-        local_context = {
-            "dataset": {
-                "fixture_sha256": "fixture",
-                "cases": 10,
-                "positive_cases": 5,
-                "negative_cases": 5,
-            },
-            "quality": {
-                backend: {
-                    "overall": metrics,
-                    "by_target_group": {"sample/vcp": metrics},
-                }
-                for backend in BACKENDS
-            },
-            "shadow_verification": {
-                profile: {
-                    "totals": {
-                        "local_lattice_candidate_hits": 2,
-                        "unique_analysis_windows": 1,
-                    },
-                    "cases_with_local_candidates": 1,
-                    "lattice_outcomes_by_class": {
-                        "positive": {"accept": 1, "reject": 1},
-                        "negative": {"reject": 2},
-                    },
-                    "lattice_outcomes_by_target_group": {
-                        "sample/vcp": {"accept": 1, "reject": 2}
-                    },
-                    "copula_gold_diagnosis": {
-                        "gold_candidate_outcomes": {"accept": 3, "reject": 1},
-                        "failures_by_target_group": {
-                            "sample/vcp": {"whole-window-competitor": 1}
-                        },
-                    },
-                }
-                for profile in KFIND_PROFILES
-            },
-        }
-        lines: list[str] = []
-
-        append_local_context_summary(lines, local_context)
-
-        rendered = "\n".join(lines)
-        self.assertIn("## Copula local-context slice", rendered)
-        self.assertIn("| sample/vcp | kfind-embedded | 75.0% | 60.0%", rendered)
-        self.assertIn("| kfind-embedded | 2 | 1 | 1 |", rendered)
-        self.assertIn("| kfind-embedded | positive | 1 | 1 | 0 | 0 |", rendered)
-        self.assertIn("| kfind-embedded | sample/vcp | 1 | 2 | 0 | 0 |", rendered)
-        self.assertIn("| kfind-embedded | 3 | 1 | 0 | 0 |", rendered)
-        self.assertIn(
-            "| kfind-embedded | sample/vcp | whole-window-competitor | 1 |",
-            rendered,
-        )
 
 
 if __name__ == "__main__":

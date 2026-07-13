@@ -40,12 +40,7 @@ pub(super) fn normalize_and_merge(
             let allow_attached = matches!(draft.verifier, BranchVerifier::DirectParticle { .. });
             let boundary_proof =
                 boundary_proof(boundary, draft.smart_left, one_scalar_atom, allow_attached);
-            let context_requirement = context_requirement(
-                &draft.verifier,
-                boundary,
-                boundary_proof,
-                draft.context_requirement,
-            );
+            let context_requirement = context_requirement(boundary, draft.context_requirement);
             let key = BranchKey {
                 anchor: anchor.as_bytes().into(),
                 verifier: draft.verifier.clone(),
@@ -77,24 +72,11 @@ pub(super) fn normalize_and_merge(
 }
 
 fn context_requirement(
-    verifier: &BranchVerifier,
     policy: BoundaryPolicy,
-    boundary: BoundaryProof,
     requested: ContextRequirement,
 ) -> ContextRequirement {
     if policy == BoundaryPolicy::Smart && requested == ContextRequirement::NominalComponent {
         ContextRequirement::NominalComponent
-    } else if !boundary.require_left
-        && boundary.require_right
-        && matches!(
-            verifier,
-            BranchVerifier::Predicate {
-                pos: kfind_morph::PredicatePos::Copula,
-                ..
-            }
-        )
-    {
-        ContextRequirement::EojeolLattice
     } else {
         ContextRequirement::None
     }

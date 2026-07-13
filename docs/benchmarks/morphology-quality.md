@@ -48,17 +48,11 @@ FP 0을 동시에 유지해야 한다.
 - Korean-Kaist·KSL dev: 규칙, 비용 정책과 threshold 개발
 - Korean-Kaist·KSL test: 고정 회귀 확인
 - revised hard-negative: 경계 정밀도와 신규 FP 확인
-- Korean-GSD 지정사 fixture: 고정 regression baseline
-- UD Korean-PUD r2.18 test: 지정사 필터링 제품 판정용 unseen 검증
 - 외부 분석기 스냅샷: 같은 test fixture에서 Kiwi·Lindera·MeCab-ko·KOMORAN 품질·성능 비교
 
-Kaist·KSL test, Korean-GSD와 PUD 결과에 맞춰 규칙, 비용, threshold와 fixture 선택을 변경하지
-않는다.
+Kaist·KSL test 결과에 맞춰 규칙, 비용, threshold와 fixture 선택을 변경하지 않는다.
 외부 분석기 스냅샷은 test fixture SHA-256과 어댑터 schema에 묶는다. 기본 벤치마크는
 외부 분석기를 실행하지 않으며 fixture나 고정한 도구·어댑터 설정이 바뀔 때만 명시적으로 갱신한다.
-PUD fixture는 양성 436개, 음성 485개, excluded source copula 22개와 expected digest
-`d02cd5e78ebc4d02d626ead6206b3ed1dddc6d4c71d7a19543981699e45ebebd`를 사용한다.
-Kaist·KSL dev/test와 GSD test의 NFC 문장 hash 중복은 0건이다.
 
 ## 실패 분류
 
@@ -77,9 +71,4 @@ embedded와 full-POS 원인을 분리하고, 분류용 추가 compile·검색은
 
 ## 남은 검증
 
-Korean-Kaist·KSL dev의 지정사 gold-aligned lattice candidate는 1,007건이며 accept 957건,
-reject 50건이다. 오거부 원인은
-[지정사 lattice dev gold 진단](2026-07-13-copula-dev-diagnosis.md)을 기준으로 한다.
-
-1. PUD source adapter로 밀봉된 fixture digest를 검증한 뒤 `copula-lattice`를 한 번 평가한다.
-2. `-기` 명사형 뒤 조사 continuation은 독립 규칙과 hard-negative로 검증한다.
+1. `-기` 명사형 뒤 조사 continuation을 독립 규칙과 hard-negative로 검증한다.

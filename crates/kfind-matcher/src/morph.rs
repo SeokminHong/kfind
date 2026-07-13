@@ -42,8 +42,6 @@ pub struct MorphMatcher {
 pub struct VerificationCounters {
     pub raw_anchor_hits: usize,
     pub verified_branch_hits: usize,
-    pub local_lattice_candidate_hits: usize,
-    pub unique_analysis_windows: usize,
     pub nominal_component_candidate_hits: usize,
     pub unique_component_windows: usize,
 }
@@ -155,14 +153,6 @@ impl MorphMatcher {
         matches
     }
 
-    /// Returns every verified atom candidate before phrase and non-overlap selection.
-    ///
-    /// This is intended for diagnostics that simulate contextual origin policies.
-    #[must_use]
-    pub fn diagnostic_atom_candidates(&self, haystack: &[u8]) -> Vec<Vec<VerifiedSpan>> {
-        self.collect_atom_spans(haystack, 0, MatchMetadata::Provenance)
-    }
-
     fn find_all_phrases_with_meta(&self, haystack: &[u8]) -> Vec<PhraseMatch> {
         let text = phrase_join_text(haystack);
         let atom_spans = self.collect_atom_spans(haystack, 0, MatchMetadata::Provenance);
@@ -187,7 +177,6 @@ impl MorphMatcher {
     #[must_use]
     pub fn verification_counters(&self, haystack: &[u8]) -> VerificationCounters {
         let mut counters = VerificationCounters::default();
-        let mut analysis_windows = HashSet::new();
         let mut component_windows = HashSet::new();
         for hit in self.anchor_engine.hits(haystack, 0) {
             counters.raw_anchor_hits += 1;
@@ -211,14 +200,8 @@ impl MorphMatcher {
                     continue;
                 }
                 counters.verified_branch_hits += 1;
-                if branch.context_requirement == ContextRequirement::EojeolLattice {
-                    counters.local_lattice_candidate_hits += 1;
-                    let window = surrounding_token_span(haystack, candidate.token);
-                    analysis_windows.insert((window.start, window.end));
-                }
             }
         }
-        counters.unique_analysis_windows = analysis_windows.len();
         counters.unique_component_windows = component_windows.len();
         counters
     }

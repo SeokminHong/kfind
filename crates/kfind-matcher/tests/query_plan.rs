@@ -246,7 +246,7 @@ fn smart_vcp_corpus_fixtures_preserve_union_results() {
         matcher.plan().atoms[0]
             .branches
             .iter()
-            .all(|branch| { branch.context_requirement == ContextRequirement::EojeolLattice })
+            .all(|branch| branch.context_requirement == ContextRequirement::None)
     );
 
     for fixture in VCP_BOUNDARY_FIXTURES {
@@ -258,36 +258,13 @@ fn smart_vcp_corpus_fixtures_preserve_union_results() {
             fixture.case_name,
             fixture.text
         );
-        let counters = matcher.verification_counters(fixture.text.as_bytes());
-        assert_eq!(counters.local_lattice_candidate_hits, 1);
-        assert_eq!(counters.unique_analysis_windows, 1);
-        let candidates = matcher.local_analysis_candidates(fixture.text.as_bytes());
-        assert!(!candidates.is_empty());
-        let atom_candidates = matcher.diagnostic_atom_candidates(fixture.text.as_bytes());
-        assert_eq!(atom_candidates.len(), 1);
-        for candidate in &candidates {
-            assert!(atom_candidates[0].iter().any(|span| {
-                span.core == candidate.target
-                    && span.origins.iter().any(|origin| {
-                        origin.analysis_index == candidate.analysis_index
-                            && origin.rule_path == candidate.rule_path
-                    })
-            }));
-        }
-        assert!(candidates.iter().all(|candidate| {
-            candidate.fine_pos == kfind_morph::FinePos::Copula
-                && candidate
-                    .window
-                    .as_ref()
-                    .is_ok_and(|window| fixture.text.contains(window.normalized()))
-        }));
     }
 }
 
 #[test]
 fn local_analysis_candidates_preserve_window_limit_errors() {
-    let matcher = compile("이다", CompileOptions::default());
-    let text = format!("{}인", "가".repeat(90));
+    let matcher = compile("권한", CompileOptions::default());
+    let text = format!("{}권한", "가".repeat(90));
     let candidates = matcher.local_analysis_candidates(text.as_bytes());
 
     assert!(!candidates.is_empty());
@@ -320,7 +297,7 @@ fn canonical_vcp_corpus_fixtures_preserve_union_results() {
         matcher.plan().atoms[0]
             .branches
             .iter()
-            .all(|branch| { branch.context_requirement == ContextRequirement::EojeolLattice })
+            .all(|branch| branch.context_requirement == ContextRequirement::None)
     );
 }
 

@@ -187,40 +187,8 @@ def morpheme_candidates(
     return candidates, True
 
 
-def pud_copula_candidates(
-    source: str,
-    sent_id: str,
-    text: str,
-    row: list[str],
-    byte_start: int,
-    byte_end: int,
-    stats: Counter[str],
-) -> tuple[list[GoldCandidate], bool]:
-    if (row[3], row[4], row[7]) != ("AUX", "VC", "cop"):
-        return [], True
-    stats["source_copula_tokens"] += 1
-    if row[2] == "_":
-        stats["source_copula_missing_lemma"] += 1
-    return [
-        GoldCandidate(
-            source=source,
-            sent_id=sent_id,
-            text=text,
-            token_id=row[0],
-            morph_index=0,
-            query="이다",
-            pos="adjective",
-            byte_start=byte_start,
-            byte_end=byte_end,
-            raw_lemma=row[2],
-            raw_tag=row[4],
-        )
-    ], True
-
-
 SOURCE_ROW_ADAPTERS = {
     "morpheme": morpheme_candidates,
-    "pud-copula": pud_copula_candidates,
 }
 
 

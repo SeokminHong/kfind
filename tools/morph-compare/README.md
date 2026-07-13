@@ -15,20 +15,6 @@ deterministic negative from the same source, producing 1,000 cases. Development
 uses the development fixture; the test fixture remains the regression baseline.
 The image also builds a separate 1,000-case human-usage fixture. Its queries omit
 POS, and each negative excludes the query lemma under every supported POS.
-The image build also generates and validates the sealed Korean-GSD blind and
-Korean-PUD unseen local-context fixtures. The default benchmark loads neither.
-The GSD fixture is evaluated only as a regression baseline:
-
-```sh
-KFIND_MORPH_BLIND=1 scripts/benchmark-morphology.sh target/morph-blind-report
-```
-
-The PUD entrypoint projects the `copula-lattice` candidate policy into report
-schema 13 without changing product search behavior:
-
-```sh
-KFIND_MORPH_UNSEEN=1 scripts/benchmark-morphology.sh target/morph-unseen-report
-```
 
 ```sh
 scripts/benchmark-morphology.sh

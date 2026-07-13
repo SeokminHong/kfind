@@ -2,7 +2,7 @@ use kfind_data::DataFinePos;
 use kfind_matcher::{AnalysisWindowError, LocalAnalysisCandidate, VerificationCounters};
 use kfind_morph::{
     DEFAULT_LATTICE_NODE_LIMIT, FinePos, LocalLatticeDecision, LocalLatticeReport,
-    LocalLatticeResource, evaluate_local_component_paths, evaluate_local_lattice,
+    LocalLatticeResource, evaluate_local_component_paths,
 };
 use serde::Serialize;
 
@@ -12,15 +12,11 @@ use super::Span;
 pub(super) struct ShadowVerificationCounters {
     pub(super) raw_anchor_hits: usize,
     pub(super) verified_branch_hits: usize,
-    pub(super) local_lattice_candidate_hits: usize,
-    pub(super) unique_analysis_windows: usize,
     pub(super) nominal_component_candidate_hits: usize,
     pub(super) unique_component_windows: usize,
     pub(super) component_projection_comparisons: usize,
     pub(super) component_projection_mismatches: usize,
-    pub(super) local_branches: Vec<ShadowBranchEvidence>,
     component_branches: Vec<ShadowBranchEvidence>,
-    pub(super) lattice: Vec<ShadowLatticeEvidence>,
     component: Vec<ShadowLatticeEvidence>,
 }
 
@@ -83,24 +79,18 @@ pub(super) enum ShadowResource<'a> {
 impl ShadowVerificationCounters {
     pub(super) fn new(
         counters: VerificationCounters,
-        local_branches: Vec<ShadowBranchEvidence>,
         component_branches: Vec<ShadowBranchEvidence>,
-        lattice: Vec<ShadowLatticeEvidence>,
         component: Vec<ShadowLatticeEvidence>,
         component_projection_comparisons: usize,
     ) -> Self {
         Self {
             raw_anchor_hits: counters.raw_anchor_hits,
             verified_branch_hits: counters.verified_branch_hits,
-            local_lattice_candidate_hits: counters.local_lattice_candidate_hits,
-            unique_analysis_windows: counters.unique_analysis_windows,
             nominal_component_candidate_hits: counters.nominal_component_candidate_hits,
             unique_component_windows: counters.unique_component_windows,
             component_projection_comparisons,
             component_projection_mismatches: 0,
-            local_branches,
             component_branches,
-            lattice,
             component,
         }
     }
@@ -117,30 +107,16 @@ impl ShadowResource<'_> {
     }
 }
 
-pub(super) fn diagnose_lattice_candidate(
-    candidate: &LocalAnalysisCandidate,
-    resource: ShadowResource<'_>,
-) -> ShadowLatticeEvidence {
-    diagnose_candidate(candidate, resource, ShadowEvaluation::Lattice)
-}
-
 pub(super) fn diagnose_component_candidate(
     candidate: &LocalAnalysisCandidate,
     resource: ShadowResource<'_>,
 ) -> ShadowLatticeEvidence {
-    diagnose_candidate(candidate, resource, ShadowEvaluation::Component)
-}
-
-#[derive(Clone, Copy)]
-enum ShadowEvaluation {
-    Lattice,
-    Component,
+    diagnose_candidate(candidate, resource)
 }
 
 fn diagnose_candidate(
     candidate: &LocalAnalysisCandidate,
     resource: ShadowResource<'_>,
-    evaluation: ShadowEvaluation,
 ) -> ShadowLatticeEvidence {
     let base = |status, error| ShadowLatticeEvidence {
         status,
@@ -197,22 +173,13 @@ fn diagnose_candidate(
             Some("query span does not map to stable NFC boundaries".to_owned()),
         );
     };
-    let report = match evaluation {
-        ShadowEvaluation::Lattice => evaluate_local_lattice(
-            resource,
-            window.normalized(),
-            query_span,
-            query_pos,
-            DEFAULT_LATTICE_NODE_LIMIT,
-        ),
-        ShadowEvaluation::Component => evaluate_local_component_paths(
-            resource,
-            window.normalized(),
-            query_span,
-            query_pos,
-            DEFAULT_LATTICE_NODE_LIMIT,
-        ),
-    };
+    let report = evaluate_local_component_paths(
+        resource,
+        window.normalized(),
+        query_span,
+        query_pos,
+        DEFAULT_LATTICE_NODE_LIMIT,
+    );
     match report {
         Ok(report) => lattice_evidence(base("evaluated", None), window, report),
         Err(error @ kfind_morph::LocalLatticeError::NodeLimit { .. }) => {

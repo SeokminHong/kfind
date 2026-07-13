@@ -148,13 +148,10 @@
 
 ### 0.6 선택적 국소 형태 추론
 
-- 문자열의 좌우 경계를 판정하는 `boundary`와 가능한 형태 분석을 선택하는
-  `disambiguation`은 별도 정책 축이다.
-- query branch의 context requirement는 `None`, `EojeolLattice`, `NominalComponent`다.
-  앞 host에 붙는 VCP 지정사 branch는 `EojeolLattice`, token 경계에서 거부될 수 있는 명사
-  branch는 `NominalComponent`를 사용한다.
-- 현재 지정사 검색은 생성 가능한 분석을 모두 인정하는 homonym union이다.
-  `EojeolLattice`는 benchmark shadow 계측에만 사용한다.
+- query branch의 context requirement는 `None`, `NominalComponent`다. token 경계에서 거부될 수
+  있는 명사 branch만 `NominalComponent`를 사용한다.
+- `이다/아니다` 계열 검색은 생성 가능한 분석을 모두 인정하는 homonym union이다. corpus-side
+  lattice 비용으로 후보를 필터링하지 않는다.
 - `NominalComponent`는 `smart`에서만 동작한다. 기존 경계 검증이 거부한 명사 candidate를
   compact component resource로 평가하고 `accept`만 match로 복구한다. `reject`, `ambiguous`,
   평가 오류와 상한 초과는 거부한다.
@@ -187,35 +184,8 @@
 - benchmark는 compact resource와 full morphology resource의 exact/common-prefix hit, scoring
   checksum과 candidate별 판정·비용·node·경로 provenance가 일치하는지 검증한다. 불일치나
   resource 오류는 fallback하지 않고 실행을 실패시킨다.
-- benchmark shadow 진단은 raw anchor hit, verifier 통과 branch hit, `EojeolLattice` 대상 hit,
-  서로 다른 분석 어절과 최대 4개의 최저 비용 경로를 성능 측정 구간 밖에서 기록한다.
 - `학생일`, `책일`은 사전 표제어가 아니라 각각 체언 host와 VCP 관형형 표면 `일`의 결합을
   검증하는 어절 fixture다.
-- 지정사 필터링 후보는 `disambiguation` 축의 `copula-lattice`다. 기본값은
-  `union`이며 `copula-lattice`는 `smart` VCP branch의 `EojeolLattice`에만 적용한다.
-- `copula-lattice`는 include 최저 비용이 더 낮은 `accept`는 유지하고 exclude 최저
-  비용이 더 낮은 `reject`만 해당 contextual origin에서 제거한다. 동률인
-  `ambiguous`와 window·NFC·node 상한 초과, 안정 offset 변환 불가 및 평가 오류인
-  `unresolved`는 유지한다. 단일 threshold는 추가하지 않는다.
-- 하나의 span에 문맥 판정이 필요 없는 origin이 남아 있으면 contextual origin이
-  `reject`여도 span은 유지한다. phrase 결합은 origin 필터링 후의 span으로 수행한다.
-- `copula-lattice` plan에 `EojeolLattice` branch가 있으면 기존
-  `morphology-component-compact.kfc`를 필수 resource로 사용한다. 누락·손상·schema
-  또는 source mismatch는 초기화 오류이며 `union` 혹은 대상 branch가 없는 plan은
-  resource를 찾거나 읽지 않는다.
-- `--explain-query`는 `disambiguation`, compact resource 상태와 raw 256 bytes, NFC 64 scalar,
-  lattice 4,096 node 상한을 출력한다. resource 상태는 `loaded`, `not-required-union`,
-  `not-required-no-lattice-branch` 중 하나다. 초기화 오류에서는 explain이나 match 출력을
-  생성하지 않는다. `--explain-match`와 CLI JSON의
-  `origins[].disambiguation`은 반환된 contextual origin에 `policy`, `outcome`, `include_cost`,
-  `exclude_cost`, `cost_margin`을 제공한다. `unresolved` reason은 `window-limit`, `node-limit`,
-  `invalid-utf8`, `unstable-offset`, `evaluation-error` 중 하나이며 상한 오류에는 `actual`과
-  `limit`를 추가한다. `union`과 문맥 판정이 필요 없는 origin은 이 object를 생략한다. 거부된
-  candidate 경로는 benchmark 보고서에만 보존한다.
-- Rust는 `DisambiguationPolicy::{Union, CopulaLattice}`, CLI는
-  `--disambiguation union|copula-lattice`, WASM은 `disambiguation: "union" | "copula-lattice"`를
-  같은 compile option으로 사용한다. 19.9절의 unseen gate를 통과하기 전에는 이
-  정책을 공개 CLI·library·WASM 옵션으로 노출하지 않는다.
 
 ### 0.7 Rust 라이브러리와 WASM 대상
 
@@ -723,7 +693,6 @@ pub struct SurfaceBranch {
 
 pub enum ContextRequirement {
     None,
-    EojeolLattice,
     NominalComponent,
 }
 
@@ -1140,8 +1109,6 @@ anchor hit
 ```
 
 후보 없는 buffer 구간에는 줄별 matcher 호출, Unicode scalar 순회, 형태 규칙 실행을 하지 않는다.
-`EojeolLattice` shadow 진단은 위 검증이 끝난 후보의 계측만 추가하며 검색 결과를 거부하지
-않는다.
 
 ### 12.4 phrase 결합
 
@@ -1706,141 +1673,6 @@ deterministic하게 추출하고, 수동 벤치마크는 dev·test·hard-negativ
 구현 전에 source·fixture를 고정하고 기존 corpus와 문장 hash 중복이 없는 unseen 평가에서도
 같은 기준을 통과해야 한다. 기본 `smart`를 변경하는 구현은 기존 hard-negative에 새 FP를
 추가하지 않아야 하며, 이 조건을 만족하지 못하면 별도 boundary policy로 분리한다.
-
-### 19.8 지정사 lattice 독립 평가
-
-지정사 `EojeolLattice` 판별력은 Korean-Kaist·KSL과 별개인 UD Korean-GSD의 고정 test
-split에서 검증한다.
-
-| 항목 | 값 |
-| --- | --- |
-| source | UD Korean-GSD r2.18 (`02c343e4e1e3180069f637e68a791ec6b96dd33a`) test split |
-| data URL | `https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-GSD/r2.18/ko_gsd-ud-test.conllu` |
-| data SHA-256 | `3d1df99bda4800235e14bcfd915baf706eafa1a3935a75ffd32420a51e57f5aa` |
-| license | CC BY-SA 4.0 |
-| license URL | `https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-GSD/r2.18/LICENSE.txt` |
-| license SHA-256 | `899b1804a12ebc090b96339614eede1b64b686721b650a71430b55b5235f7f79` |
-| seed | `kfind-vcp-vcn-blind-v1` |
-| fixture SHA-256 | `4be12e060c4bc3faf35b78bb3c9189cafb49e7c885108383c0dd1fb5aeb1b188` |
-
-fixture는 dev 지정사 판별 slice와 같은 정규화와 case schema를 사용한다. 양성은 gold
-`VCP=이`, `VCN=아니` 분석을 occurrence별로 전수 보존한다. 음성은 완전히 정렬된 문장 중
-각 분석에 고정된 surface cue가 있지만 같은 표제어·품사 gold가 없는 문장을 전수 보존한다.
-도구 출력, query anchor와 비용은 선택에 사용하지 않는다. quota sampling은 하지 않는다.
-
-| raw tag | positive | negative |
-| --- | ---: | ---: |
-| VCP | 311 | 460 |
-| VCN | 10 | 0 |
-| 합계 | 321 | 460 |
-
-case는 UTF-8 JSON Lines로 기록하고 object key를 사전순으로 직렬화한다. 각 줄은 LF로 끝난다.
-순서는 `SHA-256(seed + NUL + "blind-context-order" + NUL + case_id)` byte 순이다. source
-hash, 위 그룹별 case 수, 전체 781개와 fixture hash가 다르면 생성을 실패시킨다.
-
-중복 검사는 Korean-GSD test와 manifest에 고정된 Korean-Kaist·KSL dev/test의 모든
-`# text`를 NFC로 정규화한 UTF-8 SHA-256 집합으로 수행한다. 교집합은 0개여야 하며 하나라도
-있으면 해당 문장을 조용히 제외하지 않고 생성을 실패시킨다.
-
-fixture 생성 단계는 source·parsing 통계, case 수와 digest만 노출한다. 이 fixture는 regression
-baseline으로만 사용한다. 비용·threshold·fixture 가중치를 변경한 구현은 19.9절의 PUD
-fixture에서 검증해야 하며, 이 report만으로 union 검색 결과나 기본 정책을 변경하지 않는다.
-
-`tools/morph-compare/sources.json` schema 3은 전체 source 목록과 기본 품질 benchmark에 참여하는
-source 이름을 분리한다. Korean-GSD를 추가해도 기존 Kaist·KSL dev/test 1,000-case fixture의
-구성·digest는 바뀌지 않아야 한다. 지정사 생성기는 config 이름을 받아 dev와 blind fixture에
-같은 선택·직렬화 검증을 적용한다. blind config는 비교할 기존 source·split과 예상 fixture
-digest를 함께 선언하며 중복이나 digest 불일치를 생성 오류로 처리한다.
-
-Docker corpus build는 blind fixture와 metadata를 `/opt/morph-benchmark/data`에 포함하되 기본
-`benchmark.py`에는 입력하지 않는다.
-
-평가는 `KFIND_MORPH_BLIND=1 scripts/benchmark-morphology.sh
-target/morph-blind-report`로 실행한다. 전용 entrypoint는 blind metadata의 split·case 수·
-fixture digest를 다시 검증하고 각 backend를 warm-up 없이 한 번 평가한다. JSON은 case별
-prediction, span, lattice 비용·경로를 보존하고 Markdown은 품질과 shadow 판정을 요약한다.
-기본 benchmark 명령은 blind fixture를 읽지 않는다.
-
-현재 baseline은 문장 안의 모든 gold occurrence를 합쳐 중복 제거한 gold target 142개 중
-127개를 수용하고 non-gold target 101개 중 97개를 거절한다. 세부 측정값은
-[`2026-07-13 지정사 lattice blind 평가`](../docs/benchmarks/2026-07-13-copula-blind-evaluation.md)에
-둔다.
-
-source 분해가 원문 표면과 맞지 않는 2개를 제외하면 정상 VCP gold reject가 13개 남아 있다.
-Korean-Kaist·KSL dev local-context positive에서 gold span과 겹치는 `EojeolLattice` candidate는
-1,007건이며 accept 957건, reject 50건, ambiguous 0건이다. reject의 primary cause는 segmented
-nominal competitor 33건, whole-window competitor 13건, segmented other 3건, segmented predicate
-1건이다. embedded와 full-POS 결과는 같다.
-
-보고서는 case ID, source·raw tag, 표면형과 분석 window, gold·candidate span, include·exclude 최저
-비용과 경로, lattice outcome과 primary cause를 보존한다. 이 진단 비용은 성능 측정에서 제외한다.
-지정사 결과 필터링은 적용하지 않으며 19.9절의 PUD fixture로 제품 후보 정책을 검증한다.
-
-### 19.9 지정사 제품 판정용 unseen 평가
-
-`copula-lattice` 후보는 UD Korean-PUD의 고정 test split으로 최종 검증한다.
-
-| 항목 | 값 |
-| --- | --- |
-| source | UD Korean-PUD r2.18 (`e942f9c5e9351f37bcb8f202bb9df70f78c60d35`) test split |
-| data URL | `https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-PUD/r2.18/ko_pud-ud-test.conllu` |
-| data SHA-256 | `55f9c8d465400e070664c5319091d31ce35a16ec220b0bebc5e3c9b12f530948` |
-| license | CC BY-SA 3.0 |
-| license URL | `https://raw.githubusercontent.com/UniversalDependencies/UD_Korean-PUD/r2.18/LICENSE.txt` |
-| license SHA-256 | `b278eb53fe50b8bb7fa0d90fb8536c35fdcaa80f9d63812cb51db539555d2a89` |
-| seed | `kfind-vcp-pud-unseen-v1` |
-| sort scope | `unseen-context-order` |
-| expected fixture SHA-256 | `d02cd5e78ebc4d02d626ead6206b3ed1dddc6d4c71d7a19543981699e45ebebd` |
-
-양성은 `UPOS=AUX`, `XPOS=VC`, `DEPREL=cop`, `LEMMA=이`를 모두 만족하는 436개
-occurrence다. PUD adapter는 이 표식을 raw tag `VC`, raw lemma `이`, query `이다`,
-POS `adjective`, `morph_index=0`으로 직렬화한다. 같은 source copula 표식이지만 lemma가
-`_`인 22개는 gold와 음성에서 모두 제외하고 metadata의 excluded count로 고정한다.
-`sources.json`의 PUD source만 `pud-copula` adapter를 선언한다. 이 adapter는 위 세 구조
-표식을 모두 만족하는 token만 지정사 candidate로 투영하고 lemma `_`도 제외 집계를 위해
-보존한다. 기존 Korean-Kaist·KSL·GSD parser와 기본 benchmark source 선택은 바꾸지 않는다.
-gold span은 token 정렬기가 반환한 UTF-8 byte offset을 그대로 기록하며 문자 offset으로 다시
-변환하지 않는다.
-
-음성은 토큰이 `# text`와 완전히 정렬되고 `이`, `인`, `일`, `이어`, `여`, `였` 중
-하나가 있으며, lemma와 관계없이 `UPOS=AUX`, `XPOS=VC`, `DEPREL=cop`인 token이 없는
-문장 485개를 전수 보존한다. 따라서 fixture는 양성 436개, 음성 485개, 합계
-921개다. case schema·JSON 직렬화는 19.8절과 같고 정렬만 위 seed와 scope를 사용한다.
-
-PUD test 1,000문장의 NFC `# text` SHA-256 집합은 Korean-Kaist·KSL dev/test와
-Korean-GSD test의 고정 source 전체와 교집합이 0개여야 한다. fixture 생성 단계는
-source·parsing 통계, 그룹별 case 수, excluded 22개, 중복 0개와 expected fixture digest만
-검증하며 backend 결과를 실행하지 않는다.
-
-manifest config 이름은 `unseen_local_context`, metadata split은 `unseen-local-context`다. Docker
-build는 `unseen-local-context-cases.jsonl`과 `unseen-local-context-metadata.json`을 생성하고
-expected digest가 다르면 실패한다. 전용 평가는
-`KFIND_MORPH_UNSEEN=1 scripts/benchmark-morphology.sh target/morph-unseen-report`로 실행한다.
-전용 entrypoint `unseen_benchmark.py`는 report schema 13의 `copula_policy_projection`에 profile별
-target confusion matrix, recall·precision, `accept`·`reject`·`ambiguous`·`unresolved` 수와
-case별 비용·origin 판정을 보존한다. 기본 benchmark와 GSD regression 명령은 PUD fixture를
-읽거나 평가하지 않는다.
-
-투영 입력은 matcher가 phrase 결합과 non-overlap 선택을 하기 전의 검증된 atom 후보다. 후보는
-`atom_index`, core·token byte span과 origin의 `analysis_index`·`rule_path`를 보존한다. lattice
-evidence는 같은 `atom_index`, core span, `analysis_index`, `rule_path`의 contextual origin에만
-연결한다. `decision`이 `accept` 또는 `ambiguous`면 origin을 유지하고, `decision`이 없는 모든
-status는 `unresolved`로 유지한다. `reject`만 제거한다. lattice evidence와 연결되지 않은
-non-contextual origin은 유지한다. origin이 하나도 남지 않은 atom 후보만 버리고, 남은 후보를
-matcher와 같은 leftmost-longest 순서로 선택한다. PUD unseen fixture는 single-atom query만
-허용하며 phrase 재결합은 제품 정책 구현 단계에서 같은 origin 필터 뒤에 적용한다.
-
-`copula_policy_projection`은 `policy: "copula-lattice"`와 `profiles`를 가진다. 각 profile은
-`target_confusion_matrix`, `target_precision_percent`, `gold_recall_percent`, 네 outcome의
-`origin_outcomes`, `by_case`를 기록한다. 각 case는 expected·gold span, union·projected prediction과
-span, 후보 origin별 contextual 여부·outcome·status·include/exclude cost·cost margin을 보존한다.
-outcome 집계는 위 identity로 중복 제거한 contextual origin만 세며 비용 threshold를 두지 않는다.
-
-밀봉된 fixture는 `copula-lattice` 후보로 한 번 평가한다. gold target recall 80.00%
-이상, target-level precision 99.00% 이상, `unresolved` 0개, revised hard-negative 신규 FP
-0개와 기존 Kaist·KSL dev/test 품질 gate를 모두 만족해야 한다. 통과하면
-`copula-lattice`를 opt-in 제품 정책으로 노출하고 기본값은 `union`으로 유지한다.
-하나라도 실패하면 공개 정책을 추가하지 않고 shadow 계측과 homonym union을 유지한다.
 
 ## 20. 성능 사양
 

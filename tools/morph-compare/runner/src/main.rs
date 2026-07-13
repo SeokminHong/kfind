@@ -1,4 +1,3 @@
-mod projection;
 mod shadow;
 
 use std::collections::BTreeSet;
@@ -28,10 +27,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
-use projection::{PolicyCandidate, policy_candidates};
 use shadow::{
     ShadowBranchEvidence, ShadowResource, ShadowVerificationCounters, diagnose_component_candidate,
-    diagnose_lattice_candidate,
 };
 
 const FULL_POS_LEXICON: &str = "/opt/morph-benchmark/full-pos/lexicon.bin";
@@ -422,7 +419,6 @@ fn run_kfind(
             "spans": spans,
             "failure_diagnostic": null,
             "plan_diagnostic": null,
-            "policy_candidates": null,
             "shadow_verification": {},
         }));
     }
@@ -549,9 +545,8 @@ fn append_kfind_diagnostics(
         });
     for (case, result) in cases.iter().zip(results.iter_mut()) {
         result["failure_diagnostic"] = serde_json::to_value(diagnose_failure(case, analyzer)?)?;
-        let (shadow_verification, candidates) =
+        let shadow_verification =
             diagnose_verification(case, analyzer, shadow_resource, component_shadow_resource)?;
-        result["policy_candidates"] = serde_json::to_value(candidates)?;
         result["shadow_verification"] = serde_json::to_value(shadow_verification)?;
     }
     Ok(morphology_artifact_sha256)
@@ -562,31 +557,13 @@ fn diagnose_verification(
     analyzer: &LexiconQueryAnalyzer,
     resource: ShadowResource<'_>,
     component_resource: ShadowResource<'_>,
-) -> Result<(ShadowVerificationCounters, Vec<PolicyCandidate>)> {
+) -> Result<ShadowVerificationCounters> {
     let options = CompileOptions::resolve(CompileOptionOverrides {
         pos: Some(parse_pos(&case.pos)?),
         ..CompileOptionOverrides::default()
     })?;
     let plan = compile_query(&case.query, &options, analyzer)
         .with_context(|| format!("failed to compile shadow diagnostic for case {}", case.id))?;
-    let local_branches = plan
-        .atoms
-        .iter()
-        .enumerate()
-        .flat_map(|(atom_index, atom)| {
-            atom.branches
-                .iter()
-                .filter(|branch| branch.context_requirement == ContextRequirement::EojeolLattice)
-                .map(move |branch| ShadowBranchEvidence {
-                    atom_index,
-                    anchor: std::str::from_utf8(&branch.anchor)
-                        .expect("compiled query anchors are valid UTF-8")
-                        .to_owned(),
-                    require_left: branch.boundary.require_left,
-                    require_right: branch.boundary.require_right,
-                })
-        })
-        .collect();
     let component_branches = plan
         .atoms
         .iter()
@@ -606,12 +583,7 @@ fn diagnose_verification(
         })
         .collect();
     let matcher = MorphMatcher::new(Arc::new(plan))?;
-    let policy_candidates = policy_candidates(&matcher, &case.text);
-    let candidates = matcher.local_analysis_candidates(case.text.as_bytes());
-    let component_candidates = candidates
-        .iter()
-        .filter(|candidate| candidate.context_requirement == ContextRequirement::NominalComponent)
-        .collect::<Vec<_>>();
+    let component_candidates = matcher.local_analysis_candidates(case.text.as_bytes());
     let required_resource_error = (!component_candidates.is_empty())
         .then(|| resource.unavailable_status())
         .flatten();
@@ -630,13 +602,8 @@ fn diagnose_verification(
             case.id
         );
     }
-    let lattice = candidates
-        .iter()
-        .filter(|candidate| candidate.context_requirement == ContextRequirement::EojeolLattice)
-        .map(|candidate| diagnose_lattice_candidate(candidate, resource))
-        .collect();
     let mut component = Vec::with_capacity(component_candidates.len());
-    for candidate in component_candidates {
+    for candidate in &component_candidates {
         let full_evidence = diagnose_component_candidate(candidate, resource);
         let compact_evidence = diagnose_component_candidate(candidate, component_resource);
         if full_evidence != compact_evidence {
@@ -650,16 +617,11 @@ fn diagnose_verification(
         component.push(full_evidence);
     }
     let component_projection_comparisons = component.len();
-    Ok((
-        ShadowVerificationCounters::new(
-            matcher.verification_counters(case.text.as_bytes()),
-            local_branches,
-            component_branches,
-            lattice,
-            component,
-            component_projection_comparisons,
-        ),
-        policy_candidates,
+    Ok(ShadowVerificationCounters::new(
+        matcher.verification_counters(case.text.as_bytes()),
+        component_branches,
+        component,
+        component_projection_comparisons,
     ))
 }
 
@@ -900,33 +862,6 @@ mod tests {
     }
 
     #[test]
-    fn shadow_diagnostic_counts_vcp_analysis_windows() {
-        let (counters, _policy_candidates) = diagnose_verification(
-            &positive_case("이다", "adjective", "매일 운동한다."),
-            &analyzer(),
-            ShadowResource::Missing,
-            ShadowResource::Missing,
-        )
-        .unwrap();
-
-        assert_eq!(counters.raw_anchor_hits, 1);
-        assert_eq!(counters.verified_branch_hits, 1);
-        assert_eq!(counters.local_lattice_candidate_hits, 1);
-        assert_eq!(counters.unique_analysis_windows, 1);
-        assert_eq!(counters.nominal_component_candidate_hits, 0);
-        assert_eq!(counters.unique_component_windows, 0);
-        assert!(counters.local_branches.iter().any(|branch| {
-            branch.anchor == "일" && !branch.require_left && branch.require_right
-        }));
-        assert!(
-            counters
-                .lattice
-                .iter()
-                .all(|evidence| evidence.status == "resource-missing")
-        );
-    }
-
-    #[test]
     fn nominal_component_shadow_requires_a_valid_resource() {
         let error = diagnose_verification(
             &positive_case("권한", "noun", "사용자권한"),
@@ -943,7 +878,7 @@ mod tests {
     fn nominal_component_shadow_compares_projection_evidence() {
         let bytes = component_fixture_resource(20);
         let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
-        let (counters, _policy_candidates) = diagnose_verification(
+        let counters = diagnose_verification(
             &positive_case("권한", "noun", "사용자권한"),
             &analyzer(),
             ShadowResource::Loaded(&resource),

@@ -140,7 +140,7 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
             .branches
             .iter()
             .all(|branch| !branch.boundary.require_left
-                && branch.context_requirement == ContextRequirement::EojeolLattice)
+                && branch.context_requirement == ContextRequirement::None)
     );
 
     let token_options = CompileOptions {
@@ -204,10 +204,7 @@ fn smart_one_scalar_rule_uses_the_source_atom_not_generated_surfaces() {
             .unwrap_or_else(|| panic!("missing copula branch {surface}"));
         assert!(!branch.boundary.one_scalar_anchor);
         assert!(!branch.boundary.require_left);
-        assert_eq!(
-            branch.context_requirement,
-            ContextRequirement::EojeolLattice
-        );
+        assert_eq!(branch.context_requirement, ContextRequirement::None);
     }
 }
 
