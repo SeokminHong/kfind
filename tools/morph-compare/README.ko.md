@@ -11,6 +11,8 @@ fixture는 Universal Dependencies 2.18의 Korean-Kaist와 Korean-KSL test/dev sp
 각 source에서 품사별 250개 positive를 선택하고 같은 source의 deterministic negative를
 대응시켜 총 1,000개를 만든다. 개발은 dev split으로 수행하고 test split은 regression
 baseline으로 유지한다.
+이미지 빌드는 밀봉된 Korean-GSD blind local-context fixture도 생성·검증한다. 기본
+벤치마크는 이 fixture를 로드하거나 평가하지 않는다.
 
 ```sh
 scripts/benchmark-morphology.sh

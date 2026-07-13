@@ -12,6 +12,8 @@ BY-SA 4.0 licenses are pinned in `sources.json`. For each split, the generator
 selects 250 POS-stratified positive cases from each source and pairs each with a
 deterministic negative from the same source, producing 1,000 cases. Development
 uses the development fixture; the test fixture remains the regression baseline.
+The image build also generates and validates the sealed Korean-GSD blind
+local-context fixture. The default benchmark does not load or evaluate it.
 
 ```sh
 scripts/benchmark-morphology.sh

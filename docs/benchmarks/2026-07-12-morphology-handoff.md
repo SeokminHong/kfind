@@ -91,6 +91,9 @@ profile의 FN은 146개다.
   digest, 전수 선택·정렬 규칙, 기존 Kaist·KSL dev/test와의 NFC 문장 중복 0건을 스펙에
   고정했다. fixture는 781개이며 SHA-256은
   `4be12e060c4bc3faf35b78bb3c9189cafb49e7c885108383c0dd1fb5aeb1b188`이다.
+- manifest schema 3에서 기본 benchmark source와 blind source를 분리했다. Docker build는
+  blind fixture와 metadata를 생성·검증하지만 기본 runner에는 전달하지 않는다. smoke
+  benchmark는 기존 dev local-context 결과만 평가한 채 통과했다.
 
 dev 명사 FN 70개 중 64개는 사전 누락이 아니라 smart boundary 거부다. 합성어 substring
 계약을 완화하면 hard-negative 정밀도와 충돌하므로 이번 어휘 보강에는 포함하지 않았다.
@@ -264,7 +267,7 @@ precision, initialization, p95, RSS를 함께 비교한다.
 
 ## 다음 작업
 
-1. 고정한 blind fixture 생성·검증 경로를 benchmark에 추가한다.
+1. blind fixture를 명시적 일회성 report 경로에 연결한다.
 2. 변경하지 않은 schema 3 판정으로 비용 분포와 판별력을 한 번 측정한다.
 3. non-gold target 오수용을 source·표면형·선택 경로별로 분류한다.
 4. 결과를 확인한 뒤 fixture는 regression baseline으로만 사용한다.
