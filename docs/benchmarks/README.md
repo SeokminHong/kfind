@@ -91,6 +91,7 @@ python3 tools/morph-compare/render_charts.py \
 - [2026-07-13 제품 workflow 형태소 벤치마크](2026-07-13-product-workflows.md)
 - [2026-07-14 User smart precision 품질·성능](2026-07-14-user-smart-precision.md)
 - [2026-07-14 Agent precision shadow 판정](2026-07-14-agent-precision-shadow.md)
+- [2026-07-14 `-기` 명사형 조사 continuation 품질·성능](2026-07-14-gi-particle-continuation.md)
 - [2026-07-13 smart component 품질·성능](2026-07-13-smart-component-evidence.md)
 - [형태소 검색 개선 핸드오프](morphology-handoff.md)
 - [선택적 국소 형태 추론 계약](selective-morphology.md)
