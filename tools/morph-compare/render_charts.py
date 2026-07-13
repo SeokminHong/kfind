@@ -45,6 +45,12 @@ HUMAN_UNTAGGED_SERIES = (
     ("full-pos", "any"),
 )
 EXTERNAL_BACKENDS = ("kiwi", "lindera", "mecab-ko", "komoran")
+EXTERNAL_LABELS = {
+    "kiwi": "Kiwi",
+    "lindera": "Lindera",
+    "mecab-ko": "MeCab-ko",
+    "komoran": "KOMORAN",
+}
 STYLE = """
 <style>
   .background { fill: #ffffff; }
@@ -578,25 +584,24 @@ def render_product_use_cases(report: dict[str, object]) -> str:
     )
 
 
-def explicit_pos_comparison(
+def persona_external_comparison(
     report: dict[str, object],
 ) -> tuple[tuple[str, dict[str, object], dict[str, object], str], ...]:
-    agent = report["product_workflows"]["agent"]
-    rows = [
-        (
-            "Agent",
-            agent["quality"],
-            agent["performance"],
-            COLORS["kfind-embedded"],
-        )
-    ]
+    persona_rows = report["product_persona_comparison"]["rows"]
+    rows = []
+    for name, color in (
+        ("agent", COLORS["kfind-embedded"]),
+        ("user", COLORS["kfind-full-pos"]),
+    ):
+        row = persona_rows[name]
+        rows.append((row["label"], row["quality"], row["performance"], color))
     external_performance = report["external_baselines"]["performance"]
     for backend in EXTERNAL_BACKENDS:
         if backend not in external_performance:
             continue
         rows.append(
             (
-                backend,
+                EXTERNAL_LABELS[backend],
                 report["quality"][backend]["overall"],
                 external_performance[backend],
                 COLORS[backend],
@@ -606,15 +611,14 @@ def explicit_pos_comparison(
 
 
 def render_product_external_comparison(report: dict[str, object]) -> str:
-    rows = explicit_pos_comparison(report)
-    width, height = 1280, 1040
+    rows = persona_external_comparison(report)
+    width, height = 1280, 1160
     body = [
-        text(52, 38, "Explicit-POS quality and performance"),
+        text(52, 38, "Persona-adjusted quality and performance"),
         text(
             52,
             62,
-            "Same 1,000 held-out cases · Agent embedded + any · "
-            "one warm-up + five measured runs",
+            "Same 1,000 held-out cases and gold · one warm-up + five measured runs",
             "muted",
         ),
     ]
@@ -629,7 +633,7 @@ def render_product_external_comparison(report: dict[str, object]) -> str:
         label_width = 92
         bar_width = 190
         for index, (backend, quality, _, color) in enumerate(rows):
-            row_y = 140 + index * 48
+            row_y = 140 + index * 44
             value = float(quality[key])
             body.append(text(panel_x, row_y + 24, backend))
             body.append(
@@ -650,10 +654,10 @@ def render_product_external_comparison(report: dict[str, object]) -> str:
             )
 
     performance_panels = (
-        (52, 446, "Throughput", "cases_per_second", "cases/s", True),
-        (680, 446, "Initialization", "initialization_seconds", "s", False),
-        (52, 736, "p95 latency", "latency_p95_ms", "ms", False),
-        (680, 736, "Peak RSS", "peak_rss_kib", "MiB", False),
+        (52, 438, "Throughput", "cases_per_second", "cases/s", True),
+        (680, 438, "Initialization", "initialization_seconds", "s", False),
+        (52, 744, "p95 latency", "latency_p95_ms", "ms", False),
+        (680, 744, "Peak RSS", "peak_rss_kib", "MiB", False),
     )
     for panel_x, panel_y, label, key, unit, higher_better in performance_panels:
         values = []
@@ -669,7 +673,7 @@ def render_product_external_comparison(report: dict[str, object]) -> str:
         label_width = 112
         bar_width = 275
         for index, (backend, value, color) in enumerate(values):
-            row_y = panel_y + 24 + index * 46
+            row_y = panel_y + 24 + index * 43
             body.append(text(panel_x, row_y + 24, backend))
             body.append(
                 rect(
@@ -692,15 +696,14 @@ def render_product_external_comparison(report: dict[str, object]) -> str:
         [
             text(
                 52,
-                1010,
-                "Agent is measured in the current run; external analyzers use "
-                "pinned refresh snapshots",
+                1125,
+                "Agent and User are measured in the current run; external analyzers use pinned snapshots",
                 "muted",
             ),
             text(
                 1228,
-                1010,
-                "Human smart is separate because its untagged negative definition differs",
+                1125,
+                "Same fixture and gold; persona-appropriate query input",
                 "muted",
                 "end",
             ),
@@ -709,10 +712,9 @@ def render_product_external_comparison(report: dict[str, object]) -> str:
     return svg_document(
         width,
         height,
-        "Explicit-POS quality and performance",
-        "Five rows compare Agent embedded plus any, Kiwi, Lindera, MeCab-ko, and "
-        "KOMORAN on precision, recall, F1, throughput, initialization, p95 latency, "
-        "and peak RSS.",
+        "Persona-adjusted quality and performance",
+        "Six rows compare Agent, User, Kiwi, Lindera, MeCab-ko, and KOMORAN on "
+        "precision, recall, F1, throughput, initialization, p95 latency, and peak RSS.",
         body,
     )
 
@@ -940,7 +942,7 @@ def main() -> None:
         (args.output / f"{args.prefix}product-use-cases.svg").write_text(
             render_product_use_cases(report), encoding="utf-8"
         )
-    if "product_workflows" in report and "external_baselines" in report:
+    if "product_persona_comparison" in report and "external_baselines" in report:
         (args.output / f"{args.prefix}product-external-comparison.svg").write_text(
             render_product_external_comparison(report), encoding="utf-8"
         )
