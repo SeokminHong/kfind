@@ -191,7 +191,7 @@ impl MorphMatcher {
                 ) else {
                     continue;
                 };
-                if !self.accepts_token_boundary(haystack, &candidate, branch) {
+                if !self.accepts_branch(haystack, &candidate, branch_ref.atom_index, branch) {
                     if branch.context_requirement == ContextRequirement::NominalComponent {
                         counters.nominal_component_candidate_hits += 1;
                         let window = surrounding_token_span(haystack, candidate.core);
@@ -393,9 +393,40 @@ impl MorphMatcher {
         atom_index: usize,
         branch: &SurfaceBranch,
     ) -> bool {
-        self.accepts_token_boundary(haystack, candidate, branch)
-            || (branch.context_requirement == ContextRequirement::NominalComponent
-                && self.accepts_nominal_component(haystack, candidate, atom_index, branch))
+        let boundary_accepted = self.accepts_token_boundary(haystack, candidate, branch);
+        match branch.context_requirement {
+            ContextRequirement::None => boundary_accepted,
+            ContextRequirement::PredicateLexical => {
+                boundary_accepted && self.accepts_predicate_lexical(haystack, candidate)
+            }
+            ContextRequirement::NominalComponent => {
+                boundary_accepted
+                    || self.accepts_nominal_component(haystack, candidate, atom_index, branch)
+            }
+        }
+    }
+
+    fn accepts_predicate_lexical(&self, haystack: &[u8], candidate: &VerifiedSpan) -> bool {
+        let whole_token = surrounding_token_span(haystack, candidate.token.clone());
+        if whole_token == candidate.token {
+            return true;
+        }
+        let Some(resource) = self.component_resource.as_deref() else {
+            return true;
+        };
+        let token = &haystack[whole_token];
+        let mut has_exact_analysis = false;
+        let mut has_predicate_or_unknown = false;
+        resource.common_prefixes(token, |length, analyses| {
+            if length != token.len() {
+                return;
+            }
+            has_exact_analysis = true;
+            has_predicate_or_unknown |= analyses.iter().any(|analysis| {
+                DataFinePos::parse(analysis.pos).is_none_or(DataFinePos::is_predicate)
+            });
+        });
+        !has_exact_analysis || has_predicate_or_unknown
     }
 
     fn accepts_token_boundary(

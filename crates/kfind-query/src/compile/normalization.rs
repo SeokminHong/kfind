@@ -75,8 +75,8 @@ fn context_requirement(
     policy: BoundaryPolicy,
     requested: ContextRequirement,
 ) -> ContextRequirement {
-    if policy == BoundaryPolicy::Smart && requested == ContextRequirement::NominalComponent {
-        ContextRequirement::NominalComponent
+    if policy == BoundaryPolicy::Smart {
+        requested
     } else {
         ContextRequirement::None
     }

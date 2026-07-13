@@ -292,6 +292,36 @@ mod tests {
     }
 
     #[test]
+    fn smart_copula_rejects_a_non_predicate_whole_token_without_changing_any() {
+        let without_component = Engine::new().unwrap();
+        let error = without_component
+            .compile("이다", &CompileOptions::default())
+            .unwrap_err();
+        assert!(matches!(
+            error,
+            CompileMatcherError::ComponentResourceRequired
+        ));
+
+        let with_component = Engine::with_component_resource(component_resource()).unwrap();
+        let smart = with_component
+            .compile("이다", &CompileOptions::default())
+            .unwrap();
+        assert!(smart.find_all("매일".as_bytes()).is_empty());
+        assert_eq!(smart.find_all("학생일".as_bytes()).len(), 1);
+
+        let any = without_component
+            .compile(
+                "이다",
+                &CompileOptions {
+                    boundary: BoundaryPolicy::Any,
+                    ..CompileOptions::default()
+                },
+            )
+            .unwrap();
+        assert_eq!(any.find_all("매일".as_bytes()).len(), 1);
+    }
+
+    #[test]
     fn explicit_component_initialization_is_observable() {
         let mut without_component = Engine::new().unwrap();
         let with_component = Engine::with_component_resource(component_resource()).unwrap();
@@ -324,21 +354,29 @@ mod tests {
         .unwrap();
         encode_component_resource(
             COMPONENT_RESOURCE_SOURCE_DIGEST,
-            &[MecabSourceMorphologyEntry {
-                surface: "걷다".to_owned(),
-                pos: "VV".to_owned(),
-                left_id: 1,
-                right_id: 1,
-                word_cost: 0,
-                analysis_type: "*".to_owned(),
-                start_pos: "*".to_owned(),
-                end_pos: "*".to_owned(),
-                expression: "*".to_owned(),
-            }],
+            &[
+                component_entry("걷다", "VV"),
+                component_entry("매일", "MAG"),
+                component_entry("학생일", "NNG+VCP+ETM"),
+            ],
             &matrix,
             b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
             b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
         )
         .unwrap()
+    }
+
+    fn component_entry(surface: &str, pos: &str) -> MecabSourceMorphologyEntry {
+        MecabSourceMorphologyEntry {
+            surface: surface.to_owned(),
+            pos: pos.to_owned(),
+            left_id: 1,
+            right_id: 1,
+            word_cost: 0,
+            analysis_type: "*".to_owned(),
+            start_pos: "*".to_owned(),
+            end_pos: "*".to_owned(),
+            expression: "*".to_owned(),
+        }
     }
 }

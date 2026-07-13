@@ -401,7 +401,12 @@ fn compile_predicate(
                 rule_path,
             },
             smart_left: predicate.alternation != kfind_morph::LexicalAlternation::Copula,
-            context_requirement: ContextRequirement::None,
+            context_requirement: if predicate.alternation == kfind_morph::LexicalAlternation::Copula
+            {
+                ContextRequirement::PredicateLexical
+            } else {
+                ContextRequirement::None
+            },
         });
     }
     Ok(())

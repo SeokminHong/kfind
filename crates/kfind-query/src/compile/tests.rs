@@ -135,12 +135,13 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
     );
 
     let smart_copula = compile_query("이다", &CompileOptions::default(), &analyzer()).unwrap();
+    assert!(smart_copula.requires_component_resource());
     assert!(
         smart_copula.atoms[0]
             .branches
             .iter()
             .all(|branch| !branch.boundary.require_left
-                && branch.context_requirement == ContextRequirement::None)
+                && branch.context_requirement == ContextRequirement::PredicateLexical)
     );
 
     let token_options = CompileOptions {
@@ -156,11 +157,13 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
     );
 
     let token_copula = compile_query("이다", &token_options, &analyzer()).unwrap();
+    assert!(!token_copula.requires_component_resource());
     assert!(token_copula.atoms[0].branches.iter().all(|branch| {
         branch.boundary.require_left && branch.context_requirement == ContextRequirement::None
     }));
 
     let any_copula = compile_query("이다", &any_options, &analyzer()).unwrap();
+    assert!(!any_copula.requires_component_resource());
     assert!(any_copula.atoms[0].branches.iter().all(|branch| {
         !branch.boundary.require_right && branch.context_requirement == ContextRequirement::None
     }));
@@ -204,7 +207,10 @@ fn smart_one_scalar_rule_uses_the_source_atom_not_generated_surfaces() {
             .unwrap_or_else(|| panic!("missing copula branch {surface}"));
         assert!(!branch.boundary.one_scalar_anchor);
         assert!(!branch.boundary.require_left);
-        assert_eq!(branch.context_requirement, ContextRequirement::None);
+        assert_eq!(
+            branch.context_requirement,
+            ContextRequirement::PredicateLexical
+        );
     }
 }
 

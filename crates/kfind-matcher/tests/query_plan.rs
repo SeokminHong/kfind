@@ -246,7 +246,7 @@ fn smart_vcp_corpus_fixtures_preserve_union_results() {
         matcher.plan().atoms[0]
             .branches
             .iter()
-            .all(|branch| branch.context_requirement == ContextRequirement::None)
+            .all(|branch| branch.context_requirement == ContextRequirement::PredicateLexical)
     );
 
     for fixture in VCP_BOUNDARY_FIXTURES {
@@ -297,7 +297,7 @@ fn canonical_vcp_corpus_fixtures_preserve_union_results() {
         matcher.plan().atoms[0]
             .branches
             .iter()
-            .all(|branch| branch.context_requirement == ContextRequirement::None)
+            .all(|branch| branch.context_requirement == ContextRequirement::PredicateLexical)
     );
 }
 

@@ -40,7 +40,7 @@
 
 ### 0.3 CLI 세부 정책
 
-- `smart` query plan에 `NominalComponent` branch가 하나라도 있으면 matcher 초기화 전에
+- `smart` query plan에 `NominalComponent` 또는 `PredicateLexical` branch가 하나라도 있으면 matcher 초기화 전에
   `morphology-component-compact.kfc`를 resolve하고 검증한다. resource 누락·손상·schema 또는
   source mismatch는 기존 경계 판정으로 fallback하지 않고 초기화 오류와 exit code 2를 반환한다.
   component branch가 없는 계획은 이 resource를 열지 않는다.
@@ -140,16 +140,14 @@
   coarse POS를 포함한 무품사 query plan의 match에 corpus homonym 근거가 없는 경우, 후자는
   predicate 생성형이 문장 안의 다른 lexical 표면형과 겹친 경우다. gold POS는 보고서 원인
   분류에만 사용하며 제품 query plan이나 match를 변경하는 근거로 주입하지 않는다.
-- corpus homonym의 첫 대안은 기존 non-overlapping match만 대상으로 하는 `whole-token-lexical`
-  shadow projection이다. predicate origin의 match가 같은 Unicode token의 strict subspan이고
-  compact component resource에서 token 전체의 exact 분석이 모두 non-predicate일 때 해당 origin을
-  제거한 결과를 별도 계산한다. match가 token 전체와 같은 동형 표면형은 원인 증거만 기록하고
-  제거하지 않는다. exact 분석에 predicate가 하나라도 있거나 다른 query origin이 남으면 match를
-  유지하며 새 candidate를 만들지 않는다.
-- 이 projection은 성능 측정 밖에서 실행하고 기본 검색 결과를 바꾸지 않는다. dev fixture에서
-  User precision과 recall 변화를 먼저 고정한 뒤, test는 회귀 기록에만 쓰고 문장 hash가 겹치지
-  않는 sealed unseen fixture에서 다시 통과하기 전에는 제품 verifier로 승격하지 않는다. 폐기한
-  copula lattice와 경로 비용 비교는 복원하지 않는다.
+- corpus homonym은 `smart` 지정사 branch의 `whole-token-lexical` 검증으로 제거한다. predicate
+  match가 같은 Unicode token의 strict subspan이고 compact component resource에서 token 전체의
+  exact 분석이 모두 해석 가능한 non-predicate일 때 해당 predicate branch를 거부한다. match가
+  token 전체와 같거나, exact 분석이 없거나, predicate 또는 해석할 수 없는 품사 분석이 하나라도
+  있으면 유지한다. 같은 span을 다른 query branch가 증명하면 그 branch의 match도 유지한다.
+- `whole-token-lexical` 검증은 기존 `any` candidate를 추가하지 않고 `smart`의 predicate branch만
+  필터링한다. `token`과 `any` 결과는 바꾸지 않으며, 평가 fixture·gold·지표 정의도 변경하지 않는다.
+  폐기한 copula lattice와 경로 비용 비교는 복원하지 않는다.
 - precision 개선은 현재 `boundary=any`가 만드는 candidate 집합의 부분집합만 선택한다. `any`
   밖의 span을 새로 만들거나 coverage를 넓히는 변경은 이 작업 범위에서 제외한다. User profile을
   먼저 검증하고, Agent profile은 같은 상한 아래에서 후속 작업으로 다룬다.
@@ -165,10 +163,15 @@
 
 ### 0.6 선택적 국소 형태 추론
 
-- query branch의 context requirement는 `None`, `NominalComponent`다. token 경계에서 거부될 수
-  있는 명사 branch만 `NominalComponent`를 사용한다.
-- `이다/아니다` 계열 검색은 생성 가능한 분석을 모두 인정하는 homonym union이다. corpus-side
-  lattice 비용으로 후보를 필터링하지 않는다.
+- query branch의 context requirement는 `None`, `PredicateLexical`, `NominalComponent`다. token
+  경계에서 거부될 수 있는 명사 branch는 `NominalComponent`, 왼쪽 token 경계를 열어 둔 `smart`
+  지정사 branch는 `PredicateLexical`을 사용한다.
+- `이다/아니다` 계열 검색은 token 전체와 일치하거나 corpus의 predicate 가능성이 남는 생성형을
+  homonym union으로 인정한다. strict-subspan 생성형이 token 전체의 exact non-predicate 분석과
+  모순되면 `PredicateLexical`이 해당 branch를 거부한다. corpus-side lattice 비용은 사용하지 않는다.
+- `PredicateLexical`은 candidate를 포함하는 Unicode token 전체의 compact component exact 분석만
+  확인한다. exact 분석이 모두 해석 가능한 non-predicate이면 strict-subspan predicate branch를
+  거부하고, exact 분석이 없거나 predicate 또는 해석할 수 없는 품사가 하나라도 있으면 유지한다.
 - `NominalComponent`는 `smart`에서만 동작한다. 기존 경계 검증이 거부한 명사 candidate를
   compact component resource로 평가하고 `accept`만 match로 복구한다. `reject`, `ambiguous`,
   평가 오류와 상한 초과는 거부한다.
@@ -194,7 +197,8 @@
 - query-side full POS와 corpus-side resource는 같은 고정 source snapshot에서 생성하되 별도
   산출물로 유지한다. full POS는 정규화된 표제어와 품사를, corpus-side resource는 원본
   표면형별 분석과 연결 비용을 저장한다.
-- CLI의 기본 boundary는 `smart`다. plan에 `NominalComponent` branch가 있으면 설치된 compact
+- CLI의 기본 boundary는 `smart`다. plan에 `NominalComponent` 또는 `PredicateLexical` branch가
+  있으면 설치된 compact
   resource를 자동으로 찾아 한 번 검증한다. resource 누락·손상·schema 또는 source 불일치는
   초기화 오류이며 기존 경계 판정으로 fallback하지 않는다. literal, `token`, `any` 또는
   component branch가 없는 plan은 resource를 찾거나 읽지 않는다.
@@ -214,7 +218,7 @@
   caller-configured lexicon도 resource 없는 생성자와 resource를 명시한 생성자를 분리한다.
 - component resource는 생성 이후 first-use에 자동 fetch·load하지 않는다. 검증된 resource는 engine이
   소유하고 여러 matcher에서 재사용하며 query compile마다 다시 decode하지 않는다. resource가 없는
-  engine에서 `NominalComponent`가 필요한 smart plan을 compile하면 명시적
+  engine에서 `NominalComponent` 또는 `PredicateLexical`이 필요한 smart plan을 compile하면 명시적
   `ComponentResourceRequired` 오류를 반환하고 기존 경계 판정으로 fallback하지 않는다.
 - 생성 후 `Engine::load_component_resource(component_resource)`와 JavaScript
   `loadComponentResource(componentResource)`로 resource를 명시적으로 초기화하거나 교체할 수 있다.
@@ -710,6 +714,7 @@ pub struct SurfaceBranch {
 
 pub enum ContextRequirement {
     None,
+    PredicateLexical,
     NominalComponent,
 }
 
