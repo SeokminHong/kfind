@@ -22,6 +22,8 @@ except ImportError:
     )
 
 BACKENDS = (*KFIND_PROFILES, "kiwi", "lindera")
+CONNECTIVE_JI_PATH = ("ending.connective-ji",)
+STRICT_SUBSPAN_POSITIONS = ("left-edge", "right-edge", "internal")
 
 
 def quality_metrics(
@@ -992,6 +994,97 @@ def append_development_failure_diagnostics(
         lines.append(
             f"| {case['id']} | {case['query']}/{case['pos']} | {gold_surface} | "
             f"{rendered_paths} |"
+        )
+
+    append_connective_ji_position_evidence(lines, predicate_failures)
+
+
+def strict_subspan_position(
+    gold_start: int, gold_end: int, token_start: int, token_end: int
+) -> str:
+    if not gold_start <= token_start < token_end <= gold_end:
+        raise ValueError("any-boundary token is not contained in the gold span")
+    if token_start == gold_start and token_end == gold_end:
+        raise ValueError("any-boundary token is not a strict gold subspan")
+    if token_start == gold_start:
+        return "left-edge"
+    if token_end == gold_end:
+        return "right-edge"
+    return "internal"
+
+
+def append_connective_ji_position_evidence(
+    lines: list[str], predicate_failures: list[dict[str, object]]
+) -> None:
+    rows: set[tuple[str, str, str, str, str]] = set()
+    for failure in predicate_failures:
+        case = failure["case"]
+        evidence = failure["profile_cause_evidence"]["kfind-full-pos"]
+        text_bytes = case["text"].encode("utf-8")
+        gold_start = case["gold_byte_start"]
+        gold_end = case["gold_byte_end"]
+        gold_surface = text_bytes[gold_start:gold_end].decode("utf-8")
+        for matched in evidence["any_boundary_gold_matches"]:
+            has_connective_ji = any(
+                tuple(origin["rule_path"]) == CONNECTIVE_JI_PATH
+                for origin in matched["origins"]
+            )
+            if not has_connective_ji:
+                continue
+            token = matched["token"]
+            try:
+                position = strict_subspan_position(
+                    gold_start,
+                    gold_end,
+                    token["byte_start"],
+                    token["byte_end"],
+                )
+            except ValueError as error:
+                raise ValueError(
+                    f"connective-ji case {case['id']}: {error}"
+                ) from error
+            token_surface = text_bytes[
+                token["byte_start"] : token["byte_end"]
+            ].decode("utf-8")
+            rows.add(
+                (
+                    case["id"],
+                    f"{case['query']}/{case['pos']}",
+                    gold_surface,
+                    token_surface,
+                    position,
+                )
+            )
+    if not rows:
+        return
+
+    case_ids_by_position: dict[str, set[str]] = {
+        position: set() for position in STRICT_SUBSPAN_POSITIONS
+    }
+    for case_id, _, _, _, position in rows:
+        case_ids_by_position[position].add(case_id)
+    lines.extend(
+        [
+            "",
+            "### `ending.connective-ji` position evidence",
+            "",
+            "| any token position | cases |",
+            "| --- | ---: |",
+        ]
+    )
+    for position in STRICT_SUBSPAN_POSITIONS:
+        lines.append(f"| {position} | {len(case_ids_by_position[position])} |")
+    lines.extend(
+        [
+            "",
+            "| case | query/POS | gold surface | any token | position |",
+            "| --- | --- | --- | --- | --- |",
+        ]
+    )
+    for case_id, query_pos, gold_surface, token_surface, position in sorted(rows):
+        lines.append(
+            f"| {case_id} | {query_pos} | {gold_surface} | {token_surface} | "
+            f"{position} |"
         )
 
 
