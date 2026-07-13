@@ -98,8 +98,27 @@ fixture·gold·지표 정의와 `any`의 TP 479 / FP 11 / FN 21은 바꾸지 않
 
 ## 이어갈 작업
 
-현재 승인된 제품 정책 변경은 없다. Agent precision은 기존 shadow gate를 통과하는 새 근거가
-확보될 때만 다시 연다.
+현재 승인된 제품 정책 변경은 없다. 다음 후보는 test fixture를 규칙 선택에 사용하지 않고
+development와 hard-negative에서 먼저 판정한다.
+
+1. full-POS `smart`의 development positive FN 64건을 원인·품사·rule path로 고정한다.
+   `boundary-rejected`가 44건으로 가장 크고, 이 중 verb 14건과 adjective 6건을 첫 predicate
+   slice로 삼는다. fixture/report 계측만 추가하고 matcher는 바꾸지 않는다.
+2. predicate slice에서 공통 continuation을 찾으면 최소 positive 대조와 같은 표면형의
+   hard-negative를 먼저 추가한다. development TP가 늘고 FP가 증가하지 않으며 기존
+   hard-negative에 새 FP가 없을 때만 한 종류의 rule path를 제품 후보로 연다. held-out test는
+   규칙 고정 뒤 회귀 판정에만 사용한다.
+3. 무품사 full-POS plan의 누락을 별도 development 지표로 만든다. 현재 test에서는 positive
+   500건 중 기대 품사가 plan에 없는 경우가 18건이고 literal fallback은 5건이다. plan 확장은
+   새 development 근거와 User precision 100.00% 보존을 함께 만족할 때만 검토한다.
+4. Agent precision은 include/exclude lattice 존재 여부와 다른 독립 근거가 정의될 때만 shadow를
+   다시 연다. gate는 development TP 484 보존, FP 15 미만, hard-negative 새 FP 0을 모두
+   요구하며 `include-path`와 `include-only` 투영은 재사용하지 않는다.
+
+1번의 계측 진입점은 `tools/morph-compare/python/report.py`와
+`tools/morph-compare/runner/src/main.rs`다. 제품 후보가 생긴 뒤에만
+`crates/kfind-morph/src/predicate.rs`, `crates/kfind-morph/src/predicate/continuation.rs`,
+`crates/kfind-matcher/src/morph.rs`와 `tools/morph-compare/hard-negatives.jsonl`을 연다.
 
 ## 재현과 검증
 
