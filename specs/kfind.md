@@ -210,6 +210,11 @@
   TP 413/FP 1/FN 87이다. dev는 각각 TP 432/FP 2/FN 68, TP 436/FP 2/FN 64다. test component
   projection 비교 embedded 84건, full-POS 123건과 component hard-negative 5건은 불일치 0이며
   hard-negative component candidate는 모두 `reject`다.
+- CLI의 기본 boundary policy는 `smart`다. 기본 CLI query를 compile한 plan에
+  `NominalComponent` branch가 있으면 설치된 compact component resource를 자동으로 찾아 한 번
+  검증하고 검색에 사용한다. resource가 필요하지만 누락·손상된 경우 초기화 오류로 종료하며 기존
+  경계 판정으로 fallback하지 않는다. literal, `token`, `any` 또는 component branch가 없는 plan은
+  resource를 찾거나 읽지 않는다.
 - P2의 네 번째 구현 단위는 corpus-side morphology resource를 schema 3으로 갱신한다.
   query tag용 `DataFinePos`는 corpus CSV 행의 필터로 사용하지 않는다. 유효한 context ID와
   비용을 가진 모든 source 행을 NFC 표면형별로 보존하고, 단일·복합 POS 열과 type·start POS·
@@ -242,6 +247,8 @@
 
 ### 0.8 Rust 라이브러리와 WASM 대상
 
+- CLI의 자동 resource 해석과 달리 Rust 라이브러리와 npm binding은 filesystem, URL 또는 package
+  asset 위치를 추정하지 않는다. caller가 component 기능을 사용할 때만 bytes를 명시적으로 전달한다.
 - `kfind` 파사드 crate의 `Engine::new()`와 `Engine::with_full_pos(full_pos)`는 compact component
   resource를 초기화하지 않는다. `Engine::with_component_resource(component_resource)`와
   `Engine::with_full_pos_and_component(full_pos, component_resource)`가 resource를 명시적으로 검증한다.
