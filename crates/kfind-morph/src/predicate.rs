@@ -357,6 +357,10 @@ fn compile_copula(
         );
     }
 
+    let mut polite = polite_declarative(stem)?;
+    polite.rules.insert(0, rule("lexical.copula"));
+    push_derived(branches, entry, polite, ContinuationState::Terminal);
+
     let past = add_final(&format!("{stem}어"), JONG_SSANGSIOT)
         .expect("copula vowel ending accepts a past final");
     push_branch(
