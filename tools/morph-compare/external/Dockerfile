@@ -1,8 +1,12 @@
 ARG BASE_IMAGE=kfind-morph-benchmark:local
 FROM ${BASE_IMAGE}
 
+ARG KIWIPIEPY_VERSION=0.23.2
+ARG KIWIPIEPY_MODEL_VERSION=0.23.0
 ARG MECAB_KO_VERSION=1.0.2
+ARG NUMPY_VERSION=2.5.1
 ARG PYKOMORAN_VERSION=0.1.6
+ARG TQDM_VERSION=4.68.4
 ARG KOMORAN_SHA256=ae7301005652ea50126ad1b35ee1b0e1d820b315a469b59fa7603911c3f02a41
 
 USER root
@@ -14,8 +18,21 @@ RUN apt-get update \
     && python -m pip install \
         --disable-pip-version-check \
         --no-cache-dir \
+        "kiwipiepy_model==${KIWIPIEPY_MODEL_VERSION}" \
         "mecab-ko==${MECAB_KO_VERSION}" \
-        "PyKomoran==${PYKOMORAN_VERSION}"
+        "PyKomoran==${PYKOMORAN_VERSION}" \
+    && python -m pip install \
+        --disable-pip-version-check \
+        --no-cache-dir \
+        --only-binary=:all: \
+        "numpy==${NUMPY_VERSION}" \
+        "tqdm==${TQDM_VERSION}" \
+    && python -m pip install \
+        --disable-pip-version-check \
+        --no-cache-dir \
+        --no-deps \
+        --only-binary=:all: \
+        "kiwipiepy==${KIWIPIEPY_VERSION}"
 
 WORKDIR /opt/morph-benchmark/external
 RUN cp /usr/local/lib/python3.12/site-packages/PyKomoran/libs/KOMORAN-3.3.9.jar \

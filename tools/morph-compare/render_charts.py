@@ -8,12 +8,19 @@ import json
 from pathlib import Path
 
 
-BACKENDS = ("kfind-embedded", "kfind-full-pos", "kiwi", "lindera")
+BACKENDS = (
+    "kfind-embedded",
+    "kfind-full-pos",
+    "kiwi",
+    "lindera",
+)
 COLORS = {
     "kfind-embedded": "#2563eb",
     "kfind-full-pos": "#7c3aed",
     "kiwi": "#059669",
     "lindera": "#d97706",
+    "mecab-ko": "#dc2626",
+    "komoran": "#0891b2",
 }
 BOUNDARY_SERIES = (
     ("embedded", "smart"),
@@ -93,8 +100,9 @@ def svg_document(width: int, height: int, title: str, description: str, body: li
 
 
 def render_quality(report: dict[str, object]) -> str:
-    width, height = 1120, 600
-    left, right, top, bottom = 80, 32, 86, 76
+    backends = tuple(report.get("backends", BACKENDS))
+    width, height = 1280, 650
+    left, right, top, bottom = 80, 32, 86, 120
     plot_width = width - left - right
     plot_height = height - top - bottom
     metrics = (
@@ -112,12 +120,14 @@ def render_quality(report: dict[str, object]) -> str:
         body.append(f'<line class="grid" x1="{left}" y1="{y:.1f}" x2="{width-right}" y2="{y:.1f}"/>')
         body.append(text(left - 10, y + 5, tick, "muted", "end"))
     group_width = plot_width / len(metrics)
-    bar_width = 48
-    gap = 12
+    bar_width = 36
+    gap = 10
     for group_index, (label, key) in enumerate(metrics):
         center = left + group_width * (group_index + 0.5)
-        start = center - (len(BACKENDS) * bar_width + (len(BACKENDS) - 1) * gap) / 2
-        for backend_index, backend in enumerate(BACKENDS):
+        start = center - (
+            len(backends) * bar_width + (len(backends) - 1) * gap
+        ) / 2
+        for backend_index, backend in enumerate(backends):
             value = float(report["quality"][backend]["overall"][key])
             x = start + backend_index * (bar_width + gap)
             bar_height = plot_height * value / 100
@@ -125,22 +135,24 @@ def render_quality(report: dict[str, object]) -> str:
             body.append(rect(x, y, bar_width, bar_height, COLORS[backend]))
             body.append(text(x + bar_width / 2, y - 8, f"{value:.2f}", anchor="middle"))
         body.append(text(center, top + plot_height + 28, label, anchor="middle"))
-    legend_x = left
-    legend_y = height - 22
-    for backend in BACKENDS:
+    for index, backend in enumerate(backends):
+        column = index % 3
+        row = index // 3
+        legend_x = left + column * 380
+        legend_y = height - 54 + row * 28
         body.append(rect(legend_x, legend_y - 13, 16, 16, COLORS[backend], 2))
         body.append(text(legend_x + 24, legend_y, backend))
-        legend_x += 190
     return svg_document(
         width,
         height,
         "Held-out morphology quality",
-        "Grouped bars compare accuracy, precision, recall, and F1 for both kfind profiles, Kiwi, and Lindera.",
+        "Grouped bars compare accuracy, precision, recall, and F1 for kfind profiles and pinned external quality snapshots.",
         body,
     )
 
 
 def render_performance(report: dict[str, object]) -> str:
+    backends = tuple(report["performance"])
     width, height = 1280, 720
     body = [
         text(52, 38, "End-to-end performance and memory", anchor="start"),
@@ -156,7 +168,7 @@ def render_performance(report: dict[str, object]) -> str:
     positions = ((52, 96), (680, 96), (52, 390), (680, 390))
     for (label, key, unit, higher_better), (panel_x, panel_y) in zip(panels, positions):
         values = {}
-        for backend in BACKENDS:
+        for backend in backends:
             value = float(report["performance"][backend][key])
             if key == "peak_rss_kib":
                 value /= 1024
@@ -168,7 +180,7 @@ def render_performance(report: dict[str, object]) -> str:
         chart_top = panel_y + 28
         label_width = 150
         bar_max_width = panel_width - label_width - 140
-        for index, backend in enumerate(BACKENDS):
+        for index, backend in enumerate(backends):
             row_y = chart_top + index * 60
             value = values[backend]
             body.append(text(panel_x, row_y + 24, backend))
@@ -177,7 +189,7 @@ def render_performance(report: dict[str, object]) -> str:
             body.append(rect(bar_x, row_y + 7, bar_width, 25, COLORS[backend]))
             rendered = metric_value(value, unit)
             body.append(text(bar_x + bar_max_width + 8, row_y + 25, f"{rendered} {unit}"))
-        axis_y = chart_top + len(BACKENDS) * 60
+        axis_y = chart_top + len(backends) * 60
         body.append(
             f'<line class="axis" x1="{panel_x + label_width}" y1="{axis_y}" '
             f'x2="{panel_x + label_width + bar_max_width}" y2="{axis_y}"/>'

@@ -6,11 +6,14 @@ from report import (
     append_boundary_comparison,
     append_component_shadow_table,
     append_component_startup,
+    append_external_baselines,
     append_human_untagged,
     append_local_context_summary,
+    append_product_workflows,
     classify_component_paths,
     classify_primary_cause,
     kfind_profile_comparison,
+    product_workflows,
     quality_metrics,
     shadow_verification_summary,
     untagged_plan_metrics,
@@ -288,6 +291,83 @@ class HumanUntaggedTests(unittest.TestCase):
         self.assertIn("## Human untagged search", rendered)
         self.assertIn("| embedded | any | 90.0% | 80.0% | 84.71% |", rendered)
         self.assertIn("| embedded | 10 | 80.0% (8) | 30.0% (3) |", rendered)
+
+
+class ProductWorkflowTests(unittest.TestCase):
+    def test_selects_agent_and_human_product_profiles(self) -> None:
+        agent = {
+            "quality": {
+                "precision_percent": 60.0,
+                "recall_percent": 95.0,
+                "f1_percent": 73.55,
+                "fp": 20,
+            },
+            "performance": {"cases_per_second": 5000.0},
+        }
+        human = {
+            "quality": {
+                "precision_percent": 90.0,
+                "recall_percent": 85.0,
+                "f1_percent": 87.43,
+                "fp": 5,
+            },
+            "performance": {"cases_per_second": 1000.0},
+        }
+        plan = {"expected_pos_present_percent": 92.0}
+        boundary_comparison = {
+            "profiles": {
+                "embedded": {"any": agent},
+            }
+        }
+        human_untagged = {
+            "profiles": {
+                "full-pos": {
+                    "plan": plan,
+                    "boundaries": {"smart": human},
+                }
+            }
+        }
+
+        workflows = product_workflows(boundary_comparison, human_untagged)
+
+        self.assertEqual("explicit POS", workflows["agent"]["input"])
+        self.assertIs(agent["quality"], workflows["agent"]["quality"])
+        self.assertEqual("untagged", workflows["human"]["input"])
+        self.assertIs(human["quality"], workflows["human"]["quality"])
+        self.assertEqual(
+            "embedded engine without optional resources",
+            workflows["library"]["default"],
+        )
+
+        lines: list[str] = []
+        append_product_workflows(lines, {"product_workflows": workflows})
+        rendered = "\n".join(lines)
+        self.assertIn("| agent | explicit POS | embedded | any |", rendered)
+        self.assertIn("| human | untagged | full-pos | smart |", rendered)
+        self.assertIn("workflows are not combined into one score", rendered)
+
+    def test_labels_external_results_as_snapshots(self) -> None:
+        lines: list[str] = []
+
+        append_external_baselines(
+            lines,
+            {
+                "external_baselines": {
+                    "availability": {
+                        "kiwi": {"status": "available"},
+                        "komoran": {
+                            "status": "unavailable",
+                            "reason": "not captured",
+                        },
+                    }
+                }
+            },
+        )
+
+        rendered = "\n".join(lines)
+        self.assertIn("External analyzers are not executed", rendered)
+        self.assertIn("| kiwi | available |", rendered)
+        self.assertIn("| komoran | unavailable: not captured |", rendered)
 
 
 class ShadowVerificationTests(unittest.TestCase):

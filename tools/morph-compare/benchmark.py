@@ -3,30 +3,24 @@
 from __future__ import annotations
 
 import argparse
-import importlib.metadata
 import json
 import math
-import resource
 import subprocess
 import sys
 import tempfile
-import time
 from pathlib import Path
 from statistics import median
 
-from kiwipiepy import Kiwi
-
 from python.adapters import (
     CandidateSpan,
-    candidate_prediction,
-    kiwi_candidates,
-    lindera_candidates,
     spans_overlap,
 )
+from python.external_baselines import load_external_baselines
 from python.report import (
     KFIND_PROFILES,
     build_report,
     quality_metrics,
+    product_workflows,
     render_markdown,
     untagged_plan_metrics,
 )
@@ -59,6 +53,9 @@ DEFAULT_LOCAL_CONTEXT_METADATA = Path(
     "/opt/morph-benchmark/data/local-context-metadata.json"
 )
 DEFAULT_HARD_NEGATIVES = Path("/opt/morph-benchmark/hard-negatives.jsonl")
+DEFAULT_EXTERNAL_BASELINES = Path(
+    "/opt/morph-benchmark/external-baselines.json"
+)
 DEFAULT_RUNNER = Path("/usr/local/bin/morph-benchmark-runner")
 DEFAULT_RUNS = 5
 STARTUP_PROFILES = (
@@ -230,75 +227,6 @@ def evaluate_kfind(
         shadow_verification,
         policy_candidates,
     )
-
-
-def evaluate_lindera(
-    cases: list[dict[str, object]], summary: dict[str, object]
-) -> tuple[dict[str, bool], dict[str, list[dict[str, object]]], dict[str, object]]:
-    results = {result["id"]: result for result in summary["results"]}
-    predictions = {}
-    matches = {}
-    latencies = []
-    postprocess_seconds = 0.0
-    for case in cases:
-        result = results.get(case["id"])
-        if result is None:
-            raise ValueError(f"Lindera omitted case {case['id']}")
-        postprocess_started = time.perf_counter()
-        candidates = lindera_candidates(result["tokens"])
-        predictions[case["id"]] = candidate_prediction(
-            str(case["query"]),
-            str(case["pos"]),
-            bool(case["expected"]),
-            case["gold_byte_start"],
-            case["gold_byte_end"],
-            candidates,
-        )
-        matches[case["id"]] = matching_candidate_spans(case, candidates)
-        postprocess_ms = (time.perf_counter() - postprocess_started) * 1_000.0
-        postprocess_seconds += postprocess_ms / 1_000.0
-        latencies.append(float(result["latency_ms"]) + postprocess_ms)
-    summary = dict(summary)
-    summary["evaluation_seconds"] = (
-        float(summary["evaluation_seconds"]) + postprocess_seconds
-    )
-    return predictions, matches, performance(summary, latencies)
-
-
-def evaluate_kiwi(
-    cases: list[dict[str, object]],
-) -> tuple[
-    dict[str, bool],
-    dict[str, list[dict[str, object]]],
-    dict[str, object],
-]:
-    initialization_started = time.perf_counter()
-    kiwi = Kiwi()
-    kiwi.tokenize("")
-    initialization_seconds = time.perf_counter() - initialization_started
-    predictions = {}
-    matches = {}
-    latencies = []
-    evaluation_started = time.perf_counter()
-    for case in cases:
-        case_started = time.perf_counter()
-        candidates = kiwi_candidates(str(case["text"]), kiwi.tokenize(str(case["text"])))
-        predictions[case["id"]] = candidate_prediction(
-            str(case["query"]),
-            str(case["pos"]),
-            bool(case["expected"]),
-            case["gold_byte_start"],
-            case["gold_byte_end"],
-            candidates,
-        )
-        matches[case["id"]] = matching_candidate_spans(case, candidates)
-        latencies.append((time.perf_counter() - case_started) * 1_000.0)
-    summary = {
-        "initialization_seconds": initialization_seconds,
-        "evaluation_seconds": time.perf_counter() - evaluation_started,
-        "peak_rss_kib": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
-    }
-    return predictions, matches, performance(summary, latencies)
 
 
 def percentile(values: list[float], percentile_value: float) -> float:
@@ -622,63 +550,6 @@ def evaluate_human_untagged(
     }
 
 
-def evaluate_lindera_runs(
-    cases: list[dict[str, object]],
-    runner: Path,
-    cases_path: Path,
-    runs: int,
-    warmup: bool,
-) -> tuple[
-    dict[str, bool],
-    dict[str, list[dict[str, object]]],
-    dict[str, object],
-    dict[str, object],
-]:
-    if warmup:
-        run_native_backend(runner, "lindera", cases_path)
-    evaluations = []
-    summaries = []
-    for _ in range(runs):
-        summary = run_native_backend(runner, "lindera", cases_path)
-        summaries.append(summary)
-        evaluations.append(evaluate_lindera(cases, summary))
-    first = evaluations[0]
-    for evaluation in evaluations[1:]:
-        if evaluation[0] != first[0] or evaluation[1] != first[1]:
-            raise ValueError("Lindera predictions changed between measured runs")
-    return (
-        first[0],
-        first[1],
-        aggregate_performance(
-            [evaluation[2] for evaluation in evaluations], int(warmup)
-        ),
-        summaries[0],
-    )
-
-
-def evaluate_kiwi_runs(
-    cases: list[dict[str, object]], runs: int, warmup: bool
-) -> tuple[
-    dict[str, bool],
-    dict[str, list[dict[str, object]]],
-    dict[str, object],
-]:
-    if warmup:
-        evaluate_kiwi(cases)
-    evaluations = [evaluate_kiwi(cases) for _ in range(runs)]
-    first = evaluations[0]
-    for evaluation in evaluations[1:]:
-        if evaluation[0] != first[0] or evaluation[1] != first[1]:
-            raise ValueError("Kiwi predictions changed between measured runs")
-    return (
-        first[0],
-        first[1],
-        aggregate_performance(
-            [evaluation[2] for evaluation in evaluations], int(warmup)
-        ),
-    )
-
-
 def evaluate_dataset(
     cases: list[dict[str, object]],
     cases_path: Path,
@@ -692,8 +563,6 @@ def evaluate_dataset(
         )
         for profile in KFIND_PROFILES
     }
-    lindera = evaluate_lindera_runs(cases, runner, cases_path, runs, warmup)
-    kiwi = evaluate_kiwi_runs(cases, runs, warmup)
     versions = {
         profile: {
             "backend": kfind[profile][6]["backend"],
@@ -711,34 +580,11 @@ def evaluate_dataset(
         }
         for profile in KFIND_PROFILES
     }
-    versions.update(
-        {
-            "kiwi": {
-                "backend": "kiwi",
-                "version": importlib.metadata.version("kiwipiepy"),
-                "profile": None,
-                "lexicon_artifact_sha256": None,
-                "morphology_artifact_sha256": None,
-                "component_artifact_sha256": None,
-            },
-            "lindera": {
-                "backend": lindera[3]["backend"],
-                "version": lindera[3]["version"],
-                "profile": None,
-                "lexicon_artifact_sha256": None,
-                "morphology_artifact_sha256": None,
-                "component_artifact_sha256": None,
-            },
-        }
-    )
     return {
         "versions": versions,
-        "predictions": {profile: kfind[profile][0] for profile in KFIND_PROFILES}
-        | {"kiwi": kiwi[0], "lindera": lindera[0]},
-        "matches": {profile: kfind[profile][1] for profile in KFIND_PROFILES}
-        | {"kiwi": kiwi[1], "lindera": lindera[1]},
-        "performance": {profile: kfind[profile][2] for profile in KFIND_PROFILES}
-        | {"kiwi": kiwi[2], "lindera": lindera[2]},
+        "predictions": {profile: kfind[profile][0] for profile in KFIND_PROFILES},
+        "matches": {profile: kfind[profile][1] for profile in KFIND_PROFILES},
+        "performance": {profile: kfind[profile][2] for profile in KFIND_PROFILES},
         "diagnostics": {profile: kfind[profile][3] for profile in KFIND_PROFILES},
         "shadow_verification": {
             profile: kfind[profile][4] for profile in KFIND_PROFILES
@@ -770,6 +616,9 @@ def parse_args() -> argparse.Namespace:
         "--local-context-metadata", type=Path, default=DEFAULT_LOCAL_CONTEXT_METADATA
     )
     parser.add_argument("--hard-negatives", type=Path, default=DEFAULT_HARD_NEGATIVES)
+    parser.add_argument(
+        "--external-baselines", type=Path, default=DEFAULT_EXTERNAL_BASELINES
+    )
     parser.add_argument("--runner", type=Path, default=DEFAULT_RUNNER)
     parser.add_argument("--runs", type=int, default=DEFAULT_RUNS)
     parser.add_argument("--smoke", action="store_true")
@@ -882,9 +731,15 @@ def main() -> int:
                     args.runner,
                     1,
                 )
+                report["product_workflows"] = product_workflows(
+                    report["boundary_comparison"], report["human_untagged"]
+                )
                 return write_report(args.output, report)
 
         baseline = evaluate_dataset(cases, args.cases, args.runner, args.runs, True)
+        external = load_external_baselines(args.external_baselines, cases, metadata)
+        for key in ("versions", "predictions", "matches"):
+            baseline[key].update(external[key])
         development = evaluate_dataset(dev_cases, args.dev_cases, args.runner, 1, False)
         hard_negatives = evaluate_dataset(
             hard_cases, args.hard_negatives, args.runner, 1, False
@@ -906,6 +761,11 @@ def main() -> int:
             baseline["diagnostics"],
             baseline["shadow_verification"],
         )
+        report["external_baselines"] = {
+            "availability": external["availability"],
+            "environment": external["environment"],
+            "performance": external["performance"],
+        }
         report["development"] = build_report(
             dev_cases,
             dev_metadata,
@@ -949,6 +809,9 @@ def main() -> int:
             args.human_untagged_cases,
             args.runner,
             args.runs,
+        )
+        report["product_workflows"] = product_workflows(
+            report["boundary_comparison"], report["human_untagged"]
         )
         return write_report(args.output, report)
     except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:

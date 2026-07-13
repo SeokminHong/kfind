@@ -97,6 +97,41 @@ def untagged_plan_metrics(
     }
 
 
+def product_workflows(
+    boundary_comparison: dict[str, object], human_untagged: dict[str, object]
+) -> dict[str, object]:
+    agent = boundary_comparison["profiles"]["embedded"]["any"]
+    human_profile = human_untagged["profiles"]["full-pos"]
+    human = human_profile["boundaries"]["smart"]
+    return {
+        "agent": {
+            "input": "explicit POS",
+            "lexicon": "embedded",
+            "boundary": "any",
+            "quality": agent["quality"],
+            "performance": agent["performance"],
+            "primary_metrics": ["recall_percent", "cases_per_second"],
+        },
+        "human": {
+            "input": "untagged",
+            "lexicon": "full-pos",
+            "boundary": "smart",
+            "quality": human["quality"],
+            "performance": human["performance"],
+            "plan": human_profile["plan"],
+            "primary_metrics": [
+                "precision_percent",
+                "recall_percent",
+                "expected_pos_present_percent",
+            ],
+        },
+        "library": {
+            "default": "embedded engine without optional resources",
+            "optional": ["full-pos lexicon", "component resource"],
+        },
+    }
+
+
 def kfind_profile_comparison(
     cases: list[dict[str, object]],
     predictions: dict[str, dict[str, bool]],
@@ -318,6 +353,8 @@ def render_markdown(report: dict[str, object]) -> str:
             f"{version['profile'] or 'n/a'} | `{artifact}` | `{morphology}` | "
             f"`{component}` |"
         )
+    append_external_baselines(lines, report)
+    append_product_workflows(lines, report)
     append_quality_sections(lines, report)
     append_boundary_comparison(lines, report.get("boundary_comparison"))
     append_human_untagged(lines, report.get("human_untagged"))
@@ -332,10 +369,74 @@ def render_markdown(report: dict[str, object]) -> str:
         [
             "",
             "Performance measures each backend's end-to-end search path after one initialization; "
-            "it is not a tokenizer-only throughput comparison.",
+            "the live table includes only kfind profiles. External analyzers are quality "
+            "snapshots and are not timed in the current run.",
         ]
     )
     return "\n".join(lines) + "\n"
+
+
+def append_product_workflows(lines: list[str], report: dict[str, object]) -> None:
+    workflows = report.get("product_workflows")
+    if workflows is None:
+        return
+    lines.extend(
+        [
+            "",
+            "## Product workflows",
+            "",
+            "Agent search prioritizes recall and throughput; false positives are candidates "
+            "for context inspection. Human search prioritizes precise untagged results.",
+            "",
+            "| workflow | input | lexicon | boundary | precision | recall | F1 | FP candidates | cases/s |",
+            "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for name in ("agent", "human"):
+        workflow = workflows[name]
+        quality = workflow["quality"]
+        performance = workflow["performance"]
+        lines.append(
+            f"| {name} | {workflow['input']} | {workflow['lexicon']} | "
+            f"{workflow['boundary']} | {quality['precision_percent']}% | "
+            f"{quality['recall_percent']}% | {quality['f1_percent']}% | "
+            f"{quality['fp']} | {performance['cases_per_second']} |"
+        )
+    human_plan = workflows["human"]["plan"]
+    lines.extend(
+        [
+            "",
+            f"- human intended-POS plan coverage: "
+            f"{human_plan['expected_pos_present_percent']}%",
+            f"- library default: {workflows['library']['default']}",
+            "- library optional resources: "
+            + ", ".join(workflows["library"]["optional"]),
+            "- workflows are not combined into one score",
+        ]
+    )
+
+
+def append_external_baselines(lines: list[str], report: dict[str, object]) -> None:
+    snapshot = report.get("external_baselines")
+    if snapshot is None:
+        return
+    lines.extend(
+        [
+            "",
+            "## External quality snapshots",
+            "",
+            "External analyzers are not executed in this benchmark run. Their normalized "
+            "results are bound to the fixture digest above.",
+            "",
+            "| backend | status |",
+            "| --- | --- |",
+        ]
+    )
+    for backend, availability in snapshot["availability"].items():
+        status = availability["status"]
+        if availability.get("reason"):
+            status += f": {availability['reason']}"
+        lines.append(f"| {backend} | {status} |")
 
 
 def append_quality_sections(lines: list[str], report: dict[str, object]) -> None:

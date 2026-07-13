@@ -64,27 +64,6 @@ RUN scripts/build-full-pos.sh /benchmark/full-pos \
     && strip tools/morph-compare/runner/target/release/morph-benchmark-runner
 
 FROM python:${PYTHON_VERSION}-slim-bookworm AS runtime
-ARG KIWIPIEPY_VERSION=0.23.2
-ARG KIWIPIEPY_MODEL_VERSION=0.23.0
-ARG NUMPY_VERSION=2.5.1
-ARG TQDM_VERSION=4.68.4
-RUN python -m pip install \
-    --disable-pip-version-check \
-    --no-cache-dir \
-    "kiwipiepy_model==${KIWIPIEPY_MODEL_VERSION}"
-RUN python -m pip install \
-    --disable-pip-version-check \
-    --no-cache-dir \
-    --only-binary=:all: \
-    "numpy==${NUMPY_VERSION}" \
-    "tqdm==${TQDM_VERSION}" \
-    && python -m pip install \
-        --disable-pip-version-check \
-        --no-cache-dir \
-        --no-deps \
-        --only-binary=:all: \
-        "kiwipiepy==${KIWIPIEPY_VERSION}"
-
 COPY --from=runner-builder \
     /src/tools/morph-compare/runner/target/release/morph-benchmark-runner \
     /usr/local/bin/morph-benchmark-runner
@@ -98,6 +77,7 @@ COPY tools/morph-compare/blind_benchmark.py /opt/morph-benchmark/blind_benchmark
 COPY tools/morph-compare/unseen_benchmark.py /opt/morph-benchmark/unseen_benchmark.py
 COPY tools/morph-compare/test_unseen_benchmark.py /opt/morph-benchmark/test_unseen_benchmark.py
 COPY tools/morph-compare/hard-negatives.jsonl /opt/morph-benchmark/hard-negatives.jsonl
+COPY tools/morph-compare/external/baselines.json /opt/morph-benchmark/external-baselines.json
 COPY tools/morph-compare/python /opt/morph-benchmark/python
 COPY tools/morph-compare/sources.json /opt/morph-benchmark/sources.json
 
