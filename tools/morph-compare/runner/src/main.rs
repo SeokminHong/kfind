@@ -56,6 +56,7 @@ struct Summary {
     backend: String,
     version: String,
     profile: Option<String>,
+    boundary: Option<String>,
     lexicon_artifact_sha256: Option<String>,
     morphology_artifact_sha256: Option<String>,
     component_artifact_sha256: Option<String>,
@@ -107,6 +108,13 @@ enum KfindProfile {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum KfindBoundary {
+    Smart,
+    Token,
+    Any,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum StartupProfile {
     Embedded,
     EmbeddedComponent,
@@ -144,6 +152,14 @@ impl StartupProfile {
 }
 
 impl KfindProfile {
+    fn parse(value: &str) -> Result<Self> {
+        match value {
+            "embedded" | "kfind-embedded" => Ok(Self::Embedded),
+            "full-pos" | "kfind-full-pos" => Ok(Self::FullPos),
+            _ => bail!("unknown kfind profile {value:?}"),
+        }
+    }
+
     const fn name(self) -> &'static str {
         match self {
             Self::Embedded => "embedded",
@@ -152,12 +168,63 @@ impl KfindProfile {
     }
 }
 
+impl KfindBoundary {
+    fn parse(value: &str) -> Result<Self> {
+        match value {
+            "smart" => Ok(Self::Smart),
+            "token" => Ok(Self::Token),
+            "any" => Ok(Self::Any),
+            _ => bail!("unknown boundary policy {value:?}"),
+        }
+    }
+
+    const fn name(self) -> &'static str {
+        match self {
+            Self::Smart => "smart",
+            Self::Token => "token",
+            Self::Any => "any",
+        }
+    }
+
+    const fn policy(self) -> BoundaryPolicy {
+        match self {
+            Self::Smart => BoundaryPolicy::Smart,
+            Self::Token => BoundaryPolicy::Token,
+            Self::Any => BoundaryPolicy::Any,
+        }
+    }
+
+    const fn requires_component(self) -> bool {
+        matches!(self, Self::Smart)
+    }
+}
+
 fn main() -> Result<()> {
     let arguments = std::env::args().skip(1).collect::<Vec<_>>();
+    if arguments
+        .first()
+        .is_some_and(|argument| argument == "boundary")
+    {
+        if arguments.len() != 5 {
+            bail!(
+                "usage: morph-benchmark-runner boundary PROFILE BOUNDARY CASES.jsonl OUTPUT.json"
+            );
+        }
+        let cases = load_cases(Path::new(&arguments[3]))?;
+        let summary = run_kfind(
+            &cases,
+            KfindProfile::parse(&arguments[1])?,
+            KfindBoundary::parse(&arguments[2])?,
+            false,
+        )?;
+        serde_json::to_writer_pretty(BufWriter::new(File::create(&arguments[4])?), &summary)?;
+        return Ok(());
+    }
     if arguments.len() != 3 {
         bail!(
             "usage: morph-benchmark-runner BACKEND CASES.jsonl OUTPUT.json\n\
-             or: morph-benchmark-runner startup PROFILE OUTPUT.json"
+             or: morph-benchmark-runner startup PROFILE OUTPUT.json\n\
+             or: morph-benchmark-runner boundary PROFILE BOUNDARY CASES.jsonl OUTPUT.json"
         );
     }
     if arguments[0] == "startup" {
@@ -167,8 +234,10 @@ fn main() -> Result<()> {
     }
     let cases = load_cases(Path::new(&arguments[1]))?;
     let summary = match arguments[0].as_str() {
-        "kfind" | "kfind-embedded" => run_kfind(&cases, KfindProfile::Embedded)?,
-        "kfind-full-pos" => run_kfind(&cases, KfindProfile::FullPos)?,
+        "kfind" | "kfind-embedded" => {
+            run_kfind(&cases, KfindProfile::Embedded, KfindBoundary::Smart, true)?
+        }
+        "kfind-full-pos" => run_kfind(&cases, KfindProfile::FullPos, KfindBoundary::Smart, true)?,
         "lindera" => run_lindera(&cases)?,
         backend => bail!("unknown backend {backend:?}"),
     };
@@ -244,23 +313,33 @@ fn load_cases(path: &Path) -> Result<Vec<Case>> {
         .collect()
 }
 
-fn run_kfind(cases: &[Case], profile: KfindProfile) -> Result<Summary> {
+fn run_kfind(
+    cases: &[Case],
+    profile: KfindProfile,
+    boundary: KfindBoundary,
+    include_diagnostics: bool,
+) -> Result<Summary> {
     let initialization_started = Instant::now();
-    let component_path = std::env::var_os(COMPONENT_RESOURCE_ENV)
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|| COMPONENT_RESOURCE.into());
-    let component_bytes = fs::read(&component_path).with_context(|| {
-        format!(
-            "kfind profile requires component resource {}",
-            component_path.display()
-        )
-    })?;
-    let component_artifact_sha256 = format!("{:x}", Sha256::digest(&component_bytes));
-    let component_resource = Arc::new(decode_component_resource(
-        &component_path.display().to_string(),
-        component_bytes,
-        &COMPONENT_RESOURCE_SOURCE_DIGEST,
-    )?);
+    let (component_resource, component_artifact_sha256) = if boundary.requires_component() {
+        let component_path = std::env::var_os(COMPONENT_RESOURCE_ENV)
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| COMPONENT_RESOURCE.into());
+        let component_bytes = fs::read(&component_path).with_context(|| {
+            format!(
+                "smart boundary requires component resource {}",
+                component_path.display()
+            )
+        })?;
+        let digest = format!("{:x}", Sha256::digest(&component_bytes));
+        let resource = decode_component_resource(
+            &component_path.display().to_string(),
+            component_bytes,
+            &COMPONENT_RESOURCE_SOURCE_DIGEST,
+        )?;
+        (Some(Arc::new(resource)), Some(digest))
+    } else {
+        (None, None)
+    };
     let (lexicons, lexicon_artifact_sha256) = match profile {
         KfindProfile::Embedded => (Lexicons::embedded()?, None),
         KfindProfile::FullPos => {
@@ -287,19 +366,56 @@ fn run_kfind(cases: &[Case], profile: KfindProfile) -> Result<Summary> {
     for case in cases {
         let case_started = Instant::now();
         let options = CompileOptions::resolve(CompileOptionOverrides {
+            boundary: Some(boundary.policy()),
             pos: Some(parse_pos(&case.pos)?),
             ..CompileOptionOverrides::default()
         })?;
         let plan = compile_query(&case.query, &options, &analyzer)
             .with_context(|| format!("failed to compile case {}", case.id))?;
-        let matcher =
-            MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(&component_resource))?;
+        let matcher = match &component_resource {
+            Some(resource) => {
+                MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(resource))?
+            }
+            None => MorphMatcher::new(Arc::new(plan))?,
+        };
         let spans = find_all_spans(&matcher, &case.text);
         let latency_ms = case_started.elapsed().as_secs_f64() * 1_000.0;
-        results.push(json!({"id": case.id, "latency_ms": latency_ms, "spans": spans}));
+        results.push(json!({
+            "id": case.id,
+            "latency_ms": latency_ms,
+            "spans": spans,
+            "failure_diagnostic": null,
+            "shadow_verification": {},
+        }));
     }
     let evaluation_seconds = evaluation_started.elapsed().as_secs_f64();
     let peak_rss_kib = peak_rss_kib();
+    let morphology_artifact_sha256 = if include_diagnostics {
+        append_kfind_diagnostics(cases, &mut results, &analyzer, &component_resource)?
+    } else {
+        None
+    };
+    Ok(Summary {
+        backend: "kfind".to_owned(),
+        version: env!("CARGO_PKG_VERSION").to_owned(),
+        profile: Some(profile.name().to_owned()),
+        boundary: Some(boundary.name().to_owned()),
+        lexicon_artifact_sha256,
+        morphology_artifact_sha256,
+        component_artifact_sha256,
+        initialization_seconds,
+        evaluation_seconds,
+        peak_rss_kib,
+        results,
+    })
+}
+
+fn append_kfind_diagnostics(
+    cases: &[Case],
+    results: &mut [Value],
+    analyzer: &LexiconQueryAnalyzer,
+    component_resource: &Option<Arc<kfind_data::ComponentResource>>,
+) -> Result<Option<String>> {
     let morphology_path = std::env::var_os(MORPHOLOGY_RESOURCE_ENV)
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| MORPHOLOGY_RESOURCE.into());
@@ -339,28 +455,21 @@ fn run_kfind(cases: &[Case], profile: KfindProfile) -> Result<Summary> {
         Some(Err(_)) => ShadowResource::Corrupt,
         None => ShadowResource::Missing,
     };
-    let component_shadow_resource = ShadowResource::Loaded(component_resource.as_ref());
-    for (case, result) in cases.iter().zip(&mut results) {
-        result["failure_diagnostic"] = serde_json::to_value(diagnose_failure(case, &analyzer)?)?;
+    let component_shadow_resource = component_resource
+        .as_deref()
+        .map_or(ShadowResource::Missing, |resource| {
+            ShadowResource::Loaded(resource)
+        });
+    for (case, result) in cases.iter().zip(results.iter_mut()) {
+        result["failure_diagnostic"] = serde_json::to_value(diagnose_failure(case, analyzer)?)?;
         result["shadow_verification"] = serde_json::to_value(diagnose_verification(
             case,
-            &analyzer,
+            analyzer,
             shadow_resource,
             component_shadow_resource,
         )?)?;
     }
-    Ok(Summary {
-        backend: "kfind".to_owned(),
-        version: env!("CARGO_PKG_VERSION").to_owned(),
-        profile: Some(profile.name().to_owned()),
-        lexicon_artifact_sha256,
-        morphology_artifact_sha256,
-        component_artifact_sha256: Some(component_artifact_sha256),
-        initialization_seconds,
-        evaluation_seconds,
-        peak_rss_kib,
-        results,
-    })
+    Ok(morphology_artifact_sha256)
 }
 
 fn diagnose_verification(
@@ -575,6 +684,7 @@ fn run_lindera(cases: &[Case]) -> Result<Summary> {
         backend: "lindera".to_owned(),
         version: "4.0.0".to_owned(),
         profile: None,
+        boundary: None,
         lexicon_artifact_sha256: None,
         morphology_artifact_sha256: None,
         component_artifact_sha256: None,
@@ -629,6 +739,14 @@ mod tests {
             gold_byte_start: Some(0),
             gold_byte_end: Some(text.len()),
         }
+    }
+
+    #[test]
+    fn only_smart_boundary_requires_the_component_resource() {
+        assert!(KfindBoundary::parse("smart").unwrap().requires_component());
+        assert!(!KfindBoundary::parse("token").unwrap().requires_component());
+        assert!(!KfindBoundary::parse("any").unwrap().requires_component());
+        assert!(KfindBoundary::parse("non-smart").is_err());
     }
 
     #[test]

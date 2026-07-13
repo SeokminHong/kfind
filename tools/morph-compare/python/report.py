@@ -168,7 +168,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 9,
+        "schema_version": 10,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "versions": versions,
@@ -278,6 +278,7 @@ def render_markdown(report: dict[str, object]) -> str:
             f"`{component}` |"
         )
     append_quality_sections(lines, report)
+    append_boundary_comparison(lines, report.get("boundary_comparison"))
     append_component_startup(lines, report.get("component_startup"))
     append_shadow_verification(lines, report)
     append_profile_comparison(lines, report)
@@ -346,6 +347,43 @@ def append_performance(lines: list[str], report: dict[str, object]) -> None:
             f"[{metrics['run_min']['latency_p95_ms']}, {metrics['run_max']['latency_p95_ms']}] | "
             f"{rss_text} {rss_range} |"
         )
+
+
+def append_boundary_comparison(
+    lines: list[str], comparison: dict[str, object] | None
+) -> None:
+    if comparison is None:
+        return
+    lines.extend(
+        [
+            "",
+            "## Boundary policy comparison",
+            "",
+            "The same fixture is compiled and matched for every profile. Smart loads the "
+            "component resource; token and any do not.",
+            "",
+            "| profile | boundary | precision | recall | F1 | init median | cases/s median [min, max] | p95 median [min, max] | peak RSS |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for profile, results in comparison["profiles"].items():
+        for boundary in comparison["boundaries"]:
+            result = results[boundary]
+            quality = result["quality"]
+            performance = result["performance"]
+            rss = performance["peak_rss_kib"]
+            rss_text = f"{rss / 1024:.1f} MiB" if rss is not None else "n/a"
+            lines.append(
+                f"| {profile} | {boundary} | {quality['precision_percent']}% | "
+                f"{quality['recall_percent']}% | {quality['f1_percent']}% | "
+                f"{performance['initialization_seconds']:.4f}s | "
+                f"{performance['cases_per_second']} "
+                f"[{performance['run_min']['cases_per_second']}, "
+                f"{performance['run_max']['cases_per_second']}] | "
+                f"{performance['latency_p95_ms']}ms "
+                f"[{performance['run_min']['latency_p95_ms']}, "
+                f"{performance['run_max']['latency_p95_ms']}] | {rss_text} |"
+            )
 
 
 def append_component_startup(

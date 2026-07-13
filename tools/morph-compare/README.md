@@ -44,7 +44,8 @@ Render the committed report charts from the same JSON:
 
 ```sh
 python3 tools/morph-compare/render_charts.py \
-  target/morph-benchmark/report.json docs/benchmarks/assets
+  target/morph-benchmark/report.json docs/benchmarks/assets \
+  --prefix smart-component-
 ```
 
 See the [comparison analysis](../../docs/benchmarks/2026-07-12-morphology-comparison.md)
@@ -76,7 +77,9 @@ candidates, and unique analysis windows per case outside the timed evaluation.
 
 Performance covers each backend's end-to-end query-to-decision workload and
 reports the median and min/max across measured runs. It is not a tokenizer-only
-throughput comparison. A separate startup table compares resource-less embedded
-and full-POS engines with the same engines after explicit component loading.
+throughput comparison. The full test report also compares smart, token, and any
+for both kfind lexicon profiles; only smart loads the component resource. A
+separate startup table compares resource-less embedded and full-POS engines with
+the same engines after explicit component loading.
 Each startup profile runs in a fresh process after one warm-up and records at
 least three initialization-time and peak-RSS samples.

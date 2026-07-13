@@ -23,7 +23,7 @@ from python.adapters import (
     lindera_candidates,
     spans_overlap,
 )
-from python.report import KFIND_PROFILES, build_report, render_markdown
+from python.report import KFIND_PROFILES, build_report, quality_metrics, render_markdown
 from python.validation import (
     load_cases,
     select_smoke_cases,
@@ -54,6 +54,7 @@ STARTUP_PROFILES = (
     "full-pos",
     "full-pos-component",
 )
+BOUNDARY_POLICIES = ("smart", "token", "any")
 
 
 def run_native_backend(
@@ -69,6 +70,31 @@ def run_native_backend(
         if result.returncode != 0:
             raise RuntimeError(
                 f"{backend} runner failed with exit {result.returncode}: "
+                f"{result.stderr.strip()}"
+            )
+        return json.loads(output.read_text(encoding="utf-8"))
+
+
+def run_native_boundary_profile(
+    runner: Path, profile: str, boundary: str, cases_path: Path
+) -> dict[str, object]:
+    with tempfile.TemporaryDirectory() as directory:
+        output = Path(directory) / f"{profile}-{boundary}.json"
+        result = subprocess.run(
+            [
+                str(runner),
+                "boundary",
+                profile,
+                boundary,
+                str(cases_path),
+                str(output),
+            ],
+            text=True,
+            capture_output=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"{profile}/{boundary} runner failed with exit {result.returncode}: "
                 f"{result.stderr.strip()}"
             )
         return json.loads(output.read_text(encoding="utf-8"))
@@ -358,6 +384,82 @@ def evaluate_kfind_runs(
     )
 
 
+def evaluate_boundary_profile_runs(
+    cases: list[dict[str, object]],
+    runner: Path,
+    profile: str,
+    boundary: str,
+    cases_path: Path,
+    runs: int,
+) -> tuple[dict[str, bool], dict[str, object], dict[str, object]]:
+    run_native_boundary_profile(runner, profile, boundary, cases_path)
+    evaluations = []
+    summaries = []
+    for _ in range(runs):
+        summary = run_native_boundary_profile(runner, profile, boundary, cases_path)
+        summaries.append(summary)
+        evaluations.append(evaluate_kfind(cases, summary, f"{profile}/{boundary}"))
+    first = evaluations[0]
+    for evaluation in evaluations[1:]:
+        if evaluation[0] != first[0] or evaluation[1] != first[1]:
+            raise ValueError(
+                f"{profile}/{boundary} predictions changed between measured runs"
+            )
+    expected_component = boundary == "smart"
+    if any(
+        summary["profile"] != profile
+        or summary["boundary"] != boundary
+        or (summary["component_artifact_sha256"] is not None)
+        != expected_component
+        for summary in summaries
+    ):
+        raise ValueError(f"{profile}/{boundary} resource state differs from its profile")
+    return (
+        first[0],
+        aggregate_performance(
+            [evaluation[2] for evaluation in evaluations], warmup_runs=1
+        ),
+        summaries[0],
+    )
+
+
+def evaluate_boundary_comparison(
+    cases: list[dict[str, object]],
+    cases_path: Path,
+    runner: Path,
+    runs: int,
+    baseline: dict[str, object],
+) -> dict[str, object]:
+    profiles = {}
+    for backend in KFIND_PROFILES:
+        profile = backend.removeprefix("kfind-")
+        results = {
+            "smart": {
+                "quality": quality_metrics(cases, baseline["predictions"][backend]),
+                "performance": baseline["performance"][backend],
+                "component_resource_loaded": (
+                    baseline["versions"][backend]["component_artifact_sha256"]
+                    is not None
+                ),
+            }
+        }
+        for boundary in BOUNDARY_POLICIES[1:]:
+            predictions, performance_metrics, summary = evaluate_boundary_profile_runs(
+                cases, runner, profile, boundary, cases_path, runs
+            )
+            results[boundary] = {
+                "quality": quality_metrics(cases, predictions),
+                "performance": performance_metrics,
+                "component_resource_loaded": summary["component_artifact_sha256"]
+                is not None,
+            }
+        profiles[profile] = results
+    return {
+        "boundaries": list(BOUNDARY_POLICIES),
+        "profiles": profiles,
+    }
+
+
 def evaluate_lindera_runs(
     cases: list[dict[str, object]],
     runner: Path,
@@ -574,6 +676,9 @@ def main() -> int:
                 report["component_startup"] = evaluate_component_startup(
                     args.runner, args.runs
                 )
+                report["boundary_comparison"] = evaluate_boundary_comparison(
+                    smoke_cases, smoke_path, args.runner, 1, baseline
+                )
                 return write_report(args.output, report)
 
         baseline = evaluate_dataset(cases, args.cases, args.runner, args.runs, True)
@@ -631,6 +736,9 @@ def main() -> int:
         )
         report["component_startup"] = evaluate_component_startup(
             args.runner, args.runs
+        )
+        report["boundary_comparison"] = evaluate_boundary_comparison(
+            cases, args.cases, args.runner, args.runs, baseline
         )
         return write_report(args.output, report)
     except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:

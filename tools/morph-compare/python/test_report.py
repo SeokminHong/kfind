@@ -3,6 +3,7 @@ import unittest
 from report import (
     BACKENDS,
     KFIND_PROFILES,
+    append_boundary_comparison,
     append_component_shadow_table,
     append_component_startup,
     append_local_context_summary,
@@ -161,6 +162,44 @@ class ComponentStartupTests(unittest.TestCase):
         rendered = "\n".join(lines)
         self.assertIn("## Optional component startup", rendered)
         self.assertIn("| embedded | 3 | 0.0100s [0.0090, 0.0110] | n/a |", rendered)
+
+
+class BoundaryComparisonTests(unittest.TestCase):
+    def test_renders_quality_and_performance_for_each_policy(self) -> None:
+        performance = {
+            "runs": 5,
+            "initialization_seconds": 0.1,
+            "cases_per_second": 1000.0,
+            "latency_p95_ms": 0.5,
+            "peak_rss_kib": 10240,
+            "run_min": {"cases_per_second": 900.0, "latency_p95_ms": 0.4},
+            "run_max": {"cases_per_second": 1100.0, "latency_p95_ms": 0.6},
+        }
+        quality = {
+            "precision_percent": 99.0,
+            "recall_percent": 80.0,
+            "f1_percent": 88.49,
+        }
+        comparison = {
+            "boundaries": ["smart", "token", "any"],
+            "profiles": {
+                profile: {
+                    boundary: {"quality": quality, "performance": performance}
+                    for boundary in ("smart", "token", "any")
+                }
+                for profile in ("embedded", "full-pos")
+            },
+        }
+        lines: list[str] = []
+
+        append_boundary_comparison(lines, comparison)
+
+        rendered = "\n".join(lines)
+        self.assertIn("## Boundary policy comparison", rendered)
+        self.assertIn(
+            "| full-pos | any | 99.0% | 80.0% | 88.49% | 0.1000s |",
+            rendered,
+        )
 
 
 class ShadowVerificationTests(unittest.TestCase):
