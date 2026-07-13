@@ -230,6 +230,11 @@ hard-negative 10건은 그대로다.
 dev의 `불렀을` 1건과 `좋았을` 2건을 근거로 과거 선어말어미 뒤 관형형 `-을` 전이를
 보강했다. 띄어 쓴 2건만 회복하고 다른 boundary 규칙은 완화하지 않았다.
 
+지정사 dev slice의 FN 639개 중 `이+ㅂ니다` 분석은 Kaist 30개, KSL 94개다. 첫 지정사
+coverage 단위는 기존 `ending.polite-declarative`로 표면에 `입니다`가 남는 높임 평서형만
+생성한다. `겁니다`와 `-다/-라` 축약, local filtering은 별도 범위로 두며 union precision은
+P1의 2%p 하락 guardrail을 지켜야 한다.
+
 ### P2. benchmark의 판별력을 높인다 (완료)
 
 현재 negative는 쉬워 precision 차이가 거의 나타나지 않는다. 도구 출력과 독립적인 규칙으로
