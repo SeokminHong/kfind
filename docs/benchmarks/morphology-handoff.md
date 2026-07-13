@@ -108,7 +108,9 @@ development와 hard-negative에서 먼저 판정한다.
 
 1. full-POS `smart`의 development positive FN 64건을 원인·품사·rule path로 고정한다.
    `boundary-rejected`가 44건으로 가장 크고, 이 중 verb 14건과 adjective 6건을 첫 predicate
-   slice로 삼는다. fixture/report 계측만 추가하고 matcher는 바꾸지 않는다.
+   slice로 삼는다. JSON failure evidence에는 `any` match의 core·token span과 origin별 analysis
+   index·rule path를 보존하고, Markdown에는 full-POS FN의 원인×품사 집계와 predicate slice의
+   전체 case를 표시한다. fixture/report 계측만 추가하고 matcher는 바꾸지 않는다.
 2. predicate slice에서 공통 continuation을 찾으면 최소 positive 대조와 같은 표면형의
    hard-negative를 먼저 추가한다. development TP가 늘고 FP가 증가하지 않으며 기존
    hard-negative에 새 FP가 없을 때만 한 종류의 rule path를 제품 후보로 연다. held-out test는
