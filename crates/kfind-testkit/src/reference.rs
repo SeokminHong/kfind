@@ -134,16 +134,24 @@ impl ReferenceMatcher {
             BranchVerifier::Predicate {
                 continuation,
                 pos,
+                nominal_particle_transition,
                 environment,
                 ..
             } => {
                 if !accepts_environment(environment, text, start) {
                     return None;
                 }
-                let (consumed, rules) =
+                let (mut consumed, mut rules) =
                     reference_predicate_continuation(*continuation, *pos, verifier_following)?;
                 if !branch.verifier.accepts_rule_path(&rules) {
                     return None;
+                }
+                if *nominal_particle_transition {
+                    let host = format!("{verifier_anchor}{}", verifier_following.get(..consumed)?);
+                    let (particle_consumed, particle_rules) =
+                        self.reference_particles(&host, &verifier_following[consumed..]);
+                    consumed = consumed.checked_add(particle_consumed)?;
+                    rules.extend(particle_rules);
                 }
                 (consumed, rules)
             }

@@ -80,6 +80,10 @@ The report also records each `kfind` profile and artifact SHA-256, plus separate
 lists of recovered, still-missed, and newly regressed false negatives.
 Shadow verification records raw anchor hits, verified branch hits, local-lattice
 candidates, and unique analysis windows per case outside the timed evaluation.
+The Agent precision shadow separately records query POS, provenance,
+core/token/whole-token spans, exact analyses, and bounded-lattice include/exclude
+path presence for `embedded + any` matches. Cost ordering is not used for its
+projections.
 
 Current performance covers kfind's end-to-end query-to-decision workload and
 reports the median and min/max across measured runs. The product-persona

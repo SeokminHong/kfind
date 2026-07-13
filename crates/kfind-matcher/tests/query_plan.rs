@@ -188,6 +188,71 @@ fn compiled_nominal_plan_enforces_particle_transitions() {
 }
 
 #[test]
+fn compiled_gi_nominalizer_consumes_only_valid_particle_chains() {
+    for boundary in [BoundaryPolicy::Smart, BoundaryPolicy::Token] {
+        let matcher = compile(
+            "걷다",
+            CompileOptions {
+                boundary,
+                ..CompileOptions::default()
+            },
+        );
+        for (text, token) in [
+            ("매일 걷기가 즐겁다.", "걷기가"),
+            ("오래 걷기를 권했다.", "걷기를"),
+            ("걷기에서도 배운다.", "걷기에서도"),
+        ] {
+            let matched = matcher
+                .find_at_with_meta(text.as_bytes(), 0)
+                .unwrap_or_else(|| panic!("rejected nominalized particle chain {text}"));
+            let atom = &matched.atoms[0];
+            assert_eq!(&text[atom.token.clone()], token);
+            assert!(
+                atom.origins[0]
+                    .rule_path
+                    .iter()
+                    .any(|rule| rule.as_str() == "ending.nominalizer-gi")
+            );
+            assert!(
+                atom.origins[0]
+                    .rule_path
+                    .iter()
+                    .any(|rule| rule.as_str().starts_with("particle."))
+            );
+        }
+
+        for text in [
+            "걷기이 어렵다.",
+            "걷기을 권했다.",
+            "걷기으로 충분하다.",
+            "걷기가를 권했다.",
+        ] {
+            assert!(
+                matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+                "accepted invalid nominalized particle chain {text}"
+            );
+        }
+    }
+}
+
+#[test]
+fn any_boundary_keeps_invalid_suffix_candidates_and_extends_valid_tokens() {
+    let matcher = compile(
+        "걷다",
+        CompileOptions {
+            boundary: BoundaryPolicy::Any,
+            ..CompileOptions::default()
+        },
+    );
+    let valid = "걷기가";
+    let matched = matcher
+        .find_at_with_meta(valid.as_bytes(), 0)
+        .expect("any boundary should retain a valid nominalizer candidate");
+    assert_eq!(&valid[matched.atoms[0].token.clone()], valid);
+    assert!(matcher.find_at_with_meta("걷기을".as_bytes(), 0).is_some());
+}
+
+#[test]
 fn compiled_phrase_plan_joins_verified_atoms_without_a_surface_product() {
     let mut options = CompileOptions::default();
     options.phrase.max_gap = 4;

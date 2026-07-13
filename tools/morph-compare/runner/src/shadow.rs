@@ -114,6 +114,29 @@ pub(super) fn diagnose_component_candidate(
     diagnose_candidate(candidate, resource)
 }
 
+#[allow(clippy::too_many_arguments)]
+pub(super) fn diagnose_agent_candidate(
+    atom_index: usize,
+    analysis_index: u16,
+    rule_path: Vec<kfind_morph::RuleId>,
+    fine_pos: FinePos,
+    target: std::ops::Range<usize>,
+    window: Result<kfind_matcher::AnalysisWindow, AnalysisWindowError>,
+    resource: &dyn LocalLatticeResource,
+) -> ShadowLatticeEvidence {
+    diagnose_candidate(
+        &LocalAnalysisCandidate {
+            atom_index,
+            analysis_index,
+            rule_path,
+            fine_pos,
+            target,
+            window,
+        },
+        ShadowResource::Loaded(resource),
+    )
+}
+
 fn diagnose_candidate(
     candidate: &LocalAnalysisCandidate,
     resource: ShadowResource<'_>,
@@ -255,7 +278,7 @@ fn data_fine_pos(pos: FinePos) -> Option<DataFinePos> {
     })
 }
 
-fn fine_pos_name(pos: FinePos) -> &'static str {
+pub(super) fn fine_pos_name(pos: FinePos) -> &'static str {
     match pos {
         FinePos::CommonNoun => "common-noun",
         FinePos::ProperNoun => "proper-noun",

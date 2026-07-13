@@ -177,6 +177,16 @@
 - precision 개선은 현재 `boundary=any`가 만드는 candidate 집합의 부분집합만 선택한다. `any`
   밖의 span을 새로 만들거나 coverage를 넓히는 변경은 이 작업 범위에서 제외한다. User profile을
   먼저 검증하고, Agent profile은 같은 상한 아래에서 후속 작업으로 다룬다.
+- Agent precision 후보 정책은 제품 동작에 넣기 전에 benchmark shadow로만 평가한다. shadow는
+  `embedded + any + 명시적 품사`의 결과를 입력으로 사용하며 candidate를 추가하지 않는다.
+  query 품사, 생성 근거와 rule path, core·token·whole-token span, exact whole-token 분석과 bounded
+  local lattice의 include/exclude 완전 경로 존재 여부를 성능 측정 구간 밖에서 기록한다.
+- Agent shadow의 규칙 선택에는 development와 hard-negative fixture만 사용한다. held-out test는
+  규칙을 고정한 뒤 한 번의 회귀 판정에만 사용한다. 제품 후보는 User test precision 100.00%와
+  Agent의 기존 true positive를 보존하고 false positive를 줄이며 hard-negative의 새 false
+  positive가 없을 때만 검토한다. 비용 우열만으로 지정사 branch를 복구하거나 제거하지 않는다.
+- shadow 계측은 기존 `any` 결과, CLI 옵션과 resource 초기화 계약을 바꾸지 않는다. 제품 정책으로
+  승격할 때는 공개 profile과 필요한 resource의 시작 시간·RSS 계약을 별도로 정의한다.
 - 외부 분석기 성능은 각 backend를 fresh process에서 1회 warm-up 뒤 5회 측정해 품질 결과와 함께
   version-controlled snapshot에 저장한다. 기본 benchmark는 snapshot을 읽으며 test fixture,
   adapter·성능 schema 또는 고정 버전·설정이 바뀔 때만 외부 snapshot을 다시 측정한다. snapshot
@@ -911,15 +921,21 @@ special-ha, special-i, special-ani, special-o, special-itda
 - 의도 연결형 `-(으)려고`는 동작 용언에만 결합하고, 기존 불규칙 교체 뒤의 모음형 어간을 사용한다.
 - 진행 방향 보조 용언 `-아/어가다`는 `-아/어` branch 뒤의 `가고`, `가야`만 continuation으로 소비한다. `가` 자체나 목록 밖 후속 어미는 허용하지 않는다.
 - 과거 `-았/었` branch는 의문 종결형 `-느냐`와 이 종결형에 직접 붙는 주제 보조사 `는`까지 소비한다. 다른 조사나 추가 어미는 허용하지 않는다.
-- `-기` 명사형은 어휘적 교체 없이 사전 어간에 직접 결합
+- `-기` 명사형은 어휘적 교체 없이 사전 어간에 직접 결합하고, 이 규칙이 만든 terminal
+  predicate branch만 nominal particle verifier로 전이한다. verifier는 `기`를 모음 끝 host로
+  판정해 `가`, `를`, `는`, `와`, `로` 등의 올바른 이형태와 `data/rules/particles.toml`의
+  bounded 조사 연쇄만 소비한다. 다른 명사형·종결형·연결형 branch는 이 전이를 사용하지 않는다.
 - ㄹ 받침 뒤 특정 자음 어미에서의 ㄹ 탈락
 - 어간 말음 `ㅡ`와 `-아/-어` 결합
 - 모음 축약과 준말. `ㅕ` 말음 규칙 어간은 `-어`의 축약형도 보존한다 (`켜어`, `켜`).
 - 자음 어미의 종성 결합
 
-현재 `-기` 명사형 branch는 token 경계에서 끝나며 체언 조사 verifier로 전이하지 않는다.
-따라서 `걷다`는 `걷기`, `걷기 운동`을 찾지만 `걷기가`, `걷기를`은 찾지 않는다. 명사형 뒤
-조사 연쇄는 predicate nominalizer에서 nominal particle verifier로 전이하는 별도 후속 범위다.
+`-기` 명사형 뒤의 유효한 조사 연쇄는 predicate token의 일부로 소비한다. 따라서 `걷다`는
+`걷기`, `걷기 운동`, `걷기가`, `걷기를`, `걷기에서도`를 찾는다. `걷기이`, `걷기을`,
+`걷기으로`, case 조사 두 개를 잇는 `걷기가를`은 `smart`와 `token`에서 거부한다. `any`는 기존
+부분 문자열 candidate를 제거하지 않지만 유효한 조사 연쇄가 있으면 그 끝까지 token span을
+확장한다. query provenance에는 `ending.nominalizer-gi` 뒤에 소비한 조사 rule path를 순서대로
+남긴다.
 
 ### 9.4 어휘 사전이 필요한 교체
 
