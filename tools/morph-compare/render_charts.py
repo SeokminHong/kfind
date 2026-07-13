@@ -364,6 +364,164 @@ def render_product_workflows(report: dict[str, object]) -> str:
     )
 
 
+def render_product_use_cases(report: dict[str, object]) -> str:
+    workflows = report["product_use_cases"]["workflows"]
+    startup = report["component_startup"]
+    agent_color = COLORS["kfind-embedded"]
+    human_color = COLORS["kfind-full-pos"]
+    width, height = 1280, 800
+    body = [
+        text(52, 38, "Product use-case performance", anchor="start"),
+        text(
+            52,
+            62,
+            "Fresh CLI process · warm filesystem cache · 100 MiB across 1,000 files · one match",
+            "muted",
+        ),
+    ]
+
+    cli_panels = (
+        (
+            52,
+            "Wall time · ms · lower is better",
+            tuple(
+                (
+                    label,
+                    float(workflows[key]["performance"]["wall_seconds"]) * 1_000,
+                    color,
+                )
+                for label, key, color in (
+                    ("Agent", "agent", agent_color),
+                    ("Human", "human", human_color),
+                )
+            ),
+            lambda value: f"{value:.1f} ms",
+        ),
+        (
+            455,
+            "Throughput · MiB/s · higher is better",
+            tuple(
+                (
+                    label,
+                    float(workflows[key]["performance"]["throughput_mib_s"]),
+                    color,
+                )
+                for label, key, color in (
+                    ("Agent", "agent", agent_color),
+                    ("Human", "human", human_color),
+                )
+            ),
+            lambda value: f"{value:,.1f}",
+        ),
+        (
+            858,
+            "Peak RSS · MiB · lower is better",
+            tuple(
+                (
+                    label,
+                    float(workflows[key]["performance"]["peak_rss_kib"]) / 1024,
+                    color,
+                )
+                for label, key, color in (
+                    ("Agent", "agent", agent_color),
+                    ("Human", "human", human_color),
+                )
+            ),
+            lambda value: f"{value:.1f} MiB",
+        ),
+    )
+    for panel_x, label, rows, formatter in cli_panels:
+        body.append(text(panel_x, 112, label))
+        maximum = max(value for _, value, _ in rows) * 1.08
+        for index, (row_label, value, color) in enumerate(rows):
+            row_y = 144 + index * 64
+            body.append(text(panel_x, row_y + 24, row_label))
+            body.append(
+                rect(
+                    panel_x + 72,
+                    row_y + 7,
+                    198 * value / maximum,
+                    25,
+                    color,
+                )
+            )
+            body.append(text(panel_x + 280, row_y + 25, formatter(value)))
+
+    library_profiles = (
+        ("embedded", "Embedded", agent_color),
+        ("embedded-component", "Embedded + component", agent_color),
+        ("full-pos", "Full-POS", human_color),
+        ("full-pos-component", "Full-POS + component", human_color),
+    )
+    library_panels = (
+        (
+            52,
+            "Library initialization · ms · lower is better",
+            tuple(
+                (
+                    label,
+                    float(startup[key]["initialization_seconds"]) * 1_000,
+                    color,
+                )
+                for key, label, color in library_profiles
+            ),
+            lambda value: f"{value:.1f} ms",
+        ),
+        (
+            680,
+            "Library peak RSS · MiB · lower is better",
+            tuple(
+                (
+                    label,
+                    float(startup[key]["peak_rss_kib"]) / 1024,
+                    color,
+                )
+                for key, label, color in library_profiles
+            ),
+            lambda value: f"{value:.1f} MiB",
+        ),
+    )
+    for panel_x, label, rows, formatter in library_panels:
+        body.append(text(panel_x, 374, label))
+        maximum = max(value for _, value, _ in rows) * 1.08
+        for index, (row_label, value, color) in enumerate(rows):
+            row_y = 406 + index * 58
+            body.append(text(panel_x, row_y + 24, row_label))
+            body.append(
+                rect(
+                    panel_x + 190,
+                    row_y + 7,
+                    235 * value / maximum,
+                    25,
+                    color,
+                )
+            )
+            body.append(text(panel_x + 435, row_y + 25, formatter(value)))
+
+    body.extend(
+        [
+            rect(52, 710, 16, 16, agent_color, 2),
+            text(76, 723, "Agent / embedded resource path"),
+            rect(390, 710, 16, 16, human_color, 2),
+            text(414, 723, "Human / full-POS resource path"),
+            text(
+                1228,
+                723,
+                "CLI wall time includes startup, scan, verification, and output serialization",
+                "muted",
+                "end",
+            ),
+        ]
+    )
+    return svg_document(
+        width,
+        height,
+        "Product use-case performance",
+        "Fresh-process agent and human CLI wall time, throughput, and peak RSS are shown separately from library resource initialization and memory costs.",
+        body,
+    )
+
+
 def render_boundary_quality(report: dict[str, object]) -> str:
     width, height = 1280, 680
     left, right, top, bottom = 80, 32, 86, 116
@@ -582,6 +740,10 @@ def main() -> None:
     if "product_workflows" in report:
         (args.output / f"{args.prefix}product-workflows.svg").write_text(
             render_product_workflows(report), encoding="utf-8"
+        )
+    if "product_use_cases" in report:
+        (args.output / f"{args.prefix}product-use-cases.svg").write_text(
+            render_product_use_cases(report), encoding="utf-8"
         )
     if "boundary_comparison" in report:
         (args.output / f"{args.prefix}boundary-quality.svg").write_text(
