@@ -325,16 +325,11 @@ fn collect_line_matches(
     bytes: &[u8],
     limit: usize,
 ) -> Result<Vec<PhraseMatch>, InputSearchError> {
-    let mut matches = Vec::new();
-    let mut at = 0;
-    while let Some(matched) = matcher.find_at_with_meta(bytes, at) {
-        if matches.len() == limit {
-            return Err(InputSearchError::MatchLimitExceeded { limit });
-        }
-        at = matched.span.end;
-        matches.push(matched);
-    }
-    Ok(matches)
+    matcher
+        .find_all_with_meta_limit(bytes, limit)
+        .map_err(|error| InputSearchError::MatchLimitExceeded {
+            limit: error.limit(),
+        })
 }
 
 #[derive(Debug)]

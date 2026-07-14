@@ -5,7 +5,14 @@ use kfind_query::{PhraseMatch, PhrasePolicy, VerifiedSpan};
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(super) enum PhraseMatchLimit {
     First,
+    Bounded(usize),
     All,
+}
+
+#[derive(Clone, Debug)]
+pub(super) struct PhraseSelection {
+    pub matches: Vec<PhraseMatch>,
+    pub limit_exceeded: bool,
 }
 
 pub(super) fn select_phrase_matches(
@@ -13,9 +20,12 @@ pub(super) fn select_phrase_matches(
     atom_spans: &[Vec<VerifiedSpan>],
     policy: PhrasePolicy,
     limit: PhraseMatchLimit,
-) -> Vec<PhraseMatch> {
+) -> PhraseSelection {
     if atom_spans.is_empty() || atom_spans.iter().any(Vec::is_empty) {
-        return Vec::new();
+        return PhraseSelection {
+            matches: Vec::new(),
+            limit_exceeded: false,
+        };
     }
 
     let text_index = TextIndex::new(text, atom_spans);
@@ -81,7 +91,7 @@ fn collect_matches(
     atom_spans: &[Vec<VerifiedSpan>],
     suffixes: &[Vec<Option<SuffixState>>],
     limit: PhraseMatchLimit,
-) -> Vec<PhraseMatch> {
+) -> PhraseSelection {
     let first_spans = &atom_spans[0];
     let mut matches = Vec::new();
     let mut cursor = 0;
@@ -111,6 +121,12 @@ fn collect_matches(
             first_index = group_end;
             continue;
         };
+        if matches!(limit, PhraseMatchLimit::Bounded(maximum) if matches.len() == maximum) {
+            return PhraseSelection {
+                matches,
+                limit_exceeded: true,
+            };
+        }
         let matched = reconstruct_match(best.span_index, atom_spans, suffixes);
         cursor = matched.span.end;
         matches.push(matched);
@@ -120,7 +136,10 @@ fn collect_matches(
         first_index = group_end;
     }
 
-    matches
+    PhraseSelection {
+        matches,
+        limit_exceeded: false,
+    }
 }
 
 fn reconstruct_match(
@@ -298,7 +317,8 @@ mod tests {
             &atom_spans,
             PhrasePolicy { max_gap: 128 },
             PhraseMatchLimit::All,
-        );
+        )
+        .matches;
 
         assert_eq!(matches.len(), 1);
         assert_eq!(matches[0].span, 0..128);
@@ -317,6 +337,7 @@ mod tests {
                 PhrasePolicy { max_gap: 10 },
                 PhraseMatchLimit::All,
             )
+            .matches
             .is_empty()
         );
     }
@@ -356,7 +377,7 @@ mod tests {
                 &atom_spans,
                 policy,
                 PhraseMatchLimit::All,
-            );
+            ).matches;
             prop_assert_eq!(selected.clone(), exhaustive.clone());
 
             let first = select_phrase_matches(
@@ -364,7 +385,7 @@ mod tests {
                 &atom_spans,
                 policy,
                 PhraseMatchLimit::First,
-            );
+            ).matches;
             prop_assert_eq!(first, exhaustive.into_iter().take(1).collect::<Vec<_>>());
         }
     }

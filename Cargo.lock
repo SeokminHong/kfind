@@ -705,6 +705,7 @@ dependencies = [
  "kfind-matcher",
  "kfind-morph",
  "kfind-query",
+ "kfind-search",
  "unicode-general-category",
  "unicode-normalization",
 ]

@@ -26,7 +26,7 @@ mod phrase;
 
 pub use candidates::LocalAnalysisCandidate;
 use context::LexicalContextAnalysis;
-use phrase::{PhraseMatchLimit, select_phrase_matches};
+use phrase::{PhraseMatchLimit, PhraseSelection, select_phrase_matches};
 
 const MAX_VERIFIER_BYTES: usize = 256;
 
@@ -48,6 +48,18 @@ pub struct VerificationCounters {
     pub verified_branch_hits: usize,
     pub nominal_component_candidate_hits: usize,
     pub unique_component_windows: usize,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct MatchLimitExceeded {
+    limit: usize,
+}
+
+impl MatchLimitExceeded {
+    #[must_use]
+    pub const fn limit(self) -> usize {
+        self.limit
+    }
 }
 
 impl MorphMatcher {
@@ -159,7 +171,9 @@ impl MorphMatcher {
     #[must_use]
     pub fn find_all_with_meta(&self, haystack: &[u8]) -> Vec<PhraseMatch> {
         if self.plan.atoms.len() > 1 {
-            return self.find_all_phrases_with_meta(haystack);
+            return self
+                .find_phrases_with_meta(haystack, PhraseMatchLimit::All)
+                .matches;
         }
         let mut matches = Vec::new();
         let mut at = 0;
@@ -170,15 +184,38 @@ impl MorphMatcher {
         matches
     }
 
-    fn find_all_phrases_with_meta(&self, haystack: &[u8]) -> Vec<PhraseMatch> {
+    /// Recomputes up to `limit` non-overlapping matches and morphology provenance.
+    ///
+    /// Returns an error as soon as the matcher proves that another match exists.
+    pub fn find_all_with_meta_limit(
+        &self,
+        haystack: &[u8],
+        limit: usize,
+    ) -> Result<Vec<PhraseMatch>, MatchLimitExceeded> {
+        if self.plan.atoms.len() > 1 {
+            let selection = self.find_phrases_with_meta(haystack, PhraseMatchLimit::Bounded(limit));
+            return if selection.limit_exceeded {
+                Err(MatchLimitExceeded { limit })
+            } else {
+                Ok(selection.matches)
+            };
+        }
+        let mut matches = Vec::new();
+        let mut at = 0;
+        while let Some(matched) = self.find_at_with_meta(haystack, at) {
+            if matches.len() == limit {
+                return Err(MatchLimitExceeded { limit });
+            }
+            at = matched.span.end;
+            matches.push(matched);
+        }
+        Ok(matches)
+    }
+
+    fn find_phrases_with_meta(&self, haystack: &[u8], limit: PhraseMatchLimit) -> PhraseSelection {
         let text = phrase_join_text(haystack);
         let atom_spans = self.collect_atom_spans(haystack, 0, MatchMetadata::Provenance);
-        select_phrase_matches(
-            &text,
-            &atom_spans,
-            self.plan.phrase_policy,
-            PhraseMatchLimit::All,
-        )
+        select_phrase_matches(&text, &atom_spans, self.plan.phrase_policy, limit)
     }
 
     #[must_use]
@@ -272,6 +309,7 @@ impl MorphMatcher {
             self.plan.phrase_policy,
             PhraseMatchLimit::First,
         )
+        .matches
         .into_iter()
         .next()
     }

@@ -17,6 +17,7 @@ unicode-normalization.workspace = true
 
 [dev-dependencies]
 criterion.workspace = true
+kfind-search.workspace = true
 
 [[bench]]
 name = "query_matcher"
