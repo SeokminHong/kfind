@@ -1,5 +1,5 @@
 {
-  "extends": "@seokminhong/configs/tsconfig/browser",
+  "extends": "@seokminhong/configs/tsconfig/react",
   "compilerOptions": {
     "noEmit": true,
     "types": ["vite/client"]

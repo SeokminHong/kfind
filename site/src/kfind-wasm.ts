@@ -62,6 +62,7 @@ interface KfindMatcher {
 
 export interface KfindEngine {
   compile: (query: string, options: CompileOptions) => KfindMatcher;
+  free: () => void;
   loadComponentResource: (componentResource: Uint8Array) => void;
   readonly componentResourceLoaded: boolean;
 }
@@ -105,8 +106,9 @@ export function findMatches(
 
 export async function loadComponentResource(
   engine: KfindEngine,
+  signal?: AbortSignal,
 ): Promise<number> {
-  const response = await fetch('/api/component-resource');
+  const response = await fetch('/api/component-resource', { signal });
 
   if (!response.ok) {
     throw new Error(

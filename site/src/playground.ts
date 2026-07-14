@@ -85,13 +85,15 @@ const presets: Readonly<Record<PresetName, Preset>> = {
   },
 };
 
-export async function initializePlayground(): Promise<void> {
-  const elements = collectElements();
+export function initializePlayground(root: ParentNode): () => void {
+  const elements = collectElements(root);
+  const controller = new AbortController();
+  const { signal } = controller;
   let engine: KfindEngine | undefined;
   let pendingRun: ReturnType<typeof globalThis.setTimeout> | undefined;
 
   const run = (): void => {
-    if (engine === undefined) {
+    if (engine === undefined || signal.aborted) {
       return;
     }
 
@@ -103,19 +105,27 @@ export async function initializePlayground(): Promise<void> {
     pendingRun = globalThis.setTimeout(run, 120);
   };
 
-  elements.form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    globalThis.clearTimeout(pendingRun);
-    run();
-  });
+  elements.form.addEventListener(
+    'submit',
+    (event) => {
+      event.preventDefault();
+      globalThis.clearTimeout(pendingRun);
+      run();
+    },
+    { signal },
+  );
 
-  elements.resourceButton.addEventListener('click', () => {
-    if (engine === undefined) {
-      return;
-    }
+  elements.resourceButton.addEventListener(
+    'click',
+    () => {
+      if (engine === undefined) {
+        return;
+      }
 
-    void enableComponentResource(engine, elements, run);
-  });
+      void enableComponentResource(engine, elements, run, signal);
+    },
+    { signal },
+  );
 
   for (const input of [
     elements.query,
@@ -126,44 +136,68 @@ export async function initializePlayground(): Promise<void> {
     elements.normalization,
     elements.maxGap,
   ]) {
-    input.addEventListener('input', () => {
-      updateTextCount(elements);
-      scheduleRun();
-    });
+    input.addEventListener(
+      'input',
+      () => {
+        updateTextCount(elements);
+        scheduleRun();
+      },
+      { signal },
+    );
   }
 
-  for (const button of document.querySelectorAll<HTMLButtonElement>(
+  for (const button of root.querySelectorAll<HTMLButtonElement>(
     '[data-preset]',
   )) {
-    button.addEventListener('click', () => {
-      const presetName = parseEnum(button.dataset.preset ?? '', PresetName);
+    button.addEventListener(
+      'click',
+      () => {
+        const presetName = parseEnum(button.dataset.preset ?? '', PresetName);
 
-      if (presetName === undefined) {
-        return;
-      }
+        if (presetName === undefined) {
+          return;
+        }
 
-      applyPreset(elements, presets[presetName]);
-      run();
-    });
+        applyPreset(elements, presets[presetName]);
+        run();
+      },
+      { signal },
+    );
   }
 
   updateTextCount(elements);
   setState(elements, PlaygroundState.Loading, 'WASM engine을 불러오는 중…');
 
-  try {
-    const loaded = await loadKfind();
-    engine = loaded.engine;
-    setControlsEnabled(elements);
-    setState(
-      elements,
-      PlaygroundState.Ready,
-      `WASM ready · embedded lexicon · ${loaded.loadMilliseconds.toFixed(0)} ms`,
-    );
-    run();
-  } catch (error) {
-    setState(elements, PlaygroundState.Error, readableError(error));
-    renderError(elements, error);
-  }
+  void loadKfind()
+    .then((loaded) => {
+      if (signal.aborted) {
+        loaded.engine.free();
+        return;
+      }
+
+      engine = loaded.engine;
+      setControlsEnabled(elements);
+      setState(
+        elements,
+        PlaygroundState.Ready,
+        `WASM ready · embedded lexicon · ${loaded.loadMilliseconds.toFixed(0)} ms`,
+      );
+      run();
+    })
+    .catch((error: unknown) => {
+      if (signal.aborted) {
+        return;
+      }
+
+      setState(elements, PlaygroundState.Error, readableError(error));
+      renderError(elements, error);
+    });
+
+  return () => {
+    controller.abort();
+    globalThis.clearTimeout(pendingRun);
+    engine?.free();
+  };
 }
 
 function executeSearch(
@@ -199,6 +233,7 @@ async function enableComponentResource(
   engine: KfindEngine,
   elements: PlaygroundElements,
   rerun: () => void,
+  signal: AbortSignal,
 ): Promise<void> {
   if (engine.componentResourceLoaded) {
     rerun();
@@ -210,12 +245,19 @@ async function enableComponentResource(
   elements.resourceStatus.textContent = 'R2에서 component asset을 받는 중…';
 
   try {
-    const byteLength = await loadComponentResource(engine);
+    const byteLength = await loadComponentResource(engine, signal);
+    if (signal.aborted) {
+      return;
+    }
     elements.resourceStatus.dataset.state = 'ready';
     elements.resourceStatus.textContent = `${formatMebibytes(byteLength)} MiB load·검증 완료`;
     elements.resourceButton.textContent = 'Component asset 준비됨';
     rerun();
   } catch (error) {
+    if (signal.aborted) {
+      return;
+    }
+
     elements.resourceStatus.dataset.state = 'error';
     elements.resourceStatus.textContent = readableError(error);
     elements.resourceButton.disabled = false;
@@ -417,34 +459,43 @@ function parseEnum<T extends string>(
   return Object.values(enumType).find((candidate) => candidate === value);
 }
 
-function collectElements(): PlaygroundElements {
+function collectElements(root: ParentNode): PlaygroundElements {
   return {
-    form: requiredElement('#playground-form', HTMLFormElement),
-    status: requiredElement('#wasm-status', HTMLElement),
-    query: requiredElement('#query-input', HTMLInputElement),
-    text: requiredElement('#text-input', HTMLTextAreaElement),
-    pos: requiredElement('#pos-select', HTMLSelectElement),
-    boundary: requiredElement('#boundary-select', HTMLSelectElement),
-    expand: requiredElement('#expand-select', HTMLSelectElement),
-    normalization: requiredElement('#normalization-select', HTMLSelectElement),
-    maxGap: requiredElement('#max-gap-input', HTMLInputElement),
-    runButton: requiredElement('#run-button', HTMLButtonElement),
-    textCount: requiredElement('#text-count', HTMLElement),
-    summary: requiredElement('#result-summary', HTMLElement),
-    executionTime: requiredElement('#execution-time', HTMLElement),
-    preview: requiredElement('#result-preview', HTMLElement),
-    matchList: requiredElement('#match-list', HTMLOListElement),
-    rawOutput: requiredElement('#raw-output', HTMLElement),
-    resourceButton: requiredElement('#resource-button', HTMLButtonElement),
-    resourceStatus: requiredElement('#resource-status', HTMLElement),
+    form: requiredElement(root, '#playground-form', HTMLFormElement),
+    status: requiredElement(root, '#wasm-status', HTMLElement),
+    query: requiredElement(root, '#query-input', HTMLInputElement),
+    text: requiredElement(root, '#text-input', HTMLTextAreaElement),
+    pos: requiredElement(root, '#pos-select', HTMLSelectElement),
+    boundary: requiredElement(root, '#boundary-select', HTMLSelectElement),
+    expand: requiredElement(root, '#expand-select', HTMLSelectElement),
+    normalization: requiredElement(
+      root,
+      '#normalization-select',
+      HTMLSelectElement,
+    ),
+    maxGap: requiredElement(root, '#max-gap-input', HTMLInputElement),
+    runButton: requiredElement(root, '#run-button', HTMLButtonElement),
+    textCount: requiredElement(root, '#text-count', HTMLElement),
+    summary: requiredElement(root, '#result-summary', HTMLElement),
+    executionTime: requiredElement(root, '#execution-time', HTMLElement),
+    preview: requiredElement(root, '#result-preview', HTMLElement),
+    matchList: requiredElement(root, '#match-list', HTMLOListElement),
+    rawOutput: requiredElement(root, '#raw-output', HTMLElement),
+    resourceButton: requiredElement(
+      root,
+      '#resource-button',
+      HTMLButtonElement,
+    ),
+    resourceStatus: requiredElement(root, '#resource-status', HTMLElement),
   };
 }
 
 function requiredElement<T extends Element>(
+  root: ParentNode,
   selector: string,
   constructor: ElementConstructor<T>,
 ): T {
-  const element = document.querySelector(selector);
+  const element = root.querySelector(selector);
 
   if (!(element instanceof constructor)) {
     throw new TypeError(`required playground element is missing: ${selector}`);
