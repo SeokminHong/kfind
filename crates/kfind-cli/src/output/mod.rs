@@ -10,7 +10,10 @@ use crate::{Args, ColorArg, Language};
 
 mod explain;
 mod json;
+mod pager;
 mod text;
+
+pub use pager::TerminalPager;
 
 #[cfg(test)]
 mod tests;
@@ -22,6 +25,22 @@ pub enum OutputMode {
     FilesWithMatches,
     JsonLines,
     Quiet,
+}
+
+impl OutputMode {
+    const fn from_args(args: &Args) -> Self {
+        if args.quiet {
+            Self::Quiet
+        } else if args.files_with_matches {
+            Self::FilesWithMatches
+        } else if args.count {
+            Self::Count
+        } else if args.json {
+            Self::JsonLines
+        } else {
+            Self::Standard
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -90,17 +109,7 @@ impl OutputOptions {
         stdout_is_terminal: bool,
         multiple_inputs: bool,
     ) -> Self {
-        let mode = if args.quiet {
-            OutputMode::Quiet
-        } else if args.files_with_matches {
-            OutputMode::FilesWithMatches
-        } else if args.count {
-            OutputMode::Count
-        } else if args.json {
-            OutputMode::JsonLines
-        } else {
-            OutputMode::Standard
-        };
+        let mode = OutputMode::from_args(args);
         let filename = if args.with_filename {
             FilenameMode::Always
         } else if args.no_filename {

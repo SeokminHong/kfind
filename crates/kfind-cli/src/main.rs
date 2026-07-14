@@ -1,5 +1,6 @@
 use kfind_cli::{
-    CliError, ExitStatus, Language, parse_args_from, run_init_with_io, run_with_io, write_cli_error,
+    CliError, ExitStatus, Language, OutputError, TerminalPager, parse_args_from, run_init_with_io,
+    run_with_io, write_cli_error,
 };
 use std::env;
 use std::io::{self, BufWriter, IsTerminal, Write};
@@ -24,10 +25,10 @@ fn main() -> ExitCode {
     let stdin_is_terminal = stdin.is_terminal();
     let stdout_is_terminal = stdout.is_terminal();
     let stderr_is_terminal = stderr.is_terminal();
-    let mut stdout = BufWriter::new(stdout);
     let mut stderr = BufWriter::new(stderr);
 
     let result = if args.init {
+        let mut stdout = BufWriter::new(stdout);
         run_init_with_io(
             &args,
             language,
@@ -38,7 +39,23 @@ fn main() -> ExitCode {
         )
         .map(|()| ExitStatus::Match)
         .map_err(CliError::Init)
+    } else if let Some(mut pager) = TerminalPager::from_args(&args, stdout_is_terminal) {
+        let result = run_with_io(
+            &args,
+            language,
+            stdin.lock(),
+            pager.writer(),
+            &mut stderr,
+            stdin_is_terminal,
+            stdout_is_terminal,
+        );
+        let finish_result = pager
+            .finish()
+            .map_err(OutputError::Io)
+            .map_err(CliError::Output);
+        result.and_then(|status| finish_result.map(|()| status))
     } else {
+        let mut stdout = BufWriter::new(stdout);
         run_with_io(
             &args,
             language,

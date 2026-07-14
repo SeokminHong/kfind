@@ -1,4 +1,5 @@
-use std::process::{Command, Output};
+use std::path::Path;
+use std::process::{Command, Output, Stdio};
 
 fn run(locale_variables: &[(&str, &str)], arguments: &[&str]) -> Output {
     let mut command = Command::new(env!("CARGO_BIN_EXE_kfind"));
@@ -105,4 +106,22 @@ fn locale_reaches_explain_output() {
     assert!(stdout.contains("쿼리: 걷다"));
     assert!(stdout.contains("요소[0]:"));
     assert!(!stdout.contains("query:"));
+}
+
+#[test]
+fn closed_non_terminal_stdout_remains_a_normal_exit() {
+    let readme = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../README.md");
+    let mut child = Command::new(env!("CARGO_BIN_EXE_kfind"))
+        .args(["--literal", "kfind"])
+        .arg(readme)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    drop(child.stdout.take());
+
+    let output = child.wait_with_output().unwrap();
+
+    assert!(output.status.success());
+    assert!(output.stderr.is_empty());
 }
