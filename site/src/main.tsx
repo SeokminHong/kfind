@@ -1,8 +1,6 @@
 import './theme.css';
 import './site.css';
-import './content.css';
 import './playground.css';
-import './components/diagram.css';
 
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router/dom';

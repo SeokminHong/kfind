@@ -1,4 +1,4 @@
-import { Callout, DocumentSection, PageIntro } from '../components/document';
+import { DocumentSection, PageIntro } from '../components/document';
 
 export default function BenchmarksPage(): React.JSX.Element {
   return (
@@ -6,18 +6,19 @@ export default function BenchmarksPage(): React.JSX.Element {
       <PageIntro
         eyebrow="EVIDENCE · QUALITY & PERFORMANCE"
         title="워크로드를 섞지 않는 벤치마크"
-        summary="형태 검색 품질, end-to-end CLI 비용, 초기화 비용과 literal scan은 각각 다른 대상을 측정합니다. 결과를 해석할 때는 입력·환경·revision을 고정한 source report를 함께 확인해야 합니다."
-      >
-        <Callout title="비교 결과 해석 시 주의점">
-          <p>
-            아래 외부 비교에는 같은 제품 task를 수행하는 데 필요한 query 준비,
-            분석과 matching 비용이 모두 포함됩니다. tokenizer에 동일한 입력만
-            전달해 처리량을 비교한 순위가 아닙니다.
-          </p>
-        </Callout>
-      </PageIntro>
+        summary="형태 검색 품질, end-to-end CLI 비용, 초기화 비용과 literal scan은 서로 다른 경로를 측정합니다. 수치는 입력·환경·revision이 고정된 source report 안에서 해석해야 하며, 단위가 다른 결과를 하나의 점수로 합칠 수 없습니다. 외부 분석기 비교도 같은 제품 task에 필요한 query 준비, 분석과 matching을 포함하므로 순수 tokenizer 처리량 순위가 아닙니다."
+      />
 
       <DocumentSection title="제품 persona 결과">
+        <p>
+          Agent workflow와 User workflow는 실제 사용자가 제공하는 정보와 오류
+          비용을 반영합니다. Agent는 모든 형태 atom에 품사를 명시하고 embedded
+          lexicon과 <code>any</code> boundary를 사용해 recall과 낮은 초기화
+          비용을 우선합니다. User는 품사를 생략하고 full POS lexicon과{' '}
+          <code>smart</code> boundary를 사용해 precision을 우선합니다. 따라서 두
+          행은 같은 backend의 설정 차이뿐 아니라 서로 다른 입력 계약을
+          나타냅니다.
+        </p>
         <div className="table-scroll">
           <table>
             <thead>
@@ -53,6 +54,13 @@ export default function BenchmarksPage(): React.JSX.Element {
             </tbody>
           </table>
         </div>
+        <p>
+          표의 quality 값은 각 persona의 고정 fixture에서 계산합니다. 두
+          fixture는 negative query를 고르는 기준이 다르므로 F1의 차이를 backend
+          우열로 해석할 수 없습니다. 다음 차트는 품질과 함께 initialization,
+          cases/s, p95 latency와 RSS를 배치해 각 workflow가 선택한 trade-off를
+          보여 줍니다.
+        </p>
         <figure className="benchmark-figure">
           <img
             src="/benchmarks/product-workflows.svg"
@@ -70,7 +78,16 @@ export default function BenchmarksPage(): React.JSX.Element {
         <p>
           모든 분석기는 같은 1,000-case explicit-POS fixture와 gold로
           평가합니다. Agent와 외부 분석기에는 품사를 명시합니다. User만 실제
-          대화형 입력 조건을 반영해 같은 query에서 품사를 제거합니다.
+          대화형 입력 조건을 반영해 같은 query에서 품사를 제거합니다. 따라서
+          User 결과에는 품사 자동 계획의 중의성과 비용이 포함되고, 다른 행과
+          동일한 입력 조건이라고 볼 수 없습니다.
+        </p>
+        <p>
+          외부 분석기 결과는 고정 snapshot으로 보존하고 fixture, schema, version
+          또는 adapter 설정이 바뀔 때만 다시 측정합니다. 차트의 처리량은 각
+          backend가 제품 task를 수행하는 데 필요한 query 준비, 분석과 matching을
+          포함합니다. 동일한 문장을 tokenizer에 넣어 얻은 순수 분석 속도와는
+          측정 구간이 다릅니다.
         </p>
         <figure className="benchmark-figure">
           <img
@@ -86,32 +103,32 @@ export default function BenchmarksPage(): React.JSX.Element {
       </DocumentSection>
 
       <DocumentSection title="형태 품질의 정의">
-        <div className="metric-definition-grid">
-          <article>
-            <strong>Positive</strong>
-            <p>gold와 lemma·POS가 같은 match의 span이 기대 span과 겹칩니다.</p>
-          </article>
-          <article>
-            <strong>False positive</strong>
-            <p>
-              lemma·POS가 같은 match를 찾았지만 그 위치가 기대 span과 겹치지
-              않습니다.
-            </p>
-          </article>
-          <article>
-            <strong>False negative</strong>
-            <p>기대하는 lemma·POS·span과 일치하는 결과를 찾지 못했습니다.</p>
-          </article>
-        </div>
         <p>
-          이 지표는 문장 전체의 tokenization 정확도를 측정하지 않습니다. 검색
-          결과의 lemma·POS가 gold와 같고 두 span이 겹치는지를 측정합니다. 별도
-          human fixture에서는 품사를 생략하고, 지원하는 어떤 품사로도 분석되지
-          않는 query를 negative로 사용합니다.
+          형태 품질 fixture는 문장마다 찾으려는 lemma, POS와 기대 span을
+          정의합니다. 검색 결과의 lemma와 POS가 gold와 같고 결과 span이 기대
+          span과 겹치면 true positive입니다. 같은 lemma와 POS를 찾았지만 위치가
+          기대 span과 겹치지 않으면 false positive이고, 기대 lemma·POS·span을
+          만족하는 결과가 없으면 false negative입니다.
+        </p>
+        <p>
+          이 정의는 문장 전체의 tokenization 정확도를 측정하지 않습니다. 제품이
+          반환해야 하는 검색 span을 찾았는지만 측정합니다. 별도 human fixture는
+          품사를 생략하고, query 표제어가 지원하는 어떤 품사로도 분석되지 않는
+          문장을 negative로 사용합니다. 이 fixture의 negative 정의는
+          explicit-POS fixture와 다르므로 두 결과를 하나의 F1 순위로 합치지
+          않습니다.
         </p>
       </DocumentSection>
 
       <DocumentSection title="성능 측정 계약">
+        <p>
+          각 workload는 실제로 바뀐 실행 경로를 분리해 측정합니다. Morphology
+          process는 query compile과 match를 포함한 case 처리 비용을, query
+          compile benchmark는 analyzer를 재사용할 때 plan 생성 비용을
+          측정합니다. 1 GiB literal scan은 형태 resource를 사용하지 않는 low-hit
+          파일 scan을, product CLI workload는 실제 persona 옵션으로 100 MiB
+          corpus를 검색하는 end-to-end 비용을 측정합니다.
+        </p>
         <div className="table-scroll">
           <table>
             <thead>
@@ -145,28 +162,12 @@ export default function BenchmarksPage(): React.JSX.Element {
             </tbody>
           </table>
         </div>
-        <div className="stat-strip">
-          <div>
-            <span>1 GiB literal</span>
-            <strong>0.047 s</strong>
-            <small>median</small>
-          </div>
-          <div>
-            <span>Throughput</span>
-            <strong>21,787</strong>
-            <small>MiB/s</small>
-          </div>
-          <div>
-            <span>Peak RSS</span>
-            <strong>7.23</strong>
-            <small>MiB</small>
-          </div>
-          <div>
-            <span>Revision</span>
-            <strong>a7b3c28</strong>
-            <small>2026-07-12</small>
-          </div>
-        </div>
+        <p>
+          2026-07-12의 revision <code>a7b3c28</code>에서 1 GiB literal scan은
+          median 0.047초, 21,787 MiB/s와 peak RSS 7.23 MiB를 기록했습니다. 이
+          수치는 literal low-hit workload의 결과이며 morphology 품질이나 full
+          POS 초기화 비용을 설명하지 않습니다.
+        </p>
       </DocumentSection>
 
       <DocumentSection title="명시적 품사 smart recall">
