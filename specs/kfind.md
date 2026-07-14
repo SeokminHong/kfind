@@ -1960,9 +1960,10 @@ target과 경계:
 
 CI는 `nightly-2026-07-11`과 `cargo-fuzz 0.13.2`로 모든 target을 실제 실행한다. target당
 `max_total_time=15`, 개별 입력 `timeout=5`, `rss_limit_mb=2048`을 적용하며 전체 job timeout은
-10분이다. `scripts/run-fuzz.sh`가 target 목록과 이 예산을 단일 진입점으로 유지한다. 반복 span과
+10분이다. `scripts/run-fuzz.sh`가 target 목록과 이 예산을 단일 진입점으로 유지한다. 각 실행은
+version-controlled seed만 임시 corpus로 복사해 이전 실행에서 생성된 입력과 격리한다. 반복 span과
 큰 gap의 phrase, 손상 UTF-8, component resource가 필요한 plan, malformed TOML과 출력 제어 문자를
-version-controlled seed corpus로 시작한다. crash·panic·timeout·RSS 초과는 CI 실패다.
+고정 seed로 시작한다. crash·panic·timeout·RSS 초과는 CI 실패다.
 
 ### 19.5 gold corpus
 
