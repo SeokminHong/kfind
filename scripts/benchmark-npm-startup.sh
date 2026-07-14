@@ -3,6 +3,10 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+. "$repo_root/scripts/lib/benchmark-guard.sh"
+guard_benchmark_entrypoint \
+  "$repo_root" npm-startup "$repo_root/scripts/benchmark-npm-startup.sh" "$@"
+
 node_output="$repo_root/target/npm-startup-node"
 output="${1:-$repo_root/target/npm-startup/report.json}"
 runs="${KFIND_NPM_STARTUP_RUNS:-5}"

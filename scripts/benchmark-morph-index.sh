@@ -2,6 +2,10 @@
 set -euo pipefail
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+. "${repo_root}/scripts/lib/benchmark-guard.sh"
+guard_benchmark_entrypoint \
+  "$repo_root" morphology-index "$repo_root/scripts/benchmark-morph-index.sh" "$@"
+
 source "${repo_root}/scripts/lib/full-pos-source.sh"
 output_directory=${1:-"${repo_root}/target/morph-index-benchmark"}
 temporary_directory=$(mktemp -d)

@@ -3,6 +3,9 @@
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+. "$ROOT/scripts/lib/benchmark-guard.sh"
+guard_benchmark_entrypoint "$ROOT" 1gib-scan "$ROOT/scripts/benchmark-1gib.sh" "$@"
+
 SYSTEM_NAME=$(uname -s)
 TOTAL_BYTES=${KFIND_BENCH_TOTAL_BYTES:-1073741824}
 FILE_COUNT=${KFIND_BENCH_FILE_COUNT:-1024}

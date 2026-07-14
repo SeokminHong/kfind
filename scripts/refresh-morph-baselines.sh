@@ -2,6 +2,10 @@
 set -eu
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+. "$ROOT/scripts/lib/benchmark-guard.sh"
+guard_benchmark_entrypoint \
+    "$ROOT" morphology-baseline-refresh "$ROOT/scripts/refresh-morph-baselines.sh" "$@"
+
 BASE_IMAGE=${KFIND_MORPH_IMAGE:-kfind-morph-benchmark:local}
 REFRESH_IMAGE=${KFIND_MORPH_REFRESH_IMAGE:-kfind-morph-baseline-refresh:local}
 BACKENDS=${KFIND_MORPH_BASELINE_BACKENDS:-kiwi,lindera,mecab-ko,komoran}

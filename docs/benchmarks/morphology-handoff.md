@@ -199,7 +199,7 @@ pnpm --dir packages/kfind run benchmark:startup
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
-cargo bench -p kfind-testkit --bench query_matcher -- local_lattice
+scripts/benchmark-criterion.sh local_lattice
 cargo fmt --manifest-path tools/morph-index-benchmark/Cargo.toml -- --check
 cargo clippy --locked --manifest-path tools/morph-index-benchmark/Cargo.toml \
   --all-targets -- -D warnings
