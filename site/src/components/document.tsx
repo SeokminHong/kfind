@@ -24,6 +24,7 @@ interface DocumentPageProps {
 
 interface ElementWithChildren {
   readonly children?: ReactNode;
+  readonly 'data-glossary-skip'?: string;
 }
 
 const skippedElements = new Set([
@@ -89,11 +90,14 @@ function annotateDocumentNode(
     );
   }
 
-  if (typeof node.type === 'string' && skippedElements.has(node.type)) {
+  const element = node as ReactElement<ElementWithChildren>;
+
+  if (
+    element.props['data-glossary-skip'] !== undefined ||
+    (typeof node.type === 'string' && skippedElements.has(node.type))
+  ) {
     return node;
   }
-
-  const element = node as ReactElement<ElementWithChildren>;
 
   if (element.props.children === undefined) {
     return element;

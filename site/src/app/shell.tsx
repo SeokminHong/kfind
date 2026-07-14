@@ -1,5 +1,6 @@
 import type { DocumentRouteHandle } from './router';
 
+import { Collapsible } from '@base-ui/react/collapsible';
 import { useEffect } from 'react';
 import { NavLink, Outlet, ScrollRestoration, useMatches } from 'react-router';
 
@@ -85,10 +86,12 @@ export function Shell(): React.JSX.Element {
         </div>
       </header>
 
-      <details className="mobile-navigation">
-        <summary>문서 메뉴</summary>
-        <Navigation />
-      </details>
+      <Collapsible.Root className="mobile-navigation">
+        <Collapsible.Trigger>문서 메뉴</Collapsible.Trigger>
+        <Collapsible.Panel>
+          <Navigation />
+        </Collapsible.Panel>
+      </Collapsible.Root>
 
       <div className="docs-shell">
         <aside className="docs-sidebar">

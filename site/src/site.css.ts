@@ -119,12 +119,16 @@ globalStyle('.mobile-navigation', {
   background: vars.color.sidebar,
 });
 
-globalStyle('.mobile-navigation summary', {
+globalStyle('.mobile-navigation > button', {
+  width: '100%',
   padding: `${vars.space.small} ${vars.space.large}`,
+  border: 0,
+  background: 'transparent',
   color: vars.color.heading,
   cursor: 'pointer',
   fontSize: '0.8rem',
   fontWeight: 650,
+  textAlign: 'start',
 });
 
 globalStyle('.mobile-navigation nav', {

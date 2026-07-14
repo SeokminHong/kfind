@@ -1,26 +1,20 @@
-import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 
 import type { GlossaryTerm } from './glossary';
 
-import { useEffect, useRef, useState } from 'react';
+import { PreviewCard } from '@base-ui/react/preview-card';
+import { useState } from 'react';
 import { Link } from 'react-router';
 
 import { RoutePath } from '../app/navigation';
 
 import * as styles from './glossary-tooltip.css';
 
-interface TooltipPosition {
-  readonly left: number;
-  readonly side: 'above' | 'below';
-  readonly top: number;
-}
-
 interface GlossaryTooltipProps {
   readonly children: string;
   readonly term: GlossaryTerm;
 }
 
-const viewportMargin = 16;
 const tooltipGap = 8;
 const hoverlessPointerQuery = '(hover: none)';
 
@@ -28,72 +22,9 @@ export function GlossaryTooltip({
   children,
   term,
 }: GlossaryTooltipProps): React.JSX.Element {
-  const containerRef = useRef<HTMLSpanElement>(null);
-  const triggerRef = useRef<HTMLAnchorElement>(null);
-  const tooltipRef = useRef<HTMLSpanElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const [isHoverlessTooltipOpen, setIsHoverlessTooltipOpen] = useState(false);
-  const [position, setPosition] = useState<TooltipPosition>();
-
-  useEffect(() => {
-    if (!isHoverlessTooltipOpen) {
-      return;
-    }
-
-    function closeTooltipOutside(event: PointerEvent): void {
-      const target = event.target;
-
-      if (
-        target instanceof Node &&
-        containerRef.current?.contains(target) === true
-      ) {
-        return;
-      }
-
-      setIsHoverlessTooltipOpen(false);
-    }
-
-    document.addEventListener('pointerdown', closeTooltipOutside);
-
-    return () => {
-      document.removeEventListener('pointerdown', closeTooltipOutside);
-    };
-  }, [isHoverlessTooltipOpen]);
-
-  function positionTooltip(): void {
-    const trigger = triggerRef.current;
-    const tooltip = tooltipRef.current;
-
-    if (trigger === null || tooltip === null) {
-      return;
-    }
-
-    const triggerRect = trigger.getBoundingClientRect();
-    const tooltipWidth = tooltip.offsetWidth;
-    const tooltipHeight = tooltip.offsetHeight;
-    const spaceAbove = triggerRect.top - viewportMargin;
-    const spaceBelow = window.innerHeight - triggerRect.bottom - viewportMargin;
-    const side =
-      spaceAbove >= tooltipHeight + tooltipGap || spaceAbove >= spaceBelow
-        ? 'above'
-        : 'below';
-    const centeredLeft = triggerRect.left + triggerRect.width / 2;
-    const minimumLeft = viewportMargin + tooltipWidth / 2;
-    const maximumLeft = window.innerWidth - viewportMargin - tooltipWidth / 2;
-
-    setPosition({
-      left: Math.min(Math.max(centeredLeft, minimumLeft), maximumLeft),
-      side,
-      top:
-        side === 'above'
-          ? triggerRect.top - tooltipGap
-          : triggerRect.bottom + tooltipGap,
-    });
-  }
-
-  const tooltipStyle: CSSProperties | undefined =
-    position === undefined
-      ? undefined
-      : { left: position.left, top: position.top };
+  const tooltipId = `glossary-tooltip-${term.id}`;
 
   function handleClick(event: ReactMouseEvent<HTMLAnchorElement>): void {
     const isHoverlessPointerActivation =
@@ -104,41 +35,46 @@ export function GlossaryTooltip({
     }
 
     event.preventDefault();
-    positionTooltip();
     setIsHoverlessTooltipOpen(true);
+    setIsOpen(true);
   }
 
   return (
-    <span
-      className={styles.container}
-      data-tooltip-open={isHoverlessTooltipOpen ? '' : undefined}
-      data-tooltip-positioned={position === undefined ? undefined : ''}
-      ref={containerRef}
-    >
-      <Link
-        className={styles.trigger}
-        ref={triggerRef}
-        to={`${RoutePath.Glossary}#${term.id}`}
-        aria-describedby={`glossary-tooltip-${term.id}`}
-        onBlur={() => {
+    <PreviewCard.Root
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+
+        if (!open) {
           setIsHoverlessTooltipOpen(false);
-        }}
+        }
+      }}
+    >
+      <PreviewCard.Trigger
+        aria-describedby={tooltipId}
+        className={styles.trigger}
+        closeDelay={0}
+        delay={0}
         onClick={handleClick}
-        onFocus={positionTooltip}
-        onMouseEnter={positionTooltip}
+        render={<Link to={`${RoutePath.Glossary}#${term.id}`} />}
       >
         {children}
-      </Link>
-      <span
-        className={styles.tooltip}
-        data-side={position?.side}
-        id={`glossary-tooltip-${term.id}`}
-        ref={tooltipRef}
-        role="tooltip"
-        style={tooltipStyle}
-      >
-        {term.definition}
-      </span>
-    </span>
+      </PreviewCard.Trigger>
+      <PreviewCard.Portal>
+        <PreviewCard.Positioner
+          className={styles.positioner}
+          side="top"
+          sideOffset={tooltipGap}
+        >
+          <PreviewCard.Popup
+            className={styles.tooltip}
+            id={tooltipId}
+            role="tooltip"
+          >
+            {term.definition}
+          </PreviewCard.Popup>
+        </PreviewCard.Positioner>
+      </PreviewCard.Portal>
+    </PreviewCard.Root>
   );
 }
