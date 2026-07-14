@@ -9,7 +9,7 @@ use crate::{
     SurfaceBranch, parse_query,
 };
 use kfind_data::DerivationRule;
-use kfind_morph::{CoarsePos, ParticleTransition, RuleId, generate_predicate_branches};
+use kfind_morph::{CoarsePos, FinePos, ParticleTransition, RuleId, generate_predicate_branches};
 
 mod normalization;
 
@@ -266,6 +266,7 @@ fn compile_analysis(
     }
 
     if matches!(analysis.morphology, Morphology::Exact) {
+        let context_requirement = lexical_context_requirement(atom_surface, analysis, analyzer);
         if options.expand == ExpandMode::Derivation && analysis.coarse_pos == CoarsePos::Adverb {
             output.push(DraftBranch {
                 anchor: atom_surface.to_owned(),
@@ -279,14 +280,9 @@ fn compile_analysis(
                     rule_path: Vec::new(),
                 },
                 smart_left: true,
-                context_requirement: ContextRequirement::LexicalContext,
+                context_requirement,
             });
         } else {
-            let context_requirement = if analysis.coarse_pos == CoarsePos::Adverb {
-                ContextRequirement::LexicalContext
-            } else {
-                ContextRequirement::None
-            };
             output.push(exact_branch_with_context(
                 atom_surface,
                 analysis_index,
@@ -379,6 +375,29 @@ fn compile_analysis(
         Morphology::Exact => unreachable!("exact morphology returned above"),
     }
     Ok(())
+}
+
+fn lexical_context_requirement(
+    atom_surface: &str,
+    analysis: &Analysis,
+    analyzer: &LexiconQueryAnalyzer,
+) -> ContextRequirement {
+    if analysis.fine_pos != FinePos::GeneralAdverb {
+        return ContextRequirement::None;
+    }
+
+    let candidates = analyzer.lexicons().lookup(atom_surface);
+    let has_context_target = candidates
+        .iter()
+        .any(|candidate| candidate.fine_pos == FinePos::GeneralAdverb);
+    let has_competing_analysis = candidates
+        .iter()
+        .any(|candidate| candidate.fine_pos != FinePos::GeneralAdverb);
+    if has_context_target && has_competing_analysis {
+        ContextRequirement::LexicalContext
+    } else {
+        ContextRequirement::None
+    }
 }
 
 fn compile_predicate(
