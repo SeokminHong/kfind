@@ -14,10 +14,10 @@ export default function BenchmarksPage(): React.JSX.Element {
           Agent workflow와 User workflow는 실제 사용자가 제공하는 정보와 오류
           비용을 반영합니다. Agent는 모든 형태 atom에 품사를 명시하고 embedded
           lexicon과 <code>any</code> boundary를 사용해 recall과 낮은 초기화
-          비용을 우선합니다. User는 품사를 생략하고 full POS lexicon과{' '}
-          <code>smart</code> boundary를 사용해 precision을 우선합니다. 따라서 두
-          행은 같은 backend의 설정 차이뿐 아니라 서로 다른 입력 계약을
-          나타냅니다.
+          비용을 우선합니다. User는 품사를 생략하고 full POS lexicon, enriched
+          용언 metadata와 <code>smart</code> boundary를 사용해 precision을
+          우선합니다. 따라서 두 행은 같은 backend의 설정 차이뿐 아니라 서로 다른
+          입력 계약을 나타냅니다.
         </p>
         <div className="table-scroll">
           <table>
@@ -39,8 +39,8 @@ export default function BenchmarksPage(): React.JSX.Element {
                 <td>97.76%</td>
                 <td>96.00%</td>
                 <td>96.87%</td>
-                <td>15,611.8</td>
-                <td>5.4 MiB</td>
+                <td>15,602.7</td>
+                <td>5.1 MiB</td>
               </tr>
               <tr>
                 <td>User · full POS + smart + untagged</td>
@@ -48,8 +48,8 @@ export default function BenchmarksPage(): React.JSX.Element {
                 <td>100.00%</td>
                 <td>82.20%</td>
                 <td>90.23%</td>
-                <td>11,869.5</td>
-                <td>92.1 MiB</td>
+                <td>11,048.5</td>
+                <td>91.9 MiB</td>
               </tr>
             </tbody>
           </table>
@@ -170,19 +170,26 @@ export default function BenchmarksPage(): React.JSX.Element {
         </p>
       </DocumentSection>
 
-      <DocumentSection title="명시적 품사 smart recall">
+      <DocumentSection title="르·러 불규칙과 enriched lexicon">
         <p>
-          main <code>64f523f</code> 대비 후보 <code>63a75f4</code>에서 full-POS
-          coarse noun 분석과 fallback의 합집합을 보존해 development FN을 59에서
-          58로, test FN을 86에서 85로 줄였습니다. Precision 하한과 16개
-          hard-negative의 신규 FP 0을 유지했고 embedded와 무품사 결과는 바뀌지
-          않았습니다. Full-POS 처리량은 4.15% 낮아졌으며 recall 개선 비용으로
-          허용했습니다.
+          <code>다르다 → 달라</code>는 르 불규칙이고{' '}
+          <code>푸르다 → 푸르러</code>와 도달 뜻의 <code>이르다 → 이르러</code>
+          는 러 불규칙입니다. 국립국어원 사전 snapshot에서 검토한 102개 분석을
+          full-POS 제품 경로에 추가했습니다. Main <code>9063d46</code> 대비 후보{' '}
+          <code>96e0429</code>는 test와 development <code>smart</code>, 16개
+          hard-negative의 FP 수를 유지했습니다. Embedded 무품사{' '}
+          <code>smart</code>는 FN 2건을 줄였고, 성능 측정 범위는 기준과
+          겹쳤습니다.
         </p>
       </DocumentSection>
 
       <DocumentSection title="원본 보고서">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-reu-reo-enriched-lexicon.md">
+              르·러 불규칙과 enriched 용언 lexicon
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-full-pos-coarse-noun-recall.md">
               Full POS coarse noun 분석 합집합 recall

@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [르·러 불규칙과 enriched 용언 lexicon](2026-07-14-reu-reo-enriched-lexicon.md)
 - [User smart precision 품질·성능](2026-07-14-user-smart-precision.md)
 - [Agent precision shadow 판정](2026-07-14-agent-precision-shadow.md)
 - [`-기` 명사형 조사 continuation 품질·성능](2026-07-14-gi-particle-continuation.md)
@@ -47,6 +48,10 @@
 - core lexicon의 ㅎ 불규칙 예외에는 `어떻다`, `이렇다`, `커다랗다`가 포함된다. 기존 `DropH`
   generator로 `어떤`, `이런`, `커다란`을 만들며 규칙형 `어떻은`, `이렇은`, `커다랗은`은
   만들지 않는다.
+- core lexicon은 `다르다 → 달라`, `이르다 → 일러/이르러`, `푸르다 → 푸르러`처럼 자주 쓰는
+  르·러 불규칙과 동형어를 보존한다. full-POS 제품 경로는 국립국어원 사전 snapshot에서
+  검토한 102개 enriched 분석을 추가하고, `들르다 → 들러`, `치르다 → 치러` 같은 규칙적인
+  `ㅡ` 탈락은 별도 대조군으로 유지한다.
 - 명시적 coarse `noun`의 사전 분석이 없으면 보통명사·고유명사·의존명사 fallback을 모두
   보존한다. component 판정은 corpus의 `NNBC`를 query-side `NNB`와 같은 의존명사로
   비교하며 artifact와 진단의 source tag는 바꾸지 않는다.
@@ -80,12 +85,12 @@ development 명시적 품사 `smart`는 embedded와 full-POS 모두 TP 442 / FP 
 full-POS의 기존 세부 품사 분석과 coarse `noun` fallback 합집합이 `197명이`를 복구했다.
 `token`과 `any`에서도 두 lexicon profile의 품질이 같다. 세부 품사와 품질 계약은
 [User smart precision 품질·성능](2026-07-14-user-smart-precision.md), 현재 처리량과 latency는
-[Full POS coarse noun 분석 합집합 recall](2026-07-14-full-pos-coarse-noun-recall.md)을 기준으로 한다.
+[르·러 불규칙과 enriched 용언 lexicon](2026-07-14-reu-reo-enriched-lexicon.md)을 기준으로 한다.
 
 품사를 생략하는 사람용 1,000-case fixture에서 full-POS `smart`는 TP 411, FP 0, FN 89,
-precision 100.00%, recall 82.2%, F1 90.23%다. embedded `smart`는 TP 319, FP 0, FN 181이다.
+precision 100.00%, recall 82.2%, F1 90.23%다. embedded `smart`는 TP 321, FP 0, FN 179이다.
 embedded `smart`는 기대 품사를 plan에 포함하는
-비율이 47.8%이므로 사람용 기본 경로를 대신하지 않는다.
+비율이 48.4%이므로 사람용 기본 경로를 대신하지 않는다.
 
 explicit-POS test fixture의 품사를 제거한 User persona도 full-POS `smart`에서 TP 411, FP 0,
 FN 89, precision 100.00%, recall 82.2%, F1 90.23%다. `이다 -> 매일`은 whole-token lexical
