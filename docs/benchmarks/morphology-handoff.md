@@ -12,6 +12,7 @@
 - [Agent precision shadow 판정](2026-07-14-agent-precision-shadow.md)
 - [`-기` 명사형 조사 continuation 품질·성능](2026-07-14-gi-particle-continuation.md)
 - [`-ㅁ/음` 명사형 품질·성능](2026-07-14-mieum-nominalizer.md)
+- [합성 불규칙 용언 core lexicon](2026-07-14-compound-irregular-core-lexicon.md)
 - [국소 lattice 제품 경로 최적화](2026-07-14-local-lattice-optimization.md)
 - [Development false negative 진단](2026-07-14-development-fn-diagnostics.md)
 - [`ending.connective-ji` 위치 근거](2026-07-14-connective-ji-position-evidence.md)
@@ -57,6 +58,9 @@
   검토한 불규칙 분석 278개와 규칙형 동형어 companion 2개를 추가한다. 기존 르·러 102개에
   ㄷ·ㅅ·ㅂ·ㅎ 176개를 더하며, `푸다 → 퍼`는 core에서 유지한다. `곱다/VA`, `굽다/VV`처럼
   규칙형과 불규칙형이 독립적으로 확인된 표제어는 두 검색 branch를 모두 보존한다.
+- 표준국어대사전·우리말샘의 고정 snapshot과 양방향 fixture로 검증한 `가려듣다`, `덧싣다`,
+  `쏟아붓다`, `흘려듣다`는 core 불규칙 예외다. 자동 enriched 승격 조건은 유지하고 생성
+  report에서는 네 항목을 `core-duplicate`로 기록한다.
 - 명시적 coarse `noun`의 사전 분석이 없으면 보통명사·고유명사·의존명사 fallback을 모두
   보존한다. component 판정은 corpus의 `NNBC`를 query-side `NNB`와 같은 의존명사로
   비교하며 artifact와 진단의 source tag는 바꾸지 않는다.
