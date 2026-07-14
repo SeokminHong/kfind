@@ -64,8 +64,8 @@ max-gap=24`}</code>
           명사 <code>검증</code>에서는 <code>검증을</code>과{' '}
           <code>검증에서도</code>를, 동사 <code>걷다</code>에서는{' '}
           <code>걸어</code>, <code>걸었다</code>, <code>걷는</code>을 찾을 수
-          있습니다. 새로운 표제어를 만드는 파생 접미사는 이 범위에 포함하지
-          않습니다.
+          있습니다. 두 사전이 함께 지지하는 활용형도 포함하지만, 새로운 표제어를
+          만드는 파생형은 이 범위에 포함하지 않습니다.
         </p>
         <pre>
           <code>{`kfind --expand inflection 걷다 .
@@ -84,7 +84,8 @@ max-gap=24`}</code>
           용언이면 그 표제어에 용언 활용을 다시 적용하므로 <code>검증하다</code>
           뿐 아니라 <code>검증했다</code>도 검색합니다. 이 범위는 branch 수와
           false positive 가능성을 함께 늘리므로 파생어가 필요한 query에만
-          사용합니다.
+          사용합니다. 한국어기초사전에서 용언과 부사의 entry ID가 양방향으로
+          일치하는 파생형도 이 단계에서만 추가됩니다.
         </p>
         <pre>
           <code>{`검증 / noun

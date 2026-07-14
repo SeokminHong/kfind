@@ -109,9 +109,10 @@ export default function AnalysisPage(): React.JSX.Element {
       <DocumentSection title="어휘 정보와 형태 규칙의 합성">
         <p>
           활용을 계산하려면 표제어에 고유한 정보와 여러 표제어가 공유하는 규칙을
-          분리해야 합니다. 사전 entry는 어떤 불규칙 교체를 적용할지 결정하지만,
-          완성된 활용형 목록을 저장하지는 않습니다. generator는 사전에서 선택한
-          교체와 실제 어간·어미 환경을 결합해 표면형을 계산합니다. 예를 들어
+          분리해야 합니다. 사전 entry는 어떤 불규칙 교체를 적용할지 결정하고,
+          generator는 사전에서 선택한 교체와 실제 어간·어미 환경을 결합해
+          표면형을 계산합니다. 두 사전이 함께 지지하지만 규칙으로 만들 수 없는
+          소수 표면형만 별도 surface 계층에 저장합니다. 예를 들어
           <code>걷다</code>의 entry는 <code>DToL</code>이라는 어휘적 분류를
           제공하고, generator는 모음으로 시작하는 어미 앞에서{' '}
           <code>걷 + ㄷ→ㄹ + 어</code>를 적용해 <code>걸어</code>를 만듭니다.
