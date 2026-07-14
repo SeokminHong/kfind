@@ -179,7 +179,7 @@ same POS.
 
 | Policy | Behavior | Typical use |
 | --- | --- | --- |
-| `smart` | Applies POS-aware verification and checks the completed token span. It can use the optional component resource for compound nouns and lexical predicates. | Interactive search; default |
+| `smart` | Applies POS-aware verification and checks the completed token span. It can use the optional component resource for compound nouns, lexical predicates, and adjacent-token context. | Interactive search; default |
 | `token` | Requires token boundaries around every core and completed token span. | Strict standalone tokens |
 | `any` | Does not require left or right token boundaries. | Recall-oriented automation with downstream context review |
 
@@ -364,21 +364,22 @@ files.
 
 | Workflow | Quality (TP / FP / FN) | CLI wall | Throughput | Peak RSS |
 | --- | ---: | ---: | ---: | ---: |
-| Agent: embedded + `any` + explicit POS | 480 / 11 / 20 | 17.1 ms | 5,837.2 MiB/s | 7.3 MiB |
-| Human: full POS + `smart` + untagged | 417 / 0 / 83 | 310.9 ms | 321.7 MiB/s | 91.9 MiB |
+| Agent: embedded + `any` + explicit POS | 480 / 11 / 20 | 18.0 ms | 5,565.9 MiB/s | 7.5 MiB |
+| Human: full POS + `smart` + untagged | 417 / 0 / 83 | 311.0 ms | 321.6 MiB/s | 92.1 MiB |
 
 ![Product workflow quality and CLI cost](docs/benchmarks/assets/product-workflows.svg)
 
 The agent and human quality rows use different negative-query contracts, so
 they describe their product workflows rather than a head-to-head backend rank.
-The product rows are from the 2026-07-14 candidate revision `b6cd0a9`.
+The product rows are from the 2026-07-14 candidate revision `488cd3f`.
 
 The full-POS lexicon now includes 176 dictionary-classified D/S/B/H irregular
-analyses and two independently supported regular homonyms. Against main
-`e8f99c2`, test and Human untagged `smart` each reduced FN by six without new
-FP; development and hard-negative results were unchanged. The 100 MiB Human
-CLI and isolated full-POS startup ranges overlapped. Peak RSS for the larger
-artifact increased by 64--132 KiB.
+analyses and two independently supported regular homonyms. On top of main
+`df84a1a`, contextual `smart` distinguishes `매/NNG + 이/VCP + ㄹ/ETM`, repeated
+`매일/MAG`, and `매일/NNG + 을/JKO`. Public test, development, and Human quality
+were unchanged; false positives in the seven-case homonymous hard-negative
+slice fell from four to one. Human CLI throughput was 0.51% lower and the wall
+time ranges overlapped.
 
 - [2026-07-14 D/S/B/H irregular enriched predicate lexicon](docs/benchmarks/2026-07-14-consonant-irregular-enriched-lexicon.md)
 - [2026-07-14 reu/reo irregular and enriched predicate lexicon](docs/benchmarks/2026-07-14-reu-reo-enriched-lexicon.md)
@@ -388,6 +389,7 @@ artifact increased by 64--132 KiB.
 - [2026-07-14 connective-ji position evidence](docs/benchmarks/2026-07-14-connective-ji-position-evidence.md)
 - [2026-07-14 local-lattice product-path optimization](docs/benchmarks/2026-07-14-local-lattice-optimization.md)
 - [2026-07-14 smart-precision quality and performance](docs/benchmarks/2026-07-14-user-smart-precision.md)
+- [2026-07-14 contextual `매일` disambiguation](docs/benchmarks/2026-07-14-contextual-maeil-disambiguation.md)
 - [2026-07-13 product workflow methodology and external snapshots](docs/benchmarks/2026-07-13-product-workflows.md)
 
 ### External analyzer comparison
@@ -400,8 +402,8 @@ schema, version, and configuration did not change.
 
 | Backend | Input and version | TP / FP / FN | Precision | Recall | F1 | Init | Cases/s | p95 | Peak RSS |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Agent | embedded + `any`, explicit POS | 480 / 11 / 20 | 97.76% | 96.00% | 96.87% | 0.0011 s | 15,592.1 | 0.1442 ms | 5.1 MiB |
-| User | full POS + `smart`, untagged | 417 / 0 / 83 | 100.00% | 83.40% | 90.95% | 0.4442 s | 11,010.4 | 0.2172 ms | 91.9 MiB |
+| Agent | embedded + `any`, explicit POS | 480 / 11 / 20 | 97.76% | 96.00% | 96.87% | 0.0011 s | 15,600.2 | 0.1447 ms | 5.1 MiB |
+| User | full POS + `smart`, untagged | 417 / 0 / 83 | 100.00% | 83.40% | 90.95% | 0.4322 s | 11,169.3 | 0.2101 ms | 91.9 MiB |
 | Kiwi | snapshot 0.23.2, model 0.23.0, explicit POS | 426 / 0 / 74 | 100.00% | 85.20% | 92.01% | 1.7204 s | 1,672.0 | 1.1904 ms | 528.2 MiB |
 | Lindera | snapshot 4.0.0, embedded-ko-dic, explicit POS | 393 / 0 / 107 | 100.00% | 78.60% | 88.02% | 0.0301 s | 15,609.1 | 0.1113 ms | 193.1 MiB |
 | MeCab-ko | snapshot 1.0.2, dictionary 1.0.0, explicit POS | 403 / 0 / 97 | 100.00% | 80.60% | 89.26% | 0.0003 s | 10,789.7 | 0.1940 ms | 102.8 MiB |

@@ -279,10 +279,21 @@ fn compile_analysis(
                     rule_path: Vec::new(),
                 },
                 smart_left: true,
-                context_requirement: ContextRequirement::None,
+                context_requirement: ContextRequirement::LexicalContext,
             });
         } else {
-            output.push(exact_branch(atom_surface, analysis_index, Vec::new(), true));
+            let context_requirement = if analysis.coarse_pos == CoarsePos::Adverb {
+                ContextRequirement::LexicalContext
+            } else {
+                ContextRequirement::None
+            };
+            output.push(exact_branch_with_context(
+                atom_surface,
+                analysis_index,
+                Vec::new(),
+                true,
+                context_requirement,
+            ));
         }
         return Ok(());
     }
@@ -536,6 +547,22 @@ fn exact_branch(
     rule_path: Vec<RuleId>,
     smart_left: bool,
 ) -> DraftBranch {
+    exact_branch_with_context(
+        surface,
+        analysis_index,
+        rule_path,
+        smart_left,
+        ContextRequirement::None,
+    )
+}
+
+fn exact_branch_with_context(
+    surface: &str,
+    analysis_index: u16,
+    rule_path: Vec<RuleId>,
+    smart_left: bool,
+    context_requirement: ContextRequirement,
+) -> DraftBranch {
     DraftBranch {
         anchor: surface.to_owned(),
         verifier: BranchVerifier::Exact,
@@ -545,7 +572,7 @@ fn exact_branch(
             rule_path,
         },
         smart_left,
-        context_requirement: ContextRequirement::None,
+        context_requirement,
     }
 }
 

@@ -212,7 +212,9 @@ mod tests {
     use std::io::Cursor;
 
     use kfind_data::{
-        MecabSourceMorphologyEntry, encode_component_resource, parse_mecab_connection_matrix,
+        DataFinePos, LexiconData, MecabSourceMorphologyEntry, ModifierRecord, NominalRecord,
+        collect_pos_entries, encode_component_resource, encode_pos_lexicon,
+        parse_mecab_connection_matrix,
     };
 
     use super::*;
@@ -326,6 +328,51 @@ mod tests {
     }
 
     #[test]
+    fn smart_context_selects_the_same_maeil_analysis_for_every_query() {
+        let engine = contextual_engine();
+        let copular = "독수리가 아니라 매일 것 같아";
+        assert_eq!(matched_surfaces(&engine, "n:매", copular), ["매"]);
+        for query in ["매일", "n:매일", "adv:매일"] {
+            assert!(matched_surfaces(&engine, query, copular).is_empty());
+        }
+        assert_eq!(matched_surfaces(&engine, "이다", copular), ["일"]);
+
+        let repeated = "매일 매일 보고 싶어";
+        for query in ["n:매", "n:매일"] {
+            assert!(matched_surfaces(&engine, query, repeated).is_empty());
+        }
+        assert_eq!(
+            matched_surfaces(&engine, "매일", repeated),
+            ["매일", "매일"]
+        );
+        assert_eq!(
+            matched_surfaces(&engine, "adv:매일", repeated),
+            ["매일", "매일"]
+        );
+
+        let object = "그는 집념으로 매일을 보내고 있었다.";
+        assert_eq!(matched_surfaces(&engine, "매일", object), ["매일을"]);
+        assert_eq!(matched_surfaces(&engine, "n:매일", object), ["매일을"]);
+        for query in ["n:매", "adv:매일"] {
+            assert!(matched_surfaces(&engine, query, object).is_empty());
+        }
+    }
+
+    #[test]
+    fn smart_context_does_not_cross_lines_or_analysis_limits() {
+        let engine = contextual_engine();
+        let line_break = "아니라\n매일 것";
+        assert!(matched_surfaces(&engine, "n:매", line_break).is_empty());
+        assert_eq!(matched_surfaces(&engine, "n:매일", line_break), ["매일"]);
+
+        let distant_repeat = format!("매일{}매일", " ".repeat(257));
+        assert_eq!(
+            matched_surfaces(&engine, "n:매일", &distant_repeat),
+            ["매일", "매일"]
+        );
+    }
+
+    #[test]
     fn explicit_component_initialization_is_observable() {
         let mut without_component = Engine::new().unwrap();
         let with_component = Engine::with_component_resource(component_resource()).unwrap();
@@ -350,6 +397,43 @@ mod tests {
         Engine::new().unwrap()
     }
 
+    fn contextual_engine() -> Engine {
+        let full_pos = encode_pos_lexicon(&collect_pos_entries(&LexiconData {
+            nominals: vec![
+                NominalRecord {
+                    lemma: "매".to_owned(),
+                    pos: DataFinePos::Nng,
+                    flags: Default::default(),
+                    overrides: Vec::new(),
+                },
+                NominalRecord {
+                    lemma: "매일".to_owned(),
+                    pos: DataFinePos::Nng,
+                    flags: Default::default(),
+                    overrides: Vec::new(),
+                },
+            ],
+            modifiers: vec![ModifierRecord {
+                lemma: "매일".to_owned(),
+                pos: DataFinePos::Mag,
+                flags: Default::default(),
+            }],
+            ..LexiconData::default()
+        }))
+        .unwrap();
+        Engine::with_full_pos_and_component(&full_pos, component_resource()).unwrap()
+    }
+
+    fn matched_surfaces(engine: &Engine, query: &str, text: &str) -> Vec<String> {
+        engine
+            .compile(query, &CompileOptions::default())
+            .unwrap()
+            .find_all(text.as_bytes())
+            .into_iter()
+            .map(|matched| text[matched.span].to_owned())
+            .collect()
+    }
+
     fn component_resource() -> Vec<u8> {
         let matrix = parse_mecab_connection_matrix(
             "matrix.def",
@@ -361,6 +445,12 @@ mod tests {
             &[
                 component_entry("걷다", "VV"),
                 component_entry("매일", "MAG"),
+                component_entry("매일", "NNG"),
+                component_entry("매", "NNG"),
+                component_entry("일", "VCP+ETM"),
+                component_entry("아니", "VCN"),
+                component_entry("라", "EC"),
+                component_entry("것", "NNB"),
                 component_entry("학생일", "NNG+VCP+ETM"),
             ],
             &matrix,

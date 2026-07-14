@@ -24,7 +24,9 @@ impl QueryPlan {
             atom.branches.iter().any(|branch| {
                 matches!(
                     branch.context_requirement,
-                    ContextRequirement::PredicateLexical | ContextRequirement::NominalComponent
+                    ContextRequirement::PredicateLexical
+                        | ContextRequirement::NominalComponent
+                        | ContextRequirement::LexicalContext
                 )
             })
         })
@@ -112,6 +114,7 @@ pub enum ContextRequirement {
     None,
     PredicateLexical,
     NominalComponent,
+    LexicalContext,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

@@ -21,9 +21,11 @@ use crate::boundary::{accepts_requirements, surrounding_token_span};
 use crate::{AnchorBuildError, AnchorBuildLimits, AnchorEngine, AnchorHit};
 
 mod candidates;
+mod context;
 mod phrase;
 
 pub use candidates::LocalAnalysisCandidate;
+use context::LexicalContextAnalysis;
 use phrase::{PhraseMatchLimit, select_phrase_matches};
 
 const MAX_VERIFIER_BYTES: usize = 256;
@@ -420,13 +422,64 @@ impl MorphMatcher {
         match branch.context_requirement {
             ContextRequirement::None => boundary_accepted,
             ContextRequirement::PredicateLexical => {
-                boundary_accepted && self.accepts_predicate_lexical(haystack, candidate)
-            }
-            ContextRequirement::NominalComponent => {
                 boundary_accepted
-                    || self.accepts_nominal_component(haystack, candidate, atom_index, branch)
+                    && self
+                        .lexical_context_analysis(haystack, candidate)
+                        .map_or_else(
+                            || self.accepts_predicate_lexical(haystack, candidate),
+                            |context| {
+                                self.context_accepts_branch(&context, candidate, atom_index, branch)
+                            },
+                        )
+            }
+            ContextRequirement::NominalComponent => self
+                .lexical_context_analysis(haystack, candidate)
+                .map_or_else(
+                    || {
+                        boundary_accepted
+                            || self
+                                .accepts_nominal_component(haystack, candidate, atom_index, branch)
+                    },
+                    |context| self.context_accepts_branch(&context, candidate, atom_index, branch),
+                ),
+            ContextRequirement::LexicalContext => {
+                boundary_accepted
+                    && self
+                        .lexical_context_analysis(haystack, candidate)
+                        .is_none_or(|context| {
+                            self.context_accepts_branch(&context, candidate, atom_index, branch)
+                        })
             }
         }
+    }
+
+    fn lexical_context_analysis(
+        &self,
+        haystack: &[u8],
+        candidate: &VerifiedSpan,
+    ) -> Option<LexicalContextAnalysis> {
+        LexicalContextAnalysis::extract(
+            self.component_evaluator.as_deref()?,
+            haystack,
+            candidate.core.clone(),
+        )
+    }
+
+    fn context_accepts_branch(
+        &self,
+        context: &LexicalContextAnalysis,
+        candidate: &VerifiedSpan,
+        atom_index: usize,
+        branch: &SurfaceBranch,
+    ) -> bool {
+        let Some(atom) = self.plan.atoms.get(atom_index) else {
+            return false;
+        };
+        branch.origins.iter().any(|origin| {
+            atom.analyses
+                .get(usize::from(origin.analysis_index))
+                .is_some_and(|analysis| context.accepts(candidate.core.clone(), analysis.fine_pos))
+        })
     }
 
     fn accepts_predicate_lexical(&self, haystack: &[u8], candidate: &VerifiedSpan) -> bool {
