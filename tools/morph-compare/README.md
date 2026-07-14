@@ -40,7 +40,8 @@ KFIND_MORPH_SMOKE=1 KFIND_MORPH_RUNS=1 scripts/benchmark-morphology.sh
 Refresh the external snapshot explicitly only when the test fixture,
 performance schema, or pinned external tool and adapter configuration changes.
 The default benchmark fails with this command when the fixture or snapshot
-schema does not match:
+schema does not match. The default image builds only the `kfind` runner; external
+analyzers and their dedicated runners are built only in the separate refresh image:
 
 ```sh
 scripts/refresh-morph-baselines.sh

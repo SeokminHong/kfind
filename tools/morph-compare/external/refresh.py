@@ -22,12 +22,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from benchmark import (
     DEFAULT_CASES,
     DEFAULT_METADATA,
-    DEFAULT_RUNNER,
     aggregate_performance,
     matching_candidate_spans,
     percentile,
     performance as native_performance,
-    run_native_backend,
 )
 from python.adapters import (
     CandidateSpan,
@@ -41,6 +39,7 @@ from python.validation import load_cases, validate_dataset
 
 
 KOMORAN_CLASSPATH = "/opt/morph-benchmark/external:/opt/morph-benchmark/external/komoran.jar"
+DEFAULT_LINDERA_RUNNER = Path("/usr/local/bin/lindera-benchmark-runner")
 DEFAULT_RUNS = 5
 
 
@@ -127,9 +126,21 @@ def capture_kiwi(cases: list[dict[str, object]]) -> dict[str, object]:
 
 
 def capture_lindera(
-    cases: list[dict[str, object]], cases_path: Path, runner: Path
+    cases: list[dict[str, object]], cases_path: Path, lindera_runner: Path
 ) -> dict[str, object]:
-    summary = run_native_backend(runner, "lindera", cases_path)
+    with tempfile.TemporaryDirectory() as directory:
+        output = Path(directory) / "lindera.json"
+        process = subprocess.run(
+            [str(lindera_runner), str(cases_path), str(output)],
+            text=True,
+            capture_output=True,
+        )
+        if process.returncode != 0:
+            raise RuntimeError(
+                f"lindera runner failed with exit {process.returncode}: "
+                f"{process.stderr.strip()}"
+            )
+        summary = json.loads(output.read_text(encoding="utf-8"))
     results = {str(result["id"]): result for result in summary["results"]}
     candidates = {
         str(case["id"]): lindera_candidates(results[str(case["id"])]["tokens"])
@@ -256,11 +267,11 @@ def capture_once(
     backend: str,
     cases: list[dict[str, object]],
     cases_path: Path,
-    runner: Path,
+    lindera_runner: Path,
 ) -> dict[str, object]:
     captures = {
         "kiwi": lambda: capture_kiwi(cases),
-        "lindera": lambda: capture_lindera(cases, cases_path, runner),
+        "lindera": lambda: capture_lindera(cases, cases_path, lindera_runner),
         "mecab-ko": lambda: capture_mecab(cases),
         "komoran": lambda: capture_komoran(cases),
     }
@@ -271,7 +282,7 @@ def capture_backend_runs(
     backend: str,
     cases_path: Path,
     metadata_path: Path,
-    runner: Path,
+    lindera_runner: Path,
     runs: int,
 ) -> dict[str, object]:
     def run_worker() -> dict[str, object]:
@@ -287,8 +298,8 @@ def capture_backend_runs(
                     str(cases_path),
                     "--metadata",
                     str(metadata_path),
-                    "--runner",
-                    str(runner),
+                    "--lindera-runner",
+                    str(lindera_runner),
                     "--output",
                     str(output),
                 ],
@@ -334,7 +345,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--cases", type=Path, default=DEFAULT_CASES)
     parser.add_argument("--metadata", type=Path, default=DEFAULT_METADATA)
-    parser.add_argument("--runner", type=Path, default=DEFAULT_RUNNER)
+    parser.add_argument(
+        "--lindera-runner", type=Path, default=DEFAULT_LINDERA_RUNNER
+    )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--runs", type=int, default=DEFAULT_RUNS)
     parser.add_argument("--worker-backend", choices=EXTERNAL_BACKENDS)
@@ -354,7 +367,9 @@ def main() -> int:
     metadata = json.loads(args.metadata.read_text(encoding="utf-8"))
     validate_dataset(args.cases, cases, metadata)
     if args.worker_backend is not None:
-        result = capture_once(args.worker_backend, cases, args.cases, args.runner)
+        result = capture_once(
+            args.worker_backend, cases, args.cases, args.lindera_runner
+        )
         args.output.write_text(
             json.dumps(result, ensure_ascii=False, sort_keys=True) + "\n",
             encoding="utf-8",
@@ -376,7 +391,7 @@ def main() -> int:
             backend,
             args.cases,
             args.metadata,
-            args.runner,
+            args.lindera_runner,
             max(DEFAULT_RUNS, args.runs),
         )
     snapshot = {

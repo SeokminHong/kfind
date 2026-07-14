@@ -1,5 +1,20 @@
 ARG BASE_IMAGE=kfind-morph-benchmark:local
+ARG RUST_VERSION=1.97.0
+
+FROM rust:${RUST_VERSION}-bookworm AS lindera-runner-builder
+WORKDIR /src
+COPY tools/morph-compare/external/lindera-runner ./lindera-runner
+RUN cargo build \
+        --locked \
+        --release \
+        --manifest-path lindera-runner/Cargo.toml \
+    && strip lindera-runner/target/release/lindera-benchmark-runner
+
 FROM ${BASE_IMAGE}
+
+COPY --from=lindera-runner-builder \
+    /src/lindera-runner/target/release/lindera-benchmark-runner \
+    /usr/local/bin/lindera-benchmark-runner
 
 ARG KIWIPIEPY_VERSION=0.23.2
 ARG KIWIPIEPY_MODEL_VERSION=0.23.0
