@@ -76,7 +76,7 @@ cargo bench -p kfind-testkit --bench query_matcher -- matcher/phrase_find_all_re
 ```
 
 두 benchmark 모두 입력의 anchor·atom span 수집과 leftmost-longest non-overlapping 결과 선택을
-포함한다. `phrase_find_all_repeated`는 가능한 atom 조합을 물질화하지 않는지 감시한다.
+포함한다. `phrase_find_all_repeated`는 가능한 atom 조합을 모두 만들어 메모리에 쌓지 않는지 감시한다.
 
 ## Full POS startup
 
