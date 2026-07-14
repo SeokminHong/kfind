@@ -26,6 +26,8 @@ class Kfind < Formula
 
   def install
     system "cargo", "install", *std_cargo_args(path: "crates/kfind-cli")
+    pkgshare.install "data/enriched/predicates.tsv" => "predicates.enriched.tsv"
+    (share/"doc/kfind/LICENSES").install "data/enriched/NOTICE.md" => "NIKL-enriched-predicates.md"
 
     resource("full-pos-lexicon").stage do
       pkgshare.install "lexicon.bin", "MANIFEST.toml"
@@ -59,12 +61,17 @@ class Kfind < Formula
     assert_match "source: full-pos-lexicon", explain
     refute_match "full POS lexicon unavailable", explain
 
+    irregular = testpath/"irregular.txt"
+    irregular.write("선을 갈라 두었다.\n")
+    assert_match "갈라", shell_output("#{bin}/kfind --boundary any --pos verb 가르다 #{irregular}")
+
     component = testpath/"component.txt"
     component.write("사용자권한을 확인했다.\n대학교를 방문했다.\n")
     assert_match "사용자권한", shell_output("#{bin}/kfind 권한 #{component}")
     assert_empty shell_output("#{bin}/kfind 학교 #{component}", 1)
 
     assert_predicate pkgshare/"skills/kfind/SKILL.md", :file?
+    assert_predicate pkgshare/"predicates.enriched.tsv", :file?
     assert_match "name: kfind", shell_output("#{bin}/kfind --init --agent custom")
     system bin/"kfind", "--init", "--agent", "codex"
     installed_skill = testpath/".agents/skills/kfind/SKILL.md"

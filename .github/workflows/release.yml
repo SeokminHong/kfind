@@ -30,6 +30,8 @@ jobs:
           test "$version" = "$package_version"
           test "$project_license" = "MIT"
           test -f LICENSE
+          test -f data/enriched/predicates.tsv
+          test -f data/enriched/NOTICE.md
           printf 'version=%s\n' "$version" >>"$GITHUB_OUTPUT"
           printf 'license=%s\n' "$project_license" >>"$GITHUB_OUTPUT"
 
