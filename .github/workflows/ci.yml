@@ -92,6 +92,32 @@ jobs:
       - name: Build and validate the package
         run: pnpm --dir packages/kfind run pack:check
 
+  site-quality:
+    name: Site ${{ matrix.check.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        check:
+          - name: format
+            script: format:check
+          - name: lint
+            script: lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: site/pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm --dir site install --frozen-lockfile
+      - name: Run ${{ matrix.check.name }} check
+        run: pnpm --dir site run ${{ matrix.check.script }}
+
   site:
     name: Documentation site
     runs-on: ubuntu-24.04
@@ -114,10 +140,8 @@ jobs:
           cache-dependency-path: site/pnpm-lock.yaml
       - name: Install dependencies
         run: pnpm --dir site install --frozen-lockfile
-      - name: Validate and build the site
+      - name: Type-check and build the site
         run: |
-          pnpm --dir site run format:check
-          pnpm --dir site run lint
           pnpm --dir site run types:check
           pnpm --dir site run build
 
