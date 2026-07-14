@@ -113,19 +113,27 @@ fixture·gold·지표 정의와 `any`의 TP 479 / FP 11 / FN 21은 바꾸지 않
 
 ## 이어갈 작업
 
-현재 승인된 제품 정책 변경은 없다. 다음 후보는 test fixture를 규칙 선택에 사용하지 않고
-development와 hard-negative에서 먼저 판정한다.
+최우선 목표는 사람용 full-POS `smart`의 무품사 recall을 실제로 높이면서 precision 100.00%를
+유지하는 제품 변경이다. 계측·report·runner만 바꾼 상태는 작업 완료나 독립 PR 대상으로 보지
+않는다. test fixture는 규칙 선택에 사용하지 않고 제품 규칙을 고정한 뒤 회귀 판정에만 사용한다.
 
-1. 무품사 full-POS plan의 누락을 별도 development 지표로 만든다. 현재 test에서는 positive
-   500건 중 기대 품사가 plan에 없는 경우가 18건이고 literal fallback은 5건이다. plan 확장은
-   새 development 근거와 User precision 100.00% 보존을 함께 만족할 때만 검토한다.
-2. Agent precision은 include/exclude lattice 존재 여부와 다른 독립 근거가 정의될 때만 shadow를
-   다시 연다. gate는 development TP 484 보존, FP 15 미만, hard-negative 새 FP 0을 모두
-   요구하며 `include-path`와 `include-only` 투영은 재사용하지 않는다.
-
-1번의 계측 진입점은 `tools/morph-compare/python/report.py`,
-`tools/morph-compare/benchmark.py`와 `tools/morph-compare/runner/src/main.rs`다. plan 확장 후보가
-생긴 뒤에만 `crates/kfind-query/src/compile`과 matcher 경로를 연다.
+1. 기존 runner 출력을 재사용해 development 무품사 plan에서 기대 품사 분석이 빠진 case를
+   품사·분석 source·literal fallback 여부로 분류한다. development 무품사 fixture가 필요하면
+   `tools/morph-compare/python/dataset.py`, `tools/morph-compare/benchmark.py`와
+   `tools/morph-compare/python/report.py`만 연결한다. 기존 출력으로 원인을 구분할 수 없을 때만
+   runner에 최소 필드를 추가하며, 이 진단은 같은 작업 단위의 제품 변경으로 즉시 이어간다.
+2. 반복되는 한 누락군을 골라 development positive와 같은 표면형·품사의 version-controlled
+   hard-negative를 먼저 고정한다. 스펙을 갱신한 뒤 `crates/kfind-query/src/lexicons.rs`,
+   `crates/kfind-query/src/compile/mod.rs`와 `crates/kfind-query/src/compile/normalization.rs`에서
+   해당 누락군만 plan에 포함한다. matcher와 무관한 누락이면 matcher를 수정하지 않는다.
+3. 첫 development 실행의 User full-POS `smart` 품질을 기준선으로 고정한다. 완료 조건은
+   development TP 증가, FP 0과 precision 100.00% 유지, 기존 hard-negative 새 FP 0이다.
+   규칙 고정 뒤 held-out User 결과는 TP 411 이상, FP 0을 유지하고 explicit-POS test의
+   TP 414 / FP 0 / FN 86을 바꾸지 않아야 한다. 관련 morphology workload의 성능 회귀도 없어야
+   한다. 조건을 만족하는 제품 변경이 없으면 성공으로 기록하지 않고 이 항목을 계속 열어 둔다.
+4. Agent precision은 위 User recall 작업 뒤에만 재개한다. include/exclude lattice 존재 여부와
+   다른 독립 근거가 정의되어야 하며, development TP 484 보존, FP 15 미만, hard-negative 새
+   FP 0을 모두 요구한다. `include-path`와 `include-only` 투영은 재사용하지 않는다.
 
 ## 재현과 검증
 
