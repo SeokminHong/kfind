@@ -1,0 +1,22 @@
+schema_version = 1
+generator = "nikl-lexicon-classifier@0.1.0"
+record_count = 220738
+candidate_count = 312
+promoted_count = 102
+core_duplicate_count = 13
+regular_control_count = 12
+
+[[source]]
+name = "krdict"
+record_count = 14141
+candidate_count = 125
+
+[[source]]
+name = "stdict"
+record_count = 69873
+candidate_count = 303
+
+[[source]]
+name = "opendict"
+record_count = 136724
+candidate_count = 309

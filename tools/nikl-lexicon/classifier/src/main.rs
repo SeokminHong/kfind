@@ -387,7 +387,7 @@ fn write_stats(
         .filter(|candidate| !candidate.classification.is_enriched())
         .count();
     let mut output = format!(
-        "schema_version = 1\nrecord_count = {}\ncandidate_count = {}\npromoted_count = {promoted}\ncore_duplicate_count = {core_duplicates}\nregular_control_count = {regular_controls}\n",
+        "schema_version = 1\ngenerator = \"nikl-lexicon-classifier@0.1.0\"\nrecord_count = {}\ncandidate_count = {}\npromoted_count = {promoted}\ncore_duplicate_count = {core_duplicates}\nregular_control_count = {regular_controls}\n",
         records.len(),
         candidates.len(),
     );

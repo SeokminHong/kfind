@@ -328,7 +328,13 @@ def write_records(path: Path, records: Iterable[PredicateRecord]) -> None:
 
 def write_stats(path: Path, stats: Iterable[ImportStats]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    lines = ["schema_version = 1"]
+    lines = [
+        "schema_version = 1",
+        'generator = "tools/nikl-lexicon/import_nikl.py@1"',
+        'license = "CC BY-SA 2.0 KR"',
+        'extracted_fields = ["source_id", "homonym", "lemma", '
+        '"part-of-speech", "conjugation"]',
+    ]
     for value in stats:
         lines.extend(
             (
