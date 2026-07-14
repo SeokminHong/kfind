@@ -32,6 +32,16 @@ PROFILE_CONTRACTS = {
         "query_mode": "untagged",
     },
 }
+RUNNER_METADATA_FIELDS = (
+    "backend",
+    "version",
+    "profile",
+    "boundary",
+    "lexicon_artifact_sha256",
+    "enriched_artifact_sha256",
+    "morphology_artifact_sha256",
+    "component_artifact_sha256",
+)
 SUPPORTED_POS = {
     "noun",
     "verb",
@@ -335,7 +345,7 @@ def evaluate_profile(
                     "spans": result["spans"],
                 }
             )
-    runner = {key: value for key, value in profile.items() if key != "results"}
+    runner = {key: profile.get(key) for key in RUNNER_METADATA_FIELDS}
     return {
         "contract": contract,
         "runner": runner,

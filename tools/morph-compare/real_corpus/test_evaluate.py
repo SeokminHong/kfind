@@ -61,12 +61,14 @@ class RealCorpusEvaluationTests(unittest.TestCase):
             "backend": "fixture",
             "profile": "embedded",
             "boundary": "any",
+            "initialization_seconds": 123.0,
             "results": results,
         }
 
         evaluated = evaluate_profile("agent", profile, self.cases)
 
         self.assertEqual(evaluated["contract"]["query_mode"], "explicit-pos")
+        self.assertNotIn("initialization_seconds", evaluated["runner"])
         self.assertEqual(evaluated["overall"]["tp"], 1)
         self.assertEqual(evaluated["overall"]["fp"], 1)
         self.assertEqual(evaluated["overall"]["fn"], 20)
