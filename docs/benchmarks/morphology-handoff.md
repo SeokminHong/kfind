@@ -61,6 +61,9 @@
 - 표준국어대사전·우리말샘의 고정 snapshot과 양방향 fixture로 검증한 `가려듣다`, `덧싣다`,
   `쏟아붓다`, `흘려듣다`는 core 불규칙 예외다. 자동 enriched 승격 조건은 유지하고 생성
   report에서는 네 항목을 `core-duplicate`로 기록한다.
+- 한국어기초사전의 보조 동사 record로 검증한 `말다 → 마라`, `달다 → 다오`는 core의 개별
+  terminal override다. 같은 표제어의 일반 동사 분석을 함께 보존하고 다른 표제어로의 오귀속은
+  허용하지 않는다.
 - 명시적 coarse `noun`의 사전 분석이 없으면 보통명사·고유명사·의존명사 fallback을 모두
   보존한다. component 판정은 corpus의 `NNBC`를 query-side `NNB`와 같은 의존명사로
   비교하며 artifact와 진단의 source tag는 바꾸지 않는다.
@@ -100,7 +103,7 @@ development 명시적 품사 `smart`는 embedded가 TP 442 / FP 2 / FN 58, full-
 TP 443 / FP 2 / FN 57이다.
 full-POS의 기존 세부 품사 분석과 coarse `noun` fallback 합집합이 `197명이`를 복구했다.
 세부 품사와 품질 계약은 [User smart precision 품질·성능](2026-07-14-user-smart-precision.md),
-현재 처리량과 latency는 [`-ㅁ/음` 명사형 품질·성능](2026-07-14-mieum-nominalizer.md)을
+현재 처리량과 latency는 [`마라`·`다오` 개별 표면형 override](2026-07-14-imperative-surface-overrides.md)를
 기준으로 한다.
 
 품사를 생략하는 사람용 1,000-case fixture에서 full-POS `smart`는 TP 419, FP 0, FN 81,

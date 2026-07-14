@@ -507,3 +507,9 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 쏟아붓다	verb	문제에 돈을 쏟아붓었다.	no-match	compound-s-irregular
 흘려듣다	verb	그는 충고를 흘려들었다.	match	compound-d-irregular
 흘려듣다	verb	그는 충고를 흘려듣었다.	no-match	compound-d-irregular
+말다	verb	그런 일은 다시 하지 마라.	match	suppletive
+말다	verb	그런 일은 다시 하지 다오.	no-match	suppletive
+말다	verb	하려던 일을 말아라.	match	homonym-union
+달다	verb	저 쓰레기부터 치워 다오.	match	suppletive
+달다	verb	저 쓰레기부터 치워 마라.	no-match	suppletive
+달다	verb	빨랫줄에 옷을 달아라.	match	homonym-union
