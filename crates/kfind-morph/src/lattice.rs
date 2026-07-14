@@ -277,7 +277,10 @@ impl Node {
         query_span: &Range<usize>,
         query_pos: DataFinePos,
     ) -> Self {
-        let matches_pos = analysis.pos.split('+').any(|pos| pos == query_pos.as_str());
+        let matches_pos = analysis
+            .pos
+            .split('+')
+            .any(|pos| source_pos_matches(pos, query_pos));
         let query_match = matches_pos && span == *query_span;
         Self {
             span,
@@ -310,6 +313,11 @@ impl Node {
             unknown: self.unknown,
         }
     }
+}
+
+fn source_pos_matches(source_pos: &str, query_pos: DataFinePos) -> bool {
+    DataFinePos::parse(source_pos) == Some(query_pos)
+        || (source_pos == "NNBC" && query_pos == DataFinePos::Nnb)
 }
 
 fn build_nodes(

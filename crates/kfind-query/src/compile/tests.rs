@@ -40,6 +40,31 @@ fn global_pos_forces_an_untagged_atom() {
 }
 
 #[test]
+fn forced_noun_fallback_preserves_supported_fine_positions() {
+    let options = CompileOptions {
+        global_pos: Some(CoarsePos::Noun),
+        ..CompileOptions::default()
+    };
+    let plan = compile_query("미등록명사", &options, &analyzer()).unwrap();
+
+    let fine_positions = plan.atoms[0]
+        .analyses
+        .iter()
+        .map(|analysis| analysis.fine_pos)
+        .collect::<Vec<_>>();
+    assert_eq!(
+        fine_positions,
+        vec![
+            kfind_morph::FinePos::CommonNoun,
+            kfind_morph::FinePos::ProperNoun,
+            kfind_morph::FinePos::DependentNoun,
+        ]
+    );
+    assert_eq!(plan.atoms[0].branches.len(), 1);
+    assert_eq!(plan.atoms[0].branches[0].origins.len(), 3);
+}
+
+#[test]
 fn unregistered_da_is_diagnostic_literal_only() {
     let plan = compile_query("미등록다", &CompileOptions::default(), &analyzer()).unwrap();
     assert_eq!(plan.atoms[0].branches.len(), 1);

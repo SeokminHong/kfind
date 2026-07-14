@@ -167,8 +167,23 @@ export default function BenchmarksPage(): React.JSX.Element {
         </div>
       </DocumentSection>
 
+      <DocumentSection title="명시적 품사 smart recall">
+        <p>
+          main <code>f8e5e3e</code> 대비 후보 <code>8337022</code>에서 coarse
+          noun fallback을 보존해 embedded test FN을 91에서 85로 줄였습니다.
+          full-POS development FN은 60에서 59로 줄었고, precision 하한과 16개
+          hard-negative의 신규 FP 0을 유지했습니다. 무품사 결과는 바뀌지
+          않았습니다.
+        </p>
+      </DocumentSection>
+
       <DocumentSection title="Source reports">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-dependent-noun-recall.md">
+              의존명사 coarse-POS fallback recall
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-h-irregular-recall.md">
               ㅎ 불규칙 core lexicon recall

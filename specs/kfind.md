@@ -40,6 +40,10 @@
 - full POS lexicon의 용언 품사 후보도 POS 전용 산출물에 보존한다. 동일 표제어에 core 용언 분석이 하나라도 있으면 full POS 용언 분석은 추가하지 않고 core 분석을 우선한다. 그 밖의 용언은 해당 품사와 일치하는 생산적 접미 규칙을 먼저 적용하고, 일치하는 규칙이 없을 때만 제한된 규칙형 분석을 사용한다.
 - full POS runtime resource는 검증된 정렬 lookup index로 보존한다. CLI, Rust library와 WASM binding은 초기화할 때 전체 entry를 일반 분석 map으로 전개하지 않으며, query atom의 표제어를 조회할 때 일치하는 품사 후보만 `Analysis`로 만든다.
 - 지연 조회에서도 기존 우선순위를 보존한다. core 용언은 같은 표제어의 full POS 용언을 억제하고, core의 같은 세부 품사는 중복하지 않는다. user lexicon의 append는 full POS 후보를 보존하며 `replace = true`는 해당 morphology category의 core와 full POS 후보를 모두 대체한다.
+- 명시한 coarse 품사와 일치하는 사전 분석이 없으면 해당 coarse 품사가 지원하는 세부 품사를
+  모두 fallback 분석으로 만든다. `noun`은 보통명사·고유명사·의존명사를 보존하며 하나의
+  보통명사 분석으로 축소하지 않는다. 같은 anchor·verifier를 만드는 분석은 branch를 합치되
+  세부 품사 provenance는 모두 유지한다.
 - core lexicon은 전체 표제어 목록이 아니라 불규칙 활용, 품사 중의성, 기능어, 표면형 override를 담는 예외 계층이다. 일반 표제어 coverage는 full POS resource가 담당하고, core entry 수를 corpus recall에 맞춰 무제한 늘리지 않는다.
 - core lexicon의 `DropH` 형용사는 검증된 ㅎ 불규칙 표제어를 명시한다. `어떻다`, `이렇다`,
   `커다랗다`는 각각 `어떤`, `이런`, `커다란` 관형형을 만들고 규칙형 `어떻은`, `이렇은`,
@@ -296,6 +300,9 @@
 - component 근거는 완전한 형태 분석 경로에서 query 표제어·품사와 같은 node의 span이 NFC
   query span과 정확히 일치할 때만 성립한다. 더 큰 node에 포함된 substring이나 여러 component
   경계를 가로지르는 span은 근거가 아니다.
+- corpus resource의 `NNBC`는 query-side `NNB`와 같은 의존명사로 비교한다. source POS 문자열은
+  artifact와 진단 provenance에 그대로 보존하고 component 일치 판정에서만 호환 태그를
+  정규화한다.
 - component 판정은 exact node를 포함한 완전 경로와 제외한 완전 경로의 최저 비용을 비교한다.
   include 비용이 낮으면 `accept`, exclude 비용이 낮으면 `reject`, 동률이면 `ambiguous`다.
   한쪽 경로만 있으면 그 경로를 따르며 exact node를 포함한 고비용 경로의 존재만으로 수용하지

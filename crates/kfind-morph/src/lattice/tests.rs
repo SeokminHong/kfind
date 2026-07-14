@@ -41,6 +41,32 @@ fn exact_component_path_accepts_a_matching_node_span() {
 }
 
 #[test]
+fn dependent_noun_query_accepts_the_nnbc_source_tag() {
+    let bytes = fixture_resource();
+    let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
+
+    let dependent = evaluate_local_component_decision(
+        &resource,
+        "명",
+        0.."명".len(),
+        DataFinePos::Nnb,
+        DEFAULT_LATTICE_NODE_LIMIT,
+    )
+    .unwrap();
+    let common = evaluate_local_component_decision(
+        &resource,
+        "명",
+        0.."명".len(),
+        DataFinePos::Nng,
+        DEFAULT_LATTICE_NODE_LIMIT,
+    )
+    .unwrap();
+
+    assert_eq!(dependent, LocalLatticeDecision::Accept);
+    assert_eq!(common, LocalLatticeDecision::Reject);
+}
+
+#[test]
 fn compact_component_resource_supports_exact_path_evaluation() {
     let bytes = compact_fixture_resource();
     let resource = decode_component_resource("fixture", bytes, &[9; 32]).unwrap();
@@ -137,7 +163,7 @@ fn compact_fixture_resource() -> Vec<u8> {
 }
 
 fn fixture_parts() -> (
-    [MecabSourceMorphologyEntry; 14],
+    [MecabSourceMorphologyEntry; 15],
     kfind_data::MecabConnectionMatrix,
     &'static [u8],
     &'static [u8],
@@ -157,6 +183,7 @@ fn fixture_parts() -> (
         entry("사용자권한", DataFinePos::Nng, 1, 1, 5_000),
         entry("공", DataFinePos::Nng, 1, 1, 0),
         entry("공공", DataFinePos::Nng, 1, 1, 0),
+        source_entry("명", "NNBC", 1, 1, -5_000),
     ];
     let matrix = parse_mecab_connection_matrix(
         "matrix.def",
