@@ -29,9 +29,9 @@ values and the complete match provenance shape.
 Match offsets use UTF-16 code units, so they can be passed directly to
 `String.prototype.slice`. Copy
 `kfind/assets/morphology-component-compact.kfc` to your static assets or host it
-separately. Applications using component-aware smart noun searches can pass its
-bytes to the constructor or call `loadComponentResource` before compiling those
-queries. Unlike the CLI, the package never resolves or fetches the asset
+separately. Smart searches that use compound-noun components, strict-subspan
+copulas, or registered homonym context can pass its bytes to the constructor or
+call `loadComponentResource` before compiling those queries. Unlike the CLI, the package never resolves or fetches the asset
 automatically. The WASM binary does not contain this data. Load an optional full POS
 binary with `Kfind.withFullPos(fullPos, componentResource?)`.
 

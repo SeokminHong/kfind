@@ -371,6 +371,11 @@
   경계에서 거부될 수 있는 명사 branch는 `NominalComponent`, 왼쪽 token 경계를 열어 둔 `smart`
   지정사 branch는 `PredicateLexical`, 어휘 품사 문맥을 검증하는 modifier branch는
   `LexicalContext`를 사용한다.
+- `LexicalContext`는 `smart` modifier의 품사 전체에 부여하지 않는다. query lexicon에 현재
+  문맥 규칙이 선택할 fine POS와 다른 경쟁 분석이 같은 표면형으로 함께 있을 때만 부여한다.
+  현재 반복 token 규칙은 exact `MAG`와 다른 분석이 함께 있는 표면형만 대상으로 한다. 경쟁
+  분석이 없는 `빨리`와 query lexicon에 등록되지 않은 `매우` 같은 일반 부사는 component
+  resource 없이 컴파일한다.
 - `이다/아니다` 계열 검색은 token 전체와 일치하거나 corpus의 predicate 가능성이 남는 생성형을
   homonym union으로 인정한다. strict-subspan 생성형이 token 전체의 exact non-predicate 분석과
   모순되면 `PredicateLexical`이 해당 branch를 거부한다. corpus-side lattice 비용은 사용하지 않는다.
@@ -1251,6 +1256,8 @@ right condition: 토큰 경계 또는 다음 한국어 토큰 시작
 ### 10.5 부사
 
 기본은 literal과 스마트 경계다. `--expand derivation`에서만 규칙 데이터에 등록된 보조사 결합을 허용하고 격조사는 허용하지 않는다.
+동일 표면형의 `MAG`와 다른 분석이 query lexicon에서 경쟁하고 반복 token 문맥 규칙으로 이를
+판별할 수 있을 때만 `LexicalContext`와 compact component resource를 요구한다.
 
 ```text
 빨리

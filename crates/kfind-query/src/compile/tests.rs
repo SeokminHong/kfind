@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use kfind_data::{
-    DataFinePos, LexiconData, NominalRecord, collect_pos_entries, encode_pos_lexicon,
+    DataFinePos, LexiconData, ModifierRecord, NominalRecord, collect_pos_entries,
+    encode_pos_lexicon,
 };
 use kfind_morph::{
     CoarsePos, ContinuationState, PredicatePos, RuleId, verify_predicate_continuation,
@@ -15,6 +16,27 @@ use crate::{
 
 fn analyzer() -> LexiconQueryAnalyzer {
     LexiconQueryAnalyzer::new(Arc::new(Lexicons::embedded().unwrap()))
+}
+
+fn contextual_adverb_analyzer() -> LexiconQueryAnalyzer {
+    let mut lexicons = Lexicons::embedded().unwrap();
+    let full_pos = encode_pos_lexicon(&collect_pos_entries(&LexiconData {
+        nominals: vec![NominalRecord {
+            lemma: "매일".to_owned(),
+            pos: DataFinePos::Nng,
+            flags: Default::default(),
+            overrides: Vec::new(),
+        }],
+        modifiers: vec![ModifierRecord {
+            lemma: "매일".to_owned(),
+            pos: DataFinePos::Mag,
+            flags: Default::default(),
+        }],
+        ..LexiconData::default()
+    }))
+    .unwrap();
+    lexicons.load_full_pos(&full_pos).unwrap();
+    LexiconQueryAnalyzer::new(Arc::new(lexicons))
 }
 
 #[test]
@@ -262,8 +284,9 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
 }
 
 #[test]
-fn smart_adverb_requires_lexical_context_without_changing_token_or_any() {
-    let smart = compile_query("adv:매일", &CompileOptions::default(), &analyzer()).unwrap();
+fn smart_competing_adverb_requires_lexical_context_without_changing_token_or_any() {
+    let analyzer = contextual_adverb_analyzer();
+    let smart = compile_query("adv:매일", &CompileOptions::default(), &analyzer).unwrap();
     assert!(smart.requires_component_resource());
     assert!(
         smart.atoms[0]
@@ -279,7 +302,7 @@ fn smart_adverb_requires_lexical_context_without_changing_token_or_any() {
                 boundary,
                 ..CompileOptions::default()
             },
-            &analyzer(),
+            &analyzer,
         )
         .unwrap();
         assert!(!plan.requires_component_resource());
@@ -288,6 +311,20 @@ fn smart_adverb_requires_lexical_context_without_changing_token_or_any() {
                 .branches
                 .iter()
                 .all(|branch| { branch.context_requirement == ContextRequirement::None })
+        );
+    }
+}
+
+#[test]
+fn smart_unambiguous_adverbs_do_not_require_lexical_context() {
+    for query in ["adv:빨리", "adv:매우"] {
+        let plan = compile_query(query, &CompileOptions::default(), &analyzer()).unwrap();
+        assert!(!plan.requires_component_resource());
+        assert!(
+            plan.atoms[0]
+                .branches
+                .iter()
+                .all(|branch| branch.context_requirement == ContextRequirement::None)
         );
     }
 }
@@ -614,6 +651,7 @@ fn derivation_allows_adverb_auxiliaries_but_not_case_particles() {
 
     for query in ["빨리", "잘"] {
         let plan = compile_query(query, &options, &analyzer()).unwrap();
+        assert!(!plan.requires_component_resource());
         let branch = plan.atoms[0]
             .branches
             .iter()
