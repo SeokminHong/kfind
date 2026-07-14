@@ -123,6 +123,28 @@
 - 공개 문서와 playground는 `https://kfind.pages.dev`의 정적 Cloudflare Pages site로 배포한다.
   문서는 제품 목적과 goal/non-goal, 검색 model, query 문법, 사람·에이전트 workflow, 주요 옵션,
   최신 제품·외부 benchmark를 설명하고 전체 README와 source report로 연결한다.
+- 문서 site는 React와 React Router의 data router로 구성한다. Cloudflare Pages의 SPA fallback을
+  사용해 clean URL을 직접 열 수 있어야 하며, 공통 shell 안에서 다음 경로를 제공한다.
+
+  ```text
+  /                         개요와 제품 범위
+  /guide/getting-started    설치와 첫 검색
+  /reference/options        query 문법과 compile·search 옵션
+  /concepts/analysis        query-directed 형태 분석 원리
+  /concepts/architecture    compile·scan·verify 실행 구조
+  /concepts/optimization    branch·anchor·resource·streaming 최적화
+  /benchmarks               workload별 품질·성능 근거
+  /playground               WebAssembly 검색 실습
+  ```
+
+- 각 route 구현은 지연 로드해 첫 문서 화면에 불필요한 페이지 코드가 포함되지 않게 한다.
+  Playground의 WASM module과 선택적 component resource는 `/playground`에 들어가기 전에는
+  불러오지 않는다. 문서 route 전환은 전체 페이지를 다시 요청하지 않고, 현재 경로와 제목을
+  접근 가능한 navigation 상태로 표시한다.
+- 옵션 문서는 `inflection`, `derivation`, `literal`의 생성 범위와 차이, `--literal` 단축 옵션의
+  충돌 규칙, boundary·POS·Unicode normalization·phrase gap의 결합을 예제와 함께 설명한다.
+  분석·아키텍처·최적화 문서는 query compile부터 anchor scan, 국소 verifier, span·provenance
+  반환까지의 흐름과 corpus 전체를 분석하지 않는 이유를 텍스트와 접근 가능한 도해로 설명한다.
 - playground는 현재 source의 `kfind-wasm`을 browser용 WebAssembly로 빌드해 embedded lexicon으로
   실행한다. Query, 입력 text, expand·boundary·POS·normalization·max gap을 바꿀 수 있고,
   UTF-16 span에 맞춰 match를 강조하며 surface와 provenance를 표시한다.
