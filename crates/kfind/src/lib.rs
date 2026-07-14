@@ -297,6 +297,15 @@ mod tests {
     }
 
     #[test]
+    fn ordinary_smart_adverbs_do_not_require_component_initialization() {
+        let engine = Engine::new().unwrap();
+
+        for query in ["adv:빨리", "adv:매우"] {
+            engine.compile(query, &CompileOptions::default()).unwrap();
+        }
+    }
+
+    #[test]
     fn smart_copula_rejects_a_non_predicate_whole_token_without_changing_any() {
         let without_component = Engine::new().unwrap();
         let error = without_component

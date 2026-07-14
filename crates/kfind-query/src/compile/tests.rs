@@ -262,7 +262,7 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
 }
 
 #[test]
-fn smart_adverb_requires_lexical_context_without_changing_token_or_any() {
+fn smart_registered_adverb_requires_lexical_context_without_changing_token_or_any() {
     let smart = compile_query("adv:매일", &CompileOptions::default(), &analyzer()).unwrap();
     assert!(smart.requires_component_resource());
     assert!(
@@ -288,6 +288,20 @@ fn smart_adverb_requires_lexical_context_without_changing_token_or_any() {
                 .branches
                 .iter()
                 .all(|branch| { branch.context_requirement == ContextRequirement::None })
+        );
+    }
+}
+
+#[test]
+fn smart_unregistered_adverbs_do_not_require_lexical_context() {
+    for query in ["adv:빨리", "adv:매우"] {
+        let plan = compile_query(query, &CompileOptions::default(), &analyzer()).unwrap();
+        assert!(!plan.requires_component_resource());
+        assert!(
+            plan.atoms[0]
+                .branches
+                .iter()
+                .all(|branch| branch.context_requirement == ContextRequirement::None)
         );
     }
 }
@@ -614,6 +628,7 @@ fn derivation_allows_adverb_auxiliaries_but_not_case_particles() {
 
     for query in ["빨리", "잘"] {
         let plan = compile_query(query, &options, &analyzer()).unwrap();
+        assert!(!plan.requires_component_resource());
         let branch = plan.atoms[0]
             .branches
             .iter()
