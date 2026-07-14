@@ -43,6 +43,9 @@ export const vars = createGlobalTheme(':root', {
     shell: '88rem',
     article: '68rem',
   },
+  font: {
+    sans: '"Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", "Noto Sans KR", sans-serif',
+  },
 });
 
 globalStyle('*', {
@@ -65,8 +68,7 @@ globalStyle('body', {
   minWidth: 320,
   background: vars.color.background,
   color: vars.color.text,
-  fontFamily:
-    '-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif',
+  fontFamily: vars.font.sans,
   fontSynthesis: 'none',
   lineHeight: 1.65,
   textRendering: 'optimizeLegibility',
