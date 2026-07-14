@@ -35,7 +35,8 @@
 - v0.1의 필수 형태 범위는 9.5절의 활용표, 19.2절의 필수 테스트, 23절의 인수 기준을 모두 포함한다.
 - gold corpus에 포함된 현재 평서형 `-ㄴ다/는다`, 회상 관형형 `-던`, 양보 연결형 `-더라도`, 과거 관형 연쇄 `-았/었을`, 과거 의문 종결 연쇄 `-았/었느냐`, `-았/었느냐는`, 이유 연결형 `-(으)니`, 인용 연결형 `-다고`, 전망 인용 연쇄 `-(으)리라고`, 의도 연결형 `-(으)려고`, 상태 변화 보조 용언 `-아/어지다`, 진행 방향 보조 용언 `-아/어가고`, `-아/어가야`도 v0.1의 제한된 continuation vocabulary에 포함한다.
 - 실제 코퍼스에서 확인된 해요체 과거형 `-았어요/-었어요`, 지정사 `이다`의 높임 평서형 `입니다`, 부정 지정사 `아니다`의 연결형 `아니라`도 v0.1의 제한된 continuation vocabulary에 포함한다.
-- 어미, 조사 연쇄, 파생 규칙의 정확한 허용 목록과 전이는 저장소의 버전 관리되는 `data/rules` 파일을 규범 데이터로 삼는다. 목록 밖 조합은 생성하지 않는다.
+- 어미, 조사 연쇄, 파생 규칙은 저장소에서 버전을 관리하는 `data/rules` 파일의 목록과 전이를
+  기준으로 삼는다. 목록 밖 조합은 생성하지 않는다.
 - full POS lexicon은 `mecab-ko-dic 2.1.1-20180720`의 Apache-2.0 데이터를 bootstrap 원본으로 사용한다. 빌드 시 표제어와 품사만 추출하고, 런타임 문장 분석 데이터와 알고리즘은 포함하지 않는다. `Inflect`와 `Preanalysis` 행은 제외하며, 문맥용 지정사 표면형은 표제어로 승격하지 않고 `VCP=이`, `VCN=아니`만 기본형으로 정규화한다.
 - full POS lexicon의 용언 품사 후보도 POS 전용 산출물에 보존한다. 동일 표제어에 core 용언 분석이 하나라도 있으면 full POS 용언 분석은 추가하지 않고 core 분석을 우선한다. 그 밖의 용언은 해당 품사와 일치하는 생산적 접미 규칙을 먼저 적용하고, 일치하는 규칙이 없을 때만 제한된 규칙형 분석을 사용한다.
 - full POS runtime resource는 검증된 정렬 lookup index로 보존한다. CLI, Rust library와 WASM binding은 초기화할 때 전체 entry를 일반 분석 map으로 전개하지 않으며, query atom의 표제어를 조회할 때 일치하는 품사 후보만 `Analysis`로 만든다.
@@ -105,7 +106,7 @@
   사용한다. 단일 품사 query는 `--pos`, 혼합 phrase는 atom 태그로 품사를 지정한다. CLI는
   사람의 무품사 입력을 위해 `--pos` 생략을 허용하지만, 에이전트 통합 계약에서는 이를
   잘못된 호출로 취급한다.
-- 규범 agent skill은 README나 `--help`를 별도로 읽지 않아도 에이전트가 검색을 실행할 수
+- 배포용 agent skill은 README나 `--help`를 별도로 읽지 않아도 에이전트가 검색을 실행할 수
   있어야 한다. 단일·혼합 품사 query와 literal 검색, 전체 `--pos` 값과 atom 태그, phrase의
   순서·거리, `embedded + any + JSON Lines` 권장 경로, path·glob 축소, JSON span·provenance와
   종료 코드를 간결한 예시와 함께 설명한다.
@@ -115,7 +116,8 @@
   원본 보고서 링크를 함께 요약하고, 품질·CLI 처리량·초기화 비용처럼 단위가 다른 지표를 분리한다.
   제품 persona와 고정 외부 분석기 snapshot을 비교하는 최신 표와 대표 차트도 README에 직접
   싣는다. persona별 입력의 품사 지정 여부, 외부 분석기 버전과 task workload 조건을 함께 적고,
-  동일 입력의 형태소 분석기 순위나 순수 tokenizer 처리량으로 해석하지 않도록 비교 경계를 밝힌다.
+  동일 입력의 형태소 분석기 순위나 순수 tokenizer 처리량으로 해석하지 않도록 비교 조건과
+  해석 범위를 밝힌다.
   승인된 benchmark 보고서나 생성 차트가 바뀌면 영어·한국어 README의 요약 수치와 대표 차트도
   같은 변경에서 갱신한다. README 차트의 값과 source report가 일치하는지 검증한다.
 - `--column`은 v0.1 정식 옵션이며 1부터 시작하는 Unicode scalar 열을 출력한다.
@@ -127,6 +129,9 @@
 - 공개 문서와 playground는 `https://kfind.pages.dev`의 정적 Cloudflare Pages site로 배포한다.
   문서는 제품 목적과 goal/non-goal, 검색 model, query 문법, 사람·에이전트 workflow, 주요 옵션,
   최신 제품·외부 benchmark를 설명하고 전체 README와 source report로 연결한다.
+- 한국어 문장은 기술 개념의 관계와 동작이 바로 드러나도록 쓴다. 제품·도메인의 표준 용어와
+  코드 식별자는 원문 표기를 유지하되, 영어 문장 구조를 직역하거나 일반 용어를 기계적으로
+  음역하지 않는다. 조건과 결과가 한 문장에 몰리면 문장을 나눠 설명한다.
 - 문서 site는 React와 React Router의 data router로 구성한다. Cloudflare Pages의 SPA fallback을
   사용해 clean URL을 직접 열 수 있어야 하며, 공통 shell 안에서 다음 경로를 제공한다.
 
@@ -311,13 +316,13 @@
   artifact와 진단 provenance에 그대로 보존하고 component 일치 판정에서만 호환 태그를
   정규화한다.
 - component 판정은 exact node를 포함한 완전 경로와 제외한 완전 경로의 최저 비용을 비교한다.
-  include 비용이 낮으면 `accept`, exclude 비용이 낮으면 `reject`, 동률이면 `ambiguous`다.
+  `include` 비용이 낮으면 `accept`, `exclude` 비용이 낮으면 `reject`, 동률이면 `ambiguous`다.
   한쪽 경로만 있으면 그 경로를 따르며 exact node를 포함한 고비용 경로의 존재만으로 수용하지
   않는다.
-- 제품 matcher의 component 판정은 include/exclude별 최저 비용만 유지하며 진단용 N-best 경로를
+- 제품 matcher의 component 판정은 `include`와 `exclude`의 최저 비용만 유지하며 진단용 N-best 경로를
   생성하지 않는다. shadow와 benchmark 진단은 비용·node·경로 provenance를 포함한 보고서를
   별도로 생성할 수 있다. 같은 resource·문자열·query span·품사에서 제품 판정과 진단 보고서의
-  판정 및 include/exclude 최저 비용은 같아야 한다.
+  판정과 `include`·`exclude` 최저 비용은 같아야 한다.
 - `char.def`와 `unk.def`에서 파생되는 unknown model은 검증된 component resource마다 한 번
   초기화한다. candidate별 판정은 이 정적 model을 다시 파싱하지 않는다. 병렬 검색에서 재사용하는
   evaluator는 공유 불변 상태를 유지하며 candidate별 작업 상태를 공유하지 않는다.
@@ -1575,7 +1580,7 @@ lemma	pos	alternation	flags
 - fixture에서 모든 사전 class가 최소 한 번 사용되는지 확인
 
 내장 데이터는 `include_bytes!`로 실행 파일에 포함해도 된다. 이 데이터는 프로젝트가 직접 관리하고 라이선스를 명확히 할 수 있어야 한다. 사용자가 교체할 사전은 외부 파일로 추가 로딩한다.
-Agent skill 원문은 source tree의 `skills/kfind/SKILL.md` 하나를 규범으로 삼는다. CLI fallback
+Agent skill은 source tree의 `skills/kfind/SKILL.md`를 유일한 원본으로 삼는다. CLI fallback
 문자열과 distribution asset은 이 파일에서 생성하며 내용이 서로 달라지지 않아야 한다.
 
 ### 16.4 사용자 사전
@@ -2082,7 +2087,7 @@ end
 20. 품사를 생략한 held-out 검색의 품질·성능 benchmark가 별도 fixture와 보고서 절로 존재한다.
 21. `kfind --init`은 TTY checkbox, 반복 `--agent`, 비TTY stdin에서 같은 agent 대상 집합을
     설치한다.
-22. Claude Code, Codex와 Gemini CLI의 project skill 경로에 같은 규범 `SKILL.md`를 설치하며
+22. Claude Code, Codex와 Gemini CLI의 project skill 경로에 같은 원본의 `SKILL.md`를 설치하며
     `custom`은 skill 원문 외의 내용을 stdout에 섞지 않는다.
 23. 관리하지 않는 기존 skill은 보존하고 init 실패를 exit code 2와 escape된 진단으로 보고한다.
 24. Homebrew formula는 agent skill 원본을 설치하고 project link가 stable `opt` 경로를 사용해
