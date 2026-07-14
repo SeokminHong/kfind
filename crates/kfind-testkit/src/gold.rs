@@ -197,7 +197,8 @@ mod tests {
             "unexpected fixture warnings: {warnings:#?}"
         );
 
-        let harness = GoldHarness::embedded().expect("embedded lexicons must be valid");
+        let harness = GoldHarness::with_component(nonmatching_component_fixture())
+            .expect("nonmatching component fixture is valid");
         let component_harness =
             GoldHarness::with_component(component_fixture()).expect("component fixture is valid");
         let mut failures = Vec::new();
@@ -276,6 +277,22 @@ mod tests {
         encode_component_resource(
             COMPONENT_RESOURCE_SOURCE_DIGEST,
             &entries,
+            &matrix,
+            b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
+            b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
+        )
+        .unwrap()
+    }
+
+    fn nonmatching_component_fixture() -> Vec<u8> {
+        let matrix = parse_mecab_connection_matrix(
+            "matrix.def",
+            Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
+        )
+        .unwrap();
+        encode_component_resource(
+            COMPONENT_RESOURCE_SOURCE_DIGEST,
+            &[entry("미사용", "NNG", 0)],
             &matrix,
             b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
             b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",

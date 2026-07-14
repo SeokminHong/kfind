@@ -828,7 +828,9 @@ impl Error for ReferenceMatcherError {
 mod tests {
     use super::*;
     use kfind_matcher::MorphMatcher;
-    use kfind_query::{CompileOptions, LexiconQueryAnalyzer, Lexicons, compile_query};
+    use kfind_query::{
+        BoundaryPolicy, CompileOptions, LexiconQueryAnalyzer, Lexicons, compile_query,
+    };
 
     const REPRESENTATIVE_CORPUS: &str = concat!(
         "길을 걸어 갔다. 사용자의 권한을 검증했다.\n",
@@ -853,8 +855,12 @@ mod tests {
             "는",
             "로",
         ] {
+            let options = CompileOptions {
+                boundary: BoundaryPolicy::Token,
+                ..CompileOptions::default()
+            };
             let plan = Arc::new(
-                compile_query(query, &CompileOptions::default(), &analyzer)
+                compile_query(query, &options, &analyzer)
                     .unwrap_or_else(|error| panic!("failed to compile {query:?}: {error}")),
             );
             let optimized = MorphMatcher::new(Arc::clone(&plan)).unwrap();

@@ -395,6 +395,9 @@
   소유하고 여러 matcher에서 재사용하며 query compile마다 다시 decode하지 않는다. resource가 없는
   engine에서 `NominalComponent` 또는 `PredicateLexical`이 필요한 smart plan을 compile하면 명시적
   `ComponentResourceRequired` 오류를 반환하고 기존 경계 판정으로 fallback하지 않는다.
+- 같은 fail-fast 계약은 저수준 `MorphMatcher` 생성자에도 적용한다. resource가 필요한 plan을
+  `MorphMatcher::new`로 만들면 `MorphMatcherBuildError::ComponentResourceRequired`를 반환하며,
+  resource 또는 evaluator를 받는 생성자만 해당 plan을 초기화할 수 있다.
 - 생성 후 `Engine::load_component_resource(component_resource)`와 JavaScript
   `loadComponentResource(componentResource)`로 resource를 명시적으로 초기화하거나 교체할 수 있다.
   새 bytes를 모두 검증한 뒤에만 상태를 교체하며 실패하면 기존에 검증된 resource를 유지한다.

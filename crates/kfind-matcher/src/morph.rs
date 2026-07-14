@@ -83,6 +83,9 @@ impl MorphMatcher {
         {
             return Err(MorphMatcherBuildError::EmptyAtom { atom_index });
         }
+        if plan.requires_component_resource() && component_evaluator.is_none() {
+            return Err(MorphMatcherBuildError::ComponentResourceRequired);
+        }
 
         let (anchors, anchor_branches) = unique_anchors(&plan);
         let max_anchor_bytes = anchors.iter().map(|anchor| anchor.len()).max().unwrap_or(0);
@@ -902,6 +905,7 @@ fn compare_phrase_matches(left: &PhraseMatch, right: &PhraseMatch) -> std::cmp::
 pub enum MorphMatcherBuildError {
     EmptyPlan,
     EmptyAtom { atom_index: usize },
+    ComponentResourceRequired,
     Anchor(AnchorBuildError),
 }
 
@@ -914,6 +918,9 @@ impl Display for MorphMatcherBuildError {
             Self::EmptyAtom { atom_index } => {
                 write!(formatter, "query atom {atom_index} has no search branches")
             }
+            Self::ComponentResourceRequired => {
+                formatter.write_str("component resource is required for this query plan")
+            }
             Self::Anchor(error) => Display::fmt(error, formatter),
         }
     }
@@ -923,7 +930,7 @@ impl Error for MorphMatcherBuildError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             Self::Anchor(error) => Some(error),
-            Self::EmptyPlan | Self::EmptyAtom { .. } => None,
+            Self::EmptyPlan | Self::EmptyAtom { .. } | Self::ComponentResourceRequired => None,
         }
     }
 }

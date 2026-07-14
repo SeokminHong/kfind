@@ -1,5 +1,10 @@
-use std::sync::Arc;
+use std::io::Cursor;
+use std::sync::{Arc, OnceLock};
 
+use kfind_data::{
+    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, MecabSourceMorphologyEntry,
+    decode_component_resource, encode_component_resource, parse_mecab_connection_matrix,
+};
 use kfind_matcher::MorphMatcher;
 use kfind_morph::CoarsePos;
 use kfind_query::{
@@ -334,7 +339,7 @@ fn compiled_vcp_plan_accepts_corpus_attestations_and_licensed_contraction() {
 }
 
 #[test]
-fn smart_vcp_corpus_fixtures_preserve_union_results() {
+fn smart_vcp_corpus_fixtures_apply_component_evidence() {
     let matcher = compile("이다", CompileOptions::default());
     assert!(
         matcher.plan().atoms[0]
@@ -344,11 +349,12 @@ fn smart_vcp_corpus_fixtures_preserve_union_results() {
     );
 
     for fixture in VCP_BOUNDARY_FIXTURES {
-        assert!(
+        assert_eq!(
             matcher
                 .find_at_with_meta(fixture.text.as_bytes(), 0)
                 .is_some(),
-            "union result differed for {} ({})",
+            fixture.gold_vcp,
+            "component-aware result differed for {} ({})",
             fixture.case_name,
             fixture.text
         );
@@ -369,7 +375,7 @@ fn local_analysis_candidates_preserve_window_limit_errors() {
 }
 
 #[test]
-fn canonical_vcp_corpus_fixtures_preserve_union_results() {
+fn canonical_vcp_corpus_fixtures_preserve_union_without_an_exact_resource_surface() {
     let options = CompileOptions {
         normalization: NormalizationMode::Canonical,
         ..CompileOptions::default()
@@ -499,6 +505,45 @@ fn direct_particle_plans_preserve_token_and_any_boundary_modes() {
 fn compile(query: &str, options: CompileOptions) -> MorphMatcher {
     let lexicons = Arc::new(Lexicons::embedded().expect("embedded lexicons must be valid"));
     let analyzer = LexiconQueryAnalyzer::new(lexicons);
-    let plan = compile_query(query, &options, &analyzer).expect("query must compile");
-    MorphMatcher::new(Arc::new(plan)).expect("matcher must build")
+    let plan = Arc::new(compile_query(query, &options, &analyzer).expect("query must compile"));
+    if plan.requires_component_resource() {
+        MorphMatcher::with_component_resource(plan, component_resource())
+            .expect("component-aware matcher must build")
+    } else {
+        MorphMatcher::new(plan).expect("matcher must build")
+    }
+}
+
+fn component_resource() -> Arc<ComponentResource> {
+    static RESOURCE: OnceLock<Arc<ComponentResource>> = OnceLock::new();
+    Arc::clone(RESOURCE.get_or_init(|| {
+        let entries = [MecabSourceMorphologyEntry {
+            surface: "매일".to_owned(),
+            pos: "MAG".to_owned(),
+            left_id: 1,
+            right_id: 1,
+            word_cost: -5_000,
+            analysis_type: "*".to_owned(),
+            start_pos: "*".to_owned(),
+            end_pos: "*".to_owned(),
+            expression: "*".to_owned(),
+        }];
+        let matrix = parse_mecab_connection_matrix(
+            "matrix.def",
+            Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
+        )
+        .expect("test matrix must be valid");
+        let bytes = encode_component_resource(
+            COMPONENT_RESOURCE_SOURCE_DIGEST,
+            &entries,
+            &matrix,
+            b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
+            b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
+        )
+        .expect("test component resource must encode");
+        Arc::new(
+            decode_component_resource("test", bytes, &COMPONENT_RESOURCE_SOURCE_DIGEST)
+                .expect("test component resource must decode"),
+        )
+    }))
 }

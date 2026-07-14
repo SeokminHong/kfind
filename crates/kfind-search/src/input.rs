@@ -385,14 +385,20 @@ impl From<io::Error> for InputSearchError {
 mod tests {
     use std::sync::Arc;
 
-    use kfind_query::{CompileOptions, LexiconQueryAnalyzer, Lexicons, compile_query};
+    use kfind_query::{
+        BoundaryPolicy, CompileOptions, LexiconQueryAnalyzer, Lexicons, compile_query,
+    };
 
     use super::*;
 
     fn matcher(query: &str) -> MorphMatcher {
         let lexicons = Arc::new(Lexicons::embedded().unwrap());
         let analyzer = LexiconQueryAnalyzer::new(lexicons);
-        let plan = compile_query(query, &CompileOptions::default(), &analyzer).unwrap();
+        let options = CompileOptions {
+            boundary: BoundaryPolicy::Token,
+            ..CompileOptions::default()
+        };
+        let plan = compile_query(query, &options, &analyzer).unwrap();
         MorphMatcher::new(Arc::new(plan)).unwrap()
     }
 
