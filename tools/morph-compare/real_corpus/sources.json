@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "id": "rustlings-kr",
+      "repository": "https://github.com/eoncheole/rustlings-kr",
+      "revision": "5afb3e613b306d0803d8f2f6ab6d1c3e26c12c35",
+      "license": "MIT",
+      "license_url": "https://github.com/eoncheole/rustlings-kr/blob/5afb3e613b306d0803d8f2f6ab6d1c3e26c12c35/LICENSE",
+      "files": [
+        {
+          "path": "README.md",
+          "sha256": "19dd4e9c9ff6e187a00f0e329102d52502b222e92f1715341b912190f538c680",
+          "url": "https://github.com/eoncheole/rustlings-kr/blob/5afb3e613b306d0803d8f2f6ab6d1c3e26c12c35/README.md"
+        },
+        {
+          "path": "exercises/06_move_semantics/move_semantics2.rs",
+          "sha256": "af0077a04de1df899ef7bdcc334c3540dd5d48e52d71afb3cfbc0ea6d7bca7d4",
+          "url": "https://github.com/eoncheole/rustlings-kr/blob/5afb3e613b306d0803d8f2f6ab6d1c3e26c12c35/exercises/06_move_semantics/move_semantics2.rs"
+        },
+        {
+          "path": "exercises/09_strings/strings3.rs",
+          "sha256": "f7cc39a9a69e4a7ff8e31e3af28121578426a0aac58a928c93b1b2f71500dbd0",
+          "url": "https://github.com/eoncheole/rustlings-kr/blob/5afb3e613b306d0803d8f2f6ab6d1c3e26c12c35/exercises/09_strings/strings3.rs"
+        },
+        {
+          "path": "exercises/11_hashmaps/hashmaps2.rs",
+          "sha256": "284583c26977895d49f926771c7aaff962cd8255fdd6d5126be4a67ee13c09e7",
+          "url": "https://github.com/eoncheole/rustlings-kr/blob/5afb3e613b306d0803d8f2f6ab6d1c3e26c12c35/exercises/11_hashmaps/hashmaps2.rs"
+        },
+        {
+          "path": "exercises/13_error_handling/errors4.rs",
+          "sha256": "472bb5dc8c8529f5161259e7be75eb9d2053aabc1e0e08b54ec2b9da4b6bdc79",
+          "url": "https://github.com/eoncheole/rustlings-kr/blob/5afb3e613b306d0803d8f2f6ab6d1c3e26c12c35/exercises/13_error_handling/errors4.rs"
+        },
+        {
+          "path": "exercises/20_threads/threads1.rs",
+          "sha256": "c79670c8edfbf1cc112dd5d8d6d73885e791e0b2ddbfe0d251d562b2c5b3a677",
+          "url": "https://github.com/eoncheole/rustlings-kr/blob/5afb3e613b306d0803d8f2f6ab6d1c3e26c12c35/exercises/20_threads/threads1.rs"
+        }
+      ]
+    },
+    {
+      "id": "kubernetes-website",
+      "repository": "https://github.com/kubernetes/website",
+      "revision": "11ed97b8bc76e86d4b5ed330ad27df67ec2b2b8b",
+      "license": "CC-BY-4.0",
+      "license_url": "https://github.com/kubernetes/website/blob/11ed97b8bc76e86d4b5ed330ad27df67ec2b2b8b/LICENSE",
+      "files": [
+        {
+          "path": "content/ko/docs/concepts/containers/cri.md",
+          "sha256": "b816fd4177b17392f8cfa81f01da7833f791c4afd475d256cc964649998420dc",
+          "url": "https://github.com/kubernetes/website/blob/11ed97b8bc76e86d4b5ed330ad27df67ec2b2b8b/content/ko/docs/concepts/containers/cri.md"
+        },
+        {
+          "path": "content/ko/docs/concepts/policy/limit-range.md",
+          "sha256": "14ba30ebf9d02198cd6701bbf2f8438f3410cdf72399a8bea07820d0ada5ffdf",
+          "url": "https://github.com/kubernetes/website/blob/11ed97b8bc76e86d4b5ed330ad27df67ec2b2b8b/content/ko/docs/concepts/policy/limit-range.md"
+        },
+        {
+          "path": "content/ko/docs/tasks/debug/debug-cluster/crictl.md",
+          "sha256": "39f7af7ec28492cd7cf62f53368c45306adf806289759cb8e3b74de17fee7617",
+          "url": "https://github.com/kubernetes/website/blob/11ed97b8bc76e86d4b5ed330ad27df67ec2b2b8b/content/ko/docs/tasks/debug/debug-cluster/crictl.md"
+        }
+      ]
+    }
+  ]
+}

@@ -37,6 +37,29 @@ source/POS/expected combination:
 KFIND_MORPH_SMOKE=1 KFIND_MORPH_RUNS=1 scripts/benchmark-morphology.sh
 ```
 
+## Real technical-corpus blind evaluation
+
+The `real_corpus` fixture evaluates 25 Korean README, source-code comment, and
+technical-document excerpts from pinned revisions with the Agent and User
+product profiles. Its source manifest preserves licenses and original-file
+SHA-256 digests. The evaluator checks canonical text uniqueness, gold byte
+spans, and all required slices.
+
+```sh
+python3 tools/morph-compare/real_corpus/verify_sources.py
+```
+
+This command downloads the pinned URLs and verifies each file digest and
+excerpt line range.
+
+```sh
+KFIND_BENCH_REVISION=$(git rev-parse HEAD) \
+  tools/morph-compare/real_corpus/run.sh
+```
+
+Results are written to `target/real-corpus-blind` by default. This fixture does
+not replace the UD regression fixture and is not used to select product rules.
+
 Refresh the external snapshot explicitly only when the test fixture,
 performance schema, or pinned external tool and adapter configuration changes.
 The default benchmark fails with this command when the fixture or snapshot

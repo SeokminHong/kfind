@@ -44,6 +44,11 @@ jobs:
           python3 -m unittest discover
           --start-directory tools/nikl-lexicon/python
           --pattern 'test_*.py'
+      - name: Test the real-corpus evaluator
+        run: >-
+          python3 -m unittest discover
+          --start-directory tools/morph-compare/real_corpus
+          --pattern 'test_*.py'
       - name: Check fuzz targets
         run: cargo +stable check --manifest-path fuzz/Cargo.toml --bins --locked
       - name: Check Homebrew formula metadata
