@@ -14,7 +14,11 @@ lemma	pos	alternation	flags	overrides
 돕다	VV	BToWa		
 듣다	VV	DToL		
 다르다	VA	ReuDoubleL		
+달다	VV	Regular	RIEUL_DROP	
+달다	VX	Suppletive		lexical.suppletive=다오
 만들다	VV	Regular	RIEUL_DROP	
+말다	VV	Regular	RIEUL_DROP	
+말다	VX	Regular	RIEUL_DROP	ending.imperative-ra=마라
 덧싣다	VV	DToL		
 먹다	VV	Regular		
 모르다	VV	ReuDoubleL		
