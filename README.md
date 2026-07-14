@@ -70,7 +70,7 @@ Homebrew releases are published through the personal tap:
 brew install seokminhong/brew/kfind
 ```
 
-To build the current checkout with Rust 1.85 or newer:
+To build the current checkout with Rust 1.97 or newer:
 
 ```sh
 cargo install --locked --path crates/kfind-cli
@@ -454,12 +454,12 @@ Component-aware smart searches require explicit initialization. Use
 `load_component_resource` on an existing mutable engine before compiling a plan
 that needs it.
 
-The library and its core dependencies support Rust 1.85's
+The library and its core dependencies support Rust 1.97's
 `wasm32-unknown-unknown` target:
 
 ```sh
-rustup target add wasm32-unknown-unknown --toolchain 1.85.0
-cargo +1.85.0 build --locked --package kfind-wasm --target wasm32-unknown-unknown
+rustup target add wasm32-unknown-unknown --toolchain 1.97.0
+cargo +1.97.0 build --locked --package kfind-wasm --target wasm32-unknown-unknown
 ```
 
 ### JavaScript

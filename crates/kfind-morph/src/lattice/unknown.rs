@@ -136,10 +136,10 @@ impl UnknownDictionary {
                 .collect::<Vec<_>>();
             let mut selected = BTreeSet::new();
             selected.extend(ends.iter().copied().take(class.length));
-            if class.group {
-                if let Some(end) = ends.pop() {
-                    selected.insert(end);
-                }
+            if class.group
+                && let Some(end) = ends.pop()
+            {
+                selected.insert(end);
             }
             for end in selected {
                 for analysis in &class.analyses {

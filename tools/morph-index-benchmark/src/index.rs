@@ -36,7 +36,7 @@ pub fn validate(kind: IndexKind, bytes: &[u8], surface_count: u32) -> Result<()>
     match kind {
         IndexKind::DoubleArray => {
             ensure!(
-                bytes.len() % 4 == 0,
+                bytes.len().is_multiple_of(4),
                 "artifact corruption: invalid Double-Array length"
             );
         }

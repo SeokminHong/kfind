@@ -2,7 +2,7 @@
 name = "morph-index-benchmark"
 version = "0.1.1"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.97"
 repository = "https://github.com/SeokminHong/kfind"
 license = "MIT"
 publish = false

@@ -15,7 +15,7 @@ resolver = "3"
 [workspace.package]
 version = "0.3.0-rc.1"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.97"
 repository = "https://github.com/SeokminHong/kfind"
 license = "MIT"
 

@@ -203,18 +203,18 @@ where
                 input_options.capture_records,
             );
         }
-        if !cancelled.load(Ordering::Acquire) {
-            if let Some(walker) = walker {
-                run_walker(
-                    walker,
-                    Arc::clone(&matcher),
-                    input_options,
-                    &sender,
-                    Arc::clone(&cancelled),
-                    capacity,
-                    input_options.capture_records,
-                );
-            }
+        if !cancelled.load(Ordering::Acquire)
+            && let Some(walker) = walker
+        {
+            run_walker(
+                walker,
+                Arc::clone(&matcher),
+                input_options,
+                &sender,
+                Arc::clone(&cancelled),
+                capacity,
+                input_options.capture_records,
+            );
         }
         drop(sender);
 
@@ -383,14 +383,14 @@ fn process_entry(
         }
     };
 
-    if let Some(error) = entry.error() {
-        if !send_worker_event(
+    if let Some(error) = entry.error()
+        && !send_worker_event(
             sender,
             cancelled,
             WorkerEvent::Issue(SearchIssue::walk(error)),
-        ) {
-            return WalkState::Quit;
-        }
+        )
+    {
+        return WalkState::Quit;
     }
     if !entry
         .file_type()

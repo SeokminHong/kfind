@@ -193,10 +193,10 @@ mod tests {
         walker.run(|| {
             let files = Arc::clone(&files);
             Box::new(move |entry| {
-                if let Ok(entry) = entry {
-                    if entry.file_type().is_some_and(|kind| kind.is_file()) {
-                        files.lock().unwrap().push(entry.into_path());
-                    }
+                if let Ok(entry) = entry
+                    && entry.file_type().is_some_and(|kind| kind.is_file())
+                {
+                    files.lock().unwrap().push(entry.into_path());
                 }
                 WalkState::Continue
             })

@@ -123,13 +123,13 @@ fn finish_atom(
         ));
     }
 
-    if let (Some(global), Some(tagged)) = (options.global_pos, atom.forced_pos) {
-        if global != tagged {
-            return Err(QueryError::new(
-                QueryErrorKind::ConflictingPos { global, tagged },
-                atom.tag_span.unwrap_or(SourceSpan::new(atom.start, end)),
-            ));
-        }
+    if let (Some(global), Some(tagged)) = (options.global_pos, atom.forced_pos)
+        && global != tagged
+    {
+        return Err(QueryError::new(
+            QueryErrorKind::ConflictingPos { global, tagged },
+            atom.tag_span.unwrap_or(SourceSpan::new(atom.start, end)),
+        ));
     }
 
     let actual = atoms.len() + 1;

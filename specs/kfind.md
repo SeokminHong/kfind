@@ -404,7 +404,7 @@
   반환한다. 파일 순회, 인코딩 판별, 출력 형식과 CLI locale 처리는 라이브러리 API에
   포함하지 않는다.
 - `kfind`, `kfind-wasm`, `kfind-data`, `kfind-morph`, `kfind-query`, `kfind-matcher`는
-  Rust 1.85에서 `wasm32-unknown-unknown` 대상으로 빌드되어야 한다.
+  Rust 1.97에서 `wasm32-unknown-unknown` 대상으로 빌드되어야 한다.
 - `kfind-wasm`은 `wasm-bindgen` JavaScript glue와 TypeScript declaration을 생성한다.
   npm package metadata와 게시 계약은 0.8절을 따른다.
 - JavaScript API는 `new Kfind(componentResource?)`와
@@ -2148,7 +2148,7 @@ end
 12. 사용자 사전 없이도 핵심 불규칙 fixture가 통과한다.
 13. Homebrew 기본 설치에서 full POS lexicon이 로드되고, 사전 누락 시 명확한 진단을 출력한다.
 14. 공개 Rust 라이브러리가 동일한 query plan과 matcher를 사용해 메모리 입력을 검색한다.
-15. 공개 라이브러리와 핵심 의존 crate가 Rust 1.85의 `wasm32-unknown-unknown` target에서
+15. 공개 라이브러리와 핵심 의존 crate가 Rust 1.97의 `wasm32-unknown-unknown` target에서
     빌드된다.
 16. `kfind` npm 산출물의 Node smoke test, TypeScript declaration 검사와
     `npm pack --dry-run`이 통과한다.

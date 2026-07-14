@@ -284,7 +284,7 @@ pub fn decode_component_resource(
         char_def: ranges[4].clone(),
         unk_def: ranges[5].clone(),
     };
-    if sections.index.is_empty() || sections.index.len() % 4 != 0 {
+    if sections.index.is_empty() || !sections.index.len().is_multiple_of(4) {
         return Err(resource_error(source, "invalid Double-Array section"));
     }
     if sections.char_def.is_empty() || sections.unk_def.is_empty() {

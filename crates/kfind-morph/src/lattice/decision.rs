@@ -46,13 +46,13 @@ pub(super) fn best_costs(
     }
     let mut costs = vec![[None::<i64>; 2]; nodes.len()];
     for (index, node) in nodes.iter().enumerate() {
-        if node.span.start == 0 {
-            if let Some(connection) = resource.connection_cost(BOS_EOS_CONTEXT_ID, node.left_id) {
-                update_minimum(
-                    &mut costs[index][usize::from(node.query_match)],
-                    i64::from(connection) + i64::from(node.word_cost),
-                );
-            }
+        if node.span.start == 0
+            && let Some(connection) = resource.connection_cost(BOS_EOS_CONTEXT_ID, node.left_id)
+        {
+            update_minimum(
+                &mut costs[index][usize::from(node.query_match)],
+                i64::from(connection) + i64::from(node.word_cost),
+            );
         }
         for predecessor in &ending_at[node.span.start] {
             let Some(connection) = resource

@@ -164,11 +164,11 @@ impl LexiconQueryAnalyzer {
         }
 
         if matches!(forced_pos, CoarsePos::Verb | CoarsePos::Adjective) {
-            if let Some(mut productive) = self.lexicons.productive_predicate(lemma) {
-                if productive.coarse_pos == forced_pos {
-                    productive.source = AnalysisSource::Forced;
-                    return Ok(vec![productive]);
-                }
+            if let Some(mut productive) = self.lexicons.productive_predicate(lemma)
+                && productive.coarse_pos == forced_pos
+            {
+                productive.source = AnalysisSource::Forced;
+                return Ok(vec![productive]);
             }
             let stem = lemma.strip_suffix('다').filter(|stem| !stem.is_empty());
             if stem.is_none() {
