@@ -171,6 +171,9 @@ impl fmt::Display for CompileErrorKind {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PhraseJoinError {
     NoAtoms,
+    CandidateLimitExceeded {
+        limit: usize,
+    },
     InvalidSpan {
         atom_index: usize,
         start: usize,
@@ -183,6 +186,12 @@ impl fmt::Display for PhraseJoinError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::NoAtoms => formatter.write_str("phrase join requires at least one atom"),
+            Self::CandidateLimitExceeded { limit } => {
+                write!(
+                    formatter,
+                    "phrase join exceeds the partial limit of {limit}"
+                )
+            }
             Self::InvalidSpan {
                 atom_index,
                 start,

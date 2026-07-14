@@ -3,6 +3,8 @@ use std::ops::Range;
 
 use crate::{PhraseJoinError, PhrasePolicy, VerifiedSpan};
 
+const MAX_PHRASE_JOIN_PARTIALS: usize = 65_536;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PhraseMatch {
     pub span: Range<usize>,
@@ -45,6 +47,7 @@ pub fn join_phrase_spans(
             atoms: vec![span],
         })
         .collect::<Vec<_>>();
+    ensure_partial_limit(partials.len())?;
     for next_spans in &sorted[1..] {
         let mut joined = Vec::new();
         for partial in &partials {
@@ -64,6 +67,7 @@ pub fn join_phrase_spans(
                 }
                 let mut atoms = partial.atoms.clone();
                 atoms.push(next.clone());
+                ensure_partial_limit(joined.len().saturating_add(1))?;
                 joined.push(PhraseMatch {
                     span: partial.span.start..next.token.end,
                     atoms,
@@ -76,6 +80,16 @@ pub fn join_phrase_spans(
         }
     }
     Ok(partials)
+}
+
+fn ensure_partial_limit(count: usize) -> Result<(), PhraseJoinError> {
+    if count > MAX_PHRASE_JOIN_PARTIALS {
+        Err(PhraseJoinError::CandidateLimitExceeded {
+            limit: MAX_PHRASE_JOIN_PARTIALS,
+        })
+    } else {
+        Ok(())
+    }
 }
 
 fn validate_span(
@@ -168,5 +182,22 @@ mod tests {
                 .unwrap()
                 .is_empty()
         );
+    }
+
+    #[test]
+    fn rejects_phrase_partial_growth_beyond_the_fixed_limit() {
+        let text = "x".repeat(400);
+        let repeated: Vec<_> = (0..400).map(|start| span(start, start + 1)).collect();
+        let error = join_phrase_spans(
+            &text,
+            &[repeated.clone(), repeated],
+            PhrasePolicy { max_gap: 400 },
+        )
+        .expect_err("pathological phrase combinations must be bounded");
+
+        assert!(matches!(
+            error,
+            PhraseJoinError::CandidateLimitExceeded { limit: 65_536 }
+        ));
     }
 }

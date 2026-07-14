@@ -351,6 +351,21 @@ fn phrase_find_all_selects_non_overlapping_matches_in_order() {
 }
 
 #[test]
+fn phrase_find_all_bounds_repeated_span_combinations() {
+    let mut repeated_branch = exact_branch("가", false);
+    repeated_branch.boundary = proof(false, false, true);
+    let repeated_atom = atom(BoundaryPolicy::Any, vec![repeated_branch]);
+    let matcher = matcher(vec![repeated_atom; 8], 128);
+    let text = "가".repeat(128);
+
+    let matches = matcher.find_all_with_meta(text.as_bytes());
+
+    assert_eq!(matches.len(), 1);
+    assert_eq!(matches[0].span, 0..text.len());
+    assert_eq!(matches[0].atoms.len(), 8);
+}
+
+#[test]
 fn phrase_join_ignores_invalid_utf8_outside_the_candidate_range() {
     let first = atom(
         BoundaryPolicy::Smart,
