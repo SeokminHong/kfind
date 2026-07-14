@@ -71,3 +71,9 @@ id = "lexical.suppletive"
 kind = "Suppletive"
 flags = []
 ending_ids = []
+
+[[alternation]]
+id = "lexical.surface-only"
+kind = "SurfaceOnly"
+flags = []
+ending_ids = []

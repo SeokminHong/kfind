@@ -7,9 +7,13 @@ use kfind_data::DerivationRule;
 
 use crate::classify::is_productive_duplicate;
 use crate::model::{CandidateKey, Classification, CoreEntries, Evidence, SourceRecord, core_key};
+use crate::surface::SurfaceCollection;
+
+const MAX_SURFACE_ONLY_ROWS: usize = 512;
+const MAX_PREDICATES_BYTES: usize = 64 * 1024;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum CandidateStatus {
+pub(crate) enum CandidateStatus {
     Promoted,
     MixedRegular,
     CoreDuplicate,
@@ -51,7 +55,7 @@ impl CandidateStatus {
     }
 }
 
-fn candidate_status(
+pub(crate) fn candidate_status(
     candidate: &CandidateKey,
     evidence: &Evidence,
     candidates: &BTreeMap<CandidateKey, Evidence>,
@@ -98,7 +102,15 @@ pub fn write_predicates(
     candidates: &BTreeMap<CandidateKey, Evidence>,
     core: &CoreEntries,
     derivations: &[DerivationRule],
-) -> Result<(), Box<dyn Error>> {
+    surfaces: &SurfaceCollection,
+) -> Result<usize, Box<dyn Error>> {
+    if surfaces.candidates.len() > MAX_SURFACE_ONLY_ROWS {
+        return Err(format!(
+            "surface-only rows exceed limit: {} > {MAX_SURFACE_ONLY_ROWS}",
+            surfaces.candidates.len()
+        )
+        .into());
+    }
     let mut output = String::from("lemma\tpos\talternation\tflags\toverrides\n");
     for (candidate, evidence) in candidates {
         if !matches!(
@@ -115,8 +127,24 @@ pub fn write_predicates(
             candidate.classification.flags()
         ));
     }
+    for candidate in &surfaces.candidates {
+        output.push_str(&format!(
+            "{}\t{}\tSurfaceOnly\t\t{}={}\n",
+            candidate.key.lemma,
+            candidate.key.pos,
+            candidate.key.kind.rule_id(),
+            candidate.key.surface,
+        ));
+    }
+    if output.len() > MAX_PREDICATES_BYTES {
+        return Err(format!(
+            "predicates.tsv exceeds limit: {} > {MAX_PREDICATES_BYTES}",
+            output.len()
+        )
+        .into());
+    }
     fs::write(path, output)?;
-    Ok(())
+    Ok(fs::metadata(path)?.len() as usize)
 }
 
 pub fn write_report(
@@ -124,14 +152,15 @@ pub fn write_report(
     candidates: &BTreeMap<CandidateKey, Evidence>,
     core: &CoreEntries,
     derivations: &[DerivationRule],
+    surfaces: &SurfaceCollection,
 ) -> Result<(), Box<dyn Error>> {
     let mut output = String::from(
-        "lemma\tpos\talternation\tflags\tkrdict_ids\tstdict_ids\topendict_ids\tstatus\n",
+        "lemma\tpos\talternation\tflags\tsurface\tkrdict_ids\tstdict_ids\topendict_ids\tstatus\n",
     );
     for (candidate, evidence) in candidates {
         let status = candidate_status(candidate, evidence, candidates, core, derivations);
         output.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+            "{}\t{}\t{}\t{}\t\t{}\t{}\t{}\t{}\n",
             candidate.lemma,
             candidate.pos,
             candidate.classification.alternation(),
@@ -140,6 +169,18 @@ pub fn write_report(
             evidence.ids("stdict"),
             evidence.ids("opendict"),
             status.name(),
+        ));
+    }
+    for candidate in &surfaces.candidates {
+        output.push_str(&format!(
+            "{}\t{}\tSurfaceOnly\t\t{}\t{}\t{}\t{}\t{}\n",
+            candidate.key.lemma,
+            candidate.key.pos,
+            candidate.key.surface,
+            candidate.evidence.ids("krdict"),
+            candidate.evidence.ids("stdict"),
+            candidate.evidence.ids("opendict"),
+            candidate.key.kind.status(),
         ));
     }
     fs::write(path, output)?;
@@ -152,6 +193,8 @@ pub fn write_stats(
     candidates: &BTreeMap<CandidateKey, Evidence>,
     core: &CoreEntries,
     derivations: &[DerivationRule],
+    surfaces: &SurfaceCollection,
+    artifact_bytes: usize,
 ) -> Result<(), Box<dyn Error>> {
     let count_status = |classification: Option<Classification>, status: CandidateStatus| {
         candidates
@@ -164,9 +207,15 @@ pub fn write_stats(
             .count()
     };
     let mut output = format!(
-        "schema_version = 2\ngenerator = \"nikl-lexicon-classifier@0.2.0\"\nrecord_count = {}\ncandidate_count = {}\n",
+        "schema_version = 3\ngenerator = \"nikl-lexicon-classifier@0.3.0\"\nrecord_count = {}\ncandidate_count = {}\nagreed_conjugation_count = {}\ngenerated_conjugation_count = {}\nsurface_conjugation_count = {}\nrelated_adverb_count = {}\nsurface_only_count = {}\nartifact_bytes = {}\n",
         records.len(),
         candidates.len(),
+        surfaces.agreed_conjugation_count,
+        surfaces.generated_conjugation_count,
+        surfaces.agreed_conjugation_count - surfaces.generated_conjugation_count,
+        surfaces.related_adverb_count,
+        surfaces.candidates.len(),
+        artifact_bytes,
     );
     for status in CandidateStatus::VALUES {
         output.push_str(&format!(

@@ -1,6 +1,7 @@
 mod classify;
 mod model;
 mod output;
+mod surface;
 
 use std::env;
 use std::error::Error;
@@ -12,6 +13,7 @@ use kfind_data::load_data_dir;
 use crate::classify::collect_candidates;
 use crate::model::{UsageError, core_entries, parse_source_records};
 use crate::output::{write_predicates, write_report, write_stats};
+use crate::surface::collect_surfaces;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut arguments = env::args_os().skip(1).map(PathBuf::from);
@@ -26,18 +28,27 @@ fn main() -> Result<(), Box<dyn Error>> {
     let data = load_data_dir(data_directory)?;
     let core = core_entries(&data.lexicon.predicates);
     let candidates = collect_candidates(&records);
+    let surfaces = collect_surfaces(
+        &records,
+        &data.lexicon.predicates,
+        &candidates,
+        &core,
+        &data.rules.derivations,
+    );
     fs::create_dir_all(&output_directory)?;
-    write_predicates(
+    let artifact_bytes = write_predicates(
         &output_directory.join("predicates.tsv"),
         &candidates,
         &core,
         &data.rules.derivations,
+        &surfaces,
     )?;
     write_report(
         &output_directory.join("REPORT.tsv"),
         &candidates,
         &core,
         &data.rules.derivations,
+        &surfaces,
     )?;
     write_stats(
         &output_directory.join("STATS.toml"),
@@ -45,6 +56,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         &candidates,
         &core,
         &data.rules.derivations,
+        &surfaces,
+        artifact_bytes,
     )?;
     Ok(())
 }

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+from dataclasses import replace
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "python"))
@@ -14,6 +15,7 @@ from nikl_import import (  # noqa: E402
     KRDICT_SHA256,
     OPENDICT_SHA256,
     STDICT_SHA256,
+    attach_krdict_related_adverbs,
     import_snapshot,
     krdict_record,
     opendict_record,
@@ -77,6 +79,11 @@ def main() -> int:
             expected_sha256,
             args.cache_dir,
         )
+        if source == "krdict":
+            imported, related_adverb_count = attach_krdict_related_adverbs(
+                imported, path, args.cache_dir
+            )
+            source_stats = replace(source_stats, related_adverb_count=related_adverb_count)
         records.extend(imported)
         stats.append(source_stats)
     write_records(args.output, sorted(records))

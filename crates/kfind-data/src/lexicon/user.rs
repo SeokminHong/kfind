@@ -133,6 +133,15 @@ fn parse_predicate(
             "알려진 lexical alternation이 아닙니다",
         )
     })?;
+    if alternation == DataAlternation::SurfaceOnly {
+        return Err(invalid_value(
+            source,
+            lines.alternation,
+            "alternation",
+            &raw.alternation,
+            "SurfaceOnly는 생성된 enriched 사전 전용입니다",
+        ));
+    }
     require_known_rule(
         source,
         lines.alternation,

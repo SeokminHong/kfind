@@ -175,6 +175,7 @@ mod tests {
                 .iter()
                 .map(|value| (*value).to_owned())
                 .collect(),
+            related_adverbs: BTreeSet::new(),
         }
     }
 
