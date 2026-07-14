@@ -2,6 +2,7 @@
 
 mod options;
 mod output;
+mod resources;
 
 use kfind::{Engine, Matcher as RustMatcher};
 use wasm_bindgen::prelude::*;
@@ -34,6 +35,12 @@ export interface CompileOptions {
   normalization?: NormalizationMode;
   maxGap?: number;
   literal?: boolean;
+}
+
+export interface ResourceBundle {
+  fullPos?: Uint8Array;
+  enrichedPredicates?: string;
+  component?: Uint8Array;
 }
 
 export interface Span {
@@ -82,6 +89,13 @@ impl Kfind {
             .map_err(initialization_error)
     }
 
+    #[wasm_bindgen(js_name = withResources)]
+    pub fn with_resources(
+        #[wasm_bindgen(unchecked_param_type = "ResourceBundle")] resources: JsValue,
+    ) -> Result<Kfind, JsError> {
+        resources::engine_from_resources(resources).map(|inner| Self { inner })
+    }
+
     #[wasm_bindgen(js_name = withFullPos)]
     pub fn with_full_pos(
         full_pos: &[u8],
@@ -108,6 +122,11 @@ impl Kfind {
     #[wasm_bindgen(getter, js_name = fullPosLoaded)]
     pub fn full_pos_loaded(&self) -> bool {
         self.inner.full_pos_loaded()
+    }
+
+    #[wasm_bindgen(getter, js_name = enrichedPredicatesLoaded)]
+    pub fn enriched_predicates_loaded(&self) -> bool {
+        self.inner.enriched_predicates_loaded()
     }
 
     #[wasm_bindgen(getter, js_name = componentResourceLoaded)]

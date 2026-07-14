@@ -29,4 +29,13 @@ install -m 0644 "$component_source_dir/MANIFEST.toml" "$assets_dir/MANIFEST.toml
 install -m 0644 \
   "$component_source_dir/LICENSES/mecab-ko-dic-COPYING" \
   "$assets_dir/LICENSES/mecab-ko-dic-COPYING"
+install -m 0644 \
+  "$repo_root/data/enriched/predicates.tsv" \
+  "$assets_dir/predicates.enriched.tsv"
+install -m 0644 \
+  "$repo_root/data/enriched/MANIFEST.toml" \
+  "$assets_dir/predicates.enriched.MANIFEST.toml"
+install -m 0644 \
+  "$repo_root/data/enriched/NOTICE.md" \
+  "$assets_dir/LICENSES/enriched-predicates-NOTICE.md"
 cp "$repo_root/LICENSE" "$package_dir/LICENSE"

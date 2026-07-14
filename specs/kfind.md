@@ -458,10 +458,13 @@
 
 - CLI의 자동 resource 해석과 달리 Rust 라이브러리와 npm binding은 filesystem, URL 또는 package
   asset 위치를 추정하지 않는다. caller가 component 기능을 사용할 때만 bytes를 명시적으로 전달한다.
-- `kfind` 파사드 crate의 `Engine::new()`와 `Engine::with_full_pos(full_pos)`는 compact component
-  resource를 초기화하지 않는다. `Engine::with_component_resource(component_resource)`와
-  `Engine::with_full_pos_and_component(full_pos, component_resource)`가 resource를 명시적으로 검증한다.
-  caller-configured lexicon도 resource 없는 생성자와 resource를 명시한 생성자를 분리한다.
+- `kfind` 파사드 crate는 `ResourceBundle { full_pos, enriched_predicates, component }`와
+  `Engine::with_resources(resources)`를 전체 사전 profile의 기본 생성 API로 제공한다. full POS binary와
+  enriched predicate UTF-8 TSV는 생성 중 lexicon에 병합하고, component bytes는 compact resource로
+  검증해 engine이 소유한다. 각 필드는 선택 사항이며 빈 bundle은 `Engine::new()`와 같은 profile이다.
+- 기존 `with_full_pos`, `with_component_resource`, `with_full_pos_and_component` 생성자는 1.0 공개 API
+  안정성 결정 전까지 호환 API로 유지하되 같은 bundle 생성 경로에 위임한다. caller-configured
+  `Lexicons` 생성자는 expert API로 유지한다.
 - component resource는 생성 이후 first-use에 자동 fetch·load하지 않는다. 검증된 resource는 engine이
   소유하고 여러 matcher에서 재사용하며 query compile마다 다시 decode하지 않는다. resource가 없는
   engine에서 `NominalComponent`, `PredicateLexical` 또는 `LexicalContext`가 필요한 smart plan을
@@ -473,8 +476,9 @@
 - 생성 후 `Engine::load_component_resource(component_resource)`와 JavaScript
   `loadComponentResource(componentResource)`로 resource를 명시적으로 초기화하거나 교체할 수 있다.
   새 bytes를 모두 검증한 뒤에만 상태를 교체하며 실패하면 기존에 검증된 resource를 유지한다.
-- engine은 component resource가 초기화되었는지 getter로 노출한다. resource가 필요 없는 literal,
-  `token`, `any`와 component branch가 없는 plan은 resource 없는 engine에서 그대로 compile한다.
+- engine은 full POS, enriched predicate와 component resource의 초기화 여부를 각각 getter로 노출한다.
+  resource가 필요 없는 literal, `token`, `any`와 component branch가 없는 plan은 component가 없는
+  engine에서 그대로 compile한다.
 - 라이브러리 matcher는 UTF-8 byte slice에서 겹치지 않는 match와 형태 분석 provenance를
   반환한다. 파일 순회, 인코딩 판별, 출력 형식과 CLI locale 처리는 라이브러리 API에
   포함하지 않는다.
@@ -482,10 +486,12 @@
   Rust 1.97에서 `wasm32-unknown-unknown` 대상으로 빌드되어야 한다.
 - `kfind-wasm`은 `wasm-bindgen` JavaScript glue와 TypeScript declaration을 생성한다.
   npm package metadata와 게시 계약은 0.8절을 따른다.
-- JavaScript API는 `new Kfind(componentResource?)`와
-  `Kfind.withFullPos(fullPos, componentResource?)`, 재사용 가능한 `Matcher`를 만드는 `compile`,
-  수동 `loadComponentResource`, UTF-16 JavaScript 문자열을 검색하는 `findAll`을 제공한다.
-  resource 인자는 `Uint8Array`다.
+- JavaScript API는 `Kfind.withResources({ fullPos?, enrichedPredicates?, component? })`를 전체 사전
+  profile의 기본 생성 API로 제공한다. binary resource는 `Uint8Array`, enriched predicate TSV는
+  JavaScript string이다. `new Kfind(componentResource?)`와
+  `Kfind.withFullPos(fullPos, componentResource?)`는 같은 bundle 경로에 위임하는 호환 API다.
+  재사용 가능한 `Matcher`를 만드는 `compile`, 수동 `loadComponentResource`, UTF-16 JavaScript
+  문자열을 검색하는 `findAll`을 제공한다.
   component bytes를 명시했을 때 빈 bytes, 손상, schema·source mismatch는
   `failed to initialize kfind` JavaScript `Error`다. component가 없는 인스턴스의 component smart
   compile은 `failed to compile query` JavaScript `Error`이며 자동 load나 fallback을 수행하지 않는다.
@@ -505,18 +511,21 @@
 
 - npm package 이름은 unscoped `kfind`다. `wasm-pack`의 `bundler` target으로 ESM
   JavaScript glue, WASM binary와 TypeScript declaration을 생성한다.
-- compact component artifact는 `assets/morphology-component-compact.kfc` 정적 파일로
-  WASM 산출물과 분리해 게시한다. 사용자는 이 파일을 배포물에 복사하거나 별도 호스트에 올릴 수
-  있으며 npm binding은 특정 호스팅 URL을 고정하지 않는다.
+- compact component artifact는 `assets/morphology-component-compact.kfc`, enriched predicate TSV는
+  `assets/predicates.enriched.tsv` 정적 파일로 WASM 산출물과 분리해 게시한다. 각 외부 데이터의
+  license notice도 package에 포함한다. 사용자는 필요한 파일을 배포물에 복사하거나 별도 호스트에
+  올릴 수 있으며 npm binding은 특정 호스팅 URL을 고정하지 않는다. full POS binary는 크기와 배포
+  profile이 다르므로 npm package에 포함하지 않지만 같은 `withResources` 입력으로 전달할 수 있다.
 - package build는 고정 source와 checksum으로 정적 asset을 생성한다. `npm pack --dry-run`은
   asset 포함과 SHA-256을 검증하고 WASM binary에 compact container magic 또는 artifact bytes가
   포함되지 않았음을 확인한다.
 - npm 산출물은 브라우저 bundler용 release package로 생성한다. 별도의 Node target
   산출물로 같은 공개 API를 smoke test하고 `npm pack --dry-run`으로 게시 파일과 metadata를
   검증한다.
-- npm package 검증은 package version과 Cargo version의 일치, TypeScript declaration의 optional
-  resource signature, resource 없는 non-component compile, resource 없는 component smart 오류,
-  JavaScript 초기화 오류, component positive/crossing negative와 UTF-16 offset 계약을 확인한다.
+- npm package 검증은 package version과 Cargo version의 일치, 두 정적 asset과 license notice,
+  TypeScript declaration의 optional resource bundle, enriched 분석 활성화 여부, resource 없는
+  non-component compile, resource 없는 component smart 오류, JavaScript 초기화 오류, component
+  positive/crossing negative와 UTF-16 offset 계약을 확인한다.
 - 기본 CI는 npm package build, Node smoke test와 pack 검사를 실행한다.
 
 ## 1. 문서 목적
@@ -2315,24 +2324,28 @@ end
 Rust 공개 API는 재사용 가능한 `Engine`과 컴파일된 `Matcher`를 중심으로 한다.
 
 ```rust
-let mut engine = Engine::new()?;
-engine.load_component_resource(component_bytes)?;
+let engine = Engine::with_resources(ResourceBundle {
+    full_pos: Some(full_pos_bytes),
+    enriched_predicates: Some(enriched_predicates),
+    component: Some(component_bytes),
+})?;
 
 let matcher = engine.compile("권한", &CompileOptions::default())?;
 let matches = matcher.find_all("사용자권한을 확인한다.".as_bytes());
 ```
 
 - `Engine::new`는 embedded lexicon만 초기화한다.
-- `with_full_pos`, `with_component_resource`, `with_full_pos_and_component`와
-  `from_lexicons_with_component`는 caller가 전달한 resource를 생성 시 검증한다.
+- `ResourceBundle`과 `Engine::with_resources`는 full POS, enriched predicate와 component resource를
+  한 profile로 검증한다. 기존 개별 생성자는 이 경로에 위임한다.
 - `load_component_resource`는 새 bytes를 모두 검증한 뒤 상태를 교체하며 실패하면 기존
   resource를 보존한다.
 - `compile`은 query plan과 anchor matcher를 만들고 component resource가 필요한 plan의 누락을
   `ComponentResourceRequired`로 보고한다.
 - `Matcher::find_at`과 `find_all`은 UTF-8 byte offset과 형태 provenance가 포함된
   `PhraseMatch`를 반환한다.
-- JavaScript API는 같은 수명 주기를 `Kfind`, `loadComponentResource`, `compile`, `Matcher.findAll`
-  로 노출하고 offset을 UTF-16 code unit으로 변환한다.
+- JavaScript API는 같은 profile을 `Kfind.withResources`, 같은 수명 주기를
+  `loadComponentResource`, `compile`, `Matcher.findAll`로 노출하고 offset을 UTF-16 code unit으로
+  변환한다.
 
 ## 25. 제품 원칙
 

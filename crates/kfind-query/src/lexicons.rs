@@ -31,6 +31,7 @@ pub struct Lexicons {
     materialized_entries: BTreeMap<Box<str>, Vec<Analysis>>,
     rules: Arc<RuleSet>,
     full_pos: Option<DecodedPosLexicon>,
+    enriched_predicates_loaded: bool,
     replaced_full_predicates: BTreeSet<Box<str>>,
     replaced_full_nominals: BTreeSet<Box<str>>,
 }
@@ -54,6 +55,7 @@ impl Lexicons {
             materialized_entries: BTreeMap::new(),
             rules: Arc::new(rules),
             full_pos: None,
+            enriched_predicates_loaded: false,
             replaced_full_predicates: BTreeSet::new(),
             replaced_full_nominals: BTreeSet::new(),
         };
@@ -90,6 +92,7 @@ impl Lexicons {
                 predicate_analysis(&record, AnalysisSource::EnrichedLexicon),
             );
         }
+        self.enriched_predicates_loaded = true;
         Ok(())
     }
 
@@ -163,6 +166,11 @@ impl Lexicons {
     #[must_use]
     pub fn full_pos_loaded(&self) -> bool {
         self.full_pos.is_some()
+    }
+
+    #[must_use]
+    pub fn enriched_predicates_loaded(&self) -> bool {
+        self.enriched_predicates_loaded
     }
 
     pub(crate) fn productive_predicate(&self, lemma: &str) -> Option<Analysis> {

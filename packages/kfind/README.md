@@ -27,12 +27,15 @@ console.log(text.slice(matches[0].start, matches[0].end)); // 걸어
 values and the complete match provenance shape.
 
 Match offsets use UTF-16 code units, so they can be passed directly to
-`String.prototype.slice`. Copy
-`kfind/assets/morphology-component-compact.kfc` to your static assets or host it
-separately. Smart searches that use compound-noun components, strict-subspan
-copulas, or registered homonym context can pass its bytes to the constructor or
-call `loadComponentResource` before compiling those queries. Unlike the CLI, the package never resolves or fetches the asset
-automatically. The WASM binary does not contain this data. Load an optional full POS
-binary with `Kfind.withFullPos(fullPos, componentResource?)`.
+`String.prototype.slice`. Build the same dictionary profile as the CLI with
+`Kfind.withResources({ fullPos?, enrichedPredicates?, component? })`. The
+package publishes `kfind/assets/predicates.enriched.tsv` and
+`kfind/assets/morphology-component-compact.kfc` as separate static assets. It
+never resolves or fetches them automatically, and neither is embedded in the
+WASM binary. The existing constructor, `Kfind.withFullPos`, and
+`loadComponentResource` remain available as compatibility APIs.
+
+See `LICENSES.md` for the package code, component resource, and enriched
+predicate data licenses and notice locations.
 
 The package is an ESM module intended for browser bundlers.
