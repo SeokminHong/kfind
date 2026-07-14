@@ -129,6 +129,7 @@ globalStyle('.mobile-navigation summary', {
 
 globalStyle('.mobile-navigation nav', {
   display: 'grid',
+  alignItems: 'start',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gap: vars.space.large,
   padding: `0 ${vars.space.large} ${vars.space.large}`,
