@@ -159,7 +159,7 @@
   결과를 stream으로만 처리하려면 `--no-pager`를 사용한다.
 - TUI index benchmark는 plain source line과 한 source line이 여러 match row로 전개되는 입력을
   각각 측정한다. 입력 bytes, source·row 논리 개수, 각 `Vec`의 length·capacity와 entry 크기,
-  capacity 기준 index bytes, 생성·index·layout 시간과 fresh process peak RSS를 함께 보고한다.
+  length·capacity 기준 index bytes, 생성·index·layout 시간과 fresh process peak RSS를 함께 보고한다.
   benchmark용 binary는 release 설치물에 포함하지 않는다.
 - EUC-KR은 명시적 `--encoding euc-kr`에서 지원한다. `auto`는 BOM 기반 UTF-16과 UTF-8만 판별한다.
 

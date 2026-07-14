@@ -1,3 +1,5 @@
+#[cfg(feature = "pager-memory-benchmark")]
+mod benchmark;
 mod protocol;
 mod render;
 mod terminal;
@@ -16,6 +18,9 @@ use crate::Args;
 use super::OutputMode;
 
 pub(super) use protocol::{ColumnRange, MatchLine, PagerMatch, write_match_line};
+
+#[cfg(feature = "pager-memory-benchmark")]
+pub use benchmark::{PagerMemoryReport, run_pager_memory_benchmark};
 
 const LIVE_FLUSH_INTERVAL: Duration = Duration::from_millis(16);
 
