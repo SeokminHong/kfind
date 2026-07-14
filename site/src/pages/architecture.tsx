@@ -7,7 +7,7 @@ export default function ArchitecturePage(): React.JSX.Element {
       <PageIntro
         eyebrow="INTERNALS · ARCHITECTURE"
         title="Compile과 scan을 분리한 실행 구조"
-        summary="작은 query plan은 형태 지식을 포함하고, 큰 corpus 경로는 byte scan과 bounded verification에 집중합니다."
+        summary="형태 지식은 크기가 제한된 query plan에 담습니다. 큰 corpus를 처리하는 경로에서는 byte scan과 후보 주변의 verification에 집중합니다."
       />
 
       <DocumentSection title="두 데이터 흐름이 만나는 지점">
@@ -36,19 +36,19 @@ export default function ArchitecturePage(): React.JSX.Element {
           </div>
           <strong>validated span + provenance</strong>
         </div>
-        <Callout title="Corpus 전체 분석 없음">
+        <Callout title="Corpus 전체를 분석하지 않습니다">
           <p>
-            후보 anchor가 없는 buffer에서는 줄별 matcher 호출, Unicode scalar
-            순회와 형태 규칙 실행을 하지 않습니다.
+            후보 anchor가 없는 buffer에서는 줄별 matcher를 호출하지 않습니다.
+            Unicode scalar 순회와 형태 규칙 실행도 생략합니다.
           </p>
         </Callout>
       </DocumentSection>
 
       <DocumentSection title="검색 branch의 구성">
         <p>
-          완성된 활용형 문자열을 모두 Aho-Corasick에 넣지 않습니다. branch는
-          고정된 <code>anchor</code>, 나머지 suffix를 소비하는
-          <code>verifier</code>, 원문 core span을 복원하는 mapping과
+          완성된 활용형 문자열을 모두 Aho-Corasick matcher에 넣지는 않습니다. 각
+          branch는 고정된 <code>anchor</code>, 나머지 suffix를 소비하는{' '}
+          <code>verifier</code>, 원문에서 core span을 복원하는 mapping과
           provenance를 결합합니다.
         </p>
         <pre>
@@ -62,28 +62,29 @@ shared suffix graph
 └─ 습니다 | 지만 | 는데 | ...`}</code>
         </pre>
         <p>
-          조사와 어미 continuation은 전역 DFA/trie를 공유하고 branch는 시작
-          상태만 가리킵니다. 긴 고정 prefix는 scan 비용을 줄이고 공유 verifier는
-          matcher 메모리 증가를 제한합니다.
+          조사와 어미 continuation은 전역 DFA/trie를 공유합니다. 각 branch는
+          필요한 시작 상태만 가리킵니다. 고정 prefix가 길수록 scan할 후보가
+          줄어들고, verifier를 공유하면 branch가 늘어도 matcher 메모리 증가를
+          제한할 수 있습니다.
         </p>
       </DocumentSection>
 
       <DocumentSection title="후보 검증 단계">
         <FlowDiagram
           title="Anchor hit에서 최종 span까지"
-          caption="검증을 통과한 token span만 leftmost-longest 순서로 선택하고, 동일 span의 origin은 병합합니다."
+          caption="검증을 통과한 token span만 leftmost-longest 정책으로 선택합니다. 동일한 span을 만든 origin은 하나의 결과에 병합합니다."
           steps={[
             {
               label: '01 · BOUNDARY',
               title: 'UTF-8·왼쪽 경계',
               description:
-                'byte 위치가 문자 경계인지, 정책이 요구하는 core 시작인지 확인합니다.',
+                'byte 위치가 문자 경계인지 확인하고, core 시작이 boundary 정책을 만족하는지 검사합니다.',
             },
             {
               label: '02 · MORPH',
               title: 'Branch verifier',
               description:
-                '어간·어미 또는 조사 상태가 bounded suffix를 소비합니다.',
+                '어간·어미 또는 조사 상태가 정해진 상한 안에서 suffix를 소비합니다.',
             },
             {
               label: '03 · TOKEN',
@@ -94,7 +95,7 @@ shared suffix graph
               label: '04 · RESULT',
               title: 'Span·origin 병합',
               description:
-                'core/token span과 모든 analysis·rule path를 결과에 보존합니다.',
+                'core span과 token span, 모든 analysis·rule path를 결과에 보존합니다.',
             },
           ]}
         />
@@ -102,8 +103,9 @@ shared suffix graph
 
       <DocumentSection title="Phrase 결합">
         <p>
-          여러 atom은 각각 검증된 span 목록을 만든 뒤 순서대로 결합합니다.
-          surface 후보의 데카르트 곱을 거대한 정규식으로 만들지 않습니다.
+          phrase query는 atom마다 검증된 span 목록을 만든 뒤 입력 순서대로
+          결합합니다. 가능한 surface의 데카르트 곱을 거대한 정규식으로 만들지는
+          않습니다.
         </p>
         <pre>
           <code>{`atom 0 spans ─┐
@@ -120,7 +122,7 @@ atom 2 spans ─┘`}</code>
         </ul>
       </DocumentSection>
 
-      <DocumentSection title="파일 검색과 bounded output">
+      <DocumentSection title="파일별 output과 buffer 상한">
         <div
           className="architecture-lanes"
           data-compact="true"
@@ -143,12 +145,13 @@ atom 2 spans ─┘`}</code>
               <li>BufWriter&lt;StdoutLock&gt;</li>
             </ol>
           </div>
-          <strong>corpus 크기와 무관한 기본 결과 버퍼</strong>
+          <strong>corpus가 커져도 기본 결과 buffer 크기는 일정</strong>
         </div>
         <p>
-          worker는 channel capacity에서 backpressure를 받습니다. 기본 출력은
-          전체 결과를 모으지 않으며, <code>--sort path</code>만 모든 file
-          stream을 버퍼링해 정렬합니다. broken pipe는 정상 종료로 처리합니다.
+          channel이 가득 차면 worker는 writer가 결과를 소비할 때까지
+          backpressure를 받습니다. 기본 출력은 전체 결과를 메모리에 모으지
+          않습니다. <code>--sort path</code>를 지정했을 때만 모든 file stream을
+          버퍼링해 정렬합니다. broken pipe는 정상 종료로 처리합니다.
         </p>
       </DocumentSection>
 
@@ -157,7 +160,7 @@ atom 2 spans ─┘`}</code>
           <table>
             <thead>
               <tr>
-                <th scope="col">표면</th>
+                <th scope="col">사용 환경</th>
                 <th scope="col">담당</th>
                 <th scope="col">Resource 정책</th>
               </tr>
@@ -166,17 +169,17 @@ atom 2 spans ─┘`}</code>
               <tr>
                 <td>CLI</td>
                 <td>파일 순회, 인코딩, 출력, locale</td>
-                <td>설치 경로에서 full POS·component 자동 resolve</td>
+                <td>설치 경로에서 full POS·component resource 자동 resolve</td>
               </tr>
               <tr>
                 <td>Rust library</td>
                 <td>메모리 UTF-8 query compile·find</td>
-                <td>caller가 bytes를 명시</td>
+                <td>caller가 resource bytes를 명시</td>
               </tr>
               <tr>
                 <td>npm / WASM</td>
                 <td>JavaScript 문자열과 UTF-16 offset</td>
-                <td>URL·filesystem을 추정하지 않고 caller가 bytes 전달</td>
+                <td>URL·filesystem을 추정하지 않으며 caller가 bytes를 전달</td>
               </tr>
             </tbody>
           </table>

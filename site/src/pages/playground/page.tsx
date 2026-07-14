@@ -21,13 +21,14 @@ export default function PlaygroundPage(): React.JSX.Element {
       <PageIntro
         eyebrow="PLAYGROUND · WEBASSEMBLY"
         title="브라우저에서 검색 계획 실행하기"
-        summary="현재 source의 kfind-wasm을 사용합니다. 입력은 브라우저 안에서 처리하며 분석 API로 전송하지 않습니다."
+        summary="현재 source에서 빌드한 kfind-wasm을 사용합니다. 입력한 query와 text는 브라우저 안에서만 처리하며 외부 분석 API로 전송하지 않습니다."
       />
 
       <DocumentSection title="검색 실습">
         <div className="section-title-row">
           <p>
-            Query와 옵션을 바꾸면 embedded lexicon으로 결과를 다시 계산합니다.
+            Query나 옵션을 바꾸면 embedded lexicon을 사용해 결과를 다시
+            계산합니다.
           </p>
           <div
             className="wasm-state"
@@ -66,7 +67,7 @@ export default function PlaygroundPage(): React.JSX.Element {
                   구(句) 검색
                 </button>
                 <button type="button" data-preset="component">
-                  합성명사 smart
+                  합성명사 · smart
                 </button>
                 <button type="button" data-preset="literal">
                   Literal
@@ -142,14 +143,14 @@ export default function PlaygroundPage(): React.JSX.Element {
 
             <div className="field field-text">
               <div className="field-label-row">
-                <label htmlFor="text-input">검색할 text</label>
+                <label htmlFor="text-input">검색할 텍스트</label>
                 <span id="text-count">0자</span>
               </div>
               <textarea
                 id="text-input"
                 name="text"
                 rows={8}
-                aria-label="검색할 text"
+                aria-label="검색할 텍스트"
                 defaultValue={
                   '오늘은 공원을 걸었다.\n내일도 천천히 걷고 싶다.\n산책길을 걷는 사람을 만났다.'
                 }
@@ -204,9 +205,10 @@ export default function PlaygroundPage(): React.JSX.Element {
 
         <Callout title="Component resource">
           <p>
-            기본 WASM에는 embedded lexicon만 포함합니다. component 근거가 필요한
-            smart 검색에서만 same-origin Pages Function이 R2 객체를
-            스트리밍하고, engine이 검증한 뒤 사용합니다.
+            기본 WASM에는 embedded lexicon만 들어 있습니다. smart 검색에
+            component 근거가 필요할 때만 same-origin Pages Function에서 R2
+            객체를 streaming합니다. engine은 resource 검증을 마친 뒤 검색을 다시
+            실행합니다.
           </p>
         </Callout>
       </DocumentSection>

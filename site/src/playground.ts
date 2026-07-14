@@ -224,7 +224,7 @@ function executeSearch(
     if (readableError(error).toLowerCase().includes('component')) {
       elements.resourceStatus.dataset.state = 'needed';
       elements.resourceStatus.textContent =
-        '이 query에는 component asset이 필요합니다.';
+        '이 query를 실행하려면 component asset이 필요합니다.';
     }
   }
 }
@@ -242,7 +242,7 @@ async function enableComponentResource(
 
   elements.resourceButton.disabled = true;
   elements.resourceStatus.dataset.state = 'loading';
-  elements.resourceStatus.textContent = 'R2에서 component asset을 받는 중…';
+  elements.resourceStatus.textContent = 'R2에서 component asset을 불러오는 중…';
 
   try {
     const byteLength = await loadComponentResource(engine, signal);
@@ -250,7 +250,7 @@ async function enableComponentResource(
       return;
     }
     elements.resourceStatus.dataset.state = 'ready';
-    elements.resourceStatus.textContent = `${formatMebibytes(byteLength)} MiB load·검증 완료`;
+    elements.resourceStatus.textContent = `${formatMebibytes(byteLength)} MiB 불러오기·검증 완료`;
     elements.resourceButton.textContent = 'Component asset 준비됨';
     rerun();
   } catch (error) {
@@ -273,7 +273,7 @@ function renderResults(
   elements.summary.textContent =
     matches.length === 0
       ? '일치하는 span이 없습니다.'
-      : `${matches.length}개 span을 찾았습니다.`;
+      : `일치하는 span ${matches.length}개를 찾았습니다.`;
   elements.rawOutput.textContent = JSON.stringify(matches, null, 2);
   renderPreview(elements.preview, elements.text.value, matches);
   renderMatchList(elements.matchList, elements.text.value, matches);
@@ -309,7 +309,7 @@ function renderMatchList(
   if (matches.length === 0) {
     const empty = document.createElement('li');
     empty.className = 'match-empty';
-    empty.textContent = '옵션을 바꾸거나 다른 query를 입력해 보세요.';
+    empty.textContent = '옵션을 바꾸거나 다른 query로 검색해 보세요.';
     container.append(empty);
     return;
   }
@@ -372,7 +372,7 @@ function formatProvenance(match: Match): string {
     }
   }
 
-  return paths.size === 0 ? '검증된 direct match' : [...paths].join(' · ');
+  return paths.size === 0 ? 'direct match 검증 완료' : [...paths].join(' · ');
 }
 
 function readOptions(elements: PlaygroundElements): CompileOptions {
@@ -429,7 +429,7 @@ function clearResults(elements: PlaygroundElements, message: string): void {
 
 function renderError(elements: PlaygroundElements, error: unknown): void {
   const message = readableError(error);
-  elements.summary.textContent = 'Query를 compile하거나 검색할 수 없습니다.';
+  elements.summary.textContent = 'Query compile 또는 검색 실행에 실패했습니다.';
   elements.executionTime.textContent = 'error';
   elements.preview.replaceChildren();
   const errorMessage = document.createElement('p');

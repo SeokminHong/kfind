@@ -7,7 +7,7 @@ export default function OptionsPage(): React.JSX.Element {
       <PageIntro
         eyebrow="REFERENCE · QUERY COMPILATION"
         title="쿼리와 옵션"
-        summary="확장 수준, 품사, 경계와 Unicode 정책은 서로 다른 축입니다. 각 축이 어떤 후보를 만들고 어떤 후보를 버리는지 구분해 선택합니다."
+        summary="확장 수준, 품사, 경계와 Unicode 정책은 서로 독립적으로 동작합니다. 각 옵션이 어떤 후보를 만들고 제외하는지 확인한 뒤 조합할 수 있습니다."
       >
         <div className="defaults-strip" aria-label="기본 컴파일 옵션">
           <span>
@@ -30,7 +30,7 @@ export default function OptionsPage(): React.JSX.Element {
 
       <DocumentSection
         title="확장 수준"
-        lead="--expand는 표제어에서 어떤 종류의 search branch를 만들지 결정합니다."
+        lead="--expand는 표제어에서 어떤 search branch를 만들지 결정합니다."
       >
         <div className="option-card-grid">
           <article className="option-card">
@@ -39,8 +39,9 @@ export default function OptionsPage(): React.JSX.Element {
               <span>정확한 표면형</span>
             </header>
             <p>
-              입력 문자열 하나만 branch로 만듭니다. 활용, 조사, 파생을 만들지
-              않지만 선택한 boundary와 Unicode 정규화는 그대로 적용됩니다.
+              입력한 문자열만 포함하는 branch를 하나 만듭니다. 활용형이나 조사가
+              붙은 형태, 파생어는 만들지 않습니다. 선택한 boundary와 Unicode
+              정규화는 그대로 적용합니다.
             </p>
             <pre>
               <code>kfind --expand literal 걸어 .</code>
@@ -60,7 +61,8 @@ export default function OptionsPage(): React.JSX.Element {
             </header>
             <p>
               사전의 품사·활용 분류로 조사 결합, 어미 결합, 불규칙 교체와 제한된
-              continuation을 만듭니다. 생산적 파생 접미사는 추가하지 않습니다.
+              continuation을 만듭니다. 새로운 표제어를 만드는 파생 접미사는
+              추가하지 않습니다.
             </p>
             <pre>
               <code>kfind --expand inflection 걷다 .</code>
@@ -79,7 +81,8 @@ export default function OptionsPage(): React.JSX.Element {
               <span>inflection 포함</span>
             </header>
             <p>
-              inflection의 모든 branch에 버전 관리된 생산적 파생을 더합니다.
+              <code>data/rules</code>에 정의된 생산적 파생 규칙을 inflection의
+              모든 branch에 더합니다.
               <code>-적</code>, <code>-하다</code>, <code>-되다</code>,
               <code>-시키다</code>, <code>-스럽다</code>, <code>-답다</code>,
               <code>-롭다</code>, <code>-화</code>가 현재 규칙 목록입니다.
@@ -98,12 +101,12 @@ export default function OptionsPage(): React.JSX.Element {
 
         <SplitDiagram
           title="확장 모드는 포함 관계로 동작합니다"
-          caption="derivation은 별도 검색기가 아니라 inflection plan에 파생 branch를 합친 상위 모드입니다."
+          caption="derivation은 별도 검색기가 아닙니다. inflection plan에 파생 branch를 더해 검색 범위를 넓힙니다."
           source={{
             label: 'QUERY',
             title: '검증 · noun',
             description:
-              '하나의 분석에서 선택한 확장 수준에 따라 branch가 달라집니다.',
+              '같은 명사 분석이라도 확장 수준에 따라 서로 다른 branch를 만듭니다.',
           }}
           paths={[
             {
@@ -130,14 +133,15 @@ export default function OptionsPage(): React.JSX.Element {
             <code>--literal</code>은 <code>--expand literal --pos literal</code>
             을 동시에 지정합니다. <code>--expand inflection|derivation</code>{' '}
             또는 literal이 아닌 <code>--pos</code>와 함께 쓰면 컴파일
-            오류입니다. 이 경로는 full POS lexicon을 필요로 하지 않습니다.
+            오류입니다. literal query는 full POS lexicon 없이 컴파일할 수
+            있습니다.
           </p>
         </Callout>
       </DocumentSection>
 
       <DocumentSection
         title="Boundary 정책"
-        lead="확장이 무엇을 생성하는 축이라면 boundary는 후보 span을 어디까지 허용할지 정하는 축입니다."
+        lead="확장 수준은 생성할 형태를 정하고, boundary는 각 후보 span을 허용할 조건을 정합니다."
       >
         <div className="table-scroll">
           <table>
@@ -154,8 +158,8 @@ export default function OptionsPage(): React.JSX.Element {
                   <code>smart</code>
                 </td>
                 <td>
-                  품사 verifier가 조사·어미를 소비한 token 끝을 확인합니다.
-                  검증된 합성명사 component는 복구합니다.
+                  품사 verifier가 조사·어미를 소비한 뒤 token 끝을 확인합니다.
+                  합성명사 component는 형태 근거가 검증된 경우에만 복구합니다.
                 </td>
                 <td>사람의 기본 검색, precision 우선</td>
               </tr>
@@ -164,8 +168,8 @@ export default function OptionsPage(): React.JSX.Element {
                   <code>token</code>
                 </td>
                 <td>
-                  모든 core 시작과 완성 token 끝에 엄격한 Unicode token 경계를
-                  요구합니다.
+                  core 시작과 완성된 token 끝이 모두 Unicode token 경계에 맞아야
+                  합니다.
                 </td>
                 <td>독립 token만 필요할 때</td>
               </tr>
@@ -187,7 +191,7 @@ export default function OptionsPage(): React.JSX.Element {
             <span>SMART COMPONENT</span>
             <code>n:요리 → 중국요리</code>
             <p>
-              완전한 형태 경로가 <code>요리</code> component를 증명하면
+              완전한 형태 경로에서 <code>요리</code>가 component로 확인되면
               허용합니다.
             </p>
           </article>
@@ -209,9 +213,9 @@ export default function OptionsPage(): React.JSX.Element {
       <DocumentSection title="품사와 자동 분석">
         <p>
           <code>--pos auto</code>는 core lexicon, 사용자 사전, 생산적 접미 패턴,
-          full POS 순으로 가능한 분석을 모읍니다. 같은 표제어의 복수 분석은
-          합집합으로 보존합니다. <code>--pos</code> 또는 atom 태그는 이 후보를
-          한 품사로 좁힙니다.
+          full POS 순으로 가능한 분석을 모읍니다. 같은 표제어에 여러 분석이
+          있으면 하나를 임의로 고르지 않고 모두 보존합니다. <code>--pos</code>{' '}
+          또는 atom 태그를 지정하면 이 후보를 한 품사로 좁힙니다.
         </p>
         <div className="table-scroll">
           <table>
@@ -316,11 +320,11 @@ export default function OptionsPage(): React.JSX.Element {
             </tbody>
           </table>
         </div>
-        <Callout title="미등록 다 종결어">
+        <Callout title="사전에 없는 다 종결어">
           <p>
             철자가 <code>다</code>로 끝난다는 이유만으로 동사로 추정하지
-            않습니다. 미등록 입력은 literal 후보로 남기며, 필요하면{' '}
-            <code>v:커스텀하다</code>처럼 품사를 명시합니다.
+            않습니다. 사전에 없는 입력은 literal 후보로 남깁니다. 동사로
+            검색하려면 <code>v:커스텀하다</code>처럼 품사를 명시합니다.
           </p>
         </Callout>
       </DocumentSection>
@@ -340,8 +344,10 @@ export default function OptionsPage(): React.JSX.Element {
                 <td>
                   <code>--unicode-normalization nfc</code>
                 </td>
-                <td>NFC query branch로 검색합니다.</td>
-                <td>기본값이며 corpus 전체를 복사해 정규화하지 않습니다.</td>
+                <td>NFC로 정규화한 query branch를 사용합니다.</td>
+                <td>
+                  기본값입니다. corpus 전체를 복사하거나 정규화하지 않습니다.
+                </td>
               </tr>
               <tr>
                 <td>
@@ -364,8 +370,8 @@ export default function OptionsPage(): React.JSX.Element {
                   <code>--max-gap 24</code>
                 </td>
                 <td>
-                  앞 atom의 token 끝과 다음 atom의 token 시작 사이 Unicode
-                  scalar를 제한합니다.
+                  앞 atom의 token 끝과 다음 atom의 token 시작 사이에 허용할
+                  Unicode scalar 수를 제한합니다.
                 </td>
                 <td>순서를 유지하며 줄을 넘지 않습니다.</td>
               </tr>
@@ -409,7 +415,7 @@ export default function OptionsPage(): React.JSX.Element {
           </div>
         </div>
         <p className="reference-link">
-          출력 호환 옵션과 종료 코드의 규범 목록은{' '}
+          지원하는 출력 옵션과 종료 코드의 전체 목록은{' '}
           <a href="https://github.com/SeokminHong/kfind/blob/main/README.ko.md">
             한국어 README
           </a>
@@ -419,7 +425,7 @@ export default function OptionsPage(): React.JSX.Element {
 
       <DocumentSection
         title="Agent skill 초기화 옵션"
-        lead="초기화와 검색은 독립된 실행 모드입니다. 옵션 조합을 분리하면 자동화가 프로젝트 파일을 바꾸는 시점과 corpus를 읽는 시점이 명확해집니다."
+        lead="skill 초기화와 검색은 서로 독립된 실행 모드입니다. 프로젝트 파일을 변경하는 작업과 corpus를 읽는 작업을 한 번에 실행하지 않습니다."
       >
         <div className="table-scroll">
           <table>
@@ -438,7 +444,7 @@ export default function OptionsPage(): React.JSX.Element {
                 <td>query와 path 없음</td>
                 <td>
                   현재 디렉터리에 agent skill을 초기화합니다. 검색 옵션과 함께
-                  사용하면 오류입니다.
+                  사용할 수 없습니다.
                 </td>
               </tr>
               <tr>
@@ -458,8 +464,9 @@ export default function OptionsPage(): React.JSX.Element {
                 <td>대상 옵션 생략</td>
                 <td>TTY 선택 또는 비TTY stdin</td>
                 <td>
-                  TTY에서는 checkbox를 표시합니다. 비대화형 입력은 줄마다 agent
-                  이름 하나를 받아 명시적 옵션과 같은 결과를 만듭니다.
+                  TTY에서는 checkbox를 표시합니다. 비대화형 입력에서는 한 줄에
+                  agent 이름 하나를 받으며, 결과는 옵션으로 직접 지정했을 때와
+                  같습니다.
                 </td>
               </tr>
             </tbody>

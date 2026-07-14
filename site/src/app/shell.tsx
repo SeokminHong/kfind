@@ -6,7 +6,7 @@ import { NavLink, Outlet, ScrollRestoration, useMatches } from 'react-router';
 import { navigationGroups, RoutePath } from './navigation';
 
 const defaultDescription =
-  '한국어 표제어·활용형 text matcher kfind의 기술 문서와 WebAssembly playground';
+  '한국어 표제어와 활용형을 찾는 text matcher kfind의 기술 문서와 WebAssembly playground';
 
 function isDocumentRouteHandle(value: unknown): value is DocumentRouteHandle {
   if (typeof value !== 'object' || value === null) {
