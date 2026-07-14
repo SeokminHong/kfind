@@ -402,11 +402,15 @@ max-gap=24`}</code>
           </table>
         </div>
         <p>
-          일반 text 결과를 TTY stdout에 쓰면 <code>less</code> pager가 긴 줄을
-          접지 않고 위·아래와 좌우 화살표로 탐색하게 합니다. Redirect, pipe,
-          JSON Lines와 count·파일명 요약·quiet 출력은 pager를 거치지 않고 기존
-          stdout stream을 유지합니다. 대화형 text 출력에서도 pager가 필요하지
-          않으면 <code>--no-pager</code>로 끌 수 있습니다.
+          일반 text 결과를 TTY stdin/stdout에서 쓰면 검색 시작과 함께 내장 TUI를
+          열고 완성된 행을 점진적으로 반영합니다. 긴 match 줄은 검증된 match마다
+          별도 행으로 펼치고 target 앞뒤를 원문 비율에 맞춰 생략합니다. 검색
+          중에도 terminal resize와 이동을 처리하며,
+          <code>↑/↓</code> 또는 <code>k/j</code>로 이동하고 <code>q</code>나
+          <code>Esc</code>로 종료합니다. Redirect, pipe, JSON Lines와
+          count·파일명 요약·quiet 출력은 기존 stdout stream을 유지합니다. 대화형
+          text 출력에서도 TUI가 필요하지 않으면 <code>--no-pager</code>로 끌 수
+          있습니다.
         </p>
       </DocumentSection>
 

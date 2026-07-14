@@ -267,10 +267,15 @@ binary.
 
 File names are printed automatically when searching a directory or multiple
 inputs. Match and context lines use `:` and `-` separators respectively. Standard
-text results written to a terminal use `less` to keep long lines unwrapped and
-support vertical and horizontal arrow navigation. Redirects and pipes, JSON Lines,
-count, file summaries, and quiet mode retain the direct stdout stream. If `less`
-cannot start, output falls back to stdout.
+text results with terminal stdin and stdout use a built-in TUI that opens when
+the search starts and adds completed result rows progressively. A long match line expands
+to one row per verified match, and each row truncates both sides so its target
+remains visible at a position balanced by the original before/after ratio. The
+layout is recomputed on terminal resize. Navigation remains active while searching.
+Use `↑`/`↓` or `k`/`j` to move and `q` or `Esc` to exit and stop the remaining search.
+Redirects and pipes, JSON Lines, count, file summaries, quiet mode,
+and `--no-pager` retain the direct stdout stream. If the TUI cannot start, output
+falls back to standard text on stdout.
 
 JSON Lines records contain `type`, path, line, optional column, text, spans,
 core and token byte ranges, matched surface, lemma/POS origins, rule paths, and

@@ -253,9 +253,14 @@ kfind --init [--agent <AGENT>]...
 | `--sort path` | 정렬하지 않는 병렬 stream | 파일 결과를 완성한 뒤 buffering해 경로순으로 출력합니다. 결과에 비례한 메모리를 사용하고 병렬 처리량이 낮아질 수 있습니다. |
 
 디렉터리나 여러 입력을 검색하면 파일 이름을 자동으로 출력합니다. Match 줄과 문맥 줄은 각각
-`:`와 `-` 구분자를 사용합니다. 일반 text 결과를 TTY에 쓰면 `less` pager가 긴 줄을 화면 너비에서
-접지 않고 위·아래 및 좌우 화살표 탐색을 제공합니다. Redirect와 pipe, JSON Lines, count, 파일명
-요약, quiet mode는 기존 stdout stream을 유지합니다. `less`를 시작할 수 없어도 직접 출력합니다.
+`:`와 `-` 구분자를 사용합니다. 일반 text 결과를 TTY stdin/stdout에서 쓰면 검색 시작과 함께 내장
+TUI를 열고 완성된 결과 행을 점진적으로 반영합니다. 긴 match 줄은
+검증된 match마다 별도 행으로 펼치고, 원문에서 target 앞뒤가 차지하는 비율에 맞춰 양쪽을 생략해
+target이 보이게 합니다. 검색 중에도 이동과 terminal resize를 처리합니다. `↑`/`↓` 또는 `k`/`j`로
+이동하고 `q`나 `Esc`로 종료해 남은 검색도 중단합니다. Redirect와 pipe, JSON Lines, count,
+파일명 요약, quiet mode와
+`--no-pager`는 기존 stdout stream을 유지합니다. TUI를 시작할 수 없으면 일반 text를 stdout에
+직접 출력합니다.
 
 JSON Lines record에는 `type`, 경로, 줄 번호, 선택적 열 번호, text, span, core·token byte
 범위, 일치한 표면형, 표제어·품사 생성 근거, 규칙 경로와 `offset_unit`이 포함됩니다.
