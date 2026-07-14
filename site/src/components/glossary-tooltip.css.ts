@@ -14,9 +14,13 @@ export const trigger = style({
   textDecorationStyle: 'dotted',
   textDecorationThickness: '1px',
   textUnderlineOffset: '0.2em',
-  selectors: {
-    '&:hover': {
-      color: vars.color.linkHover,
+  '@media': {
+    '(hover: hover)': {
+      selectors: {
+        '&:hover': {
+          color: vars.color.linkHover,
+        },
+      },
     },
   },
 });
@@ -41,13 +45,23 @@ export const tooltip = style({
     '&[data-side="above"]': {
       transform: 'translate(-50%, -100%)',
     },
-    [`.${container}[data-tooltip-positioned]:hover &`]: {
-      opacity: 1,
-      visibility: 'visible',
-    },
     [`.${container}[data-tooltip-positioned]:focus-within &`]: {
       opacity: 1,
       visibility: 'visible',
+    },
+    [`.${container}[data-tooltip-open][data-tooltip-positioned] &`]: {
+      opacity: 1,
+      visibility: 'visible',
+    },
+  },
+  '@media': {
+    '(hover: hover)': {
+      selectors: {
+        [`.${container}[data-tooltip-positioned]:hover &`]: {
+          opacity: 1,
+          visibility: 'visible',
+        },
+      },
     },
   },
 });
