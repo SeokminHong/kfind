@@ -148,6 +148,11 @@ const HELP_TEXT: &[(&str, &str, &str)] = &[
         "색상 출력을 선택합니다(기본값: auto; 값: auto, always, never).",
     ),
     (
+        "no_pager",
+        "Write terminal results directly without a pager.",
+        "TTY 검색 결과를 pager 없이 직접 출력합니다.",
+    ),
+    (
         "column",
         "Print one-based Unicode scalar columns.",
         "1부터 시작하는 Unicode scalar 열 번호를 출력합니다.",
@@ -522,7 +527,15 @@ mod tests {
         assert!(!korean.contains("Usage:"));
         assert!(!korean.contains("[default:"));
         assert!(!korean.contains("[possible values:"));
-        for token in ["--pos", "--expand", "--embedded", "auto", "verb", "--help"] {
+        for token in [
+            "--pos",
+            "--expand",
+            "--embedded",
+            "--no-pager",
+            "auto",
+            "verb",
+            "--help",
+        ] {
             assert!(english.contains(token));
             assert!(korean.contains(token));
         }

@@ -259,13 +259,18 @@ binary.
 | `-q`, `--quiet` | off | Prints no matches and stops globally after the first match; conflicts with `--json`. |
 | `--json` | off | Writes one JSON object per match or context record; conflicts with `--explain-query`. |
 | `--color <WHEN>` | `auto`; `auto`, `always`, `never` | Controls terminal highlighting. `auto` enables color only for standard output to a terminal. |
+| `--no-pager` | off | Bypasses the pager when writing standard text results to a terminal. |
 | `--column` | off | Prints a one-based Unicode scalar column and implies line-number output. |
 | `--explain-query` | off | Prints inferred analyses, anchors, verifier counts, normalization, and lexicon status before results. |
 | `--explain-match` | off | Adds the lemma and rule path behind each text match. JSON already includes origin metadata. |
 | `--sort path` | unsorted parallel stream | Buffers completed file results and emits path order; this uses memory proportional to results and can reduce parallel throughput. |
 
 File names are printed automatically when searching a directory or multiple
-inputs. Match and context lines use `:` and `-` separators respectively.
+inputs. Match and context lines use `:` and `-` separators respectively. Standard
+text results written to a terminal use `less` to keep long lines unwrapped and
+support vertical and horizontal arrow navigation. Redirects and pipes, JSON Lines,
+count, file summaries, and quiet mode retain the direct stdout stream. If `less`
+cannot start, output falls back to stdout.
 
 JSON Lines records contain `type`, path, line, optional column, text, spans,
 core and token byte ranges, matched surface, lemma/POS origins, rule paths, and

@@ -175,6 +175,10 @@ pub struct Args {
     #[arg(long, value_enum, default_value_t = ColorArg::Auto)]
     pub color: ColorArg,
 
+    /// Write terminal results directly instead of opening a pager.
+    #[arg(long)]
+    pub no_pager: bool,
+
     #[arg(long)]
     pub column: bool,
 
@@ -224,6 +228,7 @@ pub struct Args {
             "quiet",
             "json",
             "color",
+            "no_pager",
             "column",
             "explain_query",
             "explain_match",
@@ -332,6 +337,7 @@ mod tests {
         assert_eq!(options.phrase.max_gap, 24);
         assert_eq!(args.query(), Some("걷다"));
         assert!(args.paths.is_empty());
+        assert!(!args.no_pager);
     }
 
     #[test]
@@ -368,6 +374,7 @@ mod tests {
         for values in [
             ["kfind", "--init", "걷다"].as_slice(),
             ["kfind", "--init", "--json"].as_slice(),
+            ["kfind", "--init", "--no-pager"].as_slice(),
             ["kfind", "--init", "--data-dir", "data"].as_slice(),
         ] {
             let error = Args::try_parse_from(values).unwrap_err();

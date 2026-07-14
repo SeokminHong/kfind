@@ -19,6 +19,7 @@ pub use init::{InitError, run_init_with_io};
 pub use locale::Language;
 pub use output::{
     FilenameMode, OutputError, OutputMode, OutputOptions, OutputWriter, ResolvedColor,
+    TerminalPager,
 };
 pub use parse::{CliParseError, parse_args_from};
 pub use run::{CliError, ExitStatus, run_with_io};

@@ -246,13 +246,16 @@ kfind --init [--agent <AGENT>]...
 | `-q`, `--quiet` | 사용 안 함 | match를 출력하지 않고 전체 검색의 첫 match에서 멈춥니다. `--json`과 함께 사용할 수 없습니다. |
 | `--json` | 사용 안 함 | match나 문맥 record마다 JSON 객체 하나를 출력합니다. `--explain-query`와 함께 사용할 수 없습니다. |
 | `--color <WHEN>` | `auto`; `auto`, `always`, `never` | terminal 강조 표시를 제어합니다. `auto`는 terminal에 기본 출력을 쓸 때만 색상을 사용합니다. |
+| `--no-pager` | 사용 안 함 | 일반 text 결과를 TTY에 쓸 때도 pager를 사용하지 않습니다. |
 | `--column` | 사용 안 함 | 1부터 시작하는 Unicode scalar 열을 출력하며 줄 번호도 함께 표시합니다. |
 | `--explain-query` | 사용 안 함 | 결과보다 먼저 추론한 분석, anchor, verifier 수, 정규화와 사전 상태를 출력합니다. |
 | `--explain-match` | 사용 안 함 | 각 text match를 생성한 표제어와 규칙 경로를 추가합니다. JSON에는 생성 근거가 기본으로 포함됩니다. |
 | `--sort path` | 정렬하지 않는 병렬 stream | 파일 결과를 완성한 뒤 buffering해 경로순으로 출력합니다. 결과에 비례한 메모리를 사용하고 병렬 처리량이 낮아질 수 있습니다. |
 
 디렉터리나 여러 입력을 검색하면 파일 이름을 자동으로 출력합니다. Match 줄과 문맥 줄은 각각
-`:`와 `-` 구분자를 사용합니다.
+`:`와 `-` 구분자를 사용합니다. 일반 text 결과를 TTY에 쓰면 `less` pager가 긴 줄을 화면 너비에서
+접지 않고 위·아래 및 좌우 화살표 탐색을 제공합니다. Redirect와 pipe, JSON Lines, count, 파일명
+요약, quiet mode는 기존 stdout stream을 유지합니다. `less`를 시작할 수 없어도 직접 출력합니다.
 
 JSON Lines record에는 `type`, 경로, 줄 번호, 선택적 열 번호, text, span, core·token byte
 범위, 일치한 표면형, 표제어·품사 생성 근거, 규칙 경로와 `offset_unit`이 포함됩니다.

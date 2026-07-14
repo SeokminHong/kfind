@@ -21,6 +21,10 @@ POS lexicon when available.
 kfind 걷다 src
 kfind 사용자 src docs
 .EE
+Standard text results written to a terminal open in a pager that keeps long
+lines unwrapped and supports arrow-key navigation. Use --no-pager for direct
+terminal output. Redirected, piped, JSON, and summary output remains a direct
+stdout stream.
 .SS Agent automation
 Agents should specify the part of speech for every morphology atom and use
 unrestricted boundaries, the embedded lexicon, and JSON Lines output.
@@ -172,6 +176,7 @@ mod tests {
         assert!(first_contents[0].contains("Fast Korean lemma"));
         assert!(first_contents[0].contains(".SH WORKFLOWS"));
         assert!(first_contents[0].contains(".SS Interactive use"));
+        assert!(first_contents[0].contains("Use --no-pager for direct"));
         assert!(first_contents[0].contains(".SS Agent automation"));
         assert!(first_contents[0].contains(".SS Agent skill setup"));
         assert!(first_contents[0].contains("--embedded --boundary any --pos verb --json"));

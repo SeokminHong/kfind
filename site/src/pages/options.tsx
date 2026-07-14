@@ -406,6 +406,10 @@ export default function OptionsPage(): React.JSX.Element {
             <code>--json · --explain-query · --explain-match</code>
           </div>
           <div>
+            <strong>Terminal</strong>
+            <code>--color · --no-pager</code>
+          </div>
+          <div>
             <strong>실행</strong>
             <code>--threads · --sort path · --data-dir</code>
           </div>
@@ -414,6 +418,12 @@ export default function OptionsPage(): React.JSX.Element {
             <code>--init · --agent</code>
           </div>
         </div>
+        <p>
+          일반 text 결과를 TTY에 쓰면 <code>less</code> pager가 긴 줄을 접지
+          않고 화살표 탐색을 제공합니다. Redirect, pipe와 JSON·요약 출력은 기존
+          stdout stream을 유지하며, <code>--no-pager</code>로 pager를 끌 수
+          있습니다.
+        </p>
         <p className="reference-link">
           지원하는 출력 옵션과 종료 코드의 전체 목록은{' '}
           <a href="https://github.com/SeokminHong/kfind/blob/main/README.ko.md">

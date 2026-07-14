@@ -126,6 +126,11 @@
   같은 변경에서 갱신한다. README 차트의 값과 source report가 일치하는지 검증한다.
 - `--column`은 v0.1 정식 옵션이며 1부터 시작하는 Unicode scalar 열을 출력한다.
 - `--count`는 파일별로 검증된 span이 하나 이상 있는 줄의 수를 출력한다.
+- 일반 text 결과를 TTY stdout에 쓰면 `less -RFSX` pager를 자동으로 사용한다. 긴 줄은 terminal
+  너비에서 접지 않고 좌우 이동으로 확인하며 위·아래 화살표로 출력 줄을 탐색한다. `--no-pager`,
+  non-TTY stdout, JSON Lines, count, 파일명 요약과 quiet mode는 pager를 사용하지 않고 기존 bounded
+  stdout stream을 유지한다. `less`를 시작할 수 없을 때도 직접 stdout으로 fallback한다. 에이전트
+  권장 경로의 JSON Lines는 stdout이 TTY여도 비대화형 출력을 유지한다.
 - EUC-KR은 명시적 `--encoding euc-kr`에서 지원한다. `auto`는 BOM 기반 UTF-16과 UTF-8만 판별한다.
 
 ### 0.4 Web 문서와 playground
@@ -1389,6 +1394,7 @@ pipe이면 기본 검색 대상을 stdin으로 전환한다. `-`는 stdin을 명
 | `--files-with-matches` | flag | false | 파일명만 출력 |
 | `--json` | flag | false | JSON Lines 출력 |
 | `--color` | `auto`, `always`, `never` | `auto` | 터미널 색상 |
+| `--no-pager` | flag | false | TTY에서도 pager를 사용하지 않음 |
 | `--explain-query` | flag | false | 쿼리 계획 출력 |
 | `--explain-match` | flag | false | 생성 근거 출력 |
 | `--sort` | `path` | 없음 | 결과 정렬 |
@@ -1479,6 +1485,11 @@ src/walk.rs:42: 길을 걸어 갔다.
 ```
 
 열 번호는 기본적으로 생략할 수 있다. `--column`에서만 match 줄의 앞부분을 Unicode scalar로 세어 계산한다.
+
+일반 text 결과를 TTY stdout에 쓰면 `less -RFSX`를 pager로 사용한다. `-S`는 긴 줄을 접지 않아
+terminal 한 줄을 넘지 않게 하고 좌우 이동을 허용하며, 위·아래 화살표는 출력 줄을 이동한다.
+한 화면 이하 결과는 바로 종료하고 terminal 내용을 남긴다. `--no-pager`, non-TTY와 구조화·요약
+출력은 pager를 거치지 않는다.
 
 ### 15.2 쿼리 설명
 
@@ -2097,6 +2108,8 @@ end
 23. 관리하지 않는 기존 skill은 보존하고 init 실패를 exit code 2와 escape된 진단으로 보고한다.
 24. Homebrew formula는 agent skill 원본을 설치하고 project link가 stable `opt` 경로를 사용해
     upgrade 뒤 새 원본을 가리킨다.
+25. 일반 text 검색의 TTY stdout은 긴 줄을 접지 않는 pager를 사용하고, `--no-pager`, non-TTY와
+    agent JSON 출력은 기존 stdout stream을 유지한다.
 
 ## 24. 공개 코드 인터페이스
 
