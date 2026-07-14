@@ -54,8 +54,8 @@ export default function AnalysisPage(): React.JSX.Element {
             사전에서 일치하는 분석을 찾지 못하면 지정한 coarse 품사가 지원하는
             세부 품사별 fallback 분석을 만듭니다. Full POS 분석이 있는{' '}
             <code>noun</code>도 기존 분석과 누락된 보통명사·고유명사·의존명사
-            fallback을 합집합으로 보존합니다. 여러 분석이 같은 검색 branch로 합쳐져도
-            세부 품사의 provenance는 남습니다.
+            fallback을 합집합으로 보존합니다. 여러 분석이 같은 검색 branch로
+            합쳐져도 세부 품사의 provenance는 남습니다.
           </p>
         </Callout>
       </DocumentSection>

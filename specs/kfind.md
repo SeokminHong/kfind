@@ -179,10 +179,11 @@
   chart를 다시 생성해 정적 `dist`를 만든다. Snapshot은 source report의 revision과 SHA-256을
   기록하며, 승인된 benchmark가 바뀌면 같은 변경에서 갱신한다.
 - 기존 `kfind` Pages project는 direct upload 방식을 유지한다. GitHub Actions는 pull request에서
-  site build를 검증하고, `main` push에서 component resource를 생성해 R2에 먼저 upload한 뒤
-  production site를 배포한다. 배포 인증은 repository의 `CLOUDFLARE_ACCOUNT_ID`와
-  `CLOUDFLARE_API_TOKEN` secret을 사용한다. Production branch는 `main`, Pages project 이름은
-  `kfind`로 고정한다.
+  site format, lint, type check와 build를 검증한다. Format과 lint는 각각 `Site format`,
+  `Site lint` 독립 status check이며 `main` branch protection의 required check다. `main` push에서는
+  component resource를 생성해 R2에 먼저 upload한 뒤 production site를 배포한다. 배포 인증은
+  repository의 `CLOUDFLARE_ACCOUNT_ID`와 `CLOUDFLARE_API_TOKEN` secret을 사용한다. Production
+  branch는 `main`, Pages project 이름은 `kfind`로 고정한다.
 
 ### 0.5 Homebrew 대상
 
