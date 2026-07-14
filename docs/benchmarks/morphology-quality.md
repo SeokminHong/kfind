@@ -12,15 +12,15 @@ gold 또는 negative 선택을 바꾸지 않는다.
 | fixture/profile | TP / FP / FN | precision | recall | F1 |
 | --- | ---: | ---: | ---: | ---: |
 | dev embedded smart | 442 / 2 / 58 | 99.55% | 88.4% | 93.64% |
-| dev full-POS smart | 441 / 2 / 59 | 99.55% | 88.2% | 93.53% |
+| dev full-POS smart | 442 / 2 / 58 | 99.55% | 88.4% | 93.64% |
 | test embedded smart | 415 / 0 / 85 | 100.00% | 83.0% | 90.71% |
-| test full-POS smart | 414 / 0 / 86 | 100.00% | 82.8% | 90.59% |
+| test full-POS smart | 415 / 0 / 85 | 100.00% | 83.0% | 90.71% |
 
 세부 품사와 성능 결과는
 [User smart precision 품질·성능](2026-07-14-user-smart-precision.md)과
 [`-기` 명사형 조사 continuation 품질·성능](2026-07-14-gi-particle-continuation.md)에 둔다.
 현재 development 개선과 비회귀 측정은
-[의존명사 coarse-POS fallback recall](2026-07-14-dependent-noun-recall.md)에 둔다.
+[Full POS coarse noun 분석 합집합 recall](2026-07-14-full-pos-coarse-noun-recall.md)에 둔다.
 
 ## 제품 workflow 판정
 
@@ -80,10 +80,8 @@ embedded와 full-POS 원인을 분리하고, 분류용 추가 compile·검색은
 
 ## 남은 검증
 
-1. 명시적 품사 full-POS `smart`의 development FN 59건을 기준으로 다음 후보를 조사한다.
-   `197명이`는 full-POS의 기존 `명/NNG` 분석이 의존명사 fallback을 억제하는 경계다.
-2. `서사극이라`와 `인쇄업자가`는 exact component 근거가 같은 표면형 대조군을 구분하지 못하므로
-   제품에 열지 않는다. 기존 사전 분석과 coarse `noun` 세부 품사 대체 분석의 union은 shadow에서
-   먼저 평가하고 `명 -> 익명이` hard negative를 유지한다.
+1. 명시적 품사 full-POS `smart`의 development FN 58건을 기준으로 다음 후보를 조사한다.
+2. 남은 `boundary-rejected` 41건은 품사·token 위치별 같은 표면형 대조군과 component 경로를 먼저
+   고정한다. `서사극이라`와 `인쇄업자가`처럼 구분되지 않는 유형은 제품에 열지 않는다.
 3. dev FN 감소, precision 99.00% 이상과 hard-negative 신규 FP 0을 확인한 뒤 고정 test와 무품사
    결과를 한 번만 회귀 측정한다.

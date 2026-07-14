@@ -171,17 +171,22 @@ export default function BenchmarksPage(): React.JSX.Element {
 
       <DocumentSection title="명시적 품사 smart recall">
         <p>
-          candidate <code>8337022</code>는 baseline <code>f8e5e3e</code>의
-          coarse noun fallback을 보존합니다. 그 결과 embedded test의 FN은
-          91개에서 85개로, full-POS development의 FN은 60개에서 59개로
-          줄었습니다. precision 하한은 유지했고 16개 hard-negative에서 새로운
-          FP는 발생하지 않았습니다. 품사를 지정하지 않는 검색 결과는 바뀌지
-          않았습니다.
+          main <code>64f523f</code> 대비 후보 <code>63a75f4</code>에서 full-POS
+          coarse noun 분석과 fallback의 합집합을 보존해 development FN을 59에서
+          58로, test FN을 86에서 85로 줄였습니다. Precision 하한과 16개
+          hard-negative의 신규 FP 0을 유지했고 embedded와 무품사 결과는 바뀌지
+          않았습니다. Full-POS 처리량은 4.15% 낮아졌으며 recall 개선 비용으로
+          허용했습니다.
         </p>
       </DocumentSection>
 
       <DocumentSection title="원본 보고서">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-full-pos-coarse-noun-recall.md">
+              Full POS coarse noun 분석 합집합 recall
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-dependent-noun-recall.md">
               의존명사 coarse-POS fallback의 recall
