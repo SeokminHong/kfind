@@ -1,22 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ $# -ne 7 ]]; then
-  echo "usage: render-homebrew-formula.sh VERSION SOURCE_SHA256 FULL_POS_SHA256 COMPONENT_SHA256 ASSETS_SHA256 LICENSE OUTPUT" >&2
+if [[ $# -ne 8 ]]; then
+  echo "usage: render-homebrew-formula.sh VERSION RUST_TOOLCHAIN SOURCE_SHA256 FULL_POS_SHA256 COMPONENT_SHA256 ASSETS_SHA256 LICENSE OUTPUT" >&2
   exit 2
 fi
 
 version=$1
-source_sha256=$2
-full_pos_sha256=$3
-component_sha256=$4
-assets_sha256=$5
-project_license=$6
-output=$7
+rust_toolchain=$2
+source_sha256=$3
+full_pos_sha256=$4
+component_sha256=$5
+assets_sha256=$6
+project_license=$7
+output=$8
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
 if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.]+)?$ ]]; then
   echo "invalid release version: ${version}" >&2
+  exit 2
+fi
+if [[ ! "${rust_toolchain}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "invalid Rust toolchain: ${rust_toolchain}" >&2
   exit 2
 fi
 for checksum in \
@@ -53,6 +58,7 @@ escape_sed() {
 mkdir -p "$(dirname "${output}")"
 sed \
   -e "s|@VERSION@|$(escape_sed "${version}")|g" \
+  -e "s|@RUST_TOOLCHAIN@|${rust_toolchain}|g" \
   -e "s|@SOURCE_SHA256@|${source_sha256}|g" \
   -e "s|@FULL_POS_SHA256@|${full_pos_sha256}|g" \
   -e "s|@COMPONENT_SHA256@|${component_sha256}|g" \

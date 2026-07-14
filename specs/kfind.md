@@ -214,6 +214,8 @@
 - tap은 `SeokminHong/homebrew-brew`, formula는 `Formula/kfind.rb`를 사용한다.
 - 사용자 설치 명령은 `brew install seokminhong/brew/kfind`다.
 - formula 변경은 tap `main`에 직접 push하지 않는다. 브랜치 PR의 CI가 모두 통과한 뒤 `pr-pull`을 적용한다.
+- formula의 source build는 release workflow와 같은 고정 Rust toolchain을 `rustup`으로 준비한다.
+  Homebrew core의 `rust` 갱신 시점에 빌드 가능 여부가 달라지지 않아야 한다.
 - SemVer tag workflow는 고정 checksum으로 full POS lexicon을 재생성하고 source, full POS,
   man/completion 산출물을 GitHub release에 올린 뒤 `TAP_GITHUB_TOKEN`으로 tap formula PR을 연다.
   prerelease tag는 GitHub prerelease로 게시한다. `pr-pull` label은 CI 확인 뒤 사람이 적용한다.
