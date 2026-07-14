@@ -201,8 +201,9 @@
   제공한다. 같은 항목의 한국어·영문 별칭은 한 용어로 센다. Tooltip은 hover와 keyboard focus로
   열 수 있어야 한다. Hover를 지원하지 않는 입력에서는 첫 pointer activation으로 tooltip을 열고,
   같은 용어의 다음 activation으로 단어장에 이동한다. Keyboard activation과 hover를 지원하는
-  pointer의 link 동작은 유지한다. Code·기존 link·form control과 단어장 자체에는 중첩해서
-  적용하지 않는다.
+  pointer의 link 동작은 유지한다. Pointer activation은 선행 pointer event로 판별하며 click의
+  `detail` 값에 의존하지 않는다. Code·기존 link·form control과 단어장 자체에는 중첩해서 적용하지
+  않는다.
 - 일반 UI text는 Pretendard 기반 sans-serif stack을 사용한다. 코드, 명령, query·output label과
   기술 도해의 코드 표기는 기존 monospace stack을 유지한다.
 - 공통 spacing scale은 `0.25rem`, `0.5rem`, `0.75rem`, `1rem`, `1.5rem`과 section 간격
