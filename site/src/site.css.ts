@@ -185,24 +185,6 @@ globalStyle('.document-links', {
   fontSize: '0.85rem',
 });
 
-globalStyle('.note', {
-  padding: vars.space.medium,
-  borderInlineStart: `3px solid ${vars.color.link}`,
-  background: vars.color.linkWash,
-  fontSize: '0.86rem',
-});
-
-globalStyle('.note strong', {
-  display: 'block',
-  marginBlockEnd: vars.space.xsmall,
-  color: vars.color.heading,
-});
-
-globalStyle('.note p', {
-  margin: 0,
-  color: vars.color.muted,
-});
-
 globalStyle('.doc-section', {
   paddingBlock: vars.space.section,
   borderBlockStart: `1px solid ${vars.color.border}`,
@@ -224,8 +206,9 @@ globalStyle('.doc-section h3', {
 });
 
 globalStyle('.doc-section > p', {
-  maxWidth: '52rem',
+  maxWidth: '48rem',
   color: vars.color.muted,
+  lineHeight: 1.78,
 });
 
 globalStyle('.table-scroll', {
