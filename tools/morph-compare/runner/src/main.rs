@@ -10,6 +10,7 @@ use std::time::Instant;
 
 use anyhow::{Context, Result, bail};
 use kfind::Engine;
+use kfind::expert::EngineExt as _;
 use kfind_data::{
     COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataErrorKind, decode_component_resource,
     decode_morphology_resource, parse_sha256,

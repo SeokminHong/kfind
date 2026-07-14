@@ -476,6 +476,11 @@ predicate TSV, and component bytes. Existing individual constructors delegate
 to the same initialization path. Component bytes can also be installed later
 with `load_component_resource` before compiling a plan that needs them.
 
+The 1.x stable facade consists of engine construction, compile options and
+errors, matching, and match provenance at the crate root. Caller-assembled
+lexicons and query-plan inspection require an explicit `kfind::expert` import;
+workspace implementation crates are not published separately.
+
 The library and its core dependencies support Rust 1.97's
 `wasm32-unknown-unknown` target:
 
