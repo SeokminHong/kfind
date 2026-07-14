@@ -33,6 +33,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "matcher_plan"
+path = "fuzz_targets/matcher_plan.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "user_lexicon"
 path = "fuzz_targets/user_lexicon.rs"
 test = false

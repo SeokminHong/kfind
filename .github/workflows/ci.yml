@@ -80,6 +80,32 @@ jobs:
           cargo +stable test --manifest-path tools/morph-compare/runner/Cargo.toml --locked
           cargo +stable test --manifest-path tools/morph-index-benchmark/Cargo.toml --locked
 
+  fuzz:
+    name: Fuzz targets
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      KFIND_FUZZ_TOOLCHAIN: nightly-2026-07-11
+      KFIND_CARGO_FUZZ_VERSION: 0.13.2
+      KFIND_FUZZ_SECONDS: 15
+      KFIND_FUZZ_TIMEOUT_SECONDS: 5
+      KFIND_FUZZ_RSS_LIMIT_MB: 2048
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install fuzz toolchain
+        run: |
+          rustup toolchain install "$KFIND_FUZZ_TOOLCHAIN" --profile minimal
+          cargo install cargo-fuzz --version "$KFIND_CARGO_FUZZ_VERSION" --locked
+      - name: Run fuzz targets
+        run: scripts/run-fuzz.sh
+      - name: Upload crash artifacts
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: fuzz-artifacts
+          path: fuzz/artifacts
+          if-no-files-found: ignore
+
   msrv:
     name: Rust 1.97
     runs-on: ubuntu-24.04

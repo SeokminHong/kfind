@@ -1953,9 +1953,17 @@ target과 경계:
 | --- | --- |
 | `query_lexer` | 잘못된 UTF-8을 포함한 임의 query, 매우 긴 combining sequence, lexer와 compile limit |
 | `matcher_bytes` | 임의 byte 입력의 anchor 탐색, suffix verifier, match span 범위 |
+| `matcher_plan` | 임의 query와 큰 phrase gap의 compile·matcher build, component resource 누락 오류 |
 | `user_lexicon` | malformed 사용자 사전 TOML의 구문·의미 검증 |
 | `json_output` | 임의 byte line과 검증된 match metadata의 JSON Lines 직렬화 |
 | `binary_detection` | 임의 위치의 최초 NUL과 NUL이 없는 입력의 binary 판별 경계 |
+
+CI는 `nightly-2026-07-11`과 `cargo-fuzz 0.13.2`로 모든 target을 실제 실행한다. target당
+`max_total_time=15`, 개별 입력 `timeout=5`, `rss_limit_mb=2048`을 적용하며 전체 job timeout은
+10분이다. `scripts/run-fuzz.sh`가 target 목록과 이 예산을 단일 진입점으로 유지한다. 각 실행은
+version-controlled seed만 임시 corpus로 복사해 이전 실행에서 생성된 입력과 격리한다. 반복 span과
+큰 gap의 phrase, 손상 UTF-8, component resource가 필요한 plan, malformed TOML과 출력 제어 문자를
+고정 seed로 시작한다. crash·panic·timeout·RSS 초과는 CI 실패다.
 
 ### 19.5 gold corpus
 

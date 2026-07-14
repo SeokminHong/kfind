@@ -509,8 +509,8 @@ pnpm --dir packages/kfind run pack:check
 The morphology fixture contains 500 positive and negative regression cases. The
 Docker benchmark measures `kfind` on 1,000 cases generated from independent UD
 Korean-Kaist and KSL test splits, then compares it with pinned Kiwi, Lindera,
-MeCab-ko, and KOMORAN snapshots. Fuzz targets for query parsing and malformed
-matcher input live in `fuzz/`.
+MeCab-ko, and KOMORAN snapshots. Fuzz targets and their fixed seed corpora live
+in `fuzz/`. CI runs every target for 15 seconds through `scripts/run-fuzz.sh`.
 
 The implementation contract and release acceptance criteria are in
 [`specs/kfind.md`](specs/kfind.md).
