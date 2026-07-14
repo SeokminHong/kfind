@@ -5,9 +5,8 @@ use std::sync::Arc;
 
 use criterion::{Criterion, Throughput, criterion_group, criterion_main};
 use kfind_data::{
-    COMPONENT_RESOURCE_SOURCE_DIGEST, DataFinePos, LexiconData, MecabSourceMorphologyEntry,
-    ModifierRecord, NominalRecord, collect_pos_entries, decode_component_resource,
-    encode_component_resource, encode_pos_lexicon, parse_mecab_connection_matrix,
+    COMPONENT_RESOURCE_SOURCE_DIGEST, DataFinePos, MecabSourceMorphologyEntry,
+    decode_component_resource, encode_component_resource, parse_mecab_connection_matrix,
 };
 use kfind_matcher::MorphMatcher;
 use kfind_morph::{
@@ -163,12 +162,8 @@ fn matcher_scan(criterion: &mut Criterion) {
         });
     });
 
-    let context_plan = compile_query(
-        "adv:매일",
-        &CompileOptions::default(),
-        &contextual_adverb_analyzer(),
-    )
-    .expect("context benchmark query must compile");
+    let context_plan = compile_query("adv:매일", &CompileOptions::default(), &analyzer)
+        .expect("context benchmark query must compile");
     let context_matcher =
         MorphMatcher::with_component_resource(Arc::new(context_plan), component_resource)
             .expect("context benchmark matcher must build");
@@ -262,29 +257,6 @@ fn deterministic_corpus(match_every_lines: usize) -> Vec<u8> {
 
 fn analyzer() -> LexiconQueryAnalyzer {
     let lexicons = Lexicons::embedded().expect("embedded lexicons must be valid");
-    LexiconQueryAnalyzer::new(Arc::new(lexicons))
-}
-
-fn contextual_adverb_analyzer() -> LexiconQueryAnalyzer {
-    let mut lexicons = Lexicons::embedded().expect("embedded lexicons must be valid");
-    let full_pos = encode_pos_lexicon(&collect_pos_entries(&LexiconData {
-        nominals: vec![NominalRecord {
-            lemma: "매일".to_owned(),
-            pos: DataFinePos::Nng,
-            flags: Default::default(),
-            overrides: Vec::new(),
-        }],
-        modifiers: vec![ModifierRecord {
-            lemma: "매일".to_owned(),
-            pos: DataFinePos::Mag,
-            flags: Default::default(),
-        }],
-        ..LexiconData::default()
-    }))
-    .expect("context benchmark lexicon must encode");
-    lexicons
-        .load_full_pos(&full_pos)
-        .expect("context benchmark lexicon must load");
     LexiconQueryAnalyzer::new(Arc::new(lexicons))
 }
 

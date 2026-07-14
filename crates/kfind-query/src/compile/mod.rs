@@ -9,10 +9,12 @@ use crate::{
     SurfaceBranch, parse_query,
 };
 use kfind_data::DerivationRule;
-use kfind_morph::{CoarsePos, FinePos, ParticleTransition, RuleId, generate_predicate_branches};
+use kfind_morph::{CoarsePos, ParticleTransition, RuleId, generate_predicate_branches};
 
+mod context;
 mod normalization;
 
+use context::lexical_context_rule;
 use normalization::{DraftBranch, normalize_and_merge, normalize_atom};
 
 const BRANCH_OVERHEAD_BYTES: usize = 64;
@@ -266,7 +268,7 @@ fn compile_analysis(
     }
 
     if matches!(analysis.morphology, Morphology::Exact) {
-        let context_requirement = lexical_context_requirement(atom_surface, analysis, analyzer);
+        let context_requirement = lexical_context_requirement(atom_surface, analysis);
         if options.expand == ExpandMode::Derivation && analysis.coarse_pos == CoarsePos::Adverb {
             output.push(DraftBranch {
                 anchor: atom_surface.to_owned(),
@@ -377,23 +379,8 @@ fn compile_analysis(
     Ok(())
 }
 
-fn lexical_context_requirement(
-    atom_surface: &str,
-    analysis: &Analysis,
-    analyzer: &LexiconQueryAnalyzer,
-) -> ContextRequirement {
-    if analysis.fine_pos != FinePos::GeneralAdverb {
-        return ContextRequirement::None;
-    }
-
-    let candidates = analyzer.lexicons().lookup(atom_surface);
-    let has_context_target = candidates
-        .iter()
-        .any(|candidate| candidate.fine_pos == FinePos::GeneralAdverb);
-    let has_competing_analysis = candidates
-        .iter()
-        .any(|candidate| candidate.fine_pos != FinePos::GeneralAdverb);
-    if has_context_target && has_competing_analysis {
+fn lexical_context_requirement(atom_surface: &str, analysis: &Analysis) -> ContextRequirement {
+    if lexical_context_rule(atom_surface, analysis.fine_pos).is_some() {
         ContextRequirement::LexicalContext
     } else {
         ContextRequirement::None
