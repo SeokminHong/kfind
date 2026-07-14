@@ -97,7 +97,7 @@ export function Shell(): React.JSX.Element {
         <main className="docs-content" id="content">
           <Outlet />
           <footer className="docs-footer">
-            <span>kfind 0.3.0-rc.2</span>
+            <span>kfind 0.3.0-rc.3</span>
             <a href="https://github.com/SeokminHong/kfind/blob/main/LICENSE">
               MIT License
             </a>
