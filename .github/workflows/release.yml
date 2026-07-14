@@ -11,6 +11,8 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-24.04
+    env:
+      RUST_TOOLCHAIN: 1.97.0
     steps:
       - uses: actions/checkout@v6
         with:
@@ -18,8 +20,8 @@ jobs:
 
       - name: Install the pinned Rust toolchain
         run: |
-          rustup toolchain install 1.97.0 --profile minimal --component clippy
-          rustup default 1.97.0
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal --component clippy
+          rustup default "$RUST_TOOLCHAIN"
 
       - name: Validate release metadata
         id: metadata
@@ -27,13 +29,16 @@ jobs:
           version="${GITHUB_REF_NAME#v}"
           package_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "kfind-cli") | .version')
           project_license=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "kfind-cli") | .license')
+          package_rust_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "kfind-cli") | .rust_version')
           test "$version" = "$package_version"
           test "$project_license" = "MIT"
+          [[ "$RUST_TOOLCHAIN" == "$package_rust_version" || "$RUST_TOOLCHAIN" == "$package_rust_version".* ]]
           test -f LICENSE
           test -f data/enriched/predicates.tsv
           test -f data/enriched/NOTICE.md
           printf 'version=%s\n' "$version" >>"$GITHUB_OUTPUT"
           printf 'license=%s\n' "$project_license" >>"$GITHUB_OUTPUT"
+          printf 'rust_toolchain=%s\n' "$RUST_TOOLCHAIN" >>"$GITHUB_OUTPUT"
 
       - name: Test the release source
         run: |
@@ -60,12 +65,13 @@ jobs:
         env:
           VERSION: ${{ steps.metadata.outputs.version }}
           PROJECT_LICENSE: ${{ steps.metadata.outputs.license }}
+          FORMULA_RUST_TOOLCHAIN: ${{ steps.metadata.outputs.rust_toolchain }}
         run: |
           source_sha=$(sha256sum "dist/kfind-${VERSION}.tar.gz" | awk '{print $1}')
           full_pos_sha=$(sha256sum "dist/kfind-full-pos-${VERSION}.tar.gz" | awk '{print $1}')
           component_sha=$(sha256sum "dist/kfind-component-${VERSION}.tar.gz" | awk '{print $1}')
           assets_sha=$(sha256sum "dist/kfind-assets-${VERSION}.tar.gz" | awk '{print $1}')
-          scripts/render-homebrew-formula.sh "$VERSION" "$source_sha" "$full_pos_sha" "$component_sha" "$assets_sha" "$PROJECT_LICENSE" dist/kfind.rb
+          scripts/render-homebrew-formula.sh "$VERSION" "$FORMULA_RUST_TOOLCHAIN" "$source_sha" "$full_pos_sha" "$component_sha" "$assets_sha" "$PROJECT_LICENSE" dist/kfind.rb
 
       - name: Publish the GitHub release
         env:

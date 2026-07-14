@@ -7,7 +7,7 @@ class Kfind < Formula
 
   head "https://github.com/SeokminHong/kfind.git", branch: "main"
 
-  depends_on "rust" => :build
+  depends_on "rustup" => :build
 
   resource "full-pos-lexicon" do
     url "https://github.com/SeokminHong/kfind/releases/download/v@VERSION@/kfind-full-pos-@VERSION@.tar.gz"
@@ -25,6 +25,9 @@ class Kfind < Formula
   end
 
   def install
+    ENV.prepend_path "PATH", Formula["rustup"].bin
+    system "rustup", "set", "profile", "minimal"
+    system "rustup", "default", "@RUST_TOOLCHAIN@"
     system "cargo", "install", *std_cargo_args(path: "crates/kfind-cli")
     pkgshare.install "data/enriched/predicates.tsv" => "predicates.enriched.tsv"
     (share/"doc/kfind/LICENSES").install "data/enriched/NOTICE.md" => "NIKL-enriched-predicates.md"
