@@ -6,6 +6,7 @@ globalStyle('.wasm-state', {
   display: 'inline-flex',
   flexShrink: 0,
   alignItems: 'center',
+  width: 'fit-content',
   gap: vars.space.xsmall,
   padding: `${vars.space.xsmall} ${vars.space.small}`,
   border: `1px solid ${vars.color.border}`,

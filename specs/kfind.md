@@ -143,6 +143,9 @@
 
 - 일반 UI text는 Pretendard 기반 sans-serif stack을 사용한다. 코드, 명령, query·output label과
   기술 도해의 코드 표기는 기존 monospace stack을 유지한다.
+- 공통 spacing scale은 `0.25rem`, `0.5rem`, `0.75rem`, `1rem`, `1.5rem`과 section 간격
+  `2.5rem`을 사용한다. 문서 카드와 playground panel은 이 scale로 padding과 gap을 제한하며,
+  상태 badge와 짧은 token은 좁은 화면에서도 내용 너비만 차지한다.
 - 각 route 구현은 지연 로드해 첫 문서 화면에 불필요한 페이지 코드가 포함되지 않게 한다.
   Playground의 WASM module과 선택적 component resource는 `/playground`에 들어가기 전에는
   불러오지 않는다. 문서 route 전환은 전체 페이지를 다시 요청하지 않고, 현재 경로와 제목을
