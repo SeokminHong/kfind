@@ -16,8 +16,14 @@ name = "kfind-generate-assets"
 path = "src/bin/generate-assets.rs"
 required-features = ["distribution-assets"]
 
+[[bin]]
+name = "kfind-pager-memory-benchmark"
+path = "src/bin/pager-memory-benchmark.rs"
+required-features = ["pager-memory-benchmark"]
+
 [features]
 distribution-assets = []
+pager-memory-benchmark = []
 
 [dependencies]
 base64 = "0.22.1"
