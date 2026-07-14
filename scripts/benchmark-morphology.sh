@@ -2,6 +2,9 @@
 set -eu
 
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+. "$ROOT/scripts/lib/benchmark-guard.sh"
+guard_benchmark_entrypoint "$ROOT" morphology "$ROOT/scripts/benchmark-morphology.sh" "$@"
+
 IMAGE=${KFIND_MORPH_IMAGE:-kfind-morph-benchmark:local}
 OUTPUT_DIR=${1:-target/morph-benchmark}
 RUNS=${KFIND_MORPH_RUNS:-5}

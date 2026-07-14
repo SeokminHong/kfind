@@ -497,7 +497,7 @@ pnpm --dir packages/kfind run pack:check
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
-cargo bench -p kfind-testkit --bench query_matcher
+scripts/benchmark-criterion.sh
 scripts/benchmark-morphology.sh
 pnpm --dir packages/kfind run benchmark:startup
 pnpm --dir packages/kfind run pack:check

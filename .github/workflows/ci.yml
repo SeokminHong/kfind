@@ -58,6 +58,11 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v6
+      - name: Test benchmark guard
+        run: >-
+          python3 -m unittest discover
+          --start-directory tools/benchmark-guard
+          --pattern 'test_*.py'
       - name: Install Rust
         run: rustup toolchain install stable --profile minimal
       - name: Run workspace tests

@@ -232,6 +232,23 @@
 
 ### 0.6 재현 가능한 성능 기준
 
+- 저장소가 제공하는 모든 성능 benchmark 진입점은 resource 준비와 build를 시작하기 전에 Git
+  common directory의 단일 exclusive advisory lock을 획득한다. 같은 저장소의 여러 worktree에서
+  시작한 benchmark는 이 lock을 공유하며, 먼저 시작한 실행이 끝날 때까지 서로 겹치지 않는다.
+- lock 대기 시간과 supervisor 자체 비용은 workload 측정 구간에 포함하지 않는다. lock 대기
+  timeout과 benchmark 실행 timeout은 독립적으로 설정하며, 기본값 0은 제한 없이 기다리거나
+  실행함을 뜻한다. 대기 중에는 현재 owner와 경과 시간을 주기적으로 표시한다.
+- lock 소유권은 운영체제가 관리하는 file lock만으로 판정한다. owner metadata의 supervisor와
+  자식 PID는 요청 시 생존 상태를 확인하는 데 사용하되, PID 확인 실패나 metadata가 남았다는
+  이유만으로 사용 중인 lock을 강제로 해제하지 않는다. supervisor는 자식 종료까지 blocking
+  wait해 측정 중 주기적인 I/O나 polling을 만들지 않는다. supervisor가 비정상 종료되어도 실행
+  중인 자식 process가 끝날 때까지 lock descriptor를 보존한다.
+- 실행 timeout이나 종료 신호를 받으면 supervisor는 benchmark process group을 종료하고 원래
+  종료 상태 또는 timeout 상태를 호출자에게 반환한다. `status`와 `doctor`는 owner의 worktree,
+  revision, command, PID, 시작 시각, 경과 시간과 생존 상태를 사람이 읽는 형식과 JSON으로 제공한다.
+- 저장소의 공식 shell entrypoint, Criterion benchmark와 외부 baseline 갱신은 공통 runner를
+  사용한다. 보고서 재현을 위해 raw `cargo`, `docker` 또는 임의 명령을 실행할 때도 공통 runner로
+  감싸야 하며, runner를 우회한 process는 직렬 실행 보장 범위에 포함하지 않는다.
 - 인수 기준 9의 기준 corpus는 정확히 1 GiB(1,073,741,824 bytes), 한글 line 선택 비율 20%, 한글 line 중 NFD 선택 비율 50%, 고정 seed `0x004b46494e44`를 사용한다.
 - 파일 구성은 1,000개의 64 KiB 작은 파일과 남은 bytes를 균등 분배한 24개의 큰 파일로 고정한다. 생성물은 `target/` 아래에 두고 보고서 생성 뒤 기본적으로 삭제한다.
 - 낮은 hit 비율 비교는 생성 문장에 없는 고정 literal을 `kfind --literal --quiet --no-ignore`와 `rg -F --quiet --no-ignore`로 각각 전체 scan한다. 두 명령의 종료 코드 1은 정상적인 no-match 결과다.

@@ -5,6 +5,35 @@
 [형태소 검색 개선 핸드오프](morphology-handoff.md)를 기준으로 한다. 활성 계약 문서는
 완료 이력을 누적하지 않고 현재 기술 계약과 남은 검증만 유지한다.
 
+## Global execution lock
+
+공식 benchmark script는 build와 resource 준비 전에 Git common directory의 global lock을
+획득한다. 같은 저장소의 다른 worktree에서 이미 benchmark가 실행 중이면 종료될 때까지
+대기하며, 이 대기 시간은 workload 측정에 포함하지 않는다.
+
+```console
+scripts/benchmark-run.sh status
+scripts/benchmark-run.sh status --json
+scripts/benchmark-run.sh doctor
+```
+
+`status`는 현재 owner의 benchmark 이름, worktree, revision, command, PID, 경과 시간과
+supervisor·자식 process의 생존 상태를 표시한다. 상태 확인 실패만으로 운영체제가 보유한 lock을
+강제로 해제하지 않는다. 기본 대기와 실행 timeout은 모두 제한 없음이다. 초 단위 제한은 다음
+환경 변수로 설정한다.
+
+```console
+KFIND_BENCHMARK_WAIT_TIMEOUT=3600 scripts/benchmark-morphology.sh
+KFIND_BENCHMARK_RUN_TIMEOUT=7200 scripts/benchmark-morphology.sh
+```
+
+대기 timeout은 exit code 75, 실행 timeout은 exit code 124를 반환한다. raw `cargo`, `docker`나
+임의의 재현 명령도 직렬화하려면 공통 runner로 감싼다.
+
+```console
+scripts/benchmark-run.sh run --name custom-check -- command arg
+```
+
 `scripts/benchmark-1gib.sh`는 고정 seed로 1 GiB mixed corpus를 생성하고 `kfind --literal --quiet --no-ignore`와 `rg -F --quiet --no-ignore`의 warm-cache 전체 scan을 비교한다.
 
 최신 기준 결과는 [2026-07-12 1 GiB 보고서](2026-07-12-1gib-mixed.md)에 기록한다.
@@ -29,7 +58,7 @@ KFIND_BENCH_KEEP_CORPUS=1 KFIND_BENCH_REUSE_CORPUS=1 scripts/benchmark-1gib.sh
 단일 atom과 8 atom phrase compile benchmark는 다음 명령으로 실행한다.
 
 ```console
-cargo bench -p kfind-testkit --bench query_matcher -- query_compile
+scripts/benchmark-criterion.sh query_compile
 ```
 
 빠른 smoke 측정에는 마지막에 `--quick`을 추가한다. 목표 판정에는 기본 sample 설정과
@@ -61,7 +90,7 @@ pnpm --dir packages/kfind run benchmark:startup
 제품용 component 판정과 N-best 진단 보고서를 같은 고정 fixture에서 분리해 측정한다.
 
 ```console
-cargo bench -p kfind-testkit --bench query_matcher -- local_lattice
+scripts/benchmark-criterion.sh local_lattice
 ```
 
 최신 비교는 [국소 lattice 제품 경로 최적화](2026-07-14-local-lattice-optimization.md)에
