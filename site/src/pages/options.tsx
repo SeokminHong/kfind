@@ -1,5 +1,4 @@
-import { SplitDiagram } from '../components/diagram';
-import { Callout, DocumentSection, PageIntro } from '../components/document';
+import { DocumentSection, PageIntro } from '../components/document';
 
 export default function OptionsPage(): React.JSX.Element {
   return (
@@ -7,149 +6,112 @@ export default function OptionsPage(): React.JSX.Element {
       <PageIntro
         eyebrow="REFERENCE · QUERY COMPILATION"
         title="쿼리와 옵션"
-        summary="확장 수준, 품사, 경계와 Unicode 정책은 서로 독립적으로 동작합니다. 각 옵션이 어떤 후보를 만들고 제외하는지 확인한 뒤 조합할 수 있습니다."
-      >
-        <div className="defaults-strip" aria-label="기본 컴파일 옵션">
-          <span>
-            <code>expand=inflection</code>
-          </span>
-          <span>
-            <code>boundary=smart</code>
-          </span>
-          <span>
-            <code>pos=auto</code>
-          </span>
-          <span>
-            <code>normalization=nfc</code>
-          </span>
-          <span>
-            <code>max-gap=24</code>
-          </span>
-        </div>
-      </PageIntro>
+        summary="확장 수준은 어떤 형태를 생성할지 결정하고, 품사는 적용할 형태 규칙을 결정하며, boundary는 생성된 후보를 원문에서 허용할 조건을 결정합니다. Unicode 정규화와 phrase 거리는 문자열 표현과 여러 atom의 결합 범위를 정합니다. 각 축은 독립적으로 선택되지만 하나의 query plan 안에서 함께 적용됩니다."
+      />
 
-      <DocumentSection
-        title="확장 수준"
-        lead="--expand는 표제어에서 어떤 search branch를 만들지 결정합니다."
-      >
-        <div className="option-card-grid">
-          <article className="option-card">
-            <header>
-              <code>literal</code>
-              <span>정확한 표면형</span>
-            </header>
-            <p>
-              입력한 문자열만 포함하는 branch를 하나 만듭니다. 활용형이나 조사가
-              붙은 형태, 파생어는 만들지 않습니다. 선택한 boundary와 Unicode
-              정규화는 그대로 적용합니다.
-            </p>
-            <pre>
-              <code>kfind --expand literal 걸어 .</code>
-            </pre>
-            <p className="option-result">
-              <strong>찾음</strong> 걸어
-            </p>
-            <p className="option-result">
-              <strong>제외</strong> 걷다 · 걸었다
-            </p>
-          </article>
-
-          <article className="option-card" data-featured="true">
-            <header>
-              <code>inflection</code>
-              <span>기본값</span>
-            </header>
-            <p>
-              사전의 품사·활용 분류로 조사 결합, 어미 결합, 불규칙 교체와 제한된
-              continuation을 만듭니다. 새로운 표제어를 만드는 파생 접미사는
-              추가하지 않습니다.
-            </p>
-            <pre>
-              <code>kfind --expand inflection 걷다 .</code>
-            </pre>
-            <p className="option-result">
-              <strong>찾음</strong> 걸어 · 걸었다 · 걷는 · 걷기에서도
-            </p>
-            <p className="option-result">
-              <strong>제외</strong> 새 파생 표제어
-            </p>
-          </article>
-
-          <article className="option-card">
-            <header>
-              <code>derivation</code>
-              <span>inflection 포함</span>
-            </header>
-            <p>
-              <code>data/rules</code>에 정의된 생산적 파생 규칙을 inflection의
-              모든 branch에 더합니다.
-              <code>-적</code>, <code>-하다</code>, <code>-되다</code>,
-              <code>-시키다</code>, <code>-스럽다</code>, <code>-답다</code>,
-              <code>-롭다</code>, <code>-화</code>가 현재 규칙 목록입니다.
-            </p>
-            <pre>
-              <code>kfind --expand derivation 검증 .</code>
-            </pre>
-            <p className="option-result">
-              <strong>찾음</strong> 검증 · 검증하다 · 검증했다 · 검증되다
-            </p>
-            <p className="option-result">
-              <strong>비용</strong> branch와 오탐 가능성 증가
-            </p>
-          </article>
-        </div>
-
-        <SplitDiagram
-          title="확장 모드는 포함 관계로 동작합니다"
-          caption="derivation은 별도 검색기가 아닙니다. inflection plan에 파생 branch를 더해 검색 범위를 넓힙니다."
-          source={{
-            label: 'QUERY',
-            title: '검증 · noun',
-            description:
-              '같은 명사 분석이라도 확장 수준에 따라 서로 다른 branch를 만듭니다.',
-          }}
-          paths={[
-            {
-              label: 'LITERAL',
-              title: '검증',
-              description: '입력 표면형만 검색합니다.',
-            },
-            {
-              label: 'INFLECTION',
-              title: '검증 + 조사',
-              description:
-                '검증, 검증을, 검증에서도처럼 체언 굴절을 허용합니다.',
-            },
-            {
-              label: 'DERIVATION',
-              title: '검증 + 조사 + 파생',
-              description: '검증하다·검증되다와 그 활용형까지 추가합니다.',
-            },
-          ]}
-        />
-
-        <Callout title="--literal 단축 옵션" tone="warning">
-          <p>
-            <code>--literal</code>은 <code>--expand literal --pos literal</code>
-            을 동시에 지정합니다. <code>--expand inflection|derivation</code>{' '}
-            또는 literal이 아닌 <code>--pos</code>와 함께 쓰면 컴파일
-            오류입니다. literal query는 full POS lexicon 없이 컴파일할 수
-            있습니다.
-          </p>
-        </Callout>
+      <DocumentSection title="기본 query plan">
+        <p>
+          별도 옵션이 없으면 kfind는 활용형을 확장하고, 사전에서 품사를 자동으로
+          분석하며, 품사별 <code>smart</code> boundary를 적용합니다. query는
+          NFC로 정규화하고, phrase atom 사이에는 최대 24개의 Unicode scalar를
+          허용합니다.
+        </p>
+        <pre>
+          <code>{`expand=inflection
+pos=auto
+boundary=smart
+unicode-normalization=nfc
+max-gap=24`}</code>
+        </pre>
+        <p>
+          이 기본값은 사람이 품사를 모르는 상태에서 직접 검색하는 경우를
+          대상으로 합니다. 자동화가 recall과 재현 가능한 초기화 비용을 우선하면
+          품사를 명시하고 <code>--boundary any --embedded --json</code>을 함께
+          사용합니다. 다음 절들은 각 선택이 query plan을 어떻게 바꾸는지
+          정의합니다.
+        </p>
       </DocumentSection>
 
-      <DocumentSection
-        title="Boundary 정책"
-        lead="확장 수준은 생성할 형태를 정하고, boundary는 각 후보 span을 허용할 조건을 정합니다."
-      >
+      <DocumentSection title="확장 수준">
+        <p>
+          <code>--expand</code>는 하나의 표제어 analysis에서 생성할 branch의
+          범위를 정합니다. 세 값은 독립된 검색기를 선택하는 것이 아니라, 입력
+          표면형에서 활용과 파생을 차례로 추가하는 포함 관계를 이룹니다.
+        </p>
+
+        <h3>Literal</h3>
+        <p>
+          <code>literal</code>은 입력한 문자열을 포함하는 branch 하나만
+          만듭니다. 활용형, 조사가 붙은 형태나 파생 표제어는 생성하지 않습니다.
+          다만 선택한 boundary와 Unicode 정규화는 그대로 적용하므로, literal은
+          byte 검색과 완전히 같은 의미가 아니라 형태 확장만 끈 상태입니다.
+        </p>
+        <pre>
+          <code>{`kfind --expand literal 걸어 .
+
+찾음: 걸어
+제외: 걷다 · 걸었다`}</code>
+        </pre>
+
+        <h3>Inflection</h3>
+        <p>
+          기본값인 <code>inflection</code>은 사전의 품사와 활용 분류를 바탕으로
+          조사 결합, 어미 결합, 불규칙 교체와 제한된 continuation을 생성합니다.
+          명사 <code>검증</code>에서는 <code>검증을</code>과{' '}
+          <code>검증에서도</code>를, 동사 <code>걷다</code>에서는{' '}
+          <code>걸어</code>, <code>걸었다</code>, <code>걷는</code>을 찾을 수
+          있습니다. 새로운 표제어를 만드는 파생 접미사는 이 범위에 포함하지
+          않습니다.
+        </p>
+        <pre>
+          <code>{`kfind --expand inflection 걷다 .
+
+찾음: 걸어 · 걸었다 · 걷는 · 걷기에서도
+제외: 새 파생 표제어`}</code>
+        </pre>
+
+        <h3>Derivation</h3>
+        <p>
+          <code>derivation</code>은 inflection의 모든 branch를 보존하고{' '}
+          <code>data/rules</code>에 정의된 생산적 파생 규칙을 추가합니다. 현재
+          규칙은 <code>-적</code>, <code>-하다</code>, <code>-되다</code>,{' '}
+          <code>-시키다</code>, <code>-스럽다</code>, <code>-답다</code>,{' '}
+          <code>-롭다</code>와 <code>-화</code>를 포함합니다. 파생 결과가
+          용언이면 그 표제어에 용언 활용을 다시 적용하므로 <code>검증하다</code>
+          뿐 아니라 <code>검증했다</code>도 검색합니다. 이 범위는 branch 수와
+          false positive 가능성을 함께 늘리므로 파생어가 필요한 query에만
+          사용합니다.
+        </p>
+        <pre>
+          <code>{`검증 / noun
+  ├─ literal    → 검증
+  ├─ inflection → 검증 · 검증을 · 검증에서도
+  └─ derivation → 위 결과 + 검증하다 · 검증했다 · 검증되다`}</code>
+        </pre>
+        <p>
+          <code>--literal</code>은 <code>--expand literal --pos literal</code>을
+          동시에 지정하는 단축 옵션입니다. 따라서{' '}
+          <code>--expand inflection|derivation</code> 또는 literal이 아닌{' '}
+          <code>--pos</code>와 함께 사용할 수 없으며, 충돌하면 컴파일 오류를
+          반환합니다. Literal query는 품사 사전이 필요하지 않으므로 full POS
+          lexicon을 읽지 않습니다.
+        </p>
+      </DocumentSection>
+
+      <DocumentSection title="Boundary 정책">
+        <p>
+          확장 수준이 생성할 형태를 결정한다면 boundary는 원문에서 발견한 span이
+          어떤 문자 환경에 놓여야 하는지를 결정합니다. 같은 branch라도
+          boundary에 따라 허용되는 위치가 달라지므로, 형태 coverage와 부분
+          문자열 허용 범위를 별개의 문제로 다뤄야 합니다.
+        </p>
         <div className="table-scroll">
           <table>
             <thead>
               <tr>
                 <th scope="col">값</th>
-                <th scope="col">검증</th>
-                <th scope="col">선택 기준</th>
+                <th scope="col">검증 조건</th>
+                <th scope="col">적합한 용도</th>
               </tr>
             </thead>
             <tbody>
@@ -171,7 +133,7 @@ export default function OptionsPage(): React.JSX.Element {
                   core 시작과 완성된 token 끝이 모두 Unicode token 경계에 맞아야
                   합니다.
                 </td>
-                <td>독립 token만 필요할 때</td>
+                <td>독립 token만 필요한 검색</td>
               </tr>
               <tr>
                 <td>
@@ -186,36 +148,23 @@ export default function OptionsPage(): React.JSX.Element {
             </tbody>
           </table>
         </div>
-        <div className="example-grid">
-          <article>
-            <span>SMART COMPONENT</span>
-            <code>n:요리 → 중국요리</code>
-            <p>
-              완전한 형태 경로에서 <code>요리</code>가 component로 확인되면
-              허용합니다.
-            </p>
-          </article>
-          <article>
-            <span>CROSSING SUBSTRING</span>
-            <code>n:국요 → 중국요리</code>
-            <p>component 경계를 가로지르므로 smart에서는 거부합니다.</p>
-          </article>
-          <article>
-            <span>UNRESTRICTED</span>
-            <code>국요 → 중국요리</code>
-            <p>
-              <code>any</code>는 형태 경계 근거 없이 부분 문자열을 허용합니다.
-            </p>
-          </article>
-        </div>
+        <p>
+          예를 들어 <code>n:요리</code>를 <code>중국요리</code>에서 찾을 때{' '}
+          <code>smart</code>는 완전한 형태 경로에서 <code>요리</code>가 명사
+          component로 확인되면 후보를 허용합니다. 반면 <code>국요</code>는{' '}
+          <code>중국</code>과 <code>요리</code>의 component 경계를 가로지르므로
+          거부합니다. <code>any</code>는 이런 형태 경계를 요구하지 않으므로 같은
+          문자열을 부분 span으로 보존합니다.
+        </p>
       </DocumentSection>
 
       <DocumentSection title="품사와 자동 분석">
         <p>
-          <code>--pos auto</code>는 core lexicon, 사용자 사전, 생산적 접미 패턴,
-          full POS 순으로 가능한 분석을 모읍니다. 같은 표제어에 여러 분석이
-          있으면 하나를 임의로 고르지 않고 모두 보존합니다. <code>--pos</code>{' '}
-          또는 atom 태그를 지정하면 이 후보를 한 품사로 좁힙니다.
+          <code>--pos auto</code>는 core lexicon, user lexicon, 생산적 접미
+          패턴, full POS lexicon에서 가능한 analysis를 정해진 우선순위로
+          모읍니다. 같은 표제어에 여러 analysis가 있으면 하나를 임의로 선택하지
+          않고 합집합을 보존합니다. 전역 <code>--pos</code> 또는 atom 태그를
+          지정하면 이 집합을 해당 coarse POS로 제한합니다.
         </p>
         <div className="table-scroll">
           <table>
@@ -320,23 +269,30 @@ export default function OptionsPage(): React.JSX.Element {
             </tbody>
           </table>
         </div>
-        <Callout title="사전에 없는 다 종결어">
-          <p>
-            철자가 <code>다</code>로 끝난다는 이유만으로 동사로 추정하지
-            않습니다. 사전에 없는 입력은 literal 후보로 남깁니다. 동사로
-            검색하려면 <code>v:커스텀하다</code>처럼 품사를 명시합니다.
-          </p>
-        </Callout>
+        <p>
+          입력이 <code>다</code>로 끝난다는 사실만으로는 동사인지, 형용사인지,
+          체언인지 결정할 수 없습니다. kfind는 사전에 없는 <code>다</code> 종결
+          입력을 용언으로 추정하지 않고 literal 후보로 남깁니다. 새 용언을
+          활용형까지 검색하려면 <code>v:커스텀하다</code>처럼 품사를 명시하거나
+          user lexicon에 분석을 추가해야 합니다.
+        </p>
       </DocumentSection>
 
       <DocumentSection title="Unicode 정규화와 phrase 거리">
+        <p>
+          정규화 옵션은 같은 글자가 서로 다른 Unicode byte열로 표현될 때 만들
+          query branch를 정합니다. 원문 전체를 복사해 정규화하지 않으므로,
+          선택한 모드에 따라 anchor 수와 검증 비용이 달라집니다. Phrase의{' '}
+          <code>max-gap</code>은 정규화와 별개로, 앞 atom의 token 끝과 다음
+          atom의 token 시작 사이에 허용할 거리를 제한합니다.
+        </p>
         <div className="table-scroll">
           <table>
             <thead>
               <tr>
                 <th scope="col">옵션</th>
                 <th scope="col">동작</th>
-                <th scope="col">비용·주의</th>
+                <th scope="col">비용과 제약</th>
               </tr>
             </thead>
             <tbody>
@@ -345,9 +301,7 @@ export default function OptionsPage(): React.JSX.Element {
                   <code>--unicode-normalization nfc</code>
                 </td>
                 <td>NFC로 정규화한 query branch를 사용합니다.</td>
-                <td>
-                  기본값입니다. corpus 전체를 복사하거나 정규화하지 않습니다.
-                </td>
+                <td>기본값이며 corpus 전체를 정규화하지 않습니다.</td>
               </tr>
               <tr>
                 <td>
@@ -370,10 +324,9 @@ export default function OptionsPage(): React.JSX.Element {
                   <code>--max-gap 24</code>
                 </td>
                 <td>
-                  앞 atom의 token 끝과 다음 atom의 token 시작 사이에 허용할
-                  Unicode scalar 수를 제한합니다.
+                  인접 atom의 token span 사이 Unicode scalar 수를 제한합니다.
                 </td>
-                <td>순서를 유지하며 줄을 넘지 않습니다.</td>
+                <td>atom 순서를 유지하고 줄을 넘지 않습니다.</td>
               </tr>
             </tbody>
           </table>
@@ -384,59 +337,84 @@ export default function OptionsPage(): React.JSX.Element {
       </DocumentSection>
 
       <DocumentSection title="파일 검색과 출력 옵션">
-        <div className="compact-grid">
-          <div>
-            <strong>범위</strong>
-            <code>--glob · --type · --hidden · --no-ignore</code>
-          </div>
-          <div>
-            <strong>인코딩</strong>
-            <code>auto · utf-8 · utf-16le · utf-16be · euc-kr</code>
-          </div>
-          <div>
-            <strong>문맥</strong>
-            <code>-A · -B · -C · -n · --column</code>
-          </div>
-          <div>
-            <strong>요약</strong>
-            <code>--count · --files-with-matches · --quiet</code>
-          </div>
-          <div>
-            <strong>구조화</strong>
-            <code>--json · --explain-query · --explain-match</code>
-          </div>
-          <div>
-            <strong>Terminal</strong>
-            <code>--color · --no-pager</code>
-          </div>
-          <div>
-            <strong>실행</strong>
-            <code>--threads · --sort path · --data-dir</code>
-          </div>
-          <div>
-            <strong>Agent skill</strong>
-            <code>--init · --agent</code>
-          </div>
-        </div>
         <p>
-          일반 text 결과를 TTY에 쓰면 <code>less</code> pager가 긴 줄을 접지
-          않고 화살표 탐색을 제공합니다. Redirect, pipe와 JSON·요약 출력은 기존
-          stdout stream을 유지하며, <code>--no-pager</code>로 pager를 끌 수
-          있습니다.
-        </p>
-        <p className="reference-link">
-          지원하는 출력 옵션과 종료 코드의 전체 목록은{' '}
+          Query compile 옵션과 별도로 검색 범위, 입력 인코딩, 출력 문맥과 결과
+          형식을 제어할 수 있습니다. 다음 표는 역할별 옵션 묶음이며, 값과 충돌
+          규칙을 포함한 전체 CLI 계약은{' '}
           <a href="https://github.com/SeokminHong/kfind/blob/main/README.ko.md">
             한국어 README
           </a>
           에서 확인할 수 있습니다.
         </p>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">역할</th>
+                <th scope="col">옵션 또는 값</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>검색 범위</td>
+                <td>
+                  <code>--glob · --type · --hidden · --no-ignore</code>
+                </td>
+              </tr>
+              <tr>
+                <td>인코딩</td>
+                <td>
+                  <code>auto · utf-8 · utf-16le · utf-16be · euc-kr</code>
+                </td>
+              </tr>
+              <tr>
+                <td>문맥과 위치</td>
+                <td>
+                  <code>-A · -B · -C · -n · --column</code>
+                </td>
+              </tr>
+              <tr>
+                <td>결과 요약</td>
+                <td>
+                  <code>--count · --files-with-matches · --quiet</code>
+                </td>
+              </tr>
+              <tr>
+                <td>구조화와 설명</td>
+                <td>
+                  <code>--json · --explain-query · --explain-match</code>
+                </td>
+              </tr>
+              <tr>
+                <td>Terminal 출력</td>
+                <td>
+                  <code>--color · --no-pager</code>
+                </td>
+              </tr>
+              <tr>
+                <td>실행 제어</td>
+                <td>
+                  <code>--threads · --sort path · --data-dir</code>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          일반 text 결과를 TTY stdout에 쓰면 <code>less</code> pager가 긴 줄을
+          접지 않고 위·아래와 좌우 화살표로 탐색하게 합니다. Redirect, pipe,
+          JSON Lines와 count·파일명 요약·quiet 출력은 pager를 거치지 않고 기존
+          stdout stream을 유지합니다. 대화형 text 출력에서도 pager가 필요하지
+          않으면 <code>--no-pager</code>로 끌 수 있습니다.
+        </p>
       </DocumentSection>
 
-      <DocumentSection
-        title="Agent skill 초기화 옵션"
-        lead="skill 초기화와 검색은 서로 독립된 실행 모드입니다. 프로젝트 파일을 변경하는 작업과 corpus를 읽는 작업을 한 번에 실행하지 않습니다."
-      >
+      <DocumentSection title="Agent skill 초기화 옵션">
+        <p>
+          Skill 초기화는 프로젝트 파일을 변경하는 동작이고, 검색은 corpus를 읽는
+          동작입니다. 두 책임을 섞지 않기 위해 <code>--init</code> mode에는
+          query, path와 검색 옵션을 전달할 수 없습니다.
+        </p>
         <div className="table-scroll">
           <table>
             <thead>
@@ -452,10 +430,7 @@ export default function OptionsPage(): React.JSX.Element {
                   <code>--init</code>
                 </td>
                 <td>query와 path 없음</td>
-                <td>
-                  현재 디렉터리에 agent skill을 초기화합니다. 검색 옵션과 함께
-                  사용할 수 없습니다.
-                </td>
+                <td>현재 디렉터리에 agent skill을 초기화합니다.</td>
               </tr>
               <tr>
                 <td>
@@ -467,28 +442,27 @@ export default function OptionsPage(): React.JSX.Element {
                 </td>
                 <td>
                   <code>--init</code>에서만 사용하며 반복할 수 있습니다. 같은
-                  대상을 여러 번 지정해도 한 번만 처리합니다.
+                  대상은 한 번만 처리합니다.
                 </td>
               </tr>
               <tr>
                 <td>대상 옵션 생략</td>
                 <td>TTY 선택 또는 비TTY stdin</td>
                 <td>
-                  TTY에서는 checkbox를 표시합니다. 비대화형 입력에서는 한 줄에
-                  agent 이름 하나를 받으며, 결과는 옵션으로 직접 지정했을 때와
-                  같습니다.
+                  TTY에서는 checkbox를 표시하고, 비대화형 입력에서는 공백이나
+                  줄바꿈으로 구분한 agent 이름을 받습니다.
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <Callout title="안전한 파일 변경">
-          <p>
-            대화형 선택을 취소하거나 대상을 고르지 않으면 아무 파일도 바꾸지
-            않습니다. 설치 중 하나라도 실패하면 전체 성공으로 보고하지 않으며,
-            관리 표식이 없는 기존 파일은 보존합니다.
-          </p>
-        </Callout>
+        <p>
+          대화형 선택을 취소하거나 대상을 고르지 않으면 파일을 변경하지
+          않습니다. 설치 대상 중 하나라도 실패하면 전체 작업을 성공으로 보고하지
+          않으며, kfind 관리 표식이 없는 기존 파일은 보존합니다. 이 계약은 반복
+          실행으로 관리 중인 skill을 갱신하면서도 사용자가 만든 파일을 덮어쓰지
+          않게 합니다.
+        </p>
       </DocumentSection>
     </article>
   );
