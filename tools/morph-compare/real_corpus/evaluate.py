@@ -20,6 +20,18 @@ REQUIRED_SLICES = {
     "homonym",
     "compound-substring",
 }
+PROFILE_CONTRACTS = {
+    "agent": {
+        "lexicon": "embedded",
+        "boundary": "any",
+        "query_mode": "explicit-pos",
+    },
+    "user": {
+        "lexicon": "full-pos",
+        "boundary": "smart",
+        "query_mode": "untagged",
+    },
+}
 SUPPORTED_POS = {
     "noun",
     "verb",
@@ -296,6 +308,12 @@ def evaluate_profile(
     profile_name: str, profile: dict[str, Any], cases: list[dict[str, Any]]
 ) -> dict[str, Any]:
     validate_profile_results(profile_name, profile, cases)
+    contract = PROFILE_CONTRACTS.get(profile_name)
+    if contract is not None and (
+        profile.get("profile") != contract["lexicon"]
+        or profile.get("boundary") != contract["boundary"]
+    ):
+        raise ValueError(f"profile {profile_name!r} does not match its product contract")
     overall = empty_confusion()
     by_artifact: defaultdict[str, Counter[str]] = defaultdict(empty_confusion)
     by_slice: defaultdict[str, Counter[str]] = defaultdict(empty_confusion)
@@ -319,6 +337,7 @@ def evaluate_profile(
             )
     runner = {key: value for key, value in profile.items() if key != "results"}
     return {
+        "contract": contract,
         "runner": runner,
         "overall": with_metrics(overall),
         "by_artifact_type": {
@@ -354,6 +373,12 @@ def build_report(
             "slice_counts": dict(sorted(slice_counts.items())),
         },
         "sources": manifest["sources"],
+        "interpretation": {
+            "purpose": "blind diagnostic fixture",
+            "balanced": False,
+            "product_rule_selection": False,
+            "replaces_ud_regression": False,
+        },
         "profiles": profiles,
     }
 
@@ -382,7 +407,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- source manifest SHA-256: `{fixture['sources_sha256']}`",
         f"- cases: {fixture['case_count']} (positive {fixture['positive_count']}, negative {fixture['negative_count']})",
         "",
-        "query와 gold span은 제품 실행 전에 고정했다. 이 평가는 기존 UD 회귀 fixture를 대체하거나 규칙 선택에 사용하지 않는다.",
+        "query와 gold span은 제품 실행 전에 고정했다. 25건의 불균형 진단 fixture이므로 제품 전체 품질 점수나 profile 순위로 해석하지 않는다.",
+        "이 평가는 기존 UD 회귀 fixture를 대체하거나 규칙 선택에 사용하지 않는다.",
         "",
         "## 출처",
         "",
@@ -399,6 +425,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         [
             "",
             "## 전체 결과",
+            "",
+            "Agent는 `embedded + any + explicit POS`, User는 `full-POS + smart + untagged`다.",
             "",
             "| profile | TP | FP | TN | FN | precision | recall | F1 |",
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",

@@ -57,10 +57,16 @@ class RealCorpusEvaluationTests(unittest.TestCase):
             elif case["id"] == "homonym-02":
                 spans = [{"byte_start": 0, "byte_end": 1}]
             results.append({"id": case["id"], "spans": spans})
-        profile = {"backend": "fixture", "results": results}
+        profile = {
+            "backend": "fixture",
+            "profile": "embedded",
+            "boundary": "any",
+            "results": results,
+        }
 
-        evaluated = evaluate_profile("fixture", profile, self.cases)
+        evaluated = evaluate_profile("agent", profile, self.cases)
 
+        self.assertEqual(evaluated["contract"]["query_mode"], "explicit-pos")
         self.assertEqual(evaluated["overall"]["tp"], 1)
         self.assertEqual(evaluated["overall"]["fp"], 1)
         self.assertEqual(evaluated["overall"]["fn"], 20)
