@@ -5,7 +5,7 @@ use kfind_data::{
     DataAlternation, DataFinePos, LexiconData, NominalRecord, PredicateRecord, collect_pos_entries,
     encode_pos_lexicon, parse_user_lexicon_toml,
 };
-use kfind_morph::{CoarsePos, LexicalAlternation};
+use kfind_morph::{CoarsePos, FinePos, LexicalAlternation};
 use kfind_query::{
     AnalysisSource, CompileOptions, LexiconQueryAnalyzer, Lexicons, Morphology, QueryAnalyzer,
     QueryAtom, QueryDiagnostic, compile_query,
@@ -232,6 +232,42 @@ fn user_replace_suppresses_lazy_full_pos_category() {
         Morphology::Predicate(predicate)
             if predicate.alternation == LexicalAlternation::DToL
     ));
+}
+
+#[test]
+fn user_nominal_replace_prevents_forced_full_pos_fallback_union() {
+    let full_data = LexiconData {
+        nominals: vec![NominalRecord {
+            lemma: "명".to_owned(),
+            pos: DataFinePos::Nng,
+            flags: BTreeSet::new(),
+            overrides: Vec::new(),
+        }],
+        ..LexiconData::default()
+    };
+    let binary = encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap();
+    let mut lexicons = Lexicons::embedded_with(Some(&binary), None).unwrap();
+    let user = parse_user_lexicon_toml(
+        "user.toml",
+        concat!(
+            "[[nominal]]\n",
+            "surface = \"명\"\n",
+            "pos = \"dependent-noun\"\n",
+            "replace = true\n",
+        ),
+        lexicons.rules(),
+    )
+    .unwrap();
+    lexicons.merge_user(&user);
+    let analyzer = LexiconQueryAnalyzer::new(Arc::new(lexicons));
+    let mut query = atom("명");
+    query.forced_pos = Some(CoarsePos::Noun);
+
+    let analyses = analyzer.analyze(&query).unwrap();
+
+    assert_eq!(analyses.len(), 1);
+    assert_eq!(analyses[0].fine_pos, FinePos::DependentNoun);
+    assert_eq!(analyses[0].source, AnalysisSource::Forced);
 }
 
 #[test]

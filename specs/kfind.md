@@ -45,6 +45,10 @@
   모두 fallback 분석으로 만든다. `noun`은 보통명사·고유명사·의존명사를 보존하며 하나의
   보통명사 분석으로 축소하지 않는다. 같은 anchor·verifier를 만드는 분석은 branch를 합치되
   세부 품사 provenance는 모두 유지한다.
+- 명시한 coarse `noun`에 full POS 사전 분석이 있으면 그 분석과 누락된 보통명사·고유명사·
+  의존명사 fallback을 합집합으로 보존한다. full POS의 단일 세부 품사가 명시적 coarse 품사의
+  다른 component 근거를 억제하지 않으며, user lexicon의 `replace = true`는 이 합집합보다
+  우선한다.
 - core lexicon은 전체 표제어 목록이 아니라 불규칙 활용, 품사 중의성, 기능어, 표면형 override를 담는 예외 계층이다. 일반 표제어 coverage는 full POS resource가 담당하고, core entry 수를 corpus recall에 맞춰 무제한 늘리지 않는다.
 - core lexicon의 `DropH` 형용사는 검증된 ㅎ 불규칙 표제어를 명시한다. `어떻다`, `이렇다`,
   `커다랗다`는 각각 `어떤`, `이런`, `커다란` 관형형을 만들고 규칙형 `어떻은`, `이렇은`,
