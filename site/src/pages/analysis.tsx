@@ -49,6 +49,14 @@ export default function AnalysisPage(): React.JSX.Element {
             },
           ]}
         />
+        <Callout title="명시적 coarse 품사는 세부 품사를 보존합니다">
+          <p>
+            사전에 일치하는 분석이 없으면 coarse 품사가 지원하는 fallback 분석을
+            만듭니다. <code>noun</code>은 보통명사·고유명사·의존명사를 모두
+            보존하고, 같은 검색 branch로 합쳐져도 세부 품사 provenance는
+            남깁니다.
+          </p>
+        </Callout>
       </DocumentSection>
 
       <DocumentSection

@@ -1,8 +1,8 @@
 # 의존명사 coarse-POS fallback recall
 
 - 측정일: 2026-07-14
-- 기준 revision: `e62f0d7`
-- 후보 revision: `19c2028`
+- 기준 revision: `f8e5e3e`
+- 후보 revision: `8337022`
 - 환경: Linux/aarch64, 10 logical CPUs, 7.7 GiB memory, Python 3.12.13, Docker 29.6.1
 - Rust: 1.97.0
 - 반복: fresh process 1회 warm-up 뒤 5회 측정의 중앙값
@@ -10,8 +10,8 @@
 - development fixture: `604c3a139854fcf59570392f48ab85028785f4a3561ea3c5e702f88b841f907c`
 - hard-negative fixture: `068f0ea1f9083dfcbdcbae9aae1d265c4c978e34c0d991b0578f64ed859c6546`
 - 무품사 fixture: `94ccd70a093ee7af8435371b2ffdb81534ec97e29ada705ea72c940938d0c592`
-- 기준 report SHA-256: `d1c15ad7b59e3dde067926f6d95a68ec64f10fae0172a54359dbb69bee08ad7c`
-- 후보 report SHA-256: `1b16c980099a09965a7e17e1fa5f84d6def0e1add1d53b0a9f097a43e58ea892`
+- 기준 report SHA-256: `9ae3150660a44b1d520d4c83b8a1d789ae4a32a9a5bcb638f2805088c8ce8041`
+- 후보 report SHA-256: `6682750b86ca51984148f425c730300c25594fd68cdf01f010eec4ca8ab65688`
 
 ## 결론
 
@@ -51,32 +51,40 @@ development precision은 embedded와 full-POS 모두 99.55%다. hard-negative 16
 
 | profile | 지표 | 기준 median [min, max] | 후보 median [min, max] | 증감 |
 | --- | --- | ---: | ---: | ---: |
-| embedded `smart` | initialization | 0.285403 s [0.285315, 0.290644] | 0.284096 s [0.283610, 0.289971] | -0.46% |
-| embedded `smart` | cases/s | 14,562.4 [13,954.7, 14,626.6] | 14,193.8 [13,608.9, 14,239.9] | -2.53% |
-| embedded `smart` | p95 | 0.1457 ms [0.1450, 0.1550] | 0.1473 ms [0.1455, 0.1545] | +1.10% |
-| embedded `smart` | peak RSS | 51,984 KiB [51,976, 51,988] | 51,988 KiB [51,968, 51,988] | +0.01% |
-| full-POS `smart` | initialization | 0.429290 s [0.428623, 0.430350] | 0.430818 s [0.429025, 0.437445] | +0.36% |
-| full-POS `smart` | cases/s | 13,520.9 [13,018.8, 13,538.9] | 13,438.7 [13,317.6, 13,480.0] | -0.61% |
-| full-POS `smart` | p95 | 0.1832 ms [0.1796, 0.1879] | 0.1830 ms [0.1796, 0.1833] | -0.11% |
-| full-POS `smart` | peak RSS | 94,136 KiB [94,072, 94,136] | 94,076 KiB [94,060, 94,132] | -0.06% |
+| embedded `smart` | initialization | 0.285025 s [0.284416, 0.290303] | 0.283272 s [0.282120, 0.285964] | -0.62% |
+| embedded `smart` | cases/s | 14,445.8 [13,598.0, 14,606.4] | 14,223.4 [11,229.2, 14,258.8] | -1.54% |
+| embedded `smart` | p95 | 0.1468 ms [0.1430, 0.1579] | 0.1475 ms [0.1462, 0.1980] | +0.48% |
+| embedded `smart` | peak RSS | 51,984 KiB [51,968, 51,988] | 51,988 KiB [51,980, 51,992] | +0.01% |
+| full-POS `smart` | initialization | 0.430082 s [0.428659, 0.436854] | 0.430302 s [0.427906, 0.436390] | +0.05% |
+| full-POS `smart` | cases/s | 13,452.7 [12,743.8, 13,481.5] | 13,484.1 [12,949.8, 13,552.3] | +0.23% |
+| full-POS `smart` | p95 | 0.1810 ms [0.1808, 0.1877] | 0.1827 ms [0.1797, 0.1926] | +0.94% |
+| full-POS `smart` | peak RSS | 94,076 KiB [94,068, 94,136] | 94,136 KiB [94,076, 94,140] | +0.06% |
 
-모든 지표의 양쪽 범위가 겹친다. 중앙값 변화는 최대 2.53%이고 RSS 변화는 0.1% 미만이므로
+모든 지표의 양쪽 범위가 겹친다. 중앙값 변화는 최대 1.54%이고 RSS 변화는 0.1% 미만이므로
 성능 회귀로 판정하지 않는다.
 
 ## 재현
 
 ```console
+git switch --detach 8337022
+mkdir -p target/morph-noun-recall-candidate-8337022 \
+  target/morph-noun-recall-baseline-f8e5e3e
 docker build --file tools/morph-compare/Dockerfile \
-  --tag kfind-morph-benchmark:noun-recall-candidate-19c2028 .
+  --tag kfind-morph-benchmark:noun-recall-candidate-8337022 .
+cp tools/morph-compare/hard-negatives.jsonl \
+  target/morph-noun-recall-baseline-f8e5e3e/hard-negatives.jsonl
 docker run --rm --network none --user "$(id -u):$(id -g)" \
-  --volume "$PWD/target/morph-noun-recall-candidate-19c2028:/output" \
-  kfind-morph-benchmark:noun-recall-candidate-19c2028 \
+  --volume "$PWD/target/morph-noun-recall-candidate-8337022:/output" \
+  kfind-morph-benchmark:noun-recall-candidate-8337022 \
   --runs 5 --output /output/report.json
 
+git switch --detach f8e5e3e
+docker build --file tools/morph-compare/Dockerfile \
+  --tag kfind-morph-benchmark:noun-recall-main-f8e5e3e .
 docker run --rm --network none --user "$(id -u):$(id -g)" \
-  --volume "$PWD/target/morph-noun-recall-baseline-e62f0d7:/output" \
-  --volume "$PWD/tools/morph-compare/hard-negatives.jsonl:/input/hard-negatives.jsonl:ro" \
-  kfind-morph-benchmark:noun-recall-main-e62f0d7 \
+  --volume "$PWD/target/morph-noun-recall-baseline-f8e5e3e:/output" \
+  --volume "$PWD/target/morph-noun-recall-baseline-f8e5e3e/hard-negatives.jsonl:/input/hard-negatives.jsonl:ro" \
+  kfind-morph-benchmark:noun-recall-main-f8e5e3e \
   --runs 5 --hard-negatives /input/hard-negatives.jsonl \
   --output /output/report.json
 ```

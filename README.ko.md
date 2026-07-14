@@ -340,6 +340,12 @@ resource 초기화와 literal scan을 하나의 점수로 합치지 않습니다
 Agent와 Human 품질 행은 negative query 계약이 서로 다르므로 backend 순위가 아니라 각 제품
 workflow를 설명합니다. 제품 행은 2026-07-14 후보 revision `2d24c5c`의 결과입니다.
 
+명시적 품사 `smart`의 최신 측정은 main `f8e5e3e` 대비 후보 revision `8337022`에서 embedded
+test recall을 81.8%에서 83.0%(409 / 0 / 91 → 415 / 0 / 85)로, full-POS development
+recall을 88.0%에서 88.2%(440 / 2 / 60 → 441 / 2 / 59)로 높였습니다. 위 Agent `any`와
+Human 무품사 행은 바뀌지 않았습니다.
+
+- [2026-07-14 의존명사 coarse-POS fallback recall](docs/benchmarks/2026-07-14-dependent-noun-recall.md)
 - [2026-07-14 ㅎ 불규칙 core lexicon recall](docs/benchmarks/2026-07-14-h-irregular-recall.md)
 - [2026-07-14 connective-ji 위치 근거](docs/benchmarks/2026-07-14-connective-ji-position-evidence.md)
 - [2026-07-14 국소 lattice 제품 경로 최적화](docs/benchmarks/2026-07-14-local-lattice-optimization.md)
