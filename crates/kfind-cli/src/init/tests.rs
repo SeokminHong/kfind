@@ -139,27 +139,39 @@ fn rerun_updates_managed_skill_and_preserves_unmanaged_skill() {
 
 #[cfg(unix)]
 #[test]
-fn homebrew_source_link_observes_source_updates() {
+fn homebrew_opt_link_tracks_keg_switches() {
     let root = tempdir().unwrap();
-    let package = tempdir().unwrap();
-    let source = package.path().join("SKILL.md");
-    fs::write(&source, SKILL_CONTENT).unwrap();
+    let prefix = tempdir().unwrap();
+    let first_keg = prefix.path().join("Cellar/kfind/0.2.0");
+    let second_keg = prefix.path().join("Cellar/kfind/0.2.1");
+    let first_source = first_keg.join("share/kfind/skills/kfind/SKILL.md");
+    let second_source = second_keg.join("share/kfind/skills/kfind/SKILL.md");
+    fs::create_dir_all(first_source.parent().unwrap()).unwrap();
+    fs::create_dir_all(second_source.parent().unwrap()).unwrap();
+    fs::write(&first_source, SKILL_CONTENT).unwrap();
+    let next_release = format!("{SKILL_CONTENT}\n<!-- next release -->\n");
+    fs::write(&second_source, &next_release).unwrap();
+
+    let opt = prefix.path().join("opt/kfind");
+    fs::create_dir_all(opt.parent().unwrap()).unwrap();
+    std::os::unix::fs::symlink(&first_keg, &opt).unwrap();
+    let stable_source = opt.join("share/kfind/skills/kfind/SKILL.md");
     let args = Args::try_parse_from(["kfind", "--init", "--agent", "gemini"]).unwrap();
 
     run_at(
         &args,
         &[],
         root.path(),
-        SkillSource::Homebrew(source.clone()),
+        SkillSource::Homebrew(stable_source.clone()),
     )
     .unwrap();
 
     let installed = root.path().join(".gemini/skills/kfind/SKILL.md");
-    assert_eq!(fs::read_link(&installed).unwrap(), source);
-    fs::write(&source, format!("{SKILL_CONTENT}\nupdated\n")).unwrap();
-    assert!(
-        fs::read_to_string(installed)
-            .unwrap()
-            .ends_with("updated\n")
-    );
+    assert_eq!(fs::read_link(&installed).unwrap(), stable_source);
+    assert_eq!(fs::read_to_string(&installed).unwrap(), SKILL_CONTENT);
+
+    fs::remove_file(&opt).unwrap();
+    std::os::unix::fs::symlink(&second_keg, &opt).unwrap();
+
+    assert_eq!(fs::read_to_string(installed).unwrap(), next_release);
 }
