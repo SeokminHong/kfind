@@ -344,19 +344,19 @@ resource 초기화와 literal scan을 하나의 점수로 합치지 않습니다
 
 | workflow | 품질(TP / FP / FN) | CLI wall | 처리량 | peak RSS |
 | --- | ---: | ---: | ---: | ---: |
-| Agent: embedded + `any` + explicit POS | 480 / 11 / 20 | 17.1 ms | 5,837.2 MiB/s | 7.3 MiB |
-| Human: full POS + `smart` + untagged | 417 / 0 / 83 | 310.9 ms | 321.7 MiB/s | 91.9 MiB |
+| Agent: embedded + `any` + explicit POS | 480 / 11 / 20 | 18.0 ms | 5,565.9 MiB/s | 7.5 MiB |
+| Human: full POS + `smart` + untagged | 417 / 0 / 83 | 311.0 ms | 321.6 MiB/s | 92.1 MiB |
 
 ![제품 workflow별 품질과 CLI 비용](docs/benchmarks/assets/product-workflows.svg)
 
 Agent와 Human 품질 행은 negative query 계약이 서로 다르므로 backend 순위가 아니라 각 제품
-workflow를 설명합니다. 제품 행은 2026-07-14 후보 revision `b6cd0a9`의 결과입니다.
+workflow를 설명합니다. 제품 행은 2026-07-14 후보 revision `488cd3f`의 결과입니다.
 
 국립국어원 사전 snapshot에서 판별한 ㄷ·ㅅ·ㅂ·ㅎ 불규칙 분석 176개와 규칙형 동형어 2개를
-full-POS lexicon에 추가했습니다. main `e8f99c2` 대비 test와 사람용 무품사 `smart`는 FP 증가
-없이 FN을 각각 6건 줄였고, development와 hard-negative는 변하지 않았습니다. 100 MiB Human
-CLI 처리량과 isolated full-POS 초기화의 측정 범위는 겹쳤습니다. 확대된 artifact의 peak RSS는
-64~132 KiB 늘었습니다.
+full-POS lexicon에 포함합니다. main `df84a1a` 위에서 문맥형 `smart`는
+`매/NNG + 이/VCP + ㄹ/ETM`, 반복된 `매일/MAG`, `매일/NNG + 을/JKO`를 구분합니다. 공개 test,
+development와 Human 품질은 그대로였고 동형이의어 hard-negative 7건의 FP는 4건에서 1건으로
+줄었습니다. Human CLI 처리량은 0.51% 낮았고 wall 측정 범위는 겹쳤습니다.
 
 - [2026-07-14 ㄷ·ㅅ·ㅂ·ㅎ 불규칙 enriched 용언 lexicon](docs/benchmarks/2026-07-14-consonant-irregular-enriched-lexicon.md)
 - [2026-07-14 르·러 불규칙과 enriched 용언 lexicon](docs/benchmarks/2026-07-14-reu-reo-enriched-lexicon.md)
@@ -366,6 +366,7 @@ CLI 처리량과 isolated full-POS 초기화의 측정 범위는 겹쳤습니다
 - [2026-07-14 connective-ji 위치 근거](docs/benchmarks/2026-07-14-connective-ji-position-evidence.md)
 - [2026-07-14 국소 lattice 제품 경로 최적화](docs/benchmarks/2026-07-14-local-lattice-optimization.md)
 - [2026-07-14 smart precision 품질·성능](docs/benchmarks/2026-07-14-user-smart-precision.md)
+- [2026-07-14 `매일` 인접 문맥 판별 품질·성능](docs/benchmarks/2026-07-14-contextual-maeil-disambiguation.md)
 - [2026-07-13 제품 workflow 방법론과 외부 snapshot](docs/benchmarks/2026-07-13-product-workflows.md)
 
 ### 외부 분석기 비교
@@ -377,8 +378,8 @@ Agent와 User는 2026-07-14에 측정했습니다. 외부 행은 fixture, schema
 
 | backend | 입력·버전 | TP / FP / FN | precision | recall | F1 | init | cases/s | p95 | peak RSS |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Agent | embedded + `any`, 품사 명시 | 480 / 11 / 20 | 97.76% | 96.00% | 96.87% | 0.0011초 | 15,592.1 | 0.1442 ms | 5.1 MiB |
-| User | full POS + `smart`, 품사 생략 | 417 / 0 / 83 | 100.00% | 83.40% | 90.95% | 0.4442초 | 11,010.4 | 0.2172 ms | 91.9 MiB |
+| Agent | embedded + `any`, 품사 명시 | 480 / 11 / 20 | 97.76% | 96.00% | 96.87% | 0.0011초 | 15,600.2 | 0.1447 ms | 5.1 MiB |
+| User | full POS + `smart`, 품사 생략 | 417 / 0 / 83 | 100.00% | 83.40% | 90.95% | 0.4322초 | 11,169.3 | 0.2101 ms | 91.9 MiB |
 | Kiwi | snapshot 0.23.2, model 0.23.0, 품사 명시 | 426 / 0 / 74 | 100.00% | 85.20% | 92.01% | 1.7204초 | 1,672.0 | 1.1904 ms | 528.2 MiB |
 | Lindera | snapshot 4.0.0, embedded-ko-dic, 품사 명시 | 393 / 0 / 107 | 100.00% | 78.60% | 88.02% | 0.0301초 | 15,609.1 | 0.1113 ms | 193.1 MiB |
 | MeCab-ko | snapshot 1.0.2, dictionary 1.0.0, 품사 명시 | 403 / 0 / 97 | 100.00% | 80.60% | 89.26% | 0.0003초 | 10,789.7 | 0.1940 ms | 102.8 MiB |
