@@ -1359,7 +1359,7 @@ atom 2 spans
 
 표면형 후보들의 데카르트 곱을 정규식으로 만들지 않는다.
 
-제품 matcher는 atom 조합 전체를 `PhraseMatch`로 물질화하지 않는다. 뒤 atom부터 span별 최적
+제품 matcher는 가능한 atom 조합마다 `PhraseMatch`를 미리 만들지 않는다. 뒤 atom부터 span별 최적
 suffix와 다음 span index만 계산하고 시작 위치 범위의 최적 suffix를 제한된 range join으로
 조회한다. DP 상태 수는 검증된 atom span 수의 합에 비례해야 한다. `find_span_at`은 가장 이른
 leftmost-longest 결과 하나만 복원하고, `find_all_with_meta`는 입력의 anchor와 atom span을 한 번
