@@ -23,6 +23,12 @@ query	pos	text	expected	feature
 파랗다	adjective	파란 하늘을 보았다.	match	h-irregular
 그렇다	adjective	상황이 그래 보인다.	match	h-irregular
 그렇다	adjective	그런 결과를 예상했다.	match	h-irregular
+어떻다	adjective	어떤 운동이든 중심을 둔다.	match	h-irregular
+어떻다	adjective	어떻은 운동인지 묻는다.	no-match	h-irregular
+이렇다	adjective	이런 점에서 결론을 내렸다.	match	h-irregular
+이렇다	adjective	이렇은 점은 없었다.	no-match	h-irregular
+커다랗다	adjective	커다란 변화를 줄 수 있다.	match	h-irregular
+커다랗다	adjective	커다랗은 변화는 없었다.	no-match	h-irregular
 빠르다	adjective	처리가 빨라졌다.	match	reu-irregular
 부르다	verb	이름을 불러 보았다.	match	reu-irregular
 모르다	verb	정답을 몰라 망설였다.	match	reu-irregular

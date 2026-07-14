@@ -41,6 +41,9 @@
 - full POS runtime resource는 검증된 정렬 lookup index로 보존한다. CLI, Rust library와 WASM binding은 초기화할 때 전체 entry를 일반 분석 map으로 전개하지 않으며, query atom의 표제어를 조회할 때 일치하는 품사 후보만 `Analysis`로 만든다.
 - 지연 조회에서도 기존 우선순위를 보존한다. core 용언은 같은 표제어의 full POS 용언을 억제하고, core의 같은 세부 품사는 중복하지 않는다. user lexicon의 append는 full POS 후보를 보존하며 `replace = true`는 해당 morphology category의 core와 full POS 후보를 모두 대체한다.
 - core lexicon은 전체 표제어 목록이 아니라 불규칙 활용, 품사 중의성, 기능어, 표면형 override를 담는 예외 계층이다. 일반 표제어 coverage는 full POS resource가 담당하고, core entry 수를 corpus recall에 맞춰 무제한 늘리지 않는다.
+- core lexicon의 `DropH` 형용사는 검증된 ㅎ 불규칙 표제어를 명시한다. `어떻다`, `이렇다`,
+  `커다랗다`는 각각 `어떤`, `이런`, `커다란` 관형형을 만들고 규칙형 `어떻은`, `이렇은`,
+  `커다랗은`은 만들지 않는다.
 - full POS 산출물은 전체 entry 수, 고유 표제어 수, 품사별 entry 수를 기계 판독 가능한 통계 파일로 포함한다. source를 추가하거나 갱신할 때는 이 통계와 충돌·제외 건수의 변화를 검토한다.
 - 공개 사전은 고정된 전체 내려받기 snapshot만 릴리스 입력으로 사용한다. 원본 URL·버전 또는 생성 일자·SHA-256·라이선스·추출 필드·추출기 버전을 기록하며, 인증키가 필요한 live API 응답은 릴리스 빌드 입력이나 런타임 의존성으로 사용하지 않는다.
 - 여러 source의 표제어·품사 후보는 합집합으로 보존하되, 같은 표제어에 core 용언 분석이 있으면 core의 활용 metadata를 우선한다. source 간 품사 충돌과 활용 분류 미확정 항목은 산출물 통계로 보고하고 임의로 한쪽을 삭제하지 않는다.
@@ -997,7 +1000,7 @@ special-ha, special-i, special-ani, special-o, special-itda
 | ㄷ 불규칙 | 걷다, 듣다, 싣다 | 걸어, 들어, 실어 |
 | ㅅ 불규칙 | 짓다, 낫다, 잇다 | 지어, 나아, 이어 |
 | ㅂ 불규칙 | 돕다, 눕다, 아름답다 | 도와, 누워, 아름다워 |
-| ㅎ 불규칙 | 파랗다, 그렇다 | 파래, 파란, 그래, 그런 |
+| ㅎ 불규칙 | 파랗다, 그렇다, 어떻다, 이렇다, 커다랗다 | 파래, 파란, 그래, 그런, 어떤, 이런, 커다란 |
 | 르 불규칙 | 빠르다, 부르다, 모르다 | 빨라, 불러, 몰라 |
 | 러 불규칙 | 푸르다, 이르다 일부 | 푸르러 |
 | ㅡ 탈락 | 쓰다, 크다, 예쁘다 | 써, 커, 예뻐 |

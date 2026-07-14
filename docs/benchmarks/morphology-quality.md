@@ -80,8 +80,9 @@ embedded와 full-POS 원인을 분리하고, 분류용 추가 compile·검색은
 
 ## 남은 검증
 
-1. 명시적 품사 full-POS `smart`의 development FN 63건에서 반복되는 한 원인군을 고른다.
-2. 같은 표면형·품사의 version-controlled hard-negative를 먼저 고정하고 bounded token 형태
-   근거가 query core span+fine POS 포함 경로와 배제 경로를 구분하는지 shadow로 측정한다.
+1. 명시적 품사 full-POS `smart`의 development FN 63건 중 `어떻다 -> 어떤`, `이렇다 -> 이런`,
+   `커다랗다 -> 커다란` ㅎ 불규칙 `surface-missing`을 core lexicon의 `DropH` 분석으로 복구한다.
+2. 같은 generator가 규칙형 `어떻은`, `이렇은`, `커다랗은`을 만들지 않는지 회귀 fixture로
+   고정한다.
 3. dev FN 감소, precision 99.00% 이상과 hard-negative 신규 FP 0을 확인한 뒤 고정 test와 무품사
    결과를 한 번만 회귀 측정한다.
