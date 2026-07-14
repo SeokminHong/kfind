@@ -73,6 +73,9 @@ COPY --from=runner-builder /benchmark/component /opt/morph-benchmark/component
 COPY --from=runner-builder \
     /benchmark/full-pos/lexicon.bin \
     /opt/morph-benchmark/product-data/lexicon.bin
+COPY data/enriched/predicates.tsv /opt/morph-benchmark/enriched/predicates.tsv
+COPY data/enriched/predicates.tsv \
+    /opt/morph-benchmark/product-data/predicates.enriched.tsv
 COPY --from=runner-builder \
     /benchmark/component/morphology-component-compact.kfc \
     /opt/morph-benchmark/product-data/morphology-component-compact.kfc

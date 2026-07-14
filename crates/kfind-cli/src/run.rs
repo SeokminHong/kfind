@@ -28,6 +28,7 @@ use crate::{
 
 const FULL_POS_FILE: &str = "lexicon.bin";
 const COMPONENT_RESOURCE_FILE: &str = "morphology-component-compact.kfc";
+const ENRICHED_PREDICATES_FILE: &str = "predicates.enriched.tsv";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[repr(u8)]
@@ -136,6 +137,17 @@ enum FullPosMode {
 
 fn load_lexicons(args: &Args, full_pos_mode: FullPosMode) -> Result<LoadedLexicons, CliError> {
     let mut lexicons = Lexicons::embedded().map_err(CliError::Data)?;
+    if !args.embedded {
+        if let Some(path) = resolve_enriched_predicates(args) {
+            let source = fs::read_to_string(&path).map_err(|source| CliError::Read {
+                path: path.clone(),
+                source,
+            })?;
+            lexicons
+                .load_enriched_predicates(&path.to_string_lossy(), &source)
+                .map_err(CliError::Data)?;
+        }
+    }
     let full_pos = match full_pos_mode {
         FullPosMode::Auto => {
             let resolved_full_pos = resolve_full_pos(args)?;
@@ -160,6 +172,28 @@ fn load_lexicons(args: &Args, full_pos_mode: FullPosMode) -> Result<LoadedLexico
         lexicons.merge_user(&user);
     }
     Ok(LoadedLexicons { lexicons, full_pos })
+}
+
+fn resolve_enriched_predicates(args: &Args) -> Option<PathBuf> {
+    if let Some(directory) = &args.data_dir {
+        return directory
+            .join(ENRICHED_PREDICATES_FILE)
+            .is_file()
+            .then(|| directory.join(ENRICHED_PREDICATES_FILE));
+    }
+    let mut candidates = Vec::new();
+    if let Some(directory) = env::var_os("KFIND_DATA_DIR") {
+        push_candidate(
+            &mut candidates,
+            PathBuf::from(directory).join(ENRICHED_PREDICATES_FILE),
+        );
+    }
+    candidates.extend(auto_data_candidates(ENRICHED_PREDICATES_FILE));
+    push_candidate(
+        &mut candidates,
+        PathBuf::from("data/enriched").join("predicates.tsv"),
+    );
+    candidates.into_iter().find(|path| path.is_file())
 }
 
 fn load_component_resource(args: &Args) -> Result<ComponentResource, CliError> {

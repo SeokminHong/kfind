@@ -171,15 +171,24 @@ fn full_pos_preserves_productive_alternation_for_non_core_predicates() {
 }
 
 #[test]
-fn core_predicate_analysis_suppresses_full_pos_homonyms() {
+fn core_predicate_analysis_suppresses_only_the_same_full_pos_fine_pos() {
     let full_data = LexiconData {
-        predicates: vec![PredicateRecord {
-            lemma: "걷다".to_owned(),
-            pos: DataFinePos::Va,
-            alternation: DataAlternation::Regular,
-            flags: BTreeSet::new(),
-            overrides: Vec::new(),
-        }],
+        predicates: vec![
+            PredicateRecord {
+                lemma: "걷다".to_owned(),
+                pos: DataFinePos::Vv,
+                alternation: DataAlternation::Regular,
+                flags: BTreeSet::new(),
+                overrides: Vec::new(),
+            },
+            PredicateRecord {
+                lemma: "걷다".to_owned(),
+                pos: DataFinePos::Va,
+                alternation: DataAlternation::Regular,
+                flags: BTreeSet::new(),
+                overrides: Vec::new(),
+            },
+        ],
         ..LexiconData::default()
     };
     let binary = encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap();
@@ -187,11 +196,12 @@ fn core_predicate_analysis_suppresses_full_pos_homonyms() {
     let analyzer = LexiconQueryAnalyzer::new(lexicons);
     let analyses = analyzer.analyze(&atom("걷다")).unwrap();
 
-    assert!(
-        analyses
-            .iter()
-            .all(|analysis| analysis.source != AnalysisSource::FullPosLexicon)
-    );
+    assert!(analyses.iter().any(|analysis| {
+        analysis.source == AnalysisSource::FullPosLexicon && analysis.fine_pos == FinePos::Adjective
+    }));
+    assert!(!analyses.iter().any(|analysis| {
+        analysis.source == AnalysisSource::FullPosLexicon && analysis.fine_pos == FinePos::Verb
+    }));
 }
 
 #[test]

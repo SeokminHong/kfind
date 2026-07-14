@@ -78,53 +78,8 @@ fn validate_lexicon_rule_references(
     lexicon: &LexiconData,
     rules: &RuleSet,
 ) -> Result<(), DataError> {
+    validate_predicates("data/lexicon/predicates.tsv", &lexicon.predicates, rules)?;
     let ids = rules.all_ids().collect::<BTreeSet<_>>();
-    for predicate in &lexicon.predicates {
-        let alternation_id = predicate.alternation.rule_id();
-        let alternation_rule = rules
-            .alternations
-            .iter()
-            .find(|rule| rule.id == alternation_id && rule.kind == predicate.alternation);
-        if alternation_rule.is_none() {
-            return Err(DataError::new(
-                SourceLocation::new("data/lexicon/predicates.tsv"),
-                DataErrorKind::UnknownRuleId(alternation_id.to_owned()),
-            ));
-        }
-        let allowed_flags = alternation_rule
-            .map(|rule| {
-                rule.flags
-                    .iter()
-                    .map(String::as_str)
-                    .collect::<BTreeSet<_>>()
-            })
-            .unwrap_or_default();
-        if let Some(flag) = predicate
-            .flags
-            .iter()
-            .find(|flag| !allowed_flags.contains(flag.as_str()))
-        {
-            return Err(DataError::new(
-                SourceLocation::new("data/lexicon/predicates.tsv"),
-                DataErrorKind::InvalidValue {
-                    field: "flags".to_owned(),
-                    value: flag.clone(),
-                    reason: format!(
-                        "{} 규칙에 선언되지 않은 predicate flag입니다",
-                        predicate.alternation.as_str()
-                    ),
-                },
-            ));
-        }
-        for entry in &predicate.overrides {
-            if !ids.contains(entry.rule_id.as_str()) {
-                return Err(DataError::new(
-                    SourceLocation::new("data/lexicon/predicates.tsv"),
-                    DataErrorKind::UnknownRuleId(entry.rule_id.clone()),
-                ));
-            }
-        }
-    }
     for nominal in &lexicon.nominals {
         for entry in &nominal.overrides {
             if !ids.contains(entry.rule_id.as_str()) {
@@ -165,6 +120,62 @@ fn validate_lexicon_rule_references(
                     reason: format!("{} 규칙의 forms와 정확히 일치해야 합니다", particle.rule_id),
                 },
             ));
+        }
+    }
+    Ok(())
+}
+
+/// Validates predicate records against the active alternation rules.
+pub fn validate_predicates(
+    source: &str,
+    predicates: &[crate::PredicateRecord],
+    rules: &RuleSet,
+) -> Result<(), DataError> {
+    let ids = rules.all_ids().collect::<BTreeSet<_>>();
+    for predicate in predicates {
+        let alternation_id = predicate.alternation.rule_id();
+        let alternation_rule = rules
+            .alternations
+            .iter()
+            .find(|rule| rule.id == alternation_id && rule.kind == predicate.alternation);
+        if alternation_rule.is_none() {
+            return Err(DataError::new(
+                SourceLocation::new(source),
+                DataErrorKind::UnknownRuleId(alternation_id.to_owned()),
+            ));
+        }
+        let allowed_flags = alternation_rule
+            .map(|rule| {
+                rule.flags
+                    .iter()
+                    .map(String::as_str)
+                    .collect::<BTreeSet<_>>()
+            })
+            .unwrap_or_default();
+        if let Some(flag) = predicate
+            .flags
+            .iter()
+            .find(|flag| !allowed_flags.contains(flag.as_str()))
+        {
+            return Err(DataError::new(
+                SourceLocation::new(source),
+                DataErrorKind::InvalidValue {
+                    field: "flags".to_owned(),
+                    value: flag.clone(),
+                    reason: format!(
+                        "{} 규칙에 선언되지 않은 predicate flag입니다",
+                        predicate.alternation.as_str()
+                    ),
+                },
+            ));
+        }
+        for entry in &predicate.overrides {
+            if !ids.contains(entry.rule_id.as_str()) {
+                return Err(DataError::new(
+                    SourceLocation::new(source),
+                    DataErrorKind::UnknownRuleId(entry.rule_id.clone()),
+                ));
+            }
         }
     }
     Ok(())

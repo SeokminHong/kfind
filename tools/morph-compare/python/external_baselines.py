@@ -80,6 +80,7 @@ def load_external_baselines(
             "version": version,
             "profile": None,
             "lexicon_artifact_sha256": None,
+            "enriched_artifact_sha256": None,
             "morphology_artifact_sha256": None,
             "component_artifact_sha256": None,
             "configuration": configuration,

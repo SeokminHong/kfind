@@ -27,11 +27,11 @@ cargo install --locked --path crates/kfind-cli`}</code>
         </pre>
         <p>
           CLI는 검색 도중에 모델이나 resource를 내려받지 않습니다. Homebrew
-          formula에는 자동 품사 분석용 full POS lexicon과 필요한 후보만 국소
-          분석하는 component resource가 포함됩니다. source에서 직접 설치한
-          경우에는 resource를 별도로 지정하지 않아도 embedded lexicon으로 검색할
-          수 있지만, full POS나 component가 필요한 query는 해당 resource가 있는
-          data directory를 요구합니다.
+          formula에는 자동 품사 분석용 full POS lexicon, enriched 용언
+          metadata와 필요한 후보만 국소 분석하는 component resource가
+          포함됩니다. source에서 직접 설치한 경우에는 resource를 별도로 지정하지
+          않아도 embedded lexicon으로 검색할 수 있지만, 추가 resource가 필요한
+          query는 해당 resource가 있는 data directory를 요구합니다.
         </p>
       </DocumentSection>
 

@@ -5,7 +5,7 @@ use std::sync::Arc;
 use kfind_data::{
     DataAlternation, DataError, DataFinePos, DecodedPosLexicon, DerivationRule, LexiconData,
     LexiconSources, PosLexiconEntry, RuleSet, RuleSources, UserLexicon, decode_pos_lexicon,
-    parse_lexicons, parse_rule_set,
+    parse_lexicons, parse_predicates_tsv, parse_rule_set, validate_predicates,
 };
 use kfind_morph::{
     CoarsePos, ContinuationState, FinePos, LexicalAlternation, PredicateEntry, PredicateFlags,
@@ -77,6 +77,19 @@ impl Lexicons {
 
     pub fn load_full_pos(&mut self, input: &[u8]) -> Result<(), DataError> {
         self.full_pos = Some(decode_pos_lexicon(input)?);
+        Ok(())
+    }
+
+    /// Validates and merges an external predicate metadata layer.
+    pub fn load_enriched_predicates(&mut self, source: &str, input: &str) -> Result<(), DataError> {
+        let (records, _) = parse_predicates_tsv(source, input)?;
+        validate_predicates(source, &records, &self.rules)?;
+        for record in records {
+            self.insert_enriched_analysis(
+                record.lemma.clone().into_boxed_str(),
+                predicate_analysis(&record, AnalysisSource::EnrichedLexicon),
+            );
+        }
         Ok(())
     }
 
@@ -229,22 +242,18 @@ impl Lexicons {
         candidates: &[PosLexiconEntry],
         analyses: &mut Vec<Analysis>,
     ) {
-        let has_core_predicate = analyses.iter().any(|analysis| {
-            analysis.source == AnalysisSource::BuiltinLexicon
-                && matches!(analysis.morphology, Morphology::Predicate(_))
-        });
         for entry in candidates {
             let fine_pos = data_fine_pos(entry.pos);
             let suppressed_by_user = (entry.pos.is_predicate()
                 && self.replaced_full_predicates.contains(lemma))
                 || (entry.pos.is_nominal() && self.replaced_full_nominals.contains(lemma));
-            let duplicates_core = analyses.iter().any(|analysis| {
-                analysis.source == AnalysisSource::BuiltinLexicon && analysis.fine_pos == fine_pos
+            let duplicates_curated = analyses.iter().any(|analysis| {
+                matches!(
+                    analysis.source,
+                    AnalysisSource::BuiltinLexicon | AnalysisSource::EnrichedLexicon
+                ) && analysis.fine_pos == fine_pos
             });
-            if suppressed_by_user
-                || (entry.pos.is_predicate() && has_core_predicate)
-                || duplicates_core
-            {
+            if suppressed_by_user || duplicates_curated {
                 continue;
             }
             let analysis = self.full_pos_analysis(entry);
@@ -282,11 +291,29 @@ impl Lexicons {
         }
     }
 
+    fn insert_enriched_analysis(&mut self, key: Box<str>, analysis: Analysis) {
+        let entries = self.materialized_entries.entry(key).or_default();
+        if entries
+            .iter()
+            .any(|existing| same_lexical_analysis(existing, &analysis))
+        {
+            return;
+        }
+        entries.push(analysis);
+    }
+
     fn remove_morphology(&mut self, lemma: &str, kind: MorphologyKind) {
         if let Some(entries) = self.materialized_entries.get_mut(lemma) {
             entries.retain(|analysis| kind.does_not_match(&analysis.morphology));
         }
     }
+}
+
+fn same_lexical_analysis(left: &Analysis, right: &Analysis) -> bool {
+    left.lemma == right.lemma
+        && left.coarse_pos == right.coarse_pos
+        && left.fine_pos == right.fine_pos
+        && left.morphology == right.morphology
 }
 
 #[derive(Clone, Copy)]
@@ -547,5 +574,61 @@ mod tests {
             analysis.source == AnalysisSource::FullPosLexicon
                 && analysis.fine_pos == FinePos::CommonNoun
         }));
+    }
+
+    #[test]
+    fn enriched_predicates_suppress_only_the_same_full_pos_candidate() {
+        let full_data = LexiconData {
+            predicates: vec![
+                kfind_data::PredicateRecord {
+                    lemma: "가르다".to_owned(),
+                    pos: DataFinePos::Vv,
+                    alternation: DataAlternation::Regular,
+                    flags: BTreeSet::new(),
+                    overrides: Vec::new(),
+                },
+                kfind_data::PredicateRecord {
+                    lemma: "가르다".to_owned(),
+                    pos: DataFinePos::Va,
+                    alternation: DataAlternation::Regular,
+                    flags: BTreeSet::new(),
+                    overrides: Vec::new(),
+                },
+            ],
+            ..LexiconData::default()
+        };
+        let binary = encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap();
+        let mut lexicons = Lexicons::embedded_with(Some(&binary), None).unwrap();
+        lexicons
+            .load_enriched_predicates(
+                "fixture.tsv",
+                "lemma\tpos\talternation\tflags\toverrides\n가르다\tVV\tReuDoubleL\t\t\n",
+            )
+            .unwrap();
+
+        let analyses = lexicons.lookup("가르다");
+        assert!(analyses.iter().any(|analysis| {
+            analysis.source == AnalysisSource::EnrichedLexicon && analysis.fine_pos == FinePos::Verb
+        }));
+        assert!(analyses.iter().any(|analysis| {
+            analysis.source == AnalysisSource::FullPosLexicon
+                && analysis.fine_pos == FinePos::Adjective
+        }));
+        assert!(!analyses.iter().any(|analysis| {
+            analysis.source == AnalysisSource::FullPosLexicon && analysis.fine_pos == FinePos::Verb
+        }));
+    }
+
+    #[test]
+    fn enriched_predicates_are_validated_against_runtime_rules() {
+        let mut lexicons = Lexicons::embedded().unwrap();
+        let error = lexicons
+            .load_enriched_predicates(
+                "fixture.tsv",
+                "lemma\tpos\talternation\tflags\toverrides\n가르다\tVV\tReo\tEU_DROP\t\n",
+            )
+            .unwrap_err();
+
+        assert_eq!(error.location.source, "fixture.tsv");
     }
 }

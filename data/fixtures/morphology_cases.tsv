@@ -32,7 +32,19 @@ query	pos	text	expected	feature
 빠르다	adjective	처리가 빨라졌다.	match	reu-irregular
 부르다	verb	이름을 불러 보았다.	match	reu-irregular
 모르다	verb	정답을 몰라 망설였다.	match	reu-irregular
+다르다	adjective	두 결과가 서로 달라 보였다.	match	reu-irregular
+다르다	adjective	두 결과가 서로 다라 보였다.	no-match	reu-irregular
+누르다	verb	버튼을 눌러 실행했다.	match	reu-irregular-homonym
+누르다	adjective	빛깔이 누르러 보였다.	match	reo-irregular-homonym
+오르다	verb	산길을 따라 정상에 올라 있었다.	match	reu-irregular
+이르다	verb	목적지에 이르러 멈췄다.	match	reo-irregular-homonym
+이르다	verb	아이에게 조심하라고 일러 두었다.	match	reu-irregular-homonym
+자르다	verb	종이를 반으로 잘라 두었다.	match	reu-irregular
+흐르다	verb	물이 아래로 흘러 내렸다.	match	reu-irregular
 푸르다	adjective	숲이 푸르러 보인다.	match	reo-irregular
+푸르다	adjective	숲이 풀러 보인다.	no-match	reo-irregular
+들르다	verb	퇴근길에 가게에 들러 갔다.	match	eu-drop-regular-control
+치르다	verb	행사를 무사히 치러 냈다.	match	eu-drop-regular-control
 쓰다	verb	문서를 써 두었다.	match	eu-drop
 크다	adjective	상자가 너무 커 보인다.	match	eu-drop
 예쁘다	adjective	꽃이 예뻐 보인다.	match	eu-drop

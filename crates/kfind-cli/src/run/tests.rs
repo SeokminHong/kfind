@@ -376,6 +376,65 @@ fn full_pos_selection_uses_the_first_existing_candidate() {
     );
 }
 
+#[test]
+fn enriched_predicates_load_from_an_explicit_data_directory() {
+    let temp = TempDir::new();
+    temp.write(
+        ENRICHED_PREDICATES_FILE,
+        "lemma\tpos\talternation\tflags\toverrides\n가르다\tVV\tReuDoubleL\t\t\n",
+    );
+    let args = Args::try_parse_from([
+        "kfind",
+        "--pos",
+        "verb",
+        "--data-dir",
+        temp.0.to_str().unwrap(),
+        "가르다",
+    ])
+    .unwrap();
+
+    let loaded = load_lexicons(
+        &args,
+        FullPosMode::Disabled(FullPosNotRequiredReason::LiteralQuery),
+    )
+    .unwrap();
+
+    assert!(
+        loaded
+            .lexicons
+            .lookup("가르다")
+            .iter()
+            .any(|analysis| { analysis.source == kfind_query::AnalysisSource::EnrichedLexicon })
+    );
+}
+
+#[test]
+fn embedded_mode_skips_enriched_predicates() {
+    let temp = TempDir::new();
+    temp.write(
+        ENRICHED_PREDICATES_FILE,
+        "lemma\tpos\talternation\tflags\toverrides\n가르다\tVV\tReuDoubleL\t\t\n",
+    );
+    let args = Args::try_parse_from([
+        "kfind",
+        "--embedded",
+        "--pos",
+        "verb",
+        "--data-dir",
+        temp.0.to_str().unwrap(),
+        "가르다",
+    ])
+    .unwrap();
+
+    let loaded = load_lexicons(
+        &args,
+        FullPosMode::Disabled(FullPosNotRequiredReason::EmbeddedMode),
+    )
+    .unwrap();
+
+    assert!(loaded.lexicons.lookup("가르다").is_empty());
+}
+
 fn component_args(temp: &TempDir, query: &str) -> Args {
     temp.write_bytes(FULL_POS_FILE, &full_pos_resource());
     Args::try_parse_from([

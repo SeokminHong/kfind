@@ -8,6 +8,7 @@ use kfind_data::{
     encode_pos_lexicon, extract_mecab_ko_dic, extract_mecab_morphology,
     extract_mecab_source_morphology, load_data_dir, parse_lexicons, parse_mecab_connection_matrix,
     parse_predicates_tsv, parse_rule_set, parse_user_lexicon_toml, validate_data,
+    validate_predicates,
 };
 
 fn data_root() -> PathBuf {
@@ -94,6 +95,41 @@ fn repository_data_is_complete_and_valid() {
     assert!(metadata.contains("Apache-2.0"));
     assert!(metadata.contains("--bin kfind-data-extract-mecab"));
     assert!(metadata.contains("normalized headwords and POS only"));
+}
+
+#[test]
+fn repository_enriched_predicates_are_valid_and_disjoint_from_core() {
+    let data = load_data_dir(data_root()).expect("repository data should validate");
+    let (enriched, warnings) = parse_predicates_tsv(
+        "data/enriched/predicates.tsv",
+        &read("enriched/predicates.tsv"),
+    )
+    .unwrap();
+
+    assert!(warnings.is_empty());
+    validate_predicates("data/enriched/predicates.tsv", &enriched, &data.rules).unwrap();
+    let core = data
+        .lexicon
+        .predicates
+        .iter()
+        .map(|entry| {
+            (
+                entry.lemma.as_str(),
+                entry.pos,
+                entry.alternation,
+                &entry.flags,
+            )
+        })
+        .collect::<BTreeSet<_>>();
+    assert!(enriched.iter().all(|entry| {
+        !core.contains(&(
+            entry.lemma.as_str(),
+            entry.pos,
+            entry.alternation,
+            &entry.flags,
+        ))
+    }));
+    assert!(enriched.iter().any(|entry| entry.lemma == "가르다"));
 }
 
 #[test]

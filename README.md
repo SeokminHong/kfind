@@ -281,7 +281,7 @@ conversion.
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `--data-dir <PATH>` | automatic discovery | Reads `lexicon.bin` and `morphology-component-compact.kfc` from one explicit directory. |
+| `--data-dir <PATH>` | automatic discovery | Reads `lexicon.bin`, optional `predicates.enriched.tsv`, and `morphology-component-compact.kfc` from one explicit directory. |
 | `--user-lexicon <PATH>` | XDG config path | Loads a TOML user lexicon instead of the default config lookup. |
 | `--init` | off | Initializes the kfind skill in the current directory without a query. |
 | `--agent <AGENT>` | TTY selection or stdin; repeatable | Selects `claude-code`, `codex`, `gemini`, or `custom`; requires `--init`. |
@@ -320,23 +320,26 @@ JSON fields, and exit codes do not change with the locale.
 ## Lexicon data
 
 Core irregular predicates and rules are embedded in the binary. Homebrew also
-installs the pinned full POS lexicon and compact morphology-component resource
-under `share/kfind`; runtime network access is never required.
+installs the pinned full POS lexicon, CC BY-SA enriched predicate metadata, and
+compact morphology-component resource under `share/kfind`; runtime network
+access is never required.
 
 Without the full POS file, searches continue with the core lexicon and
 heuristics. `--explain-query` reports that preview state. `--data-dir` or
-`KFIND_DATA_DIR` selects an explicit resource directory. `--embedded` skips only
-full POS resolution. A compiled `smart` plan that requires component evidence
-still resolves and validates the component resource; plans that do not need it
-leave it unloaded.
+`KFIND_DATA_DIR` selects an explicit resource directory. Outside `--embedded`,
+`predicates.enriched.tsv` is loaded when present. `--embedded` skips full POS and
+enriched predicate resolution. A compiled `smart` plan that requires component
+evidence still resolves and validates the component resource; plans that do not
+need it leave it unloaded.
 
-The full POS artifact is reproducible from the pinned, checksum-verified
-`mecab-ko-dic` source:
+The external lexicon data are reproducible from pinned, checksum-verified
+`mecab-ko-dic` and NIKL dictionary snapshots:
 
 ```sh
 scripts/build-full-pos.sh
 cargo run --locked -p kfind-testkit --bin verify-gold -- \
   data/generated/full-pos/lexicon.bin
+scripts/build-enriched-predicates.sh
 ```
 
 ## Benchmarks
@@ -355,22 +358,24 @@ files.
 
 | Workflow | Quality (TP / FP / FN) | CLI wall | Throughput | Peak RSS |
 | --- | ---: | ---: | ---: | ---: |
-| Agent: embedded + `any` + explicit POS | 480 / 11 / 20 | 17.5 ms | 5,726.5 MiB/s | 7.0 MiB |
-| Human: full POS + `smart` + untagged | 411 / 0 / 89 | 304.8 ms | 328.1 MiB/s | 91.5 MiB |
+| Agent: embedded + `any` + explicit POS | 480 / 11 / 20 | 18.4 ms | 5,445.6 MiB/s | 7.2 MiB |
+| Human: full POS + `smart` + untagged | 411 / 0 / 89 | 319.5 ms | 313.0 MiB/s | 91.7 MiB |
 
 ![Product workflow quality and CLI cost](docs/benchmarks/assets/product-workflows.svg)
 
 The agent and human quality rows use different negative-query contracts, so
 they describe their product workflows rather than a head-to-head backend rank.
-The product rows are from the 2026-07-14 candidate revision `2d24c5c`.
+The product rows are from the 2026-07-14 candidate revision `96e0429`.
 
-The focused explicit-POS `smart` measurement at candidate revision `63a75f4`
-against main `64f523f` improved full-POS development recall from 88.2% to
-88.4% (441 / 2 / 59 to 442 / 2 / 58) and test recall from 82.8% to 83.0%
-(414 / 0 / 86 to 415 / 0 / 85). Embedded, Agent `any`, and Human untagged
-results did not change. Full-POS `smart` throughput decreased 4.15% from
-13,481.1 to 12,922.3 cases/s and is accepted as the cost of the recall gain.
+The focused irregular-predicate measurement at candidate revision `96e0429`
+against main `9063d46` preserved the test and development `smart` results and
+the fixed hard-negative FP count. Embedded untagged `smart` recovered two
+cases, from 319 / 0 / 181 to 321 / 0 / 179. Full-POS `smart` throughput was
+1.88% lower and p95 was 9.60% higher, but both measurement ranges overlapped.
+The 100 MiB Human CLI throughput was 2.96% lower with overlapping ranges, so
+the measurements do not establish a performance regression.
 
+- [2026-07-14 reu/reo irregular and enriched predicate lexicon](docs/benchmarks/2026-07-14-reu-reo-enriched-lexicon.md)
 - [2026-07-14 full-POS coarse-noun analysis-union recall](docs/benchmarks/2026-07-14-full-pos-coarse-noun-recall.md)
 - [2026-07-14 dependent-noun coarse-POS fallback recall](docs/benchmarks/2026-07-14-dependent-noun-recall.md)
 - [2026-07-14 ㅎ-irregular core lexicon recall](docs/benchmarks/2026-07-14-h-irregular-recall.md)
@@ -389,8 +394,8 @@ schema, version, and configuration did not change.
 
 | Backend | Input and version | TP / FP / FN | Precision | Recall | F1 | Init | Cases/s | p95 | Peak RSS |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Agent | embedded + `any`, explicit POS | 480 / 11 / 20 | 97.76% | 96.00% | 96.87% | 0.0012 s | 15,611.8 | 0.1434 ms | 5.4 MiB |
-| User | full POS + `smart`, untagged | 411 / 0 / 89 | 100.00% | 82.20% | 90.23% | 0.4260 s | 11,869.5 | 0.2084 ms | 92.1 MiB |
+| Agent | embedded + `any`, explicit POS | 480 / 11 / 20 | 97.76% | 96.00% | 96.87% | 0.0011 s | 15,602.7 | 0.1427 ms | 5.1 MiB |
+| User | full POS + `smart`, untagged | 411 / 0 / 89 | 100.00% | 82.20% | 90.23% | 0.4349 s | 11,048.5 | 0.2210 ms | 91.9 MiB |
 | Kiwi | snapshot 0.23.2, model 0.23.0, explicit POS | 426 / 0 / 74 | 100.00% | 85.20% | 92.01% | 1.7204 s | 1,672.0 | 1.1904 ms | 528.2 MiB |
 | Lindera | snapshot 4.0.0, embedded-ko-dic, explicit POS | 393 / 0 / 107 | 100.00% | 78.60% | 88.02% | 0.0301 s | 15,609.1 | 0.1113 ms | 193.1 MiB |
 | MeCab-ko | snapshot 1.0.2, dictionary 1.0.0, explicit POS | 403 / 0 / 97 | 100.00% | 80.60% | 89.26% | 0.0003 s | 10,789.7 | 0.1940 ms | 102.8 MiB |

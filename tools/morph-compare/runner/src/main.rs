@@ -31,6 +31,8 @@ use shadow::{
 
 const FULL_POS_LEXICON: &str = "/opt/morph-benchmark/full-pos/lexicon.bin";
 const FULL_POS_LEXICON_ENV: &str = "KFIND_FULL_POS_LEXICON";
+const ENRICHED_PREDICATES: &str = "/opt/morph-benchmark/enriched/predicates.tsv";
+const ENRICHED_PREDICATES_ENV: &str = "KFIND_ENRICHED_PREDICATES";
 const MORPHOLOGY_RESOURCE: &str = "/opt/morph-benchmark/morphology/morphology.bin";
 const MORPHOLOGY_RESOURCE_ENV: &str = "KFIND_MORPHOLOGY_RESOURCE";
 const COMPONENT_RESOURCE: &str = "/opt/morph-benchmark/component/morphology-component-compact.kfc";
@@ -56,6 +58,7 @@ struct Summary {
     profile: Option<String>,
     boundary: Option<String>,
     lexicon_artifact_sha256: Option<String>,
+    enriched_artifact_sha256: Option<String>,
     morphology_artifact_sha256: Option<String>,
     component_artifact_sha256: Option<String>,
     initialization_seconds: f64,
@@ -75,6 +78,7 @@ struct StartupSummary {
     base_peak_rss_kib: Option<u64>,
     peak_rss_kib: Option<u64>,
     full_pos_loaded: bool,
+    enriched_predicates_loaded: bool,
     component_resource_loaded: bool,
 }
 
@@ -317,19 +321,11 @@ fn main() -> Result<()> {
 
 fn run_kfind_startup(profile: StartupProfile) -> Result<StartupSummary> {
     let base_started = Instant::now();
-    let mut engine = if profile.full_pos() {
-        let configured_path = std::env::var_os(FULL_POS_LEXICON_ENV)
-            .map(std::path::PathBuf::from)
-            .unwrap_or_else(|| FULL_POS_LEXICON.into());
-        let artifact = fs::read(&configured_path).with_context(|| {
-            format!(
-                "full-pos startup profile requires lexicon artifact {}",
-                configured_path.display()
-            )
-        })?;
-        Engine::with_full_pos(&artifact)?
+    let (mut engine, enriched_predicates_loaded) = if profile.full_pos() {
+        let (lexicons, _, _) = load_full_profile_lexicons()?;
+        (Engine::from_lexicons(lexicons), true)
     } else {
-        Engine::new()?
+        (Engine::new()?, false)
     };
     let base_initialization_seconds = base_started.elapsed().as_secs_f64();
     let base_peak_rss_kib = peak_rss_kib();
@@ -363,6 +359,7 @@ fn run_kfind_startup(profile: StartupProfile) -> Result<StartupSummary> {
         base_peak_rss_kib,
         peak_rss_kib: peak_rss_kib(),
         full_pos_loaded: engine.full_pos_loaded(),
+        enriched_predicates_loaded,
         component_resource_loaded: engine.component_resource_loaded(),
     })
 }
@@ -411,22 +408,14 @@ fn run_kfind(
     } else {
         (None, None)
     };
-    let (lexicons, lexicon_artifact_sha256) = match profile {
-        KfindProfile::Embedded => (Lexicons::embedded()?, None),
+    let (lexicons, lexicon_artifact_sha256, enriched_artifact_sha256) = match profile {
+        KfindProfile::Embedded => (Lexicons::embedded()?, None, None),
         KfindProfile::FullPos => {
-            let configured_path = std::env::var_os(FULL_POS_LEXICON_ENV)
-                .map(std::path::PathBuf::from)
-                .unwrap_or_else(|| FULL_POS_LEXICON.into());
-            let artifact = fs::read(&configured_path).with_context(|| {
-                format!(
-                    "full-pos profile requires lexicon artifact {}",
-                    configured_path.display()
-                )
-            })?;
-            let digest = format!("{:x}", Sha256::digest(&artifact));
+            let (lexicons, full_pos_artifact, enriched_artifact) = load_full_profile_lexicons()?;
             (
-                Lexicons::embedded_with(Some(&artifact), None)?,
-                Some(digest),
+                lexicons,
+                Some(format!("{:x}", Sha256::digest(&full_pos_artifact))),
+                Some(format!("{:x}", Sha256::digest(&enriched_artifact))),
             )
         }
     };
@@ -479,6 +468,7 @@ fn run_kfind(
         profile: Some(profile.name().to_owned()),
         boundary: Some(boundary.name().to_owned()),
         lexicon_artifact_sha256,
+        enriched_artifact_sha256,
         morphology_artifact_sha256,
         component_artifact_sha256,
         initialization_seconds,
@@ -486,6 +476,36 @@ fn run_kfind(
         peak_rss_kib,
         results,
     })
+}
+
+fn load_full_profile_lexicons() -> Result<(Lexicons, Vec<u8>, Vec<u8>)> {
+    let full_pos_path = std::env::var_os(FULL_POS_LEXICON_ENV)
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| FULL_POS_LEXICON.into());
+    let full_pos_artifact = fs::read(&full_pos_path).with_context(|| {
+        format!(
+            "full-pos profile requires lexicon artifact {}",
+            full_pos_path.display()
+        )
+    })?;
+    let enriched_path = std::env::var_os(ENRICHED_PREDICATES_ENV)
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| ENRICHED_PREDICATES.into());
+    let enriched_artifact = fs::read(&enriched_path).with_context(|| {
+        format!(
+            "full-pos profile requires enriched predicates {}",
+            enriched_path.display()
+        )
+    })?;
+    let enriched_source = std::str::from_utf8(&enriched_artifact).with_context(|| {
+        format!(
+            "enriched predicate artifact is not UTF-8: {}",
+            enriched_path.display()
+        )
+    })?;
+    let mut lexicons = Lexicons::embedded_with(Some(&full_pos_artifact), None)?;
+    lexicons.load_enriched_predicates(&enriched_path.to_string_lossy(), enriched_source)?;
+    Ok((lexicons, full_pos_artifact, enriched_artifact))
 }
 
 fn append_untagged_plan_diagnostics(

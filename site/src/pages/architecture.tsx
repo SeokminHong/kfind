@@ -153,7 +153,10 @@ atom 2 spans ─┘`}</code>
               <tr>
                 <td>CLI</td>
                 <td>파일 순회, 인코딩, 출력, locale</td>
-                <td>설치 경로에서 full POS와 component를 자동 탐색</td>
+                <td>
+                  설치 경로에서 full POS, enriched 용언과 component resource를
+                  자동 탐색
+                </td>
               </tr>
               <tr>
                 <td>Rust library</td>

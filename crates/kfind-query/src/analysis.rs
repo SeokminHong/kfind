@@ -9,6 +9,7 @@ use crate::{Lexicons, QueryAtom};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AnalysisSource {
     BuiltinLexicon,
+    EnrichedLexicon,
     FullPosLexicon,
     UserLexicon,
     ProductiveSuffix,
