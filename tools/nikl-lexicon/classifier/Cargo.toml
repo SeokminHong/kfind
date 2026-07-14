@@ -1,0 +1,17 @@
+[package]
+name = "nikl-lexicon-classifier"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+publish = false
+
+[workspace]
+
+[dependencies]
+kfind-morph = { path = "../../../crates/kfind-morph" }
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+all = "warn"
