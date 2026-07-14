@@ -11,6 +11,7 @@
 - [`-기` 명사형 조사 continuation 품질·성능](2026-07-14-gi-particle-continuation.md)
 - [국소 lattice 제품 경로 최적화](2026-07-14-local-lattice-optimization.md)
 - [Development false negative 진단](2026-07-14-development-fn-diagnostics.md)
+- [`ending.connective-ji` 위치 근거](2026-07-14-connective-ji-position-evidence.md)
 - [smart component 검색 근거](2026-07-13-smart-component-evidence.md)
 - [copula lattice 폐기 판정](2026-07-13-copula-unseen-evaluation.md)
 - [형태소 benchmark 사용법](README.md#morphology-comparison)
@@ -105,29 +106,34 @@ fixture·gold·지표 정의와 `any`의 TP 479 / FP 11 / FN 21은 바꾸지 않
   고정한다. `boundary-rejected` 44건 중 verb 14건과 adjective 6건이 predicate slice며,
   20건 모두 core·token span과 origin별 analysis index·rule path를 가진다. 가장 반복된 단일
   path는 `ending.connective-ji` 4건이다.
+- `ending.connective-ji` 4건의 any token은 gold의 `left-edge` 3건과 `right-edge` 1건이며
+  `internal`은 없다. 오른쪽 candidate `주지`와 같은 표면형인 명사 hard-negative는 embedded와
+  full-POS `smart`에서 모두 기존 FP다. 왼쪽 유형은 같은 표면형 negative를 확보하지 못했다.
+  두 위치 유형 모두 제품 후보로 열지 않고 matcher를 유지한다.
 
 ## 이어갈 작업
 
-현재 승인된 제품 정책 변경은 없다. 다음 후보는 test fixture를 규칙 선택에 사용하지 않고
-development와 hard-negative에서 먼저 판정한다.
+최우선 목표는 사람용 full-POS `smart`의 무품사 recall을 실제로 높이면서 precision 100.00%를
+유지하는 제품 변경이다. 계측·report·runner만 바꾼 상태는 작업 완료나 독립 PR 대상으로 보지
+않는다. test fixture는 규칙 선택에 사용하지 않고 제품 규칙을 고정한 뒤 회귀 판정에만 사용한다.
 
-1. `ending.connective-ji` 4건에서 any token이 gold의 왼쪽·오른쪽·내부 어디에 놓이는지 먼저
-   분리한다. 같은 위치 유형의 최소 positive 대조는 development evidence로 고정하고 같은
-   표면형 negative는 version-controlled hard-negative에 추가한다. 이 단계에서는 matcher를
-   바꾸지 않는다. 한 위치 유형에서 development TP가 늘고 FP가 증가하지 않으며 기존
-   hard-negative에 새 FP가 없을 때만 제품 후보로 연다. held-out test는 규칙 고정 뒤 회귀
-   판정에만 사용한다.
-2. 무품사 full-POS plan의 누락을 별도 development 지표로 만든다. 현재 test에서는 positive
-   500건 중 기대 품사가 plan에 없는 경우가 18건이고 literal fallback은 5건이다. plan 확장은
-   새 development 근거와 User precision 100.00% 보존을 함께 만족할 때만 검토한다.
-3. Agent precision은 include/exclude lattice 존재 여부와 다른 독립 근거가 정의될 때만 shadow를
-   다시 연다. gate는 development TP 484 보존, FP 15 미만, hard-negative 새 FP 0을 모두
-   요구하며 `include-path`와 `include-only` 투영은 재사용하지 않는다.
-
-1번의 계측 진입점은 `tools/morph-compare/python/report.py`와
-`tools/morph-compare/runner/src/main.rs`다. 제품 후보가 생긴 뒤에만
-`crates/kfind-morph/src/predicate.rs`, `crates/kfind-morph/src/predicate/continuation.rs`,
-`crates/kfind-matcher/src/morph.rs`와 `tools/morph-compare/hard-negatives.jsonl`을 연다.
+1. 기존 runner 출력을 재사용해 development 무품사 plan에서 기대 품사 분석이 빠진 case를
+   품사·분석 source·literal fallback 여부로 분류한다. development 무품사 fixture가 필요하면
+   `tools/morph-compare/python/dataset.py`, `tools/morph-compare/benchmark.py`와
+   `tools/morph-compare/python/report.py`만 연결한다. 기존 출력으로 원인을 구분할 수 없을 때만
+   runner에 최소 필드를 추가하며, 이 진단은 같은 작업 단위의 제품 변경으로 즉시 이어간다.
+2. 반복되는 한 누락군을 골라 development positive와 같은 표면형·품사의 version-controlled
+   hard-negative를 먼저 고정한다. 스펙을 갱신한 뒤 `crates/kfind-query/src/lexicons.rs`,
+   `crates/kfind-query/src/compile/mod.rs`와 `crates/kfind-query/src/compile/normalization.rs`에서
+   해당 누락군만 plan에 포함한다. matcher와 무관한 누락이면 matcher를 수정하지 않는다.
+3. 첫 development 실행의 User full-POS `smart` 품질을 기준선으로 고정한다. 완료 조건은
+   development TP 증가, FP 0과 precision 100.00% 유지, 기존 hard-negative 새 FP 0이다.
+   규칙 고정 뒤 held-out User 결과는 TP 411 이상, FP 0을 유지하고 explicit-POS test의
+   TP 414 / FP 0 / FN 86을 바꾸지 않아야 한다. 관련 morphology workload의 성능 회귀도 없어야
+   한다. 조건을 만족하는 제품 변경이 없으면 성공으로 기록하지 않고 이 항목을 계속 열어 둔다.
+4. Agent precision은 위 User recall 작업 뒤에만 재개한다. include/exclude lattice 존재 여부와
+   다른 독립 근거가 정의되어야 하며, development TP 484 보존, FP 15 미만, hard-negative 새
+   FP 0을 모두 요구한다. `include-path`와 `include-only` 투영은 재사용하지 않는다.
 
 ## 재현과 검증
 

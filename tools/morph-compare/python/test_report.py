@@ -18,6 +18,7 @@ from report import (
     product_workflows,
     quality_metrics,
     shadow_verification_summary,
+    strict_subspan_position,
     untagged_plan_metrics,
 )
 
@@ -124,9 +125,28 @@ class PrimaryCauseTests(unittest.TestCase):
 class DevelopmentFailureDiagnosticTests(unittest.TestCase):
     @staticmethod
     def failure(
-        case_id: str, query: str, pos: str, cause: str, rule_path: list[str]
+        case_id: str,
+        query: str,
+        pos: str,
+        cause: str,
+        rule_path: list[str],
+        *,
+        text: str | None = None,
+        gold_span: tuple[int, int] | None = None,
+        token_span: tuple[int, int] | None = None,
     ) -> dict[str, object]:
-        text = query.removesuffix("다") + "었다" if pos == "verb" else query
+        text = text or (
+            query.removesuffix("다") + "었다" if pos == "verb" else query
+        )
+        gold_start, gold_end = gold_span or (0, len(text.encode("utf-8")))
+        match: dict[str, object] = {
+            "origins": [{"analysis_index": 0, "rule_path": rule_path}]
+        }
+        if token_span is not None:
+            match["token"] = {
+                "byte_start": token_span[0],
+                "byte_end": token_span[1],
+            }
         return {
             "case": {
                 "id": case_id,
@@ -134,16 +154,14 @@ class DevelopmentFailureDiagnosticTests(unittest.TestCase):
                 "pos": pos,
                 "text": text,
                 "expected": True,
-                "gold_byte_start": 0,
-                "gold_byte_end": len(text.encode("utf-8")),
+                "gold_byte_start": gold_start,
+                "gold_byte_end": gold_end,
             },
             "predictions": {"kfind-full-pos": False},
             "profile_causes": {"kfind-full-pos": cause},
             "profile_cause_evidence": {
                 "kfind-full-pos": {
-                    "any_boundary_gold_matches": [
-                        {"origins": [{"analysis_index": 0, "rule_path": rule_path}]}
-                    ]
+                    "any_boundary_gold_matches": [match]
                 }
             },
         }
@@ -180,6 +198,55 @@ class DevelopmentFailureDiagnosticTests(unittest.TestCase):
             rendered,
         )
         self.assertNotIn("| noun-case |", rendered)
+
+    def test_renders_connective_ji_strict_subspan_positions(self) -> None:
+        development = {
+            "failures": [
+                self.failure(
+                    "left-case",
+                    "없다",
+                    "adjective",
+                    "boundary-rejected",
+                    ["ending.connective-ji"],
+                    text="없지는",
+                    token_span=(0, 6),
+                ),
+                self.failure(
+                    "right-case",
+                    "주다",
+                    "verb",
+                    "boundary-rejected",
+                    ["ending.connective-ji"],
+                    text="심어주지",
+                    token_span=(6, 12),
+                ),
+            ]
+        }
+        lines: list[str] = []
+
+        append_development_failure_diagnostics(lines, development)
+
+        rendered = "\n".join(lines)
+        self.assertIn("| left-edge | 1 |", rendered)
+        self.assertIn("| right-edge | 1 |", rendered)
+        self.assertIn("| internal | 0 |", rendered)
+        self.assertIn(
+            "| left-case | 없다/adjective | 없지는 | 없지 | left-edge |",
+            rendered,
+        )
+        self.assertIn(
+            "| right-case | 주다/verb | 심어주지 | 주지 | right-edge |",
+            rendered,
+        )
+
+    def test_classifies_only_strict_gold_subspans(self) -> None:
+        self.assertEqual("left-edge", strict_subspan_position(0, 9, 0, 6))
+        self.assertEqual("right-edge", strict_subspan_position(0, 9, 3, 9))
+        self.assertEqual("internal", strict_subspan_position(0, 12, 3, 9))
+        with self.assertRaises(ValueError):
+            strict_subspan_position(0, 9, 0, 9)
+        with self.assertRaises(ValueError):
+            strict_subspan_position(3, 9, 0, 6)
 
 
 class QualityMetricsTests(unittest.TestCase):
