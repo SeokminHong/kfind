@@ -462,9 +462,16 @@
   `Engine::with_resources(resources)`를 전체 사전 profile의 기본 생성 API로 제공한다. full POS binary와
   enriched predicate UTF-8 TSV는 생성 중 lexicon에 병합하고, component bytes는 compact resource로
   검증해 engine이 소유한다. 각 필드는 선택 사항이며 빈 bundle은 `Engine::new()`와 같은 profile이다.
-- 기존 `with_full_pos`, `with_component_resource`, `with_full_pos_and_component` 생성자는 1.0 공개 API
-  안정성 결정 전까지 호환 API로 유지하되 같은 bundle 생성 경로에 위임한다. caller-configured
-  `Lexicons` 생성자는 expert API로 유지한다.
+- 기존 `with_full_pos`, `with_component_resource`, `with_full_pos_and_component` 생성자는 1.x 호환
+  API로 유지하되 같은 bundle 생성 경로에 위임한다.
+- 1.0의 안정 Rust facade는 `Engine`, `Matcher`, `ResourceBundle`, compile option·오류와 match
+  provenance 타입을 crate root에 둔다. 이 타입의 공개 method, enum variant와 field는 1.x 호환
+  계약이다.
+- caller-configured `Lexicons`, `QueryPlan`과 matcher의 plan 접근은 `kfind::expert` 아래에만 둔다.
+  expert API는 계획 IR과 사전 조립 실험을 위한 것으로 1.x 안정 facade 계약에 포함하지 않는다.
+  root의 engine 생성·검색 경로는 expert 타입을 인자나 반환값으로 노출하지 않는다.
+- `kfind-data`, `kfind-morph`, `kfind-query`, `kfind-matcher`, `kfind-search`, `kfind-testkit`은 workspace
+  내부 crate이며 crates.io 배포 대상이 아니다. 공개 Rust 소비자는 `kfind` facade만 사용한다.
 - component resource는 생성 이후 first-use에 자동 fetch·load하지 않는다. 검증된 resource는 engine이
   소유하고 여러 matcher에서 재사용하며 query compile마다 다시 decode하지 않는다. resource가 없는
   engine에서 `NominalComponent`, `PredicateLexical` 또는 `LexicalContext`가 필요한 smart plan을
@@ -2378,6 +2385,10 @@ let matches = matcher.find_all("사용자권한을 확인한다.".as_bytes());
   `ComponentResourceRequired`로 보고한다.
 - `Matcher::find_at`과 `find_all`은 UTF-8 byte offset과 형태 provenance가 포함된
   `PhraseMatch`를 반환한다.
+- root의 `PhraseMatch`, `VerifiedSpan`, `Origin`, `RuleId`와 compile option·오류는 1.x 안정
+  계약이다. `QueryPlan`, branch·verifier 표현, `Lexicons`와 plan inspection은 `kfind::expert`의
+  변경 가능한 저수준 API다.
+- workspace 내부 crate는 게시하지 않으며 `kfind::expert` 외의 경로를 공개 API로 간주하지 않는다.
 - JavaScript API는 같은 profile을 `Kfind.withResources`, 같은 수명 주기를
   `loadComponentResource`, `compile`, `Matcher.findAll`로 노출하고 offset을 UTF-16 code unit으로
   변환한다.
