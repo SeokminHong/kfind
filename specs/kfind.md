@@ -1938,6 +1938,8 @@ macOS arm64
 ```
 
 CI에서 tagged release의 bottle을 생성한다. formula test는 임시 파일을 만들고 실제 형태 검색을 확인한다.
+JSON 검증은 JSON Lines record의 종단 LF와 `text` 필드를 구분하며, `text`에는 원문 줄의 종단 LF를
+포함하지 않는다.
 
 ```ruby
 test do
