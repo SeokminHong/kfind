@@ -77,11 +77,16 @@ globalStyle('.docs-sidebar', {
 
 globalStyle('.docs-sidebar nav', {
   display: 'grid',
+  gap: vars.space.large,
+});
+
+globalStyle('.navigation-group', {
+  display: 'grid',
   gap: '0.15rem',
 });
 
-globalStyle('.docs-sidebar p', {
-  margin: `${vars.space.large} 0 ${vars.space.xsmall}`,
+globalStyle('.navigation-group p', {
+  margin: `0 0 ${vars.space.xsmall}`,
   color: vars.color.subtle,
   fontSize: '0.7rem',
   fontWeight: 700,
@@ -89,11 +94,7 @@ globalStyle('.docs-sidebar p', {
   textTransform: 'uppercase',
 });
 
-globalStyle('.docs-sidebar p:first-child', {
-  marginBlockStart: 0,
-});
-
-globalStyle('.docs-sidebar a', {
+globalStyle('.navigation-group a', {
   padding: '0.38rem 0.5rem',
   borderRadius: vars.radius.small,
   color: vars.color.muted,
@@ -101,9 +102,44 @@ globalStyle('.docs-sidebar a', {
   textDecoration: 'none',
 });
 
-globalStyle('.docs-sidebar a:hover', {
+globalStyle('.navigation-group a:hover', {
   background: vars.color.linkWash,
   color: vars.color.link,
+});
+
+globalStyle('.navigation-group a[aria-current="page"]', {
+  background: vars.color.linkWash,
+  color: vars.color.link,
+  fontWeight: 650,
+});
+
+globalStyle('.mobile-navigation', {
+  display: 'none',
+  borderBlockEnd: `1px solid ${vars.color.border}`,
+  background: vars.color.sidebar,
+});
+
+globalStyle('.mobile-navigation summary', {
+  padding: `${vars.space.small} ${vars.space.large}`,
+  color: vars.color.heading,
+  cursor: 'pointer',
+  fontSize: '0.8rem',
+  fontWeight: 650,
+});
+
+globalStyle('.mobile-navigation nav', {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gap: vars.space.large,
+  padding: `0 ${vars.space.large} ${vars.space.large}`,
+});
+
+globalStyle('.route-loading', {
+  display: 'grid',
+  minHeight: '100svh',
+  placeItems: 'center',
+  color: vars.color.muted,
+  fontSize: '0.82rem',
 });
 
 globalStyle('.docs-content', {
@@ -327,6 +363,14 @@ globalStyle('.docs-sidebar', {
   '@media': {
     '(max-width: 52rem)': {
       display: 'none',
+    },
+  },
+});
+
+globalStyle('.mobile-navigation', {
+  '@media': {
+    '(max-width: 52rem)': {
+      display: 'block',
     },
   },
 });
