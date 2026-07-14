@@ -319,15 +319,16 @@ files.
 
 | Workflow | Quality (TP / FP / FN) | CLI wall | Throughput | Peak RSS |
 | --- | ---: | ---: | ---: | ---: |
-| Agent: embedded + `any` + explicit POS | 479 / 11 / 21 | 17.3 ms | 5,788.7 MiB/s | 7.1 MiB |
-| Human: full POS + `smart` + untagged | 411 / 0 / 89 | 306.6 ms | 326.1 MiB/s | 91.5 MiB |
+| Agent: embedded + `any` + explicit POS | 480 / 11 / 20 | 17.5 ms | 5,726.5 MiB/s | 7.0 MiB |
+| Human: full POS + `smart` + untagged | 411 / 0 / 89 | 304.8 ms | 328.1 MiB/s | 91.5 MiB |
 
-![Product workflow quality and CLI cost](docs/benchmarks/assets/2026-07-14-connective-ji-position-evidence-product-workflows.svg)
+![Product workflow quality and CLI cost](docs/benchmarks/assets/product-workflows.svg)
 
 The agent and human quality rows use different negative-query contracts, so
 they describe their product workflows rather than a head-to-head backend rank.
-The product rows are from the 2026-07-14 candidate revision `860c864`.
+The product rows are from the 2026-07-14 candidate revision `2d24c5c`.
 
+- [2026-07-14 ㅎ-irregular core lexicon recall](docs/benchmarks/2026-07-14-h-irregular-recall.md)
 - [2026-07-14 connective-ji position evidence](docs/benchmarks/2026-07-14-connective-ji-position-evidence.md)
 - [2026-07-14 local-lattice product-path optimization](docs/benchmarks/2026-07-14-local-lattice-optimization.md)
 - [2026-07-14 smart-precision quality and performance](docs/benchmarks/2026-07-14-user-smart-precision.md)
@@ -343,14 +344,14 @@ schema, version, and configuration did not change.
 
 | Backend | Input and version | TP / FP / FN | Precision | Recall | F1 | Init | Cases/s | p95 | Peak RSS |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Agent | embedded + `any`, explicit POS | 479 / 11 / 21 | 97.76% | 95.80% | 96.77% | 0.0011 s | 15,686.7 | 0.1441 ms | 5.4 MiB |
-| User | full POS + `smart`, untagged | 411 / 0 / 89 | 100.00% | 82.20% | 90.23% | 0.4256 s | 11,811.6 | 0.2080 ms | 92.1 MiB |
+| Agent | embedded + `any`, explicit POS | 480 / 11 / 20 | 97.76% | 96.00% | 96.87% | 0.0012 s | 15,611.8 | 0.1434 ms | 5.4 MiB |
+| User | full POS + `smart`, untagged | 411 / 0 / 89 | 100.00% | 82.20% | 90.23% | 0.4260 s | 11,869.5 | 0.2084 ms | 92.1 MiB |
 | Kiwi | snapshot 0.23.2, model 0.23.0, explicit POS | 426 / 0 / 74 | 100.00% | 85.20% | 92.01% | 1.7204 s | 1,672.0 | 1.1904 ms | 528.2 MiB |
 | Lindera | snapshot 4.0.0, embedded-ko-dic, explicit POS | 393 / 0 / 107 | 100.00% | 78.60% | 88.02% | 0.0301 s | 15,609.1 | 0.1113 ms | 193.1 MiB |
 | MeCab-ko | snapshot 1.0.2, dictionary 1.0.0, explicit POS | 403 / 0 / 97 | 100.00% | 80.60% | 89.26% | 0.0003 s | 10,789.7 | 0.1940 ms | 102.8 MiB |
 | KOMORAN | snapshot 3.3.9, FULL, explicit POS | 406 / 0 / 94 | 100.00% | 81.20% | 89.62% | 1.1589 s | 1,669.4 | 1.2370 ms | 686.6 MiB |
 
-![Persona-adjusted quality and performance against pinned external analyzers](docs/benchmarks/assets/2026-07-14-connective-ji-position-evidence-product-external-comparison.svg)
+![Persona-adjusted quality and performance against pinned external analyzers](docs/benchmarks/assets/product-external-comparison.svg)
 
 This is a product task workload comparison, not a same-input backend ranking or
 pure tokenizer benchmark. Each backend includes its own query preparation,
