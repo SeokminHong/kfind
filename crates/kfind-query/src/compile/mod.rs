@@ -20,6 +20,7 @@ use normalization::{DraftBranch, normalize_and_merge, normalize_atom};
 const BRANCH_OVERHEAD_BYTES: usize = 64;
 const COPULA_CONTRACTED_AOEO_RULE_ID: &str = "ending.aoeo-seo";
 const CONNECTIVE_JI_RULE_ID: &str = "ending.connective-ji";
+const NOMINALIZER_RULE_IDS: &[&str] = &["ending.nominalizer", "ending.nominalizer-gi"];
 const INTERNAL_PROVENANCE_IDS: &[&str] = &[
     "contraction.eu-drop",
     "contraction.h-irregular",
@@ -416,7 +417,7 @@ fn compile_predicate(
         }
         let nominal_particle_transition = rule_path
             .last()
-            .is_some_and(|rule| rule.as_str() == "ending.nominalizer-gi");
+            .is_some_and(|rule| NOMINALIZER_RULE_IDS.contains(&rule.as_str()));
         let smart_left = predicate.alternation != kfind_morph::LexicalAlternation::Copula
             && !(analysis.source == AnalysisSource::Forced
                 && rule_path
