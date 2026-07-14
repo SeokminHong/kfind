@@ -363,23 +363,23 @@ files.
 
 | Workflow | Quality (TP / FP / FN) | CLI wall | Throughput | Peak RSS |
 | --- | ---: | ---: | ---: | ---: |
-| Agent: embedded + `any` + explicit POS | 480 / 11 / 20 | 18.4 ms | 5,445.6 MiB/s | 7.2 MiB |
-| Human: full POS + `smart` + untagged | 411 / 0 / 89 | 319.5 ms | 313.0 MiB/s | 91.7 MiB |
+| Agent: embedded + `any` + explicit POS | 480 / 11 / 20 | 17.1 ms | 5,837.2 MiB/s | 7.3 MiB |
+| Human: full POS + `smart` + untagged | 417 / 0 / 83 | 310.9 ms | 321.7 MiB/s | 91.9 MiB |
 
 ![Product workflow quality and CLI cost](docs/benchmarks/assets/product-workflows.svg)
 
 The agent and human quality rows use different negative-query contracts, so
 they describe their product workflows rather than a head-to-head backend rank.
-The product rows are from the 2026-07-14 candidate revision `96e0429`.
+The product rows are from the 2026-07-14 candidate revision `b6cd0a9`.
 
-The focused irregular-predicate measurement at candidate revision `96e0429`
-against main `9063d46` preserved the test and development `smart` results and
-the fixed hard-negative FP count. Embedded untagged `smart` recovered two
-cases, from 319 / 0 / 181 to 321 / 0 / 179. Full-POS `smart` throughput was
-1.88% lower and p95 was 9.60% higher, but both measurement ranges overlapped.
-The 100 MiB Human CLI throughput was 2.96% lower with overlapping ranges, so
-the measurements do not establish a performance regression.
+The full-POS lexicon now includes 176 dictionary-classified D/S/B/H irregular
+analyses and two independently supported regular homonyms. Against main
+`e8f99c2`, test and Human untagged `smart` each reduced FN by six without new
+FP; development and hard-negative results were unchanged. The 100 MiB Human
+CLI and isolated full-POS startup ranges overlapped. Peak RSS for the larger
+artifact increased by 64--132 KiB.
 
+- [2026-07-14 D/S/B/H irregular enriched predicate lexicon](docs/benchmarks/2026-07-14-consonant-irregular-enriched-lexicon.md)
 - [2026-07-14 reu/reo irregular and enriched predicate lexicon](docs/benchmarks/2026-07-14-reu-reo-enriched-lexicon.md)
 - [2026-07-14 full-POS coarse-noun analysis-union recall](docs/benchmarks/2026-07-14-full-pos-coarse-noun-recall.md)
 - [2026-07-14 dependent-noun coarse-POS fallback recall](docs/benchmarks/2026-07-14-dependent-noun-recall.md)
@@ -399,8 +399,8 @@ schema, version, and configuration did not change.
 
 | Backend | Input and version | TP / FP / FN | Precision | Recall | F1 | Init | Cases/s | p95 | Peak RSS |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Agent | embedded + `any`, explicit POS | 480 / 11 / 20 | 97.76% | 96.00% | 96.87% | 0.0011 s | 15,602.7 | 0.1427 ms | 5.1 MiB |
-| User | full POS + `smart`, untagged | 411 / 0 / 89 | 100.00% | 82.20% | 90.23% | 0.4349 s | 11,048.5 | 0.2210 ms | 91.9 MiB |
+| Agent | embedded + `any`, explicit POS | 480 / 11 / 20 | 97.76% | 96.00% | 96.87% | 0.0011 s | 15,592.1 | 0.1442 ms | 5.1 MiB |
+| User | full POS + `smart`, untagged | 417 / 0 / 83 | 100.00% | 83.40% | 90.95% | 0.4442 s | 11,010.4 | 0.2172 ms | 91.9 MiB |
 | Kiwi | snapshot 0.23.2, model 0.23.0, explicit POS | 426 / 0 / 74 | 100.00% | 85.20% | 92.01% | 1.7204 s | 1,672.0 | 1.1904 ms | 528.2 MiB |
 | Lindera | snapshot 4.0.0, embedded-ko-dic, explicit POS | 393 / 0 / 107 | 100.00% | 78.60% | 88.02% | 0.0301 s | 15,609.1 | 0.1113 ms | 193.1 MiB |
 | MeCab-ko | snapshot 1.0.2, dictionary 1.0.0, explicit POS | 403 / 0 / 97 | 100.00% | 80.60% | 89.26% | 0.0003 s | 10,789.7 | 0.1940 ms | 102.8 MiB |

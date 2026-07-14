@@ -39,17 +39,17 @@ export default function BenchmarksPage(): React.JSX.Element {
                 <td>97.76%</td>
                 <td>96.00%</td>
                 <td>96.87%</td>
-                <td>15,602.7</td>
+                <td>15,397.7</td>
                 <td>5.1 MiB</td>
               </tr>
               <tr>
                 <td>User · full POS + smart + untagged</td>
-                <td>411 / 0 / 89</td>
+                <td>417 / 0 / 83</td>
                 <td>100.00%</td>
-                <td>82.20%</td>
-                <td>90.23%</td>
-                <td>11,048.5</td>
-                <td>91.9 MiB</td>
+                <td>83.40%</td>
+                <td>90.95%</td>
+                <td>10,757.4</td>
+                <td>92.1 MiB</td>
               </tr>
             </tbody>
           </table>
@@ -170,21 +170,31 @@ export default function BenchmarksPage(): React.JSX.Element {
         </p>
       </DocumentSection>
 
-      <DocumentSection title="르·러 불규칙과 enriched lexicon">
+      <DocumentSection title="사전 기반 불규칙 활용 lexicon">
         <p>
           <code>다르다 → 달라</code>는 르 불규칙이고{' '}
           <code>푸르다 → 푸르러</code>와 도달 뜻의 <code>이르다 → 이르러</code>
-          는 러 불규칙입니다. 국립국어원 사전 snapshot에서 검토한 102개 분석을
-          full-POS 제품 경로에 추가했습니다. Main <code>9063d46</code> 대비 후보{' '}
-          <code>96e0429</code>는 test와 development <code>smart</code>, 16개
-          hard-negative의 FP 수를 유지했습니다. Embedded 무품사{' '}
-          <code>smart</code>는 FN 2건을 줄였고, 성능 측정 범위는 기준과
-          겹쳤습니다.
+          는 러 불규칙입니다. 같은 종성에서도 활용이 갈리는 ㄷ·ㅅ·ㅂ·ㅎ은
+          국립국어원 사전 snapshot의 활용형을 표제어별로 판별합니다. full-POS
+          제품 경로는 기존 르·러 102개와 신규 ㄷ·ㅅ·ㅂ·ㅎ 176개, 규칙형 동형어
+          companion 2개를 배포합니다.
+        </p>
+        <p>
+          Main <code>e8f99c2</code> 대비 후보 <code>b6cd0a9</code>는 test와
+          사람용 무품사 <code>smart</code>에서 새 FP 없이 FN을 각각 6건
+          줄였습니다. Development와 hard-negative는 변하지 않았고, 100 MiB Human
+          CLI 처리량과 isolated full-POS 초기화의 측정 범위는 겹쳤습니다. 확대된
+          artifact의 peak RSS는 64~132 KiB 늘었습니다.
         </p>
       </DocumentSection>
 
       <DocumentSection title="원본 보고서">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-consonant-irregular-enriched-lexicon.md">
+              ㄷ·ㅅ·ㅂ·ㅎ 불규칙 enriched 용언 lexicon
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-reu-reo-enriched-lexicon.md">
               르·러 불규칙과 enriched 용언 lexicon
