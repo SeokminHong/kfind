@@ -518,10 +518,13 @@ The implementation contract and release acceptance criteria are in
 ## License
 
 kfind source code and project-authored data are available under the
-[MIT License](LICENSE). The Homebrew full POS resource preserves the separate
-Apache-2.0 notice from `mecab-ko-dic` under `share/doc/kfind/LICENSES`. UD source
-and derived fixtures in the benchmark image remain under CC BY-SA 4.0, with a
-per-source notice included in the image.
+[MIT License](LICENSE). The Homebrew full POS and component resources preserve
+the Apache-2.0 notice from `mecab-ko-dic`, while enriched predicate data
+preserves its CC BY-SA 2.0 Korea notice under `share/doc/kfind/LICENSES`.
+The Formula uses `license :cannot_represent` because this combination cannot be
+expressed as an SPDX license expression. UD source and derived fixtures in the
+benchmark image remain under CC BY-SA 4.0, with a per-source notice included in
+the image.
 
 ## Release
 

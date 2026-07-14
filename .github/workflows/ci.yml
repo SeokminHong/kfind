@@ -46,6 +46,14 @@ jobs:
           --pattern 'test_*.py'
       - name: Check fuzz targets
         run: cargo +stable check --manifest-path fuzz/Cargo.toml --bins --locked
+      - name: Check Homebrew formula metadata
+        run: |
+          output=$(mktemp)
+          trap 'rm -f "$output"' EXIT
+          checksum=$(printf '%064d' 0)
+          scripts/render-homebrew-formula.sh \
+            0.3.0 1.97.0 "$checksum" "$checksum" "$checksum" "$checksum" MIT "$output"
+          grep -Fqx '  license :cannot_represent' "$output"
 
   test:
     name: Test (${{ matrix.runner }})

@@ -249,7 +249,13 @@
   뒤에는 `brew upgrade`가 그 link의 안정 경로가 가리키는 원본을 자동으로 갱신한다.
   Homebrew hook은 대상 project와 agent를 알 수 없으므로 임의의 project skill 경로를 직접
   만들거나 수정하지 않는다.
-- kfind 소스 코드와 프로젝트가 직접 작성한 내장 데이터는 MIT 라이선스로 배포한다. 외부 full POS resource의 Apache-2.0 고지는 별도 `LICENSES` 디렉터리에 보존한다.
+- kfind 소스 코드와 프로젝트가 직접 작성한 내장 데이터는 MIT 라이선스로 배포한다. 외부 full
+  POS와 component resource의 Apache-2.0 고지, enriched predicate data의 CC BY-SA 2.0 Korea
+  고지는 별도 `LICENSES` 디렉터리에 보존한다.
+- formula가 설치하는 전체 묶음은 MIT, Apache-2.0, CC BY-SA 2.0 Korea 조건을 함께 따른다.
+  CC BY-SA 2.0 Korea는 SPDX License List에 없으므로 Homebrew metadata는 존재하지 않는 SPDX
+  식별자를 만들거나 Generic license로 대체하지 않고 `license :cannot_represent`를 사용한다.
+  renderer와 release workflow는 이 metadata를 검증한다.
 
 ### 0.6 재현 가능한 성능 기준
 
