@@ -170,6 +170,53 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
 }
 
 #[test]
+fn explicit_pos_smart_opens_only_the_connective_ji_left_boundary() {
+    let explicit_smart = compile_query(
+        "걷다",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    let connective = explicit_smart.atoms[0]
+        .branches
+        .iter()
+        .find(|branch| branch.anchor.as_ref() == "걷지".as_bytes())
+        .unwrap();
+    assert!(!connective.boundary.require_left);
+    assert!(connective.boundary.require_right);
+
+    let untagged_smart = compile_query("걷다", &CompileOptions::default(), &analyzer()).unwrap();
+    let untagged_connective = untagged_smart.atoms[0]
+        .branches
+        .iter()
+        .find(|branch| branch.anchor.as_ref() == "걷지".as_bytes())
+        .unwrap();
+    assert!(untagged_connective.boundary.require_left);
+    assert!(untagged_connective.boundary.require_right);
+
+    let explicit_token = compile_query(
+        "걷다",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            boundary: BoundaryPolicy::Token,
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    let token_connective = explicit_token.atoms[0]
+        .branches
+        .iter()
+        .find(|branch| branch.anchor.as_ref() == "걷지".as_bytes())
+        .unwrap();
+    assert!(token_connective.boundary.require_left);
+    assert!(token_connective.boundary.require_right);
+}
+
+#[test]
 fn smart_direct_particle_uses_host_verification_instead_of_a_left_boundary() {
     let smart = compile_query("는", &CompileOptions::default(), &analyzer()).unwrap();
     assert_eq!(smart.atoms[0].branches.len(), 1);
