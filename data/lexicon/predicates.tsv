@@ -1,5 +1,6 @@
 lemma	pos	alternation	flags	overrides
 가다	VV	Regular		
+가려듣다	VV	DToL		
 가볍다	VA	BToWo		
 걷다	VV	DToL		
 걷다	VV	Regular		
@@ -14,6 +15,7 @@ lemma	pos	alternation	flags	overrides
 듣다	VV	DToL		
 다르다	VA	ReuDoubleL		
 만들다	VV	Regular	RIEUL_DROP	
+덧싣다	VV	DToL		
 먹다	VV	Regular		
 모르다	VV	ReuDoubleL		
 무겁다	VA	BToWo		
@@ -27,6 +29,7 @@ lemma	pos	alternation	flags	overrides
 빠르다	VA	ReuDoubleL		
 살다	VV	Regular	RIEUL_DROP	
 싣다	VV	DToL		
+쏟아붓다	VV	DropS		
 쓰다	VV	Regular	EU_DROP	
 어떻다	VA	DropH		
 아니다	VCN	Regular	NO_I_EO_CONTRACTION	ending.connective-ra=아니라
@@ -53,3 +56,4 @@ lemma	pos	alternation	flags	overrides
 푸르다	VA	Reo		
 하다	VV	Ha		
 흐르다	VV	ReuDoubleL		
+흘려듣다	VV	DToL		

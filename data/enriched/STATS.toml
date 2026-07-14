@@ -4,20 +4,20 @@ record_count = 220738
 candidate_count = 2069
 promoted_count = 278
 mixed_regular_count = 2
-core_duplicate_count = 40
+core_duplicate_count = 44
 productive_duplicate_count = 932
 regular_control_count = 399
-review_count = 418
+review_count = 414
 
 [[classification]]
 name = "DToL"
 candidate_count = 57
 promoted_count = 17
 mixed_regular_count = 0
-core_duplicate_count = 4
+core_duplicate_count = 7
 productive_duplicate_count = 0
 regular_control_count = 0
-review_count = 36
+review_count = 33
 
 [[classification]]
 name = "RegularD"
@@ -34,10 +34,10 @@ name = "DropS"
 candidate_count = 63
 promoted_count = 26
 mixed_regular_count = 0
-core_duplicate_count = 3
+core_duplicate_count = 4
 productive_duplicate_count = 0
 regular_control_count = 0
-review_count = 34
+review_count = 33
 
 [[classification]]
 name = "RegularS"

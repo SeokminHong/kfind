@@ -58,9 +58,11 @@
   의존명사 fallback을 합집합으로 보존한다. full POS의 단일 세부 품사가 명시적 coarse 품사의
   다른 component 근거를 억제하지 않으며, user lexicon의 `replace = true`는 이 합집합보다
   우선한다.
-- core lexicon은 전체 표제어 목록이 아니라 불규칙 활용, 품사 중의성, 기능어, 표면형 override를 담는 예외 계층이다. embedded workflow의 검증된 주요 불규칙은 core에 유지한다. 공개 사전에서
-  일괄 승격한 활용 metadata는 별도 enriched 계층으로 관리하며, core entry 수를 corpus recall에
-  맞춰 무제한 늘리지 않는다.
+- core lexicon은 전체 표제어 목록이 아니라 불규칙 활용, 품사 중의성, 기능어, 표면형 override를 담는 예외 계층이다. embedded workflow의 검증된 주요 불규칙은 core에 유지한다. 자동 승격 기준을
+  충족하지 못한 review 항목은 표준국어대사전과 우리말샘의 고정 snapshot이 같은 진단형을
+  지지하고 충돌하는 규칙형 record가 없으며 독립 fixture가 활용과 오활용을 함께 검증한 경우에만
+  수동 core 예외로 둘 수 있다. 공개 사전에서 일괄 승격한 활용 metadata는 별도 enriched 계층으로
+  관리하며, core entry 수를 corpus recall에 맞춰 무제한 늘리지 않는다.
 - core lexicon의 `DropH` 형용사는 검증된 ㅎ 불규칙 표제어를 명시한다. `어떻다`, `이렇다`,
   `커다랗다`는 각각 `어떤`, `이런`, `커다란` 관형형을 만들고 규칙형 `어떻은`, `이렇은`,
   `커다랗은`은 만들지 않는다.
@@ -1810,6 +1812,9 @@ rule id로 생성한 anchor를 사용하며, importer에서 별도의 한글 교
 alternation, flags)`를 지지할 때만 허용한다. 우리말샘은 추가 근거와 review 자료로만 사용한다.
 서로 다른 source record가 같은 `(lemma, fine_pos)`에 규칙형과 불규칙형을 각각 지지하면 두 분석을
 보존한다. 하나의 source record가 둘 이상의 분류 진단형을 동시에 포함하면 자동 집계에서 제외한다.
+수동 core 예외는 이 자동 승격 조건을 바꾸지 않는다. 해당 항목은 고정 snapshot의 source record id,
+선택 이유와 fixture 결과를 benchmark 보고서에 남기며, core 중복으로 바뀐 상태를 생성 report와
+통계에 반영한다.
 
 core와 완전히 같은 분석 및 `derivations.toml`의 생산 접미 규칙으로 이미 생성되는 분석은 enriched
 출력에서 제외하고 report에 중복 상태로 남긴다. `UToEo`처럼 독립 사전 합의가 있어도 이미 core에

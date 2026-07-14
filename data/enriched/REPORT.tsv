@@ -10,7 +10,7 @@ lemma	pos	alternation	flags	krdict_ids	stdict_ids	opendict_ids	status
 가닥스럽다	VA	BToWo				616531:1	productive-duplicate
 가닿다	VV	Regular			1848:1848001	441068:1	regular-control
 가량스럽다	VA	BToWo			960:960001	73738:1	productive-duplicate
-가려듣다	VV	DToL			386073:386073001	73751:1	review
+가려듣다	VV	DToL			386073:386073001	73751:1	core-duplicate
 가려잡다	VV	Regular			21:21001	367626:1|370930:1	regular-control
 가련스럽다	VA	BToWo				725118:1	productive-duplicate
 가렵다	VA	BToWo		14974	526:526001	485926:1|589678:1	promoted
@@ -582,7 +582,7 @@ lemma	pos	alternation	flags	krdict_ids	stdict_ids	opendict_ids	status
 덧묻다	VV	Regular			412275:412275001|82306:82306001	128406:1|404727:1|408125:1	regular-control
 덧바르다	VV	ReuDoubleL		51281	414914:414914001	128411:1	promoted
 덧솟다	VV	Regular			83566:83566001	128861:1	regular-control
-덧싣다	VV	DToL			84448:84448001	128864:1	review
+덧싣다	VV	DToL			84448:84448001	128864:1	core-duplicate
 덧쌓다	VV	Regular			84498:84498001	129057:1	regular-control
 덧입다	VV	Regular		51345	84168:84168001	129285:1	regular-control
 덧잡다	VV	Regular			84030:84030001	129287:1	regular-control
@@ -1260,7 +1260,7 @@ lemma	pos	alternation	flags	krdict_ids	stdict_ids	opendict_ids	status
 썰레놓다	VV	Regular			212438:212438001	464570:1	regular-control
 쏘지르다	VV	ReuDoubleL			213634:213634001	575035:1	review
 쏟다	VV	Regular		62333	455126:455126001	444176:1|447805:1|448544:1|464718:1|464719:1	regular-control
-쏟아붓다	VV	DropS			516389:516389001	597721:1|597722:1|597723:1|597724:1|597725:1	review
+쏟아붓다	VV	DropS			516389:516389001	597721:1|597722:1|597723:1|597724:1|597725:1	core-duplicate
 쑥스럽다	VA	BToWo		66519	453518:453518001	214101:1	productive-duplicate
 쓸까스르다	VV	ReuDoubleL			211279:211279001	354708:1	review
 씨받다	VV	Regular			454304:454304001	15879:1|47208:1	regular-control
@@ -2046,7 +2046,7 @@ lemma	pos	alternation	flags	krdict_ids	stdict_ids	opendict_ids	status
 흐르다	VV	ReuDoubleL		29757	504467:504467001|508767:508767001	444293:1|444334:1|444360:1|447804:1|447863:1|447912:1|448633:1|448966:1|449003:1|449006:1|477546:1|477547:1|477548:1	core-duplicate
 흔감스럽다	VA	BToWo			508861:508861001	329827:1	productive-duplicate
 흔연스럽다	VA	BToWo			383182:383182001	330096:1	productive-duplicate
-흘려듣다	VV	DToL			385994:385994001	29868:1|60419:1	review
+흘려듣다	VV	DToL			385994:385994001	29868:1|60419:1	core-duplicate
 흘리젓다	VV	DropS			385999:385999001	328718:1	review
 흠뜯다	VV	Regular			385724:385724001	551044:1	regular-control
 흠잡다	VV	Regular		87479	507900:507900001	330218:1	regular-control
