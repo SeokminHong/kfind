@@ -2007,6 +2007,33 @@ query	pos	text	expected	feature
 
 문맥상 다른 표제어인 결과는 현재 정책상 false positive로 계산하지 않는다. 형태 규칙이 만들 수 없는 문자열만 false positive다.
 
+#### 19.5.1 현실 기술 코퍼스 blind fixture
+
+UD 기반 품질 fixture와 별도로, 재배포 조건이 명확한 공개 저장소의 한국어 README, 소스 코드
+주석과 기술 문서에서 짧은 원문을 고정한다. source manifest는 저장소, commit, 라이선스와
+라이선스 URL, 원본 경로, 원본 파일 SHA-256을 기록한다. case는 source path와 line 범위,
+artifact type, query, 기대 품사, 원문, 기대 여부와 positive의 UTF-8 byte gold span을 보존한다.
+
+fixture는 다음 slice를 모두 포함한다.
+
+- 식별자 주변 한글
+- 띄어쓰기 오류
+- 한글·영문·숫자 혼합
+- 동형이의어
+- 복합명사 substring
+
+원문은 NFC 정규화 후 연속 공백을 하나로 줄인 canonical text가 case 사이에서 중복되지 않아야
+한다. query와 기대 span은 첫 제품 실행 전에 고정하고, 최초 보고서가 커밋된 뒤에는 제품 결과를
+개선하기 위해 바꾸지 않는다. source 전사 오류나 gold 오류는 독립된 근거와 revision을 남겨
+수정한다.
+
+평가는 Agent의 `embedded + any + explicit POS`와 User의 `full-POS + smart + untagged`를 같은
+fixture 순서로 실행한다. positive는 예측 span이 gold span과 겹쳐야 TP이고, negative는 문장
+어디에서든 결과가 있으면 FP다. 전체와 artifact type·slice별 TP·FP·TN·FN, precision, recall,
+F1과 실패 case를 version-controlled JSON과 Markdown으로 보존한다. source hash, 필수 metadata,
+canonical uniqueness, gold span, 필수 artifact type·slice가 유효하지 않으면 평가를 실패시킨다.
+이 fixture와 결과는 기존 UD 회귀 fixture를 대체하거나 규칙 선택에 사용하지 않는다.
+
 ### 19.6 외부 분석기 비교
 
 Kiwi, Lindera, MeCab-ko와 KOMORAN 비교는 저장소의 개발 전용 검증으로 실행하며 제품 바이너리, Homebrew

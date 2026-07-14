@@ -392,6 +392,24 @@ time ranges overlapped.
 - [2026-07-14 contextual `매일` disambiguation](docs/benchmarks/2026-07-14-contextual-maeil-disambiguation.md)
 - [2026-07-13 product workflow methodology and external snapshots](docs/benchmarks/2026-07-13-product-workflows.md)
 
+### Real technical-corpus blind diagnostic
+
+At revision `46f9ceb`, 25 Korean README, source-code comment, and technical-
+document excerpts were pinned and evaluated across five slices. The fixture has
+21 positives and four negatives, so it is a small diagnostic set rather than a
+product-wide quality score or profile ranking.
+
+| Profile | TP / FP / TN / FN | Precision | Recall | F1 |
+| --- | ---: | ---: | ---: | ---: |
+| Agent: embedded + `any` + explicit POS | 20 / 3 / 1 / 1 | 86.96% | 95.24% | 90.91% |
+| User: full POS + `smart` + untagged | 15 / 1 / 3 / 6 | 93.75% | 71.43% | 81.08% |
+
+User recall on the spacing-error slice was 20%. Queries and gold spans were
+pinned before the first run. This result does not replace the UD regression
+fixture or select product rules.
+
+- [2026-07-14 real technical-corpus blind evaluation](docs/benchmarks/2026-07-14-real-corpus-blind.md)
+
 ### External analyzer comparison
 
 The table below uses the same 1,000-case explicit-POS fixture and gold. The
