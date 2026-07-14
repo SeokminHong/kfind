@@ -40,7 +40,7 @@ KFIND_MORPH_RUNS=1 scripts/benchmark-morphology.sh \
 
 ## 오거부 원인
 
-primary cause는 exclude 최저 비용 경로의 구조를 나타낸다. case별 JSON record는 source·raw tag,
+주된 원인 분류는 `exclude` 측 최저 비용 경로의 구조를 나타낸다. case별 JSON record는 source·raw tag,
 문장, gold·candidate span, 분석 window, include·exclude 비용과 선택 경로를 보존한다.
 
 | source/raw tag | segmented nominal | whole window | segmented other | segmented predicate | 합계 |
@@ -49,7 +49,7 @@ primary cause는 exclude 최저 비용 경로의 구조를 나타낸다. case별
 | Korean-KSL `vcp` | 4 | 3 | 1 | 1 | 9 |
 | 합계 | 33 | 13 | 3 | 1 | 50 |
 
-exclude 최저 비용 경로는 `NNG + NNG` 19건, 단일 `NNG` 10건, `NP + JX` 5건이 가장 많다.
+`exclude` 측 최저 비용 경로는 `NNG + NNG` 19건, 단일 `NNG` 10건, `NP + JX` 5건이 가장 많다.
 cost margin은 최소 321, 중앙값 1,438, p95 4,076, 최대 5,169다.
 
 ## 제품 경계

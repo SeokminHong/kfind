@@ -85,5 +85,5 @@ python3 tools/morph-compare/render_charts.py \
   --prefix 2026-07-14-local-lattice-optimization-
 ```
 
-Criterion 기준선은 `7ee8bf4` 제품 코드에 benchmark harness만 추가한 revision이다.
+Criterion 기준선은 `7ee8bf4` 제품 코드에 benchmark 측정 코드만 추가한 revision이다.
 외부 분석기 snapshot은 fixture, schema와 고정 버전·설정이 바뀌지 않아 갱신하지 않았다.

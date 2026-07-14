@@ -39,11 +39,13 @@ const routeMetadata: Readonly<Record<RoutePath, DocumentRouteHandle>> = {
   },
   [RoutePath.Analysis]: {
     title: '형태 분석',
-    description: 'query-directed 형태 분석과 표면형 생성 원리를 설명합니다.',
+    description:
+      'Query에서 표면형과 verifier를 만드는 형태 분석 원리를 설명합니다.',
   },
   [RoutePath.Architecture]: {
     title: '아키텍처',
-    description: 'compile, anchor scan, verifier와 출력 구조를 설명합니다.',
+    description:
+      'Query compile부터 anchor scan, verifier와 출력까지의 구조를 설명합니다.',
   },
   [RoutePath.Optimization]: {
     title: '설계와 최적화',
