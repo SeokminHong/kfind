@@ -42,6 +42,7 @@ class Kfind < Formula
       bash_completion.install "completions/kfind.bash" => "kfind"
       zsh_completion.install "completions/_kfind"
       fish_completion.install "completions/kfind.fish"
+      pkgshare.install "skills"
     end
 
     (share/"doc/kfind/LICENSES").install Dir["LICENSE*"]
@@ -62,5 +63,12 @@ class Kfind < Formula
     component.write("사용자권한을 확인했다.\n대학교를 방문했다.\n")
     assert_match "사용자권한", shell_output("#{bin}/kfind 권한 #{component}")
     assert_empty shell_output("#{bin}/kfind 학교 #{component}", 1)
+
+    assert_predicate pkgshare/"skills/kfind/SKILL.md", :file?
+    assert_match "name: kfind", shell_output("#{bin}/kfind --init --agent custom")
+    system bin/"kfind", "--init", "--agent", "codex"
+    installed_skill = testpath/".agents/skills/kfind/SKILL.md"
+    assert_predicate installed_skill, :symlink?
+    assert_equal (opt_pkgshare/"skills/kfind/SKILL.md").realpath, installed_skill.realpath
   end
 end

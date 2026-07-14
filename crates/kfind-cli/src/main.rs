@@ -1,4 +1,6 @@
-use kfind_cli::{ExitStatus, Language, parse_args_from, run_with_io, write_cli_error};
+use kfind_cli::{
+    CliError, ExitStatus, Language, parse_args_from, run_init_with_io, run_with_io, write_cli_error,
+};
 use std::env;
 use std::io::{self, BufWriter, IsTerminal, Write};
 use std::process::ExitCode;
@@ -21,18 +23,34 @@ fn main() -> ExitCode {
     let stderr = io::stderr();
     let stdin_is_terminal = stdin.is_terminal();
     let stdout_is_terminal = stdout.is_terminal();
+    let stderr_is_terminal = stderr.is_terminal();
     let mut stdout = BufWriter::new(stdout);
     let mut stderr = BufWriter::new(stderr);
 
-    match run_with_io(
-        &args,
-        language,
-        stdin.lock(),
-        &mut stdout,
-        &mut stderr,
-        stdin_is_terminal,
-        stdout_is_terminal,
-    ) {
+    let result = if args.init {
+        run_init_with_io(
+            &args,
+            language,
+            stdin.lock(),
+            &mut stdout,
+            &mut stderr,
+            stdin_is_terminal && stderr_is_terminal,
+        )
+        .map(|()| ExitStatus::Match)
+        .map_err(CliError::Init)
+    } else {
+        run_with_io(
+            &args,
+            language,
+            stdin.lock(),
+            &mut stdout,
+            &mut stderr,
+            stdin_is_terminal,
+            stdout_is_terminal,
+        )
+    };
+
+    match result {
         Ok(status) => ExitCode::from(status.code()),
         Err(error) => {
             let _ = write_cli_error(&mut stderr, &error, language);

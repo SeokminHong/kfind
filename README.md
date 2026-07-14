@@ -59,7 +59,7 @@ Non-goals:
 - Produces terminal text, context, counts, file lists, JSON Lines, and query or
   match provenance.
 - Runs offline. Core rules are embedded; Homebrew installs the optional full POS
-  and morphology-component resources.
+  and morphology-component resources plus the agent skill.
 - Exposes the query compiler and matcher through Rust and WebAssembly libraries.
 
 ## Install
@@ -75,6 +75,34 @@ To build the current checkout with Rust 1.85 or newer:
 ```sh
 cargo install --locked --path crates/kfind-cli
 ```
+
+## Agent skill setup
+
+Run `kfind --init` in a project directory. In a terminal it opens a checkbox
+selector for Claude Code, Codex, Gemini CLI, and custom stdout output. The
+project destinations are `.claude/skills/kfind`, `.agents/skills/kfind`, and
+`.gemini/skills/kfind`.
+
+```sh
+# Interactive checkbox selection.
+kfind --init
+
+# Reproducible one-liner.
+kfind --init --agent codex --agent claude-code
+
+# Non-interactive stdin selection.
+printf 'codex\ngemini\n' | kfind --init
+
+# Write only SKILL.md content to stdout for another agent.
+kfind --init --agent custom > path/to/kfind/SKILL.md
+```
+
+Homebrew installs the canonical skill under `share/kfind` with the binary, but it
+cannot choose a project or agent on the user's behalf. Run `kfind --init` once in
+each project. That initialization links to Homebrew's stable `opt/kfind` path, so
+later `brew upgrade kfind` runs update those project skills automatically. A source
+or Cargo installation writes a managed copy; rerun `kfind --init` to update it.
+Existing skills without the kfind management marker are never overwritten.
 
 ## Quick start
 
@@ -184,6 +212,7 @@ text, narrow paths or globs, or retry with `smart` if the set is too large.
 
 ```text
 kfind [OPTIONS] <QUERY> [PATH]...
+kfind --init [--agent <AGENT>]...
 ```
 
 ### Query and compilation
@@ -249,6 +278,8 @@ conversion.
 | --- | --- | --- |
 | `--data-dir <PATH>` | automatic discovery | Reads `lexicon.bin` and `morphology-component-compact.kfc` from one explicit directory. |
 | `--user-lexicon <PATH>` | XDG config path | Loads a TOML user lexicon instead of the default config lookup. |
+| `--init` | off | Initializes the kfind skill in the current directory without a query. |
+| `--agent <AGENT>` | TTY selection or stdin; repeatable | Selects `claude-code`, `codex`, `gemini`, or `custom`; requires `--init`. |
 | `--help` | — | Prints localized command help. `-h` is reserved for `--no-filename`. |
 | `-V`, `--version` | — | Prints the version. |
 
@@ -272,7 +303,7 @@ existing analyses in the same morphology category for that lemma.
 
 | Code | Meaning |
 | ---: | --- |
-| `0` | At least one match was found. |
+| `0` | At least one match was found, or agent initialization succeeded. |
 | `1` | No match was found. |
 | `2` | Usage, query compilation, data, I/O, or search error. |
 

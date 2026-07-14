@@ -7,6 +7,7 @@ use std::path::{Path, PathBuf};
 use clap_complete::{Shell, generate};
 
 use crate::Language;
+use crate::init::SKILL_CONTENT;
 use crate::parse::localized_command;
 
 const PROGRAM_NAME: &str = "kfind";
@@ -30,6 +31,16 @@ kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
 .EE
 The agent must inspect context and discard false positives. Narrow the path or
 glob, or retry with smart boundaries when the candidate set is too large.
+.SS Agent skill setup
+Run the interactive checkbox selector in a project directory, or name targets
+explicitly for automation.
+.PP
+.EX
+kfind --init
+kfind --init --agent codex --agent claude-code
+printf 'codex\ngemini\n' | kfind --init
+kfind --init --agent custom > path/to/kfind/SKILL.md
+.EE
 "#;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -38,6 +49,7 @@ pub struct DistributionAssets {
     pub bash_completion: PathBuf,
     pub zsh_completion: PathBuf,
     pub fish_completion: PathBuf,
+    pub agent_skill: PathBuf,
 }
 
 #[derive(Debug)]
@@ -77,14 +89,17 @@ pub fn generate_distribution_assets(
     let output_root = output_root.as_ref();
     let man_directory = output_root.join("man/man1");
     let completion_directory = output_root.join("completions");
+    let skill_directory = output_root.join("skills/kfind");
     create_directory(&man_directory)?;
     create_directory(&completion_directory)?;
+    create_directory(&skill_directory)?;
 
     let assets = DistributionAssets {
         man_page: man_directory.join("kfind.1"),
         bash_completion: completion_directory.join("kfind.bash"),
         zsh_completion: completion_directory.join("_kfind"),
         fish_completion: completion_directory.join("kfind.fish"),
+        agent_skill: skill_directory.join("SKILL.md"),
     };
 
     let mut man_page = Vec::new();
@@ -96,6 +111,7 @@ pub fn generate_distribution_assets(
     write_file(&assets.bash_completion, &render_completion(Shell::Bash))?;
     write_file(&assets.zsh_completion, &render_completion(Shell::Zsh))?;
     write_file(&assets.fish_completion, &render_completion(Shell::Fish))?;
+    write_file(&assets.agent_skill, SKILL_CONTENT.as_bytes())?;
 
     Ok(assets)
 }
@@ -147,27 +163,62 @@ mod tests {
             assets.fish_completion,
             temporary_directory.path().join("completions/kfind.fish")
         );
+        assert_eq!(
+            assets.agent_skill,
+            temporary_directory.path().join("skills/kfind/SKILL.md")
+        );
 
         assert!(first_contents[0].contains("kfind"));
         assert!(first_contents[0].contains("Fast Korean lemma"));
         assert!(first_contents[0].contains(".SH WORKFLOWS"));
         assert!(first_contents[0].contains(".SS Interactive use"));
         assert!(first_contents[0].contains(".SS Agent automation"));
+        assert!(first_contents[0].contains(".SS Agent skill setup"));
         assert!(first_contents[0].contains("--embedded --boundary any --pos verb --json"));
+        assert!(first_contents[0].contains("--init --agent codex --agent claude-code"));
         assert!(first_contents[1].contains("_kfind"));
         assert!(first_contents[2].contains("#compdef kfind"));
         assert!(first_contents[3].contains("complete -c kfind"));
+        assert_eq!(first_contents[4], SKILL_CONTENT);
+        for required in [
+            "--embedded --boundary any --json",
+            "--pos verb",
+            "--literal",
+            "--max-gap",
+            "--glob",
+            "type: \"match\"",
+            "offset_unit",
+        ] {
+            assert!(first_contents[4].contains(required), "missing {required}");
+        }
+        assert!(first_contents[4].contains("`auto`"), "missing auto");
+        for (pos, tag) in [
+            ("noun", "n:"),
+            ("pronoun", "pro:"),
+            ("numeral", "num:"),
+            ("verb", "v:"),
+            ("adjective", "adj:"),
+            ("determiner", "det:"),
+            ("adverb", "adv:"),
+            ("particle", "j:"),
+            ("interjection", "intj:"),
+            ("literal", "lit:"),
+        ] {
+            assert!(first_contents[4].contains(pos), "missing {pos}");
+            assert!(first_contents[4].contains(tag), "missing {tag}");
+        }
 
         let regenerated_assets = generate_distribution_assets(temporary_directory.path()).unwrap();
         assert_eq!(first_contents, read_assets(&regenerated_assets));
     }
 
-    fn read_assets(assets: &DistributionAssets) -> [String; 4] {
+    fn read_assets(assets: &DistributionAssets) -> [String; 5] {
         [
             fs::read_to_string(&assets.man_page).unwrap(),
             fs::read_to_string(&assets.bash_completion).unwrap(),
             fs::read_to_string(&assets.zsh_completion).unwrap(),
             fs::read_to_string(&assets.fish_completion).unwrap(),
+            fs::read_to_string(&assets.agent_skill).unwrap(),
         ]
     }
 }

@@ -177,6 +177,16 @@ const HELP_TEXT: &[(&str, &str, &str)] = &[
         "Read a user lexicon from PATH.",
         "PATH에서 사용자 사전을 읽습니다.",
     ),
+    (
+        "init",
+        "Initialize the kfind skill for coding agents in the current directory.",
+        "현재 디렉터리에 coding agent용 kfind skill을 초기화합니다.",
+    ),
+    (
+        "agent",
+        "Select an initialization target (repeatable; values: claude-code, codex, gemini, custom).",
+        "초기화 대상을 선택합니다(반복 가능; 값: claude-code, codex, gemini, custom).",
+    ),
     ("help", "Print help.", "도움말을 출력합니다."),
     ("version", "Print version.", "버전을 출력합니다."),
 ];
@@ -212,6 +222,7 @@ pub(crate) fn localized_command(language: Language) -> Command {
         "encoding",
         "color",
         "sort",
+        "agent",
     ] {
         command = command.mut_arg(id, |argument| {
             argument.hide_default_value(true).hide_possible_values(true)

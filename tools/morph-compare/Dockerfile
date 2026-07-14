@@ -31,6 +31,7 @@ FROM rust:${RUST_VERSION}-bookworm AS runner-builder
 WORKDIR /src
 COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
+COPY skills/kfind ./skills/kfind
 COPY data ./data
 COPY scripts/build-full-pos.sh ./scripts/build-full-pos.sh
 COPY scripts/build-morphology-resource.sh ./scripts/build-morphology-resource.sh
