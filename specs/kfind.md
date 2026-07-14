@@ -172,6 +172,7 @@
   /                         개요와 제품 범위
   /guide/getting-started    설치와 첫 검색
   /reference/options        query 문법과 compile·search 옵션
+  /reference/glossary       문서에서 반복하는 핵심 용어와 정의
   /concepts/analysis        query-directed 형태 분석 원리
   /concepts/architecture    compile·scan·verify 실행 구조
   /concepts/optimization    branch·anchor·resource·streaming 최적화
@@ -179,6 +180,9 @@
   /playground               WebAssembly 검색 실습
   ```
 
+- 단어장은 검색 입력, 실행 구조, resource와 품질 지표에 쓰는 핵심 용어를 한곳에서
+  정의한다. 한국어 표기와 코드·영문 표기는 같은 항목에서 대응시키고, 다른 문서의 설명은
+  이 정의와 모순되지 않아야 한다.
 - 일반 UI text는 Pretendard 기반 sans-serif stack을 사용한다. 코드, 명령, query·output label과
   기술 도해의 코드 표기는 기존 monospace stack을 유지한다.
 - 공통 spacing scale은 `0.25rem`, `0.5rem`, `0.75rem`, `1rem`, `1.5rem`과 section 간격
