@@ -180,6 +180,33 @@ mod tests {
         assert!(first_contents[2].contains("#compdef kfind"));
         assert!(first_contents[3].contains("complete -c kfind"));
         assert_eq!(first_contents[4], SKILL_CONTENT);
+        for required in [
+            "--embedded --boundary any --json",
+            "--pos verb",
+            "--literal",
+            "--max-gap",
+            "--glob",
+            "type: \"match\"",
+            "offset_unit",
+        ] {
+            assert!(first_contents[4].contains(required), "missing {required}");
+        }
+        assert!(first_contents[4].contains("`auto`"), "missing auto");
+        for (pos, tag) in [
+            ("noun", "n:"),
+            ("pronoun", "pro:"),
+            ("numeral", "num:"),
+            ("verb", "v:"),
+            ("adjective", "adj:"),
+            ("determiner", "det:"),
+            ("adverb", "adv:"),
+            ("particle", "j:"),
+            ("interjection", "intj:"),
+            ("literal", "lit:"),
+        ] {
+            assert!(first_contents[4].contains(pos), "missing {pos}");
+            assert!(first_contents[4].contains(tag), "missing {tag}");
+        }
 
         let regenerated_assets = generate_distribution_assets(temporary_directory.path()).unwrap();
         assert_eq!(first_contents, read_assets(&regenerated_assets));
