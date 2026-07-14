@@ -60,6 +60,7 @@ fn query_compile(criterion: &mut Criterion) {
 
 fn matcher_scan(criterion: &mut Criterion) {
     let analyzer = analyzer();
+    let component_resource = Arc::new(component_resource());
     let plan = compile_query("걷다", &CompileOptions::default(), &analyzer)
         .expect("benchmark query must compile");
     let matcher = MorphMatcher::new(Arc::new(plan)).expect("benchmark matcher must build");
@@ -77,7 +78,8 @@ fn matcher_scan(criterion: &mut Criterion) {
     let phrase_plan = compile_query(PHRASE_QUERY, &CompileOptions::default(), &analyzer)
         .expect("phrase benchmark query must compile");
     let phrase_matcher =
-        MorphMatcher::new(Arc::new(phrase_plan)).expect("phrase benchmark matcher must build");
+        MorphMatcher::with_component_resource(Arc::new(phrase_plan), component_resource)
+            .expect("phrase benchmark matcher must build");
     let phrase_corpus = deterministic_corpus(PHRASE_MATCH_EVERY_LINES);
     assert_eq!(
         phrase_matcher.find_all_with_meta(&phrase_corpus).len(),
@@ -173,6 +175,7 @@ fn analyzer() -> LexiconQueryAnalyzer {
 
 fn component_resource() -> kfind_data::ComponentResource {
     let entries = [
+        component_entry("길", "NNG", -5_000),
         component_entry("사용자", "NNG", -5_000),
         component_entry("권한", "NNG", -5_000),
         component_entry("사용자권한", "NNG", 5_000),
