@@ -1,1 +1,2 @@
 data/lexicon/*.tsv whitespace=-blank-at-eol
+data/enriched/*.tsv whitespace=-blank-at-eol

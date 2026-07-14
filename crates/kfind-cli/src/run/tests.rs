@@ -409,6 +409,49 @@ fn enriched_predicates_load_from_an_explicit_data_directory() {
 }
 
 #[test]
+fn enriched_predicates_recover_irregular_surfaces_and_mixed_regular_analysis() {
+    let temp = TempDir::new();
+    temp.write_bytes(FULL_POS_FILE, &full_pos_resource());
+    temp.write(
+        ENRICHED_PREDICATES_FILE,
+        concat!(
+            "lemma\tpos\talternation\tflags\toverrides\n",
+            "가깝다\tVA\tBToWo\t\t\n",
+            "결정짓다\tVV\tDropS\t\t\n",
+            "곱다\tVA\tBToWa\t\t\n",
+            "곱다\tVA\tRegular\t\t\n",
+            "깨닫다\tVV\tDToL\t\t\n",
+            "노랗다\tVA\tDropH\t\t\n",
+        ),
+    );
+
+    for (pos, query, text) in [
+        ("verb", "깨닫다", "그제야 진실을 깨달았다.\n"),
+        ("verb", "결정짓다", "한 표가 승부를 결정지었다.\n"),
+        ("adjective", "가깝다", "이전보다 훨씬 가까워졌다.\n"),
+        ("adjective", "곱다", "한복의 자태가 고와 보였다.\n"),
+        ("adjective", "곱다", "추위에 손이 곱아 버렸다.\n"),
+        ("adjective", "노랗다", "얼굴빛이 노래졌다.\n"),
+    ] {
+        let args = Args::try_parse_from([
+            "kfind",
+            "--pos",
+            pos,
+            "--data-dir",
+            temp.0.to_str().unwrap(),
+            query,
+        ])
+        .unwrap();
+
+        let (status, stdout, stderr) = run(args, text.as_bytes(), false);
+
+        assert_eq!(status, ExitStatus::Match, "{query} should match {text}");
+        assert_eq!(stdout, text.as_bytes());
+        assert!(stderr.is_empty());
+    }
+}
+
+#[test]
 fn embedded_mode_skips_enriched_predicates() {
     let temp = TempDir::new();
     temp.write(

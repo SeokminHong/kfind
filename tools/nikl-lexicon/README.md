@@ -1,15 +1,19 @@
 # NIKL predicate importer
 
-This tool builds the reviewed `ReuDoubleL`, `Reo`, and regular `EU_DROP`
-predicate layer from pinned National Institute of Korean Language dictionary
-snapshots.
+This tool builds the reviewed `DToL`, `DropS`, `BToWa`, `BToWo`, `DropH`,
+`ReuDoubleL`, `Reo`, and `UToEo` predicate layer from pinned National Institute
+of Korean Language dictionary snapshots. Same-shape regular conjugations and
+regular `EU_DROP` are retained as controls. A regular analysis is emitted only
+when independently supported records require it alongside an irregular analysis
+for the same lemma and fine POS.
 
 The Python adapter reads the three ZIP snapshots, preserves source-record and
 homonym identity, and emits normalized predicate records. The Rust classifier
 uses kfind's predicate generator to identify diagnostic conjugations. A record
 is promoted only when Korean Basic Dictionary and Standard Korean Language
 Dictionary independently support the same analysis. Urimalsaem is retained as
-audit evidence.
+audit evidence. Core duplicates and analyses already covered by productive
+suffix rules are recorded in the report but omitted from the enriched artifact.
 
 Run from the repository root:
 
