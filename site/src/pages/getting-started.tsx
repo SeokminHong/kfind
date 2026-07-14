@@ -1,11 +1,15 @@
 import { Link } from 'react-router';
 
 import { RoutePath } from '../app/navigation';
-import { DocumentSection, PageIntro } from '../components/document';
+import {
+  DocumentPage,
+  DocumentSection,
+  PageIntro,
+} from '../components/document';
 
 export default function GettingStartedPage(): React.JSX.Element {
   return (
-    <article>
+    <DocumentPage>
       <PageIntro
         eyebrow="GUIDE · GETTING STARTED"
         title="설치하고 첫 검색 실행하기"
@@ -166,6 +170,6 @@ kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src`}</code>
           <Link to={RoutePath.Options}>쿼리와 옵션</Link>에서 이어서 설명합니다.
         </p>
       </DocumentSection>
-    </article>
+    </DocumentPage>
   );
 }

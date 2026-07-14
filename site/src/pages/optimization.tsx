@@ -1,8 +1,12 @@
-import { DocumentSection, PageIntro } from '../components/document';
+import {
+  DocumentPage,
+  DocumentSection,
+  PageIntro,
+} from '../components/document';
 
 export default function OptimizationPage(): React.JSX.Element {
   return (
-    <article>
+    <DocumentPage>
       <PageIntro
         eyebrow="ENGINEERING · DESIGN & OPTIMIZATION"
         title="형태 처리 비용을 제한하는 설계"
@@ -229,6 +233,6 @@ export default function OptimizationPage(): React.JSX.Element {
           </table>
         </div>
       </DocumentSection>
-    </article>
+    </DocumentPage>
   );
 }

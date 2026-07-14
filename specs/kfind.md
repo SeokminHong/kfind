@@ -183,6 +183,9 @@
 - 단어장은 검색 입력, 실행 구조, resource와 품질 지표에 쓰는 핵심 용어를 한곳에서
   정의한다. 한국어 표기와 코드·영문 표기는 같은 항목에서 대응시키고, 다른 문서의 설명은
   이 정의와 모순되지 않아야 한다.
+- 각 문서 route는 단어장 용어가 본문에서 처음 등장하는 한 곳에만 tooltip과 해당 정의 link를
+  제공한다. 같은 항목의 한국어·영문 별칭은 한 용어로 센다. Tooltip은 hover와 keyboard focus로
+  열 수 있어야 하며, code·기존 link·form control과 단어장 자체에는 중첩해서 적용하지 않는다.
 - 일반 UI text는 Pretendard 기반 sans-serif stack을 사용한다. 코드, 명령, query·output label과
   기술 도해의 코드 표기는 기존 monospace stack을 유지한다.
 - 공통 spacing scale은 `0.25rem`, `0.5rem`, `0.75rem`, `1rem`, `1.5rem`과 section 간격

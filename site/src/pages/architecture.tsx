@@ -1,8 +1,12 @@
-import { DocumentSection, PageIntro } from '../components/document';
+import {
+  DocumentPage,
+  DocumentSection,
+  PageIntro,
+} from '../components/document';
 
 export default function ArchitecturePage(): React.JSX.Element {
   return (
-    <article>
+    <DocumentPage>
       <PageIntro
         eyebrow="INTERNALS · ARCHITECTURE"
         title="Query compile과 corpus scan의 분리"
@@ -174,6 +178,6 @@ atom 2 spans ─┘`}</code>
           </table>
         </div>
       </DocumentSection>
-    </article>
+    </DocumentPage>
   );
 }
