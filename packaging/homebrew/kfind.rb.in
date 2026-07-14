@@ -53,7 +53,7 @@ class Kfind < Formula
 
     assert_match "걸어", shell_output("#{bin}/kfind 걷다 #{sample}")
     agent = shell_output("#{bin}/kfind --embedded --boundary any --pos verb --json 걷다 #{sample}")
-    assert_match '"text":"아주 예쁜 길을 걸어 갔다.\\n"', agent
+    assert_match '"text":"아주 예쁜 길을 걸어 갔다."', agent
     explain = shell_output("#{bin}/kfind 아주 #{sample} --explain-query")
     assert_match "source: full-pos-lexicon", explain
     refute_match "full POS lexicon unavailable", explain
