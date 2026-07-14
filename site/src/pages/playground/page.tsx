@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-import { Callout, DocumentSection, PageIntro } from '../../components/document';
+import { DocumentSection, PageIntro } from '../../components/document';
 import { initializePlayground } from '../../playground';
 
 export default function PlaygroundPage(): React.JSX.Element {
@@ -27,8 +27,9 @@ export default function PlaygroundPage(): React.JSX.Element {
       <DocumentSection title="검색 실습">
         <div className="section-title-row">
           <p>
-            Query나 옵션을 바꾸면 embedded lexicon을 사용해 결과를 다시
-            계산합니다.
+            Query, text나 옵션을 바꾸고 검색을 실행하면 embedded lexicon으로
+            query plan을 다시 컴파일합니다. 결과에는 일치한 표면형과 각 branch의
+            provenance가 함께 표시됩니다.
           </p>
           <div
             className="wasm-state"
@@ -203,14 +204,14 @@ export default function PlaygroundPage(): React.JSX.Element {
           </div>
         </div>
 
-        <Callout title="Component resource">
-          <p>
-            기본 WASM에는 embedded lexicon만 들어 있습니다. smart 검색에
-            component 근거가 필요할 때만 same-origin Pages Function에서 R2
-            객체를 streaming합니다. engine은 resource 검증을 마친 뒤 검색을 다시
-            실행합니다.
-          </p>
-        </Callout>
+        <p>
+          기본 WASM에는 embedded lexicon만 포함되어 있습니다. <code>smart</code>{' '}
+          검색이 합성명사의 component 근거를 요구하면 사용자가 고급 resource를
+          명시적으로 불러와야 합니다. 이때 같은 origin의 Pages Function이 R2
+          객체를 streaming하고, engine은 schema와 checksum 검증을 마친 뒤에만
+          resource를 적용해 검색을 다시 실행합니다. Resource를 불러올 필요가
+          없는 query는 이 network 요청과 초기화 비용을 발생시키지 않습니다.
+        </p>
       </DocumentSection>
     </article>
   );
