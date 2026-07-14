@@ -21,5 +21,8 @@ pub use output::{
     FilenameMode, OutputError, OutputMode, OutputOptions, OutputWriter, ResolvedColor,
     TerminalPager,
 };
+#[cfg(feature = "pager-memory-benchmark")]
+#[doc(hidden)]
+pub use output::{PagerMemoryReport, run_pager_memory_benchmark};
 pub use parse::{CliParseError, parse_args_from};
 pub use run::{CliError, ExitStatus, run_with_io, run_with_terminal_pager};

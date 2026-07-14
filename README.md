@@ -278,6 +278,12 @@ Redirects and pipes, JSON Lines, count, file summaries, quiet mode,
 and `--no-pager` retain the direct stdout stream. If the TUI cannot start, output
 falls back to standard text on stdout.
 
+The pager index scales with completed source lines and expanded match rows. On
+2026-07-14 at revision `4d81a22`, one million plain lines used 43.50 MiB peak RSS;
+one million source lines expanded to four million rows used 110.81 MiB. Use
+`--no-pager` for a bounded stream when millions of interactive results are not
+needed. See the [TUI index memory report](docs/benchmarks/2026-07-14-tui-index-memory.md).
+
 JSON Lines records contain `type`, path, line, optional column, text, spans,
 core and token byte ranges, matched surface, lemma/POS origins, rule paths, and
 an `offset_unit`. Non-UTF-8 paths and text use Base64 fields rather than lossy

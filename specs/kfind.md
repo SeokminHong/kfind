@@ -153,6 +153,14 @@
   요약과 quiet mode는 pager를 사용하지 않고 기존 bounded stdout stream을 유지한다. TUI를 시작할
   수 없을 때는 일반 text를 직접 stdout에 쓴다. 에이전트 권장 경로의 JSON Lines는 stdout이 TTY여도
   비대화형 출력을 유지한다.
+- TUI는 완성된 source line마다 임시 파일 offset·length를, 현재 너비에서 전개된 화면 row마다
+  source·target key를 메모리에 보존한다. 따라서 임시 파일과 별도로 source line 수와 전개된 row
+  수에 비례한 index 메모리를 사용한다. 현재 자동 결과 상한이나 대용량 fallback은 없으며 대규모
+  결과를 stream으로만 처리하려면 `--no-pager`를 사용한다.
+- TUI index benchmark는 plain source line과 한 source line이 여러 match row로 전개되는 입력을
+  각각 측정한다. 입력 bytes, source·row 논리 개수, 각 `Vec`의 length·capacity와 entry 크기,
+  length·capacity 기준 index bytes, 생성·index·layout 시간과 fresh process peak RSS를 함께 보고한다.
+  benchmark용 binary는 release 설치물에 포함하지 않는다.
 - EUC-KR은 명시적 `--encoding euc-kr`에서 지원한다. `auto`는 BOM 기반 UTF-16과 UTF-8만 판별한다.
 
 ### 0.4 Web 문서와 playground
@@ -1647,6 +1655,11 @@ terminal resize는 현재 보고 있는 source line과 target match를 기준점
 prefix와 content window를 다시 계산한다. 축소되어 source line이 잘리면 match별 행으로 펼치고,
 확대되어 전체 line이 들어오면 다시 한 행으로 합친다. `--no-pager`, 명시적 stdin path `-`, non-TTY
 stdin/stdout과 구조화·요약 출력은 pager를 거치지 않으며 원문 line을 생략하거나 match별로 복제하지 않는다.
+
+pager의 임시 파일은 출력 bytes를 보존하고, 메모리에는 완성된 source line의 파일 위치와 현재
+layout row key를 각각 연속 벡터로 보존한다. index 메모리는 두 벡터의 capacity에 비례하며 terminal
+resize 때 layout 벡터를 다시 만든다. 자동 상한은 두지 않고 `--no-pager`가 bounded stdout stream
+경로를 제공한다. 대규모 측정은 0.3절의 TUI index benchmark 계약을 따른다.
 
 ### 15.2 쿼리 설명
 

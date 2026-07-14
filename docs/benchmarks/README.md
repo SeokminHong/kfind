@@ -83,6 +83,20 @@ cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_repeated_l
 수집할 때 남은 입력을 반복해서 다시 스캔하지 않는지 감시한다.
 `context_repeated_long_line`은 문맥 candidate마다 전체 줄의 UTF-8을 반복 검증하지 않는지 감시한다.
 
+## TUI pager index memory
+
+내장 pager가 임시 파일과 별도로 유지하는 source-line index와 layout-row index의 메모리·시간을
+plain 결과와 match별 전개 결과에서 측정한다.
+
+```console
+cargo run --release --locked -p kfind-cli \
+  --features pager-memory-benchmark \
+  --bin kfind-pager-memory-benchmark -- \
+  SOURCE_LINES MATCHES_PER_LINE TERMINAL_WIDTH
+```
+
+최신 수치는 [2026-07-14 TUI index memory 보고서](2026-07-14-tui-index-memory.md)에 기록한다.
+
 ## Full POS startup
 
 native CLI와 Node WASM이 full POS resource를 초기화하는 시간과 RSS를 literal scan과 분리해

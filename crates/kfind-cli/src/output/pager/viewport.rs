@@ -30,6 +30,15 @@ impl Layout {
             .or_else(|| self.rows.iter().position(|row| row.source == key.source))
             .unwrap_or(0)
     }
+
+    #[cfg(feature = "pager-memory-benchmark")]
+    pub(super) fn index_stats(&self) -> (usize, usize, usize) {
+        (
+            self.rows.len(),
+            self.rows.capacity(),
+            std::mem::size_of::<RowKey>(),
+        )
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -63,6 +72,15 @@ impl Document {
 
     pub(super) fn source_count(&self) -> usize {
         self.lines.len()
+    }
+
+    #[cfg(feature = "pager-memory-benchmark")]
+    pub(super) fn index_stats(&self) -> (usize, usize, usize) {
+        (
+            self.lines.len(),
+            self.lines.capacity(),
+            std::mem::size_of::<SourceIndex>(),
+        )
     }
 
     pub(super) fn refresh(&mut self) -> io::Result<std::ops::Range<usize>> {

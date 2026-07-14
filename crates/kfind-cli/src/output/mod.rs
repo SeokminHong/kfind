@@ -14,6 +14,8 @@ mod pager;
 mod text;
 
 pub use pager::TerminalPager;
+#[cfg(feature = "pager-memory-benchmark")]
+pub use pager::{PagerMemoryReport, run_pager_memory_benchmark};
 
 #[cfg(test)]
 mod tests;
