@@ -110,6 +110,7 @@ python3 tools/morph-compare/render_charts.py \
 - [2026-07-14 development FN 진단](2026-07-14-development-fn-diagnostics.md)
 - [2026-07-14 `ending.connective-ji` 위치 근거](2026-07-14-connective-ji-position-evidence.md)
 - [2026-07-14 명시적 품사 `-지` 오른쪽 끝 recall](2026-07-14-connective-ji-right-edge-recall.md)
+- [2026-07-14 ㅎ 불규칙 core lexicon recall](2026-07-14-h-irregular-recall.md)
 - [2026-07-13 smart component 품질·성능](2026-07-13-smart-component-evidence.md)
 - [형태소 검색 개선 핸드오프](morphology-handoff.md)
 - [선택적 국소 형태 추론 계약](selective-morphology.md)

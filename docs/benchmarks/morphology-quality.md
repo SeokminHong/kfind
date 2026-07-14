@@ -11,8 +11,8 @@ gold 또는 negative 선택을 바꾸지 않는다.
 
 | fixture/profile | TP / FP / FN | precision | recall | F1 |
 | --- | ---: | ---: | ---: | ---: |
-| dev embedded smart | 433 / 2 / 67 | 99.54% | 86.6% | 92.62% |
-| dev full-POS smart | 437 / 2 / 63 | 99.54% | 87.4% | 93.08% |
+| dev embedded smart | 436 / 2 / 64 | 99.54% | 87.2% | 92.96% |
+| dev full-POS smart | 440 / 2 / 60 | 99.55% | 88.0% | 93.42% |
 | test embedded smart | 409 / 0 / 91 | 100.00% | 81.8% | 89.99% |
 | test full-POS smart | 414 / 0 / 86 | 100.00% | 82.8% | 90.59% |
 
@@ -20,7 +20,7 @@ gold 또는 negative 선택을 바꾸지 않는다.
 [User smart precision 품질·성능](2026-07-14-user-smart-precision.md)과
 [`-기` 명사형 조사 continuation 품질·성능](2026-07-14-gi-particle-continuation.md)에 둔다.
 현재 development 개선과 비회귀 측정은
-[명시적 품사 `-지` 오른쪽 끝 recall](2026-07-14-connective-ji-right-edge-recall.md)에 둔다.
+[ㅎ 불규칙 core lexicon recall](2026-07-14-h-irregular-recall.md)에 둔다.
 
 ## 제품 workflow 판정
 
@@ -80,8 +80,10 @@ embedded와 full-POS 원인을 분리하고, 분류용 추가 compile·검색은
 
 ## 남은 검증
 
-1. 명시적 품사 full-POS `smart`의 development FN 63건에서 반복되는 한 원인군을 고른다.
-2. 같은 표면형·품사의 version-controlled hard-negative를 먼저 고정하고 bounded token 형태
-   근거가 query core span+fine POS 포함 경로와 배제 경로를 구분하는지 shadow로 측정한다.
+1. 명시적 품사 full-POS `smart`의 development FN 60건에서 noun `particle.subject`로 분류된
+   `서사극이라`, `인쇄업자가`, `197명이` 세 건을 다음 후보군으로 조사한다.
+2. 세 candidate는 오른쪽 continuation, 명사 compound, 수사 prefix라는 경계 조건이 다르므로
+   하나의 규칙으로 열지 않는다. 같은 candidate surface hard-negative와 exact component 근거로
+   안전하게 구분되는 위치 유형만 선택한다.
 3. dev FN 감소, precision 99.00% 이상과 hard-negative 신규 FP 0을 확인한 뒤 고정 test와 무품사
    결과를 한 번만 회귀 측정한다.
