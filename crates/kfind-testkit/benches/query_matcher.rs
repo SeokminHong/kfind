@@ -1,5 +1,6 @@
 use std::hint::black_box;
 use std::io::Cursor;
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use criterion::{Criterion, Throughput, criterion_group, criterion_main};
@@ -14,6 +15,7 @@ use kfind_morph::{
 use kfind_query::{
     BoundaryPolicy, CompileOptions, LexiconQueryAnalyzer, Lexicons, PhrasePolicy, compile_query,
 };
+use kfind_search::{InputOptions, InputSearcher};
 
 const MATCHING_LINE: &str = "길을 걸어 갔다. 권한을 검증했습니다.\n";
 const NON_MATCHING_LINE: &str = "사용자는 새 문서를 읽고 접근 정책을 확인했습니다.\n";
@@ -24,6 +26,8 @@ const SINGLE_ATOM_QUERY: &str = "걷다";
 const PHRASE_QUERY: &str = "n:길 v:걷다";
 const REPEATED_PHRASE_QUERY: &str = "lit:가 lit:가 lit:가 lit:가 lit:가 lit:가 lit:가 lit:가";
 const REPEATED_PHRASE_SPANS: usize = 128;
+const INPUT_SEARCHER_PHRASE_QUERY: &str = "lit:가 lit:나";
+const INPUT_SEARCHER_PHRASE_REPETITIONS: usize = 4_096;
 const PHRASE_8_ATOMS_QUERY: &str =
     "n:사용자 n:권한 v:검증하다 adj:예쁘다 det:새 adv:빨리 n:기술 v:걷다";
 
@@ -112,6 +116,47 @@ fn matcher_scan(criterion: &mut Criterion) {
     group.throughput(Throughput::Bytes(repeated_corpus.len() as u64));
     group.bench_function("phrase_find_all_repeated", |bencher| {
         bencher.iter(|| repeated_matcher.find_all_with_meta(black_box(&repeated_corpus)));
+    });
+
+    let input_searcher_options = CompileOptions {
+        boundary: BoundaryPolicy::Any,
+        phrase: PhrasePolicy { max_gap: 0 },
+        ..CompileOptions::default()
+    };
+    let input_searcher_plan = compile_query(
+        INPUT_SEARCHER_PHRASE_QUERY,
+        &input_searcher_options,
+        &analyzer,
+    )
+    .expect("input searcher phrase benchmark query must compile");
+    let input_searcher_matcher = MorphMatcher::new(Arc::new(input_searcher_plan))
+        .expect("input searcher phrase benchmark matcher must build");
+    let input_searcher_line =
+        format!("{}\n", "가나".repeat(INPUT_SEARCHER_PHRASE_REPETITIONS)).into_bytes();
+    let mut input_searcher =
+        InputSearcher::new(InputOptions::default()).expect("input searcher must build");
+    let result = input_searcher
+        .search_reader(
+            &input_searcher_matcher,
+            PathBuf::from("repeated-line.txt"),
+            Cursor::new(&input_searcher_line),
+        )
+        .expect("input searcher benchmark corpus must be searchable");
+    assert_eq!(
+        result.matched_spans,
+        Some(INPUT_SEARCHER_PHRASE_REPETITIONS as u64)
+    );
+    group.throughput(Throughput::Bytes(input_searcher_line.len() as u64));
+    group.bench_function("phrase_input_searcher_repeated_line", |bencher| {
+        bencher.iter(|| {
+            input_searcher
+                .search_reader(
+                    black_box(&input_searcher_matcher),
+                    PathBuf::from("repeated-line.txt"),
+                    Cursor::new(black_box(&input_searcher_line)),
+                )
+                .expect("input searcher benchmark corpus must be searchable")
+        });
     });
     group.finish();
 }
