@@ -452,10 +452,11 @@ let matches = matcher.find_all(text.as_bytes());
 assert_eq!(&text[matches[0].span.clone()], "걸어");
 ```
 
-Component-aware smart searches require explicit initialization. Use
-`Engine::with_component_resource` when constructing the engine or call
-`load_component_resource` on an existing mutable engine before compiling a plan
-that needs it.
+Build the same dictionary-quality profile as the CLI with `ResourceBundle` and
+`Engine::with_resources`. The bundle accepts optional full POS binary, enriched
+predicate TSV, and component bytes. Existing individual constructors delegate
+to the same initialization path. Component bytes can also be installed later
+with `load_component_resource` before compiling a plan that needs them.
 
 The library and its core dependencies support Rust 1.97's
 `wasm32-unknown-unknown` target:
@@ -481,11 +482,13 @@ const matches = matcher.findAll(text);
 console.log(text.slice(matches[0].start, matches[0].end)); // 걸어
 ```
 
-JavaScript offsets use UTF-16 code units. The package publishes the component
-resource as `kfind/assets/morphology-component-compact.kfc`, separate from the
-WASM binary. Constructing `Kfind` without it avoids loading the 45.6 MiB asset.
-Applications can pass the bytes to the constructor or call
-`loadComponentResource` before compiling plans that need it.
+JavaScript offsets use UTF-16 code units. `Kfind.withResources` accepts optional
+`fullPos`, `enrichedPredicates`, and `component` fields as one profile. The
+package publishes the enriched TSV as `kfind/assets/predicates.enriched.tsv`
+and the component resource as
+`kfind/assets/morphology-component-compact.kfc`, both separate from the WASM
+binary. Constructing `Kfind` without resources loads neither external asset.
+Component bytes can also be installed later with `loadComponentResource`.
 
 The package has not been published to the registry yet. Its release artifact
 can be built and checked locally:

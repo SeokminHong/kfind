@@ -426,9 +426,10 @@ let matches = matcher.find_all(text.as_bytes());
 assert_eq!(&text[matches[0].span.clone()], "걸어");
 ```
 
-Component-aware smart 검색은 명시적 초기화가 필요합니다. Engine 생성 시
-`Engine::with_component_resource`를 사용하거나, 해당 resource가 필요한 plan을 compile하기
-전에 기존 mutable engine에서 `load_component_resource`를 호출합니다.
+CLI와 같은 사전 품질 profile은 `ResourceBundle`과 `Engine::with_resources`로 구성합니다. Bundle은
+full POS binary, enriched predicate TSV, component bytes를 각각 선택적으로 받습니다. 기존 개별
+생성자도 같은 초기화 경로를 사용합니다. Component resource는 해당 resource가 필요한 plan을
+compile하기 전에 `load_component_resource`로 나중에 추가할 수도 있습니다.
 
 라이브러리와 핵심 의존 crate는 Rust 1.97의 `wasm32-unknown-unknown` target을 지원합니다.
 
@@ -453,10 +454,12 @@ const matches = matcher.findAll(text);
 console.log(text.slice(matches[0].start, matches[0].end)); // 걸어
 ```
 
-JavaScript offset은 UTF-16 code unit 기준입니다. Component resource는 WASM binary와 분리된
-`kfind/assets/morphology-component-compact.kfc`로 배포합니다. Resource 없이 `Kfind`를
-만들면 45.6 MiB asset을 로드하지 않습니다. 필요한 plan을 compile하기 전에 생성자에 bytes를
-전달하거나 `loadComponentResource`를 호출할 수 있습니다.
+JavaScript offset은 UTF-16 code unit 기준입니다. `Kfind.withResources`는 선택적 `fullPos`,
+`enrichedPredicates`, `component`를 한 profile로 받습니다. Package는 enriched TSV를
+`kfind/assets/predicates.enriched.tsv`, component resource를
+`kfind/assets/morphology-component-compact.kfc`로 WASM binary와 분리해 배포합니다. Resource 없이
+`Kfind`를 만들면 외부 asset을 로드하지 않습니다. Component bytes는 필요한 plan을 compile하기
+전에 `loadComponentResource`로 나중에 추가할 수도 있습니다.
 
 패키지는 아직 registry에 게시하지 않았습니다. 로컬에서 배포 산출물을 생성하고 검사할 수
 있습니다.

@@ -19,6 +19,17 @@ pub use kfind_query::{
     ExpandMode, Lexicons, NormalizationMode, PhraseMatch, QueryPlan, VerifiedSpan,
 };
 
+/// Optional dictionary resources that define an engine's analysis profile.
+#[derive(Clone, Debug, Default)]
+pub struct ResourceBundle<'a> {
+    /// Encoded full POS lexicon bytes.
+    pub full_pos: Option<&'a [u8]>,
+    /// UTF-8 enriched predicate metadata in the project TSV format.
+    pub enriched_predicates: Option<&'a str>,
+    /// Encoded compact component resource bytes.
+    pub component: Option<Vec<u8>>,
+}
+
 /// Reusable lexicon and query-analysis state.
 #[derive(Clone, Debug)]
 pub struct Engine {
@@ -29,22 +40,38 @@ pub struct Engine {
 impl Engine {
     /// Creates an engine with the embedded core lexicon.
     pub fn new() -> Result<Self, DataError> {
-        Ok(Self::from_lexicons(Lexicons::embedded()?))
+        Self::with_resources(ResourceBundle::default())
+    }
+
+    /// Creates an engine from one validated dictionary-resource profile.
+    pub fn with_resources(resources: ResourceBundle<'_>) -> Result<Self, DataError> {
+        let mut lexicons = Lexicons::embedded_with(resources.full_pos, None)?;
+        if let Some(enriched_predicates) = resources.enriched_predicates {
+            lexicons
+                .load_enriched_predicates("enriched predicate resource", enriched_predicates)?;
+        }
+        match resources.component {
+            Some(component) => Self::from_lexicons_with_component(lexicons, component),
+            None => Ok(Self::from_lexicons(lexicons)),
+        }
     }
 
     /// Creates an engine with embedded data and a component resource.
     pub fn with_component_resource(
         component_resource: impl Into<Vec<u8>>,
     ) -> Result<Self, DataError> {
-        Self::from_lexicons_with_component(Lexicons::embedded()?, component_resource)
+        Self::with_resources(ResourceBundle {
+            component: Some(component_resource.into()),
+            ..ResourceBundle::default()
+        })
     }
 
     /// Creates an engine with embedded data and a full POS lexicon.
     pub fn with_full_pos(full_pos: &[u8]) -> Result<Self, DataError> {
-        Ok(Self::from_lexicons(Lexicons::embedded_with(
-            Some(full_pos),
-            None,
-        )?))
+        Self::with_resources(ResourceBundle {
+            full_pos: Some(full_pos),
+            ..ResourceBundle::default()
+        })
     }
 
     /// Creates an engine with embedded data, a full POS lexicon, and a component resource.
@@ -52,10 +79,11 @@ impl Engine {
         full_pos: &[u8],
         component_resource: impl Into<Vec<u8>>,
     ) -> Result<Self, DataError> {
-        Self::from_lexicons_with_component(
-            Lexicons::embedded_with(Some(full_pos), None)?,
-            component_resource,
-        )
+        Self::with_resources(ResourceBundle {
+            full_pos: Some(full_pos),
+            component: Some(component_resource.into()),
+            ..ResourceBundle::default()
+        })
     }
 
     /// Creates an engine from caller-configured lexicons.
@@ -92,6 +120,12 @@ impl Engine {
     #[must_use]
     pub fn full_pos_loaded(&self) -> bool {
         self.analyzer.lexicons().full_pos_loaded()
+    }
+
+    /// Reports whether this engine includes enriched predicate metadata.
+    #[must_use]
+    pub fn enriched_predicates_loaded(&self) -> bool {
+        self.analyzer.lexicons().enriched_predicates_loaded()
     }
 
     /// Reports whether this engine includes the optional component resource.
@@ -263,6 +297,57 @@ mod tests {
             Engine::with_component_resource(b"not a component resource".as_slice()).unwrap_err();
 
         assert!(error.to_string().contains("component resource"));
+    }
+
+    #[test]
+    fn resource_bundle_initializes_every_dictionary_layer() {
+        let full_pos = encode_pos_lexicon(&collect_pos_entries(&LexiconData {
+            nominals: vec![NominalRecord {
+                lemma: "대규모사전".to_owned(),
+                pos: DataFinePos::Nng,
+                flags: Default::default(),
+                overrides: Vec::new(),
+            }],
+            ..LexiconData::default()
+        }))
+        .unwrap();
+        let enriched = concat!(
+            "lemma\tpos\talternation\tflags\toverrides\n",
+            "가깝다\tVA\tBToWo\t\t\n",
+        );
+
+        let engine = Engine::with_resources(ResourceBundle {
+            full_pos: Some(&full_pos),
+            enriched_predicates: Some(enriched),
+            component: Some(component_resource()),
+        })
+        .unwrap();
+
+        assert!(engine.full_pos_loaded());
+        assert!(engine.enriched_predicates_loaded());
+        assert!(engine.component_resource_loaded());
+
+        let matcher = engine
+            .compile(
+                "가깝다",
+                &CompileOptions {
+                    boundary: BoundaryPolicy::Any,
+                    ..CompileOptions::default()
+                },
+            )
+            .unwrap();
+        assert_eq!(matcher.find_all("더 가까워졌다".as_bytes()).len(), 1);
+    }
+
+    #[test]
+    fn invalid_enriched_predicates_fail_during_engine_creation() {
+        let error = Engine::with_resources(ResourceBundle {
+            enriched_predicates: Some("lemma\tpos\naltered\tVV\n"),
+            ..ResourceBundle::default()
+        })
+        .unwrap_err();
+
+        assert!(error.to_string().contains("enriched predicate resource"));
     }
 
     #[test]
