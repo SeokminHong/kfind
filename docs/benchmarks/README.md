@@ -66,6 +66,18 @@ scripts/benchmark-criterion.sh query_compile
 
 기준 결과는 [2026-07-11 query compile 보고서](2026-07-11-query-compile.md)에 기록한다.
 
+## Phrase matcher
+
+일반적인 다중 match corpus와 반복 span·큰 gap의 병적 입력을 각각 측정한다.
+
+```console
+cargo bench -p kfind-testkit --bench query_matcher -- matcher/phrase_find_all
+cargo bench -p kfind-testkit --bench query_matcher -- matcher/phrase_find_all_repeated
+```
+
+두 benchmark 모두 입력의 anchor·atom span 수집과 leftmost-longest non-overlapping 결과 선택을
+포함한다. `phrase_find_all_repeated`는 가능한 atom 조합을 물질화하지 않는지 감시한다.
+
 ## Full POS startup
 
 native CLI와 Node WASM이 full POS resource를 초기화하는 시간과 RSS를 literal scan과 분리해

@@ -11,7 +11,9 @@ use kfind_matcher::MorphMatcher;
 use kfind_morph::{
     DEFAULT_LATTICE_NODE_LIMIT, LocalComponentEvaluator, evaluate_local_component_paths,
 };
-use kfind_query::{CompileOptions, LexiconQueryAnalyzer, Lexicons, compile_query};
+use kfind_query::{
+    BoundaryPolicy, CompileOptions, LexiconQueryAnalyzer, Lexicons, PhrasePolicy, compile_query,
+};
 
 const MATCHING_LINE: &str = "길을 걸어 갔다. 권한을 검증했습니다.\n";
 const NON_MATCHING_LINE: &str = "사용자는 새 문서를 읽고 접근 정책을 확인했습니다.\n";
@@ -20,6 +22,8 @@ const MATCH_EVERY_LINES: usize = 64;
 const PHRASE_MATCH_EVERY_LINES: usize = 4;
 const SINGLE_ATOM_QUERY: &str = "걷다";
 const PHRASE_QUERY: &str = "n:길 v:걷다";
+const REPEATED_PHRASE_QUERY: &str = "lit:가 lit:가 lit:가 lit:가 lit:가 lit:가 lit:가 lit:가";
+const REPEATED_PHRASE_SPANS: usize = 128;
 const PHRASE_8_ATOMS_QUERY: &str =
     "n:사용자 n:권한 v:검증하다 adj:예쁘다 det:새 adv:빨리 n:기술 v:걷다";
 
@@ -88,6 +92,26 @@ fn matcher_scan(criterion: &mut Criterion) {
     group.throughput(Throughput::Bytes(phrase_corpus.len() as u64));
     group.bench_function("phrase_find_all", |bencher| {
         bencher.iter(|| phrase_matcher.find_all_with_meta(black_box(&phrase_corpus)));
+    });
+
+    let repeated_options = CompileOptions {
+        boundary: BoundaryPolicy::Any,
+        phrase: PhrasePolicy {
+            max_gap: REPEATED_PHRASE_SPANS,
+        },
+        ..CompileOptions::default()
+    };
+    let repeated_plan = compile_query(REPEATED_PHRASE_QUERY, &repeated_options, &analyzer)
+        .expect("repeated phrase benchmark query must compile");
+    let repeated_matcher =
+        MorphMatcher::new(Arc::new(repeated_plan)).expect("repeated phrase matcher must build");
+    let repeated_corpus = "가".repeat(REPEATED_PHRASE_SPANS).into_bytes();
+    let repeated_matches = repeated_matcher.find_all_with_meta(&repeated_corpus);
+    assert_eq!(repeated_matches.len(), 1);
+    assert_eq!(repeated_matches[0].span, 0..repeated_corpus.len());
+    group.throughput(Throughput::Bytes(repeated_corpus.len() as u64));
+    group.bench_function("phrase_find_all_repeated", |bencher| {
+        bencher.iter(|| repeated_matcher.find_all_with_meta(black_box(&repeated_corpus)));
     });
     group.finish();
 }

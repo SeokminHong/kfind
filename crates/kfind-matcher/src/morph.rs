@@ -13,7 +13,7 @@ use kfind_morph::{
 };
 use kfind_query::{
     BranchEnvironment, BranchVerifier, ContextRequirement, CoreMapping, Origin, PhraseMatch,
-    QueryPlan, SurfaceBranch, VerifiedSpan, join_phrase_spans,
+    QueryPlan, SurfaceBranch, VerifiedSpan,
 };
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
@@ -21,8 +21,10 @@ use crate::boundary::{accepts_requirements, surrounding_token_span};
 use crate::{AnchorBuildError, AnchorBuildLimits, AnchorEngine, AnchorHit};
 
 mod candidates;
+mod phrase;
 
 pub use candidates::LocalAnalysisCandidate;
+use phrase::{PhraseMatchLimit, select_phrase_matches};
 
 const MAX_VERIFIER_BYTES: usize = 256;
 
@@ -169,22 +171,12 @@ impl MorphMatcher {
     fn find_all_phrases_with_meta(&self, haystack: &[u8]) -> Vec<PhraseMatch> {
         let text = phrase_join_text(haystack);
         let atom_spans = self.collect_atom_spans(haystack, 0, MatchMetadata::Provenance);
-        let Ok(mut candidates) = join_phrase_spans(&text, &atom_spans, self.plan.phrase_policy)
-        else {
-            return Vec::new();
-        };
-        candidates.sort_by(compare_phrase_matches);
-
-        let mut matches = Vec::new();
-        let mut at = 0;
-        for matched in candidates {
-            if matched.span.start < at {
-                continue;
-            }
-            at = matched.span.end;
-            matches.push(matched);
-        }
-        matches
+        select_phrase_matches(
+            &text,
+            &atom_spans,
+            self.plan.phrase_policy,
+            PhraseMatchLimit::All,
+        )
     }
 
     #[must_use]
@@ -272,8 +264,14 @@ impl MorphMatcher {
     ) -> Option<PhraseMatch> {
         let text = phrase_join_text(haystack);
         let atom_spans = self.collect_atom_spans(haystack, at, metadata);
-        let matches = join_phrase_spans(&text, &atom_spans, self.plan.phrase_policy).ok()?;
-        matches.into_iter().min_by(compare_phrase_matches)
+        select_phrase_matches(
+            &text,
+            &atom_spans,
+            self.plan.phrase_policy,
+            PhraseMatchLimit::First,
+        )
+        .into_iter()
+        .next()
     }
 
     fn collect_atom_spans(
@@ -894,11 +892,6 @@ fn merge_origins(origins: &mut Vec<Origin>, additional: Vec<Origin>) {
     origins.extend(additional);
     origins.sort();
     origins.dedup();
-}
-
-fn compare_phrase_matches(left: &PhraseMatch, right: &PhraseMatch) -> std::cmp::Ordering {
-    (left.span.start, std::cmp::Reverse(left.span.end))
-        .cmp(&(right.span.start, std::cmp::Reverse(right.span.end)))
 }
 
 #[derive(Debug)]
