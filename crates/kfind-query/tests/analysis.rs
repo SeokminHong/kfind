@@ -7,8 +7,8 @@ use kfind_data::{
 };
 use kfind_morph::{CoarsePos, FinePos, LexicalAlternation};
 use kfind_query::{
-    AnalysisSource, CompileOptions, LexiconQueryAnalyzer, Lexicons, Morphology, QueryAnalyzer,
-    QueryAtom, QueryDiagnostic, compile_query,
+    AnalysisSource, CompileOptions, ExpandMode, LexiconQueryAnalyzer, Lexicons, Morphology,
+    QueryAnalyzer, QueryAtom, QueryDiagnostic, compile_query,
 };
 
 fn atom(value: &str) -> QueryAtom {
@@ -168,6 +168,100 @@ fn full_pos_preserves_productive_alternation_for_non_core_predicates() {
         .collect::<BTreeSet<_>>();
     assert!(anchors.contains("커스텀해"));
     assert!(!anchors.contains("커스텀핬"));
+}
+
+#[test]
+fn known_predicate_shape_selects_productive_alternation_for_its_pos() {
+    let full_data = LexiconData {
+        predicates: vec![
+            PredicateRecord {
+                lemma: "가난하다".to_owned(),
+                pos: DataFinePos::Va,
+                alternation: DataAlternation::Regular,
+                flags: BTreeSet::new(),
+                overrides: Vec::new(),
+            },
+            PredicateRecord {
+                lemma: "자유롭다".to_owned(),
+                pos: DataFinePos::Va,
+                alternation: DataAlternation::Regular,
+                flags: BTreeSet::new(),
+                overrides: Vec::new(),
+            },
+        ],
+        ..LexiconData::default()
+    };
+    let binary = encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap();
+    let analyzer = LexiconQueryAnalyzer::new(Arc::new(
+        Lexicons::embedded_with(Some(&binary), None).unwrap(),
+    ));
+
+    for (lemma, expected) in [
+        ("가난하다", LexicalAlternation::Ha),
+        ("자유롭다", LexicalAlternation::BToWo),
+    ] {
+        assert!(
+            analyzer
+                .analyze(&atom(lemma))
+                .unwrap()
+                .iter()
+                .any(|analysis| {
+                    matches!(
+                        &analysis.morphology,
+                        Morphology::Predicate(predicate) if predicate.alternation == expected
+                    )
+                })
+        );
+    }
+}
+
+#[test]
+fn dictionary_surfaces_preserve_inflection_and_derivation_boundaries() {
+    let mut lexicons = Lexicons::embedded().unwrap();
+    lexicons
+        .load_enriched_predicates(
+            "fixture.tsv",
+            concat!(
+                "lemma\tpos\talternation\tflags\toverrides\n",
+                "있다\tVA\tSurfaceOnly\t\tlexical.dictionary-conjugation=있는\n",
+                "상관없다\tVA\tSurfaceOnly\t\tlexical.dictionary-related-adverb=상관없이\n",
+            ),
+        )
+        .unwrap();
+    let analyzer = LexiconQueryAnalyzer::new(Arc::new(lexicons));
+
+    let inflection = compile_query("있다", &CompileOptions::default(), &analyzer).unwrap();
+    assert!(inflection.atoms[0].branches.iter().any(|branch| {
+        branch.anchor.as_ref() == "있는".as_bytes()
+            && branch.origins.iter().any(|origin| {
+                origin
+                    .rule_path
+                    .iter()
+                    .any(|rule| rule.as_str() == "lexical.dictionary-conjugation")
+            })
+    }));
+
+    let default_plan = compile_query("상관없다", &CompileOptions::default(), &analyzer).unwrap();
+    assert!(
+        default_plan.atoms[0]
+            .branches
+            .iter()
+            .all(|branch| branch.anchor.as_ref() != "상관없이".as_bytes())
+    );
+    let derivation_options = CompileOptions {
+        expand: ExpandMode::Derivation,
+        ..CompileOptions::default()
+    };
+    let derivation = compile_query("상관없다", &derivation_options, &analyzer).unwrap();
+    assert!(derivation.atoms[0].branches.iter().any(|branch| {
+        branch.anchor.as_ref() == "상관없이".as_bytes()
+            && branch.origins.iter().any(|origin| {
+                origin
+                    .rule_path
+                    .iter()
+                    .any(|rule| rule.as_str() == "lexical.dictionary-related-adverb")
+            })
+    }));
 }
 
 #[test]

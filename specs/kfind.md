@@ -1872,6 +1872,29 @@ importer의 원시 레코드 grain은 `(source, source_id, raw_homonym, lemma, f
 확인된 복수 alternation은 충돌로 간주하지 않고 합집합으로 보존한다. redirect, 비표준어,
 방언과 옛말은 자동 승격하지 않는다.
 
+구조화된 사전 표면형은 기존 enriched predicate TSV 안의 `SurfaceOnly` 분석으로 저장한다.
+별도 전체 활용형 사전이나 런타임 문장 분석기는 추가하지 않는다. `SurfaceOnly`는 같은 품사의
+core·enriched 분석이나 full POS fallback을 가리지 않으며, 기본형과 사전에 기록된 정확한
+표면형만 만든다. provenance-only rule id `lexical.dictionary-conjugation`과
+`lexical.dictionary-related-adverb`는 rule registry의 생산 규칙이 아니며 이 분석에서만
+허용한다.
+
+사전 활용형은 한국어기초사전과 표준국어대사전의 `일반어` record가 같은
+`(lemma, fine_pos, surface)`를 지지할 때만 후보로 삼는다. core, 자동 승격된 alternation과
+품사가 확인된 `하다`, `스럽다`, `답다`, `롭다`의 생산 규칙으로 이미 생성되는 surface는
+저장하지 않는다. 남은 surface만 `lexical.dictionary-conjugation`으로 기록하며
+`inflection`과 `derivation`에서 사용할 수 있다.
+
+한국어기초사전 `RelatedForm`은 source가 동사·형용사이고 target이 부사이며, 양쪽 entry가 서로의
+ID를 가리키고 각 `writtenForm`이 참조한 entry의 표제어와 일치하는 `파생어` 관계만 사용한다.
+이 surface는 `lexical.dictionary-related-adverb`로 기록하고 `--expand derivation`에서만 연다.
+예문과 정의에서 문자열을 추출하지 않는다.
+
+생성기는 surface-only 행 수가 512개를 넘거나 배포 `predicates.tsv`가 64 KiB를 넘으면 실패한다.
+source snapshot 갱신으로 이 한도를 넘으면 중복 생성 규칙과 분류 누락을 먼저 해소하고, 한도 변경은
+별도 성능·배포 크기 검토로 결정한다. report에는 생략된 생성형, 배포 surface-only 활용형·파생형,
+source record ID와 artifact byte 수를 구분해 기록한다.
+
 한국어기초사전 snapshot을 XML로 읽기 전에 XML 1.0에서 허용하지 않는 바이트를 검사한다.
 고정 snapshot에서 사전에 기록한 값과 위치만 제거할 수 있으며, 종류·개수·위치가 달라지면
 생성을 실패시킨다. manifest에는 원본 파일명·생성일·SHA-256, 정제 내역, source별 입력·후보·

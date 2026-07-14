@@ -8,7 +8,9 @@ use crate::{
     LexiconQueryAnalyzer, Morphology, Origin, QueryAnalyzer, QueryAtom, QueryDiagnostic, QueryPlan,
     SurfaceBranch, parse_query,
 };
-use kfind_data::DerivationRule;
+use kfind_data::{
+    DICTIONARY_CONJUGATION_RULE_ID, DICTIONARY_RELATED_ADVERB_RULE_ID, DerivationRule,
+};
 use kfind_morph::{CoarsePos, ParticleTransition, RuleId, generate_predicate_branches};
 
 mod context;
@@ -25,6 +27,8 @@ const INTERNAL_PROVENANCE_IDS: &[&str] = &[
     "contraction.eu-drop",
     "contraction.h-irregular",
     "contraction.identical-vowel",
+    DICTIONARY_CONJUGATION_RULE_ID,
+    DICTIONARY_RELATED_ADVERB_RULE_ID,
 ];
 const MORPH_VERIFIER_RULE_IDS: &[&str] = &[
     "ending.aoeo-seo",
@@ -302,6 +306,7 @@ fn compile_analysis(
             analysis,
             analysis_index,
             Vec::new(),
+            options.expand,
             predicate_rules,
             known_rule_ids,
             excluded_rules,
@@ -388,10 +393,12 @@ fn lexical_context_requirement(atom_surface: &str, analysis: &Analysis) -> Conte
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn compile_predicate(
     analysis: &Analysis,
     analysis_index: u16,
     prefix_rules: Vec<RuleId>,
+    expand: ExpandMode,
     allowed_rules: &Arc<[RuleId]>,
     known_rule_ids: &HashSet<&str>,
     excluded_rules: &mut Vec<RuleId>,
@@ -406,6 +413,13 @@ fn compile_predicate(
         let environment = predicate_environment(predicate, &branch);
         let mut rule_path = prefix_rules.clone();
         rule_path.extend(branch.rule_path);
+        if expand != ExpandMode::Derivation
+            && rule_path
+                .iter()
+                .any(|rule| rule.as_str() == DICTIONARY_RELATED_ADVERB_RULE_ID)
+        {
+            continue;
+        }
         let unsupported = rule_path
             .iter()
             .filter(|rule| !is_known_or_internal(rule, known_rule_ids))
@@ -473,6 +487,7 @@ fn compile_derivations(
                 &derived,
                 analysis_index,
                 derivation_path,
+                ExpandMode::Derivation,
                 predicate_rules,
                 known_rule_ids,
                 excluded_rules,

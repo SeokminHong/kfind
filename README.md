@@ -135,9 +135,10 @@ terminal. `-` selects stdin explicitly.
 
 The default `inflection` mode includes noun plurals and particle chains,
 predicate endings, copula forms, and the irregular classes covered by the
-versioned rules and lexicon. `derivation` adds registered productive forms such
-as `-적`, `-하다`, `-되다`, and `-시키다`. `literal` disables morphology
-expansion.
+versioned rules and lexicon, plus cross-checked dictionary conjugations.
+`derivation` adds registered productive forms such as `-적`, `-하다`, `-되다`,
+and `-시키다`, along with dictionary-linked derived forms. `literal` disables
+morphology expansion.
 
 The query is expanded; the corpus is not fully tokenized or analyzed. This keeps
 file scanning fast, but it is not semantic search. For example,
@@ -332,9 +333,9 @@ JSON fields, and exit codes do not change with the locale.
 ## Lexicon data
 
 Core irregular predicates and rules are embedded in the binary. Homebrew also
-installs the pinned full POS lexicon, CC BY-SA enriched predicate metadata, and
-compact morphology-component resource under `share/kfind`; runtime network
-access is never required.
+installs the pinned full POS lexicon, CC BY-SA enriched predicate metadata and
+surfaces, and compact morphology-component resource under `share/kfind`;
+runtime network access is never required.
 
 Without the full POS file, searches continue with the core lexicon and
 heuristics. `--explain-query` reports that preview state. `--data-dir` or
@@ -354,6 +355,13 @@ cargo run --locked -p kfind-testkit --bin verify-gold -- \
 scripts/build-enriched-predicates.sh
 ```
 
+Of 12,888 conjugations supported by two NIKL dictionaries, the enriched
+generator stores only the 130 that productive rules cannot generate. It also
+stores 153 predicate-to-adverb forms whose Korean Basic Dictionary entry IDs
+agree in both directions. The resulting TSV has 283 surface-only rows and is
+27,707 bytes. Conjugations are available in the default `inflection` mode;
+derived adverbs require `derivation`.
+
 ## Benchmarks
 
 These results summarize separate workloads; morphology quality, end-to-end CLI
@@ -370,23 +378,23 @@ files.
 
 | Workflow | Quality (TP / FP / FN) | CLI wall | Throughput | Peak RSS |
 | --- | ---: | ---: | ---: | ---: |
-| Agent: embedded + `any` + explicit POS | 480 / 11 / 20 | 18.0 ms | 5,565.9 MiB/s | 7.5 MiB |
-| Human: full POS + `smart` + untagged | 417 / 0 / 83 | 311.0 ms | 321.6 MiB/s | 92.1 MiB |
+| Agent: embedded + `any` + explicit POS | 482 / 11 / 18 | 17.8 ms | 5,612.9 MiB/s | 7.4 MiB |
+| Human: full POS + `smart` + untagged | 420 / 0 / 80 | 316.7 ms | 315.7 MiB/s | 92.2 MiB |
 
 ![Product workflow quality and CLI cost](docs/benchmarks/assets/product-workflows.svg)
 
 The agent and human quality rows use different negative-query contracts, so
 they describe their product workflows rather than a head-to-head backend rank.
-The product rows are from the 2026-07-14 candidate revision `488cd3f`.
+The product rows are from the 2026-07-15 candidate revision `4b25582`.
 
-The full-POS lexicon now includes 176 dictionary-classified D/S/B/H irregular
-analyses and two independently supported regular homonyms. On top of main
-`df84a1a`, contextual `smart` distinguishes `매/NNG + 이/VCP + ㄹ/ETM`, repeated
-`매일/MAG`, and `매일/NNG + 을/JKO`. Public test, development, and Human quality
-were unchanged; false positives in the seven-case homonymous hard-negative
-slice fell from four to one. Human CLI throughput was 0.51% lower and the wall
-time ranges overlapped.
+The enriched generator stores only 130 of 12,888 cross-checked dictionary
+conjugations because productive analysis generates the other 12,758. It also
+stores 153 bidirectionally linked predicate-to-adverb forms. This 27,707-byte
+surface layer reduced Agent and Human FN by one without a new hard-negative FP.
+Agent morphology cases/s was 1.05% lower; Human morphology and both CLI wall
+time ranges overlapped their baselines.
 
+- [2026-07-15 bounded dictionary surface lexicon](docs/benchmarks/2026-07-15-dictionary-surface-lexicon.md)
 - [2026-07-14 D/S/B/H irregular enriched predicate lexicon](docs/benchmarks/2026-07-14-consonant-irregular-enriched-lexicon.md)
 - [2026-07-14 reu/reo irregular and enriched predicate lexicon](docs/benchmarks/2026-07-14-reu-reo-enriched-lexicon.md)
 - [2026-07-14 full-POS coarse-noun analysis-union recall](docs/benchmarks/2026-07-14-full-pos-coarse-noun-recall.md)
@@ -421,13 +429,13 @@ fixture or select product rules.
 The table below uses the same 1,000-case explicit-POS fixture and gold. The
 Agent row and the pinned external analyzers receive explicit POS; the User row
 removes POS from the same queries to represent interactive use. Agent and User
-were measured on 2026-07-14. External rows reuse snapshots whose fixture,
+were measured on 2026-07-15. External rows reuse snapshots whose fixture,
 schema, version, and configuration did not change.
 
 | Backend | Input and version | TP / FP / FN | Precision | Recall | F1 | Init | Cases/s | p95 | Peak RSS |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Agent | embedded + `any`, explicit POS | 480 / 11 / 20 | 97.76% | 96.00% | 96.87% | 0.0011 s | 15,600.2 | 0.1447 ms | 5.1 MiB |
-| User | full POS + `smart`, untagged | 417 / 0 / 83 | 100.00% | 83.40% | 90.95% | 0.4322 s | 11,169.3 | 0.2101 ms | 91.9 MiB |
+| Agent | embedded + `any`, explicit POS | 482 / 11 / 18 | 97.77% | 96.40% | 97.08% | 0.0012 s | 14,563.8 | 0.1558 ms | 5.2 MiB |
+| User | full POS + `smart`, untagged | 420 / 0 / 80 | 100.00% | 84.00% | 91.30% | 0.4367 s | 10,382.6 | 0.2349 ms | 92.2 MiB |
 | Kiwi | snapshot 0.23.2, model 0.23.0, explicit POS | 426 / 0 / 74 | 100.00% | 85.20% | 92.01% | 1.7204 s | 1,672.0 | 1.1904 ms | 528.2 MiB |
 | Lindera | snapshot 4.0.0, embedded-ko-dic, explicit POS | 393 / 0 / 107 | 100.00% | 78.60% | 88.02% | 0.0301 s | 15,609.1 | 0.1113 ms | 193.1 MiB |
 | MeCab-ko | snapshot 1.0.2, dictionary 1.0.0, explicit POS | 403 / 0 / 97 | 100.00% | 80.60% | 89.26% | 0.0003 s | 10,789.7 | 0.1940 ms | 102.8 MiB |

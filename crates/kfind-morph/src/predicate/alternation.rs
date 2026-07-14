@@ -129,7 +129,9 @@ pub(super) fn aeo_surfaces(
                 rules: lexical_rule,
             }])
         }
-        LexicalAlternation::Copula | LexicalAlternation::Suppletive => Ok(Vec::new()),
+        LexicalAlternation::Copula
+        | LexicalAlternation::Suppletive
+        | LexicalAlternation::SurfaceOnly => Ok(Vec::new()),
     }
 }
 
@@ -337,7 +339,7 @@ fn conditional_base(
             require_and_drop_final(entry, stem, JONG_HIEUH)?,
             vec![rule("lexical.drop-h")],
         ),
-        LexicalAlternation::Suppletive => return Ok(None),
+        LexicalAlternation::Suppletive | LexicalAlternation::SurfaceOnly => return Ok(None),
         _ => (stem.to_owned(), Vec::new()),
     };
     Ok(Some(base))
@@ -576,6 +578,7 @@ fn alternation_rule(alternation: LexicalAlternation) -> Option<RuleId> {
         LexicalAlternation::UToEo => "lexical.u-to-eo",
         LexicalAlternation::Copula => "lexical.copula",
         LexicalAlternation::Suppletive => "lexical.suppletive",
+        LexicalAlternation::SurfaceOnly => "lexical.surface-only",
     };
     Some(rule(id))
 }

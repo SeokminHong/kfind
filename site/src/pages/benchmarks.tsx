@@ -39,21 +39,21 @@ export default function BenchmarksPage(): React.JSX.Element {
             <tbody>
               <tr>
                 <td>Agent · embedded + any + explicit POS</td>
-                <td>480 / 11 / 20</td>
-                <td>97.76%</td>
-                <td>96.00%</td>
-                <td>96.87%</td>
-                <td>15,397.7</td>
-                <td>5.1 MiB</td>
+                <td>482 / 11 / 18</td>
+                <td>97.77%</td>
+                <td>96.40%</td>
+                <td>97.08%</td>
+                <td>14,563.8</td>
+                <td>5.2 MiB</td>
               </tr>
               <tr>
                 <td>User · full POS + smart + untagged</td>
-                <td>417 / 0 / 83</td>
+                <td>420 / 0 / 80</td>
                 <td>100.00%</td>
-                <td>83.40%</td>
-                <td>90.95%</td>
-                <td>10,757.4</td>
-                <td>92.1 MiB</td>
+                <td>84.00%</td>
+                <td>91.30%</td>
+                <td>10,478.9</td>
+                <td>92.2 MiB</td>
               </tr>
             </tbody>
           </table>
@@ -174,26 +174,30 @@ export default function BenchmarksPage(): React.JSX.Element {
         </p>
       </DocumentSection>
 
-      <DocumentSection title="사전 기반 불규칙 활용 lexicon">
+      <DocumentSection title="제한된 사전 표면형 계층">
         <p>
-          <code>다르다 → 달라</code>는 르 불규칙이고{' '}
-          <code>푸르다 → 푸르러</code>와 도달 뜻의 <code>이르다 → 이르러</code>
-          는 러 불규칙입니다. 같은 종성에서도 활용이 갈리는 ㄷ·ㅅ·ㅂ·ㅎ은
-          국립국어원 사전 snapshot의 활용형을 표제어별로 판별합니다. full-POS
-          제품 경로는 기존 르·러 102개와 신규 ㄷ·ㅅ·ㅂ·ㅎ 176개, 규칙형 동형어
-          companion 2개를 배포합니다.
+          두 국립국어원 사전이 함께 지지하는 활용형 12,888개 중 12,758개는 기존
+          분석과 생산 규칙으로 생성합니다. 배포 데이터에는 생성되지 않는 활용형
+          130개와 한국어기초사전에서 entry ID·표면형이 양방향으로 일치하는
+          용언·부사 파생 관계 153개만 저장합니다. 결과는 283행, 27,707바이트이며
+          정의와 예문은 포함하지 않습니다.
         </p>
         <p>
-          Main <code>e8f99c2</code> 대비 후보 <code>b6cd0a9</code>는 test와
-          사람용 무품사 <code>smart</code>에서 새 FP 없이 FN을 각각 6건
-          줄였습니다. Development와 hard-negative는 변하지 않았고, 100 MiB Human
-          CLI 처리량과 isolated full-POS 초기화의 측정 범위는 겹쳤습니다. 확대된
-          artifact의 peak RSS는 64~132 KiB 늘었습니다.
+          Main <code>8f42396</code> 대비 후보 <code>4b25582</code>는 test
+          embedded와 full-POS <code>smart</code>의 FN을 각각 2건, Agent와
+          Human의 FN을 각각 1건 줄였습니다. Development와 hard-negative FP는
+          변하지 않았습니다. Agent morphology cases/s는 1.05% 낮았고 Human
+          morphology와 두 CLI wall 측정 범위는 겹쳤습니다.
         </p>
       </DocumentSection>
 
       <DocumentSection title="원본 보고서">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-15-dictionary-surface-lexicon.md">
+              제한된 사전 표면형 계층
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-consonant-irregular-enriched-lexicon.md">
               ㄷ·ㅅ·ㅂ·ㅎ 불규칙 enriched 용언 lexicon

@@ -112,7 +112,8 @@ impl Classification {
             LexicalAlternation::UToEo => "lexical.u-to-eo",
             LexicalAlternation::Ha
             | LexicalAlternation::Copula
-            | LexicalAlternation::Suppletive => {
+            | LexicalAlternation::Suppletive
+            | LexicalAlternation::SurfaceOnly => {
                 unreachable!()
             }
         }
@@ -177,6 +178,7 @@ pub struct SourceRecord {
     pub pos: String,
     pub lexical_status: String,
     pub conjugations: BTreeSet<String>,
+    pub related_adverbs: BTreeSet<String>,
 }
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -258,14 +260,16 @@ impl Error for UsageError {}
 pub fn parse_source_records(input: &str) -> Result<Vec<SourceRecord>, UsageError> {
     let mut lines = input.lines();
     let header = lines.next().unwrap_or_default();
-    if header != "source\tsource_id\traw_homonym\tlemma\tpos\tlexical_status\tconjugations" {
+    if header
+        != "source\tsource_id\traw_homonym\tlemma\tpos\tlexical_status\tconjugations\trelated_adverbs"
+    {
         return Err(UsageError::new("unexpected normalized records header"));
     }
     lines
         .enumerate()
         .map(|(index, line)| {
             let fields = line.split('\t').collect::<Vec<_>>();
-            if fields.len() != 7 {
+            if fields.len() != 8 {
                 return Err(UsageError::new(format!(
                     "normalized records line {} has {} fields",
                     index + 2,
@@ -279,6 +283,11 @@ pub fn parse_source_records(input: &str) -> Result<Vec<SourceRecord>, UsageError
                 pos: fields[4].to_owned(),
                 lexical_status: fields[5].to_owned(),
                 conjugations: fields[6]
+                    .split('|')
+                    .filter(|value| !value.is_empty())
+                    .map(str::to_owned)
+                    .collect(),
+                related_adverbs: fields[7]
                     .split('|')
                     .filter(|value| !value.is_empty())
                     .map(str::to_owned)

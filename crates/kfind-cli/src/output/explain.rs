@@ -385,5 +385,6 @@ const fn alternation_label(alternation: LexicalAlternation) -> &'static str {
         LexicalAlternation::UToEo => "u-to-eo",
         LexicalAlternation::Copula => "copula",
         LexicalAlternation::Suppletive => "suppletive",
+        LexicalAlternation::SurfaceOnly => "surface-only",
     }
 }

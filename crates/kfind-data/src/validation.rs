@@ -169,8 +169,33 @@ pub fn validate_predicates(
                 },
             ));
         }
+        if predicate.alternation == crate::DataAlternation::SurfaceOnly
+            && (predicate.overrides.len() != 1
+                || !predicate
+                    .overrides
+                    .iter()
+                    .all(|entry| crate::is_dictionary_surface_rule(&entry.rule_id)))
+        {
+            return Err(DataError::new(
+                SourceLocation::new(source),
+                DataErrorKind::InvalidValue {
+                    field: "overrides".to_owned(),
+                    value: predicate
+                        .overrides
+                        .iter()
+                        .map(|entry| entry.rule_id.as_str())
+                        .collect::<Vec<_>>()
+                        .join(","),
+                    reason: "SurfaceOnly는 사전 provenance override 하나만 가져야 합니다"
+                        .to_owned(),
+                },
+            ));
+        }
         for entry in &predicate.overrides {
-            if !ids.contains(entry.rule_id.as_str()) {
+            if !ids.contains(entry.rule_id.as_str())
+                && !(predicate.alternation == crate::DataAlternation::SurfaceOnly
+                    && crate::is_dictionary_surface_rule(&entry.rule_id))
+            {
                 return Err(DataError::new(
                     SourceLocation::new(source),
                     DataErrorKind::UnknownRuleId(entry.rule_id.clone()),
@@ -186,6 +211,7 @@ fn validate_override_conflicts(lexicon: &LexiconData) -> Result<(), DataError> {
     let all_overrides = lexicon
         .predicates
         .iter()
+        .filter(|record| record.alternation != crate::DataAlternation::SurfaceOnly)
         .flat_map(|record| {
             record
                 .overrides

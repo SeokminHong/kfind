@@ -1,7 +1,7 @@
-schema_version = 1
-generator = "tools/nikl-lexicon/import_nikl.py@1"
+schema_version = 2
+generator = "tools/nikl-lexicon/import_nikl.py@2"
 license = "CC BY-SA 2.0 KR"
-extracted_fields = ["source_id", "homonym", "lemma", "part-of-speech", "conjugation"]
+extracted_fields = ["source_id", "homonym", "lemma", "part-of-speech", "conjugation", "related-form-id", "related-form-surface"]
 
 [[source]]
 name = "krdict"
@@ -10,6 +10,7 @@ sha256 = "a8ab7d044d4f6341e0f217db63f38f4d18beed3e1f153130f6cb4e9494fea1d6"
 item_count = 56555
 predicate_count = 14141
 predicate_with_conjugations_count = 6510
+related_adverb_count = 153
 sanitized_byte_count = 7
 sanitized_locations = ["1_5000_20260619.xml:7177584", "1_5000_20260619.xml:7707029", "2_5000_20260619.xml:26688097", "3_5000_20260619.xml:1622737", "5_5000_20260619.xml:2780232", "5_5000_20260619.xml:25054056", "5_5000_20260619.xml:25059684"]
 
@@ -20,6 +21,7 @@ sha256 = "880b31447146df5879c076012b21d4cc3c0c24e70fd91be7fc73f7ff7da34d52"
 item_count = 436578
 predicate_count = 69873
 predicate_with_conjugations_count = 67990
+related_adverb_count = 0
 sanitized_byte_count = 0
 sanitized_locations = []
 
@@ -30,5 +32,6 @@ sha256 = "9e8807e5fade8c7b59431d1ab527fe93aafd15395001bcdde88511e8c9293b42"
 item_count = 1207464
 predicate_count = 136724
 predicate_with_conjugations_count = 93507
+related_adverb_count = 0
 sanitized_byte_count = 0
 sanitized_locations = []

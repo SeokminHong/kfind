@@ -89,7 +89,10 @@ pub fn generate_predicate_branches(
         vec![rule("ending.final-da")],
     );
 
-    if entry.alternation != LexicalAlternation::Suppletive {
+    if !matches!(
+        entry.alternation,
+        LexicalAlternation::Suppletive | LexicalAlternation::SurfaceOnly
+    ) {
         push_branch(
             &mut branches,
             entry,
@@ -108,7 +111,10 @@ pub fn generate_predicate_branches(
 
     if entry.alternation == LexicalAlternation::Copula {
         compile_copula(entry, stem, &mut branches)?;
-    } else if entry.alternation != LexicalAlternation::Suppletive {
+    } else if !matches!(
+        entry.alternation,
+        LexicalAlternation::Suppletive | LexicalAlternation::SurfaceOnly
+    ) {
         compile_productive(entry, stem, &mut branches)?;
     }
 

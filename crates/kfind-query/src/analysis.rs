@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use kfind_morph::{CoarsePos, FinePos, PredicateEntry, PredicatePos, RuleId};
 
+use crate::lexicons::predicate_shape_alternation;
 use crate::{Lexicons, QueryAtom};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -104,9 +105,9 @@ impl QueryAnalyzer for LexiconQueryAnalyzer {
             return self.analyze_forced(&atom.raw, forced_pos);
         }
 
-        let exact = self.lexicons.lookup(&atom.raw);
+        let exact = self.lexicons.lookup_with_surface_fallback(&atom.raw);
         if !exact.is_empty() {
-            return Ok(exact.into_owned());
+            return Ok(exact);
         }
         if let Some(productive) = self.lexicons.productive_predicate(&atom.raw) {
             return Ok(vec![productive]);
@@ -144,7 +145,7 @@ impl LexiconQueryAnalyzer {
         lemma: &str,
         forced_pos: CoarsePos,
     ) -> Result<Vec<Analysis>, AnalyzeError> {
-        let candidates = self.lexicons.lookup(lemma);
+        let candidates = self.lexicons.lookup_with_surface_fallback(lemma);
         let mut matching = Vec::new();
         let mut includes_full_pos = false;
         for analysis in candidates
@@ -185,7 +186,8 @@ impl LexiconQueryAnalyzer {
             let predicate = PredicateEntry::new(
                 lemma,
                 predicate_pos,
-                kfind_morph::LexicalAlternation::Regular,
+                predicate_shape_alternation(lemma, forced_pos)
+                    .unwrap_or(kfind_morph::LexicalAlternation::Regular),
             );
             return Ok(vec![Analysis {
                 lemma: lemma.into(),

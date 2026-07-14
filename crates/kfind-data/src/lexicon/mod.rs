@@ -173,6 +173,17 @@ pub enum DataAlternation {
     UToEo,
     Copula,
     Suppletive,
+    SurfaceOnly,
+}
+
+pub const DICTIONARY_CONJUGATION_RULE_ID: &str = "lexical.dictionary-conjugation";
+pub const DICTIONARY_RELATED_ADVERB_RULE_ID: &str = "lexical.dictionary-related-adverb";
+
+pub fn is_dictionary_surface_rule(id: &str) -> bool {
+    matches!(
+        id,
+        DICTIONARY_CONJUGATION_RULE_ID | DICTIONARY_RELATED_ADVERB_RULE_ID
+    )
 }
 
 impl DataAlternation {
@@ -190,6 +201,7 @@ impl DataAlternation {
             "UToEo" => Self::UToEo,
             "Copula" => Self::Copula,
             "Suppletive" => Self::Suppletive,
+            "SurfaceOnly" => Self::SurfaceOnly,
             _ => return None,
         })
     }
@@ -208,6 +220,7 @@ impl DataAlternation {
             Self::UToEo => "UToEo",
             Self::Copula => "Copula",
             Self::Suppletive => "Suppletive",
+            Self::SurfaceOnly => "SurfaceOnly",
         }
     }
 
@@ -225,6 +238,7 @@ impl DataAlternation {
             Self::UToEo => "lexical.u-to-eo",
             Self::Copula => "lexical.copula",
             Self::Suppletive => "lexical.suppletive",
+            Self::SurfaceOnly => "lexical.surface-only",
         }
     }
 
@@ -242,6 +256,7 @@ impl DataAlternation {
             Self::UToEo => "u-irregular",
             Self::Copula => "copula",
             Self::Suppletive => "suppletive",
+            Self::SurfaceOnly => "surface-only",
         }
     }
 }

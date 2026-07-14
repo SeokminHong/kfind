@@ -1,7 +1,13 @@
-schema_version = 2
-generator = "nikl-lexicon-classifier@0.2.0"
+schema_version = 3
+generator = "nikl-lexicon-classifier@0.3.0"
 record_count = 220738
 candidate_count = 2069
+agreed_conjugation_count = 12888
+generated_conjugation_count = 12758
+surface_conjugation_count = 130
+related_adverb_count = 153
+surface_only_count = 283
+artifact_bytes = 27707
 promoted_count = 278
 mixed_regular_count = 2
 core_duplicate_count = 44

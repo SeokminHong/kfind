@@ -260,7 +260,7 @@ impl Lexicons {
                     analysis.source,
                     AnalysisSource::BuiltinLexicon | AnalysisSource::EnrichedLexicon
                 ) && if entry.pos.is_predicate() {
-                    analysis.coarse_pos == fine_pos.coarse()
+                    analysis.coarse_pos == fine_pos.coarse() && !is_surface_only_analysis(analysis)
                 } else {
                     analysis.fine_pos == fine_pos
                 }
@@ -288,9 +288,56 @@ impl Lexicons {
         default_analysis(
             &entry.lemma,
             entry.pos,
-            productive_alternation.flatten(),
+            productive_alternation
+                .flatten()
+                .or_else(|| predicate_shape_alternation(&entry.lemma, fine_pos.coarse())),
             AnalysisSource::FullPosLexicon,
         )
+    }
+
+    pub(crate) fn lookup_with_surface_fallback(&self, lemma: &str) -> Vec<Analysis> {
+        let mut analyses = self.lookup(lemma).into_owned();
+        let surface_positions = analyses
+            .iter()
+            .filter_map(|analysis| match &analysis.morphology {
+                Morphology::Predicate(predicate)
+                    if predicate.alternation == LexicalAlternation::SurfaceOnly =>
+                {
+                    Some(predicate.pos)
+                }
+                _ => None,
+            })
+            .collect::<BTreeSet<_>>();
+        for pos in surface_positions {
+            if analyses.iter().any(|analysis| {
+                matches!(
+                    &analysis.morphology,
+                    Morphology::Predicate(predicate)
+                        if predicate.pos == pos
+                            && predicate.alternation != LexicalAlternation::SurfaceOnly
+                )
+            }) {
+                continue;
+            }
+            let mut fallback = self
+                .productive_predicate(lemma)
+                .filter(|analysis| analysis.coarse_pos == pos.coarse())
+                .unwrap_or_else(|| Analysis {
+                    lemma: lemma.into(),
+                    coarse_pos: pos.coarse(),
+                    fine_pos: pos.fine(),
+                    morphology: Morphology::Predicate(PredicateEntry::new(
+                        lemma,
+                        pos,
+                        predicate_shape_alternation(lemma, pos.coarse())
+                            .unwrap_or(LexicalAlternation::Regular),
+                    )),
+                    source: AnalysisSource::EnrichedLexicon,
+                });
+            fallback.source = AnalysisSource::EnrichedLexicon;
+            analyses.push(fallback);
+        }
+        analyses
     }
 
     fn insert_analysis(&mut self, key: Box<str>, analysis: Analysis, skip: bool) {
@@ -326,6 +373,31 @@ fn same_lexical_analysis(left: &Analysis, right: &Analysis) -> bool {
         && left.coarse_pos == right.coarse_pos
         && left.fine_pos == right.fine_pos
         && left.morphology == right.morphology
+}
+
+fn is_surface_only_analysis(analysis: &Analysis) -> bool {
+    matches!(
+        &analysis.morphology,
+        Morphology::Predicate(predicate)
+            if predicate.alternation == LexicalAlternation::SurfaceOnly
+    )
+}
+
+pub(crate) fn predicate_shape_alternation(
+    lemma: &str,
+    pos: CoarsePos,
+) -> Option<LexicalAlternation> {
+    if lemma.ends_with("하다") {
+        return Some(LexicalAlternation::Ha);
+    }
+    if pos == CoarsePos::Adjective
+        && ["스럽다", "답다", "롭다"]
+            .iter()
+            .any(|suffix| lemma.ends_with(suffix))
+    {
+        return Some(LexicalAlternation::BToWo);
+    }
+    None
 }
 
 #[derive(Clone, Copy)]
@@ -536,6 +608,7 @@ fn data_alternation(value: DataAlternation) -> LexicalAlternation {
         DataAlternation::UToEo => LexicalAlternation::UToEo,
         DataAlternation::Copula => LexicalAlternation::Copula,
         DataAlternation::Suppletive => LexicalAlternation::Suppletive,
+        DataAlternation::SurfaceOnly => LexicalAlternation::SurfaceOnly,
     }
 }
 
@@ -553,6 +626,7 @@ fn alternation_from_rule_id(id: &str) -> Option<LexicalAlternation> {
         "lexical.u-to-eo" => LexicalAlternation::UToEo,
         "lexical.copula" => LexicalAlternation::Copula,
         "lexical.suppletive" => LexicalAlternation::Suppletive,
+        "lexical.surface-only" => LexicalAlternation::SurfaceOnly,
         _ => return None,
     })
 }

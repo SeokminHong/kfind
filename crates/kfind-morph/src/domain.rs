@@ -105,6 +105,7 @@ pub enum LexicalAlternation {
     UToEo,
     Copula,
     Suppletive,
+    SurfaceOnly,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]

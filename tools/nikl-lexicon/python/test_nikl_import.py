@@ -7,8 +7,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 from nikl_import import (
+    KrDictEntry,
     import_snapshot,
     krdict_record,
+    krdict_related_adverbs,
     normalize_headword,
     opendict_record,
     stdict_record,
@@ -109,6 +111,23 @@ class NiklImportTest(unittest.TestCase):
 
             self.assertEqual(first, second)
             self.assertEqual(len(list(cache.glob("krdict/*/.complete"))), 1)
+
+    def test_accepts_only_bidirectional_predicate_adverb_relations(self) -> None:
+        entries = {
+            "1": KrDictEntry(
+                "상관없다",
+                "형용사",
+                (("파생어", "2", "상관없이"), ("파생어", "3", "일방향으로")),
+            ),
+            "2": KrDictEntry(
+                "상관없이",
+                "부사",
+                (("☞(가 보라)", "1", "상관없다"),),
+            ),
+            "3": KrDictEntry("일방향으로", "부사", ()),
+        }
+
+        self.assertEqual(krdict_related_adverbs(entries), {"1": ("상관없이",)})
 
     def import_fixture(
         self,
