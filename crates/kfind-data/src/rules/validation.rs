@@ -202,17 +202,17 @@ fn validate_particles(rules: &RuleSet, locations: &RuleLocations) -> Result<(), 
             ParticleSelection::Literal => None,
             ParticleSelection::FinalPair | ParticleSelection::EuroRo => Some(2),
         };
-        if let Some(expected) = expected_forms {
-            if rule.forms.len() != expected {
-                return Err(invalid_rule_value(
-                    locations,
-                    source,
-                    &rule.id,
-                    "forms",
-                    rule.forms.join("|"),
-                    "선택 규칙은 정확히 두 이형태를 가져야 합니다",
-                ));
-            }
+        if let Some(expected) = expected_forms
+            && rule.forms.len() != expected
+        {
+            return Err(invalid_rule_value(
+                locations,
+                source,
+                &rule.id,
+                "forms",
+                rule.forms.join("|"),
+                "선택 규칙은 정확히 두 이형태를 가져야 합니다",
+            ));
         }
         for next in &rule.next {
             require_reference(source, &rule.id, next, &particle_ids, locations)?;

@@ -22,4 +22,4 @@ pub use output::{
     TerminalPager,
 };
 pub use parse::{CliParseError, parse_args_from};
-pub use run::{CliError, ExitStatus, run_with_io};
+pub use run::{CliError, ExitStatus, run_with_io, run_with_terminal_pager};

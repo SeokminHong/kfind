@@ -137,11 +137,15 @@
   같은 변경에서 갱신한다. README 차트의 값과 source report가 일치하는지 검증한다.
 - `--column`은 v0.1 정식 옵션이며 1부터 시작하는 Unicode scalar 열을 출력한다.
 - `--count`는 파일별로 검증된 span이 하나 이상 있는 줄의 수를 출력한다.
-- 일반 text 결과를 TTY stdout에 쓰면 `less -RFSX` pager를 자동으로 사용한다. 긴 줄은 terminal
-  너비에서 접지 않고 좌우 이동으로 확인하며 위·아래 화살표로 출력 줄을 탐색한다. `--no-pager`,
-  non-TTY stdout, JSON Lines, count, 파일명 요약과 quiet mode는 pager를 사용하지 않고 기존 bounded
-  stdout stream을 유지한다. `less`를 시작할 수 없을 때도 직접 stdout으로 fallback한다. 에이전트
-  권장 경로의 JSON Lines는 stdout이 TTY여도 비대화형 출력을 유지한다.
+- 일반 text 결과를 TTY stdin/stdout에서 쓰면 내장 TUI pager를 자동으로 사용한다. 검색 시작과 함께
+  TUI를 열고 완성된 결과 행을 점진적으로 반영한다. 화면 너비를 넘는 match
+  줄은 검증된 match마다 별도 행으로 펼치고 각 행의 target이 보이도록 앞뒤를 생략한다. target의
+  화면 위치는 원문에서 target 앞뒤가 차지하는 비율을 따르되, 양쪽 원문이 모두 남아 있으면 가용
+  문맥의 20–80% 안으로 제한한다. terminal resize 때 너비, 생략 위치와 행 분할을 다시 계산하며
+  위·아래 화살표는 이 행 단위를 이동한다. `--no-pager`, non-TTY stdin/stdout, JSON Lines, count, 파일명
+  요약과 quiet mode는 pager를 사용하지 않고 기존 bounded stdout stream을 유지한다. TUI를 시작할
+  수 없을 때는 일반 text를 직접 stdout에 쓴다. 에이전트 권장 경로의 JSON Lines는 stdout이 TTY여도
+  비대화형 출력을 유지한다.
 - EUC-KR은 명시적 `--encoding euc-kr`에서 지원한다. `auto`는 BOM 기반 UTF-16과 UTF-8만 판별한다.
 
 ### 0.4 Web 문서와 playground
@@ -400,7 +404,7 @@
   반환한다. 파일 순회, 인코딩 판별, 출력 형식과 CLI locale 처리는 라이브러리 API에
   포함하지 않는다.
 - `kfind`, `kfind-wasm`, `kfind-data`, `kfind-morph`, `kfind-query`, `kfind-matcher`는
-  Rust 1.85에서 `wasm32-unknown-unknown` 대상으로 빌드되어야 한다.
+  Rust 1.97에서 `wasm32-unknown-unknown` 대상으로 빌드되어야 한다.
 - `kfind-wasm`은 `wasm-bindgen` JavaScript glue와 TypeScript declaration을 생성한다.
   npm package metadata와 게시 계약은 0.8절을 따른다.
 - JavaScript API는 `new Kfind(componentResource?)`와
@@ -1503,10 +1507,25 @@ src/walk.rs:42: 길을 걸어 갔다.
 
 열 번호는 기본적으로 생략할 수 있다. `--column`에서만 match 줄의 앞부분을 Unicode scalar로 세어 계산한다.
 
-일반 text 결과를 TTY stdout에 쓰면 `less -RFSX`를 pager로 사용한다. `-S`는 긴 줄을 접지 않아
-terminal 한 줄을 넘지 않게 하고 좌우 이동을 허용하며, 위·아래 화살표는 출력 줄을 이동한다.
-한 화면 이하 결과는 바로 종료하고 terminal 내용을 남긴다. `--no-pager`, non-TTY와 구조화·요약
-출력은 pager를 거치지 않는다.
+일반 text 결과를 TTY stdin/stdout에서 쓰면 검색 시작과 동시에 내장 TUI pager를 열고, 완성된
+결과 행을 점진적으로 반영한다. 검색 중에도 이동과 resize를 처리하며 상태 행에 검색 중임을
+표시한다. 검색 완료 뒤 너비와 높이가 모두 한 화면에 들어가면 바로 종료하고 terminal 내용을
+남긴다. 한 줄이라도 잘리거나 결과가 화면 높이를 넘으면 TUI를 유지하며 `↑`/`↓` 또는 `k`/`j`로
+한 행씩 이동하고 `q` 또는 `Esc`로 종료한다. 검색 중 종료하면 결과 출력과 남은 검색을 중단한다.
+
+화면 너비를 넘지 않는 match 줄은 source line 하나를 한 행으로 유지하고 모든 match를 강조한다.
+화면 너비를 넘는 match 줄은 source 순서대로 `PhraseMatch` 하나당 한 행을 만든다. 각 행은 target
+match의 전체 span이 content 너비 이하면 모두 보이도록 앞뒤 원문을 `…`로 생략하고 target에 속한
+token만 강조한다. target span 자체가 content 너비보다 길면 span 중앙을 기준으로 보이는 구간을
+잡는다. target 앞뒤의 가용 문맥은 전체 원문에서 target 앞뒤가 차지하는 비율로 나누되 양쪽에 원문이 남아 있으면
+각각 최소 20%를 보장한다. 파일 경로 prefix가 content 영역을 잠식하면 prefix의 왼쪽을 먼저
+생략하며 prefix는 화면 너비의 40%를 넘지 않는다. `--column`은 분리된 각 행의 target column을
+표시한다. match가 없는 긴 context·설명 행은 앞부분을 유지하고 끝을 생략한다.
+
+terminal resize는 현재 보고 있는 source line과 target match를 기준점으로 유지하면서 행 분할,
+prefix와 content window를 다시 계산한다. 축소되어 source line이 잘리면 match별 행으로 펼치고,
+확대되어 전체 line이 들어오면 다시 한 행으로 합친다. `--no-pager`, 명시적 stdin path `-`, non-TTY
+stdin/stdout과 구조화·요약 출력은 pager를 거치지 않으며 원문 line을 생략하거나 match별로 복제하지 않는다.
 
 ### 15.2 쿼리 설명
 
@@ -2129,7 +2148,7 @@ end
 12. 사용자 사전 없이도 핵심 불규칙 fixture가 통과한다.
 13. Homebrew 기본 설치에서 full POS lexicon이 로드되고, 사전 누락 시 명확한 진단을 출력한다.
 14. 공개 Rust 라이브러리가 동일한 query plan과 matcher를 사용해 메모리 입력을 검색한다.
-15. 공개 라이브러리와 핵심 의존 crate가 Rust 1.85의 `wasm32-unknown-unknown` target에서
+15. 공개 라이브러리와 핵심 의존 crate가 Rust 1.97의 `wasm32-unknown-unknown` target에서
     빌드된다.
 16. `kfind` npm 산출물의 Node smoke test, TypeScript declaration 검사와
     `npm pack --dry-run`이 통과한다.
@@ -2147,8 +2166,10 @@ end
 23. 관리하지 않는 기존 skill은 보존하고 init 실패를 exit code 2와 escape된 진단으로 보고한다.
 24. Homebrew formula는 agent skill 원본을 설치하고 project link가 stable `opt` 경로를 사용해
     upgrade 뒤 새 원본을 가리킨다.
-25. 일반 text 검색의 TTY stdout은 긴 줄을 접지 않는 pager를 사용하고, `--no-pager`, non-TTY와
-    agent JSON 출력은 기존 stdout stream을 유지한다.
+25. 일반 text 검색의 TTY stdin/stdout은 검색 중 결과를 점진적으로 표시하는 resize 가능한 내장
+    pager에서 긴 match 줄을 match별 행으로 펼치고 target 앞뒤 비율에 맞춰 생략하며,
+    `--no-pager`, non-TTY와 agent JSON 출력은 기존
+    stdout stream을 유지한다.
 
 ## 24. 공개 코드 인터페이스
 

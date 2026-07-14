@@ -149,12 +149,25 @@ impl OutputOptions {
 pub struct OutputWriter<W> {
     writer: W,
     options: OutputOptions,
+    terminal_pager: bool,
 }
 
 impl<W: Write> OutputWriter<W> {
     #[must_use]
     pub const fn new(writer: W, options: OutputOptions) -> Self {
-        Self { writer, options }
+        Self {
+            writer,
+            options,
+            terminal_pager: false,
+        }
+    }
+
+    pub(crate) const fn new_terminal_pager(writer: W, options: OutputOptions) -> Self {
+        Self {
+            writer,
+            options,
+            terminal_pager: true,
+        }
     }
 
     pub fn write_query_plan(&mut self, plan: &QueryPlan) -> Result<(), OutputError> {
@@ -182,10 +195,14 @@ impl<W: Write> OutputWriter<W> {
         plan: &QueryPlan,
     ) -> Result<(), OutputError> {
         match self.options.mode {
-            OutputMode::Standard => {
-                text::write_standard(&mut self.writer, result, plan, self.options)
-                    .map_err(OutputError::Io)
-            }
+            OutputMode::Standard => text::write_standard(
+                &mut self.writer,
+                result,
+                plan,
+                self.options,
+                self.terminal_pager,
+            )
+            .map_err(OutputError::Io),
             OutputMode::Count => {
                 text::write_count(&mut self.writer, result, self.options.with_filename())
                     .map_err(OutputError::Io)
@@ -205,10 +222,15 @@ impl<W: Write> OutputWriter<W> {
         plan: &QueryPlan,
     ) -> Result<(), OutputError> {
         match self.options.mode {
-            OutputMode::Standard => {
-                text::write_record(&mut self.writer, path, record, plan, self.options)
-                    .map_err(OutputError::Io)
-            }
+            OutputMode::Standard => text::write_record(
+                &mut self.writer,
+                path,
+                record,
+                plan,
+                self.options,
+                self.terminal_pager,
+            )
+            .map_err(OutputError::Io),
             OutputMode::JsonLines => {
                 json::write_record(&mut self.writer, path, record, plan, self.options)
             }

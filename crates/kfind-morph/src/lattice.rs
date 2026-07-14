@@ -404,15 +404,15 @@ fn best_paths(
         .map(|_| [Vec::<PathState>::new(), Vec::<PathState>::new()])
         .collect::<Vec<_>>();
     for (index, node) in nodes.iter().enumerate() {
-        if node.span.start == 0 {
-            if let Some(connection) = resource.connection_cost(BOS_EOS_CONTEXT_ID, node.left_id) {
-                let state = PathState {
-                    cost: i64::from(connection) + i64::from(node.word_cost),
-                    includes_query: node.query_match,
-                    nodes: vec![index],
-                };
-                insert_path(&mut paths[index][usize::from(state.includes_query)], state);
-            }
+        if node.span.start == 0
+            && let Some(connection) = resource.connection_cost(BOS_EOS_CONTEXT_ID, node.left_id)
+        {
+            let state = PathState {
+                cost: i64::from(connection) + i64::from(node.word_cost),
+                includes_query: node.query_match,
+                nodes: vec![index],
+            };
+            insert_path(&mut paths[index][usize::from(state.includes_query)], state);
         }
         if let Some(predecessors) = ending_at.get(&node.span.start) {
             for predecessor in predecessors {

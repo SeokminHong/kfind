@@ -200,19 +200,19 @@ fn validate_override_conflicts(
         }));
     for (lemma, entry) in entries {
         let key = (lemma, entry.rule_id.as_str());
-        if let Some(first) = seen.insert(key, &entry.surface) {
-            if first != entry.surface {
-                return Err(semantic_error(
-                    source,
-                    None,
-                    DataErrorKind::OverrideConflict {
-                        lemma: lemma.to_owned(),
-                        rule_id: entry.rule_id.clone(),
-                        first: first.to_owned(),
-                        second: entry.surface.clone(),
-                    },
-                ));
-            }
+        if let Some(first) = seen.insert(key, &entry.surface)
+            && first != entry.surface
+        {
+            return Err(semantic_error(
+                source,
+                None,
+                DataErrorKind::OverrideConflict {
+                    lemma: lemma.to_owned(),
+                    rule_id: entry.rule_id.clone(),
+                    first: first.to_owned(),
+                    second: entry.surface.clone(),
+                },
+            ));
         }
     }
     Ok(())

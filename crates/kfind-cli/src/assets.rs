@@ -21,10 +21,12 @@ POS lexicon when available.
 kfind 걷다 src
 kfind 사용자 src docs
 .EE
-Standard text results written to a terminal open in a pager that keeps long
-lines unwrapped and supports arrow-key navigation. Use --no-pager for direct
-terminal output. Redirected, piped, JSON, and summary output remains a direct
-stdout stream.
+Standard text results with terminal stdin and stdout open in a built-in TUI when
+the search starts and add completed rows progressively. Long match lines expand
+to one row per verified match, with both sides truncated to keep the target
+visible. Navigation and resize remain active while searching. Use the up/down
+arrows or k/j to move, and q or Esc to exit. Use --no-pager for direct output.
+Redirected, piped, JSON, and summary output remains a direct stdout stream.
 .SS Agent automation
 Agents should specify the part of speech for every morphology atom and use
 unrestricted boundaries, the embedded lexicon, and JSON Lines output.

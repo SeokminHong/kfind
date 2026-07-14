@@ -59,6 +59,61 @@ where
     W: Write + Send,
     E: Write + Send,
 {
+    run_with_io_inner(
+        args,
+        language,
+        stdin,
+        stdout,
+        stderr,
+        stdin_is_terminal,
+        stdout_is_terminal,
+        false,
+    )
+}
+
+#[doc(hidden)]
+pub fn run_with_terminal_pager<R, W, E>(
+    args: &Args,
+    language: Language,
+    stdin: R,
+    stdout: &mut W,
+    stderr: &mut E,
+    stdin_is_terminal: bool,
+    stdout_is_terminal: bool,
+) -> Result<ExitStatus, CliError>
+where
+    R: Read,
+    W: Write + Send,
+    E: Write + Send,
+{
+    run_with_io_inner(
+        args,
+        language,
+        stdin,
+        stdout,
+        stderr,
+        stdin_is_terminal,
+        stdout_is_terminal,
+        true,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn run_with_io_inner<R, W, E>(
+    args: &Args,
+    language: Language,
+    stdin: R,
+    stdout: &mut W,
+    stderr: &mut E,
+    stdin_is_terminal: bool,
+    stdout_is_terminal: bool,
+    terminal_pager: bool,
+) -> Result<ExitStatus, CliError>
+where
+    R: Read,
+    W: Write + Send,
+    E: Write + Send,
+{
     let query = args.query().ok_or(CliError::MissingQuery)?;
     let options = args.compile_options().map_err(CliError::Options)?;
     let full_pos_mode = if args.embedded {
@@ -89,15 +144,19 @@ where
         stdout_is_terminal,
         should_print_filenames(&paths),
     );
-    let mut output = OutputWriter::new(stdout, output_options);
+    let mut output = if terminal_pager {
+        OutputWriter::new_terminal_pager(stdout, output_options)
+    } else {
+        OutputWriter::new(stdout, output_options)
+    };
 
-    if args.explain_query {
-        if let Err(error) = output.write_query_plan_with_full_pos(&plan, &full_pos_status) {
-            if error.is_broken_pipe() {
-                return Ok(ExitStatus::Match);
-            }
-            return Err(CliError::Output(error));
+    if args.explain_query
+        && let Err(error) = output.write_query_plan_with_full_pos(&plan, &full_pos_status)
+    {
+        if error.is_broken_pipe() {
+            return Ok(ExitStatus::Match);
         }
+        return Err(CliError::Output(error));
     }
 
     let config = search_config(args, paths);
@@ -114,10 +173,10 @@ where
     .map_err(CliError::Search)?;
 
     if !summary.output_closed {
-        if let Err(error) = output.flush() {
-            if !error.is_broken_pipe() {
-                return Err(CliError::Output(error));
-            }
+        if let Err(error) = output.flush()
+            && !error.is_broken_pipe()
+        {
+            return Err(CliError::Output(error));
         }
         stderr.flush().map_err(CliError::Stderr)?;
     }
@@ -137,16 +196,16 @@ enum FullPosMode {
 
 fn load_lexicons(args: &Args, full_pos_mode: FullPosMode) -> Result<LoadedLexicons, CliError> {
     let mut lexicons = Lexicons::embedded().map_err(CliError::Data)?;
-    if !args.embedded {
-        if let Some(path) = resolve_enriched_predicates(args) {
-            let source = fs::read_to_string(&path).map_err(|source| CliError::Read {
-                path: path.clone(),
-                source,
-            })?;
-            lexicons
-                .load_enriched_predicates(&path.to_string_lossy(), &source)
-                .map_err(CliError::Data)?;
-        }
+    if !args.embedded
+        && let Some(path) = resolve_enriched_predicates(args)
+    {
+        let source = fs::read_to_string(&path).map_err(|source| CliError::Read {
+            path: path.clone(),
+            source,
+        })?;
+        lexicons
+            .load_enriched_predicates(&path.to_string_lossy(), &source)
+            .map_err(CliError::Data)?;
     }
     let full_pos = match full_pos_mode {
         FullPosMode::Auto => {
@@ -255,13 +314,13 @@ fn auto_full_pos_candidates() -> Vec<PathBuf> {
             PathBuf::from(directory).join(FULL_POS_FILE),
         );
     }
-    if let Ok(executable) = env::current_exe() {
-        if let Some(prefix) = executable.parent().and_then(Path::parent) {
-            push_candidate(
-                &mut candidates,
-                prefix.join("share/kfind").join(FULL_POS_FILE),
-            );
-        }
+    if let Ok(executable) = env::current_exe()
+        && let Some(prefix) = executable.parent().and_then(Path::parent)
+    {
+        push_candidate(
+            &mut candidates,
+            prefix.join("share/kfind").join(FULL_POS_FILE),
+        );
     }
     if let Some(directory) = env::var_os("XDG_DATA_HOME") {
         push_candidate(
@@ -289,10 +348,10 @@ fn auto_full_pos_candidates() -> Vec<PathBuf> {
 
 fn auto_data_candidates(file: &str) -> Vec<PathBuf> {
     let mut candidates = Vec::new();
-    if let Ok(executable) = env::current_exe() {
-        if let Some(prefix) = executable.parent().and_then(Path::parent) {
-            push_candidate(&mut candidates, prefix.join("share/kfind").join(file));
-        }
+    if let Ok(executable) = env::current_exe()
+        && let Some(prefix) = executable.parent().and_then(Path::parent)
+    {
+        push_candidate(&mut candidates, prefix.join("share/kfind").join(file));
     }
     if let Some(directory) = env::var_os("XDG_DATA_HOME") {
         push_candidate(
