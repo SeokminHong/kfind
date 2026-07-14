@@ -142,7 +142,9 @@
   줄은 검증된 match마다 별도 행으로 펼치고 각 행의 target이 보이도록 앞뒤를 생략한다. target의
   화면 위치는 원문에서 target 앞뒤가 차지하는 비율을 따르되, 양쪽 원문이 모두 남아 있으면 가용
   문맥의 20–80% 안으로 제한한다. terminal resize 때 너비, 생략 위치와 행 분할을 다시 계산하며
-  위·아래 화살표는 이 행 단위를 이동한다. `--no-pager`, non-TTY stdin/stdout, JSON Lines, count, 파일명
+  위·아래 화살표는 이 행 단위를 이동한다. 마지막 행은 content viewport의 마지막 행에 놓이는
+  지점까지만 이동하며, 키 반복 입력은 frame 단위로 합쳐 새로 노출된 행만 갱신한다. `--no-pager`,
+  non-TTY stdin/stdout, JSON Lines, count, 파일명
   요약과 quiet mode는 pager를 사용하지 않고 기존 bounded stdout stream을 유지한다. TUI를 시작할
   수 없을 때는 일반 text를 직접 stdout에 쓴다. 에이전트 권장 경로의 JSON Lines는 stdout이 TTY여도
   비대화형 출력을 유지한다.
@@ -1541,7 +1543,10 @@ src/walk.rs:42: 길을 걸어 갔다.
 결과 행을 점진적으로 반영한다. 검색 중에도 이동과 resize를 처리하며 상태 행에 검색 중임을
 표시한다. 검색 완료 뒤 너비와 높이가 모두 한 화면에 들어가면 바로 종료하고 terminal 내용을
 남긴다. 한 줄이라도 잘리거나 결과가 화면 높이를 넘으면 TUI를 유지하며 `↑`/`↓` 또는 `k`/`j`로
-한 행씩 이동하고 `q` 또는 `Esc`로 종료한다. 검색 중 종료하면 결과 출력과 남은 검색을 중단한다.
+한 행씩 이동하고 `q` 또는 `Esc`로 종료한다. 이동 offset은 content viewport의 첫 행이며 최대값은
+`전체 행 수 - viewport 높이`다. 따라서 마지막 행만 화면 위에 남기고 아래를 비우는 위치까지는
+이동하지 않는다. 키 반복 중 한 frame에 쌓인 이동은 한 번에 반영하고, 연속 행 이동은 기존 화면을
+유지한 채 새로 노출된 행과 상태 행만 갱신한다. 검색 중 종료하면 결과 출력과 남은 검색을 중단한다.
 
 화면 너비를 넘지 않는 match 줄은 source line 하나를 한 행으로 유지하고 모든 match를 강조한다.
 화면 너비를 넘는 match 줄은 source 순서대로 `PhraseMatch` 하나당 한 행을 만든다. 각 행은 target
