@@ -3,20 +3,25 @@
 //! [`Engine`] owns reusable lexicon state. Compile a query once into a [`Matcher`],
 //! then search any number of UTF-8 byte slices without filesystem or CLI dependencies.
 
+pub mod expert;
+
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::sync::Arc;
 
 use kfind_data::{COMPONENT_RESOURCE_SOURCE_DIGEST, decode_component_resource};
-use kfind_matcher::{MorphMatcher, MorphMatcherBuildError};
+use kfind_matcher::MorphMatcher;
 use kfind_morph::LocalComponentEvaluator;
 use kfind_query::{LexiconQueryAnalyzer, compile_query};
 
-pub use kfind_data::DataError;
-pub use kfind_morph::CoarsePos;
+pub use kfind_data::{DataError, DataErrorKind, SourceLocation};
+pub use kfind_matcher::{AnchorBuildError, MorphMatcherBuildError};
+pub use kfind_morph::{CoarsePos, GenerateError, LexicalAlternation, RuleId};
+use kfind_query::Lexicons;
 pub use kfind_query::{
-    BoundaryPolicy, CompileError, CompileOptionError, CompileOptionOverrides, CompileOptions,
-    ExpandMode, Lexicons, NormalizationMode, PhraseMatch, QueryPlan, VerifiedSpan,
+    AnalyzeError, BoundaryPolicy, CompileError, CompileErrorKind, CompileOptionError,
+    CompileOptionOverrides, CompileOptions, ExpandMode, NormalizationMode, Origin, PhraseMatch,
+    PhrasePolicy, PlanLimits, QueryError, QueryErrorKind, SourceSpan, VerifiedSpan,
 };
 
 /// Optional dictionary resources that define an engine's analysis profile.
@@ -88,7 +93,7 @@ impl Engine {
 
     /// Creates an engine from caller-configured lexicons.
     #[must_use]
-    pub fn from_lexicons(lexicons: Lexicons) -> Self {
+    fn from_lexicons(lexicons: Lexicons) -> Self {
         Self {
             analyzer: LexiconQueryAnalyzer::new(Arc::new(lexicons)),
             component_evaluator: None,
@@ -96,7 +101,7 @@ impl Engine {
     }
 
     /// Creates an engine from caller-configured lexicons and a component resource.
-    pub fn from_lexicons_with_component(
+    fn from_lexicons_with_component(
         lexicons: Lexicons,
         component_resource: impl Into<Vec<u8>>,
     ) -> Result<Self, DataError> {
@@ -161,12 +166,6 @@ pub struct Matcher {
 }
 
 impl Matcher {
-    /// Returns the compiled query plan used by this matcher.
-    #[must_use]
-    pub fn plan(&self) -> &QueryPlan {
-        self.inner.plan()
-    }
-
     /// Finds the next match at or after an absolute byte offset.
     #[must_use]
     pub fn find_at(&self, input: &[u8], at: usize) -> Option<PhraseMatch> {
