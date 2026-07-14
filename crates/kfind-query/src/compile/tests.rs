@@ -122,6 +122,30 @@ fn unregistered_da_is_diagnostic_literal_only() {
 }
 
 #[test]
+fn embedded_irregular_predicates_preserve_reu_reo_and_homonym_unions() {
+    for (lemma, expected) in [
+        ("다르다", &["달라"][..]),
+        ("누르다", &["눌러", "누르러"]),
+        ("오르다", &["올라"]),
+        ("이르다", &["일러", "이르러"]),
+        ("자르다", &["잘라"]),
+        ("푸르다", &["푸르러"]),
+        ("흐르다", &["흘러"]),
+    ] {
+        let plan = compile_query(lemma, &CompileOptions::default(), &analyzer()).unwrap();
+        for surface in expected {
+            assert!(
+                plan.atoms[0]
+                    .branches
+                    .iter()
+                    .any(|branch| branch.anchor.as_ref() == surface.as_bytes()),
+                "missing {surface} for {lemma}"
+            );
+        }
+    }
+}
+
+#[test]
 fn literal_expansion_compiles_only_the_input_surface() {
     let options = CompileOptions {
         expand: ExpandMode::Literal,

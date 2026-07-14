@@ -7,9 +7,12 @@ lemma	pos	alternation	flags	overrides
 그렇다	VA	DropH		
 낫다	VA	DropS		
 눕다	VV	BToWo		
+누르다	VA	Reo		
+누르다	VV	ReuDoubleL		
 되다	VV	Regular		
 돕다	VV	BToWa		
 듣다	VV	DToL		
+다르다	VA	ReuDoubleL		
 만들다	VV	Regular	RIEUL_DROP	
 먹다	VV	Regular		
 모르다	VV	ReuDoubleL		
@@ -32,8 +35,13 @@ lemma	pos	alternation	flags	overrides
 알다	VV	Regular	RIEUL_DROP	
 예쁘다	VA	Regular	EU_DROP	
 이다	VCP	Copula		
+이르다	VA	ReuDoubleL		
+이르다	VV	ReuDoubleL		
+이르다	VV	Reo		
 이렇다	VA	DropH		
 잇다	VV	DropS		
+오르다	VV	ReuDoubleL		
+자르다	VV	ReuDoubleL		
 좋다	VA	Regular		
 짓다	VV	DropS		
 쉽다	VA	BToWo		
@@ -44,3 +52,4 @@ lemma	pos	alternation	flags	overrides
 푸다	VV	UToEo		
 푸르다	VA	Reo		
 하다	VV	Ha		
+흐르다	VV	ReuDoubleL		
