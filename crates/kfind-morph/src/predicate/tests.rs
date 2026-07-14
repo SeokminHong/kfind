@@ -195,6 +195,48 @@ fn action_predicates_cover_intentive_connectives() {
 }
 
 #[test]
+fn action_predicates_cover_geora_and_o_final_neora_imperatives() {
+    for (predicate, expected) in [
+        (
+            entry("가다", PredicatePos::Verb, LexicalAlternation::Regular),
+            "가거라",
+        ),
+        (
+            entry("먹다", PredicatePos::Verb, LexicalAlternation::Regular),
+            "먹거라",
+        ),
+        (
+            entry("걷다", PredicatePos::Verb, LexicalAlternation::DToL),
+            "걷거라",
+        ),
+        (
+            entry("오다", PredicatePos::Verb, LexicalAlternation::Regular),
+            "오너라",
+        ),
+        (
+            entry("들어오다", PredicatePos::Verb, LexicalAlternation::Regular),
+            "들어오너라",
+        ),
+    ] {
+        assert!(surfaces(&predicate).contains(expected));
+    }
+
+    let go = surfaces(&entry(
+        "가다",
+        PredicatePos::Verb,
+        LexicalAlternation::Regular,
+    ));
+    assert!(!go.contains("가너라"));
+
+    let adjective = surfaces(&entry(
+        "좋다",
+        PredicatePos::Adjective,
+        LexicalAlternation::Regular,
+    ));
+    assert!(!adjective.contains("좋거라"));
+}
+
+#[test]
 fn productive_predicates_cover_reason_connectives() {
     for (predicate, expected) in [
         (
