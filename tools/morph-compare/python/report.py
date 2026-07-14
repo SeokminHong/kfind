@@ -374,19 +374,20 @@ def render_markdown(report: dict[str, object]) -> str:
             "",
             "## Versions and profiles",
             "",
-            "| result | backend | version | profile | lexicon SHA-256 | morphology SHA-256 | component SHA-256 |",
-            "| --- | --- | --- | --- | --- | --- | --- |",
+            "| result | backend | version | profile | lexicon SHA-256 | enriched SHA-256 | morphology SHA-256 | component SHA-256 |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
     for result_name in backends:
         version = report["versions"][result_name]
         artifact = version["lexicon_artifact_sha256"] or "n/a"
+        enriched = version.get("enriched_artifact_sha256") or "n/a"
         morphology = version.get("morphology_artifact_sha256") or "n/a"
         component = version.get("component_artifact_sha256") or "n/a"
         lines.append(
             f"| {result_name} | {version['backend']} | {version['version']} | "
-            f"{version['profile'] or 'n/a'} | `{artifact}` | `{morphology}` | "
-            f"`{component}` |"
+            f"{version['profile'] or 'n/a'} | `{artifact}` | `{enriched}` | "
+            f"`{morphology}` | `{component}` |"
         )
     append_product_workflows(lines, report)
     append_external_baselines(lines, report)

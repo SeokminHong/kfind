@@ -71,6 +71,8 @@ cargo bench -p kfind-testkit --bench query_matcher -- local_lattice
 
 독립된 UD Korean-Kaist·KSL test split에서 `kfind` embedded/full-POS를 실행하고
 Kiwi·Lindera·MeCab-ko·KOMORAN의 고정 품질·성능 스냅샷과 lemma/POS/span task를 비교한다.
+full-POS 프로필은 제품 기본 CLI와 같은 enriched 용언 metadata를 함께 읽고, embedded
+프로필은 두 외부 어휘 resource를 모두 읽지 않는다.
 기본 실행은 kfind만 다시 측정하고 외부 결과는 저장된 스냅샷에서 읽는다. dev의 VCP/VCN
 분석 slice는 성능 측정에서 제외한다.
 별도 human fixture는 품사 옵션과 atom 태그를 생략하고, query 표제어가 어떤 지원 품사로도

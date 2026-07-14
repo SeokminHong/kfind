@@ -23,8 +23,8 @@
 ## 제품 상태
 
 - CLI, Rust library와 WASM binding은 같은 query compiler와 matcher를 사용한다.
-- 사람용 CLI 기본 경로는 full POS와 `smart`다. 품사를 명시하는 자동화 경로는
-  `--boundary any --embedded --json`을 사용한다.
+- 사람용 CLI 기본 경로는 full POS, enriched 용언 metadata와 `smart`다. 품사를 명시하는
+  자동화 경로는 `--boundary any --embedded --json`을 사용한다.
 - 명시적 품사 `smart`는 precision 99.00% 하한과 hard-negative 보호 안에서 FN을 FP보다 우선해
   줄인다. 무품사 결과는 품사 모호성을 포함한 제품 한계로 그대로 보고한다.
 - `smart`의 명사 branch는 문자열 token 경계 또는 compact component resource의 완전한 형태

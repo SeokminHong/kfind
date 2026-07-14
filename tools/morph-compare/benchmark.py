@@ -312,6 +312,7 @@ def evaluate_component_startup(
         if any(
             summary["profile"] != profile
             or summary["full_pos_loaded"] != expected_full_pos
+            or summary["enriched_predicates_loaded"] != expected_full_pos
             or summary["component_resource_loaded"] != expected_component
             for summary in summaries
         ):
@@ -588,6 +589,9 @@ def evaluate_dataset(
             "profile": kfind[profile][5]["profile"],
             "lexicon_artifact_sha256": kfind[profile][5][
                 "lexicon_artifact_sha256"
+            ],
+            "enriched_artifact_sha256": kfind[profile][5][
+                "enriched_artifact_sha256"
             ],
             "morphology_artifact_sha256": kfind[profile][5][
                 "morphology_artifact_sha256"

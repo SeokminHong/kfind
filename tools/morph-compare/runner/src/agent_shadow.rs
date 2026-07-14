@@ -212,6 +212,7 @@ fn span(range: Range<usize>) -> Span {
 const fn analysis_source_name(source: AnalysisSource) -> &'static str {
     match source {
         AnalysisSource::BuiltinLexicon => "builtin-lexicon",
+        AnalysisSource::EnrichedLexicon => "enriched-lexicon",
         AnalysisSource::FullPosLexicon => "full-pos-lexicon",
         AnalysisSource::UserLexicon => "user-lexicon",
         AnalysisSource::ProductiveSuffix => "productive-suffix",
