@@ -2035,7 +2035,7 @@ single_atom: 걷다
 phrase_8_atoms: n:사용자 n:권한 v:검증하다 adj:예쁘다 det:새 adv:빨리 n:기술 v:걷다
 ```
 
-`matcher/phrase_find_all`은 1,024개 line 중 4개마다 `n:길 v:걷다`가 일치하는 고정 corpus를 메모리 입력으로 사용한다. 전체 phrase match를 반환하는 한 번의 호출을 측정해 match 수에 따른 반복 anchor scan과 span 결합 회귀를 감시한다.
+`matcher/phrase_find_all`은 1,024개 line 중 4개마다 `n:길 v:걷다`가 일치하는 고정 corpus를 메모리 입력으로 사용한다. smart boundary의 component 검증에 필요한 고정 resource를 matcher 생성 시 제공한다. 전체 phrase match를 반환하는 한 번의 호출을 측정해 match 수에 따른 반복 anchor scan과 span 결합 회귀를 감시한다.
 
 `local_lattice/component_decision`은 고정 component fixture를 한 번 초기화한 뒤 accept, reject와
 ambiguous 입력을 순환하며 제품용 component 판정만 측정한다. `local_lattice/component_report`는
