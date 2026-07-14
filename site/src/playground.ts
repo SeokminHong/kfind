@@ -16,25 +16,31 @@ enum PlaygroundState {
   Error = 'error',
 }
 
-enum PresetName {
+export enum PlaygroundPresetName {
   Predicate = 'predicate',
   Phrase = 'phrase',
   Component = 'component',
   Literal = 'literal',
 }
 
+export interface PlaygroundInput {
+  readonly boundary: BoundaryPolicy;
+  readonly expand: ExpandMode;
+  readonly maxGap: string;
+  readonly normalization: NormalizationMode;
+  readonly pos: PartOfSpeech;
+  readonly query: string;
+  readonly text: string;
+}
+
+export interface PlaygroundController {
+  readonly dispose: () => void;
+  readonly run: () => void;
+  readonly scheduleRun: () => void;
+}
+
 interface PlaygroundElements {
-  readonly form: HTMLFormElement;
   readonly status: HTMLElement;
-  readonly query: HTMLInputElement;
-  readonly text: HTMLTextAreaElement;
-  readonly pos: HTMLSelectElement;
-  readonly boundary: HTMLSelectElement;
-  readonly expand: HTMLSelectElement;
-  readonly normalization: HTMLSelectElement;
-  readonly maxGap: HTMLInputElement;
-  readonly runButton: HTMLButtonElement;
-  readonly textCount: HTMLElement;
   readonly summary: HTMLElement;
   readonly executionTime: HTMLElement;
   readonly preview: HTMLElement;
@@ -54,29 +60,29 @@ interface Preset {
 
 type ElementConstructor<T extends Element> = new () => T;
 
-const presets: Readonly<Record<PresetName, Preset>> = {
-  [PresetName.Predicate]: {
+const presets: Readonly<Record<PlaygroundPresetName, Preset>> = {
+  [PlaygroundPresetName.Predicate]: {
     query: '걷다',
     text: '오늘은 공원을 걸었다.\n내일도 천천히 걷고 싶다.\n산책길을 걷는 사람을 만났다.',
     pos: PartOfSpeech.Verb,
     boundary: BoundaryPolicy.Smart,
     expand: ExpandMode.Inflection,
   },
-  [PresetName.Phrase]: {
+  [PlaygroundPresetName.Phrase]: {
     query: 'n:사용자 v:검증하다',
     text: '에이전트가 결과를 만들면 사용자가 문맥을 다시 검증했습니다.\n사용자 권한만 확인했습니다.',
     pos: PartOfSpeech.Auto,
     boundary: BoundaryPolicy.Any,
     expand: ExpandMode.Inflection,
   },
-  [PresetName.Component]: {
+  [PlaygroundPresetName.Component]: {
     query: 'n:요리',
     text: '중국요리를 만드는 법을 정리했다.\n요리 도구도 함께 준비했다.\n요리사라는 직업도 있다.',
     pos: PartOfSpeech.Auto,
     boundary: BoundaryPolicy.Smart,
     expand: ExpandMode.Inflection,
   },
-  [PresetName.Literal]: {
+  [PlaygroundPresetName.Literal]: {
     query: '걸어',
     text: '길을 걸어 갔다.\n그는 걷다가 멈췄다.\n걸어라는 문자열만 그대로 찾는다.',
     pos: PartOfSpeech.Literal,
@@ -85,7 +91,28 @@ const presets: Readonly<Record<PresetName, Preset>> = {
   },
 };
 
-export function initializePlayground(root: ParentNode): () => void {
+export const initialPlaygroundInput: PlaygroundInput = {
+  boundary: BoundaryPolicy.Smart,
+  expand: ExpandMode.Inflection,
+  maxGap: '24',
+  normalization: NormalizationMode.Nfc,
+  pos: PartOfSpeech.Verb,
+  query: presets[PlaygroundPresetName.Predicate].query,
+  text: presets[PlaygroundPresetName.Predicate].text,
+};
+
+export function applyPlaygroundPreset(
+  input: PlaygroundInput,
+  presetName: PlaygroundPresetName,
+): PlaygroundInput {
+  return { ...input, ...presets[presetName] };
+}
+
+export function initializePlayground(
+  root: ParentNode,
+  readInput: () => PlaygroundInput,
+  onReady: () => void,
+): PlaygroundController {
   const elements = collectElements(root);
   const controller = new AbortController();
   const { signal } = controller;
@@ -97,7 +124,7 @@ export function initializePlayground(root: ParentNode): () => void {
       return;
     }
 
-    executeSearch(engine, elements);
+    executeSearch(engine, elements, readInput());
   };
 
   const scheduleRun = (): void => {
@@ -105,15 +132,10 @@ export function initializePlayground(root: ParentNode): () => void {
     pendingRun = globalThis.setTimeout(run, 120);
   };
 
-  elements.form.addEventListener(
-    'submit',
-    (event) => {
-      event.preventDefault();
-      globalThis.clearTimeout(pendingRun);
-      run();
-    },
-    { signal },
-  );
+  const runNow = (): void => {
+    globalThis.clearTimeout(pendingRun);
+    run();
+  };
 
   elements.resourceButton.addEventListener(
     'click',
@@ -127,45 +149,6 @@ export function initializePlayground(root: ParentNode): () => void {
     { signal },
   );
 
-  for (const input of [
-    elements.query,
-    elements.text,
-    elements.pos,
-    elements.boundary,
-    elements.expand,
-    elements.normalization,
-    elements.maxGap,
-  ]) {
-    input.addEventListener(
-      'input',
-      () => {
-        updateTextCount(elements);
-        scheduleRun();
-      },
-      { signal },
-    );
-  }
-
-  for (const button of root.querySelectorAll<HTMLButtonElement>(
-    '[data-preset]',
-  )) {
-    button.addEventListener(
-      'click',
-      () => {
-        const presetName = parseEnum(button.dataset.preset ?? '', PresetName);
-
-        if (presetName === undefined) {
-          return;
-        }
-
-        applyPreset(elements, presets[presetName]);
-        run();
-      },
-      { signal },
-    );
-  }
-
-  updateTextCount(elements);
   setState(elements, PlaygroundState.Loading, 'WASM engine을 불러오는 중…');
 
   void loadKfind()
@@ -176,7 +159,8 @@ export function initializePlayground(root: ParentNode): () => void {
       }
 
       engine = loaded.engine;
-      setControlsEnabled(elements);
+      elements.resourceButton.disabled = false;
+      onReady();
       setState(
         elements,
         PlaygroundState.Ready,
@@ -193,18 +177,23 @@ export function initializePlayground(root: ParentNode): () => void {
       renderError(elements, error);
     });
 
-  return () => {
-    controller.abort();
-    globalThis.clearTimeout(pendingRun);
-    engine?.free();
+  return {
+    dispose() {
+      controller.abort();
+      globalThis.clearTimeout(pendingRun);
+      engine?.free();
+    },
+    run: runNow,
+    scheduleRun,
   };
 }
 
 function executeSearch(
   engine: KfindEngine,
   elements: PlaygroundElements,
+  input: PlaygroundInput,
 ): void {
-  const query = elements.query.value.trim();
+  const query = input.query.trim();
 
   if (query.length === 0) {
     clearResults(elements, '쿼리를 입력해 주세요.');
@@ -212,12 +201,12 @@ function executeSearch(
   }
 
   try {
-    const options = readOptions(elements);
+    const options = readOptions(input);
     const startedAt = performance.now();
-    const matches = findMatches(engine, query, elements.text.value, options);
+    const matches = findMatches(engine, query, input.text, options);
     const elapsed = performance.now() - startedAt;
 
-    renderResults(elements, matches, elapsed);
+    renderResults(elements, input.text, matches, elapsed);
   } catch (error) {
     renderError(elements, error);
 
@@ -266,6 +255,7 @@ async function enableComponentResource(
 
 function renderResults(
   elements: PlaygroundElements,
+  text: string,
   matches: readonly Match[],
   elapsed: number,
 ): void {
@@ -275,8 +265,8 @@ function renderResults(
       ? '일치하는 span이 없습니다.'
       : `일치하는 span ${matches.length}개를 찾았습니다.`;
   elements.rawOutput.textContent = JSON.stringify(matches, null, 2);
-  renderPreview(elements.preview, elements.text.value, matches);
-  renderMatchList(elements.matchList, elements.text.value, matches);
+  renderPreview(elements.preview, text, matches);
+  renderMatchList(elements.matchList, text, matches);
 }
 
 function renderPreview(
@@ -375,30 +365,16 @@ function formatProvenance(match: Match): string {
   return paths.size === 0 ? 'direct match 검증 완료' : [...paths].join(' · ');
 }
 
-function readOptions(elements: PlaygroundElements): CompileOptions {
-  const parsedMaxGap = Number.parseInt(elements.maxGap.value, 10);
+function readOptions(input: PlaygroundInput): CompileOptions {
+  const parsedMaxGap = Number.parseInt(input.maxGap, 10);
 
   return {
-    pos: parseEnum(elements.pos.value, PartOfSpeech) ?? PartOfSpeech.Auto,
-    boundary:
-      parseEnum(elements.boundary.value, BoundaryPolicy) ??
-      BoundaryPolicy.Smart,
-    expand:
-      parseEnum(elements.expand.value, ExpandMode) ?? ExpandMode.Inflection,
-    normalization:
-      parseEnum(elements.normalization.value, NormalizationMode) ??
-      NormalizationMode.Nfc,
+    pos: input.pos,
+    boundary: input.boundary,
+    expand: input.expand,
+    normalization: input.normalization,
     maxGap: Number.isNaN(parsedMaxGap) ? 0 : Math.max(0, parsedMaxGap),
   };
-}
-
-function applyPreset(elements: PlaygroundElements, preset: Preset): void {
-  elements.query.value = preset.query;
-  elements.text.value = preset.text;
-  elements.pos.value = preset.pos;
-  elements.boundary.value = preset.boundary;
-  elements.expand.value = preset.expand;
-  updateTextCount(elements);
 }
 
 function setState(
@@ -412,11 +388,6 @@ function setState(
   if (messageElement !== null) {
     messageElement.textContent = message;
   }
-}
-
-function setControlsEnabled(elements: PlaygroundElements): void {
-  elements.runButton.disabled = false;
-  elements.resourceButton.disabled = false;
 }
 
 function clearResults(elements: PlaygroundElements, message: string): void {
@@ -440,10 +411,6 @@ function renderError(elements: PlaygroundElements, error: unknown): void {
   elements.rawOutput.textContent = JSON.stringify({ error: message }, null, 2);
 }
 
-function updateTextCount(elements: PlaygroundElements): void {
-  elements.textCount.textContent = `${elements.text.value.length.toLocaleString('ko-KR')}자`;
-}
-
 function readableError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
@@ -452,30 +419,9 @@ function formatMebibytes(byteLength: number): string {
   return (byteLength / (1024 * 1024)).toFixed(1);
 }
 
-function parseEnum<T extends string>(
-  value: string,
-  enumType: Readonly<Record<string, T>>,
-): T | undefined {
-  return Object.values(enumType).find((candidate) => candidate === value);
-}
-
 function collectElements(root: ParentNode): PlaygroundElements {
   return {
-    form: requiredElement(root, '#playground-form', HTMLFormElement),
     status: requiredElement(root, '#wasm-status', HTMLElement),
-    query: requiredElement(root, '#query-input', HTMLInputElement),
-    text: requiredElement(root, '#text-input', HTMLTextAreaElement),
-    pos: requiredElement(root, '#pos-select', HTMLSelectElement),
-    boundary: requiredElement(root, '#boundary-select', HTMLSelectElement),
-    expand: requiredElement(root, '#expand-select', HTMLSelectElement),
-    normalization: requiredElement(
-      root,
-      '#normalization-select',
-      HTMLSelectElement,
-    ),
-    maxGap: requiredElement(root, '#max-gap-input', HTMLInputElement),
-    runButton: requiredElement(root, '#run-button', HTMLButtonElement),
-    textCount: requiredElement(root, '#text-count', HTMLElement),
     summary: requiredElement(root, '#result-summary', HTMLElement),
     executionTime: requiredElement(root, '#execution-time', HTMLElement),
     preview: requiredElement(root, '#result-preview', HTMLElement),

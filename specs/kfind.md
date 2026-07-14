@@ -180,6 +180,10 @@
   /playground               WebAssembly 검색 실습
   ```
 
+- 문서 site의 popup, select, collapsible과 form control은 `@base-ui/react`의 unstyled primitive로
+  구성한다. 링크, label, keyboard와 pointer 동작은 해당 primitive의 접근성 의미를 유지하고,
+  제품 고유 동작만 route component에서 추가한다.
+
 - 단어장은 검색 입력, 실행 구조, resource와 품질 지표에 쓰는 핵심 용어를 한곳에서
   정의한다. 한국어 표기와 코드·영문 표기는 같은 항목에서 대응시키고, 다른 문서의 설명은
   이 정의와 모순되지 않아야 한다.

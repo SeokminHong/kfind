@@ -1,14 +1,71 @@
-import { useEffect, useRef } from 'react';
+import type { PlaygroundController, PlaygroundInput } from '../../playground';
+
+import { Button } from '@base-ui/react/button';
+import { Collapsible } from '@base-ui/react/collapsible';
+import { Field } from '@base-ui/react/field';
+import { Fieldset } from '@base-ui/react/fieldset';
+import { Form } from '@base-ui/react/form';
+import { Input } from '@base-ui/react/input';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   DocumentPage,
   DocumentSection,
   PageIntro,
 } from '../../components/document';
-import { initializePlayground } from '../../playground';
+import {
+  BoundaryPolicy,
+  ExpandMode,
+  NormalizationMode,
+  PartOfSpeech,
+} from '../../kfind-wasm';
+import {
+  applyPlaygroundPreset,
+  initializePlayground,
+  initialPlaygroundInput,
+  PlaygroundPresetName,
+} from '../../playground';
+
+import { SelectField } from './select-field';
+
+const partOfSpeechOptions = [
+  { label: '자동', value: PartOfSpeech.Auto },
+  { label: '명사', value: PartOfSpeech.Noun },
+  { label: '대명사', value: PartOfSpeech.Pronoun },
+  { label: '수사', value: PartOfSpeech.Numeral },
+  { label: '동사', value: PartOfSpeech.Verb },
+  { label: '형용사', value: PartOfSpeech.Adjective },
+  { label: '관형사', value: PartOfSpeech.Determiner },
+  { label: '부사', value: PartOfSpeech.Adverb },
+  { label: '조사', value: PartOfSpeech.Particle },
+  { label: '감탄사', value: PartOfSpeech.Interjection },
+  { label: 'Literal', value: PartOfSpeech.Literal },
+];
+
+const boundaryOptions = [
+  { label: 'smart', value: BoundaryPolicy.Smart },
+  { label: 'token', value: BoundaryPolicy.Token },
+  { label: 'any', value: BoundaryPolicy.Any },
+];
+
+const expandOptions = [
+  { label: 'inflection', value: ExpandMode.Inflection },
+  { label: 'derivation', value: ExpandMode.Derivation },
+  { label: 'literal', value: ExpandMode.Literal },
+];
+
+const normalizationOptions = [
+  { label: 'NFC', value: NormalizationMode.Nfc },
+  { label: 'NFC + NFD', value: NormalizationMode.Canonical },
+  { label: '없음', value: NormalizationMode.None },
+];
 
 export default function PlaygroundPage(): React.JSX.Element {
   const playgroundRoot = useRef<HTMLElement>(null);
+  const controllerRef = useRef<PlaygroundController>(null);
+  const inputRef = useRef<PlaygroundInput>(initialPlaygroundInput);
+  const [input, setInput] = useState(initialPlaygroundInput);
+  const [isEngineReady, setIsEngineReady] = useState(false);
 
   useEffect(() => {
     const root = playgroundRoot.current;
@@ -17,8 +74,42 @@ export default function PlaygroundPage(): React.JSX.Element {
       return;
     }
 
-    return initializePlayground(root);
+    const controller = initializePlayground(
+      root,
+      () => inputRef.current,
+      () => {
+        setIsEngineReady(true);
+      },
+    );
+    controllerRef.current = controller;
+
+    return () => {
+      controllerRef.current = null;
+      controller.dispose();
+    };
   }, []);
+
+  function commitInput(nextInput: PlaygroundInput, runImmediately: boolean) {
+    inputRef.current = nextInput;
+    setInput(nextInput);
+
+    if (runImmediately) {
+      controllerRef.current?.run();
+    } else {
+      controllerRef.current?.scheduleRun();
+    }
+  }
+
+  function updateInput<Key extends keyof PlaygroundInput>(
+    key: Key,
+    value: PlaygroundInput[Key],
+  ): void {
+    commitInput({ ...inputRef.current, [key]: value }, false);
+  }
+
+  function selectPreset(presetName: PlaygroundPresetName): void {
+    commitInput(applyPlaygroundPreset(inputRef.current, presetName), true);
+  }
 
   return (
     <DocumentPage articleRef={playgroundRoot}>
@@ -47,129 +138,154 @@ export default function PlaygroundPage(): React.JSX.Element {
         </div>
 
         <div className="playground-layout">
-          <form className="playground-controls" id="playground-form">
-            <div className="field field-query">
-              <label htmlFor="query-input">Query</label>
-              <input
+          <Form
+            className="playground-controls"
+            id="playground-form"
+            onFormSubmit={() => {
+              controllerRef.current?.run();
+            }}
+          >
+            <Field.Root className="field field-query" name="query">
+              <Field.Label data-glossary-skip="">Query</Field.Label>
+              <Input
+                className="text-control"
                 id="query-input"
-                name="query"
-                defaultValue="걷다"
                 autoComplete="off"
-                aria-label="검색 query"
+                onValueChange={(value) => {
+                  updateInput('query', value);
+                }}
+                value={input.query}
               />
-              <p>
+              <Field.Description>
                 atom 태그 예: <code>n:사용자 v:검증하다</code>
-              </p>
-            </div>
+              </Field.Description>
+            </Field.Root>
 
-            <fieldset className="preset-fieldset">
-              <legend>예시</legend>
+            <Fieldset.Root className="preset-fieldset">
+              <Fieldset.Legend data-glossary-skip="">예시</Fieldset.Legend>
               <div className="preset-list">
-                <button type="button" data-preset="predicate">
+                <Button
+                  data-glossary-skip=""
+                  data-preset={PlaygroundPresetName.Predicate}
+                  onClick={() => {
+                    selectPreset(PlaygroundPresetName.Predicate);
+                  }}
+                >
                   용언 활용
-                </button>
-                <button type="button" data-preset="phrase">
+                </Button>
+                <Button
+                  data-glossary-skip=""
+                  data-preset={PlaygroundPresetName.Phrase}
+                  onClick={() => {
+                    selectPreset(PlaygroundPresetName.Phrase);
+                  }}
+                >
                   구(句) 검색
-                </button>
-                <button type="button" data-preset="component">
+                </Button>
+                <Button
+                  data-glossary-skip=""
+                  data-preset={PlaygroundPresetName.Component}
+                  onClick={() => {
+                    selectPreset(PlaygroundPresetName.Component);
+                  }}
+                >
                   합성명사 · smart
-                </button>
-                <button type="button" data-preset="literal">
+                </Button>
+                <Button
+                  data-glossary-skip=""
+                  data-preset={PlaygroundPresetName.Literal}
+                  onClick={() => {
+                    selectPreset(PlaygroundPresetName.Literal);
+                  }}
+                >
                   Literal
-                </button>
+                </Button>
               </div>
-            </fieldset>
+            </Fieldset.Root>
 
             <div className="option-grid">
-              <div className="field">
-                <label htmlFor="pos-select">품사</label>
-                <select id="pos-select" name="pos" defaultValue="verb">
-                  <option value="auto">자동</option>
-                  <option value="noun">명사</option>
-                  <option value="pronoun">대명사</option>
-                  <option value="numeral">수사</option>
-                  <option value="verb">동사</option>
-                  <option value="adjective">형용사</option>
-                  <option value="determiner">관형사</option>
-                  <option value="adverb">부사</option>
-                  <option value="particle">조사</option>
-                  <option value="interjection">감탄사</option>
-                  <option value="literal">Literal</option>
-                </select>
-              </div>
-              <div className="field">
-                <label htmlFor="boundary-select">경계</label>
-                <select
-                  id="boundary-select"
-                  name="boundary"
-                  defaultValue="smart"
-                >
-                  <option value="smart">smart</option>
-                  <option value="token">token</option>
-                  <option value="any">any</option>
-                </select>
-              </div>
-              <div className="field">
-                <label htmlFor="expand-select">확장</label>
-                <select
-                  id="expand-select"
-                  name="expand"
-                  defaultValue="inflection"
-                >
-                  <option value="inflection">inflection</option>
-                  <option value="derivation">derivation</option>
-                  <option value="literal">literal</option>
-                </select>
-              </div>
-              <div className="field">
-                <label htmlFor="normalization-select">정규화</label>
-                <select
-                  id="normalization-select"
-                  name="normalization"
-                  defaultValue="nfc"
-                >
-                  <option value="nfc">NFC</option>
-                  <option value="canonical">NFC + NFD</option>
-                  <option value="none">없음</option>
-                </select>
-              </div>
-              <div className="field field-gap">
-                <label htmlFor="max-gap-input">구(句) 최대 간격</label>
-                <input
-                  id="max-gap-input"
-                  name="maxGap"
-                  type="number"
-                  min="0"
-                  defaultValue="24"
-                  aria-label="구 최대 간격"
-                />
-              </div>
-            </div>
-
-            <div className="field field-text">
-              <div className="field-label-row">
-                <label htmlFor="text-input">검색할 텍스트</label>
-                <span id="text-count">0자</span>
-              </div>
-              <textarea
-                id="text-input"
-                name="text"
-                rows={8}
-                aria-label="검색할 텍스트"
-                defaultValue={
-                  '오늘은 공원을 걸었다.\n내일도 천천히 걷고 싶다.\n산책길을 걷는 사람을 만났다.'
-                }
+              <SelectField<PartOfSpeech>
+                id="pos-select"
+                label="품사"
+                name="pos"
+                onValueChange={(value) => {
+                  updateInput('pos', value);
+                }}
+                options={partOfSpeechOptions}
+                value={input.pos}
               />
+              <SelectField<BoundaryPolicy>
+                id="boundary-select"
+                label="경계"
+                name="boundary"
+                onValueChange={(value) => {
+                  updateInput('boundary', value);
+                }}
+                options={boundaryOptions}
+                value={input.boundary}
+              />
+              <SelectField<ExpandMode>
+                id="expand-select"
+                label="확장"
+                name="expand"
+                onValueChange={(value) => {
+                  updateInput('expand', value);
+                }}
+                options={expandOptions}
+                value={input.expand}
+              />
+              <SelectField<NormalizationMode>
+                id="normalization-select"
+                label="정규화"
+                name="normalization"
+                onValueChange={(value) => {
+                  updateInput('normalization', value);
+                }}
+                options={normalizationOptions}
+                value={input.normalization}
+              />
+              <Field.Root className="field field-gap" name="maxGap">
+                <Field.Label data-glossary-skip="">
+                  구(句) 최대 간격
+                </Field.Label>
+                <Input
+                  className="text-control"
+                  id="max-gap-input"
+                  min="0"
+                  onValueChange={(value) => {
+                    updateInput('maxGap', value);
+                  }}
+                  type="number"
+                  value={input.maxGap}
+                />
+              </Field.Root>
             </div>
 
-            <button
+            <Field.Root className="field field-text" name="text">
+              <div className="field-label-row">
+                <Field.Label data-glossary-skip="">검색할 텍스트</Field.Label>
+                <span>{input.text.length.toLocaleString('ko-KR')}자</span>
+              </div>
+              <Field.Control
+                className="text-control"
+                id="text-input"
+                onValueChange={(value) => {
+                  updateInput('text', value);
+                }}
+                render={<textarea aria-label="검색할 텍스트" rows={8} />}
+                value={input.text}
+              />
+            </Field.Root>
+
+            <Button
               className="run-button"
+              data-glossary-skip=""
               id="run-button"
               type="submit"
-              disabled
+              disabled={!isEngineReady}
             >
               검색 실행
-            </button>
+            </Button>
 
             <div className="resource-loader" id="resource-loader">
               <div>
@@ -178,11 +294,15 @@ export default function PlaygroundPage(): React.JSX.Element {
                   필요한 경우 R2에서 45.6 MiB를 받습니다.
                 </span>
               </div>
-              <button id="resource-button" type="button" disabled>
+              <Button
+                data-glossary-skip=""
+                id="resource-button"
+                disabled={!isEngineReady}
+              >
                 Component asset 불러오기
-              </button>
+              </Button>
             </div>
-          </form>
+          </Form>
 
           <div className="playground-output" aria-live="polite">
             <div className="output-head">
@@ -201,10 +321,14 @@ export default function PlaygroundPage(): React.JSX.Element {
               <ol className="match-list" id="match-list" />
             </div>
 
-            <details className="raw-details">
-              <summary>Raw match JSON</summary>
-              <pre id="raw-output">[]</pre>
-            </details>
+            <Collapsible.Root className="raw-details">
+              <Collapsible.Trigger data-glossary-skip="">
+                Raw match JSON
+              </Collapsible.Trigger>
+              <Collapsible.Panel keepMounted>
+                <pre id="raw-output">[]</pre>
+              </Collapsible.Panel>
+            </Collapsible.Root>
           </div>
         </div>
 

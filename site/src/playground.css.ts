@@ -67,7 +67,7 @@ globalStyle('.field label, .preset-fieldset legend', {
   fontWeight: 650,
 });
 
-globalStyle('.field input, .field select, .field textarea', {
+globalStyle('.text-control', {
   width: '100%',
   border: `1px solid ${vars.color.borderStrong}`,
   borderRadius: vars.radius.small,
@@ -75,12 +75,12 @@ globalStyle('.field input, .field select, .field textarea', {
   color: vars.color.text,
 });
 
-globalStyle('.field input, .field select', {
+globalStyle('input.text-control', {
   height: '2.5rem',
   paddingInline: vars.space.small,
 });
 
-globalStyle('.field textarea', {
+globalStyle('textarea.text-control', {
   minHeight: '10rem',
   resize: 'vertical',
   padding: vars.space.small,
@@ -89,13 +89,13 @@ globalStyle('.field textarea', {
   lineHeight: 1.6,
 });
 
-globalStyle('.field input:focus, .field select:focus, .field textarea:focus', {
+globalStyle('.text-control:focus', {
   borderColor: vars.color.link,
   outline: `2px solid ${vars.color.linkWash}`,
   outlineOffset: 0,
 });
 
-globalStyle('.field-query input', {
+globalStyle('.field-query .text-control', {
   fontFamily: '"SFMono-Regular", Consolas, monospace',
   fontSize: '0.88rem',
 });
@@ -348,11 +348,15 @@ globalStyle('.raw-details', {
   borderBlockStart: `1px solid ${vars.color.border}`,
 });
 
-globalStyle('.raw-details summary', {
+globalStyle('.raw-details > button', {
+  width: '100%',
   paddingBlock: vars.space.small,
+  border: 0,
+  background: 'transparent',
   color: vars.color.muted,
   cursor: 'pointer',
   fontSize: '0.72rem',
+  textAlign: 'start',
 });
 
 globalStyle('.raw-details pre', {
