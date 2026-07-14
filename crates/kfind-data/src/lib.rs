@@ -40,4 +40,4 @@ pub use rules::{
     AlternationRule, ContractionRule, DerivationRule, EndingCategory, EndingInitial, EndingRule,
     ParticleSelection, ParticleTransitionRule, RuleSet, RuleSources, parse_rule_set,
 };
-pub use validation::{ValidatedData, load_data_dir, validate_data};
+pub use validation::{ValidatedData, load_data_dir, validate_data, validate_predicates};
