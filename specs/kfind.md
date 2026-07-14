@@ -101,6 +101,10 @@
   사용한다. 단일 품사 query는 `--pos`, 혼합 phrase는 atom 태그로 품사를 지정한다. CLI는
   사람의 무품사 입력을 위해 `--pos` 생략을 허용하지만, 에이전트 통합 계약에서는 이를
   잘못된 호출로 취급한다.
+- 규범 agent skill은 README나 `--help`를 별도로 읽지 않아도 에이전트가 검색을 실행할 수
+  있어야 한다. 단일·혼합 품사 query와 literal 검색, 전체 `--pos` 값과 atom 태그, phrase의
+  순서·거리, `embedded + any + JSON Lines` 권장 경로, path·glob 축소, JSON span·provenance와
+  종료 코드를 간결한 예시와 함께 설명한다.
 - man page와 영어·한국어 README는 사람용 기본 경로와 에이전트 자동화 경로를 구분해 안내한다.
   README는 `--help`를 별도로 읽지 않아도 검색 기능, 쿼리 문법, 옵션의 값·기본값·주요 충돌,
   출력 형식과 종료 코드를 이해할 수 있어야 한다. 최신 benchmark는 workload, 측정일·revision과
@@ -151,7 +155,10 @@
 - distribution asset의 `skills/kfind/SKILL.md`를 formula의 `share/kfind/skills/kfind`에
   설치한다. Homebrew binary의 `--init`은 project skill을 versioned Cellar가 아니라
   `opt/kfind/share/kfind/skills/kfind`에 연결한다. 최초 `brew install`은 skill 원본을 함께
-  설치하고 이후 `brew upgrade`는 기존 project link가 가리키는 원본을 자동으로 갱신한다.
+  설치한다. 사용자가 project에서 `kfind --init`을 한 번 실행해 Homebrew 관리 link를 만든
+  뒤에는 `brew upgrade`가 그 link의 안정 경로가 가리키는 원본을 자동으로 갱신한다.
+  Homebrew hook은 대상 project와 agent를 알 수 없으므로 임의의 project skill 경로를 직접
+  만들거나 수정하지 않는다.
 - kfind 소스 코드와 프로젝트가 직접 작성한 내장 데이터는 MIT 라이선스로 배포한다. 외부 full POS resource의 Apache-2.0 고지는 별도 `LICENSES` 디렉터리에 보존한다.
 
 ### 0.6 재현 가능한 성능 기준
