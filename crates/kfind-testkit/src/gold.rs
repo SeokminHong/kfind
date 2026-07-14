@@ -186,7 +186,7 @@ mod tests {
 
     use super::*;
 
-    const EXPECTED_CASES: usize = 475;
+    const EXPECTED_CASES: usize = 485;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {
@@ -203,7 +203,10 @@ mod tests {
             GoldHarness::with_component(component_fixture()).expect("component fixture is valid");
         let mut failures = Vec::new();
         for case in &cases {
-            let selected = if case.feature == "nominal-component" {
+            let selected = if matches!(
+                case.feature.as_str(),
+                "nominal-component" | "lexical-context"
+            ) {
                 &component_harness
             } else {
                 &harness
@@ -268,6 +271,13 @@ mod tests {
             entry("길", "NNG", -5_000),
             entry("산길", "NNG", 5_000),
             entry("을", "JKO", 0),
+            entry("매", "NNG", 0),
+            entry("매일", "MAG", 0),
+            entry("매일", "NNG", 0),
+            entry("아니", "VCN", 0),
+            entry("라", "EC", 0),
+            entry("일", "VCP+ETM", 0),
+            entry("것", "NNB", 0),
         ];
         let matrix = parse_mecab_connection_matrix(
             "matrix.def",

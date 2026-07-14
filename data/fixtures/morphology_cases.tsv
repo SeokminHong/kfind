@@ -1,4 +1,14 @@
 query	pos	text	expected	feature
+매	noun	독수리가 아니라 매일 것 같아	match	lexical-context
+이다	copula	독수리가 아니라 매일 것 같아	match	lexical-context
+매일	noun	독수리가 아니라 매일 것 같아	no-match	lexical-context
+매일	adverb	독수리가 아니라 매일 것 같아	no-match	lexical-context
+매	noun	매일 매일 보고 싶어	no-match	lexical-context
+매일	noun	매일 매일 보고 싶어	no-match	lexical-context
+매일	adverb	매일 매일 보고 싶어	match	lexical-context
+매	noun	그는 집념으로 매일을 보내고 있었다.	no-match	lexical-context
+매일	noun	그는 집념으로 매일을 보내고 있었다.	match	lexical-context
+매일	adverb	그는 집념으로 매일을 보내고 있었다.	no-match	lexical-context
 걷다	verb	길을 걸어 갔다.	match	d-irregular
 걷다	verb	어제 많이 걸었다.	match	d-irregular
 걷다	verb	매일 걸으면 건강해진다.	match	d-irregular

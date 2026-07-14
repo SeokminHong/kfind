@@ -262,6 +262,37 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
 }
 
 #[test]
+fn smart_adverb_requires_lexical_context_without_changing_token_or_any() {
+    let smart = compile_query("adv:매일", &CompileOptions::default(), &analyzer()).unwrap();
+    assert!(smart.requires_component_resource());
+    assert!(
+        smart.atoms[0]
+            .branches
+            .iter()
+            .all(|branch| { branch.context_requirement == ContextRequirement::LexicalContext })
+    );
+
+    for boundary in [BoundaryPolicy::Token, BoundaryPolicy::Any] {
+        let plan = compile_query(
+            "adv:매일",
+            &CompileOptions {
+                boundary,
+                ..CompileOptions::default()
+            },
+            &analyzer(),
+        )
+        .unwrap();
+        assert!(!plan.requires_component_resource());
+        assert!(
+            plan.atoms[0]
+                .branches
+                .iter()
+                .all(|branch| { branch.context_requirement == ContextRequirement::None })
+        );
+    }
+}
+
+#[test]
 fn explicit_pos_smart_opens_only_the_connective_ji_left_boundary() {
     let explicit_smart = compile_query(
         "걷다",
