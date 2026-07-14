@@ -373,6 +373,32 @@ mod tests {
     }
 
     #[test]
+    fn smart_context_ignores_invalid_utf8_outside_the_bounded_evidence() {
+        let engine = contextual_engine();
+        let matcher = engine
+            .compile("n:매일", &CompileOptions::default())
+            .unwrap();
+        let mut text = vec![0xff];
+        text.extend(std::iter::repeat_n(b' ', 300));
+        text.extend_from_slice("매일 매일".as_bytes());
+
+        assert!(matcher.find_all(&text).is_empty());
+    }
+
+    #[test]
+    fn smart_context_falls_back_on_invalid_utf8_inside_the_bounded_evidence() {
+        let engine = contextual_engine();
+        let matcher = engine
+            .compile("n:매일", &CompileOptions::default())
+            .unwrap();
+        let mut text = "매일 ".as_bytes().to_vec();
+        text.push(0xff);
+        text.extend_from_slice(" 매일".as_bytes());
+
+        assert_eq!(matcher.find_all(&text).len(), 2);
+    }
+
+    #[test]
     fn explicit_component_initialization_is_observable() {
         let mut without_component = Engine::new().unwrap();
         let with_component = Engine::with_component_resource(component_resource()).unwrap();
