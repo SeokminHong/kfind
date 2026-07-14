@@ -487,9 +487,11 @@ fuzz target은 `fuzz/`에 있습니다.
 ## 라이선스
 
 kfind 소스 코드와 프로젝트가 작성한 데이터는 [MIT 라이선스](LICENSE)를 따릅니다.
-Homebrew full POS resource는 `mecab-ko-dic`의 Apache-2.0 고지를
-`share/doc/kfind/LICENSES`에 별도로 보존합니다. 벤치마크 image의 UD 원문과 파생 fixture는
-source별 CC BY-SA 4.0 조건을 따릅니다.
+Homebrew full POS·component resource는 `mecab-ko-dic`의 Apache-2.0 고지를,
+enriched predicate data는 CC BY-SA 2.0 Korea 고지를 `share/doc/kfind/LICENSES`에 별도로
+보존합니다. Formula metadata는 이 조합을 SPDX 식으로 표현할 수 없어
+`license :cannot_represent`를 사용합니다. 벤치마크 image의 UD 원문과 파생 fixture는 source별
+CC BY-SA 4.0 조건을 따릅니다.
 
 ## 릴리스
 

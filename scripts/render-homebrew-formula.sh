@@ -39,15 +39,12 @@ if [[ -z "${project_license}" || "${project_license}" == "null" ]]; then
   exit 2
 fi
 case "${project_license}" in
-  "MIT OR Apache-2.0")
-    formula_license='license any_of: ["MIT", "Apache-2.0"]'
-    ;;
-  *[!A-Za-z0-9.+-]*)
-    echo "unsupported Homebrew license expression: ${project_license}" >&2
-    exit 2
+  "MIT")
+    formula_license='license :cannot_represent'
     ;;
   *)
-    formula_license="license \"${project_license}\""
+    echo "unsupported project license for the Homebrew distribution: ${project_license}" >&2
+    exit 2
     ;;
 esac
 

@@ -72,6 +72,7 @@ jobs:
           component_sha=$(sha256sum "dist/kfind-component-${VERSION}.tar.gz" | awk '{print $1}')
           assets_sha=$(sha256sum "dist/kfind-assets-${VERSION}.tar.gz" | awk '{print $1}')
           scripts/render-homebrew-formula.sh "$VERSION" "$FORMULA_RUST_TOOLCHAIN" "$source_sha" "$full_pos_sha" "$component_sha" "$assets_sha" "$PROJECT_LICENSE" dist/kfind.rb
+          grep -Fqx '  license :cannot_represent' dist/kfind.rb
 
       - name: Publish the GitHub release
         env:
