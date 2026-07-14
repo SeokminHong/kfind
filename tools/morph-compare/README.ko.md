@@ -34,7 +34,8 @@ KFIND_MORPH_SMOKE=1 KFIND_MORPH_RUNS=1 scripts/benchmark-morphology.sh
 
 test fixture, 성능 schema나 고정한 외부 도구·어댑터 설정을 바꿀 때만 외부 스냅샷을
 명시적으로 갱신한다. 기본 벤치마크는 fixture 또는 schema가 맞지 않으면 갱신 명령을
-안내하고 실패한다.
+안내하고 실패한다. 기본 이미지는 `kfind` runner만 빌드하며, 외부 분석기와 전용 runner는
+별도 refresh 이미지에서만 빌드한다.
 
 ```sh
 scripts/refresh-morph-baselines.sh
