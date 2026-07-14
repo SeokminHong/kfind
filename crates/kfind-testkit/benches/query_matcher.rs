@@ -28,6 +28,7 @@ const REPEATED_PHRASE_QUERY: &str = "lit:가 lit:가 lit:가 lit:가 lit:가 lit
 const REPEATED_PHRASE_SPANS: usize = 128;
 const INPUT_SEARCHER_PHRASE_QUERY: &str = "lit:가 lit:나";
 const INPUT_SEARCHER_PHRASE_REPETITIONS: usize = 4_096;
+const CONTEXT_REPETITIONS: usize = 16_384;
 const PHRASE_8_ATOMS_QUERY: &str =
     "n:사용자 n:권한 v:검증하다 adj:예쁘다 det:새 adv:빨리 n:기술 v:걷다";
 
@@ -85,9 +86,11 @@ fn matcher_scan(criterion: &mut Criterion) {
 
     let phrase_plan = compile_query(PHRASE_QUERY, &CompileOptions::default(), &analyzer)
         .expect("phrase benchmark query must compile");
-    let phrase_matcher =
-        MorphMatcher::with_component_resource(Arc::new(phrase_plan), component_resource)
-            .expect("phrase benchmark matcher must build");
+    let phrase_matcher = MorphMatcher::with_component_resource(
+        Arc::new(phrase_plan),
+        Arc::clone(&component_resource),
+    )
+    .expect("phrase benchmark matcher must build");
     let phrase_corpus = deterministic_corpus(PHRASE_MATCH_EVERY_LINES);
     assert_eq!(
         phrase_matcher.find_all_with_meta(&phrase_corpus).len(),
@@ -157,6 +160,21 @@ fn matcher_scan(criterion: &mut Criterion) {
                 )
                 .expect("input searcher benchmark corpus must be searchable")
         });
+    });
+
+    let context_plan = compile_query("adv:매일", &CompileOptions::default(), &analyzer)
+        .expect("context benchmark query must compile");
+    let context_matcher =
+        MorphMatcher::with_component_resource(Arc::new(context_plan), component_resource)
+            .expect("context benchmark matcher must build");
+    let context_line = "매일 ".repeat(CONTEXT_REPETITIONS).into_bytes();
+    assert_eq!(
+        context_matcher.find_all_with_meta(&context_line).len(),
+        CONTEXT_REPETITIONS
+    );
+    group.throughput(Throughput::Bytes(context_line.len() as u64));
+    group.bench_function("context_repeated_long_line", |bencher| {
+        bencher.iter(|| context_matcher.find_all_with_meta(black_box(&context_line)));
     });
     group.finish();
 }
@@ -253,6 +271,8 @@ fn component_resource() -> kfind_data::ComponentResource {
         component_entry("학교", "NNG", 5_000),
         component_entry("공", "NNG", 0),
         component_entry("공공", "NNG", 0),
+        component_entry("매일", "MAG", 0),
+        component_entry("매일", "NNG", 0),
     ];
     let matrix = parse_mecab_connection_matrix(
         "matrix.def",
