@@ -38,12 +38,12 @@
 - 어미, 조사 연쇄, 파생 규칙은 저장소에서 버전을 관리하는 `data/rules` 파일의 목록과 전이를
   기준으로 삼는다. 목록 밖 조합은 생성하지 않는다.
 - full POS lexicon은 `mecab-ko-dic 2.1.1-20180720`의 Apache-2.0 데이터를 bootstrap 원본으로 사용한다. 빌드 시 표제어와 품사만 추출하고, 런타임 문장 분석 데이터와 알고리즘은 포함하지 않는다. `Inflect`와 `Preanalysis` 행은 제외하며, 문맥용 지정사 표면형은 표제어로 승격하지 않고 `VCP=이`, `VCN=아니`만 기본형으로 정규화한다.
-- full POS lexicon의 용언 품사 후보도 POS 전용 산출물에 보존한다. 동일 표제어와 세부 품사에
-  core 또는 enriched 용언 분석이 하나라도 있으면 그 세부 품사의 full POS 규칙형 분석은
-  추가하지 않는다. 다른 세부 품사는 보존한다. 그 밖의 용언은 해당 품사와 일치하는 생산적
+- full POS lexicon의 용언 품사 후보도 POS 전용 산출물에 보존한다. 동일 표제어와 coarse 품사에
+  core 또는 enriched 용언 분석이 하나라도 있으면 그 coarse 품사의 full POS 규칙형 분석은
+  추가하지 않는다. 다른 coarse 품사는 보존한다. 그 밖의 용언은 해당 품사와 일치하는 생산적
   접미 규칙을 먼저 적용하고, 일치하는 규칙이 없을 때만 제한된 규칙형 분석을 사용한다.
 - full POS runtime resource는 검증된 정렬 lookup index로 보존한다. CLI, Rust library와 WASM binding은 초기화할 때 전체 entry를 일반 분석 map으로 전개하지 않으며, query atom의 표제어를 조회할 때 일치하는 품사 후보만 `Analysis`로 만든다.
-- 지연 조회에서도 기존 우선순위를 보존한다. core와 enriched 용언은 같은 표제어·세부 품사의
+- 지연 조회에서도 기존 우선순위를 보존한다. core와 enriched 용언은 같은 표제어·coarse 품사의
   full POS 용언을 억제하고, 동일한 분석은 중복하지 않는다. user lexicon의 append는 full POS
   후보를 보존하며 `replace = true`는 해당 morphology category의 core, enriched와 full POS
   후보를 모두 대체한다.
@@ -1641,7 +1641,7 @@ lemma	pos	alternation	flags
 enriched 용언 데이터는 core와 같은 용언 schema를 사용하되 별도 파일과 라이선스로 관리한다.
 동일한 `lemma`, `pos`, `alternation`, `flags`, `overrides`가 core에 있으면 core만 보존하고,
 alternation이 다르면 같은 세부 품사라도 모두 보존한다. full POS의 규칙형 fallback은 core와
-enriched를 합친 결과에 같은 세부 품사가 없을 때만 추가한다.
+enriched를 합친 결과에 같은 coarse 품사가 없을 때만 추가한다.
 
 내장 데이터는 `include_bytes!`로 실행 파일에 포함해도 된다. 이 데이터는 프로젝트가 직접 관리하고 라이선스를 명확히 할 수 있어야 한다. 사용자가 교체할 사전은 외부 파일로 추가 로딩한다.
 Agent skill은 source tree의 `skills/kfind/SKILL.md`를 유일한 원본으로 삼는다. CLI fallback

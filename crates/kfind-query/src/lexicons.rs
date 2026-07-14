@@ -247,13 +247,17 @@ impl Lexicons {
             let suppressed_by_user = (entry.pos.is_predicate()
                 && self.replaced_full_predicates.contains(lemma))
                 || (entry.pos.is_nominal() && self.replaced_full_nominals.contains(lemma));
-            let duplicates_curated = analyses.iter().any(|analysis| {
+            let suppressed_by_curated = analyses.iter().any(|analysis| {
                 matches!(
                     analysis.source,
                     AnalysisSource::BuiltinLexicon | AnalysisSource::EnrichedLexicon
-                ) && analysis.fine_pos == fine_pos
+                ) && if entry.pos.is_predicate() {
+                    analysis.coarse_pos == fine_pos.coarse()
+                } else {
+                    analysis.fine_pos == fine_pos
+                }
             });
-            if suppressed_by_user || duplicates_curated {
+            if suppressed_by_user || suppressed_by_curated {
                 continue;
             }
             let analysis = self.full_pos_analysis(entry);
@@ -577,12 +581,19 @@ mod tests {
     }
 
     #[test]
-    fn enriched_predicates_suppress_only_the_same_full_pos_candidate() {
+    fn enriched_predicates_suppress_the_same_full_pos_coarse_pos() {
         let full_data = LexiconData {
             predicates: vec![
                 kfind_data::PredicateRecord {
                     lemma: "가르다".to_owned(),
                     pos: DataFinePos::Vv,
+                    alternation: DataAlternation::Regular,
+                    flags: BTreeSet::new(),
+                    overrides: Vec::new(),
+                },
+                kfind_data::PredicateRecord {
+                    lemma: "가르다".to_owned(),
+                    pos: DataFinePos::Vx,
                     alternation: DataAlternation::Regular,
                     flags: BTreeSet::new(),
                     overrides: Vec::new(),
@@ -615,7 +626,8 @@ mod tests {
                 && analysis.fine_pos == FinePos::Adjective
         }));
         assert!(!analyses.iter().any(|analysis| {
-            analysis.source == AnalysisSource::FullPosLexicon && analysis.fine_pos == FinePos::Verb
+            analysis.source == AnalysisSource::FullPosLexicon
+                && matches!(analysis.fine_pos, FinePos::Verb | FinePos::AuxiliaryVerb)
         }));
     }
 
