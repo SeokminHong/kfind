@@ -60,6 +60,8 @@ fn repository_data_is_complete_and_valid() {
         "ending.connective-do",
         "ending.connective-ya",
         "ending.imperative-ra",
+        "ending.imperative-geora",
+        "ending.imperative-neora",
     ] {
         assert!(ids.contains(continuation), "missing {continuation}");
     }

@@ -513,3 +513,11 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 달다	verb	저 쓰레기부터 치워 다오.	match	suppletive
 달다	verb	저 쓰레기부터 치워 마라.	no-match	suppletive
 달다	verb	빨랫줄에 옷을 달아라.	match	homonym-union
+가다	verb	이제 집으로 가거라.	match	imperative-geora
+먹다	verb	밥부터 먹거라.	match	imperative-geora
+걷다	verb	천천히 걷거라.	match	imperative-geora
+좋다	adjective	결과가 좋거라.	no-match	imperative-geora
+오다	verb	날이 밝기 전에 오너라.	match	imperative-neora
+들어오다	verb	내 방으로 들어오너라.	match	imperative-neora
+가다	verb	이제 집으로 가너라.	no-match	imperative-neora
+오다	verb	날이 밝기 전에 오거라.	match	imperative-geora

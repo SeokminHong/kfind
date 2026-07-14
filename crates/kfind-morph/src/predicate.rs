@@ -220,6 +220,24 @@ fn compile_productive(
     }
 
     if entry.pos.is_action() {
+        push_branch(
+            branches,
+            entry,
+            format!("{stem}거라"),
+            stem.len(),
+            ContinuationState::Terminal,
+            vec![rule("ending.imperative-geora")],
+        );
+        if stem.ends_with('오') {
+            push_branch(
+                branches,
+                entry,
+                format!("{stem}너라"),
+                stem.len(),
+                ContinuationState::Terminal,
+                vec![rule("ending.imperative-neora")],
+            );
+        }
         if let Some(intentive) = intentive_surface(entry, stem)? {
             push_derived(branches, entry, intentive, ContinuationState::Terminal);
         }

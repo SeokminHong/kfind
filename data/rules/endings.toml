@@ -162,6 +162,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.imperative-geora"
+category = "final"
+initial = "consonant"
+forms = ["거라"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.imperative-neora"
+category = "final"
+initial = "consonant"
+forms = ["너라"]
+required = ["action-verb", "special-o"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.connective-jiman"
 category = "connective"
 initial = "other"

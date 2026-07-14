@@ -13,6 +13,7 @@
 - [`-기` 명사형 조사 continuation 품질·성능](2026-07-14-gi-particle-continuation.md)
 - [`-ㅁ/음` 명사형 품질·성능](2026-07-14-mieum-nominalizer.md)
 - [합성 불규칙 용언 core lexicon](2026-07-14-compound-irregular-core-lexicon.md)
+- [`-거라`·`-너라` 아주낮춤 명령형](2026-07-14-geora-neora-imperatives.md)
 - [국소 lattice 제품 경로 최적화](2026-07-14-local-lattice-optimization.md)
 - [Development false negative 진단](2026-07-14-development-fn-diagnostics.md)
 - [`ending.connective-ji` 위치 근거](2026-07-14-connective-ji-position-evidence.md)
@@ -64,6 +65,8 @@
 - 한국어기초사전의 보조 동사 record로 검증한 `말다 → 마라`, `달다 → 다오`는 core의 개별
   terminal override다. 같은 표제어의 일반 동사 분석을 함께 보존하고 다른 표제어로의 오귀속은
   허용하지 않는다.
+- 한국어기초사전의 어미 record로 검증한 `-거라`는 동작 동사의 사전형 어간에 직접 붙인다.
+  `-너라`는 어간이 `오`로 끝나는 동작 동사로 제한하며 `오다`에는 두 어미를 모두 보존한다.
 - 명시적 coarse `noun`의 사전 분석이 없으면 보통명사·고유명사·의존명사 fallback을 모두
   보존한다. component 판정은 corpus의 `NNBC`를 query-side `NNB`와 같은 의존명사로
   비교하며 artifact와 진단의 source tag는 바꾸지 않는다.
@@ -103,7 +106,7 @@ development 명시적 품사 `smart`는 embedded가 TP 442 / FP 2 / FN 58, full-
 TP 443 / FP 2 / FN 57이다.
 full-POS의 기존 세부 품사 분석과 coarse `noun` fallback 합집합이 `197명이`를 복구했다.
 세부 품사와 품질 계약은 [User smart precision 품질·성능](2026-07-14-user-smart-precision.md),
-현재 처리량과 latency는 [`마라`·`다오` 개별 표면형 override](2026-07-14-imperative-surface-overrides.md)를
+현재 처리량과 latency는 [`-거라`·`-너라` 아주낮춤 명령형](2026-07-14-geora-neora-imperatives.md)을
 기준으로 한다.
 
 품사를 생략하는 사람용 1,000-case fixture에서 full-POS `smart`는 TP 419, FP 0, FN 81,
