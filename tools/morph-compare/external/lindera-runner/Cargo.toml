@@ -1,0 +1,16 @@
+[package]
+name = "lindera-benchmark-runner"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+anyhow = "1.0.102"
+lindera = { version = "=4.0.0", default-features = false, features = ["embed-ko-dic"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+
+[lints.rust]
+unsafe_code = "forbid"
