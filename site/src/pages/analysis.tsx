@@ -56,11 +56,11 @@ export default function AnalysisPage(): React.JSX.Element {
         <h3>입력 정규화와 어휘 분석</h3>
         <p>
           먼저 따옴표와 품사 태그를 해석하고, 선택한 Unicode 모드에 따라 입력을
-          정규화합니다. 그다음 core lexicon, user lexicon, 생산적인 접미 패턴과
-          full POS lexicon을 정해진 우선순위로 조회합니다. 이 단계의 목적은 한
-          품사를 성급히 고르는 것이 아니라, 현재 입력을 설명할 수 있는 분석
-          집합을 구성하는 것입니다. 하나의 표제어에 규칙형과 불규칙형 분석이
-          함께 있으면 두 분석을 모두 보존합니다.
+          정규화합니다. 그다음 core lexicon, enriched 용언 metadata, user
+          lexicon, 생산적인 접미 패턴과 full POS lexicon을 정해진 우선순위로
+          조회합니다. 이 단계의 목적은 한 품사를 성급히 고르는 것이 아니라, 현재
+          입력을 설명할 수 있는 분석 집합을 구성하는 것입니다. 하나의 표제어에
+          규칙형과 불규칙형 분석이 함께 있으면 두 분석을 모두 보존합니다.
         </p>
         <p>
           사용자가 coarse POS를 명시했는데 사전 분석만으로 그 품사의 세부 범위를

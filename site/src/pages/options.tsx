@@ -160,11 +160,12 @@ max-gap=24`}</code>
 
       <DocumentSection title="품사와 자동 분석">
         <p>
-          <code>--pos auto</code>는 core lexicon, user lexicon, 생산적 접미
-          패턴, full POS lexicon에서 가능한 analysis를 정해진 우선순위로
-          모읍니다. 같은 표제어에 여러 analysis가 있으면 하나를 임의로 선택하지
-          않고 합집합을 보존합니다. 전역 <code>--pos</code> 또는 atom 태그를
-          지정하면 이 집합을 해당 coarse POS로 제한합니다.
+          <code>--pos auto</code>는 core lexicon, enriched 용언 metadata, user
+          lexicon, 생산적 접미 패턴과 full POS lexicon에서 가능한 analysis를
+          정해진 우선순위로 모읍니다. 같은 표제어에 여러 analysis가 있으면
+          하나를 임의로 선택하지 않고 합집합을 보존합니다. 전역{' '}
+          <code>--pos</code> 또는 atom 태그를 지정하면 이 집합을 해당 coarse
+          POS로 제한합니다.
         </p>
         <div className="table-scroll">
           <table>

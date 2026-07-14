@@ -281,7 +281,7 @@ conversion.
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `--data-dir <PATH>` | automatic discovery | Reads `lexicon.bin` and `morphology-component-compact.kfc` from one explicit directory. |
+| `--data-dir <PATH>` | automatic discovery | Reads `lexicon.bin`, optional `predicates.enriched.tsv`, and `morphology-component-compact.kfc` from one explicit directory. |
 | `--user-lexicon <PATH>` | XDG config path | Loads a TOML user lexicon instead of the default config lookup. |
 | `--init` | off | Initializes the kfind skill in the current directory without a query. |
 | `--agent <AGENT>` | TTY selection or stdin; repeatable | Selects `claude-code`, `codex`, `gemini`, or `custom`; requires `--init`. |
@@ -320,23 +320,26 @@ JSON fields, and exit codes do not change with the locale.
 ## Lexicon data
 
 Core irregular predicates and rules are embedded in the binary. Homebrew also
-installs the pinned full POS lexicon and compact morphology-component resource
-under `share/kfind`; runtime network access is never required.
+installs the pinned full POS lexicon, CC BY-SA enriched predicate metadata, and
+compact morphology-component resource under `share/kfind`; runtime network
+access is never required.
 
 Without the full POS file, searches continue with the core lexicon and
 heuristics. `--explain-query` reports that preview state. `--data-dir` or
-`KFIND_DATA_DIR` selects an explicit resource directory. `--embedded` skips only
-full POS resolution. A compiled `smart` plan that requires component evidence
-still resolves and validates the component resource; plans that do not need it
-leave it unloaded.
+`KFIND_DATA_DIR` selects an explicit resource directory. Outside `--embedded`,
+`predicates.enriched.tsv` is loaded when present. `--embedded` skips full POS and
+enriched predicate resolution. A compiled `smart` plan that requires component
+evidence still resolves and validates the component resource; plans that do not
+need it leave it unloaded.
 
-The full POS artifact is reproducible from the pinned, checksum-verified
-`mecab-ko-dic` source:
+The external lexicon data are reproducible from pinned, checksum-verified
+`mecab-ko-dic` and NIKL dictionary snapshots:
 
 ```sh
 scripts/build-full-pos.sh
 cargo run --locked -p kfind-testkit --bin verify-gold -- \
   data/generated/full-pos/lexicon.bin
+scripts/build-enriched-predicates.sh
 ```
 
 ## Benchmarks
