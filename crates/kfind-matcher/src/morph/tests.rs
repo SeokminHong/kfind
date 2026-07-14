@@ -147,18 +147,30 @@ fn compact_component_accepts_only_the_lower_cost_exact_path() {
 }
 
 #[test]
-fn nominal_component_without_a_resource_keeps_the_boundary_rejection() {
-    let mut branch = nominal_branch("권한", rules(&[]));
-    branch.context_requirement = ContextRequirement::NominalComponent;
-    let mut atom = atom(BoundaryPolicy::Smart, vec![branch]);
-    atom.analyses.push(nominal_analysis("권한"));
-    let matcher = matcher(vec![atom], 24);
+fn component_context_without_a_resource_is_a_build_error() {
+    for context_requirement in [
+        ContextRequirement::PredicateLexical,
+        ContextRequirement::NominalComponent,
+    ] {
+        let mut branch = exact_branch("일", false);
+        branch.context_requirement = context_requirement;
+        let plan = Arc::new(QueryPlan {
+            raw_query: "test".into(),
+            atoms: vec![atom(BoundaryPolicy::Smart, vec![branch])],
+            phrase_policy: PhrasePolicy { max_gap: 24 },
+            normalization: kfind_query::NormalizationMode::Nfc,
+            limits: PlanLimits::default(),
+            diagnostics: Vec::new(),
+            particle_transitions: Arc::from([]),
+            estimated_matcher_bytes: 0,
+        });
 
-    assert!(
-        matcher
-            .find_at_with_meta("사용자권한".as_bytes(), 0)
-            .is_none()
-    );
+        let error = MorphMatcher::new(plan).expect_err("component context must require a resource");
+        assert!(matches!(
+            error,
+            MorphMatcherBuildError::ComponentResourceRequired
+        ));
+    }
 }
 
 #[test]
@@ -250,12 +262,26 @@ fn repeated_single_atom_matches_advance_without_changing_leftmost_longest() {
 
 #[test]
 fn verification_counters_isolate_boundary_rejected_nominal_components() {
-    let mut contextual = nominal_branch("권한", rules(&["particle.topic"]));
+    let mut contextual = nominal_branch("학교", rules(&["particle.topic"]));
     contextual.context_requirement = ContextRequirement::NominalComponent;
-    let matcher = matcher(vec![atom(BoundaryPolicy::Smart, vec![contextual])], 24);
+    let mut atom = atom(BoundaryPolicy::Smart, vec![contextual]);
+    atom.analyses.push(nominal_analysis("학교"));
+    let plan = QueryPlan {
+        raw_query: "학교".into(),
+        atoms: vec![atom],
+        phrase_policy: PhrasePolicy { max_gap: 24 },
+        normalization: kfind_query::NormalizationMode::Nfc,
+        limits: PlanLimits::default(),
+        diagnostics: Vec::new(),
+        particle_transitions: Arc::from([]),
+        estimated_matcher_bytes: 0,
+    };
+    let matcher =
+        MorphMatcher::with_component_resource(Arc::new(plan), Arc::new(component_resource()))
+            .unwrap();
 
     assert_eq!(
-        matcher.verification_counters("사용자권한은 권한은".as_bytes()),
+        matcher.verification_counters("대학교는 학교는".as_bytes()),
         VerificationCounters {
             raw_anchor_hits: 2,
             verified_branch_hits: 1,

@@ -287,6 +287,10 @@ fn write_matcher_error(
             language.select("query atom", "쿼리 atom"),
             language.select("has no search branches", "에 검색 branch가 없습니다")
         ),
+        MorphMatcherBuildError::ComponentResourceRequired => formatter.write_str(language.select(
+            "component resource is required for this query plan",
+            "이 쿼리 계획에는 component resource가 필요합니다",
+        )),
         MorphMatcherBuildError::Anchor(error) => write_anchor_error(error, language, formatter),
     }
 }

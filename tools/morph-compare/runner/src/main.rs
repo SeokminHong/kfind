@@ -11,7 +11,7 @@ use std::time::Instant;
 use anyhow::{Context, Result, bail};
 use kfind::Engine;
 use kfind_data::{
-    COMPONENT_RESOURCE_SOURCE_DIGEST, DataErrorKind, decode_component_resource,
+    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataErrorKind, decode_component_resource,
     decode_morphology_resource, parse_sha256,
 };
 use kfind_matcher::MorphMatcher;
@@ -606,8 +606,13 @@ fn append_kfind_diagnostics(
         });
     for (case, result) in cases.iter().zip(results.iter_mut()) {
         result["failure_diagnostic"] = serde_json::to_value(diagnose_failure(case, analyzer)?)?;
-        let shadow_verification =
-            diagnose_verification(case, analyzer, shadow_resource, component_shadow_resource)?;
+        let shadow_verification = diagnose_verification(
+            case,
+            analyzer,
+            shadow_resource,
+            component_shadow_resource,
+            component_resource.as_ref(),
+        )?;
         result["shadow_verification"] = serde_json::to_value(shadow_verification)?;
     }
     Ok(morphology_artifact_sha256)
@@ -618,6 +623,7 @@ fn diagnose_verification(
     analyzer: &LexiconQueryAnalyzer,
     resource: ShadowResource<'_>,
     component_resource: ShadowResource<'_>,
+    matcher_component_resource: Option<&Arc<ComponentResource>>,
 ) -> Result<ShadowVerificationCounters> {
     let options = CompileOptions::resolve(CompileOptionOverrides {
         pos: Some(parse_pos(&case.pos)?),
@@ -643,26 +649,27 @@ fn diagnose_verification(
                 })
         })
         .collect();
-    let matcher = MorphMatcher::new(Arc::new(plan))?;
+    if plan.requires_component_resource() {
+        if let Some(status) = resource.unavailable_status() {
+            bail!(
+                "nominal component shadow for case {} requires a valid morphology resource: {status}",
+                case.id
+            );
+        }
+        if let Some(status) = component_resource.unavailable_status() {
+            bail!(
+                "nominal component shadow for case {} requires a valid compact resource: {status}",
+                case.id
+            );
+        }
+    }
+    let matcher = match matcher_component_resource {
+        Some(resource) => {
+            MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(resource))?
+        }
+        None => MorphMatcher::new(Arc::new(plan))?,
+    };
     let component_candidates = matcher.local_analysis_candidates(case.text.as_bytes());
-    let required_resource_error = (!component_candidates.is_empty())
-        .then(|| resource.unavailable_status())
-        .flatten();
-    if let Some(status) = required_resource_error {
-        bail!(
-            "nominal component shadow for case {} requires a valid morphology resource: {status}",
-            case.id
-        );
-    }
-    let required_component_error = (!component_candidates.is_empty())
-        .then(|| component_resource.unavailable_status())
-        .flatten();
-    if let Some(status) = required_component_error {
-        bail!(
-            "nominal component shadow for case {} requires a valid compact resource: {status}",
-            case.id
-        );
-    }
     let mut component = Vec::with_capacity(component_candidates.len());
     for candidate in &component_candidates {
         let full_evidence = diagnose_component_candidate(candidate, resource);
@@ -819,8 +826,8 @@ mod tests {
 
     use kfind_data::{
         DataFinePos, LexiconData, MecabSourceMorphologyEntry, NominalRecord, collect_pos_entries,
-        decode_morphology_resource, encode_morphology_resource, encode_pos_lexicon,
-        parse_mecab_connection_matrix,
+        decode_morphology_resource, encode_component_resource, encode_morphology_resource,
+        encode_pos_lexicon, parse_mecab_connection_matrix,
     };
 
     use super::*;
@@ -938,6 +945,7 @@ mod tests {
             &analyzer(),
             ShadowResource::Missing,
             ShadowResource::Missing,
+            None,
         )
         .unwrap_err();
 
@@ -948,32 +956,32 @@ mod tests {
     fn nominal_component_shadow_compares_projection_evidence() {
         let bytes = component_fixture_resource(20);
         let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
+        let compact = component_fixture_compact_resource(20);
         let counters = diagnose_verification(
             &positive_case("권한", "noun", "사용자권한"),
             &analyzer(),
             ShadowResource::Loaded(&resource),
-            ShadowResource::Loaded(&resource),
+            ShadowResource::Loaded(compact.as_ref()),
+            Some(&compact),
         )
         .unwrap();
 
-        assert_eq!(
-            counters.component_projection_comparisons,
-            counters.nominal_component_candidate_hits
-        );
+        assert_eq!(counters.component_projection_comparisons, 1);
+        assert_eq!(counters.nominal_component_candidate_hits, 0);
         assert_eq!(counters.component_projection_mismatches, 0);
     }
 
     #[test]
     fn nominal_component_shadow_rejects_projection_differences() {
         let full_bytes = component_fixture_resource(20);
-        let compact_bytes = component_fixture_resource(2_000);
         let full = decode_morphology_resource("full", &full_bytes, &[9; 32]).unwrap();
-        let compact = decode_morphology_resource("compact", &compact_bytes, &[9; 32]).unwrap();
+        let compact = component_fixture_compact_resource(2_000);
         let error = diagnose_verification(
             &positive_case("권한", "noun", "사용자권한"),
             &analyzer(),
             ShadowResource::Loaded(&full),
-            ShadowResource::Loaded(&compact),
+            ShadowResource::Loaded(compact.as_ref()),
+            Some(&compact),
         )
         .unwrap_err();
 
@@ -999,6 +1007,28 @@ mod tests {
             b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
         )
         .unwrap()
+    }
+
+    fn component_fixture_compact_resource(component_cost: i32) -> Arc<ComponentResource> {
+        let entries = [
+            source_entry("사용자", -5_000),
+            source_entry("권한", component_cost),
+            source_entry("사용자권한", 5_000),
+        ];
+        let matrix = parse_mecab_connection_matrix(
+            "matrix.def",
+            Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
+        )
+        .unwrap();
+        let bytes = encode_component_resource(
+            [9; 32],
+            &entries,
+            &matrix,
+            b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
+            b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
+        )
+        .unwrap();
+        Arc::new(decode_component_resource("compact", bytes, &[9; 32]).unwrap())
     }
 
     fn source_entry(surface: &str, word_cost: i32) -> MecabSourceMorphologyEntry {
