@@ -147,6 +147,8 @@
   Playground의 WASM module과 선택적 component resource는 `/playground`에 들어가기 전에는
   불러오지 않는다. 문서 route 전환은 전체 페이지를 다시 요청하지 않고, 현재 경로와 제목을
   접근 가능한 navigation 상태로 표시한다.
+- 좁은 화면의 문서 navigation은 두 열 grid로 배치한다. 각 navigation group은 링크 수와 관계없이
+  내용 높이를 유지하며, 같은 grid 행의 다른 group 높이에 맞춰 내부 link를 늘리지 않는다.
 - 옵션 문서는 `inflection`, `derivation`, `literal`의 생성 범위와 차이, `--literal` 단축 옵션의
   충돌 규칙, boundary·POS·Unicode normalization·phrase gap의 결합을 예제와 함께 설명한다.
   분석·아키텍처·최적화 문서는 query compile부터 anchor scan, 국소 verifier, span·provenance
