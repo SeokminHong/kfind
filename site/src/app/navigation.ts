@@ -2,6 +2,7 @@ export enum RoutePath {
   Overview = '/',
   GettingStarted = '/guide/getting-started',
   Options = '/reference/options',
+  Glossary = '/reference/glossary',
   Analysis = '/concepts/analysis',
   Architecture = '/concepts/architecture',
   Optimization = '/concepts/optimization',
@@ -30,7 +31,10 @@ export const navigationGroups: readonly NavigationGroup[] = [
   },
   {
     label: '참조',
-    items: [{ label: '쿼리와 옵션', path: RoutePath.Options }],
+    items: [
+      { label: '쿼리와 옵션', path: RoutePath.Options },
+      { label: '단어장', path: RoutePath.Glossary },
+    ],
   },
   {
     label: '내부 원리',

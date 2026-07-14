@@ -1,8 +1,12 @@
-import { DocumentSection, PageIntro } from '../components/document';
+import {
+  DocumentPage,
+  DocumentSection,
+  PageIntro,
+} from '../components/document';
 
 export default function BenchmarksPage(): React.JSX.Element {
   return (
-    <article>
+    <DocumentPage>
       <PageIntro
         eyebrow="EVIDENCE · QUALITY & PERFORMANCE"
         title="워크로드를 섞지 않는 벤치마크"
@@ -242,6 +246,6 @@ export default function BenchmarksPage(): React.JSX.Element {
           </li>
         </ul>
       </DocumentSection>
-    </article>
+    </DocumentPage>
   );
 }

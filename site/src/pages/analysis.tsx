@@ -1,8 +1,12 @@
-import { DocumentSection, PageIntro } from '../components/document';
+import {
+  DocumentPage,
+  DocumentSection,
+  PageIntro,
+} from '../components/document';
 
 export default function AnalysisPage(): React.JSX.Element {
   return (
-    <article>
+    <DocumentPage>
       <PageIntro
         eyebrow="CONCEPT · MORPHOLOGY"
         title="검색 쿼리에서 시작하는 형태 분석"
@@ -219,6 +223,6 @@ rule path: lexical.d-to-l → ending.past → ending.final-da`}</code>
           선택할 수 있습니다.
         </p>
       </DocumentSection>
-    </article>
+    </DocumentPage>
   );
 }

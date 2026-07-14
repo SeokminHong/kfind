@@ -1,11 +1,15 @@
 import { Link } from 'react-router';
 
 import { RoutePath } from '../app/navigation';
-import { DocumentSection, PageIntro } from '../components/document';
+import {
+  DocumentPage,
+  DocumentSection,
+  PageIntro,
+} from '../components/document';
 
 export default function OverviewPage(): React.JSX.Element {
   return (
-    <article>
+    <DocumentPage>
       <PageIntro
         eyebrow="kfind 0.3.0-rc.2 · TECHNICAL DOCUMENTATION"
         title="한국어 표제어를 검색 가능한 계획으로"
@@ -157,6 +161,6 @@ kfind --embedded --boundary any --pos verb --json 걷다 src docs`}</code>
           <Link to={RoutePath.Benchmarks}>벤치마크</Link>에 분리되어 있습니다.
         </p>
       </DocumentSection>
-    </article>
+    </DocumentPage>
   );
 }

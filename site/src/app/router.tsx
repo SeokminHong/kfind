@@ -37,6 +37,10 @@ const routeMetadata: Readonly<Record<RoutePath, DocumentRouteHandle>> = {
     title: '쿼리와 옵션',
     description: '확장, 경계, 품사, 정규화와 구 검색 옵션을 설명합니다.',
   },
+  [RoutePath.Glossary]: {
+    title: '단어장',
+    description: 'kfind 문서에서 사용하는 검색과 형태 분석 용어를 정의합니다.',
+  },
   [RoutePath.Analysis]: {
     title: '형태 분석',
     description:
@@ -81,6 +85,11 @@ export const router = createBrowserRouter([
         path: RoutePath.Options,
         handle: routeMetadata[RoutePath.Options],
         lazy: lazyPage(async () => import('../pages/options')),
+      },
+      {
+        path: RoutePath.Glossary,
+        handle: routeMetadata[RoutePath.Glossary],
+        lazy: lazyPage(async () => import('../pages/glossary')),
       },
       {
         path: RoutePath.Analysis,

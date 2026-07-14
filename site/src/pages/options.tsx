@@ -1,8 +1,12 @@
-import { DocumentSection, PageIntro } from '../components/document';
+import {
+  DocumentPage,
+  DocumentSection,
+  PageIntro,
+} from '../components/document';
 
 export default function OptionsPage(): React.JSX.Element {
   return (
-    <article>
+    <DocumentPage>
       <PageIntro
         eyebrow="REFERENCE · QUERY COMPILATION"
         title="쿼리와 옵션"
@@ -470,6 +474,6 @@ max-gap=24`}</code>
           않게 합니다.
         </p>
       </DocumentSection>
-    </article>
+    </DocumentPage>
   );
 }

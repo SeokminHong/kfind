@@ -1,10 +1,14 @@
 import { useEffect, useRef } from 'react';
 
-import { DocumentSection, PageIntro } from '../../components/document';
+import {
+  DocumentPage,
+  DocumentSection,
+  PageIntro,
+} from '../../components/document';
 import { initializePlayground } from '../../playground';
 
 export default function PlaygroundPage(): React.JSX.Element {
-  const playgroundRoot = useRef<HTMLDivElement>(null);
+  const playgroundRoot = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const root = playgroundRoot.current;
@@ -17,7 +21,7 @@ export default function PlaygroundPage(): React.JSX.Element {
   }, []);
 
   return (
-    <article ref={playgroundRoot}>
+    <DocumentPage articleRef={playgroundRoot}>
       <PageIntro
         eyebrow="PLAYGROUND · WEBASSEMBLY"
         title="브라우저에서 검색 계획 실행하기"
@@ -213,6 +217,6 @@ export default function PlaygroundPage(): React.JSX.Element {
           없는 query는 이 network 요청과 초기화 비용을 발생시키지 않습니다.
         </p>
       </DocumentSection>
-    </article>
+    </DocumentPage>
   );
 }
