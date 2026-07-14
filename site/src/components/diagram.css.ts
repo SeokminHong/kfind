@@ -40,7 +40,7 @@ globalStyle('.flow-diagram, .split-source, .split-paths', {
 globalStyle('.flow-diagram', {
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fit, minmax(9.5rem, 1fr))',
-  gap: '1.75rem',
+  gap: vars.space.medium,
 });
 
 globalStyle('.diagram-node', {
@@ -55,7 +55,7 @@ globalStyle('.diagram-node', {
 globalStyle('.flow-diagram > .diagram-node:not(:last-child)::after', {
   position: 'absolute',
   top: '50%',
-  right: '-1.25rem',
+  right: `calc(-1 * ${vars.space.medium})`,
   color: vars.color.subtle,
   content: '→',
   fontFamily: '"SFMono-Regular", Consolas, monospace',
@@ -94,7 +94,7 @@ globalStyle('.split-diagram', {
   display: 'grid',
   gridTemplateColumns: 'minmax(10rem, 0.7fr) minmax(0, 1.3fr)',
   alignItems: 'center',
-  gap: '2.5rem',
+  gap: vars.space.xlarge,
 });
 
 globalStyle('.split-source', {
@@ -104,7 +104,7 @@ globalStyle('.split-source', {
 globalStyle('.split-source::after', {
   position: 'absolute',
   top: '50%',
-  right: '-1.75rem',
+  right: `calc(-1 * ${vars.space.xlarge})`,
   color: vars.color.subtle,
   content: '→',
   transform: 'translateY(-50%)',

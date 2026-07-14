@@ -27,12 +27,12 @@ export const vars = createGlobalTheme(':root', {
     markBorder: '#e5c94b',
   },
   space: {
-    xsmall: '0.375rem',
-    small: '0.75rem',
-    medium: '1rem',
-    large: '1.5rem',
-    xlarge: '2rem',
-    section: '3.5rem',
+    xsmall: '0.25rem',
+    small: '0.5rem',
+    medium: '0.75rem',
+    large: '1rem',
+    xlarge: '1.5rem',
+    section: '2.5rem',
   },
   radius: {
     small: '0.375rem',
