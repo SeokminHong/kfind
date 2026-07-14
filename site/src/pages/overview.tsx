@@ -7,7 +7,7 @@ export default function OverviewPage(): React.JSX.Element {
   return (
     <article>
       <PageIntro
-        eyebrow="kfind 0.3.0-rc.1 · TECHNICAL DOCUMENTATION"
+        eyebrow="kfind 0.3.0-rc.2 · TECHNICAL DOCUMENTATION"
         title="한국어 표제어를 검색 가능한 계획으로"
         summary="kfind는 한국어 표제어와 짧은 구를 유한한 검색 계획으로 컴파일하고, 그 계획으로 파일과 메모리의 text를 탐색하는 matcher입니다. 형태 지식은 query를 확장하고 후보를 검증하는 데 사용하며, 검색 대상 전체를 형태소 분석하거나 문장의 의미를 판별하는 데 사용하지 않습니다."
       >
