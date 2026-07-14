@@ -351,6 +351,20 @@ fn phrase_find_all_selects_non_overlapping_matches_in_order() {
 }
 
 #[test]
+fn phrase_find_all_applies_the_match_limit_during_selection() {
+    let first = atom(BoundaryPolicy::Smart, vec![exact_branch("권한", true)]);
+    let second = atom(BoundaryPolicy::Smart, vec![exact_branch("검증", true)]);
+    let matcher = matcher(vec![first, second], 1);
+    let text = "권한 검증 권한 검증";
+
+    let error = matcher
+        .find_all_with_meta_limit(text.as_bytes(), 1)
+        .unwrap_err();
+
+    assert_eq!(error.limit(), 1);
+}
+
+#[test]
 fn phrase_find_all_bounds_repeated_span_combinations() {
     let mut repeated_branch = exact_branch("가", false);
     repeated_branch.boundary = proof(false, false, true);

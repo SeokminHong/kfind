@@ -8,7 +8,8 @@ mod window;
 pub use anchor::{AnchorBuildError, AnchorBuildLimits, AnchorEngine, AnchorHit, AnchorHits};
 pub use boundary::{BoundaryVerifier, is_token_character};
 pub use morph::{
-    LocalAnalysisCandidate, MorphMatcher, MorphMatcherBuildError, VerificationCounters,
+    LocalAnalysisCandidate, MatchLimitExceeded, MorphMatcher, MorphMatcherBuildError,
+    VerificationCounters,
 };
 pub use window::{
     AnalysisWindow, AnalysisWindowError, AnalysisWindowLimits, DEFAULT_ANALYSIS_WINDOW_LIMITS,
