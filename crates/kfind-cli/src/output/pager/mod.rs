@@ -1,4 +1,5 @@
 mod protocol;
+mod render;
 mod terminal;
 mod viewport;
 

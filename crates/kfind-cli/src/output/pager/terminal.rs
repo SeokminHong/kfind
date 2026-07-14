@@ -3,17 +3,16 @@ use std::io::{self, Write};
 use std::sync::mpsc::{Receiver, Sender, TryRecvError};
 use std::time::Duration;
 
-use crossterm::cursor::{Hide, MoveTo, Show};
+use crossterm::cursor::{Hide, Show};
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
-use crossterm::style::{Attribute, Print, SetAttribute};
+use crossterm::execute;
 use crossterm::terminal::{
-    self, Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode,
-    enable_raw_mode,
+    self, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
 };
-use crossterm::{execute, queue};
 
 use super::PagerEvent;
-use super::viewport::{Document, Layout, RowKey, truncate_end};
+use super::render::{Renderer, content_height};
+use super::viewport::{Document, Layout, RowKey};
 use crate::Language;
 
 const INPUT_POLL_INTERVAL: Duration = Duration::from_millis(16);
@@ -78,10 +77,12 @@ fn run_tui(
     let mut anchor = row_key(&layout, offset);
     let mut done = false;
     let mut dirty = true;
+    let mut renderer = Renderer::new();
 
     loop {
-        if event::poll(Duration::ZERO)?
-            && handle_input(
+        let mut quit = false;
+        while event::poll(Duration::ZERO)? {
+            if handle_input(
                 document,
                 event::read()?,
                 &mut layout,
@@ -90,27 +91,34 @@ fn run_tui(
                 &mut width,
                 &mut height,
                 &mut dirty,
-            )?
-        {
+            )? {
+                quit = true;
+                break;
+            }
+        }
+        if quit {
             break;
         }
 
-        match events.try_recv() {
-            Ok(PagerEvent::Data) => {
-                extend_with_new_sources(document, &mut layout)?;
-                dirty = true;
+        let mut refresh = false;
+        loop {
+            match events.try_recv() {
+                Ok(PagerEvent::Data) => refresh = true,
+                Ok(PagerEvent::Done) => {
+                    refresh = true;
+                    done = true;
+                }
+                Err(TryRecvError::Empty) => break,
+                Err(TryRecvError::Disconnected) => {
+                    refresh = true;
+                    done = true;
+                    break;
+                }
             }
-            Ok(PagerEvent::Done) => {
-                extend_with_new_sources(document, &mut layout)?;
-                done = true;
-                dirty = true;
-            }
-            Err(TryRecvError::Empty) => {}
-            Err(TryRecvError::Disconnected) => {
-                extend_with_new_sources(document, &mut layout)?;
-                done = true;
-                dirty = true;
-            }
+        }
+        if refresh {
+            extend_with_new_sources(document, &mut layout)?;
+            dirty = true;
         }
 
         if done && !layout.truncated && layout.rows.len() <= usize::from(height) {
@@ -122,34 +130,21 @@ fn run_tui(
         }
 
         if dirty {
-            offset = offset.min(layout.rows.len().saturating_sub(1));
-            draw(
+            offset = offset.min(max_offset(&layout, height));
+            anchor = row_key(&layout, offset);
+            renderer.draw(
                 document, output, &layout, offset, width, height, language, done,
             )?;
             dirty = false;
         }
 
-        if !event::poll(INPUT_POLL_INTERVAL)? {
-            continue;
-        }
-        if handle_input(
-            document,
-            event::read()?,
-            &mut layout,
-            &mut offset,
-            &mut anchor,
-            &mut width,
-            &mut height,
-            &mut dirty,
-        )? {
-            break;
-        }
+        let _ = event::poll(INPUT_POLL_INTERVAL)?;
     }
 
     Ok(FinalView {
         layout,
         offset,
-        output_height: page_height(height),
+        output_height: content_height(height),
     })
 }
 
@@ -171,43 +166,69 @@ fn handle_input(
                 return Ok(true);
             }
             KeyCode::Up | KeyCode::Char('k') => {
-                *offset = offset.saturating_sub(1);
-                *anchor = row_key(layout, *offset);
-                *dirty = true;
+                set_offset(
+                    layout,
+                    offset,
+                    anchor,
+                    dirty,
+                    offset.saturating_sub(1),
+                    *height,
+                );
             }
             KeyCode::Down | KeyCode::Char('j') => {
-                *offset = (*offset + 1).min(layout.rows.len().saturating_sub(1));
-                *anchor = row_key(layout, *offset);
-                *dirty = true;
+                set_offset(
+                    layout,
+                    offset,
+                    anchor,
+                    dirty,
+                    offset.saturating_add(1),
+                    *height,
+                );
             }
             KeyCode::PageUp => {
-                *offset = offset.saturating_sub(page_height(*height));
-                *anchor = row_key(layout, *offset);
-                *dirty = true;
+                set_offset(
+                    layout,
+                    offset,
+                    anchor,
+                    dirty,
+                    offset.saturating_sub(content_height(*height)),
+                    *height,
+                );
             }
             KeyCode::PageDown => {
-                *offset = (*offset + page_height(*height)).min(layout.rows.len().saturating_sub(1));
-                *anchor = row_key(layout, *offset);
-                *dirty = true;
+                set_offset(
+                    layout,
+                    offset,
+                    anchor,
+                    dirty,
+                    offset.saturating_add(content_height(*height)),
+                    *height,
+                );
             }
             KeyCode::Home => {
-                *offset = 0;
-                *anchor = row_key(layout, *offset);
-                *dirty = true;
+                set_offset(layout, offset, anchor, dirty, 0, *height);
             }
             KeyCode::End => {
-                *offset = layout.rows.len().saturating_sub(1);
-                *anchor = row_key(layout, *offset);
-                *dirty = true;
+                set_offset(
+                    layout,
+                    offset,
+                    anchor,
+                    dirty,
+                    max_offset(layout, *height),
+                    *height,
+                );
             }
             _ => {}
         },
         Event::Resize(new_width, new_height) => {
             *width = new_width;
             *height = new_height;
-            extend_with_new_sources(document, layout)?;
+            document.refresh()?;
             *layout = document.layout(usize::from(*width))?;
-            *offset = anchor.map_or(0, |key| layout.locate(key));
+            *offset = anchor
+                .map_or(0, |key| layout.locate(key))
+                .min(max_offset(layout, *height));
+            *anchor = row_key(layout, *offset);
             *dirty = true;
         }
         _ => {}
@@ -224,68 +245,25 @@ fn row_key(layout: &Layout, offset: usize) -> Option<RowKey> {
     layout.rows.get(offset).copied()
 }
 
-fn page_height(height: u16) -> usize {
-    if height > 1 {
-        usize::from(height - 1)
-    } else {
-        1
-    }
-}
-
-#[allow(clippy::too_many_arguments)]
-fn draw(
-    document: &mut Document,
-    output: &mut io::Stdout,
+fn set_offset(
     layout: &Layout,
-    offset: usize,
-    width: u16,
+    offset: &mut usize,
+    anchor: &mut Option<RowKey>,
+    dirty: &mut bool,
+    next: usize,
     height: u16,
-    language: Language,
-    done: bool,
-) -> io::Result<()> {
-    queue!(output, MoveTo(0, 0), Clear(ClearType::All))?;
-    let visible = page_height(height);
-    for (screen_row, row) in layout.rows.iter().skip(offset).take(visible).enumerate() {
-        let text = document.render_row(*row, usize::from(width))?;
-        queue!(
-            output,
-            MoveTo(0, screen_row as u16),
-            Print(text),
-            Clear(ClearType::UntilNewLine)
-        )?;
+) {
+    let next = next.min(max_offset(layout, height));
+    if next == *offset {
+        return;
     }
-
-    if height > 1 {
-        let current = if layout.rows.is_empty() {
-            0
-        } else {
-            offset + 1
-        };
-        let status = status_text(language, done, current, layout.rows.len());
-        let (status, _) = truncate_end(&status, usize::from(width));
-        queue!(
-            output,
-            MoveTo(0, height - 1),
-            SetAttribute(Attribute::Reverse),
-            Print(status),
-            SetAttribute(Attribute::Reset),
-            Clear(ClearType::UntilNewLine)
-        )?;
-    }
-    output.flush()
+    *offset = next;
+    *anchor = row_key(layout, next);
+    *dirty = true;
 }
 
-fn status_text(language: Language, done: bool, current: usize, total: usize) -> String {
-    match (language, done) {
-        (Language::Korean, false) => {
-            format!("검색 중 · {current}/{total}  ↑↓/jk 이동  q/Esc 종료")
-        }
-        (Language::Korean, true) => format!("{current}/{total}  ↑↓/jk 이동  q/Esc 종료"),
-        (Language::English, false) => {
-            format!("searching · {current}/{total}  ↑↓/jk move  q/Esc quit")
-        }
-        (Language::English, true) => format!("{current}/{total}  ↑↓/jk move  q/Esc quit"),
-    }
+fn max_offset(layout: &Layout, height: u16) -> usize {
+    layout.rows.len().saturating_sub(content_height(height))
 }
 
 fn write_full(document: &mut Document) -> io::Result<()> {
@@ -333,10 +311,40 @@ impl Drop for ScreenGuard {
 mod tests {
     use super::*;
 
+    fn layout(rows: usize) -> Layout {
+        Layout {
+            rows: (0..rows)
+                .map(|source| RowKey {
+                    source,
+                    target: None,
+                })
+                .collect(),
+            truncated: false,
+            width: 80,
+        }
+    }
+
     #[test]
-    fn status_text_tracks_search_completion_and_locale() {
-        assert!(status_text(Language::Korean, false, 1, 3).starts_with("검색 중"));
-        assert!(status_text(Language::English, false, 1, 3).starts_with("searching"));
-        assert!(!status_text(Language::English, true, 1, 3).contains("searching"));
+    fn offset_stops_when_the_last_row_reaches_the_viewport_bottom() {
+        let layout = layout(10);
+
+        assert_eq!(content_height(5), 4);
+        assert_eq!(max_offset(&layout, 5), 6);
+        assert_eq!(max_offset(&layout, 12), 0);
+        assert_eq!(max_offset(&layout, 1), 9);
+    }
+
+    #[test]
+    fn navigation_at_a_viewport_boundary_does_not_request_a_redraw() {
+        let layout = layout(10);
+        let mut offset = max_offset(&layout, 5);
+        let mut anchor = row_key(&layout, offset);
+        let mut dirty = false;
+
+        set_offset(&layout, &mut offset, &mut anchor, &mut dirty, 9, 5);
+
+        assert_eq!(offset, 6);
+        assert_eq!(anchor, row_key(&layout, 6));
+        assert!(!dirty);
     }
 }

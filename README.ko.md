@@ -256,7 +256,8 @@ kfind --init [--agent <AGENT>]...
 `:`와 `-` 구분자를 사용합니다. 일반 text 결과를 TTY stdin/stdout에서 쓰면 검색 시작과 함께 내장
 TUI를 열고 완성된 결과 행을 점진적으로 반영합니다. 긴 match 줄은
 검증된 match마다 별도 행으로 펼치고, 원문에서 target 앞뒤가 차지하는 비율에 맞춰 양쪽을 생략해
-target이 보이게 합니다. 검색 중에도 이동과 terminal resize를 처리합니다. `↑`/`↓` 또는 `k`/`j`로
+target이 보이게 합니다. 마지막 행이 content 영역 아래에 닿으면 더 스크롤하지 않습니다. 검색 중에도
+이동과 terminal resize를 처리합니다. `↑`/`↓` 또는 `k`/`j`로
 이동하고 `q`나 `Esc`로 종료해 남은 검색도 중단합니다. Redirect와 pipe, JSON Lines, count,
 파일명 요약, quiet mode와
 `--no-pager`는 기존 stdout stream을 유지합니다. TUI를 시작할 수 없으면 일반 text를 stdout에
