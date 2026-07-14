@@ -59,6 +59,61 @@ where
     W: Write + Send,
     E: Write + Send,
 {
+    run_with_io_inner(
+        args,
+        language,
+        stdin,
+        stdout,
+        stderr,
+        stdin_is_terminal,
+        stdout_is_terminal,
+        false,
+    )
+}
+
+#[doc(hidden)]
+pub fn run_with_terminal_pager<R, W, E>(
+    args: &Args,
+    language: Language,
+    stdin: R,
+    stdout: &mut W,
+    stderr: &mut E,
+    stdin_is_terminal: bool,
+    stdout_is_terminal: bool,
+) -> Result<ExitStatus, CliError>
+where
+    R: Read,
+    W: Write + Send,
+    E: Write + Send,
+{
+    run_with_io_inner(
+        args,
+        language,
+        stdin,
+        stdout,
+        stderr,
+        stdin_is_terminal,
+        stdout_is_terminal,
+        true,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn run_with_io_inner<R, W, E>(
+    args: &Args,
+    language: Language,
+    stdin: R,
+    stdout: &mut W,
+    stderr: &mut E,
+    stdin_is_terminal: bool,
+    stdout_is_terminal: bool,
+    terminal_pager: bool,
+) -> Result<ExitStatus, CliError>
+where
+    R: Read,
+    W: Write + Send,
+    E: Write + Send,
+{
     let query = args.query().ok_or(CliError::MissingQuery)?;
     let options = args.compile_options().map_err(CliError::Options)?;
     let full_pos_mode = if args.embedded {
@@ -89,7 +144,11 @@ where
         stdout_is_terminal,
         should_print_filenames(&paths),
     );
-    let mut output = OutputWriter::new(stdout, output_options);
+    let mut output = if terminal_pager {
+        OutputWriter::new_terminal_pager(stdout, output_options)
+    } else {
+        OutputWriter::new(stdout, output_options)
+    };
 
     if args.explain_query {
         if let Err(error) = output.write_query_plan_with_full_pos(&plan, &full_pos_status) {

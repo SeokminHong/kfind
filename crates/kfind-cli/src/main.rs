@@ -1,6 +1,6 @@
 use kfind_cli::{
     CliError, ExitStatus, Language, OutputError, TerminalPager, parse_args_from, run_init_with_io,
-    run_with_io, write_cli_error,
+    run_with_io, run_with_terminal_pager, write_cli_error,
 };
 use std::env;
 use std::io::{self, BufWriter, IsTerminal, Write};
@@ -39,11 +39,13 @@ fn main() -> ExitCode {
         )
         .map(|()| ExitStatus::Match)
         .map_err(CliError::Init)
-    } else if let Some(mut pager) = TerminalPager::from_args(&args, stdout_is_terminal) {
-        let result = run_with_io(
+    } else if let Some(mut pager) =
+        TerminalPager::from_args(&args, stdin_is_terminal && stdout_is_terminal)
+    {
+        let result = run_with_terminal_pager(
             &args,
             language,
-            stdin.lock(),
+            io::empty(),
             pager.writer(),
             &mut stderr,
             stdin_is_terminal,
