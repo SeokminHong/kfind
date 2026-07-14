@@ -2144,8 +2144,8 @@ phrase가 4,096번 반복되는 입력을 `InputSearcher`의 metadata 출력 경
 anchor와 atom span을 한 번만 수집하는지와 match 수에 따른 반복 suffix scan 회귀를 감시한다.
 
 `matcher/context_repeated_long_line`은 `매일`이 16,384번 반복되는 줄바꿈 없는 UTF-8 입력을
-`smart` 부사 matcher로 검색한다. 각 candidate의 인접 token만 해독하는지와 candidate마다 전체
-입력의 UTF-8을 다시 검증하는 회귀를 감시한다.
+`MAG`와 명사 분석이 함께 있는 query lexicon의 `smart` 부사 matcher로 검색한다. 각 candidate의
+인접 token만 해독하는지와 candidate마다 전체 입력의 UTF-8을 다시 검증하는 회귀를 감시한다.
 
 `local_lattice/component_decision`은 고정 component fixture를 한 번 초기화한 뒤 accept, reject와
 ambiguous 입력을 순환하며 제품용 component 판정만 측정한다. `local_lattice/component_report`는
