@@ -171,12 +171,19 @@ fn full_pos_preserves_productive_alternation_for_non_core_predicates() {
 }
 
 #[test]
-fn core_predicate_analysis_suppresses_only_the_same_full_pos_fine_pos() {
+fn core_predicate_analysis_suppresses_the_same_full_pos_coarse_pos() {
     let full_data = LexiconData {
         predicates: vec![
             PredicateRecord {
                 lemma: "걷다".to_owned(),
                 pos: DataFinePos::Vv,
+                alternation: DataAlternation::Regular,
+                flags: BTreeSet::new(),
+                overrides: Vec::new(),
+            },
+            PredicateRecord {
+                lemma: "걷다".to_owned(),
+                pos: DataFinePos::Vx,
                 alternation: DataAlternation::Regular,
                 flags: BTreeSet::new(),
                 overrides: Vec::new(),
@@ -200,7 +207,8 @@ fn core_predicate_analysis_suppresses_only_the_same_full_pos_fine_pos() {
         analysis.source == AnalysisSource::FullPosLexicon && analysis.fine_pos == FinePos::Adjective
     }));
     assert!(!analyses.iter().any(|analysis| {
-        analysis.source == AnalysisSource::FullPosLexicon && analysis.fine_pos == FinePos::Verb
+        analysis.source == AnalysisSource::FullPosLexicon
+            && matches!(analysis.fine_pos, FinePos::Verb | FinePos::AuxiliaryVerb)
     }));
 }
 
