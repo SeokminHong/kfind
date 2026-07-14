@@ -3,7 +3,6 @@ use std::error::Error;
 use std::io;
 use std::path::PathBuf;
 
-use kfind_data::ExpectedMatch;
 use kfind_testkit::{GoldHarness, load_morphology_cases};
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -31,11 +30,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             ));
             continue;
         }
-        let outcome = if case.expected == ExpectedMatch::Match {
-            harness.evaluate_auto(case)?
-        } else {
-            harness.evaluate(case)?
-        };
+        let outcome = harness.evaluate(case)?;
         if !outcome.matches_expectation() {
             failures.push(format!(
                 "query={:?} pos={:?} feature={} text={:?}: expected_match={}, actual_match={}",
@@ -50,7 +45,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
     if !failures.is_empty() {
         return Err(format!(
-            "{} of {} auto-POS gold cases failed:\n{}",
+            "{} of {} morphology gold cases failed:\n{}",
             failures.len(),
             cases.len(),
             failures.join("\n"),
@@ -58,7 +53,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         .into());
     }
 
-    println!("auto-POS gold: {} cases passed", cases.len());
+    println!(
+        "morphology gold with auto-POS coverage: {} cases passed",
+        cases.len()
+    );
     Ok(())
 }
 

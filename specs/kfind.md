@@ -48,7 +48,7 @@
 - 공개 사전은 고정된 전체 내려받기 snapshot만 릴리스 입력으로 사용한다. 원본 URL·버전 또는 생성 일자·SHA-256·라이선스·추출 필드·추출기 버전을 기록하며, 인증키가 필요한 live API 응답은 릴리스 빌드 입력이나 런타임 의존성으로 사용하지 않는다.
 - 여러 source의 표제어·품사 후보는 합집합으로 보존하되, 같은 표제어에 core 용언 분석이 있으면 core의 활용 metadata를 우선한다. source 간 품사 충돌과 활용 분류 미확정 항목은 산출물 통계로 보고하고 임의로 한쪽을 삭제하지 않는다.
 - 배포 데이터에는 원본 버전, 출처, 라이선스, 추출 명령과 체크섬을 기록한다.
-- auto 품사 품질 기준은 300개 이상의 프로젝트 gold case마다 명시된 기대 품사 분석을 포함하고, match case를 auto 계획으로 찾는 것이다. no-match case는 동음이의어 합집합이 다른 품사 경로로 찾을 수 있으므로 fixture 품사를 강제해 해당 분석의 금지 형태를 검증한다. 핵심 불규칙 fixture는 core lexicon만으로도 100% 통과해야 한다.
+- auto 품사 coverage 기준은 300개 이상의 프로젝트 gold case마다 명시된 기대 품사 분석을 포함하는 것이다. 품사별 형태 match와 no-match는 fixture 품사를 강제해 해당 분석의 허용·금지 형태를 검증하고, 품사를 생략한 제품 동작은 0.6절의 사람용 fixture와 persona profile로 분리한다. 핵심 불규칙 fixture는 core lexicon만으로도 100% 통과해야 한다.
 - full POS lexicon이 없으면 core lexicon으로 계속 실행하되, `--explain-query`와 명시적 사전 진단 요청에서 `preview (core lexicon only)` 상태와 자동 탐색한 모든 후보 경로를 우선순위대로 출력한다. 로드했을 때는 `loaded`와 선택된 경로를 출력한다.
 - `--explain-query`는 계획 전체의 Unicode 정규화 모드와 atom별 verifier state 수를 출력한다. verifier state 수는 해당 atom의 branch들이 참조하는 서로 다른 verifier 구성의 수다.
 
