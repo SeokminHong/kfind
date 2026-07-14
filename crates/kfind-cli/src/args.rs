@@ -67,6 +67,14 @@ pub enum SortArg {
     Path,
 }
 
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, ValueEnum)]
+pub enum AgentArg {
+    ClaudeCode,
+    Codex,
+    Gemini,
+    Custom,
+}
+
 /// Fast Korean lemma and inflection search for code and documents.
 #[derive(Debug, Parser)]
 #[command(
@@ -78,7 +86,8 @@ pub enum SortArg {
 )]
 pub struct Args {
     /// Korean lemma, short phrase, or tagged query.
-    pub query: String,
+    #[arg(required_unless_present = "init")]
+    pub query: Option<String>,
 
     /// Files and directories to search. Defaults to stdin when piped, otherwise '.'.
     #[arg(value_name = "PATH", num_args = 0..)]
@@ -184,6 +193,57 @@ pub struct Args {
     #[arg(long, value_name = "PATH")]
     pub user_lexicon: Option<PathBuf>,
 
+    /// Initialize the kfind skill for coding agents in the current directory.
+    #[arg(
+        long,
+        conflicts_with_all = [
+            "query",
+            "paths",
+            "pos",
+            "expand",
+            "boundary",
+            "literal",
+            "embedded",
+            "max_gap",
+            "unicode_normalization",
+            "encoding",
+            "glob",
+            "file_type",
+            "type_add",
+            "hidden",
+            "no_ignore",
+            "threads",
+            "line_number",
+            "with_filename",
+            "no_filename",
+            "context",
+            "before_context",
+            "after_context",
+            "files_with_matches",
+            "count",
+            "quiet",
+            "json",
+            "color",
+            "column",
+            "explain_query",
+            "explain_match",
+            "sort",
+            "data_dir",
+            "user_lexicon"
+        ]
+    )]
+    pub init: bool,
+
+    /// Select an initialization target. Repeat to install for multiple agents.
+    #[arg(
+        long,
+        value_enum,
+        action = ArgAction::Append,
+        requires = "init",
+        conflicts_with = "query"
+    )]
+    pub agent: Vec<AgentArg>,
+
     #[arg(long, action = ArgAction::Help)]
     pub help: Option<bool>,
 
@@ -192,6 +252,10 @@ pub struct Args {
 }
 
 impl Args {
+    pub fn query(&self) -> Option<&str> {
+        self.query.as_deref()
+    }
+
     pub fn compile_options(&self) -> Result<CompileOptions, CompileOptionError> {
         CompileOptions::resolve(CompileOptionOverrides {
             expand: self.expand.map(ExpandMode::from),
@@ -266,7 +330,49 @@ mod tests {
         assert_eq!(options.expand, ExpandMode::Inflection);
         assert_eq!(options.boundary, BoundaryPolicy::Smart);
         assert_eq!(options.phrase.max_gap, 24);
+        assert_eq!(args.query(), Some("걷다"));
         assert!(args.paths.is_empty());
+    }
+
+    #[test]
+    fn init_replaces_the_required_query() {
+        let args = Args::try_parse_from([
+            "kfind",
+            "--init",
+            "--agent",
+            "codex",
+            "--agent",
+            "claude-code",
+        ])
+        .unwrap();
+
+        assert!(args.init);
+        assert_eq!(args.query(), None);
+        assert_eq!(args.agent, [AgentArg::Codex, AgentArg::ClaudeCode]);
+    }
+
+    #[test]
+    fn agent_requires_init() {
+        let conflict = Args::try_parse_from(["kfind", "--agent", "codex", "걷다"]).unwrap_err();
+        assert_eq!(conflict.kind(), clap::error::ErrorKind::ArgumentConflict);
+
+        let error = Args::try_parse_from(["kfind", "--agent", "codex"]).unwrap_err();
+        assert_eq!(
+            error.kind(),
+            clap::error::ErrorKind::MissingRequiredArgument
+        );
+    }
+
+    #[test]
+    fn init_rejects_search_arguments() {
+        for values in [
+            ["kfind", "--init", "걷다"].as_slice(),
+            ["kfind", "--init", "--json"].as_slice(),
+            ["kfind", "--init", "--data-dir", "data"].as_slice(),
+        ] {
+            let error = Args::try_parse_from(values).unwrap_err();
+            assert_eq!(error.kind(), clap::error::ErrorKind::ArgumentConflict);
+        }
     }
 
     #[test]

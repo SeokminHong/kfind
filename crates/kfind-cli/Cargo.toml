@@ -24,6 +24,7 @@ base64 = "0.22.1"
 clap.workspace = true
 clap_complete.workspace = true
 clap_mangen.workspace = true
+dialoguer = { version = "0.12.0", default-features = false }
 kfind-data.workspace = true
 kfind-matcher.workspace = true
 kfind-morph.workspace = true

@@ -78,6 +78,25 @@ fn initialization_errors_escape_terminal_control_characters() {
 }
 
 #[test]
+fn agent_init_uses_localized_errors_and_clean_custom_output() {
+    let missing = run(&[("LC_ALL", "ko_KR.UTF-8")], &["--init"]);
+    assert_eq!(missing.status.code(), Some(2));
+    assert!(missing.stdout.is_empty());
+    assert!(
+        String::from_utf8(missing.stderr)
+            .unwrap()
+            .contains("agent가 입력되지 않았습니다")
+    );
+
+    let custom = run(&[("LC_ALL", "C")], &["--init", "--agent", "custom"]);
+    assert!(custom.status.success());
+    assert!(custom.stderr.is_empty());
+    let stdout = String::from_utf8(custom.stdout).unwrap();
+    assert!(stdout.starts_with("---\nname: kfind\n"));
+    assert!(stdout.contains("managed by kfind init"));
+}
+
+#[test]
 fn locale_reaches_explain_output() {
     let output = run(&[("LANG", "ko_KR.UTF-8")], &["걷다", "--explain-query"]);
     assert_eq!(output.status.code(), Some(1));

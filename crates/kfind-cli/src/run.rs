@@ -22,7 +22,9 @@ use kfind_search::{
 };
 
 use crate::output::{FullPosNotRequiredReason, FullPosStatus, write_safe_path, write_safe_text};
-use crate::{Args, EncodingArg, Language, OutputError, OutputOptions, OutputWriter, SortArg};
+use crate::{
+    Args, EncodingArg, InitError, Language, OutputError, OutputOptions, OutputWriter, SortArg,
+};
 
 const FULL_POS_FILE: &str = "lexicon.bin";
 const COMPONENT_RESOURCE_FILE: &str = "morphology-component-compact.kfc";
@@ -56,6 +58,7 @@ where
     W: Write + Send,
     E: Write + Send,
 {
+    let query = args.query().ok_or(CliError::MissingQuery)?;
     let options = args.compile_options().map_err(CliError::Options)?;
     let full_pos_mode = if args.embedded {
         FullPosMode::Disabled(FullPosNotRequiredReason::EmbeddedMode)
@@ -68,8 +71,7 @@ where
     let full_pos_status = loaded_lexicons.full_pos;
     let lexicons = Arc::new(loaded_lexicons.lexicons);
     let analyzer = LexiconQueryAnalyzer::new(lexicons);
-    let plan =
-        Arc::new(compile_query(&args.query, &options, &analyzer).map_err(CliError::Compile)?);
+    let plan = Arc::new(compile_query(query, &options, &analyzer).map_err(CliError::Compile)?);
     let matcher = if plan.requires_component_resource() {
         let resource = Arc::new(load_component_resource(args)?);
         let evaluator = Arc::new(LocalComponentEvaluator::new(resource));
@@ -433,6 +435,8 @@ const fn status_from_summary(summary: SearchSummary) -> ExitStatus {
 
 #[derive(Debug)]
 pub enum CliError {
+    Init(InitError),
+    MissingQuery,
     Options(CompileOptionError),
     Data(DataError),
     Compile(CompileError),
@@ -448,6 +452,8 @@ pub enum CliError {
 impl Display for CliError {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         match self {
+            Self::Init(error) => Display::fmt(error, formatter),
+            Self::MissingQuery => formatter.write_str("a search query is required"),
             Self::Options(error) => Display::fmt(error, formatter),
             Self::Data(error) => Display::fmt(error, formatter),
             Self::Compile(error) => Display::fmt(error, formatter),
@@ -475,6 +481,8 @@ impl Display for CliError {
 impl Error for CliError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
+            Self::Init(error) => Some(error),
+            Self::MissingQuery => None,
             Self::Options(error) => Some(error),
             Self::Data(error) => Some(error),
             Self::Compile(error) => Some(error),

@@ -27,6 +27,11 @@ impl<'a> LocalizedCliError<'a> {
 impl Display for LocalizedCliError<'_> {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         match self.error {
+            CliError::Init(error) => formatter.write_str(&error.localized(self.language)),
+            CliError::MissingQuery => formatter.write_str(
+                self.language
+                    .select("a search query is required", "검색 query가 필요합니다"),
+            ),
             CliError::Options(error) => write_compile_option(error, self.language, formatter),
             CliError::Data(error) => data::write_error(error, self.language, formatter),
             CliError::Compile(error) => write_compile_error(error, self.language, formatter),
