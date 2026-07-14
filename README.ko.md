@@ -89,11 +89,11 @@ printf 'codex\ngemini\n' | kfind --init
 kfind --init --agent custom > path/to/kfind/SKILL.md
 ```
 
-Homebrew는 규범 skill을 binary와 함께 `share/kfind`에 설치합니다. 프로젝트 초기화는
-Homebrew의 안정된 `opt/kfind` 경로를 연결하므로 `brew upgrade kfind` 뒤에도 이미 초기화한
-프로젝트 skill이 자동으로 갱신됩니다. Source 또는 Cargo 설치는 관리되는 파일을 복사하며,
-갱신하려면 `kfind --init`을 다시 실행합니다. kfind 관리 표식이 없는 기존 skill은 덮어쓰지
-않습니다.
+Homebrew는 규범 skill을 binary와 함께 `share/kfind`에 설치하지만, 사용자의 프로젝트와 agent를
+대신 선택할 수는 없습니다. 각 프로젝트에서 `kfind --init`을 한 번 실행해야 합니다. 이 초기화는
+Homebrew의 안정된 `opt/kfind` 경로를 연결하므로 이후 `brew upgrade kfind`가 해당 프로젝트
+skill을 자동으로 갱신합니다. Source 또는 Cargo 설치는 관리되는 파일을 복사하며, 갱신하려면
+`kfind --init`을 다시 실행합니다. kfind 관리 표식이 없는 기존 skill은 덮어쓰지 않습니다.
 
 ## 빠른 시작
 

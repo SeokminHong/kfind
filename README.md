@@ -97,10 +97,11 @@ printf 'codex\ngemini\n' | kfind --init
 kfind --init --agent custom > path/to/kfind/SKILL.md
 ```
 
-Homebrew installs the canonical skill under `share/kfind` with the binary.
-Project initialization links to Homebrew's stable `opt/kfind` path, so
-`brew upgrade kfind` updates previously initialized project skills. A source or
-Cargo installation writes a managed copy; rerun `kfind --init` to update it.
+Homebrew installs the canonical skill under `share/kfind` with the binary, but it
+cannot choose a project or agent on the user's behalf. Run `kfind --init` once in
+each project. That initialization links to Homebrew's stable `opt/kfind` path, so
+later `brew upgrade kfind` runs update those project skills automatically. A source
+or Cargo installation writes a managed copy; rerun `kfind --init` to update it.
 Existing skills without the kfind management marker are never overwritten.
 
 ## Quick start
