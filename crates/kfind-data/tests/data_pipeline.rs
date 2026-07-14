@@ -129,7 +129,22 @@ fn repository_enriched_predicates_are_valid_and_disjoint_from_core() {
             &entry.flags,
         ))
     }));
-    assert!(enriched.iter().any(|entry| entry.lemma == "가르다"));
+    for (lemma, pos, alternation) in [
+        ("깨닫다", DataFinePos::Vv, DataAlternation::DToL),
+        ("결정짓다", DataFinePos::Vv, DataAlternation::DropS),
+        ("가깝다", DataFinePos::Va, DataAlternation::BToWo),
+        ("곱다", DataFinePos::Va, DataAlternation::BToWa),
+        ("노랗다", DataFinePos::Va, DataAlternation::DropH),
+    ] {
+        assert!(enriched.iter().any(|entry| {
+            entry.lemma == lemma && entry.pos == pos && entry.alternation == alternation
+        }));
+    }
+    assert!(enriched.iter().any(|entry| {
+        entry.lemma == "곱다"
+            && entry.pos == DataFinePos::Va
+            && entry.alternation == DataAlternation::Regular
+    }));
 }
 
 #[test]

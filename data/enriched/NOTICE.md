@@ -6,6 +6,10 @@ Urimalsaem snapshots supplied by the National Institute of Korean Language.
 The pinned snapshot filenames, checksums, extracted fields, and record counts
 are recorded in `MANIFEST.toml` and `STATS.toml`.
 
+The generated layer records reviewed Korean predicate alternations and the
+minimum same-POS regular companion analyses needed to preserve homonyms. Core
+duplicates and productive-suffix duplicates remain audit-only report rows.
+
 These data files are distributed under the Creative Commons
 Attribution-ShareAlike 2.0 Korea license (CC BY-SA 2.0 KR). Attribute the
 National Institute of Korean Language and preserve the same license for

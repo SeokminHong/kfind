@@ -1,22 +1,155 @@
-schema_version = 1
-generator = "nikl-lexicon-classifier@0.1.0"
+schema_version = 2
+generator = "nikl-lexicon-classifier@0.2.0"
 record_count = 220738
-candidate_count = 312
-promoted_count = 102
-core_duplicate_count = 13
-regular_control_count = 12
+candidate_count = 2069
+promoted_count = 278
+mixed_regular_count = 2
+core_duplicate_count = 40
+productive_duplicate_count = 932
+regular_control_count = 399
+review_count = 418
+
+[[classification]]
+name = "DToL"
+candidate_count = 57
+promoted_count = 17
+mixed_regular_count = 0
+core_duplicate_count = 4
+productive_duplicate_count = 0
+regular_control_count = 0
+review_count = 36
+
+[[classification]]
+name = "RegularD"
+candidate_count = 103
+promoted_count = 0
+mixed_regular_count = 0
+core_duplicate_count = 3
+productive_duplicate_count = 0
+regular_control_count = 100
+review_count = 0
+
+[[classification]]
+name = "DropS"
+candidate_count = 63
+promoted_count = 26
+mixed_regular_count = 0
+core_duplicate_count = 3
+productive_duplicate_count = 0
+regular_control_count = 0
+review_count = 34
+
+[[classification]]
+name = "RegularS"
+candidate_count = 30
+promoted_count = 0
+mixed_regular_count = 0
+core_duplicate_count = 1
+productive_duplicate_count = 0
+regular_control_count = 29
+review_count = 0
+
+[[classification]]
+name = "BToWa"
+candidate_count = 7
+promoted_count = 4
+mixed_regular_count = 0
+core_duplicate_count = 1
+productive_duplicate_count = 0
+regular_control_count = 0
+review_count = 2
+
+[[classification]]
+name = "BToWo"
+candidate_count = 1124
+promoted_count = 86
+mixed_regular_count = 0
+core_duplicate_count = 8
+productive_duplicate_count = 932
+regular_control_count = 0
+review_count = 98
+
+[[classification]]
+name = "RegularB"
+candidate_count = 158
+promoted_count = 0
+mixed_regular_count = 2
+core_duplicate_count = 0
+productive_duplicate_count = 0
+regular_control_count = 156
+review_count = 0
+
+[[classification]]
+name = "DropH"
+candidate_count = 111
+promoted_count = 43
+mixed_regular_count = 0
+core_duplicate_count = 5
+productive_duplicate_count = 0
+regular_control_count = 0
+review_count = 63
+
+[[classification]]
+name = "RegularH"
+candidate_count = 104
+promoted_count = 0
+mixed_regular_count = 0
+core_duplicate_count = 1
+productive_duplicate_count = 0
+regular_control_count = 103
+review_count = 0
+
+[[classification]]
+name = "ReuDoubleL"
+candidate_count = 280
+promoted_count = 99
+mixed_regular_count = 0
+core_duplicate_count = 10
+productive_duplicate_count = 0
+regular_control_count = 0
+review_count = 171
+
+[[classification]]
+name = "Reo"
+candidate_count = 20
+promoted_count = 3
+mixed_regular_count = 0
+core_duplicate_count = 3
+productive_duplicate_count = 0
+regular_control_count = 0
+review_count = 14
+
+[[classification]]
+name = "RegularEuDrop"
+candidate_count = 11
+promoted_count = 0
+mixed_regular_count = 0
+core_duplicate_count = 0
+productive_duplicate_count = 0
+regular_control_count = 11
+review_count = 0
+
+[[classification]]
+name = "UToEo"
+candidate_count = 1
+promoted_count = 0
+mixed_regular_count = 0
+core_duplicate_count = 1
+productive_duplicate_count = 0
+regular_control_count = 0
+review_count = 0
 
 [[source]]
 name = "krdict"
 record_count = 14141
-candidate_count = 125
+candidate_count = 777
 
 [[source]]
 name = "stdict"
 record_count = 69873
-candidate_count = 303
+candidate_count = 1936
 
 [[source]]
 name = "opendict"
 record_count = 136724
-candidate_count = 309
+candidate_count = 2037
