@@ -303,14 +303,15 @@ resource 초기화와 literal scan을 하나의 점수로 합치지 않습니다
 
 | workflow | 품질(TP / FP / FN) | CLI wall | 처리량 | peak RSS |
 | --- | ---: | ---: | ---: | ---: |
-| Agent: embedded + `any` + explicit POS | 479 / 11 / 21 | 17.3 ms | 5,788.7 MiB/s | 7.1 MiB |
-| Human: full POS + `smart` + untagged | 411 / 0 / 89 | 306.6 ms | 326.1 MiB/s | 91.5 MiB |
+| Agent: embedded + `any` + explicit POS | 480 / 11 / 20 | 17.5 ms | 5,726.5 MiB/s | 7.0 MiB |
+| Human: full POS + `smart` + untagged | 411 / 0 / 89 | 304.8 ms | 328.1 MiB/s | 91.5 MiB |
 
-![제품 workflow별 품질과 CLI 비용](docs/benchmarks/assets/2026-07-14-connective-ji-position-evidence-product-workflows.svg)
+![제품 workflow별 품질과 CLI 비용](docs/benchmarks/assets/product-workflows.svg)
 
 Agent와 Human 품질 행은 negative query 계약이 서로 다르므로 backend 순위가 아니라 각 제품
-workflow를 설명합니다. 제품 행은 2026-07-14 후보 revision `860c864`의 결과입니다.
+workflow를 설명합니다. 제품 행은 2026-07-14 후보 revision `2d24c5c`의 결과입니다.
 
+- [2026-07-14 ㅎ 불규칙 core lexicon recall](docs/benchmarks/2026-07-14-h-irregular-recall.md)
 - [2026-07-14 connective-ji 위치 근거](docs/benchmarks/2026-07-14-connective-ji-position-evidence.md)
 - [2026-07-14 국소 lattice 제품 경로 최적화](docs/benchmarks/2026-07-14-local-lattice-optimization.md)
 - [2026-07-14 smart precision 품질·성능](docs/benchmarks/2026-07-14-user-smart-precision.md)
@@ -325,14 +326,14 @@ Agent와 User는 2026-07-14에 측정했습니다. 외부 행은 fixture, schema
 
 | backend | 입력·버전 | TP / FP / FN | precision | recall | F1 | init | cases/s | p95 | peak RSS |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Agent | embedded + `any`, 품사 명시 | 479 / 11 / 21 | 97.76% | 95.80% | 96.77% | 0.0011초 | 15,686.7 | 0.1441 ms | 5.4 MiB |
-| User | full POS + `smart`, 품사 생략 | 411 / 0 / 89 | 100.00% | 82.20% | 90.23% | 0.4256초 | 11,811.6 | 0.2080 ms | 92.1 MiB |
+| Agent | embedded + `any`, 품사 명시 | 480 / 11 / 20 | 97.76% | 96.00% | 96.87% | 0.0012초 | 15,611.8 | 0.1434 ms | 5.4 MiB |
+| User | full POS + `smart`, 품사 생략 | 411 / 0 / 89 | 100.00% | 82.20% | 90.23% | 0.4260초 | 11,869.5 | 0.2084 ms | 92.1 MiB |
 | Kiwi | snapshot 0.23.2, model 0.23.0, 품사 명시 | 426 / 0 / 74 | 100.00% | 85.20% | 92.01% | 1.7204초 | 1,672.0 | 1.1904 ms | 528.2 MiB |
 | Lindera | snapshot 4.0.0, embedded-ko-dic, 품사 명시 | 393 / 0 / 107 | 100.00% | 78.60% | 88.02% | 0.0301초 | 15,609.1 | 0.1113 ms | 193.1 MiB |
 | MeCab-ko | snapshot 1.0.2, dictionary 1.0.0, 품사 명시 | 403 / 0 / 97 | 100.00% | 80.60% | 89.26% | 0.0003초 | 10,789.7 | 0.1940 ms | 102.8 MiB |
 | KOMORAN | snapshot 3.3.9, FULL, 품사 명시 | 406 / 0 / 94 | 100.00% | 81.20% | 89.62% | 1.1589초 | 1,669.4 | 1.2370 ms | 686.6 MiB |
 
-![제품 persona와 고정 외부 분석기의 품질·성능 비교](docs/benchmarks/assets/2026-07-14-connective-ji-position-evidence-product-external-comparison.svg)
+![제품 persona와 고정 외부 분석기의 품질·성능 비교](docs/benchmarks/assets/product-external-comparison.svg)
 
 이는 제품 task workload 비교이며 동일 입력의 backend 순위나 순수 tokenizer benchmark가
 아닙니다. 각 backend 고유의 query 준비·분석·matching 비용을 포함하고, User 행에는 자동 품사

@@ -101,7 +101,13 @@ scripts/benchmark-morphology.sh
 scripts/refresh-morph-baselines.sh
 python3 tools/morph-compare/render_charts.py \
   target/morph-benchmark/report.json docs/benchmarks/assets
+python3 tools/morph-compare/export_site_snapshot.py \
+  target/morph-benchmark/report.json docs/benchmarks/site-morphology.json \
+  --revision "$(git rev-parse --short=12 HEAD)"
 ```
+
+`site-morphology.json`은 공개 site 차트에 필요한 승인 보고서 필드와 원본 report의 revision,
+SHA-256을 보존한다. 승인 보고서와 README 대표 수치를 갱신할 때 같은 변경에서 다시 생성한다.
 
 - [2026-07-12 비교 기준선](2026-07-12-morphology-comparison.md)
 - [2026-07-13 제품 workflow 형태소 벤치마크](2026-07-13-product-workflows.md)

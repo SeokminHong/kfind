@@ -117,10 +117,14 @@
   둔다. Pages Function은 `KFIND_ASSETS` binding으로 고정 object를 읽어 body를 buffering하지 않고
   stream하며 content type, ETag와 cache header를 보존한다. R2 object가 없거나 손상되면 embedded
   preview로 조용히 fallback하지 않고 playground에 오류를 표시한다.
-- `site` package는 WASM과 benchmark chart를 source artifact에서 재현해 정적 `dist`를 만든다.
-  배포 전에 같은 source에서 component resource를 생성해 R2에 upload한다. Site 배포는
-  `pnpm dlx wrangler pages deploy`의 direct upload를 사용하고, production branch는 `main`,
-  Pages project 이름은 `kfind`로 고정한다.
+- `site` package는 현재 source의 WASM과 version control에 보존한 승인 benchmark snapshot에서
+  chart를 다시 생성해 정적 `dist`를 만든다. Snapshot은 source report의 revision과 SHA-256을
+  기록하며, 승인된 benchmark가 바뀌면 같은 변경에서 갱신한다.
+- 기존 `kfind` Pages project는 direct upload 방식을 유지한다. GitHub Actions는 pull request에서
+  site build를 검증하고, `main` push에서 component resource를 생성해 R2에 먼저 upload한 뒤
+  production site를 배포한다. 배포 인증은 repository의 `CLOUDFLARE_ACCOUNT_ID`와
+  `CLOUDFLARE_API_TOKEN` secret을 사용한다. Production branch는 `main`, Pages project 이름은
+  `kfind`로 고정한다.
 
 ### 0.5 Homebrew 대상
 
