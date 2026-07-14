@@ -3,7 +3,7 @@ import type { MouseEvent as ReactMouseEvent } from 'react';
 import type { GlossaryTerm } from './glossary';
 
 import { PreviewCard } from '@base-ui/react/preview-card';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router';
 
 import { RoutePath } from '../app/navigation';
@@ -22,13 +22,25 @@ export function GlossaryTooltip({
   children,
   term,
 }: GlossaryTooltipProps): React.JSX.Element {
+  const hasPendingPointerActivation = useRef(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isHoverlessTooltipOpen, setIsHoverlessTooltipOpen] = useState(false);
   const tooltipId = `glossary-tooltip-${term.id}`;
 
+  function beginPointerActivation(): void {
+    hasPendingPointerActivation.current = true;
+  }
+
+  function clearPointerActivation(): void {
+    hasPendingPointerActivation.current = false;
+  }
+
   function handleClick(event: ReactMouseEvent<HTMLAnchorElement>): void {
     const isHoverlessPointerActivation =
-      event.detail > 0 && globalThis.matchMedia(hoverlessPointerQuery).matches;
+      hasPendingPointerActivation.current &&
+      globalThis.matchMedia(hoverlessPointerQuery).matches;
+
+    clearPointerActivation();
 
     if (!isHoverlessPointerActivation || isHoverlessTooltipOpen) {
       return;
@@ -55,7 +67,10 @@ export function GlossaryTooltip({
         className={styles.trigger}
         closeDelay={0}
         delay={0}
+        onBlur={clearPointerActivation}
         onClick={handleClick}
+        onPointerCancel={clearPointerActivation}
+        onPointerDown={beginPointerActivation}
         render={<Link to={`${RoutePath.Glossary}#${term.id}`} />}
       >
         {children}
