@@ -1,6 +1,6 @@
 # kfind 기술 사양서
 
-워크스페이스 버전: 0.2.1
+워크스페이스 버전: 0.3.0-rc.1
 문서 역할: 현재 구현과 호환성 계약
 
 이 문서는 현재 제품 계약만 유지한다. 완료한 작업 순서, 폐기한 대안과 배포 운영 상태는
@@ -195,7 +195,9 @@
 - tap은 `SeokminHong/homebrew-brew`, formula는 `Formula/kfind.rb`를 사용한다.
 - 사용자 설치 명령은 `brew install seokminhong/brew/kfind`다.
 - formula 변경은 tap `main`에 직접 push하지 않는다. 브랜치 PR의 CI가 모두 통과한 뒤 `pr-pull`을 적용한다.
-- `vX.Y.Z` tag workflow는 고정 checksum으로 full POS lexicon을 재생성하고 source, full POS, man/completion 산출물을 GitHub release에 올린 뒤 `TAP_GITHUB_TOKEN`으로 tap formula PR을 연다. `pr-pull` label은 CI 확인 뒤 사람이 적용한다.
+- SemVer tag workflow는 고정 checksum으로 full POS lexicon을 재생성하고 source, full POS,
+  man/completion 산출물을 GitHub release에 올린 뒤 `TAP_GITHUB_TOKEN`으로 tap formula PR을 연다.
+  prerelease tag는 GitHub prerelease로 게시한다. `pr-pull` label은 CI 확인 뒤 사람이 적용한다.
 - full POS resource에는 `lexicon.bin`, 생성 manifest, `mecab-ko-dic`의 `COPYING`을 함께 넣는다. formula는 이를 `share/kfind`와 `share/doc/kfind/LICENSES`에 설치한다.
 - compact component resource와 manifest도 formula resource로 고정 checksum을 검증해
   `share/kfind/morphology-component-compact.kfc`에 설치한다. formula `test do`는 설치 경로의

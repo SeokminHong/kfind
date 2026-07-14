@@ -13,7 +13,7 @@ export default function OverviewPage(): React.JSX.Element {
   return (
     <article>
       <PageIntro
-        eyebrow="kfind 0.2.1 · TECHNICAL DOCUMENTATION"
+        eyebrow="kfind 0.3.0-rc.1 · TECHNICAL DOCUMENTATION"
         title="한국어 표제어를 검색 가능한 계획으로"
         summary="kfind는 한국어 표제어와 짧은 구를 유한한 검색 계획으로 컴파일하는 query-directed matcher입니다. 이 계획을 이용해 파일과 메모리의 텍스트를 빠르게 탐색합니다."
       >
