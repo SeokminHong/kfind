@@ -2,8 +2,10 @@
 
 ## 품질 게이트
 
-형태 품질 변경은 dev recall 80.00% 이상, precision 99.00% 이상과 revised hard-negative 신규
-FP 0을 동시에 유지해야 한다.
+명시적 품사 `smart` 품질 변경은 dev precision 99.00% 이상과 revised hard-negative 신규 FP 0을
+유지하면서 FN을 늘리지 않아야 한다. FN이 줄어든 후보를 우선하고, FN이 같을 때만 FP가 줄어든
+후보를 선택한다. 무품사 결과는 제품 한계와 회귀를 그대로 관측하며 목표 수치에 맞춰 fixture,
+gold 또는 negative 선택을 바꾸지 않는다.
 
 현재 제품 기준선:
 
@@ -11,18 +13,22 @@ FP 0을 동시에 유지해야 한다.
 | --- | ---: | ---: | ---: | ---: |
 | dev embedded smart | 432 / 2 / 68 | 99.54% | 86.4% | 92.51% |
 | dev full-POS smart | 436 / 2 / 64 | 99.54% | 87.2% | 92.96% |
-| test embedded smart | 408 / 0 / 92 | 100.00% | 81.6% | 89.87% |
-| test full-POS smart | 413 / 0 / 87 | 100.00% | 82.6% | 90.47% |
+| test embedded smart | 409 / 0 / 91 | 100.00% | 81.8% | 89.99% |
+| test full-POS smart | 414 / 0 / 86 | 100.00% | 82.8% | 90.59% |
 
 세부 품사와 성능 결과는
-[User smart precision 품질·성능](2026-07-14-user-smart-precision.md)에 둔다.
+[User smart precision 품질·성능](2026-07-14-user-smart-precision.md)과
+[`-기` 명사형 조사 continuation 품질·성능](2026-07-14-gi-particle-continuation.md)에 둔다.
 
 ## 제품 workflow 판정
 
 - 에이전트 CLI는 `embedded + any + 명시적 품사`의 recall과 처리량을 주 지표로 삼는다.
   false positive는 실패 gate가 아니라 문맥 확인이 필요한 후보 수로 보고한다.
+- `smart + 명시적 품사`는 FN을 1차, FP를 2차 최적화 대상으로 삼는다. precision 99.00% 하한과
+  hard-negative 보호 안에서는 관련성이 낮은 후보 노출보다 검색 누락을 더 큰 회귀로 판정한다.
 - 사람 CLI는 별도 무품사 fixture의 `full-POS + smart` precision·recall, 기대 품사 plan 포함률과
-  초기화 비용을 함께 본다.
+  초기화 비용을 함께 본다. 품사 모호성으로 생긴 오차를 숨기지 않고 명시적 품사 결과와 분리해
+  보고한다.
 - 라이브러리는 resource 없는 embedded engine을 기본으로 측정하고 full-POS lexicon과 component
   resource 초기화를 선택 비용으로 분리한다.
 - 전체 lexicon·boundary 행렬은 원인 분석에 사용하며 workflow들을 하나의 점수로 합치지 않는다.
@@ -50,7 +56,8 @@ FP 0을 동시에 유지해야 한다.
 - revised hard-negative: 경계 정밀도와 신규 FP 확인
 - 외부 분석기 스냅샷: 같은 test fixture에서 Kiwi·Lindera·MeCab-ko·KOMORAN 품질·성능 비교
 
-Kaist·KSL test 결과에 맞춰 규칙, 비용, threshold와 fixture 선택을 변경하지 않는다.
+Kaist·KSL test와 무품사 결과에 맞춰 규칙, 비용, threshold, fixture, gold 또는 negative 선택을
+변경하지 않는다. 규칙 선택은 고정 dev와 독립 hard-negative만 사용한다.
 외부 분석기 스냅샷은 test fixture SHA-256과 어댑터 schema에 묶는다. 기본 벤치마크는
 외부 분석기를 실행하지 않으며 fixture나 고정한 도구·어댑터 설정이 바뀔 때만 명시적으로 갱신한다.
 
@@ -71,4 +78,7 @@ embedded와 full-POS 원인을 분리하고, 분류용 추가 compile·검색은
 
 ## 남은 검증
 
-1. `-기` 명사형 뒤 조사 continuation을 독립 규칙과 hard-negative로 검증한다.
+1. 명시적 품사 full-POS `smart`의 development FN 64건에서 반복되는 한 원인군을 고른다.
+2. 같은 표면형·품사의 version-controlled hard-negative를 먼저 고정한다.
+3. dev FN 감소, precision 99.00% 이상과 hard-negative 신규 FP 0을 확인한 뒤 고정 test와 무품사
+   결과를 한 번만 회귀 측정한다.
