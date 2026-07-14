@@ -24,7 +24,7 @@ python3 "${repo_root}/tools/nikl-lexicon/import_nikl.py" \
 cargo run --quiet --locked \
   --manifest-path "${repo_root}/tools/nikl-lexicon/classifier/Cargo.toml" -- \
   "${stage}/records.tsv" \
-  "${repo_root}/data/lexicon/predicates.tsv" \
+  "${repo_root}/data" \
   "${stage}/classified"
 
 install -d "${output_directory}"

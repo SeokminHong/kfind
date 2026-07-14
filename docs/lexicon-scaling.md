@@ -126,11 +126,12 @@ report에 남긴다.
 같은 분석이 있으면 core만 남기고, full POS 규칙형 fallback은 같은 세부 품사의 core 또는
 enriched 분석이 없을 때만 추가한다.
 
-첫 승격 범위는 `ReuDoubleL`, `Reo`, 규칙 `EU_DROP`의 구분이다. 한국어기초사전과
-표준국어대사전이 같은 alternation을 지지하는 항목을 자동 승격 후보로 삼고, 우리말샘은
-중복 출처가 많으므로 독립 표결 대신 충돌·누락 검토에 사용한다. `다르다→달라`,
-`푸르다→푸르러`, `이르다→이르러/일러`를 양성 fixture로, `들르다→들러`와
-`치르다→치러`를 regular `EU_DROP` 음성 fixture로 고정한다.
+승격 범위는 사전 판별이 필요한 `DToL`, `DropS`, `BToWa`, `BToWo`, `DropH`,
+`ReuDoubleL`, `Reo`, `UToEo`다. 한국어기초사전과 표준국어대사전이 같은 alternation을
+지지하는 항목을 자동 승격 후보로 삼고, 우리말샘은 중복 출처가 많으므로 독립 표결 대신
+충돌·누락 검토에 사용한다. 같은 종성의 규칙형과 규칙 `EU_DROP`은 대조군으로 유지한다.
+독립 source record가 같은 표제어·세부 품사의 규칙형과 불규칙형을 각각 지지하면 두 분석을
+함께 보존한다. core 및 생산 접미 규칙과 같은 분석은 artifact에서 제외하고 report에 남긴다.
 
 한국어기초사전 XML snapshot에 XML 1.0 비허용 바이트가 있으면 고정 manifest에 기록된 종류,
 개수와 위치만 제거한다. 원본 SHA-256과 정제 내역을 함께 기록하고 예상 값이 달라지면 importer를
