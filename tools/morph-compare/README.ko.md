@@ -32,6 +32,26 @@ CI용 deterministic smoke set은 dev fixture의 source/POS/expected 조합마다
 KFIND_MORPH_SMOKE=1 KFIND_MORPH_RUNS=1 scripts/benchmark-morphology.sh
 ```
 
+## 현실 기술 코퍼스 blind 평가
+
+`real_corpus` fixture는 고정 revision의 한국어 README, 소스 코드 주석과 기술 문서 25건을
+Agent와 User 제품 profile로 평가한다. source manifest는 라이선스와 원본 파일 SHA-256을
+보존하고, 평가기는 canonical 원문 중복, gold byte span과 필수 slice를 검사한다.
+
+```sh
+python3 tools/morph-compare/real_corpus/verify_sources.py
+```
+
+이 명령은 고정 URL에서 원본을 받아 파일 digest와 각 excerpt의 line 범위를 검증한다.
+
+```sh
+KFIND_BENCH_REVISION=$(git rev-parse HEAD) \
+  tools/morph-compare/real_corpus/run.sh
+```
+
+결과는 기본적으로 `target/real-corpus-blind`에 생성된다. 이 fixture는 UD 회귀 fixture를
+대체하지 않으며 제품 규칙 선택에 사용하지 않는다.
+
 test fixture, 성능 schema나 고정한 외부 도구·어댑터 설정을 바꿀 때만 외부 스냅샷을
 명시적으로 갱신한다. 기본 벤치마크는 fixture 또는 schema가 맞지 않으면 갱신 명령을
 안내하고 실패한다. 기본 이미지는 `kfind` runner만 빌드하며, 외부 분석기와 전용 runner는
