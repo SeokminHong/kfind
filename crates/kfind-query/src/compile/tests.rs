@@ -1,5 +1,8 @@
 use std::sync::Arc;
 
+use kfind_data::{
+    DataFinePos, LexiconData, NominalRecord, collect_pos_entries, encode_pos_lexicon,
+};
 use kfind_morph::{
     CoarsePos, ContinuationState, PredicatePos, RuleId, verify_predicate_continuation,
 };
@@ -52,6 +55,46 @@ fn forced_noun_fallback_preserves_supported_fine_positions() {
         .iter()
         .map(|analysis| analysis.fine_pos)
         .collect::<Vec<_>>();
+    assert_eq!(
+        fine_positions,
+        vec![
+            kfind_morph::FinePos::CommonNoun,
+            kfind_morph::FinePos::ProperNoun,
+            kfind_morph::FinePos::DependentNoun,
+        ]
+    );
+    assert_eq!(plan.atoms[0].branches.len(), 1);
+    assert_eq!(plan.atoms[0].branches[0].origins.len(), 3);
+}
+
+#[test]
+fn forced_noun_preserves_missing_fine_positions_with_full_pos_analysis() {
+    let mut lexicons = Lexicons::embedded().unwrap();
+    let full_data = LexiconData {
+        nominals: vec![NominalRecord {
+            lemma: "명".to_owned(),
+            pos: DataFinePos::Nng,
+            flags: Default::default(),
+            overrides: Vec::new(),
+        }],
+        ..LexiconData::default()
+    };
+    lexicons
+        .load_full_pos(&encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap())
+        .unwrap();
+    let analyzer = LexiconQueryAnalyzer::new(Arc::new(lexicons));
+    let options = CompileOptions {
+        global_pos: Some(CoarsePos::Noun),
+        ..CompileOptions::default()
+    };
+
+    let plan = compile_query("명", &options, &analyzer).unwrap();
+    let fine_positions = plan.atoms[0]
+        .analyses
+        .iter()
+        .map(|analysis| analysis.fine_pos)
+        .collect::<Vec<_>>();
+
     assert_eq!(
         fine_positions,
         vec![

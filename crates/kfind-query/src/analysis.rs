@@ -143,18 +143,22 @@ impl LexiconQueryAnalyzer {
         lemma: &str,
         forced_pos: CoarsePos,
     ) -> Result<Vec<Analysis>, AnalyzeError> {
-        let matching = self
-            .lexicons
-            .lookup(lemma)
+        let candidates = self.lexicons.lookup(lemma);
+        let mut matching = Vec::new();
+        let mut includes_full_pos = false;
+        for analysis in candidates
             .iter()
             .filter(|analysis| analysis.coarse_pos == forced_pos)
-            .cloned()
-            .map(|mut analysis| {
-                analysis.source = AnalysisSource::Forced;
-                analysis
-            })
-            .collect::<Vec<_>>();
+        {
+            includes_full_pos |= analysis.source == AnalysisSource::FullPosLexicon;
+            let mut analysis = analysis.clone();
+            analysis.source = AnalysisSource::Forced;
+            matching.push(analysis);
+        }
         if !matching.is_empty() {
+            if forced_pos == CoarsePos::Noun && includes_full_pos {
+                append_missing_forced_noun_analyses(lemma, &mut matching);
+            }
             return Ok(matching);
         }
 
@@ -195,47 +199,71 @@ impl LexiconQueryAnalyzer {
     }
 }
 
+fn append_missing_forced_noun_analyses(lemma: &str, analyses: &mut Vec<Analysis>) {
+    for fine_pos in [
+        FinePos::CommonNoun,
+        FinePos::ProperNoun,
+        FinePos::DependentNoun,
+    ] {
+        if analyses
+            .iter()
+            .all(|analysis| analysis.fine_pos != fine_pos)
+        {
+            analyses.push(forced_non_predicate_analysis(
+                lemma,
+                CoarsePos::Noun,
+                fine_pos,
+            ));
+        }
+    }
+}
+
 fn forced_non_predicates(lemma: &str, pos: CoarsePos) -> Vec<Analysis> {
     let fine_positions = match pos {
-        CoarsePos::Noun => vec![
+        CoarsePos::Noun => &[
             FinePos::CommonNoun,
             FinePos::ProperNoun,
             FinePos::DependentNoun,
-        ],
-        CoarsePos::Pronoun => vec![FinePos::Pronoun],
-        CoarsePos::Numeral => vec![FinePos::Numeral],
-        CoarsePos::Determiner => vec![FinePos::Determiner],
-        CoarsePos::Adverb => vec![FinePos::GeneralAdverb],
-        CoarsePos::Particle => vec![FinePos::Particle],
-        CoarsePos::Interjection => vec![FinePos::Interjection],
-        CoarsePos::Literal => vec![FinePos::Literal],
+        ][..],
+        CoarsePos::Pronoun => &[FinePos::Pronoun],
+        CoarsePos::Numeral => &[FinePos::Numeral],
+        CoarsePos::Determiner => &[FinePos::Determiner],
+        CoarsePos::Adverb => &[FinePos::GeneralAdverb],
+        CoarsePos::Particle => &[FinePos::Particle],
+        CoarsePos::Interjection => &[FinePos::Interjection],
+        CoarsePos::Literal => &[FinePos::Literal],
         CoarsePos::Verb | CoarsePos::Adjective => unreachable!("predicate handled separately"),
     };
     fine_positions
-        .into_iter()
-        .map(|fine_pos| Analysis {
-            lemma: lemma.into(),
-            coarse_pos: pos,
-            fine_pos,
-            morphology: match pos {
-                CoarsePos::Noun | CoarsePos::Pronoun | CoarsePos::Numeral => {
-                    Morphology::Nominal(NominalMorphology::default())
-                }
-                CoarsePos::Particle => Morphology::Particle(ParticleMorphology {
-                    variants: vec![Box::<str>::from(lemma)].into_boxed_slice(),
-                    rule_id: None,
-                }),
-                CoarsePos::Determiner
-                | CoarsePos::Adverb
-                | CoarsePos::Interjection
-                | CoarsePos::Literal => Morphology::Exact,
-                CoarsePos::Verb | CoarsePos::Adjective => {
-                    unreachable!("predicate handled separately")
-                }
-            },
-            source: AnalysisSource::Forced,
-        })
+        .iter()
+        .copied()
+        .map(|fine_pos| forced_non_predicate_analysis(lemma, pos, fine_pos))
         .collect()
+}
+
+fn forced_non_predicate_analysis(lemma: &str, pos: CoarsePos, fine_pos: FinePos) -> Analysis {
+    Analysis {
+        lemma: lemma.into(),
+        coarse_pos: pos,
+        fine_pos,
+        morphology: match pos {
+            CoarsePos::Noun | CoarsePos::Pronoun | CoarsePos::Numeral => {
+                Morphology::Nominal(NominalMorphology::default())
+            }
+            CoarsePos::Particle => Morphology::Particle(ParticleMorphology {
+                variants: vec![Box::<str>::from(lemma)].into_boxed_slice(),
+                rule_id: None,
+            }),
+            CoarsePos::Determiner
+            | CoarsePos::Adverb
+            | CoarsePos::Interjection
+            | CoarsePos::Literal => Morphology::Exact,
+            CoarsePos::Verb | CoarsePos::Adjective => {
+                unreachable!("predicate handled separately")
+            }
+        },
+        source: AnalysisSource::Forced,
+    }
 }
 
 fn exact_analysis(lemma: &str, pos: CoarsePos, source: AnalysisSource) -> Analysis {

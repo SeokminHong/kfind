@@ -359,12 +359,14 @@ The agent and human quality rows use different negative-query contracts, so
 they describe their product workflows rather than a head-to-head backend rank.
 The product rows are from the 2026-07-14 candidate revision `2d24c5c`.
 
-The focused explicit-POS `smart` measurement at candidate revision `8337022`
-against main `f8e5e3e` improved embedded test recall from 81.8% to 83.0%
-(409 / 0 / 91 to 415 / 0 / 85) and full-POS development recall from 88.0% to
-88.2% (440 / 2 / 60 to 441 / 2 / 59). The Agent `any` and Human untagged rows
-above did not change.
+The focused explicit-POS `smart` measurement at candidate revision `63a75f4`
+against main `64f523f` improved full-POS development recall from 88.2% to
+88.4% (441 / 2 / 59 to 442 / 2 / 58) and test recall from 82.8% to 83.0%
+(414 / 0 / 86 to 415 / 0 / 85). Embedded, Agent `any`, and Human untagged
+results did not change. Full-POS `smart` throughput decreased 4.15% from
+13,481.1 to 12,922.3 cases/s and is accepted as the cost of the recall gain.
 
+- [2026-07-14 full-POS coarse-noun analysis-union recall](docs/benchmarks/2026-07-14-full-pos-coarse-noun-recall.md)
 - [2026-07-14 dependent-noun coarse-POS fallback recall](docs/benchmarks/2026-07-14-dependent-noun-recall.md)
 - [2026-07-14 ㅎ-irregular core lexicon recall](docs/benchmarks/2026-07-14-h-irregular-recall.md)
 - [2026-07-14 connective-ji position evidence](docs/benchmarks/2026-07-14-connective-ji-position-evidence.md)
