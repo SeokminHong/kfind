@@ -4,6 +4,7 @@ set -eu
 script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 repo_root=$(CDPATH= cd -- "${script_dir}/.." && pwd)
 downloads=${KFIND_NIKL_DOWNLOADS:-"${HOME}/Downloads"}
+cache_directory=${KFIND_NIKL_CACHE:-"${XDG_CACHE_HOME:-${HOME}/.cache}/kfind/nikl"}
 output_directory=${1:-"${repo_root}/data/enriched"}
 stage=$(mktemp -d "${TMPDIR:-/tmp}/kfind-enriched.XXXXXX")
 trap 'rm -rf "${stage}"' EXIT HUP INT TERM
@@ -17,7 +18,8 @@ python3 "${repo_root}/tools/nikl-lexicon/import_nikl.py" \
   --stdict "${stdict}" \
   --opendict "${opendict}" \
   --output "${stage}/records.tsv" \
-  --stats "${stage}/MANIFEST.toml"
+  --stats "${stage}/MANIFEST.toml" \
+  --cache-dir "${cache_directory}"
 
 cargo run --quiet --locked \
   --manifest-path "${repo_root}/tools/nikl-lexicon/classifier/Cargo.toml" -- \

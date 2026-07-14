@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -29,7 +30,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--opendict", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--stats", required=True, type=Path)
+    parser.add_argument("--cache-dir", type=Path, default=default_cache_directory())
     return parser.parse_args()
+
+
+def default_cache_directory() -> Path:
+    if configured := os.environ.get("KFIND_NIKL_CACHE"):
+        return Path(configured)
+    cache_home = os.environ.get("XDG_CACHE_HOME")
+    return Path(cache_home) / "kfind/nikl" if cache_home else Path.home() / ".cache/kfind/nikl"
 
 
 def main() -> int:
@@ -66,6 +75,7 @@ def main() -> int:
             expected_invalid_bytes,
             expected_invalid_locations,
             expected_sha256,
+            args.cache_dir,
         )
         records.extend(imported)
         stats.append(source_stats)

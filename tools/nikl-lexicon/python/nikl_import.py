@@ -4,7 +4,10 @@ import csv
 import hashlib
 import io
 import json
+import os
 import re
+import shutil
+import tempfile
 import unicodedata
 import xml.etree.ElementTree as ET
 import zipfile
@@ -205,6 +208,7 @@ def import_snapshot(
     expected_invalid_bytes: int = 0,
     expected_invalid_locations: tuple[str, ...] | None = None,
     expected_sha256: str | None = None,
+    cache_directory: Path | None = None,
 ) -> tuple[list[PredicateRecord], ImportStats]:
     records: list[PredicateRecord] = []
     item_count = 0
@@ -212,26 +216,26 @@ def import_snapshot(
     sha256 = file_sha256(path)
     if expected_sha256 is not None and sha256 != expected_sha256:
         raise ValueError(f"{source}: expected SHA-256 {expected_sha256}, found {sha256}")
-    with zipfile.ZipFile(path) as archive:
-        members = sorted(name for name in archive.namelist() if name.lower().endswith(".xml"))
-        for member in members:
-            raw = archive.read(member)
-            offsets = [match.start() for match in re.finditer(INVALID_XML_BYTE, raw)]
-            sanitized_locations.extend(f"{member}:{offset}" for offset in offsets)
-            if offsets:
-                raw = raw.replace(INVALID_XML_BYTE, b"")
-            for _, element in ET.iterparse(io.BytesIO(raw), events=("end",)):
-                if element.tag != element_tag:
-                    continue
-                item_count += 1
-                records.extend(adapter(element))
-                element.clear()
+    for member, raw in snapshot_members(source, path, sha256, cache_directory):
+        offsets = [match.start() for match in re.finditer(INVALID_XML_BYTE, raw)]
+        sanitized_locations.extend(f"{member}:{offset}" for offset in offsets)
+        if offsets:
+            raw = raw.replace(INVALID_XML_BYTE, b"")
+        for _, element in ET.iterparse(io.BytesIO(raw), events=("end",)):
+            if element.tag != element_tag:
+                continue
+            item_count += 1
+            records.extend(adapter(element))
+            element.clear()
     if len(sanitized_locations) != expected_invalid_bytes:
         raise ValueError(
             f"{source}: expected {expected_invalid_bytes} invalid XML bytes, "
             f"found {len(sanitized_locations)}"
         )
-    if expected_invalid_locations is not None and tuple(sanitized_locations) != expected_invalid_locations:
+    if (
+        expected_invalid_locations is not None
+        and tuple(sanitized_locations) != expected_invalid_locations
+    ):
         raise ValueError(f"{source}: invalid XML byte locations changed")
     records.sort()
     stats = ImportStats(
@@ -245,6 +249,52 @@ def import_snapshot(
         sanitized_locations=tuple(sanitized_locations),
     )
     return records, stats
+
+
+def snapshot_members(
+    source: str,
+    archive_path: Path,
+    sha256: str,
+    cache_directory: Path | None,
+) -> Iterator[tuple[str, bytes]]:
+    if cache_directory is None:
+        with zipfile.ZipFile(archive_path) as archive:
+            for name in sorted(archive.namelist()):
+                if name.lower().endswith(".xml"):
+                    yield name, archive.read(name)
+        return
+
+    target = cache_directory / source / sha256
+    marker = target / ".complete"
+    expected_marker = f"{archive_path.name}\n{sha256}\n"
+    if not marker.is_file() or marker.read_text(encoding="utf-8") != expected_marker:
+        extract_snapshot(archive_path, target, expected_marker)
+    for path in sorted(target.rglob("*.xml")):
+        yield path.relative_to(target).as_posix(), path.read_bytes()
+
+
+def extract_snapshot(archive_path: Path, target: Path, marker: str) -> None:
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = Path(tempfile.mkdtemp(prefix=f".{target.name}.", dir=target.parent))
+    try:
+        with zipfile.ZipFile(archive_path) as archive:
+            for member in sorted(archive.namelist()):
+                if not member.lower().endswith(".xml"):
+                    continue
+                relative = Path(member)
+                if relative.is_absolute() or ".." in relative.parts:
+                    raise ValueError(f"unsafe ZIP member: {member}")
+                destination = temporary / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                with archive.open(member) as source, destination.open("wb") as output:
+                    shutil.copyfileobj(source, output)
+        (temporary / ".complete").write_text(marker, encoding="utf-8")
+        if target.exists():
+            shutil.rmtree(target)
+        os.replace(temporary, target)
+    finally:
+        if temporary.exists():
+            shutil.rmtree(temporary)
 
 
 def file_sha256(path: Path) -> str:

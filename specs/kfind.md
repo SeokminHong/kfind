@@ -1694,6 +1694,9 @@ importer의 원시 레코드 grain은 `(source, source_id, raw_homonym, lemma, f
 고정 snapshot에서 사전에 기록한 값과 위치만 제거할 수 있으며, 종류·개수·위치가 달라지면
 생성을 실패시킨다. manifest에는 원본 파일명·생성일·SHA-256, 정제 내역, source별 입력·후보·
 충돌·제외 건수와 생성기 version을 기록한다.
+검증된 ZIP의 XML은 `${XDG_CACHE_HOME:-~/.cache}/kfind/nikl/<source>/<sha256>`에 한 번만
+추출하고 이후 생성에서 재사용한다. `KFIND_NIKL_CACHE`로 cache root를 바꿀 수 있으며,
+SHA-256이 달라지면 별도 디렉터리에 다시 추출한다.
 
 사전 의존도는 품사 추측을 넓혀 낮추지 않는다. `하다`, `되다`, `시키다`, `스럽다`,
 `답다`, `롭다`처럼 경계가 명확한 생산 접미 규칙과 어미 continuation을 우선 보강한다.

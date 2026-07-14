@@ -4,6 +4,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
 from nikl_import import (
     import_snapshot,
@@ -81,6 +82,33 @@ class NiklImportTest(unittest.TestCase):
 
         self.assertEqual(stats.sanitized_byte_count, 1)
         self.assertEqual(stats.sanitized_locations, ("fixture.xml:17",))
+
+    def test_reuses_sha_keyed_extracted_snapshot(self) -> None:
+        source = b"<LexicalResource><Lexicon/></LexicalResource>"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            path = root / "fixture.zip"
+            cache = root / "cache"
+            with zipfile.ZipFile(path, "w") as archive:
+                archive.writestr("fixture.xml", source)
+            first, _ = import_snapshot(
+                "krdict",
+                path,
+                "LexicalEntry",
+                krdict_record,
+                cache_directory=cache,
+            )
+            with patch("nikl_import.extract_snapshot", side_effect=AssertionError("cache miss")):
+                second, _ = import_snapshot(
+                    "krdict",
+                    path,
+                    "LexicalEntry",
+                    krdict_record,
+                    cache_directory=cache,
+                )
+
+            self.assertEqual(first, second)
+            self.assertEqual(len(list(cache.glob("krdict/*/.complete"))), 1)
 
     def import_fixture(
         self,
