@@ -241,6 +241,21 @@ mod tests {
         assert_eq!(fixture_coarse_pos(FixturePos::Literal), CoarsePos::Literal);
     }
 
+    #[test]
+    fn explicit_particle_gold_is_separate_from_untagged_allomorphs() {
+        let (cases, warnings) = load_morphology_cases().expect("gold fixture must be valid");
+        assert!(warnings.is_empty());
+        let case = cases
+            .iter()
+            .find(|case| case.query == "는" && case.text == "권한은 관리자에게 있다.")
+            .expect("particle allomorph fixture must exist");
+        let harness = GoldHarness::embedded().expect("embedded lexicons must be valid");
+
+        assert!(harness.auto_includes_expected_pos(case).unwrap());
+        assert!(!harness.evaluate_auto(case).unwrap().actual_match);
+        assert!(harness.evaluate(case).unwrap().matches_expectation());
+    }
+
     fn component_fixture() -> Vec<u8> {
         let entries = [
             entry("사용자", "NNG", -5_000),
