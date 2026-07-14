@@ -17,6 +17,7 @@ use normalization::{DraftBranch, normalize_and_merge, normalize_atom};
 
 const BRANCH_OVERHEAD_BYTES: usize = 64;
 const COPULA_CONTRACTED_AOEO_RULE_ID: &str = "ending.aoeo-seo";
+const CONNECTIVE_JI_RULE_ID: &str = "ending.connective-ji";
 const INTERNAL_PROVENANCE_IDS: &[&str] = &[
     "contraction.eu-drop",
     "contraction.h-irregular",
@@ -287,8 +288,8 @@ fn compile_analysis(
     }
 
     match &analysis.morphology {
-        Morphology::Predicate(predicate) => compile_predicate(
-            predicate,
+        Morphology::Predicate(_) => compile_predicate(
+            analysis,
             analysis_index,
             Vec::new(),
             predicate_rules,
@@ -370,7 +371,7 @@ fn compile_analysis(
 }
 
 fn compile_predicate(
-    predicate: &kfind_morph::PredicateEntry,
+    analysis: &Analysis,
     analysis_index: u16,
     prefix_rules: Vec<RuleId>,
     allowed_rules: &Arc<[RuleId]>,
@@ -378,6 +379,9 @@ fn compile_predicate(
     excluded_rules: &mut Vec<RuleId>,
     output: &mut Vec<DraftBranch>,
 ) -> Result<(), CompileError> {
+    let Morphology::Predicate(predicate) = &analysis.morphology else {
+        unreachable!("predicate compile received non-predicate analysis")
+    };
     let branches = generate_predicate_branches(predicate)
         .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?;
     for branch in branches {
@@ -396,6 +400,11 @@ fn compile_predicate(
         let nominal_particle_transition = rule_path
             .last()
             .is_some_and(|rule| rule.as_str() == "ending.nominalizer-gi");
+        let smart_left = predicate.alternation != kfind_morph::LexicalAlternation::Copula
+            && !(analysis.source == AnalysisSource::Forced
+                && rule_path
+                    .last()
+                    .is_some_and(|rule| rule.as_str() == CONNECTIVE_JI_RULE_ID));
         output.push(DraftBranch {
             anchor: branch.anchor.into(),
             verifier: BranchVerifier::Predicate {
@@ -410,7 +419,7 @@ fn compile_predicate(
                 analysis_index,
                 rule_path,
             },
-            smart_left: predicate.alternation != kfind_morph::LexicalAlternation::Copula,
+            smart_left,
             context_requirement: if predicate.alternation == kfind_morph::LexicalAlternation::Copula
             {
                 ContextRequirement::PredicateLexical
@@ -442,11 +451,8 @@ fn compile_derivations(
         if let Some(derived) =
             predicate_from_derivation(&derived_lemma, rule, AnalysisSource::ProductiveSuffix)
         {
-            let Morphology::Predicate(predicate) = derived.morphology else {
-                unreachable!("predicate derivation returned non-predicate morphology")
-            };
             compile_predicate(
-                &predicate,
+                &derived,
                 analysis_index,
                 derivation_path,
                 predicate_rules,

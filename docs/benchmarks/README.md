@@ -75,7 +75,10 @@ Kiwi·Lindera·MeCab-ko·KOMORAN의 고정 품질·성능 스냅샷과 lemma/POS
 분석 slice는 성능 측정에서 제외한다.
 별도 human fixture는 품사 옵션과 atom 태그를 생략하고, query 표제어가 어떤 지원 품사로도
 없는 문장을 negative로 사용한다. embedded/full-POS의 smart/any 품질·성능과 auto plan
-사용성을 같은 보고서의 `human_untagged` 절에 기록한다.
+사용성을 같은 보고서의 `human_untagged` 절에 기록한다. 무품사 결과를 개선하기 위해 fixture,
+gold 또는 negative 선택을 바꾸지 않는다.
+명시적 품사 `smart` 변경은 고정 development에서 FN을 우선 줄이고 precision 99.00% 하한과
+hard-negative 신규 FP 0을 지킨다. FN이 같은 후보끼리만 FP를 비교한다.
 보고서의 `product_workflows`는 에이전트용 `embedded + any + 명시적 품사`와 사람용
 `full-POS + smart + 무품사`를 먼저 제시하고, 전체 profile 행렬은 진단 자료로 둔다.
 `product_use_cases`는 같은 두 profile을 100 MiB·1,000파일 고정 코퍼스의 독립 CLI
@@ -106,6 +109,7 @@ python3 tools/morph-compare/render_charts.py \
 - [2026-07-14 국소 lattice 제품 경로 최적화](2026-07-14-local-lattice-optimization.md)
 - [2026-07-14 development FN 진단](2026-07-14-development-fn-diagnostics.md)
 - [2026-07-14 `ending.connective-ji` 위치 근거](2026-07-14-connective-ji-position-evidence.md)
+- [2026-07-14 명시적 품사 `-지` 오른쪽 끝 recall](2026-07-14-connective-ji-right-edge-recall.md)
 - [2026-07-13 smart component 품질·성능](2026-07-13-smart-component-evidence.md)
 - [형태소 검색 개선 핸드오프](morphology-handoff.md)
 - [선택적 국소 형태 추론 계약](selective-morphology.md)

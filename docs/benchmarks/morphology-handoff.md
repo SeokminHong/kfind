@@ -12,6 +12,7 @@
 - [국소 lattice 제품 경로 최적화](2026-07-14-local-lattice-optimization.md)
 - [Development false negative 진단](2026-07-14-development-fn-diagnostics.md)
 - [`ending.connective-ji` 위치 근거](2026-07-14-connective-ji-position-evidence.md)
+- [명시적 품사 `-지` 오른쪽 끝 recall](2026-07-14-connective-ji-right-edge-recall.md)
 - [smart component 검색 근거](2026-07-13-smart-component-evidence.md)
 - [copula lattice 폐기 판정](2026-07-13-copula-unseen-evaluation.md)
 - [형태소 benchmark 사용법](README.md#morphology-comparison)
@@ -21,6 +22,8 @@
 - CLI, Rust library와 WASM binding은 같은 query compiler와 matcher를 사용한다.
 - 사람용 CLI 기본 경로는 full POS와 `smart`다. 품사를 명시하는 자동화 경로는
   `--boundary any --embedded --json`을 사용한다.
+- 명시적 품사 `smart`는 precision 99.00% 하한과 hard-negative 보호 안에서 FN을 FP보다 우선해
+  줄인다. 무품사 결과는 품사 모호성을 포함한 제품 한계로 그대로 보고한다.
 - `smart`의 명사 branch는 문자열 token 경계 또는 compact component resource의 완전한 형태
   component 근거가 있어야 한다. component 경계를 가로지르는 substring은 거부한다.
 - CLI는 `NominalComponent` 또는 `PredicateLexical` branch가 있는 plan에서 compact component resource를 자동으로
@@ -35,6 +38,9 @@
   입력에서 유지하며 `token`과 `any` 계획은 바꾸지 않는다.
 - `ending.nominalizer-gi` predicate branch는 nominal particle verifier로 전이한다. `smart`와
   `token`은 유효한 조사 연쇄를 token 끝까지 소비하고 잘못된 이형태와 격조사 중복을 거부한다.
+- 명시적 동사·형용사 품사의 `ending.connective-ji` branch는 오른쪽 token 경계를 유지하면서
+  왼쪽 core 경계를 열어 오른쪽 끝 suffix를 복구한다. 무품사, `token`, `any`와 뒤에 문자가
+  남는 candidate는 바꾸지 않는다.
 - copula 전용 lattice 분기와 shadow 계측, PUD/GSD 전용 실행 경로는 복원하지 않는다.
 - 기본 morphology benchmark는 kfind 프로필만 다시 실행한다. Kiwi·Lindera·MeCab-ko·KOMORAN
   품질은 test fixture와 어댑터 schema에 묶인 저장소 스냅샷을 읽고, fixture나 고정한 비교기
@@ -59,7 +65,8 @@
 | embedded/full-POS | token | 355 / 0 / 145 | 100.00% | 71.0% | 83.04% |
 | embedded/full-POS | any | 479 / 11 / 21 | 97.76% | 95.8% | 96.77% |
 
-full-POS `smart`가 embedded보다 추가로 찾는 5건은 모두 명사다. `token`과 `any`에서는 두
+development 명시적 품사 `smart`는 embedded TP 433 / FP 2 / FN 67, full-POS TP 437 / FP 2 /
+FN 63이다. full-POS `smart`가 embedded보다 test에서 추가로 찾는 5건은 모두 명사다. `token`과 `any`에서는 두
 lexicon profile의 품질이 같다. 세부 품사와 품질 계약은
 [User smart precision 품질·성능](2026-07-14-user-smart-precision.md), 현재 처리량과 latency는
 [국소 lattice 제품 경로 최적화](2026-07-14-local-lattice-optimization.md)를 기준으로 한다.
@@ -73,6 +80,9 @@ explicit-POS test fixture의 품사를 제거한 User persona도 full-POS `smart
 FN 89, precision 100.00%, recall 82.2%, F1 90.23%다. `이다 -> 매일`은 whole-token lexical
 근거로, determiner query `이 -> 날씨가`는 무품사 조사 이형태 확장을 제한해 제거했다.
 fixture·gold·지표 정의와 `any`의 TP 479 / FP 11 / FN 21은 바꾸지 않았다.
+
+무품사 fixture와 persona 결과는 명시적 품사 품질과 분리한다. 목표 수치를 맞추기 위한 fixture,
+gold, negative 선택 변경은 허용하지 않으며 품사 모호성에서 생긴 FP와 FN도 그대로 남긴다.
 
 ## 현재 경계
 
@@ -102,38 +112,37 @@ fixture·gold·지표 정의와 `any`의 TP 479 / FP 11 / FN 21은 바꾸지 않
 - Korean-Kaist·KSL dev의 실제 지정사 token과 겹치는 `이다` candidate 1,174개는 모두 include와
   exclude 완전 경로가 함께 존재했다. 지정사 split만 가능한 최소 대조가 없으므로 문맥 복구를
   구현하지 않는다.
-- full-POS `smart`의 development positive FN 64건은 원인×품사와 any-boundary provenance로
-  고정한다. `boundary-rejected` 44건 중 verb 14건과 adjective 6건이 predicate slice며,
-  20건 모두 core·token span과 origin별 analysis index·rule path를 가진다. 가장 반복된 단일
-  path는 `ending.connective-ji` 4건이다.
-- `ending.connective-ji` 4건의 any token은 gold의 `left-edge` 3건과 `right-edge` 1건이며
-  `internal`은 없다. 오른쪽 candidate `주지`와 같은 표면형인 명사 hard-negative는 embedded와
-  full-POS `smart`에서 모두 기존 FP다. 왼쪽 유형은 같은 표면형 negative를 확보하지 못했다.
-  두 위치 유형 모두 제품 후보로 열지 않고 matcher를 유지한다.
+- full-POS `smart`의 development positive FN은 64건에서 63건으로 줄었다. `ending.connective-ji`
+  오른쪽 끝 1건 `주다 -> 심어주지`를 복구했고, 같은 표면형 hard-negative `주지 스님`은 기준과
+  후보 모두 FP다. 남은 `ending.connective-ji`는 gold의 `left-edge` 3건이다.
+- 명시적 품사 `smart`의 장기 구조는 recall-first candidate 생성과 bounded token 형태 근거 판정을
+  분리한다. query core span과 fine POS를 포함하는 완전 경로는 candidate를 지지하고, 해당 span을
+  배제하는 whole-token 완전 경로만 있는 경우는 FP 근거로 사용한다. 두 경로가 모두 있거나 분석이
+  없으면 FN 우선 원칙에 따라 candidate를 유지한다. 이 판정은 먼저 shadow로 계측한 뒤 제품화한다.
 
 ## 이어갈 작업
 
-최우선 목표는 사람용 full-POS `smart`의 무품사 recall을 실제로 높이면서 precision 100.00%를
-유지하는 제품 변경이다. 계측·report·runner만 바꾼 상태는 작업 완료나 독립 PR 대상으로 보지
-않는다. test fixture는 규칙 선택에 사용하지 않고 제품 규칙을 고정한 뒤 회귀 판정에만 사용한다.
+최우선 목표는 명시적 품사 full-POS `smart`의 FN을 줄이는 제품 변경이다. 계측·report·runner만
+바꾼 상태는 작업 완료나 독립 PR 대상으로 보지 않는다. 무품사와 고정 test 결과는 규칙 선택에
+사용하지 않고 제품 규칙을 고정한 뒤 회귀 판정에만 사용한다.
 
-1. 기존 runner 출력을 재사용해 development 무품사 plan에서 기대 품사 분석이 빠진 case를
-   품사·분석 source·literal fallback 여부로 분류한다. development 무품사 fixture가 필요하면
-   `tools/morph-compare/python/dataset.py`, `tools/morph-compare/benchmark.py`와
-   `tools/morph-compare/python/report.py`만 연결한다. 기존 출력으로 원인을 구분할 수 없을 때만
-   runner에 최소 필드를 추가하며, 이 진단은 같은 작업 단위의 제품 변경으로 즉시 이어간다.
-2. 반복되는 한 누락군을 골라 development positive와 같은 표면형·품사의 version-controlled
-   hard-negative를 먼저 고정한다. 스펙을 갱신한 뒤 `crates/kfind-query/src/lexicons.rs`,
-   `crates/kfind-query/src/compile/mod.rs`와 `crates/kfind-query/src/compile/normalization.rs`에서
-   해당 누락군만 plan에 포함한다. matcher와 무관한 누락이면 matcher를 수정하지 않는다.
-3. 첫 development 실행의 User full-POS `smart` 품질을 기준선으로 고정한다. 완료 조건은
-   development TP 증가, FP 0과 precision 100.00% 유지, 기존 hard-negative 새 FP 0이다.
-   규칙 고정 뒤 held-out User 결과는 TP 411 이상, FP 0을 유지하고 explicit-POS test의
-   TP 414 / FP 0 / FN 86을 바꾸지 않아야 한다. 관련 morphology workload의 성능 회귀도 없어야
-   한다. 조건을 만족하는 제품 변경이 없으면 성공으로 기록하지 않고 이 항목을 계속 열어 둔다.
-4. Agent precision은 위 User recall 작업 뒤에만 재개한다. include/exclude lattice 존재 여부와
-   다른 독립 근거가 정의되어야 하며, development TP 484 보존, FP 15 미만, hard-negative 새
-   FP 0을 모두 요구한다. `include-path`와 `include-only` 투영은 재사용하지 않는다.
+1. development full-POS `smart`의 TP 437 / FP 2 / FN 63을 기준선으로 사용한다. 기존 원인×품사,
+   any-boundary span과 rule path를 재사용해 반복되는 한 FN 원인군을 고른다. fixture·gold·negative
+   선택은 바꾸지 않는다.
+2. 남은 `ending.connective-ji` left-edge 3건에는 같은 표면형·품사의 version-controlled
+   hard-negative를 먼저 추가한다. bounded token 형태 근거가 positive의 query core+POS 경로와
+   negative의 query 배제 경로를 구분하는지 shadow로 측정한다. 구분되지 않으면 규칙을 제품에
+   넣지 않고 다음 반복 원인군을 고른다.
+3. development에서 FN 63 미만, precision 99.00% 이상과 기존 hard-negative 신규 FP 0을 모두
+   만족해야 한다. 통과 후보가 여럿이면 FN이 적은 후보를 먼저 선택하고 FN이 같을 때 FP가 적은
+   후보를 선택한다.
+4. 규칙 고정 뒤 explicit-POS test의 FN 86을 늘리지 않고 precision 99.00% 이상을 유지해야 한다.
+   같은 고정 무품사 fixture와 User persona도 다시 측정해 불리한 변화를 포함한 결과를 기록한다.
+   관련 morphology workload의 성능 회귀도 없어야 한다.
+5. Agent precision은 위 explicit-POS `smart` recall 작업 뒤에 재개한다. include/exclude lattice
+   존재 여부와 다른 독립 근거가 정의되어야 하며, development TP 484 보존, FP 15 미만,
+   hard-negative 신규 FP 0을 모두 요구한다. `include-path`와 `include-only` 투영은 재사용하지
+   않는다.
 
 ## 재현과 검증
 

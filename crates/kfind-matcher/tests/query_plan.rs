@@ -85,6 +85,34 @@ fn compiled_predicate_plan_applies_ending_pos_requirements() {
 }
 
 #[test]
+fn explicit_pos_smart_connective_ji_recovers_only_a_right_edge_suffix() {
+    let explicit = compile(
+        "주다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+    );
+    assert!(
+        explicit
+            .find_at_with_meta("나무를 심어주지".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        explicit
+            .find_at_with_meta("나무를 심어주지는".as_bytes(), 0)
+            .is_none()
+    );
+
+    let untagged = compile("주다", CompileOptions::default());
+    assert!(
+        untagged
+            .find_at_with_meta("나무를 심어주지".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn compiled_predicate_plan_rejects_a_surface_attached_as_a_particle() {
     let matcher = compile("가다", CompileOptions::default());
 
