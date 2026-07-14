@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::sync::Arc;
 
 use kfind_data::{
@@ -551,8 +552,9 @@ fn required_predicate_surfaces_survive_rule_vocabulary_validation() {
 }
 
 #[test]
-fn only_gi_nominalizer_branches_enable_particle_transition() {
+fn only_nominalizer_branches_enable_particle_transition() {
     let walking = compile_query("걷다", &CompileOptions::default(), &analyzer()).unwrap();
+    let mut nominalizer_rules = BTreeSet::new();
     for branch in &walking.atoms[0].branches {
         let BranchVerifier::Predicate {
             nominal_particle_transition,
@@ -561,14 +563,29 @@ fn only_gi_nominalizer_branches_enable_particle_transition() {
         else {
             continue;
         };
-        let has_gi_origin = branch.origins.iter().any(|origin| {
-            origin
-                .rule_path
-                .last()
-                .is_some_and(|rule| rule.as_str() == "ending.nominalizer-gi")
+        let has_nominalizer_origin = branch.origins.iter().any(|origin| {
+            origin.rule_path.last().is_some_and(|rule| {
+                matches!(
+                    rule.as_str(),
+                    "ending.nominalizer" | "ending.nominalizer-gi"
+                )
+            })
         });
-        assert_eq!(*nominal_particle_transition, has_gi_origin);
+        if *nominal_particle_transition {
+            nominalizer_rules.extend(
+                branch
+                    .origins
+                    .iter()
+                    .filter_map(|origin| origin.rule_path.last())
+                    .map(|rule| rule.as_str()),
+            );
+        }
+        assert_eq!(*nominal_particle_transition, has_nominalizer_origin);
     }
+    assert_eq!(
+        nominalizer_rules,
+        BTreeSet::from(["ending.nominalizer", "ending.nominalizer-gi"])
+    );
 }
 
 #[test]

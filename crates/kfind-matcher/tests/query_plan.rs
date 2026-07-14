@@ -269,6 +269,55 @@ fn compiled_gi_nominalizer_consumes_only_valid_particle_chains() {
 }
 
 #[test]
+fn compiled_mieum_nominalizer_consumes_only_valid_particle_chains() {
+    for boundary in [BoundaryPolicy::Smart, BoundaryPolicy::Token] {
+        let matcher = compile(
+            "걷다",
+            CompileOptions {
+                boundary,
+                ..CompileOptions::default()
+            },
+        );
+        for (text, token) in [
+            ("매일 걸음이 이어진다.", "걸음이"),
+            ("오랜 걸음을 기록했다.", "걸음을"),
+            ("걸음에서도 특징이 드러난다.", "걸음에서도"),
+            ("걸음으로 건강을 지킨다.", "걸음으로"),
+        ] {
+            let matched = matcher
+                .find_at_with_meta(text.as_bytes(), 0)
+                .unwrap_or_else(|| panic!("rejected nominalized particle chain {text}"));
+            let atom = &matched.atoms[0];
+            assert_eq!(&text[atom.token.clone()], token);
+            assert!(
+                atom.origins[0]
+                    .rule_path
+                    .iter()
+                    .any(|rule| rule.as_str() == "ending.nominalizer")
+            );
+            assert!(
+                atom.origins[0]
+                    .rule_path
+                    .iter()
+                    .any(|rule| rule.as_str().starts_with("particle."))
+            );
+        }
+
+        for text in [
+            "걸음가 이어진다.",
+            "걸음를 기록했다.",
+            "걸음로 건강을 지킨다.",
+            "걸음이를 기록했다.",
+        ] {
+            assert!(
+                matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+                "accepted invalid nominalized particle chain {text}"
+            );
+        }
+    }
+}
+
+#[test]
 fn any_boundary_keeps_invalid_suffix_candidates_and_extends_valid_tokens() {
     let matcher = compile(
         "걷다",

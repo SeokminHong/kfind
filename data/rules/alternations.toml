@@ -34,34 +34,34 @@ ending_ids = ["ending.concessive-deorado", "ending.aoeo", "ending.aoeo-seo", "en
 id = "lexical.drop-h"
 kind = "DropH"
 flags = []
-ending_ids = ["ending.concessive-deorado", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.past-adnominal", "ending.future-adnominal", "ending.nominalizer-gi"]
+ending_ids = ["ending.concessive-deorado", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.past-adnominal", "ending.future-adnominal", "ending.nominalizer", "ending.nominalizer-gi"]
 
 [[alternation]]
 id = "lexical.reu-double-l"
 kind = "ReuDoubleL"
 flags = []
-ending_ids = ["ending.concessive-deorado", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.nominalizer-gi"]
+ending_ids = ["ending.concessive-deorado", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.nominalizer", "ending.nominalizer-gi"]
 
 [[alternation]]
 id = "lexical.reo"
 kind = "Reo"
 flags = []
-ending_ids = ["ending.concessive-deorado", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.nominalizer-gi"]
+ending_ids = ["ending.concessive-deorado", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.nominalizer", "ending.nominalizer-gi"]
 
 [[alternation]]
 id = "lexical.ha"
 kind = "Ha"
 flags = []
-ending_ids = ["ending.concessive-deorado", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.honorific", "ending.conditional", "ending.present-adnominal", "ending.past-adnominal", "ending.future-adnominal", "ending.polite-declarative", "ending.nominalizer-gi"]
+ending_ids = ["ending.concessive-deorado", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.honorific", "ending.conditional", "ending.present-adnominal", "ending.past-adnominal", "ending.future-adnominal", "ending.polite-declarative", "ending.nominalizer", "ending.nominalizer-gi"]
 
 [[alternation]]
 id = "lexical.u-to-eo"
 kind = "UToEo"
 flags = []
-ending_ids = ["ending.concessive-deorado", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.nominalizer-gi"]
+ending_ids = ["ending.concessive-deorado", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.nominalizer", "ending.nominalizer-gi"]
 
 [[alternation]]
 id = "lexical.copula"
 kind = "Copula"
 flags = []
-ending_ids = ["ending.connective-go", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.present-adnominal", "ending.past-adnominal", "ending.future-adnominal", "ending.polite-declarative", "ending.nominalizer-gi"]
+ending_ids = ["ending.connective-go", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.present-adnominal", "ending.past-adnominal", "ending.future-adnominal", "ending.polite-declarative", "ending.nominalizer", "ending.nominalizer-gi"]

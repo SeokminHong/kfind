@@ -97,6 +97,77 @@ fn regular_stems_cover_consonant_and_vowel_endings() {
 }
 
 #[test]
+fn mieum_nominalizer_uses_stem_environment_and_lexical_alternation() {
+    for (predicate, expected) in [
+        (
+            entry("먹다", PredicatePos::Verb, LexicalAlternation::Regular),
+            "먹음",
+        ),
+        (
+            entry("가다", PredicatePos::Verb, LexicalAlternation::Regular),
+            "감",
+        ),
+        (
+            entry("알다", PredicatePos::Verb, LexicalAlternation::Regular),
+            "앎",
+        ),
+        (
+            entry("걷다", PredicatePos::Verb, LexicalAlternation::DToL),
+            "걸음",
+        ),
+        (
+            entry("짓다", PredicatePos::Verb, LexicalAlternation::DropS),
+            "지음",
+        ),
+        (
+            entry("돕다", PredicatePos::Verb, LexicalAlternation::BToWa),
+            "도움",
+        ),
+        (
+            entry(
+                "아름답다",
+                PredicatePos::Adjective,
+                LexicalAlternation::BToWo,
+            ),
+            "아름다움",
+        ),
+        (
+            entry("파랗다", PredicatePos::Adjective, LexicalAlternation::DropH),
+            "파람",
+        ),
+        (
+            entry(
+                "빠르다",
+                PredicatePos::Adjective,
+                LexicalAlternation::ReuDoubleL,
+            ),
+            "빠름",
+        ),
+        (
+            entry("푸르다", PredicatePos::Adjective, LexicalAlternation::Reo),
+            "푸름",
+        ),
+        (
+            entry("하다", PredicatePos::Verb, LexicalAlternation::Ha),
+            "함",
+        ),
+        (
+            entry("푸다", PredicatePos::Verb, LexicalAlternation::UToEo),
+            "품",
+        ),
+        (
+            entry("이다", PredicatePos::Copula, LexicalAlternation::Copula),
+            "임",
+        ),
+    ] {
+        assert!(
+            surfaces(&predicate).contains(expected),
+            "missing {expected}"
+        );
+    }
+}
+
+#[test]
 fn action_predicates_cover_intentive_connectives() {
     for (predicate, expected) in [
         (

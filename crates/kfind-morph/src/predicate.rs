@@ -16,8 +16,8 @@ pub use continuation::{PredicateContinuationMatch, verify_predicate_continuation
 
 use alternation::{
     aeo_surfaces, conditional_surface, coordinate_surface, eu_anchor, future_adnominal,
-    honorific_anchor, intentive_surface, past_adnominal, polite_declarative, present_adnominal,
-    present_declarative,
+    honorific_anchor, intentive_surface, nominalizer_surface, past_adnominal, polite_declarative,
+    present_adnominal, present_declarative,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -97,6 +97,12 @@ pub fn generate_predicate_branches(
             stem.len(),
             ContinuationState::Terminal,
             vec![rule("ending.nominalizer-gi")],
+        );
+        push_derived(
+            &mut branches,
+            entry,
+            nominalizer_surface(entry, stem)?,
+            ContinuationState::Terminal,
         );
     }
 

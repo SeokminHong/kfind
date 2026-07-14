@@ -103,6 +103,21 @@ query	pos	text	expected	feature
 걷다	verb	걷기을 권했다.	no-match	nominalizer-gi-particle-allomorph
 걷다	verb	걷기으로 충분하다.	no-match	nominalizer-gi-particle-allomorph
 걷다	verb	걷기가를 권했다.	no-match	nominalizer-gi-particle-chain
+먹다	verb	그가 밥을 먹음을 알았다.	match	nominalizer-mieum
+걷다	verb	매일 걸음이 이어진다.	match	nominalizer-mieum
+걷다	verb	매일 걺이 이어진다.	no-match	nominalizer-mieum
+짓다	verb	집을 지음을 확인했다.	match	nominalizer-mieum
+짓다	verb	집을 짓음을 확인했다.	no-match	nominalizer-mieum
+아름답다	adjective	풍경의 아름다움이 오래 남았다.	match	nominalizer-mieum-particle
+아름답다	adjective	풍경의 아름다움가 오래 남았다.	no-match	nominalizer-mieum-particle-allomorph
+아름답다	adjective	풍경의 아름다움를 기록했다.	no-match	nominalizer-mieum-particle-allomorph
+아름답다	adjective	풍경의 아름다움로 충분했다.	no-match	nominalizer-mieum-particle-allomorph
+아름답다	adjective	풍경의 아름다움이를 기록했다.	no-match	nominalizer-mieum-particle-chain
+빠르다	adjective	처리 속도가 빠름을 확인했다.	match	nominalizer-mieum
+하다	verb	점검을 함을 확인했다.	match	nominalizer-mieum
+이다	copula	그가 학생임을 확인했다.	match	nominalizer-mieum
+알다	verb	그 사실을 앎이 중요하다.	match	nominalizer-mieum
+알다	verb	그 사실을 알음이 중요하다.	no-match	nominalizer-mieum
 걷다	verb	커튼을 걷어 햇빛을 들였다.	match	regular
 걷다	verb	바지를 걷고 개울을 건넜다.	match	regular
 걷다	verb	천막을 걷는 작업이 시작됐다.	match	regular

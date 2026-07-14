@@ -1,8 +1,9 @@
 use crate::hangul::{
-    JONG_BIEUP, JONG_DIGEUT, JONG_HIEUH, JONG_NIEUN, JONG_NONE, JONG_RIEUL, JONG_SIOT, JUNG_A,
-    JUNG_AE, JUNG_E, JUNG_EO, JUNG_EU, JUNG_I, JUNG_O, JUNG_OE, JUNG_U, JUNG_WA, JUNG_WAE,
-    JUNG_WEO, JUNG_YA, JUNG_YAE, JUNG_YE, JUNG_YEO, add_final, decompose_syllable, drop_last_final,
-    has_final, has_rieul_final, replace_last_final, replace_last_vowel,
+    JONG_BIEUP, JONG_DIGEUT, JONG_HIEUH, JONG_MIEUM, JONG_NIEUN, JONG_NONE, JONG_RIEUL,
+    JONG_RIEUL_MIEUM, JONG_SIOT, JUNG_A, JUNG_AE, JUNG_E, JUNG_EO, JUNG_EU, JUNG_I, JUNG_O,
+    JUNG_OE, JUNG_U, JUNG_WA, JUNG_WAE, JUNG_WEO, JUNG_YA, JUNG_YAE, JUNG_YE, JUNG_YEO, add_final,
+    decompose_syllable, drop_last_final, has_final, has_rieul_final, replace_last_final,
+    replace_last_vowel,
 };
 use crate::{LexicalAlternation, PredicateEntry, RuleId};
 
@@ -445,6 +446,30 @@ pub(super) fn polite_declarative(stem: &str) -> Result<DerivedSurface, GenerateE
         base.len(),
         vec![rule("ending.polite-declarative")],
     ))
+}
+
+pub(super) fn nominalizer_surface(
+    entry: &PredicateEntry,
+    stem: &str,
+) -> Result<DerivedSurface, GenerateError> {
+    let (base, force_eum, mut rules) = lexical_vowel_stem(entry, stem)?;
+    let last = base.chars().next_back().expect("base");
+    let syllable = decompose_syllable(last).ok_or_else(|| mismatch(entry))?;
+    let surface =
+        if force_eum || (syllable.jongseong != JONG_NONE && syllable.jongseong != JONG_RIEUL) {
+            format!("{base}음")
+        } else if syllable.jongseong == JONG_RIEUL {
+            replace_last_final(&base, JONG_RIEUL_MIEUM).expect("rieul-final stem")
+        } else {
+            add_final(&base, JONG_MIEUM).expect("vowel-final stem")
+        };
+    let core_len = if surface.len() == base.len() {
+        surface.len()
+    } else {
+        base.len()
+    };
+    rules.push(rule("ending.nominalizer"));
+    Ok(derived(surface, core_len, rules))
 }
 
 fn lexical_vowel_stem(
