@@ -17,6 +17,10 @@ Production is a direct-upload Cloudflare Pages project named `kfind` with
 `main` as its production branch. Deployment rebuilds and uploads the component
 resource before publishing the static site and Pages Function.
 
+`.github/workflows/pages.yml` deploys every `main` push and supports a manual
+run from `main`. The repository must define `CLOUDFLARE_ACCOUNT_ID` and a
+`CLOUDFLARE_API_TOKEN` with Pages and R2 write access.
+
 ```sh
 pnpm --dir site run deploy
 ```
