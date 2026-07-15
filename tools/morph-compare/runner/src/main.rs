@@ -265,15 +265,23 @@ impl KfindBoundary {
 
 fn main() -> Result<()> {
     let arguments = std::env::args().skip(1).collect::<Vec<_>>();
-    if arguments
-        .first()
-        .is_some_and(|argument| argument == "constraint-eval")
-    {
+    if arguments.first().is_some_and(|argument| {
+        matches!(
+            argument.as_str(),
+            "constraint-eval" | "constraint-eval-diagnostic"
+        )
+    }) {
         if arguments.len() != 4 {
-            bail!("usage: morph-benchmark-runner constraint-eval PROFILE CASES.jsonl OUTPUT.json");
+            bail!(
+                "usage: morph-benchmark-runner {{constraint-eval|constraint-eval-diagnostic}} PROFILE CASES.jsonl OUTPUT.json"
+            );
         }
         let cases = load_cases(Path::new(&arguments[2]))?;
-        let summary = run_constraint_evaluation(&cases, KfindProfile::parse(&arguments[1])?)?;
+        let summary = run_constraint_evaluation(
+            &cases,
+            KfindProfile::parse(&arguments[1])?,
+            arguments[0] == "constraint-eval-diagnostic",
+        )?;
         serde_json::to_writer_pretty(BufWriter::new(File::create(&arguments[3])?), &summary)?;
         return Ok(());
     }
@@ -337,7 +345,7 @@ fn main() -> Result<()> {
             "usage: morph-benchmark-runner BACKEND CASES.jsonl OUTPUT.json\n\
              or: morph-benchmark-runner startup PROFILE OUTPUT.json\n\
              or: morph-benchmark-runner agent-shadow CASES.jsonl OUTPUT.json\n\
-             or: morph-benchmark-runner constraint-eval PROFILE CASES.jsonl OUTPUT.json\n\
+             or: morph-benchmark-runner {{constraint-eval|constraint-eval-diagnostic}} PROFILE CASES.jsonl OUTPUT.json\n\
              or: morph-benchmark-runner {{boundary|untagged}} PROFILE BOUNDARY CASES.jsonl OUTPUT.json"
         );
     }

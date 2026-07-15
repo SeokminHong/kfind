@@ -167,9 +167,16 @@ struct EvaluationMetrics {
     disagreement_from_product: BTreeMap<&'static str, usize>,
 }
 
+#[derive(Clone, Copy)]
+struct CandidateEvaluationOptions {
+    expected: bool,
+    verify_diagnostic_parity: bool,
+}
+
 pub(super) fn run_constraint_evaluation(
     cases: &[Case],
     profile: KfindProfile,
+    verify_diagnostic_parity: bool,
 ) -> Result<ConstraintEvaluationSummary> {
     let initialization_started = Instant::now();
     let (lexicons, lexicon_artifact_sha256, enriched_artifact_sha256) = match profile {
@@ -253,11 +260,7 @@ pub(super) fn run_constraint_evaluation(
 
     let mut metrics = EvaluationMetrics::default();
     let mut results = Vec::with_capacity(cases.len());
-    for ((case, prepared), product_spans) in cases
-        .iter()
-        .zip(prepared_cases)
-        .zip(product_spans)
-    {
+    for ((case, prepared), product_spans) in cases.iter().zip(prepared_cases).zip(product_spans) {
         let evaluation_before = timings.candidate_enumeration_seconds
             + timings.resolver_seconds
             + timings.policy_seconds;
@@ -298,7 +301,10 @@ pub(super) fn run_constraint_evaluation(
             &mut policy_spans,
             &mut metrics,
             &mut timings,
-            case.expected,
+            CandidateEvaluationOptions {
+                expected: case.expected,
+                verify_diagnostic_parity,
+            },
         );
         let measured = (timings.resolver_seconds - resolver_before)
             + (timings.policy_seconds - policy_before)
@@ -513,7 +519,7 @@ fn evaluate_candidates(
     policy_spans: &mut BTreeMap<&'static str, BTreeSet<(usize, usize)>>,
     metrics: &mut EvaluationMetrics,
     timings: &mut EvaluationTimings,
-    expected: bool,
+    options: CandidateEvaluationOptions,
 ) -> Vec<ConstraintCandidateEvidence> {
     let inputs = candidates
         .into_iter()
@@ -536,10 +542,8 @@ fn evaluate_candidates(
             unreachable!("candidate group contains evaluated input");
         };
         let resolver_started = Instant::now();
-        let prepared = resolver.prepare_token(
-            first.window.normalized(),
-            DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
-        );
+        let prepared =
+            resolver.prepare_token(first.window.normalized(), DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT);
         timings.resolver_seconds += resolver_started.elapsed().as_secs_f64();
         for &index in indices {
             let CandidateEvaluation::Ready(input) = &inputs[index] else {
@@ -552,7 +556,7 @@ fn evaluate_candidates(
                 policy_spans,
                 metrics,
                 timings,
-                expected,
+                options,
             ));
         }
     }
@@ -567,10 +571,7 @@ fn evaluate_candidates(
         .collect()
 }
 
-fn prepare_candidate(
-    text: &str,
-    candidate: RawCandidate,
-) -> CandidateEvaluation {
+fn prepare_candidate(text: &str, candidate: RawCandidate) -> CandidateEvaluation {
     let window = match AnalysisWindow::extract(
         text.as_bytes(),
         candidate.core.clone(),
@@ -666,7 +667,7 @@ fn evaluate_prepared_candidate(
     policy_spans: &mut BTreeMap<&'static str, BTreeSet<(usize, usize)>>,
     metrics: &mut EvaluationMetrics,
     timings: &mut EvaluationTimings,
-    expected: bool,
+    options: CandidateEvaluationOptions,
 ) -> ConstraintCandidateEvidence {
     let candidate = &input.candidate;
     let resolver_started = Instant::now();
@@ -682,19 +683,30 @@ fn evaluate_prepared_candidate(
         &candidate.branch.morph_patterns,
     );
     timings.resolver_seconds += resolver_started.elapsed().as_secs_f64();
-    let diagnostic_started = Instant::now();
-    let resolution = resolver.resolve_prepared_candidate(
-        prepared,
-        BoundedTokenContext {
-            previous: input.context.previous.as_deref(),
-            current: input.window.normalized(),
-            next: input.context.next.as_deref(),
-        },
-        input.spans.clone(),
-        &candidate.branch.morph_patterns,
-    );
-    assert_eq!(decision, resolution.decision(), "decision and proof diverged");
-    let class = if expected { "positive" } else { "negative" };
+    if options.verify_diagnostic_parity {
+        let diagnostic_started = Instant::now();
+        let resolution = resolver.resolve_prepared_candidate(
+            prepared,
+            BoundedTokenContext {
+                previous: input.context.previous.as_deref(),
+                current: input.window.normalized(),
+                next: input.context.next.as_deref(),
+            },
+            input.spans.clone(),
+            &candidate.branch.morph_patterns,
+        );
+        assert_eq!(
+            decision,
+            resolution.decision(),
+            "decision and proof diverged"
+        );
+        timings.diagnostic_seconds += diagnostic_started.elapsed().as_secs_f64();
+    }
+    let class = if options.expected {
+        "positive"
+    } else {
+        "negative"
+    };
     *metrics
         .outcomes_by_class
         .entry(class)
@@ -720,8 +732,7 @@ fn evaluate_prepared_candidate(
     let policies = POLICIES
         .iter()
         .map(|(name, policy)| {
-            let accepted =
-                policy.accepts_decision(&decision, &candidate.branch.morph_patterns);
+            let accepted = policy.accepts_decision(&decision, &candidate.branch.morph_patterns);
             if accepted {
                 policy_spans
                     .get_mut(name)
@@ -731,9 +742,8 @@ fn evaluate_prepared_candidate(
             (*name, accepted)
         })
         .collect::<BTreeMap<_, _>>();
-    let policy_elapsed = policy_started.elapsed().as_secs_f64();
-    timings.policy_seconds += policy_elapsed;
-    let evidence = ConstraintCandidateEvidence {
+    timings.policy_seconds += policy_started.elapsed().as_secs_f64();
+    ConstraintCandidateEvidence {
         atom_index: candidate.atom_index,
         branch_index: candidate.branch_index,
         status: "evaluated",
@@ -748,10 +758,7 @@ fn evaluate_prepared_candidate(
         evidence,
         policies,
         error: None,
-    };
-    timings.diagnostic_seconds +=
-        (diagnostic_started.elapsed().as_secs_f64() - policy_elapsed).max(0.0);
-    evidence
+    }
 }
 
 struct AdjacentContext {

@@ -157,14 +157,19 @@ def run_native_agent_shadow(
 
 
 def run_native_constraint_evaluation(
-    runner: Path, profile: str, cases_path: Path
+    runner: Path,
+    profile: str,
+    cases_path: Path,
+    verify_diagnostic_parity: bool = False,
 ) -> dict[str, object]:
     with tempfile.TemporaryDirectory() as directory:
         output = Path(directory) / f"constraint-{profile}.json"
         result = subprocess.run(
             [
                 str(runner),
-                "constraint-eval",
+                "constraint-eval-diagnostic"
+                if verify_diagnostic_parity
+                else "constraint-eval",
                 profile,
                 str(cases_path),
                 str(output),
@@ -425,6 +430,13 @@ def evaluate_constraint_runs(
     if [result["id"] for result in first["results"]] != case_ids:
         raise ValueError("constraint result order differs from fixture order")
     first_semantics = constraint_semantics(first)
+    diagnostic = run_native_constraint_evaluation(
+        runner, profile, cases_path, verify_diagnostic_parity=True
+    )
+    if diagnostic["metrics"] != first["metrics"]:
+        raise ValueError("constraint diagnostic metrics differ from compact evaluation")
+    if constraint_semantics(diagnostic) != first_semantics:
+        raise ValueError("constraint diagnostic decisions differ from compact evaluation")
     for summary in summaries[1:]:
         if summary["metrics"] != first["metrics"]:
             raise ValueError("constraint metrics changed between measured runs")
