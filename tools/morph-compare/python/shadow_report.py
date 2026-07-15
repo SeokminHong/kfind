@@ -60,6 +60,7 @@ def shadow_verification_summary(
     source_provenance = classify_component_source_provenance(
         by_case, case_metadata
     )
+    analysis_graph = summarize_analysis_graph(by_case, case_metadata)
     def sorted_outcomes(
         grouped: dict[str, dict[str, int]],
     ) -> dict[str, dict[str, int]]:
@@ -88,7 +89,131 @@ def shadow_verification_summary(
             "comparisons": projection_comparisons,
             "mismatches": projection_mismatches,
         },
+        "analysis_graph": analysis_graph,
         "by_case": by_case,
+    }
+
+
+def summarize_analysis_graph(
+    by_case: dict[str, dict[str, object]],
+    case_metadata: dict[str, dict[str, object]],
+) -> dict[str, object]:
+    profiles = ("opaque", "transparent", "explicit")
+    predictions = {profile: {} for profile in profiles}
+    product_predictions: dict[str, bool] = {}
+    statuses: dict[str, int] = defaultdict(int)
+    verdicts_by_class: dict[str, dict[str, int]] = defaultdict(
+        lambda: defaultdict(int)
+    )
+    by_case_summary: dict[str, dict[str, object]] = {}
+    for case_id, counters in by_case.items():
+        case = case_metadata.get(case_id)
+        if case is None:
+            continue
+        evidence = counters.get("analysis_graph", [])
+        candidates = evidence if isinstance(evidence, list) else []
+        class_name = "positive" if bool(case["expected"]) else "negative"
+        for candidate in candidates:
+            if not isinstance(candidate, dict):
+                continue
+            statuses[str(candidate.get("status", "invalid"))] += 1
+            resolution = candidate.get("resolution")
+            if isinstance(resolution, dict):
+                verdicts_by_class[class_name][str(resolution.get("verdict"))] += 1
+        product_prediction = _analysis_graph_prediction(
+            case, candidates, lambda candidate: bool(candidate.get("product_accepted"))
+        )
+        product_predictions[case_id] = product_prediction
+        profile_predictions = {}
+        for profile in profiles:
+            predicted = _analysis_graph_prediction(
+                case,
+                candidates,
+                lambda candidate, profile=profile: isinstance(
+                    candidate.get(profile), dict
+                )
+                and bool(candidate[profile].get("accepted")),
+            )
+            predictions[profile][case_id] = predicted
+            profile_predictions[profile] = predicted
+        by_case_summary[case_id] = {
+            "expected": bool(case["expected"]),
+            "product": product_prediction,
+            "profiles": profile_predictions,
+            "candidate_count": len(candidates),
+        }
+    return {
+        "statuses": dict(sorted(statuses.items())),
+        "verdicts_by_class": {
+            class_name: dict(sorted(counts.items()))
+            for class_name, counts in sorted(verdicts_by_class.items())
+        },
+        "product_candidate_quality": _analysis_graph_quality(
+            case_metadata, product_predictions
+        ),
+        "profiles": {
+            profile: {
+                "quality": _analysis_graph_quality(case_metadata, predictions[profile]),
+                "changed_from_product": sum(
+                    predictions[profile].get(case_id) != product_predictions.get(case_id)
+                    for case_id in case_metadata
+                ),
+            }
+            for profile in profiles
+        },
+        "by_case": by_case_summary,
+    }
+
+
+def _analysis_graph_prediction(
+    case: dict[str, object],
+    candidates: list[object],
+    accepted: Any,
+) -> bool:
+    accepted_candidates = [
+        candidate
+        for candidate in candidates
+        if isinstance(candidate, dict) and accepted(candidate)
+    ]
+    if not bool(case["expected"]):
+        return bool(accepted_candidates)
+    gold_start = case.get("gold_byte_start")
+    gold_end = case.get("gold_byte_end")
+    if not isinstance(gold_start, int) or not isinstance(gold_end, int):
+        return False
+    return any(
+        isinstance((token := candidate.get("token")), dict)
+        and int(token["byte_start"]) < gold_end
+        and gold_start < int(token["byte_end"])
+        for candidate in accepted_candidates
+    )
+
+
+def _analysis_graph_quality(
+    cases: dict[str, dict[str, object]], predictions: dict[str, bool]
+) -> dict[str, object]:
+    tp = fp = tn = fn = 0
+    for case_id, case in cases.items():
+        expected = bool(case["expected"])
+        predicted = predictions.get(case_id, False)
+        if expected and predicted:
+            tp += 1
+        elif expected:
+            fn += 1
+        elif predicted:
+            fp += 1
+        else:
+            tn += 1
+    precision = tp / (tp + fp) if tp + fp else 0.0
+    recall = tp / (tp + fn) if tp + fn else 0.0
+    return {
+        "cases": len(cases),
+        "tp": tp,
+        "fp": fp,
+        "tn": tn,
+        "fn": fn,
+        "precision_percent": round(100 * precision, 2),
+        "recall_percent": round(100 * recall, 2),
     }
 
 

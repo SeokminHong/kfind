@@ -19,6 +19,7 @@ from report import (
     product_workflows,
     quality_metrics,
     shadow_verification_summary,
+    summarize_analysis_graph,
     strict_subspan_position,
     untagged_plan_metrics,
 )
@@ -655,6 +656,54 @@ class ShadowVerificationTests(unittest.TestCase):
             summary["component_projection_equivalence"],
         )
         self.assertEqual(by_case, summary["by_case"])
+
+    def test_analysis_graph_profiles_use_gold_overlap_and_negative_presence(self) -> None:
+        cases = {
+            "positive": {
+                "id": "positive",
+                "expected": True,
+                "gold_byte_start": 3,
+                "gold_byte_end": 9,
+            },
+            "negative": {
+                "id": "negative",
+                "expected": False,
+                "gold_byte_start": None,
+                "gold_byte_end": None,
+            },
+        }
+        candidate = {
+            "status": "evaluated",
+            "token": {"byte_start": 3, "byte_end": 9},
+            "product_accepted": True,
+            "opaque": {"accepted": False},
+            "transparent": {"accepted": True},
+            "explicit": {"accepted": False},
+            "resolution": {"verdict": "ambiguous:CompoundExposure"},
+            "patterns": [{"verdict": "ambiguous:CompoundExposure"}],
+        }
+        by_case = {
+            "positive": {"analysis_graph": [candidate]},
+            "negative": {"analysis_graph": [candidate]},
+        }
+
+        summary = summarize_analysis_graph(by_case, cases)
+
+        self.assertEqual(
+            {"tp": 1, "fp": 1, "tn": 0, "fn": 0},
+            {
+                key: summary["profiles"]["transparent"]["quality"][key]
+                for key in ("tp", "fp", "tn", "fn")
+            },
+        )
+        self.assertEqual(
+            {"tp": 0, "fp": 0, "tn": 1, "fn": 1},
+            {
+                key: summary["profiles"]["opaque"]["quality"][key]
+                for key in ("tp", "fp", "tn", "fn")
+            },
+        )
+        self.assertEqual(2, summary["statuses"]["evaluated"])
 
     def test_classifies_lowest_cost_component_paths(self) -> None:
         target = {"byte_start": 3, "byte_end": 9}

@@ -12,6 +12,7 @@ try:
         classify_component_paths,
         classify_component_source_provenance,
         shadow_verification_summary,
+        summarize_analysis_graph,
     )
 except ImportError:
     from shadow_report import (
@@ -21,6 +22,7 @@ except ImportError:
         classify_component_paths,
         classify_component_source_provenance,
         shadow_verification_summary,
+        summarize_analysis_graph,
     )
 
 BACKENDS = (*KFIND_PROFILES, "kiwi", "lindera")
