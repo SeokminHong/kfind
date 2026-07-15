@@ -185,6 +185,31 @@ pub(super) fn run_constraint_evaluation(
         }
     };
     let analyzer = LexiconQueryAnalyzer::new(Arc::new(lexicons));
+    let analyzer_initialization_seconds = initialization_started.elapsed().as_secs_f64();
+    let mut timings = EvaluationTimings::default();
+    let mut prepared_cases = Vec::with_capacity(cases.len());
+    for case in cases {
+        let preparation_started = Instant::now();
+        let compile_started = Instant::now();
+        let options = CompileOptions::resolve(CompileOptionOverrides {
+            boundary: Some(BoundaryPolicy::Smart),
+            pos: Some(parse_pos(&case.pos)?),
+            ..CompileOptionOverrides::default()
+        })?;
+        let plan = compile_query(&case.query, &options, &analyzer)
+            .with_context(|| format!("failed to compile constraint case {}", case.id))?;
+        timings.compile_seconds += compile_started.elapsed().as_secs_f64();
+        let candidate_started = Instant::now();
+        let candidates = enumerate_candidates(&case.text, &plan);
+        timings.candidate_enumeration_seconds += candidate_started.elapsed().as_secs_f64();
+        prepared_cases.push(PreparedCaseInput {
+            plan,
+            candidates,
+            preparation_seconds: preparation_started.elapsed().as_secs_f64(),
+        });
+    }
+
+    let product_started = Instant::now();
     let component_path = resource_path(COMPONENT_RESOURCE_ENV, COMPONENT_RESOURCE);
     let component_bytes = fs::read(&component_path).with_context(|| {
         format!(
@@ -198,6 +223,18 @@ pub(super) fn run_constraint_evaluation(
         component_bytes,
         &COMPONENT_RESOURCE_SOURCE_DIGEST,
     )?);
+    let mut product_spans = Vec::with_capacity(cases.len());
+    for (case, prepared) in cases.iter().zip(&prepared_cases) {
+        let matcher = MorphMatcher::with_component_resource(
+            Arc::new(prepared.plan.clone()),
+            Arc::clone(&component),
+        )?;
+        product_spans.push(find_all_spans(&matcher, &case.text));
+    }
+    timings.product_seconds = product_started.elapsed().as_secs_f64();
+    drop(component);
+
+    let graph_initialization_started = Instant::now();
     let graph_path = resource_path(GRAPH_RESOURCE_ENV, GRAPH_RESOURCE);
     let graph_bytes = fs::read(&graph_path).with_context(|| {
         format!(
@@ -212,35 +249,20 @@ pub(super) fn run_constraint_evaluation(
         &COMPONENT_RESOURCE_SOURCE_DIGEST,
     )?;
     let resolver = ConstraintResolver::new(Arc::new(graph));
-    let initialization_seconds = initialization_started.elapsed().as_secs_f64();
+    let initialization_seconds =
+        analyzer_initialization_seconds + graph_initialization_started.elapsed().as_secs_f64();
 
-    let mut timings = EvaluationTimings::default();
     let mut metrics = EvaluationMetrics::default();
     let mut results = Vec::with_capacity(cases.len());
-    for case in cases {
-        let evaluation_before = timings.compile_seconds
-            + timings.candidate_enumeration_seconds
+    for ((case, prepared), product_spans) in cases
+        .iter()
+        .zip(prepared_cases)
+        .zip(product_spans)
+    {
+        let evaluation_before = timings.candidate_enumeration_seconds
             + timings.resolver_seconds
             + timings.policy_seconds;
-        let compile_started = Instant::now();
-        let options = CompileOptions::resolve(CompileOptionOverrides {
-            boundary: Some(BoundaryPolicy::Smart),
-            pos: Some(parse_pos(&case.pos)?),
-            ..CompileOptionOverrides::default()
-        })?;
-        let plan = compile_query(&case.query, &options, &analyzer)
-            .with_context(|| format!("failed to compile constraint case {}", case.id))?;
-        timings.compile_seconds += compile_started.elapsed().as_secs_f64();
-
-        let product_started = Instant::now();
-        let matcher =
-            MorphMatcher::with_component_resource(Arc::new(plan.clone()), Arc::clone(&component))?;
-        let product_spans = find_all_spans(&matcher, &case.text);
-        timings.product_seconds += product_started.elapsed().as_secs_f64();
-
-        let candidate_started = Instant::now();
-        let raw_candidates = enumerate_candidates(&case.text, &plan);
-        timings.candidate_enumeration_seconds += candidate_started.elapsed().as_secs_f64();
+        let raw_candidates = prepared.candidates;
         metrics.candidates += raw_candidates.len();
 
         let gold = case
@@ -327,8 +349,7 @@ pub(super) fn run_constraint_evaluation(
                 *metrics.disagreement_from_product.entry(name).or_default() += 1;
             }
         }
-        let evaluation_after = timings.compile_seconds
-            + timings.candidate_enumeration_seconds
+        let evaluation_after = timings.candidate_enumeration_seconds
             + timings.resolver_seconds
             + timings.policy_seconds;
         results.push(ConstraintCaseResult {
@@ -343,7 +364,8 @@ pub(super) fn run_constraint_evaluation(
             product_prediction,
             policy_spans,
             policy_predictions,
-            latency_ms: 1_000.0 * (evaluation_after - evaluation_before),
+            latency_ms: 1_000.0
+                * (prepared.preparation_seconds + evaluation_after - evaluation_before),
             candidates,
         });
     }
@@ -394,6 +416,12 @@ pub(super) fn run_constraint_evaluation(
         metrics,
         results,
     })
+}
+
+struct PreparedCaseInput {
+    plan: kfind_query::QueryPlan,
+    candidates: Vec<RawCandidate>,
+    preparation_seconds: f64,
 }
 
 #[derive(Clone)]
