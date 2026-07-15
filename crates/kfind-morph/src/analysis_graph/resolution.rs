@@ -1324,10 +1324,7 @@ fn repeated_selection(
     context: BoundedTokenContext<'_>,
     current: &TokenGraph<'_>,
 ) -> Option<AdjacentSide> {
-    if !has_exact_pos(current, "MAG") {
-        return None;
-    }
-    match (
+    let side = match (
         context.previous == Some(context.current),
         context.next == Some(context.current),
     ) {
@@ -1335,7 +1332,8 @@ fn repeated_selection(
         (true, false) => Some(AdjacentSide::Previous),
         (false, true) => Some(AdjacentSide::Next),
         (false, false) => None,
-    }
+    }?;
+    has_exact_pos(current, context.current.len(), "MAG").then_some(side)
 }
 
 fn copular_selection(
@@ -1381,6 +1379,12 @@ fn nominal_particle_host_selection(
     current_text: &str,
     current: &TokenGraph<'_>,
 ) -> Option<Range<usize>> {
+    if !has_complete_pos_matching(current, |pos| {
+        source_pos(pos).is_some_and(DataFinePos::is_nominal)
+    }) || !has_complete_pos_matching(current, |pos| pos.starts_with('J'))
+    {
+        return None;
+    }
     let mut splits = BTreeSet::new();
     for path in current.witness_paths() {
         let units = path_units(&path, current.nodes());
@@ -1418,24 +1422,26 @@ fn is_predicate_pos(pos: DataFinePos) -> bool {
     )
 }
 
-fn has_exact_pos(graph: &TokenGraph<'_>, expected: &str) -> bool {
-    graph.witness_paths().iter().any(|path| {
-        path.len() == 1
-            && graph.nodes()[path[0]]
-                .pos
-                .split('+')
-                .eq(std::iter::once(expected))
+fn has_exact_pos(graph: &TokenGraph<'_>, token_len: usize, expected: &str) -> bool {
+    graph.nodes().iter().enumerate().any(|(index, node)| {
+        graph.is_on_complete_path(index)
+            && node.span == (0..token_len)
+            && node.pos.split('+').eq(std::iter::once(expected))
     })
 }
 
 fn has_complete_pos(graph: &TokenGraph<'_>, expected: &str) -> bool {
+    has_complete_pos_matching(graph, |pos| pos == expected)
+}
+
+fn has_complete_pos_matching(graph: &TokenGraph<'_>, accepts: impl Fn(&str) -> bool) -> bool {
     graph.nodes().iter().enumerate().any(|(index, node)| {
         graph.is_on_complete_path(index)
-            && (node.pos.split('+').any(|pos| pos == expected)
+            && (node.pos.split('+').any(&accepts)
                 || node
                     .components
                     .iter()
-                    .any(|component| component.pos == expected))
+                    .any(|component| accepts(component.pos)))
     })
 }
 
