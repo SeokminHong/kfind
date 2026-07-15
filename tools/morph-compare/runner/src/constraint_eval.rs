@@ -14,7 +14,8 @@ use kfind_matcher::{
 };
 use kfind_morph::{
     BoundedTokenContext, CandidateSpans, ConstraintEvidenceKind, ConstraintResolver,
-    DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT, MorphContinuation, PreparedTokenAnalysis, ProductPolicy,
+    DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT, DEFAULT_ANALYSIS_GRAPH_PATH_LIMIT, MorphContinuation,
+    PreparedQueryAnalysis, PreparedTokenAnalysis, ProductPolicy,
 };
 use kfind_query::{
     BoundaryPolicy, CompileOptionOverrides, CompileOptions, CoreMapping, LexiconQueryAnalyzer,
@@ -564,6 +565,11 @@ enum CandidateEvaluation {
     Unavailable(ConstraintCandidateEvidence),
 }
 
+struct PreparedCandidateAnalysis<'prepared, 'text> {
+    token: &'prepared PreparedTokenAnalysis<'text>,
+    query: &'prepared PreparedQueryAnalysis,
+}
+
 fn evaluate_candidates(
     text: &str,
     candidates: Vec<RawCandidate>,
@@ -589,6 +595,28 @@ fn evaluate_candidates(
     let mut evidence = std::iter::repeat_with(|| None)
         .take(inputs.len())
         .collect::<Vec<_>>();
+    let mut prepared_queries = BTreeMap::<Vec<_>, PreparedQueryAnalysis>::new();
+    for input in &inputs {
+        let CandidateEvaluation::Ready(input) = input else {
+            continue;
+        };
+        let patterns = &input.candidate.branch.morph_patterns;
+        if prepared_queries.contains_key(patterns) {
+            continue;
+        }
+        let resolver_started = Instant::now();
+        prepared_queries.insert(
+            patterns.clone(),
+            resolver.prepare_query_analysis(
+                patterns,
+                DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+                DEFAULT_ANALYSIS_GRAPH_PATH_LIMIT,
+            ),
+        );
+        let elapsed = resolver_started.elapsed().as_secs_f64();
+        timings.resolver_seconds += elapsed;
+        timings.graph_preparation_seconds += elapsed;
+    }
     for indices in groups.values() {
         let CandidateEvaluation::Ready(first) = &inputs[indices[0]] else {
             unreachable!("candidate group contains evaluated input");
@@ -603,9 +631,15 @@ fn evaluate_candidates(
             let CandidateEvaluation::Ready(input) = &inputs[index] else {
                 unreachable!("candidate group contains evaluated input");
             };
+            let query = prepared_queries
+                .get(&input.candidate.branch.morph_patterns)
+                .expect("ready candidate query was prepared");
             evidence[index] = Some(evaluate_prepared_candidate(
                 input,
-                &prepared,
+                PreparedCandidateAnalysis {
+                    token: &prepared,
+                    query,
+                },
                 resolver,
                 policy_spans,
                 metrics,
@@ -716,7 +750,7 @@ fn candidate_base(
 
 fn evaluate_prepared_candidate(
     input: &CandidateEvaluationInput,
-    prepared: &PreparedTokenAnalysis<'_>,
+    prepared: PreparedCandidateAnalysis<'_, '_>,
     resolver: &ConstraintResolver,
     policy_spans: &mut BTreeMap<&'static str, BTreeSet<(usize, usize)>>,
     metrics: &mut EvaluationMetrics,
@@ -730,26 +764,26 @@ fn evaluate_prepared_candidate(
         current: input.window.normalized(),
         next: input.context.next.as_deref(),
     };
-    let decision = resolver.decide_prepared_candidate(
-        prepared,
+    let decision = resolver.decide_prepared_query_candidate(
+        prepared.token,
         resolver_context,
         input.spans.clone(),
-        &candidate.branch.morph_patterns,
+        prepared.query,
     );
     let elapsed = resolver_started.elapsed().as_secs_f64();
     timings.resolver_seconds += elapsed;
     timings.decision_seconds += elapsed;
     if options.verify_diagnostic_parity {
         let diagnostic_started = Instant::now();
-        let resolution = resolver.resolve_prepared_candidate(
-            prepared,
+        let resolution = resolver.resolve_prepared_query_candidate(
+            prepared.token,
             BoundedTokenContext {
                 previous: input.context.previous.as_deref(),
                 current: input.window.normalized(),
                 next: input.context.next.as_deref(),
             },
             input.spans.clone(),
-            &candidate.branch.morph_patterns,
+            prepared.query,
         );
         assert_eq!(
             decision,

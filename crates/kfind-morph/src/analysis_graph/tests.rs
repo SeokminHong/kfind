@@ -44,17 +44,18 @@ fn compact_decision_matches_diagnostic_resolution() {
     };
     let context = BoundedTokenContext::current("학교");
     let prepared = resolver.prepare_token("학교", DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT);
-    let decision = resolver.decide_prepared_candidate(
-        &prepared,
-        context,
-        spans.clone(),
+    let query = resolver.prepare_query_analysis(
         std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+        DEFAULT_ANALYSIS_GRAPH_PATH_LIMIT,
     );
-    let resolution = resolver.resolve_prepared_candidate(
+    let decision =
+        resolver.decide_prepared_query_candidate(&prepared, context, spans.clone(), &query);
+    let resolution = resolver.resolve_prepared_query_candidate(
         &prepared,
         BoundedTokenContext::current("학교"),
         spans,
-        std::slice::from_ref(&pattern),
+        &query,
     );
 
     assert_eq!(decision, resolution.decision());
@@ -223,6 +224,108 @@ fn productive_lexical_identity_can_span_three_connected_nodes() {
 }
 
 #[test]
+fn predicate_auxiliary_chain_aligns_query_and_source_lexical_traces() {
+    let resolver = resolver(&[
+        atomic("끝나", "VV", 0),
+        atomic("버리", "VX", 0),
+        atomic("는", "ETM", 0),
+        entry(
+            "가나",
+            "VV+VX",
+            "Compound",
+            "VV",
+            "VX",
+            "가/VV/*+나/VX/*",
+            0,
+        ),
+        entry(
+            "나는",
+            "VX+ETM",
+            "Inflect",
+            "VX",
+            "ETM",
+            "나/VX/*+는/ETM/*",
+            0,
+        ),
+    ]);
+    let pattern = predicate_pattern("끝나버리", ContinuationState::Terminal);
+    let core_end = "끝나버리".len();
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current("끝나버리는"),
+        CandidateSpans {
+            core: 0..core_end,
+            anchor: 0.."끝나버리는".len(),
+            consumed: 0.."끝나버리는".len(),
+            token: 0.."끝나버리는".len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(resolution.outcome, ConstraintOutcome::Supported);
+    assert!(resolution.supported.analyses.iter().any(|analysis| {
+        analysis.evidence == ConstraintEvidenceKind::RuntimeComposed
+            && analysis.lexical_source_node_indices.len() == 2
+    }));
+}
+
+#[test]
+fn opaque_source_inflection_aligns_with_the_query_lexical_trace() {
+    let resolver = resolver(&[
+        atomic("심각", "XR", 0),
+        atomic("해", "XSV", 0),
+        atomic("지", "VX", 0),
+        entry("진", "VX+ETM", "Inflect", "VX", "ETM", "지/VX/*+ᆫ/ETM/*", 0),
+        entry(
+            "가하",
+            "XR+XSV",
+            "Compound",
+            "XR",
+            "XSV",
+            "가/XR/*+하/XSV/*",
+            0,
+        ),
+        entry(
+            "하지",
+            "XSV+VX",
+            "Compound",
+            "XSV",
+            "VX",
+            "하/XSV/*+지/VX/*",
+            0,
+        ),
+        entry(
+            "지는",
+            "VX+ETM",
+            "Inflect",
+            "VX",
+            "ETM",
+            "지/VX/*+는/ETM/*",
+            0,
+        ),
+    ]);
+    let text = "심각해진";
+    let pattern = predicate_pattern("심각해지", ContinuationState::Terminal);
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        CandidateSpans {
+            core: 0..text.len(),
+            anchor: 0..text.len(),
+            consumed: 0..text.len(),
+            token: 0..text.len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(resolution.outcome, ConstraintOutcome::Supported);
+    assert!(resolution.supported.analyses.iter().any(|analysis| {
+        analysis.evidence == ConstraintEvidenceKind::OpaqueExpression
+            && analysis.lexical_source_node_indices.len() == 3
+    }));
+}
+
+#[test]
 fn nominal_compound_can_supply_a_token_initial_lexical_host() {
     let text = "캔맥주는";
     let resolver = resolver(&[
@@ -292,6 +395,7 @@ fn nominal_compound_does_not_license_an_internal_crossing_substring() {
 fn fused_derivational_ending_uses_the_enclosing_token_span() {
     let resolver = resolver(&[
         atomic("접근", "NNG", 0),
+        atomic("하", "XSV", 0),
         entry(
             "할",
             "XSV+ETM",

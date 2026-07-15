@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 use std::ops::Range;
 use std::sync::OnceLock;
 
-use kfind_data::{DataFinePos, MorphologyGraphExpressionKind};
+use kfind_data::{DataFinePos, MorphologyGraphExpressionKind, MorphologyGraphResource};
 
 use crate::ContinuationState;
 
@@ -285,6 +285,161 @@ pub(super) fn prepare_token_summary() -> PreparedTokenSummary {
     PreparedTokenSummary::default()
 }
 
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct QueryLexicalUnit {
+    surface: String,
+    pos: String,
+}
+
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct QueryLexicalTrace {
+    units: Vec<QueryLexicalUnit>,
+}
+
+#[derive(Debug)]
+pub(super) struct PreparedQueryTraces {
+    by_pattern: Vec<Vec<QueryLexicalTrace>>,
+}
+
+impl PreparedQueryTraces {
+    fn for_pattern(&self, pattern_index: usize) -> &[QueryLexicalTrace] {
+        self.by_pattern
+            .get(pattern_index)
+            .map_or(&[], Vec::as_slice)
+    }
+
+    fn has_runtime_traces(&self) -> bool {
+        self.by_pattern.iter().any(|traces| !traces.is_empty())
+    }
+}
+
+pub(super) fn prepare_query_traces(
+    resource: &MorphologyGraphResource,
+    patterns: &[QueryMorphPattern],
+    node_limit: usize,
+    trace_limit: usize,
+) -> PreparedQueryTraces {
+    let by_pattern = patterns
+        .iter()
+        .map(|pattern| {
+            let Ok(graph) = TokenGraph::known(resource, &pattern.lexical_form, node_limit) else {
+                return Vec::new();
+            };
+            query_lexical_traces(&graph, pattern, trace_limit)
+        })
+        .collect();
+    PreparedQueryTraces { by_pattern }
+}
+
+fn query_lexical_traces(
+    graph: &TokenGraph<'_>,
+    pattern: &QueryMorphPattern,
+    trace_limit: usize,
+) -> Vec<QueryLexicalTrace> {
+    let mut traces = BTreeSet::new();
+    for (node_index, node) in graph.nodes().iter().enumerate() {
+        if node.span.start != 0 || !graph.is_on_complete_path(node_index) {
+            continue;
+        }
+        collect_query_lexical_traces(graph, pattern, vec![node_index], trace_limit, &mut traces);
+        if traces.len() >= trace_limit {
+            break;
+        }
+    }
+    traces.into_iter().collect()
+}
+
+fn collect_query_lexical_traces(
+    graph: &TokenGraph<'_>,
+    pattern: &QueryMorphPattern,
+    path: Vec<usize>,
+    trace_limit: usize,
+    traces: &mut BTreeSet<QueryLexicalTrace>,
+) {
+    if traces.len() >= trace_limit {
+        return;
+    }
+    let last = *path.last().expect("query lexical path is non-empty");
+    let node = &graph.nodes()[last];
+    if node.span.end == pattern.lexical_form.len() {
+        if let Some(trace) = query_lexical_trace(graph, pattern, &path) {
+            traces.insert(trace);
+        }
+        return;
+    }
+    for &successor in graph.successors(last) {
+        if !graph.is_on_complete_path(successor) {
+            continue;
+        }
+        let mut extended = path.clone();
+        extended.push(successor);
+        collect_query_lexical_traces(graph, pattern, extended, trace_limit, traces);
+    }
+}
+
+fn query_lexical_trace(
+    graph: &TokenGraph<'_>,
+    pattern: &QueryMorphPattern,
+    path: &[usize],
+) -> Option<QueryLexicalTrace> {
+    if path.len() < 2 {
+        return None;
+    }
+    let units = path_units(path, graph.nodes());
+    if units.iter().any(|unit| {
+        unit.component_index.is_none()
+            && graph.nodes()[unit.source_node_index].components.is_empty()
+            && graph.nodes()[unit.source_node_index].pos.contains('+')
+    }) {
+        return None;
+    }
+    let accepted = if pattern.fine_pos.is_nominal() {
+        path.iter().all(|&node_index| {
+            let node = &graph.nodes()[node_index];
+            node.source == ConstraintNodeSource::Source
+                && !node.pos.contains('+')
+                && source_pos(node.pos).is_some_and(DataFinePos::is_nominal)
+        })
+    } else if matches!(pattern.fine_pos, DataFinePos::Vv | DataFinePos::Va) {
+        predicate_lexical_trace_allowed(&units)
+    } else {
+        false
+    };
+    accepted.then(|| QueryLexicalTrace {
+        units: units
+            .into_iter()
+            .map(|unit| QueryLexicalUnit {
+                surface: unit.surface.to_owned(),
+                pos: unit.pos.to_owned(),
+            })
+            .collect(),
+    })
+}
+
+fn predicate_lexical_trace_allowed(units: &[Unit<'_>]) -> bool {
+    #[derive(Clone, Copy, Eq, PartialEq)]
+    enum Stage {
+        Start,
+        NominalBase,
+        Predicate,
+        Bridge,
+    }
+
+    let mut stage = Stage::Start;
+    for unit in units {
+        stage = match (stage, unit.pos) {
+            (Stage::Start | Stage::NominalBase, "XPN" | "XR" | "NNG" | "NNP") => Stage::NominalBase,
+            (Stage::Start, "VV" | "VA" | "VX") => Stage::Predicate,
+            (Stage::NominalBase, "XSV" | "XSA") => Stage::Predicate,
+            (Stage::Predicate, "VX") => Stage::Predicate,
+            (Stage::Predicate, "EC") => Stage::Bridge,
+            (Stage::Bridge, "VX") => Stage::Predicate,
+            _ => return false,
+        };
+    }
+    stage == Stage::Predicate
+}
+
 pub(super) fn needs_nominal_particle_context(
     patterns: &[QueryMorphPattern],
     spans: &CandidateSpans,
@@ -312,11 +467,12 @@ pub(super) fn resolve_known(
     graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
     patterns: &[QueryMorphPattern],
+    query_traces: &PreparedQueryTraces,
     context: &ContextSelection,
     proof_limit: usize,
 ) -> ConstraintResolution {
     let unknown_node_count = graph.unknown_node_count();
-    let evaluation = evaluate_known(graph, spans, patterns, context, proof_limit);
+    let evaluation = evaluate_known(graph, spans, patterns, query_traces, context, proof_limit);
     let mut proof_paths = evaluation.paths.as_ref().map_or_else(
         || graph.proof_paths(),
         |paths| {
@@ -348,6 +504,7 @@ pub(super) fn decide_known(
     graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
     patterns: &[QueryMorphPattern],
+    query_traces: &PreparedQueryTraces,
     context: &ContextSelection,
     proof_limit: usize,
 ) -> ConstraintDecision {
@@ -358,11 +515,8 @@ pub(super) fn decide_known(
         };
     }
     let mut proofs = BTreeSet::<CompactSupportProof>::new();
-    let runtime_paths = if patterns.iter().any(|pattern| {
-        pattern.fine_pos.is_nominal()
-            || matches!(pattern.fine_pos, DataFinePos::Vv | DataFinePos::Va)
-    }) {
-        runtime_lexical_candidate_paths(graph, spans, patterns)
+    let runtime_paths = if query_traces.has_runtime_traces() {
+        runtime_lexical_candidate_paths(graph, spans, query_traces)
     } else {
         Vec::new()
     };
@@ -411,9 +565,8 @@ pub(super) fn decide_known(
                 }
             }
         }
-        if !matches!(pattern.fine_pos, DataFinePos::Vv | DataFinePos::Va)
-            && !(pattern.fine_pos.is_nominal() && spans.core.start == spans.token.start)
-        {
+        let traces = query_traces.for_pattern(pattern_index);
+        if traces.is_empty() || spans.core.start != spans.token.start {
             continue;
         }
         for lexical_path in &runtime_paths {
@@ -421,7 +574,7 @@ pub(super) fn decide_known(
                 last: *lexical_path.last().expect("lexical path is non-empty"),
                 units: path_units(lexical_path, graph.nodes()),
             };
-            for support in runtime_lexical_candidates(&traversal_path.units, spans, pattern) {
+            for support in runtime_lexical_candidates(&traversal_path.units, spans, traces) {
                 if extend_decision_support(
                     graph,
                     spans,
@@ -493,6 +646,7 @@ fn evaluate_known(
     graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
     patterns: &[QueryMorphPattern],
+    query_traces: &PreparedQueryTraces,
     context: &ContextSelection,
     proof_limit: usize,
 ) -> KnownEvaluation {
@@ -504,11 +658,18 @@ fn evaluate_known(
         };
     }
     let mut analyses = Vec::new();
-    let paths = candidate_witness_paths(graph, spans, patterns);
+    let paths = candidate_witness_paths(graph, spans, patterns, query_traces);
     for (path_index, path) in paths.iter().enumerate() {
         let units = path_units(path, graph.nodes());
         for (pattern_index, pattern) in patterns.iter().enumerate() {
-            for candidate in support_candidates(path, graph.nodes(), &units, spans, pattern) {
+            for candidate in support_candidates(
+                path,
+                graph.nodes(),
+                &units,
+                spans,
+                pattern,
+                query_traces.for_pattern(pattern_index),
+            ) {
                 let Some(continuation) = continuation_proof(pattern, spans, &units, &candidate)
                 else {
                     continue;
@@ -620,13 +781,21 @@ fn candidate_witness_paths(
     graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
     patterns: &[QueryMorphPattern],
+    query_traces: &PreparedQueryTraces,
 ) -> Vec<Vec<usize>> {
     let mut paths = Vec::new();
-    let lexical_paths = lexical_candidate_paths(graph, spans, patterns);
-    for pattern in patterns {
+    let lexical_paths = lexical_candidate_paths(graph, spans, query_traces);
+    for (pattern_index, pattern) in patterns.iter().enumerate() {
         for lexical_path in &lexical_paths {
             let units = path_units(lexical_path, graph.nodes());
-            for support in support_candidates(lexical_path, graph.nodes(), &units, spans, pattern) {
+            for support in support_candidates(
+                lexical_path,
+                graph.nodes(),
+                &units,
+                spans,
+                pattern,
+                query_traces.for_pattern(pattern_index),
+            ) {
                 extend_supported_path(
                     graph,
                     spans,
@@ -644,7 +813,7 @@ fn candidate_witness_paths(
 fn lexical_candidate_paths(
     graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
-    patterns: &[QueryMorphPattern],
+    query_traces: &PreparedQueryTraces,
 ) -> Vec<Vec<usize>> {
     let mut paths = Vec::new();
     for (index, node) in graph.nodes().iter().enumerate() {
@@ -655,7 +824,7 @@ fn lexical_candidate_paths(
             paths.push(vec![index]);
         }
         if node.span.start == spans.core.start && node.span.end <= spans.core.end {
-            extend_lexical_path(graph, spans, patterns, vec![index], &mut paths);
+            extend_lexical_path(graph, spans, query_traces, vec![index], &mut paths);
         }
     }
     paths.sort();
@@ -666,7 +835,7 @@ fn lexical_candidate_paths(
 fn runtime_lexical_candidate_paths(
     graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
-    patterns: &[QueryMorphPattern],
+    query_traces: &PreparedQueryTraces,
 ) -> Vec<Vec<usize>> {
     let mut paths = Vec::new();
     for (index, node) in graph.nodes().iter().enumerate() {
@@ -674,7 +843,7 @@ fn runtime_lexical_candidate_paths(
             && node.span.start == spans.core.start
             && node.span.end < spans.core.end
         {
-            extend_lexical_path(graph, spans, patterns, vec![index], &mut paths);
+            extend_lexical_path(graph, spans, query_traces, vec![index], &mut paths);
         }
     }
     paths.sort();
@@ -685,7 +854,7 @@ fn runtime_lexical_candidate_paths(
 fn extend_lexical_path(
     graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
-    patterns: &[QueryMorphPattern],
+    query_traces: &PreparedQueryTraces,
     required: Vec<usize>,
     paths: &mut Vec<Vec<usize>>,
 ) {
@@ -695,7 +864,7 @@ fn extend_lexical_path(
         paths.push(required);
         return;
     }
-    if end > spans.core.end || !lexical_path_can_match(graph, spans, &required, patterns) {
+    if end > spans.core.end || !lexical_path_can_match(graph, &required, query_traces) {
         return;
     }
     for &successor in graph.successors(last) {
@@ -705,49 +874,23 @@ fn extend_lexical_path(
         }
         let mut extended = required.clone();
         extended.push(successor);
-        extend_lexical_path(graph, spans, patterns, extended, paths);
+        extend_lexical_path(graph, spans, query_traces, extended, paths);
     }
 }
 
 fn lexical_path_can_match(
     graph: &TokenGraph<'_>,
-    spans: &CandidateSpans,
     path: &[usize],
-    patterns: &[QueryMorphPattern],
+    query_traces: &PreparedQueryTraces,
 ) -> bool {
-    patterns.iter().any(|pattern| {
-        (matches!(pattern.fine_pos, DataFinePos::Vv | DataFinePos::Va)
-            || (pattern.fine_pos.is_nominal() && spans.core.start == spans.token.start))
-            && (concatenated_prefix_len(
-                pattern.lexical_form.as_ref(),
-                path.iter().map(|&index| graph.nodes()[index].surface),
-            )
-            .is_some()
-                || concatenated_prefix_len(
-                    pattern.lexical_form.as_ref(),
-                    path.iter()
-                        .flat_map(|&index| graph.nodes()[index].components.iter())
-                        .map(|component| component.surface),
-                )
-                .is_some_and(|length| length > 0))
+    let units = path_units(path, graph.nodes());
+    query_traces.by_pattern.iter().flatten().any(|trace| {
+        units.len() <= trace.units.len()
+            && units
+                .iter()
+                .zip(&trace.units)
+                .all(|(source, query)| source_unit_matches_query(source, query))
     })
-}
-
-fn concatenated_prefix_len<'a>(
-    target: &str,
-    segments: impl Iterator<Item = &'a str>,
-) -> Option<usize> {
-    let target = target.as_bytes();
-    let mut matched = 0_usize;
-    for segment in segments {
-        let segment = segment.as_bytes();
-        let end = matched.checked_add(segment.len())?;
-        if target.get(matched..end) != Some(segment) {
-            return None;
-        }
-        matched = end;
-    }
-    Some(matched)
 }
 
 fn extend_supported_path(
@@ -1042,9 +1185,12 @@ fn support_candidates(
     units: &[Unit<'_>],
     spans: &CandidateSpans,
     pattern: &QueryMorphPattern,
+    query_traces: &[QueryLexicalTrace],
 ) -> Vec<SupportCandidate> {
     let mut matches = source_support_candidates(path, nodes, units, spans, pattern);
-    matches.extend(runtime_lexical_candidates(units, spans, pattern));
+    if spans.core.start == spans.token.start {
+        matches.extend(runtime_lexical_candidates(units, spans, query_traces));
+    }
     matches
 }
 
@@ -1154,124 +1300,81 @@ fn source_support_candidates(
 fn runtime_lexical_candidates(
     units: &[Unit<'_>],
     spans: &CandidateSpans,
-    pattern: &QueryMorphPattern,
+    query_traces: &[QueryLexicalTrace],
 ) -> Vec<SupportCandidate> {
     let mut matches = Vec::new();
-    let lexical_bytes = pattern.lexical_form.as_bytes();
-    for start in 0..units.len() {
-        let first = &units[start];
-        if first.coverage.start != spans.core.start {
+    for trace in query_traces {
+        if trace.units.is_empty() || trace.units.len() > units.len() {
             continue;
         }
-        let mut matched_bytes = 0_usize;
-        let mut surface_matches = true;
-        let mut position_count = 0_usize;
-        let mut base_pos_allowed = true;
-        let mut suffix_pos = None;
-        let mut node_count = 0_usize;
-        let mut has_opaque = false;
-        let mut nominal_pos_allowed = true;
-        let mut end = spans.core.start;
-        let mut previous_node = None;
-        for (unit_index, unit) in units.iter().enumerate().skip(start) {
-            if previous_node == Some(unit.node_position) {
-                if unit.coverage.end != end {
-                    break;
-                }
-            } else {
-                if unit.coverage.start != end {
-                    break;
-                }
-                end = unit.coverage.end;
-                node_count += 1;
-                previous_node = Some(unit.node_position);
-            }
-            if end > spans.core.end {
-                break;
-            }
-            if surface_matches {
-                let unit_bytes = unit.surface.as_bytes();
-                surface_matches = lexical_bytes
-                    .get(matched_bytes..)
-                    .is_some_and(|remaining| remaining.starts_with(unit_bytes));
-                if surface_matches {
-                    matched_bytes += unit_bytes.len();
-                }
-            }
-            if !surface_matches {
-                break;
-            }
-            if let Some(previous) = suffix_pos {
-                base_pos_allowed &= matches!(previous, "XPN" | "XR" | "NNG" | "NNP");
-            }
-            suffix_pos = Some(unit.pos);
-            position_count += 1;
-            has_opaque |= unit.opaque;
-            nominal_pos_allowed &= unit.source == ConstraintNodeSource::Source
-                && source_pos(unit.pos).is_some_and(DataFinePos::is_nominal);
-            if end == spans.core.end {
-                let predicate_match = node_count > 1
-                    && surface_matches
-                    && matched_bytes == lexical_bytes.len()
-                    && runtime_lexical_pos_matches(
-                        position_count,
-                        base_pos_allowed,
-                        suffix_pos,
-                        pattern.fine_pos,
-                    );
-                let nominal_match = node_count > 1
-                    && spans.core.start == spans.token.start
-                    && pattern.fine_pos.is_nominal()
-                    && surface_matches
-                    && matched_bytes == lexical_bytes.len()
-                    && nominal_pos_allowed;
-                let lexical_match = predicate_match || nominal_match;
-                if lexical_match {
-                    let mut node_positions = Vec::with_capacity(node_count);
-                    let mut source_node_indices = Vec::with_capacity(node_count);
-                    for lexical_unit in &units[start..=unit_index] {
-                        if node_positions.last() != Some(&lexical_unit.node_position) {
-                            node_positions.push(lexical_unit.node_position);
-                            source_node_indices.push(lexical_unit.source_node_index);
-                        }
-                    }
-                    matches.push(SupportCandidate {
-                        node_position: unit.node_position,
-                        source_node_index: unit.source_node_index,
-                        lexical_node_positions: node_positions,
-                        source_node_indices,
-                        component_index: None,
-                        unit_index,
-                        evidence: if has_opaque {
-                            ConstraintEvidenceKind::OpaqueExpression
-                        } else {
-                            ConstraintEvidenceKind::RuntimeComposed
-                        },
-                        relation: ConstraintSpanRelation::RuntimeComponent,
-                        opaque: has_opaque,
-                    });
-                }
-                if lexical_match {
-                    break;
-                }
+        let lexical_units = &units[..trace.units.len()];
+        if !lexical_units
+            .iter()
+            .zip(&trace.units)
+            .all(|(source, query)| source_unit_matches_query(source, query))
+        {
+            continue;
+        }
+        let first = &lexical_units[0];
+        let last = lexical_units
+            .last()
+            .expect("query lexical trace is non-empty");
+        if first.coverage.start != spans.core.start || last.coverage.end != spans.core.end {
+            continue;
+        }
+        if units[trace.units.len()..].iter().any(|unit| {
+            unit.node_position != last.node_position && unit.coverage.start < spans.core.end
+        }) {
+            continue;
+        }
+        let lexical_refs = lexical_units.iter().collect::<Vec<_>>();
+        if !enclosing_coverage(&lexical_refs, spans.core.clone()) {
+            continue;
+        }
+        let mut node_positions = Vec::new();
+        let mut source_node_indices = Vec::new();
+        for unit in lexical_units {
+            if node_positions.last() != Some(&unit.node_position) {
+                node_positions.push(unit.node_position);
+                source_node_indices.push(unit.source_node_index);
             }
         }
+        let has_opaque = lexical_units.iter().any(|unit| unit.opaque);
+        matches.push(SupportCandidate {
+            node_position: last.node_position,
+            source_node_index: last.source_node_index,
+            lexical_node_positions: node_positions,
+            source_node_indices,
+            component_index: last.component_index,
+            unit_index: trace.units.len() - 1,
+            evidence: if has_opaque {
+                ConstraintEvidenceKind::OpaqueExpression
+            } else {
+                ConstraintEvidenceKind::RuntimeComposed
+            },
+            relation: ConstraintSpanRelation::RuntimeComponent,
+            opaque: has_opaque,
+        });
     }
+    matches.sort_by_key(|candidate| {
+        (
+            candidate.node_position,
+            candidate.component_index,
+            candidate.source_node_indices.clone(),
+        )
+    });
+    matches.dedup_by(|left, right| {
+        left.node_position == right.node_position
+            && left.component_index == right.component_index
+            && left.source_node_indices == right.source_node_indices
+    });
     matches
 }
 
-fn runtime_lexical_pos_matches(
-    position_count: usize,
-    base_allowed: bool,
-    suffix: Option<&str>,
-    query: DataFinePos,
-) -> bool {
-    let base_allowed = position_count > 1 && base_allowed;
-    match query {
-        DataFinePos::Vv => base_allowed && suffix == Some("XSV"),
-        DataFinePos::Va => base_allowed && suffix == Some("XSA"),
-        _ => false,
-    }
+fn source_unit_matches_query(source: &Unit<'_>, query: &QueryLexicalUnit) -> bool {
+    source.source == ConstraintNodeSource::Source
+        && source.surface == query.surface
+        && source.pos == query.pos
 }
 
 fn continuation_proof(

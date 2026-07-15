@@ -130,6 +130,21 @@ pub struct PreparedTokenAnalysis<'a> {
 }
 
 #[derive(Debug)]
+pub struct PreparedQueryAnalysis {
+    resource: Arc<MorphologyGraphResource>,
+    patterns: Vec<QueryMorphPattern>,
+    traces: resolution::PreparedQueryTraces,
+    path_limit: usize,
+}
+
+impl PreparedQueryAnalysis {
+    #[must_use]
+    pub fn patterns(&self) -> &[QueryMorphPattern] {
+        &self.patterns
+    }
+}
+
+#[derive(Debug)]
 pub struct ConstraintResolver {
     resource: Arc<MorphologyGraphResource>,
     unknown: OnceLock<Result<UnknownDictionary, LocalLatticeError>>,
@@ -147,6 +162,26 @@ impl ConstraintResolver {
     #[must_use]
     pub fn resource(&self) -> &MorphologyGraphResource {
         &self.resource
+    }
+
+    #[must_use]
+    pub fn prepare_query_analysis(
+        &self,
+        patterns: &[QueryMorphPattern],
+        node_limit: usize,
+        path_limit: usize,
+    ) -> PreparedQueryAnalysis {
+        PreparedQueryAnalysis {
+            resource: Arc::clone(&self.resource),
+            patterns: patterns.to_vec(),
+            traces: resolution::prepare_query_traces(
+                &self.resource,
+                patterns,
+                node_limit,
+                path_limit,
+            ),
+            path_limit,
+        }
     }
 
     #[must_use]
@@ -246,7 +281,30 @@ impl ConstraintResolver {
         patterns: &[QueryMorphPattern],
         path_limit: usize,
     ) -> ConstraintResolution {
+        let query = self.prepare_query_analysis(patterns, prepared.node_limit, path_limit);
+        self.resolve_prepared_query_candidate(prepared, context, spans, &query)
+    }
+
+    #[must_use]
+    pub fn resolve_prepared_query_candidate(
+        &self,
+        prepared: &PreparedTokenAnalysis<'_>,
+        context: BoundedTokenContext<'_>,
+        spans: CandidateSpans,
+        query: &PreparedQueryAnalysis,
+    ) -> ConstraintResolution {
+        let patterns = query.patterns();
+        let path_limit = query.path_limit;
         if !valid_candidate_request(prepared, context, &spans, patterns, path_limit) {
+            return unavailable(
+                ConstraintUnavailable::InvalidPattern,
+                0,
+                0,
+                Vec::new(),
+                Vec::new(),
+            );
+        }
+        if !Arc::ptr_eq(&self.resource, &query.resource) {
             return unavailable(
                 ConstraintUnavailable::InvalidPattern,
                 0,
@@ -276,7 +334,14 @@ impl ConstraintResolver {
                         );
                     }
                 };
-                resolution::resolve_known(graph, &spans, patterns, &selection, path_limit)
+                resolution::resolve_known(
+                    graph,
+                    &spans,
+                    patterns,
+                    &query.traces,
+                    &selection,
+                    path_limit,
+                )
             }
             PreparedTokenState::Unavailable {
                 reason,
@@ -310,7 +375,12 @@ impl ConstraintResolver {
                         }
                     };
                     return resolution::resolve_known(
-                        &graph, &spans, patterns, &selection, path_limit,
+                        &graph,
+                        &spans,
+                        patterns,
+                        &query.traces,
+                        &selection,
+                        path_limit,
                     );
                 }
                 unavailable(
@@ -384,7 +454,27 @@ impl ConstraintResolver {
         patterns: &[QueryMorphPattern],
         path_limit: usize,
     ) -> ConstraintDecision {
+        let query = self.prepare_query_analysis(patterns, prepared.node_limit, path_limit);
+        self.decide_prepared_query_candidate(prepared, context, spans, &query)
+    }
+
+    #[must_use]
+    pub fn decide_prepared_query_candidate(
+        &self,
+        prepared: &PreparedTokenAnalysis<'_>,
+        context: BoundedTokenContext<'_>,
+        spans: CandidateSpans,
+        query: &PreparedQueryAnalysis,
+    ) -> ConstraintDecision {
+        let patterns = query.patterns();
+        let path_limit = query.path_limit;
         if !valid_candidate_request(prepared, context, &spans, patterns, path_limit) {
+            return ConstraintDecision {
+                outcome: ConstraintOutcome::Unavailable(ConstraintUnavailable::InvalidPattern),
+                supported: Vec::new(),
+            };
+        }
+        if !Arc::ptr_eq(&self.resource, &query.resource) {
             return ConstraintDecision {
                 outcome: ConstraintOutcome::Unavailable(ConstraintUnavailable::InvalidPattern),
                 supported: Vec::new(),
@@ -408,7 +498,14 @@ impl ConstraintResolver {
                         };
                     }
                 };
-                resolution::decide_known(graph, &spans, patterns, &selection, path_limit)
+                resolution::decide_known(
+                    graph,
+                    &spans,
+                    patterns,
+                    &query.traces,
+                    &selection,
+                    path_limit,
+                )
             }
             PreparedTokenState::Unavailable { reason, .. } => {
                 if matches!(
@@ -434,7 +531,12 @@ impl ConstraintResolver {
                         }
                     };
                     return resolution::decide_known(
-                        &graph, &spans, patterns, &selection, path_limit,
+                        &graph,
+                        &spans,
+                        patterns,
+                        &query.traces,
+                        &selection,
+                        path_limit,
                     );
                 }
                 ConstraintDecision {
