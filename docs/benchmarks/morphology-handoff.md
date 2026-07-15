@@ -29,6 +29,8 @@
 - [접속 조사 `이면/면`의 명사류 결합](2026-07-15-connector-myeon-particle.md)
 - [smart component 검색 근거](2026-07-13-smart-component-evidence.md)
 - [copula lattice 폐기 판정](2026-07-13-copula-unseen-evaluation.md)
+- [비표준·오타·띄어쓰기 입력 robustness 후속 설계](noisy-text-robustness-plan.md)
+- [비표준·오타·띄어쓰기 입력 평가 계약](noisy-text-robustness-evaluation.md)
 - [형태소 benchmark 사용법](README.md#morphology-comparison)
 
 ## 제품 상태
@@ -92,6 +94,8 @@
   `매일/MAG`, `매일을`은 `매일/NNG + 을/JKO`로 판정한다. 구조가 불충분하면 기존 경계
   판정을 유지한다.
 - copula 전용 lattice 분기와 shadow 계측, PUD/GSD 전용 실행 경로는 복원하지 않는다.
+- 비표준 활용, 오타와 불안정한 띄어쓰기는 canonical 형태 규칙에 합치지 않는다. 현재 제품
+  기본값은 그대로 두고, 별도 opt-in robustness 축과 자연 원문 fixture를 먼저 검증한다.
 - 기본 morphology benchmark는 kfind 프로필만 다시 실행한다. Kiwi·Lindera·MeCab-ko·KOMORAN
   품질은 test fixture와 어댑터 schema에 묶인 저장소 스냅샷을 읽고, fixture나 고정한 비교기
   설정이 바뀔 때만 `scripts/refresh-morph-baselines.sh`로 갱신한다.
