@@ -16,7 +16,8 @@ pub use analysis_graph::{
     ConstraintOutcome, ConstraintPathProof, ConstraintProof, ConstraintResolution,
     ConstraintResolver, ConstraintSpanRelation, ConstraintSupport, ConstraintUnavailable,
     CopularFrameRole, DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT, DEFAULT_ANALYSIS_GRAPH_PATH_LIMIT,
-    MorphContinuation, ProductPolicy, QueryMorphPattern, SupportedAnalysis, SupportedAnalysisSet,
+    MorphContinuation, PreparedTokenAnalysis, ProductPolicy, QueryMorphPattern, SupportedAnalysis,
+    SupportedAnalysisSet,
 };
 pub use domain::{
     CoarsePos, ContinuationState, EndingCategory, EndingInitial, EndingSpec, FinePos,

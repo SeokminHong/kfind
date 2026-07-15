@@ -14,7 +14,7 @@ use kfind_matcher::{
 };
 use kfind_morph::{
     BoundedTokenContext, CandidateSpans, ConstraintEvidenceKind, ConstraintResolver,
-    DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT, MorphContinuation, ProductPolicy,
+    DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT, MorphContinuation, PreparedTokenAnalysis, ProductPolicy,
 };
 use kfind_query::{
     BoundaryPolicy, CompileOptionOverrides, CompileOptions, CoreMapping, LexiconQueryAnalyzer,
@@ -288,26 +288,25 @@ pub(super) fn run_constraint_evaluation(
             .iter()
             .map(|(name, _)| (*name, BTreeSet::new()))
             .collect::<BTreeMap<_, _>>();
-        let mut candidates = Vec::with_capacity(raw_candidates.len());
-        for candidate in raw_candidates {
-            let total_started = Instant::now();
-            let resolver_before = timings.resolver_seconds;
-            let policy_before = timings.policy_seconds;
-            let diagnostic_before = timings.diagnostic_seconds;
-            let evidence = evaluate_candidate(
-                &case.text,
-                candidate,
-                &resolver,
-                &mut policy_spans,
-                &mut metrics,
-                &mut timings,
-                case.expected,
-            );
-            let measured = (timings.resolver_seconds - resolver_before)
-                + (timings.policy_seconds - policy_before)
-                + (timings.diagnostic_seconds - diagnostic_before);
-            timings.candidate_enumeration_seconds +=
-                (total_started.elapsed().as_secs_f64() - measured).max(0.0);
+        let total_started = Instant::now();
+        let resolver_before = timings.resolver_seconds;
+        let policy_before = timings.policy_seconds;
+        let diagnostic_before = timings.diagnostic_seconds;
+        let candidates = evaluate_candidates(
+            &case.text,
+            raw_candidates,
+            &resolver,
+            &mut policy_spans,
+            &mut metrics,
+            &mut timings,
+            case.expected,
+        );
+        let measured = (timings.resolver_seconds - resolver_before)
+            + (timings.policy_seconds - policy_before)
+            + (timings.diagnostic_seconds - diagnostic_before);
+        timings.candidate_enumeration_seconds +=
+            (total_started.elapsed().as_secs_f64() - measured).max(0.0);
+        for evidence in &candidates {
             *metrics
                 .candidate_statuses_by_class
                 .entry(if case.expected {
@@ -318,7 +317,6 @@ pub(super) fn run_constraint_evaluation(
                 .or_default()
                 .entry(evidence.status)
                 .or_default() += 1;
-            candidates.push(evidence);
         }
         let policy_spans = policy_spans
             .into_iter()
@@ -496,16 +494,155 @@ fn enumerate_candidates(text: &str, plan: &kfind_query::QueryPlan) -> Vec<RawCan
     candidates
 }
 
-fn evaluate_candidate(
-    text: &str,
+struct CandidateEvaluationInput {
     candidate: RawCandidate,
+    window: AnalysisWindow,
+    spans: CandidateSpans,
+    consumed_original: Range<usize>,
+    context: AdjacentContext,
+}
+
+enum CandidateEvaluation {
+    Ready(CandidateEvaluationInput),
+    Unavailable(ConstraintCandidateEvidence),
+}
+
+fn evaluate_candidates(
+    text: &str,
+    candidates: Vec<RawCandidate>,
     resolver: &ConstraintResolver,
     policy_spans: &mut BTreeMap<&'static str, BTreeSet<(usize, usize)>>,
     metrics: &mut EvaluationMetrics,
     timings: &mut EvaluationTimings,
     expected: bool,
+) -> Vec<ConstraintCandidateEvidence> {
+    let inputs = candidates
+        .into_iter()
+        .map(|candidate| prepare_candidate(text, candidate))
+        .collect::<Vec<_>>();
+    let mut groups = BTreeMap::<String, Vec<usize>>::new();
+    for (index, input) in inputs.iter().enumerate() {
+        if let CandidateEvaluation::Ready(input) = input {
+            groups
+                .entry(input.window.normalized().to_owned())
+                .or_default()
+                .push(index);
+        }
+    }
+    let mut evidence = std::iter::repeat_with(|| None)
+        .take(inputs.len())
+        .collect::<Vec<_>>();
+    for indices in groups.values() {
+        let CandidateEvaluation::Ready(first) = &inputs[indices[0]] else {
+            unreachable!("candidate group contains evaluated input");
+        };
+        let resolver_started = Instant::now();
+        let prepared = resolver.prepare_token(
+            first.window.normalized(),
+            DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+        );
+        timings.resolver_seconds += resolver_started.elapsed().as_secs_f64();
+        for &index in indices {
+            let CandidateEvaluation::Ready(input) = &inputs[index] else {
+                unreachable!("candidate group contains evaluated input");
+            };
+            evidence[index] = Some(evaluate_prepared_candidate(
+                input,
+                &prepared,
+                resolver,
+                policy_spans,
+                metrics,
+                timings,
+                expected,
+            ));
+        }
+    }
+    for (index, input) in inputs.into_iter().enumerate() {
+        if let CandidateEvaluation::Unavailable(unavailable) = input {
+            evidence[index] = Some(unavailable);
+        }
+    }
+    evidence
+        .into_iter()
+        .map(|evidence| evidence.expect("every candidate produces evidence"))
+        .collect()
+}
+
+fn prepare_candidate(
+    text: &str,
+    candidate: RawCandidate,
+) -> CandidateEvaluation {
+    let window = match AnalysisWindow::extract(
+        text.as_bytes(),
+        candidate.core.clone(),
+        DEFAULT_ANALYSIS_WINDOW_LIMITS,
+    ) {
+        Ok(window) => window,
+        Err(error) => {
+            return CandidateEvaluation::Unavailable(candidate_base(
+                &candidate,
+                "window-unavailable",
+                Some(error.to_string()),
+            ));
+        }
+    };
+    let Some(core) = window.normalized_span(candidate.core.clone()) else {
+        return CandidateEvaluation::Unavailable(candidate_base(
+            &candidate,
+            "core-unavailable",
+            Some("candidate core does not map to stable NFC boundaries".to_owned()),
+        ));
+    };
+    let Some(anchor) = window.normalized_span(candidate.anchor.clone()) else {
+        return CandidateEvaluation::Unavailable(candidate_base(
+            &candidate,
+            "anchor-unavailable",
+            Some("candidate anchor does not map to stable NFC boundaries".to_owned()),
+        ));
+    };
+    let token = 0..window.normalized().len();
+    let consumed = if candidate.consume_token {
+        anchor.start..token.end
+    } else {
+        anchor.clone()
+    };
+    let Some(consumed_original) = window.original_span(consumed.clone()) else {
+        return CandidateEvaluation::Unavailable(candidate_base(
+            &candidate,
+            "consumed-unavailable",
+            Some("candidate consumed span does not map to stable raw boundaries".to_owned()),
+        ));
+    };
+    let context = match adjacent_context(text, window.raw_span()) {
+        Ok(context) => context,
+        Err(error) => {
+            return CandidateEvaluation::Unavailable(candidate_base(
+                &candidate,
+                "context-unavailable",
+                Some(error.to_owned()),
+            ));
+        }
+    };
+    CandidateEvaluation::Ready(CandidateEvaluationInput {
+        candidate,
+        window,
+        spans: CandidateSpans {
+            core,
+            anchor,
+            consumed,
+            token,
+        },
+        consumed_original,
+        context,
+    })
+}
+
+fn candidate_base(
+    candidate: &RawCandidate,
+    status: &'static str,
+    error: Option<String>,
 ) -> ConstraintCandidateEvidence {
-    let base = |status, error| ConstraintCandidateEvidence {
+    ConstraintCandidateEvidence {
         atom_index: candidate.atom_index,
         branch_index: candidate.branch_index,
         status,
@@ -521,72 +658,42 @@ fn evaluate_candidate(
         policies: BTreeMap::new(),
         resolution: None,
         error,
-    };
-    let window = match AnalysisWindow::extract(
-        text.as_bytes(),
-        candidate.core.clone(),
-        DEFAULT_ANALYSIS_WINDOW_LIMITS,
-    ) {
-        Ok(window) => window,
-        Err(error) => return base("window-unavailable", Some(error.to_string())),
-    };
-    let Some(core) = window.normalized_span(candidate.core.clone()) else {
-        return base(
-            "core-unavailable",
-            Some("candidate core does not map to stable NFC boundaries".to_owned()),
-        );
-    };
-    let Some(anchor) = window.normalized_span(candidate.anchor.clone()) else {
-        return base(
-            "anchor-unavailable",
-            Some("candidate anchor does not map to stable NFC boundaries".to_owned()),
-        );
-    };
-    let token = 0..window.normalized().len();
-    let consumed = if candidate.consume_token {
-        anchor.start..token.end
-    } else {
-        anchor.clone()
-    };
-    let Some(consumed_original) = window.original_span(consumed.clone()) else {
-        return base(
-            "consumed-unavailable",
-            Some("candidate consumed span does not map to stable raw boundaries".to_owned()),
-        );
-    };
-    let context = match adjacent_context(text, window.raw_span()) {
-        Ok(context) => context,
-        Err(error) => return base("context-unavailable", Some(error.to_owned())),
-    };
+    }
+}
+
+fn evaluate_prepared_candidate(
+    input: &CandidateEvaluationInput,
+    prepared: &PreparedTokenAnalysis<'_>,
+    resolver: &ConstraintResolver,
+    policy_spans: &mut BTreeMap<&'static str, BTreeSet<(usize, usize)>>,
+    metrics: &mut EvaluationMetrics,
+    timings: &mut EvaluationTimings,
+    expected: bool,
+) -> ConstraintCandidateEvidence {
+    let candidate = &input.candidate;
     let resolver_started = Instant::now();
     let resolver_context = BoundedTokenContext {
-        previous: context.previous.as_deref(),
-        current: window.normalized(),
-        next: context.next.as_deref(),
+        previous: input.context.previous.as_deref(),
+        current: input.window.normalized(),
+        next: input.context.next.as_deref(),
     };
-    let resolver_spans = CandidateSpans {
-        core: core.clone(),
-        anchor: anchor.clone(),
-        consumed: consumed.clone(),
-        token: token.clone(),
-    };
-    let decision = resolver.decide_candidate(
+    let decision = resolver.decide_prepared_candidate(
+        prepared,
         resolver_context,
-        resolver_spans.clone(),
+        input.spans.clone(),
         &candidate.branch.morph_patterns,
-        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
     );
     timings.resolver_seconds += resolver_started.elapsed().as_secs_f64();
     let diagnostic_started = Instant::now();
-    let resolution = resolver.resolve_candidate(
+    let resolution = resolver.resolve_prepared_candidate(
+        prepared,
         BoundedTokenContext {
-            previous: context.previous.as_deref(),
-            current: window.normalized(),
-            next: context.next.as_deref(),
+            previous: input.context.previous.as_deref(),
+            current: input.window.normalized(),
+            next: input.context.next.as_deref(),
         },
-        resolver_spans,
+        input.spans.clone(),
         &candidate.branch.morph_patterns,
-        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
     );
     assert_eq!(decision, resolution.decision(), "decision and proof diverged");
     let class = if expected { "positive" } else { "negative" };
@@ -621,7 +728,7 @@ fn evaluate_candidate(
                 policy_spans
                     .get_mut(name)
                     .expect("known product policy")
-                    .insert((consumed_original.start, consumed_original.end));
+                    .insert((input.consumed_original.start, input.consumed_original.end));
             }
             (*name, accepted)
         })
@@ -632,13 +739,13 @@ fn evaluate_candidate(
         atom_index: candidate.atom_index,
         branch_index: candidate.branch_index,
         status: "evaluated",
-        core: to_span(candidate.core),
-        anchor: to_span(candidate.anchor),
-        consumed: Some(to_span(consumed_original)),
-        token: Some(to_span(window.raw_span())),
-        previous: context.previous,
-        current: Some(window.normalized().to_owned()),
-        next: context.next,
+        core: to_span(candidate.core.clone()),
+        anchor: to_span(candidate.anchor.clone()),
+        consumed: Some(to_span(input.consumed_original.clone())),
+        token: Some(to_span(input.window.raw_span())),
+        previous: input.context.previous.clone(),
+        current: Some(input.window.normalized().to_owned()),
+        next: input.context.next.clone(),
         outcome: Some(outcome_name(decision.outcome)),
         evidence,
         policies,

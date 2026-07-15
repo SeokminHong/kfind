@@ -42,17 +42,19 @@ fn compact_decision_matches_diagnostic_resolution() {
         consumed: 0.."학교".len(),
         token: 0.."학교".len(),
     };
-    let decision = resolver.decide_candidate(
-        BoundedTokenContext::current("학교"),
+    let context = BoundedTokenContext::current("학교");
+    let prepared = resolver.prepare_token("학교", DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT);
+    let decision = resolver.decide_prepared_candidate(
+        &prepared,
+        context,
         spans.clone(),
         std::slice::from_ref(&pattern),
-        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
     );
-    let resolution = resolver.resolve_candidate(
+    let resolution = resolver.resolve_prepared_candidate(
+        &prepared,
         BoundedTokenContext::current("학교"),
         spans,
         std::slice::from_ref(&pattern),
-        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
     );
 
     assert_eq!(decision, resolution.decision());

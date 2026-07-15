@@ -108,17 +108,22 @@ impl ConstraintResolution {
     }
 }
 
-enum CandidateAnalysis<'a> {
-    Known {
-        graph: TokenGraph<'a>,
-        context: resolution::ContextSelection,
-    },
+#[derive(Debug)]
+enum PreparedTokenState<'a> {
+    Known(TokenGraph<'a>),
     Unavailable {
         reason: ConstraintUnavailable,
         known_node_count: usize,
         unknown_node_count: usize,
         proof: Option<TokenGraph<'a>>,
     },
+}
+
+#[derive(Debug)]
+pub struct PreparedTokenAnalysis<'a> {
+    current: &'a str,
+    node_limit: usize,
+    state: PreparedTokenState<'a>,
 }
 
 #[derive(Debug)]
@@ -208,19 +213,75 @@ impl ConstraintResolver {
         node_limit: usize,
         path_limit: usize,
     ) -> ConstraintResolution {
-        match self.analyze_candidate(context, &spans, patterns, node_limit, path_limit) {
-            CandidateAnalysis::Known { graph, context } => {
-                resolution::resolve_known(&graph, &spans, patterns, &context, path_limit)
+        let prepared = self.prepare_token(context.current, node_limit);
+        self.resolve_prepared_candidate_with_limits(&prepared, context, spans, patterns, path_limit)
+    }
+
+    #[must_use]
+    pub fn resolve_prepared_candidate(
+        &self,
+        prepared: &PreparedTokenAnalysis<'_>,
+        context: BoundedTokenContext<'_>,
+        spans: CandidateSpans,
+        patterns: &[QueryMorphPattern],
+    ) -> ConstraintResolution {
+        self.resolve_prepared_candidate_with_limits(
+            prepared,
+            context,
+            spans,
+            patterns,
+            DEFAULT_ANALYSIS_GRAPH_PATH_LIMIT,
+        )
+    }
+
+    #[must_use]
+    pub fn resolve_prepared_candidate_with_limits(
+        &self,
+        prepared: &PreparedTokenAnalysis<'_>,
+        context: BoundedTokenContext<'_>,
+        spans: CandidateSpans,
+        patterns: &[QueryMorphPattern],
+        path_limit: usize,
+    ) -> ConstraintResolution {
+        if !valid_candidate_request(prepared, context, &spans, patterns, path_limit) {
+            return unavailable(
+                ConstraintUnavailable::InvalidPattern,
+                0,
+                0,
+                Vec::new(),
+                Vec::new(),
+            );
+        }
+        match &prepared.state {
+            PreparedTokenState::Known(graph) => {
+                let selection = match self.select_prepared_context(
+                    graph,
+                    context,
+                    patterns,
+                    prepared.node_limit,
+                ) {
+                    Ok(selection) => selection,
+                    Err(reason) => {
+                        return unavailable(
+                            reason,
+                            graph.node_count(),
+                            0,
+                            graph.proof_nodes(),
+                            graph.proof_paths(),
+                        );
+                    }
+                };
+                resolution::resolve_known(graph, &spans, patterns, &selection, path_limit)
             }
-            CandidateAnalysis::Unavailable {
+            PreparedTokenState::Unavailable {
                 reason,
                 known_node_count,
                 unknown_node_count,
                 proof,
             } => unavailable(
-                reason,
-                known_node_count,
-                unknown_node_count,
+                *reason,
+                *known_node_count,
+                *unknown_node_count,
                 proof
                     .as_ref()
                     .map_or_else(Vec::new, TokenGraph::proof_nodes),
@@ -257,125 +318,183 @@ impl ConstraintResolver {
         node_limit: usize,
         path_limit: usize,
     ) -> ConstraintDecision {
-        match self.analyze_candidate(context, &spans, patterns, node_limit, path_limit) {
-            CandidateAnalysis::Known { graph, context } => {
-                resolution::decide_known(&graph, &spans, patterns, &context, path_limit)
+        let prepared = self.prepare_token(context.current, node_limit);
+        self.decide_prepared_candidate_with_limits(&prepared, context, spans, patterns, path_limit)
+    }
+
+    #[must_use]
+    pub fn decide_prepared_candidate(
+        &self,
+        prepared: &PreparedTokenAnalysis<'_>,
+        context: BoundedTokenContext<'_>,
+        spans: CandidateSpans,
+        patterns: &[QueryMorphPattern],
+    ) -> ConstraintDecision {
+        self.decide_prepared_candidate_with_limits(
+            prepared,
+            context,
+            spans,
+            patterns,
+            DEFAULT_ANALYSIS_GRAPH_PATH_LIMIT,
+        )
+    }
+
+    #[must_use]
+    pub fn decide_prepared_candidate_with_limits(
+        &self,
+        prepared: &PreparedTokenAnalysis<'_>,
+        context: BoundedTokenContext<'_>,
+        spans: CandidateSpans,
+        patterns: &[QueryMorphPattern],
+        path_limit: usize,
+    ) -> ConstraintDecision {
+        if !valid_candidate_request(prepared, context, &spans, patterns, path_limit) {
+            return ConstraintDecision {
+                outcome: ConstraintOutcome::Unavailable(ConstraintUnavailable::InvalidPattern),
+                supported: Vec::new(),
+            };
+        }
+        match &prepared.state {
+            PreparedTokenState::Known(graph) => {
+                let selection = match self.select_prepared_context(
+                    graph,
+                    context,
+                    patterns,
+                    prepared.node_limit,
+                ) {
+                    Ok(selection) => selection,
+                    Err(reason) => {
+                        return ConstraintDecision {
+                            outcome: ConstraintOutcome::Unavailable(reason),
+                            supported: Vec::new(),
+                        };
+                    }
+                };
+                resolution::decide_known(graph, &spans, patterns, &selection, path_limit)
             }
-            CandidateAnalysis::Unavailable { reason, .. } => ConstraintDecision {
-                outcome: ConstraintOutcome::Unavailable(reason),
+            PreparedTokenState::Unavailable { reason, .. } => ConstraintDecision {
+                outcome: ConstraintOutcome::Unavailable(*reason),
                 supported: Vec::new(),
             },
         }
     }
 
-    fn analyze_candidate<'a>(
+    #[must_use]
+    pub fn prepare_token<'a>(
         &'a self,
-        context: BoundedTokenContext<'a>,
-        spans: &CandidateSpans,
-        patterns: &[QueryMorphPattern],
+        current: &'a str,
         node_limit: usize,
-        path_limit: usize,
-    ) -> CandidateAnalysis<'a> {
-        if patterns.is_empty()
-            || !patterns.iter().all(QueryMorphPattern::is_well_formed)
-            || !spans.is_valid_for(context.current)
-            || spans.token != (0..context.current.len())
-            || node_limit == 0
-            || path_limit == 0
-        {
-            return CandidateAnalysis::Unavailable {
-                reason: ConstraintUnavailable::InvalidPattern,
-                known_node_count: 0,
-                unknown_node_count: 0,
-                proof: None,
-            };
-        }
-        let known = match TokenGraph::known(&self.resource, context.current, node_limit) {
-            Ok(graph) => graph,
-            Err(error) => {
-                return CandidateAnalysis::Unavailable {
-                    reason: graph_error(error, node_limit),
-                    known_node_count: graph_error_actual(error),
+    ) -> PreparedTokenAnalysis<'a> {
+        if node_limit == 0 {
+            return PreparedTokenAnalysis {
+                current,
+                node_limit,
+                state: PreparedTokenState::Unavailable {
+                    reason: ConstraintUnavailable::InvalidPattern,
+                    known_node_count: 0,
                     unknown_node_count: 0,
                     proof: None,
+                },
+            };
+        }
+        let known = match TokenGraph::known(&self.resource, current, node_limit) {
+            Ok(graph) => graph,
+            Err(error) => {
+                return PreparedTokenAnalysis {
+                    current,
+                    node_limit,
+                    state: PreparedTokenState::Unavailable {
+                        reason: graph_error(error, node_limit),
+                        known_node_count: graph_error_actual(error),
+                        unknown_node_count: 0,
+                        proof: None,
+                    },
                 };
             }
         };
         if known.has_complete_paths() {
-            let (previous, next) = match (
-                resolution::needs_copular_context(&known, patterns),
-                context.previous,
-                context.next,
-            ) {
-                (true, Some(previous), Some(next)) => {
-                    let previous = match TokenGraph::known(&self.resource, previous, node_limit) {
-                        Ok(graph) => graph,
-                        Err(error) => {
-                            return CandidateAnalysis::Unavailable {
-                                reason: graph_error(error, node_limit),
-                                known_node_count: known.node_count(),
-                                unknown_node_count: 0,
-                                proof: Some(known),
-                            };
-                        }
-                    };
-                    let next = match TokenGraph::known(&self.resource, next, node_limit) {
-                        Ok(graph) => graph,
-                        Err(error) => {
-                            return CandidateAnalysis::Unavailable {
-                                reason: graph_error(error, node_limit),
-                                known_node_count: known.node_count(),
-                                unknown_node_count: 0,
-                                proof: Some(known),
-                            };
-                        }
-                    };
-                    (Some(previous), Some(next))
-                }
-                _ => (None, None),
-            };
-            let selection =
-                resolution::select_context(context, &known, previous.as_ref(), next.as_ref());
-            return CandidateAnalysis::Known {
-                graph: known,
-                context: selection,
+            return PreparedTokenAnalysis {
+                current,
+                node_limit,
+                state: PreparedTokenState::Known(known),
             };
         }
         let unknown = match self.unknown() {
             Ok(unknown) => unknown,
             Err(_) => {
-                return CandidateAnalysis::Unavailable {
-                    reason: ConstraintUnavailable::InvalidUnknownModel,
-                    known_node_count: known.node_count(),
-                    unknown_node_count: 0,
-                    proof: None,
+                return PreparedTokenAnalysis {
+                    current,
+                    node_limit,
+                    state: PreparedTokenState::Unavailable {
+                        reason: ConstraintUnavailable::InvalidUnknownModel,
+                        known_node_count: known.node_count(),
+                        unknown_node_count: 0,
+                        proof: None,
+                    },
                 };
             }
         };
-        let fallback =
-            match TokenGraph::with_unknown(&self.resource, context.current, unknown, node_limit) {
-                Ok(graph) => graph,
-                Err(error) => {
-                    return CandidateAnalysis::Unavailable {
+        let fallback = match TokenGraph::with_unknown(&self.resource, current, unknown, node_limit)
+        {
+            Ok(graph) => graph,
+            Err(error) => {
+                return PreparedTokenAnalysis {
+                    current,
+                    node_limit,
+                    state: PreparedTokenState::Unavailable {
                         reason: graph_error(error, node_limit),
                         known_node_count: known.node_count(),
                         unknown_node_count: graph_error_actual(error)
                             .saturating_sub(known.node_count()),
                         proof: None,
-                    };
-                }
-            };
+                    },
+                };
+            }
+        };
         let reason = if fallback.has_complete_paths() {
             ConstraintUnavailable::UnknownOnly
         } else {
             ConstraintUnavailable::NoCompletePath
         };
-        CandidateAnalysis::Unavailable {
-            reason,
-            known_node_count: known.node_count(),
-            unknown_node_count: fallback.unknown_node_count(),
-            proof: Some(fallback),
+        PreparedTokenAnalysis {
+            current,
+            node_limit,
+            state: PreparedTokenState::Unavailable {
+                reason,
+                known_node_count: known.node_count(),
+                unknown_node_count: fallback.unknown_node_count(),
+                proof: Some(fallback),
+            },
         }
+    }
+
+    fn select_prepared_context(
+        &self,
+        current: &TokenGraph<'_>,
+        context: BoundedTokenContext<'_>,
+        patterns: &[QueryMorphPattern],
+        node_limit: usize,
+    ) -> Result<resolution::ContextSelection, ConstraintUnavailable> {
+        let (previous, next) = match (
+            resolution::needs_copular_context(current, patterns),
+            context.previous,
+            context.next,
+        ) {
+            (true, Some(previous), Some(next)) => {
+                let previous = TokenGraph::known(&self.resource, previous, node_limit)
+                    .map_err(|error| graph_error(error, node_limit))?;
+                let next = TokenGraph::known(&self.resource, next, node_limit)
+                    .map_err(|error| graph_error(error, node_limit))?;
+                (Some(previous), Some(next))
+            }
+            _ => (None, None),
+        };
+        Ok(resolution::select_context(
+            context,
+            current,
+            previous.as_ref(),
+            next.as_ref(),
+        ))
     }
 
     fn unknown(&self) -> Result<&UnknownDictionary, &LocalLatticeError> {
@@ -390,6 +509,22 @@ impl ConstraintResolver {
             })
             .as_ref()
     }
+}
+
+fn valid_candidate_request(
+    prepared: &PreparedTokenAnalysis<'_>,
+    context: BoundedTokenContext<'_>,
+    spans: &CandidateSpans,
+    patterns: &[QueryMorphPattern],
+    path_limit: usize,
+) -> bool {
+    !patterns.is_empty()
+        && patterns.iter().all(QueryMorphPattern::is_well_formed)
+        && context.current == prepared.current
+        && spans.is_valid_for(context.current)
+        && spans.token == (0..context.current.len())
+        && prepared.node_limit > 0
+        && path_limit > 0
 }
 
 fn graph_error(error: TokenGraphError, node_limit: usize) -> ConstraintUnavailable {
