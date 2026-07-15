@@ -194,6 +194,16 @@ pub(super) fn select_context(
     }
 }
 
+pub(super) fn needs_copular_context(current: &TokenGraph, patterns: &[QueryMorphPattern]) -> bool {
+    let requested = patterns.iter().any(|pattern| {
+        pattern
+            .adjacent
+            .iter()
+            .any(|constraint| matches!(constraint, AdjacentTokenConstraint::CopularFrame { .. }))
+    });
+    requested && has_complete_pos(current, "VCP") && has_complete_pos(current, "ETM")
+}
+
 pub(super) fn resolve_known(
     graph: &TokenGraph,
     spans: &CandidateSpans,
@@ -1140,6 +1150,17 @@ fn has_exact_pos(graph: &TokenGraph, expected: &str) -> bool {
                 .pos
                 .split('+')
                 .eq(std::iter::once(expected))
+    })
+}
+
+fn has_complete_pos(graph: &TokenGraph, expected: &str) -> bool {
+    graph.nodes().iter().enumerate().any(|(index, node)| {
+        graph.is_on_complete_path(index)
+            && (node.pos.split('+').any(|pos| pos == expected)
+                || node
+                    .components
+                    .iter()
+                    .any(|component| component.pos == expected))
     })
 }
 

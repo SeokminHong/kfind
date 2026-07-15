@@ -220,8 +220,12 @@ impl ConstraintResolver {
             }
         };
         if known.has_complete_paths() {
-            let (previous, next) = match (context.previous, context.next) {
-                (Some(previous), Some(next)) => {
+            let (previous, next) = match (
+                resolution::needs_copular_context(&known, patterns),
+                context.previous,
+                context.next,
+            ) {
+                (true, Some(previous), Some(next)) => {
                     let previous = match TokenGraph::known(&self.resource, previous, node_limit) {
                         Ok(graph) => graph,
                         Err(error) => {

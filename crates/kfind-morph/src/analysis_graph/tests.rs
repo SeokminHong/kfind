@@ -929,6 +929,35 @@ fn adjective_patterns_preserve_the_negative_copula_candidate() {
     );
 }
 
+#[test]
+fn non_copular_current_token_does_not_build_adjacent_graphs() {
+    let resolver = resolver(&[
+        atomic("학교", "NNG", 0),
+        atomic("가", "NNG", 0),
+        atomic("가", "VV", 0),
+        atomic("나", "NNG", 0),
+        atomic("나", "VV", 0),
+    ]);
+    let pattern = exact_pattern("학교", DataFinePos::Nng, ComponentCapability::WholeOnly);
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext {
+            previous: Some("가"),
+            current: "학교",
+            next: Some("나"),
+        },
+        CandidateSpans {
+            core: 0.."학교".len(),
+            anchor: 0.."학교".len(),
+            consumed: 0.."학교".len(),
+            token: 0.."학교".len(),
+        },
+        std::slice::from_ref(&pattern),
+        1,
+    );
+
+    assert_eq!(resolution.outcome, ConstraintOutcome::Supported);
+}
+
 fn exact_pattern(
     lexical_form: &str,
     fine_pos: DataFinePos,
