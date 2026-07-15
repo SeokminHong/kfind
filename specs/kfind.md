@@ -509,8 +509,12 @@
 - component graph schema 2는 schema 1과 같은 container magic을 사용하되 별도 실험 artifact와 loader로 격리한다. surface index, source analysis와 component 관계 payload, string table, connection matrix, `char.def`, `unk.def`를 보존하고 schema, source SHA-256, section length·digest, payload offset, UTF-8, context ID, relation kind와 NFC span을 내용을 노출하기 전에 검증한다.
 - schema 2 source analysis는 POS, left/right context ID, word cost, `analysis_type`, `start_pos`, `end_pos`와 expression 관계를 보존한다. build 단계에서 raw `expression`을 `absent`, `span-aligned`, `fused`, `unaligned`, `invalid`로 정규화하고 component surface·POS와 안정된 byte span만 저장한다. raw `expression` 문자열과 profile별 `CompoundExposure` 선택은 artifact에 저장하지 않는다.
 - schema 2는 policy-neutral 근거 계층이므로 full morphology resource와 exact/common-prefix hit, source analysis, relation component, 연결 비용과 unknown 정의 projection이 같은지 먼저 검증할 수 있다. resolver verdict와 제품 전환은 `CompoundExposure` profile 계약을 정하기 전까지 진행하지 않는다.
+- `QueryMorphPattern`은 fine POS, candidate span 관계, continuation, 인접 token 제약과 명시적 component 노출 capability만 선언한다. surface 목록, 비용 임계값과 fallback 순서를 포함하지 않는다.
+- `TokenAnalysisGraph`는 `source-whole`, `source-component`, `runtime-composed`, `unknown` 근거를 구분한다. known complete path가 있으면 unknown path는 모순 근거로 사용하지 않고 연결 비용과 word cost는 같은 근거 종류 안의 진단 순서에만 사용한다.
+- bounded context는 token graph에 추가하는 구조 제약이며 경쟁하는 whole-token 분석을 삭제하지 않는다. 반복 token이나 copular 인접 구조가 있어도 양립 가능한 분석이 남으면 surface와 관계없이 `Ambiguous`다.
+- strict subspan의 source component와 enclosing whole-token 분석이 함께 있으면 `CompoundExposure` ambiguity다. `opaque`는 거부하고 `transparent`는 수용하며 `explicit`은 query가 별도 component 노출 capability를 선언한 경우만 수용한다. 세 profile 중 품질 채택 조건을 통과한 profile이 없으면 제품 전환 실패로 기록한다.
 - graph resource와 resolver shadow가 기존 true positive를 보존하고 새 false positive를 만들지 않으며 hard-negative를 악화하지 않을 때만 matcher가 resolver verdict를 소비하도록 전환한다. 전환 전에는 기존 registry와 1,500 마진의 제품 동작을 바꾸지 않는다.
-- 세부 단계와 채택 조건은 [형태 분석 그래프 전환 계획](../docs/benchmarks/morphology-analysis-graph-plan.md)을 따른다.
+- 세부 단계와 채택 조건은 [형태 분석 그래프 전환 계획](../docs/benchmarks/morphology-analysis-graph-plan.md)과 [형태 구조 제약 resolver 계약](../docs/benchmarks/morphology-constraint-resolver-contract.md)을 따른다.
 
 ### 0.7 Rust 라이브러리와 WASM 대상
 

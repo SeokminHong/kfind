@@ -31,6 +31,7 @@
 - [Full-POS 용언 exact component 확장](2026-07-15-predicate-exact-component.md)
 - [Exact component 비용 마진](2026-07-15-exact-component-cost-margin.md)
 - [형태 분석 그래프 전환 계획](morphology-analysis-graph-plan.md)
+- [형태 구조 제약 resolver 계약](morphology-constraint-resolver-contract.md)
 - [형태 분석 그래프 schema 2 projection과 비용](2026-07-15-morphology-analysis-graph-resource.md)
 - [Source provenance와 expression component shadow](2026-07-15-source-provenance-shadow.md)
 - [접속 조사 `이면/면`의 명사류 결합](2026-07-15-connector-myeon-particle.md)
@@ -251,7 +252,7 @@ coverage 검사를 함께 도입한다. 새 규칙이 없는 RC 변경에는 이
 
 다음 형태 품질 작업은 비용 마진과 lexical context registry를 source provenance 기반 형태 분석 그래프로 교체하는 구조 전환이다. 먼저 full morphology resource의 source metadata를 기존 local lattice 경로에 연결한 shadow 감사를 실행한다. 감사 결과가 구조 분리를 입증하기 전에는 제품 판정, registry와 1,500 마진을 바꾸지 않는다.
 
-source expression 관계 감사와 policy-neutral component graph schema 2 구현을 완료했다. schema 2는 full resource의 source analysis, expression relation, 연결 비용과 unknown 정의를 전부 투영하며 제품 matcher는 아직 읽지 않는다. 다음 stack은 `CompoundExposure`를 `opaque`, `transparent`, `explicit` 중 어떤 profile 계약으로 둘지 결정한 뒤 resolver shadow를 구현한다. surface별 예외 목록과 새 비용 임계값은 선택지가 아니다.
+source expression 관계 감사와 policy-neutral component graph schema 2 구현을 완료했다. schema 2는 full resource의 source analysis, expression relation, 연결 비용과 unknown 정의를 전부 투영하며 제품 matcher는 아직 읽지 않는다. 다음 stack은 `QueryMorphPattern`, `TokenAnalysisGraph`와 `ConstraintResolver`를 구현하고 `opaque`, `transparent`, `explicit` profile을 같은 품질 집합에서 shadow 평가한다. surface별 예외 목록, 새 비용 임계값과 bounded context의 강제 분석 선택은 선택지가 아니다.
 
 구조 전환 뒤에는 명시적 품사 full-POS `smart`의 남은 FN 25건을 줄이는 제품 변경을 이어간다.
 계측·report·runner만 바꾼 상태는 작업 완료로 보지 않는다. 규칙 조건은 development case만으로
