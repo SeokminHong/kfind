@@ -223,6 +223,72 @@ fn productive_lexical_identity_can_span_three_connected_nodes() {
 }
 
 #[test]
+fn nominal_compound_can_supply_a_token_initial_lexical_host() {
+    let text = "캔맥주는";
+    let resolver = resolver(&[
+        atomic("캔", "NNG", 0),
+        atomic("맥주", "NNG", 0),
+        atomic("는", "JX", 0),
+        noun_compound_transition(),
+        entry(
+            "가는",
+            "NNG+JX",
+            "Preanalysis",
+            "NNG",
+            "JX",
+            "가/NNG/*+는/JX/*",
+            0,
+        ),
+    ]);
+    let pattern = nominal_pattern("캔맥주", DataFinePos::Nng);
+    let host_end = "캔맥주".len();
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        CandidateSpans {
+            core: 0..host_end,
+            anchor: 0..host_end,
+            consumed: 0..text.len(),
+            token: 0..text.len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(resolution.outcome, ConstraintOutcome::Supported);
+    assert!(resolution.supported.analyses.iter().any(|analysis| {
+        analysis.evidence == ConstraintEvidenceKind::RuntimeComposed
+            && analysis.lexical_source_node_indices.len() == 2
+    }));
+}
+
+#[test]
+fn nominal_compound_does_not_license_an_internal_crossing_substring() {
+    let text = "역사과목";
+    let resolver = resolver(&[
+        atomic("역", "NNG", 0),
+        atomic("사", "NNG", 0),
+        atomic("과", "NNG", 0),
+        atomic("목", "NNG", 0),
+        noun_compound_transition(),
+    ]);
+    let pattern = nominal_pattern("사과", DataFinePos::Nng);
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        CandidateSpans {
+            core: "역".len().."역사과".len(),
+            anchor: "역".len().."역사과".len(),
+            consumed: "역".len().."역사과".len(),
+            token: 0..text.len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(resolution.outcome, ConstraintOutcome::Contradicted);
+    assert!(resolution.supported.is_empty());
+}
+
+#[test]
 fn fused_derivational_ending_uses_the_enclosing_token_span() {
     let resolver = resolver(&[
         atomic("접근", "NNG", 0),

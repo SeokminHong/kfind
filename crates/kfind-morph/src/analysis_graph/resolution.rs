@@ -358,10 +358,10 @@ pub(super) fn decide_known(
         };
     }
     let mut proofs = BTreeSet::<CompactSupportProof>::new();
-    let runtime_paths = if patterns
-        .iter()
-        .any(|pattern| matches!(pattern.fine_pos, DataFinePos::Vv | DataFinePos::Va))
-    {
+    let runtime_paths = if patterns.iter().any(|pattern| {
+        pattern.fine_pos.is_nominal()
+            || matches!(pattern.fine_pos, DataFinePos::Vv | DataFinePos::Va)
+    }) {
         runtime_lexical_candidate_paths(graph, spans, patterns)
     } else {
         Vec::new()
@@ -411,7 +411,9 @@ pub(super) fn decide_known(
                 }
             }
         }
-        if !matches!(pattern.fine_pos, DataFinePos::Vv | DataFinePos::Va) {
+        if !matches!(pattern.fine_pos, DataFinePos::Vv | DataFinePos::Va)
+            && !(pattern.fine_pos.is_nominal() && spans.core.start == spans.token.start)
+        {
             continue;
         }
         for lexical_path in &runtime_paths {
@@ -693,7 +695,7 @@ fn extend_lexical_path(
         paths.push(required);
         return;
     }
-    if end > spans.core.end || !lexical_path_can_match(graph, &required, patterns) {
+    if end > spans.core.end || !lexical_path_can_match(graph, spans, &required, patterns) {
         return;
     }
     for &successor in graph.successors(last) {
@@ -709,11 +711,13 @@ fn extend_lexical_path(
 
 fn lexical_path_can_match(
     graph: &TokenGraph<'_>,
+    spans: &CandidateSpans,
     path: &[usize],
     patterns: &[QueryMorphPattern],
 ) -> bool {
     patterns.iter().any(|pattern| {
-        matches!(pattern.fine_pos, DataFinePos::Vv | DataFinePos::Va)
+        (matches!(pattern.fine_pos, DataFinePos::Vv | DataFinePos::Va)
+            || (pattern.fine_pos.is_nominal() && spans.core.start == spans.token.start))
             && (concatenated_prefix_len(
                 pattern.lexical_form.as_ref(),
                 path.iter().map(|&index| graph.nodes()[index].surface),
@@ -978,6 +982,7 @@ struct Unit<'a> {
     span: Option<Range<usize>>,
     coverage: Range<usize>,
     opaque: bool,
+    source: ConstraintNodeSource,
 }
 
 struct ContinuationUnitView<'units, 'data> {
@@ -1165,6 +1170,7 @@ fn runtime_lexical_candidates(
         let mut suffix_pos = None;
         let mut node_count = 0_usize;
         let mut has_opaque = false;
+        let mut nominal_pos_allowed = true;
         let mut end = spans.core.start;
         let mut previous_node = None;
         for (unit_index, unit) in units.iter().enumerate().skip(start) {
@@ -1201,8 +1207,10 @@ fn runtime_lexical_candidates(
             suffix_pos = Some(unit.pos);
             position_count += 1;
             has_opaque |= unit.opaque;
+            nominal_pos_allowed &= unit.source == ConstraintNodeSource::Source
+                && source_pos(unit.pos).is_some_and(DataFinePos::is_nominal);
             if end == spans.core.end {
-                let lexical_match = node_count > 1
+                let predicate_match = node_count > 1
                     && surface_matches
                     && matched_bytes == lexical_bytes.len()
                     && runtime_lexical_pos_matches(
@@ -1211,6 +1219,13 @@ fn runtime_lexical_candidates(
                         suffix_pos,
                         pattern.fine_pos,
                     );
+                let nominal_match = node_count > 1
+                    && spans.core.start == spans.token.start
+                    && pattern.fine_pos.is_nominal()
+                    && surface_matches
+                    && matched_bytes == lexical_bytes.len()
+                    && nominal_pos_allowed;
+                let lexical_match = predicate_match || nominal_match;
                 if lexical_match {
                     let mut node_positions = Vec::with_capacity(node_count);
                     let mut source_node_indices = Vec::with_capacity(node_count);
@@ -1846,6 +1861,7 @@ fn append_node_units<'a>(
             span: Some(node.span.clone()),
             coverage: node.span.clone(),
             opaque: false,
+            source: node.source,
         }));
     } else {
         units.extend(
@@ -1862,6 +1878,7 @@ fn append_node_units<'a>(
                     span: component.span.clone(),
                     coverage: component.span.clone().unwrap_or_else(|| node.span.clone()),
                     opaque: component.span.is_none(),
+                    source: node.source,
                 }),
         );
     }
