@@ -151,18 +151,15 @@ pub(super) fn diagnose_graph_shadow(
                 &candidate.patterns,
                 DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
             );
-            let opaque = profile_evidence(resolution.verdict_for(
-                CompoundExposureProfile::Opaque,
-                &candidate.patterns,
-            ));
-            let transparent = profile_evidence(resolution.verdict_for(
-                CompoundExposureProfile::Transparent,
-                &candidate.patterns,
-            ));
-            let explicit = profile_evidence(resolution.verdict_for(
-                CompoundExposureProfile::Explicit,
-                &candidate.patterns,
-            ));
+            let opaque = profile_evidence(
+                resolution.verdict_for(CompoundExposureProfile::Opaque, &candidate.patterns),
+            );
+            let transparent = profile_evidence(
+                resolution.verdict_for(CompoundExposureProfile::Transparent, &candidate.patterns),
+            );
+            let explicit = profile_evidence(
+                resolution.verdict_for(CompoundExposureProfile::Explicit, &candidate.patterns),
+            );
             GraphShadowEvidence {
                 atom_index: candidate.atom_index,
                 branch_index: candidate.branch_index,
@@ -210,21 +207,18 @@ fn resolve_pattern(
         lexical_form: pattern.lexical_form.to_string(),
         expose_source_components: pattern.expose_source_components,
         verdict: verdict_name(resolution.verdict),
-        opaque_verdict: verdict_name(
-            resolution.verdict_for(CompoundExposureProfile::Opaque, std::slice::from_ref(pattern)),
-        ),
-        transparent_verdict: verdict_name(
-            resolution.verdict_for(
-                CompoundExposureProfile::Transparent,
-                std::slice::from_ref(pattern),
-            ),
-        ),
-        explicit_verdict: verdict_name(
-            resolution.verdict_for(
-                CompoundExposureProfile::Explicit,
-                std::slice::from_ref(pattern),
-            ),
-        ),
+        opaque_verdict: verdict_name(resolution.verdict_for(
+            CompoundExposureProfile::Opaque,
+            std::slice::from_ref(pattern),
+        )),
+        transparent_verdict: verdict_name(resolution.verdict_for(
+            CompoundExposureProfile::Transparent,
+            std::slice::from_ref(pattern),
+        )),
+        explicit_verdict: verdict_name(resolution.verdict_for(
+            CompoundExposureProfile::Explicit,
+            std::slice::from_ref(pattern),
+        )),
         proof: proof_evidence(resolution.proof),
     }
 }

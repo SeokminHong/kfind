@@ -1096,10 +1096,7 @@ mod tests {
         let graph = &serialized["analysis_graph"][0];
         assert_eq!(graph["status"], "evaluated");
         assert_eq!(graph["product_accepted"], true);
-        assert_eq!(
-            graph["resolution"]["verdict"],
-            "ambiguous:CompoundExposure"
-        );
+        assert_eq!(graph["resolution"]["verdict"], "ambiguous:CompoundExposure");
         assert_eq!(graph["opaque"]["accepted"], false);
         assert_eq!(graph["transparent"]["accepted"], true);
         assert_eq!(graph["explicit"]["accepted"], false);
