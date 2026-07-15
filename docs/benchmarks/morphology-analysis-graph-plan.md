@@ -75,6 +75,8 @@ schema 2는 schema 1과 같은 container magic을 사용하되 별도 `morpholog
 
 graph resource는 `CompoundExposure` 선택을 저장하지 않는 policy-neutral 근거 계층이다. 따라서 schema 2 구현과 full-resource projection 검증은 profile 결정보다 먼저 진행할 수 있지만 resolver verdict와 제품 전환은 profile 계약을 정하기 전까지 진행하지 않는다.
 
+schema 2 구현과 full-resource projection 결과는 [형태 분석 그래프 schema 2 projection과 비용](2026-07-15-morphology-analysis-graph-resource.md)에 기록한다.
+
 ### 4. Resolver shadow
 
 기존 matcher 결과와 동시에 graph resolver의 verdict와 proof를 기록한다. 이 단계에서는 `ContextRequirement`, lexical context registry와 1,500 비용 마진을 제품 경로에 유지한다. resolver는 현재 true positive, hard-negative와 known ambiguity를 설명해야 한다.
