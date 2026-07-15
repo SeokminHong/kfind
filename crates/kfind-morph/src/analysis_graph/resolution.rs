@@ -696,20 +696,38 @@ fn lexical_path_can_match(
     path: &[usize],
     patterns: &[QueryMorphPattern],
 ) -> bool {
-    let surface = path
-        .iter()
-        .map(|&index| graph.nodes()[index].surface)
-        .collect::<String>();
-    let canonical = path
-        .iter()
-        .flat_map(|&index| graph.nodes()[index].components.iter())
-        .map(|component| component.surface)
-        .collect::<String>();
     patterns.iter().any(|pattern| {
         matches!(pattern.fine_pos, DataFinePos::Vv | DataFinePos::Va)
-            && (pattern.lexical_form.starts_with(&surface)
-                || (!canonical.is_empty() && pattern.lexical_form.starts_with(&canonical)))
+            && (concatenated_prefix_len(
+                pattern.lexical_form.as_ref(),
+                path.iter().map(|&index| graph.nodes()[index].surface),
+            )
+            .is_some()
+                || concatenated_prefix_len(
+                    pattern.lexical_form.as_ref(),
+                    path.iter()
+                        .flat_map(|&index| graph.nodes()[index].components.iter())
+                        .map(|component| component.surface),
+                )
+                .is_some_and(|length| length > 0))
     })
+}
+
+fn concatenated_prefix_len<'a>(
+    target: &str,
+    segments: impl Iterator<Item = &'a str>,
+) -> Option<usize> {
+    let target = target.as_bytes();
+    let mut matched = 0_usize;
+    for segment in segments {
+        let segment = segment.as_bytes();
+        let end = matched.checked_add(segment.len())?;
+        if target.get(matched..end) != Some(segment) {
+            return None;
+        }
+        matched = end;
+    }
+    Some(matched)
 }
 
 fn extend_supported_path(
@@ -1073,15 +1091,18 @@ fn runtime_lexical_candidates(
     pattern: &QueryMorphPattern,
 ) -> Vec<SupportCandidate> {
     let mut matches = Vec::new();
+    let lexical_bytes = pattern.lexical_form.as_bytes();
     for start in 0..units.len() {
         let first = &units[start];
         if first.coverage.start != spans.core.start {
             continue;
         }
-        let mut surface = String::new();
-        let mut positions = Vec::new();
-        let mut node_positions = Vec::new();
-        let mut source_node_indices = Vec::new();
+        let mut matched_bytes = 0_usize;
+        let mut surface_matches = true;
+        let mut position_count = 0_usize;
+        let mut base_pos_allowed = true;
+        let mut suffix_pos = None;
+        let mut node_count = 0_usize;
         let mut has_opaque = false;
         let mut end = spans.core.start;
         let mut previous_node = None;
@@ -1095,26 +1116,54 @@ fn runtime_lexical_candidates(
                     break;
                 }
                 end = unit.coverage.end;
-                node_positions.push(unit.node_position);
-                source_node_indices.push(unit.source_node_index);
+                node_count += 1;
                 previous_node = Some(unit.node_position);
             }
             if end > spans.core.end {
                 break;
             }
-            surface.push_str(unit.surface);
-            positions.push(unit.pos);
+            if surface_matches {
+                let unit_bytes = unit.surface.as_bytes();
+                surface_matches = lexical_bytes
+                    .get(matched_bytes..)
+                    .is_some_and(|remaining| remaining.starts_with(unit_bytes));
+                if surface_matches {
+                    matched_bytes += unit_bytes.len();
+                }
+            }
+            if !surface_matches {
+                break;
+            }
+            if let Some(previous) = suffix_pos {
+                base_pos_allowed &= matches!(previous, "XPN" | "XR" | "NNG" | "NNP");
+            }
+            suffix_pos = Some(unit.pos);
+            position_count += 1;
             has_opaque |= unit.opaque;
             if end == spans.core.end {
-                let lexical_match = node_positions.len() > 1
-                    && surface == pattern.lexical_form.as_ref()
-                    && runtime_lexical_pos_matches(&positions, pattern.fine_pos);
+                let lexical_match = node_count > 1
+                    && surface_matches
+                    && matched_bytes == lexical_bytes.len()
+                    && runtime_lexical_pos_matches(
+                        position_count,
+                        base_pos_allowed,
+                        suffix_pos,
+                        pattern.fine_pos,
+                    );
                 if lexical_match {
+                    let mut node_positions = Vec::with_capacity(node_count);
+                    let mut source_node_indices = Vec::with_capacity(node_count);
+                    for lexical_unit in &units[start..=unit_index] {
+                        if node_positions.last() != Some(&lexical_unit.node_position) {
+                            node_positions.push(lexical_unit.node_position);
+                            source_node_indices.push(lexical_unit.source_node_index);
+                        }
+                    }
                     matches.push(SupportCandidate {
                         node_position: unit.node_position,
                         source_node_index: unit.source_node_index,
-                        lexical_node_positions: node_positions.clone(),
-                        source_node_indices: source_node_indices.clone(),
+                        lexical_node_positions: node_positions,
+                        source_node_indices,
                         component_index: None,
                         unit_index,
                         evidence: if has_opaque {
@@ -1126,7 +1175,7 @@ fn runtime_lexical_candidates(
                         opaque: has_opaque,
                     });
                 }
-                if lexical_match || !pattern.lexical_form.starts_with(&surface) {
+                if lexical_match {
                     break;
                 }
             }
@@ -1135,17 +1184,16 @@ fn runtime_lexical_candidates(
     matches
 }
 
-fn runtime_lexical_pos_matches(positions: &[&str], query: DataFinePos) -> bool {
-    let Some((suffix, base)) = positions.split_last() else {
-        return false;
-    };
-    let base_allowed = !base.is_empty()
-        && base
-            .iter()
-            .all(|pos| matches!(*pos, "XPN" | "XR" | "NNG" | "NNP"));
+fn runtime_lexical_pos_matches(
+    position_count: usize,
+    base_allowed: bool,
+    suffix: Option<&str>,
+    query: DataFinePos,
+) -> bool {
+    let base_allowed = position_count > 1 && base_allowed;
     match query {
-        DataFinePos::Vv => base_allowed && *suffix == "XSV",
-        DataFinePos::Va => base_allowed && *suffix == "XSA",
+        DataFinePos::Vv => base_allowed && suffix == Some("XSV"),
+        DataFinePos::Va => base_allowed && suffix == Some("XSA"),
         _ => false,
     }
 }
