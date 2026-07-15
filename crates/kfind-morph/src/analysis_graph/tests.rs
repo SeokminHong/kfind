@@ -206,19 +206,29 @@ fn productive_lexical_identity_can_span_three_connected_nodes() {
         ),
     ]);
     let pattern = predicate_pattern("초실행하", ContinuationState::AOrEo);
+    let spans = CandidateSpans {
+        core: 0.."초실행하".len(),
+        anchor: 0.."초실행하".len(),
+        consumed: 0.."초실행하".len(),
+        token: 0.."초실행하".len(),
+    };
     let resolution = resolver.resolve_candidate(
         BoundedTokenContext::current("초실행하"),
-        CandidateSpans {
-            core: 0.."초실행하".len(),
-            anchor: 0.."초실행하".len(),
-            consumed: 0.."초실행하".len(),
-            token: 0.."초실행하".len(),
-        },
+        spans.clone(),
         std::slice::from_ref(&pattern),
         DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
     );
 
     assert_eq!(resolution.outcome, ConstraintOutcome::Supported);
+    assert_eq!(
+        resolver.decide_candidate(
+            BoundedTokenContext::current("초실행하"),
+            spans,
+            std::slice::from_ref(&pattern),
+            DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+        ),
+        resolution.decision()
+    );
     assert!(resolution.supported.analyses.iter().any(|analysis| {
         analysis.evidence == ConstraintEvidenceKind::RuntimeComposed
             && analysis.lexical_source_node_indices.len() == 3
@@ -252,19 +262,29 @@ fn predicate_auxiliary_chain_aligns_query_and_source_lexical_traces() {
     ]);
     let pattern = predicate_pattern("끝나버리", ContinuationState::Terminal);
     let core_end = "끝나버리".len();
+    let spans = CandidateSpans {
+        core: 0..core_end,
+        anchor: 0.."끝나버리는".len(),
+        consumed: 0.."끝나버리는".len(),
+        token: 0.."끝나버리는".len(),
+    };
     let resolution = resolver.resolve_candidate(
         BoundedTokenContext::current("끝나버리는"),
-        CandidateSpans {
-            core: 0..core_end,
-            anchor: 0.."끝나버리는".len(),
-            consumed: 0.."끝나버리는".len(),
-            token: 0.."끝나버리는".len(),
-        },
+        spans.clone(),
         std::slice::from_ref(&pattern),
         DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
     );
 
     assert_eq!(resolution.outcome, ConstraintOutcome::Supported);
+    assert_eq!(
+        resolver.decide_candidate(
+            BoundedTokenContext::current("끝나버리는"),
+            spans,
+            std::slice::from_ref(&pattern),
+            DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+        ),
+        resolution.decision()
+    );
     assert!(resolution.supported.analyses.iter().any(|analysis| {
         analysis.evidence == ConstraintEvidenceKind::RuntimeComposed
             && analysis.lexical_source_node_indices.len() == 2

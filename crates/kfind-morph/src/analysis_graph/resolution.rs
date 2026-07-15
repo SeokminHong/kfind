@@ -324,10 +324,6 @@ impl PreparedQueryTraces {
             .get(pattern_index)
             .map_or(&[], Vec::as_slice)
     }
-
-    fn has_runtime_traces(&self) -> bool {
-        self.by_pattern.iter().any(|traces| !traces.is_empty())
-    }
 }
 
 pub(super) fn empty_query_traces() -> &'static PreparedQueryTraces {
@@ -675,11 +671,6 @@ pub(super) fn decide_known(
         };
     }
     let mut proofs = BTreeSet::<CompactSupportProof>::new();
-    let runtime_paths = if query_traces.has_runtime_traces() {
-        runtime_lexical_candidate_paths(graph, spans, query_traces)
-    } else {
-        Vec::new()
-    };
     for (pattern_index, pattern) in patterns.iter().enumerate() {
         let Some(context_match) = context_match(context, pattern, spans) else {
             continue;
@@ -733,35 +724,30 @@ pub(super) fn decide_known(
         if traces.is_empty() || spans.core.start != spans.token.start {
             continue;
         }
-        for lexical_path in &runtime_paths {
-            let mut traversal_path = DecisionTraversalPath {
-                last: *lexical_path.last().expect("lexical path is non-empty"),
-                units: path_units(lexical_path, graph.nodes()),
+        let indexed_pattern = IndexedPattern {
+            index: pattern_index,
+            pattern,
+            context_resolved,
+            attached_nominal_allowed,
+        };
+        if visit_runtime_lexical_supports(graph, spans, traces, &mut |traversal_path, support| {
+            extend_decision_support(
+                graph,
+                spans,
+                indexed_pattern,
+                traversal_path,
+                support,
+                &mut proofs,
+                proof_limit,
+            )
+        }) {
+            return ConstraintDecision {
+                outcome: ConstraintOutcome::Unavailable(ConstraintUnavailable::PathLimit {
+                    actual: proofs.len(),
+                    limit: proof_limit,
+                }),
+                supported: Vec::new(),
             };
-            for support in runtime_lexical_candidates(&traversal_path.units, spans, traces) {
-                if extend_decision_support(
-                    graph,
-                    spans,
-                    IndexedPattern {
-                        index: pattern_index,
-                        pattern,
-                        context_resolved,
-                        attached_nominal_allowed,
-                    },
-                    &mut traversal_path,
-                    &support,
-                    &mut proofs,
-                    proof_limit,
-                ) {
-                    return ConstraintDecision {
-                        outcome: ConstraintOutcome::Unavailable(ConstraintUnavailable::PathLimit {
-                            actual: proofs.len(),
-                            limit: proof_limit,
-                        }),
-                        supported: Vec::new(),
-                    };
-                }
-            }
         }
     }
     let outcome = support_outcome(
@@ -1010,25 +996,6 @@ fn lexical_candidate_paths(
     paths
 }
 
-fn runtime_lexical_candidate_paths(
-    graph: &TokenGraph<'_>,
-    spans: &CandidateSpans,
-    query_traces: &PreparedQueryTraces,
-) -> Vec<Vec<usize>> {
-    let mut paths = Vec::new();
-    for (index, node) in graph.nodes().iter().enumerate() {
-        if graph.is_on_complete_path(index)
-            && node.span.start == spans.core.start
-            && node.span.end < spans.core.end
-        {
-            extend_lexical_path(graph, spans, query_traces, vec![index], &mut paths);
-        }
-    }
-    paths.sort();
-    paths.dedup();
-    paths
-}
-
 fn extend_lexical_path(
     graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
@@ -1063,6 +1030,85 @@ fn lexical_path_can_match(
 ) -> bool {
     let units = path_units(path, graph.nodes());
     query_traces.by_pattern.iter().flatten().any(|trace| {
+        units.len() <= trace.units.len()
+            && units
+                .iter()
+                .zip(&trace.units)
+                .all(|(source, query)| source_unit_matches_query(source, query))
+    })
+}
+
+fn visit_runtime_lexical_supports<'a>(
+    graph: &TokenGraph<'a>,
+    spans: &CandidateSpans,
+    query_traces: &[QueryLexicalTrace],
+    visitor: &mut impl FnMut(&mut DecisionTraversalPath<'a>, &SupportCandidate) -> bool,
+) -> bool {
+    for (index, node) in graph.nodes().iter().enumerate() {
+        if !graph.is_on_complete_path(index)
+            || node.span.start != spans.core.start
+            || node.span.end >= spans.core.end
+        {
+            continue;
+        }
+        let mut path = DecisionTraversalPath {
+            last: index,
+            units: path_units(&[index], graph.nodes()),
+        };
+        if visit_runtime_lexical_path(graph, spans, query_traces, &mut path, visitor) {
+            return true;
+        }
+    }
+    false
+}
+
+fn visit_runtime_lexical_path<'a>(
+    graph: &TokenGraph<'a>,
+    spans: &CandidateSpans,
+    query_traces: &[QueryLexicalTrace],
+    path: &mut DecisionTraversalPath<'a>,
+    visitor: &mut impl FnMut(&mut DecisionTraversalPath<'a>, &SupportCandidate) -> bool,
+) -> bool {
+    let end = graph.nodes()[path.last].span.end;
+    if end == spans.core.end {
+        for trace in query_traces {
+            if let Some(support) = runtime_lexical_candidate(&path.units, spans, trace)
+                && visitor(path, &support)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    if end > spans.core.end || !runtime_lexical_prefix_matches(&path.units, query_traces) {
+        return false;
+    }
+    let previous_last = path.last;
+    for &successor in graph.successors(previous_last) {
+        let next = &graph.nodes()[successor];
+        if next.span.end > spans.core.end || !graph.is_on_complete_path(successor) {
+            continue;
+        }
+        let previous_len = path.units.len();
+        let node_position = path
+            .units
+            .last()
+            .map_or(0, |unit| unit.node_position.saturating_add(1));
+        append_node_units(&mut path.units, node_position, successor, graph.nodes());
+        path.last = successor;
+        if visit_runtime_lexical_path(graph, spans, query_traces, path, visitor) {
+            path.units.truncate(previous_len);
+            path.last = previous_last;
+            return true;
+        }
+        path.units.truncate(previous_len);
+        path.last = previous_last;
+    }
+    false
+}
+
+fn runtime_lexical_prefix_matches(units: &[Unit<'_>], query_traces: &[QueryLexicalTrace]) -> bool {
+    query_traces.iter().any(|trace| {
         units.len() <= trace.units.len()
             && units
                 .iter()
@@ -1548,60 +1594,10 @@ fn runtime_lexical_candidates(
     spans: &CandidateSpans,
     query_traces: &[QueryLexicalTrace],
 ) -> Vec<SupportCandidate> {
-    let mut matches = Vec::new();
-    for trace in query_traces {
-        if trace.units.is_empty() || trace.units.len() > units.len() {
-            continue;
-        }
-        let lexical_units = &units[..trace.units.len()];
-        if !lexical_units
-            .iter()
-            .zip(&trace.units)
-            .all(|(source, query)| source_unit_matches_query(source, query))
-        {
-            continue;
-        }
-        let first = &lexical_units[0];
-        let last = lexical_units
-            .last()
-            .expect("query lexical trace is non-empty");
-        if first.coverage.start != spans.core.start || last.coverage.end != spans.core.end {
-            continue;
-        }
-        if units[trace.units.len()..].iter().any(|unit| {
-            unit.node_position != last.node_position && unit.coverage.start < spans.core.end
-        }) {
-            continue;
-        }
-        let lexical_refs = lexical_units.iter().collect::<Vec<_>>();
-        if !enclosing_coverage(&lexical_refs, spans.core.clone()) {
-            continue;
-        }
-        let mut node_positions = Vec::new();
-        let mut source_node_indices = Vec::new();
-        for unit in lexical_units {
-            if node_positions.last() != Some(&unit.node_position) {
-                node_positions.push(unit.node_position);
-                source_node_indices.push(unit.source_node_index);
-            }
-        }
-        let has_opaque = lexical_units.iter().any(|unit| unit.opaque);
-        matches.push(SupportCandidate {
-            node_position: last.node_position,
-            source_node_index: last.source_node_index,
-            lexical_node_positions: node_positions,
-            source_node_indices,
-            component_index: last.component_index,
-            unit_index: trace.units.len() - 1,
-            evidence: if has_opaque {
-                ConstraintEvidenceKind::OpaqueExpression
-            } else {
-                ConstraintEvidenceKind::RuntimeComposed
-            },
-            relation: ConstraintSpanRelation::RuntimeComponent,
-            opaque: has_opaque,
-        });
-    }
+    let mut matches = query_traces
+        .iter()
+        .filter_map(|trace| runtime_lexical_candidate(units, spans, trace))
+        .collect::<Vec<_>>();
     matches.sort_by_key(|candidate| {
         (
             candidate.node_position,
@@ -1615,6 +1611,64 @@ fn runtime_lexical_candidates(
             && left.source_node_indices == right.source_node_indices
     });
     matches
+}
+
+fn runtime_lexical_candidate(
+    units: &[Unit<'_>],
+    spans: &CandidateSpans,
+    trace: &QueryLexicalTrace,
+) -> Option<SupportCandidate> {
+    if trace.units.is_empty() || trace.units.len() > units.len() {
+        return None;
+    }
+    let lexical_units = &units[..trace.units.len()];
+    if !lexical_units
+        .iter()
+        .zip(&trace.units)
+        .all(|(source, query)| source_unit_matches_query(source, query))
+    {
+        return None;
+    }
+    let first = &lexical_units[0];
+    let last = lexical_units
+        .last()
+        .expect("query lexical trace is non-empty");
+    if first.coverage.start != spans.core.start || last.coverage.end != spans.core.end {
+        return None;
+    }
+    if units[trace.units.len()..].iter().any(|unit| {
+        unit.node_position != last.node_position && unit.coverage.start < spans.core.end
+    }) {
+        return None;
+    }
+    let lexical_refs = lexical_units.iter().collect::<Vec<_>>();
+    if !enclosing_coverage(&lexical_refs, spans.core.clone()) {
+        return None;
+    }
+    let mut node_positions = Vec::new();
+    let mut source_node_indices = Vec::new();
+    for unit in lexical_units {
+        if node_positions.last() != Some(&unit.node_position) {
+            node_positions.push(unit.node_position);
+            source_node_indices.push(unit.source_node_index);
+        }
+    }
+    let has_opaque = lexical_units.iter().any(|unit| unit.opaque);
+    Some(SupportCandidate {
+        node_position: last.node_position,
+        source_node_index: last.source_node_index,
+        lexical_node_positions: node_positions,
+        source_node_indices,
+        component_index: last.component_index,
+        unit_index: trace.units.len() - 1,
+        evidence: if has_opaque {
+            ConstraintEvidenceKind::OpaqueExpression
+        } else {
+            ConstraintEvidenceKind::RuntimeComposed
+        },
+        relation: ConstraintSpanRelation::RuntimeComponent,
+        opaque: has_opaque,
+    })
 }
 
 fn source_unit_matches_query(source: &Unit<'_>, query: &QueryLexicalUnit) -> bool {
