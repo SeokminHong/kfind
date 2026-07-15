@@ -32,6 +32,12 @@ fn test_surfaces(branch: &SurfaceBranchSpec) -> Vec<String> {
         ContinuationState::Future => {
             vec![branch.anchor.to_string(), format!("{}다", branch.anchor)]
         }
+        ContinuationState::Declarative => {
+            ["", "고", "는", "던", "면", "니", "며", "면서", "는데", "지"]
+                .into_iter()
+                .map(|suffix| format!("{}{suffix}", branch.anchor))
+                .collect()
+        }
         ContinuationState::Eu => vec![
             format!("{}면", branch.anchor),
             format!("{}며", branch.anchor),
@@ -499,6 +505,14 @@ fn action_present_declarative_and_copula_past_are_compiled() {
     let action = entry("검증하다", PredicatePos::Verb, LexicalAlternation::Ha);
     let action_surfaces = surfaces(&action);
     assert!(action_surfaces.contains("검증한다"));
+    assert!(action_surfaces.contains("검증한다고"));
+
+    let declarative = generate_predicate_branches(&action)
+        .expect("valid fixture")
+        .into_iter()
+        .find(|branch| branch.anchor.as_ref() == "검증한다")
+        .expect("present declarative branch");
+    assert_eq!(declarative.continuation, ContinuationState::Declarative);
 
     let copula = entry("이다", PredicatePos::Copula, LexicalAlternation::Copula);
     let copula_surfaces = surfaces(&copula);

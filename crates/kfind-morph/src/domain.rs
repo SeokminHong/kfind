@@ -183,6 +183,7 @@ pub enum ContinuationState {
     AOrEo,
     Past,
     Future,
+    Declarative,
     Eu,
 }
 

@@ -68,6 +68,18 @@ const FUTURE_SUFFIXES: &[Suffix] = &[
     suffix("고", &["ending.connective-go"]),
 ];
 
+const DECLARATIVE_SUFFIXES: &[Suffix] = &[
+    suffix("면서", &["ending.quotative-myeonseo"]),
+    suffix("는데", &["ending.quotative-neunde"]),
+    suffix("고", &["ending.quotative-go"]),
+    suffix("는", &["ending.quotative-adnominal"]),
+    suffix("던", &["ending.quotative-retrospective"]),
+    suffix("면", &["ending.conditional"]),
+    suffix("니", &["ending.quotative-ni"]),
+    suffix("며", &["ending.quotative-myeo"]),
+    suffix("지", &["ending.quotative-ji"]),
+];
+
 const EU_SUFFIXES: &[Suffix] = &[
     suffix("리라고", &["ending.prospective-quotative"]),
     suffix(
@@ -115,6 +127,7 @@ pub fn verify_predicate_continuation(
         ContinuationState::AOrEo => A_OR_EO_SUFFIXES,
         ContinuationState::Past => PAST_SUFFIXES,
         ContinuationState::Future => FUTURE_SUFFIXES,
+        ContinuationState::Declarative => DECLARATIVE_SUFFIXES,
         ContinuationState::Eu => EU_SUFFIXES,
     };
 
@@ -191,6 +204,49 @@ mod tests {
             assert_eq!(matched.token_end, format!("{anchor}으되").len());
             assert_eq!(matched.rule_path, [RuleId::from("ending.connective-eudoe")]);
         }
+    }
+
+    #[test]
+    fn declarative_state_consumes_bounded_continuations() {
+        for (following, surface, rule_id) in [
+            ("고 말했다", "쓴다고", "ending.quotative-go"),
+            ("는 말", "쓴다는", "ending.quotative-adnominal"),
+            ("던 말", "쓴다던", "ending.quotative-retrospective"),
+            ("면 알겠다", "쓴다면", "ending.conditional"),
+            ("니 놀랍다", "쓴다니", "ending.quotative-ni"),
+            ("며 나섰다", "쓴다며", "ending.quotative-myeo"),
+            ("면서 미뤘다", "쓴다면서", "ending.quotative-myeonseo"),
+            ("는데 기다렸다", "쓴다는데", "ending.quotative-neunde"),
+            ("지?", "쓴다지", "ending.quotative-ji"),
+        ] {
+            let matched = verify_predicate_continuation(
+                ContinuationState::Declarative,
+                PredicatePos::Verb,
+                "쓴다",
+                following,
+            )
+            .expect("declarative continuation");
+            assert_eq!(matched.token_end, surface.len());
+            assert_eq!(matched.rule_path, [RuleId::from(rule_id)]);
+        }
+
+        let bare = verify_predicate_continuation(
+            ContinuationState::Declarative,
+            PredicatePos::Verb,
+            "쓴다",
+            " 말했다",
+        )
+        .expect("bare declarative");
+        assert_eq!(bare.consumed_bytes, 0);
+
+        let unsupported = verify_predicate_continuation(
+            ContinuationState::Declarative,
+            PredicatePos::Verb,
+            "쓴다",
+            "도 말했다",
+        )
+        .expect("completed declarative remains valid");
+        assert_eq!(unsupported.consumed_bytes, 0);
     }
 
     #[test]
