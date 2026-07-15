@@ -229,9 +229,9 @@ impl<'a> BoundedTokenContext<'a> {
 
 pub(super) fn select_context(
     context: BoundedTokenContext<'_>,
-    current: &TokenGraph,
-    previous: Option<&TokenGraph>,
-    next: Option<&TokenGraph>,
+    current: &TokenGraph<'_>,
+    previous: Option<&TokenGraph<'_>>,
+    next: Option<&TokenGraph<'_>>,
 ) -> ContextSelection {
     let repeated = repeated_selection(context, current);
     let copular = previous
@@ -258,7 +258,10 @@ pub(super) fn select_context(
     }
 }
 
-pub(super) fn needs_copular_context(current: &TokenGraph, patterns: &[QueryMorphPattern]) -> bool {
+pub(super) fn needs_copular_context(
+    current: &TokenGraph<'_>,
+    patterns: &[QueryMorphPattern],
+) -> bool {
     let requested = patterns.iter().any(|pattern| {
         pattern
             .adjacent
@@ -269,7 +272,7 @@ pub(super) fn needs_copular_context(current: &TokenGraph, patterns: &[QueryMorph
 }
 
 pub(super) fn resolve_known(
-    graph: &TokenGraph,
+    graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
     patterns: &[QueryMorphPattern],
     context: &ContextSelection,
@@ -304,7 +307,7 @@ pub(super) fn resolve_known(
 }
 
 pub(super) fn decide_known(
-    graph: &TokenGraph,
+    graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
     patterns: &[QueryMorphPattern],
     context: &ContextSelection,
@@ -321,7 +324,7 @@ struct KnownEvaluation {
 }
 
 fn evaluate_known(
-    graph: &TokenGraph,
+    graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
     patterns: &[QueryMorphPattern],
     context: &ContextSelection,
@@ -425,7 +428,7 @@ fn evaluate_known(
 }
 
 fn candidate_witness_paths(
-    graph: &TokenGraph,
+    graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
     patterns: &[QueryMorphPattern],
 ) -> Vec<Vec<usize>> {
@@ -450,7 +453,7 @@ fn candidate_witness_paths(
 }
 
 fn lexical_candidate_paths(
-    graph: &TokenGraph,
+    graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
     patterns: &[QueryMorphPattern],
 ) -> Vec<Vec<usize>> {
@@ -472,7 +475,7 @@ fn lexical_candidate_paths(
 }
 
 fn extend_lexical_path(
-    graph: &TokenGraph,
+    graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
     patterns: &[QueryMorphPattern],
     required: Vec<usize>,
@@ -499,18 +502,18 @@ fn extend_lexical_path(
 }
 
 fn lexical_path_can_match(
-    graph: &TokenGraph,
+    graph: &TokenGraph<'_>,
     path: &[usize],
     patterns: &[QueryMorphPattern],
 ) -> bool {
     let surface = path
         .iter()
-        .map(|&index| graph.nodes()[index].surface.as_str())
+        .map(|&index| graph.nodes()[index].surface)
         .collect::<String>();
     let canonical = path
         .iter()
         .flat_map(|&index| graph.nodes()[index].components.iter())
-        .map(|component| component.surface.as_str())
+        .map(|component| component.surface)
         .collect::<String>();
     patterns.iter().any(|pattern| {
         pattern.lexical_form.starts_with(&surface)
@@ -519,7 +522,7 @@ fn lexical_path_can_match(
 }
 
 fn extend_supported_path(
-    graph: &TokenGraph,
+    graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
     pattern: &QueryMorphPattern,
     required: Vec<usize>,
@@ -614,7 +617,7 @@ fn predicate_prefix(positions: &[&str]) -> bool {
     })
 }
 
-fn path_proofs(graph: &TokenGraph, paths: &[Vec<usize>]) -> Vec<super::ConstraintPathProof> {
+fn path_proofs(graph: &TokenGraph<'_>, paths: &[Vec<usize>]) -> Vec<super::ConstraintPathProof> {
     paths
         .iter()
         .map(|path| super::ConstraintPathProof {
@@ -632,7 +635,7 @@ fn path_proofs(graph: &TokenGraph, paths: &[Vec<usize>]) -> Vec<super::Constrain
 }
 
 fn lexical_competition(
-    graph: &TokenGraph,
+    graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
     patterns: &[QueryMorphPattern],
 ) -> bool {
@@ -646,7 +649,7 @@ fn lexical_competition(
                         && !patterns.iter().any(|pattern| pattern.fine_pos == fine_pos)
                 })
             }) || node.components.iter().any(|component| {
-                source_pos(&component.pos).is_some_and(|fine_pos| {
+                source_pos(component.pos).is_some_and(|fine_pos| {
                     !fine_pos.is_particle()
                         && patterns.iter().any(|pattern| pattern.fine_pos == fine_pos)
                         && !patterns.iter().any(|pattern| {
@@ -697,7 +700,7 @@ struct SupportCandidate {
 
 fn support_candidates(
     path: &[usize],
-    nodes: &[Node],
+    nodes: &[Node<'_>],
     units: &[Unit<'_>],
     spans: &CandidateSpans,
     pattern: &QueryMorphPattern,
@@ -741,7 +744,7 @@ fn support_candidates(
         }
         for (component_index, component) in node.components.iter().enumerate() {
             if component.surface != pattern.lexical_form.as_ref()
-                || !source_pos_matches(&component.pos, pattern.fine_pos)
+                || !source_pos_matches(component.pos, pattern.fine_pos)
             {
                 continue;
             }
@@ -1133,7 +1136,7 @@ fn side_matches(required: AdjacentSide, actual: AdjacentSide) -> bool {
 
 fn repeated_selection(
     context: BoundedTokenContext<'_>,
-    current: &TokenGraph,
+    current: &TokenGraph<'_>,
 ) -> Option<AdjacentSide> {
     if !has_exact_pos(current, "MAG") {
         return None;
@@ -1151,9 +1154,9 @@ fn repeated_selection(
 
 fn copular_selection(
     current_text: &str,
-    previous: &TokenGraph,
-    current: &TokenGraph,
-    next: &TokenGraph,
+    previous: &TokenGraph<'_>,
+    current: &TokenGraph<'_>,
+    next: &TokenGraph<'_>,
 ) -> Option<(Range<usize>, Range<usize>)> {
     if !has_pos_sequence(previous, &["VCN", "EC"])
         || !starts_with_pos(next, |pos| matches!(pos, "NNB" | "NNBC"))
@@ -1190,7 +1193,7 @@ fn copular_selection(
 
 fn nominal_particle_host_selection(
     current_text: &str,
-    current: &TokenGraph,
+    current: &TokenGraph<'_>,
 ) -> Option<Range<usize>> {
     let mut splits = BTreeSet::new();
     for path in current.witness_paths() {
@@ -1229,7 +1232,7 @@ fn is_predicate_pos(pos: DataFinePos) -> bool {
     )
 }
 
-fn has_exact_pos(graph: &TokenGraph, expected: &str) -> bool {
+fn has_exact_pos(graph: &TokenGraph<'_>, expected: &str) -> bool {
     graph.witness_paths().iter().any(|path| {
         path.len() == 1
             && graph.nodes()[path[0]]
@@ -1239,7 +1242,7 @@ fn has_exact_pos(graph: &TokenGraph, expected: &str) -> bool {
     })
 }
 
-fn has_complete_pos(graph: &TokenGraph, expected: &str) -> bool {
+fn has_complete_pos(graph: &TokenGraph<'_>, expected: &str) -> bool {
     graph.nodes().iter().enumerate().any(|(index, node)| {
         graph.is_on_complete_path(index)
             && (node.pos.split('+').any(|pos| pos == expected)
@@ -1250,7 +1253,7 @@ fn has_complete_pos(graph: &TokenGraph, expected: &str) -> bool {
     })
 }
 
-fn has_pos_sequence(graph: &TokenGraph, expected: &[&str]) -> bool {
+fn has_pos_sequence(graph: &TokenGraph<'_>, expected: &[&str]) -> bool {
     graph.witness_paths().iter().any(|path| {
         path.iter()
             .flat_map(|&index| graph.nodes()[index].pos.split('+'))
@@ -1258,7 +1261,7 @@ fn has_pos_sequence(graph: &TokenGraph, expected: &[&str]) -> bool {
     })
 }
 
-fn starts_with_pos(graph: &TokenGraph, accepts: impl Fn(&str) -> bool) -> bool {
+fn starts_with_pos(graph: &TokenGraph<'_>, accepts: impl Fn(&str) -> bool) -> bool {
     graph.witness_paths().iter().any(|path| {
         path.first()
             .and_then(|&index| graph.nodes()[index].pos.split('+').next())
@@ -1266,7 +1269,7 @@ fn starts_with_pos(graph: &TokenGraph, accepts: impl Fn(&str) -> bool) -> bool {
     })
 }
 
-fn path_units<'a>(path: &[usize], nodes: &'a [Node]) -> Vec<Unit<'a>> {
+fn path_units<'a>(path: &[usize], nodes: &'a [Node<'a>]) -> Vec<Unit<'a>> {
     let mut units = Vec::new();
     for (node_position, &node_index) in path.iter().enumerate() {
         let node = &nodes[node_index];
@@ -1275,7 +1278,7 @@ fn path_units<'a>(path: &[usize], nodes: &'a [Node]) -> Vec<Unit<'a>> {
                 node_position,
                 source_node_index: node_index,
                 component_index: None,
-                surface: &node.surface,
+                surface: node.surface,
                 pos,
                 span: Some(node.span.clone()),
                 coverage: node.span.clone(),
@@ -1290,8 +1293,8 @@ fn path_units<'a>(path: &[usize], nodes: &'a [Node]) -> Vec<Unit<'a>> {
                         node_position,
                         source_node_index: node_index,
                         component_index: Some(component_index),
-                        surface: &component.surface,
-                        pos: &component.pos,
+                        surface: component.surface,
+                        pos: component.pos,
                         span: component.span.clone(),
                         coverage: component.span.clone().unwrap_or_else(|| node.span.clone()),
                         opaque: component.span.is_none(),

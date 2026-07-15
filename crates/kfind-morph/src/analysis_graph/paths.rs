@@ -11,56 +11,60 @@ use super::{
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub(super) struct Component {
-    pub surface: String,
-    pub pos: String,
+pub(super) struct Component<'a> {
+    pub surface: &'a str,
+    pub pos: &'a str,
     pub span: Option<Range<usize>>,
 }
 
-impl Ord for Component {
+impl Ord for Component<'_> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.surface
-            .cmp(&other.surface)
-            .then_with(|| self.pos.cmp(&other.pos))
+            .cmp(other.surface)
+            .then_with(|| self.pos.cmp(other.pos))
             .then_with(|| span_key(self.span.as_ref()).cmp(&span_key(other.span.as_ref())))
     }
 }
 
-impl PartialOrd for Component {
+impl PartialOrd for Component<'_> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
 #[derive(Clone, Debug)]
-pub(super) struct Node {
-    pub surface: String,
+pub(super) struct Node<'a> {
+    pub surface: &'a str,
     pub span: Range<usize>,
-    pub pos: String,
-    pub start_pos: String,
-    pub end_pos: String,
+    pub pos: &'a str,
+    pub start_pos: &'a str,
+    pub end_pos: &'a str,
     pub source: ConstraintNodeSource,
     pub expression_kind: Option<MorphologyGraphExpressionKind>,
-    pub components: Vec<Component>,
+    pub components: Vec<Component<'a>>,
 }
 
-impl Node {
-    fn source(surface: &str, span: Range<usize>, analysis: &MorphologyGraphAnalysis<'_>) -> Self {
+impl<'a> Node<'a> {
+    fn source(
+        surface: &'a str,
+        span: Range<usize>,
+        analysis: &MorphologyGraphAnalysis<'a>,
+    ) -> Self {
         Self {
-            surface: surface.to_owned(),
+            surface,
             components: analysis
                 .components
                 .iter()
                 .map(|component| Component {
-                    surface: component.surface.to_owned(),
-                    pos: component.pos.to_owned(),
+                    surface: component.surface,
+                    pos: component.pos,
                     span: component.span.as_ref().map(|component_span| {
                         span.start + component_span.start..span.start + component_span.end
                     }),
                 })
                 .collect(),
             span,
-            pos: analysis.pos.to_owned(),
+            pos: analysis.pos,
             start_pos: effective_start_pos(analysis),
             end_pos: effective_end_pos(analysis),
             source: ConstraintNodeSource::Source,
@@ -68,13 +72,13 @@ impl Node {
         }
     }
 
-    fn unknown(surface: &str, span: Range<usize>, analysis: &UnknownAnalysis) -> Self {
+    fn unknown(surface: &'a str, span: Range<usize>, analysis: &'a UnknownAnalysis) -> Self {
         Self {
-            surface: surface.to_owned(),
+            surface,
             span,
-            pos: analysis.pos.clone(),
-            start_pos: analysis.pos.clone(),
-            end_pos: analysis.pos.clone(),
+            pos: &analysis.pos,
+            start_pos: &analysis.pos,
+            end_pos: &analysis.pos,
             source: ConstraintNodeSource::Unknown,
             expression_kind: None,
             components: Vec::new(),
@@ -83,19 +87,19 @@ impl Node {
 
     fn proof(&self) -> ConstraintNodeProof {
         ConstraintNodeProof {
-            surface: self.surface.clone(),
+            surface: self.surface.to_owned(),
             span: self.span.clone(),
-            pos: self.pos.clone(),
-            start_pos: self.start_pos.clone(),
-            end_pos: self.end_pos.clone(),
+            pos: self.pos.to_owned(),
+            start_pos: self.start_pos.to_owned(),
+            end_pos: self.end_pos.to_owned(),
             source: self.source,
             expression_kind: self.expression_kind,
             components: self
                 .components
                 .iter()
                 .map(|component| ConstraintComponentProof {
-                    surface: component.surface.clone(),
-                    pos: component.pos.clone(),
+                    surface: component.surface.to_owned(),
+                    pos: component.pos.to_owned(),
                     span: component.span.clone(),
                 })
                 .collect(),
@@ -112,44 +116,44 @@ pub(super) enum TokenGraphError {
 }
 
 #[derive(Debug)]
-pub(super) struct TokenGraph {
-    nodes: Vec<Node>,
+pub(super) struct TokenGraph<'a> {
+    nodes: Vec<Node<'a>>,
     successors: Vec<Vec<usize>>,
     predecessors: Vec<Vec<usize>>,
     reachable_from_start: Vec<bool>,
     reaches_end: Vec<bool>,
 }
 
-impl TokenGraph {
+impl<'a> TokenGraph<'a> {
     pub fn known(
-        resource: &MorphologyGraphResource,
-        text: &str,
+        resource: &'a MorphologyGraphResource,
+        text: &'a str,
         node_limit: usize,
     ) -> Result<Self, TokenGraphError> {
         Self::build(resource, text, None, node_limit)
     }
 
     pub fn with_unknown(
-        resource: &MorphologyGraphResource,
-        text: &str,
-        unknown: &UnknownDictionary,
+        resource: &'a MorphologyGraphResource,
+        text: &'a str,
+        unknown: &'a UnknownDictionary,
         node_limit: usize,
     ) -> Result<Self, TokenGraphError> {
         Self::build(resource, text, Some(unknown), node_limit)
     }
 
     fn build(
-        resource: &MorphologyGraphResource,
-        text: &str,
-        unknown: Option<&UnknownDictionary>,
+        resource: &'a MorphologyGraphResource,
+        text: &'a str,
+        unknown: Option<&'a UnknownDictionary>,
         node_limit: usize,
     ) -> Result<Self, TokenGraphError> {
         let mut nodes = Vec::new();
         for (start, _) in text.char_indices() {
             let before_dictionary = nodes.len();
-            resource.common_prefixes(&text.as_bytes()[start..], |length, surface, analyses| {
+            resource.common_prefixes(&text.as_bytes()[start..], |length, _, analyses| {
                 let end = start + length;
-                if end <= text.len() && text.is_char_boundary(end) {
+                if let Some(surface) = text.get(start..end) {
                     nodes.extend(
                         analyses
                             .iter()
@@ -181,10 +185,10 @@ impl TokenGraph {
                 .cmp(&right.span.start)
                 .then_with(|| left.span.end.cmp(&right.span.end))
                 .then_with(|| left.source.cmp(&right.source))
-                .then_with(|| left.surface.cmp(&right.surface))
-                .then_with(|| left.pos.cmp(&right.pos))
-                .then_with(|| left.start_pos.cmp(&right.start_pos))
-                .then_with(|| left.end_pos.cmp(&right.end_pos))
+                .then_with(|| left.surface.cmp(right.surface))
+                .then_with(|| left.pos.cmp(right.pos))
+                .then_with(|| left.start_pos.cmp(right.start_pos))
+                .then_with(|| left.end_pos.cmp(right.end_pos))
                 .then_with(|| left.expression_kind.cmp(&right.expression_kind))
                 .then_with(|| left.components.cmp(&right.components))
         });
@@ -265,7 +269,7 @@ impl TokenGraph {
         witnesses
     }
 
-    pub fn nodes(&self) -> &[Node] {
+    pub fn nodes(&self) -> &[Node<'a>] {
         &self.nodes
     }
 
@@ -315,7 +319,7 @@ fn span_key(span: Option<&Range<usize>>) -> Option<(usize, usize)> {
 fn graph_edges(
     resource: &MorphologyGraphResource,
     text_len: usize,
-    nodes: &[Node],
+    nodes: &[Node<'_>],
 ) -> (Vec<Vec<usize>>, Vec<Vec<usize>>) {
     let mut starting_at = vec![Vec::<usize>::new(); text_len + 1];
     for (index, node) in nodes.iter().enumerate() {
@@ -327,7 +331,7 @@ fn graph_edges(
             starting_at[node.span.end]
                 .iter()
                 .copied()
-                .filter(|&next| resource.allows_transition(&node.end_pos, &nodes[next].start_pos))
+                .filter(|&next| resource.allows_transition(node.end_pos, nodes[next].start_pos))
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
@@ -340,7 +344,7 @@ fn graph_edges(
     (successors, predecessors)
 }
 
-fn reachable_from_start(nodes: &[Node], predecessors: &[Vec<usize>]) -> Vec<bool> {
+fn reachable_from_start(nodes: &[Node<'_>], predecessors: &[Vec<usize>]) -> Vec<bool> {
     let mut reachable = vec![false; nodes.len()];
     for index in 0..nodes.len() {
         reachable[index] = nodes[index].span.start == 0
@@ -351,7 +355,7 @@ fn reachable_from_start(nodes: &[Node], predecessors: &[Vec<usize>]) -> Vec<bool
     reachable
 }
 
-fn reaches_end(text_len: usize, nodes: &[Node], successors: &[Vec<usize>]) -> Vec<bool> {
+fn reaches_end(text_len: usize, nodes: &[Node<'_>], successors: &[Vec<usize>]) -> Vec<bool> {
     let mut reaches = vec![false; nodes.len()];
     for index in (0..nodes.len()).rev() {
         reaches[index] = nodes[index].span.end == text_len
@@ -360,23 +364,18 @@ fn reaches_end(text_len: usize, nodes: &[Node], successors: &[Vec<usize>]) -> Ve
     reaches
 }
 
-fn effective_start_pos(analysis: &MorphologyGraphAnalysis<'_>) -> String {
+fn effective_start_pos<'a>(analysis: &MorphologyGraphAnalysis<'a>) -> &'a str {
     if analysis.start_pos == "*" {
-        analysis.pos.split('+').next().unwrap_or("*").to_owned()
+        analysis.pos.split('+').next().unwrap_or("*")
     } else {
-        analysis.start_pos.to_owned()
+        analysis.start_pos
     }
 }
 
-fn effective_end_pos(analysis: &MorphologyGraphAnalysis<'_>) -> String {
+fn effective_end_pos<'a>(analysis: &MorphologyGraphAnalysis<'a>) -> &'a str {
     if analysis.end_pos == "*" {
-        analysis
-            .pos
-            .split('+')
-            .next_back()
-            .unwrap_or("*")
-            .to_owned()
+        analysis.pos.split('+').next_back().unwrap_or("*")
     } else {
-        analysis.end_pos.to_owned()
+        analysis.end_pos
     }
 }

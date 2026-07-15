@@ -108,16 +108,16 @@ impl ConstraintResolution {
     }
 }
 
-enum CandidateAnalysis {
+enum CandidateAnalysis<'a> {
     Known {
-        graph: TokenGraph,
+        graph: TokenGraph<'a>,
         context: resolution::ContextSelection,
     },
     Unavailable {
         reason: ConstraintUnavailable,
         known_node_count: usize,
         unknown_node_count: usize,
-        proof: Option<TokenGraph>,
+        proof: Option<TokenGraph<'a>>,
     },
 }
 
@@ -268,14 +268,14 @@ impl ConstraintResolver {
         }
     }
 
-    fn analyze_candidate(
-        &self,
-        context: BoundedTokenContext<'_>,
+    fn analyze_candidate<'a>(
+        &'a self,
+        context: BoundedTokenContext<'a>,
         spans: &CandidateSpans,
         patterns: &[QueryMorphPattern],
         node_limit: usize,
         path_limit: usize,
-    ) -> CandidateAnalysis {
+    ) -> CandidateAnalysis<'a> {
         if patterns.is_empty()
             || !patterns.iter().all(QueryMorphPattern::is_well_formed)
             || !spans.is_valid_for(context.current)
