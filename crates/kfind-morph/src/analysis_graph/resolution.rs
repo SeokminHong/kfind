@@ -13,6 +13,13 @@ use super::{
     ConstraintUnavailable, CopularFrameRole, MorphContinuation, QueryMorphPattern,
 };
 
+mod attached_nominal;
+
+use attached_nominal::{
+    attached_nominal_frame_prefix, can_attach_nominal_frame, match_attached_nominal_frame,
+    maximal_attached_successor_end,
+};
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ConstraintOutcome {
     Supported,
@@ -53,6 +60,9 @@ pub enum ConstraintContextProof {
         selected: Range<usize>,
     },
     NominalParticleHost {
+        selected: Range<usize>,
+    },
+    AttachedNominalFrame {
         selected: Range<usize>,
     },
 }
@@ -521,9 +531,11 @@ pub(super) fn decide_known(
         Vec::new()
     };
     for (pattern_index, pattern) in patterns.iter().enumerate() {
-        if context_match(context, pattern, spans).is_none() {
+        let Some(context_match) = context_match(context, pattern, spans) else {
             continue;
-        }
+        };
+        let context_resolved = !matches!(context_match, ContextMatch::None);
+        let attached_nominal_allowed = can_attach_nominal_frame(graph, pattern, spans);
         for (node_index, node) in graph.nodes().iter().enumerate() {
             if !graph.is_on_complete_path(node_index)
                 || node.span.start > spans.core.start
@@ -549,6 +561,8 @@ pub(super) fn decide_known(
                     IndexedPattern {
                         index: pattern_index,
                         pattern,
+                        context_resolved,
+                        attached_nominal_allowed,
                     },
                     &mut traversal_path,
                     &support,
@@ -581,6 +595,8 @@ pub(super) fn decide_known(
                     IndexedPattern {
                         index: pattern_index,
                         pattern,
+                        context_resolved,
+                        attached_nominal_allowed,
                     },
                     &mut traversal_path,
                     &support,
@@ -602,8 +618,9 @@ pub(super) fn decide_known(
         graph,
         spans,
         patterns,
-        context,
-        proofs.iter().map(|proof| proof.support.span_relation),
+        proofs
+            .iter()
+            .map(|proof| (proof.support.span_relation, proof.context_resolved)),
     );
     ConstraintDecision::from_supports(outcome, proofs.into_iter().map(|proof| proof.support))
 }
@@ -623,12 +640,15 @@ struct CompactSupportProof {
     lexical_source_node_indices: Vec<usize>,
     component_index: Option<usize>,
     continuation: Vec<CompactMorphUnit>,
+    context_resolved: bool,
 }
 
 #[derive(Clone, Copy)]
 struct IndexedPattern<'a> {
     index: usize,
     pattern: &'a QueryMorphPattern,
+    context_resolved: bool,
+    attached_nominal_allowed: bool,
 }
 
 struct DecisionTraversalPath<'a> {
@@ -659,6 +679,10 @@ fn evaluate_known(
     }
     let mut analyses = Vec::new();
     let paths = candidate_witness_paths(graph, spans, patterns, query_traces);
+    let attached_nominal_allowed = patterns
+        .iter()
+        .map(|pattern| can_attach_nominal_frame(graph, pattern, spans))
+        .collect::<Vec<_>>();
     for (path_index, path) in paths.iter().enumerate() {
         let units = path_units(path, graph.nodes());
         for (pattern_index, pattern) in patterns.iter().enumerate() {
@@ -670,13 +694,23 @@ fn evaluate_known(
                 pattern,
                 query_traces.for_pattern(pattern_index),
             ) {
-                let Some(continuation) = continuation_proof(pattern, spans, &units, &candidate)
-                else {
+                let Some(continuation) = continuation_proof(
+                    pattern,
+                    spans,
+                    &units,
+                    &candidate,
+                    attached_nominal_allowed[pattern_index],
+                ) else {
                     continue;
                 };
-                let Some(context_proof) = context_proof(context, pattern, spans) else {
+                let Some(external_context) = context_proof(context, pattern, spans) else {
                     continue;
                 };
+                let context_proof = continuation
+                    .attached_nominal
+                    .map_or(external_context, |selected| {
+                        Some(ConstraintContextProof::AttachedNominalFrame { selected })
+                    });
                 let analysis = SupportedAnalysis {
                     pattern_index,
                     path_index,
@@ -688,7 +722,7 @@ fn evaluate_known(
                     evidence: candidate.evidence,
                     span_relation: candidate.relation,
                     support_span: spans.core.clone(),
-                    continuation,
+                    continuation: continuation.proof,
                     context: context_proof,
                 };
                 if !analyses
@@ -725,8 +759,9 @@ fn evaluate_known(
         graph,
         spans,
         patterns,
-        context,
-        analyses.iter().map(|analysis| analysis.span_relation),
+        analyses
+            .iter()
+            .map(|analysis| (analysis.span_relation, analysis.context.is_some())),
     );
     KnownEvaluation {
         outcome,
@@ -739,27 +774,18 @@ fn support_outcome(
     graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
     patterns: &[QueryMorphPattern],
-    context: &ContextSelection,
-    relations: impl IntoIterator<Item = ConstraintSpanRelation>,
+    relations: impl IntoIterator<Item = (ConstraintSpanRelation, bool)>,
 ) -> ConstraintOutcome {
     let mut has_stable = false;
     let mut has_opaque = false;
     let mut all_non_whole = true;
-    for relation in relations {
+    let mut context_resolved = false;
+    for (relation, resolved) in relations {
         has_stable |= relation != ConstraintSpanRelation::OpaqueExpression;
         has_opaque |= relation == ConstraintSpanRelation::OpaqueExpression;
         all_non_whole &= relation != ConstraintSpanRelation::Whole;
+        context_resolved |= resolved;
     }
-    let context_resolved = patterns.iter().any(|pattern| {
-        matches!(
-            context_match(context, pattern, spans),
-            Some(
-                ContextMatch::Repeated { .. }
-                    | ContextMatch::Copular { .. }
-                    | ContextMatch::NominalParticleHost { .. }
-            )
-        )
-    });
     let has_compound_exposure =
         has_stable && !context_resolved && spans.consumed != spans.token && all_non_whole;
     let has_lexical_competition =
@@ -786,6 +812,7 @@ fn candidate_witness_paths(
     let mut paths = Vec::new();
     let lexical_paths = lexical_candidate_paths(graph, spans, query_traces);
     for (pattern_index, pattern) in patterns.iter().enumerate() {
+        let attached_nominal_allowed = can_attach_nominal_frame(graph, pattern, spans);
         for lexical_path in &lexical_paths {
             let units = path_units(lexical_path, graph.nodes());
             for support in support_candidates(
@@ -802,6 +829,7 @@ fn candidate_witness_paths(
                     pattern,
                     lexical_path.clone(),
                     support,
+                    attached_nominal_allowed,
                     &mut paths,
                 );
             }
@@ -899,12 +927,15 @@ fn extend_supported_path(
     pattern: &QueryMorphPattern,
     required: Vec<usize>,
     support: SupportCandidate,
+    attached_nominal_allowed: bool,
     paths: &mut Vec<Vec<usize>>,
 ) {
     let last = *required.last().expect("supported path is non-empty");
     let units = path_units(&required, graph.nodes());
-    if graph.nodes()[last].span.end >= spans.consumed.end {
-        if continuation_proof(pattern, spans, &units, &support).is_none() {
+    let required_end = support_path_end(pattern, spans);
+    if graph.nodes()[last].span.end >= required_end {
+        if continuation_proof(pattern, spans, &units, &support, attached_nominal_allowed).is_none()
+        {
             return;
         }
         if let Some(path) = graph.witness_path_through(&required)
@@ -914,17 +945,38 @@ fn extend_supported_path(
         }
         return;
     }
-    if !continuation_prefix_possible(pattern, spans, &units, &support) {
+    if !continuation_prefix_possible(pattern, spans, &units, &support, attached_nominal_allowed) {
         return;
     }
-    for &successor in graph.successors(last) {
+    let successors = graph.successors(last);
+    let maximal_attached_end = maximal_attached_successor_end(
+        graph,
+        successors,
+        pattern,
+        spans,
+        &units,
+        &support,
+        attached_nominal_allowed,
+    );
+    for &successor in successors {
         let next = &graph.nodes()[successor];
-        if next.span.end > spans.consumed.end || !graph.is_on_complete_path(successor) {
+        if next.span.end > required_end
+            || !graph.is_on_complete_path(successor)
+            || maximal_attached_end.is_some_and(|end| next.span.end < end)
+        {
             continue;
         }
         let mut extended = required.clone();
         extended.push(successor);
-        extend_supported_path(graph, spans, pattern, extended, support.clone(), paths);
+        extend_supported_path(
+            graph,
+            spans,
+            pattern,
+            extended,
+            support.clone(),
+            attached_nominal_allowed,
+            paths,
+        );
     }
 }
 
@@ -937,9 +989,15 @@ fn extend_decision_support<'a>(
     proofs: &mut BTreeSet<CompactSupportProof>,
     proof_limit: usize,
 ) -> bool {
-    if graph.nodes()[path.last].span.end >= spans.consumed.end {
-        let Some(continuation) = continuation_units(pattern.pattern, spans, &path.units, support)
-        else {
+    let required_end = support_path_end(pattern.pattern, spans);
+    if graph.nodes()[path.last].span.end >= required_end {
+        let Some(continuation) = continuation_units(
+            pattern.pattern,
+            spans,
+            &path.units,
+            support,
+            pattern.attached_nominal_allowed,
+        ) else {
             return false;
         };
         let proof = CompactSupportProof {
@@ -952,6 +1010,7 @@ fn extend_decision_support<'a>(
             lexical_source_node_indices: support.source_node_indices.clone(),
             component_index: support.component_index,
             continuation: continuation
+                .units
                 .into_iter()
                 .map(|unit| CompactMorphUnit {
                     pos_slot: unit.pos_slot,
@@ -960,16 +1019,36 @@ fn extend_decision_support<'a>(
                     component_index: unit.component_index,
                 })
                 .collect(),
+            context_resolved: pattern.context_resolved || continuation.attached_nominal.is_some(),
         };
         return proofs.insert(proof) && proofs.len() > proof_limit;
     }
-    if !continuation_prefix_possible(pattern.pattern, spans, &path.units, support) {
+    if !continuation_prefix_possible(
+        pattern.pattern,
+        spans,
+        &path.units,
+        support,
+        pattern.attached_nominal_allowed,
+    ) {
         return false;
     }
     let previous_last = path.last;
-    for &successor in graph.successors(previous_last) {
+    let successors = graph.successors(previous_last);
+    let maximal_attached_end = maximal_attached_successor_end(
+        graph,
+        successors,
+        pattern.pattern,
+        spans,
+        &path.units,
+        support,
+        pattern.attached_nominal_allowed,
+    );
+    for &successor in successors {
         let next = &graph.nodes()[successor];
-        if next.span.end > spans.consumed.end || !graph.is_on_complete_path(successor) {
+        if next.span.end > required_end
+            || !graph.is_on_complete_path(successor)
+            || maximal_attached_end.is_some_and(|end| next.span.end < end)
+        {
             continue;
         }
         let previous_len = path.units.len();
@@ -995,21 +1074,11 @@ fn continuation_prefix_possible(
     spans: &CandidateSpans,
     units: &[Unit<'_>],
     support: &SupportCandidate,
+    attached_nominal_allowed: bool,
 ) -> bool {
-    let partial_end = units
-        .iter()
-        .skip(support.unit_index + 1)
-        .map(|unit| unit.coverage.end)
-        .max()
-        .unwrap_or(spans.core.end)
-        .min(spans.consumed.end);
-    let Some(selected) = suffix_unit_view(
-        pattern,
-        units,
-        support,
-        spans.anchor.clone(),
-        spans.core.end..partial_end,
-    ) else {
+    let Some(selected) =
+        continuation_prefix_units(pattern, spans, units, support, attached_nominal_allowed)
+    else {
         return false;
     };
     match pattern.continuation {
@@ -1017,8 +1086,38 @@ fn continuation_prefix_possible(
         MorphContinuation::NominalParticles => nominal_prefix(selected.iter().map(|unit| unit.pos)),
         MorphContinuation::Predicate { .. } => {
             predicate_prefix(selected.iter().map(|unit| unit.pos))
+                || (attached_nominal_allowed && attached_nominal_frame_prefix(&selected))
         }
     }
+}
+
+fn continuation_prefix_units<'units, 'data>(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    units: &'units [Unit<'data>],
+    support: &SupportCandidate,
+    attached_nominal_allowed: bool,
+) -> Option<Vec<&'units Unit<'data>>> {
+    let partial_end = units
+        .iter()
+        .skip(support.unit_index + 1)
+        .map(|unit| unit.coverage.end)
+        .max()
+        .unwrap_or(spans.core.end)
+        .min(spans.consumed.end);
+    let selected = suffix_unit_view(
+        pattern,
+        units,
+        support,
+        spans.anchor.clone(),
+        spans.core.end..partial_end,
+        attached_nominal_allowed,
+    )?;
+    Some(selected.iter().collect())
+}
+
+fn support_path_end(_pattern: &QueryMorphPattern, spans: &CandidateSpans) -> usize {
+    spans.consumed.end
 }
 
 fn nominal_prefix<'a>(positions: impl IntoIterator<Item = &'a str>) -> bool {
@@ -1133,7 +1232,8 @@ struct ContinuationUnitView<'units, 'data> {
     start: usize,
     anchor: Range<usize>,
     suffix: Range<usize>,
-    include_opaque_anchor_tail: bool,
+    include_opaque_nominalizer_tail: bool,
+    include_opaque_adnominal_tail: bool,
     source_node_index: usize,
     component_index: Option<usize>,
 }
@@ -1148,14 +1248,10 @@ impl<'units, 'data> ContinuationUnitView<'units, 'data> {
         })
     }
 
-    fn is_empty(&self) -> bool {
-        self.iter().next().is_none()
-    }
-
     fn is_opaque_anchor_tail(&self, unit: &Unit<'_>) -> bool {
-        self.include_opaque_anchor_tail
+        ((self.include_opaque_nominalizer_tail && unit.pos == "ETN")
+            || (self.include_opaque_adnominal_tail && unit.pos == "ETM"))
             && unit.source_node_index == self.source_node_index
-            && unit.pos == "ETN"
             && unit.span.is_none()
             && self
                 .component_index
@@ -1382,50 +1478,94 @@ fn continuation_proof(
     spans: &CandidateSpans,
     units: &[Unit<'_>],
     support: &SupportCandidate,
-) -> Option<ConstraintContinuationProof> {
-    let selected = continuation_units(pattern, spans, units, support)?;
-    Some(ConstraintContinuationProof {
-        contract: pattern.continuation,
-        units: selected
-            .into_iter()
-            .map(|unit| ConstraintMorphUnitProof {
-                pos: unit.pos.to_owned(),
-                span: unit.span.clone(),
-                source_node_index: unit.source_node_index,
-                component_index: unit.component_index,
-            })
-            .collect(),
+    attached_nominal_allowed: bool,
+) -> Option<MatchedContinuationProof> {
+    let selected = continuation_units(pattern, spans, units, support, attached_nominal_allowed)?;
+    Some(MatchedContinuationProof {
+        proof: ConstraintContinuationProof {
+            contract: pattern.continuation,
+            units: selected
+                .units
+                .into_iter()
+                .map(|unit| ConstraintMorphUnitProof {
+                    pos: unit.pos.to_owned(),
+                    span: unit.span.clone(),
+                    source_node_index: unit.source_node_index,
+                    component_index: unit.component_index,
+                })
+                .collect(),
+        },
+        attached_nominal: selected.attached_nominal,
     })
 }
 
-fn continuation_units<'a>(
+struct MatchedContinuationProof {
+    proof: ConstraintContinuationProof,
+    attached_nominal: Option<Range<usize>>,
+}
+
+struct MatchedContinuation<'units, 'data> {
+    units: Vec<&'units Unit<'data>>,
+    attached_nominal: Option<Range<usize>>,
+}
+
+fn continuation_units<'units, 'data>(
     pattern: &QueryMorphPattern,
     spans: &CandidateSpans,
-    units: &'a [Unit<'a>],
+    units: &'units [Unit<'data>],
     support: &SupportCandidate,
-) -> Option<Vec<&'a Unit<'a>>> {
+    attached_nominal_allowed: bool,
+) -> Option<MatchedContinuation<'units, 'data>> {
     let suffix = spans.core.end..spans.consumed.end;
-    let selected = suffix_unit_view(pattern, units, support, spans.anchor.clone(), suffix)?
-        .iter()
-        .collect::<Vec<_>>();
-    let accepted = match pattern.continuation {
+    let selected = suffix_unit_view(
+        pattern,
+        units,
+        support,
+        spans.anchor.clone(),
+        suffix,
+        attached_nominal_allowed,
+    )?
+    .iter()
+    .collect::<Vec<_>>();
+    match pattern.continuation {
         MorphContinuation::Exact => {
-            spans.anchor == spans.core && spans.consumed == spans.anchor && selected.is_empty()
+            (spans.anchor == spans.core && spans.consumed == spans.anchor && selected.is_empty())
+                .then_some(MatchedContinuation {
+                    units: selected,
+                    attached_nominal: None,
+                })
         }
-        MorphContinuation::NominalParticles => {
-            (spans.consumed == spans.anchor && selected.is_empty())
-                || (spans.consumed.end == spans.token.end
-                    && nominal_continuation(&selected, units[support.unit_index].surface))
-        }
+        MorphContinuation::NominalParticles => ((spans.consumed == spans.anchor
+            && selected.is_empty())
+            || (spans.consumed.end == spans.token.end
+                && nominal_continuation(&selected, units[support.unit_index].surface)))
+        .then_some(MatchedContinuation {
+            units: selected,
+            attached_nominal: None,
+        }),
         MorphContinuation::Predicate {
             state,
             nominal_particles,
         } => {
-            spans.consumed.end == spans.token.end
+            if spans.consumed.end == spans.token.end
                 && predicate_continuation(state, nominal_particles, spans, &selected)
+            {
+                return Some(MatchedContinuation {
+                    units: selected,
+                    attached_nominal: None,
+                });
+            }
+            if !attached_nominal_allowed {
+                return None;
+            }
+            match_attached_nominal_frame(state, nominal_particles, spans, &selected).map(
+                |(predicate, selected)| MatchedContinuation {
+                    units: predicate,
+                    attached_nominal: Some(selected),
+                },
+            )
         }
-    };
-    accepted.then_some(selected)
+    }
 }
 
 fn suffix_unit_view<'units, 'data>(
@@ -1434,19 +1574,21 @@ fn suffix_unit_view<'units, 'data>(
     support: &SupportCandidate,
     anchor: Range<usize>,
     suffix: Range<usize>,
+    include_attached_nominal: bool,
 ) -> Option<ContinuationUnitView<'units, 'data>> {
     let selected = ContinuationUnitView {
         units,
         start: support.unit_index.saturating_add(1).min(units.len()),
         anchor,
         suffix,
-        include_opaque_anchor_tail: matches!(
+        include_opaque_nominalizer_tail: matches!(
             pattern.continuation,
             MorphContinuation::Predicate {
                 nominal_particles: true,
                 ..
             }
         ),
+        include_opaque_adnominal_tail: include_attached_nominal,
         source_node_index: support.source_node_index,
         component_index: support.component_index,
     };

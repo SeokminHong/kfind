@@ -640,6 +640,519 @@ fn opaque_anchor_tail_advances_the_predicate_continuation() {
 }
 
 #[test]
+fn attached_nominal_frame_completes_an_adnominal_predicate_path() {
+    let text = "매운음식하고";
+    let resolver = resolver(&[
+        atomic("맵", "VA", 0),
+        entry(
+            "매운",
+            "VA+ETM",
+            "Inflect",
+            "VA",
+            "ETM",
+            "맵/VA/*+ㄴ/ETM/*",
+            0,
+        ),
+        atomic("음식", "NNG", 0),
+        atomic("하고", "JC", 0),
+        entry(
+            "가는것",
+            "ETM+NNG",
+            "Compound",
+            "ETM",
+            "NNG",
+            "가는/ETM/*+것/NNG/*",
+            0,
+        ),
+        entry(
+            "학교와",
+            "NNG+JC",
+            "Compound",
+            "NNG",
+            "JC",
+            "학교/NNG/*+와/JC/*",
+            0,
+        ),
+    ]);
+    let pattern = QueryMorphPattern::new(DataFinePos::Va, "맵").with_branch_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let spans = CandidateSpans {
+        core: 0.."매운".len(),
+        anchor: 0.."매운".len(),
+        consumed: 0..text.len(),
+        token: 0..text.len(),
+    };
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        spans.clone(),
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(
+        resolution.outcome,
+        ConstraintOutcome::Supported,
+        "{resolution:#?}"
+    );
+    assert_eq!(
+        resolver.decide_candidate(
+            BoundedTokenContext::current(text),
+            spans,
+            std::slice::from_ref(&pattern),
+            DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+        ),
+        resolution.decision()
+    );
+    assert!(resolution.supported.analyses.iter().any(|analysis| {
+        matches!(
+            analysis.context,
+            Some(ConstraintContextProof::AttachedNominalFrame { ref selected })
+                if selected == &("매운".len()..text.len())
+        ) && analysis.support_span == (0.."매운".len())
+            && analysis
+                .continuation
+                .units
+                .iter()
+                .map(|unit| unit.pos.as_str())
+                .eq(["ETM"])
+    }));
+}
+
+#[test]
+fn attached_nominal_frame_keeps_a_query_identity_on_a_competing_lexical_span() {
+    let text = "온지를";
+    let resolver = resolver(&[
+        entry(
+            "온",
+            "VV+ETM",
+            "Inflect",
+            "VV",
+            "ETM",
+            "오/VV/*+ㄴ/ETM/*",
+            0,
+        ),
+        atomic("지", "NNB", 0),
+        atomic("를", "JKO", 0),
+        entry(
+            "온지",
+            "VV+EC",
+            "Inflect",
+            "VV",
+            "EC",
+            "오/VV/*+ㄴ지/EC/*",
+            0,
+        ),
+        entry(
+            "온지",
+            "VX+EC",
+            "Inflect",
+            "VX",
+            "EC",
+            "오/VX/*+ㄴ지/EC/*",
+            0,
+        ),
+        entry(
+            "가는때",
+            "ETM+NNB",
+            "Compound",
+            "ETM",
+            "NNB",
+            "가는/ETM/*+때/NNB/*",
+            0,
+        ),
+        entry(
+            "것을",
+            "NNB+JKO",
+            "Compound",
+            "NNB",
+            "JKO",
+            "것/NNB/*+을/JKO/*",
+            0,
+        ),
+        entry(
+            "가를",
+            "EC+JKO",
+            "Compound",
+            "EC",
+            "JKO",
+            "가/EC/*+를/JKO/*",
+            0,
+        ),
+    ]);
+    let pattern = QueryMorphPattern::new(DataFinePos::Vv, "오").with_branch_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        CandidateSpans {
+            core: 0.."온".len(),
+            anchor: 0.."온".len(),
+            consumed: 0..text.len(),
+            token: 0..text.len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(
+        resolution.outcome,
+        ConstraintOutcome::Supported,
+        "{resolution:#?}"
+    );
+    assert!(resolution.supported.analyses.iter().any(|analysis| {
+        matches!(
+            analysis.context,
+            Some(ConstraintContextProof::AttachedNominalFrame { ref selected })
+                if selected == &("온".len()..text.len())
+        )
+    }));
+}
+
+#[test]
+fn attached_nominal_frame_does_not_override_a_whole_token_lexeme() {
+    let text = "매운음식하고";
+    let resolver = resolver(&[
+        atomic("맵", "VA", 0),
+        entry(
+            "매운",
+            "VA+ETM",
+            "Inflect",
+            "VA",
+            "ETM",
+            "맵/VA/*+ㄴ/ETM/*",
+            0,
+        ),
+        atomic("음식", "NNG", 0),
+        atomic("하고", "JC", 0),
+        atomic(text, "NNP", 0),
+        entry(
+            "가는것",
+            "ETM+NNG",
+            "Compound",
+            "ETM",
+            "NNG",
+            "가는/ETM/*+것/NNG/*",
+            0,
+        ),
+        entry(
+            "학교와",
+            "NNG+JC",
+            "Compound",
+            "NNG",
+            "JC",
+            "학교/NNG/*+와/JC/*",
+            0,
+        ),
+    ]);
+    let pattern = QueryMorphPattern::new(DataFinePos::Va, "맵").with_branch_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        CandidateSpans {
+            core: 0.."매운".len(),
+            anchor: 0.."매운".len(),
+            consumed: 0..text.len(),
+            token: 0..text.len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(
+        resolution.outcome,
+        ConstraintOutcome::Contradicted,
+        "{resolution:#?}"
+    );
+}
+
+#[test]
+fn attached_nominal_frame_does_not_override_a_longer_predicate_lexeme() {
+    let text = "만들려";
+    let resolver = resolver(&[
+        entry(
+            "만",
+            "VV+ETM",
+            "Inflect",
+            "VV",
+            "ETM",
+            "말/VV/*+ㄴ/ETM/*",
+            0,
+        ),
+        atomic("들", "NNG", 0),
+        atomic("려", "NNG", 0),
+        atomic("만들", "VA", 0),
+        atomic("려", "EC", 0),
+        entry(
+            "가는것",
+            "ETM+NNG",
+            "Compound",
+            "ETM",
+            "NNG",
+            "가는/ETM/*+것/NNG/*",
+            0,
+        ),
+        entry(
+            "학교음식",
+            "NNG+NNG",
+            "Compound",
+            "NNG",
+            "NNG",
+            "학교/NNG/*+음식/NNG/*",
+            0,
+        ),
+        entry(
+            "빠르게",
+            "VA+EC",
+            "Inflect",
+            "VA",
+            "EC",
+            "빠르/VA/*+게/EC/*",
+            0,
+        ),
+    ]);
+    let pattern = QueryMorphPattern::new(DataFinePos::Vv, "말").with_branch_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        CandidateSpans {
+            core: 0.."만".len(),
+            anchor: 0.."만".len(),
+            consumed: 0..text.len(),
+            token: 0..text.len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(
+        resolution.outcome,
+        ConstraintOutcome::Contradicted,
+        "{resolution:#?}"
+    );
+}
+
+#[test]
+fn attached_nominal_frame_does_not_override_a_longer_nominal_lexeme() {
+    let text = "만들려";
+    let resolver = resolver(&[
+        entry(
+            "만",
+            "VV+ETM",
+            "Inflect",
+            "VV",
+            "ETM",
+            "말/VV/*+ㄴ/ETM/*",
+            0,
+        ),
+        atomic("들", "NNG", 0),
+        atomic("려", "NNG", 0),
+        atomic("만들", "NNG", 0),
+        atomic("려", "JX", 0),
+        entry(
+            "가는것",
+            "ETM+NNG",
+            "Compound",
+            "ETM",
+            "NNG",
+            "가는/ETM/*+것/NNG/*",
+            0,
+        ),
+        entry(
+            "학교음식",
+            "NNG+NNG",
+            "Compound",
+            "NNG",
+            "NNG",
+            "학교/NNG/*+음식/NNG/*",
+            0,
+        ),
+        entry(
+            "학교는",
+            "NNG+JX",
+            "Compound",
+            "NNG",
+            "JX",
+            "학교/NNG/*+는/JX/*",
+            0,
+        ),
+    ]);
+    let pattern = QueryMorphPattern::new(DataFinePos::Vv, "말").with_branch_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        CandidateSpans {
+            core: 0.."만".len(),
+            anchor: 0.."만".len(),
+            consumed: 0..text.len(),
+            token: 0..text.len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(
+        resolution.outcome,
+        ConstraintOutcome::Contradicted,
+        "{resolution:#?}"
+    );
+}
+
+#[test]
+fn attached_nominal_frame_preserves_a_past_predicate_state() {
+    let text = "어렸을때";
+    let resolver = resolver(&[
+        atomic("어리", "VA", 0),
+        entry(
+            "어렸",
+            "VA+EP",
+            "Inflect",
+            "VA",
+            "EP",
+            "어리/VA/*+었/EP/*",
+            0,
+        ),
+        atomic("을", "ETM", 0),
+        atomic("때", "NNB", 0),
+        entry(
+            "갔을",
+            "EP+ETM",
+            "Inflect",
+            "EP",
+            "ETM",
+            "갔/EP/*+을/ETM/*",
+            0,
+        ),
+        entry(
+            "갈때",
+            "ETM+NNB",
+            "Compound",
+            "ETM",
+            "NNB",
+            "갈/ETM/*+때/NNB/*",
+            0,
+        ),
+    ]);
+    let pattern = QueryMorphPattern::new(DataFinePos::Va, "어리").with_branch_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: ContinuationState::Past,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        CandidateSpans {
+            core: 0.."어렸".len(),
+            anchor: 0.."어렸".len(),
+            consumed: 0..text.len(),
+            token: 0..text.len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(
+        resolution.outcome,
+        ConstraintOutcome::Supported,
+        "{resolution:#?}"
+    );
+    assert!(resolution.supported.analyses.iter().any(|analysis| {
+        matches!(
+            analysis.context,
+            Some(ConstraintContextProof::AttachedNominalFrame { ref selected })
+                if selected == &("어렸을".len()..text.len())
+        ) && analysis
+            .continuation
+            .units
+            .iter()
+            .map(|unit| unit.pos.as_str())
+            .eq(["ETM"])
+    }));
+}
+
+#[test]
+fn attached_nominal_frame_rejects_a_non_nominal_remainder() {
+    let text = "매운빨리";
+    let resolver = resolver(&[
+        atomic("맵", "VA", 0),
+        entry(
+            "매운",
+            "VA+ETM",
+            "Inflect",
+            "VA",
+            "ETM",
+            "맵/VA/*+ㄴ/ETM/*",
+            0,
+        ),
+        atomic("빨리", "MAG", 0),
+        entry(
+            "가는빨리",
+            "ETM+MAG",
+            "Compound",
+            "ETM",
+            "MAG",
+            "가는/ETM/*+빨리/MAG/*",
+            0,
+        ),
+    ]);
+    let pattern = QueryMorphPattern::new(DataFinePos::Va, "맵").with_branch_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        CandidateSpans {
+            core: 0.."매운".len(),
+            anchor: 0.."매운".len(),
+            consumed: 0..text.len(),
+            token: 0..text.len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(
+        resolution.outcome,
+        ConstraintOutcome::Contradicted,
+        "{resolution:#?}"
+    );
+}
+
+#[test]
 fn opaque_query_anchor_ending_is_not_reconsumed_as_external_continuation() {
     let text = "불어서";
     let resolver = resolver(&[
