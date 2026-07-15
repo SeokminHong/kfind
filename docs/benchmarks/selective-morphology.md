@@ -69,8 +69,6 @@ pnpm --dir packages/kfind run benchmark:startup
 
 ## 구조 전환
 
-`ContextRequirement`, lexical context registry와 1,500 비용 마진은 현재 제품 호환 계약이다.
-추가 예외나 임계값을 만들지 않고 source decomposition을 보존한 graph resolver로 교체한다.
-제품 동작을 바꾸기 전 full morphology resource의 `analysis_type`과 `expression`을 local lattice 경로에 연결해 `source-atomic`, `source-decomposition`, `runtime-composed`, `unknown`, `unresolved`를 측정한다.
+`ContextRequirement`, lexical context registry와 1,500 비용 마진은 현재 제품 호환 계약이다. 추가 예외나 임계값을 만들지 않고 source decomposition을 보존한 graph resolver로 교체한다. 제품 동작을 바꾸기 전 full morphology resource의 `analysis_type`과 `expression`을 local lattice 경로에 연결해 `source-atomic`, `source-decomposition`, `runtime-composed`, `unknown`, `unresolved`를 측정한다.
 
 전환 단계와 채택 조건은 [형태 분석 그래프 전환 계획](morphology-analysis-graph-plan.md)을 따른다.

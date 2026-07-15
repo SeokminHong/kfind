@@ -2,17 +2,14 @@
 
 ## 결론
 
-full morphology resource의 source metadata를 local lattice 경로에 연결하고 `expression` component를 canonical alignment로 해석했다.
-node 종류와 source component 관계만으로 현재 `ExactComponent` 비용 판정을 대체할 수 없다.
+full morphology resource의 source metadata를 local lattice 경로에 연결하고 `expression` component를 canonical alignment로 해석했다. node 종류와 source component 관계만으로 현재 `ExactComponent` 비용 판정을 대체할 수 없다.
 
 - `runtime-composed`와 `source-decomposition`은 development positive와 negative에 함께 나타났다.
 - `source-explicit-component`는 development positive의 `속 -> 산속`, `기업 -> 기업주`에서 확인됐지만 hard-negative의 `학교 -> 대학교`에도 같은 구조로 나타났다.
 - 기존 1,500 비용 마진이 복구한 development 5건 중 `속 -> 산속`만 제외 경로의 명시적 source component였다. `이루다 -> 이루어지지`, `빼다 -> 빼놓을`은 제외 경로에 해당 component가 없고, `비추다 -> 비춰볼`, `건전 -> 건전한`은 축약·음절 융합으로 component byte span이 불투명했다.
 - 같은 scoring node가 atomic row와 inflection row에 동시에 대응하는 경우가 있어 compact node를 source row 하나로 역추정할 수 없다. graph resource는 모든 source analysis 관계를 보존해야 한다.
 
-따라서 graph resolver는 이 충돌을 `Ambiguous`로 표현해야 한다.
-복합어 component를 기본 `smart`에서 노출할지는 형태 비용이나 source 종류가 아니라 별도의 `CompoundExposure` profile 계약이다.
-이 계약을 정하기 전에는 lexical context registry와 1,500 마진의 제품 동작을 제거하지 않는다.
+따라서 graph resolver는 이 충돌을 `Ambiguous`로 표현해야 한다. 복합어 component를 기본 `smart`에서 노출할지는 형태 비용이나 source 종류가 아니라 별도의 `CompoundExposure` profile 계약이다. 이 계약을 정하기 전에는 lexical context registry와 1,500 마진의 제품 동작을 제거하지 않는다.
 
 ## 구현
 
@@ -37,8 +34,7 @@ candidate의 제품 품질은 기준선과 같았다.
 | development full-POS `smart` | 475 | 2 | 25 | 99.58% | 95.00% |
 | Human full-POS `smart` | 461 | 0 | 39 | 100.00% | 92.20% |
 
-full-POS component candidate의 query 관계는 다음과 같다.
-development와 hard-negative만 구조 판정에 사용했고 고정 test는 구현을 고정한 뒤 회귀 확인에만 사용했다.
+full-POS component candidate의 query 관계는 다음과 같다. development와 hard-negative만 구조 판정에 사용했고 고정 test는 구현을 고정한 뒤 회귀 확인에만 사용했다.
 
 | 집합 | class | projection | exact node | explicit source component | opaque expression | absent |
 | --- | --- | --- | ---: | ---: | ---: | ---: |
@@ -79,8 +75,7 @@ full/compact projection 비교는 test 369건, development 358건, hard-negative
 | full-POS p95 | 0.2370ms [0.2363, 0.2408] | 0.2393ms [0.2376, 0.2420] | +0.97% |
 | full-POS RSS | 94552 KiB [94548, 94564] | 94564 KiB [94548, 94564] | +0.01% |
 
-측정 범위는 겹치며 제품 timed path의 성능 회귀는 없다.
-source provenance와 expression 관계 집계는 측정 구간 밖에 있다.
+측정 범위는 겹치며 제품 timed path의 성능 회귀는 없다. source provenance와 expression 관계 집계는 측정 구간 밖에 있다.
 
 ## 다음 결정
 
@@ -90,5 +85,4 @@ graph schema 구현 전에 `CompoundExposure`의 profile 계약을 정한다.
 - `transparent`: source가 명시한 component를 노출한다.
 - `explicit`: 기본은 opaque로 두고 별도 query capability에서만 component를 노출한다.
 
-`opaque`는 `속`, `기업` positive를 놓치고, `transparent`는 `학교 -> 대학교` hard-negative를 통과시키므로 현재 결과를 모두 보존하는 구조-only 선택지는 없다.
-외부 어휘 의미 근거 없이 surface별 선택을 저장하면 lexical registry를 다른 이름으로 복원하는 것이므로 채택하지 않는다.
+`opaque`는 `속`, `기업` positive를 놓치고, `transparent`는 `학교 -> 대학교` hard-negative를 통과시키므로 현재 결과를 모두 보존하는 구조-only 선택지는 없다. 외부 어휘 의미 근거 없이 surface별 선택을 저장하면 lexical registry를 다른 이름으로 복원하는 것이므로 채택하지 않는다.

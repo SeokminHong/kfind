@@ -248,14 +248,9 @@ coverage 검사를 함께 도입한다. 새 규칙이 없는 RC 변경에는 이
 
 ## 이어갈 형태 품질 작업
 
-다음 형태 품질 작업은 비용 마진과 lexical context registry를 source provenance 기반 형태 분석 그래프로 교체하는 구조 전환이다.
-먼저 full morphology resource의 source metadata를 기존 local lattice 경로에 연결한 shadow 감사를 실행한다.
-감사 결과가 구조 분리를 입증하기 전에는 제품 판정, registry와 1,500 마진을 바꾸지 않는다.
+다음 형태 품질 작업은 비용 마진과 lexical context registry를 source provenance 기반 형태 분석 그래프로 교체하는 구조 전환이다. 먼저 full morphology resource의 source metadata를 기존 local lattice 경로에 연결한 shadow 감사를 실행한다. 감사 결과가 구조 분리를 입증하기 전에는 제품 판정, registry와 1,500 마진을 바꾸지 않는다.
 
-source expression 관계 감사까지 완료했다.
-`source-explicit-component`는 development positive의 `속 -> 산속`, `기업 -> 기업주`와 hard-negative의 `학교 -> 대학교`에 함께 나타났다.
-다음 단계는 graph schema 구현이 아니라 `CompoundExposure`를 `opaque`, `transparent`, `explicit` 중 어떤 profile 계약으로 둘지 결정하는 작업이다.
-surface별 예외 목록과 새 비용 임계값은 선택지가 아니다.
+source expression 관계 감사까지 완료했다. `source-explicit-component`는 development positive의 `속 -> 산속`, `기업 -> 기업주`와 hard-negative의 `학교 -> 대학교`에 함께 나타났다. 다음 단계는 graph schema 구현이 아니라 `CompoundExposure`를 `opaque`, `transparent`, `explicit` 중 어떤 profile 계약으로 둘지 결정하는 작업이다. surface별 예외 목록과 새 비용 임계값은 선택지가 아니다.
 
 구조 전환 뒤에는 명시적 품사 full-POS `smart`의 남은 FN 25건을 줄이는 제품 변경을 이어간다.
 계측·report·runner만 바꾼 상태는 작업 완료로 보지 않는다. 규칙 조건은 development case만으로
