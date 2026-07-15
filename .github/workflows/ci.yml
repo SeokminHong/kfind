@@ -49,6 +49,12 @@ jobs:
           python3 -m unittest discover
           --start-directory tools/morph-compare/real_corpus
           --pattern 'test_*.py'
+      - name: Check README current-information policy
+        run: |
+          python3 tools/readme-guard/check_readmes.py
+          python3 -m unittest discover \
+            --start-directory tools/readme-guard \
+            --pattern 'test_*.py'
       - name: Check fuzz targets
         run: cargo +stable check --manifest-path fuzz/Cargo.toml --bins --locked
       - name: Check Homebrew formula metadata
