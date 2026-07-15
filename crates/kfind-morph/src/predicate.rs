@@ -7,7 +7,10 @@ use crate::hangul::{
     JONG_SSANGSIOT, JUNG_YEO, add_final, decompose_syllable, drop_last_final, has_rieul_final,
     replace_last_vowel,
 };
-use crate::{ContinuationState, LexicalAlternation, PredicateEntry, RuleId, SurfaceBranchSpec};
+use crate::{
+    ContinuationState, LexicalAlternation, PredicateEntry, PredicateFlags, PredicatePos, RuleId,
+    SurfaceBranchSpec,
+};
 
 mod alternation;
 mod continuation;
@@ -80,12 +83,23 @@ pub fn generate_predicate_branches(
     }
 
     let mut branches = Vec::new();
+    let final_da_continuation = if matches!(
+        entry.pos,
+        PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
+    ) && !entry
+        .flags
+        .contains(PredicateFlags::NO_DECLARATIVE_CONTINUATION)
+    {
+        ContinuationState::Declarative
+    } else {
+        ContinuationState::Terminal
+    };
     push_branch(
         &mut branches,
         entry,
         entry.lemma.to_string(),
         stem.len(),
-        ContinuationState::Terminal,
+        final_da_continuation,
         vec![rule("ending.final-da")],
     );
 
