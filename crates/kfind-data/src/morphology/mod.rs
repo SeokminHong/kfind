@@ -8,8 +8,13 @@ use crate::{
     DataError, DataErrorKind, MecabConnectionMatrix, MecabSourceMorphologyEntry, SourceLocation,
 };
 
+mod expression;
 mod payload;
 
+pub use expression::{
+    MorphologyExpressionAlignment, MorphologyExpressionAlignmentKind,
+    MorphologyExpressionComponent, align_morphology_expression,
+};
 use payload::{PayloadView, StringTable};
 
 const MAGIC: &[u8; 8] = b"KFMORPH\0";

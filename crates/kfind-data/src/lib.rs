@@ -34,8 +34,10 @@ pub use mecab::{
     extract_mecab_morphology, extract_mecab_source_morphology, parse_mecab_connection_matrix,
 };
 pub use morphology::{
-    DecodedMorphologyResource, MorphologyAnalysis, MorphologyResourceStats,
-    decode_morphology_resource, encode_morphology_resource, parse_sha256,
+    DecodedMorphologyResource, MorphologyAnalysis, MorphologyExpressionAlignment,
+    MorphologyExpressionAlignmentKind, MorphologyExpressionComponent, MorphologyResourceStats,
+    align_morphology_expression, decode_morphology_resource, encode_morphology_resource,
+    parse_sha256,
 };
 pub use rules::{
     AlternationRule, ContractionRule, DerivationRule, EndingCategory, EndingInitial, EndingRule,
