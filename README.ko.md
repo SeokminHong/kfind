@@ -428,7 +428,7 @@ pnpm --dir packages/kfind run benchmark:startup
 pnpm --dir packages/kfind run pack:check
 ```
 
-형태론 fixture에는 일치·불일치 회귀 사례 551개가 있습니다. Docker 벤치마크는 독립된 UD
+형태론 fixture에는 일치·불일치 회귀 사례 562개가 있습니다. Docker 벤치마크는 독립된 UD
 Korean-Kaist·KSL test split에서 생성한 1,000개 사례로 `kfind`를 측정하고, 고정된 Kiwi,
 Lindera, MeCab-ko, KOMORAN snapshot과 비교합니다. fuzz target과 고정 seed corpus는 `fuzz/`에
 있습니다. CI는 `scripts/run-fuzz.sh`로 모든 target을 target당 15초 동안 실제 실행합니다.
