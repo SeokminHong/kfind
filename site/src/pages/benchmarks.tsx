@@ -174,6 +174,22 @@ export default function BenchmarksPage(): React.JSX.Element {
         </p>
       </DocumentSection>
 
+      <DocumentSection title="선어말어미 뒤 -으되 continuation">
+        <p>
+          한국어기초사전의 결합 조건과 Korean-Kaist의 <code>치르+었+으되</code>
+          분석에 따라 <code>ending.past</code>와 <code>ending.future</code>{' '}
+          뒤에서만
+          <code>으되</code>를 소비합니다. bare stem이나 <code>으데</code>는
+          허용하지 않습니다.
+        </p>
+        <p>
+          Main <code>7e58474</code> 대비 후보 <code>0ceb458</code>은 development
+          embedded와 full-POS <code>smart</code>의 FN을 각각 1건 줄였습니다.
+          고정 test, Agent, Human과 hard-negative 품질은 바뀌지 않았고 성능 측정
+          범위는 기준선과 겹쳤습니다.
+        </p>
+      </DocumentSection>
+
       <DocumentSection title="제한된 사전 표면형 계층">
         <p>
           두 국립국어원 사전이 함께 지지하는 활용형 12,888개 중 12,758개는 기존
@@ -193,6 +209,11 @@ export default function BenchmarksPage(): React.JSX.Element {
 
       <DocumentSection title="원본 보고서">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-15-eudoe-continuation.md">
+              선어말어미 뒤 -으되 continuation
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-15-dictionary-surface-lexicon.md">
               제한된 사전 표면형 계층
