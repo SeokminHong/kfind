@@ -36,7 +36,7 @@
 ### 0.1 규칙 데이터와 품질 기준
 
 - v0.1의 필수 형태 범위는 9.5절의 활용표, 19.2절의 필수 테스트, 23절의 인수 기준을 모두 포함한다.
-- gold corpus에 포함된 현재 평서형 `-ㄴ다/는다`, 회상 관형형 `-던`, 양보 연결형 `-더라도`, 과거 관형 연쇄 `-았/었을`, 과거 의문 종결 연쇄 `-았/었느냐`, `-았/었느냐는`, 이유 연결형 `-(으)니`, 인용 연결형 `-다고`, 전망 인용 연쇄 `-(으)리라고`, 의도 연결형 `-(으)려고`, 상태 변화 보조 용언 `-아/어지다`, 진행 방향 보조 용언 `-아/어가고`, `-아/어가야`도 v0.1의 제한된 continuation vocabulary에 포함한다.
+- gold corpus에 포함된 현재 평서형 `-ㄴ다/는다`, 회상 관형형 `-던`, 양보 연결형 `-더라도`, 과거 관형 연쇄 `-았/었을`, 과거 의문 종결 연쇄 `-았/었느냐`, `-았/었느냐는`, 이유 연결형 `-(으)니`, 인용 연결형 `-다고`, 현재 서술형 인용·회상 연쇄, 전망 인용 연쇄 `-(으)리라고`, 의도 연결형 `-(으)려고`, 상태 변화 보조 용언 `-아/어지다`, 진행 방향 보조 용언 `-아/어가고`, `-아/어가야`도 v0.1의 제한된 continuation vocabulary에 포함한다.
 - 실제 코퍼스에서 확인된 해요체 과거형 `-았어요/-었어요`, 지정사 `이다`의 높임 평서형 `입니다`, 부정 지정사 `아니다`의 연결형 `아니라`도 v0.1의 제한된 continuation vocabulary에 포함한다.
 - 어미, 조사 연쇄, 파생 규칙은 저장소에서 버전을 관리하는 `data/rules` 파일의 목록과 전이를
   기준으로 삼는다. 목록 밖 조합은 생성하지 않는다.
@@ -86,6 +86,14 @@
 - 용언의 `ending.past`와 `ending.future` verifier state는 `ending.connective-eudoe`의 `으되`를
   소비한다. `치렀으되`, `하겠으되`처럼 선어말어미 뒤의 완성된 token만 복구하며, bare stem에
   `으되`를 붙이는 별도 경로는 이 규칙으로 추측하지 않는다.
+- 동작 용언의 `ending.declarative` verifier state는 현재 평서형 뒤의 제한된 continuation만
+  소비한다. 허용 목록은 `고`(`ending.quotative-go`), `는`(`ending.quotative-adnominal`),
+  `던`(`ending.quotative-retrospective`), `면`(`ending.conditional`),
+  `니`(`ending.quotative-ni`), `며`(`ending.quotative-myeo`),
+  `면서`(`ending.quotative-myeonseo`), `는데`(`ending.quotative-neunde`),
+  `지`(`ending.quotative-ji`)다. `쓴다고`, `먹는다는`, `함께한다던`처럼 이 목록으로 끝나는
+  token과 bare `쓴다`, `먹는다`는 허용한다. 종결형 뒤의 `거나/든가/든지` 조사와 `니요/던데`
+  같은 추가 연쇄는 이 상태에서 추측하지 않는다.
 - `token`은 모든 품사에서 core 시작과 완성된 token span 끝의 토큰 경계를 검사한다.
 - `any`는 좌우 경계를 검사하지 않는다.
 - phrase의 `max-gap`은 앞 atom의 `token.end`와 다음 atom의 `token.start` 사이에 있는 Unicode scalar 수다. 음수이거나 순서가 뒤집힌 span은 결합하지 않는다.
