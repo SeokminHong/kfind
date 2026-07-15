@@ -216,10 +216,11 @@
   이 정의와 모순되지 않아야 한다.
 - 각 문서 route는 단어장 용어가 본문에서 처음 등장하는 한 곳에만 tooltip과 해당 정의 link를
   제공한다. 같은 항목의 한국어·영문 별칭은 한 용어로 센다. Tooltip은 hover와 keyboard focus로
-  열 수 있어야 한다. Hover를 지원하지 않는 환경에서는 click metadata와 선행 pointer event 유무에
-  관계없이 첫 link activation으로 tooltip을 열고, 같은 용어의 다음 activation으로 단어장에
-  이동한다. 실제 keyboard Enter activation과 hover를 지원하는 pointer의 link 동작은 유지한다.
-  Code·기존 link·form control과 단어장 자체에는 중첩해서 적용하지 않는다.
+  열 수 있어야 한다. 실제 mouse pointer activation과 keyboard Enter activation은 기존 link 동작을
+  유지한다. Touch·pen pointer activation과 선행 input event가 없는 link activation은 첫 번째에
+  tooltip을 열고, 같은 용어의 다음 activation에 단어장으로 이동한다. 이 구분에 media query나 click
+  metadata를 사용하지 않는다. Code·기존 link·form control과 단어장 자체에는 중첩해서 적용하지
+  않는다.
 - 일반 UI text는 Pretendard 기반 sans-serif stack을 사용한다. 코드, 명령, query·output label과
   기술 도해의 코드 표기는 기존 monospace stack을 유지한다.
 - 공통 spacing scale은 `0.25rem`, `0.5rem`, `0.75rem`, `1rem`, `1.5rem`과 section 간격
