@@ -30,7 +30,7 @@ continuation은 `Exact`, `Predicate`, `NominalParticles` 세 DFA로 표현한다
 
 ## 형태 분석 그래프
 
-`TokenAnalysisGraph`는 structural schema 4 source analysis에서 다음 근거를 구분한다. schema 4는 lexical identity, POS, component projection, expression relation과 hard morphotactic transition만 저장하며 전체 resolver는 scoring schema를 fallback으로 사용하지 않는다.
+`TokenAnalysisGraph`는 structural schema 4 source analysis에서 다음 근거를 구분한다. schema 4는 lexical identity, POS, component projection, expression relation과 hard morphotactic transition만 저장하며 raw `analysis_type`과 scoring schema를 저장하거나 fallback으로 사용하지 않는다.
 
 | 근거 | 의미 |
 | --- | --- |
