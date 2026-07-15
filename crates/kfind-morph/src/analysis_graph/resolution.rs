@@ -326,14 +326,51 @@ pub(super) fn decide_known(
         };
     }
     let mut proofs = BTreeSet::<CompactSupportProof>::new();
-    let lexical_paths = lexical_candidate_paths(graph, spans, patterns);
+    let runtime_paths = runtime_lexical_candidate_paths(graph, spans, patterns);
     for (pattern_index, pattern) in patterns.iter().enumerate() {
         if context_match(context, pattern, spans).is_none() {
             continue;
         }
-        for lexical_path in &lexical_paths {
+        for (node_index, node) in graph.nodes().iter().enumerate() {
+            if !graph.is_on_complete_path(node_index)
+                || node.span.start > spans.core.start
+                || node.span.end < spans.core.end
+            {
+                continue;
+            }
+            let lexical_path = [node_index];
+            let units = path_units(&lexical_path, graph.nodes());
+            for support in
+                source_support_candidates(&lexical_path, graph.nodes(), &units, spans, pattern)
+            {
+                if extend_decision_support(
+                    graph,
+                    spans,
+                    IndexedPattern {
+                        index: pattern_index,
+                        pattern,
+                    },
+                    lexical_path.to_vec(),
+                    support,
+                    &mut proofs,
+                    proof_limit,
+                ) {
+                    return ConstraintDecision {
+                        outcome: ConstraintOutcome::Unavailable(ConstraintUnavailable::PathLimit {
+                            actual: proofs.len(),
+                            limit: proof_limit,
+                        }),
+                        supported: Vec::new(),
+                    };
+                }
+            }
+        }
+        if !matches!(pattern.fine_pos, DataFinePos::Vv | DataFinePos::Va) {
+            continue;
+        }
+        for lexical_path in &runtime_paths {
             let units = path_units(lexical_path, graph.nodes());
-            for support in support_candidates(lexical_path, graph.nodes(), &units, spans, pattern) {
+            for support in runtime_lexical_candidates(&units, spans, pattern) {
                 if extend_decision_support(
                     graph,
                     spans,
@@ -561,6 +598,25 @@ fn lexical_candidate_paths(
     paths
 }
 
+fn runtime_lexical_candidate_paths(
+    graph: &TokenGraph<'_>,
+    spans: &CandidateSpans,
+    patterns: &[QueryMorphPattern],
+) -> Vec<Vec<usize>> {
+    let mut paths = Vec::new();
+    for (index, node) in graph.nodes().iter().enumerate() {
+        if graph.is_on_complete_path(index)
+            && node.span.start == spans.core.start
+            && node.span.end < spans.core.end
+        {
+            extend_lexical_path(graph, spans, patterns, vec![index], &mut paths);
+        }
+    }
+    paths.sort();
+    paths.dedup();
+    paths
+}
+
 fn extend_lexical_path(
     graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
@@ -603,8 +659,9 @@ fn lexical_path_can_match(
         .map(|component| component.surface)
         .collect::<String>();
     patterns.iter().any(|pattern| {
-        pattern.lexical_form.starts_with(&surface)
-            || (!canonical.is_empty() && pattern.lexical_form.starts_with(&canonical))
+        matches!(pattern.fine_pos, DataFinePos::Vv | DataFinePos::Va)
+            && (pattern.lexical_form.starts_with(&surface)
+                || (!canonical.is_empty() && pattern.lexical_form.starts_with(&canonical)))
     })
 }
 
@@ -855,6 +912,18 @@ fn support_candidates(
     spans: &CandidateSpans,
     pattern: &QueryMorphPattern,
 ) -> Vec<SupportCandidate> {
+    let mut matches = source_support_candidates(path, nodes, units, spans, pattern);
+    matches.extend(runtime_lexical_candidates(units, spans, pattern));
+    matches
+}
+
+fn source_support_candidates(
+    path: &[usize],
+    nodes: &[Node<'_>],
+    units: &[Unit<'_>],
+    spans: &CandidateSpans,
+    pattern: &QueryMorphPattern,
+) -> Vec<SupportCandidate> {
     let mut matches = Vec::new();
     for (node_position, &node_index) in path.iter().enumerate() {
         let node = &nodes[node_index];
@@ -948,7 +1017,6 @@ fn support_candidates(
             }
         }
     }
-    matches.extend(runtime_lexical_candidates(units, spans, pattern));
     matches
 }
 
