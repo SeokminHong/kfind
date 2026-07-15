@@ -461,7 +461,7 @@ fn extend_supported_path(
 fn continuation_prefix_possible(
     pattern: &QueryMorphPattern,
     spans: &CandidateSpans,
-    units: &[Unit],
+    units: &[Unit<'_>],
     support: &SupportCandidate,
 ) -> bool {
     let partial_end = units
@@ -474,10 +474,7 @@ fn continuation_prefix_possible(
     let Some(selected) = suffix_units(units, support, &(spans.core.end..partial_end)) else {
         return false;
     };
-    let positions = selected
-        .iter()
-        .map(|unit| unit.pos.as_str())
-        .collect::<Vec<_>>();
+    let positions = selected.iter().map(|unit| unit.pos).collect::<Vec<_>>();
     match pattern.continuation {
         MorphContinuation::Exact => selected.is_empty(),
         MorphContinuation::NominalParticles => nominal_prefix(&positions),
@@ -579,12 +576,12 @@ fn same_supported_analysis(left: &SupportedAnalysis, right: &SupportedAnalysis) 
 }
 
 #[derive(Clone, Debug)]
-struct Unit {
+struct Unit<'a> {
     node_position: usize,
     source_node_index: usize,
     component_index: Option<usize>,
-    surface: String,
-    pos: String,
+    surface: &'a str,
+    pos: &'a str,
     span: Option<Range<usize>>,
     coverage: Range<usize>,
     opaque: bool,
@@ -606,7 +603,7 @@ struct SupportCandidate {
 fn support_candidates(
     path: &[usize],
     nodes: &[Node],
-    units: &[Unit],
+    units: &[Unit<'_>],
     spans: &CandidateSpans,
     pattern: &QueryMorphPattern,
 ) -> Vec<SupportCandidate> {
@@ -708,7 +705,7 @@ fn support_candidates(
 }
 
 fn runtime_lexical_candidates(
-    units: &[Unit],
+    units: &[Unit<'_>],
     spans: &CandidateSpans,
     pattern: &QueryMorphPattern,
 ) -> Vec<SupportCandidate> {
@@ -742,8 +739,8 @@ fn runtime_lexical_candidates(
             if end > spans.core.end {
                 break;
             }
-            surface.push_str(&unit.surface);
-            positions.push(unit.pos.as_str());
+            surface.push_str(unit.surface);
+            positions.push(unit.pos);
             has_opaque |= unit.opaque;
             if end == spans.core.end {
                 let lexical_match = node_positions.len() > 1
@@ -793,15 +790,12 @@ fn runtime_lexical_pos_matches(positions: &[&str], query: DataFinePos) -> bool {
 fn continuation_proof(
     pattern: &QueryMorphPattern,
     spans: &CandidateSpans,
-    units: &[Unit],
+    units: &[Unit<'_>],
     support: &SupportCandidate,
 ) -> Option<ConstraintContinuationProof> {
     let suffix = spans.core.end..spans.consumed.end;
     let selected = suffix_units(units, support, &suffix)?;
-    let positions = selected
-        .iter()
-        .map(|unit| unit.pos.as_str())
-        .collect::<Vec<_>>();
+    let positions = selected.iter().map(|unit| unit.pos).collect::<Vec<_>>();
     let accepted = match pattern.continuation {
         MorphContinuation::Exact => {
             spans.anchor == spans.core && spans.consumed == spans.anchor && positions.is_empty()
@@ -809,7 +803,7 @@ fn continuation_proof(
         MorphContinuation::NominalParticles => {
             (spans.consumed == spans.anchor && selected.is_empty())
                 || (spans.consumed.end == spans.token.end
-                    && nominal_continuation(&selected, &units[support.unit_index].surface))
+                    && nominal_continuation(&selected, units[support.unit_index].surface))
         }
         MorphContinuation::Predicate {
             state,
@@ -824,7 +818,7 @@ fn continuation_proof(
         units: selected
             .into_iter()
             .map(|unit| ConstraintMorphUnitProof {
-                pos: unit.pos.clone(),
+                pos: unit.pos.to_owned(),
                 span: unit.span.clone(),
                 source_node_index: unit.source_node_index,
                 component_index: unit.component_index,
@@ -834,10 +828,10 @@ fn continuation_proof(
 }
 
 fn suffix_units<'a>(
-    units: &'a [Unit],
+    units: &'a [Unit<'a>],
     support: &SupportCandidate,
     suffix: &Range<usize>,
-) -> Option<Vec<&'a Unit>> {
+) -> Option<Vec<&'a Unit<'a>>> {
     if suffix.start == suffix.end {
         return Some(Vec::new());
     }
@@ -874,7 +868,7 @@ fn suffix_units<'a>(
     (end == suffix.end).then_some(selected)
 }
 
-fn nominal_continuation(units: &[&Unit], support_surface: &str) -> bool {
+fn nominal_continuation(units: &[&Unit<'_>], support_surface: &str) -> bool {
     let mut particles = false;
     let morphology_allowed = units.iter().all(|unit| {
         if unit.pos == "XSN" && !particles {
@@ -893,7 +887,7 @@ fn predicate_continuation(
     state: ContinuationState,
     nominal_particles: bool,
     spans: &CandidateSpans,
-    units: &[&Unit],
+    units: &[&Unit<'_>],
     positions: &[&str],
 ) -> bool {
     #[derive(Clone, Copy, Eq, PartialEq)]
@@ -915,7 +909,7 @@ fn predicate_continuation(
     let post_anchor = units
         .iter()
         .filter(|unit| unit.coverage.start >= spans.anchor.end)
-        .map(|unit| unit.pos.as_str())
+        .map(|unit| unit.pos)
         .collect::<Vec<_>>();
     let state_allowed = match state {
         ContinuationState::Terminal if nominal_particles => {
@@ -931,14 +925,14 @@ fn predicate_continuation(
     state_allowed && valid_particle_sequence(units, "")
 }
 
-fn valid_particle_sequence(units: &[&Unit], support_surface: &str) -> bool {
+fn valid_particle_sequence(units: &[&Unit<'_>], support_surface: &str) -> bool {
     let Some(first_particle) = units.iter().position(|unit| unit.pos.starts_with('J')) else {
         return true;
     };
     let host_surface = units[..first_particle]
         .iter()
         .rev()
-        .find_map(|unit| (!unit.surface.is_empty()).then_some(unit.surface.as_str()))
+        .find_map(|unit| (!unit.surface.is_empty()).then_some(unit.surface))
         .unwrap_or(support_surface);
     let Some(host) = host_surface.chars().next_back() else {
         return true;
@@ -948,13 +942,13 @@ fn valid_particle_sequence(units: &[&Unit], support_surface: &str) -> bool {
         if !unit.pos.starts_with('J') {
             return false;
         }
-        if is_case_particle(&unit.pos, &unit.surface) {
+        if is_case_particle(unit.pos, unit.surface) {
             case_particles += 1;
             if case_particles > 1 {
                 return false;
             }
         }
-        if !particle_allomorph_accepts(&unit.surface, host) {
+        if !particle_allomorph_accepts(unit.surface, host) {
             return false;
         }
     }
@@ -1084,12 +1078,9 @@ fn copular_selection(
                 .filter(|unit| unit.coverage.start >= split)
                 .collect::<Vec<_>>();
             if prefix.len() == 1
-                && source_pos(prefix[0].pos.as_str()).is_some_and(DataFinePos::is_nominal)
+                && source_pos(prefix[0].pos).is_some_and(DataFinePos::is_nominal)
                 && exact_coverage(&prefix, 0..split)
-                && suffix
-                    .iter()
-                    .map(|unit| unit.pos.as_str())
-                    .eq(["VCP", "ETM"])
+                && suffix.iter().map(|unit| unit.pos).eq(["VCP", "ETM"])
                 && enclosing_coverage(&suffix, split..current_text.len())
             {
                 splits.insert(split);
@@ -1119,12 +1110,12 @@ fn nominal_particle_host_selection(
                 .filter(|unit| unit.coverage.start >= split)
                 .collect::<Vec<_>>();
             if prefix.len() == 1
-                && source_pos(prefix[0].pos.as_str()).is_some_and(DataFinePos::is_nominal)
+                && source_pos(prefix[0].pos).is_some_and(DataFinePos::is_nominal)
                 && exact_coverage(&prefix, 0..split)
                 && !suffix.is_empty()
                 && suffix.iter().all(|unit| unit.pos.starts_with('J'))
                 && enclosing_coverage(&suffix, split..current_text.len())
-                && valid_particle_sequence(&suffix, &prefix[0].surface)
+                && valid_particle_sequence(&suffix, prefix[0].surface)
             {
                 splits.insert(split);
             }
@@ -1180,7 +1171,7 @@ fn starts_with_pos(graph: &TokenGraph, accepts: impl Fn(&str) -> bool) -> bool {
     })
 }
 
-fn path_units(path: &[usize], nodes: &[Node]) -> Vec<Unit> {
+fn path_units<'a>(path: &[usize], nodes: &'a [Node]) -> Vec<Unit<'a>> {
     let mut units = Vec::new();
     for (node_position, &node_index) in path.iter().enumerate() {
         let node = &nodes[node_index];
@@ -1189,8 +1180,8 @@ fn path_units(path: &[usize], nodes: &[Node]) -> Vec<Unit> {
                 node_position,
                 source_node_index: node_index,
                 component_index: None,
-                surface: node.surface.clone(),
-                pos: pos.to_owned(),
+                surface: &node.surface,
+                pos,
                 span: Some(node.span.clone()),
                 coverage: node.span.clone(),
                 opaque: false,
@@ -1204,8 +1195,8 @@ fn path_units(path: &[usize], nodes: &[Node]) -> Vec<Unit> {
                         node_position,
                         source_node_index: node_index,
                         component_index: Some(component_index),
-                        surface: component.surface.clone(),
-                        pos: component.pos.clone(),
+                        surface: &component.surface,
+                        pos: &component.pos,
                         span: component.span.clone(),
                         coverage: component.span.clone().unwrap_or_else(|| node.span.clone()),
                         opaque: component.span.is_none(),
@@ -1216,7 +1207,7 @@ fn path_units(path: &[usize], nodes: &[Node]) -> Vec<Unit> {
     units
 }
 
-fn exact_coverage(units: &[&Unit], expected: Range<usize>) -> bool {
+fn exact_coverage(units: &[&Unit<'_>], expected: Range<usize>) -> bool {
     let mut spans = units
         .iter()
         .filter_map(|unit| unit.span.clone())
@@ -1236,7 +1227,7 @@ fn exact_coverage(units: &[&Unit], expected: Range<usize>) -> bool {
     end == expected.end
 }
 
-fn enclosing_coverage(units: &[&Unit], expected: Range<usize>) -> bool {
+fn enclosing_coverage(units: &[&Unit<'_>], expected: Range<usize>) -> bool {
     let mut spans = units
         .iter()
         .map(|unit| unit.coverage.clone())
