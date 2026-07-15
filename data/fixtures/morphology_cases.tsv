@@ -103,6 +103,11 @@ query	pos	text	expected	feature
 길	noun	길으로 들어섰다.	no-match	particle-euro-ro
 권한	noun	권한은 필요하다.	match	particle-final-pair
 권한	noun	권한는 필요하다.	no-match	particle-final-pair
+백	numeral	백이면 백 모두 통과한다.	match	particle-connector-myeon
+공부	noun	공부면 공부, 운동이면 운동 모두 잘한다.	match	particle-connector-myeon
+백	numeral	백면 모두 통과한다.	no-match	particle-connector-myeon
+공부	noun	공부이면 시작한다.	no-match	particle-connector-myeon
+백	numeral	백이면도 모두 통과한다.	no-match	particle-connector-myeon
 나	pronoun	내가 확인했다.	match	pronoun-override
 너	pronoun	네가 확인했다.	match	pronoun-override
 저	pronoun	제가 확인했다.	match	pronoun-override

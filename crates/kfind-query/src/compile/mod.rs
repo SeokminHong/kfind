@@ -70,6 +70,7 @@ const MORPH_PARTICLE_RULE_IDS: &[&str] = &[
     "particle.subject",
     "particle.object",
     "particle.comitative",
+    "particle.connector-myeon",
     "particle.topic",
     "particle.additive",
     "particle.only",

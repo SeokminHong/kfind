@@ -174,6 +174,22 @@ export default function BenchmarksPage(): React.JSX.Element {
         </p>
       </DocumentSection>
 
+      <DocumentSection title="접속 조사 이면/면의 명사류 결합">
+        <p>
+          명사류 뒤의 접속 조사 <code>이면/면</code>은 받침 유무에 맞는 이형태만
+          소비하고 token을 닫습니다. <code>백이면 백</code>,{' '}
+          <code>공부면 공부</code>를 찾으며 <code>백면</code>,{' '}
+          <code>공부이면</code>, <code>백이면도</code>는 거부합니다.
+        </p>
+        <p>
+          Main <code>3a673bd</code> 대비 후보 <code>8b846aa</code>는 development
+          embedded와 full-POS <code>smart</code>의 FN을 각각 1건 줄였습니다.
+          신규 FP는 없고 고정 test, Agent, Human과 hard-negative 품질은 바뀌지
+          않았습니다. Full-POS·Agent·User morphology cases/s는 1.23~2.08% 낮았고
+          가장 큰 p95 증가는 2.65%였습니다.
+        </p>
+      </DocumentSection>
+
       <DocumentSection title="현재 서술형 후속 형태 continuation">
         <p>
           현재 서술형 <code>-ㄴ다/-는다</code> 뒤에서 <code>고</code>,{' '}
@@ -226,6 +242,11 @@ export default function BenchmarksPage(): React.JSX.Element {
 
       <DocumentSection title="원본 보고서">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-15-connector-myeon-particle.md">
+              접속 조사 이면/면의 명사류 결합
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-15-present-declarative-continuation.md">
               현재 서술형 후속 형태 continuation
