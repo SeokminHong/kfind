@@ -2,10 +2,10 @@ use std::io::Cursor;
 
 use grep_matcher::{LineMatchKind, LineTerminator, Matcher};
 use kfind_data::{
-    ComponentResource, MecabSourceMorphologyEntry, decode_component_resource,
+    ComponentResource, DataFinePos, MecabSourceMorphologyEntry, decode_component_resource,
     encode_component_resource, parse_mecab_connection_matrix,
 };
-use kfind_morph::{CoarsePos, ContinuationState, FinePos, RuleId};
+use kfind_morph::{CoarsePos, ContinuationState, FinePos, QueryMorphPattern, RuleId};
 use kfind_query::{
     Analysis, AnalysisSource, AtomPlan, BoundaryPolicy, BoundaryProof, BranchEnvironment,
     BranchVerifier, ContextRequirement, CoreMapping, Morphology, NominalMorphology, Origin,
@@ -313,6 +313,11 @@ fn repeated_single_atom_matches_advance_without_changing_leftmost_longest() {
 fn verification_counters_isolate_boundary_rejected_exact_components() {
     let mut contextual = nominal_branch("학교", rules(&["particle.topic"]));
     contextual.context_requirement = ContextRequirement::ExactComponent;
+    contextual.morph_patterns = vec![QueryMorphPattern {
+        fine_pos: DataFinePos::Nng,
+        lexical_form: Arc::from("학교"),
+        expose_source_components: false,
+    }];
     let mut atom = atom(BoundaryPolicy::Smart, vec![contextual]);
     atom.analyses.push(nominal_analysis("학교"));
     let plan = QueryPlan {
@@ -338,6 +343,26 @@ fn verification_counters_isolate_boundary_rejected_exact_components() {
             unique_component_windows: 1,
         }
     );
+    let graph_candidates = matcher.analysis_graph_candidates("대학교는 학교는".as_bytes());
+    assert_eq!(graph_candidates.len(), 2);
+    assert!(graph_candidates.iter().any(|candidate| {
+        !candidate.boundary_accepted
+            && !candidate.product_accepted
+            && candidate
+                .patterns
+                .iter()
+                .map(|pattern| pattern.fine_pos)
+                .eq([DataFinePos::Nng])
+    }));
+    assert!(graph_candidates.iter().any(|candidate| {
+        candidate.boundary_accepted
+            && candidate.product_accepted
+            && candidate
+                .patterns
+                .iter()
+                .map(|pattern| pattern.fine_pos)
+                .eq([DataFinePos::Nng])
+    }));
 }
 
 #[test]

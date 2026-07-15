@@ -24,7 +24,7 @@ mod candidates;
 mod context;
 mod phrase;
 
-pub use candidates::LocalAnalysisCandidate;
+pub use candidates::{AnalysisGraphCandidate, LocalAnalysisCandidate};
 use context::LexicalContextAnalysis;
 use phrase::{PhraseMatchLimit, PhraseSelection, select_phrase_matches};
 

@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::ops::Range;
 
-use kfind_morph::{FinePos, RuleId};
+use kfind_morph::{FinePos, QueryMorphPattern, RuleId};
 use kfind_query::ContextRequirement;
 
 use super::MorphMatcher;
@@ -17,7 +17,73 @@ pub struct LocalAnalysisCandidate {
     pub window: Result<AnalysisWindow, AnalysisWindowError>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct AnalysisGraphCandidate {
+    pub atom_index: usize,
+    pub branch_index: usize,
+    pub target: Range<usize>,
+    pub token: Range<usize>,
+    pub product_accepted: bool,
+    pub boundary_accepted: bool,
+    pub patterns: Vec<QueryMorphPattern>,
+    pub window: Result<AnalysisWindow, AnalysisWindowError>,
+}
+
 impl MorphMatcher {
+    #[must_use]
+    pub fn analysis_graph_candidates(&self, haystack: &[u8]) -> Vec<AnalysisGraphCandidate> {
+        let mut candidates = Vec::new();
+        let mut seen = HashSet::new();
+        for hit in self.anchor_engine.hits(haystack, 0) {
+            for branch_ref in &self.anchor_branches[hit.anchor_index] {
+                let branch =
+                    &self.plan.atoms[branch_ref.atom_index].branches[branch_ref.branch_index];
+                if branch.morph_patterns.is_empty() {
+                    continue;
+                }
+                let Some(candidate) = self.verify_branch_without_boundary(
+                    haystack,
+                    &hit,
+                    branch,
+                    super::MatchMetadata::SpanOnly,
+                ) else {
+                    continue;
+                };
+                let key = (
+                    branch_ref.atom_index,
+                    branch_ref.branch_index,
+                    candidate.core.start,
+                    candidate.core.end,
+                    candidate.token.end,
+                );
+                if !seen.insert(key) {
+                    continue;
+                }
+                let boundary_accepted = self.accepts_token_boundary(haystack, &candidate, branch);
+                candidates.push(AnalysisGraphCandidate {
+                    atom_index: branch_ref.atom_index,
+                    branch_index: branch_ref.branch_index,
+                    target: candidate.core.clone(),
+                    token: candidate.token.clone(),
+                    product_accepted: self.accepts_branch(
+                        haystack,
+                        &candidate,
+                        branch_ref.atom_index,
+                        branch,
+                    ),
+                    boundary_accepted,
+                    patterns: branch.morph_patterns.clone(),
+                    window: AnalysisWindow::extract(
+                        haystack,
+                        candidate.core,
+                        DEFAULT_ANALYSIS_WINDOW_LIMITS,
+                    ),
+                });
+            }
+        }
+        candidates
+    }
+
     #[must_use]
     pub fn local_analysis_candidates(&self, haystack: &[u8]) -> Vec<LocalAnalysisCandidate> {
         let mut candidates = Vec::new();
