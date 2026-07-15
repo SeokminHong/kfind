@@ -275,8 +275,7 @@ fn main() -> Result<()> {
             );
         }
         let cases = load_cases(Path::new(&arguments[2]))?;
-        let summary =
-            run_constraint_product_control(&cases, KfindProfile::parse(&arguments[1])?)?;
+        let summary = run_constraint_product_control(&cases, KfindProfile::parse(&arguments[1])?)?;
         serde_json::to_writer_pretty(BufWriter::new(File::create(&arguments[3])?), &summary)?;
         return Ok(());
     }

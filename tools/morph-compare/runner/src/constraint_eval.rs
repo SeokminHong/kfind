@@ -462,7 +462,8 @@ pub(super) fn run_constraint_product_control(
         })?;
         let plan = compile_query(&case.query, &options, &analyzer)
             .with_context(|| format!("failed to compile product control case {}", case.id))?;
-        let matcher = MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(&component))?;
+        let matcher =
+            MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(&component))?;
         spans_by_case.insert(case.id.clone(), find_all_spans(&matcher, &case.text));
     }
     Ok(ConstraintProductControl {
