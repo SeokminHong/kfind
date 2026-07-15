@@ -91,9 +91,9 @@
   `던`(`ending.quotative-retrospective`), `면`(`ending.conditional`),
   `니`(`ending.quotative-ni`), `며`(`ending.quotative-myeo`),
   `면서`(`ending.quotative-myeonseo`), `는데`(`ending.quotative-neunde`),
-  `지`(`ending.quotative-ji`)다. `쓴다고`, `먹는다는`, `함께한다던`처럼 이 목록으로 끝나는
-  token과 bare `쓴다`, `먹는다`는 허용한다. 종결형 뒤의 `거나/든가/든지` 조사와 `니요/던데`
-  같은 추가 연쇄는 이 상태에서 추측하지 않는다.
+  `지`(`ending.quotative-ji`)다. `쓴다고`, `먹는다는`, `받든다는`, `함께한다던`처럼 이
+  목록으로 끝나는 token과 bare `쓴다`, `먹는다`는 허용한다. 종결형 뒤의 `거나/든가/든지`
+  조사와 `니요/던데` 같은 추가 연쇄는 이 상태에서 추측하지 않는다.
 - `token`은 모든 품사에서 core 시작과 완성된 token span 끝의 토큰 경계를 검사한다.
 - `any`는 좌우 경계를 검사하지 않는다.
 - phrase의 `max-gap`은 앞 atom의 `token.end`와 다음 atom의 `token.start` 사이에 있는 Unicode scalar 수다. 음수이거나 순서가 뒤집힌 span은 결합하지 않는다.

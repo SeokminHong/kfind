@@ -378,14 +378,14 @@ files.
 
 | Workflow | Quality (TP / FP / FN) | CLI wall | Throughput | Peak RSS |
 | --- | ---: | ---: | ---: | ---: |
-| Agent: embedded + `any` + explicit POS | 482 / 11 / 18 | 17.2 ms | 5,810.1 MiB/s | 7.4 MiB |
-| Human: full POS + `smart` + untagged | 420 / 0 / 80 | 314.6 ms | 317.9 MiB/s | 92.1 MiB |
+| Agent: embedded + `any` + explicit POS | 482 / 11 / 18 | 18.4 ms | 5,434.7 MiB/s | 7.4 MiB |
+| Human: full POS + `smart` + untagged | 420 / 0 / 80 | 317.4 ms | 315.0 MiB/s | 92.2 MiB |
 
 ![Product workflow quality and CLI cost](docs/benchmarks/assets/product-workflows.svg)
 
 The agent and human quality rows use different negative-query contracts, so
 they describe their product workflows rather than a head-to-head backend rank.
-The product rows are from the 2026-07-15 candidate revision `0ceb458`.
+The product rows are from the 2026-07-15 candidate revision `ccc9525`.
 
 The enriched generator stores only 130 of 12,888 cross-checked dictionary
 conjugations because productive analysis generates the other 12,758. It also
@@ -399,6 +399,13 @@ future prefinal state. It recovered `치르다 -> 치렀으되` and reduced deve
 embedded and full-POS `smart` FN by one each. Fixed test, Agent, Human, and
 hard-negative quality did not change; performance ranges overlapped the baseline.
 
+The present-declarative verifier consumes `고`, `는`, `던`, `면`, `니`, `며`,
+`면서`, `는데`, and `지` after `-ㄴ다/-는다`. It recovered `쓰다 -> 쓴다고`
+and reduced development embedded and full-POS `smart` FN by one each without a
+new FP. Fixed test, Agent, Human, and hard-negative quality did not change.
+Morphology cases/s was 2.88% to 4.04% lower; initialization and RSS stayed stable.
+
+- [2026-07-15 continuations after present declaratives](docs/benchmarks/2026-07-15-present-declarative-continuation.md)
 - [2026-07-15 `-으되` continuation after prefinal endings](docs/benchmarks/2026-07-15-eudoe-continuation.md)
 - [2026-07-15 bounded dictionary surface lexicon](docs/benchmarks/2026-07-15-dictionary-surface-lexicon.md)
 - [2026-07-14 D/S/B/H irregular enriched predicate lexicon](docs/benchmarks/2026-07-14-consonant-irregular-enriched-lexicon.md)
@@ -552,7 +559,7 @@ pnpm --dir packages/kfind run benchmark:startup
 pnpm --dir packages/kfind run pack:check
 ```
 
-The morphology fixture contains 522 positive and negative regression cases. The
+The morphology fixture contains 540 positive and negative regression cases. The
 Docker benchmark measures `kfind` on 1,000 cases generated from independent UD
 Korean-Kaist and KSL test splits, then compares it with pinned Kiwi, Lindera,
 MeCab-ko, and KOMORAN snapshots. Fuzz targets and their fixed seed corpora live

@@ -174,6 +174,23 @@ export default function BenchmarksPage(): React.JSX.Element {
         </p>
       </DocumentSection>
 
+      <DocumentSection title="현재 서술형 후속 형태 continuation">
+        <p>
+          현재 서술형 <code>-ㄴ다/-는다</code> 뒤에서 <code>고</code>,{' '}
+          <code>는</code>, <code>던</code>, <code>면</code>, <code>니</code>,{' '}
+          <code>며</code>, <code>면서</code>, <code>는데</code>, <code>지</code>
+          를 소비합니다. <code>받는다는</code>, <code>받든다는</code>,{' '}
+          <code>함께한다던</code>을 포함한 조합을 회귀 fixture로 고정했습니다.
+        </p>
+        <p>
+          Main <code>8fb22eb</code> 대비 후보 <code>ccc9525</code>는 development
+          embedded와 full-POS <code>smart</code>의 FN을 각각 1건 줄였습니다.
+          신규 FP는 없고 고정 test, Agent, Human과 hard-negative 품질은 바뀌지
+          않았습니다. Morphology cases/s는 2.88~4.04% 낮았고 초기화와 RSS는
+          유지됐습니다.
+        </p>
+      </DocumentSection>
+
       <DocumentSection title="선어말어미 뒤 -으되 continuation">
         <p>
           한국어기초사전의 결합 조건과 Korean-Kaist의 <code>치르+었+으되</code>
@@ -209,6 +226,11 @@ export default function BenchmarksPage(): React.JSX.Element {
 
       <DocumentSection title="원본 보고서">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-15-present-declarative-continuation.md">
+              현재 서술형 후속 형태 continuation
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-15-eudoe-continuation.md">
               선어말어미 뒤 -으되 continuation
