@@ -324,22 +324,11 @@ fn resolve_known(graph: TokenGraph, text: &str, candidate: &Range<usize>) -> Con
     let has_opaque = selected
         .iter()
         .any(|path| path.nodes.iter().any(|node| node.has_opaque_expression));
-    let has_contradiction = selected.iter().any(|path| {
-        path.nodes.iter().all(|node| {
-            !node.matches_query_node
-                && !node.matches_source_component
-                && !node.has_opaque_expression
-        })
-    });
     let strict_candidate = *candidate != (0..text.len());
     let opaque_support = !strict_candidate && has_opaque;
     let has_support = has_component || has_exact || opaque_support;
-    let verdict = if strict_candidate && has_component {
+    let verdict = if strict_candidate && (has_component || has_exact) {
         ConstraintVerdict::Ambiguous(ConstraintAmbiguity::CompoundExposure)
-    } else if has_support && strict_candidate && has_opaque {
-        ConstraintVerdict::Ambiguous(ConstraintAmbiguity::OpaqueExpression)
-    } else if has_support && has_contradiction {
-        ConstraintVerdict::Ambiguous(ConstraintAmbiguity::CompetingAnalyses)
     } else if has_support {
         ConstraintVerdict::Proven
     } else if has_opaque {

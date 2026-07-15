@@ -84,7 +84,7 @@ fn source_component_exposure_remains_an_explicit_profile_decision() {
 }
 
 #[test]
-fn runtime_composition_is_proven_when_every_complete_path_supports_it() {
+fn strict_runtime_composition_remains_a_component_exposure_decision() {
     let resolver = resolver(&[atomic("산", "NNG", 8_000), atomic("속", "NNG", -8_000)]);
     let pattern = pattern("속", DataFinePos::Nng, false);
     let resolution = resolver.resolve(
@@ -95,7 +95,10 @@ fn runtime_composition_is_proven_when_every_complete_path_supports_it() {
         DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
     );
 
-    assert_eq!(resolution.verdict, ConstraintVerdict::Proven);
+    assert_eq!(
+        resolution.verdict,
+        ConstraintVerdict::Ambiguous(ConstraintAmbiguity::CompoundExposure)
+    );
     assert_eq!(
         resolution.proof.paths[0].evidence,
         ConstraintEvidenceKind::RuntimeComposed
@@ -149,7 +152,7 @@ fn source_whole_analysis_outranks_runtime_composition_regardless_of_cost() {
 }
 
 #[test]
-fn same_grade_source_analyses_remain_ambiguous_regardless_of_cost() {
+fn a_matching_same_grade_source_analysis_is_satisfiable_regardless_of_cost() {
     let first = resolver(&[
         atomic("매일", "MAG", -30_000),
         atomic("매일", "NNG", 30_000),
@@ -169,10 +172,7 @@ fn same_grade_source_analyses_remain_ambiguous_regardless_of_cost() {
         )
     };
 
-    assert_eq!(
-        resolve(&first).verdict,
-        ConstraintVerdict::Ambiguous(ConstraintAmbiguity::CompetingAnalyses)
-    );
+    assert_eq!(resolve(&first).verdict, ConstraintVerdict::Proven);
     assert_eq!(resolve(&reversed).verdict, resolve(&first).verdict);
 }
 
