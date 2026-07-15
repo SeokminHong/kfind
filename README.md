@@ -283,11 +283,9 @@ Repeated navigation is frame-paced by the content viewport size without dropping
 movement. Larger viewports combine more held-key input in each frame to limit
 terminal scroll operations.
 
-The pager index scales with completed source lines and expanded match rows. On
-2026-07-14 at revision `4d81a22`, one million plain lines used 43.50 MiB peak RSS;
-one million source lines expanded to four million rows used 110.81 MiB. Use
-`--no-pager` for a bounded stream when millions of interactive results are not
-needed. See the [TUI index memory report](docs/benchmarks/2026-07-14-tui-index-memory.md).
+The pager index scales with completed source lines and expanded match rows. Use
+`--no-pager` for a bounded stream when large interactive result sets are not
+needed.
 
 JSON Lines records contain `type`, path, line, optional column, text, spans,
 core and token byte ranges, matched surface, lemma/POS origins, rule paths, and
@@ -368,118 +366,12 @@ derived adverbs require `derivation`.
 
 ## Benchmarks
 
-These results summarize separate workloads; morphology quality, end-to-end CLI
-throughput, resource startup, and literal scanning are not one combined score.
-Each linked report records the environment, input digest, revision, warm-up,
-and repetitions.
+kfind measures morphology quality, end-to-end CLI throughput, resource startup,
+and literal scanning as separate workloads. The benchmark contract defines the
+reproducible commands, inputs, warm-up and run counts, and report requirements.
+Measurements and comparisons remain in their individual reports.
 
-### Product workflows
-
-The latest morphology measurement used fresh processes after one warm-up
-and reports the median of five runs on Linux/aarch64. Quality fixtures contain
-1,000 cases; the CLI workload scans a fixed 100 MiB corpus split across 1,000
-files.
-
-| Workflow | Quality (TP / FP / FN) | CLI wall | Throughput | Peak RSS |
-| --- | ---: | ---: | ---: | ---: |
-| Agent: embedded + `any` + explicit POS | 482 / 11 / 18 | 18.4 ms | 5,434.7 MiB/s | 7.4 MiB |
-| Human: full POS + `smart` + untagged | 420 / 0 / 80 | 317.4 ms | 315.0 MiB/s | 92.2 MiB |
-
-![Product workflow quality and CLI cost](docs/benchmarks/assets/product-workflows.svg)
-
-The agent and human quality rows use different negative-query contracts, so
-they describe their product workflows rather than a head-to-head backend rank.
-The product rows are from the 2026-07-15 candidate revision `ccc9525`.
-
-The enriched generator stores only 130 of 12,888 cross-checked dictionary
-conjugations because productive analysis generates the other 12,758. It also
-stores 153 bidirectionally linked predicate-to-adverb forms. This 27,707-byte
-surface layer reduced Agent and Human FN by one without a new hard-negative FP.
-Agent morphology cases/s was 1.05% lower; Human morphology and both CLI wall
-time ranges overlapped their baselines.
-
-The `ending.connective-eudoe` verifier consumes `으되` only after the past or
-future prefinal state. It recovered `치르다 -> 치렀으되` and reduced development
-embedded and full-POS `smart` FN by one each. Fixed test, Agent, Human, and
-hard-negative quality did not change; performance ranges overlapped the baseline.
-
-The present-declarative verifier consumes `고`, `는`, `던`, `면`, `니`, `며`,
-`면서`, `는데`, and `지` after `-ㄴ다/-는다`. It recovered `쓰다 -> 쓴다고`
-and reduced development embedded and full-POS `smart` FN by one each without a
-new FP. Fixed test, Agent, Human, and hard-negative quality did not change.
-Morphology cases/s was 2.88% to 4.04% lower; initialization and RSS stayed stable.
-
-- [2026-07-15 continuations after present declaratives](docs/benchmarks/2026-07-15-present-declarative-continuation.md)
-- [2026-07-15 `-으되` continuation after prefinal endings](docs/benchmarks/2026-07-15-eudoe-continuation.md)
-- [2026-07-15 bounded dictionary surface lexicon](docs/benchmarks/2026-07-15-dictionary-surface-lexicon.md)
-- [2026-07-14 D/S/B/H irregular enriched predicate lexicon](docs/benchmarks/2026-07-14-consonant-irregular-enriched-lexicon.md)
-- [2026-07-14 reu/reo irregular and enriched predicate lexicon](docs/benchmarks/2026-07-14-reu-reo-enriched-lexicon.md)
-- [2026-07-14 full-POS coarse-noun analysis-union recall](docs/benchmarks/2026-07-14-full-pos-coarse-noun-recall.md)
-- [2026-07-14 dependent-noun coarse-POS fallback recall](docs/benchmarks/2026-07-14-dependent-noun-recall.md)
-- [2026-07-14 ㅎ-irregular core lexicon recall](docs/benchmarks/2026-07-14-h-irregular-recall.md)
-- [2026-07-14 connective-ji position evidence](docs/benchmarks/2026-07-14-connective-ji-position-evidence.md)
-- [2026-07-14 local-lattice product-path optimization](docs/benchmarks/2026-07-14-local-lattice-optimization.md)
-- [2026-07-14 smart-precision quality and performance](docs/benchmarks/2026-07-14-user-smart-precision.md)
-- [2026-07-14 contextual `매일` disambiguation](docs/benchmarks/2026-07-14-contextual-maeil-disambiguation.md)
-- [2026-07-13 product workflow methodology and external snapshots](docs/benchmarks/2026-07-13-product-workflows.md)
-
-### Real technical-corpus blind diagnostic
-
-At revision `46f9ceb`, 25 Korean README, source-code comment, and technical-
-document excerpts were pinned and evaluated across five slices. The fixture has
-21 positives and four negatives, so it is a small diagnostic set rather than a
-product-wide quality score or profile ranking.
-
-| Profile | TP / FP / TN / FN | Precision | Recall | F1 |
-| --- | ---: | ---: | ---: | ---: |
-| Agent: embedded + `any` + explicit POS | 20 / 3 / 1 / 1 | 86.96% | 95.24% | 90.91% |
-| User: full POS + `smart` + untagged | 15 / 1 / 3 / 6 | 93.75% | 71.43% | 81.08% |
-
-User recall on the spacing-error slice was 20%. Queries and gold spans were
-pinned before the first run. This result does not replace the UD regression
-fixture or select product rules.
-
-- [2026-07-14 real technical-corpus blind evaluation](docs/benchmarks/2026-07-14-real-corpus-blind.md)
-
-### External analyzer comparison
-
-The table below uses the same 1,000-case explicit-POS fixture and gold. The
-Agent row and the pinned external analyzers receive explicit POS; the User row
-removes POS from the same queries to represent interactive use. Agent and User
-were measured on 2026-07-15. External rows reuse snapshots whose fixture,
-schema, version, and configuration did not change.
-
-| Backend | Input and version | TP / FP / FN | Precision | Recall | F1 | Init | Cases/s | p95 | Peak RSS |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Agent | embedded + `any`, explicit POS | 482 / 11 / 18 | 97.77% | 96.40% | 97.08% | 0.0012 s | 14,450.3 | 0.1551 ms | 5.2 MiB |
-| User | full POS + `smart`, untagged | 420 / 0 / 80 | 100.00% | 84.00% | 91.30% | 0.4323 s | 10,404.8 | 0.2348 ms | 92.2 MiB |
-| Kiwi | snapshot 0.23.2, model 0.23.0, explicit POS | 426 / 0 / 74 | 100.00% | 85.20% | 92.01% | 1.7204 s | 1,672.0 | 1.1904 ms | 528.2 MiB |
-| Lindera | snapshot 4.0.0, embedded-ko-dic, explicit POS | 393 / 0 / 107 | 100.00% | 78.60% | 88.02% | 0.0301 s | 15,609.1 | 0.1113 ms | 193.1 MiB |
-| MeCab-ko | snapshot 1.0.2, dictionary 1.0.0, explicit POS | 403 / 0 / 97 | 100.00% | 80.60% | 89.26% | 0.0003 s | 10,789.7 | 0.1940 ms | 102.8 MiB |
-| KOMORAN | snapshot 3.3.9, FULL, explicit POS | 406 / 0 / 94 | 100.00% | 81.20% | 89.62% | 1.1589 s | 1,669.4 | 1.2370 ms | 686.6 MiB |
-
-![Persona-adjusted quality and performance against pinned external analyzers](docs/benchmarks/assets/product-external-comparison.svg)
-
-This is a product task workload comparison, not a same-input backend ranking or
-pure tokenizer benchmark. Each backend includes its own query preparation,
-analysis, and matching costs; the User row additionally includes automatic POS
-planning and ambiguity.
-
-### Scan, startup, and query compilation
-
-| Workload | Result | Measurement |
-| --- | --- | --- |
-| 1 GiB warm-cache, no-hit literal scan | 0.047 s median, 21,787 MiB/s, 7.23 MiB RSS | 2026-07-12, revision `a7b3c28`; the paired `rg -F` run had the same median wall and throughput |
-| Full POS native warm startup, 632,667 entries | 0.08 s, 39.5 MiB peak RSS | 2026-07-13, revision `8845f33` |
-| Query compile p95 | 0.077875 ms for one atom; 0.153838 ms for eight atoms | 2026-07-11, revision `026ff81` |
-
-The 1 GiB result is a low-hit I/O regression check, not a claim that morphology
-search and `rg -F` provide the same features.
-
-- [1 GiB mixed-corpus report](docs/benchmarks/2026-07-12-1gib-mixed.md)
-- [Full POS startup report](docs/benchmarks/2026-07-13-full-pos-startup.md)
-- [Query compile report](docs/benchmarks/2026-07-11-query-compile.md)
-- [Benchmark contract and report index](docs/benchmarks/README.md)
+- [Benchmark contract](docs/benchmarks/README.md)
 
 ## Library
 

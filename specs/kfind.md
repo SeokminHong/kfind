@@ -143,14 +143,12 @@
   종료 코드를 간결한 예시와 함께 설명한다.
 - man page와 영어·한국어 README는 사람용 기본 경로와 에이전트 자동화 경로를 구분해 안내한다.
   README는 `--help`를 별도로 읽지 않아도 검색 기능, 쿼리 문법, 옵션의 값·기본값·주요 충돌,
-  출력 형식과 종료 코드를 이해할 수 있어야 한다. 최신 benchmark는 workload, 측정일·revision과
-  원본 보고서 링크를 함께 요약하고, 품질·CLI 처리량·초기화 비용처럼 단위가 다른 지표를 분리한다.
-  제품 persona와 고정 외부 분석기 snapshot을 비교하는 최신 표와 대표 차트도 README에 직접
-  싣는다. persona별 입력의 품사 지정 여부, 외부 분석기 버전과 task workload 조건을 함께 적고,
-  동일 입력의 형태소 분석기 순위나 순수 tokenizer 처리량으로 해석하지 않도록 비교 조건과
-  해석 범위를 밝힌다.
-  승인된 benchmark 보고서나 생성 차트가 바뀌면 영어·한국어 README의 요약 수치와 대표 차트도
-  같은 변경에서 갱신한다. README 차트의 값과 source report가 일치하는지 검증한다.
+  출력 형식과 종료 코드를 이해할 수 있어야 한다. README에는 현재 제품 동작과 안정적인 사용
+  지침만 둔다. 측정일·Git revision, baseline/candidate 증감, 날짜별 보고서·작업 목록, 완료
+  이력과 측정 snapshot 표·차트는 넣지 않는다. 재현 명령과 측정 결과는 날짜별 benchmark
+  보고서에 보존하고 README는 benchmark 계약 문서만 안내한다. 승인된 보고서나 생성 차트가
+  바뀌어도 측정 수치를 README로 복사하지 않으며, 사용자에게 설명할 현재 기능·제약이 달라진
+  경우에만 README의 동작 설명을 갱신한다.
 - `--column`은 v0.1 정식 옵션이며 1부터 시작하는 Unicode scalar 열을 출력한다.
 - `--count`는 파일별로 검증된 span이 하나 이상 있는 줄의 수를 출력한다.
 - 일반 text 결과를 TTY stdin/stdout에서 쓰면 내장 TUI pager를 자동으로 사용한다. 검색 시작과 함께
