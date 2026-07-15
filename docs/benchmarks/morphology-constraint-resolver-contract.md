@@ -50,7 +50,7 @@ resolver는 query와 무관한 complete path를 먼저 열거하지 않는다. t
 
 runtime lexical support는 query core를 덮는 연속 node sequence로 표현할 수 있다. 단일 `VV` node뿐 아니라 query 분석이 허용한 `NNG+XSV`, `XR+XSV` 같은 생산적 lexical sequence도 하나의 lexical identity proof가 될 수 있으며, 단순히 POS edge가 연결된다는 이유만으로 임의 sequence를 lexical identity로 승격하지 않는다.
 
-`fused` 또는 `unaligned` component는 내부 byte 경계를 만들지 않는다. 다만 query anchor와 반환할 `consumed` span이 해당 source node 전체를 포함하면 canonical component sequence를 lexical identity proof로 사용할 수 있다. 이 경우 proof는 opaque source relation을 기록하되 반환 span은 enclosing node의 안정된 경계를 사용하며, source node의 strict subspan을 반환해야 할 때만 `OpaqueExpression` ambiguity가 된다.
+`fused` 또는 `unaligned` component는 내부 byte 경계를 만들지 않는다. 다만 query anchor와 반환할 `consumed` span이 해당 source node 전체를 포함하면 canonical component sequence를 lexical identity proof로 사용할 수 있다. lexical component 뒤의 span 없는 canonical component는 enclosing node가 query anchor 안에 있을 때 component ordinal 순서로 anchor morphology DFA를 전진시키며, 이 순서는 반환 span이나 외부 continuation coverage를 확장하지 않는다. proof는 opaque source relation을 기록하되 반환 span은 enclosing node의 안정된 경계를 사용하며, source node의 strict subspan을 반환해야 할 때만 `OpaqueExpression` ambiguity가 된다.
 
 ## bounded token context
 
