@@ -52,6 +52,8 @@ pub(super) struct ConstraintEvaluationSummary {
     product_seconds: f64,
     candidate_enumeration_seconds: f64,
     resolver_seconds: f64,
+    graph_preparation_seconds: f64,
+    decision_seconds: f64,
     policy_seconds: f64,
     diagnostic_seconds: f64,
     peak_rss_kib: Option<u64>,
@@ -150,6 +152,8 @@ struct EvaluationTimings {
     product_seconds: f64,
     candidate_enumeration_seconds: f64,
     resolver_seconds: f64,
+    graph_preparation_seconds: f64,
+    decision_seconds: f64,
     policy_seconds: f64,
     diagnostic_seconds: f64,
 }
@@ -413,6 +417,8 @@ pub(super) fn run_constraint_evaluation(
         product_seconds: timings.product_seconds,
         candidate_enumeration_seconds: timings.candidate_enumeration_seconds,
         resolver_seconds: timings.resolver_seconds,
+        graph_preparation_seconds: timings.graph_preparation_seconds,
+        decision_seconds: timings.decision_seconds,
         policy_seconds: timings.policy_seconds,
         diagnostic_seconds: timings.diagnostic_seconds,
         peak_rss_kib: peak_rss_kib(),
@@ -544,7 +550,9 @@ fn evaluate_candidates(
         let resolver_started = Instant::now();
         let prepared =
             resolver.prepare_token(first.window.normalized(), DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT);
-        timings.resolver_seconds += resolver_started.elapsed().as_secs_f64();
+        let elapsed = resolver_started.elapsed().as_secs_f64();
+        timings.resolver_seconds += elapsed;
+        timings.graph_preparation_seconds += elapsed;
         for &index in indices {
             let CandidateEvaluation::Ready(input) = &inputs[index] else {
                 unreachable!("candidate group contains evaluated input");
@@ -682,7 +690,9 @@ fn evaluate_prepared_candidate(
         input.spans.clone(),
         &candidate.branch.morph_patterns,
     );
-    timings.resolver_seconds += resolver_started.elapsed().as_secs_f64();
+    let elapsed = resolver_started.elapsed().as_secs_f64();
+    timings.resolver_seconds += elapsed;
+    timings.decision_seconds += elapsed;
     if options.verify_diagnostic_parity {
         let diagnostic_started = Instant::now();
         let resolution = resolver.resolve_prepared_candidate(
