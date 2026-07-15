@@ -470,6 +470,59 @@ fn opaque_anchor_tail_advances_the_predicate_continuation() {
 }
 
 #[test]
+fn opaque_query_anchor_ending_is_not_reconsumed_as_external_continuation() {
+    let text = "불어서";
+    let resolver = resolver(&[
+        entry("불어", "VV+EC", "Inflect", "VV", "EC", "불/VV/*+ㅓ/EC/*", 0),
+        atomic("서", "EC", 0),
+        entry(
+            "가어서",
+            "VV+EC+EC",
+            "Inflect",
+            "VV",
+            "EC",
+            "가/VV/*+어/EC/*+서/EC/*",
+            0,
+        ),
+    ]);
+    let pattern = predicate_pattern("불", ContinuationState::AOrEo);
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        CandidateSpans {
+            core: 0.."불어".len(),
+            anchor: 0.."불어".len(),
+            consumed: 0..text.len(),
+            token: 0..text.len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(
+        resolution.outcome,
+        ConstraintOutcome::Supported,
+        "{resolution:#?}"
+    );
+    let continuations = resolution
+        .supported
+        .analyses
+        .iter()
+        .map(|analysis| {
+            analysis
+                .continuation
+                .units
+                .iter()
+                .map(|unit| unit.pos.as_str())
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+    assert!(
+        continuations.iter().any(|positions| positions == &["EC"]),
+        "{continuations:?}"
+    );
+}
+
+#[test]
 fn alternative_opaque_lexical_identity_remains_ambiguous() {
     let resolver = resolver(&[
         entry(

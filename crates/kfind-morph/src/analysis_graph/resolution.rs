@@ -1006,6 +1006,7 @@ impl<'units, 'data> ContinuationUnitView<'units, 'data> {
     fn is_opaque_anchor_tail(&self, unit: &Unit<'_>) -> bool {
         self.include_opaque_anchor_tail
             && unit.source_node_index == self.source_node_index
+            && unit.pos == "ETN"
             && unit.span.is_none()
             && self
                 .component_index
@@ -1322,7 +1323,10 @@ fn suffix_unit_view<'units, 'data>(
         suffix,
         include_opaque_anchor_tail: matches!(
             pattern.continuation,
-            MorphContinuation::Predicate { .. }
+            MorphContinuation::Predicate {
+                nominal_particles: true,
+                ..
+            }
         ),
         source_node_index: support.source_node_index,
         component_index: support.component_index,
