@@ -59,4 +59,4 @@ scripts/benchmark-morphology.sh
 pnpm --dir packages/kfind run benchmark:startup
 ```
 
-최신 수치는 [smart component 검색 근거](2026-07-13-smart-component-evidence.md)에 기록한다.
+최신 수치는 [Exact component 품사 확장](2026-07-15-exact-component-pos.md)에 기록한다.

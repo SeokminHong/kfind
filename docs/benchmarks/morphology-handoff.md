@@ -27,6 +27,7 @@
 - [현재 서술형 후속 형태 continuation](2026-07-15-present-declarative-continuation.md)
 - [상태 용언 현재 평서형 후속 형태 continuation](2026-07-15-descriptive-declarative-continuation.md)
 - [연결 어미 `-(으)니까` 계열](2026-07-15-connective-nikka.md)
+- [Exact component 품사 확장](2026-07-15-exact-component-pos.md)
 - [접속 조사 `이면/면`의 명사류 결합](2026-07-15-connector-myeon-particle.md)
 - [smart component 검색 근거](2026-07-13-smart-component-evidence.md)
 - [copula lattice 폐기 판정](2026-07-13-copula-unseen-evaluation.md)
@@ -131,7 +132,7 @@ TP 460 / FP 2 / FN 40이다.
 full-POS의 기존 세부 품사 분석과 coarse `noun` fallback 합집합이 `197명이`를 복구했다.
 세부 품사와 품질 계약은 [User smart precision 품질·성능](2026-07-14-user-smart-precision.md),
 현재 처리량과 latency는
-[연결 어미 `-(으)니까` 계열](2026-07-15-connective-nikka.md)을
+[Exact component 품사 확장](2026-07-15-exact-component-pos.md)을
 기준으로 한다.
 
 품사를 생략하는 사람용 1,000-case fixture에서 full-POS `smart`는 TP 431, FP 0, FN 69,
