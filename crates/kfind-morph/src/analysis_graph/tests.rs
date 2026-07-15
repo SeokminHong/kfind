@@ -1160,6 +1160,76 @@ fn unknown_paths_are_used_only_when_no_known_complete_path_exists() {
 }
 
 #[test]
+fn unknown_prefix_can_bridge_to_a_known_query_core() {
+    let text = "9천";
+    let resolver = resolver(&[atomic("천", "NR", 0)]);
+    let pattern = exact_pattern("천", DataFinePos::Nr, ComponentCapability::WholeOnly);
+    let spans = CandidateSpans {
+        core: "9".len()..text.len(),
+        anchor: "9".len()..text.len(),
+        consumed: "9".len()..text.len(),
+        token: 0..text.len(),
+    };
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        spans.clone(),
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(
+        resolution.outcome,
+        ConstraintOutcome::Ambiguous(ConstraintAmbiguity::CompoundExposure)
+    );
+    assert!(resolution.proof.unknown_node_count > 0);
+    assert!(ProductPolicy::PossibleAnalysis.accepts(&resolution, std::slice::from_ref(&pattern)));
+    assert_eq!(
+        resolver.decide_candidate(
+            BoundedTokenContext::current(text),
+            spans,
+            std::slice::from_ref(&pattern),
+            DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+        ),
+        resolution.decision()
+    );
+}
+
+#[test]
+fn unknown_suffix_cannot_complete_a_source_query_core() {
+    let text = "천9";
+    let resolver = resolver(&[
+        atomic("천", "NR", 0),
+        entry(
+            "구9",
+            "NR+SY",
+            "Preanalysis",
+            "NR",
+            "SY",
+            "구/NR/*+9/SY/*",
+            0,
+        ),
+    ]);
+    let pattern = exact_pattern("천", DataFinePos::Nr, ComponentCapability::WholeOnly);
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        CandidateSpans {
+            core: 0.."천".len(),
+            anchor: 0.."천".len(),
+            consumed: 0.."천".len(),
+            token: 0..text.len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(
+        resolution.outcome,
+        ConstraintOutcome::Unavailable(ConstraintUnavailable::UnknownOnly)
+    );
+    assert!(resolution.supported.is_empty());
+}
+
+#[test]
 fn invalid_spans_and_node_limits_are_observable() {
     let resolver = resolver(&[atomic("산", "NNG", 0), atomic("산속", "NNG", 0)]);
     let pattern = exact_pattern("산", DataFinePos::Nng, ComponentCapability::WholeOnly);

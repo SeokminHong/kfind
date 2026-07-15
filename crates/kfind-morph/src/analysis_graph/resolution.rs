@@ -315,6 +315,7 @@ pub(super) fn resolve_known(
     context: &ContextSelection,
     proof_limit: usize,
 ) -> ConstraintResolution {
+    let unknown_node_count = graph.unknown_node_count();
     let evaluation = evaluate_known(graph, spans, patterns, context, proof_limit);
     let mut proof_paths = evaluation.paths.as_ref().map_or_else(
         || graph.proof_paths(),
@@ -335,8 +336,8 @@ pub(super) fn resolve_known(
             analyses: evaluation.analyses,
         },
         proof: ConstraintProof {
-            known_node_count: graph.node_count(),
-            unknown_node_count: 0,
+            known_node_count: graph.node_count() - unknown_node_count,
+            unknown_node_count,
             nodes: proof_nodes,
             paths: proof_paths,
         },

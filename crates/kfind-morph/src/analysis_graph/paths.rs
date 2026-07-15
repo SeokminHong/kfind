@@ -148,7 +148,7 @@ impl<'a> TokenGraph<'a> {
         text: &'a str,
         node_limit: usize,
     ) -> Result<Self, TokenGraphError> {
-        Self::build(resource, text, None, node_limit)
+        Self::build(resource, text, None, None, node_limit)
     }
 
     pub fn with_unknown(
@@ -157,13 +157,24 @@ impl<'a> TokenGraph<'a> {
         unknown: &'a UnknownDictionary,
         node_limit: usize,
     ) -> Result<Self, TokenGraphError> {
-        Self::build(resource, text, Some(unknown), node_limit)
+        Self::build(resource, text, Some(unknown), None, node_limit)
+    }
+
+    pub fn with_unknown_prefix(
+        resource: &'a MorphologyGraphResource,
+        text: &'a str,
+        unknown: &'a UnknownDictionary,
+        prefix_end: usize,
+        node_limit: usize,
+    ) -> Result<Self, TokenGraphError> {
+        Self::build(resource, text, Some(unknown), Some(prefix_end), node_limit)
     }
 
     fn build(
         resource: &'a MorphologyGraphResource,
         text: &'a str,
         unknown: Option<&'a UnknownDictionary>,
+        unknown_prefix_end: Option<usize>,
         node_limit: usize,
     ) -> Result<Self, TokenGraphError> {
         let mut nodes = Vec::new();
@@ -180,11 +191,14 @@ impl<'a> TokenGraph<'a> {
                 }
             });
             let has_dictionary = nodes.len() > before_dictionary;
-            if let Some(unknown) = unknown {
+            if let Some(unknown) = unknown
+                && (unknown_prefix_end.is_none() || !has_dictionary)
+            {
                 nodes.extend(
                     unknown
                         .nodes_at(text, start, has_dictionary)
                         .into_iter()
+                        .filter(|(end, _)| unknown_prefix_end.is_none_or(|limit| *end <= limit))
                         .filter_map(|(end, analysis)| {
                             text.get(start..end).map(|surface| {
                                 Node::unknown(resource, surface, start..end, analysis)
@@ -211,7 +225,7 @@ impl<'a> TokenGraph<'a> {
                 .then_with(|| left.expression_kind.cmp(&right.expression_kind))
                 .then_with(|| left.components.cmp(&right.components))
         });
-        let successors = graph_edges(resource, text.len(), &nodes);
+        let successors = graph_edges(resource, text.len(), &nodes, unknown_prefix_end);
         let reachable_from_start = reachable_from_start(&nodes, &successors);
         let reaches_end = reaches_end(text.len(), &nodes, &successors);
         Ok(Self {
@@ -352,6 +366,7 @@ fn graph_edges(
     resource: &MorphologyGraphResource,
     text_len: usize,
     nodes: &[Node<'_>],
+    unknown_prefix_end: Option<usize>,
 ) -> Vec<Vec<usize>> {
     let mut starting_at = vec![Vec::<usize>::new(); text_len + 1];
     for (index, node) in nodes.iter().enumerate() {
@@ -364,9 +379,15 @@ fn graph_edges(
                 .iter()
                 .copied()
                 .filter(|&next| {
-                    node.end_class
-                        .zip(nodes[next].start_class)
-                        .is_some_and(|(end, start)| resource.allows_transition_classes(end, start))
+                    let prefix_bridge = unknown_prefix_end.is_some_and(|limit| {
+                        node.span.end <= limit
+                            && (node.source == ConstraintNodeSource::Unknown
+                                || nodes[next].source == ConstraintNodeSource::Unknown)
+                    });
+                    prefix_bridge
+                        || node.end_class.zip(nodes[next].start_class).is_some_and(
+                            |(end, start)| resource.allows_transition_classes(end, start),
+                        )
                 })
                 .collect::<Vec<_>>()
         })

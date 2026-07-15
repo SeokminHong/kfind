@@ -283,17 +283,48 @@ impl ConstraintResolver {
                 known_node_count,
                 unknown_node_count,
                 proof,
-            } => unavailable(
-                *reason,
-                *known_node_count,
-                *unknown_node_count,
-                proof
-                    .as_ref()
-                    .map_or_else(Vec::new, TokenGraph::proof_nodes),
-                proof
-                    .as_ref()
-                    .map_or_else(Vec::new, TokenGraph::proof_paths),
-            ),
+            } => {
+                if matches!(
+                    reason,
+                    ConstraintUnavailable::UnknownOnly | ConstraintUnavailable::NoCompletePath
+                ) && let Some(graph) = self.hybrid_prefix_graph(prepared, spans.core.start)
+                {
+                    let summary = resolution::prepare_token_summary();
+                    let selection = match self.select_prepared_context(
+                        &graph,
+                        &summary,
+                        context,
+                        &spans,
+                        patterns,
+                        prepared.node_limit,
+                    ) {
+                        Ok(selection) => selection,
+                        Err(reason) => {
+                            return unavailable(
+                                reason,
+                                graph.node_count() - graph.unknown_node_count(),
+                                graph.unknown_node_count(),
+                                graph.proof_nodes(),
+                                graph.proof_paths(),
+                            );
+                        }
+                    };
+                    return resolution::resolve_known(
+                        &graph, &spans, patterns, &selection, path_limit,
+                    );
+                }
+                unavailable(
+                    *reason,
+                    *known_node_count,
+                    *unknown_node_count,
+                    proof
+                        .as_ref()
+                        .map_or_else(Vec::new, TokenGraph::proof_nodes),
+                    proof
+                        .as_ref()
+                        .map_or_else(Vec::new, TokenGraph::proof_paths),
+                )
+            }
         }
     }
 
@@ -379,10 +410,38 @@ impl ConstraintResolver {
                 };
                 resolution::decide_known(graph, &spans, patterns, &selection, path_limit)
             }
-            PreparedTokenState::Unavailable { reason, .. } => ConstraintDecision {
-                outcome: ConstraintOutcome::Unavailable(*reason),
-                supported: Vec::new(),
-            },
+            PreparedTokenState::Unavailable { reason, .. } => {
+                if matches!(
+                    reason,
+                    ConstraintUnavailable::UnknownOnly | ConstraintUnavailable::NoCompletePath
+                ) && let Some(graph) = self.hybrid_prefix_graph(prepared, spans.core.start)
+                {
+                    let summary = resolution::prepare_token_summary();
+                    let selection = match self.select_prepared_context(
+                        &graph,
+                        &summary,
+                        context,
+                        &spans,
+                        patterns,
+                        prepared.node_limit,
+                    ) {
+                        Ok(selection) => selection,
+                        Err(reason) => {
+                            return ConstraintDecision {
+                                outcome: ConstraintOutcome::Unavailable(reason),
+                                supported: Vec::new(),
+                            };
+                        }
+                    };
+                    return resolution::decide_known(
+                        &graph, &spans, patterns, &selection, path_limit,
+                    );
+                }
+                ConstraintDecision {
+                    outcome: ConstraintOutcome::Unavailable(*reason),
+                    supported: Vec::new(),
+                }
+            }
         }
     }
 
@@ -514,6 +573,26 @@ impl ConstraintResolver {
             previous.as_ref(),
             next.as_ref(),
         ))
+    }
+
+    fn hybrid_prefix_graph<'a>(
+        &'a self,
+        prepared: &PreparedTokenAnalysis<'a>,
+        prefix_end: usize,
+    ) -> Option<TokenGraph<'a>> {
+        if prefix_end == 0 {
+            return None;
+        }
+        let unknown = self.unknown().ok()?;
+        let graph = TokenGraph::with_unknown_prefix(
+            &self.resource,
+            prepared.current,
+            unknown,
+            prefix_end,
+            prepared.node_limit,
+        )
+        .ok()?;
+        graph.has_complete_paths().then_some(graph)
     }
 
     fn unknown(&self) -> Result<&UnknownDictionary, &LocalLatticeError> {
