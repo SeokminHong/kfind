@@ -17,7 +17,7 @@
 | `runtime-composed` | source node를 이어 완전한 token 경로를 구성했지만 whole-token expression 근거는 없음 |
 | `unknown` | known complete path가 없을 때 unknown model로 구성한 경로 |
 
-source가 명시한 whole-token 분석은 우연히 이어진 runtime composition보다 높은 provenance 등급이다. source whole 분석이 있으면 그 등급에서 query 제약의 satisfiability를 판정하고 runtime composition은 proof에 남기되 verdict를 바꾸지 않는다. 같은 등급의 source 분석끼리는 연결 비용이나 word cost로 하나를 고르지 않고 query lexical identity, fine POS와 구조 관계를 만족하는 경로가 하나라도 있으면 지지 근거이며, known complete path가 있으면 unknown path를 모순 근거로 사용하지 않는다.
+query를 지지하는 source-whole 분석은 우연히 이어진 runtime composition보다 높은 provenance 근거로 기록한다. query와 무관한 source-whole 행은 satisfiable한 runtime 경로를 숨기지 않으며 같은 종류의 source 분석끼리는 연결 비용이나 word cost로 하나를 고르지 않는다. query lexical identity, fine POS와 구조 관계를 만족하는 known 경로가 하나라도 있으면 지지 근거이고 known complete path가 있으면 unknown path를 모순 근거로 사용하지 않는다.
 
 ## 판정
 
