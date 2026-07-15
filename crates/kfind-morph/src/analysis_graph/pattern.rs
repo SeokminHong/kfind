@@ -71,6 +71,19 @@ pub struct QueryMorphPattern {
 
 impl QueryMorphPattern {
     #[must_use]
+    pub fn is_well_formed(&self) -> bool {
+        !self.lexical_form.is_empty()
+            && matches!(
+                (self.token_relation, self.continuation),
+                (CandidateTokenRelation::Whole, MorphContinuation::Exact)
+                    | (
+                        CandidateTokenRelation::PrefixWithContinuation,
+                        MorphContinuation::Predicate { .. } | MorphContinuation::NominalParticles
+                    )
+            )
+    }
+
+    #[must_use]
     pub fn from_fine_pos(fine_pos: FinePos, lexical_form: &str) -> Vec<Self> {
         let fine_pos = match fine_pos {
             FinePos::CommonNoun => DataFinePos::Nng,
@@ -230,5 +243,17 @@ mod tests {
             }
             .is_valid_for("걸었다")
         );
+    }
+
+    #[test]
+    fn rejects_inconsistent_token_and_continuation_contracts() {
+        let invalid = QueryMorphPattern::new(DataFinePos::Nng, "학교").with_branch_contract(
+            CandidateTokenRelation::Whole,
+            MorphContinuation::NominalParticles,
+            ComponentCapability::WholeOnly,
+        );
+
+        assert!(!invalid.is_well_formed());
+        assert!(QueryMorphPattern::new(DataFinePos::Nng, "학교").is_well_formed());
     }
 }

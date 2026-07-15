@@ -1,8 +1,9 @@
 use kfind_data::MorphologyGraphExpressionKind;
 use kfind_matcher::MorphMatcher;
 use kfind_morph::{
-    CompoundExposureProfile, ConstraintEvidenceKind, ConstraintNodeSource, ConstraintProof,
-    ConstraintResolver, ConstraintVerdict, DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT, QueryMorphPattern,
+    BoundedTokenContext, CandidateSpans, ConstraintEvidenceKind, ConstraintNodeSource,
+    ConstraintOutcome, ConstraintProof, ConstraintResolution, ConstraintResolver,
+    DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT, ProductPolicy, QueryMorphPattern,
 };
 use serde::Serialize;
 
@@ -12,17 +13,18 @@ use super::Span;
 pub(super) struct GraphShadowEvidence {
     atom_index: usize,
     branch_index: usize,
-    target: Span,
-    token: Span,
+    core: Span,
+    anchor: Span,
+    consumed: Span,
     product_accepted: bool,
     boundary_accepted: bool,
     status: &'static str,
     window: Option<GraphWindowEvidence>,
     resolution: Option<GraphResolutionEvidence>,
     patterns: Vec<GraphPatternEvidence>,
-    opaque: GraphProfileEvidence,
-    transparent: GraphProfileEvidence,
-    explicit: GraphProfileEvidence,
+    whole: GraphPolicyEvidence,
+    explicit_component: GraphPolicyEvidence,
+    possible_analysis: GraphPolicyEvidence,
     error: Option<String>,
 }
 
@@ -30,14 +32,37 @@ pub(super) struct GraphShadowEvidence {
 struct GraphWindowEvidence {
     raw: Span,
     normalized: String,
-    target: Span,
-    candidate: Span,
+    core: Span,
+    anchor: Span,
+    consumed: Span,
+    token: Span,
 }
 
 #[derive(Debug, Serialize)]
 struct GraphResolutionEvidence {
-    verdict: String,
+    outcome: String,
+    supported: Vec<GraphSupportedAnalysisEvidence>,
     proof: GraphProofEvidence,
+}
+
+#[derive(Debug, Serialize)]
+struct GraphSupportedAnalysisEvidence {
+    pattern_index: usize,
+    path_index: usize,
+    node_index: usize,
+    component_index: Option<usize>,
+    evidence: &'static str,
+    span_relation: String,
+    support_span: Span,
+    continuation: String,
+    continuation_units: Vec<GraphMorphUnitEvidence>,
+    context: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+struct GraphMorphUnitEvidence {
+    pos: String,
+    span: Option<Span>,
 }
 
 #[derive(Debug, Serialize)]
@@ -48,17 +73,18 @@ struct GraphPatternEvidence {
     continuation: String,
     component_capability: String,
     adjacent: Vec<String>,
-    verdict: String,
-    opaque_verdict: String,
-    transparent_verdict: String,
-    explicit_verdict: String,
+    outcome: String,
+    whole_accepted: bool,
+    explicit_component_accepted: bool,
+    possible_analysis_accepted: bool,
+    supported: Vec<GraphSupportedAnalysisEvidence>,
     proof: GraphProofEvidence,
 }
 
 #[derive(Debug, Serialize)]
-struct GraphProfileEvidence {
+struct GraphPolicyEvidence {
     accepted: bool,
-    verdicts: Vec<String>,
+    outcomes: Vec<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -76,6 +102,7 @@ struct GraphPathEvidence {
 
 #[derive(Debug, Serialize)]
 struct GraphNodeEvidence {
+    surface: String,
     span: Span,
     pos: String,
     start_pos: String,
@@ -86,9 +113,17 @@ struct GraphNodeEvidence {
     source: &'static str,
     analysis_type: Option<String>,
     expression_kind: Option<&'static str>,
+    components: Vec<GraphComponentEvidence>,
     matches_query_node: bool,
     matches_source_component: bool,
     has_opaque_expression: bool,
+}
+
+#[derive(Debug, Serialize)]
+struct GraphComponentEvidence {
+    surface: String,
+    pos: String,
+    span: Option<Span>,
 }
 
 pub(super) fn diagnose_graph_shadow(
@@ -104,17 +139,18 @@ pub(super) fn diagnose_graph_shadow(
             let base = |status, error| GraphShadowEvidence {
                 atom_index: candidate.atom_index,
                 branch_index: candidate.branch_index,
-                target: span(candidate.target.clone()),
-                token: span(candidate.token.clone()),
+                core: span(candidate.core.clone()),
+                anchor: span(candidate.anchor.clone()),
+                consumed: span(candidate.consumed.clone()),
                 product_accepted: candidate.product_accepted,
                 boundary_accepted: candidate.boundary_accepted,
                 status,
                 window: None,
                 resolution: None,
                 patterns: Vec::new(),
-                opaque: unavailable_profile(),
-                transparent: unavailable_profile(),
-                explicit: unavailable_profile(),
+                whole: unavailable_policy(),
+                explicit_component: unavailable_policy(),
+                possible_analysis: unavailable_policy(),
                 error,
             };
             let Some(resolver) = resolver else {
@@ -124,18 +160,27 @@ pub(super) fn diagnose_graph_shadow(
                 Ok(window) => window,
                 Err(error) => return base("window-unavailable", Some(error.to_string())),
             };
-            let Some(target) = window.normalized_span(candidate.target.clone()) else {
+            let Some(core) = window.normalized_span(candidate.core.clone()) else {
                 return base(
-                    "target-unavailable",
-                    Some("candidate span does not map to stable NFC boundaries".to_owned()),
+                    "core-unavailable",
+                    Some("candidate core does not map to stable NFC boundaries".to_owned()),
                 );
             };
-            let Some(candidate_token) = window.normalized_span(candidate.token.clone()) else {
+            let Some(anchor) = window.normalized_span(candidate.anchor.clone()) else {
                 return base(
-                    "candidate-unavailable",
-                    Some("candidate token span does not map to stable NFC boundaries".to_owned()),
+                    "anchor-unavailable",
+                    Some("candidate anchor does not map to stable NFC boundaries".to_owned()),
                 );
             };
+            let Some(consumed) = window.normalized_span(candidate.consumed.clone()) else {
+                return base(
+                    "consumed-unavailable",
+                    Some(
+                        "candidate consumed span does not map to stable NFC boundaries".to_owned(),
+                    ),
+                );
+            };
+            let token = 0..window.normalized().len();
             let patterns = candidate
                 .patterns
                 .iter()
@@ -143,49 +188,59 @@ pub(super) fn diagnose_graph_shadow(
                     resolve_pattern(
                         resolver,
                         window.normalized(),
-                        target.clone(),
-                        candidate_token.clone(),
+                        CandidateSpans {
+                            core: core.clone(),
+                            anchor: anchor.clone(),
+                            consumed: consumed.clone(),
+                            token: token.clone(),
+                        },
                         pattern,
                     )
                 })
                 .collect::<Vec<_>>();
-            let resolution = resolver.resolve_patterns(
-                window.normalized(),
-                target.clone(),
-                candidate_token.clone(),
+            let resolution = resolver.resolve_candidate(
+                BoundedTokenContext::current(window.normalized()),
+                CandidateSpans {
+                    core: core.clone(),
+                    anchor: anchor.clone(),
+                    consumed: consumed.clone(),
+                    token: token.clone(),
+                },
                 &candidate.patterns,
                 DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
             );
-            let opaque = profile_evidence(
-                resolution.verdict_for(CompoundExposureProfile::Opaque, &candidate.patterns),
+            let whole = policy_evidence(ProductPolicy::Whole, &resolution, &candidate.patterns);
+            let explicit_component = policy_evidence(
+                ProductPolicy::ExplicitComponent,
+                &resolution,
+                &candidate.patterns,
             );
-            let transparent = profile_evidence(
-                resolution.verdict_for(CompoundExposureProfile::Transparent, &candidate.patterns),
-            );
-            let explicit = profile_evidence(
-                resolution.verdict_for(CompoundExposureProfile::Explicit, &candidate.patterns),
+            let possible_analysis = policy_evidence(
+                ProductPolicy::PossibleAnalysis,
+                &resolution,
+                &candidate.patterns,
             );
             GraphShadowEvidence {
                 atom_index: candidate.atom_index,
                 branch_index: candidate.branch_index,
-                target: span(candidate.target),
-                token: span(candidate.token),
+                core: span(candidate.core),
+                anchor: span(candidate.anchor),
+                consumed: span(candidate.consumed),
                 product_accepted: candidate.product_accepted,
                 boundary_accepted: candidate.boundary_accepted,
                 status: "evaluated",
                 window: Some(GraphWindowEvidence {
                     raw: span(window.raw_span()),
                     normalized: window.normalized().to_owned(),
-                    target: span(target),
-                    candidate: span(candidate_token),
+                    core: span(core),
+                    anchor: span(anchor),
+                    consumed: span(consumed),
+                    token: span(token),
                 }),
-                resolution: Some(GraphResolutionEvidence {
-                    verdict: verdict_name(resolution.verdict),
-                    proof: proof_evidence(resolution.proof),
-                }),
-                opaque,
-                transparent,
-                explicit,
+                resolution: Some(resolution_evidence(&resolution)),
+                whole,
+                explicit_component,
+                possible_analysis,
                 patterns,
                 error: None,
             }
@@ -196,15 +251,13 @@ pub(super) fn diagnose_graph_shadow(
 fn resolve_pattern(
     resolver: &ConstraintResolver,
     text: &str,
-    target: std::ops::Range<usize>,
-    candidate: std::ops::Range<usize>,
+    spans: CandidateSpans,
     pattern: &QueryMorphPattern,
 ) -> GraphPatternEvidence {
-    let resolution = resolver.resolve(
-        text,
-        target,
-        candidate,
-        pattern,
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        spans,
+        std::slice::from_ref(pattern),
         DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
     );
     GraphPatternEvidence {
@@ -218,55 +271,92 @@ fn resolve_pattern(
             .iter()
             .map(|constraint| format!("{constraint:?}"))
             .collect(),
-        verdict: verdict_name(resolution.verdict),
-        opaque_verdict: verdict_name(resolution.verdict_for(
-            CompoundExposureProfile::Opaque,
-            std::slice::from_ref(pattern),
-        )),
-        transparent_verdict: verdict_name(resolution.verdict_for(
-            CompoundExposureProfile::Transparent,
-            std::slice::from_ref(pattern),
-        )),
-        explicit_verdict: verdict_name(resolution.verdict_for(
-            CompoundExposureProfile::Explicit,
-            std::slice::from_ref(pattern),
-        )),
-        proof: proof_evidence(resolution.proof),
+        outcome: outcome_name(resolution.outcome),
+        whole_accepted: ProductPolicy::Whole.accepts(&resolution, std::slice::from_ref(pattern)),
+        explicit_component_accepted: ProductPolicy::ExplicitComponent
+            .accepts(&resolution, std::slice::from_ref(pattern)),
+        possible_analysis_accepted: ProductPolicy::PossibleAnalysis
+            .accepts(&resolution, std::slice::from_ref(pattern)),
+        supported: supported_evidence(&resolution),
+        proof: proof_evidence(&resolution.proof),
     }
 }
 
-fn profile_evidence(verdict: ConstraintVerdict) -> GraphProfileEvidence {
-    let verdict = verdict_name(verdict);
-    GraphProfileEvidence {
-        accepted: verdict == "proven",
-        verdicts: vec![verdict],
+fn policy_evidence(
+    policy: ProductPolicy,
+    resolution: &ConstraintResolution,
+    patterns: &[QueryMorphPattern],
+) -> GraphPolicyEvidence {
+    GraphPolicyEvidence {
+        accepted: policy.accepts(resolution, patterns),
+        outcomes: vec![outcome_name(resolution.outcome)],
     }
 }
 
-fn unavailable_profile() -> GraphProfileEvidence {
-    GraphProfileEvidence {
+fn unavailable_policy() -> GraphPolicyEvidence {
+    GraphPolicyEvidence {
         accepted: false,
-        verdicts: Vec::new(),
+        outcomes: Vec::new(),
     }
 }
 
-fn proof_evidence(proof: ConstraintProof) -> GraphProofEvidence {
+fn resolution_evidence(resolution: &ConstraintResolution) -> GraphResolutionEvidence {
+    GraphResolutionEvidence {
+        outcome: outcome_name(resolution.outcome),
+        supported: supported_evidence(resolution),
+        proof: proof_evidence(&resolution.proof),
+    }
+}
+
+fn supported_evidence(resolution: &ConstraintResolution) -> Vec<GraphSupportedAnalysisEvidence> {
+    resolution
+        .supported
+        .analyses
+        .iter()
+        .map(|analysis| GraphSupportedAnalysisEvidence {
+            pattern_index: analysis.pattern_index,
+            path_index: analysis.path_index,
+            node_index: analysis.node_index,
+            component_index: analysis.component_index,
+            evidence: evidence_name(analysis.evidence),
+            span_relation: format!("{:?}", analysis.span_relation),
+            support_span: span(analysis.support_span.clone()),
+            continuation: format!("{:?}", analysis.continuation.contract),
+            continuation_units: analysis
+                .continuation
+                .units
+                .iter()
+                .map(|unit| GraphMorphUnitEvidence {
+                    pos: unit.pos.clone(),
+                    span: unit.span.clone().map(span),
+                })
+                .collect(),
+            context: analysis
+                .context
+                .as_ref()
+                .map(|context| format!("{context:?}")),
+        })
+        .collect()
+}
+
+fn proof_evidence(proof: &ConstraintProof) -> GraphProofEvidence {
     GraphProofEvidence {
         known_node_count: proof.known_node_count,
         unknown_node_count: proof.unknown_node_count,
         paths: proof
             .paths
-            .into_iter()
+            .iter()
             .map(|path| GraphPathEvidence {
                 evidence: evidence_name(path.evidence),
                 nodes: path
                     .nodes
-                    .into_iter()
+                    .iter()
                     .map(|node| GraphNodeEvidence {
-                        span: span(node.span),
-                        pos: node.pos,
-                        start_pos: node.start_pos,
-                        end_pos: node.end_pos,
+                        surface: node.surface.clone(),
+                        span: span(node.span.clone()),
+                        pos: node.pos.clone(),
+                        start_pos: node.start_pos.clone(),
+                        end_pos: node.end_pos.clone(),
                         left_id: node.left_id,
                         right_id: node.right_id,
                         word_cost: node.word_cost,
@@ -274,8 +364,17 @@ fn proof_evidence(proof: ConstraintProof) -> GraphProofEvidence {
                             ConstraintNodeSource::Source => "source",
                             ConstraintNodeSource::Unknown => "unknown",
                         },
-                        analysis_type: node.analysis_type,
+                        analysis_type: node.analysis_type.clone(),
                         expression_kind: node.expression_kind.map(expression_kind_name),
+                        components: node
+                            .components
+                            .iter()
+                            .map(|component| GraphComponentEvidence {
+                                surface: component.surface.clone(),
+                                pos: component.pos.clone(),
+                                span: component.span.clone().map(span),
+                            })
+                            .collect(),
                         matches_query_node: node.matches_query_node,
                         matches_source_component: node.matches_source_component,
                         has_opaque_expression: node.has_opaque_expression,
@@ -286,12 +385,12 @@ fn proof_evidence(proof: ConstraintProof) -> GraphProofEvidence {
     }
 }
 
-fn verdict_name(verdict: ConstraintVerdict) -> String {
-    match verdict {
-        ConstraintVerdict::Proven => "proven".to_owned(),
-        ConstraintVerdict::Contradicted => "contradicted".to_owned(),
-        ConstraintVerdict::Ambiguous(reason) => format!("ambiguous:{reason:?}"),
-        ConstraintVerdict::Unavailable(reason) => format!("unavailable:{reason:?}"),
+fn outcome_name(outcome: ConstraintOutcome) -> String {
+    match outcome {
+        ConstraintOutcome::Supported => "supported".to_owned(),
+        ConstraintOutcome::Contradicted => "contradicted".to_owned(),
+        ConstraintOutcome::Ambiguous(reason) => format!("ambiguous:{reason:?}"),
+        ConstraintOutcome::Unavailable(reason) => format!("unavailable:{reason:?}"),
     }
 }
 

@@ -8,25 +8,24 @@ use crate::lattice::unknown::UnknownDictionary;
 
 mod paths;
 mod pattern;
+mod resolution;
 
-use paths::TokenGraph;
+use paths::{TokenGraph, TokenGraphError};
 pub use pattern::{
     AdjacentSide, AdjacentTokenConstraint, CandidateSpans, CandidateTokenRelation,
     ComponentCapability, CopularFrameRole, MorphContinuation, QueryMorphPattern,
 };
+pub use resolution::{
+    BoundedTokenContext, ConstraintContextProof, ConstraintContinuationProof,
+    ConstraintMorphUnitProof, ConstraintOutcome, ConstraintSpanRelation, ProductPolicy,
+    SupportedAnalysis, SupportedAnalysisSet,
+};
 
 pub const DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT: usize = 4_096;
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum CompoundExposureProfile {
-    Opaque,
-    Transparent,
-    Explicit,
-}
+pub const DEFAULT_ANALYSIS_GRAPH_PATH_LIMIT: usize = 4_096;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ConstraintAmbiguity {
-    CompoundExposure,
     CompetingAnalyses,
     OpaqueExpression,
 }
@@ -36,16 +35,16 @@ pub enum ConstraintUnavailable {
     InvalidPattern,
     InvalidUnknownModel,
     NodeLimit { actual: usize, limit: usize },
+    PathLimit { actual: usize, limit: usize },
     NoCompletePath,
     UnknownOnly,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ConstraintVerdict {
-    Proven,
-    Contradicted,
-    Ambiguous(ConstraintAmbiguity),
-    Unavailable(ConstraintUnavailable),
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ConstraintComponentProof {
+    pub surface: String,
+    pub pos: String,
+    pub span: Option<Range<usize>>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -66,6 +65,7 @@ pub enum ConstraintNodeSource {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ConstraintNodeProof {
+    pub surface: String,
     pub span: Range<usize>,
     pub pos: String,
     pub start_pos: String,
@@ -76,6 +76,7 @@ pub struct ConstraintNodeProof {
     pub source: ConstraintNodeSource,
     pub analysis_type: Option<String>,
     pub expression_kind: Option<MorphologyGraphExpressionKind>,
+    pub components: Vec<ConstraintComponentProof>,
     pub matches_query_node: bool,
     pub matches_source_component: bool,
     pub has_opaque_expression: bool,
@@ -96,33 +97,9 @@ pub struct ConstraintProof {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ConstraintResolution {
-    pub verdict: ConstraintVerdict,
+    pub outcome: ConstraintOutcome,
+    pub supported: SupportedAnalysisSet,
     pub proof: ConstraintProof,
-}
-
-impl ConstraintResolution {
-    #[must_use]
-    pub fn verdict_for(
-        &self,
-        profile: CompoundExposureProfile,
-        patterns: &[QueryMorphPattern],
-    ) -> ConstraintVerdict {
-        if self.verdict != ConstraintVerdict::Ambiguous(ConstraintAmbiguity::CompoundExposure) {
-            return self.verdict;
-        }
-        match profile {
-            CompoundExposureProfile::Opaque => ConstraintVerdict::Contradicted,
-            CompoundExposureProfile::Transparent => ConstraintVerdict::Proven,
-            CompoundExposureProfile::Explicit
-                if patterns
-                    .iter()
-                    .any(|pattern| pattern.component_capability.allows_source()) =>
-            {
-                ConstraintVerdict::Proven
-            }
-            CompoundExposureProfile::Explicit => ConstraintVerdict::Contradicted,
-        }
-    }
 }
 
 #[derive(Debug)]
@@ -172,30 +149,101 @@ impl ConstraintResolver {
         patterns: &[QueryMorphPattern],
         node_limit: usize,
     ) -> ConstraintResolution {
+        self.resolve_candidate_with_limits(
+            BoundedTokenContext::current(text),
+            CandidateSpans {
+                core: target.clone(),
+                anchor: target,
+                consumed: candidate,
+                token: 0..text.len(),
+            },
+            patterns,
+            node_limit,
+            DEFAULT_ANALYSIS_GRAPH_PATH_LIMIT,
+        )
+    }
+
+    #[must_use]
+    pub fn resolve_candidate(
+        &self,
+        context: BoundedTokenContext<'_>,
+        spans: CandidateSpans,
+        patterns: &[QueryMorphPattern],
+        node_limit: usize,
+    ) -> ConstraintResolution {
+        self.resolve_candidate_with_limits(
+            context,
+            spans,
+            patterns,
+            node_limit,
+            DEFAULT_ANALYSIS_GRAPH_PATH_LIMIT,
+        )
+    }
+
+    #[must_use]
+    pub fn resolve_candidate_with_limits(
+        &self,
+        context: BoundedTokenContext<'_>,
+        spans: CandidateSpans,
+        patterns: &[QueryMorphPattern],
+        node_limit: usize,
+        path_limit: usize,
+    ) -> ConstraintResolution {
         if patterns.is_empty()
-            || !valid_span(text, &target)
-            || !valid_span(text, &candidate)
-            || candidate.start > target.start
-            || target.end > candidate.end
+            || !patterns.iter().all(QueryMorphPattern::is_well_formed)
+            || !spans.is_valid_for(context.current)
+            || spans.token != (0..context.current.len())
+            || node_limit == 0
+            || path_limit == 0
         {
             return unavailable(ConstraintUnavailable::InvalidPattern, 0, 0, Vec::new());
         }
-        let known = match TokenGraph::known(&self.resource, text, &target, patterns, node_limit) {
+        let known = match TokenGraph::known(&self.resource, context.current, node_limit, path_limit)
+        {
             Ok(graph) => graph,
-            Err(actual) => {
+            Err(error) => {
                 return unavailable(
-                    ConstraintUnavailable::NodeLimit {
-                        actual,
-                        limit: node_limit,
-                    },
-                    actual,
+                    graph_error(error, node_limit, path_limit),
+                    graph_error_actual(error),
                     0,
                     Vec::new(),
                 );
             }
         };
         if known.has_complete_paths() {
-            return resolve_known(known, text, &candidate);
+            let (previous, next) = match (context.previous, context.next) {
+                (Some(previous), Some(next)) => {
+                    let previous =
+                        match TokenGraph::known(&self.resource, previous, node_limit, path_limit) {
+                            Ok(graph) => graph,
+                            Err(error) => {
+                                return unavailable(
+                                    graph_error(error, node_limit, path_limit),
+                                    known.node_count(),
+                                    0,
+                                    known.proof_paths(),
+                                );
+                            }
+                        };
+                    let next = match TokenGraph::known(&self.resource, next, node_limit, path_limit)
+                    {
+                        Ok(graph) => graph,
+                        Err(error) => {
+                            return unavailable(
+                                graph_error(error, node_limit, path_limit),
+                                known.node_count(),
+                                0,
+                                known.proof_paths(),
+                            );
+                        }
+                    };
+                    (Some(previous), Some(next))
+                }
+                _ => (None, None),
+            };
+            let selection =
+                resolution::select_context(context, &known, previous.as_ref(), next.as_ref());
+            return resolution::resolve_known(&known, &spans, patterns, &selection);
         }
         let unknown = match self.unknown() {
             Ok(unknown) => unknown,
@@ -210,21 +258,17 @@ impl ConstraintResolver {
         };
         let fallback = match TokenGraph::with_unknown(
             &self.resource,
-            text,
-            &target,
-            patterns,
+            context.current,
             unknown,
             node_limit,
+            path_limit,
         ) {
             Ok(graph) => graph,
-            Err(actual) => {
+            Err(error) => {
                 return unavailable(
-                    ConstraintUnavailable::NodeLimit {
-                        actual,
-                        limit: node_limit,
-                    },
+                    graph_error(error, node_limit, path_limit),
                     known.node_count(),
-                    actual.saturating_sub(known.node_count()),
+                    graph_error_actual(error).saturating_sub(known.node_count()),
                     Vec::new(),
                 );
             }
@@ -238,7 +282,7 @@ impl ConstraintResolver {
             reason,
             known.node_count(),
             fallback.unknown_node_count(),
-            fallback.proof_paths(text.len()),
+            fallback.proof_paths(),
         )
     }
 
@@ -256,43 +300,26 @@ impl ConstraintResolver {
     }
 }
 
-fn valid_span(text: &str, span: &Range<usize>) -> bool {
-    span.start < span.end
-        && span.end <= text.len()
-        && text.is_char_boundary(span.start)
-        && text.is_char_boundary(span.end)
+fn graph_error(
+    error: TokenGraphError,
+    node_limit: usize,
+    path_limit: usize,
+) -> ConstraintUnavailable {
+    match error {
+        TokenGraphError::NodeLimit { actual } => ConstraintUnavailable::NodeLimit {
+            actual,
+            limit: node_limit,
+        },
+        TokenGraphError::PathLimit { actual } => ConstraintUnavailable::PathLimit {
+            actual,
+            limit: path_limit,
+        },
+    }
 }
 
-fn resolve_known(graph: TokenGraph, text: &str, candidate: &Range<usize>) -> ConstraintResolution {
-    let paths = graph.proof_paths(text.len());
-    let has_component = paths
-        .iter()
-        .any(|path| path.nodes.iter().any(|node| node.matches_source_component));
-    let has_exact = paths
-        .iter()
-        .any(|path| path.nodes.iter().any(|node| node.matches_query_node));
-    let has_opaque = paths
-        .iter()
-        .any(|path| path.nodes.iter().any(|node| node.has_opaque_expression));
-    let strict_candidate = *candidate != (0..text.len());
-    let opaque_support = !strict_candidate && has_opaque;
-    let has_support = has_component || has_exact || opaque_support;
-    let verdict = if strict_candidate && (has_component || has_exact) {
-        ConstraintVerdict::Ambiguous(ConstraintAmbiguity::CompoundExposure)
-    } else if has_support {
-        ConstraintVerdict::Proven
-    } else if has_opaque {
-        ConstraintVerdict::Ambiguous(ConstraintAmbiguity::OpaqueExpression)
-    } else {
-        ConstraintVerdict::Contradicted
-    };
-    ConstraintResolution {
-        verdict,
-        proof: ConstraintProof {
-            known_node_count: graph.node_count(),
-            unknown_node_count: 0,
-            paths,
-        },
+fn graph_error_actual(error: TokenGraphError) -> usize {
+    match error {
+        TokenGraphError::NodeLimit { actual } | TokenGraphError::PathLimit { actual } => actual,
     }
 }
 
@@ -303,7 +330,8 @@ fn unavailable(
     paths: Vec<ConstraintPathProof>,
 ) -> ConstraintResolution {
     ConstraintResolution {
-        verdict: ConstraintVerdict::Unavailable(reason),
+        outcome: ConstraintOutcome::Unavailable(reason),
+        supported: SupportedAnalysisSet::default(),
         proof: ConstraintProof {
             known_node_count,
             unknown_node_count,

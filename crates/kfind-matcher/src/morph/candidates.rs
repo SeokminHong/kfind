@@ -21,8 +21,9 @@ pub struct LocalAnalysisCandidate {
 pub struct AnalysisGraphCandidate {
     pub atom_index: usize,
     pub branch_index: usize,
-    pub target: Range<usize>,
-    pub token: Range<usize>,
+    pub core: Range<usize>,
+    pub anchor: Range<usize>,
+    pub consumed: Range<usize>,
     pub product_accepted: bool,
     pub boundary_accepted: bool,
     pub patterns: Vec<QueryMorphPattern>,
@@ -63,8 +64,9 @@ impl MorphMatcher {
                 candidates.push(AnalysisGraphCandidate {
                     atom_index: branch_ref.atom_index,
                     branch_index: branch_ref.branch_index,
-                    target: candidate.core.clone(),
-                    token: candidate.token.clone(),
+                    core: candidate.core.clone(),
+                    anchor: hit.span.clone(),
+                    consumed: candidate.token.clone(),
                     product_accepted: self.accepts_branch(
                         haystack,
                         &candidate,
