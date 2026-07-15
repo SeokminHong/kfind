@@ -228,7 +228,7 @@ initial = "attach-nieun"
 forms = ["ㄴ다", "는다"]
 required = ["action-verb"]
 forbidden = []
-next = []
+next = ["ending.quotative-go", "ending.quotative-adnominal", "ending.quotative-retrospective", "ending.conditional", "ending.quotative-ni", "ending.quotative-myeo", "ending.quotative-myeonseo", "ending.quotative-neunde", "ending.quotative-ji"]
 terminal = true
 
 [[ending]]
@@ -247,6 +247,76 @@ category = "connective"
 initial = "other"
 forms = ["다고"]
 required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.quotative-adnominal"
+category = "adnominal"
+initial = "attach-nieun"
+forms = ["ㄴ다는", "는다는"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.quotative-retrospective"
+category = "adnominal"
+initial = "attach-nieun"
+forms = ["ㄴ다던", "는다던"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.quotative-ni"
+category = "connective"
+initial = "attach-nieun"
+forms = ["ㄴ다니", "는다니"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.quotative-myeo"
+category = "connective"
+initial = "attach-nieun"
+forms = ["ㄴ다며", "는다며"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.quotative-myeonseo"
+category = "connective"
+initial = "attach-nieun"
+forms = ["ㄴ다면서", "는다면서"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.quotative-neunde"
+category = "connective"
+initial = "attach-nieun"
+forms = ["ㄴ다는데", "는다는데"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.quotative-ji"
+category = "final"
+initial = "attach-nieun"
+forms = ["ㄴ다지", "는다지"]
+required = ["action-verb"]
 forbidden = []
 next = []
 terminal = true

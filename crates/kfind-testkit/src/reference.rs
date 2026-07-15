@@ -561,6 +561,17 @@ fn reference_predicate_continuation(
         reference_suffix("다", &["ending.final-da"]),
         reference_suffix("고", &["ending.connective-go"]),
     ];
+    const DECLARATIVE: &[ReferenceSuffix] = &[
+        reference_suffix("면서", &["ending.quotative-myeonseo"]),
+        reference_suffix("는데", &["ending.quotative-neunde"]),
+        reference_suffix("고", &["ending.quotative-go"]),
+        reference_suffix("는", &["ending.quotative-adnominal"]),
+        reference_suffix("던", &["ending.quotative-retrospective"]),
+        reference_suffix("면", &["ending.conditional"]),
+        reference_suffix("니", &["ending.quotative-ni"]),
+        reference_suffix("며", &["ending.quotative-myeo"]),
+        reference_suffix("지", &["ending.quotative-ji"]),
+    ];
     const EU: &[ReferenceSuffix] = &[
         reference_suffix("리라고", &["ending.prospective-quotative"]),
         reference_suffix(
@@ -598,6 +609,7 @@ fn reference_predicate_continuation(
         ContinuationState::AOrEo => AEO,
         ContinuationState::Past => PAST,
         ContinuationState::Future => FUTURE,
+        ContinuationState::Declarative => DECLARATIVE,
         ContinuationState::Eu => EU,
     };
     let matched = candidates

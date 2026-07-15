@@ -257,7 +257,7 @@ fn compile_productive(
             branches,
             entry,
             present_declarative(stem)?,
-            ContinuationState::Terminal,
+            ContinuationState::Declarative,
         );
     }
     push_derived(
