@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
 use std::ops::Range;
+use std::sync::OnceLock;
 
 use kfind_data::{MorphologyGraphAnalysis, MorphologyGraphExpressionKind, MorphologyGraphResource};
 
@@ -119,7 +120,7 @@ pub(super) enum TokenGraphError {
 pub(super) struct TokenGraph<'a> {
     nodes: Vec<Node<'a>>,
     successors: Vec<Vec<usize>>,
-    predecessors: Vec<Vec<usize>>,
+    predecessors: OnceLock<Vec<Vec<usize>>>,
     reachable_from_start: Vec<bool>,
     reaches_end: Vec<bool>,
 }
@@ -192,13 +193,13 @@ impl<'a> TokenGraph<'a> {
                 .then_with(|| left.expression_kind.cmp(&right.expression_kind))
                 .then_with(|| left.components.cmp(&right.components))
         });
-        let (successors, predecessors) = graph_edges(resource, text.len(), &nodes);
-        let reachable_from_start = reachable_from_start(&nodes, &predecessors);
+        let successors = graph_edges(resource, text.len(), &nodes);
+        let reachable_from_start = reachable_from_start(&nodes, &successors);
         let reaches_end = reaches_end(text.len(), &nodes, &successors);
         Ok(Self {
             nodes,
             successors,
-            predecessors,
+            predecessors: OnceLock::new(),
             reachable_from_start,
             reaches_end,
         })
@@ -293,8 +294,9 @@ impl<'a> TokenGraph<'a> {
         }
         let mut prefix = vec![first];
         let mut cursor = first;
+        let predecessors = self.predecessors();
         while self.nodes[cursor].span.start != 0 {
-            cursor = *self.predecessors[cursor]
+            cursor = *predecessors[cursor]
                 .iter()
                 .find(|&&previous| self.reachable_from_start[previous])?;
             prefix.push(cursor);
@@ -310,6 +312,18 @@ impl<'a> TokenGraph<'a> {
         }
         Some(prefix)
     }
+
+    fn predecessors(&self) -> &[Vec<usize>] {
+        self.predecessors.get_or_init(|| {
+            let mut predecessors = vec![Vec::new(); self.nodes.len()];
+            for (index, next) in self.successors.iter().enumerate() {
+                for &successor in next {
+                    predecessors[successor].push(index);
+                }
+            }
+            predecessors
+        })
+    }
 }
 
 fn span_key(span: Option<&Range<usize>>) -> Option<(usize, usize)> {
@@ -320,12 +334,12 @@ fn graph_edges(
     resource: &MorphologyGraphResource,
     text_len: usize,
     nodes: &[Node<'_>],
-) -> (Vec<Vec<usize>>, Vec<Vec<usize>>) {
+) -> Vec<Vec<usize>> {
     let mut starting_at = vec![Vec::<usize>::new(); text_len + 1];
     for (index, node) in nodes.iter().enumerate() {
         starting_at[node.span.start].push(index);
     }
-    let successors = nodes
+    nodes
         .iter()
         .map(|node| {
             starting_at[node.span.end]
@@ -334,23 +348,18 @@ fn graph_edges(
                 .filter(|&next| resource.allows_transition(node.end_pos, nodes[next].start_pos))
                 .collect::<Vec<_>>()
         })
-        .collect::<Vec<_>>();
-    let mut predecessors = vec![Vec::new(); nodes.len()];
-    for (index, next) in successors.iter().enumerate() {
-        for &successor in next {
-            predecessors[successor].push(index);
-        }
-    }
-    (successors, predecessors)
+        .collect()
 }
 
-fn reachable_from_start(nodes: &[Node<'_>], predecessors: &[Vec<usize>]) -> Vec<bool> {
+fn reachable_from_start(nodes: &[Node<'_>], successors: &[Vec<usize>]) -> Vec<bool> {
     let mut reachable = vec![false; nodes.len()];
     for index in 0..nodes.len() {
-        reachable[index] = nodes[index].span.start == 0
-            || predecessors[index]
-                .iter()
-                .any(|&previous| reachable[previous]);
+        reachable[index] |= nodes[index].span.start == 0;
+        if reachable[index] {
+            for &successor in &successors[index] {
+                reachable[successor] = true;
+            }
+        }
     }
     reachable
 }
