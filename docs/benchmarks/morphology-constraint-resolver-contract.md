@@ -56,6 +56,8 @@ multi-node lexical support는 평탄화된 query lexical form을 source POS sequ
 
 nominal compound lexical support는 query core가 token 시작에서 시작하고 query lexical form이 연속된 둘 이상의 source nominal node surface 전체와 정확히 같을 때만 host identity proof가 된다. query core 앞의 component나 lexical form 뒤의 비조사 nominal node를 포함하는 strict substring은 이 proof로 승격하지 않으며 host 뒤의 suffix는 별도 nominal continuation DFA를 통과해야 한다.
 
+predicate candidate가 token의 prefix만 반환할 때 반환 경로가 `ETM`으로 종결되고 같은 complete source path의 나머지가 하나 이상의 nominal node와 선택적 `XSN`·particle chain으로 token 끝까지 이어지면 attached nominal frame proof가 된다. frame의 nominal surface는 registry로 제한하지 않으며 predicate 반환 span과 nominal context span을 합치지 않는다.
+
 `fused` 또는 `unaligned` component는 내부 byte 경계를 만들지 않는다. 다만 query anchor와 반환할 `consumed` span이 해당 source node 전체를 포함하면 canonical component sequence를 lexical identity proof로 사용할 수 있다. nominal particle transition을 선언한 predicate branch에서는 lexical component 뒤의 span 없는 `ETN` component가 enclosing node 안에 있을 때 component ordinal 순서로 anchor morphology DFA를 nominalized 상태까지 전진시키며, query anchor의 다른 ending을 외부 continuation으로 다시 소비하지 않는다. 이 전이는 반환 span이나 외부 continuation coverage를 확장하지 않는다. proof는 opaque source relation을 기록하되 반환 span은 enclosing node의 안정된 경계를 사용하며, source node의 strict subspan을 반환해야 할 때만 `OpaqueExpression` ambiguity가 된다.
 
 ## bounded token context
