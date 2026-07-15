@@ -209,10 +209,15 @@ pub(super) enum ContextSelection {
         nominal: Range<usize>,
         copula: Range<usize>,
     },
-    NominalParticleHost {
-        selected: Range<usize>,
+    NominalParticleHosts {
+        selected: Vec<Range<usize>>,
     },
     Competing,
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub(super) struct PreparedTokenSummary {
+    nominal_particle_hosts: Vec<Range<usize>>,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -236,6 +241,7 @@ impl<'a> BoundedTokenContext<'a> {
 pub(super) fn select_context(
     context: BoundedTokenContext<'_>,
     current: &TokenGraph<'_>,
+    summary: &PreparedTokenSummary,
     previous: Option<&TokenGraph<'_>>,
     next: Option<&TokenGraph<'_>>,
 ) -> ContextSelection {
@@ -243,11 +249,11 @@ pub(super) fn select_context(
     let copular = previous
         .zip(next)
         .and_then(|(previous, next)| copular_selection(context.current, previous, current, next));
-    let particle_host = nominal_particle_host_selection(context.current, current);
+    let particle_hosts = &summary.nominal_particle_hosts;
     match (
         repeated.is_some(),
         copular.is_some(),
-        particle_host.is_some(),
+        !particle_hosts.is_empty(),
     ) {
         (false, false, false) => ContextSelection::None,
         (true, false, false) => ContextSelection::Repeated {
@@ -257,10 +263,19 @@ pub(super) fn select_context(
             let (nominal, copula) = copular.expect("present copular selection");
             ContextSelection::Copular { nominal, copula }
         }
-        (false, false, true) => ContextSelection::NominalParticleHost {
-            selected: particle_host.expect("present particle host selection"),
+        (false, false, true) => ContextSelection::NominalParticleHosts {
+            selected: particle_hosts.clone(),
         },
         _ => ContextSelection::Competing,
+    }
+}
+
+pub(super) fn prepare_token_summary(
+    current_text: &str,
+    current: &TokenGraph<'_>,
+) -> PreparedTokenSummary {
+    PreparedTokenSummary {
+        nominal_particle_hosts: nominal_particle_host_candidates(current_text, current),
     }
 }
 
@@ -326,7 +341,14 @@ pub(super) fn decide_known(
         };
     }
     let mut proofs = BTreeSet::<CompactSupportProof>::new();
-    let runtime_paths = runtime_lexical_candidate_paths(graph, spans, patterns);
+    let runtime_paths = if patterns
+        .iter()
+        .any(|pattern| matches!(pattern.fine_pos, DataFinePos::Vv | DataFinePos::Va))
+    {
+        runtime_lexical_candidate_paths(graph, spans, patterns)
+    } else {
+        Vec::new()
+    };
     for (pattern_index, pattern) in patterns.iter().enumerate() {
         if context_match(context, pattern, spans).is_none() {
             continue;
@@ -533,7 +555,16 @@ fn support_outcome(
         has_opaque |= relation == ConstraintSpanRelation::OpaqueExpression;
         all_non_whole &= relation != ConstraintSpanRelation::Whole;
     }
-    let context_resolved = *context != ContextSelection::None;
+    let context_resolved = patterns.iter().any(|pattern| {
+        matches!(
+            context_match(context, pattern, spans),
+            Some(
+                ContextMatch::Repeated { .. }
+                    | ContextMatch::Copular { .. }
+                    | ContextMatch::NominalParticleHost { .. }
+            )
+        )
+    });
     let has_compound_exposure =
         has_stable && !context_resolved && spans.consumed != spans.token && all_non_whole;
     let has_lexical_competition =
@@ -1374,10 +1405,23 @@ fn context_match<'a>(
                     _ => None,
                 })
         }
-        ContextSelection::NominalParticleHost { selected } => {
-            if pattern.fine_pos.is_nominal() && spans.core == *selected {
+        ContextSelection::NominalParticleHosts { selected } => {
+            let is_nominal = pattern.fine_pos.is_nominal();
+            let is_predicate = is_predicate_pos(pattern.fine_pos);
+            if is_nominal
+                && let Some(selected) = selected.iter().find(|selected| spans.core == **selected)
+            {
                 Some(ContextMatch::NominalParticleHost { selected })
-            } else if is_predicate_pos(pattern.fine_pos) && spans.core.start == 0 {
+            } else if (is_nominal
+                && selected.iter().any(|selected| {
+                    selected.start <= spans.core.start
+                        && spans.core.end < selected.end
+                        && selected.end <= spans.consumed.end
+                }))
+                || (is_predicate && spans.core.start == 0)
+                || spans.core == spans.token
+                || (!is_nominal && !is_predicate)
+            {
                 Some(ContextMatch::None)
             } else {
                 None
@@ -1445,20 +1489,44 @@ fn copular_selection(
     })
 }
 
-fn nominal_particle_host_selection(
+fn nominal_particle_host_candidates(
     current_text: &str,
     current: &TokenGraph<'_>,
-) -> Option<Range<usize>> {
+) -> Vec<Range<usize>> {
     if !has_complete_pos_matching(current, |pos| {
         source_pos(pos).is_some_and(DataFinePos::is_nominal)
     }) || !has_complete_pos_matching(current, |pos| pos.starts_with('J'))
     {
-        return None;
+        return Vec::new();
     }
     let mut splits = BTreeSet::new();
-    for path in current.witness_paths() {
-        let units = path_units(&path, current.nodes());
-        for (split, _) in current_text.char_indices().skip(1) {
+    for (node_index, node) in current.nodes().iter().enumerate() {
+        if !current.is_on_complete_path(node_index) || node.span.start != 0 {
+            continue;
+        }
+        let units = path_units(&[node_index], current.nodes());
+        if node.span.end < current_text.len() {
+            let split = node.span.end;
+            let prefix = units.iter().collect::<Vec<_>>();
+            if let [host] = prefix.as_slice()
+                && source_pos(host.pos).is_some_and(DataFinePos::is_nominal)
+                && exact_coverage(&prefix, 0..split)
+                && has_particle_suffix_path(
+                    current,
+                    node_index,
+                    current_text.len(),
+                    host.surface,
+                    0,
+                )
+            {
+                splits.insert(split);
+            }
+        }
+        for (split, _) in current_text
+            .char_indices()
+            .skip(1)
+            .take_while(|(split, _)| *split < node.span.end)
+        {
             let prefix = units
                 .iter()
                 .filter(|unit| unit.coverage.end <= split)
@@ -1467,22 +1535,102 @@ fn nominal_particle_host_selection(
                 .iter()
                 .filter(|unit| unit.coverage.start >= split)
                 .collect::<Vec<_>>();
-            if prefix.len() == 1
-                && source_pos(prefix[0].pos).is_some_and(DataFinePos::is_nominal)
+            let Some(host) = prefix.first().filter(|_| prefix.len() == 1) else {
+                continue;
+            };
+            let Some(case_particles) =
+                particle_suffix_case_particles(&suffix, split..node.span.end, host.surface)
+            else {
+                continue;
+            };
+            if source_pos(host.pos).is_some_and(DataFinePos::is_nominal)
                 && exact_coverage(&prefix, 0..split)
-                && !suffix.is_empty()
-                && suffix.iter().all(|unit| unit.pos.starts_with('J'))
-                && enclosing_coverage(&suffix, split..current_text.len())
-                && valid_particle_sequence(&suffix, prefix[0].surface)
+                && (node.span.end == current_text.len()
+                    || has_particle_suffix_path(
+                        current,
+                        node_index,
+                        current_text.len(),
+                        host.surface,
+                        case_particles,
+                    ))
             {
                 splits.insert(split);
             }
         }
     }
-    (splits.len() == 1).then(|| {
-        let split = *splits.first().expect("single nominal particle split");
-        0..split
-    })
+    splits.into_iter().map(|split| 0..split).collect()
+}
+
+fn has_particle_suffix_path(
+    graph: &TokenGraph<'_>,
+    host_index: usize,
+    token_len: usize,
+    host_surface: &str,
+    case_particles: usize,
+) -> bool {
+    let mut stack = graph
+        .successors(host_index)
+        .iter()
+        .copied()
+        .map(|index| (index, case_particles))
+        .collect::<Vec<_>>();
+    let mut visited = vec![[false; 2]; graph.nodes().len()];
+    while let Some((index, previous_case_particles)) = stack.pop() {
+        if previous_case_particles > 1
+            || visited[index][previous_case_particles]
+            || !graph.is_on_complete_path(index)
+        {
+            continue;
+        }
+        visited[index][previous_case_particles] = true;
+        let units = path_units(&[index], graph.nodes());
+        let Some(case_particles) = particle_suffix_case_particles(
+            &units.iter().collect::<Vec<_>>(),
+            graph.nodes()[index].span.clone(),
+            host_surface,
+        ) else {
+            continue;
+        };
+        let total_case_particles = previous_case_particles + case_particles;
+        if total_case_particles > 1 {
+            continue;
+        }
+        if graph.nodes()[index].span.end == token_len {
+            return true;
+        }
+        stack.extend(
+            graph
+                .successors(index)
+                .iter()
+                .copied()
+                .map(|next| (next, total_case_particles)),
+        );
+    }
+    false
+}
+
+fn particle_suffix_case_particles(
+    units: &[&Unit<'_>],
+    expected: Range<usize>,
+    host_surface: &str,
+) -> Option<usize> {
+    if units.is_empty()
+        || units.iter().any(|unit| !unit.pos.starts_with('J'))
+        || !enclosing_coverage(units, expected)
+    {
+        return None;
+    }
+    let host = host_surface.chars().next_back();
+    let mut case_particles = 0_usize;
+    for unit in units {
+        case_particles += usize::from(is_case_particle(unit.pos, unit.surface));
+        if case_particles > 1
+            || host.is_some_and(|host| !particle_allomorph_accepts(unit.surface, host))
+        {
+            return None;
+        }
+    }
+    Some(case_particles)
 }
 
 fn is_predicate_pos(pos: DataFinePos) -> bool {

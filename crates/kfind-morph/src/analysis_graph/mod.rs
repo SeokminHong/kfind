@@ -110,7 +110,10 @@ impl ConstraintResolution {
 
 #[derive(Debug)]
 enum PreparedTokenState<'a> {
-    Known(TokenGraph<'a>),
+    Known {
+        graph: TokenGraph<'a>,
+        summary: resolution::PreparedTokenSummary,
+    },
     Unavailable {
         reason: ConstraintUnavailable,
         known_node_count: usize,
@@ -253,9 +256,10 @@ impl ConstraintResolver {
             );
         }
         match &prepared.state {
-            PreparedTokenState::Known(graph) => {
+            PreparedTokenState::Known { graph, summary } => {
                 let selection = match self.select_prepared_context(
                     graph,
+                    summary,
                     context,
                     patterns,
                     prepared.node_limit,
@@ -355,9 +359,10 @@ impl ConstraintResolver {
             };
         }
         match &prepared.state {
-            PreparedTokenState::Known(graph) => {
+            PreparedTokenState::Known { graph, summary } => {
                 let selection = match self.select_prepared_context(
                     graph,
+                    summary,
                     context,
                     patterns,
                     prepared.node_limit,
@@ -413,10 +418,14 @@ impl ConstraintResolver {
             }
         };
         if known.has_complete_paths() {
+            let summary = resolution::prepare_token_summary(current, &known);
             return PreparedTokenAnalysis {
                 current,
                 node_limit,
-                state: PreparedTokenState::Known(known),
+                state: PreparedTokenState::Known {
+                    graph: known,
+                    summary,
+                },
             };
         }
         let unknown = match self.unknown() {
@@ -471,6 +480,7 @@ impl ConstraintResolver {
     fn select_prepared_context(
         &self,
         current: &TokenGraph<'_>,
+        summary: &resolution::PreparedTokenSummary,
         context: BoundedTokenContext<'_>,
         patterns: &[QueryMorphPattern],
         node_limit: usize,
@@ -492,6 +502,7 @@ impl ConstraintResolver {
         Ok(resolution::select_context(
             context,
             current,
+            summary,
             previous.as_ref(),
             next.as_ref(),
         ))
