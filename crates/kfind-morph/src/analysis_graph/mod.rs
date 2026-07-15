@@ -306,22 +306,13 @@ fn valid_span(text: &str, span: &Range<usize>) -> bool {
 
 fn resolve_known(graph: TokenGraph, text: &str, candidate: &Range<usize>) -> ConstraintResolution {
     let paths = graph.proof_paths(text.len());
-    let source_whole_paths = paths
-        .iter()
-        .filter(|path| is_source_whole_path(path, text.len()))
-        .collect::<Vec<_>>();
-    let selected = if source_whole_paths.is_empty() {
-        paths.iter().collect::<Vec<_>>()
-    } else {
-        source_whole_paths
-    };
-    let has_component = selected
+    let has_component = paths
         .iter()
         .any(|path| path.nodes.iter().any(|node| node.matches_source_component));
-    let has_exact = selected
+    let has_exact = paths
         .iter()
         .any(|path| path.nodes.iter().any(|node| node.matches_query_node));
-    let has_opaque = selected
+    let has_opaque = paths
         .iter()
         .any(|path| path.nodes.iter().any(|node| node.has_opaque_expression));
     let strict_candidate = *candidate != (0..text.len());
@@ -344,12 +335,6 @@ fn resolve_known(graph: TokenGraph, text: &str, candidate: &Range<usize>) -> Con
             paths,
         },
     }
-}
-
-fn is_source_whole_path(path: &ConstraintPathProof, text_len: usize) -> bool {
-    path.nodes.len() == 1
-        && path.nodes[0].source == ConstraintNodeSource::Source
-        && path.nodes[0].span == (0..text_len)
 }
 
 fn unavailable(

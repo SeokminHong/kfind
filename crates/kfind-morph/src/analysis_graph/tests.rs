@@ -106,7 +106,7 @@ fn strict_runtime_composition_remains_a_component_exposure_decision() {
 }
 
 #[test]
-fn source_whole_analysis_outranks_runtime_composition_regardless_of_cost() {
+fn unrelated_source_whole_analysis_does_not_hide_runtime_exposure() {
     let whole_preferred = resolver(&[
         atomic("산", "NNG", 8_000),
         atomic("속", "NNG", -8_000),
@@ -133,7 +133,10 @@ fn source_whole_analysis_outranks_runtime_composition_regardless_of_cost() {
         DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
     );
 
-    assert_eq!(resolution.verdict, ConstraintVerdict::Contradicted);
+    assert_eq!(
+        resolution.verdict,
+        ConstraintVerdict::Ambiguous(ConstraintAmbiguity::CompoundExposure)
+    );
     assert_eq!(reversed.verdict, resolution.verdict);
     assert!(
         resolution
