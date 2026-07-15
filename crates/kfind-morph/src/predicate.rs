@@ -18,9 +18,9 @@ mod continuation;
 pub use continuation::{PredicateContinuationMatch, verify_predicate_continuation};
 
 use alternation::{
-    aeo_surfaces, conditional_surface, coordinate_surface, eu_anchor, future_adnominal,
-    honorific_anchor, intentive_surface, nominalizer_surface, past_adnominal, polite_declarative,
-    present_adnominal, present_declarative,
+    aeo_surfaces, conditional_surface, coordinate_myeonseo_surface, coordinate_surface, eu_anchor,
+    future_adnominal, honorific_anchor, intentive_surface, nominalizer_surface, past_adnominal,
+    polite_declarative, present_adnominal, present_declarative,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -229,6 +229,9 @@ fn compile_productive(
         if let Some(coordinate) = coordinate_surface(entry, stem)? {
             push_derived(branches, entry, coordinate, ContinuationState::Terminal);
         }
+        if let Some(coordinate) = coordinate_myeonseo_surface(entry, stem)? {
+            push_derived(branches, entry, coordinate, ContinuationState::Terminal);
+        }
         if entry.alternation == LexicalAlternation::Regular
             && has_rieul_final(stem.chars().next_back().expect("stem"))
         {
@@ -394,6 +397,11 @@ fn compile_copula(
             format!("{stem}고"),
             ContinuationState::Terminal,
             "ending.connective-go",
+        ),
+        (
+            format!("{stem}면서"),
+            ContinuationState::Terminal,
+            "ending.coordinate-myeonseo",
         ),
         (format!("{stem}어"), ContinuationState::AOrEo, "ending.aoeo"),
         (

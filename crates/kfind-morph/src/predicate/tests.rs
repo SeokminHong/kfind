@@ -41,6 +41,7 @@ fn test_surfaces(branch: &SurfaceBranchSpec) -> Vec<String> {
         ContinuationState::Eu => vec![
             format!("{}면", branch.anchor),
             format!("{}며", branch.anchor),
+            format!("{}면서", branch.anchor),
             format!("{}니", branch.anchor),
             format!("{}니까", branch.anchor),
             format!("{}니까는", branch.anchor),
@@ -275,6 +276,86 @@ fn productive_predicates_cover_reason_connectives() {
     ] {
         assert_has_all(&surfaces(&predicate), &expected);
     }
+}
+
+#[test]
+fn productive_predicates_cover_simultaneous_connectives() {
+    for (predicate, expected) in [
+        (
+            entry("가다", PredicatePos::Verb, LexicalAlternation::Regular),
+            "가면서",
+        ),
+        (
+            entry("먹다", PredicatePos::Verb, LexicalAlternation::Regular),
+            "먹으면서",
+        ),
+        (
+            entry("살다", PredicatePos::Verb, LexicalAlternation::Regular),
+            "살면서",
+        ),
+        (
+            entry("걷다", PredicatePos::Verb, LexicalAlternation::DToL),
+            "걸으면서",
+        ),
+        (
+            entry("돕다", PredicatePos::Verb, LexicalAlternation::BToWa),
+            "도우면서",
+        ),
+        (
+            entry(
+                "아름답다",
+                PredicatePos::Adjective,
+                LexicalAlternation::BToWo,
+            ),
+            "아름다우면서",
+        ),
+        (
+            entry("짓다", PredicatePos::Verb, LexicalAlternation::DropS),
+            "지으면서",
+        ),
+        (
+            entry("파랗다", PredicatePos::Adjective, LexicalAlternation::DropH),
+            "파라면서",
+        ),
+        (
+            entry(
+                "빠르다",
+                PredicatePos::Adjective,
+                LexicalAlternation::ReuDoubleL,
+            ),
+            "빠르면서",
+        ),
+        (
+            entry("푸르다", PredicatePos::Adjective, LexicalAlternation::Reo),
+            "푸르면서",
+        ),
+        (
+            entry("하다", PredicatePos::Verb, LexicalAlternation::Ha),
+            "하면서",
+        ),
+        (
+            entry("푸다", PredicatePos::Verb, LexicalAlternation::UToEo),
+            "푸면서",
+        ),
+        (
+            entry("이다", PredicatePos::Copula, LexicalAlternation::Copula),
+            "이면서",
+        ),
+    ] {
+        assert!(
+            surfaces(&predicate).contains(expected),
+            "missing {expected} for {}",
+            predicate.lemma
+        );
+    }
+
+    let hang = surfaces(&entry(
+        "걸다",
+        PredicatePos::Verb,
+        LexicalAlternation::Regular,
+    ));
+    assert!(hang.contains("걸면서"));
+    assert!(!hang.contains("걸으면서"));
 }
 
 #[test]

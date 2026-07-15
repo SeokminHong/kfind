@@ -392,6 +392,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.coordinate-myeonseo"
+category = "connective"
+initial = "eu"
+forms = ["면서", "으면서"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.concessive-deorado"
 category = "connective"
 initial = "other"

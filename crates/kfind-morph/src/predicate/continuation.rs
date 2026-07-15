@@ -107,6 +107,7 @@ const EU_SUFFIXES: &[Suffix] = &[
     suffix("실", &["ending.honorific", "ending.future-adnominal"]),
     suffix("면", &["ending.conditional"]),
     suffix("며", &["ending.coordinate-myeo"]),
+    suffix("면서", &["ending.coordinate-myeonseo"]),
     suffix("니까는", &["ending.connective-ni"]),
     suffix("니까", &["ending.connective-ni"]),
     suffix("니깐", &["ending.connective-ni"]),

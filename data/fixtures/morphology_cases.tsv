@@ -540,6 +540,9 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 먹다	verb	밥을 먹니깐 힘이 난다.	no-match	predicate-connective-nikka
 불다	verb	바람이 불으니깐 창문을 닫는다.	no-match	predicate-connective-nikka
 불다	verb	바람이 부니깐은 창문을 닫는다.	no-match	predicate-connective-nikka
+걷다	verb	아이들은 강변을 걸으면서 이야기를 나눴다.	match	predicate-connective-myeonseo
+걸다	verb	아이들은 강변을 걸으면서 이야기를 나눴다.	no-match	predicate-connective-myeonseo
+걷다	verb	그는 소매를 걷으면서 물가로 걸어갔다.	match	predicate-connective-myeonseo
 먹다	verb	그가 끝까지 먹으리라고 생각했다.	match	regular
 가다	verb	그가 먼저 가리라고 생각했다.	match	regular
 좋다	adjective	상황이 좋으니는 계속 진행한다.	no-match	regular

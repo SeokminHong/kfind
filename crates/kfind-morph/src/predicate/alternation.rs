@@ -292,6 +292,18 @@ pub(super) fn coordinate_surface(
     Ok(Some(derived(format!("{base}며"), core_len, rules)))
 }
 
+pub(super) fn coordinate_myeonseo_surface(
+    entry: &PredicateEntry,
+    stem: &str,
+) -> Result<Option<DerivedSurface>, GenerateError> {
+    let Some((base, mut rules)) = conditional_base(entry, stem)? else {
+        return Ok(None);
+    };
+    let core_len = base.len();
+    rules.push(rule("ending.coordinate-myeonseo"));
+    Ok(Some(derived(format!("{base}면서"), core_len, rules)))
+}
+
 pub(super) fn intentive_surface(
     entry: &PredicateEntry,
     stem: &str,
