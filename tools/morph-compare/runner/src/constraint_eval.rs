@@ -24,7 +24,7 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 use unicode_normalization::UnicodeNormalization;
 
-use super::graph_shadow::{outcome_name, resolution_json};
+use super::graph_shadow::outcome_name;
 use super::{
     COMPONENT_RESOURCE, COMPONENT_RESOURCE_ENV, Case, GRAPH_RESOURCE, GRAPH_RESOURCE_ENV,
     KfindProfile, Span, find_all_spans, load_full_profile_lexicons, parse_pos, peak_rss_kib,
@@ -141,7 +141,6 @@ struct ConstraintCandidateEvidence {
     outcome: Option<String>,
     evidence: Vec<&'static str>,
     policies: BTreeMap<&'static str, bool>,
-    resolution: Option<serde_json::Value>,
     error: Option<String>,
 }
 
@@ -656,7 +655,6 @@ fn candidate_base(
         outcome: None,
         evidence: Vec::new(),
         policies: BTreeMap::new(),
-        resolution: None,
         error,
     }
 }
@@ -749,7 +747,6 @@ fn evaluate_prepared_candidate(
         outcome: Some(outcome_name(decision.outcome)),
         evidence,
         policies,
-        resolution: Some(resolution_json(&resolution)),
         error: None,
     };
     timings.diagnostic_seconds +=

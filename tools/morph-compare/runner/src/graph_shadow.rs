@@ -319,11 +319,6 @@ fn resolution_evidence(resolution: &ConstraintResolution) -> GraphResolutionEvid
     }
 }
 
-pub(super) fn resolution_json(resolution: &ConstraintResolution) -> serde_json::Value {
-    serde_json::to_value(resolution_evidence(resolution))
-        .expect("graph resolution evidence is serializable")
-}
-
 fn supported_evidence(resolution: &ConstraintResolution) -> Vec<GraphSupportedAnalysisEvidence> {
     resolution
         .supported
