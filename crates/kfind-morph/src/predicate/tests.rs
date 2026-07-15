@@ -42,6 +42,9 @@ fn test_surfaces(branch: &SurfaceBranchSpec) -> Vec<String> {
             format!("{}면", branch.anchor),
             format!("{}며", branch.anchor),
             format!("{}니", branch.anchor),
+            format!("{}니까", branch.anchor),
+            format!("{}니까는", branch.anchor),
+            format!("{}니깐", branch.anchor),
             format!("{}리라고", branch.anchor),
             format!("{}셨다", branch.anchor),
             format!("{}시다", branch.anchor),
@@ -251,26 +254,26 @@ fn productive_predicates_cover_reason_connectives() {
                 PredicatePos::Adjective,
                 LexicalAlternation::Regular,
             ),
-            "바쁘니",
+            ["바쁘니", "바쁘니까", "바쁘니까는", "바쁘니깐"],
         ),
         (
             entry("먹다", PredicatePos::Verb, LexicalAlternation::Regular),
-            "먹으니",
+            ["먹으니", "먹으니까", "먹으니까는", "먹으니깐"],
         ),
         (
             entry("살다", PredicatePos::Verb, LexicalAlternation::Regular),
-            "사니",
+            ["사니", "사니까", "사니까는", "사니깐"],
         ),
         (
             entry("듣다", PredicatePos::Verb, LexicalAlternation::DToL),
-            "들으니",
+            ["들으니", "들으니까", "들으니까는", "들으니깐"],
         ),
         (
             entry("돕다", PredicatePos::Verb, LexicalAlternation::BToWa),
-            "도우니",
+            ["도우니", "도우니까", "도우니까는", "도우니깐"],
         ),
     ] {
-        assert!(surfaces(&predicate).contains(expected));
+        assert_has_all(&surfaces(&predicate), &expected);
     }
 }
 

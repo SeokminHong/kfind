@@ -613,6 +613,9 @@ fn reference_predicate_continuation(
         reference_suffix("실", &["ending.honorific", "ending.future-adnominal"]),
         reference_suffix("면", &["ending.conditional"]),
         reference_suffix("며", &["ending.coordinate-myeo"]),
+        reference_suffix("니까는", &["ending.connective-ni"]),
+        reference_suffix("니까", &["ending.connective-ni"]),
+        reference_suffix("니깐", &["ending.connective-ni"]),
         reference_suffix("니", &["ending.connective-ni"]),
     ];
 

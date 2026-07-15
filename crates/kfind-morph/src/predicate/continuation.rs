@@ -107,6 +107,9 @@ const EU_SUFFIXES: &[Suffix] = &[
     suffix("실", &["ending.honorific", "ending.future-adnominal"]),
     suffix("면", &["ending.conditional"]),
     suffix("며", &["ending.coordinate-myeo"]),
+    suffix("니까는", &["ending.connective-ni"]),
+    suffix("니까", &["ending.connective-ni"]),
+    suffix("니깐", &["ending.connective-ni"]),
     suffix("니", &["ending.connective-ni"]),
 ];
 
@@ -283,10 +286,20 @@ mod tests {
             ContinuationState::Eu,
             PredicatePos::Adjective,
             "좋으",
-            "니 계속한다",
+            "니까는 계속한다",
         )
         .expect("reason connective");
-        assert_eq!(connective.token_end, "좋으니".len());
+        assert_eq!(connective.token_end, "좋으니까는".len());
+        assert_eq!(connective.consumed_bytes, "니까는".len());
+
+        let contracted = verify_predicate_continuation(
+            ContinuationState::Eu,
+            PredicatePos::Adjective,
+            "좋으",
+            "니깐 계속한다",
+        )
+        .expect("contracted reason connective");
+        assert_eq!(contracted.token_end, "좋으니깐".len());
 
         let prospective = verify_predicate_continuation(
             ContinuationState::Eu,
