@@ -252,9 +252,9 @@ coverage 검사를 함께 도입한다. 새 규칙이 없는 RC 변경에는 이
 
 ## 이어갈 형태 품질 작업
 
-schema 3 graph, 완전한 `QueryMorphPattern`, query-directed `ConstraintResolver`, 네 제품 정책과 독립 evaluator를 구현했다. 독립 경로는 제품 verifier, boundary policy, lexical context registry와 비용 임계값을 호출하지 않는다. 고정 test의 `possible-analysis`는 TP 453 / FP 5 / FN 47, `unambiguous-analysis`는 TP 289 / FP 0 / FN 211이며 hard-negative FP는 각각 8건과 3건이다. 제품의 TP 466 / FP 0 / FN 34를 보존한 정책이 없고 evaluator 처리량도 제품보다 10.73배 낮으므로 제품 전환은 보류하고 현재 matcher, lexical context registry와 1,500 비용 마진을 유지한다.
+schema 4 graph, 완전한 `QueryMorphPattern`, query-directed `ConstraintResolver`, 네 제품 정책과 독립 evaluator를 구현했다. 독립 경로는 제품 verifier, boundary policy, lexical context registry와 비용 임계값을 호출하지 않는다. `35351f061e68c2d5c073eae98bcd9222a898159b` 에서 5회 측정한 고정 test의 `possible-analysis`는 TP 461 / FP 5 / FN 39, `unambiguous-analysis`는 TP 282 / FP 0 / FN 218이며 hard-negative FP는 각각 10건과 2건이다. 제품의 TP 466 / FP 0 / FN 34를 보존한 정책은 없지만 evaluator는 제품 대비 처리량 -2.4%, p95 +8.1%, RSS +13.3%로 세 성능 gate를 모두 통과했다.
 
-이 작업은 장기 실험 stack으로 유지하며 각 후속 단계도 별도 stacked draft로 만든다. 다음 단계는 독립 candidate coverage의 development 97.8%와 고정 test 98.8%를 100%로 맞추되 corpus 판정 코드를 제품 matcher와 공유하지 않는 작업이다. 이후 source identity와 alignment 보강으로 `NoCompletePath`, `UnknownOnly`, `OpaqueExpression`을 줄이고, resolver가 evaluation 시간의 92.9%를 차지하는 hot path를 mmap·lazy decode·cache·bitset 교차로 줄인다. 형태 분석만으로 남는 lexical meaning ambiguity는 morphology 규칙으로 강제하지 않고 `SupportedAnalysisSet`을 소비하는 별도 context disambiguator에서 다룬다.
+이 작업은 장기 실험 stack으로 유지하며 각 후속 단계도 별도 stacked draft로 만든다. 다음 최고 영향 작업은 제품이 맞히고 구조 경로가 놓친 positive 24건의 source lexical identity와 complete-path alignment를 보강하는 것이다. 이 집합은 `Contradicted` 19건, `NoCompletePath` 4건, `UnknownOnly` 1건이며 candidate coverage 미달 6건보다 영향이 크다. 이후 독립 candidate coverage의 development 97.8%와 고정 test 98.8%를 100%로 맞추고, 형태 분석만으로 남는 `CompoundExposure`와 lexical meaning ambiguity는 morphology 규칙으로 강제하지 않고 `SupportedAnalysisSet`을 소비하는 별도 context disambiguator에서 다룬다.
 
 현재 구조 실험 stack은 #136, #137, #139, #141 순서이며 #141 은 #139 위에 쌓인 draft다. 자동 머지는 설정하지 않고 후속 실험도 이 stack 위에 별도 draft로 추가한다.
 

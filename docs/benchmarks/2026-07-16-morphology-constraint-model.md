@@ -2,11 +2,13 @@
 
 ## 결론
 
-비용 임계값, lexical context registry, 제품 verifier와 boundary 판정을 호출하지 않는 독립 evaluator로 전체 형태 구조 제약 모델을 평가했다. 구조 모델은 query 의도, 가능한 corpus 분석, 중의성과 최종 제품 정책을 분리하고 `possible-analysis`의 고정 test recall을 90.6%까지 회복했지만 현재 제품의 93.2% recall과 0 FP를 보존하지 못했다. `unambiguous-analysis`는 고정 test와 development에서 0 FP를 유지하고 hard-negative FP를 제품 4건에서 3건으로 줄였지만 recall이 57.8%와 58.8%에 그쳤다. 어느 정책도 채택 조건을 통과하지 못했으므로 제품 matcher는 전환하지 않고 구현은 후속 실험용 stacked draft에 유지한다.
+비용 임계값, lexical context registry, 제품 verifier와 boundary 판정을 호출하지 않는 독립 evaluator로 전체 형태 구조 제약 모델을 평가했다. prepared graph 공유, 정수 POS transition, 증분 continuation traversal과 진단 경로 분리로 5회 성능 gate를 모두 통과했지만 `possible-analysis`의 고정 test TP 461 / FP 5가 현재 제품 TP 466 / FP 0을 보존하지 못했다. 구조 실행 방식은 채택 가능 범위에 들어왔고 source identity와 ambiguity 품질 gate는 남았으므로 제품 matcher는 전환하지 않고 구현은 후속 실험용 stacked draft에 유지한다.
 
 ## 구조
 
-`QueryMorphPattern`은 lexical identity, fine POS, span relation, continuation DFA, 인접 token 제약과 component capability를 선언한다. Schema 3 graph는 source analysis와 expression component, categorical morphotactic edge를 저장하고, resolver는 packed DAG를 query-directed로 탐색해 `SupportedAnalysisSet`과 `Supported`, `Contradicted`, `Ambiguous`, `Unavailable`을 반환한다. 비용은 같은 종류의 근거 안에서 출력 순서를 정하는 진단 값일 뿐 hard edge, proof 종류와 수용 여부를 결정하지 않는다.
+`QueryMorphPattern`은 lexical identity, fine POS, span relation, continuation DFA, 인접 token 제약과 component capability를 선언한다. Schema 4 graph는 source analysis와 expression component, categorical morphotactic edge, 정수 POS class와 dense transition bit matrix를 저장하고, resolver는 packed DAG를 query-directed로 탐색해 `SupportedAnalysisSet`과 `Supported`, `Contradicted`, `Ambiguous`, `Unavailable`을 반환한다. 비용은 같은 종류의 근거 안에서 출력 순서를 정하는 진단 값일 뿐 hard edge, proof 종류와 수용 여부를 결정하지 않는다.
+
+정규화 token graph는 같은 token의 모든 candidate가 공유하고 adjacent graph와 nominal-particle context fact는 실제 pattern이 요구할 때만 만든다. compact decision은 시작 lexical path의 unit stream을 제자리에서 확장·복원하고 borrowed suffix view로 continuation prefix를 검증하며 reverse edge, witness path와 전체 proof는 별도 diagnostic process에서만 materialize한다. 제품 control도 component resource를 로드하는 별도 process에서 case별 span만 전달하므로 구조 후보의 peak RSS에 control 고수위 메모리가 섞이지 않는다.
 
 독립 evaluator는 query branch의 anchor만 공유하고 제품 verifier, boundary policy, lexical context registry, component cost threshold를 호출하지 않는다. 따라서 제품과 구조 정책의 일치는 같은 판정 코드를 두 번 실행한 결과가 아니며 candidate coverage, resolver outcome, 제품 정책과 성능을 따로 측정할 수 있다.
 
@@ -16,16 +18,16 @@
 
 | 항목 | 값 |
 | --- | --- |
-| candidate와 product control revision | `5fbd91d12ed397762620e8cd724fbb034f32390a` |
-| 명령 | `./scripts/benchmark-morphology.sh` |
+| candidate와 product control revision | `35351f061e68c2d5c073eae98bcd9222a898159b` |
+| 명령 | `KFIND_MORPH_RUNS=5 ./scripts/benchmark-morphology.sh target/morph-hierarchical-streaming-5run` |
 | 환경 | Linux 6.12.76 linuxkit, aarch64, logical CPU 10, Rust 1.97.0, Python 3.12.13 |
 | 측정 | fresh process warm-up 1회 후 5회, median과 min/max |
 | 고정 test fixture SHA-256 | `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21ff` |
 | development fixture SHA-256 | `604c3a139854fcf59570392f48ab85028785f4a3561ea3c5e702f88b841f907c` |
 | hard-negative fixture SHA-256 | `cb8634491cba65916c9af510c50f909eaddfd9bb89935598875e134a01cbce99` |
-| graph resource SHA-256 | `827384e13799473e15c0b0ff815683bc99ca41f9f6187f32cc390fa83c925362` |
-| 생성 `report.json` SHA-256 | `56ad3d0d761bd10968ef0fc9ca875419d5791c7996126d340a3bac397c2eb2c9` |
-| 생성 `report.md` SHA-256 | `306f3f04b4dacd7e293811ff055ea678d0e19eb07c90fac29d1f7f91471bdd97` |
+| graph resource SHA-256 | `c7b0c4b1f01c4d2e60f453ae63f4f24dc6af132599dfd0152cefa7380691426b` |
+| 생성 `report.json` SHA-256 | `db2043b4f44a17d36a9e44ef2d85cc82d716796dc4bf7f56d48031452a9f466a` |
+| 생성 `report.md` SHA-256 | `cc9cdb15870e914736d45ecacfcda340130e5ec8c9ab0b3e8abb22a3e3828bf4` |
 
 ## 품질
 
@@ -36,10 +38,10 @@
 | 정책 | TP | FP | TN | FN | precision | recall |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 현재 제품 | 466 | 0 | 500 | 34 | 100.00% | 93.20% |
-| `whole` | 94 | 0 | 500 | 406 | 100.00% | 18.80% |
-| `explicit-component` | 450 | 4 | 496 | 50 | 99.12% | 90.00% |
-| `possible-analysis` | 453 | 5 | 495 | 47 | 98.91% | 90.60% |
-| `unambiguous-analysis` | 289 | 0 | 500 | 211 | 100.00% | 57.80% |
+| `whole` | 102 | 0 | 500 | 398 | 100.00% | 20.40% |
+| `explicit-component` | 458 | 3 | 497 | 42 | 99.35% | 91.60% |
+| `possible-analysis` | 461 | 5 | 495 | 39 | 98.93% | 92.20% |
+| `unambiguous-analysis` | 282 | 0 | 500 | 218 | 100.00% | 56.40% |
 
 ### Development
 
@@ -48,29 +50,31 @@
 | 정책 | TP | FP | TN | FN | precision | recall |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 현재 제품 | 475 | 2 | 498 | 25 | 99.58% | 95.00% |
-| `whole` | 81 | 1 | 499 | 419 | 98.78% | 16.20% |
-| `explicit-component` | 441 | 5 | 495 | 59 | 98.88% | 88.20% |
-| `possible-analysis` | 441 | 5 | 495 | 59 | 98.88% | 88.20% |
-| `unambiguous-analysis` | 294 | 0 | 500 | 206 | 100.00% | 58.80% |
+| `whole` | 91 | 1 | 499 | 409 | 98.91% | 18.20% |
+| `explicit-component` | 452 | 7 | 493 | 48 | 98.47% | 90.40% |
+| `possible-analysis` | 452 | 7 | 493 | 48 | 98.47% | 90.40% |
+| `unambiguous-analysis` | 286 | 0 | 500 | 214 | 100.00% | 57.20% |
 
 ### Hard-negative
 
 | 정책 | FP | TN |
 | --- | ---: | ---: |
 | 현재 제품 | 4 | 18 |
-| `whole` | 1 | 21 |
-| `explicit-component` | 8 | 14 |
-| `possible-analysis` | 8 | 14 |
-| `unambiguous-analysis` | 3 | 19 |
+| `whole` | 2 | 20 |
+| `explicit-component` | 9 | 13 |
+| `possible-analysis` | 10 | 12 |
+| `unambiguous-analysis` | 2 | 20 |
+
+`possible-analysis`는 제품이 놓친 positive 19건을 새로 수용했지만 제품이 맞힌 positive 24건을 구조 근거 부족으로 놓치고 negative 5건을 `CompoundExposure`로 수용했다. 손실 24건은 `Contradicted` 19건, `NoCompletePath` 4건, `UnknownOnly` 1건이며 adjective 6건, noun 4건, numeral 6건, pronoun 1건, verb 7건이다. 따라서 전역 component 정책을 다시 조정하는 것으로는 제품 품질을 보존할 수 없고 source lexical identity와 complete-path 표현력을 먼저 보강해야 한다.
 
 ## 성능
 
 | 경로 | 초기화 median (min-max) | cases/s median (min-max) | p95 ms median (min-max) | RSS MiB median |
 | --- | ---: | ---: | ---: | ---: |
-| 현재 제품 full-POS `smart` | 0.4451 | 9,629.0 (9,260.7-9,928.4) | 0.2659 (0.2487-0.2696) | 92.5 |
-| 독립 constraint evaluator | 1.4381 (1.4312-1.5692) | 897.6 (889.0-899.0) | 4.8469 (4.7969-4.8687) | 399.7 |
+| 현재 제품 full-POS `smart` | 0.4283 | 10,441.4 (9,914.6-10,508.4) | 0.2444 (0.2412-0.2530) | 92.6 |
+| 독립 constraint evaluator | 0.9264 (0.9104-0.9619) | 10,189.3 (9,798.2-10,284.3) | 0.2643 (0.2595-0.2829) | 104.9 |
 
-독립 evaluator는 제품보다 초기화가 3.23배, p95가 18.23배, RSS가 4.32배 크고 처리량은 10.73배 낮다. 측정된 evaluation 1.1141초 중 compile은 0.0707초, candidate enumeration은 0.0088초, resolver는 1.0350초, policy 적용은 0.0005초이며 resolver가 92.9%를 차지한다.
+독립 evaluator는 제품 대비 처리량 -2.4%, p95 +8.1%, RSS +13.3%로 각각 -10%, +10%, +20% gate 안에 있다. 측정된 evaluation 0.0981초 중 compile은 0.0567초, candidate enumeration은 0.0059초, graph preparation은 0.0078초, decision은 0.0273초, policy 적용은 0.0003초다. 초기화는 0.9264초로 제품보다 크지만 성능 채택 계약의 세 지표는 모두 통과했다.
 
 ## 장점
 
@@ -88,8 +92,8 @@
 
 넷째, 같은 표면의 다른 표제어와 의미는 형태 정보만으로 항상 해결할 수 없다. lemma identity를 보강하면 오귀속 일부는 줄일 수 있지만 동일한 형태 분석이 여러 의미를 지지하는 경우에는 문장 문맥, collocation 또는 통계적 disambiguator가 필요하다. 이 계층은 surface 예외나 morphology 비용 마진이 아니라 `SupportedAnalysisSet`을 입력으로 받아 confidence와 abstention을 명시하는 별도 정책이어야 한다.
 
-다섯째, 현재 구현 비용은 제품 경로에 넣을 수 없다. resolver가 실행 시간의 92.9%를 차지하므로 graph resource의 mmap·zero-copy load, surface section lazy decode, token graph cache, 같은 token과 query의 batch 평가, continuation state의 bitset 교차와 proof 진단의 지연 생성을 우선해야 한다. 정책 적용 최적화는 전체 시간에 영향이 거의 없다.
+다섯째, steady-state 성능은 제품 전환 gate를 통과했지만 초기화는 0.9264초로 제품 0.4283초보다 크다. 제품 통합 단계에서는 graph resource의 mmap·zero-copy load와 surface section lazy decode로 초기화를 줄이고, query compile이 evaluation의 가장 큰 단계이므로 제품과 구조 경로가 같은 compiled pattern을 소비하도록 중복 생성을 없애야 한다. policy 적용은 0.0003초이므로 최적화 우선순위가 아니다.
 
 ## 결정
 
-현재 제품의 lexical context registry와 1,500 비용 마진은 구조적으로 이상적인 설계라서가 아니라 지금의 품질 기준선을 보존하는 임시 제품 계약으로 유지한다. 전체 제약 모델은 그 계약을 제거할 수 있는 방향을 증명했지만 품질과 성능 채택 조건을 통과하지 못했다. 다음 실험은 candidate coverage 정합, source identity와 alignment 보강, resolver hot path 최적화, 별도 context disambiguator 순서로 stacked draft를 이어가며 각 단계가 독립적으로 측정 가능해야 한다.
+현재 제품의 lexical context registry와 1,500 비용 마진은 구조적으로 이상적인 설계라서가 아니라 지금의 품질 기준선을 보존하는 임시 제품 계약으로 유지한다. 전체 제약 모델은 성능 채택 조건을 통과해 비용 방식 없이 실행 가능한 구조를 증명했지만 source identity와 ambiguity 품질 조건은 통과하지 못했다. 다음 실험은 source identity·alignment 보강으로 구조 근거가 없는 24개 제품 TP를 먼저 회복하고, candidate coverage 미달 6건을 닫은 뒤 남은 `CompoundExposure`와 lexical meaning ambiguity만 별도 context disambiguator에 넘기는 순서로 stacked draft를 이어간다.
