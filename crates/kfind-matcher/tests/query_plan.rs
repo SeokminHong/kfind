@@ -411,6 +411,23 @@ fn smart_vcp_corpus_fixtures_apply_component_evidence() {
 }
 
 #[test]
+fn smart_predicate_component_preserves_nominalizer_particle_validation() {
+    let matcher = compile("걷다", CompileOptions::default());
+
+    for text in ["걷기이 어렵다.", "걷기을 권했다.", "걷기가를 권했다."] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+            "component evidence bypassed nominalizer particle validation for {text}"
+        );
+    }
+    assert!(
+        matcher
+            .find_at_with_meta("걷기가 어렵다.".as_bytes(), 0)
+            .is_some()
+    );
+}
+
+#[test]
 fn local_analysis_candidates_preserve_window_limit_errors() {
     let matcher = compile("권한", CompileOptions::default());
     let text = format!("{}권한", "가".repeat(90));
@@ -566,17 +583,15 @@ fn compile(query: &str, options: CompileOptions) -> MorphMatcher {
 fn component_resource() -> Arc<ComponentResource> {
     static RESOURCE: OnceLock<Arc<ComponentResource>> = OnceLock::new();
     Arc::clone(RESOURCE.get_or_init(|| {
-        let entries = [MecabSourceMorphologyEntry {
-            surface: "매일".to_owned(),
-            pos: "MAG".to_owned(),
-            left_id: 1,
-            right_id: 1,
-            word_cost: -5_000,
-            analysis_type: "*".to_owned(),
-            start_pos: "*".to_owned(),
-            end_pos: "*".to_owned(),
-            expression: "*".to_owned(),
-        }];
+        let entries = [
+            component_entry("매일", "MAG"),
+            component_entry("걷", "VV"),
+            component_entry("기", "ETN"),
+            component_entry("이", "JKS"),
+            component_entry("을", "JKO"),
+            component_entry("가", "JKS"),
+            component_entry("를", "JKO"),
+        ];
         let matrix = parse_mecab_connection_matrix(
             "matrix.def",
             Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
@@ -595,4 +610,18 @@ fn component_resource() -> Arc<ComponentResource> {
                 .expect("test component resource must decode"),
         )
     }))
+}
+
+fn component_entry(surface: &str, pos: &str) -> MecabSourceMorphologyEntry {
+    MecabSourceMorphologyEntry {
+        surface: surface.to_owned(),
+        pos: pos.to_owned(),
+        left_id: 1,
+        right_id: 1,
+        word_cost: -5_000,
+        analysis_type: "*".to_owned(),
+        start_pos: "*".to_owned(),
+        end_pos: "*".to_owned(),
+        expression: "*".to_owned(),
+    }
 }

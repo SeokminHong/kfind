@@ -578,8 +578,8 @@ impl MorphMatcher {
         let Some(query_span) = window.normalized_span(candidate.core.clone()) else {
             return false;
         };
-        if matches!(branch.verifier, BranchVerifier::NominalParticles { .. })
-            && self.has_rejected_particle_suffix(candidate, window.normalized(), &query_span)
+        if particle_host_span(candidate, &branch.verifier)
+            .is_some_and(|host| self.has_rejected_particle_suffix(&window, host))
         {
             return false;
         }
@@ -606,14 +606,13 @@ impl MorphMatcher {
 
     fn has_rejected_particle_suffix(
         &self,
-        candidate: &VerifiedSpan,
-        normalized_window: &str,
-        query_span: &Range<usize>,
+        window: &crate::AnalysisWindow,
+        particle_host: Range<usize>,
     ) -> bool {
-        if candidate.token.end != candidate.core.end {
+        let Some(host_span) = window.normalized_span(particle_host) else {
             return false;
-        }
-        let Some(suffix) = normalized_window.get(query_span.end..) else {
+        };
+        let Some(suffix) = window.normalized().get(host_span.end..) else {
             return false;
         };
         self.particle_verifier
@@ -671,6 +670,19 @@ impl MorphMatcher {
                     && &form.rule_id == rule_id
                     && form.condition.accepts(previous)
             })
+    }
+}
+
+fn particle_host_span(candidate: &VerifiedSpan, verifier: &BranchVerifier) -> Option<Range<usize>> {
+    match verifier {
+        BranchVerifier::NominalParticles { .. } if candidate.token.end == candidate.core.end => {
+            Some(candidate.core.clone())
+        }
+        BranchVerifier::Predicate {
+            nominal_particle_transition: true,
+            ..
+        } => Some(candidate.token.clone()),
+        _ => None,
     }
 }
 
