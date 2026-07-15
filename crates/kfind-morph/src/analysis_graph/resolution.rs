@@ -309,9 +309,83 @@ struct QueryLexicalTrace {
     units: Vec<QueryLexicalUnit>,
 }
 
+#[derive(Debug, Default)]
+struct QueryLexicalTrieNode {
+    transitions: Vec<QueryLexicalTrieTransition>,
+    terminal: bool,
+}
+
+#[derive(Debug)]
+struct QueryLexicalTrieTransition {
+    unit: QueryLexicalUnit,
+    next: usize,
+}
+
+#[derive(Debug)]
+struct QueryLexicalTrie {
+    nodes: Vec<QueryLexicalTrieNode>,
+}
+
+impl QueryLexicalTrie {
+    fn from_traces(traces: &[QueryLexicalTrace]) -> Self {
+        let mut trie = Self {
+            nodes: vec![QueryLexicalTrieNode::default()],
+        };
+        for trace in traces {
+            let mut current = 0;
+            for unit in &trace.units {
+                let next = trie.nodes[current]
+                    .transitions
+                    .iter()
+                    .find(|transition| transition.unit == *unit)
+                    .map(|transition| transition.next)
+                    .unwrap_or_else(|| {
+                        let next = trie.nodes.len();
+                        trie.nodes.push(QueryLexicalTrieNode::default());
+                        trie.nodes[current]
+                            .transitions
+                            .push(QueryLexicalTrieTransition {
+                                unit: unit.clone(),
+                                next,
+                            });
+                        next
+                    });
+                current = next;
+            }
+            trie.nodes[current].terminal = true;
+        }
+        trie
+    }
+
+    fn transition(&self, current: usize, source: &Unit<'_>) -> Option<usize> {
+        self.nodes[current]
+            .transitions
+            .iter()
+            .find(|transition| source_unit_matches_query(source, &transition.unit))
+            .map(|transition| transition.next)
+    }
+
+    fn is_terminal(&self, current: usize) -> bool {
+        self.nodes[current].terminal
+    }
+}
+
+#[derive(Debug)]
+struct PreparedPatternQueryTraces {
+    traces: Vec<QueryLexicalTrace>,
+    trie: QueryLexicalTrie,
+}
+
+impl PreparedPatternQueryTraces {
+    fn new(traces: Vec<QueryLexicalTrace>) -> Self {
+        let trie = QueryLexicalTrie::from_traces(&traces);
+        Self { traces, trie }
+    }
+}
+
 #[derive(Debug)]
 pub(super) struct PreparedQueryTraces {
-    by_pattern: Vec<Vec<QueryLexicalTrace>>,
+    by_pattern: Vec<PreparedPatternQueryTraces>,
 }
 
 static EMPTY_QUERY_TRACES: PreparedQueryTraces = PreparedQueryTraces {
@@ -322,7 +396,11 @@ impl PreparedQueryTraces {
     fn for_pattern(&self, pattern_index: usize) -> &[QueryLexicalTrace] {
         self.by_pattern
             .get(pattern_index)
-            .map_or(&[], Vec::as_slice)
+            .map_or(&[], |prepared| prepared.traces.as_slice())
+    }
+
+    fn prepared_pattern(&self, pattern_index: usize) -> Option<&PreparedPatternQueryTraces> {
+        self.by_pattern.get(pattern_index)
     }
 }
 
@@ -368,7 +446,14 @@ pub(super) fn prepare_query_traces(
 ) -> PreparedQueryTraces {
     let by_pattern = patterns
         .iter()
-        .map(|pattern| query_lexical_traces(resource, pattern, node_limit, trace_limit))
+        .map(|pattern| {
+            PreparedPatternQueryTraces::new(query_lexical_traces(
+                resource,
+                pattern,
+                node_limit,
+                trace_limit,
+            ))
+        })
         .collect();
     PreparedQueryTraces { by_pattern }
 }
@@ -720,8 +805,10 @@ pub(super) fn decide_known(
                 }
             }
         }
-        let traces = query_traces.for_pattern(pattern_index);
-        if traces.is_empty() || spans.core.start != spans.token.start {
+        let Some(prepared_traces) = query_traces.prepared_pattern(pattern_index) else {
+            continue;
+        };
+        if prepared_traces.traces.is_empty() || spans.core.start != spans.token.start {
             continue;
         }
         let indexed_pattern = IndexedPattern {
@@ -730,17 +817,22 @@ pub(super) fn decide_known(
             context_resolved,
             attached_nominal_allowed,
         };
-        if visit_runtime_lexical_supports(graph, spans, traces, &mut |traversal_path, support| {
-            extend_decision_support(
-                graph,
-                spans,
-                indexed_pattern,
-                traversal_path,
-                support,
-                &mut proofs,
-                proof_limit,
-            )
-        }) {
+        if visit_runtime_lexical_supports(
+            graph,
+            spans,
+            &prepared_traces.trie,
+            &mut |traversal_path, support| {
+                extend_decision_support(
+                    graph,
+                    spans,
+                    indexed_pattern,
+                    traversal_path,
+                    support,
+                    &mut proofs,
+                    proof_limit,
+                )
+            },
+        ) {
             return ConstraintDecision {
                 outcome: ConstraintOutcome::Unavailable(ConstraintUnavailable::PathLimit {
                     actual: proofs.len(),
@@ -1029,19 +1121,23 @@ fn lexical_path_can_match(
     query_traces: &PreparedQueryTraces,
 ) -> bool {
     let units = path_units(path, graph.nodes());
-    query_traces.by_pattern.iter().flatten().any(|trace| {
-        units.len() <= trace.units.len()
-            && units
-                .iter()
-                .zip(&trace.units)
-                .all(|(source, query)| source_unit_matches_query(source, query))
-    })
+    query_traces
+        .by_pattern
+        .iter()
+        .flat_map(|prepared| &prepared.traces)
+        .any(|trace| {
+            units.len() <= trace.units.len()
+                && units
+                    .iter()
+                    .zip(&trace.units)
+                    .all(|(source, query)| source_unit_matches_query(source, query))
+        })
 }
 
 fn visit_runtime_lexical_supports<'a>(
     graph: &TokenGraph<'a>,
     spans: &CandidateSpans,
-    query_traces: &[QueryLexicalTrace],
+    query_trie: &QueryLexicalTrie,
     visitor: &mut impl FnMut(&mut DecisionTraversalPath<'a>, &SupportCandidate) -> bool,
 ) -> bool {
     for (index, node) in graph.nodes().iter().enumerate() {
@@ -1055,7 +1151,10 @@ fn visit_runtime_lexical_supports<'a>(
             last: index,
             units: path_units(&[index], graph.nodes()),
         };
-        if visit_runtime_lexical_path(graph, spans, query_traces, &mut path, visitor) {
+        let Some(trie_state) = advance_query_trie(query_trie, 0, &path.units) else {
+            continue;
+        };
+        if visit_runtime_lexical_path(graph, spans, query_trie, trie_state, &mut path, visitor) {
             return true;
         }
     }
@@ -1065,22 +1164,13 @@ fn visit_runtime_lexical_supports<'a>(
 fn visit_runtime_lexical_path<'a>(
     graph: &TokenGraph<'a>,
     spans: &CandidateSpans,
-    query_traces: &[QueryLexicalTrace],
+    query_trie: &QueryLexicalTrie,
+    trie_state: usize,
     path: &mut DecisionTraversalPath<'a>,
     visitor: &mut impl FnMut(&mut DecisionTraversalPath<'a>, &SupportCandidate) -> bool,
 ) -> bool {
     let end = graph.nodes()[path.last].span.end;
-    if end == spans.core.end {
-        for trace in query_traces {
-            if let Some(support) = runtime_lexical_candidate(&path.units, spans, trace)
-                && visitor(path, &support)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-    if end > spans.core.end || !runtime_lexical_prefix_matches(&path.units, query_traces) {
+    if end >= spans.core.end {
         return false;
     }
     let previous_last = path.last;
@@ -1096,7 +1186,24 @@ fn visit_runtime_lexical_path<'a>(
             .map_or(0, |unit| unit.node_position.saturating_add(1));
         append_node_units(&mut path.units, node_position, successor, graph.nodes());
         path.last = successor;
-        if visit_runtime_lexical_path(graph, spans, query_traces, path, visitor) {
+        let added_units = &path.units[previous_len..];
+        let path_limit_reached = if next.span.end == spans.core.end {
+            visit_runtime_lexical_terminals(
+                query_trie,
+                trie_state,
+                previous_len,
+                spans,
+                path,
+                visitor,
+            )
+        } else if let Some(next_trie_state) =
+            advance_query_trie(query_trie, trie_state, added_units)
+        {
+            visit_runtime_lexical_path(graph, spans, query_trie, next_trie_state, path, visitor)
+        } else {
+            false
+        };
+        if path_limit_reached {
             path.units.truncate(previous_len);
             path.last = previous_last;
             return true;
@@ -1107,14 +1214,39 @@ fn visit_runtime_lexical_path<'a>(
     false
 }
 
-fn runtime_lexical_prefix_matches(units: &[Unit<'_>], query_traces: &[QueryLexicalTrace]) -> bool {
-    query_traces.iter().any(|trace| {
-        units.len() <= trace.units.len()
-            && units
-                .iter()
-                .zip(&trace.units)
-                .all(|(source, query)| source_unit_matches_query(source, query))
-    })
+fn advance_query_trie(
+    query_trie: &QueryLexicalTrie,
+    mut current: usize,
+    units: &[Unit<'_>],
+) -> Option<usize> {
+    for unit in units {
+        current = query_trie.transition(current, unit)?;
+    }
+    Some(current)
+}
+
+fn visit_runtime_lexical_terminals<'a>(
+    query_trie: &QueryLexicalTrie,
+    mut current: usize,
+    previous_len: usize,
+    spans: &CandidateSpans,
+    path: &mut DecisionTraversalPath<'a>,
+    visitor: &mut impl FnMut(&mut DecisionTraversalPath<'a>, &SupportCandidate) -> bool,
+) -> bool {
+    for unit_index in previous_len..path.units.len() {
+        let Some(next) = query_trie.transition(current, &path.units[unit_index]) else {
+            return false;
+        };
+        current = next;
+        if query_trie.is_terminal(current)
+            && let Some(support) =
+                runtime_lexical_candidate_from_length(&path.units, spans, unit_index + 1)
+            && visitor(path, &support)
+        {
+            return true;
+        }
+    }
+    false
 }
 
 fn extend_supported_path(
@@ -1629,20 +1761,28 @@ fn runtime_lexical_candidate(
     {
         return None;
     }
-    let first = &lexical_units[0];
+    runtime_lexical_candidate_from_length(units, spans, trace.units.len())
+}
+
+fn runtime_lexical_candidate_from_length(
+    units: &[Unit<'_>],
+    spans: &CandidateSpans,
+    lexical_unit_count: usize,
+) -> Option<SupportCandidate> {
+    let lexical_units = units.get(..lexical_unit_count)?;
+    let first = lexical_units.first()?;
     let last = lexical_units
         .last()
         .expect("query lexical trace is non-empty");
     if first.coverage.start != spans.core.start || last.coverage.end != spans.core.end {
         return None;
     }
-    if units[trace.units.len()..].iter().any(|unit| {
+    if units[lexical_unit_count..].iter().any(|unit| {
         unit.node_position != last.node_position && unit.coverage.start < spans.core.end
     }) {
         return None;
     }
-    let lexical_refs = lexical_units.iter().collect::<Vec<_>>();
-    if !enclosing_coverage(&lexical_refs, spans.core.clone()) {
+    if !lexical_units_enclose_coverage(lexical_units, spans.core.clone()) {
         return None;
     }
     let mut node_positions = Vec::new();
@@ -1660,7 +1800,7 @@ fn runtime_lexical_candidate(
         lexical_node_positions: node_positions,
         source_node_indices,
         component_index: last.component_index,
-        unit_index: trace.units.len() - 1,
+        unit_index: lexical_unit_count - 1,
         evidence: if has_opaque {
             ConstraintEvidenceKind::OpaqueExpression
         } else {
@@ -1669,6 +1809,23 @@ fn runtime_lexical_candidate(
         relation: ConstraintSpanRelation::RuntimeComponent,
         opaque: has_opaque,
     })
+}
+
+fn lexical_units_enclose_coverage(units: &[Unit<'_>], expected: Range<usize>) -> bool {
+    let mut spans = units
+        .iter()
+        .map(|unit| unit.coverage.clone())
+        .collect::<Vec<_>>();
+    spans.sort_by_key(|span| (span.start, span.end));
+    spans.dedup();
+    let mut end = expected.start;
+    for span in spans {
+        if span.start > end || span.start < expected.start || span.end > expected.end {
+            return false;
+        }
+        end = end.max(span.end);
+    }
+    end == expected.end
 }
 
 fn source_unit_matches_query(source: &Unit<'_>, query: &QueryLexicalUnit) -> bool {
@@ -2421,5 +2578,76 @@ fn evidence_preference(
         candidate
     } else {
         current
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn query_trie_preserves_every_terminal_inside_the_final_source_node() {
+        let query_unit = |surface: &str, pos: &str| QueryLexicalUnit {
+            surface: surface.to_owned(),
+            pos: pos.to_owned(),
+        };
+        let traces = vec![
+            QueryLexicalTrace {
+                units: vec![query_unit("가", "NNG"), query_unit("나", "NNG")],
+            },
+            QueryLexicalTrace {
+                units: vec![
+                    query_unit("가", "NNG"),
+                    query_unit("나", "NNG"),
+                    query_unit("다", "XSN"),
+                ],
+            },
+        ];
+        let trie = QueryLexicalTrie::from_traces(&traces);
+        let source_unit =
+            |node_position, source_node_index, surface, pos, coverage: Range<usize>| Unit {
+                node_position,
+                source_node_index,
+                component_index: None,
+                surface,
+                pos,
+                pos_slot: 0,
+                span: Some(coverage.clone()),
+                coverage,
+                opaque: false,
+                source: ConstraintNodeSource::Source,
+            };
+        let mut path = DecisionTraversalPath {
+            last: 1,
+            units: vec![
+                source_unit(0, 0, "가", "NNG", 0..1),
+                source_unit(1, 1, "나", "NNG", 1..2),
+                source_unit(1, 1, "다", "XSN", 1..2),
+            ],
+        };
+        let state = trie
+            .transition(0, &path.units[0])
+            .expect("the first source unit matches the query trie");
+        let spans = CandidateSpans {
+            token: 0..2,
+            anchor: 0..2,
+            core: 0..2,
+            consumed: 0..2,
+        };
+        let mut terminals = Vec::new();
+        let path_limit_reached = visit_runtime_lexical_terminals(
+            &trie,
+            state,
+            1,
+            &spans,
+            &mut path,
+            &mut |_, support| {
+                terminals.push(support.unit_index);
+                false
+            },
+        );
+
+        assert!(!path_limit_reached);
+        assert_eq!(terminals, vec![1, 2]);
     }
 }
