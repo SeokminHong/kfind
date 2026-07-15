@@ -498,37 +498,16 @@
 
 #### 구조 기반 판정으로 전환
 
-- lexical context registry와 `ExactComponent` 비용 마진은 현재 제품 호환 계약이다. 새 surface
-  예외나 다른 비용 임계값을 추가하지 않고, source provenance를 보존한 형태 분석 그래프와 구조
-  제약 resolver로 교체한다.
-- query compiler는 fine POS, span 관계, continuation과 token 관계를 `QueryMorphPattern`으로
-  선언한다. pattern은 corpus surface 목록, 비용 임계값이나 fallback 순서를 포함하지 않는다.
-- corpus resource는 source가 명시한 whole-token 분석과 component 분해, 런타임 조합 경로,
-  unknown 경로와 인접 token 관계를 구분한 `TokenAnalysisGraph`를 제공한다. source의
-  `analysis_type`, component span·POS와 관계가 graph provenance에서 복구 가능해야 한다.
-- resolver 결과는 `Proven`, `Contradicted`, `Ambiguous`, `Unavailable`과 proof다. 비용은 같은
-  종류의 근거 안에서 경로 순서와 진단에만 사용하며, 비용 차이만으로 verdict를 바꾸지 않는다.
-  서로 양립 가능한 분석이 남는 경우는 `Ambiguous`로 노출하고 profile별 합집합·보수 정책을
-  별도 계약한다.
-- 제품 전환 전 full morphology resource의 source metadata를 기존 local lattice 경로에 연결하는
-  shadow 감사를 실행한다. known node는 surface, POS, left/right context ID와 word cost로 source
-  row에 유일하게 대응해야 하며 `source-atomic`, `source-decomposition`, `runtime-composed`,
-  `unknown`, `unresolved`로 분류한다.
-- shadow 규칙 선택에는 development와 hard-negative만 사용한다. 고정 test는 구조를 확정한 뒤
-  회귀 판정에만 사용한다. 같은 구조 근거가 positive와 negative에 함께 나타나면 surface registry나
-  새 임계값을 추가하지 않고 ambiguity 계약 대상으로 기록한다.
-- source 종류만으로 분리되지 않으면 `expression` component의 canonical decomposition을 node
-  surface와 대조한다. 안정된 NFC byte span과 일치하는 `span-aligned`, 한 scalar 안에 경계가
-  융합된 `fused`, 축약·교체로 표면 정렬이 불가능한 `unaligned`, 잘못된 형식인 `invalid`를
-  구분한다. `fused`와 `unaligned`에 임의 byte span을 부여하지 않는다.
-- 같은 scoring node에 여러 source row가 대응하면 하나를 선택하지 않고 모든 분석 관계를 보존한다.
-  query span·POS와 일치하는 source component가 positive와 hard-negative에 함께 나타나면 graph
-  resource 전환 전에 compound exposure나 동형 활용 합집합을 profile ambiguity 정책으로 계약한다.
-- graph resource와 resolver shadow가 기존 true positive를 보존하고 새 false positive를 만들지
-  않으며 hard-negative를 악화하지 않을 때만 matcher가 resolver verdict를 소비하도록 전환한다.
-  전환 전에는 기존 registry와 1,500 마진의 제품 동작을 바꾸지 않는다.
-- 세부 단계와 채택 조건은
-  [형태 분석 그래프 전환 계획](../docs/benchmarks/morphology-analysis-graph-plan.md)을 따른다.
+- lexical context registry와 `ExactComponent` 비용 마진은 현재 제품 호환 계약이다. 새 surface 예외나 다른 비용 임계값을 추가하지 않고, source provenance를 보존한 형태 분석 그래프와 구조 제약 resolver로 교체한다.
+- query compiler는 fine POS, span 관계, continuation과 token 관계를 `QueryMorphPattern`으로 선언한다. pattern은 corpus surface 목록, 비용 임계값이나 fallback 순서를 포함하지 않는다.
+- corpus resource는 source가 명시한 whole-token 분석과 component 분해, 런타임 조합 경로, unknown 경로와 인접 token 관계를 구분한 `TokenAnalysisGraph`를 제공한다. source의 `analysis_type`, component span·POS와 관계가 graph provenance에서 복구 가능해야 한다.
+- resolver 결과는 `Proven`, `Contradicted`, `Ambiguous`, `Unavailable`과 proof다. 비용은 같은 종류의 근거 안에서 경로 순서와 진단에만 사용하며, 비용 차이만으로 verdict를 바꾸지 않는다. 서로 양립 가능한 분석이 남는 경우는 `Ambiguous`로 노출하고 profile별 합집합·보수 정책을 별도 계약한다.
+- 제품 전환 전 full morphology resource의 source metadata를 기존 local lattice 경로에 연결하는 shadow 감사를 실행한다. known node는 surface, POS, left/right context ID와 word cost로 source row에 유일하게 대응해야 하며 `source-atomic`, `source-decomposition`, `runtime-composed`, `unknown`, `unresolved`로 분류한다.
+- shadow 규칙 선택에는 development와 hard-negative만 사용한다. 고정 test는 구조를 확정한 뒤 회귀 판정에만 사용한다. 같은 구조 근거가 positive와 negative에 함께 나타나면 surface registry나 새 임계값을 추가하지 않고 ambiguity 계약 대상으로 기록한다.
+- source 종류만으로 분리되지 않으면 `expression` component의 canonical decomposition을 node surface와 대조한다. 안정된 NFC byte span과 일치하는 `span-aligned`, 한 scalar 안에 경계가 융합된 `fused`, 축약·교체로 표면 정렬이 불가능한 `unaligned`, 잘못된 형식인 `invalid`를 구분한다. `fused`와 `unaligned`에 임의 byte span을 부여하지 않는다.
+- 같은 scoring node에 여러 source row가 대응하면 하나를 선택하지 않고 모든 분석 관계를 보존한다. query span·POS와 일치하는 source component가 positive와 hard-negative에 함께 나타나면 graph resource 전환 전에 compound exposure나 동형 활용 합집합을 profile ambiguity 정책으로 계약한다.
+- graph resource와 resolver shadow가 기존 true positive를 보존하고 새 false positive를 만들지 않으며 hard-negative를 악화하지 않을 때만 matcher가 resolver verdict를 소비하도록 전환한다. 전환 전에는 기존 registry와 1,500 마진의 제품 동작을 바꾸지 않는다.
+- 세부 단계와 채택 조건은 [형태 분석 그래프 전환 계획](../docs/benchmarks/morphology-analysis-graph-plan.md)을 따른다.
 
 ### 0.7 Rust 라이브러리와 WASM 대상
 
