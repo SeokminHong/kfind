@@ -11,6 +11,7 @@ pub enum ParticleKind {
     Subject,
     Object,
     Comitative,
+    Connector,
     Instrumental,
     Dative,
     Locative,
@@ -110,8 +111,8 @@ impl Default for ParticleChainModel {
     fn default() -> Self {
         use FinalCondition::{Any, Consonant, ConsonantExceptRieul, Vowel, VowelOrRieul};
         use ParticleKind::{
-            Additive, Comitative, Dative, Even, Instrumental, Limit, Locative, Object, Possessive,
-            Restrictive, Source, StartingPoint, Subject, Topic,
+            Additive, Comitative, Connector, Dative, Even, Instrumental, Limit, Locative, Object,
+            Possessive, Restrictive, Source, StartingPoint, Subject, Topic,
         };
         use ParticleRole::{Auxiliary, Case};
 
@@ -138,6 +139,8 @@ impl Default for ParticleChainModel {
             allomorph(Object, Case, "를", Vowel, "object"),
             allomorph(Comitative, Case, "과", Consonant, "comitative"),
             allomorph(Comitative, Case, "와", Vowel, "comitative"),
+            allomorph(Connector, Case, "이면", Consonant, "connector-myeon"),
+            allomorph(Connector, Case, "면", Vowel, "connector-myeon"),
             allomorph(Topic, Auxiliary, "은", Consonant, "topic"),
             allomorph(Topic, Auxiliary, "는", Vowel, "topic"),
             allomorph(Additive, Auxiliary, "도", Any, "additive"),
@@ -333,6 +336,22 @@ mod tests {
         assert!(verifier.verify_exact("길", "길으로").is_none());
         assert!(verifier.verify_exact("길", "으로").is_none());
         assert!(verifier.verify_exact("집", "로").is_none());
+    }
+
+    #[test]
+    fn connector_myeon_obeys_the_host_final_and_stays_terminal() {
+        let verifier = ParticleVerifier::new(ParticleChainModel {
+            transitions: Arc::from([ParticleTransition::new(
+                "particle.connector-myeon",
+                Vec::<RuleId>::new().into_boxed_slice(),
+            )]),
+            ..ParticleChainModel::default()
+        });
+        assert!(verifier.verify_exact("백", "이면").is_some());
+        assert!(verifier.verify_exact("공부", "면").is_some());
+        assert!(verifier.verify_exact("백", "면").is_none());
+        assert!(verifier.verify_exact("공부", "이면").is_none());
+        assert!(verifier.verify_exact("백", "이면도").is_none());
     }
 
     #[test]

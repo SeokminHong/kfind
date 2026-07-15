@@ -444,6 +444,18 @@ const REFERENCE_PARTICLES: &[ReferenceParticle] = &[
         ReferenceFinalCondition::Vowel,
     ),
     reference_particle(
+        "이면",
+        "particle.connector-myeon",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Consonant,
+    ),
+    reference_particle(
+        "면",
+        "particle.connector-myeon",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Vowel,
+    ),
+    reference_particle(
         "은",
         "particle.topic",
         ReferenceParticleRole::Auxiliary,

@@ -36,6 +36,13 @@ next = ["particle.topic", "particle.additive", "particle.only", "particle.limit.
 terminal = true
 
 [[particle]]
+id = "particle.connector-myeon"
+forms = ["이면", "면"]
+selection = "final-pair"
+next = []
+terminal = true
+
+[[particle]]
 id = "particle.direction"
 forms = ["으로", "로"]
 selection = "euro-ro"
