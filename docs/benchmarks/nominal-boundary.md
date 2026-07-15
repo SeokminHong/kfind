@@ -41,5 +41,6 @@ negative 예:
   fixture에서 평가한다.
 - compact/full morphology resource의 lookup, scoring checksum과 candidate 판정이 일치해야 한다.
 - 기존 조사 이형태 verifier를 우회하지 않는다.
-- 상세 품질·성능 기준선은 [Exact component 품사 확장](2026-07-15-exact-component-pos.md)을
+- 상세 품질·성능 기준선은
+  [Full-POS 용언 exact component 확장](2026-07-15-predicate-exact-component.md)을
   따른다.
