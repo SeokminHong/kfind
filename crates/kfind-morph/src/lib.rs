@@ -1,5 +1,6 @@
 //! Korean syllable operations, lexicons, and morphology rules.
 
+mod analysis_graph;
 mod domain;
 mod lattice;
 
@@ -7,6 +8,12 @@ pub mod hangul;
 pub mod particle;
 pub mod predicate;
 
+pub use analysis_graph::{
+    CompoundExposureProfile, ConstraintAmbiguity, ConstraintEvidenceKind, ConstraintNodeProof,
+    ConstraintNodeSource, ConstraintPathProof, ConstraintProof, ConstraintResolution,
+    ConstraintResolver, ConstraintUnavailable, ConstraintVerdict,
+    DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT, QueryMorphPattern,
+};
 pub use domain::{
     CoarsePos, ContinuationState, EndingCategory, EndingInitial, EndingSpec, FinePos,
     LexicalAlternation, MorphFeatureMask, Origin, PredicateEntry, PredicateFlags, PredicatePos,
