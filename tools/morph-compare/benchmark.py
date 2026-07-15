@@ -62,6 +62,12 @@ STARTUP_PROFILES = (
 )
 BOUNDARY_POLICIES = ("smart", "token", "any")
 HUMAN_BOUNDARY_POLICIES = ("smart", "any")
+CONSTRAINT_POLICIES = (
+    "whole",
+    "explicit-component",
+    "possible-analysis",
+    "unambiguous-analysis",
+)
 
 
 def run_native_backend(
@@ -145,6 +151,30 @@ def run_native_agent_shadow(
         if result.returncode != 0:
             raise RuntimeError(
                 "Agent shadow runner failed with exit "
+                f"{result.returncode}: {result.stderr.strip()}"
+            )
+        return json.loads(output.read_text(encoding="utf-8"))
+
+
+def run_native_constraint_evaluation(
+    runner: Path, profile: str, cases_path: Path
+) -> dict[str, object]:
+    with tempfile.TemporaryDirectory() as directory:
+        output = Path(directory) / f"constraint-{profile}.json"
+        result = subprocess.run(
+            [
+                str(runner),
+                "constraint-eval",
+                profile,
+                str(cases_path),
+                str(output),
+            ],
+            text=True,
+            capture_output=True,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"constraint {profile} runner failed with exit "
                 f"{result.returncode}: {result.stderr.strip()}"
             )
         return json.loads(output.read_text(encoding="utf-8"))
@@ -287,6 +317,151 @@ def aggregate_metrics(
     result["run_min"] = minimum
     result["run_max"] = maximum
     return result
+
+
+def constraint_performance(summary: dict[str, object]) -> dict[str, object]:
+    latencies = [float(result["latency_ms"]) for result in summary["results"]]
+    evaluation_seconds = float(summary["evaluation_seconds"])
+    return {
+        "initialization_seconds": round(float(summary["initialization_seconds"]), 6),
+        "evaluation_seconds": round(evaluation_seconds, 6),
+        "cases_per_second": round(len(latencies) / evaluation_seconds, 1),
+        "latency_p50_ms": round(percentile(latencies, 0.50), 4),
+        "latency_p95_ms": round(percentile(latencies, 0.95), 4),
+        "peak_rss_kib": summary["peak_rss_kib"],
+        "compile_seconds": round(float(summary["compile_seconds"]), 6),
+        "candidate_enumeration_seconds": round(
+            float(summary["candidate_enumeration_seconds"]), 6
+        ),
+        "resolver_seconds": round(float(summary["resolver_seconds"]), 6),
+        "policy_seconds": round(float(summary["policy_seconds"]), 6),
+        "diagnostic_seconds": round(float(summary["diagnostic_seconds"]), 6),
+        "product_seconds": round(float(summary["product_seconds"]), 6),
+    }
+
+
+def constraint_semantics(summary: dict[str, object]) -> list[dict[str, object]]:
+    return [
+        {
+            "id": result["id"],
+            "candidate_covered": result["candidate_covered"],
+            "product_prediction": result["product_prediction"],
+            "policy_predictions": result["policy_predictions"],
+            "candidates": [
+                {
+                    "status": candidate["status"],
+                    "outcome": candidate["outcome"],
+                    "evidence": candidate["evidence"],
+                    "policies": candidate["policies"],
+                    "error": candidate["error"],
+                }
+                for candidate in result["candidates"]
+            ],
+        }
+        for result in summary["results"]
+    ]
+
+
+def compact_constraint_cases(
+    cases: list[dict[str, object]], summary: dict[str, object]
+) -> list[dict[str, object]]:
+    expected_by_id = {case["id"]: bool(case["expected"]) for case in cases}
+    diagnostics = []
+    for result in summary["results"]:
+        case_id = result["id"]
+        expected = expected_by_id[case_id]
+        predictions = {
+            "product": bool(result["product_prediction"]),
+            **result["policy_predictions"],
+        }
+        notable = (
+            (expected and not result["candidate_covered"])
+            or len(set(predictions.values())) > 1
+            or any(predicted != expected for predicted in predictions.values())
+        )
+        if not notable:
+            continue
+        outcome_counts: dict[str, int] = {}
+        evidence_counts: dict[str, int] = {}
+        status_counts: dict[str, int] = {}
+        for candidate in result["candidates"]:
+            status = candidate["status"]
+            status_counts[status] = status_counts.get(status, 0) + 1
+            if candidate["outcome"] is not None:
+                outcome = candidate["outcome"]
+                outcome_counts[outcome] = outcome_counts.get(outcome, 0) + 1
+            for evidence in candidate["evidence"]:
+                evidence_counts[evidence] = evidence_counts.get(evidence, 0) + 1
+        diagnostics.append(
+            {
+                "id": case_id,
+                "expected": expected,
+                "candidate_covered": bool(result["candidate_covered"]),
+                "predictions": predictions,
+                "candidate_statuses": dict(sorted(status_counts.items())),
+                "outcomes": dict(sorted(outcome_counts.items())),
+                "evidence": dict(sorted(evidence_counts.items())),
+            }
+        )
+    return diagnostics
+
+
+def evaluate_constraint_runs(
+    cases: list[dict[str, object]],
+    cases_path: Path,
+    runner: Path,
+    profile: str,
+    runs: int,
+    warmup: bool,
+) -> dict[str, object]:
+    if warmup:
+        run_native_constraint_evaluation(runner, profile, cases_path)
+    summaries = [
+        run_native_constraint_evaluation(runner, profile, cases_path)
+        for _ in range(runs)
+    ]
+    first = summaries[0]
+    case_ids = [case["id"] for case in cases]
+    if [result["id"] for result in first["results"]] != case_ids:
+        raise ValueError("constraint result order differs from fixture order")
+    first_semantics = constraint_semantics(first)
+    for summary in summaries[1:]:
+        if summary["metrics"] != first["metrics"]:
+            raise ValueError("constraint metrics changed between measured runs")
+        if constraint_semantics(summary) != first_semantics:
+            raise ValueError("constraint decisions changed between measured runs")
+    metric_names = (
+        "initialization_seconds",
+        "evaluation_seconds",
+        "cases_per_second",
+        "latency_p50_ms",
+        "latency_p95_ms",
+        "peak_rss_kib",
+        "compile_seconds",
+        "candidate_enumeration_seconds",
+        "resolver_seconds",
+        "policy_seconds",
+        "diagnostic_seconds",
+        "product_seconds",
+    )
+    return {
+        "version": {
+            "backend": first["backend"],
+            "version": first["version"],
+            "profile": first["profile"],
+            "lexicon_artifact_sha256": first["lexicon_artifact_sha256"],
+            "enriched_artifact_sha256": first["enriched_artifact_sha256"],
+            "component_artifact_sha256": first["component_artifact_sha256"],
+            "graph_artifact_sha256": first["graph_artifact_sha256"],
+        },
+        "metrics": first["metrics"],
+        "performance": aggregate_metrics(
+            [constraint_performance(summary) for summary in summaries],
+            int(warmup),
+            metric_names,
+        ),
+        "case_diagnostics": compact_constraint_cases(cases, first),
+    }
 
 
 def evaluate_component_startup(
@@ -615,6 +790,36 @@ def evaluate_dataset(
     }
 
 
+def evaluate_constraint_suite(
+    test_cases: list[dict[str, object]],
+    test_path: Path,
+    development_cases: list[dict[str, object]],
+    development_path: Path,
+    hard_cases: list[dict[str, object]],
+    hard_path: Path,
+    runner: Path,
+    runs: int,
+) -> dict[str, object]:
+    return {
+        "profile": "full-pos",
+        "policies": list(CONSTRAINT_POLICIES),
+        "test": evaluate_constraint_runs(
+            test_cases, test_path, runner, "full-pos", runs, True
+        ),
+        "development": evaluate_constraint_runs(
+            development_cases,
+            development_path,
+            runner,
+            "full-pos",
+            1,
+            False,
+        ),
+        "hard_negatives": evaluate_constraint_runs(
+            hard_cases, hard_path, runner, "full-pos", 1, False
+        ),
+    }
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--cases", type=Path, default=DEFAULT_CASES)
@@ -665,14 +870,17 @@ def main() -> int:
         if args.smoke:
             with tempfile.TemporaryDirectory() as directory:
                 smoke_path = Path(directory) / "smoke-cases.jsonl"
+                hard_smoke_path = Path(directory) / "hard-smoke-cases.jsonl"
                 human_untagged_smoke_path = (
                     Path(directory) / "human-untagged-smoke-cases.jsonl"
                 )
                 smoke_cases = select_smoke_cases(dev_cases)
+                hard_smoke_cases = select_smoke_cases(hard_cases)
                 human_untagged_smoke_cases = select_smoke_cases(
                     human_untagged_cases
                 )
                 write_cases(smoke_path, smoke_cases)
+                write_cases(hard_smoke_path, hard_smoke_cases)
                 write_cases(
                     human_untagged_smoke_path, human_untagged_smoke_cases
                 )
@@ -729,6 +937,16 @@ def main() -> int:
                         run_native_agent_shadow(args.runner, smoke_path),
                     )
                 }
+                report["constraint_evaluation"] = evaluate_constraint_suite(
+                    smoke_cases,
+                    smoke_path,
+                    smoke_cases,
+                    smoke_path,
+                    hard_smoke_cases,
+                    hard_smoke_path,
+                    args.runner,
+                    1,
+                )
                 return write_report(args.output, report)
 
         baseline = evaluate_dataset(cases, args.cases, args.runner, args.runs, True)
@@ -815,6 +1033,16 @@ def main() -> int:
                 run_native_agent_shadow(args.runner, args.cases),
             ),
         }
+        report["constraint_evaluation"] = evaluate_constraint_suite(
+            cases,
+            args.cases,
+            dev_cases,
+            args.dev_cases,
+            hard_cases,
+            args.hard_negatives,
+            args.runner,
+            args.runs,
+        )
         return write_report(args.output, report)
     except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:
         print(f"benchmark failed: {error}", file=sys.stderr)

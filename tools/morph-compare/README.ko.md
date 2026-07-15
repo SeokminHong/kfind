@@ -25,6 +25,8 @@ test fixture SHA-256에 맞는 version-controlled 스냅샷만 읽는다. 결과
 벤치마크를 실행한다. 이미지 빌드는 고정 checksum의 full-POS artifact를 생성하며,
 artifact가 없거나 검증에 실패하면 벤치마크를 중단한다.
 
+보고서는 development, hard-negative, 고정 test fixture에서 독립 형태 구조 제약 평가기도 실행한다. 이 평가기의 candidate enumerator는 제품 verifier, lexical-context registry, boundary policy와 비용 임계값을 호출하지 않으며, 고정 test 성능은 full-POS fresh process warm-up 1회를 버린 뒤 5회를 측정한다.
+
 CI용 deterministic smoke set은 dev fixture의 source/POS/expected 조합마다 첫 case를
 선택한다.
 

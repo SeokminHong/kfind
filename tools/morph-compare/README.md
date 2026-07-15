@@ -30,6 +30,8 @@ The image build creates the pinned full-POS artifact and fails if its checksum
 cannot be verified. Benchmark execution never falls back to the embedded
 profile when that artifact is unavailable.
 
+The report also runs the independent structural constraint evaluator on development, hard-negative, and fixed test fixtures. Its candidate enumerator does not call the product verifier, lexical-context registry, boundary policy, or cost threshold; the fixed test performance uses one discarded warm-up and five measured fresh full-POS processes.
+
 The deterministic CI smoke set selects the first development case for every
 source/POS/expected combination:
 
