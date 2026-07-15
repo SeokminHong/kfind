@@ -5,7 +5,8 @@ use kfind_data::{ComponentResource, DataFinePos};
 
 use super::unknown::UnknownDictionary;
 use super::{
-    LocalLatticeDecision, LocalLatticeError, best_costs, build_nodes, validate_query_span,
+    LocalLatticeCosts, LocalLatticeDecision, LocalLatticeError, best_costs, build_nodes,
+    validate_query_span,
 };
 
 #[derive(Debug)]
@@ -35,6 +36,29 @@ impl LocalComponentEvaluator {
         query_pos: DataFinePos,
         node_limit: usize,
     ) -> Result<LocalLatticeDecision, LocalLatticeError> {
+        self.evaluate_costs(text, query_span, query_pos, node_limit)?
+            .decision()
+    }
+
+    pub fn supports_component(
+        &self,
+        text: &str,
+        query_span: Range<usize>,
+        query_pos: DataFinePos,
+        node_limit: usize,
+        max_cost_penalty: u32,
+    ) -> Result<bool, LocalLatticeError> {
+        self.evaluate_costs(text, query_span, query_pos, node_limit)?
+            .supports_query(max_cost_penalty)
+    }
+
+    fn evaluate_costs(
+        &self,
+        text: &str,
+        query_span: Range<usize>,
+        query_pos: DataFinePos,
+        node_limit: usize,
+    ) -> Result<LocalLatticeCosts, LocalLatticeError> {
         validate_query_span(text, &query_span)?;
         let nodes = build_nodes(
             self.resource.as_ref(),
@@ -44,7 +68,7 @@ impl LocalComponentEvaluator {
             self.unknown()?,
             node_limit,
         )?;
-        best_costs(self.resource.as_ref(), text.len(), &nodes)?.decision()
+        best_costs(self.resource.as_ref(), text.len(), &nodes)
     }
 
     fn unknown(&self) -> Result<&UnknownDictionary, LocalLatticeError> {

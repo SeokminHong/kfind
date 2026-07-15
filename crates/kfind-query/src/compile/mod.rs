@@ -17,6 +17,7 @@ mod context;
 mod normalization;
 
 use context::lexical_context_rule;
+pub use context::registered_lexical_context_prefix_len;
 use normalization::{DraftBranch, normalize_and_merge, normalize_atom};
 
 const BRANCH_OVERHEAD_BYTES: usize = 64;

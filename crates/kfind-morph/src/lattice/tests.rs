@@ -152,6 +152,59 @@ fn decision_only_evaluation_matches_diagnostic_costs() {
     }
 }
 
+#[test]
+fn bounded_cost_penalty_accepts_only_supported_include_paths() {
+    let cases = [
+        (
+            LocalLatticeCosts {
+                include: Some(1_500),
+                exclude: Some(0),
+            },
+            true,
+        ),
+        (
+            LocalLatticeCosts {
+                include: Some(1_501),
+                exclude: Some(0),
+            },
+            false,
+        ),
+        (
+            LocalLatticeCosts {
+                include: Some(0),
+                exclude: Some(0),
+            },
+            true,
+        ),
+        (
+            LocalLatticeCosts {
+                include: Some(0),
+                exclude: None,
+            },
+            true,
+        ),
+        (
+            LocalLatticeCosts {
+                include: None,
+                exclude: Some(0),
+            },
+            false,
+        ),
+    ];
+
+    for (costs, expected) in cases {
+        assert_eq!(costs.supports_query(1_500).unwrap(), expected);
+    }
+    assert_eq!(
+        LocalLatticeCosts {
+            include: None,
+            exclude: None,
+        }
+        .supports_query(1_500),
+        Err(LocalLatticeError::NoCompletePath)
+    );
+}
+
 fn fixture_resource() -> Vec<u8> {
     let (entries, matrix, char_def, unk_def) = fixture_parts();
     encode_morphology_resource([9; 32], &entries, &matrix, char_def, unk_def).unwrap()

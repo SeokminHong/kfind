@@ -15,7 +15,7 @@ pub use analysis::{
     NominalOverride, ParticleMorphology, QueryAnalyzer,
 };
 pub use ast::{DEFAULT_MAX_GAP, PhrasePolicy, QueryAst, QueryAtom};
-pub use compile::compile_query;
+pub use compile::{compile_query, registered_lexical_context_prefix_len};
 pub use error::{
     CompileError, CompileErrorKind, PhraseJoinError, QueryError, QueryErrorKind, SourceSpan,
 };

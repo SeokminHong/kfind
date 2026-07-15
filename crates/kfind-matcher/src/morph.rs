@@ -13,7 +13,7 @@ use kfind_morph::{
 };
 use kfind_query::{
     BranchEnvironment, BranchVerifier, ContextRequirement, CoreMapping, Origin, PhraseMatch,
-    QueryPlan, SurfaceBranch, VerifiedSpan,
+    QueryPlan, SurfaceBranch, VerifiedSpan, registered_lexical_context_prefix_len,
 };
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
@@ -29,6 +29,7 @@ use context::LexicalContextAnalysis;
 use phrase::{PhraseMatchLimit, PhraseSelection, select_phrase_matches};
 
 const MAX_VERIFIER_BYTES: usize = 256;
+const EXACT_COMPONENT_MAX_COST_PENALTY: u32 = 1_500;
 
 /// A query-plan matcher backed by one shared set of unique anchors.
 #[derive(Debug)]
@@ -592,15 +593,29 @@ impl MorphMatcher {
             .filter_map(|origin| atom.analyses.get(usize::from(origin.analysis_index)))
             .filter_map(|analysis| component_pos(analysis.fine_pos))
             .collect::<HashSet<_>>();
+        let preserve_raw_decision = registered_lexical_context_prefix_len(window.normalized())
+            .is_some_and(|end| query_span.start < end && query_span.end <= end);
         query_positions.into_iter().any(|query_pos| {
-            evaluator
-                .evaluate_decision(
-                    window.normalized(),
-                    query_span.clone(),
-                    query_pos,
-                    DEFAULT_LATTICE_NODE_LIMIT,
-                )
-                .is_ok_and(|decision| decision == LocalLatticeDecision::Accept)
+            if preserve_raw_decision {
+                evaluator
+                    .evaluate_decision(
+                        window.normalized(),
+                        query_span.clone(),
+                        query_pos,
+                        DEFAULT_LATTICE_NODE_LIMIT,
+                    )
+                    .is_ok_and(|decision| decision == LocalLatticeDecision::Accept)
+            } else {
+                evaluator
+                    .supports_component(
+                        window.normalized(),
+                        query_span.clone(),
+                        query_pos,
+                        DEFAULT_LATTICE_NODE_LIMIT,
+                        EXACT_COMPONENT_MAX_COST_PENALTY,
+                    )
+                    .unwrap_or(false)
+            }
         })
     }
 

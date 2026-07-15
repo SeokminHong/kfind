@@ -33,6 +33,18 @@ impl LocalLatticeCosts {
             })
             .transpose()
     }
+
+    pub fn supports_query(self, max_cost_penalty: u32) -> Result<bool, LocalLatticeError> {
+        match (self.include, self.exclude) {
+            (Some(include), Some(exclude)) => include
+                .checked_sub(exclude)
+                .map(|penalty| penalty <= i64::from(max_cost_penalty))
+                .ok_or(LocalLatticeError::CostOverflow),
+            (Some(_), None) => Ok(true),
+            (None, Some(_)) => Ok(false),
+            (None, None) => Err(LocalLatticeError::NoCompletePath),
+        }
+    }
 }
 
 pub(super) fn best_costs(

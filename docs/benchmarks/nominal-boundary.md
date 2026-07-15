@@ -3,8 +3,9 @@
 ## 제품 동작
 
 `smart`는 문자열 token 경계뿐 아니라 검증된 형태 분석의 완전한 명사·대명사·수사·관형사
-component span도 검색 결과로 인정한다. query branch와 같은 fine POS의 component가 최저 비용
-경로에 있고, 양쪽 경계를 형태 분석으로 증명해야 한다.
+component span도 검색 결과로 인정한다. query branch와 같은 fine POS의 component를 포함한 완전
+경로가 최저 제외 경로보다 형태 분석 비용 1,500 이하로 높고, 양쪽 경계를 형태 분석으로 증명해야
+한다.
 
 positive 예:
 
@@ -19,7 +20,7 @@ negative 예:
 
 - source component 근거가 없는 `대학교`의 `학교`
 - component 경계를 가로지르는 `역사과목`의 `사과`
-- 최저 비용 분석이 query component를 제외하는 `산길을`의 `길`
+- include 경로 비용이 최저 제외 경로보다 1,500을 초과하는 `산길을`의 `길`
 - 더 큰 다른 품사 component에 포함된 `전자기견해`의 `자기`
 - 더 큰 명사 component에 포함된 `아들둘레`의 `둘`
 - 부사 component에 포함된 `모두사람`의 `두`
@@ -31,8 +32,10 @@ negative 예:
 - `ExactComponent` branch가 있는 `smart` plan만 compact component resource를 사용한다.
 - CLI는 설치 resource를 자동으로 찾고 Rust/WASM은 caller가 bytes를 명시한다.
 - 누락·손상·schema 또는 source 불일치는 오류이며 기존 token 경계로 fallback하지 않는다.
-- component evaluator의 `accept`만 match로 복구한다. `reject`, `ambiguous`, 평가 오류와 상한
-  초과는 거부한다.
+- component evaluator에 include 경로만 있거나 include 비용이 exclude 비용보다 1,500 이하로
+  높으면 match로 복구한다. exclude-only, 비용 마진 초과, 평가 오류와 상한 초과는 거부한다.
+- lexical context registry의 whole-token surface 안에서는 문맥 판정이 없을 때 원시 `accept`만
+  복구한다.
 - literal, `token`, `any`와 component branch가 없는 plan은 resource를 읽지 않는다.
 
 ## 검증 계약
