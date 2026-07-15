@@ -289,7 +289,8 @@ fn compile_analysis(
         return Ok(());
     }
 
-    let morph_patterns = QueryMorphPattern::from_fine_pos(analysis.fine_pos);
+    let morph_patterns =
+        QueryMorphPattern::from_fine_pos(analysis.fine_pos, analysis_lexical_form(analysis));
     if matches!(analysis.morphology, Morphology::Exact) {
         let context_requirement = lexical_context_requirement(atom_surface, analysis);
         if options.expand == ExpandMode::Derivation && analysis.coarse_pos == CoarsePos::Adverb {
@@ -438,6 +439,11 @@ fn compile_predicate(
     };
     let branches = generate_predicate_branches(predicate)
         .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?;
+    let lexical_form = predicate
+        .lemma
+        .strip_suffix('다')
+        .unwrap_or(predicate.lemma.as_ref());
+    let morph_patterns = QueryMorphPattern::from_fine_pos(analysis.fine_pos, lexical_form);
     for branch in branches {
         let environment = predicate_environment(predicate, &branch);
         let mut rule_path = prefix_rules.clone();
@@ -489,7 +495,7 @@ fn compile_predicate(
             } else {
                 ContextRequirement::None
             },
-            morph_patterns: QueryMorphPattern::from_fine_pos(analysis.fine_pos),
+            morph_patterns: morph_patterns.clone(),
         });
     }
     Ok(())
@@ -527,6 +533,8 @@ fn compile_derivations(
                 output,
             )?;
         } else if rule.result_pos.is_nominal() {
+            let morph_patterns =
+                QueryMorphPattern::from_fine_pos(data_fine_pos(rule.result_pos), &derived_lemma);
             output.push(DraftBranch {
                 anchor: derived_lemma,
                 verifier: BranchVerifier::NominalParticles {
@@ -540,15 +548,17 @@ fn compile_derivations(
                 },
                 smart_left: true,
                 context_requirement: ContextRequirement::ExactComponent,
-                morph_patterns: QueryMorphPattern::from_fine_pos(data_fine_pos(rule.result_pos)),
+                morph_patterns,
             });
         } else {
+            let morph_patterns =
+                QueryMorphPattern::from_fine_pos(data_fine_pos(rule.result_pos), &derived_lemma);
             output.push(exact_branch(
                 &derived_lemma,
                 analysis_index,
                 derivation_path,
                 true,
-                QueryMorphPattern::from_fine_pos(data_fine_pos(rule.result_pos)),
+                morph_patterns,
             ));
         }
     }
@@ -596,6 +606,16 @@ fn derivation_accepts(rule: &DerivationRule, analysis: &Analysis) -> bool {
     rule.source_pos
         .iter()
         .any(|pos| data_fine_pos(*pos) == analysis.fine_pos)
+}
+
+fn analysis_lexical_form(analysis: &Analysis) -> &str {
+    match &analysis.morphology {
+        Morphology::Predicate(predicate) => predicate
+            .lemma
+            .strip_suffix('다')
+            .unwrap_or(predicate.lemma.as_ref()),
+        Morphology::Nominal(_) | Morphology::Particle(_) | Morphology::Exact => &analysis.lemma,
+    }
 }
 
 fn exact_branch(

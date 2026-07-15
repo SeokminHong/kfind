@@ -16,7 +16,8 @@ pub(super) const EVIDENCE_EXACT: u8 = 1;
 pub(super) const EVIDENCE_COMPONENT: u8 = 1 << 1;
 pub(super) const EVIDENCE_OPAQUE: u8 = 1 << 2;
 const EVIDENCE_UNKNOWN: u8 = 1 << 3;
-const EVIDENCE_STATES: usize = 16;
+const EVIDENCE_SOURCE_WHOLE: u8 = 1 << 4;
+const EVIDENCE_STATES: usize = 32;
 const BOS_EOS_CONTEXT_ID: u16 = 0;
 
 type ReachabilityStates = Vec<[Option<Predecessor>; EVIDENCE_STATES]>;
@@ -43,18 +44,20 @@ struct Node {
 
 impl Node {
     fn source(
+        surface: &str,
         span: Range<usize>,
+        text_len: usize,
         target: &Range<usize>,
         analysis: &MorphologyGraphAnalysis<'_>,
-        pattern: &QueryMorphPattern,
+        patterns: &[QueryMorphPattern],
     ) -> Self {
         let matches_query_node = span == *target
             && analysis
                 .pos
                 .split('+')
-                .any(|pos| source_pos_matches(pos, pattern.fine_pos));
+                .any(|pos| source_matches(surface, pos, patterns));
         let matches_source_component = analysis.components.iter().any(|component| {
-            source_pos_matches(component.pos, pattern.fine_pos)
+            source_matches(component.surface, component.pos, patterns)
                 && component.span.as_ref().is_some_and(|component| {
                     (span.start + component.start..span.start + component.end) == *target
                 })
@@ -67,7 +70,7 @@ impl Node {
             && analysis
                 .components
                 .iter()
-                .any(|component| source_pos_matches(component.pos, pattern.fine_pos));
+                .any(|component| source_matches(component.surface, component.pos, patterns));
         let mut evidence = 0;
         if matches_query_node {
             evidence |= EVIDENCE_EXACT;
@@ -77,6 +80,9 @@ impl Node {
         }
         if has_opaque_expression {
             evidence |= EVIDENCE_OPAQUE;
+        }
+        if span == (0..text_len) {
+            evidence |= EVIDENCE_SOURCE_WHOLE;
         }
         Self {
             span,
@@ -134,42 +140,40 @@ impl TokenGraph {
         resource: &MorphologyGraphResource,
         text: &str,
         target: &Range<usize>,
-        pattern: &QueryMorphPattern,
+        patterns: &[QueryMorphPattern],
         node_limit: usize,
     ) -> Result<Self, usize> {
-        Self::build(resource, text, target, pattern, None, node_limit)
+        Self::build(resource, text, target, patterns, None, node_limit)
     }
 
     pub fn with_unknown(
         resource: &MorphologyGraphResource,
         text: &str,
         target: &Range<usize>,
-        pattern: &QueryMorphPattern,
+        patterns: &[QueryMorphPattern],
         unknown: &UnknownDictionary,
         node_limit: usize,
     ) -> Result<Self, usize> {
-        Self::build(resource, text, target, pattern, Some(unknown), node_limit)
+        Self::build(resource, text, target, patterns, Some(unknown), node_limit)
     }
 
     fn build(
         resource: &MorphologyGraphResource,
         text: &str,
         target: &Range<usize>,
-        pattern: &QueryMorphPattern,
+        patterns: &[QueryMorphPattern],
         unknown: Option<&UnknownDictionary>,
         node_limit: usize,
     ) -> Result<Self, usize> {
         let mut nodes = Vec::new();
         for (start, _) in text.char_indices() {
             let before_dictionary = nodes.len();
-            resource.common_prefixes(&text.as_bytes()[start..], |length, _, analyses| {
+            resource.common_prefixes(&text.as_bytes()[start..], |length, surface, analyses| {
                 let end = start + length;
                 if end <= text.len() && text.is_char_boundary(end) {
-                    nodes.extend(
-                        analyses
-                            .iter()
-                            .map(|analysis| Node::source(start..end, target, analysis, pattern)),
-                    );
+                    nodes.extend(analyses.iter().map(|analysis| {
+                        Node::source(surface, start..end, text.len(), target, analysis, patterns)
+                    }));
                 }
             });
             let has_dictionary = nodes.len() > before_dictionary;
@@ -228,10 +232,6 @@ impl TokenGraph {
             .iter()
             .filter(|node| node.source == ConstraintNodeSource::Unknown)
             .count()
-    }
-
-    pub fn complete_masks(&self) -> Vec<u8> {
-        self.complete.iter().map(|(_, mask)| *mask).collect()
     }
 
     pub fn proof_paths(&self, text_len: usize) -> Vec<ConstraintPathProof> {
@@ -351,4 +351,10 @@ fn evidence_kind(
 fn source_pos_matches(source_pos: &str, query_pos: DataFinePos) -> bool {
     DataFinePos::parse(source_pos) == Some(query_pos)
         || (source_pos == "NNBC" && query_pos == DataFinePos::Nnb)
+}
+
+fn source_matches(surface: &str, source_pos: &str, patterns: &[QueryMorphPattern]) -> bool {
+    patterns.iter().any(|pattern| {
+        surface == pattern.lexical_form.as_ref() && source_pos_matches(source_pos, pattern.fine_pos)
+    })
 }

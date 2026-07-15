@@ -9,7 +9,7 @@ use crate::lattice::unknown::UnknownDictionary;
 
 mod paths;
 
-use paths::{EVIDENCE_COMPONENT, EVIDENCE_EXACT, EVIDENCE_OPAQUE, TokenGraph};
+use paths::TokenGraph;
 
 pub const DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT: usize = 4_096;
 
@@ -20,15 +20,16 @@ pub enum CompoundExposureProfile {
     Explicit,
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct QueryMorphPattern {
     pub fine_pos: DataFinePos,
+    pub lexical_form: Arc<str>,
     pub expose_source_components: bool,
 }
 
 impl QueryMorphPattern {
     #[must_use]
-    pub fn from_fine_pos(fine_pos: FinePos) -> Vec<Self> {
+    pub fn from_fine_pos(fine_pos: FinePos, lexical_form: &str) -> Vec<Self> {
         let fine_pos = match fine_pos {
             FinePos::CommonNoun => DataFinePos::Nng,
             FinePos::ProperNoun => DataFinePos::Nnp,
@@ -37,7 +38,10 @@ impl QueryMorphPattern {
             FinePos::Numeral => DataFinePos::Nr,
             FinePos::Verb => DataFinePos::Vv,
             FinePos::Adjective => {
-                return vec![Self::new(DataFinePos::Va), Self::new(DataFinePos::Vcn)];
+                return vec![
+                    Self::new(DataFinePos::Va, lexical_form),
+                    Self::new(DataFinePos::Vcn, lexical_form),
+                ];
             }
             FinePos::AuxiliaryVerb | FinePos::AuxiliaryAdjective => DataFinePos::Vx,
             FinePos::Copula => DataFinePos::Vcp,
@@ -51,12 +55,13 @@ impl QueryMorphPattern {
             | FinePos::Code
             | FinePos::Literal => return Vec::new(),
         };
-        vec![Self::new(fine_pos)]
+        vec![Self::new(fine_pos, lexical_form)]
     }
 
-    const fn new(fine_pos: DataFinePos) -> Self {
+    fn new(fine_pos: DataFinePos, lexical_form: &str) -> Self {
         Self {
             fine_pos,
+            lexical_form: Arc::from(lexical_form),
             expose_source_components: false,
         }
     }
@@ -141,7 +146,7 @@ impl ConstraintResolution {
     pub fn verdict_for(
         &self,
         profile: CompoundExposureProfile,
-        pattern: &QueryMorphPattern,
+        patterns: &[QueryMorphPattern],
     ) -> ConstraintVerdict {
         if self.verdict != ConstraintVerdict::Ambiguous(ConstraintAmbiguity::CompoundExposure) {
             return self.verdict;
@@ -149,7 +154,11 @@ impl ConstraintResolution {
         match profile {
             CompoundExposureProfile::Opaque => ConstraintVerdict::Contradicted,
             CompoundExposureProfile::Transparent => ConstraintVerdict::Proven,
-            CompoundExposureProfile::Explicit if pattern.expose_source_components => {
+            CompoundExposureProfile::Explicit
+                if patterns
+                    .iter()
+                    .any(|pattern| pattern.expose_source_components) =>
+            {
                 ConstraintVerdict::Proven
             }
             CompoundExposureProfile::Explicit => ConstraintVerdict::Contradicted,
@@ -182,13 +191,37 @@ impl ConstraintResolver {
         &self,
         text: &str,
         target: Range<usize>,
+        candidate: Range<usize>,
         pattern: &QueryMorphPattern,
         node_limit: usize,
     ) -> ConstraintResolution {
-        if !valid_target(text, &target) {
+        self.resolve_patterns(
+            text,
+            target,
+            candidate,
+            std::slice::from_ref(pattern),
+            node_limit,
+        )
+    }
+
+    #[must_use]
+    pub fn resolve_patterns(
+        &self,
+        text: &str,
+        target: Range<usize>,
+        candidate: Range<usize>,
+        patterns: &[QueryMorphPattern],
+        node_limit: usize,
+    ) -> ConstraintResolution {
+        if patterns.is_empty()
+            || !valid_span(text, &target)
+            || !valid_span(text, &candidate)
+            || candidate.start > target.start
+            || target.end > candidate.end
+        {
             return unavailable(ConstraintUnavailable::InvalidPattern, 0, 0, Vec::new());
         }
-        let known = match TokenGraph::known(&self.resource, text, &target, pattern, node_limit) {
+        let known = match TokenGraph::known(&self.resource, text, &target, patterns, node_limit) {
             Ok(graph) => graph,
             Err(actual) => {
                 return unavailable(
@@ -203,7 +236,7 @@ impl ConstraintResolver {
             }
         };
         if known.has_complete_paths() {
-            return resolve_known(known, text, &target);
+            return resolve_known(known, text, &candidate);
         }
         let unknown = match self.unknown() {
             Ok(unknown) => unknown,
@@ -220,7 +253,7 @@ impl ConstraintResolver {
             &self.resource,
             text,
             &target,
-            pattern,
+            patterns,
             unknown,
             node_limit,
         ) {
@@ -264,29 +297,50 @@ impl ConstraintResolver {
     }
 }
 
-fn valid_target(text: &str, target: &Range<usize>) -> bool {
-    target.start < target.end
-        && target.end <= text.len()
-        && text.is_char_boundary(target.start)
-        && text.is_char_boundary(target.end)
+fn valid_span(text: &str, span: &Range<usize>) -> bool {
+    span.start < span.end
+        && span.end <= text.len()
+        && text.is_char_boundary(span.start)
+        && text.is_char_boundary(span.end)
 }
 
-fn resolve_known(graph: TokenGraph, text: &str, target: &Range<usize>) -> ConstraintResolution {
-    let masks = graph.complete_masks();
-    let has_component = masks.iter().any(|mask| mask & EVIDENCE_COMPONENT != 0);
-    let has_exact = masks.iter().any(|mask| mask & EVIDENCE_EXACT != 0);
-    let has_opaque = masks.iter().any(|mask| mask & EVIDENCE_OPAQUE != 0);
-    let has_contradiction = masks
+fn resolve_known(graph: TokenGraph, text: &str, candidate: &Range<usize>) -> ConstraintResolution {
+    let paths = graph.proof_paths(text.len());
+    let source_whole_paths = paths
         .iter()
-        .any(|mask| mask & (EVIDENCE_COMPONENT | EVIDENCE_EXACT | EVIDENCE_OPAQUE) == 0);
-    let strict_subspan = *target != (0..text.len());
-    let verdict = if strict_subspan && has_component {
+        .filter(|path| is_source_whole_path(path, text.len()))
+        .collect::<Vec<_>>();
+    let selected = if source_whole_paths.is_empty() {
+        paths.iter().collect::<Vec<_>>()
+    } else {
+        source_whole_paths
+    };
+    let has_component = selected
+        .iter()
+        .any(|path| path.nodes.iter().any(|node| node.matches_source_component));
+    let has_exact = selected
+        .iter()
+        .any(|path| path.nodes.iter().any(|node| node.matches_query_node));
+    let has_opaque = selected
+        .iter()
+        .any(|path| path.nodes.iter().any(|node| node.has_opaque_expression));
+    let has_contradiction = selected.iter().any(|path| {
+        path.nodes.iter().all(|node| {
+            !node.matches_query_node
+                && !node.matches_source_component
+                && !node.has_opaque_expression
+        })
+    });
+    let strict_candidate = *candidate != (0..text.len());
+    let opaque_support = !strict_candidate && has_opaque;
+    let has_support = has_component || has_exact || opaque_support;
+    let verdict = if strict_candidate && has_component {
         ConstraintVerdict::Ambiguous(ConstraintAmbiguity::CompoundExposure)
-    } else if (has_component || has_exact) && has_opaque {
+    } else if has_support && strict_candidate && has_opaque {
         ConstraintVerdict::Ambiguous(ConstraintAmbiguity::OpaqueExpression)
-    } else if (has_component || has_exact) && has_contradiction {
+    } else if has_support && has_contradiction {
         ConstraintVerdict::Ambiguous(ConstraintAmbiguity::CompetingAnalyses)
-    } else if has_component || has_exact {
+    } else if has_support {
         ConstraintVerdict::Proven
     } else if has_opaque {
         ConstraintVerdict::Ambiguous(ConstraintAmbiguity::OpaqueExpression)
@@ -298,9 +352,15 @@ fn resolve_known(graph: TokenGraph, text: &str, target: &Range<usize>) -> Constr
         proof: ConstraintProof {
             known_node_count: graph.node_count(),
             unknown_node_count: 0,
-            paths: graph.proof_paths(text.len()),
+            paths,
         },
     }
+}
+
+fn is_source_whole_path(path: &ConstraintPathProof, text_len: usize) -> bool {
+    path.nodes.len() == 1
+        && path.nodes[0].source == ConstraintNodeSource::Source
+        && path.nodes[0].span == (0..text_len)
 }
 
 fn unavailable(

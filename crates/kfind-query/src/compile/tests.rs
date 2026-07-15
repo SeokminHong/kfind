@@ -422,13 +422,13 @@ fn smart_unregistered_adverbs_do_not_require_lexical_context() {
 fn smart_patterns_cover_supported_analyses_without_a_surface_registry() {
     for query in ["adv:매일", "adv:빨리"] {
         let plan = compile_query(query, &CompileOptions::default(), &analyzer()).unwrap();
+        let lexical_form = query.strip_prefix("adv:").unwrap();
         assert!(plan.requires_analysis_graph());
         assert!(plan.atoms[0].branches.iter().all(|branch| {
-            branch
-                .morph_patterns
-                .iter()
-                .map(|pattern| pattern.fine_pos)
-                .eq([DataFinePos::Mag])
+            branch.morph_patterns.iter().all(|pattern| {
+                pattern.fine_pos == DataFinePos::Mag
+                    && pattern.lexical_form.as_ref() == lexical_form
+            })
         }));
     }
 
@@ -450,6 +450,20 @@ fn smart_patterns_cover_supported_analyses_without_a_surface_registry() {
             .collect::<Vec<_>>(),
         [DataFinePos::Nng, DataFinePos::Nnp, DataFinePos::Nnb]
     );
+    assert!(
+        noun.atoms[0].branches[0]
+            .morph_patterns
+            .iter()
+            .all(|pattern| pattern.lexical_form.as_ref() == "미등록명사")
+    );
+
+    let predicate = compile_query("걷다", &CompileOptions::default(), &analyzer()).unwrap();
+    assert!(predicate.atoms[0].branches.iter().all(|branch| {
+        branch
+            .morph_patterns
+            .iter()
+            .all(|pattern| pattern.lexical_form.as_ref() == "걷")
+    }));
 
     let particle = compile_query("는", &CompileOptions::default(), &analyzer()).unwrap();
     assert!(!particle.requires_analysis_graph());
