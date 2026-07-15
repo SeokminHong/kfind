@@ -92,13 +92,15 @@ reference candidate enumerator는 branch anchor만 공유하고 기존 verifier,
 
 schema 3은 schema 2 payload projection에 source expression과 multi-POS row에서 파생한 categorical transition table을 추가한다. 전체 resolver는 schema 3만 허용하며 schema 2 resource를 dense connection matrix 기반 경로로 fallback하지 않는다.
 
+schema 3, 완전한 `QueryMorphPattern`, query-directed packed graph resolver와 독립 evaluator를 구현했다. 고정 test의 `possible-analysis`는 TP 453 / FP 5 / FN 47, `unambiguous-analysis`는 TP 289 / FP 0 / FN 211이며, development와 hard-negative를 포함한 전체 결과와 성능은 [형태 구조 제약 모델 독립 평가](2026-07-16-morphology-constraint-model.md)에 기록했다.
+
 ### 6. 제품 전환
 
 graph resolver가 채택 조건을 통과하면 matcher는 `SupportedAnalysisSet`과 선택된 `ProductPolicy`만 소비한다. query compiler의 manual surface registry와 matcher의 비용 마진·requirement별 예외 분기를 제거하고 resource 필요 여부는 `QueryMorphPattern`의 구조 capability에서 계산한다. `token`, `any`, literal과 component가 필요 없는 `smart` branch는 graph resource를 읽지 않는다.
 
 제품 전환 완료 시 `ContextRequirement`, lexical context registration, `EXACT_COMPONENT_MAX_COST_PENALTY`, registered-prefix raw fallback, predicate exact-token 예외와 비용 기반 `supports_component` 호출은 제품 경로에 남지 않는다. bounded context는 경쟁 분석을 삭제하는 우선순위가 아니라 token graph 제약으로만 표현한다.
 
-축소 resolver shadow에서 세 profile 모두 채택 조건을 통과하지 못했다. 이 결과는 전체 제약 모델의 채택 여부를 증명하지 않으므로 독립 평가가 끝날 때까지 제품 판정, lexical context registry와 1,500 비용 마진을 유지한다.
+전체 제약 모델의 독립 평가에서도 어느 정책도 채택 조건을 통과하지 못했다. `possible-analysis`는 고정 test recall 90.6%에서 FP 5건, `unambiguous-analysis`는 FP 0건에서 recall 57.8%이며 evaluator 처리량은 제품 full-POS `smart`보다 10.73배 낮다. 제품 판정, lexical context registry와 1,500 비용 마진을 유지하고 구조 모델은 후속 stacked draft 실험에만 사용한다.
 
 ## 채택 조건
 
