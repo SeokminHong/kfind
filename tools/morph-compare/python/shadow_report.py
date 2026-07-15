@@ -622,6 +622,7 @@ def append_shadow_verification(
             f"{summary['component_projection_equivalence']['comparisons']}; "
             f"mismatches {summary['component_projection_equivalence']['mismatches']}"
         )
+    append_analysis_graph_profiles(lines, report["shadow_verification"])
 
 
 def append_component_shadow_table(
@@ -695,3 +696,39 @@ def append_component_shadow_table(
                         f"| {profile} | {class_name} | {projection} | "
                         f"{relation} | {count} |"
                     )
+    append_analysis_graph_profiles(lines, shadow_verification)
+
+
+def append_analysis_graph_profiles(
+    lines: list[str], shadow_verification: dict[str, object]
+) -> None:
+    rows = []
+    for profile in KFIND_PROFILES:
+        graph = shadow_verification.get(profile, {}).get("analysis_graph")
+        if not isinstance(graph, dict):
+            continue
+        for graph_profile, result in graph.get("profiles", {}).items():
+            quality = result["quality"]
+            rows.append(
+                (
+                    profile,
+                    graph_profile,
+                    quality,
+                    result["changed_from_product"],
+                )
+            )
+    if not rows:
+        return
+    lines.extend(
+        [
+            "",
+            "| profile | graph policy | TP | FP | TN | FN | precision | recall | changed from product |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for profile, graph_profile, quality, changed in rows:
+        lines.append(
+            f"| {profile} | {graph_profile} | {quality['tp']} | {quality['fp']} | "
+            f"{quality['tn']} | {quality['fn']} | {quality['precision_percent']}% | "
+            f"{quality['recall_percent']}% | {changed} |"
+        )

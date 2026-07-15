@@ -812,6 +812,38 @@ class ShadowVerificationTests(unittest.TestCase):
 
         self.assertIn("| kfind-embedded | 5 | 3 | 2 |", "\n".join(lines))
 
+    def test_renders_analysis_graph_profile_quality(self) -> None:
+        shadow = {
+            profile: {
+                "cases_with_component_candidates": 0,
+                "component_cases_by_decision": {},
+                "analysis_graph": {
+                    "profiles": {
+                        "opaque": {
+                            "quality": {
+                                "tp": 12,
+                                "fp": 0,
+                                "tn": 14,
+                                "fn": 2,
+                                "precision_percent": 100.0,
+                                "recall_percent": 85.71,
+                            },
+                            "changed_from_product": 1,
+                        }
+                    }
+                },
+            }
+            for profile in KFIND_PROFILES
+        }
+        lines: list[str] = []
+
+        append_component_shadow_table(lines, shadow)
+
+        self.assertIn(
+            "| kfind-full-pos | opaque | 12 | 0 | 14 | 2 | 100.0% | 85.71% | 1 |",
+            "\n".join(lines),
+        )
+
     def test_classifies_source_provenance_for_both_projections(self) -> None:
         atomic = {
             "kind": "source-atomic",
