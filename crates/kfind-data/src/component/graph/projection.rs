@@ -17,7 +17,7 @@ pub struct MorphologyGraphProjectionStats {
     pub analysis_count: u32,
     pub component_count: u32,
     pub transition_count: u32,
-    pub matrix_cost_count: u64,
+    pub source_matrix_cost_count: u64,
 }
 
 pub fn validate_morphology_graph_projection(
@@ -37,12 +37,24 @@ pub fn validate_morphology_graph_projection(
             .group(payload_bytes, group, string_bytes, &graph.strings)
             .ok_or_else(|| projection_error(source, "graph group is unavailable"))?;
         let full_analyses = exact_full_analyses(source, full, surface)?;
-        if graph_analyses.len() != full_analyses.len() {
-            return Err(projection_error(source, "analysis count mismatch"));
+        if graph_analyses.iter().any(|graph_analysis| {
+            !full_analyses.iter().any(|full_analysis| {
+                validate_analysis(source, surface, *full_analysis, graph_analysis).is_ok()
+            })
+        }) || full_analyses.iter().any(|full_analysis| {
+            !graph_analyses.iter().any(|graph_analysis| {
+                validate_analysis(source, surface, *full_analysis, graph_analysis).is_ok()
+            })
+        }) {
+            return Err(projection_error(
+                source,
+                "structural analysis projection mismatch",
+            ));
         }
-        for (full_analysis, graph_analysis) in full_analyses.iter().zip(&graph_analyses) {
-            validate_analysis(source, surface, *full_analysis, graph_analysis)?;
+        for full_analysis in &full_analyses {
             collect_transitions(*full_analysis, &mut transitions);
+        }
+        for graph_analysis in &graph_analyses {
             analysis_count = analysis_count
                 .checked_add(1)
                 .ok_or_else(|| projection_error(source, "analysis count overflow"))?;
@@ -54,14 +66,13 @@ pub fn validate_morphology_graph_projection(
                 .ok_or_else(|| projection_error(source, "component count overflow"))?;
         }
     }
-    if analysis_count != full.stats().analysis_count
-        || analysis_count != graph.stats.analysis_count
+    if analysis_count != graph.stats.analysis_count
         || component_count != graph.stats.component_count
         || transitions != graph.transitions
     {
         return Err(projection_error(source, "projection totals mismatch"));
     }
-    let matrix_cost_count = u64::from(graph.stats.right_contexts)
+    let source_matrix_cost_count = u64::from(graph.stats.right_contexts)
         .checked_mul(u64::from(graph.stats.left_contexts))
         .ok_or_else(|| projection_error(source, "matrix cost count overflow"))?;
     Ok(MorphologyGraphProjectionStats {
@@ -70,7 +81,7 @@ pub fn validate_morphology_graph_projection(
         component_count,
         transition_count: u32::try_from(transitions.len())
             .map_err(|error| projection_error(source, &error.to_string()))?,
-        matrix_cost_count,
+        source_matrix_cost_count,
     })
 }
 
@@ -100,16 +111,6 @@ fn validate_shared_sections(
             "resource metadata projection mismatch",
         ));
     }
-    for right_id in 0..graph.stats.right_contexts {
-        for left_id in 0..graph.stats.left_contexts {
-            if full.connection_cost(right_id, left_id) != graph.connection_cost(right_id, left_id) {
-                return Err(projection_error(
-                    source,
-                    "connection matrix projection mismatch",
-                ));
-            }
-        }
-    }
     Ok(())
 }
 
@@ -134,9 +135,6 @@ fn validate_analysis(
     graph: &MorphologyGraphAnalysis<'_>,
 ) -> Result<(), DataError> {
     if graph.pos != full.pos
-        || graph.left_id != full.left_id
-        || graph.right_id != full.right_id
-        || graph.word_cost != full.word_cost
         || graph.analysis_type != full.analysis_type
         || graph.start_pos != full.start_pos
         || graph.end_pos != full.end_pos

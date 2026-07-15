@@ -101,7 +101,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("projection_surfaces={}", projection.surface_count);
     println!("projection_analyses={}", projection.analysis_count);
     println!("projection_components={}", projection.component_count);
-    println!("projection_matrix_costs={}", projection.matrix_cost_count);
+    println!(
+        "projection_source_matrix_costs={}",
+        projection.source_matrix_cost_count
+    );
     Ok(())
 }
 

@@ -18,14 +18,17 @@ pub(in crate::component::graph) struct EncodedGraphPayload {
     pub analysis_count: u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 struct PreparedAnalysis<'a> {
-    source: &'a MecabSourceMorphologyEntry,
+    pos: &'a str,
+    analysis_type: &'a str,
+    start_pos: &'a str,
+    end_pos: &'a str,
     expression_kind: MorphologyGraphExpressionKind,
     components: Vec<PreparedComponent>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 struct PreparedComponent {
     surface: String,
     pos: String,
@@ -35,10 +38,19 @@ struct PreparedComponent {
 pub(in crate::component::graph) fn encode_graph_payload(
     groups: &[(String, Vec<MecabSourceMorphologyEntry>)],
 ) -> Result<EncodedGraphPayload, DataError> {
-    let prepared = groups
+    let mut prepared = groups
         .iter()
         .map(|(_, analyses)| analyses.iter().map(prepare_analysis).collect::<Vec<_>>())
         .collect::<Vec<_>>();
+    for analyses in &mut prepared {
+        let mut deduplicated = Vec::with_capacity(analyses.len());
+        for analysis in analyses.drain(..) {
+            if !deduplicated.contains(&analysis) {
+                deduplicated.push(analysis);
+            }
+        }
+        *analyses = deduplicated;
+    }
     let analysis_count = u32::try_from(prepared.iter().map(Vec::len).sum::<usize>())
         .map_err(build_conversion_error)?;
     let component_count = u32::try_from(
@@ -49,12 +61,12 @@ pub(in crate::component::graph) fn encode_graph_payload(
             .sum::<usize>(),
     )
     .map_err(build_conversion_error)?;
-    let transitions = collect_transitions(&prepared);
+    let transitions = collect_transitions(groups);
     let transition_count = u32::try_from(transitions.len()).map_err(build_conversion_error)?;
     let (strings, string_ids) = encode_strings(groups, &prepared, &transitions)?;
     let mut pos_counts = BTreeMap::<u32, u32>::new();
     for analysis in prepared.iter().flatten() {
-        let pos = string_id(&string_ids, &analysis.source.pos)?;
+        let pos = string_id(&string_ids, analysis.pos)?;
         let count = pos_counts.entry(pos).or_default();
         *count = count
             .checked_add(1)
@@ -92,15 +104,11 @@ pub(in crate::component::graph) fn encode_graph_payload(
     }
     let mut component_offset = 0_u32;
     for analysis in prepared.iter().flatten() {
-        let source = analysis.source;
-        bytes.extend_from_slice(&source.left_id.to_le_bytes());
-        bytes.extend_from_slice(&source.right_id.to_le_bytes());
-        bytes.extend_from_slice(&source.word_cost.to_le_bytes());
         for value in [
-            &source.pos,
-            &source.analysis_type,
-            &source.start_pos,
-            &source.end_pos,
+            analysis.pos,
+            analysis.analysis_type,
+            analysis.start_pos,
+            analysis.end_pos,
         ] {
             bytes.extend_from_slice(&string_id(&string_ids, value)?.to_le_bytes());
         }
@@ -153,7 +161,10 @@ pub(in crate::component::graph) fn encode_graph_payload(
 fn prepare_analysis(entry: &MecabSourceMorphologyEntry) -> PreparedAnalysis<'_> {
     if matches!(entry.expression.as_str(), "" | "*") {
         return PreparedAnalysis {
-            source: entry,
+            pos: &entry.pos,
+            analysis_type: &entry.analysis_type,
+            start_pos: &entry.start_pos,
+            end_pos: &entry.end_pos,
             expression_kind: MorphologyGraphExpressionKind::Absent,
             components: Vec::new(),
         };
@@ -177,7 +188,10 @@ fn prepare_analysis(entry: &MecabSourceMorphologyEntry) -> PreparedAnalysis<'_> 
         })
         .collect();
     PreparedAnalysis {
-        source: entry,
+        pos: &entry.pos,
+        analysis_type: &entry.analysis_type,
+        start_pos: &entry.start_pos,
+        end_pos: &entry.end_pos,
         expression_kind,
         components,
     }
@@ -193,12 +207,11 @@ fn encode_strings(
         unique.insert(surface.clone());
     }
     for analysis in prepared.iter().flatten() {
-        let source = analysis.source;
         unique.extend([
-            source.pos.clone(),
-            source.analysis_type.clone(),
-            source.start_pos.clone(),
-            source.end_pos.clone(),
+            analysis.pos.to_owned(),
+            analysis.analysis_type.to_owned(),
+            analysis.start_pos.to_owned(),
+            analysis.end_pos.to_owned(),
         ]);
         for component in &analysis.components {
             unique.insert(component.surface.clone());
@@ -234,12 +247,14 @@ fn encode_strings(
     Ok((bytes, ids))
 }
 
-fn collect_transitions(prepared: &[Vec<PreparedAnalysis<'_>>]) -> BTreeSet<(String, String)> {
+fn collect_transitions(
+    groups: &[(String, Vec<MecabSourceMorphologyEntry>)],
+) -> BTreeSet<(String, String)> {
     let mut transitions = BTreeSet::new();
-    for analysis in prepared.iter().flatten() {
+    for analysis in groups.iter().flat_map(|(_, analyses)| analyses) {
         transitions.extend(morphology_pos_transitions(
-            &analysis.source.pos,
-            &analysis.source.expression,
+            &analysis.pos,
+            &analysis.expression,
         ));
     }
     transitions

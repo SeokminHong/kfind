@@ -39,9 +39,6 @@ pub(super) struct Node {
     pub pos: String,
     pub start_pos: String,
     pub end_pos: String,
-    pub left_id: u16,
-    pub right_id: u16,
-    pub word_cost: i32,
     pub source: ConstraintNodeSource,
     pub analysis_type: Option<String>,
     pub expression_kind: Option<MorphologyGraphExpressionKind>,
@@ -67,9 +64,6 @@ impl Node {
             pos: analysis.pos.to_owned(),
             start_pos: effective_start_pos(analysis),
             end_pos: effective_end_pos(analysis),
-            left_id: analysis.left_id,
-            right_id: analysis.right_id,
-            word_cost: analysis.word_cost,
             source: ConstraintNodeSource::Source,
             analysis_type: Some(analysis.analysis_type.to_owned()),
             expression_kind: Some(analysis.expression_kind),
@@ -83,9 +77,6 @@ impl Node {
             pos: analysis.pos.clone(),
             start_pos: analysis.pos.clone(),
             end_pos: analysis.pos.clone(),
-            left_id: analysis.left_id,
-            right_id: analysis.right_id,
-            word_cost: analysis.word_cost,
             source: ConstraintNodeSource::Unknown,
             analysis_type: None,
             expression_kind: None,
@@ -100,9 +91,6 @@ impl Node {
             pos: self.pos.clone(),
             start_pos: self.start_pos.clone(),
             end_pos: self.end_pos.clone(),
-            left_id: self.left_id,
-            right_id: self.right_id,
-            word_cost: self.word_cost,
             source: self.source,
             analysis_type: self.analysis_type.clone(),
             expression_kind: self.expression_kind,
@@ -201,9 +189,6 @@ impl TokenGraph {
                 .then_with(|| left.pos.cmp(&right.pos))
                 .then_with(|| left.start_pos.cmp(&right.start_pos))
                 .then_with(|| left.end_pos.cmp(&right.end_pos))
-                .then_with(|| left.left_id.cmp(&right.left_id))
-                .then_with(|| left.right_id.cmp(&right.right_id))
-                .then_with(|| left.word_cost.cmp(&right.word_cost))
                 .then_with(|| left.analysis_type.cmp(&right.analysis_type))
                 .then_with(|| left.expression_kind.cmp(&right.expression_kind))
                 .then_with(|| left.components.cmp(&right.components))

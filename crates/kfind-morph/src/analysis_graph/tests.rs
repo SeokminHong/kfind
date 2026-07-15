@@ -264,7 +264,7 @@ fn fused_derivational_ending_uses_the_enclosing_token_span() {
 }
 
 #[test]
-fn complete_paths_with_the_same_evidence_keep_source_identity() {
+fn scoring_only_duplicates_collapse_to_one_structural_analysis() {
     let resolver = resolver(&[
         atomic("매일", "MAG", -30_000),
         atomic("매일", "MAG", 30_000),
@@ -283,17 +283,8 @@ fn complete_paths_with_the_same_evidence_keep_source_identity() {
         resolution.outcome,
         ConstraintOutcome::Ambiguous(ConstraintAmbiguity::LexicalCompetition)
     );
-    assert_eq!(resolution.proof.paths.len(), 2);
-    assert_eq!(resolution.supported.analyses.len(), 2);
-    assert_eq!(
-        resolution
-            .supported
-            .analyses
-            .iter()
-            .map(|analysis| resolution.proof.nodes[analysis.source_node_index].word_cost)
-            .collect::<Vec<_>>(),
-        [-30_000, 30_000]
-    );
+    assert_eq!(resolution.proof.paths.len(), 1);
+    assert_eq!(resolution.supported.analyses.len(), 1);
 }
 
 #[test]
@@ -854,10 +845,10 @@ fn copular_context_selects_the_unique_nominal_prefix() {
 #[test]
 fn path_limit_counts_distinct_support_proofs_not_irrelevant_prefix_combinations() {
     let resolver = resolver(&[
-        atomic("산", "NNG", -1),
-        atomic("산", "NNG", 1),
-        atomic("속", "NNG", -1),
-        atomic("속", "NNG", 1),
+        atomic("산", "NNG", 0),
+        entry("산", "NNG", "Compound", "NNG", "NNG", "*", 0),
+        atomic("속", "NNG", 0),
+        entry("속", "NNG", "Compound", "NNG", "NNG", "*", 0),
         noun_compound_transition(),
     ]);
     let pattern = exact_pattern(

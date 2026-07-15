@@ -19,7 +19,7 @@ use super::{
 use payload::{GraphPayloadLayout, encode_graph_payload};
 pub use projection::{MorphologyGraphProjectionStats, validate_morphology_graph_projection};
 
-const SCHEMA_VERSION: u32 = 3;
+const SCHEMA_VERSION: u32 = 4;
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum MorphologyGraphExpressionKind {
@@ -63,9 +63,6 @@ pub struct MorphologyGraphComponent<'a> {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MorphologyGraphAnalysis<'a> {
     pub pos: &'a str,
-    pub left_id: u16,
-    pub right_id: u16,
-    pub word_cost: i32,
     pub analysis_type: &'a str,
     pub start_pos: &'a str,
     pub end_pos: &'a str,
@@ -91,7 +88,6 @@ struct Sections {
     index: Range<usize>,
     payload: Range<usize>,
     strings: Range<usize>,
-    matrix: Range<usize>,
     char_def: Range<usize>,
     unk_def: Range<usize>,
 }
@@ -132,23 +128,6 @@ impl MorphologyGraphResource {
                 emit(length, surface, &analyses);
             }
         }
-    }
-
-    #[must_use]
-    pub fn connection_cost(&self, right_id: u16, left_id: u16) -> Option<i16> {
-        if right_id >= self.stats.right_contexts || left_id >= self.stats.left_contexts {
-            return None;
-        }
-        let index = usize::from(right_id)
-            .checked_mul(usize::from(self.stats.left_contexts))?
-            .checked_add(usize::from(left_id))?;
-        let offset = self
-            .sections
-            .matrix
-            .start
-            .checked_add(index.checked_mul(2)?)?;
-        let bytes = self.bytes.get(offset..offset.checked_add(2)?)?;
-        Some(i16::from_le_bytes(bytes.try_into().ok()?))
     }
 
     #[must_use]
@@ -222,12 +201,11 @@ pub fn encode_morphology_graph_resource(
     let index = DoubleArrayBuilder::build(&keys)
         .ok_or_else(|| build_error("failed to build morphology graph Double-Array index"))?;
     let encoded = encode_graph_payload(&groups)?;
-    let matrix_bytes = encode_matrix(matrix);
     let sections: [&[u8]; SECTION_COUNT] = [
         &index,
         &encoded.bytes,
         &encoded.strings,
-        &matrix_bytes,
+        &[],
         char_def,
         unk_def,
     ];
@@ -338,7 +316,6 @@ pub fn decode_morphology_graph_resource(
         index: ranges[0].clone(),
         payload: ranges[1].clone(),
         strings: ranges[2].clone(),
-        matrix: ranges[3].clone(),
         char_def: ranges[4].clone(),
         unk_def: ranges[5].clone(),
     };
@@ -351,12 +328,11 @@ pub fn decode_morphology_graph_resource(
             "empty unknown-word definition section",
         ));
     }
-    let expected_matrix_len = usize::from(right_contexts)
-        .checked_mul(usize::from(left_contexts))
-        .and_then(|count| count.checked_mul(2))
-        .ok_or_else(|| resource_error(source, "connection matrix length overflow"))?;
-    if sections.matrix.len() != expected_matrix_len {
-        return Err(resource_error(source, "connection matrix length mismatch"));
+    if !ranges[3].is_empty() {
+        return Err(resource_error(
+            source,
+            "structural graph contains a scoring matrix",
+        ));
     }
     let strings = StringLayout::parse(source, &bytes[sections.strings.clone()])?;
     let (payload, payload_stats) = GraphPayloadLayout::parse(
@@ -364,8 +340,6 @@ pub fn decode_morphology_graph_resource(
         &bytes[sections.payload.clone()],
         surface_count,
         analysis_count,
-        right_contexts,
-        left_contexts,
         &bytes[sections.strings.clone()],
         &strings,
     )?;
@@ -397,14 +371,6 @@ pub fn decode_morphology_graph_resource(
         strings,
         transitions: payload_stats.transitions,
     })
-}
-
-fn encode_matrix(matrix: &MecabConnectionMatrix) -> Vec<u8> {
-    matrix
-        .costs()
-        .iter()
-        .flat_map(|cost| cost.to_le_bytes())
-        .collect()
 }
 
 #[allow(clippy::too_many_arguments)]

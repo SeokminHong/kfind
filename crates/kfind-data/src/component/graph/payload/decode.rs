@@ -39,8 +39,6 @@ impl GraphPayloadLayout {
         input: &[u8],
         surface_count: u32,
         analysis_count: u32,
-        right_contexts: u16,
-        left_contexts: u16,
         string_bytes: &[u8],
         strings: &StringLayout,
     ) -> Result<(Self, GraphPayloadStats), DataError> {
@@ -130,14 +128,8 @@ impl GraphPayloadLayout {
         layout.validate_analysis_offsets(source, input)?;
         let expected_pos_counts =
             layout.pos_counts(source, input, pos_count, string_bytes, strings)?;
-        let (actual_pos_counts, expression_counts) = layout.validate_analyses(
-            source,
-            input,
-            right_contexts,
-            left_contexts,
-            string_bytes,
-            strings,
-        )?;
+        let (actual_pos_counts, expression_counts) =
+            layout.validate_analyses(source, input, string_bytes, strings)?;
         if actual_pos_counts != expected_pos_counts {
             return Err(resource_error(
                 source,
@@ -278,8 +270,6 @@ impl GraphPayloadLayout {
         &self,
         source: &str,
         input: &[u8],
-        right_contexts: u16,
-        left_contexts: u16,
         string_bytes: &[u8],
         strings: &StringLayout,
     ) -> Result<ValidationCounts, DataError> {
@@ -297,32 +287,24 @@ impl GraphPayloadLayout {
                 let record = self
                     .analysis_record(input, analysis_index)
                     .ok_or_else(|| resource_error(source, "invalid graph analysis record"))?;
-                let left_id = read_u16_at(record, 0).expect("validated analysis width");
-                let right_id = read_u16_at(record, 2).expect("validated analysis width");
-                if left_id >= left_contexts || right_id >= right_contexts {
-                    return Err(resource_error(
-                        source,
-                        "graph analysis context ID is out of range",
-                    ));
-                }
-                for offset in [8, 12, 16, 20] {
+                for offset in [0, 4, 8, 12] {
                     let id = read_u32_at(record, offset)
                         .ok_or_else(|| resource_error(source, "truncated graph string ID"))?;
                     strings
                         .get(string_bytes, id)
                         .ok_or_else(|| resource_error(source, "invalid graph string ID"))?;
                 }
-                if record[25..28] != [0; 3] {
+                if record[17..20] != [0; 3] {
                     return Err(resource_error(
                         source,
                         "non-zero graph analysis reserved bytes",
                     ));
                 }
-                let expression_kind = MorphologyGraphExpressionKind::decode(record[24])
+                let expression_kind = MorphologyGraphExpressionKind::decode(record[16])
                     .ok_or_else(|| resource_error(source, "invalid graph expression kind"))?;
-                let component_start = read_u32_at(record, 28)
+                let component_start = read_u32_at(record, 20)
                     .ok_or_else(|| resource_error(source, "truncated graph component start"))?;
-                let component_count = read_u32_at(record, 32)
+                let component_count = read_u32_at(record, 24)
                     .ok_or_else(|| resource_error(source, "truncated graph component count"))?;
                 if component_start != expected_component_start {
                     return Err(resource_error(
@@ -349,7 +331,7 @@ impl GraphPayloadLayout {
                     strings,
                 )?;
                 expected_component_start = component_end;
-                let pos_id = read_u32_at(record, 8).expect("validated analysis width");
+                let pos_id = read_u32_at(record, 0).expect("validated analysis width");
                 let pos = strings
                     .get(string_bytes, pos_id)
                     .expect("validated graph POS string ID");
@@ -415,20 +397,17 @@ impl GraphPayloadLayout {
         strings: &StringLayout,
     ) -> Option<MorphologyGraphAnalysis<'a>> {
         let record = self.analysis_record(input, analysis)?;
-        let component_start = read_u32_at(record, 28)?;
-        let component_end = component_start.checked_add(read_u32_at(record, 32)?)?;
+        let component_start = read_u32_at(record, 20)?;
+        let component_end = component_start.checked_add(read_u32_at(record, 24)?)?;
         let components = (component_start..component_end)
             .map(|component| self.component(input, component, string_bytes, strings))
             .collect::<Option<Vec<_>>>()?;
         Some(MorphologyGraphAnalysis {
-            pos: strings.get(string_bytes, read_u32_at(record, 8)?)?,
-            left_id: read_u16_at(record, 0)?,
-            right_id: read_u16_at(record, 2)?,
-            word_cost: read_i32_at(record, 4)?,
-            analysis_type: strings.get(string_bytes, read_u32_at(record, 12)?)?,
-            start_pos: strings.get(string_bytes, read_u32_at(record, 16)?)?,
-            end_pos: strings.get(string_bytes, read_u32_at(record, 20)?)?,
-            expression_kind: MorphologyGraphExpressionKind::decode(record[24])?,
+            pos: strings.get(string_bytes, read_u32_at(record, 0)?)?,
+            analysis_type: strings.get(string_bytes, read_u32_at(record, 4)?)?,
+            start_pos: strings.get(string_bytes, read_u32_at(record, 8)?)?,
+            end_pos: strings.get(string_bytes, read_u32_at(record, 12)?)?,
+            expression_kind: MorphologyGraphExpressionKind::decode(record[16])?,
             components,
         })
     }
@@ -646,20 +625,8 @@ fn to_usize(source: &str, value: u32) -> Result<usize, DataError> {
     usize::try_from(value).map_err(|error| resource_error(source, &error.to_string()))
 }
 
-fn read_u16_at(input: &[u8], offset: usize) -> Option<u16> {
-    Some(u16::from_le_bytes(
-        input.get(offset..offset + 2)?.try_into().ok()?,
-    ))
-}
-
 fn read_u32_at(input: &[u8], offset: usize) -> Option<u32> {
     Some(u32::from_le_bytes(
-        input.get(offset..offset + 4)?.try_into().ok()?,
-    ))
-}
-
-fn read_i32_at(input: &[u8], offset: usize) -> Option<i32> {
-    Some(i32::from_le_bytes(
         input.get(offset..offset + 4)?.try_into().ok()?,
     ))
 }

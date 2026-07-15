@@ -137,8 +137,8 @@ pub fn build_component_resources(input: ComponentBuildInput<'_>) -> Result<()> {
     );
     let graph_exact = measure_workload(&graph_resource, &workload.exact, true, 1).0;
     ensure!(
-        full_exact == graph_exact,
-        "graph exact lookup differs from full resource"
+        full_exact.matches == graph_exact.matches,
+        "graph exact surface lookup differs from full resource"
     );
     let full_prefix = measure_workload(&full_resource, &workload.prefix, false, 1).0;
     let compact_prefix = measure_workload(&compact_resource, &workload.prefix, false, 1).0;
@@ -148,8 +148,8 @@ pub fn build_component_resources(input: ComponentBuildInput<'_>) -> Result<()> {
     );
     let graph_prefix = measure_workload(&graph_resource, &workload.prefix, false, 1).0;
     ensure!(
-        full_prefix == graph_prefix,
-        "graph prefix lookup differs from full resource"
+        full_prefix.matches == graph_prefix.matches,
+        "graph prefix surface lookup differs from full resource"
     );
 
     fs::create_dir_all(input.output)
@@ -277,7 +277,7 @@ fn measure_component_resource(
         schema_version: match format {
             ComponentFormat::Full => 3,
             ComponentFormat::Compact => 1,
-            ComponentFormat::Graph => 2,
+            ComponentFormat::Graph => 4,
         },
         format,
         storage,
@@ -454,12 +454,7 @@ fn compact_fields<'a>(analysis: &CompactComponentAnalysis<'a>) -> (&'a str, u16,
 }
 
 fn graph_fields<'a>(analysis: &'a MorphologyGraphAnalysis<'a>) -> (&'a str, u16, u16, i32) {
-    (
-        analysis.pos,
-        analysis.left_id,
-        analysis.right_id,
-        analysis.word_cost,
-    )
+    (analysis.pos, 0, 0, 0)
 }
 
 fn measure_workload(
