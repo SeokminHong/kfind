@@ -163,7 +163,24 @@ def run_native_constraint_evaluation(
     verify_diagnostic_parity: bool = False,
 ) -> dict[str, object]:
     with tempfile.TemporaryDirectory() as directory:
+        product_control = Path(directory) / f"constraint-product-{profile}.json"
         output = Path(directory) / f"constraint-{profile}.json"
+        product_result = subprocess.run(
+            [
+                str(runner),
+                "constraint-product-control",
+                profile,
+                str(cases_path),
+                str(product_control),
+            ],
+            text=True,
+            capture_output=True,
+        )
+        if product_result.returncode != 0:
+            raise RuntimeError(
+                f"constraint product control {profile} runner failed with exit "
+                f"{product_result.returncode}: {product_result.stderr.strip()}"
+            )
         result = subprocess.run(
             [
                 str(runner),
@@ -172,6 +189,7 @@ def run_native_constraint_evaluation(
                 else "constraint-eval",
                 profile,
                 str(cases_path),
+                str(product_control),
                 str(output),
             ],
             text=True,

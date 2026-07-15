@@ -29,7 +29,7 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
 use agent_shadow::diagnose_agent_shadow;
-use constraint_eval::run_constraint_evaluation;
+use constraint_eval::{run_constraint_evaluation, run_constraint_product_control};
 use graph_shadow::diagnose_graph_shadow;
 use shadow::{
     ShadowBranchEvidence, ShadowResource, ShadowVerificationCounters, attach_source_provenance,
@@ -92,7 +92,7 @@ struct StartupSummary {
     component_resource_loaded: bool,
 }
 
-#[derive(Debug, Eq, PartialEq, Serialize)]
+#[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
 struct Span {
     byte_start: usize,
     byte_end: usize,
@@ -265,24 +265,41 @@ impl KfindBoundary {
 
 fn main() -> Result<()> {
     let arguments = std::env::args().skip(1).collect::<Vec<_>>();
+    if arguments
+        .first()
+        .is_some_and(|argument| argument == "constraint-product-control")
+    {
+        if arguments.len() != 4 {
+            bail!(
+                "usage: morph-benchmark-runner constraint-product-control PROFILE CASES.jsonl OUTPUT.json"
+            );
+        }
+        let cases = load_cases(Path::new(&arguments[2]))?;
+        let summary =
+            run_constraint_product_control(&cases, KfindProfile::parse(&arguments[1])?)?;
+        serde_json::to_writer_pretty(BufWriter::new(File::create(&arguments[3])?), &summary)?;
+        return Ok(());
+    }
     if arguments.first().is_some_and(|argument| {
         matches!(
             argument.as_str(),
             "constraint-eval" | "constraint-eval-diagnostic"
         )
     }) {
-        if arguments.len() != 4 {
+        if arguments.len() != 5 {
             bail!(
-                "usage: morph-benchmark-runner {{constraint-eval|constraint-eval-diagnostic}} PROFILE CASES.jsonl OUTPUT.json"
+                "usage: morph-benchmark-runner {{constraint-eval|constraint-eval-diagnostic}} PROFILE CASES.jsonl PRODUCT-CONTROL.json OUTPUT.json"
             );
         }
         let cases = load_cases(Path::new(&arguments[2]))?;
+        let product_control = serde_json::from_reader(BufReader::new(File::open(&arguments[3])?))?;
         let summary = run_constraint_evaluation(
             &cases,
             KfindProfile::parse(&arguments[1])?,
             arguments[0] == "constraint-eval-diagnostic",
+            product_control,
         )?;
-        serde_json::to_writer_pretty(BufWriter::new(File::create(&arguments[3])?), &summary)?;
+        serde_json::to_writer_pretty(BufWriter::new(File::create(&arguments[4])?), &summary)?;
         return Ok(());
     }
     if arguments
@@ -345,7 +362,8 @@ fn main() -> Result<()> {
             "usage: morph-benchmark-runner BACKEND CASES.jsonl OUTPUT.json\n\
              or: morph-benchmark-runner startup PROFILE OUTPUT.json\n\
              or: morph-benchmark-runner agent-shadow CASES.jsonl OUTPUT.json\n\
-             or: morph-benchmark-runner {{constraint-eval|constraint-eval-diagnostic}} PROFILE CASES.jsonl OUTPUT.json\n\
+             or: morph-benchmark-runner constraint-product-control PROFILE CASES.jsonl OUTPUT.json\n\
+             or: morph-benchmark-runner {{constraint-eval|constraint-eval-diagnostic}} PROFILE CASES.jsonl PRODUCT-CONTROL.json OUTPUT.json\n\
              or: morph-benchmark-runner {{boundary|untagged}} PROFILE BOUNDARY CASES.jsonl OUTPUT.json"
         );
     }

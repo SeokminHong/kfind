@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Instant;
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use kfind_data::{
     COMPONENT_RESOURCE_SOURCE_DIGEST, decode_component_resource, decode_morphology_graph_resource,
 };
@@ -20,7 +20,7 @@ use kfind_query::{
     BoundaryPolicy, CompileOptionOverrides, CompileOptions, CoreMapping, LexiconQueryAnalyzer,
     SurfaceBranch, compile_query,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use unicode_normalization::UnicodeNormalization;
 
@@ -59,6 +59,14 @@ pub(super) struct ConstraintEvaluationSummary {
     peak_rss_kib: Option<u64>,
     metrics: ConstraintEvaluationMetrics,
     results: Vec<ConstraintCaseResult>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub(super) struct ConstraintProductControl {
+    profile: String,
+    component_artifact_sha256: String,
+    product_seconds: f64,
+    spans_by_case: BTreeMap<String, Vec<Span>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -181,7 +189,22 @@ pub(super) fn run_constraint_evaluation(
     cases: &[Case],
     profile: KfindProfile,
     verify_diagnostic_parity: bool,
+    mut product_control: ConstraintProductControl,
 ) -> Result<ConstraintEvaluationSummary> {
+    if product_control.profile != profile.name() {
+        bail!(
+            "constraint product control profile {:?} does not match {:?}",
+            product_control.profile,
+            profile.name()
+        );
+    }
+    if product_control.spans_by_case.len() != cases.len() {
+        bail!(
+            "constraint product control contains {} cases, expected {}",
+            product_control.spans_by_case.len(),
+            cases.len()
+        );
+    }
     let initialization_started = Instant::now();
     let (lexicons, lexicon_artifact_sha256, enriched_artifact_sha256) = match profile {
         KfindProfile::Embedded => (super::Lexicons::embedded()?, None, None),
@@ -213,36 +236,12 @@ pub(super) fn run_constraint_evaluation(
         let candidates = enumerate_candidates(&case.text, &plan);
         timings.candidate_enumeration_seconds += candidate_started.elapsed().as_secs_f64();
         prepared_cases.push(PreparedCaseInput {
-            plan,
             candidates,
             preparation_seconds: preparation_started.elapsed().as_secs_f64(),
         });
     }
-
-    let product_started = Instant::now();
-    let component_path = resource_path(COMPONENT_RESOURCE_ENV, COMPONENT_RESOURCE);
-    let component_bytes = fs::read(&component_path).with_context(|| {
-        format!(
-            "constraint evaluation requires component resource {}",
-            component_path.display()
-        )
-    })?;
-    let component_artifact_sha256 = format!("{:x}", Sha256::digest(&component_bytes));
-    let component = Arc::new(decode_component_resource(
-        &component_path.display().to_string(),
-        component_bytes,
-        &COMPONENT_RESOURCE_SOURCE_DIGEST,
-    )?);
-    let mut product_spans = Vec::with_capacity(cases.len());
-    for (case, prepared) in cases.iter().zip(&prepared_cases) {
-        let matcher = MorphMatcher::with_component_resource(
-            Arc::new(prepared.plan.clone()),
-            Arc::clone(&component),
-        )?;
-        product_spans.push(find_all_spans(&matcher, &case.text));
-    }
-    timings.product_seconds = product_started.elapsed().as_secs_f64();
-    drop(component);
+    let component_artifact_sha256 = product_control.component_artifact_sha256;
+    timings.product_seconds = product_control.product_seconds;
 
     let graph_initialization_started = Instant::now();
     let graph_path = resource_path(GRAPH_RESOURCE_ENV, GRAPH_RESOURCE);
@@ -264,7 +263,11 @@ pub(super) fn run_constraint_evaluation(
 
     let mut metrics = EvaluationMetrics::default();
     let mut results = Vec::with_capacity(cases.len());
-    for ((case, prepared), product_spans) in cases.iter().zip(prepared_cases).zip(product_spans) {
+    for (case, prepared) in cases.iter().zip(prepared_cases) {
+        let product_spans = product_control
+            .spans_by_case
+            .remove(&case.id)
+            .with_context(|| format!("constraint product control omitted case {}", case.id))?;
         let evaluation_before = timings.candidate_enumeration_seconds
             + timings.resolver_seconds
             + timings.policy_seconds;
@@ -427,8 +430,50 @@ pub(super) fn run_constraint_evaluation(
     })
 }
 
+pub(super) fn run_constraint_product_control(
+    cases: &[Case],
+    profile: KfindProfile,
+) -> Result<ConstraintProductControl> {
+    let lexicons = match profile {
+        KfindProfile::Embedded => super::Lexicons::embedded()?,
+        KfindProfile::FullPos => load_full_profile_lexicons()?.0,
+    };
+    let analyzer = LexiconQueryAnalyzer::new(Arc::new(lexicons));
+    let component_path = resource_path(COMPONENT_RESOURCE_ENV, COMPONENT_RESOURCE);
+    let component_bytes = fs::read(&component_path).with_context(|| {
+        format!(
+            "constraint product control requires component resource {}",
+            component_path.display()
+        )
+    })?;
+    let component_artifact_sha256 = format!("{:x}", Sha256::digest(&component_bytes));
+    let component = Arc::new(decode_component_resource(
+        &component_path.display().to_string(),
+        component_bytes,
+        &COMPONENT_RESOURCE_SOURCE_DIGEST,
+    )?);
+    let product_started = Instant::now();
+    let mut spans_by_case = BTreeMap::new();
+    for case in cases {
+        let options = CompileOptions::resolve(CompileOptionOverrides {
+            boundary: Some(BoundaryPolicy::Smart),
+            pos: Some(parse_pos(&case.pos)?),
+            ..CompileOptionOverrides::default()
+        })?;
+        let plan = compile_query(&case.query, &options, &analyzer)
+            .with_context(|| format!("failed to compile product control case {}", case.id))?;
+        let matcher = MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(&component))?;
+        spans_by_case.insert(case.id.clone(), find_all_spans(&matcher, &case.text));
+    }
+    Ok(ConstraintProductControl {
+        profile: profile.name().to_owned(),
+        component_artifact_sha256,
+        product_seconds: product_started.elapsed().as_secs_f64(),
+        spans_by_case,
+    })
+}
+
 struct PreparedCaseInput {
-    plan: kfind_query::QueryPlan,
     candidates: Vec<RawCandidate>,
     preparation_seconds: f64,
 }
