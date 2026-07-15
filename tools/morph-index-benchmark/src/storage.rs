@@ -5,7 +5,7 @@ use anyhow::{Context, Result, ensure};
 use memmap2::{Mmap, MmapOptions};
 use serde::Serialize;
 
-#[derive(Clone, Copy, Debug, Serialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum StorageMode {
     Resident,
@@ -26,6 +26,13 @@ impl ArtifactBytes {
                 })?))
             }
             StorageMode::Mmap => Ok(Self::Mapped(map_read_only(path)?)),
+        }
+    }
+
+    pub fn into_owned(self) -> Vec<u8> {
+        match self {
+            Self::Resident(bytes) => bytes,
+            Self::Mapped(bytes) => bytes.to_vec(),
         }
     }
 }

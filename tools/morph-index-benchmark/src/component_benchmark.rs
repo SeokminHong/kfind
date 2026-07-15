@@ -7,9 +7,11 @@ use std::time::Instant;
 use anyhow::{Context, Result, ensure};
 use clap::ValueEnum;
 use kfind_data::{
-    DecodedMorphologyResource, MecabSourceMorphologyEntry, decode_morphology_resource,
-    encode_component_resource, encode_morphology_resource, extract_mecab_source_morphology,
-    parse_mecab_connection_matrix,
+    DecodedMorphologyResource, MecabSourceMorphologyEntry, MorphologyGraphAnalysis,
+    MorphologyGraphResource, decode_morphology_graph_resource, decode_morphology_resource,
+    encode_component_resource, encode_morphology_graph_resource, encode_morphology_resource,
+    extract_mecab_source_morphology, parse_mecab_connection_matrix,
+    validate_morphology_graph_projection,
 };
 use morph_index_benchmark::component_artifact::{
     CompactComponentAnalysis, CompactComponentResource, decode_compact_component_resource,
@@ -22,13 +24,15 @@ use crate::storage::{ArtifactBytes, StorageMode, peak_rss_bytes};
 const WORKLOAD_SIZE: usize = 10_000;
 pub const FULL_ARTIFACT_NAME: &str = "morphology-full.kfm";
 pub const COMPACT_ARTIFACT_NAME: &str = "morphology-component-compact.kfc";
+pub const GRAPH_ARTIFACT_NAME: &str = "morphology-component-graph.kfc";
 pub const WORKLOAD_NAME: &str = "component-queries.json";
 
-#[derive(Clone, Copy, Debug, Serialize, ValueEnum)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, ValueEnum)]
 #[serde(rename_all = "kebab-case")]
 pub enum ComponentFormat {
     Full,
     Compact,
+    Graph,
 }
 
 #[derive(Debug, Serialize)]
@@ -39,7 +43,10 @@ pub struct ComponentBuildReport<'a> {
     pub analysis_count: u32,
     pub full_artifact_bytes: usize,
     pub compact_artifact_bytes: usize,
+    pub graph_artifact_bytes: usize,
     pub compact_to_full_percent: f64,
+    pub graph_to_full_percent: f64,
+    pub graph_component_count: u32,
     pub exact_equivalence: LookupTotals,
     pub prefix_equivalence: LookupTotals,
 }
@@ -100,18 +107,38 @@ pub fn build_component_resources(input: ComponentBuildInput<'_>) -> Result<()> {
         encode_morphology_resource(input.source_digest, &entries, &matrix, &char_def, &unk_def)?;
     let compact =
         encode_component_resource(input.source_digest, &entries, &matrix, &char_def, &unk_def)?;
+    let graph = encode_morphology_graph_resource(
+        input.source_digest,
+        &entries,
+        &matrix,
+        &char_def,
+        &unk_def,
+    )?;
     let full_view =
         decode_morphology_resource("full benchmark resource", &full, &input.source_digest)?;
     let compact_view = decode_compact_component_resource(&compact, &input.source_digest)?;
+    let graph_view =
+        decode_morphology_graph_resource("graph benchmark resource", graph, &input.source_digest)?;
     ensure_equivalent_metadata(&full_view, &compact_view)?;
+    let graph_projection = validate_morphology_graph_projection(
+        "graph benchmark projection",
+        &full_view,
+        &graph_view,
+    )?;
     let workload = build_workload(&entries);
     let full_resource = ComponentResource::Full(full_view);
     let compact_resource = ComponentResource::Compact(compact_view);
+    let graph_resource = ComponentResource::Graph(graph_view);
     let full_exact = measure_workload(&full_resource, &workload.exact, true, 1).0;
     let compact_exact = measure_workload(&compact_resource, &workload.exact, true, 1).0;
     ensure!(
         full_exact == compact_exact,
         "component exact lookup differs from full resource"
+    );
+    let graph_exact = measure_workload(&graph_resource, &workload.exact, true, 1).0;
+    ensure!(
+        full_exact == graph_exact,
+        "graph exact lookup differs from full resource"
     );
     let full_prefix = measure_workload(&full_resource, &workload.prefix, false, 1).0;
     let compact_prefix = measure_workload(&compact_resource, &workload.prefix, false, 1).0;
@@ -119,23 +146,36 @@ pub fn build_component_resources(input: ComponentBuildInput<'_>) -> Result<()> {
         full_prefix == compact_prefix,
         "component prefix lookup differs from full resource"
     );
+    let graph_prefix = measure_workload(&graph_resource, &workload.prefix, false, 1).0;
+    ensure!(
+        full_prefix == graph_prefix,
+        "graph prefix lookup differs from full resource"
+    );
 
     fs::create_dir_all(input.output)
         .with_context(|| format!("failed to create {}", input.output.display()))?;
     fs::write(input.output.join(FULL_ARTIFACT_NAME), &full)?;
     fs::write(input.output.join(COMPACT_ARTIFACT_NAME), &compact)?;
+    let graph = match graph_resource {
+        ComponentResource::Graph(resource) => resource.into_bytes(),
+        _ => unreachable!("graph resource variant"),
+    };
+    fs::write(input.output.join(GRAPH_ARTIFACT_NAME), &graph)?;
     fs::write(
         input.output.join(WORKLOAD_NAME),
         serde_json::to_vec_pretty(&workload)?,
     )?;
     let report = ComponentBuildReport {
-        schema_version: 1,
+        schema_version: 2,
         source_sha256: input.source_sha256,
         surface_count: full_resource.surface_count(),
         analysis_count: full_resource.analysis_count(),
         full_artifact_bytes: full.len(),
         compact_artifact_bytes: compact.len(),
+        graph_artifact_bytes: graph.len(),
         compact_to_full_percent: compact.len() as f64 / full.len() as f64 * 100.0,
+        graph_to_full_percent: graph.len() as f64 / full.len() as f64 * 100.0,
+        graph_component_count: graph_projection.component_count,
         exact_equivalence: full_exact,
         prefix_equivalence: full_prefix,
     };
@@ -156,6 +196,10 @@ pub fn probe_component_resource(
     iterations: usize,
 ) -> Result<ComponentProbeReport> {
     ensure!(iterations > 0, "iterations must be greater than zero");
+    ensure!(
+        format != ComponentFormat::Graph || storage == StorageMode::Resident,
+        "graph probes require resident storage because the validated resource owns its bytes"
+    );
     let workload: Workload = serde_json::from_slice(
         &fs::read(query_path)
             .with_context(|| format!("failed to read {}", query_path.display()))?,
@@ -169,6 +213,27 @@ pub fn probe_component_resource(
         "component prefix workload is empty"
     );
 
+    if format == ComponentFormat::Graph {
+        let initialization_started = Instant::now();
+        let bytes = ArtifactBytes::load(artifact_path, storage)?.into_owned();
+        let artifact_bytes = bytes.len();
+        let resource = ComponentResource::Graph(decode_morphology_graph_resource(
+            &artifact_path.display().to_string(),
+            bytes,
+            expected_source_digest,
+        )?);
+        let initialization_ms = initialization_started.elapsed().as_secs_f64() * 1_000.0;
+        return measure_component_resource(
+            format,
+            storage,
+            artifact_bytes,
+            initialization_ms,
+            &resource,
+            &workload,
+            iterations,
+        );
+    }
+
     let initialization_started = Instant::now();
     let bytes = ArtifactBytes::load(artifact_path, storage)?;
     let resource = match format {
@@ -181,16 +246,42 @@ pub fn probe_component_resource(
             bytes.as_ref(),
             expected_source_digest,
         )?),
+        ComponentFormat::Graph => unreachable!("graph probe returned before borrowed formats"),
     };
     let initialization_ms = initialization_started.elapsed().as_secs_f64() * 1_000.0;
-    let (exact, exact_elapsed) = measure_workload(&resource, &workload.exact, true, iterations);
-    let (prefix, prefix_elapsed) = measure_workload(&resource, &workload.prefix, false, iterations);
-    black_box((exact.checksum, prefix.checksum));
-    Ok(ComponentProbeReport {
-        schema_version: 1,
+    measure_component_resource(
         format,
         storage,
-        artifact_bytes: bytes.as_ref().len(),
+        bytes.as_ref().len(),
+        initialization_ms,
+        &resource,
+        &workload,
+        iterations,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn measure_component_resource(
+    format: ComponentFormat,
+    storage: StorageMode,
+    artifact_bytes: usize,
+    initialization_ms: f64,
+    resource: &ComponentResource<'_>,
+    workload: &Workload,
+    iterations: usize,
+) -> Result<ComponentProbeReport> {
+    let (exact, exact_elapsed) = measure_workload(resource, &workload.exact, true, iterations);
+    let (prefix, prefix_elapsed) = measure_workload(resource, &workload.prefix, false, iterations);
+    black_box((exact.checksum, prefix.checksum));
+    Ok(ComponentProbeReport {
+        schema_version: match format {
+            ComponentFormat::Full => 3,
+            ComponentFormat::Compact => 1,
+            ComponentFormat::Graph => 2,
+        },
+        format,
+        storage,
+        artifact_bytes,
         surface_count: resource.surface_count(),
         analysis_count: resource.analysis_count(),
         initialization_ms,
@@ -285,6 +376,7 @@ fn ensure_equivalent_metadata(
 enum ComponentResource<'a> {
     Full(DecodedMorphologyResource<'a>),
     Compact(CompactComponentResource<'a>),
+    Graph(MorphologyGraphResource),
 }
 
 impl ComponentResource<'_> {
@@ -292,6 +384,7 @@ impl ComponentResource<'_> {
         match self {
             Self::Full(resource) => resource.stats().surface_count,
             Self::Compact(resource) => resource.stats().surface_count,
+            Self::Graph(resource) => resource.stats().surface_count,
         }
     }
 
@@ -299,6 +392,7 @@ impl ComponentResource<'_> {
         match self {
             Self::Full(resource) => resource.stats().analysis_count,
             Self::Compact(resource) => resource.stats().analysis_count,
+            Self::Graph(resource) => resource.stats().analysis_count,
         }
     }
 
@@ -325,6 +419,11 @@ impl ComponentResource<'_> {
                     totals.record(length, analyses.iter().map(compact_fields));
                 }
             }),
+            Self::Graph(resource) => resource.common_prefixes(input, |length, _, analyses| {
+                if !exact || length == input.len() {
+                    totals.record(length, analyses.iter().map(graph_fields));
+                }
+            }),
         }
         totals
     }
@@ -346,6 +445,15 @@ impl LookupTotals {
 }
 
 fn compact_fields<'a>(analysis: &CompactComponentAnalysis<'a>) -> (&'a str, u16, u16, i32) {
+    (
+        analysis.pos,
+        analysis.left_id,
+        analysis.right_id,
+        analysis.word_cost,
+    )
+}
+
+fn graph_fields<'a>(analysis: &'a MorphologyGraphAnalysis<'a>) -> (&'a str, u16, u16, i32) {
     (
         analysis.pos,
         analysis.left_id,

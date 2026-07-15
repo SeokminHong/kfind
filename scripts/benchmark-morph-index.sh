@@ -45,12 +45,17 @@ for kind in double-array fst; do
 done
 
 component_queries="${output_directory}/component-queries.json"
-for format in full compact; do
+for format in full compact graph; do
   case "${format}" in
     full) artifact="${output_directory}/morphology-full.kfm" ;;
     compact) artifact="${output_directory}/morphology-component-compact.kfc" ;;
+    graph) artifact="${output_directory}/morphology-component-graph.kfc" ;;
   esac
-  for storage in resident mmap; do
+  storages=(resident mmap)
+  if [[ "${format}" == "graph" ]]; then
+    storages=(resident)
+  fi
+  for storage in "${storages[@]}"; do
     for phase in cold warm; do
       "${binary}" probe-component \
         --source-sha256 "${FULL_POS_SOURCE_SHA256}" \
