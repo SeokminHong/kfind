@@ -397,6 +397,7 @@ def render_markdown(report: dict[str, object]) -> str:
     append_external_baselines(lines, report)
     append_product_use_cases(lines, report.get("product_use_cases"))
     append_agent_precision_shadow(lines, report.get("agent_precision_shadow"))
+    append_constraint_evaluation(lines, report.get("constraint_evaluation"))
     append_quality_sections(lines, report)
     append_boundary_comparison(lines, report.get("boundary_comparison"))
     append_human_untagged(lines, report.get("human_untagged"))
@@ -859,6 +860,52 @@ def append_grouped_quality(
                 f"{metrics['precision_percent']}% | {metrics['recall_percent']}% | "
                 f"{metrics['f1_percent']}% |"
             )
+
+
+def append_constraint_evaluation(
+    lines: list[str], evaluation: dict[str, object] | None
+) -> None:
+    if evaluation is None:
+        return
+    lines.extend(
+        [
+            "",
+            "## Structural constraint evaluation",
+            "",
+            "The reference evaluator enumerates anchors independently and resolves morphology without the product verifier, lexical-context registry, boundary policy, or cost threshold.",
+            "",
+            "| dataset | decision | TP | FP | TN | FN | precision | recall | candidate coverage |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for dataset_name in ("development", "hard_negatives", "test"):
+        dataset = evaluation[dataset_name]
+        metrics = dataset["metrics"]
+        rows = {"product": metrics["product_quality"], **metrics["policy_quality"]}
+        for decision, quality in rows.items():
+            lines.append(
+                f"| {dataset_name} | {decision} | {quality['tp']} | {quality['fp']} | "
+                f"{quality['tn']} | {quality['fn']} | {quality['precision_percent']:.2f}% | "
+                f"{quality['recall_percent']:.2f}% | {metrics['candidate_coverage_percent']:.2f}% |"
+            )
+    performance = evaluation["test"]["performance"]
+    lines.extend(
+        [
+            "",
+            "The test performance row uses fresh full-POS processes after one discarded warm-up. Diagnostic serialization and the product control run are excluded from evaluator throughput.",
+            "",
+            "| runs | init median | cases/s median [min, max] | p95 median [min, max] | peak RSS median [min, max] | compile | candidate | resolver | policy |",
+            "| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+            f"| {performance['runs']} | {performance['initialization_seconds']:.4f}s | "
+            f"{performance['cases_per_second']} [{performance['run_min']['cases_per_second']}, {performance['run_max']['cases_per_second']}] | "
+            f"{performance['latency_p95_ms']}ms [{performance['run_min']['latency_p95_ms']}, {performance['run_max']['latency_p95_ms']}] | "
+            f"{format_rss(performance['peak_rss_kib'])} [{format_rss(performance['run_min']['peak_rss_kib'])}, {format_rss(performance['run_max']['peak_rss_kib'])}] | "
+            f"{performance['compile_seconds']:.4f}s | {performance['candidate_enumeration_seconds']:.4f}s | "
+            f"{performance['resolver_seconds']:.4f}s | {performance['policy_seconds']:.4f}s |",
+            "",
+            f"- notable case diagnostics: development {len(evaluation['development']['case_diagnostics'])}, hard negatives {len(evaluation['hard_negatives']['case_diagnostics'])}, test {len(evaluation['test']['case_diagnostics'])}",
+        ]
+    )
 
 
 def append_profile_comparison(lines: list[str], report: dict[str, object]) -> None:

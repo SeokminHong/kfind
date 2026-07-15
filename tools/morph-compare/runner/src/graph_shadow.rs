@@ -25,6 +25,7 @@ pub(super) struct GraphShadowEvidence {
     whole: GraphPolicyEvidence,
     explicit_component: GraphPolicyEvidence,
     possible_analysis: GraphPolicyEvidence,
+    unambiguous_analysis: GraphPolicyEvidence,
     error: Option<String>,
 }
 
@@ -50,6 +51,9 @@ struct GraphSupportedAnalysisEvidence {
     pattern_index: usize,
     path_index: usize,
     node_index: usize,
+    source_node_index: usize,
+    lexical_node_indices: Vec<usize>,
+    lexical_source_node_indices: Vec<usize>,
     component_index: Option<usize>,
     evidence: &'static str,
     span_relation: String,
@@ -77,6 +81,7 @@ struct GraphPatternEvidence {
     whole_accepted: bool,
     explicit_component_accepted: bool,
     possible_analysis_accepted: bool,
+    unambiguous_analysis_accepted: bool,
     supported: Vec<GraphSupportedAnalysisEvidence>,
     proof: GraphProofEvidence,
 }
@@ -91,13 +96,14 @@ struct GraphPolicyEvidence {
 struct GraphProofEvidence {
     known_node_count: usize,
     unknown_node_count: usize,
+    nodes: Vec<GraphNodeEvidence>,
     paths: Vec<GraphPathEvidence>,
 }
 
 #[derive(Debug, Serialize)]
 struct GraphPathEvidence {
     evidence: &'static str,
-    nodes: Vec<GraphNodeEvidence>,
+    node_indices: Vec<usize>,
 }
 
 #[derive(Debug, Serialize)]
@@ -151,6 +157,7 @@ pub(super) fn diagnose_graph_shadow(
                 whole: unavailable_policy(),
                 explicit_component: unavailable_policy(),
                 possible_analysis: unavailable_policy(),
+                unambiguous_analysis: unavailable_policy(),
                 error,
             };
             let Some(resolver) = resolver else {
@@ -220,6 +227,11 @@ pub(super) fn diagnose_graph_shadow(
                 &resolution,
                 &candidate.patterns,
             );
+            let unambiguous_analysis = policy_evidence(
+                ProductPolicy::UnambiguousAnalysis,
+                &resolution,
+                &candidate.patterns,
+            );
             GraphShadowEvidence {
                 atom_index: candidate.atom_index,
                 branch_index: candidate.branch_index,
@@ -241,6 +253,7 @@ pub(super) fn diagnose_graph_shadow(
                 whole,
                 explicit_component,
                 possible_analysis,
+                unambiguous_analysis,
                 patterns,
                 error: None,
             }
@@ -277,6 +290,8 @@ fn resolve_pattern(
             .accepts(&resolution, std::slice::from_ref(pattern)),
         possible_analysis_accepted: ProductPolicy::PossibleAnalysis
             .accepts(&resolution, std::slice::from_ref(pattern)),
+        unambiguous_analysis_accepted: ProductPolicy::UnambiguousAnalysis
+            .accepts(&resolution, std::slice::from_ref(pattern)),
         supported: supported_evidence(&resolution),
         proof: proof_evidence(&resolution.proof),
     }
@@ -308,6 +323,11 @@ fn resolution_evidence(resolution: &ConstraintResolution) -> GraphResolutionEvid
     }
 }
 
+pub(super) fn resolution_json(resolution: &ConstraintResolution) -> serde_json::Value {
+    serde_json::to_value(resolution_evidence(resolution))
+        .expect("graph resolution evidence is serializable")
+}
+
 fn supported_evidence(resolution: &ConstraintResolution) -> Vec<GraphSupportedAnalysisEvidence> {
     resolution
         .supported
@@ -317,6 +337,9 @@ fn supported_evidence(resolution: &ConstraintResolution) -> Vec<GraphSupportedAn
             pattern_index: analysis.pattern_index,
             path_index: analysis.path_index,
             node_index: analysis.node_index,
+            source_node_index: analysis.source_node_index,
+            lexical_node_indices: analysis.lexical_node_indices.clone(),
+            lexical_source_node_indices: analysis.lexical_source_node_indices.clone(),
             component_index: analysis.component_index,
             evidence: evidence_name(analysis.evidence),
             span_relation: format!("{:?}", analysis.span_relation),
@@ -343,49 +366,50 @@ fn proof_evidence(proof: &ConstraintProof) -> GraphProofEvidence {
     GraphProofEvidence {
         known_node_count: proof.known_node_count,
         unknown_node_count: proof.unknown_node_count,
+        nodes: proof
+            .nodes
+            .iter()
+            .map(|node| GraphNodeEvidence {
+                surface: node.surface.clone(),
+                span: span(node.span.clone()),
+                pos: node.pos.clone(),
+                start_pos: node.start_pos.clone(),
+                end_pos: node.end_pos.clone(),
+                left_id: node.left_id,
+                right_id: node.right_id,
+                word_cost: node.word_cost,
+                source: match node.source {
+                    ConstraintNodeSource::Source => "source",
+                    ConstraintNodeSource::Unknown => "unknown",
+                },
+                analysis_type: node.analysis_type.clone(),
+                expression_kind: node.expression_kind.map(expression_kind_name),
+                components: node
+                    .components
+                    .iter()
+                    .map(|component| GraphComponentEvidence {
+                        surface: component.surface.clone(),
+                        pos: component.pos.clone(),
+                        span: component.span.clone().map(span),
+                    })
+                    .collect(),
+                matches_query_node: node.matches_query_node,
+                matches_source_component: node.matches_source_component,
+                has_opaque_expression: node.has_opaque_expression,
+            })
+            .collect(),
         paths: proof
             .paths
             .iter()
             .map(|path| GraphPathEvidence {
                 evidence: evidence_name(path.evidence),
-                nodes: path
-                    .nodes
-                    .iter()
-                    .map(|node| GraphNodeEvidence {
-                        surface: node.surface.clone(),
-                        span: span(node.span.clone()),
-                        pos: node.pos.clone(),
-                        start_pos: node.start_pos.clone(),
-                        end_pos: node.end_pos.clone(),
-                        left_id: node.left_id,
-                        right_id: node.right_id,
-                        word_cost: node.word_cost,
-                        source: match node.source {
-                            ConstraintNodeSource::Source => "source",
-                            ConstraintNodeSource::Unknown => "unknown",
-                        },
-                        analysis_type: node.analysis_type.clone(),
-                        expression_kind: node.expression_kind.map(expression_kind_name),
-                        components: node
-                            .components
-                            .iter()
-                            .map(|component| GraphComponentEvidence {
-                                surface: component.surface.clone(),
-                                pos: component.pos.clone(),
-                                span: component.span.clone().map(span),
-                            })
-                            .collect(),
-                        matches_query_node: node.matches_query_node,
-                        matches_source_component: node.matches_source_component,
-                        has_opaque_expression: node.has_opaque_expression,
-                    })
-                    .collect(),
+                node_indices: path.node_indices.clone(),
             })
             .collect(),
     }
 }
 
-fn outcome_name(outcome: ConstraintOutcome) -> String {
+pub(super) fn outcome_name(outcome: ConstraintOutcome) -> String {
     match outcome {
         ConstraintOutcome::Supported => "supported".to_owned(),
         ConstraintOutcome::Contradicted => "contradicted".to_owned(),

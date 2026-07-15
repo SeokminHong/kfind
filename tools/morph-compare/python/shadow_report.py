@@ -98,11 +98,16 @@ def summarize_analysis_graph(
     by_case: dict[str, dict[str, object]],
     case_metadata: dict[str, dict[str, object]],
 ) -> dict[str, object]:
-    profiles = ("opaque", "transparent", "explicit")
-    predictions = {profile: {} for profile in profiles}
+    policies = (
+        "whole",
+        "explicit_component",
+        "possible_analysis",
+        "unambiguous_analysis",
+    )
+    predictions = {policy: {} for policy in policies}
     product_predictions: dict[str, bool] = {}
     statuses: dict[str, int] = defaultdict(int)
-    verdicts_by_class: dict[str, dict[str, int]] = defaultdict(
+    outcomes_by_class: dict[str, dict[str, int]] = defaultdict(
         lambda: defaultdict(int)
     )
     by_case_summary: dict[str, dict[str, object]] = {}
@@ -119,47 +124,47 @@ def summarize_analysis_graph(
             statuses[str(candidate.get("status", "invalid"))] += 1
             resolution = candidate.get("resolution")
             if isinstance(resolution, dict):
-                verdicts_by_class[class_name][str(resolution.get("verdict"))] += 1
+                outcomes_by_class[class_name][str(resolution.get("outcome"))] += 1
         product_prediction = _analysis_graph_prediction(
             case, candidates, lambda candidate: bool(candidate.get("product_accepted"))
         )
         product_predictions[case_id] = product_prediction
-        profile_predictions = {}
-        for profile in profiles:
+        policy_predictions = {}
+        for policy in policies:
             predicted = _analysis_graph_prediction(
                 case,
                 candidates,
-                lambda candidate, profile=profile: isinstance(
-                    candidate.get(profile), dict
+                lambda candidate, policy=policy: isinstance(
+                    candidate.get(policy), dict
                 )
-                and bool(candidate[profile].get("accepted")),
+                and bool(candidate[policy].get("accepted")),
             )
-            predictions[profile][case_id] = predicted
-            profile_predictions[profile] = predicted
+            predictions[policy][case_id] = predicted
+            policy_predictions[policy] = predicted
         by_case_summary[case_id] = {
             "expected": bool(case["expected"]),
             "product": product_prediction,
-            "profiles": profile_predictions,
+            "policies": policy_predictions,
             "candidate_count": len(candidates),
         }
     return {
         "statuses": dict(sorted(statuses.items())),
-        "verdicts_by_class": {
+        "outcomes_by_class": {
             class_name: dict(sorted(counts.items()))
-            for class_name, counts in sorted(verdicts_by_class.items())
+            for class_name, counts in sorted(outcomes_by_class.items())
         },
         "product_candidate_quality": _analysis_graph_quality(
             case_metadata, product_predictions
         ),
-        "profiles": {
-            profile: {
-                "quality": _analysis_graph_quality(case_metadata, predictions[profile]),
+        "policies": {
+            policy: {
+                "quality": _analysis_graph_quality(case_metadata, predictions[policy]),
                 "changed_from_product": sum(
-                    predictions[profile].get(case_id) != product_predictions.get(case_id)
+                    predictions[policy].get(case_id) != product_predictions.get(case_id)
                     for case_id in case_metadata
                 ),
             }
-            for profile in profiles
+            for policy in policies
         },
         "by_case": by_case_summary,
     }
@@ -182,9 +187,9 @@ def _analysis_graph_prediction(
     if not isinstance(gold_start, int) or not isinstance(gold_end, int):
         return False
     return any(
-        isinstance((token := candidate.get("token")), dict)
-        and int(token["byte_start"]) < gold_end
-        and gold_start < int(token["byte_end"])
+        isinstance((consumed := candidate.get("consumed")), dict)
+        and int(consumed["byte_start"]) < gold_end
+        and gold_start < int(consumed["byte_end"])
         for candidate in accepted_candidates
     )
 
@@ -707,12 +712,12 @@ def append_analysis_graph_profiles(
         graph = shadow_verification.get(profile, {}).get("analysis_graph")
         if not isinstance(graph, dict):
             continue
-        for graph_profile, result in graph.get("profiles", {}).items():
+        for graph_policy, result in graph.get("policies", {}).items():
             quality = result["quality"]
             rows.append(
                 (
                     profile,
-                    graph_profile,
+                    graph_policy,
                     quality,
                     result["changed_from_product"],
                 )
@@ -726,9 +731,9 @@ def append_analysis_graph_profiles(
             "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
-    for profile, graph_profile, quality, changed in rows:
+    for profile, graph_policy, quality, changed in rows:
         lines.append(
-            f"| {profile} | {graph_profile} | {quality['tp']} | {quality['fp']} | "
+            f"| {profile} | {graph_policy} | {quality['tp']} | {quality['fp']} | "
             f"{quality['tn']} | {quality['fn']} | {quality['precision_percent']}% | "
             f"{quality['recall_percent']}% | {changed} |"
         )

@@ -1,4 +1,5 @@
 mod agent_shadow;
+mod constraint_eval;
 mod graph_shadow;
 mod shadow;
 
@@ -28,6 +29,7 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
 use agent_shadow::diagnose_agent_shadow;
+use constraint_eval::run_constraint_evaluation;
 use graph_shadow::diagnose_graph_shadow;
 use shadow::{
     ShadowBranchEvidence, ShadowResource, ShadowVerificationCounters, attach_source_provenance,
@@ -265,6 +267,18 @@ fn main() -> Result<()> {
     let arguments = std::env::args().skip(1).collect::<Vec<_>>();
     if arguments
         .first()
+        .is_some_and(|argument| argument == "constraint-eval")
+    {
+        if arguments.len() != 4 {
+            bail!("usage: morph-benchmark-runner constraint-eval PROFILE CASES.jsonl OUTPUT.json");
+        }
+        let cases = load_cases(Path::new(&arguments[2]))?;
+        let summary = run_constraint_evaluation(&cases, KfindProfile::parse(&arguments[1])?)?;
+        serde_json::to_writer_pretty(BufWriter::new(File::create(&arguments[3])?), &summary)?;
+        return Ok(());
+    }
+    if arguments
+        .first()
         .is_some_and(|argument| argument == "agent-shadow")
     {
         if arguments.len() != 3 {
@@ -323,6 +337,7 @@ fn main() -> Result<()> {
             "usage: morph-benchmark-runner BACKEND CASES.jsonl OUTPUT.json\n\
              or: morph-benchmark-runner startup PROFILE OUTPUT.json\n\
              or: morph-benchmark-runner agent-shadow CASES.jsonl OUTPUT.json\n\
+             or: morph-benchmark-runner constraint-eval PROFILE CASES.jsonl OUTPUT.json\n\
              or: morph-benchmark-runner {{boundary|untagged}} PROFILE BOUNDARY CASES.jsonl OUTPUT.json"
         );
     }
@@ -1096,10 +1111,11 @@ mod tests {
         let graph = &serialized["analysis_graph"][0];
         assert_eq!(graph["status"], "evaluated");
         assert_eq!(graph["product_accepted"], true);
-        assert_eq!(graph["resolution"]["outcome"], "supported");
+        assert_eq!(graph["resolution"]["outcome"], "ambiguous:CompoundExposure");
         assert_eq!(graph["whole"]["accepted"], false);
         assert_eq!(graph["explicit_component"]["accepted"], true);
         assert_eq!(graph["possible_analysis"]["accepted"], true);
+        assert_eq!(graph["unambiguous_analysis"]["accepted"], false);
         assert_eq!(
             graph["patterns"][0]["component_capability"],
             "SourceAndRuntime"

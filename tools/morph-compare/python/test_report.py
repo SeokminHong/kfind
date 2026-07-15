@@ -6,6 +6,7 @@ from report import (
     append_boundary_comparison,
     append_component_shadow_table,
     append_component_startup,
+    append_constraint_evaluation,
     append_development_failure_diagnostics,
     append_external_baselines,
     append_human_untagged,
@@ -23,6 +24,62 @@ from report import (
     strict_subspan_position,
     untagged_plan_metrics,
 )
+
+
+class ConstraintEvaluationReportTests(unittest.TestCase):
+    def test_renders_policy_quality_and_test_performance(self) -> None:
+        quality = {
+            "tp": 8,
+            "fp": 1,
+            "tn": 9,
+            "fn": 2,
+            "precision_percent": 88.89,
+            "recall_percent": 80.0,
+        }
+        performance = {
+            "runs": 5,
+            "initialization_seconds": 1.0,
+            "cases_per_second": 500.0,
+            "latency_p95_ms": 3.0,
+            "peak_rss_kib": 1024,
+            "compile_seconds": 0.1,
+            "candidate_enumeration_seconds": 0.2,
+            "resolver_seconds": 0.3,
+            "policy_seconds": 0.01,
+            "run_min": {
+                "cases_per_second": 490.0,
+                "latency_p95_ms": 2.9,
+                "peak_rss_kib": 1024,
+            },
+            "run_max": {
+                "cases_per_second": 510.0,
+                "latency_p95_ms": 3.1,
+                "peak_rss_kib": 2048,
+            },
+        }
+        dataset = {
+            "metrics": {
+                "candidate_coverage_percent": 90.0,
+                "product_quality": quality,
+                "policy_quality": {"unambiguous-analysis": quality},
+            },
+            "case_diagnostics": [],
+        }
+        evaluation = {
+            "development": dataset,
+            "hard_negatives": dataset,
+            "test": {**dataset, "performance": performance},
+        }
+        lines: list[str] = []
+
+        append_constraint_evaluation(lines, evaluation)
+
+        rendered = "\n".join(lines)
+        self.assertIn(
+            "| test | unambiguous-analysis | 8 | 1 | 9 | 2 | 88.89% | 80.00% | 90.00% |",
+            rendered,
+        )
+        self.assertIn("| 5 | 1.0000s | 500.0 [490.0, 510.0] |", rendered)
 
 
 class KfindProfileComparisonTests(unittest.TestCase):
@@ -674,13 +731,14 @@ class ShadowVerificationTests(unittest.TestCase):
         }
         candidate = {
             "status": "evaluated",
-            "token": {"byte_start": 3, "byte_end": 9},
+            "consumed": {"byte_start": 3, "byte_end": 9},
             "product_accepted": True,
-            "opaque": {"accepted": False},
-            "transparent": {"accepted": True},
-            "explicit": {"accepted": False},
-            "resolution": {"verdict": "ambiguous:CompoundExposure"},
-            "patterns": [{"verdict": "ambiguous:CompoundExposure"}],
+            "whole": {"accepted": False},
+            "explicit_component": {"accepted": False},
+            "possible_analysis": {"accepted": True},
+            "unambiguous_analysis": {"accepted": True},
+            "resolution": {"outcome": "supported"},
+            "patterns": [{"outcome": "supported"}],
         }
         by_case = {
             "positive": {"analysis_graph": [candidate]},
@@ -692,14 +750,14 @@ class ShadowVerificationTests(unittest.TestCase):
         self.assertEqual(
             {"tp": 1, "fp": 1, "tn": 0, "fn": 0},
             {
-                key: summary["profiles"]["transparent"]["quality"][key]
+                key: summary["policies"]["possible_analysis"]["quality"][key]
                 for key in ("tp", "fp", "tn", "fn")
             },
         )
         self.assertEqual(
             {"tp": 0, "fp": 0, "tn": 1, "fn": 1},
             {
-                key: summary["profiles"]["opaque"]["quality"][key]
+                key: summary["policies"]["whole"]["quality"][key]
                 for key in ("tp", "fp", "tn", "fn")
             },
         )
@@ -818,8 +876,8 @@ class ShadowVerificationTests(unittest.TestCase):
                 "cases_with_component_candidates": 0,
                 "component_cases_by_decision": {},
                 "analysis_graph": {
-                    "profiles": {
-                        "opaque": {
+                    "policies": {
+                        "whole": {
                             "quality": {
                                 "tp": 12,
                                 "fp": 0,
@@ -840,7 +898,7 @@ class ShadowVerificationTests(unittest.TestCase):
         append_component_shadow_table(lines, shadow)
 
         self.assertIn(
-            "| kfind-full-pos | opaque | 12 | 0 | 14 | 2 | 100.0% | 85.71% | 1 |",
+            "| kfind-full-pos | whole | 12 | 0 | 14 | 2 | 100.0% | 85.71% | 1 |",
             "\n".join(lines),
         )
 
