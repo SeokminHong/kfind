@@ -1,4 +1,5 @@
 mod agent_shadow;
+mod graph_shadow;
 mod shadow;
 
 use std::collections::BTreeSet;
@@ -13,10 +14,11 @@ use kfind::Engine;
 use kfind::expert::EngineExt as _;
 use kfind_data::{
     COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataErrorKind, DecodedMorphologyResource,
-    decode_component_resource, decode_morphology_resource, parse_sha256,
+    decode_component_resource, decode_morphology_graph_resource, decode_morphology_resource,
+    parse_sha256,
 };
 use kfind_matcher::MorphMatcher;
-use kfind_morph::CoarsePos;
+use kfind_morph::{CoarsePos, ConstraintResolver};
 use kfind_query::{
     BoundaryPolicy, CompileOptionOverrides, CompileOptions, ContextRequirement,
     LexiconQueryAnalyzer, Lexicons, compile_query,
@@ -26,6 +28,7 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
 use agent_shadow::diagnose_agent_shadow;
+use graph_shadow::diagnose_graph_shadow;
 use shadow::{
     ShadowBranchEvidence, ShadowResource, ShadowVerificationCounters, attach_source_provenance,
     diagnose_component_candidate,
@@ -39,6 +42,8 @@ const MORPHOLOGY_RESOURCE: &str = "/opt/morph-benchmark/morphology/morphology.bi
 const MORPHOLOGY_RESOURCE_ENV: &str = "KFIND_MORPHOLOGY_RESOURCE";
 const COMPONENT_RESOURCE: &str = "/opt/morph-benchmark/component/morphology-component-compact.kfc";
 const COMPONENT_RESOURCE_ENV: &str = "KFIND_COMPONENT_RESOURCE";
+const GRAPH_RESOURCE: &str = "/opt/morph-benchmark/graph/morphology-component-graph.kfc";
+const GRAPH_RESOURCE_ENV: &str = "KFIND_GRAPH_RESOURCE";
 const MORPHOLOGY_SOURCE_SHA256: &str =
     "fd62d3d6d8fa85145528065fabad4d7cb20f6b2201e71be4081a4e9701a5b330";
 
@@ -63,6 +68,7 @@ struct Summary {
     enriched_artifact_sha256: Option<String>,
     morphology_artifact_sha256: Option<String>,
     component_artifact_sha256: Option<String>,
+    graph_artifact_sha256: Option<String>,
     initialization_seconds: f64,
     evaluation_seconds: f64,
     peak_rss_kib: Option<u64>,
@@ -142,6 +148,32 @@ enum KfindBoundary {
 enum KfindQueryMode {
     ExplicitPos,
     Untagged,
+}
+
+#[derive(Debug)]
+enum GraphShadowResource {
+    Loaded(ConstraintResolver),
+    Missing,
+    Corrupt,
+    SourceMismatch,
+}
+
+impl GraphShadowResource {
+    fn resolver(&self) -> Option<&ConstraintResolver> {
+        match self {
+            Self::Loaded(resolver) => Some(resolver),
+            Self::Missing | Self::Corrupt | Self::SourceMismatch => None,
+        }
+    }
+
+    const fn unavailable_status(&self) -> Option<&'static str> {
+        match self {
+            Self::Loaded(_) => None,
+            Self::Missing => Some("resource-missing"),
+            Self::Corrupt => Some("resource-corrupt"),
+            Self::SourceMismatch => Some("source-mismatch"),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -459,10 +491,10 @@ fn run_kfind(
     if matches!(query_mode, KfindQueryMode::Untagged) {
         append_untagged_plan_diagnostics(cases, &mut results, &analyzer)?;
     }
-    let morphology_artifact_sha256 = if include_diagnostics {
+    let (morphology_artifact_sha256, graph_artifact_sha256) = if include_diagnostics {
         append_kfind_diagnostics(cases, &mut results, &analyzer, &component_resource)?
     } else {
-        None
+        (None, None)
     };
     Ok(Summary {
         backend: "kfind".to_owned(),
@@ -473,6 +505,7 @@ fn run_kfind(
         enriched_artifact_sha256,
         morphology_artifact_sha256,
         component_artifact_sha256,
+        graph_artifact_sha256,
         initialization_seconds,
         evaluation_seconds,
         peak_rss_kib,
@@ -561,7 +594,7 @@ fn append_kfind_diagnostics(
     results: &mut [Value],
     analyzer: &LexiconQueryAnalyzer,
     component_resource: &Option<Arc<kfind_data::ComponentResource>>,
-) -> Result<Option<String>> {
+) -> Result<(Option<String>, Option<String>)> {
     let morphology_path = std::env::var_os(MORPHOLOGY_RESOURCE_ENV)
         .map(std::path::PathBuf::from)
         .unwrap_or_else(|| MORPHOLOGY_RESOURCE.into());
@@ -606,6 +639,7 @@ fn append_kfind_diagnostics(
         .map_or(ShadowResource::Missing, |resource| {
             ShadowResource::Loaded(resource)
         });
+    let (graph_resource, graph_artifact_sha256) = load_graph_shadow_resource()?;
     for (case, result) in cases.iter().zip(results.iter_mut()) {
         result["failure_diagnostic"] = serde_json::to_value(diagnose_failure(case, analyzer)?)?;
         let shadow_verification = diagnose_verification(
@@ -617,10 +651,47 @@ fn append_kfind_diagnostics(
             morphology
                 .as_ref()
                 .and_then(|resource| resource.as_ref().ok()),
+            &graph_resource,
         )?;
         result["shadow_verification"] = serde_json::to_value(shadow_verification)?;
     }
-    Ok(morphology_artifact_sha256)
+    Ok((morphology_artifact_sha256, graph_artifact_sha256))
+}
+
+fn load_graph_shadow_resource() -> Result<(GraphShadowResource, Option<String>)> {
+    let path = std::env::var_os(GRAPH_RESOURCE_ENV)
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| GRAPH_RESOURCE.into());
+    let bytes = match fs::read(&path) {
+        Ok(bytes) => bytes,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Ok((GraphShadowResource::Missing, None));
+        }
+        Err(error) => {
+            return Err(error)
+                .with_context(|| format!("failed to read graph resource {}", path.display()));
+        }
+    };
+    let artifact_sha256 = format!("{:x}", Sha256::digest(&bytes));
+    match decode_morphology_graph_resource(
+        &path.display().to_string(),
+        bytes,
+        &COMPONENT_RESOURCE_SOURCE_DIGEST,
+    ) {
+        Ok(resource) => Ok((
+            GraphShadowResource::Loaded(ConstraintResolver::new(Arc::new(resource))),
+            Some(artifact_sha256),
+        )),
+        Err(error)
+            if matches!(
+                error.kind.as_ref(),
+                DataErrorKind::MorphologyResourceSourceMismatch
+            ) =>
+        {
+            Ok((GraphShadowResource::SourceMismatch, Some(artifact_sha256)))
+        }
+        Err(_) => Ok((GraphShadowResource::Corrupt, Some(artifact_sha256))),
+    }
 }
 
 fn diagnose_verification(
@@ -630,6 +701,7 @@ fn diagnose_verification(
     component_resource: ShadowResource<'_>,
     matcher_component_resource: Option<&Arc<ComponentResource>>,
     morphology: Option<&DecodedMorphologyResource<'_>>,
+    graph_resource: &GraphShadowResource,
 ) -> Result<ShadowVerificationCounters> {
     let options = CompileOptions::resolve(CompileOptionOverrides {
         pos: Some(parse_pos(&case.pos)?),
@@ -694,11 +766,18 @@ fn diagnose_verification(
         component.push(full_evidence);
     }
     let component_projection_comparisons = component.len();
+    let analysis_graph = diagnose_graph_shadow(
+        &matcher,
+        case.text.as_bytes(),
+        graph_resource.resolver(),
+        graph_resource.unavailable_status(),
+    );
     Ok(ShadowVerificationCounters::new(
         matcher.verification_counters(case.text.as_bytes()),
         component_branches,
         component,
         component_projection_comparisons,
+        analysis_graph,
     ))
 }
 
@@ -835,8 +914,9 @@ mod tests {
 
     use kfind_data::{
         DataFinePos, LexiconData, MecabSourceMorphologyEntry, NominalRecord, collect_pos_entries,
-        decode_morphology_resource, encode_component_resource, encode_morphology_resource,
-        encode_pos_lexicon, parse_mecab_connection_matrix,
+        decode_morphology_graph_resource, decode_morphology_resource, encode_component_resource,
+        encode_morphology_graph_resource, encode_morphology_resource, encode_pos_lexicon,
+        parse_mecab_connection_matrix,
     };
 
     use super::*;
@@ -956,6 +1036,7 @@ mod tests {
             ShadowResource::Missing,
             None,
             None,
+            &GraphShadowResource::Missing,
         )
         .unwrap_err();
 
@@ -974,6 +1055,7 @@ mod tests {
             ShadowResource::Loaded(compact.as_ref()),
             Some(&compact),
             Some(&resource),
+            &GraphShadowResource::Missing,
         )
         .unwrap();
 
@@ -994,6 +1076,36 @@ mod tests {
     }
 
     #[test]
+    fn graph_shadow_keeps_compound_exposure_as_a_profile_decision() {
+        let bytes = component_fixture_resource(20);
+        let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
+        let compact = component_fixture_compact_resource(20);
+        let graph = component_fixture_graph_resource(20);
+        let counters = diagnose_verification(
+            &positive_case("권한", "noun", "사용자권한"),
+            &analyzer(),
+            ShadowResource::Loaded(&resource),
+            ShadowResource::Loaded(compact.as_ref()),
+            Some(&compact),
+            Some(&resource),
+            &GraphShadowResource::Loaded(graph),
+        )
+        .unwrap();
+
+        let serialized = serde_json::to_value(&counters).unwrap();
+        let graph = &serialized["analysis_graph"][0];
+        assert_eq!(graph["status"], "evaluated");
+        assert_eq!(graph["product_accepted"], true);
+        assert_eq!(
+            graph["resolution"]["verdict"],
+            "ambiguous:CompoundExposure"
+        );
+        assert_eq!(graph["opaque"]["accepted"], false);
+        assert_eq!(graph["transparent"]["accepted"], true);
+        assert_eq!(graph["explicit"]["accepted"], false);
+    }
+
+    #[test]
     fn exact_component_shadow_rejects_projection_differences() {
         let full_bytes = component_fixture_resource(20);
         let full = decode_morphology_resource("full", &full_bytes, &[9; 32]).unwrap();
@@ -1005,6 +1117,7 @@ mod tests {
             ShadowResource::Loaded(compact.as_ref()),
             Some(&compact),
             Some(&full),
+            &GraphShadowResource::Missing,
         )
         .unwrap_err();
 
@@ -1055,6 +1168,33 @@ mod tests {
         )
         .unwrap();
         Arc::new(decode_component_resource("compact", bytes, &[9; 32]).unwrap())
+    }
+
+    fn component_fixture_graph_resource(component_cost: i32) -> ConstraintResolver {
+        let mut whole = source_entry("사용자권한", 5_000);
+        whole.analysis_type = "Compound".to_owned();
+        whole.expression = "사용자/NNG/*+권한/NNG/*".to_owned();
+        let entries = [
+            source_entry("사용자", -5_000),
+            source_entry("권한", component_cost),
+            whole,
+        ];
+        let matrix = parse_mecab_connection_matrix(
+            "matrix.def",
+            Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
+        )
+        .unwrap();
+        let bytes = encode_morphology_graph_resource(
+            [9; 32],
+            &entries,
+            &matrix,
+            b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
+            b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
+        )
+        .unwrap();
+        ConstraintResolver::new(Arc::new(
+            decode_morphology_graph_resource("graph", bytes, &[9; 32]).unwrap(),
+        ))
     }
 
     fn source_entry(surface: &str, word_cost: i32) -> MecabSourceMorphologyEntry {

@@ -10,6 +10,7 @@ use kfind_morph::{
 use serde::Serialize;
 
 use super::Span;
+use super::graph_shadow::GraphShadowEvidence;
 
 #[derive(Debug, Serialize)]
 pub(super) struct ShadowVerificationCounters {
@@ -21,6 +22,7 @@ pub(super) struct ShadowVerificationCounters {
     pub(super) component_projection_mismatches: usize,
     component_branches: Vec<ShadowBranchEvidence>,
     component: Vec<ShadowLatticeEvidence>,
+    analysis_graph: Vec<GraphShadowEvidence>,
 }
 
 #[derive(Debug, Serialize)]
@@ -118,6 +120,7 @@ impl ShadowVerificationCounters {
         component_branches: Vec<ShadowBranchEvidence>,
         component: Vec<ShadowLatticeEvidence>,
         component_projection_comparisons: usize,
+        analysis_graph: Vec<GraphShadowEvidence>,
     ) -> Self {
         Self {
             raw_anchor_hits: counters.raw_anchor_hits,
@@ -128,6 +131,7 @@ impl ShadowVerificationCounters {
             component_projection_mismatches: 0,
             component_branches,
             component,
+            analysis_graph,
         }
     }
 }

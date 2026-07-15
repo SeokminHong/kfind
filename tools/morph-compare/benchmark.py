@@ -599,6 +599,7 @@ def evaluate_dataset(
             "component_artifact_sha256": kfind[profile][5][
                 "component_artifact_sha256"
             ],
+            "graph_artifact_sha256": kfind[profile][5]["graph_artifact_sha256"],
         }
         for profile in KFIND_PROFILES
     }

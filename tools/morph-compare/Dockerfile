@@ -36,11 +36,13 @@ COPY data ./data
 COPY scripts/build-full-pos.sh ./scripts/build-full-pos.sh
 COPY scripts/build-morphology-resource.sh ./scripts/build-morphology-resource.sh
 COPY scripts/build-component-resource.sh ./scripts/build-component-resource.sh
+COPY scripts/build-morphology-graph-resource.sh ./scripts/build-morphology-graph-resource.sh
 COPY scripts/lib/full-pos-source.sh ./scripts/lib/full-pos-source.sh
 COPY tools/morph-compare/runner ./tools/morph-compare/runner
 RUN scripts/build-full-pos.sh /benchmark/full-pos \
     && scripts/build-morphology-resource.sh /benchmark/morphology \
     && scripts/build-component-resource.sh /benchmark/component \
+    && scripts/build-morphology-graph-resource.sh /benchmark/graph \
     && cargo build \
     --locked \
     --release \
@@ -70,6 +72,7 @@ COPY --from=corpus-builder /corpora/*LICENSE.txt /opt/morph-benchmark/licenses/
 COPY --from=runner-builder /benchmark/full-pos /opt/morph-benchmark/full-pos
 COPY --from=runner-builder /benchmark/morphology /opt/morph-benchmark/morphology
 COPY --from=runner-builder /benchmark/component /opt/morph-benchmark/component
+COPY --from=runner-builder /benchmark/graph /opt/morph-benchmark/graph
 COPY --from=runner-builder \
     /benchmark/full-pos/lexicon.bin \
     /opt/morph-benchmark/product-data/lexicon.bin
