@@ -802,6 +802,7 @@ fn exact_branch(anchor: &str, require_left: bool) -> SurfaceBranch {
         origins: vec![origin(0, &[])],
         boundary: proof(require_left, true, anchor.chars().count() == 1),
         context_requirement: ContextRequirement::None,
+        morph_patterns: Vec::new(),
     }
 }
 
@@ -816,6 +817,7 @@ fn nominal_branch(anchor: &str, allowed_rule_ids: Arc<[RuleId]>) -> SurfaceBranc
         origins: vec![origin(0, &[])],
         boundary: proof(true, true, anchor.chars().count() == 1),
         context_requirement: ContextRequirement::None,
+        morph_patterns: Vec::new(),
     }
 }
 
@@ -839,6 +841,7 @@ fn predicate_branch(
         origins,
         boundary: proof(false, true, anchor.chars().count() == 1),
         context_requirement: ContextRequirement::None,
+        morph_patterns: Vec::new(),
     }
 }
 

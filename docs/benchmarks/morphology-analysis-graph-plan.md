@@ -81,6 +81,8 @@ schema 2 구현과 full-resource projection 결과는 [형태 분석 그래프 s
 
 기존 matcher 결과와 동시에 graph resolver의 verdict와 proof를 기록한다. 이 단계에서는 `ContextRequirement`, lexical context registry와 1,500 비용 마진을 제품 경로에 유지한다. resolver는 현재 true positive, hard-negative와 known ambiguity를 설명해야 하며 세부 입력·판정·profile 계약은 [형태 구조 제약 resolver 계약](morphology-constraint-resolver-contract.md)을 따른다.
 
+비용을 읽지 않고 source whole, source component, runtime composition, opaque expression과 unknown을 구분하는 resolver core를 구현했다. query compiler는 `smart`의 지원 품사 분석을 surface registry와 무관한 pattern 집합으로 만들며 `token`, `any`, literal과 direct particle에는 pattern을 만들지 않는다. 제품 matcher는 아직 이 pattern과 resolver verdict를 소비하지 않는다.
+
 ### 5. 제품 전환
 
 graph resolver가 채택 조건을 통과하면 matcher는 `Verdict`만 소비한다. query compiler의 manual surface registry와 matcher의 비용 마진·requirement별 예외 분기를 제거하고, resource 필요 여부는 `QueryMorphPattern`의 구조 capability에서 계산한다. `token`, `any`, literal과 component가 필요 없는 `smart` branch는 graph resource를 읽지 않는다.

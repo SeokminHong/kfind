@@ -419,6 +419,74 @@ fn smart_unregistered_adverbs_do_not_require_lexical_context() {
 }
 
 #[test]
+fn smart_patterns_cover_supported_analyses_without_a_surface_registry() {
+    for query in ["adv:매일", "adv:빨리"] {
+        let plan = compile_query(query, &CompileOptions::default(), &analyzer()).unwrap();
+        assert!(plan.requires_analysis_graph());
+        assert!(plan.atoms[0].branches.iter().all(|branch| {
+            branch
+                .morph_patterns
+                .iter()
+                .map(|pattern| pattern.fine_pos)
+                .eq([DataFinePos::Mag])
+        }));
+    }
+
+    let noun = compile_query(
+        "미등록명사",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    assert_eq!(noun.atoms[0].branches.len(), 1);
+    assert_eq!(
+        noun.atoms[0].branches[0]
+            .morph_patterns
+            .iter()
+            .map(|pattern| pattern.fine_pos)
+            .collect::<Vec<_>>(),
+        [DataFinePos::Nng, DataFinePos::Nnp, DataFinePos::Nnb]
+    );
+
+    let particle = compile_query("는", &CompileOptions::default(), &analyzer()).unwrap();
+    assert!(!particle.requires_analysis_graph());
+
+    for boundary in [BoundaryPolicy::Token, BoundaryPolicy::Any] {
+        let plan = compile_query(
+            "adv:매일",
+            &CompileOptions {
+                boundary,
+                ..CompileOptions::default()
+            },
+            &analyzer(),
+        )
+        .unwrap();
+        assert!(!plan.requires_analysis_graph());
+        assert!(
+            plan.atoms[0]
+                .branches
+                .iter()
+                .all(|branch| branch.morph_patterns.is_empty())
+        );
+    }
+
+    let literal = compile_query(
+        "매일",
+        &CompileOptions::resolve(CompileOptionOverrides {
+            literal: true,
+            ..CompileOptionOverrides::default()
+        })
+        .unwrap(),
+        &analyzer(),
+    )
+    .unwrap();
+    assert!(!literal.requires_analysis_graph());
+}
+
+#[test]
 fn explicit_pos_smart_opens_only_the_connective_ji_left_boundary() {
     let explicit_smart = compile_query(
         "걷다",

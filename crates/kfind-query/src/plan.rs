@@ -1,7 +1,7 @@
 use std::ops::Range;
 use std::sync::Arc;
 
-use kfind_morph::{ContinuationState, ParticleTransition, PredicatePos, RuleId};
+use kfind_morph::{ContinuationState, ParticleTransition, PredicatePos, QueryMorphPattern, RuleId};
 
 use crate::{Analysis, BoundaryPolicy, NormalizationMode, PhrasePolicy, PlanLimits};
 
@@ -29,6 +29,15 @@ impl QueryPlan {
                         | ContextRequirement::LexicalContext
                 )
             })
+        })
+    }
+
+    #[must_use]
+    pub fn requires_analysis_graph(&self) -> bool {
+        self.atoms.iter().any(|atom| {
+            atom.branches
+                .iter()
+                .any(|branch| !branch.morph_patterns.is_empty())
         })
     }
 }
@@ -107,6 +116,7 @@ pub struct SurfaceBranch {
     pub origins: Vec<Origin>,
     pub boundary: BoundaryProof,
     pub context_requirement: ContextRequirement,
+    pub morph_patterns: Vec<QueryMorphPattern>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

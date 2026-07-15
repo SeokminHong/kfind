@@ -3,6 +3,7 @@ use std::sync::{Arc, OnceLock};
 
 use kfind_data::{DataFinePos, MorphologyGraphExpressionKind, MorphologyGraphResource};
 
+use crate::FinePos;
 use crate::lattice::LocalLatticeError;
 use crate::lattice::unknown::UnknownDictionary;
 
@@ -19,10 +20,46 @@ pub enum CompoundExposureProfile {
     Explicit,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct QueryMorphPattern {
     pub fine_pos: DataFinePos,
     pub expose_source_components: bool,
+}
+
+impl QueryMorphPattern {
+    #[must_use]
+    pub fn from_fine_pos(fine_pos: FinePos) -> Vec<Self> {
+        let fine_pos = match fine_pos {
+            FinePos::CommonNoun => DataFinePos::Nng,
+            FinePos::ProperNoun => DataFinePos::Nnp,
+            FinePos::DependentNoun => DataFinePos::Nnb,
+            FinePos::Pronoun => DataFinePos::Np,
+            FinePos::Numeral => DataFinePos::Nr,
+            FinePos::Verb => DataFinePos::Vv,
+            FinePos::Adjective => {
+                return vec![Self::new(DataFinePos::Va), Self::new(DataFinePos::Vcn)];
+            }
+            FinePos::AuxiliaryVerb | FinePos::AuxiliaryAdjective => DataFinePos::Vx,
+            FinePos::Copula => DataFinePos::Vcp,
+            FinePos::Determiner => DataFinePos::Mm,
+            FinePos::GeneralAdverb => DataFinePos::Mag,
+            FinePos::ConjunctiveAdverb => DataFinePos::Maj,
+            FinePos::Interjection => DataFinePos::Ic,
+            FinePos::Particle
+            | FinePos::Foreign
+            | FinePos::Number
+            | FinePos::Code
+            | FinePos::Literal => return Vec::new(),
+        };
+        vec![Self::new(fine_pos)]
+    }
+
+    const fn new(fine_pos: DataFinePos) -> Self {
+        Self {
+            fine_pos,
+            expose_source_components: false,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

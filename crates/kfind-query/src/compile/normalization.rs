@@ -6,6 +6,7 @@ use crate::{
     BoundaryPolicy, BoundaryProof, BranchVerifier, CompileError, CompileErrorKind,
     ContextRequirement, CoreMapping, NormalizationMode, Origin, QueryAtom, SurfaceBranch,
 };
+use kfind_morph::QueryMorphPattern;
 
 #[derive(Clone)]
 pub(super) struct DraftBranch {
@@ -15,6 +16,7 @@ pub(super) struct DraftBranch {
     pub origin: Origin,
     pub smart_left: bool,
     pub context_requirement: ContextRequirement,
+    pub morph_patterns: Vec<QueryMorphPattern>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -41,6 +43,7 @@ pub(super) fn normalize_and_merge(
             let boundary_proof =
                 boundary_proof(boundary, draft.smart_left, one_scalar_atom, allow_attached);
             let context_requirement = context_requirement(boundary, draft.context_requirement);
+            let morph_patterns = morph_patterns(boundary, &draft.morph_patterns);
             let key = BranchKey {
                 anchor: anchor.as_bytes().into(),
                 verifier: draft.verifier.clone(),
@@ -54,6 +57,13 @@ pub(super) fn normalize_and_merge(
                     origins.push(draft.origin.clone());
                     origins.sort();
                 }
+                let patterns = &mut branches[index].morph_patterns;
+                for pattern in morph_patterns {
+                    if !patterns.contains(&pattern) {
+                        patterns.push(pattern);
+                    }
+                }
+                patterns.sort();
             } else {
                 let index = branches.len();
                 indices.insert(key.clone(), index);
@@ -64,11 +74,23 @@ pub(super) fn normalize_and_merge(
                     origins: vec![draft.origin.clone()],
                     boundary: key.boundary,
                     context_requirement: key.context_requirement,
+                    morph_patterns,
                 });
             }
         }
     }
     Ok(branches)
+}
+
+fn morph_patterns(
+    policy: BoundaryPolicy,
+    requested: &[QueryMorphPattern],
+) -> Vec<QueryMorphPattern> {
+    if policy == BoundaryPolicy::Smart {
+        requested.to_vec()
+    } else {
+        Vec::new()
+    }
 }
 
 fn context_requirement(

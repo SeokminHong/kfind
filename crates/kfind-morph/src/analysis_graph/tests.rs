@@ -215,6 +215,17 @@ fn invalid_spans_and_node_limits_are_observable() {
     ));
 }
 
+#[test]
+fn adjective_patterns_preserve_the_negative_copula_candidate() {
+    assert_eq!(
+        QueryMorphPattern::from_fine_pos(FinePos::Adjective)
+            .into_iter()
+            .map(|pattern| pattern.fine_pos)
+            .collect::<Vec<_>>(),
+        [DataFinePos::Va, DataFinePos::Vcn]
+    );
+}
+
 fn pattern(fine_pos: DataFinePos, expose_source_components: bool) -> QueryMorphPattern {
     QueryMorphPattern {
         fine_pos,

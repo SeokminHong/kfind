@@ -5,8 +5,8 @@ use crate::lexicons::{data_fine_pos, predicate_from_derivation};
 use crate::{
     Analysis, AnalysisSource, AtomPlan, BranchEnvironment, BranchVerifier, CompileError,
     CompileErrorKind, CompileOptions, ContextRequirement, CoreMapping, ExpandMode,
-    LexiconQueryAnalyzer, Morphology, Origin, QueryAnalyzer, QueryAtom, QueryDiagnostic, QueryPlan,
-    SurfaceBranch, parse_query,
+    LexiconQueryAnalyzer, Morphology, Origin, QueryAnalyzer, QueryAtom, QueryDiagnostic,
+    QueryMorphPattern, QueryPlan, SurfaceBranch, parse_query,
 };
 use kfind_data::{
     DICTIONARY_CONJUGATION_RULE_ID, DICTIONARY_RELATED_ADVERB_RULE_ID, DerivationRule,
@@ -279,10 +279,17 @@ fn compile_analysis(
     output: &mut Vec<DraftBranch>,
 ) -> Result<(), CompileError> {
     if options.expand == ExpandMode::Literal {
-        output.push(exact_branch(atom_surface, analysis_index, Vec::new(), true));
+        output.push(exact_branch(
+            atom_surface,
+            analysis_index,
+            Vec::new(),
+            true,
+            Vec::new(),
+        ));
         return Ok(());
     }
 
+    let morph_patterns = QueryMorphPattern::from_fine_pos(analysis.fine_pos);
     if matches!(analysis.morphology, Morphology::Exact) {
         let context_requirement = lexical_context_requirement(atom_surface, analysis);
         if options.expand == ExpandMode::Derivation && analysis.coarse_pos == CoarsePos::Adverb {
@@ -299,6 +306,7 @@ fn compile_analysis(
                 },
                 smart_left: true,
                 context_requirement,
+                morph_patterns: morph_patterns.clone(),
             });
         } else {
             output.push(exact_branch_with_context(
@@ -307,6 +315,7 @@ fn compile_analysis(
                 Vec::new(),
                 true,
                 context_requirement,
+                morph_patterns.clone(),
             ));
         }
         return Ok(());
@@ -339,6 +348,7 @@ fn compile_analysis(
                 },
                 smart_left: true,
                 context_requirement: ContextRequirement::ExactComponent,
+                morph_patterns: morph_patterns.clone(),
             });
             for override_form in &nominal.overrides {
                 output.push(exact_branch(
@@ -346,6 +356,7 @@ fn compile_analysis(
                     analysis_index,
                     vec![override_form.rule_id.clone()],
                     true,
+                    morph_patterns.clone(),
                 ));
             }
             if options.expand == ExpandMode::Derivation {
@@ -382,9 +393,16 @@ fn compile_analysis(
                         },
                         smart_left: false,
                         context_requirement: ContextRequirement::None,
+                        morph_patterns: Vec::new(),
                     });
                 } else {
-                    output.push(exact_branch(variant, analysis_index, Vec::new(), true));
+                    output.push(exact_branch(
+                        variant,
+                        analysis_index,
+                        Vec::new(),
+                        true,
+                        Vec::new(),
+                    ));
                 }
             }
         }
@@ -471,6 +489,7 @@ fn compile_predicate(
             } else {
                 ContextRequirement::None
             },
+            morph_patterns: QueryMorphPattern::from_fine_pos(analysis.fine_pos),
         });
     }
     Ok(())
@@ -521,6 +540,7 @@ fn compile_derivations(
                 },
                 smart_left: true,
                 context_requirement: ContextRequirement::ExactComponent,
+                morph_patterns: QueryMorphPattern::from_fine_pos(data_fine_pos(rule.result_pos)),
             });
         } else {
             output.push(exact_branch(
@@ -528,6 +548,7 @@ fn compile_derivations(
                 analysis_index,
                 derivation_path,
                 true,
+                QueryMorphPattern::from_fine_pos(data_fine_pos(rule.result_pos)),
             ));
         }
     }
@@ -582,6 +603,7 @@ fn exact_branch(
     analysis_index: u16,
     rule_path: Vec<RuleId>,
     smart_left: bool,
+    morph_patterns: Vec<QueryMorphPattern>,
 ) -> DraftBranch {
     exact_branch_with_context(
         surface,
@@ -589,6 +611,7 @@ fn exact_branch(
         rule_path,
         smart_left,
         ContextRequirement::None,
+        morph_patterns,
     )
 }
 
@@ -598,6 +621,7 @@ fn exact_branch_with_context(
     rule_path: Vec<RuleId>,
     smart_left: bool,
     context_requirement: ContextRequirement,
+    morph_patterns: Vec<QueryMorphPattern>,
 ) -> DraftBranch {
     DraftBranch {
         anchor: surface.to_owned(),
@@ -609,6 +633,7 @@ fn exact_branch_with_context(
         },
         smart_left,
         context_requirement,
+        morph_patterns,
     }
 }
 
