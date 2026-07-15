@@ -25,7 +25,7 @@ QueryMorphPattern + TokenAnalysisGraph
 - 결과는 `Proven`, `Contradicted`, `Ambiguous`, `Unavailable` 중 하나이며 선택한 분석, 배제한 분석과 구조 규칙을 proof로 남긴다.
 - 형태 분석 비용은 동등한 근거 안의 경로 순서와 진단에만 사용한다. 비용 차이만으로 proof의 종류나 제품 수용 여부를 바꾸지 않는다.
 
-`Proven`은 query component를 source가 명시했거나 일반화된 구조 제약이 유일하게 선택한 경우다. `Contradicted`는 완전한 분석들이 query pattern과 모순될 때다. 서로 양립 가능한 분석이 남으면 `Ambiguous`, resource가 없거나 손상·상한 초과이면 `Unavailable`이다. `Ambiguous`를 제품에서 합집합으로 볼지 보수적으로 거부할지는 profile 계약이며 비용 임계값으로 숨기지 않는다.
+`Proven`은 query lexical identity, fine POS와 구조 관계를 만족하는 완전한 known 경로가 하나라도 있는 경우다. 다른 분석 경로의 존재만으로 지지 경로를 부정하지 않는다. `Contradicted`는 완전한 분석은 있지만 query pattern을 만족하는 경로가 없을 때다. strict component 노출이나 span을 결정할 수 없으면 `Ambiguous`, resource가 없거나 손상·상한 초과이면 `Unavailable`이다. `Ambiguous`를 제품에서 합집합으로 볼지 보수적으로 거부할지는 profile 계약이며 비용 임계값으로 숨기지 않는다.
 
 ## 전환 단계
 
@@ -81,13 +81,15 @@ schema 2 구현과 full-resource projection 결과는 [형태 분석 그래프 s
 
 기존 matcher 결과와 동시에 graph resolver의 verdict와 proof를 기록한다. 이 단계에서는 `ContextRequirement`, lexical context registry와 1,500 비용 마진을 제품 경로에 유지한다. resolver는 현재 true positive, hard-negative와 known ambiguity를 설명해야 하며 세부 입력·판정·profile 계약은 [형태 구조 제약 resolver 계약](morphology-constraint-resolver-contract.md)을 따른다.
 
-비용을 읽지 않고 source whole, source component, runtime composition, opaque expression과 unknown을 구분하는 resolver core를 구현했다. query compiler는 `smart`의 지원 품사 분석을 surface registry와 무관한 pattern 집합으로 만들며 `token`, `any`, literal과 direct particle에는 pattern을 만들지 않는다. 제품 matcher는 아직 이 pattern과 resolver verdict를 소비하지 않는다.
+비용을 읽지 않고 source whole, source component, runtime composition, opaque expression과 unknown을 구분하는 resolver core를 구현했다. query compiler는 `smart`의 지원 품사 분석을 surface registry와 무관한 pattern 집합으로 만들며 `token`, `any`, literal과 direct particle에는 pattern을 만들지 않는다. 제품 matcher와 같은 candidate에서 `opaque`, `transparent`, `explicit` verdict를 병렬 계측했으며 결과는 [형태 구조 제약 resolver shadow 결과](2026-07-15-morphology-constraint-resolver.md)에 기록했다.
 
 ### 5. 제품 전환
 
 graph resolver가 채택 조건을 통과하면 matcher는 `Verdict`만 소비한다. query compiler의 manual surface registry와 matcher의 비용 마진·requirement별 예외 분기를 제거하고, resource 필요 여부는 `QueryMorphPattern`의 구조 capability에서 계산한다. `token`, `any`, literal과 component가 필요 없는 `smart` branch는 graph resource를 읽지 않는다.
 
 제품 전환 완료 시 `ContextRequirement`, lexical context registration, `EXACT_COMPONENT_MAX_COST_PENALTY`, registered-prefix raw fallback, predicate exact-token 예외와 비용 기반 `supports_component` 호출은 제품 경로에 남지 않는다. bounded context는 경쟁 분석을 삭제하는 우선순위가 아니라 token graph 제약으로만 표현한다.
+
+전체 shadow에서 세 profile 모두 채택 조건을 통과하지 못했다. `opaque`와 현재 capability의 `explicit`은 기존 positive를 보존하지 못했고 `transparent`는 새 false positive와 hard-negative 회귀를 만들었다. 따라서 이번 stack에서는 제품 전환과 제거 감사를 실행하지 않고 현재 제품 판정, lexical context registry와 1,500 비용 마진을 유지한다.
 
 ## 채택 조건
 

@@ -32,6 +32,7 @@
 - [Exact component 비용 마진](2026-07-15-exact-component-cost-margin.md)
 - [형태 분석 그래프 전환 계획](morphology-analysis-graph-plan.md)
 - [형태 구조 제약 resolver 계약](morphology-constraint-resolver-contract.md)
+- [형태 구조 제약 resolver shadow 결과](2026-07-15-morphology-constraint-resolver.md)
 - [형태 분석 그래프 schema 2 projection과 비용](2026-07-15-morphology-analysis-graph-resource.md)
 - [Source provenance와 expression component shadow](2026-07-15-source-provenance-shadow.md)
 - [접속 조사 `이면/면`의 명사류 결합](2026-07-15-connector-myeon-particle.md)
@@ -250,11 +251,9 @@ coverage 검사를 함께 도입한다. 새 규칙이 없는 RC 변경에는 이
 
 ## 이어갈 형태 품질 작업
 
-다음 형태 품질 작업은 비용 마진과 lexical context registry를 source provenance 기반 형태 분석 그래프로 교체하는 구조 전환이다. 먼저 full morphology resource의 source metadata를 기존 local lattice 경로에 연결한 shadow 감사를 실행한다. 감사 결과가 구조 분리를 입증하기 전에는 제품 판정, registry와 1,500 마진을 바꾸지 않는다.
+source expression 관계 감사, policy-neutral component graph schema 2, 비용 독립 `TokenAnalysisGraph`, `QueryMorphPattern`과 `ConstraintResolver`를 구현했다. 전체 development, 고정 test와 hard-negative에서 세 profile을 shadow 평가했으나 `opaque`와 현재 capability의 `explicit`은 기존 positive를 보존하지 못했고 `transparent`는 새 false positive와 hard-negative 회귀를 만들었다. 형태 구조만으로 같은 표면의 다른 표제어·의미를 구분할 수 없으므로 제품 전환은 실패로 닫고 현재 matcher, lexical context registry와 1,500 비용 마진을 유지한다.
 
-source expression 관계 감사, policy-neutral component graph schema 2, 비용 독립 `TokenAnalysisGraph`와 `ConstraintResolver` core를 구현했다. query compiler는 `smart`의 지원 품사 분석을 surface registry와 무관한 `QueryMorphPattern` 집합으로 만들고 `token`, `any`, literal과 direct particle에는 pattern을 만들지 않으며 제품 matcher는 아직 resolver verdict를 소비하지 않는다. 다음 stack은 기존 판정과 `opaque`, `transparent`, `explicit` verdict를 같은 development·hard-negative 집합에서 shadow 평가하고 continuation·인접 token 제약을 pattern에 연결한다. surface별 예외 목록, 새 비용 임계값과 bounded context의 강제 분석 선택은 선택지가 아니다.
-
-구조 전환 뒤에는 명시적 품사 full-POS `smart`의 남은 FN 25건을 줄이는 제품 변경을 이어간다.
+다음 형태 품질 작업은 명시적 품사 full-POS `smart`의 남은 FN 25건을 현재 제품 계약 안에서 줄이는 변경이다. surface별 예외 목록, 새 비용 임계값과 bounded context의 강제 분석 선택은 사용하지 않는다.
 계측·report·runner만 바꾼 상태는 작업 완료로 보지 않는다. 규칙 조건은 development case만으로
 만들지 않고 독립된 사전·문법 근거로 정의한다. development는 후보 선택에 사용하고, 고정 test와
 무품사 결과는 규칙을 고정한 뒤 회귀 판정에만 사용한다.

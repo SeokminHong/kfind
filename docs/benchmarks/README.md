@@ -176,6 +176,7 @@ SHA-256을 보존한다. 승인 보고서와 site 차트를 갱신할 때 같은
 
 - [선택적 국소 형태 추론 계약](selective-morphology.md)
 - [형태 분석 그래프 전환 계획](morphology-analysis-graph-plan.md)
+- [형태 구조 제약 resolver shadow 결과](2026-07-15-morphology-constraint-resolver.md)
 - [형태소 검색 품질 검증 계약](morphology-quality.md)
 - [명사 smart-boundary 계약](nominal-boundary.md)
 - [copula smart-boundary 계약](copula-boundary.md)
