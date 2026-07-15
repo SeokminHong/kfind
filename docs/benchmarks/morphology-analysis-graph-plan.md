@@ -14,18 +14,19 @@
 ## 목표 구조
 
 ```text
-QueryMorphPattern + TokenAnalysisGraph
+QueryMorphPattern + BoundedTokenGraph
                  -> ConstraintResolver
-                 -> Verdict + Proof
+                 -> SupportedAnalysisSet + Proof
+                 -> ProductPolicy
 ```
 
-- `QueryMorphPattern`은 query가 요구하는 fine POS, span 관계, 허용 continuation과 token 관계를 선언한다. corpus surface 목록을 포함하지 않는다.
-- `TokenAnalysisGraph`는 source가 명시한 whole-token 분석과 component 분해, 런타임 조합 경로, unknown 경로와 인접 token 관계를 구분해 보존한다.
-- `ConstraintResolver`는 query pattern과 graph의 관계를 평가한다. resource 로딩과 matcher 경계 복구는 resolver 밖에서 결정하지 않는다.
-- 결과는 `Proven`, `Contradicted`, `Ambiguous`, `Unavailable` 중 하나이며 선택한 분석, 배제한 분석과 구조 규칙을 proof로 남긴다.
-- 형태 분석 비용은 동등한 근거 안의 경로 순서와 진단에만 사용한다. 비용 차이만으로 proof의 종류나 제품 수용 여부를 바꾸지 않는다.
+- `QueryMorphPattern`은 query가 요구하는 fine POS, span 관계, candidate span 포함 관계, continuation DFA, 인접 token 제약과 component capability를 선언한다. corpus surface 목록을 포함하지 않는다.
+- `BoundedTokenGraph`는 이전·현재·다음 token에서 source가 명시한 whole-token 분석과 component 분해, hard morphotactic edge로 연결한 런타임 조합 경로와 unknown 경로를 구분해 보존한다.
+- `ConstraintResolver`는 pattern을 만족하는 모든 분석을 `SupportedAnalysisSet`과 proof로 반환한다. 같은 evidence mask라도 source identity, continuation이나 context proof가 다르면 경로를 버리지 않는다.
+- `ProductPolicy`는 `whole`, `explicit-component`, `possible-analysis` 중 하나로 지지 분석 집합을 검색 결과에 투영한다. resolver core는 최종 수용 여부를 결정하지 않는다.
+- 형태 분석 비용은 동등한 근거 안의 경로 순서와 진단에만 사용한다. dense matrix의 셀 존재 여부나 비용 차이로 hard edge, proof 종류 또는 제품 수용 여부를 결정하지 않는다.
 
-`Proven`은 query lexical identity, fine POS와 구조 관계를 만족하는 완전한 known 경로가 하나라도 있는 경우다. 다른 분석 경로의 존재만으로 지지 경로를 부정하지 않는다. `Contradicted`는 완전한 분석은 있지만 query pattern을 만족하는 경로가 없을 때다. strict component 노출이나 span을 결정할 수 없으면 `Ambiguous`, resource가 없거나 손상·상한 초과이면 `Unavailable`이다. `Ambiguous`를 제품에서 합집합으로 볼지 보수적으로 거부할지는 profile 계약이며 비용 임계값으로 숨기지 않는다.
+`Supported`는 query lexical identity, fine POS, span 관계, continuation과 context를 만족하는 완전한 known 분석이 하나 이상 있는 경우다. 다른 분석 경로의 존재만으로 지지 분석을 부정하지 않는다. `Contradicted`는 완전한 분석은 있지만 query pattern을 만족하는 분석이 없을 때다. strict component 노출이나 span을 결정할 수 없으면 `Ambiguous`, resource가 없거나 손상·상한 초과이면 `Unavailable`이다. 의도한 의미를 형태 구조만으로 하나로 정할 수 없으면 가능한 분석을 보존하고 caller 정책 또는 별도 disambiguator로 넘긴다.
 
 ## 전환 단계
 
@@ -83,21 +84,29 @@ schema 2 구현과 full-resource projection 결과는 [형태 분석 그래프 s
 
 비용을 읽지 않고 source whole, source component, runtime composition, opaque expression과 unknown을 구분하는 resolver core를 구현했다. query compiler는 `smart`의 지원 품사 분석을 surface registry와 무관한 pattern 집합으로 만들며 `token`, `any`, literal과 direct particle에는 pattern을 만들지 않는다. 제품 matcher와 같은 candidate에서 `opaque`, `transparent`, `explicit` verdict를 병렬 계측했으며 결과는 [형태 구조 제약 resolver shadow 결과](2026-07-15-morphology-constraint-resolver.md)에 기록했다.
 
-### 5. 제품 전환
+### 5. 전체 제약 모델과 독립 평가
 
-graph resolver가 채택 조건을 통과하면 matcher는 `Verdict`만 소비한다. query compiler의 manual surface registry와 matcher의 비용 마진·requirement별 예외 분기를 제거하고, resource 필요 여부는 `QueryMorphPattern`의 구조 capability에서 계산한다. `token`, `any`, literal과 component가 필요 없는 `smart` branch는 graph resource를 읽지 않는다.
+축소 resolver의 profile 평가를 전체 계약 평가로 교체한다. query compiler가 span 관계, continuation DFA, 인접 token 제약과 component capability를 만들고 graph resource가 source에서 파생한 hard morphotactic edge를 보존하게 한다. resolver는 최종 verdict 하나가 아니라 `SupportedAnalysisSet`을 반환한다.
+
+reference candidate enumerator는 branch anchor만 공유하고 기존 verifier, boundary 판정, lexical context registry와 비용 lattice를 호출하지 않는다. candidate coverage, resolver conditional quality, ambiguity·unavailable, 세 제품 정책의 품질과 기존 제품 disagreement를 별도 지표로 기록한다.
+
+schema 3은 schema 2 payload projection에 source expression과 multi-POS row에서 파생한 categorical transition table을 추가한다. 전체 resolver는 schema 3만 허용하며 schema 2 resource를 dense connection matrix 기반 경로로 fallback하지 않는다.
+
+### 6. 제품 전환
+
+graph resolver가 채택 조건을 통과하면 matcher는 `SupportedAnalysisSet`과 선택된 `ProductPolicy`만 소비한다. query compiler의 manual surface registry와 matcher의 비용 마진·requirement별 예외 분기를 제거하고 resource 필요 여부는 `QueryMorphPattern`의 구조 capability에서 계산한다. `token`, `any`, literal과 component가 필요 없는 `smart` branch는 graph resource를 읽지 않는다.
 
 제품 전환 완료 시 `ContextRequirement`, lexical context registration, `EXACT_COMPONENT_MAX_COST_PENALTY`, registered-prefix raw fallback, predicate exact-token 예외와 비용 기반 `supports_component` 호출은 제품 경로에 남지 않는다. bounded context는 경쟁 분석을 삭제하는 우선순위가 아니라 token graph 제약으로만 표현한다.
 
-전체 shadow에서 세 profile 모두 채택 조건을 통과하지 못했다. `opaque`와 현재 capability의 `explicit`은 기존 positive를 보존하지 못했고 `transparent`는 새 false positive와 hard-negative 회귀를 만들었다. 따라서 이번 stack에서는 제품 전환과 제거 감사를 실행하지 않고 현재 제품 판정, lexical context registry와 1,500 비용 마진을 유지한다.
+축소 resolver shadow에서 세 profile 모두 채택 조건을 통과하지 못했다. 이 결과는 전체 제약 모델의 채택 여부를 증명하지 않으므로 독립 평가가 끝날 때까지 제품 판정, lexical context registry와 1,500 비용 마진을 유지한다.
 
 ## 채택 조건
 
 - development와 고정 test의 기존 true positive를 보존하고 새 false positive를 만들지 않는다.
 - hard-negative의 기존 결과보다 악화하지 않는다.
-- `Proven`, `Contradicted`, `Ambiguous`, `Unavailable`이 모두 fixture로 검증된다.
+- `Supported`, `Contradicted`, `Ambiguous`, `Unavailable`, continuation DFA, adjacent token constraint와 hard-edge 거부가 모두 fixture로 검증된다.
 - full resource와 compact graph resource의 verdict와 proof projection이 일치한다.
-- morphology benchmark의 초기화, cases/s, p95와 RSS를 동일 revision·입력에서 비교한다. 제품 전환 전 shadow 계측 시간은 측정 구간에서 제외한다.
+- morphology benchmark의 초기화, candidate enumeration, resolver, policy 적용, cases/s, p95와 RSS를 동일 revision·입력에서 비교한다.
 - 공개 CLI와 stable Rust facade의 resource 오류·fail-fast 계약을 유지한다.
 
-채택 조건을 통과하지 못하면 현재 제품 동작을 유지한다. source metadata로 구분할 수 없는 충돌은 실패가 아니라 명시적 ambiguity이며, profile 정책을 별도 결정하기 전에는 자동으로 수용하지 않는다.
+채택 조건을 통과하지 못하면 현재 제품 동작을 유지한다. source metadata로 구분할 수 없는 충돌은 실패가 아니라 명시적 ambiguity이며 제품 정책이나 별도 disambiguator를 정하기 전에는 자동으로 수용하지 않는다.
