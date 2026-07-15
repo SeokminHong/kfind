@@ -6,7 +6,7 @@
 
 ## 입력 모델
 
-`QueryMorphPattern`은 query fine POS, candidate core span, whole-token 또는 source-component 관계, verifier가 소비한 continuation, 인접 token 제약과 명시적 component 노출 capability를 선언한다. query surface 목록, 비용 임계값, resource fallback 순서와 특정 corpus token은 포함하지 않는다.
+`QueryMorphPattern`은 query 분석에서 나온 한 lexical identity와 fine POS, candidate core span, whole-token 또는 source-component 관계, verifier가 소비한 continuation과 candidate token span, 인접 token 제약과 명시적 component 노출 capability를 선언한다. 같은 branch로 합쳐진 pattern은 합집합으로 한 번에 평가하며 개별 pattern이 서로를 모순으로 만들지 않는다. lexical identity는 query 표제어이지 corpus surface 목록이 아니며 비용 임계값, resource fallback 순서와 특정 corpus token은 포함하지 않는다.
 
 `TokenAnalysisGraph`는 schema 2 source analysis에서 다음 근거를 구분한다.
 
@@ -17,7 +17,7 @@
 | `runtime-composed` | source node를 이어 완전한 token 경로를 구성했지만 whole-token expression 근거는 없음 |
 | `unknown` | known complete path가 없을 때 unknown model로 구성한 경로 |
 
-연결 비용과 word cost는 같은 근거 종류 안의 진단 순서에만 사용할 수 있으며 verdict를 바꾸지 않는다. known complete path가 있으면 unknown path는 모순 근거로 사용하지 않는다.
+source가 명시한 whole-token 분석은 우연히 이어진 runtime composition보다 높은 provenance 등급이다. source whole 분석이 있으면 그 등급 안에서 지지와 모순을 판정하고 runtime composition은 proof에 남기되 verdict를 바꾸지 않는다. 같은 등급의 source 분석끼리는 연결 비용이나 word cost로 하나를 고르지 않으며 known complete path가 있으면 unknown path를 모순 근거로 사용하지 않는다.
 
 ## 판정
 
@@ -32,7 +32,7 @@ bounded context는 별도 예외 분기가 아니라 현재 token과 인접 toke
 
 ## Compound exposure
 
-strict subspan의 `source-component` 근거와 enclosing whole-token 분석이 함께 있으면 resolver는 `CompoundExposure` ambiguity를 반환한다. profile은 이 ambiguity만 다음처럼 해석하며 다른 ambiguity에는 적용하지 않는다.
+verifier가 소비한 candidate token이 surrounding token의 strict subspan이고 그 안의 `source-component` 근거와 enclosing whole-token 분석이 함께 있으면 resolver는 `CompoundExposure` ambiguity를 반환한다. predicate 활용과 조사 연쇄처럼 candidate core는 strict subspan이어도 verifier가 surrounding token 전체를 소비했다면 compound exposure가 아니다. profile은 이 ambiguity만 다음처럼 해석하며 다른 ambiguity에는 적용하지 않는다.
 
 | profile | 해석 |
 | --- | --- |

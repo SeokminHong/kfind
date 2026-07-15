@@ -499,7 +499,7 @@
 #### 구조 기반 판정으로 전환
 
 - lexical context registry와 `ExactComponent` 비용 마진은 현재 제품 호환 계약이다. 새 surface 예외나 다른 비용 임계값을 추가하지 않고, source provenance를 보존한 형태 분석 그래프와 구조 제약 resolver로 교체한다.
-- query compiler는 fine POS, span 관계, continuation과 token 관계를 `QueryMorphPattern`으로 선언한다. pattern은 corpus surface 목록, 비용 임계값이나 fallback 순서를 포함하지 않는다.
+- query compiler는 분석의 lexical identity와 fine POS, span 관계, continuation과 token 관계를 `QueryMorphPattern`으로 선언한다. 같은 branch로 합쳐진 동형 분석은 pattern 합집합으로 평가하며 개별 pattern이 서로를 모순으로 만들지 않는다. pattern은 corpus surface 목록, 비용 임계값이나 fallback 순서를 포함하지 않는다.
 - corpus resource는 source가 명시한 whole-token 분석과 component 분해, 런타임 조합 경로, unknown 경로와 인접 token 관계를 구분한 `TokenAnalysisGraph`를 제공한다. source의 `analysis_type`, component span·POS와 관계가 graph provenance에서 복구 가능해야 한다.
 - resolver 결과는 `Proven`, `Contradicted`, `Ambiguous`, `Unavailable`과 proof다. 비용은 같은 종류의 근거 안에서 경로 순서와 진단에만 사용하며, 비용 차이만으로 verdict를 바꾸지 않는다. 서로 양립 가능한 분석이 남는 경우는 `Ambiguous`로 노출하고 profile별 합집합·보수 정책을 별도 계약한다.
 - 제품 전환 전 full morphology resource의 source metadata를 기존 local lattice 경로에 연결하는 shadow 감사를 실행한다. known node는 surface, POS, left/right context ID와 word cost로 source row에 유일하게 대응해야 하며 `source-atomic`, `source-decomposition`, `runtime-composed`, `unknown`, `unresolved`로 분류한다.
@@ -509,10 +509,10 @@
 - component graph schema 2는 schema 1과 같은 container magic을 사용하되 별도 실험 artifact와 loader로 격리한다. surface index, source analysis와 component 관계 payload, string table, connection matrix, `char.def`, `unk.def`를 보존하고 schema, source SHA-256, section length·digest, payload offset, UTF-8, context ID, relation kind와 NFC span을 내용을 노출하기 전에 검증한다.
 - schema 2 source analysis는 POS, left/right context ID, word cost, `analysis_type`, `start_pos`, `end_pos`와 expression 관계를 보존한다. build 단계에서 raw `expression`을 `absent`, `span-aligned`, `fused`, `unaligned`, `invalid`로 정규화하고 component surface·POS와 안정된 byte span만 저장한다. raw `expression` 문자열과 profile별 `CompoundExposure` 선택은 artifact에 저장하지 않는다.
 - schema 2는 policy-neutral 근거 계층이므로 full morphology resource와 exact/common-prefix hit, source analysis, relation component, 연결 비용과 unknown 정의 projection이 같은지 먼저 검증할 수 있다. resolver verdict와 제품 전환은 `CompoundExposure` profile 계약을 정하기 전까지 진행하지 않는다.
-- `QueryMorphPattern`은 fine POS, candidate span 관계, continuation, 인접 token 제약과 명시적 component 노출 capability만 선언한다. surface 목록, 비용 임계값과 fallback 순서를 포함하지 않는다.
-- `TokenAnalysisGraph`는 `source-whole`, `source-component`, `runtime-composed`, `unknown` 근거를 구분한다. known complete path가 있으면 unknown path는 모순 근거로 사용하지 않고 연결 비용과 word cost는 같은 근거 종류 안의 진단 순서에만 사용한다.
+- `QueryMorphPattern`은 한 query 분석의 lexical identity, fine POS, candidate core와 verifier가 소비한 token span의 관계, continuation, 인접 token 제약과 명시적 component 노출 capability만 선언한다. lexical identity는 query 분석에서 나온 한 표제어이며 corpus별 surface 목록이 아니다. 같은 branch의 pattern 합집합은 하나의 resolver 입력으로 평가하고 surface 목록, 비용 임계값과 fallback 순서를 포함하지 않는다.
+- `TokenAnalysisGraph`는 `source-whole`, `source-component`, `runtime-composed`, `unknown` 근거를 구분한다. source가 명시한 whole-token 분석이 있으면 우연히 연결된 runtime composition보다 높은 provenance 등급에서 판정하되 같은 등급의 source 분석은 비용으로 하나를 고르지 않는다. known complete path가 있으면 unknown path는 모순 근거로 사용하지 않고 연결 비용과 word cost는 같은 근거 종류 안의 진단 순서에만 사용한다.
 - bounded context는 token graph에 추가하는 구조 제약이며 경쟁하는 whole-token 분석을 삭제하지 않는다. 반복 token이나 copular 인접 구조가 있어도 양립 가능한 분석이 남으면 surface와 관계없이 `Ambiguous`다.
-- strict subspan의 source component와 enclosing whole-token 분석이 함께 있으면 `CompoundExposure` ambiguity다. `opaque`는 거부하고 `transparent`는 수용하며 `explicit`은 query가 별도 component 노출 capability를 선언한 경우만 수용한다. 세 profile 중 품질 채택 조건을 통과한 profile이 없으면 제품 전환 실패로 기록한다.
+- verifier가 소비한 candidate token 자체가 surrounding token의 strict subspan이고 그 안의 source component와 enclosing whole-token 분석이 함께 있을 때만 `CompoundExposure` ambiguity다. predicate 활용이나 조사 연쇄처럼 candidate core는 strict subspan이어도 verifier가 candidate token 전체를 소비했다면 compound exposure로 분류하지 않는다. `opaque`는 거부하고 `transparent`는 수용하며 `explicit`은 query가 별도 component 노출 capability를 선언한 경우만 수용한다. 세 profile 중 품질 채택 조건을 통과한 profile이 없으면 제품 전환 실패로 기록한다.
 - graph resource와 resolver shadow가 기존 true positive를 보존하고 새 false positive를 만들지 않으며 hard-negative를 악화하지 않을 때만 matcher가 resolver verdict를 소비하도록 전환한다. 전환 전에는 기존 registry와 1,500 마진의 제품 동작을 바꾸지 않는다.
 - 세부 단계와 채택 조건은 [형태 분석 그래프 전환 계획](../docs/benchmarks/morphology-analysis-graph-plan.md)과 [형태 구조 제약 resolver 계약](../docs/benchmarks/morphology-constraint-resolver-contract.md)을 따른다.
 
