@@ -377,10 +377,17 @@ pub(super) fn decide_known(
                 continue;
             }
             let lexical_path = [node_index];
-            let units = path_units(&lexical_path, graph.nodes());
-            for support in
-                source_support_candidates(&lexical_path, graph.nodes(), &units, spans, pattern)
-            {
+            let mut traversal_path = DecisionTraversalPath {
+                last: node_index,
+                units: path_units(&lexical_path, graph.nodes()),
+            };
+            for support in source_support_candidates(
+                &lexical_path,
+                graph.nodes(),
+                &traversal_path.units,
+                spans,
+                pattern,
+            ) {
                 if extend_decision_support(
                     graph,
                     spans,
@@ -388,8 +395,8 @@ pub(super) fn decide_known(
                         index: pattern_index,
                         pattern,
                     },
-                    lexical_path.to_vec(),
-                    support,
+                    &mut traversal_path,
+                    &support,
                     &mut proofs,
                     proof_limit,
                 ) {
@@ -407,8 +414,11 @@ pub(super) fn decide_known(
             continue;
         }
         for lexical_path in &runtime_paths {
-            let units = path_units(lexical_path, graph.nodes());
-            for support in runtime_lexical_candidates(&units, spans, pattern) {
+            let mut traversal_path = DecisionTraversalPath {
+                last: *lexical_path.last().expect("lexical path is non-empty"),
+                units: path_units(lexical_path, graph.nodes()),
+            };
+            for support in runtime_lexical_candidates(&traversal_path.units, spans, pattern) {
                 if extend_decision_support(
                     graph,
                     spans,
@@ -416,8 +426,8 @@ pub(super) fn decide_known(
                         index: pattern_index,
                         pattern,
                     },
-                    lexical_path.clone(),
-                    support,
+                    &mut traversal_path,
+                    &support,
                     &mut proofs,
                     proof_limit,
                 ) {
@@ -463,6 +473,11 @@ struct CompactSupportProof {
 struct IndexedPattern<'a> {
     index: usize,
     pattern: &'a QueryMorphPattern,
+}
+
+struct DecisionTraversalPath<'a> {
+    last: usize,
+    units: Vec<Unit<'a>>,
 }
 
 struct KnownEvaluation {
@@ -765,19 +780,17 @@ fn extend_supported_path(
     }
 }
 
-fn extend_decision_support(
-    graph: &TokenGraph<'_>,
+fn extend_decision_support<'a>(
+    graph: &TokenGraph<'a>,
     spans: &CandidateSpans,
     pattern: IndexedPattern<'_>,
-    required: Vec<usize>,
-    support: SupportCandidate,
+    path: &mut DecisionTraversalPath<'a>,
+    support: &SupportCandidate,
     proofs: &mut BTreeSet<CompactSupportProof>,
     proof_limit: usize,
 ) -> bool {
-    let last = *required.last().expect("supported path is non-empty");
-    let units = path_units(&required, graph.nodes());
-    if graph.nodes()[last].span.end >= spans.consumed.end {
-        let Some(continuation) = continuation_units(pattern.pattern, spans, &units, &support)
+    if graph.nodes()[path.last].span.end >= spans.consumed.end {
+        let Some(continuation) = continuation_units(pattern.pattern, spans, &path.units, support)
         else {
             return false;
         };
@@ -788,7 +801,7 @@ fn extend_decision_support(
                 span_relation: support.relation,
             },
             source_node_index: support.source_node_index,
-            lexical_source_node_indices: support.source_node_indices,
+            lexical_source_node_indices: support.source_node_indices.clone(),
             component_index: support.component_index,
             continuation: continuation
                 .into_iter()
@@ -802,27 +815,29 @@ fn extend_decision_support(
         };
         return proofs.insert(proof) && proofs.len() > proof_limit;
     }
-    if !continuation_prefix_possible(pattern.pattern, spans, &units, &support) {
+    if !continuation_prefix_possible(pattern.pattern, spans, &path.units, support) {
         return false;
     }
-    for &successor in graph.successors(last) {
+    let previous_last = path.last;
+    for &successor in graph.successors(previous_last) {
         let next = &graph.nodes()[successor];
         if next.span.end > spans.consumed.end || !graph.is_on_complete_path(successor) {
             continue;
         }
-        let mut extended = required.clone();
-        extended.push(successor);
-        if extend_decision_support(
-            graph,
-            spans,
-            pattern,
-            extended,
-            support.clone(),
-            proofs,
-            proof_limit,
-        ) {
+        let previous_len = path.units.len();
+        let node_position = path
+            .units
+            .last()
+            .map_or(0, |unit| unit.node_position.saturating_add(1));
+        append_node_units(&mut path.units, node_position, successor, graph.nodes());
+        path.last = successor;
+        if extend_decision_support(graph, spans, pattern, path, support, proofs, proof_limit) {
+            path.units.truncate(previous_len);
+            path.last = previous_last;
             return true;
         }
+        path.units.truncate(previous_len);
+        path.last = previous_last;
     }
     false
 }
@@ -1743,42 +1758,51 @@ fn starts_with_pos(graph: &TokenGraph<'_>, accepts: impl Fn(&str) -> bool) -> bo
     })
 }
 
-fn path_units<'a>(path: &[usize], nodes: &'a [Node<'a>]) -> Vec<Unit<'a>> {
+fn path_units<'a>(path: &[usize], nodes: &[Node<'a>]) -> Vec<Unit<'a>> {
     let mut units = Vec::new();
     for (node_position, &node_index) in path.iter().enumerate() {
-        let node = &nodes[node_index];
-        if node.components.is_empty() {
-            units.extend(node.pos.split('+').enumerate().map(|(pos_slot, pos)| Unit {
-                node_position,
-                source_node_index: node_index,
-                component_index: None,
-                surface: node.surface,
-                pos,
-                pos_slot,
-                span: Some(node.span.clone()),
-                coverage: node.span.clone(),
-                opaque: false,
-            }));
-        } else {
-            units.extend(
-                node.components
-                    .iter()
-                    .enumerate()
-                    .map(|(component_index, component)| Unit {
-                        node_position,
-                        source_node_index: node_index,
-                        component_index: Some(component_index),
-                        surface: component.surface,
-                        pos: component.pos,
-                        pos_slot: 0,
-                        span: component.span.clone(),
-                        coverage: component.span.clone().unwrap_or_else(|| node.span.clone()),
-                        opaque: component.span.is_none(),
-                    }),
-            );
-        }
+        append_node_units(&mut units, node_position, node_index, nodes);
     }
     units
+}
+
+fn append_node_units<'a>(
+    units: &mut Vec<Unit<'a>>,
+    node_position: usize,
+    node_index: usize,
+    nodes: &[Node<'a>],
+) {
+    let node = &nodes[node_index];
+    if node.components.is_empty() {
+        units.extend(node.pos.split('+').enumerate().map(|(pos_slot, pos)| Unit {
+            node_position,
+            source_node_index: node_index,
+            component_index: None,
+            surface: node.surface,
+            pos,
+            pos_slot,
+            span: Some(node.span.clone()),
+            coverage: node.span.clone(),
+            opaque: false,
+        }));
+    } else {
+        units.extend(
+            node.components
+                .iter()
+                .enumerate()
+                .map(|(component_index, component)| Unit {
+                    node_position,
+                    source_node_index: node_index,
+                    component_index: Some(component_index),
+                    surface: component.surface,
+                    pos: component.pos,
+                    pos_slot: 0,
+                    span: component.span.clone(),
+                    coverage: component.span.clone().unwrap_or_else(|| node.span.clone()),
+                    opaque: component.span.is_none(),
+                }),
+        );
+    }
 }
 
 fn exact_coverage(units: &[&Unit<'_>], expected: Range<usize>) -> bool {
