@@ -2,7 +2,10 @@ use std::collections::BTreeSet;
 use std::ops::Range;
 use std::sync::OnceLock;
 
-use kfind_data::{DataFinePos, MorphologyGraphExpressionKind, MorphologyGraphResource};
+use kfind_data::{
+    DataFinePos, MorphologyGraphAnalysis, MorphologyGraphExpressionKind, MorphologyGraphPosClass,
+    MorphologyGraphResource,
+};
 
 use crate::ContinuationState;
 
@@ -369,123 +372,232 @@ pub(super) fn prepare_query_traces(
 ) -> PreparedQueryTraces {
     let by_pattern = patterns
         .iter()
-        .map(|pattern| {
-            let Ok(graph) = TokenGraph::known(resource, &pattern.lexical_form, node_limit) else {
-                return Vec::new();
-            };
-            query_lexical_traces(&graph, pattern, trace_limit)
-        })
+        .map(|pattern| query_lexical_traces(resource, pattern, node_limit, trace_limit))
         .collect();
     PreparedQueryTraces { by_pattern }
 }
 
 fn query_lexical_traces(
-    graph: &TokenGraph<'_>,
+    resource: &MorphologyGraphResource,
     pattern: &QueryMorphPattern,
+    node_limit: usize,
     trace_limit: usize,
 ) -> Vec<QueryLexicalTrace> {
-    let mut traces = BTreeSet::new();
-    for (node_index, node) in graph.nodes().iter().enumerate() {
-        if node.span.start != 0 || !graph.is_on_complete_path(node_index) {
-            continue;
-        }
-        collect_query_lexical_traces(graph, pattern, vec![node_index], trace_limit, &mut traces);
-        if traces.len() >= trace_limit {
-            break;
-        }
+    if !pattern.fine_pos.is_nominal()
+        && !matches!(pattern.fine_pos, DataFinePos::Vv | DataFinePos::Va)
+    {
+        return Vec::new();
     }
+    if query_node_limit_exceeded(resource, &pattern.lexical_form, node_limit) {
+        return Vec::new();
+    }
+    let mut traces = BTreeSet::new();
+    let mut units = Vec::new();
+    collect_query_lexical_traces(
+        resource,
+        &pattern.lexical_form,
+        pattern.fine_pos,
+        0,
+        None,
+        0,
+        PredicateLexicalStage::Start,
+        trace_limit,
+        &mut units,
+        &mut traces,
+    );
     traces.into_iter().collect()
 }
 
+fn query_node_limit_exceeded(
+    resource: &MorphologyGraphResource,
+    lexical_form: &str,
+    node_limit: usize,
+) -> bool {
+    let mut node_count = 0_usize;
+    for (start, _) in lexical_form.char_indices() {
+        resource.common_prefixes(&lexical_form.as_bytes()[start..], |length, _, analyses| {
+            if lexical_form.get(start..start + length).is_some() {
+                node_count = node_count.saturating_add(analyses.len());
+            }
+        });
+        if node_count > node_limit {
+            return true;
+        }
+    }
+    false
+}
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+enum PredicateLexicalStage {
+    Start,
+    NominalBase,
+    Predicate,
+    Bridge,
+}
+
+#[allow(clippy::too_many_arguments)]
 fn collect_query_lexical_traces(
-    graph: &TokenGraph<'_>,
-    pattern: &QueryMorphPattern,
-    path: Vec<usize>,
+    resource: &MorphologyGraphResource,
+    lexical_form: &str,
+    fine_pos: DataFinePos,
+    offset: usize,
+    previous_end: Option<MorphologyGraphPosClass>,
+    path_node_count: usize,
+    predicate_stage: PredicateLexicalStage,
     trace_limit: usize,
+    units: &mut Vec<QueryLexicalUnit>,
     traces: &mut BTreeSet<QueryLexicalTrace>,
 ) {
     if traces.len() >= trace_limit {
         return;
     }
-    let last = *path.last().expect("query lexical path is non-empty");
-    let node = &graph.nodes()[last];
-    if node.span.end == pattern.lexical_form.len() {
-        if let Some(trace) = query_lexical_trace(graph, pattern, &path) {
-            traces.insert(trace);
+    resource.common_prefixes(&lexical_form.as_bytes()[offset..], |length, _, analyses| {
+        let end = offset + length;
+        if end > lexical_form.len() || traces.len() >= trace_limit {
+            return;
         }
-        return;
-    }
-    for &successor in graph.successors(last) {
-        if !graph.is_on_complete_path(successor) {
-            continue;
+        for analysis in analyses {
+            if analysis.components.is_empty() && analysis.pos.contains('+') {
+                continue;
+            }
+            let start_class = resource.transition_class(effective_graph_start_pos(analysis));
+            if previous_end.is_some()
+                && !previous_end
+                    .zip(start_class)
+                    .is_some_and(|(previous, start)| {
+                        resource.allows_transition_classes(previous, start)
+                    })
+            {
+                continue;
+            }
+            if fine_pos.is_nominal()
+                && (analysis.pos.contains('+')
+                    || !source_pos(analysis.pos).is_some_and(DataFinePos::is_nominal))
+            {
+                continue;
+            }
+            let previous_len = units.len();
+            let Some(next_stage) = append_query_units(
+                lexical_form,
+                offset,
+                end,
+                analysis,
+                fine_pos,
+                predicate_stage,
+                units,
+            ) else {
+                continue;
+            };
+            let next_node_count = path_node_count + 1;
+            if end == lexical_form.len() {
+                let accepted = next_node_count >= 2
+                    && (fine_pos.is_nominal() || next_stage == PredicateLexicalStage::Predicate);
+                if accepted {
+                    traces.insert(QueryLexicalTrace {
+                        units: units.clone(),
+                    });
+                }
+            } else if let Some(end_class) =
+                resource.transition_class(effective_graph_end_pos(analysis))
+            {
+                collect_query_lexical_traces(
+                    resource,
+                    lexical_form,
+                    fine_pos,
+                    end,
+                    Some(end_class),
+                    next_node_count,
+                    next_stage,
+                    trace_limit,
+                    units,
+                    traces,
+                );
+            }
+            units.truncate(previous_len);
+            if traces.len() >= trace_limit {
+                return;
+            }
         }
-        let mut extended = path.clone();
-        extended.push(successor);
-        collect_query_lexical_traces(graph, pattern, extended, trace_limit, traces);
-    }
+    });
 }
 
-fn query_lexical_trace(
-    graph: &TokenGraph<'_>,
-    pattern: &QueryMorphPattern,
-    path: &[usize],
-) -> Option<QueryLexicalTrace> {
-    if path.len() < 2 {
-        return None;
-    }
-    let units = path_units(path, graph.nodes());
-    if units.iter().any(|unit| {
-        unit.component_index.is_none()
-            && graph.nodes()[unit.source_node_index].components.is_empty()
-            && graph.nodes()[unit.source_node_index].pos.contains('+')
-    }) {
-        return None;
-    }
-    let accepted = if pattern.fine_pos.is_nominal() {
-        path.iter().all(|&node_index| {
-            let node = &graph.nodes()[node_index];
-            node.source == ConstraintNodeSource::Source
-                && !node.pos.contains('+')
-                && source_pos(node.pos).is_some_and(DataFinePos::is_nominal)
-        })
-    } else if matches!(pattern.fine_pos, DataFinePos::Vv | DataFinePos::Va) {
-        predicate_lexical_trace_allowed(&units)
+fn append_query_units(
+    lexical_form: &str,
+    start: usize,
+    end: usize,
+    analysis: &MorphologyGraphAnalysis<'_>,
+    fine_pos: DataFinePos,
+    mut stage: PredicateLexicalStage,
+    units: &mut Vec<QueryLexicalUnit>,
+) -> Option<PredicateLexicalStage> {
+    let previous_len = units.len();
+    if analysis.components.is_empty() {
+        let surface = lexical_form.get(start..end)?;
+        for pos in analysis.pos.split('+') {
+            if matches!(fine_pos, DataFinePos::Vv | DataFinePos::Va) {
+                let Some(next) = advance_predicate_lexical_stage(stage, pos) else {
+                    units.truncate(previous_len);
+                    return None;
+                };
+                stage = next;
+            }
+            units.push(QueryLexicalUnit {
+                surface: surface.to_owned(),
+                pos: pos.to_owned(),
+            });
+        }
     } else {
-        false
-    };
-    accepted.then(|| QueryLexicalTrace {
-        units: units
-            .into_iter()
-            .map(|unit| QueryLexicalUnit {
-                surface: unit.surface.to_owned(),
-                pos: unit.pos.to_owned(),
-            })
-            .collect(),
-    })
+        for component in &analysis.components {
+            if matches!(fine_pos, DataFinePos::Vv | DataFinePos::Va) {
+                let Some(next) = advance_predicate_lexical_stage(stage, component.pos) else {
+                    units.truncate(previous_len);
+                    return None;
+                };
+                stage = next;
+            }
+            units.push(QueryLexicalUnit {
+                surface: component.surface.to_owned(),
+                pos: component.pos.to_owned(),
+            });
+        }
+    }
+    Some(stage)
 }
 
-fn predicate_lexical_trace_allowed(units: &[Unit<'_>]) -> bool {
-    #[derive(Clone, Copy, Eq, PartialEq)]
-    enum Stage {
-        Start,
-        NominalBase,
-        Predicate,
-        Bridge,
+fn advance_predicate_lexical_stage(
+    stage: PredicateLexicalStage,
+    pos: &str,
+) -> Option<PredicateLexicalStage> {
+    match (stage, pos) {
+        (
+            PredicateLexicalStage::Start | PredicateLexicalStage::NominalBase,
+            "XPN" | "XR" | "NNG" | "NNP",
+        ) => Some(PredicateLexicalStage::NominalBase),
+        (PredicateLexicalStage::Start, "VV" | "VA" | "VX") => {
+            Some(PredicateLexicalStage::Predicate)
+        }
+        (PredicateLexicalStage::NominalBase, "XSV" | "XSA")
+        | (PredicateLexicalStage::Predicate, "VX")
+        | (PredicateLexicalStage::Bridge, "VX") => Some(PredicateLexicalStage::Predicate),
+        (PredicateLexicalStage::Predicate, "EC") => Some(PredicateLexicalStage::Bridge),
+        _ => None,
     }
+}
 
-    let mut stage = Stage::Start;
-    for unit in units {
-        stage = match (stage, unit.pos) {
-            (Stage::Start | Stage::NominalBase, "XPN" | "XR" | "NNG" | "NNP") => Stage::NominalBase,
-            (Stage::Start, "VV" | "VA" | "VX") => Stage::Predicate,
-            (Stage::NominalBase, "XSV" | "XSA") => Stage::Predicate,
-            (Stage::Predicate, "VX") => Stage::Predicate,
-            (Stage::Predicate, "EC") => Stage::Bridge,
-            (Stage::Bridge, "VX") => Stage::Predicate,
-            _ => return false,
-        };
+fn effective_graph_start_pos<'a>(analysis: &'a MorphologyGraphAnalysis<'a>) -> &'a str {
+    if analysis.start_pos == "*" {
+        analysis.pos.split('+').next().unwrap_or("*")
+    } else {
+        analysis.start_pos
     }
-    stage == Stage::Predicate
+}
+
+fn effective_graph_end_pos<'a>(analysis: &'a MorphologyGraphAnalysis<'a>) -> &'a str {
+    if analysis.end_pos == "*" {
+        analysis.pos.split('+').next_back().unwrap_or("*")
+    } else {
+        analysis.end_pos
+    }
 }
 
 pub(super) fn needs_nominal_particle_context(
