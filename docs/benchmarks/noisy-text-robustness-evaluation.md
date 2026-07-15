@@ -1,7 +1,8 @@
 # 비표준·오타·띄어쓰기 입력 평가 계약
 
-이 문서는 비표준 입력 robustness의 corpus, 품질 지표와 외부 라이브러리 비교 방법을 정의한다.
-현재 canonical morphology benchmark와 제품 기준선은 그대로 유지한다.
+이 문서는 [robustness 실행 설계](noisy-text-robustness-plan.md)의 corpus, 품질 지표와 외부
+라이브러리 비교 방법을 정의한다. 현재 canonical morphology benchmark와 제품 기준선은 그대로
+유지한다.
 
 ## 평가 corpus
 
