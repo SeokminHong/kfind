@@ -49,6 +49,7 @@ fn compact_decision_matches_diagnostic_resolution() {
         DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
         DEFAULT_ANALYSIS_GRAPH_PATH_LIMIT,
     );
+    assert!(query.traces.get().is_none());
     let decision =
         resolver.decide_prepared_query_candidate(&prepared, context, spans.clone(), &query);
     let resolution = resolver.resolve_prepared_query_candidate(
@@ -57,6 +58,7 @@ fn compact_decision_matches_diagnostic_resolution() {
         spans,
         &query,
     );
+    assert!(query.traces.get().is_none());
 
     assert_eq!(decision, resolution.decision());
     for policy in [
@@ -345,19 +347,28 @@ fn nominal_compound_can_supply_a_token_initial_lexical_host() {
     ]);
     let pattern = nominal_pattern("캔맥주", DataFinePos::Nng);
     let host_end = "캔맥주".len();
-    let resolution = resolver.resolve_candidate(
-        BoundedTokenContext::current(text),
-        CandidateSpans {
-            core: 0..host_end,
-            anchor: 0..host_end,
-            consumed: 0..text.len(),
-            token: 0..text.len(),
-        },
+    let spans = CandidateSpans {
+        core: 0..host_end,
+        anchor: 0..host_end,
+        consumed: 0..text.len(),
+        token: 0..text.len(),
+    };
+    let prepared = resolver.prepare_token(text, DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT);
+    let query = resolver.prepare_query_analysis(
         std::slice::from_ref(&pattern),
         DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+        DEFAULT_ANALYSIS_GRAPH_PATH_LIMIT,
+    );
+    assert!(query.traces.get().is_none());
+    let resolution = resolver.resolve_prepared_query_candidate(
+        &prepared,
+        BoundedTokenContext::current(text),
+        spans,
+        &query,
     );
 
     assert_eq!(resolution.outcome, ConstraintOutcome::Supported);
+    assert!(query.traces.get().is_some());
     assert!(resolution.supported.analyses.iter().any(|analysis| {
         analysis.evidence == ConstraintEvidenceKind::RuntimeComposed
             && analysis.lexical_source_node_indices.len() == 2

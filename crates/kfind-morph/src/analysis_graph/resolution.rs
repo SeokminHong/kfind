@@ -311,6 +311,10 @@ pub(super) struct PreparedQueryTraces {
     by_pattern: Vec<Vec<QueryLexicalTrace>>,
 }
 
+static EMPTY_QUERY_TRACES: PreparedQueryTraces = PreparedQueryTraces {
+    by_pattern: Vec::new(),
+};
+
 impl PreparedQueryTraces {
     fn for_pattern(&self, pattern_index: usize) -> &[QueryLexicalTrace] {
         self.by_pattern
@@ -321,6 +325,40 @@ impl PreparedQueryTraces {
     fn has_runtime_traces(&self) -> bool {
         self.by_pattern.iter().any(|traces| !traces.is_empty())
     }
+}
+
+pub(super) fn empty_query_traces() -> &'static PreparedQueryTraces {
+    &EMPTY_QUERY_TRACES
+}
+
+pub(super) fn has_runtime_lexical_path(graph: &TokenGraph<'_>, spans: &CandidateSpans) -> bool {
+    if spans.core.start != spans.token.start || spans.core.start == spans.core.end {
+        return false;
+    }
+    let mut reaches_core_end = vec![false; graph.node_count()];
+    for index in (0..graph.node_count()).rev() {
+        let node = &graph.nodes()[index];
+        if !graph.is_on_complete_path(index)
+            || node.span.start < spans.core.start
+            || node.span.end > spans.core.end
+        {
+            continue;
+        }
+        reaches_core_end[index] = node.span.end == spans.core.end
+            || graph
+                .successors(index)
+                .iter()
+                .any(|&successor| reaches_core_end[successor]);
+    }
+    graph.nodes().iter().enumerate().any(|(index, node)| {
+        graph.is_on_complete_path(index)
+            && node.span.start == spans.core.start
+            && node.span.end < spans.core.end
+            && graph
+                .successors(index)
+                .iter()
+                .any(|&successor| reaches_core_end[successor])
+    })
 }
 
 pub(super) fn prepare_query_traces(

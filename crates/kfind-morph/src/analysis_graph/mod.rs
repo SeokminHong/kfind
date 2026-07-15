@@ -133,7 +133,8 @@ pub struct PreparedTokenAnalysis<'a> {
 pub struct PreparedQueryAnalysis {
     resource: Arc<MorphologyGraphResource>,
     patterns: Vec<QueryMorphPattern>,
-    traces: resolution::PreparedQueryTraces,
+    traces: OnceLock<resolution::PreparedQueryTraces>,
+    node_limit: usize,
     path_limit: usize,
 }
 
@@ -141,6 +142,24 @@ impl PreparedQueryAnalysis {
     #[must_use]
     pub fn patterns(&self) -> &[QueryMorphPattern] {
         &self.patterns
+    }
+
+    fn traces_for<'a>(
+        &'a self,
+        graph: &TokenGraph<'_>,
+        spans: &CandidateSpans,
+    ) -> &'a resolution::PreparedQueryTraces {
+        if !resolution::has_runtime_lexical_path(graph, spans) {
+            return resolution::empty_query_traces();
+        }
+        self.traces.get_or_init(|| {
+            resolution::prepare_query_traces(
+                &self.resource,
+                &self.patterns,
+                self.node_limit,
+                self.path_limit,
+            )
+        })
     }
 }
 
@@ -174,12 +193,8 @@ impl ConstraintResolver {
         PreparedQueryAnalysis {
             resource: Arc::clone(&self.resource),
             patterns: patterns.to_vec(),
-            traces: resolution::prepare_query_traces(
-                &self.resource,
-                patterns,
-                node_limit,
-                path_limit,
-            ),
+            traces: OnceLock::new(),
+            node_limit,
             path_limit,
         }
     }
@@ -315,6 +330,7 @@ impl ConstraintResolver {
         }
         match &prepared.state {
             PreparedTokenState::Known { graph, summary } => {
+                let query_traces = query.traces_for(graph, &spans);
                 let selection = match self.select_prepared_context(
                     graph,
                     summary,
@@ -338,7 +354,7 @@ impl ConstraintResolver {
                     graph,
                     &spans,
                     patterns,
-                    &query.traces,
+                    query_traces,
                     &selection,
                     path_limit,
                 )
@@ -354,6 +370,7 @@ impl ConstraintResolver {
                     ConstraintUnavailable::UnknownOnly | ConstraintUnavailable::NoCompletePath
                 ) && let Some(graph) = self.hybrid_prefix_graph(prepared, spans.core.start)
                 {
+                    let query_traces = query.traces_for(&graph, &spans);
                     let summary = resolution::prepare_token_summary();
                     let selection = match self.select_prepared_context(
                         &graph,
@@ -378,7 +395,7 @@ impl ConstraintResolver {
                         &graph,
                         &spans,
                         patterns,
-                        &query.traces,
+                        query_traces,
                         &selection,
                         path_limit,
                     );
@@ -482,6 +499,7 @@ impl ConstraintResolver {
         }
         match &prepared.state {
             PreparedTokenState::Known { graph, summary } => {
+                let query_traces = query.traces_for(graph, &spans);
                 let selection = match self.select_prepared_context(
                     graph,
                     summary,
@@ -502,7 +520,7 @@ impl ConstraintResolver {
                     graph,
                     &spans,
                     patterns,
-                    &query.traces,
+                    query_traces,
                     &selection,
                     path_limit,
                 )
@@ -513,6 +531,7 @@ impl ConstraintResolver {
                     ConstraintUnavailable::UnknownOnly | ConstraintUnavailable::NoCompletePath
                 ) && let Some(graph) = self.hybrid_prefix_graph(prepared, spans.core.start)
                 {
+                    let query_traces = query.traces_for(&graph, &spans);
                     let summary = resolution::prepare_token_summary();
                     let selection = match self.select_prepared_context(
                         &graph,
@@ -534,7 +553,7 @@ impl ConstraintResolver {
                         &graph,
                         &spans,
                         patterns,
-                        &query.traces,
+                        query_traces,
                         &selection,
                         path_limit,
                     );
