@@ -167,7 +167,7 @@ impl StringLayout {
         std::str::from_utf8(input.get(start..end)?).ok()
     }
 
-    fn len(&self) -> usize {
+    pub(super) fn len(&self) -> usize {
         usize::try_from(self.count).expect("validated string count fits usize")
     }
 

@@ -17,7 +17,9 @@ pub use binary::{
 };
 pub use component::{
     COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentAnalysis, ComponentResource, ComponentResourceStats,
-    decode_component_resource, encode_component_resource,
+    MorphologyGraphAnalysis, MorphologyGraphComponent, MorphologyGraphExpressionKind,
+    MorphologyGraphResource, MorphologyGraphResourceStats, decode_component_resource,
+    decode_morphology_graph_resource, encode_component_resource, encode_morphology_graph_resource,
 };
 pub use error::{DataError, DataErrorKind, DataWarning, SourceLocation};
 pub use fixture::{ExpectedMatch, FixturePos, MorphologyCase, parse_morphology_cases_tsv};

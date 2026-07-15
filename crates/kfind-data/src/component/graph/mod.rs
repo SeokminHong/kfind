@@ -1,7 +1,6 @@
 use std::collections::BTreeMap;
 use std::ops::Range;
 
-use sha2::{Digest, Sha256};
 use yada::DoubleArray;
 use yada::builder::DoubleArrayBuilder;
 
@@ -9,41 +8,77 @@ use crate::{
     DataError, DataErrorKind, MecabConnectionMatrix, MecabSourceMorphologyEntry, SourceLocation,
 };
 
-mod graph;
 mod payload;
 
-pub use graph::{
-    MorphologyGraphAnalysis, MorphologyGraphComponent, MorphologyGraphExpressionKind,
-    MorphologyGraphResource, MorphologyGraphResourceStats, decode_morphology_graph_resource,
-    encode_morphology_graph_resource,
+use super::{
+    HEADER_LEN, INDEX_KIND_DOUBLE_ARRAY, MAGIC, SECTION_COUNT, StringLayout,
+    build_conversion_error, build_error, read_array, read_context_count, read_u32, read_u64,
+    resource_error, section_ranges, sha256,
 };
-use payload::{PayloadLayout, StringLayout};
+use payload::{GraphPayloadLayout, encode_graph_payload};
 
-const MAGIC: &[u8; 8] = b"KFCMPLT\0";
-const SCHEMA_VERSION: u32 = 1;
-const INDEX_KIND_DOUBLE_ARRAY: u8 = 1;
-const SECTION_COUNT: usize = 6;
-const HEADER_LEN: usize = 304;
+const SCHEMA_VERSION: u32 = 2;
 
-pub const COMPONENT_RESOURCE_SOURCE_DIGEST: [u8; 32] = [
-    0xfd, 0x62, 0xd3, 0xd6, 0xd8, 0xfa, 0x85, 0x14, 0x55, 0x28, 0x06, 0x5f, 0xab, 0xad, 0x4d, 0x7c,
-    0xb2, 0x0f, 0x6b, 0x22, 0x01, 0xe7, 0x1b, 0xe4, 0x08, 0x1a, 0x4e, 0x97, 0x01, 0xa5, 0xb3, 0x30,
-];
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum MorphologyGraphExpressionKind {
+    Absent,
+    SpanAligned,
+    Fused,
+    Unaligned,
+    Invalid,
+}
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ComponentAnalysis<'a> {
+impl MorphologyGraphExpressionKind {
+    const fn encode(self) -> u8 {
+        match self {
+            Self::Absent => 0,
+            Self::SpanAligned => 1,
+            Self::Fused => 2,
+            Self::Unaligned => 3,
+            Self::Invalid => 4,
+        }
+    }
+
+    const fn decode(value: u8) -> Option<Self> {
+        match value {
+            0 => Some(Self::Absent),
+            1 => Some(Self::SpanAligned),
+            2 => Some(Self::Fused),
+            3 => Some(Self::Unaligned),
+            4 => Some(Self::Invalid),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MorphologyGraphComponent<'a> {
+    pub surface: &'a str,
+    pub pos: &'a str,
+    pub span: Option<Range<usize>>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MorphologyGraphAnalysis<'a> {
     pub pos: &'a str,
     pub left_id: u16,
     pub right_id: u16,
     pub word_cost: i32,
+    pub analysis_type: &'a str,
+    pub start_pos: &'a str,
+    pub end_pos: &'a str,
+    pub expression_kind: MorphologyGraphExpressionKind,
+    pub components: Vec<MorphologyGraphComponent<'a>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct ComponentResourceStats {
+pub struct MorphologyGraphResourceStats {
     pub schema_version: u32,
     pub surface_count: u32,
     pub analysis_count: u32,
+    pub component_count: u32,
     pub pos_counts: BTreeMap<String, u32>,
+    pub expression_counts: BTreeMap<MorphologyGraphExpressionKind, u32>,
     pub right_contexts: u16,
     pub left_contexts: u16,
 }
@@ -59,17 +94,17 @@ struct Sections {
 }
 
 #[derive(Debug)]
-pub struct ComponentResource {
+pub struct MorphologyGraphResource {
     bytes: Box<[u8]>,
-    stats: ComponentResourceStats,
+    stats: MorphologyGraphResourceStats,
     sections: Sections,
-    payload: PayloadLayout,
+    payload: GraphPayloadLayout,
     strings: StringLayout,
 }
 
-impl ComponentResource {
+impl MorphologyGraphResource {
     #[must_use]
-    pub fn stats(&self) -> &ComponentResourceStats {
+    pub fn stats(&self) -> &MorphologyGraphResourceStats {
         &self.stats
     }
 
@@ -81,14 +116,16 @@ impl ComponentResource {
     pub fn common_prefixes<'a>(
         &'a self,
         input: &[u8],
-        mut emit: impl FnMut(usize, &[ComponentAnalysis<'a>]),
+        mut emit: impl FnMut(usize, &str, &[MorphologyGraphAnalysis<'a>]),
     ) {
         let index = DoubleArray::new(&self.bytes[self.sections.index.clone()]);
         let payload = &self.bytes[self.sections.payload.clone()];
         let strings = &self.bytes[self.sections.strings.clone()];
         for (group, length) in index.common_prefix_search(input) {
-            if let Some(analyses) = self.payload.group(payload, group, strings, &self.strings) {
-                emit(length, &analyses);
+            if let Some((surface, analyses)) =
+                self.payload.group(payload, group, strings, &self.strings)
+            {
+                emit(length, surface, &analyses);
             }
         }
     }
@@ -131,7 +168,7 @@ impl ComponentResource {
     }
 }
 
-pub fn encode_component_resource(
+pub fn encode_morphology_graph_resource(
     source_digest: [u8; 32],
     entries: &[MecabSourceMorphologyEntry],
     matrix: &MecabConnectionMatrix,
@@ -139,7 +176,7 @@ pub fn encode_component_resource(
     unk_def: &[u8],
 ) -> Result<Vec<u8>, DataError> {
     if entries.is_empty() {
-        return Err(build_error("component entries are empty"));
+        return Err(build_error("morphology graph entries are empty"));
     }
     if char_def.is_empty() || unk_def.is_empty() {
         return Err(build_error("unknown-word definitions are empty"));
@@ -147,7 +184,9 @@ pub fn encode_component_resource(
     let mut grouped = BTreeMap::<String, Vec<MecabSourceMorphologyEntry>>::new();
     for entry in entries {
         if entry.right_id >= matrix.right_contexts() || entry.left_id >= matrix.left_contexts() {
-            return Err(build_error("component entry context ID is out of range"));
+            return Err(build_error(
+                "morphology graph entry context ID is out of range",
+            ));
         }
         grouped
             .entry(entry.surface.clone())
@@ -170,8 +209,8 @@ pub fn encode_component_resource(
         })
         .collect::<Result<Vec<_>, DataError>>()?;
     let index = DoubleArrayBuilder::build(&keys)
-        .ok_or_else(|| build_error("failed to build component Double-Array index"))?;
-    let encoded = payload::encode(&groups)?;
+        .ok_or_else(|| build_error("failed to build morphology graph Double-Array index"))?;
+    let encoded = encode_graph_payload(&groups)?;
     let matrix_bytes = encode_matrix(matrix);
     let sections: [&[u8]; SECTION_COUNT] = [
         &index,
@@ -208,7 +247,9 @@ pub fn encode_component_resource(
         output.extend_from_slice(&sha256(section));
     }
     if output.len() != HEADER_LEN {
-        return Err(build_error("component header length is inconsistent"));
+        return Err(build_error(
+            "morphology graph header length is inconsistent",
+        ));
     }
     for section in sections {
         output.extend_from_slice(section);
@@ -216,11 +257,11 @@ pub fn encode_component_resource(
     Ok(output)
 }
 
-pub fn decode_component_resource(
+pub fn decode_morphology_graph_resource(
     source: &str,
     input: Vec<u8>,
     expected_source_digest: &[u8; 32],
-) -> Result<ComponentResource, DataError> {
+) -> Result<MorphologyGraphResource, DataError> {
     let bytes = input.into_boxed_slice();
     if bytes.len() < HEADER_LEN || bytes.get(..MAGIC.len()) != Some(MAGIC) {
         return Err(resource_error(source, "truncated header or invalid magic"));
@@ -307,7 +348,7 @@ pub fn decode_component_resource(
         return Err(resource_error(source, "connection matrix length mismatch"));
     }
     let strings = StringLayout::parse(source, &bytes[sections.strings.clone()])?;
-    let (payload, pos_counts) = PayloadLayout::parse(
+    let (payload, payload_stats) = GraphPayloadLayout::parse(
         source,
         &bytes[sections.payload.clone()],
         surface_count,
@@ -317,13 +358,24 @@ pub fn decode_component_resource(
         &bytes[sections.strings.clone()],
         &strings,
     )?;
-    Ok(ComponentResource {
+    validate_index(
+        source,
+        &bytes[sections.index.clone()],
+        &bytes[sections.payload.clone()],
+        &bytes[sections.strings.clone()],
+        &strings,
+        &payload,
+        surface_count,
+    )?;
+    Ok(MorphologyGraphResource {
         bytes,
-        stats: ComponentResourceStats {
+        stats: MorphologyGraphResourceStats {
             schema_version: SCHEMA_VERSION,
             surface_count,
             analysis_count,
-            pos_counts,
+            component_count: payload_stats.component_count,
+            pos_counts: payload_stats.pos_counts,
+            expression_counts: payload_stats.expression_counts,
             right_contexts,
             left_contexts,
         },
@@ -341,76 +393,26 @@ fn encode_matrix(matrix: &MecabConnectionMatrix) -> Vec<u8> {
         .collect()
 }
 
-fn section_ranges(
+#[allow(clippy::too_many_arguments)]
+fn validate_index(
     source: &str,
-    input_len: usize,
-    mut cursor: usize,
-    lengths: [usize; SECTION_COUNT],
-) -> Result<[Range<usize>; SECTION_COUNT], DataError> {
-    let mut ranges = Vec::with_capacity(SECTION_COUNT);
-    for length in lengths {
-        let end = cursor
-            .checked_add(length)
-            .ok_or_else(|| resource_error(source, "section length overflow"))?;
-        if end > input_len {
-            return Err(resource_error(source, "truncated section"));
+    index_bytes: &[u8],
+    payload_bytes: &[u8],
+    string_bytes: &[u8],
+    strings: &StringLayout,
+    payload: &GraphPayloadLayout,
+    surface_count: u32,
+) -> Result<(), DataError> {
+    let index = DoubleArray::new(index_bytes);
+    for group in 0..surface_count {
+        let surface = payload
+            .surface(payload_bytes, group, string_bytes, strings)
+            .ok_or_else(|| resource_error(source, "invalid graph surface"))?;
+        if index.exact_match_search(surface.as_bytes()) != Some(group) {
+            return Err(resource_error(source, "surface index and payload mismatch"));
         }
-        ranges.push(cursor..end);
-        cursor = end;
     }
-    if cursor != input_len {
-        return Err(resource_error(source, "section lengths do not match file"));
-    }
-    ranges
-        .try_into()
-        .map_err(|_| resource_error(source, "invalid section count"))
-}
-
-fn read_context_count(
-    source: &str,
-    input: &[u8],
-    cursor: &mut usize,
-    name: &str,
-) -> Result<u16, DataError> {
-    let count = read_u32(input, cursor).map_err(|message| resource_error(source, message))?;
-    u16::try_from(count).map_err(|_| resource_error(source, &format!("{name} context overflow")))
-}
-
-fn read_u32(input: &[u8], cursor: &mut usize) -> Result<u32, &'static str> {
-    Ok(u32::from_le_bytes(read_array(input, cursor)?))
-}
-
-fn read_u64(input: &[u8], cursor: &mut usize) -> Result<u64, &'static str> {
-    Ok(u64::from_le_bytes(read_array(input, cursor)?))
-}
-
-fn read_array<const N: usize>(input: &[u8], cursor: &mut usize) -> Result<[u8; N], &'static str> {
-    let end = cursor.checked_add(N).ok_or("header offset overflow")?;
-    let bytes = input.get(*cursor..end).ok_or("truncated header field")?;
-    *cursor = end;
-    bytes.try_into().map_err(|_| "invalid header field")
-}
-
-fn sha256(input: &[u8]) -> [u8; 32] {
-    Sha256::digest(input).into()
-}
-
-fn build_conversion_error(error: impl ToString) -> DataError {
-    build_error(&error.to_string())
-}
-
-fn build_error(message: &str) -> DataError {
-    DataError::new(
-        SourceLocation::new("component-resource"),
-        DataErrorKind::ComponentResourceBuild(message.to_owned()),
-    )
-}
-
-fn resource_error(source: &str, message: &str) -> DataError {
-    DataError::new(
-        SourceLocation::new(source),
-        DataErrorKind::ComponentResourceCorrupt(message.to_owned()),
-    )
+    Ok(())
 }
 
 #[cfg(test)]
