@@ -34,6 +34,7 @@
 - [형태 구조 제약 resolver 계약](morphology-constraint-resolver-contract.md)
 - [형태 구조 제약 resolver shadow 결과](2026-07-15-morphology-constraint-resolver.md)
 - [형태 구조 제약 모델 독립 평가](2026-07-16-morphology-constraint-model.md)
+- [형태 구조 source identity와 계층적 context fact](2026-07-16-morphology-source-identity.md)
 - [형태 분석 그래프 schema 2 projection과 비용](2026-07-15-morphology-analysis-graph-resource.md)
 - [Source provenance와 expression component shadow](2026-07-15-source-provenance-shadow.md)
 - [접속 조사 `이면/면`의 명사류 결합](2026-07-15-connector-myeon-particle.md)
@@ -252,11 +253,11 @@ coverage 검사를 함께 도입한다. 새 규칙이 없는 RC 변경에는 이
 
 ## 이어갈 형태 품질 작업
 
-schema 4 graph, 완전한 `QueryMorphPattern`, query-directed `ConstraintResolver`, 네 제품 정책과 독립 evaluator를 구현했다. 독립 경로는 제품 verifier, boundary policy, lexical context registry와 비용 임계값을 호출하지 않는다. `35351f061e68c2d5c073eae98bcd9222a898159b` 에서 5회 측정한 고정 test의 `possible-analysis`는 TP 461 / FP 5 / FN 39, `unambiguous-analysis`는 TP 282 / FP 0 / FN 218이며 hard-negative FP는 각각 10건과 2건이다. 제품의 TP 466 / FP 0 / FN 34를 보존한 정책은 없지만 evaluator는 제품 대비 처리량 -2.4%, p95 +8.1%, RSS +13.3%로 세 성능 gate를 모두 통과했다.
+schema 4 graph, 완전한 `QueryMorphPattern`, query-directed `ConstraintResolver`, 네 제품 정책과 독립 evaluator를 구현했다. 독립 경로는 제품 verifier, boundary policy, lexical context registry와 비용 임계값을 호출하지 않는다. `98d696236d8516abe447eb47ba733d56018405eb` 에서 5회 측정한 고정 test의 `possible-analysis`는 TP 480 / FP 5 / FN 20, `unambiguous-analysis`는 TP 294 / FP 0 / FN 206이며 hard-negative FP는 각각 9건과 2건이다. evaluator는 같은 revision의 product control 대비 처리량 -5.6%, p95 +6.7%, RSS +13.2%로 세 성능 gate를 모두 통과했다.
 
-이 작업은 장기 실험 stack으로 유지하며 각 후속 단계도 별도 stacked draft로 만든다. 다음 최고 영향 작업은 제품이 맞히고 구조 경로가 놓친 positive 24건의 source lexical identity와 complete-path alignment를 보강하는 것이다. 이 집합은 `Contradicted` 19건, `NoCompletePath` 4건, `UnknownOnly` 1건이며 candidate coverage 미달 6건보다 영향이 크다. 이후 독립 candidate coverage의 development 97.8%와 고정 test 98.8%를 100%로 맞추고, 형태 분석만으로 남는 `CompoundExposure`와 lexical meaning ambiguity는 morphology 규칙으로 강제하지 않고 `SupportedAnalysisSet`을 소비하는 별도 context disambiguator에서 다룬다.
+이 작업은 장기 실험 stack으로 유지하며 각 후속 단계도 별도 stacked draft로 만든다. source lexical identity와 complete-path alignment는 고정 test `possible-analysis`의 FN을 39건에서 20건으로 줄였고 계층적 context fact는 witness path materialization 없이 성능 gate를 닫았다. 다음 최고 영향 작업은 query compiler의 선언형 anchor IR을 독립 enumerator가 실행하도록 해 development 97.8%와 고정 test 98.8%의 candidate coverage를 100%로 맞추는 것이다. 이후 제품 TP 466 / FP 0과 development TP 475 / FP 2를 보존하도록 `SupportedAnalysisSet`을 소비하는 별도 `AmbiguityResolver`를 구현한다.
 
-현재 구조 실험 stack은 #136, #137, #139, #141 순서이며 #141 은 #139 위에 쌓인 draft다. 자동 머지는 설정하지 않고 후속 실험도 이 stack 위에 별도 draft로 추가한다.
+현재 구조 실험 stack은 #136, #137, #139, #141 순서이며 #141 은 #139 위에 쌓인 draft다. source identity와 계층적 context fact는 #141 위의 별도 draft로 게시하며 자동 머지는 설정하지 않는다.
 
 계측·report·runner만 바꾼 상태는 작업 완료로 보지 않는다. 규칙 조건은 development case만으로 만들지 않고 독립된 사전·문법 근거로 정의한다. development는 후보 선택에 사용하고, 고정 test와 무품사 결과는 규칙을 고정한 뒤 회귀 판정에만 사용한다.
 
