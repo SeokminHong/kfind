@@ -723,6 +723,106 @@ fn particle_context_selects_the_complete_nominal_host() {
 }
 
 #[test]
+fn particle_context_preserves_multiple_structural_hosts() {
+    let resolver = resolver(&[
+        atomic("산", "NNG", 0),
+        atomic("산길", "NNG", 0),
+        atomic("길", "JX", 0),
+        atomic("을", "JKO", 0),
+        entry(
+            "산길",
+            "NNG+JX",
+            "Preanalysis",
+            "NNG",
+            "JX",
+            "산/NNG/*+길/JX/*",
+            0,
+        ),
+        entry(
+            "산을",
+            "NNG+JKO",
+            "Preanalysis",
+            "NNG",
+            "JKO",
+            "산/NNG/*+을/JKO/*",
+            0,
+        ),
+        entry(
+            "길을",
+            "JX+JKO",
+            "Preanalysis",
+            "JX",
+            "JKO",
+            "길/JX/*+을/JKO/*",
+            0,
+        ),
+    ]);
+    let context = BoundedTokenContext::current("산길을");
+    let resolve = |lexical_form: &str, core: Range<usize>| {
+        resolver.resolve_candidate(
+            context,
+            CandidateSpans {
+                anchor: core.clone(),
+                core,
+                consumed: 0.."산길을".len(),
+                token: 0.."산길을".len(),
+            },
+            std::slice::from_ref(&nominal_pattern(lexical_form, DataFinePos::Nng)),
+            DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+        )
+    };
+
+    let short = resolve("산", 0.."산".len());
+    let long = resolve("산길", 0.."산길".len());
+
+    assert_eq!(short.outcome, ConstraintOutcome::Supported);
+    assert_eq!(long.outcome, ConstraintOutcome::Supported);
+    assert!(matches!(
+        short.supported.analyses[0].context,
+        Some(ConstraintContextProof::NominalParticleHost { ref selected })
+            if *selected == (0.."산".len())
+    ));
+    assert!(matches!(
+        long.supported.analyses[0].context,
+        Some(ConstraintContextProof::NominalParticleHost { ref selected })
+            if *selected == (0.."산길".len())
+    ));
+}
+
+#[test]
+fn particle_context_does_not_filter_an_unrelated_whole_analysis() {
+    let resolver = resolver(&[
+        atomic("그대로", "MAG", 0),
+        entry(
+            "그대로",
+            "NP+JKB",
+            "Preanalysis",
+            "NP",
+            "JKB",
+            "그대/NP/*+로/JKB/*",
+            0,
+        ),
+    ]);
+    let pattern = exact_pattern("그대로", DataFinePos::Mag, ComponentCapability::WholeOnly);
+    let resolution = resolver.resolve(
+        "그대로",
+        0.."그대로".len(),
+        0.."그대로".len(),
+        &pattern,
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(
+        resolution.outcome,
+        ConstraintOutcome::Ambiguous(ConstraintAmbiguity::LexicalCompetition)
+    );
+    assert!(ProductPolicy::Whole.accepts(&resolution, std::slice::from_ref(&pattern)));
+    assert!(
+        !ProductPolicy::UnambiguousAnalysis.accepts(&resolution, std::slice::from_ref(&pattern))
+    );
+}
+
+#[test]
 fn particle_shaped_suffix_does_not_hide_a_complete_predicate_analysis() {
     let resolver = resolver(&[
         atomic("생성", "NNG", 0),
