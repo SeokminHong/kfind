@@ -21,15 +21,19 @@ fn graph_resource_round_trips_source_relations_and_scoring_data() {
     .unwrap();
     let resource = decode_morphology_graph_resource("fixture", bytes, &[7; 32]).unwrap();
 
-    assert_eq!(resource.stats().schema_version, 2);
+    assert_eq!(resource.stats().schema_version, 3);
     assert_eq!(resource.stats().surface_count, 5);
     assert_eq!(resource.stats().analysis_count, 5);
     assert_eq!(resource.stats().component_count, 6);
+    assert_eq!(resource.stats().transition_count, 3);
     assert_eq!(
         resource.stats().expression_counts[&MorphologyGraphExpressionKind::Absent],
         1
     );
     assert_eq!(resource.connection_cost(1, 0), Some(3));
+    assert!(resource.allows_transition("NNG", "NNG"));
+    assert!(resource.allows_transition("VV", "EC"));
+    assert!(!resource.allows_transition("NNG", "EC"));
     assert_eq!(resource.char_def(), b"HANGUL 0 1 2\n");
 
     let mut prefixes = Vec::new();
@@ -77,6 +81,7 @@ fn graph_projection_matches_full_morphology_source_rows() {
             surface_count: 5,
             analysis_count: 5,
             component_count: 6,
+            transition_count: 3,
             matrix_cost_count: 4,
         }
     );
@@ -167,7 +172,7 @@ fn graph_projection_matches_full_morphology_source_rows() {
 }
 
 #[test]
-fn schema_two_isolated_from_the_product_schema_one_loader() {
+fn schema_three_isolated_from_the_product_schema_one_loader() {
     let bytes = encode_morphology_graph_resource(
         [7; 32],
         &[entry("가", "NNG", "*", "*", "*", "*", 0, 0, 1)],
@@ -184,10 +189,10 @@ fn schema_two_isolated_from_the_product_schema_one_loader() {
             .as_ref(),
         DataErrorKind::ComponentResourceSchema {
             expected: 1,
-            actual: 2
+            actual: 3
         }
     ));
-    decode_morphology_graph_resource("schema-two", bytes, &[7; 32]).unwrap();
+    decode_morphology_graph_resource("schema-three", bytes, &[7; 32]).unwrap();
 }
 
 #[test]
@@ -228,7 +233,7 @@ fn graph_resource_rejects_source_section_and_relation_corruption() {
     let mut relation = bytes;
     let index_len = usize::try_from(read_u64_at(&relation, 64).unwrap()).unwrap();
     let payload_start = HEADER_LEN + index_len;
-    let expression_kind_offset = payload_start + 60;
+    let expression_kind_offset = payload_start + 64;
     relation[expression_kind_offset] = MorphologyGraphExpressionKind::Fused.encode();
     refresh_payload_digest(&mut relation, payload_start);
     let error = decode_morphology_graph_resource("fixture", relation, &[7; 32]).unwrap_err();

@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::ops::Range;
 
 use yada::DoubleArray;
@@ -19,7 +19,7 @@ use super::{
 use payload::{GraphPayloadLayout, encode_graph_payload};
 pub use projection::{MorphologyGraphProjectionStats, validate_morphology_graph_projection};
 
-const SCHEMA_VERSION: u32 = 2;
+const SCHEMA_VERSION: u32 = 3;
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum MorphologyGraphExpressionKind {
@@ -79,6 +79,7 @@ pub struct MorphologyGraphResourceStats {
     pub surface_count: u32,
     pub analysis_count: u32,
     pub component_count: u32,
+    pub transition_count: u32,
     pub pos_counts: BTreeMap<String, u32>,
     pub expression_counts: BTreeMap<MorphologyGraphExpressionKind, u32>,
     pub right_contexts: u16,
@@ -102,6 +103,7 @@ pub struct MorphologyGraphResource {
     sections: Sections,
     payload: GraphPayloadLayout,
     strings: StringLayout,
+    transitions: BTreeSet<(String, String)>,
 }
 
 impl MorphologyGraphResource {
@@ -147,6 +149,13 @@ impl MorphologyGraphResource {
             .checked_add(index.checked_mul(2)?)?;
         let bytes = self.bytes.get(offset..offset.checked_add(2)?)?;
         Some(i16::from_le_bytes(bytes.try_into().ok()?))
+    }
+
+    #[must_use]
+    pub fn allows_transition(&self, end_pos: &str, start_pos: &str) -> bool {
+        self.transitions
+            .iter()
+            .any(|(end, start)| end == end_pos && start == start_pos)
     }
 
     #[must_use]
@@ -376,6 +385,8 @@ pub fn decode_morphology_graph_resource(
             surface_count,
             analysis_count,
             component_count: payload_stats.component_count,
+            transition_count: u32::try_from(payload_stats.transitions.len())
+                .map_err(|error| resource_error(source, &error.to_string()))?,
             pos_counts: payload_stats.pos_counts,
             expression_counts: payload_stats.expression_counts,
             right_contexts,
@@ -384,6 +395,7 @@ pub fn decode_morphology_graph_resource(
         sections,
         payload,
         strings,
+        transitions: payload_stats.transitions,
     })
 }
 

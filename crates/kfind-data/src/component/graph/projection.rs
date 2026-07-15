@@ -1,8 +1,10 @@
+use std::collections::BTreeSet;
+
 use unicode_normalization::UnicodeNormalization;
 
 use crate::{
     DataError, DecodedMorphologyResource, MorphologyAnalysis, MorphologyExpressionAlignmentKind,
-    align_morphology_expression,
+    align_morphology_expression, morphology_pos_transitions,
 };
 
 use super::{
@@ -14,6 +16,7 @@ pub struct MorphologyGraphProjectionStats {
     pub surface_count: u32,
     pub analysis_count: u32,
     pub component_count: u32,
+    pub transition_count: u32,
     pub matrix_cost_count: u64,
 }
 
@@ -27,6 +30,7 @@ pub fn validate_morphology_graph_projection(
     let string_bytes = &graph.bytes[graph.sections.strings.clone()];
     let mut analysis_count = 0_u32;
     let mut component_count = 0_u32;
+    let mut transitions = BTreeSet::new();
     for group in 0..graph.stats.surface_count {
         let (surface, graph_analyses) = graph
             .payload
@@ -38,6 +42,7 @@ pub fn validate_morphology_graph_projection(
         }
         for (full_analysis, graph_analysis) in full_analyses.iter().zip(&graph_analyses) {
             validate_analysis(source, surface, *full_analysis, graph_analysis)?;
+            collect_transitions(*full_analysis, &mut transitions);
             analysis_count = analysis_count
                 .checked_add(1)
                 .ok_or_else(|| projection_error(source, "analysis count overflow"))?;
@@ -52,6 +57,7 @@ pub fn validate_morphology_graph_projection(
     if analysis_count != full.stats().analysis_count
         || analysis_count != graph.stats.analysis_count
         || component_count != graph.stats.component_count
+        || transitions != graph.transitions
     {
         return Err(projection_error(source, "projection totals mismatch"));
     }
@@ -62,8 +68,20 @@ pub fn validate_morphology_graph_projection(
         surface_count: graph.stats.surface_count,
         analysis_count,
         component_count,
+        transition_count: u32::try_from(transitions.len())
+            .map_err(|error| projection_error(source, &error.to_string()))?,
         matrix_cost_count,
     })
+}
+
+fn collect_transitions(
+    analysis: MorphologyAnalysis<'_>,
+    transitions: &mut BTreeSet<(String, String)>,
+) {
+    transitions.extend(morphology_pos_transitions(
+        analysis.pos,
+        analysis.expression,
+    ));
 }
 
 fn validate_shared_sections(

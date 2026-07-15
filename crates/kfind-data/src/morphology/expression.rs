@@ -24,6 +24,26 @@ pub struct MorphologyExpressionComponent<'a> {
 }
 
 #[must_use]
+pub fn morphology_pos_transitions(pos: &str, expression: &str) -> Vec<(String, String)> {
+    let expression_positions = parse_expression(expression).map(|components| {
+        components
+            .into_iter()
+            .map(|component| component.pos)
+            .collect::<Vec<_>>()
+    });
+    let positions = expression_positions
+        .filter(|positions| positions.len() > 1)
+        .unwrap_or_else(|| pos.split('+').collect());
+    positions
+        .windows(2)
+        .filter(|pair| {
+            pair[0] != "*" && pair[1] != "*" && !pair[0].is_empty() && !pair[1].is_empty()
+        })
+        .map(|pair| (pair[0].to_owned(), pair[1].to_owned()))
+        .collect()
+}
+
+#[must_use]
 pub fn align_morphology_expression<'a>(
     surface: &str,
     expression: &'a str,
@@ -156,5 +176,20 @@ mod tests {
             assert_eq!(aligned.kind, MorphologyExpressionAlignmentKind::Invalid);
             assert!(aligned.components.is_empty());
         }
+    }
+
+    #[test]
+    fn derives_categorical_transitions_from_expression_or_multi_pos() {
+        assert_eq!(
+            morphology_pos_transitions("VV+EP+EF", "가/VV/*+었/EP/*+다/EF/*"),
+            [
+                ("VV".to_owned(), "EP".to_owned()),
+                ("EP".to_owned(), "EF".to_owned())
+            ]
+        );
+        assert_eq!(
+            morphology_pos_transitions("NNG+JX", "*"),
+            [("NNG".to_owned(), "JX".to_owned())]
+        );
     }
 }

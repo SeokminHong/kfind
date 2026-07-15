@@ -68,6 +68,8 @@ pub enum ConstraintNodeSource {
 pub struct ConstraintNodeProof {
     pub span: Range<usize>,
     pub pos: String,
+    pub start_pos: String,
+    pub end_pos: String,
     pub left_id: u16,
     pub right_id: u16,
     pub word_cost: i32,

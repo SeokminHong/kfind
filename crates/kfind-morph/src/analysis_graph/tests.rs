@@ -87,7 +87,11 @@ fn source_component_exposure_remains_an_explicit_profile_decision() {
 
 #[test]
 fn strict_runtime_composition_remains_a_component_exposure_decision() {
-    let resolver = resolver(&[atomic("산", "NNG", 8_000), atomic("속", "NNG", -8_000)]);
+    let resolver = resolver(&[
+        atomic("산", "NNG", 8_000),
+        atomic("속", "NNG", -8_000),
+        noun_compound_transition(),
+    ]);
     let pattern = pattern("속", DataFinePos::Nng, false);
     let resolution = resolver.resolve(
         "산속",
@@ -108,16 +112,37 @@ fn strict_runtime_composition_remains_a_component_exposure_decision() {
 }
 
 #[test]
+fn dense_connection_matrix_does_not_license_an_unobserved_transition() {
+    let resolver = resolver(&[atomic("산", "NNG", 8_000), atomic("속", "NNG", -8_000)]);
+    let pattern = pattern("속", DataFinePos::Nng, false);
+
+    let resolution = resolver.resolve(
+        "산속",
+        "산".len().."산속".len(),
+        "산".len().."산속".len(),
+        &pattern,
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(
+        resolution.verdict,
+        ConstraintVerdict::Unavailable(ConstraintUnavailable::UnknownOnly)
+    );
+}
+
+#[test]
 fn unrelated_source_whole_analysis_does_not_hide_runtime_exposure() {
     let whole_preferred = resolver(&[
         atomic("산", "NNG", 8_000),
         atomic("속", "NNG", -8_000),
         atomic("산속", "NNG", -30_000),
+        noun_compound_transition(),
     ]);
     let runtime_preferred = resolver(&[
         atomic("산", "NNG", -30_000),
         atomic("속", "NNG", -30_000),
         atomic("산속", "NNG", 30_000),
+        noun_compound_transition(),
     ]);
     let pattern = pattern("속", DataFinePos::Nng, false);
     let resolution = whole_preferred.resolve(
@@ -373,6 +398,18 @@ fn resolver(entries: &[MecabSourceMorphologyEntry]) -> ConstraintResolver {
 
 fn atomic(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorphologyEntry {
     entry(surface, pos, "*", "*", "*", "*", word_cost)
+}
+
+fn noun_compound_transition() -> MecabSourceMorphologyEntry {
+    entry(
+        "가나",
+        "NNG",
+        "Compound",
+        "NNG",
+        "NNG",
+        "가/NNG/*+나/NNG/*",
+        0,
+    )
 }
 
 fn entry(

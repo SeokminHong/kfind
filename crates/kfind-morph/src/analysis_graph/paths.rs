@@ -18,7 +18,6 @@ pub(super) const EVIDENCE_OPAQUE: u8 = 1 << 2;
 const EVIDENCE_UNKNOWN: u8 = 1 << 3;
 const EVIDENCE_SOURCE_WHOLE: u8 = 1 << 4;
 const EVIDENCE_STATES: usize = 32;
-const BOS_EOS_CONTEXT_ID: u16 = 0;
 
 type ReachabilityStates = Vec<[Option<Predecessor>; EVIDENCE_STATES]>;
 type CompletePaths = Vec<(usize, u8)>;
@@ -33,6 +32,8 @@ enum Predecessor {
 struct Node {
     span: Range<usize>,
     pos: String,
+    start_pos: String,
+    end_pos: String,
     left_id: u16,
     right_id: u16,
     word_cost: i32,
@@ -87,6 +88,8 @@ impl Node {
         Self {
             span,
             pos: analysis.pos.to_owned(),
+            start_pos: effective_start_pos(analysis),
+            end_pos: effective_end_pos(analysis),
             left_id: analysis.left_id,
             right_id: analysis.right_id,
             word_cost: analysis.word_cost,
@@ -101,6 +104,8 @@ impl Node {
         Self {
             span,
             pos: analysis.pos.clone(),
+            start_pos: analysis.pos.clone(),
+            end_pos: analysis.pos.clone(),
             left_id: analysis.left_id,
             right_id: analysis.right_id,
             word_cost: analysis.word_cost,
@@ -115,6 +120,8 @@ impl Node {
         ConstraintNodeProof {
             span: self.span.clone(),
             pos: self.pos.clone(),
+            start_pos: self.start_pos.clone(),
+            end_pos: self.end_pos.clone(),
             left_id: self.left_id,
             right_id: self.right_id,
             word_cost: self.word_cost,
@@ -195,6 +202,8 @@ impl TokenGraph {
                 left.span.end,
                 left.source,
                 left.pos.as_str(),
+                left.start_pos.as_str(),
+                left.end_pos.as_str(),
                 left.left_id,
                 left.right_id,
                 left.word_cost,
@@ -205,6 +214,8 @@ impl TokenGraph {
                     right.span.end,
                     right.source,
                     right.pos.as_str(),
+                    right.start_pos.as_str(),
+                    right.end_pos.as_str(),
                     right.left_id,
                     right.right_id,
                     right.word_cost,
@@ -280,18 +291,11 @@ fn reachable_paths(
         .map(|_| array::from_fn(|_| None))
         .collect::<Vec<[Option<Predecessor>; EVIDENCE_STATES]>>();
     for (index, node) in nodes.iter().enumerate() {
-        if node.span.start == 0
-            && resource
-                .connection_cost(BOS_EOS_CONTEXT_ID, node.left_id)
-                .is_some()
-        {
+        if node.span.start == 0 {
             states[index][usize::from(node.evidence)] = Some(Predecessor::Start);
         }
         for &predecessor in &ending_at[node.span.start] {
-            if resource
-                .connection_cost(nodes[predecessor].right_id, node.left_id)
-                .is_none()
-            {
+            if !resource.allows_transition(&nodes[predecessor].end_pos, &node.start_pos) {
                 continue;
             }
             for previous_mask in 0_u8..EVIDENCE_STATES as u8 {
@@ -308,12 +312,6 @@ fn reachable_paths(
     }
     let mut complete = Vec::new();
     for &index in &ending_at[text_len] {
-        if resource
-            .connection_cost(nodes[index].right_id, BOS_EOS_CONTEXT_ID)
-            .is_none()
-        {
-            continue;
-        }
         for mask in 0_u8..EVIDENCE_STATES as u8 {
             if states[index][usize::from(mask)].is_some()
                 && !complete.iter().any(|(_, present)| *present == mask)
@@ -323,6 +321,27 @@ fn reachable_paths(
         }
     }
     (states, complete)
+}
+
+fn effective_start_pos(analysis: &MorphologyGraphAnalysis<'_>) -> String {
+    if analysis.start_pos == "*" {
+        analysis.pos.split('+').next().unwrap_or("*").to_owned()
+    } else {
+        analysis.start_pos.to_owned()
+    }
+}
+
+fn effective_end_pos(analysis: &MorphologyGraphAnalysis<'_>) -> String {
+    if analysis.end_pos == "*" {
+        analysis
+            .pos
+            .split('+')
+            .next_back()
+            .unwrap_or("*")
+            .to_owned()
+    } else {
+        analysis.end_pos.to_owned()
+    }
 }
 
 fn evidence_kind(

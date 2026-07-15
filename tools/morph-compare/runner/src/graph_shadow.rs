@@ -78,6 +78,8 @@ struct GraphPathEvidence {
 struct GraphNodeEvidence {
     span: Span,
     pos: String,
+    start_pos: String,
+    end_pos: String,
     left_id: u16,
     right_id: u16,
     word_cost: i32,
@@ -263,6 +265,8 @@ fn proof_evidence(proof: ConstraintProof) -> GraphProofEvidence {
                     .map(|node| GraphNodeEvidence {
                         span: span(node.span),
                         pos: node.pos,
+                        start_pos: node.start_pos,
+                        end_pos: node.end_pos,
                         left_id: node.left_id,
                         right_id: node.right_id,
                         word_cost: node.word_cost,

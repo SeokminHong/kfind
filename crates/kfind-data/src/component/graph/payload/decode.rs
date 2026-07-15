@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::ops::Range;
 
 use unicode_normalization::UnicodeNormalization;
@@ -9,13 +9,14 @@ use crate::component::{StringLayout, resource_error};
 use super::super::{
     MorphologyGraphAnalysis, MorphologyGraphComponent, MorphologyGraphExpressionKind,
 };
-use super::{ANALYSIS_BYTES, COMPONENT_BYTES, NO_SPAN};
+use super::{ANALYSIS_BYTES, COMPONENT_BYTES, NO_SPAN, PAYLOAD_HEADER_BYTES, TRANSITION_BYTES};
 
 #[derive(Debug)]
 pub(in crate::component::graph) struct GraphPayloadStats {
     pub component_count: u32,
     pub pos_counts: BTreeMap<String, u32>,
     pub expression_counts: BTreeMap<MorphologyGraphExpressionKind, u32>,
+    pub transitions: BTreeSet<(String, String)>,
 }
 
 #[derive(Clone, Debug)]
@@ -23,10 +24,12 @@ pub(in crate::component::graph) struct GraphPayloadLayout {
     surface_count: u32,
     analysis_count: u32,
     component_count: u32,
+    transition_count: u32,
     surface_ids_start: usize,
     analysis_offsets_start: usize,
     analyses_start: usize,
     components_start: usize,
+    transitions_start: usize,
 }
 
 impl GraphPayloadLayout {
@@ -50,9 +53,11 @@ impl GraphPayloadLayout {
             .ok_or_else(|| resource_error(source, "truncated graph component count"))?;
         let pos_count = read_u32_at(input, 12)
             .ok_or_else(|| resource_error(source, "truncated graph POS count"))?;
+        let transition_count = read_u32_at(input, 16)
+            .ok_or_else(|| resource_error(source, "truncated graph transition count"))?;
         let surface_ids_start = checked_add(
             source,
-            16,
+            PAYLOAD_HEADER_BYTES,
             checked_mul(source, to_usize(source, pos_count)?, 8, "POS counts")?,
             "POS counts",
         )?;
@@ -85,7 +90,7 @@ impl GraphPayloadLayout {
             )?,
             "analysis records",
         )?;
-        let expected_len = checked_add(
+        let transitions_start = checked_add(
             source,
             components_start,
             checked_mul(
@@ -96,6 +101,17 @@ impl GraphPayloadLayout {
             )?,
             "component records",
         )?;
+        let expected_len = checked_add(
+            source,
+            transitions_start,
+            checked_mul(
+                source,
+                to_usize(source, transition_count)?,
+                TRANSITION_BYTES,
+                "transition records",
+            )?,
+            "transition records",
+        )?;
         if input.len() != expected_len {
             return Err(resource_error(source, "graph payload length mismatch"));
         }
@@ -103,10 +119,12 @@ impl GraphPayloadLayout {
             surface_count,
             analysis_count,
             component_count,
+            transition_count,
             surface_ids_start,
             analysis_offsets_start,
             analyses_start,
             components_start,
+            transitions_start,
         };
         layout.validate_surfaces(source, input, string_bytes, strings)?;
         layout.validate_analysis_offsets(source, input)?;
@@ -126,12 +144,14 @@ impl GraphPayloadLayout {
                 "graph POS counts do not match analysis records",
             ));
         }
+        let transitions = layout.validate_transitions(source, input, string_bytes, strings)?;
         Ok((
             layout,
             GraphPayloadStats {
                 component_count,
                 pos_counts: expected_pos_counts,
                 expression_counts,
+                transitions,
             },
         ))
     }
@@ -230,7 +250,7 @@ impl GraphPayloadLayout {
         let mut counts = BTreeMap::new();
         let mut previous_id = None;
         for index in 0..pos_count {
-            let offset = 16_usize
+            let offset = PAYLOAD_HEADER_BYTES
                 .checked_add(
                     usize::try_from(index)
                         .ok()
@@ -435,6 +455,43 @@ impl GraphPayloadLayout {
         })
     }
 
+    fn validate_transitions(
+        &self,
+        source: &str,
+        input: &[u8],
+        string_bytes: &[u8],
+        strings: &StringLayout,
+    ) -> Result<BTreeSet<(String, String)>, DataError> {
+        let mut transitions = BTreeSet::new();
+        let mut previous_ids = None;
+        for index in 0..self.transition_count {
+            let record = self
+                .transition_record(input, index)
+                .ok_or_else(|| resource_error(source, "invalid graph transition record"))?;
+            let end_id = read_u32_at(record, 0)
+                .ok_or_else(|| resource_error(source, "truncated graph transition end POS"))?;
+            let start_id = read_u32_at(record, 4)
+                .ok_or_else(|| resource_error(source, "truncated graph transition start POS"))?;
+            if previous_ids.is_some_and(|previous| previous >= (end_id, start_id)) {
+                return Err(resource_error(
+                    source,
+                    "graph transitions are not strictly ordered",
+                ));
+            }
+            let end_pos = strings
+                .get(string_bytes, end_id)
+                .filter(|pos| !pos.is_empty() && *pos != "*")
+                .ok_or_else(|| resource_error(source, "invalid graph transition end POS"))?;
+            let start_pos = strings
+                .get(string_bytes, start_id)
+                .filter(|pos| !pos.is_empty() && *pos != "*")
+                .ok_or_else(|| resource_error(source, "invalid graph transition start POS"))?;
+            transitions.insert((end_pos.to_owned(), start_pos.to_owned()));
+            previous_ids = Some((end_id, start_id));
+        }
+        Ok(transitions)
+    }
+
     fn analysis_range(&self, input: &[u8], group: u32) -> Option<Range<u32>> {
         if group >= self.surface_count {
             return None;
@@ -475,6 +532,18 @@ impl GraphPayloadLayout {
                 .checked_mul(COMPONENT_BYTES)?,
         )?;
         input.get(start..start.checked_add(COMPONENT_BYTES)?)
+    }
+
+    fn transition_record<'a>(&self, input: &'a [u8], transition: u32) -> Option<&'a [u8]> {
+        if transition >= self.transition_count {
+            return None;
+        }
+        let start = self.transitions_start.checked_add(
+            usize::try_from(transition)
+                .ok()?
+                .checked_mul(TRANSITION_BYTES)?,
+        )?;
+        input.get(start..start.checked_add(TRANSITION_BYTES)?)
     }
 }
 

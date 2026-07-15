@@ -13,7 +13,7 @@ mod payload;
 
 pub use expression::{
     MorphologyExpressionAlignment, MorphologyExpressionAlignmentKind,
-    MorphologyExpressionComponent, align_morphology_expression,
+    MorphologyExpressionComponent, align_morphology_expression, morphology_pos_transitions,
 };
 use payload::{PayloadView, StringTable};
 

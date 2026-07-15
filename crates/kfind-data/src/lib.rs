@@ -40,7 +40,7 @@ pub use morphology::{
     DecodedMorphologyResource, MorphologyAnalysis, MorphologyExpressionAlignment,
     MorphologyExpressionAlignmentKind, MorphologyExpressionComponent, MorphologyResourceStats,
     align_morphology_expression, decode_morphology_resource, encode_morphology_resource,
-    parse_sha256,
+    morphology_pos_transitions, parse_sha256,
 };
 pub use rules::{
     AlternationRule, ContractionRule, DerivationRule, EndingCategory, EndingInitial, EndingRule,

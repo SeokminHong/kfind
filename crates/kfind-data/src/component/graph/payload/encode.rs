@@ -6,7 +6,7 @@ use unicode_normalization::UnicodeNormalization;
 use crate::component::{build_conversion_error, build_error};
 use crate::{
     DataError, MecabSourceMorphologyEntry, MorphologyExpressionAlignmentKind,
-    align_morphology_expression,
+    align_morphology_expression, morphology_pos_transitions,
 };
 
 use super::super::MorphologyGraphExpressionKind;
@@ -49,7 +49,9 @@ pub(in crate::component::graph) fn encode_graph_payload(
             .sum::<usize>(),
     )
     .map_err(build_conversion_error)?;
-    let (strings, string_ids) = encode_strings(groups, &prepared)?;
+    let transitions = collect_transitions(&prepared);
+    let transition_count = u32::try_from(transitions.len()).map_err(build_conversion_error)?;
+    let (strings, string_ids) = encode_strings(groups, &prepared, &transitions)?;
     let mut pos_counts = BTreeMap::<u32, u32>::new();
     for analysis in prepared.iter().flatten() {
         let pos = string_id(&string_ids, &analysis.source.pos)?;
@@ -72,6 +74,7 @@ pub(in crate::component::graph) fn encode_graph_payload(
             .map_err(build_conversion_error)?
             .to_le_bytes(),
     );
+    bytes.extend_from_slice(&transition_count.to_le_bytes());
     for (pos, count) in &pos_counts {
         bytes.extend_from_slice(&pos.to_le_bytes());
         bytes.extend_from_slice(&count.to_le_bytes());
@@ -136,6 +139,10 @@ pub(in crate::component::graph) fn encode_graph_payload(
             }
         }
     }
+    for (end_pos, start_pos) in &transitions {
+        bytes.extend_from_slice(&string_id(&string_ids, end_pos)?.to_le_bytes());
+        bytes.extend_from_slice(&string_id(&string_ids, start_pos)?.to_le_bytes());
+    }
     Ok(EncodedGraphPayload {
         bytes,
         strings,
@@ -179,6 +186,7 @@ fn prepare_analysis(entry: &MecabSourceMorphologyEntry) -> PreparedAnalysis<'_> 
 fn encode_strings(
     groups: &[(String, Vec<MecabSourceMorphologyEntry>)],
     prepared: &[Vec<PreparedAnalysis<'_>>],
+    transitions: &BTreeSet<(String, String)>,
 ) -> Result<(Vec<u8>, BTreeMap<String, u32>), DataError> {
     let mut unique = BTreeSet::new();
     for (surface, _) in groups {
@@ -196,6 +204,10 @@ fn encode_strings(
             unique.insert(component.surface.clone());
             unique.insert(component.pos.clone());
         }
+    }
+    for (end_pos, start_pos) in transitions {
+        unique.insert(end_pos.clone());
+        unique.insert(start_pos.clone());
     }
     let ids = unique
         .into_iter()
@@ -220,6 +232,17 @@ fn encode_strings(
         bytes.extend_from_slice(value.as_bytes());
     }
     Ok((bytes, ids))
+}
+
+fn collect_transitions(prepared: &[Vec<PreparedAnalysis<'_>>]) -> BTreeSet<(String, String)> {
+    let mut transitions = BTreeSet::new();
+    for analysis in prepared.iter().flatten() {
+        transitions.extend(morphology_pos_transitions(
+            &analysis.source.pos,
+            &analysis.source.expression,
+        ));
+    }
+    transitions
 }
 
 fn string_id(ids: &BTreeMap<String, u32>, value: &str) -> Result<u32, DataError> {
