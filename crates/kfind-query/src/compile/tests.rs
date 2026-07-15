@@ -5,7 +5,8 @@ use kfind_data::{
     DataFinePos, LexiconData, NominalRecord, collect_pos_entries, encode_pos_lexicon,
 };
 use kfind_morph::{
-    CoarsePos, ContinuationState, PredicatePos, RuleId, verify_predicate_continuation,
+    AdjacentSide, AdjacentTokenConstraint, CandidateTokenRelation, CoarsePos, ComponentCapability,
+    ContinuationState, MorphContinuation, PredicatePos, RuleId, verify_predicate_continuation,
 };
 
 use super::*;
@@ -428,6 +429,11 @@ fn smart_patterns_cover_supported_analyses_without_a_surface_registry() {
             branch.morph_patterns.iter().all(|pattern| {
                 pattern.fine_pos == DataFinePos::Mag
                     && pattern.lexical_form.as_ref() == lexical_form
+                    && pattern.component_capability == ComponentCapability::WholeOnly
+                    && pattern.adjacent.as_ref()
+                        == [AdjacentTokenConstraint::RepeatedToken {
+                            side: AdjacentSide::Either,
+                        }]
             })
         }));
     }
@@ -454,15 +460,20 @@ fn smart_patterns_cover_supported_analyses_without_a_surface_registry() {
         noun.atoms[0].branches[0]
             .morph_patterns
             .iter()
-            .all(|pattern| pattern.lexical_form.as_ref() == "미등록명사")
+            .all(|pattern| {
+                pattern.lexical_form.as_ref() == "미등록명사"
+                    && pattern.token_relation == CandidateTokenRelation::PrefixWithContinuation
+                    && pattern.continuation == MorphContinuation::NominalParticles
+                    && pattern.component_capability == ComponentCapability::SourceAndRuntime
+            })
     );
 
     let predicate = compile_query("걷다", &CompileOptions::default(), &analyzer()).unwrap();
     assert!(predicate.atoms[0].branches.iter().all(|branch| {
-        branch
-            .morph_patterns
-            .iter()
-            .all(|pattern| pattern.lexical_form.as_ref() == "걷")
+        branch.morph_patterns.iter().all(|pattern| {
+            pattern.lexical_form.as_ref() == "걷"
+                && matches!(pattern.continuation, MorphContinuation::Predicate { .. })
+        })
     }));
 
     let particle = compile_query("는", &CompileOptions::default(), &analyzer()).unwrap();

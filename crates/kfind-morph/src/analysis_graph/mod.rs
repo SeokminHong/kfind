@@ -1,15 +1,19 @@
 use std::ops::Range;
 use std::sync::{Arc, OnceLock};
 
-use kfind_data::{DataFinePos, MorphologyGraphExpressionKind, MorphologyGraphResource};
+use kfind_data::{MorphologyGraphExpressionKind, MorphologyGraphResource};
 
-use crate::FinePos;
 use crate::lattice::LocalLatticeError;
 use crate::lattice::unknown::UnknownDictionary;
 
 mod paths;
+mod pattern;
 
 use paths::TokenGraph;
+pub use pattern::{
+    AdjacentSide, AdjacentTokenConstraint, CandidateSpans, CandidateTokenRelation,
+    ComponentCapability, CopularFrameRole, MorphContinuation, QueryMorphPattern,
+};
 
 pub const DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT: usize = 4_096;
 
@@ -18,53 +22,6 @@ pub enum CompoundExposureProfile {
     Opaque,
     Transparent,
     Explicit,
-}
-
-#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct QueryMorphPattern {
-    pub fine_pos: DataFinePos,
-    pub lexical_form: Arc<str>,
-    pub expose_source_components: bool,
-}
-
-impl QueryMorphPattern {
-    #[must_use]
-    pub fn from_fine_pos(fine_pos: FinePos, lexical_form: &str) -> Vec<Self> {
-        let fine_pos = match fine_pos {
-            FinePos::CommonNoun => DataFinePos::Nng,
-            FinePos::ProperNoun => DataFinePos::Nnp,
-            FinePos::DependentNoun => DataFinePos::Nnb,
-            FinePos::Pronoun => DataFinePos::Np,
-            FinePos::Numeral => DataFinePos::Nr,
-            FinePos::Verb => DataFinePos::Vv,
-            FinePos::Adjective => {
-                return vec![
-                    Self::new(DataFinePos::Va, lexical_form),
-                    Self::new(DataFinePos::Vcn, lexical_form),
-                ];
-            }
-            FinePos::AuxiliaryVerb | FinePos::AuxiliaryAdjective => DataFinePos::Vx,
-            FinePos::Copula => DataFinePos::Vcp,
-            FinePos::Determiner => DataFinePos::Mm,
-            FinePos::GeneralAdverb => DataFinePos::Mag,
-            FinePos::ConjunctiveAdverb => DataFinePos::Maj,
-            FinePos::Interjection => DataFinePos::Ic,
-            FinePos::Particle
-            | FinePos::Foreign
-            | FinePos::Number
-            | FinePos::Code
-            | FinePos::Literal => return Vec::new(),
-        };
-        vec![Self::new(fine_pos, lexical_form)]
-    }
-
-    fn new(fine_pos: DataFinePos, lexical_form: &str) -> Self {
-        Self {
-            fine_pos,
-            lexical_form: Arc::from(lexical_form),
-            expose_source_components: false,
-        }
-    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -157,7 +114,7 @@ impl ConstraintResolution {
             CompoundExposureProfile::Explicit
                 if patterns
                     .iter()
-                    .any(|pattern| pattern.expose_source_components) =>
+                    .any(|pattern| pattern.component_capability.allows_source()) =>
             {
                 ConstraintVerdict::Proven
             }

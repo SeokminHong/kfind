@@ -9,10 +9,11 @@ pub mod particle;
 pub mod predicate;
 
 pub use analysis_graph::{
-    CompoundExposureProfile, ConstraintAmbiguity, ConstraintEvidenceKind, ConstraintNodeProof,
-    ConstraintNodeSource, ConstraintPathProof, ConstraintProof, ConstraintResolution,
-    ConstraintResolver, ConstraintUnavailable, ConstraintVerdict,
-    DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT, QueryMorphPattern,
+    AdjacentSide, AdjacentTokenConstraint, CandidateSpans, CandidateTokenRelation,
+    ComponentCapability, CompoundExposureProfile, ConstraintAmbiguity, ConstraintEvidenceKind,
+    ConstraintNodeProof, ConstraintNodeSource, ConstraintPathProof, ConstraintProof,
+    ConstraintResolution, ConstraintResolver, ConstraintUnavailable, ConstraintVerdict,
+    CopularFrameRole, DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT, MorphContinuation, QueryMorphPattern,
 };
 pub use domain::{
     CoarsePos, ContinuationState, EndingCategory, EndingInitial, EndingSpec, FinePos,

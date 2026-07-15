@@ -44,7 +44,10 @@ struct GraphResolutionEvidence {
 struct GraphPatternEvidence {
     fine_pos: &'static str,
     lexical_form: String,
-    expose_source_components: bool,
+    token_relation: String,
+    continuation: String,
+    component_capability: String,
+    adjacent: Vec<String>,
     verdict: String,
     opaque_verdict: String,
     transparent_verdict: String,
@@ -205,7 +208,14 @@ fn resolve_pattern(
     GraphPatternEvidence {
         fine_pos: pattern.fine_pos.as_str(),
         lexical_form: pattern.lexical_form.to_string(),
-        expose_source_components: pattern.expose_source_components,
+        token_relation: format!("{:?}", pattern.token_relation),
+        continuation: format!("{:?}", pattern.continuation),
+        component_capability: format!("{:?}", pattern.component_capability),
+        adjacent: pattern
+            .adjacent
+            .iter()
+            .map(|constraint| format!("{constraint:?}"))
+            .collect(),
         verdict: verdict_name(resolution.verdict),
         opaque_verdict: verdict_name(resolution.verdict_for(
             CompoundExposureProfile::Opaque,

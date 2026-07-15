@@ -1,9 +1,11 @@
 use std::io::Cursor;
 
 use kfind_data::{
-    MecabSourceMorphologyEntry, decode_morphology_graph_resource, encode_morphology_graph_resource,
-    parse_mecab_connection_matrix,
+    DataFinePos, MecabSourceMorphologyEntry, decode_morphology_graph_resource,
+    encode_morphology_graph_resource, parse_mecab_connection_matrix,
 };
+
+use crate::FinePos;
 
 use super::*;
 
@@ -340,11 +342,15 @@ fn pattern(
     fine_pos: DataFinePos,
     expose_source_components: bool,
 ) -> QueryMorphPattern {
-    QueryMorphPattern {
-        fine_pos,
-        lexical_form: Arc::from(lexical_form),
-        expose_source_components,
-    }
+    QueryMorphPattern::new(fine_pos, lexical_form).with_branch_contract(
+        CandidateTokenRelation::Whole,
+        MorphContinuation::Exact,
+        if expose_source_components {
+            ComponentCapability::Source
+        } else {
+            ComponentCapability::WholeOnly
+        },
+    )
 }
 
 fn resolver(entries: &[MecabSourceMorphologyEntry]) -> ConstraintResolver {

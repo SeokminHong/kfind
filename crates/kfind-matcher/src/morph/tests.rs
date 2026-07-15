@@ -313,11 +313,7 @@ fn repeated_single_atom_matches_advance_without_changing_leftmost_longest() {
 fn verification_counters_isolate_boundary_rejected_exact_components() {
     let mut contextual = nominal_branch("학교", rules(&["particle.topic"]));
     contextual.context_requirement = ContextRequirement::ExactComponent;
-    contextual.morph_patterns = vec![QueryMorphPattern {
-        fine_pos: DataFinePos::Nng,
-        lexical_form: Arc::from("학교"),
-        expose_source_components: false,
-    }];
+    contextual.morph_patterns = vec![QueryMorphPattern::new(DataFinePos::Nng, "학교")];
     let mut atom = atom(BoundaryPolicy::Smart, vec![contextual]);
     atom.analyses.push(nominal_analysis("학교"));
     let plan = QueryPlan {

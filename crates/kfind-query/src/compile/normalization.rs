@@ -6,7 +6,9 @@ use crate::{
     BoundaryPolicy, BoundaryProof, BranchVerifier, CompileError, CompileErrorKind,
     ContextRequirement, CoreMapping, NormalizationMode, Origin, QueryAtom, SurfaceBranch,
 };
-use kfind_morph::QueryMorphPattern;
+use kfind_morph::{
+    CandidateTokenRelation, ComponentCapability, MorphContinuation, QueryMorphPattern,
+};
 
 #[derive(Clone)]
 pub(super) struct DraftBranch {
@@ -43,7 +45,12 @@ pub(super) fn normalize_and_merge(
             let boundary_proof =
                 boundary_proof(boundary, draft.smart_left, one_scalar_atom, allow_attached);
             let context_requirement = context_requirement(boundary, draft.context_requirement);
-            let morph_patterns = morph_patterns(boundary, &draft.morph_patterns);
+            let morph_patterns = morph_patterns(
+                boundary,
+                &draft.verifier,
+                draft.context_requirement,
+                &draft.morph_patterns,
+            );
             let key = BranchKey {
                 anchor: anchor.as_bytes().into(),
                 verifier: draft.verifier.clone(),
@@ -84,13 +91,44 @@ pub(super) fn normalize_and_merge(
 
 fn morph_patterns(
     policy: BoundaryPolicy,
+    verifier: &BranchVerifier,
+    context_requirement: ContextRequirement,
     requested: &[QueryMorphPattern],
 ) -> Vec<QueryMorphPattern> {
-    if policy == BoundaryPolicy::Smart {
-        requested.to_vec()
-    } else {
-        Vec::new()
+    if policy != BoundaryPolicy::Smart {
+        return Vec::new();
     }
+    let (token_relation, continuation) = match verifier {
+        BranchVerifier::Exact => (CandidateTokenRelation::Whole, MorphContinuation::Exact),
+        BranchVerifier::Predicate {
+            continuation,
+            nominal_particle_transition,
+            ..
+        } => (
+            CandidateTokenRelation::PrefixWithContinuation,
+            MorphContinuation::Predicate {
+                state: *continuation,
+                nominal_particles: *nominal_particle_transition,
+            },
+        ),
+        BranchVerifier::NominalParticles { .. } => (
+            CandidateTokenRelation::PrefixWithContinuation,
+            MorphContinuation::NominalParticles,
+        ),
+        BranchVerifier::DirectParticle { .. } => return Vec::new(),
+    };
+    let component_capability = if context_requirement == ContextRequirement::ExactComponent {
+        ComponentCapability::SourceAndRuntime
+    } else {
+        ComponentCapability::WholeOnly
+    };
+    requested
+        .iter()
+        .cloned()
+        .map(|pattern| {
+            pattern.with_branch_contract(token_relation, continuation, component_capability)
+        })
+        .collect()
 }
 
 fn context_requirement(

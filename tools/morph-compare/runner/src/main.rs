@@ -1076,7 +1076,7 @@ mod tests {
     }
 
     #[test]
-    fn graph_shadow_keeps_compound_exposure_as_a_profile_decision() {
+    fn graph_shadow_uses_the_compiler_component_capability() {
         let bytes = component_fixture_resource(20);
         let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
         let compact = component_fixture_compact_resource(20);
@@ -1099,7 +1099,11 @@ mod tests {
         assert_eq!(graph["resolution"]["verdict"], "ambiguous:CompoundExposure");
         assert_eq!(graph["opaque"]["accepted"], false);
         assert_eq!(graph["transparent"]["accepted"], true);
-        assert_eq!(graph["explicit"]["accepted"], false);
+        assert_eq!(graph["explicit"]["accepted"], true);
+        assert_eq!(
+            graph["patterns"][0]["component_capability"],
+            "SourceAndRuntime"
+        );
     }
 
     #[test]
