@@ -261,6 +261,7 @@ impl ConstraintResolver {
                     graph,
                     summary,
                     context,
+                    &spans,
                     patterns,
                     prepared.node_limit,
                 ) {
@@ -364,6 +365,7 @@ impl ConstraintResolver {
                     graph,
                     summary,
                     context,
+                    &spans,
                     patterns,
                     prepared.node_limit,
                 ) {
@@ -418,7 +420,7 @@ impl ConstraintResolver {
             }
         };
         if known.has_complete_paths() {
-            let summary = resolution::prepare_token_summary(current, &known);
+            let summary = resolution::prepare_token_summary();
             return PreparedTokenAnalysis {
                 current,
                 node_limit,
@@ -482,6 +484,7 @@ impl ConstraintResolver {
         current: &TokenGraph<'_>,
         summary: &resolution::PreparedTokenSummary,
         context: BoundedTokenContext<'_>,
+        spans: &CandidateSpans,
         patterns: &[QueryMorphPattern],
         node_limit: usize,
     ) -> Result<resolution::ContextSelection, ConstraintUnavailable> {
@@ -499,10 +502,15 @@ impl ConstraintResolver {
             }
             _ => (None, None),
         };
+        let particle_hosts = if resolution::needs_nominal_particle_context(patterns, spans) {
+            summary.nominal_particle_hosts(context.current, current)
+        } else {
+            &[]
+        };
         Ok(resolution::select_context(
             context,
             current,
-            summary,
+            particle_hosts,
             previous.as_ref(),
             next.as_ref(),
         ))

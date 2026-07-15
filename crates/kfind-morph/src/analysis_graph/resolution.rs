@@ -1,5 +1,6 @@
 use std::collections::BTreeSet;
 use std::ops::Range;
+use std::sync::OnceLock;
 
 use kfind_data::{DataFinePos, MorphologyGraphExpressionKind};
 
@@ -215,9 +216,20 @@ pub(super) enum ContextSelection {
     Competing,
 }
 
-#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[derive(Debug, Default)]
 pub(super) struct PreparedTokenSummary {
-    nominal_particle_hosts: Vec<Range<usize>>,
+    nominal_particle_hosts: OnceLock<Vec<Range<usize>>>,
+}
+
+impl PreparedTokenSummary {
+    pub fn nominal_particle_hosts<'a>(
+        &'a self,
+        current_text: &str,
+        current: &TokenGraph<'_>,
+    ) -> &'a [Range<usize>] {
+        self.nominal_particle_hosts
+            .get_or_init(|| nominal_particle_host_candidates(current_text, current))
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -241,7 +253,7 @@ impl<'a> BoundedTokenContext<'a> {
 pub(super) fn select_context(
     context: BoundedTokenContext<'_>,
     current: &TokenGraph<'_>,
-    summary: &PreparedTokenSummary,
+    particle_hosts: &[Range<usize>],
     previous: Option<&TokenGraph<'_>>,
     next: Option<&TokenGraph<'_>>,
 ) -> ContextSelection {
@@ -249,7 +261,6 @@ pub(super) fn select_context(
     let copular = previous
         .zip(next)
         .and_then(|(previous, next)| copular_selection(context.current, previous, current, next));
-    let particle_hosts = &summary.nominal_particle_hosts;
     match (
         repeated.is_some(),
         copular.is_some(),
@@ -264,19 +275,24 @@ pub(super) fn select_context(
             ContextSelection::Copular { nominal, copula }
         }
         (false, false, true) => ContextSelection::NominalParticleHosts {
-            selected: particle_hosts.clone(),
+            selected: particle_hosts.to_vec(),
         },
         _ => ContextSelection::Competing,
     }
 }
 
-pub(super) fn prepare_token_summary(
-    current_text: &str,
-    current: &TokenGraph<'_>,
-) -> PreparedTokenSummary {
-    PreparedTokenSummary {
-        nominal_particle_hosts: nominal_particle_host_candidates(current_text, current),
-    }
+pub(super) fn prepare_token_summary() -> PreparedTokenSummary {
+    PreparedTokenSummary::default()
+}
+
+pub(super) fn needs_nominal_particle_context(
+    patterns: &[QueryMorphPattern],
+    spans: &CandidateSpans,
+) -> bool {
+    patterns.iter().any(|pattern| {
+        pattern.fine_pos.is_nominal()
+            || (is_predicate_pos(pattern.fine_pos) && spans.core.start > spans.token.start)
+    })
 }
 
 pub(super) fn needs_copular_context(
