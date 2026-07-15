@@ -279,6 +279,10 @@ Redirects and pipes, JSON Lines, count, file summaries, quiet mode,
 and `--no-pager` retain the direct stdout stream. If the TUI cannot start, output
 falls back to standard text on stdout.
 
+Repeated navigation is frame-paced by the content viewport size without dropping
+movement. Larger viewports combine more held-key input in each frame to limit
+terminal scroll operations.
+
 The pager index scales with completed source lines and expanded match rows. On
 2026-07-14 at revision `4d81a22`, one million plain lines used 43.50 MiB peak RSS;
 one million source lines expanded to four million rows used 110.81 MiB. Use

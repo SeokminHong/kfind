@@ -95,8 +95,7 @@ python3 tools/tui-scroll-benchmark/benchmark.py \
   --label candidate
 ```
 
-최신 비교는 [2026-07-15 대형 TUI viewport 스크롤](2026-07-15-tui-large-viewport-scroll.md)에
-기록한다.
+측정 결과는 실행 환경과 입력 checksum을 포함한 개별 보고서에 기록한다.
 
 ## TUI pager index memory
 
