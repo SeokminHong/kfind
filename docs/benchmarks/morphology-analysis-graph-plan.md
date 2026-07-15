@@ -66,7 +66,28 @@ whole-token 분석 중 무엇으로 구분되는지 보여야 한다.
 3. 같은 구조 근거가 positive와 negative에 함께 나타나면 이를 `Ambiguous` 계약 대상으로 기록하고
    surface registry나 새 비용 임계값을 만들지 않는다.
 
-### 2. Graph resource
+### 2. Expression component 관계 shadow
+
+node의 source 분류만으로 positive와 negative가 분리되지 않으면 `expression`의 component를 source
+resource 계층에서 파싱한다. component 표면형의 canonical decomposition을 합쳐 node surface와
+비교하고 다음 관계를 보존한다.
+
+| 관계 | 의미 |
+| --- | --- |
+| `span-aligned` | component 경계가 NFC node의 안정된 byte span과 일치 |
+| `fused` | 전체 표면은 canonical composition과 같지만 component 경계가 한 scalar 안에서 융합 |
+| `unaligned` | 축약·교체 등으로 component 표면을 이어도 node surface와 같지 않음 |
+| `invalid` | expression 형식을 해석할 수 없음 |
+
+`span-aligned` component의 span과 POS가 query pattern과 같으면 기존 exact node가 아니어도 source가
+명시한 component 관계로 기록한다. `fused`와 `unaligned`는 임의 byte span으로 투영하지 않는다.
+같은 scoring node에 여러 source row가 대응하면 하나를 고르지 않고 모든 분석과 관계를 보존한다.
+
+이 2차 shadow에서도 positive와 hard-negative가 같은 관계를 가지면 구조만으로 수용 여부를 결정할
+수 없다는 뜻이다. 이 경우 graph resource 전에 compound exposure, 동형 활용 합집합과 같은 profile
+ambiguity 정책을 별도 계약한다.
+
+### 3. Graph resource
 
 compact resource의 다음 schema는 source 분석 종류와 정규화된 분해 component를 보존한다. raw
 `expression` 문자열을 제품 판정 때마다 파싱하지 않고 build 단계에서 span, POS와 관계 edge로
@@ -76,13 +97,13 @@ full resource와 graph resource는 exact/common-prefix hit, source node, 연결 
 provenance projection이 같아야 한다. schema, source SHA-256, section digest, span, context ID와
 관계 edge를 내용을 노출하기 전에 검증한다.
 
-### 3. Resolver shadow
+### 4. Resolver shadow
 
 기존 matcher 결과와 동시에 graph resolver의 verdict와 proof를 기록한다. 이 단계에서는
 `ContextRequirement`, lexical context registry와 1,500 비용 마진을 제품 경로에 유지한다.
 resolver는 현재 true positive, hard-negative와 known ambiguity를 설명해야 한다.
 
-### 4. 제품 전환
+### 5. 제품 전환
 
 graph resolver가 채택 조건을 통과하면 matcher는 `Verdict`만 소비한다. query compiler의 manual
 surface registry와 matcher의 비용 마진·requirement별 예외 분기를 제거하고, resource 필요 여부는

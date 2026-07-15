@@ -517,6 +517,13 @@
 - shadow 규칙 선택에는 development와 hard-negative만 사용한다. 고정 test는 구조를 확정한 뒤
   회귀 판정에만 사용한다. 같은 구조 근거가 positive와 negative에 함께 나타나면 surface registry나
   새 임계값을 추가하지 않고 ambiguity 계약 대상으로 기록한다.
+- source 종류만으로 분리되지 않으면 `expression` component의 canonical decomposition을 node
+  surface와 대조한다. 안정된 NFC byte span과 일치하는 `span-aligned`, 한 scalar 안에 경계가
+  융합된 `fused`, 축약·교체로 표면 정렬이 불가능한 `unaligned`, 잘못된 형식인 `invalid`를
+  구분한다. `fused`와 `unaligned`에 임의 byte span을 부여하지 않는다.
+- 같은 scoring node에 여러 source row가 대응하면 하나를 선택하지 않고 모든 분석 관계를 보존한다.
+  query span·POS와 일치하는 source component가 positive와 hard-negative에 함께 나타나면 graph
+  resource 전환 전에 compound exposure나 동형 활용 합집합을 profile ambiguity 정책으로 계약한다.
 - graph resource와 resolver shadow가 기존 true positive를 보존하고 새 false positive를 만들지
   않으며 hard-negative를 악화하지 않을 때만 matcher가 resolver verdict를 소비하도록 전환한다.
   전환 전에는 기존 registry와 1,500 마진의 제품 동작을 바꾸지 않는다.

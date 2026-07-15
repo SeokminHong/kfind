@@ -252,6 +252,10 @@ coverage 검사를 함께 도입한다. 새 규칙이 없는 RC 변경에는 이
 lattice 경로에 연결한 shadow 감사를 실행한다. 감사 결과가 구조 분리를 입증하기 전에는 제품
 판정, registry와 1,500 마진을 바꾸지 않는다.
 
+node-level source 감사에서 `runtime-composed`와 `source-decomposition`이 positive와 negative에
+함께 나타났다. 다음 단계는 source `expression` component의 span 정렬, scalar 융합과 표면
+비정렬을 resource 계층에서 구분하고 query span·POS 관계를 shadow로 집계하는 작업이다.
+
 구조 전환 뒤에는 명시적 품사 full-POS `smart`의 남은 FN 25건을 줄이는 제품 변경을 이어간다.
 계측·report·runner만 바꾼 상태는 작업 완료로 보지 않는다. 규칙 조건은 development case만으로
 만들지 않고 독립된 사전·문법 근거로 정의한다. development는 후보 선택에 사용하고, 고정 test와
