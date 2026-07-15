@@ -65,6 +65,7 @@ query	pos	text	expected	feature
 쓰다	verb	기자가 기사를 쓴다도 말했다.	no-match	predicate-present-declarative-continuation
 먹다	verb	아이가 밥을 먹는다고 말했다.	match	predicate-present-declarative-continuation
 받다	verb	지원을 받는다는 것은 큰 도움이 된다.	match	predicate-present-declarative-continuation
+받들다	verb	전통을 받든다는 것은 그 뜻을 이어 가는 일이다.	match	predicate-present-declarative-continuation
 먹다	verb	아이가 밥을 먹는다도 말했다.	no-match	predicate-present-declarative-continuation
 함께하다	verb	영원히 함께한다던 말도 잊었다.	match	predicate-present-declarative-continuation
 가다	verb	내일 간다면 미리 연락해라.	match	predicate-present-declarative-continuation
