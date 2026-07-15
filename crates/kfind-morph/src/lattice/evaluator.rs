@@ -73,7 +73,14 @@ impl LocalComponentEvaluator {
 
     fn unknown(&self) -> Result<&UnknownDictionary, LocalLatticeError> {
         self.unknown
-            .get_or_init(|| UnknownDictionary::parse(self.resource.as_ref()))
+            .get_or_init(|| {
+                UnknownDictionary::parse(
+                    self.resource.char_def(),
+                    self.resource.unk_def(),
+                    self.resource.left_contexts(),
+                    self.resource.right_contexts(),
+                )
+            })
             .as_ref()
             .map_err(Clone::clone)
     }

@@ -1,9 +1,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 
-use super::{LocalLatticeError, LocalLatticeResource};
+use super::LocalLatticeError;
 
 #[derive(Clone, Debug)]
-pub(super) struct UnknownAnalysis {
+pub(crate) struct UnknownAnalysis {
     pub pos: String,
     pub left_id: u16,
     pub right_id: u16,
@@ -26,15 +26,20 @@ struct CharacterRange {
 }
 
 #[derive(Clone, Debug)]
-pub(super) struct UnknownDictionary {
+pub(crate) struct UnknownDictionary {
     classes: BTreeMap<String, CharacterClass>,
     ranges: Vec<CharacterRange>,
 }
 
 impl UnknownDictionary {
-    pub fn parse(resource: &dyn LocalLatticeResource) -> Result<Self, LocalLatticeError> {
-        let char_def = std::str::from_utf8(resource.char_def())
-            .map_err(|_| LocalLatticeError::InvalidUnknownModel)?;
+    pub fn parse(
+        char_def: &[u8],
+        unk_def: &[u8],
+        left_contexts: u16,
+        right_contexts: u16,
+    ) -> Result<Self, LocalLatticeError> {
+        let char_def =
+            std::str::from_utf8(char_def).map_err(|_| LocalLatticeError::InvalidUnknownModel)?;
         let mut classes = BTreeMap::new();
         let mut ranges = Vec::new();
         for line in char_def
@@ -80,8 +85,8 @@ impl UnknownDictionary {
             return Err(LocalLatticeError::InvalidUnknownModel);
         }
 
-        let unk_def = std::str::from_utf8(resource.unk_def())
-            .map_err(|_| LocalLatticeError::InvalidUnknownModel)?;
+        let unk_def =
+            std::str::from_utf8(unk_def).map_err(|_| LocalLatticeError::InvalidUnknownModel)?;
         for line in unk_def
             .lines()
             .map(strip_comment)
@@ -97,9 +102,7 @@ impl UnknownDictionary {
                 word_cost: parse_field(fields[3])?,
                 pos: fields[4].to_owned(),
             };
-            if analysis.left_id >= resource.left_contexts()
-                || analysis.right_id >= resource.right_contexts()
-            {
+            if analysis.left_id >= left_contexts || analysis.right_id >= right_contexts {
                 return Err(LocalLatticeError::InvalidUnknownModel);
             }
             classes

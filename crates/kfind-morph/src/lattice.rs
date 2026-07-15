@@ -8,7 +8,7 @@ use kfind_data::{ComponentResource, DataFinePos, DecodedMorphologyResource};
 
 mod decision;
 mod evaluator;
-mod unknown;
+pub(crate) mod unknown;
 
 use decision::{LocalLatticeCosts, best_costs};
 pub use evaluator::LocalComponentEvaluator;
@@ -246,7 +246,12 @@ fn build_local_nodes(
     node_limit: usize,
 ) -> Result<Vec<Node>, LocalLatticeError> {
     validate_query_span(text, &query_span)?;
-    let unknown = UnknownDictionary::parse(resource)?;
+    let unknown = UnknownDictionary::parse(
+        resource.char_def(),
+        resource.unk_def(),
+        resource.left_contexts(),
+        resource.right_contexts(),
+    )?;
     build_nodes(resource, text, &query_span, query_pos, &unknown, node_limit)
 }
 
