@@ -248,10 +248,10 @@
   option control은 같은 input state를 갱신하고, 별도의 preset 선택 상태를 유지하지 않는다. 1 MiB의
   결정적인 입력을 만드는 대용량 예시를 제공하며 editor에는 문자 수와 UTF-8 byte 수를, 검색
   결과에는 query compile과 전체 text scan을 합친 실행 시간을 표시한다.
-- 입력 text는 plain-text `contenteditable` editor에서 수정한다. 검색 span은 같은 editor surface의
-  비편집 highlight layer에 표시해 selection과 IME composition DOM을 교체하지 않으며, 별도의 결과
-  preview를 중복해 두지 않는다. Rich-text document model, history와 collaboration이 필요하지 않은
-  이 범위에는 외부 editor framework를 추가하지 않는다.
+- 입력 text는 CodeMirror 기반 plain-text editor에서 수정한다. 검색 span은 UTF-16 document offset을
+  사용하는 decoration으로 실제 편집 text에 표시하며 별도의 highlight layer나 결과 preview를 중복해
+  두지 않는다. Editor는 selection, IME composition과 undo history를 보존하고, 대용량 입력은 현재
+  viewport 중심으로 렌더링한다. Rich-text document model과 collaboration 기능은 추가하지 않는다.
 - Playground 입력은 browser 밖으로 보내지 않는다. Full POS와 45 MiB 이상의 compact component
   resource는 기본 demo에 포함하지 않는다. 사용자가 고급 `smart` 지원을 요청할 때만 같은 origin의
   Pages Function에서 component resource를 한 번 내려받아 기존 WASM engine에 load한다.
