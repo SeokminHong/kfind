@@ -30,7 +30,7 @@ continuation은 `Exact`, `Predicate`, `NominalParticles` 세 DFA로 표현한다
 
 ## 형태 분석 그래프
 
-`TokenAnalysisGraph`는 schema 3 source analysis에서 다음 근거를 구분한다. schema 3은 schema 2의 source analysis와 component projection에 hard morphotactic transition table을 추가한 실험 resource이며 전체 resolver는 schema 2를 fallback으로 사용하지 않는다.
+`TokenAnalysisGraph`는 structural schema 4 source analysis에서 다음 근거를 구분한다. schema 4는 lexical identity, POS, component projection, expression relation과 hard morphotactic transition만 저장하며 전체 resolver는 scoring schema를 fallback으로 사용하지 않는다.
 
 | 근거 | 의미 |
 | --- | --- |
@@ -40,7 +40,9 @@ continuation은 `Exact`, `Predicate`, `NominalParticles` 세 DFA로 표현한다
 | `opaque-expression` | `fused` 또는 `unaligned` expression이 lexical identity와 POS는 명시하지만 안정된 span을 제공하지 못한다. |
 | `unknown` | known complete path가 없을 때 unknown model로 구성한 경로다. |
 
-hard morphotactic edge는 source expression과 multi-POS row에서 관찰한 인접 `end_pos -> start_pos` 관계를 build 시점에 중복 제거해 저장한다. runtime path는 이 categorical edge가 있을 때만 source node를 연결한다. dense connection matrix의 셀 존재 여부는 edge로 사용하지 않으며 connection cost와 word cost는 같은 근거 종류 안의 출력 순서와 진단에만 사용한다.
+hard morphotactic edge는 source expression과 multi-POS row에서 관찰한 인접 `end_pos -> start_pos` 관계를 build 시점에 중복 제거해 저장한다. runtime path는 이 categorical edge가 있을 때만 source node를 연결한다. structural artifact는 dense connection matrix, left/right context ID와 word cost를 저장하거나 읽지 않으며 proof 순서도 scoring 값에 의존하지 않는다.
+
+scoring projection 감사는 별도 compact/full morphology resource 사이에서 수행하고 structural schema 생성 전에 source mismatch를 실패시킨다. structural resolver의 runtime artifact는 이미 검증된 source digest와 categorical provenance만 보존하므로 scoring metadata를 중복 적재하지 않는다.
 
 source row 하나가 token 전체를 덮으면 그 자체로 complete analysis다. runtime composition은 모든 인접 node가 hard edge로 연결되고 token을 빈틈없이 덮을 때만 complete analysis다. source expression의 component sequence는 한 source analysis 안에서 평가하며 임의의 component를 서로 다른 source row와 섞지 않는다.
 
