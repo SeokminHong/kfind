@@ -326,37 +326,26 @@ pub(super) fn decide_known(
         };
     }
     let mut proofs = BTreeSet::<CompactSupportProof>::new();
-    for path in candidate_decision_paths(graph, spans, patterns) {
-        let units = path_units(&path, graph.nodes());
-        for (pattern_index, pattern) in patterns.iter().enumerate() {
-            for candidate in support_candidates(&path, graph.nodes(), &units, spans, pattern) {
-                let Some(continuation) = continuation_units(pattern, spans, &units, &candidate)
-                else {
-                    continue;
-                };
-                if context_match(context, pattern, spans).is_none() {
-                    continue;
-                }
-                let proof = CompactSupportProof {
-                    support: ConstraintSupport {
-                        pattern_index,
-                        evidence: candidate.evidence,
-                        span_relation: candidate.relation,
+    let lexical_paths = lexical_candidate_paths(graph, spans, patterns);
+    for (pattern_index, pattern) in patterns.iter().enumerate() {
+        if context_match(context, pattern, spans).is_none() {
+            continue;
+        }
+        for lexical_path in &lexical_paths {
+            let units = path_units(lexical_path, graph.nodes());
+            for support in support_candidates(lexical_path, graph.nodes(), &units, spans, pattern) {
+                if extend_decision_support(
+                    graph,
+                    spans,
+                    IndexedPattern {
+                        index: pattern_index,
+                        pattern,
                     },
-                    source_node_index: candidate.source_node_index,
-                    lexical_source_node_indices: candidate.source_node_indices,
-                    component_index: candidate.component_index,
-                    continuation: continuation
-                        .into_iter()
-                        .map(|unit| CompactMorphUnit {
-                            pos_slot: unit.pos_slot,
-                            span: unit.span.as_ref().map(|span| (span.start, span.end)),
-                            source_node_index: unit.source_node_index,
-                            component_index: unit.component_index,
-                        })
-                        .collect(),
-                };
-                if proofs.insert(proof) && proofs.len() > proof_limit {
+                    lexical_path.clone(),
+                    support,
+                    &mut proofs,
+                    proof_limit,
+                ) {
                     return ConstraintDecision {
                         outcome: ConstraintOutcome::Unavailable(ConstraintUnavailable::PathLimit {
                             actual: proofs.len(),
@@ -393,6 +382,12 @@ struct CompactSupportProof {
     lexical_source_node_indices: Vec<usize>,
     component_index: Option<usize>,
     continuation: Vec<CompactMorphUnit>,
+}
+
+#[derive(Clone, Copy)]
+struct IndexedPattern<'a> {
+    index: usize,
+    pattern: &'a QueryMorphPattern,
 }
 
 struct KnownEvaluation {
@@ -544,31 +539,6 @@ fn candidate_witness_paths(
     paths
 }
 
-fn candidate_decision_paths(
-    graph: &TokenGraph<'_>,
-    spans: &CandidateSpans,
-    patterns: &[QueryMorphPattern],
-) -> BTreeSet<Vec<usize>> {
-    let mut paths = BTreeSet::new();
-    let lexical_paths = lexical_candidate_paths(graph, spans, patterns);
-    for pattern in patterns {
-        for lexical_path in &lexical_paths {
-            let units = path_units(lexical_path, graph.nodes());
-            for support in support_candidates(lexical_path, graph.nodes(), &units, spans, pattern) {
-                extend_decision_path(
-                    graph,
-                    spans,
-                    pattern,
-                    lexical_path.clone(),
-                    support,
-                    &mut paths,
-                );
-            }
-        }
-    }
-    paths
-}
-
 fn lexical_candidate_paths(
     graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
@@ -673,24 +643,45 @@ fn extend_supported_path(
     }
 }
 
-fn extend_decision_path(
+fn extend_decision_support(
     graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
-    pattern: &QueryMorphPattern,
+    pattern: IndexedPattern<'_>,
     required: Vec<usize>,
     support: SupportCandidate,
-    paths: &mut BTreeSet<Vec<usize>>,
-) {
+    proofs: &mut BTreeSet<CompactSupportProof>,
+    proof_limit: usize,
+) -> bool {
     let last = *required.last().expect("supported path is non-empty");
     let units = path_units(&required, graph.nodes());
     if graph.nodes()[last].span.end >= spans.consumed.end {
-        if continuation_units(pattern, spans, &units, &support).is_some() {
-            paths.insert(required);
-        }
-        return;
+        let Some(continuation) = continuation_units(pattern.pattern, spans, &units, &support)
+        else {
+            return false;
+        };
+        let proof = CompactSupportProof {
+            support: ConstraintSupport {
+                pattern_index: pattern.index,
+                evidence: support.evidence,
+                span_relation: support.relation,
+            },
+            source_node_index: support.source_node_index,
+            lexical_source_node_indices: support.source_node_indices,
+            component_index: support.component_index,
+            continuation: continuation
+                .into_iter()
+                .map(|unit| CompactMorphUnit {
+                    pos_slot: unit.pos_slot,
+                    span: unit.span.as_ref().map(|span| (span.start, span.end)),
+                    source_node_index: unit.source_node_index,
+                    component_index: unit.component_index,
+                })
+                .collect(),
+        };
+        return proofs.insert(proof) && proofs.len() > proof_limit;
     }
-    if !continuation_prefix_possible(pattern, spans, &units, &support) {
-        return;
+    if !continuation_prefix_possible(pattern.pattern, spans, &units, &support) {
+        return false;
     }
     for &successor in graph.successors(last) {
         let next = &graph.nodes()[successor];
@@ -699,8 +690,19 @@ fn extend_decision_path(
         }
         let mut extended = required.clone();
         extended.push(successor);
-        extend_decision_path(graph, spans, pattern, extended, support.clone(), paths);
+        if extend_decision_support(
+            graph,
+            spans,
+            pattern,
+            extended,
+            support.clone(),
+            proofs,
+            proof_limit,
+        ) {
+            return true;
+        }
     }
+    false
 }
 
 fn continuation_prefix_possible(
