@@ -12,8 +12,8 @@ use anyhow::{Context, Result, bail};
 use kfind::Engine;
 use kfind::expert::EngineExt as _;
 use kfind_data::{
-    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataErrorKind, decode_component_resource,
-    decode_morphology_resource, parse_sha256,
+    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataErrorKind,
+    DecodedMorphologyResource, decode_component_resource, decode_morphology_resource, parse_sha256,
 };
 use kfind_matcher::MorphMatcher;
 use kfind_morph::CoarsePos;
@@ -27,7 +27,8 @@ use sha2::{Digest, Sha256};
 
 use agent_shadow::diagnose_agent_shadow;
 use shadow::{
-    ShadowBranchEvidence, ShadowResource, ShadowVerificationCounters, diagnose_component_candidate,
+    ShadowBranchEvidence, ShadowResource, ShadowVerificationCounters, attach_source_provenance,
+    diagnose_component_candidate,
 };
 
 const FULL_POS_LEXICON: &str = "/opt/morph-benchmark/full-pos/lexicon.bin";
@@ -613,6 +614,7 @@ fn append_kfind_diagnostics(
             shadow_resource,
             component_shadow_resource,
             component_resource.as_ref(),
+            morphology.as_ref().and_then(|resource| resource.as_ref().ok()),
         )?;
         result["shadow_verification"] = serde_json::to_value(shadow_verification)?;
     }
@@ -625,6 +627,7 @@ fn diagnose_verification(
     resource: ShadowResource<'_>,
     component_resource: ShadowResource<'_>,
     matcher_component_resource: Option<&Arc<ComponentResource>>,
+    morphology: Option<&DecodedMorphologyResource<'_>>,
 ) -> Result<ShadowVerificationCounters> {
     let options = CompileOptions::resolve(CompileOptionOverrides {
         pos: Some(parse_pos(&case.pos)?),
@@ -673,7 +676,7 @@ fn diagnose_verification(
     let component_candidates = matcher.local_analysis_candidates(case.text.as_bytes());
     let mut component = Vec::with_capacity(component_candidates.len());
     for candidate in &component_candidates {
-        let full_evidence = diagnose_component_candidate(candidate, resource);
+        let mut full_evidence = diagnose_component_candidate(candidate, resource);
         let compact_evidence = diagnose_component_candidate(candidate, component_resource);
         if full_evidence != compact_evidence {
             bail!(
@@ -682,6 +685,9 @@ fn diagnose_verification(
                 candidate.atom_index,
                 candidate.analysis_index
             );
+        }
+        if let Some(morphology) = morphology {
+            attach_source_provenance(&mut full_evidence, morphology);
         }
         component.push(full_evidence);
     }
@@ -947,6 +953,7 @@ mod tests {
             ShadowResource::Missing,
             ShadowResource::Missing,
             None,
+            None,
         )
         .unwrap_err();
 
@@ -964,12 +971,23 @@ mod tests {
             ShadowResource::Loaded(&resource),
             ShadowResource::Loaded(compact.as_ref()),
             Some(&compact),
+            Some(&resource),
         )
         .unwrap();
 
         assert_eq!(counters.component_projection_comparisons, 1);
         assert_eq!(counters.exact_component_candidate_hits, 0);
         assert_eq!(counters.component_projection_mismatches, 0);
+        let serialized = serde_json::to_value(&counters).unwrap();
+        let sources = serialized["component"][0]["paths"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .flat_map(|path| path["nodes"].as_array().unwrap())
+            .map(|node| node["source"]["kind"].as_str().unwrap())
+            .collect::<Vec<_>>();
+        assert!(sources.contains(&"source-atomic"));
+        assert!(!sources.contains(&"unresolved"));
     }
 
     #[test]
@@ -983,6 +1001,7 @@ mod tests {
             ShadowResource::Loaded(&full),
             ShadowResource::Loaded(compact.as_ref()),
             Some(&compact),
+            Some(&full),
         )
         .unwrap_err();
 

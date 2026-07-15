@@ -139,6 +139,8 @@ pub enum LocalLatticeDecision {
 pub struct LocalLatticeNode {
     pub span: Range<usize>,
     pub pos: Option<String>,
+    pub left_id: u16,
+    pub right_id: u16,
     pub word_cost: i32,
     pub unknown: bool,
 }
@@ -309,6 +311,8 @@ impl Node {
         LocalLatticeNode {
             span: self.span.clone(),
             pos: self.pos.clone(),
+            left_id: self.left_id,
+            right_id: self.right_id,
             word_cost: self.word_cost,
             unknown: self.unknown,
         }

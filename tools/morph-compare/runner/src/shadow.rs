@@ -1,4 +1,4 @@
-use kfind_data::DataFinePos;
+use kfind_data::{DataFinePos, DecodedMorphologyResource};
 use kfind_matcher::{AnalysisWindowError, LocalAnalysisCandidate, VerificationCounters};
 use kfind_morph::{
     DEFAULT_LATTICE_NODE_LIMIT, FinePos, LocalLatticeDecision, LocalLatticeReport,
@@ -64,8 +64,30 @@ struct ShadowNodeEvidence {
     normalized: Span,
     original: Option<Span>,
     pos: Option<String>,
+    left_id: u16,
+    right_id: u16,
     word_cost: i32,
     unknown: bool,
+    source: Option<ShadowSourceEvidence>,
+}
+
+#[derive(Debug, Eq, PartialEq, Serialize)]
+struct ShadowSourceEvidence {
+    kind: &'static str,
+    surface: String,
+    analyses: Vec<ShadowSourceAnalysis>,
+}
+
+#[derive(Debug, Eq, PartialEq, Serialize)]
+struct ShadowSourceAnalysis {
+    pos: String,
+    left_id: u16,
+    right_id: u16,
+    word_cost: i32,
+    analysis_type: String,
+    start_pos: String,
+    end_pos: String,
+    expression: String,
 }
 
 #[derive(Clone, Copy)]
@@ -112,6 +134,20 @@ pub(super) fn diagnose_component_candidate(
     resource: ShadowResource<'_>,
 ) -> ShadowLatticeEvidence {
     diagnose_candidate(candidate, resource)
+}
+
+pub(super) fn attach_source_provenance(
+    evidence: &mut ShadowLatticeEvidence,
+    resource: &DecodedMorphologyResource<'_>,
+) {
+    let Some(window) = evidence.window.as_ref() else {
+        return;
+    };
+    for path in &mut evidence.paths {
+        for node in &mut path.nodes {
+            node.source = Some(source_evidence(&window.normalized, node, resource));
+        }
+    }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -239,13 +275,80 @@ fn lattice_evidence(
                     original: window.original_span(node.span.clone()).map(span),
                     normalized: span(node.span),
                     pos: node.pos,
+                    left_id: node.left_id,
+                    right_id: node.right_id,
                     word_cost: node.word_cost,
                     unknown: node.unknown,
+                    source: None,
                 })
                 .collect(),
         })
         .collect();
     evidence
+}
+
+fn source_evidence(
+    normalized: &str,
+    node: &ShadowNodeEvidence,
+    resource: &DecodedMorphologyResource<'_>,
+) -> ShadowSourceEvidence {
+    let surface = normalized
+        .get(node.normalized.byte_start..node.normalized.byte_end)
+        .unwrap_or_default()
+        .to_owned();
+    if node.unknown {
+        return ShadowSourceEvidence {
+            kind: "unknown",
+            surface,
+            analyses: Vec::new(),
+        };
+    }
+    let mut analyses = Vec::new();
+    resource.common_prefixes(surface.as_bytes(), |length, candidates| {
+        if length != surface.len() {
+            return;
+        }
+        analyses.extend(
+            candidates
+                .iter()
+                .filter(|analysis| {
+                    Some(analysis.pos) == node.pos.as_deref()
+                        && analysis.left_id == node.left_id
+                        && analysis.right_id == node.right_id
+                        && analysis.word_cost == node.word_cost
+                })
+                .map(|analysis| ShadowSourceAnalysis {
+                    pos: analysis.pos.to_owned(),
+                    left_id: analysis.left_id,
+                    right_id: analysis.right_id,
+                    word_cost: analysis.word_cost,
+                    analysis_type: analysis.analysis_type.to_owned(),
+                    start_pos: analysis.start_pos.to_owned(),
+                    end_pos: analysis.end_pos.to_owned(),
+                    expression: analysis.expression.to_owned(),
+                }),
+        );
+    });
+    let kind = match analyses.as_slice() {
+        [analysis] if is_atomic_analysis(analysis) => "source-atomic",
+        [analysis] if is_decomposition_analysis(analysis) => "source-decomposition",
+        _ => "unresolved",
+    };
+    ShadowSourceEvidence {
+        kind,
+        surface,
+        analyses,
+    }
+}
+
+fn is_atomic_analysis(analysis: &ShadowSourceAnalysis) -> bool {
+    matches!(analysis.analysis_type.as_str(), "" | "*")
+        && matches!(analysis.expression.as_str(), "" | "*")
+}
+
+fn is_decomposition_analysis(analysis: &ShadowSourceAnalysis) -> bool {
+    !matches!(analysis.analysis_type.as_str(), "" | "*")
+        && !matches!(analysis.expression.as_str(), "" | "*")
 }
 
 fn span(range: std::ops::Range<usize>) -> Span {
