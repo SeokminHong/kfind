@@ -26,7 +26,7 @@ impl MorphMatcher {
             for branch_ref in &self.anchor_branches[hit.anchor_index] {
                 let atom = &self.plan.atoms[branch_ref.atom_index];
                 let branch = &atom.branches[branch_ref.branch_index];
-                if branch.context_requirement != ContextRequirement::NominalComponent {
+                if branch.context_requirement != ContextRequirement::ExactComponent {
                     continue;
                 }
                 let Some(candidate) = self.verify_branch_without_boundary(

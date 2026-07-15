@@ -8,7 +8,7 @@ KFIND_PROFILES = ("kfind-embedded", "kfind-full-pos")
 SHADOW_COUNTERS = (
     "raw_anchor_hits",
     "verified_branch_hits",
-    "nominal_component_candidate_hits",
+    "exact_component_candidate_hits",
     "unique_component_windows",
 )
 
@@ -68,7 +68,7 @@ def shadow_verification_summary(
     return {
         "totals": totals,
         "cases_with_component_candidates": sum(
-            counters["nominal_component_candidate_hits"] > 0
+            counters["exact_component_candidate_hits"] > 0
             for counters in by_case.values()
         ),
         "component_statuses": dict(sorted(component_statuses.items())),
@@ -315,7 +315,7 @@ def append_shadow_verification(
         lines.append(
             f"| {profile} | {totals['raw_anchor_hits']} | "
             f"{totals['verified_branch_hits']} | "
-            f"{totals['nominal_component_candidate_hits']} | "
+            f"{totals['exact_component_candidate_hits']} | "
             f"{totals['unique_component_windows']} | "
             f"{summary['cases_with_component_candidates']} |"
         )

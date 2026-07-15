@@ -46,7 +46,7 @@ pub struct MorphMatcher {
 pub struct VerificationCounters {
     pub raw_anchor_hits: usize,
     pub verified_branch_hits: usize,
-    pub nominal_component_candidate_hits: usize,
+    pub exact_component_candidate_hits: usize,
     pub unique_component_windows: usize,
 }
 
@@ -236,8 +236,8 @@ impl MorphMatcher {
                     continue;
                 };
                 if !self.accepts_branch(haystack, &candidate, branch_ref.atom_index, branch) {
-                    if branch.context_requirement == ContextRequirement::NominalComponent {
-                        counters.nominal_component_candidate_hits += 1;
+                    if branch.context_requirement == ContextRequirement::ExactComponent {
+                        counters.exact_component_candidate_hits += 1;
                         let window = surrounding_token_span(haystack, candidate.core);
                         component_windows.insert((window.start, window.end));
                     }
@@ -470,13 +470,12 @@ impl MorphMatcher {
                             },
                         )
             }
-            ContextRequirement::NominalComponent => self
+            ContextRequirement::ExactComponent => self
                 .lexical_context_analysis(haystack, candidate)
                 .map_or_else(
                     || {
                         boundary_accepted
-                            || self
-                                .accepts_nominal_component(haystack, candidate, atom_index, branch)
+                            || self.accepts_exact_component(haystack, candidate, atom_index, branch)
                     },
                     |context| self.context_accepts_branch(&context, candidate, atom_index, branch),
                 ),
@@ -559,7 +558,7 @@ impl MorphMatcher {
         )
     }
 
-    fn accepts_nominal_component(
+    fn accepts_exact_component(
         &self,
         haystack: &[u8],
         candidate: &VerifiedSpan,
@@ -579,7 +578,9 @@ impl MorphMatcher {
         let Some(query_span) = window.normalized_span(candidate.core.clone()) else {
             return false;
         };
-        if self.has_rejected_particle_suffix(candidate, window.normalized(), &query_span) {
+        if matches!(branch.verifier, BranchVerifier::NominalParticles { .. })
+            && self.has_rejected_particle_suffix(candidate, window.normalized(), &query_span)
+        {
             return false;
         }
         let Some(atom) = self.plan.atoms.get(atom_index) else {

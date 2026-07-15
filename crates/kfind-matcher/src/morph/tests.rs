@@ -147,10 +147,42 @@ fn compact_component_accepts_only_the_lower_cost_exact_path() {
 }
 
 #[test]
+fn exact_component_accepts_pronoun_numeral_and_determiner_spans() {
+    let resource = Arc::new(component_resource());
+    let pronoun = component_matcher_with_analysis(
+        "자기",
+        non_predicate_analysis("자기", CoarsePos::Pronoun, FinePos::Pronoun),
+        Arc::clone(&resource),
+    );
+    let numeral = component_matcher_with_analysis(
+        "둘",
+        non_predicate_analysis("둘", CoarsePos::Numeral, FinePos::Numeral),
+        Arc::clone(&resource),
+    );
+    let determiner = component_matcher_with_analysis(
+        "두",
+        non_predicate_analysis("두", CoarsePos::Determiner, FinePos::Determiner),
+        resource,
+    );
+
+    assert!(
+        pronoun
+            .find_at_with_meta("자기견해".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(numeral.find_at_with_meta("둘다".as_bytes(), 0).is_some());
+    assert!(
+        determiner
+            .find_at_with_meta("두사람".as_bytes(), 0)
+            .is_some()
+    );
+}
+
+#[test]
 fn component_context_without_a_resource_is_a_build_error() {
     for context_requirement in [
         ContextRequirement::PredicateLexical,
-        ContextRequirement::NominalComponent,
+        ContextRequirement::ExactComponent,
     ] {
         let mut branch = exact_branch("일", false);
         branch.context_requirement = context_requirement;
@@ -261,9 +293,9 @@ fn repeated_single_atom_matches_advance_without_changing_leftmost_longest() {
 }
 
 #[test]
-fn verification_counters_isolate_boundary_rejected_nominal_components() {
+fn verification_counters_isolate_boundary_rejected_exact_components() {
     let mut contextual = nominal_branch("학교", rules(&["particle.topic"]));
-    contextual.context_requirement = ContextRequirement::NominalComponent;
+    contextual.context_requirement = ContextRequirement::ExactComponent;
     let mut atom = atom(BoundaryPolicy::Smart, vec![contextual]);
     atom.analyses.push(nominal_analysis("학교"));
     let plan = QueryPlan {
@@ -285,7 +317,7 @@ fn verification_counters_isolate_boundary_rejected_nominal_components() {
         VerificationCounters {
             raw_anchor_hits: 2,
             verified_branch_hits: 1,
-            nominal_component_candidate_hits: 1,
+            exact_component_candidate_hits: 1,
             unique_component_windows: 1,
         }
     );
@@ -610,10 +642,22 @@ fn matcher(atoms: Vec<AtomPlan>, max_gap: usize) -> MorphMatcher {
 }
 
 fn component_matcher(anchor: &str, resource: Arc<ComponentResource>) -> MorphMatcher {
-    let mut branch = nominal_branch(anchor, rules(&[]));
-    branch.context_requirement = ContextRequirement::NominalComponent;
+    component_matcher_with_analysis(anchor, nominal_analysis(anchor), resource)
+}
+
+fn component_matcher_with_analysis(
+    anchor: &str,
+    analysis: Analysis,
+    resource: Arc<ComponentResource>,
+) -> MorphMatcher {
+    let mut branch = if matches!(&analysis.morphology, Morphology::Nominal(_)) {
+        nominal_branch(anchor, rules(&[]))
+    } else {
+        exact_branch(anchor, true)
+    };
+    branch.context_requirement = ContextRequirement::ExactComponent;
     let mut atom = atom(BoundaryPolicy::Smart, vec![branch]);
-    atom.analyses.push(nominal_analysis(anchor));
+    atom.analyses.push(analysis);
     let plan = QueryPlan {
         raw_query: anchor.into(),
         atoms: vec![atom],
@@ -654,6 +698,20 @@ fn nominal_analysis(lemma: &str) -> Analysis {
     }
 }
 
+fn non_predicate_analysis(lemma: &str, coarse_pos: CoarsePos, fine_pos: FinePos) -> Analysis {
+    Analysis {
+        lemma: lemma.into(),
+        coarse_pos,
+        fine_pos,
+        morphology: if matches!(coarse_pos, CoarsePos::Pronoun | CoarsePos::Numeral) {
+            Morphology::Nominal(NominalMorphology::default())
+        } else {
+            Morphology::Exact
+        },
+        source: AnalysisSource::Forced,
+    }
+}
+
 fn component_resource() -> ComponentResource {
     let entries = [
         component_entry("사용자", "NNG", -5_000),
@@ -667,6 +725,12 @@ fn component_resource() -> ComponentResource {
         component_entry("학생일", "NNG+VCP+ETM", -5_000),
         component_entry("는", "JX", 0),
         component_entry("는관리", "NNG", -5_000),
+        component_entry("자기", "NP", -5_000),
+        component_entry("견해", "NNG", -5_000),
+        component_entry("둘", "NR", -5_000),
+        component_entry("다", "MAG", -5_000),
+        component_entry("두", "MM", -5_000),
+        component_entry("사람", "NNG", -5_000),
     ];
     let matrix = parse_mecab_connection_matrix(
         "matrix.def",

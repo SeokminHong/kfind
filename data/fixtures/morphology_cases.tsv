@@ -436,6 +436,12 @@ query	pos	text	expected	feature
 저	pronoun	저가 직접 설명했다.	no-match	pronoun-override
 권한	noun	사용자권한을 한 단어로 저장했다.	match	nominal-component
 권한	noun	권한관리 화면을 열었다.	match	nominal-component
+자기	pronoun	자기견해를 밝혔다.	match	exact-component
+자기	pronoun	전자기견해를 검토했다.	no-match	exact-component
+둘	numeral	둘다 필요하다.	match	exact-component
+둘	numeral	아들둘레를 걸었다.	no-match	exact-component
+두	determiner	두사람이 왔다.	match	exact-component
+두	determiner	모두사람을 뜻하지 않는다.	no-match	exact-component
 권한	noun	사용자의 권한을 확인했다.	match	particle-final-pair
 길	noun	길잡이가 앞장섰다.	no-match	particle-final-pair
 길	noun	산길을 천천히 걸었다.	no-match	particle-final-pair

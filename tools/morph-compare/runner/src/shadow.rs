@@ -12,7 +12,7 @@ use super::Span;
 pub(super) struct ShadowVerificationCounters {
     pub(super) raw_anchor_hits: usize,
     pub(super) verified_branch_hits: usize,
-    pub(super) nominal_component_candidate_hits: usize,
+    pub(super) exact_component_candidate_hits: usize,
     pub(super) unique_component_windows: usize,
     pub(super) component_projection_comparisons: usize,
     pub(super) component_projection_mismatches: usize,
@@ -86,7 +86,7 @@ impl ShadowVerificationCounters {
         Self {
             raw_anchor_hits: counters.raw_anchor_hits,
             verified_branch_hits: counters.verified_branch_hits,
-            nominal_component_candidate_hits: counters.nominal_component_candidate_hits,
+            exact_component_candidate_hits: counters.exact_component_candidate_hits,
             unique_component_windows: counters.unique_component_windows,
             component_projection_comparisons,
             component_projection_mismatches: 0,

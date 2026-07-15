@@ -620,13 +620,13 @@ class ShadowVerificationTests(unittest.TestCase):
             "none": {
                 "raw_anchor_hits": 0,
                 "verified_branch_hits": 0,
-                "nominal_component_candidate_hits": 0,
+                "exact_component_candidate_hits": 0,
                 "unique_component_windows": 0,
             },
             "component": {
                 "raw_anchor_hits": 2,
                 "verified_branch_hits": 2,
-                "nominal_component_candidate_hits": 1,
+                "exact_component_candidate_hits": 1,
                 "unique_component_windows": 1,
                 "component_projection_comparisons": 1,
                 "component_projection_mismatches": 0,

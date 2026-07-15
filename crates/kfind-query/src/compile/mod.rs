@@ -336,11 +336,7 @@ fn compile_analysis(
                     rule_path: Vec::new(),
                 },
                 smart_left: true,
-                context_requirement: if analysis.coarse_pos == CoarsePos::Noun {
-                    ContextRequirement::NominalComponent
-                } else {
-                    ContextRequirement::None
-                },
+                context_requirement: ContextRequirement::ExactComponent,
             });
             for override_form in &nominal.overrides {
                 output.push(exact_branch(
@@ -398,6 +394,8 @@ fn compile_analysis(
 fn lexical_context_requirement(atom_surface: &str, analysis: &Analysis) -> ContextRequirement {
     if lexical_context_rule(atom_surface, analysis.fine_pos).is_some() {
         ContextRequirement::LexicalContext
+    } else if analysis.coarse_pos == CoarsePos::Determiner {
+        ContextRequirement::ExactComponent
     } else {
         ContextRequirement::None
     }
@@ -516,7 +514,7 @@ fn compile_derivations(
                     rule_path: derivation_path,
                 },
                 smart_left: true,
-                context_requirement: ContextRequirement::NominalComponent,
+                context_requirement: ContextRequirement::ExactComponent,
             });
         } else {
             output.push(exact_branch(

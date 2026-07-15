@@ -197,7 +197,7 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
     );
     assert!(smart_noun.atoms[0].branches.iter().any(|branch| {
         matches!(branch.verifier, BranchVerifier::NominalParticles { .. })
-            && branch.context_requirement == ContextRequirement::NominalComponent
+            && branch.context_requirement == ContextRequirement::ExactComponent
     }));
 
     let any_options = CompileOptions {
@@ -215,7 +215,7 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
         any_noun.atoms[0]
             .branches
             .iter()
-            .all(|branch| branch.context_requirement != ContextRequirement::NominalComponent)
+            .all(|branch| branch.context_requirement != ContextRequirement::ExactComponent)
     );
 
     let smart_predicate =
@@ -260,6 +260,72 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
     assert!(any_copula.atoms[0].branches.iter().all(|branch| {
         !branch.boundary.require_right && branch.context_requirement == ContextRequirement::None
     }));
+}
+
+#[test]
+fn smart_exact_components_cover_nominals_and_determiners_only() {
+    for pos in [CoarsePos::Noun, CoarsePos::Pronoun, CoarsePos::Numeral] {
+        let plan = compile_query(
+            "표면",
+            &CompileOptions {
+                global_pos: Some(pos),
+                ..CompileOptions::default()
+            },
+            &analyzer(),
+        )
+        .unwrap();
+        assert!(plan.requires_component_resource());
+        assert!(
+            plan.atoms[0]
+                .branches
+                .iter()
+                .all(|branch| { branch.context_requirement == ContextRequirement::ExactComponent })
+        );
+    }
+
+    let determiner = compile_query(
+        "두",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Determiner),
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    assert!(determiner.requires_component_resource());
+    assert!(
+        determiner.atoms[0]
+            .branches
+            .iter()
+            .all(|branch| { branch.context_requirement == ContextRequirement::ExactComponent })
+    );
+
+    for pos in [CoarsePos::Adverb, CoarsePos::Interjection] {
+        let plan = compile_query(
+            "표면",
+            &CompileOptions {
+                global_pos: Some(pos),
+                ..CompileOptions::default()
+            },
+            &analyzer(),
+        )
+        .unwrap();
+        assert!(!plan.requires_component_resource());
+    }
+
+    for boundary in [BoundaryPolicy::Token, BoundaryPolicy::Any] {
+        let plan = compile_query(
+            "두",
+            &CompileOptions {
+                global_pos: Some(CoarsePos::Determiner),
+                boundary,
+                ..CompileOptions::default()
+            },
+            &analyzer(),
+        )
+        .unwrap();
+        assert!(!plan.requires_component_resource());
+    }
 }
 
 #[test]

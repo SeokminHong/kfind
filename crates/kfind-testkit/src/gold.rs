@@ -186,7 +186,7 @@ mod tests {
 
     use super::*;
 
-    const EXPECTED_CASES: usize = 562;
+    const EXPECTED_CASES: usize = 568;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {
@@ -205,7 +205,7 @@ mod tests {
         for case in &cases {
             let selected = if matches!(
                 case.feature.as_str(),
-                "nominal-component" | "lexical-context"
+                "nominal-component" | "exact-component" | "lexical-context"
             ) {
                 &component_harness
             } else {
@@ -278,6 +278,15 @@ mod tests {
             entry("라", "EC", 0),
             entry("일", "VCP+ETM", 0),
             entry("것", "NNB", 0),
+            entry("자기", "NP", -5_000),
+            entry("견해", "NNG", -5_000),
+            entry("전자기", "NNG", -10_000),
+            entry("둘", "NR", -5_000),
+            entry("다", "MAG", -5_000),
+            entry("아들둘레", "NNG", -10_000),
+            entry("두", "MM", -5_000),
+            entry("사람", "NNG", -5_000),
+            entry("모두", "MAG", -10_000),
         ];
         let matrix = parse_mecab_connection_matrix(
             "matrix.def",

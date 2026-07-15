@@ -25,7 +25,7 @@ impl QueryPlan {
                 matches!(
                     branch.context_requirement,
                     ContextRequirement::PredicateLexical
-                        | ContextRequirement::NominalComponent
+                        | ContextRequirement::ExactComponent
                         | ContextRequirement::LexicalContext
                 )
             })
@@ -113,7 +113,7 @@ pub struct SurfaceBranch {
 pub enum ContextRequirement {
     None,
     PredicateLexical,
-    NominalComponent,
+    ExactComponent,
     LexicalContext,
 }
 
