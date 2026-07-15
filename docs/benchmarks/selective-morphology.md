@@ -9,7 +9,7 @@ corpus-side 분석은 token 내부 component와 바로 인접한 token 구조를
 | --- | --- | --- |
 | `None` | literal과 일반 형태 branch | 기존 verifier 결과 |
 | `PredicateLexical` | 왼쪽 경계를 연 지정사 branch | 어휘 분석과 구조 판정으로 좁힘 |
-| `NominalComponent` | token 내부 명사 component 후보 | `accept`만 match로 복구 |
+| `ExactComponent` | token 내부 명사·대명사·수사·관형사 component 후보 | `accept`만 match로 복구 |
 | `LexicalContext` | 문맥에서 품사를 검증할 부사 branch | 구조 판정이 있으면 해당 품사만 유지 |
 
 ## 실행 계약
@@ -20,7 +20,7 @@ byte scan
   -> morphology/boundary verifier
   -> bounded Unicode token 추출
   -> context requirement별 compact component 검증
-  -> 명사 component 복구 또는 인접 token 구조로 품사 선택
+  -> exact component 복구 또는 인접 token 구조로 품사 선택
 ```
 
 - anchor가 없는 파일과 줄에서는 lattice를 실행하지 않는다.
@@ -37,13 +37,13 @@ query-side full POS와 corpus-side morphology resource는 같은 고정 source s
 별도 artifact다. full POS는 표제어·품사를, corpus-side resource는 원본 표면형의 모든 분석,
 연결 ID, 단어 비용, matrix와 unknown 정의를 보존한다.
 
-제품 `NominalComponent`는 compact schema 1을 사용한다. full morphology schema 3은 benchmark
+제품 `ExactComponent`는 compact schema 1을 사용한다. full morphology schema 3은 benchmark
 동등성 검증에 사용한다. compact/full의 exact/common-prefix hit, scoring checksum, candidate
 decision, 비용, node와 path provenance가 모두 일치해야 한다.
 
 ## benchmark 계약
 
-- `NominalComponent`는 기존 경계 reject, resource lookup, accept/reject와 경로 provenance를
+- `ExactComponent`는 품사별 기존 경계 reject, resource lookup, accept/reject와 경로 provenance를
   기록한다.
 - component candidate가 있는데 resource가 없거나 검증에 실패하면 benchmark를 실패시킨다.
 - 고정 test, dev와 hard-negative의 역할을 섞지 않는다.
@@ -59,4 +59,4 @@ scripts/benchmark-morphology.sh
 pnpm --dir packages/kfind run benchmark:startup
 ```
 
-최신 수치는 [smart component 검색 근거](2026-07-13-smart-component-evidence.md)에 기록한다.
+최신 수치는 [Exact component 품사 확장](2026-07-15-exact-component-pos.md)에 기록한다.

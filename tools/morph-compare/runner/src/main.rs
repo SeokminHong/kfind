@@ -639,7 +639,7 @@ fn diagnose_verification(
         .flat_map(|(atom_index, atom)| {
             atom.branches
                 .iter()
-                .filter(|branch| branch.context_requirement == ContextRequirement::NominalComponent)
+                .filter(|branch| branch.context_requirement == ContextRequirement::ExactComponent)
                 .map(move |branch| ShadowBranchEvidence {
                     atom_index,
                     anchor: std::str::from_utf8(&branch.anchor)
@@ -653,13 +653,13 @@ fn diagnose_verification(
     if plan.requires_component_resource() {
         if let Some(status) = resource.unavailable_status() {
             bail!(
-                "nominal component shadow for case {} requires a valid morphology resource: {status}",
+                "exact component shadow for case {} requires a valid morphology resource: {status}",
                 case.id
             );
         }
         if let Some(status) = component_resource.unavailable_status() {
             bail!(
-                "nominal component shadow for case {} requires a valid compact resource: {status}",
+                "exact component shadow for case {} requires a valid compact resource: {status}",
                 case.id
             );
         }
@@ -940,7 +940,7 @@ mod tests {
     }
 
     #[test]
-    fn nominal_component_shadow_requires_a_valid_resource() {
+    fn exact_component_shadow_requires_a_valid_resource() {
         let error = diagnose_verification(
             &positive_case("권한", "noun", "사용자권한"),
             &analyzer(),
@@ -954,7 +954,7 @@ mod tests {
     }
 
     #[test]
-    fn nominal_component_shadow_compares_projection_evidence() {
+    fn exact_component_shadow_compares_projection_evidence() {
         let bytes = component_fixture_resource(20);
         let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
         let compact = component_fixture_compact_resource(20);
@@ -968,12 +968,12 @@ mod tests {
         .unwrap();
 
         assert_eq!(counters.component_projection_comparisons, 1);
-        assert_eq!(counters.nominal_component_candidate_hits, 0);
+        assert_eq!(counters.exact_component_candidate_hits, 0);
         assert_eq!(counters.component_projection_mismatches, 0);
     }
 
     #[test]
-    fn nominal_component_shadow_rejects_projection_differences() {
+    fn exact_component_shadow_rejects_projection_differences() {
         let full_bytes = component_fixture_resource(20);
         let full = decode_morphology_resource("full", &full_bytes, &[9; 32]).unwrap();
         let compact = component_fixture_compact_resource(2_000);

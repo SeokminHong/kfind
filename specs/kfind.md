@@ -112,7 +112,7 @@
 
 ### 0.3 CLI 세부 정책
 
-- `smart` query plan에 `NominalComponent`, `PredicateLexical` 또는 `LexicalContext` branch가 하나라도 있으면 matcher 초기화 전에
+- `smart` query plan에 `ExactComponent`, `PredicateLexical` 또는 `LexicalContext` branch가 하나라도 있으면 matcher 초기화 전에
   `morphology-component-compact.kfc`를 resolve하고 검증한다. resource 누락·손상·schema 또는
   source mismatch는 기존 경계 판정으로 fallback하지 않고 초기화 오류와 exit code 2를 반환한다.
   component branch가 없는 계획은 이 resource를 열지 않는다.
@@ -405,11 +405,11 @@
 
 ### 0.6 선택적 국소 형태 추론
 
-- query branch의 context requirement는 `None`, `PredicateLexical`, `NominalComponent`,
+- query branch의 context requirement는 `None`, `PredicateLexical`, `ExactComponent`,
   `LexicalContext`다. token
-  경계에서 거부될 수 있는 명사 branch는 `NominalComponent`, 왼쪽 token 경계를 열어 둔 `smart`
-  지정사 branch는 `PredicateLexical`, 어휘 품사 문맥을 검증하는 modifier branch는
-  `LexicalContext`를 사용한다.
+  경계에서 거부될 수 있는 명사·대명사·수사·관형사 branch는 `ExactComponent`, 왼쪽 token
+  경계를 열어 둔 `smart` 지정사 branch는 `PredicateLexical`, 어휘 품사 문맥을 검증하는
+  modifier branch는 `LexicalContext`를 사용한다.
 - `LexicalContext`는 `smart` modifier의 품사 전체에 부여하지 않는다. compiler의 typed context
   rule registry에 표면형과 fine POS가 함께 등록된 branch에만 부여한다. 현재 반복 token 규칙은
   `매일/MAG`를 등록하며 실제 corpus 분석 근거는 compact component resource로 확인한다.
@@ -420,9 +420,10 @@
 - `PredicateLexical`은 candidate를 포함하는 Unicode token 전체의 compact component exact 분석만
   확인한다. exact 분석이 모두 해석 가능한 non-predicate이면 strict-subspan predicate branch를
   거부하고, exact 분석이 없거나 predicate 또는 해석할 수 없는 품사가 하나라도 있으면 유지한다.
-- `NominalComponent`는 `smart`에서만 동작한다. 기존 경계 검증이 거부한 명사 candidate를
-  compact component resource로 평가하고 `accept`만 match로 복구한다. `reject`, `ambiguous`,
-  평가 오류와 상한 초과는 거부한다.
+- `ExactComponent`는 `smart`에서만 동작한다. 기존 경계 검증이 거부한 명사·대명사·수사·
+  관형사 candidate를 compact component resource로 평가하고, query branch와 같은 fine POS의
+  exact component가 최저 비용 경로에 있을 때만 match로 복구한다. `reject`, `ambiguous`, 평가
+  오류와 상한 초과는 거부한다. 용언·부사·감탄사 등 다른 품사에는 이 복구를 적용하지 않는다.
 - `smart`의 bounded lexical context는 candidate가 포함된 Unicode token과 같은 줄의 바로 앞뒤
   Unicode token만 읽는다. 합친 원문은 최대 256 bytes, NFC 문자열은 최대 64 Unicode scalar다.
   UTF-8 검증도 이 bounded 원문에만 적용하므로 범위 밖의 손상된 byte는 문맥 판정을 억제하지
@@ -442,9 +443,9 @@
   token을 찾고 `매`, `n:매`, `n:매일`은 찾지 않는다. `그는 집념으로 매일을 보내고 있었다.`에서
   `매일`과 `n:매일`은 조사까지 소비한 `매일을`을 찾고 `매`, `n:매`, `adv:매일`은 찾지 않는다.
 - 이 문맥 판정은 `smart`에만 적용한다. `token`과 `any`의 candidate·span·provenance는 바꾸지 않는다.
-- component 근거는 완전한 형태 분석 경로에서 query 표제어·품사와 같은 node의 span이 NFC
-  query span과 정확히 일치할 때만 성립한다. 더 큰 node에 포함된 substring이나 여러 component
-  경계를 가로지르는 span은 근거가 아니다.
+- component 근거는 완전한 형태 분석 경로에서 query branch의 fine POS와 같은 node의 span이
+  NFC query span과 정확히 일치할 때만 성립한다. 더 큰 node에 포함된 substring이나 여러
+  component 경계를 가로지르는 span은 근거가 아니다.
 - corpus resource의 `NNBC`는 query-side `NNB`와 같은 의존명사로 비교한다. source POS 문자열은
   artifact와 진단 provenance에 그대로 보존하고 component 일치 판정에서만 호환 태그를
   정규화한다.
@@ -459,7 +460,7 @@
 - `char.def`와 `unk.def`에서 파생되는 unknown model은 검증된 component resource마다 한 번
   초기화한다. candidate별 판정은 이 정적 model을 다시 파싱하지 않는다. 병렬 검색에서 재사용하는
   evaluator는 공유 불변 상태를 유지하며 candidate별 작업 상태를 공유하지 않는다.
-- component 복구는 조사 이형태 판정을 우회하지 않는다. nominal verifier가 소비하지 못한
+- `NominalParticles` branch의 component 복구는 조사 이형태 판정을 우회하지 않는다. nominal verifier가 소비하지 못한
   query 뒤 어절 suffix 전체가 알려진 조사 이형태와 같으면 component evaluator가 `accept`해도
   거부한다.
 - 분석 범위는 candidate를 포함하는 Unicode token이다. 원문은 최대 256 bytes, NFC 문자열은
@@ -474,7 +475,7 @@
 - query-side full POS와 corpus-side resource는 같은 고정 source snapshot에서 생성하되 별도
   산출물로 유지한다. full POS는 정규화된 표제어와 품사를, corpus-side resource는 원본
   표면형별 분석과 연결 비용을 저장한다.
-- CLI의 기본 boundary는 `smart`다. plan에 `NominalComponent`, `PredicateLexical` 또는
+- CLI의 기본 boundary는 `smart`다. plan에 `ExactComponent`, `PredicateLexical` 또는
   `LexicalContext` branch가 있으면 설치된 compact
   resource를 자동으로 찾아 한 번 검증한다. resource 누락·손상·schema 또는 source 불일치는
   초기화 오류이며 기존 경계 판정으로 fallback하지 않는다. literal, `token`, `any` 또는
@@ -505,7 +506,7 @@
   내부 crate이며 crates.io 배포 대상이 아니다. 공개 Rust 소비자는 `kfind` facade만 사용한다.
 - component resource는 생성 이후 first-use에 자동 fetch·load하지 않는다. 검증된 resource는 engine이
   소유하고 여러 matcher에서 재사용하며 query compile마다 다시 decode하지 않는다. resource가 없는
-  engine에서 `NominalComponent`, `PredicateLexical` 또는 `LexicalContext`가 필요한 smart plan을
+  engine에서 `ExactComponent`, `PredicateLexical` 또는 `LexicalContext`가 필요한 smart plan을
   compile하면 명시적 `ComponentResourceRequired` 오류를 반환하고 기존 경계 판정으로
   fallback하지 않는다.
 - 같은 fail-fast 계약은 저수준 `MorphMatcher` 생성자에도 적용한다. resource가 필요한 plan을
@@ -1019,7 +1020,7 @@ pub struct SurfaceBranch {
 pub enum ContextRequirement {
     None,
     PredicateLexical,
-    NominalComponent,
+    ExactComponent,
     LexicalContext,
 }
 

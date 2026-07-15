@@ -180,7 +180,7 @@ same POS.
 
 | Policy | Behavior | Typical use |
 | --- | --- | --- |
-| `smart` | Applies POS-aware verification and checks the completed token span. It can use the optional component resource for compound nouns, lexical predicates, and adjacent-token context. | Interactive search; default |
+| `smart` | Applies POS-aware verification and checks the completed token span. It can use the optional component resource for exact noun, pronoun, numeral, and determiner components, lexical predicates, and adjacent-token context. | Interactive search; default |
 | `token` | Requires token boundaries around every core and completed token span. | Strict standalone tokens |
 | `any` | Does not require left or right token boundaries. | Recall-oriented automation with downstream context review |
 
@@ -455,7 +455,7 @@ pnpm --dir packages/kfind run benchmark:startup
 pnpm --dir packages/kfind run pack:check
 ```
 
-The morphology fixture contains 562 positive and negative regression cases. The
+The morphology fixture contains 568 positive and negative regression cases. The
 Docker benchmark measures `kfind` on 1,000 cases generated from independent UD
 Korean-Kaist and KSL test splits, then compares it with pinned Kiwi, Lindera,
 MeCab-ko, and KOMORAN snapshots. Fuzz targets and their fixed seed corpora live

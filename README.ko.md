@@ -167,7 +167,7 @@ kfind 'lit:걸어' data.txt
 
 | 정책 | 동작 | 주 용도 |
 | --- | --- | --- |
-| `smart` | 품사별 검증을 적용하고 완성된 token span의 경계를 확인합니다. 합성 명사, 어휘 용언과 인접 token 문맥에 선택적 component resource를 사용할 수 있습니다. | 대화형 검색, 기본값 |
+| `smart` | 품사별 검증을 적용하고 완성된 token span의 경계를 확인합니다. 명사·대명사·수사·관형사의 정확한 component, 어휘 용언과 인접 token 문맥에 선택적 component resource를 사용할 수 있습니다. | 대화형 검색, 기본값 |
 | `token` | 모든 core와 완성된 token span의 좌우 token 경계를 요구합니다. | 독립 token만 엄격하게 검색 |
 | `any` | 좌우 token 경계를 요구하지 않습니다. | 후속 문맥 검토를 수행하는 재현율 중심 자동화 |
 
@@ -428,7 +428,7 @@ pnpm --dir packages/kfind run benchmark:startup
 pnpm --dir packages/kfind run pack:check
 ```
 
-형태론 fixture에는 일치·불일치 회귀 사례 562개가 있습니다. Docker 벤치마크는 독립된 UD
+형태론 fixture에는 일치·불일치 회귀 사례 568개가 있습니다. Docker 벤치마크는 독립된 UD
 Korean-Kaist·KSL test split에서 생성한 1,000개 사례로 `kfind`를 측정하고, 고정된 Kiwi,
 Lindera, MeCab-ko, KOMORAN snapshot과 비교합니다. fuzz target과 고정 seed corpus는 `fuzz/`에
 있습니다. CI는 `scripts/run-fuzz.sh`로 모든 target을 target당 15초 동안 실제 실행합니다.

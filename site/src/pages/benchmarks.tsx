@@ -43,17 +43,17 @@ export default function BenchmarksPage(): React.JSX.Element {
                 <td>97.77%</td>
                 <td>96.40%</td>
                 <td>97.08%</td>
-                <td>13,663.1</td>
+                <td>13,477.1</td>
                 <td>5.2 MiB</td>
               </tr>
               <tr>
                 <td>User · full POS + smart + untagged</td>
-                <td>421 / 0 / 79</td>
+                <td>431 / 0 / 69</td>
                 <td>100.00%</td>
-                <td>84.20%</td>
-                <td>91.42%</td>
-                <td>9,823.9</td>
-                <td>92.2 MiB</td>
+                <td>86.20%</td>
+                <td>92.59%</td>
+                <td>9,669.4</td>
+                <td>92.3 MiB</td>
               </tr>
             </tbody>
           </table>
