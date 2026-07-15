@@ -30,6 +30,7 @@
 - [Exact component 품사 확장](2026-07-15-exact-component-pos.md)
 - [Full-POS 용언 exact component 확장](2026-07-15-predicate-exact-component.md)
 - [Exact component 비용 마진](2026-07-15-exact-component-cost-margin.md)
+- [형태 분석 그래프 전환 계획](morphology-analysis-graph-plan.md)
 - [접속 조사 `이면/면`의 명사류 결합](2026-07-15-connector-myeon-particle.md)
 - [smart component 검색 근거](2026-07-13-smart-component-evidence.md)
 - [copula lattice 폐기 판정](2026-07-13-copula-unseen-evaluation.md)
@@ -246,7 +247,12 @@ coverage 검사를 함께 도입한다. 새 규칙이 없는 RC 변경에는 이
 
 ## 이어갈 형태 품질 작업
 
-다음 형태 품질 작업은 명시적 품사 full-POS `smart`의 남은 FN 25건을 줄이는 제품 변경이다.
+다음 형태 품질 작업은 비용 마진과 lexical context registry를 source provenance 기반 형태 분석
+그래프로 교체하는 구조 전환이다. 먼저 full morphology resource의 source metadata를 기존 local
+lattice 경로에 연결한 shadow 감사를 실행한다. 감사 결과가 구조 분리를 입증하기 전에는 제품
+판정, registry와 1,500 마진을 바꾸지 않는다.
+
+구조 전환 뒤에는 명시적 품사 full-POS `smart`의 남은 FN 25건을 줄이는 제품 변경을 이어간다.
 계측·report·runner만 바꾼 상태는 작업 완료로 보지 않는다. 규칙 조건은 development case만으로
 만들지 않고 독립된 사전·문법 근거로 정의한다. development는 후보 선택에 사용하고, 고정 test와
 무품사 결과는 규칙을 고정한 뒤 회귀 판정에만 사용한다.
