@@ -78,8 +78,8 @@ python3 tools/morph-compare/render_charts.py \
   --prefix smart-component-
 ```
 
-See the [current product evidence](../../docs/benchmarks/2026-07-13-smart-component-evidence.md)
-and [improvement handoff](../../docs/benchmarks/morphology-handoff.md).
+See the [benchmark contract](../../docs/benchmarks/README.md) for the current
+measurement and reporting requirements.
 
 To run the image directly:
 

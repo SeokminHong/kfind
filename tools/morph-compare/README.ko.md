@@ -69,9 +69,7 @@ python3 tools/morph-compare/render_charts.py \
   --prefix smart-component-
 ```
 
-[현재 제품 근거](../../docs/benchmarks/2026-07-13-smart-component-evidence.md)와
-[개선 핸드오프](../../docs/benchmarks/morphology-handoff.md)에 결과와 후속 작업을
-정리한다.
+[벤치마크 계약](../../docs/benchmarks/README.md)에서 현재 측정·보고 요건을 확인한다.
 
 직접 실행하려면 다음 명령을 사용한다.
 
