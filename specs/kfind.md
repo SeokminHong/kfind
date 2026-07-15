@@ -506,6 +506,9 @@
 - shadow 규칙 선택에는 development와 hard-negative만 사용한다. 고정 test는 구조를 확정한 뒤 회귀 판정에만 사용한다. 같은 구조 근거가 positive와 negative에 함께 나타나면 surface registry나 새 임계값을 추가하지 않고 ambiguity 계약 대상으로 기록한다.
 - source 종류만으로 분리되지 않으면 `expression` component의 canonical decomposition을 node surface와 대조한다. 안정된 NFC byte span과 일치하는 `span-aligned`, 한 scalar 안에 경계가 융합된 `fused`, 축약·교체로 표면 정렬이 불가능한 `unaligned`, 잘못된 형식인 `invalid`를 구분한다. `fused`와 `unaligned`에 임의 byte span을 부여하지 않는다.
 - 같은 scoring node에 여러 source row가 대응하면 하나를 선택하지 않고 모든 분석 관계를 보존한다. query span·POS와 일치하는 source component가 positive와 hard-negative에 함께 나타나면 graph resource 전환 전에 compound exposure나 동형 활용 합집합을 profile ambiguity 정책으로 계약한다.
+- component graph schema 2는 schema 1과 같은 container magic을 사용하되 별도 실험 artifact와 loader로 격리한다. surface index, source analysis와 component 관계 payload, string table, connection matrix, `char.def`, `unk.def`를 보존하고 schema, source SHA-256, section length·digest, payload offset, UTF-8, context ID, relation kind와 NFC span을 내용을 노출하기 전에 검증한다.
+- schema 2 source analysis는 POS, left/right context ID, word cost, `analysis_type`, `start_pos`, `end_pos`와 expression 관계를 보존한다. build 단계에서 raw `expression`을 `absent`, `span-aligned`, `fused`, `unaligned`, `invalid`로 정규화하고 component surface·POS와 안정된 byte span만 저장한다. raw `expression` 문자열과 profile별 `CompoundExposure` 선택은 artifact에 저장하지 않는다.
+- schema 2는 policy-neutral 근거 계층이므로 full morphology resource와 exact/common-prefix hit, source analysis, relation component, 연결 비용과 unknown 정의 projection이 같은지 먼저 검증할 수 있다. resolver verdict와 제품 전환은 `CompoundExposure` profile 계약을 정하기 전까지 진행하지 않는다.
 - graph resource와 resolver shadow가 기존 true positive를 보존하고 새 false positive를 만들지 않으며 hard-negative를 악화하지 않을 때만 matcher가 resolver verdict를 소비하도록 전환한다. 전환 전에는 기존 registry와 1,500 마진의 제품 동작을 바꾸지 않는다.
 - 세부 단계와 채택 조건은 [형태 분석 그래프 전환 계획](../docs/benchmarks/morphology-analysis-graph-plan.md)을 따른다.
 

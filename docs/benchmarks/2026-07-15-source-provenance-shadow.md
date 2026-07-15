@@ -79,7 +79,7 @@ full/compact projection 비교는 test 369건, development 358건, hard-negative
 
 ## 다음 결정
 
-graph schema 구현 전에 `CompoundExposure`의 profile 계약을 정한다.
+resolver shadow 구현 전에 `CompoundExposure`의 profile 계약을 정한다.
 
 - `opaque`: whole-compound 분석이 있으면 내부 component를 기본 `smart`에서 노출하지 않는다.
 - `transparent`: source가 명시한 component를 노출한다.

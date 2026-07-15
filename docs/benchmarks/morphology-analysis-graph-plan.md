@@ -58,17 +58,22 @@ node의 source 분류만으로 positive와 negative가 분리되지 않으면 `e
 | `span-aligned` | component 경계가 NFC node의 안정된 byte span과 일치 |
 | `fused` | 전체 표면은 canonical composition과 같지만 component 경계가 한 scalar 안에서 융합 |
 | `unaligned` | 축약·교체 등으로 component 표면을 이어도 node surface와 같지 않음 |
+| `absent` | source row가 expression을 제공하지 않음 |
 | `invalid` | expression 형식을 해석할 수 없음 |
 
 `span-aligned` component의 span과 POS가 query pattern과 같으면 기존 exact node가 아니어도 source가 명시한 component 관계로 기록한다. `fused`와 `unaligned`는 임의 byte span으로 투영하지 않는다. 같은 scoring node에 여러 source row가 대응하면 하나를 고르지 않고 모든 분석과 관계를 보존한다.
 
-이 2차 shadow에서도 positive와 hard-negative가 같은 관계를 가지면 구조만으로 수용 여부를 결정할 수 없다는 뜻이다. 이 경우 graph resource 전에 compound exposure, 동형 활용 합집합과 같은 profile ambiguity 정책을 별도 계약한다.
+이 2차 shadow에서도 positive와 hard-negative가 같은 관계를 가지면 구조만으로 수용 여부를 결정할 수 없다는 뜻이다. 이 경우 resolver shadow 전에 compound exposure, 동형 활용 합집합과 같은 profile ambiguity 정책을 별도 계약한다.
 
 ### 3. Graph resource
 
 compact resource의 다음 schema는 source 분석 종류와 정규화된 분해 component를 보존한다. raw `expression` 문자열을 제품 판정 때마다 파싱하지 않고 build 단계에서 span, POS와 관계 edge로 검증·압축한다. 기존 schema 1 loader는 호환 경로로 유지하되 graph resolver에는 사용할 수 없다.
 
 full resource와 graph resource는 exact/common-prefix hit, source node, 연결 비용과 source provenance projection이 같아야 한다. schema, source SHA-256, section digest, span, context ID와 관계 edge를 내용을 노출하기 전에 검증한다.
+
+schema 2는 schema 1과 같은 container magic을 사용하되 별도 `morphology-component-graph.kfc` 실험 artifact와 loader로 격리한다. index, graph payload, string table, connection matrix, `char.def`, `unk.def`의 여섯 section을 보존한다. graph payload는 surface별 source analysis, `analysis_type`, `start_pos`, `end_pos`, expression 관계와 정규화된 component를 저장하며 raw `expression`은 저장하지 않는다. `span-aligned` component는 검증된 NFC byte span을 저장하고 `fused`·`unaligned` component는 span을 갖지 않는다. expression이 없는 source row는 `absent`, 비어 있지 않지만 해석할 수 없는 row는 `invalid`로 구분한다.
+
+graph resource는 `CompoundExposure` 선택을 저장하지 않는 policy-neutral 근거 계층이다. 따라서 schema 2 구현과 full-resource projection 검증은 profile 결정보다 먼저 진행할 수 있지만 resolver verdict와 제품 전환은 profile 계약을 정하기 전까지 진행하지 않는다.
 
 ### 4. Resolver shadow
 
