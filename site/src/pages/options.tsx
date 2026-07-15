@@ -411,7 +411,8 @@ max-gap=24`}</code>
           열고 완성된 행을 점진적으로 반영합니다. 긴 match 줄은 검증된 match마다
           별도 행으로 펼치고 target 앞뒤를 원문 비율에 맞춰 생략합니다. 검색
           결과의 마지막 행이 content 영역 아래에 닿으면 더 스크롤하지 않습니다.
-          검색 중에도 terminal resize와 이동을 처리하며,
+          키 반복 이동은 입력된 이동량을 유지하면서 content viewport 크기에 맞는
+          frame으로 합칩니다. 검색 중에도 terminal resize와 이동을 처리하며,
           <code>↑/↓</code> 또는 <code>k/j</code>로 이동하고 <code>q</code>나
           <code>Esc</code>로 종료합니다. Redirect, pipe, JSON Lines와
           count·파일명 요약·quiet 출력은 기존 stdout stream을 유지합니다. 대화형

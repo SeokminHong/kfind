@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{self, Write};
 use std::sync::mpsc::{Receiver, Sender, TryRecvError};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use crossterm::cursor::{Hide, Show};
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
@@ -16,6 +16,49 @@ use super::viewport::{Document, Layout, RowKey};
 use crate::Language;
 
 const INPUT_POLL_INTERVAL: Duration = Duration::from_millis(16);
+const FRAME_CELL_BUDGET: usize = 8_192;
+const BASE_FRAME_INTERVAL_MS: u64 = 16;
+const MAX_FRAME_INTERVAL_STEPS: usize = 3;
+
+struct FrameClock {
+    last_draw: Option<Instant>,
+}
+
+impl FrameClock {
+    const fn new() -> Self {
+        Self { last_draw: None }
+    }
+
+    fn ready(&self, now: Instant, width: u16, height: u16) -> bool {
+        self.remaining(now, width, height).is_zero()
+    }
+
+    fn poll_timeout(&self, dirty: bool, now: Instant, width: u16, height: u16) -> Duration {
+        if dirty {
+            self.remaining(now, width, height).min(INPUT_POLL_INTERVAL)
+        } else {
+            INPUT_POLL_INTERVAL
+        }
+    }
+
+    fn mark_drawn(&mut self, now: Instant) {
+        self.last_draw = Some(now);
+    }
+
+    fn remaining(&self, now: Instant, width: u16, height: u16) -> Duration {
+        self.last_draw.map_or(Duration::ZERO, |last_draw| {
+            frame_interval(width, height).saturating_sub(now.saturating_duration_since(last_draw))
+        })
+    }
+}
+
+fn frame_interval(width: u16, height: u16) -> Duration {
+    let cells = usize::from(width).saturating_mul(content_height(height));
+    let steps = cells
+        .div_ceil(FRAME_CELL_BUDGET)
+        .clamp(1, MAX_FRAME_INTERVAL_STEPS);
+    Duration::from_millis(BASE_FRAME_INTERVAL_MS.saturating_mul(steps as u64))
+}
 
 pub(super) fn present_live(
     file: File,
@@ -78,6 +121,7 @@ fn run_tui(
     let mut done = false;
     let mut dirty = true;
     let mut renderer = Renderer::new();
+    let mut frame_clock = FrameClock::new();
 
     loop {
         let mut quit = false;
@@ -129,16 +173,18 @@ fn run_tui(
             });
         }
 
-        if dirty {
+        if dirty && frame_clock.ready(Instant::now(), width, height) {
             offset = offset.min(max_offset(&layout, height));
             anchor = row_key(&layout, offset);
             renderer.draw(
                 document, output, &layout, offset, width, height, language, done,
             )?;
+            frame_clock.mark_drawn(Instant::now());
             dirty = false;
         }
 
-        let _ = event::poll(INPUT_POLL_INTERVAL)?;
+        let poll_timeout = frame_clock.poll_timeout(dirty, Instant::now(), width, height);
+        let _ = event::poll(poll_timeout)?;
     }
 
     Ok(FinalView {
@@ -346,5 +392,34 @@ mod tests {
         assert_eq!(offset, 6);
         assert_eq!(anchor, row_key(&layout, 6));
         assert!(!dirty);
+    }
+
+    #[test]
+    fn frame_interval_scales_with_the_content_viewport() {
+        assert_eq!(frame_interval(80, 25), Duration::from_millis(16));
+        assert_eq!(frame_interval(316, 73), Duration::from_millis(48));
+        assert_eq!(
+            frame_interval(u16::MAX, u16::MAX),
+            Duration::from_millis(48)
+        );
+    }
+
+    #[test]
+    fn frame_clock_coalesces_large_viewport_updates_without_busy_waiting() {
+        let started = Instant::now();
+        let mut clock = FrameClock::new();
+
+        assert!(clock.ready(started, 316, 73));
+        clock.mark_drawn(started);
+        assert!(!clock.ready(started + Duration::from_millis(47), 316, 73));
+        assert_eq!(
+            clock.poll_timeout(true, started + Duration::from_millis(40), 316, 73),
+            Duration::from_millis(8)
+        );
+        assert!(clock.ready(started + Duration::from_millis(48), 316, 73));
+        assert_eq!(
+            clock.poll_timeout(false, started, 316, 73),
+            INPUT_POLL_INTERVAL
+        );
     }
 }
