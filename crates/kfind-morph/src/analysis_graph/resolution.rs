@@ -325,8 +325,8 @@ pub(super) fn decide_known(
             supported: Vec::new(),
         };
     }
-    let mut proofs = Vec::<CompactSupportProof>::new();
-    for path in candidate_witness_paths(graph, spans, patterns) {
+    let mut proofs = BTreeSet::<CompactSupportProof>::new();
+    for path in candidate_decision_paths(graph, spans, patterns) {
         let units = path_units(&path, graph.nodes());
         for (pattern_index, pattern) in patterns.iter().enumerate() {
             for candidate in support_candidates(&path, graph.nodes(), &units, spans, pattern) {
@@ -350,25 +350,20 @@ pub(super) fn decide_known(
                         .into_iter()
                         .map(|unit| CompactMorphUnit {
                             pos_slot: unit.pos_slot,
-                            span: unit.span.clone(),
+                            span: unit.span.as_ref().map(|span| (span.start, span.end)),
                             source_node_index: unit.source_node_index,
                             component_index: unit.component_index,
                         })
                         .collect(),
                 };
-                if !proofs.contains(&proof) {
-                    proofs.push(proof);
-                    if proofs.len() > proof_limit {
-                        return ConstraintDecision {
-                            outcome: ConstraintOutcome::Unavailable(
-                                ConstraintUnavailable::PathLimit {
-                                    actual: proofs.len(),
-                                    limit: proof_limit,
-                                },
-                            ),
-                            supported: Vec::new(),
-                        };
-                    }
+                if proofs.insert(proof) && proofs.len() > proof_limit {
+                    return ConstraintDecision {
+                        outcome: ConstraintOutcome::Unavailable(ConstraintUnavailable::PathLimit {
+                            actual: proofs.len(),
+                            limit: proof_limit,
+                        }),
+                        supported: Vec::new(),
+                    };
                 }
             }
         }
@@ -383,15 +378,15 @@ pub(super) fn decide_known(
     ConstraintDecision::from_supports(outcome, proofs.into_iter().map(|proof| proof.support))
 }
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, Ord, PartialEq, PartialOrd)]
 struct CompactMorphUnit {
     pos_slot: usize,
-    span: Option<Range<usize>>,
+    span: Option<(usize, usize)>,
     source_node_index: usize,
     component_index: Option<usize>,
 }
 
-#[derive(Eq, PartialEq)]
+#[derive(Eq, Ord, PartialEq, PartialOrd)]
 struct CompactSupportProof {
     support: ConstraintSupport,
     source_node_index: usize,
@@ -549,6 +544,31 @@ fn candidate_witness_paths(
     paths
 }
 
+fn candidate_decision_paths(
+    graph: &TokenGraph<'_>,
+    spans: &CandidateSpans,
+    patterns: &[QueryMorphPattern],
+) -> BTreeSet<Vec<usize>> {
+    let mut paths = BTreeSet::new();
+    let lexical_paths = lexical_candidate_paths(graph, spans, patterns);
+    for pattern in patterns {
+        for lexical_path in &lexical_paths {
+            let units = path_units(lexical_path, graph.nodes());
+            for support in support_candidates(lexical_path, graph.nodes(), &units, spans, pattern) {
+                extend_decision_path(
+                    graph,
+                    spans,
+                    pattern,
+                    lexical_path.clone(),
+                    support,
+                    &mut paths,
+                );
+            }
+        }
+    }
+    paths
+}
+
 fn lexical_candidate_paths(
     graph: &TokenGraph<'_>,
     spans: &CandidateSpans,
@@ -650,6 +670,36 @@ fn extend_supported_path(
         let mut extended = required.clone();
         extended.push(successor);
         extend_supported_path(graph, spans, pattern, extended, support.clone(), paths);
+    }
+}
+
+fn extend_decision_path(
+    graph: &TokenGraph<'_>,
+    spans: &CandidateSpans,
+    pattern: &QueryMorphPattern,
+    required: Vec<usize>,
+    support: SupportCandidate,
+    paths: &mut BTreeSet<Vec<usize>>,
+) {
+    let last = *required.last().expect("supported path is non-empty");
+    let units = path_units(&required, graph.nodes());
+    if graph.nodes()[last].span.end >= spans.consumed.end {
+        if continuation_units(pattern, spans, &units, &support).is_some() {
+            paths.insert(required);
+        }
+        return;
+    }
+    if !continuation_prefix_possible(pattern, spans, &units, &support) {
+        return;
+    }
+    for &successor in graph.successors(last) {
+        let next = &graph.nodes()[successor];
+        if next.span.end > spans.consumed.end || !graph.is_on_complete_path(successor) {
+            continue;
+        }
+        let mut extended = required.clone();
+        extended.push(successor);
+        extend_decision_path(graph, spans, pattern, extended, support.clone(), paths);
     }
 }
 
