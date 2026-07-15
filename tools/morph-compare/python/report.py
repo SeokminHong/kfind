@@ -894,14 +894,15 @@ def append_constraint_evaluation(
             "",
             "The test performance row uses fresh full-POS processes after one discarded warm-up. Diagnostic serialization and the product control run are excluded from evaluator throughput.",
             "",
-            "| runs | init median | cases/s median [min, max] | p95 median [min, max] | peak RSS median [min, max] | compile | candidate | resolver | policy |",
-            "| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+            "| runs | init median | cases/s median [min, max] | p95 median [min, max] | peak RSS median [min, max] | compile | candidate | graph prepare | decision | policy |",
+            "| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
             f"| {performance['runs']} | {performance['initialization_seconds']:.4f}s | "
             f"{performance['cases_per_second']} [{performance['run_min']['cases_per_second']}, {performance['run_max']['cases_per_second']}] | "
             f"{performance['latency_p95_ms']}ms [{performance['run_min']['latency_p95_ms']}, {performance['run_max']['latency_p95_ms']}] | "
             f"{format_rss(performance['peak_rss_kib'])} [{format_rss(performance['run_min']['peak_rss_kib'])}, {format_rss(performance['run_max']['peak_rss_kib'])}] | "
             f"{performance['compile_seconds']:.4f}s | {performance['candidate_enumeration_seconds']:.4f}s | "
-            f"{performance['resolver_seconds']:.4f}s | {performance['policy_seconds']:.4f}s |",
+            f"{performance['graph_preparation_seconds']:.4f}s | {performance['decision_seconds']:.4f}s | "
+            f"{performance['policy_seconds']:.4f}s |",
             "",
             f"- notable case diagnostics: development {len(evaluation['development']['case_diagnostics'])}, hard negatives {len(evaluation['hard_negatives']['case_diagnostics'])}, test {len(evaluation['test']['case_diagnostics'])}",
         ]

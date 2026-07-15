@@ -339,6 +339,10 @@ def constraint_performance(summary: dict[str, object]) -> dict[str, object]:
             float(summary["candidate_enumeration_seconds"]), 6
         ),
         "resolver_seconds": round(float(summary["resolver_seconds"]), 6),
+        "graph_preparation_seconds": round(
+            float(summary["graph_preparation_seconds"]), 6
+        ),
+        "decision_seconds": round(float(summary["decision_seconds"]), 6),
         "policy_seconds": round(float(summary["policy_seconds"]), 6),
         "diagnostic_seconds": round(float(summary["diagnostic_seconds"]), 6),
         "product_seconds": round(float(summary["product_seconds"]), 6),
@@ -452,6 +456,8 @@ def evaluate_constraint_runs(
         "compile_seconds",
         "candidate_enumeration_seconds",
         "resolver_seconds",
+        "graph_preparation_seconds",
+        "decision_seconds",
         "policy_seconds",
         "diagnostic_seconds",
         "product_seconds",

@@ -45,6 +45,8 @@ class ConstraintEvaluationReportTests(unittest.TestCase):
             "compile_seconds": 0.1,
             "candidate_enumeration_seconds": 0.2,
             "resolver_seconds": 0.3,
+            "graph_preparation_seconds": 0.1,
+            "decision_seconds": 0.2,
             "policy_seconds": 0.01,
             "run_min": {
                 "cases_per_second": 490.0,
@@ -79,6 +81,7 @@ class ConstraintEvaluationReportTests(unittest.TestCase):
             "| test | unambiguous-analysis | 8 | 1 | 9 | 2 | 88.89% | 80.00% | 90.00% |",
             rendered,
         )
+        self.assertIn("| 0.1000s | 0.2000s | 0.0100s |", rendered)
         self.assertIn("| 5 | 1.0000s | 500.0 [490.0, 510.0] |", rendered)
 
 
