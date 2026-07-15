@@ -167,7 +167,7 @@ kfind 'lit:걸어' data.txt
 
 | 정책 | 동작 | 주 용도 |
 | --- | --- | --- |
-| `smart` | 품사별 검증을 적용하고 완성된 token span의 경계를 확인합니다. 명사·대명사·수사·관형사의 정확한 component, 어휘 용언과 인접 token 문맥에 선택적 component resource를 사용할 수 있습니다. | 대화형 검색, 기본값 |
+| `smart` | 품사별 검증을 적용하고 완성된 token span의 경계를 확인합니다. 명사·대명사·수사·관형사와 full-POS 일반 용언의 정확한 component, 지정사와 인접 token 문맥에 선택적 component resource를 사용할 수 있습니다. | 대화형 검색, 기본값 |
 | `token` | 모든 core와 완성된 token span의 좌우 token 경계를 요구합니다. | 독립 token만 엄격하게 검색 |
 | `any` | 좌우 token 경계를 요구하지 않습니다. | 후속 문맥 검토를 수행하는 재현율 중심 자동화 |
 

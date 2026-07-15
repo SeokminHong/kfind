@@ -18,6 +18,23 @@ fn analyzer() -> LexiconQueryAnalyzer {
     LexiconQueryAnalyzer::new(Arc::new(Lexicons::embedded().unwrap()))
 }
 
+fn full_pos_analyzer() -> LexiconQueryAnalyzer {
+    let mut lexicons = Lexicons::embedded().unwrap();
+    let full_data = LexiconData {
+        nominals: vec![NominalRecord {
+            lemma: "전체사전표식".to_owned(),
+            pos: DataFinePos::Nng,
+            flags: Default::default(),
+            overrides: Vec::new(),
+        }],
+        ..LexiconData::default()
+    };
+    lexicons
+        .load_full_pos(&encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap())
+        .unwrap();
+    LexiconQueryAnalyzer::new(Arc::new(lexicons))
+}
+
 #[test]
 fn merges_origins_for_identical_branches() {
     let plan = compile_query("걷다", &CompileOptions::default(), &analyzer()).unwrap();
@@ -220,12 +237,23 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
 
     let smart_predicate =
         compile_query("검증하다", &CompileOptions::default(), &analyzer()).unwrap();
+    assert!(smart_predicate.atoms[0].branches.iter().all(|branch| {
+        branch.boundary.require_left && branch.context_requirement == ContextRequirement::None
+    }));
+    assert!(!smart_predicate.requires_component_resource());
+
+    let smart_full_pos_predicate =
+        compile_query("검증하다", &CompileOptions::default(), &full_pos_analyzer()).unwrap();
     assert!(
-        smart_predicate.atoms[0]
+        smart_full_pos_predicate.atoms[0]
             .branches
             .iter()
-            .all(|branch| branch.boundary.require_left)
+            .all(|branch| {
+                branch.boundary.require_left
+                    && branch.context_requirement == ContextRequirement::ExactComponent
+            })
     );
+    assert!(smart_full_pos_predicate.requires_component_resource());
 
     let smart_copula = compile_query("이다", &CompileOptions::default(), &analyzer()).unwrap();
     assert!(smart_copula.requires_component_resource());
@@ -242,12 +270,10 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
         ..CompileOptions::default()
     };
     let token_predicate = compile_query("검증하다", &token_options, &analyzer()).unwrap();
-    assert!(
-        token_predicate.atoms[0]
-            .branches
-            .iter()
-            .all(|branch| branch.boundary.require_left)
-    );
+    assert!(token_predicate.atoms[0].branches.iter().all(|branch| {
+        branch.boundary.require_left && branch.context_requirement == ContextRequirement::None
+    }));
+    assert!(!token_predicate.requires_component_resource());
 
     let token_copula = compile_query("이다", &token_options, &analyzer()).unwrap();
     assert!(!token_copula.requires_component_resource());
@@ -263,7 +289,7 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
 }
 
 #[test]
-fn smart_exact_components_cover_nominals_and_determiners_only() {
+fn smart_exact_components_cover_nominals_predicates_and_determiners() {
     for pos in [CoarsePos::Noun, CoarsePos::Pronoun, CoarsePos::Numeral] {
         let plan = compile_query(
             "표면",
@@ -299,6 +325,25 @@ fn smart_exact_components_cover_nominals_and_determiners_only() {
             .iter()
             .all(|branch| { branch.context_requirement == ContextRequirement::ExactComponent })
     );
+
+    for (query, pos) in [("걷다", CoarsePos::Verb), ("좋다", CoarsePos::Adjective)] {
+        let plan = compile_query(
+            query,
+            &CompileOptions {
+                global_pos: Some(pos),
+                ..CompileOptions::default()
+            },
+            &full_pos_analyzer(),
+        )
+        .unwrap();
+        assert!(plan.requires_component_resource());
+        assert!(
+            plan.atoms[0]
+                .branches
+                .iter()
+                .all(|branch| { branch.context_requirement == ContextRequirement::ExactComponent })
+        );
+    }
 
     for pos in [CoarsePos::Adverb, CoarsePos::Interjection] {
         let plan = compile_query(

@@ -9,7 +9,7 @@ corpus-side 분석은 token 내부 component와 바로 인접한 token 구조를
 | --- | --- | --- |
 | `None` | literal과 일반 형태 branch | 기존 verifier 결과 |
 | `PredicateLexical` | 왼쪽 경계를 연 지정사 branch | 어휘 분석과 구조 판정으로 좁힘 |
-| `ExactComponent` | token 내부 명사·대명사·수사·관형사 component 후보 | `accept`만 match로 복구 |
+| `ExactComponent` | token 내부 명사류·관형사와 full-POS 일반 용언 component 후보 | `accept`만 match로 복구 |
 | `LexicalContext` | 문맥에서 품사를 검증할 부사 branch | 구조 판정이 있으면 해당 품사만 유지 |
 
 ## 실행 계약
@@ -59,4 +59,5 @@ scripts/benchmark-morphology.sh
 pnpm --dir packages/kfind run benchmark:startup
 ```
 
-최신 수치는 [Exact component 품사 확장](2026-07-15-exact-component-pos.md)에 기록한다.
+최신 수치는 [Full-POS 용언 exact component 확장](2026-07-15-predicate-exact-component.md)에
+기록한다.

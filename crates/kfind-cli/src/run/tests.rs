@@ -412,6 +412,7 @@ fn enriched_predicates_load_from_an_explicit_data_directory() {
 fn enriched_predicates_recover_irregular_surfaces_and_mixed_regular_analysis() {
     let temp = TempDir::new();
     temp.write_bytes(FULL_POS_FILE, &full_pos_resource());
+    temp.write_bytes(COMPONENT_RESOURCE_FILE, &component_resource());
     temp.write(
         ENRICHED_PREDICATES_FILE,
         concat!(
@@ -508,6 +509,12 @@ fn component_resource() -> Vec<u8> {
         component_entry("대", "XPN", 5_000),
         component_entry("학교", "NNG", 5_000),
         component_entry("대학교", "NNG", -5_000),
+        component_entry("깨달", "VV", -5_000),
+        component_entry("결정지", "VV", -5_000),
+        component_entry("가까워", "VA", -5_000),
+        component_entry("고와", "VA", -5_000),
+        component_entry("곱아", "VA", -5_000),
+        component_entry("노래", "VA", -5_000),
     ];
     let matrix = parse_mecab_connection_matrix(
         "matrix.def",

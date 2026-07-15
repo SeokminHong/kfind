@@ -317,6 +317,7 @@ fn compile_analysis(
             analysis_index,
             Vec::new(),
             options.expand,
+            analyzer.lexicons().full_pos_loaded(),
             predicate_rules,
             known_rule_ids,
             excluded_rules,
@@ -407,6 +408,7 @@ fn compile_predicate(
     analysis_index: u16,
     prefix_rules: Vec<RuleId>,
     expand: ExpandMode,
+    exact_component: bool,
     allowed_rules: &Arc<[RuleId]>,
     known_rule_ids: &HashSet<&str>,
     excluded_rules: &mut Vec<RuleId>,
@@ -463,6 +465,8 @@ fn compile_predicate(
             context_requirement: if predicate.alternation == kfind_morph::LexicalAlternation::Copula
             {
                 ContextRequirement::PredicateLexical
+            } else if exact_component {
+                ContextRequirement::ExactComponent
             } else {
                 ContextRequirement::None
             },
@@ -496,6 +500,7 @@ fn compile_derivations(
                 analysis_index,
                 derivation_path,
                 ExpandMode::Derivation,
+                analyzer.lexicons().full_pos_loaded(),
                 predicate_rules,
                 known_rule_ids,
                 excluded_rules,

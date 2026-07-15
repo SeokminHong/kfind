@@ -126,8 +126,8 @@ max-gap=24`}</code>
                 </td>
                 <td>
                   품사 verifier가 조사·어미를 소비한 뒤 token 끝을 확인합니다.
-                  명사·대명사·수사·관형사 component는 같은 fine POS의 형태
-                  근거가 검증된 경우에만 복구합니다.
+                  명사·대명사·수사·관형사와 full-POS 일반 용언 component는 같은
+                  fine POS의 형태 근거가 검증된 경우에만 복구합니다.
                 </td>
                 <td>사람의 기본 검색, precision 우선</td>
               </tr>

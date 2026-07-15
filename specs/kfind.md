@@ -406,10 +406,9 @@
 ### 0.6 선택적 국소 형태 추론
 
 - query branch의 context requirement는 `None`, `PredicateLexical`, `ExactComponent`,
-  `LexicalContext`다. token
-  경계에서 거부될 수 있는 명사·대명사·수사·관형사 branch는 `ExactComponent`, 왼쪽 token
-  경계를 열어 둔 `smart` 지정사 branch는 `PredicateLexical`, 어휘 품사 문맥을 검증하는
-  modifier branch는 `LexicalContext`를 사용한다.
+  `LexicalContext`다. token 경계에서 거부될 수 있는 명사·대명사·수사·관형사와 full-POS를
+  사용하는 일반 동사·형용사 branch는 `ExactComponent`, 왼쪽 token 경계를 열어 둔 `smart` 지정사 branch는
+  `PredicateLexical`, 어휘 품사 문맥을 검증하는 modifier branch는 `LexicalContext`를 사용한다.
 - `LexicalContext`는 `smart` modifier의 품사 전체에 부여하지 않는다. compiler의 typed context
   rule registry에 표면형과 fine POS가 함께 등록된 branch에만 부여한다. 현재 반복 token 규칙은
   `매일/MAG`를 등록하며 실제 corpus 분석 근거는 compact component resource로 확인한다.
@@ -420,10 +419,12 @@
 - `PredicateLexical`은 candidate를 포함하는 Unicode token 전체의 compact component exact 분석만
   확인한다. exact 분석이 모두 해석 가능한 non-predicate이면 strict-subspan predicate branch를
   거부하고, exact 분석이 없거나 predicate 또는 해석할 수 없는 품사가 하나라도 있으면 유지한다.
-- `ExactComponent`는 `smart`에서만 동작한다. 기존 경계 검증이 거부한 명사·대명사·수사·
-  관형사 candidate를 compact component resource로 평가하고, query branch와 같은 fine POS의
-  exact component가 최저 비용 경로에 있을 때만 match로 복구한다. `reject`, `ambiguous`, 평가
-  오류와 상한 초과는 거부한다. 용언·부사·감탄사 등 다른 품사에는 이 복구를 적용하지 않는다.
+- `ExactComponent`는 `smart`에서만 동작한다. 기존 경계 검증이 거부한 명사·대명사·수사·관형사와
+  full-POS 일반 동사·형용사 candidate를 compact component resource로 평가하고, query branch와 같은
+  fine POS의 exact component가 최저 비용 경로에 있을 때만 match로 복구한다. 용언은 predicate
+  verifier가 허용된 활용·continuation을 먼저 소비한 뒤 어간 core span을 component로 검증하며,
+  지정사에는 별도 `PredicateLexical` 계약을 유지한다. `reject`, `ambiguous`, 평가 오류와 상한
+  초과는 거부한다. 부사·감탄사 등 다른 품사에는 이 복구를 적용하지 않는다.
 - `smart`의 bounded lexical context는 candidate가 포함된 Unicode token과 같은 줄의 바로 앞뒤
   Unicode token만 읽는다. 합친 원문은 최대 256 bytes, NFC 문자열은 최대 64 Unicode scalar다.
   UTF-8 검증도 이 bounded 원문에만 적용하므로 범위 밖의 손상된 byte는 문맥 판정을 억제하지

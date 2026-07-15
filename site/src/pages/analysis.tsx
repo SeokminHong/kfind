@@ -172,12 +172,12 @@ surface:  걸어, 걸었다`}</code>
         <p>
           대부분의 branch는 anchor 주변의 조사·어미와 token 경계만 검사하면
           판정할 수 있습니다. 그러나 <code>smart</code> boundary에서
-          명사·대명사· 수사·관형사의 정확한 component 경계를 확인하거나, token
-          전체의 어휘 분석과 부분 span의 용언 해석이 충돌하는 경우에는 경계
-          검사만으로 충분하지 않습니다. kfind는 이런 context requirement를 가진
-          branch에 한해서 compact component resource를 사용합니다. 분석 범위도
-          corpus 전체가 아니라 candidate를 포함하는 Unicode token 하나로
-          제한합니다.
+          명사·대명사·수사·관형사와 full-POS 일반 용언의 정확한 component 경계를
+          확인하거나, token 전체의 어휘 분석과 부분 span의 지정사 해석이
+          충돌하는 경우에는 경계 검사만으로 충분하지 않습니다. kfind는 이런
+          context requirement를 가진 branch에 한해서 compact component
+          resource를 사용합니다. 분석 범위도 corpus 전체가 아니라 candidate를
+          포함하는 Unicode token 하나로 제한합니다.
         </p>
         <p>
           국소 분석은 candidate의 lemma, POS와 span이 모두 일치하는 node가
