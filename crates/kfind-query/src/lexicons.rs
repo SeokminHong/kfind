@@ -426,6 +426,7 @@ fn predicate_analysis(record: &kfind_data::PredicateRecord, source: AnalysisSour
                     "EU_DROP" => PredicateFlags::EU_DROP,
                     "RIEUL_DROP" => PredicateFlags::RIEUL_DROP,
                     "NO_I_EO_CONTRACTION" => PredicateFlags::NO_I_EO_CONTRACTION,
+                    "NO_DECLARATIVE_CONTINUATION" => PredicateFlags::NO_DECLARATIVE_CONTINUATION,
                     _ => PredicateFlags::NONE,
                 }
         });

@@ -74,6 +74,12 @@ query	pos	text	expected	feature
 하다	verb	직접 한다면서 계속 미뤘다.	match	predicate-present-declarative-continuation
 오다	verb	곧 온다는데 조금 더 기다리자.	match	predicate-present-declarative-continuation
 하다	verb	그 일을 직접 한다지?	match	predicate-present-declarative-continuation
+나쁘다	adjective	환경이 나쁘다면 대안을 찾아야 한다.	match	predicate-present-declarative-continuation
+좋다	adjective	그 제품은 품질이 좋다는 평가를 받았다.	match	predicate-present-declarative-continuation
+어렵다	adjective	상황이 어렵다면서 도움을 요청했다.	match	predicate-present-declarative-continuation
+가다	verb	내일 가다면 미리 연락해라.	no-match	predicate-present-declarative-continuation
+나쁘다	adjective	환경이 나쁘다면도 대안을 찾아야 한다.	no-match	predicate-present-declarative-continuation
+아니다	adjective	그 답이 아니다면 다시 검토한다.	no-match	no-declarative-continuation
 크다	adjective	상자가 너무 커 보인다.	match	eu-drop
 예쁘다	adjective	꽃이 예뻐 보인다.	match	eu-drop
 예쁘다	adjective	예뻤던 장면이다.	match	eu-drop

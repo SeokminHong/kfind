@@ -520,6 +520,42 @@ fn action_present_declarative_and_copula_past_are_compiled() {
 }
 
 #[test]
+fn descriptive_final_da_uses_declarative_continuations() {
+    let descriptive = entry(
+        "나쁘다",
+        PredicatePos::Adjective,
+        LexicalAlternation::Regular,
+    );
+    let final_da = generate_predicate_branches(&descriptive)
+        .expect("valid fixture")
+        .into_iter()
+        .find(|branch| branch.anchor.as_ref() == "나쁘다")
+        .expect("final declarative branch");
+    assert_eq!(final_da.continuation, ContinuationState::Declarative);
+
+    let action = entry("가다", PredicatePos::Verb, LexicalAlternation::Regular);
+    let action_final_da = generate_predicate_branches(&action)
+        .expect("valid fixture")
+        .into_iter()
+        .find(|branch| branch.anchor.as_ref() == "가다")
+        .expect("dictionary form branch");
+    assert_eq!(action_final_da.continuation, ContinuationState::Terminal);
+
+    let mut negative_copula = entry(
+        "아니다",
+        PredicatePos::Adjective,
+        LexicalAlternation::Regular,
+    );
+    negative_copula.flags = PredicateFlags::NO_DECLARATIVE_CONTINUATION;
+    let negative_final_da = generate_predicate_branches(&negative_copula)
+        .expect("valid fixture")
+        .into_iter()
+        .find(|branch| branch.anchor.as_ref() == "아니다")
+        .expect("negative copula dictionary form branch");
+    assert_eq!(negative_final_da.continuation, ContinuationState::Terminal);
+}
+
+#[test]
 fn lexical_flag_can_forbid_i_eo_contraction() {
     let mut negative = entry(
         "아니다",

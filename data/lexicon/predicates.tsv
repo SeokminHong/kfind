@@ -36,7 +36,7 @@ lemma	pos	alternation	flags	overrides
 쏟아붓다	VV	DropS		
 쓰다	VV	Regular	EU_DROP	
 어떻다	VA	DropH		
-아니다	VCN	Regular	NO_I_EO_CONTRACTION	ending.connective-ra=아니라
+아니다	VCN	Regular	NO_I_EO_CONTRACTION|NO_DECLARATIVE_CONTINUATION	ending.connective-ra=아니라
 아름답다	VA	BToWo		
 아쉽다	VA	BToWo		
 알다	VV	Regular	RIEUL_DROP	
