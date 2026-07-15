@@ -13,7 +13,8 @@ interface SelectFieldProps<Value extends string> {
   readonly name: string;
   readonly onValueChange: (value: Value) => void;
   readonly options: ReadonlyArray<SelectOption<Value>>;
-  readonly value: Value;
+  readonly placeholder?: string;
+  readonly value: Value | null;
 }
 
 export function SelectField<Value extends string>({
@@ -22,6 +23,7 @@ export function SelectField<Value extends string>({
   name,
   onValueChange,
   options,
+  placeholder,
   value,
 }: SelectFieldProps<Value>): React.JSX.Element {
   return (
@@ -39,7 +41,7 @@ export function SelectField<Value extends string>({
       >
         <Select.Label className={styles.label}>{label}</Select.Label>
         <Select.Trigger className={styles.trigger}>
-          <Select.Value />
+          <Select.Value placeholder={placeholder} />
           <Select.Icon className={styles.icon}>▾</Select.Icon>
         </Select.Trigger>
         <Select.Portal>

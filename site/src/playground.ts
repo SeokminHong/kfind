@@ -10,7 +10,21 @@ import {
   PartOfSpeech,
 } from './kfind-wasm';
 
-enum PlaygroundState {
+export enum PlaygroundState {
+  Loading = 'loading',
+  Ready = 'ready',
+  Error = 'error',
+}
+
+export enum PlaygroundResultState {
+  Success = 'success',
+  EmptyQuery = 'empty-query',
+  Error = 'error',
+}
+
+export enum ComponentResourceState {
+  Idle = 'idle',
+  Needed = 'needed',
   Loading = 'loading',
   Ready = 'ready',
   Error = 'error',
@@ -21,6 +35,7 @@ export enum PlaygroundPresetName {
   Phrase = 'phrase',
   Component = 'component',
   Literal = 'literal',
+  LargeInput = 'large-input',
 }
 
 export interface PlaygroundInput {
@@ -33,40 +48,64 @@ export interface PlaygroundInput {
   readonly text: string;
 }
 
+export interface PlaygroundStatus {
+  readonly message: string;
+  readonly state: PlaygroundState;
+}
+
+export interface ComponentResourceStatus {
+  readonly message: string;
+  readonly state: ComponentResourceState;
+}
+
+export interface PlaygroundResult {
+  readonly elapsedMilliseconds: number | null;
+  readonly input: PlaygroundInput;
+  readonly matches: readonly Match[];
+  readonly message: string;
+  readonly state: PlaygroundResultState;
+}
+
 export interface PlaygroundController {
   readonly dispose: () => void;
-  readonly run: () => void;
-  readonly scheduleRun: () => void;
+  readonly loadComponentResource: () => void;
+  readonly run: (input: PlaygroundInput) => void;
+  readonly scheduleRun: (input: PlaygroundInput) => void;
 }
 
-interface PlaygroundElements {
-  readonly status: HTMLElement;
-  readonly summary: HTMLElement;
-  readonly executionTime: HTMLElement;
-  readonly preview: HTMLElement;
-  readonly matchList: HTMLOListElement;
-  readonly rawOutput: HTMLElement;
-  readonly resourceButton: HTMLButtonElement;
-  readonly resourceStatus: HTMLElement;
+interface PlaygroundCallbacks {
+  readonly onResourceStatusChange: (status: ComponentResourceStatus) => void;
+  readonly onResult: (result: PlaygroundResult) => void;
+  readonly onStatusChange: (status: PlaygroundStatus) => void;
 }
 
-interface Preset {
-  readonly query: string;
-  readonly text: string;
-  readonly pos: PartOfSpeech;
+interface PresetDefinition {
   readonly boundary: BoundaryPolicy;
   readonly expand: ExpandMode;
+  readonly maxGap: string;
+  readonly normalization: NormalizationMode;
+  readonly pos: PartOfSpeech;
+  readonly query: string;
+  readonly text: string | (() => string);
 }
 
-type ElementConstructor<T extends Element> = new () => T;
+const LARGE_INPUT_BYTE_LENGTH = 1024 * 1024;
+const LARGE_INPUT_HEADER =
+  '기준표식은 대용량 입력의 전체 scan 시간을 확인하기 위해 한 번만 등장합니다.\n';
+const LARGE_INPUT_FILLER =
+  '2000-01-01T00:00:00Z level=info request=00000000 status=ok latency=12ms\n';
 
-const presets: Readonly<Record<PlaygroundPresetName, Preset>> = {
+let cachedLargeInput: string | undefined;
+
+const presets: Readonly<Record<PlaygroundPresetName, PresetDefinition>> = {
   [PlaygroundPresetName.Predicate]: {
     query: '걷다',
     text: '오늘은 공원을 걸었다.\n내일도 천천히 걷고 싶다.\n산책길을 걷는 사람을 만났다.',
     pos: PartOfSpeech.Verb,
     boundary: BoundaryPolicy.Smart,
     expand: ExpandMode.Inflection,
+    normalization: NormalizationMode.Nfc,
+    maxGap: '24',
   },
   [PlaygroundPresetName.Phrase]: {
     query: 'n:사용자 v:검증하다',
@@ -74,6 +113,8 @@ const presets: Readonly<Record<PlaygroundPresetName, Preset>> = {
     pos: PartOfSpeech.Auto,
     boundary: BoundaryPolicy.Any,
     expand: ExpandMode.Inflection,
+    normalization: NormalizationMode.Nfc,
+    maxGap: '24',
   },
   [PlaygroundPresetName.Component]: {
     query: 'n:요리',
@@ -81,6 +122,8 @@ const presets: Readonly<Record<PlaygroundPresetName, Preset>> = {
     pos: PartOfSpeech.Auto,
     boundary: BoundaryPolicy.Smart,
     expand: ExpandMode.Inflection,
+    normalization: NormalizationMode.Nfc,
+    maxGap: '24',
   },
   [PlaygroundPresetName.Literal]: {
     query: '걸어',
@@ -88,68 +131,109 @@ const presets: Readonly<Record<PlaygroundPresetName, Preset>> = {
     pos: PartOfSpeech.Literal,
     boundary: BoundaryPolicy.Smart,
     expand: ExpandMode.Literal,
+    normalization: NormalizationMode.Nfc,
+    maxGap: '24',
+  },
+  [PlaygroundPresetName.LargeInput]: {
+    query: '기준표식',
+    text: createLargeInput,
+    pos: PartOfSpeech.Literal,
+    boundary: BoundaryPolicy.Any,
+    expand: ExpandMode.Literal,
+    normalization: NormalizationMode.Nfc,
+    maxGap: '24',
   },
 };
 
-export const initialPlaygroundInput: PlaygroundInput = {
-  boundary: BoundaryPolicy.Smart,
-  expand: ExpandMode.Inflection,
-  maxGap: '24',
-  normalization: NormalizationMode.Nfc,
-  pos: PartOfSpeech.Verb,
-  query: presets[PlaygroundPresetName.Predicate].query,
-  text: presets[PlaygroundPresetName.Predicate].text,
+export const playgroundPresetOptions = [
+  { label: '용언 활용 · smart', value: PlaygroundPresetName.Predicate },
+  { label: '구(句) 검색 · any', value: PlaygroundPresetName.Phrase },
+  {
+    label: '형태 component · smart',
+    value: PlaygroundPresetName.Component,
+  },
+  { label: 'Literal 검색', value: PlaygroundPresetName.Literal },
+  { label: '대용량 1 MiB · literal', value: PlaygroundPresetName.LargeInput },
+] as const;
+
+export const initialPlaygroundInput = createPresetInput(
+  PlaygroundPresetName.Predicate,
+);
+
+export const initialPlaygroundStatus: PlaygroundStatus = {
+  state: PlaygroundState.Loading,
+  message: 'WASM engine을 불러오는 중…',
+};
+
+export const initialComponentResourceStatus: ComponentResourceStatus = {
+  state: ComponentResourceState.Idle,
+  message: '필요한 경우 R2에서 45.6 MiB를 받습니다.',
 };
 
 export function applyPlaygroundPreset(
-  input: PlaygroundInput,
   presetName: PlaygroundPresetName,
 ): PlaygroundInput {
-  return { ...input, ...presets[presetName] };
+  return createPresetInput(presetName);
 }
 
 export function initializePlayground(
-  root: ParentNode,
-  readInput: () => PlaygroundInput,
-  onReady: () => void,
+  initialInput: PlaygroundInput,
+  callbacks: PlaygroundCallbacks,
 ): PlaygroundController {
-  const elements = collectElements(root);
-  const controller = new AbortController();
-  const { signal } = controller;
+  const abortController = new AbortController();
+  const { signal } = abortController;
   let engine: KfindEngine | undefined;
+  let latestInput = initialInput;
   let pendingRun: ReturnType<typeof globalThis.setTimeout> | undefined;
+  let resourceState = initialComponentResourceStatus.state;
 
-  const run = (): void => {
+  const setResourceStatus = (status: ComponentResourceStatus): void => {
+    resourceState = status.state;
+    callbacks.onResourceStatusChange(status);
+  };
+
+  const execute = (): void => {
     if (engine === undefined || signal.aborted) {
       return;
     }
 
-    executeSearch(engine, elements, readInput());
+    const result = executeSearch(engine, latestInput);
+
+    if (
+      result.state === PlaygroundResultState.Error &&
+      result.message.toLowerCase().includes('component') &&
+      resourceState !== ComponentResourceState.Loading &&
+      resourceState !== ComponentResourceState.Ready
+    ) {
+      setResourceStatus({
+        state: ComponentResourceState.Needed,
+        message: '이 query를 실행하려면 component asset이 필요합니다.',
+      });
+    } else if (resourceState === ComponentResourceState.Needed) {
+      setResourceStatus(initialComponentResourceStatus);
+    }
+
+    callbacks.onResult(result);
   };
 
-  const scheduleRun = (): void => {
+  const run = (input: PlaygroundInput): void => {
+    latestInput = input;
     globalThis.clearTimeout(pendingRun);
-    pendingRun = globalThis.setTimeout(run, 120);
+    execute();
   };
 
-  const runNow = (): void => {
+  const scheduleRun = (input: PlaygroundInput): void => {
+    latestInput = input;
     globalThis.clearTimeout(pendingRun);
-    run();
+
+    if (engine === undefined) {
+      return;
+    }
+
+    pendingRun = globalThis.setTimeout(execute, 120);
   };
 
-  elements.resourceButton.addEventListener(
-    'click',
-    () => {
-      if (engine === undefined) {
-        return;
-      }
-
-      void enableComponentResource(engine, elements, run, signal);
-    },
-    { signal },
-  );
-
-  setState(elements, PlaygroundState.Loading, 'WASM engine을 불러오는 중…');
+  callbacks.onStatusChange(initialPlaygroundStatus);
 
   void loadKfind()
     .then((loaded) => {
@@ -159,170 +243,44 @@ export function initializePlayground(
       }
 
       engine = loaded.engine;
-      elements.resourceButton.disabled = false;
-      onReady();
-      setState(
-        elements,
-        PlaygroundState.Ready,
-        `WASM ready · embedded lexicon · ${loaded.loadMilliseconds.toFixed(0)} ms`,
-      );
-      run();
+      callbacks.onStatusChange({
+        state: PlaygroundState.Ready,
+        message: `WASM ready · embedded lexicon · ${loaded.loadMilliseconds.toFixed(0)} ms`,
+      });
+      execute();
     })
     .catch((error: unknown) => {
       if (signal.aborted) {
         return;
       }
 
-      setState(elements, PlaygroundState.Error, readableError(error));
-      renderError(elements, error);
+      const message = readableError(error);
+      callbacks.onStatusChange({ state: PlaygroundState.Error, message });
+      callbacks.onResult(createErrorResult(latestInput, message));
     });
 
   return {
     dispose() {
-      controller.abort();
+      abortController.abort();
       globalThis.clearTimeout(pendingRun);
       engine?.free();
     },
-    run: runNow,
+    loadComponentResource() {
+      if (engine !== undefined) {
+        void enableComponentResource(
+          engine,
+          setResourceStatus,
+          execute,
+          signal,
+        );
+      }
+    },
+    run,
     scheduleRun,
   };
 }
 
-function executeSearch(
-  engine: KfindEngine,
-  elements: PlaygroundElements,
-  input: PlaygroundInput,
-): void {
-  const query = input.query.trim();
-
-  if (query.length === 0) {
-    clearResults(elements, '쿼리를 입력해 주세요.');
-    return;
-  }
-
-  try {
-    const options = readOptions(input);
-    const startedAt = performance.now();
-    const matches = findMatches(engine, query, input.text, options);
-    const elapsed = performance.now() - startedAt;
-
-    renderResults(elements, input.text, matches, elapsed);
-  } catch (error) {
-    renderError(elements, error);
-
-    if (readableError(error).toLowerCase().includes('component')) {
-      elements.resourceStatus.dataset.state = 'needed';
-      elements.resourceStatus.textContent =
-        '이 query를 실행하려면 component asset이 필요합니다.';
-    }
-  }
-}
-
-async function enableComponentResource(
-  engine: KfindEngine,
-  elements: PlaygroundElements,
-  rerun: () => void,
-  signal: AbortSignal,
-): Promise<void> {
-  if (engine.componentResourceLoaded) {
-    rerun();
-    return;
-  }
-
-  elements.resourceButton.disabled = true;
-  elements.resourceStatus.dataset.state = 'loading';
-  elements.resourceStatus.textContent = 'R2에서 component asset을 불러오는 중…';
-
-  try {
-    const byteLength = await loadComponentResource(engine, signal);
-    if (signal.aborted) {
-      return;
-    }
-    elements.resourceStatus.dataset.state = 'ready';
-    elements.resourceStatus.textContent = `${formatMebibytes(byteLength)} MiB 불러오기·검증 완료`;
-    elements.resourceButton.textContent = 'Component asset 준비됨';
-    rerun();
-  } catch (error) {
-    if (signal.aborted) {
-      return;
-    }
-
-    elements.resourceStatus.dataset.state = 'error';
-    elements.resourceStatus.textContent = readableError(error);
-    elements.resourceButton.disabled = false;
-  }
-}
-
-function renderResults(
-  elements: PlaygroundElements,
-  text: string,
-  matches: readonly Match[],
-  elapsed: number,
-): void {
-  elements.executionTime.textContent = `${elapsed.toFixed(2)} ms`;
-  elements.summary.textContent =
-    matches.length === 0
-      ? '일치하는 span이 없습니다.'
-      : `일치하는 span ${matches.length}개를 찾았습니다.`;
-  elements.rawOutput.textContent = JSON.stringify(matches, null, 2);
-  renderPreview(elements.preview, text, matches);
-  renderMatchList(elements.matchList, text, matches);
-}
-
-function renderPreview(
-  container: HTMLElement,
-  text: string,
-  matches: readonly Match[],
-): void {
-  container.replaceChildren();
-  const spans = mergeSpans(matches, text.length);
-  let cursor = 0;
-
-  for (const span of spans) {
-    container.append(document.createTextNode(text.slice(cursor, span.start)));
-    const mark = document.createElement('mark');
-    mark.textContent = text.slice(span.start, span.end);
-    container.append(mark);
-    cursor = span.end;
-  }
-
-  container.append(document.createTextNode(text.slice(cursor)));
-}
-
-function renderMatchList(
-  container: HTMLOListElement,
-  text: string,
-  matches: readonly Match[],
-): void {
-  container.replaceChildren();
-
-  if (matches.length === 0) {
-    const empty = document.createElement('li');
-    empty.className = 'match-empty';
-    empty.textContent = '옵션을 바꾸거나 다른 query로 검색해 보세요.';
-    container.append(empty);
-    return;
-  }
-
-  for (const [index, match] of matches.entries()) {
-    const item = document.createElement('li');
-    const head = document.createElement('div');
-    const number = document.createElement('span');
-    const surface = document.createElement('strong');
-    const span = document.createElement('code');
-    const provenance = document.createElement('p');
-
-    number.textContent = String(index + 1).padStart(2, '0');
-    surface.textContent = text.slice(match.start, match.end);
-    span.textContent = `[${match.start}, ${match.end})`;
-    provenance.textContent = formatProvenance(match);
-    head.append(number, surface, span);
-    item.append(head, provenance);
-    container.append(item);
-  }
-}
-
-function mergeSpans(
+export function mergeMatchSpans(
   matches: readonly Match[],
   textLength: number,
 ): ReadonlyArray<{ readonly start: number; readonly end: number }> {
@@ -351,7 +309,7 @@ function mergeSpans(
   return merged;
 }
 
-function formatProvenance(match: Match): string {
+export function formatProvenance(match: Match): string {
   const paths = new Set<string>();
 
   for (const atom of match.atoms) {
@@ -363,6 +321,132 @@ function formatProvenance(match: Match): string {
   }
 
   return paths.size === 0 ? 'direct match 검증 완료' : [...paths].join(' · ');
+}
+
+async function enableComponentResource(
+  engine: KfindEngine,
+  setResourceStatus: (status: ComponentResourceStatus) => void,
+  rerun: () => void,
+  signal: AbortSignal,
+): Promise<void> {
+  if (engine.componentResourceLoaded) {
+    rerun();
+    return;
+  }
+
+  setResourceStatus({
+    state: ComponentResourceState.Loading,
+    message: 'R2에서 component asset을 불러오는 중…',
+  });
+
+  try {
+    const byteLength = await loadComponentResource(engine, signal);
+    if (signal.aborted) {
+      return;
+    }
+
+    setResourceStatus({
+      state: ComponentResourceState.Ready,
+      message: `${formatMebibytes(byteLength)} MiB 불러오기·검증 완료`,
+    });
+    rerun();
+  } catch (error) {
+    if (signal.aborted) {
+      return;
+    }
+
+    setResourceStatus({
+      state: ComponentResourceState.Error,
+      message: readableError(error),
+    });
+  }
+}
+
+function executeSearch(
+  engine: KfindEngine,
+  input: PlaygroundInput,
+): PlaygroundResult {
+  const query = input.query.trim();
+
+  if (query.length === 0) {
+    return {
+      state: PlaygroundResultState.EmptyQuery,
+      input,
+      matches: [],
+      elapsedMilliseconds: null,
+      message: '쿼리를 입력해 주세요.',
+    };
+  }
+
+  try {
+    const options = readOptions(input);
+    const startedAt = performance.now();
+    const matches = findMatches(engine, query, input.text, options);
+    const elapsedMilliseconds = performance.now() - startedAt;
+
+    return {
+      state: PlaygroundResultState.Success,
+      input,
+      matches,
+      elapsedMilliseconds,
+      message:
+        matches.length === 0
+          ? '일치하는 span이 없습니다.'
+          : `일치하는 span ${matches.length}개를 찾았습니다.`,
+    };
+  } catch (error) {
+    const message = readableError(error);
+
+    return createErrorResult(input, message);
+  }
+}
+
+function createErrorResult(
+  input: PlaygroundInput,
+  message: string,
+): PlaygroundResult {
+  return {
+    state: PlaygroundResultState.Error,
+    input,
+    matches: [],
+    elapsedMilliseconds: null,
+    message,
+  };
+}
+
+function createPresetInput(presetName: PlaygroundPresetName): PlaygroundInput {
+  const preset = presets[presetName];
+
+  return {
+    boundary: preset.boundary,
+    expand: preset.expand,
+    maxGap: preset.maxGap,
+    normalization: preset.normalization,
+    pos: preset.pos,
+    query: preset.query,
+    text: typeof preset.text === 'function' ? preset.text() : preset.text,
+  };
+}
+
+function createLargeInput(): string {
+  if (cachedLargeInput !== undefined) {
+    return cachedLargeInput;
+  }
+
+  const encoder = new TextEncoder();
+  const headerByteLength = encoder.encode(LARGE_INPUT_HEADER).byteLength;
+  const fillerByteLength = encoder.encode(LARGE_INPUT_FILLER).byteLength;
+  const fillerCount = Math.floor(
+    (LARGE_INPUT_BYTE_LENGTH - headerByteLength) / fillerByteLength,
+  );
+  const paddingLength =
+    LARGE_INPUT_BYTE_LENGTH - headerByteLength - fillerByteLength * fillerCount;
+
+  cachedLargeInput =
+    LARGE_INPUT_HEADER +
+    LARGE_INPUT_FILLER.repeat(fillerCount) +
+    ' '.repeat(paddingLength);
+  return cachedLargeInput;
 }
 
 function readOptions(input: PlaygroundInput): CompileOptions {
@@ -377,75 +461,10 @@ function readOptions(input: PlaygroundInput): CompileOptions {
   };
 }
 
-function setState(
-  elements: PlaygroundElements,
-  state: PlaygroundState,
-  message: string,
-): void {
-  elements.status.dataset.state = state;
-  const messageElement = elements.status.querySelector('span:last-child');
-
-  if (messageElement !== null) {
-    messageElement.textContent = message;
-  }
-}
-
-function clearResults(elements: PlaygroundElements, message: string): void {
-  elements.summary.textContent = message;
-  elements.executionTime.textContent = '— ms';
-  elements.preview.replaceChildren();
-  elements.matchList.replaceChildren();
-  elements.rawOutput.textContent = '[]';
-}
-
-function renderError(elements: PlaygroundElements, error: unknown): void {
-  const message = readableError(error);
-  elements.summary.textContent = 'Query compile 또는 검색 실행에 실패했습니다.';
-  elements.executionTime.textContent = 'error';
-  elements.preview.replaceChildren();
-  const errorMessage = document.createElement('p');
-  errorMessage.className = 'result-error';
-  errorMessage.textContent = message;
-  elements.preview.append(errorMessage);
-  elements.matchList.replaceChildren();
-  elements.rawOutput.textContent = JSON.stringify({ error: message }, null, 2);
-}
-
 function readableError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
 function formatMebibytes(byteLength: number): string {
   return (byteLength / (1024 * 1024)).toFixed(1);
-}
-
-function collectElements(root: ParentNode): PlaygroundElements {
-  return {
-    status: requiredElement(root, '#wasm-status', HTMLElement),
-    summary: requiredElement(root, '#result-summary', HTMLElement),
-    executionTime: requiredElement(root, '#execution-time', HTMLElement),
-    preview: requiredElement(root, '#result-preview', HTMLElement),
-    matchList: requiredElement(root, '#match-list', HTMLOListElement),
-    rawOutput: requiredElement(root, '#raw-output', HTMLElement),
-    resourceButton: requiredElement(
-      root,
-      '#resource-button',
-      HTMLButtonElement,
-    ),
-    resourceStatus: requiredElement(root, '#resource-status', HTMLElement),
-  };
-}
-
-function requiredElement<T extends Element>(
-  root: ParentNode,
-  selector: string,
-  constructor: ElementConstructor<T>,
-): T {
-  const element = root.querySelector(selector);
-
-  if (!(element instanceof constructor)) {
-    throw new TypeError(`required playground element is missing: ${selector}`);
-  }
-
-  return element;
 }
