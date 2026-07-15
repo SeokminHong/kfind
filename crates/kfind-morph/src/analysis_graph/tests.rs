@@ -1,4 +1,5 @@
 use std::io::Cursor;
+use std::ops::Range;
 
 use kfind_data::{
     DataFinePos, MecabSourceMorphologyEntry, decode_morphology_graph_resource,
@@ -57,7 +58,10 @@ fn source_component_is_preserved_for_an_explicit_policy_decision() {
         DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
     );
 
-    assert_eq!(resolution.outcome, ConstraintOutcome::Supported);
+    assert_eq!(
+        resolution.outcome,
+        ConstraintOutcome::Ambiguous(ConstraintAmbiguity::CompoundExposure)
+    );
     assert_eq!(
         resolution.supported.analyses[0].span_relation,
         ConstraintSpanRelation::SourceComponent
@@ -66,6 +70,9 @@ fn source_component_is_preserved_for_an_explicit_policy_decision() {
     assert!(!ProductPolicy::ExplicitComponent.accepts(&resolution, std::slice::from_ref(&hidden)));
     assert!(ProductPolicy::ExplicitComponent.accepts(&resolution, std::slice::from_ref(&exposed)));
     assert!(ProductPolicy::PossibleAnalysis.accepts(&resolution, std::slice::from_ref(&hidden)));
+    assert!(
+        !ProductPolicy::UnambiguousAnalysis.accepts(&resolution, std::slice::from_ref(&hidden))
+    );
 }
 
 #[test]
@@ -89,7 +96,10 @@ fn runtime_component_requires_runtime_capability_under_explicit_policy() {
         DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
     );
 
-    assert_eq!(resolution.outcome, ConstraintOutcome::Supported);
+    assert_eq!(
+        resolution.outcome,
+        ConstraintOutcome::Ambiguous(ConstraintAmbiguity::CompoundExposure)
+    );
     assert_eq!(
         resolution.supported.analyses[0].span_relation,
         ConstraintSpanRelation::RuntimeComponent
@@ -98,6 +108,122 @@ fn runtime_component_requires_runtime_capability_under_explicit_policy() {
         !ProductPolicy::ExplicitComponent.accepts(&resolution, std::slice::from_ref(&source_only))
     );
     assert!(ProductPolicy::ExplicitComponent.accepts(&resolution, std::slice::from_ref(&runtime)));
+}
+
+#[test]
+fn productive_derivation_can_supply_runtime_lexical_identity() {
+    let resolver = resolver(&[
+        atomic("실행", "NNG", 0),
+        atomic("하", "XSV", 0),
+        atomic("지", "EC", 0),
+        entry(
+            "가하",
+            "VV",
+            "Compound",
+            "NNG",
+            "XSV",
+            "가/NNG/*+하/XSV/*",
+            0,
+        ),
+        entry("오지", "VV", "Compound", "XSV", "EC", "오/XSV/*+지/EC/*", 0),
+    ]);
+    let pattern = predicate_pattern("실행하", ContinuationState::AOrEo);
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current("실행하지"),
+        CandidateSpans {
+            core: 0.."실행하".len(),
+            anchor: 0.."실행하".len(),
+            consumed: 0.."실행하지".len(),
+            token: 0.."실행하지".len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(resolution.outcome, ConstraintOutcome::Supported);
+    assert!(resolution.supported.analyses.iter().any(|analysis| {
+        analysis.evidence == ConstraintEvidenceKind::RuntimeComposed
+            && analysis.lexical_source_node_indices.len() == 2
+    }));
+}
+
+#[test]
+fn productive_lexical_identity_can_span_three_connected_nodes() {
+    let resolver = resolver(&[
+        atomic("초", "XPN", 0),
+        atomic("실행", "NNG", 0),
+        atomic("하", "XSV", 0),
+        entry(
+            "가나다",
+            "VV",
+            "Compound",
+            "XPN",
+            "XSV",
+            "가/XPN/*+나/NNG/*+다/XSV/*",
+            0,
+        ),
+    ]);
+    let pattern = predicate_pattern("초실행하", ContinuationState::AOrEo);
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current("초실행하"),
+        CandidateSpans {
+            core: 0.."초실행하".len(),
+            anchor: 0.."초실행하".len(),
+            consumed: 0.."초실행하".len(),
+            token: 0.."초실행하".len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(resolution.outcome, ConstraintOutcome::Supported);
+    assert!(resolution.supported.analyses.iter().any(|analysis| {
+        analysis.evidence == ConstraintEvidenceKind::RuntimeComposed
+            && analysis.lexical_source_node_indices.len() == 3
+    }));
+}
+
+#[test]
+fn fused_derivational_ending_uses_the_enclosing_token_span() {
+    let resolver = resolver(&[
+        atomic("접근", "NNG", 0),
+        entry(
+            "할",
+            "XSV+ETM",
+            "Inflect",
+            "XSV",
+            "ETM",
+            "하/XSV/*+ᆯ/ETM/*",
+            0,
+        ),
+        entry(
+            "가하",
+            "VV",
+            "Compound",
+            "NNG",
+            "XSV",
+            "가/NNG/*+하/XSV/*",
+            0,
+        ),
+    ]);
+    let pattern = predicate_pattern("접근하", ContinuationState::Terminal);
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current("접근할"),
+        CandidateSpans {
+            core: 0.."접근할".len(),
+            anchor: 0.."접근할".len(),
+            consumed: 0.."접근할".len(),
+            token: 0.."접근할".len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(resolution.outcome, ConstraintOutcome::Supported);
+    assert!(resolution.supported.analyses.iter().any(|analysis| {
+        analysis.evidence == ConstraintEvidenceKind::OpaqueExpression
+            && analysis.span_relation == ConstraintSpanRelation::RuntimeComponent
+    }));
 }
 
 #[test]
@@ -116,15 +242,18 @@ fn complete_paths_with_the_same_evidence_keep_source_identity() {
         DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
     );
 
-    assert_eq!(resolution.outcome, ConstraintOutcome::Supported);
-    assert_eq!(resolution.proof.paths.len(), 3);
+    assert_eq!(
+        resolution.outcome,
+        ConstraintOutcome::Ambiguous(ConstraintAmbiguity::LexicalCompetition)
+    );
+    assert_eq!(resolution.proof.paths.len(), 2);
     assert_eq!(resolution.supported.analyses.len(), 2);
     assert_eq!(
         resolution
             .supported
             .analyses
             .iter()
-            .map(|analysis| resolution.proof.paths[analysis.path_index].nodes[0].word_cost)
+            .map(|analysis| resolution.proof.nodes[analysis.source_node_index].word_cost)
             .collect::<Vec<_>>(),
         [-30_000, 30_000]
     );
@@ -279,6 +408,52 @@ fn nominal_continuation_rejects_a_non_particle_suffix() {
 }
 
 #[test]
+fn nominal_continuation_validates_particle_allomorph_and_case_order() {
+    let resolver = resolver(&[
+        atomic("기", "NNG", 0),
+        atomic("이", "JKS", 0),
+        atomic("가", "JKS", 0),
+        atomic("를", "JKO", 0),
+        entry(
+            "산이",
+            "NNG+JKS",
+            "Preanalysis",
+            "NNG",
+            "JKS",
+            "산/NNG/*+이/JKS/*",
+            0,
+        ),
+        entry(
+            "이가",
+            "JKS+JKO",
+            "Preanalysis",
+            "JKS",
+            "JKO",
+            "이/JKS/*+가/JKO/*",
+            0,
+        ),
+    ]);
+    let pattern = nominal_pattern("기", DataFinePos::Nng);
+    let resolve = |text: &str| {
+        resolver.resolve_candidate(
+            BoundedTokenContext::current(text),
+            CandidateSpans {
+                core: 0.."기".len(),
+                anchor: 0.."기".len(),
+                consumed: 0..text.len(),
+                token: 0..text.len(),
+            },
+            std::slice::from_ref(&pattern),
+            DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+        )
+    };
+
+    assert_eq!(resolve("기가").outcome, ConstraintOutcome::Supported);
+    assert_eq!(resolve("기이").outcome, ConstraintOutcome::Contradicted);
+    assert_eq!(resolve("기가를").outcome, ConstraintOutcome::Contradicted);
+}
+
+#[test]
 fn predicate_continuation_uses_the_query_state_and_pos_dfa() {
     let text = "가었다";
     let resolver = resolver(&[
@@ -374,11 +549,127 @@ fn repeated_context_selects_the_adverb_analysis_without_a_surface_registry() {
 }
 
 #[test]
+fn particle_context_selects_the_complete_nominal_host() {
+    let resolver = resolver(&[
+        atomic("매일", "NNG", 0),
+        atomic("매일", "MAG", 0),
+        atomic("매", "NNG", 0),
+        atomic("일", "NNG", 0),
+        atomic("을", "JKO", 0),
+        entry(
+            "산을",
+            "NNG+JKO",
+            "Preanalysis",
+            "NNG",
+            "JKO",
+            "산/NNG/*+을/JKO/*",
+            0,
+        ),
+        noun_compound_transition(),
+    ]);
+    let context = BoundedTokenContext::current("매일을");
+    let host = nominal_pattern("매일", DataFinePos::Nng);
+    let component = nominal_pattern("매", DataFinePos::Nng);
+    let adverb = exact_pattern(
+        "매일",
+        DataFinePos::Mag,
+        ComponentCapability::SourceAndRuntime,
+    );
+    let resolve = |pattern: &QueryMorphPattern, core: Range<usize>, consumed: Range<usize>| {
+        resolver.resolve_candidate(
+            context,
+            CandidateSpans {
+                anchor: core.clone(),
+                core,
+                consumed,
+                token: 0.."매일을".len(),
+            },
+            std::slice::from_ref(pattern),
+            DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+        )
+    };
+
+    let host_resolution = resolve(&host, 0.."매일".len(), 0.."매일을".len());
+    assert_eq!(host_resolution.outcome, ConstraintOutcome::Supported);
+    assert!(matches!(
+        host_resolution.supported.analyses[0].context,
+        Some(ConstraintContextProof::NominalParticleHost { .. })
+    ));
+    assert_eq!(
+        resolve(&component, 0.."매".len(), 0.."매".len()).outcome,
+        ConstraintOutcome::Contradicted
+    );
+    assert_eq!(
+        resolve(&adverb, 0.."매일".len(), 0.."매일".len()).outcome,
+        ConstraintOutcome::Contradicted
+    );
+}
+
+#[test]
+fn particle_shaped_suffix_does_not_hide_a_complete_predicate_analysis() {
+    let resolver = resolver(&[
+        atomic("생성", "NNG", 0),
+        atomic("하", "XSV", 0),
+        atomic("고", "EC", 0),
+        atomic("하고", "JKB", 0),
+        entry(
+            "산하고",
+            "NNG+JKB",
+            "Preanalysis",
+            "NNG",
+            "JKB",
+            "산/NNG/*+하고/JKB/*",
+            0,
+        ),
+        entry(
+            "가하",
+            "NNG+XSV",
+            "Preanalysis",
+            "NNG",
+            "XSV",
+            "가/NNG/*+하/XSV/*",
+            0,
+        ),
+        entry(
+            "하고",
+            "XSV+EC",
+            "Preanalysis",
+            "XSV",
+            "EC",
+            "하/XSV/*+고/EC/*",
+            0,
+        ),
+    ]);
+    let pattern = predicate_pattern("생성하", ContinuationState::AOrEo);
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current("생성하고"),
+        CandidateSpans {
+            core: 0.."생성하".len(),
+            anchor: 0.."생성하".len(),
+            consumed: 0.."생성하고".len(),
+            token: 0.."생성하고".len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(resolution.outcome, ConstraintOutcome::Supported);
+}
+
+#[test]
 fn copular_context_selects_the_unique_nominal_prefix() {
     let resolver = resolver(&[
         atomic("아니라", "VCN+EC", 0),
         atomic("매", "NNG", 0),
-        atomic("일", "VCP+ETM", 0),
+        entry(
+            "일",
+            "VCP+ETM",
+            "Inflect",
+            "VCP",
+            "ETM",
+            "이/VCP/*+ᆯ/ETM/*",
+            0,
+        ),
         atomic("매일", "NNG", 0),
         atomic("것", "NNB", 0),
         entry(
@@ -437,7 +728,7 @@ fn copular_context_selects_the_unique_nominal_prefix() {
 }
 
 #[test]
-fn path_limit_is_observable_instead_of_discarding_equivalent_paths() {
+fn path_limit_counts_distinct_support_proofs_not_irrelevant_prefix_combinations() {
     let resolver = resolver(&[
         atomic("산", "NNG", -1),
         atomic("산", "NNG", 1),
@@ -465,9 +756,27 @@ fn path_limit_is_observable_instead_of_discarding_equivalent_paths() {
 
     assert_eq!(
         resolution.outcome,
+        ConstraintOutcome::Ambiguous(ConstraintAmbiguity::CompoundExposure)
+    );
+    assert_eq!(resolution.supported.analyses.len(), 2);
+
+    let limited = resolver.resolve_candidate_with_limits(
+        BoundedTokenContext::current("산속"),
+        CandidateSpans {
+            core: "산".len().."산속".len(),
+            anchor: "산".len().."산속".len(),
+            consumed: "산".len().."산속".len(),
+            token: 0.."산속".len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+        1,
+    );
+    assert_eq!(
+        limited.outcome,
         ConstraintOutcome::Unavailable(ConstraintUnavailable::PathLimit {
-            actual: 4,
-            limit: 2,
+            actual: 2,
+            limit: 1,
         })
     );
 }

@@ -7,7 +7,7 @@ This development-only tool compares two immutable prefix indexes over the same m
 
 The payload preserves every supported MeCab surface analysis as POS, left context ID, right context ID, and word cost. It remains separate from the normalized query-side full POS lexicon.
 
-The same run compares the full schema 3 lattice resource, the decision-equivalent compact schema 1 component projection, and the policy-neutral schema 2 analysis graph. The compact artifact preserves the fields read by the current component cost decision. The graph also preserves source analysis type, source positions, normalized expression relations and components. The build fails unless the full and graph resources have identical source analyses, relation components, connection matrix and unknown definitions, and unless all three artifacts return identical analysis counts and scoring checksums for the shared exact and common-prefix workload.
+The same run compares the full schema 3 lattice resource, the decision-equivalent compact schema 1 component projection, and the policy-neutral schema 3 analysis graph. The compact artifact preserves the fields read by the current component cost decision. The graph also preserves source analysis type, source positions, normalized expression relations, components, and source-derived categorical POS transitions. The build fails unless the full and graph resources have identical source analyses, relation components, connection matrix and unknown definitions, and unless all three artifacts return identical analysis counts and scoring checksums for the shared exact and common-prefix workload.
 
 Run the pinned full-scale benchmark from the repository root:
 

@@ -125,13 +125,15 @@ impl Node {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(super) enum TokenGraphError {
     NodeLimit { actual: usize },
-    PathLimit { actual: usize },
 }
 
 #[derive(Debug)]
 pub(super) struct TokenGraph {
     nodes: Vec<Node>,
-    complete: Vec<Vec<usize>>,
+    successors: Vec<Vec<usize>>,
+    predecessors: Vec<Vec<usize>>,
+    reachable_from_start: Vec<bool>,
+    reaches_end: Vec<bool>,
 }
 
 impl TokenGraph {
@@ -139,9 +141,8 @@ impl TokenGraph {
         resource: &MorphologyGraphResource,
         text: &str,
         node_limit: usize,
-        path_limit: usize,
     ) -> Result<Self, TokenGraphError> {
-        Self::build(resource, text, None, node_limit, path_limit)
+        Self::build(resource, text, None, node_limit)
     }
 
     pub fn with_unknown(
@@ -149,9 +150,8 @@ impl TokenGraph {
         text: &str,
         unknown: &UnknownDictionary,
         node_limit: usize,
-        path_limit: usize,
     ) -> Result<Self, TokenGraphError> {
-        Self::build(resource, text, Some(unknown), node_limit, path_limit)
+        Self::build(resource, text, Some(unknown), node_limit)
     }
 
     fn build(
@@ -159,7 +159,6 @@ impl TokenGraph {
         text: &str,
         unknown: Option<&UnknownDictionary>,
         node_limit: usize,
-        path_limit: usize,
     ) -> Result<Self, TokenGraphError> {
         let mut nodes = Vec::new();
         for (start, _) in text.char_indices() {
@@ -209,13 +208,22 @@ impl TokenGraph {
                 .then_with(|| left.expression_kind.cmp(&right.expression_kind))
                 .then_with(|| left.components.cmp(&right.components))
         });
-        let complete = complete_paths(resource, text.len(), &nodes, path_limit)
-            .map_err(|actual| TokenGraphError::PathLimit { actual })?;
-        Ok(Self { nodes, complete })
+        let (successors, predecessors) = graph_edges(resource, text.len(), &nodes);
+        let reachable_from_start = reachable_from_start(&nodes, &predecessors);
+        let reaches_end = reaches_end(text.len(), &nodes, &successors);
+        Ok(Self {
+            nodes,
+            successors,
+            predecessors,
+            reachable_from_start,
+            reaches_end,
+        })
     }
 
     pub fn has_complete_paths(&self) -> bool {
-        !self.complete.is_empty()
+        self.nodes.iter().enumerate().any(|(index, node)| {
+            node.span.start == 0 && self.reachable_from_start[index] && self.reaches_end[index]
+        })
     }
 
     pub fn node_count(&self) -> usize {
@@ -230,8 +238,8 @@ impl TokenGraph {
     }
 
     pub fn proof_paths(&self) -> Vec<ConstraintPathProof> {
-        self.complete
-            .iter()
+        self.witness_paths()
+            .into_iter()
             .map(|indices| {
                 let evidence = if indices
                     .iter()
@@ -243,21 +251,80 @@ impl TokenGraph {
                 };
                 ConstraintPathProof {
                     evidence,
-                    nodes: indices
-                        .iter()
-                        .map(|&index| self.nodes[index].proof())
-                        .collect(),
+                    node_indices: indices,
                 }
             })
             .collect()
+    }
+
+    pub fn proof_nodes(&self) -> Vec<ConstraintNodeProof> {
+        self.nodes.iter().map(Node::proof).collect()
+    }
+
+    pub fn witness_paths(&self) -> Vec<Vec<usize>> {
+        let mut witnesses = Vec::new();
+        for index in 0..self.nodes.len() {
+            if !self.is_on_complete_path(index) {
+                continue;
+            }
+            let Some(indices) = self.witness_path_through(&[index]) else {
+                continue;
+            };
+            if !witnesses.contains(&indices) {
+                witnesses.push(indices);
+            }
+            for &successor in &self.successors[index] {
+                let Some(indices) = self.witness_path_through(&[index, successor]) else {
+                    continue;
+                };
+                if !witnesses.contains(&indices) {
+                    witnesses.push(indices);
+                }
+            }
+        }
+        witnesses
     }
 
     pub fn nodes(&self) -> &[Node] {
         &self.nodes
     }
 
-    pub fn complete_paths(&self) -> &[Vec<usize>] {
-        &self.complete
+    pub fn successors(&self, index: usize) -> &[usize] {
+        &self.successors[index]
+    }
+
+    pub fn is_on_complete_path(&self, index: usize) -> bool {
+        self.reachable_from_start[index] && self.reaches_end[index]
+    }
+
+    pub fn witness_path_through(&self, required: &[usize]) -> Option<Vec<usize>> {
+        let (&first, &last) = required.first().zip(required.last())?;
+        if !required
+            .windows(2)
+            .all(|pair| self.successors[pair[0]].contains(&pair[1]))
+            || !self.is_on_complete_path(first)
+            || !self.is_on_complete_path(last)
+        {
+            return None;
+        }
+        let mut prefix = vec![first];
+        let mut cursor = first;
+        while self.nodes[cursor].span.start != 0 {
+            cursor = *self.predecessors[cursor]
+                .iter()
+                .find(|&&previous| self.reachable_from_start[previous])?;
+            prefix.push(cursor);
+        }
+        prefix.reverse();
+        prefix.extend_from_slice(&required[1..]);
+        cursor = last;
+        while !self.successors[cursor].is_empty() {
+            cursor = *self.successors[cursor]
+                .iter()
+                .find(|&&next| self.reaches_end[next])?;
+            prefix.push(cursor);
+        }
+        Some(prefix)
     }
 }
 
@@ -265,12 +332,11 @@ fn span_key(span: Option<&Range<usize>>) -> Option<(usize, usize)> {
     span.map(|span| (span.start, span.end))
 }
 
-fn complete_paths(
+fn graph_edges(
     resource: &MorphologyGraphResource,
     text_len: usize,
     nodes: &[Node],
-    path_limit: usize,
-) -> Result<Vec<Vec<usize>>, usize> {
+) -> (Vec<Vec<usize>>, Vec<Vec<usize>>) {
     let mut starting_at = vec![Vec::<usize>::new(); text_len + 1];
     for (index, node) in nodes.iter().enumerate() {
         starting_at[node.span.start].push(index);
@@ -285,54 +351,33 @@ fn complete_paths(
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
-    let mut path_counts = vec![0_usize; nodes.len()];
-    for index in (0..nodes.len()).rev() {
-        path_counts[index] = if nodes[index].span.end == text_len {
-            1
-        } else {
-            successors[index].iter().fold(0_usize, |count, &next| {
-                count.saturating_add(path_counts[next])
-            })
-        };
-    }
-    let total = starting_at[0].iter().fold(0_usize, |count, &start| {
-        count.saturating_add(path_counts[start])
-    });
-    if total > path_limit {
-        return Err(total);
-    }
-    let mut complete = Vec::with_capacity(total);
-    let mut path = Vec::new();
-    for &start in &starting_at[0] {
-        collect_complete_paths(
-            start,
-            text_len,
-            nodes,
-            &successors,
-            &mut path,
-            &mut complete,
-        );
-    }
-    Ok(complete)
-}
-
-fn collect_complete_paths(
-    index: usize,
-    text_len: usize,
-    nodes: &[Node],
-    successors: &[Vec<usize>],
-    path: &mut Vec<usize>,
-    complete: &mut Vec<Vec<usize>>,
-) {
-    path.push(index);
-    if nodes[index].span.end == text_len {
-        complete.push(path.clone());
-    } else {
-        for &next in &successors[index] {
-            collect_complete_paths(next, text_len, nodes, successors, path, complete);
+    let mut predecessors = vec![Vec::new(); nodes.len()];
+    for (index, next) in successors.iter().enumerate() {
+        for &successor in next {
+            predecessors[successor].push(index);
         }
     }
-    path.pop();
+    (successors, predecessors)
+}
+
+fn reachable_from_start(nodes: &[Node], predecessors: &[Vec<usize>]) -> Vec<bool> {
+    let mut reachable = vec![false; nodes.len()];
+    for index in 0..nodes.len() {
+        reachable[index] = nodes[index].span.start == 0
+            || predecessors[index]
+                .iter()
+                .any(|&previous| reachable[previous]);
+    }
+    reachable
+}
+
+fn reaches_end(text_len: usize, nodes: &[Node], successors: &[Vec<usize>]) -> Vec<bool> {
+    let mut reaches = vec![false; nodes.len()];
+    for index in (0..nodes.len()).rev() {
+        reaches[index] = nodes[index].span.end == text_len
+            || successors[index].iter().any(|&next| reaches[next]);
+    }
+    reaches
 }
 
 fn effective_start_pos(analysis: &MorphologyGraphAnalysis<'_>) -> String {
