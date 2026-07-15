@@ -56,6 +56,8 @@ multi-node lexical support는 평탄화된 query lexical form을 source POS sequ
 
 query lexical trace는 현재 token graph에 query core를 채우는 둘 이상의 source node 경로가 있을 때만 lazy 준비하고 같은 `PreparedQueryAnalysis`의 모든 candidate가 공유한다. single-node source proof만 가능한 candidate는 query graph를 만들지 않으며 compact decision과 diagnostic resolution은 lazy 준비 여부와 무관하게 같은 outcome과 policy projection을 반환해야 한다.
 
+query trace 준비는 lexical form의 시작점에서 source common-prefix와 categorical hard edge를 교차하는 query-directed traversal로 실행한다. 시작점에서 도달할 수 없거나 lexical automaton이 거부한 node와 complete path를 materialize하지 않으며 full token graph 방식과 같은 canonical trace 집합, node 상한과 trace 상한을 반환해야 한다.
+
 nominal compound lexical support는 query core가 token 시작에서 시작하고 query lexical form이 연속된 둘 이상의 source nominal node surface 전체와 정확히 같을 때만 host identity proof가 된다. query core 앞의 component나 lexical form 뒤의 비조사 nominal node를 포함하는 strict substring은 이 proof로 승격하지 않으며 host 뒤의 suffix는 별도 nominal continuation DFA를 통과해야 한다.
 
 predicate candidate가 token의 prefix만 반환할 때 반환 경로가 `ETM`으로 종결되고 같은 complete source path의 나머지가 하나 이상의 nominal node와 선택적 `XSN`·particle chain으로 token 끝까지 이어지면 attached nominal frame proof가 된다. frame의 nominal surface는 registry로 제한하지 않으며 predicate 반환 span과 nominal context span을 합치지 않는다.
