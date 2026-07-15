@@ -340,6 +340,82 @@ fn unprojectable_expression_is_ambiguous_without_an_invented_span() {
 }
 
 #[test]
+fn opaque_component_is_stable_when_the_enclosing_node_is_returned() {
+    let resolver = resolver(&[entry(
+        "갔다",
+        "VV+EP+EF",
+        "Inflect",
+        "VV",
+        "EF",
+        "가/VV/*+었/EP/*+다/EF/*",
+        0,
+    )]);
+    let pattern = predicate_pattern("가", ContinuationState::Past);
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current("갔다"),
+        CandidateSpans {
+            core: 0.."갔".len(),
+            anchor: 0.."갔다".len(),
+            consumed: 0.."갔다".len(),
+            token: 0.."갔다".len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(resolution.outcome, ConstraintOutcome::Supported);
+    assert!(resolution.supported.analyses.iter().any(|analysis| {
+        analysis.evidence == ConstraintEvidenceKind::OpaqueExpression
+            && analysis.span_relation == ConstraintSpanRelation::RuntimeComponent
+    }));
+}
+
+#[test]
+fn alternative_opaque_lexical_identity_remains_ambiguous() {
+    let resolver = resolver(&[
+        entry(
+            "걸었다",
+            "VV+EP+EF",
+            "Inflect",
+            "VV",
+            "EF",
+            "걷/VV/*+었/EP/*+다/EF/*",
+            0,
+        ),
+        entry(
+            "걸었다",
+            "VV+EP+EF",
+            "Inflect",
+            "VV",
+            "EF",
+            "걸/VV/*+었/EP/*+다/EF/*",
+            0,
+        ),
+    ]);
+    let pattern = predicate_pattern("걷", ContinuationState::Past);
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current("걸었다"),
+        CandidateSpans {
+            core: 0.."걸".len(),
+            anchor: 0.."걸었다".len(),
+            consumed: 0.."걸었다".len(),
+            token: 0.."걸었다".len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(
+        resolution.outcome,
+        ConstraintOutcome::Ambiguous(ConstraintAmbiguity::LexicalCompetition)
+    );
+    assert!(ProductPolicy::PossibleAnalysis.accepts(&resolution, std::slice::from_ref(&pattern)));
+    assert!(
+        !ProductPolicy::UnambiguousAnalysis.accepts(&resolution, std::slice::from_ref(&pattern))
+    );
+}
+
+#[test]
 fn nominal_continuation_is_proved_by_pos_transitions() {
     let text = "학교는";
     let resolver = resolver(&[
@@ -412,8 +488,10 @@ fn nominal_continuation_validates_particle_allomorph_and_case_order() {
     let resolver = resolver(&[
         atomic("기", "NNG", 0),
         atomic("이", "JKS", 0),
+        atomic("이", "JX", 0),
         atomic("가", "JKS", 0),
         atomic("를", "JKO", 0),
+        atomic("를", "JX", 0),
         entry(
             "산이",
             "NNG+JKS",
@@ -430,6 +508,15 @@ fn nominal_continuation_validates_particle_allomorph_and_case_order() {
             "JKS",
             "JKO",
             "이/JKS/*+가/JKO/*",
+            0,
+        ),
+        entry(
+            "이는",
+            "JKS+JX",
+            "Preanalysis",
+            "JKS",
+            "JX",
+            "이/JKS/*+는/JX/*",
             0,
         ),
     ]);

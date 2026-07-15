@@ -518,6 +518,7 @@
 - runtime-composed path는 source expression과 multi-POS row에서 build 시점에 파생한 categorical `end_pos -> start_pos` edge로만 node를 연결한다. dense connection matrix의 모든 유효 ID 셀을 연결 근거로 사용하지 않으며 connection cost와 word cost는 동등한 근거의 진단 순서에만 사용한다.
 - resolver 뒤 제품 정책은 `whole`, `explicit-component`, `possible-analysis`, `unambiguous-analysis`로 분리한다. 형태 구조만으로 여러 lexical identity나 의미가 함께 지지되면 가능한 분석을 보존하며 통계적 또는 문맥적 disambiguator 없이 의도한 의미 하나를 자동 선택하지 않는다.
 - `unambiguous-analysis` 정책은 안정된 지지 분석이 있으면서 resolver 결과가 `Supported`일 때만 수용한다. strict subtoken 반환은 `CompoundExposure`, query와 다른 fine POS의 whole-token source 분석 공존은 `LexicalCompetition`으로 기록하고 이 정책에서는 abstain한다.
+- 조사 continuation은 문법 기능이 고정된 표면과 이형태 조건을 hard constraint로 보존해 다른 조사 품사 태그가 `이/가`, `을/를`, `으로/로`의 이형태 조건이나 격조사 slot 수를 우회하지 못하게 한다. 같은 fine POS의 다른 canonical lexical component도 `LexicalCompetition`으로 보존하되 조사와 어미는 lexical identity 경쟁으로 세지 않는다.
 - resolver는 query와 무관한 complete path를 먼저 열거하지 않는다. start/end reachability를 보존한 packed token DAG와 query lexical/continuation automaton을 교차하고, node 상한과 지지 proof 상한은 query와 무관한 segmentation 조합 수가 아니라 실제 source node와 서로 다른 지지 proof에 적용한다.
 - runtime lexical support는 query core를 덮는 연속 source node sequence를 허용한다. query 분석이 선언한 단일 lexical node와 생산적 파생 sequence만 lexical identity proof가 되며 전역 POS pair가 연결된다는 사실만으로 임의 sequence를 query lexeme로 취급하지 않는다.
 - fused·unaligned component는 내부 byte span을 만들지 않지만 query anchor와 반환 span이 enclosing source node 전체를 포함하면 canonical component sequence를 lexical identity proof로 사용할 수 있다. strict component subspan을 반환해야 할 때만 opaque ambiguity로 남긴다.

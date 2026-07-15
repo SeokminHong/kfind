@@ -294,12 +294,8 @@ pub(super) fn resolve_known(
         && analyses
             .iter()
             .all(|analysis| analysis.span_relation != ConstraintSpanRelation::Whole);
-    let has_lexical_competition = has_stable
-        && !context_resolved
-        && analyses
-            .iter()
-            .any(|analysis| analysis.span_relation == ConstraintSpanRelation::Whole)
-        && lexical_competition(graph, spans, patterns);
+    let has_lexical_competition =
+        has_stable && !context_resolved && lexical_competition(graph, spans, patterns);
     let outcome = if has_compound_exposure {
         ConstraintOutcome::Ambiguous(ConstraintAmbiguity::CompoundExposure)
     } else if has_lexical_competition {
@@ -542,11 +538,21 @@ fn lexical_competition(
         graph.is_on_complete_path(index)
             && node.source == ConstraintNodeSource::Source
             && node.span == spans.token
-            && node.pos.split('+').any(|pos| {
+            && (node.pos.split('+').any(|pos| {
                 source_pos(pos).is_some_and(|fine_pos| {
-                    !patterns.iter().any(|pattern| pattern.fine_pos == fine_pos)
+                    !fine_pos.is_particle()
+                        && !patterns.iter().any(|pattern| pattern.fine_pos == fine_pos)
                 })
-            })
+            }) || node.components.iter().any(|component| {
+                source_pos(&component.pos).is_some_and(|fine_pos| {
+                    !fine_pos.is_particle()
+                        && patterns.iter().any(|pattern| pattern.fine_pos == fine_pos)
+                        && !patterns.iter().any(|pattern| {
+                            pattern.fine_pos == fine_pos
+                                && pattern.lexical_form.as_ref() == component.surface
+                        })
+                })
+            }))
     })
 }
 
@@ -584,6 +590,7 @@ struct SupportCandidate {
     unit_index: usize,
     evidence: ConstraintEvidenceKind,
     relation: ConstraintSpanRelation,
+    opaque: bool,
 }
 
 fn support_candidates(
@@ -627,6 +634,7 @@ fn support_candidates(
                     ConstraintEvidenceKind::RuntimeComposed
                 },
                 relation,
+                opaque: false,
             });
         }
         for (component_index, component) in node.components.iter().enumerate() {
@@ -650,6 +658,7 @@ fn support_candidates(
                     unit_index,
                     evidence: ConstraintEvidenceKind::SourceComponent,
                     relation: ConstraintSpanRelation::SourceComponent,
+                    opaque: false,
                 });
             } else if component.span.is_none()
                 && node.span.start <= spans.core.start
@@ -662,6 +671,10 @@ fn support_candidates(
                     )
                 )
             {
+                let enclosing_span_is_returned = spans.anchor.start <= node.span.start
+                    && node.span.end <= spans.anchor.end
+                    && spans.consumed.start <= node.span.start
+                    && node.span.end <= spans.consumed.end;
                 matches.push(SupportCandidate {
                     node_position,
                     source_node_index: node_index,
@@ -670,7 +683,12 @@ fn support_candidates(
                     component_index: Some(component_index),
                     unit_index,
                     evidence: ConstraintEvidenceKind::OpaqueExpression,
-                    relation: ConstraintSpanRelation::OpaqueExpression,
+                    relation: if enclosing_span_is_returned {
+                        ConstraintSpanRelation::RuntimeComponent
+                    } else {
+                        ConstraintSpanRelation::OpaqueExpression
+                    },
+                    opaque: true,
                 });
             }
         }
@@ -735,6 +753,7 @@ fn runtime_lexical_candidates(
                             ConstraintEvidenceKind::RuntimeComposed
                         },
                         relation: ConstraintSpanRelation::RuntimeComponent,
+                        opaque: has_opaque,
                     });
                 }
                 if lexical_match || !pattern.lexical_form.starts_with(&surface) {
@@ -817,17 +836,16 @@ fn suffix_units<'a>(
         if unit.coverage.end <= suffix.start || unit.coverage.start >= suffix.end {
             continue;
         }
-        if unit.span.is_none() && support.relation != ConstraintSpanRelation::OpaqueExpression {
+        if unit.span.is_none() && !support.opaque {
             return None;
         }
-        if support.relation != ConstraintSpanRelation::OpaqueExpression
-            && (unit.coverage.start < suffix.start || unit.coverage.end > suffix.end)
+        if !support.opaque && (unit.coverage.start < suffix.start || unit.coverage.end > suffix.end)
         {
             return None;
         }
         selected.push(unit);
     }
-    if support.relation == ConstraintSpanRelation::OpaqueExpression {
+    if support.opaque {
         return (!selected.is_empty()).then_some(selected);
     }
     let mut coverage = selected
@@ -920,32 +938,33 @@ fn valid_particle_sequence(units: &[&Unit], support_surface: &str) -> bool {
         if !unit.pos.starts_with('J') {
             return false;
         }
-        if is_case_particle(&unit.pos) {
+        if is_case_particle(&unit.pos, &unit.surface) {
             case_particles += 1;
             if case_particles > 1 {
                 return false;
             }
         }
-        if !particle_allomorph_accepts(&unit.surface, &unit.pos, host) {
+        if !particle_allomorph_accepts(&unit.surface, host) {
             return false;
         }
     }
     true
 }
 
-fn is_case_particle(pos: &str) -> bool {
+fn is_case_particle(pos: &str, surface: &str) -> bool {
     matches!(pos, "JKS" | "JKC" | "JKG" | "JKO" | "JKB" | "JKV" | "JKQ")
+        || matches!(surface, "이" | "가" | "을" | "를" | "으로" | "로")
 }
 
-fn particle_allomorph_accepts(surface: &str, pos: &str, host: char) -> bool {
+fn particle_allomorph_accepts(surface: &str, host: char) -> bool {
     if crate::decompose_syllable(host).is_none() {
         return true;
     }
-    match (pos, surface) {
-        ("JKS", "이") | ("JKO", "을") => crate::has_final(host),
-        ("JKS", "가") | ("JKO", "를") => !crate::has_final(host),
-        ("JKB", "으로") => crate::has_final(host) && !crate::has_rieul_final(host),
-        ("JKB", "로") => !crate::has_final(host) || crate::has_rieul_final(host),
+    match surface {
+        "이" | "을" => crate::has_final(host),
+        "가" | "를" => !crate::has_final(host),
+        "으로" => crate::has_final(host) && !crate::has_rieul_final(host),
+        "로" => !crate::has_final(host) || crate::has_rieul_final(host),
         _ => true,
     }
 }
