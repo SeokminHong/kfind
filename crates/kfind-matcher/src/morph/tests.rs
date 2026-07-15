@@ -147,6 +147,23 @@ fn compact_component_accepts_only_the_lower_cost_exact_path() {
 }
 
 #[test]
+fn compact_component_accepts_an_exact_path_within_the_cost_penalty() {
+    let resource = Arc::new(component_resource());
+    let within = component_matcher("안", Arc::clone(&resource));
+    let over = component_matcher("밖", resource);
+
+    assert!(within.find_at_with_meta("경계안".as_bytes(), 0).is_some());
+    assert!(over.find_at_with_meta("경계밖".as_bytes(), 0).is_none());
+}
+
+#[test]
+fn registered_context_surface_preserves_the_raw_component_decision() {
+    let matcher = component_matcher("매", Arc::new(component_resource()));
+
+    assert!(matcher.find_at_with_meta("매일".as_bytes(), 0).is_none());
+}
+
+#[test]
 fn exact_component_accepts_pronoun_numeral_and_determiner_spans() {
     let resource = Arc::new(component_resource());
     let pronoun = component_matcher_with_analysis(
@@ -720,7 +737,9 @@ fn component_resource() -> ComponentResource {
         component_entry("대", "XPN", 5_000),
         component_entry("학교", "NNG", 5_000),
         component_entry("대학교", "NNG", -5_000),
-        component_entry("매일", "MAG", -5_000),
+        component_entry("매", "NNG", 500),
+        component_entry("일", "VCP", 500),
+        component_entry("매일", "MAG", 0),
         component_entry("교사일", "VCP", -5_000),
         component_entry("학생일", "NNG+VCP+ETM", -5_000),
         component_entry("는", "JX", 0),
@@ -731,6 +750,11 @@ fn component_resource() -> ComponentResource {
         component_entry("다", "MAG", -5_000),
         component_entry("두", "MM", -5_000),
         component_entry("사람", "NNG", -5_000),
+        component_entry("경계", "NNG", 0),
+        component_entry("안", "NNG", 1_500),
+        component_entry("밖", "NNG", 1_501),
+        component_entry("경계안", "NNG", 0),
+        component_entry("경계밖", "NNG", 0),
     ];
     let matrix = parse_mecab_connection_matrix(
         "matrix.def",

@@ -9,7 +9,7 @@ corpus-side 분석은 token 내부 component와 바로 인접한 token 구조를
 | --- | --- | --- |
 | `None` | literal과 일반 형태 branch | 기존 verifier 결과 |
 | `PredicateLexical` | 왼쪽 경계를 연 지정사 branch | 어휘 분석과 구조 판정으로 좁힘 |
-| `ExactComponent` | token 내부 명사류·관형사와 full-POS 일반 용언 component 후보 | `accept`만 match로 복구 |
+| `ExactComponent` | token 내부 명사류·관형사와 full-POS 일반 용언 component 후보 | include 경로가 최저 제외 경로보다 1,500 이하로 높으면 복구 |
 | `LexicalContext` | 문맥에서 품사를 검증할 부사 branch | 구조 판정이 있으면 해당 품사만 유지 |
 
 ## 실행 계약
@@ -30,6 +30,11 @@ byte scan
 - NFC 안정 경계와 원문 byte offset을 양방향으로 보존한다.
 - fixture 전용 비용, corpus 단어 denylist와 결과별 예외를 사용하지 않는다.
 - resource 오류와 상한 초과를 조용히 다른 판정으로 바꾸지 않는다.
+- `ExactComponent`의 비용 마진은 형태 분석기의 원시 `accept`·`reject`·`ambiguous` 판정을
+  바꾸지 않는다. 제품 matcher에서만 include-only 또는 `include <= exclude + 1,500`을 근거로
+  사용한다.
+- lexical context registry에 등록된 whole-token surface 안의 component는 문맥 판정이 없을 때
+  비용 마진을 사용하지 않고 원시 `accept`만 따른다.
 
 ## resource 계약
 
@@ -43,8 +48,8 @@ decision, 비용, node와 path provenance가 모두 일치해야 한다.
 
 ## benchmark 계약
 
-- `ExactComponent`는 품사별 기존 경계 reject, resource lookup, accept/reject와 경로 provenance를
-  기록한다.
+- `ExactComponent`는 품사별 기존 경계 reject, resource lookup, 원시 판정, include/exclude 비용과
+  경로 provenance를 기록한다.
 - component candidate가 있는데 resource가 없거나 검증에 실패하면 benchmark를 실패시킨다.
 - 고정 test, dev와 hard-negative의 역할을 섞지 않는다.
 
@@ -59,5 +64,5 @@ scripts/benchmark-morphology.sh
 pnpm --dir packages/kfind run benchmark:startup
 ```
 
-최신 수치는 [Full-POS 용언 exact component 확장](2026-07-15-predicate-exact-component.md)에
+최신 수치는 [Exact component 비용 마진](2026-07-15-exact-component-cost-margin.md)에
 기록한다.

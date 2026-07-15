@@ -421,10 +421,12 @@
   거부하고, exact 분석이 없거나 predicate 또는 해석할 수 없는 품사가 하나라도 있으면 유지한다.
 - `ExactComponent`는 `smart`에서만 동작한다. 기존 경계 검증이 거부한 명사·대명사·수사·관형사와
   full-POS 일반 동사·형용사 candidate를 compact component resource로 평가하고, query branch와 같은
-  fine POS의 exact component가 최저 비용 경로에 있을 때만 match로 복구한다. 용언은 predicate
+  fine POS의 exact component를 포함한 완전 경로가 최저 제외 경로보다 형태 분석 비용 1,500 이하로
+  높은 범위에 있으면 match로 복구한다. include 경로만 있거나 두 경로의 비용이 같을 때도 복구하고,
+  exclude 경로만 있거나 include 비용이 이 범위를 초과하면 거부한다. 용언은 predicate
   verifier가 허용된 활용·continuation을 먼저 소비한 뒤 어간 core span을 component로 검증하며,
-  지정사에는 별도 `PredicateLexical` 계약을 유지한다. `reject`, `ambiguous`, 평가 오류와 상한
-  초과는 거부한다. 부사·감탄사 등 다른 품사에는 이 복구를 적용하지 않는다.
+  지정사에는 별도 `PredicateLexical` 계약을 유지한다. 평가 오류와 상한 초과는 거부한다.
+  부사·감탄사 등 다른 품사에는 이 복구를 적용하지 않는다.
 - `smart`의 bounded lexical context는 candidate가 포함된 Unicode token과 같은 줄의 바로 앞뒤
   Unicode token만 읽는다. 합친 원문은 최대 256 bytes, NFC 문자열은 최대 64 Unicode scalar다.
   UTF-8 검증도 이 bounded 원문에만 적용하므로 범위 밖의 손상된 byte는 문맥 판정을 억제하지
@@ -454,6 +456,13 @@
   `include` 비용이 낮으면 `accept`, `exclude` 비용이 낮으면 `reject`, 동률이면 `ambiguous`다.
   한쪽 경로만 있으면 그 경로를 따르며 exact node를 포함한 고비용 경로의 존재만으로 수용하지
   않는다.
+- 위 `accept`·`reject`·`ambiguous`는 resource와 진단의 원시 판정이다. 제품 `ExactComponent`는
+  resource 비용의 근소한 순위 변동을 흡수하기 위해 include 비용이 exclude 비용보다 최대 1,500
+  높은 경로까지 근거로 사용한다. 이 마진은 `ExactComponent`에만 적용하며 다른 문맥 판정과
+  진단용 원시 판정을 바꾸지 않는다.
+- candidate가 compiler의 lexical context registry에 등록된 whole-token surface 안에 있고 bounded
+  문맥 판정이 성립하지 않으면 비용 마진을 적용하지 않는다. 이때 원시 `accept`만 복구해 문맥
+  구조의 부재·오류·상한 초과가 기존 `smart` 결과를 넓히지 않게 한다.
 - 제품 matcher의 component 판정은 `include`와 `exclude`의 최저 비용만 유지하며 진단용 N-best 경로를
   생성하지 않는다. shadow와 benchmark 진단은 비용·node·경로 provenance를 포함한 보고서를
   별도로 생성할 수 있다. 같은 resource·문자열·query span·품사에서 제품 판정과 진단 보고서의
