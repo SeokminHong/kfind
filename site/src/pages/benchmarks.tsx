@@ -43,16 +43,16 @@ export default function BenchmarksPage(): React.JSX.Element {
                 <td>97.77%</td>
                 <td>96.40%</td>
                 <td>97.08%</td>
-                <td>14,563.8</td>
+                <td>13,663.1</td>
                 <td>5.2 MiB</td>
               </tr>
               <tr>
                 <td>User · full POS + smart + untagged</td>
-                <td>420 / 0 / 80</td>
+                <td>421 / 0 / 79</td>
                 <td>100.00%</td>
-                <td>84.00%</td>
-                <td>91.30%</td>
-                <td>10,478.9</td>
+                <td>84.20%</td>
+                <td>91.42%</td>
+                <td>9,823.9</td>
                 <td>92.2 MiB</td>
               </tr>
             </tbody>
@@ -174,6 +174,32 @@ export default function BenchmarksPage(): React.JSX.Element {
         </p>
       </DocumentSection>
 
+      <DocumentSection title="상태 용언 현재 평서형 후속 형태 continuation">
+        <p>
+          형용사와 보조 형용사의 현재 평서형 <code>-다</code> 뒤에서{' '}
+          <code>고</code>, <code>는</code>, <code>던</code>, <code>면</code>,{' '}
+          <code>니</code>, <code>며</code>, <code>면서</code>, <code>는데</code>
+          {', '}
+          <code>지</code>를 소비합니다. <code>나쁘다면</code>,{' '}
+          <code>좋다는</code>, <code>어렵다면서</code>를 양성 회귀 fixture로
+          고정했습니다.
+        </p>
+        <p>
+          동작 용언의 사전형, 지정사와 부정 지정사 <code>아니다</code>에는 이
+          전이를 적용하지 않습니다. <code>가다면</code>, <code>나쁘다면도</code>
+          {', '}
+          <code>아니다면</code>은 거부합니다. <code>아니라면</code>은 별도
+          continuation이 필요한 남은 경계로 둡니다.
+        </p>
+        <p>
+          Main <code>809aa42</code> 대비 후보 <code>d6cefde</code>는
+          development, test와 Human의 FN을 각각 1건 줄였습니다. 신규 FP는 없고
+          Agent 품질은 바뀌지 않았습니다. Embedded·full-POS·Agent·User
+          morphology cases/s는 0.05~1.88% 낮았고, 가장 큰 p95 증가는
+          1.02%였습니다.
+        </p>
+      </DocumentSection>
+
       <DocumentSection title="접속 조사 이면/면의 명사류 결합">
         <p>
           명사류 뒤의 접속 조사 <code>이면/면</code>은 받침 유무에 맞는 이형태만
@@ -242,6 +268,11 @@ export default function BenchmarksPage(): React.JSX.Element {
 
       <DocumentSection title="원본 보고서">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-15-descriptive-declarative-continuation.md">
+              상태 용언 현재 평서형 후속 형태 continuation
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-15-connector-myeon-particle.md">
               접속 조사 이면/면의 명사류 결합
