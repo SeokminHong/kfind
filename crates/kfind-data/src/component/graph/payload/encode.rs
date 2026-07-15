@@ -21,7 +21,6 @@ pub(in crate::component::graph) struct EncodedGraphPayload {
 #[derive(Debug, Eq, PartialEq)]
 struct PreparedAnalysis<'a> {
     pos: &'a str,
-    analysis_type: &'a str,
     start_pos: &'a str,
     end_pos: &'a str,
     expression_kind: MorphologyGraphExpressionKind,
@@ -104,12 +103,7 @@ pub(in crate::component::graph) fn encode_graph_payload(
     }
     let mut component_offset = 0_u32;
     for analysis in prepared.iter().flatten() {
-        for value in [
-            analysis.pos,
-            analysis.analysis_type,
-            analysis.start_pos,
-            analysis.end_pos,
-        ] {
+        for value in [analysis.pos, analysis.start_pos, analysis.end_pos] {
             bytes.extend_from_slice(&string_id(&string_ids, value)?.to_le_bytes());
         }
         bytes.push(analysis.expression_kind.encode());
@@ -162,7 +156,6 @@ fn prepare_analysis(entry: &MecabSourceMorphologyEntry) -> PreparedAnalysis<'_> 
     if matches!(entry.expression.as_str(), "" | "*") {
         return PreparedAnalysis {
             pos: &entry.pos,
-            analysis_type: &entry.analysis_type,
             start_pos: &entry.start_pos,
             end_pos: &entry.end_pos,
             expression_kind: MorphologyGraphExpressionKind::Absent,
@@ -189,7 +182,6 @@ fn prepare_analysis(entry: &MecabSourceMorphologyEntry) -> PreparedAnalysis<'_> 
         .collect();
     PreparedAnalysis {
         pos: &entry.pos,
-        analysis_type: &entry.analysis_type,
         start_pos: &entry.start_pos,
         end_pos: &entry.end_pos,
         expression_kind,
@@ -209,7 +201,6 @@ fn encode_strings(
     for analysis in prepared.iter().flatten() {
         unique.extend([
             analysis.pos.to_owned(),
-            analysis.analysis_type.to_owned(),
             analysis.start_pos.to_owned(),
             analysis.end_pos.to_owned(),
         ]);

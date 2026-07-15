@@ -42,7 +42,6 @@ fn graph_resource_round_trips_structural_relations_without_scoring_data() {
     assert_eq!(prefixes.len(), 1);
     assert_eq!(prefixes[0].0, "산속".len());
     assert_eq!(prefixes[0].1, "산속");
-    assert_eq!(prefixes[0].2[0].analysis_type, "Compound");
     assert_eq!(
         prefixes[0].2[0].expression_kind,
         MorphologyGraphExpressionKind::SpanAligned
@@ -112,7 +111,6 @@ fn graph_projection_matches_full_morphology_source_rows() {
                     );
                     (
                         analysis.pos.to_owned(),
-                        analysis.analysis_type.to_owned(),
                         analysis.start_pos.to_owned(),
                         analysis.end_pos.to_owned(),
                         kind,
@@ -140,7 +138,6 @@ fn graph_projection_matches_full_morphology_source_rows() {
                 graph_projection.extend(analyses.iter().map(|analysis| {
                     (
                         analysis.pos.to_owned(),
-                        analysis.analysis_type.to_owned(),
                         analysis.start_pos.to_owned(),
                         analysis.end_pos.to_owned(),
                         analysis.expression_kind,
@@ -226,7 +223,7 @@ fn graph_resource_rejects_source_section_and_relation_corruption() {
     let mut relation = bytes;
     let index_len = usize::try_from(read_u64_at(&relation, 64).unwrap()).unwrap();
     let payload_start = HEADER_LEN + index_len;
-    let expression_kind_offset = payload_start + 56;
+    let expression_kind_offset = payload_start + 52;
     relation[expression_kind_offset] = MorphologyGraphExpressionKind::Fused.encode();
     refresh_payload_digest(&mut relation, payload_start);
     let error = decode_morphology_graph_resource("fixture", relation, &[7; 32]).unwrap_err();

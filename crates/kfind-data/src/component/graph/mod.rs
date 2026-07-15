@@ -63,7 +63,6 @@ pub struct MorphologyGraphComponent<'a> {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MorphologyGraphAnalysis<'a> {
     pub pos: &'a str,
-    pub analysis_type: &'a str,
     pub start_pos: &'a str,
     pub end_pos: &'a str,
     pub expression_kind: MorphologyGraphExpressionKind,

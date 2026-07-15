@@ -40,7 +40,6 @@ pub(super) struct Node {
     pub start_pos: String,
     pub end_pos: String,
     pub source: ConstraintNodeSource,
-    pub analysis_type: Option<String>,
     pub expression_kind: Option<MorphologyGraphExpressionKind>,
     pub components: Vec<Component>,
 }
@@ -65,7 +64,6 @@ impl Node {
             start_pos: effective_start_pos(analysis),
             end_pos: effective_end_pos(analysis),
             source: ConstraintNodeSource::Source,
-            analysis_type: Some(analysis.analysis_type.to_owned()),
             expression_kind: Some(analysis.expression_kind),
         }
     }
@@ -78,7 +76,6 @@ impl Node {
             start_pos: analysis.pos.clone(),
             end_pos: analysis.pos.clone(),
             source: ConstraintNodeSource::Unknown,
-            analysis_type: None,
             expression_kind: None,
             components: Vec::new(),
         }
@@ -92,7 +89,6 @@ impl Node {
             start_pos: self.start_pos.clone(),
             end_pos: self.end_pos.clone(),
             source: self.source,
-            analysis_type: self.analysis_type.clone(),
             expression_kind: self.expression_kind,
             components: self
                 .components
@@ -189,7 +185,6 @@ impl TokenGraph {
                 .then_with(|| left.pos.cmp(&right.pos))
                 .then_with(|| left.start_pos.cmp(&right.start_pos))
                 .then_with(|| left.end_pos.cmp(&right.end_pos))
-                .then_with(|| left.analysis_type.cmp(&right.analysis_type))
                 .then_with(|| left.expression_kind.cmp(&right.expression_kind))
                 .then_with(|| left.components.cmp(&right.components))
         });

@@ -73,7 +73,6 @@ pub struct ConstraintNodeProof {
     pub start_pos: String,
     pub end_pos: String,
     pub source: ConstraintNodeSource,
-    pub analysis_type: Option<String>,
     pub expression_kind: Option<MorphologyGraphExpressionKind>,
     pub components: Vec<ConstraintComponentProof>,
     pub matches_query_node: bool,

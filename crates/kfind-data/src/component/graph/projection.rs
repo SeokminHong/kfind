@@ -134,11 +134,7 @@ fn validate_analysis(
     full: MorphologyAnalysis<'_>,
     graph: &MorphologyGraphAnalysis<'_>,
 ) -> Result<(), DataError> {
-    if graph.pos != full.pos
-        || graph.analysis_type != full.analysis_type
-        || graph.start_pos != full.start_pos
-        || graph.end_pos != full.end_pos
-    {
+    if graph.pos != full.pos || graph.start_pos != full.start_pos || graph.end_pos != full.end_pos {
         return Err(projection_error(
             source,
             "source analysis projection mismatch",

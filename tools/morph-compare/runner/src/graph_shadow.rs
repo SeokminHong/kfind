@@ -114,7 +114,6 @@ struct GraphNodeEvidence {
     start_pos: String,
     end_pos: String,
     source: &'static str,
-    analysis_type: Option<String>,
     expression_kind: Option<&'static str>,
     components: Vec<GraphComponentEvidence>,
     matches_query_node: bool,
@@ -376,7 +375,6 @@ fn proof_evidence(proof: &ConstraintProof) -> GraphProofEvidence {
                     ConstraintNodeSource::Source => "source",
                     ConstraintNodeSource::Unknown => "unknown",
                 },
-                analysis_type: node.analysis_type.clone(),
                 expression_kind: node.expression_kind.map(expression_kind_name),
                 components: node
                     .components

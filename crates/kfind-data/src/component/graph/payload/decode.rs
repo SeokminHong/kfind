@@ -287,24 +287,24 @@ impl GraphPayloadLayout {
                 let record = self
                     .analysis_record(input, analysis_index)
                     .ok_or_else(|| resource_error(source, "invalid graph analysis record"))?;
-                for offset in [0, 4, 8, 12] {
+                for offset in [0, 4, 8] {
                     let id = read_u32_at(record, offset)
                         .ok_or_else(|| resource_error(source, "truncated graph string ID"))?;
                     strings
                         .get(string_bytes, id)
                         .ok_or_else(|| resource_error(source, "invalid graph string ID"))?;
                 }
-                if record[17..20] != [0; 3] {
+                if record[13..16] != [0; 3] {
                     return Err(resource_error(
                         source,
                         "non-zero graph analysis reserved bytes",
                     ));
                 }
-                let expression_kind = MorphologyGraphExpressionKind::decode(record[16])
+                let expression_kind = MorphologyGraphExpressionKind::decode(record[12])
                     .ok_or_else(|| resource_error(source, "invalid graph expression kind"))?;
-                let component_start = read_u32_at(record, 20)
+                let component_start = read_u32_at(record, 16)
                     .ok_or_else(|| resource_error(source, "truncated graph component start"))?;
-                let component_count = read_u32_at(record, 24)
+                let component_count = read_u32_at(record, 20)
                     .ok_or_else(|| resource_error(source, "truncated graph component count"))?;
                 if component_start != expected_component_start {
                     return Err(resource_error(
@@ -397,17 +397,16 @@ impl GraphPayloadLayout {
         strings: &StringLayout,
     ) -> Option<MorphologyGraphAnalysis<'a>> {
         let record = self.analysis_record(input, analysis)?;
-        let component_start = read_u32_at(record, 20)?;
-        let component_end = component_start.checked_add(read_u32_at(record, 24)?)?;
+        let component_start = read_u32_at(record, 16)?;
+        let component_end = component_start.checked_add(read_u32_at(record, 20)?)?;
         let components = (component_start..component_end)
             .map(|component| self.component(input, component, string_bytes, strings))
             .collect::<Option<Vec<_>>>()?;
         Some(MorphologyGraphAnalysis {
             pos: strings.get(string_bytes, read_u32_at(record, 0)?)?,
-            analysis_type: strings.get(string_bytes, read_u32_at(record, 4)?)?,
-            start_pos: strings.get(string_bytes, read_u32_at(record, 8)?)?,
-            end_pos: strings.get(string_bytes, read_u32_at(record, 12)?)?,
-            expression_kind: MorphologyGraphExpressionKind::decode(record[16])?,
+            start_pos: strings.get(string_bytes, read_u32_at(record, 4)?)?,
+            end_pos: strings.get(string_bytes, read_u32_at(record, 8)?)?,
+            expression_kind: MorphologyGraphExpressionKind::decode(record[12])?,
             components,
         })
     }
