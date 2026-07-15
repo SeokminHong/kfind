@@ -64,5 +64,5 @@ scripts/benchmark-morphology.sh
 pnpm --dir packages/kfind run benchmark:startup
 ```
 
-최신 수치는 [Full-POS 용언 exact component 확장](2026-07-15-predicate-exact-component.md)에
+최신 수치는 [Exact component 비용 마진](2026-07-15-exact-component-cost-margin.md)에
 기록한다.
