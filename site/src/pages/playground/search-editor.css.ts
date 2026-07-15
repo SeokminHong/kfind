@@ -25,11 +25,8 @@ globalStyle(`${labelRow} span`, {
   fontSize: '0.68rem',
 });
 
-export const surface = style({
-  position: 'relative',
-  minHeight: '14rem',
-  maxHeight: '30rem',
-  overflow: 'auto',
+export const editor = style({
+  overflow: 'hidden',
   border: `1px solid ${vars.color.borderStrong}`,
   borderRadius: vars.radius.small,
   background: vars.color.codeBackground,
@@ -42,52 +39,51 @@ export const surface = style({
   },
 });
 
-const textLayer = style({
-  width: '100%',
+globalStyle(`${editor} .cm-editor`, {
   minHeight: '14rem',
-  boxSizing: 'border-box',
-  padding: vars.space.medium,
+  maxHeight: '30rem',
+  background: vars.color.codeBackground,
+  color: vars.color.codeText,
   fontFamily: '"SFMono-Regular", Consolas, monospace',
   fontSize: '0.76rem',
   lineHeight: 1.65,
-  overflowWrap: 'anywhere',
+});
+
+globalStyle(`${editor} .cm-editor.cm-focused`, {
+  outline: 0,
+});
+
+globalStyle(`${editor} .cm-scroller`, {
+  minHeight: '14rem',
+  maxHeight: '30rem',
+  overflow: 'auto',
+  fontFamily: 'inherit',
+  lineHeight: 'inherit',
+});
+
+globalStyle(`${editor} .cm-content`, {
+  minHeight: '14rem',
+  padding: vars.space.medium,
+  caretColor: vars.color.text,
   tabSize: 2,
-  whiteSpace: 'pre-wrap',
 });
 
-export const highlights = style([
-  textLayer,
-  {
-    position: 'absolute',
-    inset: 0,
-    color: vars.color.codeText,
-    pointerEvents: 'none',
-  },
-]);
+globalStyle(`${editor} .cm-line`, {
+  padding: 0,
+});
 
-globalStyle(`${highlights} mark`, {
-  padding: '0.05em 0.12em',
-  borderBlockEnd: `1px solid ${vars.color.markBorder}`,
+globalStyle(`${editor} .cm-cursor`, {
+  borderInlineStartColor: vars.color.text,
+});
+
+globalStyle(`${editor} .cm-selectionBackground`, {
+  background: `${vars.color.linkWash} !important`,
+});
+
+globalStyle(`${editor} .cm-kfind-match`, {
   background: vars.color.mark,
+  boxShadow: `inset 0 -1px ${vars.color.markBorder}`,
   color: vars.color.heading,
-  fontWeight: 650,
-});
-
-export const editor = style([
-  textLayer,
-  {
-    position: 'relative',
-    border: 0,
-    outline: 0,
-    background: 'transparent',
-    caretColor: vars.color.text,
-    color: 'transparent',
-    WebkitTextFillColor: 'transparent',
-  },
-]);
-
-globalStyle(`${editor}::selection`, {
-  background: vars.color.linkWash,
 });
 
 export const description = style({
