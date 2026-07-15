@@ -523,6 +523,17 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 하다	verb	무엇을 했느냐는는 문제다.	no-match	ha
 좋다	adjective	상황이 좋으니 계속 진행한다.	match	regular
 살다	verb	서울에 사니 이동이 편하다.	match	regular
+불다	verb	바람이 부니까 창문을 닫는다.	match	predicate-connective-nikka
+먹다	verb	밥을 먹으니까 힘이 난다.	match	predicate-connective-nikka
+먹다	verb	밥을 먹니까 힘이 난다.	no-match	predicate-connective-nikka
+불다	verb	바람이 불으니까 창문을 닫는다.	no-match	predicate-connective-nikka
+불다	verb	바람이 부니까는 창문을 닫는다.	match	predicate-connective-nikka
+먹다	verb	밥을 먹으니까는 힘이 난다.	match	predicate-connective-nikka
+불다	verb	바람이 부니깐 창문을 닫는다.	match	predicate-connective-nikka
+먹다	verb	밥을 먹으니깐 힘이 난다.	match	predicate-connective-nikka
+먹다	verb	밥을 먹니깐 힘이 난다.	no-match	predicate-connective-nikka
+불다	verb	바람이 불으니깐 창문을 닫는다.	no-match	predicate-connective-nikka
+불다	verb	바람이 부니깐은 창문을 닫는다.	no-match	predicate-connective-nikka
 먹다	verb	그가 끝까지 먹으리라고 생각했다.	match	regular
 가다	verb	그가 먼저 가리라고 생각했다.	match	regular
 좋다	adjective	상황이 좋으니는 계속 진행한다.	no-match	regular

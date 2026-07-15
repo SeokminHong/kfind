@@ -302,14 +302,16 @@ fn compile_rieul_eu_endings(
     branches: &mut Vec<SurfaceBranchSpec>,
 ) {
     let dropped = drop_last_final(stem).expect("rieul-final stem");
-    push_branch(
-        branches,
-        entry,
-        format!("{dropped}니"),
-        dropped.len(),
-        ContinuationState::Terminal,
-        vec![rule("ending.connective-ni")],
-    );
+    for ending in ["니", "니까", "니까는", "니깐"] {
+        push_branch(
+            branches,
+            entry,
+            format!("{dropped}{ending}"),
+            dropped.len(),
+            ContinuationState::Terminal,
+            vec![rule("ending.connective-ni")],
+        );
+    }
     push_branch(
         branches,
         entry,
