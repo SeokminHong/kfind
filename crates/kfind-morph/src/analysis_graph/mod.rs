@@ -49,7 +49,7 @@ pub struct ConstraintComponentProof {
     pub span: Option<Range<usize>>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum ConstraintEvidenceKind {
     SourceWhole,
     SourceComponent,

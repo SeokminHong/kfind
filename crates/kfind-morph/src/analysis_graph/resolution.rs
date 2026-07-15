@@ -84,7 +84,7 @@ impl SupportedAnalysisSet {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct ConstraintSupport {
     pub pattern_index: usize,
     pub evidence: ConstraintEvidenceKind,
@@ -103,17 +103,23 @@ impl ConstraintDecision {
     }
 
     fn from_analyses(outcome: ConstraintOutcome, analyses: &[SupportedAnalysis]) -> Self {
-        let mut supported = Vec::new();
-        for analysis in analyses {
-            let support = ConstraintSupport {
+        Self::from_supports(
+            outcome,
+            analyses.iter().map(|analysis| ConstraintSupport {
                 pattern_index: analysis.pattern_index,
                 evidence: analysis.evidence,
                 span_relation: analysis.span_relation,
-            };
-            if !supported.contains(&support) {
-                supported.push(support);
-            }
-        }
+            }),
+        )
+    }
+
+    fn from_supports(
+        outcome: ConstraintOutcome,
+        supports: impl IntoIterator<Item = ConstraintSupport>,
+    ) -> Self {
+        let mut supported = supports.into_iter().collect::<Vec<_>>();
+        supported.sort_unstable();
+        supported.dedup();
         Self { outcome, supported }
     }
 }
@@ -313,8 +319,85 @@ pub(super) fn decide_known(
     context: &ContextSelection,
     proof_limit: usize,
 ) -> ConstraintDecision {
-    let evaluation = evaluate_known(graph, spans, patterns, context, proof_limit);
-    ConstraintDecision::from_analyses(evaluation.outcome, &evaluation.analyses)
+    if *context == ContextSelection::Competing {
+        return ConstraintDecision {
+            outcome: ConstraintOutcome::Ambiguous(ConstraintAmbiguity::CompetingAnalyses),
+            supported: Vec::new(),
+        };
+    }
+    let mut proofs = Vec::<CompactSupportProof>::new();
+    for path in candidate_witness_paths(graph, spans, patterns) {
+        let units = path_units(&path, graph.nodes());
+        for (pattern_index, pattern) in patterns.iter().enumerate() {
+            for candidate in support_candidates(&path, graph.nodes(), &units, spans, pattern) {
+                let Some(continuation) = continuation_units(pattern, spans, &units, &candidate)
+                else {
+                    continue;
+                };
+                if context_match(context, pattern, spans).is_none() {
+                    continue;
+                }
+                let proof = CompactSupportProof {
+                    support: ConstraintSupport {
+                        pattern_index,
+                        evidence: candidate.evidence,
+                        span_relation: candidate.relation,
+                    },
+                    source_node_index: candidate.source_node_index,
+                    lexical_source_node_indices: candidate.source_node_indices,
+                    component_index: candidate.component_index,
+                    continuation: continuation
+                        .into_iter()
+                        .map(|unit| CompactMorphUnit {
+                            pos_slot: unit.pos_slot,
+                            span: unit.span.clone(),
+                            source_node_index: unit.source_node_index,
+                            component_index: unit.component_index,
+                        })
+                        .collect(),
+                };
+                if !proofs.contains(&proof) {
+                    proofs.push(proof);
+                    if proofs.len() > proof_limit {
+                        return ConstraintDecision {
+                            outcome: ConstraintOutcome::Unavailable(
+                                ConstraintUnavailable::PathLimit {
+                                    actual: proofs.len(),
+                                    limit: proof_limit,
+                                },
+                            ),
+                            supported: Vec::new(),
+                        };
+                    }
+                }
+            }
+        }
+    }
+    let outcome = support_outcome(
+        graph,
+        spans,
+        patterns,
+        context,
+        proofs.iter().map(|proof| proof.support.span_relation),
+    );
+    ConstraintDecision::from_supports(outcome, proofs.into_iter().map(|proof| proof.support))
+}
+
+#[derive(Eq, PartialEq)]
+struct CompactMorphUnit {
+    pos_slot: usize,
+    span: Option<Range<usize>>,
+    source_node_index: usize,
+    component_index: Option<usize>,
+}
+
+#[derive(Eq, PartialEq)]
+struct CompactSupportProof {
+    support: ConstraintSupport,
+    source_node_index: usize,
+    lexical_source_node_indices: Vec<usize>,
+    component_index: Option<usize>,
+    continuation: Vec<CompactMorphUnit>,
 }
 
 struct KnownEvaluation {
@@ -394,22 +477,41 @@ fn evaluate_known(
             analysis.span_relation,
         )
     });
-    let has_stable = analyses
-        .iter()
-        .any(|analysis| analysis.span_relation != ConstraintSpanRelation::OpaqueExpression);
-    let has_opaque = analyses
-        .iter()
-        .any(|analysis| analysis.span_relation == ConstraintSpanRelation::OpaqueExpression);
+    let outcome = support_outcome(
+        graph,
+        spans,
+        patterns,
+        context,
+        analyses.iter().map(|analysis| analysis.span_relation),
+    );
+    KnownEvaluation {
+        outcome,
+        analyses,
+        paths: Some(paths),
+    }
+}
+
+fn support_outcome(
+    graph: &TokenGraph<'_>,
+    spans: &CandidateSpans,
+    patterns: &[QueryMorphPattern],
+    context: &ContextSelection,
+    relations: impl IntoIterator<Item = ConstraintSpanRelation>,
+) -> ConstraintOutcome {
+    let mut has_stable = false;
+    let mut has_opaque = false;
+    let mut all_non_whole = true;
+    for relation in relations {
+        has_stable |= relation != ConstraintSpanRelation::OpaqueExpression;
+        has_opaque |= relation == ConstraintSpanRelation::OpaqueExpression;
+        all_non_whole &= relation != ConstraintSpanRelation::Whole;
+    }
     let context_resolved = *context != ContextSelection::None;
-    let has_compound_exposure = has_stable
-        && !context_resolved
-        && spans.consumed != spans.token
-        && analyses
-            .iter()
-            .all(|analysis| analysis.span_relation != ConstraintSpanRelation::Whole);
+    let has_compound_exposure =
+        has_stable && !context_resolved && spans.consumed != spans.token && all_non_whole;
     let has_lexical_competition =
         has_stable && !context_resolved && lexical_competition(graph, spans, patterns);
-    let outcome = if has_compound_exposure {
+    if has_compound_exposure {
         ConstraintOutcome::Ambiguous(ConstraintAmbiguity::CompoundExposure)
     } else if has_lexical_competition {
         ConstraintOutcome::Ambiguous(ConstraintAmbiguity::LexicalCompetition)
@@ -419,11 +521,6 @@ fn evaluate_known(
         ConstraintOutcome::Ambiguous(ConstraintAmbiguity::OpaqueExpression)
     } else {
         ConstraintOutcome::Contradicted
-    };
-    KnownEvaluation {
-        outcome,
-        analyses,
-        paths: Some(paths),
     }
 }
 
@@ -680,6 +777,7 @@ struct Unit<'a> {
     component_index: Option<usize>,
     surface: &'a str,
     pos: &'a str,
+    pos_slot: usize,
     span: Option<Range<usize>>,
     coverage: Range<usize>,
     opaque: bool,
@@ -891,6 +989,27 @@ fn continuation_proof(
     units: &[Unit<'_>],
     support: &SupportCandidate,
 ) -> Option<ConstraintContinuationProof> {
+    let selected = continuation_units(pattern, spans, units, support)?;
+    Some(ConstraintContinuationProof {
+        contract: pattern.continuation,
+        units: selected
+            .into_iter()
+            .map(|unit| ConstraintMorphUnitProof {
+                pos: unit.pos.to_owned(),
+                span: unit.span.clone(),
+                source_node_index: unit.source_node_index,
+                component_index: unit.component_index,
+            })
+            .collect(),
+    })
+}
+
+fn continuation_units<'a>(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    units: &'a [Unit<'a>],
+    support: &SupportCandidate,
+) -> Option<Vec<&'a Unit<'a>>> {
     let suffix = spans.core.end..spans.consumed.end;
     let selected = suffix_units(units, support, &suffix)?;
     let positions = selected.iter().map(|unit| unit.pos).collect::<Vec<_>>();
@@ -911,18 +1030,7 @@ fn continuation_proof(
                 && predicate_continuation(state, nominal_particles, spans, &selected, &positions)
         }
     };
-    accepted.then(|| ConstraintContinuationProof {
-        contract: pattern.continuation,
-        units: selected
-            .into_iter()
-            .map(|unit| ConstraintMorphUnitProof {
-                pos: unit.pos.to_owned(),
-                span: unit.span.clone(),
-                source_node_index: unit.source_node_index,
-                component_index: unit.component_index,
-            })
-            .collect(),
-    })
+    accepted.then_some(selected)
 }
 
 fn suffix_units<'a>(
@@ -1076,8 +1184,42 @@ fn context_proof(
     pattern: &QueryMorphPattern,
     spans: &CandidateSpans,
 ) -> Option<Option<ConstraintContextProof>> {
+    context_match(selection, pattern, spans).map(|matched| match matched {
+        ContextMatch::None => None,
+        ContextMatch::Repeated { side } => Some(ConstraintContextProof::RepeatedToken { side }),
+        ContextMatch::Copular { role, selected } => Some(ConstraintContextProof::CopularFrame {
+            role,
+            selected: selected.clone(),
+        }),
+        ContextMatch::NominalParticleHost { selected } => {
+            Some(ConstraintContextProof::NominalParticleHost {
+                selected: selected.clone(),
+            })
+        }
+    })
+}
+
+enum ContextMatch<'a> {
+    None,
+    Repeated {
+        side: AdjacentSide,
+    },
+    Copular {
+        role: CopularFrameRole,
+        selected: &'a Range<usize>,
+    },
+    NominalParticleHost {
+        selected: &'a Range<usize>,
+    },
+}
+
+fn context_match<'a>(
+    selection: &'a ContextSelection,
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+) -> Option<ContextMatch<'a>> {
     match selection {
-        ContextSelection::None => Some(None),
+        ContextSelection::None => Some(ContextMatch::None),
         ContextSelection::Competing => None,
         ContextSelection::Repeated { side } => {
             pattern
@@ -1087,7 +1229,7 @@ fn context_proof(
                     AdjacentTokenConstraint::RepeatedToken { side: required }
                         if side_matches(*required, *side) && spans.core == spans.token =>
                     {
-                        Some(Some(ConstraintContextProof::RepeatedToken { side: *side }))
+                        Some(ContextMatch::Repeated { side: *side })
                     }
                     _ => None,
                 })
@@ -1099,30 +1241,24 @@ fn context_proof(
                 .find_map(|constraint| match constraint {
                     AdjacentTokenConstraint::CopularFrame {
                         role: CopularFrameRole::Nominal,
-                    } if spans.core == *nominal => {
-                        Some(Some(ConstraintContextProof::CopularFrame {
-                            role: CopularFrameRole::Nominal,
-                            selected: nominal.clone(),
-                        }))
-                    }
+                    } if spans.core == *nominal => Some(ContextMatch::Copular {
+                        role: CopularFrameRole::Nominal,
+                        selected: nominal,
+                    }),
                     AdjacentTokenConstraint::CopularFrame {
                         role: CopularFrameRole::Copula,
-                    } if spans.core == *copula => {
-                        Some(Some(ConstraintContextProof::CopularFrame {
-                            role: CopularFrameRole::Copula,
-                            selected: copula.clone(),
-                        }))
-                    }
+                    } if spans.core == *copula => Some(ContextMatch::Copular {
+                        role: CopularFrameRole::Copula,
+                        selected: copula,
+                    }),
                     _ => None,
                 })
         }
         ContextSelection::NominalParticleHost { selected } => {
             if pattern.fine_pos.is_nominal() && spans.core == *selected {
-                Some(Some(ConstraintContextProof::NominalParticleHost {
-                    selected: selected.clone(),
-                }))
+                Some(ContextMatch::NominalParticleHost { selected })
             } else if is_predicate_pos(pattern.fine_pos) && spans.core.start == 0 {
-                Some(None)
+                Some(ContextMatch::None)
             } else {
                 None
             }
@@ -1274,12 +1410,13 @@ fn path_units<'a>(path: &[usize], nodes: &'a [Node<'a>]) -> Vec<Unit<'a>> {
     for (node_position, &node_index) in path.iter().enumerate() {
         let node = &nodes[node_index];
         if node.components.is_empty() {
-            units.extend(node.pos.split('+').map(|pos| Unit {
+            units.extend(node.pos.split('+').enumerate().map(|(pos_slot, pos)| Unit {
                 node_position,
                 source_node_index: node_index,
                 component_index: None,
                 surface: node.surface,
                 pos,
+                pos_slot,
                 span: Some(node.span.clone()),
                 coverage: node.span.clone(),
                 opaque: false,
@@ -1295,6 +1432,7 @@ fn path_units<'a>(path: &[usize], nodes: &'a [Node<'a>]) -> Vec<Unit<'a>> {
                         component_index: Some(component_index),
                         surface: component.surface,
                         pos: component.pos,
+                        pos_slot: 0,
                         span: component.span.clone(),
                         coverage: component.span.clone().unwrap_or_else(|| node.span.clone()),
                         opaque: component.span.is_none(),

@@ -894,6 +894,19 @@ fn path_limit_counts_distinct_support_proofs_not_irrelevant_prefix_combinations(
             limit: 1,
         })
     );
+    let limited_decision = resolver.decide_candidate_with_limits(
+        BoundedTokenContext::current("산속"),
+        CandidateSpans {
+            core: "산".len().."산속".len(),
+            anchor: "산".len().."산속".len(),
+            consumed: "산".len().."산속".len(),
+            token: 0.."산속".len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+        1,
+    );
+    assert_eq!(limited_decision, limited.decision());
 }
 
 #[test]
