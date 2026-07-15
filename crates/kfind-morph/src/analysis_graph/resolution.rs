@@ -855,7 +855,13 @@ fn continuation_prefix_possible(
         .max()
         .unwrap_or(spans.core.end)
         .min(spans.consumed.end);
-    let Some(selected) = suffix_unit_view(units, support, spans.core.end..partial_end) else {
+    let Some(selected) = suffix_unit_view(
+        pattern,
+        units,
+        support,
+        spans.anchor.clone(),
+        spans.core.end..partial_end,
+    ) else {
         return false;
     };
     match pattern.continuation {
@@ -973,23 +979,40 @@ struct Unit<'a> {
     opaque: bool,
 }
 
-struct SuffixUnitView<'units, 'data> {
+struct ContinuationUnitView<'units, 'data> {
     units: &'units [Unit<'data>],
     start: usize,
+    anchor: Range<usize>,
     suffix: Range<usize>,
+    include_opaque_anchor_tail: bool,
+    source_node_index: usize,
+    component_index: Option<usize>,
 }
 
-impl<'units, 'data> SuffixUnitView<'units, 'data> {
+impl<'units, 'data> ContinuationUnitView<'units, 'data> {
     fn iter(&self) -> impl Iterator<Item = &'units Unit<'data>> + '_ {
         self.units[self.start..].iter().filter(|unit| {
-            self.suffix.start < self.suffix.end
-                && unit.coverage.end > self.suffix.start
-                && unit.coverage.start < self.suffix.end
+            self.is_opaque_anchor_tail(unit)
+                || (self.suffix.start < self.suffix.end
+                    && unit.coverage.end > self.suffix.start
+                    && unit.coverage.start < self.suffix.end)
         })
     }
 
     fn is_empty(&self) -> bool {
         self.iter().next().is_none()
+    }
+
+    fn is_opaque_anchor_tail(&self, unit: &Unit<'_>) -> bool {
+        self.include_opaque_anchor_tail
+            && unit.source_node_index == self.source_node_index
+            && unit.span.is_none()
+            && self
+                .component_index
+                .zip(unit.component_index)
+                .is_some_and(|(support, candidate)| candidate > support)
+            && self.anchor.start <= unit.coverage.start
+            && unit.coverage.end <= self.anchor.end
     }
 }
 
@@ -1262,7 +1285,7 @@ fn continuation_units<'a>(
     support: &SupportCandidate,
 ) -> Option<Vec<&'a Unit<'a>>> {
     let suffix = spans.core.end..spans.consumed.end;
-    let selected = suffix_unit_view(units, support, suffix)?
+    let selected = suffix_unit_view(pattern, units, support, spans.anchor.clone(), suffix)?
         .iter()
         .collect::<Vec<_>>();
     let accepted = match pattern.continuation {
@@ -1286,14 +1309,23 @@ fn continuation_units<'a>(
 }
 
 fn suffix_unit_view<'units, 'data>(
+    pattern: &QueryMorphPattern,
     units: &'units [Unit<'data>],
     support: &SupportCandidate,
+    anchor: Range<usize>,
     suffix: Range<usize>,
-) -> Option<SuffixUnitView<'units, 'data>> {
-    let selected = SuffixUnitView {
+) -> Option<ContinuationUnitView<'units, 'data>> {
+    let selected = ContinuationUnitView {
         units,
         start: support.unit_index.saturating_add(1).min(units.len()),
+        anchor,
         suffix,
+        include_opaque_anchor_tail: matches!(
+            pattern.continuation,
+            MorphContinuation::Predicate { .. }
+        ),
+        source_node_index: support.source_node_index,
+        component_index: support.component_index,
     };
     if selected.suffix.start == selected.suffix.end {
         return Some(selected);

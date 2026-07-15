@@ -401,6 +401,75 @@ fn opaque_component_is_stable_when_the_enclosing_node_is_returned() {
 }
 
 #[test]
+fn opaque_anchor_tail_advances_the_predicate_continuation() {
+    let text = "새로움의";
+    let resolver = resolver(&[
+        entry(
+            "새로움",
+            "VA+ETN",
+            "Inflect",
+            "VA",
+            "ETN",
+            "새롭/VA/*+ᄆ/ETN/*",
+            0,
+        ),
+        atomic("의", "JKG", 0),
+        entry(
+            "가의",
+            "VA+ETN+JKG",
+            "Inflect",
+            "VA",
+            "JKG",
+            "가/VA/*+ᄆ/ETN/*+의/JKG/*",
+            0,
+        ),
+    ]);
+    let pattern = QueryMorphPattern::new(DataFinePos::Va, "새롭").with_branch_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: ContinuationState::Terminal,
+            nominal_particles: true,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        CandidateSpans {
+            core: 0.."새로움".len(),
+            anchor: 0.."새로움".len(),
+            consumed: 0..text.len(),
+            token: 0..text.len(),
+        },
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(resolution.outcome, ConstraintOutcome::Supported);
+    assert_eq!(
+        resolver.decide_candidate(
+            BoundedTokenContext::current(text),
+            CandidateSpans {
+                core: 0.."새로움".len(),
+                anchor: 0.."새로움".len(),
+                consumed: 0..text.len(),
+                token: 0..text.len(),
+            },
+            std::slice::from_ref(&pattern),
+            DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+        ),
+        resolution.decision()
+    );
+    assert!(resolution.supported.analyses.iter().any(|analysis| {
+        analysis
+            .continuation
+            .units
+            .iter()
+            .map(|unit| unit.pos.as_str())
+            .eq(["ETN", "JKG"])
+    }));
+}
+
+#[test]
 fn alternative_opaque_lexical_identity_remains_ambiguous() {
     let resolver = resolver(&[
         entry(
