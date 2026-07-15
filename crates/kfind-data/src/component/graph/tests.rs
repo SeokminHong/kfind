@@ -71,6 +71,15 @@ fn graph_projection_matches_full_morphology_source_rows() {
         encode_morphology_graph_resource([7; 32], &entries, &matrix, b"char", b"unknown").unwrap();
     let full = decode_morphology_resource("full", &full_bytes, &[7; 32]).unwrap();
     let graph = decode_morphology_graph_resource("graph", graph_bytes, &[7; 32]).unwrap();
+    assert_eq!(
+        validate_morphology_graph_projection("projection", &full, &graph).unwrap(),
+        MorphologyGraphProjectionStats {
+            surface_count: 5,
+            analysis_count: 5,
+            component_count: 6,
+            matrix_cost_count: 4,
+        }
+    );
 
     for surface in entries.iter().map(|entry| &entry.surface) {
         let input = format!("{surface}밖");

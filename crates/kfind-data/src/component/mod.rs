@@ -14,8 +14,9 @@ mod payload;
 
 pub use graph::{
     MorphologyGraphAnalysis, MorphologyGraphComponent, MorphologyGraphExpressionKind,
-    MorphologyGraphResource, MorphologyGraphResourceStats, decode_morphology_graph_resource,
-    encode_morphology_graph_resource,
+    MorphologyGraphProjectionStats, MorphologyGraphResource, MorphologyGraphResourceStats,
+    decode_morphology_graph_resource, encode_morphology_graph_resource,
+    validate_morphology_graph_projection,
 };
 use payload::{PayloadLayout, StringLayout};
 

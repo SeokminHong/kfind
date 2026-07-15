@@ -9,6 +9,7 @@ use crate::{
 };
 
 mod payload;
+mod projection;
 
 use super::{
     HEADER_LEN, INDEX_KIND_DOUBLE_ARRAY, MAGIC, SECTION_COUNT, StringLayout,
@@ -16,6 +17,7 @@ use super::{
     resource_error, section_ranges, sha256,
 };
 use payload::{GraphPayloadLayout, encode_graph_payload};
+pub use projection::{MorphologyGraphProjectionStats, validate_morphology_graph_projection};
 
 const SCHEMA_VERSION: u32 = 2;
 
