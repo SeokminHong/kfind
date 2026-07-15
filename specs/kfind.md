@@ -83,6 +83,9 @@
   요구하지 않고 완성된 token span의 오른쪽 경계는 유지한다. 이는 gold 어절의 오른쪽 끝과
   일치하는 suffix candidate만 복구한다. 무품사 `smart`, `token`, `any`와 `ending.connective-ji`
   뒤에 문자가 더 남는 left-edge candidate는 바꾸지 않는다.
+- 용언의 `ending.past`와 `ending.future` verifier state는 `ending.connective-eudoe`의 `으되`를
+  소비한다. `치렀으되`, `하겠으되`처럼 선어말어미 뒤의 완성된 token만 복구하며, bare stem에
+  `으되`를 붙이는 별도 경로는 이 규칙으로 추측하지 않는다.
 - `token`은 모든 품사에서 core 시작과 완성된 token span 끝의 토큰 경계를 검사한다.
 - `any`는 좌우 경계를 검사하지 않는다.
 - phrase의 `max-gap`은 앞 atom의 `token.end`와 다음 atom의 `token.start` 사이에 있는 Unicode scalar 수다. 음수이거나 순서가 뒤집힌 span은 결합하지 않는다.

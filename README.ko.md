@@ -355,19 +355,25 @@ resource 초기화와 literal scan을 하나의 점수로 합치지 않습니다
 
 | workflow | 품질(TP / FP / FN) | CLI wall | 처리량 | peak RSS |
 | --- | ---: | ---: | ---: | ---: |
-| Agent: embedded + `any` + explicit POS | 482 / 11 / 18 | 17.8 ms | 5,612.9 MiB/s | 7.4 MiB |
-| Human: full POS + `smart` + untagged | 420 / 0 / 80 | 316.7 ms | 315.7 MiB/s | 92.2 MiB |
+| Agent: embedded + `any` + explicit POS | 482 / 11 / 18 | 17.2 ms | 5,810.1 MiB/s | 7.4 MiB |
+| Human: full POS + `smart` + untagged | 420 / 0 / 80 | 314.6 ms | 317.9 MiB/s | 92.1 MiB |
 
 ![제품 workflow별 품질과 CLI 비용](docs/benchmarks/assets/product-workflows.svg)
 
 Agent와 Human 품질 행은 negative query 계약이 서로 다르므로 backend 순위가 아니라 각 제품
-workflow를 설명합니다. 제품 행은 2026-07-15 후보 revision `4b25582`의 결과입니다.
+workflow를 설명합니다. 제품 행은 2026-07-15 후보 revision `0ceb458`의 결과입니다.
 
 교차 검증된 사전 활용형 12,888개 중 12,758개는 생산 규칙으로 생성하고, 나머지 130개만
 enriched 데이터에 저장합니다. 양방향 용언·부사 파생 관계 153개도 저장해 전체 표면형 계층은
 27,707바이트입니다. 새 hard-negative FP 없이 Agent와 Human FN을 각각 1건 줄였습니다. Agent
 morphology cases/s는 1.05% 낮았고 Human morphology와 두 CLI wall 측정 범위는 겹쳤습니다.
 
+`ending.connective-eudoe` verifier는 과거·미래 선어말어미 state 뒤에서만 `으되`를 소비합니다.
+`치르다 -> 치렀으되`를 복구해 development embedded와 full-POS `smart`의 FN을 각각 1건
+줄였습니다. 고정 test, Agent, Human과 hard-negative 품질은 바뀌지 않았고 성능 범위는
+기준선과 겹쳤습니다.
+
+- [2026-07-15 선어말어미 뒤 `-으되` continuation](docs/benchmarks/2026-07-15-eudoe-continuation.md)
 - [2026-07-15 제한된 사전 표면형 계층](docs/benchmarks/2026-07-15-dictionary-surface-lexicon.md)
 - [2026-07-14 ㄷ·ㅅ·ㅂ·ㅎ 불규칙 enriched 용언 lexicon](docs/benchmarks/2026-07-14-consonant-irregular-enriched-lexicon.md)
 - [2026-07-14 르·러 불규칙과 enriched 용언 lexicon](docs/benchmarks/2026-07-14-reu-reo-enriched-lexicon.md)
@@ -405,8 +411,8 @@ Agent와 User는 2026-07-15에 측정했습니다. 외부 행은 fixture, schema
 
 | backend | 입력·버전 | TP / FP / FN | precision | recall | F1 | init | cases/s | p95 | peak RSS |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Agent | embedded + `any`, 품사 명시 | 482 / 11 / 18 | 97.77% | 96.40% | 97.08% | 0.0012초 | 14,563.8 | 0.1558 ms | 5.2 MiB |
-| User | full POS + `smart`, 품사 생략 | 420 / 0 / 80 | 100.00% | 84.00% | 91.30% | 0.4367초 | 10,382.6 | 0.2349 ms | 92.2 MiB |
+| Agent | embedded + `any`, 품사 명시 | 482 / 11 / 18 | 97.77% | 96.40% | 97.08% | 0.0012초 | 14,450.3 | 0.1551 ms | 5.2 MiB |
+| User | full POS + `smart`, 품사 생략 | 420 / 0 / 80 | 100.00% | 84.00% | 91.30% | 0.4323초 | 10,404.8 | 0.2348 ms | 92.2 MiB |
 | Kiwi | snapshot 0.23.2, model 0.23.0, 품사 명시 | 426 / 0 / 74 | 100.00% | 85.20% | 92.01% | 1.7204초 | 1,672.0 | 1.1904 ms | 528.2 MiB |
 | Lindera | snapshot 4.0.0, embedded-ko-dic, 품사 명시 | 393 / 0 / 107 | 100.00% | 78.60% | 88.02% | 0.0301초 | 15,609.1 | 0.1113 ms | 193.1 MiB |
 | MeCab-ko | snapshot 1.0.2, dictionary 1.0.0, 품사 명시 | 403 / 0 / 97 | 100.00% | 80.60% | 89.26% | 0.0003초 | 10,789.7 | 0.1940 ms | 102.8 MiB |

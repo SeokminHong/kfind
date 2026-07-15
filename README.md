@@ -378,14 +378,14 @@ files.
 
 | Workflow | Quality (TP / FP / FN) | CLI wall | Throughput | Peak RSS |
 | --- | ---: | ---: | ---: | ---: |
-| Agent: embedded + `any` + explicit POS | 482 / 11 / 18 | 17.8 ms | 5,612.9 MiB/s | 7.4 MiB |
-| Human: full POS + `smart` + untagged | 420 / 0 / 80 | 316.7 ms | 315.7 MiB/s | 92.2 MiB |
+| Agent: embedded + `any` + explicit POS | 482 / 11 / 18 | 17.2 ms | 5,810.1 MiB/s | 7.4 MiB |
+| Human: full POS + `smart` + untagged | 420 / 0 / 80 | 314.6 ms | 317.9 MiB/s | 92.1 MiB |
 
 ![Product workflow quality and CLI cost](docs/benchmarks/assets/product-workflows.svg)
 
 The agent and human quality rows use different negative-query contracts, so
 they describe their product workflows rather than a head-to-head backend rank.
-The product rows are from the 2026-07-15 candidate revision `4b25582`.
+The product rows are from the 2026-07-15 candidate revision `0ceb458`.
 
 The enriched generator stores only 130 of 12,888 cross-checked dictionary
 conjugations because productive analysis generates the other 12,758. It also
@@ -394,6 +394,12 @@ surface layer reduced Agent and Human FN by one without a new hard-negative FP.
 Agent morphology cases/s was 1.05% lower; Human morphology and both CLI wall
 time ranges overlapped their baselines.
 
+The `ending.connective-eudoe` verifier consumes `으되` only after the past or
+future prefinal state. It recovered `치르다 -> 치렀으되` and reduced development
+embedded and full-POS `smart` FN by one each. Fixed test, Agent, Human, and
+hard-negative quality did not change; performance ranges overlapped the baseline.
+
+- [2026-07-15 `-으되` continuation after prefinal endings](docs/benchmarks/2026-07-15-eudoe-continuation.md)
 - [2026-07-15 bounded dictionary surface lexicon](docs/benchmarks/2026-07-15-dictionary-surface-lexicon.md)
 - [2026-07-14 D/S/B/H irregular enriched predicate lexicon](docs/benchmarks/2026-07-14-consonant-irregular-enriched-lexicon.md)
 - [2026-07-14 reu/reo irregular and enriched predicate lexicon](docs/benchmarks/2026-07-14-reu-reo-enriched-lexicon.md)
@@ -434,8 +440,8 @@ schema, version, and configuration did not change.
 
 | Backend | Input and version | TP / FP / FN | Precision | Recall | F1 | Init | Cases/s | p95 | Peak RSS |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Agent | embedded + `any`, explicit POS | 482 / 11 / 18 | 97.77% | 96.40% | 97.08% | 0.0012 s | 14,563.8 | 0.1558 ms | 5.2 MiB |
-| User | full POS + `smart`, untagged | 420 / 0 / 80 | 100.00% | 84.00% | 91.30% | 0.4367 s | 10,382.6 | 0.2349 ms | 92.2 MiB |
+| Agent | embedded + `any`, explicit POS | 482 / 11 / 18 | 97.77% | 96.40% | 97.08% | 0.0012 s | 14,450.3 | 0.1551 ms | 5.2 MiB |
+| User | full POS + `smart`, untagged | 420 / 0 / 80 | 100.00% | 84.00% | 91.30% | 0.4323 s | 10,404.8 | 0.2348 ms | 92.2 MiB |
 | Kiwi | snapshot 0.23.2, model 0.23.0, explicit POS | 426 / 0 / 74 | 100.00% | 85.20% | 92.01% | 1.7204 s | 1,672.0 | 1.1904 ms | 528.2 MiB |
 | Lindera | snapshot 4.0.0, embedded-ko-dic, explicit POS | 393 / 0 / 107 | 100.00% | 78.60% | 88.02% | 0.0301 s | 15,609.1 | 0.1113 ms | 193.1 MiB |
 | MeCab-ko | snapshot 1.0.2, dictionary 1.0.0, explicit POS | 403 / 0 / 97 | 100.00% | 80.60% | 89.26% | 0.0003 s | 10,789.7 | 0.1940 ms | 102.8 MiB |
