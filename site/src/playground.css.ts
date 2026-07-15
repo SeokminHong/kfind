@@ -61,7 +61,7 @@ globalStyle('.field', {
   gap: vars.space.xsmall,
 });
 
-globalStyle('.field label, .preset-fieldset legend', {
+globalStyle('.field label', {
   color: vars.color.heading,
   fontSize: '0.74rem',
   fontWeight: 650,
@@ -78,15 +78,6 @@ globalStyle('.text-control', {
 globalStyle('input.text-control', {
   height: '2.5rem',
   paddingInline: vars.space.small,
-});
-
-globalStyle('textarea.text-control', {
-  minHeight: '10rem',
-  resize: 'vertical',
-  padding: vars.space.small,
-  fontFamily: '"SFMono-Regular", Consolas, monospace',
-  fontSize: '0.76rem',
-  lineHeight: 1.6,
 });
 
 globalStyle('.text-control:focus', {
@@ -106,34 +97,15 @@ globalStyle('.field-query p', {
   fontSize: '0.68rem',
 });
 
-globalStyle('.preset-fieldset', {
-  margin: 0,
-  padding: 0,
-  border: 0,
-});
-
-globalStyle('.preset-fieldset legend', {
-  marginBlockEnd: vars.space.xsmall,
-});
-
-globalStyle('.preset-list', {
-  display: 'flex',
-  flexWrap: 'wrap',
+globalStyle('.preset-picker', {
+  display: 'grid',
   gap: vars.space.xsmall,
 });
 
-globalStyle('.preset-list button', {
-  padding: '0.32rem 0.55rem',
-  border: `1px solid ${vars.color.borderStrong}`,
-  borderRadius: vars.radius.small,
-  background: vars.color.surface,
+globalStyle('.preset-picker p', {
+  margin: 0,
   color: vars.color.muted,
-  fontSize: '0.7rem',
-});
-
-globalStyle('.preset-list button:hover', {
-  borderColor: vars.color.link,
-  color: vars.color.link,
+  fontSize: '0.68rem',
 });
 
 globalStyle('.option-grid', {
@@ -144,17 +116,6 @@ globalStyle('.option-grid', {
 
 globalStyle('.field-gap', {
   gridColumn: '1 / -1',
-});
-
-globalStyle('.field-label-row', {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-});
-
-globalStyle('.field-label-row span', {
-  color: vars.color.subtle,
-  fontSize: '0.68rem',
 });
 
 globalStyle('.run-button', {
@@ -209,6 +170,10 @@ globalStyle('.resource-loader span[data-state="error"]', {
   color: vars.color.danger,
 });
 
+globalStyle('.resource-loader span[data-state="needed"]', {
+  color: vars.color.warning,
+});
+
 globalStyle('.resource-loader button', {
   minHeight: '2.3rem',
   border: `1px solid ${vars.color.borderStrong}`,
@@ -244,7 +209,7 @@ globalStyle('.output-label', {
   textTransform: 'uppercase',
 });
 
-globalStyle('#result-summary', {
+globalStyle('.playground-output #result-summary', {
   margin: 0,
   color: vars.color.heading,
   fontSize: '0.82rem',
@@ -258,28 +223,6 @@ globalStyle('.execution-time', {
   color: vars.color.success,
   fontFamily: '"SFMono-Regular", Consolas, monospace',
   fontSize: '0.65rem',
-});
-
-globalStyle('.result-preview', {
-  minHeight: '11rem',
-  padding: vars.space.medium,
-  overflow: 'auto',
-  border: `1px solid ${vars.color.border}`,
-  borderRadius: vars.radius.small,
-  background: vars.color.codeBackground,
-  color: vars.color.codeText,
-  fontSize: '0.82rem',
-  lineHeight: 1.9,
-  whiteSpace: 'pre-wrap',
-  wordBreak: 'break-word',
-});
-
-globalStyle('.result-preview mark', {
-  padding: '0.05em 0.12em',
-  borderBlockEnd: `1px solid ${vars.color.markBorder}`,
-  background: vars.color.mark,
-  color: vars.color.heading,
-  fontWeight: 650,
 });
 
 globalStyle('.result-error', {
@@ -362,11 +305,8 @@ globalStyle('.raw-details > button', {
 globalStyle('.raw-details pre', {
   maxHeight: '18rem',
   marginBlockStart: 0,
+  overflow: 'auto',
   fontSize: '0.68rem',
-});
-
-globalStyle('.playground-note', {
-  marginBlockStart: vars.space.medium,
 });
 
 globalStyle('.playground-layout', {
