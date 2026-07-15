@@ -68,17 +68,15 @@ const FUTURE_SUFFIXES: &[Suffix] = &[
     suffix("고", &["ending.connective-go"]),
 ];
 
-const DECLARATIVE_SUFFIXES: &[Suffix] = &[
-    suffix("면서", &["ending.quotative-myeonseo"]),
-    suffix("는데", &["ending.quotative-neunde"]),
-    suffix("고", &["ending.quotative-go"]),
-    suffix("는", &["ending.quotative-adnominal"]),
-    suffix("던", &["ending.quotative-retrospective"]),
-    suffix("면", &["ending.conditional"]),
-    suffix("니", &["ending.quotative-ni"]),
-    suffix("며", &["ending.quotative-myeo"]),
-    suffix("지", &["ending.quotative-ji"]),
-];
+const DECLARATIVE_MYEONSEO: Suffix = suffix("면서", &["ending.quotative-myeonseo"]);
+const DECLARATIVE_NEUNDE: Suffix = suffix("는데", &["ending.quotative-neunde"]);
+const DECLARATIVE_GO: Suffix = suffix("고", &["ending.quotative-go"]);
+const DECLARATIVE_ADNOMINAL: Suffix = suffix("는", &["ending.quotative-adnominal"]);
+const DECLARATIVE_RETROSPECTIVE: Suffix = suffix("던", &["ending.quotative-retrospective"]);
+const DECLARATIVE_CONDITIONAL: Suffix = suffix("면", &["ending.conditional"]);
+const DECLARATIVE_NI: Suffix = suffix("니", &["ending.quotative-ni"]);
+const DECLARATIVE_MYEO: Suffix = suffix("며", &["ending.quotative-myeo"]);
+const DECLARATIVE_JI: Suffix = suffix("지", &["ending.quotative-ji"]);
 
 const EU_SUFFIXES: &[Suffix] = &[
     suffix("리라고", &["ending.prospective-quotative"]),
@@ -127,7 +125,9 @@ pub fn verify_predicate_continuation(
         ContinuationState::AOrEo => A_OR_EO_SUFFIXES,
         ContinuationState::Past => PAST_SUFFIXES,
         ContinuationState::Future => FUTURE_SUFFIXES,
-        ContinuationState::Declarative => DECLARATIVE_SUFFIXES,
+        ContinuationState::Declarative => {
+            return Some(matched(anchor.len(), declarative_suffix(following)));
+        }
         ContinuationState::Eu => EU_SUFFIXES,
     };
 
@@ -142,6 +142,21 @@ pub fn verify_predicate_continuation(
         return None;
     }
     Some(matched(anchor.len(), suffix))
+}
+
+fn declarative_suffix(following: &str) -> Option<&'static Suffix> {
+    match following.chars().next()? {
+        '면' if following.starts_with(DECLARATIVE_MYEONSEO.surface) => Some(&DECLARATIVE_MYEONSEO),
+        '면' => Some(&DECLARATIVE_CONDITIONAL),
+        '는' if following.starts_with(DECLARATIVE_NEUNDE.surface) => Some(&DECLARATIVE_NEUNDE),
+        '는' => Some(&DECLARATIVE_ADNOMINAL),
+        '고' => Some(&DECLARATIVE_GO),
+        '던' => Some(&DECLARATIVE_RETROSPECTIVE),
+        '니' => Some(&DECLARATIVE_NI),
+        '며' => Some(&DECLARATIVE_MYEO),
+        '지' => Some(&DECLARATIVE_JI),
+        _ => None,
+    }
 }
 
 fn matched(anchor_len: usize, suffix: Option<&Suffix>) -> PredicateContinuationMatch {
