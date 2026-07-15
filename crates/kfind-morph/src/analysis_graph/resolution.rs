@@ -232,6 +232,7 @@ pub(super) enum ContextSelection {
 #[derive(Debug, Default)]
 pub(super) struct PreparedTokenSummary {
     nominal_particle_hosts: OnceLock<Vec<Range<usize>>>,
+    copular_splits: OnceLock<Vec<usize>>,
 }
 
 impl PreparedTokenSummary {
@@ -242,6 +243,15 @@ impl PreparedTokenSummary {
     ) -> &'a [Range<usize>] {
         self.nominal_particle_hosts
             .get_or_init(|| nominal_particle_host_candidates(current_text, current))
+    }
+
+    pub fn copular_splits<'a>(
+        &'a self,
+        current_text: &str,
+        current: &TokenGraph<'_>,
+    ) -> &'a [usize] {
+        self.copular_splits
+            .get_or_init(|| copular_split_candidates(current_text.len(), current))
     }
 }
 
@@ -267,13 +277,14 @@ pub(super) fn select_context(
     context: BoundedTokenContext<'_>,
     current: &TokenGraph<'_>,
     particle_hosts: &[Range<usize>],
+    copular_splits: &[usize],
     previous: Option<&TokenGraph<'_>>,
     next: Option<&TokenGraph<'_>>,
 ) -> ContextSelection {
     let repeated = repeated_selection(context, current);
-    let copular = previous
-        .zip(next)
-        .and_then(|(previous, next)| copular_selection(context.current, previous, current, next));
+    let copular = previous.zip(next).and_then(|(previous, next)| {
+        copular_selection(context.current.len(), previous, next, copular_splits)
+    });
     match (
         repeated.is_some(),
         copular.is_some(),
@@ -2212,42 +2223,121 @@ fn repeated_selection(
 }
 
 fn copular_selection(
-    current_text: &str,
+    token_len: usize,
     previous: &TokenGraph<'_>,
-    current: &TokenGraph<'_>,
     next: &TokenGraph<'_>,
+    copular_splits: &[usize],
 ) -> Option<(Range<usize>, Range<usize>)> {
     if !has_pos_sequence(previous, &["VCN", "EC"])
         || !starts_with_pos(next, |pos| matches!(pos, "NNB" | "NNBC"))
     {
         return None;
     }
+    let [split] = copular_splits else {
+        return None;
+    };
+    Some((0..*split, *split..token_len))
+}
+
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct CopularPathState {
+    stage: u8,
+    split: usize,
+    suffix_end: usize,
+}
+
+fn copular_split_candidates(token_len: usize, graph: &TokenGraph<'_>) -> Vec<usize> {
     let mut splits = BTreeSet::new();
-    for path in current.witness_paths() {
-        let units = path_units(&path, current.nodes());
-        for (split, _) in current_text.char_indices().skip(1) {
-            let prefix = units
-                .iter()
-                .filter(|unit| unit.coverage.end <= split)
-                .collect::<Vec<_>>();
-            let suffix = units
-                .iter()
-                .filter(|unit| unit.coverage.start >= split)
-                .collect::<Vec<_>>();
-            if prefix.len() == 1
-                && source_pos(prefix[0].pos).is_some_and(DataFinePos::is_nominal)
-                && exact_coverage(&prefix, 0..split)
-                && suffix.iter().map(|unit| unit.pos).eq(["VCP", "ETM"])
-                && enclosing_coverage(&suffix, split..current_text.len())
+    let initial = CopularPathState {
+        stage: 0,
+        split: 0,
+        suffix_end: 0,
+    };
+    let mut stack = graph
+        .nodes()
+        .iter()
+        .enumerate()
+        .filter(|(index, node)| graph.is_on_complete_path(*index) && node.span.start == 0)
+        .filter_map(|(index, _)| {
+            advance_copular_state(initial, &path_units(&[index], graph.nodes()), token_len)
+                .map(|state| (index, state))
+        })
+        .collect::<Vec<_>>();
+    let mut visited = BTreeSet::new();
+    while let Some((index, state)) = stack.pop() {
+        if !visited.insert((index, state)) {
+            continue;
+        }
+        if graph.nodes()[index].span.end == token_len {
+            if state.stage == 3 && state.suffix_end == token_len {
+                splits.insert(state.split);
+            }
+            continue;
+        }
+        for &successor in graph.successors(index) {
+            if !graph.is_on_complete_path(successor) {
+                continue;
+            }
+            if let Some(next_state) =
+                advance_copular_state(state, &path_units(&[successor], graph.nodes()), token_len)
             {
-                splits.insert(split);
+                stack.push((successor, next_state));
             }
         }
     }
-    (splits.len() == 1).then(|| {
-        let split = *splits.first().expect("single copular split");
-        (0..split, split..current_text.len())
-    })
+    splits.into_iter().collect()
+}
+
+fn advance_copular_state(
+    mut state: CopularPathState,
+    units: &[Unit<'_>],
+    token_len: usize,
+) -> Option<CopularPathState> {
+    for unit in units {
+        if state.stage > 0 && unit.coverage.start < state.split && unit.coverage.end > state.split {
+            continue;
+        }
+        match state.stage {
+            0 => {
+                let span = unit.span.as_ref()?;
+                if !source_pos(unit.pos).is_some_and(DataFinePos::is_nominal)
+                    || span.start != 0
+                    || span.end == 0
+                    || span.end > token_len
+                {
+                    return None;
+                }
+                state.stage = 1;
+                state.split = span.end;
+                state.suffix_end = span.end;
+            }
+            1 if unit.pos == "VCP" => {
+                advance_copular_suffix(&mut state, unit, token_len)?;
+                state.stage = 2;
+            }
+            2 if unit.pos == "ETM" => {
+                advance_copular_suffix(&mut state, unit, token_len)?;
+                state.stage = 3;
+            }
+            _ => return None,
+        }
+    }
+    Some(state)
+}
+
+fn advance_copular_suffix(
+    state: &mut CopularPathState,
+    unit: &Unit<'_>,
+    token_len: usize,
+) -> Option<()> {
+    if unit.coverage.start < state.split
+        || unit.coverage.start > state.suffix_end
+        || unit.coverage.end > token_len
+    {
+        return None;
+    }
+    state.suffix_end = state.suffix_end.max(unit.coverage.end);
+    Some(())
 }
 
 fn nominal_particle_host_candidates(
@@ -2425,18 +2515,59 @@ fn has_complete_pos_matching(graph: &TokenGraph<'_>, accepts: impl Fn(&str) -> b
 }
 
 fn has_pos_sequence(graph: &TokenGraph<'_>, expected: &[&str]) -> bool {
-    graph.witness_paths().iter().any(|path| {
-        path.iter()
-            .flat_map(|&index| graph.nodes()[index].pos.split('+'))
-            .eq(expected.iter().copied())
-    })
+    if expected.is_empty() {
+        return false;
+    }
+    let mut stack = graph
+        .nodes()
+        .iter()
+        .enumerate()
+        .filter(|(index, node)| graph.is_on_complete_path(*index) && node.span.start == 0)
+        .filter_map(|(index, node)| {
+            advance_pos_sequence(node.pos, expected, 0).map(|matched| (index, matched))
+        })
+        .collect::<Vec<_>>();
+    let mut visited = vec![vec![false; expected.len() + 1]; graph.node_count()];
+    while let Some((index, matched)) = stack.pop() {
+        if visited[index][matched] {
+            continue;
+        }
+        visited[index][matched] = true;
+        if graph.successors(index).is_empty() {
+            if matched == expected.len() {
+                return true;
+            }
+            continue;
+        }
+        for &successor in graph.successors(index) {
+            if !graph.is_on_complete_path(successor) {
+                continue;
+            }
+            if let Some(next_matched) =
+                advance_pos_sequence(graph.nodes()[successor].pos, expected, matched)
+            {
+                stack.push((successor, next_matched));
+            }
+        }
+    }
+    false
+}
+
+fn advance_pos_sequence(pos: &str, expected: &[&str], mut matched: usize) -> Option<usize> {
+    for pos in pos.split('+') {
+        if expected.get(matched).copied() != Some(pos) {
+            return None;
+        }
+        matched += 1;
+    }
+    Some(matched)
 }
 
 fn starts_with_pos(graph: &TokenGraph<'_>, accepts: impl Fn(&str) -> bool) -> bool {
-    graph.witness_paths().iter().any(|path| {
-        path.first()
-            .and_then(|&index| graph.nodes()[index].pos.split('+').next())
-            .is_some_and(&accepts)
+    graph.nodes().iter().enumerate().any(|(index, node)| {
+        graph.is_on_complete_path(index)
+            && node.span.start == 0
+            && node.pos.split('+').next().is_some_and(&accepts)
     })
 }
 

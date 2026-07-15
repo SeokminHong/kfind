@@ -687,10 +687,16 @@ impl ConstraintResolver {
         } else {
             &[]
         };
+        let copular_splits = if previous.is_some() && next.is_some() {
+            summary.copular_splits(context.current, current)
+        } else {
+            &[]
+        };
         Ok(resolution::select_context(
             context,
             current,
             particle_hosts,
+            copular_splits,
             previous.as_ref(),
             next.as_ref(),
         ))
