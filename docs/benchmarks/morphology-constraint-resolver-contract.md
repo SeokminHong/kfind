@@ -17,27 +17,27 @@
 | `runtime-composed` | source node를 이어 완전한 token 경로를 구성했지만 whole-token expression 근거는 없음 |
 | `unknown` | known complete path가 없을 때 unknown model로 구성한 경로 |
 
-source가 명시한 whole-token 분석은 우연히 이어진 runtime composition보다 높은 provenance 등급이다. source whole 분석이 있으면 그 등급 안에서 지지와 모순을 판정하고 runtime composition은 proof에 남기되 verdict를 바꾸지 않는다. 같은 등급의 source 분석끼리는 연결 비용이나 word cost로 하나를 고르지 않으며 known complete path가 있으면 unknown path를 모순 근거로 사용하지 않는다.
+source가 명시한 whole-token 분석은 우연히 이어진 runtime composition보다 높은 provenance 등급이다. source whole 분석이 있으면 그 등급에서 query 제약의 satisfiability를 판정하고 runtime composition은 proof에 남기되 verdict를 바꾸지 않는다. 같은 등급의 source 분석끼리는 연결 비용이나 word cost로 하나를 고르지 않고 query lexical identity, fine POS와 구조 관계를 만족하는 경로가 하나라도 있으면 지지 근거이며, known complete path가 있으면 unknown path를 모순 근거로 사용하지 않는다.
 
 ## 판정
 
 `ConstraintResolver`는 `Proven`, `Contradicted`, `Ambiguous`, `Unavailable`과 proof를 반환한다.
 
-- `Proven`: 완전한 분석들이 query pattern을 지지하고 같은 근거 등급에 양립 가능한 반대 분석이 없다.
-- `Contradicted`: 완전한 분석들이 존재하지만 모두 query pattern과 모순된다.
-- `Ambiguous`: query를 지지하는 분석과 반대 분석이 함께 존재하거나 span을 안정적으로 투영할 수 없는 `fused`·`unaligned` 관계가 남는다.
+- `Proven`: 선택된 provenance 등급에 lexical identity, fine POS와 구조 관계를 모두 만족하는 완전한 분석이 있다.
+- `Contradicted`: 완전한 분석은 있지만 query pattern을 만족하는 분석이 없다.
+- `Ambiguous`: strict subtoken 노출 여부나 span을 안정적으로 투영할 수 없는 `fused`·`unaligned` 관계처럼 query가 요구한 span 관계를 하나로 정할 수 없다.
 - `Unavailable`: graph resource가 없거나 손상됐거나 source가 다르거나 token graph 상한을 넘는다.
 
-bounded context는 별도 예외 분기가 아니라 현재 token과 인접 token graph에 추가하는 구조 제약이다. 반복 token, `VCN+EC` 앞 문맥과 `NNB/NNBC` 뒤 문맥은 후보 분석을 줄일 수 있지만 경쟁하는 whole-token 분석을 삭제하지 않는다. 따라서 `내일`의 whole noun과 `내+이+ㄹ`, `매일`의 noun/adverb와 `매+이+ㄹ`처럼 양립 가능한 분석은 surface에 관계없이 `Ambiguous`다.
+bounded context는 별도 예외 분기가 아니라 현재 token과 인접 token graph에 추가하는 구조 제약이다. 반복 token, `VCN+EC` 앞 문맥과 `NNB/NNBC` 뒤 문맥은 query pattern을 만족할 수 있는 경로를 줄이며, query와 다른 품사나 분해 경로가 함께 있다는 이유만으로 지지 경로를 모순으로 바꾸지 않는다.
 
 ## Compound exposure
 
-verifier가 소비한 candidate token이 surrounding token의 strict subspan이고 그 안의 `source-component` 근거와 enclosing whole-token 분석이 함께 있으면 resolver는 `CompoundExposure` ambiguity를 반환한다. predicate 활용과 조사 연쇄처럼 candidate core는 strict subspan이어도 verifier가 surrounding token 전체를 소비했다면 compound exposure가 아니다. profile은 이 ambiguity만 다음처럼 해석하며 다른 ambiguity에는 적용하지 않는다.
+verifier가 소비한 candidate token이 surrounding token의 strict subspan이고 그 안의 `source-component` 또는 runtime decomposition 지지 근거가 있으면 resolver는 `CompoundExposure` ambiguity를 반환한다. predicate 활용과 조사 연쇄처럼 candidate core는 strict subspan이어도 verifier가 surrounding token 전체를 소비했다면 compound exposure가 아니다. profile은 이 ambiguity만 다음처럼 해석하며 다른 ambiguity에는 적용하지 않는다.
 
 | profile | 해석 |
 | --- | --- |
 | `opaque` | component를 노출하지 않음 |
-| `transparent` | 모든 `source-component`를 노출 |
+| `transparent` | 모든 component와 runtime decomposition을 노출 |
 | `explicit` | query가 별도 component 노출 capability를 선언한 경우만 노출 |
 
 전역 `opaque`는 `속 -> 산속`, `기업 -> 기업주` positive를 잃고 전역 `transparent`는 `학교 -> 대학교` hard-negative를 허용한다. `explicit`은 이 충돌을 caller 선택으로 이동하지만 capability가 없는 현재 제품 결과를 자동 보존하지 않는다. 세 profile을 같은 development와 hard-negative에서 shadow 평가하고 품질 채택 조건을 통과한 profile이 없으면 제품 전환은 실패로 기록한다.
