@@ -12,6 +12,7 @@ from report import (
     append_product_workflows,
     append_product_use_cases,
     classify_component_paths,
+    classify_component_source_provenance,
     classify_primary_cause,
     kfind_profile_comparison,
     product_persona_comparison,
@@ -761,6 +762,48 @@ class ShadowVerificationTests(unittest.TestCase):
         append_component_shadow_table(lines, shadow)
 
         self.assertIn("| kfind-embedded | 5 | 3 | 2 |", "\n".join(lines))
+
+    def test_classifies_source_provenance_for_both_projections(self) -> None:
+        atomic = {
+            "kind": "source-atomic",
+            "analyses": [{"analysis_type": "*", "expression": "*"}],
+        }
+        decomposition = {
+            "kind": "source-decomposition",
+            "analyses": [
+                {"analysis_type": "Compound", "expression": "산/NNG/*+속/NNG/*"}
+            ],
+        }
+        evidence = {
+            "decision": "reject",
+            "include_cost": 20,
+            "exclude_cost": 10,
+            "paths": [
+                {
+                    "cost": 20,
+                    "includes_query": True,
+                    "nodes": [{"source": atomic}, {"source": atomic}],
+                },
+                {
+                    "cost": 10,
+                    "includes_query": False,
+                    "nodes": [{"source": decomposition}],
+                },
+            ],
+        }
+        classification = classify_component_source_provenance(
+            {"case": {"component": [evidence]}},
+            {"case": {"expected": True}},
+        )
+
+        self.assertEqual(
+            {"runtime-composed": 1},
+            classification["path_types_by_class"]["positive"]["include"],
+        )
+        self.assertEqual(
+            {"source-decomposition": 1},
+            classification["path_types_by_class"]["positive"]["exclude"],
+        )
 
 
 if __name__ == "__main__":

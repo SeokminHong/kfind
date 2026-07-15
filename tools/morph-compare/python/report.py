@@ -10,6 +10,7 @@ try:
         append_component_shadow_table,
         append_shadow_verification,
         classify_component_paths,
+        classify_component_source_provenance,
         shadow_verification_summary,
     )
 except ImportError:
@@ -18,6 +19,7 @@ except ImportError:
         append_component_shadow_table,
         append_shadow_verification,
         classify_component_paths,
+        classify_component_source_provenance,
         shadow_verification_summary,
     )
 

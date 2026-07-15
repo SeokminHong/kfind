@@ -57,6 +57,9 @@ def shadow_verification_summary(
             component_cases_by_decision[decision] += 1
 
     path_classification = classify_component_paths(by_case, case_metadata)
+    source_provenance = classify_component_source_provenance(
+        by_case, case_metadata
+    )
     def sorted_outcomes(
         grouped: dict[str, dict[str, int]],
     ) -> dict[str, dict[str, int]]:
@@ -80,11 +83,47 @@ def shadow_verification_summary(
             component_outcomes_by_class
         ),
         "component_path_classification": path_classification,
+        "component_source_provenance": source_provenance,
         "component_projection_equivalence": {
             "comparisons": projection_comparisons,
             "mismatches": projection_mismatches,
         },
         "by_case": by_case,
+    }
+
+
+def classify_component_source_provenance(
+    by_case: dict[str, dict[str, object]],
+    case_metadata: dict[str, dict[str, object]],
+) -> dict[str, object]:
+    by_case_classification: dict[str, dict[str, object]] = {}
+    path_types: dict[str, dict[str, dict[str, int]]] = defaultdict(
+        lambda: defaultdict(lambda: defaultdict(int))
+    )
+    for case_id, counters in by_case.items():
+        case = case_metadata.get(case_id)
+        class_name = (
+            "positive" if case is not None and bool(case["expected"]) else "negative"
+        )
+        projections: dict[str, object] = {}
+        evidence = counters.get("component", [])
+        if not isinstance(evidence, list):
+            continue
+        for projection, includes_query in (("include", True), ("exclude", False)):
+            selected = _select_component_projection(evidence, includes_query)
+            if selected is None:
+                continue
+            classified = _classify_source_path(selected)
+            projections[projection] = classified
+            path_types[class_name][projection][str(classified["path_type"])] += 1
+        if projections:
+            by_case_classification[case_id] = {
+                "class": class_name,
+                "projections": projections,
+            }
+    return {
+        "path_types_by_class": _sorted_nested_counts(path_types),
+        "by_case": by_case_classification,
     }
 
 
@@ -160,6 +199,38 @@ def _select_component_path(
     return min(candidates, key=lambda item: (item[0], item[1]))[2] if candidates else None
 
 
+def _select_component_projection(
+    evidence: list[object], includes_query: bool
+) -> dict[str, object] | None:
+    cost_name = "include_cost" if includes_query else "exclude_cost"
+    candidates: list[tuple[int, tuple[object, ...], dict[str, object]]] = []
+    for raw_evidence in evidence:
+        if not isinstance(raw_evidence, dict):
+            continue
+        projection_cost = raw_evidence.get(cost_name)
+        paths = raw_evidence.get("paths")
+        if not isinstance(projection_cost, int) or not isinstance(paths, list):
+            continue
+        matching_paths = [
+            path
+            for path in paths
+            if isinstance(path, dict)
+            and path.get("includes_query") is includes_query
+            and isinstance(path.get("cost"), int)
+        ]
+        if not matching_paths:
+            continue
+        path = min(matching_paths, key=_component_path_sort_key)
+        candidates.append(
+            (
+                projection_cost,
+                _component_path_sort_key(path),
+                raw_evidence | {"selected_path": path},
+            )
+        )
+    return min(candidates, key=lambda item: (item[0], item[1]))[2] if candidates else None
+
+
 def _component_path_sort_key(path: dict[str, object]) -> tuple[object, ...]:
     nodes = path.get("nodes")
     node_keys = tuple(_component_node_sort_key(node) for node in nodes or [])
@@ -218,6 +289,34 @@ def _classify_component_path(
         "cost": int(path["cost"]),
         "pos_sequence": pos_sequence,
         "has_unknown": has_unknown,
+    }
+
+
+def _classify_source_path(evidence: dict[str, object]) -> dict[str, object]:
+    path = evidence["selected_path"]
+    nodes = [node for node in path["nodes"] if isinstance(node, dict)]
+    node_kinds = []
+    for node in nodes:
+        source = node.get("source")
+        node_kinds.append(
+            str(source.get("kind")) if isinstance(source, dict) else "unresolved"
+        )
+    if not node_kinds or "unresolved" in node_kinds:
+        path_type = "unresolved"
+    elif "unknown" in node_kinds:
+        path_type = "unknown"
+    elif "source-decomposition" in node_kinds:
+        path_type = "source-decomposition"
+    elif len(node_kinds) == 1 and node_kinds[0] == "source-atomic":
+        path_type = "source-atomic"
+    elif all(kind == "source-atomic" for kind in node_kinds):
+        path_type = "runtime-composed"
+    else:
+        path_type = "unresolved"
+    return {
+        "path_type": path_type,
+        "cost": int(path["cost"]),
+        "node_kinds": node_kinds,
     }
 
 
@@ -368,5 +467,23 @@ def append_component_shadow_table(
                 for path_type, count in path_types.items():
                     lines.append(
                         f"| {profile} | {class_name} | {decision} | "
+                        f"{path_type} | {count} |"
+                    )
+    lines.extend(
+        [
+            "",
+            "| profile | class | projection | source provenance | cases |",
+            "| --- | --- | --- | --- | ---: |",
+        ]
+    )
+    for profile in KFIND_PROFILES:
+        grouped = shadow_verification[profile].get(
+            "component_source_provenance", {}
+        ).get("path_types_by_class", {})
+        for class_name, projections in grouped.items():
+            for projection, path_types in projections.items():
+                for path_type, count in path_types.items():
+                    lines.append(
+                        f"| {profile} | {class_name} | {projection} | "
                         f"{path_type} | {count} |"
                     )
