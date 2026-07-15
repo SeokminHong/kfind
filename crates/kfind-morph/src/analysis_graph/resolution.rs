@@ -4,7 +4,7 @@ use std::sync::OnceLock;
 
 use kfind_data::{
     DataFinePos, MorphologyGraphAnalysis, MorphologyGraphExpressionKind, MorphologyGraphPosClass,
-    MorphologyGraphResource,
+    MorphologyGraphResource, MorphologyGraphStringId,
 };
 
 use crate::ContinuationState;
@@ -298,10 +298,10 @@ pub(super) fn prepare_token_summary() -> PreparedTokenSummary {
     PreparedTokenSummary::default()
 }
 
-#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct QueryLexicalUnit {
-    surface: String,
-    pos: String,
+    surface_id: MorphologyGraphStringId,
+    pos_id: MorphologyGraphStringId,
 }
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -344,10 +344,7 @@ impl QueryLexicalTrie {
                         trie.nodes.push(QueryLexicalTrieNode::default());
                         trie.nodes[current]
                             .transitions
-                            .push(QueryLexicalTrieTransition {
-                                unit: unit.clone(),
-                                next,
-                            });
+                            .push(QueryLexicalTrieTransition { unit: *unit, next });
                         next
                     });
                 current = next;
@@ -613,7 +610,7 @@ fn append_query_units(
 ) -> Option<PredicateLexicalStage> {
     let previous_len = units.len();
     if analysis.components.is_empty() {
-        let surface = lexical_form.get(start..end)?;
+        lexical_form.get(start..end)?;
         for pos in analysis.pos.split('+') {
             if matches!(fine_pos, DataFinePos::Vv | DataFinePos::Va) {
                 let Some(next) = advance_predicate_lexical_stage(stage, pos) else {
@@ -623,8 +620,8 @@ fn append_query_units(
                 stage = next;
             }
             units.push(QueryLexicalUnit {
-                surface: surface.to_owned(),
-                pos: pos.to_owned(),
+                surface_id: analysis.surface_id,
+                pos_id: analysis.pos_id,
             });
         }
     } else {
@@ -637,8 +634,8 @@ fn append_query_units(
                 stage = next;
             }
             units.push(QueryLexicalUnit {
-                surface: component.surface.to_owned(),
-                pos: component.pos.to_owned(),
+                surface_id: component.surface_id,
+                pos_id: component.pos_id,
             });
         }
     }
@@ -1547,7 +1544,9 @@ struct Unit<'a> {
     source_node_index: usize,
     component_index: Option<usize>,
     surface: &'a str,
+    surface_id: Option<MorphologyGraphStringId>,
     pos: &'a str,
+    pos_id: Option<MorphologyGraphStringId>,
     pos_slot: usize,
     span: Option<Range<usize>>,
     coverage: Range<usize>,
@@ -1830,8 +1829,8 @@ fn lexical_units_enclose_coverage(units: &[Unit<'_>], expected: Range<usize>) ->
 
 fn source_unit_matches_query(source: &Unit<'_>, query: &QueryLexicalUnit) -> bool {
     source.source == ConstraintNodeSource::Source
-        && source.surface == query.surface
-        && source.pos == query.pos
+        && source.surface_id == Some(query.surface_id)
+        && source.pos_id == Some(query.pos_id)
 }
 
 fn continuation_proof(
@@ -2462,7 +2461,9 @@ fn append_node_units<'a>(
             source_node_index: node_index,
             component_index: None,
             surface: node.surface,
+            surface_id: node.surface_id,
             pos,
+            pos_id: node.pos_id,
             pos_slot,
             span: Some(node.span.clone()),
             coverage: node.span.clone(),
@@ -2479,7 +2480,9 @@ fn append_node_units<'a>(
                     source_node_index: node_index,
                     component_index: Some(component_index),
                     surface: component.surface,
+                    surface_id: Some(component.surface_id),
                     pos: component.pos,
+                    pos_id: Some(component.pos_id),
                     pos_slot: 0,
                     span: component.span.clone(),
                     coverage: component.span.clone().unwrap_or_else(|| node.span.clone()),
@@ -2587,42 +2590,45 @@ mod tests {
 
     #[test]
     fn query_trie_preserves_every_terminal_inside_the_final_source_node() {
-        let query_unit = |surface: &str, pos: &str| QueryLexicalUnit {
-            surface: surface.to_owned(),
-            pos: pos.to_owned(),
+        let query_unit = |surface_id, pos_id| QueryLexicalUnit {
+            surface_id: MorphologyGraphStringId(surface_id),
+            pos_id: MorphologyGraphStringId(pos_id),
         };
         let traces = vec![
             QueryLexicalTrace {
-                units: vec![query_unit("가", "NNG"), query_unit("나", "NNG")],
+                units: vec![query_unit(1, 10), query_unit(2, 10)],
             },
             QueryLexicalTrace {
-                units: vec![
-                    query_unit("가", "NNG"),
-                    query_unit("나", "NNG"),
-                    query_unit("다", "XSN"),
-                ],
+                units: vec![query_unit(1, 10), query_unit(2, 10), query_unit(3, 11)],
             },
         ];
         let trie = QueryLexicalTrie::from_traces(&traces);
-        let source_unit =
-            |node_position, source_node_index, surface, pos, coverage: Range<usize>| Unit {
-                node_position,
-                source_node_index,
-                component_index: None,
-                surface,
-                pos,
-                pos_slot: 0,
-                span: Some(coverage.clone()),
-                coverage,
-                opaque: false,
-                source: ConstraintNodeSource::Source,
-            };
+        let source_unit = |node_position,
+                           source_node_index,
+                           surface,
+                           surface_id,
+                           pos,
+                           pos_id,
+                           coverage: Range<usize>| Unit {
+            node_position,
+            source_node_index,
+            component_index: None,
+            surface,
+            surface_id: Some(MorphologyGraphStringId(surface_id)),
+            pos,
+            pos_id: Some(MorphologyGraphStringId(pos_id)),
+            pos_slot: 0,
+            span: Some(coverage.clone()),
+            coverage,
+            opaque: false,
+            source: ConstraintNodeSource::Source,
+        };
         let mut path = DecisionTraversalPath {
             last: 1,
             units: vec![
-                source_unit(0, 0, "가", "NNG", 0..1),
-                source_unit(1, 1, "나", "NNG", 1..2),
-                source_unit(1, 1, "다", "XSN", 1..2),
+                source_unit(0, 0, "가", 1, "NNG", 10, 0..1),
+                source_unit(1, 1, "나", 2, "NNG", 10, 1..2),
+                source_unit(1, 1, "다", 3, "XSN", 11, 1..2),
             ],
         };
         let state = trie

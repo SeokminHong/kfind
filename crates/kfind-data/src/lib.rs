@@ -19,8 +19,8 @@ pub use component::{
     COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentAnalysis, ComponentResource, ComponentResourceStats,
     MorphologyGraphAnalysis, MorphologyGraphComponent, MorphologyGraphExpressionKind,
     MorphologyGraphPosClass, MorphologyGraphProjectionStats, MorphologyGraphResource,
-    MorphologyGraphResourceStats, decode_component_resource, decode_morphology_graph_resource,
-    encode_component_resource, encode_morphology_graph_resource,
+    MorphologyGraphResourceStats, MorphologyGraphStringId, decode_component_resource,
+    decode_morphology_graph_resource, encode_component_resource, encode_morphology_graph_resource,
     validate_morphology_graph_projection,
 };
 pub use error::{DataError, DataErrorKind, DataWarning, SourceLocation};

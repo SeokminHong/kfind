@@ -56,18 +56,25 @@ impl MorphologyGraphExpressionKind {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MorphologyGraphComponent<'a> {
     pub surface: &'a str,
+    pub surface_id: MorphologyGraphStringId,
     pub pos: &'a str,
+    pub pos_id: MorphologyGraphStringId,
     pub span: Option<Range<usize>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MorphologyGraphAnalysis<'a> {
+    pub surface_id: MorphologyGraphStringId,
     pub pos: &'a str,
+    pub pos_id: MorphologyGraphStringId,
     pub start_pos: &'a str,
     pub end_pos: &'a str,
     pub expression_kind: MorphologyGraphExpressionKind,
     pub components: Vec<MorphologyGraphComponent<'a>>,
 }
+
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct MorphologyGraphStringId(pub u32);
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct MorphologyGraphPosClass(u16);

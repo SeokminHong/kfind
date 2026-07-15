@@ -4,7 +4,7 @@ use std::sync::OnceLock;
 
 use kfind_data::{
     MorphologyGraphAnalysis, MorphologyGraphExpressionKind, MorphologyGraphPosClass,
-    MorphologyGraphResource,
+    MorphologyGraphResource, MorphologyGraphStringId,
 };
 
 use crate::lattice::unknown::{UnknownAnalysis, UnknownDictionary};
@@ -17,7 +17,9 @@ use super::{
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(super) struct Component<'a> {
     pub surface: &'a str,
+    pub surface_id: MorphologyGraphStringId,
     pub pos: &'a str,
+    pub pos_id: MorphologyGraphStringId,
     pub span: Option<Range<usize>>,
 }
 
@@ -39,8 +41,10 @@ impl PartialOrd for Component<'_> {
 #[derive(Clone, Debug)]
 pub(super) struct Node<'a> {
     pub surface: &'a str,
+    pub surface_id: Option<MorphologyGraphStringId>,
     pub span: Range<usize>,
     pub pos: &'a str,
+    pub pos_id: Option<MorphologyGraphStringId>,
     pub start_pos: &'a str,
     pub end_pos: &'a str,
     start_class: Option<MorphologyGraphPosClass>,
@@ -61,12 +65,15 @@ impl<'a> Node<'a> {
         let end_pos = effective_end_pos(analysis);
         Self {
             surface,
+            surface_id: Some(analysis.surface_id),
             components: analysis
                 .components
                 .iter()
                 .map(|component| Component {
                     surface: component.surface,
+                    surface_id: component.surface_id,
                     pos: component.pos,
+                    pos_id: component.pos_id,
                     span: component.span.as_ref().map(|component_span| {
                         span.start + component_span.start..span.start + component_span.end
                     }),
@@ -74,6 +81,7 @@ impl<'a> Node<'a> {
                 .collect(),
             span,
             pos: analysis.pos,
+            pos_id: (!analysis.pos.contains('+')).then_some(analysis.pos_id),
             start_pos,
             end_pos,
             start_class: resource.transition_class(start_pos),
@@ -91,8 +99,10 @@ impl<'a> Node<'a> {
     ) -> Self {
         Self {
             surface,
+            surface_id: None,
             span,
             pos: &analysis.pos,
+            pos_id: None,
             start_pos: &analysis.pos,
             end_pos: &analysis.pos,
             start_class: resource.transition_class(&analysis.pos),

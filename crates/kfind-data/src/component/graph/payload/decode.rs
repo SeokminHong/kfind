@@ -8,6 +8,7 @@ use crate::component::{StringLayout, resource_error};
 
 use super::super::{
     MorphologyGraphAnalysis, MorphologyGraphComponent, MorphologyGraphExpressionKind,
+    MorphologyGraphStringId,
 };
 use super::{ANALYSIS_BYTES, COMPONENT_BYTES, NO_SPAN, PAYLOAD_HEADER_BYTES, TRANSITION_BYTES};
 
@@ -155,10 +156,11 @@ impl GraphPayloadLayout {
         string_bytes: &'a [u8],
         strings: &StringLayout,
     ) -> Option<(&'a str, Vec<MorphologyGraphAnalysis<'a>>)> {
+        let surface_id = self.surface_id(input, group)?;
         let surface = self.surface(input, group, string_bytes, strings)?;
         let range = self.analysis_range(input, group)?;
         let analyses = range
-            .map(|analysis| self.analysis(input, analysis, string_bytes, strings))
+            .map(|analysis| self.analysis(input, analysis, surface_id, string_bytes, strings))
             .collect::<Option<Vec<_>>>()?;
         Some((surface, analyses))
     }
@@ -170,15 +172,20 @@ impl GraphPayloadLayout {
         string_bytes: &'a [u8],
         strings: &StringLayout,
     ) -> Option<&'a str> {
+        let id = self.surface_id(input, group)?;
+        strings.get(string_bytes, id.0)
+    }
+
+    fn surface_id(&self, input: &[u8], group: u32) -> Option<MorphologyGraphStringId> {
         if group >= self.surface_count {
             return None;
         }
-        let id = read_u32_at(
+        read_u32_at(
             input,
             self.surface_ids_start
                 .checked_add(usize::try_from(group).ok()?.checked_mul(4)?)?,
-        )?;
-        strings.get(string_bytes, id)
+        )
+        .map(MorphologyGraphStringId)
     }
 
     fn validate_surfaces(
@@ -393,17 +400,21 @@ impl GraphPayloadLayout {
         &self,
         input: &[u8],
         analysis: u32,
+        surface_id: MorphologyGraphStringId,
         string_bytes: &'a [u8],
         strings: &StringLayout,
     ) -> Option<MorphologyGraphAnalysis<'a>> {
         let record = self.analysis_record(input, analysis)?;
+        let pos_id = MorphologyGraphStringId(read_u32_at(record, 0)?);
         let component_start = read_u32_at(record, 16)?;
         let component_end = component_start.checked_add(read_u32_at(record, 20)?)?;
         let components = (component_start..component_end)
             .map(|component| self.component(input, component, string_bytes, strings))
             .collect::<Option<Vec<_>>>()?;
         Some(MorphologyGraphAnalysis {
-            pos: strings.get(string_bytes, read_u32_at(record, 0)?)?,
+            surface_id,
+            pos: strings.get(string_bytes, pos_id.0)?,
+            pos_id,
             start_pos: strings.get(string_bytes, read_u32_at(record, 4)?)?,
             end_pos: strings.get(string_bytes, read_u32_at(record, 8)?)?,
             expression_kind: MorphologyGraphExpressionKind::decode(record[12])?,
@@ -419,6 +430,8 @@ impl GraphPayloadLayout {
         strings: &StringLayout,
     ) -> Option<MorphologyGraphComponent<'a>> {
         let record = self.component_record(input, component)?;
+        let surface_id = MorphologyGraphStringId(read_u32_at(record, 0)?);
+        let pos_id = MorphologyGraphStringId(read_u32_at(record, 4)?);
         let start = read_u32_at(record, 8)?;
         let end = read_u32_at(record, 12)?;
         let span = match (start, end) {
@@ -427,8 +440,10 @@ impl GraphPayloadLayout {
             (start, end) => Some(usize::try_from(start).ok()?..usize::try_from(end).ok()?),
         };
         Some(MorphologyGraphComponent {
-            surface: strings.get(string_bytes, read_u32_at(record, 0)?)?,
-            pos: strings.get(string_bytes, read_u32_at(record, 4)?)?,
+            surface: strings.get(string_bytes, surface_id.0)?,
+            surface_id,
+            pos: strings.get(string_bytes, pos_id.0)?,
+            pos_id,
             span,
         })
     }

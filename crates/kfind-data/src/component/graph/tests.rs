@@ -53,21 +53,16 @@ fn graph_resource_round_trips_structural_relations_without_scoring_data() {
         prefixes[0].2[0].expression_kind,
         MorphologyGraphExpressionKind::SpanAligned
     );
+    let components = &prefixes[0].2[0].components;
     assert_eq!(
-        prefixes[0].2[0].components,
-        vec![
-            MorphologyGraphComponent {
-                surface: "산",
-                pos: "NNG",
-                span: Some(0..3),
-            },
-            MorphologyGraphComponent {
-                surface: "속",
-                pos: "NNG",
-                span: Some(3..6),
-            },
-        ]
+        components
+            .iter()
+            .map(|component| (component.surface, component.pos, component.span.clone()))
+            .collect::<Vec<_>>(),
+        vec![("산", "NNG", Some(0..3)), ("속", "NNG", Some(3..6))]
     );
+    assert_ne!(components[0].surface_id, components[1].surface_id);
+    assert_eq!(components[0].pos_id, components[1].pos_id);
 }
 
 #[test]
