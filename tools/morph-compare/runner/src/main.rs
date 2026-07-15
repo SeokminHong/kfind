@@ -12,8 +12,8 @@ use anyhow::{Context, Result, bail};
 use kfind::Engine;
 use kfind::expert::EngineExt as _;
 use kfind_data::{
-    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataErrorKind,
-    DecodedMorphologyResource, decode_component_resource, decode_morphology_resource, parse_sha256,
+    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataErrorKind, DecodedMorphologyResource,
+    decode_component_resource, decode_morphology_resource, parse_sha256,
 };
 use kfind_matcher::MorphMatcher;
 use kfind_morph::CoarsePos;
@@ -614,7 +614,9 @@ fn append_kfind_diagnostics(
             shadow_resource,
             component_shadow_resource,
             component_resource.as_ref(),
-            morphology.as_ref().and_then(|resource| resource.as_ref().ok()),
+            morphology
+                .as_ref()
+                .and_then(|resource| resource.as_ref().ok()),
         )?;
         result["shadow_verification"] = serde_json::to_value(shadow_verification)?;
     }

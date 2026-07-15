@@ -356,7 +356,8 @@ fn source_analysis(
     analysis: &kfind_data::MorphologyAnalysis<'_>,
 ) -> ShadowSourceAnalysis {
     let has_expression = !matches!(analysis.expression, "" | "*");
-    let alignment = has_expression.then(|| align_morphology_expression(surface, analysis.expression));
+    let alignment =
+        has_expression.then(|| align_morphology_expression(surface, analysis.expression));
     let components = alignment
         .as_ref()
         .map(|alignment| {
