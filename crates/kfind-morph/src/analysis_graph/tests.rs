@@ -33,6 +33,43 @@ fn whole_source_analysis_is_supported_without_using_costs() {
 }
 
 #[test]
+fn compact_decision_matches_diagnostic_resolution() {
+    let resolver = resolver(&[atomic("학교", "NNG", 0)]);
+    let pattern = exact_pattern("학교", DataFinePos::Nng, ComponentCapability::WholeOnly);
+    let spans = CandidateSpans {
+        core: 0.."학교".len(),
+        anchor: 0.."학교".len(),
+        consumed: 0.."학교".len(),
+        token: 0.."학교".len(),
+    };
+    let decision = resolver.decide_candidate(
+        BoundedTokenContext::current("학교"),
+        spans.clone(),
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+    let resolution = resolver.resolve_candidate(
+        BoundedTokenContext::current("학교"),
+        spans,
+        std::slice::from_ref(&pattern),
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+
+    assert_eq!(decision, resolution.decision());
+    for policy in [
+        ProductPolicy::Whole,
+        ProductPolicy::ExplicitComponent,
+        ProductPolicy::PossibleAnalysis,
+        ProductPolicy::UnambiguousAnalysis,
+    ] {
+        assert_eq!(
+            policy.accepts_decision(&decision, std::slice::from_ref(&pattern)),
+            policy.accepts(&resolution, std::slice::from_ref(&pattern))
+        );
+    }
+}
+
+#[test]
 fn source_component_is_preserved_for_an_explicit_policy_decision() {
     let resolver = resolver(&[entry(
         "대학교",

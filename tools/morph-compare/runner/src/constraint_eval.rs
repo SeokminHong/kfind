@@ -531,35 +531,47 @@ fn evaluate_candidate(
         Err(error) => return base("context-unavailable", Some(error.to_owned())),
     };
     let resolver_started = Instant::now();
+    let resolver_context = BoundedTokenContext {
+        previous: context.previous.as_deref(),
+        current: window.normalized(),
+        next: context.next.as_deref(),
+    };
+    let resolver_spans = CandidateSpans {
+        core: core.clone(),
+        anchor: anchor.clone(),
+        consumed: consumed.clone(),
+        token: token.clone(),
+    };
+    let decision = resolver.decide_candidate(
+        resolver_context,
+        resolver_spans.clone(),
+        &candidate.branch.morph_patterns,
+        DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
+    );
+    timings.resolver_seconds += resolver_started.elapsed().as_secs_f64();
+    let diagnostic_started = Instant::now();
     let resolution = resolver.resolve_candidate(
         BoundedTokenContext {
             previous: context.previous.as_deref(),
             current: window.normalized(),
             next: context.next.as_deref(),
         },
-        CandidateSpans {
-            core,
-            anchor,
-            consumed,
-            token,
-        },
+        resolver_spans,
         &candidate.branch.morph_patterns,
         DEFAULT_ANALYSIS_GRAPH_NODE_LIMIT,
     );
-    timings.resolver_seconds += resolver_started.elapsed().as_secs_f64();
-    let diagnostic_started = Instant::now();
+    assert_eq!(decision, resolution.decision(), "decision and proof diverged");
     let class = if expected { "positive" } else { "negative" };
     *metrics
         .outcomes_by_class
         .entry(class)
         .or_default()
-        .entry(outcome_name(resolution.outcome))
+        .entry(outcome_name(decision.outcome))
         .or_default() += 1;
-    let mut evidence = resolution
+    let mut evidence = decision
         .supported
-        .analyses
         .iter()
-        .map(|analysis| evidence_name(analysis.evidence))
+        .map(|support| evidence_name(support.evidence))
         .collect::<Vec<_>>();
     evidence.sort_unstable();
     evidence.dedup();
@@ -575,7 +587,8 @@ fn evaluate_candidate(
     let policies = POLICIES
         .iter()
         .map(|(name, policy)| {
-            let accepted = policy.accepts(&resolution, &candidate.branch.morph_patterns);
+            let accepted =
+                policy.accepts_decision(&decision, &candidate.branch.morph_patterns);
             if accepted {
                 policy_spans
                     .get_mut(name)
@@ -598,7 +611,7 @@ fn evaluate_candidate(
         previous: context.previous,
         current: Some(window.normalized().to_owned()),
         next: context.next,
-        outcome: Some(outcome_name(resolution.outcome)),
+        outcome: Some(outcome_name(decision.outcome)),
         evidence,
         policies,
         resolution: Some(resolution_json(&resolution)),

@@ -85,6 +85,40 @@ impl SupportedAnalysisSet {
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ConstraintSupport {
+    pub pattern_index: usize,
+    pub evidence: ConstraintEvidenceKind,
+    pub span_relation: ConstraintSpanRelation,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ConstraintDecision {
+    pub outcome: ConstraintOutcome,
+    pub supported: Vec<ConstraintSupport>,
+}
+
+impl ConstraintDecision {
+    pub(super) fn from_resolution(resolution: &ConstraintResolution) -> Self {
+        Self::from_analyses(resolution.outcome, &resolution.supported.analyses)
+    }
+
+    fn from_analyses(outcome: ConstraintOutcome, analyses: &[SupportedAnalysis]) -> Self {
+        let mut supported = Vec::new();
+        for analysis in analyses {
+            let support = ConstraintSupport {
+                pattern_index: analysis.pattern_index,
+                evidence: analysis.evidence,
+                span_relation: analysis.span_relation,
+            };
+            if !supported.contains(&support) {
+                supported.push(support);
+            }
+        }
+        Self { outcome, supported }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ProductPolicy {
     Whole,
     ExplicitComponent,
@@ -99,16 +133,49 @@ impl ProductPolicy {
         resolution: &ConstraintResolution,
         patterns: &[QueryMorphPattern],
     ) -> bool {
-        if self == Self::UnambiguousAnalysis && resolution.outcome != ConstraintOutcome::Supported {
+        self.accepts_supports(
+            resolution.outcome,
+            resolution
+                .supported
+                .analyses
+                .iter()
+                .map(|analysis| (analysis.pattern_index, analysis.span_relation)),
+            patterns,
+        )
+    }
+
+    #[must_use]
+    pub fn accepts_decision(
+        self,
+        decision: &ConstraintDecision,
+        patterns: &[QueryMorphPattern],
+    ) -> bool {
+        self.accepts_supports(
+            decision.outcome,
+            decision
+                .supported
+                .iter()
+                .map(|support| (support.pattern_index, support.span_relation)),
+            patterns,
+        )
+    }
+
+    fn accepts_supports(
+        self,
+        outcome: ConstraintOutcome,
+        supports: impl Iterator<Item = (usize, ConstraintSpanRelation)>,
+        patterns: &[QueryMorphPattern],
+    ) -> bool {
+        if self == Self::UnambiguousAnalysis && outcome != ConstraintOutcome::Supported {
             return false;
         }
-        resolution.supported.analyses.iter().any(|analysis| {
-            let Some(pattern) = patterns.get(analysis.pattern_index) else {
+        supports.into_iter().any(|(pattern_index, relation)| {
+            let Some(pattern) = patterns.get(pattern_index) else {
                 return false;
             };
             match self {
-                Self::Whole => analysis.span_relation == ConstraintSpanRelation::Whole,
-                Self::ExplicitComponent => match analysis.span_relation {
+                Self::Whole => relation == ConstraintSpanRelation::Whole,
+                Self::ExplicitComponent => match relation {
                     ConstraintSpanRelation::Whole => true,
                     ConstraintSpanRelation::SourceComponent => {
                         pattern.component_capability.allows_source()
@@ -118,11 +185,8 @@ impl ProductPolicy {
                     }
                     ConstraintSpanRelation::OpaqueExpression => false,
                 },
-                Self::PossibleAnalysis => {
-                    analysis.span_relation != ConstraintSpanRelation::OpaqueExpression
-                }
-                Self::UnambiguousAnalysis => {
-                    analysis.span_relation != ConstraintSpanRelation::OpaqueExpression
+                Self::PossibleAnalysis | Self::UnambiguousAnalysis => {
+                    relation != ConstraintSpanRelation::OpaqueExpression
                 }
             }
         })
@@ -211,16 +275,63 @@ pub(super) fn resolve_known(
     context: &ContextSelection,
     proof_limit: usize,
 ) -> ConstraintResolution {
+    let evaluation = evaluate_known(graph, spans, patterns, context, proof_limit);
+    let mut proof_paths = evaluation.paths.as_ref().map_or_else(
+        || graph.proof_paths(),
+        |paths| {
+            let proofs = path_proofs(graph, paths);
+            if proofs.is_empty() {
+                graph.proof_paths()
+            } else {
+                proofs
+            }
+        },
+    );
+    let mut proof_nodes = graph.proof_nodes();
+    annotate_proof(&mut proof_nodes, &mut proof_paths, &evaluation.analyses);
+    ConstraintResolution {
+        outcome: evaluation.outcome,
+        supported: SupportedAnalysisSet {
+            analyses: evaluation.analyses,
+        },
+        proof: ConstraintProof {
+            known_node_count: graph.node_count(),
+            unknown_node_count: 0,
+            nodes: proof_nodes,
+            paths: proof_paths,
+        },
+    }
+}
+
+pub(super) fn decide_known(
+    graph: &TokenGraph,
+    spans: &CandidateSpans,
+    patterns: &[QueryMorphPattern],
+    context: &ContextSelection,
+    proof_limit: usize,
+) -> ConstraintDecision {
+    let evaluation = evaluate_known(graph, spans, patterns, context, proof_limit);
+    ConstraintDecision::from_analyses(evaluation.outcome, &evaluation.analyses)
+}
+
+struct KnownEvaluation {
+    outcome: ConstraintOutcome,
+    analyses: Vec<SupportedAnalysis>,
+    paths: Option<Vec<Vec<usize>>>,
+}
+
+fn evaluate_known(
+    graph: &TokenGraph,
+    spans: &CandidateSpans,
+    patterns: &[QueryMorphPattern],
+    context: &ContextSelection,
+    proof_limit: usize,
+) -> KnownEvaluation {
     if *context == ContextSelection::Competing {
-        return ConstraintResolution {
+        return KnownEvaluation {
             outcome: ConstraintOutcome::Ambiguous(ConstraintAmbiguity::CompetingAnalyses),
-            supported: SupportedAnalysisSet::default(),
-            proof: ConstraintProof {
-                known_node_count: graph.node_count(),
-                unknown_node_count: 0,
-                nodes: graph.proof_nodes(),
-                paths: graph.proof_paths(),
-            },
+            analyses: Vec::new(),
+            paths: None,
         };
     }
     let mut analyses = Vec::new();
@@ -256,20 +367,15 @@ pub(super) fn resolve_known(
                 {
                     analyses.push(analysis);
                     if analyses.len() > proof_limit {
-                        return ConstraintResolution {
+                        return KnownEvaluation {
                             outcome: ConstraintOutcome::Unavailable(
                                 ConstraintUnavailable::PathLimit {
                                     actual: analyses.len(),
                                     limit: proof_limit,
                                 },
                             ),
-                            supported: SupportedAnalysisSet::default(),
-                            proof: ConstraintProof {
-                                known_node_count: graph.node_count(),
-                                unknown_node_count: 0,
-                                nodes: graph.proof_nodes(),
-                                paths: graph.proof_paths(),
-                            },
+                            analyses: Vec::new(),
+                            paths: None,
                         };
                     }
                 }
@@ -285,12 +391,6 @@ pub(super) fn resolve_known(
             analysis.span_relation,
         )
     });
-    let mut proof_paths = path_proofs(graph, &paths);
-    if proof_paths.is_empty() {
-        proof_paths = graph.proof_paths();
-    }
-    let mut proof_nodes = graph.proof_nodes();
-    annotate_proof(&mut proof_nodes, &mut proof_paths, &analyses);
     let has_stable = analyses
         .iter()
         .any(|analysis| analysis.span_relation != ConstraintSpanRelation::OpaqueExpression);
@@ -317,15 +417,10 @@ pub(super) fn resolve_known(
     } else {
         ConstraintOutcome::Contradicted
     };
-    ConstraintResolution {
+    KnownEvaluation {
         outcome,
-        supported: SupportedAnalysisSet { analyses },
-        proof: ConstraintProof {
-            known_node_count: graph.node_count(),
-            unknown_node_count: 0,
-            nodes: proof_nodes,
-            paths: proof_paths,
-        },
+        analyses,
+        paths: Some(paths),
     }
 }
 
