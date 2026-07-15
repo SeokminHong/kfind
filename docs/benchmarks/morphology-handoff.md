@@ -240,7 +240,7 @@ annotation을 먼저 판정한다.
 | `lexicon-missing` | `격식있다/adjective -> 격식있는` | 띄어쓰기 없는 합성 용언을 일반화할 사전·component 근거가 있는지 확인한다. |
 | `surface-missing` | `맞다/verb -> 맞춰서` | `맞추다` surface의 표제어 오귀속인지 annotation을 먼저 확인한다. |
 | `surface-missing` | `상관없다/adjective -> 상관없이` | 검증된 파생 부사이므로 기본 `inflection`을 넓히지 않고 `derivation` 경계를 유지한다. |
-| `surface-missing` | `다리/noun -> 다립니다` | 명사와 지정사 continuation의 완전한 component 경로를 확인한다. |
+| `surface-missing` | `다리/noun -> 다립니다` | 모음 끝 명사 `N + -ㅂ니다`와 `다리다/verb + -ㅂ니다`의 동형 surface를 완전한 분석 경로와 문맥으로 구분한다. |
 | `surface-missing` | `이다/adjective -> 마찬가지다` | host 명사와 지정사 suffix를 분리할 수 있는지 확인한다. |
 | `surface-missing` | `백/numeral`: raw lemma `백`, gold surface `이` | `이 백명`의 token 정렬과 adapter byte span을 먼저 확인한다. |
 | `surface-missing` | `같다/adjective -> 같이` | 두 사전 활용 합의나 양방향 파생 관계가 없으므로 현재 surface 계층에 넣지 않는다. |
@@ -313,6 +313,13 @@ annotation을 먼저 판정한다.
 - `같다 -> 같이`는 두 snapshot의 활용형 합의나 한국어기초사전 양방향 `RelatedForm`이 없으므로
   corpus case만으로 surface 계층에 넣지 않는다.
 - `거 -> 게`는 예문 근거뿐이므로 NIKL surface 계층에 넣지 않고 명사 축약 규칙 후보로 남긴다.
+- `다리 -> 다립니다`는 모음으로 끝나는 명사 뒤의 `N + -ㅂ니다`형과
+  `다리다/verb -> 다립니다`가 같은 surface다. [국립국어원 문법 자료](https://kcenter.korean.go.kr/kcenter/search/dgrammar/view.do?id=167)는
+  전자를 허용하되 격식적인 문어에서는 잘 쓰지 않는다고 설명하고,
+  [한국어기초사전 record 40517](https://krdict.korean.go.kr/kor/dicSearch/SearchView?ParaWordNo=40517)은
+  후자를 동사 활용형으로 제시한다. `긴 다립니다`와 `옷을 다립니다`를 양방향 대조군으로 고정하고,
+  단순 surface 행이 아니라 explicit POS, 완전한 component 경로와 bounded 문맥이 두 분석을
+  구분하는 일반 규칙만 검토한다.
 
 ## 재현과 검증
 
