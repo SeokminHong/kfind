@@ -348,18 +348,7 @@ kfind는 형태 품질, end-to-end CLI 처리량, resource 초기화와 literal 
 측정합니다. benchmark 계약은 재현 명령, 입력, warm-up·반복 횟수와 보고서 요건을 정의합니다.
 측정값과 비교 결과는 개별 보고서에만 보존합니다.
 
-최신 형태 검색 결과는 2026-07-15, revision `51b797a7a142` 기준입니다.
-
-| 고정 fixture / profile | TP / FP / FN | precision | recall | F1 |
-| --- | ---: | ---: | ---: | ---: |
-| 명시적 품사 · full POS + smart | 456 / 0 / 44 | 100.00% | 91.20% | 95.40% |
-| Agent · embedded + any + 명시적 품사 | 482 / 11 / 18 | 97.77% | 96.40% | 97.08% |
-| Human · full POS + smart + 무품사 | 451 / 0 / 49 | 100.00% | 90.20% | 94.85% |
-
-![Agent와 Human workflow 품질과 비용](docs/benchmarks/assets/2026-07-15-predicate-exact-component-product-workflows.svg)
-
 - [벤치마크 계약](docs/benchmarks/README.md)
-- [Full-POS 용언 exact component 보고서](docs/benchmarks/2026-07-15-predicate-exact-component.md)
 
 ## 라이브러리
 

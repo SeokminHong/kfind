@@ -371,18 +371,7 @@ and literal scanning as separate workloads. The benchmark contract defines the
 reproducible commands, inputs, warm-up and run counts, and report requirements.
 Measurements and comparisons remain in their individual reports.
 
-Latest morphology results: 2026-07-15, revision `51b797a7a142`.
-
-| Fixed fixture / profile | TP / FP / FN | Precision | Recall | F1 |
-| --- | ---: | ---: | ---: | ---: |
-| Explicit POS · full POS + smart | 456 / 0 / 44 | 100.00% | 91.20% | 95.40% |
-| Agent · embedded + any + explicit POS | 482 / 11 / 18 | 97.77% | 96.40% | 97.08% |
-| Human · full POS + smart + untagged | 451 / 0 / 49 | 100.00% | 90.20% | 94.85% |
-
-![Agent and Human workflow quality and cost](docs/benchmarks/assets/2026-07-15-predicate-exact-component-product-workflows.svg)
-
 - [Benchmark contract](docs/benchmarks/README.md)
-- [Full-POS predicate exact component report](docs/benchmarks/2026-07-15-predicate-exact-component.md)
 
 ## Library
 
