@@ -55,6 +55,10 @@ query	pos	text	expected	feature
 푸르다	adjective	숲이 풀러 보인다.	no-match	reo-irregular
 들르다	verb	퇴근길에 가게에 들러 갔다.	match	eu-drop-regular-control
 치르다	verb	행사를 무사히 치러 냈다.	match	eu-drop-regular-control
+치르다	verb	대갑식은 치렀으되 임명식은 치르지 못했다.	match	predicate-connective-eudoe
+치르다	verb	대갑식은 치렀으데 임명식은 없었다.	no-match	predicate-connective-eudoe
+하다	verb	검토는 하겠으되 결론은 보류한다.	match	predicate-connective-eudoe
+하다	verb	검토는 하겠으데 결론은 미정이다.	no-match	predicate-connective-eudoe
 쓰다	verb	문서를 써 두었다.	match	eu-drop
 크다	adjective	상자가 너무 커 보인다.	match	eu-drop
 예쁘다	adjective	꽃이 예뻐 보인다.	match	eu-drop

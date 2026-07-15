@@ -45,6 +45,7 @@ const A_OR_EO_SUFFIXES: &[Suffix] = &[
 
 const PAST_SUFFIXES: &[Suffix] = &[
     suffix("습니다", &["ending.polite-declarative"]),
+    suffix("으되", &["ending.connective-eudoe"]),
     suffix("느냐는", &["ending.interrogative-neunya", "particle.topic"]),
     suffix("으면", &["ending.conditional"]),
     suffix("지만", &["ending.connective-jiman"]),
@@ -60,6 +61,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
 
 const FUTURE_SUFFIXES: &[Suffix] = &[
     suffix("습니다", &["ending.polite-declarative"]),
+    suffix("으되", &["ending.connective-eudoe"]),
     suffix("지만", &["ending.connective-jiman"]),
     suffix("는데", &["ending.connective-neunde"]),
     suffix("다", &["ending.final-da"]),
@@ -171,6 +173,24 @@ mod tests {
         .expect("past polite continuation");
         assert_eq!(informal.token_end, "좋았어요".len());
         assert_eq!(informal.rule_path[0].as_str(), "ending.past-polite-yo");
+    }
+
+    #[test]
+    fn prefinal_states_consume_eudoe_connectives() {
+        for (state, anchor) in [
+            (ContinuationState::Past, "치렀"),
+            (ContinuationState::Future, "하겠"),
+        ] {
+            let matched = verify_predicate_continuation(
+                state,
+                PredicatePos::Verb,
+                anchor,
+                "으되 조건은 남는다",
+            )
+            .expect("eudoe continuation");
+            assert_eq!(matched.token_end, format!("{anchor}으되").len());
+            assert_eq!(matched.rule_path, [RuleId::from("ending.connective-eudoe")]);
+        }
     }
 
     #[test]

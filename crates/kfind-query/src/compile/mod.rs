@@ -38,6 +38,7 @@ const MORPH_VERIFIER_RULE_IDS: &[&str] = &[
     "ending.polite-yo",
     "ending.imperative-ra",
     "ending.polite-declarative",
+    "ending.connective-eudoe",
     "ending.conditional",
     "ending.connective-jiman",
     "ending.connective-neunde",
