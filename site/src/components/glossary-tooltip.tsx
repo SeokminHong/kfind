@@ -1,6 +1,7 @@
 import type {
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
+  PointerEvent as ReactPointerEvent,
 } from 'react';
 
 import type { GlossaryTerm } from './glossary';
@@ -19,14 +20,13 @@ interface GlossaryTooltipProps {
 }
 
 const tooltipGap = 8;
-const hoverlessEnvironmentQuery = '(hover: none)';
 
 export function GlossaryTooltip({
   children,
   term,
 }: GlossaryTooltipProps): React.JSX.Element {
-  const hasPendingKeyboardActivation = useRef(false);
-  const isHoverlessTooltipArmed = useRef(false);
+  const hasPendingDirectActivation = useRef(false);
+  const isTooltipArmed = useRef(false);
   const [isOpen, setIsOpen] = useState(false);
   const tooltipId = `glossary-tooltip-${term.id}`;
 
@@ -34,33 +34,41 @@ export function GlossaryTooltip({
     event: ReactKeyboardEvent<HTMLAnchorElement>,
   ): void {
     if (event.key === 'Enter') {
-      hasPendingKeyboardActivation.current = true;
+      hasPendingDirectActivation.current = true;
     }
   }
 
-  function clearKeyboardActivation(): void {
-    hasPendingKeyboardActivation.current = false;
+  function beginPointerActivation(
+    event: ReactPointerEvent<HTMLAnchorElement>,
+  ): void {
+    hasPendingDirectActivation.current = event.pointerType === 'mouse';
+  }
+
+  function beginTouchActivation(): void {
+    hasPendingDirectActivation.current = false;
+  }
+
+  function clearPendingActivation(): void {
+    hasPendingDirectActivation.current = false;
   }
 
   function handleClick(event: ReactMouseEvent<HTMLAnchorElement>): void {
-    const isKeyboardActivation = hasPendingKeyboardActivation.current;
+    const shouldNavigateDirectly = hasPendingDirectActivation.current;
 
-    clearKeyboardActivation();
+    clearPendingActivation();
 
-    if (
-      isKeyboardActivation ||
-      !globalThis.matchMedia(hoverlessEnvironmentQuery).matches
-    ) {
+    if (shouldNavigateDirectly) {
+      isTooltipArmed.current = false;
       return;
     }
 
-    if (isHoverlessTooltipArmed.current) {
-      isHoverlessTooltipArmed.current = false;
+    if (isTooltipArmed.current) {
+      isTooltipArmed.current = false;
       return;
     }
 
     event.preventDefault();
-    isHoverlessTooltipArmed.current = true;
+    isTooltipArmed.current = true;
     setIsOpen(true);
   }
 
@@ -71,7 +79,7 @@ export function GlossaryTooltip({
         setIsOpen(open);
 
         if (!open) {
-          isHoverlessTooltipArmed.current = false;
+          isTooltipArmed.current = false;
         }
       }}
     >
@@ -80,10 +88,13 @@ export function GlossaryTooltip({
         className={styles.trigger}
         closeDelay={0}
         delay={0}
-        onBlur={clearKeyboardActivation}
+        onBlur={clearPendingActivation}
         onClick={handleClick}
         onKeyDown={beginKeyboardActivation}
-        onKeyUp={clearKeyboardActivation}
+        onKeyUp={clearPendingActivation}
+        onPointerCancel={clearPendingActivation}
+        onPointerDown={beginPointerActivation}
+        onTouchStart={beginTouchActivation}
         render={<Link to={`${RoutePath.Glossary}#${term.id}`} />}
       >
         {children}
