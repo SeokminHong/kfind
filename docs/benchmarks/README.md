@@ -83,6 +83,21 @@ cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_repeated_l
 수집할 때 남은 입력을 반복해서 다시 스캔하지 않는지 감시한다.
 `context_repeated_long_line`은 문맥 candidate마다 전체 줄의 UTF-8을 반복 검증하지 않는지 감시한다.
 
+## TUI pager held-key scroll
+
+고정 2,000행 fixture에서 `j`를 50 Hz로 반복 입력하며 PTY를 계속 소비해, viewport 크기별
+scroll frame 수와 출력 bytes, 최종 offset 도달 시간을 측정한다.
+
+```console
+python3 tools/tui-scroll-benchmark/benchmark.py \
+  --binary target/release/kfind \
+  --revision "$(git rev-parse HEAD)" \
+  --label candidate
+```
+
+최신 비교는 [2026-07-15 대형 TUI viewport 스크롤](2026-07-15-tui-large-viewport-scroll.md)에
+기록한다.
+
 ## TUI pager index memory
 
 내장 pager가 임시 파일과 별도로 유지하는 source-line index와 layout-row index의 메모리·시간을
