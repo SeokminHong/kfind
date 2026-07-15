@@ -2,7 +2,10 @@ use std::cmp::Ordering;
 use std::ops::Range;
 use std::sync::OnceLock;
 
-use kfind_data::{MorphologyGraphAnalysis, MorphologyGraphExpressionKind, MorphologyGraphResource};
+use kfind_data::{
+    MorphologyGraphAnalysis, MorphologyGraphExpressionKind, MorphologyGraphPosClass,
+    MorphologyGraphResource,
+};
 
 use crate::lattice::unknown::{UnknownAnalysis, UnknownDictionary};
 
@@ -40,6 +43,8 @@ pub(super) struct Node<'a> {
     pub pos: &'a str,
     pub start_pos: &'a str,
     pub end_pos: &'a str,
+    start_class: Option<MorphologyGraphPosClass>,
+    end_class: Option<MorphologyGraphPosClass>,
     pub source: ConstraintNodeSource,
     pub expression_kind: Option<MorphologyGraphExpressionKind>,
     pub components: Vec<Component<'a>>,
@@ -47,10 +52,13 @@ pub(super) struct Node<'a> {
 
 impl<'a> Node<'a> {
     fn source(
+        resource: &MorphologyGraphResource,
         surface: &'a str,
         span: Range<usize>,
         analysis: &MorphologyGraphAnalysis<'a>,
     ) -> Self {
+        let start_pos = effective_start_pos(analysis);
+        let end_pos = effective_end_pos(analysis);
         Self {
             surface,
             components: analysis
@@ -66,20 +74,29 @@ impl<'a> Node<'a> {
                 .collect(),
             span,
             pos: analysis.pos,
-            start_pos: effective_start_pos(analysis),
-            end_pos: effective_end_pos(analysis),
+            start_pos,
+            end_pos,
+            start_class: resource.transition_class(start_pos),
+            end_class: resource.transition_class(end_pos),
             source: ConstraintNodeSource::Source,
             expression_kind: Some(analysis.expression_kind),
         }
     }
 
-    fn unknown(surface: &'a str, span: Range<usize>, analysis: &'a UnknownAnalysis) -> Self {
+    fn unknown(
+        resource: &MorphologyGraphResource,
+        surface: &'a str,
+        span: Range<usize>,
+        analysis: &'a UnknownAnalysis,
+    ) -> Self {
         Self {
             surface,
             span,
             pos: &analysis.pos,
             start_pos: &analysis.pos,
             end_pos: &analysis.pos,
+            start_class: resource.transition_class(&analysis.pos),
+            end_class: resource.transition_class(&analysis.pos),
             source: ConstraintNodeSource::Unknown,
             expression_kind: None,
             components: Vec::new(),
@@ -158,7 +175,7 @@ impl<'a> TokenGraph<'a> {
                     nodes.extend(
                         analyses
                             .iter()
-                            .map(|analysis| Node::source(surface, start..end, analysis)),
+                            .map(|analysis| Node::source(resource, surface, start..end, analysis)),
                     );
                 }
             });
@@ -169,8 +186,9 @@ impl<'a> TokenGraph<'a> {
                         .nodes_at(text, start, has_dictionary)
                         .into_iter()
                         .filter_map(|(end, analysis)| {
-                            text.get(start..end)
-                                .map(|surface| Node::unknown(surface, start..end, analysis))
+                            text.get(start..end).map(|surface| {
+                                Node::unknown(resource, surface, start..end, analysis)
+                            })
                         }),
                 );
             }
@@ -345,7 +363,11 @@ fn graph_edges(
             starting_at[node.span.end]
                 .iter()
                 .copied()
-                .filter(|&next| resource.allows_transition(node.end_pos, nodes[next].start_pos))
+                .filter(|&next| {
+                    node.end_class
+                        .zip(nodes[next].start_class)
+                        .is_some_and(|(end, start)| resource.allows_transition_classes(end, start))
+                })
                 .collect::<Vec<_>>()
         })
         .collect()

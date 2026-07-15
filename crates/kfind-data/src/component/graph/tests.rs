@@ -33,6 +33,13 @@ fn graph_resource_round_trips_structural_relations_without_scoring_data() {
     assert!(resource.allows_transition("NNG", "NNG"));
     assert!(resource.allows_transition("VV", "EC"));
     assert!(!resource.allows_transition("NNG", "EC"));
+    let nng = resource.transition_class("NNG").unwrap();
+    let vv = resource.transition_class("VV").unwrap();
+    let ec = resource.transition_class("EC").unwrap();
+    assert!(resource.allows_transition_classes(nng, nng));
+    assert!(resource.allows_transition_classes(vv, ec));
+    assert!(!resource.allows_transition_classes(nng, ec));
+    assert_eq!(resource.transition_class("ABSENT"), None);
     assert_eq!(resource.char_def(), b"HANGUL 0 1 2\n");
 
     let mut prefixes = Vec::new();

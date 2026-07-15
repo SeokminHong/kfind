@@ -69,6 +69,9 @@ pub struct MorphologyGraphAnalysis<'a> {
     pub components: Vec<MorphologyGraphComponent<'a>>,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct MorphologyGraphPosClass(u16);
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MorphologyGraphResourceStats {
     pub schema_version: u32,
@@ -92,6 +95,13 @@ struct Sections {
 }
 
 #[derive(Debug)]
+struct TransitionMatrix {
+    classes: BTreeMap<String, MorphologyGraphPosClass>,
+    words_per_row: usize,
+    bits: Box<[u64]>,
+}
+
+#[derive(Debug)]
 pub struct MorphologyGraphResource {
     bytes: Box<[u8]>,
     stats: MorphologyGraphResourceStats,
@@ -99,7 +109,7 @@ pub struct MorphologyGraphResource {
     payload: GraphPayloadLayout,
     strings: StringLayout,
     transitions: BTreeSet<(String, String)>,
-    transition_index: BTreeMap<String, BTreeSet<String>>,
+    transition_matrix: TransitionMatrix,
 }
 
 impl MorphologyGraphResource {
@@ -132,9 +142,31 @@ impl MorphologyGraphResource {
 
     #[must_use]
     pub fn allows_transition(&self, end_pos: &str, start_pos: &str) -> bool {
-        self.transition_index
-            .get(end_pos)
-            .is_some_and(|starts| starts.contains(start_pos))
+        self.transition_class(end_pos)
+            .zip(self.transition_class(start_pos))
+            .is_some_and(|(end, start)| self.allows_transition_classes(end, start))
+    }
+
+    #[must_use]
+    pub fn transition_class(&self, pos: &str) -> Option<MorphologyGraphPosClass> {
+        self.transition_matrix.classes.get(pos).copied()
+    }
+
+    #[must_use]
+    pub fn allows_transition_classes(
+        &self,
+        end: MorphologyGraphPosClass,
+        start: MorphologyGraphPosClass,
+    ) -> bool {
+        let start = usize::from(start.0);
+        let Some(word) = usize::from(end.0)
+            .checked_mul(self.transition_matrix.words_per_row)
+            .and_then(|row| row.checked_add(start / u64::BITS as usize))
+            .and_then(|index| self.transition_matrix.bits.get(index))
+        else {
+            return false;
+        };
+        word & (1_u64 << (start % u64::BITS as usize)) != 0
     }
 
     #[must_use]
@@ -353,13 +385,7 @@ pub fn decode_morphology_graph_resource(
         surface_count,
     )?;
     let transitions = payload_stats.transitions;
-    let mut transition_index = BTreeMap::<String, BTreeSet<String>>::new();
-    for (end_pos, start_pos) in &transitions {
-        transition_index
-            .entry(end_pos.clone())
-            .or_default()
-            .insert(start_pos.clone());
-    }
+    let transition_matrix = build_transition_matrix(source, &transitions)?;
     Ok(MorphologyGraphResource {
         bytes,
         stats: MorphologyGraphResourceStats {
@@ -378,7 +404,41 @@ pub fn decode_morphology_graph_resource(
         payload,
         strings,
         transitions,
-        transition_index,
+        transition_matrix,
+    })
+}
+
+fn build_transition_matrix(
+    source: &str,
+    transitions: &BTreeSet<(String, String)>,
+) -> Result<TransitionMatrix, DataError> {
+    let positions = transitions
+        .iter()
+        .flat_map(|(end, start)| [end.clone(), start.clone()])
+        .collect::<BTreeSet<_>>();
+    let mut classes = BTreeMap::new();
+    for (index, pos) in positions.into_iter().enumerate() {
+        let class = u16::try_from(index)
+            .map(MorphologyGraphPosClass)
+            .map_err(|error| resource_error(source, &error.to_string()))?;
+        classes.insert(pos, class);
+    }
+    let words_per_row = classes.len().div_ceil(u64::BITS as usize);
+    let matrix_len = classes
+        .len()
+        .checked_mul(words_per_row)
+        .ok_or_else(|| resource_error(source, "transition matrix size overflow"))?;
+    let mut matrix = vec![0_u64; matrix_len];
+    for (end, start) in transitions {
+        let end = usize::from(classes[end].0);
+        let start = usize::from(classes[start].0);
+        matrix[end * words_per_row + start / u64::BITS as usize] |=
+            1_u64 << (start % u64::BITS as usize);
+    }
+    Ok(TransitionMatrix {
+        classes,
+        words_per_row,
+        bits: matrix.into_boxed_slice(),
     })
 }
 
