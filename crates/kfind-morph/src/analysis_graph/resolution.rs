@@ -855,21 +855,22 @@ fn continuation_prefix_possible(
         .max()
         .unwrap_or(spans.core.end)
         .min(spans.consumed.end);
-    let Some(selected) = suffix_units(units, support, &(spans.core.end..partial_end)) else {
+    let Some(selected) = suffix_unit_view(units, support, spans.core.end..partial_end) else {
         return false;
     };
-    let positions = selected.iter().map(|unit| unit.pos).collect::<Vec<_>>();
     match pattern.continuation {
         MorphContinuation::Exact => selected.is_empty(),
-        MorphContinuation::NominalParticles => nominal_prefix(&positions),
-        MorphContinuation::Predicate { .. } => predicate_prefix(&positions),
+        MorphContinuation::NominalParticles => nominal_prefix(selected.iter().map(|unit| unit.pos)),
+        MorphContinuation::Predicate { .. } => {
+            predicate_prefix(selected.iter().map(|unit| unit.pos))
+        }
     }
 }
 
-fn nominal_prefix(positions: &[&str]) -> bool {
+fn nominal_prefix<'a>(positions: impl IntoIterator<Item = &'a str>) -> bool {
     let mut particles = false;
-    positions.iter().all(|pos| {
-        if *pos == "XSN" && !particles {
+    positions.into_iter().all(|pos| {
+        if pos == "XSN" && !particles {
             true
         } else if pos.starts_with('J') {
             particles = true;
@@ -880,7 +881,7 @@ fn nominal_prefix(positions: &[&str]) -> bool {
     })
 }
 
-fn predicate_prefix(positions: &[&str]) -> bool {
+fn predicate_prefix<'a>(positions: impl IntoIterator<Item = &'a str>) -> bool {
     #[derive(Clone, Copy, Eq, PartialEq)]
     enum Stage {
         Predicate,
@@ -888,7 +889,7 @@ fn predicate_prefix(positions: &[&str]) -> bool {
         Terminal,
     }
     let mut stage = Stage::Predicate;
-    positions.iter().all(|pos| match *pos {
+    positions.into_iter().all(|pos| match pos {
         "EP" | "EC" | "VX" | "XSV" | "XSA" if stage == Stage::Predicate => true,
         "EF" | "ETM" if stage == Stage::Predicate => {
             stage = Stage::Terminal;
@@ -970,6 +971,26 @@ struct Unit<'a> {
     span: Option<Range<usize>>,
     coverage: Range<usize>,
     opaque: bool,
+}
+
+struct SuffixUnitView<'units, 'data> {
+    units: &'units [Unit<'data>],
+    start: usize,
+    suffix: Range<usize>,
+}
+
+impl<'units, 'data> SuffixUnitView<'units, 'data> {
+    fn iter(&self) -> impl Iterator<Item = &'units Unit<'data>> + '_ {
+        self.units[self.start..].iter().filter(|unit| {
+            self.suffix.start < self.suffix.end
+                && unit.coverage.end > self.suffix.start
+                && unit.coverage.start < self.suffix.end
+        })
+    }
+
+    fn is_empty(&self) -> bool {
+        self.iter().next().is_none()
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -1241,11 +1262,12 @@ fn continuation_units<'a>(
     support: &SupportCandidate,
 ) -> Option<Vec<&'a Unit<'a>>> {
     let suffix = spans.core.end..spans.consumed.end;
-    let selected = suffix_units(units, support, &suffix)?;
-    let positions = selected.iter().map(|unit| unit.pos).collect::<Vec<_>>();
+    let selected = suffix_unit_view(units, support, suffix)?
+        .iter()
+        .collect::<Vec<_>>();
     let accepted = match pattern.continuation {
         MorphContinuation::Exact => {
-            spans.anchor == spans.core && spans.consumed == spans.anchor && positions.is_empty()
+            spans.anchor == spans.core && spans.consumed == spans.anchor && selected.is_empty()
         }
         MorphContinuation::NominalParticles => {
             (spans.consumed == spans.anchor && selected.is_empty())
@@ -1257,51 +1279,55 @@ fn continuation_units<'a>(
             nominal_particles,
         } => {
             spans.consumed.end == spans.token.end
-                && predicate_continuation(state, nominal_particles, spans, &selected, &positions)
+                && predicate_continuation(state, nominal_particles, spans, &selected)
         }
     };
     accepted.then_some(selected)
 }
 
-fn suffix_units<'a>(
-    units: &'a [Unit<'a>],
+fn suffix_unit_view<'units, 'data>(
+    units: &'units [Unit<'data>],
     support: &SupportCandidate,
-    suffix: &Range<usize>,
-) -> Option<Vec<&'a Unit<'a>>> {
-    if suffix.start == suffix.end {
-        return Some(Vec::new());
+    suffix: Range<usize>,
+) -> Option<SuffixUnitView<'units, 'data>> {
+    let selected = SuffixUnitView {
+        units,
+        start: support.unit_index.saturating_add(1).min(units.len()),
+        suffix,
+    };
+    if selected.suffix.start == selected.suffix.end {
+        return Some(selected);
     }
-    let mut selected = Vec::new();
-    for unit in units.iter().skip(support.unit_index + 1) {
-        if unit.coverage.end <= suffix.start || unit.coverage.start >= suffix.end {
-            continue;
-        }
+    let mut has_selected = false;
+    for unit in selected.iter() {
+        has_selected = true;
         if unit.span.is_none() && !support.opaque {
             return None;
         }
-        if !support.opaque && (unit.coverage.start < suffix.start || unit.coverage.end > suffix.end)
+        if !support.opaque
+            && (unit.coverage.start < selected.suffix.start
+                || unit.coverage.end > selected.suffix.end)
         {
             return None;
         }
-        selected.push(unit);
     }
     if support.opaque {
-        return (!selected.is_empty()).then_some(selected);
+        return has_selected.then_some(selected);
     }
-    let mut coverage = selected
-        .iter()
-        .map(|unit| unit.coverage.clone())
-        .collect::<Vec<_>>();
-    coverage.sort_by_key(|span| (span.start, span.end));
-    coverage.dedup();
-    let mut end = suffix.start;
-    for span in coverage {
-        if span.start > end {
-            return None;
+    let mut end = selected.suffix.start;
+    loop {
+        let next_end = selected
+            .iter()
+            .filter(|unit| unit.coverage.start <= end)
+            .map(|unit| unit.coverage.end)
+            .max()
+            .unwrap_or(end);
+        if next_end == end {
+            break;
         }
-        end = end.max(span.end);
+        end = next_end;
     }
-    (end == suffix.end).then_some(selected)
+    (end == selected.suffix.end).then_some(selected)
 }
 
 fn nominal_continuation(units: &[&Unit<'_>], support_surface: &str) -> bool {
@@ -1324,7 +1350,6 @@ fn predicate_continuation(
     nominal_particles: bool,
     spans: &CandidateSpans,
     units: &[&Unit<'_>],
-    positions: &[&str],
 ) -> bool {
     #[derive(Clone, Copy, Eq, PartialEq)]
     enum Stage {
@@ -1333,8 +1358,8 @@ fn predicate_continuation(
         Terminal,
     }
     let mut stage = Stage::Predicate;
-    for pos in positions {
-        match *pos {
+    for unit in units {
+        match unit.pos {
             "EP" | "EC" | "VX" | "XSV" | "XSA" if stage == Stage::Predicate => {}
             "EF" | "ETM" if stage == Stage::Predicate => stage = Stage::Terminal,
             "ETN" if stage == Stage::Predicate => stage = Stage::Nominalized,
@@ -1342,17 +1367,17 @@ fn predicate_continuation(
             _ => return false,
         }
     }
-    let post_anchor = units
-        .iter()
-        .filter(|unit| unit.coverage.start >= spans.anchor.end)
-        .map(|unit| unit.pos)
-        .collect::<Vec<_>>();
     let state_allowed = match state {
-        ContinuationState::Terminal if nominal_particles => {
-            post_anchor.iter().all(|pos| pos.starts_with('J'))
-        }
-        ContinuationState::Terminal => post_anchor.is_empty(),
-        ContinuationState::Eu => !post_anchor.is_empty(),
+        ContinuationState::Terminal if nominal_particles => units
+            .iter()
+            .filter(|unit| unit.coverage.start >= spans.anchor.end)
+            .all(|unit| unit.pos.starts_with('J')),
+        ContinuationState::Terminal => !units
+            .iter()
+            .any(|unit| unit.coverage.start >= spans.anchor.end),
+        ContinuationState::Eu => units
+            .iter()
+            .any(|unit| unit.coverage.start >= spans.anchor.end),
         ContinuationState::AOrEo
         | ContinuationState::Past
         | ContinuationState::Future
