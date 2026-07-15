@@ -119,7 +119,7 @@ export default function OptimizationPage(): React.JSX.Element {
       <DocumentSection title="Resource의 지연 초기화">
         <p>
           모든 branch는 corpus 문맥이 필요한 정도를 <code>None</code>,{' '}
-          <code>PredicateLexical</code>, <code>NominalComponent</code>,{' '}
+          <code>PredicateLexical</code>, <code>ExactComponent</code>,{' '}
           <code>LexicalContext</code> 중 하나로 선언합니다. Compile된 plan에
           뒤의 세 requirement가 하나라도 있을 때만 compact component resource를
           요구합니다. Literal, <code>token</code>, <code>any</code> plan은 이

@@ -180,7 +180,7 @@ same POS.
 
 | Policy | Behavior | Typical use |
 | --- | --- | --- |
-| `smart` | Applies POS-aware verification and checks the completed token span. It can use the optional component resource for compound nouns, lexical predicates, and adjacent-token context. | Interactive search; default |
+| `smart` | Applies POS-aware verification and checks the completed token span. It can use the optional component resource for exact noun, pronoun, numeral, and determiner components, lexical predicates, and adjacent-token context. | Interactive search; default |
 | `token` | Requires token boundaries around every core and completed token span. | Strict standalone tokens |
 | `any` | Does not require left or right token boundaries. | Recall-oriented automation with downstream context review |
 

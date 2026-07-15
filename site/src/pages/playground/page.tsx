@@ -189,7 +189,7 @@ export default function PlaygroundPage(): React.JSX.Element {
                     selectPreset(PlaygroundPresetName.Component);
                   }}
                 >
-                  합성명사 · smart
+                  형태 component · smart
                 </Button>
                 <Button
                   data-glossary-skip=""
@@ -334,11 +334,12 @@ export default function PlaygroundPage(): React.JSX.Element {
 
         <p>
           기본 WASM에는 embedded lexicon만 포함되어 있습니다. <code>smart</code>{' '}
-          검색이 합성명사의 component 근거를 요구하면 사용자가 고급 resource를
-          명시적으로 불러와야 합니다. 이때 같은 origin의 Pages Function이 R2
-          객체를 streaming하고, engine은 schema와 checksum 검증을 마친 뒤에만
-          resource를 적용해 검색을 다시 실행합니다. Resource를 불러올 필요가
-          없는 query는 이 network 요청과 초기화 비용을 발생시키지 않습니다.
+          검색이 명사·대명사·수사·관형사의 component 근거를 요구하면 사용자가
+          고급 resource를 명시적으로 불러와야 합니다. 이때 같은 origin의 Pages
+          Function이 R2 객체를 streaming하고, engine은 schema와 checksum 검증을
+          마친 뒤에만 resource를 적용해 검색을 다시 실행합니다. Resource를
+          불러올 필요가 없는 query는 이 network 요청과 초기화 비용을 발생시키지
+          않습니다.
         </p>
       </DocumentSection>
     </DocumentPage>
