@@ -987,6 +987,7 @@ mod tests {
             .map(|node| node["source"]["kind"].as_str().unwrap())
             .collect::<Vec<_>>();
         assert!(sources.contains(&"source-atomic"));
+        assert!(sources.contains(&"source-decomposition"));
         assert!(!sources.contains(&"unresolved"));
     }
 
@@ -1009,10 +1010,13 @@ mod tests {
     }
 
     fn component_fixture_resource(component_cost: i32) -> Vec<u8> {
+        let mut whole = source_entry("사용자권한", 5_000);
+        whole.analysis_type = "Compound".to_owned();
+        whole.expression = "사용자/NNG/*+권한/NNG/*".to_owned();
         let entries = [
             source_entry("사용자", -5_000),
             source_entry("권한", component_cost),
-            source_entry("사용자권한", 5_000),
+            whole,
         ];
         let matrix = parse_mecab_connection_matrix(
             "matrix.def",

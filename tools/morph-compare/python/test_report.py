@@ -771,11 +771,29 @@ class ShadowVerificationTests(unittest.TestCase):
         decomposition = {
             "kind": "source-decomposition",
             "analyses": [
-                {"analysis_type": "Compound", "expression": "산/NNG/*+속/NNG/*"}
+                {
+                    "analysis_type": "Compound",
+                    "expression": "산/NNG/*+속/NNG/*",
+                    "expression_alignment": "span-aligned",
+                    "components": [
+                        {
+                            "surface": "산",
+                            "pos": "NNG",
+                            "surface_span": {"byte_start": 0, "byte_end": 3},
+                        },
+                        {
+                            "surface": "속",
+                            "pos": "NNG",
+                            "surface_span": {"byte_start": 3, "byte_end": 6},
+                        },
+                    ],
+                }
             ],
         }
         evidence = {
             "decision": "reject",
+            "query_source_pos": "NNG",
+            "normalized_target": {"byte_start": 3, "byte_end": 6},
             "include_cost": 20,
             "exclude_cost": 10,
             "paths": [
@@ -787,7 +805,12 @@ class ShadowVerificationTests(unittest.TestCase):
                 {
                     "cost": 10,
                     "includes_query": False,
-                    "nodes": [{"source": decomposition}],
+                    "nodes": [
+                        {
+                            "normalized": {"byte_start": 0, "byte_end": 6},
+                            "source": decomposition,
+                        }
+                    ],
                 },
             ],
         }
@@ -803,6 +826,10 @@ class ShadowVerificationTests(unittest.TestCase):
         self.assertEqual(
             {"source-decomposition": 1},
             classification["path_types_by_class"]["positive"]["exclude"],
+        )
+        self.assertEqual(
+            {"source-explicit-component": 1},
+            classification["query_relations_by_class"]["positive"]["exclude"],
         )
 
 

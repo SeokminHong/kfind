@@ -1,4 +1,7 @@
-use kfind_data::{DataFinePos, DecodedMorphologyResource};
+use kfind_data::{
+    DataFinePos, DecodedMorphologyResource, MorphologyExpressionAlignmentKind,
+    align_morphology_expression,
+};
 use kfind_matcher::{AnalysisWindowError, LocalAnalysisCandidate, VerificationCounters};
 use kfind_morph::{
     DEFAULT_LATTICE_NODE_LIMIT, FinePos, LocalLatticeDecision, LocalLatticeReport,
@@ -35,7 +38,9 @@ pub(super) struct ShadowLatticeEvidence {
     analysis_index: u16,
     rule_path: Vec<String>,
     fine_pos: &'static str,
+    query_source_pos: Option<&'static str>,
     target: Span,
+    normalized_target: Option<Span>,
     window: Option<ShadowWindowEvidence>,
     decision: Option<&'static str>,
     include_cost: Option<i64>,
@@ -88,6 +93,15 @@ struct ShadowSourceAnalysis {
     start_pos: String,
     end_pos: String,
     expression: String,
+    expression_alignment: Option<&'static str>,
+    components: Vec<ShadowSourceComponent>,
+}
+
+#[derive(Debug, Eq, PartialEq, Serialize)]
+struct ShadowSourceComponent {
+    surface: String,
+    pos: String,
+    surface_span: Option<Span>,
 }
 
 #[derive(Clone, Copy)]
@@ -177,6 +191,7 @@ fn diagnose_candidate(
     candidate: &LocalAnalysisCandidate,
     resource: ShadowResource<'_>,
 ) -> ShadowLatticeEvidence {
+    let query_source_pos = data_fine_pos(candidate.fine_pos);
     let base = |status, error| ShadowLatticeEvidence {
         status,
         atom_index: candidate.atom_index,
@@ -187,7 +202,9 @@ fn diagnose_candidate(
             .map(|rule| rule.as_str().to_owned())
             .collect(),
         fine_pos: fine_pos_name(candidate.fine_pos),
+        query_source_pos: query_source_pos.map(|pos| pos.as_str()),
         target: span(candidate.target.clone()),
+        normalized_target: None,
         window: candidate
             .window
             .as_ref()
@@ -220,7 +237,7 @@ fn diagnose_candidate(
         ShadowResource::Corrupt => return base("resource-corrupt", None),
         ShadowResource::SourceMismatch => return base("source-mismatch", None),
     };
-    let Some(query_pos) = data_fine_pos(candidate.fine_pos) else {
+    let Some(query_pos) = query_source_pos else {
         return base(
             "evaluation-error",
             Some("query POS is not represented in the morphology resource".to_owned()),
@@ -235,12 +252,12 @@ fn diagnose_candidate(
     let report = evaluate_local_component_paths(
         resource,
         window.normalized(),
-        query_span,
+        query_span.clone(),
         query_pos,
         DEFAULT_LATTICE_NODE_LIMIT,
     );
     match report {
-        Ok(report) => lattice_evidence(base("evaluated", None), window, report),
+        Ok(report) => lattice_evidence(base("evaluated", None), window, query_span, report),
         Err(error @ kfind_morph::LocalLatticeError::NodeLimit { .. }) => {
             base("limit-exceeded", Some(error.to_string()))
         }
@@ -251,8 +268,10 @@ fn diagnose_candidate(
 fn lattice_evidence(
     mut evidence: ShadowLatticeEvidence,
     window: &kfind_matcher::AnalysisWindow,
+    query_span: std::ops::Range<usize>,
     report: LocalLatticeReport,
 ) -> ShadowLatticeEvidence {
+    evidence.normalized_target = Some(span(query_span));
     evidence.decision = Some(match report.decision {
         LocalLatticeDecision::Accept => "accept",
         LocalLatticeDecision::Reject => "reject",
@@ -317,16 +336,7 @@ fn source_evidence(
                         && analysis.right_id == node.right_id
                         && analysis.word_cost == node.word_cost
                 })
-                .map(|analysis| ShadowSourceAnalysis {
-                    pos: analysis.pos.to_owned(),
-                    left_id: analysis.left_id,
-                    right_id: analysis.right_id,
-                    word_cost: analysis.word_cost,
-                    analysis_type: analysis.analysis_type.to_owned(),
-                    start_pos: analysis.start_pos.to_owned(),
-                    end_pos: analysis.end_pos.to_owned(),
-                    expression: analysis.expression.to_owned(),
-                }),
+                .map(|analysis| source_analysis(&surface, analysis)),
         );
     });
     let kind = match analyses.as_slice() {
@@ -338,6 +348,45 @@ fn source_evidence(
         kind,
         surface,
         analyses,
+    }
+}
+
+fn source_analysis(
+    surface: &str,
+    analysis: &kfind_data::MorphologyAnalysis<'_>,
+) -> ShadowSourceAnalysis {
+    let has_expression = !matches!(analysis.expression, "" | "*");
+    let alignment = has_expression.then(|| align_morphology_expression(surface, analysis.expression));
+    let components = alignment
+        .as_ref()
+        .map(|alignment| {
+            alignment
+                .components
+                .iter()
+                .map(|component| ShadowSourceComponent {
+                    surface: component.surface.to_owned(),
+                    pos: component.pos.to_owned(),
+                    surface_span: component.span.clone().map(span),
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    ShadowSourceAnalysis {
+        pos: analysis.pos.to_owned(),
+        left_id: analysis.left_id,
+        right_id: analysis.right_id,
+        word_cost: analysis.word_cost,
+        analysis_type: analysis.analysis_type.to_owned(),
+        start_pos: analysis.start_pos.to_owned(),
+        end_pos: analysis.end_pos.to_owned(),
+        expression: analysis.expression.to_owned(),
+        expression_alignment: alignment.map(|alignment| match alignment.kind {
+            MorphologyExpressionAlignmentKind::SpanAligned => "span-aligned",
+            MorphologyExpressionAlignmentKind::Fused => "fused",
+            MorphologyExpressionAlignmentKind::Unaligned => "unaligned",
+            MorphologyExpressionAlignmentKind::Invalid => "invalid",
+        }),
+        components,
     }
 }
 

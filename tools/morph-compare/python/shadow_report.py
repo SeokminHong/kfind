@@ -100,6 +100,9 @@ def classify_component_source_provenance(
     path_types: dict[str, dict[str, dict[str, int]]] = defaultdict(
         lambda: defaultdict(lambda: defaultdict(int))
     )
+    query_relations: dict[str, dict[str, dict[str, int]]] = defaultdict(
+        lambda: defaultdict(lambda: defaultdict(int))
+    )
     for case_id, counters in by_case.items():
         case = case_metadata.get(case_id)
         class_name = (
@@ -116,6 +119,9 @@ def classify_component_source_provenance(
             classified = _classify_source_path(selected)
             projections[projection] = classified
             path_types[class_name][projection][str(classified["path_type"])] += 1
+            query_relations[class_name][projection][
+                str(classified["query_relation"])
+            ] += 1
         if projections:
             by_case_classification[case_id] = {
                 "class": class_name,
@@ -123,6 +129,7 @@ def classify_component_source_provenance(
             }
     return {
         "path_types_by_class": _sorted_nested_counts(path_types),
+        "query_relations_by_class": _sorted_nested_counts(query_relations),
         "by_case": by_case_classification,
     }
 
@@ -315,9 +322,67 @@ def _classify_source_path(evidence: dict[str, object]) -> dict[str, object]:
         path_type = "unresolved"
     return {
         "path_type": path_type,
+        "query_relation": _source_query_relation(evidence, nodes),
         "cost": int(path["cost"]),
         "node_kinds": node_kinds,
     }
+
+
+def _source_query_relation(
+    evidence: dict[str, object], nodes: list[dict[str, object]]
+) -> str:
+    target = evidence.get("normalized_target")
+    query_pos = evidence.get("query_source_pos")
+    if isinstance(target, dict) and isinstance(query_pos, str):
+        target_span = (int(target["byte_start"]), int(target["byte_end"]))
+        for node in nodes:
+            node_span = node.get("normalized")
+            source = node.get("source")
+            if not isinstance(node_span, dict) or not isinstance(source, dict):
+                continue
+            node_start = int(node_span["byte_start"])
+            analyses = source.get("analyses")
+            if not isinstance(analyses, list):
+                continue
+            for analysis in analyses:
+                if not isinstance(analysis, dict):
+                    continue
+                components = analysis.get("components")
+                if not isinstance(components, list):
+                    continue
+                for component in components:
+                    if not isinstance(component, dict):
+                        continue
+                    span = component.get("surface_span")
+                    pos = component.get("pos")
+                    if not isinstance(span, dict) or not _source_pos_matches(
+                        pos, query_pos
+                    ):
+                        continue
+                    component_span = (
+                        node_start + int(span["byte_start"]),
+                        node_start + int(span["byte_end"]),
+                    )
+                    if component_span == target_span:
+                        return "source-explicit-component"
+    path = evidence["selected_path"]
+    if bool(path["includes_query"]):
+        return "exact-node"
+    alignments = {
+        str(analysis.get("expression_alignment"))
+        for node in nodes
+        if isinstance((source := node.get("source")), dict)
+        for analysis in source.get("analyses", [])
+        if isinstance(analysis, dict)
+        and analysis.get("expression_alignment") is not None
+    }
+    if alignments.intersection({"fused", "unaligned", "invalid"}):
+        return "opaque-expression"
+    return "absent"
+
+
+def _source_pos_matches(source_pos: object, query_pos: str) -> bool:
+    return source_pos == query_pos or (source_pos == "NNBC" and query_pos == "NNB")
 
 
 def _node_span(node: dict[str, object]) -> tuple[int, int] | None:
@@ -486,4 +551,22 @@ def append_component_shadow_table(
                     lines.append(
                         f"| {profile} | {class_name} | {projection} | "
                         f"{path_type} | {count} |"
+                    )
+    lines.extend(
+        [
+            "",
+            "| profile | class | projection | query relation | cases |",
+            "| --- | --- | --- | --- | ---: |",
+        ]
+    )
+    for profile in KFIND_PROFILES:
+        grouped = shadow_verification[profile].get(
+            "component_source_provenance", {}
+        ).get("query_relations_by_class", {})
+        for class_name, projections in grouped.items():
+            for projection, relations in projections.items():
+                for relation, count in relations.items():
+                    lines.append(
+                        f"| {profile} | {class_name} | {projection} | "
+                        f"{relation} | {count} |"
                     )
