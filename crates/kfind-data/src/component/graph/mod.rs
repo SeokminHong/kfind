@@ -99,6 +99,7 @@ pub struct MorphologyGraphResource {
     payload: GraphPayloadLayout,
     strings: StringLayout,
     transitions: BTreeSet<(String, String)>,
+    transition_index: BTreeMap<String, BTreeSet<String>>,
 }
 
 impl MorphologyGraphResource {
@@ -131,9 +132,9 @@ impl MorphologyGraphResource {
 
     #[must_use]
     pub fn allows_transition(&self, end_pos: &str, start_pos: &str) -> bool {
-        self.transitions
-            .iter()
-            .any(|(end, start)| end == end_pos && start == start_pos)
+        self.transition_index
+            .get(end_pos)
+            .is_some_and(|starts| starts.contains(start_pos))
     }
 
     #[must_use]
@@ -351,6 +352,14 @@ pub fn decode_morphology_graph_resource(
         &payload,
         surface_count,
     )?;
+    let transitions = payload_stats.transitions;
+    let mut transition_index = BTreeMap::<String, BTreeSet<String>>::new();
+    for (end_pos, start_pos) in &transitions {
+        transition_index
+            .entry(end_pos.clone())
+            .or_default()
+            .insert(start_pos.clone());
+    }
     Ok(MorphologyGraphResource {
         bytes,
         stats: MorphologyGraphResourceStats {
@@ -358,7 +367,7 @@ pub fn decode_morphology_graph_resource(
             surface_count,
             analysis_count,
             component_count: payload_stats.component_count,
-            transition_count: u32::try_from(payload_stats.transitions.len())
+            transition_count: u32::try_from(transitions.len())
                 .map_err(|error| resource_error(source, &error.to_string()))?,
             pos_counts: payload_stats.pos_counts,
             expression_counts: payload_stats.expression_counts,
@@ -368,7 +377,8 @@ pub fn decode_morphology_graph_resource(
         sections,
         payload,
         strings,
-        transitions: payload_stats.transitions,
+        transitions,
+        transition_index,
     })
 }
 
