@@ -320,13 +320,19 @@
 - corpus 쪽은 candidate를 포함한 bounded Unicode token과 바로 인접한 token만
   `BoundedTokenGraph`로 만든다. source whole/component, runtime, unknown node를 구분하고
   원문 byte span과 source provenance를 보존한다.
-- 제품 `ConstraintResolver`는 query pattern을 graph에서 평가해 첫 지원 근거가
-  나오면 즉시 `Supported`를 반환한다. 지원 근거가 없으면 `Contradicted`, resource
-  오류나 상한 초과는 `Unavailable`로 구분하고 다른 판정으로 바꾸지 않는다.
-- 경쟁 분석 전체와 `Ambiguous` 상태는 진단 evaluator에서만 열거할 수 있다.
-  제품 matcher는 중의성 해소를 위해 나머지 graph path를 탐색하지 않는다.
-- `ProductPolicy`는 하나 이상의 구조적 지원이 있으면 후보를 노출한다. program이
-  보존한 모든 query `Origin`은 결과 provenance에 남기되, corpus 의미 분석을 추가하지 않는다.
+- resolver는 먼저 query와 독립적인 whole/component·세부 품사·continuation·인접 token
+  근거로 corpus의 구조적 후보를 고른다. 어휘 의미만 다르고 span topology, 품사,
+  continuation과 문맥 제약이 같은 후보는 하나의 `StructuralSignature`로 합친다.
+- `ConstraintResolver`는 query pattern의 structural signature가 선택된 corpus 구조와
+  일치하면 `Supported`, 다른 구조가 유일하게 선택되면 `Contradicted`, resource 오류나
+  상한 초과는 `Unavailable`로 반환한다.
+- 구조적으로 다른 경쟁 path는 인접 성분 배치로 하나를 선택할 수 있는지 판정할
+  때까지 평가한다. 이때 분해·품사·인접 제약이 같은 어휘 의미 후보는 추가로
+  열거하지 않는다.
+- 구조적 경쟁이 여전히 모호하면 `ProductPolicy`는 recall을 우선해 지원 가능한
+  query 후보를 유지한다. `Ambiguous`와 경쟁 proof 전체는 진단 evaluator에서만 물질화한다.
+- program이 보존한 모든 query `Origin`은 결과 provenance에 남기되, corpus 의미 분석을
+  추가하지 않는다.
 - exact component 근거는 완전한 graph path에서 query와 같은 세부 품사 node의 span이
   query core와 정확히 일치할 때만 성립한다. 더 큰 node의 substring이나 여러 component
   경계를 가로지르는 span은 근거가 아니다.
@@ -489,7 +495,9 @@
 
 기본 실행 경로에는 Kiwi, Lindera, MeCab 계열 분석기를 포함하지 않는다. 런타임 모델 다운로드도 하지 않는다.
 
-동음이의어와 동형이의어는 문맥으로 구분하지 않는다. 한 표제어에서 생성 가능한 표면형이면 모두 검색 결과로 인정한다.
+형태 구조가 같은 동음이의어와 동형이의어는 문맥 의미로 구분하지 않는다. 한
+표제어에서 생성 가능한 표면형이면 모두 검색 결과로 인정한다. 다만 whole/component
+분해, 품사 또는 인접 문장 성분 배치가 다른 경우에는 bounded 구조 근거로 구분한다.
 
 예:
 
@@ -781,7 +789,7 @@ false positive를 제거해야 한다. 후보가 너무 많으면 검색 path·g
 - 일반 목적 문장 형태소 분석기 또는 tokenizer API
 - 형태소 분석기 자체의 최고 처리량·정확도 경쟁
 - 문서 전체 형태소 분석
-- 문맥 기반 동음이의어 구분
+- 문맥 의미 기반 동음이의어 구분
 - 임의 활용형의 표제어 역분석
 - 동의어, 유의어, 의미 검색
 - 사용자 정규식
@@ -936,8 +944,8 @@ pub struct Origin {
   capability·인접 token 제약을 선언한다. 여러 분석이 같은 anchor를 공유하면 pattern
   합집과 모든 `Origin`을 보존한다.
 - `Boundary`는 literal, `token`, `any` 및 구조 판정이 필요 없는 경로에만 사용한다.
-  `Structural`은 bounded token graph에서 제약을 평가하고 제품 경로에서 첫 지원
-  근거가 나오면 탐색을 종료한다.
+  `Structural`은 bounded token graph에서 구조적으로 다른 경쟁 경로를 평가하되,
+  같은 structural signature 안의 어휘 의미 차이는 추가로 열거하지 않는다.
 - `BranchVerifier`, `ContextRequirement`, 수동 lexical-context surface registry,
   exact-component 비용 마진과 예외 fallback은 전환 완료 후 query·matcher 실행 경로에
   남지 않는다.
@@ -1953,6 +1961,18 @@ optimized(query, corpus) == reference(query, corpus)
 query: 걷다
 text: 전화를 걸어 봤다.
 expected: match
+
+query: 걷다, 걸다
+text: 그는 걸었고 계속 말했다.
+expected: 두 query 모두 match
+
+query: n:매
+text: 매일 보고 싶어.
+expected: no match
+
+query: adv:매일
+text: 독수리가 아니라 매일 수도 있어.
+expected: no match
 ```
 
 ### 19.3 속성 테스트

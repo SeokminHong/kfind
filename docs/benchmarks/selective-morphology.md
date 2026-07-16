@@ -10,7 +10,7 @@
 QueryMorphPattern + CandidateProgram
   + BoundedTokenGraph
   -> ConstraintResolver
-  -> FirstSupport + Proof
+  -> StructuralSupport + Proof
   -> ProductPolicy
 ```
 
@@ -33,12 +33,15 @@ QueryMorphPattern + CandidateProgram
 
 - bounded token graph는 source whole/component, runtime, unknown을 구분하고 입력 바이트 span을
   유지한다. NFC 변환을 거친 경우에도 원문 byte offset으로 역매핑해야 한다.
-- 제품 resolver는 query pattern을 순서대로 평가하고 첫 지원 근거에서
-  short-circuit한다. 결과 상태는 `Supported`, `Contradicted`, `Unavailable`로 구분한다.
-- 경쟁 분석 전체와 `Ambiguous`는 benchmark·explain 진단 mode에서만 열거할 수 있다.
-  제품 matcher는 동음이의어·동형이의어 해소를 위해 추가 path를 탐색하지 않는다.
-- `ProductPolicy`는 하나 이상의 구조적 지원이 있으면 후보를 노출한다. program이
-  보존한 query provenance는 모두 남기되 corpus 의미 분석을 추가하지 않는다.
+- resolver는 query와 독립적인 whole/component, 세부 품사, continuation과 인접 token
+  근거로 corpus 구조를 먼저 선택한다.
+- span topology, 품사, continuation과 문맥 제약이 같고 어휘 의미만 다른 후보는
+  하나의 `StructuralSignature`로 합친다. 제품 matcher는 이 합집 안의 의미를 해소하지 않는다.
+- 분해·품사·인접 성분 배치가 다른 경쟁 path는 하나의 구조가 선택되거나
+  모호함이 확정될 때까지 평가한다. 결과는 `Supported`, `Contradicted`, `Unavailable`로 구분한다.
+- 서로 다른 구조가 여전히 모호하면 `ProductPolicy`는 recall을 우선해 지원 가능한
+  query 후보를 유지한다. `Ambiguous`와 경쟁 proof 전체는 진단 mode에서만 물질화한다.
+- program이 보존한 query provenance는 모두 남기되 corpus 의미 분석을 추가하지 않는다.
 - resource 누락·손상·schema mismatch·그래프 상한 초과는 `Unavailable`로 구분하고
   기존 boundary 판정이나 raw-cost 임계값으로 바꾸지 않는다.
 - source 분석 비용은 그래프 탐색 순서와 동률 근거를 설명하는 metadata로만 사용한다.
