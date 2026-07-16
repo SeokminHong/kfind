@@ -828,8 +828,8 @@ fn nominal_component_is_on_preferred_path(
                 unit.span.start - selected.start,
                 unit.span.end - selected.start,
                 (
-                    usize::from(unit.evidence != StructuralEvidence::SourceComponent),
                     1_usize,
+                    usize::from(unit.evidence != StructuralEvidence::SourceComponent),
                 ),
             )
         })
