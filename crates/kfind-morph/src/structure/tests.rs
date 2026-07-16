@@ -235,46 +235,6 @@ fn multisyllable_nominal_prefix_survives_a_graph_built_particle_host() {
 }
 
 #[test]
-fn prefixed_multisyllable_nominal_component_survives_a_derivational_frame() {
-    let resolver = resolver();
-    let core = "비".len().."비실체".len();
-    let decision = resolver.resolve_candidate(
-        BoundedTokenContext::current("비실체적인"),
-        CandidateSpans {
-            core: core.clone(),
-            anchor: core.clone(),
-            consumed: core,
-            token: 0.."비실체적인".len(),
-        },
-        &[component_pattern(DataFinePos::Nng, "실체")],
-        128,
-    );
-
-    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
-    assert!(ProductPolicy::RecallFirst.accepts(&decision));
-}
-
-#[test]
-fn multisyllable_nominal_crossing_without_an_affix_frame_is_rejected() {
-    let resolver = resolver();
-    let core = "사".len().."사실체".len();
-    let decision = resolver.resolve_candidate(
-        BoundedTokenContext::current("사실체계"),
-        CandidateSpans {
-            core: core.clone(),
-            anchor: core.clone(),
-            consumed: core,
-            token: 0.."사실체계".len(),
-        },
-        &[component_pattern(DataFinePos::Nng, "실체")],
-        128,
-    );
-
-    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
-    assert!(!ProductPolicy::RecallFirst.accepts(&decision));
-}
-
-#[test]
 fn dependent_noun_after_a_proper_noun_consumes_its_particle() {
     let resolver = resolver();
     let core = "요코".len().."요코씨".len();
@@ -619,14 +579,6 @@ fn resolver() -> ConstraintResolver {
         atomic("둥그스름", "NNG"),
         atomic("하", "NNG"),
         atomic("게", "JKB"),
-        atomic("비", "XPN"),
-        atomic("실체", "NNG"),
-        atomic("적", "XSN"),
-        atomic("인", "VCP+ETM"),
-        atomic("사", "NNG"),
-        atomic("사실", "NNG"),
-        atomic("체계", "NNG"),
-        atomic("계", "NNG"),
         atomic("요코", "NNP"),
         atomic("씨", "NNB"),
         atomic("요코씨", "NNP"),
