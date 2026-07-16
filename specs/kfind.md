@@ -1441,10 +1441,21 @@ literal과 토큰 경계만 적용한다.
 
 ```text
 고유 anchor 1개: Box에 보관한 memchr::memmem::Finder의 owned variant
-고유 anchor 2개 이상: Aho-Corasick standard match kind의 overlapping search
+고유 anchor 2개 이상, 짧은 1회성 입력: owned Finder 집합의 build-free overlapping search
+고유 anchor 2개 이상, 누적 검색량이 큰 입력: Aho-Corasick standard match kind의 overlapping search
 ```
 
-단일 앵커 Finder는 `Finder::new(needle).into_owned()`로 구성하고 platform별 Finder 내부 크기가 `AnchorEngine` 전체 크기를 키우지 않도록 Box에 보관한다. 후보가 겹칠 수 있으므로 Aho-Corasick에서는 overlapping hit를 받고, 검증 후 가장 왼쪽의 가장 긴 token span을 선택한다.
+단일 앵커 Finder는 `Finder::new(needle).into_owned()`로 구성하고 platform별 Finder 내부 크기가
+`AnchorEngine` 전체 크기를 키우지 않도록 Box에 보관한다. 다중 앵커도 처음에는 owned Finder를
+재사용해 각 pattern의 다음 hit를 병합한다. Hit 순서는 Aho-Corasick standard overlapping과 같은
+`(end, start)` 순서를 보존한다.
+
+다중 앵커 엔진은 검색한 input bytes와 anchor 수의 곱으로 직접 검색량을 누적한다. 정해진
+work threshold를 넘을 때만 Aho-Corasick을 한 번 구성하고 이후 입력에서 재사용한다. Automaton
+구성이 실패하거나 Finder 집합과 automaton의 합산 예상 메모리가 matcher 제한을 넘으면 Finder
+경로를 계속 사용한다. 따라서 짧은 문장 한 번을 검색하기 전에 automaton을 선구축하지 않으며,
+대규모 text의 선형 다중 문자열 scan은 유지한다. 후보가 겹칠 수 있으므로 두 경로 모두 모든
+overlapping hit를 내고, 검증 후 가장 왼쪽의 가장 긴 token span을 선택한다.
 
 ### 11.3 program 제한
 
@@ -2403,6 +2414,12 @@ query compile 목표는 lexicon을 미리 로드한 같은 analyzer를 재사용
 single_atom: 걷다
 phrase_8_atoms: n:사용자 n:권한 v:검증하다 adj:예쁘다 det:새 adv:빨리 n:기술 v:걷다
 ```
+
+`matcher/build_and_find_short`는 미리 compile한 다중 앵커 단일 atom plan으로 짧은 문장 하나를
+검색한다. 각 iteration에서 matcher를 새로 만들어 one-shot build와 첫 검색을 함께 측정한다.
+`matcher/scan_deterministic_corpus`는 같은 matcher를 충분히 큰 corpus에 재사용해 adaptive
+automaton 승격 이후의 scan 회귀를 감시한다. 두 workload를 함께 비교해 짧은 입력의 build 비용을
+줄이면서 대규모 scan을 희생하지 않았는지 판정한다.
 
 `matcher/phrase_find_all`은 1,024개 line 중 4개마다 `n:길 v:걷다`가 일치하는 고정 corpus를 메모리 입력으로 사용한다. smart boundary의 component 검증에 필요한 고정 resource를 matcher 생성 시 제공한다. 전체 phrase match를 반환하는 한 번의 호출을 측정해 match 수에 따른 반복 anchor scan과 span 결합 회귀를 감시한다.
 

@@ -33,6 +33,7 @@ const INPUT_SEARCHER_PHRASE_REPETITIONS: usize = 4_096;
 const CONTEXT_REPETITIONS: usize = 16_384;
 const PHRASE_8_ATOMS_QUERY: &str =
     "n:사용자 n:권한 v:검증하다 adj:예쁘다 det:새 adv:빨리 n:기술 v:걷다";
+const SHORT_MATCHING_TEXT: &[u8] = "길을 걸었다.".as_bytes();
 
 fn query_compile(criterion: &mut Criterion) {
     let analyzer = analyzer();
@@ -75,12 +76,21 @@ fn matcher_scan(criterion: &mut Criterion) {
     let plan = compile_query("걷다", &CompileOptions::default(), &analyzer)
         .expect("benchmark query must compile");
     let matcher = MorphMatcher::new(Arc::new(plan)).expect("benchmark matcher must build");
+    let short_plan = Arc::clone(matcher.plan());
+    assert_eq!(matcher.find_all_with_meta(SHORT_MATCHING_TEXT).len(), 1);
     let corpus = deterministic_corpus(MATCH_EVERY_LINES);
     assert_eq!(
         matcher.find_all_with_meta(&corpus).len(),
         CORPUS_LINES / MATCH_EVERY_LINES
     );
     let mut group = criterion.benchmark_group("matcher");
+    group.bench_function("build_and_find_short", |bencher| {
+        bencher.iter(|| {
+            MorphMatcher::new(Arc::clone(black_box(&short_plan)))
+                .expect("benchmark matcher must build")
+                .find_all_with_meta(black_box(SHORT_MATCHING_TEXT))
+        });
+    });
     group.throughput(Throughput::Bytes(corpus.len() as u64));
     group.bench_function("scan_deterministic_corpus", |bencher| {
         bencher.iter(|| matcher.find_all_with_meta(black_box(&corpus)));

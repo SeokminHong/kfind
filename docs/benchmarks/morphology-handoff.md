@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [anchor automaton 선구축 병목 제거](2026-07-17-lazy-anchor-automaton-performance.md)
 - [결합형 보조용언 recall](2026-07-17-attached-auxiliary-recall.md)
 - [source 어미 경로 recall](2026-07-17-predicate-ending-path-recall.md)
 - [체언 뒤 지정사 구조 recall](2026-07-17-copula-nominal-host-recall.md)
@@ -159,6 +160,14 @@ token 왼쪽 경계의 일반 용언 `VV/VA + EC`, query core의 `VX`, token 끝
 됐다. Matrix full-POS·Human은 `PNᶜ=1,401`에서 `지다` 4건, `나다`·`있다` 각 1건을
 회수해 FNᶜ가 76·74가 됐고 완전 회수 문장은 390→396이다. FP·FPᶜ는 변하지 않았고
 `사진` 대조군도 거부했다. Matrix contract 정의, annotation과 gate는 변경하지 않았다.
+
+[anchor automaton 선구축 병목 제거](2026-07-17-lazy-anchor-automaton-performance.md)에서
+형태소 평가 CPU의 24.8%를 차지하던 다중 anchor automaton 생성을 짧은 일회성 검색에서
+제거했다. 짧은 생성+검색 p95는 74.958µs에서 14.206µs로 81.05% 줄고, 승격 뒤 장문 scan은
+유의한 차이가 없다. Canonical과 matrix의 strict·contract-adjusted 결과 및 FNᶜ/PNᶜ는
+모두 같다. Agent는 16,911.2에서 26,612.4 cases/s로 57.37% 빨라져 같은 explicit-POS
+fixture의 Lindera 20,825.6 cases/s를 27.79% 앞선다. Matrix contract 정의, annotation과
+gate는 변경하지 않았다.
 
 Matrix full-POS의 가장 큰 남은 동일 질의 묶음은 각 3건인 `것`, 부사 `안`, 동사 `오다`,
 형용사 `이다`다. 다음 작업은 네 묶음을 case-level로 비교해 공통 구조로 가장 많은
