@@ -216,13 +216,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "kfind-morph"
-version = "0.3.0-rc.3"
-dependencies = [
- "kfind-data",
-]
-
-[[package]]
 name = "libc"
 version = "0.2.186"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -251,7 +244,6 @@ dependencies = [
  "clap",
  "fst",
  "kfind-data",
- "kfind-morph",
  "libc",
  "memmap2",
  "serde",
