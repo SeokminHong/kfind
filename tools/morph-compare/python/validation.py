@@ -123,6 +123,122 @@ def validate_untagged_dataset(
             raise ValueError("untagged negative does not reference a positive case")
 
 
+def validate_query_matrix_dataset(
+    cases_path: Path,
+    cases: list[dict[str, object]],
+    metadata: dict[str, object],
+    query_mode: str,
+) -> None:
+    if metadata.get("fixture_type") != "query-matrix":
+        raise ValueError("query matrix fixture_type must be query-matrix")
+    if metadata.get("query_mode") != query_mode:
+        raise ValueError(f"query matrix requires query_mode={query_mode}")
+    validate_fixture_identity(cases_path, cases, metadata)
+    if len(cases) != metadata.get("cases"):
+        raise ValueError("query matrix case count differs from metadata")
+    positives = [case for case in cases if case["expected"]]
+    negatives = [case for case in cases if not case["expected"]]
+    if not positives or len(positives) != len(negatives):
+        raise ValueError("query matrix requires balanced positive and negative cases")
+    if metadata.get("positive_cases") != len(positives):
+        raise ValueError("query matrix positive count differs from metadata")
+    if metadata.get("negative_cases") != len(negatives):
+        raise ValueError("query matrix negative count differs from metadata")
+
+    groups: dict[str, list[dict[str, object]]] = defaultdict(list)
+    for case in cases:
+        group_id = case.get("matrix_group_id")
+        if not isinstance(group_id, str) or not group_id:
+            raise ValueError("query matrix case has no matrix_group_id")
+        groups[group_id].append(case)
+    if metadata.get("sentences") != len(groups):
+        raise ValueError("query matrix sentence count differs from metadata")
+
+    canonical_ids = []
+    sentence_distribution: dict[str, int] = defaultdict(int)
+    for group_id, group_cases in groups.items():
+        source_sent_text = {
+            (str(case["source"]), str(case["sent_id"]), str(case["text"]))
+            for case in group_cases
+        }
+        if len(source_sent_text) != 1:
+            raise ValueError(f"query matrix group {group_id} mixes sentences")
+        present = sorted(
+            (case for case in group_cases if case["expected"]),
+            key=lambda case: str(case["matrix_slot"]),
+        )
+        absent = sorted(
+            (case for case in group_cases if not case["expected"]),
+            key=lambda case: str(case["matrix_slot"]),
+        )
+        if len(present) != len(absent) or not 1 <= len(present) <= 3:
+            raise ValueError(f"query matrix group {group_id} has invalid balance")
+        expected_present_slots = [
+            f"present-{index}" for index in range(1, len(present) + 1)
+        ]
+        expected_absent_slots = [
+            f"absent-{index}" for index in range(1, len(absent) + 1)
+        ]
+        if [case["matrix_slot"] for case in present] != expected_present_slots:
+            raise ValueError(f"query matrix group {group_id} has invalid present slots")
+        if [case["matrix_slot"] for case in absent] != expected_absent_slots:
+            raise ValueError(f"query matrix group {group_id} has invalid absent slots")
+        if {
+            str(case["paired_positive_id"]) for case in absent
+        } != {str(case["id"]) for case in present}:
+            raise ValueError(f"query matrix group {group_id} has invalid positive pairs")
+        if any(case["paired_positive_id"] is not None for case in present):
+            raise ValueError("query matrix positive cannot reference a paired positive")
+        if any(case["canonical_positive_id"] is not None for case in absent):
+            raise ValueError("query matrix negative cannot be canonical")
+        for case in present:
+            canonical_id = case.get("canonical_positive_id")
+            if canonical_id is not None:
+                canonical_ids.append(str(canonical_id))
+        present_by_id = {str(case["id"]): case for case in present}
+        for case in absent:
+            paired = present_by_id[str(case["paired_positive_id"])]
+            if case["pos"] != paired["pos"]:
+                raise ValueError("query matrix pair must preserve coarse POS")
+        if query_mode == "untagged":
+            present_queries = {str(case["query"]) for case in present}
+            absent_queries = [str(case["query"]) for case in absent]
+            if len(absent_queries) != len(set(absent_queries)) or present_queries & set(
+                absent_queries
+            ):
+                raise ValueError(f"query matrix group {group_id} repeats a query")
+        else:
+            present_pairs = {
+                (str(case["query"]), str(case["pos"])) for case in present
+            }
+            absent_pairs = [
+                (str(case["query"]), str(case["pos"])) for case in absent
+            ]
+            if len(absent_pairs) != len(set(absent_pairs)) or present_pairs & set(
+                absent_pairs
+            ):
+                raise ValueError(f"query matrix group {group_id} repeats a query")
+        sentence_distribution[str(len(present))] += 1
+
+    if len(canonical_ids) != len(set(canonical_ids)):
+        raise ValueError("query matrix repeats a canonical positive")
+    expected_canonical = metadata.get("canonical_positive_cases")
+    if len(canonical_ids) != expected_canonical:
+        raise ValueError("query matrix does not cover every canonical positive")
+    if metadata.get("canonical_positive_coverage") != expected_canonical:
+        raise ValueError("query matrix canonical coverage metadata is inconsistent")
+    if dict(sorted(sentence_distribution.items())) != metadata.get(
+        "present_queries_per_sentence"
+    ):
+        raise ValueError("query matrix sentence distribution differs from metadata")
+    if not isinstance(metadata.get("derived_from_fixture_sha256"), str):
+        raise ValueError("query matrix has no canonical fixture SHA-256")
+    if query_mode == "untagged" and any(
+        not str(case["id"]).startswith("untagged:matrix:") for case in cases
+    ):
+        raise ValueError("untagged query matrix case ID has an invalid prefix")
+
+
 def validate_hard_negatives(
     cases_path: Path, cases: list[dict[str, object]]
 ) -> dict[str, object]:
