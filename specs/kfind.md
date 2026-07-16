@@ -376,11 +376,10 @@
   검증할 때만 사용하고 token 전체의 품사 구조를 선택하는 근거로 쓰지 않는다. host 왼쪽
   경계에 정렬된 두 음절 이상의 nominal prefix는 유지하고, 한 음절 prefix와 host 내부
   양쪽 경계를 가로지르는 후보에는 선호 경로 검증을 적용한다.
-- complete path에서 생산 접두사 `XPN`이 query core 바로 앞에서 끝나면, 두 음절 이상의
-  nominal core는 뒤의 파생·활용 성분이 남아 있어도 정렬된 파생 구조로 유지한다. `NNP`가
-  host 왼쪽 경계부터 query core 직전까지 이어지고, 한 음절 `NNB` core가 host 오른쪽 경계에서
-  끝난 뒤 유효한 조사 continuation을 소비하면 인명+의존명사 구조로 유지한다. 이 예외는
-  문자열 substring이나 표제어 의미가 아니라 complete path의 품사 경계로만 판정한다.
+- 두 음절 이상의 `NNP`가 host 왼쪽 경계부터 query core 직전까지 이어지고, 한 음절 `NNB`
+  core가 host 오른쪽 경계에서 끝난 뒤 유효한 조사 continuation을 소비하면 인명+의존명사
+  구조로 유지한다. 이 예외는 문자열 substring이나 표제어 의미가 아니라 complete path의
+  품사 경계로만 판정한다.
 - 제품 graph는 source 분석 비용을 읽거나 보존하지 않는다. 비용·연결 행렬·미등록어
   모델은 별도 full morphology 진단 artifact에서 과거 판정과 결과를 비교할 때만 사용한다.
   include/exclude 비용 마진, query별 threshold와 결과별 fallback을 제품 판정에 사용하지 않는다.
