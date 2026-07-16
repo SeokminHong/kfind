@@ -395,6 +395,57 @@ fn numeric_unit_rule_rejects_nonnumeric_and_nonparticle_neighbors() {
 }
 
 #[test]
+fn hangul_numeral_sequences_support_only_aligned_numerals() {
+    let resolver = resolver();
+    let cases = [
+        ("수십만의", "수십".len().."수십만".len(), "만"),
+        ("십일월에", "십".len().."십일".len(), "일"),
+        ("백명", 0.."백".len(), "백"),
+    ];
+
+    for (text, core, query) in cases {
+        let decision = resolver.resolve_candidate(
+            BoundedTokenContext::current(text),
+            CandidateSpans {
+                anchor: core.clone(),
+                core: core.clone(),
+                consumed: core,
+                token: 0..text.len(),
+            },
+            &[component_pattern(DataFinePos::Nr, query)],
+            128,
+        );
+        assert_eq!(decision.outcome, ConstraintOutcome::Supported, "{text}");
+    }
+}
+
+#[test]
+fn hangul_numeral_sequences_reject_an_ordinary_noun_tail() {
+    let resolver = resolver();
+    for text in ["백명사전", "일월산맥길"] {
+        let mut edges = Vec::new();
+        for start in text.char_indices().map(|(offset, _)| offset) {
+            resolver.resource().common_prefix_groups(
+                &text.as_bytes()[start..],
+                |length, analyses| {
+                    for analysis in analyses {
+                        edges.push(Edge {
+                            span: start..start + length,
+                            pos: analysis.pos,
+                            components: analysis.components,
+                        });
+                    }
+                },
+            );
+        }
+        assert!(
+            hangul_numeral_spans(text.len(), &edges).is_empty(),
+            "{text}"
+        );
+    }
+}
+
+#[test]
 fn competing_predicate_and_nominal_continuations_remain_available() {
     let resolver = resolver();
     let pattern = QueryMorphPattern::new(DataFinePos::Vv, "들").with_candidate_contract(
@@ -701,8 +752,21 @@ fn resolver() -> ConstraintResolver {
         atomic("씨", "NNB"),
         atomic("요코씨", "NNP"),
         atomic("년", "NNBC"),
+        atomic("수십", "NR"),
+        atomic("십", "NR"),
+        atomic("일", "NR"),
+        atomic("월", "NNBC"),
+        atomic("백", "NR"),
+        atomic("만", "NR"),
         atomic("천", "NR"),
         atomic("명", "NNBC"),
+        atomic("의", "JKG"),
+        atomic("조", "NNG"),
+        atomic("족", "NNG"),
+        atomic("산", "NNG"),
+        atomic("맥", "NNG"),
+        atomic("길", "NNG"),
+        atomic("전", "NNG"),
         atomic("사", "NNG"),
         atomic("소", "NNG"),
         atomic("이", "JKS"),

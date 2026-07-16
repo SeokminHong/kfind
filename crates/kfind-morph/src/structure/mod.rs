@@ -423,7 +423,7 @@ struct TokenEvidence {
     runtime_spans: Vec<Range<usize>>,
     adnominal_ends: Vec<usize>,
     has_complete_path: bool,
-    numeric_unit: Option<Range<usize>>,
+    numeric_spans: Box<[Range<usize>]>,
 }
 
 impl TokenEvidence {
@@ -562,6 +562,18 @@ impl TokenEvidence {
                 }
             }
         }
+        let numeric_spans = if let Some(unit) = numeric_unit {
+            vec![unit].into_boxed_slice()
+        } else if !NUMERIC
+            && edges
+                .iter()
+                .take_while(|edge| edge.span.start == 0)
+                .any(|edge| edge.pos == "NR")
+        {
+            hangul_numeral_spans(text.len(), &edges).into_boxed_slice()
+        } else {
+            Vec::new().into_boxed_slice()
+        };
         units.sort_unstable_by_key(|unit| {
             (
                 unit.span.start,
@@ -580,7 +592,7 @@ impl TokenEvidence {
             runtime_spans,
             adnominal_ends,
             has_complete_path,
-            numeric_unit,
+            numeric_spans,
         })
     }
 
@@ -639,6 +651,115 @@ fn forward_positions_with_prefix(
         }
     }
     forward
+}
+
+#[derive(Clone, Copy)]
+#[repr(usize)]
+enum NumeralPathState {
+    Start,
+    OneNumeral,
+    ManyNumerals,
+    Unit,
+    ManyNumeralParticles,
+    UnitParticles,
+}
+
+const NUMERAL_PATH_STATE_COUNT: usize = 6;
+
+fn numeral_path_transition(state: NumeralPathState, pos: &str) -> Option<NumeralPathState> {
+    let particle = pos.split('+').all(|part| part.starts_with('J'));
+    match (state, pos) {
+        (NumeralPathState::Start, "NR") => Some(NumeralPathState::OneNumeral),
+        (NumeralPathState::OneNumeral, "NR") | (NumeralPathState::ManyNumerals, "NR") => {
+            Some(NumeralPathState::ManyNumerals)
+        }
+        (NumeralPathState::OneNumeral, "NNB" | "NNBC")
+        | (NumeralPathState::ManyNumerals, "NNB" | "NNBC") => Some(NumeralPathState::Unit),
+        (NumeralPathState::ManyNumerals, _) if particle => {
+            Some(NumeralPathState::ManyNumeralParticles)
+        }
+        (NumeralPathState::ManyNumeralParticles, _) if particle => {
+            Some(NumeralPathState::ManyNumeralParticles)
+        }
+        (NumeralPathState::Unit, _) | (NumeralPathState::UnitParticles, _) if particle => {
+            Some(NumeralPathState::UnitParticles)
+        }
+        _ => None,
+    }
+}
+
+fn numeral_path_state(index: usize) -> NumeralPathState {
+    const STATES: [NumeralPathState; NUMERAL_PATH_STATE_COUNT] = [
+        NumeralPathState::Start,
+        NumeralPathState::OneNumeral,
+        NumeralPathState::ManyNumerals,
+        NumeralPathState::Unit,
+        NumeralPathState::ManyNumeralParticles,
+        NumeralPathState::UnitParticles,
+    ];
+    STATES[index]
+}
+
+fn complete_numeral_path_state(state: NumeralPathState) -> bool {
+    matches!(
+        state,
+        NumeralPathState::ManyNumerals
+            | NumeralPathState::Unit
+            | NumeralPathState::ManyNumeralParticles
+            | NumeralPathState::UnitParticles
+    )
+}
+
+fn hangul_numeral_spans(text_len: usize, edges: &[Edge<'_>]) -> Vec<Range<usize>> {
+    let mut forward = vec![[false; NUMERAL_PATH_STATE_COUNT]; text_len + 1];
+    forward[0][NumeralPathState::Start as usize] = true;
+    for start in 0..text_len {
+        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+            for state_index in 0..NUMERAL_PATH_STATE_COUNT {
+                if !forward[start][state_index] {
+                    continue;
+                }
+                let state = numeral_path_state(state_index);
+                if let Some(next) = numeral_path_transition(state, edge.pos) {
+                    forward[edge.span.end][next as usize] = true;
+                }
+            }
+        }
+    }
+
+    let mut backward = vec![[false; NUMERAL_PATH_STATE_COUNT]; text_len + 1];
+    for (state_index, complete) in backward[text_len].iter_mut().enumerate() {
+        *complete = complete_numeral_path_state(numeral_path_state(state_index));
+    }
+    for start in (0..text_len).rev() {
+        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+            for state_index in 0..NUMERAL_PATH_STATE_COUNT {
+                let state = numeral_path_state(state_index);
+                let Some(next) = numeral_path_transition(state, edge.pos) else {
+                    continue;
+                };
+                backward[start][state_index] |= backward[edge.span.end][next as usize];
+            }
+        }
+    }
+
+    let mut spans = Vec::new();
+    for edge in edges.iter().filter(|edge| edge.pos == "NR") {
+        let belongs_to_complete_path = (0..NUMERAL_PATH_STATE_COUNT).any(|state_index| {
+            if !forward[edge.span.start][state_index] {
+                return false;
+            }
+            let state = numeral_path_state(state_index);
+            numeral_path_transition(state, edge.pos)
+                .is_some_and(|next| backward[edge.span.end][next as usize])
+        });
+        if belongs_to_complete_path {
+            spans.push(edge.span.clone());
+        }
+    }
+    spans.sort_unstable_by_key(|span| (span.start, span.end));
+    spans.dedup();
+    spans
 }
 
 fn complete_edges(text_len: usize, edges: &[Edge<'_>], forward: &[bool]) -> Vec<bool> {
@@ -734,6 +855,9 @@ enum StructureSelection {
     DependentNoun,
     NumericUnit {
         unit: Range<usize>,
+    },
+    HangulNumeralSequence {
+        fallback: Box<StructureSelection>,
     },
     RuntimeCompatible {
         graph_nominal_host: Option<Range<usize>>,
@@ -836,6 +960,11 @@ impl StructureSelection {
                 matches!(pattern.fine_pos, DataFinePos::Nnb | DataFinePos::Nr)
                     && spans.core == *unit
                     && spans.consumed.end == spans.token.end
+            }
+            Self::HangulNumeralSequence { fallback } => {
+                (pattern.fine_pos == DataFinePos::Nr
+                    && evidence.numeric_spans.contains(&spans.core))
+                    || fallback.accepts(support, spans, patterns, evidence)
             }
             Self::RuntimeCompatible { graph_nominal_host } => match support.evidence {
                 StructuralEvidence::Whole | StructuralEvidence::SourceComponent => true,
@@ -1143,18 +1272,36 @@ fn select_structure(
     {
         return StructureSelection::DependentNoun;
     }
-    if let Some(unit) = evidence.numeric_unit.clone() {
-        return StructureSelection::NumericUnit { unit };
-    }
-    if let Some(host) = particle_host {
-        let allow_components = false;
-        return StructureSelection::NominalSpan {
-            selected: host,
-            allow_components,
+    let hangul_numeral_sequence = evidence
+        .numeric_spans
+        .first()
+        .is_some_and(|span| span.start == 0);
+    if let Some(first) = evidence
+        .numeric_spans
+        .first()
+        .filter(|_| !hangul_numeral_sequence)
+    {
+        return StructureSelection::NumericUnit {
+            unit: first.clone(),
         };
     }
-    StructureSelection::RuntimeCompatible {
-        graph_nominal_host: complete_nominal_particle_host(resource, context.current),
+    let fallback = if let Some(host) = particle_host {
+        let allow_components = false;
+        StructureSelection::NominalSpan {
+            selected: host,
+            allow_components,
+        }
+    } else {
+        StructureSelection::RuntimeCompatible {
+            graph_nominal_host: complete_nominal_particle_host(resource, context.current),
+        }
+    };
+    if hangul_numeral_sequence {
+        StructureSelection::HangulNumeralSequence {
+            fallback: Box::new(fallback),
+        }
+    } else {
+        fallback
     }
 }
 
