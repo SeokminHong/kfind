@@ -16,6 +16,15 @@ uses the development fixture; the test fixture remains the regression baseline.
 The image also builds a separate 1,000-case human-usage fixture. Its queries omit
 POS, and each negative excludes the query lemma under every supported POS.
 
+The same image derives a query matrix from the canonical positive sentences. It
+selects up to three aligned present queries per sentence and pairs every positive
+with an absent query of the same coarse POS in that sentence. The explicit-POS
+matrix evaluates kfind and all four external analyzers, while a separate untagged
+matrix evaluates the human kfind profiles. The `query_matrix` report section keeps
+query-level quality separate from all-present-query sentence coverage and records
+a sentence-cluster bootstrap 95% interval. The fixed 1,000-case regression baseline
+remains unchanged.
+
 ```sh
 scripts/benchmark-morphology.sh
 ```

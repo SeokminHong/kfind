@@ -42,6 +42,8 @@ def coarse_pos(raw_tag: str) -> str | None:
 def candidate(
     form: str, raw_tag: str, byte_start: int, byte_end: int
 ) -> CandidateSpan | None:
+    if byte_start < 0 or byte_start >= byte_end:
+        return None
     pos = coarse_pos(raw_tag)
     if pos is None:
         return None

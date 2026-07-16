@@ -14,6 +14,13 @@ baseline으로 유지한다.
 이미지는 사람의 무품사 사용을 위한 별도 1,000-case fixture도 만든다. 쿼리는 품사를
 생략하며, negative 문장에는 해당 표제어가 지원하는 어떤 품사로도 존재하지 않는다.
 
+같은 이미지가 고정 fixture의 canonical positive 문장을 다시 사용해 `query matrix`도 만든다.
+문장마다 정렬된 존재 질의를 최대 3개까지 선택하고, 각 positive와 같은 품사의 부재 질의를
+동일 문장에 대응시킨다. 명시적 품사 matrix는 kfind와 외부 분석기 4종을, 별도 무품사 matrix는
+kfind 사람용 profile을 측정한다. 보고서는 질의별 품질과 함께 문장 안 모든 존재 질의 회수율과
+문장 group cluster bootstrap 95% 구간을 `query_matrix` 절에 기록한다. 기존 1,000-case
+회귀선은 그대로 유지한다.
+
 ```sh
 scripts/benchmark-morphology.sh
 ```

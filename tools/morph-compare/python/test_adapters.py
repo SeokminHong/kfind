@@ -17,6 +17,10 @@ class AdapterTests(unittest.TestCase):
             CandidateSpan("걷다", "verb", "VV", 3, 12),
         )
 
+    def test_non_searchable_span_is_excluded(self) -> None:
+        self.assertIsNone(candidate("이", "VCP", 3, 3))
+        self.assertIsNone(candidate("이", "VCP", -1, 2))
+
     def test_lindera_expression_uses_token_span(self) -> None:
         candidates = lindera_candidates(
             [

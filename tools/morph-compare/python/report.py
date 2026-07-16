@@ -77,7 +77,7 @@ def product_workflows(
     agent = boundary_comparison["profiles"]["embedded"]["any"]
     human_profile = human_untagged["profiles"]["full-pos"]
     human = human_profile["boundaries"]["smart"]
-    return {
+    workflows = {
         "agent": {
             "input": "explicit POS",
             "lexicon": "embedded",
@@ -106,6 +106,11 @@ def product_workflows(
             "optional": ["full-pos lexicon", "component resource"],
         },
     }
+    if "sentence_coverage" in agent:
+        workflows["agent"]["sentence_coverage"] = agent["sentence_coverage"]
+    if "sentence_coverage" in human:
+        workflows["human"]["sentence_coverage"] = human["sentence_coverage"]
+    return workflows
 
 
 def product_persona_comparison(
@@ -224,6 +229,10 @@ def build_report(
             backend_quality["by_target_group"] = grouped_quality(
                 cases, predictions[backend], "target_group"
             )
+        if all("matrix_slot" in case for case in cases):
+            backend_quality["by_matrix_slot"] = grouped_quality(
+                cases, predictions[backend], "matrix_slot"
+            )
         quality[backend] = backend_quality
     failures = []
     for case in cases:
@@ -271,7 +280,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 16,
+        "schema_version": 17,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "backends": list(backends),
@@ -394,6 +403,7 @@ def render_markdown(report: dict[str, object]) -> str:
     append_quality_sections(lines, report)
     append_boundary_comparison(lines, report.get("boundary_comparison"))
     append_human_untagged(lines, report.get("human_untagged"))
+    append_query_matrix(lines, report.get("query_matrix"))
     append_component_startup(lines, report.get("component_startup"))
     append_shadow_verification(lines, report)
     append_profile_comparison(lines, report)
@@ -409,6 +419,88 @@ def render_markdown(report: dict[str, object]) -> str:
         ]
     )
     return "\n".join(lines) + "\n"
+
+
+def append_query_matrix(
+    lines: list[str], query_matrix: dict[str, object] | None
+) -> None:
+    if query_matrix is None:
+        return
+    explicit = query_matrix["explicit_pos"]
+    dataset = explicit["dataset"]
+    lines.extend(
+        [
+            "",
+            "## Query matrix",
+            "",
+            f"- fixture: `{dataset['fixture_sha256']}`",
+            f"- cases: {dataset['cases']} ({dataset['positive_cases']} positive, "
+            f"{dataset['negative_cases']} same-sentence negative)",
+            f"- sentences: {dataset['sentences']}",
+            f"- canonical positive coverage: "
+            f"{dataset['canonical_positive_coverage']}/"
+            f"{dataset['canonical_positive_cases']}",
+            "",
+            "### Explicit-POS quality and sentence coverage",
+            "",
+            "| backend | precision | recall | F1 | TP | FP | TN | FN | all queries | cluster 95% CI |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for backend in explicit["backends"]:
+        quality = explicit["quality"][backend]["overall"]
+        coverage = explicit["sentence_coverage"][backend]
+        interval = coverage["recall_sentence_cluster_bootstrap_95_percent"]
+        lines.append(
+            f"| {backend} | {quality['precision_percent']}% | "
+            f"{quality['recall_percent']}% | {quality['f1_percent']}% | "
+            f"{quality['tp']} | {quality['fp']} | {quality['tn']} | "
+            f"{quality['fn']} | "
+            f"{coverage['all_present_queries_recovered_percent']}% | "
+            f"{interval[0]}%–{interval[1]}% |"
+        )
+    lines.extend(
+        [
+            "",
+            "### Query-matrix product workflows",
+            "",
+            "| workflow | precision | recall | F1 | FP | all queries | cases/s | p95 | RSS |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for workflow_name in ("agent", "human"):
+        workflow = query_matrix["product_workflows"][workflow_name]
+        quality = workflow["quality"]
+        performance = workflow["performance"]
+        coverage = workflow["sentence_coverage"]
+        lines.append(
+            f"| {workflow_name} | {quality['precision_percent']}% | "
+            f"{quality['recall_percent']}% | {quality['f1_percent']}% | "
+            f"{quality['fp']} | "
+            f"{coverage['all_present_queries_recovered_percent']}% | "
+            f"{performance['cases_per_second']:.1f} | "
+            f"{performance['latency_p95_ms']:.4f} ms | "
+            f"{performance['peak_rss_kib'] / 1024:.1f} MiB |"
+        )
+    development = query_matrix.get("development")
+    if development is not None:
+        lines.extend(
+            [
+                "",
+                "### Development query matrix",
+                "",
+                "| backend | precision | recall | F1 | all queries |",
+                "| --- | ---: | ---: | ---: | ---: |",
+            ]
+        )
+        for backend in development["backends"]:
+            quality = development["quality"][backend]["overall"]
+            coverage = development["sentence_coverage"][backend]
+            lines.append(
+                f"| {backend} | {quality['precision_percent']}% | "
+                f"{quality['recall_percent']}% | {quality['f1_percent']}% | "
+                f"{coverage['all_present_queries_recovered_percent']}% |"
+            )
 
 
 def append_agent_precision_shadow(

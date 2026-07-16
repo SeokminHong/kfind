@@ -25,6 +25,30 @@ RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
         --output /benchmark/human-untagged-cases.jsonl \
         --metadata /benchmark/human-untagged-metadata.json \
         --split test \
+        --query-mode untagged \
+    && python python/query_matrix.py \
+        --manifest sources.json \
+        --sources /corpora \
+        --canonical-cases /benchmark/cases.jsonl \
+        --output /benchmark/query-matrix-cases.jsonl \
+        --metadata /benchmark/query-matrix-metadata.json \
+        --split test \
+        --query-mode explicit-pos \
+    && python python/query_matrix.py \
+        --manifest sources.json \
+        --sources /corpora \
+        --canonical-cases /benchmark/dev-cases.jsonl \
+        --output /benchmark/query-matrix-dev-cases.jsonl \
+        --metadata /benchmark/query-matrix-dev-metadata.json \
+        --split dev \
+        --query-mode explicit-pos \
+    && python python/query_matrix.py \
+        --manifest sources.json \
+        --sources /corpora \
+        --canonical-cases /benchmark/cases.jsonl \
+        --output /benchmark/query-matrix-untagged-cases.jsonl \
+        --metadata /benchmark/query-matrix-untagged-metadata.json \
+        --split test \
         --query-mode untagged
 
 FROM rust:${RUST_VERSION}-bookworm AS runner-builder
@@ -82,6 +106,8 @@ COPY --from=runner-builder \
 COPY tools/morph-compare/benchmark.py /opt/morph-benchmark/benchmark.py
 COPY tools/morph-compare/hard-negatives.jsonl /opt/morph-benchmark/hard-negatives.jsonl
 COPY tools/morph-compare/external/baselines.json /opt/morph-benchmark/external-baselines.json
+COPY tools/morph-compare/external/query-matrix-baselines.json \
+    /opt/morph-benchmark/query-matrix-external-baselines.json
 COPY tools/morph-compare/python /opt/morph-benchmark/python
 COPY tools/morph-compare/sources.json /opt/morph-benchmark/sources.json
 

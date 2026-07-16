@@ -35,7 +35,11 @@ from python.adapters import (
     mecab_candidates,
 )
 from python.external_baselines import EXTERNAL_BACKENDS, SCHEMA_VERSION
-from python.validation import load_cases, validate_dataset
+from python.validation import (
+    load_cases,
+    validate_dataset,
+    validate_query_matrix_dataset,
+)
 
 
 KOMORAN_CLASSPATH = "/opt/morph-benchmark/external:/opt/morph-benchmark/external/komoran.jar"
@@ -365,7 +369,12 @@ def main() -> int:
         raise ValueError(f"unknown external backends: {', '.join(unknown)}")
     cases = load_cases(args.cases)
     metadata = json.loads(args.metadata.read_text(encoding="utf-8"))
-    validate_dataset(args.cases, cases, metadata)
+    if metadata.get("fixture_type") == "query-matrix":
+        validate_query_matrix_dataset(
+            args.cases, cases, metadata, "explicit-pos"
+        )
+    else:
+        validate_dataset(args.cases, cases, metadata)
     if args.worker_backend is not None:
         result = capture_once(
             args.worker_backend, cases, args.cases, args.lindera_runner
