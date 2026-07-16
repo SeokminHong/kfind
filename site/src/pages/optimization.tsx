@@ -48,12 +48,12 @@ export default function OptimizationPage(): React.JSX.Element {
         </pre>
         <p>
           Plan에 고유 anchor가 하나뿐이면 owned <code>memmem::Finder</code>를
-          사용하고, 둘 이상이면 Aho-Corasick의 overlapping search를 사용합니다.
-          이 선택은 query compile 시점에 확정되므로 scan loop에서 matcher 종류를
-          반복해서 판단하지 않습니다. 겹친 anchor 후보는 모두 형태 검증을 거친
-          뒤 leftmost-longest non-overlapping span으로 정리합니다. 따라서 긴
-          anchor를 우선하는 최적화가 더 정확한 program 결과를 미리 제거하지
-          않습니다.
+          사용합니다. 둘 이상이면 짧은 입력에서는 Finder 집합의 hit를 직접
+          병합하고, 누적 검색량이 커질 때만 Aho-Corasick automaton을 한 번
+          만들어 재사용합니다. 두 경로는 같은 overlapping 순서를 보존하며, 겹친
+          anchor 후보는 모두 형태 검증을 거친 뒤 leftmost-longest
+          non-overlapping span으로 정리합니다. 따라서 짧은 검색의 automaton 구성
+          비용을 피하면서 긴 corpus의 선형 다중 문자열 scan을 유지합니다.
         </p>
       </DocumentSection>
 

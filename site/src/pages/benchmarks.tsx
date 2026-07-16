@@ -129,9 +129,11 @@ export default function BenchmarksPage(): React.JSX.Element {
           각 workload는 실제로 바뀐 실행 경로를 분리해 측정합니다. Morphology
           process는 query compile과 match를 포함한 case 처리 비용을, query
           compile benchmark는 analyzer를 재사용할 때 plan 생성 비용을
-          측정합니다. 1 GiB literal scan은 형태 resource를 사용하지 않는 low-hit
-          파일 scan을, product CLI workload는 실제 persona 옵션으로 100 MiB
-          corpus를 검색하는 end-to-end 비용을 측정합니다.
+          측정합니다. Matcher benchmark는 다중 anchor matcher의 one-shot build와
+          짧은 검색, 재사용한 matcher의 큰 corpus scan을 분리합니다. 1 GiB
+          literal scan은 형태 resource를 사용하지 않는 low-hit 파일 scan을,
+          product CLI workload는 실제 persona 옵션으로 100 MiB corpus를 검색하는
+          end-to-end 비용을 측정합니다.
         </p>
         <div className="table-scroll">
           <table>
@@ -151,6 +153,13 @@ export default function BenchmarksPage(): React.JSX.Element {
               <tr>
                 <td>Query compile</td>
                 <td>Criterion 기본 sample, analyzer 재사용</td>
+                <td>sample당 1회 p95 nearest-rank</td>
+              </tr>
+              <tr>
+                <td>Matcher build / reused scan</td>
+                <td>
+                  짧은 문장 one-shot과 고정 corpus 재사용을 별도 Criterion 측정
+                </td>
                 <td>sample당 1회 p95 nearest-rank</td>
               </tr>
               <tr>
