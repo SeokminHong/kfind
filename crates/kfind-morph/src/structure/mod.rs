@@ -546,6 +546,13 @@ impl TokenEvidence {
             .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos == pos)
     }
 
+    fn has_preferred_whole_token_structure(&self, token_len: usize) -> bool {
+        self.units.iter().any(|unit| {
+            unit.span == (0..token_len)
+                && (unit.evidence == StructuralEvidence::Whole || unit.pos.is_predicate())
+        })
+    }
+
     fn has_predicate_ending_at(&self, end: usize) -> bool {
         self.units
             .iter()
@@ -984,7 +991,9 @@ fn select_structure(
     let next_starts_nominal = context
         .next
         .is_some_and(|next| starts_with_pos(resource, next, |pos| pos.starts_with('N')));
-    let particle_host = nominal_particle_host(resource, context.current);
+    let particle_host = nominal_particle_host(resource, context.current).filter(|host| {
+        host.exact || !evidence.has_preferred_whole_token_structure(context.current.len())
+    });
     if next_starts_nominal && evidence.has_whole(DataFinePos::Mm) {
         return StructureSelection::AdjacentDeterminer;
     }
@@ -1002,7 +1011,7 @@ fn select_structure(
         return StructureSelection::CopularFrame { nominal, copula };
     }
     if evidence.has_whole(DataFinePos::Mag)
-        && nominal_particle_host(resource, context.current).is_none()
+        && particle_host.is_none()
         && context.next.is_some_and(|next| {
             exact_analysis_starts_with_pos(resource, next, |pos| pos.starts_with('V'))
         })
@@ -1020,7 +1029,7 @@ fn select_structure(
     if let Some(host) = particle_host {
         let allow_components = false;
         return StructureSelection::NominalSpan {
-            selected: host,
+            selected: host.span,
             allow_components,
         };
     }
@@ -1092,7 +1101,16 @@ fn unique_copular_split(resource: &ComponentResource, current: &str) -> Option<u
     matches.next().is_none().then_some(split)
 }
 
-fn nominal_particle_host(resource: &ComponentResource, current: &str) -> Option<Range<usize>> {
+#[derive(Clone, Debug)]
+struct NominalParticleHost {
+    span: Range<usize>,
+    exact: bool,
+}
+
+fn nominal_particle_host(
+    resource: &ComponentResource,
+    current: &str,
+) -> Option<NominalParticleHost> {
     current
         .char_indices()
         .map(|(offset, _)| offset)
@@ -1105,7 +1123,10 @@ fn nominal_particle_host(resource: &ComponentResource, current: &str) -> Option<
             (exact || complete_nominal_host(resource, &current[..split])).then_some((split, exact))
         })
         .max_by_key(|(split, exact)| (*exact, *split))
-        .map(|(end, _)| 0..end)
+        .map(|(end, exact)| NominalParticleHost {
+            span: 0..end,
+            exact,
+        })
 }
 
 fn complete_nominal_host(resource: &ComponentResource, text: &str) -> bool {

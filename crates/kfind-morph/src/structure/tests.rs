@@ -32,6 +32,24 @@ fn ordinary_adverb_context_rejects_a_runtime_nominal_prefix() {
 }
 
 #[test]
+fn whole_adverb_outranks_a_graph_built_nominal_particle_host() {
+    let resolver = resolver();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext {
+            previous: None,
+            current: "너무",
+            next: Some("보고"),
+        },
+        spans(0.."너무".len(), 0.."너무".len()),
+        &[whole_pattern(DataFinePos::Mag, "너무")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
 fn copular_arrangement_selects_the_nominal_prefix_over_the_adverb() {
     let resolver = resolver();
     let context = BoundedTokenContext {
@@ -480,6 +498,9 @@ fn resolver() -> ConstraintResolver {
         atomic("매", "NNG"),
         atomic("매일", "MAG"),
         atomic("매일", "NNG"),
+        atomic("너", "NNG"),
+        atomic("무", "JX"),
+        atomic("너무", "MAG"),
         atomic("을", "JKO"),
         atomic("학교", "NNG"),
         atomic("에", "NNG"),
