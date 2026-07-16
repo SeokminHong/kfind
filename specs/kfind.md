@@ -373,7 +373,9 @@
   성분 수가 가장 적은 완전 경로를 선택하고, 성분 수가 같으면 source가 선언한 성분을
   더 많이 포함한 경로를 우선한다. 내부 component query는 이 선호 경로의 한 node와 span이
   일치할 때만 유지한다. graph로 조합한 명사+조사 host는 내부 nominal component를
-  검증할 때만 사용하고 token 전체의 품사 구조를 선택하는 근거로 쓰지 않는다.
+  검증할 때만 사용하고 token 전체의 품사 구조를 선택하는 근거로 쓰지 않는다. host 왼쪽
+  경계에 정렬된 두 음절 이상의 nominal prefix는 유지하고, 한 음절 prefix와 host 내부
+  양쪽 경계를 가로지르는 후보에는 선호 경로 검증을 적용한다.
 - 제품 graph는 source 분석 비용을 읽거나 보존하지 않는다. 비용·연결 행렬·미등록어
   모델은 별도 full morphology 진단 artifact에서 과거 판정과 결과를 비교할 때만 사용한다.
   include/exclude 비용 마진, query별 threshold와 결과별 fallback을 제품 판정에 사용하지 않는다.
