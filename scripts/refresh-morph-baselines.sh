@@ -27,3 +27,13 @@ docker run \
     "$REFRESH_IMAGE" \
     --backends "$BACKENDS" \
     --output /snapshot/baselines.json
+docker run \
+    --rm \
+    --network none \
+    --user "$(id -u):$(id -g)" \
+    --volume "$ROOT/tools/morph-compare/external:/snapshot" \
+    "$REFRESH_IMAGE" \
+    --cases /opt/morph-benchmark/data/query-matrix-cases.jsonl \
+    --metadata /opt/morph-benchmark/data/query-matrix-metadata.json \
+    --backends "$BACKENDS" \
+    --output /snapshot/query-matrix-baselines.json

@@ -18,6 +18,7 @@ from python.adapters import (
 from python.agent_shadow import build_agent_shadow_report
 from python.external_baselines import load_external_baselines
 from python.quality import contract_quality_metrics, quality_metrics
+from python.query_matrix import query_matrix_metrics
 from python.report import (
     KFIND_PROFILES,
     build_report,
@@ -32,10 +33,15 @@ from python.validation import (
     smoke_metadata,
     validate_dataset,
     validate_hard_negatives,
+    validate_query_matrix_dataset,
     validate_untagged_dataset,
     write_cases,
 )
 from python.workflows.performance import measure_product_workflows
+from python.workflows.query_matrix import (
+    evaluate_query_matrix_full,
+    evaluate_query_matrix_smoke,
+)
 
 
 DEFAULT_CASES = Path("/opt/morph-benchmark/data/cases.jsonl")
@@ -48,9 +54,30 @@ DEFAULT_HUMAN_UNTAGGED_CASES = Path(
 DEFAULT_HUMAN_UNTAGGED_METADATA = Path(
     "/opt/morph-benchmark/data/human-untagged-metadata.json"
 )
+DEFAULT_QUERY_MATRIX_CASES = Path(
+    "/opt/morph-benchmark/data/query-matrix-cases.jsonl"
+)
+DEFAULT_QUERY_MATRIX_METADATA = Path(
+    "/opt/morph-benchmark/data/query-matrix-metadata.json"
+)
+DEFAULT_QUERY_MATRIX_DEV_CASES = Path(
+    "/opt/morph-benchmark/data/query-matrix-dev-cases.jsonl"
+)
+DEFAULT_QUERY_MATRIX_DEV_METADATA = Path(
+    "/opt/morph-benchmark/data/query-matrix-dev-metadata.json"
+)
+DEFAULT_QUERY_MATRIX_UNTAGGED_CASES = Path(
+    "/opt/morph-benchmark/data/query-matrix-untagged-cases.jsonl"
+)
+DEFAULT_QUERY_MATRIX_UNTAGGED_METADATA = Path(
+    "/opt/morph-benchmark/data/query-matrix-untagged-metadata.json"
+)
 DEFAULT_HARD_NEGATIVES = Path("/opt/morph-benchmark/hard-negatives.jsonl")
 DEFAULT_EXTERNAL_BASELINES = Path(
     "/opt/morph-benchmark/external-baselines.json"
+)
+DEFAULT_QUERY_MATRIX_EXTERNAL_BASELINES = Path(
+    "/opt/morph-benchmark/query-matrix-external-baselines.json"
 )
 DEFAULT_RUNNER = Path("/usr/local/bin/morph-benchmark-runner")
 DEFAULT_RUNS = 5
@@ -192,7 +219,9 @@ def matching_candidate_spans(
             candidates,
             key=lambda item: (item.byte_start, item.byte_end, item.raw_tag),
         )
-        if item.lemma == case["query"] and item.pos == case["pos"]
+        if item.byte_start < item.byte_end
+        and item.lemma == case["query"]
+        and item.pos == case["pos"]
     ]
 
 
@@ -415,18 +444,25 @@ def evaluate_boundary_comparison(
     profiles = {}
     for backend in KFIND_PROFILES:
         profile = backend.removeprefix("kfind-")
+        smart_quality = {
+            "quality": quality_metrics(cases, baseline["predictions"][backend]),
+            "contract_adjusted_quality": contract_quality_metrics(
+                cases, baseline["predictions"][backend]
+            ),
+            "performance": baseline["performance"][backend],
+            "component_resource_loaded": (
+                baseline["versions"][backend]["component_artifact_sha256"]
+                is not None
+            ),
+        }
+        if all("matrix_group_id" in case for case in cases):
+            smart_quality["sentence_coverage"] = query_matrix_metrics(
+                cases,
+                baseline["predictions"][backend],
+                "query-matrix-bootstrap-v1",
+            )
         results = {
-            "smart": {
-                "quality": quality_metrics(cases, baseline["predictions"][backend]),
-                "contract_adjusted_quality": contract_quality_metrics(
-                    cases, baseline["predictions"][backend]
-                ),
-                "performance": baseline["performance"][backend],
-                "component_resource_loaded": (
-                    baseline["versions"][backend]["component_artifact_sha256"]
-                    is not None
-                ),
-            }
+            "smart": smart_quality
         }
         for boundary in BOUNDARY_POLICIES[1:]:
             predictions, performance_metrics, summary = evaluate_boundary_profile_runs(
@@ -441,6 +477,12 @@ def evaluate_boundary_comparison(
                 "component_resource_loaded": summary["component_artifact_sha256"]
                 is not None,
             }
+            if all("matrix_group_id" in case for case in cases):
+                results[boundary]["sentence_coverage"] = query_matrix_metrics(
+                    cases,
+                    predictions,
+                    "query-matrix-bootstrap-v1",
+                )
         profiles[profile] = results
     return {
         "boundaries": list(BOUNDARY_POLICIES),
@@ -503,8 +545,7 @@ def evaluate_untagged_profile_runs(
         for case in cases
         if first[0][case["id"]] != bool(case["expected"])
     ]
-    return (
-        {
+    result = {
             "quality": quality_metrics(cases, first[0]),
             "contract_adjusted_quality": contract_quality_metrics(cases, first[0]),
             "performance": aggregate_performance(
@@ -518,9 +559,12 @@ def evaluate_untagged_profile_runs(
                 "component_artifact_sha256"
             ],
             "failures": failures,
-        },
-        diagnostics[0],
-    )
+        }
+    if all("matrix_group_id" in case for case in cases):
+        result["sentence_coverage"] = query_matrix_metrics(
+            cases, first[0], "query-matrix-bootstrap-v1"
+        )
+    return result, diagnostics[0]
 
 
 def evaluate_human_untagged(
@@ -635,9 +679,40 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=DEFAULT_HUMAN_UNTAGGED_METADATA,
     )
+    parser.add_argument(
+        "--query-matrix-cases", type=Path, default=DEFAULT_QUERY_MATRIX_CASES
+    )
+    parser.add_argument(
+        "--query-matrix-metadata", type=Path, default=DEFAULT_QUERY_MATRIX_METADATA
+    )
+    parser.add_argument(
+        "--query-matrix-dev-cases",
+        type=Path,
+        default=DEFAULT_QUERY_MATRIX_DEV_CASES,
+    )
+    parser.add_argument(
+        "--query-matrix-dev-metadata",
+        type=Path,
+        default=DEFAULT_QUERY_MATRIX_DEV_METADATA,
+    )
+    parser.add_argument(
+        "--query-matrix-untagged-cases",
+        type=Path,
+        default=DEFAULT_QUERY_MATRIX_UNTAGGED_CASES,
+    )
+    parser.add_argument(
+        "--query-matrix-untagged-metadata",
+        type=Path,
+        default=DEFAULT_QUERY_MATRIX_UNTAGGED_METADATA,
+    )
     parser.add_argument("--hard-negatives", type=Path, default=DEFAULT_HARD_NEGATIVES)
     parser.add_argument(
         "--external-baselines", type=Path, default=DEFAULT_EXTERNAL_BASELINES
+    )
+    parser.add_argument(
+        "--query-matrix-external-baselines",
+        type=Path,
+        default=DEFAULT_QUERY_MATRIX_EXTERNAL_BASELINES,
     )
     parser.add_argument("--runner", type=Path, default=DEFAULT_RUNNER)
     parser.add_argument("--runs", type=int, default=DEFAULT_RUNS)
@@ -665,6 +740,38 @@ def main() -> int:
             args.human_untagged_cases,
             human_untagged_cases,
             human_untagged_metadata,
+        )
+        query_matrix_cases = load_cases(args.query_matrix_cases)
+        query_matrix_metadata = json.loads(
+            args.query_matrix_metadata.read_text(encoding="utf-8")
+        )
+        validate_query_matrix_dataset(
+            args.query_matrix_cases,
+            query_matrix_cases,
+            query_matrix_metadata,
+            "explicit-pos",
+        )
+        query_matrix_dev_cases = load_cases(args.query_matrix_dev_cases)
+        query_matrix_dev_metadata = json.loads(
+            args.query_matrix_dev_metadata.read_text(encoding="utf-8")
+        )
+        validate_query_matrix_dataset(
+            args.query_matrix_dev_cases,
+            query_matrix_dev_cases,
+            query_matrix_dev_metadata,
+            "explicit-pos",
+        )
+        query_matrix_untagged_cases = load_cases(
+            args.query_matrix_untagged_cases
+        )
+        query_matrix_untagged_metadata = json.loads(
+            args.query_matrix_untagged_metadata.read_text(encoding="utf-8")
+        )
+        validate_query_matrix_dataset(
+            args.query_matrix_untagged_cases,
+            query_matrix_untagged_cases,
+            query_matrix_untagged_metadata,
+            "untagged",
         )
         hard_cases = load_cases(args.hard_negatives)
         hard_metadata = validate_hard_negatives(args.hard_negatives, hard_cases)
@@ -735,6 +842,17 @@ def main() -> int:
                         run_native_agent_shadow(args.runner, smoke_path),
                     )
                 }
+                report["query_matrix"] = evaluate_query_matrix_smoke(
+                    directory=Path(directory),
+                    explicit_cases=query_matrix_dev_cases,
+                    explicit_metadata=query_matrix_dev_metadata,
+                    untagged_cases=query_matrix_untagged_cases,
+                    untagged_metadata=query_matrix_untagged_metadata,
+                    runner=args.runner,
+                    evaluate_dataset=evaluate_dataset,
+                    evaluate_boundary=evaluate_boundary_comparison,
+                    evaluate_human=evaluate_human_untagged,
+                )
                 return write_report(args.output, report)
 
         baseline = evaluate_dataset(cases, args.cases, args.runner, args.runs, True)
@@ -821,6 +939,23 @@ def main() -> int:
                 run_native_agent_shadow(args.runner, args.cases),
             ),
         }
+        report["query_matrix"] = evaluate_query_matrix_full(
+            explicit_cases=query_matrix_cases,
+            explicit_metadata=query_matrix_metadata,
+            explicit_path=args.query_matrix_cases,
+            external_baselines_path=args.query_matrix_external_baselines,
+            development_cases=query_matrix_dev_cases,
+            development_metadata=query_matrix_dev_metadata,
+            development_path=args.query_matrix_dev_cases,
+            untagged_cases=query_matrix_untagged_cases,
+            untagged_metadata=query_matrix_untagged_metadata,
+            untagged_path=args.query_matrix_untagged_cases,
+            runner=args.runner,
+            runs=args.runs,
+            evaluate_dataset=evaluate_dataset,
+            evaluate_boundary=evaluate_boundary_comparison,
+            evaluate_human=evaluate_human_untagged,
+        )
         return write_report(args.output, report)
     except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:
         print(f"benchmark failed: {error}", file=sys.stderr)

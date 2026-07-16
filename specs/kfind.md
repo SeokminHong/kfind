@@ -2186,7 +2186,8 @@ gold 후보는 CoNLL-U의 정렬된 lemma/XPOS 형태소 쌍에서 추출하고,
 모든 도구는 동일한 `(문장, 표제어, 품사)` 존재 여부를 예측한다. positive는 예측 span이
 gold 어절의 UTF-8 byte span과 겹쳐야 true positive이고, negative는 문장 어디에서든 같은
 표제어·품사를 반환하면 false positive다. 도구마다 accuracy, precision, recall, F1과
-TP·FP·TN·FN을 계산하고 corpus별·품사별 결과 및 실패 case를 함께 보존한다.
+TP·FP·TN·FN을 계산하고 corpus별·품사별 결과 및 실패 case를 함께 보존한다. 외부 분석기가
+원문에 정렬할 수 없는 길이 0 형태소를 반환하면 검색 가능한 span 후보에서 제외한다.
 
 고정 1,000-case 회귀 fixture와 별도로, 같은 held-out source에서 문장 안 검색 질의를 늘린
 `query matrix` fixture를 생성한다. canonical positive가 하나 이상 있는 고유 문장을 matrix의

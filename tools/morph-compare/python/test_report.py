@@ -12,6 +12,7 @@ from report import (
     append_human_untagged,
     append_product_workflows,
     append_product_use_cases,
+    append_query_matrix,
     classify_lattice_paths,
     classify_primary_cause,
     kfind_profile_comparison,
@@ -655,6 +656,63 @@ class ProductWorkflowTests(unittest.TestCase):
         self.assertIn(
             "| komoran | unavailable: not captured | n/a |", rendered
         )
+
+
+class QueryMatrixReportTests(unittest.TestCase):
+    def test_renders_query_and_sentence_level_metrics_separately(self) -> None:
+        quality = {
+            "precision_percent": 99.0,
+            "recall_percent": 90.0,
+            "f1_percent": 94.26,
+            "tp": 90,
+            "fp": 1,
+            "tn": 99,
+            "fn": 10,
+        }
+        coverage = {
+            "all_present_queries_recovered_percent": 75.0,
+            "recall_sentence_cluster_bootstrap_95_percent": [84.0, 94.0],
+        }
+        performance = {
+            "cases_per_second": 1000.0,
+            "latency_p95_ms": 0.5,
+            "peak_rss_kib": 10240,
+        }
+        explicit = {
+            "dataset": {
+                "fixture_sha256": "matrix-fixture",
+                "cases": 200,
+                "positive_cases": 100,
+                "negative_cases": 100,
+                "sentences": 40,
+                "canonical_positive_coverage": 30,
+                "canonical_positive_cases": 30,
+            },
+            "backends": ["kfind-embedded"],
+            "quality": {"kfind-embedded": {"overall": quality}},
+            "sentence_coverage": {"kfind-embedded": coverage},
+        }
+        report = {
+            "explicit_pos": explicit,
+            "product_workflows": {
+                name: {
+                    "quality": quality,
+                    "sentence_coverage": coverage,
+                    "performance": performance,
+                }
+                for name in ("agent", "human")
+            },
+            "development": None,
+        }
+        lines: list[str] = []
+
+        append_query_matrix(lines, report)
+
+        rendered = "\n".join(lines)
+        self.assertIn("## Query matrix", rendered)
+        self.assertIn("100 same-sentence negative", rendered)
+        self.assertIn("| kfind-embedded | 99.0% | 90.0% |", rendered)
+        self.assertIn("| agent | 99.0% | 90.0% |", rendered)
 
 
 class ShadowVerificationTests(unittest.TestCase):
