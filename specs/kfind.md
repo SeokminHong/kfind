@@ -337,7 +337,9 @@
   열거하지 않는다.
 - 체언+조사와 용언+어미 path는 host span이 같을 때만 구조적으로 해결되지 않은
   경쟁으로 본다. host가 다르면 더 긴 조사 host 또는 완성된 용언 host를 선택하고,
-  다른 위치에서 우연히 성립한 분할을 후보 근거로 쓰지 않는다.
+  다른 위치에서 우연히 성립한 분할을 후보 근거로 쓰지 않는다. 조사 host는 exact
+  whole 명사 host를 먼저 선택한다. exact host가 없을 때 whole-token 단일 품사 또는
+  완성된 용언 분석이 있으면 이를 graph로 조합한 명사 host보다 우선한다.
 - host span이 같은 체언+조사와 용언+어미 path가 경쟁해도 candidate program이 실제로
   소비한 continuation과 맞지 않는 path까지 허용하지 않는다. 예를 들어 `걸을`에서
   `걷다`의 `걸으-+-ㄹ` program은 유지하지만, `걸다`의 bare `걸` program은 `-을`을
