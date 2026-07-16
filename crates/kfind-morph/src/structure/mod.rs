@@ -718,6 +718,7 @@ impl StructureSelection {
                             || ((nominal_component_is_supported(
                                 *allow_components,
                                 support.evidence,
+                                &spans.core,
                                 selected,
                                 evidence,
                                 &pattern.lexical_form,
@@ -777,6 +778,7 @@ impl StructureSelection {
 fn nominal_component_is_supported(
     allow_components: bool,
     support: StructuralEvidence,
+    core: &Range<usize>,
     selected: &Range<usize>,
     evidence: &TokenEvidence,
     lexical_form: &str,
@@ -786,11 +788,88 @@ fn nominal_component_is_supported(
     }
     support == StructuralEvidence::RuntimeComponent
         && lexical_form.chars().count() > 1
-        && !evidence.units.iter().any(|unit| {
-            unit.evidence == StructuralEvidence::SourceComponent
+        && nominal_component_is_on_preferred_path(core, selected, evidence)
+}
+
+fn nominal_component_is_on_preferred_path(
+    core: &Range<usize>,
+    selected: &Range<usize>,
+    evidence: &TokenEvidence,
+) -> bool {
+    let span_len = selected.len();
+    let mut edges = evidence
+        .units
+        .iter()
+        .filter(|unit| {
+            unit.pos.is_nominal()
                 && unit.span.start >= selected.start
                 && unit.span.end <= selected.end
+                && unit.span != *selected
+                && matches!(
+                    unit.evidence,
+                    StructuralEvidence::SourceComponent | StructuralEvidence::RuntimeComponent
+                )
         })
+        .map(|unit| {
+            (
+                unit.span.start - selected.start,
+                unit.span.end - selected.start,
+                (
+                    usize::from(unit.evidence != StructuralEvidence::SourceComponent),
+                    1_usize,
+                ),
+            )
+        })
+        .collect::<Vec<_>>();
+    edges.sort_unstable_by_key(|(start, end, cost)| (*start, *end, *cost));
+    edges.dedup_by(|left, right| left.0 == right.0 && left.1 == right.1);
+
+    let mut forward = vec![None; span_len + 1];
+    forward[0] = Some((0_usize, 0_usize));
+    for position in 0..span_len {
+        let Some(prefix) = forward[position] else {
+            continue;
+        };
+        for (_, end, cost) in edges.iter().filter(|(start, _, _)| *start == position) {
+            update_min_cost(&mut forward[*end], add_cost(prefix, *cost));
+        }
+    }
+    let Some(best) = forward[span_len] else {
+        return false;
+    };
+
+    let mut backward = vec![None; span_len + 1];
+    backward[span_len] = Some((0_usize, 0_usize));
+    for position in (1..=span_len).rev() {
+        let Some(suffix) = backward[position] else {
+            continue;
+        };
+        for (start, _, cost) in edges.iter().filter(|(_, end, _)| *end == position) {
+            update_min_cost(&mut backward[*start], add_cost(*cost, suffix));
+        }
+    }
+
+    let core_start = core.start - selected.start;
+    let core_end = core.end - selected.start;
+    edges.iter().any(|(start, end, cost)| {
+        if *start != core_start || *end != core_end {
+            return false;
+        }
+        let (Some(prefix), Some(suffix)) = (forward[*start], backward[*end]) else {
+            return false;
+        };
+        add_cost(add_cost(prefix, *cost), suffix) == best
+    })
+}
+
+fn add_cost(left: (usize, usize), right: (usize, usize)) -> (usize, usize) {
+    (left.0 + right.0, left.1 + right.1)
+}
+
+fn update_min_cost(current: &mut Option<(usize, usize)>, candidate: (usize, usize)) {
+    if current.is_none_or(|value| candidate < value) {
+        *current = Some(candidate);
+    }
 }
 
 fn runtime_position_is_supported(

@@ -793,7 +793,7 @@ fn component_resource() -> ComponentResource {
         component_entry("역사", "NNG", -5_000),
         component_entry("사과", "NNG", 5_000),
         component_entry("과목", "NNG", -5_000),
-        component_expression_entry("역사과목", "NNG+NNG", "역사/NNG/*+과목/NNG/*", -5_000),
+        component_entry("역사과목", "NNG", -5_000),
         component_entry("을", "JKO", 0),
         component_entry("매", "NNG", 500),
         component_entry("일", "VCP", 500),
