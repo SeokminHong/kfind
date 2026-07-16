@@ -153,6 +153,8 @@ hard-negative 신규 contract FP 0을 지킨다. FN이 같은 후보끼리만 FP
 `contract_expected`가 있는 fixture에는 TPᶜ·FPᶜ·TNᶜ·FNᶜ와 contract precision·recall·F1을
 추가한다. 같은 품사의 동형 활용과 정렬 source component처럼 제품 계약이 명시적으로 허용한
 strict FP만 보정하며, 두 지표를 합치거나 strict FP를 숨기지 않는다.
+Canonical·hard-negative의 contract-positive 분모는 `PNᶜ = TPᶜ + FNᶜ`로 표기한다.
+Recall 개선 보고서는 `PNᶜ`, `FNᶜ`와 `recallᶜ = TPᶜ / PNᶜ`를 함께 기록한다.
 보고서의 `product_workflows`는 에이전트용 `embedded + any + 명시적 품사`와 사람용
 `full-POS + smart + 무품사`를 먼저 제시하고, 전체 profile 행렬은 진단 자료로 둔다.
 `product_use_cases`는 같은 두 profile을 100 MiB·1,000파일 고정 코퍼스의 독립 CLI

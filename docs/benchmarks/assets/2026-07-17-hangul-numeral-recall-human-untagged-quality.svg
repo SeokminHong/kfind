@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="620" viewBox="0 0 1120 620" role="img" aria-labelledby="title desc">
+<title id="title">Human untagged search quality</title>
+<desc id="desc">Grouped bars compare precision, recall, and F1 for untagged queries across two lexicon profiles and two boundary policies.</desc>
+
+<style>
+  .background { fill: #ffffff; }
+  text { fill: #111827; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .muted { fill: #4b5563; }
+  .grid { stroke: #d1d5db; stroke-width: 1; }
+  .axis { stroke: #6b7280; stroke-width: 1; }
+  @media (prefers-color-scheme: dark) {
+    .background { fill: #0d1117; }
+    text { fill: #f3f4f6; }
+    .muted { fill: #9ca3af; }
+    .grid { stroke: #374151; }
+    .axis { stroke: #9ca3af; }
+  }
+</style>
+
+<rect class="background" width="1120" height="620"/>
+<text x="80.0" y="38.0" text-anchor="start">Human untagged search quality</text>
+<text x="80.0" y="62.0" text-anchor="start" class="muted">1,000 balanced lemma-presence cases · no POS option or atom tag</text>
+<line class="grid" x1="80" y1="504.0" x2="1088" y2="504.0"/>
+<text x="70.0" y="509.0" text-anchor="end" class="muted">0</text>
+<line class="grid" x1="80" y1="420.4" x2="1088" y2="420.4"/>
+<text x="70.0" y="425.4" text-anchor="end" class="muted">20</text>
+<line class="grid" x1="80" y1="336.8" x2="1088" y2="336.8"/>
+<text x="70.0" y="341.8" text-anchor="end" class="muted">40</text>
+<line class="grid" x1="80" y1="253.2" x2="1088" y2="253.2"/>
+<text x="70.0" y="258.2" text-anchor="end" class="muted">60</text>
+<line class="grid" x1="80" y1="169.6" x2="1088" y2="169.6"/>
+<text x="70.0" y="174.6" text-anchor="end" class="muted">80</text>
+<line class="grid" x1="80" y1="86.0" x2="1088" y2="86.0"/>
+<text x="70.0" y="91.0" text-anchor="end" class="muted">100</text>
+<rect x="115.0" y="86.0" width="56.0" height="418.0" rx="3" fill="#2563eb"/>
+<text x="143.0" y="78.0" text-anchor="middle">100.00</text>
+<rect x="185.0" y="97.0" width="56.0" height="407.0" rx="3" fill="#4d7c0f"/>
+<text x="213.0" y="89.0" text-anchor="middle">97.36</text>
+<rect x="255.0" y="86.9" width="56.0" height="417.1" rx="3" fill="#60a5fa"/>
+<text x="283.0" y="78.9" text-anchor="middle">99.79</text>
+<rect x="325.0" y="96.8" width="56.0" height="407.2" rx="3" fill="#a3e635"/>
+<text x="353.0" y="88.8" text-anchor="middle">97.41</text>
+<text x="248.0" y="532.0" text-anchor="middle">Precision</text>
+<rect x="451.0" y="218.1" width="56.0" height="285.9" rx="3" fill="#2563eb"/>
+<text x="479.0" y="210.1" text-anchor="middle">68.40</text>
+<rect x="521.0" y="195.5" width="56.0" height="308.5" rx="3" fill="#4d7c0f"/>
+<text x="549.0" y="187.5" text-anchor="middle">73.80</text>
+<rect x="591.0" y="111.1" width="56.0" height="392.9" rx="3" fill="#60a5fa"/>
+<text x="619.0" y="103.1" text-anchor="middle">94.00</text>
+<rect x="661.0" y="96.0" width="56.0" height="408.0" rx="3" fill="#a3e635"/>
+<text x="689.0" y="88.0" text-anchor="middle">97.60</text>
+<text x="584.0" y="532.0" text-anchor="middle">Recall</text>
+<rect x="787.0" y="164.4" width="56.0" height="339.6" rx="3" fill="#2563eb"/>
+<text x="815.0" y="156.4" text-anchor="middle">81.24</text>
+<rect x="857.0" y="153.0" width="56.0" height="351.0" rx="3" fill="#4d7c0f"/>
+<text x="885.0" y="145.0" text-anchor="middle">83.96</text>
+<rect x="927.0" y="99.3" width="56.0" height="404.7" rx="3" fill="#60a5fa"/>
+<text x="955.0" y="91.3" text-anchor="middle">96.81</text>
+<rect x="997.0" y="96.4" width="56.0" height="407.6" rx="3" fill="#a3e635"/>
+<text x="1025.0" y="88.4" text-anchor="middle">97.50</text>
+<text x="920.0" y="532.0" text-anchor="middle">F1</text>
+<rect x="80.0" y="559.0" width="16.0" height="16.0" rx="2" fill="#2563eb"/>
+<text x="104.0" y="572.0" text-anchor="start">embedded · smart</text>
+<rect x="510.0" y="559.0" width="16.0" height="16.0" rx="2" fill="#4d7c0f"/>
+<text x="534.0" y="572.0" text-anchor="start">embedded · any</text>
+<rect x="80.0" y="587.0" width="16.0" height="16.0" rx="2" fill="#60a5fa"/>
+<text x="104.0" y="600.0" text-anchor="start">full-pos · smart</text>
+<rect x="510.0" y="587.0" width="16.0" height="16.0" rx="2" fill="#a3e635"/>
+<text x="534.0" y="600.0" text-anchor="start">full-pos · any</text>
+</svg>
