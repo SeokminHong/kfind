@@ -161,7 +161,6 @@ struct Unit {
 #[derive(Debug, Default)]
 struct TokenEvidence {
     units: Vec<Unit>,
-    runtime_spans: Vec<Range<usize>>,
     has_complete_path: bool,
 }
 
@@ -210,7 +209,6 @@ impl TokenEvidence {
         let complete = complete_edges(text.len(), &edges, &forward);
         let has_complete_path = forward[text.len()];
         let mut units = Vec::new();
-        let mut runtime_spans = Vec::new();
         for (index, edge) in edges.iter().enumerate() {
             let eligible = if has_complete_path {
                 complete[index]
@@ -220,16 +218,20 @@ impl TokenEvidence {
             if !eligible {
                 continue;
             }
-            runtime_spans.push(edge.span.clone());
             let whole_edge = edge.span == (0..text.len());
-            if let Some(pos) = DataFinePos::parse(&edge.pos) {
+            let edge_positions = edge
+                .pos
+                .split('+')
+                .filter_map(DataFinePos::parse)
+                .collect::<Vec<_>>();
+            for pos in edge_positions.iter().copied() {
                 units.push(Unit {
                     span: edge.span.clone(),
                     pos,
-                    evidence: if whole_edge {
+                    evidence: if whole_edge && edge_positions.len() == 1 {
                         StructuralEvidence::Whole
                     } else {
-                        StructuralEvidence::RuntimeComponent
+                        StructuralEvidence::SourceComponent
                     },
                 });
             }
@@ -254,11 +256,8 @@ impl TokenEvidence {
             )
         });
         units.dedup();
-        runtime_spans.sort_unstable_by_key(|span| (span.start, span.end));
-        runtime_spans.dedup();
         Ok(Self {
             units,
-            runtime_spans,
             has_complete_path,
         })
     }
@@ -340,10 +339,9 @@ fn collect_pattern_supports(
         }
         if supports.len() == support_start
             && pattern.component_capability.allows_runtime()
-            && (evidence.runtime_spans.contains(&spans.core)
-                || (spans.core.start == spans.token.start
-                    && spans.consumed == spans.token
-                    && matches!(pattern.continuation, MorphContinuation::Predicate { .. }))
+            && ((spans.core.start == spans.token.start
+                && spans.consumed == spans.token
+                && matches!(pattern.continuation, MorphContinuation::Predicate { .. }))
                 || (spans.consumed == spans.token
                     && matches!(pattern.continuation, MorphContinuation::Predicate { .. })
                     && evidence.has_whole(pattern.fine_pos))

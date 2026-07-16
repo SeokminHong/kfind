@@ -194,6 +194,33 @@ fn whole_token_predicate_program_does_not_require_a_dictionary_surface() {
     assert!(ProductPolicy::RecallFirst.accepts(&decision));
 }
 
+#[test]
+fn runtime_surface_with_another_pos_does_not_support_the_query_pattern() {
+    let resolver = resolver();
+    let pattern = QueryMorphPattern::new(DataFinePos::Vv, "가").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("가계"),
+        CandidateSpans {
+            core: 0.."가".len(),
+            anchor: 0.."가".len(),
+            consumed: 0.."가".len(),
+            token: 0.."가계".len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&decision));
+}
+
 fn resolver() -> ConstraintResolver {
     let entries = [
         atomic("매", "NNG"),
@@ -213,6 +240,8 @@ fn resolver() -> ConstraintResolver {
         atomic("지", "JX"),
         atomic("정의", "NNG"),
         atomic("롭지", "NNG"),
+        atomic("가", "NNG"),
+        atomic("계", "NNG"),
     ];
     let bytes = encode_component_resource([9; 32], &entries).expect("valid resource");
     let resource =
