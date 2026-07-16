@@ -612,6 +612,39 @@ impl MorphMatcher {
                 .chain(&candidate.suffix_rules)
                 .any(|rule| rule.as_str() == expected)
         };
+        let source_copula_continuation = if candidate.verified.core.start > whole.start
+            && let CandidateConsumption::PredicateContinuation {
+                pos: kfind_morph::PredicatePos::Copula,
+                ..
+            } = branch.consumption
+        {
+            let token = haystack
+                .get(candidate.verified.core.start..whole.end)
+                .and_then(|bytes| std::str::from_utf8(bytes).ok());
+            let prefix = haystack
+                .get(candidate.verified.core.start..candidate.consumed.end)
+                .and_then(|bytes| std::str::from_utf8(bytes).ok());
+            token.zip(prefix).is_some_and(|(token, prefix)| {
+                if is_nfc(token) {
+                    return resolver.supports_predicate_ending_path(
+                        token,
+                        prefix.len(),
+                        kfind_morph::PredicatePos::Copula,
+                        DEFAULT_LATTICE_NODE_LIMIT,
+                    );
+                }
+                let normalized = token.nfc().collect::<String>();
+                let prefix_len = prefix.nfc().map(char::len_utf8).sum();
+                resolver.supports_predicate_ending_path(
+                    &normalized,
+                    prefix_len,
+                    kfind_morph::PredicatePos::Copula,
+                    DEFAULT_LATTICE_NODE_LIMIT,
+                )
+            })
+        } else {
+            false
+        };
         let licensed = (matches!(trailing, "까" | "까요") && has_rule("ending.future-adnominal"))
             || (trailing == "서도" && has_rule("ending.connective-go"))
             || (trailing == "도" && has_rule("ending.connective-neunde"))
@@ -630,7 +663,8 @@ impl MorphMatcher {
                 && ["때", "게"].iter().any(|noun| trailing.starts_with(noun)))
             || (candidate.suffix_rules.is_empty()
                 && has_rule("ending.aoeo")
-                && resolver.supports_auxiliary_sequence(trailing, DEFAULT_LATTICE_NODE_LIMIT));
+                && resolver.supports_auxiliary_sequence(trailing, DEFAULT_LATTICE_NODE_LIMIT))
+            || source_copula_continuation;
         licensed.then_some(candidate.consumed.start..whole.end)
     }
 

@@ -176,6 +176,71 @@ fn copula_prefix_remains_valid_after_a_nominal_host() {
 }
 
 #[test]
+fn copula_components_follow_complete_nominal_hosts() {
+    let resolver = resolver();
+    let pattern = QueryMorphPattern::new(DataFinePos::Vcp, "이").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    for (text, core, anchor, consumed) in [
+        ("동안이었습니다", 6..9, 6..21, 6..21),
+        ("끝인가", 3..6, 3..6, 3..9),
+        ("곳인", 3..6, 3..6, 3..6),
+        ("공학입니다", 6..9, 6..15, 6..15),
+    ] {
+        let decision = resolver.resolve_candidate(
+            BoundedTokenContext::current(text),
+            CandidateSpans {
+                core,
+                anchor,
+                consumed,
+                token: 0..text.len(),
+            },
+            std::slice::from_ref(&pattern),
+            128,
+        );
+
+        assert_eq!(decision.outcome, ConstraintOutcome::Supported, "{text}");
+        assert!(ProductPolicy::RecallFirst.accepts(&decision), "{text}");
+    }
+}
+
+#[test]
+fn whole_adverb_still_rejects_a_copula_suffix() {
+    let resolver = resolver();
+    let pattern = QueryMorphPattern::new(DataFinePos::Vcp, "이").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext {
+            previous: None,
+            current: "매일",
+            next: Some("보고"),
+        },
+        CandidateSpans {
+            core: 3..6,
+            anchor: 3..6,
+            consumed: 3..6,
+            token: 0..6,
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
 fn longest_nominal_particle_host_hides_an_inner_component() {
     let resolver = resolver();
     let inner = resolver.resolve_candidate(
@@ -789,6 +854,19 @@ fn resolver() -> ConstraintResolver {
         atomic("너무", "MAG"),
         atomic("을", "JKO"),
         atomic("학교", "NNG"),
+        atomic("동안", "NNG"),
+        atomic("동안", "MAG"),
+        atomic("이", "VCP"),
+        atomic("었습니다", "EP+EF"),
+        atomic("끝", "NNG"),
+        atomic("인", "VCP"),
+        atomic("인", "JKS"),
+        atomic("가", "JKS"),
+        atomic("인가", "VCP+EF"),
+        atomic("곳", "NNB"),
+        atomic("공학", "NNG"),
+        atomic("입", "VCP"),
+        atomic("니다", "EF"),
         atomic("에", "NNG"),
         atomic("에서", "JKB"),
         atomic("서", "JKB"),

@@ -1190,11 +1190,8 @@ fn runtime_position_is_supported(
         }
     ) && (spans.anchor.end > spans.core.end
         || spans.core.len() > pattern.lexical_form.len());
-    let whole_predicate_continuation = evidence.units.iter().any(|unit| {
-        unit.span == (spans.core.start..spans.token.end)
-            && unit.pos == pattern.fine_pos
-            && unit.pos.is_predicate()
-    });
+    let whole_predicate_continuation = whole_predicate_continuation(pattern, spans, evidence);
+    let copula_nominal_host = copula_has_complete_nominal_host(pattern, spans, evidence);
     let trailing_predicate_subspan = predicate
         && spans.consumed.end != spans.token.end
         && !terminal_predicate_component
@@ -1205,6 +1202,7 @@ fn runtime_position_is_supported(
         && spans.consumed == spans.core
         && !predicate_nominalization(pattern, spans);
     let modifier_before_predicate = predicate
+        && !copula_nominal_host
         && spans.core.start != spans.token.start
         && evidence.units.iter().any(|unit| {
             unit.span.end == spans.core.start
@@ -1258,6 +1256,33 @@ fn runtime_position_is_supported(
         && !trailing_nominal_chain
         && !nominal_after_predicate
         && !terminal_nominal_in_predicate_frame
+}
+
+fn whole_predicate_continuation(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    evidence: &TokenEvidence,
+) -> bool {
+    evidence.units.iter().any(|unit| {
+        unit.span == (spans.core.start..spans.token.end)
+            && unit.pos == pattern.fine_pos
+            && unit.pos.is_predicate()
+    })
+}
+
+fn copula_has_complete_nominal_host(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    evidence: &TokenEvidence,
+) -> bool {
+    pattern.fine_pos == DataFinePos::Vcp
+        && evidence.has_complete_path
+        && !evidence.has_whole(DataFinePos::Mag)
+        && spans.core.start > spans.token.start
+        && evidence
+            .units
+            .iter()
+            .any(|unit| unit.span == (spans.token.start..spans.core.start) && unit.pos.is_nominal())
 }
 
 fn predicate_nominalization(pattern: &QueryMorphPattern, spans: &CandidateSpans) -> bool {
