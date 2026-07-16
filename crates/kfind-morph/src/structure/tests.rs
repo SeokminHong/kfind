@@ -235,6 +235,96 @@ fn multisyllable_nominal_prefix_survives_a_graph_built_particle_host() {
 }
 
 #[test]
+fn prefixed_multisyllable_nominal_component_survives_a_derivational_frame() {
+    let resolver = resolver();
+    let core = "비".len().."비실체".len();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("비실체적인"),
+        CandidateSpans {
+            core: core.clone(),
+            anchor: core.clone(),
+            consumed: core,
+            token: 0.."비실체적인".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "실체")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
+fn multisyllable_nominal_crossing_without_an_affix_frame_is_rejected() {
+    let resolver = resolver();
+    let core = "사".len().."사실체".len();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("사실체계"),
+        CandidateSpans {
+            core: core.clone(),
+            anchor: core.clone(),
+            consumed: core,
+            token: 0.."사실체계".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "실체")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
+fn dependent_noun_after_a_proper_noun_consumes_its_particle() {
+    let resolver = resolver();
+    let core = "요코".len().."요코씨".len();
+    let pattern = QueryMorphPattern::new(DataFinePos::Nnb, "씨").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::NominalParticles,
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("요코씨는"),
+        CandidateSpans {
+            core: core.clone(),
+            anchor: core.clone(),
+            consumed: core.start.."요코씨는".len(),
+            token: 0.."요코씨는".len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
+fn one_syllable_suffix_without_a_proper_noun_frame_is_rejected() {
+    let resolver = resolver();
+    let core = "날".len().."날씨".len();
+    let pattern = QueryMorphPattern::new(DataFinePos::Nnb, "씨").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::NominalParticles,
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("날씨는"),
+        CandidateSpans {
+            core: core.clone(),
+            anchor: core.clone(),
+            consumed: core.start.."날씨는".len(),
+            token: 0.."날씨는".len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
 fn competing_predicate_and_nominal_continuations_remain_available() {
     let resolver = resolver();
     let pattern = QueryMorphPattern::new(DataFinePos::Vv, "들").with_candidate_contract(
@@ -529,6 +619,20 @@ fn resolver() -> ConstraintResolver {
         atomic("둥그스름", "NNG"),
         atomic("하", "NNG"),
         atomic("게", "JKB"),
+        atomic("비", "XPN"),
+        atomic("실체", "NNG"),
+        atomic("적", "XSN"),
+        atomic("인", "VCP+ETM"),
+        atomic("사", "NNG"),
+        atomic("사실", "NNG"),
+        atomic("체계", "NNG"),
+        atomic("계", "NNG"),
+        atomic("요코", "NNP"),
+        atomic("씨", "NNB"),
+        atomic("요코씨", "NNP"),
+        atomic("날", "NNG"),
+        atomic("날씨", "NNG"),
+        atomic("는", "JX"),
         atomic("을", "ETM"),
         atomic("보고", "VV+EC"),
         atomic("아니라", "VCN+EC"),

@@ -424,6 +424,7 @@ struct TokenEvidence {
     units: Vec<Unit>,
     runtime_spans: Vec<Range<usize>>,
     adnominal_ends: Vec<usize>,
+    prefix_affix_ends: Vec<usize>,
     has_complete_path: bool,
 }
 
@@ -474,6 +475,7 @@ impl TokenEvidence {
         let mut units = Vec::new();
         let mut runtime_spans = Vec::new();
         let mut adnominal_ends = Vec::new();
+        let mut prefix_affix_ends = Vec::new();
         for (index, edge) in edges.iter().enumerate() {
             let eligible = if has_complete_path {
                 complete[index]
@@ -493,6 +495,9 @@ impl TokenEvidence {
                 .split('+')
                 .filter_map(DataFinePos::parse)
                 .collect::<Vec<_>>();
+            if has_complete_path && edge.pos == "XPN" {
+                prefix_affix_ends.push(edge.span.end);
+            }
             for pos in edge_positions.iter().copied() {
                 units.push(Unit {
                     span: edge.span.clone(),
@@ -505,6 +510,9 @@ impl TokenEvidence {
                 });
             }
             for component in &edge.components {
+                if has_complete_path && component.pos == "XPN" {
+                    prefix_affix_ends.push(edge.span.start + component.span.end);
+                }
                 if component.pos == "ETM" {
                     adnominal_ends.push(edge.span.start + component.span.end);
                 }
@@ -532,10 +540,13 @@ impl TokenEvidence {
         runtime_spans.dedup();
         adnominal_ends.sort_unstable();
         adnominal_ends.dedup();
+        prefix_affix_ends.sort_unstable();
+        prefix_affix_ends.dedup();
         Ok(Self {
             units,
             runtime_spans,
             adnominal_ends,
+            prefix_affix_ends,
             has_complete_path,
         })
     }
@@ -725,6 +736,8 @@ impl StructureSelection {
                                 selected,
                                 evidence,
                                 &pattern.lexical_form,
+                            ) || proper_noun_dependent_noun_frame(
+                                pattern, spans, selected, evidence,
                             )) && spans.core.start >= selected.start
                                 && spans.core.end <= selected.end
                                 && spans.core != *selected)))
@@ -897,11 +910,38 @@ fn runtime_nominal_component_is_supported(
     {
         return true;
     }
+    if proper_noun_dependent_noun_frame(pattern, spans, host, evidence) {
+        return true;
+    }
     if spans.core.start == host.start && pattern.lexical_form.chars().count() > 1 {
         return true;
     }
     pattern.lexical_form.chars().count() > 1
         && nominal_component_is_on_preferred_path(&spans.core, host, evidence)
+}
+
+fn proper_noun_dependent_noun_frame(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    host: &Range<usize>,
+    evidence: &TokenEvidence,
+) -> bool {
+    pattern.fine_pos == DataFinePos::Nnb
+        && evidence.has_complete_path
+        && pattern.lexical_form.chars().count() == 1
+        && matches!(pattern.continuation, MorphContinuation::NominalParticles)
+        && spans.core.end == host.end
+        && spans.consumed.end > spans.core.end
+        && evidence.units.iter().any(|unit| {
+            unit.pos == DataFinePos::Nnp
+                && unit.span.start == host.start
+                && unit.span.end == spans.core.start
+        })
+        && evidence.units.iter().any(|unit| {
+            unit.pos.is_particle()
+                && unit.span.start == spans.core.end
+                && unit.span.end <= spans.consumed.end
+        })
 }
 
 fn runtime_position_is_supported(
@@ -954,9 +994,18 @@ fn runtime_position_is_supported(
                 .units
                 .iter()
                 .any(|unit| unit.evidence == StructuralEvidence::Whole);
+    let prefixed_derived_nominal = matches!(
+        pattern.fine_pos,
+        DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
+    ) && pattern.lexical_form.chars().count() > 1
+        && evidence
+            .prefix_affix_ends
+            .binary_search(&spans.core.start)
+            .is_ok();
     let trailing_exact_subspan = matches!(pattern.continuation, MorphContinuation::Exact)
         && spans.consumed.end != spans.token.end
-        && !exact_component_prefix;
+        && !exact_component_prefix
+        && !prefixed_derived_nominal;
     let multi_syllable_nominal_component = matches!(
         pattern.fine_pos,
         DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
