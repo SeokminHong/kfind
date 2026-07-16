@@ -1,9 +1,9 @@
 use std::sync::{Arc, OnceLock};
 
 use kfind_data::{
-    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataFinePos, LexiconData,
-    MecabSourceMorphologyEntry, NominalRecord, collect_pos_entries, decode_component_resource,
-    encode_component_resource, encode_pos_lexicon,
+    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataAlternation, DataFinePos, LexiconData,
+    MecabSourceMorphologyEntry, NominalRecord, PredicateRecord, collect_pos_entries,
+    decode_component_resource, encode_component_resource, encode_pos_lexicon,
 };
 use kfind_matcher::MorphMatcher;
 use kfind_morph::CoarsePos;
@@ -181,6 +181,34 @@ fn generated_predicate_branch_consumes_a_complete_source_ending_path() {
     assert!(
         other_pos
             .find_at_with_meta("겨울이 없을 거라고 한다.".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
+fn smart_auxiliary_query_accepts_a_complete_attached_source_path() {
+    let matcher = compile_with_full_pos(
+        "지다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+    );
+
+    for text in [
+        "수입으로 메꾸어졌다.",
+        "축구장에서 떨어진 공이다.",
+        "낮시간이 길어진 기분이다.",
+        "사정이 달라졌다.",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "attached auxiliary source path was rejected for {text}"
+        );
+    }
+    assert!(
+        matcher
+            .find_at_with_meta("사진을 걸었다.".as_bytes(), 0)
             .is_none()
     );
 }
@@ -792,6 +820,13 @@ fn compile(query: &str, options: CompileOptions) -> MorphMatcher {
 fn compile_with_full_pos(query: &str, options: CompileOptions) -> MorphMatcher {
     let mut lexicons = Lexicons::embedded().expect("embedded lexicons must be valid");
     let full_data = LexiconData {
+        predicates: vec![PredicateRecord {
+            lemma: "지다".to_owned(),
+            pos: DataFinePos::Vx,
+            alternation: DataAlternation::Regular,
+            flags: Default::default(),
+            overrides: Vec::new(),
+        }],
         nominals: vec![NominalRecord {
             lemma: "전체사전표식".to_owned(),
             pos: DataFinePos::Nng,
@@ -832,6 +867,7 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("걸", "VV"),
             component_entry("었", "EP"),
             component_entry("어", "EF"),
+            component_entry("어", "EC"),
             component_expression_entry("걸었어", "VV+EP+EF", "걸/VV/*+었/EP/*+어/EF/*"),
             component_expression_entry("왔", "VV+EP", "오/VV/*+았/EP/*"),
             component_entry("으니까", "EC"),
@@ -839,6 +875,15 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("다는", "EF+ETM"),
             component_entry("다", "EF"),
             component_entry("는", "ETM"),
+            component_entry("메꾸", "VV"),
+            component_entry("졌", "VX+EP"),
+            component_entry("떨", "VV"),
+            component_entry("진", "VX+ETM"),
+            component_entry("떨어진", "VV+ETM"),
+            component_entry("길", "VA"),
+            component_entry("달라", "VA+EC"),
+            component_entry("사", "NNG"),
+            component_entry("사진", "NNG"),
             component_entry("만", "VV"),
             component_entry("들려", "EC"),
             component_expression_entry("만들려", "VV+EC", "만들/VV/*+려고/EC/*"),

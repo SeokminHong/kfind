@@ -89,12 +89,22 @@ impl ProductPolicy {
 #[derive(Debug)]
 pub struct ConstraintResolver {
     resource: Arc<ComponentResource>,
+    attached_auxiliary: bool,
 }
 
 impl ConstraintResolver {
     #[must_use]
     pub fn new(resource: Arc<ComponentResource>) -> Self {
-        Self { resource }
+        Self {
+            resource,
+            attached_auxiliary: false,
+        }
+    }
+
+    #[must_use]
+    pub const fn with_attached_auxiliary(mut self, enabled: bool) -> Self {
+        self.attached_auxiliary = enabled;
+        self
     }
 
     #[must_use]
@@ -343,10 +353,15 @@ impl ConstraintResolver {
         patterns: &[QueryMorphPattern],
         node_limit: usize,
     ) -> ConstraintDecision {
-        let prepared = match self.prepare_context(context, node_limit) {
-            Ok(prepared) => prepared,
-            Err(reason) => return ConstraintDecision::unavailable(reason),
-        };
+        let include_attached_auxiliary = self.attached_auxiliary
+            || patterns
+                .iter()
+                .any(|pattern| pattern.fine_pos == DataFinePos::Vx);
+        let prepared =
+            match self.prepare_context_inner(context, node_limit, include_attached_auxiliary) {
+                Ok(prepared) => prepared,
+                Err(reason) => return ConstraintDecision::unavailable(reason),
+            };
         prepared.resolve_candidate(spans, patterns)
     }
 
@@ -355,7 +370,21 @@ impl ConstraintResolver {
         context: BoundedTokenContext<'_>,
         node_limit: usize,
     ) -> Result<PreparedStructuralContext, ConstraintUnavailable> {
-        let evidence = TokenEvidence::collect(&self.resource, context.current, node_limit)?;
+        self.prepare_context_inner(context, node_limit, self.attached_auxiliary)
+    }
+
+    fn prepare_context_inner(
+        &self,
+        context: BoundedTokenContext<'_>,
+        node_limit: usize,
+        include_attached_auxiliary: bool,
+    ) -> Result<PreparedStructuralContext, ConstraintUnavailable> {
+        let evidence = TokenEvidence::collect(
+            &self.resource,
+            context.current,
+            node_limit,
+            include_attached_auxiliary,
+        )?;
         let selection = select_structure(&self.resource, context, &evidence);
         Ok(PreparedStructuralContext {
             text: context.current.into(),
@@ -439,6 +468,7 @@ struct Unit {
 struct TokenEvidence {
     units: Vec<Unit>,
     runtime_spans: Vec<Range<usize>>,
+    attached_auxiliary_spans: Box<[Range<usize>]>,
     adnominal_ends: Vec<usize>,
     has_complete_path: bool,
     numeric_spans: Box<[Range<usize>]>,
@@ -450,11 +480,12 @@ impl TokenEvidence {
         resource: &ComponentResource,
         text: &str,
         node_limit: usize,
+        include_attached_auxiliary: bool,
     ) -> Result<Self, ConstraintUnavailable> {
         if text.as_bytes().first().is_some_and(u8::is_ascii_digit) {
-            Self::collect_mode::<true>(resource, text, node_limit)
+            Self::collect_mode::<true>(resource, text, node_limit, include_attached_auxiliary)
         } else {
-            Self::collect_mode::<false>(resource, text, node_limit)
+            Self::collect_mode::<false>(resource, text, node_limit, include_attached_auxiliary)
         }
     }
 
@@ -462,6 +493,7 @@ impl TokenEvidence {
         resource: &ComponentResource,
         text: &str,
         node_limit: usize,
+        include_attached_auxiliary: bool,
     ) -> Result<Self, ConstraintUnavailable> {
         let numeric_end = if NUMERIC {
             text.bytes().take_while(u8::is_ascii_digit).count()
@@ -521,6 +553,11 @@ impl TokenEvidence {
         );
         let complete = complete_edges(text.len(), &edges, &forward);
         let has_complete_path = forward[text.len()];
+        let attached_auxiliary_spans = if include_attached_auxiliary {
+            attached_auxiliary_spans(text.len(), &edges)
+        } else {
+            Box::default()
+        };
         let mut units = Vec::new();
         let mut runtime_spans = Vec::new();
         let mut adnominal_ends = Vec::new();
@@ -632,6 +669,7 @@ impl TokenEvidence {
         Ok(Self {
             units,
             runtime_spans,
+            attached_auxiliary_spans,
             adnominal_ends,
             has_complete_path,
             numeric_spans,
@@ -661,6 +699,75 @@ struct Edge<'a> {
     span: Range<usize>,
     pos: &'a str,
     components: Vec<ComponentPart<'a>>,
+}
+
+fn attached_auxiliary_spans(text_len: usize, edges: &[Edge<'_>]) -> Box<[Range<usize>]> {
+    let mut predicate_path = vec![false; text_len + 1];
+    let mut connective_boundary = vec![false; text_len + 1];
+    for edge in edges {
+        let ends_in_connective = if edge.span.start == 0 {
+            predicate_path_ends_in_connective(edge.pos)
+        } else if predicate_path[edge.span.start] {
+            ending_path_ends_in_connective(edge.pos)
+        } else {
+            None
+        };
+        if let Some(ends_in_connective) = ends_in_connective {
+            predicate_path[edge.span.end] = true;
+            if ends_in_connective {
+                connective_boundary[edge.span.end] = true;
+            }
+        }
+    }
+
+    let mut ending_suffix = vec![false; text_len + 1];
+    ending_suffix[text_len] = true;
+    for edge in edges.iter().rev() {
+        if ending_suffix[edge.span.end] && edge.pos.split('+').all(|pos| pos.starts_with('E')) {
+            ending_suffix[edge.span.start] = true;
+        }
+    }
+
+    let mut spans = edges
+        .iter()
+        .filter(|edge| {
+            let mut positions = edge.pos.split('+');
+            connective_boundary[edge.span.start]
+                && positions.next() == Some("VX")
+                && positions.all(|pos| pos.starts_with('E'))
+                && ending_suffix[edge.span.end]
+        })
+        .map(|edge| edge.span.clone())
+        .collect::<Vec<_>>();
+    spans.sort_unstable_by_key(|span| (span.start, span.end));
+    spans.dedup();
+    spans.into_boxed_slice()
+}
+
+fn predicate_path_ends_in_connective(pos: &str) -> Option<bool> {
+    let mut positions = pos.split('+');
+    if !matches!(positions.next(), Some("VV" | "VA")) {
+        return None;
+    }
+    let mut last = None;
+    for position in positions {
+        if !position.starts_with('E') {
+            return None;
+        }
+        last = Some(position);
+    }
+    Some(last == Some("EC"))
+}
+
+fn ending_path_ends_in_connective(pos: &str) -> Option<bool> {
+    let mut last = None;
+    for position in pos.split('+') {
+        if !position.starts_with('E') {
+            return None;
+        }
+        last = Some(position);
+    }
+    Some(last == Some("EC"))
 }
 
 fn forward_positions(text_len: usize, edges: &[Edge<'_>]) -> Vec<bool> {
@@ -1210,6 +1317,8 @@ fn runtime_position_is_supported(
         || spans.core.len() > pattern.lexical_form.len());
     let whole_predicate_continuation = whole_predicate_continuation(pattern, spans, evidence);
     let copula_nominal_host = copula_has_complete_nominal_host(pattern, spans, evidence);
+    let attached_auxiliary = pattern.fine_pos == DataFinePos::Vx
+        && evidence.attached_auxiliary_spans.contains(&spans.core);
     let trailing_predicate_subspan = predicate
         && spans.consumed.end != spans.token.end
         && !terminal_predicate_component
@@ -1218,9 +1327,11 @@ fn runtime_position_is_supported(
         && (pattern.fine_pos != DataFinePos::Vcp || evidence.has_whole(DataFinePos::Mag))
         && spans.core.start != spans.token.start
         && spans.consumed == spans.core
+        && !attached_auxiliary
         && !predicate_nominalization(pattern, spans);
     let modifier_before_predicate = predicate
         && !copula_nominal_host
+        && !attached_auxiliary
         && spans.core.start != spans.token.start
         && evidence.units.iter().any(|unit| {
             unit.span.end == spans.core.start

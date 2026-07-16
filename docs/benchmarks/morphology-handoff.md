@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [결합형 보조용언 recall](2026-07-17-attached-auxiliary-recall.md)
 - [source 어미 경로 recall](2026-07-17-predicate-ending-path-recall.md)
 - [체언 뒤 지정사 구조 recall](2026-07-17-copula-nominal-host-recall.md)
 - [지정사 완성형 recall](2026-07-17-copula-surface-recall.md)
@@ -151,3 +152,14 @@ whole modifier 부재와 조사 allomorph 부재를 함께 요구한다. Canonic
 Matrix full-POS의 다음 큰 동일 질의 FN 묶음은 동사 `지다` 4건이다. `오다`와 동사 `있다`는
 각각 3건이다. 다음 작업은 `지다` 4건을 보조용언·피동/결과 구조와 독립 동사로 먼저 분류하고,
 공통 구조가 확인된 경우에만 제품 규칙을 연다.
+
+[결합형 보조용언 recall](2026-07-17-attached-auxiliary-recall.md)에서 full-POS VX 질의에만
+token 왼쪽 경계의 일반 용언 `VV/VA + EC`, query core의 `VX`, token 끝까지의 `E*` 경로를
+요구했다. Canonical full-POS·Human은 `PNᶜ=500`에서 3건을 회수해 FNᶜ가 각각 19·22가
+됐다. Matrix full-POS·Human은 `PNᶜ=1,401`에서 `지다` 4건, `나다`·`있다` 각 1건을
+회수해 FNᶜ가 76·74가 됐고 완전 회수 문장은 390→396이다. FP·FPᶜ는 변하지 않았고
+`사진` 대조군도 거부했다. Matrix contract 정의, annotation과 gate는 변경하지 않았다.
+
+Matrix full-POS의 가장 큰 남은 동일 질의 묶음은 각 3건인 `것`, 부사 `안`, 동사 `오다`,
+형용사 `이다`다. 다음 작업은 네 묶음을 case-level로 비교해 공통 구조로 가장 많은
+contract-positive를 안전하게 회수하는 하나를 고른다.

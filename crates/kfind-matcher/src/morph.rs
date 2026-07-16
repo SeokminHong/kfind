@@ -6,7 +6,7 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use grep_matcher::{LineMatchKind, LineTerminator, Match, Matcher, NoCaptures, NoError};
-use kfind_data::ComponentResource;
+use kfind_data::{ComponentResource, DataFinePos};
 use kfind_morph::{
     ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, ParticleChainModel, ParticleVerifier,
     PredicateStemClass, ProductPolicy, RuleId, verify_predicate_continuation,
@@ -71,7 +71,19 @@ impl MorphMatcher {
         plan: Arc<QueryPlan>,
         component_resource: Arc<ComponentResource>,
     ) -> Result<Self, MorphMatcherBuildError> {
-        Self::build(plan, Some(ConstraintResolver::new(component_resource)))
+        let attached_auxiliary = plan
+            .atoms
+            .iter()
+            .flat_map(|atom| &atom.programs)
+            .flat_map(CandidateProgram::structural_patterns)
+            .any(|pattern| pattern.fine_pos == DataFinePos::Vx);
+        Self::build(
+            plan,
+            Some(
+                ConstraintResolver::new(component_resource)
+                    .with_attached_auxiliary(attached_auxiliary),
+            ),
+        )
     }
 
     fn build(
