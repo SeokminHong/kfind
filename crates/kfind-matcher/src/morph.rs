@@ -684,15 +684,28 @@ impl MorphMatcher {
                 .and_then(|bytes| std::str::from_utf8(bytes).ok())
                 .and_then(|consumed| consumed.nfc().last())
                 == Some('다');
+        let has_rule = |expected: &str| {
+            branch
+                .origins
+                .iter()
+                .flat_map(|origin| &origin.rule_path)
+                .chain(&candidate.suffix_rules)
+                .any(|rule| rule.as_str() == expected)
+        };
+        let connective_topic = trailing.nfc().eq("는".chars())
+            && ["ending.aoeo-seo", "ending.connective-ji"]
+                .iter()
+                .any(|rule| has_rule(rule));
+        let licensed_particle_trailing = declarative_adnominal || connective_topic;
         let valid_position = if pos == kfind_morph::PredicatePos::Copula {
             candidate.verified.core.start > whole.start
         } else {
-            (continuation != kfind_morph::ContinuationState::Terminal || declarative_adnominal)
+            (continuation != kfind_morph::ContinuationState::Terminal || licensed_particle_trailing)
                 && candidate.verified.core.start == whole.start
         };
         if !valid_position
             || (pos != kfind_morph::PredicatePos::Copula
-                && !declarative_adnominal
+                && !licensed_particle_trailing
                 && self
                     .particle_verifier
                     .model()
@@ -709,26 +722,57 @@ impl MorphMatcher {
         let core = haystack
             .get(candidate.verified.core.clone())
             .and_then(|bytes| std::str::from_utf8(bytes).ok());
-        token.zip(core).is_some_and(|(token, core)| {
-            if is_nfc(token) {
-                return !resolver.has_whole_modifier(token)
-                    && resolver.supports_predicate_ending_path(
-                        token,
-                        core.len(),
+        let ending = haystack
+            .get(candidate.verified.core.start..candidate.consumed.end)
+            .and_then(|bytes| std::str::from_utf8(bytes).ok());
+        token
+            .zip(core)
+            .zip(ending)
+            .is_some_and(|((token, core), ending)| {
+                if is_nfc(token) {
+                    if resolver.has_whole_modifier(token) {
+                        return false;
+                    }
+                    return if connective_topic {
+                        resolver.supports_predicate_ending_particle_path(
+                            token,
+                            core.len(),
+                            ending.len(),
+                            pos,
+                            DEFAULT_LATTICE_NODE_LIMIT,
+                        )
+                    } else {
+                        resolver.supports_predicate_ending_path(
+                            token,
+                            core.len(),
+                            pos,
+                            DEFAULT_LATTICE_NODE_LIMIT,
+                        )
+                    };
+                }
+                let normalized = token.nfc().collect::<String>();
+                let core_len = core.nfc().map(char::len_utf8).sum();
+                let ending_len = ending.nfc().map(char::len_utf8).sum();
+                if resolver.has_whole_modifier(&normalized) {
+                    return false;
+                }
+                if connective_topic {
+                    resolver.supports_predicate_ending_particle_path(
+                        &normalized,
+                        core_len,
+                        ending_len,
                         pos,
                         DEFAULT_LATTICE_NODE_LIMIT,
-                    );
-            }
-            let normalized = token.nfc().collect::<String>();
-            let core_len = core.nfc().map(char::len_utf8).sum();
-            !resolver.has_whole_modifier(&normalized)
-                && resolver.supports_predicate_ending_path(
-                    &normalized,
-                    core_len,
-                    pos,
-                    DEFAULT_LATTICE_NODE_LIMIT,
-                )
-        })
+                    )
+                } else {
+                    resolver.supports_predicate_ending_path(
+                        &normalized,
+                        core_len,
+                        pos,
+                        DEFAULT_LATTICE_NODE_LIMIT,
+                    )
+                }
+            })
     }
 
     fn has_rejected_structural_suffix(
