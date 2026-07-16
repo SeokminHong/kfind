@@ -6,6 +6,10 @@ query	pos	text	expected	feature
 매	noun	매일 매일 보고 싶어	no-match	lexical-context
 매일	noun	매일 매일 보고 싶어	no-match	lexical-context
 매일	adverb	매일 매일 보고 싶어	match	lexical-context
+매	noun	매일 보고 싶어	no-match	lexical-context
+매일	adverb	매일 보고 싶어	match	lexical-context
+매	noun	독수리가 아니라 매일 수도 있어	match	lexical-context
+매일	adverb	독수리가 아니라 매일 수도 있어	no-match	lexical-context
 매	noun	그는 집념으로 매일을 보내고 있었다.	no-match	lexical-context
 매일	noun	그는 집념으로 매일을 보내고 있었다.	match	lexical-context
 매일	adverb	그는 집념으로 매일을 보내고 있었다.	no-match	lexical-context
@@ -567,3 +571,5 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 들어오다	verb	내 방으로 들어오너라.	match	imperative-neora
 가다	verb	이제 집으로 가너라.	no-match	imperative-neora
 오다	verb	날이 밝기 전에 오거라.	match	imperative-geora
+치다	verb	지구온난화는 여러 측면에 영향을 미친다.	no-match	structural-whole-predicate
+다	noun	저 친구는 왕친입니다.	no-match	structural-ending-component

@@ -8,7 +8,7 @@ use crate::ast::PhrasePolicy;
 pub const DEFAULT_MAX_QUERY_SCALARS: usize = 256;
 pub const DEFAULT_MAX_ATOMS: usize = 32;
 pub const DEFAULT_MAX_ANALYSES_PER_ATOM: usize = 32;
-pub const DEFAULT_MAX_BRANCHES: usize = 4_096;
+pub const DEFAULT_MAX_PROGRAMS: usize = 4_096;
 pub const DEFAULT_MAX_MATCHER_BYTES: usize = 64 * 1024 * 1024;
 pub const DEFAULT_MAX_CONTINUATION_DEPTH: usize = 4;
 
@@ -42,7 +42,7 @@ pub struct PlanLimits {
     pub max_query_scalars: usize,
     pub max_atoms: usize,
     pub max_analyses_per_atom: usize,
-    pub max_branches: usize,
+    pub max_programs: usize,
     pub max_matcher_bytes: usize,
     pub max_continuation_depth: usize,
 }
@@ -53,7 +53,7 @@ impl Default for PlanLimits {
             max_query_scalars: DEFAULT_MAX_QUERY_SCALARS,
             max_atoms: DEFAULT_MAX_ATOMS,
             max_analyses_per_atom: DEFAULT_MAX_ANALYSES_PER_ATOM,
-            max_branches: DEFAULT_MAX_BRANCHES,
+            max_programs: DEFAULT_MAX_PROGRAMS,
             max_matcher_bytes: DEFAULT_MAX_MATCHER_BYTES,
             max_continuation_depth: DEFAULT_MAX_CONTINUATION_DEPTH,
         }

@@ -18,7 +18,7 @@ use kfind_data::{
 use kfind_matcher::MorphMatcher;
 use kfind_morph::CoarsePos;
 use kfind_query::{
-    BoundaryPolicy, CompileOptionOverrides, CompileOptions, ContextRequirement,
+    BoundaryPolicy, CandidateDecision, CompileOptionOverrides, CompileOptions,
     LexiconQueryAnalyzer, Lexicons, compile_query,
 };
 use serde::{Deserialize, Serialize};
@@ -27,7 +27,7 @@ use sha2::{Digest, Sha256};
 
 use agent_shadow::diagnose_agent_shadow;
 use shadow::{
-    ShadowBranchEvidence, ShadowResource, ShadowVerificationCounters, diagnose_component_candidate,
+    ShadowProgramEvidence, ShadowResource, ShadowVerificationCounters, diagnose_lattice_candidate,
 };
 
 const FULL_POS_LEXICON: &str = "/opt/morph-benchmark/full-pos/lexicon.bin";
@@ -600,20 +600,10 @@ fn append_kfind_diagnostics(
         Some(Err(_)) => ShadowResource::Corrupt,
         None => ShadowResource::Missing,
     };
-    let component_shadow_resource = component_resource
-        .as_deref()
-        .map_or(ShadowResource::Missing, |resource| {
-            ShadowResource::Loaded(resource)
-        });
     for (case, result) in cases.iter().zip(results.iter_mut()) {
         result["failure_diagnostic"] = serde_json::to_value(diagnose_failure(case, analyzer)?)?;
-        let shadow_verification = diagnose_verification(
-            case,
-            analyzer,
-            shadow_resource,
-            component_shadow_resource,
-            component_resource.as_ref(),
-        )?;
+        let shadow_verification =
+            diagnose_verification(case, analyzer, shadow_resource, component_resource.as_ref())?;
         result["shadow_verification"] = serde_json::to_value(shadow_verification)?;
     }
     Ok(morphology_artifact_sha256)
@@ -623,7 +613,6 @@ fn diagnose_verification(
     case: &Case,
     analyzer: &LexiconQueryAnalyzer,
     resource: ShadowResource<'_>,
-    component_resource: ShadowResource<'_>,
     matcher_component_resource: Option<&Arc<ComponentResource>>,
 ) -> Result<ShadowVerificationCounters> {
     let options = CompileOptions::resolve(CompileOptionOverrides {
@@ -632,38 +621,27 @@ fn diagnose_verification(
     })?;
     let plan = compile_query(&case.query, &options, analyzer)
         .with_context(|| format!("failed to compile shadow diagnostic for case {}", case.id))?;
-    let component_branches = plan
+    let structural_programs = plan
         .atoms
         .iter()
         .enumerate()
         .flat_map(|(atom_index, atom)| {
-            atom.branches
+            atom.programs
                 .iter()
-                .filter(|branch| branch.context_requirement == ContextRequirement::ExactComponent)
-                .map(move |branch| ShadowBranchEvidence {
-                    atom_index,
-                    anchor: std::str::from_utf8(&branch.anchor)
-                        .expect("compiled query anchors are valid UTF-8")
-                        .to_owned(),
-                    require_left: branch.boundary.require_left,
-                    require_right: branch.boundary.require_right,
+                .filter(|program| matches!(program.decision, CandidateDecision::Structural(_)))
+                .map(move |program| {
+                    let boundary = program.boundary();
+                    ShadowProgramEvidence {
+                        atom_index,
+                        anchor: std::str::from_utf8(&program.anchor)
+                            .expect("compiled query anchors are valid UTF-8")
+                            .to_owned(),
+                        require_left: boundary.require_left,
+                        require_right: boundary.require_right,
+                    }
                 })
         })
         .collect();
-    if plan.requires_component_resource() {
-        if let Some(status) = resource.unavailable_status() {
-            bail!(
-                "exact component shadow for case {} requires a valid morphology resource: {status}",
-                case.id
-            );
-        }
-        if let Some(status) = component_resource.unavailable_status() {
-            bail!(
-                "exact component shadow for case {} requires a valid compact resource: {status}",
-                case.id
-            );
-        }
-    }
     let matcher = match matcher_component_resource {
         Some(resource) => {
             MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(resource))?
@@ -671,26 +649,14 @@ fn diagnose_verification(
         None => MorphMatcher::new(Arc::new(plan))?,
     };
     let component_candidates = matcher.local_analysis_candidates(case.text.as_bytes());
-    let mut component = Vec::with_capacity(component_candidates.len());
+    let mut diagnostic_lattice = Vec::with_capacity(component_candidates.len());
     for candidate in &component_candidates {
-        let full_evidence = diagnose_component_candidate(candidate, resource);
-        let compact_evidence = diagnose_component_candidate(candidate, component_resource);
-        if full_evidence != compact_evidence {
-            bail!(
-                "component projection differs for case {} atom {} analysis {}",
-                case.id,
-                candidate.atom_index,
-                candidate.analysis_index
-            );
-        }
-        component.push(full_evidence);
+        diagnostic_lattice.push(diagnose_lattice_candidate(candidate, resource));
     }
-    let component_projection_comparisons = component.len();
     Ok(ShadowVerificationCounters::new(
         matcher.verification_counters(case.text.as_bytes()),
-        component_branches,
-        component,
-        component_projection_comparisons,
+        structural_programs,
+        diagnostic_lattice,
     ))
 }
 
@@ -721,11 +687,11 @@ fn diagnose_failure(
     any_options.boundary = BoundaryPolicy::Any;
     let any_plan = compile_query(&case.query, &any_options, analyzer)
         .with_context(|| format!("failed to compile boundary diagnostic for case {}", case.id))?;
-    let gold_anchor_overlap = any_plan.atoms[0].branches.iter().any(|branch| {
+    let gold_anchor_overlap = any_plan.atoms[0].programs.iter().any(|program| {
         case.text
             .as_bytes()
             .get(gold_range.clone())
-            .is_some_and(|gold_text| contains_bytes(gold_text, &branch.anchor))
+            .is_some_and(|gold_text| contains_bytes(gold_text, &program.anchor))
     });
     let any_matcher = MorphMatcher::new(Arc::new(any_plan))?;
     let any_boundary_gold_matches = any_matcher
@@ -940,21 +906,22 @@ mod tests {
     }
 
     #[test]
-    fn exact_component_shadow_requires_a_valid_resource() {
-        let error = diagnose_verification(
+    fn structural_shadow_keeps_missing_cost_diagnostics_non_blocking() {
+        let compact = component_fixture_compact_resource(20);
+        let counters = diagnose_verification(
             &positive_case("권한", "noun", "사용자권한"),
             &analyzer(),
             ShadowResource::Missing,
-            ShadowResource::Missing,
-            None,
+            Some(&compact),
         )
-        .unwrap_err();
+        .unwrap();
 
-        assert!(error.to_string().contains("resource-missing"));
+        assert_eq!(counters.diagnostic_lattice.len(), 1);
+        assert_eq!(counters.diagnostic_lattice[0].status, "resource-missing");
     }
 
     #[test]
-    fn exact_component_shadow_compares_projection_evidence() {
+    fn structural_shadow_records_full_lattice_as_a_diagnostic() {
         let bytes = component_fixture_resource(20);
         let resource = decode_morphology_resource("fixture", &bytes, &[9; 32]).unwrap();
         let compact = component_fixture_compact_resource(20);
@@ -962,31 +929,28 @@ mod tests {
             &positive_case("권한", "noun", "사용자권한"),
             &analyzer(),
             ShadowResource::Loaded(&resource),
-            ShadowResource::Loaded(compact.as_ref()),
             Some(&compact),
         )
         .unwrap();
 
-        assert_eq!(counters.component_projection_comparisons, 1);
-        assert_eq!(counters.exact_component_candidate_hits, 0);
-        assert_eq!(counters.component_projection_mismatches, 0);
+        assert_eq!(counters.diagnostic_lattice.len(), 1);
+        assert_eq!(counters.diagnostic_lattice[0].status, "evaluated");
     }
 
     #[test]
-    fn exact_component_shadow_rejects_projection_differences() {
+    fn compact_structure_ignores_source_cost_differences() {
         let full_bytes = component_fixture_resource(20);
         let full = decode_morphology_resource("full", &full_bytes, &[9; 32]).unwrap();
         let compact = component_fixture_compact_resource(2_000);
-        let error = diagnose_verification(
+        let counters = diagnose_verification(
             &positive_case("권한", "noun", "사용자권한"),
             &analyzer(),
             ShadowResource::Loaded(&full),
-            ShadowResource::Loaded(compact.as_ref()),
             Some(&compact),
         )
-        .unwrap_err();
+        .unwrap();
 
-        assert!(error.to_string().contains("component projection differs"));
+        assert_eq!(counters.diagnostic_lattice.len(), 1);
     }
 
     fn component_fixture_resource(component_cost: i32) -> Vec<u8> {
@@ -1016,19 +980,7 @@ mod tests {
             source_entry("권한", component_cost),
             source_entry("사용자권한", 5_000),
         ];
-        let matrix = parse_mecab_connection_matrix(
-            "matrix.def",
-            Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
-        )
-        .unwrap();
-        let bytes = encode_component_resource(
-            [9; 32],
-            &entries,
-            &matrix,
-            b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
-            b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
-        )
-        .unwrap();
+        let bytes = encode_component_resource([9; 32], &entries).unwrap();
         Arc::new(decode_component_resource("compact", bytes, &[9; 32]).unwrap())
     }
 

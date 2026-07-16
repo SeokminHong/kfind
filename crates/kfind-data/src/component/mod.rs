@@ -2,34 +2,37 @@ use std::collections::BTreeMap;
 use std::ops::Range;
 
 use sha2::{Digest, Sha256};
+use unicode_normalization::UnicodeNormalization;
 use yada::DoubleArray;
 use yada::builder::DoubleArrayBuilder;
 
-use crate::{
-    DataError, DataErrorKind, MecabConnectionMatrix, MecabSourceMorphologyEntry, SourceLocation,
-};
+use crate::{DataError, DataErrorKind, MecabSourceMorphologyEntry, SourceLocation};
 
 mod payload;
 
 use payload::{PayloadLayout, StringLayout};
 
 const MAGIC: &[u8; 8] = b"KFCMPLT\0";
-const SCHEMA_VERSION: u32 = 1;
+const SCHEMA_VERSION: u32 = 4;
 const INDEX_KIND_DOUBLE_ARRAY: u8 = 1;
-const SECTION_COUNT: usize = 6;
-const HEADER_LEN: usize = 304;
+const SECTION_COUNT: usize = 3;
+const HEADER_LEN: usize = 180;
 
 pub const COMPONENT_RESOURCE_SOURCE_DIGEST: [u8; 32] = [
     0xfd, 0x62, 0xd3, 0xd6, 0xd8, 0xfa, 0x85, 0x14, 0x55, 0x28, 0x06, 0x5f, 0xab, 0xad, 0x4d, 0x7c,
     0xb2, 0x0f, 0x6b, 0x22, 0x01, 0xe7, 0x1b, 0xe4, 0x08, 0x1a, 0x4e, 0x97, 0x01, 0xa5, 0xb3, 0x30,
 ];
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ComponentPart<'a> {
+    pub span: Range<usize>,
+    pub pos: &'a str,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ComponentAnalysis<'a> {
     pub pos: &'a str,
-    pub left_id: u16,
-    pub right_id: u16,
-    pub word_cost: i32,
+    pub components: Vec<ComponentPart<'a>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -37,9 +40,8 @@ pub struct ComponentResourceStats {
     pub schema_version: u32,
     pub surface_count: u32,
     pub analysis_count: u32,
+    pub component_count: u32,
     pub pos_counts: BTreeMap<String, u32>,
-    pub right_contexts: u16,
-    pub left_contexts: u16,
 }
 
 #[derive(Clone, Debug)]
@@ -47,9 +49,6 @@ struct Sections {
     index: Range<usize>,
     payload: Range<usize>,
     strings: Range<usize>,
-    matrix: Range<usize>,
-    char_def: Range<usize>,
-    unk_def: Range<usize>,
 }
 
 #[derive(Debug)]
@@ -86,67 +85,22 @@ impl ComponentResource {
             }
         }
     }
-
-    #[must_use]
-    pub fn connection_cost(&self, right_id: u16, left_id: u16) -> Option<i16> {
-        if right_id >= self.stats.right_contexts || left_id >= self.stats.left_contexts {
-            return None;
-        }
-        let index = usize::from(right_id)
-            .checked_mul(usize::from(self.stats.left_contexts))?
-            .checked_add(usize::from(left_id))?;
-        let offset = self
-            .sections
-            .matrix
-            .start
-            .checked_add(index.checked_mul(2)?)?;
-        let bytes = self.bytes.get(offset..offset.checked_add(2)?)?;
-        Some(i16::from_le_bytes(bytes.try_into().ok()?))
-    }
-
-    #[must_use]
-    pub fn right_contexts(&self) -> u16 {
-        self.stats.right_contexts
-    }
-
-    #[must_use]
-    pub fn left_contexts(&self) -> u16 {
-        self.stats.left_contexts
-    }
-
-    #[must_use]
-    pub fn char_def(&self) -> &[u8] {
-        &self.bytes[self.sections.char_def.clone()]
-    }
-
-    #[must_use]
-    pub fn unk_def(&self) -> &[u8] {
-        &self.bytes[self.sections.unk_def.clone()]
-    }
 }
 
 pub fn encode_component_resource(
     source_digest: [u8; 32],
     entries: &[MecabSourceMorphologyEntry],
-    matrix: &MecabConnectionMatrix,
-    char_def: &[u8],
-    unk_def: &[u8],
 ) -> Result<Vec<u8>, DataError> {
     if entries.is_empty() {
         return Err(build_error("component entries are empty"));
     }
-    if char_def.is_empty() || unk_def.is_empty() {
-        return Err(build_error("unknown-word definitions are empty"));
-    }
     let mut grouped = BTreeMap::<String, Vec<MecabSourceMorphologyEntry>>::new();
     for entry in entries {
-        if entry.right_id >= matrix.right_contexts() || entry.left_id >= matrix.left_contexts() {
-            return Err(build_error("component entry context ID is out of range"));
+        let surface = entry.surface.nfc().collect::<String>();
+        if surface.is_empty() {
+            return Err(build_error("component entry surface is empty"));
         }
-        grouped
-            .entry(entry.surface.clone())
-            .or_default()
-            .push(entry.clone());
+        grouped.entry(surface).or_default().push(entry.clone());
     }
     for analyses in grouped.values_mut() {
         analyses.sort_unstable();
@@ -166,15 +120,7 @@ pub fn encode_component_resource(
     let index = DoubleArrayBuilder::build(&keys)
         .ok_or_else(|| build_error("failed to build component Double-Array index"))?;
     let encoded = payload::encode(&groups)?;
-    let matrix_bytes = encode_matrix(matrix);
-    let sections: [&[u8]; SECTION_COUNT] = [
-        &index,
-        &encoded.bytes,
-        &encoded.strings,
-        &matrix_bytes,
-        char_def,
-        unk_def,
-    ];
+    let sections: [&[u8]; SECTION_COUNT] = [&index, &encoded.bytes, &encoded.strings];
     let mut output = Vec::with_capacity(
         HEADER_LEN + sections.iter().map(|section| section.len()).sum::<usize>(),
     );
@@ -189,8 +135,7 @@ pub fn encode_component_resource(
             .to_le_bytes(),
     );
     output.extend_from_slice(&encoded.analysis_count.to_le_bytes());
-    output.extend_from_slice(&u32::from(matrix.right_contexts()).to_le_bytes());
-    output.extend_from_slice(&u32::from(matrix.left_contexts()).to_le_bytes());
+    output.extend_from_slice(&encoded.component_count.to_le_bytes());
     for section in sections {
         output.extend_from_slice(
             &u64::try_from(section.len())
@@ -250,9 +195,9 @@ pub fn decode_component_resource(
         read_u32(&bytes, &mut cursor).map_err(|message| resource_error(source, message))?;
     let analysis_count =
         read_u32(&bytes, &mut cursor).map_err(|message| resource_error(source, message))?;
-    let right_contexts = read_context_count(source, &bytes, &mut cursor, "right")?;
-    let left_contexts = read_context_count(source, &bytes, &mut cursor, "left")?;
-    if surface_count == 0 || analysis_count == 0 || right_contexts == 0 || left_contexts == 0 {
+    let component_count =
+        read_u32(&bytes, &mut cursor).map_err(|message| resource_error(source, message))?;
+    if surface_count == 0 || analysis_count == 0 {
         return Err(resource_error(source, "empty resource counts"));
     }
     let mut lengths = [0_usize; SECTION_COUNT];
@@ -280,25 +225,12 @@ pub fn decode_component_resource(
         index: ranges[0].clone(),
         payload: ranges[1].clone(),
         strings: ranges[2].clone(),
-        matrix: ranges[3].clone(),
-        char_def: ranges[4].clone(),
-        unk_def: ranges[5].clone(),
     };
     if sections.index.is_empty() || !sections.index.len().is_multiple_of(4) {
         return Err(resource_error(source, "invalid Double-Array section"));
     }
-    if sections.char_def.is_empty() || sections.unk_def.is_empty() {
-        return Err(resource_error(
-            source,
-            "empty unknown-word definition section",
-        ));
-    }
-    let expected_matrix_len = usize::from(right_contexts)
-        .checked_mul(usize::from(left_contexts))
-        .and_then(|count| count.checked_mul(2))
-        .ok_or_else(|| resource_error(source, "connection matrix length overflow"))?;
-    if sections.matrix.len() != expected_matrix_len {
-        return Err(resource_error(source, "connection matrix length mismatch"));
+    if sections.payload.is_empty() || sections.strings.is_empty() {
+        return Err(resource_error(source, "empty structural section"));
     }
     let strings = StringLayout::parse(source, &bytes[sections.strings.clone()])?;
     let (payload, pos_counts) = PayloadLayout::parse(
@@ -306,8 +238,7 @@ pub fn decode_component_resource(
         &bytes[sections.payload.clone()],
         surface_count,
         analysis_count,
-        right_contexts,
-        left_contexts,
+        component_count,
         &bytes[sections.strings.clone()],
         &strings,
     )?;
@@ -317,22 +248,13 @@ pub fn decode_component_resource(
             schema_version: SCHEMA_VERSION,
             surface_count,
             analysis_count,
+            component_count,
             pos_counts,
-            right_contexts,
-            left_contexts,
         },
         sections,
         payload,
         strings,
     })
-}
-
-fn encode_matrix(matrix: &MecabConnectionMatrix) -> Vec<u8> {
-    matrix
-        .costs()
-        .iter()
-        .flat_map(|cost| cost.to_le_bytes())
-        .collect()
 }
 
 fn section_ranges(
@@ -358,16 +280,6 @@ fn section_ranges(
     ranges
         .try_into()
         .map_err(|_| resource_error(source, "invalid section count"))
-}
-
-fn read_context_count(
-    source: &str,
-    input: &[u8],
-    cursor: &mut usize,
-    name: &str,
-) -> Result<u16, DataError> {
-    let count = read_u32(input, cursor).map_err(|message| resource_error(source, message))?;
-    u16::try_from(count).map_err(|_| resource_error(source, &format!("{name} context overflow")))
 }
 
 fn read_u32(input: &[u8], cursor: &mut usize) -> Result<u32, &'static str> {

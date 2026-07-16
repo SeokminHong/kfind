@@ -7,6 +7,11 @@
 후보를 선택한다. 무품사 결과는 제품 한계와 회귀를 그대로 관측하며 목표 수치에 맞춰 fixture,
 gold 또는 negative 선택을 바꾸지 않는다.
 
+품질 gold는 표제어에서 생성 가능한 형태·표면 match를 평가하며 문맥 의미를 평가하지
+않는다. 같은 structural signature를 가진 동음이의어·동형이의어 match는 의미가
+다르다는 이유로 false positive로 분류하지 않는다. whole/component 분해, 품사 또는
+인접 성분 배치로 구분 가능한 경우에는 선택되지 않은 구조의 match를 오답으로 계산한다.
+
 현재 제품 기준선:
 
 | fixture/profile | TP / FP / FN | precision | recall | F1 |

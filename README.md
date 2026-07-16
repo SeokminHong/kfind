@@ -5,7 +5,7 @@
 
 Fast Korean lemma and inflection search for code and documents.
 
-`kfind` analyzes the query once, compiles bounded surface anchors and verifiers,
+`kfind` analyzes the query once, compiles bounded candidate programs,
 and scans files without running a morphology analyzer over the corpus. It finds
 inflected forms while retaining grep-like path filtering, context, and output
 modes.
@@ -42,7 +42,7 @@ Non-goals:
 
 - A general-purpose sentence tokenizer or morphology analyzer, or a backend
   optimized to lead morphology-analyzer throughput rankings.
-- Semantic search, synonym or paraphrase expansion, and contextual homonym
+- Semantic search, synonym or paraphrase expansion, and semantic homonym
   disambiguation.
 - Complete reverse analysis of arbitrary surface forms or unrestricted coverage
   of every Korean construction.
@@ -180,13 +180,20 @@ same POS.
 
 | Policy | Behavior | Typical use |
 | --- | --- | --- |
-| `smart` | Applies POS-aware verification and checks the completed token span. It can use the optional component resource for exact noun, pronoun, numeral, determiner, and full-POS predicate components, lexical copulas, and adjacent-token context. | Interactive search; default |
+| `smart` | Applies POS-aware verification and checks the completed token span. It can use the optional structural resource to prove exact POS/component spans and adjacent-token arrangements. | Interactive search; default |
 | `token` | Requires token boundaries around every core and completed token span. | Strict standalone tokens |
 | `any` | Does not require left or right token boundaries. | Recall-oriented automation with downstream context review |
 
 A one-syllable query remains conservative under `smart`. Explicit particle POS
 can expand registered allomorphs such as `은/는`, `이/가`, and `으로/로`; an
 untagged query searches only the particle surface that was written.
+
+Semantic ambiguity is deliberately retained: both `걷다` and `걸다` may match
+`걸었고`. This differs from structural POS evidence. Under `smart`, adjacent
+token arrangement selects `매일/MAG` in `매일 보고 싶어` and rejects `n:매`;
+the copular structure in `독수리가 아니라 매일 수도 있어` selects
+`매/NNG + 이/VCP + ㄹ/ETM` and rejects `adv:매일`. If structure remains
+ambiguous, kfind keeps supported candidates for recall.
 
 ### Human and agent workflows
 
@@ -262,7 +269,7 @@ binary.
 | `--color <WHEN>` | `auto`; `auto`, `always`, `never` | Controls terminal highlighting. `auto` enables color only for standard output to a terminal. |
 | `--no-pager` | off | Bypasses the pager when writing standard text results to a terminal. |
 | `--column` | off | Prints a one-based Unicode scalar column and implies line-number output. |
-| `--explain-query` | off | Prints inferred analyses, anchors, verifier counts, normalization, and lexicon status before results. |
+| `--explain-query` | off | Prints inferred analyses, candidate programs, consumption states, normalization, and lexicon status before results. |
 | `--explain-match` | off | Adds the lemma and rule path behind each text match. JSON already includes origin metadata. |
 | `--sort path` | unsorted parallel stream | Buffers completed file results and emits path order; this uses memory proportional to results and can reduce parallel throughput. |
 

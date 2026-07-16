@@ -7,12 +7,11 @@ use std::time::Instant;
 use anyhow::{Context, Result, ensure};
 use clap::ValueEnum;
 use kfind_data::{
-    DecodedMorphologyResource, MecabSourceMorphologyEntry, decode_morphology_resource,
+    ComponentAnalysis, ComponentResource as ProductComponentResource, DecodedMorphologyResource,
+    MecabSourceMorphologyEntry, MorphologyAnalysis, MorphologyExpressionAlignmentKind,
+    align_morphology_expression, decode_component_resource, decode_morphology_resource,
     encode_component_resource, encode_morphology_resource, extract_mecab_source_morphology,
     parse_mecab_connection_matrix,
-};
-use morph_index_benchmark::component_artifact::{
-    CompactComponentAnalysis, CompactComponentResource, decode_compact_component_resource,
 };
 use serde::Serialize;
 
@@ -36,12 +35,14 @@ pub struct ComponentBuildReport<'a> {
     pub schema_version: u32,
     pub source_sha256: &'a str,
     pub surface_count: u32,
-    pub analysis_count: u32,
+    pub source_analysis_count: u32,
+    pub compact_analysis_count: u32,
+    pub component_count: u32,
     pub full_artifact_bytes: usize,
     pub compact_artifact_bytes: usize,
     pub compact_to_full_percent: f64,
-    pub exact_equivalence: LookupTotals,
-    pub prefix_equivalence: LookupTotals,
+    pub exact_structural_equivalence: LookupTotals,
+    pub prefix_structural_equivalence: LookupTotals,
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Serialize)]
@@ -60,6 +61,7 @@ pub struct ComponentProbeReport {
     pub artifact_bytes: usize,
     pub surface_count: u32,
     pub analysis_count: u32,
+    pub component_count: Option<u32>,
     pub initialization_ms: f64,
     pub exact: LookupMeasurement,
     pub prefix: LookupMeasurement,
@@ -98,26 +100,32 @@ pub fn build_component_resources(input: ComponentBuildInput<'_>) -> Result<()> {
     let entries = load_entries(input.csv)?;
     let full =
         encode_morphology_resource(input.source_digest, &entries, &matrix, &char_def, &unk_def)?;
-    let compact =
-        encode_component_resource(input.source_digest, &entries, &matrix, &char_def, &unk_def)?;
+    let compact = encode_component_resource(input.source_digest, &entries)?;
     let full_view =
         decode_morphology_resource("full benchmark resource", &full, &input.source_digest)?;
-    let compact_view = decode_compact_component_resource(&compact, &input.source_digest)?;
-    ensure_equivalent_metadata(&full_view, &compact_view)?;
+    let compact_view = decode_component_resource(
+        "compact benchmark resource",
+        compact.clone(),
+        &input.source_digest,
+    )?;
+    ensure!(
+        full_view.stats().surface_count == compact_view.stats().surface_count,
+        "compact surface index differs from full source resource"
+    );
     let workload = build_workload(&entries);
-    let full_resource = ComponentResource::Full(full_view);
-    let compact_resource = ComponentResource::Compact(compact_view);
+    let full_resource = BenchmarkResource::Full(full_view);
+    let compact_resource = BenchmarkResource::Compact(compact_view);
     let full_exact = measure_workload(&full_resource, &workload.exact, true, 1).0;
     let compact_exact = measure_workload(&compact_resource, &workload.exact, true, 1).0;
     ensure!(
         full_exact == compact_exact,
-        "component exact lookup differs from full resource"
+        "component exact structural lookup differs from full source resource"
     );
     let full_prefix = measure_workload(&full_resource, &workload.prefix, false, 1).0;
     let compact_prefix = measure_workload(&compact_resource, &workload.prefix, false, 1).0;
     ensure!(
         full_prefix == compact_prefix,
-        "component prefix lookup differs from full resource"
+        "component prefix structural lookup differs from full source resource"
     );
 
     fs::create_dir_all(input.output)
@@ -129,15 +137,17 @@ pub fn build_component_resources(input: ComponentBuildInput<'_>) -> Result<()> {
         serde_json::to_vec_pretty(&workload)?,
     )?;
     let report = ComponentBuildReport {
-        schema_version: 1,
+        schema_version: 2,
         source_sha256: input.source_sha256,
-        surface_count: full_resource.surface_count(),
-        analysis_count: full_resource.analysis_count(),
+        surface_count: compact_resource.surface_count(),
+        source_analysis_count: full_resource.analysis_count(),
+        compact_analysis_count: compact_resource.analysis_count(),
+        component_count: compact_resource.component_count().unwrap_or(0),
         full_artifact_bytes: full.len(),
         compact_artifact_bytes: compact.len(),
         compact_to_full_percent: compact.len() as f64 / full.len() as f64 * 100.0,
-        exact_equivalence: full_exact,
-        prefix_equivalence: full_prefix,
+        exact_structural_equivalence: full_exact,
+        prefix_structural_equivalence: full_prefix,
     };
     fs::write(
         input.output.join("component-build-report.json"),
@@ -172,13 +182,14 @@ pub fn probe_component_resource(
     let initialization_started = Instant::now();
     let bytes = ArtifactBytes::load(artifact_path, storage)?;
     let resource = match format {
-        ComponentFormat::Full => ComponentResource::Full(decode_morphology_resource(
+        ComponentFormat::Full => BenchmarkResource::Full(decode_morphology_resource(
             &artifact_path.display().to_string(),
             bytes.as_ref(),
             expected_source_digest,
         )?),
-        ComponentFormat::Compact => ComponentResource::Compact(decode_compact_component_resource(
-            bytes.as_ref(),
+        ComponentFormat::Compact => BenchmarkResource::Compact(decode_component_resource(
+            &artifact_path.display().to_string(),
+            bytes.as_ref().to_vec(),
             expected_source_digest,
         )?),
     };
@@ -187,12 +198,13 @@ pub fn probe_component_resource(
     let (prefix, prefix_elapsed) = measure_workload(&resource, &workload.prefix, false, iterations);
     black_box((exact.checksum, prefix.checksum));
     Ok(ComponentProbeReport {
-        schema_version: 1,
+        schema_version: 2,
         format,
         storage,
         artifact_bytes: bytes.as_ref().len(),
         surface_count: resource.surface_count(),
         analysis_count: resource.analysis_count(),
+        component_count: resource.component_count(),
         initialization_ms,
         exact: LookupMeasurement {
             queries: exact.queries,
@@ -252,42 +264,12 @@ fn build_workload(entries: &[MecabSourceMorphologyEntry]) -> Workload {
     Workload { exact, prefix }
 }
 
-fn ensure_equivalent_metadata(
-    full: &DecodedMorphologyResource<'_>,
-    compact: &CompactComponentResource<'_>,
-) -> Result<()> {
-    let full_stats = full.stats();
-    let compact_stats = compact.stats();
-    ensure!(
-        full_stats.surface_count == compact_stats.surface_count
-            && full_stats.analysis_count == compact_stats.analysis_count
-            && full_stats.pos_counts == compact_stats.pos_counts
-            && full_stats.right_contexts == compact_stats.right_contexts
-            && full_stats.left_contexts == compact_stats.left_contexts,
-        "compact component metadata differs from full resource"
-    );
-    ensure!(
-        full.char_def() == compact.char_def() && full.unk_def() == compact.unk_def(),
-        "compact unknown definitions differ from full resource"
-    );
-    for right_id in 0..full_stats.right_contexts {
-        for left_id in 0..full_stats.left_contexts {
-            ensure!(
-                full.connection_cost(right_id, left_id)
-                    == compact.connection_cost(right_id, left_id),
-                "compact connection matrix differs from full resource"
-            );
-        }
-    }
-    Ok(())
-}
-
-enum ComponentResource<'a> {
+enum BenchmarkResource<'a> {
     Full(DecodedMorphologyResource<'a>),
-    Compact(CompactComponentResource<'a>),
+    Compact(ProductComponentResource),
 }
 
-impl ComponentResource<'_> {
+impl BenchmarkResource<'_> {
     fn surface_count(&self) -> u32 {
         match self {
             Self::Full(resource) => resource.stats().surface_count,
@@ -302,27 +284,32 @@ impl ComponentResource<'_> {
         }
     }
 
+    fn component_count(&self) -> Option<u32> {
+        match self {
+            Self::Full(_) => None,
+            Self::Compact(resource) => Some(resource.stats().component_count),
+        }
+    }
+
     fn lookup(&self, input: &[u8], exact: bool) -> LookupTotals {
         let mut totals = LookupTotals::default();
         match self {
             Self::Full(resource) => resource.common_prefixes(input, |length, analyses| {
                 if !exact || length == input.len() {
+                    let surface = std::str::from_utf8(&input[..length])
+                        .expect("benchmark workload surfaces are valid UTF-8");
                     totals.record(
                         length,
-                        analyses.iter().map(|analysis| {
-                            (
-                                analysis.pos,
-                                analysis.left_id,
-                                analysis.right_id,
-                                analysis.word_cost,
-                            )
-                        }),
+                        analyses
+                            .iter()
+                            .map(|analysis| source_signature(surface, analysis))
+                            .collect(),
                     );
                 }
             }),
             Self::Compact(resource) => resource.common_prefixes(input, |length, analyses| {
                 if !exact || length == input.len() {
-                    totals.record(length, analyses.iter().map(compact_fields));
+                    totals.record(length, analyses.iter().map(compact_signature).collect());
                 }
             }),
         }
@@ -330,32 +317,64 @@ impl ComponentResource<'_> {
     }
 }
 
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct StructuralSignature {
+    pos: String,
+    components: Vec<(usize, usize, String)>,
+}
+
+fn source_signature(surface: &str, analysis: &MorphologyAnalysis<'_>) -> StructuralSignature {
+    let aligned = align_morphology_expression(surface, analysis.expression);
+    let components = if aligned.kind == MorphologyExpressionAlignmentKind::SpanAligned {
+        aligned
+            .components
+            .into_iter()
+            .filter_map(|component| {
+                let span = component.span?;
+                Some((span.start, span.end, component.pos.to_owned()))
+            })
+            .collect()
+    } else {
+        Vec::new()
+    };
+    StructuralSignature {
+        pos: analysis.pos.to_owned(),
+        components,
+    }
+}
+
+fn compact_signature(analysis: &ComponentAnalysis<'_>) -> StructuralSignature {
+    StructuralSignature {
+        pos: analysis.pos.to_owned(),
+        components: analysis
+            .components
+            .iter()
+            .map(|component| {
+                (
+                    component.span.start,
+                    component.span.end,
+                    component.pos.to_owned(),
+                )
+            })
+            .collect(),
+    }
+}
+
 impl LookupTotals {
-    fn record<'a>(
-        &mut self,
-        length: usize,
-        analyses: impl Iterator<Item = (&'a str, u16, u16, i32)>,
-    ) {
+    fn record(&mut self, length: usize, mut analyses: Vec<StructuralSignature>) {
+        analyses.sort_unstable();
+        analyses.dedup();
         self.matches += 1;
         self.checksum = mix(self.checksum, u64::try_from(length).unwrap_or(u64::MAX));
-        for (pos, left_id, right_id, word_cost) in analyses {
+        for analysis in analyses {
             self.analyses += 1;
-            self.checksum = mix_analysis(self.checksum, pos, left_id, right_id, word_cost);
+            self.checksum = mix_signature(self.checksum, &analysis);
         }
     }
 }
 
-fn compact_fields<'a>(analysis: &CompactComponentAnalysis<'a>) -> (&'a str, u16, u16, i32) {
-    (
-        analysis.pos,
-        analysis.left_id,
-        analysis.right_id,
-        analysis.word_cost,
-    )
-}
-
 fn measure_workload(
-    resource: &ComponentResource<'_>,
+    resource: &BenchmarkResource<'_>,
     queries: &[String],
     exact: bool,
     iterations: usize,
@@ -374,13 +393,18 @@ fn measure_workload(
     (totals, started.elapsed())
 }
 
-fn mix_analysis(mut checksum: u64, pos: &str, left_id: u16, right_id: u16, word_cost: i32) -> u64 {
-    for byte in pos.as_bytes() {
+fn mix_signature(mut checksum: u64, analysis: &StructuralSignature) -> u64 {
+    for byte in analysis.pos.as_bytes() {
         checksum = mix(checksum, u64::from(*byte));
     }
-    checksum = mix(checksum, u64::from(left_id));
-    checksum = mix(checksum, u64::from(right_id));
-    mix(checksum, u64::from(word_cost as u32))
+    for (start, end, pos) in &analysis.components {
+        checksum = mix(checksum, u64::try_from(*start).unwrap_or(u64::MAX));
+        checksum = mix(checksum, u64::try_from(*end).unwrap_or(u64::MAX));
+        for byte in pos.as_bytes() {
+            checksum = mix(checksum, u64::from(*byte));
+        }
+    }
+    checksum
 }
 
 fn mix(checksum: u64, value: u64) -> u64 {

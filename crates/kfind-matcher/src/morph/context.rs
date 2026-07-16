@@ -1,32 +1,36 @@
 use std::ops::Range;
 
-use kfind_data::{ComponentResource, DataFinePos};
-use kfind_morph::{FinePos, LocalComponentEvaluator};
+use kfind_morph::{
+    BoundedTokenContext, CandidateSpans, ConstraintDecision, ConstraintResolver,
+    PreparedStructuralContext, QueryMorphPattern,
+};
+use kfind_query::VerifiedSpan;
 use unicode_normalization::UnicodeNormalization;
 
 use crate::{AnalysisWindow, DEFAULT_ANALYSIS_WINDOW_LIMITS, is_token_character};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-enum LexicalContextDecision {
-    CopularNominal {
-        nominal: Range<usize>,
-        copula: Range<usize>,
-    },
-    RepeatedAdverb,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(super) struct LexicalContextAnalysis {
+pub(super) struct StructuralContextAnalysis {
     current: AnalysisWindow,
-    decision: LexicalContextDecision,
+    previous: Option<String>,
+    next: Option<String>,
 }
 
-impl LexicalContextAnalysis {
-    pub(super) fn extract(
-        evaluator: &LocalComponentEvaluator,
-        haystack: &[u8],
-        candidate: Range<usize>,
-    ) -> Option<Self> {
+#[derive(Debug)]
+pub(super) struct PreparedStructuralContextAnalysis {
+    current: AnalysisWindow,
+    prepared: PreparedStructuralContext,
+}
+
+pub(super) struct StructuralRequest<'a> {
+    pub(super) candidate: &'a VerifiedSpan,
+    pub(super) anchor: Range<usize>,
+    pub(super) consumed: Range<usize>,
+    pub(super) patterns: &'a [QueryMorphPattern],
+}
+
+impl StructuralContextAnalysis {
+    pub(super) fn extract(haystack: &[u8], candidate: Range<usize>) -> Option<Self> {
         let current =
             AnalysisWindow::extract(haystack, candidate, DEFAULT_ANALYSIS_WINDOW_LIMITS).ok()?;
         let current_span = current.raw_span();
@@ -55,154 +59,49 @@ impl LexicalContextAnalysis {
         if context_text.nfc().count() > DEFAULT_ANALYSIS_WINDOW_LIMITS.max_normalized_scalars {
             return None;
         }
-        let previous = previous_span.and_then(|span| normalized_token(haystack, span));
-        let next = next_span.and_then(|span| normalized_token(haystack, span));
-        let resource = evaluator.resource();
-        let copular = copular_nominal_decision(
-            resource,
-            previous.as_deref(),
-            current.normalized(),
-            next.as_deref(),
-        );
-        let repeated = repeated_adverb_decision(
-            resource,
-            previous.as_deref(),
-            current.normalized(),
-            next.as_deref(),
-        );
-        let decision = match (copular, repeated) {
-            (Some(decision), false) => decision,
-            (None, true) => LexicalContextDecision::RepeatedAdverb,
-            _ => return None,
+        Some(Self {
+            current,
+            previous: previous_span.and_then(|span| normalized_token(haystack, span)),
+            next: next_span.and_then(|span| normalized_token(haystack, span)),
+        })
+    }
+
+    pub(super) fn prepare(
+        self,
+        resolver: &ConstraintResolver,
+        node_limit: usize,
+    ) -> Option<PreparedStructuralContextAnalysis> {
+        let context = BoundedTokenContext {
+            previous: self.previous.as_deref(),
+            current: self.current.normalized(),
+            next: self.next.as_deref(),
         };
-        Some(Self { current, decision })
-    }
-
-    pub(super) fn accepts(&self, candidate: Range<usize>, fine_pos: FinePos) -> bool {
-        let Some(normalized) = self.current.normalized_span(candidate) else {
-            return false;
-        };
-        match &self.decision {
-            LexicalContextDecision::CopularNominal { nominal, copula } => {
-                (normalized == *nominal && fine_pos.coarse() == kfind_morph::CoarsePos::Noun)
-                    || (normalized == *copula && fine_pos == FinePos::Copula)
-            }
-            LexicalContextDecision::RepeatedAdverb => {
-                normalized == (0..self.current.normalized().len())
-                    && fine_pos == FinePos::GeneralAdverb
-            }
-        }
+        let prepared = resolver.prepare_context(context, node_limit).ok()?;
+        Some(PreparedStructuralContextAnalysis {
+            current: self.current,
+            prepared,
+        })
     }
 }
 
-fn copular_nominal_decision(
-    resource: &ComponentResource,
-    previous: Option<&str>,
-    current: &str,
-    next: Option<&str>,
-) -> Option<LexicalContextDecision> {
-    if !previous.is_some_and(|token| complete_pos_path(resource, token, &["VCN", "EC"]))
-        || !next.is_some_and(|token| starts_with_pos(resource, token, is_dependent_noun))
-    {
-        return None;
+impl PreparedStructuralContextAnalysis {
+    pub(super) fn resolve(&self, request: StructuralRequest<'_>) -> Option<ConstraintDecision> {
+        let core = self
+            .current
+            .normalized_span(request.candidate.core.clone())?;
+        let anchor = self.current.normalized_span(request.anchor)?;
+        let consumed = self.current.normalized_span(request.consumed)?;
+        let token = 0..self.current.normalized().len();
+        Some(self.prepared.resolve_candidate(
+            CandidateSpans {
+                core,
+                anchor,
+                consumed,
+                token,
+            },
+            request.patterns,
+        ))
     }
-
-    let mut splits = current
-        .char_indices()
-        .map(|(offset, _)| offset)
-        .skip(1)
-        .filter(|&offset| {
-            exact_single_pos(resource, &current[..offset], DataFinePos::is_nominal)
-                && exact_pos_sequence(resource, &current[offset..], &["VCP", "ETM"])
-        });
-    let split = splits.next()?;
-    if splits.next().is_some() {
-        return None;
-    }
-    Some(LexicalContextDecision::CopularNominal {
-        nominal: 0..split,
-        copula: split..current.len(),
-    })
-}
-
-fn repeated_adverb_decision(
-    resource: &ComponentResource,
-    previous: Option<&str>,
-    current: &str,
-    next: Option<&str>,
-) -> bool {
-    (previous == Some(current) || next == Some(current))
-        && exact_single_pos(resource, current, |pos| pos == DataFinePos::Mag)
-}
-
-fn exact_single_pos(
-    resource: &ComponentResource,
-    token: &str,
-    accepts: impl Fn(DataFinePos) -> bool,
-) -> bool {
-    exact_analysis(resource, token, |pos| {
-        DataFinePos::parse(pos).is_some_and(&accepts)
-    })
-}
-
-fn exact_pos_sequence(resource: &ComponentResource, token: &str, expected: &[&str]) -> bool {
-    exact_analysis(resource, token, |pos| {
-        pos.split('+').eq(expected.iter().copied())
-    })
-}
-
-fn complete_pos_path(resource: &ComponentResource, token: &str, expected: &[&str]) -> bool {
-    complete_pos_path_from(resource, token.as_bytes(), expected)
-}
-
-fn complete_pos_path_from(resource: &ComponentResource, input: &[u8], expected: &[&str]) -> bool {
-    if expected.is_empty() {
-        return input.is_empty();
-    }
-    let mut candidates = Vec::new();
-    resource.common_prefixes(input, |length, analyses| {
-        for analysis in analyses {
-            let actual = analysis.pos.split('+').collect::<Vec<_>>();
-            if expected.starts_with(&actual) {
-                candidates.push((length, actual.len()));
-            }
-        }
-    });
-    candidates.into_iter().any(|(length, consumed)| {
-        length > 0 && complete_pos_path_from(resource, &input[length..], &expected[consumed..])
-    })
-}
-
-fn starts_with_pos(
-    resource: &ComponentResource,
-    token: &str,
-    accepts: impl Fn(&str) -> bool,
-) -> bool {
-    let mut matched = false;
-    resource.common_prefixes(token.as_bytes(), |_, analyses| {
-        matched |= analyses.iter().any(|analysis| accepts(analysis.pos));
-    });
-    matched
-}
-
-fn exact_analysis(
-    resource: &ComponentResource,
-    token: &str,
-    accepts: impl Fn(&str) -> bool,
-) -> bool {
-    let mut matched = false;
-    resource.common_prefixes(token.as_bytes(), |length, analyses| {
-        if length == token.len() {
-            matched |= analyses.iter().any(|analysis| accepts(analysis.pos));
-        }
-    });
-    matched
-}
-
-fn is_dependent_noun(pos: &str) -> bool {
-    pos.split('+')
-        .next()
-        .is_some_and(|first| matches!(first, "NNB" | "NNBC"))
 }
 
 #[derive(Clone, Copy)]

@@ -7,9 +7,9 @@ from typing import Any
 KFIND_PROFILES = ("kfind-embedded", "kfind-full-pos")
 SHADOW_COUNTERS = (
     "raw_anchor_hits",
-    "verified_branch_hits",
-    "exact_component_candidate_hits",
-    "unique_component_windows",
+    "verified_program_hits",
+    "structural_candidate_hits",
+    "unique_structural_windows",
 )
 
 
@@ -21,42 +21,34 @@ def shadow_verification_summary(
         name: sum(int(counters[name]) for counters in by_case.values())
         for name in SHADOW_COUNTERS
     }
-    projection_comparisons = sum(
-        int(counters.get("component_projection_comparisons", 0))
-        for counters in by_case.values()
-    )
-    projection_mismatches = sum(
-        int(counters.get("component_projection_mismatches", 0))
-        for counters in by_case.values()
-    )
-    component_statuses: dict[str, int] = defaultdict(int)
-    component_decisions: dict[str, int] = defaultdict(int)
-    component_cases_by_decision: dict[str, int] = defaultdict(int)
+    lattice_statuses: dict[str, int] = defaultdict(int)
+    lattice_decisions: dict[str, int] = defaultdict(int)
+    lattice_cases_by_decision: dict[str, int] = defaultdict(int)
     case_metadata = {str(case["id"]): case for case in cases or []}
-    component_outcomes_by_class: dict[str, dict[str, int]] = defaultdict(
+    lattice_outcomes_by_class: dict[str, dict[str, int]] = defaultdict(
         lambda: defaultdict(int)
     )
     for case_id, counters in by_case.items():
         case = case_metadata.get(case_id)
-        for evidence in counters.get("component", []):
+        for evidence in counters.get("diagnostic_lattice", []):
             status = str(evidence["status"])
             decision = evidence.get("decision")
             outcome = str(decision) if decision is not None else status
-            component_statuses[status] += 1
+            lattice_statuses[status] += 1
             if decision is not None:
-                component_decisions[str(decision)] += 1
+                lattice_decisions[str(decision)] += 1
             if case is not None:
                 class_name = "positive" if bool(case["expected"]) else "negative"
-                component_outcomes_by_class[class_name][outcome] += 1
+                lattice_outcomes_by_class[class_name][outcome] += 1
         case_decisions = {
             str(evidence["decision"])
-            for evidence in counters.get("component", [])
+            for evidence in counters.get("diagnostic_lattice", [])
             if evidence.get("decision") is not None
         }
         for decision in case_decisions:
-            component_cases_by_decision[decision] += 1
+            lattice_cases_by_decision[decision] += 1
 
-    path_classification = classify_component_paths(by_case, case_metadata)
+    path_classification = classify_lattice_paths(by_case, case_metadata)
     def sorted_outcomes(
         grouped: dict[str, dict[str, int]],
     ) -> dict[str, dict[str, int]]:
@@ -67,28 +59,24 @@ def shadow_verification_summary(
 
     return {
         "totals": totals,
-        "cases_with_component_candidates": sum(
-            counters["exact_component_candidate_hits"] > 0
+        "cases_with_structural_candidates": sum(
+            counters["structural_candidate_hits"] > 0
             for counters in by_case.values()
         ),
-        "component_statuses": dict(sorted(component_statuses.items())),
-        "component_decisions": dict(sorted(component_decisions.items())),
-        "component_cases_by_decision": dict(
-            sorted(component_cases_by_decision.items())
+        "lattice_statuses": dict(sorted(lattice_statuses.items())),
+        "lattice_decisions": dict(sorted(lattice_decisions.items())),
+        "lattice_cases_by_decision": dict(
+            sorted(lattice_cases_by_decision.items())
         ),
-        "component_outcomes_by_class": sorted_outcomes(
-            component_outcomes_by_class
+        "lattice_outcomes_by_class": sorted_outcomes(
+            lattice_outcomes_by_class
         ),
-        "component_path_classification": path_classification,
-        "component_projection_equivalence": {
-            "comparisons": projection_comparisons,
-            "mismatches": projection_mismatches,
-        },
+        "lattice_path_classification": path_classification,
         "by_case": by_case,
     }
 
 
-def classify_component_paths(
+def classify_lattice_paths(
     by_case: dict[str, dict[str, object]],
     case_metadata: dict[str, dict[str, object]],
 ) -> dict[str, object]:
@@ -105,7 +93,7 @@ def classify_component_paths(
             "positive" if case is not None and bool(case["expected"]) else "negative"
         )
         decisions: dict[str, object] = {}
-        evidence = counters.get("component", [])
+        evidence = counters.get("diagnostic_lattice", [])
         if not isinstance(evidence, list):
             continue
         for decision in ("accept", "reject"):
@@ -301,11 +289,11 @@ def append_shadow_verification(
     lines.extend(
         [
             "",
-            "## Component verification",
+            "## Structural verification",
             "",
-            "Counters are collected outside the timed evaluation and do not change matches.",
+            "Product structural counters and the separate full-lattice diagnostic are collected outside timed evaluation.",
             "",
-            "| profile | raw anchor hits | verified branch hits | component candidates | component windows | cases with component candidates |",
+            "| profile | raw anchor hits | verified program hits | structural candidates | structural windows | cases with structural candidates |",
             "| --- | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
@@ -314,42 +302,40 @@ def append_shadow_verification(
         totals = summary["totals"]
         lines.append(
             f"| {profile} | {totals['raw_anchor_hits']} | "
-            f"{totals['verified_branch_hits']} | "
-            f"{totals['exact_component_candidate_hits']} | "
-            f"{totals['unique_component_windows']} | "
-            f"{summary['cases_with_component_candidates']} |"
+            f"{totals['verified_program_hits']} | "
+            f"{totals['structural_candidate_hits']} | "
+            f"{totals['unique_structural_windows']} | "
+            f"{summary['cases_with_structural_candidates']} |"
         )
-        component_statuses = ", ".join(
+        lattice_statuses = ", ".join(
             f"{name}={count}"
-            for name, count in summary["component_statuses"].items()
+            for name, count in summary["lattice_statuses"].items()
         ) or "none"
-        component_decisions = ", ".join(
+        lattice_decisions = ", ".join(
             f"{name}={count}"
-            for name, count in summary["component_decisions"].items()
+            for name, count in summary["lattice_decisions"].items()
         ) or "none"
         lines.append(
-            f"- {profile} component: statuses {component_statuses}; "
-            f"decisions {component_decisions}; projection comparisons "
-            f"{summary['component_projection_equivalence']['comparisons']}; "
-            f"mismatches {summary['component_projection_equivalence']['mismatches']}"
+            f"- {profile} diagnostic lattice: statuses {lattice_statuses}; "
+            f"decisions {lattice_decisions}"
         )
 
 
-def append_component_shadow_table(
+def append_structural_shadow_table(
     lines: list[str], shadow_verification: dict[str, object]
 ) -> None:
     lines.extend(
         [
             "",
-            "| profile | component candidate cases | accept cases | reject cases |",
+            "| profile | structural candidate cases | lattice accept cases | lattice reject cases |",
             "| --- | ---: | ---: | ---: |",
         ]
     )
     for profile in KFIND_PROFILES:
         summary = shadow_verification[profile]
-        decisions = summary["component_cases_by_decision"]
+        decisions = summary["lattice_cases_by_decision"]
         lines.append(
-            f"| {profile} | {summary['cases_with_component_candidates']} | "
+            f"| {profile} | {summary['cases_with_structural_candidates']} | "
             f"{decisions.get('accept', 0)} | {decisions.get('reject', 0)} |"
         )
     lines.extend(
@@ -361,7 +347,7 @@ def append_component_shadow_table(
     )
     for profile in KFIND_PROFILES:
         grouped = shadow_verification[profile].get(
-            "component_path_classification", {}
+            "lattice_path_classification", {}
         ).get("path_types_by_class", {})
         for class_name, decisions in grouped.items():
             for decision, path_types in decisions.items():

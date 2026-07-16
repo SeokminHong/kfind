@@ -242,6 +242,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.retrospective-connective"
+category = "connective"
+initial = "other"
+forms = ["더니"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.purpose-dorok"
+category = "connective"
+initial = "other"
+forms = ["도록"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.quotative-go"
 category = "connective"
 initial = "other"
@@ -426,6 +446,46 @@ id = "ending.intentive-ryeogo"
 category = "connective"
 initial = "eu"
 forms = ["려고", "으려고"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.intentive-adnominal"
+category = "adnominal"
+initial = "eu"
+forms = ["려는", "으려는"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.propositive-ja"
+category = "final"
+initial = "consonant"
+forms = ["자"]
+required = ["action-verb"]
+forbidden = []
+next = ["ending.quotative-go"]
+terminal = true
+
+[[ending]]
+id = "ending.polite-imperative"
+category = "final"
+initial = "eu"
+forms = ["세요", "으세요"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.propositive"
+category = "final"
+initial = "attach-bieup"
+forms = ["ㅂ시다", "읍시다"]
 required = ["action-verb"]
 forbidden = []
 next = []

@@ -1,15 +1,14 @@
-use std::io::Cursor;
 use std::sync::{Arc, OnceLock};
 
 use kfind_data::{
     COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, MecabSourceMorphologyEntry,
-    decode_component_resource, encode_component_resource, parse_mecab_connection_matrix,
+    decode_component_resource, encode_component_resource,
 };
 use kfind_matcher::MorphMatcher;
 use kfind_morph::CoarsePos;
 use kfind_query::{
-    BoundaryPolicy, CompileOptions, ContextRequirement, ExpandMode, LexiconQueryAnalyzer, Lexicons,
-    NormalizationMode, compile_query,
+    BoundaryPolicy, CompileOptions, ExpandMode, LexiconQueryAnalyzer, Lexicons, NormalizationMode,
+    compile_query,
 };
 use unicode_normalization::UnicodeNormalization;
 
@@ -392,9 +391,9 @@ fn smart_vcp_corpus_fixtures_apply_component_evidence() {
     let matcher = compile("이다", CompileOptions::default());
     assert!(
         matcher.plan().atoms[0]
-            .branches
+            .programs
             .iter()
-            .all(|branch| branch.context_requirement == ContextRequirement::PredicateLexical)
+            .all(|branch| branch.decision.is_structural())
     );
 
     for fixture in VCP_BOUNDARY_FIXTURES {
@@ -450,10 +449,11 @@ fn canonical_vcp_corpus_fixtures_preserve_union_without_an_exact_resource_surfac
 
     for fixture in VCP_BOUNDARY_FIXTURES {
         let decomposed = fixture.text.nfd().collect::<String>();
-        assert!(
+        assert_eq!(
             matcher
                 .find_at_with_meta(decomposed.as_bytes(), 0)
                 .is_some(),
+            fixture.gold_vcp,
             "canonical union result differed for {} ({})",
             fixture.case_name,
             fixture.text
@@ -461,9 +461,9 @@ fn canonical_vcp_corpus_fixtures_preserve_union_without_an_exact_resource_surfac
     }
     assert!(
         matcher.plan().atoms[0]
-            .branches
+            .programs
             .iter()
-            .all(|branch| branch.context_requirement == ContextRequirement::PredicateLexical)
+            .all(|branch| branch.decision.is_structural())
     );
 }
 
@@ -585,6 +585,8 @@ fn component_resource() -> Arc<ComponentResource> {
     Arc::clone(RESOURCE.get_or_init(|| {
         let entries = [
             component_entry("매일", "MAG"),
+            component_entry("매", "NNG"),
+            component_entry("일", "VCP"),
             component_entry("걷", "VV"),
             component_entry("기", "ETN"),
             component_entry("이", "JKS"),
@@ -592,19 +594,8 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("가", "JKS"),
             component_entry("를", "JKO"),
         ];
-        let matrix = parse_mecab_connection_matrix(
-            "matrix.def",
-            Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
-        )
-        .expect("test matrix must be valid");
-        let bytes = encode_component_resource(
-            COMPONENT_RESOURCE_SOURCE_DIGEST,
-            &entries,
-            &matrix,
-            b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
-            b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
-        )
-        .expect("test component resource must encode");
+        let bytes = encode_component_resource(COMPONENT_RESOURCE_SOURCE_DIGEST, &entries)
+            .expect("test component resource must encode");
         Arc::new(
             decode_component_resource("test", bytes, &COMPONENT_RESOURCE_SOURCE_DIGEST)
                 .expect("test component resource must decode"),

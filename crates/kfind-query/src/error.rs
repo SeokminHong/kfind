@@ -133,10 +133,10 @@ pub enum CompileErrorKind {
     Analyze(AnalyzeError),
     Generate(GenerateError),
     TooManyAnalyses { actual: usize, limit: usize },
-    TooManyBranches { actual: usize, limit: usize },
+    TooManyPrograms { actual: usize, limit: usize },
     MatcherMemoryExceeded { estimated: usize, limit: usize },
     ContinuationDepthExceeded { actual: usize, limit: usize },
-    NoSearchableBranches,
+    NoSearchablePrograms,
     InvalidCoreMapping,
 }
 
@@ -149,8 +149,8 @@ impl fmt::Display for CompileErrorKind {
             Self::TooManyAnalyses { actual, limit } => {
                 write!(formatter, "analysis count {actual} exceeds limit {limit}")
             }
-            Self::TooManyBranches { actual, limit } => {
-                write!(formatter, "branch count {actual} exceeds limit {limit}")
+            Self::TooManyPrograms { actual, limit } => {
+                write!(formatter, "program count {actual} exceeds limit {limit}")
             }
             Self::MatcherMemoryExceeded { estimated, limit } => write!(
                 formatter,
@@ -160,7 +160,7 @@ impl fmt::Display for CompileErrorKind {
                 formatter,
                 "continuation depth {actual} exceeds limit {limit}"
             ),
-            Self::NoSearchableBranches => formatter.write_str("query has no searchable branches"),
+            Self::NoSearchablePrograms => formatter.write_str("query has no searchable programs"),
             Self::InvalidCoreMapping => {
                 formatter.write_str("morphology core mapping is not on a UTF-8 boundary")
             }

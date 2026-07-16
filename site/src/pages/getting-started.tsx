@@ -32,7 +32,7 @@ cargo install --locked --path crates/kfind-cli`}</code>
         <p>
           CLI는 검색 도중에 모델이나 resource를 내려받지 않습니다. Homebrew
           formula에는 자동 품사 분석용 full POS lexicon, enriched 용언
-          metadata와 필요한 후보만 국소 분석하는 component resource가
+          metadata와 필요한 후보의 구조만 국소 판정하는 component resource가
           포함됩니다. source에서 직접 설치한 경우에는 resource를 별도로 지정하지
           않아도 embedded lexicon으로 검색할 수 있지만, 추가 resource가 필요한
           query는 해당 resource가 있는 data directory를 요구합니다.
@@ -53,9 +53,10 @@ printf '길을 걸었다.\n' | kfind 걷다`}</code>
         <p>
           첫 번째 명령에서 kfind는 <code>걷다</code>를 동사와 ㄷ 불규칙 활용으로
           분석합니다. 그 분석에서 <code>걷고</code>, <code>걷는</code>,{' '}
-          <code>걸어</code>와 같은 anchor 및 verifier를 구성하고, 지정된
-          경로에서 검증을 통과한 span만 출력합니다. 기본 출력은 일반 검색
-          도구처럼 파일명, 줄 번호와 일치한 표면형을 보여 줍니다.
+          <code>걸어</code>와 같은 anchor, suffix consumption과 판정 제약을 가진
+          candidate program을 구성하고, 지정된 경로에서 판정을 통과한 span만
+          출력합니다. 기본 출력은 일반 검색 도구처럼 파일명, 줄 번호와 일치한
+          표면형을 보여 줍니다.
         </p>
       </DocumentSection>
 

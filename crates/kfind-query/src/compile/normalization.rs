@@ -3,83 +3,111 @@ use std::collections::HashMap;
 use unicode_normalization::UnicodeNormalization;
 
 use crate::{
-    BoundaryPolicy, BoundaryProof, BranchVerifier, CompileError, CompileErrorKind,
-    ContextRequirement, CoreMapping, NormalizationMode, Origin, QueryAtom, SurfaceBranch,
+    Analysis, BoundaryPolicy, BoundaryProof, CandidateConsumption, CandidateDecision,
+    CandidateProgram, CompileError, CompileErrorKind, CoreMapping, NormalizationMode, Origin,
+    QueryAtom,
 };
+use kfind_morph::ComponentCapability;
 
 #[derive(Clone)]
 pub(super) struct DraftBranch {
     pub anchor: String,
-    pub verifier: BranchVerifier,
+    pub consumption: CandidateConsumption,
     pub core_mapping: CoreMapping,
     pub origin: Origin,
     pub smart_left: bool,
-    pub context_requirement: ContextRequirement,
+    pub decision: DraftDecision,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub(super) enum DraftDecision {
+    Boundary,
+    Structural(ComponentCapability),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct BranchKey {
+struct ProgramKey {
     anchor: Box<[u8]>,
-    verifier: BranchVerifier,
+    consumption: CandidateConsumption,
     core_mapping: CoreMapping,
     boundary: BoundaryProof,
-    context_requirement: ContextRequirement,
+    decision: DraftDecision,
+}
+
+struct MergedProgram {
+    key: ProgramKey,
+    origins: Vec<Origin>,
 }
 
 pub(super) fn normalize_and_merge(
     drafts: Vec<DraftBranch>,
+    analyses: &[Analysis],
     mode: NormalizationMode,
     boundary: BoundaryPolicy,
     one_scalar_atom: bool,
     atom_index: usize,
-) -> Result<Vec<SurfaceBranch>, CompileError> {
-    let mut indices = HashMap::<BranchKey, usize>::new();
-    let mut branches = Vec::<SurfaceBranch>::new();
+) -> Result<Vec<CandidateProgram>, CompileError> {
+    let mut indices = HashMap::<ProgramKey, usize>::new();
+    let mut merged = Vec::<MergedProgram>::new();
     for draft in drafts {
         for (anchor, core_mapping) in normalized_forms(&draft, mode, atom_index)? {
-            let allow_attached = matches!(draft.verifier, BranchVerifier::DirectParticle { .. });
+            let allow_attached = matches!(
+                draft.consumption,
+                CandidateConsumption::DirectParticleHost { .. }
+            );
             let boundary_proof =
                 boundary_proof(boundary, draft.smart_left, one_scalar_atom, allow_attached);
-            let context_requirement = context_requirement(boundary, draft.context_requirement);
-            let key = BranchKey {
+            let decision = candidate_decision(boundary, draft.decision);
+            let key = ProgramKey {
                 anchor: anchor.as_bytes().into(),
-                verifier: draft.verifier.clone(),
+                consumption: draft.consumption.clone(),
                 core_mapping,
                 boundary: boundary_proof,
-                context_requirement,
+                decision,
             };
             if let Some(index) = indices.get(&key).copied() {
-                let origins = &mut branches[index].origins;
+                let origins = &mut merged[index].origins;
                 if !origins.contains(&draft.origin) {
                     origins.push(draft.origin.clone());
                     origins.sort();
                 }
             } else {
-                let index = branches.len();
+                let index = merged.len();
                 indices.insert(key.clone(), index);
-                branches.push(SurfaceBranch {
-                    anchor: key.anchor,
-                    verifier: key.verifier,
-                    core_mapping: key.core_mapping,
+                merged.push(MergedProgram {
+                    key,
                     origins: vec![draft.origin.clone()],
-                    boundary: key.boundary,
-                    context_requirement: key.context_requirement,
                 });
             }
         }
     }
-    Ok(branches)
+    Ok(merged
+        .into_iter()
+        .map(|merged| materialize_program(merged, analyses))
+        .collect())
 }
 
-fn context_requirement(
-    policy: BoundaryPolicy,
-    requested: ContextRequirement,
-) -> ContextRequirement {
+fn candidate_decision(policy: BoundaryPolicy, requested: DraftDecision) -> DraftDecision {
     if policy == BoundaryPolicy::Smart {
         requested
     } else {
-        ContextRequirement::None
+        DraftDecision::Boundary
     }
+}
+
+fn materialize_program(merged: MergedProgram, analyses: &[Analysis]) -> CandidateProgram {
+    let MergedProgram { key, origins } = merged;
+    let mut program = CandidateProgram {
+        anchor: key.anchor,
+        core_mapping: key.core_mapping,
+        consumption: key.consumption,
+        origins,
+        decision: CandidateDecision::Boundary(key.boundary),
+    };
+    if let DraftDecision::Structural(component_capability) = key.decision {
+        program.apply_structural_constraint(analyses, component_capability);
+    }
+    program
 }
 
 fn boundary_proof(

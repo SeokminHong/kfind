@@ -1,8 +1,8 @@
 use std::io::Cursor;
 
 use kfind_data::{
-    MecabSourceMorphologyEntry, decode_component_resource, decode_morphology_resource,
-    encode_component_resource, encode_morphology_resource, parse_mecab_connection_matrix,
+    MecabSourceMorphologyEntry, decode_morphology_resource, encode_morphology_resource,
+    parse_mecab_connection_matrix,
 };
 
 use super::*;
@@ -64,23 +64,6 @@ fn dependent_noun_query_accepts_the_nnbc_source_tag() {
 
     assert_eq!(dependent, LocalLatticeDecision::Accept);
     assert_eq!(common, LocalLatticeDecision::Reject);
-}
-
-#[test]
-fn compact_component_resource_supports_exact_path_evaluation() {
-    let bytes = compact_fixture_resource();
-    let resource = decode_component_resource("fixture", bytes, &[9; 32]).unwrap();
-    let report = evaluate_local_component_paths(
-        &resource,
-        "사용자권한",
-        "사용자".len().."사용자권한".len(),
-        DataFinePos::Nng,
-        DEFAULT_LATTICE_NODE_LIMIT,
-    )
-    .unwrap();
-
-    assert_eq!(report.decision, LocalLatticeDecision::Accept);
-    assert!(report.paths.iter().any(|path| path.includes_query));
 }
 
 #[test]
@@ -152,67 +135,9 @@ fn decision_only_evaluation_matches_diagnostic_costs() {
     }
 }
 
-#[test]
-fn bounded_cost_penalty_accepts_only_supported_include_paths() {
-    let cases = [
-        (
-            LocalLatticeCosts {
-                include: Some(1_500),
-                exclude: Some(0),
-            },
-            true,
-        ),
-        (
-            LocalLatticeCosts {
-                include: Some(1_501),
-                exclude: Some(0),
-            },
-            false,
-        ),
-        (
-            LocalLatticeCosts {
-                include: Some(0),
-                exclude: Some(0),
-            },
-            true,
-        ),
-        (
-            LocalLatticeCosts {
-                include: Some(0),
-                exclude: None,
-            },
-            true,
-        ),
-        (
-            LocalLatticeCosts {
-                include: None,
-                exclude: Some(0),
-            },
-            false,
-        ),
-    ];
-
-    for (costs, expected) in cases {
-        assert_eq!(costs.supports_query(1_500).unwrap(), expected);
-    }
-    assert_eq!(
-        LocalLatticeCosts {
-            include: None,
-            exclude: None,
-        }
-        .supports_query(1_500),
-        Err(LocalLatticeError::NoCompletePath)
-    );
-}
-
 fn fixture_resource() -> Vec<u8> {
     let (entries, matrix, char_def, unk_def) = fixture_parts();
     encode_morphology_resource([9; 32], &entries, &matrix, char_def, unk_def).unwrap()
-}
-
-fn compact_fixture_resource() -> Vec<u8> {
-    let (entries, matrix, char_def, unk_def) = fixture_parts();
-    encode_component_resource([9; 32], &entries, &matrix, char_def, unk_def).unwrap()
 }
 
 fn fixture_parts() -> (

@@ -4,12 +4,12 @@ use std::error::Error;
 use std::fmt;
 
 use crate::hangul::{
-    JONG_SSANGSIOT, JUNG_YEO, add_final, decompose_syllable, drop_last_final, has_rieul_final,
-    replace_last_vowel,
+    JONG_NONE, JONG_RIEUL, JONG_SSANGSIOT, JUNG_YEO, add_final, decompose_syllable,
+    drop_last_final, has_rieul_final, replace_last_vowel,
 };
 use crate::{
-    ContinuationState, LexicalAlternation, PredicateEntry, PredicateFlags, PredicatePos, RuleId,
-    SurfaceBranchSpec,
+    ContinuationState, LexicalAlternation, PredicateEntry, PredicateFlags, PredicatePos,
+    PredicateStemClass, RuleId, SurfaceBranchSpec,
 };
 
 mod alternation;
@@ -18,9 +18,10 @@ mod continuation;
 pub use continuation::{PredicateContinuationMatch, verify_predicate_continuation};
 
 use alternation::{
-    aeo_surfaces, conditional_surface, coordinate_surface, eu_anchor, future_adnominal,
-    honorific_anchor, intentive_surface, nominalizer_surface, past_adnominal, polite_declarative,
-    present_adnominal, present_declarative,
+    aeo_surfaces, conditional_surface, coordinate_surface, ending_base, eu_anchor,
+    future_adnominal, honorific_anchor, intentive_adnominal_surface, intentive_surface,
+    nominalizer_surface, past_adnominal, polite_declarative, present_adnominal,
+    present_declarative, propositive_surface,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -156,6 +157,62 @@ pub fn generate_predicate_branches(
     Ok(branches)
 }
 
+pub fn generate_predicate_fallback_stems(
+    entry: &PredicateEntry,
+) -> Result<Vec<(SurfaceBranchSpec, PredicateStemClass)>, GenerateError> {
+    let stem = entry
+        .lemma
+        .strip_suffix('다')
+        .filter(|stem| !stem.is_empty())
+        .ok_or_else(|| GenerateError::InvalidLemma(entry.lemma.clone()))?;
+    let mut stems = Vec::new();
+    push_fallback_stem(&mut stems, entry, stem.to_owned(), stem.len(), Vec::new())?;
+    if let Some(eu) = eu_anchor(entry, stem)? {
+        push_fallback_stem(&mut stems, entry, eu.surface, eu.core_len, eu.rules)?;
+    }
+    if let Some(base) = ending_base(entry, stem)?
+        && base.surface != stem
+    {
+        push_fallback_stem(&mut stems, entry, base.surface, base.core_len, base.rules)?;
+    }
+    stems.sort_by(|left, right| left.0.anchor.cmp(&right.0.anchor));
+    stems.dedup_by(|left, right| {
+        left.0.anchor == right.0.anchor && left.0.rule_path == right.0.rule_path
+    });
+    Ok(stems)
+}
+
+fn push_fallback_stem(
+    output: &mut Vec<(SurfaceBranchSpec, PredicateStemClass)>,
+    entry: &PredicateEntry,
+    anchor: String,
+    core_len: usize,
+    rule_path: Vec<RuleId>,
+) -> Result<(), GenerateError> {
+    let final_syllable = anchor
+        .chars()
+        .next_back()
+        .and_then(decompose_syllable)
+        .ok_or_else(|| GenerateError::InvalidLemma(entry.lemma.clone()))?;
+    let class = match final_syllable.jongseong {
+        JONG_NONE => PredicateStemClass::Vowel,
+        JONG_RIEUL => PredicateStemClass::Rieul,
+        _ => PredicateStemClass::Consonant,
+    };
+    output.push((
+        SurfaceBranchSpec {
+            anchor: anchor.into_boxed_str(),
+            core_len,
+            continuation: ContinuationState::Terminal,
+            rule_path,
+            pos: entry.pos,
+            alternation: entry.alternation,
+        },
+        class,
+    ));
+    Ok(())
+}
+
 fn compile_productive(
     entry: &PredicateEntry,
     stem: &str,
@@ -165,7 +222,10 @@ fn compile_productive(
         ("고", "ending.connective-go"),
         ("지", "ending.connective-ji"),
         ("게", "ending.adverbial-ge"),
+        ("던", "ending.retrospective-adnominal"),
+        ("더니", "ending.retrospective-connective"),
         ("더라도", "ending.concessive-deorado"),
+        ("도록", "ending.purpose-dorok"),
     ] {
         push_branch(
             branches,
@@ -240,6 +300,27 @@ fn compile_productive(
     }
 
     if entry.pos.is_action() {
+        for (suffix, rules) in [
+            ("자", vec![rule("ending.propositive-ja")]),
+            (
+                "자고",
+                vec![rule("ending.propositive-ja"), rule("ending.quotative-go")],
+            ),
+            ("느냐", vec![rule("ending.interrogative-neunya")]),
+            (
+                "곤",
+                vec![rule("ending.connective-go"), rule("particle.topic")],
+            ),
+        ] {
+            push_branch(
+                branches,
+                entry,
+                format!("{stem}{suffix}"),
+                stem.len(),
+                ContinuationState::Terminal,
+                rules,
+            );
+        }
         push_branch(
             branches,
             entry,
@@ -260,6 +341,12 @@ fn compile_productive(
         }
         if let Some(intentive) = intentive_surface(entry, stem)? {
             push_derived(branches, entry, intentive, ContinuationState::Terminal);
+        }
+        if let Some(intentive) = intentive_adnominal_surface(entry, stem)? {
+            push_derived(branches, entry, intentive, ContinuationState::Terminal);
+        }
+        if let Some(propositive) = propositive_surface(entry, stem)? {
+            push_derived(branches, entry, propositive, ContinuationState::Terminal);
         }
         push_derived(
             branches,

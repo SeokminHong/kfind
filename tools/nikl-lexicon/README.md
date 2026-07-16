@@ -26,3 +26,17 @@ Each snapshot is extracted once under
 `${KFIND_NIKL_CACHE:-${XDG_CACHE_HOME:-~/.cache}/kfind/nikl}` and reused while
 its SHA-256 stays unchanged. Set `KFIND_NIKL_CACHE` to move this cache.
 Raw snapshots and dictionary examples are not copied into the repository.
+
+## Ending catalog
+
+`scripts/audit-nikl-endings.sh` reads the same pinned snapshots and regenerates
+`data/rules/nikl-modern-endings.tsv`. Korean Basic Dictionary and Standard
+Korean Language Dictionary ending headwords form the runtime catalog;
+Urimalsaem identifiers remain provenance evidence. The generated file contains
+normalized surfaces, original headwords, grammatical categories, and source
+record identifiers. It does not copy definitions or examples.
+
+The runtime compiler treats the catalog as vocabulary, not as permission to
+attach every ending to every stem. Stem-final conditions, irregular
+alternations, ending order, auxiliary paths, and whole-lemma conflicts remain
+separate structural checks.

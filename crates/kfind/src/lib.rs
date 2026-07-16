@@ -9,9 +9,8 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::sync::Arc;
 
-use kfind_data::{COMPONENT_RESOURCE_SOURCE_DIGEST, decode_component_resource};
+use kfind_data::{COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, decode_component_resource};
 use kfind_matcher::MorphMatcher;
-use kfind_morph::LocalComponentEvaluator;
 use kfind_query::{LexiconQueryAnalyzer, compile_query};
 
 pub use kfind_data::{DataError, DataErrorKind, SourceLocation};
@@ -39,7 +38,7 @@ pub struct ResourceBundle<'a> {
 #[derive(Clone, Debug)]
 pub struct Engine {
     analyzer: LexiconQueryAnalyzer,
-    component_evaluator: Option<Arc<LocalComponentEvaluator>>,
+    component_resource: Option<Arc<ComponentResource>>,
 }
 
 impl Engine {
@@ -96,7 +95,7 @@ impl Engine {
     fn from_lexicons(lexicons: Lexicons) -> Self {
         Self {
             analyzer: LexiconQueryAnalyzer::new(Arc::new(lexicons)),
-            component_evaluator: None,
+            component_resource: None,
         }
     }
 
@@ -107,7 +106,7 @@ impl Engine {
     ) -> Result<Self, DataError> {
         Ok(Self {
             analyzer: LexiconQueryAnalyzer::new(Arc::new(lexicons)),
-            component_evaluator: Some(decode_component(component_resource)?),
+            component_resource: Some(decode_component(component_resource)?),
         })
     }
 
@@ -116,8 +115,8 @@ impl Engine {
         &mut self,
         component_resource: impl Into<Vec<u8>>,
     ) -> Result<(), DataError> {
-        let component_evaluator = decode_component(component_resource)?;
-        self.component_evaluator = Some(component_evaluator);
+        let component_resource = decode_component(component_resource)?;
+        self.component_resource = Some(component_resource);
         Ok(())
     }
 
@@ -136,7 +135,7 @@ impl Engine {
     /// Reports whether this engine includes the optional component resource.
     #[must_use]
     pub fn component_resource_loaded(&self) -> bool {
-        self.component_evaluator.is_some()
+        self.component_resource.is_some()
     }
 
     /// Compiles a query into a matcher that can be reused across inputs.
@@ -147,11 +146,11 @@ impl Engine {
     ) -> Result<Matcher, CompileMatcherError> {
         let plan = Arc::new(compile_query(query, options, &self.analyzer)?);
         let matcher = if plan.requires_component_resource() {
-            let evaluator = self
-                .component_evaluator
+            let resource = self
+                .component_resource
                 .as_ref()
                 .ok_or(CompileMatcherError::ComponentResourceRequired)?;
-            MorphMatcher::with_component_evaluator(plan, Arc::clone(evaluator))
+            MorphMatcher::with_component_resource(plan, Arc::clone(resource))
         } else {
             MorphMatcher::new(plan)
         }?;
@@ -229,25 +228,20 @@ impl From<MorphMatcherBuildError> for CompileMatcherError {
 
 fn decode_component(
     component_resource: impl Into<Vec<u8>>,
-) -> Result<Arc<LocalComponentEvaluator>, DataError> {
+) -> Result<Arc<ComponentResource>, DataError> {
     decode_component_resource(
         "component resource",
         component_resource.into(),
         &COMPONENT_RESOURCE_SOURCE_DIGEST,
     )
     .map(Arc::new)
-    .map(LocalComponentEvaluator::new)
-    .map(Arc::new)
 }
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
-
     use kfind_data::{
         DataFinePos, LexiconData, MecabSourceMorphologyEntry, ModifierRecord, NominalRecord,
         collect_pos_entries, encode_component_resource, encode_pos_lexicon,
-        parse_mecab_connection_matrix,
     };
 
     use super::*;
@@ -381,11 +375,14 @@ mod tests {
     }
 
     #[test]
-    fn ordinary_smart_adverbs_do_not_require_component_initialization() {
+    fn smart_adverbs_require_structural_initialization() {
         let engine = Engine::new().unwrap();
 
         for query in ["adv:빨리", "adv:매우"] {
-            engine.compile(query, &CompileOptions::default()).unwrap();
+            assert!(matches!(
+                engine.compile(query, &CompileOptions::default()),
+                Err(CompileMatcherError::ComponentResourceRequired)
+            ));
         }
     }
 
@@ -421,9 +418,9 @@ mod tests {
     }
 
     #[test]
-    fn smart_context_selects_the_same_maeil_analysis_for_every_query() {
+    fn smart_context_selects_maeil_by_structural_arrangement() {
         let engine = contextual_engine();
-        let copular = "독수리가 아니라 매일 것 같아";
+        let copular = "독수리가 아니라 매일 수도 있어";
         assert_eq!(matched_surfaces(&engine, "n:매", copular), ["매"]);
         for query in ["매일", "n:매일", "adv:매일"] {
             assert!(matched_surfaces(&engine, query, copular).is_empty());
@@ -446,9 +443,8 @@ mod tests {
         let object = "그는 집념으로 매일을 보내고 있었다.";
         assert_eq!(matched_surfaces(&engine, "매일", object), ["매일을"]);
         assert_eq!(matched_surfaces(&engine, "n:매일", object), ["매일을"]);
-        for query in ["n:매", "adv:매일"] {
-            assert!(matched_surfaces(&engine, query, object).is_empty());
-        }
+        assert!(matched_surfaces(&engine, "n:매", object).is_empty());
+        assert!(matched_surfaces(&engine, "adv:매일", object).is_empty());
     }
 
     #[test]
@@ -479,7 +475,7 @@ mod tests {
     }
 
     #[test]
-    fn smart_context_falls_back_on_invalid_utf8_inside_the_bounded_evidence() {
+    fn smart_context_rejects_invalid_utf8_inside_the_bounded_evidence() {
         let engine = contextual_engine();
         let matcher = engine
             .compile("n:매일", &CompileOptions::default())
@@ -488,7 +484,7 @@ mod tests {
         text.push(0xff);
         text.extend_from_slice(" 매일".as_bytes());
 
-        assert_eq!(matcher.find_all(&text).len(), 2);
+        assert!(matcher.find_all(&text).is_empty());
     }
 
     #[test]
@@ -554,11 +550,6 @@ mod tests {
     }
 
     fn component_resource() -> Vec<u8> {
-        let matrix = parse_mecab_connection_matrix(
-            "matrix.def",
-            Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
-        )
-        .unwrap();
         encode_component_resource(
             COMPONENT_RESOURCE_SOURCE_DIGEST,
             &[
@@ -570,16 +561,24 @@ mod tests {
                 component_entry("아니", "VCN"),
                 component_entry("라", "EC"),
                 component_entry("것", "NNB"),
-                component_entry("학생일", "NNG+VCP+ETM"),
+                component_entry("수도", "NNB+JX"),
+                component_entry("을", "JKO"),
+                component_entry("학생", "NNG"),
+                component_expression_entry("학생일", "NNG+VCP+ETM", "학생/NNG/*+이/VCP/*+ᆯ/ETM/*"),
             ],
-            &matrix,
-            b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
-            b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
         )
         .unwrap()
     }
 
     fn component_entry(surface: &str, pos: &str) -> MecabSourceMorphologyEntry {
+        component_expression_entry(surface, pos, "*")
+    }
+
+    fn component_expression_entry(
+        surface: &str,
+        pos: &str,
+        expression: &str,
+    ) -> MecabSourceMorphologyEntry {
         MecabSourceMorphologyEntry {
             surface: surface.to_owned(),
             pos: pos.to_owned(),
@@ -589,7 +588,7 @@ mod tests {
             analysis_type: "*".to_owned(),
             start_pos: "*".to_owned(),
             end_pos: "*".to_owned(),
-            expression: "*".to_owned(),
+            expression: expression.to_owned(),
         }
     }
 }

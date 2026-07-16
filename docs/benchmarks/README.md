@@ -120,12 +120,13 @@ scripts/benchmark-morphology.sh
 pnpm --dir packages/kfind run benchmark:startup
 ```
 
-## Local component lattice
+## Structural constraint
 
-제품용 component 판정과 N-best 진단 보고서를 같은 고정 fixture에서 분리해 측정한다.
+제품용 `ConstraintResolver`의 구조 판정을 고정 문장 배치에서 측정한다. full morphology
+cost-lattice 진단은 이 제품 benchmark에 포함하지 않는다.
 
 ```console
-scripts/benchmark-criterion.sh local_lattice
+scripts/benchmark-criterion.sh structural_constraint
 ```
 
 ## Morphology comparison
@@ -174,7 +175,7 @@ SHA-256을 보존한다. 승인 보고서와 site 차트를 갱신할 때 같은
 
 관련 현재 계약은 다음 문서에 있다.
 
-- [선택적 국소 형태 추론 계약](selective-morphology.md)
+- [구조 기반 국소 형태 판정 계약](selective-morphology.md)
 - [형태소 검색 품질 검증 계약](morphology-quality.md)
 - [명사 smart-boundary 계약](nominal-boundary.md)
 - [copula smart-boundary 계약](copula-boundary.md)

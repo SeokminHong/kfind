@@ -6,14 +6,14 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use grep_matcher::{LineMatchKind, LineTerminator, Match, Matcher, NoCaptures, NoError};
-use kfind_data::{ComponentResource, DataFinePos};
+use kfind_data::ComponentResource;
 use kfind_morph::{
-    DEFAULT_LATTICE_NODE_LIMIT, FinePos, LocalComponentEvaluator, LocalLatticeDecision,
-    ParticleChainModel, ParticleVerifier, RuleId, verify_predicate_continuation,
+    ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, ParticleChainModel, ParticleVerifier,
+    PredicateStemClass, ProductPolicy, RuleId, verify_predicate_continuation,
 };
 use kfind_query::{
-    BranchEnvironment, BranchVerifier, ContextRequirement, CoreMapping, Origin, PhraseMatch,
-    QueryPlan, SurfaceBranch, VerifiedSpan, registered_lexical_context_prefix_len,
+    CandidateConsumption, CandidateDecision, CandidateLeftContext, CandidateProgram, CoreMapping,
+    Origin, PhraseMatch, QueryPlan, VerifiedSpan,
 };
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
@@ -25,30 +25,29 @@ mod context;
 mod phrase;
 
 pub use candidates::LocalAnalysisCandidate;
-use context::LexicalContextAnalysis;
+use context::{PreparedStructuralContextAnalysis, StructuralContextAnalysis, StructuralRequest};
 use phrase::{PhraseMatchLimit, PhraseSelection, select_phrase_matches};
 
-const MAX_VERIFIER_BYTES: usize = 256;
-const EXACT_COMPONENT_MAX_COST_PENALTY: u32 = 1_500;
-
+const MAX_CONSUMPTION_BYTES: usize = 256;
+type StructuralCache = HashMap<(usize, usize), Option<PreparedStructuralContextAnalysis>>;
 /// A query-plan matcher backed by one shared set of unique anchors.
 #[derive(Debug)]
 pub struct MorphMatcher {
     plan: Arc<QueryPlan>,
     anchor_engine: AnchorEngine,
-    anchor_branches: Vec<Box<[BranchRef]>>,
+    anchor_programs: Vec<Box<[ProgramRef]>>,
     max_anchor_bytes: usize,
     is_line_local: bool,
     particle_verifier: ParticleVerifier,
-    component_evaluator: Option<Arc<LocalComponentEvaluator>>,
+    constraint_resolver: Option<ConstraintResolver>,
 }
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct VerificationCounters {
     pub raw_anchor_hits: usize,
-    pub verified_branch_hits: usize,
-    pub exact_component_candidate_hits: usize,
-    pub unique_component_windows: usize,
+    pub verified_program_hits: usize,
+    pub structural_candidate_hits: usize,
+    pub unique_structural_windows: usize,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -72,22 +71,12 @@ impl MorphMatcher {
         plan: Arc<QueryPlan>,
         component_resource: Arc<ComponentResource>,
     ) -> Result<Self, MorphMatcherBuildError> {
-        Self::with_component_evaluator(
-            plan,
-            Arc::new(LocalComponentEvaluator::new(component_resource)),
-        )
-    }
-
-    pub fn with_component_evaluator(
-        plan: Arc<QueryPlan>,
-        component_evaluator: Arc<LocalComponentEvaluator>,
-    ) -> Result<Self, MorphMatcherBuildError> {
-        Self::build(plan, Some(component_evaluator))
+        Self::build(plan, Some(ConstraintResolver::new(component_resource)))
     }
 
     fn build(
         plan: Arc<QueryPlan>,
-        component_evaluator: Option<Arc<LocalComponentEvaluator>>,
+        constraint_resolver: Option<ConstraintResolver>,
     ) -> Result<Self, MorphMatcherBuildError> {
         if plan.atoms.is_empty() {
             return Err(MorphMatcherBuildError::EmptyPlan);
@@ -96,21 +85,21 @@ impl MorphMatcher {
             .atoms
             .iter()
             .enumerate()
-            .find(|(_, atom)| atom.branches.is_empty())
+            .find(|(_, atom)| atom.programs.is_empty())
         {
             return Err(MorphMatcherBuildError::EmptyAtom { atom_index });
         }
-        if plan.requires_component_resource() && component_evaluator.is_none() {
+        if plan.requires_component_resource() && constraint_resolver.is_none() {
             return Err(MorphMatcherBuildError::ComponentResourceRequired);
         }
 
-        let (anchors, anchor_branches) = unique_anchors(&plan);
+        let (anchors, anchor_programs) = unique_anchors(&plan);
         let max_anchor_bytes = anchors.iter().map(|anchor| anchor.len()).max().unwrap_or(0);
         let is_line_local = anchors.iter().all(|anchor| !anchor.contains(&b'\n'));
         let anchor_engine = AnchorEngine::new_with_limits(
             &anchors,
             AnchorBuildLimits {
-                max_anchors: plan.limits.max_branches,
+                max_anchors: plan.limits.max_programs,
                 max_memory_bytes: plan.limits.max_matcher_bytes,
             },
         )?;
@@ -121,11 +110,11 @@ impl MorphMatcher {
         Ok(Self {
             plan,
             anchor_engine,
-            anchor_branches,
+            anchor_programs,
             max_anchor_bytes,
             is_line_local,
             particle_verifier,
-            component_evaluator,
+            constraint_resolver,
         })
     }
 
@@ -222,13 +211,14 @@ impl MorphMatcher {
     #[must_use]
     pub fn verification_counters(&self, haystack: &[u8]) -> VerificationCounters {
         let mut counters = VerificationCounters::default();
-        let mut component_windows = HashSet::new();
+        let mut structural_windows = HashSet::new();
+        let mut structural_cache = StructuralCache::new();
         for hit in self.anchor_engine.hits(haystack, 0) {
             counters.raw_anchor_hits += 1;
-            for branch_ref in &self.anchor_branches[hit.anchor_index] {
+            for branch_ref in &self.anchor_programs[hit.anchor_index] {
                 let branch =
-                    &self.plan.atoms[branch_ref.atom_index].branches[branch_ref.branch_index];
-                let Some(candidate) = self.verify_branch_without_boundary(
+                    &self.plan.atoms[branch_ref.atom_index].programs[branch_ref.program_index];
+                let Some(candidate) = self.execute_program_without_decision(
                     haystack,
                     &hit,
                     branch,
@@ -236,18 +226,19 @@ impl MorphMatcher {
                 ) else {
                     continue;
                 };
-                if !self.accepts_branch(haystack, &candidate, branch_ref.atom_index, branch) {
-                    if branch.context_requirement == ContextRequirement::ExactComponent {
-                        counters.exact_component_candidate_hits += 1;
-                        let window = surrounding_token_span(haystack, candidate.core);
-                        component_windows.insert((window.start, window.end));
+                if !self.accepts_program(haystack, &candidate, branch, &mut structural_cache) {
+                    if matches!(&branch.decision, CandidateDecision::Structural(_)) {
+                        counters.structural_candidate_hits += 1;
+                        let window =
+                            surrounding_token_span(haystack, candidate.verified.core.clone());
+                        structural_windows.insert((window.start, window.end));
                     }
                     continue;
                 }
-                counters.verified_branch_hits += 1;
+                counters.verified_program_hits += 1;
             }
         }
-        counters.unique_component_windows = component_windows.len();
+        counters.unique_structural_windows = structural_windows.len();
         counters
     }
 
@@ -266,23 +257,24 @@ impl MorphMatcher {
         metadata: MatchMetadata,
     ) -> Option<VerifiedSpan> {
         let mut best = None;
+        let mut structural_cache = StructuralCache::new();
         for hit in self.anchor_engine.hits(haystack, at) {
             if best.as_ref().is_some_and(|matched: &VerifiedSpan| {
                 hit.span.end > matched.token.start.saturating_add(self.max_anchor_bytes)
             }) {
                 break;
             }
-            for branch_ref in &self.anchor_branches[hit.anchor_index] {
+            for branch_ref in &self.anchor_programs[hit.anchor_index] {
                 if branch_ref.atom_index != 0 {
                     continue;
                 }
-                let branch = &self.plan.atoms[0].branches[branch_ref.branch_index];
-                let Some(candidate) = self.verify_branch_with_metadata(
+                let branch = &self.plan.atoms[0].programs[branch_ref.program_index];
+                let Some(candidate) = self.execute_program_with_metadata(
                     haystack,
                     &hit,
-                    branch_ref.atom_index,
                     branch,
                     metadata,
+                    &mut structural_cache,
                 ) else {
                     continue;
                 };
@@ -322,16 +314,17 @@ impl MorphMatcher {
         metadata: MatchMetadata,
     ) -> Vec<Vec<VerifiedSpan>> {
         let mut atom_spans = vec![Vec::new(); self.plan.atoms.len()];
+        let mut structural_cache = StructuralCache::new();
         for hit in self.anchor_engine.hits(haystack, at) {
-            for branch_ref in &self.anchor_branches[hit.anchor_index] {
+            for branch_ref in &self.anchor_programs[hit.anchor_index] {
                 let atom = &self.plan.atoms[branch_ref.atom_index];
-                let branch = &atom.branches[branch_ref.branch_index];
-                if let Some(span) = self.verify_branch_with_metadata(
+                let branch = &atom.programs[branch_ref.program_index];
+                if let Some(span) = self.execute_program_with_metadata(
                     haystack,
                     &hit,
-                    branch_ref.atom_index,
                     branch,
                     metadata,
+                    &mut structural_cache,
                 ) {
                     atom_spans[branch_ref.atom_index].push(span);
                 }
@@ -343,64 +336,64 @@ impl MorphMatcher {
         atom_spans
     }
 
-    fn verify_branch_with_metadata(
+    fn execute_program_with_metadata(
         &self,
         haystack: &[u8],
         hit: &AnchorHit,
-        atom_index: usize,
-        branch: &SurfaceBranch,
+        branch: &CandidateProgram,
         metadata: MatchMetadata,
+        structural_cache: &mut StructuralCache,
     ) -> Option<VerifiedSpan> {
-        let candidate = self.verify_branch_without_boundary(haystack, hit, branch, metadata)?;
-        self.accepts_branch(haystack, &candidate, atom_index, branch)
-            .then_some(candidate)
+        let candidate = self.execute_program_without_decision(haystack, hit, branch, metadata)?;
+        self.accepts_program(haystack, &candidate, branch, structural_cache)
+            .then_some(candidate.verified)
     }
 
-    fn verify_branch_without_boundary(
+    fn execute_program_without_decision(
         &self,
         haystack: &[u8],
         hit: &AnchorHit,
-        branch: &SurfaceBranch,
+        branch: &CandidateProgram,
         metadata: MatchMetadata,
-    ) -> Option<VerifiedSpan> {
+    ) -> Option<ExecutedCandidate> {
         let anchor = std::str::from_utf8(haystack.get(hit.span.clone())?).ok()?;
         let core = mapped_core(&hit.span, branch.core_mapping, anchor)?;
-        let (consumed_bytes, suffix_rules) = match &branch.verifier {
-            BranchVerifier::Exact => (0, Vec::new()),
-            BranchVerifier::Predicate {
+        let (consumed_bytes, suffix_rules) = match &branch.consumption {
+            CandidateConsumption::Anchor => (0, Vec::new()),
+            CandidateConsumption::PredicateContinuation {
                 continuation,
                 pos,
                 nominal_particle_transition,
-                environment,
+                left_context,
                 ..
             } => {
-                if !accepts_environment(environment, haystack, hit.span.start) {
+                if !accepts_left_context(left_context, haystack, hit.span.start) {
                     return None;
                 }
                 let following = valid_utf8_prefix(&haystack[hit.span.end..]);
-                let (verifier_anchor, verifier_following) =
-                    normalized_verifier_text(anchor, following);
+                let (consumption_anchor, consumption_following) =
+                    normalized_consumption_text(anchor, following);
                 let matched = verify_predicate_continuation(
                     *continuation,
                     *pos,
-                    &verifier_anchor,
-                    &verifier_following,
+                    &consumption_anchor,
+                    &consumption_following,
                 )?;
-                if !branch.verifier.accepts_rule_path(&matched.rule_path) {
+                if !branch.consumption.allows_rule_path(&matched.rule_path) {
                     return None;
                 }
                 let mut normalized_consumed = matched.consumed_bytes;
                 let mut rule_path = matched.rule_path;
                 if *nominal_particle_transition {
                     let particle = self.particle_verifier.verify_prefix(
-                        &verifier_anchor,
-                        &verifier_following[normalized_consumed..],
+                        &consumption_anchor,
+                        &consumption_following[normalized_consumed..],
                     );
                     normalized_consumed =
                         normalized_consumed.checked_add(particle.consumed_bytes)?;
                     rule_path.extend(particle.rule_path);
                 }
-                let consumed_bytes = match &verifier_following {
+                let consumed_bytes = match &consumption_following {
                     Cow::Borrowed(_) => normalized_consumed,
                     Cow::Owned(normalized) => {
                         map_normalized_prefix(following, normalized, normalized_consumed)?
@@ -408,17 +401,82 @@ impl MorphMatcher {
                 };
                 (consumed_bytes, rule_path)
             }
-            BranchVerifier::NominalParticles { .. } => {
-                let following = valid_utf8_prefix(&haystack[hit.span.end..]);
-                let (verifier_anchor, verifier_following) =
-                    normalized_verifier_text(anchor, following);
-                let matched = self
-                    .particle_verifier
-                    .verify_prefix(&verifier_anchor, &verifier_following);
-                if !branch.verifier.accepts_rule_path(&matched.rule_path) {
+            CandidateConsumption::StructuralPredicateEnding {
+                pos,
+                flags,
+                base_state,
+                validate_anchor,
+                stem_class,
+                ..
+            } => {
+                let resolver = self.constraint_resolver.as_ref()?;
+                let whole = surrounding_token_span(haystack, hit.span.clone());
+                if whole.start != hit.span.start
+                    || whole.end <= hit.span.end
+                    || whole.len() > MAX_CONSUMPTION_BYTES
+                {
                     return None;
                 }
-                let consumed_bytes = match &verifier_following {
+                let token = std::str::from_utf8(haystack.get(whole.clone())?).ok()?;
+                let normalized_token = token.nfc().collect::<String>();
+                let normalized_anchor = anchor.nfc().collect::<String>();
+                let suffix = normalized_token.get(normalized_anchor.len()..)?;
+                let ending_path = branch.consumption.allows_structural_suffix(suffix)
+                    && stem_accepts_ending(
+                        *pos,
+                        *flags,
+                        *base_state,
+                        *stem_class,
+                        &normalized_anchor,
+                        suffix,
+                    )
+                    && if *validate_anchor {
+                        resolver.supports_predicate_ending_path(
+                            &normalized_token,
+                            normalized_anchor.len(),
+                            *pos,
+                            DEFAULT_LATTICE_NODE_LIMIT,
+                        )
+                    } else {
+                        resolver.supports_ending_suffix_path(
+                            &normalized_token,
+                            normalized_anchor.len(),
+                            DEFAULT_LATTICE_NODE_LIMIT,
+                        )
+                    };
+                let auxiliary_path = normalized_anchor.ends_with(['아', '어', '여'])
+                    && resolver.auxiliary_splits(suffix).into_iter().any(|split| {
+                        split == suffix.len()
+                            || suffix.get(split..).is_some_and(|ending| {
+                                branch.consumption.allows_structural_suffix(ending)
+                            })
+                    });
+                if (!ending_path && !auxiliary_path)
+                    || (!auxiliary_path
+                        && resolver.whole_predicate_conflicts(
+                            &normalized_token,
+                            normalized_anchor.len(),
+                            *pos,
+                        ))
+                {
+                    return None;
+                }
+                (
+                    whole.end.checked_sub(hit.span.end)?,
+                    vec![RuleId::from("structural.ending-path")],
+                )
+            }
+            CandidateConsumption::NominalParticleChain { .. } => {
+                let following = valid_utf8_prefix(&haystack[hit.span.end..]);
+                let (consumption_anchor, consumption_following) =
+                    normalized_consumption_text(anchor, following);
+                let matched = self
+                    .particle_verifier
+                    .verify_prefix(&consumption_anchor, &consumption_following);
+                if !branch.consumption.allows_rule_path(&matched.rule_path) {
+                    return None;
+                }
+                let consumed_bytes = match &consumption_following {
                     Cow::Borrowed(_) => matched.consumed_bytes,
                     Cow::Owned(normalized) => {
                         map_normalized_prefix(following, normalized, matched.consumed_bytes)?
@@ -426,7 +484,7 @@ impl MorphMatcher {
                 };
                 (consumed_bytes, matched.rule_path)
             }
-            BranchVerifier::DirectParticle { rule_id } => {
+            CandidateConsumption::DirectParticleHost { rule_id } => {
                 if requires_direct_particle_host(branch)
                     && !self.accepts_direct_particle(haystack, &hit.span, rule_id)
                 {
@@ -440,201 +498,228 @@ impl MorphMatcher {
             return None;
         }
         let token = hit.span.start..token_end;
-        Some(VerifiedSpan {
-            core,
-            token,
-            origins: match metadata {
-                MatchMetadata::SpanOnly => Vec::new(),
-                MatchMetadata::Provenance => extend_origins(&branch.origins, &suffix_rules),
+        let origins = match metadata {
+            MatchMetadata::SpanOnly => Vec::new(),
+            MatchMetadata::Provenance => extend_origins(&branch.origins, &suffix_rules),
+        };
+        Some(ExecutedCandidate {
+            anchor: hit.span.clone(),
+            consumed: token.clone(),
+            suffix_rules,
+            verified: VerifiedSpan {
+                core,
+                token,
+                origins,
             },
         })
     }
 
-    fn accepts_branch(
+    fn accepts_program(
         &self,
         haystack: &[u8],
-        candidate: &VerifiedSpan,
-        atom_index: usize,
-        branch: &SurfaceBranch,
+        candidate: &ExecutedCandidate,
+        branch: &CandidateProgram,
+        structural_cache: &mut StructuralCache,
     ) -> bool {
-        let boundary_accepted = self.accepts_token_boundary(haystack, candidate, branch);
-        match branch.context_requirement {
-            ContextRequirement::None => boundary_accepted,
-            ContextRequirement::PredicateLexical => {
-                boundary_accepted
-                    && self
-                        .lexical_context_analysis(haystack, candidate)
-                        .map_or_else(
-                            || self.accepts_predicate_lexical(haystack, candidate),
-                            |context| {
-                                self.context_accepts_branch(&context, candidate, atom_index, branch)
-                            },
-                        )
+        match &branch.decision {
+            CandidateDecision::Boundary(_) => {
+                self.accepts_token_boundary(haystack, &candidate.verified, branch)
             }
-            ContextRequirement::ExactComponent => self
-                .lexical_context_analysis(haystack, candidate)
-                .map_or_else(
-                    || {
-                        boundary_accepted
-                            || self.accepts_exact_component(haystack, candidate, atom_index, branch)
-                    },
-                    |context| self.context_accepts_branch(&context, candidate, atom_index, branch),
-                ),
-            ContextRequirement::LexicalContext => {
-                boundary_accepted
-                    && self
-                        .lexical_context_analysis(haystack, candidate)
-                        .is_none_or(|context| {
-                            self.context_accepts_branch(&context, candidate, atom_index, branch)
-                        })
+            CandidateDecision::Structural(_) => {
+                self.accepts_structural(haystack, candidate, branch, structural_cache)
             }
         }
     }
 
-    fn lexical_context_analysis(
+    fn accepts_structural(
         &self,
         haystack: &[u8],
-        candidate: &VerifiedSpan,
-    ) -> Option<LexicalContextAnalysis> {
-        LexicalContextAnalysis::extract(
-            self.component_evaluator.as_deref()?,
-            haystack,
-            candidate.core.clone(),
-        )
-    }
-
-    fn context_accepts_branch(
-        &self,
-        context: &LexicalContextAnalysis,
-        candidate: &VerifiedSpan,
-        atom_index: usize,
-        branch: &SurfaceBranch,
+        candidate: &ExecutedCandidate,
+        branch: &CandidateProgram,
+        structural_cache: &mut StructuralCache,
     ) -> bool {
-        let Some(atom) = self.plan.atoms.get(atom_index) else {
+        let Some(resolver) = self.constraint_resolver.as_ref() else {
             return false;
         };
-        branch.origins.iter().any(|origin| {
-            atom.analyses
-                .get(usize::from(origin.analysis_index))
-                .is_some_and(|analysis| context.accepts(candidate.core.clone(), analysis.fine_pos))
-        })
+        if has_conflicting_whole_predicate(haystack, candidate, branch, resolver) {
+            return false;
+        }
+        let patterns = branch.structural_patterns();
+        if patterns.is_empty() {
+            return false;
+        }
+        let consumed = self
+            .licensed_structural_trailing(haystack, candidate, branch, resolver)
+            .unwrap_or_else(|| candidate.consumed.clone());
+        if self.has_rejected_structural_suffix(haystack, candidate, &consumed, branch, resolver) {
+            return false;
+        }
+        let window = surrounding_token_span(haystack, candidate.verified.core.clone());
+        let context = structural_cache
+            .entry((window.start, window.end))
+            .or_insert_with(|| {
+                StructuralContextAnalysis::extract(haystack, candidate.verified.core.clone())
+                    .and_then(|context| context.prepare(resolver, DEFAULT_LATTICE_NODE_LIMIT))
+            });
+        let Some(context) = context.as_ref() else {
+            return false;
+        };
+        context
+            .resolve(StructuralRequest {
+                candidate: &candidate.verified,
+                anchor: candidate.anchor.clone(),
+                consumed,
+                patterns,
+            })
+            .is_some_and(|decision| ProductPolicy::RecallFirst.accepts(&decision))
     }
 
-    fn accepts_predicate_lexical(&self, haystack: &[u8], candidate: &VerifiedSpan) -> bool {
-        let whole_token = surrounding_token_span(haystack, candidate.token.clone());
-        if whole_token == candidate.token {
-            return true;
+    fn licensed_structural_trailing(
+        &self,
+        haystack: &[u8],
+        candidate: &ExecutedCandidate,
+        branch: &CandidateProgram,
+        resolver: &ConstraintResolver,
+    ) -> Option<Range<usize>> {
+        if !matches!(
+            branch.consumption,
+            CandidateConsumption::PredicateContinuation { .. }
+        ) {
+            return None;
         }
-        let Some(evaluator) = self.component_evaluator.as_deref() else {
+        let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
+        if candidate.consumed.end >= whole.end {
+            return None;
+        }
+        let trailing =
+            std::str::from_utf8(haystack.get(candidate.consumed.end..whole.end)?).ok()?;
+        let has_rule = |expected: &str| {
+            branch
+                .origins
+                .iter()
+                .flat_map(|origin| &origin.rule_path)
+                .chain(&candidate.suffix_rules)
+                .any(|rule| rule.as_str() == expected)
+        };
+        let licensed = (matches!(trailing, "까" | "까요") && has_rule("ending.future-adnominal"))
+            || (trailing == "서도" && has_rule("ending.connective-go"))
+            || (trailing == "도" && has_rule("ending.connective-neunde"))
+            || (trailing.starts_with("잖") && has_rule("ending.past"))
+            || (trailing.starts_with(['아', '어', '여'])
+                && has_rule("ending.past")
+                && resolver.supports_ending_suffix_path(trailing, 0, DEFAULT_LATTICE_NODE_LIMIT))
+            || ([
+                "ending.present-adnominal",
+                "ending.past-adnominal",
+                "ending.future-adnominal",
+                "ending.retrospective-adnominal",
+            ]
+            .iter()
+            .any(|rule| has_rule(rule))
+                && ["때", "게"].iter().any(|noun| trailing.starts_with(noun)))
+            || (candidate.suffix_rules.is_empty()
+                && has_rule("ending.aoeo")
+                && candidate.anchor.end > candidate.verified.core.end
+                && resolver.supports_auxiliary_sequence(trailing, DEFAULT_LATTICE_NODE_LIMIT));
+        licensed.then_some(candidate.consumed.start..whole.end)
+    }
+
+    fn has_rejected_structural_suffix(
+        &self,
+        haystack: &[u8],
+        candidate: &ExecutedCandidate,
+        consumed: &Range<usize>,
+        branch: &CandidateProgram,
+        resolver: &ConstraintResolver,
+    ) -> bool {
+        if !matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+                | CandidateConsumption::PredicateContinuation { .. }
+        ) {
+            return false;
+        }
+        let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
+        if consumed.end >= whole.end {
+            return false;
+        }
+        let Some(suffix) = haystack
+            .get(consumed.end..whole.end)
+            .and_then(|bytes| std::str::from_utf8(bytes).ok())
+        else {
             return true;
         };
-        let resource = evaluator.resource();
-        let token = &haystack[whole_token];
-        let mut has_exact_analysis = false;
-        let mut has_predicate_or_unknown = false;
-        resource.common_prefixes(token, |length, analyses| {
-            if length != token.len() {
-                return;
+        let normalized = suffix.nfc().collect::<String>();
+        let particle_shaped = self
+            .particle_verifier
+            .model()
+            .allomorphs
+            .iter()
+            .any(|form| normalized.starts_with(form.surface.as_ref()));
+        if particle_shaped {
+            return true;
+        }
+        let CandidateConsumption::PredicateContinuation {
+            pos,
+            nominal_particle_transition,
+            ..
+        } = branch.consumption
+        else {
+            return false;
+        };
+        if nominal_particle_transition {
+            return false;
+        }
+        let trailing = std::str::from_utf8(&haystack[consumed.end..whole.end]).unwrap_or_default();
+        trailing.char_indices().skip(1).any(|(offset, _)| {
+            let split = consumed.end + offset;
+            let remainder = trailing.get(offset..).unwrap_or_default();
+            let particle_remainder = self
+                .particle_verifier
+                .model()
+                .allomorphs
+                .iter()
+                .any(|form| remainder.starts_with(form.surface.as_ref()));
+            if !particle_remainder {
+                return false;
             }
-            has_exact_analysis = true;
-            has_predicate_or_unknown |= analyses.iter().any(|analysis| {
-                DataFinePos::parse(analysis.pos).is_none_or(DataFinePos::is_predicate)
-            });
-        });
-        !has_exact_analysis || has_predicate_or_unknown
+            let Some(prefix) = haystack
+                .get(candidate.verified.core.start..split)
+                .and_then(|bytes| std::str::from_utf8(bytes).ok())
+            else {
+                return false;
+            };
+            let normalized_prefix = prefix.nfc().collect::<String>();
+            let Some(core) = haystack
+                .get(candidate.verified.core.clone())
+                .and_then(|bytes| std::str::from_utf8(bytes).ok())
+            else {
+                return false;
+            };
+            let normalized_core_len = core.nfc().collect::<String>().len();
+            resolver.supports_predicate_ending_path(
+                &normalized_prefix,
+                normalized_core_len,
+                pos,
+                DEFAULT_LATTICE_NODE_LIMIT,
+            )
+        })
     }
 
     fn accepts_token_boundary(
         &self,
         haystack: &[u8],
         candidate: &VerifiedSpan,
-        branch: &SurfaceBranch,
+        branch: &CandidateProgram,
     ) -> bool {
+        let boundary = branch.boundary();
         accepts_requirements(
             haystack,
             candidate.core.clone(),
             candidate.token.clone(),
-            branch.boundary.require_left,
-            branch.boundary.require_right,
+            boundary.require_left,
+            boundary.require_right,
         )
-    }
-
-    fn accepts_exact_component(
-        &self,
-        haystack: &[u8],
-        candidate: &VerifiedSpan,
-        atom_index: usize,
-        branch: &SurfaceBranch,
-    ) -> bool {
-        let Some(evaluator) = &self.component_evaluator else {
-            return false;
-        };
-        let Ok(window) = crate::AnalysisWindow::extract(
-            haystack,
-            candidate.core.clone(),
-            crate::DEFAULT_ANALYSIS_WINDOW_LIMITS,
-        ) else {
-            return false;
-        };
-        let Some(query_span) = window.normalized_span(candidate.core.clone()) else {
-            return false;
-        };
-        if particle_host_span(candidate, &branch.verifier)
-            .is_some_and(|host| self.has_rejected_particle_suffix(&window, host))
-        {
-            return false;
-        }
-        let Some(atom) = self.plan.atoms.get(atom_index) else {
-            return false;
-        };
-        let query_positions = branch
-            .origins
-            .iter()
-            .filter_map(|origin| atom.analyses.get(usize::from(origin.analysis_index)))
-            .filter_map(|analysis| component_pos(analysis.fine_pos))
-            .collect::<HashSet<_>>();
-        let preserve_raw_decision = registered_lexical_context_prefix_len(window.normalized())
-            .is_some_and(|end| query_span.start < end && query_span.end <= end);
-        query_positions.into_iter().any(|query_pos| {
-            if preserve_raw_decision {
-                evaluator
-                    .evaluate_decision(
-                        window.normalized(),
-                        query_span.clone(),
-                        query_pos,
-                        DEFAULT_LATTICE_NODE_LIMIT,
-                    )
-                    .is_ok_and(|decision| decision == LocalLatticeDecision::Accept)
-            } else {
-                evaluator
-                    .supports_component(
-                        window.normalized(),
-                        query_span.clone(),
-                        query_pos,
-                        DEFAULT_LATTICE_NODE_LIMIT,
-                        EXACT_COMPONENT_MAX_COST_PENALTY,
-                    )
-                    .unwrap_or(false)
-            }
-        })
-    }
-
-    fn has_rejected_particle_suffix(
-        &self,
-        window: &crate::AnalysisWindow,
-        particle_host: Range<usize>,
-    ) -> bool {
-        let Some(host_span) = window.normalized_span(particle_host) else {
-            return false;
-        };
-        let Some(suffix) = window.normalized().get(host_span.end..) else {
-            return false;
-        };
-        self.particle_verifier
-            .model()
-            .allomorphs
-            .iter()
-            .any(|form| suffix == form.surface.as_ref())
     }
 
     fn accepts_direct_particle(
@@ -688,43 +773,121 @@ impl MorphMatcher {
     }
 }
 
-fn particle_host_span(candidate: &VerifiedSpan, verifier: &BranchVerifier) -> Option<Range<usize>> {
-    match verifier {
-        BranchVerifier::NominalParticles { .. } if candidate.token.end == candidate.core.end => {
-            Some(candidate.core.clone())
-        }
-        BranchVerifier::Predicate {
-            nominal_particle_transition: true,
-            ..
-        } => Some(candidate.token.clone()),
-        _ => None,
+fn has_conflicting_whole_predicate(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let CandidateConsumption::PredicateContinuation { pos, .. } = branch.consumption else {
+        return false;
+    };
+    let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
+    if whole == candidate.verified.core {
+        return false;
     }
+    let internal_core = whole.start < candidate.verified.core.start;
+    if !internal_core
+        && (candidate.anchor != candidate.verified.core
+            || candidate.consumed != candidate.verified.core)
+    {
+        return false;
+    }
+    let Some(token) = haystack
+        .get(whole.clone())
+        .and_then(|bytes| std::str::from_utf8(bytes).ok())
+    else {
+        return false;
+    };
+    let Some(core) = haystack
+        .get(candidate.verified.core.clone())
+        .and_then(|bytes| std::str::from_utf8(bytes).ok())
+    else {
+        return false;
+    };
+    let normalized_token = token.nfc().collect::<String>();
+    let Some(prefix) = haystack
+        .get(whole.start..candidate.verified.core.start)
+        .and_then(|bytes| std::str::from_utf8(bytes).ok())
+    else {
+        return false;
+    };
+    let normalized_prefix = prefix.nfc().collect::<String>();
+    if internal_core && normalized_prefix.ends_with(['아', '어', '여']) {
+        return false;
+    }
+    let normalized_core_start = normalized_prefix.len();
+    let normalized_core_end = normalized_core_start + core.nfc().collect::<String>().len();
+    resolver.whole_predicate_conflicts_at(
+        &normalized_token,
+        normalized_core_start..normalized_core_end,
+        pos,
+    )
 }
 
-fn component_pos(pos: FinePos) -> Option<DataFinePos> {
-    Some(match pos {
-        FinePos::CommonNoun => DataFinePos::Nng,
-        FinePos::ProperNoun => DataFinePos::Nnp,
-        FinePos::DependentNoun => DataFinePos::Nnb,
-        FinePos::Pronoun => DataFinePos::Np,
-        FinePos::Numeral => DataFinePos::Nr,
-        FinePos::Verb => DataFinePos::Vv,
-        FinePos::Adjective => DataFinePos::Va,
-        FinePos::AuxiliaryVerb | FinePos::AuxiliaryAdjective => DataFinePos::Vx,
-        FinePos::Copula => DataFinePos::Vcp,
-        FinePos::Determiner => DataFinePos::Mm,
-        FinePos::GeneralAdverb => DataFinePos::Mag,
-        FinePos::ConjunctiveAdverb => DataFinePos::Maj,
-        FinePos::Interjection => DataFinePos::Ic,
-        FinePos::Particle
-        | FinePos::Foreign
-        | FinePos::Number
-        | FinePos::Code
-        | FinePos::Literal => return None,
-    })
+fn stem_accepts_ending(
+    pos: kfind_morph::PredicatePos,
+    flags: kfind_morph::PredicateFlags,
+    base_state: kfind_morph::ContinuationState,
+    class: PredicateStemClass,
+    anchor: &str,
+    suffix: &str,
+) -> bool {
+    if suffix.is_empty() {
+        return false;
+    }
+    let Some(first) = suffix.chars().next() else {
+        return false;
+    };
+    if kfind_morph::decompose_syllable(first).is_some_and(|syllable| syllable.choseong == 11) {
+        return false;
+    }
+    if matches!(suffix.chars().next(), Some('이' | '인' | '일' | '임')) {
+        return false;
+    }
+    if !pos.is_action()
+        && ["거라", "고자", "느냐", "너라", "려", "자"]
+            .iter()
+            .any(|prefix| suffix.starts_with(prefix))
+    {
+        return false;
+    }
+    let declarative_continuation = ["다면", "다며", "다면서", "다니", "다는데", "다지"]
+        .iter()
+        .any(|prefix| suffix.starts_with(prefix));
+    if ((pos.is_action()
+        && !matches!(
+            base_state,
+            kfind_morph::ContinuationState::Past | kfind_morph::ContinuationState::Future
+        ))
+        || flags.contains(kfind_morph::PredicateFlags::NO_DECLARATIVE_CONTINUATION))
+        && declarative_continuation
+    {
+        return false;
+    }
+    if suffix.starts_with("너라") && !anchor.ends_with('오') {
+        return false;
+    }
+    if class == PredicateStemClass::Consonant
+        && [
+            "니", "니까", "니깐", "며", "면서", "면", "려", "리", "세", "셔", "시", "십",
+        ]
+        .iter()
+        .any(|prefix| suffix.starts_with(prefix))
+    {
+        return false;
+    }
+    if class == PredicateStemClass::Rieul
+        && ["느", "는", "니", "세", "셔", "시", "십"]
+            .iter()
+            .any(|prefix| suffix.starts_with(prefix))
+    {
+        return false;
+    }
+    true
 }
 
-fn normalized_verifier_text<'a>(
+fn normalized_consumption_text<'a>(
     anchor: &'a str,
     following: &'a str,
 ) -> (Cow<'a, str>, Cow<'a, str>) {
@@ -737,18 +900,19 @@ fn normalized_verifier_text<'a>(
     )
 }
 
-fn requires_direct_particle_host(branch: &SurfaceBranch) -> bool {
-    !branch.boundary.require_left && branch.boundary.require_right
+fn requires_direct_particle_host(branch: &CandidateProgram) -> bool {
+    let boundary = branch.boundary();
+    !boundary.require_left && boundary.require_right
 }
 
-fn accepts_environment(
-    environment: &BranchEnvironment,
+fn accepts_left_context(
+    left_context: &CandidateLeftContext,
     haystack: &[u8],
     anchor_start: usize,
 ) -> bool {
-    match environment {
-        BranchEnvironment::Unrestricted => true,
-        BranchEnvironment::ContractedAfterVowel {
+    match left_context {
+        CandidateLeftContext::Any => true,
+        CandidateLeftContext::ContractedAfterVowel {
             uncontracted_prefix,
         } => {
             let Some(left_bytes) = haystack.get(..anchor_start) else {
@@ -808,20 +972,27 @@ enum MatchMetadata {
     Provenance,
 }
 
-#[derive(Debug, Clone, Copy)]
-struct BranchRef {
-    atom_index: usize,
-    branch_index: usize,
+struct ExecutedCandidate {
+    anchor: Range<usize>,
+    consumed: Range<usize>,
+    suffix_rules: Vec<RuleId>,
+    verified: VerifiedSpan,
 }
 
-type AnchorsAndBranches = (Vec<Box<[u8]>>, Vec<Box<[BranchRef]>>);
+#[derive(Debug, Clone, Copy)]
+struct ProgramRef {
+    atom_index: usize,
+    program_index: usize,
+}
 
-fn unique_anchors(plan: &QueryPlan) -> AnchorsAndBranches {
+type AnchorsAndPrograms = (Vec<Box<[u8]>>, Vec<Box<[ProgramRef]>>);
+
+fn unique_anchors(plan: &QueryPlan) -> AnchorsAndPrograms {
     let mut anchor_indices = HashMap::<Box<[u8]>, usize>::new();
     let mut anchors = Vec::<Box<[u8]>>::new();
-    let mut branch_lists = Vec::<Vec<BranchRef>>::new();
+    let mut program_lists = Vec::<Vec<ProgramRef>>::new();
     for (atom_index, atom) in plan.atoms.iter().enumerate() {
-        for (branch_index, branch) in atom.branches.iter().enumerate() {
+        for (program_index, branch) in atom.programs.iter().enumerate() {
             let anchor_index = if let Some(index) = anchor_indices.get(branch.anchor.as_ref()) {
                 *index
             } else {
@@ -829,18 +1000,18 @@ fn unique_anchors(plan: &QueryPlan) -> AnchorsAndBranches {
                 let anchor = branch.anchor.clone();
                 anchor_indices.insert(anchor.clone(), index);
                 anchors.push(anchor);
-                branch_lists.push(Vec::new());
+                program_lists.push(Vec::new());
                 index
             };
-            branch_lists[anchor_index].push(BranchRef {
+            program_lists[anchor_index].push(ProgramRef {
                 atom_index,
-                branch_index,
+                program_index,
             });
         }
     }
     (
         anchors,
-        branch_lists
+        program_lists
             .into_iter()
             .map(Vec::into_boxed_slice)
             .collect(),
@@ -863,7 +1034,7 @@ fn mapped_core(
 }
 
 fn valid_utf8_prefix(bytes: &[u8]) -> &str {
-    let mut end = bytes.len().min(MAX_VERIFIER_BYTES);
+    let mut end = bytes.len().min(MAX_CONSUMPTION_BYTES);
     while end < bytes.len() && end > 0 && bytes[end] & 0b1100_0000 == 0b1000_0000 {
         end -= 1;
     }
@@ -900,7 +1071,7 @@ fn phrase_join_text(bytes: &[u8]) -> Cow<'_, str> {
 }
 
 fn valid_utf8_suffix(bytes: &[u8]) -> &str {
-    let mut remaining = &bytes[bytes.len().saturating_sub(MAX_VERIFIER_BYTES)..];
+    let mut remaining = &bytes[bytes.len().saturating_sub(MAX_CONSUMPTION_BYTES)..];
     loop {
         match std::str::from_utf8(remaining) {
             Ok(text) => return text,
@@ -1028,7 +1199,7 @@ impl Display for MorphMatcherBuildError {
                 formatter.write_str("a morphology matcher requires at least one atom")
             }
             Self::EmptyAtom { atom_index } => {
-                write!(formatter, "query atom {atom_index} has no search branches")
+                write!(formatter, "query atom {atom_index} has no search programs")
             }
             Self::ComponentResourceRequired => {
                 formatter.write_str("component resource is required for this query plan")

@@ -1,26 +1,27 @@
 use std::collections::HashSet;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 use crate::lexicons::{data_fine_pos, predicate_from_derivation};
 use crate::{
-    Analysis, AnalysisSource, AtomPlan, BranchEnvironment, BranchVerifier, CompileError,
-    CompileErrorKind, CompileOptions, ContextRequirement, CoreMapping, ExpandMode,
+    Analysis, AnalysisSource, AtomPlan, CandidateConsumption, CandidateLeftContext,
+    CandidateProgram, CompileError, CompileErrorKind, CompileOptions, CoreMapping, ExpandMode,
     LexiconQueryAnalyzer, Morphology, Origin, QueryAnalyzer, QueryAtom, QueryDiagnostic, QueryPlan,
-    SurfaceBranch, parse_query,
+    parse_query,
 };
 use kfind_data::{
     DICTIONARY_CONJUGATION_RULE_ID, DICTIONARY_RELATED_ADVERB_RULE_ID, DerivationRule,
 };
-use kfind_morph::{CoarsePos, ParticleTransition, RuleId, generate_predicate_branches};
+use kfind_morph::{
+    CoarsePos, ComponentCapability, ParticleTransition, RuleId, generate_predicate_branches,
+    generate_predicate_fallback_stems,
+};
 
-mod context;
 mod normalization;
 
-use context::lexical_context_rule;
-pub use context::registered_lexical_context_prefix_len;
-use normalization::{DraftBranch, normalize_and_merge, normalize_atom};
+use normalization::{DraftBranch, DraftDecision, normalize_and_merge, normalize_atom};
 
-const BRANCH_OVERHEAD_BYTES: usize = 64;
+const PROGRAM_OVERHEAD_BYTES: usize = 64;
+const NIKL_ENDING_CATALOG: &str = include_str!("../../../../data/rules/nikl-modern-endings.tsv");
 const COPULA_CONTRACTED_AOEO_RULE_ID: &str = "ending.aoeo-seo";
 const CONNECTIVE_JI_RULE_ID: &str = "ending.connective-ji";
 const NOMINALIZER_RULE_IDS: &[&str] = &["ending.nominalizer", "ending.nominalizer-gi"];
@@ -30,8 +31,9 @@ const INTERNAL_PROVENANCE_IDS: &[&str] = &[
     "contraction.identical-vowel",
     DICTIONARY_CONJUGATION_RULE_ID,
     DICTIONARY_RELATED_ADVERB_RULE_ID,
+    "structural.ending-path",
 ];
-const MORPH_VERIFIER_RULE_IDS: &[&str] = &[
+const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.aoeo-seo",
     "particle.additive",
     "ending.connective-do",
@@ -54,12 +56,13 @@ const MORPH_VERIFIER_RULE_IDS: &[&str] = &[
     "ending.final-da",
     "ending.connective-go",
     "ending.honorific",
+    "ending.polite-imperative",
     "ending.past",
     "ending.past-adnominal",
     "ending.future-adnominal",
     "ending.coordinate-myeo",
 ];
-const MORPH_PARTICLE_RULE_IDS: &[&str] = &[
+const NOMINAL_CONSUMPTION_RULE_IDS: &[&str] = &[
     "particle.plural",
     "particle.source.egeseo",
     "particle.source.hanteseo",
@@ -141,14 +144,14 @@ pub fn compile_query(
     let mut excluded_rules = Vec::new();
 
     let mut atom_plans = Vec::with_capacity(ast.atoms.len());
-    let mut total_branches = 0;
+    let mut total_programs = 0;
     let mut estimated_matcher_bytes = shared_rule_bytes(&[
         &allowed_predicate_rules,
         &allowed_particle_rules,
         &allowed_adverb_particle_rules,
     ]);
-    let mut uses_predicate_verifier = false;
-    let mut uses_nominal_verifier = false;
+    let mut uses_predicate_consumption = false;
+    let mut uses_nominal_consumption = false;
     for (atom_index, atom) in ast.atoms.iter().enumerate() {
         let one_scalar_atom = atom.raw.chars().count() == 1;
         let normalized = normalize_atom(atom, options.normalization);
@@ -193,36 +196,43 @@ pub fn compile_query(
                 &mut drafts,
             )?;
         }
-        let branches = normalize_and_merge(
+        let programs = normalize_and_merge(
             drafts,
+            &analyses,
             options.normalization,
             options.boundary,
             one_scalar_atom,
             atom_index,
         )?;
-        if branches.is_empty() {
+        if programs.is_empty() {
             return Err(CompileError::new(
                 Some(atom_index),
-                CompileErrorKind::NoSearchableBranches,
+                CompileErrorKind::NoSearchablePrograms,
             ));
         }
-        uses_predicate_verifier |= branches
-            .iter()
-            .any(|branch| matches!(&branch.verifier, BranchVerifier::Predicate { .. }));
-        uses_nominal_verifier |= branches
-            .iter()
-            .any(|branch| matches!(&branch.verifier, BranchVerifier::NominalParticles { .. }));
-        total_branches += branches.len();
-        if total_branches > options.limits.max_branches {
+        uses_predicate_consumption |= programs.iter().any(|program| {
+            matches!(
+                &program.consumption,
+                CandidateConsumption::PredicateContinuation { .. }
+            )
+        });
+        uses_nominal_consumption |= programs.iter().any(|program| {
+            matches!(
+                &program.consumption,
+                CandidateConsumption::NominalParticleChain { .. }
+            )
+        });
+        total_programs += programs.len();
+        if total_programs > options.limits.max_programs {
             return Err(CompileError::new(
                 Some(atom_index),
-                CompileErrorKind::TooManyBranches {
-                    actual: total_branches,
-                    limit: options.limits.max_branches,
+                CompileErrorKind::TooManyPrograms {
+                    actual: total_programs,
+                    limit: options.limits.max_programs,
                 },
             ));
         }
-        estimated_matcher_bytes += branches.iter().map(estimate_branch_bytes).sum::<usize>();
+        estimated_matcher_bytes += programs.iter().map(estimate_program_bytes).sum::<usize>();
         if estimated_matcher_bytes > options.limits.max_matcher_bytes {
             return Err(CompileError::new(
                 Some(atom_index),
@@ -234,21 +244,24 @@ pub fn compile_query(
         }
         atom_plans.push(AtomPlan {
             analyses,
-            branches,
+            programs,
             boundary: options.boundary,
         });
     }
 
-    if uses_predicate_verifier {
-        excluded_rules.extend(missing_rules(MORPH_VERIFIER_RULE_IDS, &known_rule_ids));
+    if uses_predicate_consumption {
+        excluded_rules.extend(missing_rules(
+            PREDICATE_CONSUMPTION_RULE_IDS,
+            &known_rule_ids,
+        ));
     }
-    if uses_nominal_verifier {
-        excluded_rules.extend(missing_rules(MORPH_PARTICLE_RULE_IDS, &known_rule_ids));
+    if uses_nominal_consumption {
+        excluded_rules.extend(missing_rules(NOMINAL_CONSUMPTION_RULE_IDS, &known_rule_ids));
     }
     excluded_rules.sort();
     excluded_rules.dedup();
     if !excluded_rules.is_empty() {
-        diagnostics.push(QueryDiagnostic::VerifierVocabularyRestricted {
+        diagnostics.push(QueryDiagnostic::RuleVocabularyRestricted {
             excluded_rule_ids: excluded_rules.into_boxed_slice(),
         });
     }
@@ -284,11 +297,11 @@ fn compile_analysis(
     }
 
     if matches!(analysis.morphology, Morphology::Exact) {
-        let context_requirement = lexical_context_requirement(atom_surface, analysis);
+        let decision = exact_candidate_decision(analysis);
         if options.expand == ExpandMode::Derivation && analysis.coarse_pos == CoarsePos::Adverb {
             output.push(DraftBranch {
                 anchor: atom_surface.to_owned(),
-                verifier: BranchVerifier::NominalParticles {
+                consumption: CandidateConsumption::NominalParticleChain {
                     allowed_rule_ids: Arc::clone(adverb_particle_rules),
                     blocked_rule_ids: Arc::from([]),
                 },
@@ -298,15 +311,15 @@ fn compile_analysis(
                     rule_path: Vec::new(),
                 },
                 smart_left: true,
-                context_requirement,
+                decision,
             });
         } else {
-            output.push(exact_branch_with_context(
+            output.push(exact_branch_with_decision(
                 atom_surface,
                 analysis_index,
                 Vec::new(),
                 true,
-                context_requirement,
+                decision,
             ));
         }
         return Ok(());
@@ -319,6 +332,8 @@ fn compile_analysis(
             Vec::new(),
             options.expand,
             analyzer.lexicons().full_pos_loaded(),
+            options.boundary == crate::BoundaryPolicy::Smart
+                && analyzer.lexicons().full_pos_loaded(),
             predicate_rules,
             known_rule_ids,
             excluded_rules,
@@ -328,7 +343,7 @@ fn compile_analysis(
             let blocked_rule_ids = blocked_override_rules(nominal);
             output.push(DraftBranch {
                 anchor: analysis.lemma.to_string(),
-                verifier: BranchVerifier::NominalParticles {
+                consumption: CandidateConsumption::NominalParticleChain {
                     allowed_rule_ids: Arc::clone(particle_rules),
                     blocked_rule_ids,
                 },
@@ -338,7 +353,7 @@ fn compile_analysis(
                     rule_path: Vec::new(),
                 },
                 smart_left: true,
-                context_requirement: ContextRequirement::ExactComponent,
+                decision: DraftDecision::Structural(ComponentCapability::SourceAndRuntime),
             });
             for override_form in &nominal.overrides {
                 output.push(exact_branch(
@@ -372,7 +387,7 @@ fn compile_analysis(
                 if let Some(rule_id) = &particle.rule_id {
                     output.push(DraftBranch {
                         anchor: variant.to_string(),
-                        verifier: BranchVerifier::DirectParticle {
+                        consumption: CandidateConsumption::DirectParticleHost {
                             rule_id: rule_id.clone(),
                         },
                         core_mapping: CoreMapping::WholeAnchor,
@@ -381,7 +396,7 @@ fn compile_analysis(
                             rule_path: vec![rule_id.clone()],
                         },
                         smart_left: false,
-                        context_requirement: ContextRequirement::None,
+                        decision: DraftDecision::Boundary,
                     });
                 } else {
                     output.push(exact_branch(variant, analysis_index, Vec::new(), true));
@@ -393,13 +408,11 @@ fn compile_analysis(
     Ok(())
 }
 
-fn lexical_context_requirement(atom_surface: &str, analysis: &Analysis) -> ContextRequirement {
-    if lexical_context_rule(atom_surface, analysis.fine_pos).is_some() {
-        ContextRequirement::LexicalContext
-    } else if analysis.coarse_pos == CoarsePos::Determiner {
-        ContextRequirement::ExactComponent
-    } else {
-        ContextRequirement::None
+fn exact_candidate_decision(analysis: &Analysis) -> DraftDecision {
+    match analysis.coarse_pos {
+        CoarsePos::Determiner => DraftDecision::Structural(ComponentCapability::SourceAndRuntime),
+        CoarsePos::Adverb => DraftDecision::Structural(ComponentCapability::SourceAndRuntime),
+        _ => DraftDecision::Boundary,
     }
 }
 
@@ -410,6 +423,7 @@ fn compile_predicate(
     prefix_rules: Vec<RuleId>,
     expand: ExpandMode,
     exact_component: bool,
+    structural_fallback: bool,
     allowed_rules: &Arc<[RuleId]>,
     known_rule_ids: &HashSet<&str>,
     excluded_rules: &mut Vec<RuleId>,
@@ -420,10 +434,10 @@ fn compile_predicate(
     };
     let branches = generate_predicate_branches(predicate)
         .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?;
-    for branch in branches {
-        let environment = predicate_environment(predicate, &branch);
+    for branch in &branches {
+        let environment = predicate_environment(predicate, branch);
         let mut rule_path = prefix_rules.clone();
-        rule_path.extend(branch.rule_path);
+        rule_path.extend(branch.rule_path.iter().cloned());
         if expand != ExpandMode::Derivation
             && rule_path
                 .iter()
@@ -448,14 +462,18 @@ fn compile_predicate(
                 && rule_path
                     .last()
                     .is_some_and(|rule| rule.as_str() == CONNECTIVE_JI_RULE_ID));
+        let structural_future_adnominal = structural_fallback
+            && rule_path
+                .iter()
+                .any(|rule| rule.as_str() == "ending.future-adnominal");
         output.push(DraftBranch {
-            anchor: branch.anchor.into(),
-            verifier: BranchVerifier::Predicate {
+            anchor: branch.anchor.to_string(),
+            consumption: CandidateConsumption::PredicateContinuation {
                 continuation: branch.continuation,
                 pos: predicate.pos,
                 allowed_rule_ids: Arc::clone(allowed_rules),
                 nominal_particle_transition,
-                environment,
+                left_context: environment,
             },
             core_mapping: CoreMapping::PrefixBytes(branch.core_len),
             origin: Origin {
@@ -463,17 +481,88 @@ fn compile_predicate(
                 rule_path,
             },
             smart_left,
-            context_requirement: if predicate.alternation == kfind_morph::LexicalAlternation::Copula
+            decision: if predicate.alternation == kfind_morph::LexicalAlternation::Copula
+                || exact_component
+                || structural_future_adnominal
             {
-                ContextRequirement::PredicateLexical
-            } else if exact_component {
-                ContextRequirement::ExactComponent
+                DraftDecision::Structural(ComponentCapability::SourceAndRuntime)
             } else {
-                ContextRequirement::None
+                DraftDecision::Boundary
             },
         });
     }
+    if structural_fallback {
+        let mut stems = generate_predicate_fallback_stems(predicate)
+            .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?
+            .into_iter()
+            .map(|(stem, class)| (stem, class, kfind_morph::ContinuationState::Terminal, true))
+            .collect::<Vec<_>>();
+        stems.extend(
+            branches
+                .iter()
+                .filter(|branch| {
+                    branch.continuation != kfind_morph::ContinuationState::Terminal
+                        || branch.rule_path.last().is_some_and(|rule| {
+                            matches!(
+                                rule.as_str(),
+                                "ending.future-adnominal" | "ending.connective-go"
+                            )
+                        })
+                })
+                .filter_map(|branch| {
+                    structural_stem_class(&branch.anchor)
+                        .map(|class| (branch.clone(), class, branch.continuation, false))
+                }),
+        );
+        stems.sort_by(|left, right| left.0.anchor.cmp(&right.0.anchor));
+        stems.dedup_by(|left, right| {
+            left.0.anchor == right.0.anchor && left.0.rule_path == right.0.rule_path
+        });
+        for (stem, stem_class, base_state, validate_anchor) in stems {
+            let mut rule_path = prefix_rules.clone();
+            rule_path.extend(stem.rule_path);
+            let unsupported = rule_path
+                .iter()
+                .filter(|rule| !is_known_or_internal(rule, known_rule_ids))
+                .cloned()
+                .collect::<Vec<_>>();
+            if !unsupported.is_empty() {
+                excluded_rules.extend(unsupported);
+                continue;
+            }
+            output.push(DraftBranch {
+                anchor: stem.anchor.into(),
+                consumption: CandidateConsumption::StructuralPredicateEnding {
+                    pos: predicate.pos,
+                    flags: predicate.flags,
+                    base_state,
+                    validate_anchor,
+                    stem_class,
+                    allowed_suffixes: modern_ending_surfaces(),
+                },
+                core_mapping: CoreMapping::PrefixBytes(stem.core_len),
+                origin: Origin {
+                    analysis_index,
+                    rule_path,
+                },
+                smart_left: true,
+                decision: DraftDecision::Structural(ComponentCapability::SourceAndRuntime),
+            });
+        }
+    }
     Ok(())
+}
+
+fn structural_stem_class(surface: &str) -> Option<kfind_morph::PredicateStemClass> {
+    let final_syllable = surface
+        .chars()
+        .next_back()
+        .and_then(kfind_morph::decompose_syllable)?;
+    Some(match final_syllable.jongseong {
+        kfind_morph::hangul::JONG_NONE => kfind_morph::PredicateStemClass::Vowel,
+        kfind_morph::hangul::JONG_RIEUL => kfind_morph::PredicateStemClass::Rieul,
+        _ => kfind_morph::PredicateStemClass::Consonant,
+    })
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -502,6 +591,7 @@ fn compile_derivations(
                 derivation_path,
                 ExpandMode::Derivation,
                 analyzer.lexicons().full_pos_loaded(),
+                false,
                 predicate_rules,
                 known_rule_ids,
                 excluded_rules,
@@ -510,7 +600,7 @@ fn compile_derivations(
         } else if rule.result_pos.is_nominal() {
             output.push(DraftBranch {
                 anchor: derived_lemma,
-                verifier: BranchVerifier::NominalParticles {
+                consumption: CandidateConsumption::NominalParticleChain {
                     allowed_rule_ids: Arc::clone(particle_rules),
                     blocked_rule_ids: Arc::from([]),
                 },
@@ -520,7 +610,7 @@ fn compile_derivations(
                     rule_path: derivation_path,
                 },
                 smart_left: true,
-                context_requirement: ContextRequirement::ExactComponent,
+                decision: DraftDecision::Structural(ComponentCapability::SourceAndRuntime),
             });
         } else {
             output.push(exact_branch(
@@ -548,7 +638,7 @@ fn blocked_override_rules(nominal: &crate::NominalMorphology) -> Arc<[RuleId]> {
 fn predicate_environment(
     predicate: &kfind_morph::PredicateEntry,
     branch: &kfind_morph::SurfaceBranchSpec,
-) -> BranchEnvironment {
+) -> CandidateLeftContext {
     let is_contracted_copula_aoeo = predicate.alternation
         == kfind_morph::LexicalAlternation::Copula
         && branch
@@ -556,16 +646,16 @@ fn predicate_environment(
             .iter()
             .any(|rule| rule.as_str() == COPULA_CONTRACTED_AOEO_RULE_ID);
     if !is_contracted_copula_aoeo {
-        return BranchEnvironment::Unrestricted;
+        return CandidateLeftContext::Any;
     }
 
     let Some(stem) = predicate.lemma.strip_suffix('다') else {
-        return BranchEnvironment::Unrestricted;
+        return CandidateLeftContext::Any;
     };
     if branch.anchor.starts_with(stem) {
-        BranchEnvironment::Unrestricted
+        CandidateLeftContext::Any
     } else {
-        BranchEnvironment::ContractedAfterVowel {
+        CandidateLeftContext::ContractedAfterVowel {
             uncontracted_prefix: stem.into(),
         }
     }
@@ -583,32 +673,32 @@ fn exact_branch(
     rule_path: Vec<RuleId>,
     smart_left: bool,
 ) -> DraftBranch {
-    exact_branch_with_context(
+    exact_branch_with_decision(
         surface,
         analysis_index,
         rule_path,
         smart_left,
-        ContextRequirement::None,
+        DraftDecision::Boundary,
     )
 }
 
-fn exact_branch_with_context(
+fn exact_branch_with_decision(
     surface: &str,
     analysis_index: u16,
     rule_path: Vec<RuleId>,
     smart_left: bool,
-    context_requirement: ContextRequirement,
+    decision: DraftDecision,
 ) -> DraftBranch {
     DraftBranch {
         anchor: surface.to_owned(),
-        verifier: BranchVerifier::Exact,
+        consumption: CandidateConsumption::Anchor,
         core_mapping: CoreMapping::WholeAnchor,
         origin: Origin {
             analysis_index,
             rule_path,
         },
         smart_left,
-        context_requirement,
+        decision,
     }
 }
 
@@ -621,6 +711,22 @@ fn allowed_rules(known: &HashSet<&str>, include: impl Fn(&str) -> bool) -> Arc<[
         .collect::<Vec<_>>();
     rules.sort();
     rules.into()
+}
+
+fn modern_ending_surfaces() -> Arc<[Box<str>]> {
+    static SURFACES: OnceLock<Arc<[Box<str>]>> = OnceLock::new();
+    Arc::clone(SURFACES.get_or_init(|| {
+        let mut surfaces = NIKL_ENDING_CATALOG
+            .lines()
+            .skip(1)
+            .filter_map(|line| line.split_once('\t').map(|(surface, _)| surface))
+            .filter(|surface| !surface.is_empty())
+            .map(Box::<str>::from)
+            .collect::<Vec<_>>();
+        surfaces.sort();
+        surfaces.dedup();
+        surfaces.into()
+    }))
 }
 
 fn missing_rules(ids: &[&str], known: &HashSet<&str>) -> impl Iterator<Item = RuleId> {
@@ -650,10 +756,10 @@ fn shared_rule_bytes(rule_sets: &[&[RuleId]]) -> usize {
         .sum()
 }
 
-fn estimate_branch_bytes(branch: &SurfaceBranch) -> usize {
-    BRANCH_OVERHEAD_BYTES
-        + branch.anchor.len()
-        + branch
+fn estimate_program_bytes(program: &CandidateProgram) -> usize {
+    PROGRAM_OVERHEAD_BYTES
+        + program.anchor.len()
+        + program
             .origins
             .iter()
             .map(|origin| {
@@ -663,6 +769,15 @@ fn estimate_branch_bytes(branch: &SurfaceBranch) -> usize {
                         .iter()
                         .map(|rule| rule.as_str().len())
                         .sum::<usize>()
+            })
+            .sum::<usize>()
+        + program
+            .structural_patterns()
+            .iter()
+            .map(|pattern| {
+                std::mem::size_of::<kfind_morph::QueryMorphPattern>()
+                    + pattern.lexical_form.len()
+                    + std::mem::size_of_val(pattern.adjacent.as_ref())
             })
             .sum::<usize>()
 }

@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
+use std::ops::Range;
 use std::sync::Arc;
 
 use kfind_data::{
@@ -113,6 +114,22 @@ impl GoldHarness {
                 .any(|analysis| analysis.coarse_pos == expected))
     }
 
+    pub fn find_all(&self, query: &str, text: &str) -> Result<Vec<Range<usize>>, GoldCaseError> {
+        let plan = compile_query(query, &CompileOptions::default(), &self.analyzer)
+            .map_err(GoldCaseError::Compile)?;
+        let matcher = if let Some(resource) = &self.component_resource {
+            MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(resource))
+        } else {
+            MorphMatcher::new(Arc::new(plan))
+        }
+        .map_err(GoldCaseError::Matcher)?;
+        Ok(matcher
+            .find_all_with_meta(text.as_bytes())
+            .into_iter()
+            .map(|matched| matched.span)
+            .collect())
+    }
+
     fn evaluate_with_pos(
         &self,
         case: &MorphologyCase,
@@ -178,15 +195,11 @@ impl Error for GoldCaseError {
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
-
-    use kfind_data::{
-        MecabSourceMorphologyEntry, encode_component_resource, parse_mecab_connection_matrix,
-    };
+    use kfind_data::{MecabSourceMorphologyEntry, encode_component_resource};
 
     use super::*;
 
-    const EXPECTED_CASES: usize = 568;
+    const EXPECTED_CASES: usize = 574;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {
@@ -264,9 +277,9 @@ mod tests {
         let entries = [
             entry("사용자", "NNG", -5_000),
             entry("권한", "NNG", -5_000),
-            entry("사용자권한", "NNG", 5_000),
+            expression_entry("사용자권한", "NNG+NNG", "사용자/NNG/*+권한/NNG/*", 5_000),
             entry("관리", "NNG", -5_000),
-            entry("권한관리", "NNG", 5_000),
+            expression_entry("권한관리", "NNG+NNG", "권한/NNG/*+관리/NNG/*", 5_000),
             entry("산", "NNG", -5_000),
             entry("길", "NNG", -5_000),
             entry("산길", "NNG", 5_000),
@@ -278,6 +291,7 @@ mod tests {
             entry("라", "EC", 0),
             entry("일", "VCP+ETM", 0),
             entry("것", "NNB", 0),
+            entry("수", "NNB", 0),
             entry("자기", "NP", -5_000),
             entry("견해", "NNG", -5_000),
             entry("전자기", "NNG", -10_000),
@@ -288,38 +302,27 @@ mod tests {
             entry("사람", "NNG", -5_000),
             entry("모두", "MAG", -10_000),
         ];
-        let matrix = parse_mecab_connection_matrix(
-            "matrix.def",
-            Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
-        )
-        .unwrap();
-        encode_component_resource(
-            COMPONENT_RESOURCE_SOURCE_DIGEST,
-            &entries,
-            &matrix,
-            b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
-            b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
-        )
-        .unwrap()
+        encode_component_resource(COMPONENT_RESOURCE_SOURCE_DIGEST, &entries).unwrap()
     }
 
     fn nonmatching_component_fixture() -> Vec<u8> {
-        let matrix = parse_mecab_connection_matrix(
-            "matrix.def",
-            Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
-        )
-        .unwrap();
         encode_component_resource(
             COMPONENT_RESOURCE_SOURCE_DIGEST,
             &[entry("미사용", "NNG", 0)],
-            &matrix,
-            b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
-            b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
         )
         .unwrap()
     }
 
     fn entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorphologyEntry {
+        expression_entry(surface, pos, "*", word_cost)
+    }
+
+    fn expression_entry(
+        surface: &str,
+        pos: &str,
+        expression: &str,
+        word_cost: i32,
+    ) -> MecabSourceMorphologyEntry {
         MecabSourceMorphologyEntry {
             surface: surface.to_owned(),
             pos: pos.to_owned(),
@@ -329,7 +332,7 @@ mod tests {
             analysis_type: "*".to_owned(),
             start_pos: "*".to_owned(),
             end_pos: "*".to_owned(),
-            expression: "*".to_owned(),
+            expression: expression.to_owned(),
         }
     }
 }

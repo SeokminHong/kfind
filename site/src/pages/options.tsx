@@ -38,14 +38,14 @@ max-gap=24`}</code>
 
       <DocumentSection title="확장 수준">
         <p>
-          <code>--expand</code>는 하나의 표제어 analysis에서 생성할 branch의
+          <code>--expand</code>는 하나의 표제어 analysis에서 생성할 program의
           범위를 정합니다. 세 값은 독립된 검색기를 선택하는 것이 아니라, 입력
           표면형에서 활용과 파생을 차례로 추가하는 포함 관계를 이룹니다.
         </p>
 
         <h3>Literal</h3>
         <p>
-          <code>literal</code>은 입력한 문자열을 포함하는 branch 하나만
+          <code>literal</code>은 입력한 문자열을 포함하는 program 하나만
           만듭니다. 활용형, 조사가 붙은 형태나 파생 표제어는 생성하지 않습니다.
           다만 선택한 boundary와 Unicode 정규화는 그대로 적용하므로, literal은
           byte 검색과 완전히 같은 의미가 아니라 형태 확장만 끈 상태입니다.
@@ -76,13 +76,13 @@ max-gap=24`}</code>
 
         <h3>Derivation</h3>
         <p>
-          <code>derivation</code>은 inflection의 모든 branch를 보존하고{' '}
+          <code>derivation</code>은 inflection의 모든 program을 보존하고{' '}
           <code>data/rules</code>에 정의된 생산적 파생 규칙을 추가합니다. 현재
           규칙은 <code>-적</code>, <code>-하다</code>, <code>-되다</code>,{' '}
           <code>-시키다</code>, <code>-스럽다</code>, <code>-답다</code>,{' '}
           <code>-롭다</code>와 <code>-화</code>를 포함합니다. 파생 결과가
           용언이면 그 표제어에 용언 활용을 다시 적용하므로 <code>검증하다</code>
-          뿐 아니라 <code>검증했다</code>도 검색합니다. 이 범위는 branch 수와
+          뿐 아니라 <code>검증했다</code>도 검색합니다. 이 범위는 program 수와
           false positive 가능성을 함께 늘리므로 파생어가 필요한 query에만
           사용합니다. 한국어기초사전에서 용언과 부사의 entry ID가 양방향으로
           일치하는 파생형도 이 단계에서만 추가됩니다.
@@ -106,7 +106,7 @@ max-gap=24`}</code>
       <DocumentSection title="Boundary 정책">
         <p>
           확장 수준이 생성할 형태를 결정한다면 boundary는 원문에서 발견한 span이
-          어떤 문자 환경에 놓여야 하는지를 결정합니다. 같은 branch라도
+          어떤 문자 환경에 놓여야 하는지를 결정합니다. 같은 program이라도
           boundary에 따라 허용되는 위치가 달라지므로, 형태 coverage와 부분
           문자열 허용 범위를 별개의 문제로 다뤄야 합니다.
         </p>
@@ -125,9 +125,10 @@ max-gap=24`}</code>
                   <code>smart</code>
                 </td>
                 <td>
-                  품사 verifier가 조사·어미를 소비한 뒤 token 끝을 확인합니다.
-                  명사·대명사·수사·관형사와 full-POS 일반 용언 component는 같은
-                  fine POS의 형태 근거가 검증된 경우에만 복구합니다.
+                  품사별 consumption이 조사·어미를 소비한 뒤 token 끝을
+                  확인합니다. 명사·대명사·수사·관형사와 full-POS 일반 용언
+                  component는 같은 fine POS의 형태 근거가 검증된 경우에만
+                  복구합니다.
                 </td>
                 <td>사람의 기본 검색, precision 우선</td>
               </tr>
@@ -146,7 +147,7 @@ max-gap=24`}</code>
                   <code>any</code>
                 </td>
                 <td>
-                  좌우 경계를 요구하지 않고 형태 branch가 만든 부분 문자열
+                  좌우 경계를 요구하지 않고 형태 program이 만든 부분 문자열
                   후보를 보존합니다.
                 </td>
                 <td>자동화와 recall 우선 검색</td>
@@ -208,7 +209,7 @@ max-gap=24`}</code>
                 <td>
                   <code>num:</code>
                 </td>
-                <td>체언 verifier</td>
+                <td>체언 consumption</td>
               </tr>
               <tr>
                 <td>
@@ -288,7 +289,7 @@ max-gap=24`}</code>
       <DocumentSection title="Unicode 정규화와 phrase 거리">
         <p>
           정규화 옵션은 같은 글자가 서로 다른 Unicode byte열로 표현될 때 만들
-          query branch를 정합니다. 원문 전체를 복사해 정규화하지 않으므로,
+          query program을 정합니다. 원문 전체를 복사해 정규화하지 않으므로,
           선택한 모드에 따라 anchor 수와 검증 비용이 달라집니다. Phrase의{' '}
           <code>max-gap</code>은 정규화와 별개로, 앞 atom의 token 끝과 다음
           atom의 token 시작 사이에 허용할 거리를 제한합니다.
@@ -307,7 +308,7 @@ max-gap=24`}</code>
                 <td>
                   <code>--unicode-normalization nfc</code>
                 </td>
-                <td>NFC로 정규화한 query branch를 사용합니다.</td>
+                <td>NFC로 정규화한 query program을 사용합니다.</td>
                 <td>기본값이며 corpus 전체를 정규화하지 않습니다.</td>
               </tr>
               <tr>
@@ -315,7 +316,7 @@ max-gap=24`}</code>
                   <code>canonical</code>
                 </td>
                 <td>NFC와 NFD anchor를 모두 만듭니다.</td>
-                <td>branch와 matcher 크기가 늘 수 있습니다.</td>
+                <td>program과 matcher 크기가 늘 수 있습니다.</td>
               </tr>
               <tr>
                 <td>

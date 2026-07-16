@@ -7,17 +7,17 @@ from collections import defaultdict
 try:
     from .shadow_report import (
         KFIND_PROFILES,
-        append_component_shadow_table,
+        append_structural_shadow_table,
         append_shadow_verification,
-        classify_component_paths,
+        classify_lattice_paths,
         shadow_verification_summary,
     )
 except ImportError:
     from shadow_report import (
         KFIND_PROFILES,
-        append_component_shadow_table,
+        append_structural_shadow_table,
         append_shadow_verification,
-        classify_component_paths,
+        classify_lattice_paths,
         shadow_verification_summary,
     )
 
@@ -927,7 +927,7 @@ def append_development_summary(
             f"{metrics['tp']} | {metrics['fp']} | {metrics['fn']} |"
         )
     append_development_failure_diagnostics(lines, development)
-    append_component_shadow_table(lines, development["shadow_verification"])
+    append_structural_shadow_table(lines, development["shadow_verification"])
 
 
 def append_development_failure_diagnostics(
@@ -1115,4 +1115,4 @@ def append_hard_negative_summary(
                 f"{metrics['hard_negative_precision_percent']}% | "
                 f"{metrics['fp']} | {metrics['tn']} |"
             )
-    append_component_shadow_table(lines, hard_negatives["shadow_verification"])
+    append_structural_shadow_table(lines, hard_negatives["shadow_verification"])

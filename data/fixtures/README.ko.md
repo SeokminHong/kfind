@@ -10,3 +10,8 @@
 - `corpus.nsmc.*`: [NSMC commit `cc0670e`](https://github.com/e9t/nsmc/tree/cc0670e872d4ac27bfe36c87456783004b39ef6c), CC0 1.0. `ratings_test.txt`에서 review id로 추출했다.
 
 문장은 원문의 띄어쓰기와 표기를 보존한다. `no-match` 항목은 `smart` 경계가 붙여 쓴 활용형이나 뉴스 제목의 연결 문자열을 부분 토큰으로 허용하지 않는지 검증한다.
+
+`walk_hang_stress.txt`는 직접 구성한 회귀 fixture다. 동형 동사 활용의
+합집합, 생산적 어미, 복합어 안의 서술어 명사형, 보조 용언 연결, 별도
+파생 표제어 제외를 함께 검증한다. `verify-gold`는 full resource에서
+`v:걷다` 97개, `v:걸다` 21개의 논리적 시작 위치를 요구한다.

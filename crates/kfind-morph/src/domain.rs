@@ -188,6 +188,13 @@ pub enum ContinuationState {
     Eu,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PredicateStemClass {
+    Vowel,
+    Consonant,
+    Rieul,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SurfaceOverride {
     pub surface: Box<str>,

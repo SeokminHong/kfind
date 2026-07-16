@@ -162,7 +162,7 @@ fn full_pos_preserves_productive_alternation_for_non_core_predicates() {
     }));
     let plan = compile_query("커스텀하다", &CompileOptions::default(), &analyzer).unwrap();
     let anchors = plan.atoms[0]
-        .branches
+        .programs
         .iter()
         .map(|branch| String::from_utf8_lossy(&branch.anchor))
         .collect::<BTreeSet<_>>();
@@ -231,7 +231,7 @@ fn dictionary_surfaces_preserve_inflection_and_derivation_boundaries() {
     let analyzer = LexiconQueryAnalyzer::new(Arc::new(lexicons));
 
     let inflection = compile_query("있다", &CompileOptions::default(), &analyzer).unwrap();
-    assert!(inflection.atoms[0].branches.iter().any(|branch| {
+    assert!(inflection.atoms[0].programs.iter().any(|branch| {
         branch.anchor.as_ref() == "있는".as_bytes()
             && branch.origins.iter().any(|origin| {
                 origin
@@ -244,7 +244,7 @@ fn dictionary_surfaces_preserve_inflection_and_derivation_boundaries() {
     let default_plan = compile_query("상관없다", &CompileOptions::default(), &analyzer).unwrap();
     assert!(
         default_plan.atoms[0]
-            .branches
+            .programs
             .iter()
             .all(|branch| branch.anchor.as_ref() != "상관없이".as_bytes())
     );
@@ -253,7 +253,7 @@ fn dictionary_surfaces_preserve_inflection_and_derivation_boundaries() {
         ..CompileOptions::default()
     };
     let derivation = compile_query("상관없다", &derivation_options, &analyzer).unwrap();
-    assert!(derivation.atoms[0].branches.iter().any(|branch| {
+    assert!(derivation.atoms[0].programs.iter().any(|branch| {
         branch.anchor.as_ref() == "상관없이".as_bytes()
             && branch.origins.iter().any(|origin| {
                 origin

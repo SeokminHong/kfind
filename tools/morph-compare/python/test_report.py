@@ -4,14 +4,14 @@ from report import (
     BACKENDS,
     KFIND_PROFILES,
     append_boundary_comparison,
-    append_component_shadow_table,
+    append_structural_shadow_table,
     append_component_startup,
     append_development_failure_diagnostics,
     append_external_baselines,
     append_human_untagged,
     append_product_workflows,
     append_product_use_cases,
-    classify_component_paths,
+    classify_lattice_paths,
     classify_primary_cause,
     kfind_profile_comparison,
     product_persona_comparison,
@@ -619,18 +619,16 @@ class ShadowVerificationTests(unittest.TestCase):
         by_case = {
             "none": {
                 "raw_anchor_hits": 0,
-                "verified_branch_hits": 0,
-                "exact_component_candidate_hits": 0,
-                "unique_component_windows": 0,
+                "verified_program_hits": 0,
+                "structural_candidate_hits": 0,
+                "unique_structural_windows": 0,
             },
             "component": {
                 "raw_anchor_hits": 2,
-                "verified_branch_hits": 2,
-                "exact_component_candidate_hits": 1,
-                "unique_component_windows": 1,
-                "component_projection_comparisons": 1,
-                "component_projection_mismatches": 0,
-                "component": [
+                "verified_program_hits": 2,
+                "structural_candidate_hits": 1,
+                "unique_structural_windows": 1,
+                "diagnostic_lattice": [
                     {"status": "evaluated", "decision": "accept"},
                 ],
             },
@@ -643,15 +641,11 @@ class ShadowVerificationTests(unittest.TestCase):
         summary = shadow_verification_summary(by_case, cases)
 
         self.assertEqual(2, summary["totals"]["raw_anchor_hits"])
-        self.assertEqual(1, summary["cases_with_component_candidates"])
-        self.assertEqual({"accept": 1}, summary["component_decisions"])
-        self.assertEqual({"accept": 1}, summary["component_cases_by_decision"])
+        self.assertEqual(1, summary["cases_with_structural_candidates"])
+        self.assertEqual({"accept": 1}, summary["lattice_decisions"])
+        self.assertEqual({"accept": 1}, summary["lattice_cases_by_decision"])
         self.assertEqual(
-            {"accept": 1}, summary["component_outcomes_by_class"]["positive"]
-        )
-        self.assertEqual(
-            {"comparisons": 1, "mismatches": 0},
-            summary["component_projection_equivalence"],
+            {"accept": 1}, summary["lattice_outcomes_by_class"]["positive"]
         )
         self.assertEqual(by_case, summary["by_case"])
 
@@ -675,7 +669,7 @@ class ShadowVerificationTests(unittest.TestCase):
         }
         by_case = {
             "accept": {
-                "component": [
+                "diagnostic_lattice": [
                     {
                         "decision": "accept",
                         "include_cost": 10,
@@ -705,7 +699,7 @@ class ShadowVerificationTests(unittest.TestCase):
                 ]
             },
             "reject": {
-                "component": [
+                "diagnostic_lattice": [
                     {
                         "decision": "reject",
                         "exclude_cost": 5,
@@ -727,7 +721,7 @@ class ShadowVerificationTests(unittest.TestCase):
             "reject": {"expected": True},
         }
 
-        classification = classify_component_paths(by_case, metadata)
+        classification = classify_lattice_paths(by_case, metadata)
 
         self.assertEqual(
             {"derivational-continuation": 1},
@@ -751,14 +745,14 @@ class ShadowVerificationTests(unittest.TestCase):
     def test_renders_component_case_decisions(self) -> None:
         shadow = {
             profile: {
-                "cases_with_component_candidates": 5,
-                "component_cases_by_decision": {"accept": 3, "reject": 2},
+                "cases_with_structural_candidates": 5,
+                "lattice_cases_by_decision": {"accept": 3, "reject": 2},
             }
             for profile in KFIND_PROFILES
         }
         lines: list[str] = []
 
-        append_component_shadow_table(lines, shadow)
+        append_structural_shadow_table(lines, shadow)
 
         self.assertIn("| kfind-embedded | 5 | 3 | 2 |", "\n".join(lines))
 

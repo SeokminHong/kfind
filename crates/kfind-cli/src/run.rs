@@ -12,7 +12,6 @@ use kfind_data::{
     parse_user_lexicon_toml,
 };
 use kfind_matcher::{MorphMatcher, MorphMatcherBuildError};
-use kfind_morph::LocalComponentEvaluator;
 use kfind_query::{
     CompileError, CompileOptionError, LexiconQueryAnalyzer, Lexicons, compile_query,
 };
@@ -130,8 +129,7 @@ where
     let plan = Arc::new(compile_query(query, &options, &analyzer).map_err(CliError::Compile)?);
     let matcher = if plan.requires_component_resource() {
         let resource = Arc::new(load_component_resource(args)?);
-        let evaluator = Arc::new(LocalComponentEvaluator::new(resource));
-        MorphMatcher::with_component_evaluator(Arc::clone(&plan), evaluator)
+        MorphMatcher::with_component_resource(Arc::clone(&plan), resource)
     } else {
         MorphMatcher::new(Arc::clone(&plan))
     }

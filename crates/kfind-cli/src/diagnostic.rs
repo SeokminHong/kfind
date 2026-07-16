@@ -135,10 +135,10 @@ fn write_compile_error(
             language.select("analysis count", "분석 수"),
             language.select("exceeds limit", "이 제한을 초과했습니다:")
         ),
-        CompileErrorKind::TooManyBranches { actual, limit } => write!(
+        CompileErrorKind::TooManyPrograms { actual, limit } => write!(
             formatter,
             "{} {actual} {} {limit}",
-            language.select("branch count", "branch 수"),
+            language.select("program count", "program 수"),
             language.select("exceeds limit", "이 제한을 초과했습니다:")
         ),
         CompileErrorKind::MatcherMemoryExceeded { estimated, limit } => write!(
@@ -153,9 +153,9 @@ fn write_compile_error(
             language.select("continuation depth", "continuation 깊이"),
             language.select("exceeds limit", "가 제한을 초과했습니다:")
         ),
-        CompileErrorKind::NoSearchableBranches => formatter.write_str(language.select(
-            "query has no searchable branches",
-            "쿼리에 검색 가능한 branch가 없습니다",
+        CompileErrorKind::NoSearchablePrograms => formatter.write_str(language.select(
+            "query has no searchable programs",
+            "쿼리에 검색 가능한 program이 없습니다",
         )),
         CompileErrorKind::InvalidCoreMapping => formatter.write_str(language.select(
             "morphology core mapping is not on a UTF-8 boundary",
@@ -285,7 +285,7 @@ fn write_matcher_error(
             formatter,
             "{} {atom_index} {}",
             language.select("query atom", "쿼리 atom"),
-            language.select("has no search branches", "에 검색 branch가 없습니다")
+            language.select("has no search programs", "에 검색 program이 없습니다")
         ),
         MorphMatcherBuildError::ComponentResourceRequired => formatter.write_str(language.select(
             "component resource is required for this query plan",
