@@ -424,6 +424,7 @@ struct TokenEvidence {
     adnominal_ends: Vec<usize>,
     has_complete_path: bool,
     numeric_spans: Box<[Range<usize>]>,
+    has_numeral_sequence: bool,
 }
 
 impl TokenEvidence {
@@ -444,6 +445,11 @@ impl TokenEvidence {
         text: &str,
         node_limit: usize,
     ) -> Result<Self, ConstraintUnavailable> {
+        let numeric_end = if NUMERIC {
+            text.bytes().take_while(u8::is_ascii_digit).count()
+        } else {
+            0
+        };
         let numeric_unit = if NUMERIC {
             numeric_unit_span(resource, text)
         } else {
@@ -477,9 +483,23 @@ impl TokenEvidence {
                 });
             }
         }
-        let forward = numeric_unit.as_ref().map_or_else(
+        let mixed_numeral_spans = if NUMERIC
+            && numeric_unit.is_none()
+            && edges
+                .iter()
+                .any(|edge| edge.span.start == numeric_end && edge.pos == "NR")
+        {
+            numeral_sequence_spans(text.len(), numeric_end, &edges, true)
+        } else {
+            Vec::new()
+        };
+        let numeric_prefix = numeric_unit
+            .as_ref()
+            .map(|unit| unit.start)
+            .or_else(|| (!mixed_numeral_spans.is_empty()).then_some(numeric_end));
+        let forward = numeric_prefix.map_or_else(
             || forward_positions(text.len(), &edges),
-            |unit| forward_positions_with_prefix(text.len(), &edges, unit.start),
+            |prefix_end| forward_positions_with_prefix(text.len(), &edges, prefix_end),
         );
         let complete = complete_edges(text.len(), &edges, &forward);
         let has_complete_path = forward[text.len()];
@@ -562,17 +582,21 @@ impl TokenEvidence {
                 }
             }
         }
-        let numeric_spans = if let Some(unit) = numeric_unit {
-            vec![unit].into_boxed_slice()
+        let (numeric_spans, has_numeral_sequence) = if let Some(unit) = numeric_unit {
+            (vec![unit].into_boxed_slice(), false)
+        } else if !mixed_numeral_spans.is_empty() {
+            (mixed_numeral_spans.into_boxed_slice(), true)
         } else if !NUMERIC
             && edges
                 .iter()
                 .take_while(|edge| edge.span.start == 0)
                 .any(|edge| edge.pos == "NR")
         {
-            hangul_numeral_spans(text.len(), &edges).into_boxed_slice()
+            let spans = hangul_numeral_spans(text.len(), &edges);
+            let has_numeral_sequence = !spans.is_empty();
+            (spans.into_boxed_slice(), has_numeral_sequence)
         } else {
-            Vec::new().into_boxed_slice()
+            (Vec::new().into_boxed_slice(), false)
         };
         units.sort_unstable_by_key(|unit| {
             (
@@ -593,6 +617,7 @@ impl TokenEvidence {
             adnominal_ends,
             has_complete_path,
             numeric_spans,
+            has_numeral_sequence,
         })
     }
 
@@ -700,20 +725,36 @@ fn numeral_path_state(index: usize) -> NumeralPathState {
     STATES[index]
 }
 
-fn complete_numeral_path_state(state: NumeralPathState) -> bool {
-    matches!(
-        state,
-        NumeralPathState::ManyNumerals
-            | NumeralPathState::Unit
-            | NumeralPathState::ManyNumeralParticles
-            | NumeralPathState::UnitParticles
-    )
+fn complete_numeral_path_state(state: NumeralPathState, require_unit: bool) -> bool {
+    if require_unit {
+        matches!(
+            state,
+            NumeralPathState::Unit | NumeralPathState::UnitParticles
+        )
+    } else {
+        matches!(
+            state,
+            NumeralPathState::ManyNumerals
+                | NumeralPathState::Unit
+                | NumeralPathState::ManyNumeralParticles
+                | NumeralPathState::UnitParticles
+        )
+    }
 }
 
 fn hangul_numeral_spans(text_len: usize, edges: &[Edge<'_>]) -> Vec<Range<usize>> {
+    numeral_sequence_spans(text_len, 0, edges, false)
+}
+
+fn numeral_sequence_spans(
+    text_len: usize,
+    sequence_start: usize,
+    edges: &[Edge<'_>],
+    require_unit: bool,
+) -> Vec<Range<usize>> {
     let mut forward = vec![[false; NUMERAL_PATH_STATE_COUNT]; text_len + 1];
-    forward[0][NumeralPathState::Start as usize] = true;
-    for start in 0..text_len {
+    forward[sequence_start][NumeralPathState::Start as usize] = true;
+    for start in sequence_start..text_len {
         for edge in edges.iter().filter(|edge| edge.span.start == start) {
             for state_index in 0..NUMERAL_PATH_STATE_COUNT {
                 if !forward[start][state_index] {
@@ -729,7 +770,7 @@ fn hangul_numeral_spans(text_len: usize, edges: &[Edge<'_>]) -> Vec<Range<usize>
 
     let mut backward = vec![[false; NUMERAL_PATH_STATE_COUNT]; text_len + 1];
     for (state_index, complete) in backward[text_len].iter_mut().enumerate() {
-        *complete = complete_numeral_path_state(numeral_path_state(state_index));
+        *complete = complete_numeral_path_state(numeral_path_state(state_index), require_unit);
     }
     for start in (0..text_len).rev() {
         for edge in edges.iter().filter(|edge| edge.span.start == start) {
@@ -856,7 +897,7 @@ enum StructureSelection {
     NumericUnit {
         unit: Range<usize>,
     },
-    HangulNumeralSequence {
+    NumeralSequence {
         fallback: Box<StructureSelection>,
     },
     RuntimeCompatible {
@@ -961,7 +1002,7 @@ impl StructureSelection {
                     && spans.core == *unit
                     && spans.consumed.end == spans.token.end
             }
-            Self::HangulNumeralSequence { fallback } => {
+            Self::NumeralSequence { fallback } => {
                 (pattern.fine_pos == DataFinePos::Nr
                     && evidence.numeric_spans.contains(&spans.core))
                     || fallback.accepts(support, spans, patterns, evidence)
@@ -1272,14 +1313,10 @@ fn select_structure(
     {
         return StructureSelection::DependentNoun;
     }
-    let hangul_numeral_sequence = evidence
-        .numeric_spans
-        .first()
-        .is_some_and(|span| span.start == 0);
     if let Some(first) = evidence
         .numeric_spans
         .first()
-        .filter(|_| !hangul_numeral_sequence)
+        .filter(|_| !evidence.has_numeral_sequence)
     {
         return StructureSelection::NumericUnit {
             unit: first.clone(),
@@ -1296,8 +1333,8 @@ fn select_structure(
             graph_nominal_host: complete_nominal_particle_host(resource, context.current),
         }
     };
-    if hangul_numeral_sequence {
-        StructureSelection::HangulNumeralSequence {
+    if evidence.has_numeral_sequence {
+        StructureSelection::NumeralSequence {
             fallback: Box::new(fallback),
         }
     } else {

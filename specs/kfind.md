@@ -434,6 +434,10 @@
   조사 연쇄로 끝나거나, `NR` 하나 이상 뒤 `NNB/NNBC`와 선택적 조사 연쇄로 끝날 때만 별도
   typed 구조로 사용한다. 이 경로는 정렬된 `NR` span과 같은 수사 pattern만 지원하며 중간이나
   끝의 일반 명사, unknown node와 불완전한 나머지를 허용하지 않는다.
+- ASCII 숫자 뒤의 한글 수사 연쇄는 `NR` 하나 이상과 `NNB/NNBC` 단위가 차례로 이어지고
+  나머지가 없거나 완성된 조사 연쇄일 때만 별도 typed 구조로 사용한다. 이 경로는 정렬된
+  `NR` span과 같은 수사 pattern만 지원한다. `NR` 없이 시작하는 단위, 끝의 일반 명사·고유
+  명사, unknown node와 불완전한 나머지는 허용하지 않는다.
 - CLI의 기본 boundary는 `smart`다. resource를 필요로 선언한 program이 있으면
   compact artifact를 한 번 검증하고, 누락·손상·schema·source mismatch를 초기화
   오류로 보고한다. 기존 boundary 판정으로 fallback하지 않는다.

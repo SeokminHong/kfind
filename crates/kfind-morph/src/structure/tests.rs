@@ -420,6 +420,53 @@ fn hangul_numeral_sequences_support_only_aligned_numerals() {
 }
 
 #[test]
+fn ascii_prefixed_numeral_sequences_require_a_dependent_unit() {
+    let resolver = resolver();
+    let cases = [
+        ("5천톤의", "5".len().."5천".len(), "천"),
+        ("6백미터", "6".len().."6백".len(), "백"),
+    ];
+
+    for (text, core, query) in cases {
+        let decision = resolver.resolve_candidate(
+            BoundedTokenContext::current(text),
+            CandidateSpans {
+                anchor: core.clone(),
+                core: core.clone(),
+                consumed: core,
+                token: 0..text.len(),
+            },
+            &[component_pattern(DataFinePos::Nr, query)],
+            128,
+        );
+        assert_eq!(decision.outcome, ConstraintOutcome::Supported, "{text}");
+    }
+
+    for text in ["3천사", "197명사", "5천톤사"] {
+        let mut edges = Vec::new();
+        for start in text.char_indices().map(|(offset, _)| offset) {
+            resolver.resource().common_prefix_groups(
+                &text.as_bytes()[start..],
+                |length, analyses| {
+                    for analysis in analyses {
+                        edges.push(Edge {
+                            span: start..start + length,
+                            pos: analysis.pos,
+                            components: analysis.components,
+                        });
+                    }
+                },
+            );
+        }
+        let numeric_end = text.bytes().take_while(u8::is_ascii_digit).count();
+        assert!(
+            numeral_sequence_spans(text.len(), numeric_end, &edges, true).is_empty(),
+            "{text}"
+        );
+    }
+}
+
+#[test]
 fn hangul_numeral_sequences_reject_an_ordinary_noun_tail() {
     let resolver = resolver();
     for text in ["백명사전", "일월산맥길"] {
@@ -760,6 +807,8 @@ fn resolver() -> ConstraintResolver {
         atomic("만", "NR"),
         atomic("천", "NR"),
         atomic("명", "NNBC"),
+        atomic("톤", "NNBC"),
+        atomic("미터", "NNBC"),
         atomic("의", "JKG"),
         atomic("조", "NNG"),
         atomic("족", "NNG"),
