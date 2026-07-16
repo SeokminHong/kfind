@@ -678,14 +678,21 @@ impl MorphMatcher {
         else {
             return false;
         };
+        let declarative_adnominal = trailing.nfc().eq("는".chars())
+            && haystack
+                .get(candidate.consumed.clone())
+                .and_then(|bytes| std::str::from_utf8(bytes).ok())
+                .and_then(|consumed| consumed.nfc().last())
+                == Some('다');
         let valid_position = if pos == kfind_morph::PredicatePos::Copula {
             candidate.verified.core.start > whole.start
         } else {
-            continuation != kfind_morph::ContinuationState::Terminal
+            (continuation != kfind_morph::ContinuationState::Terminal || declarative_adnominal)
                 && candidate.verified.core.start == whole.start
         };
         if !valid_position
             || (pos != kfind_morph::PredicatePos::Copula
+                && !declarative_adnominal
                 && self
                     .particle_verifier
                     .model()
