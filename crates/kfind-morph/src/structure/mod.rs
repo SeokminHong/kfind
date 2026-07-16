@@ -988,9 +988,10 @@ fn select_structure(
     {
         return StructureSelection::RepeatedAdverb;
     }
-    let next_starts_nominal = context
-        .next
-        .is_some_and(|next| starts_with_pos(resource, next, |pos| pos.starts_with('N')));
+    let next_starts_nominal = context.next.is_some_and(|next| {
+        exact_analysis_starts_with_pos(resource, next, |pos| pos.starts_with('N'))
+            || nominal_particle_host(resource, next).is_some_and(|host| host.exact)
+    });
     let particle_host = nominal_particle_host(resource, context.current).filter(|host| {
         host.exact || !evidence.has_preferred_whole_token_structure(context.current.len())
     });

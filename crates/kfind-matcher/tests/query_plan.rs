@@ -133,6 +133,13 @@ fn adjacent_nominal_layout_selects_pos_without_semantic_disambiguation() {
             ..CompileOptions::default()
         },
     );
+    let adverb = compile_with_full_pos(
+        "너무",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Adverb),
+            ..CompileOptions::default()
+        },
+    );
 
     assert!(noun.find_at_with_meta("새 기능".as_bytes(), 0).is_none());
     assert!(
@@ -153,6 +160,11 @@ fn adjacent_nominal_layout_selects_pos_without_semantic_disambiguation() {
     assert!(
         particle_host
             .find_at_with_meta("학교에서 새 문서".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        adverb
+            .find_at_with_meta("너무 빨라도".as_bytes(), 0)
             .is_some()
     );
 }
@@ -729,6 +741,10 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("명사", "NNG"),
             component_entry("복합명사", "NNG"),
             component_entry("를", "JKO"),
+            component_entry("너무", "MAG"),
+            component_entry("너무", "NNG"),
+            component_entry("빨", "NNG"),
+            component_entry("빨라도", "VA+EC"),
             component_entry("주", "VV"),
             component_entry("지", "EC"),
             component_entry("주지", "NNG"),
