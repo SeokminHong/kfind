@@ -3,6 +3,7 @@ from __future__ import annotations
 import tempfile
 import unittest
 import zipfile
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from unittest.mock import patch
 
@@ -15,6 +16,7 @@ from nikl_import import (
     opendict_record,
     stdict_record,
 )
+from nikl_endings import ending_categories, krdict_endings, normalize_ending, stdict_endings
 
 
 class NiklImportTest(unittest.TestCase):
@@ -128,6 +130,25 @@ class NiklImportTest(unittest.TestCase):
         }
 
         self.assertEqual(krdict_related_adverbs(entries), {"1": ("상관없이",)})
+
+    def test_extracts_and_classifies_ending_headwords(self) -> None:
+        krdict = ET.fromstring(
+            """<LexicalEntry val="1"><feat att="partOfSpeech" val="어미"/>
+            <Lemma><feat att="writtenForm" val="-더니"/></Lemma>
+            <Sense><feat att="definition" val="회상을 나타내는 연결 어미."/></Sense>
+            </LexicalEntry>"""
+        )
+        stdict = ET.fromstring(
+            """<item><target_code>2</target_code><word_info><word>-더니</word>
+            <pos_info><pos_code>3</pos_code><pos>어미</pos><comm_pattern_info>
+            <sense_info><definition>회상을 나타내는 연결 어미.</definition></sense_info>
+            </comm_pattern_info></pos_info></word_info></item>"""
+        )
+
+        self.assertEqual(normalize_ending(" -으시- "), ("-으시-", "으시"))
+        self.assertEqual(ending_categories(["명사형 전성 어미."]), ("nominalizer",))
+        self.assertEqual(krdict_endings(krdict)[0].surface, "더니")
+        self.assertEqual(stdict_endings(stdict)[0].source_id, "2:3")
 
     def import_fixture(
         self,
