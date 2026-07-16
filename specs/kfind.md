@@ -351,6 +351,11 @@
 - 체언 core가 조사 없는 token 전체와 정확히 같은 경우에는 token 경계 자체를 완성된 체언
   구조 근거로 사용한다. Source whole 분석이 없다는 이유만으로 이 경로를 거부하지 않으며,
   core와 token 경계가 다르거나 조사·다른 문자를 소비했으면 이 근거를 사용하지 않는다.
+- 체언 core가 token 왼쪽 경계부터 graph로 조합한 완성 체언 host 전체와 정확히 같고,
+  이어지는 조사 연쇄를 token 끝까지 소비하면 source whole 분석이나 host 전체를 덮는 단일
+  edge가 없어도 체언 core를 유지한다. `대영제국의`, `캠브리지는`처럼 host 내부가 여러 명사
+  edge로만 구성된 경우를 복구하며, host의 내부 substring이나 crossing span은 이 근거로
+  열지 않는다.
 - `ConstraintResolver`는 query pattern의 structural signature가 선택된 corpus 구조와
   일치하면 `Supported`, 다른 구조가 유일하게 선택되면 `Contradicted`, resource 오류나
   상한 초과는 `Unavailable`로 반환한다.

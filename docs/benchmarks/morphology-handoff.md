@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [분해된 체언 host recall](2026-07-17-graph-nominal-host-recall.md)
 - [지정사 앞 체언 recall](2026-07-17-nominal-copula-host-recall.md)
 - [anchor automaton 선구축 병목 제거](2026-07-17-lazy-anchor-automaton-performance.md)
 - [결합형 보조용언 recall](2026-07-17-attached-auxiliary-recall.md)
@@ -188,3 +189,17 @@ contract 정의, annotation과 gate는 변경하지 않았다.
 붙여쓰기이고 `이다`는 무표면 축약 2건과 비표준 표기 1건이며, `오다`는 원인이 서로 다르다.
 다음 제품 recall 작업은 남은 standard-form FN을 cause별로 다시 묶어 공통 구조가 가장 큰
 slice를 고른다. 비표준 입력은 canonical 규칙에 합치지 않는다.
+
+[분해된 체언 host recall](2026-07-17-graph-nominal-host-recall.md)에서 token 왼쪽 경계부터
+여러 명사 edge로 조합한 체언 host 전체와 query core가 정확히 같고 조사 연쇄를 token 끝까지
+소비한 경우를 runtime support로 승격했다. Canonical embedded·full-POS·Human은
+`포터소만과`·`캔맥주와`·`대영제국의` 3건을 회수해 `PNᶜ=500`에서 FNᶜ가 각각
+58→55, 18→15, 22→19다. Matrix embedded·full-POS·Human은 6건을 회수해
+`PNᶜ=1,401`에서 FNᶜ가 각각 149→143, 72→66, 71→65다. FP·FPᶜ와 hard-negative 결과는
+변하지 않았다. 후보 Agent는 26,868.0 cases/s로 Lindera snapshot보다 29.01% 빠르며 모든
+성능 변화는 10% 경고선 안이다. Matrix contract 정의, annotation과 gate는 변경하지 않았다.
+
+남은 가장 큰 동일 질의 묶음은 각 3건인 부사 `안`, 동사 `오다`, 형용사 `이다`다. `안`과
+`이다`의 6건은 비표준 붙여쓰기·축약·표기다. 다음 제품 recall 작업은 `누구→누가`,
+`위하다→위해서는`, `오다→온지를`, `어떻다→어떤가`를 matrix의 동일 원인 case와 묶어
+가장 큰 typed standard-form 구조부터 연다.

@@ -352,6 +352,39 @@ fn exact_nominal_token_survives_a_graph_only_decomposition() {
 }
 
 #[test]
+fn complete_graph_nominal_host_consumes_its_particle() {
+    let resolver = resolver();
+    let host = 0.."선거운동".len();
+    let pattern = nominal_pattern(DataFinePos::Nng, "선거운동");
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("선거운동과"),
+        CandidateSpans {
+            core: host.clone(),
+            anchor: host.clone(),
+            consumed: 0.."선거운동과".len(),
+            token: 0.."선거운동과".len(),
+        },
+        std::slice::from_ref(&pattern),
+        128,
+    );
+    let incomplete = resolver.resolve_candidate(
+        BoundedTokenContext::current("선거운동과"),
+        CandidateSpans {
+            core: host.clone(),
+            anchor: host.clone(),
+            consumed: host,
+            token: 0.."선거운동과".len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+    assert_eq!(incomplete.outcome, ConstraintOutcome::Contradicted);
+}
+
+#[test]
 fn graph_only_nominal_token_still_rejects_an_internal_substring() {
     let resolver = resolver();
     let pattern = QueryMorphPattern::new(DataFinePos::Nng, "거운동").with_candidate_contract(

@@ -441,7 +441,12 @@ impl PreparedStructuralContext {
         {
             return ConstraintDecision::unavailable(ConstraintUnavailable::InvalidSpans);
         }
-        let raw = collect_pattern_supports(&self.evidence, &spans, patterns);
+        let raw = collect_pattern_supports(
+            &self.evidence,
+            &spans,
+            patterns,
+            self.selection.graph_nominal_host(),
+        );
         if raw.is_empty() {
             return ConstraintDecision {
                 outcome: ConstraintOutcome::Contradicted,
@@ -1104,6 +1109,7 @@ fn collect_pattern_supports(
     evidence: &TokenEvidence,
     spans: &CandidateSpans,
     patterns: &[QueryMorphPattern],
+    graph_nominal_host: Option<&Range<usize>>,
 ) -> Vec<ConstraintSupport> {
     let mut supports = Vec::new();
     for (pattern_index, pattern) in patterns.iter().enumerate() {
@@ -1142,6 +1148,10 @@ fn collect_pattern_supports(
             && pattern.component_capability.allows_runtime()
             && (evidence.runtime_spans.contains(&spans.core)
                 || (pattern.fine_pos.is_nominal() && evidence.has_nominal_copula_host(&spans.core))
+                || (pattern.fine_pos.is_nominal()
+                    && graph_nominal_host == Some(&spans.core)
+                    && spans.consumed == spans.token
+                    && matches!(pattern.continuation, MorphContinuation::NominalParticles))
                 || (spans.core == spans.token
                     && matches!(pattern.continuation, MorphContinuation::NominalParticles))
                 || (spans.core.start == spans.token.start
@@ -1189,6 +1199,14 @@ enum StructureSelection {
 }
 
 impl StructureSelection {
+    fn graph_nominal_host(&self) -> Option<&Range<usize>> {
+        match self {
+            Self::RuntimeCompatible { graph_nominal_host } => graph_nominal_host.as_ref(),
+            Self::NumeralSequence { fallback } => fallback.graph_nominal_host(),
+            _ => None,
+        }
+    }
+
     fn accepts(
         &self,
         support: &ConstraintSupport,
