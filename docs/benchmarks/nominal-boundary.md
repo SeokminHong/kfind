@@ -54,6 +54,8 @@ cost artifact 72,164,646 bytes의 51.42%다.
 ## 검증 계약
 
 - 구조적 positive와 component-crossing·잘못된 조사 host negative를 같은 fixture에서 평가한다.
+- 조사 host 내부의 multi-syllable query도 source 분석에 정확히 정렬된 component span일 때만
+  허용한다. 여러 source component 경계를 가로지르는 runtime substring은 거부한다.
 - 위의 `매일` 두 문장을 exact regression case로 유지한다.
 - 걷/걸다처럼 구조가 같은 의미 후보의 합집합을 보존한다.
 - compact structural projection과 full source artifact의 exact/common-prefix POS·component span이

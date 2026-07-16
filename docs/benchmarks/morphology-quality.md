@@ -2,8 +2,8 @@
 
 ## 품질 게이트
 
-명시적 품사 `smart` 품질 변경은 dev precision 99.00% 이상과 revised hard-negative 신규 FP 0을
-유지하면서 FN을 늘리지 않아야 한다. FN이 줄어든 후보를 우선하고, FN이 같을 때만 FP가 줄어든
+명시적 품사 `smart` 품질 변경은 dev strict precision 99.00% 이상과 revised hard-negative
+신규 contract FP 0을 유지하면서 FN을 늘리지 않아야 한다. FN이 줄어든 후보를 우선하고, FN이 같을 때만 FP가 줄어든
 후보를 선택한다. 무품사 결과는 제품 한계와 회귀를 그대로 관측하며 목표 수치에 맞춰 fixture,
 gold 또는 negative 선택을 바꾸지 않는다.
 
@@ -11,6 +11,12 @@ gold 또는 negative 선택을 바꾸지 않는다.
 않는다. 같은 structural signature를 가진 동음이의어·동형이의어 match는 의미가
 다르다는 이유로 false positive로 분류하지 않는다. whole/component 분해, 품사 또는
 인접 성분 배치로 구분 가능한 경우에는 선택되지 않은 구조의 match를 오답으로 계산한다.
+
+보고서의 기본 TP·FP·TN·FN은 corpus gold를 그대로 적용한 strict 지표다. 별도의
+`contract_adjusted` 지표는 버전 관리 fixture에 제품 실행 전에 선언한 `contract_expected`만
+적용한다. 같은 품사의 동형 활용은 `same-pos-homograph`, source에 정렬된 내부 성분 검색은
+`aligned-source-component`로 근거를 제한한다. 결과 표의 TPᶜ·FPᶜ·TNᶜ·FNᶜ는 각각
+`contract_tp`·`contract_fp`·`contract_tn`·`contract_fn`이며 strict 지표를 대체하지 않는다.
 
 현재 제품 기준선:
 
