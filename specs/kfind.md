@@ -367,7 +367,9 @@
   추가하지 않는다.
 - exact component 근거는 완전한 graph path에서 query와 같은 세부 품사 node의 span이
   query core와 정확히 일치할 때만 성립한다. 더 큰 node의 substring이나 여러 component
-  경계를 가로지르는 span은 근거가 아니다.
+  경계를 가로지르는 span은 근거가 아니다. source가 component 분해를 선언한 nominal
+  span에서는 그 source 경계를 넘는 runtime component를 거부한다. source 분해가 없는
+  nominal span에서는 완전한 runtime graph node를 component 근거로 사용할 수 있다.
 - 제품 graph는 source 분석 비용을 읽거나 보존하지 않는다. 비용·연결 행렬·미등록어
   모델은 별도 full morphology 진단 artifact에서 과거 판정과 결과를 비교할 때만 사용한다.
   include/exclude 비용 마진, query별 threshold와 결과별 fallback을 제품 판정에 사용하지 않는다.
