@@ -373,6 +373,11 @@ query	pos	text	expected	feature
 이다	copula	학생일 때 많이 배웠다.	match	copula
 이다	copula	문제는 시간이었다.	match	copula
 이다	copula	그는 학생이고 친구는 교사다.	match	copula
+이다	copula	그는 학생이라고 말했다.	match	copula
+이다	copula	학생이라는 사실을 확인했다.	match	copula
+이다	copula	그는 학생이지 교사는 아니다.	match	copula
+이다	copula	그는 학생이며 개발자다.	match	copula
+이다	copula	이지가 먼저 도착했다.	no-match	copula
 이다	copula	그는 학생이여서 참석했다.	no-match	copula
 사용자	noun	사용자가 설정을 바꾸었다.	match	particle-final-pair
 사용자	noun	사용자를 목록에 추가했다.	match	particle-final-pair

@@ -64,7 +64,7 @@ ending_ids = ["ending.concessive-deorado", "ending.aoeo", "ending.aoeo-seo", "en
 id = "lexical.copula"
 kind = "Copula"
 flags = []
-ending_ids = ["ending.connective-go", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.connective-eudoe", "ending.present-adnominal", "ending.past-adnominal", "ending.future-adnominal", "ending.polite-declarative", "ending.nominalizer", "ending.nominalizer-gi"]
+ending_ids = ["ending.connective-go", "ending.connective-ji", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.connective-eudoe", "ending.present-adnominal", "ending.past-adnominal", "ending.future-adnominal", "ending.coordinate-myeo", "ending.polite-declarative", "ending.copula-quotative-go", "ending.copula-quotative-adnominal", "ending.nominalizer", "ending.nominalizer-gi"]
 
 [[alternation]]
 id = "lexical.suppletive"
