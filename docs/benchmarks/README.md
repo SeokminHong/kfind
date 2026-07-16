@@ -145,8 +145,9 @@ gold 또는 negative 선택을 바꾸지 않는다.
 정렬된 존재 질의를 최대 3개로 늘리고, 각 positive와 같은 품사의 부재 질의를 같은 문장에
 대응시킨다. 명시적 품사 matrix는 kfind와 외부 분석기 4종, 별도 무품사 matrix는 kfind의
 사람용 profile을 측정한다. 질의별 품질·성능과 문장별 모든 질의 회수율을 함께 기록하며,
-recall 95% 구간은 문장 group 단위 cluster bootstrap으로 계산한다. 이 결과는 canonical
-회귀선과 합치거나 대체하지 않는다.
+strict와 contract-adjusted 기대값을 각각 적용한 confusion matrix와 문장 회수율을 병렬로
+보존한다. 두 recall의 95% 구간은 문장 group 단위 cluster bootstrap으로 계산한다. 이 결과는
+canonical 회귀선과 합치거나 대체하지 않는다.
 명시적 품사 `smart` 변경은 고정 development에서 FN을 우선 줄이고 precision 99.00% 하한과
 hard-negative 신규 contract FP 0을 지킨다. FN이 같은 후보끼리만 FP를 비교한다.
 보고서는 기존 corpus-gold TP·FP·TN·FN과 precision·recall·F1을 그대로 보존하고, 수동 검토한

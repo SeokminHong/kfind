@@ -108,8 +108,16 @@ def product_workflows(
     }
     if "sentence_coverage" in agent:
         workflows["agent"]["sentence_coverage"] = agent["sentence_coverage"]
+    if "contract_adjusted_sentence_coverage" in agent:
+        workflows["agent"]["contract_adjusted_sentence_coverage"] = agent[
+            "contract_adjusted_sentence_coverage"
+        ]
     if "sentence_coverage" in human:
         workflows["human"]["sentence_coverage"] = human["sentence_coverage"]
+    if "contract_adjusted_sentence_coverage" in human:
+        workflows["human"]["contract_adjusted_sentence_coverage"] = human[
+            "contract_adjusted_sentence_coverage"
+        ]
     return workflows
 
 
@@ -232,6 +240,9 @@ def build_report(
         if all("matrix_slot" in case for case in cases):
             backend_quality["by_matrix_slot"] = grouped_quality(
                 cases, predictions[backend], "matrix_slot"
+            )
+            backend_quality["contract_adjusted"]["by_matrix_slot"] = (
+                grouped_contract_quality(cases, predictions[backend], "matrix_slot")
             )
         quality[backend] = backend_quality
     failures = []
@@ -462,6 +473,29 @@ def append_query_matrix(
     lines.extend(
         [
             "",
+            "### Explicit-POS contract-adjusted quality and sentence coverage",
+            "",
+            "| backend | contract precision | contract recall | contract F1 | TPᶜ | FPᶜ | TNᶜ | FNᶜ | all contract queries | cluster 95% CI | reclassified |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for backend in explicit["backends"]:
+        quality = explicit["quality"][backend]["contract_adjusted"]["overall"]
+        coverage = explicit["contract_adjusted_sentence_coverage"][backend]
+        interval = coverage["recall_sentence_cluster_bootstrap_95_percent"]
+        lines.append(
+            f"| {backend} | {quality['contract_precision_percent']}% | "
+            f"{quality['contract_recall_percent']}% | "
+            f"{quality['contract_f1_percent']}% | "
+            f"{quality['contract_tp']} | {quality['contract_fp']} | "
+            f"{quality['contract_tn']} | {quality['contract_fn']} | "
+            f"{coverage['all_present_queries_recovered_percent']}% | "
+            f"{interval[0]}%–{interval[1]}% | "
+            f"{quality['reclassified_cases']} |"
+        )
+    lines.extend(
+        [
+            "",
             "### Query-matrix product workflows",
             "",
             "| workflow | precision | recall | F1 | FP | all queries | cases/s | p95 | RSS |",
@@ -482,6 +516,28 @@ def append_query_matrix(
             f"{performance['latency_p95_ms']:.4f} ms | "
             f"{performance['peak_rss_kib'] / 1024:.1f} MiB |"
         )
+    lines.extend(
+        [
+            "",
+            "### Query-matrix contract-adjusted product workflows",
+            "",
+            "| workflow | contract precision | contract recall | contract F1 | TPᶜ | FPᶜ | TNᶜ | FNᶜ | all contract queries | reclassified |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for workflow_name in ("agent", "human"):
+        workflow = query_matrix["product_workflows"][workflow_name]
+        quality = workflow["contract_adjusted_quality"]
+        coverage = workflow["contract_adjusted_sentence_coverage"]
+        lines.append(
+            f"| {workflow_name} | {quality['contract_precision_percent']}% | "
+            f"{quality['contract_recall_percent']}% | "
+            f"{quality['contract_f1_percent']}% | "
+            f"{quality['contract_tp']} | {quality['contract_fp']} | "
+            f"{quality['contract_tn']} | {quality['contract_fn']} | "
+            f"{coverage['all_present_queries_recovered_percent']}% | "
+            f"{quality['reclassified_cases']} |"
+        )
     development = query_matrix.get("development")
     if development is not None:
         lines.extend(
@@ -500,6 +556,27 @@ def append_query_matrix(
                 f"| {backend} | {quality['precision_percent']}% | "
                 f"{quality['recall_percent']}% | {quality['f1_percent']}% | "
                 f"{coverage['all_present_queries_recovered_percent']}% |"
+            )
+        lines.extend(
+            [
+                "",
+                "| backend | contract precision | contract recall | contract F1 | TPᶜ | FPᶜ | TNᶜ | FNᶜ | all contract queries | reclassified |",
+                "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+            ]
+        )
+        for backend in development["backends"]:
+            quality = development["quality"][backend]["contract_adjusted"][
+                "overall"
+            ]
+            coverage = development["contract_adjusted_sentence_coverage"][backend]
+            lines.append(
+                f"| {backend} | {quality['contract_precision_percent']}% | "
+                f"{quality['contract_recall_percent']}% | "
+                f"{quality['contract_f1_percent']}% | "
+                f"{quality['contract_tp']} | {quality['contract_fp']} | "
+                f"{quality['contract_tn']} | {quality['contract_fn']} | "
+                f"{coverage['all_present_queries_recovered_percent']}% | "
+                f"{quality['reclassified_cases']} |"
             )
 
 

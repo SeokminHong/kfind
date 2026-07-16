@@ -13,6 +13,7 @@ from report import (
     append_product_workflows,
     append_product_use_cases,
     append_query_matrix,
+    build_report,
     classify_lattice_paths,
     classify_primary_cause,
     kfind_profile_comparison,
@@ -507,6 +508,10 @@ class ProductWorkflowTests(unittest.TestCase):
                 "fp": 20,
             },
             "contract_adjusted_quality": {"contract_precision_percent": 80.0},
+            "sentence_coverage": {"all_present_queries_recovered_percent": 70.0},
+            "contract_adjusted_sentence_coverage": {
+                "all_present_queries_recovered_percent": 65.0
+            },
             "performance": {"cases_per_second": 5000.0},
         }
         human = {
@@ -517,6 +522,10 @@ class ProductWorkflowTests(unittest.TestCase):
                 "fp": 5,
             },
             "contract_adjusted_quality": {"contract_precision_percent": 95.0},
+            "sentence_coverage": {"all_present_queries_recovered_percent": 80.0},
+            "contract_adjusted_sentence_coverage": {
+                "all_present_queries_recovered_percent": 75.0
+            },
             "performance": {"cases_per_second": 1000.0},
         }
         plan = {"expected_pos_present_percent": 92.0}
@@ -541,6 +550,10 @@ class ProductWorkflowTests(unittest.TestCase):
         self.assertIs(
             agent["contract_adjusted_quality"],
             workflows["agent"]["contract_adjusted_quality"],
+        )
+        self.assertIs(
+            agent["contract_adjusted_sentence_coverage"],
+            workflows["agent"]["contract_adjusted_sentence_coverage"],
         )
         self.assertEqual("untagged", workflows["human"]["input"])
         self.assertIs(human["quality"], workflows["human"]["quality"])
@@ -659,6 +672,63 @@ class ProductWorkflowTests(unittest.TestCase):
 
 
 class QueryMatrixReportTests(unittest.TestCase):
+    def test_groups_strict_and_contract_quality_by_matrix_slot(self) -> None:
+        cases = [
+            {
+                "id": "present",
+                "source": "sample",
+                "pos": "noun",
+                "expected": True,
+                "matrix_slot": "present-1",
+            },
+            {
+                "id": "absent",
+                "source": "sample",
+                "pos": "noun",
+                "expected": False,
+                "contract_expected": True,
+                "contract_reason": "same-pos-homograph",
+                "matrix_slot": "absent-1",
+            },
+        ]
+        predictions = {
+            profile: {"present": True, "absent": True} for profile in KFIND_PROFILES
+        }
+        matches = {
+            profile: {"present": [], "absent": []} for profile in KFIND_PROFILES
+        }
+        empty_counters = {
+            "raw_anchor_hits": 0,
+            "verified_program_hits": 0,
+            "structural_candidate_hits": 0,
+            "unique_structural_windows": 0,
+        }
+        report = build_report(
+            cases,
+            {"fixture_sha256": "fixture"},
+            {profile: {} for profile in KFIND_PROFILES},
+            predictions,
+            matches,
+            {},
+            {
+                profile: {case["id"]: None for case in cases}
+                for profile in KFIND_PROFILES
+            },
+            {
+                profile: {case["id"]: empty_counters for case in cases}
+                for profile in KFIND_PROFILES
+            },
+        )
+
+        quality = report["quality"]["kfind-embedded"]
+        self.assertEqual(1, quality["by_matrix_slot"]["absent-1"]["fp"])
+        self.assertEqual(
+            1,
+            quality["contract_adjusted"]["by_matrix_slot"]["absent-1"][
+                "contract_tp"
+            ],
+        )
+
     def test_renders_query_and_sentence_level_metrics_separately(self) -> None:
         quality = {
             "precision_percent": 99.0,
@@ -672,6 +742,20 @@ class QueryMatrixReportTests(unittest.TestCase):
         coverage = {
             "all_present_queries_recovered_percent": 75.0,
             "recall_sentence_cluster_bootstrap_95_percent": [84.0, 94.0],
+        }
+        contract_quality = {
+            "contract_precision_percent": 99.5,
+            "contract_recall_percent": 91.0,
+            "contract_f1_percent": 95.06,
+            "contract_tp": 91,
+            "contract_fp": 1,
+            "contract_tn": 98,
+            "contract_fn": 9,
+            "reclassified_cases": 1,
+        }
+        contract_coverage = {
+            "all_present_queries_recovered_percent": 72.5,
+            "recall_sentence_cluster_bootstrap_95_percent": [85.0, 95.0],
         }
         performance = {
             "cases_per_second": 1000.0,
@@ -689,15 +773,25 @@ class QueryMatrixReportTests(unittest.TestCase):
                 "canonical_positive_cases": 30,
             },
             "backends": ["kfind-embedded"],
-            "quality": {"kfind-embedded": {"overall": quality}},
+            "quality": {
+                "kfind-embedded": {
+                    "overall": quality,
+                    "contract_adjusted": {"overall": contract_quality},
+                }
+            },
             "sentence_coverage": {"kfind-embedded": coverage},
+            "contract_adjusted_sentence_coverage": {
+                "kfind-embedded": contract_coverage
+            },
         }
         report = {
             "explicit_pos": explicit,
             "product_workflows": {
                 name: {
                     "quality": quality,
+                    "contract_adjusted_quality": contract_quality,
                     "sentence_coverage": coverage,
+                    "contract_adjusted_sentence_coverage": contract_coverage,
                     "performance": performance,
                 }
                 for name in ("agent", "human")
@@ -712,7 +806,12 @@ class QueryMatrixReportTests(unittest.TestCase):
         self.assertIn("## Query matrix", rendered)
         self.assertIn("100 same-sentence negative", rendered)
         self.assertIn("| kfind-embedded | 99.0% | 90.0% |", rendered)
+        self.assertIn(
+            "| kfind-embedded | 99.5% | 91.0% | 95.06% | 91 | 1 | 98 | 9 | 72.5% |",
+            rendered,
+        )
         self.assertIn("| agent | 99.0% | 90.0% |", rendered)
+        self.assertIn("| agent | 99.5% | 91.0% | 95.06% |", rendered)
 
 
 class ShadowVerificationTests(unittest.TestCase):
