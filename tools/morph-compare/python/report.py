@@ -5,6 +5,23 @@ import platform
 from collections import defaultdict
 
 try:
+    from .quality import (
+        contract_expected,
+        contract_quality_metrics,
+        grouped_contract_quality,
+        grouped_quality,
+        quality_metrics,
+    )
+except ImportError:
+    from quality import (
+        contract_expected,
+        contract_quality_metrics,
+        grouped_contract_quality,
+        grouped_quality,
+        quality_metrics,
+    )
+
+try:
     from .shadow_report import (
         KFIND_PROFILES,
         append_structural_shadow_table,
@@ -24,51 +41,6 @@ except ImportError:
 BACKENDS = (*KFIND_PROFILES, "kiwi", "lindera")
 CONNECTIVE_JI_PATH = ("ending.connective-ji",)
 STRICT_SUBSPAN_POSITIONS = ("left-edge", "right-edge", "internal")
-
-
-def quality_metrics(
-    cases: list[dict[str, object]], predictions: dict[str, bool]
-) -> dict[str, object]:
-    tp = fp = tn = fn = 0
-    for case in cases:
-        expected = bool(case["expected"])
-        predicted = predictions[case["id"]]
-        if expected and predicted:
-            tp += 1
-        elif expected:
-            fn += 1
-        elif predicted:
-            fp += 1
-        else:
-            tn += 1
-    precision = tp / (tp + fp) if tp + fp else 0.0
-    recall = tp / (tp + fn) if tp + fn else 0.0
-    negative_precision = tn / (tn + fp) if tn + fp else 0.0
-    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
-    return {
-        "cases": len(cases),
-        "tp": tp,
-        "fp": fp,
-        "tn": tn,
-        "fn": fn,
-        "accuracy_percent": round(100 * (tp + tn) / len(cases), 2),
-        "precision_percent": round(100 * precision, 2),
-        "hard_negative_precision_percent": round(100 * negative_precision, 2),
-        "recall_percent": round(100 * recall, 2),
-        "f1_percent": round(100 * f1, 2),
-    }
-
-
-def grouped_quality(
-    cases: list[dict[str, object]], predictions: dict[str, bool], key: str
-) -> dict[str, dict[str, object]]:
-    groups: dict[str, list[dict[str, object]]] = defaultdict(list)
-    for case in cases:
-        groups[str(case[key])].append(case)
-    return {
-        name: quality_metrics(group_cases, predictions)
-        for name, group_cases in sorted(groups.items())
-    }
 
 
 def untagged_plan_metrics(
@@ -111,6 +83,7 @@ def product_workflows(
             "lexicon": "embedded",
             "boundary": "any",
             "quality": agent["quality"],
+            "contract_adjusted_quality": agent["contract_adjusted_quality"],
             "performance": agent["performance"],
             "primary_metrics": ["recall_percent", "cases_per_second"],
         },
@@ -119,6 +92,7 @@ def product_workflows(
             "lexicon": "full-pos",
             "boundary": "smart",
             "quality": human["quality"],
+            "contract_adjusted_quality": human["contract_adjusted_quality"],
             "performance": human["performance"],
             "plan": human_profile["plan"],
             "primary_metrics": [
@@ -152,6 +126,7 @@ def product_persona_comparison(
                 "lexicon": "embedded",
                 "boundary": "any",
                 "quality": agent["quality"],
+                "contract_adjusted_quality": agent["contract_adjusted_quality"],
                 "performance": agent["performance"],
             },
             "user": {
@@ -160,6 +135,9 @@ def product_persona_comparison(
                 "lexicon": "full-pos",
                 "boundary": "smart",
                 "quality": user_result["quality"],
+                "contract_adjusted_quality": user_result[
+                    "contract_adjusted_quality"
+                ],
                 "performance": user_result["performance"],
                 "plan": user_plan,
             },
@@ -223,10 +201,20 @@ def build_report(
             "overall": quality_metrics(cases, predictions[backend]),
             "by_source": grouped_quality(cases, predictions[backend], "source"),
             "by_pos": grouped_quality(cases, predictions[backend], "pos"),
+            "contract_adjusted": {
+                "overall": contract_quality_metrics(cases, predictions[backend]),
+                "by_source": grouped_contract_quality(
+                    cases, predictions[backend], "source"
+                ),
+                "by_pos": grouped_contract_quality(cases, predictions[backend], "pos"),
+            },
         }
         if has_slices:
             backend_quality["by_slice"] = grouped_quality(
                 cases, predictions[backend], "slice"
+            )
+            backend_quality["contract_adjusted"]["by_slice"] = (
+                grouped_contract_quality(cases, predictions[backend], "slice")
             )
         if all("target_raw_tag" in case for case in cases):
             backend_quality["by_target_raw_tag"] = grouped_quality(
@@ -242,7 +230,15 @@ def build_report(
         backend_predictions = {
             backend: predictions[backend][case["id"]] for backend in backends
         }
-        if all(value == case["expected"] for value in backend_predictions.values()):
+        adjusted_expected = contract_expected(case)
+        strict_failure = any(
+            value != bool(case["expected"])
+            for value in backend_predictions.values()
+        )
+        contract_failure = any(
+            value != adjusted_expected for value in backend_predictions.values()
+        )
+        if not strict_failure and not contract_failure:
             continue
         profile_causes = {
             profile: classify_primary_cause(
@@ -262,6 +258,8 @@ def build_report(
         failures.append(
             {
                 "case": case,
+                "strict_failure": strict_failure,
+                "contract_failure": contract_failure,
                 "predictions": backend_predictions,
                 "primary_cause": profile_causes["kfind-embedded"],
                 "cause_evidence": profile_cause_evidence["kfind-embedded"],
@@ -273,7 +271,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 15,
+        "schema_version": 16,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "backends": list(backends),
@@ -664,9 +662,34 @@ def append_quality_sections(lines: list[str], report: dict[str, object]) -> None
             f"{metrics['recall_percent']}% | {metrics['f1_percent']}% | {metrics['tp']} | "
             f"{metrics['fp']} | {metrics['tn']} | {metrics['fn']} |"
         )
+    append_contract_quality(lines, report)
     append_performance(lines, report)
     append_grouped_quality(lines, report, "source", "by_source")
     append_grouped_quality(lines, report, "POS", "by_pos")
+
+
+def append_contract_quality(lines: list[str], report: dict[str, object]) -> None:
+    lines.extend(
+        [
+            "",
+            "### Contract-adjusted quality",
+            "",
+            "Strict corpus-gold counts remain in the preceding table. Contract counts only "
+            "apply reviewed `contract_expected` annotations.",
+            "",
+            "| backend | contract precision | contract recall | contract F1 | TPᶜ | FPᶜ | TNᶜ | FNᶜ | reclassified |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for backend in report["backends"]:
+        metrics = report["quality"][backend]["contract_adjusted"]["overall"]
+        lines.append(
+            f"| {backend} | {metrics['contract_precision_percent']}% | "
+            f"{metrics['contract_recall_percent']}% | "
+            f"{metrics['contract_f1_percent']}% | {metrics['contract_tp']} | "
+            f"{metrics['contract_fp']} | {metrics['contract_tn']} | "
+            f"{metrics['contract_fn']} | {metrics['reclassified_cases']} |"
+        )
 
 
 def append_performance(lines: list[str], report: dict[str, object]) -> None:
@@ -1102,17 +1125,25 @@ def append_hard_negative_summary(
             f"- fixture: `{hard_negatives['dataset']['fixture_sha256']}`",
             f"- cases: {hard_negatives['dataset']['cases']}",
             "",
-            "| slice | backend | hard-negative precision | FP | TN |",
-            "| --- | --- | ---: | ---: | ---: |",
+            "| slice | backend | strict negative precision | strict FP | strict TN | contract precision | contract recall | contract F1 | TPᶜ | FPᶜ | TNᶜ | FNᶜ |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
     slices = sorted(hard_negatives["quality"]["kfind-embedded"]["by_slice"])
     for slice_name in slices:
         for backend in hard_negatives.get("backends", list(BACKENDS)):
             metrics = hard_negatives["quality"][backend]["by_slice"][slice_name]
+            contract = hard_negatives["quality"][backend]["contract_adjusted"][
+                "by_slice"
+            ][slice_name]
             lines.append(
                 f"| {slice_name} | {backend} | "
                 f"{metrics['hard_negative_precision_percent']}% | "
-                f"{metrics['fp']} | {metrics['tn']} |"
+                f"{metrics['fp']} | {metrics['tn']} | "
+                f"{contract['contract_precision_percent']}% | "
+                f"{contract['contract_recall_percent']}% | "
+                f"{contract['contract_f1_percent']}% | "
+                f"{contract['contract_tp']} | {contract['contract_fp']} | "
+                f"{contract['contract_tn']} | {contract['contract_fn']} |"
             )
     append_structural_shadow_table(lines, hard_negatives["shadow_verification"])

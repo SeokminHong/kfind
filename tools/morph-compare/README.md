@@ -98,8 +98,10 @@ lemma/POS anywhere in a negative sentence is a false positive. Reports include
 accuracy, precision, recall, F1, source/POS breakdowns, failure spans, and
 initialization, throughput, latency, and peak RSS measurements. The test report
 also embeds development results and a version-controlled hard-negative fixture
-with five slices. Each kfind false negative records an automatic `primary_cause`
-and its evidence.
+with six slices. Strict corpus-gold TP/FP/TN/FN always remain visible. Reviewed
+`contract_expected` annotations additionally produce contract-adjusted TPᶜ,
+FPᶜ, TNᶜ, FNᶜ, precision, recall, and F1 without replacing the strict metrics.
+Each kfind false negative records an automatic `primary_cause` and its evidence.
 The report also records each `kfind` profile and artifact SHA-256, plus separate
 lists of recovered, still-missed, and newly regressed false negatives.
 Shadow verification records raw anchor hits, verified program hits, structural

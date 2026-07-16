@@ -4,6 +4,7 @@ from report import (
     BACKENDS,
     KFIND_PROFILES,
     append_boundary_comparison,
+    append_contract_quality,
     append_structural_shadow_table,
     append_component_startup,
     append_development_failure_diagnostics,
@@ -265,6 +266,36 @@ class QualityMetricsTests(unittest.TestCase):
         self.assertEqual(1, metrics["tn"])
         self.assertEqual(1, metrics["fp"])
 
+    def test_renders_contract_counts_separately(self) -> None:
+        report = {
+            "backends": ["kfind-embedded"],
+            "quality": {
+                "kfind-embedded": {
+                    "contract_adjusted": {
+                        "overall": {
+                            "contract_precision_percent": 80.0,
+                            "contract_recall_percent": 100.0,
+                            "contract_f1_percent": 88.89,
+                            "contract_tp": 4,
+                            "contract_fp": 1,
+                            "contract_tn": 2,
+                            "contract_fn": 0,
+                            "reclassified_cases": 3,
+                        }
+                    }
+                }
+            },
+        }
+        lines: list[str] = []
+
+        append_contract_quality(lines, report)
+
+        self.assertIn("TPᶜ", "\n".join(lines))
+        self.assertIn(
+            "| kfind-embedded | 80.0% | 100.0% | 88.89% | 4 | 1 | 2 | 0 | 3 |",
+            "\n".join(lines),
+        )
+
 
 class ProductUseCaseTests(unittest.TestCase):
     def test_renders_fresh_process_cli_metrics(self) -> None:
@@ -474,6 +505,7 @@ class ProductWorkflowTests(unittest.TestCase):
                 "f1_percent": 73.55,
                 "fp": 20,
             },
+            "contract_adjusted_quality": {"contract_precision_percent": 80.0},
             "performance": {"cases_per_second": 5000.0},
         }
         human = {
@@ -483,6 +515,7 @@ class ProductWorkflowTests(unittest.TestCase):
                 "f1_percent": 87.43,
                 "fp": 5,
             },
+            "contract_adjusted_quality": {"contract_precision_percent": 95.0},
             "performance": {"cases_per_second": 1000.0},
         }
         plan = {"expected_pos_present_percent": 92.0}
@@ -504,6 +537,10 @@ class ProductWorkflowTests(unittest.TestCase):
 
         self.assertEqual("explicit POS", workflows["agent"]["input"])
         self.assertIs(agent["quality"], workflows["agent"]["quality"])
+        self.assertIs(
+            agent["contract_adjusted_quality"],
+            workflows["agent"]["contract_adjusted_quality"],
+        )
         self.assertEqual("untagged", workflows["human"]["input"])
         self.assertIs(human["quality"], workflows["human"]["quality"])
         self.assertEqual(
@@ -521,10 +558,12 @@ class ProductWorkflowTests(unittest.TestCase):
     def test_builds_persona_comparison_from_same_fixture(self) -> None:
         agent = {
             "quality": {"precision_percent": 97.0},
+            "contract_adjusted_quality": {"contract_precision_percent": 98.0},
             "performance": {"cases_per_second": 14000.0},
         }
         user = {
             "quality": {"precision_percent": 99.0},
+            "contract_adjusted_quality": {"contract_precision_percent": 99.5},
             "performance": {"cases_per_second": 7000.0},
         }
         comparison = product_persona_comparison(
@@ -537,6 +576,10 @@ class ProductWorkflowTests(unittest.TestCase):
         self.assertEqual("explicit POS", comparison["rows"]["agent"]["input"])
         self.assertEqual("POS omitted", comparison["rows"]["user"]["input"])
         self.assertIs(agent["quality"], comparison["rows"]["agent"]["quality"])
+        self.assertIs(
+            agent["contract_adjusted_quality"],
+            comparison["rows"]["agent"]["contract_adjusted_quality"],
+        )
         self.assertIs(user["quality"], comparison["rows"]["user"]["quality"])
         self.assertEqual("fixture", comparison["dataset"]["fixture_sha256"])
 
