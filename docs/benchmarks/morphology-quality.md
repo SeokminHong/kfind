@@ -2,8 +2,8 @@
 
 ## 품질 게이트
 
-명시적 품사 `smart` 품질 변경은 dev precision 99.00% 이상과 revised hard-negative 신규 FP 0을
-유지하면서 FN을 늘리지 않아야 한다. FN이 줄어든 후보를 우선하고, FN이 같을 때만 FP가 줄어든
+명시적 품사 `smart` 품질 변경은 dev strict precision 99.00% 이상과 revised hard-negative
+신규 contract FP 0을 유지하면서 FN을 늘리지 않아야 한다. FN이 줄어든 후보를 우선하고, FN이 같을 때만 FP가 줄어든
 후보를 선택한다. 무품사 결과는 제품 한계와 회귀를 그대로 관측하며 목표 수치에 맞춰 fixture,
 gold 또는 negative 선택을 바꾸지 않는다.
 
@@ -12,19 +12,23 @@ gold 또는 negative 선택을 바꾸지 않는다.
 다르다는 이유로 false positive로 분류하지 않는다. whole/component 분해, 품사 또는
 인접 성분 배치로 구분 가능한 경우에는 선택되지 않은 구조의 match를 오답으로 계산한다.
 
+보고서의 기본 TP·FP·TN·FN은 corpus gold를 그대로 적용한 strict 지표다. 별도의
+`contract_adjusted` 지표는 버전 관리 fixture에 제품 실행 전에 선언한 `contract_expected`만
+적용한다. 같은 품사의 동형 활용은 `same-pos-homograph`, source에 정렬된 내부 성분 검색은
+`aligned-source-component`로 근거를 제한한다. 결과 표의 TPᶜ·FPᶜ·TNᶜ·FNᶜ는 각각
+`contract_tp`·`contract_fp`·`contract_tn`·`contract_fn`이며 strict 지표를 대체하지 않는다.
+
 현재 제품 기준선:
 
 | fixture/profile | TP / FP / FN | precision | recall | F1 |
 | --- | ---: | ---: | ---: | ---: |
-| dev embedded smart | 459 / 2 / 41 | 99.57% | 91.8% | 95.53% |
-| dev full-POS smart | 470 / 2 / 30 | 99.58% | 94.0% | 96.71% |
-| test embedded smart | 429 / 0 / 71 | 100.00% | 85.8% | 92.36% |
-| test full-POS smart | 456 / 0 / 44 | 100.00% | 91.2% | 95.40% |
+| dev embedded smart | 446 / 4 / 54 | 99.11% | 89.2% | 93.89% |
+| dev full-POS smart | 452 / 4 / 48 | 99.12% | 90.4% | 94.56% |
+| test embedded smart | 435 / 0 / 65 | 100.00% | 87.0% | 93.05% |
+| test full-POS smart | 466 / 0 / 34 | 100.00% | 93.2% | 96.48% |
 
-세부 품사와 성능 결과는
-[User smart precision 품질·성능](2026-07-14-user-smart-precision.md)과
-[Full-POS 용언 exact component 확장](2026-07-15-predicate-exact-component.md)에
-둔다.
+세부 품사, strict/contract-adjusted hard-negative와 성능 결과는
+[계약 보정 지표와 구조 판정 품질](2026-07-16-contract-adjusted-structural-quality.md)에 둔다.
 
 비표준 활용, 오타와 불안정한 띄어쓰기는 이 canonical 기준선에 합치지 않는다. 별도 fixture와
 robust-only precision, over-acceptance, canonical retention, raw-span 지표는
@@ -88,8 +92,8 @@ embedded와 full-POS 원인을 분리하고, 분류용 추가 compile·검색은
 
 ## 남은 검증
 
-1. 명시적 품사 full-POS `smart`의 development FN 30건을 기준으로 다음 후보를 조사한다.
-2. 남은 `boundary-rejected` 17건은 품사·token 위치별 같은 표면형 대조군과 component 경로를 먼저
+1. 명시적 품사 full-POS `smart`의 development FN 48건을 기준으로 다음 후보를 조사한다.
+2. 남은 `boundary-rejected` 36건은 품사·token 위치별 같은 표면형 대조군과 component 경로를 먼저
    고정한다. `서사극이라`와 `인쇄업자가`처럼 구분되지 않는 유형은 제품에 열지 않는다.
 3. dev FN 감소, precision 99.00% 이상과 hard-negative 신규 FP 0을 확인한 뒤 고정 test와 무품사
    결과를 한 번만 회귀 측정한다.

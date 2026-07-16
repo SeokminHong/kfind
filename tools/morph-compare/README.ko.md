@@ -85,9 +85,11 @@ docker run --rm --network none \
 각 결과는 문장 안에 gold 표제어·품사가 존재하는지 판정한다. positive는 예측 span이
 gold 어절 span과 겹쳐야 하며, negative는 같은 표제어·품사를 반환하면 false positive다.
 보고서는 accuracy, precision, recall, F1, source/POS별 결과, 실패 span과 초기화·처리량·
-지연·peak RSS를 기록한다. test 결과에는 dev 결과와 5개 slice의 version-controlled
+지연·peak RSS를 기록한다. test 결과에는 dev 결과와 6개 slice의 version-controlled
 hard-negative 결과가 함께 포함된다. kfind false negative에는 자동 판정한
-`primary_cause`와 근거를 남긴다. `kfind` 프로필별 버전·artifact SHA-256와 full-POS에서
+`primary_cause`와 근거를 남긴다. strict corpus-gold TP·FP·TN·FN은 항상 보존하며, 수동 검토한
+`contract_expected`는 이를 대체하지 않는 TPᶜ·FPᶜ·TNᶜ·FNᶜ와 contract precision·recall·F1을
+추가한다. `kfind` 프로필별 버전·artifact SHA-256와 full-POS에서
 회복된 false negative, 계속 실패한 false negative, 새로 발생한 false negative를 별도
 목록으로 남긴다.
 shadow 검증은 성능 측정 구간 밖에서 case별 raw anchor hit, verifier 통과 branch hit,

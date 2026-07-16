@@ -663,6 +663,7 @@ fn collect_pattern_supports(
 enum StructureSelection {
     Whole,
     RepeatedAdverb,
+    AdjacentDeterminer,
     NominalSpan {
         selected: Range<usize>,
         allow_components: bool,
@@ -672,7 +673,9 @@ enum StructureSelection {
         copula: Range<usize>,
     },
     DependentNoun,
-    RuntimeCompatible,
+    RuntimeCompatible {
+        graph_nominal_host: Option<Range<usize>>,
+    },
 }
 
 impl StructureSelection {
@@ -692,6 +695,14 @@ impl StructureSelection {
                 support.evidence == StructuralEvidence::Whole
                     && pattern.fine_pos == DataFinePos::Mag
             }
+            Self::AdjacentDeterminer => {
+                (support.evidence == StructuralEvidence::Whole
+                    && pattern.fine_pos == DataFinePos::Mm)
+                    || !matches!(
+                        pattern.fine_pos,
+                        DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
+                    )
+            }
             Self::NominalSpan {
                 selected,
                 allow_components,
@@ -707,8 +718,16 @@ impl StructureSelection {
                                     unit.span == (spans.core.end..selected.end)
                                         && unit.pos.is_particle()
                                 }))
-                            || ((*allow_components || pattern.lexical_form.chars().count() > 1)
-                                && spans.core.start >= selected.start
+                            || ((nominal_component_is_supported(
+                                *allow_components,
+                                support.evidence,
+                                &spans.core,
+                                selected,
+                                evidence,
+                                &pattern.lexical_form,
+                            ) || proper_noun_dependent_noun_frame(
+                                pattern, spans, selected, evidence,
+                            )) && spans.core.start >= selected.start
                                 && spans.core.end <= selected.end
                                 && spans.core != *selected)))
                     || (predicate_nominalization(pattern, spans)
@@ -751,14 +770,168 @@ impl StructureSelection {
                 support.evidence == StructuralEvidence::Whole
                     && pattern.fine_pos == DataFinePos::Nnb
             }
-            Self::RuntimeCompatible => match support.evidence {
+            Self::RuntimeCompatible { graph_nominal_host } => match support.evidence {
                 StructuralEvidence::Whole | StructuralEvidence::SourceComponent => true,
                 StructuralEvidence::RuntimeComponent => {
                     runtime_position_is_supported(pattern, spans, evidence)
+                        && runtime_nominal_component_is_supported(
+                            pattern,
+                            spans,
+                            evidence,
+                            graph_nominal_host.as_ref(),
+                        )
                 }
             },
         }
     }
+}
+
+fn nominal_component_is_supported(
+    allow_components: bool,
+    support: StructuralEvidence,
+    core: &Range<usize>,
+    selected: &Range<usize>,
+    evidence: &TokenEvidence,
+    lexical_form: &str,
+) -> bool {
+    if allow_components || support == StructuralEvidence::SourceComponent {
+        return true;
+    }
+    support == StructuralEvidence::RuntimeComponent
+        && lexical_form.chars().count() > 1
+        && nominal_component_is_on_preferred_path(core, selected, evidence)
+}
+
+fn nominal_component_is_on_preferred_path(
+    core: &Range<usize>,
+    selected: &Range<usize>,
+    evidence: &TokenEvidence,
+) -> bool {
+    let span_len = selected.len();
+    let mut edges = evidence
+        .units
+        .iter()
+        .filter(|unit| {
+            unit.pos.is_nominal()
+                && unit.span.start >= selected.start
+                && unit.span.end <= selected.end
+                && unit.span != *selected
+                && matches!(
+                    unit.evidence,
+                    StructuralEvidence::SourceComponent | StructuralEvidence::RuntimeComponent
+                )
+        })
+        .map(|unit| {
+            (
+                unit.span.start - selected.start,
+                unit.span.end - selected.start,
+                (
+                    1_usize,
+                    usize::from(unit.evidence != StructuralEvidence::SourceComponent),
+                ),
+            )
+        })
+        .collect::<Vec<_>>();
+    edges.sort_unstable_by_key(|(start, end, cost)| (*start, *end, *cost));
+    edges.dedup_by(|left, right| left.0 == right.0 && left.1 == right.1);
+
+    let mut forward = vec![None; span_len + 1];
+    forward[0] = Some((0_usize, 0_usize));
+    for position in 0..span_len {
+        let Some(prefix) = forward[position] else {
+            continue;
+        };
+        for (_, end, cost) in edges.iter().filter(|(start, _, _)| *start == position) {
+            update_min_cost(&mut forward[*end], add_cost(prefix, *cost));
+        }
+    }
+    let Some(best) = forward[span_len] else {
+        return false;
+    };
+
+    let mut backward = vec![None; span_len + 1];
+    backward[span_len] = Some((0_usize, 0_usize));
+    for position in (1..=span_len).rev() {
+        let Some(suffix) = backward[position] else {
+            continue;
+        };
+        for (start, _, cost) in edges.iter().filter(|(_, end, _)| *end == position) {
+            update_min_cost(&mut backward[*start], add_cost(*cost, suffix));
+        }
+    }
+
+    let core_start = core.start - selected.start;
+    let core_end = core.end - selected.start;
+    edges.iter().any(|(start, end, cost)| {
+        if *start != core_start || *end != core_end {
+            return false;
+        }
+        let (Some(prefix), Some(suffix)) = (forward[*start], backward[*end]) else {
+            return false;
+        };
+        add_cost(add_cost(prefix, *cost), suffix) == best
+    })
+}
+
+fn add_cost(left: (usize, usize), right: (usize, usize)) -> (usize, usize) {
+    (left.0 + right.0, left.1 + right.1)
+}
+
+fn update_min_cost(current: &mut Option<(usize, usize)>, candidate: (usize, usize)) {
+    if current.is_none_or(|value| candidate < value) {
+        *current = Some(candidate);
+    }
+}
+
+fn runtime_nominal_component_is_supported(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    evidence: &TokenEvidence,
+    graph_nominal_host: Option<&Range<usize>>,
+) -> bool {
+    let Some(host) = graph_nominal_host else {
+        return true;
+    };
+    if !pattern.fine_pos.is_nominal()
+        || spans.core == *host
+        || spans.core.start < host.start
+        || spans.core.end > host.end
+    {
+        return true;
+    }
+    if proper_noun_dependent_noun_frame(pattern, spans, host, evidence) {
+        return true;
+    }
+    if spans.core.start == host.start && pattern.lexical_form.chars().count() > 1 {
+        return true;
+    }
+    pattern.lexical_form.chars().count() > 1
+        && nominal_component_is_on_preferred_path(&spans.core, host, evidence)
+}
+
+fn proper_noun_dependent_noun_frame(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    host: &Range<usize>,
+    evidence: &TokenEvidence,
+) -> bool {
+    pattern.fine_pos == DataFinePos::Nnb
+        && evidence.has_complete_path
+        && pattern.lexical_form.chars().count() == 1
+        && matches!(pattern.continuation, MorphContinuation::NominalParticles)
+        && spans.core.end == host.end
+        && spans.consumed.end > spans.core.end
+        && evidence.units.iter().any(|unit| {
+            unit.pos == DataFinePos::Nnp
+                && unit.span.start == host.start
+                && unit.span.end == spans.core.start
+                && unit.span.len() > spans.core.len()
+        })
+        && evidence.units.iter().any(|unit| {
+            unit.pos.is_particle()
+                && unit.span.start == spans.core.end
+                && unit.span.end <= spans.consumed.end
+        })
 }
 
 fn runtime_position_is_supported(
@@ -870,11 +1043,25 @@ fn select_structure(
     {
         return StructureSelection::RepeatedAdverb;
     }
+    let next_starts_nominal = context.next.is_some_and(|next| {
+        let exact_nominal =
+            exact_analysis_starts_with_pos(resource, next, |pos| pos.starts_with('N'));
+        let exact_competitor =
+            exact_analysis_starts_with_pos(resource, next, |pos| !pos.starts_with('N'));
+        nominal_particle_host(resource, next).is_some() || (exact_nominal && !exact_competitor)
+    });
+    let particle_host = nominal_particle_host(resource, context.current);
+    if next_starts_nominal
+        && context.current.chars().count() == 1
+        && evidence.has_whole(DataFinePos::Mm)
+    {
+        return StructureSelection::AdjacentDeterminer;
+    }
     if let Some((nominal, copula)) = copular_frame(resource, context) {
         return StructureSelection::CopularFrame { nominal, copula };
     }
     if evidence.has_whole(DataFinePos::Mag)
-        && nominal_particle_host(resource, context.current).is_none()
+        && particle_host.is_none()
         && context.next.is_some_and(|next| {
             exact_analysis_starts_with_pos(resource, next, |pos| pos.starts_with('V'))
         })
@@ -889,14 +1076,16 @@ fn select_structure(
     {
         return StructureSelection::DependentNoun;
     }
-    if let Some(host) = nominal_particle_host(resource, context.current) {
+    if let Some(host) = particle_host {
         let allow_components = false;
         return StructureSelection::NominalSpan {
             selected: host,
             allow_components,
         };
     }
-    StructureSelection::RuntimeCompatible
+    StructureSelection::RuntimeCompatible {
+        graph_nominal_host: complete_nominal_particle_host(resource, context.current),
+    }
 }
 
 fn adnominal_suffix_is_supported(resource: &ComponentResource, text: &str) -> bool {
@@ -975,6 +1164,58 @@ fn nominal_particle_host(resource: &ComponentResource, current: &str) -> Option<
         })
         .max()
         .map(|end| 0..end)
+}
+
+fn complete_nominal_particle_host(
+    resource: &ComponentResource,
+    current: &str,
+) -> Option<Range<usize>> {
+    current
+        .char_indices()
+        .map(|(offset, _)| offset)
+        .skip(1)
+        .filter(|&split| {
+            complete_nominal_host(resource, &current[..split])
+                && complete_suffix(resource, &current[split..], |pos| pos.starts_with('J'))
+        })
+        .max()
+        .map(|end| 0..end)
+}
+
+fn complete_nominal_host(resource: &ComponentResource, text: &str) -> bool {
+    let mut visited = vec![[false; 2]; text.len() + 1];
+    let mut pending = vec![(0, false)];
+    while let Some((start, has_nominal)) = pending.pop() {
+        if start == text.len() {
+            if has_nominal {
+                return true;
+            }
+            continue;
+        }
+        resource.common_prefixes(&text.as_bytes()[start..], |length, analyses| {
+            if length == 0 || start + length > text.len() {
+                return;
+            }
+            for analysis in analyses {
+                let mut next_has_nominal = has_nominal;
+                let valid = analysis.pos.split('+').all(|pos| {
+                    if DataFinePos::parse(pos).is_some_and(DataFinePos::is_nominal) {
+                        next_has_nominal = true;
+                        true
+                    } else {
+                        matches!(pos, "XPN" | "XSN" | "XR")
+                    }
+                });
+                let end = start + length;
+                let state = usize::from(next_has_nominal);
+                if valid && !visited[end][state] {
+                    visited[end][state] = true;
+                    pending.push((end, next_has_nominal));
+                }
+            }
+        });
+    }
+    false
 }
 
 fn complete_suffix(

@@ -32,6 +32,24 @@ fn ordinary_adverb_context_rejects_a_runtime_nominal_prefix() {
 }
 
 #[test]
+fn whole_adverb_outranks_a_graph_built_nominal_particle_host() {
+    let resolver = resolver();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext {
+            previous: None,
+            current: "너무",
+            next: Some("보고"),
+        },
+        spans(0.."너무".len(), 0.."너무".len()),
+        &[whole_pattern(DataFinePos::Mag, "너무")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
 fn copular_arrangement_selects_the_nominal_prefix_over_the_adverb() {
     let resolver = resolver();
     let context = BoundedTokenContext {
@@ -175,6 +193,95 @@ fn longest_nominal_particle_host_hides_an_inner_component() {
 
     assert_eq!(inner.outcome, ConstraintOutcome::Contradicted);
     assert_eq!(host.outcome, ConstraintOutcome::Supported);
+}
+
+#[test]
+fn exact_nominal_particle_host_outranks_a_longer_runtime_decomposition() {
+    let resolver = resolver();
+    let pattern = QueryMorphPattern::new(DataFinePos::Nng, "학교").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::NominalParticles,
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("학교에서"),
+        spans(0.."학교".len(), 0.."학교에서".len()),
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
+fn multisyllable_nominal_prefix_survives_a_graph_built_particle_host() {
+    let resolver = resolver();
+    let core = 0.."둥그스름".len();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("둥그스름하게"),
+        CandidateSpans {
+            core: core.clone(),
+            anchor: core.clone(),
+            consumed: core,
+            token: 0.."둥그스름하게".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "둥그스름")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
+fn dependent_noun_after_a_proper_noun_consumes_its_particle() {
+    let resolver = resolver();
+    let core = "요코".len().."요코씨".len();
+    let pattern = QueryMorphPattern::new(DataFinePos::Nnb, "씨").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::NominalParticles,
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("요코씨는"),
+        CandidateSpans {
+            core: core.clone(),
+            anchor: core.clone(),
+            consumed: core.start.."요코씨는".len(),
+            token: 0.."요코씨는".len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
+fn one_syllable_suffix_without_a_proper_noun_frame_is_rejected() {
+    let resolver = resolver();
+    let core = "날".len().."날씨".len();
+    let pattern = QueryMorphPattern::new(DataFinePos::Nnb, "씨").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::NominalParticles,
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("날씨는"),
+        CandidateSpans {
+            core: core.clone(),
+            anchor: core.clone(),
+            consumed: core.start.."날씨는".len(),
+            token: 0.."날씨는".len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&decision));
 }
 
 #[test]
@@ -461,7 +568,23 @@ fn resolver() -> ConstraintResolver {
         atomic("매", "NNG"),
         atomic("매일", "MAG"),
         atomic("매일", "NNG"),
+        atomic("너", "NNG"),
+        atomic("무", "JX"),
+        atomic("너무", "MAG"),
         atomic("을", "JKO"),
+        atomic("학교", "NNG"),
+        atomic("에", "NNG"),
+        atomic("에서", "JKB"),
+        atomic("서", "JKB"),
+        atomic("둥그스름", "NNG"),
+        atomic("하", "NNG"),
+        atomic("게", "JKB"),
+        atomic("요코", "NNP"),
+        atomic("씨", "NNB"),
+        atomic("요코씨", "NNP"),
+        atomic("날", "NNG"),
+        atomic("날씨", "NNG"),
+        atomic("는", "JX"),
         atomic("을", "ETM"),
         atomic("보고", "VV+EC"),
         atomic("아니라", "VCN+EC"),

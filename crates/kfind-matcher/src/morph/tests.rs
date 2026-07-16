@@ -166,13 +166,28 @@ fn smart_left_boundary_rejects_compounds_but_any_accepts_them() {
 fn structural_components_remain_possible_when_whole_analyses_compete() {
     let resource = Arc::new(component_resource());
     let accepted = component_matcher("권한", Arc::clone(&resource));
-    let rejected = component_matcher("학교", resource);
+    let source_component = component_matcher("학교", resource);
 
     let matched = accepted
         .find_at_with_meta("사용자권한".as_bytes(), 0)
         .expect("structurally possible component path should match");
     assert_eq!(matched.span, "사용자".len().."사용자권한".len());
-    assert!(rejected.find_at_with_meta("대학교".as_bytes(), 0).is_some());
+    assert!(
+        source_component
+            .find_at_with_meta("대학교".as_bytes(), 0)
+            .is_some()
+    );
+}
+
+#[test]
+fn nominal_particle_host_rejects_a_component_crossing_substring() {
+    let matcher = component_matcher("사과", Arc::new(component_resource()));
+
+    assert!(
+        matcher
+            .find_at_with_meta("역사과목을".as_bytes(), 0)
+            .is_none()
+    );
 }
 
 #[test]
@@ -772,7 +787,14 @@ fn component_resource() -> ComponentResource {
         component_entry("사용자권한", "NNG", 5_000),
         component_entry("대", "XPN", 5_000),
         component_entry("학교", "NNG", 5_000),
-        component_entry("대학교", "NNG", -5_000),
+        component_expression_entry("대학교", "XPN+NNG", "대/XPN/*+학교/NNG/*", -5_000),
+        component_entry("역", "NNG", 5_000),
+        component_entry("목", "NNG", 5_000),
+        component_entry("역사", "NNG", -5_000),
+        component_entry("사과", "NNG", 5_000),
+        component_entry("과목", "NNG", -5_000),
+        component_entry("역사과목", "NNG", -5_000),
+        component_entry("을", "JKO", 0),
         component_entry("매", "NNG", 500),
         component_entry("일", "VCP", 500),
         component_entry("매일", "MAG", 0),
@@ -799,6 +821,15 @@ fn component_resource() -> ComponentResource {
 }
 
 fn component_entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorphologyEntry {
+    component_expression_entry(surface, pos, "*", word_cost)
+}
+
+fn component_expression_entry(
+    surface: &str,
+    pos: &str,
+    expression: &str,
+    word_cost: i32,
+) -> MecabSourceMorphologyEntry {
     MecabSourceMorphologyEntry {
         surface: surface.to_owned(),
         pos: pos.to_owned(),
@@ -808,7 +839,7 @@ fn component_entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorph
         analysis_type: "*".to_owned(),
         start_pos: "*".to_owned(),
         end_pos: "*".to_owned(),
-        expression: "*".to_owned(),
+        expression: expression.to_owned(),
     }
 }
 

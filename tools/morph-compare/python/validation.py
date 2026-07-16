@@ -5,6 +5,11 @@ import json
 from collections import defaultdict
 from pathlib import Path
 
+try:
+    from .quality import contract_expected
+except ImportError:
+    from quality import contract_expected
+
 
 HARD_NEGATIVE_SLICES = {
     "homonymous-other-pos",
@@ -73,6 +78,8 @@ def validate_fixture_identity(
     case_ids = {case["id"] for case in cases}
     if len(case_ids) != len(cases):
         raise ValueError("benchmark case IDs are not unique")
+    for case in cases:
+        contract_expected(case)
 
 
 def validate_dataset(
@@ -120,6 +127,8 @@ def validate_hard_negatives(
 ) -> dict[str, object]:
     if not cases or any(case["expected"] for case in cases):
         raise ValueError("hard-negative fixture must contain only negative cases")
+    for case in cases:
+        contract_expected(case)
     case_ids = {case["id"] for case in cases}
     if len(case_ids) != len(cases):
         raise ValueError("hard-negative case IDs are not unique")

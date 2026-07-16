@@ -17,11 +17,11 @@ from python.adapters import (
 )
 from python.agent_shadow import build_agent_shadow_report
 from python.external_baselines import load_external_baselines
+from python.quality import contract_quality_metrics, quality_metrics
 from python.report import (
     KFIND_PROFILES,
     build_report,
     product_persona_comparison,
-    quality_metrics,
     product_workflows,
     render_markdown,
     untagged_plan_metrics,
@@ -418,6 +418,9 @@ def evaluate_boundary_comparison(
         results = {
             "smart": {
                 "quality": quality_metrics(cases, baseline["predictions"][backend]),
+                "contract_adjusted_quality": contract_quality_metrics(
+                    cases, baseline["predictions"][backend]
+                ),
                 "performance": baseline["performance"][backend],
                 "component_resource_loaded": (
                     baseline["versions"][backend]["component_artifact_sha256"]
@@ -431,6 +434,9 @@ def evaluate_boundary_comparison(
             )
             results[boundary] = {
                 "quality": quality_metrics(cases, predictions),
+                "contract_adjusted_quality": contract_quality_metrics(
+                    cases, predictions
+                ),
                 "performance": performance_metrics,
                 "component_resource_loaded": summary["component_artifact_sha256"]
                 is not None,
@@ -500,6 +506,7 @@ def evaluate_untagged_profile_runs(
     return (
         {
             "quality": quality_metrics(cases, first[0]),
+            "contract_adjusted_quality": contract_quality_metrics(cases, first[0]),
             "performance": aggregate_performance(
                 [evaluation[2] for evaluation in evaluations], warmup_runs=1
             ),

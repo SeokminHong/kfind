@@ -337,7 +337,9 @@
   열거하지 않는다.
 - 체언+조사와 용언+어미 path는 host span이 같을 때만 구조적으로 해결되지 않은
   경쟁으로 본다. host가 다르면 더 긴 조사 host 또는 완성된 용언 host를 선택하고,
-  다른 위치에서 우연히 성립한 분할을 후보 근거로 쓰지 않는다.
+  다른 위치에서 우연히 성립한 분할을 후보 근거로 쓰지 않는다. 조사 host는 exact
+  whole 명사 host를 먼저 선택한다. exact host가 없을 때 whole-token 단일 품사 또는
+  완성된 용언 분석이 있으면 이를 graph로 조합한 명사 host보다 우선한다.
 - host span이 같은 체언+조사와 용언+어미 path가 경쟁해도 candidate program이 실제로
   소비한 continuation과 맞지 않는 path까지 허용하지 않는다. 예를 들어 `걸을`에서
   `걷다`의 `걸으-+-ㄹ` program은 유지하지만, `걸다`의 bare `걸` program은 `-을`을
@@ -367,13 +369,30 @@
   추가하지 않는다.
 - exact component 근거는 완전한 graph path에서 query와 같은 세부 품사 node의 span이
   query core와 정확히 일치할 때만 성립한다. 더 큰 node의 substring이나 여러 component
-  경계를 가로지르는 span은 근거가 아니다.
+  경계를 가로지르는 span은 근거가 아니다. nominal component path는 source가 선언한
+  성분 수가 가장 적은 완전 경로를 선택하고, 성분 수가 같으면 source가 선언한 성분을
+  더 많이 포함한 경로를 우선한다. 내부 component query는 이 선호 경로의 한 node와 span이
+  일치할 때만 유지한다. graph로 조합한 명사+조사 host는 내부 nominal component를
+  검증할 때만 사용하고 token 전체의 품사 구조를 선택하는 근거로 쓰지 않는다. host 왼쪽
+  경계에 정렬된 두 음절 이상의 nominal prefix는 유지하고, 한 음절 prefix와 host 내부
+  양쪽 경계를 가로지르는 후보에는 선호 경로 검증을 적용한다.
+- 두 음절 이상의 `NNP`가 host 왼쪽 경계부터 query core 직전까지 이어지고, 한 음절 `NNB`
+  core가 host 오른쪽 경계에서 끝난 뒤 유효한 조사 continuation을 소비하면 인명+의존명사
+  구조로 유지한다. 이 예외는 문자열 substring이나 표제어 의미가 아니라 complete path의
+  품사 경계로만 판정한다.
 - 제품 graph는 source 분석 비용을 읽거나 보존하지 않는다. 비용·연결 행렬·미등록어
   모델은 별도 full morphology 진단 artifact에서 과거 판정과 결과를 비교할 때만 사용한다.
   include/exclude 비용 마진, query별 threshold와 결과별 fallback을 제품 판정에 사용하지 않는다.
 - 부사의 인접 동일 token 반복, 체언·지정사·의존명사 연속 구조와 조사 host
   이형태는 typed `AdjacentTokenConstraint`로 표현한다. query 표제어나 query 품사를
   corpus 구조 선택 힌트로 주입하지 않는다.
+- 현재 token에 관형사 whole 분석이 있고 다음 token이 체언으로 시작하면 관형사 구조를
+  선택한다. 따라서 `새 기능`의 `새`는 관형사로 판정한다. 여기서 다음 token의 체언
+  시작은 token 전체의 체언 분석 또는 exact 체언 host와 조사 suffix로 증명해야 하며,
+  우연히 체언으로도 등록된 짧은 prefix나 predicate·modifier whole 경쟁이 있는 token만으로
+  판정하지 않는다. 한 음절 관형사 구조는 경쟁 NNG/NNP/NNB만 제거하고 다른 품사의
+  독립 후보는 유지한다. `V+EC N`처럼 절 연결과 명사 연속 구조가 모두 가능한 배치는
+  이 규칙으로 predicate 후보를 제거하지 않는다.
 - `smart` 무품사 direct-particle program은 입력과 같은 표면형만 만든다. 품사를
   명시한 조사 query는 이형태 묶음을 만들 수 있지만 host 소리 조건과 완성된
   조사 연쇄를 graph 제약으로 증명해야 한다.
@@ -2147,6 +2166,20 @@ gold 어절의 UTF-8 byte span과 겹쳐야 true positive이고, negative는 문
 표제어·품사를 반환하면 false positive다. 도구마다 accuracy, precision, recall, F1과
 TP·FP·TN·FN을 계산하고 corpus별·품사별 결과 및 실패 case를 함께 보존한다.
 
+이 strict corpus-gold 지표는 제품의 의미 중의성 non-goal과 분리해 항상 보존한다. 버전 관리
+fixture가 `contract_expected`와 `contract_reason`을 함께 선언한 경우에는 같은 예측을 제품 계약
+기대값으로 다시 계산한 `contract_adjusted` 지표도 병렬로 기록한다. 이 지표의 confusion matrix는
+`contract_tp`·`contract_fp`·`contract_tn`·`contract_fn`, 파생 지표는
+`contract_precision_percent`·`contract_recall_percent`·`contract_f1_percent`로 명명한다.
+표에서는 각각 TPᶜ·FPᶜ·TNᶜ·FNᶜ로 줄여 쓸 수 있다.
+
+`contract_expected`가 없으면 strict `expected`를 그대로 사용한다. 두 값이 다르면
+`expected=false`, `contract_expected=true`만 허용하고, 제품 결과를 보기 전에 고정한
+`contract_reason`이 필요하다. 허용 사유는 같은 품사의 동형 활용을 의미로 구분하지 않는
+`same-pos-homograph`와 source에 정렬된 내부 성분을 검색하는 `aligned-source-component`다.
+제품 출력이나 외부 분석기 출력으로 annotation을 자동 생성하지 않는다. strict 지표와 계약 보정
+지표를 합치거나, 계약 보정 지표만으로 정밀도 회귀가 없다고 주장하지 않는다.
+
 외부 분석기의 정규화된 결과와 성능은 test fixture SHA-256, adapter·성능 schema,
 도구·사전·모델 버전과 설정에 묶인 version-controlled snapshot으로 보존한다. 기본 benchmark는 snapshot을 읽고
 `kfind`만 다시 실행한다. fixture SHA-256 또는 adapter schema가 다르면 자동으로 외부 분석기를
@@ -2208,23 +2241,28 @@ rule path도 보존한다. development 보고서는 full-POS positive false nega
 `left-edge`, `right-edge`, `internal`로 분류하고 candidate 표면형과 함께 표시한다. 같은 위치
 유형을 제품 후보로 열려면 development positive와 동일한 candidate 표면형의 version-controlled
 hard-negative가 있어야 한다. 이 대조가 없는 위치 유형은 계측만 유지한다.
+명사 component frame을 새로 여는 경우에도 development positive와 같은 candidate 표면형이
+일반 합성어 내부에서 우연히 나타나는 hard-negative를 먼저 고정한다.
 분류를 위한 추가 컴파일·검색 비용은 backend 성능에 포함하지 않는다.
 
 규칙 개발은 Korean-Kaist·KSL dev split을 test split과 독립된 seed·fixture
 SHA-256로 생성해 사용한다. test 1,000개 baseline은 변경하지 않는다. hard-negative는
 도구 출력과 무관한 버전 관리 fixture로 두고 slice별 precision을 전체 품질과 분리해
-보고한다. CI smoke set은 dev fixture에서 source·품사·class별 고정 case를
+보고한다. 의미 중의성 또는 정렬 source component 때문에 strict negative를 제품이 의도적으로
+허용하는 hard-negative는 `contract_expected`와 사유를 명시하고 strict·계약 보정 결과에 모두
+남긴다. CI smoke set은 dev fixture에서 source·품사·class별 고정 case를
 deterministic하게 추출하고, 수동 벤치마크는 dev·test·hard-negative 전체를 사용한다.
 
-명시적 품사 `smart` 형태 품질 변경은 dev precision 99.00% 이상과 version-controlled
-hard-negative 신규 FP 0을 지키면서 FN을 늘리지 않아야 한다. FN이 줄어든 후보를 우선하고,
+명시적 품사 `smart` 형태 품질 변경은 dev strict precision 99.00% 이상과 version-controlled
+hard-negative 신규 contract FP 0을 지키면서 FN을 늘리지 않아야 한다. 신규 strict FP는 구현과
+독립적으로 미리 고정한 `contract_expected=true` case에서만 허용한다. FN이 줄어든 후보를 우선하고,
 FN이 같을 때만 FP가 줄어든 후보를 선택한다. 고정 test fixture는 규칙 선택에
 사용하지 않고 FN 비증가, precision 99.00% 하한과 전체 품질 회귀만 확인한다. 무품사 fixture의
 결과도 같은 변경에서 다시 측정해 불리한 변화까지 기록하되 규칙 선택이나 fixture 변경 근거로
 사용하지 않는다. 최종 품질 주장은 구현 전에 source·fixture를 고정하고 기존 corpus와 문장 hash
 중복이 없는 unseen 평가에서도 같은 기준을 통과해야 한다. 기본 `smart`를 변경하는 구현은 기존
-hard-negative에 새 FP를 추가하지 않아야 하며, 이 조건을 만족하지 못하면 별도 boundary policy로
-분리한다.
+hard-negative에 새 contract FP를 추가하지 않아야 하며, 이 조건을 만족하지 못하면 별도 boundary
+policy로 분리한다.
 
 ## 20. 성능 사양
 

@@ -1,8 +1,9 @@
 use std::sync::{Arc, OnceLock};
 
 use kfind_data::{
-    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, MecabSourceMorphologyEntry,
-    decode_component_resource, encode_component_resource,
+    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataFinePos, LexiconData,
+    MecabSourceMorphologyEntry, NominalRecord, collect_pos_entries, decode_component_resource,
+    encode_component_resource, encode_pos_lexicon,
 };
 use kfind_matcher::MorphMatcher;
 use kfind_morph::CoarsePos;
@@ -73,6 +74,132 @@ fn compiled_predicate_plan_matches_irregular_and_homonymous_surfaces() {
             "compiled 걷다 plan rejected {text}"
         );
     }
+}
+
+#[test]
+fn full_pos_smart_predicate_plan_preserves_a_same_pos_homograph_union() {
+    for query in ["걷다", "걸다"] {
+        let matcher = compile_with_full_pos(
+            query,
+            CompileOptions {
+                global_pos: Some(CoarsePos::Verb),
+                ..CompileOptions::default()
+            },
+        );
+
+        assert!(
+            matcher
+                .find_at_with_meta("전화를 걸었어.".as_bytes(), 0)
+                .is_some(),
+            "compiled {query} plan rejected the shared homographic form"
+        );
+    }
+}
+
+#[test]
+fn adjacent_layout_limits_disambiguation_to_supported_pos_competitions() {
+    let noun = compile_with_full_pos(
+        "새",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+    );
+    let determiner = compile_with_full_pos(
+        "새",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Determiner),
+            ..CompileOptions::default()
+        },
+    );
+    let connective = compile_with_full_pos(
+        "주다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+    );
+    let adnominal = compile_with_full_pos(
+        "걸다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+    );
+    let particle_host = compile_with_full_pos(
+        "학교",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+    );
+    let adverb = compile_with_full_pos(
+        "너무",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Adverb),
+            ..CompileOptions::default()
+        },
+    );
+    let pronoun = compile_with_full_pos(
+        "제",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Pronoun),
+            ..CompileOptions::default()
+        },
+    );
+    let numeral = compile_with_full_pos(
+        "한",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Numeral),
+            ..CompileOptions::default()
+        },
+    );
+
+    assert!(noun.find_at_with_meta("새 기능".as_bytes(), 0).is_none());
+    assert!(
+        determiner
+            .find_at_with_meta("새 기능".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        connective
+            .find_at_with_meta("주지 스님".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        adnominal
+            .find_at_with_meta("건 사람".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        particle_host
+            .find_at_with_meta("학교에서 새 문서".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        adverb
+            .find_at_with_meta("너무 빨라도".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(pronoun.find_at_with_meta("제 나라".as_bytes(), 0).is_some());
+    assert!(numeral.find_at_with_meta("한 사람".as_bytes(), 0).is_some());
+}
+
+#[test]
+fn runtime_nominal_component_remains_available_without_a_source_decomposition() {
+    let matcher = compile_with_full_pos(
+        "명사",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+    );
+
+    assert!(
+        matcher
+            .find_at_with_meta("복합명사를".as_bytes(), 0)
+            .is_some()
+    );
 }
 
 #[test]
@@ -570,6 +697,31 @@ fn direct_particle_plans_preserve_token_and_any_boundary_modes() {
 
 fn compile(query: &str, options: CompileOptions) -> MorphMatcher {
     let lexicons = Arc::new(Lexicons::embedded().expect("embedded lexicons must be valid"));
+    compile_with_lexicons(query, options, lexicons)
+}
+
+fn compile_with_full_pos(query: &str, options: CompileOptions) -> MorphMatcher {
+    let mut lexicons = Lexicons::embedded().expect("embedded lexicons must be valid");
+    let full_data = LexiconData {
+        nominals: vec![NominalRecord {
+            lemma: "전체사전표식".to_owned(),
+            pos: DataFinePos::Nng,
+            flags: Default::default(),
+            overrides: Vec::new(),
+        }],
+        ..LexiconData::default()
+    };
+    lexicons
+        .load_full_pos(&encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap())
+        .expect("test full-POS lexicon must load");
+    compile_with_lexicons(query, options, Arc::new(lexicons))
+}
+
+fn compile_with_lexicons(
+    query: &str,
+    options: CompileOptions,
+    lexicons: Arc<Lexicons>,
+) -> MorphMatcher {
     let analyzer = LexiconQueryAnalyzer::new(lexicons);
     let plan = Arc::new(compile_query(query, &options, &analyzer).expect("query must compile"));
     if plan.requires_component_resource() {
@@ -588,6 +740,40 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("매", "NNG"),
             component_entry("일", "VCP"),
             component_entry("걷", "VV"),
+            component_entry("걸", "VV"),
+            component_entry("었", "EP"),
+            component_entry("어", "EF"),
+            component_expression_entry("걸었어", "VV+EP+EF", "걸/VV/*+었/EP/*+어/EF/*"),
+            component_entry("새", "MM"),
+            component_entry("새", "NNG"),
+            component_entry("기능", "NNG"),
+            component_entry("문서", "NNG"),
+            component_entry("학교", "NNG"),
+            component_entry("학교에서", "NNG"),
+            component_entry("에", "NNG"),
+            component_entry("에서", "JKB"),
+            component_entry("서", "JKB"),
+            component_entry("복합", "NNG"),
+            component_entry("명사", "NNG"),
+            component_entry("복합명사", "NNG"),
+            component_entry("를", "JKO"),
+            component_entry("너무", "MAG"),
+            component_entry("너무", "NNG"),
+            component_entry("빨", "NNG"),
+            component_entry("빨라도", "VA+EC"),
+            component_entry("제", "MM"),
+            component_entry("제", "NP"),
+            component_entry("나라", "NNG"),
+            component_entry("한", "MM"),
+            component_entry("한", "NR"),
+            component_entry("주", "VV"),
+            component_entry("지", "EC"),
+            component_entry("주지", "NNG"),
+            component_expression_entry("주지", "VV+EC", "주/VV/*+지/EC/*"),
+            component_entry("건", "NNB"),
+            component_entry("건", "VV+ETM"),
+            component_entry("스님", "NNG"),
+            component_entry("사람", "NNG"),
             component_entry("기", "ETN"),
             component_entry("이", "JKS"),
             component_entry("을", "JKO"),
@@ -604,6 +790,14 @@ fn component_resource() -> Arc<ComponentResource> {
 }
 
 fn component_entry(surface: &str, pos: &str) -> MecabSourceMorphologyEntry {
+    component_expression_entry(surface, pos, "*")
+}
+
+fn component_expression_entry(
+    surface: &str,
+    pos: &str,
+    expression: &str,
+) -> MecabSourceMorphologyEntry {
     MecabSourceMorphologyEntry {
         surface: surface.to_owned(),
         pos: pos.to_owned(),
@@ -613,6 +807,6 @@ fn component_entry(surface: &str, pos: &str) -> MecabSourceMorphologyEntry {
         analysis_type: "*".to_owned(),
         start_pos: "*".to_owned(),
         end_pos: "*".to_owned(),
-        expression: "*".to_owned(),
+        expression: expression.to_owned(),
     }
 }
