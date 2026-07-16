@@ -663,6 +663,8 @@ fn collect_pattern_supports(
 enum StructureSelection {
     Whole,
     RepeatedAdverb,
+    AdjacentDeterminer,
+    AdjacentNominal,
     NominalSpan {
         selected: Range<usize>,
         allow_components: bool,
@@ -691,6 +693,12 @@ impl StructureSelection {
             Self::RepeatedAdverb => {
                 support.evidence == StructuralEvidence::Whole
                     && pattern.fine_pos == DataFinePos::Mag
+            }
+            Self::AdjacentDeterminer => {
+                support.evidence == StructuralEvidence::Whole && pattern.fine_pos == DataFinePos::Mm
+            }
+            Self::AdjacentNominal => {
+                support.evidence == StructuralEvidence::Whole && pattern.fine_pos.is_nominal()
             }
             Self::NominalSpan {
                 selected,
@@ -871,6 +879,23 @@ fn select_structure(
     {
         return StructureSelection::RepeatedAdverb;
     }
+    let next_starts_nominal = context
+        .next
+        .is_some_and(|next| starts_with_pos(resource, next, |pos| pos.starts_with('N')));
+    let particle_host = nominal_particle_host(resource, context.current);
+    if next_starts_nominal && evidence.has_whole(DataFinePos::Mm) {
+        return StructureSelection::AdjacentDeterminer;
+    }
+    if next_starts_nominal
+        && particle_host.is_none()
+        && evidence
+            .units
+            .iter()
+            .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal())
+        && evidence.adnominal_ends.is_empty()
+    {
+        return StructureSelection::AdjacentNominal;
+    }
     if let Some((nominal, copula)) = copular_frame(resource, context) {
         return StructureSelection::CopularFrame { nominal, copula };
     }
@@ -890,7 +915,7 @@ fn select_structure(
     {
         return StructureSelection::DependentNoun;
     }
-    if let Some(host) = nominal_particle_host(resource, context.current) {
+    if let Some(host) = particle_host {
         let allow_components = false;
         return StructureSelection::NominalSpan {
             selected: host,

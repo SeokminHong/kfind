@@ -97,6 +97,67 @@ fn full_pos_smart_predicate_plan_preserves_a_same_pos_homograph_union() {
 }
 
 #[test]
+fn adjacent_nominal_layout_selects_pos_without_semantic_disambiguation() {
+    let noun = compile_with_full_pos(
+        "새",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+    );
+    let determiner = compile_with_full_pos(
+        "새",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Determiner),
+            ..CompileOptions::default()
+        },
+    );
+    let connective = compile_with_full_pos(
+        "주다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+    );
+    let adnominal = compile_with_full_pos(
+        "걸다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+    );
+    let particle_host = compile_with_full_pos(
+        "학교",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+    );
+
+    assert!(noun.find_at_with_meta("새 기능".as_bytes(), 0).is_none());
+    assert!(
+        determiner
+            .find_at_with_meta("새 기능".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        connective
+            .find_at_with_meta("주지 스님".as_bytes(), 0)
+            .is_none()
+    );
+    assert!(
+        adnominal
+            .find_at_with_meta("건 사람".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        particle_host
+            .find_at_with_meta("학교에서 새 문서".as_bytes(), 0)
+            .is_some()
+    );
+}
+
+#[test]
 fn compiled_predicate_plan_applies_ending_pos_requirements() {
     let verb = compile("가다", CompileOptions::default());
     let adjective = compile("예쁘다", CompileOptions::default());
@@ -638,6 +699,21 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("었", "EP"),
             component_entry("어", "EF"),
             component_expression_entry("걸었어", "VV+EP+EF", "걸/VV/*+었/EP/*+어/EF/*"),
+            component_entry("새", "MM"),
+            component_entry("새", "NNG"),
+            component_entry("기능", "NNG"),
+            component_entry("문서", "NNG"),
+            component_entry("학교", "NNG"),
+            component_entry("학교에서", "NNG"),
+            component_entry("에서", "JKB"),
+            component_entry("주", "VV"),
+            component_entry("지", "EC"),
+            component_entry("주지", "NNG"),
+            component_expression_entry("주지", "VV+EC", "주/VV/*+지/EC/*"),
+            component_entry("건", "NNB"),
+            component_entry("건", "VV+ETM"),
+            component_entry("스님", "NNG"),
+            component_entry("사람", "NNG"),
             component_entry("기", "ETN"),
             component_entry("이", "JKS"),
             component_entry("을", "JKO"),
