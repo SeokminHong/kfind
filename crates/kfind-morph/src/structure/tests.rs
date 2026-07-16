@@ -215,6 +215,49 @@ fn exact_nominal_particle_host_outranks_a_longer_runtime_decomposition() {
 }
 
 #[test]
+fn exact_nominal_token_survives_a_graph_only_decomposition() {
+    let resolver = resolver();
+    let pattern = QueryMorphPattern::new(DataFinePos::Nng, "선거운동").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::NominalParticles,
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("선거운동"),
+        spans(0.."선거운동".len(), 0.."선거운동".len()),
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
+fn graph_only_nominal_token_still_rejects_an_internal_substring() {
+    let resolver = resolver();
+    let pattern = QueryMorphPattern::new(DataFinePos::Nng, "거운동").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::NominalParticles,
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("선거운동"),
+        CandidateSpans {
+            core: "선".len().."선거운동".len(),
+            anchor: "선".len().."선거운동".len(),
+            consumed: "선".len().."선거운동".len(),
+            token: 0.."선거운동".len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
 fn multisyllable_nominal_prefix_survives_a_graph_built_particle_host() {
     let resolver = resolver();
     let core = 0.."둥그스름".len();
@@ -426,6 +469,14 @@ fn predicate_ending_path_consumes_an_open_ended_ending_sequence() {
 }
 
 #[test]
+fn auxiliary_sequence_requires_an_auxiliary_predicate() {
+    let resolver = resolver();
+
+    assert!(resolver.supports_auxiliary_sequence("놓을", 128));
+    assert!(!resolver.supports_auxiliary_sequence("능하게", 128));
+}
+
+#[test]
 fn a_different_whole_predicate_blocks_a_prefix_fallback() {
     let resolver = resolver();
 
@@ -629,6 +680,12 @@ fn resolver() -> ConstraintResolver {
         atomic("걷기", "NNG"),
         atomic("와", "JC"),
         expression("발걸음", "NNG", "발/NNG/*+걸음/NNG/*"),
+        atomic("선거", "NNG"),
+        atomic("운동", "NNG"),
+        atomic("놓", "VX"),
+        atomic("을", "ETM"),
+        atomic("능하", "VA"),
+        atomic("게", "EC"),
     ];
     let bytes = encode_component_resource([9; 32], &entries).expect("valid resource");
     let resource =

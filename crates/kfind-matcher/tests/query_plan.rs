@@ -97,6 +97,41 @@ fn full_pos_smart_predicate_plan_preserves_a_same_pos_homograph_union() {
 }
 
 #[test]
+fn contracted_aoeo_program_consumes_a_proven_auxiliary_sequence() {
+    let matcher = compile_with_full_pos(
+        "빼다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+    );
+
+    assert!(
+        matcher
+            .find_at_with_meta("빼놓을 수 없다.".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        matcher
+            .find_at_with_meta("빼문서는 없다.".as_bytes(), 0)
+            .is_none()
+    );
+
+    let contracted = compile_with_full_pos(
+        "비추다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+    );
+    assert!(
+        contracted
+            .find_at_with_meta("매출액에 비춰볼 때.".as_bytes(), 0)
+            .is_some()
+    );
+}
+
+#[test]
 fn adjacent_layout_limits_disambiguation_to_supported_pos_competitions() {
     let noun = compile_with_full_pos(
         "새",
@@ -770,6 +805,11 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("지", "EC"),
             component_entry("주지", "NNG"),
             component_expression_entry("주지", "VV+EC", "주/VV/*+지/EC/*"),
+            component_entry("빼", "VV"),
+            component_entry("놓", "VX"),
+            component_entry("을", "ETM"),
+            component_entry("볼", "VX+ETM"),
+            component_entry("비춰볼", "VV+EC+VX+ETM"),
             component_entry("건", "NNB"),
             component_entry("건", "VV+ETM"),
             component_entry("스님", "NNG"),
