@@ -103,6 +103,24 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_whole_modifier(&self, text: &str) -> bool {
+        let mut matched = false;
+        self.resource
+            .common_prefixes(text.as_bytes(), |length, analyses| {
+                if length == text.len() {
+                    matched |= analyses.iter().any(|analysis| {
+                        analysis
+                            .pos
+                            .split('+')
+                            .next()
+                            .is_some_and(|pos| matches!(pos, "MM" | "MAG" | "MAJ"))
+                    });
+                }
+            });
+        matched
+    }
+
+    #[must_use]
     pub fn supports_predicate_ending_path(
         &self,
         text: &str,

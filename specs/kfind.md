@@ -384,6 +384,14 @@
   이상 있어야 하며, 모음·자음·ㄹ 어간의 `으` 삽입 조건을 만족해야 한다. 따라서 새로운
   현대 표준어 어미는 query별 anchor 열거 없이 resource와 문법 환경으로 수용하지만,
   `걸다 + -을 → 걸을` 같은 잘못된 결합은 만들지 않는다.
+- generator branch가 어휘 교체형과 일부 어미만 소비한 뒤 token 내부에 멈춰도, query core와
+  같은 predicate 품사로 정렬된 source prefix에서 시작해 `EP/EC/EF/ETM/ETN`만으로 token
+  끝까지 이어지는 path가 있으면 전체 token을 소비한다.
+  지정사는 왼쪽 체언 host가 있는 경우에만 이 경로를
+  사용한다. 일반 용언은 query core가 token 왼쪽 경계에서 시작하고 token 전체의 관형사·부사
+  분석이 없으며 generator continuation state가 terminal이 아닐 때만 사용한다. 남은 suffix가
+  조사 allomorph로도 시작하거나 조사·체언이 남는 path는 predicate ending path로 확장하지
+  않는다.
   그 밖의 runtime compound와 해결되지 않은 complete path 경쟁은 순위를 매기지 않는다.
 - 구조적 경쟁이 여전히 모호하면 `ProductPolicy`는 recall을 우선해 지원 가능한
   query 후보를 유지한다. `Ambiguous`와 경쟁 proof 전체는 진단 evaluator에서만 물질화한다.
