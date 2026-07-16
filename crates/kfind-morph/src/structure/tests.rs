@@ -221,6 +221,63 @@ fn runtime_surface_with_another_pos_does_not_support_the_query_pattern() {
     assert!(!ProductPolicy::RecallFirst.accepts(&decision));
 }
 
+#[test]
+fn preferred_dependent_noun_hides_a_shorter_same_pos_edge() {
+    let resolver = resolver();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("가계"),
+        CandidateSpans {
+            core: 0.."가".len(),
+            anchor: 0.."가".len(),
+            consumed: 0.."가".len(),
+            token: 0.."가계".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "가")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
+fn different_nominal_and_predicate_hosts_do_not_force_ambiguity() {
+    let resolver = resolver();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("때문에"),
+        CandidateSpans {
+            core: 0.."때".len(),
+            anchor: 0.."때".len(),
+            consumed: 0.."때".len(),
+            token: 0.."때문에".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "때")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
+fn exact_modifier_inside_an_unknown_token_is_not_a_component() {
+    let resolver = resolver();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("유면한"),
+        CandidateSpans {
+            core: "유면".len().."유면한".len(),
+            anchor: "유면".len().."유면한".len(),
+            consumed: "유면".len().."유면한".len(),
+            token: 0.."유면한".len(),
+        },
+        &[whole_pattern(DataFinePos::Mm, "한")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&decision));
+}
+
 fn resolver() -> ConstraintResolver {
     let entries = [
         atomic("매", "NNG"),
@@ -242,6 +299,17 @@ fn resolver() -> ConstraintResolver {
         atomic("롭지", "NNG"),
         atomic("가", "NNG"),
         atomic("계", "NNG"),
+        atomic("가계", "NNB"),
+        atomic("때", "NNG"),
+        atomic("때", "VV"),
+        atomic("때문", "NNB"),
+        atomic("문에", "EC"),
+        atomic("에", "JKB"),
+        atomic("유", "NNG"),
+        atomic("면", "NNG"),
+        atomic("유면", "NNG"),
+        atomic("면한", "NNG"),
+        atomic("한", "MM"),
     ];
     let bytes = encode_component_resource([9; 32], &entries).expect("valid resource");
     let resource =

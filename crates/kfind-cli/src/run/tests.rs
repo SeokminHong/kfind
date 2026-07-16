@@ -513,10 +513,10 @@ fn component_resource() -> Vec<u8> {
     let entries = [
         component_entry("사용자", "NNG", -5_000),
         component_entry("권한", "NNG", -5_000),
-        component_entry("사용자권한", "NNG", 5_000),
+        component_expression_entry("사용자권한", "NNG+NNG", "사용자/NNG/*+권한/NNG/*", 5_000),
         component_entry("대", "XPN", 5_000),
         component_entry("학교", "NNG", 5_000),
-        component_entry("대학교", "NNG", -5_000),
+        component_expression_entry("대학교", "XPN+NNG", "대/XPN/*+학교/NNG/*", -5_000),
         component_entry("깨달", "VV", -5_000),
         component_entry("결정지", "VV", -5_000),
         component_entry("가까워", "VA", -5_000),
@@ -528,6 +528,15 @@ fn component_resource() -> Vec<u8> {
 }
 
 fn component_entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorphologyEntry {
+    component_expression_entry(surface, pos, "*", word_cost)
+}
+
+fn component_expression_entry(
+    surface: &str,
+    pos: &str,
+    expression: &str,
+    word_cost: i32,
+) -> MecabSourceMorphologyEntry {
     MecabSourceMorphologyEntry {
         surface: surface.to_owned(),
         pos: pos.to_owned(),
@@ -537,6 +546,6 @@ fn component_entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorph
         analysis_type: "*".to_owned(),
         start_pos: "*".to_owned(),
         end_pos: "*".to_owned(),
-        expression: "*".to_owned(),
+        expression: expression.to_owned(),
     }
 }
