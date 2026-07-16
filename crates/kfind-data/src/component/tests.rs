@@ -5,7 +5,7 @@ use crate::{MecabSourceMorphologyEntry, parse_mecab_connection_matrix};
 use super::*;
 
 #[test]
-fn resource_owns_bytes_and_preserves_scoring_fields() {
+fn resource_owns_bytes_and_preserves_structural_and_scoring_fields() {
     let resource = decode_component_resource("fixture", fixture_resource(), &[7; 32]).unwrap();
     let mut prefixes = Vec::new();
     resource.common_prefixes("가나다".as_bytes(), |length, analyses| {
@@ -17,6 +17,9 @@ fn resource_owns_bytes_and_preserves_scoring_fields() {
     assert_eq!(prefixes.len(), 2);
     assert_eq!(prefixes[1].0, "가나".len());
     assert_eq!(prefixes[1].1[0].pos, "NNG+JX");
+    assert_eq!(prefixes[1].1[0].start_pos, "NNG");
+    assert_eq!(prefixes[1].1[0].end_pos, "JX");
+    assert_eq!(prefixes[1].1[0].expression, "가/NNG/*+나/JX/*");
     assert_eq!(resource.connection_cost(1, 1), Some(4));
     assert_eq!(resource.char_def(), b"char");
     assert_eq!(resource.unk_def(), b"unk");
@@ -34,7 +37,7 @@ fn resource_rejects_schema_source_and_content_mismatches() {
     );
 
     let mut schema = bytes.clone();
-    schema[MAGIC.len()..MAGIC.len() + 4].copy_from_slice(&2_u32.to_le_bytes());
+    schema[MAGIC.len()..MAGIC.len() + 4].copy_from_slice(&(SCHEMA_VERSION + 1).to_le_bytes());
     assert!(matches!(
         decode_component_resource("fixture", schema, &[7; 32])
             .unwrap_err()
@@ -80,9 +83,14 @@ fn entry(
         left_id,
         right_id,
         word_cost,
-        analysis_type: "*".to_owned(),
-        start_pos: "*".to_owned(),
-        end_pos: "*".to_owned(),
-        expression: "*".to_owned(),
+        analysis_type: if surface == "가나" { "Inflect" } else { "*" }.to_owned(),
+        start_pos: if surface == "가나" { "NNG" } else { "*" }.to_owned(),
+        end_pos: if surface == "가나" { "JX" } else { "*" }.to_owned(),
+        expression: if surface == "가나" {
+            "가/NNG/*+나/JX/*"
+        } else {
+            "*"
+        }
+        .to_owned(),
     }
 }

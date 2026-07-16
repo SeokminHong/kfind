@@ -14,7 +14,7 @@ mod payload;
 use payload::{PayloadLayout, StringLayout};
 
 const MAGIC: &[u8; 8] = b"KFCMPLT\0";
-const SCHEMA_VERSION: u32 = 1;
+const SCHEMA_VERSION: u32 = 2;
 const INDEX_KIND_DOUBLE_ARRAY: u8 = 1;
 const SECTION_COUNT: usize = 6;
 const HEADER_LEN: usize = 304;
@@ -30,6 +30,10 @@ pub struct ComponentAnalysis<'a> {
     pub left_id: u16,
     pub right_id: u16,
     pub word_cost: i32,
+    pub analysis_type: &'a str,
+    pub start_pos: &'a str,
+    pub end_pos: &'a str,
+    pub expression: &'a str,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

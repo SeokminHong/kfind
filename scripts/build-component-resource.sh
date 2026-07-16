@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly COMPONENT_SHA256="5fc46a151e41485dc4b4a3a931135c0f490913f2c2c908b9d87adb87a7c14efd"
+readonly COMPONENT_SHA256="0674b9d2117f1f59359e4ba616a7ec81f231577633e0e53fd232cb83a1122ff6"
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 source "${repo_root}/scripts/lib/full-pos-source.sh"
@@ -31,7 +31,7 @@ fi
 
 install -m 0644 "${source_directory}/COPYING" "${stage}/LICENSES/mecab-ko-dic-COPYING"
 cat >"${stage}/MANIFEST.toml" <<EOF
-schema_version = 1
+schema_version = 2
 source = "${FULL_POS_SOURCE_NAME}"
 source_url = "${FULL_POS_SOURCE_URL}"
 source_sha256 = "${FULL_POS_SOURCE_SHA256}"

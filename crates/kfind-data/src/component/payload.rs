@@ -1,10 +1,10 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{DataError, MecabSourceMorphologyEntry};
 
 use super::{ComponentAnalysis, build_conversion_error, build_error, resource_error};
 
-const ANALYSIS_BYTES: usize = 12;
+const ANALYSIS_BYTES: usize = 28;
 
 pub(super) struct EncodedPayload {
     pub bytes: Vec<u8>,
@@ -22,17 +22,29 @@ pub(super) fn encode(
             .checked_add(1)
             .ok_or_else(|| build_error("component POS count overflow"))?;
     }
-    let pos_ids = pos_counts
-        .keys()
+    let string_ids = groups
+        .iter()
+        .flat_map(|(_, analyses)| analyses)
+        .flat_map(|entry| {
+            [
+                entry.pos.as_str(),
+                entry.analysis_type.as_str(),
+                entry.start_pos.as_str(),
+                entry.end_pos.as_str(),
+                entry.expression.as_str(),
+            ]
+        })
+        .collect::<BTreeSet<_>>()
+        .into_iter()
         .enumerate()
-        .map(|(index, pos)| {
+        .map(|(index, value)| {
             Ok((
-                pos.clone(),
+                value.to_owned(),
                 u32::try_from(index).map_err(build_conversion_error)?,
             ))
         })
         .collect::<Result<BTreeMap<_, _>, DataError>>()?;
-    let strings = encode_strings(pos_ids.keys())?;
+    let strings = encode_strings(string_ids.keys())?;
     let analysis_count = pos_counts.values().try_fold(0_u32, |total, count| {
         total
             .checked_add(*count)
@@ -51,7 +63,7 @@ pub(super) fn encode(
             .to_le_bytes(),
     );
     for (pos, count) in &pos_counts {
-        bytes.extend_from_slice(&pos_ids[pos].to_le_bytes());
+        bytes.extend_from_slice(&string_ids[pos].to_le_bytes());
         bytes.extend_from_slice(&count.to_le_bytes());
     }
     let mut offset = 0_u32;
@@ -66,7 +78,15 @@ pub(super) fn encode(
         bytes.extend_from_slice(&entry.left_id.to_le_bytes());
         bytes.extend_from_slice(&entry.right_id.to_le_bytes());
         bytes.extend_from_slice(&entry.word_cost.to_le_bytes());
-        bytes.extend_from_slice(&pos_ids[&entry.pos].to_le_bytes());
+        for value in [
+            &entry.pos,
+            &entry.analysis_type,
+            &entry.start_pos,
+            &entry.end_pos,
+            &entry.expression,
+        ] {
+            bytes.extend_from_slice(&string_ids[value].to_le_bytes());
+        }
     }
     Ok(EncodedPayload {
         bytes,
@@ -268,6 +288,13 @@ impl PayloadLayout {
             *count = count
                 .checked_add(1)
                 .ok_or_else(|| resource_error(source, "POS count overflow"))?;
+            for offset in [12, 16, 20, 24] {
+                let string_id = read_u32_at(record, offset)
+                    .ok_or_else(|| resource_error(source, "truncated analysis metadata"))?;
+                strings
+                    .get(string_bytes, string_id)
+                    .ok_or_else(|| resource_error(source, "invalid analysis metadata string ID"))?;
+            }
         }
         if actual != expected {
             return Err(resource_error(
@@ -327,6 +354,10 @@ impl PayloadLayout {
             right_id: u16::from_le_bytes(record[2..4].try_into().ok()?),
             word_cost: i32::from_le_bytes(record[4..8].try_into().ok()?),
             pos: strings.get(string_bytes, read_u32_at(record, 8)?)?,
+            analysis_type: strings.get(string_bytes, read_u32_at(record, 12)?)?,
+            start_pos: strings.get(string_bytes, read_u32_at(record, 16)?)?,
+            end_pos: strings.get(string_bytes, read_u32_at(record, 20)?)?,
+            expression: strings.get(string_bytes, read_u32_at(record, 24)?)?,
         })
     }
 
