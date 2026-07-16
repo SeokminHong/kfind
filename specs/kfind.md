@@ -900,6 +900,7 @@ pub struct CandidateProgram {
     pub anchor: Vec<u8>,
     pub core_mapping: CoreMapping,
     pub extent: CandidateExtentPolicy,
+    pub consumption: CandidateConsumption,
     pub decision: CandidateDecision,
     pub origins: Vec<Origin>,
 }
@@ -908,6 +909,13 @@ pub enum CandidateExtentPolicy {
     Anchor,
     SurroundingToken,
     AnchorAndSurroundingToken,
+}
+
+pub enum CandidateConsumption {
+    Anchor,
+    PredicateContinuation { /* DFA state, POS, rule vocabulary, left context */ },
+    NominalParticleChain { /* allowed and blocked rule vocabulary */ },
+    DirectParticleHost { /* particle rule */ },
 }
 
 pub enum CandidateDecision {
@@ -934,9 +942,10 @@ pub struct Origin {
 }
 ```
 
-- `CandidateProgram`은 anchor 탐색·core 투영·후보 범위 열거·판정 제약을 한번만
-  표현하는 query-owned 실행 IR이다. matcher와 품질 검증기는 같은 후보 열거 규칙을
-  실행하며, 별도 branch를 재구성하거나 verifier 종류에서 소비 범위를 추론하지 않는다.
+- `CandidateProgram`은 anchor 탐색·core 투영·후보 범위 열거·anchor 이후 소비·판정 제약을
+  한번만 표현하는 query-owned 실행 IR이다. `CandidateConsumption`은 실제 token span을 만드는
+  continuation과 rule vocabulary만 선언한다. matcher와 품질 검증기는 같은 program을 실행하며,
+  별도 branch를 재구성하거나 consumption 종류에서 `extent`를 추론하지 않는다.
 - exact 후보는 `Anchor`, 용언 연속 후보는 `SurroundingToken`, 조사가 없을 수도 있는
   체언은 `AnchorAndSurroundingToken`을 사용한다. 모든 후보는
   `core ⊆ anchor ⊆ consumed ⊆ token` 불변식을 만족한다.
