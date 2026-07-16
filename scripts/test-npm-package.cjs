@@ -98,9 +98,9 @@ bundled.free();
 const componentMatch = engine.compile("권한");
 assert.equal(componentMatch.findAll("사용자권한").length, 1);
 componentMatch.free();
-const crossingSubstring = engine.compile("학교");
-assert.equal(crossingSubstring.findAll("대학교").length, 0);
-crossingSubstring.free();
+const sourceComponent = engine.compile("학교");
+assert.equal(sourceComponent.findAll("대학교").length, 1);
+sourceComponent.free();
 
 const preloaded = new Kfind(componentResource);
 assert.equal(preloaded.componentResourceLoaded, true);
