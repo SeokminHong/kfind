@@ -1048,11 +1048,10 @@ pub struct VerifiedSpan {
 
 표면 문자열 하나만 `BTreeSet`으로 중복 제거하지 않는다. 다음과 같이 검색 키와 생성 근거를 분리한다.
 
-```rust
-HashMap<BranchKey, SmallVec<[Origin; 2]>>
-```
-
-동일 branch가 여러 분석에서 생성되면 origins를 합친다.
+동일 branch가 여러 분석에서 생성되면 origins를 합친다. compiler는 정규화된 anchor로
+branch 후보를 먼저 묶고 같은 anchor 안에서 core 투영, consumption, boundary와 decision이
+같은지 비교한다. 여러 branch가 공유하는 rule vocabulary 전체를 branch마다 다시 hash하지
+않으며, 최초 생성 순서와 origin 정렬은 기존 plan 계약대로 보존한다.
 
 ## 8. 한국어 음절 처리
 
