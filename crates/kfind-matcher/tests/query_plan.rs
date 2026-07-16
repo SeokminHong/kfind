@@ -257,6 +257,29 @@ fn connective_topic_uses_an_ending_then_particle_source_path() {
 }
 
 #[test]
+fn adnominal_dependent_noun_particle_uses_a_complete_source_path() {
+    let matcher = compile_with_full_pos(
+        "오다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+    );
+    let text = "지금의 세계를 만들어 온지를 배운다.";
+    let matched = matcher
+        .find_at_with_meta(text.as_bytes(), 0)
+        .expect("adnominal dependent-noun source path was rejected");
+
+    assert_eq!(&text[matched.atoms[0].core.clone()], "온");
+    for rejected in ["온지", "온를"] {
+        assert!(
+            matcher.find_at_with_meta(rejected.as_bytes(), 0).is_none(),
+            "accepted incomplete adnominal dependent-noun path {rejected}"
+        );
+    }
+}
+
+#[test]
 fn smart_auxiliary_query_accepts_a_complete_attached_source_path() {
     let matcher = compile_with_full_pos(
         "지다",
@@ -1010,6 +1033,9 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("지", "EC"),
             component_entry("주지", "NNG"),
             component_expression_entry("주지", "VV+EC", "주/VV/*+지/EC/*"),
+            component_entry("온", "MM"),
+            component_expression_entry("온", "VV+ETM", "오/VV/*+ᆫ/ETM/*"),
+            component_entry("지", "NNB"),
             component_entry("빼", "VV"),
             component_entry("놓", "VX"),
             component_entry("을", "ETM"),

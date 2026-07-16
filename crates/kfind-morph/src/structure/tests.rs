@@ -812,6 +812,33 @@ fn predicate_ending_particle_path_requires_endings_before_particles() {
 }
 
 #[test]
+fn adnominal_dependent_noun_particle_path_requires_each_typed_segment() {
+    let resolver = resolver();
+
+    assert!(resolver.supports_adnominal_dependent_noun_particle_path(
+        "온지를",
+        "온".len(),
+        "온".len(),
+        crate::PredicatePos::Verb,
+        128,
+    ));
+    assert!(!resolver.supports_adnominal_dependent_noun_particle_path(
+        "온지",
+        "온".len(),
+        "온".len(),
+        crate::PredicatePos::Verb,
+        128,
+    ));
+    assert!(!resolver.supports_adnominal_dependent_noun_particle_path(
+        "온를",
+        "온".len(),
+        "온".len(),
+        crate::PredicatePos::Verb,
+        128,
+    ));
+}
+
+#[test]
 fn auxiliary_sequence_requires_an_auxiliary_predicate() {
     let resolver = resolver();
 
@@ -1101,6 +1128,9 @@ fn resolver() -> ConstraintResolver {
         atomic("걸", "VV"),
         expression("걸려", "VV+EC", "걸리/VV/*+어/EC/*"),
         expression("미친다", "VV+EF", "미치/VV/*+ᆫ다/EF/*"),
+        atomic("온", "MM"),
+        expression("온", "VV+ETM", "오/VV/*+ᆫ/ETM/*"),
+        atomic("를", "JKO"),
         atomic("입니", "VCP+EF"),
         expression("입니다", "VCP+EF", "이/VCP/*+ᆸ니다/EF/*"),
         atomic("다", "NNG"),

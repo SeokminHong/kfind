@@ -417,6 +417,11 @@
   같은 품사의 source graph가 query core부터 token 끝까지 `predicate + E+ + J+` 순서의
   완성된 path를 증명하는 경우에만 구조 검증 범위를 전체 token으로 확장한다. 따라서
   `위해서는`, `대해서는`, `없지는`을 회수하지만, 다른 조사나 어미 뒤 조사 연쇄는 열지 않는다.
+- 관형형 candidate 뒤에 의존명사 `지`와 조사가 붙으면, 같은 품사의 source graph가
+  candidate가 소비한 경계까지 `predicate + E* + ETM`, 그 뒤 token 끝까지
+  `NNB + J+` 순서의 완성된 path를 증명하는 경우에만 구조 검증 범위를 전체 token으로
+  확장한다. 따라서 `오다`는 `온지를`에서 회수하지만, source 관형형·의존명사·조사 중 하나가
+  없거나 순서가 다른 path는 열지 않는다.
   그 밖의 runtime compound와 해결되지 않은 complete path 경쟁은 순위를 매기지 않는다.
 - 구조적 경쟁이 여전히 모호하면 `ProductPolicy`는 recall을 우선해 지원 가능한
   query 후보를 유지한다. `Ambiguous`와 경쟁 proof 전체는 진단 evaluator에서만 물질화한다.
