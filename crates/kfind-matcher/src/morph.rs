@@ -12,8 +12,8 @@ use kfind_morph::{
     ParticleChainModel, ParticleVerifier, RuleId, verify_predicate_continuation,
 };
 use kfind_query::{
-    BranchEnvironment, BranchVerifier, ContextRequirement, CoreMapping, Origin, PhraseMatch,
-    QueryPlan, SurfaceBranch, VerifiedSpan, registered_lexical_context_prefix_len,
+    BranchEnvironment, BranchVerifier, CandidateProgram, ContextRequirement, CoreMapping, Origin,
+    PhraseMatch, QueryPlan, VerifiedSpan, registered_lexical_context_prefix_len,
 };
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
@@ -96,7 +96,7 @@ impl MorphMatcher {
             .atoms
             .iter()
             .enumerate()
-            .find(|(_, atom)| atom.branches.is_empty())
+            .find(|(_, atom)| atom.programs.is_empty())
         {
             return Err(MorphMatcherBuildError::EmptyAtom { atom_index });
         }
@@ -227,7 +227,7 @@ impl MorphMatcher {
             counters.raw_anchor_hits += 1;
             for branch_ref in &self.anchor_branches[hit.anchor_index] {
                 let branch =
-                    &self.plan.atoms[branch_ref.atom_index].branches[branch_ref.branch_index];
+                    &self.plan.atoms[branch_ref.atom_index].programs[branch_ref.branch_index];
                 let Some(candidate) = self.verify_branch_without_boundary(
                     haystack,
                     &hit,
@@ -276,7 +276,7 @@ impl MorphMatcher {
                 if branch_ref.atom_index != 0 {
                     continue;
                 }
-                let branch = &self.plan.atoms[0].branches[branch_ref.branch_index];
+                let branch = &self.plan.atoms[0].programs[branch_ref.branch_index];
                 let Some(candidate) = self.verify_branch_with_metadata(
                     haystack,
                     &hit,
@@ -325,7 +325,7 @@ impl MorphMatcher {
         for hit in self.anchor_engine.hits(haystack, at) {
             for branch_ref in &self.anchor_branches[hit.anchor_index] {
                 let atom = &self.plan.atoms[branch_ref.atom_index];
-                let branch = &atom.branches[branch_ref.branch_index];
+                let branch = &atom.programs[branch_ref.branch_index];
                 if let Some(span) = self.verify_branch_with_metadata(
                     haystack,
                     &hit,
@@ -348,7 +348,7 @@ impl MorphMatcher {
         haystack: &[u8],
         hit: &AnchorHit,
         atom_index: usize,
-        branch: &SurfaceBranch,
+        branch: &CandidateProgram,
         metadata: MatchMetadata,
     ) -> Option<VerifiedSpan> {
         let candidate = self.verify_branch_without_boundary(haystack, hit, branch, metadata)?;
@@ -360,7 +360,7 @@ impl MorphMatcher {
         &self,
         haystack: &[u8],
         hit: &AnchorHit,
-        branch: &SurfaceBranch,
+        branch: &CandidateProgram,
         metadata: MatchMetadata,
     ) -> Option<VerifiedSpan> {
         let anchor = std::str::from_utf8(haystack.get(hit.span.clone())?).ok()?;
@@ -455,7 +455,7 @@ impl MorphMatcher {
         haystack: &[u8],
         candidate: &VerifiedSpan,
         atom_index: usize,
-        branch: &SurfaceBranch,
+        branch: &CandidateProgram,
     ) -> bool {
         let boundary_accepted = self.accepts_token_boundary(haystack, candidate, branch);
         match branch.context_requirement {
@@ -508,7 +508,7 @@ impl MorphMatcher {
         context: &LexicalContextAnalysis,
         candidate: &VerifiedSpan,
         atom_index: usize,
-        branch: &SurfaceBranch,
+        branch: &CandidateProgram,
     ) -> bool {
         let Some(atom) = self.plan.atoms.get(atom_index) else {
             return false;
@@ -548,7 +548,7 @@ impl MorphMatcher {
         &self,
         haystack: &[u8],
         candidate: &VerifiedSpan,
-        branch: &SurfaceBranch,
+        branch: &CandidateProgram,
     ) -> bool {
         accepts_requirements(
             haystack,
@@ -564,7 +564,7 @@ impl MorphMatcher {
         haystack: &[u8],
         candidate: &VerifiedSpan,
         atom_index: usize,
-        branch: &SurfaceBranch,
+        branch: &CandidateProgram,
     ) -> bool {
         let Some(evaluator) = &self.component_evaluator else {
             return false;
@@ -737,7 +737,7 @@ fn normalized_verifier_text<'a>(
     )
 }
 
-fn requires_direct_particle_host(branch: &SurfaceBranch) -> bool {
+fn requires_direct_particle_host(branch: &CandidateProgram) -> bool {
     !branch.boundary.require_left && branch.boundary.require_right
 }
 
@@ -821,7 +821,7 @@ fn unique_anchors(plan: &QueryPlan) -> AnchorsAndBranches {
     let mut anchors = Vec::<Box<[u8]>>::new();
     let mut branch_lists = Vec::<Vec<BranchRef>>::new();
     for (atom_index, atom) in plan.atoms.iter().enumerate() {
-        for (branch_index, branch) in atom.branches.iter().enumerate() {
+        for (branch_index, branch) in atom.programs.iter().enumerate() {
             let anchor_index = if let Some(index) = anchor_indices.get(branch.anchor.as_ref()) {
                 *index
             } else {

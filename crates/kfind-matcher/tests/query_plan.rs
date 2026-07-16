@@ -392,7 +392,7 @@ fn smart_vcp_corpus_fixtures_apply_component_evidence() {
     let matcher = compile("이다", CompileOptions::default());
     assert!(
         matcher.plan().atoms[0]
-            .branches
+            .programs
             .iter()
             .all(|branch| branch.context_requirement == ContextRequirement::PredicateLexical)
     );
@@ -461,7 +461,7 @@ fn canonical_vcp_corpus_fixtures_preserve_union_without_an_exact_resource_surfac
     }
     assert!(
         matcher.plan().atoms[0]
-            .branches
+            .programs
             .iter()
             .all(|branch| branch.context_requirement == ContextRequirement::PredicateLexical)
     );

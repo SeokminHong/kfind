@@ -8,8 +8,8 @@ use kfind_data::{
 use kfind_morph::{CoarsePos, ContinuationState, FinePos, RuleId};
 use kfind_query::{
     Analysis, AnalysisSource, AtomPlan, BoundaryPolicy, BoundaryProof, BranchEnvironment,
-    BranchVerifier, ContextRequirement, CoreMapping, Morphology, NominalMorphology, Origin,
-    PhrasePolicy, PlanLimits, QueryPlan, SurfaceBranch,
+    BranchVerifier, CandidateProgram, ContextRequirement, CoreMapping, Morphology,
+    NominalMorphology, Origin, PhrasePolicy, PlanLimits, QueryPlan,
 };
 use unicode_normalization::UnicodeNormalization;
 
@@ -689,7 +689,7 @@ fn component_matcher_with_analysis(
 }
 
 fn contextual_matcher(
-    branches: Vec<SurfaceBranch>,
+    branches: Vec<CandidateProgram>,
     resource: Arc<ComponentResource>,
 ) -> MorphMatcher {
     let plan = QueryPlan {
@@ -786,33 +786,35 @@ fn component_entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorph
     }
 }
 
-fn atom(boundary: BoundaryPolicy, branches: Vec<SurfaceBranch>) -> AtomPlan {
+fn atom(boundary: BoundaryPolicy, branches: Vec<CandidateProgram>) -> AtomPlan {
     AtomPlan {
         analyses: Vec::new(),
-        branches,
+        programs: branches,
         boundary,
     }
 }
 
-fn exact_branch(anchor: &str, require_left: bool) -> SurfaceBranch {
-    SurfaceBranch {
+fn exact_branch(anchor: &str, require_left: bool) -> CandidateProgram {
+    CandidateProgram {
         anchor: anchor.as_bytes().into(),
         verifier: BranchVerifier::Exact,
         core_mapping: CoreMapping::WholeAnchor,
+        extent: kfind_query::CandidateExtentPolicy::Anchor,
         origins: vec![origin(0, &[])],
         boundary: proof(require_left, true, anchor.chars().count() == 1),
         context_requirement: ContextRequirement::None,
     }
 }
 
-fn nominal_branch(anchor: &str, allowed_rule_ids: Arc<[RuleId]>) -> SurfaceBranch {
-    SurfaceBranch {
+fn nominal_branch(anchor: &str, allowed_rule_ids: Arc<[RuleId]>) -> CandidateProgram {
+    CandidateProgram {
         anchor: anchor.as_bytes().into(),
         verifier: BranchVerifier::NominalParticles {
             allowed_rule_ids,
             blocked_rule_ids: Arc::from([]),
         },
         core_mapping: CoreMapping::WholeAnchor,
+        extent: kfind_query::CandidateExtentPolicy::AnchorAndSurroundingToken,
         origins: vec![origin(0, &[])],
         boundary: proof(true, true, anchor.chars().count() == 1),
         context_requirement: ContextRequirement::None,
@@ -825,8 +827,8 @@ fn predicate_branch(
     continuation: ContinuationState,
     allowed_rule_ids: Arc<[RuleId]>,
     origins: Vec<Origin>,
-) -> SurfaceBranch {
-    SurfaceBranch {
+) -> CandidateProgram {
+    CandidateProgram {
         anchor: anchor.as_bytes().into(),
         verifier: BranchVerifier::Predicate {
             continuation,
@@ -836,6 +838,7 @@ fn predicate_branch(
             environment: BranchEnvironment::Unrestricted,
         },
         core_mapping: CoreMapping::PrefixBytes(core_len),
+        extent: kfind_query::CandidateExtentPolicy::SurroundingToken,
         origins,
         boundary: proof(false, true, anchor.chars().count() == 1),
         context_requirement: ContextRequirement::None,

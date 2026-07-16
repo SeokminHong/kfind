@@ -25,7 +25,7 @@ impl MorphMatcher {
         for hit in self.anchor_engine.hits(haystack, 0) {
             for branch_ref in &self.anchor_branches[hit.anchor_index] {
                 let atom = &self.plan.atoms[branch_ref.atom_index];
-                let branch = &atom.branches[branch_ref.branch_index];
+                let branch = &atom.programs[branch_ref.branch_index];
                 if branch.context_requirement != ContextRequirement::ExactComponent {
                     continue;
                 }

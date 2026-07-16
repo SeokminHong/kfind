@@ -1,7 +1,9 @@
 use std::ops::Range;
 use std::sync::Arc;
 
-use kfind_morph::{ContinuationState, ParticleTransition, PredicatePos, RuleId};
+use kfind_morph::{
+    CandidateExtentPolicy, ContinuationState, ParticleTransition, PredicatePos, RuleId,
+};
 
 use crate::{Analysis, BoundaryPolicy, NormalizationMode, PhrasePolicy, PlanLimits};
 
@@ -21,7 +23,7 @@ impl QueryPlan {
     #[must_use]
     pub fn requires_component_resource(&self) -> bool {
         self.atoms.iter().any(|atom| {
-            atom.branches.iter().any(|branch| {
+            atom.programs.iter().any(|branch| {
                 matches!(
                     branch.context_requirement,
                     ContextRequirement::PredicateLexical
@@ -36,7 +38,7 @@ impl QueryPlan {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AtomPlan {
     pub analyses: Vec<Analysis>,
-    pub branches: Vec<SurfaceBranch>,
+    pub programs: Vec<CandidateProgram>,
     pub boundary: BoundaryPolicy,
 }
 
@@ -100,10 +102,11 @@ pub enum CoreMapping {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct SurfaceBranch {
+pub struct CandidateProgram {
     pub anchor: Box<[u8]>,
     pub verifier: BranchVerifier,
     pub core_mapping: CoreMapping,
+    pub extent: CandidateExtentPolicy,
     pub origins: Vec<Origin>,
     pub boundary: BoundaryProof,
     pub context_requirement: ContextRequirement,

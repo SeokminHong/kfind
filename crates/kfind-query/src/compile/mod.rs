@@ -3,10 +3,10 @@ use std::sync::Arc;
 
 use crate::lexicons::{data_fine_pos, predicate_from_derivation};
 use crate::{
-    Analysis, AnalysisSource, AtomPlan, BranchEnvironment, BranchVerifier, CompileError,
-    CompileErrorKind, CompileOptions, ContextRequirement, CoreMapping, ExpandMode,
+    Analysis, AnalysisSource, AtomPlan, BranchEnvironment, BranchVerifier, CandidateProgram,
+    CompileError, CompileErrorKind, CompileOptions, ContextRequirement, CoreMapping, ExpandMode,
     LexiconQueryAnalyzer, Morphology, Origin, QueryAnalyzer, QueryAtom, QueryDiagnostic, QueryPlan,
-    SurfaceBranch, parse_query,
+    parse_query,
 };
 use kfind_data::{
     DICTIONARY_CONJUGATION_RULE_ID, DICTIONARY_RELATED_ADVERB_RULE_ID, DerivationRule,
@@ -234,7 +234,7 @@ pub fn compile_query(
         }
         atom_plans.push(AtomPlan {
             analyses,
-            branches,
+            programs: branches,
             boundary: options.boundary,
         });
     }
@@ -650,7 +650,7 @@ fn shared_rule_bytes(rule_sets: &[&[RuleId]]) -> usize {
         .sum()
 }
 
-fn estimate_branch_bytes(branch: &SurfaceBranch) -> usize {
+fn estimate_branch_bytes(branch: &CandidateProgram) -> usize {
     BRANCH_OVERHEAD_BYTES
         + branch.anchor.len()
         + branch

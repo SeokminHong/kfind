@@ -6,8 +6,8 @@ use std::sync::Arc;
 
 use kfind_morph::{ContinuationState, PredicatePos, RuleId};
 use kfind_query::{
-    BranchEnvironment, BranchVerifier, CoreMapping, Origin, PhraseJoinError, PhraseMatch,
-    QueryPlan, SurfaceBranch, VerifiedSpan, join_phrase_spans,
+    BranchEnvironment, BranchVerifier, CandidateProgram, CoreMapping, Origin, PhraseJoinError,
+    PhraseMatch, QueryPlan, VerifiedSpan, join_phrase_spans,
 };
 use unicode_general_category::{GeneralCategory, get_general_category};
 use unicode_normalization::{UnicodeNormalization, is_nfc};
@@ -23,10 +23,10 @@ impl ReferenceMatcher {
             return Err(ReferenceMatcherBuildError::EmptyPlan);
         }
         for (atom_index, atom) in plan.atoms.iter().enumerate() {
-            if atom.branches.is_empty() {
+            if atom.programs.is_empty() {
                 return Err(ReferenceMatcherBuildError::EmptyAtom { atom_index });
             }
-            for (branch_index, branch) in atom.branches.iter().enumerate() {
+            for (branch_index, branch) in atom.programs.iter().enumerate() {
                 if branch.anchor.is_empty() {
                     return Err(ReferenceMatcherBuildError::EmptyAnchor {
                         atom_index,
@@ -97,7 +97,7 @@ impl ReferenceMatcher {
             .filter(|start| *start >= at)
         {
             for (atom_index, atom) in self.plan.atoms.iter().enumerate() {
-                for branch in &atom.branches {
+                for branch in &atom.programs {
                     if let Some(span) = self.verify_branch(text, start, branch) {
                         atom_spans[atom_index].push(span);
                     }
@@ -114,7 +114,7 @@ impl ReferenceMatcher {
         &self,
         text: &str,
         start: usize,
-        branch: &SurfaceBranch,
+        branch: &CandidateProgram,
     ) -> Option<VerifiedSpan> {
         let anchor = std::str::from_utf8(&branch.anchor).ok()?;
         let anchor_end = start.checked_add(anchor.len())?;
@@ -648,7 +648,7 @@ fn reference_predicate_continuation(
     ))
 }
 
-fn requires_direct_particle_host(branch: &SurfaceBranch) -> bool {
+fn requires_direct_particle_host(branch: &CandidateProgram) -> bool {
     !branch.boundary.require_left && branch.boundary.require_right
 }
 
@@ -708,7 +708,7 @@ fn accepts_boundaries(
     text: &str,
     core: &Range<usize>,
     token: &Range<usize>,
-    branch: &SurfaceBranch,
+    branch: &CandidateProgram,
 ) -> bool {
     let valid = token.start <= core.start
         && core.start <= core.end

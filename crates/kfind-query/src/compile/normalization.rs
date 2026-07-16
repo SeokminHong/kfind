@@ -3,8 +3,9 @@ use std::collections::HashMap;
 use unicode_normalization::UnicodeNormalization;
 
 use crate::{
-    BoundaryPolicy, BoundaryProof, BranchVerifier, CompileError, CompileErrorKind,
-    ContextRequirement, CoreMapping, NormalizationMode, Origin, QueryAtom, SurfaceBranch,
+    BoundaryPolicy, BoundaryProof, BranchVerifier, CandidateExtentPolicy, CandidateProgram,
+    CompileError, CompileErrorKind, ContextRequirement, CoreMapping, NormalizationMode, Origin,
+    QueryAtom,
 };
 
 #[derive(Clone)]
@@ -32,9 +33,9 @@ pub(super) fn normalize_and_merge(
     boundary: BoundaryPolicy,
     one_scalar_atom: bool,
     atom_index: usize,
-) -> Result<Vec<SurfaceBranch>, CompileError> {
+) -> Result<Vec<CandidateProgram>, CompileError> {
     let mut indices = HashMap::<BranchKey, usize>::new();
-    let mut branches = Vec::<SurfaceBranch>::new();
+    let mut programs = Vec::<CandidateProgram>::new();
     for draft in drafts {
         for (anchor, core_mapping) in normalized_forms(&draft, mode, atom_index)? {
             let allow_attached = matches!(draft.verifier, BranchVerifier::DirectParticle { .. });
@@ -49,16 +50,17 @@ pub(super) fn normalize_and_merge(
                 context_requirement,
             };
             if let Some(index) = indices.get(&key).copied() {
-                let origins = &mut branches[index].origins;
+                let origins = &mut programs[index].origins;
                 if !origins.contains(&draft.origin) {
                     origins.push(draft.origin.clone());
                     origins.sort();
                 }
             } else {
-                let index = branches.len();
+                let index = programs.len();
                 indices.insert(key.clone(), index);
-                branches.push(SurfaceBranch {
+                programs.push(CandidateProgram {
                     anchor: key.anchor,
+                    extent: candidate_extent(&key.verifier),
                     verifier: key.verifier,
                     core_mapping: key.core_mapping,
                     origins: vec![draft.origin.clone()],
@@ -68,7 +70,17 @@ pub(super) fn normalize_and_merge(
             }
         }
     }
-    Ok(branches)
+    Ok(programs)
+}
+
+fn candidate_extent(verifier: &BranchVerifier) -> CandidateExtentPolicy {
+    match verifier {
+        BranchVerifier::Exact | BranchVerifier::DirectParticle { .. } => {
+            CandidateExtentPolicy::Anchor
+        }
+        BranchVerifier::Predicate { .. } => CandidateExtentPolicy::SurroundingToken,
+        BranchVerifier::NominalParticles { .. } => CandidateExtentPolicy::AnchorAndSurroundingToken,
+    }
 }
 
 fn context_requirement(
