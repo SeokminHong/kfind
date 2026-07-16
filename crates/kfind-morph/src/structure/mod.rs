@@ -697,10 +697,15 @@ impl StructureSelection {
                     && pattern.fine_pos == DataFinePos::Mag
             }
             Self::AdjacentDeterminer => {
-                support.evidence == StructuralEvidence::Whole && pattern.fine_pos == DataFinePos::Mm
+                (support.evidence == StructuralEvidence::Whole
+                    && pattern.fine_pos == DataFinePos::Mm)
+                    || !matches!(
+                        pattern.fine_pos,
+                        DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
+                    )
             }
             Self::AdjacentNominal => {
-                support.evidence == StructuralEvidence::Whole && pattern.fine_pos.is_nominal()
+                !matches!(pattern.continuation, MorphContinuation::Predicate { .. })
             }
             Self::NominalSpan {
                 selected,
@@ -1010,11 +1015,17 @@ fn select_structure(
         return StructureSelection::RepeatedAdverb;
     }
     let next_starts_nominal = context.next.is_some_and(|next| {
-        exact_analysis_starts_with_pos(resource, next, |pos| pos.starts_with('N'))
-            || nominal_particle_host(resource, next).is_some()
+        let exact_nominal =
+            exact_analysis_starts_with_pos(resource, next, |pos| pos.starts_with('N'));
+        let exact_competitor =
+            exact_analysis_starts_with_pos(resource, next, |pos| !pos.starts_with('N'));
+        nominal_particle_host(resource, next).is_some() || (exact_nominal && !exact_competitor)
     });
     let particle_host = nominal_particle_host(resource, context.current);
-    if next_starts_nominal && evidence.has_whole(DataFinePos::Mm) {
+    if next_starts_nominal
+        && context.current.chars().count() == 1
+        && evidence.has_whole(DataFinePos::Mm)
+    {
         return StructureSelection::AdjacentDeterminer;
     }
     if next_starts_nominal

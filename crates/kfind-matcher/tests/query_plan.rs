@@ -140,6 +140,20 @@ fn adjacent_nominal_layout_selects_pos_without_semantic_disambiguation() {
             ..CompileOptions::default()
         },
     );
+    let pronoun = compile_with_full_pos(
+        "제",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Pronoun),
+            ..CompileOptions::default()
+        },
+    );
+    let numeral = compile_with_full_pos(
+        "한",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Numeral),
+            ..CompileOptions::default()
+        },
+    );
 
     assert!(noun.find_at_with_meta("새 기능".as_bytes(), 0).is_none());
     assert!(
@@ -167,6 +181,8 @@ fn adjacent_nominal_layout_selects_pos_without_semantic_disambiguation() {
             .find_at_with_meta("너무 빨라도".as_bytes(), 0)
             .is_some()
     );
+    assert!(pronoun.find_at_with_meta("제 나라".as_bytes(), 0).is_some());
+    assert!(numeral.find_at_with_meta("한 사람".as_bytes(), 0).is_some());
 }
 
 #[test]
@@ -745,6 +761,11 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("너무", "NNG"),
             component_entry("빨", "NNG"),
             component_entry("빨라도", "VA+EC"),
+            component_entry("제", "MM"),
+            component_entry("제", "NP"),
+            component_entry("나라", "NNG"),
+            component_entry("한", "MM"),
+            component_entry("한", "NR"),
             component_entry("주", "VV"),
             component_entry("지", "EC"),
             component_entry("주지", "NNG"),
