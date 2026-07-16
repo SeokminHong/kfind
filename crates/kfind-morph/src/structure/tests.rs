@@ -707,6 +707,44 @@ fn auxiliary_sequence_requires_an_auxiliary_predicate() {
 }
 
 #[test]
+fn attached_auxiliary_requires_a_predicate_connective_path() {
+    let resolver = resolver();
+    let pattern = QueryMorphPattern::new(DataFinePos::Vx, "지").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let supported = resolver.resolve_candidate(
+        BoundedTokenContext::current("길어진"),
+        CandidateSpans {
+            core: "길어".len().."길어진".len(),
+            anchor: "길어".len().."길어진".len(),
+            consumed: "길어".len().."길어진".len(),
+            token: 0.."길어진".len(),
+        },
+        std::slice::from_ref(&pattern),
+        128,
+    );
+    let rejected = resolver.resolve_candidate(
+        BoundedTokenContext::current("사진"),
+        CandidateSpans {
+            core: "사".len().."사진".len(),
+            anchor: "사".len().."사진".len(),
+            consumed: "사".len().."사진".len(),
+            token: 0.."사진".len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(supported.outcome, ConstraintOutcome::Supported);
+    assert_eq!(rejected.outcome, ConstraintOutcome::Contradicted);
+}
+
+#[test]
 fn a_different_whole_predicate_blocks_a_prefix_fallback() {
     let resolver = resolver();
 
@@ -950,6 +988,13 @@ fn resolver() -> ConstraintResolver {
         atomic("을", "ETM"),
         atomic("능하", "VA"),
         atomic("게", "EC"),
+        atomic("길", "VA"),
+        atomic("어", "EC"),
+        atomic("어", "MAG"),
+        atomic("진", "VX+ETM"),
+        atomic("길어진", "VV+ETM"),
+        atomic("사", "NNG"),
+        atomic("사진", "NNG"),
     ];
     let bytes = encode_component_resource([9; 32], &entries).expect("valid resource");
     let resource =

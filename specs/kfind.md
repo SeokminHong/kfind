@@ -111,6 +111,10 @@
 - `-아/어`가 어간과 같은 음절로 축약된 용언 program도 후행 문자열 전체가 compact resource의
   `VX` 보조용언+어미 연쇄로 증명되면 완성된 token까지 소비한다. 축약 때문에 anchor byte span이
   core보다 길지 않아도 되지만, 후행 연쇄가 완전한 구조 경로를 만들지 못하면 확장하지 않는다.
+- full-POS `smart`의 `VX` query는 compact resource가 token 왼쪽 경계부터 일반 용언과
+  `EC`로 candidate core 직전까지 이어지고, core에 정렬된 `VX`와 선택적 어미가 token 끝까지
+  이어지는 완전한 path를 증명할 때 token 내부 보조용언을 유지한다. 선행 일반 용언이나 core
+  직전 `EC`가 없는 내부 substring은 이 경로로 열지 않는다.
 - 이유·근거·전제를 나타내는 `ending.connective-ni`는 `-니/-으니`, `-니까/-으니까`,
   `-니까는/-으니까는`과 그 준말 `-니깐/-으니깐`을 완성된 predicate token으로
   소비한다. 받침 없는 어간과 `ㄹ` 받침 어간은 `으`가 없는 이형태, 그 밖의 받침
