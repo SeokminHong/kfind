@@ -1364,9 +1364,13 @@ right consumption:
 나 + 가 → 내가
 너 + 가 → 네가
 저 + 가 → 제가
+누구 + 가 → 누가
+저 + 의 → 저의, 제
 ```
 
-해당 축약을 지원하려면 override로 명시한다. 미지원 항목은 사양의 known limitation에 기록한다.
+해당 축약을 지원하려면 override로 명시한다. 주격 override는 기본 조사 결합을 교체하지만,
+속격 override는 완전형과 축약형이 모두 표준이므로 기본 결합을 보존하는 alias로 추가한다.
+미지원 항목은 사양의 known limitation에 기록한다.
 
 ### 10.3 동사와 형용사
 

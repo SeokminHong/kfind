@@ -813,6 +813,23 @@ fn derivation_nominal_particle_and_override_branches_use_distinct_verifiers() {
             .iter()
             .any(|branch| branch.anchor.as_ref() == "내가".as_bytes())
     );
+    let contracted_genitive = compile_query("저", &CompileOptions::default(), &analyzer()).unwrap();
+    assert!(
+        contracted_genitive.atoms[0]
+            .programs
+            .iter()
+            .any(|branch| branch.anchor.as_ref() == "제".as_bytes())
+    );
+    let contracted_base = contracted_genitive.atoms[0]
+        .programs
+        .iter()
+        .find(|branch| branch.anchor.as_ref() == "저".as_bytes())
+        .expect("contracted pronoun base branch");
+    assert!(
+        contracted_base
+            .consumption
+            .allows_rule_path(&[RuleId::from("particle.genitive")])
+    );
     let base = pronoun.atoms[0]
         .programs
         .iter()
