@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [혼합 수량 구조 recall](2026-07-17-mixed-numeral-unit-recall.md)
 - [한글 수사 연쇄 recall](2026-07-17-hangul-numeral-recall.md)
 - [같은 문장의 누적 검색 누락 검증](2026-07-17-query-matrix.md)
 - [숫자 뒤 단위 구조 recall](2026-07-17-numeric-unit-recall.md)
@@ -116,6 +117,17 @@ paired 비교했으며 full-POS FN은 102→100, 완전 회수 문장은 373→3
 완전 회수 문장은 376→377이다. Matrix FP와 Agent 품질은 변하지 않았다. 최신 main 기준
 matrix Agent와 Human 처리량 변화는 각각 -2.04%, +0.81%다.
 
-다음 recall 작업은 남은 수사 FN `백명`과 `5천톤`, `6백미터`처럼 ASCII 숫자와 한글 수사 뒤
-일반 단위명사가 이어지는 구조를 별도 typed path로 증명하는 것이다. `서사극이라`,
-`인쇄업자가`처럼 구조적으로 증명하지 못한 조사 host와 의미상 동음이의어는 열지 않는다.
+[혼합 수량 구조 recall](2026-07-17-mixed-numeral-unit-recall.md)에서 ASCII 숫자 뒤 `NR` 연쇄와
+필수 `NNB/NNBC`, 선택적 조사 연쇄를 함께 요구하는 typed path를 열었다. Canonical test의
+embedded·full-POS·Human은 각각 FNᶜ가 2건 줄어 60·25·28이고 FP와 FPᶜ는 변하지 않았다.
+Matrix contract는 건드리지 않고 latest-main의 strict·contract-adjusted paired 비교를 함께
+수행했다. 현재 reclassified는 0건이며 embedded·full-POS·Human의 FN과 FNᶜ가 각각 2건 줄었다.
+신규 `3천사` 대조군도 두 smart profile에서 거부했다. 모든 성능 변화는 10% 경고선 안이며
+matrix Agent는 17,558.2 cases/s다.
+
+Development의 남은 수사 FN `백명`은 제품이 실제 `백` span을 반환하지만 UD KSL의
+`Typo=Yes/goeswith` gold가 앞의 `이` span을 가리키는 adapter 정렬 문제다. 제품 typed path를
+더 열지 않는다. 다음 제품 recall 작업은 matrix full-POS의 `이다` 계열 12건을
+`surface-missing` 8건과 `boundary-rejected` 4건으로 분리하고, source component로 공통 구조를
+증명할 수 있는 case만 연다. `서사극이라`, `인쇄업자가`처럼 구조적으로 증명하지 못한 조사
+host와 의미상 동음이의어는 열지 않는다.
