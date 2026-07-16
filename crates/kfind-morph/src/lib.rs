@@ -3,6 +3,7 @@
 mod constraint;
 mod domain;
 mod lattice;
+mod structure;
 
 pub mod hangul;
 pub mod particle;
@@ -35,4 +36,8 @@ pub use particle::{
 pub use predicate::{
     GenerateError, PredicateContinuationMatch, generate_predicate_branches,
     verify_predicate_continuation,
+};
+pub use structure::{
+    BoundedTokenContext, ConstraintDecision, ConstraintOutcome, ConstraintResolver,
+    ConstraintUnavailable, ProductPolicy, StructuralEvidence,
 };
