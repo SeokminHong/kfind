@@ -25,7 +25,7 @@ mod context;
 mod phrase;
 
 pub use candidates::LocalAnalysisCandidate;
-use context::{PreparedStructuralContextAnalysis, StructuralContextAnalysis, StructuralRequest};
+use context::{PreparedStructuralContextAnalysis, StructuralRequest};
 use phrase::{PhraseMatchLimit, PhraseSelection, select_phrase_matches};
 
 const MAX_CONSUMPTION_BYTES: usize = 256;
@@ -565,8 +565,12 @@ impl MorphMatcher {
         let context = structural_cache
             .entry((window.start, window.end))
             .or_insert_with(|| {
-                StructuralContextAnalysis::extract(haystack, candidate.verified.core.clone())
-                    .and_then(|context| context.prepare(resolver, DEFAULT_LATTICE_NODE_LIMIT))
+                PreparedStructuralContextAnalysis::extract(
+                    haystack,
+                    candidate.verified.core.clone(),
+                    resolver,
+                    DEFAULT_LATTICE_NODE_LIMIT,
+                )
             });
         let Some(context) = context.as_ref() else {
             return false;

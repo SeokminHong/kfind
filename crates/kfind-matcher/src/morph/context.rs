@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::ops::Range;
 
 use kfind_morph::{
@@ -5,16 +6,9 @@ use kfind_morph::{
     PreparedStructuralContext, QueryMorphPattern,
 };
 use kfind_query::VerifiedSpan;
-use unicode_normalization::UnicodeNormalization;
+use unicode_normalization::{UnicodeNormalization, is_nfc};
 
 use crate::{AnalysisWindow, DEFAULT_ANALYSIS_WINDOW_LIMITS, is_token_character};
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(super) struct StructuralContextAnalysis {
-    current: AnalysisWindow,
-    previous: Option<String>,
-    next: Option<String>,
-}
 
 #[derive(Debug)]
 pub(super) struct PreparedStructuralContextAnalysis {
@@ -29,8 +23,13 @@ pub(super) struct StructuralRequest<'a> {
     pub(super) patterns: &'a [QueryMorphPattern],
 }
 
-impl StructuralContextAnalysis {
-    pub(super) fn extract(haystack: &[u8], candidate: Range<usize>) -> Option<Self> {
+impl PreparedStructuralContextAnalysis {
+    pub(super) fn extract(
+        haystack: &[u8],
+        candidate: Range<usize>,
+        resolver: &ConstraintResolver,
+        node_limit: usize,
+    ) -> Option<Self> {
         let current =
             AnalysisWindow::extract(haystack, candidate, DEFAULT_ANALYSIS_WINDOW_LIMITS).ok()?;
         let current_span = current.raw_span();
@@ -59,32 +58,17 @@ impl StructuralContextAnalysis {
         if context_text.nfc().count() > DEFAULT_ANALYSIS_WINDOW_LIMITS.max_normalized_scalars {
             return None;
         }
-        Some(Self {
-            current,
-            previous: previous_span.and_then(|span| normalized_token(haystack, span)),
-            next: next_span.and_then(|span| normalized_token(haystack, span)),
-        })
-    }
-
-    pub(super) fn prepare(
-        self,
-        resolver: &ConstraintResolver,
-        node_limit: usize,
-    ) -> Option<PreparedStructuralContextAnalysis> {
+        let previous = previous_span.and_then(|span| normalized_token(haystack, span));
+        let next = next_span.and_then(|span| normalized_token(haystack, span));
         let context = BoundedTokenContext {
-            previous: self.previous.as_deref(),
-            current: self.current.normalized(),
-            next: self.next.as_deref(),
+            previous: previous.as_deref(),
+            current: current.normalized(),
+            next: next.as_deref(),
         };
         let prepared = resolver.prepare_context(context, node_limit).ok()?;
-        Some(PreparedStructuralContextAnalysis {
-            current: self.current,
-            prepared,
-        })
+        Some(Self { current, prepared })
     }
-}
 
-impl PreparedStructuralContextAnalysis {
     pub(super) fn resolve(&self, request: StructuralRequest<'_>) -> Option<ConstraintDecision> {
         let core = self
             .current
@@ -166,10 +150,13 @@ fn adjacent_token_span(
     }
 }
 
-fn normalized_token(bytes: &[u8], span: Range<usize>) -> Option<String> {
-    std::str::from_utf8(bytes.get(span)?)
-        .ok()
-        .map(|token| token.nfc().collect())
+fn normalized_token(bytes: &[u8], span: Range<usize>) -> Option<Cow<'_, str>> {
+    let token = std::str::from_utf8(bytes.get(span)?).ok()?;
+    Some(if is_nfc(token) {
+        Cow::Borrowed(token)
+    } else {
+        Cow::Owned(token.nfc().collect())
+    })
 }
 
 fn previous_character(bytes: &[u8], at: usize) -> Result<Option<(usize, char)>, ()> {

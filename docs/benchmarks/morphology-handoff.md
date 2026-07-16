@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [질의 컴파일 병목 제거](2026-07-17-compile-hotpath-performance.md)
 - [구조 증거로 줄인 검색 누락](2026-07-17-structural-recall.md)
 - [계약 보정 지표와 구조 판정 품질](2026-07-16-contract-adjusted-structural-quality.md)
 - [구조 기반 국소 형태 판정 계약](selective-morphology.md)
@@ -88,8 +89,15 @@ TP 452→456, FN 48→44이고 test는 TP 466→470, FN 34→30이다. 두 fixtu
 hard-negative는 변하지 않았다. morphology microbenchmark와 100 MiB CLI의 모든 변화는
 10% 경고선 안이다.
 
-후속 작업은 development FN 44건 중 `boundary-rejected` 32건을 같은 표면형 대조군과 compact
-component 경로로 다시 분류해 가장 큰 일반 규칙을 선택하는 것이다. `서사극이라`, `인쇄업자가`처럼
-구조적으로 증명하지 못한 조사 host와 의미상 동음이의어는 열지 않는다. 성능은 full-POS smart의
-component 판정 호출 수와 임시 할당을 profile해 Lindera와의 처리량 차이를 줄이되 품질 gate와
-독립된 커밋으로 검증한다.
+성능 profile에서는 full-POS 평가 CPU의 79.8%가 query compile에 있었고, 대부분이 branch key의
+공유 rule vocabulary를 반복 hash하는 비용이었다. anchor별 bucket으로 중복 제거를 바꾼 뒤
+full-POS `smart`는 5,389.7에서 12,364.5 cases/s, Agent workflow는 10,129.4에서 15,972.6
+cases/s가 됐다. Agent는 같은 explicit-POS fixture의 Lindera 15,609.1 cases/s를 2.33% 넘었고
+품질과 전체 test span은 그대로다.
+
+후속 recall 작업은 development FN 44건 중 typed 수량·단위 경로를 먼저 다룬다. `2014년`,
+`197명이`, `4천`은 compact resource가 단위 `NNB/NNBC/NR`를 보존하지만 제품 graph가 선행
+ASCII 숫자를 node로 만들지 않아 거부한다. 선행 숫자와 검증된 단위 POS를 함께 요구하고,
+`소년`, `추천`, `익명이` 같은 같은 표면형 대조군을 계속 거부해야 한다. 그 다음에는 한글 수사
+연쇄인 `수십만`, `십일월`을 별도 typed path로 검토한다. `서사극이라`, `인쇄업자가`처럼
+구조적으로 증명하지 못한 조사 host와 의미상 동음이의어는 열지 않는다.

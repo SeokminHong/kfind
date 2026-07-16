@@ -415,10 +415,15 @@
   각각 copular-frame, repeated-token, component path 근거로 구분한다.
 - 한 window의 원문은 256 bytes, NFC 문자열은 64 Unicode scalar, graph는 중복
   제거 후 4,096 node로 제한한다. NFC 안정 경계는 원문 byte offset으로
-  역매핑하고 안정되지 않은 경계는 candidate로 만들지 않는다.
+  역매핑하고 안정되지 않은 경계는 candidate로 만들지 않는다. 원문 window가 이미
+  NFC이면 normalized byte offset과 원문 상대 offset의 identity mapping을 사용하고,
+  NFC가 아닌 window만 prefix 안정 경계를 계산한다. 인접 token도 NFC이면 원문 slice를
+  직접 빌려 구조를 준비하고, 비 NFC token만 bounded normalized 문자열을 소유한다.
 - compact morphology resource는 schema 4 container다. NFC surface index, source node의
   POS, NFC 안정 경계에 정렬된 component span과 source identity만 보존한다. left/right
   context ID, word cost, 연결 비용 행렬, unknown model과 원본 expression 문자열은 싣지 않는다.
+  국소 graph를 준비할 때는 검증된 resource의 POS 문자열과 component를 빌려 쓰며 token마다
+  같은 문자열을 다시 소유하지 않는다.
   loader는 schema, source SHA-256, section length·digest, UTF-8, group·analysis·component
   offset과 span 범위를 모두 검증한 뒤 내용을 노출한다.
 - CLI의 기본 boundary는 `smart`다. resource를 필요로 선언한 program이 있으면
@@ -1043,11 +1048,10 @@ pub struct VerifiedSpan {
 
 표면 문자열 하나만 `BTreeSet`으로 중복 제거하지 않는다. 다음과 같이 검색 키와 생성 근거를 분리한다.
 
-```rust
-HashMap<BranchKey, SmallVec<[Origin; 2]>>
-```
-
-동일 branch가 여러 분석에서 생성되면 origins를 합친다.
+동일 branch가 여러 분석에서 생성되면 origins를 합친다. compiler는 정규화된 anchor로
+branch 후보를 먼저 묶고 같은 anchor 안에서 core 투영, consumption, boundary와 decision이
+같은지 비교한다. 여러 branch가 공유하는 rule vocabulary 전체를 branch마다 다시 hash하지
+않으며, 최초 생성 순서와 origin 정렬은 기존 plan 계약대로 보존한다.
 
 ## 8. 한국어 음절 처리
 

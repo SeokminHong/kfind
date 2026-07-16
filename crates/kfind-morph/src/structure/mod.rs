@@ -1,7 +1,7 @@
 use std::ops::Range;
 use std::sync::Arc;
 
-use kfind_data::{ComponentResource, DataFinePos};
+use kfind_data::{ComponentPart, ComponentResource, DataFinePos};
 
 use crate::PredicatePos;
 use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern, StructuralSignature};
@@ -440,22 +440,15 @@ impl TokenEvidence {
             if start == text.len() {
                 continue;
             }
-            resource.common_prefixes(&text.as_bytes()[start..], |length, analyses| {
+            resource.common_prefix_groups(&text.as_bytes()[start..], |length, analyses| {
                 if length == 0 || start + length > text.len() {
                     return;
                 }
                 for analysis in analyses {
                     edges.push(Edge {
                         span: start..start + length,
-                        pos: analysis.pos.to_owned(),
-                        components: analysis
-                            .components
-                            .iter()
-                            .map(|component| OwnedComponent {
-                                span: component.span.clone(),
-                                pos: component.pos.to_owned(),
-                            })
-                            .collect(),
+                        pos: analysis.pos,
+                        components: analysis.components,
                     });
                 }
             });
@@ -486,16 +479,12 @@ impl TokenEvidence {
                 adnominal_ends.push(edge.span.end);
             }
             let whole_edge = edge.span == (0..text.len());
-            let edge_positions = edge
-                .pos
-                .split('+')
-                .filter_map(DataFinePos::parse)
-                .collect::<Vec<_>>();
-            for pos in edge_positions.iter().copied() {
+            let has_one_position = edge.pos.split('+').filter_map(DataFinePos::parse).count() == 1;
+            for pos in edge.pos.split('+').filter_map(DataFinePos::parse) {
                 units.push(Unit {
                     span: edge.span.clone(),
                     pos,
-                    evidence: if whole_edge && edge_positions.len() == 1 {
+                    evidence: if whole_edge && has_one_position {
                         StructuralEvidence::Whole
                     } else {
                         StructuralEvidence::RuntimeComponent
@@ -506,7 +495,7 @@ impl TokenEvidence {
                 if component.pos == "ETM" {
                     adnominal_ends.push(edge.span.start + component.span.end);
                 }
-                let Some(pos) = DataFinePos::parse(&component.pos) else {
+                let Some(pos) = DataFinePos::parse(component.pos) else {
                     continue;
                 };
                 units.push(Unit {
@@ -556,19 +545,13 @@ impl TokenEvidence {
 }
 
 #[derive(Debug)]
-struct Edge {
+struct Edge<'a> {
     span: Range<usize>,
-    pos: String,
-    components: Vec<OwnedComponent>,
+    pos: &'a str,
+    components: Vec<ComponentPart<'a>>,
 }
 
-#[derive(Debug)]
-struct OwnedComponent {
-    span: Range<usize>,
-    pos: String,
-}
-
-fn forward_positions(text_len: usize, edges: &[Edge]) -> Vec<bool> {
+fn forward_positions(text_len: usize, edges: &[Edge<'_>]) -> Vec<bool> {
     let mut forward = vec![false; text_len + 1];
     forward[0] = true;
     for start in 0..text_len {
@@ -582,7 +565,7 @@ fn forward_positions(text_len: usize, edges: &[Edge]) -> Vec<bool> {
     forward
 }
 
-fn complete_edges(text_len: usize, edges: &[Edge], forward: &[bool]) -> Vec<bool> {
+fn complete_edges(text_len: usize, edges: &[Edge<'_>], forward: &[bool]) -> Vec<bool> {
     let mut backward = vec![false; text_len + 1];
     backward[text_len] = true;
     for start in (0..text_len).rev() {

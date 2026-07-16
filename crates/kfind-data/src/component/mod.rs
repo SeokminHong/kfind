@@ -76,12 +76,20 @@ impl ComponentResource {
         input: &[u8],
         mut emit: impl FnMut(usize, &[ComponentAnalysis<'a>]),
     ) {
+        self.common_prefix_groups(input, |length, analyses| emit(length, &analyses));
+    }
+
+    pub fn common_prefix_groups<'a>(
+        &'a self,
+        input: &[u8],
+        mut emit: impl FnMut(usize, Vec<ComponentAnalysis<'a>>),
+    ) {
         let index = DoubleArray::new(&self.bytes[self.sections.index.clone()]);
         let payload = &self.bytes[self.sections.payload.clone()];
         let strings = &self.bytes[self.sections.strings.clone()];
         for (group, length) in index.common_prefix_search(input) {
             if let Some(analyses) = self.payload.group(payload, group, strings, &self.strings) {
-                emit(length, &analyses);
+                emit(length, analyses);
             }
         }
     }

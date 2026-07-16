@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::ops::Range;
 
-use unicode_normalization::UnicodeNormalization;
+use unicode_normalization::{UnicodeNormalization, is_nfc};
 
 use crate::boundary::bounded_surrounding_token_span;
 
@@ -21,7 +21,7 @@ pub struct AnalysisWindowLimits {
 pub struct AnalysisWindow {
     raw_span: Range<usize>,
     normalized: String,
-    normalized_to_raw: Vec<(usize, usize)>,
+    normalized_to_raw: Option<Vec<(usize, usize)>>,
 }
 
 impl AnalysisWindow {
@@ -42,7 +42,12 @@ impl AnalysisWindow {
             })?;
         let raw = std::str::from_utf8(&haystack[raw_span.clone()])
             .map_err(|_| AnalysisWindowError::InvalidUtf8)?;
-        let normalized = raw.nfc().collect::<String>();
+        let raw_is_nfc = is_nfc(raw);
+        let normalized = if raw_is_nfc {
+            raw.to_owned()
+        } else {
+            raw.nfc().collect::<String>()
+        };
         let scalar_count = normalized.chars().count();
         if scalar_count > limits.max_normalized_scalars {
             return Err(AnalysisWindowError::NormalizedScalars {
@@ -50,7 +55,11 @@ impl AnalysisWindow {
                 limit: limits.max_normalized_scalars,
             });
         }
-        let normalized_to_raw = stable_normalized_boundaries(raw, &normalized);
+        let normalized_to_raw = if raw_is_nfc {
+            None
+        } else {
+            Some(stable_normalized_boundaries(raw, &normalized))
+        };
         Ok(Self {
             raw_span,
             normalized,
@@ -94,17 +103,30 @@ impl AnalysisWindow {
     }
 
     fn raw_boundary(&self, normalized: usize) -> Option<usize> {
-        self.normalized_to_raw
+        let boundaries = self.normalized_to_raw.as_ref();
+        if boundaries.is_none() {
+            return self
+                .normalized
+                .is_char_boundary(normalized)
+                .then_some(normalized);
+        }
+        let boundaries = boundaries?;
+        boundaries
             .binary_search_by_key(&normalized, |(offset, _)| *offset)
             .ok()
-            .map(|index| self.normalized_to_raw[index].1)
+            .map(|index| boundaries[index].1)
     }
 
     fn normalized_boundary(&self, raw: usize) -> Option<usize> {
-        self.normalized_to_raw
+        let boundaries = self.normalized_to_raw.as_ref();
+        if boundaries.is_none() {
+            return self.normalized.is_char_boundary(raw).then_some(raw);
+        }
+        let boundaries = boundaries?;
+        boundaries
             .binary_search_by_key(&raw, |(_, offset)| *offset)
             .ok()
-            .map(|index| self.normalized_to_raw[index].0)
+            .map(|index| boundaries[index].0)
     }
 }
 
@@ -174,6 +196,7 @@ mod tests {
 
         assert_eq!(&text[window.raw_span()], "학생일");
         assert_eq!(window.normalized(), "학생일");
+        assert_eq!(window.normalized_to_raw, None);
         assert_eq!(
             window.original_span("학생".len().."학생일".len()),
             Some(target_start..target_start + '일'.len_utf8())
@@ -261,10 +284,10 @@ mod tests {
             let window = AnalysisWindow {
                 raw_span: raw_start..raw_start + raw.len(),
                 normalized,
-                normalized_to_raw,
+                normalized_to_raw: Some(normalized_to_raw),
             };
 
-            for &(normalized, raw) in &window.normalized_to_raw {
+            for &(normalized, raw) in window.normalized_to_raw.as_ref().unwrap() {
                 prop_assert_eq!(
                     window.original_span(normalized..normalized),
                     Some(raw_start + raw..raw_start + raw)

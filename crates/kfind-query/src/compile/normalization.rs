@@ -25,7 +25,7 @@ pub(super) enum DraftDecision {
     Structural(ComponentCapability),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 struct ProgramKey {
     anchor: Box<[u8]>,
     consumption: CandidateConsumption,
@@ -37,6 +37,22 @@ struct ProgramKey {
 struct MergedProgram {
     key: ProgramKey,
     origins: Vec<Origin>,
+    next_same_anchor: Option<usize>,
+}
+
+impl ProgramKey {
+    fn matches(
+        &self,
+        consumption: &CandidateConsumption,
+        core_mapping: CoreMapping,
+        boundary: BoundaryProof,
+        decision: DraftDecision,
+    ) -> bool {
+        self.consumption == *consumption
+            && self.core_mapping == core_mapping
+            && self.boundary == boundary
+            && self.decision == decision
+    }
 }
 
 pub(super) fn normalize_and_merge(
@@ -47,36 +63,71 @@ pub(super) fn normalize_and_merge(
     one_scalar_atom: bool,
     atom_index: usize,
 ) -> Result<Vec<CandidateProgram>, CompileError> {
-    let mut indices = HashMap::<ProgramKey, usize>::new();
-    let mut merged = Vec::<MergedProgram>::new();
+    let form_capacity = drafts
+        .len()
+        .saturating_mul(if mode == NormalizationMode::Canonical {
+            2
+        } else {
+            1
+        });
+    let mut anchor_heads = HashMap::<Box<[u8]>, usize>::with_capacity(form_capacity);
+    let mut merged = Vec::<MergedProgram>::with_capacity(form_capacity);
     for draft in drafts {
-        for (anchor, core_mapping) in normalized_forms(&draft, mode, atom_index)? {
-            let allow_attached = matches!(
-                draft.consumption,
-                CandidateConsumption::DirectParticleHost { .. }
-            );
-            let boundary_proof =
-                boundary_proof(boundary, draft.smart_left, one_scalar_atom, allow_attached);
-            let decision = candidate_decision(boundary, draft.decision);
-            let key = ProgramKey {
-                anchor: anchor.as_bytes().into(),
-                consumption: draft.consumption.clone(),
-                core_mapping,
-                boundary: boundary_proof,
-                decision,
-            };
-            if let Some(index) = indices.get(&key).copied() {
-                let origins = &mut merged[index].origins;
-                if !origins.contains(&draft.origin) {
-                    origins.push(draft.origin.clone());
-                    origins.sort();
+        let allow_attached = matches!(
+            draft.consumption,
+            CandidateConsumption::DirectParticleHost { .. }
+        );
+        let boundary_proof =
+            boundary_proof(boundary, draft.smart_left, one_scalar_atom, allow_attached);
+        let decision = candidate_decision(boundary, draft.decision);
+        'forms: for (anchor, core_mapping) in normalized_forms(&draft, mode, atom_index)? {
+            if let Some(head) = anchor_heads.get_mut(anchor.as_bytes()) {
+                let previous_head = *head;
+                let mut current = Some(previous_head);
+                while let Some(index) = current {
+                    if merged[index].key.matches(
+                        &draft.consumption,
+                        core_mapping,
+                        boundary_proof,
+                        decision,
+                    ) {
+                        let origins = &mut merged[index].origins;
+                        if !origins.contains(&draft.origin) {
+                            origins.push(draft.origin.clone());
+                            origins.sort();
+                        }
+                        continue 'forms;
+                    }
+                    current = merged[index].next_same_anchor;
                 }
+
+                let index = merged.len();
+                merged.push(MergedProgram {
+                    key: ProgramKey {
+                        anchor: anchor.into_bytes().into_boxed_slice(),
+                        consumption: draft.consumption.clone(),
+                        core_mapping,
+                        boundary: boundary_proof,
+                        decision,
+                    },
+                    origins: vec![draft.origin.clone()],
+                    next_same_anchor: Some(previous_head),
+                });
+                *head = index;
             } else {
                 let index = merged.len();
-                indices.insert(key.clone(), index);
+                let anchor = anchor.into_bytes().into_boxed_slice();
+                anchor_heads.insert(anchor.clone(), index);
                 merged.push(MergedProgram {
-                    key,
+                    key: ProgramKey {
+                        anchor,
+                        consumption: draft.consumption.clone(),
+                        core_mapping,
+                        boundary: boundary_proof,
+                        decision,
+                    },
                     origins: vec![draft.origin.clone()],
+                    next_same_anchor: None,
                 });
             }
         }
@@ -96,7 +147,7 @@ fn candidate_decision(policy: BoundaryPolicy, requested: DraftDecision) -> Draft
 }
 
 fn materialize_program(merged: MergedProgram, analyses: &[Analysis]) -> CandidateProgram {
-    let MergedProgram { key, origins } = merged;
+    let MergedProgram { key, origins, .. } = merged;
     let mut program = CandidateProgram {
         anchor: key.anchor,
         core_mapping: key.core_mapping,
