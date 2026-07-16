@@ -4,14 +4,12 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::ops::Range;
 
-use kfind_data::{ComponentResource, DataFinePos, DecodedMorphologyResource};
+use kfind_data::{DataFinePos, DecodedMorphologyResource};
 
 mod decision;
-mod evaluator;
 mod unknown;
 
 use decision::{LocalLatticeCosts, best_costs};
-pub use evaluator::LocalComponentEvaluator;
 use unknown::{UnknownAnalysis, UnknownDictionary};
 
 pub const DEFAULT_LATTICE_NODE_LIMIT: usize = 4_096;
@@ -75,48 +73,6 @@ impl LocalLatticeResource for DecodedMorphologyResource<'_> {
 
     fn left_contexts(&self) -> u16 {
         self.stats().left_contexts
-    }
-
-    fn char_def(&self) -> &[u8] {
-        self.char_def()
-    }
-
-    fn unk_def(&self) -> &[u8] {
-        self.unk_def()
-    }
-}
-
-impl LocalLatticeResource for ComponentResource {
-    fn common_prefixes<'a>(
-        &'a self,
-        input: &[u8],
-        emit: &mut dyn FnMut(usize, LocalLatticeAnalysis<'a>),
-    ) {
-        self.common_prefixes(input, |length, analyses| {
-            for analysis in analyses {
-                emit(
-                    length,
-                    LocalLatticeAnalysis {
-                        pos: analysis.pos,
-                        left_id: analysis.left_id,
-                        right_id: analysis.right_id,
-                        word_cost: analysis.word_cost,
-                    },
-                );
-            }
-        });
-    }
-
-    fn connection_cost(&self, right_id: u16, left_id: u16) -> Option<i16> {
-        self.connection_cost(right_id, left_id)
-    }
-
-    fn right_contexts(&self) -> u16 {
-        self.right_contexts()
-    }
-
-    fn left_contexts(&self) -> u16 {
-        self.left_contexts()
     }
 
     fn char_def(&self) -> &[u8] {

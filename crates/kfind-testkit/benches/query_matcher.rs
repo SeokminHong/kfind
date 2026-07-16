@@ -6,11 +6,13 @@ use std::sync::Arc;
 use criterion::{Criterion, Throughput, criterion_group, criterion_main};
 use kfind_data::{
     COMPONENT_RESOURCE_SOURCE_DIGEST, DataFinePos, MecabSourceMorphologyEntry,
-    decode_component_resource, encode_component_resource, parse_mecab_connection_matrix,
+    decode_component_resource, encode_component_resource,
 };
 use kfind_matcher::MorphMatcher;
 use kfind_morph::{
-    DEFAULT_LATTICE_NODE_LIMIT, LocalComponentEvaluator, evaluate_local_component_paths,
+    BoundedTokenContext, CandidateSpans, CandidateTokenRelation, ComponentCapability,
+    ConstraintOutcome, ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, MorphContinuation,
+    QueryMorphPattern,
 };
 use kfind_query::{
     BoundaryPolicy, CompileOptions, LexiconQueryAnalyzer, Lexicons, PhrasePolicy, compile_query,
@@ -179,63 +181,66 @@ fn matcher_scan(criterion: &mut Criterion) {
     group.finish();
 }
 
-fn local_lattice(criterion: &mut Criterion) {
+fn structural_constraint(criterion: &mut Criterion) {
     let resource = Arc::new(component_resource());
-    let evaluator = LocalComponentEvaluator::new(Arc::clone(&resource));
-    let cases = [
-        ("사용자권한", "사용자".len(), "사용자권한".len()),
-        ("대학교", "대".len(), "대학교".len()),
-        ("공공", 0, "공".len()),
+    let resolver = ConstraintResolver::new(resource);
+    let cases = vec![
+        (
+            BoundedTokenContext {
+                previous: None,
+                current: "매일",
+                next: Some("보고"),
+            },
+            CandidateSpans {
+                core: 0.."매일".len(),
+                anchor: 0.."매일".len(),
+                consumed: 0.."매일".len(),
+                token: 0.."매일".len(),
+            },
+            QueryMorphPattern::new(DataFinePos::Mag, "매일"),
+        ),
+        (
+            BoundedTokenContext {
+                previous: Some("아니라"),
+                current: "매일",
+                next: Some("수도"),
+            },
+            CandidateSpans {
+                core: 0.."매".len(),
+                anchor: 0.."매".len(),
+                consumed: 0.."매일".len(),
+                token: 0.."매일".len(),
+            },
+            QueryMorphPattern::new(DataFinePos::Nng, "매").with_candidate_contract(
+                CandidateTokenRelation::Whole,
+                MorphContinuation::Exact,
+                ComponentCapability::SourceAndRuntime,
+            ),
+        ),
     ];
-    let decisions = cases.map(|(text, start, end)| {
-        evaluator
-            .evaluate_decision(
-                text,
-                start..end,
-                DataFinePos::Nng,
+    assert!(cases.iter().all(|(context, spans, pattern)| {
+        resolver
+            .resolve_candidate(
+                *context,
+                spans.clone(),
+                std::slice::from_ref(pattern),
                 DEFAULT_LATTICE_NODE_LIMIT,
             )
-            .expect("benchmark lattice must have a complete path")
-    });
-    assert_eq!(
-        decisions,
-        [
-            kfind_morph::LocalLatticeDecision::Accept,
-            kfind_morph::LocalLatticeDecision::Reject,
-            kfind_morph::LocalLatticeDecision::Ambiguous,
-        ]
-    );
+            .outcome
+            == ConstraintOutcome::Supported
+    }));
 
-    let mut group = criterion.benchmark_group("local_lattice");
+    let mut group = criterion.benchmark_group("structural_constraint");
     group.throughput(Throughput::Elements(cases.len() as u64));
-    group.bench_function("component_decision", |bencher| {
+    group.bench_function("resolve_candidate", |bencher| {
         bencher.iter(|| {
-            for (text, start, end) in cases {
-                let decision = black_box(&evaluator)
-                    .evaluate_decision(
-                        black_box(text),
-                        start..end,
-                        DataFinePos::Nng,
-                        DEFAULT_LATTICE_NODE_LIMIT,
-                    )
-                    .expect("benchmark lattice must have a complete path");
-                black_box(decision);
-            }
-        });
-    });
-    group.bench_function("component_report", |bencher| {
-        bencher.iter(|| {
-            for (text, start, end) in cases {
-                black_box(
-                    evaluate_local_component_paths(
-                        black_box(resource.as_ref()),
-                        black_box(text),
-                        start..end,
-                        DataFinePos::Nng,
-                        DEFAULT_LATTICE_NODE_LIMIT,
-                    )
-                    .expect("benchmark lattice must have a complete path"),
-                );
+            for (context, spans, pattern) in &cases {
+                black_box(black_box(&resolver).resolve_candidate(
+                    black_box(*context),
+                    black_box(spans.clone()),
+                    std::slice::from_ref(black_box(pattern)),
+                    DEFAULT_LATTICE_NODE_LIMIT,
+                ));
             }
         });
     });
@@ -273,20 +278,15 @@ fn component_resource() -> kfind_data::ComponentResource {
         component_entry("공공", "NNG", 0),
         component_entry("매일", "MAG", 0),
         component_entry("매일", "NNG", 0),
+        component_entry("매", "NNG", 0),
+        component_entry("일", "VCP+ETM", 0),
+        component_entry("보고", "VV+EC", 0),
+        component_entry("아니", "VCN", 0),
+        component_entry("라", "EC", 0),
+        component_entry("수도", "NNB+JX", 0),
     ];
-    let matrix = parse_mecab_connection_matrix(
-        "matrix.def",
-        Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
-    )
-    .expect("benchmark matrix must be valid");
-    let bytes = encode_component_resource(
-        COMPONENT_RESOURCE_SOURCE_DIGEST,
-        &entries,
-        &matrix,
-        b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
-        b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
-    )
-    .expect("benchmark component resource must encode");
+    let bytes = encode_component_resource(COMPONENT_RESOURCE_SOURCE_DIGEST, &entries)
+        .expect("benchmark component resource must encode");
     decode_component_resource("benchmark", bytes, &COMPONENT_RESOURCE_SOURCE_DIGEST)
         .expect("benchmark component resource must decode")
 }
@@ -305,5 +305,5 @@ fn component_entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorph
     }
 }
 
-criterion_group!(benches, query_compile, matcher_scan, local_lattice);
+criterion_group!(benches, query_compile, matcher_scan, structural_constraint);
 criterion_main!(benches);

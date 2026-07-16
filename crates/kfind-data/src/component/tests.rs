@@ -1,11 +1,9 @@
-use std::io::Cursor;
-
-use crate::{MecabSourceMorphologyEntry, parse_mecab_connection_matrix};
+use crate::MecabSourceMorphologyEntry;
 
 use super::*;
 
 #[test]
-fn resource_owns_bytes_and_preserves_structural_and_scoring_fields() {
+fn resource_owns_bytes_and_preserves_only_aligned_structure() {
     let resource = decode_component_resource("fixture", fixture_resource(), &[7; 32]).unwrap();
     let mut prefixes = Vec::new();
     resource.common_prefixes("가나다".as_bytes(), |length, analyses| {
@@ -14,15 +12,18 @@ fn resource_owns_bytes_and_preserves_structural_and_scoring_fields() {
 
     assert_eq!(resource.stats().surface_count, 2);
     assert_eq!(resource.stats().analysis_count, 2);
+    assert_eq!(resource.stats().component_count, 2);
     assert_eq!(prefixes.len(), 2);
     assert_eq!(prefixes[1].0, "가나".len());
     assert_eq!(prefixes[1].1[0].pos, "NNG+JX");
-    assert_eq!(prefixes[1].1[0].start_pos, "NNG");
-    assert_eq!(prefixes[1].1[0].end_pos, "JX");
-    assert_eq!(prefixes[1].1[0].expression, "가/NNG/*+나/JX/*");
-    assert_eq!(resource.connection_cost(1, 1), Some(4));
-    assert_eq!(resource.char_def(), b"char");
-    assert_eq!(resource.unk_def(), b"unk");
+    assert_eq!(prefixes[1].1[0].components.len(), 2);
+    assert_eq!(prefixes[1].1[0].components[0].span, 0.."가".len());
+    assert_eq!(prefixes[1].1[0].components[0].pos, "NNG");
+    assert_eq!(
+        prefixes[1].1[0].components[1].span,
+        "가".len().."가나".len()
+    );
+    assert_eq!(prefixes[1].1[0].components[1].pos, "JX");
 }
 
 #[test]
@@ -61,13 +62,9 @@ fn fixture_resource() -> Vec<u8> {
     let entries = [
         entry("가", "NNG", 1, 1, 10),
         entry("가나", "NNG+JX", 1, 1, 20),
+        entry("가나", "NNG+JX", 0, 0, 999),
     ];
-    let matrix = parse_mecab_connection_matrix(
-        "matrix.def",
-        Cursor::new("2 2\n0 0 1\n0 1 2\n1 0 3\n1 1 4\n"),
-    )
-    .unwrap();
-    encode_component_resource([7; 32], &entries, &matrix, b"char", b"unk").unwrap()
+    encode_component_resource([7; 32], &entries).unwrap()
 }
 
 fn entry(

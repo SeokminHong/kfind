@@ -178,11 +178,7 @@ impl Error for GoldCaseError {
 
 #[cfg(test)]
 mod tests {
-    use std::io::Cursor;
-
-    use kfind_data::{
-        MecabSourceMorphologyEntry, encode_component_resource, parse_mecab_connection_matrix,
-    };
+    use kfind_data::{MecabSourceMorphologyEntry, encode_component_resource};
 
     use super::*;
 
@@ -289,33 +285,13 @@ mod tests {
             entry("사람", "NNG", -5_000),
             entry("모두", "MAG", -10_000),
         ];
-        let matrix = parse_mecab_connection_matrix(
-            "matrix.def",
-            Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
-        )
-        .unwrap();
-        encode_component_resource(
-            COMPONENT_RESOURCE_SOURCE_DIGEST,
-            &entries,
-            &matrix,
-            b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
-            b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
-        )
-        .unwrap()
+        encode_component_resource(COMPONENT_RESOURCE_SOURCE_DIGEST, &entries).unwrap()
     }
 
     fn nonmatching_component_fixture() -> Vec<u8> {
-        let matrix = parse_mecab_connection_matrix(
-            "matrix.def",
-            Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
-        )
-        .unwrap();
         encode_component_resource(
             COMPONENT_RESOURCE_SOURCE_DIGEST,
             &[entry("미사용", "NNG", 0)],
-            &matrix,
-            b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
-            b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
         )
         .unwrap()
     }

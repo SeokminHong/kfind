@@ -4,8 +4,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use clap::Parser;
 use kfind_data::{
-    MecabSourceMorphologyEntry, encode_component_resource, encode_pos_lexicon,
-    extract_mecab_ko_dic, parse_mecab_connection_matrix,
+    MecabSourceMorphologyEntry, encode_component_resource, encode_pos_lexicon, extract_mecab_ko_dic,
 };
 
 use super::*;
@@ -525,19 +524,7 @@ fn component_resource() -> Vec<u8> {
         component_entry("곱아", "VA", -5_000),
         component_entry("노래", "VA", -5_000),
     ];
-    let matrix = parse_mecab_connection_matrix(
-        "matrix.def",
-        Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
-    )
-    .unwrap();
-    encode_component_resource(
-        COMPONENT_RESOURCE_SOURCE_DIGEST,
-        &entries,
-        &matrix,
-        b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
-        b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
-    )
-    .unwrap()
+    encode_component_resource(COMPONENT_RESOURCE_SOURCE_DIGEST, &entries).unwrap()
 }
 
 fn component_entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorphologyEntry {

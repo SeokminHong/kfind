@@ -1,8 +1,5 @@
-use std::io::Cursor;
-
 use kfind_data::{
     MecabSourceMorphologyEntry, decode_component_resource, encode_component_resource,
-    parse_mecab_connection_matrix,
 };
 
 use super::*;
@@ -139,10 +136,7 @@ fn resolver() -> ConstraintResolver {
         expression("걸었고", "VV+EP+EC", "걸/VV/*+었/EP/*+고/EC/*"),
         atomic("곱아", "VA"),
     ];
-    let matrix =
-        parse_mecab_connection_matrix("matrix", Cursor::new("1 1\n0 0 0\n")).expect("valid matrix");
-    let bytes = encode_component_resource([9; 32], &entries, &matrix, b"char", b"unk")
-        .expect("valid resource");
+    let bytes = encode_component_resource([9; 32], &entries).expect("valid resource");
     let resource =
         decode_component_resource("fixture", bytes, &[9; 32]).expect("decodable resource");
     ConstraintResolver::new(Arc::new(resource))

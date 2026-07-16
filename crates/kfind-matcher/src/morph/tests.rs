@@ -1,9 +1,7 @@
-use std::io::Cursor;
-
 use grep_matcher::{LineMatchKind, LineTerminator, Matcher};
 use kfind_data::{
     ComponentResource, MecabSourceMorphologyEntry, decode_component_resource,
-    encode_component_resource, parse_mecab_connection_matrix,
+    encode_component_resource,
 };
 use kfind_morph::{CoarsePos, ContinuationState, FinePos, RuleId};
 use kfind_query::{
@@ -329,9 +327,9 @@ fn verification_counters_include_structurally_supported_components() {
         matcher.verification_counters("대학교는 학교는".as_bytes()),
         VerificationCounters {
             raw_anchor_hits: 2,
-            verified_branch_hits: 2,
-            exact_component_candidate_hits: 0,
-            unique_component_windows: 0,
+            verified_program_hits: 2,
+            structural_candidate_hits: 0,
+            unique_structural_windows: 0,
         }
     );
 }
@@ -762,19 +760,7 @@ fn component_resource() -> ComponentResource {
         component_entry("경계안", "NNG", 0),
         component_entry("경계밖", "NNG", 0),
     ];
-    let matrix = parse_mecab_connection_matrix(
-        "matrix.def",
-        Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
-    )
-    .unwrap();
-    let bytes = encode_component_resource(
-        [7; 32],
-        &entries,
-        &matrix,
-        b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
-        b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
-    )
-    .unwrap();
+    let bytes = encode_component_resource([7; 32], &entries).unwrap();
     decode_component_resource("fixture", bytes, &[7; 32]).unwrap()
 }
 

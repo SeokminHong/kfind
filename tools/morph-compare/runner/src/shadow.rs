@@ -11,17 +11,15 @@ use super::Span;
 #[derive(Debug, Serialize)]
 pub(super) struct ShadowVerificationCounters {
     pub(super) raw_anchor_hits: usize,
-    pub(super) verified_branch_hits: usize,
-    pub(super) exact_component_candidate_hits: usize,
-    pub(super) unique_component_windows: usize,
-    pub(super) component_projection_comparisons: usize,
-    pub(super) component_projection_mismatches: usize,
-    component_branches: Vec<ShadowBranchEvidence>,
-    component: Vec<ShadowLatticeEvidence>,
+    pub(super) verified_program_hits: usize,
+    pub(super) structural_candidate_hits: usize,
+    pub(super) unique_structural_windows: usize,
+    structural_programs: Vec<ShadowProgramEvidence>,
+    pub(super) diagnostic_lattice: Vec<ShadowLatticeEvidence>,
 }
 
 #[derive(Debug, Serialize)]
-pub(super) struct ShadowBranchEvidence {
+pub(super) struct ShadowProgramEvidence {
     pub(super) atom_index: usize,
     pub(super) anchor: String,
     pub(super) require_left: bool,
@@ -79,35 +77,21 @@ pub(super) enum ShadowResource<'a> {
 impl ShadowVerificationCounters {
     pub(super) fn new(
         counters: VerificationCounters,
-        component_branches: Vec<ShadowBranchEvidence>,
-        component: Vec<ShadowLatticeEvidence>,
-        component_projection_comparisons: usize,
+        structural_programs: Vec<ShadowProgramEvidence>,
+        diagnostic_lattice: Vec<ShadowLatticeEvidence>,
     ) -> Self {
         Self {
             raw_anchor_hits: counters.raw_anchor_hits,
-            verified_branch_hits: counters.verified_branch_hits,
-            exact_component_candidate_hits: counters.exact_component_candidate_hits,
-            unique_component_windows: counters.unique_component_windows,
-            component_projection_comparisons,
-            component_projection_mismatches: 0,
-            component_branches,
-            component,
+            verified_program_hits: counters.verified_program_hits,
+            structural_candidate_hits: counters.structural_candidate_hits,
+            unique_structural_windows: counters.unique_structural_windows,
+            structural_programs,
+            diagnostic_lattice,
         }
     }
 }
 
-impl ShadowResource<'_> {
-    pub(super) const fn unavailable_status(self) -> Option<&'static str> {
-        match self {
-            Self::Loaded(_) => None,
-            Self::Missing => Some("resource-missing"),
-            Self::Corrupt => Some("resource-corrupt"),
-            Self::SourceMismatch => Some("source-mismatch"),
-        }
-    }
-}
-
-pub(super) fn diagnose_component_candidate(
+pub(super) fn diagnose_lattice_candidate(
     candidate: &LocalAnalysisCandidate,
     resource: ShadowResource<'_>,
 ) -> ShadowLatticeEvidence {

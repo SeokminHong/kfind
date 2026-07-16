@@ -1,9 +1,7 @@
 use std::ops::Range;
 use std::sync::Arc;
 
-use kfind_data::{
-    ComponentResource, DataFinePos, MorphologyExpressionAlignmentKind, align_morphology_expression,
-};
+use kfind_data::{ComponentResource, DataFinePos};
 
 use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern, StructuralSignature};
 
@@ -190,7 +188,14 @@ impl TokenEvidence {
                     edges.push(Edge {
                         span: start..start + length,
                         pos: analysis.pos.to_owned(),
-                        expression: analysis.expression.to_owned(),
+                        components: analysis
+                            .components
+                            .iter()
+                            .map(|component| OwnedComponent {
+                                span: component.span.clone(),
+                                pos: component.pos.to_owned(),
+                            })
+                            .collect(),
                     });
                 }
             });
@@ -228,20 +233,13 @@ impl TokenEvidence {
                     },
                 });
             }
-            let surface = &text[edge.span.clone()];
-            let aligned = align_morphology_expression(surface, &edge.expression);
-            if aligned.kind != MorphologyExpressionAlignmentKind::SpanAligned {
-                continue;
-            }
-            for component in aligned.components {
-                let Some(span) = component.span else {
-                    continue;
-                };
-                let Some(pos) = DataFinePos::parse(component.pos) else {
+            for component in &edge.components {
+                let Some(pos) = DataFinePos::parse(&component.pos) else {
                     continue;
                 };
                 units.push(Unit {
-                    span: edge.span.start + span.start..edge.span.start + span.end,
+                    span: edge.span.start + component.span.start
+                        ..edge.span.start + component.span.end,
                     pos,
                     evidence: StructuralEvidence::SourceComponent,
                 });
@@ -276,7 +274,13 @@ impl TokenEvidence {
 struct Edge {
     span: Range<usize>,
     pos: String,
-    expression: String,
+    components: Vec<OwnedComponent>,
+}
+
+#[derive(Debug)]
+struct OwnedComponent {
+    span: Range<usize>,
+    pos: String,
 }
 
 fn forward_positions(text_len: usize, edges: &[Edge]) -> Vec<bool> {

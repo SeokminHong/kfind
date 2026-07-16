@@ -1,9 +1,8 @@
-use std::io::Cursor;
 use std::sync::{Arc, OnceLock};
 
 use kfind_data::{
     COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, MecabSourceMorphologyEntry,
-    decode_component_resource, encode_component_resource, parse_mecab_connection_matrix,
+    decode_component_resource, encode_component_resource,
 };
 use kfind_matcher::MorphMatcher;
 use kfind_morph::CoarsePos;
@@ -595,19 +594,8 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("가", "JKS"),
             component_entry("를", "JKO"),
         ];
-        let matrix = parse_mecab_connection_matrix(
-            "matrix.def",
-            Cursor::new("2 2\n0 0 0\n0 1 0\n1 0 0\n1 1 0\n"),
-        )
-        .expect("test matrix must be valid");
-        let bytes = encode_component_resource(
-            COMPONENT_RESOURCE_SOURCE_DIGEST,
-            &entries,
-            &matrix,
-            b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
-            b"DEFAULT,1,1,100,SY,*,*,*,*,*,*,*\nHANGUL,1,1,100,UNKNOWN,*,*,*,*,*,*,*\n",
-        )
-        .expect("test component resource must encode");
+        let bytes = encode_component_resource(COMPONENT_RESOURCE_SOURCE_DIGEST, &entries)
+            .expect("test component resource must encode");
         Arc::new(
             decode_component_resource("test", bytes, &COMPONENT_RESOURCE_SOURCE_DIGEST)
                 .expect("test component resource must decode"),

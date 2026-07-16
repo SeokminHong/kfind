@@ -8,8 +8,8 @@ use std::sync::Arc;
 use grep_matcher::{LineMatchKind, LineTerminator, Match, Matcher, NoCaptures, NoError};
 use kfind_data::ComponentResource;
 use kfind_morph::{
-    ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, LocalComponentEvaluator, ParticleChainModel,
-    ParticleVerifier, ProductPolicy, RuleId, verify_predicate_continuation,
+    ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, ParticleChainModel, ParticleVerifier,
+    ProductPolicy, RuleId, verify_predicate_continuation,
 };
 use kfind_query::{
     CandidateConsumption, CandidateDecision, CandidateLeftContext, CandidateProgram, CoreMapping,
@@ -44,9 +44,9 @@ pub struct MorphMatcher {
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct VerificationCounters {
     pub raw_anchor_hits: usize,
-    pub verified_branch_hits: usize,
-    pub exact_component_candidate_hits: usize,
-    pub unique_component_windows: usize,
+    pub verified_program_hits: usize,
+    pub structural_candidate_hits: usize,
+    pub unique_structural_windows: usize,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -63,34 +63,18 @@ impl MatchLimitExceeded {
 
 impl MorphMatcher {
     pub fn new(plan: Arc<QueryPlan>) -> Result<Self, MorphMatcherBuildError> {
-        Self::build(plan, None, None)
+        Self::build(plan, None)
     }
 
     pub fn with_component_resource(
         plan: Arc<QueryPlan>,
         component_resource: Arc<ComponentResource>,
     ) -> Result<Self, MorphMatcherBuildError> {
-        let component_evaluator = Arc::new(LocalComponentEvaluator::new(Arc::clone(
-            &component_resource,
-        )));
-        Self::build(
-            plan,
-            Some(component_evaluator),
-            Some(ConstraintResolver::new(component_resource)),
-        )
-    }
-
-    pub fn with_component_evaluator(
-        plan: Arc<QueryPlan>,
-        component_evaluator: Arc<LocalComponentEvaluator>,
-    ) -> Result<Self, MorphMatcherBuildError> {
-        let resolver = ConstraintResolver::new(component_evaluator.resource_arc());
-        Self::build(plan, Some(component_evaluator), Some(resolver))
+        Self::build(plan, Some(ConstraintResolver::new(component_resource)))
     }
 
     fn build(
         plan: Arc<QueryPlan>,
-        component_evaluator: Option<Arc<LocalComponentEvaluator>>,
         constraint_resolver: Option<ConstraintResolver>,
     ) -> Result<Self, MorphMatcherBuildError> {
         if plan.atoms.is_empty() {
@@ -104,7 +88,7 @@ impl MorphMatcher {
         {
             return Err(MorphMatcherBuildError::EmptyAtom { atom_index });
         }
-        if plan.requires_component_resource() && component_evaluator.is_none() {
+        if plan.requires_component_resource() && constraint_resolver.is_none() {
             return Err(MorphMatcherBuildError::ComponentResourceRequired);
         }
 
@@ -226,7 +210,7 @@ impl MorphMatcher {
     #[must_use]
     pub fn verification_counters(&self, haystack: &[u8]) -> VerificationCounters {
         let mut counters = VerificationCounters::default();
-        let mut component_windows = HashSet::new();
+        let mut structural_windows = HashSet::new();
         for hit in self.anchor_engine.hits(haystack, 0) {
             counters.raw_anchor_hits += 1;
             for branch_ref in &self.anchor_programs[hit.anchor_index] {
@@ -242,17 +226,17 @@ impl MorphMatcher {
                 };
                 if !self.accepts_program(haystack, &candidate, branch) {
                     if matches!(&branch.decision, CandidateDecision::Structural(_)) {
-                        counters.exact_component_candidate_hits += 1;
+                        counters.structural_candidate_hits += 1;
                         let window =
                             surrounding_token_span(haystack, candidate.verified.core.clone());
-                        component_windows.insert((window.start, window.end));
+                        structural_windows.insert((window.start, window.end));
                     }
                     continue;
                 }
-                counters.verified_branch_hits += 1;
+                counters.verified_program_hits += 1;
             }
         }
-        counters.unique_component_windows = component_windows.len();
+        counters.unique_structural_windows = structural_windows.len();
         counters
     }
 

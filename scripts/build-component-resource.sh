@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly COMPONENT_SHA256="0674b9d2117f1f59359e4ba616a7ec81f231577633e0e53fd232cb83a1122ff6"
+readonly COMPONENT_SHA256="55d4f7a83c7fac278208f21c4cad2225e33768c992f0ceefa22402823fbfc4b3"
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 source "${repo_root}/scripts/lib/full-pos-source.sh"
@@ -18,9 +18,6 @@ cd "${repo_root}"
 cargo run --release --locked --package kfind-data --bin kfind-data-build-component -- \
   "${resource}" \
   "${FULL_POS_SOURCE_SHA256}" \
-  "${source_directory}/matrix.def" \
-  "${source_directory}/char.def" \
-  "${source_directory}/unk.def" \
   "${source_directory}"/*.csv
 
 resource_sha=$(sha256_file "${resource}")
@@ -31,7 +28,7 @@ fi
 
 install -m 0644 "${source_directory}/COPYING" "${stage}/LICENSES/mecab-ko-dic-COPYING"
 cat >"${stage}/MANIFEST.toml" <<EOF
-schema_version = 2
+schema_version = 4
 source = "${FULL_POS_SOURCE_NAME}"
 source_url = "${FULL_POS_SOURCE_URL}"
 source_sha256 = "${FULL_POS_SOURCE_SHA256}"
