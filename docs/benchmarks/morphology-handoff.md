@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [지정사 완성형 recall](2026-07-17-copula-surface-recall.md)
 - [혼합 수량 구조 recall](2026-07-17-mixed-numeral-unit-recall.md)
 - [한글 수사 연쇄 recall](2026-07-17-hangul-numeral-recall.md)
 - [같은 문장의 누적 검색 누락 검증](2026-07-17-query-matrix.md)
@@ -117,17 +118,15 @@ paired 비교했으며 full-POS FN은 102→100, 완전 회수 문장은 373→3
 완전 회수 문장은 376→377이다. Matrix FP와 Agent 품질은 변하지 않았다. 최신 main 기준
 matrix Agent와 Human 처리량 변화는 각각 -2.04%, +0.81%다.
 
-[혼합 수량 구조 recall](2026-07-17-mixed-numeral-unit-recall.md)에서 ASCII 숫자 뒤 `NR` 연쇄와
-필수 `NNB/NNBC`, 선택적 조사 연쇄를 함께 요구하는 typed path를 열었다. Canonical test의
-embedded·full-POS·Human은 각각 FNᶜ가 2건 줄어 60·25·28이고 FP와 FPᶜ는 변하지 않았다.
-Matrix contract는 건드리지 않고 latest-main의 strict·contract-adjusted paired 비교를 함께
-수행했다. 현재 reclassified는 0건이며 embedded·full-POS·Human의 FN과 FNᶜ가 각각 2건 줄었다.
-신규 `3천사` 대조군도 두 smart profile에서 거부했다. 모든 성능 변화는 10% 경고선 안이며
-matrix Agent는 17,558.2 cases/s다.
+[지정사 완성형 recall](2026-07-17-copula-surface-recall.md)에서 source `VCP=이`와 완성 어미로
+증명되는 `이라고`·`이라는`·`이지`·`이며`를 terminal branch로 열었다. Canonical test의
+embedded·full-POS·Human·Agent는 각각 `PNᶜ=500`에서 FNᶜ가 1건 줄어 59·24·27·16이다.
+Matrix contract는 건드리지 않았고 reclassified 0인 최신 fixture의 strict·contract-adjusted
+지표를 함께 비교했다. Explicit-POS embedded·full-POS·Agent의 FNᶜ는 각각 5건 줄어
+157·93·38이고 Human은 3건 줄어 91이다. FP와 FPᶜ는 변하지 않았다. 신규 고유명사 `이지`
+대조군도 두 smart profile에서 거부했다.
 
-Development의 남은 수사 FN `백명`은 제품이 실제 `백` span을 반환하지만 UD KSL의
-`Typo=Yes/goeswith` gold가 앞의 `이` span을 가리키는 adapter 정렬 문제다. 제품 typed path를
-더 열지 않는다. 다음 제품 recall 작업은 matrix full-POS의 `이다` 계열 12건을
-`surface-missing` 8건과 `boundary-rejected` 4건으로 분리하고, source component로 공통 구조를
-증명할 수 있는 case만 연다. `서사극이라`, `인쇄업자가`처럼 구조적으로 증명하지 못한 조사
-host와 의미상 동음이의어는 열지 않는다.
+Matrix full-POS의 남은 `이다` FN 7건은 nominal-host 배치가 거부된 표준형 4건, 무표면 축약
+`겁니다` 2건과 비표준 `이예요` 1건이다. 다음 제품 recall 작업은 source component가 있는
+`동안이었습니다`·`끝인가`·`곳인`·`공학입니다` 네 case의 공통 nominal-host 구조만 연다.
+무표면 축약과 비표준 표기는 canonical 활용에 합치지 않는다.

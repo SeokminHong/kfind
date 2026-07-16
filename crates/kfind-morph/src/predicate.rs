@@ -498,6 +498,26 @@ fn compile_copula(
             ContinuationState::Terminal,
             "ending.future-adnominal",
         ),
+        (
+            format!("{stem}라고"),
+            ContinuationState::Terminal,
+            "ending.copula-quotative-go",
+        ),
+        (
+            format!("{stem}라는"),
+            ContinuationState::Terminal,
+            "ending.copula-quotative-adnominal",
+        ),
+        (
+            format!("{stem}지"),
+            ContinuationState::Terminal,
+            "ending.connective-ji",
+        ),
+        (
+            format!("{stem}며"),
+            ContinuationState::Terminal,
+            "ending.coordinate-myeo",
+        ),
     ] {
         push_branch(
             branches,

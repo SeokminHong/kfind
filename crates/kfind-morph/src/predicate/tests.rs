@@ -507,7 +507,21 @@ fn ha_rieul_and_copula_rules_cover_required_forms() {
         PredicatePos::Copula,
         LexicalAlternation::Copula,
     ));
-    assert_has_all(&copula, &["이고", "이어", "여서", "인", "일", "입니다"]);
+    assert_has_all(
+        &copula,
+        &[
+            "이고",
+            "이어",
+            "여서",
+            "인",
+            "일",
+            "입니다",
+            "이라고",
+            "이라는",
+            "이지",
+            "이며",
+        ],
+    );
 }
 
 #[test]

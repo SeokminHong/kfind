@@ -272,6 +272,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.copula-quotative-go"
+category = "connective"
+initial = "other"
+forms = ["라고"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.copula-quotative-adnominal"
+category = "adnominal"
+initial = "other"
+forms = ["라는"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.quotative-adnominal"
 category = "adnominal"
 initial = "attach-nieun"
