@@ -546,13 +546,6 @@ impl TokenEvidence {
             .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos == pos)
     }
 
-    fn has_preferred_whole_token_structure(&self, token_len: usize) -> bool {
-        self.units.iter().any(|unit| {
-            unit.span == (0..token_len)
-                && (unit.evidence == StructuralEvidence::Whole || unit.pos.is_predicate())
-        })
-    }
-
     fn has_predicate_ending_at(&self, end: usize) -> bool {
         self.units
             .iter()
@@ -681,7 +674,9 @@ enum StructureSelection {
         copula: Range<usize>,
     },
     DependentNoun,
-    RuntimeCompatible,
+    RuntimeCompatible {
+        graph_nominal_host: Option<Range<usize>>,
+    },
 }
 
 impl StructureSelection {
@@ -772,10 +767,16 @@ impl StructureSelection {
                 support.evidence == StructuralEvidence::Whole
                     && pattern.fine_pos == DataFinePos::Nnb
             }
-            Self::RuntimeCompatible => match support.evidence {
+            Self::RuntimeCompatible { graph_nominal_host } => match support.evidence {
                 StructuralEvidence::Whole | StructuralEvidence::SourceComponent => true,
                 StructuralEvidence::RuntimeComponent => {
                     runtime_position_is_supported(pattern, spans, evidence)
+                        && runtime_nominal_component_is_supported(
+                            pattern,
+                            spans,
+                            evidence,
+                            graph_nominal_host.as_ref(),
+                        )
                 }
             },
         }
@@ -877,6 +878,26 @@ fn update_min_cost(current: &mut Option<(usize, usize)>, candidate: (usize, usiz
     if current.is_none_or(|value| candidate < value) {
         *current = Some(candidate);
     }
+}
+
+fn runtime_nominal_component_is_supported(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    evidence: &TokenEvidence,
+    graph_nominal_host: Option<&Range<usize>>,
+) -> bool {
+    let Some(host) = graph_nominal_host else {
+        return true;
+    };
+    if !pattern.fine_pos.is_nominal()
+        || spans.core == *host
+        || spans.core.start < host.start
+        || spans.core.end > host.end
+    {
+        return true;
+    }
+    pattern.lexical_form.chars().count() > 1
+        && nominal_component_is_on_preferred_path(&spans.core, host, evidence)
 }
 
 fn runtime_position_is_supported(
@@ -990,11 +1011,9 @@ fn select_structure(
     }
     let next_starts_nominal = context.next.is_some_and(|next| {
         exact_analysis_starts_with_pos(resource, next, |pos| pos.starts_with('N'))
-            || nominal_particle_host(resource, next).is_some_and(|host| host.exact)
+            || nominal_particle_host(resource, next).is_some()
     });
-    let particle_host = nominal_particle_host(resource, context.current).filter(|host| {
-        host.exact || !evidence.has_preferred_whole_token_structure(context.current.len())
-    });
+    let particle_host = nominal_particle_host(resource, context.current);
     if next_starts_nominal && evidence.has_whole(DataFinePos::Mm) {
         return StructureSelection::AdjacentDeterminer;
     }
@@ -1030,11 +1049,13 @@ fn select_structure(
     if let Some(host) = particle_host {
         let allow_components = false;
         return StructureSelection::NominalSpan {
-            selected: host.span,
+            selected: host,
             allow_components,
         };
     }
-    StructureSelection::RuntimeCompatible
+    StructureSelection::RuntimeCompatible {
+        graph_nominal_host: complete_nominal_particle_host(resource, context.current),
+    }
 }
 
 fn adnominal_suffix_is_supported(resource: &ComponentResource, text: &str) -> bool {
@@ -1102,32 +1123,33 @@ fn unique_copular_split(resource: &ComponentResource, current: &str) -> Option<u
     matches.next().is_none().then_some(split)
 }
 
-#[derive(Clone, Debug)]
-struct NominalParticleHost {
-    span: Range<usize>,
-    exact: bool,
-}
-
-fn nominal_particle_host(
-    resource: &ComponentResource,
-    current: &str,
-) -> Option<NominalParticleHost> {
+fn nominal_particle_host(resource: &ComponentResource, current: &str) -> Option<Range<usize>> {
     current
         .char_indices()
         .map(|(offset, _)| offset)
         .skip(1)
-        .filter_map(|split| {
-            if !complete_suffix(resource, &current[split..], |pos| pos.starts_with('J')) {
-                return None;
-            }
-            let exact = has_exact_fine_pos(resource, &current[..split], DataFinePos::is_nominal);
-            (exact || complete_nominal_host(resource, &current[..split])).then_some((split, exact))
+        .filter(|&split| {
+            has_exact_fine_pos(resource, &current[..split], DataFinePos::is_nominal)
+                && complete_suffix(resource, &current[split..], |pos| pos.starts_with('J'))
         })
-        .max_by_key(|(split, exact)| (*exact, *split))
-        .map(|(end, exact)| NominalParticleHost {
-            span: 0..end,
-            exact,
+        .max()
+        .map(|end| 0..end)
+}
+
+fn complete_nominal_particle_host(
+    resource: &ComponentResource,
+    current: &str,
+) -> Option<Range<usize>> {
+    current
+        .char_indices()
+        .map(|(offset, _)| offset)
+        .skip(1)
+        .filter(|&split| {
+            complete_nominal_host(resource, &current[..split])
+                && complete_suffix(resource, &current[split..], |pos| pos.starts_with('J'))
         })
+        .max()
+        .map(|end| 0..end)
 }
 
 fn complete_nominal_host(resource: &ComponentResource, text: &str) -> bool {
