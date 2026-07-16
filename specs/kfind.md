@@ -2188,6 +2188,36 @@ gold 어절의 UTF-8 byte span과 겹쳐야 true positive이고, negative는 문
 표제어·품사를 반환하면 false positive다. 도구마다 accuracy, precision, recall, F1과
 TP·FP·TN·FN을 계산하고 corpus별·품사별 결과 및 실패 case를 함께 보존한다.
 
+고정 1,000-case 회귀 fixture와 별도로, 같은 held-out source에서 문장 안 검색 질의를 늘린
+`query matrix` fixture를 생성한다. canonical positive가 하나 이상 있는 고유 문장을 matrix의
+문장 집합으로 고정하고, 그 문장에 속한 canonical positive를 모두 보존한 뒤 정렬된 gold
+후보를 문장당 최대 3개까지 추가한다. 추가 후보는 아직 선택하지 않은 coarse POS를 먼저
+고르고, 같은 조건에서는 고정 seed와 source·sentence·token·morpheme·query의 SHA-256 순서로
+결정한다. 같은 `(표제어, 품사)`가 문장에 두 번 이상 나타나 gold span이 하나로 정해지지 않는
+후보는 추가 대상에서 제외한다. canonical positive가 문장당 3개를 넘거나 fixture의 모든
+canonical positive가 matrix에 정확히 한 번 포함되지 않으면 생성을 실패한다.
+
+각 matrix positive에는 같은 source의 gold 후보 중 대상 문장에 없는 표제어를 하나 대응시켜
+동일 문장 negative를 만든다. 명시적 품사 fixture는 positive와 같은 coarse POS를 유지하고
+같은 `(표제어, 품사)`가 문장에 없음을 요구한다. 무품사 fixture는 표제어가 지원 품사 전체에
+걸쳐 문장에 없음을 요구한다. 한 문장 안의 negative query는 서로 달라야 하며, positive와
+negative를 1:1로 유지한다. fixture에는 문장 group, `present-N`/`absent-N` slot, canonical
+positive ID와 paired positive ID를 보존하고, metadata에는 문장 수, 문장당 질의 수 분포,
+품사 분포, canonical coverage와 source별 case 수를 기록한다.
+
+query matrix는 질의별 strict·계약 보정 품질과 성능 외에 문장별 모든 positive 회수율,
+회수한 질의 수 분포와 slot별 품질을 보고한다. 질의가 문장 안에서 독립이라는 가정을 하지
+않으며 recall 불확실성은 문장 group을 재표집하는 고정 seed 10,000회 cluster bootstrap 95%
+구간으로 기록한다. 고정 test matrix는 kfind의 embedded/full-POS와 smart/token/any,
+사람용 무품사 profile, Kiwi·Lindera·MeCab-ko·KOMORAN을 모두 측정한다. 외부 결과는 matrix
+fixture SHA-256에 묶인 별도 version-controlled snapshot으로 보존한다. development matrix는
+kfind 진단에만 사용한다.
+
+query matrix는 기존 1,000-case 회귀선과 지표를 대체하거나 합치지 않는다. canonical 지표는
+장기 회귀 판정, matrix 지표는 같은 문장 안의 질의 다양성·부분 회수·동일 문장 false positive
+진단에 사용한다. 제품 규칙 선택과 unseen 검증 gate는 기존 dev/test/blind 계약을 그대로
+따른다.
+
 이 strict corpus-gold 지표는 제품의 의미 중의성 non-goal과 분리해 항상 보존한다. 버전 관리
 fixture가 `contract_expected`와 `contract_reason`을 함께 선언한 경우에는 같은 예측을 제품 계약
 기대값으로 다시 계산한 `contract_adjusted` 지표도 병렬로 기록한다. 이 지표의 confusion matrix는
