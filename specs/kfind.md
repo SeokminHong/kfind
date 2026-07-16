@@ -381,14 +381,12 @@
   이형태는 typed `AdjacentTokenConstraint`로 표현한다. query 표제어나 query 품사를
   corpus 구조 선택 힌트로 주입하지 않는다.
 - 현재 token에 관형사 whole 분석이 있고 다음 token이 체언으로 시작하면 관형사 구조를
-  선택한다. 현재 token에 체언 whole 분석이 있고 다음 token이 체언으로 시작하면, 현재
-  token을 끝내는 관형형 어미 path가 없는 경우에만 체언 구조를 선택한다. 따라서
-  `새 기능`의 `새`는 관형사이고 `주지 스님`의 `주지`는 명사로 판정하지만, 관형형
-  용언인 `건 사람`의 `건`은 predicate 후보를 유지한다. 여기서 다음 token의 체언
+  선택한다. 따라서 `새 기능`의 `새`는 관형사로 판정한다. 여기서 다음 token의 체언
   시작은 token 전체의 체언 분석 또는 exact 체언 host와 조사 suffix로 증명해야 하며,
   우연히 체언으로도 등록된 짧은 prefix나 predicate·modifier whole 경쟁이 있는 token만으로
-  판정하지 않는다. 한 음절 관형사 구조는 경쟁 NNG/NNP/NNB만 제거하고, 연속 체언 구조는
-  관형형이 아닌 predicate 경쟁만 제거한다. 다른 품사의 독립 후보는 유지한다.
+  판정하지 않는다. 한 음절 관형사 구조는 경쟁 NNG/NNP/NNB만 제거하고 다른 품사의
+  독립 후보는 유지한다. `V+EC N`처럼 절 연결과 명사 연속 구조가 모두 가능한 배치는
+  이 규칙으로 predicate 후보를 제거하지 않는다.
 - `smart` 무품사 direct-particle program은 입력과 같은 표면형만 만든다. 품사를
   명시한 조사 query는 이형태 묶음을 만들 수 있지만 host 소리 조건과 완성된
   조사 연쇄를 graph 제약으로 증명해야 한다.
