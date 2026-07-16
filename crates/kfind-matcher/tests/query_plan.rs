@@ -97,7 +97,7 @@ fn full_pos_smart_predicate_plan_preserves_a_same_pos_homograph_union() {
 }
 
 #[test]
-fn adjacent_nominal_layout_selects_pos_without_semantic_disambiguation() {
+fn adjacent_layout_limits_disambiguation_to_supported_pos_competitions() {
     let noun = compile_with_full_pos(
         "새",
         CompileOptions {
@@ -164,7 +164,7 @@ fn adjacent_nominal_layout_selects_pos_without_semantic_disambiguation() {
     assert!(
         connective
             .find_at_with_meta("주지 스님".as_bytes(), 0)
-            .is_none()
+            .is_some()
     );
     assert!(
         adnominal

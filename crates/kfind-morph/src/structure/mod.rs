@@ -664,7 +664,6 @@ enum StructureSelection {
     Whole,
     RepeatedAdverb,
     AdjacentDeterminer,
-    AdjacentNominal,
     NominalSpan {
         selected: Range<usize>,
         allow_components: bool,
@@ -703,9 +702,6 @@ impl StructureSelection {
                         pattern.fine_pos,
                         DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
                     )
-            }
-            Self::AdjacentNominal => {
-                !matches!(pattern.continuation, MorphContinuation::Predicate { .. })
             }
             Self::NominalSpan {
                 selected,
@@ -1027,16 +1023,6 @@ fn select_structure(
         && evidence.has_whole(DataFinePos::Mm)
     {
         return StructureSelection::AdjacentDeterminer;
-    }
-    if next_starts_nominal
-        && particle_host.is_none()
-        && evidence
-            .units
-            .iter()
-            .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal())
-        && evidence.adnominal_ends.is_empty()
-    {
-        return StructureSelection::AdjacentNominal;
     }
     if let Some((nominal, copula)) = copular_frame(resource, context) {
         return StructureSelection::CopularFrame { nominal, copula };
