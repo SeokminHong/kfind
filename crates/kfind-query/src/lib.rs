@@ -15,7 +15,7 @@ pub use analysis::{
     NominalOverride, ParticleMorphology, QueryAnalyzer,
 };
 pub use ast::{DEFAULT_MAX_GAP, PhrasePolicy, QueryAst, QueryAtom};
-pub use compile::{compile_query, registered_lexical_context_prefix_len};
+pub use compile::compile_query;
 pub use error::{
     CompileError, CompileErrorKind, PhraseJoinError, QueryError, QueryErrorKind, SourceSpan,
 };
@@ -30,6 +30,6 @@ pub use options::{
 };
 pub use phrase::{PhraseMatch, join_phrase_spans};
 pub use plan::{
-    AtomPlan, BoundaryProof, BranchEnvironment, BranchVerifier, CandidateProgram,
-    ContextRequirement, CoreMapping, Origin, QueryDiagnostic, QueryPlan, VerifiedSpan,
+    AtomPlan, BoundaryProof, BranchEnvironment, BranchVerifier, CandidateDecision,
+    CandidateProgram, CoreMapping, Origin, QueryDiagnostic, QueryPlan, VerifiedSpan,
 };

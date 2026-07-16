@@ -5,7 +5,7 @@ use kfind_data::{
     ComponentResource, DataFinePos, MorphologyExpressionAlignmentKind, align_morphology_expression,
 };
 
-use crate::{CandidateSpans, QueryMorphPattern, StructuralSignature};
+use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern, StructuralSignature};
 
 #[derive(Clone, Copy, Debug)]
 pub struct BoundedTokenContext<'a> {
@@ -163,6 +163,8 @@ struct Unit {
 #[derive(Debug, Default)]
 struct TokenEvidence {
     units: Vec<Unit>,
+    runtime_spans: Vec<Range<usize>>,
+    has_complete_path: bool,
 }
 
 impl TokenEvidence {
@@ -199,12 +201,21 @@ impl TokenEvidence {
                 });
             }
         }
-        let complete = complete_edges(text.len(), &edges);
+        let forward = forward_positions(text.len(), &edges);
+        let complete = complete_edges(text.len(), &edges, &forward);
+        let has_complete_path = forward[text.len()];
         let mut units = Vec::new();
+        let mut runtime_spans = Vec::new();
         for (index, edge) in edges.iter().enumerate() {
-            if !complete[index] {
+            let eligible = if has_complete_path {
+                complete[index]
+            } else {
+                forward[edge.span.start]
+            };
+            if !eligible {
                 continue;
             }
+            runtime_spans.push(edge.span.clone());
             let whole_edge = edge.span == (0..text.len());
             if let Some(pos) = DataFinePos::parse(&edge.pos) {
                 units.push(Unit {
@@ -245,7 +256,13 @@ impl TokenEvidence {
             )
         });
         units.dedup();
-        Ok(Self { units })
+        runtime_spans.sort_unstable_by_key(|span| (span.start, span.end));
+        runtime_spans.dedup();
+        Ok(Self {
+            units,
+            runtime_spans,
+            has_complete_path,
+        })
     }
 
     fn has_whole(&self, pos: DataFinePos) -> bool {
@@ -262,7 +279,7 @@ struct Edge {
     expression: String,
 }
 
-fn complete_edges(text_len: usize, edges: &[Edge]) -> Vec<bool> {
+fn forward_positions(text_len: usize, edges: &[Edge]) -> Vec<bool> {
     let mut forward = vec![false; text_len + 1];
     forward[0] = true;
     for start in 0..text_len {
@@ -273,6 +290,10 @@ fn complete_edges(text_len: usize, edges: &[Edge]) -> Vec<bool> {
             forward[edge.span.end] = true;
         }
     }
+    forward
+}
+
+fn complete_edges(text_len: usize, edges: &[Edge], forward: &[bool]) -> Vec<bool> {
     let mut backward = vec![false; text_len + 1];
     backward[text_len] = true;
     for start in (0..text_len).rev() {
@@ -294,6 +315,7 @@ fn collect_pattern_supports(
 ) -> Vec<ConstraintSupport> {
     let mut supports = Vec::new();
     for (pattern_index, pattern) in patterns.iter().enumerate() {
+        let support_start = supports.len();
         for unit in &evidence.units {
             if unit.span != spans.core || unit.pos != pattern.fine_pos {
                 continue;
@@ -312,6 +334,18 @@ fn collect_pattern_supports(
                 });
             }
         }
+        if supports.len() == support_start
+            && pattern.component_capability.allows_runtime()
+            && (evidence.runtime_spans.contains(&spans.core)
+                || (!evidence.has_complete_path
+                    && (spans.consumed == spans.token
+                        || matches!(pattern.continuation, MorphContinuation::Predicate { .. }))))
+        {
+            supports.push(ConstraintSupport {
+                pattern_index,
+                evidence: StructuralEvidence::RuntimeComponent,
+            });
+        }
     }
     supports
 }
@@ -321,7 +355,10 @@ enum StructureSelection {
     All,
     Whole,
     RepeatedAdverb,
-    NominalSpan(Range<usize>),
+    NominalSpan {
+        selected: Range<usize>,
+        allow_components: bool,
+    },
     CopularFrame {
         nominal: Range<usize>,
         copula: Range<usize>,
@@ -345,7 +382,16 @@ impl StructureSelection {
                 support.evidence == StructuralEvidence::Whole
                     && pattern.fine_pos == DataFinePos::Mag
             }
-            Self::NominalSpan(selected) => spans.core == *selected && pattern.fine_pos.is_nominal(),
+            Self::NominalSpan {
+                selected,
+                allow_components,
+            } => {
+                (spans.core == *selected
+                    || (*allow_components
+                        && spans.core.start >= selected.start
+                        && spans.core.end <= selected.end))
+                    && pattern.fine_pos.is_nominal()
+            }
             Self::CopularFrame { nominal, copula } => {
                 (spans.core == *nominal && pattern.fine_pos.is_nominal())
                     || (spans.core == *copula && pattern.fine_pos == DataFinePos::Vcp)
@@ -368,12 +414,18 @@ fn select_structure(
         return StructureSelection::CopularFrame { nominal, copula };
     }
     if let Some(host) = nominal_particle_host(resource, context.current) {
-        return StructureSelection::NominalSpan(host);
+        let allow_components =
+            unique_copular_split(resource, &context.current[host.clone()]).is_none();
+        return StructureSelection::NominalSpan {
+            selected: host,
+            allow_components,
+        };
     }
     if evidence
         .units
         .iter()
         .any(|unit| unit.evidence == StructuralEvidence::Whole)
+        && unique_copular_split(resource, context.current).is_some()
     {
         StructureSelection::Whole
     } else {
@@ -387,25 +439,27 @@ fn copular_frame(
 ) -> Option<(Range<usize>, Range<usize>)> {
     let previous = context.previous?;
     let next = context.next?;
-    if !has_exact_sequence(resource, previous, &["VCN", "EC"])
+    if !complete_pos_sequence(resource, previous, &["VCN", "EC"])
         || !starts_with_pos(resource, next, |pos| matches!(pos, "NNB" | "NNBC"))
     {
         return None;
     }
-    let mut matches = context
-        .current
+    let split = unique_copular_split(resource, context.current)?;
+    Some((0..split, split..context.current.len()))
+}
+
+fn unique_copular_split(resource: &ComponentResource, current: &str) -> Option<usize> {
+    let mut matches = current
         .char_indices()
         .map(|(offset, _)| offset)
         .skip(1)
         .filter(|&split| {
-            has_exact_fine_pos(resource, &context.current[..split], DataFinePos::is_nominal)
-                && has_exact_sequence(resource, &context.current[split..], &["VCP", "ETM"])
+            has_exact_fine_pos(resource, &current[..split], DataFinePos::is_nominal)
+                && (has_exact_sequence(resource, &current[split..], &["VCP"])
+                    || has_exact_sequence(resource, &current[split..], &["VCP", "ETM"]))
         });
     let split = matches.next()?;
-    matches
-        .next()
-        .is_none()
-        .then_some((0..split, split..context.current.len()))
+    matches.next().is_none().then_some(split)
 }
 
 fn nominal_particle_host(resource: &ComponentResource, current: &str) -> Option<Range<usize>> {
@@ -470,6 +524,24 @@ fn has_exact_sequence(resource: &ComponentResource, text: &str, expected: &[&str
         }
     });
     matched
+}
+
+fn complete_pos_sequence(resource: &ComponentResource, text: &str, expected: &[&str]) -> bool {
+    if text.is_empty() || expected.is_empty() {
+        return text.is_empty() && expected.is_empty();
+    }
+    let mut next = Vec::new();
+    resource.common_prefixes(text.as_bytes(), |length, analyses| {
+        for analysis in analyses {
+            let actual = analysis.pos.split('+').collect::<Vec<_>>();
+            if length > 0 && expected.starts_with(&actual) {
+                next.push((length, actual.len()));
+            }
+        }
+    });
+    next.into_iter().any(|(length, consumed)| {
+        complete_pos_sequence(resource, &text[length..], &expected[consumed..])
+    })
 }
 
 fn starts_with_pos(

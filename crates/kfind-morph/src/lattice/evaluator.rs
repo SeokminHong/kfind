@@ -29,6 +29,11 @@ impl LocalComponentEvaluator {
         &self.resource
     }
 
+    #[must_use]
+    pub fn resource_arc(&self) -> Arc<ComponentResource> {
+        Arc::clone(&self.resource)
+    }
+
     pub fn evaluate_decision(
         &self,
         text: &str,

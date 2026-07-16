@@ -8,7 +8,7 @@ use kfind_data::{
 use kfind_morph::{CoarsePos, ContinuationState, FinePos, RuleId};
 use kfind_query::{
     Analysis, AnalysisSource, AtomPlan, BoundaryPolicy, BoundaryProof, BranchEnvironment,
-    BranchVerifier, CandidateProgram, ContextRequirement, CoreMapping, Morphology,
+    BranchVerifier, CandidateDecision, CandidateProgram, CoreMapping, Morphology,
     NominalMorphology, Origin, PhrasePolicy, PlanLimits, QueryPlan,
 };
 use unicode_normalization::UnicodeNormalization;
@@ -134,26 +134,26 @@ fn smart_left_boundary_rejects_compounds_but_any_accepts_them() {
 }
 
 #[test]
-fn compact_component_accepts_only_the_lower_cost_exact_path() {
+fn structural_components_remain_possible_when_whole_analyses_compete() {
     let resource = Arc::new(component_resource());
     let accepted = component_matcher("권한", Arc::clone(&resource));
     let rejected = component_matcher("학교", resource);
 
     let matched = accepted
         .find_at_with_meta("사용자권한".as_bytes(), 0)
-        .expect("lower-cost exact component path should match");
+        .expect("structurally possible component path should match");
     assert_eq!(matched.span, "사용자".len().."사용자권한".len());
-    assert!(rejected.find_at_with_meta("대학교".as_bytes(), 0).is_none());
+    assert!(rejected.find_at_with_meta("대학교".as_bytes(), 0).is_some());
 }
 
 #[test]
-fn compact_component_accepts_an_exact_path_within_the_cost_penalty() {
+fn structural_component_support_does_not_depend_on_word_cost() {
     let resource = Arc::new(component_resource());
     let within = component_matcher("안", Arc::clone(&resource));
     let over = component_matcher("밖", resource);
 
     assert!(within.find_at_with_meta("경계안".as_bytes(), 0).is_some());
-    assert!(over.find_at_with_meta("경계밖".as_bytes(), 0).is_none());
+    assert!(over.find_at_with_meta("경계밖".as_bytes(), 0).is_some());
 }
 
 #[test]
@@ -198,11 +198,11 @@ fn exact_component_accepts_pronoun_numeral_and_determiner_spans() {
 #[test]
 fn component_context_without_a_resource_is_a_build_error() {
     for context_requirement in [
-        ContextRequirement::PredicateLexical,
-        ContextRequirement::ExactComponent,
+        CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime),
+        CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime),
     ] {
         let mut branch = exact_branch("일", false);
-        branch.context_requirement = context_requirement;
+        branch.decision = context_requirement;
         let plan = Arc::new(QueryPlan {
             raw_query: "test".into(),
             atoms: vec![atom(BoundaryPolicy::Smart, vec![branch])],
@@ -225,7 +225,8 @@ fn component_context_without_a_resource_is_a_build_error() {
 #[test]
 fn predicate_lexical_rejects_only_non_predicate_strict_subspans() {
     let mut branch = exact_branch("일", false);
-    branch.context_requirement = ContextRequirement::PredicateLexical;
+    branch.decision =
+        CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime);
     let matcher = contextual_matcher(vec![branch], Arc::new(component_resource()));
 
     assert!(matcher.find_at_with_meta("매일".as_bytes(), 0).is_none());
@@ -238,7 +239,8 @@ fn predicate_lexical_rejects_only_non_predicate_strict_subspans() {
 #[test]
 fn predicate_lexical_rejection_preserves_another_query_branch() {
     let mut predicate = exact_branch("일", false);
-    predicate.context_requirement = ContextRequirement::PredicateLexical;
+    predicate.decision =
+        CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime);
     let mut exact = exact_branch("일", false);
     exact.origins = vec![origin(1, &[])];
     let matcher = contextual_matcher(vec![predicate, exact], Arc::new(component_resource()));
@@ -310,9 +312,10 @@ fn repeated_single_atom_matches_advance_without_changing_leftmost_longest() {
 }
 
 #[test]
-fn verification_counters_isolate_boundary_rejected_exact_components() {
+fn verification_counters_include_structurally_supported_components() {
     let mut contextual = nominal_branch("학교", rules(&["particle.topic"]));
-    contextual.context_requirement = ContextRequirement::ExactComponent;
+    contextual.decision =
+        CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime);
     let mut atom = atom(BoundaryPolicy::Smart, vec![contextual]);
     atom.analyses.push(nominal_analysis("학교"));
     let plan = QueryPlan {
@@ -333,9 +336,9 @@ fn verification_counters_isolate_boundary_rejected_exact_components() {
         matcher.verification_counters("대학교는 학교는".as_bytes()),
         VerificationCounters {
             raw_anchor_hits: 2,
-            verified_branch_hits: 1,
-            exact_component_candidate_hits: 1,
-            unique_component_windows: 1,
+            verified_branch_hits: 2,
+            exact_component_candidate_hits: 0,
+            unique_component_windows: 0,
         }
     );
 }
@@ -672,7 +675,8 @@ fn component_matcher_with_analysis(
     } else {
         exact_branch(anchor, true)
     };
-    branch.context_requirement = ContextRequirement::ExactComponent;
+    branch.decision =
+        CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime);
     let mut atom = atom(BoundaryPolicy::Smart, vec![branch]);
     atom.analyses.push(analysis);
     let plan = QueryPlan {
@@ -692,9 +696,14 @@ fn contextual_matcher(
     branches: Vec<CandidateProgram>,
     resource: Arc<ComponentResource>,
 ) -> MorphMatcher {
+    let mut query_atom = atom(BoundaryPolicy::Smart, branches);
+    query_atom.analyses = vec![
+        non_predicate_analysis("이다", CoarsePos::Adjective, FinePos::Copula),
+        nominal_analysis("일"),
+    ];
     let plan = QueryPlan {
         raw_query: "test".into(),
-        atoms: vec![atom(BoundaryPolicy::Smart, branches)],
+        atoms: vec![query_atom],
         phrase_policy: PhrasePolicy { max_gap: 24 },
         normalization: kfind_query::NormalizationMode::Nfc,
         limits: PlanLimits::default(),
@@ -740,7 +749,9 @@ fn component_resource() -> ComponentResource {
         component_entry("매", "NNG", 500),
         component_entry("일", "VCP", 500),
         component_entry("매일", "MAG", 0),
-        component_entry("교사일", "VCP", -5_000),
+        component_entry("교사", "NNG", -5_000),
+        component_entry("학생", "NNG", -5_000),
+        component_entry("책", "NNG", -5_000),
         component_entry("학생일", "NNG+VCP+ETM", -5_000),
         component_entry("는", "JX", 0),
         component_entry("는관리", "NNG", -5_000),
@@ -802,7 +813,7 @@ fn exact_branch(anchor: &str, require_left: bool) -> CandidateProgram {
         extent: kfind_query::CandidateExtentPolicy::Anchor,
         origins: vec![origin(0, &[])],
         boundary: proof(require_left, true, anchor.chars().count() == 1),
-        context_requirement: ContextRequirement::None,
+        decision: CandidateDecision::Boundary,
     }
 }
 
@@ -817,7 +828,7 @@ fn nominal_branch(anchor: &str, allowed_rule_ids: Arc<[RuleId]>) -> CandidatePro
         extent: kfind_query::CandidateExtentPolicy::AnchorAndSurroundingToken,
         origins: vec![origin(0, &[])],
         boundary: proof(true, true, anchor.chars().count() == 1),
-        context_requirement: ContextRequirement::None,
+        decision: CandidateDecision::Boundary,
     }
 }
 
@@ -841,7 +852,7 @@ fn predicate_branch(
         extent: kfind_query::CandidateExtentPolicy::SurroundingToken,
         origins,
         boundary: proof(false, true, anchor.chars().count() == 1),
-        context_requirement: ContextRequirement::None,
+        decision: CandidateDecision::Boundary,
     }
 }
 

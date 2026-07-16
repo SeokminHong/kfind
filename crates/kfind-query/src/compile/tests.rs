@@ -10,7 +10,7 @@ use kfind_morph::{
 
 use super::*;
 use crate::{
-    BoundaryPolicy, CandidateExtentPolicy, CompileOptionOverrides, ContextRequirement, Lexicons,
+    BoundaryPolicy, CandidateDecision, CandidateExtentPolicy, CompileOptionOverrides, Lexicons,
     NormalizationMode, PlanLimits,
 };
 
@@ -214,7 +214,8 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
     );
     assert!(smart_noun.atoms[0].programs.iter().any(|branch| {
         matches!(branch.verifier, BranchVerifier::NominalParticles { .. })
-            && branch.context_requirement == ContextRequirement::ExactComponent
+            && branch.decision
+                == CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime)
     }));
 
     let any_options = CompileOptions {
@@ -232,13 +233,16 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
         any_noun.atoms[0]
             .programs
             .iter()
-            .all(|branch| branch.context_requirement != ContextRequirement::ExactComponent)
+            .all(|branch| branch.decision
+                != CandidateDecision::Structural(
+                    kfind_morph::ComponentCapability::SourceAndRuntime
+                ))
     );
 
     let smart_predicate =
         compile_query("검증하다", &CompileOptions::default(), &analyzer()).unwrap();
     assert!(smart_predicate.atoms[0].programs.iter().all(|branch| {
-        branch.boundary.require_left && branch.context_requirement == ContextRequirement::None
+        branch.boundary.require_left && branch.decision == CandidateDecision::Boundary
     }));
     assert!(!smart_predicate.requires_component_resource());
 
@@ -250,7 +254,10 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
             .iter()
             .all(|branch| {
                 branch.boundary.require_left
-                    && branch.context_requirement == ContextRequirement::ExactComponent
+                    && branch.decision
+                        == CandidateDecision::Structural(
+                            kfind_morph::ComponentCapability::SourceAndRuntime,
+                        )
             })
     );
     assert!(smart_full_pos_predicate.requires_component_resource());
@@ -262,7 +269,10 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
             .programs
             .iter()
             .all(|branch| !branch.boundary.require_left
-                && branch.context_requirement == ContextRequirement::PredicateLexical)
+                && branch.decision
+                    == CandidateDecision::Structural(
+                        kfind_morph::ComponentCapability::SourceAndRuntime
+                    ))
     );
 
     let token_options = CompileOptions {
@@ -271,20 +281,20 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
     };
     let token_predicate = compile_query("검증하다", &token_options, &analyzer()).unwrap();
     assert!(token_predicate.atoms[0].programs.iter().all(|branch| {
-        branch.boundary.require_left && branch.context_requirement == ContextRequirement::None
+        branch.boundary.require_left && branch.decision == CandidateDecision::Boundary
     }));
     assert!(!token_predicate.requires_component_resource());
 
     let token_copula = compile_query("이다", &token_options, &analyzer()).unwrap();
     assert!(!token_copula.requires_component_resource());
     assert!(token_copula.atoms[0].programs.iter().all(|branch| {
-        branch.boundary.require_left && branch.context_requirement == ContextRequirement::None
+        branch.boundary.require_left && branch.decision == CandidateDecision::Boundary
     }));
 
     let any_copula = compile_query("이다", &any_options, &analyzer()).unwrap();
     assert!(!any_copula.requires_component_resource());
     assert!(any_copula.atoms[0].programs.iter().all(|branch| {
-        !branch.boundary.require_right && branch.context_requirement == ContextRequirement::None
+        !branch.boundary.require_right && branch.decision == CandidateDecision::Boundary
     }));
 }
 
@@ -326,7 +336,15 @@ fn candidate_programs_declare_their_consumed_extent() {
 
 #[test]
 fn candidate_programs_materialize_structural_patterns_from_plan_analyses() {
-    let predicate = compile_query("걷다", &CompileOptions::default(), &analyzer()).unwrap();
+    let predicate = compile_query(
+        "걷다",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        &full_pos_analyzer(),
+    )
+    .unwrap();
     assert!(predicate.atoms[0].programs.iter().all(|program| {
         let patterns = program.structural_patterns(&predicate.atoms[0]);
         !patterns.is_empty()
@@ -374,12 +392,10 @@ fn smart_exact_components_cover_nominals_predicates_and_determiners() {
         )
         .unwrap();
         assert!(plan.requires_component_resource());
-        assert!(
-            plan.atoms[0]
-                .programs
-                .iter()
-                .all(|branch| { branch.context_requirement == ContextRequirement::ExactComponent })
-        );
+        assert!(plan.atoms[0].programs.iter().all(|branch| {
+            branch.decision
+                == CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime)
+        }));
     }
 
     let determiner = compile_query(
@@ -392,12 +408,10 @@ fn smart_exact_components_cover_nominals_predicates_and_determiners() {
     )
     .unwrap();
     assert!(determiner.requires_component_resource());
-    assert!(
-        determiner.atoms[0]
-            .programs
-            .iter()
-            .all(|branch| { branch.context_requirement == ContextRequirement::ExactComponent })
-    );
+    assert!(determiner.atoms[0].programs.iter().all(|branch| {
+        branch.decision
+            == CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime)
+    }));
 
     for (query, pos) in [("걷다", CoarsePos::Verb), ("좋다", CoarsePos::Adjective)] {
         let plan = compile_query(
@@ -410,26 +424,33 @@ fn smart_exact_components_cover_nominals_predicates_and_determiners() {
         )
         .unwrap();
         assert!(plan.requires_component_resource());
-        assert!(
-            plan.atoms[0]
-                .programs
-                .iter()
-                .all(|branch| { branch.context_requirement == ContextRequirement::ExactComponent })
-        );
+        assert!(plan.atoms[0].programs.iter().all(|branch| {
+            branch.decision
+                == CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime)
+        }));
     }
 
-    for pos in [CoarsePos::Adverb, CoarsePos::Interjection] {
-        let plan = compile_query(
-            "표면",
-            &CompileOptions {
-                global_pos: Some(pos),
-                ..CompileOptions::default()
-            },
-            &analyzer(),
-        )
-        .unwrap();
-        assert!(!plan.requires_component_resource());
-    }
+    let adverb = compile_query(
+        "표면",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Adverb),
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    assert!(adverb.requires_component_resource());
+
+    let interjection = compile_query(
+        "표면",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Interjection),
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    assert!(!interjection.requires_component_resource());
 
     for boundary in [BoundaryPolicy::Token, BoundaryPolicy::Any] {
         let plan = compile_query(
@@ -447,15 +468,13 @@ fn smart_exact_components_cover_nominals_predicates_and_determiners() {
 }
 
 #[test]
-fn smart_registered_adverb_requires_lexical_context_without_changing_token_or_any() {
+fn smart_adverb_uses_structural_decision_without_changing_token_or_any() {
     let smart = compile_query("adv:매일", &CompileOptions::default(), &analyzer()).unwrap();
     assert!(smart.requires_component_resource());
-    assert!(
-        smart.atoms[0]
-            .programs
-            .iter()
-            .all(|branch| { branch.context_requirement == ContextRequirement::LexicalContext })
-    );
+    assert!(smart.atoms[0].programs.iter().all(|branch| {
+        branch.decision
+            == CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime)
+    }));
 
     for boundary in [BoundaryPolicy::Token, BoundaryPolicy::Any] {
         let plan = compile_query(
@@ -472,22 +491,20 @@ fn smart_registered_adverb_requires_lexical_context_without_changing_token_or_an
             plan.atoms[0]
                 .programs
                 .iter()
-                .all(|branch| { branch.context_requirement == ContextRequirement::None })
+                .all(|branch| { branch.decision == CandidateDecision::Boundary })
         );
     }
 }
 
 #[test]
-fn smart_unregistered_adverbs_do_not_require_lexical_context() {
+fn smart_adverbs_do_not_depend_on_a_surface_registry() {
     for query in ["adv:빨리", "adv:매우"] {
         let plan = compile_query(query, &CompileOptions::default(), &analyzer()).unwrap();
-        assert!(!plan.requires_component_resource());
-        assert!(
-            plan.atoms[0]
-                .programs
-                .iter()
-                .all(|branch| branch.context_requirement == ContextRequirement::None)
-        );
+        assert!(plan.requires_component_resource());
+        assert!(plan.atoms[0].programs.iter().all(|branch| {
+            branch.decision
+                == CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime)
+        }));
     }
 }
 
@@ -579,8 +596,8 @@ fn smart_one_scalar_rule_uses_the_source_atom_not_generated_surfaces() {
         assert!(!branch.boundary.one_scalar_anchor);
         assert!(!branch.boundary.require_left);
         assert_eq!(
-            branch.context_requirement,
-            ContextRequirement::PredicateLexical
+            branch.decision,
+            CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime)
         );
     }
 }
@@ -829,7 +846,7 @@ fn derivation_allows_adverb_auxiliaries_but_not_case_particles() {
 
     for query in ["빨리", "잘"] {
         let plan = compile_query(query, &options, &analyzer()).unwrap();
-        assert!(!plan.requires_component_resource());
+        assert!(plan.requires_component_resource());
         let branch = plan.atoms[0]
             .programs
             .iter()

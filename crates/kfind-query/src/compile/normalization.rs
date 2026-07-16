@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use unicode_normalization::UnicodeNormalization;
 
 use crate::{
-    BoundaryPolicy, BoundaryProof, BranchVerifier, CandidateExtentPolicy, CandidateProgram,
-    CompileError, CompileErrorKind, ContextRequirement, CoreMapping, NormalizationMode, Origin,
+    BoundaryPolicy, BoundaryProof, BranchVerifier, CandidateDecision, CandidateExtentPolicy,
+    CandidateProgram, CompileError, CompileErrorKind, CoreMapping, NormalizationMode, Origin,
     QueryAtom,
 };
 
@@ -15,7 +15,7 @@ pub(super) struct DraftBranch {
     pub core_mapping: CoreMapping,
     pub origin: Origin,
     pub smart_left: bool,
-    pub context_requirement: ContextRequirement,
+    pub decision: CandidateDecision,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -24,7 +24,7 @@ struct BranchKey {
     verifier: BranchVerifier,
     core_mapping: CoreMapping,
     boundary: BoundaryProof,
-    context_requirement: ContextRequirement,
+    decision: CandidateDecision,
 }
 
 pub(super) fn normalize_and_merge(
@@ -41,13 +41,13 @@ pub(super) fn normalize_and_merge(
             let allow_attached = matches!(draft.verifier, BranchVerifier::DirectParticle { .. });
             let boundary_proof =
                 boundary_proof(boundary, draft.smart_left, one_scalar_atom, allow_attached);
-            let context_requirement = context_requirement(boundary, draft.context_requirement);
+            let decision = candidate_decision(boundary, draft.decision);
             let key = BranchKey {
                 anchor: anchor.as_bytes().into(),
                 verifier: draft.verifier.clone(),
                 core_mapping,
                 boundary: boundary_proof,
-                context_requirement,
+                decision,
             };
             if let Some(index) = indices.get(&key).copied() {
                 let origins = &mut programs[index].origins;
@@ -65,7 +65,7 @@ pub(super) fn normalize_and_merge(
                     core_mapping: key.core_mapping,
                     origins: vec![draft.origin.clone()],
                     boundary: key.boundary,
-                    context_requirement: key.context_requirement,
+                    decision: key.decision,
                 });
             }
         }
@@ -83,14 +83,11 @@ fn candidate_extent(verifier: &BranchVerifier) -> CandidateExtentPolicy {
     }
 }
 
-fn context_requirement(
-    policy: BoundaryPolicy,
-    requested: ContextRequirement,
-) -> ContextRequirement {
+fn candidate_decision(policy: BoundaryPolicy, requested: CandidateDecision) -> CandidateDecision {
     if policy == BoundaryPolicy::Smart {
         requested
     } else {
-        ContextRequirement::None
+        CandidateDecision::Boundary
     }
 }
 

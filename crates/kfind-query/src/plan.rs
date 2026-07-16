@@ -24,14 +24,9 @@ impl QueryPlan {
     #[must_use]
     pub fn requires_component_resource(&self) -> bool {
         self.atoms.iter().any(|atom| {
-            atom.programs.iter().any(|branch| {
-                matches!(
-                    branch.context_requirement,
-                    ContextRequirement::PredicateLexical
-                        | ContextRequirement::ExactComponent
-                        | ContextRequirement::LexicalContext
-                )
-            })
+            atom.programs
+                .iter()
+                .any(|program| matches!(program.decision, CandidateDecision::Structural(_)))
         })
     }
 }
@@ -110,7 +105,7 @@ pub struct CandidateProgram {
     pub extent: CandidateExtentPolicy,
     pub origins: Vec<Origin>,
     pub boundary: BoundaryProof,
-    pub context_requirement: ContextRequirement,
+    pub decision: CandidateDecision,
 }
 
 impl CandidateProgram {
@@ -122,11 +117,8 @@ impl CandidateProgram {
         let Some((token_relation, continuation)) = self.pattern_continuation() else {
             return Vec::new();
         };
-        let component_capability = if self.context_requirement == ContextRequirement::ExactComponent
-        {
-            ComponentCapability::SourceAndRuntime
-        } else {
-            ComponentCapability::WholeOnly
+        let CandidateDecision::Structural(component_capability) = self.decision else {
+            return Vec::new();
         };
         let mut patterns = Vec::new();
         for origin in &self.origins {
@@ -180,11 +172,9 @@ impl CandidateProgram {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ContextRequirement {
-    None,
-    PredicateLexical,
-    ExactComponent,
-    LexicalContext,
+pub enum CandidateDecision {
+    Boundary,
+    Structural(ComponentCapability),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

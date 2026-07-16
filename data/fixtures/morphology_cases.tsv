@@ -6,6 +6,10 @@ query	pos	text	expected	feature
 매	noun	매일 매일 보고 싶어	no-match	lexical-context
 매일	noun	매일 매일 보고 싶어	no-match	lexical-context
 매일	adverb	매일 매일 보고 싶어	match	lexical-context
+매	noun	매일 보고 싶어	no-match	lexical-context
+매일	adverb	매일 보고 싶어	match	lexical-context
+매	noun	독수리가 아니라 매일 수도 있어	match	lexical-context
+매일	adverb	독수리가 아니라 매일 수도 있어	no-match	lexical-context
 매	noun	그는 집념으로 매일을 보내고 있었다.	no-match	lexical-context
 매일	noun	그는 집념으로 매일을 보내고 있었다.	match	lexical-context
 매일	adverb	그는 집념으로 매일을 보내고 있었다.	no-match	lexical-context

@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::ops::Range;
 
 use kfind_morph::{FinePos, RuleId};
-use kfind_query::ContextRequirement;
+use kfind_query::CandidateDecision;
 
 use super::MorphMatcher;
 use crate::{AnalysisWindow, AnalysisWindowError, DEFAULT_ANALYSIS_WINDOW_LIMITS};
@@ -26,7 +26,7 @@ impl MorphMatcher {
             for branch_ref in &self.anchor_branches[hit.anchor_index] {
                 let atom = &self.plan.atoms[branch_ref.atom_index];
                 let branch = &atom.programs[branch_ref.branch_index];
-                if branch.context_requirement != ContextRequirement::ExactComponent {
+                if !matches!(branch.decision, CandidateDecision::Structural(_)) {
                     continue;
                 }
                 let Some(candidate) = self.verify_branch_without_boundary(

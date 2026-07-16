@@ -8,7 +8,7 @@ use kfind_data::{
 use kfind_matcher::MorphMatcher;
 use kfind_morph::CoarsePos;
 use kfind_query::{
-    BoundaryPolicy, CompileOptions, ContextRequirement, ExpandMode, LexiconQueryAnalyzer, Lexicons,
+    BoundaryPolicy, CandidateDecision, CompileOptions, ExpandMode, LexiconQueryAnalyzer, Lexicons,
     NormalizationMode, compile_query,
 };
 use unicode_normalization::UnicodeNormalization;
@@ -394,7 +394,10 @@ fn smart_vcp_corpus_fixtures_apply_component_evidence() {
         matcher.plan().atoms[0]
             .programs
             .iter()
-            .all(|branch| branch.context_requirement == ContextRequirement::PredicateLexical)
+            .all(|branch| branch.decision
+                == CandidateDecision::Structural(
+                    kfind_morph::ComponentCapability::SourceAndRuntime
+                ))
     );
 
     for fixture in VCP_BOUNDARY_FIXTURES {
@@ -450,10 +453,11 @@ fn canonical_vcp_corpus_fixtures_preserve_union_without_an_exact_resource_surfac
 
     for fixture in VCP_BOUNDARY_FIXTURES {
         let decomposed = fixture.text.nfd().collect::<String>();
-        assert!(
+        assert_eq!(
             matcher
                 .find_at_with_meta(decomposed.as_bytes(), 0)
                 .is_some(),
+            fixture.gold_vcp,
             "canonical union result differed for {} ({})",
             fixture.case_name,
             fixture.text
@@ -463,7 +467,10 @@ fn canonical_vcp_corpus_fixtures_preserve_union_without_an_exact_resource_surfac
         matcher.plan().atoms[0]
             .programs
             .iter()
-            .all(|branch| branch.context_requirement == ContextRequirement::PredicateLexical)
+            .all(|branch| branch.decision
+                == CandidateDecision::Structural(
+                    kfind_morph::ComponentCapability::SourceAndRuntime
+                ))
     );
 }
 
@@ -585,6 +592,8 @@ fn component_resource() -> Arc<ComponentResource> {
     Arc::clone(RESOURCE.get_or_init(|| {
         let entries = [
             component_entry("매일", "MAG"),
+            component_entry("매", "NNG"),
+            component_entry("일", "VCP"),
             component_entry("걷", "VV"),
             component_entry("기", "ETN"),
             component_entry("이", "JKS"),

@@ -3,21 +3,20 @@ use std::sync::Arc;
 
 use crate::lexicons::{data_fine_pos, predicate_from_derivation};
 use crate::{
-    Analysis, AnalysisSource, AtomPlan, BranchEnvironment, BranchVerifier, CandidateProgram,
-    CompileError, CompileErrorKind, CompileOptions, ContextRequirement, CoreMapping, ExpandMode,
+    Analysis, AnalysisSource, AtomPlan, BranchEnvironment, BranchVerifier, CandidateDecision,
+    CandidateProgram, CompileError, CompileErrorKind, CompileOptions, CoreMapping, ExpandMode,
     LexiconQueryAnalyzer, Morphology, Origin, QueryAnalyzer, QueryAtom, QueryDiagnostic, QueryPlan,
     parse_query,
 };
 use kfind_data::{
     DICTIONARY_CONJUGATION_RULE_ID, DICTIONARY_RELATED_ADVERB_RULE_ID, DerivationRule,
 };
-use kfind_morph::{CoarsePos, ParticleTransition, RuleId, generate_predicate_branches};
+use kfind_morph::{
+    CoarsePos, ComponentCapability, ParticleTransition, RuleId, generate_predicate_branches,
+};
 
-mod context;
 mod normalization;
 
-use context::lexical_context_rule;
-pub use context::registered_lexical_context_prefix_len;
 use normalization::{DraftBranch, normalize_and_merge, normalize_atom};
 
 const BRANCH_OVERHEAD_BYTES: usize = 64;
@@ -284,7 +283,7 @@ fn compile_analysis(
     }
 
     if matches!(analysis.morphology, Morphology::Exact) {
-        let context_requirement = lexical_context_requirement(atom_surface, analysis);
+        let decision = exact_candidate_decision(analysis);
         if options.expand == ExpandMode::Derivation && analysis.coarse_pos == CoarsePos::Adverb {
             output.push(DraftBranch {
                 anchor: atom_surface.to_owned(),
@@ -298,15 +297,15 @@ fn compile_analysis(
                     rule_path: Vec::new(),
                 },
                 smart_left: true,
-                context_requirement,
+                decision,
             });
         } else {
-            output.push(exact_branch_with_context(
+            output.push(exact_branch_with_decision(
                 atom_surface,
                 analysis_index,
                 Vec::new(),
                 true,
-                context_requirement,
+                decision,
             ));
         }
         return Ok(());
@@ -338,7 +337,7 @@ fn compile_analysis(
                     rule_path: Vec::new(),
                 },
                 smart_left: true,
-                context_requirement: ContextRequirement::ExactComponent,
+                decision: CandidateDecision::Structural(ComponentCapability::SourceAndRuntime),
             });
             for override_form in &nominal.overrides {
                 output.push(exact_branch(
@@ -381,7 +380,7 @@ fn compile_analysis(
                             rule_path: vec![rule_id.clone()],
                         },
                         smart_left: false,
-                        context_requirement: ContextRequirement::None,
+                        decision: CandidateDecision::Boundary,
                     });
                 } else {
                     output.push(exact_branch(variant, analysis_index, Vec::new(), true));
@@ -393,13 +392,13 @@ fn compile_analysis(
     Ok(())
 }
 
-fn lexical_context_requirement(atom_surface: &str, analysis: &Analysis) -> ContextRequirement {
-    if lexical_context_rule(atom_surface, analysis.fine_pos).is_some() {
-        ContextRequirement::LexicalContext
-    } else if analysis.coarse_pos == CoarsePos::Determiner {
-        ContextRequirement::ExactComponent
-    } else {
-        ContextRequirement::None
+fn exact_candidate_decision(analysis: &Analysis) -> CandidateDecision {
+    match analysis.coarse_pos {
+        CoarsePos::Determiner => {
+            CandidateDecision::Structural(ComponentCapability::SourceAndRuntime)
+        }
+        CoarsePos::Adverb => CandidateDecision::Structural(ComponentCapability::SourceAndRuntime),
+        _ => CandidateDecision::Boundary,
     }
 }
 
@@ -463,13 +462,12 @@ fn compile_predicate(
                 rule_path,
             },
             smart_left,
-            context_requirement: if predicate.alternation == kfind_morph::LexicalAlternation::Copula
+            decision: if predicate.alternation == kfind_morph::LexicalAlternation::Copula
+                || exact_component
             {
-                ContextRequirement::PredicateLexical
-            } else if exact_component {
-                ContextRequirement::ExactComponent
+                CandidateDecision::Structural(ComponentCapability::SourceAndRuntime)
             } else {
-                ContextRequirement::None
+                CandidateDecision::Boundary
             },
         });
     }
@@ -520,7 +518,7 @@ fn compile_derivations(
                     rule_path: derivation_path,
                 },
                 smart_left: true,
-                context_requirement: ContextRequirement::ExactComponent,
+                decision: CandidateDecision::Structural(ComponentCapability::SourceAndRuntime),
             });
         } else {
             output.push(exact_branch(
@@ -583,21 +581,21 @@ fn exact_branch(
     rule_path: Vec<RuleId>,
     smart_left: bool,
 ) -> DraftBranch {
-    exact_branch_with_context(
+    exact_branch_with_decision(
         surface,
         analysis_index,
         rule_path,
         smart_left,
-        ContextRequirement::None,
+        CandidateDecision::Boundary,
     )
 }
 
-fn exact_branch_with_context(
+fn exact_branch_with_decision(
     surface: &str,
     analysis_index: u16,
     rule_path: Vec<RuleId>,
     smart_left: bool,
-    context_requirement: ContextRequirement,
+    decision: CandidateDecision,
 ) -> DraftBranch {
     DraftBranch {
         anchor: surface.to_owned(),
@@ -608,7 +606,7 @@ fn exact_branch_with_context(
             rule_path,
         },
         smart_left,
-        context_requirement,
+        decision,
     }
 }
 
