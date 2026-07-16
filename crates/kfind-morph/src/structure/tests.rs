@@ -145,6 +145,28 @@ fn competing_predicate_and_nominal_continuations_remain_available() {
     assert!(ProductPolicy::RecallFirst.accepts(&decision));
 }
 
+#[test]
+fn whole_token_predicate_program_does_not_require_a_dictionary_surface() {
+    let resolver = resolver();
+    let pattern = QueryMorphPattern::new(DataFinePos::Va, "정의롭").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("정의롭지"),
+        spans(0.."정의롭".len(), 0.."정의롭지".len()),
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
 fn resolver() -> ConstraintResolver {
     let entries = [
         atomic("매", "NNG"),
@@ -161,6 +183,8 @@ fn resolver() -> ConstraintResolver {
         atomic("들", "NNB"),
         atomic("지", "EC"),
         atomic("지", "JX"),
+        atomic("정의", "NNG"),
+        atomic("롭지", "NNG"),
     ];
     let bytes = encode_component_resource([9; 32], &entries).expect("valid resource");
     let resource =
