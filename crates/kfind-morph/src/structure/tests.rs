@@ -178,6 +178,25 @@ fn longest_nominal_particle_host_hides_an_inner_component() {
 }
 
 #[test]
+fn exact_nominal_particle_host_outranks_a_longer_runtime_decomposition() {
+    let resolver = resolver();
+    let pattern = QueryMorphPattern::new(DataFinePos::Nng, "학교").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::NominalParticles,
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("학교에서"),
+        spans(0.."학교".len(), 0.."학교에서".len()),
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
 fn competing_predicate_and_nominal_continuations_remain_available() {
     let resolver = resolver();
     let pattern = QueryMorphPattern::new(DataFinePos::Vv, "들").with_candidate_contract(
@@ -462,6 +481,10 @@ fn resolver() -> ConstraintResolver {
         atomic("매일", "MAG"),
         atomic("매일", "NNG"),
         atomic("을", "JKO"),
+        atomic("학교", "NNG"),
+        atomic("에", "NNG"),
+        atomic("에서", "JKB"),
+        atomic("서", "JKB"),
         atomic("을", "ETM"),
         atomic("보고", "VV+EC"),
         atomic("아니라", "VCN+EC"),

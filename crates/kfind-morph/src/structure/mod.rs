@@ -995,12 +995,15 @@ fn nominal_particle_host(resource: &ComponentResource, current: &str) -> Option<
         .char_indices()
         .map(|(offset, _)| offset)
         .skip(1)
-        .filter(|&split| {
-            complete_nominal_host(resource, &current[..split])
-                && complete_suffix(resource, &current[split..], |pos| pos.starts_with('J'))
+        .filter_map(|split| {
+            if !complete_suffix(resource, &current[split..], |pos| pos.starts_with('J')) {
+                return None;
+            }
+            let exact = has_exact_fine_pos(resource, &current[..split], DataFinePos::is_nominal);
+            (exact || complete_nominal_host(resource, &current[..split])).then_some((split, exact))
         })
-        .max()
-        .map(|end| 0..end)
+        .max_by_key(|(split, exact)| (*exact, *split))
+        .map(|(end, _)| 0..end)
 }
 
 fn complete_nominal_host(resource: &ComponentResource, text: &str) -> bool {
