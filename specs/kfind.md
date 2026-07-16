@@ -426,6 +426,10 @@
   같은 문자열을 다시 소유하지 않는다.
   loader는 schema, source SHA-256, section length·digest, UTF-8, group·analysis·component
   offset과 span 범위를 모두 검증한 뒤 내용을 노출한다.
+- token 선두의 ASCII 숫자 연속은 바로 뒤의 완전한 source 분석이 `NNB`, `NNBC` 또는 `NR`이고
+  나머지가 없거나 완성된 조사 연쇄일 때만 수량·단위 graph prefix로 사용한다. 이 경로는
+  정렬된 단위 span과 같은 의존명사·수사 pattern만 지원하며 일반 unknown node나 임의의 숫자+명사
+  결합을 열지 않는다. 한글 수사 연쇄는 이 규칙에 포함하지 않는다.
 - CLI의 기본 boundary는 `smart`다. resource를 필요로 선언한 program이 있으면
   compact artifact를 한 번 검증하고, 누락·손상·schema·source mismatch를 초기화
   오류로 보고한다. 기존 boundary 판정으로 fallback하지 않는다.

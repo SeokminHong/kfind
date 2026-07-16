@@ -328,6 +328,73 @@ fn one_syllable_suffix_without_a_proper_noun_frame_is_rejected() {
 }
 
 #[test]
+fn ascii_number_supports_only_an_aligned_numeric_unit() {
+    let resolver = resolver();
+    let year_start = "2014".len();
+    let year = resolver.resolve_candidate(
+        BoundedTokenContext::current("2014년"),
+        CandidateSpans {
+            core: year_start.."2014년".len(),
+            anchor: year_start.."2014년".len(),
+            consumed: year_start.."2014년".len(),
+            token: 0.."2014년".len(),
+        },
+        &[component_pattern(DataFinePos::Nnb, "년")],
+        128,
+    );
+    let thousand_start = "4".len();
+    let thousand = resolver.resolve_candidate(
+        BoundedTokenContext::current("4천"),
+        CandidateSpans {
+            core: thousand_start.."4천".len(),
+            anchor: thousand_start.."4천".len(),
+            consumed: thousand_start.."4천".len(),
+            token: 0.."4천".len(),
+        },
+        &[component_pattern(DataFinePos::Nr, "천")],
+        128,
+    );
+
+    assert_eq!(year.outcome, ConstraintOutcome::Supported);
+    assert_eq!(thousand.outcome, ConstraintOutcome::Supported);
+}
+
+#[test]
+fn ascii_numeric_unit_consumes_a_complete_particle_chain() {
+    let resolver = resolver();
+    let unit_start = "197".len();
+    let unit_end = "197명".len();
+    let pattern = QueryMorphPattern::new(DataFinePos::Nnb, "명").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::NominalParticles,
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("197명이"),
+        CandidateSpans {
+            core: unit_start..unit_end,
+            anchor: unit_start..unit_end,
+            consumed: unit_start.."197명이".len(),
+            token: 0.."197명이".len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+}
+
+#[test]
+fn numeric_unit_rule_rejects_nonnumeric_and_nonparticle_neighbors() {
+    let resolver = resolver();
+
+    assert_eq!(numeric_unit_span(resolver.resource(), "소년"), None);
+    assert_eq!(numeric_unit_span(resolver.resource(), "추천"), None);
+    assert_eq!(numeric_unit_span(resolver.resource(), "익명이"), None);
+    assert_eq!(numeric_unit_span(resolver.resource(), "197명사"), None);
+}
+
+#[test]
 fn competing_predicate_and_nominal_continuations_remain_available() {
     let resolver = resolver();
     let pattern = QueryMorphPattern::new(DataFinePos::Vv, "들").with_candidate_contract(
@@ -633,6 +700,12 @@ fn resolver() -> ConstraintResolver {
         atomic("요코", "NNP"),
         atomic("씨", "NNB"),
         atomic("요코씨", "NNP"),
+        atomic("년", "NNBC"),
+        atomic("천", "NR"),
+        atomic("명", "NNBC"),
+        atomic("사", "NNG"),
+        atomic("소", "NNG"),
+        atomic("이", "JKS"),
         atomic("날", "NNG"),
         atomic("날씨", "NNG"),
         atomic("는", "JX"),
