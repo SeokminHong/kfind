@@ -212,6 +212,51 @@ fn declarative_adnominal_uses_a_complete_source_ending_path() {
 }
 
 #[test]
+fn connective_topic_uses_an_ending_then_particle_source_path() {
+    for (query, pos, text) in [
+        (
+            "위하다",
+            CoarsePos::Verb,
+            "취업하기 위해서는 준비가 필요하다.",
+        ),
+        (
+            "대하다",
+            CoarsePos::Verb,
+            "그 문제에 대해서는 의견이 다르다.",
+        ),
+        ("없다", CoarsePos::Adjective, "문제가 없지는 않다."),
+    ] {
+        let matcher = compile_with_full_pos(
+            query,
+            CompileOptions {
+                global_pos: Some(pos),
+                ..CompileOptions::default()
+            },
+        );
+
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "connective topic source path was rejected for {query} in {text}"
+        );
+    }
+
+    for (query, pos, text) in [
+        ("위하다", CoarsePos::Verb, "문서에 위해서를 적었다."),
+        ("없다", CoarsePos::Adjective, "문서에 없지를 적었다."),
+    ] {
+        let matcher = compile_with_full_pos(
+            query,
+            CompileOptions {
+                global_pos: Some(pos),
+                ..CompileOptions::default()
+            },
+        );
+
+        assert!(matcher.find_at_with_meta(text.as_bytes(), 0).is_none());
+    }
+}
+
+#[test]
 fn smart_auxiliary_query_accepts_a_complete_attached_source_path() {
     let matcher = compile_with_full_pos(
         "지다",
@@ -903,6 +948,14 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("다는", "EF+ETM"),
             component_entry("다", "EF"),
             component_entry("는", "ETM"),
+            component_entry("는", "JX"),
+            component_expression_entry("위해", "VV+EC", "위하/VV/*+어/EC/*"),
+            component_expression_entry("대해", "VV+EC", "대하/VV/*+어/EC/*"),
+            component_entry("없", "VA"),
+            component_entry("서는", "EC+JX"),
+            component_entry("지는", "EC+JX"),
+            component_entry("서를", "EC+JKO"),
+            component_entry("지를", "EC+JKO"),
             component_entry("메꾸", "VV"),
             component_entry("졌", "VX+EP"),
             component_entry("떨", "VV"),
@@ -926,6 +979,7 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("에", "NNG"),
             component_entry("에서", "JKB"),
             component_entry("서", "JKB"),
+            component_entry("서", "EC"),
             component_entry("복합", "NNG"),
             component_entry("명사", "NNG"),
             component_entry("복합명사", "NNG"),

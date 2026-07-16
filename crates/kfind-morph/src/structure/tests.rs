@@ -785,6 +785,33 @@ fn predicate_ending_path_consumes_an_open_ended_ending_sequence() {
 }
 
 #[test]
+fn predicate_ending_particle_path_requires_endings_before_particles() {
+    let resolver = resolver();
+
+    assert!(resolver.supports_predicate_ending_particle_path(
+        "위해서는",
+        "위해".len(),
+        "위해서".len(),
+        crate::PredicatePos::Verb,
+        128,
+    ));
+    assert!(!resolver.supports_predicate_ending_particle_path(
+        "위해서",
+        "위해".len(),
+        "위해서".len(),
+        crate::PredicatePos::Verb,
+        128,
+    ));
+    assert!(!resolver.supports_predicate_ending_particle_path(
+        "위해서는더니",
+        "위해".len(),
+        "위해서".len(),
+        crate::PredicatePos::Verb,
+        128,
+    ));
+}
+
+#[test]
 fn auxiliary_sequence_requires_an_auxiliary_predicate() {
     let resolver = resolver();
 
@@ -1068,6 +1095,8 @@ fn resolver() -> ConstraintResolver {
         expression("하는", "VV+ETM", "하/VV/*+는/ETM/*"),
         atomic("걷", "VV"),
         atomic("더니", "EC"),
+        atomic("위해", "VV+EC"),
+        atomic("서", "EC"),
         atomic("사람", "NNG"),
         atomic("걸", "VV"),
         expression("걸려", "VV+EC", "걸리/VV/*+어/EC/*"),

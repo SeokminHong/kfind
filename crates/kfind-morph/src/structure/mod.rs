@@ -199,6 +199,29 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn supports_predicate_ending_particle_path(
+        &self,
+        text: &str,
+        anchor_len: usize,
+        ending_len: usize,
+        pos: PredicatePos,
+        node_limit: usize,
+    ) -> bool {
+        if anchor_len == 0
+            || anchor_len >= ending_len
+            || ending_len >= text.len()
+            || !text.is_char_boundary(anchor_len)
+            || !text.is_char_boundary(ending_len)
+        {
+            return false;
+        }
+        self.supports_predicate_ending_path(&text[..ending_len], anchor_len, pos, node_limit)
+            && complete_suffix(&self.resource, &text[ending_len..], |position| {
+                position.starts_with('J')
+            })
+    }
+
+    #[must_use]
     pub fn supports_ending_suffix_path(&self, text: &str, start: usize, node_limit: usize) -> bool {
         if start >= text.len() || !text.is_char_boundary(start) {
             return false;
