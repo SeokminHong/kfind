@@ -215,6 +215,26 @@ fn exact_nominal_particle_host_outranks_a_longer_runtime_decomposition() {
 }
 
 #[test]
+fn multisyllable_nominal_prefix_survives_a_graph_built_particle_host() {
+    let resolver = resolver();
+    let core = 0.."둥그스름".len();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("둥그스름하게"),
+        CandidateSpans {
+            core: core.clone(),
+            anchor: core.clone(),
+            consumed: core,
+            token: 0.."둥그스름하게".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "둥그스름")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
 fn competing_predicate_and_nominal_continuations_remain_available() {
     let resolver = resolver();
     let pattern = QueryMorphPattern::new(DataFinePos::Vv, "들").with_candidate_contract(
@@ -506,6 +526,9 @@ fn resolver() -> ConstraintResolver {
         atomic("에", "NNG"),
         atomic("에서", "JKB"),
         atomic("서", "JKB"),
+        atomic("둥그스름", "NNG"),
+        atomic("하", "NNG"),
+        atomic("게", "JKB"),
         atomic("을", "ETM"),
         atomic("보고", "VV+EC"),
         atomic("아니라", "VCN+EC"),

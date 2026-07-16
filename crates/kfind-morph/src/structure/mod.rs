@@ -897,6 +897,9 @@ fn runtime_nominal_component_is_supported(
     {
         return true;
     }
+    if spans.core.start == host.start && pattern.lexical_form.chars().count() > 1 {
+        return true;
+    }
     pattern.lexical_form.chars().count() > 1
         && nominal_component_is_on_preferred_path(&spans.core, host, evidence)
 }
