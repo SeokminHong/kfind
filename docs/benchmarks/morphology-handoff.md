@@ -257,7 +257,7 @@ schema 4 graph, 완전한 `QueryMorphPattern`, query-directed `ConstraintResolve
 
 이 작업은 장기 실험 stack으로 유지하며 각 후속 단계도 별도 stacked draft로 만든다. source lexical identity와 complete-path alignment는 고정 test `possible-analysis`의 FN을 39건에서 20건으로 줄였고 계층적 context fact는 witness path materialization 없이 성능 gate를 닫았다. 다음 최고 영향 작업은 query compiler의 선언형 anchor IR을 독립 enumerator가 실행하도록 해 development 97.8%와 고정 test 98.8%의 candidate coverage를 100%로 맞추는 것이다. 이후 제품 TP 466 / FP 0과 development TP 475 / FP 2를 보존하도록 `SupportedAnalysisSet`을 소비하는 별도 `AmbiguityResolver`를 구현한다.
 
-현재 구조 실험 stack은 #136, #137, #139, #141 순서이며 #141 은 #139 위에 쌓인 draft다. source identity와 계층적 context fact는 #141 위의 별도 draft로 게시하며 자동 머지는 설정하지 않는다.
+현재 구조 실험 stack은 #136, #137, #139, #141, #142 순서이며 #142 는 #141 위에 쌓인 draft다. 모든 PR은 장기 실험 draft로 유지하며 자동 머지는 설정하지 않는다.
 
 계측·report·runner만 바꾼 상태는 작업 완료로 보지 않는다. 규칙 조건은 development case만으로 만들지 않고 독립된 사전·문법 근거로 정의한다. development는 후보 선택에 사용하고, 고정 test와 무품사 결과는 규칙을 고정한 뒤 회귀 판정에만 사용한다.
 
