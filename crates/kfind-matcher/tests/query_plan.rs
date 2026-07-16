@@ -141,7 +141,11 @@ fn generated_predicate_branch_consumes_a_complete_source_ending_path() {
         },
     );
 
-    for text in ["눈이 왔으니까.", "오래전부터 왔었다."] {
+    for text in [
+        "눈이 왔으니까.",
+        "오래전부터 왔었다.",
+        "그가 왔다는 말이다.",
+    ] {
         assert!(
             matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
             "complete source ending path was rejected for {text}"
@@ -183,6 +187,28 @@ fn generated_predicate_branch_consumes_a_complete_source_ending_path() {
             .find_at_with_meta("겨울이 없을 거라고 한다.".as_bytes(), 0)
             .is_none()
     );
+}
+
+#[test]
+fn declarative_adnominal_uses_a_complete_source_ending_path() {
+    for (query, text) in [
+        ("오다", "그가 왔다는 말이다."),
+        ("있다", "문제가 있다는 뜻이다."),
+        ("않다", "쉽지 않다는 결론이다."),
+    ] {
+        let matcher = compile_with_full_pos(
+            query,
+            CompileOptions {
+                global_pos: Some(CoarsePos::Verb),
+                ..CompileOptions::default()
+            },
+        );
+
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "declarative adnominal source path was rejected for {query} in {text}"
+        );
+    }
 }
 
 #[test]
@@ -870,6 +896,8 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("어", "EC"),
             component_expression_entry("걸었어", "VV+EP+EF", "걸/VV/*+었/EP/*+어/EF/*"),
             component_expression_entry("왔", "VV+EP", "오/VV/*+았/EP/*"),
+            component_entry("있", "VV"),
+            component_entry("않", "VV"),
             component_entry("으니까", "EC"),
             component_entry("었다", "EP+EF"),
             component_entry("다는", "EF+ETM"),

@@ -408,6 +408,11 @@
   분석이 없으며 generator continuation state가 terminal이 아닐 때만 사용한다. 남은 suffix가
   조사 allomorph로도 시작하거나 조사·체언이 남는 path는 predicate ending path로 확장하지
   않는다.
+- declarative candidate가 `다`까지 소비한 뒤 정확히 `는`만 남기고, 같은 품사의 source
+  graph가 query core부터 token 끝까지 완성된 어미 path를 증명하면 구조 검증 범위를 `-다는`
+  전체로 확장한다.
+  따라서 `왔다는`, `있다는`, `않다는`을 회수하지만, source 어미 근거가 없거나 `왔다를`처럼
+  다른 조사 모양 suffix가 남는 후보는 열지 않는다.
   그 밖의 runtime compound와 해결되지 않은 complete path 경쟁은 순위를 매기지 않는다.
 - 구조적 경쟁이 여전히 모호하면 `ProductPolicy`는 recall을 우선해 지원 가능한
   query 후보를 유지한다. `Ambiguous`와 경쟁 proof 전체는 진단 evaluator에서만 물질화한다.
