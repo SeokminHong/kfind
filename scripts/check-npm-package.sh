@@ -23,7 +23,7 @@ npm pack --dry-run --json "$package_dir" | node -e '
   const report = JSON.parse(fs.readFileSync(0, "utf8"))[0];
   const files = new Map(report.files.map((file) => [file.path, file.size]));
   const asset = "assets/morphology-component-compact.kfc";
-  if (files.get(asset) !== 47859711) {
+  if (files.get(asset) !== 37103781) {
     throw new Error("missing or invalid " + asset);
   }
   const enriched = "assets/predicates.enriched.tsv";
