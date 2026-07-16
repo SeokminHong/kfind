@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="780" viewBox="0 0 1280 780" role="img" aria-labelledby="title desc">
+<title id="title">kfind performance by lexicon profile and boundary</title>
+<desc id="desc">Four horizontal bar panels compare throughput, initialization time, p95 latency, and peak RSS across six kfind configurations.</desc>
+
+<style>
+  .background { fill: #ffffff; }
+  text { fill: #111827; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .muted { fill: #4b5563; }
+  .grid { stroke: #d1d5db; stroke-width: 1; }
+  .axis { stroke: #6b7280; stroke-width: 1; }
+  @media (prefers-color-scheme: dark) {
+    .background { fill: #0d1117; }
+    text { fill: #f3f4f6; }
+    .muted { fill: #9ca3af; }
+    .grid { stroke: #374151; }
+    .axis { stroke: #9ca3af; }
+  }
+</style>
+
+<rect class="background" width="1280" height="780"/>
+<text x="52.0" y="38.0" text-anchor="start">kfind performance by lexicon profile and boundary</text>
+<text x="52.0" y="62.0" text-anchor="start" class="muted">Fresh process · 1,000 cases · lower is better except throughput</text>
+<text x="52.0" y="96.0" text-anchor="start">Throughput</text>
+<text x="600.0" y="96.0" text-anchor="end" class="muted">higher is better</text>
+<text x="52.0" y="146.0" text-anchor="start">embedded · smart</text>
+<rect x="220.0" y="130.0" width="176.2" height="24.0" rx="3" fill="#2563eb"/>
+<text x="478.0" y="148.0" text-anchor="start">21204.9 cases/s</text>
+<text x="52.0" y="190.0" text-anchor="start">embedded · token</text>
+<rect x="220.0" y="174.0" width="222.1" height="24.0" rx="3" fill="#d97706"/>
+<text x="478.0" y="192.0" text-anchor="start">26729.9 cases/s</text>
+<text x="52.0" y="234.0" text-anchor="start">embedded · any</text>
+<rect x="220.0" y="218.0" width="223.2" height="24.0" rx="3" fill="#4d7c0f"/>
+<text x="478.0" y="236.0" text-anchor="start">26868.0 cases/s</text>
+<text x="52.0" y="278.0" text-anchor="start">full-pos · smart</text>
+<rect x="220.0" y="262.0" width="139.0" height="24.0" rx="3" fill="#60a5fa"/>
+<text x="478.0" y="280.0" text-anchor="start">16731.3 cases/s</text>
+<text x="52.0" y="322.0" text-anchor="start">full-pos · token</text>
+<rect x="220.0" y="306.0" width="207.9" height="24.0" rx="3" fill="#fbbf24"/>
+<text x="478.0" y="324.0" text-anchor="start">25027.6 cases/s</text>
+<text x="52.0" y="366.0" text-anchor="start">full-pos · any</text>
+<rect x="220.0" y="350.0" width="195.0" height="24.0" rx="3" fill="#a3e635"/>
+<text x="478.0" y="368.0" text-anchor="start">23473.9 cases/s</text>
+<line class="axis" x1="220" y1="388" x2="470" y2="388"/>
+<text x="680.0" y="96.0" text-anchor="start">Initialization</text>
+<text x="1228.0" y="96.0" text-anchor="end" class="muted">lower is better</text>
+<text x="680.0" y="146.0" text-anchor="start">embedded · smart</text>
+<rect x="848.0" y="130.0" width="141.8" height="24.0" rx="3" fill="#2563eb"/>
+<text x="1106.0" y="148.0" text-anchor="start">0.2396 s</text>
+<text x="680.0" y="190.0" text-anchor="start">embedded · token</text>
+<rect x="848.0" y="174.0" width="0.9" height="24.0" rx="3" fill="#d97706"/>
+<text x="1106.0" y="192.0" text-anchor="start">0.0014 s</text>
+<text x="680.0" y="234.0" text-anchor="start">embedded · any</text>
+<rect x="848.0" y="218.0" width="0.8" height="24.0" rx="3" fill="#4d7c0f"/>
+<text x="1106.0" y="236.0" text-anchor="start">0.0014 s</text>
+<text x="680.0" y="278.0" text-anchor="start">full-pos · smart</text>
+<rect x="848.0" y="262.0" width="223.2" height="24.0" rx="3" fill="#60a5fa"/>
+<text x="1106.0" y="280.0" text-anchor="start">0.3772 s</text>
+<text x="680.0" y="322.0" text-anchor="start">full-pos · token</text>
+<rect x="848.0" y="306.0" width="85.0" height="24.0" rx="3" fill="#fbbf24"/>
+<text x="1106.0" y="324.0" text-anchor="start">0.1436 s</text>
+<text x="680.0" y="366.0" text-anchor="start">full-pos · any</text>
+<rect x="848.0" y="350.0" width="86.3" height="24.0" rx="3" fill="#a3e635"/>
+<text x="1106.0" y="368.0" text-anchor="start">0.1459 s</text>
+<line class="axis" x1="848" y1="388" x2="1098" y2="388"/>
+<text x="52.0" y="430.0" text-anchor="start">p95 latency</text>
+<text x="600.0" y="430.0" text-anchor="end" class="muted">lower is better</text>
+<text x="52.0" y="480.0" text-anchor="start">embedded · smart</text>
+<rect x="220.0" y="464.0" width="138.9" height="24.0" rx="3" fill="#2563eb"/>
+<text x="478.0" y="482.0" text-anchor="start">0.0702 ms</text>
+<text x="52.0" y="524.0" text-anchor="start">embedded · token</text>
+<rect x="220.0" y="508.0" width="125.1" height="24.0" rx="3" fill="#d97706"/>
+<text x="478.0" y="526.0" text-anchor="start">0.0632 ms</text>
+<text x="52.0" y="568.0" text-anchor="start">embedded · any</text>
+<rect x="220.0" y="552.0" width="123.3" height="24.0" rx="3" fill="#4d7c0f"/>
+<text x="478.0" y="570.0" text-anchor="start">0.0623 ms</text>
+<text x="52.0" y="612.0" text-anchor="start">full-pos · smart</text>
+<rect x="220.0" y="596.0" width="223.2" height="24.0" rx="3" fill="#60a5fa"/>
+<text x="478.0" y="614.0" text-anchor="start">0.1128 ms</text>
+<text x="52.0" y="656.0" text-anchor="start">full-pos · token</text>
+<rect x="220.0" y="640.0" width="151.0" height="24.0" rx="3" fill="#fbbf24"/>
+<text x="478.0" y="658.0" text-anchor="start">0.0763 ms</text>
+<text x="52.0" y="700.0" text-anchor="start">full-pos · any</text>
+<rect x="220.0" y="684.0" width="160.1" height="24.0" rx="3" fill="#a3e635"/>
+<text x="478.0" y="702.0" text-anchor="start">0.0809 ms</text>
+<line class="axis" x1="220" y1="722" x2="470" y2="722"/>
+<text x="680.0" y="430.0" text-anchor="start">Peak RSS</text>
+<text x="1228.0" y="430.0" text-anchor="end" class="muted">lower is better</text>
+<text x="680.0" y="480.0" text-anchor="start">embedded · smart</text>
+<rect x="848.0" y="464.0" width="110.6" height="24.0" rx="3" fill="#2563eb"/>
+<text x="1106.0" y="482.0" text-anchor="start">40.6 MiB</text>
+<text x="680.0" y="524.0" text-anchor="start">embedded · token</text>
+<rect x="848.0" y="508.0" width="13.9" height="24.0" rx="3" fill="#d97706"/>
+<text x="1106.0" y="526.0" text-anchor="start">5.1 MiB</text>
+<text x="680.0" y="568.0" text-anchor="start">embedded · any</text>
+<rect x="848.0" y="552.0" width="14.2" height="24.0" rx="3" fill="#4d7c0f"/>
+<text x="1106.0" y="570.0" text-anchor="start">5.2 MiB</text>
+<text x="680.0" y="612.0" text-anchor="start">full-pos · smart</text>
+<rect x="848.0" y="596.0" width="223.2" height="24.0" rx="3" fill="#60a5fa"/>
+<text x="1106.0" y="614.0" text-anchor="start">82.0 MiB</text>
+<text x="680.0" y="656.0" text-anchor="start">full-pos · token</text>
+<rect x="848.0" y="640.0" width="126.6" height="24.0" rx="3" fill="#fbbf24"/>
+<text x="1106.0" y="658.0" text-anchor="start">46.5 MiB</text>
+<text x="680.0" y="700.0" text-anchor="start">full-pos · any</text>
+<rect x="848.0" y="684.0" width="126.6" height="24.0" rx="3" fill="#a3e635"/>
+<text x="1106.0" y="702.0" text-anchor="start">46.5 MiB</text>
+<line class="axis" x1="848" y1="722" x2="1098" y2="722"/>
+</svg>
