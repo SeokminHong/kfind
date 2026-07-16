@@ -715,9 +715,13 @@ impl StructureSelection {
                                     unit.span == (spans.core.end..selected.end)
                                         && unit.pos.is_particle()
                                 }))
-                            || ((*allow_components
-                                || support.evidence == StructuralEvidence::SourceComponent)
-                                && spans.core.start >= selected.start
+                            || ((nominal_component_is_supported(
+                                *allow_components,
+                                support.evidence,
+                                selected,
+                                evidence,
+                                &pattern.lexical_form,
+                            )) && spans.core.start >= selected.start
                                 && spans.core.end <= selected.end
                                 && spans.core != *selected)))
                     || (predicate_nominalization(pattern, spans)
@@ -768,6 +772,25 @@ impl StructureSelection {
             },
         }
     }
+}
+
+fn nominal_component_is_supported(
+    allow_components: bool,
+    support: StructuralEvidence,
+    selected: &Range<usize>,
+    evidence: &TokenEvidence,
+    lexical_form: &str,
+) -> bool {
+    if allow_components || support == StructuralEvidence::SourceComponent {
+        return true;
+    }
+    support == StructuralEvidence::RuntimeComponent
+        && lexical_form.chars().count() > 1
+        && !evidence.units.iter().any(|unit| {
+            unit.evidence == StructuralEvidence::SourceComponent
+                && unit.span.start >= selected.start
+                && unit.span.end <= selected.end
+        })
 }
 
 fn runtime_position_is_supported(

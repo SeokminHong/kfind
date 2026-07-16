@@ -158,6 +158,23 @@ fn adjacent_nominal_layout_selects_pos_without_semantic_disambiguation() {
 }
 
 #[test]
+fn runtime_nominal_component_remains_available_without_a_source_decomposition() {
+    let matcher = compile_with_full_pos(
+        "명사",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+    );
+
+    assert!(
+        matcher
+            .find_at_with_meta("복합명사를".as_bytes(), 0)
+            .is_some()
+    );
+}
+
+#[test]
 fn compiled_predicate_plan_applies_ending_pos_requirements() {
     let verb = compile("가다", CompileOptions::default());
     let adjective = compile("예쁘다", CompileOptions::default());
@@ -708,6 +725,10 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("에", "NNG"),
             component_entry("에서", "JKB"),
             component_entry("서", "JKB"),
+            component_entry("복합", "NNG"),
+            component_entry("명사", "NNG"),
+            component_entry("복합명사", "NNG"),
+            component_entry("를", "JKO"),
             component_entry("주", "VV"),
             component_entry("지", "EC"),
             component_entry("주지", "NNG"),
