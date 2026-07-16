@@ -1,8 +1,9 @@
 use std::sync::{Arc, OnceLock};
 
 use kfind_data::{
-    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, MecabSourceMorphologyEntry,
-    decode_component_resource, encode_component_resource,
+    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataFinePos, LexiconData,
+    MecabSourceMorphologyEntry, NominalRecord, collect_pos_entries, decode_component_resource,
+    encode_component_resource, encode_pos_lexicon,
 };
 use kfind_matcher::MorphMatcher;
 use kfind_morph::CoarsePos;
@@ -71,6 +72,26 @@ fn compiled_predicate_plan_matches_irregular_and_homonymous_surfaces() {
         assert!(
             matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
             "compiled 걷다 plan rejected {text}"
+        );
+    }
+}
+
+#[test]
+fn full_pos_smart_predicate_plan_preserves_a_same_pos_homograph_union() {
+    for query in ["걷다", "걸다"] {
+        let matcher = compile_with_full_pos(
+            query,
+            CompileOptions {
+                global_pos: Some(CoarsePos::Verb),
+                ..CompileOptions::default()
+            },
+        );
+
+        assert!(
+            matcher
+                .find_at_with_meta("전화를 걸었어.".as_bytes(), 0)
+                .is_some(),
+            "compiled {query} plan rejected the shared homographic form"
         );
     }
 }
@@ -570,6 +591,31 @@ fn direct_particle_plans_preserve_token_and_any_boundary_modes() {
 
 fn compile(query: &str, options: CompileOptions) -> MorphMatcher {
     let lexicons = Arc::new(Lexicons::embedded().expect("embedded lexicons must be valid"));
+    compile_with_lexicons(query, options, lexicons)
+}
+
+fn compile_with_full_pos(query: &str, options: CompileOptions) -> MorphMatcher {
+    let mut lexicons = Lexicons::embedded().expect("embedded lexicons must be valid");
+    let full_data = LexiconData {
+        nominals: vec![NominalRecord {
+            lemma: "전체사전표식".to_owned(),
+            pos: DataFinePos::Nng,
+            flags: Default::default(),
+            overrides: Vec::new(),
+        }],
+        ..LexiconData::default()
+    };
+    lexicons
+        .load_full_pos(&encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap())
+        .expect("test full-POS lexicon must load");
+    compile_with_lexicons(query, options, Arc::new(lexicons))
+}
+
+fn compile_with_lexicons(
+    query: &str,
+    options: CompileOptions,
+    lexicons: Arc<Lexicons>,
+) -> MorphMatcher {
     let analyzer = LexiconQueryAnalyzer::new(lexicons);
     let plan = Arc::new(compile_query(query, &options, &analyzer).expect("query must compile"));
     if plan.requires_component_resource() {
@@ -588,6 +634,10 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("매", "NNG"),
             component_entry("일", "VCP"),
             component_entry("걷", "VV"),
+            component_entry("걸", "VV"),
+            component_entry("었", "EP"),
+            component_entry("어", "EF"),
+            component_expression_entry("걸었어", "VV+EP+EF", "걸/VV/*+었/EP/*+어/EF/*"),
             component_entry("기", "ETN"),
             component_entry("이", "JKS"),
             component_entry("을", "JKO"),
@@ -604,6 +654,14 @@ fn component_resource() -> Arc<ComponentResource> {
 }
 
 fn component_entry(surface: &str, pos: &str) -> MecabSourceMorphologyEntry {
+    component_expression_entry(surface, pos, "*")
+}
+
+fn component_expression_entry(
+    surface: &str,
+    pos: &str,
+    expression: &str,
+) -> MecabSourceMorphologyEntry {
     MecabSourceMorphologyEntry {
         surface: surface.to_owned(),
         pos: pos.to_owned(),
@@ -613,6 +671,6 @@ fn component_entry(surface: &str, pos: &str) -> MecabSourceMorphologyEntry {
         analysis_type: "*".to_owned(),
         start_pos: "*".to_owned(),
         end_pos: "*".to_owned(),
-        expression: "*".to_owned(),
+        expression: expression.to_owned(),
     }
 }

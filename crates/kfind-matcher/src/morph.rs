@@ -420,6 +420,11 @@ impl MorphMatcher {
                 let token = std::str::from_utf8(haystack.get(whole.clone())?).ok()?;
                 let normalized_token = token.nfc().collect::<String>();
                 let normalized_anchor = anchor.nfc().collect::<String>();
+                let normalized_core_len = std::str::from_utf8(haystack.get(core.clone())?)
+                    .ok()?
+                    .nfc()
+                    .collect::<String>()
+                    .len();
                 let suffix = normalized_token.get(normalized_anchor.len()..)?;
                 let ending_path = branch.consumption.allows_structural_suffix(suffix)
                     && stem_accepts_ending(
@@ -455,7 +460,7 @@ impl MorphMatcher {
                     || (!auxiliary_path
                         && resolver.whole_predicate_conflicts(
                             &normalized_token,
-                            normalized_anchor.len(),
+                            normalized_core_len,
                             *pos,
                         ))
                 {
