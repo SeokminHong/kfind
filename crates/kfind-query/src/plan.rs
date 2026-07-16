@@ -3,7 +3,8 @@ use std::sync::Arc;
 
 use kfind_morph::{
     CandidateTokenRelation, ComponentCapability, ContinuationState, MorphContinuation,
-    ParticleTransition, PredicatePos, QueryMorphPattern, RuleId,
+    ParticleTransition, PredicateFlags, PredicatePos, PredicateStemClass, QueryMorphPattern,
+    RuleId,
 };
 
 use crate::{Analysis, BoundaryPolicy, Morphology, NormalizationMode, PhrasePolicy, PlanLimits};
@@ -48,6 +49,14 @@ pub enum CandidateConsumption {
         nominal_particle_transition: bool,
         left_context: CandidateLeftContext,
     },
+    StructuralPredicateEnding {
+        pos: PredicatePos,
+        flags: PredicateFlags,
+        base_state: ContinuationState,
+        validate_anchor: bool,
+        stem_class: PredicateStemClass,
+        allowed_suffixes: Arc<[Box<str>]>,
+    },
     NominalParticleChain {
         allowed_rule_ids: Arc<[RuleId]>,
         blocked_rule_ids: Arc<[RuleId]>,
@@ -75,6 +84,9 @@ impl CandidateConsumption {
                     .binary_search_by_key(&rule.as_str(), |known| known.as_str())
                     .is_ok()
             }),
+            Self::StructuralPredicateEnding { .. } => rules
+                .iter()
+                .all(|rule| rule.as_str() == "structural.ending-path"),
             Self::NominalParticleChain {
                 allowed_rule_ids,
                 blocked_rule_ids,
@@ -87,6 +99,19 @@ impl CandidateConsumption {
                         .is_err()
             }),
         }
+    }
+
+    #[must_use]
+    pub fn allows_structural_suffix(&self, suffix: &str) -> bool {
+        let Self::StructuralPredicateEnding {
+            allowed_suffixes, ..
+        } = self
+        else {
+            return false;
+        };
+        allowed_suffixes
+            .binary_search_by_key(&suffix, |known| known.as_ref())
+            .is_ok()
     }
 }
 
@@ -187,6 +212,13 @@ impl CandidateProgram {
                 MorphContinuation::Predicate {
                     state: *continuation,
                     nominal_particles: *nominal_particle_transition,
+                },
+            ),
+            CandidateConsumption::StructuralPredicateEnding { .. } => (
+                CandidateTokenRelation::PrefixWithContinuation,
+                MorphContinuation::Predicate {
+                    state: ContinuationState::Terminal,
+                    nominal_particles: false,
                 },
             ),
             CandidateConsumption::NominalParticleChain { .. } => (

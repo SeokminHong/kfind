@@ -359,6 +359,33 @@ fn d_irregular_is_computed_from_each_input_stem() {
 }
 
 #[test]
+fn productive_endings_cover_retrospective_intentive_and_propositive_forms() {
+    let walk = surfaces(&entry("걷다", PredicatePos::Verb, LexicalAlternation::DToL));
+    assert_has_all(
+        &walk,
+        &[
+            "걷던",
+            "걷더니",
+            "걷자",
+            "걷자고",
+            "걷곤",
+            "걷느냐",
+            "걷도록",
+            "걸으려는",
+            "걸읍시다",
+        ],
+    );
+
+    for (lemma, alternation, expected) in [
+        ("가다", LexicalAlternation::Regular, "갑시다"),
+        ("먹다", LexicalAlternation::Regular, "먹읍시다"),
+        ("살다", LexicalAlternation::Regular, "삽시다"),
+    ] {
+        assert!(surfaces(&entry(lemma, PredicatePos::Verb, alternation)).contains(expected));
+    }
+}
+
+#[test]
 fn multiple_lexicon_analyses_form_a_union() {
     let mut ask = surfaces(&entry("묻다", PredicatePos::Verb, LexicalAlternation::DToL));
     ask.extend(surfaces(&entry(

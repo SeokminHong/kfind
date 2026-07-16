@@ -62,6 +62,37 @@ fn predicate_continuation_honors_allowed_rule_vocabulary() {
 }
 
 #[test]
+fn auxiliary_component_after_an_aoeo_prefix_is_not_a_whole_predicate_conflict() {
+    let text = "보여준다";
+    let core = "보여".len().."보여준".len();
+    let candidate = ExecutedCandidate {
+        anchor: core.clone(),
+        consumed: core.clone(),
+        suffix_rules: Vec::new(),
+        verified: VerifiedSpan {
+            core: core.clone(),
+            token: core.clone(),
+            origins: Vec::new(),
+        },
+    };
+    let branch = predicate_branch(
+        "준",
+        "준".len(),
+        ContinuationState::Terminal,
+        rules(&[]),
+        vec![origin(0, &[])],
+    );
+    let resolver = kfind_morph::ConstraintResolver::new(Arc::new(component_resource()));
+
+    assert!(!has_conflicting_whole_predicate(
+        text.as_bytes(),
+        &candidate,
+        &branch,
+        &resolver,
+    ));
+}
+
+#[test]
 fn nominal_particle_verifier_consumes_chain_and_checks_allomorphs() {
     let allowed = rules(&["particle.dative", "particle.direction", "particle.plural"]);
     let user_matcher = matcher(
@@ -216,12 +247,12 @@ fn component_context_without_a_resource_is_a_build_error() {
 }
 
 #[test]
-fn predicate_lexical_rejects_only_non_predicate_strict_subspans() {
+fn unresolved_homograph_without_sentence_context_remains_recall_first() {
     let mut branch = exact_branch("일", false);
     mark_structural(&mut branch);
     let matcher = contextual_matcher(vec![branch], Arc::new(component_resource()));
 
-    assert!(matcher.find_at_with_meta("매일".as_bytes(), 0).is_none());
+    assert!(matcher.find_at_with_meta("매일".as_bytes(), 0).is_some());
     assert!(matcher.find_at_with_meta("일".as_bytes(), 0).is_some());
     assert!(matcher.find_at_with_meta("교사일".as_bytes(), 0).is_some());
     assert!(matcher.find_at_with_meta("학생일".as_bytes(), 0).is_some());
@@ -229,7 +260,7 @@ fn predicate_lexical_rejects_only_non_predicate_strict_subspans() {
 }
 
 #[test]
-fn predicate_lexical_rejection_preserves_another_query_branch() {
+fn unresolved_homograph_preserves_all_query_branches() {
     let mut predicate = exact_branch("일", false);
     mark_structural(&mut predicate);
     let mut exact = exact_branch("일", false);
@@ -239,7 +270,10 @@ fn predicate_lexical_rejection_preserves_another_query_branch() {
     let matched = matcher
         .find_at_with_meta("매일".as_bytes(), 0)
         .expect("the non-predicate query branch should remain");
-    assert_eq!(matched.atoms[0].origins, vec![origin(1, &[])]);
+    assert_eq!(
+        matched.atoms[0].origins,
+        vec![origin(0, &[]), origin(1, &[])]
+    );
 }
 
 #[test]
@@ -263,7 +297,7 @@ fn nominal_component_does_not_bypass_a_rejected_particle_allomorph() {
     assert!(
         matcher
             .find_at_with_meta("사용자권한는관리".as_bytes(), 0)
-            .is_some()
+            .is_none()
     );
 }
 
@@ -303,7 +337,7 @@ fn repeated_single_atom_matches_advance_without_changing_leftmost_longest() {
 }
 
 #[test]
-fn verification_counters_include_structurally_supported_components() {
+fn verification_counters_treat_accepted_components_as_verified_programs() {
     let mut contextual = nominal_branch("학교", rules(&["particle.topic"]));
     mark_structural(&mut contextual);
     let mut atom = atom(BoundaryPolicy::Smart, vec![contextual]);

@@ -100,6 +100,19 @@ const EU_SUFFIXES: &[Suffix] = &[
         "셨다",
         &["ending.honorific", "ending.past", "ending.final-da"],
     ),
+    suffix(
+        "셨던",
+        &[
+            "ending.honorific",
+            "ending.past",
+            "ending.retrospective-adnominal",
+        ],
+    ),
+    suffix(
+        "셨고",
+        &["ending.honorific", "ending.past", "ending.connective-go"],
+    ),
+    suffix("세요", &["ending.honorific", "ending.polite-imperative"]),
     suffix("십니다", &["ending.honorific", "ending.polite-declarative"]),
     suffix("시다", &["ending.honorific", "ending.final-da"]),
     suffix("시면", &["ending.honorific", "ending.conditional"]),
@@ -309,6 +322,44 @@ mod tests {
         )
         .expect("prospective quotative");
         assert_eq!(prospective.token_end, "얻으리라고".len());
+    }
+
+    #[test]
+    fn eu_state_consumes_honorific_imperative_and_past_continuations() {
+        for (following, expected, rules) in [
+            (
+                "세요",
+                "걸으세요",
+                vec!["ending.honorific", "ending.polite-imperative"],
+            ),
+            (
+                "셨고",
+                "걸으셨고",
+                vec!["ending.honorific", "ending.past", "ending.connective-go"],
+            ),
+            (
+                "셨던",
+                "걸으셨던",
+                vec![
+                    "ending.honorific",
+                    "ending.past",
+                    "ending.retrospective-adnominal",
+                ],
+            ),
+        ] {
+            let matched = verify_predicate_continuation(
+                ContinuationState::Eu,
+                PredicatePos::Verb,
+                "걸으",
+                following,
+            )
+            .expect("licensed honorific continuation");
+            assert_eq!(matched.token_end, expected.len());
+            assert_eq!(
+                matched.rule_path,
+                rules.into_iter().map(RuleId::from).collect::<Vec<_>>()
+            );
+        }
     }
 
     #[test]

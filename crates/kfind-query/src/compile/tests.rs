@@ -33,6 +33,30 @@ fn full_pos_analyzer() -> LexiconQueryAnalyzer {
 }
 
 #[test]
+fn nikl_ending_catalog_is_sorted_unique_and_pinned() {
+    let surfaces = modern_ending_surfaces();
+
+    assert_eq!(surfaces.len(), 764);
+    assert!(surfaces.windows(2).all(|pair| pair[0] < pair[1]));
+    for required in ["더니", "도록", "려고", "으세요", "읍시다", "자고"] {
+        assert!(
+            surfaces
+                .binary_search_by_key(&required, |surface| surface.as_ref())
+                .is_ok(),
+            "missing NIKL ending {required:?}"
+        );
+    }
+    for derived_lemma_tail in ["잡을", "머지고", "신들린"] {
+        assert!(
+            surfaces
+                .binary_search_by_key(&derived_lemma_tail, |surface| surface.as_ref())
+                .is_err(),
+            "derived lemma tail leaked into the ending catalog: {derived_lemma_tail:?}"
+        );
+    }
+}
+
+#[test]
 fn merges_origins_for_identical_branches() {
     let plan = compile_query("걷다", &CompileOptions::default(), &analyzer()).unwrap();
     let branch = plan.atoms[0]

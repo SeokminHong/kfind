@@ -17,7 +17,7 @@ pub use constraint::{
 pub use domain::{
     CoarsePos, ContinuationState, EndingCategory, EndingInitial, EndingSpec, FinePos,
     LexicalAlternation, MorphFeatureMask, Origin, PredicateEntry, PredicateFlags, PredicatePos,
-    RuleId, SurfaceBranchSpec, SurfaceOverride,
+    PredicateStemClass, RuleId, SurfaceBranchSpec, SurfaceOverride,
 };
 pub use hangul::{
     Syllable, add_final, compose_syllable, decompose_syllable, drop_final, drop_last_final,
@@ -34,9 +34,9 @@ pub use particle::{
 };
 pub use predicate::{
     GenerateError, PredicateContinuationMatch, generate_predicate_branches,
-    verify_predicate_continuation,
+    generate_predicate_fallback_stems, verify_predicate_continuation,
 };
 pub use structure::{
     BoundedTokenContext, ConstraintDecision, ConstraintOutcome, ConstraintResolver,
-    ConstraintUnavailable, ProductPolicy, StructuralEvidence,
+    ConstraintUnavailable, PreparedStructuralContext, ProductPolicy, StructuralEvidence,
 };

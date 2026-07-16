@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use kfind_data::{ComponentResource, DataFinePos};
 
+use crate::PredicatePos;
 use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern, StructuralSignature};
 
 #[derive(Clone, Copy, Debug)]
@@ -102,6 +103,223 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn supports_predicate_ending_path(
+        &self,
+        text: &str,
+        anchor_len: usize,
+        pos: PredicatePos,
+        node_limit: usize,
+    ) -> bool {
+        if anchor_len == 0 || anchor_len >= text.len() || !text.is_char_boundary(anchor_len) {
+            return false;
+        }
+        let mut visited = vec![[false; 2]; text.len() + 1];
+        let mut pending = Vec::new();
+        let mut nodes = 0;
+        self.resource
+            .common_prefixes(text.as_bytes(), |length, analyses| {
+                if length != anchor_len {
+                    return;
+                }
+                for analysis in analyses {
+                    nodes += 1;
+                    let mut positions = analysis.pos.split('+');
+                    let Some(first) = positions.next() else {
+                        continue;
+                    };
+                    let endings = positions.collect::<Vec<_>>();
+                    if predicate_pos_matches(first, pos)
+                        && endings.iter().all(|ending| ending.starts_with('E'))
+                    {
+                        let has_ending = !endings.is_empty();
+                        if !visited[length][usize::from(has_ending)] {
+                            visited[length][usize::from(has_ending)] = true;
+                            pending.push((length, has_ending));
+                        }
+                    }
+                }
+            });
+        while let Some((start, has_ending)) = pending.pop() {
+            if nodes > node_limit {
+                return false;
+            }
+            if start == text.len() && has_ending {
+                return true;
+            }
+            self.resource
+                .common_prefixes(&text.as_bytes()[start..], |length, analyses| {
+                    if length == 0 || start + length > text.len() {
+                        return;
+                    }
+                    for analysis in analyses {
+                        nodes += 1;
+                        if analysis
+                            .pos
+                            .split('+')
+                            .all(|ending| ending.starts_with('E'))
+                        {
+                            let end = start + length;
+                            if !visited[end][1] {
+                                visited[end][1] = true;
+                                pending.push((end, true));
+                            }
+                        }
+                    }
+                });
+        }
+        false
+    }
+
+    #[must_use]
+    pub fn supports_ending_suffix_path(&self, text: &str, start: usize, node_limit: usize) -> bool {
+        if start >= text.len() || !text.is_char_boundary(start) {
+            return false;
+        }
+        let mut visited = vec![false; text.len() + 1];
+        let mut pending = vec![start];
+        let mut nodes = 0;
+        while let Some(position) = pending.pop() {
+            if nodes > node_limit {
+                return false;
+            }
+            if position == text.len() {
+                return true;
+            }
+            self.resource
+                .common_prefixes(&text.as_bytes()[position..], |length, analyses| {
+                    if length == 0 || position + length > text.len() {
+                        return;
+                    }
+                    for analysis in analyses {
+                        nodes += 1;
+                        if analysis.pos.split('+').all(|pos| pos.starts_with('E')) {
+                            let end = position + length;
+                            if !visited[end] {
+                                visited[end] = true;
+                                pending.push(end);
+                            }
+                        }
+                    }
+                });
+        }
+        false
+    }
+
+    #[must_use]
+    pub fn auxiliary_splits(&self, text: &str) -> Vec<usize> {
+        let mut splits = Vec::new();
+        self.resource
+            .common_prefixes(text.as_bytes(), |length, analyses| {
+                for analysis in analyses {
+                    let positions = analysis.pos.split('+').collect::<Vec<_>>();
+                    let Some(first) = positions.first() else {
+                        continue;
+                    };
+                    if !first.starts_with('V')
+                        || !positions[1..].iter().all(|pos| pos.starts_with('E'))
+                    {
+                        continue;
+                    }
+                    if length == text.len() || positions.len() == 1 {
+                        splits.push(length);
+                    }
+                }
+            });
+        splits.sort_unstable();
+        splits.dedup();
+        splits
+    }
+
+    #[must_use]
+    pub fn supports_auxiliary_sequence(&self, text: &str, node_limit: usize) -> bool {
+        if text.is_empty() {
+            return false;
+        }
+        let mut visited = vec![false; text.len() + 1];
+        let mut pending = vec![0];
+        let mut nodes = 0;
+        while let Some(start) = pending.pop() {
+            if nodes > node_limit {
+                return false;
+            }
+            if start == text.len() && start > 0 {
+                return true;
+            }
+            self.resource
+                .common_prefixes(&text.as_bytes()[start..], |length, analyses| {
+                    if length == 0 || start + length > text.len() {
+                        return;
+                    }
+                    for analysis in analyses {
+                        nodes += 1;
+                        let positions = analysis.pos.split('+').collect::<Vec<_>>();
+                        let allowed = if start == 0 {
+                            positions.first().is_some_and(|pos| pos.starts_with('V'))
+                                && positions[1..].iter().all(|pos| pos.starts_with('E'))
+                        } else {
+                            positions.iter().all(|pos| pos.starts_with('E'))
+                        };
+                        if allowed {
+                            let end = start + length;
+                            if !visited[end] {
+                                visited[end] = true;
+                                pending.push(end);
+                            }
+                        }
+                    }
+                });
+        }
+        false
+    }
+
+    #[must_use]
+    pub fn whole_predicate_conflicts(
+        &self,
+        text: &str,
+        anchor_len: usize,
+        pos: PredicatePos,
+    ) -> bool {
+        self.whole_predicate_conflicts_at(text, 0..anchor_len, pos)
+    }
+
+    #[must_use]
+    pub fn whole_predicate_conflicts_at(
+        &self,
+        text: &str,
+        anchor: Range<usize>,
+        pos: PredicatePos,
+    ) -> bool {
+        if anchor.is_empty()
+            || anchor.end > text.len()
+            || !text.is_char_boundary(anchor.start)
+            || !text.is_char_boundary(anchor.end)
+        {
+            return false;
+        }
+        let mut whole_predicate = false;
+        let mut aligned_query_stem = false;
+        self.resource
+            .common_prefixes(text.as_bytes(), |length, analyses| {
+                if length != text.len() {
+                    return;
+                }
+                for analysis in analyses {
+                    let Some(first) = analysis.pos.split('+').next() else {
+                        continue;
+                    };
+                    if !DataFinePos::parse(first).is_some_and(DataFinePos::is_predicate) {
+                        continue;
+                    }
+                    whole_predicate = true;
+                    aligned_query_stem |= analysis.components.iter().any(|component| {
+                        component.span == anchor && predicate_pos_matches(component.pos, pos)
+                    });
+                }
+            });
+        whole_predicate && !aligned_query_stem
+    }
+
+    #[must_use]
     pub fn resolve_candidate(
         &self,
         context: BoundedTokenContext<'_>,
@@ -109,28 +327,61 @@ impl ConstraintResolver {
         patterns: &[QueryMorphPattern],
         node_limit: usize,
     ) -> ConstraintDecision {
-        if !spans.is_valid_for(context.current)
-            || spans.token != (0..context.current.len())
+        let prepared = match self.prepare_context(context, node_limit) {
+            Ok(prepared) => prepared,
+            Err(reason) => return ConstraintDecision::unavailable(reason),
+        };
+        prepared.resolve_candidate(spans, patterns)
+    }
+
+    pub fn prepare_context(
+        &self,
+        context: BoundedTokenContext<'_>,
+        node_limit: usize,
+    ) -> Result<PreparedStructuralContext, ConstraintUnavailable> {
+        let evidence = TokenEvidence::collect(&self.resource, context.current, node_limit)?;
+        let selection = select_structure(&self.resource, context, &evidence);
+        Ok(PreparedStructuralContext {
+            text: context.current.into(),
+            evidence,
+            selection,
+        })
+    }
+}
+
+#[derive(Debug)]
+pub struct PreparedStructuralContext {
+    text: Box<str>,
+    evidence: TokenEvidence,
+    selection: StructureSelection,
+}
+
+impl PreparedStructuralContext {
+    #[must_use]
+    pub fn resolve_candidate(
+        &self,
+        spans: CandidateSpans,
+        patterns: &[QueryMorphPattern],
+    ) -> ConstraintDecision {
+        if !spans.is_valid_for(&self.text)
+            || spans.token != (0..self.text.len())
             || patterns.iter().any(|pattern| !pattern.is_well_formed())
         {
             return ConstraintDecision::unavailable(ConstraintUnavailable::InvalidSpans);
         }
-        let evidence = match TokenEvidence::collect(&self.resource, context.current, node_limit) {
-            Ok(evidence) => evidence,
-            Err(reason) => return ConstraintDecision::unavailable(reason),
-        };
-        let raw = collect_pattern_supports(&evidence, &spans, patterns);
+        let raw = collect_pattern_supports(&self.evidence, &spans, patterns);
         if raw.is_empty() {
             return ConstraintDecision {
                 outcome: ConstraintOutcome::Contradicted,
                 supported: Vec::new(),
             };
         }
-        let selection = select_structure(&self.resource, context, &evidence);
         let mut supported = raw
             .into_iter()
-            .filter(|support| selection.accepts(support, &spans, patterns))
-            .map(|support| support.public)
+            .filter(|support| {
+                self.selection
+                    .accepts(support, &spans, patterns, &self.evidence)
+            })
             .collect::<Vec<_>>();
         supported.sort_unstable_by_key(|support| (support.pattern_index, support.evidence as u8));
         supported.dedup();
@@ -152,20 +403,27 @@ impl ConstraintResolver {
     }
 }
 
+fn predicate_pos_matches(actual: &str, expected: PredicatePos) -> bool {
+    match expected {
+        PredicatePos::Verb => actual == "VV",
+        PredicatePos::Adjective => matches!(actual, "VA" | "VCN"),
+        PredicatePos::AuxiliaryVerb | PredicatePos::AuxiliaryAdjective => actual == "VX",
+        PredicatePos::Copula => actual == "VCP",
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct Unit {
     span: Range<usize>,
     pos: DataFinePos,
     evidence: StructuralEvidence,
-    preferred: bool,
 }
 
 #[derive(Debug, Default)]
 struct TokenEvidence {
     units: Vec<Unit>,
     runtime_spans: Vec<Range<usize>>,
-    preferred_runtime_spans: Vec<Range<usize>>,
-    preferred_compound_spans: Vec<Range<usize>>,
+    adnominal_ends: Vec<usize>,
     has_complete_path: bool,
 }
 
@@ -213,11 +471,9 @@ impl TokenEvidence {
         let forward = forward_positions(text.len(), &edges);
         let complete = complete_edges(text.len(), &edges, &forward);
         let has_complete_path = forward[text.len()];
-        let preferred = preferred_complete_edges(text.len(), &edges);
         let mut units = Vec::new();
         let mut runtime_spans = Vec::new();
-        let mut preferred_runtime_spans = Vec::new();
-        let mut preferred_compound_spans = Vec::new();
+        let mut adnominal_ends = Vec::new();
         for (index, edge) in edges.iter().enumerate() {
             let eligible = if has_complete_path {
                 complete[index]
@@ -228,17 +484,8 @@ impl TokenEvidence {
                 continue;
             }
             runtime_spans.push(edge.span.clone());
-            if preferred[index] {
-                preferred_runtime_spans.push(edge.span.clone());
-                if edge
-                    .pos
-                    .split('+')
-                    .filter_map(DataFinePos::parse)
-                    .next()
-                    .is_some_and(|pos| matches!(pos, DataFinePos::Nng | DataFinePos::Nnp))
-                {
-                    preferred_compound_spans.push(edge.span.clone());
-                }
+            if edge.pos.split('+').next_back() == Some("ETM") {
+                adnominal_ends.push(edge.span.end);
             }
             let whole_edge = edge.span == (0..text.len());
             let edge_positions = edge
@@ -255,10 +502,12 @@ impl TokenEvidence {
                     } else {
                         StructuralEvidence::RuntimeComponent
                     },
-                    preferred: preferred[index],
                 });
             }
             for component in &edge.components {
+                if component.pos == "ETM" {
+                    adnominal_ends.push(edge.span.start + component.span.end);
+                }
                 let Some(pos) = DataFinePos::parse(&component.pos) else {
                     continue;
                 };
@@ -267,7 +516,6 @@ impl TokenEvidence {
                         ..edge.span.start + component.span.end,
                     pos,
                     evidence: StructuralEvidence::SourceComponent,
-                    preferred: preferred[index],
                 });
             }
         }
@@ -277,21 +525,17 @@ impl TokenEvidence {
                 unit.span.end,
                 unit.pos,
                 unit.evidence as u8,
-                unit.preferred,
             )
         });
         units.dedup();
         runtime_spans.sort_unstable_by_key(|span| (span.start, span.end));
         runtime_spans.dedup();
-        preferred_runtime_spans.sort_unstable_by_key(|span| (span.start, span.end));
-        preferred_runtime_spans.dedup();
-        preferred_compound_spans.sort_unstable_by_key(|span| (span.start, span.end));
-        preferred_compound_spans.dedup();
+        adnominal_ends.sort_unstable();
+        adnominal_ends.dedup();
         Ok(Self {
             units,
             runtime_spans,
-            preferred_runtime_spans,
-            preferred_compound_spans,
+            adnominal_ends,
             has_complete_path,
         })
     }
@@ -300,6 +544,16 @@ impl TokenEvidence {
         self.units
             .iter()
             .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos == pos)
+    }
+
+    fn has_predicate_ending_at(&self, end: usize) -> bool {
+        self.units
+            .iter()
+            .any(|unit| unit.span.end == end && unit.pos.is_predicate())
+    }
+
+    fn has_adnominal_ending_at(&self, end: usize) -> bool {
+        self.adnominal_ends.binary_search(&end).is_ok()
     }
 }
 
@@ -345,50 +599,11 @@ fn complete_edges(text_len: usize, edges: &[Edge], forward: &[bool]) -> Vec<bool
         .collect()
 }
 
-fn preferred_complete_edges(text_len: usize, edges: &[Edge]) -> Vec<bool> {
-    const UNREACHABLE: usize = usize::MAX;
-
-    let mut prefix = vec![UNREACHABLE; text_len + 1];
-    prefix[0] = 0;
-    for start in 0..text_len {
-        let count = prefix[start];
-        if count == UNREACHABLE {
-            continue;
-        }
-        for edge in edges.iter().filter(|edge| edge.span.start == start) {
-            prefix[edge.span.end] = prefix[edge.span.end].min(count + 1);
-        }
-    }
-    if prefix[text_len] == UNREACHABLE {
-        return vec![false; edges.len()];
-    }
-
-    let mut suffix = vec![UNREACHABLE; text_len + 1];
-    suffix[text_len] = 0;
-    for start in (0..text_len).rev() {
-        for edge in edges.iter().filter(|edge| edge.span.start == start) {
-            let remaining = suffix[edge.span.end];
-            if remaining != UNREACHABLE {
-                suffix[start] = suffix[start].min(remaining + 1);
-            }
-        }
-    }
-    let minimum = prefix[text_len];
-    edges
-        .iter()
-        .map(|edge| {
-            prefix[edge.span.start] != UNREACHABLE
-                && suffix[edge.span.end] != UNREACHABLE
-                && prefix[edge.span.start] + 1 + suffix[edge.span.end] == minimum
-        })
-        .collect()
-}
-
 fn collect_pattern_supports(
     evidence: &TokenEvidence,
     spans: &CandidateSpans,
     patterns: &[QueryMorphPattern],
-) -> Vec<RawConstraintSupport> {
+) -> Vec<ConstraintSupport> {
     let mut supports = Vec::new();
     for (pattern_index, pattern) in patterns.iter().enumerate() {
         let support_start = supports.len();
@@ -404,12 +619,21 @@ fn collect_pattern_supports(
                 }
             };
             if allowed {
-                supports.push(RawConstraintSupport {
-                    public: ConstraintSupport {
-                        pattern_index,
-                        evidence: unit.evidence,
-                    },
-                    preferred: unit.preferred,
+                supports.push(ConstraintSupport {
+                    pattern_index,
+                    evidence: unit.evidence,
+                });
+            }
+        }
+        if supports.len() == support_start && predicate_nominalization(pattern, spans) {
+            for unit in evidence
+                .units
+                .iter()
+                .filter(|unit| unit.span == spans.anchor && unit.pos.is_nominal())
+            {
+                supports.push(ConstraintSupport {
+                    pattern_index,
+                    evidence: unit.evidence,
                 });
             }
         }
@@ -426,27 +650,17 @@ fn collect_pattern_supports(
                     && (spans.consumed == spans.token
                         || matches!(pattern.continuation, MorphContinuation::Predicate { .. }))))
         {
-            supports.push(RawConstraintSupport {
-                public: ConstraintSupport {
-                    pattern_index,
-                    evidence: StructuralEvidence::RuntimeComponent,
-                },
-                preferred: evidence.preferred_runtime_spans.contains(&spans.core),
+            supports.push(ConstraintSupport {
+                pattern_index,
+                evidence: StructuralEvidence::RuntimeComponent,
             });
         }
     }
     supports
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-struct RawConstraintSupport {
-    public: ConstraintSupport,
-    preferred: bool,
-}
-
 #[derive(Clone, Debug)]
 enum StructureSelection {
-    All,
     Whole,
     RepeatedAdverb,
     NominalSpan {
@@ -457,51 +671,90 @@ enum StructureSelection {
         nominal: Range<usize>,
         copula: Range<usize>,
     },
-    PreferredRuntime {
-        spans: Vec<Range<usize>>,
-        compound_spans: Vec<Range<usize>>,
-    },
+    DependentNoun,
+    RuntimeCompatible,
 }
 
 impl StructureSelection {
     fn accepts(
         &self,
-        support: &RawConstraintSupport,
+        support: &ConstraintSupport,
         spans: &CandidateSpans,
         patterns: &[QueryMorphPattern],
+        evidence: &TokenEvidence,
     ) -> bool {
-        let Some(pattern) = patterns.get(support.public.pattern_index) else {
+        let Some(pattern) = patterns.get(support.pattern_index) else {
             return false;
         };
         match self {
-            Self::All => true,
-            Self::Whole => support.public.evidence == StructuralEvidence::Whole,
+            Self::Whole => support.evidence == StructuralEvidence::Whole,
             Self::RepeatedAdverb => {
-                support.public.evidence == StructuralEvidence::Whole
+                support.evidence == StructuralEvidence::Whole
                     && pattern.fine_pos == DataFinePos::Mag
             }
             Self::NominalSpan {
                 selected,
                 allow_components,
             } => {
-                pattern.fine_pos.is_nominal()
-                    && (support.preferred && spans.core == *selected
-                        || (*allow_components
-                            && spans.core.start >= selected.start
-                            && spans.core.end <= selected.end
-                            && spans.core != *selected))
+                (support.evidence == StructuralEvidence::Whole
+                    && spans.core == spans.token
+                    && spans.consumed == spans.token)
+                    || (pattern.fine_pos.is_nominal()
+                        && (spans.core == *selected
+                            || (spans.core.start == selected.start
+                                && spans.consumed.end == selected.end
+                                && evidence.units.iter().any(|unit| {
+                                    unit.span == (spans.core.end..selected.end)
+                                        && unit.pos.is_particle()
+                                }))
+                            || ((*allow_components || pattern.lexical_form.chars().count() > 1)
+                                && spans.core.start >= selected.start
+                                && spans.core.end <= selected.end
+                                && spans.core != *selected)))
+                    || (predicate_nominalization(pattern, spans)
+                        && spans.anchor.start >= selected.start
+                        && spans.anchor.end <= selected.end
+                        && (spans.consumed.end == spans.token.end
+                            || spans.anchor.start > selected.start
+                            || spans.anchor.end < selected.end
+                            || (spans.anchor != spans.token
+                                && evidence.units.iter().any(|unit| {
+                                    unit.span == spans.token
+                                        && unit.evidence == StructuralEvidence::Whole
+                                        && unit.pos.is_nominal()
+                                }))))
+                    || (matches!(pattern.continuation, MorphContinuation::Predicate { .. })
+                        && (spans.core.start == selected.start
+                            || (pattern.fine_pos == DataFinePos::Vcp
+                                && spans.core.start == selected.end
+                                && (spans.consumed.end > spans.core.end
+                                    || matches!(
+                                        pattern.continuation,
+                                        MorphContinuation::Predicate {
+                                            state: crate::ContinuationState::Terminal,
+                                            ..
+                                        }
+                                    ))))
+                        && spans.consumed.end == spans.token.end
+                        && runtime_position_is_supported(pattern, spans, evidence))
+                    || (matches!(
+                        pattern.fine_pos,
+                        DataFinePos::Np | DataFinePos::Nr | DataFinePos::Mm
+                    ) && spans.core.start == selected.start
+                        && (spans.consumed == spans.core || spans.consumed.end == spans.token.end))
             }
             Self::CopularFrame { nominal, copula } => {
                 (spans.core == *nominal && pattern.fine_pos.is_nominal())
                     || (spans.core == *copula && pattern.fine_pos == DataFinePos::Vcp)
             }
-            Self::PreferredRuntime {
-                spans: preferred_spans,
-                compound_spans,
-            } => match support.public.evidence {
+            Self::DependentNoun => {
+                support.evidence == StructuralEvidence::Whole
+                    && pattern.fine_pos == DataFinePos::Nnb
+            }
+            Self::RuntimeCompatible => match support.evidence {
                 StructuralEvidence::Whole | StructuralEvidence::SourceComponent => true,
                 StructuralEvidence::RuntimeComponent => {
-                    runtime_position_is_supported(pattern, spans, preferred_spans, compound_spans)
+                    runtime_position_is_supported(pattern, spans, evidence)
                 }
             },
         }
@@ -511,31 +764,100 @@ impl StructureSelection {
 fn runtime_position_is_supported(
     pattern: &QueryMorphPattern,
     spans: &CandidateSpans,
-    preferred_spans: &[Range<usize>],
-    compound_spans: &[Range<usize>],
+    evidence: &TokenEvidence,
 ) -> bool {
     let starts_token = spans.core.start == spans.token.start;
     let leading_only = matches!(
         pattern.fine_pos,
         DataFinePos::Np | DataFinePos::Nr | DataFinePos::Mm | DataFinePos::Mag
     );
-    let compound_component = matches!(
+    let predicate = matches!(pattern.continuation, MorphContinuation::Predicate { .. });
+    let terminal_predicate_component = matches!(
+        pattern.continuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            ..
+        }
+    ) && (spans.anchor.end > spans.core.end
+        || spans.core.len() > pattern.lexical_form.len());
+    let whole_predicate_continuation = evidence.units.iter().any(|unit| {
+        unit.span == (spans.core.start..spans.token.end)
+            && unit.pos == pattern.fine_pos
+            && unit.pos.is_predicate()
+    });
+    let trailing_predicate_subspan = predicate
+        && spans.consumed.end != spans.token.end
+        && !terminal_predicate_component
+        && !whole_predicate_continuation;
+    let internal_runtime_predicate = predicate
+        && (pattern.fine_pos != DataFinePos::Vcp || evidence.has_whole(DataFinePos::Mag))
+        && spans.core.start != spans.token.start
+        && spans.consumed == spans.core
+        && !predicate_nominalization(pattern, spans);
+    let modifier_before_predicate = predicate
+        && spans.core.start != spans.token.start
+        && evidence.units.iter().any(|unit| {
+            unit.span.end == spans.core.start
+                && matches!(unit.pos, DataFinePos::Mag | DataFinePos::Maj)
+        });
+    let exact_component_prefix =
+        (matches!(
+            pattern.fine_pos,
+            DataFinePos::Np | DataFinePos::Nr | DataFinePos::Mm
+        ) || (matches!(pattern.fine_pos, DataFinePos::Nng | DataFinePos::Nnp)
+            && pattern.lexical_form.chars().count() > 1))
+            && starts_token
+            && !evidence
+                .units
+                .iter()
+                .any(|unit| unit.evidence == StructuralEvidence::Whole);
+    let trailing_exact_subspan = matches!(pattern.continuation, MorphContinuation::Exact)
+        && spans.consumed.end != spans.token.end
+        && !exact_component_prefix;
+    let multi_syllable_nominal_component = matches!(
         pattern.fine_pos,
         DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
-    ) && compound_spans.iter().any(|selected| {
-        selected.start == spans.token.start
-            && spans.core.start >= selected.start
-            && spans.core.end <= selected.end
-            && spans.core != *selected
-    });
-    let whole_token_predicate = starts_token
-        && spans.consumed == spans.token
-        && matches!(pattern.continuation, MorphContinuation::Predicate { .. });
+    ) && pattern.lexical_form.chars().count() > 1;
+    let trailing_nominal_chain =
+        matches!(pattern.continuation, MorphContinuation::NominalParticles)
+            && spans.consumed.end != spans.token.end
+            && !exact_component_prefix
+            && !multi_syllable_nominal_component;
+    let nominal_after_predicate = pattern.fine_pos.is_nominal()
+        && pattern.lexical_form.chars().count() == 1
+        && spans.consumed.end > spans.core.end
+        && evidence.has_predicate_ending_at(spans.core.start);
+    let glued_dependent_noun =
+        pattern.fine_pos == DataFinePos::Nnb && evidence.has_adnominal_ending_at(spans.core.start);
+    let terminal_nominal_in_predicate_frame = pattern.fine_pos.is_nominal()
+        && pattern.lexical_form.chars().count() == 1
+        && spans.core.start > spans.token.start
+        && spans.core.end == spans.token.end
+        && evidence.units.iter().any(|unit| {
+            unit.pos.is_predicate()
+                && ((unit.span.start == spans.token.start && unit.span.end <= spans.core.start)
+                    || (unit.span.start < spans.core.start && unit.span.end >= spans.core.end))
+        })
+        && !glued_dependent_noun;
 
-    (leading_only && starts_token)
-        || (!leading_only && preferred_spans.contains(&spans.core))
-        || compound_component
-        || whole_token_predicate
+    (!leading_only || starts_token)
+        && !trailing_predicate_subspan
+        && !internal_runtime_predicate
+        && !modifier_before_predicate
+        && !trailing_exact_subspan
+        && !trailing_nominal_chain
+        && !nominal_after_predicate
+        && !terminal_nominal_in_predicate_frame
+}
+
+fn predicate_nominalization(pattern: &QueryMorphPattern, spans: &CandidateSpans) -> bool {
+    matches!(
+        pattern.continuation,
+        MorphContinuation::Predicate {
+            nominal_particles: true,
+            ..
+        }
+    ) && spans.anchor != spans.core
 }
 
 fn select_structure(
@@ -551,42 +873,66 @@ fn select_structure(
     if let Some((nominal, copula)) = copular_frame(resource, context) {
         return StructureSelection::CopularFrame { nominal, copula };
     }
+    if evidence.has_whole(DataFinePos::Mag)
+        && nominal_particle_host(resource, context.current).is_none()
+        && context.next.is_some_and(|next| {
+            exact_analysis_starts_with_pos(resource, next, |pos| pos.starts_with('V'))
+        })
+        && has_copular_adnominal_split(resource, context.current)
+    {
+        return StructureSelection::Whole;
+    }
+    if context.previous.is_some_and(|previous| {
+        exact_analysis_ends_with_pos(resource, previous, |pos| pos == "ETM")
+            || adnominal_suffix_is_supported(resource, previous)
+    }) && has_exact_fine_pos(resource, context.current, |pos| pos == DataFinePos::Nnb)
+    {
+        return StructureSelection::DependentNoun;
+    }
     if let Some(host) = nominal_particle_host(resource, context.current) {
-        if predicate_ending_host(resource, context.current).as_ref() == Some(&host) {
-            return StructureSelection::All;
-        }
-        let host_text = &context.current[host.clone()];
-        let allow_components = unique_copular_split(resource, host_text).is_none()
-            && has_exact_fine_pos(resource, host_text, |pos| {
-                matches!(pos, DataFinePos::Nng | DataFinePos::Nnp)
-            });
+        let allow_components = false;
         return StructureSelection::NominalSpan {
             selected: host,
             allow_components,
         };
     }
-    let has_whole = evidence
-        .units
-        .iter()
-        .any(|unit| unit.evidence == StructuralEvidence::Whole);
-    if let Some(split) = unique_copular_split(resource, context.current) {
-        return if has_whole {
-            StructureSelection::Whole
-        } else {
-            StructureSelection::CopularFrame {
-                nominal: 0..split,
-                copula: split..context.current.len(),
-            }
-        };
-    }
-    if evidence.has_complete_path {
-        StructureSelection::PreferredRuntime {
-            spans: evidence.preferred_runtime_spans.clone(),
-            compound_spans: evidence.preferred_compound_spans.clone(),
+    StructureSelection::RuntimeCompatible
+}
+
+fn adnominal_suffix_is_supported(resource: &ComponentResource, text: &str) -> bool {
+    let surface_shape = text.ends_with("는") || text.ends_with("던");
+    surface_shape
+        && text.char_indices().map(|(offset, _)| offset).any(|start| {
+            has_exact_sequence(resource, &text[start..], &["ETM"])
+                || has_exact_sequence(resource, &text[start..], &["EP", "ETM"])
+        })
+}
+
+fn exact_analysis_starts_with_pos(
+    resource: &ComponentResource,
+    text: &str,
+    accepts: impl Fn(&str) -> bool,
+) -> bool {
+    let mut matched = false;
+    resource.common_prefixes(text.as_bytes(), |length, analyses| {
+        if length == text.len() {
+            matched |= analyses
+                .iter()
+                .any(|analysis| analysis.pos.split('+').next().is_some_and(&accepts));
         }
-    } else {
-        StructureSelection::All
-    }
+    });
+    matched
+}
+
+fn has_copular_adnominal_split(resource: &ComponentResource, current: &str) -> bool {
+    current
+        .char_indices()
+        .map(|(offset, _)| offset)
+        .skip(1)
+        .any(|split| {
+            has_exact_fine_pos(resource, &current[..split], DataFinePos::is_nominal)
+                && has_exact_sequence(resource, &current[split..], &["VCP", "ETM"])
+        })
 }
 
 fn copular_frame(
@@ -626,19 +972,6 @@ fn nominal_particle_host(resource: &ComponentResource, current: &str) -> Option<
         .filter(|&split| {
             has_exact_fine_pos(resource, &current[..split], DataFinePos::is_nominal)
                 && complete_suffix(resource, &current[split..], |pos| pos.starts_with('J'))
-        })
-        .max()
-        .map(|end| 0..end)
-}
-
-fn predicate_ending_host(resource: &ComponentResource, current: &str) -> Option<Range<usize>> {
-    current
-        .char_indices()
-        .map(|(offset, _)| offset)
-        .skip(1)
-        .filter(|&split| {
-            has_exact_fine_pos(resource, &current[..split], DataFinePos::is_predicate)
-                && complete_suffix(resource, &current[split..], |pos| pos.starts_with('E'))
         })
         .max()
         .map(|end| 0..end)
@@ -711,6 +1044,22 @@ fn complete_pos_sequence(resource: &ComponentResource, text: &str, expected: &[&
     next.into_iter().any(|(length, consumed)| {
         complete_pos_sequence(resource, &text[length..], &expected[consumed..])
     })
+}
+
+fn exact_analysis_ends_with_pos(
+    resource: &ComponentResource,
+    text: &str,
+    accepts: impl Copy + Fn(&str) -> bool,
+) -> bool {
+    let mut matched = false;
+    resource.common_prefixes(text.as_bytes(), |length, analyses| {
+        if length == text.len() {
+            matched |= analyses
+                .iter()
+                .any(|analysis| analysis.pos.split('+').next_back().is_some_and(accepts));
+        }
+    });
+    matched
 }
 
 fn starts_with_pos(

@@ -158,6 +158,7 @@ impl ReferenceMatcher {
                 }
                 (consumed, rules)
             }
+            CandidateConsumption::StructuralPredicateEnding { .. } => return None,
             CandidateConsumption::NominalParticleChain { .. } => {
                 let (consumed, rules) =
                     self.reference_particles(consumption_anchor, consumption_following);

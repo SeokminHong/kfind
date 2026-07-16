@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
+use std::ops::Range;
 use std::sync::Arc;
 
 use kfind_data::{
@@ -113,6 +114,22 @@ impl GoldHarness {
                 .any(|analysis| analysis.coarse_pos == expected))
     }
 
+    pub fn find_all(&self, query: &str, text: &str) -> Result<Vec<Range<usize>>, GoldCaseError> {
+        let plan = compile_query(query, &CompileOptions::default(), &self.analyzer)
+            .map_err(GoldCaseError::Compile)?;
+        let matcher = if let Some(resource) = &self.component_resource {
+            MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(resource))
+        } else {
+            MorphMatcher::new(Arc::new(plan))
+        }
+        .map_err(GoldCaseError::Matcher)?;
+        Ok(matcher
+            .find_all_with_meta(text.as_bytes())
+            .into_iter()
+            .map(|matched| matched.span)
+            .collect())
+    }
+
     fn evaluate_with_pos(
         &self,
         case: &MorphologyCase,
@@ -182,7 +199,7 @@ mod tests {
 
     use super::*;
 
-    const EXPECTED_CASES: usize = 572;
+    const EXPECTED_CASES: usize = 574;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {
@@ -260,9 +277,9 @@ mod tests {
         let entries = [
             entry("사용자", "NNG", -5_000),
             entry("권한", "NNG", -5_000),
-            entry("사용자권한", "NNG", 5_000),
+            expression_entry("사용자권한", "NNG+NNG", "사용자/NNG/*+권한/NNG/*", 5_000),
             entry("관리", "NNG", -5_000),
-            entry("권한관리", "NNG", 5_000),
+            expression_entry("권한관리", "NNG+NNG", "권한/NNG/*+관리/NNG/*", 5_000),
             entry("산", "NNG", -5_000),
             entry("길", "NNG", -5_000),
             entry("산길", "NNG", 5_000),
@@ -297,6 +314,15 @@ mod tests {
     }
 
     fn entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorphologyEntry {
+        expression_entry(surface, pos, "*", word_cost)
+    }
+
+    fn expression_entry(
+        surface: &str,
+        pos: &str,
+        expression: &str,
+        word_cost: i32,
+    ) -> MecabSourceMorphologyEntry {
         MecabSourceMorphologyEntry {
             surface: surface.to_owned(),
             pos: pos.to_owned(),
@@ -306,7 +332,7 @@ mod tests {
             analysis_type: "*".to_owned(),
             start_pos: "*".to_owned(),
             end_pos: "*".to_owned(),
-            expression: "*".to_owned(),
+            expression: expression.to_owned(),
         }
     }
 }

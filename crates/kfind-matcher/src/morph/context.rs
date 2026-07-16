@@ -1,7 +1,8 @@
 use std::ops::Range;
 
 use kfind_morph::{
-    BoundedTokenContext, CandidateSpans, ConstraintDecision, ConstraintResolver, QueryMorphPattern,
+    BoundedTokenContext, CandidateSpans, ConstraintDecision, ConstraintResolver,
+    PreparedStructuralContext, QueryMorphPattern,
 };
 use kfind_query::VerifiedSpan;
 use unicode_normalization::UnicodeNormalization;
@@ -13,6 +14,12 @@ pub(super) struct StructuralContextAnalysis {
     current: AnalysisWindow,
     previous: Option<String>,
     next: Option<String>,
+}
+
+#[derive(Debug)]
+pub(super) struct PreparedStructuralContextAnalysis {
+    current: AnalysisWindow,
+    prepared: PreparedStructuralContext,
 }
 
 pub(super) struct StructuralRequest<'a> {
@@ -59,25 +66,33 @@ impl StructuralContextAnalysis {
         })
     }
 
-    pub(super) fn resolve(
-        &self,
+    pub(super) fn prepare(
+        self,
         resolver: &ConstraintResolver,
-        request: StructuralRequest<'_>,
         node_limit: usize,
-    ) -> Option<Vec<ConstraintDecision>> {
+    ) -> Option<PreparedStructuralContextAnalysis> {
+        let context = BoundedTokenContext {
+            previous: self.previous.as_deref(),
+            current: self.current.normalized(),
+            next: self.next.as_deref(),
+        };
+        let prepared = resolver.prepare_context(context, node_limit).ok()?;
+        Some(PreparedStructuralContextAnalysis {
+            current: self.current,
+            prepared,
+        })
+    }
+}
+
+impl PreparedStructuralContextAnalysis {
+    pub(super) fn resolve(&self, request: StructuralRequest<'_>) -> Option<ConstraintDecision> {
         let core = self
             .current
             .normalized_span(request.candidate.core.clone())?;
         let anchor = self.current.normalized_span(request.anchor)?;
         let consumed = self.current.normalized_span(request.consumed)?;
         let token = 0..self.current.normalized().len();
-        let context = BoundedTokenContext {
-            previous: self.previous.as_deref(),
-            current: self.current.normalized(),
-            next: self.next.as_deref(),
-        };
-        Some(vec![resolver.resolve_candidate(
-            context,
+        Some(self.prepared.resolve_candidate(
             CandidateSpans {
                 core,
                 anchor,
@@ -85,8 +100,7 @@ impl StructuralContextAnalysis {
                 token,
             },
             request.patterns,
-            node_limit,
-        )])
+        ))
     }
 }
 

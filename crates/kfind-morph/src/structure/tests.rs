@@ -131,6 +131,33 @@ fn consumed_predicate_prefix_is_valid_inside_the_surrounding_token() {
 }
 
 #[test]
+fn copula_prefix_remains_valid_after_a_nominal_host() {
+    let resolver = resolver();
+    let pattern = QueryMorphPattern::new(DataFinePos::Vcp, "이").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("학생일"),
+        CandidateSpans {
+            core: "학생".len().."학생이".len(),
+            anchor: "학생".len().."학생일".len(),
+            consumed: "학생".len().."학생일".len(),
+            token: 0.."학생일".len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
 fn longest_nominal_particle_host_hides_an_inner_component() {
     let resolver = resolver();
     let inner = resolver.resolve_candidate(
@@ -170,6 +197,176 @@ fn competing_predicate_and_nominal_continuations_remain_available() {
 
     assert_eq!(decision.outcome, ConstraintOutcome::Supported);
     assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
+fn same_host_competition_still_requires_the_program_to_consume_its_ending() {
+    let resolver = resolver();
+    let bare = QueryMorphPattern::new(DataFinePos::Vv, "걸").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let completed = resolver.resolve_candidate(
+        BoundedTokenContext::current("걸을"),
+        CandidateSpans {
+            core: 0.."걸".len(),
+            anchor: 0.."걸을".len(),
+            consumed: 0.."걸을".len(),
+            token: 0.."걸을".len(),
+        },
+        std::slice::from_ref(&bare),
+        128,
+    );
+    let incomplete = resolver.resolve_candidate(
+        BoundedTokenContext::current("걸을"),
+        CandidateSpans {
+            core: 0.."걸".len(),
+            anchor: 0.."걸".len(),
+            consumed: 0.."걸".len(),
+            token: 0.."걸을".len(),
+        },
+        &[bare],
+        128,
+    );
+
+    assert_eq!(completed.outcome, ConstraintOutcome::Supported);
+    assert_eq!(incomplete.outcome, ConstraintOutcome::Contradicted);
+}
+
+#[test]
+fn adnominal_frame_selects_a_dependent_noun_over_a_homographic_predicate() {
+    let resolver = resolver();
+    let context = BoundedTokenContext {
+        previous: Some("하는"),
+        current: "걸",
+        next: Some("보고"),
+    };
+    let noun = resolver.resolve_candidate(
+        context,
+        spans(0.."걸".len(), 0.."걸".len()),
+        &[whole_pattern(DataFinePos::Nnb, "걸")],
+        128,
+    );
+    let predicate = resolver.resolve_candidate(
+        context,
+        spans(0.."걸".len(), 0.."걸".len()),
+        &[component_pattern(DataFinePos::Vv, "걸")],
+        128,
+    );
+
+    assert_eq!(noun.outcome, ConstraintOutcome::Supported);
+    assert_eq!(predicate.outcome, ConstraintOutcome::Contradicted);
+}
+
+#[test]
+fn predicate_nominalization_aligns_with_whole_and_source_nominal_spans() {
+    let resolver = resolver();
+    let pattern = QueryMorphPattern::new(DataFinePos::Vv, "걷").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: true,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let whole = resolver.resolve_candidate(
+        BoundedTokenContext::current("걷기와"),
+        CandidateSpans {
+            core: 0.."걷".len(),
+            anchor: 0.."걷기".len(),
+            consumed: 0.."걷기와".len(),
+            token: 0.."걷기와".len(),
+        },
+        std::slice::from_ref(&pattern),
+        128,
+    );
+    let component = resolver.resolve_candidate(
+        BoundedTokenContext::current("발걸음"),
+        CandidateSpans {
+            core: "발".len().."발걸".len(),
+            anchor: "발".len().."발걸음".len(),
+            consumed: "발".len().."발걸음".len(),
+            token: 0.."발걸음".len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(whole.outcome, ConstraintOutcome::Supported);
+    assert_eq!(component.outcome, ConstraintOutcome::Supported);
+}
+
+#[test]
+fn predicate_ending_path_consumes_an_open_ended_ending_sequence() {
+    let resolver = resolver();
+
+    assert!(resolver.supports_predicate_ending_path(
+        "걷더니",
+        "걷".len(),
+        crate::PredicatePos::Verb,
+        128,
+    ));
+    assert!(!resolver.supports_predicate_ending_path(
+        "걷사람",
+        "걷".len(),
+        crate::PredicatePos::Verb,
+        128,
+    ));
+}
+
+#[test]
+fn a_different_whole_predicate_blocks_a_prefix_fallback() {
+    let resolver = resolver();
+
+    assert!(resolver.whole_predicate_conflicts("걸려", "걸".len(), crate::PredicatePos::Verb,));
+    assert!(!resolver.whole_predicate_conflicts("걷더니", "걷".len(), crate::PredicatePos::Verb,));
+    assert!(resolver.whole_predicate_conflicts_at(
+        "미친다",
+        "미".len().."미친".len(),
+        crate::PredicatePos::Verb,
+    ));
+}
+
+#[test]
+fn predicate_ending_does_not_become_a_terminal_nominal_component() {
+    let resolver = resolver();
+    let start = "입니".len();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("입니다"),
+        CandidateSpans {
+            core: start.."입니다".len(),
+            anchor: start.."입니다".len(),
+            consumed: start.."입니다".len(),
+            token: 0.."입니다".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "다")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+}
+
+#[test]
+fn glued_dependent_noun_after_an_adnominal_ending_remains_supported() {
+    let resolver = resolver();
+    let start = "공부한".len();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("공부한지"),
+        CandidateSpans {
+            core: start.."공부한지".len(),
+            anchor: start.."공부한지".len(),
+            consumed: start.."공부한지".len(),
+            token: 0.."공부한지".len(),
+        },
+        &[component_pattern(DataFinePos::Nnb, "지")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
 }
 
 #[test]
@@ -222,25 +419,6 @@ fn runtime_surface_with_another_pos_does_not_support_the_query_pattern() {
 }
 
 #[test]
-fn preferred_dependent_noun_hides_a_shorter_same_pos_edge() {
-    let resolver = resolver();
-    let decision = resolver.resolve_candidate(
-        BoundedTokenContext::current("가계"),
-        CandidateSpans {
-            core: 0.."가".len(),
-            anchor: 0.."가".len(),
-            consumed: 0.."가".len(),
-            token: 0.."가계".len(),
-        },
-        &[component_pattern(DataFinePos::Nng, "가")],
-        128,
-    );
-
-    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
-    assert!(!ProductPolicy::RecallFirst.accepts(&decision));
-}
-
-#[test]
 fn different_nominal_and_predicate_hosts_do_not_force_ambiguity() {
     let resolver = resolver();
     let decision = resolver.resolve_candidate(
@@ -284,6 +462,7 @@ fn resolver() -> ConstraintResolver {
         atomic("매일", "MAG"),
         atomic("매일", "NNG"),
         atomic("을", "JKO"),
+        atomic("을", "ETM"),
         atomic("보고", "VV+EC"),
         atomic("아니라", "VCN+EC"),
         atomic("수도", "NNB+JX"),
@@ -310,6 +489,23 @@ fn resolver() -> ConstraintResolver {
         atomic("유면", "NNG"),
         atomic("면한", "NNG"),
         atomic("한", "MM"),
+        atomic("걸", "VV"),
+        atomic("걸", "NNB"),
+        expression("하는", "VV+ETM", "하/VV/*+는/ETM/*"),
+        atomic("걷", "VV"),
+        atomic("더니", "EC"),
+        atomic("사람", "NNG"),
+        atomic("걸", "VV"),
+        expression("걸려", "VV+EC", "걸리/VV/*+어/EC/*"),
+        expression("미친다", "VV+EF", "미치/VV/*+ᆫ다/EF/*"),
+        atomic("입니", "VCP+EF"),
+        expression("입니다", "VCP+EF", "이/VCP/*+ᆸ니다/EF/*"),
+        atomic("다", "NNG"),
+        atomic("공부한", "NNG+XSV+ETM"),
+        atomic("지", "NNB"),
+        atomic("걷기", "NNG"),
+        atomic("와", "JC"),
+        expression("발걸음", "NNG", "발/NNG/*+걸음/NNG/*"),
     ];
     let bytes = encode_component_resource([9; 32], &entries).expect("valid resource");
     let resource =

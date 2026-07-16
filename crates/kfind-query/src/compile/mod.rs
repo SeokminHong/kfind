@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 use crate::lexicons::{data_fine_pos, predicate_from_derivation};
 use crate::{
@@ -13,6 +13,7 @@ use kfind_data::{
 };
 use kfind_morph::{
     CoarsePos, ComponentCapability, ParticleTransition, RuleId, generate_predicate_branches,
+    generate_predicate_fallback_stems,
 };
 
 mod normalization;
@@ -20,6 +21,7 @@ mod normalization;
 use normalization::{DraftBranch, DraftDecision, normalize_and_merge, normalize_atom};
 
 const PROGRAM_OVERHEAD_BYTES: usize = 64;
+const NIKL_ENDING_CATALOG: &str = include_str!("../../../../data/rules/nikl-modern-endings.tsv");
 const COPULA_CONTRACTED_AOEO_RULE_ID: &str = "ending.aoeo-seo";
 const CONNECTIVE_JI_RULE_ID: &str = "ending.connective-ji";
 const NOMINALIZER_RULE_IDS: &[&str] = &["ending.nominalizer", "ending.nominalizer-gi"];
@@ -29,6 +31,7 @@ const INTERNAL_PROVENANCE_IDS: &[&str] = &[
     "contraction.identical-vowel",
     DICTIONARY_CONJUGATION_RULE_ID,
     DICTIONARY_RELATED_ADVERB_RULE_ID,
+    "structural.ending-path",
 ];
 const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.aoeo-seo",
@@ -53,6 +56,7 @@ const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.final-da",
     "ending.connective-go",
     "ending.honorific",
+    "ending.polite-imperative",
     "ending.past",
     "ending.past-adnominal",
     "ending.future-adnominal",
@@ -328,6 +332,8 @@ fn compile_analysis(
             Vec::new(),
             options.expand,
             analyzer.lexicons().full_pos_loaded(),
+            options.boundary == crate::BoundaryPolicy::Smart
+                && analyzer.lexicons().full_pos_loaded(),
             predicate_rules,
             known_rule_ids,
             excluded_rules,
@@ -417,6 +423,7 @@ fn compile_predicate(
     prefix_rules: Vec<RuleId>,
     expand: ExpandMode,
     exact_component: bool,
+    structural_fallback: bool,
     allowed_rules: &Arc<[RuleId]>,
     known_rule_ids: &HashSet<&str>,
     excluded_rules: &mut Vec<RuleId>,
@@ -427,10 +434,10 @@ fn compile_predicate(
     };
     let branches = generate_predicate_branches(predicate)
         .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?;
-    for branch in branches {
-        let environment = predicate_environment(predicate, &branch);
+    for branch in &branches {
+        let environment = predicate_environment(predicate, branch);
         let mut rule_path = prefix_rules.clone();
-        rule_path.extend(branch.rule_path);
+        rule_path.extend(branch.rule_path.iter().cloned());
         if expand != ExpandMode::Derivation
             && rule_path
                 .iter()
@@ -455,8 +462,12 @@ fn compile_predicate(
                 && rule_path
                     .last()
                     .is_some_and(|rule| rule.as_str() == CONNECTIVE_JI_RULE_ID));
+        let structural_future_adnominal = structural_fallback
+            && rule_path
+                .iter()
+                .any(|rule| rule.as_str() == "ending.future-adnominal");
         output.push(DraftBranch {
-            anchor: branch.anchor.into(),
+            anchor: branch.anchor.to_string(),
             consumption: CandidateConsumption::PredicateContinuation {
                 continuation: branch.continuation,
                 pos: predicate.pos,
@@ -472,6 +483,7 @@ fn compile_predicate(
             smart_left,
             decision: if predicate.alternation == kfind_morph::LexicalAlternation::Copula
                 || exact_component
+                || structural_future_adnominal
             {
                 DraftDecision::Structural(ComponentCapability::SourceAndRuntime)
             } else {
@@ -479,7 +491,78 @@ fn compile_predicate(
             },
         });
     }
+    if structural_fallback {
+        let mut stems = generate_predicate_fallback_stems(predicate)
+            .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?
+            .into_iter()
+            .map(|(stem, class)| (stem, class, kfind_morph::ContinuationState::Terminal, true))
+            .collect::<Vec<_>>();
+        stems.extend(
+            branches
+                .iter()
+                .filter(|branch| {
+                    branch.continuation != kfind_morph::ContinuationState::Terminal
+                        || branch.rule_path.last().is_some_and(|rule| {
+                            matches!(
+                                rule.as_str(),
+                                "ending.future-adnominal" | "ending.connective-go"
+                            )
+                        })
+                })
+                .filter_map(|branch| {
+                    structural_stem_class(&branch.anchor)
+                        .map(|class| (branch.clone(), class, branch.continuation, false))
+                }),
+        );
+        stems.sort_by(|left, right| left.0.anchor.cmp(&right.0.anchor));
+        stems.dedup_by(|left, right| {
+            left.0.anchor == right.0.anchor && left.0.rule_path == right.0.rule_path
+        });
+        for (stem, stem_class, base_state, validate_anchor) in stems {
+            let mut rule_path = prefix_rules.clone();
+            rule_path.extend(stem.rule_path);
+            let unsupported = rule_path
+                .iter()
+                .filter(|rule| !is_known_or_internal(rule, known_rule_ids))
+                .cloned()
+                .collect::<Vec<_>>();
+            if !unsupported.is_empty() {
+                excluded_rules.extend(unsupported);
+                continue;
+            }
+            output.push(DraftBranch {
+                anchor: stem.anchor.into(),
+                consumption: CandidateConsumption::StructuralPredicateEnding {
+                    pos: predicate.pos,
+                    flags: predicate.flags,
+                    base_state,
+                    validate_anchor,
+                    stem_class,
+                    allowed_suffixes: modern_ending_surfaces(),
+                },
+                core_mapping: CoreMapping::PrefixBytes(stem.core_len),
+                origin: Origin {
+                    analysis_index,
+                    rule_path,
+                },
+                smart_left: true,
+                decision: DraftDecision::Structural(ComponentCapability::SourceAndRuntime),
+            });
+        }
+    }
     Ok(())
+}
+
+fn structural_stem_class(surface: &str) -> Option<kfind_morph::PredicateStemClass> {
+    let final_syllable = surface
+        .chars()
+        .next_back()
+        .and_then(kfind_morph::decompose_syllable)?;
+    Some(match final_syllable.jongseong {
+        kfind_morph::hangul::JONG_NONE => kfind_morph::PredicateStemClass::Vowel,
+        kfind_morph::hangul::JONG_RIEUL => kfind_morph::PredicateStemClass::Rieul,
+        _ => kfind_morph::PredicateStemClass::Consonant,
+    })
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -508,6 +591,7 @@ fn compile_derivations(
                 derivation_path,
                 ExpandMode::Derivation,
                 analyzer.lexicons().full_pos_loaded(),
+                false,
                 predicate_rules,
                 known_rule_ids,
                 excluded_rules,
@@ -627,6 +711,22 @@ fn allowed_rules(known: &HashSet<&str>, include: impl Fn(&str) -> bool) -> Arc<[
         .collect::<Vec<_>>();
     rules.sort();
     rules.into()
+}
+
+fn modern_ending_surfaces() -> Arc<[Box<str>]> {
+    static SURFACES: OnceLock<Arc<[Box<str>]>> = OnceLock::new();
+    Arc::clone(SURFACES.get_or_init(|| {
+        let mut surfaces = NIKL_ENDING_CATALOG
+            .lines()
+            .skip(1)
+            .filter_map(|line| line.split_once('\t').map(|(surface, _)| surface))
+            .filter(|surface| !surface.is_empty())
+            .map(Box::<str>::from)
+            .collect::<Vec<_>>();
+        surfaces.sort();
+        surfaces.dedup();
+        surfaces.into()
+    }))
 }
 
 fn missing_rules(ids: &[&str], known: &HashSet<&str>) -> impl Iterator<Item = RuleId> {
