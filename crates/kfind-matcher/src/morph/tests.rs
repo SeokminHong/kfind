@@ -317,6 +317,17 @@ fn nominal_component_does_not_bypass_a_rejected_particle_allomorph() {
 }
 
 #[test]
+fn nominal_host_can_precede_a_complete_copula_suffix() {
+    let resource = Arc::new(component_resource());
+    let result = component_matcher("결과", Arc::clone(&resource));
+    let solid = component_matcher("고체", resource);
+
+    assert!(result.find_at_with_meta("결과이다".as_bytes(), 0).is_some());
+    assert!(solid.find_at_with_meta("고체이긴".as_bytes(), 0).is_some());
+    assert!(result.find_at_with_meta("결과이".as_bytes(), 0).is_none());
+}
+
+#[test]
 fn overlapping_anchors_select_leftmost_longest_verified_token() {
     let mut short = exact_branch("가", false);
     short.set_boundary(proof(false, false, true));
@@ -815,6 +826,11 @@ fn component_resource() -> ComponentResource {
         component_entry("밖", "NNG", 1_501),
         component_entry("경계안", "NNG", 0),
         component_entry("경계밖", "NNG", 0),
+        component_entry("결과", "NNG", 0),
+        component_entry("고체", "NNG", 0),
+        component_entry("이", "VCP", 0),
+        component_entry("다", "EF", 0),
+        component_entry("긴", "ETN+JX", 0),
     ];
     let bytes = encode_component_resource([7; 32], &entries).unwrap();
     decode_component_resource("fixture", bytes, &[7; 32]).unwrap()

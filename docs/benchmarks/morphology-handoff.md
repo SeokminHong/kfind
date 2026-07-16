@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [지정사 앞 체언 recall](2026-07-17-nominal-copula-host-recall.md)
 - [anchor automaton 선구축 병목 제거](2026-07-17-lazy-anchor-automaton-performance.md)
 - [결합형 보조용언 recall](2026-07-17-attached-auxiliary-recall.md)
 - [source 어미 경로 recall](2026-07-17-predicate-ending-path-recall.md)
@@ -172,3 +173,18 @@ gate는 변경하지 않았다.
 Matrix full-POS의 가장 큰 남은 동일 질의 묶음은 각 3건인 `것`, 부사 `안`, 동사 `오다`,
 형용사 `이다`다. 다음 작업은 네 묶음을 case-level로 비교해 공통 구조로 가장 많은
 contract-positive를 안전하게 회수하는 하나를 고른다.
+
+[지정사 앞 체언 recall](2026-07-17-nominal-copula-host-recall.md)에서 명사 후보 뒤 suffix가
+`이` 또는 `입`으로 시작하고 source `VCP + E+ + J*`가 token 끝까지 이어질 때 조사 allomorph
+선거부를 건너뛰었다. Canonical embedded·full-POS는 `것이었다`의 `것`을 회수해
+`PNᶜ=500`에서 FNᶜ가 각각 59→58, 19→18이다. Matrix embedded·full-POS는
+`결과이다`·`고체이긴`·`왕친입니다`·`것이었다` 4건을 회수해 `PNᶜ=1,401`에서 FNᶜ가
+153→149, 76→72이고 완전 회수 문장은 각각 4개 늘었다. Human은 3건을 회수해 FNᶜ가
+74→71이다. FP·FPᶜ와 hard-negative 결과는 변하지 않았다. 후보 Agent는 25,573.5
+cases/s로 Lindera snapshot보다 22.80% 빠르며, 모든 성능 변화는 10% 경고선 안이다. Matrix
+contract 정의, annotation과 gate는 변경하지 않았다.
+
+남은 3건 동률 묶음은 부사 `안`, 동사 `오다`, 형용사 `이다`다. `안`은 모두 비표준
+붙여쓰기이고 `이다`는 무표면 축약 2건과 비표준 표기 1건이며, `오다`는 원인이 서로 다르다.
+다음 제품 recall 작업은 남은 standard-form FN을 cause별로 다시 묶어 공통 구조가 가장 큰
+slice를 고른다. 비표준 입력은 canonical 규칙에 합치지 않는다.

@@ -357,11 +357,17 @@ impl ConstraintResolver {
             || patterns
                 .iter()
                 .any(|pattern| pattern.fine_pos == DataFinePos::Vx);
-        let prepared =
-            match self.prepare_context_inner(context, node_limit, include_attached_auxiliary) {
-                Ok(prepared) => prepared,
-                Err(reason) => return ConstraintDecision::unavailable(reason),
-            };
+        let include_nominal_copula = patterns.iter().any(|pattern| pattern.fine_pos.is_nominal())
+            && copula_surface_begins_at(context.current, spans.core.end);
+        let prepared = match self.prepare_context_inner(
+            context,
+            node_limit,
+            include_attached_auxiliary,
+            include_nominal_copula,
+        ) {
+            Ok(prepared) => prepared,
+            Err(reason) => return ConstraintDecision::unavailable(reason),
+        };
         prepared.resolve_candidate(spans, patterns)
     }
 
@@ -370,7 +376,21 @@ impl ConstraintResolver {
         context: BoundedTokenContext<'_>,
         node_limit: usize,
     ) -> Result<PreparedStructuralContext, ConstraintUnavailable> {
-        self.prepare_context_inner(context, node_limit, self.attached_auxiliary)
+        self.prepare_context_inner(context, node_limit, self.attached_auxiliary, false)
+    }
+
+    pub fn prepare_context_for_candidate(
+        &self,
+        context: BoundedTokenContext<'_>,
+        node_limit: usize,
+        include_nominal_copula: bool,
+    ) -> Result<PreparedStructuralContext, ConstraintUnavailable> {
+        self.prepare_context_inner(
+            context,
+            node_limit,
+            self.attached_auxiliary,
+            include_nominal_copula,
+        )
     }
 
     fn prepare_context_inner(
@@ -378,12 +398,14 @@ impl ConstraintResolver {
         context: BoundedTokenContext<'_>,
         node_limit: usize,
         include_attached_auxiliary: bool,
+        include_nominal_copula: bool,
     ) -> Result<PreparedStructuralContext, ConstraintUnavailable> {
         let evidence = TokenEvidence::collect(
             &self.resource,
             context.current,
             node_limit,
             include_attached_auxiliary,
+            include_nominal_copula,
         )?;
         let selection = select_structure(&self.resource, context, &evidence);
         Ok(PreparedStructuralContext {
@@ -402,6 +424,11 @@ pub struct PreparedStructuralContext {
 }
 
 impl PreparedStructuralContext {
+    #[must_use]
+    pub fn has_nominal_copula_host(&self, span: &Range<usize>) -> bool {
+        self.evidence.has_nominal_copula_host(span)
+    }
+
     #[must_use]
     pub fn resolve_candidate(
         &self,
@@ -469,6 +496,7 @@ struct TokenEvidence {
     units: Vec<Unit>,
     runtime_spans: Vec<Range<usize>>,
     attached_auxiliary_spans: Box<[Range<usize>]>,
+    nominal_copula_hosts: Box<[Range<usize>]>,
     adnominal_ends: Vec<usize>,
     has_complete_path: bool,
     numeric_spans: Box<[Range<usize>]>,
@@ -481,11 +509,24 @@ impl TokenEvidence {
         text: &str,
         node_limit: usize,
         include_attached_auxiliary: bool,
+        include_nominal_copula: bool,
     ) -> Result<Self, ConstraintUnavailable> {
         if text.as_bytes().first().is_some_and(u8::is_ascii_digit) {
-            Self::collect_mode::<true>(resource, text, node_limit, include_attached_auxiliary)
+            Self::collect_mode::<true>(
+                resource,
+                text,
+                node_limit,
+                include_attached_auxiliary,
+                include_nominal_copula,
+            )
         } else {
-            Self::collect_mode::<false>(resource, text, node_limit, include_attached_auxiliary)
+            Self::collect_mode::<false>(
+                resource,
+                text,
+                node_limit,
+                include_attached_auxiliary,
+                include_nominal_copula,
+            )
         }
     }
 
@@ -494,6 +535,7 @@ impl TokenEvidence {
         text: &str,
         node_limit: usize,
         include_attached_auxiliary: bool,
+        include_nominal_copula: bool,
     ) -> Result<Self, ConstraintUnavailable> {
         let numeric_end = if NUMERIC {
             text.bytes().take_while(u8::is_ascii_digit).count()
@@ -555,6 +597,11 @@ impl TokenEvidence {
         let has_complete_path = forward[text.len()];
         let attached_auxiliary_spans = if include_attached_auxiliary {
             attached_auxiliary_spans(text.len(), &edges)
+        } else {
+            Box::default()
+        };
+        let nominal_copula_hosts = if include_nominal_copula {
+            nominal_copula_hosts(text, &edges)
         } else {
             Box::default()
         };
@@ -670,6 +717,7 @@ impl TokenEvidence {
             units,
             runtime_spans,
             attached_auxiliary_spans,
+            nominal_copula_hosts,
             adnominal_ends,
             has_complete_path,
             numeric_spans,
@@ -691,6 +739,12 @@ impl TokenEvidence {
 
     fn has_adnominal_ending_at(&self, end: usize) -> bool {
         self.adnominal_ends.binary_search(&end).is_ok()
+    }
+
+    fn has_nominal_copula_host(&self, span: &Range<usize>) -> bool {
+        self.nominal_copula_hosts
+            .binary_search_by_key(&(span.start, span.end), |host| (host.start, host.end))
+            .is_ok()
     }
 }
 
@@ -742,6 +796,109 @@ fn attached_auxiliary_spans(text_len: usize, edges: &[Edge<'_>]) -> Box<[Range<u
     spans.sort_unstable_by_key(|span| (span.start, span.end));
     spans.dedup();
     spans.into_boxed_slice()
+}
+
+#[derive(Clone, Copy)]
+#[repr(usize)]
+enum CopulaSuffixState {
+    Start,
+    Copula,
+    Ending,
+    Particle,
+}
+
+const COPULA_SUFFIX_STATE_COUNT: usize = 4;
+
+fn nominal_copula_hosts(text: &str, edges: &[Edge<'_>]) -> Box<[Range<usize>]> {
+    if !text
+        .char_indices()
+        .skip(1)
+        .any(|(_, character)| matches!(character, '이' | '입'))
+    {
+        return Box::default();
+    }
+    let text_len = text.len();
+    let mut nominal_prefix = vec![false; text_len + 1];
+    nominal_prefix[0] = true;
+    for start in 0..text_len {
+        if !nominal_prefix[start] {
+            continue;
+        }
+        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+            if edge.pos.split('+').all(nominal_host_pos) {
+                nominal_prefix[edge.span.end] = true;
+            }
+        }
+    }
+
+    let mut suffix = vec![[false; COPULA_SUFFIX_STATE_COUNT]; text_len + 1];
+    suffix[text_len][CopulaSuffixState::Ending as usize] = true;
+    suffix[text_len][CopulaSuffixState::Particle as usize] = true;
+    for start in (0..text_len).rev() {
+        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+            for state in copula_suffix_states() {
+                let Some(next) = advance_copula_suffix(state, edge.pos) else {
+                    continue;
+                };
+                suffix[start][state as usize] |= suffix[edge.span.end][next as usize];
+            }
+        }
+    }
+
+    nominal_prefix
+        .into_iter()
+        .enumerate()
+        .skip(1)
+        .take(text_len.saturating_sub(1))
+        .filter_map(|(end, nominal)| {
+            (nominal
+                && copula_surface_begins_at(text, end)
+                && suffix[end][CopulaSuffixState::Start as usize])
+                .then_some(0..end)
+        })
+        .collect()
+}
+
+fn copula_surface_begins_at(text: &str, start: usize) -> bool {
+    text.get(start..)
+        .is_some_and(|suffix| suffix.starts_with('이') || suffix.starts_with('입'))
+}
+
+fn nominal_host_pos(pos: &str) -> bool {
+    DataFinePos::parse(pos).is_some_and(DataFinePos::is_nominal)
+        || matches!(pos, "XPN" | "XSN" | "XR")
+}
+
+const fn copula_suffix_states() -> [CopulaSuffixState; COPULA_SUFFIX_STATE_COUNT] {
+    [
+        CopulaSuffixState::Start,
+        CopulaSuffixState::Copula,
+        CopulaSuffixState::Ending,
+        CopulaSuffixState::Particle,
+    ]
+}
+
+fn advance_copula_suffix(
+    mut state: CopulaSuffixState,
+    positions: &str,
+) -> Option<CopulaSuffixState> {
+    for pos in positions.split('+') {
+        state = match (state, pos) {
+            (CopulaSuffixState::Start, "VCP") => CopulaSuffixState::Copula,
+            (CopulaSuffixState::Copula | CopulaSuffixState::Ending, pos)
+                if pos.starts_with('E') =>
+            {
+                CopulaSuffixState::Ending
+            }
+            (CopulaSuffixState::Ending | CopulaSuffixState::Particle, pos)
+                if pos.starts_with('J') =>
+            {
+                CopulaSuffixState::Particle
+            }
+            _ => return None,
+        };
+    }
+    Some(state)
 }
 
 fn predicate_path_ends_in_connective(pos: &str) -> Option<bool> {
@@ -984,6 +1141,7 @@ fn collect_pattern_supports(
         if supports.len() == support_start
             && pattern.component_capability.allows_runtime()
             && (evidence.runtime_spans.contains(&spans.core)
+                || (pattern.fine_pos.is_nominal() && evidence.has_nominal_copula_host(&spans.core))
                 || (spans.core == spans.token
                     && matches!(pattern.continuation, MorphContinuation::NominalParticles))
                 || (spans.core.start == spans.token.start
@@ -1358,6 +1516,7 @@ fn runtime_position_is_supported(
     let trailing_nominal_chain =
         matches!(pattern.continuation, MorphContinuation::NominalParticles)
             && spans.consumed.end != spans.token.end
+            && !evidence.has_nominal_copula_host(&spans.core)
             && !exact_component_prefix
             && !multi_syllable_nominal_component;
     let nominal_after_predicate = pattern.fine_pos.is_nominal()

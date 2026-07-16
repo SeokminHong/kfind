@@ -210,6 +210,59 @@ fn copula_components_follow_complete_nominal_hosts() {
 }
 
 #[test]
+fn nominal_hosts_before_complete_copula_suffixes_are_supported() {
+    let resolver = resolver();
+    for (text, host, pos) in [
+        ("결과이다", "결과", DataFinePos::Nng),
+        ("왕친입니다", "왕친", DataFinePos::Nnp),
+        ("고체이긴", "고체", DataFinePos::Nng),
+        ("것이었다", "것", DataFinePos::Nnb),
+        ("바튼반도이다", "바튼반도", DataFinePos::Nnp),
+    ] {
+        let decision = resolver.resolve_candidate(
+            BoundedTokenContext::current(text),
+            CandidateSpans {
+                core: 0..host.len(),
+                anchor: 0..host.len(),
+                consumed: 0..host.len(),
+                token: 0..text.len(),
+            },
+            &[nominal_pattern(pos, host)],
+            128,
+        );
+
+        assert_eq!(decision.outcome, ConstraintOutcome::Supported, "{text}");
+        assert!(ProductPolicy::RecallFirst.accepts(&decision), "{text}");
+    }
+}
+
+#[test]
+fn nominal_copula_hosts_do_not_skip_or_overlap_the_copula() {
+    let resolver = resolver();
+    for (text, host, pos) in [
+        ("홍씨이다", "홍", DataFinePos::Nnp),
+        ("맛있다", "맛", DataFinePos::Nng),
+        ("이다", "이", DataFinePos::Nng),
+        ("반는", "반", DataFinePos::Nng),
+    ] {
+        let decision = resolver.resolve_candidate(
+            BoundedTokenContext::current(text),
+            CandidateSpans {
+                core: 0..host.len(),
+                anchor: 0..host.len(),
+                consumed: 0..host.len(),
+                token: 0..text.len(),
+            },
+            &[nominal_pattern(pos, host)],
+            128,
+        );
+
+        assert_eq!(decision.outcome, ConstraintOutcome::Contradicted, "{text}");
+        assert!(!ProductPolicy::RecallFirst.accepts(&decision), "{text}");
+    }
+}
+
+#[test]
 fn whole_adverb_still_rejects_a_copula_suffix() {
     let resolver = resolver();
     let pattern = QueryMorphPattern::new(DataFinePos::Vcp, "이").with_candidate_contract(
@@ -903,6 +956,18 @@ fn resolver() -> ConstraintResolver {
         atomic("인가", "VCP+EF"),
         atomic("곳", "NNB"),
         atomic("공학", "NNG"),
+        atomic("결과", "NNG"),
+        atomic("왕친", "NNP"),
+        atomic("고체", "NNG"),
+        atomic("이긴", "VCP+ETN+JX"),
+        atomic("것", "NNB"),
+        atomic("이었다", "VCP+EP+EF"),
+        atomic("바튼", "NNP"),
+        atomic("반도", "NNG"),
+        atomic("는", "VCP+ETM"),
+        atomic("홍", "NNP"),
+        atomic("맛", "NNG"),
+        atomic("있다", "VA+EF"),
         atomic("입", "VCP"),
         atomic("니다", "EF"),
         atomic("에", "NNG"),
@@ -1028,6 +1093,14 @@ fn component_pattern(pos: DataFinePos, lexical_form: &str) -> QueryMorphPattern 
     QueryMorphPattern::new(pos, lexical_form).with_candidate_contract(
         CandidateTokenRelation::Whole,
         MorphContinuation::Exact,
+        ComponentCapability::SourceAndRuntime,
+    )
+}
+
+fn nominal_pattern(pos: DataFinePos, lexical_form: &str) -> QueryMorphPattern {
+    QueryMorphPattern::new(pos, lexical_form).with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::NominalParticles,
         ComponentCapability::SourceAndRuntime,
     )
 }
