@@ -707,7 +707,8 @@ impl StructureSelection {
                                     unit.span == (spans.core.end..selected.end)
                                         && unit.pos.is_particle()
                                 }))
-                            || ((*allow_components || pattern.lexical_form.chars().count() > 1)
+                            || ((*allow_components
+                                || support.evidence == StructuralEvidence::SourceComponent)
                                 && spans.core.start >= selected.start
                                 && spans.core.end <= selected.end
                                 && spans.core != *selected)))
@@ -970,11 +971,47 @@ fn nominal_particle_host(resource: &ComponentResource, current: &str) -> Option<
         .map(|(offset, _)| offset)
         .skip(1)
         .filter(|&split| {
-            has_exact_fine_pos(resource, &current[..split], DataFinePos::is_nominal)
+            complete_nominal_host(resource, &current[..split])
                 && complete_suffix(resource, &current[split..], |pos| pos.starts_with('J'))
         })
         .max()
         .map(|end| 0..end)
+}
+
+fn complete_nominal_host(resource: &ComponentResource, text: &str) -> bool {
+    let mut visited = vec![[false; 2]; text.len() + 1];
+    let mut pending = vec![(0, false)];
+    while let Some((start, has_nominal)) = pending.pop() {
+        if start == text.len() {
+            if has_nominal {
+                return true;
+            }
+            continue;
+        }
+        resource.common_prefixes(&text.as_bytes()[start..], |length, analyses| {
+            if length == 0 || start + length > text.len() {
+                return;
+            }
+            for analysis in analyses {
+                let mut next_has_nominal = has_nominal;
+                let valid = analysis.pos.split('+').all(|pos| {
+                    if DataFinePos::parse(pos).is_some_and(DataFinePos::is_nominal) {
+                        next_has_nominal = true;
+                        true
+                    } else {
+                        matches!(pos, "XPN" | "XSN" | "XR")
+                    }
+                });
+                let end = start + length;
+                let state = usize::from(next_has_nominal);
+                if valid && !visited[end][state] {
+                    visited[end][state] = true;
+                    pending.push((end, next_has_nominal));
+                }
+            }
+        });
+    }
+    false
 }
 
 fn complete_suffix(
