@@ -36,10 +36,9 @@ export default function AnalysisPage(): React.JSX.Element {
           이하에서 <code>atom</code>은 하나의 표제어와 선택적 품사로 이루어진
           query 단위를 뜻합니다. 하나의 atom은 사전에서 얻은 하나 이상의{' '}
           <code>analysis</code>로 해석되고, 각 analysis는 검색 가능한 형태를
-          나타내는 <code>branch</code>를 만듭니다. branch는 원문에서 먼저 찾을
-          고정 문자열인 <code>anchor</code>와, anchor 주변의 조사·어미·경계를
-          확인하는 <code>verifier</code>를 결합합니다. 이 용어들은 분석 결과와
-          검색 실행 사이의 책임을 구분하기 위해 사용합니다.
+          나타내는 <code>CandidateProgram</code>을 만듭니다. Program은 원문에서
+          먼저 찾을 <code>anchor</code>, core 투영, 후보 범위, 조사·어미 소비
+          상태, boundary 또는 구조 제약과 provenance를 함께 보존합니다.
         </p>
       </DocumentSection>
 
@@ -53,8 +52,8 @@ export default function AnalysisPage(): React.JSX.Element {
           <code>{`query atom
   → parse and normalize
   → lexical analyses
-  → morphological branches
-  → anchor and verifier
+  → candidate programs
+  → anchor, consumption and decision
   → executable query plan`}</code>
         </pre>
         <h3>입력 정규화와 어휘 분석</h3>
@@ -70,36 +69,36 @@ export default function AnalysisPage(): React.JSX.Element {
           사용자가 coarse POS를 명시했는데 사전 분석만으로 그 품사의 세부 범위를
           모두 채우지 못하면, 지원되는 세부 품사에 대해 fallback analysis를
           추가합니다. 예를 들어 <code>noun</code>은 보통명사·고유명사·의존명사를
-          포함합니다. 여러 analysis가 결과적으로 같은 anchor와 verifier를 만들면
-          실행 branch는 합칠 수 있지만, 각 세부 품사에서 유래했다는 provenance는
-          합친 branch에 그대로 남깁니다.
+          포함합니다. 여러 analysis가 결과적으로 같은 실행 program을 만들면
+          program은 합칠 수 있지만, 각 세부 품사에서 유래했다는 provenance는
+          합친 program에 그대로 남깁니다.
         </p>
 
-        <h3>형태 branch 생성</h3>
+        <h3>후보 program 생성</h3>
         <p>
           각 analysis에는 품사에 맞는 조사, 어미, 불규칙 교체와 선택적 파생
           규칙을 적용합니다. 이때 생성 가능한 모든 한국어 표현을 추측하지
           않습니다. 어미와 조사 연쇄, 파생 접미사의 허용 범위는{' '}
           <code>data/rules</code>에 기록된 목록과 전이로 제한됩니다. 문법적으로
-          가능해 보이는 조합이라도 규칙 데이터에 없으면 branch를 만들지
+          가능해 보이는 조합이라도 규칙 데이터에 없으면 program을 만들지
           않습니다. 따라서 지원 범위는 구현의 우연한 분기가 아니라 버전으로
           관리되는 데이터에서 결정됩니다.
         </p>
 
-        <h3>Anchor와 verifier 구성</h3>
+        <h3>Anchor와 consumption 구성</h3>
         <p>
-          생성된 표면형을 모두 완성 문자열로 열거하면 branch 수와 matcher
-          메모리가 빠르게 증가합니다. kfind는 각 branch에서 충분히 긴 고정
-          prefix를 anchor로 선택하고, 뒤따르는 조사나 어미는 공유된 verifier
+          생성된 표면형을 모두 완성 문자열로 열거하면 program 수와 matcher
+          메모리가 빠르게 증가합니다. kfind는 각 program에서 충분히 긴 고정
+          prefix를 anchor로 선택하고, 뒤따르는 조사나 어미는 typed consumption
           상태로 표현합니다. 예를 들어 <code>걸었</code>을 anchor로 찾은 뒤 같은
-          verifier가 <code>습니다</code>, <code>지만</code>, <code>는데</code>와
-          같은 continuation을 검사할 수 있습니다. 이 분리는 빠른 byte scan과
-          형태 규칙 검증이 각각 맡을 일을 명확하게 합니다.
+          continuation 상태가 <code>습니다</code>, <code>지만</code>,{' '}
+          <code>는데</code>와 같은 continuation을 검사할 수 있습니다. 이 분리는
+          빠른 byte scan과 형태 규칙 검증이 각각 맡을 일을 명확하게 합니다.
         </p>
         <p>
-          컴파일 과정에는 query 길이, atom 수, analysis 수, 전체 branch 수와
+          컴파일 과정에는 query 길이, atom 수, analysis 수, 전체 program 수와
           예상 matcher 메모리에 대한 상한이 있습니다. 상한을 넘었을 때 일부
-          branch를 임의로 제거하면 검색 결과가 입력이나 실행 환경에 따라
+          program을 임의로 제거하면 검색 결과가 입력이나 실행 환경에 따라
           불완전해질 수 있습니다. kfind는 이런 축소를 하지 않고 컴파일 오류를
           반환하므로, 호출자는 계획이 완전하게 만들어지지 않았다는 사실을 알 수
           있습니다.
@@ -170,42 +169,39 @@ surface:  걸어, 걸었다`}</code>
 
       <DocumentSection title="필요한 후보만 국소적으로 분석">
         <p>
-          대부분의 branch는 anchor 주변의 조사·어미와 token 경계만 검사하면
+          대부분의 program은 anchor 주변의 조사·어미와 token 경계만 검사하면
           판정할 수 있습니다. 그러나 <code>smart</code> boundary에서
           명사·대명사·수사·관형사와 full-POS 일반 용언의 정확한 component 경계를
           확인하거나, token 전체의 어휘 분석과 부분 span의 지정사 해석이
           충돌하는 경우에는 경계 검사만으로 충분하지 않습니다. kfind는 이런
-          context requirement를 가진 branch에 한해서 compact component
-          resource를 사용합니다. 분석 범위도 corpus 전체가 아니라 candidate를
-          포함하는 Unicode token 하나로 제한합니다.
+          program이 직접 소유한 <code>StructuralConstraint</code>를 compact
+          component resource의 POS와 정렬 span에 대조합니다. 분석 범위도 corpus
+          전체가 아니라 candidate token과 바로 인접한 token으로 제한합니다.
         </p>
         <p>
-          국소 분석은 candidate의 lemma, POS와 span이 모두 일치하는 node가
-          완전한 분석 경로에 포함되는지를 확인합니다. 그런 경로가 존재한다는
-          사실만으로 candidate를 채택하지는 않습니다. candidate를 포함하는 완전
-          경로의 최저 비용과 포함하지 않는 완전 경로의 최저 비용을 비교하고,
-          포함 경로가 제외 경로보다 형태 분석 비용 1,500 이하로 높은 범위에
-          있으면 수용합니다. 동률도 이 범위에 포함하며, 그보다 약한 포함 경로는
-          거부합니다. 형태 분석기의 원시 <code>accept</code>,{' '}
-          <code>reject</code>, <code>ambiguous</code> 판정은 진단 정보로 그대로
-          보존합니다. 문맥 규칙에 등록된 whole-token surface는 주변 구조로
-          하나의 분석을 선택할 수 없을 때 비용 범위를 열지 않고 원시 판정을
-          유지합니다.
+          국소 분석은 candidate의 POS와 span이 완전한 구조 경로의 node에 정확히
+          일치하는지 확인합니다. 인접 token 배치가 부사, 체언·지정사, 조사 host
+          중 하나를 유일하게 증명하면 그 구조를 선택합니다. 구조적으로 다른
+          가능성이 남으면 recall을 우선해 지원 가능한 query 후보를 유지합니다.
+          word cost, 연결 행렬과 unknown model은 제품 resource와 판정에 참여하지
+          않으며 별도 full-lattice 진단에서만 관찰할 수 있습니다.
         </p>
         <pre>
-          <code>{`중국요리
-├─ 중국 / NNP + 요리 / NNG  → n:요리의 성분 경계가 성립
-└─ 중국요리 / NNG           → 두 완전 경로의 비용을 비교
+          <code>{`매일 보고 싶어
+└─ 매일 / MAG → adv:매일 supported, n:매 contradicted
 
-국요
-└─ 중국 / NNP | 요리 / NNG 경계를 가로지름 → reject`}</code>
+독수리가 아니라 매일 수도 있어
+└─ 매 / NNG + 이 / VCP + ㄹ / ETM → n:매 supported, adv:매일 contradicted
+
+걸었고
+└─ 걷다와 걸다의 의미 차이는 구조가 아니므로 두 provenance를 유지`}</code>
         </pre>
         <p>
           이 과정은 원문 256 bytes, NFC 64 Unicode scalar, node 4,096개라는 상한
-          안에서만 실행됩니다. 입력이나 lattice가 상한을 넘거나 resource 검증에
-          실패하면 결과를 추측하지 않고 오류를 반환합니다. 그러므로 국소 분석은
-          일반 목적의 문장 분석기로 확장되지 않으며, 검색 후보 하나를 판정하는
-          데 필요한 계산으로만 남습니다.
+          안에서만 실행됩니다. 입력이나 구조 graph가 상한을 넘거나 resource
+          검증에 실패하면 결과를 추측하지 않고 오류를 반환합니다. 그러므로 국소
+          분석은 일반 목적의 문장 분석기로 확장되지 않으며, 검색 후보 하나를
+          판정하는 데 필요한 계산으로만 남습니다.
         </p>
       </DocumentSection>
 

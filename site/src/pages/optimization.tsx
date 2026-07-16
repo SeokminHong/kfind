@@ -10,22 +10,22 @@ export default function OptimizationPage(): React.JSX.Element {
       <PageIntro
         eyebrow="ENGINEERING · DESIGN & OPTIMIZATION"
         title="형태 처리 비용을 제한하는 설계"
-        summary="kfind의 최적화 목표는 형태 기능을 줄이는 것이 아니라 그 비용이 발생하는 위치를 통제하는 것입니다. 형태 지식은 query compile과 anchor 주변의 bounded verification에 머물고, corpus 크기에 비례하는 경로는 byte scan과 streaming output으로 유지합니다."
+        summary="kfind의 최적화 목표는 형태 기능을 줄이는 것이 아니라 그 비용이 발생하는 위치를 통제하는 것입니다. 형태 지식은 query compile과 anchor 주변의 bounded structural decision에 머물고, corpus 크기에 비례하는 경로는 byte scan과 streaming output으로 유지합니다."
       />
 
       <DocumentSection title="비용 모델">
         <p>
           검색 비용은 query plan을 만드는 비용과 corpus를 읽는 비용으로
-          나뉩니다. Query 쪽에서는 사전 analysis와 형태 branch 수를 제한하고,
-          corpus 쪽에서는 가능한 한 긴 고정 anchor로 verifier 호출 횟수를
-          줄입니다. 여러 branch가 같은 조사·어미 continuation을 사용할 때는
-          verifier 상태를 공유해 완성 surface의 중복 열거를 피합니다.
+          나뉩니다. Query 쪽에서는 사전 analysis와 candidate program 수를
+          제한하고, corpus 쪽에서는 가능한 한 긴 고정 anchor로 후보 수를
+          줄입니다. 여러 program이 같은 조사·어미 continuation을 사용할 때는
+          consumption 상태를 공유해 완성 surface의 중복 열거를 피합니다.
         </p>
         <p>
           Resource와 결과 메모리도 실제 필요가 생길 때만 사용합니다. Component
-          근거가 필요한 <code>smart</code> branch가 있는 plan만 compact
+          근거가 필요한 <code>smart</code> program이 있는 plan만 compact
           resource를 초기화하고, 기본 출력은 bounded channel을 통해
-          streaming합니다. 이 네 원칙, 즉 긴 anchor, 공유 verifier, 선택적
+          streaming합니다. 이 네 원칙, 즉 긴 anchor, 공유 consumption, 선택적
           resource, bounded streaming은 서로 독립된 기법이 아니라 형태 기능을
           작은 계획과 국소 후보에 묶는 하나의 비용 모델을 구성합니다.
         </p>
@@ -33,11 +33,12 @@ export default function OptimizationPage(): React.JSX.Element {
 
       <DocumentSection title="Anchor 선택과 matcher 구성">
         <p>
-          각 branch는 검증 비용을 줄일 수 있는 가장 긴 고정 byte열을 anchor로
+          각 program은 판정 비용을 줄일 수 있는 가장 긴 고정 byte열을 anchor로
           선택합니다. 어간 교체 뒤의 고정 부분, 어간 전체, 짧은 어간과 다음 고정
-          요소를 차례로 검토하며, 한 음절 anchor는 경계 verifier 없이 허용하지
-          않습니다. 예를 들어 <code>걷다</code>의 규칙형과 ㄷ 불규칙형은 서로
-          다른 고정 prefix를 제공하지만 suffix 상태는 공유할 수 있습니다.
+          요소를 차례로 검토하며, 한 음절 anchor는 boundary decision 없이
+          허용하지 않습니다. 예를 들어 <code>걷다</code>의 규칙형과 ㄷ
+          불규칙형은 서로 다른 고정 prefix를 제공하지만 suffix 상태는 공유할 수
+          있습니다.
         </p>
         <pre>
           <code>{`걷다
@@ -51,7 +52,7 @@ export default function OptimizationPage(): React.JSX.Element {
           이 선택은 query compile 시점에 확정되므로 scan loop에서 matcher 종류를
           반복해서 판단하지 않습니다. 겹친 anchor 후보는 모두 형태 검증을 거친
           뒤 leftmost-longest non-overlapping span으로 정리합니다. 따라서 긴
-          anchor를 우선하는 최적화가 더 정확한 verifier 결과를 미리 제거하지
+          anchor를 우선하는 최적화가 더 정확한 program 결과를 미리 제거하지
           않습니다.
         </p>
       </DocumentSection>
@@ -89,7 +90,7 @@ export default function OptimizationPage(): React.JSX.Element {
                 <td>atom당</td>
               </tr>
               <tr>
-                <td>Branch 수</td>
+                <td>Candidate program 수</td>
                 <td>4,096</td>
                 <td>plan 전체</td>
               </tr>
@@ -107,7 +108,7 @@ export default function OptimizationPage(): React.JSX.Element {
           </table>
         </div>
         <p>
-          상한을 넘으면 일부 branch를 임의로 잘라 계속 실행하지 않고 query
+          상한을 넘으면 일부 program을 임의로 잘라 계속 실행하지 않고 query
           compile 오류를 반환합니다. 조용한 축소는 실행에는 성공하면서 특정
           활용형만 누락하는 결과를 만들기 때문입니다. 오류와{' '}
           <code>--explain-query</code>는 제한에 도달한 항목을 드러내므로,
@@ -118,20 +119,22 @@ export default function OptimizationPage(): React.JSX.Element {
 
       <DocumentSection title="Resource의 지연 초기화">
         <p>
-          모든 branch는 corpus 문맥이 필요한 정도를 <code>None</code>,{' '}
-          <code>PredicateLexical</code>, <code>ExactComponent</code>,{' '}
-          <code>LexicalContext</code> 중 하나로 선언합니다. Compile된 plan에
-          뒤의 세 requirement가 하나라도 있을 때만 compact component resource를
-          요구합니다. Literal, <code>token</code>, <code>any</code> plan은 이
-          resource를 사용하지 않으며, <code>smart</code>도 component branch가
-          없으면 파일을 찾거나 읽지 않습니다.
+          각 <code>CandidateProgram</code>은 판정을 <code>Boundary</code> 또는{' '}
+          <code>Structural</code>로 선언합니다. Structural program은 lexical
+          identity, 세부 품사, continuation과 인접 token 제약을 담은{' '}
+          <code>QueryMorphPattern</code>을 직접 소유합니다. Compile된 plan에
+          이런 program이 하나라도 있을 때만 compact component resource를
+          요구합니다. Literal, <code>token</code>, <code>any</code> plan은
+          resource를 사용하지 않으며, <code>smart</code>도 구조 제약이 없으면
+          파일을 찾거나 읽지 않습니다.
         </p>
         <p>
           Resource가 필요하면 engine은 최초 한 번 bytes를 decode하고 schema,
-          source SHA-256, section digest와 scoring 범위를 모두 검증합니다.
-          검증된 resource는 engine 수명 동안 공유하며 matcher마다 다시
-          decode하지 않습니다. 새 bytes를 수동으로 load할 때도 전체 검증이 끝난
-          뒤에만 engine 상태를 교체하고, 실패하면 기존 resource를 유지합니다.
+          source SHA-256, section digest, offset과 component span을 모두
+          검증합니다. 검증된 resource는 engine 수명 동안 공유하며 matcher마다
+          다시 decode하지 않습니다. 새 bytes를 수동으로 load할 때도 전체 검증이
+          끝난 뒤에만 engine 상태를 교체하고, 실패하면 기존 resource를
+          유지합니다.
         </p>
         <p>
           CLI는 설치 경로를 알고 있으므로 resource를 자동으로 탐색합니다. Rust
@@ -147,7 +150,7 @@ export default function OptimizationPage(): React.JSX.Element {
           Byte anchor가 없는 구간은 Unicode 처리 없이 건너뛰고, 기본 matcher는
           설명 metadata 대신 span의 byte 범위만 반환합니다. Provenance는
           JSON이나 explain 출력이 필요한 일치 줄에서만 다시 계산합니다. Query가
-          NFC이면 정규화된 anchor를 원문에서 직접 찾고, canonical branch나
+          NFC이면 정규화된 anchor를 원문에서 직접 찾고, canonical program이나
           suffix 소비가 필요할 때만 추가 Unicode 처리를 수행합니다.
         </p>
         <div className="table-scroll">
@@ -178,7 +181,7 @@ export default function OptimizationPage(): React.JSX.Element {
               <tr>
                 <td>Normalization</td>
                 <td>NFC anchor를 직접 검색</td>
-                <td>canonical branch 또는 suffix 소비</td>
+                <td>canonical program 또는 suffix 소비</td>
               </tr>
               <tr>
                 <td>Phrase</td>
@@ -226,7 +229,7 @@ export default function OptimizationPage(): React.JSX.Element {
                 <td>20% 이상 증가</td>
               </tr>
               <tr>
-                <td>Branch 수</td>
+                <td>Candidate program 수</td>
                 <td>2배 이상 증가</td>
               </tr>
             </tbody>

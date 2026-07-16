@@ -51,15 +51,16 @@ matched surfaces: 걸어 · 걸었다 · 걷는 · 걸을 · 걷기에서도`}</
         <p>
           kfind는 형태 규칙을 짧은 query 쪽에 적용하고, 큰 corpus 쪽에서는
           가능한 한 byte 검색을 유지합니다. 먼저 query를 정규화하고 사전에서
-          가능한 품사를 조회한 뒤 활용과 파생 branch를 만듭니다. 각 branch에서는
-          변하지 않는 가장 긴 byte열을 anchor로 선택하고, 조사·어미와 경계
-          조건은 verifier로 분리합니다. 파일을 scan할 때는 anchor가 있는 위치만
-          후보로 삼고, 그 주변에서 verifier를 실행해 최종 span을 결정합니다.
+          가능한 품사를 조회한 뒤 활용과 파생 candidate program을 만듭니다. 각
+          program은 변하지 않는 가장 긴 byte열을 anchor로 선택하고, 조사·어미를
+          소비하는 상태와 boundary 또는 구조 제약을 함께 보존합니다. 파일을
+          scan할 때는 anchor가 있는 위치만 후보로 삼고, 그 주변에서 program을
+          실행해 최종 span을 결정합니다.
         </p>
         <pre>
           <code>{`query
   → normalize and analyze
-  → compile branches
+  → compile candidate programs
   → choose anchors
 
 corpus
@@ -152,10 +153,10 @@ kfind --embedded --boundary any --pos verb --json 걷다 src docs`}</code>
         <p>
           내부 원리를 이해하려면{' '}
           <Link to={RoutePath.Analysis}>형태 분석 원리</Link>
-          에서 표제어가 branch와 verifier로 변환되는 과정을 먼저 읽은 뒤,{' '}
+          에서 표제어가 candidate program으로 변환되는 과정을 먼저 읽은 뒤,{' '}
           <Link to={RoutePath.Architecture}>아키텍처</Link>에서 query compile과
           corpus scan의 접점을 확인하는 순서가 적합합니다.{' '}
-          <Link to={RoutePath.Optimization}>설계와 최적화</Link>는 branch 상한,
+          <Link to={RoutePath.Optimization}>설계와 최적화</Link>는 program 상한,
           anchor 선택, resource 지연 초기화와 streaming이 비용을 제한하는 방식을
           설명합니다. 측정 결과와 해석 조건은{' '}
           <Link to={RoutePath.Benchmarks}>벤치마크</Link>에 분리되어 있습니다.

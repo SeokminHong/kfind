@@ -109,17 +109,17 @@ export const glossaryTerms: readonly GlossaryTerm[] = [
     name: 'query plan',
     notation: '검색 계획',
     definition:
-      'query를 실행할 수 있도록 branch, anchor, verifier와 제한 정보를 묶은 컴파일 결과입니다.',
+      'query를 실행할 수 있도록 candidate program, anchor와 제한 정보를 묶은 컴파일 결과입니다.',
     aliases: ['query plan', '검색 계획'],
   },
   {
-    id: 'branch',
+    id: 'candidate-program',
     category: GlossaryCategory.Execution,
-    name: 'branch',
-    notation: '검색 분기',
+    name: 'CandidateProgram',
+    notation: '검색 후보 프로그램',
     definition:
-      '하나의 분석과 생성 경로에서 나온 검색 후보로, anchor와 verifier 및 provenance를 보존합니다.',
-    aliases: ['branch'],
+      '하나 이상의 분석에서 만든 실행 후보로, anchor, core 투영, 후보 범위, consumption, 판정 제약과 provenance를 보존합니다.',
+    aliases: ['CandidateProgram', 'program'],
   },
   {
     id: 'anchor',
@@ -131,13 +131,13 @@ export const glossaryTerms: readonly GlossaryTerm[] = [
     aliases: ['anchor'],
   },
   {
-    id: 'verifier',
+    id: 'structural-constraint',
     category: GlossaryCategory.Execution,
-    name: 'verifier',
-    notation: '국소 검증기',
+    name: 'StructuralConstraint',
+    notation: '국소 구조 제약',
     definition:
-      'anchor 주변의 어미, 조사와 문자 경계를 확인해 후보를 최종 match로 승인합니다.',
-    aliases: ['verifier'],
+      'anchor 주변의 component와 인접 token 배치로 품사 구조를 판정하는 query 소유 제약입니다.',
+    aliases: ['StructuralConstraint', '구조 제약'],
   },
   {
     id: 'boundary',
@@ -186,9 +186,9 @@ export const glossaryTerms: readonly GlossaryTerm[] = [
     id: 'component-resource',
     category: GlossaryCategory.Resource,
     name: 'component resource',
-    notation: '합성어 검증 리소스',
+    notation: '구조 판정 리소스',
     definition:
-      '합성어 내부 일치를 검증하기 위해 완전한 형태 경로를 제공하는 선택적 compact resource입니다.',
+      '후보 token의 source POS와 정렬된 component span을 제공하는 선택적 compact resource입니다.',
     aliases: ['component resource', 'component'],
   },
   {

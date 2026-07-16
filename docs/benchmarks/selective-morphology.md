@@ -72,6 +72,6 @@ pnpm --dir packages/kfind run benchmark:startup
   revised hard-negative 신규 FP 0을 유지하면서 FN을 늘리지 않는다.
 - `query_compile`, morphology fixture 초기화·cases/s·p95·RSS와 실제 CLI workload를 같은
   revision·입력·build profile에서 `origin/main`과 비교한다.
-- 전환이 완료되면 `SurfaceBranch`, `BranchVerifier`, `ContextRequirement`, 수동
-  lexical-context surface registry, exact-component 1,500 비용 마진과 기존 verifier fallback을
-  제품 코드에서 제거한다. 동일 후보를 두 IR에 동시 표현하지 않는다.
+- 제품 코드에는 `SurfaceBranch`, `BranchVerifier`, `ContextRequirement`, 수동 lexical-context
+  surface registry, exact-component 1,500 비용 마진과 기존 verifier fallback을 두지 않는다.
+  동일 후보를 두 IR에 동시 표현하지 않는다.

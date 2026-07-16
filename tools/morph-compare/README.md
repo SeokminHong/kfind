@@ -102,8 +102,11 @@ with five slices. Each kfind false negative records an automatic `primary_cause`
 and its evidence.
 The report also records each `kfind` profile and artifact SHA-256, plus separate
 lists of recovered, still-missed, and newly regressed false negatives.
-Shadow verification records raw anchor hits, verified branch hits, local-lattice
-candidates, and unique analysis windows per case outside the timed evaluation.
+Shadow verification records raw anchor hits, verified program hits, structural
+candidates, and unique structural windows per case outside the timed evaluation.
+The product decision uses the compact structural resource. A separate full-lattice
+diagnostic can record historical cost paths, but its availability or conclusion
+does not gate the product decision.
 The Agent precision shadow separately records query POS, provenance,
 core/token/whole-token spans, exact analyses, and bounded-lattice include/exclude
 path presence for `embedded + any` matches. Cost ordering is not used for its

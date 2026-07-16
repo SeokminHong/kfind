@@ -120,12 +120,13 @@ scripts/benchmark-morphology.sh
 pnpm --dir packages/kfind run benchmark:startup
 ```
 
-## Local component lattice
+## Structural constraint
 
-제품용 component 판정과 N-best 진단 보고서를 같은 고정 fixture에서 분리해 측정한다.
+제품용 `ConstraintResolver`의 구조 판정을 고정 문장 배치에서 측정한다. full morphology
+cost-lattice 진단은 이 제품 benchmark에 포함하지 않는다.
 
 ```console
-scripts/benchmark-criterion.sh local_lattice
+scripts/benchmark-criterion.sh structural_constraint
 ```
 
 ## Morphology comparison
