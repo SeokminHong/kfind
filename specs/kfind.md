@@ -372,7 +372,8 @@
   경계를 가로지르는 span은 근거가 아니다. nominal component path는 source가 선언한
   성분을 우선하고, source만으로 완성되지 않으면 runtime graph 중 성분 수가 가장 적은
   완전 경로를 선택한다. 내부 component query는 이 선호 경로의 한 node와 span이
-  일치할 때만 유지한다.
+  일치할 때만 유지한다. graph로 조합한 명사+조사 host는 내부 nominal component를
+  검증할 때만 사용하고 token 전체의 품사 구조를 선택하는 근거로 쓰지 않는다.
 - 제품 graph는 source 분석 비용을 읽거나 보존하지 않는다. 비용·연결 행렬·미등록어
   모델은 별도 full morphology 진단 artifact에서 과거 판정과 결과를 비교할 때만 사용한다.
   include/exclude 비용 마진, query별 threshold와 결과별 fallback을 제품 판정에 사용하지 않는다.
