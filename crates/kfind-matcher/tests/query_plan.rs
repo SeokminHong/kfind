@@ -132,6 +132,60 @@ fn contracted_aoeo_program_consumes_a_proven_auxiliary_sequence() {
 }
 
 #[test]
+fn generated_predicate_branch_consumes_a_complete_source_ending_path() {
+    let matcher = compile_with_full_pos(
+        "오다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+    );
+
+    for text in ["눈이 왔으니까.", "오래전부터 왔었다."] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "complete source ending path was rejected for {text}"
+        );
+    }
+    assert!(
+        matcher
+            .find_at_with_meta("문서에는 왔다를 적었다.".as_bytes(), 0)
+            .is_none()
+    );
+    assert!(
+        matcher
+            .find_at_with_meta("친구가 먼저 들어왔었다.".as_bytes(), 0)
+            .is_none()
+    );
+
+    let prefix = compile_with_full_pos(
+        "말다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+    );
+    assert!(
+        prefix
+            .find_at_with_meta("만들려 한다.".as_bytes(), 0)
+            .is_none()
+    );
+
+    let other_pos = compile_with_full_pos(
+        "하다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Adjective),
+            ..CompileOptions::default()
+        },
+    );
+    assert!(
+        other_pos
+            .find_at_with_meta("겨울이 없을 거라고 한다.".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn adjacent_layout_limits_disambiguation_to_supported_pos_competitions() {
     let noun = compile_with_full_pos(
         "새",
@@ -779,6 +833,17 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("었", "EP"),
             component_entry("어", "EF"),
             component_expression_entry("걸었어", "VV+EP+EF", "걸/VV/*+었/EP/*+어/EF/*"),
+            component_expression_entry("왔", "VV+EP", "오/VV/*+았/EP/*"),
+            component_entry("으니까", "EC"),
+            component_entry("었다", "EP+EF"),
+            component_entry("다는", "EF+ETM"),
+            component_entry("다", "EF"),
+            component_entry("는", "ETM"),
+            component_entry("만", "VV"),
+            component_entry("들려", "EC"),
+            component_expression_entry("만들려", "VV+EC", "만들/VV/*+려고/EC/*"),
+            component_entry("한", "VA+ETM"),
+            component_expression_entry("한다", "VV+EF", "하/VV/*+ㄴ다/EF/*"),
             component_entry("새", "MM"),
             component_entry("새", "NNG"),
             component_entry("기능", "NNG"),
