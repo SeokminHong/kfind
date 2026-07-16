@@ -215,9 +215,7 @@ impl ConstraintResolver {
                     let Some(first) = positions.first() else {
                         continue;
                     };
-                    if !first.starts_with('V')
-                        || !positions[1..].iter().all(|pos| pos.starts_with('E'))
-                    {
+                    if *first != "VX" || !positions[1..].iter().all(|pos| pos.starts_with('E')) {
                         continue;
                     }
                     if length == text.len() || positions.len() == 1 {
@@ -254,7 +252,7 @@ impl ConstraintResolver {
                         nodes += 1;
                         let positions = analysis.pos.split('+').collect::<Vec<_>>();
                         let allowed = if start == 0 {
-                            positions.first().is_some_and(|pos| pos.starts_with('V'))
+                            positions.first() == Some(&"VX")
                                 && positions[1..].iter().all(|pos| pos.starts_with('E'))
                         } else {
                             positions.iter().all(|pos| pos.starts_with('E'))
@@ -640,6 +638,8 @@ fn collect_pattern_supports(
         if supports.len() == support_start
             && pattern.component_capability.allows_runtime()
             && (evidence.runtime_spans.contains(&spans.core)
+                || (spans.core == spans.token
+                    && matches!(pattern.continuation, MorphContinuation::NominalParticles))
                 || (spans.core.start == spans.token.start
                     && spans.consumed == spans.token
                     && matches!(pattern.continuation, MorphContinuation::Predicate { .. }))

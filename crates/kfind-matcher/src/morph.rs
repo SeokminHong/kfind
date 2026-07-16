@@ -546,16 +546,18 @@ impl MorphMatcher {
         let Some(resolver) = self.constraint_resolver.as_ref() else {
             return false;
         };
-        if has_conflicting_whole_predicate(haystack, candidate, branch, resolver) {
+        let licensed_trailing =
+            self.licensed_structural_trailing(haystack, candidate, branch, resolver);
+        if licensed_trailing.is_none()
+            && has_conflicting_whole_predicate(haystack, candidate, branch, resolver)
+        {
             return false;
         }
         let patterns = branch.structural_patterns();
         if patterns.is_empty() {
             return false;
         }
-        let consumed = self
-            .licensed_structural_trailing(haystack, candidate, branch, resolver)
-            .unwrap_or_else(|| candidate.consumed.clone());
+        let consumed = licensed_trailing.unwrap_or_else(|| candidate.consumed.clone());
         if self.has_rejected_structural_suffix(haystack, candidate, &consumed, branch, resolver) {
             return false;
         }
@@ -624,7 +626,6 @@ impl MorphMatcher {
                 && ["때", "게"].iter().any(|noun| trailing.starts_with(noun)))
             || (candidate.suffix_rules.is_empty()
                 && has_rule("ending.aoeo")
-                && candidate.anchor.end > candidate.verified.core.end
                 && resolver.supports_auxiliary_sequence(trailing, DEFAULT_LATTICE_NODE_LIMIT));
         licensed.then_some(candidate.consumed.start..whole.end)
     }

@@ -88,6 +88,10 @@
   검색할 때는 붙은 조사를 찾을 수 있도록 core 왼쪽 경계 대신 바로 앞 host와 조사 이형태
   조건을 검증한다. 무품사 입력은 사용자가 쓴 조사 표면형만 찾고, 조사 이형태 묶음 확장은
   명시적 조사 품사 입력에서만 사용한다.
+- 명시적 체언 품사의 `smart` program에서 query core가 조사 없는 token 전체와 정확히 같으면,
+  compact component resource에 같은 whole 분석이 없어도 완성된 체언 token으로 인정한다.
+  이 경로는 token 내부에서 시작한 core, 조사나 다른 문자를 소비한 candidate와 component
+  경계를 가로지르는 substring에는 적용하지 않는다.
 - 일반 용언의 `smart` token span은 core에서 시작한다. 따라서 `가다` 검색은 `친구가`의 붙은 조사 `가`를 활용형으로 인정하지 않는다. 지정사처럼 앞 host에 붙는 분석만 별도 왼쪽 환경 검증을 사용한다.
 - 명시적 동사·형용사 품사의 `ending.connective-ji` program은 `smart`에서도 core 왼쪽 token 경계를
   요구하지 않고 완성된 token span의 오른쪽 경계는 유지한다. 이는 gold 어절의 오른쪽 끝과
@@ -96,6 +100,9 @@
 - 용언의 `ending.past`와 `ending.future` consumption state는 `ending.connective-eudoe`의 `으되`를
   소비한다. `치렀으되`, `하겠으되`처럼 선어말어미 뒤의 완성된 token만 복구하며, bare stem에
   `으되`를 붙이는 별도 경로는 이 규칙으로 추측하지 않는다.
+- `-아/어`가 어간과 같은 음절로 축약된 용언 program도 후행 문자열 전체가 compact resource의
+  `VX` 보조용언+어미 연쇄로 증명되면 완성된 token까지 소비한다. 축약 때문에 anchor byte span이
+  core보다 길지 않아도 되지만, 후행 연쇄가 완전한 구조 경로를 만들지 못하면 확장하지 않는다.
 - 이유·근거·전제를 나타내는 `ending.connective-ni`는 `-니/-으니`, `-니까/-으니까`,
   `-니까는/-으니까는`과 그 준말 `-니깐/-으니깐`을 완성된 predicate token으로
   소비한다. 받침 없는 어간과 `ㄹ` 받침 어간은 `으`가 없는 이형태, 그 밖의 받침
@@ -329,12 +336,19 @@
 - resolver는 먼저 query와 독립적인 whole/component·세부 품사·continuation·인접 token
   근거로 corpus의 구조적 후보를 고른다. 어휘 의미만 다르고 span topology, 품사,
   continuation과 문맥 제약이 같은 후보는 하나의 `StructuralSignature`로 합친다.
+- 체언 core가 조사 없는 token 전체와 정확히 같은 경우에는 token 경계 자체를 완성된 체언
+  구조 근거로 사용한다. Source whole 분석이 없다는 이유만으로 이 경로를 거부하지 않으며,
+  core와 token 경계가 다르거나 조사·다른 문자를 소비했으면 이 근거를 사용하지 않는다.
 - `ConstraintResolver`는 query pattern의 structural signature가 선택된 corpus 구조와
   일치하면 `Supported`, 다른 구조가 유일하게 선택되면 `Contradicted`, resource 오류나
   상한 초과는 `Unavailable`로 반환한다.
 - 구조적으로 다른 경쟁 path는 인접 성분 배치로 하나를 선택할 수 있는지 판정할
   때까지 평가한다. 이때 분해·품사·인접 제약이 같은 어휘 의미 후보는 추가로
   열거하지 않는다.
+- query program이 `ending.aoeo`를 거쳐 만든 축약형 뒤의 문자열은 compact resource가
+  `VX` 보조용언+어미의 완전한 연쇄로 증명할 때만 같은 predicate token으로 확장한다. 한 음절 안의
+  축약은 anchor와 core의 byte 끝이 같을 수 있으므로 span 길이 차이를 별도 증명 조건으로
+  요구하지 않는다.
 - 체언+조사와 용언+어미 path는 host span이 같을 때만 구조적으로 해결되지 않은
   경쟁으로 본다. host가 다르면 더 긴 조사 host 또는 완성된 용언 host를 선택하고,
   다른 위치에서 우연히 성립한 분할을 후보 근거로 쓰지 않는다. 조사 host는 exact
