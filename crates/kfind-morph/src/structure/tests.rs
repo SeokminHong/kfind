@@ -104,6 +104,33 @@ fn whole_inflected_analysis_supports_a_predicate_stem_program() {
 }
 
 #[test]
+fn consumed_predicate_prefix_is_valid_inside_the_surrounding_token() {
+    let resolver = resolver();
+    let pattern = QueryMorphPattern::new(DataFinePos::Va, "곱").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("곱아다"),
+        CandidateSpans {
+            core: 0.."곱".len(),
+            anchor: 0.."곱아".len(),
+            consumed: 0.."곱아".len(),
+            token: 0.."곱아다".len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
 fn longest_nominal_particle_host_hides_an_inner_component() {
     let resolver = resolver();
     let inner = resolver.resolve_candidate(
@@ -178,7 +205,8 @@ fn resolver() -> ConstraintResolver {
         atomic("수도", "NNB+JX"),
         expression("일", "VCP+ETM", "이/VCP/*+ᆯ/ETM/*"),
         expression("걸었고", "VV+EP+EC", "걸/VV/*+었/EP/*+고/EC/*"),
-        atomic("곱아", "VA"),
+        expression("곱아", "VA+EC", "곱/VA/*+아/EC/*"),
+        atomic("다", "EF"),
         atomic("들", "VV"),
         atomic("들", "NNB"),
         atomic("지", "EC"),

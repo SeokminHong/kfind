@@ -6,49 +6,6 @@ use kfind_data::DataFinePos;
 use crate::{ContinuationState, FinePos};
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub enum CandidateExtentPolicy {
-    Anchor,
-    SurroundingToken,
-    AnchorAndSurroundingToken,
-}
-
-impl CandidateExtentPolicy {
-    #[must_use]
-    pub fn enumerate(
-        self,
-        core: Range<usize>,
-        anchor: Range<usize>,
-        token: Range<usize>,
-    ) -> Vec<CandidateSpans> {
-        if !contains(&anchor, &core) || !contains(&token, &anchor) {
-            return Vec::new();
-        }
-
-        let anchor_candidate = CandidateSpans {
-            core: core.clone(),
-            anchor: anchor.clone(),
-            consumed: anchor.clone(),
-            token: token.clone(),
-        };
-        let token_candidate = CandidateSpans {
-            core,
-            anchor: anchor.clone(),
-            consumed: anchor.start..token.end,
-            token,
-        };
-
-        match self {
-            Self::Anchor => vec![anchor_candidate],
-            Self::SurroundingToken => vec![token_candidate],
-            Self::AnchorAndSurroundingToken if anchor_candidate == token_candidate => {
-                vec![anchor_candidate]
-            }
-            Self::AnchorAndSurroundingToken => vec![anchor_candidate, token_candidate],
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum CandidateTokenRelation {
     Whole,
     PrefixWithContinuation,
@@ -256,24 +213,6 @@ fn contains(outer: &Range<usize>, inner: &Range<usize>) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn enumerates_candidate_extents_without_inferring_from_continuation() {
-        let candidates =
-            CandidateExtentPolicy::AnchorAndSurroundingToken.enumerate(0..3, 0..6, 0..9);
-
-        assert_eq!(candidates.len(), 2);
-        assert_eq!(candidates[0].consumed, 0..6);
-        assert_eq!(candidates[1].consumed, 0..9);
-    }
-
-    #[test]
-    fn preserves_the_token_left_context_while_consuming_from_the_anchor() {
-        let candidates = CandidateExtentPolicy::SurroundingToken.enumerate(6..9, 6..9, 0..12);
-
-        assert_eq!(candidates[0].consumed, 6..12);
-        assert_eq!(candidates[0].token, 0..12);
-    }
 
     #[test]
     fn maps_query_pos_to_structural_patterns() {

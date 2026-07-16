@@ -4,8 +4,8 @@ use unicode_normalization::UnicodeNormalization;
 
 use crate::{
     Analysis, BoundaryPolicy, BoundaryProof, CandidateConsumption, CandidateDecision,
-    CandidateExtentPolicy, CandidateProgram, CompileError, CompileErrorKind, CoreMapping,
-    NormalizationMode, Origin, QueryAtom,
+    CandidateProgram, CompileError, CompileErrorKind, CoreMapping, NormalizationMode, Origin,
+    QueryAtom,
 };
 use kfind_morph::ComponentCapability;
 
@@ -14,7 +14,6 @@ pub(super) struct DraftBranch {
     pub anchor: String,
     pub consumption: CandidateConsumption,
     pub core_mapping: CoreMapping,
-    pub extent: CandidateExtentPolicy,
     pub origin: Origin,
     pub smart_left: bool,
     pub decision: DraftDecision,
@@ -31,7 +30,6 @@ struct ProgramKey {
     anchor: Box<[u8]>,
     consumption: CandidateConsumption,
     core_mapping: CoreMapping,
-    extent: CandidateExtentPolicy,
     boundary: BoundaryProof,
     decision: DraftDecision,
 }
@@ -64,7 +62,6 @@ pub(super) fn normalize_and_merge(
                 anchor: anchor.as_bytes().into(),
                 consumption: draft.consumption.clone(),
                 core_mapping,
-                extent: draft.extent,
                 boundary: boundary_proof,
                 decision,
             };
@@ -103,7 +100,6 @@ fn materialize_program(merged: MergedProgram, analyses: &[Analysis]) -> Candidat
     let mut program = CandidateProgram {
         anchor: key.anchor,
         core_mapping: key.core_mapping,
-        extent: key.extent,
         consumption: key.consumption,
         origins,
         decision: CandidateDecision::Boundary(key.boundary),

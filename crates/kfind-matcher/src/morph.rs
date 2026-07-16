@@ -478,7 +478,6 @@ impl MorphMatcher {
                     candidate: &candidate.verified,
                     anchor: candidate.anchor.clone(),
                     consumed: candidate.consumed.clone(),
-                    extent: branch.extent,
                     patterns,
                 },
                 DEFAULT_LATTICE_NODE_LIMIT,

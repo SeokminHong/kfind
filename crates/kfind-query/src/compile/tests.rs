@@ -9,10 +9,7 @@ use kfind_morph::{
 };
 
 use super::*;
-use crate::{
-    BoundaryPolicy, CandidateExtentPolicy, CompileOptionOverrides, Lexicons, NormalizationMode,
-    PlanLimits,
-};
+use crate::{BoundaryPolicy, CompileOptionOverrides, Lexicons, NormalizationMode, PlanLimits};
 
 fn analyzer() -> LexiconQueryAnalyzer {
     LexiconQueryAnalyzer::new(Arc::new(Lexicons::embedded().unwrap()))
@@ -295,42 +292,6 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
             .programs
             .iter()
             .all(|branch| { !branch.boundary().require_right && !branch.decision.is_structural() })
-    );
-}
-
-#[test]
-fn candidate_programs_declare_their_consumed_extent() {
-    let noun = compile_query("n:권한", &CompileOptions::default(), &analyzer()).unwrap();
-    assert!(
-        noun.atoms[0]
-            .programs
-            .iter()
-            .all(|program| { program.extent == CandidateExtentPolicy::AnchorAndSurroundingToken })
-    );
-
-    let predicate = compile_query("걷다", &CompileOptions::default(), &analyzer()).unwrap();
-    assert!(
-        predicate.atoms[0]
-            .programs
-            .iter()
-            .all(|program| { program.extent == CandidateExtentPolicy::SurroundingToken })
-    );
-
-    let literal = compile_query(
-        "권한",
-        &CompileOptions::resolve(CompileOptionOverrides {
-            literal: true,
-            ..CompileOptionOverrides::default()
-        })
-        .unwrap(),
-        &analyzer(),
-    )
-    .unwrap();
-    assert!(
-        literal.atoms[0]
-            .programs
-            .iter()
-            .all(|program| program.extent == CandidateExtentPolicy::Anchor)
     );
 }
 

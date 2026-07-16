@@ -792,7 +792,6 @@ fn exact_branch(anchor: &str, require_left: bool) -> CandidateProgram {
         anchor: anchor.as_bytes().into(),
         consumption: CandidateConsumption::Anchor,
         core_mapping: CoreMapping::WholeAnchor,
-        extent: kfind_query::CandidateExtentPolicy::Anchor,
         origins: vec![origin(0, &[])],
         decision: CandidateDecision::Boundary(boundary),
     }
@@ -807,7 +806,6 @@ fn nominal_branch(anchor: &str, allowed_rule_ids: Arc<[RuleId]>) -> CandidatePro
             blocked_rule_ids: Arc::from([]),
         },
         core_mapping: CoreMapping::WholeAnchor,
-        extent: kfind_query::CandidateExtentPolicy::AnchorAndSurroundingToken,
         origins: vec![origin(0, &[])],
         decision: CandidateDecision::Boundary(boundary),
     }
@@ -831,7 +829,6 @@ fn predicate_branch(
             left_context: CandidateLeftContext::Any,
         },
         core_mapping: CoreMapping::PrefixBytes(core_len),
-        extent: kfind_query::CandidateExtentPolicy::SurroundingToken,
         origins,
         decision: CandidateDecision::Boundary(boundary),
     }

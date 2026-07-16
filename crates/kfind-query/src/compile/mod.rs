@@ -3,10 +3,10 @@ use std::sync::Arc;
 
 use crate::lexicons::{data_fine_pos, predicate_from_derivation};
 use crate::{
-    Analysis, AnalysisSource, AtomPlan, CandidateConsumption, CandidateExtentPolicy,
-    CandidateLeftContext, CandidateProgram, CompileError, CompileErrorKind, CompileOptions,
-    CoreMapping, ExpandMode, LexiconQueryAnalyzer, Morphology, Origin, QueryAnalyzer, QueryAtom,
-    QueryDiagnostic, QueryPlan, parse_query,
+    Analysis, AnalysisSource, AtomPlan, CandidateConsumption, CandidateLeftContext,
+    CandidateProgram, CompileError, CompileErrorKind, CompileOptions, CoreMapping, ExpandMode,
+    LexiconQueryAnalyzer, Morphology, Origin, QueryAnalyzer, QueryAtom, QueryDiagnostic, QueryPlan,
+    parse_query,
 };
 use kfind_data::{
     DICTIONARY_CONJUGATION_RULE_ID, DICTIONARY_RELATED_ADVERB_RULE_ID, DerivationRule,
@@ -302,7 +302,6 @@ fn compile_analysis(
                     blocked_rule_ids: Arc::from([]),
                 },
                 core_mapping: CoreMapping::WholeAnchor,
-                extent: CandidateExtentPolicy::AnchorAndSurroundingToken,
                 origin: Origin {
                     analysis_index,
                     rule_path: Vec::new(),
@@ -343,7 +342,6 @@ fn compile_analysis(
                     blocked_rule_ids,
                 },
                 core_mapping: CoreMapping::WholeAnchor,
-                extent: CandidateExtentPolicy::AnchorAndSurroundingToken,
                 origin: Origin {
                     analysis_index,
                     rule_path: Vec::new(),
@@ -387,7 +385,6 @@ fn compile_analysis(
                             rule_id: rule_id.clone(),
                         },
                         core_mapping: CoreMapping::WholeAnchor,
-                        extent: CandidateExtentPolicy::Anchor,
                         origin: Origin {
                             analysis_index,
                             rule_path: vec![rule_id.clone()],
@@ -468,7 +465,6 @@ fn compile_predicate(
                 left_context: environment,
             },
             core_mapping: CoreMapping::PrefixBytes(branch.core_len),
-            extent: CandidateExtentPolicy::SurroundingToken,
             origin: Origin {
                 analysis_index,
                 rule_path,
@@ -525,7 +521,6 @@ fn compile_derivations(
                     blocked_rule_ids: Arc::from([]),
                 },
                 core_mapping: CoreMapping::WholeAnchor,
-                extent: CandidateExtentPolicy::AnchorAndSurroundingToken,
                 origin: Origin {
                     analysis_index,
                     rule_path: derivation_path,
@@ -614,7 +609,6 @@ fn exact_branch_with_decision(
         anchor: surface.to_owned(),
         consumption: CandidateConsumption::Anchor,
         core_mapping: CoreMapping::WholeAnchor,
-        extent: CandidateExtentPolicy::Anchor,
         origin: Origin {
             analysis_index,
             rule_path,

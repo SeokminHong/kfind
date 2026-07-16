@@ -19,7 +19,6 @@ pub use compile::compile_query;
 pub use error::{
     CompileError, CompileErrorKind, PhraseJoinError, QueryError, QueryErrorKind, SourceSpan,
 };
-pub use kfind_morph::CandidateExtentPolicy;
 pub use lexer::parse_query;
 pub use lexicons::Lexicons;
 pub use options::{

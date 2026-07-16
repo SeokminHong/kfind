@@ -2,8 +2,8 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use kfind_morph::{
-    CandidateExtentPolicy, CandidateTokenRelation, ComponentCapability, ContinuationState,
-    MorphContinuation, ParticleTransition, PredicatePos, QueryMorphPattern, RuleId,
+    CandidateTokenRelation, ComponentCapability, ContinuationState, MorphContinuation,
+    ParticleTransition, PredicatePos, QueryMorphPattern, RuleId,
 };
 
 use crate::{Analysis, BoundaryPolicy, Morphology, NormalizationMode, PhrasePolicy, PlanLimits};
@@ -100,7 +100,6 @@ pub enum CoreMapping {
 pub struct CandidateProgram {
     pub anchor: Box<[u8]>,
     pub core_mapping: CoreMapping,
-    pub extent: CandidateExtentPolicy,
     pub consumption: CandidateConsumption,
     pub origins: Vec<Origin>,
     pub decision: CandidateDecision,

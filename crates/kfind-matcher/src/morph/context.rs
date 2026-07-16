@@ -1,8 +1,7 @@
 use std::ops::Range;
 
 use kfind_morph::{
-    BoundedTokenContext, CandidateExtentPolicy, ConstraintDecision, ConstraintResolver,
-    QueryMorphPattern,
+    BoundedTokenContext, CandidateSpans, ConstraintDecision, ConstraintResolver, QueryMorphPattern,
 };
 use kfind_query::VerifiedSpan;
 use unicode_normalization::UnicodeNormalization;
@@ -20,7 +19,6 @@ pub(super) struct StructuralRequest<'a> {
     pub(super) candidate: &'a VerifiedSpan,
     pub(super) anchor: Range<usize>,
     pub(super) consumed: Range<usize>,
-    pub(super) extent: CandidateExtentPolicy,
     pub(super) patterns: &'a [QueryMorphPattern],
 }
 
@@ -78,17 +76,17 @@ impl StructuralContextAnalysis {
             current: self.current.normalized(),
             next: self.next.as_deref(),
         };
-        Some(
-            request
-                .extent
-                .enumerate(core, anchor, token)
-                .into_iter()
-                .filter(|spans| spans.consumed == consumed)
-                .map(|spans| {
-                    resolver.resolve_candidate(context, spans, request.patterns, node_limit)
-                })
-                .collect(),
-        )
+        Some(vec![resolver.resolve_candidate(
+            context,
+            CandidateSpans {
+                core,
+                anchor,
+                consumed,
+                token,
+            },
+            request.patterns,
+            node_limit,
+        )])
     }
 }
 
