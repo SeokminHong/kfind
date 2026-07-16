@@ -19,6 +19,7 @@ try:
         select_manifest_sources,
         sha256,
     )
+    from .quality import contract_expected
 except ImportError:
     from dataset import (
         BenchmarkCase,
@@ -30,6 +31,7 @@ except ImportError:
         select_manifest_sources,
         sha256,
     )
+    from quality import contract_expected
 
 
 MAX_PRESENT_QUERIES_PER_SENTENCE = 3
@@ -405,10 +407,17 @@ def query_matrix_metrics(
     cases: list[dict[str, object]],
     predictions: dict[str, bool],
     seed: str,
+    *,
+    contract_adjusted: bool = False,
 ) -> dict[str, object]:
     groups: dict[str, list[dict[str, object]]] = defaultdict(list)
     for case in cases:
-        if case["expected"]:
+        expected = (
+            contract_expected(case)
+            if contract_adjusted
+            else bool(case["expected"])
+        )
+        if expected:
             groups[str(case["matrix_group_id"])].append(case)
     recovered_distribution: Counter[str] = Counter()
     cluster_counts = []

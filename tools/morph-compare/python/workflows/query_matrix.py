@@ -52,6 +52,15 @@ def build_query_matrix_report(
         )
         for backend, predictions in evaluation["predictions"].items()
     }
+    report["contract_adjusted_sentence_coverage"] = {
+        backend: query_matrix_metrics(
+            cases,
+            predictions,
+            "query-matrix-bootstrap-v1",
+            contract_adjusted=True,
+        )
+        for backend, predictions in evaluation["predictions"].items()
+    }
     return report
 
 

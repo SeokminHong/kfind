@@ -2210,13 +2210,14 @@ negative를 1:1로 유지한다. fixture에는 문장 group, `present-N`/`absent
 positive ID와 paired positive ID를 보존하고, metadata에는 문장 수, 문장당 질의 수 분포,
 품사 분포, canonical coverage와 source별 case 수를 기록한다.
 
-query matrix는 질의별 strict·계약 보정 품질과 성능 외에 문장별 모든 positive 회수율,
-회수한 질의 수 분포와 slot별 품질을 보고한다. 질의가 문장 안에서 독립이라는 가정을 하지
-않으며 recall 불확실성은 문장 group을 재표집하는 고정 seed 10,000회 cluster bootstrap 95%
-구간으로 기록한다. 고정 test matrix는 kfind의 embedded/full-POS와 smart/token/any,
-사람용 무품사 profile, Kiwi·Lindera·MeCab-ko·KOMORAN을 모두 측정한다. 외부 결과는 matrix
-fixture SHA-256에 묶인 별도 version-controlled snapshot으로 보존한다. development matrix는
-kfind 진단에만 사용한다.
+query matrix는 질의별 strict·계약 보정 품질과 성능을 병렬로 보고한다. 두 품질 축에는 각각
+confusion matrix, precision·recall·F1과 문장별 모든 positive 회수율을 포함한다. 회수한 질의 수
+분포와 slot별 품질도 strict·계약 보정 기대값을 구분해 보존한다. 질의가 문장 안에서
+독립이라는 가정을 하지 않으며 두 recall의 불확실성은 각각 문장 group을 재표집하는 고정 seed
+10,000회 cluster bootstrap 95% 구간으로 기록한다. 고정 test matrix는 kfind의
+embedded/full-POS와 smart/token/any, 사람용 무품사 profile,
+Kiwi·Lindera·MeCab-ko·KOMORAN을 모두 측정한다. 외부 결과는 matrix fixture SHA-256에 묶인
+별도 version-controlled snapshot으로 보존한다. development matrix는 kfind 진단에만 사용한다.
 
 query matrix는 기존 1,000-case 회귀선과 지표를 대체하거나 합치지 않는다. canonical 지표는
 장기 회귀 판정, matrix 지표는 같은 문장 안의 질의 다양성·부분 회수·동일 문장 false positive

@@ -126,19 +126,39 @@ class QueryMatrixTests(unittest.TestCase):
             {"id": "a-1", "expected": True, "matrix_group_id": "a"},
             {"id": "a-2", "expected": True, "matrix_group_id": "a"},
             {"id": "b-1", "expected": True, "matrix_group_id": "b"},
-            {"id": "b-n", "expected": False, "matrix_group_id": "b"},
+            {
+                "id": "b-n",
+                "expected": False,
+                "contract_expected": True,
+                "contract_reason": "same-pos-homograph",
+                "matrix_group_id": "b",
+            },
         ]
-        metrics = query_matrix_metrics(
+        predictions = {"a-1": True, "a-2": False, "b-1": True, "b-n": False}
+        strict = query_matrix_metrics(
             cases,
-            {"a-1": True, "a-2": False, "b-1": True, "b-n": False},
+            predictions,
             "fixed-seed",
         )
+        contract_adjusted = query_matrix_metrics(
+            cases,
+            predictions,
+            "fixed-seed",
+            contract_adjusted=True,
+        )
 
-        self.assertEqual(metrics["sentences"], 2)
-        self.assertEqual(metrics["all_present_queries_recovered"], 1)
-        self.assertEqual(metrics["all_present_queries_recovered_percent"], 50.0)
-        self.assertEqual(metrics["recovered_query_distribution"], {"1/2": 1, "1/1": 1})
-        self.assertEqual(metrics["bootstrap_resamples"], 10_000)
+        self.assertEqual(strict["sentences"], 2)
+        self.assertEqual(strict["all_present_queries_recovered"], 1)
+        self.assertEqual(strict["all_present_queries_recovered_percent"], 50.0)
+        self.assertEqual(
+            strict["recovered_query_distribution"], {"1/1": 1, "1/2": 1}
+        )
+        self.assertEqual(strict["bootstrap_resamples"], 10_000)
+        self.assertEqual(contract_adjusted["sentences"], 2)
+        self.assertEqual(contract_adjusted["all_present_queries_recovered"], 0)
+        self.assertEqual(
+            contract_adjusted["recovered_query_distribution"], {"1/2": 2}
+        )
 
 
 if __name__ == "__main__":

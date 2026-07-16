@@ -55,8 +55,9 @@ Strict FP와 FPᶜ는 모두 변하지 않았다. 신규 `numeric-unit` hard-neg
 
 ## Query matrix strict 품질
 
-Query matrix의 contract 기준은 이 작업 범위에 포함하지 않는다. 아래 표는 최신 main이 추가한
-동일 fixture의 strict 지표와 문장별 모든 positive query 회수 건수만 paired 비교한다.
+이 작업의 paired 비교는 strict 지표와 문장별 모든 positive query 회수 건수를 사용했다.
+후속 [query matrix 보고서](2026-07-17-query-matrix.md)는 같은 fixture의 contract-adjusted
+confusion matrix와 문장 회수율을 병렬로 기록한다.
 
 | fixture/profile | 기준 TP / FP / FN | 후보 TP / FP / FN | recall | 모든 질의 회수 |
 | --- | ---: | ---: | ---: | ---: |

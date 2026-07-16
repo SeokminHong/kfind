@@ -461,6 +461,14 @@ def evaluate_boundary_comparison(
                 baseline["predictions"][backend],
                 "query-matrix-bootstrap-v1",
             )
+            smart_quality["contract_adjusted_sentence_coverage"] = (
+                query_matrix_metrics(
+                    cases,
+                    baseline["predictions"][backend],
+                    "query-matrix-bootstrap-v1",
+                    contract_adjusted=True,
+                )
+            )
         results = {
             "smart": smart_quality
         }
@@ -482,6 +490,14 @@ def evaluate_boundary_comparison(
                     cases,
                     predictions,
                     "query-matrix-bootstrap-v1",
+                )
+                results[boundary]["contract_adjusted_sentence_coverage"] = (
+                    query_matrix_metrics(
+                        cases,
+                        predictions,
+                        "query-matrix-bootstrap-v1",
+                        contract_adjusted=True,
+                    )
                 )
         profiles[profile] = results
     return {
@@ -563,6 +579,12 @@ def evaluate_untagged_profile_runs(
     if all("matrix_group_id" in case for case in cases):
         result["sentence_coverage"] = query_matrix_metrics(
             cases, first[0], "query-matrix-bootstrap-v1"
+        )
+        result["contract_adjusted_sentence_coverage"] = query_matrix_metrics(
+            cases,
+            first[0],
+            "query-matrix-bootstrap-v1",
+            contract_adjusted=True,
         )
     return result, diagnostics[0]
 

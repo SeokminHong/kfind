@@ -21,9 +21,10 @@ selects up to three aligned present queries per sentence and pairs every positiv
 with an absent query of the same coarse POS in that sentence. The explicit-POS
 matrix evaluates kfind and all four external analyzers, while a separate untagged
 matrix evaluates the human kfind profiles. The `query_matrix` report section keeps
-query-level quality separate from all-present-query sentence coverage and records
-a sentence-cluster bootstrap 95% interval. The fixed 1,000-case regression baseline
-remains unchanged.
+query-level quality separate from all-present-query sentence coverage. It reports
+strict and contract-adjusted confusion matrices, sentence coverage, and
+sentence-cluster bootstrap 95% intervals in parallel. The fixed 1,000-case
+regression baseline remains unchanged.
 
 ```sh
 scripts/benchmark-morphology.sh
