@@ -374,6 +374,11 @@
 - 부사의 인접 동일 token 반복, 체언·지정사·의존명사 연속 구조와 조사 host
   이형태는 typed `AdjacentTokenConstraint`로 표현한다. query 표제어나 query 품사를
   corpus 구조 선택 힌트로 주입하지 않는다.
+- 현재 token에 관형사 whole 분석이 있고 다음 token이 체언으로 시작하면 관형사 구조를
+  선택한다. 현재 token에 체언 whole 분석이 있고 다음 token이 체언으로 시작하면, 현재
+  token을 끝내는 관형형 어미 path가 없는 경우에만 체언 구조를 선택한다. 따라서
+  `새 기능`의 `새`는 관형사이고 `주지 스님`의 `주지`는 명사로 판정하지만, 관형형
+  용언인 `건 사람`의 `건`은 predicate 후보를 유지한다.
 - `smart` 무품사 direct-particle program은 입력과 같은 표면형만 만든다. 품사를
   명시한 조사 query는 이형태 묶음을 만들 수 있지만 host 소리 조건과 완성된
   조사 연쇄를 graph 제약으로 증명해야 한다.
