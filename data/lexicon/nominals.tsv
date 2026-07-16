@@ -4,7 +4,8 @@ lemma	pos	flags	overrides
 길	NNG		
 나	NP		particle.subject=내가
 너	NP		particle.subject=네가
+누구	NP		particle.subject=누가
 단순	NNG	DERIVABLE	
 사용자	NNG		
-저	NP		particle.subject=제가
+저	NP		particle.subject=제가;particle.genitive=제
 기술	NNG	DERIVABLE	

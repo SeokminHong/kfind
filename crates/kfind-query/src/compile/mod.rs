@@ -92,6 +92,7 @@ const ADVERB_PARTICLE_RULE_IDS: &[&str] = &[
     "particle.even.jocha",
     "particle.even.majeo",
 ];
+const NON_REPLACING_NOMINAL_OVERRIDE_RULE_IDS: &[&str] = &["particle.genitive"];
 
 pub fn compile_query(
     source: &str,
@@ -628,6 +629,9 @@ fn blocked_override_rules(nominal: &crate::NominalMorphology) -> Arc<[RuleId]> {
     let mut rules = nominal
         .overrides
         .iter()
+        .filter(|override_form| {
+            !NON_REPLACING_NOMINAL_OVERRIDE_RULE_IDS.contains(&override_form.rule_id.as_str())
+        })
         .map(|override_form| override_form.rule_id.clone())
         .collect::<Vec<_>>();
     rules.sort();

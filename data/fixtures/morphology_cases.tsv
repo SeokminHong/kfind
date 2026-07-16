@@ -121,6 +121,9 @@ query	pos	text	expected	feature
 나	pronoun	내가 확인했다.	match	pronoun-override
 너	pronoun	네가 확인했다.	match	pronoun-override
 저	pronoun	제가 확인했다.	match	pronoun-override
+저	pronoun	제 생각을 설명했다.	match	pronoun-override
+저	pronoun	저의 생각을 설명했다.	match	pronoun-override
+누구	pronoun	누가 확인했는지 물었다.	match	pronoun-override
 걷다	verb	아침마다 공원을 걷고 돌아온다.	match	d-irregular
 걷다	verb	강변을 걷는 사람이 많다.	match	d-irregular
 걷다	verb	오늘 걸은 거리를 기록했다.	match	d-irregular

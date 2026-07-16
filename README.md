@@ -462,7 +462,7 @@ pnpm --dir packages/kfind run benchmark:startup
 pnpm --dir packages/kfind run pack:check
 ```
 
-The morphology fixture contains 585 positive and negative regression cases. The
+The morphology fixture contains 588 positive and negative regression cases. The
 Docker benchmark measures `kfind` on 1,000 cases generated from independent UD
 Korean-Kaist and KSL test splits, then compares it with pinned Kiwi, Lindera,
 MeCab-ko, and KOMORAN snapshots. Fuzz targets and their fixed seed corpora live

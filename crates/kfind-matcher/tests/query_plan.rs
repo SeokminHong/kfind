@@ -797,7 +797,7 @@ fn compiled_vcp_environment_is_canonical_normalization_safe() {
 }
 
 #[test]
-fn nominal_overrides_replace_the_same_base_particle_path() {
+fn nominal_overrides_preserve_replacement_and_alias_contracts() {
     for (query, override_form, rejected) in [
         ("나", "내가", "나가"),
         ("너", "네가", "너가"),
@@ -816,6 +816,19 @@ fn nominal_overrides_replace_the_same_base_particle_path() {
         );
         let topic = format!("{query}는");
         assert!(matcher.find_at_with_meta(topic.as_bytes(), 0).is_some());
+    }
+
+    for (query, override_form, base_form) in [
+        ("저", "제 생각", "저의 생각"),
+        ("누구", "누가 왔다", "누구를 기다렸다"),
+    ] {
+        let matcher = compile(query, CompileOptions::default());
+        assert!(
+            matcher
+                .find_at_with_meta(override_form.as_bytes(), 0)
+                .is_some()
+        );
+        assert!(matcher.find_at_with_meta(base_form.as_bytes(), 0).is_some());
     }
 }
 
