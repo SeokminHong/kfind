@@ -381,11 +381,14 @@ mod tests {
     }
 
     #[test]
-    fn ordinary_smart_adverbs_do_not_require_component_initialization() {
+    fn smart_adverbs_require_structural_initialization() {
         let engine = Engine::new().unwrap();
 
         for query in ["adv:빨리", "adv:매우"] {
-            engine.compile(query, &CompileOptions::default()).unwrap();
+            assert!(matches!(
+                engine.compile(query, &CompileOptions::default()),
+                Err(CompileMatcherError::ComponentResourceRequired)
+            ));
         }
     }
 
@@ -421,9 +424,9 @@ mod tests {
     }
 
     #[test]
-    fn smart_context_selects_the_same_maeil_analysis_for_every_query() {
+    fn smart_context_selects_maeil_by_structural_arrangement() {
         let engine = contextual_engine();
-        let copular = "독수리가 아니라 매일 것 같아";
+        let copular = "독수리가 아니라 매일 수도 있어";
         assert_eq!(matched_surfaces(&engine, "n:매", copular), ["매"]);
         for query in ["매일", "n:매일", "adv:매일"] {
             assert!(matched_surfaces(&engine, query, copular).is_empty());
@@ -446,9 +449,8 @@ mod tests {
         let object = "그는 집념으로 매일을 보내고 있었다.";
         assert_eq!(matched_surfaces(&engine, "매일", object), ["매일을"]);
         assert_eq!(matched_surfaces(&engine, "n:매일", object), ["매일을"]);
-        for query in ["n:매", "adv:매일"] {
-            assert!(matched_surfaces(&engine, query, object).is_empty());
-        }
+        assert!(matched_surfaces(&engine, "n:매", object).is_empty());
+        assert!(matched_surfaces(&engine, "adv:매일", object).is_empty());
     }
 
     #[test]
@@ -479,7 +481,7 @@ mod tests {
     }
 
     #[test]
-    fn smart_context_falls_back_on_invalid_utf8_inside_the_bounded_evidence() {
+    fn smart_context_rejects_invalid_utf8_inside_the_bounded_evidence() {
         let engine = contextual_engine();
         let matcher = engine
             .compile("n:매일", &CompileOptions::default())
@@ -488,7 +490,7 @@ mod tests {
         text.push(0xff);
         text.extend_from_slice(" 매일".as_bytes());
 
-        assert_eq!(matcher.find_all(&text).len(), 2);
+        assert!(matcher.find_all(&text).is_empty());
     }
 
     #[test]
@@ -570,7 +572,10 @@ mod tests {
                 component_entry("아니", "VCN"),
                 component_entry("라", "EC"),
                 component_entry("것", "NNB"),
-                component_entry("학생일", "NNG+VCP+ETM"),
+                component_entry("수도", "NNB+JX"),
+                component_entry("을", "JKO"),
+                component_entry("학생", "NNG"),
+                component_expression_entry("학생일", "NNG+VCP+ETM", "학생/NNG/*+이/VCP/*+ᆯ/ETM/*"),
             ],
             &matrix,
             b"DEFAULT 0 1 0\nHANGUL 0 1 2\n0xAC00..0xD7A3 HANGUL\n",
@@ -580,6 +585,14 @@ mod tests {
     }
 
     fn component_entry(surface: &str, pos: &str) -> MecabSourceMorphologyEntry {
+        component_expression_entry(surface, pos, "*")
+    }
+
+    fn component_expression_entry(
+        surface: &str,
+        pos: &str,
+        expression: &str,
+    ) -> MecabSourceMorphologyEntry {
         MecabSourceMorphologyEntry {
             surface: surface.to_owned(),
             pos: pos.to_owned(),
@@ -589,7 +602,7 @@ mod tests {
             analysis_type: "*".to_owned(),
             start_pos: "*".to_owned(),
             end_pos: "*".to_owned(),
-            expression: "*".to_owned(),
+            expression: expression.to_owned(),
         }
     }
 }

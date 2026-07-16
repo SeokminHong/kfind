@@ -10,8 +10,8 @@ use kfind_morph::{
 
 use super::*;
 use crate::{
-    BoundaryPolicy, CandidateDecision, CandidateExtentPolicy, CompileOptionOverrides, Lexicons,
-    NormalizationMode, PlanLimits,
+    BoundaryPolicy, CandidateExtentPolicy, CompileOptionOverrides, Lexicons, NormalizationMode,
+    PlanLimits,
 };
 
 fn analyzer() -> LexiconQueryAnalyzer {
@@ -199,7 +199,7 @@ fn canonical_mode_builds_nfc_and_nfd_anchors() {
         plan.atoms[0]
             .programs
             .iter()
-            .all(|branch| branch.boundary.one_scalar_anchor && branch.boundary.require_left)
+            .all(|branch| branch.boundary().one_scalar_anchor && branch.boundary().require_left)
     );
 }
 
@@ -210,12 +210,13 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
         smart_noun.atoms[0]
             .programs
             .iter()
-            .all(|branch| branch.boundary.require_left)
+            .all(|branch| branch.boundary().require_left)
     );
     assert!(smart_noun.atoms[0].programs.iter().any(|branch| {
-        matches!(branch.verifier, BranchVerifier::NominalParticles { .. })
-            && branch.decision
-                == CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime)
+        matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        ) && branch.decision.is_structural()
     }));
 
     let any_options = CompileOptions {
@@ -227,23 +228,23 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
         any_noun.atoms[0]
             .programs
             .iter()
-            .all(|branch| !branch.boundary.require_left && !branch.boundary.require_right)
+            .all(|branch| !branch.boundary().require_left && !branch.boundary().require_right)
     );
     assert!(
         any_noun.atoms[0]
             .programs
             .iter()
-            .all(|branch| branch.decision
-                != CandidateDecision::Structural(
-                    kfind_morph::ComponentCapability::SourceAndRuntime
-                ))
+            .all(|branch| !branch.decision.is_structural())
     );
 
     let smart_predicate =
         compile_query("검증하다", &CompileOptions::default(), &analyzer()).unwrap();
-    assert!(smart_predicate.atoms[0].programs.iter().all(|branch| {
-        branch.boundary.require_left && branch.decision == CandidateDecision::Boundary
-    }));
+    assert!(
+        smart_predicate.atoms[0]
+            .programs
+            .iter()
+            .all(|branch| { branch.boundary().require_left && !branch.decision.is_structural() })
+    );
     assert!(!smart_predicate.requires_component_resource());
 
     let smart_full_pos_predicate =
@@ -252,13 +253,7 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
         smart_full_pos_predicate.atoms[0]
             .programs
             .iter()
-            .all(|branch| {
-                branch.boundary.require_left
-                    && branch.decision
-                        == CandidateDecision::Structural(
-                            kfind_morph::ComponentCapability::SourceAndRuntime,
-                        )
-            })
+            .all(|branch| { branch.boundary().require_left && branch.decision.is_structural() })
     );
     assert!(smart_full_pos_predicate.requires_component_resource());
 
@@ -268,11 +263,7 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
         smart_copula.atoms[0]
             .programs
             .iter()
-            .all(|branch| !branch.boundary.require_left
-                && branch.decision
-                    == CandidateDecision::Structural(
-                        kfind_morph::ComponentCapability::SourceAndRuntime
-                    ))
+            .all(|branch| !branch.boundary().require_left && branch.decision.is_structural())
     );
 
     let token_options = CompileOptions {
@@ -280,22 +271,31 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
         ..CompileOptions::default()
     };
     let token_predicate = compile_query("검증하다", &token_options, &analyzer()).unwrap();
-    assert!(token_predicate.atoms[0].programs.iter().all(|branch| {
-        branch.boundary.require_left && branch.decision == CandidateDecision::Boundary
-    }));
+    assert!(
+        token_predicate.atoms[0]
+            .programs
+            .iter()
+            .all(|branch| { branch.boundary().require_left && !branch.decision.is_structural() })
+    );
     assert!(!token_predicate.requires_component_resource());
 
     let token_copula = compile_query("이다", &token_options, &analyzer()).unwrap();
     assert!(!token_copula.requires_component_resource());
-    assert!(token_copula.atoms[0].programs.iter().all(|branch| {
-        branch.boundary.require_left && branch.decision == CandidateDecision::Boundary
-    }));
+    assert!(
+        token_copula.atoms[0]
+            .programs
+            .iter()
+            .all(|branch| { branch.boundary().require_left && !branch.decision.is_structural() })
+    );
 
     let any_copula = compile_query("이다", &any_options, &analyzer()).unwrap();
     assert!(!any_copula.requires_component_resource());
-    assert!(any_copula.atoms[0].programs.iter().all(|branch| {
-        !branch.boundary.require_right && branch.decision == CandidateDecision::Boundary
-    }));
+    assert!(
+        any_copula.atoms[0]
+            .programs
+            .iter()
+            .all(|branch| { !branch.boundary().require_right && !branch.decision.is_structural() })
+    );
 }
 
 #[test]
@@ -346,7 +346,7 @@ fn candidate_programs_materialize_structural_patterns_from_plan_analyses() {
     )
     .unwrap();
     assert!(predicate.atoms[0].programs.iter().all(|program| {
-        let patterns = program.structural_patterns(&predicate.atoms[0]);
+        let patterns = program.structural_patterns();
         !patterns.is_empty()
             && patterns
                 .iter()
@@ -355,7 +355,7 @@ fn candidate_programs_materialize_structural_patterns_from_plan_analyses() {
 
     let adverb = compile_query("adv:빨리", &CompileOptions::default(), &analyzer()).unwrap();
     assert!(adverb.atoms[0].programs.iter().all(|program| {
-        let patterns = program.structural_patterns(&adverb.atoms[0]);
+        let patterns = program.structural_patterns();
         !patterns.is_empty()
             && patterns
                 .iter()
@@ -375,7 +375,7 @@ fn candidate_programs_materialize_structural_patterns_from_plan_analyses() {
         token.atoms[0]
             .programs
             .iter()
-            .all(|program| program.structural_patterns(&token.atoms[0]).is_empty())
+            .all(|program| program.structural_patterns().is_empty())
     );
 }
 
@@ -392,10 +392,12 @@ fn smart_exact_components_cover_nominals_predicates_and_determiners() {
         )
         .unwrap();
         assert!(plan.requires_component_resource());
-        assert!(plan.atoms[0].programs.iter().all(|branch| {
-            branch.decision
-                == CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime)
-        }));
+        assert!(
+            plan.atoms[0]
+                .programs
+                .iter()
+                .all(|branch| { branch.decision.is_structural() })
+        );
     }
 
     let determiner = compile_query(
@@ -408,10 +410,12 @@ fn smart_exact_components_cover_nominals_predicates_and_determiners() {
     )
     .unwrap();
     assert!(determiner.requires_component_resource());
-    assert!(determiner.atoms[0].programs.iter().all(|branch| {
-        branch.decision
-            == CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime)
-    }));
+    assert!(
+        determiner.atoms[0]
+            .programs
+            .iter()
+            .all(|branch| { branch.decision.is_structural() })
+    );
 
     for (query, pos) in [("걷다", CoarsePos::Verb), ("좋다", CoarsePos::Adjective)] {
         let plan = compile_query(
@@ -424,10 +428,12 @@ fn smart_exact_components_cover_nominals_predicates_and_determiners() {
         )
         .unwrap();
         assert!(plan.requires_component_resource());
-        assert!(plan.atoms[0].programs.iter().all(|branch| {
-            branch.decision
-                == CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime)
-        }));
+        assert!(
+            plan.atoms[0]
+                .programs
+                .iter()
+                .all(|branch| { branch.decision.is_structural() })
+        );
     }
 
     let adverb = compile_query(
@@ -471,10 +477,12 @@ fn smart_exact_components_cover_nominals_predicates_and_determiners() {
 fn smart_adverb_uses_structural_decision_without_changing_token_or_any() {
     let smart = compile_query("adv:매일", &CompileOptions::default(), &analyzer()).unwrap();
     assert!(smart.requires_component_resource());
-    assert!(smart.atoms[0].programs.iter().all(|branch| {
-        branch.decision
-            == CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime)
-    }));
+    assert!(
+        smart.atoms[0]
+            .programs
+            .iter()
+            .all(|branch| { branch.decision.is_structural() })
+    );
 
     for boundary in [BoundaryPolicy::Token, BoundaryPolicy::Any] {
         let plan = compile_query(
@@ -491,7 +499,7 @@ fn smart_adverb_uses_structural_decision_without_changing_token_or_any() {
             plan.atoms[0]
                 .programs
                 .iter()
-                .all(|branch| { branch.decision == CandidateDecision::Boundary })
+                .all(|branch| !branch.decision.is_structural())
         );
     }
 }
@@ -501,10 +509,12 @@ fn smart_adverbs_do_not_depend_on_a_surface_registry() {
     for query in ["adv:빨리", "adv:매우"] {
         let plan = compile_query(query, &CompileOptions::default(), &analyzer()).unwrap();
         assert!(plan.requires_component_resource());
-        assert!(plan.atoms[0].programs.iter().all(|branch| {
-            branch.decision
-                == CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime)
-        }));
+        assert!(
+            plan.atoms[0]
+                .programs
+                .iter()
+                .all(|branch| { branch.decision.is_structural() })
+        );
     }
 }
 
@@ -524,8 +534,8 @@ fn explicit_pos_smart_opens_only_the_connective_ji_left_boundary() {
         .iter()
         .find(|branch| branch.anchor.as_ref() == "걷지".as_bytes())
         .unwrap();
-    assert!(!connective.boundary.require_left);
-    assert!(connective.boundary.require_right);
+    assert!(!connective.boundary().require_left);
+    assert!(connective.boundary().require_right);
 
     let untagged_smart = compile_query("걷다", &CompileOptions::default(), &analyzer()).unwrap();
     let untagged_connective = untagged_smart.atoms[0]
@@ -533,8 +543,8 @@ fn explicit_pos_smart_opens_only_the_connective_ji_left_boundary() {
         .iter()
         .find(|branch| branch.anchor.as_ref() == "걷지".as_bytes())
         .unwrap();
-    assert!(untagged_connective.boundary.require_left);
-    assert!(untagged_connective.boundary.require_right);
+    assert!(untagged_connective.boundary().require_left);
+    assert!(untagged_connective.boundary().require_right);
 
     let explicit_token = compile_query(
         "걷다",
@@ -551,8 +561,8 @@ fn explicit_pos_smart_opens_only_the_connective_ji_left_boundary() {
         .iter()
         .find(|branch| branch.anchor.as_ref() == "걷지".as_bytes())
         .unwrap();
-    assert!(token_connective.boundary.require_left);
-    assert!(token_connective.boundary.require_right);
+    assert!(token_connective.boundary().require_left);
+    assert!(token_connective.boundary().require_right);
 }
 
 #[test]
@@ -561,10 +571,12 @@ fn smart_direct_particle_uses_host_verification_instead_of_a_left_boundary() {
     assert_eq!(smart.atoms[0].programs.len(), 1);
     assert_eq!(smart.atoms[0].programs[0].anchor.as_ref(), "는".as_bytes());
     assert!(smart.atoms[0].programs.iter().all(|branch| {
-        matches!(branch.verifier, BranchVerifier::DirectParticle { .. })
-            && !branch.boundary.require_left
-            && branch.boundary.require_right
-            && branch.boundary.one_scalar_anchor
+        matches!(
+            branch.consumption,
+            CandidateConsumption::DirectParticleHost { .. }
+        ) && !branch.boundary().require_left
+            && branch.boundary().require_right
+            && branch.boundary().one_scalar_anchor
     }));
 
     let token = compile_query(
@@ -580,7 +592,7 @@ fn smart_direct_particle_uses_host_verification_instead_of_a_left_boundary() {
         token.atoms[0]
             .programs
             .iter()
-            .all(|branch| branch.boundary.require_left && branch.boundary.require_right)
+            .all(|branch| branch.boundary().require_left && branch.boundary().require_right)
     );
 }
 
@@ -593,12 +605,9 @@ fn smart_one_scalar_rule_uses_the_source_atom_not_generated_surfaces() {
             .iter()
             .find(|branch| branch.anchor.as_ref() == surface.as_bytes())
             .unwrap_or_else(|| panic!("missing copula branch {surface}"));
-        assert!(!branch.boundary.one_scalar_anchor);
-        assert!(!branch.boundary.require_left);
-        assert_eq!(
-            branch.decision,
-            CandidateDecision::Structural(kfind_morph::ComponentCapability::SourceAndRuntime)
-        );
+        assert!(!branch.boundary().one_scalar_anchor);
+        assert!(!branch.boundary().require_left);
+        assert!(branch.decision.is_structural());
     }
 }
 
@@ -623,11 +632,11 @@ fn analysis_and_memory_limits_fail_observably() {
         ..CompileOptionOverrides::default()
     })
     .unwrap();
-    canonical.limits.max_branches = 1;
+    canonical.limits.max_programs = 1;
     let error = compile_query("가", &canonical, &analyzer()).unwrap_err();
     assert!(matches!(
         *error.kind,
-        CompileErrorKind::TooManyBranches { .. }
+        CompileErrorKind::TooManyPrograms { .. }
     ));
 
     let memory = CompileOptions {
@@ -721,8 +730,8 @@ fn required_predicate_surfaces_survive_rule_vocabulary_validation() {
         .find(|branch| {
             branch.anchor.as_ref() == "걸으".as_bytes()
                 && matches!(
-                    &branch.verifier,
-                    BranchVerifier::Predicate {
+                    &branch.consumption,
+                    CandidateConsumption::PredicateContinuation {
                         continuation: ContinuationState::Eu,
                         ..
                     }
@@ -737,7 +746,7 @@ fn required_predicate_surfaces_survive_rule_vocabulary_validation() {
             following,
         )
         .expect("required continuation");
-        assert!(eu.verifier.accepts_rule_path(&matched.rule_path));
+        assert!(eu.consumption.allows_rule_path(&matched.rule_path));
     }
 
     let pretty = compile_query("예쁘다", &CompileOptions::default(), &analyzer()).unwrap();
@@ -757,10 +766,10 @@ fn only_nominalizer_branches_enable_particle_transition() {
     let walking = compile_query("걷다", &CompileOptions::default(), &analyzer()).unwrap();
     let mut nominalizer_rules = BTreeSet::new();
     for branch in &walking.atoms[0].programs {
-        let BranchVerifier::Predicate {
+        let CandidateConsumption::PredicateContinuation {
             nominal_particle_transition,
             ..
-        } = &branch.verifier
+        } = &branch.consumption
         else {
             continue;
         };
@@ -807,12 +816,10 @@ fn derivation_nominal_particle_and_override_branches_use_distinct_verifiers() {
     }));
 
     let nominal = compile_query("사용자", &CompileOptions::default(), &analyzer()).unwrap();
-    assert!(
-        nominal.atoms[0]
-            .programs
-            .iter()
-            .any(|branch| matches!(&branch.verifier, BranchVerifier::NominalParticles { .. }))
-    );
+    assert!(nominal.atoms[0].programs.iter().any(|branch| matches!(
+        &branch.consumption,
+        CandidateConsumption::NominalParticleChain { .. }
+    )));
 
     let pronoun = compile_query("나", &CompileOptions::default(), &analyzer()).unwrap();
     assert!(
@@ -828,12 +835,12 @@ fn derivation_nominal_particle_and_override_branches_use_distinct_verifiers() {
         .expect("pronoun base branch");
     assert!(
         !base
-            .verifier
-            .accepts_rule_path(&[RuleId::from("particle.subject")])
+            .consumption
+            .allows_rule_path(&[RuleId::from("particle.subject")])
     );
     assert!(
-        base.verifier
-            .accepts_rule_path(&[RuleId::from("particle.topic")])
+        base.consumption
+            .allows_rule_path(&[RuleId::from("particle.topic")])
     );
 }
 
@@ -855,18 +862,18 @@ fn derivation_allows_adverb_auxiliaries_but_not_case_particles() {
 
         assert!(
             branch
-                .verifier
-                .accepts_rule_path(&[RuleId::from("particle.additive")])
+                .consumption
+                .allows_rule_path(&[RuleId::from("particle.additive")])
         );
         assert!(
             branch
-                .verifier
-                .accepts_rule_path(&[RuleId::from("particle.only")])
+                .consumption
+                .allows_rule_path(&[RuleId::from("particle.only")])
         );
         assert!(
             !branch
-                .verifier
-                .accepts_rule_path(&[RuleId::from("particle.subject")])
+                .consumption
+                .allows_rule_path(&[RuleId::from("particle.subject")])
         );
     }
 }
@@ -899,5 +906,5 @@ fn normalization_none_preserves_raw_jamo_while_nfc_composes_it() {
         nfc_plan.atoms[0].programs[0].anchor.as_ref(),
         "가".as_bytes()
     );
-    assert!(!nfc_plan.atoms[0].programs[0].boundary.one_scalar_anchor);
+    assert!(!nfc_plan.atoms[0].programs[0].boundary().one_scalar_anchor);
 }

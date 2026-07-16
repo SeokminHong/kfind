@@ -80,6 +80,33 @@ fn semantic_alternatives_with_one_structure_do_not_become_ambiguous() {
 }
 
 #[test]
+fn whole_inflected_analysis_supports_a_predicate_stem_program() {
+    let resolver = resolver();
+    let pattern = QueryMorphPattern::new(DataFinePos::Va, "곱").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("곱아"),
+        CandidateSpans {
+            core: 0.."곱".len(),
+            anchor: 0.."곱아".len(),
+            consumed: 0.."곱아".len(),
+            token: 0.."곱아".len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
 fn longest_nominal_particle_host_hides_an_inner_component() {
     let resolver = resolver();
     let inner = resolver.resolve_candidate(
@@ -110,6 +137,7 @@ fn resolver() -> ConstraintResolver {
         atomic("수도", "NNB+JX"),
         expression("일", "VCP+ETM", "이/VCP/*+ᆯ/ETM/*"),
         expression("걸었고", "VV+EP+EC", "걸/VV/*+었/EP/*+고/EC/*"),
+        atomic("곱아", "VA"),
     ];
     let matrix =
         parse_mecab_connection_matrix("matrix", Cursor::new("1 1\n0 0 0\n")).expect("valid matrix");

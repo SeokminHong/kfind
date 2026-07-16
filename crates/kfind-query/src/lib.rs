@@ -24,12 +24,13 @@ pub use lexer::parse_query;
 pub use lexicons::Lexicons;
 pub use options::{
     BoundaryPolicy, CompileOptionError, CompileOptionOverrides, CompileOptions,
-    DEFAULT_MAX_ANALYSES_PER_ATOM, DEFAULT_MAX_ATOMS, DEFAULT_MAX_BRANCHES,
-    DEFAULT_MAX_CONTINUATION_DEPTH, DEFAULT_MAX_MATCHER_BYTES, DEFAULT_MAX_QUERY_SCALARS,
-    ExpandMode, NormalizationMode, PlanLimits,
+    DEFAULT_MAX_ANALYSES_PER_ATOM, DEFAULT_MAX_ATOMS, DEFAULT_MAX_CONTINUATION_DEPTH,
+    DEFAULT_MAX_MATCHER_BYTES, DEFAULT_MAX_PROGRAMS, DEFAULT_MAX_QUERY_SCALARS, ExpandMode,
+    NormalizationMode, PlanLimits,
 };
 pub use phrase::{PhraseMatch, join_phrase_spans};
 pub use plan::{
-    AtomPlan, BoundaryProof, BranchEnvironment, BranchVerifier, CandidateDecision,
-    CandidateProgram, CoreMapping, Origin, QueryDiagnostic, QueryPlan, VerifiedSpan,
+    AtomPlan, BoundaryProof, CandidateConsumption, CandidateDecision, CandidateLeftContext,
+    CandidateProgram, CoreMapping, Origin, QueryDiagnostic, QueryPlan, StructuralConstraint,
+    VerifiedSpan,
 };

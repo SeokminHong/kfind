@@ -337,6 +337,9 @@ fn collect_pattern_supports(
         if supports.len() == support_start
             && pattern.component_capability.allows_runtime()
             && (evidence.runtime_spans.contains(&spans.core)
+                || (spans.consumed == spans.token
+                    && matches!(pattern.continuation, MorphContinuation::Predicate { .. })
+                    && evidence.has_whole(pattern.fine_pos))
                 || (!evidence.has_complete_path
                     && (spans.consumed == spans.token
                         || matches!(pattern.continuation, MorphContinuation::Predicate { .. }))))

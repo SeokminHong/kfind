@@ -12,8 +12,8 @@ use kfind_morph::{
     ParticleVerifier, ProductPolicy, RuleId, verify_predicate_continuation,
 };
 use kfind_query::{
-    BranchEnvironment, BranchVerifier, CandidateDecision, CandidateProgram, CoreMapping, Origin,
-    PhraseMatch, QueryPlan, VerifiedSpan,
+    CandidateConsumption, CandidateDecision, CandidateLeftContext, CandidateProgram, CoreMapping,
+    Origin, PhraseMatch, QueryPlan, VerifiedSpan,
 };
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
@@ -25,16 +25,16 @@ mod context;
 mod phrase;
 
 pub use candidates::LocalAnalysisCandidate;
-use context::StructuralContextAnalysis;
+use context::{StructuralContextAnalysis, StructuralRequest};
 use phrase::{PhraseMatchLimit, PhraseSelection, select_phrase_matches};
 
-const MAX_VERIFIER_BYTES: usize = 256;
+const MAX_CONSUMPTION_BYTES: usize = 256;
 /// A query-plan matcher backed by one shared set of unique anchors.
 #[derive(Debug)]
 pub struct MorphMatcher {
     plan: Arc<QueryPlan>,
     anchor_engine: AnchorEngine,
-    anchor_branches: Vec<Box<[BranchRef]>>,
+    anchor_programs: Vec<Box<[ProgramRef]>>,
     max_anchor_bytes: usize,
     is_line_local: bool,
     particle_verifier: ParticleVerifier,
@@ -108,13 +108,13 @@ impl MorphMatcher {
             return Err(MorphMatcherBuildError::ComponentResourceRequired);
         }
 
-        let (anchors, anchor_branches) = unique_anchors(&plan);
+        let (anchors, anchor_programs) = unique_anchors(&plan);
         let max_anchor_bytes = anchors.iter().map(|anchor| anchor.len()).max().unwrap_or(0);
         let is_line_local = anchors.iter().all(|anchor| !anchor.contains(&b'\n'));
         let anchor_engine = AnchorEngine::new_with_limits(
             &anchors,
             AnchorBuildLimits {
-                max_anchors: plan.limits.max_branches,
+                max_anchors: plan.limits.max_programs,
                 max_memory_bytes: plan.limits.max_matcher_bytes,
             },
         )?;
@@ -125,7 +125,7 @@ impl MorphMatcher {
         Ok(Self {
             plan,
             anchor_engine,
-            anchor_branches,
+            anchor_programs,
             max_anchor_bytes,
             is_line_local,
             particle_verifier,
@@ -229,10 +229,10 @@ impl MorphMatcher {
         let mut component_windows = HashSet::new();
         for hit in self.anchor_engine.hits(haystack, 0) {
             counters.raw_anchor_hits += 1;
-            for branch_ref in &self.anchor_branches[hit.anchor_index] {
+            for branch_ref in &self.anchor_programs[hit.anchor_index] {
                 let branch =
-                    &self.plan.atoms[branch_ref.atom_index].programs[branch_ref.branch_index];
-                let Some(candidate) = self.verify_branch_without_boundary(
+                    &self.plan.atoms[branch_ref.atom_index].programs[branch_ref.program_index];
+                let Some(candidate) = self.execute_program_without_decision(
                     haystack,
                     &hit,
                     branch,
@@ -240,10 +240,11 @@ impl MorphMatcher {
                 ) else {
                     continue;
                 };
-                if !self.accepts_branch(haystack, &candidate, branch_ref.atom_index, branch) {
-                    if matches!(branch.decision, CandidateDecision::Structural(_)) {
+                if !self.accepts_program(haystack, &candidate, branch) {
+                    if matches!(&branch.decision, CandidateDecision::Structural(_)) {
                         counters.exact_component_candidate_hits += 1;
-                        let window = surrounding_token_span(haystack, candidate.core);
+                        let window =
+                            surrounding_token_span(haystack, candidate.verified.core.clone());
                         component_windows.insert((window.start, window.end));
                     }
                     continue;
@@ -276,18 +277,14 @@ impl MorphMatcher {
             }) {
                 break;
             }
-            for branch_ref in &self.anchor_branches[hit.anchor_index] {
+            for branch_ref in &self.anchor_programs[hit.anchor_index] {
                 if branch_ref.atom_index != 0 {
                     continue;
                 }
-                let branch = &self.plan.atoms[0].programs[branch_ref.branch_index];
-                let Some(candidate) = self.verify_branch_with_metadata(
-                    haystack,
-                    &hit,
-                    branch_ref.atom_index,
-                    branch,
-                    metadata,
-                ) else {
+                let branch = &self.plan.atoms[0].programs[branch_ref.program_index];
+                let Some(candidate) =
+                    self.execute_program_with_metadata(haystack, &hit, branch, metadata)
+                else {
                     continue;
                 };
                 merge_best_span(&mut best, candidate);
@@ -327,16 +324,12 @@ impl MorphMatcher {
     ) -> Vec<Vec<VerifiedSpan>> {
         let mut atom_spans = vec![Vec::new(); self.plan.atoms.len()];
         for hit in self.anchor_engine.hits(haystack, at) {
-            for branch_ref in &self.anchor_branches[hit.anchor_index] {
+            for branch_ref in &self.anchor_programs[hit.anchor_index] {
                 let atom = &self.plan.atoms[branch_ref.atom_index];
-                let branch = &atom.programs[branch_ref.branch_index];
-                if let Some(span) = self.verify_branch_with_metadata(
-                    haystack,
-                    &hit,
-                    branch_ref.atom_index,
-                    branch,
-                    metadata,
-                ) {
+                let branch = &atom.programs[branch_ref.program_index];
+                if let Some(span) =
+                    self.execute_program_with_metadata(haystack, &hit, branch, metadata)
+                {
                     atom_spans[branch_ref.atom_index].push(span);
                 }
             }
@@ -347,64 +340,63 @@ impl MorphMatcher {
         atom_spans
     }
 
-    fn verify_branch_with_metadata(
+    fn execute_program_with_metadata(
         &self,
         haystack: &[u8],
         hit: &AnchorHit,
-        atom_index: usize,
         branch: &CandidateProgram,
         metadata: MatchMetadata,
     ) -> Option<VerifiedSpan> {
-        let candidate = self.verify_branch_without_boundary(haystack, hit, branch, metadata)?;
-        self.accepts_branch(haystack, &candidate, atom_index, branch)
-            .then_some(candidate)
+        let candidate = self.execute_program_without_decision(haystack, hit, branch, metadata)?;
+        self.accepts_program(haystack, &candidate, branch)
+            .then_some(candidate.verified)
     }
 
-    fn verify_branch_without_boundary(
+    fn execute_program_without_decision(
         &self,
         haystack: &[u8],
         hit: &AnchorHit,
         branch: &CandidateProgram,
         metadata: MatchMetadata,
-    ) -> Option<VerifiedSpan> {
+    ) -> Option<ExecutedCandidate> {
         let anchor = std::str::from_utf8(haystack.get(hit.span.clone())?).ok()?;
         let core = mapped_core(&hit.span, branch.core_mapping, anchor)?;
-        let (consumed_bytes, suffix_rules) = match &branch.verifier {
-            BranchVerifier::Exact => (0, Vec::new()),
-            BranchVerifier::Predicate {
+        let (consumed_bytes, suffix_rules) = match &branch.consumption {
+            CandidateConsumption::Anchor => (0, Vec::new()),
+            CandidateConsumption::PredicateContinuation {
                 continuation,
                 pos,
                 nominal_particle_transition,
-                environment,
+                left_context,
                 ..
             } => {
-                if !accepts_environment(environment, haystack, hit.span.start) {
+                if !accepts_left_context(left_context, haystack, hit.span.start) {
                     return None;
                 }
                 let following = valid_utf8_prefix(&haystack[hit.span.end..]);
-                let (verifier_anchor, verifier_following) =
-                    normalized_verifier_text(anchor, following);
+                let (consumption_anchor, consumption_following) =
+                    normalized_consumption_text(anchor, following);
                 let matched = verify_predicate_continuation(
                     *continuation,
                     *pos,
-                    &verifier_anchor,
-                    &verifier_following,
+                    &consumption_anchor,
+                    &consumption_following,
                 )?;
-                if !branch.verifier.accepts_rule_path(&matched.rule_path) {
+                if !branch.consumption.allows_rule_path(&matched.rule_path) {
                     return None;
                 }
                 let mut normalized_consumed = matched.consumed_bytes;
                 let mut rule_path = matched.rule_path;
                 if *nominal_particle_transition {
                     let particle = self.particle_verifier.verify_prefix(
-                        &verifier_anchor,
-                        &verifier_following[normalized_consumed..],
+                        &consumption_anchor,
+                        &consumption_following[normalized_consumed..],
                     );
                     normalized_consumed =
                         normalized_consumed.checked_add(particle.consumed_bytes)?;
                     rule_path.extend(particle.rule_path);
                 }
-                let consumed_bytes = match &verifier_following {
+                let consumed_bytes = match &consumption_following {
                     Cow::Borrowed(_) => normalized_consumed,
                     Cow::Owned(normalized) => {
                         map_normalized_prefix(following, normalized, normalized_consumed)?
@@ -412,17 +404,17 @@ impl MorphMatcher {
                 };
                 (consumed_bytes, rule_path)
             }
-            BranchVerifier::NominalParticles { .. } => {
+            CandidateConsumption::NominalParticleChain { .. } => {
                 let following = valid_utf8_prefix(&haystack[hit.span.end..]);
-                let (verifier_anchor, verifier_following) =
-                    normalized_verifier_text(anchor, following);
+                let (consumption_anchor, consumption_following) =
+                    normalized_consumption_text(anchor, following);
                 let matched = self
                     .particle_verifier
-                    .verify_prefix(&verifier_anchor, &verifier_following);
-                if !branch.verifier.accepts_rule_path(&matched.rule_path) {
+                    .verify_prefix(&consumption_anchor, &consumption_following);
+                if !branch.consumption.allows_rule_path(&matched.rule_path) {
                     return None;
                 }
-                let consumed_bytes = match &verifier_following {
+                let consumed_bytes = match &consumption_following {
                     Cow::Borrowed(_) => matched.consumed_bytes,
                     Cow::Owned(normalized) => {
                         map_normalized_prefix(following, normalized, matched.consumed_bytes)?
@@ -430,7 +422,7 @@ impl MorphMatcher {
                 };
                 (consumed_bytes, matched.rule_path)
             }
-            BranchVerifier::DirectParticle { rule_id } => {
+            CandidateConsumption::DirectParticleHost { rule_id } => {
                 if requires_direct_particle_host(branch)
                     && !self.accepts_direct_particle(haystack, &hit.span, rule_id)
                 {
@@ -444,27 +436,32 @@ impl MorphMatcher {
             return None;
         }
         let token = hit.span.start..token_end;
-        Some(VerifiedSpan {
-            core,
-            token,
-            origins: match metadata {
-                MatchMetadata::SpanOnly => Vec::new(),
-                MatchMetadata::Provenance => extend_origins(&branch.origins, &suffix_rules),
+        Some(ExecutedCandidate {
+            anchor: hit.span.clone(),
+            consumed: token.clone(),
+            verified: VerifiedSpan {
+                core,
+                token,
+                origins: match metadata {
+                    MatchMetadata::SpanOnly => Vec::new(),
+                    MatchMetadata::Provenance => extend_origins(&branch.origins, &suffix_rules),
+                },
             },
         })
     }
 
-    fn accepts_branch(
+    fn accepts_program(
         &self,
         haystack: &[u8],
-        candidate: &VerifiedSpan,
-        atom_index: usize,
+        candidate: &ExecutedCandidate,
         branch: &CandidateProgram,
     ) -> bool {
-        match branch.decision {
-            CandidateDecision::Boundary => self.accepts_token_boundary(haystack, candidate, branch),
+        match &branch.decision {
+            CandidateDecision::Boundary(_) => {
+                self.accepts_token_boundary(haystack, &candidate.verified, branch)
+            }
             CandidateDecision::Structural(_) => {
-                self.accepts_structural(haystack, candidate, atom_index, branch)
+                self.accepts_structural(haystack, candidate, branch)
             }
         }
     }
@@ -472,30 +469,41 @@ impl MorphMatcher {
     fn accepts_structural(
         &self,
         haystack: &[u8],
-        candidate: &VerifiedSpan,
-        atom_index: usize,
+        candidate: &ExecutedCandidate,
         branch: &CandidateProgram,
     ) -> bool {
         let Some(resolver) = self.constraint_resolver.as_ref() else {
             return false;
         };
-        if self.has_rejected_structural_suffix(haystack, candidate, branch, resolver) {
+        if self.has_rejected_structural_suffix(haystack, &candidate.verified, branch, resolver) {
             return false;
         }
-        let Some(atom) = self.plan.atoms.get(atom_index) else {
-            return false;
-        };
-        let patterns = branch.structural_patterns(atom);
+        let patterns = branch.structural_patterns();
         if patterns.is_empty() {
             return false;
         }
-        let Some(context) = StructuralContextAnalysis::extract(haystack, candidate.core.clone())
+        let Some(context) =
+            StructuralContextAnalysis::extract(haystack, candidate.verified.core.clone())
         else {
             return false;
         };
         context
-            .resolve(resolver, candidate, &patterns, DEFAULT_LATTICE_NODE_LIMIT)
-            .is_some_and(|decision| ProductPolicy::RecallFirst.accepts(&decision))
+            .resolve(
+                resolver,
+                StructuralRequest {
+                    candidate: &candidate.verified,
+                    anchor: candidate.anchor.clone(),
+                    consumed: candidate.consumed.clone(),
+                    extent: branch.extent,
+                    patterns,
+                },
+                DEFAULT_LATTICE_NODE_LIMIT,
+            )
+            .is_some_and(|decisions| {
+                decisions
+                    .iter()
+                    .any(|decision| ProductPolicy::RecallFirst.accepts(decision))
+            })
     }
 
     fn has_rejected_structural_suffix(
@@ -505,7 +513,10 @@ impl MorphMatcher {
         branch: &CandidateProgram,
         resolver: &ConstraintResolver,
     ) -> bool {
-        if !matches!(branch.verifier, BranchVerifier::NominalParticles { .. }) {
+        if !matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        ) {
             return false;
         }
         let whole = surrounding_token_span(haystack, candidate.core.clone());
@@ -534,12 +545,13 @@ impl MorphMatcher {
         candidate: &VerifiedSpan,
         branch: &CandidateProgram,
     ) -> bool {
+        let boundary = branch.boundary();
         accepts_requirements(
             haystack,
             candidate.core.clone(),
             candidate.token.clone(),
-            branch.boundary.require_left,
-            branch.boundary.require_right,
+            boundary.require_left,
+            boundary.require_right,
         )
     }
 
@@ -594,7 +606,7 @@ impl MorphMatcher {
     }
 }
 
-fn normalized_verifier_text<'a>(
+fn normalized_consumption_text<'a>(
     anchor: &'a str,
     following: &'a str,
 ) -> (Cow<'a, str>, Cow<'a, str>) {
@@ -608,7 +620,8 @@ fn normalized_verifier_text<'a>(
 }
 
 fn requires_direct_particle_host(branch: &CandidateProgram) -> bool {
-    !branch.boundary.require_left && branch.boundary.require_right
+    let boundary = branch.boundary();
+    !boundary.require_left && boundary.require_right
 }
 
 fn has_exact_nonparticle_analysis(resource: &ComponentResource, text: &str) -> bool {
@@ -627,14 +640,14 @@ fn has_exact_nonparticle_analysis(resource: &ComponentResource, text: &str) -> b
     matched
 }
 
-fn accepts_environment(
-    environment: &BranchEnvironment,
+fn accepts_left_context(
+    left_context: &CandidateLeftContext,
     haystack: &[u8],
     anchor_start: usize,
 ) -> bool {
-    match environment {
-        BranchEnvironment::Unrestricted => true,
-        BranchEnvironment::ContractedAfterVowel {
+    match left_context {
+        CandidateLeftContext::Any => true,
+        CandidateLeftContext::ContractedAfterVowel {
             uncontracted_prefix,
         } => {
             let Some(left_bytes) = haystack.get(..anchor_start) else {
@@ -694,20 +707,26 @@ enum MatchMetadata {
     Provenance,
 }
 
-#[derive(Debug, Clone, Copy)]
-struct BranchRef {
-    atom_index: usize,
-    branch_index: usize,
+struct ExecutedCandidate {
+    anchor: Range<usize>,
+    consumed: Range<usize>,
+    verified: VerifiedSpan,
 }
 
-type AnchorsAndBranches = (Vec<Box<[u8]>>, Vec<Box<[BranchRef]>>);
+#[derive(Debug, Clone, Copy)]
+struct ProgramRef {
+    atom_index: usize,
+    program_index: usize,
+}
 
-fn unique_anchors(plan: &QueryPlan) -> AnchorsAndBranches {
+type AnchorsAndPrograms = (Vec<Box<[u8]>>, Vec<Box<[ProgramRef]>>);
+
+fn unique_anchors(plan: &QueryPlan) -> AnchorsAndPrograms {
     let mut anchor_indices = HashMap::<Box<[u8]>, usize>::new();
     let mut anchors = Vec::<Box<[u8]>>::new();
-    let mut branch_lists = Vec::<Vec<BranchRef>>::new();
+    let mut program_lists = Vec::<Vec<ProgramRef>>::new();
     for (atom_index, atom) in plan.atoms.iter().enumerate() {
-        for (branch_index, branch) in atom.programs.iter().enumerate() {
+        for (program_index, branch) in atom.programs.iter().enumerate() {
             let anchor_index = if let Some(index) = anchor_indices.get(branch.anchor.as_ref()) {
                 *index
             } else {
@@ -715,18 +734,18 @@ fn unique_anchors(plan: &QueryPlan) -> AnchorsAndBranches {
                 let anchor = branch.anchor.clone();
                 anchor_indices.insert(anchor.clone(), index);
                 anchors.push(anchor);
-                branch_lists.push(Vec::new());
+                program_lists.push(Vec::new());
                 index
             };
-            branch_lists[anchor_index].push(BranchRef {
+            program_lists[anchor_index].push(ProgramRef {
                 atom_index,
-                branch_index,
+                program_index,
             });
         }
     }
     (
         anchors,
-        branch_lists
+        program_lists
             .into_iter()
             .map(Vec::into_boxed_slice)
             .collect(),
@@ -749,7 +768,7 @@ fn mapped_core(
 }
 
 fn valid_utf8_prefix(bytes: &[u8]) -> &str {
-    let mut end = bytes.len().min(MAX_VERIFIER_BYTES);
+    let mut end = bytes.len().min(MAX_CONSUMPTION_BYTES);
     while end < bytes.len() && end > 0 && bytes[end] & 0b1100_0000 == 0b1000_0000 {
         end -= 1;
     }
@@ -786,7 +805,7 @@ fn phrase_join_text(bytes: &[u8]) -> Cow<'_, str> {
 }
 
 fn valid_utf8_suffix(bytes: &[u8]) -> &str {
-    let mut remaining = &bytes[bytes.len().saturating_sub(MAX_VERIFIER_BYTES)..];
+    let mut remaining = &bytes[bytes.len().saturating_sub(MAX_CONSUMPTION_BYTES)..];
     loop {
         match std::str::from_utf8(remaining) {
             Ok(text) => return text,
@@ -914,7 +933,7 @@ impl Display for MorphMatcherBuildError {
                 formatter.write_str("a morphology matcher requires at least one atom")
             }
             Self::EmptyAtom { atom_index } => {
-                write!(formatter, "query atom {atom_index} has no search branches")
+                write!(formatter, "query atom {atom_index} has no search programs")
             }
             Self::ComponentResourceRequired => {
                 formatter.write_str("component resource is required for this query plan")

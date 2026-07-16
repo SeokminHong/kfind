@@ -8,8 +8,8 @@ use kfind_data::{
 use kfind_matcher::MorphMatcher;
 use kfind_morph::CoarsePos;
 use kfind_query::{
-    BoundaryPolicy, CandidateDecision, CompileOptions, ExpandMode, LexiconQueryAnalyzer, Lexicons,
-    NormalizationMode, compile_query,
+    BoundaryPolicy, CompileOptions, ExpandMode, LexiconQueryAnalyzer, Lexicons, NormalizationMode,
+    compile_query,
 };
 use unicode_normalization::UnicodeNormalization;
 
@@ -394,10 +394,7 @@ fn smart_vcp_corpus_fixtures_apply_component_evidence() {
         matcher.plan().atoms[0]
             .programs
             .iter()
-            .all(|branch| branch.decision
-                == CandidateDecision::Structural(
-                    kfind_morph::ComponentCapability::SourceAndRuntime
-                ))
+            .all(|branch| branch.decision.is_structural())
     );
 
     for fixture in VCP_BOUNDARY_FIXTURES {
@@ -467,10 +464,7 @@ fn canonical_vcp_corpus_fixtures_preserve_union_without_an_exact_resource_surfac
         matcher.plan().atoms[0]
             .programs
             .iter()
-            .all(|branch| branch.decision
-                == CandidateDecision::Structural(
-                    kfind_morph::ComponentCapability::SourceAndRuntime
-                ))
+            .all(|branch| branch.decision.is_structural())
     );
 }
 

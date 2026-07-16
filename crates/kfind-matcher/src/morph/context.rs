@@ -1,7 +1,8 @@
 use std::ops::Range;
 
 use kfind_morph::{
-    BoundedTokenContext, CandidateSpans, ConstraintDecision, ConstraintResolver, QueryMorphPattern,
+    BoundedTokenContext, CandidateExtentPolicy, ConstraintDecision, ConstraintResolver,
+    QueryMorphPattern,
 };
 use kfind_query::VerifiedSpan;
 use unicode_normalization::UnicodeNormalization;
@@ -13,6 +14,14 @@ pub(super) struct StructuralContextAnalysis {
     current: AnalysisWindow,
     previous: Option<String>,
     next: Option<String>,
+}
+
+pub(super) struct StructuralRequest<'a> {
+    pub(super) candidate: &'a VerifiedSpan,
+    pub(super) anchor: Range<usize>,
+    pub(super) consumed: Range<usize>,
+    pub(super) extent: CandidateExtentPolicy,
+    pub(super) patterns: &'a [QueryMorphPattern],
 }
 
 impl StructuralContextAnalysis {
@@ -55,27 +64,31 @@ impl StructuralContextAnalysis {
     pub(super) fn resolve(
         &self,
         resolver: &ConstraintResolver,
-        candidate: &VerifiedSpan,
-        patterns: &[QueryMorphPattern],
+        request: StructuralRequest<'_>,
         node_limit: usize,
-    ) -> Option<ConstraintDecision> {
-        let core = self.current.normalized_span(candidate.core.clone())?;
-        let consumed = self.current.normalized_span(candidate.token.clone())?;
-        Some(resolver.resolve_candidate(
-            BoundedTokenContext {
-                previous: self.previous.as_deref(),
-                current: self.current.normalized(),
-                next: self.next.as_deref(),
-            },
-            CandidateSpans {
-                core: core.clone(),
-                anchor: core,
-                consumed,
-                token: 0..self.current.normalized().len(),
-            },
-            patterns,
-            node_limit,
-        ))
+    ) -> Option<Vec<ConstraintDecision>> {
+        let core = self
+            .current
+            .normalized_span(request.candidate.core.clone())?;
+        let anchor = self.current.normalized_span(request.anchor)?;
+        let consumed = self.current.normalized_span(request.consumed)?;
+        let token = 0..self.current.normalized().len();
+        let context = BoundedTokenContext {
+            previous: self.previous.as_deref(),
+            current: self.current.normalized(),
+            next: self.next.as_deref(),
+        };
+        Some(
+            request
+                .extent
+                .enumerate(core, anchor, token)
+                .into_iter()
+                .filter(|spans| spans.consumed == consumed)
+                .map(|spans| {
+                    resolver.resolve_candidate(context, spans, request.patterns, node_limit)
+                })
+                .collect(),
+        )
     }
 }
 

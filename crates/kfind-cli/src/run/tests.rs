@@ -60,7 +60,7 @@ fn run(args: Args, stdin: &[u8], stdin_is_terminal: bool) -> (ExitStatus, Vec<u8
 
 #[test]
 fn piped_stdin_is_the_default_and_sets_match_exit_status() {
-    let args = Args::try_parse_from(["kfind", "걷다"]).unwrap();
+    let args = Args::try_parse_from(["kfind", "--embedded", "걷다"]).unwrap();
 
     let (status, stdout, stderr) = run(args, "길을 걸어 갔다.\n".as_bytes(), false);
 
@@ -73,7 +73,8 @@ fn piped_stdin_is_the_default_and_sets_match_exit_status() {
 fn a_file_without_matches_returns_one() {
     let temp = TempDir::new();
     let path = temp.write("sample.txt", "멈췄다.\n");
-    let args = Args::try_parse_from(["kfind", "걷다", path.to_str().unwrap()]).unwrap();
+    let args =
+        Args::try_parse_from(["kfind", "--embedded", "걷다", path.to_str().unwrap()]).unwrap();
 
     let (status, stdout, stderr) = run(args, &[], true);
 
@@ -86,7 +87,14 @@ fn a_file_without_matches_returns_one() {
 fn count_reports_matching_lines() {
     let temp = TempDir::new();
     let path = temp.write("sample.txt", "걸어 갔다.\n또 걸었다.\n");
-    let args = Args::try_parse_from(["kfind", "--count", "걷다", path.to_str().unwrap()]).unwrap();
+    let args = Args::try_parse_from([
+        "kfind",
+        "--embedded",
+        "--count",
+        "걷다",
+        path.to_str().unwrap(),
+    ])
+    .unwrap();
 
     let (status, stdout, _) = run(args, &[], true);
 
@@ -101,6 +109,7 @@ fn search_issues_are_reported_and_return_two() {
     let missing = temp.0.join("missing.txt");
     let args = Args::try_parse_from([
         "kfind",
+        "--embedded",
         "걷다",
         missing.to_str().unwrap(),
         valid.to_str().unwrap(),
@@ -303,7 +312,7 @@ fn corrupt_component_resource_fails_before_output() {
 }
 
 #[test]
-fn default_smart_loads_component_resource_and_rejects_crossing_substrings() {
+fn default_smart_loads_component_resource_and_keeps_supported_components() {
     let temp = TempDir::new();
     temp.write_bytes(COMPONENT_RESOURCE_FILE, &component_resource());
     let accepted_args = component_args(&temp, "권한");
@@ -316,9 +325,9 @@ fn default_smart_loads_component_resource_and_rejects_crossing_substrings() {
     assert_eq!(accepted.0, ExitStatus::Match);
     assert_eq!(accepted.1, "사용자권한\n".as_bytes());
 
-    let rejected = run(component_args(&temp, "학교"), "대학교\n".as_bytes(), false);
-    assert_eq!(rejected.0, ExitStatus::NoMatch);
-    assert!(rejected.1.is_empty());
+    let component = run(component_args(&temp, "학교"), "대학교\n".as_bytes(), false);
+    assert_eq!(component.0, ExitStatus::Match);
+    assert_eq!(component.1, "대학교\n".as_bytes());
 }
 
 #[test]

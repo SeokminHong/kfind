@@ -26,7 +26,7 @@ impl QueryPlan {
         self.atoms.iter().any(|atom| {
             atom.programs
                 .iter()
-                .any(|program| matches!(program.decision, CandidateDecision::Structural(_)))
+                .any(|program| program.decision.is_structural())
         })
     }
 }
@@ -39,44 +39,43 @@ pub struct AtomPlan {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum BranchVerifier {
-    Exact,
-    Predicate {
+pub enum CandidateConsumption {
+    Anchor,
+    PredicateContinuation {
         continuation: ContinuationState,
         pos: PredicatePos,
         allowed_rule_ids: Arc<[RuleId]>,
         nominal_particle_transition: bool,
-        environment: BranchEnvironment,
+        left_context: CandidateLeftContext,
     },
-    NominalParticles {
+    NominalParticleChain {
         allowed_rule_ids: Arc<[RuleId]>,
         blocked_rule_ids: Arc<[RuleId]>,
     },
-    DirectParticle {
+    DirectParticleHost {
         rule_id: RuleId,
     },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum BranchEnvironment {
-    Unrestricted,
+pub enum CandidateLeftContext {
+    Any,
     ContractedAfterVowel { uncontracted_prefix: Box<str> },
 }
 
-impl BranchVerifier {
+impl CandidateConsumption {
     #[must_use]
-    pub fn accepts_rule_path(&self, rules: &[RuleId]) -> bool {
+    pub fn allows_rule_path(&self, rules: &[RuleId]) -> bool {
         match self {
-            Self::Exact => rules.is_empty(),
-            Self::DirectParticle { .. } => rules.is_empty(),
-            Self::Predicate {
+            Self::Anchor | Self::DirectParticleHost { .. } => rules.is_empty(),
+            Self::PredicateContinuation {
                 allowed_rule_ids, ..
             } => rules.iter().all(|rule| {
                 allowed_rule_ids
                     .binary_search_by_key(&rule.as_str(), |known| known.as_str())
                     .is_ok()
             }),
-            Self::NominalParticles {
+            Self::NominalParticleChain {
                 allowed_rule_ids,
                 blocked_rule_ids,
             } => rules.iter().all(|rule| {
@@ -100,29 +99,56 @@ pub enum CoreMapping {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CandidateProgram {
     pub anchor: Box<[u8]>,
-    pub verifier: BranchVerifier,
     pub core_mapping: CoreMapping,
     pub extent: CandidateExtentPolicy,
+    pub consumption: CandidateConsumption,
     pub origins: Vec<Origin>,
-    pub boundary: BoundaryProof,
     pub decision: CandidateDecision,
 }
 
 impl CandidateProgram {
     #[must_use]
-    pub fn structural_patterns(&self, atom: &AtomPlan) -> Vec<QueryMorphPattern> {
-        if atom.boundary != BoundaryPolicy::Smart {
-            return Vec::new();
+    pub fn structural_patterns(&self) -> &[QueryMorphPattern] {
+        match &self.decision {
+            CandidateDecision::Boundary(_) => &[],
+            CandidateDecision::Structural(constraint) => &constraint.patterns,
         }
-        let Some((token_relation, continuation)) = self.pattern_continuation() else {
-            return Vec::new();
-        };
-        let CandidateDecision::Structural(component_capability) = self.decision else {
+    }
+
+    #[must_use]
+    pub fn boundary(&self) -> BoundaryProof {
+        self.decision.boundary()
+    }
+
+    pub fn set_boundary(&mut self, boundary: BoundaryProof) {
+        match &mut self.decision {
+            CandidateDecision::Boundary(current) => *current = boundary,
+            CandidateDecision::Structural(constraint) => constraint.boundary = boundary,
+        }
+    }
+
+    pub fn apply_structural_constraint(
+        &mut self,
+        analyses: &[Analysis],
+        component_capability: ComponentCapability,
+    ) {
+        self.decision = CandidateDecision::Structural(StructuralConstraint {
+            patterns: self.query_morph_patterns(analyses, component_capability),
+            boundary: self.boundary(),
+        });
+    }
+
+    fn query_morph_patterns(
+        &self,
+        analyses: &[Analysis],
+        component_capability: ComponentCapability,
+    ) -> Vec<QueryMorphPattern> {
+        let Some((token_relation, continuation)) = self.morph_contract() else {
             return Vec::new();
         };
         let mut patterns = Vec::new();
         for origin in &self.origins {
-            let Some(analysis) = atom.analyses.get(usize::from(origin.analysis_index)) else {
+            let Some(analysis) = analyses.get(usize::from(origin.analysis_index)) else {
                 continue;
             };
             let lexical_form = match &analysis.morphology {
@@ -148,10 +174,12 @@ impl CandidateProgram {
         patterns
     }
 
-    fn pattern_continuation(&self) -> Option<(CandidateTokenRelation, MorphContinuation)> {
-        Some(match &self.verifier {
-            BranchVerifier::Exact => (CandidateTokenRelation::Whole, MorphContinuation::Exact),
-            BranchVerifier::Predicate {
+    fn morph_contract(&self) -> Option<(CandidateTokenRelation, MorphContinuation)> {
+        Some(match &self.consumption {
+            CandidateConsumption::Anchor => {
+                (CandidateTokenRelation::Whole, MorphContinuation::Exact)
+            }
+            CandidateConsumption::PredicateContinuation {
                 continuation,
                 nominal_particle_transition,
                 ..
@@ -162,19 +190,40 @@ impl CandidateProgram {
                     nominal_particles: *nominal_particle_transition,
                 },
             ),
-            BranchVerifier::NominalParticles { .. } => (
+            CandidateConsumption::NominalParticleChain { .. } => (
                 CandidateTokenRelation::PrefixWithContinuation,
                 MorphContinuation::NominalParticles,
             ),
-            BranchVerifier::DirectParticle { .. } => return None,
+            CandidateConsumption::DirectParticleHost { .. } => return None,
         })
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum CandidateDecision {
-    Boundary,
-    Structural(ComponentCapability),
+    Boundary(BoundaryProof),
+    Structural(StructuralConstraint),
+}
+
+impl CandidateDecision {
+    #[must_use]
+    pub const fn boundary(&self) -> BoundaryProof {
+        match self {
+            Self::Boundary(boundary) => *boundary,
+            Self::Structural(constraint) => constraint.boundary,
+        }
+    }
+
+    #[must_use]
+    pub const fn is_structural(&self) -> bool {
+        matches!(self, Self::Structural(_))
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct StructuralConstraint {
+    pub patterns: Vec<QueryMorphPattern>,
+    pub boundary: BoundaryProof,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -201,5 +250,5 @@ pub struct VerifiedSpan {
 pub enum QueryDiagnostic {
     FullPosLexiconUnavailable,
     UnregisteredDaLiteralOnly { atom_index: usize, lemma: Box<str> },
-    VerifierVocabularyRestricted { excluded_rule_ids: Box<[RuleId]> },
+    RuleVocabularyRestricted { excluded_rule_ids: Box<[RuleId]> },
 }

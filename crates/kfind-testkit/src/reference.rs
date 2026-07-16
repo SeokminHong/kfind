@@ -6,8 +6,8 @@ use std::sync::Arc;
 
 use kfind_morph::{ContinuationState, PredicatePos, RuleId};
 use kfind_query::{
-    BranchEnvironment, BranchVerifier, CandidateProgram, CoreMapping, Origin, PhraseJoinError,
-    PhraseMatch, QueryPlan, VerifiedSpan, join_phrase_spans,
+    CandidateConsumption, CandidateLeftContext, CandidateProgram, CoreMapping, Origin,
+    PhraseJoinError, PhraseMatch, QueryPlan, VerifiedSpan, join_phrase_spans,
 };
 use unicode_general_category::{GeneralCategory, get_general_category};
 use unicode_normalization::{UnicodeNormalization, is_nfc};
@@ -26,17 +26,17 @@ impl ReferenceMatcher {
             if atom.programs.is_empty() {
                 return Err(ReferenceMatcherBuildError::EmptyAtom { atom_index });
             }
-            for (branch_index, branch) in atom.programs.iter().enumerate() {
+            for (program_index, branch) in atom.programs.iter().enumerate() {
                 if branch.anchor.is_empty() {
                     return Err(ReferenceMatcherBuildError::EmptyAnchor {
                         atom_index,
-                        branch_index,
+                        program_index,
                     });
                 }
                 if std::str::from_utf8(&branch.anchor).is_err() {
                     return Err(ReferenceMatcherBuildError::InvalidAnchorUtf8 {
                         atom_index,
-                        branch_index,
+                        program_index,
                     });
                 }
             }
@@ -98,7 +98,7 @@ impl ReferenceMatcher {
         {
             for (atom_index, atom) in self.plan.atoms.iter().enumerate() {
                 for branch in &atom.programs {
-                    if let Some(span) = self.verify_branch(text, start, branch) {
+                    if let Some(span) = self.execute_program(text, start, branch) {
                         atom_spans[atom_index].push(span);
                     }
                 }
@@ -110,7 +110,7 @@ impl ReferenceMatcher {
         atom_spans
     }
 
-    fn verify_branch(
+    fn execute_program(
         &self,
         text: &str,
         start: usize,
@@ -127,43 +127,46 @@ impl ReferenceMatcher {
         let normalized_following = normalized_anchor
             .is_some()
             .then(|| following.nfc().collect::<String>());
-        let verifier_anchor = normalized_anchor.as_deref().unwrap_or(anchor);
-        let verifier_following = normalized_following.as_deref().unwrap_or(following);
-        let (normalized_consumed, suffix_rules) = match &branch.verifier {
-            BranchVerifier::Exact => (0, Vec::new()),
-            BranchVerifier::Predicate {
+        let consumption_anchor = normalized_anchor.as_deref().unwrap_or(anchor);
+        let consumption_following = normalized_following.as_deref().unwrap_or(following);
+        let (normalized_consumed, suffix_rules) = match &branch.consumption {
+            CandidateConsumption::Anchor => (0, Vec::new()),
+            CandidateConsumption::PredicateContinuation {
                 continuation,
                 pos,
                 nominal_particle_transition,
-                environment,
+                left_context,
                 ..
             } => {
-                if !accepts_environment(environment, text, start) {
+                if !accepts_left_context(left_context, text, start) {
                     return None;
                 }
                 let (mut consumed, mut rules) =
-                    reference_predicate_continuation(*continuation, *pos, verifier_following)?;
-                if !branch.verifier.accepts_rule_path(&rules) {
+                    reference_predicate_continuation(*continuation, *pos, consumption_following)?;
+                if !branch.consumption.allows_rule_path(&rules) {
                     return None;
                 }
                 if *nominal_particle_transition {
-                    let host = format!("{verifier_anchor}{}", verifier_following.get(..consumed)?);
+                    let host = format!(
+                        "{consumption_anchor}{}",
+                        consumption_following.get(..consumed)?
+                    );
                     let (particle_consumed, particle_rules) =
-                        self.reference_particles(&host, &verifier_following[consumed..]);
+                        self.reference_particles(&host, &consumption_following[consumed..]);
                     consumed = consumed.checked_add(particle_consumed)?;
                     rules.extend(particle_rules);
                 }
                 (consumed, rules)
             }
-            BranchVerifier::NominalParticles { .. } => {
+            CandidateConsumption::NominalParticleChain { .. } => {
                 let (consumed, rules) =
-                    self.reference_particles(verifier_anchor, verifier_following);
-                if !branch.verifier.accepts_rule_path(&rules) {
+                    self.reference_particles(consumption_anchor, consumption_following);
+                if !branch.consumption.allows_rule_path(&rules) {
                     return None;
                 }
                 (consumed, rules)
             }
-            BranchVerifier::DirectParticle { rule_id } => {
+            CandidateConsumption::DirectParticleHost { rule_id } => {
                 if requires_direct_particle_host(branch)
                     && !self.accepts_direct_particle(text, start, anchor_end, rule_id)
                 {
@@ -649,13 +652,14 @@ fn reference_predicate_continuation(
 }
 
 fn requires_direct_particle_host(branch: &CandidateProgram) -> bool {
-    !branch.boundary.require_left && branch.boundary.require_right
+    let boundary = branch.boundary();
+    !boundary.require_left && boundary.require_right
 }
 
-fn accepts_environment(environment: &BranchEnvironment, text: &str, start: usize) -> bool {
-    match environment {
-        BranchEnvironment::Unrestricted => true,
-        BranchEnvironment::ContractedAfterVowel {
+fn accepts_left_context(left_context: &CandidateLeftContext, text: &str, start: usize) -> bool {
+    match left_context {
+        CandidateLeftContext::Any => true,
+        CandidateLeftContext::ContractedAfterVowel {
             uncontracted_prefix,
         } => {
             let normalized_left = text[..start].nfc().collect::<String>();
@@ -710,6 +714,7 @@ fn accepts_boundaries(
     token: &Range<usize>,
     branch: &CandidateProgram,
 ) -> bool {
+    let boundary = branch.boundary();
     let valid = token.start <= core.start
         && core.start <= core.end
         && core.end <= token.end
@@ -717,12 +722,12 @@ fn accepts_boundaries(
         && text.is_char_boundary(token.start)
         && text.is_char_boundary(token.end);
     valid
-        && (!branch.boundary.require_left
+        && (!boundary.require_left
             || text[..token.start]
                 .chars()
                 .next_back()
                 .is_none_or(|character| !is_reference_token_character(character)))
-        && (!branch.boundary.require_right
+        && (!boundary.require_right
             || text[token.end..]
                 .chars()
                 .next()
@@ -792,11 +797,11 @@ pub enum ReferenceMatcherBuildError {
     },
     EmptyAnchor {
         atom_index: usize,
-        branch_index: usize,
+        program_index: usize,
     },
     InvalidAnchorUtf8 {
         atom_index: usize,
-        branch_index: usize,
+        program_index: usize,
     },
 }
 
@@ -809,22 +814,22 @@ impl Display for ReferenceMatcherBuildError {
             Self::EmptyAtom { atom_index } => {
                 write!(
                     formatter,
-                    "query atom {atom_index} has no reference branches"
+                    "query atom {atom_index} has no reference programs"
                 )
             }
             Self::EmptyAnchor {
                 atom_index,
-                branch_index,
+                program_index,
             } => write!(
                 formatter,
-                "query atom {atom_index} branch {branch_index} has an empty anchor"
+                "query atom {atom_index} program {program_index} has an empty anchor"
             ),
             Self::InvalidAnchorUtf8 {
                 atom_index,
-                branch_index,
+                program_index,
             } => write!(
                 formatter,
-                "query atom {atom_index} branch {branch_index} has a non-UTF-8 anchor"
+                "query atom {atom_index} program {program_index} has a non-UTF-8 anchor"
             ),
         }
     }

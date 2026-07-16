@@ -48,11 +48,11 @@ pub(super) fn write_query_plan(
                 writeln!(writer, "{}", alternation_label(predicate.alternation))?;
             }
         }
-        write_label(writer, language, "branches", "분기_수", 2)?;
-        writeln!(writer, "{}", atom.branches.len())?;
+        write_label(writer, language, "programs", "프로그램_수", 2)?;
+        writeln!(writer, "{}", atom.programs.len())?;
         write_section_label(writer, language, "anchors", "앵커", 2)?;
         let anchors = atom
-            .branches
+            .programs
             .iter()
             .map(|branch| branch.anchor.as_ref())
             .collect::<BTreeSet<_>>();
@@ -61,14 +61,14 @@ pub(super) fn write_query_plan(
             write_safe_bytes(writer, anchor)?;
             writer.write_all(b"\n")?;
         }
-        let verifier_states = atom
-            .branches
+        let consumption_states = atom
+            .programs
             .iter()
-            .map(|branch| &branch.verifier)
+            .map(|program| &program.consumption)
             .collect::<HashSet<_>>()
             .len();
-        write_label(writer, language, "verifier_states", "검증기_상태_수", 2)?;
-        writeln!(writer, "{verifier_states}")?;
+        write_label(writer, language, "consumption_states", "소비_상태_수", 2)?;
+        writeln!(writer, "{consumption_states}")?;
     }
     write_label(writer, language, "max_gap", "최대_거리", 0)?;
     writeln!(writer, "{}", plan.phrase_policy.max_gap)?;
@@ -249,12 +249,12 @@ fn write_diagnostic(
             )?;
             write_safe_bytes(writer, lemma.as_bytes())
         }
-        QueryDiagnostic::VerifierVocabularyRestricted { excluded_rule_ids } => {
+        QueryDiagnostic::RuleVocabularyRestricted { excluded_rule_ids } => {
             writer.write_all(
                 language
                     .select(
-                        "verifier vocabulary excluded rules:",
-                        "verifier vocabulary에서 제외된 규칙:",
+                        "candidate rule vocabulary excluded rules:",
+                        "candidate 규칙 어휘에서 제외된 규칙:",
                     )
                     .as_bytes(),
             )?;

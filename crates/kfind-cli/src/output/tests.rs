@@ -236,7 +236,8 @@ fn explain_outputs_show_the_plan_and_match_provenance() {
     let query = String::from_utf8(query.into_inner()).unwrap();
     assert!(query.contains("query: 걷다"));
     assert!(query.contains("alternation: d-to-l"));
-    assert!(query.contains("  verifier_states:"));
+    assert!(query.contains("  programs:"));
+    assert!(query.contains("  consumption_states:"));
     assert!(query.contains("normalization: nfc"));
     assert!(query.contains("estimated_matcher_bytes:"));
 

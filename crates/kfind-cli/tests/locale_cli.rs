@@ -99,7 +99,10 @@ fn agent_init_uses_localized_errors_and_clean_custom_output() {
 
 #[test]
 fn locale_reaches_explain_output() {
-    let output = run(&[("LANG", "ko_KR.UTF-8")], &["걷다", "--explain-query"]);
+    let output = run(
+        &[("LANG", "ko_KR.UTF-8")],
+        &["--embedded", "걷다", "--explain-query"],
+    );
     assert_eq!(output.status.code(), Some(1));
     assert!(output.stderr.is_empty());
     let stdout = String::from_utf8(output.stdout).unwrap();
