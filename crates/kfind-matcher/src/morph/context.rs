@@ -29,6 +29,7 @@ impl PreparedStructuralContextAnalysis {
         candidate: Range<usize>,
         resolver: &ConstraintResolver,
         node_limit: usize,
+        include_nominal_copula: bool,
     ) -> Option<Self> {
         let current =
             AnalysisWindow::extract(haystack, candidate, DEFAULT_ANALYSIS_WINDOW_LIMITS).ok()?;
@@ -65,7 +66,9 @@ impl PreparedStructuralContextAnalysis {
             current: current.normalized(),
             next: next.as_deref(),
         };
-        let prepared = resolver.prepare_context(context, node_limit).ok()?;
+        let prepared = resolver
+            .prepare_context_for_candidate(context, node_limit, include_nominal_copula)
+            .ok()?;
         Some(Self { current, prepared })
     }
 
@@ -85,6 +88,12 @@ impl PreparedStructuralContextAnalysis {
             },
             request.patterns,
         ))
+    }
+
+    pub(super) fn has_nominal_copula_host(&self, span: Range<usize>) -> bool {
+        self.current
+            .normalized_span(span)
+            .is_some_and(|span| self.prepared.has_nominal_copula_host(&span))
     }
 }
 

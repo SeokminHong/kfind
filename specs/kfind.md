@@ -374,6 +374,13 @@
   근거만 있는 대명사·수사·관형사·부사의 exact component는 token 시작에서 이어질
   때만 허용한다. continuation을 하나도 소비하지 않은 bare predicate가 더 큰 token의
   일부이거나, predicate component 직후의 체언+조사 후보이면 구조적으로 반증한다.
+- `smart` 체언 query의 core가 token 왼쪽 경계부터 완성된 체언 host와 정확히
+  일치하고, `이`·`입`으로 시작하는 source graph가 그 직후부터 token 끝까지
+  `VCP + E*`와 선택적 조사 연쇄를 완성하면 체언 core를 유지한다. 조사는 어미를 하나 이상
+  지난 뒤에만 허용한다. 이 경로는
+  `결과이다`, `왕친입니다`, `고체이긴`, `것이었다`, `바튼반도이다`의 체언 host를
+  복구하지만, core와 지정사 사이에 다른 체언이 남는 `홍씨이다`, 지정사가 아닌 용언이
+  이어지는 `맛있다`, 지정사 자체와 겹치는 `이다` 안의 체언 `이`는 열지 않는다.
 - predicate program이 `-기` 또는 `-ㅁ/음`을 실제로 소비했고 그 nominalized span이
   whole nominal 또는 source nominal component와 일치하면 predicate query를 유지한다.
   이 규칙은 `걷기`, `걸음`, `발걸음`, `걸음걸이`처럼 명사형 자체와 compound 내부의
