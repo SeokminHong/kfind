@@ -22,15 +22,13 @@ gold 또는 negative 선택을 바꾸지 않는다.
 
 | fixture/profile | TP / FP / FN | precision | recall | F1 |
 | --- | ---: | ---: | ---: | ---: |
-| dev embedded smart | 459 / 2 / 41 | 99.57% | 91.8% | 95.53% |
-| dev full-POS smart | 470 / 2 / 30 | 99.58% | 94.0% | 96.71% |
-| test embedded smart | 429 / 0 / 71 | 100.00% | 85.8% | 92.36% |
-| test full-POS smart | 456 / 0 / 44 | 100.00% | 91.2% | 95.40% |
+| dev embedded smart | 446 / 4 / 54 | 99.11% | 89.2% | 93.89% |
+| dev full-POS smart | 452 / 4 / 48 | 99.12% | 90.4% | 94.56% |
+| test embedded smart | 435 / 0 / 65 | 100.00% | 87.0% | 93.05% |
+| test full-POS smart | 466 / 0 / 34 | 100.00% | 93.2% | 96.48% |
 
-세부 품사와 성능 결과는
-[User smart precision 품질·성능](2026-07-14-user-smart-precision.md)과
-[Full-POS 용언 exact component 확장](2026-07-15-predicate-exact-component.md)에
-둔다.
+세부 품사, strict/contract-adjusted hard-negative와 성능 결과는
+[계약 보정 지표와 구조 판정 품질](2026-07-16-contract-adjusted-structural-quality.md)에 둔다.
 
 비표준 활용, 오타와 불안정한 띄어쓰기는 이 canonical 기준선에 합치지 않는다. 별도 fixture와
 robust-only precision, over-acceptance, canonical retention, raw-span 지표는
@@ -94,8 +92,8 @@ embedded와 full-POS 원인을 분리하고, 분류용 추가 compile·검색은
 
 ## 남은 검증
 
-1. 명시적 품사 full-POS `smart`의 development FN 30건을 기준으로 다음 후보를 조사한다.
-2. 남은 `boundary-rejected` 17건은 품사·token 위치별 같은 표면형 대조군과 component 경로를 먼저
+1. 명시적 품사 full-POS `smart`의 development FN 48건을 기준으로 다음 후보를 조사한다.
+2. 남은 `boundary-rejected` 36건은 품사·token 위치별 같은 표면형 대조군과 component 경로를 먼저
    고정한다. `서사극이라`와 `인쇄업자가`처럼 구분되지 않는 유형은 제품에 열지 않는다.
 3. dev FN 감소, precision 99.00% 이상과 hard-negative 신규 FP 0을 확인한 뒤 고정 test와 무품사
    결과를 한 번만 회귀 측정한다.
