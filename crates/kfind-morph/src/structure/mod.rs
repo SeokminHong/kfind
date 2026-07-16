@@ -423,6 +423,7 @@ struct TokenEvidence {
     runtime_spans: Vec<Range<usize>>,
     adnominal_ends: Vec<usize>,
     has_complete_path: bool,
+    numeric_unit: Option<Range<usize>>,
 }
 
 impl TokenEvidence {
@@ -431,6 +432,23 @@ impl TokenEvidence {
         text: &str,
         node_limit: usize,
     ) -> Result<Self, ConstraintUnavailable> {
+        if text.as_bytes().first().is_some_and(u8::is_ascii_digit) {
+            Self::collect_mode::<true>(resource, text, node_limit)
+        } else {
+            Self::collect_mode::<false>(resource, text, node_limit)
+        }
+    }
+
+    fn collect_mode<const NUMERIC: bool>(
+        resource: &ComponentResource,
+        text: &str,
+        node_limit: usize,
+    ) -> Result<Self, ConstraintUnavailable> {
+        let numeric_unit = if NUMERIC {
+            numeric_unit_span(resource, text)
+        } else {
+            None
+        };
         let mut edges = Vec::new();
         for start in text
             .char_indices()
@@ -459,7 +477,10 @@ impl TokenEvidence {
                 });
             }
         }
-        let forward = forward_positions(text.len(), &edges);
+        let forward = numeric_unit.as_ref().map_or_else(
+            || forward_positions(text.len(), &edges),
+            |unit| forward_positions_with_prefix(text.len(), &edges, unit.start),
+        );
         let complete = complete_edges(text.len(), &edges, &forward);
         let has_complete_path = forward[text.len()];
         let mut units = Vec::new();
@@ -506,6 +527,41 @@ impl TokenEvidence {
                 });
             }
         }
+        if let Some(unit) = numeric_unit.as_ref() {
+            for (index, edge) in edges.iter().enumerate() {
+                let eligible = if has_complete_path {
+                    complete[index]
+                } else {
+                    forward[edge.span.start]
+                };
+                if !eligible {
+                    continue;
+                }
+                if edge.span == *unit && edge.pos.split('+').any(|pos| pos == "NNBC") {
+                    units.push(Unit {
+                        span: unit.clone(),
+                        pos: DataFinePos::Nnb,
+                        evidence: if edge.span == (0..text.len()) {
+                            StructuralEvidence::Whole
+                        } else {
+                            StructuralEvidence::RuntimeComponent
+                        },
+                    });
+                }
+                for component in edge.components.iter().filter(|part| {
+                    part.pos == "NNBC"
+                        && edge.span.start + part.span.start == unit.start
+                        && edge.span.start + part.span.end == unit.end
+                }) {
+                    units.push(Unit {
+                        span: edge.span.start + component.span.start
+                            ..edge.span.start + component.span.end,
+                        pos: DataFinePos::Nnb,
+                        evidence: StructuralEvidence::SourceComponent,
+                    });
+                }
+            }
+        }
         units.sort_unstable_by_key(|unit| {
             (
                 unit.span.start,
@@ -524,6 +580,7 @@ impl TokenEvidence {
             runtime_spans,
             adnominal_ends,
             has_complete_path,
+            numeric_unit,
         })
     }
 
@@ -554,6 +611,25 @@ struct Edge<'a> {
 fn forward_positions(text_len: usize, edges: &[Edge<'_>]) -> Vec<bool> {
     let mut forward = vec![false; text_len + 1];
     forward[0] = true;
+    for start in 0..text_len {
+        if !forward[start] {
+            continue;
+        }
+        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+            forward[edge.span.end] = true;
+        }
+    }
+    forward
+}
+
+fn forward_positions_with_prefix(
+    text_len: usize,
+    edges: &[Edge<'_>],
+    prefix_end: usize,
+) -> Vec<bool> {
+    let mut forward = vec![false; text_len + 1];
+    forward[0] = true;
+    forward[prefix_end] = true;
     for start in 0..text_len {
         if !forward[start] {
             continue;
@@ -656,6 +732,9 @@ enum StructureSelection {
         copula: Range<usize>,
     },
     DependentNoun,
+    NumericUnit {
+        unit: Range<usize>,
+    },
     RuntimeCompatible {
         graph_nominal_host: Option<Range<usize>>,
     },
@@ -752,6 +831,11 @@ impl StructureSelection {
             Self::DependentNoun => {
                 support.evidence == StructuralEvidence::Whole
                     && pattern.fine_pos == DataFinePos::Nnb
+            }
+            Self::NumericUnit { unit } => {
+                matches!(pattern.fine_pos, DataFinePos::Nnb | DataFinePos::Nr)
+                    && spans.core == *unit
+                    && spans.consumed.end == spans.token.end
             }
             Self::RuntimeCompatible { graph_nominal_host } => match support.evidence {
                 StructuralEvidence::Whole | StructuralEvidence::SourceComponent => true,
@@ -1059,6 +1143,9 @@ fn select_structure(
     {
         return StructureSelection::DependentNoun;
     }
+    if let Some(unit) = evidence.numeric_unit.clone() {
+        return StructureSelection::NumericUnit { unit };
+    }
     if let Some(host) = particle_host {
         let allow_components = false;
         return StructureSelection::NominalSpan {
@@ -1069,6 +1156,34 @@ fn select_structure(
     StructureSelection::RuntimeCompatible {
         graph_nominal_host: complete_nominal_particle_host(resource, context.current),
     }
+}
+
+fn numeric_unit_span(resource: &ComponentResource, text: &str) -> Option<Range<usize>> {
+    let numeric_end = text.bytes().take_while(u8::is_ascii_digit).count();
+    if numeric_end == 0 || numeric_end == text.len() {
+        return None;
+    }
+    text[numeric_end..]
+        .char_indices()
+        .map(|(offset, character)| numeric_end + offset + character.len_utf8())
+        .filter(|&unit_end| {
+            has_exact_source_numeric_unit(resource, &text[numeric_end..unit_end])
+                && complete_suffix(resource, &text[unit_end..], |pos| pos.starts_with('J'))
+        })
+        .max()
+        .map(|unit_end| numeric_end..unit_end)
+}
+
+fn has_exact_source_numeric_unit(resource: &ComponentResource, text: &str) -> bool {
+    let mut matched = false;
+    resource.common_prefixes(text.as_bytes(), |length, analyses| {
+        if length == text.len() {
+            matched |= analyses
+                .iter()
+                .any(|analysis| matches!(analysis.pos, "NNB" | "NNBC" | "NR"));
+        }
+    });
+    matched
 }
 
 fn adnominal_suffix_is_supported(resource: &ComponentResource, text: &str) -> bool {

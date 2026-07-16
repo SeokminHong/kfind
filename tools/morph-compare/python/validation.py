@@ -18,6 +18,7 @@ HARD_NEGATIVE_SLICES = {
     "nominalizer-particle",
     "same-surface-different-lemma",
     "one-syllable-boundary",
+    "numeric-unit",
 }
 
 
