@@ -112,6 +112,15 @@ pub struct QueryMorphPattern {
     pub adjacent: Arc<[AdjacentTokenConstraint]>,
 }
 
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub struct StructuralSignature<'a> {
+    pub fine_pos: DataFinePos,
+    pub token_relation: CandidateTokenRelation,
+    pub continuation: MorphContinuation,
+    pub component_capability: ComponentCapability,
+    pub adjacent: &'a [AdjacentTokenConstraint],
+}
+
 impl QueryMorphPattern {
     #[must_use]
     pub fn new(fine_pos: DataFinePos, lexical_form: &str) -> Self {
@@ -179,6 +188,17 @@ impl QueryMorphPattern {
                         MorphContinuation::Predicate { .. } | MorphContinuation::NominalParticles
                     )
             )
+    }
+
+    #[must_use]
+    pub fn structural_signature(&self) -> StructuralSignature<'_> {
+        StructuralSignature {
+            fine_pos: self.fine_pos,
+            token_relation: self.token_relation,
+            continuation: self.continuation,
+            component_capability: self.component_capability,
+            adjacent: &self.adjacent,
+        }
     }
 }
 
@@ -312,5 +332,21 @@ mod tests {
 
         assert!(!invalid.is_well_formed());
         assert!(QueryMorphPattern::new(DataFinePos::Nng, "학교").is_well_formed());
+    }
+
+    #[test]
+    fn structural_signatures_ignore_lexical_meaning_but_not_morphology() {
+        let walking = QueryMorphPattern::new(DataFinePos::Vv, "걷");
+        let hanging = QueryMorphPattern::new(DataFinePos::Vv, "걸");
+        let nominal = QueryMorphPattern::new(DataFinePos::Nng, "걸");
+
+        assert_eq!(
+            walking.structural_signature(),
+            hanging.structural_signature()
+        );
+        assert_ne!(
+            walking.structural_signature(),
+            nominal.structural_signature()
+        );
     }
 }

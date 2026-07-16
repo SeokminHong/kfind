@@ -2,10 +2,11 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use kfind_morph::{
-    CandidateExtentPolicy, ContinuationState, ParticleTransition, PredicatePos, RuleId,
+    CandidateExtentPolicy, CandidateTokenRelation, ComponentCapability, ContinuationState,
+    MorphContinuation, ParticleTransition, PredicatePos, QueryMorphPattern, RuleId,
 };
 
-use crate::{Analysis, BoundaryPolicy, NormalizationMode, PhrasePolicy, PlanLimits};
+use crate::{Analysis, BoundaryPolicy, Morphology, NormalizationMode, PhrasePolicy, PlanLimits};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct QueryPlan {
@@ -110,6 +111,72 @@ pub struct CandidateProgram {
     pub origins: Vec<Origin>,
     pub boundary: BoundaryProof,
     pub context_requirement: ContextRequirement,
+}
+
+impl CandidateProgram {
+    #[must_use]
+    pub fn structural_patterns(&self, atom: &AtomPlan) -> Vec<QueryMorphPattern> {
+        if atom.boundary != BoundaryPolicy::Smart {
+            return Vec::new();
+        }
+        let Some((token_relation, continuation)) = self.pattern_continuation() else {
+            return Vec::new();
+        };
+        let component_capability = if self.context_requirement == ContextRequirement::ExactComponent
+        {
+            ComponentCapability::SourceAndRuntime
+        } else {
+            ComponentCapability::WholeOnly
+        };
+        let mut patterns = Vec::new();
+        for origin in &self.origins {
+            let Some(analysis) = atom.analyses.get(usize::from(origin.analysis_index)) else {
+                continue;
+            };
+            let lexical_form = match &analysis.morphology {
+                Morphology::Predicate(predicate) => predicate
+                    .lemma
+                    .strip_suffix('다')
+                    .unwrap_or(&predicate.lemma),
+                Morphology::Nominal(_) | Morphology::Particle(_) | Morphology::Exact => {
+                    &analysis.lemma
+                }
+            };
+            for pattern in QueryMorphPattern::from_fine_pos(analysis.fine_pos, lexical_form) {
+                let pattern = pattern.with_candidate_contract(
+                    token_relation,
+                    continuation,
+                    component_capability,
+                );
+                if !patterns.contains(&pattern) {
+                    patterns.push(pattern);
+                }
+            }
+        }
+        patterns
+    }
+
+    fn pattern_continuation(&self) -> Option<(CandidateTokenRelation, MorphContinuation)> {
+        Some(match &self.verifier {
+            BranchVerifier::Exact => (CandidateTokenRelation::Whole, MorphContinuation::Exact),
+            BranchVerifier::Predicate {
+                continuation,
+                nominal_particle_transition,
+                ..
+            } => (
+                CandidateTokenRelation::PrefixWithContinuation,
+                MorphContinuation::Predicate {
+                    state: *continuation,
+                    nominal_particles: *nominal_particle_transition,
+                },
+            ),
+            BranchVerifier::NominalParticles { .. } => (
+                CandidateTokenRelation::PrefixWithContinuation,
+                MorphContinuation::NominalParticles,
+            ),
+            BranchVerifier::DirectParticle { .. } => return None,
+        })
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

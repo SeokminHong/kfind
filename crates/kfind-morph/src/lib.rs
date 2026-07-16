@@ -11,7 +11,7 @@ pub mod predicate;
 pub use constraint::{
     AdjacentSide, AdjacentTokenConstraint, CandidateExtentPolicy, CandidateSpans,
     CandidateTokenRelation, ComponentCapability, CopularFrameRole, MorphContinuation,
-    QueryMorphPattern,
+    QueryMorphPattern, StructuralSignature,
 };
 pub use domain::{
     CoarsePos, ContinuationState, EndingCategory, EndingInitial, EndingSpec, FinePos,

@@ -325,6 +325,43 @@ fn candidate_programs_declare_their_consumed_extent() {
 }
 
 #[test]
+fn candidate_programs_materialize_structural_patterns_from_plan_analyses() {
+    let predicate = compile_query("걷다", &CompileOptions::default(), &analyzer()).unwrap();
+    assert!(predicate.atoms[0].programs.iter().all(|program| {
+        let patterns = program.structural_patterns(&predicate.atoms[0]);
+        !patterns.is_empty()
+            && patterns
+                .iter()
+                .all(|pattern| pattern.lexical_form.as_ref() == "걷")
+    }));
+
+    let adverb = compile_query("adv:빨리", &CompileOptions::default(), &analyzer()).unwrap();
+    assert!(adverb.atoms[0].programs.iter().all(|program| {
+        let patterns = program.structural_patterns(&adverb.atoms[0]);
+        !patterns.is_empty()
+            && patterns
+                .iter()
+                .all(|pattern| pattern.fine_pos == DataFinePos::Mag)
+    }));
+
+    let token = compile_query(
+        "adv:빨리",
+        &CompileOptions {
+            boundary: BoundaryPolicy::Token,
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    assert!(
+        token.atoms[0]
+            .programs
+            .iter()
+            .all(|program| program.structural_patterns(&token.atoms[0]).is_empty())
+    );
+}
+
+#[test]
 fn smart_exact_components_cover_nominals_predicates_and_determiners() {
     for pos in [CoarsePos::Noun, CoarsePos::Pronoun, CoarsePos::Numeral] {
         let plan = compile_query(
