@@ -1,5 +1,6 @@
 //! Korean syllable operations, lexicons, and morphology rules.
 
+mod constraint;
 mod domain;
 mod lattice;
 
@@ -7,6 +8,11 @@ pub mod hangul;
 pub mod particle;
 pub mod predicate;
 
+pub use constraint::{
+    AdjacentSide, AdjacentTokenConstraint, CandidateExtentPolicy, CandidateSpans,
+    CandidateTokenRelation, ComponentCapability, CopularFrameRole, MorphContinuation,
+    QueryMorphPattern,
+};
 pub use domain::{
     CoarsePos, ContinuationState, EndingCategory, EndingInitial, EndingSpec, FinePos,
     LexicalAlternation, MorphFeatureMask, Origin, PredicateEntry, PredicateFlags, PredicatePos,
