@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [`-다는` source 어미 recall](2026-07-17-declarative-adnominal-recall.md)
 - [분해된 체언 host recall](2026-07-17-graph-nominal-host-recall.md)
 - [지정사 앞 체언 recall](2026-07-17-nominal-copula-host-recall.md)
 - [anchor automaton 선구축 병목 제거](2026-07-17-lazy-anchor-automaton-performance.md)
@@ -203,3 +204,16 @@ slice를 고른다. 비표준 입력은 canonical 규칙에 합치지 않는다.
 `이다`의 6건은 비표준 붙여쓰기·축약·표기다. 다음 제품 recall 작업은 `누구→누가`,
 `위하다→위해서는`, `오다→온지를`, `어떻다→어떤가`를 matrix의 동일 원인 case와 묶어
 가장 큰 typed standard-form 구조부터 연다.
+
+[`-다는` source 어미 recall](2026-07-17-declarative-adnominal-recall.md)에서 candidate가
+`다`까지 소비하고 정확히 `는`만 남기며 source graph가 `용언 + E*` 완성 경로를 증명할 때
+조사형 선거부를 건너뛰었다. Test matrix full-POS는 `있다는` 2건, `왔다는`·`않다는` 각
+1건을 회수해 `PNᶜ=1,401`에서 FNᶜ가 66→62, recallᶜ가 95.29%→95.57%가 됐다. 완전 회수
+문장은 406→409/468이다. Human은 `왔다는` 1건을 회수해 FNᶜ가 65→64가 됐다. FP와 FPᶜ,
+canonical 및 Agent 품질은 변하지 않았다. 후보 Agent는 26,808.2 cases/s로 Lindera
+snapshot보다 28.73% 빠르다. Matrix contract 정의, annotation과 gate는 변경하지 않았다.
+
+남은 가장 큰 동일 질의 묶음인 부사 `안` 3건과 형용사 `이다` 3건은 비표준 입력이다. 다음
+제품 recall 작업은 standard-form인 `위해서는`·`대해서는`과 development의 `없지는`을
+connective 뒤 topic particle이라는 공통 source path로 먼저 검증한다. `온지를`의
+nominalizer-particle 구조는 별도 slice로 둔다.
