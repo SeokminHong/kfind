@@ -44,7 +44,8 @@ QueryMorphPattern + CandidateProgram
 - program이 보존한 query provenance는 모두 남기되 corpus 의미 분석을 추가하지 않는다.
 - resource 누락·손상·schema mismatch·그래프 상한 초과는 `Unavailable`로 구분하고
   기존 boundary 판정이나 raw-cost 임계값으로 바꾸지 않는다.
-- source 분석 비용은 그래프 탐색 순서와 동률 근거를 설명하는 metadata로만 사용한다.
+- 제품 compact resource와 resolver는 source 분석 비용, 연결 행렬과 미등록어 모델을
+  읽지 않는다. 별도 full morphology 진단 artifact만 과거 비용 판정 비교에 사용하며,
   `include <= exclude + 1,500` 같은 제품 판정 임계값을 두지 않는다.
 
 ## 실행·resource 계약

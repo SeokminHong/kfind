@@ -336,25 +336,26 @@
 - exact component 근거는 완전한 graph path에서 query와 같은 세부 품사 node의 span이
   query core와 정확히 일치할 때만 성립한다. 더 큰 node의 substring이나 여러 component
   경계를 가로지르는 span은 근거가 아니다.
-- source 분석 비용은 graph 탐색 순서와 동률 근거를 설명하는 metadata로만
-  사용한다. include/exclude 비용 마진, query별 threshold와 결과별 fallback을
-  제품 판정에 사용하지 않는다.
+- 제품 graph는 source 분석 비용을 읽거나 보존하지 않는다. 비용·연결 행렬·미등록어
+  모델은 별도 full morphology 진단 artifact에서 과거 판정과 결과를 비교할 때만 사용한다.
+  include/exclude 비용 마진, query별 threshold와 결과별 fallback을 제품 판정에 사용하지 않는다.
 - 부사의 인접 동일 token 반복, 체언·지정사·의존명사 연속 구조와 조사 host
   이형태는 typed `AdjacentTokenConstraint`로 표현한다. query 표제어나 query 품사를
   corpus 구조 선택 힌트로 주입하지 않는다.
 - `smart` 무품사 direct-particle program은 입력과 같은 표면형만 만든다. 품사를
   명시한 조사 query는 이형태 묶음을 만들 수 있지만 host 소리 조건과 완성된
   조사 연쇄를 graph 제약으로 증명해야 한다.
-- `독수리가 아니라 매일 것 같아`의 `매`·`이다`, `매일 매일 보고 싶어`의
+- `독수리가 아니라 매일 수도 있어`의 `매`·`이다`, `매일 매일 보고 싶어`의
   반복 부사, `그는 집념으로 매일을 보내고 있었다.`의 체언·조사 결합은
   각각 copular-frame, repeated-token, component path 근거로 구분한다.
 - 한 window의 원문은 256 bytes, NFC 문자열은 64 Unicode scalar, graph는 중복
   제거 후 4,096 node로 제한한다. NFC 안정 경계는 원문 byte offset으로
   역매핑하고 안정되지 않은 경계는 candidate로 만들지 않는다.
 - compact morphology resource는 schema 4 container다. NFC surface index, source node의
-  POS·left/right context ID·word cost, 연결 비용 행렬, unknown model과 source identity를
-  보존한다. loader는 schema, source SHA-256, section length·digest, UTF-8, offset, context
-  ID와 matrix 범위를 모두 검증한 뒤 내용을 노출한다.
+  POS, NFC 안정 경계에 정렬된 component span과 source identity만 보존한다. left/right
+  context ID, word cost, 연결 비용 행렬, unknown model과 원본 expression 문자열은 싣지 않는다.
+  loader는 schema, source SHA-256, section length·digest, UTF-8, group·analysis·component
+  offset과 span 범위를 모두 검증한 뒤 내용을 노출한다.
 - CLI의 기본 boundary는 `smart`다. resource를 필요로 선언한 program이 있으면
   compact artifact를 한 번 검증하고, 누락·손상·schema·source mismatch를 초기화
   오류로 보고한다. 기존 boundary 판정으로 fallback하지 않는다.
@@ -1780,8 +1781,8 @@ surface = "LLM"
 - 국립국어원 사전 자료: 라이선스와 재배포 조건을 충족하는 범위에서 품사와 활용 검증 자료로 사용한다. 전체 내려받기 snapshot은 릴리스 후보 데이터고, Open API는 snapshot 갱신 후보를 조사하는 개발 도구로만 사용한다.
 
 정적 표제어 lookup과 corpus-side component 판정은 별도 resource와 품질 지표로 평가한다.
-full POS 경로는 Viterbi 분석, 비용 행렬과 미등록어 처리를 사용하지 않는다. compact component
-경로만 후보 token에 한정해 고정 source의 연결 비용과 미등록어 정의를 사용한다.
+full POS 경로와 제품 compact component 경로는 Viterbi 분석, 비용 행렬과 미등록어 처리를
+사용하지 않는다. 비용 기반 비교가 필요한 진단 도구만 별도 full morphology artifact를 읽는다.
 
 ### 16.6 외부 사전 데이터 정책
 
