@@ -1641,7 +1641,7 @@ atom[0]:
       pos: verb
       alternation: DToL
       source: builtin-lexicon
-  branches: 12
+  programs: 12
   anchors:
     - 걷고
     - 걷는
@@ -1649,7 +1649,7 @@ atom[0]:
     - 걸어
     - 걸었
     - 걸으
-  verifier_states: 8
+  consumption_states: 8
   normalization: nfc
   estimated_matcher_bytes: 4288
 ```
