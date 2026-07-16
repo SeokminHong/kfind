@@ -17,12 +17,19 @@ NFC가 같은 token의 인접 반복과 exact `MAG` 분석이 함께 있으면 w
 구조가 모호하거나 범위·resource 검증에 실패하면 homonym union을 유지한다. corpus-side lattice
 비용, 단어 denylist, fixture 전용 branch와 공개 disambiguation 옵션은 사용하지 않는다.
 
+token 전체가 부사가 아니고 왼쪽 경계부터 VCP core 직전까지 완성된 체언 host가 있으면
+`동안이었습니다`, `곳인`, `공학입니다`처럼 host에 붙은 지정사를 유지한다. 생성 branch 뒤에
+문자가 남는 `끝인가`는 core 시작부터 token 끝까지 VCP+어미 source path가 완성될 때만 trailing을
+소비한다. `매일 보고`의 whole-token 부사와 source ending path가 없는 suffix는 열지 않는다.
+
 ## 검증 범위
 
 - `학생일`, `책일`은 형태 조합 회귀 fixture로 유지한다.
 - 지정사 구조, 반복 부사와 조사 결합 명사를 같은 query 행렬로 검증한다.
 - `smart`, `token`, `any`와 NFC/NFD에서 정상 부착형과 음성을 검증한다.
 - 기존 VCP/VCN positive와 `--boundary any`의 substring 계약을 유지한다.
+- 체언 host 뒤 VCP runtime component와 source가 완성한 trailing을 각각 검증하고, whole-token
+  부사와 고유명사 대조군을 함께 유지한다.
 
 copula 전용 lattice 후보는 밀봉 평가에서 false positive 35개와 함께 true positive 32개를
 제거해 recall gate를 통과하지 못했다. 실행 코드와 fixture는 유지하지 않으며 판정 근거만

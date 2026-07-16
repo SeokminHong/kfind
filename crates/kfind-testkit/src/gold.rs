@@ -199,7 +199,7 @@ mod tests {
 
     use super::*;
 
-    const EXPECTED_CASES: usize = 579;
+    const EXPECTED_CASES: usize = 585;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {
@@ -218,7 +218,7 @@ mod tests {
         for case in &cases {
             let selected = if matches!(
                 case.feature.as_str(),
-                "nominal-component" | "exact-component" | "lexical-context"
+                "nominal-component" | "exact-component" | "lexical-context" | "copula-structure"
             ) {
                 &component_harness
             } else {
@@ -290,6 +290,21 @@ mod tests {
             entry("아니", "VCN", 0),
             entry("라", "EC", 0),
             entry("일", "VCP+ETM", 0),
+            entry("동안", "NNG", 0),
+            entry("동안", "MAG", 0),
+            entry("이", "VCP", 0),
+            entry("이", "JKS", 0),
+            entry("이", "EF", 0),
+            entry("었", "EP", 0),
+            entry("습니다", "EF", 0),
+            entry("끝", "NNG", 0),
+            entry("인", "VCP+ETM", 0),
+            entry("가", "EF", 0),
+            entry("곳", "NNB", 0),
+            entry("공학", "NNG", 0),
+            entry("입", "VCP", 0),
+            entry("니다", "EF", 0),
+            expression_entry("입니다", "VCP+EF", "이/VCP/*+ᆸ니다/EF/*", 0),
             entry("것", "NNB", 0),
             entry("수", "NNB", 0),
             entry("자기", "NP", -5_000),
