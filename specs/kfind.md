@@ -370,8 +370,8 @@
 - exact component 근거는 완전한 graph path에서 query와 같은 세부 품사 node의 span이
   query core와 정확히 일치할 때만 성립한다. 더 큰 node의 substring이나 여러 component
   경계를 가로지르는 span은 근거가 아니다. nominal component path는 source가 선언한
-  성분을 우선하고, source만으로 완성되지 않으면 runtime graph 중 성분 수가 가장 적은
-  완전 경로를 선택한다. 내부 component query는 이 선호 경로의 한 node와 span이
+  성분 수가 가장 적은 완전 경로를 선택하고, 성분 수가 같으면 source가 선언한 성분을
+  더 많이 포함한 경로를 우선한다. 내부 component query는 이 선호 경로의 한 node와 span이
   일치할 때만 유지한다. graph로 조합한 명사+조사 host는 내부 nominal component를
   검증할 때만 사용하고 token 전체의 품사 구조를 선택하는 근거로 쓰지 않는다.
 - 제품 graph는 source 분석 비용을 읽거나 보존하지 않는다. 비용·연결 행렬·미등록어
