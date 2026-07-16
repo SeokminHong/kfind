@@ -421,6 +421,9 @@ fn select_structure(
         return StructureSelection::CopularFrame { nominal, copula };
     }
     if let Some(host) = nominal_particle_host(resource, context.current) {
+        if has_predicate_ending_split(resource, context.current) {
+            return StructureSelection::All;
+        }
         let allow_components =
             unique_copular_split(resource, &context.current[host.clone()]).is_none();
         return StructureSelection::NominalSpan {
@@ -480,6 +483,17 @@ fn nominal_particle_host(resource: &ComponentResource, current: &str) -> Option<
         })
         .max()
         .map(|end| 0..end)
+}
+
+fn has_predicate_ending_split(resource: &ComponentResource, current: &str) -> bool {
+    current
+        .char_indices()
+        .map(|(offset, _)| offset)
+        .skip(1)
+        .any(|split| {
+            has_exact_fine_pos(resource, &current[..split], DataFinePos::is_predicate)
+                && complete_suffix(resource, &current[split..], |pos| pos.starts_with('E'))
+        })
 }
 
 fn complete_suffix(

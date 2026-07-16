@@ -123,6 +123,28 @@ fn longest_nominal_particle_host_hides_an_inner_component() {
     assert_eq!(host.outcome, ConstraintOutcome::Supported);
 }
 
+#[test]
+fn competing_predicate_and_nominal_continuations_remain_available() {
+    let resolver = resolver();
+    let pattern = QueryMorphPattern::new(DataFinePos::Vv, "들").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("들지"),
+        spans(0.."들".len(), 0.."들지".len()),
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
 fn resolver() -> ConstraintResolver {
     let entries = [
         atomic("매", "NNG"),
@@ -135,6 +157,10 @@ fn resolver() -> ConstraintResolver {
         expression("일", "VCP+ETM", "이/VCP/*+ᆯ/ETM/*"),
         expression("걸었고", "VV+EP+EC", "걸/VV/*+었/EP/*+고/EC/*"),
         atomic("곱아", "VA"),
+        atomic("들", "VV"),
+        atomic("들", "NNB"),
+        atomic("지", "EC"),
+        atomic("지", "JX"),
     ];
     let bytes = encode_component_resource([9; 32], &entries).expect("valid resource");
     let resource =
