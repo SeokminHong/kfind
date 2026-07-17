@@ -208,7 +208,6 @@ SHA-256을 보존한다. 승인 보고서와 site 차트를 갱신할 때 같은
 - [copula smart-boundary 계약](copula-boundary.md)
 - [비표준·오타·띄어쓰기 입력 robustness 후속 설계](noisy-text-robustness-plan.md)
 - [비표준·오타·띄어쓰기 입력 평가 계약](noisy-text-robustness-evaluation.md)
-- [수동 검토 자연 오류 Robust 품질·성능](2026-07-17-robustness-quality.md)
 
 ## Morphology prefix index
 
