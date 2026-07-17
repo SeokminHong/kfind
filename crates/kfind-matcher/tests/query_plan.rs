@@ -505,6 +505,38 @@ fn runtime_nominal_component_remains_available_without_a_source_decomposition() 
 }
 
 #[test]
+fn standard_spacing_disambiguates_mot_homographs() {
+    let resource = component_resource_from_entries([
+        component_entry("못", "MAG"),
+        component_entry("못", "NNG"),
+        component_entry("못했", "VA"),
+        component_entry("못하", "VA"),
+        component_entry("하다", "NNG"),
+        component_entry("다", "EF"),
+        component_entry("하", "VV"),
+        component_entry("했", "VV+EP"),
+        component_entry("겠", "EP"),
+        component_entry("어요", "EF"),
+        component_entry("박", "VV"),
+        component_entry("았", "EP"),
+    ]);
+    let matches = |query: &str, text: &str| {
+        compile_embedded_with_resource(query, CompileOptions::default(), Arc::clone(&resource))
+            .find_at_with_meta(text.as_bytes(), 0)
+            .is_some()
+    };
+
+    assert!(!matches("adv:못", "일을 못했다"));
+    assert!(!matches("n:못", "일을 못했다"));
+    assert!(!matches("n:못", "형보다 못하다"));
+    assert!(matches("adv:못", "못 하겠어요"));
+    assert!(!matches("n:못", "못 하겠어요"));
+    assert!(matches("adv:못", "일을 못 했다"));
+    assert!(!matches("n:못", "일을 못 했다"));
+    assert!(matches("n:못", "못 박았어요"));
+}
+
+#[test]
 fn whole_nominal_source_component_survives_a_shorter_particle_split() {
     let matcher = compile_embedded_with_component(
         "주의",

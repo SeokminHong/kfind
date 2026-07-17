@@ -9,7 +9,7 @@ use std::sync::Arc;
 
 use kfind_data::{
     COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataError, decode_component_resource,
-    parse_user_lexicon_toml,
+    decode_pos_lexicon, parse_user_lexicon_toml,
 };
 use kfind_matcher::{MorphMatcher, MorphMatcherBuildError};
 use kfind_query::{
@@ -19,6 +19,7 @@ use kfind_search::{
     ExecutionOptions, InputEncoding, InputOptions, ResultOrder, SearchConfig, SearchEvent,
     SearchRunError, SearchSummary, WalkOptions, execute_search_with_stdin, resolve_search_paths,
 };
+use serde::Serialize;
 
 use crate::output::{FullPosNotRequiredReason, FullPosStatus, write_safe_path, write_safe_text};
 use crate::{
@@ -113,6 +114,9 @@ where
     W: Write + Send,
     E: Write + Send,
 {
+    if args.check_data {
+        return check_data(args, stdout);
+    }
     let query = args.query().ok_or(CliError::MissingQuery)?;
     let options = args.compile_options().map_err(CliError::Options)?;
     let full_pos_mode = if args.embedded {
@@ -179,6 +183,121 @@ where
         stderr.flush().map_err(CliError::Stderr)?;
     }
     Ok(status_from_summary(summary))
+}
+
+#[derive(Serialize)]
+struct DataCheckReport {
+    r#type: &'static str,
+    status: &'static str,
+    kfind_version: &'static str,
+    full_pos: FullPosCheck,
+    component: ComponentCheck,
+}
+
+#[derive(Serialize)]
+struct FullPosCheck {
+    path: String,
+    schema_version: u32,
+    entry_count: usize,
+}
+
+#[derive(Serialize)]
+struct ComponentCheck {
+    path: String,
+    schema_version: u32,
+    resource_version: String,
+    surface_count: u32,
+    analysis_count: u32,
+}
+
+fn check_data(args: &Args, stdout: &mut impl Write) -> Result<ExitStatus, CliError> {
+    let full_pos_path = match resolve_full_pos(args)? {
+        FullPosStatus::Loaded { path } => path,
+        FullPosStatus::Preview { candidate_paths } => {
+            return Err(CliError::MissingData(
+                candidate_paths
+                    .first()
+                    .cloned()
+                    .unwrap_or_else(|| PathBuf::from(FULL_POS_FILE)),
+            ));
+        }
+        FullPosStatus::NotRequired(_) => unreachable!("data check always requires full POS"),
+    };
+    let full_pos_bytes = fs::read(&full_pos_path).map_err(|source| CliError::Read {
+        path: full_pos_path.clone(),
+        source,
+    })?;
+    let full_pos_stats = decode_pos_lexicon(&full_pos_bytes)
+        .map_err(CliError::Data)?
+        .stats();
+
+    let component_path = resolve_component_resource(args)?;
+    let component_bytes = fs::read(&component_path).map_err(|source| CliError::Read {
+        path: component_path.clone(),
+        source,
+    })?;
+    let component = decode_component_resource(
+        &component_path.to_string_lossy(),
+        component_bytes,
+        &COMPONENT_RESOURCE_SOURCE_DIGEST,
+    )
+    .map_err(CliError::Data)?;
+    let component_stats = component.stats();
+    let report = DataCheckReport {
+        r#type: "data-check",
+        status: "ok",
+        kfind_version: env!("CARGO_PKG_VERSION"),
+        full_pos: FullPosCheck {
+            path: full_pos_path.to_string_lossy().into_owned(),
+            schema_version: full_pos_stats.schema_version,
+            entry_count: full_pos_stats.entry_count,
+        },
+        component: ComponentCheck {
+            path: component_path.to_string_lossy().into_owned(),
+            schema_version: component_stats.schema_version,
+            resource_version: component_stats.resource_version.clone(),
+            surface_count: component_stats.surface_count,
+            analysis_count: component_stats.analysis_count,
+        },
+    };
+
+    if args.json {
+        serde_json::to_writer(&mut *stdout, &report)
+            .map_err(OutputError::Json)
+            .map_err(CliError::Output)?;
+        stdout
+            .write_all(b"\n")
+            .map_err(OutputError::Io)
+            .map_err(CliError::Output)?;
+    } else {
+        stdout
+            .write_all(b"kfind data: ok\nfull POS: ")
+            .map_err(OutputError::Io)
+            .map_err(CliError::Output)?;
+        write_safe_path(stdout, &full_pos_path)
+            .map_err(OutputError::Io)
+            .map_err(CliError::Output)?;
+        write!(
+            stdout,
+            " (schema {}, {} entries)\ncomponent: ",
+            full_pos_stats.schema_version, full_pos_stats.entry_count
+        )
+        .map_err(OutputError::Io)
+        .map_err(CliError::Output)?;
+        write_safe_path(stdout, &component_path)
+            .map_err(OutputError::Io)
+            .map_err(CliError::Output)?;
+        writeln!(
+            stdout,
+            " (schema {}, version {}, {} surfaces)",
+            component_stats.schema_version,
+            component_stats.resource_version,
+            component_stats.surface_count
+        )
+        .map_err(OutputError::Io)
+        .map_err(CliError::Output)?;
+    }
+    Ok(ExitStatus::Match)
 }
 
 struct LoadedLexicons {

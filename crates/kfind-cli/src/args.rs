@@ -86,7 +86,7 @@ pub enum AgentArg {
 )]
 pub struct Args {
     /// Korean lemma, short phrase, or tagged query.
-    #[arg(required_unless_present = "init")]
+    #[arg(required_unless_present_any = ["init", "check_data"])]
     pub query: Option<String>,
 
     /// Files and directories to search. Defaults to stdin when piped, otherwise '.'.
@@ -197,6 +197,47 @@ pub struct Args {
     #[arg(long, value_name = "PATH")]
     pub user_lexicon: Option<PathBuf>,
 
+    /// Validate installed full POS and component resources, then exit.
+    #[arg(
+        long,
+        conflicts_with_all = [
+            "query",
+            "paths",
+            "pos",
+            "expand",
+            "boundary",
+            "literal",
+            "embedded",
+            "max_gap",
+            "unicode_normalization",
+            "encoding",
+            "glob",
+            "file_type",
+            "type_add",
+            "hidden",
+            "no_ignore",
+            "threads",
+            "line_number",
+            "with_filename",
+            "no_filename",
+            "context",
+            "before_context",
+            "after_context",
+            "files_with_matches",
+            "count",
+            "quiet",
+            "no_pager",
+            "column",
+            "explain_query",
+            "explain_match",
+            "sort",
+            "user_lexicon",
+            "init",
+            "agent"
+        ]
+    )]
+    pub check_data: bool,
+
     /// Initialize the kfind skill for coding agents in the current directory.
     #[arg(
         long,
@@ -234,7 +275,8 @@ pub struct Args {
             "explain_match",
             "sort",
             "data_dir",
-            "user_lexicon"
+            "user_lexicon",
+            "check_data"
         ]
     )]
     pub init: bool,
@@ -355,6 +397,17 @@ mod tests {
         assert!(args.init);
         assert_eq!(args.query(), None);
         assert_eq!(args.agent, [AgentArg::Codex, AgentArg::ClaudeCode]);
+    }
+
+    #[test]
+    fn data_check_replaces_the_query_and_allows_json_and_data_dir() {
+        let args = Args::try_parse_from(["kfind", "--check-data", "--json", "--data-dir", "data"])
+            .unwrap();
+
+        assert!(args.check_data);
+        assert!(args.json);
+        assert_eq!(args.data_dir, Some(PathBuf::from("data")));
+        assert_eq!(args.query(), None);
     }
 
     #[test]

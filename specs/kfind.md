@@ -321,7 +321,12 @@
 - full POS resource에는 `lexicon.bin`, 생성 manifest, `mecab-ko-dic`의 `COPYING`을 함께 넣는다. formula는 이를 `share/kfind`와 `share/doc/kfind/LICENSES`에 설치한다.
 - compact component resource와 manifest도 formula resource로 고정 checksum을 검증해
   `share/kfind/morphology-component-compact.kfc`에 설치한다. formula `test do`는 설치 경로의
-  resource로 component positive와 crossing-substring negative를 모두 실행한다.
+  resource로 component positive와 crossing-substring negative를 모두 실행한다. component
+  header는 kfind package version을 보존하고 binary는 exact version mismatch를 초기화 오류로
+  보고한다. Formula는 설치·upgrade 뒤 `kfind --check-data --data-dir <pkgshare>`를 실행해 full
+  POS와 component의 무결성·호환성을 함께 확인한다. 실패 시 임의 다운로드나 백그라운드
+  갱신을 하지 않고 `brew reinstall kfind`를 안내한다. Stable resource와 main source가 섞이는
+  `head` build는 제공하지 않는다.
 - distribution asset의 `skills/kfind/SKILL.md`를 formula의 `share/kfind/skills/kfind`에
   설치한다. Homebrew binary의 `--init`은 project skill을 versioned Cellar가 아니라
   `opt/kfind/share/kfind/skills/kfind`에 연결한다. 최초 `brew install`은 skill 원본을 함께
@@ -388,15 +393,27 @@
   소비한 continuation과 맞지 않는 path까지 허용하지 않는다. 예를 들어 `걸을`에서
   `걷다`의 `걸으-+-ㄹ` program은 유지하지만, `걸다`의 bare `걸` program은 `-을`을
   소비하지 않았으므로 제외한다.
-- source가 정렬해 선언한 component는 같은 span의 runtime 분할보다 우선한다. runtime
-  근거만 있는 대명사·수사·관형사·부사의 exact component는 token 시작에 정렬되고 남은
-  suffix도 완전한 graph path로 token 끝까지 이어질 때만 허용한다. 따라서 `안팔아서`의
-  `안`, `오래동안`의 `오래`는 유지하지만 whole-token 체언 분석이 경쟁하는 `안개`의
-  `안`은 열지 않는다. 같은 token에 체언+조사 경로가 경쟁해도 `MAG` 뒤의 완전한 predicate
-  suffix 경로가 있으면 `못해요`의 `못`, `안나와요`의 `안`을 유지한다. Predicate suffix가
-  없는 체언+조사 경로만으로는 이 근거를 열지 않는다. continuation을 하나도 소비하지 않은
-  bare predicate가 더 큰 token의
+- source가 정렬해 선언한 component는 같은 span의 runtime 분할보다 우선한다. 조사로
+  완결되는 체언 host가 없는 token에서, 왼쪽 경계부터 시작한 더 긴 source 용언 분석과
+  `E+` suffix가 token 끝까지 완성되면 그 안의 runtime 체언·부사 prefix는 component로
+  추측하지 않는다. 따라서 부사와 용언 사이에 어절 경계가 필요한 `안 팔아서`, `못 했다`를
+  `안팔아서`, `못했다` 안의 component로 열지 않고, source 파생 근거가 없는 `못하다` 안의
+  명사 `못`도 열지 않는다. `공부하다`처럼 같은 source 분석이 정렬된 명사 component와 파생
+  접미사를 선언한 경우에는 source component를 유지한다. 한 source 분석에 component가
+  정렬되지 않았더라도, 두 음절 이상인 체언 뒤에 `XSV`, `XSA` 또는 용언 source edge가 붙어
+  완전한 별도 path를 이루고 더 긴 whole 용언 분석도 있으면 보수적 runtime 파생 근거로
+  인정한다. 따라서 `시작했습니다`, `진정한`, `재미있어요`의 체언은 유지하되, 한 음절 체언은
+  정렬된 source component 없이는 이 fallback을 사용하지 않는다. 이 판정은 runtime path
+  전체의 품사 전이를 제한하지 않으므로 `MAG + JX`인 `드디어는`, `많이들`과 검증된
+  `NNG + XSV` 파생을 보존한다. `안팔아서`, `안좋습니다`, `안나와요` 같은
+  nonstandard-spacing 입력은 향후 별도 robust 지원에서 다루며 현재 표준형 `smart` 계약에서는
+  FP 또는 FN을 허용한다. continuation을 하나도 소비하지 않은 bare predicate가 더 큰 token의
   일부이거나, predicate component 직후의 체언+조사 후보이면 구조적으로 반증한다.
+- 현재 token에 whole `MAG`와 whole 체언이 경쟁하고 다음 token의 완전한 component path가
+  `하다` 활용의 `하/VV` 또는 교체형 `해-/했-/VV`로 시작하면 부사 구조를 선택한다. 따라서
+  `못 하겠어요`, `못 했다`의
+  `못`은 `MAG`로만 인정한다. 다음 token이 다른 용언인 `못 박았다`에는 이 frame을 적용하지
+  않아 source가 선언한 동형 품사를 그대로 유지한다.
 - `smart` 체언 query의 core가 token 왼쪽 경계부터 완성된 체언 host와 정확히
   일치하고, `이`·`입`으로 시작하는 source graph가 그 직후부터 token 끝까지
   `VCP + E+`와 선택적 조사 연쇄를 완성하면 체언 core를 유지한다. 조사는 어미를 하나 이상
@@ -506,7 +523,7 @@
   NFC이면 normalized byte offset과 원문 상대 offset의 identity mapping을 사용하고,
   NFC가 아닌 window만 prefix 안정 경계를 계산한다. 인접 token도 NFC이면 원문 slice를
   직접 빌려 구조를 준비하고, 비 NFC token만 bounded normalized 문자열을 소유한다.
-- compact morphology resource는 schema 4 container다. NFC surface index, source node의
+- compact morphology resource는 schema 5 container다. NFC surface index, source node의
   POS, NFC 안정 경계에 정렬된 component span과 source identity만 보존한다. left/right
   context ID, word cost, 연결 비용 행렬, unknown model과 원본 expression 문자열은 싣지 않는다.
   국소 graph를 준비할 때는 검증된 resource의 POS 문자열과 component를 빌려 쓰며 token마다
@@ -568,11 +585,12 @@
   compile하면 명시적 `ComponentResourceRequired` 오류를 반환하고 기존 경계 판정으로
   fallback하지 않는다.
 - component resource decoder는 resource를 공개하기 전에 모든 section digest와 payload 구조를
-  검증한다. Native에서는 큰 index와 payload section의 digest를 서로 다른 thread에서 검증할 수
-  있고, 같은 큰 resource의 payload 구조 검증을 section digest 검증과 겹쳐 수행할 수 있다.
-  Thread를 만들 수 없으면 순차 검증으로 돌아가고 WASM은 순차 검증한다. 어느 경로도 digest나
-  payload 구조 검증을 생략하거나 두 검증이 모두 끝나기 전 resource를 engine 상태에 설치하지
-  않는다. 병렬 경로에서 두 검증이 모두 실패하면 section digest 오류를 먼저 반환한다.
+  검증하고 header의 package version이 현재 binary/library version과 정확히 같은지 확인한다.
+  Native에서는 큰 index와 payload section의 digest를 서로 다른 thread에서 검증할 수 있고,
+  같은 큰 resource의 payload 구조 검증을 section digest 검증과 겹쳐 수행할 수 있다. Thread를
+  만들 수 없으면 순차 검증으로 돌아가고 WASM은 순차 검증한다. 어느 경로도 digest나 payload
+  구조 검증을 생략하거나 두 검증이 모두 끝나기 전 resource를 engine 상태에 설치하지 않는다.
+  병렬 경로에서 두 검증이 모두 실패하면 section digest 오류를 먼저 반환한다.
 - section SHA-256은 지원 CPU에서 runtime detection으로 hardware backend를 사용하고, 사용할 수
   없으면 target-compatible backend로 돌아간다. Backend와 무관하게 같은 digest를 계산하며 검증
   범위와 오류 계약을 바꾸지 않는다.
@@ -625,6 +643,10 @@
 - package build는 고정 source와 checksum으로 정적 asset을 생성한다. `npm pack --dry-run`은
   asset 포함과 SHA-256을 검증하고 WASM binary에 compact container magic 또는 artifact bytes가
   포함되지 않았음을 확인한다.
+- npm `prepack`은 같은 checkout의 Cargo/package version을 확인하고 component를 다시 생성한 뒤
+  Node smoke·TypeScript·asset 검증을 통과해야만 pack/publish를 허용한다. Tag release workflow는
+  이 검증이 끝난 동일 산출물을 npm registry에 게시한다. Prerelease version은 `next`, stable
+  version은 `latest` dist-tag를 사용한다.
 - npm 산출물은 브라우저 bundler용 release package로 생성한다. 별도의 Node target
   산출물로 같은 공개 API를 smoke test하고 `npm pack --dry-run`으로 게시 파일과 metadata를
   검증한다.
@@ -2437,7 +2459,10 @@ SHA-256로 생성해 사용한다. test 1,000개 baseline은 변경하지 않는
 deterministic하게 추출하고, 수동 벤치마크는 dev·test·hard-negative 전체를 사용한다.
 
 명시적 품사 `smart` 형태 품질 변경은 dev strict precision 99.00% 이상과 version-controlled
-hard-negative 신규 contract FP 0을 지키면서 FN을 늘리지 않아야 한다. 신규 strict FP는 구현과
+hard-negative 신규 contract FP 0을 지키면서 표준 띄어쓰기 case의 FN을 늘리지 않아야 한다.
+부사와 용언 사이에 필요한 공백이 빠진 `안팔아서`, `안좋습니다`, `안나와요`, `못해요` 같은
+`nonstandard-spacing` case는 strict 지표와 row-level delta에 그대로 남기되 이 gate에서 제외한다.
+해당 입력의 FP/FN은 별도 robust 지원을 도입할 때 해소한다. 신규 strict FP는 구현과
 독립적으로 미리 고정한 `contract_expected=true` case에서만 허용한다. FN이 줄어든 후보를 우선하고,
 FN이 같을 때만 FP가 줄어든 후보를 선택한다. 고정 test fixture는 규칙 선택에
 사용하지 않고 FN 비증가, precision 99.00% 하한과 전체 품질 회귀만 확인한다. 무품사 fixture의

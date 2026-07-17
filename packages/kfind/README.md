@@ -35,6 +35,11 @@ never resolves or fetches them automatically, and neither is embedded in the
 WASM binary. The existing constructor, `Kfind.withFullPos`, and
 `loadComponentResource` remain available as compatibility APIs.
 
+Each package version contains a component resource with the same version in its
+header. Loading an asset from another version fails explicitly. npm `prepack`
+rebuilds and tests the WASM and resources before publication; the package does
+not perform background updates.
+
 See `LICENSES.md` for the package code, component resource, and enriched
 predicate data licenses and notice locations.
 

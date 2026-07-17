@@ -33,6 +33,10 @@ Match offset은 UTF-16 code unit 기준이므로 `String.prototype.slice`에 바
 asset을 자동으로 찾거나 fetch하지 않으며 WASM binary에도 포함하지 않습니다. 기존 생성자와
 `Kfind.withFullPos`, `loadComponentResource`도 호환 API로 유지합니다.
 
+각 package version은 header version이 같은 component resource를 포함합니다. 다른 version의
+asset을 로드하면 명시적으로 실패합니다. npm `prepack`은 게시 전에 WASM과 resource를 다시 만들고
+검증하며 package가 백그라운드 업데이트를 수행하지는 않습니다.
+
 Package code, component resource, enriched predicate data의 라이선스와 고지 위치는
 `LICENSES.md`에 정리되어 있습니다.
 

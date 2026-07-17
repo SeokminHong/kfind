@@ -42,7 +42,7 @@ QueryMorphPattern + CandidateProgram
 - 서로 다른 구조가 여전히 모호하면 `ProductPolicy`는 recall을 우선해 지원 가능한
   query 후보를 유지한다. `Ambiguous`와 경쟁 proof 전체는 진단 mode에서만 물질화한다.
 - program이 보존한 query provenance는 모두 남기되 corpus 의미 분석을 추가하지 않는다.
-- resource 누락·손상·schema mismatch·그래프 상한 초과는 `Unavailable`로 구분하고
+- resource 누락·손상·schema·package-version mismatch·그래프 상한 초과는 `Unavailable`로 구분하고
   기존 boundary 판정이나 raw-cost 임계값으로 바꾸지 않는다.
 - 제품 compact resource와 resolver는 source 분석 비용, 연결 행렬과 미등록어 모델을
   읽지 않는다. 별도 full morphology 진단 artifact만 과거 비용 판정 비교에 사용하며,
@@ -57,6 +57,8 @@ QueryMorphPattern + CandidateProgram
 - query-side full POS와 corpus-side morphology resource는 같은 고정 source snapshot에서 생성하지만
   별도 artifact다. compact와 full resource의 source identity, exact/common-prefix hit, graph
   edge와 span provenance가 일치해야 한다.
+- compact resource header의 package version은 이를 decode하는 kfind package version과 정확히
+  같아야 한다. CLI 배포는 `kfind --check-data`로 설치된 full POS와 component를 함께 검증한다.
 - resource 없는 Rust/WASM engine과 compact resource를 초기화한 engine의 startup·RSS를
   분리해 측정한다.
 
@@ -68,8 +70,10 @@ pnpm --dir packages/kfind run benchmark:startup
 ## 전환 게이트
 
 - 제품 matcher와 benchmark evaluator의 candidate coverage는 100%여야 한다.
-- 고정 test의 TP를 줄이거나 FP를 늘리지 않는다. dev에서 precision 99.00% 이상과
-  revised hard-negative 신규 FP 0을 유지하면서 FN을 늘리지 않는다.
+- 표준 띄어쓰기 고정 test의 TP를 줄이거나 FP를 늘리지 않는다. dev에서 precision 99.00% 이상과
+  revised hard-negative 신규 FP 0을 유지하면서 표준 띄어쓰기 FN을 늘리지 않는다.
+- 필요한 공백이 빠진 `nonstandard-spacing` 입력은 strict delta를 숨기지 않되 이 gate에서
+  제외한다. 해당 FP/FN은 [robustness 후속 설계](noisy-text-robustness-plan.md)의 범위다.
 - `query_compile`, morphology fixture 초기화·cases/s·p95·RSS와 실제 CLI workload를 같은
   revision·입력·build profile에서 `origin/main`과 비교한다.
 - 제품 코드에는 `SurfaceBranch`, `BranchVerifier`, `ContextRequirement`, 수동 lexical-context

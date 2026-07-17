@@ -39,10 +39,12 @@
     "benchmark:startup": "../../scripts/benchmark-npm-startup.sh",
     "build": "../../scripts/build-npm-package.sh",
     "test": "../../scripts/test-npm-package.sh",
-    "pack:check": "../../scripts/check-npm-package.sh"
+    "pack:check": "../../scripts/check-npm-package.sh",
+    "prepack": "../../scripts/test-npm-package.sh"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "packageManager": "pnpm@10.33.0"
 }

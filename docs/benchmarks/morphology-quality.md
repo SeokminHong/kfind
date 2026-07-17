@@ -3,7 +3,9 @@
 ## 품질 게이트
 
 명시적 품사 `smart` 품질 변경은 dev strict precision 99.00% 이상과 revised hard-negative
-신규 contract FP 0을 유지하면서 FN을 늘리지 않아야 한다. FN이 줄어든 후보를 우선하고, FN이 같을 때만 FP가 줄어든
+신규 contract FP 0을 유지하면서 표준 띄어쓰기 FN을 늘리지 않아야 한다. 필요한 공백이 빠진
+`nonstandard-spacing` case는 strict FP/FN과 row-level delta에 그대로 남기되 이 gate에서 제외하고
+별도 robust 지원에서 해소한다. FN이 줄어든 후보를 우선하고, FN이 같을 때만 FP가 줄어든
 후보를 선택한다. 무품사 결과는 제품 한계와 회귀를 그대로 관측하며 목표 수치에 맞춰 fixture,
 gold 또는 negative 선택을 바꾸지 않는다.
 

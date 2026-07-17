@@ -11,6 +11,10 @@ fn resource_owns_bytes_and_preserves_only_aligned_structure() {
     });
 
     assert_eq!(resource.stats().surface_count, 2);
+    assert_eq!(
+        resource.stats().resource_version,
+        COMPONENT_RESOURCE_VERSION
+    );
     assert_eq!(resource.stats().analysis_count, 2);
     assert_eq!(resource.stats().component_count, 2);
     assert_eq!(prefixes.len(), 2);
@@ -47,7 +51,19 @@ fn resource_rejects_schema_source_and_content_mismatches() {
         DataErrorKind::ComponentResourceSchema { .. }
     ));
 
-    let mut cursor = 60;
+    let mut version = bytes.clone();
+    let version_start = MAGIC.len() + 4 + 4 + 32;
+    version[version_start..version_start + RESOURCE_VERSION_LEN].fill(0);
+    version[version_start..version_start + 5].copy_from_slice(b"0.0.0");
+    assert!(matches!(
+        decode_component_resource("fixture", version, &[7; 32])
+            .unwrap_err()
+            .kind
+            .as_ref(),
+        DataErrorKind::ComponentResourceVersionMismatch { .. }
+    ));
+
+    let mut cursor = SECTION_LENGTHS_OFFSET;
     let mut lengths = [0_usize; SECTION_COUNT];
     for length in &mut lengths {
         *length = usize::try_from(read_u64(&bytes, &mut cursor).unwrap()).unwrap();
