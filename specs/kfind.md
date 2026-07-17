@@ -564,7 +564,9 @@
   corpus 구조 선택 힌트로 주입하지 않는다.
 - 현재 token에 관형사 whole 분석이 있고 다음 token이 체언으로 시작하면 관형사 구조를
   선택한다. 따라서 `새 기능`의 `새`는 관형사로 판정한다. 여기서 다음 token의 체언
-  시작은 token 전체의 체언 분석 또는 exact 체언 host와 조사 suffix로 증명해야 하며,
+  시작은 token 전체를 덮는 완전한 체언 host 또는 그 host와 조사 suffix로 증명해야 한다.
+  체언 host는 여러 체언 edge와 `XPN/XSN/XR`의 조합도 허용하므로 `전 가구별로`의
+  `가구 + 별 + 로`도 같은 관형사 구조에 포함한다. 다만
   우연히 체언으로도 등록된 짧은 prefix나 predicate·modifier whole 경쟁이 있는 token만으로
   판정하지 않는다. 한 음절 관형사 구조는 경쟁 NNG/NNP/NNB만 제거하고 다른 품사의
   독립 후보는 유지한다. `V+EC N`처럼 절 연결과 명사 연속 구조가 모두 가능한 배치는

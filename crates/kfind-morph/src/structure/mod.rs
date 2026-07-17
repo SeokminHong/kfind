@@ -2140,7 +2140,10 @@ fn select_structure(
             exact_analysis_starts_with_pos(resource, next, |pos| pos.starts_with('N'));
         let exact_competitor =
             exact_analysis_starts_with_pos(resource, next, |pos| !pos.starts_with('N'));
-        nominal_particle_host(resource, next).is_some() || (exact_nominal && !exact_competitor)
+        let complete_nominal = complete_nominal_host(resource, next)
+            || complete_nominal_particle_host(resource, next).is_some();
+        nominal_particle_host(resource, next).is_some()
+            || (!exact_competitor && (exact_nominal || complete_nominal))
     });
     let particle_host = nominal_particle_host(resource, context.current);
     if next_starts_nominal

@@ -629,6 +629,39 @@ fn adjacent_layout_limits_disambiguation_to_supported_pos_competitions() {
 }
 
 #[test]
+fn determiner_accepts_a_complete_derived_nominal_phrase_in_the_next_token() {
+    let resource = component_resource_from_entries([
+        component_entry("전", "MM"),
+        component_entry("전", "NNG"),
+        component_entry("전", "NNB"),
+        component_entry("가구", "NNG"),
+        component_entry("별", "XSN"),
+        component_entry("로", "JKB"),
+        component_entry("는", "ETM"),
+        component_entry("한다고", "VV+EF+EC"),
+    ]);
+    let matcher = compile_with_full_pos_and_resource(
+        "전",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Determiner),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    assert!(
+        matcher
+            .find_at_with_meta("경우에는 전 가구별로".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        matcher
+            .find_at_with_meta("경우에는 전 한다고".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn runtime_nominal_component_remains_available_without_a_source_decomposition() {
     let matcher = compile_with_full_pos(
         "명사",
