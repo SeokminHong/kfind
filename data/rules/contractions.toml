@@ -63,3 +63,11 @@ left = "시"
 right = "었"
 result = "셨"
 ending_ids = ["ending.past"]
+
+[[contraction]]
+id = "contraction.nominal-topic-neun"
+kind = "nominal-particle-compose"
+left = "거"
+right = "는"
+result = "건"
+ending_ids = []

@@ -885,6 +885,66 @@ fn derivation_nominal_particle_and_override_branches_use_distinct_verifiers() {
 }
 
 #[test]
+fn pronoun_topic_contraction_is_rule_driven_and_pos_scoped() {
+    for lemma in ["이거", "그거", "저거"] {
+        let plan = compile_query(
+            lemma,
+            &CompileOptions {
+                global_pos: Some(CoarsePos::Pronoun),
+                ..CompileOptions::default()
+            },
+            &analyzer(),
+        )
+        .unwrap();
+        let contracted = format!("{}건", lemma.strip_suffix('거').unwrap());
+        let branch = plan.atoms[0]
+            .programs
+            .iter()
+            .find(|branch| branch.anchor.as_ref() == contracted.as_bytes())
+            .unwrap_or_else(|| panic!("missing topic contraction {contracted}"));
+        assert!(branch.origins.iter().any(|origin| {
+            origin
+                .rule_path
+                .iter()
+                .any(|rule| rule.as_str() == "contraction.nominal-topic-neun")
+        }));
+    }
+
+    let noun = compile_query(
+        "그거",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    assert!(
+        noun.atoms[0]
+            .programs
+            .iter()
+            .all(|branch| branch.anchor.as_ref() != "그건".as_bytes())
+    );
+
+    let literal = compile_query(
+        "그거",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Pronoun),
+            expand: ExpandMode::Literal,
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    assert!(
+        literal.atoms[0]
+            .programs
+            .iter()
+            .all(|branch| branch.anchor.as_ref() != "그건".as_bytes())
+    );
+}
+
+#[test]
 fn inflection_and_derivation_allow_adverb_auxiliaries_but_not_case_particles() {
     for expand in [ExpandMode::Inflection, ExpandMode::Derivation] {
         let options = CompileOptions {

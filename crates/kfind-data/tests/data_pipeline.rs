@@ -94,6 +94,17 @@ fn repository_data_is_complete_and_valid() {
             .iter()
             .all(|form| !["까지도", "까지만", "까지는", "으로부터의"].contains(&form.as_str()))
     }));
+    let nominal_topic_contraction = data
+        .rules
+        .contractions
+        .iter()
+        .find(|rule| rule.id == "contraction.nominal-topic-neun")
+        .expect("nominal topic contraction rule");
+    assert_eq!(nominal_topic_contraction.kind, "nominal-particle-compose");
+    assert_eq!(nominal_topic_contraction.left, "거");
+    assert_eq!(nominal_topic_contraction.right, "는");
+    assert_eq!(nominal_topic_contraction.result, "건");
+    assert!(nominal_topic_contraction.ending_ids.is_empty());
     let alternative = data
         .rules
         .particles
@@ -482,6 +493,29 @@ fn rule_parser_rejects_unknown_features_and_nonterminal_leaves() {
     assert!(matches!(
         *error.kind,
         DataErrorKind::InvalidValue { ref field, .. } if field == "terminal"
+    ));
+    assert!(error.location.line.is_some());
+}
+
+#[test]
+fn nominal_particle_contraction_requires_a_nominal_host_particle() {
+    let contractions = read("rules/contractions.toml").replacen(
+        "right = \"는\"",
+        "right = \"등록되지않은조사\"",
+        1,
+    );
+    let error = parse_rule_set(RuleSources {
+        endings: &read("rules/endings.toml"),
+        alternations: &read("rules/alternations.toml"),
+        contractions: &contractions,
+        derivations: &read("rules/derivations.toml"),
+        particles: &read("rules/particles.toml"),
+    })
+    .unwrap_err();
+
+    assert!(matches!(
+        *error.kind,
+        DataErrorKind::InvalidValue { ref field, .. } if field == "right"
     ));
     assert!(error.location.line.is_some());
 }

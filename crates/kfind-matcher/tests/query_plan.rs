@@ -1522,6 +1522,52 @@ fn nominal_overrides_preserve_replacement_and_alias_contracts() {
 }
 
 #[test]
+fn nominal_topic_contraction_covers_the_pronoun_family() {
+    for (query, contracted, full) in [
+        ("이거", "이건", "이거는"),
+        ("그거", "그건", "그거는"),
+        ("저거", "저건", "저거는"),
+    ] {
+        let matcher = compile(
+            query,
+            CompileOptions {
+                global_pos: Some(CoarsePos::Pronoun),
+                ..CompileOptions::default()
+            },
+        );
+        assert!(
+            matcher
+                .find_at_with_meta(contracted.as_bytes(), 0)
+                .is_some(),
+            "{query} must accept contracted topic form {contracted}"
+        );
+        assert!(
+            matcher.find_at_with_meta(full.as_bytes(), 0).is_some(),
+            "{query} must preserve full topic form {full}"
+        );
+        let compound = format!("{contracted}물");
+        assert!(
+            matcher.find_at_with_meta(compound.as_bytes(), 0).is_none(),
+            "{query} must not leak the contraction into {compound}"
+        );
+    }
+
+    let other_pronoun = compile(
+        "누구",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Pronoun),
+            ..CompileOptions::default()
+        },
+    );
+    assert!(
+        other_pronoun.plan().atoms[0]
+            .programs
+            .iter()
+            .all(|branch| branch.anchor.as_ref() != "누건".as_bytes())
+    );
+}
+
+#[test]
 fn direct_particle_plans_validate_the_attached_host_in_smart_mode() {
     let options = CompileOptions {
         global_pos: Some(CoarsePos::Particle),

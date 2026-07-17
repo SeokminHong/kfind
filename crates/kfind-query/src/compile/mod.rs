@@ -370,6 +370,7 @@ fn compile_analysis(
                     true,
                 ));
             }
+            compile_nominal_contractions(analysis, analysis_index, analyzer, output);
             if options.expand == ExpandMode::Derivation {
                 compile_derivations(
                     analysis,
@@ -413,6 +414,34 @@ fn compile_analysis(
         Morphology::Exact => unreachable!("exact morphology returned above"),
     }
     Ok(())
+}
+
+fn compile_nominal_contractions(
+    analysis: &Analysis,
+    analysis_index: u16,
+    analyzer: &LexiconQueryAnalyzer,
+    output: &mut Vec<DraftBranch>,
+) {
+    if analysis.coarse_pos != CoarsePos::Pronoun {
+        return;
+    }
+    for rule in analyzer
+        .lexicons()
+        .rules()
+        .contractions
+        .iter()
+        .filter(|rule| rule.kind == "nominal-particle-compose")
+    {
+        let Some(prefix) = analysis.lemma.strip_suffix(&rule.left) else {
+            continue;
+        };
+        output.push(exact_branch(
+            &format!("{prefix}{}", rule.result),
+            analysis_index,
+            vec![RuleId::from(rule.id.clone())],
+            true,
+        ));
+    }
 }
 
 fn exact_candidate_decision(analysis: &Analysis) -> DraftDecision {

@@ -121,12 +121,29 @@ fn validate_alternations(rules: &RuleSet, locations: &RuleLocations) -> Result<(
 
 fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(), DataError> {
     let source = "data/rules/contractions.toml";
+    const KINDS: &[&str] = &["vowel-compose", "stem-rewrite", "nominal-particle-compose"];
     let ending_ids = rules
         .endings
         .iter()
         .map(|rule| rule.id.as_str())
         .collect::<BTreeSet<_>>();
+    let nominal_particle_forms = rules
+        .particles
+        .iter()
+        .filter(|rule| rule.hosts.contains(&ParticleHost::Nominal))
+        .flat_map(|rule| rule.forms.iter().map(String::as_str))
+        .collect::<BTreeSet<_>>();
     for rule in &rules.contractions {
+        if !KINDS.contains(&rule.kind.as_str()) {
+            return Err(invalid_rule_value(
+                locations,
+                source,
+                &rule.id,
+                "kind",
+                &rule.kind,
+                "지원하는 contraction kind여야 합니다",
+            ));
+        }
         for (field, value) in [
             ("kind", rule.kind.as_str()),
             ("left", rule.left.as_str()),
@@ -147,6 +164,28 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
         }
         for ending_id in &rule.ending_ids {
             require_reference(source, &rule.id, ending_id, &ending_ids, locations)?;
+        }
+        if rule.kind == "nominal-particle-compose" && !rule.ending_ids.is_empty() {
+            return Err(invalid_rule_value(
+                locations,
+                source,
+                &rule.id,
+                "ending_ids",
+                rule.ending_ids.join("|"),
+                "nominal particle contraction은 predicate ending을 참조하지 않습니다",
+            ));
+        }
+        if rule.kind == "nominal-particle-compose"
+            && !nominal_particle_forms.contains(rule.right.as_str())
+        {
+            return Err(invalid_rule_value(
+                locations,
+                source,
+                &rule.id,
+                "right",
+                &rule.right,
+                "nominal host를 허용하는 particle surface여야 합니다",
+            ));
         }
     }
     Ok(())
