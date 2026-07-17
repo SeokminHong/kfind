@@ -447,8 +447,9 @@ pnpm --dir packages/kfind run pack:check
 형태론 fixture에는 일치·불일치 회귀 사례 588개가 있습니다. Docker 벤치마크는 UD
 Korean-Kaist에서 수동 검토해 뽑은 1,000개 사례로 `kfind`를 측정하고, 고정된 Kiwi, Lindera,
 MeCab-ko, KOMORAN snapshot과 비교합니다. 제외한 Korean-Kaist 문장과 Korean-KSL은 점수 없는
-robustness 후보로 분리합니다. fuzz target과 고정 seed corpus는 `fuzz/`에 있습니다. CI는
-`scripts/run-fuzz.sh`로 모든 target을 target당 15초 동안 실제 실행합니다.
+robustness 후보로 분리합니다. `robustness=off`인 명시적 품사·무품사 500-case 후보 workload는
+품질 점수 없이 별도 성능으로 측정합니다. fuzz target과 고정 seed corpus는 `fuzz/`에 있습니다.
+CI는 `scripts/run-fuzz.sh`로 모든 target을 target당 15초 동안 실제 실행합니다.
 
 구현 계약과 릴리스 인수 기준은 [`specs/kfind.md`](specs/kfind.md)에 있습니다.
 

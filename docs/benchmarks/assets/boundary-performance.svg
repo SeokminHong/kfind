@@ -23,85 +23,85 @@
 <text x="52.0" y="96.0" text-anchor="start">Throughput</text>
 <text x="600.0" y="96.0" text-anchor="end" class="muted">higher is better</text>
 <text x="52.0" y="146.0" text-anchor="start">embedded · smart</text>
-<rect x="220.0" y="130.0" width="202.2" height="24.0" rx="3" fill="#2563eb"/>
-<text x="478.0" y="148.0" text-anchor="start">12459.9 cases/s</text>
+<rect x="220.0" y="130.0" width="175.0" height="24.0" rx="3" fill="#2563eb"/>
+<text x="478.0" y="148.0" text-anchor="start">20919.4 cases/s</text>
 <text x="52.0" y="190.0" text-anchor="start">embedded · token</text>
 <rect x="220.0" y="174.0" width="223.2" height="24.0" rx="3" fill="#d97706"/>
-<text x="478.0" y="192.0" text-anchor="start">13754.9 cases/s</text>
+<text x="478.0" y="192.0" text-anchor="start">26675.8 cases/s</text>
 <text x="52.0" y="234.0" text-anchor="start">embedded · any</text>
-<rect x="220.0" y="218.0" width="220.6" height="24.0" rx="3" fill="#4d7c0f"/>
-<text x="478.0" y="236.0" text-anchor="start">13593.5 cases/s</text>
+<rect x="220.0" y="218.0" width="222.0" height="24.0" rx="3" fill="#4d7c0f"/>
+<text x="478.0" y="236.0" text-anchor="start">26529.0 cases/s</text>
 <text x="52.0" y="278.0" text-anchor="start">full-pos · smart</text>
-<rect x="220.0" y="262.0" width="185.5" height="24.0" rx="3" fill="#60a5fa"/>
-<text x="478.0" y="280.0" text-anchor="start">11433.3 cases/s</text>
+<rect x="220.0" y="262.0" width="134.8" height="24.0" rx="3" fill="#60a5fa"/>
+<text x="478.0" y="280.0" text-anchor="start">16113.8 cases/s</text>
 <text x="52.0" y="322.0" text-anchor="start">full-pos · token</text>
-<rect x="220.0" y="306.0" width="203.4" height="24.0" rx="3" fill="#fbbf24"/>
-<text x="478.0" y="324.0" text-anchor="start">12536.1 cases/s</text>
+<rect x="220.0" y="306.0" width="212.1" height="24.0" rx="3" fill="#fbbf24"/>
+<text x="478.0" y="324.0" text-anchor="start">25343.4 cases/s</text>
 <text x="52.0" y="366.0" text-anchor="start">full-pos · any</text>
-<rect x="220.0" y="350.0" width="203.0" height="24.0" rx="3" fill="#a3e635"/>
-<text x="478.0" y="368.0" text-anchor="start">12507.5 cases/s</text>
+<rect x="220.0" y="350.0" width="200.5" height="24.0" rx="3" fill="#a3e635"/>
+<text x="478.0" y="368.0" text-anchor="start">23963.6 cases/s</text>
 <line class="axis" x1="220" y1="388" x2="470" y2="388"/>
 <text x="680.0" y="96.0" text-anchor="start">Initialization</text>
 <text x="1228.0" y="96.0" text-anchor="end" class="muted">lower is better</text>
 <text x="680.0" y="146.0" text-anchor="start">embedded · smart</text>
-<rect x="848.0" y="130.0" width="147.4" height="24.0" rx="3" fill="#2563eb"/>
-<text x="1106.0" y="148.0" text-anchor="start">0.2870 s</text>
+<rect x="848.0" y="130.0" width="115.5" height="24.0" rx="3" fill="#2563eb"/>
+<text x="1106.0" y="148.0" text-anchor="start">0.0412 s</text>
 <text x="680.0" y="190.0" text-anchor="start">embedded · token</text>
-<rect x="848.0" y="174.0" width="0.7" height="24.0" rx="3" fill="#d97706"/>
-<text x="1106.0" y="192.0" text-anchor="start">0.0013 s</text>
+<rect x="848.0" y="174.0" width="4.1" height="24.0" rx="3" fill="#d97706"/>
+<text x="1106.0" y="192.0" text-anchor="start">0.0015 s</text>
 <text x="680.0" y="234.0" text-anchor="start">embedded · any</text>
-<rect x="848.0" y="218.0" width="0.7" height="24.0" rx="3" fill="#4d7c0f"/>
-<text x="1106.0" y="236.0" text-anchor="start">0.0013 s</text>
+<rect x="848.0" y="218.0" width="4.2" height="24.0" rx="3" fill="#4d7c0f"/>
+<text x="1106.0" y="236.0" text-anchor="start">0.0015 s</text>
 <text x="680.0" y="278.0" text-anchor="start">full-pos · smart</text>
 <rect x="848.0" y="262.0" width="223.2" height="24.0" rx="3" fill="#60a5fa"/>
-<text x="1106.0" y="280.0" text-anchor="start">0.4344 s</text>
+<text x="1106.0" y="280.0" text-anchor="start">0.0797 s</text>
 <text x="680.0" y="322.0" text-anchor="start">full-pos · token</text>
-<rect x="848.0" y="306.0" width="74.3" height="24.0" rx="3" fill="#fbbf24"/>
-<text x="1106.0" y="324.0" text-anchor="start">0.1446 s</text>
+<rect x="848.0" y="306.0" width="112.3" height="24.0" rx="3" fill="#fbbf24"/>
+<text x="1106.0" y="324.0" text-anchor="start">0.0401 s</text>
 <text x="680.0" y="366.0" text-anchor="start">full-pos · any</text>
-<rect x="848.0" y="350.0" width="74.2" height="24.0" rx="3" fill="#a3e635"/>
-<text x="1106.0" y="368.0" text-anchor="start">0.1444 s</text>
+<rect x="848.0" y="350.0" width="116.3" height="24.0" rx="3" fill="#a3e635"/>
+<text x="1106.0" y="368.0" text-anchor="start">0.0415 s</text>
 <line class="axis" x1="848" y1="388" x2="1098" y2="388"/>
 <text x="52.0" y="430.0" text-anchor="start">p95 latency</text>
 <text x="600.0" y="430.0" text-anchor="end" class="muted">lower is better</text>
 <text x="52.0" y="480.0" text-anchor="start">embedded · smart</text>
-<rect x="220.0" y="464.0" width="172.6" height="24.0" rx="3" fill="#2563eb"/>
-<text x="478.0" y="482.0" text-anchor="start">0.1681 ms</text>
+<rect x="220.0" y="464.0" width="139.0" height="24.0" rx="3" fill="#2563eb"/>
+<text x="478.0" y="482.0" text-anchor="start">0.0712 ms</text>
 <text x="52.0" y="524.0" text-anchor="start">embedded · token</text>
-<rect x="220.0" y="508.0" width="167.2" height="24.0" rx="3" fill="#d97706"/>
-<text x="478.0" y="526.0" text-anchor="start">0.1628 ms</text>
+<rect x="220.0" y="508.0" width="122.3" height="24.0" rx="3" fill="#d97706"/>
+<text x="478.0" y="526.0" text-anchor="start">0.0626 ms</text>
 <text x="52.0" y="568.0" text-anchor="start">embedded · any</text>
-<rect x="220.0" y="552.0" width="171.0" height="24.0" rx="3" fill="#4d7c0f"/>
-<text x="478.0" y="570.0" text-anchor="start">0.1665 ms</text>
+<rect x="220.0" y="552.0" width="122.6" height="24.0" rx="3" fill="#4d7c0f"/>
+<text x="478.0" y="570.0" text-anchor="start">0.0628 ms</text>
 <text x="52.0" y="612.0" text-anchor="start">full-pos · smart</text>
 <rect x="220.0" y="596.0" width="223.2" height="24.0" rx="3" fill="#60a5fa"/>
-<text x="478.0" y="614.0" text-anchor="start">0.2174 ms</text>
+<text x="478.0" y="614.0" text-anchor="start">0.1143 ms</text>
 <text x="52.0" y="656.0" text-anchor="start">full-pos · token</text>
-<rect x="220.0" y="640.0" width="219.2" height="24.0" rx="3" fill="#fbbf24"/>
-<text x="478.0" y="658.0" text-anchor="start">0.2135 ms</text>
+<rect x="220.0" y="640.0" width="139.8" height="24.0" rx="3" fill="#fbbf24"/>
+<text x="478.0" y="658.0" text-anchor="start">0.0716 ms</text>
 <text x="52.0" y="700.0" text-anchor="start">full-pos · any</text>
-<rect x="220.0" y="684.0" width="220.2" height="24.0" rx="3" fill="#a3e635"/>
-<text x="478.0" y="702.0" text-anchor="start">0.2145 ms</text>
+<rect x="220.0" y="684.0" width="146.9" height="24.0" rx="3" fill="#a3e635"/>
+<text x="478.0" y="702.0" text-anchor="start">0.0752 ms</text>
 <line class="axis" x1="220" y1="722" x2="470" y2="722"/>
 <text x="680.0" y="430.0" text-anchor="start">Peak RSS</text>
 <text x="1228.0" y="430.0" text-anchor="end" class="muted">lower is better</text>
 <text x="680.0" y="480.0" text-anchor="start">embedded · smart</text>
-<rect x="848.0" y="464.0" width="122.9" height="24.0" rx="3" fill="#2563eb"/>
-<text x="1106.0" y="482.0" text-anchor="start">50.9 MiB</text>
+<rect x="848.0" y="464.0" width="162.4" height="24.0" rx="3" fill="#2563eb"/>
+<text x="1106.0" y="482.0" text-anchor="start">41.0 MiB</text>
 <text x="680.0" y="524.0" text-anchor="start">embedded · token</text>
-<rect x="848.0" y="508.0" width="12.3" height="24.0" rx="3" fill="#d97706"/>
-<text x="1106.0" y="526.0" text-anchor="start">5.1 MiB</text>
+<rect x="848.0" y="508.0" width="20.5" height="24.0" rx="3" fill="#d97706"/>
+<text x="1106.0" y="526.0" text-anchor="start">5.2 MiB</text>
 <text x="680.0" y="568.0" text-anchor="start">embedded · any</text>
-<rect x="848.0" y="552.0" width="12.6" height="24.0" rx="3" fill="#4d7c0f"/>
-<text x="1106.0" y="570.0" text-anchor="start">5.2 MiB</text>
+<rect x="848.0" y="552.0" width="20.9" height="24.0" rx="3" fill="#4d7c0f"/>
+<text x="1106.0" y="570.0" text-anchor="start">5.3 MiB</text>
 <text x="680.0" y="612.0" text-anchor="start">full-pos · smart</text>
 <rect x="848.0" y="596.0" width="223.2" height="24.0" rx="3" fill="#60a5fa"/>
-<text x="1106.0" y="614.0" text-anchor="start">92.3 MiB</text>
+<text x="1106.0" y="614.0" text-anchor="start">56.3 MiB</text>
 <text x="680.0" y="656.0" text-anchor="start">full-pos · token</text>
-<rect x="848.0" y="640.0" width="112.6" height="24.0" rx="3" fill="#fbbf24"/>
-<text x="1106.0" y="658.0" text-anchor="start">46.6 MiB</text>
+<rect x="848.0" y="640.0" width="81.9" height="24.0" rx="3" fill="#fbbf24"/>
+<text x="1106.0" y="658.0" text-anchor="start">20.7 MiB</text>
 <text x="680.0" y="700.0" text-anchor="start">full-pos · any</text>
-<rect x="848.0" y="684.0" width="112.6" height="24.0" rx="3" fill="#a3e635"/>
-<text x="1106.0" y="702.0" text-anchor="start">46.6 MiB</text>
+<rect x="848.0" y="684.0" width="87.5" height="24.0" rx="3" fill="#a3e635"/>
+<text x="1106.0" y="702.0" text-anchor="start">22.1 MiB</text>
 <line class="axis" x1="848" y1="722" x2="1098" y2="722"/>
 </svg>

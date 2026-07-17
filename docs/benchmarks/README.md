@@ -193,6 +193,7 @@ SHA-256을 보존한다. 승인 보고서와 site 차트를 갱신할 때 같은
 
 관련 현재 계약은 다음 문서에 있다.
 
+- [검토된 UD 코퍼스 재샘플링과 Robust 성능](2026-07-17-query-matrix.md)
 - [구조 기반 국소 형태 판정 계약](selective-morphology.md)
 - [형태소 검색 품질 검증 계약](morphology-quality.md)
 - [명사 smart-boundary 계약](nominal-boundary.md)
