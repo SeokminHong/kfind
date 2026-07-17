@@ -389,8 +389,10 @@
   `걷다`의 `걸으-+-ㄹ` program은 유지하지만, `걸다`의 bare `걸` program은 `-을`을
   소비하지 않았으므로 제외한다.
 - source가 정렬해 선언한 component는 같은 span의 runtime 분할보다 우선한다. runtime
-  근거만 있는 대명사·수사·관형사·부사의 exact component는 token 시작에서 이어질
-  때만 허용한다. continuation을 하나도 소비하지 않은 bare predicate가 더 큰 token의
+  근거만 있는 대명사·수사·관형사·부사의 exact component는 token 시작에 정렬되고 남은
+  suffix도 완전한 graph path로 token 끝까지 이어질 때만 허용한다. 따라서 `안팔아서`의
+  `안`, `오래동안`의 `오래`는 유지하지만 whole-token 체언 분석이 경쟁하는 `안개`의
+  `안`은 열지 않는다. continuation을 하나도 소비하지 않은 bare predicate가 더 큰 token의
   일부이거나, predicate component 직후의 체언+조사 후보이면 구조적으로 반증한다.
 - `smart` 체언 query의 core가 token 왼쪽 경계부터 완성된 체언 host와 정확히
   일치하고, `이`·`입`으로 시작하는 source graph가 그 직후부터 token 끝까지
