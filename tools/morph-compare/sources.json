@@ -17,8 +17,9 @@
       },
       "scoring_status": "scored"
     },
-    "robustness-candidate": {
+    "robustness": {
       "sources": ["ud-korean-ksl"],
+      "sentence_review_file": "robustness-reviews.json",
       "positive_quotas_per_source": {
         "noun": 90,
         "verb": 60,
@@ -28,7 +29,16 @@
         "determiner": 10,
         "numeral": 10
       },
-      "scoring_status": "annotation-required"
+      "target_positive_quotas_per_source": {
+        "noun": 61,
+        "verb": 21,
+        "adjective": 8,
+        "adverb": 4,
+        "pronoun": 1,
+        "determiner": 4,
+        "numeral": 1
+      },
+      "scoring_status": "scored"
     }
   },
   "sources": [

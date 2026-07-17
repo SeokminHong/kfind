@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "review_policy": "manual-noisy-korean-v1",
+  "source": "ud-korean-ksl",
+  "split": "test",
+  "source_signal_pool": {
+    "signals": ["Typo=Yes", "goeswith"],
+    "pool_sentences": 441,
+    "pool_sha256": "9bfccf0afde476940d4d55f4fc204074f7285e250b0d43e6828f1a712a48facb"
+  },
+  "excluded": [
+    {
+      "sent_id": "KL-hb-17-11",
+      "verdict": "clean",
+      "annotation": "마늘도는 표준 표기이며 문장에 별도 오류가 없다."
+    },
+    {
+      "sent_id": "KH-B100004-31-2-7",
+      "verdict": "clean",
+      "annotation": "우산도는 표준 표기이며 문장에 별도 오류가 없다."
+    },
+    {
+      "sent_id": "KH-A200055-42-2-4",
+      "verdict": "clean",
+      "annotation": "유우미는 일본인 이름의 가능한 한글 표기라 오류로 확정하지 않는다."
+    },
+    {
+      "sent_id": "KH-B200106-42-2-16",
+      "verdict": "clean",
+      "annotation": "따라 하고는 허용되는 띄어쓰기이며 문장에 별도 오류가 없다."
+    },
+    {
+      "sent_id": "KH-A200058-36-2-8",
+      "verdict": "clean",
+      "annotation": "콜라를은 표준 표기이며 문장에 별도 오류가 없다."
+    },
+    {
+      "sent_id": "KL-H_P_09_2_07",
+      "verdict": "source-artifact",
+      "annotation": "ㅎㅎ) 표식은 형태 검색용 자연 오류가 아니라 전사 artifact다."
+    }
+  ],
+  "supplements": [
+    {
+      "sent_id": "KH-A200066-32-1-5",
+      "primary_noise_class": "nonstandard-syntax",
+      "noise_classes": ["nonstandard-syntax"],
+      "annotation": "수업을 끝나고와 학교에 만날의 조사·서술 구조가 비표준이다."
+    },
+    {
+      "sent_id": "KH-C100002-2-5160",
+      "primary_noise_class": "hangul-typo",
+      "noise_classes": ["hangul-typo", "nonstandard-syntax"],
+      "annotation": "물려드는은 몰려드는의 오타이고 아름다움 섬의 활용이 비표준이다."
+    },
+    {
+      "sent_id": "ARG-ENG_39_3_01",
+      "primary_noise_class": "hangul-typo",
+      "noise_classes": ["hangul-typo", "nonstandard-syntax"],
+      "annotation": "맹락은 맥락의 오타이고 문장 호응이 비표준이다."
+    },
+    {
+      "sent_id": "KH-B200029-15-4447",
+      "primary_noise_class": "nonstandard-syntax",
+      "noise_classes": ["nonstandard-syntax"],
+      "annotation": "좋지 않을 영향을 줄 수 있다의 관형 구조가 비표준이다."
+    }
+  ],
+  "class_overrides": [
+    {
+      "sent_id": "KL-fi-13-10",
+      "primary_noise_class": "nonstandard-syntax",
+      "noise_classes": ["nonstandard-syntax"],
+      "annotation": "태양이 광명과 따뜻함을 발전한다는 서술 구조가 성립하지 않는다."
+    },
+    {
+      "sent_id": "KH-B200020-14-4102",
+      "primary_noise_class": "nonstandard-syntax",
+      "noise_classes": ["nonstandard-syntax"],
+      "annotation": "문장 첫머리 도가 선행 성분 없이 남아 문장 구조가 성립하지 않는다."
+    },
+    {
+      "sent_id": "KH-C100005-1-5425",
+      "primary_noise_class": "nonstandard-syntax",
+      "noise_classes": ["nonstandard-syntax"],
+      "annotation": "사람들에게 도와 줄 때의 목적격·부사격 구조가 맞지 않는다."
+    },
+    {
+      "sent_id": "KH-B200012-14-3715",
+      "primary_noise_class": "nonstandard-syntax",
+      "noise_classes": ["nonstandard-syntax"],
+      "annotation": "명 짧은 남편의 주격 구조가 비표준이다."
+    }
+  ],
+  "candidate_corrections": [
+    {
+      "candidate_id": "pos:ud-korean-ksl:ARG-ENG_06_2_08_1:6:0",
+      "query": "싸우다",
+      "pos": "verb",
+      "annotation": "싸웠은 동사 싸우다의 활용이며 원천 VA 표기를 교정한다."
+    },
+    {
+      "candidate_id": "pos:ud-korean-ksl:KH-A100054-18-2-4:3:0",
+      "query": "스노클링",
+      "pos": "noun",
+      "annotation": "스노우킬링은 스노클링의 오타이므로 canonical query를 복원한다."
+    },
+    {
+      "candidate_id": "pos:ud-korean-ksl:KH-B100000-32-2-2:4:0",
+      "query": "싸다",
+      "pos": "adjective",
+      "annotation": "가격이 사고는 가격이 싸고의 오타이므로 adjective lemma를 교정한다."
+    },
+    {
+      "candidate_id": "pos:ud-korean-ksl:KL-H_P_23_1_03:6:0",
+      "query": "쉽다",
+      "pos": "adjective",
+      "annotation": "씨워요는 쉬워요의 오타이므로 canonical lemma를 교정한다."
+    },
+    {
+      "candidate_id": "pos:ud-korean-ksl:KL-H_P_23_1_05:5:0",
+      "query": "발음",
+      "pos": "noun",
+      "annotation": "바름은 발음의 오타이므로 canonical lemma를 교정한다."
+    },
+    {
+      "candidate_id": "pos:ud-korean-ksl:ARG-JPN_30_3_03:18:0",
+      "query": "정하다",
+      "pos": "verb",
+      "annotation": "하는 일을 전해서는 정해서의 오타이므로 canonical lemma를 교정한다."
+    },
+    {
+      "candidate_id": "pos:ud-korean-ksl:KH-C100000-4-5000:6:0",
+      "query": "다니다",
+      "pos": "verb",
+      "annotation": "디니게는 다니게의 오타이므로 canonical lemma를 교정한다."
+    },
+    {
+      "candidate_id": "pos:ud-korean-ksl:KL-fi-12-10:15:0",
+      "query": "살다",
+      "pos": "verb",
+      "annotation": "사길은 살길의 오타이므로 canonical lemma를 교정한다."
+    }
+  ],
+  "candidate_rejections": [
+    {
+      "candidate_id": "pos:ud-korean-ksl:KH-B200057-32-2-4:12:0",
+      "annotation": "한 없이는 한없이의 오분석이며 한을 독립 adverb query로 확정할 수 없다."
+    },
+    {
+      "candidate_id": "pos:ud-korean-ksl:KH-B200057-32-2-4:12:1",
+      "annotation": "없이의 gold span이 앞 token 한으로 잘못 정렬되어 제외한다."
+    },
+    {
+      "candidate_id": "pos:ud-korean-ksl:KH-B200035-2-4669:10:2",
+      "annotation": "월의 gold span이 앞 token 6개로 잘못 정렬되어 제외한다."
+    },
+    {
+      "candidate_id": "pos:ud-korean-ksl:KH-B200143-31-2-4:1:1",
+      "annotation": "번의 gold span이 앞 token 이로 잘못 정렬되어 제외한다."
+    },
+    {
+      "candidate_id": "pos:ud-korean-ksl:KH-B200036-3-4695:3:1",
+      "annotation": "되다의 gold span이 뒤의 된이 아니라 발면으로 잘못 정렬되어 제외한다."
+    },
+    {
+      "candidate_id": "pos:ud-korean-ksl:KH-B100011-1-1978:5:1",
+      "annotation": "아지다는 독립 canonical lemma가 아니어서 query gold에서 제외한다."
+    },
+    {
+      "candidate_id": "pos:ud-korean-ksl:KH-B200010-9-3647:7:0",
+      "annotation": "통해과는 문맥상 통역과의 오타여서 통하다 gold로 확정할 수 없다."
+    }
+  ],
+  "negative_rejections": {
+    "explicit-pos": [
+      {
+        "case_id": "neg:pos:ud-korean-ksl:KH-A200059-36-2-7:3:1:KL-H_T_03_2_05",
+        "annotation": "얽매있는에 adjective 있다가 실제로 있으므로 negative가 아니다."
+      }
+    ],
+    "untagged": [
+      {
+        "case_id": "untagged-neg:untagged:pos:ud-korean-ksl:ARG-ENG_04_2_13:6:0:KH-B200113-32-2-12",
+        "annotation": "더이상에 adverb 더가 실제로 있으므로 untagged negative가 아니다."
+      }
+    ]
+  },
+  "case_reviews": {
+    "explicit-pos": {
+      "cases": 500,
+      "sha256": "4aa6bd4defe2f44352bc8a7b5632d3c80826437385a632353497224be099ce45"
+    },
+    "untagged": {
+      "cases": 500,
+      "sha256": "f77f6af2c01f21a5365c4455577c34979a1bfbb4aa0a9b43ee4e49db0e0b2b46"
+    }
+  }
+}
