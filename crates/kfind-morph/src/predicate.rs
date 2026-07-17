@@ -2,6 +2,7 @@
 
 use std::error::Error;
 use std::fmt;
+use std::sync::OnceLock;
 
 use crate::hangul::{
     JONG_NONE, JONG_RIEUL, JONG_SSANGSIOT, JUNG_YEO, add_final, decompose_syllable,
@@ -155,6 +156,67 @@ pub fn generate_predicate_branches(
     }
 
     Ok(branches)
+}
+
+/// Returns whether the whole surface is a generated inflection of the copula `이다`.
+///
+/// This is intentionally stricter than prefix verification: terminal branches must consume the
+/// whole input, and productive branches must also consume their complete continuation.
+#[must_use]
+fn verify_complete_copula_surface(surface: &str) -> bool {
+    static BRANCHES: OnceLock<Box<[SurfaceBranchSpec]>> = OnceLock::new();
+
+    BRANCHES
+        .get_or_init(|| {
+            generate_predicate_branches(&PredicateEntry::new(
+                "이다",
+                PredicatePos::Copula,
+                LexicalAlternation::Copula,
+            ))
+            .unwrap_or_default()
+            .into_boxed_slice()
+        })
+        .iter()
+        .any(|branch| {
+            surface
+                .strip_prefix(branch.anchor.as_ref())
+                .and_then(|following| {
+                    verify_predicate_continuation(
+                        branch.continuation,
+                        branch.pos,
+                        branch.anchor.as_ref(),
+                        following,
+                    )
+                })
+                .is_some_and(|matched| {
+                    matched.token_end == surface.len()
+                        && (branch.continuation == ContinuationState::Terminal
+                            || matched.consumed_bytes > 0)
+                })
+        })
+}
+
+/// Verifies an explicit or phonologically contracted copula after a nominal surface.
+#[must_use]
+pub fn verify_copula_surface_after_nominal(preceding: char, surface: &str) -> bool {
+    if verify_complete_copula_surface(surface) {
+        return !surface.starts_with('여') || preceding_allows_copula_contraction(preceding);
+    }
+    if !preceding_allows_copula_contraction(preceding) {
+        return false;
+    }
+    let expanded = if surface == "다" {
+        Some("이다".to_owned())
+    } else {
+        surface
+            .strip_prefix("였")
+            .map(|following| format!("이었{following}"))
+    };
+    expanded.is_some_and(|surface| verify_complete_copula_surface(&surface))
+}
+
+fn preceding_allows_copula_contraction(preceding: char) -> bool {
+    decompose_syllable(preceding).is_some_and(|syllable| syllable.jongseong == JONG_NONE)
 }
 
 pub fn generate_predicate_fallback_stems(

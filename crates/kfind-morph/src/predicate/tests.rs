@@ -577,6 +577,40 @@ fn action_present_declarative_and_copula_past_are_compiled() {
 }
 
 #[test]
+fn complete_copula_surface_requires_an_exact_generated_inflection() {
+    for surface in ["이다", "입니다", "이었다", "인", "여서"] {
+        assert!(verify_complete_copula_surface(surface), "{surface}");
+    }
+    for surface in ["이", "입", "이어", "이었", "이기는", "이다른", "였다"] {
+        assert!(!verify_complete_copula_surface(surface), "{surface}");
+    }
+}
+
+#[test]
+fn nominal_copula_contraction_depends_on_the_preceding_syllable() {
+    for surface in ["다", "였다", "였고", "여서"] {
+        assert!(
+            verify_copula_surface_after_nominal('표', surface),
+            "{surface}"
+        );
+        assert!(
+            !verify_copula_surface_after_nominal('학', surface),
+            "{surface}"
+        );
+    }
+    for preceding in ['표', '학'] {
+        for surface in ["이다", "이었다", "인", "일"] {
+            assert!(
+                verify_copula_surface_after_nominal(preceding, surface),
+                "{preceding}{surface}"
+            );
+        }
+    }
+    assert!(!verify_copula_surface_after_nominal('A', "다"));
+    assert!(!verify_copula_surface_after_nominal('표', "였"));
+}
+
+#[test]
 fn descriptive_final_da_uses_declarative_continuations() {
     let descriptive = entry(
         "나쁘다",

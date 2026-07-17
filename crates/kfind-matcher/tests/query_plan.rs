@@ -933,6 +933,36 @@ fn compiled_nominal_plan_covers_particle_transition_families() {
 }
 
 #[test]
+fn compiled_nominal_plan_composes_particle_chains_with_copula_grammar() {
+    let matcher = compile("사용자", CompileOptions::default());
+
+    for text in [
+        "대상은 사용자뿐이다.",
+        "대상은 사용자뿐만이다.",
+        "범위는 사용자까지다.",
+        "범위는 사용자로부터였다.",
+        "대상은 사용자뿐이었다.",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "rejected nominal-particle-copula structure: {text}"
+        );
+    }
+    for text in [
+        "대상은 사용자뿐다.",
+        "대상은 사용자뿐였다.",
+        "대상은 사용자뿐이.",
+        "대상은 사용자뿐도만이다.",
+        "범위는 사용자까지였.",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+            "accepted invalid nominal-particle-copula structure: {text}"
+        );
+    }
+}
+
+#[test]
 fn compiled_nominal_plan_covers_dictionary_consensus_particle_families() {
     let matcher = compile("사용자", CompileOptions::default());
 
