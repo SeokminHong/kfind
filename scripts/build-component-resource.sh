@@ -5,6 +5,7 @@ readonly COMPONENT_SHA256="d3a7eb486eef5faa92e006dd72e5ff72b63befb4bb102013f2d19
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 source "${repo_root}/scripts/lib/full-pos-source.sh"
+component_version=$(cargo pkgid -p kfind-data | sed -E 's/.*[#@]//')
 output_directory=${1:-"${repo_root}/target/component-resource"}
 temporary_directory=$(mktemp -d)
 trap 'rm -rf "${temporary_directory}"' EXIT
@@ -29,7 +30,7 @@ fi
 install -m 0644 "${source_directory}/COPYING" "${stage}/LICENSES/mecab-ko-dic-COPYING"
 cat >"${stage}/MANIFEST.toml" <<EOF
 schema_version = 5
-kfind_version = "$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "kfind-data") | .version')"
+kfind_version = "${component_version}"
 source = "${FULL_POS_SOURCE_NAME}"
 source_url = "${FULL_POS_SOURCE_URL}"
 source_sha256 = "${FULL_POS_SOURCE_SHA256}"
