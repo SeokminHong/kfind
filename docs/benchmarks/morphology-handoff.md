@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [exact `지` predicate 어미 경로 recall](2026-07-17-exact-predicate-ji-recall.md)
 - [선두 부사와 predicate 경쟁 경로 recall](2026-07-17-adverb-predicate-competitor-recall.md)
 - [선두 부사 component recall](2026-07-17-leading-adverb-component-recall.md)
 - [component SHA-256 hardware backend](2026-07-17-component-hardware-digest-startup.md)
@@ -430,3 +431,17 @@ gate는 변경하지 않았다.
 `span-mismatch` 1건이다. 남은 부사 경계 거부 `못해요→못`은 실제 component resource에
 완전 predicate suffix edge가 없다. 이 조건을 약화하지 않고, 다음 제품 recall 작업은 남은
 표준형 predicate/continuation 경계 거부를 동일 구조별로 다시 묶어 가장 큰 slice를 고른다.
+
+[exact `지` predicate 어미 경로 recall](2026-07-17-exact-predicate-ji-recall.md)에서 관형형
+candidate 뒤에 `지`가 남아도 token 전체 exact source 분석이 같은 predicate 품사의
+`predicate + E+`만 선언하면 어미 경로로 소비했다. Test matrix full-POS와 Human은
+`들릴지→들리다`를 회수해 `PNᶜ=1,401`에서 FNᶜ가 각각 45→44, 48→47이 됐다.
+Embedded, canonical, development, Agent와 모든 FP·FPᶜ·hard-negative는 같다. 분리된
+`ETM + 지/NNB` 근거뿐인 `온지`는 계속 거부한다. Matrix contract 정의, annotation과 gate는
+변경하지 않았다.
+
+남은 test matrix full-POS FNᶜ 44건은 `boundary-rejected` 20건,
+`gold-or-adapter` 15건, `surface-missing` 6건, `continuation-rejected` 2건,
+`span-mismatch` 1건이다. 다음 제품 recall 작업은 남은 표준형
+`continuation-rejected` 또는 동일 구조의 predicate `boundary-rejected`를 실제 component
+graph 근거로 묶는다.
