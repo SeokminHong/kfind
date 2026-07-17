@@ -474,6 +474,8 @@ fn whole_nominal_source_component_survives_a_shorter_particle_split() {
 #[test]
 fn modifier_led_nominal_path_keeps_exact_tail_but_not_a_whole_adverb_component() {
     let resource = component_resource_from_entries([
+        component_entry("어", "VV"),
+        component_entry("느", "NNG"),
         component_entry("어느", "MM"),
         component_entry("어느", "NP"),
         component_entry("날", "NNG"),

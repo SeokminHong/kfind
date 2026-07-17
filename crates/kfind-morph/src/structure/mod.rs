@@ -1451,7 +1451,7 @@ impl StructureSelection {
                                         }
                                     ))))
                         && spans.consumed.end == spans.token.end
-                        && runtime_position_is_supported(pattern, spans, evidence))
+                        && runtime_position_is_supported(pattern, spans, text, evidence))
                     || (matches!(
                         pattern.fine_pos,
                         DataFinePos::Np | DataFinePos::Nr | DataFinePos::Mm
@@ -1486,7 +1486,7 @@ impl StructureSelection {
             Self::RuntimeCompatible { graph_nominal_host } => match support.evidence {
                 StructuralEvidence::Whole | StructuralEvidence::SourceComponent => true,
                 StructuralEvidence::RuntimeComponent => {
-                    runtime_position_is_supported(pattern, spans, evidence)
+                    runtime_position_is_supported(pattern, spans, text, evidence)
                         && runtime_nominal_component_is_supported(
                             pattern,
                             spans,
@@ -1721,6 +1721,7 @@ fn proper_noun_dependent_noun_frame(
 fn runtime_position_is_supported(
     pattern: &QueryMorphPattern,
     spans: &CandidateSpans,
+    text: &str,
     evidence: &TokenEvidence,
 ) -> bool {
     let starts_token = spans.core.start == spans.token.start;
@@ -1798,7 +1799,13 @@ fn runtime_position_is_supported(
                 && ((unit.span.start == spans.token.start && unit.span.end <= spans.core.start)
                     || (unit.span.start < spans.core.start && unit.span.end >= spans.core.end))
         })
-        && !glued_dependent_noun;
+        && !glued_dependent_noun
+        && !modifier_led_nominal_component_is_on_preferred_path(
+            &spans.core,
+            &spans.token,
+            text,
+            evidence,
+        );
 
     (!leading_only || starts_token)
         && !trailing_predicate_subspan
