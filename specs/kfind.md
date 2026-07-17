@@ -307,10 +307,11 @@
   현재 선택값과 option list에서 설명한다.
 - 입력 text는 CodeMirror 기반 plain-text editor에서 수정한다. 검색 span은 UTF-16 document offset을
   사용하는 decoration으로 실제 편집 text에 표시하며 별도의 highlight layer나 결과 preview를 중복해
-  두지 않는다. Editor와 query control은 IME composition 중 search state를 갱신하지 않고 composition이
-  끝난 값만 반영한다. 외부 preset 적용 외에는 editor document를 다시 쓰지 않아 selection, caret과
-  undo history를 보존하고, 대용량 입력은 현재 viewport 중심으로 렌더링한다. Rich-text document
-  model과 collaboration 기능은 추가하지 않는다.
+  두지 않는다. IME composition 상태가 아닐 때 물리·소프트 키보드의 Enter와 Shift+Enter는 editor
+  document에 줄바꿈을 삽입한다. Editor와 query control은 IME composition 중 search state를 갱신하지
+  않고 composition이 끝난 값만 반영한다. 외부 preset 적용 외에는 editor document를 다시 쓰지 않아
+  selection, caret과 undo history를 보존하고, 대용량 입력은 현재 viewport 중심으로 렌더링한다.
+  Rich-text document model과 collaboration 기능은 추가하지 않는다.
 - 결과 panel은 `Matches`와 `Raw JSON` tab을 제공하고 한 번에 선택한 detail만 표시한다. 기본 tab은
   사람이 읽는 surface·span·provenance 목록이며 Raw JSON은 같은 match의 전체 구조를 표시한다.
   Match 목록은 surface, span과 provenance를 빠르게 훑을 수 있는 compact row로 표시하고 각 항목을
