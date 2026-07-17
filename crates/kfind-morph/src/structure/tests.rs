@@ -374,6 +374,8 @@ fn whole_nominal_source_component_outranks_a_shorter_particle_host() {
 #[test]
 fn modifier_led_nominal_path_preserves_exact_tail_components() {
     let resolver = resolver_from_entries([
+        atomic("어", "VV"),
+        atomic("느", "NNG"),
         atomic("어느", "MM"),
         atomic("어느", "NP"),
         atomic("날", "NNG"),

@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [관형사 뒤 명사 우선 경로 recall](2026-07-17-modifier-noun-preferred-path-recall.md)
 - [숫자 단위 뒤 의존명사 tail recall](2026-07-17-numeric-unit-dependent-tail-recall.md)
 - [관형사 뒤 명사 component recall](2026-07-17-modifier-noun-component-recall.md)
 - [whole 체언 내부 source component recall](2026-07-17-whole-nominal-component-recall.md)
@@ -320,3 +321,17 @@ Lindera snapshot보다 28.68% 빠르다. Matrix contract 정의, annotation과 g
 무표면 지정사라 canonical 규칙으로 넓히지 않는다. 다음 recall 진단은 제품 규칙이 이미
 의도한 `어느날→날`이 고정 resource 단위 검증과 달리 matrix에서 남는 candidate span 경로를
 먼저 재현한다. 한글 수사 단위 순서와 산술값 검산은 recall과 분리한 precision 후보로 둔다.
+
+[관형사 뒤 명사 우선 경로 recall](2026-07-17-modifier-noun-preferred-path-recall.md)에서
+`어느/MM + 날/NNG` 완성 경로가 더 짧은 `어/VV` prefix와 경쟁해도 최소 component 수의
+`MM + 명사` 경로를 우선하도록 했다. Predicate-frame 충돌을 먼저 확인한 후보에서만 우선
+경로를 검사한다. Test matrix embedded·full-POS·Human은 `어느날→날` 1건을 회수해
+`PNᶜ=1,401`에서 FNᶜ가 각각 136→135, 51→50, 53→52가 됐고 완전 회수 문장도 각각
+1개 늘었다. FP·FPᶜ, canonical, development와 hard-negative는 변하지 않았다. 후보 Agent는
+26,712.9 cases/s로 Lindera snapshot보다 28.27% 빠르다. Matrix contract 정의, annotation과
+gate는 변경하지 않았다.
+
+남은 test matrix full-POS FNᶜ는 50건, Human FNᶜ는 52건이다. 반복 2건 이상인 묶음은
+비표준·붙여쓰기 또는 무표면 지정사다. 다음 작업은 canonical 규칙을 무리하게 넓히지 않고
+profile로 현재 scan/startup 병목을 다시 고른다. 한글 수사 단위 순서와 산술값 검산은 recall과
+분리한 precision 후보로 둔다.
