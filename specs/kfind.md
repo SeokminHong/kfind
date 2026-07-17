@@ -54,11 +54,13 @@
   접미 규칙을 먼저 적용하고, 일치하는 규칙이 없을 때만 제한된 규칙형 분석을 사용한다.
 - full POS runtime resource는 검증된 정렬 lookup index로 보존한다. CLI, Rust library와 WASM
   binding은 초기화할 때 전체 entry를 일반 분석 map이나 entry별 소유 문자열로 전개하지 않는다.
-  Front-compressed 표제어는 하나의 재사용 scratch에서 복원·검증한 뒤 packed lemma bytes와
-  offset·품사 index로 보존하고, query atom의 표제어를 조회할 때 일치하는 품사 후보만
-  `Analysis`로 만든다. 진단 API가 전체 entry를 명시적으로 요청할 때만 소유 entry view를
-  지연 생성한다. UTF-8, NFC, 엄격한 정렬 순서, entry 수와 누적 decoded byte 상한 검증은
-  유지한다.
+  Front-compressed 표제어는 하나의 재사용 문자열 scratch에서 복원·검증한 뒤 packed lemma
+  bytes와 offset·품사 index로 보존하고, query atom의 표제어를 조회할 때 일치하는 품사
+  후보만 `Analysis`로 만든다. 진단 API가 전체 entry를 명시적으로 요청할 때만 소유 entry
+  view를 지연 생성한다. 새 suffix의 UTF-8을 검증한 뒤 이미 검증된 prefix에 붙여 전체
+  표제어의 UTF-8을 보장한다. ASCII와 완성형 한글 음절만 있는 표제어는 그 구성으로 NFC를
+  증명하고 그 밖의 표제어는 일반 NFC 검사를 수행한다. 엄격한 정렬 순서, entry 수와 누적
+  decoded byte 상한 검증도 유지한다.
 - 지연 조회에서도 기존 우선순위를 보존한다. core와 enriched 용언은 같은 표제어·coarse 품사의
   full POS 용언을 억제하고, 동일한 분석은 중복하지 않는다. user lexicon의 append는 full POS
   후보를 보존하며 `replace = true`는 해당 morphology category의 core, enriched와 full POS

@@ -279,18 +279,16 @@ pub fn decode_pos_lexicon(input: &[u8]) -> Result<DecodedPosLexicon, DataError> 
     entries
         .try_reserve_exact(count)
         .map_err(|_| binary_error("entry 저장 공간을 할당할 수 없습니다"))?;
-    let mut lemma_bytes = Vec::new();
+    let mut lemma_bytes = String::new();
     lemma_bytes
         .try_reserve_exact(input.len())
         .map_err(|_| binary_error("표제어 저장 공간을 할당할 수 없습니다"))?;
-    let mut lemma = Vec::new();
+    let mut lemma = String::new();
     let mut decoded_lemma_bytes = 0_usize;
     for _ in 0..count {
         let prefix = read_varint(input, &mut cursor)? as usize;
         let suffix_len = read_varint(input, &mut cursor)? as usize;
-        let previous = std::str::from_utf8(&lemma)
-            .map_err(|_| binary_error("이전 표제어가 유효한 UTF-8이 아닙니다"))?;
-        if prefix > previous.len() || !previous.is_char_boundary(prefix) {
+        if prefix > lemma.len() || !lemma.is_char_boundary(prefix) {
             return Err(binary_error(
                 "prefix 길이가 이전 표제어의 문자 경계가 아닙니다",
             ));
@@ -303,32 +301,32 @@ pub fn decode_pos_lexicon(input: &[u8]) -> Result<DecodedPosLexicon, DataError> 
             .checked_add(suffix_len)
             .ok_or_else(|| binary_error("표제어 길이가 overflow했습니다"))?;
         decoded_lemma_bytes = checked_decoded_bytes(decoded_lemma_bytes, lemma_len)?;
+        let suffix = std::str::from_utf8(&input[cursor..suffix_end])
+            .map_err(|_| binary_error("표제어가 유효한 UTF-8이 아닙니다"))?;
         lemma.truncate(prefix);
         lemma
-            .try_reserve_exact(lemma_len.saturating_sub(lemma.len()))
+            .try_reserve_exact(suffix.len())
             .map_err(|_| binary_error("표제어 저장 공간을 할당할 수 없습니다"))?;
-        lemma.extend_from_slice(&input[cursor..suffix_end]);
+        lemma.push_str(suffix);
         cursor = suffix_end;
         let pos = DataFinePos::from_code(input[cursor])
             .ok_or_else(|| binary_error("알 수 없는 POS code입니다"))?;
         cursor += 1;
-        let lemma_str = std::str::from_utf8(&lemma)
-            .map_err(|_| binary_error("표제어가 유효한 UTF-8이 아닙니다"))?;
-        require_nfc("POS lexicon decoder", None, "lemma", lemma_str)?;
-        if lemma_str.is_empty() {
+        if lemma.is_empty() {
             return Err(binary_error("표제어가 비어 있습니다"));
         }
+        require_pos_lemma_nfc(&lemma)?;
         let same_lemma = if let Some(previous_entry) = entries.last() {
             let previous_start = previous_entry.lemma_start as usize;
             let previous_end = previous_start + previous_entry.lemma_len as usize;
-            let previous_lemma = &lemma_bytes[previous_start..previous_end];
+            let previous_lemma = &lemma_bytes.as_bytes()[previous_start..previous_end];
             let ordering = previous_lemma
-                .cmp(lemma.as_slice())
+                .cmp(lemma.as_bytes())
                 .then(previous_entry.pos.cmp(&pos));
             if ordering != Ordering::Less {
                 return Err(binary_error("entry가 엄격한 정렬 순서가 아닙니다"));
             }
-            previous_lemma == lemma
+            previous_lemma == lemma.as_bytes()
         } else {
             false
         };
@@ -340,7 +338,7 @@ pub fn decode_pos_lexicon(input: &[u8]) -> Result<DecodedPosLexicon, DataError> 
                 .map_err(|_| binary_error("표제어 offset이 u32 범위를 초과합니다"))?;
             let len = u32::try_from(lemma.len())
                 .map_err(|_| binary_error("표제어 길이가 u32 범위를 초과합니다"))?;
-            lemma_bytes.extend_from_slice(&lemma);
+            lemma_bytes.push_str(&lemma);
             (start, len)
         };
         let entry = PackedPosLexiconEntry {
@@ -353,13 +351,21 @@ pub fn decode_pos_lexicon(input: &[u8]) -> Result<DecodedPosLexicon, DataError> 
     if cursor != input.len() {
         return Err(binary_error("마지막 entry 뒤에 불필요한 바이트가 있습니다"));
     }
-    let lemma_bytes = String::from_utf8(lemma_bytes)
-        .map_err(|_| binary_error("표제어 저장 공간이 유효한 UTF-8이 아닙니다"))?;
     Ok(DecodedPosLexicon {
         lemma_bytes: lemma_bytes.into_boxed_str(),
         entries: entries.into_boxed_slice(),
         materialized_entries: OnceLock::new(),
     })
+}
+
+fn require_pos_lemma_nfc(lemma: &str) -> Result<(), DataError> {
+    let structurally_nfc = lemma
+        .chars()
+        .all(|character| character.is_ascii() || ('가'..='힣').contains(&character));
+    if structurally_nfc {
+        return Ok(());
+    }
+    require_nfc("POS lexicon decoder", None, "lemma", lemma)
 }
 
 fn checked_decoded_bytes(current: usize, additional: usize) -> Result<usize, DataError> {
@@ -513,5 +519,18 @@ mod tests {
 
         let error = decode_pos_lexicon(&input).unwrap_err();
         assert!(matches!(*error.kind, DataErrorKind::NonNfc { .. }));
+    }
+
+    #[test]
+    fn packed_decoder_keeps_utf8_validation() {
+        let mut input = MAGIC.to_vec();
+        input.extend_from_slice(&1_u32.to_le_bytes());
+        write_varint(&mut input, 0);
+        write_varint(&mut input, 1);
+        input.push(0xff);
+        input.push(DataFinePos::Nng.code());
+
+        let error = decode_pos_lexicon(&input).unwrap_err();
+        assert!(matches!(*error.kind, DataErrorKind::Binary(_)));
     }
 }
