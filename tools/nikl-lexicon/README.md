@@ -40,3 +40,14 @@ The runtime compiler treats the catalog as vocabulary, not as permission to
 attach every ending to every stem. Stem-final conditions, irregular
 alternations, ending order, auxiliary paths, and whole-lemma conflicts remain
 separate structural checks.
+
+## Particle catalog
+
+`scripts/audit-nikl-particles.sh` reads the same snapshots and regenerates
+`data/rules/nikl-modern-particles.tsv` plus a runtime coverage report. It uses
+only structured headword, POS, status, and source-ID fields. Definitions and
+examples are not copied or mined for particle chains.
+
+The catalog inventories atomic particle vocabulary. Particle combinations are
+accepted only through `data/rules/particles.toml` transitions, so a compound
+surface such as `까지도` is represented as `까지 → 도`, not as a new atomic form.

@@ -17,6 +17,13 @@ from nikl_import import (
     stdict_record,
 )
 from nikl_endings import ending_categories, krdict_endings, normalize_ending, stdict_endings
+from nikl_particles import (
+    generated_surfaces,
+    krdict_particles,
+    normalize_particle,
+    opendict_particles,
+    stdict_particles,
+)
 
 
 class NiklImportTest(unittest.TestCase):
@@ -149,6 +156,47 @@ class NiklImportTest(unittest.TestCase):
         self.assertEqual(ending_categories(["명사형 전성 어미."]), ("nominalizer",))
         self.assertEqual(krdict_endings(krdict)[0].surface, "더니")
         self.assertEqual(stdict_endings(stdict)[0].source_id, "2:3")
+
+    def test_extracts_particle_headwords_without_definition_text(self) -> None:
+        krdict = ET.fromstring(
+            """<LexicalEntry val="1"><feat att="partOfSpeech" val="조사"/>
+            <Lemma><feat att="writtenForm" val="까지"/></Lemma></LexicalEntry>"""
+        )
+        stdict = ET.fromstring(
+            """<item><target_code>2</target_code><word_info><word>도07</word>
+            <pos_info><pos_code>3</pos_code><pos>조사</pos><comm_pattern_info>
+            <sense_info><type>일반어</type><definition>복사하지 않을 내용</definition></sense_info>
+            </comm_pattern_info></pos_info></word_info></item>"""
+        )
+        opendict = ET.fromstring(
+            """<item><target_code>4</target_code><wordInfo><word>까지</word></wordInfo>
+            <senseInfo><pos>조사</pos><type>일반어</type></senseInfo></item>"""
+        )
+
+        self.assertEqual(normalize_particle(" -까지01 "), ("-까지01", "까지"))
+        self.assertEqual(krdict_particles(krdict)[0].surface, "까지")
+        self.assertEqual(stdict_particles(stdict)[0].source_id, "2:3")
+        self.assertEqual(stdict_particles(stdict)[0].statuses, ("일반어",))
+        self.assertEqual(opendict_particles(opendict)[0].source_id, "4:1")
+
+    def test_generates_particle_catalog_surfaces_from_bounded_transitions(self) -> None:
+        generated = generated_surfaces(
+            {
+                "까지": ["particle.limit"],
+                "도": ["particle.additive"],
+                "만": ["particle.only"],
+            },
+            {
+                "particle.limit": ["particle.additive", "particle.only"],
+                "particle.additive": [],
+                "particle.only": [],
+            },
+            max_rules=2,
+        )
+
+        self.assertIn("까지도", generated)
+        self.assertIn("까지만", generated)
+        self.assertNotIn("도까지", generated)
 
     def import_fixture(
         self,
