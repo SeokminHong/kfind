@@ -82,12 +82,17 @@ export interface LoadedComponentResource {
   readonly stored: boolean;
 }
 
-declare const __KFIND_BUILD_VERSION__: string;
+export interface RestoredComponentResource {
+  readonly byteLength: number;
+  readonly migrated: boolean;
+}
+
+declare const __KFIND_COMPONENT_RESOURCE_VERSION__: string;
 
 const COMPONENT_RESOURCE_CACHE = 'kfind-component-resource-v1';
 const COMPONENT_RESOURCE_URL = '/api/component-resource';
 
-export const componentResourceVersion = __KFIND_BUILD_VERSION__;
+export const componentResourceVersion = __KFIND_COMPONENT_RESOURCE_VERSION__;
 
 export async function loadKfind(): Promise<LoadedKfind> {
   const startedAt = performance.now();
@@ -142,37 +147,139 @@ export async function loadComponentResource(
 export async function restoreComponentResource(
   engine: KfindEngine,
   signal?: AbortSignal,
-): Promise<number | null> {
+): Promise<RestoredComponentResource | null> {
   if (!('caches' in globalThis)) {
     return null;
   }
 
   signal?.throwIfAborted();
   const cache = await globalThis.caches.open(COMPONENT_RESOURCE_CACHE);
-  const request = componentResourceRequest();
-  const response = await cache.match(request);
+  const currentRequest = componentResourceRequest();
+  const cachedRequests = await componentResourceCacheCandidates(
+    cache,
+    currentRequest,
+  );
 
-  if (response === undefined) {
+  return restoreComponentResourceCandidate({
+    cache,
+    cachedRequests,
+    currentRequest,
+    engine,
+    index: 0,
+    signal,
+  });
+}
+
+interface RestoreComponentResourceCandidateOptions {
+  readonly cache: Cache;
+  readonly cachedRequests: readonly Request[];
+  readonly currentRequest: Request;
+  readonly engine: KfindEngine;
+  readonly index: number;
+  readonly signal?: AbortSignal;
+}
+
+async function restoreComponentResourceCandidate({
+  cache,
+  cachedRequests,
+  currentRequest,
+  engine,
+  index,
+  signal,
+}: RestoreComponentResourceCandidateOptions): Promise<RestoredComponentResource | null> {
+  const cachedRequest = cachedRequests[index];
+
+  if (cachedRequest === undefined) {
     return null;
   }
 
+  const response = await cache.match(cachedRequest);
+
+  if (response === undefined) {
+    return restoreComponentResourceCandidate({
+      cache,
+      cachedRequests,
+      currentRequest,
+      engine,
+      index: index + 1,
+      signal,
+    });
+  }
+
+  const migrationResponse = response.clone();
   const bytes = new Uint8Array(await response.arrayBuffer());
   signal?.throwIfAborted();
 
   try {
     engine.loadComponentResource(bytes);
-  } catch (error) {
-    await cache.delete(request);
-    throw error;
+  } catch {
+    await cache.delete(cachedRequest);
+    return restoreComponentResourceCandidate({
+      cache,
+      cachedRequests,
+      currentRequest,
+      engine,
+      index: index + 1,
+      signal,
+    });
   }
 
-  return bytes.byteLength;
+  const migrated = cachedRequest.url !== currentRequest.url;
+
+  if (migrated) {
+    await cache.put(currentRequest, migrationResponse);
+  }
+
+  await deleteStaleComponentResources(cache, currentRequest);
+
+  return { byteLength: bytes.byteLength, migrated };
 }
 
 function componentResourceRequest(): Request {
   const url = new URL(COMPONENT_RESOURCE_URL, globalThis.location.origin);
-  url.searchParams.set('build', componentResourceVersion);
+  url.searchParams.set('resource', componentResourceVersion);
   return new Request(url, { method: 'GET' });
+}
+
+async function componentResourceCacheCandidates(
+  cache: Cache,
+  currentRequest: Request,
+): Promise<readonly Request[]> {
+  const cachedRequests = await cache.keys();
+  const compatibleRequests = cachedRequests.filter((request) => {
+    const url = new URL(request.url);
+
+    return (
+      request.method === 'GET' &&
+      url.origin === globalThis.location.origin &&
+      url.pathname === COMPONENT_RESOURCE_URL
+    );
+  });
+
+  return [
+    ...compatibleRequests.filter(
+      (request) => request.url === currentRequest.url,
+    ),
+    ...compatibleRequests.filter(
+      (request) => request.url !== currentRequest.url,
+    ),
+  ];
+}
+
+async function deleteStaleComponentResources(
+  cache: Cache,
+  currentRequest: Request,
+): Promise<void> {
+  try {
+    const cachedRequests = await cache.keys();
+    await Promise.all(
+      cachedRequests
+        .filter((cachedRequest) => cachedRequest.url !== currentRequest.url)
+        .map(async (cachedRequest) => cache.delete(cachedRequest)),
+    );
+  } catch {
+    // The verified current entry remains usable when stale-entry cleanup fails.
+  }
 }
 
 async function storeComponentResource(
@@ -186,17 +293,7 @@ async function storeComponentResource(
   try {
     const cache = await globalThis.caches.open(COMPONENT_RESOURCE_CACHE);
     await cache.put(request, response);
-
-    try {
-      const cachedRequests = await cache.keys();
-      await Promise.all(
-        cachedRequests
-          .filter((cachedRequest) => cachedRequest.url !== request.url)
-          .map(async (cachedRequest) => cache.delete(cachedRequest)),
-      );
-    } catch {
-      // The verified current entry remains usable when stale-entry cleanup fails.
-    }
+    await deleteStaleComponentResources(cache, request);
 
     return true;
   } catch {

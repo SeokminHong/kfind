@@ -40,20 +40,47 @@ globalStyle('.wasm-state[data-state="error"] .state-dot', {
 
 globalStyle('.playground-layout', {
   display: 'grid',
-  gridTemplateColumns: 'minmax(17rem, 0.8fr) minmax(0, 1.2fr)',
   overflow: 'hidden',
   border: `1px solid ${vars.color.borderStrong}`,
   borderRadius: vars.radius.medium,
   background: vars.color.surface,
 });
 
-globalStyle('.playground-controls', {
+globalStyle('.playground-workspace', {
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1.7fr) minmax(21rem, 0.85fr)',
+  borderBlockEnd: `1px solid ${vars.color.border}`,
+  background: vars.color.surfaceMuted,
+});
+
+globalStyle('.playground-main-inputs', {
+  display: 'grid',
+  minWidth: 0,
+  alignContent: 'start',
+  gap: vars.space.medium,
+  padding: vars.space.large,
+  background: vars.color.surfaceMuted,
+});
+
+globalStyle('.playground-main-inputs .field-query', {
+  width: 'min(24rem, 100%)',
+});
+
+globalStyle('.desktop-settings', {
+  minWidth: 0,
+  padding: vars.space.large,
+  borderInlineStart: `1px solid ${vars.color.border}`,
+  background: vars.color.surface,
+});
+
+globalStyle('.playground-settings', {
   display: 'grid',
   alignContent: 'start',
   gap: vars.space.large,
-  padding: vars.space.large,
-  borderInlineEnd: `1px solid ${vars.color.border}`,
-  background: vars.color.surfaceMuted,
+});
+
+globalStyle('.mobile-settings', {
+  display: 'none',
 });
 
 globalStyle('.field', {
@@ -99,42 +126,54 @@ globalStyle('.field-query p', {
 
 globalStyle('.preset-picker', {
   display: 'grid',
-  gap: vars.space.xsmall,
+  gap: vars.space.small,
 });
 
-globalStyle('.preset-picker p', {
-  margin: 0,
-  color: vars.color.muted,
-  fontSize: '0.68rem',
+globalStyle('.control-heading', {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'baseline',
+  gap: vars.space.small,
 });
 
-globalStyle('.preset-label', {
+globalStyle('.control-heading strong', {
   color: vars.color.heading,
   fontSize: '0.74rem',
-  fontWeight: 650,
+});
+
+globalStyle('.control-heading span', {
+  color: vars.color.subtle,
+  fontSize: '0.66rem',
 });
 
 globalStyle('.preset-actions', {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  display: 'flex',
+  flexWrap: 'wrap',
   gap: vars.space.xsmall,
 });
 
 globalStyle('.preset-actions button', {
-  minHeight: '2.3rem',
+  minHeight: '2rem',
   padding: `${vars.space.xsmall} ${vars.space.small}`,
   border: `1px solid ${vars.color.borderStrong}`,
-  borderRadius: vars.radius.small,
+  borderRadius: vars.radius.pill,
   background: vars.color.surface,
   color: vars.color.link,
   cursor: 'pointer',
   fontSize: '0.68rem',
-  textAlign: 'start',
+  lineHeight: 1.2,
 });
 
 globalStyle('.preset-actions button:hover', {
   borderColor: vars.color.link,
   background: vars.color.linkWash,
+});
+
+globalStyle('.option-panel', {
+  display: 'grid',
+  gap: vars.space.small,
+  paddingBlockStart: vars.space.large,
+  borderBlockStart: `1px solid ${vars.color.border}`,
 });
 
 globalStyle('.option-grid', {
@@ -143,22 +182,60 @@ globalStyle('.option-grid', {
   gap: vars.space.medium,
 });
 
-globalStyle('.field-gap', {
-  gridColumn: '1 / -1',
+globalStyle('.option-grid .field > p', {
+  margin: 0,
+  color: vars.color.muted,
+  fontSize: '0.68rem',
+  lineHeight: 1.45,
 });
 
 globalStyle('.resource-loader', {
-  display: 'grid',
-  gap: vars.space.small,
-  padding: vars.space.small,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: vars.space.medium,
+  padding: `${vars.space.small} ${vars.space.medium}`,
   border: `1px solid ${vars.color.border}`,
   borderRadius: vars.radius.small,
-  background: vars.color.warningWash,
+  background: vars.color.surface,
 });
 
 globalStyle('.resource-loader > div', {
+  display: 'flex',
+  minWidth: 0,
+  alignItems: 'center',
+  gap: vars.space.small,
+});
+
+globalStyle('.resource-loader > div > div', {
   display: 'grid',
   gap: '0.15rem',
+});
+
+globalStyle('.resource-dot', {
+  width: '0.5rem',
+  height: '0.5rem',
+  flex: '0 0 auto',
+  borderRadius: '50%',
+  background: vars.color.warning,
+});
+
+globalStyle('.resource-loader[data-state="ready"]', {
+  borderColor: vars.color.success,
+  background: vars.color.successWash,
+});
+
+globalStyle('.resource-loader[data-state="ready"] .resource-dot', {
+  background: vars.color.success,
+});
+
+globalStyle('.resource-loader[data-state="error"]', {
+  borderColor: vars.color.danger,
+  background: vars.color.dangerWash,
+});
+
+globalStyle('.resource-loader[data-state="error"] .resource-dot', {
+  background: vars.color.danger,
 });
 
 globalStyle('.resource-loader strong', {
@@ -171,20 +248,14 @@ globalStyle('.resource-loader span', {
   fontSize: '0.66rem',
 });
 
-globalStyle('.resource-loader span[data-state="ready"]', {
-  color: vars.color.success,
-});
-
-globalStyle('.resource-loader span[data-state="error"]', {
-  color: vars.color.danger,
-});
-
-globalStyle('.resource-loader span[data-state="needed"]', {
+globalStyle('.resource-loader[data-state="needed"] span', {
   color: vars.color.warning,
 });
 
 globalStyle('.resource-loader button', {
-  minHeight: '2.3rem',
+  minHeight: '2rem',
+  flex: '0 0 auto',
+  paddingInline: vars.space.small,
   border: `1px solid ${vars.color.borderStrong}`,
   borderRadius: vars.radius.small,
   background: vars.color.surface,
@@ -194,6 +265,24 @@ globalStyle('.resource-loader button', {
 
 globalStyle('.resource-loader button:disabled', {
   color: vars.color.subtle,
+});
+
+globalStyle('.desktop-settings .resource-loader', {
+  alignItems: 'stretch',
+  flexDirection: 'column',
+});
+
+globalStyle('.desktop-settings .resource-loader button', {
+  width: '100%',
+});
+
+globalStyle('.resource-ready-label', {
+  flex: '0 0 auto',
+  padding: `${vars.space.xsmall} ${vars.space.small}`,
+  borderRadius: vars.radius.pill,
+  background: vars.color.surface,
+  color: `${vars.color.success} !important`,
+  fontWeight: 650,
 });
 
 globalStyle('.playground-output', {
@@ -242,7 +331,7 @@ globalStyle('.result-error', {
 globalStyle('.result-tabs', {
   display: 'grid',
   gap: vars.space.medium,
-  marginBlockStart: vars.space.large,
+  marginBlockStart: vars.space.medium,
 });
 
 globalStyle('.result-tab-list', {
@@ -288,8 +377,7 @@ globalStyle('.result-tab-panel:focus-visible', {
 
 globalStyle('.match-list', {
   display: 'grid',
-  maxHeight: '17rem',
-  gap: vars.space.small,
+  maxHeight: '20rem',
   margin: 0,
   padding: 0,
   overflowY: 'auto',
@@ -297,19 +385,28 @@ globalStyle('.match-list', {
 });
 
 globalStyle('.match-list li', {
-  padding: vars.space.small,
-  border: `1px solid ${vars.color.border}`,
-  borderRadius: vars.radius.small,
+  borderBlockEnd: `1px solid ${vars.color.border}`,
 });
 
-globalStyle('.match-list li > div', {
+globalStyle('.match-item', {
   display: 'grid',
-  gridTemplateColumns: '1.7rem 1fr auto',
+  width: '100%',
+  gridTemplateColumns: '1.7rem minmax(6rem, 0.35fr) auto minmax(0, 1fr)',
   alignItems: 'center',
   gap: vars.space.small,
+  padding: `${vars.space.small} 0`,
+  border: 0,
+  background: 'transparent',
+  color: vars.color.text,
+  cursor: 'pointer',
+  textAlign: 'start',
 });
 
-globalStyle('.match-list li > div span:first-child', {
+globalStyle('.match-item:hover', {
+  background: vars.color.surfaceMuted,
+});
+
+globalStyle('.match-index', {
   color: vars.color.subtle,
   fontFamily: '"SFMono-Regular", Consolas, monospace',
   fontSize: '0.62rem',
@@ -325,15 +422,19 @@ globalStyle('.match-list code', {
   fontSize: '0.64rem',
 });
 
-globalStyle('.match-list p', {
-  margin: `${vars.space.xsmall} 0 0 2.45rem`,
+globalStyle('.match-provenance', {
+  margin: 0,
+  overflow: 'hidden',
   color: vars.color.muted,
   fontFamily: '"SFMono-Regular", Consolas, monospace',
   fontSize: '0.62rem',
   lineHeight: 1.5,
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 });
 
 globalStyle('.match-empty', {
+  padding: vars.space.medium,
   color: vars.color.muted,
   fontSize: '0.76rem',
 });
@@ -345,19 +446,81 @@ globalStyle('.raw-json-panel pre', {
   fontSize: '0.68rem',
 });
 
-globalStyle('.playground-layout', {
+globalStyle('.options-modal-heading', {
+  display: 'flex',
+  alignItems: 'start',
+  justifyContent: 'space-between',
+  gap: vars.space.medium,
+});
+
+globalStyle('.mobile-settings-summary', {
+  overflow: 'hidden',
+  color: vars.color.muted,
+  fontSize: '0.66rem',
+  fontWeight: 400,
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+
+globalStyle('.mobile-settings-heading', {
+  display: 'flex',
+  minWidth: 0,
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: vars.space.xsmall,
+});
+
+globalStyle('.mobile-resource-state', {
+  padding: '0.15rem 0.35rem',
+  borderRadius: vars.radius.pill,
+  background: vars.color.warningWash,
+  color: vars.color.warning,
+  fontSize: '0.6rem',
+  fontWeight: 650,
+  whiteSpace: 'nowrap',
+});
+
+globalStyle('.mobile-resource-state[data-state="ready"]', {
+  background: vars.color.successWash,
+  color: vars.color.success,
+});
+
+globalStyle('.mobile-resource-state[data-state="error"]', {
+  background: vars.color.dangerWash,
+  color: vars.color.danger,
+});
+
+globalStyle('.playground-workspace', {
   '@media': {
-    '(max-width: 68rem)': {
-      gridTemplateColumns: '1fr',
+    '(max-width: 64rem)': {
+      gridTemplateColumns: 'minmax(0, 1fr)',
     },
   },
 });
 
-globalStyle('.playground-controls', {
+globalStyle('.playground-main-inputs', {
   '@media': {
-    '(max-width: 68rem)': {
-      borderInlineEnd: 0,
+    '(max-width: 34rem)': {
+      padding: vars.space.medium,
+    },
+  },
+});
+
+globalStyle('.desktop-settings', {
+  '@media': {
+    '(max-width: 64rem)': {
+      display: 'none',
+    },
+  },
+});
+
+globalStyle('.mobile-settings', {
+  '@media': {
+    '(max-width: 64rem)': {
+      display: 'block',
+      padding: vars.space.large,
       borderBlockEnd: `1px solid ${vars.color.border}`,
+      background: vars.color.surfaceMuted,
     },
     '(max-width: 34rem)': {
       padding: vars.space.medium,
@@ -381,34 +544,35 @@ globalStyle('.option-grid', {
   },
 });
 
-globalStyle('.preset-actions', {
+globalStyle('.resource-loader', {
   '@media': {
     '(max-width: 34rem)': {
-      gridTemplateColumns: '1fr',
+      alignItems: 'stretch',
+      flexDirection: 'column',
     },
   },
 });
 
-globalStyle('.field-gap', {
+globalStyle('.resource-loader button', {
   '@media': {
     '(max-width: 34rem)': {
-      gridColumn: 'auto',
+      width: '100%',
     },
   },
 });
 
-globalStyle('.match-list li > div', {
+globalStyle('.match-item', {
   '@media': {
-    '(max-width: 34rem)': {
-      gridTemplateColumns: '1.7rem 1fr',
+    '(max-width: 46rem)': {
+      gridTemplateColumns: '1.7rem minmax(0, 1fr) auto',
     },
   },
 });
 
-globalStyle('.match-list li > div code', {
+globalStyle('.match-provenance', {
   '@media': {
-    '(max-width: 34rem)': {
-      gridColumn: '2',
+    '(max-width: 46rem)': {
+      gridColumn: '2 / -1',
     },
   },
 });
