@@ -1,5 +1,8 @@
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
+use std::fmt;
+use std::ops::Range;
+use std::sync::OnceLock;
 
 use serde::Serialize;
 
@@ -19,9 +22,17 @@ pub struct PosLexiconEntry {
     pub pos: DataFinePos,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DecodedPosLexicon {
-    entries: Box<[PosLexiconEntry]>,
+    lemma_bytes: Box<str>,
+    entries: Box<[PackedPosLexiconEntry]>,
+    materialized_entries: OnceLock<Box<[PosLexiconEntry]>>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct PackedPosLexiconEntry {
+    lemma_start: u32,
+    lemma_len: u32,
+    pos: DataFinePos,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
@@ -94,16 +105,28 @@ pub fn collect_pos_entries(lexicon: &LexiconData) -> ApprovedPosLexicon {
 
 impl DecodedPosLexicon {
     pub fn entries(&self) -> &[PosLexiconEntry] {
-        &self.entries
+        self.materialized_entries.get_or_init(|| {
+            self.entries
+                .iter()
+                .map(|entry| PosLexiconEntry {
+                    lemma: self.lemma(entry).to_owned(),
+                    pos: entry.pos,
+                })
+                .collect::<Vec<_>>()
+                .into_boxed_slice()
+        })
     }
 
     pub fn lookup(&self, lemma: &str) -> &[PosLexiconEntry] {
-        let start = self
-            .entries
-            .partition_point(|entry| entry.lemma.as_str() < lemma);
-        let end =
-            self.entries[start..].partition_point(|entry| entry.lemma.as_str() == lemma) + start;
-        &self.entries[start..end]
+        let entries = self.entries();
+        let start = entries.partition_point(|entry| entry.lemma.as_str() < lemma);
+        let end = entries[start..].partition_point(|entry| entry.lemma.as_str() == lemma) + start;
+        &entries[start..end]
+    }
+
+    pub fn lookup_fine_pos(&self, lemma: &str) -> impl ExactSizeIterator<Item = DataFinePos> + '_ {
+        let range = self.lookup_range(lemma);
+        self.entries[range].iter().map(|entry| entry.pos)
     }
 
     pub fn stats(&self) -> PosLexiconStats {
@@ -115,8 +138,8 @@ impl DecodedPosLexicon {
         let mut predicate_pos_conflict_lemma_count = 0;
         let mut at = 0;
         while at < self.entries.len() {
-            let lemma = &self.entries[at].lemma;
-            let end = self.entries[at..].partition_point(|entry| entry.lemma == *lemma) + at;
+            let lemma = self.lemma(&self.entries[at]);
+            let end = self.entries[at..].partition_point(|entry| self.lemma(entry) == lemma) + at;
             let analyses = &self.entries[at..end];
             unique_lemma_count += 1;
             pos_conflict_lemma_count += usize::from(analyses.len() > 1);
@@ -145,7 +168,55 @@ impl DecodedPosLexicon {
             entries_by_pos,
         }
     }
+
+    fn lookup_range(&self, lemma: &str) -> Range<usize> {
+        let start = self
+            .entries
+            .partition_point(|entry| self.lemma(entry) < lemma);
+        let end = self.entries[start..].partition_point(|entry| self.lemma(entry) == lemma) + start;
+        start..end
+    }
+
+    fn lemma(&self, entry: &PackedPosLexiconEntry) -> &str {
+        let start = entry.lemma_start as usize;
+        let end = start + entry.lemma_len as usize;
+        &self.lemma_bytes[start..end]
+    }
 }
+
+impl Clone for DecodedPosLexicon {
+    fn clone(&self) -> Self {
+        let materialized_entries = OnceLock::new();
+        if let Some(entries) = self.materialized_entries.get() {
+            materialized_entries
+                .set(entries.clone())
+                .expect("a new OnceLock must be empty");
+        }
+        Self {
+            lemma_bytes: self.lemma_bytes.clone(),
+            entries: self.entries.clone(),
+            materialized_entries,
+        }
+    }
+}
+
+impl fmt::Debug for DecodedPosLexicon {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("DecodedPosLexicon")
+            .field("lemma_bytes", &self.lemma_bytes.len())
+            .field("entries", &self.entries.len())
+            .finish()
+    }
+}
+
+impl PartialEq for DecodedPosLexicon {
+    fn eq(&self, other: &Self) -> bool {
+        self.lemma_bytes == other.lemma_bytes && self.entries == other.entries
+    }
+}
+
+impl Eq for DecodedPosLexicon {}
 
 pub fn encode_pos_lexicon(lexicon: &ApprovedPosLexicon) -> Result<Vec<u8>, DataError> {
     let entries = lexicon.entries();
@@ -204,18 +275,21 @@ pub fn decode_pos_lexicon(input: &[u8]) -> Result<DecodedPosLexicon, DataError> 
     if count > remaining / MIN_ENCODED_ENTRY_BYTES {
         return Err(binary_error("entry 수가 binary 크기와 일치하지 않습니다"));
     }
-    let mut entries = Vec::<PosLexiconEntry>::new();
+    let mut entries = Vec::<PackedPosLexiconEntry>::new();
     entries
         .try_reserve_exact(count)
         .map_err(|_| binary_error("entry 저장 공간을 할당할 수 없습니다"))?;
+    let mut lemma_bytes = Vec::new();
+    lemma_bytes
+        .try_reserve_exact(input.len())
+        .map_err(|_| binary_error("표제어 저장 공간을 할당할 수 없습니다"))?;
+    let mut lemma = Vec::new();
     let mut decoded_lemma_bytes = 0_usize;
     for _ in 0..count {
         let prefix = read_varint(input, &mut cursor)? as usize;
         let suffix_len = read_varint(input, &mut cursor)? as usize;
-        let previous = entries
-            .last()
-            .map(|entry| entry.lemma.as_str())
-            .unwrap_or_default();
+        let previous = std::str::from_utf8(&lemma)
+            .map_err(|_| binary_error("이전 표제어가 유효한 UTF-8이 아닙니다"))?;
         if prefix > previous.len() || !previous.is_char_boundary(prefix) {
             return Err(binary_error(
                 "prefix 길이가 이전 표제어의 문자 경계가 아닙니다",
@@ -229,36 +303,62 @@ pub fn decode_pos_lexicon(input: &[u8]) -> Result<DecodedPosLexicon, DataError> 
             .checked_add(suffix_len)
             .ok_or_else(|| binary_error("표제어 길이가 overflow했습니다"))?;
         decoded_lemma_bytes = checked_decoded_bytes(decoded_lemma_bytes, lemma_len)?;
-        let mut lemma_bytes = Vec::new();
-        lemma_bytes
-            .try_reserve_exact(lemma_len)
+        lemma.truncate(prefix);
+        lemma
+            .try_reserve_exact(lemma_len.saturating_sub(lemma.len()))
             .map_err(|_| binary_error("표제어 저장 공간을 할당할 수 없습니다"))?;
-        lemma_bytes.extend_from_slice(&previous.as_bytes()[..prefix]);
-        lemma_bytes.extend_from_slice(&input[cursor..suffix_end]);
+        lemma.extend_from_slice(&input[cursor..suffix_end]);
         cursor = suffix_end;
         let pos = DataFinePos::from_code(input[cursor])
             .ok_or_else(|| binary_error("알 수 없는 POS code입니다"))?;
         cursor += 1;
-        let lemma = String::from_utf8(lemma_bytes)
+        let lemma_str = std::str::from_utf8(&lemma)
             .map_err(|_| binary_error("표제어가 유효한 UTF-8이 아닙니다"))?;
-        require_nfc("POS lexicon decoder", None, "lemma", &lemma)?;
-        if lemma.is_empty() {
+        require_nfc("POS lexicon decoder", None, "lemma", lemma_str)?;
+        if lemma_str.is_empty() {
             return Err(binary_error("표제어가 비어 있습니다"));
         }
-        let entry = PosLexiconEntry { lemma, pos };
-        if entries
-            .last()
-            .is_some_and(|previous_entry| previous_entry.cmp(&entry) != Ordering::Less)
-        {
-            return Err(binary_error("entry가 엄격한 정렬 순서가 아닙니다"));
-        }
+        let same_lemma = if let Some(previous_entry) = entries.last() {
+            let previous_start = previous_entry.lemma_start as usize;
+            let previous_end = previous_start + previous_entry.lemma_len as usize;
+            let previous_lemma = &lemma_bytes[previous_start..previous_end];
+            let ordering = previous_lemma
+                .cmp(lemma.as_slice())
+                .then(previous_entry.pos.cmp(&pos));
+            if ordering != Ordering::Less {
+                return Err(binary_error("entry가 엄격한 정렬 순서가 아닙니다"));
+            }
+            previous_lemma == lemma
+        } else {
+            false
+        };
+        let (lemma_start, lemma_len) = if same_lemma {
+            let previous_entry = entries.last().expect("same_lemma requires an entry");
+            (previous_entry.lemma_start, previous_entry.lemma_len)
+        } else {
+            let start = u32::try_from(lemma_bytes.len())
+                .map_err(|_| binary_error("표제어 offset이 u32 범위를 초과합니다"))?;
+            let len = u32::try_from(lemma.len())
+                .map_err(|_| binary_error("표제어 길이가 u32 범위를 초과합니다"))?;
+            lemma_bytes.extend_from_slice(&lemma);
+            (start, len)
+        };
+        let entry = PackedPosLexiconEntry {
+            lemma_start,
+            lemma_len,
+            pos,
+        };
         entries.push(entry);
     }
     if cursor != input.len() {
         return Err(binary_error("마지막 entry 뒤에 불필요한 바이트가 있습니다"));
     }
+    let lemma_bytes = String::from_utf8(lemma_bytes)
+        .map_err(|_| binary_error("표제어 저장 공간이 유효한 UTF-8이 아닙니다"))?;
     Ok(DecodedPosLexicon {
+        lemma_bytes: lemma_bytes.into_boxed_str(),
         entries: entries.into_boxed_slice(),
+        materialized_entries: OnceLock::new(),
     })
 }
 
@@ -370,8 +470,16 @@ mod tests {
         ]);
 
         let decoded = decode_pos_lexicon(&encode_pos_lexicon(&approved).unwrap()).unwrap();
-        assert_eq!(decoded.entries().len(), 3);
-        assert_eq!(decoded.lookup("걷다").len(), 2);
+        assert!(decoded.materialized_entries.get().is_none());
+        assert_eq!(
+            decoded.lookup_fine_pos("걷다").collect::<Vec<_>>(),
+            vec![DataFinePos::Nng, DataFinePos::Vv]
+        );
+        assert!(decoded.materialized_entries.get().is_none());
+        assert_eq!(
+            decoded.entries[0].lemma_start,
+            decoded.entries[1].lemma_start
+        );
         assert_eq!(
             decoded.stats(),
             PosLexiconStats {
@@ -385,5 +493,25 @@ mod tests {
                 entries_by_pos: BTreeMap::from([("NNG".to_owned(), 2), ("VV".to_owned(), 1),]),
             }
         );
+        assert!(decoded.materialized_entries.get().is_none());
+
+        let unmaterialized_clone = decoded.clone();
+        assert_eq!(decoded.entries().len(), 3);
+        assert_eq!(decoded.lookup("걷다").len(), 2);
+        assert_eq!(decoded, unmaterialized_clone);
+    }
+
+    #[test]
+    fn packed_decoder_keeps_nfc_validation() {
+        let decomposed = "가";
+        let mut input = MAGIC.to_vec();
+        input.extend_from_slice(&1_u32.to_le_bytes());
+        write_varint(&mut input, 0);
+        write_varint(&mut input, decomposed.len() as u32);
+        input.extend_from_slice(decomposed.as_bytes());
+        input.push(DataFinePos::Nng.code());
+
+        let error = decode_pos_lexicon(&input).unwrap_err();
+        assert!(matches!(*error.kind, DataErrorKind::NonNfc { .. }));
     }
 }
