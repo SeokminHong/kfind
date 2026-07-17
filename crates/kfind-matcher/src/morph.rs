@@ -799,7 +799,7 @@ impl MorphMatcher {
                             ending.len(),
                             pos,
                             DEFAULT_LATTICE_NODE_LIMIT,
-                        )
+                        ) || resolver.has_exact_predicate_ending_path(token, pos)
                     } else {
                         resolver.supports_predicate_ending_path(
                             token,
@@ -830,7 +830,7 @@ impl MorphMatcher {
                         ending_len,
                         pos,
                         DEFAULT_LATTICE_NODE_LIMIT,
-                    )
+                    ) || resolver.has_exact_predicate_ending_path(&normalized, pos)
                 } else {
                     resolver.supports_predicate_ending_path(
                         &normalized,
