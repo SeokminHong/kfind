@@ -1568,7 +1568,9 @@ right condition: 토큰 경계 또는 다음 한국어 토큰 시작
 
 ### 10.5 부사
 
-기본은 literal과 스마트 경계다. `--expand derivation`에서만 규칙 데이터에 등록된 보조사 결합을 허용하고 격조사는 허용하지 않는다.
+기본 `inflection`은 사전에 부사로 분석된 표면 뒤에 규칙 데이터가 허용한 보조사 연쇄를
+소비한다. 이 결합은 새 품사를 만드는 파생이 아니므로 `derivation`에 한정하지 않는다.
+`literal`은 입력 표면만 검색하며, 부사 뒤 격조사는 허용하지 않는다.
 반복 token 구조를 사용하는 `smart` 부사 program은 surface registry 대신
 `AdjacentTokenConstraint::RepeatedToken`과 세부 품사 pattern을 선언한다.
 
@@ -1576,6 +1578,7 @@ right condition: 토큰 경계 또는 다음 한국어 토큰 시작
 빨리
 빨리도
 잘만
+실제로는
 ```
 
 ### 10.6 조사

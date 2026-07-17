@@ -808,23 +808,31 @@ fn compiled_predicate_plan_rejects_a_surface_attached_as_a_particle() {
 }
 
 #[test]
-fn derivation_adverb_plan_matches_only_auxiliary_particles() {
-    let matcher = compile(
-        "빨리",
-        CompileOptions {
-            expand: ExpandMode::Derivation,
-            ..CompileOptions::default()
-        },
-    );
+fn inflection_adverb_plan_matches_only_auxiliary_particles() {
+    let matcher = compile("빨리", CompileOptions::default());
 
-    assert!(
-        matcher
-            .find_at_with_meta("일을 빨리도 끝냈다.".as_bytes(), 0)
-            .is_some()
-    );
+    for text in ["일을 빨리도 끝냈다.", "빨리는 끝냈다."] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "default inflection rejected the adverb-particle structure in {text}"
+        );
+    }
     assert!(
         matcher
             .find_at_with_meta("빨리가 답이다.".as_bytes(), 0)
+            .is_none()
+    );
+
+    let literal = compile(
+        "빨리",
+        CompileOptions {
+            expand: ExpandMode::Literal,
+            ..CompileOptions::default()
+        },
+    );
+    assert!(
+        literal
+            .find_at_with_meta("일을 빨리도 끝냈다.".as_bytes(), 0)
             .is_none()
     );
 }

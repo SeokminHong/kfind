@@ -298,7 +298,7 @@ fn compile_analysis(
 
     if matches!(analysis.morphology, Morphology::Exact) {
         let decision = exact_candidate_decision(analysis);
-        if options.expand == ExpandMode::Derivation && analysis.coarse_pos == CoarsePos::Adverb {
+        if analysis.coarse_pos == CoarsePos::Adverb {
             output.push(DraftBranch {
                 anchor: atom_surface.to_owned(),
                 consumption: CandidateConsumption::NominalParticleChain {
