@@ -105,10 +105,12 @@
   경계를 가로지르는 substring에는 적용하지 않는다.
 - 일반 용언의 `smart` token span은 core에서 시작한다. 따라서 `가다` 검색은 `친구가`의 붙은 조사 `가`를 활용형으로 인정하지 않는다. 지정사처럼 앞 host에 붙는 분석만 별도 왼쪽 환경 검증을 사용한다.
 - 지정사 `smart` candidate는 token 전체가 부사로 분석되지 않고, token 왼쪽 경계부터 VCP core
-  직전까지 완성된 체언 host가 있을 때 host에 붙은 VCP runtime component를 유지한다. 생성 branch가
-  token 끝까지 직접 소비하지 못해도 같은 VCP source node가 core 시작부터 token 끝까지 이어지면
-  완성된 continuation으로 인정한다. 체언 host가 없거나 whole-token 부사인 `매일`은 이 경로로
-  열지 않는다.
+  직전까지 완성된 체언 host 또는 `체언 + 검증된 조사 연쇄`가 있을 때 host에 붙은 VCP runtime
+  component를 유지한다. 생성 branch가 token 끝까지 직접 소비하지 못해도 같은 VCP source node가
+  core 시작부터 token 끝까지 이어지면 완성된 continuation으로 인정한다. 모음으로 끝나는 host 뒤의
+  `다`, `였-`, `여-` branch는 지정사 탈락·축약의 왼쪽 음운 조건과 완결된 활용을 함께 검증한다.
+  따라서 `상표다`, `구경거리였다`, `대학뿐이다`의 지정사를 지원하지만, 체언 host가 없거나
+  whole-token 부사인 `매일`, 받침 뒤에서 축약한 `대학다`는 이 경로로 열지 않는다.
 - 명시적 동사·형용사 품사의 `ending.connective-ji` program은 `smart`에서도 core 왼쪽 token 경계를
   요구하지 않고 완성된 token span의 오른쪽 경계는 유지한다. 이는 gold 어절의 오른쪽 끝과
   일치하는 suffix candidate만 복구한다. 무품사 `smart`, `token`, `any`와 `ending.connective-ji`
