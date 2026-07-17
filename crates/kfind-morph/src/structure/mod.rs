@@ -582,6 +582,12 @@ struct Unit {
     from_whole_nominal: bool,
 }
 
+#[derive(Clone, Debug)]
+struct NumericUnitPath {
+    unit: Range<usize>,
+    dependent_tail: Option<Range<usize>>,
+}
+
 #[derive(Debug, Default)]
 struct TokenEvidence {
     units: Vec<Unit>,
@@ -592,6 +598,7 @@ struct TokenEvidence {
     adnominal_ends: Vec<usize>,
     has_complete_path: bool,
     numeric_spans: Box<[Range<usize>]>,
+    numeric_dependent_tail: Option<Range<usize>>,
     has_numeral_sequence: bool,
 }
 
@@ -634,11 +641,12 @@ impl TokenEvidence {
         } else {
             0
         };
-        let numeric_unit = if NUMERIC {
-            numeric_unit_span(resource, text)
+        let numeric_path = if NUMERIC {
+            numeric_unit_path(resource, text)
         } else {
             None
         };
+        let numeric_unit = numeric_path.as_ref().map(|path| path.unit.clone());
         let mut edges = Vec::new();
         for start in text
             .char_indices()
@@ -840,6 +848,7 @@ impl TokenEvidence {
             adnominal_ends,
             has_complete_path,
             numeric_spans,
+            numeric_dependent_tail: numeric_path.and_then(|path| path.dependent_tail),
             has_numeral_sequence,
         })
     }
@@ -1320,6 +1329,10 @@ enum StructureSelection {
     NumericUnit {
         unit: Range<usize>,
     },
+    NumericUnitDependentNoun {
+        unit: Range<usize>,
+        tail: Range<usize>,
+    },
     NumeralSequence {
         fallback: Box<StructureSelection>,
     },
@@ -1457,6 +1470,13 @@ impl StructureSelection {
                 matches!(pattern.fine_pos, DataFinePos::Nnb | DataFinePos::Nr)
                     && spans.core == *unit
                     && spans.consumed.end == spans.token.end
+            }
+            Self::NumericUnitDependentNoun { unit, tail } => {
+                (matches!(pattern.fine_pos, DataFinePos::Nnb | DataFinePos::Nr)
+                    && spans.core == *unit)
+                    || (pattern.fine_pos == DataFinePos::Nnb
+                        && spans.core == *tail
+                        && spans.consumed.end == spans.token.end)
             }
             Self::NumeralSequence { fallback } => {
                 (pattern.fine_pos == DataFinePos::Nr
@@ -1870,14 +1890,19 @@ fn select_structure(
     {
         return StructureSelection::DependentNoun;
     }
-    if let Some(first) = evidence
-        .numeric_spans
-        .first()
-        .filter(|_| !evidence.has_numeral_sequence)
-    {
-        return StructureSelection::NumericUnit {
-            unit: first.clone(),
-        };
+    if !evidence.has_numeral_sequence {
+        if let (Some(unit), Some(tail)) = (
+            evidence.numeric_spans.first(),
+            evidence.numeric_dependent_tail.as_ref(),
+        ) {
+            return StructureSelection::NumericUnitDependentNoun {
+                unit: unit.clone(),
+                tail: tail.clone(),
+            };
+        }
+        if let Some(unit) = evidence.numeric_spans.first() {
+            return StructureSelection::NumericUnit { unit: unit.clone() };
+        }
     }
     let fallback = if let Some(host) = particle_host {
         let allow_components = false;
@@ -1902,32 +1927,68 @@ fn select_structure(
     }
 }
 
-fn numeric_unit_span(resource: &ComponentResource, text: &str) -> Option<Range<usize>> {
+fn numeric_unit_path(resource: &ComponentResource, text: &str) -> Option<NumericUnitPath> {
     let numeric_end = text.bytes().take_while(u8::is_ascii_digit).count();
     if numeric_end == 0 || numeric_end == text.len() {
         return None;
     }
-    text[numeric_end..]
-        .char_indices()
-        .map(|(offset, character)| numeric_end + offset + character.len_utf8())
-        .filter(|&unit_end| {
-            has_exact_source_numeric_unit(resource, &text[numeric_end..unit_end])
-                && complete_suffix(resource, &text[unit_end..], |pos| pos.starts_with('J'))
-        })
-        .max()
-        .map(|unit_end| numeric_end..unit_end)
+    let mut selected = None;
+    resource.common_prefixes(&text.as_bytes()[numeric_end..], |unit_length, analyses| {
+        if !analyses
+            .iter()
+            .any(|analysis| matches!(analysis.pos, "NNB" | "NNBC" | "NR"))
+        {
+            return;
+        }
+        let unit_end = numeric_end + unit_length;
+        if complete_suffix(resource, &text[unit_end..], |pos| pos.starts_with('J')) {
+            select_numeric_unit_path(
+                &mut selected,
+                NumericUnitPath {
+                    unit: numeric_end..unit_end,
+                    dependent_tail: None,
+                },
+            );
+        }
+        resource.common_prefixes(&text.as_bytes()[unit_end..], |tail_length, analyses| {
+            if !analyses
+                .iter()
+                .any(|analysis| matches!(analysis.pos, "NNB" | "NNBC"))
+            {
+                return;
+            }
+            let tail_end = unit_end + tail_length;
+            if !complete_suffix(resource, &text[tail_end..], |pos| pos.starts_with('J')) {
+                return;
+            }
+            select_numeric_unit_path(
+                &mut selected,
+                NumericUnitPath {
+                    unit: numeric_end..unit_end,
+                    dependent_tail: Some(unit_end..tail_end),
+                },
+            );
+        });
+    });
+    selected
 }
 
-fn has_exact_source_numeric_unit(resource: &ComponentResource, text: &str) -> bool {
-    let mut matched = false;
-    resource.common_prefixes(text.as_bytes(), |length, analyses| {
-        if length == text.len() {
-            matched |= analyses
-                .iter()
-                .any(|analysis| matches!(analysis.pos, "NNB" | "NNBC" | "NR"));
-        }
-    });
-    matched
+fn select_numeric_unit_path(selected: &mut Option<NumericUnitPath>, candidate: NumericUnitPath) {
+    let rank = |path: &NumericUnitPath| {
+        (
+            path.dependent_tail
+                .as_ref()
+                .map_or(path.unit.end, |tail| tail.end),
+            path.unit.end,
+            path.dependent_tail.is_some(),
+        )
+    };
+    if selected
+        .as_ref()
+        .is_none_or(|current| rank(&candidate) > rank(current))
+    {
+        *selected = Some(candidate);
+    }
 }
 
 fn adnominal_suffix_is_supported(resource: &ComponentResource, text: &str) -> bool {

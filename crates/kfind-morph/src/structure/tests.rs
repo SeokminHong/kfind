@@ -669,13 +669,99 @@ fn ascii_numeric_unit_consumes_a_complete_particle_chain() {
 }
 
 #[test]
+fn ascii_numeric_unit_keeps_an_exact_dependent_noun_tail() {
+    let resolver = resolver();
+    let unit = "1".len().."1년".len();
+    let tail = "1년".len().."1년간".len();
+    for text in ["1년간", "1년간의"] {
+        let tail_decision = resolver.resolve_candidate(
+            BoundedTokenContext::current(text),
+            CandidateSpans {
+                core: tail.clone(),
+                anchor: tail.clone(),
+                consumed: tail.start..text.len(),
+                token: 0..text.len(),
+            },
+            &[nominal_pattern(DataFinePos::Nnb, "간")],
+            128,
+        );
+        let unit_decision = resolver.resolve_candidate(
+            BoundedTokenContext::current(text),
+            CandidateSpans {
+                core: unit.clone(),
+                anchor: unit.clone(),
+                consumed: unit.clone(),
+                token: 0..text.len(),
+            },
+            &[component_pattern(DataFinePos::Nnb, "년")],
+            128,
+        );
+
+        assert_eq!(
+            tail_decision.outcome,
+            ConstraintOutcome::Supported,
+            "{text}"
+        );
+        assert_eq!(
+            unit_decision.outcome,
+            ConstraintOutcome::Supported,
+            "{text}"
+        );
+    }
+}
+
+#[test]
+fn ascii_numeric_unit_prefers_a_longer_complete_unit_over_a_tail_split() {
+    let resolver = resolver_from_entries([
+        atomic("시", "NNBC"),
+        atomic("간", "NNB"),
+        atomic("시간", "NNBC"),
+    ]);
+    let unit = "10".len().."10시간".len();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("10시간"),
+        CandidateSpans {
+            core: unit.clone(),
+            anchor: unit.clone(),
+            consumed: unit,
+            token: 0.."10시간".len(),
+        },
+        &[component_pattern(DataFinePos::Nnb, "시간")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+}
+
+#[test]
+fn ascii_numeric_unit_rejects_an_ordinary_noun_tail() {
+    let resolver = resolver();
+    let core = "197명".len().."197명사".len();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("197명사"),
+        CandidateSpans {
+            core: core.clone(),
+            anchor: core.clone(),
+            consumed: core,
+            token: 0.."197명사".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "사")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+}
+
+#[test]
 fn numeric_unit_rule_rejects_nonnumeric_and_nonparticle_neighbors() {
     let resolver = resolver();
 
-    assert_eq!(numeric_unit_span(resolver.resource(), "소년"), None);
-    assert_eq!(numeric_unit_span(resolver.resource(), "추천"), None);
-    assert_eq!(numeric_unit_span(resolver.resource(), "익명이"), None);
-    assert_eq!(numeric_unit_span(resolver.resource(), "197명사"), None);
+    for text in ["소년", "추천", "익명이", "197명사"] {
+        assert!(
+            numeric_unit_path(resolver.resource(), text).is_none(),
+            "{text}"
+        );
+    }
 }
 
 #[test]
@@ -1207,6 +1293,7 @@ fn resolver() -> ConstraintResolver {
         atomic("씨", "NNB"),
         atomic("요코씨", "NNP"),
         atomic("년", "NNBC"),
+        atomic("간", "NNB"),
         atomic("수십", "NR"),
         atomic("십", "NR"),
         atomic("일", "NR"),
