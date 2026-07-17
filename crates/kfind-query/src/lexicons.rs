@@ -4,8 +4,8 @@ use std::sync::Arc;
 
 use kfind_data::{
     DataAlternation, DataError, DataFinePos, DecodedPosLexicon, DerivationRule, LexiconData,
-    LexiconSources, PosLexiconEntry, RuleSet, RuleSources, UserLexicon, decode_pos_lexicon,
-    parse_lexicons, parse_predicates_tsv, parse_rule_set, validate_predicates,
+    LexiconSources, RuleSet, RuleSources, UserLexicon, decode_pos_lexicon, parse_lexicons,
+    parse_predicates_tsv, parse_rule_set, validate_predicates,
 };
 use kfind_morph::{
     CoarsePos, ContinuationState, FinePos, LexicalAlternation, PredicateEntry, PredicateFlags,
@@ -138,8 +138,8 @@ impl Lexicons {
         let Some(full_pos) = &self.full_pos else {
             return Cow::Borrowed(materialized);
         };
-        let candidates = full_pos.lookup(surface);
-        if candidates.is_empty() {
+        let candidates = full_pos.lookup_fine_pos(surface);
+        if candidates.len() == 0 {
             return Cow::Borrowed(materialized);
         }
 
@@ -247,19 +247,19 @@ impl Lexicons {
     fn append_full_pos_analyses(
         &self,
         lemma: &str,
-        candidates: &[PosLexiconEntry],
+        candidates: impl Iterator<Item = DataFinePos>,
         analyses: &mut Vec<Analysis>,
     ) {
-        for entry in candidates {
-            let fine_pos = data_fine_pos(entry.pos);
-            let suppressed_by_user = (entry.pos.is_predicate()
+        for pos in candidates {
+            let fine_pos = data_fine_pos(pos);
+            let suppressed_by_user = (pos.is_predicate()
                 && self.replaced_full_predicates.contains(lemma))
-                || (entry.pos.is_nominal() && self.replaced_full_nominals.contains(lemma));
+                || (pos.is_nominal() && self.replaced_full_nominals.contains(lemma));
             let suppressed_by_curated = analyses.iter().any(|analysis| {
                 matches!(
                     analysis.source,
                     AnalysisSource::BuiltinLexicon | AnalysisSource::EnrichedLexicon
-                ) && if entry.pos.is_predicate() {
+                ) && if pos.is_predicate() {
                     analysis.coarse_pos == fine_pos.coarse() && !is_surface_only_analysis(analysis)
                 } else {
                     analysis.fine_pos == fine_pos
@@ -268,17 +268,17 @@ impl Lexicons {
             if suppressed_by_user || suppressed_by_curated {
                 continue;
             }
-            let analysis = self.full_pos_analysis(entry);
+            let analysis = self.full_pos_analysis(lemma, pos);
             if !analyses.contains(&analysis) {
                 analyses.push(analysis);
             }
         }
     }
 
-    fn full_pos_analysis(&self, entry: &PosLexiconEntry) -> Analysis {
-        let fine_pos = data_fine_pos(entry.pos);
-        let productive_alternation = entry.pos.is_predicate().then(|| {
-            self.productive_predicate(&entry.lemma)
+    fn full_pos_analysis(&self, lemma: &str, pos: DataFinePos) -> Analysis {
+        let fine_pos = data_fine_pos(pos);
+        let productive_alternation = pos.is_predicate().then(|| {
+            self.productive_predicate(lemma)
                 .filter(|analysis| analysis.coarse_pos == fine_pos.coarse())
                 .and_then(|analysis| match analysis.morphology {
                     Morphology::Predicate(predicate) => Some(predicate.alternation),
@@ -286,11 +286,11 @@ impl Lexicons {
                 })
         });
         default_analysis(
-            &entry.lemma,
-            entry.pos,
+            lemma,
+            pos,
             productive_alternation
                 .flatten()
-                .or_else(|| predicate_shape_alternation(&entry.lemma, fine_pos.coarse())),
+                .or_else(|| predicate_shape_alternation(lemma, fine_pos.coarse())),
             AnalysisSource::FullPosLexicon,
         )
     }
