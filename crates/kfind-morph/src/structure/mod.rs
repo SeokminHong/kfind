@@ -1383,6 +1383,8 @@ impl StructureSelection {
                 (support.evidence == StructuralEvidence::Whole
                     && spans.core == spans.token
                     && spans.consumed == spans.token)
+                    || (support.evidence == StructuralEvidence::RuntimeComponent
+                        && leading_adverb_predicate_path_is_supported(pattern, spans, evidence))
                     || (pattern.fine_pos.is_nominal()
                         && ((*allow_whole_nominal_source_components
                             && support.evidence == StructuralEvidence::SourceComponent
@@ -1816,6 +1818,23 @@ fn runtime_position_is_supported(
         && !trailing_nominal_chain
         && !nominal_after_predicate
         && !terminal_nominal_in_predicate_frame
+}
+
+fn leading_adverb_predicate_path_is_supported(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    evidence: &TokenEvidence,
+) -> bool {
+    pattern.fine_pos == DataFinePos::Mag
+        && spans.core.start == spans.token.start
+        && spans.consumed == spans.core
+        && spans.core.end < spans.token.end
+        && evidence.has_complete_path
+        && !evidence.has_whole_analysis(&spans.token)
+        && evidence
+            .units
+            .iter()
+            .any(|unit| unit.span == (spans.core.end..spans.token.end) && unit.pos.is_predicate())
 }
 
 fn whole_predicate_continuation(

@@ -85,6 +85,67 @@ fn leading_adverb_component_requires_a_complete_non_whole_path() {
 }
 
 #[test]
+fn leading_adverb_predicate_paths_survive_nominal_particle_competitors() {
+    let resolver = resolver_from_entries([
+        atomic("못", "MAG"),
+        atomic("못", "NNG"),
+        atomic("안", "MAG"),
+        atomic("안", "NNG"),
+        atomic("해", "JKB"),
+        atomic("요", "JX"),
+        atomic("해요", "VV+EF"),
+        atomic("나와요", "VV+EF"),
+        atomic("으로", "JKB"),
+    ]);
+    let mot_pattern = component_pattern(DataFinePos::Mag, "못");
+
+    let attached_predicate = resolver.resolve_candidate(
+        BoundedTokenContext::current("못해요"),
+        CandidateSpans {
+            core: 0.."못".len(),
+            anchor: 0.."못".len(),
+            consumed: 0.."못".len(),
+            token: 0.."못해요".len(),
+        },
+        std::slice::from_ref(&mot_pattern),
+        128,
+    );
+    let particle_only = resolver.resolve_candidate(
+        BoundedTokenContext::current("못으로"),
+        CandidateSpans {
+            core: 0.."못".len(),
+            anchor: 0.."못".len(),
+            consumed: 0.."못".len(),
+            token: 0.."못으로".len(),
+        },
+        &[mot_pattern],
+        128,
+    );
+    let an_pattern = component_pattern(DataFinePos::Mag, "안");
+    let attached_predicate_with_longer_suffix = resolver.resolve_candidate(
+        BoundedTokenContext::current("안나와요"),
+        CandidateSpans {
+            core: 0.."안".len(),
+            anchor: 0.."안".len(),
+            consumed: 0.."안".len(),
+            token: 0.."안나와요".len(),
+        },
+        &[an_pattern],
+        128,
+    );
+
+    assert_eq!(attached_predicate.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&attached_predicate));
+    assert_eq!(
+        attached_predicate_with_longer_suffix.outcome,
+        ConstraintOutcome::Supported
+    );
+    assert!(ProductPolicy::RecallFirst.accepts(&attached_predicate_with_longer_suffix));
+    assert_eq!(particle_only.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&particle_only));
+}
+
+#[test]
 fn whole_adverb_outranks_a_graph_built_nominal_particle_host() {
     let resolver = resolver();
     let decision = resolver.resolve_candidate(
