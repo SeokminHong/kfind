@@ -3,7 +3,7 @@ import type { DecorationSet } from '@codemirror/view';
 import type { Match } from '../../kfind-wasm';
 
 import { Field } from '@base-ui/react/field';
-import { history, historyKeymap } from '@codemirror/commands';
+import { history, historyKeymap, insertNewline } from '@codemirror/commands';
 import {
   Annotation,
   EditorSelection,
@@ -153,7 +153,14 @@ export const SearchEditor = forwardRef<SearchEditorHandle, SearchEditorProps>(
           }),
           EditorView.lineWrapping,
           history(),
-          keymap.of(historyKeymap),
+          keymap.of([
+            {
+              key: 'Enter',
+              run: insertNewline,
+              shift: insertNewline,
+            },
+            ...historyKeymap,
+          ]),
           searchHighlightField,
           EditorView.domEventHandlers({
             compositionend: (_event, editorView) => {
