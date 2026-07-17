@@ -35,6 +35,8 @@
 - [한글 수사 연쇄 recall](2026-07-17-hangul-numeral-recall.md)
 - [검토된 UD 코퍼스 재샘플링과 Robust 성능](2026-07-17-query-matrix.md)
 - [수동 검토 자연 오류 Robust 품질·성능](2026-07-17-robustness-quality.md)
+- [Query matrix 문법 구조와 잔여 FN 처분](2026-07-18-query-matrix-grammar-closure.md)
+- [Query matrix 잔여 FNc·FPc 구조 분석](2026-07-18-query-matrix-residual-structure.md)
 - [숫자 뒤 단위 구조 recall](2026-07-17-numeric-unit-recall.md)
 - [질의 컴파일 병목 제거](2026-07-17-compile-hotpath-performance.md)
 - [구조 증거로 줄인 검색 누락](2026-07-17-structural-recall.md)
@@ -529,3 +531,15 @@ profile하고 두 자릿수 millisecond 병목만 고른다.
 source adapter의 lemma/POS/span 정렬 검증으로 진행한다. Development의 신규 strict FP
 `이다→였다`, `혹→혹은`도 실제 문법 경로이므로 제품에서 막지 않고 source 정렬 문제로
 계속 보존한다.
+
+[Query matrix 잔여 FNc·FPc 구조 분석](2026-07-18-query-matrix-residual-structure.md)에서
+임의 byte-cover 경로가 query 품사를 합성하던 문제, 명사 tail 없는 관형사, 파생 관형형의
+접미사 시작 명사, whole 부사와 경쟁하는 내부 보조용언을 구조 규칙으로 닫았다. Test matrix
+full-POS는 `1,278/8/1,288/18`에서 `1,278/4/1,292/18`이 됐고 canonical,
+development와 hard-negative는 그대로다. Embedded도 FP 3건을 제거했다.
+
+잔여 FPc는 `그→그것이야말로`, 명사 `불과`, 대명사 `제`, 수사 `만` 4건이다. 세 사전의
+exact 품사와 graph를 대조해도 동형어 의미 또는 source POS 정렬 없이 선택할 수 없다.
+잔여 FNc 18건은 기존 처분 장부와 다시 대조해 미분류 0건이다. 다음 품질 작업은 이 case를
+표면 예외로 막지 않고, `제/그/수/하순`의 source adapter lemma·POS 정렬을 독립적으로 감사하거나
+새 독립 문장에서 아직 다루지 않은 문법군을 찾는다.
