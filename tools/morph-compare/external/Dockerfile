@@ -50,6 +50,7 @@ RUN apt-get update \
         "kiwipiepy==${KIWIPIEPY_VERSION}"
 
 WORKDIR /opt/morph-benchmark/external
+COPY tools/morph-compare/python/validation.py /opt/morph-benchmark/python/validation.py
 RUN cp /usr/local/lib/python3.12/site-packages/PyKomoran/libs/KOMORAN-3.3.9.jar \
         komoran.jar \
     && echo "${KOMORAN_SHA256}  komoran.jar" | sha256sum --check

@@ -127,6 +127,8 @@ COPY tools/morph-compare/hard-negatives.jsonl /opt/morph-benchmark/hard-negative
 COPY tools/morph-compare/external/baselines.json /opt/morph-benchmark/external-baselines.json
 COPY tools/morph-compare/external/query-matrix-baselines.json \
     /opt/morph-benchmark/query-matrix-external-baselines.json
+COPY tools/morph-compare/external/robustness-baselines.json \
+    /opt/morph-benchmark/robustness-external-baselines.json
 COPY tools/morph-compare/python /opt/morph-benchmark/python
 COPY tools/morph-compare/sources.json /opt/morph-benchmark/sources.json
 COPY tools/morph-compare/sentence-reviews.json \

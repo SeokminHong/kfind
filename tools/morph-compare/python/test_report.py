@@ -13,7 +13,7 @@ from report import (
     append_product_workflows,
     append_product_use_cases,
     append_query_matrix,
-    append_robustness_candidate_performance,
+    append_robustness,
     build_report,
     classify_lattice_paths,
     classify_primary_cause,
@@ -815,8 +815,8 @@ class QueryMatrixReportTests(unittest.TestCase):
         self.assertIn("| agent | 99.5% | 91.0% | 95.06% |", rendered)
 
 
-class RobustnessCandidatePerformanceReportTests(unittest.TestCase):
-    def test_renders_performance_without_quality(self) -> None:
+class RobustnessReportTests(unittest.TestCase):
+    def test_renders_quality_and_performance(self) -> None:
         performance = {
             "runs": 5,
             "initialization_seconds": 0.1,
@@ -840,26 +840,99 @@ class RobustnessCandidatePerformanceReportTests(unittest.TestCase):
             },
         }
         robustness = {
-            "scoring_status": "annotation-required",
+            "scoring_status": "scored",
             "robustness_mode": "off",
             "datasets": {
                 "explicit_pos": {"fixture_sha256": "explicit", "cases": 500},
                 "untagged": {"fixture_sha256": "untagged", "cases": 500},
             },
-            "workloads": {
-                "embedded-smart-explicit-pos": {"performance": performance}
+            "explicit_pos": {
+                "backends": ["kfind-embedded"],
+                "quality": {
+                    "kfind-embedded": {
+                        "overall": {
+                            "precision_percent": 98.0,
+                            "recall_percent": 90.0,
+                            "f1_percent": 93.83,
+                            "tp": 225,
+                            "fp": 5,
+                            "tn": 245,
+                            "fn": 25,
+                        },
+                        "by_noise_scope": {
+                            scope: {
+                                "cases": cases,
+                                "precision_percent": 98.0,
+                                "recall_percent": 90.0,
+                                "f1_percent": 93.83,
+                            }
+                            for scope, cases in (
+                                ("target-span", 100),
+                                ("context-only", 400),
+                            )
+                        },
+                        "by_noise_class": {
+                            "hangul-typo": {
+                                "cases": 500,
+                                "precision_percent": 98.0,
+                                "recall_percent": 90.0,
+                                "f1_percent": 93.83,
+                            }
+                        },
+                        "raw_span": {
+                            "exact_true_positives": 225,
+                            "overlap_true_positives": 225,
+                        },
+                    }
+                },
+                "performance": {"kfind-embedded": performance},
+            },
+            "workflows": {
+                "agent-embedded-any-explicit-pos": {
+                    "input": "explicit-pos",
+                    "quality": {
+                        "overall": {
+                            "precision_percent": 96.0,
+                            "recall_percent": 94.0,
+                            "f1_percent": 94.99,
+                            "fp": 10,
+                        },
+                        "by_noise_scope": {
+                            "target-span": {"recall_percent": 91.0},
+                            "context-only": {"recall_percent": 96.0},
+                        },
+                    },
+                    "performance": performance,
+                },
+                "human-full-pos-smart-untagged": {
+                    "input": "untagged",
+                    "quality": {
+                        "overall": {
+                            "precision_percent": 97.0,
+                            "recall_percent": 92.0,
+                            "f1_percent": 94.43,
+                        }
+                    },
+                    "performance": performance,
+                }
             },
         }
         lines: list[str] = []
 
-        append_robustness_candidate_performance(lines, robustness)
+        append_robustness(lines, robustness)
 
         rendered = "\n".join(lines)
-        self.assertIn("## Robustness candidate performance", rendered)
-        self.assertIn("no quality metric is reported", rendered)
-        self.assertIn("| embedded-smart-explicit-pos | 5 |", rendered)
+        self.assertIn("## Robustness quality and performance", rendered)
+        self.assertIn("manually reviewed natural noisy sentences", rendered)
+        self.assertIn(
+            "| kfind Agent | 96.0% | 94.0% | 94.99% | 10 | 91.0% | 96.0% |",
+            rendered,
+        )
+        self.assertIn("| kfind-embedded | 98.0% | 90.0% | 93.83% |", rendered)
+        self.assertIn("| target-span | kfind-embedded | 100 |", rendered)
+        self.assertIn("| human-full-pos-smart-untagged | untagged |", rendered)
+        self.assertIn("| kfind-embedded | 5 |", rendered)
         self.assertIn("1200.0 [1100.0, 1300.0]", rendered)
-        self.assertNotIn("precision", rendered)
 
 
 class ShadowVerificationTests(unittest.TestCase):
