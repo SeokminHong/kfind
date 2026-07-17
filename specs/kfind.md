@@ -558,6 +558,9 @@
   검증한다. Native에서는 큰 index와 payload section의 digest를 서로 다른 thread에서 검증할 수
   있지만, thread를 만들 수 없으면 순차 검증으로 돌아간다. WASM은 순차 검증한다. 어느 경로도
   digest 검증을 생략하거나 검증 전 resource를 engine 상태에 설치하지 않는다.
+- section SHA-256은 지원 CPU에서 runtime detection으로 hardware backend를 사용하고, 지원하지 않는
+  target에서는 portable backend로 돌아간다. Backend와 무관하게 같은 digest를 계산하며 검증 범위와
+  오류 계약을 바꾸지 않는다.
 - 같은 fail-fast 계약은 저수준 `MorphMatcher` 생성자에도 적용한다. resource가 필요한 plan을
   `MorphMatcher::new`로 만들면 `MorphMatcherBuildError::ComponentResourceRequired`를 반환하며,
   resource 또는 evaluator를 받는 생성자만 해당 plan을 초기화할 수 있다.
