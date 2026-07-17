@@ -82,6 +82,32 @@ fn global_pos_forces_an_untagged_atom() {
 }
 
 #[test]
+fn forced_verb_preserves_main_and_auxiliary_fine_positions() {
+    let plan = compile_query(
+        "가다",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    let fine_positions = plan.atoms[0]
+        .analyses
+        .iter()
+        .map(|analysis| analysis.fine_pos)
+        .collect::<BTreeSet<_>>();
+
+    assert_eq!(
+        fine_positions,
+        BTreeSet::from([
+            kfind_morph::FinePos::Verb,
+            kfind_morph::FinePos::AuxiliaryVerb,
+        ])
+    );
+}
+
+#[test]
 fn forced_noun_fallback_preserves_supported_fine_positions() {
     let options = CompileOptions {
         global_pos: Some(CoarsePos::Noun),

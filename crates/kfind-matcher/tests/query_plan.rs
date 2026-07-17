@@ -486,6 +486,25 @@ fn smart_auxiliary_query_accepts_a_complete_attached_source_path() {
 }
 
 #[test]
+fn forced_main_verb_query_preserves_a_source_backed_auxiliary_path() {
+    let resource = component_resource_from_entries([
+        component_expression_entry("먹어가", "VV+EC+VX", "먹/VV/*+어/EC/*+가/VX/*"),
+        component_entry("사과", "NNG"),
+    ]);
+    let matcher = compile_with_full_pos_and_resource(
+        "가다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    assert!(matcher.find_at_with_meta("먹어가".as_bytes(), 0).is_some());
+    assert!(matcher.find_at_with_meta("사과".as_bytes(), 0).is_none());
+}
+
+#[test]
 fn smart_auxiliary_query_accepts_an_unaligned_whole_source_path() {
     let resource = component_resource_from_entries([
         component_expression_entry("빨라져", "VA+EC+VX+EC", "빠르/VA/*+아/EC/*+지/VX/*+어/EC/*"),

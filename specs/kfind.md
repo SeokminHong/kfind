@@ -73,6 +73,10 @@
   의존명사 fallback을 합집합으로 보존한다. full POS의 단일 세부 품사가 명시적 coarse 품사의
   다른 component 근거를 억제하지 않으며, user lexicon의 `replace = true`는 이 합집합보다
   우선한다.
+- 명시한 coarse `verb`의 주동사 분석이 있으면 같은 표제어의 보조동사 후보도 보존한다. 이
+  후보는 임의의 내부 동사 substring을 허용하지 않고 compact component resource가
+  `용언 + 연결 어미 + VX + 선택적 어미`의 완성 경로를 증명할 때만 매치된다. full POS의
+  주동사 분석 하나가 coarse `verb`에 포함되는 보조동사 구조를 억제하지 않는다.
 - core lexicon은 전체 표제어 목록이 아니라 불규칙 활용, 품사 중의성, 기능어, 표면형 override를 담는 예외 계층이다. embedded workflow의 검증된 주요 불규칙은 core에 유지한다. 자동 승격 기준을
   충족하지 못한 review 항목은 표준국어대사전과 우리말샘의 고정 snapshot이 같은 진단형을
   지지하고 충돌하는 규칙형 record가 없으며 독립 fixture가 활용과 오활용을 함께 검증한 경우에만

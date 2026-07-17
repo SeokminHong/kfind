@@ -161,6 +161,9 @@ impl LexiconQueryAnalyzer {
             if forced_pos == CoarsePos::Noun && includes_full_pos {
                 append_missing_forced_noun_analyses(lemma, &mut matching);
             }
+            if forced_pos == CoarsePos::Verb {
+                append_missing_forced_auxiliary_verb(lemma, &mut matching);
+            }
             return Ok(matching);
         }
 
@@ -169,7 +172,11 @@ impl LexiconQueryAnalyzer {
                 && productive.coarse_pos == forced_pos
             {
                 productive.source = AnalysisSource::Forced;
-                return Ok(vec![productive]);
+                let mut analyses = vec![productive];
+                if forced_pos == CoarsePos::Verb {
+                    append_missing_forced_auxiliary_verb(lemma, &mut analyses);
+                }
+                return Ok(analyses);
             }
             let stem = lemma.strip_suffix('다').filter(|stem| !stem.is_empty());
             if stem.is_none() {
@@ -189,13 +196,17 @@ impl LexiconQueryAnalyzer {
                 predicate_shape_alternation(lemma, forced_pos)
                     .unwrap_or(kfind_morph::LexicalAlternation::Regular),
             );
-            return Ok(vec![Analysis {
+            let mut analyses = vec![Analysis {
                 lemma: lemma.into(),
                 coarse_pos: forced_pos,
                 fine_pos: predicate_pos.fine(),
                 morphology: Morphology::Predicate(predicate),
                 source: AnalysisSource::Forced,
-            }]);
+            }];
+            if forced_pos == CoarsePos::Verb {
+                append_missing_forced_auxiliary_verb(lemma, &mut analyses);
+            }
+            return Ok(analyses);
         }
 
         Ok(forced_non_predicates(lemma, forced_pos))
@@ -219,6 +230,34 @@ fn append_missing_forced_noun_analyses(lemma: &str, analyses: &mut Vec<Analysis>
             ));
         }
     }
+}
+
+fn append_missing_forced_auxiliary_verb(lemma: &str, analyses: &mut Vec<Analysis>) {
+    if analyses
+        .iter()
+        .any(|analysis| analysis.fine_pos == FinePos::AuxiliaryVerb)
+    {
+        return;
+    }
+    let Some(mut predicate) = analyses.iter().find_map(|analysis| {
+        if analysis.fine_pos != FinePos::Verb {
+            return None;
+        }
+        match &analysis.morphology {
+            Morphology::Predicate(predicate) => Some(predicate.clone()),
+            _ => None,
+        }
+    }) else {
+        return;
+    };
+    predicate.pos = PredicatePos::AuxiliaryVerb;
+    analyses.push(Analysis {
+        lemma: lemma.into(),
+        coarse_pos: CoarsePos::Verb,
+        fine_pos: FinePos::AuxiliaryVerb,
+        morphology: Morphology::Predicate(predicate),
+        source: AnalysisSource::Forced,
+    });
 }
 
 fn forced_non_predicates(lemma: &str, pos: CoarsePos) -> Vec<Analysis> {
