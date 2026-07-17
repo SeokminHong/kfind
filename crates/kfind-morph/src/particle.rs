@@ -7,6 +7,7 @@ use crate::hangul::{decompose_syllable, has_final, has_rieul_final};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ParticleKind {
+    Catalog,
     Topic,
     Subject,
     HonorificSubject,
@@ -132,6 +133,28 @@ impl Default for ParticleChainModel {
         let forms = [
             allomorph(Source, Case, "에게서", Any, "source.egeseo"),
             allomorph(Source, Case, "한테서", Any, "source.hanteseo"),
+            allomorph(
+                Instrumental,
+                Case,
+                "으로서",
+                ConsonantExceptRieul,
+                "capacity.roseo",
+            ),
+            allomorph(
+                Instrumental,
+                Case,
+                "으로써",
+                ConsonantExceptRieul,
+                "instrument.rosseo",
+            ),
+            allomorph(Instrumental, Case, "로서", VowelOrRieul, "capacity.roseo"),
+            allomorph(
+                Instrumental,
+                Case,
+                "로써",
+                VowelOrRieul,
+                "instrument.rosseo",
+            ),
             allomorph(
                 Concessive,
                 Auxiliary,
@@ -382,6 +405,8 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
                 "particle.comitative",
                 "particle.comitative.irang-rang",
                 "particle.direction",
+                "particle.capacity.roseo",
+                "particle.instrument.rosseo",
                 "particle.dative",
                 "particle.dative.deoreo",
                 "particle.dative.bogo",
@@ -430,6 +455,8 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
                 "particle.concessive.irado-rado",
             ],
         ),
+        transition("particle.capacity.roseo", FOCUS),
+        transition("particle.instrument.rosseo", FOCUS),
         transition(
             "particle.dative",
             &[
@@ -639,9 +666,15 @@ mod tests {
         assert!(verifier.verify_exact("길", "로").is_some());
         assert!(verifier.verify_exact("집", "으로").is_some());
         assert!(verifier.verify_exact("바다", "로").is_some());
+        assert!(verifier.verify_exact("학생", "으로서").is_some());
+        assert!(verifier.verify_exact("학교", "로써").is_some());
+        assert!(verifier.verify_exact("서울", "로서").is_some());
         assert!(verifier.verify_exact("길", "길으로").is_none());
         assert!(verifier.verify_exact("길", "으로").is_none());
         assert!(verifier.verify_exact("집", "로").is_none());
+        assert!(verifier.verify_exact("학생", "로서").is_none());
+        assert!(verifier.verify_exact("학교", "으로써").is_none());
+        assert!(verifier.verify_exact("서울", "으로서").is_none());
     }
 
     #[test]

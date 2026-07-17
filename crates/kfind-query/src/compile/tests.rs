@@ -358,6 +358,39 @@ fn adverb_particle_program_uses_data_driven_hosts_and_auxiliary_transitions() {
 }
 
 #[test]
+fn query_plan_materializes_particle_allomorphs_from_rule_data() {
+    let plan = compile_query(
+        "학생",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    for (rule_id, consonant, vowel) in [
+        ("particle.capacity.roseo", "으로서", "로서"),
+        ("particle.instrument.rosseo", "으로써", "로써"),
+    ] {
+        let first = plan
+            .particle_allomorphs
+            .iter()
+            .find(|form| form.rule_id.as_str() == rule_id && form.surface.as_ref() == consonant)
+            .unwrap_or_else(|| panic!("missing {rule_id} consonant allomorph"));
+        let second = plan
+            .particle_allomorphs
+            .iter()
+            .find(|form| form.rule_id.as_str() == rule_id && form.surface.as_ref() == vowel)
+            .unwrap_or_else(|| panic!("missing {rule_id} vowel allomorph"));
+        assert_eq!(
+            first.condition,
+            kfind_morph::FinalCondition::ConsonantExceptRieul
+        );
+        assert_eq!(second.condition, kfind_morph::FinalCondition::VowelOrRieul);
+    }
+}
+
+#[test]
 fn candidate_programs_materialize_structural_patterns_from_plan_analyses() {
     let predicate = compile_query(
         "걷다",

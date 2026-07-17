@@ -1207,6 +1207,36 @@ fn predicate_nominalization_aligns_with_whole_and_source_nominal_spans() {
 }
 
 #[test]
+fn predicate_nominalization_keeps_same_syllable_stem_composition() {
+    let resolver = resolver_from_entries([
+        atomic("봄", "NNG"),
+        atomic("으로써", "JKB"),
+        atomic("봄으로써", "NNG+JKB"),
+    ]);
+    let pattern = QueryMorphPattern::new(DataFinePos::Vv, "보").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: true,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("봄으로써"),
+        CandidateSpans {
+            core: 0.."봄".len(),
+            anchor: 0.."봄".len(),
+            consumed: 0.."봄으로써".len(),
+            token: 0.."봄으로써".len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+}
+
+#[test]
 fn predicate_ending_path_consumes_an_open_ended_ending_sequence() {
     let resolver = resolver();
 

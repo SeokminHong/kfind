@@ -1088,6 +1088,8 @@ fn compiled_nominal_plan_covers_particle_transition_families() {
         "사용자조차도 동의했다.",
         "사용자마저도 동의했다.",
         "사용자들로부터의 요청이다.",
+        "사용자로서도 참여했다.",
+        "사용자로써는 부족하다.",
     ] {
         assert!(
             matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
@@ -1278,6 +1280,44 @@ fn compiled_mieum_nominalizer_consumes_only_valid_particle_chains() {
                 "accepted invalid nominalized particle chain {text}"
             );
         }
+    }
+}
+
+#[test]
+fn compiled_mieum_nominalizer_keeps_same_syllable_composition() {
+    let resource = component_resource_from_entries([
+        component_entry("봄", "NNG"),
+        component_entry("이름", "NNG"),
+        component_entry("으로써", "JKB"),
+    ]);
+    for (query, text) in [("보다", "봄으로써"), ("이르다", "이름으로써")] {
+        let matcher = compile_with_full_pos_and_resource(
+            query,
+            CompileOptions::default(),
+            Arc::clone(&resource),
+        );
+        let matched = matcher
+            .find_at_with_meta(text.as_bytes(), 0)
+            .unwrap_or_else(|| panic!("rejected composed nominalizer {query:?} in {text:?}"));
+        assert_eq!(&text[matched.atoms[0].token.clone()], text);
+        assert!(matched.atoms[0].origins.iter().any(|origin| {
+            origin
+                .rule_path
+                .iter()
+                .any(|rule| rule.as_str() == "ending.nominalizer")
+        }));
+    }
+
+    let matcher = compile_with_full_pos_and_resource(
+        "보다",
+        CompileOptions::default(),
+        Arc::clone(&resource),
+    );
+    for invalid in ["봄가", "봄으로써를"] {
+        assert!(
+            matcher.find_at_with_meta(invalid.as_bytes(), 0).is_none(),
+            "accepted invalid composed nominalizer chain {invalid:?}"
+        );
     }
 }
 

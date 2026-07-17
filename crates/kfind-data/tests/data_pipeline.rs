@@ -58,6 +58,8 @@ fn repository_data_is_complete_and_valid() {
         "particle.extent.mankeum",
         "particle.exclusive.bakke",
         "particle.dative.bogo",
+        "particle.capacity.roseo",
+        "particle.instrument.rosseo",
         "particle.comparison.boda",
         "particle.restrictive.ppun",
         "particle.similarity.cheoreom",
@@ -77,6 +79,8 @@ fn repository_data_is_complete_and_valid() {
         ("particle.source", "particle.from"),
         ("particle.dative", "particle.direction"),
         ("particle.locative", "particle.genitive"),
+        ("particle.capacity.roseo", "particle.additive"),
+        ("particle.instrument.rosseo", "particle.topic"),
     ] {
         let rule = data
             .rules

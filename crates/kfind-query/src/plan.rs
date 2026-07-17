@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use kfind_morph::{
     CandidateTokenRelation, ComponentCapability, ContinuationState, MorphContinuation,
-    ParticleTransition, PredicateFlags, PredicatePos, PredicateStemClass, QueryMorphPattern,
-    RuleId,
+    ParticleAllomorph, ParticleTransition, PredicateFlags, PredicatePos, PredicateStemClass,
+    QueryMorphPattern, RuleId,
 };
 
 use crate::{Analysis, BoundaryPolicy, Morphology, NormalizationMode, PhrasePolicy, PlanLimits};
@@ -17,6 +17,7 @@ pub struct QueryPlan {
     pub normalization: NormalizationMode,
     pub limits: PlanLimits,
     pub diagnostics: Vec<QueryDiagnostic>,
+    pub particle_allomorphs: Arc<[ParticleAllomorph]>,
     pub particle_transitions: Arc<[ParticleTransition]>,
     pub auxiliary_particle_rules: Arc<[RuleId]>,
     pub predicate_ending_initial_particle_rules: Arc<[RuleId]>,

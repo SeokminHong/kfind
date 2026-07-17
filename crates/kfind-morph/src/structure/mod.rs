@@ -1480,7 +1480,7 @@ fn collect_pattern_supports(
                 });
             }
         }
-        if supports.len() == support_start && predicate_nominalization(pattern, spans) {
+        if supports.len() == support_start && is_predicate_nominalization(pattern) {
             for unit in evidence
                 .units
                 .iter()
@@ -1643,7 +1643,7 @@ impl StructureSelection {
                             )) && spans.core.start >= selected.start
                                 && spans.core.end <= selected.end
                                 && spans.core != *selected)))
-                    || (predicate_nominalization(pattern, spans)
+                    || (is_predicate_nominalization(pattern)
                         && spans.anchor.start >= selected.start
                         && spans.anchor.end <= selected.end
                         && (spans.consumed.end == spans.token.end
@@ -1995,7 +1995,7 @@ fn runtime_position_is_supported(
         && spans.core.start != spans.token.start
         && spans.consumed == spans.core
         && !attached_auxiliary
-        && !predicate_nominalization(pattern, spans);
+        && !is_predicate_nominalization(pattern);
     let modifier_before_predicate = predicate
         && !copula_nominal_host
         && !attached_auxiliary
@@ -2104,14 +2104,14 @@ fn copula_has_complete_nominal_host(
             .any(|unit| unit.span == (spans.token.start..spans.core.start) && unit.pos.is_nominal())
 }
 
-fn predicate_nominalization(pattern: &QueryMorphPattern, spans: &CandidateSpans) -> bool {
+fn is_predicate_nominalization(pattern: &QueryMorphPattern) -> bool {
     matches!(
         pattern.continuation,
         MorphContinuation::Predicate {
             nominal_particles: true,
             ..
         }
-    ) && spans.anchor != spans.core
+    )
 }
 
 fn select_structure(

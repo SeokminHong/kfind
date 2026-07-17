@@ -10,11 +10,11 @@ use crate::{
 };
 use kfind_data::{
     DICTIONARY_CONJUGATION_RULE_ID, DICTIONARY_RELATED_ADVERB_RULE_ID, DerivationRule,
-    ParticleHost, ParticleRuleRole,
+    ParticleHost, ParticleRuleRole, ParticleSelection,
 };
 use kfind_morph::{
-    CoarsePos, ComponentCapability, ParticleTransition, RuleId, generate_predicate_branches,
-    generate_predicate_fallback_stems,
+    CoarsePos, ComponentCapability, FinalCondition, ParticleAllomorph, ParticleKind, ParticleRole,
+    ParticleTransition, RuleId, generate_predicate_branches, generate_predicate_fallback_stems,
 };
 
 mod normalization;
@@ -67,6 +67,8 @@ const NOMINAL_CONSUMPTION_RULE_IDS: &[&str] = &[
     "particle.source.egeseo",
     "particle.source.hanteseo",
     "particle.direction",
+    "particle.capacity.roseo",
+    "particle.instrument.rosseo",
     "particle.dative",
     "particle.source",
     "particle.locative",
@@ -110,6 +112,7 @@ pub fn compile_query(
         .collect::<HashSet<_>>();
     let allowed_predicate_rules = allowed_rules(&known_rule_ids, |_| true);
     let allowed_particle_rules = allowed_rules(&known_rule_ids, |id| id.starts_with("particle."));
+    let particle_allomorphs = particle_allomorphs(analyzer);
     let allowed_auxiliary_particle_rules =
         particle_rules(analyzer, |rule| rule.role == ParticleRuleRole::Auxiliary);
     let allowed_adverb_initial_particle_rules = particle_rules(analyzer, |rule| {
@@ -150,7 +153,10 @@ pub fn compile_query(
         &allowed_auxiliary_particle_rules,
         &allowed_adverb_initial_particle_rules,
         &allowed_predicate_ending_initial_particle_rules,
-    ]);
+    ]) + particle_allomorphs
+        .iter()
+        .map(|form| std::mem::size_of::<ParticleAllomorph>() + form.surface.len())
+        .sum::<usize>();
     let mut uses_predicate_consumption = false;
     let mut uses_nominal_consumption = false;
     for (atom_index, atom) in ast.atoms.iter().enumerate() {
@@ -274,6 +280,7 @@ pub fn compile_query(
         normalization: options.normalization,
         limits: options.limits,
         diagnostics,
+        particle_allomorphs,
         particle_transitions: particle_transitions.into(),
         auxiliary_particle_rules: allowed_auxiliary_particle_rules,
         predicate_ending_initial_particle_rules: allowed_predicate_ending_initial_particle_rules,
@@ -763,6 +770,34 @@ fn particle_rules(
         .collect::<Vec<_>>();
     rules.sort();
     rules.into()
+}
+
+fn particle_allomorphs(analyzer: &LexiconQueryAnalyzer) -> Arc<[ParticleAllomorph]> {
+    let mut forms = Vec::new();
+    for rule in &analyzer.lexicons().rules().particles {
+        let role = match rule.role {
+            ParticleRuleRole::Plural => continue,
+            ParticleRuleRole::Case => ParticleRole::Case,
+            ParticleRuleRole::Auxiliary => ParticleRole::Auxiliary,
+        };
+        for (index, surface) in rule.forms.iter().enumerate() {
+            let condition = match (rule.selection, index) {
+                (ParticleSelection::Literal, _) => FinalCondition::Any,
+                (ParticleSelection::FinalPair, 0) => FinalCondition::Consonant,
+                (ParticleSelection::FinalPair, _) => FinalCondition::Vowel,
+                (ParticleSelection::EuroRo, 0) => FinalCondition::ConsonantExceptRieul,
+                (ParticleSelection::EuroRo, _) => FinalCondition::VowelOrRieul,
+            };
+            forms.push(ParticleAllomorph::new(
+                ParticleKind::Catalog,
+                role,
+                surface.clone(),
+                condition,
+                rule.id.clone(),
+            ));
+        }
+    }
+    forms.into()
 }
 
 fn modern_ending_surfaces() -> Arc<[Box<str>]> {

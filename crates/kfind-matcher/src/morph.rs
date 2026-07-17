@@ -123,6 +123,9 @@ impl MorphMatcher {
             },
         )?;
         let mut particle_model = ParticleChainModel::default();
+        if !plan.particle_allomorphs.is_empty() {
+            particle_model.allomorphs = plan.particle_allomorphs.to_vec().into_boxed_slice();
+        }
         if !plan.particle_transitions.is_empty() {
             particle_model.transitions = Arc::clone(&plan.particle_transitions);
         }

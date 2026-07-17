@@ -355,6 +355,30 @@ const REFERENCE_PARTICLES: &[ReferenceParticle] = &[
         ReferenceFinalCondition::Any,
     ),
     reference_particle(
+        "으로서",
+        "particle.capacity.roseo",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::ConsonantExceptRieul,
+    ),
+    reference_particle(
+        "으로써",
+        "particle.instrument.rosseo",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::ConsonantExceptRieul,
+    ),
+    reference_particle(
+        "로서",
+        "particle.capacity.roseo",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::VowelOrRieul,
+    ),
+    reference_particle(
+        "로써",
+        "particle.instrument.rosseo",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::VowelOrRieul,
+    ),
+    reference_particle(
         "이라도",
         "particle.concessive.irado-rado",
         ReferenceParticleRole::Auxiliary,
