@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::sync::Arc;
@@ -106,6 +107,9 @@ impl LexiconQueryAnalyzer {
 
 #[derive(Debug, Clone)]
 pub(crate) struct ParticleCompileRules {
+    pub known: Arc<HashSet<Box<str>>>,
+    pub predicate: Arc<[RuleId]>,
+    pub particle: Arc<[RuleId]>,
     pub allomorphs: Arc<[ParticleAllomorph]>,
     pub transitions: Arc<[ParticleTransition]>,
     pub auxiliary: Arc<[RuleId]>,
@@ -115,6 +119,11 @@ pub(crate) struct ParticleCompileRules {
 
 impl ParticleCompileRules {
     fn new(lexicons: &Lexicons) -> Self {
+        let known = lexicons
+            .rules()
+            .all_ids()
+            .map(Box::<str>::from)
+            .collect::<HashSet<_>>();
         let mut allomorphs = Vec::new();
         for rule in &lexicons.rules().particles {
             let role = match rule.role {
@@ -156,6 +165,9 @@ impl ParticleCompileRules {
             })
             .collect::<Vec<_>>();
         Self {
+            predicate: collect_allowed_rules(&known, |_| true),
+            particle: collect_allowed_rules(&known, |id| id.starts_with("particle.")),
+            known: Arc::new(known),
             allomorphs: allomorphs.into(),
             transitions: transitions.into(),
             auxiliary: collect_particle_rules(lexicons, |rule| {
@@ -171,6 +183,19 @@ impl ParticleCompileRules {
             }),
         }
     }
+}
+
+fn collect_allowed_rules(
+    known: &HashSet<Box<str>>,
+    include: impl Fn(&str) -> bool,
+) -> Arc<[RuleId]> {
+    let mut rules = known
+        .iter()
+        .filter(|id| include(id))
+        .map(|id| RuleId::from(id.to_string()))
+        .collect::<Vec<_>>();
+    rules.sort();
+    rules.into()
 }
 
 fn collect_particle_rules(

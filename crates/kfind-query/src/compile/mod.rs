@@ -104,14 +104,10 @@ pub fn compile_query(
         ));
     }
 
-    let known_rule_ids = analyzer
-        .lexicons()
-        .rules()
-        .all_ids()
-        .collect::<HashSet<_>>();
-    let allowed_predicate_rules = allowed_rules(&known_rule_ids, |_| true);
-    let allowed_particle_rules = allowed_rules(&known_rule_ids, |id| id.starts_with("particle."));
     let particle_rules = analyzer.particle_rules();
+    let known_rule_ids = particle_rules.known.as_ref();
+    let allowed_predicate_rules = Arc::clone(&particle_rules.predicate);
+    let allowed_particle_rules = Arc::clone(&particle_rules.particle);
     let particle_allomorphs = Arc::clone(&particle_rules.allomorphs);
     let particle_transitions = Arc::clone(&particle_rules.transitions);
     let allowed_auxiliary_particle_rules = Arc::clone(&particle_rules.auxiliary);
@@ -199,7 +195,7 @@ pub fn compile_query(
                     &allowed_particle_rules,
                     &allowed_auxiliary_particle_rules,
                     &allowed_adverb_initial_particle_rules,
-                    &known_rule_ids,
+                    known_rule_ids,
                     &mut excluded_rules,
                     &mut drafts,
                 )?;
@@ -263,11 +259,11 @@ pub fn compile_query(
     if uses_predicate_consumption {
         excluded_rules.extend(missing_rules(
             PREDICATE_CONSUMPTION_RULE_IDS,
-            &known_rule_ids,
+            known_rule_ids,
         ));
     }
     if uses_nominal_consumption {
-        excluded_rules.extend(missing_rules(NOMINAL_CONSUMPTION_RULE_IDS, &known_rule_ids));
+        excluded_rules.extend(missing_rules(NOMINAL_CONSUMPTION_RULE_IDS, known_rule_ids));
     }
     excluded_rules.sort();
     excluded_rules.dedup();
@@ -328,7 +324,7 @@ fn compile_analysis(
     particle_rules: &Arc<[RuleId]>,
     auxiliary_particle_rules: &Arc<[RuleId]>,
     adverb_initial_particle_rules: &Arc<[RuleId]>,
-    known_rule_ids: &HashSet<&str>,
+    known_rule_ids: &HashSet<Box<str>>,
     excluded_rules: &mut Vec<RuleId>,
     output: &mut Vec<DraftBranch>,
 ) -> Result<(), CompileError> {
@@ -497,7 +493,7 @@ fn compile_predicate(
     exact_component: bool,
     structural_fallback: bool,
     allowed_rules: &Arc<[RuleId]>,
-    known_rule_ids: &HashSet<&str>,
+    known_rule_ids: &HashSet<Box<str>>,
     excluded_rules: &mut Vec<RuleId>,
     output: &mut Vec<DraftBranch>,
 ) -> Result<(), CompileError> {
@@ -646,7 +642,7 @@ fn compile_derivations(
     analyzer: &LexiconQueryAnalyzer,
     predicate_rules: &Arc<[RuleId]>,
     particle_rules: &Arc<[RuleId]>,
-    known_rule_ids: &HashSet<&str>,
+    known_rule_ids: &HashSet<Box<str>>,
     excluded_rules: &mut Vec<RuleId>,
     output: &mut Vec<DraftBranch>,
 ) -> Result<(), CompileError> {
@@ -776,17 +772,6 @@ fn exact_branch_with_decision(
     }
 }
 
-fn allowed_rules(known: &HashSet<&str>, include: impl Fn(&str) -> bool) -> Arc<[RuleId]> {
-    let mut rules = known
-        .iter()
-        .copied()
-        .filter(|id| include(id))
-        .map(RuleId::from)
-        .collect::<Vec<_>>();
-    rules.sort();
-    rules.into()
-}
-
 fn modern_ending_surfaces() -> Arc<[Box<str>]> {
     static SURFACES: OnceLock<Arc<[Box<str>]>> = OnceLock::new();
     Arc::clone(SURFACES.get_or_init(|| {
@@ -803,14 +788,14 @@ fn modern_ending_surfaces() -> Arc<[Box<str>]> {
     }))
 }
 
-fn missing_rules(ids: &[&str], known: &HashSet<&str>) -> impl Iterator<Item = RuleId> {
+fn missing_rules(ids: &[&str], known: &HashSet<Box<str>>) -> impl Iterator<Item = RuleId> {
     ids.iter()
         .copied()
-        .filter(|id| !known.contains(id))
+        .filter(|id| !known.contains(*id))
         .map(RuleId::from)
 }
 
-fn is_known_or_internal(rule: &RuleId, known: &HashSet<&str>) -> bool {
+fn is_known_or_internal(rule: &RuleId, known: &HashSet<Box<str>>) -> bool {
     known.contains(rule.as_str()) || INTERNAL_PROVENANCE_IDS.contains(&rule.as_str())
 }
 
