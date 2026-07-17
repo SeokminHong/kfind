@@ -4,7 +4,7 @@ schema_version = 1
 id = "particle.plural"
 forms = ["들"]
 selection = "literal"
-next = ["particle.subject", "particle.object", "particle.topic", "particle.comitative", "particle.direction", "particle.dative", "particle.locative", "particle.source", "particle.source.egeseo", "particle.source.hanteseo", "particle.from", "particle.genitive", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
+next = ["particle.subject", "particle.subject.honorific", "particle.object", "particle.topic", "particle.comitative", "particle.comitative.irang-rang", "particle.direction", "particle.dative", "particle.dative.deoreo", "particle.dative.bogo", "particle.locative", "particle.source", "particle.source.egeseo", "particle.source.hanteseo", "particle.from", "particle.genitive", "particle.additive", "particle.only", "particle.restrictive.ppun", "particle.exclusive.bakke", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.similarity.gachi", "particle.similarity.cheoreom", "particle.conformance.daero", "particle.distributive.mada", "particle.extent.mankeum", "particle.comparison.boda", "particle.contrast.keonyeong", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
 terminal = true
 
 [[particle]]
@@ -25,7 +25,7 @@ terminal = true
 id = "particle.topic"
 forms = ["은", "는"]
 selection = "final-pair"
-next = []
+next = ["particle.contrast.keonyeong"]
 terminal = true
 
 [[particle]]
@@ -46,49 +46,49 @@ terminal = true
 id = "particle.direction"
 forms = ["으로", "로"]
 selection = "euro-ro"
-next = ["particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
+next = ["particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
 terminal = true
 
 [[particle]]
 id = "particle.dative"
 forms = ["에게", "한테", "께"]
 selection = "literal"
-next = ["particle.direction", "particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
+next = ["particle.direction", "particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
 terminal = true
 
 [[particle]]
 id = "particle.locative"
 forms = ["에"]
 selection = "literal"
-next = ["particle.direction", "particle.from", "particle.genitive", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
+next = ["particle.direction", "particle.from", "particle.genitive", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
 terminal = true
 
 [[particle]]
 id = "particle.source"
 forms = ["에서"]
 selection = "literal"
-next = ["particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
+next = ["particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
 terminal = true
 
 [[particle]]
 id = "particle.source.egeseo"
 forms = ["에게서"]
 selection = "literal"
-next = ["particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
+next = ["particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
 terminal = true
 
 [[particle]]
 id = "particle.source.hanteseo"
 forms = ["한테서"]
 selection = "literal"
-next = ["particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
+next = ["particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
 terminal = true
 
 [[particle]]
 id = "particle.from"
 forms = ["부터"]
 selection = "literal"
-next = ["particle.genitive", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
+next = ["particle.genitive", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
 terminal = true
 
 [[particle]]
@@ -131,4 +131,116 @@ id = "particle.even.majeo"
 forms = ["마저"]
 selection = "literal"
 next = ["particle.additive"]
+terminal = true
+
+[[particle]]
+id = "particle.subject.honorific"
+forms = ["께서"]
+selection = "literal"
+next = ["particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
+terminal = true
+
+[[particle]]
+id = "particle.similarity.gachi"
+forms = ["같이"]
+selection = "literal"
+next = ["particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.conformance.daero"
+forms = ["대로"]
+selection = "literal"
+next = ["particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.dative.deoreo"
+forms = ["더러"]
+selection = "literal"
+next = ["particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.distributive.mada"
+forms = ["마다"]
+selection = "literal"
+next = ["particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.extent.mankeum"
+forms = ["만큼"]
+selection = "literal"
+next = ["particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.exclusive.bakke"
+forms = ["밖에"]
+selection = "literal"
+next = ["particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.dative.bogo"
+forms = ["보고"]
+selection = "literal"
+next = ["particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.comparison.boda"
+forms = ["보다"]
+selection = "literal"
+next = ["particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.restrictive.ppun"
+forms = ["뿐"]
+selection = "literal"
+next = ["particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.similarity.cheoreom"
+forms = ["처럼"]
+selection = "literal"
+next = ["particle.topic", "particle.additive", "particle.only"]
+terminal = true
+
+[[particle]]
+id = "particle.contrast.keonyeong"
+forms = ["커녕"]
+selection = "literal"
+next = []
+terminal = true
+
+[[particle]]
+id = "particle.alternative.ina-na"
+forms = ["이나", "나"]
+selection = "final-pair"
+next = []
+terminal = true
+
+[[particle]]
+id = "particle.concessive.inama-nama"
+forms = ["이나마", "나마"]
+selection = "final-pair"
+next = []
+terminal = true
+
+[[particle]]
+id = "particle.concessive.irado-rado"
+forms = ["이라도", "라도"]
+selection = "final-pair"
+next = []
+terminal = true
+
+[[particle]]
+id = "particle.comitative.irang-rang"
+forms = ["이랑", "랑"]
+selection = "final-pair"
+next = ["particle.topic", "particle.additive", "particle.only"]
 terminal = true

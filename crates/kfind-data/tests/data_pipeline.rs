@@ -49,6 +49,22 @@ fn repository_data_is_complete_and_valid() {
         "particle.limit.ggaji",
         "particle.even.jocha",
         "particle.even.majeo",
+        "particle.subject.honorific",
+        "particle.similarity.gachi",
+        "particle.conformance.daero",
+        "particle.dative.deoreo",
+        "particle.distributive.mada",
+        "particle.extent.mankeum",
+        "particle.exclusive.bakke",
+        "particle.dative.bogo",
+        "particle.comparison.boda",
+        "particle.restrictive.ppun",
+        "particle.similarity.cheoreom",
+        "particle.contrast.keonyeong",
+        "particle.alternative.ina-na",
+        "particle.concessive.inama-nama",
+        "particle.concessive.irado-rado",
+        "particle.comitative.irang-rang",
     ] {
         assert!(ids.contains(verifier_rule), "missing {verifier_rule}");
     }

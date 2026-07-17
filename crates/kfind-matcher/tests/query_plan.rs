@@ -933,6 +933,53 @@ fn compiled_nominal_plan_covers_particle_transition_families() {
 }
 
 #[test]
+fn compiled_nominal_plan_covers_dictionary_consensus_particle_families() {
+    let matcher = compile("사용자", CompileOptions::default());
+
+    for text in [
+        "사용자께서 오셨다.",
+        "사용자같이 처리한다.",
+        "사용자대로 둔다.",
+        "사용자더러 말했다.",
+        "사용자마다 다르다.",
+        "사용자만큼 빠르다.",
+        "사용자밖에 없다.",
+        "사용자보고 말했다.",
+        "사용자보다 빠르다.",
+        "사용자뿐 남았다.",
+        "사용자처럼 행동한다.",
+        "사용자커녕 아무도 없다.",
+        "사용자께서는 오셨다.",
+        "사용자뿐만 남았다.",
+        "사용자는커녕 아무도 없다.",
+        "사용자들마다 다르다.",
+        "사용자보다도 빠르다.",
+        "사용자나 관리자가 처리한다.",
+        "사용자나마 남았다.",
+        "사용자라도 처리한다.",
+        "사용자랑 관리자가 처리한다.",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "rejected dictionary particle family: {text}"
+        );
+    }
+    for text in [
+        "사용자이나",
+        "사용자이나마",
+        "사용자이라도",
+        "사용자이랑",
+        "사용자은커녕",
+        "사용자ㄴ커녕",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+            "accepted invalid dictionary particle allomorph: {text}"
+        );
+    }
+}
+
+#[test]
 fn compiled_gi_nominalizer_consumes_only_valid_particle_chains() {
     for boundary in [BoundaryPolicy::Smart, BoundaryPolicy::Token] {
         let matcher = compile(
@@ -1239,6 +1286,10 @@ fn direct_particle_plans_validate_the_attached_host_in_smart_mode() {
     for (query, accepted, rejected) in [
         ("는", ["사용자는", "권한은"], ["사용자은", "권한는"]),
         ("로", ["길로", "학교로"], ["길으로", "집로"]),
+        ("나", ["집이나", "바다나"], ["집나", "바다이나"]),
+        ("나마", ["집이나마", "바다나마"], ["집나마", "바다이나마"]),
+        ("라도", ["집이라도", "바다라도"], ["집라도", "바다이라도"]),
+        ("랑", ["집이랑", "바다랑"], ["집랑", "바다이랑"]),
     ] {
         let matcher = compile(query, options.clone());
         for text in accepted {
