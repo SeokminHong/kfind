@@ -30,25 +30,26 @@
   별도 `BranchVerifier`, `ContextRequirement`와 비용 기반 fallback은 없다.
 - literal, `token`, `any` 및 구조 제약이 없는 `smart` program은 component resource를 읽지
   않는다.
-- 구조 resource가 필요한 plan에서 누락·손상·schema·source mismatch는 초기화 오류다. 기존
+- 구조 resource가 필요한 plan에서 누락·손상·schema·package-version·source mismatch는 초기화 오류다. 기존
   문자열 경계 판정으로 fallback하지 않는다.
 
 ## resource 계약
 
-제품용 compact component resource는 schema 4다. 다음 정보만 보존한다.
+제품용 compact component resource는 schema 5다. 다음 정보만 보존한다.
 
 - NFC surface double-array index
 - source 분석의 POS
 - 빌드 시 NFC 안정 경계에 정렬한 component POS와 byte span
 - source SHA-256과 section digest
+- kfind package version
 
 left/right context ID, word cost, 연결 행렬, unknown model과 원본 expression 문자열은 싣지
 않는다. loader는 header, section digest, UTF-8, group·analysis·component offset과 span 범위를
 검증한 뒤 resource를 노출한다. 비용 경로가 필요한 연구·진단은 별도 full morphology artifact를
 사용하며 제품 판정을 바꾸지 않는다.
 
-전체 `mecab-ko-dic-2.1.1-20180720` 입력의 schema 4 artifact는 773,105 surface, 806,568
-structural analysis와 570,984 aligned component를 보존한다. 크기는 37,103,781 bytes이며 source
+전체 `mecab-ko-dic-2.1.1-20180720` 입력의 schema 5 artifact는 773,105 surface, 806,568
+structural analysis와 570,984 aligned component를 보존한다. 크기는 37,103,813 bytes이며 source
 cost artifact 72,164,646 bytes의 51.42%다.
 
 ## 검증 계약
