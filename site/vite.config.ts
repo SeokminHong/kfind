@@ -6,14 +6,16 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   plugins: [react(), vanillaExtractPlugin()],
   define: {
-    __KFIND_BUILD_VERSION__: JSON.stringify(readBuildVersion()),
+    __KFIND_COMPONENT_RESOURCE_VERSION__: JSON.stringify(
+      readComponentResourceVersion(),
+    ),
   },
   build: {
     target: 'es2022',
   },
 });
 
-function readBuildVersion(): string {
+function readComponentResourceVersion(): string {
   const hasWorkingTreeChanges = readGitValue(['status', '--porcelain']) !== '';
 
   if (!hasWorkingTreeChanges) {
@@ -30,7 +32,13 @@ function readBuildVersion(): string {
     }
   }
 
-  return readGitValue(['rev-parse', 'HEAD']);
+  return readGitValue([
+    'log',
+    '-1',
+    '--format=%H',
+    '--',
+    ':(top)scripts/build-component-resource.sh',
+  ]);
 }
 
 function readGitValue(arguments_: readonly string[]): string {

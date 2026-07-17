@@ -245,7 +245,7 @@ export function initializePlayground(
       });
 
       try {
-        const restoredByteLength = await restoreComponentResource(
+        const restoredResource = await restoreComponentResource(
           loaded.engine,
           signal,
         );
@@ -255,11 +255,11 @@ export function initializePlayground(
         }
 
         setResourceStatus(
-          restoredByteLength === null
+          restoredResource === null
             ? idleComponentResourceStatus
             : {
                 state: ComponentResourceState.Ready,
-                message: `${formatMebibytes(restoredByteLength)} MiB 저장소에서 복원 완료 · ${formatResourceVersion()}`,
+                message: `${formatMebibytes(restoredResource.byteLength)} MiB ${restoredResource.migrated ? '기존 저장소에서 복원·이전 완료' : '저장소에서 복원 완료'} · ${formatResourceVersion()}`,
               },
         );
       } catch (error) {
