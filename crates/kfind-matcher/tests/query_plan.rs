@@ -546,6 +546,38 @@ fn modifier_led_nominal_path_keeps_exact_tail_but_not_a_whole_adverb_component()
 }
 
 #[test]
+fn numeric_unit_path_keeps_only_a_dependent_noun_tail() {
+    let resource = component_resource_from_entries([
+        component_entry("년", "NNBC"),
+        component_entry("간", "NNB"),
+        component_entry("시", "NNBC"),
+        component_entry("시간", "NNBC"),
+        component_entry("명", "NNBC"),
+        component_entry("사", "NNG"),
+        component_entry("명사", "NNG"),
+        component_entry("의", "JKG"),
+    ]);
+    let options = CompileOptions {
+        global_pos: Some(CoarsePos::Noun),
+        ..CompileOptions::default()
+    };
+    let year = compile_embedded_with_resource("년", options.clone(), Arc::clone(&resource));
+    let period = compile_embedded_with_resource("간", options.clone(), Arc::clone(&resource));
+    let time = compile_embedded_with_resource("시간", options.clone(), Arc::clone(&resource));
+    let ordinary_tail = compile_embedded_with_resource("사", options, resource);
+
+    assert!(year.find_at_with_meta("1년간".as_bytes(), 0).is_some());
+    assert!(period.find_at_with_meta("1년간".as_bytes(), 0).is_some());
+    assert!(period.find_at_with_meta("1년간의".as_bytes(), 0).is_some());
+    assert!(time.find_at_with_meta("10시간".as_bytes(), 0).is_some());
+    assert!(
+        ordinary_tail
+            .find_at_with_meta("197명사".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn compiled_predicate_plan_applies_ending_pos_requirements() {
     let verb = compile("가다", CompileOptions::default());
     let adjective = compile("예쁘다", CompileOptions::default());
