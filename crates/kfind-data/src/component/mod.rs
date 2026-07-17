@@ -17,6 +17,8 @@ const SCHEMA_VERSION: u32 = 4;
 const INDEX_KIND_DOUBLE_ARRAY: u8 = 1;
 const SECTION_COUNT: usize = 3;
 const HEADER_LEN: usize = 180;
+#[cfg(not(target_arch = "wasm32"))]
+const PARALLEL_DIGEST_MIN_SECTION_LEN: usize = 1024 * 1024;
 
 pub const COMPONENT_RESOURCE_SOURCE_DIGEST: [u8; 32] = [
     0xfd, 0x62, 0xd3, 0xd6, 0xd8, 0xfa, 0x85, 0x14, 0x55, 0x28, 0x06, 0x5f, 0xab, 0xad, 0x4d, 0x7c,
@@ -224,11 +226,7 @@ pub fn decode_component_resource(
         return Err(resource_error(source, "invalid header length"));
     }
     let ranges = section_ranges(source, bytes.len(), cursor, lengths)?;
-    for (range, expected) in ranges.iter().zip(digests) {
-        if sha256(&bytes[range.clone()]) != expected {
-            return Err(resource_error(source, "section digest mismatch"));
-        }
-    }
+    validate_section_digests(source, &bytes, &ranges, digests)?;
     let sections = Sections {
         index: ranges[0].clone(),
         payload: ranges[1].clone(),
@@ -263,6 +261,60 @@ pub fn decode_component_resource(
         payload,
         strings,
     })
+}
+
+fn validate_section_digests(
+    source: &str,
+    bytes: &[u8],
+    ranges: &[Range<usize>; SECTION_COUNT],
+    expected: [[u8; 32]; SECTION_COUNT],
+) -> Result<(), DataError> {
+    if section_digests(bytes, ranges) != expected {
+        return Err(resource_error(source, "section digest mismatch"));
+    }
+    Ok(())
+}
+
+#[cfg(target_arch = "wasm32")]
+fn section_digests(
+    bytes: &[u8],
+    ranges: &[Range<usize>; SECTION_COUNT],
+) -> [[u8; 32]; SECTION_COUNT] {
+    sequential_section_digests(bytes, ranges)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn section_digests(
+    bytes: &[u8],
+    ranges: &[Range<usize>; SECTION_COUNT],
+) -> [[u8; 32]; SECTION_COUNT] {
+    if ranges[0].len() < PARALLEL_DIGEST_MIN_SECTION_LEN
+        || ranges[1].len() < PARALLEL_DIGEST_MIN_SECTION_LEN
+    {
+        return sequential_section_digests(bytes, ranges);
+    }
+    std::thread::scope(|scope| {
+        let index_bytes = &bytes[ranges[0].clone()];
+        let worker = std::thread::Builder::new()
+            .name("kfind-component-index-digest".to_owned())
+            .spawn_scoped(scope, move || sha256(index_bytes));
+        let Ok(worker) = worker else {
+            return sequential_section_digests(bytes, ranges);
+        };
+        let payload = sha256(&bytes[ranges[1].clone()]);
+        let strings = sha256(&bytes[ranges[2].clone()]);
+        let index = worker
+            .join()
+            .unwrap_or_else(|payload| std::panic::resume_unwind(payload));
+        [index, payload, strings]
+    })
+}
+
+fn sequential_section_digests(
+    bytes: &[u8],
+    ranges: &[Range<usize>; SECTION_COUNT],
+) -> [[u8; 32]; SECTION_COUNT] {
+    ranges.each_ref().map(|range| sha256(&bytes[range.clone()]))
 }
 
 fn section_ranges(

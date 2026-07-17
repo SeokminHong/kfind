@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [component section digest 병렬 검증](2026-07-17-component-digest-startup.md)
 - [full POS decoder 중복 소유 제거](2026-07-17-full-pos-decoder-startup.md)
 - [관형사 뒤 명사 우선 경로 recall](2026-07-17-modifier-noun-preferred-path-recall.md)
 - [숫자 단위 뒤 의존명사 tail recall](2026-07-17-numeric-unit-dependent-tail-recall.md)
@@ -347,3 +348,14 @@ annotation과 gate는 변경하지 않았다.
 Component resource decoder는 여전히 약 130ms로 가장 큰 다음 optional startup 병목이다.
 다음 작업은 section digest, index decode와 component vector 검증 시간을 분리 측정한 뒤 가장
 큰 구간만 최적화한다.
+
+[component section digest 병렬 검증](2026-07-17-component-digest-startup.md)에서 Time
+Profiler 기준 component 초기화의 약 106ms를 차지한 SHA-256 section 검증을 native의 큰
+index와 payload 사이에서 병렬화했다. Component 구간은 129.20ms에서 91.07ms로 29.51%,
+full-POS 조합의 전체 초기화는 15.61% 줄었다. 100MiB CLI Human 처리량은 359.76에서
+420.23MiB/s로 16.81% 늘었다. 모든 canonical·matrix·Human·hard-negative prediction과
+span, FNᶜ/PNᶜ는 같다. Matrix contract 정의, annotation과 gate는 변경하지 않았다.
+
+이제 optional resource 조합에서는 full-POS base 초기화 약 119ms가 component 약 93ms보다
+크다. 다음 성능 작업은 full-POS decode의 남은 allocation, index 구축과 검증을 다시
+profile한다. Component payload 구조 검증 약 16ms는 그 뒤 후보로 둔다.

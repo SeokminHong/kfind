@@ -47,15 +47,38 @@ fn resource_rejects_schema_source_and_content_mismatches() {
         DataErrorKind::ComponentResourceSchema { .. }
     ));
 
-    let mut content = bytes;
-    *content.last_mut().unwrap() ^= 1;
-    assert!(matches!(
-        decode_component_resource("fixture", content, &[7; 32])
-            .unwrap_err()
-            .kind
-            .as_ref(),
-        DataErrorKind::ComponentResourceCorrupt(_)
-    ));
+    let mut cursor = 60;
+    let mut lengths = [0_usize; SECTION_COUNT];
+    for length in &mut lengths {
+        *length = usize::try_from(read_u64(&bytes, &mut cursor).unwrap()).unwrap();
+    }
+    let ranges = section_ranges("fixture", bytes.len(), HEADER_LEN, lengths).unwrap();
+    for range in ranges {
+        let mut content = bytes.clone();
+        content[range.start] ^= 1;
+        assert!(matches!(
+            decode_component_resource("fixture", content, &[7; 32])
+                .unwrap_err()
+                .kind
+                .as_ref(),
+            DataErrorKind::ComponentResourceCorrupt(_)
+        ));
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[test]
+fn parallel_section_digests_match_sequential_validation() {
+    let bytes = vec![7_u8; PARALLEL_DIGEST_MIN_SECTION_LEN * 2 + 8];
+    let ranges = [
+        0..PARALLEL_DIGEST_MIN_SECTION_LEN,
+        PARALLEL_DIGEST_MIN_SECTION_LEN..PARALLEL_DIGEST_MIN_SECTION_LEN * 2,
+        PARALLEL_DIGEST_MIN_SECTION_LEN * 2..bytes.len(),
+    ];
+    assert_eq!(
+        section_digests(&bytes, &ranges),
+        sequential_section_digests(&bytes, &ranges)
+    );
 }
 
 fn fixture_resource() -> Vec<u8> {
