@@ -3,11 +3,13 @@ import { Select } from '@base-ui/react/select';
 import * as styles from './select-field.css';
 
 interface SelectOption<Value extends string> {
+  readonly description?: string;
   readonly label: string;
   readonly value: Value;
 }
 
 interface SelectFieldProps<Value extends string> {
+  readonly description?: string;
   readonly id: string;
   readonly label: string;
   readonly name: string;
@@ -18,6 +20,7 @@ interface SelectFieldProps<Value extends string> {
 }
 
 export function SelectField<Value extends string>({
+  description,
   id,
   label,
   name,
@@ -26,6 +29,9 @@ export function SelectField<Value extends string>({
   placeholder,
   value,
 }: SelectFieldProps<Value>): React.JSX.Element {
+  const descriptionId =
+    description === undefined ? undefined : `${id}-description`;
+
   return (
     <div className="field">
       <Select.Root
@@ -40,7 +46,10 @@ export function SelectField<Value extends string>({
         value={value}
       >
         <Select.Label className={styles.label}>{label}</Select.Label>
-        <Select.Trigger className={styles.trigger}>
+        <Select.Trigger
+          aria-describedby={descriptionId}
+          className={styles.trigger}
+        >
           <Select.Value placeholder={placeholder} />
           <Select.Icon className={styles.icon}>▾</Select.Icon>
         </Select.Trigger>
@@ -58,7 +67,14 @@ export function SelectField<Value extends string>({
                     key={option.value}
                     value={option.value}
                   >
-                    <Select.ItemText>{option.label}</Select.ItemText>
+                    <Select.ItemText>
+                      <span className={styles.itemText}>
+                        <span>{option.label}</span>
+                        {option.description === undefined ? null : (
+                          <small>{option.description}</small>
+                        )}
+                      </span>
+                    </Select.ItemText>
                   </Select.Item>
                 ))}
               </Select.List>
@@ -66,6 +82,11 @@ export function SelectField<Value extends string>({
           </Select.Positioner>
         </Select.Portal>
       </Select.Root>
+      {description === undefined ? null : (
+        <p className={styles.description} id={descriptionId}>
+          {description}
+        </p>
+      )}
     </div>
   );
 }

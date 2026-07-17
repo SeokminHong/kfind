@@ -6,10 +6,9 @@ import type {
 } from '../../playground';
 
 import { Button } from '@base-ui/react/button';
-import { Collapsible } from '@base-ui/react/collapsible';
 import { Field } from '@base-ui/react/field';
-import { Form } from '@base-ui/react/form';
 import { Input } from '@base-ui/react/input';
+import { Tabs } from '@base-ui/react/tabs';
 import { useEffect, useRef, useState } from 'react';
 
 import {
@@ -17,12 +16,7 @@ import {
   DocumentSection,
   PageIntro,
 } from '../../components/document';
-import {
-  BoundaryPolicy,
-  ExpandMode,
-  NormalizationMode,
-  PartOfSpeech,
-} from '../../kfind-wasm';
+import { BoundaryPolicy, ExpandMode, PartOfSpeech } from '../../kfind-wasm';
 import {
   applyPlaygroundPreset,
   ComponentResourceState,
@@ -31,12 +25,12 @@ import {
   initializePlayground,
   initialPlaygroundInput,
   initialPlaygroundStatus,
-  PlaygroundPresetName,
   playgroundPresetOptions,
   PlaygroundResultState,
   PlaygroundState,
 } from '../../playground';
 
+import { QueryField } from './query-field';
 import { SearchEditor } from './search-editor';
 import { SelectField } from './select-field';
 
@@ -55,22 +49,45 @@ const partOfSpeechOptions = [
 ];
 
 const boundaryOptions = [
-  { label: 'smart', value: BoundaryPolicy.Smart },
-  { label: 'token', value: BoundaryPolicy.Token },
-  { label: 'any', value: BoundaryPolicy.Any },
+  {
+    label: 'smart',
+    value: BoundaryPolicy.Smart,
+    description: '품사별 형태 검증 후 완성된 token 경계를 확인합니다.',
+  },
+  {
+    label: 'token',
+    value: BoundaryPolicy.Token,
+    description: 'core 시작과 완성된 token 양쪽 경계를 엄격히 확인합니다.',
+  },
+  {
+    label: 'any',
+    value: BoundaryPolicy.Any,
+    description: '좌우 경계 없이 부분 문자열 후보까지 보존합니다.',
+  },
 ];
 
 const expandOptions = [
-  { label: 'inflection', value: ExpandMode.Inflection },
-  { label: 'derivation', value: ExpandMode.Derivation },
-  { label: 'literal', value: ExpandMode.Literal },
+  {
+    label: 'inflection',
+    value: ExpandMode.Inflection,
+    description: '품사를 유지하며 조사·어미 결합과 불규칙 활용을 찾습니다.',
+  },
+  {
+    label: 'derivation',
+    value: ExpandMode.Derivation,
+    description: '활용에 더해 새 품사를 만드는 생산적 파생형까지 찾습니다.',
+  },
+  {
+    label: 'literal',
+    value: ExpandMode.Literal,
+    description: '형태 분석 없이 입력 문자열만 그대로 찾습니다.',
+  },
 ];
 
-const normalizationOptions = [
-  { label: 'NFC', value: NormalizationMode.Nfc },
-  { label: 'NFC + NFD', value: NormalizationMode.Canonical },
-  { label: '없음', value: NormalizationMode.None },
-];
+enum PlaygroundOutputTab {
+  Matches = 'matches',
+  RawJson = 'raw-json',
+}
 
 export default function PlaygroundPage(): React.JSX.Element {
   const controllerRef = useRef<PlaygroundController>(null);
@@ -114,6 +131,7 @@ export default function PlaygroundPage(): React.JSX.Element {
   const isEngineReady = status.state === PlaygroundState.Ready;
   const isResourceButtonDisabled =
     !isEngineReady ||
+    resourceStatus.state === ComponentResourceState.Checking ||
     resourceStatus.state === ComponentResourceState.Loading ||
     resourceStatus.state === ComponentResourceState.Ready;
 
@@ -128,9 +146,9 @@ export default function PlaygroundPage(): React.JSX.Element {
       <DocumentSection title="검색 실습">
         <div className="section-title-row">
           <p>
-            Query, text나 옵션을 바꾸고 검색을 실행하면 embedded lexicon으로
-            query plan을 다시 컴파일합니다. 일치한 span은 editor에서 바로
-            확인하고 아래에서 각 branch의 provenance를 볼 수 있습니다.
+            Query, text나 옵션을 바꾸면 잠시 뒤 embedded lexicon으로 query
+            plan을 다시 컴파일합니다. 일치한 span은 editor에서 바로 확인하고
+            아래에서 각 branch의 provenance를 볼 수 있습니다.
           </p>
           <div
             className="wasm-state"
@@ -144,44 +162,36 @@ export default function PlaygroundPage(): React.JSX.Element {
         </div>
 
         <div className="playground-layout">
-          <Form
-            className="playground-controls"
-            onFormSubmit={() => {
-              controllerRef.current?.run(input);
-            }}
-          >
-            <Field.Root className="field field-query" name="query">
-              <Field.Label data-glossary-skip="">Query</Field.Label>
-              <Input
-                className="text-control"
-                autoComplete="off"
-                onValueChange={(value) => {
-                  updateInput('query', value);
-                }}
-                value={input.query}
-              />
-              <Field.Description>
-                atom 태그 예: <code>n:사용자 v:검증하다</code>
-              </Field.Description>
-            </Field.Root>
+          <div className="playground-controls">
+            <QueryField
+              onValueChange={(value) => {
+                updateInput('query', value);
+              }}
+              value={input.query}
+            />
 
             <div className="preset-picker">
-              <SelectField<PlaygroundPresetName>
-                id="preset-select"
-                label="예시 전체 설정"
-                name="preset"
-                onValueChange={(value) => {
-                  setInput(applyPlaygroundPreset(value));
-                }}
-                options={playgroundPresetOptions}
-                placeholder="Query · text · 옵션 불러오기"
-                value={null}
-              />
-              <p>예시를 고르면 아래 검색 옵션도 함께 바뀝니다.</p>
+              <span className="preset-label">예시 전체 설정 불러오기</span>
+              <div className="preset-actions">
+                {playgroundPresetOptions.map((preset) => (
+                  <Button
+                    data-glossary-skip=""
+                    key={preset.value}
+                    onClick={() => {
+                      setInput(applyPlaygroundPreset(preset.value));
+                    }}
+                    type="button"
+                  >
+                    {preset.label}
+                  </Button>
+                ))}
+              </div>
+              <p>각 버튼은 Query, text와 모든 검색 옵션을 함께 바꿉니다.</p>
             </div>
 
             <div className="option-grid">
               <SelectField<PartOfSpeech>
+                description="Atom 태그와 선택 품사 중 어느 쪽도 우선하지 않습니다. auto가 아니면 서로 같아야 하며, 다르면 오류입니다."
                 id="pos-select"
                 label="품사"
                 name="pos"
@@ -192,6 +202,10 @@ export default function PlaygroundPage(): React.JSX.Element {
                 value={input.pos}
               />
               <SelectField<BoundaryPolicy>
+                description={selectedOptionDescription(
+                  boundaryOptions,
+                  input.boundary,
+                )}
                 id="boundary-select"
                 label="경계"
                 name="boundary"
@@ -202,6 +216,10 @@ export default function PlaygroundPage(): React.JSX.Element {
                 value={input.boundary}
               />
               <SelectField<ExpandMode>
+                description={selectedOptionDescription(
+                  expandOptions,
+                  input.expand,
+                )}
                 id="expand-select"
                 label="확장"
                 name="expand"
@@ -210,16 +228,6 @@ export default function PlaygroundPage(): React.JSX.Element {
                 }}
                 options={expandOptions}
                 value={input.expand}
-              />
-              <SelectField<NormalizationMode>
-                id="normalization-select"
-                label="정규화"
-                name="normalization"
-                onValueChange={(value) => {
-                  updateInput('normalization', value);
-                }}
-                options={normalizationOptions}
-                value={input.normalization}
               />
               <Field.Root className="field field-gap" name="maxGap">
                 <Field.Label data-glossary-skip="">
@@ -234,6 +242,9 @@ export default function PlaygroundPage(): React.JSX.Element {
                   type="number"
                   value={input.maxGap}
                 />
+                <Field.Description>
+                  Phrase atom 사이에 허용할 최대 Unicode 문자 수입니다.
+                </Field.Description>
               </Field.Root>
             </div>
 
@@ -244,15 +255,6 @@ export default function PlaygroundPage(): React.JSX.Element {
               }}
               value={input.text}
             />
-
-            <Button
-              className="run-button"
-              data-glossary-skip=""
-              type="submit"
-              disabled={!isEngineReady}
-            >
-              검색 실행
-            </Button>
 
             <div className="resource-loader">
               <div>
@@ -269,12 +271,10 @@ export default function PlaygroundPage(): React.JSX.Element {
                 }}
                 type="button"
               >
-                {resourceStatus.state === ComponentResourceState.Ready
-                  ? 'Component asset 준비됨'
-                  : 'Component asset 불러오기'}
+                {componentResourceButtonLabel(resourceStatus.state)}
               </Button>
             </div>
-          </Form>
+          </div>
 
           <PlaygroundOutput input={input} result={currentResult} />
         </div>
@@ -284,9 +284,10 @@ export default function PlaygroundPage(): React.JSX.Element {
           검색이 명사·대명사·수사·관형사 또는 full-POS 일반 용언의 component
           근거를 요구하면 사용자가 고급 resource를 명시적으로 불러와야 합니다.
           이때 같은 origin의 Pages Function이 R2 객체를 streaming하고, engine은
-          schema와 checksum 검증을 마친 뒤에만 resource를 적용해 검색을 다시
-          실행합니다. Resource를 불러올 필요가 없는 query는 이 network 요청과
-          초기화 비용을 발생시키지 않습니다.
+          schema와 checksum 검증을 마친 뒤 현재 build key로 브라우저 저장소에
+          보관합니다. 같은 build로 다시 들어오면 저장된 resource를 자동으로
+          복원합니다. Resource가 필요 없는 query는 최초 network 요청을 하지
+          않습니다.
         </p>
       </DocumentSection>
     </DocumentPage>
@@ -300,6 +301,7 @@ function PlaygroundOutput({
   readonly input: PlaygroundInput;
   readonly result: PlaygroundResult | undefined;
 }): React.JSX.Element {
+  const [activeTab, setActiveTab] = useState(PlaygroundOutputTab.Matches);
   const isPending = result === undefined;
   const summary = resultSummary(result);
   const executionTime =
@@ -326,19 +328,39 @@ function PlaygroundOutput({
         <p className="result-error">{result.message}</p>
       ) : null}
 
-      <div className="match-section">
-        <p className="output-label">Matches &amp; provenance</p>
-        <MatchList input={input} result={result} />
-      </div>
-
-      <Collapsible.Root className="raw-details">
-        <Collapsible.Trigger data-glossary-skip="">
-          Raw match JSON
-        </Collapsible.Trigger>
-        <Collapsible.Panel keepMounted>
-          <pre>{JSON.stringify(rawOutput, null, 2)}</pre>
-        </Collapsible.Panel>
-      </Collapsible.Root>
+      <Tabs.Root
+        className="result-tabs"
+        onValueChange={(value) => {
+          if (isPlaygroundOutputTab(value)) {
+            setActiveTab(value);
+          }
+        }}
+        value={activeTab}
+      >
+        <Tabs.List activateOnFocus className="result-tab-list">
+          <Tabs.Tab value={PlaygroundOutputTab.Matches}>
+            Matches
+            <span>{result?.matches.length ?? 0}</span>
+          </Tabs.Tab>
+          <Tabs.Tab value={PlaygroundOutputTab.RawJson}>Raw JSON</Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Panel
+          className="result-tab-panel"
+          value={PlaygroundOutputTab.Matches}
+        >
+          <MatchList input={input} result={result} />
+        </Tabs.Panel>
+        <Tabs.Panel
+          className="result-tab-panel raw-json-panel"
+          value={PlaygroundOutputTab.RawJson}
+        >
+          <pre>
+            {activeTab === PlaygroundOutputTab.RawJson
+              ? JSON.stringify(rawOutput, null, 2)
+              : null}
+          </pre>
+        </Tabs.Panel>
+      </Tabs.Root>
     </div>
   );
 }
@@ -421,4 +443,35 @@ function MatchItem({
 
 function matchKey(match: Match, index: number): string {
   return `${match.start}-${match.end}-${index}`;
+}
+
+function selectedOptionDescription<Value extends string>(
+  options: ReadonlyArray<{
+    readonly description: string;
+    readonly value: Value;
+  }>,
+  value: Value,
+): string {
+  return options.find((option) => option.value === value)?.description ?? '';
+}
+
+function componentResourceButtonLabel(state: ComponentResourceState): string {
+  if (state === ComponentResourceState.Checking) {
+    return '브라우저 저장소 확인 중';
+  }
+
+  if (state === ComponentResourceState.Loading) {
+    return 'Component asset 불러오는 중';
+  }
+
+  return state === ComponentResourceState.Ready
+    ? 'Component asset 준비됨'
+    : 'Component asset 불러오기';
+}
+
+function isPlaygroundOutputTab(value: unknown): value is PlaygroundOutputTab {
+  return (
+    value === PlaygroundOutputTab.Matches ||
+    value === PlaygroundOutputTab.RawJson
+  );
 }

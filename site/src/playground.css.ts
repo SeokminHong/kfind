@@ -108,6 +108,35 @@ globalStyle('.preset-picker p', {
   fontSize: '0.68rem',
 });
 
+globalStyle('.preset-label', {
+  color: vars.color.heading,
+  fontSize: '0.74rem',
+  fontWeight: 650,
+});
+
+globalStyle('.preset-actions', {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gap: vars.space.xsmall,
+});
+
+globalStyle('.preset-actions button', {
+  minHeight: '2.3rem',
+  padding: `${vars.space.xsmall} ${vars.space.small}`,
+  border: `1px solid ${vars.color.borderStrong}`,
+  borderRadius: vars.radius.small,
+  background: vars.color.surface,
+  color: vars.color.link,
+  cursor: 'pointer',
+  fontSize: '0.68rem',
+  textAlign: 'start',
+});
+
+globalStyle('.preset-actions button:hover', {
+  borderColor: vars.color.link,
+  background: vars.color.linkWash,
+});
+
 globalStyle('.option-grid', {
   display: 'grid',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
@@ -116,26 +145,6 @@ globalStyle('.option-grid', {
 
 globalStyle('.field-gap', {
   gridColumn: '1 / -1',
-});
-
-globalStyle('.run-button', {
-  minHeight: '2.55rem',
-  border: `1px solid ${vars.color.link}`,
-  borderRadius: vars.radius.small,
-  background: vars.color.link,
-  color: vars.color.surface,
-  fontSize: '0.78rem',
-  fontWeight: 650,
-});
-
-globalStyle('.run-button:hover:not(:disabled)', {
-  background: vars.color.linkHover,
-});
-
-globalStyle('.run-button:disabled', {
-  borderColor: vars.color.borderStrong,
-  background: vars.color.border,
-  color: vars.color.subtle,
 });
 
 globalStyle('.resource-loader', {
@@ -230,8 +239,51 @@ globalStyle('.result-error', {
   color: vars.color.danger,
 });
 
-globalStyle('.match-section', {
+globalStyle('.result-tabs', {
+  display: 'grid',
+  gap: vars.space.medium,
   marginBlockStart: vars.space.large,
+});
+
+globalStyle('.result-tab-list', {
+  display: 'flex',
+  gap: vars.space.xsmall,
+  borderBlockEnd: `1px solid ${vars.color.border}`,
+});
+
+globalStyle('.result-tab-list button', {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: vars.space.xsmall,
+  padding: `${vars.space.small} ${vars.space.medium}`,
+  border: 0,
+  borderBlockEnd: '2px solid transparent',
+  background: 'transparent',
+  color: vars.color.muted,
+  cursor: 'pointer',
+  fontSize: '0.72rem',
+  fontWeight: 650,
+});
+
+globalStyle('.result-tab-list button[data-active]', {
+  borderBlockEndColor: vars.color.link,
+  color: vars.color.link,
+});
+
+globalStyle('.result-tab-list button span', {
+  minWidth: '1.25rem',
+  paddingInline: vars.space.xsmall,
+  borderRadius: vars.radius.pill,
+  background: vars.color.surfaceMuted,
+  color: vars.color.subtle,
+  fontFamily: '"SFMono-Regular", Consolas, monospace',
+  fontSize: '0.6rem',
+  textAlign: 'center',
+});
+
+globalStyle('.result-tab-panel:focus-visible', {
+  outline: `2px solid ${vars.color.linkWash}`,
+  outlineOffset: vars.space.xsmall,
 });
 
 globalStyle('.match-list', {
@@ -286,25 +338,9 @@ globalStyle('.match-empty', {
   fontSize: '0.76rem',
 });
 
-globalStyle('.raw-details', {
-  marginBlockStart: vars.space.large,
-  borderBlockStart: `1px solid ${vars.color.border}`,
-});
-
-globalStyle('.raw-details > button', {
-  width: '100%',
-  paddingBlock: vars.space.small,
-  border: 0,
-  background: 'transparent',
-  color: vars.color.muted,
-  cursor: 'pointer',
-  fontSize: '0.72rem',
-  textAlign: 'start',
-});
-
-globalStyle('.raw-details pre', {
+globalStyle('.raw-json-panel pre', {
   maxHeight: '18rem',
-  marginBlockStart: 0,
+  margin: 0,
   overflow: 'auto',
   fontSize: '0.68rem',
 });
@@ -338,6 +374,14 @@ globalStyle('.playground-output', {
 });
 
 globalStyle('.option-grid', {
+  '@media': {
+    '(max-width: 34rem)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
+
+globalStyle('.preset-actions', {
   '@media': {
     '(max-width: 34rem)': {
       gridTemplateColumns: '1fr',
