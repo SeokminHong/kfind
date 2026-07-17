@@ -1760,17 +1760,18 @@ fn runtime_position_is_supported(
             unit.span.end == spans.core.start
                 && matches!(unit.pos, DataFinePos::Mag | DataFinePos::Maj)
         });
-    let exact_component_prefix =
-        (matches!(
-            pattern.fine_pos,
-            DataFinePos::Np | DataFinePos::Nr | DataFinePos::Mm
-        ) || (matches!(pattern.fine_pos, DataFinePos::Nng | DataFinePos::Nnp)
+    let exact_component_prefix = (matches!(
+        pattern.fine_pos,
+        DataFinePos::Np | DataFinePos::Nr | DataFinePos::Mm
+    ) || (pattern.fine_pos == DataFinePos::Mag
+        && evidence.has_complete_path)
+        || (matches!(pattern.fine_pos, DataFinePos::Nng | DataFinePos::Nnp)
             && pattern.lexical_form.chars().count() > 1))
-            && starts_token
-            && !evidence
-                .units
-                .iter()
-                .any(|unit| unit.evidence == StructuralEvidence::Whole);
+        && starts_token
+        && !evidence
+            .units
+            .iter()
+            .any(|unit| unit.evidence == StructuralEvidence::Whole);
     let trailing_exact_subspan = matches!(pattern.continuation, MorphContinuation::Exact)
         && spans.consumed.end != spans.token.end
         && !exact_component_prefix;

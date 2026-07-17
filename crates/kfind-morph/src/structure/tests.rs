@@ -32,6 +32,59 @@ fn ordinary_adverb_context_rejects_a_runtime_nominal_prefix() {
 }
 
 #[test]
+fn leading_adverb_component_requires_a_complete_non_whole_path() {
+    let resolver = resolver_from_entries([
+        atomic("안", "MAG"),
+        atomic("팔", "VV"),
+        atomic("아서", "EC"),
+        atomic("안개", "NNG"),
+        atomic("개", "NNG"),
+    ]);
+    let pattern = component_pattern(DataFinePos::Mag, "안");
+
+    let attached_predicate = resolver.resolve_candidate(
+        BoundedTokenContext::current("안팔아서"),
+        CandidateSpans {
+            core: 0.."안".len(),
+            anchor: 0.."안".len(),
+            consumed: 0.."안".len(),
+            token: 0.."안팔아서".len(),
+        },
+        std::slice::from_ref(&pattern),
+        128,
+    );
+    let whole_nominal = resolver.resolve_candidate(
+        BoundedTokenContext::current("안개"),
+        CandidateSpans {
+            core: 0.."안".len(),
+            anchor: 0.."안".len(),
+            consumed: 0.."안".len(),
+            token: 0.."안개".len(),
+        },
+        &[pattern],
+        128,
+    );
+    let incomplete_suffix = resolver.resolve_candidate(
+        BoundedTokenContext::current("안미상"),
+        CandidateSpans {
+            core: 0.."안".len(),
+            anchor: 0.."안".len(),
+            consumed: 0.."안".len(),
+            token: 0.."안미상".len(),
+        },
+        &[component_pattern(DataFinePos::Mag, "안")],
+        128,
+    );
+
+    assert_eq!(attached_predicate.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&attached_predicate));
+    assert_eq!(whole_nominal.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&whole_nominal));
+    assert_eq!(incomplete_suffix.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&incomplete_suffix));
+}
+
+#[test]
 fn whole_adverb_outranks_a_graph_built_nominal_particle_host() {
     let resolver = resolver();
     let decision = resolver.resolve_candidate(
