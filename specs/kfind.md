@@ -569,8 +569,10 @@
   fallback하지 않는다.
 - component resource decoder는 resource를 공개하기 전에 모든 section digest와 payload 구조를
   검증한다. Native에서는 큰 index와 payload section의 digest를 서로 다른 thread에서 검증할 수
-  있지만, thread를 만들 수 없으면 순차 검증으로 돌아간다. WASM은 순차 검증한다. 어느 경로도
-  digest 검증을 생략하거나 검증 전 resource를 engine 상태에 설치하지 않는다.
+  있고, 같은 큰 resource의 payload 구조 검증을 section digest 검증과 겹쳐 수행할 수 있다.
+  Thread를 만들 수 없으면 순차 검증으로 돌아가고 WASM은 순차 검증한다. 어느 경로도 digest나
+  payload 구조 검증을 생략하거나 두 검증이 모두 끝나기 전 resource를 engine 상태에 설치하지
+  않는다. 병렬 경로에서 두 검증이 모두 실패하면 section digest 오류를 먼저 반환한다.
 - section SHA-256은 지원 CPU에서 runtime detection으로 hardware backend를 사용하고, 사용할 수
   없으면 target-compatible backend로 돌아간다. Backend와 무관하게 같은 digest를 계산하며 검증
   범위와 오류 계약을 바꾸지 않는다.
