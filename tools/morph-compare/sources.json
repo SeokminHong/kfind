@@ -1,16 +1,35 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "ud_release": "2.18",
   "seed": "kfind-morph-benchmark-v1",
-  "benchmark_sources": ["ud-korean-kaist", "ud-korean-ksl"],
-  "positive_quotas_per_source": {
-    "noun": 90,
-    "verb": 60,
-    "adjective": 40,
-    "adverb": 25,
-    "pronoun": 15,
-    "determiner": 10,
-    "numeral": 10
+  "source_sets": {
+    "canonical": {
+      "sources": ["ud-korean-kaist"],
+      "sentence_review_file": "sentence-reviews.json",
+      "positive_quotas_per_source": {
+        "noun": 184,
+        "verb": 120,
+        "adjective": 80,
+        "adverb": 50,
+        "pronoun": 26,
+        "determiner": 20,
+        "numeral": 20
+      },
+      "scoring_status": "scored"
+    },
+    "robustness-candidate": {
+      "sources": ["ud-korean-ksl"],
+      "positive_quotas_per_source": {
+        "noun": 90,
+        "verb": 60,
+        "adjective": 40,
+        "adverb": 25,
+        "pronoun": 15,
+        "determiner": 10,
+        "numeral": 10
+      },
+      "scoring_status": "annotation-required"
+    }
   },
   "sources": [
     {

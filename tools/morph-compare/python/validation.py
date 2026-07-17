@@ -86,6 +86,10 @@ def validate_fixture_identity(
 def validate_dataset(
     cases_path: Path, cases: list[dict[str, object]], metadata: dict[str, object]
 ) -> None:
+    if metadata.get("source_set") != "canonical":
+        raise ValueError("benchmark requires the canonical source set")
+    if metadata.get("scoring_status") != "scored":
+        raise ValueError("benchmark requires a scored source set")
     if len(cases) != 1_000 or metadata["cases"] != 1_000:
         raise ValueError("benchmark requires exactly 1,000 cases")
     validate_fixture_identity(cases_path, cases, metadata)
@@ -129,6 +133,10 @@ def validate_query_matrix_dataset(
     metadata: dict[str, object],
     query_mode: str,
 ) -> None:
+    if metadata.get("source_set") != "canonical":
+        raise ValueError("query matrix requires the canonical source set")
+    if metadata.get("scoring_status") != "scored":
+        raise ValueError("query matrix requires a scored source set")
     if metadata.get("fixture_type") != "query-matrix":
         raise ValueError("query matrix fixture_type must be query-matrix")
     if metadata.get("query_mode") != query_mode:

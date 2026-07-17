@@ -3,10 +3,18 @@ import unittest
 from pathlib import Path
 
 from dataset import (
+    GoldCandidate,
+    Sentence,
+    apply_sentence_review,
     locate_token_spans,
     normalize_gold,
     parse_conllu,
     positive_case,
+    review_pool_cases,
+    review_pool_rows,
+    review_pool_sha256,
+    resolve_source_set,
+    select_positives,
     select_untagged_negative,
     select_manifest_sources,
 )
@@ -95,9 +103,109 @@ class DatasetTests(unittest.TestCase):
 
         self.assertEqual("absent", negative.sent_id)
 
+    def test_sentence_review_filters_a_pinned_pre_review_pool(self) -> None:
+        fixture = """# sent_id = positive
+# text = 새가 난다.
+1\t새가\t새+가\tNOUN\tNNG+JKS\t_\t2\tnsubj\t_\t_
+2\t난다\t날+ㄴ다\tVERB\tVV+EF\t_\t0\troot\t_\tSpaceAfter=No
+3\t.\t.\tPUNCT\tSF\t_\t2\tpunct\t_\t_
+
+# sent_id = negative
+# text = 구름이 온다.
+1\t구름이\t구름+이\tNOUN\tNNG+JKS\t_\t2\tnsubj\t_\t_
+2\t온다\t오+ㄴ다\tVERB\tVV+EF\t_\t0\troot\t_\tSpaceAfter=No
+3\t.\t.\tPUNCT\tSF\t_\t2\tpunct\t_\t_
+
+"""
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "sample.conllu"
+            path.write_text(fixture, encoding="utf-8")
+            sentences, _ = parse_conllu("sample", path)
+
+        quotas = {"noun": 1}
+        rows = review_pool_rows(review_pool_cases(sentences, quotas, "seed"))
+        rejected_id = rows[0]["sent_id"]
+        reviews = {
+            "schema_version": 1,
+            "review_policy": "test-policy",
+            "splits": {
+                "test": {
+                    "sample": {
+                        "positive_quotas_per_source": quotas,
+                        "pool_sentences": len(rows),
+                        "pool_sha256": review_pool_sha256(rows),
+                        "rejected": [
+                            {
+                                "sent_id": rejected_id,
+                                "reason_class": "hangul-typo",
+                                "annotation": "test rejection",
+                            }
+                        ],
+                    }
+                }
+            },
+        }
+        accepted, summary = apply_sentence_review(
+            sentences=sentences,
+            source_name="sample",
+            split_name="test",
+            seed="seed",
+            reviews=reviews,
+            review_file="reviews.json",
+        )
+
+        self.assertEqual(len(accepted), len(rows) - 1)
+        self.assertNotIn(rejected_id, {sentence.sent_id for sentence in accepted})
+        self.assertEqual(summary["rejected_sentences"], 1)
+        self.assertEqual(summary["pool_sha256"], review_pool_sha256(rows))
+
+    def test_positive_selection_caps_each_sentence(self) -> None:
+        def candidate(sent_id: str, query: str, index: int) -> GoldCandidate:
+            return GoldCandidate(
+                source="sample",
+                sent_id=sent_id,
+                text=f"{sent_id} text",
+                token_id=str(index),
+                morph_index=0,
+                query=query,
+                pos="noun",
+                byte_start=index,
+                byte_end=index + 1,
+                raw_lemma=query,
+                raw_tag="NNG",
+            )
+
+        crowded = Sentence(
+            "sample",
+            "crowded",
+            "crowded text",
+            tuple(candidate("crowded", f"명사{index}", index) for index in range(4)),
+            True,
+        )
+        fallback = Sentence(
+            "sample",
+            "fallback",
+            "fallback text",
+            (candidate("fallback", "대체", 5),),
+            True,
+        )
+
+        selected = select_positives(
+            [crowded, fallback],
+            {"noun": 4},
+            "seed",
+            max_per_sentence=3,
+        )
+
+        self.assertEqual(len(selected), 4)
+        self.assertLessEqual(
+            sum(case.sent_id == "crowded" for case in selected),
+            3,
+        )
+
     def test_manifest_source_selection_is_explicit(self) -> None:
         manifest = {
-            "schema_version": 3,
+            "schema_version": 4,
             "sources": [{"name": "development"}, {"name": "blind"}],
         }
         self.assertEqual(
@@ -107,6 +215,38 @@ class DatasetTests(unittest.TestCase):
             ],
             ["blind"],
         )
+
+    def test_source_sets_keep_scored_and_annotation_required_corpora_separate(self) -> None:
+        manifest = {
+            "schema_version": 4,
+            "source_sets": {
+                "canonical": {
+                    "sources": ["edited"],
+                    "positive_quotas_per_source": {"noun": 2},
+                    "scoring_status": "scored",
+                },
+                "robustness-candidate": {
+                    "sources": ["learner"],
+                    "positive_quotas_per_source": {"noun": 1},
+                    "scoring_status": "annotation-required",
+                },
+            },
+            "sources": [{"name": "edited"}, {"name": "learner"}],
+        }
+
+        canonical, canonical_quotas, canonical_status = resolve_source_set(
+            manifest, "canonical"
+        )
+        robustness, robustness_quotas, robustness_status = resolve_source_set(
+            manifest, "robustness-candidate"
+        )
+
+        self.assertEqual([source["name"] for source in canonical], ["edited"])
+        self.assertEqual(canonical_quotas, {"noun": 2})
+        self.assertEqual(canonical_status, "scored")
+        self.assertEqual([source["name"] for source in robustness], ["learner"])
+        self.assertEqual(robustness_quotas, {"noun": 1})
+        self.assertEqual(robustness_status, "annotation-required")
 
 
 if __name__ == "__main__":

@@ -36,10 +36,16 @@ class QueryMatrixTests(unittest.TestCase):
         conllu.write_text(CONLLU, encoding="utf-8")
         digest = hashlib.sha256(conllu.read_bytes()).hexdigest()
         manifest = {
-            "schema_version": 3,
+            "schema_version": 4,
             "ud_release": "test",
             "seed": "query-matrix-test",
-            "benchmark_sources": ["sample"],
+            "source_sets": {
+                "canonical": {
+                    "sources": ["sample"],
+                    "positive_quotas_per_source": {"noun": 1},
+                    "scoring_status": "scored",
+                }
+            },
             "sources": [
                 {
                     "name": "sample",

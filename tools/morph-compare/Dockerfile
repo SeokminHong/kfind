@@ -4,6 +4,7 @@ ARG PYTHON_VERSION=3.12.13
 FROM python:${PYTHON_VERSION}-slim-bookworm AS corpus-builder
 WORKDIR /build
 COPY tools/morph-compare/sources.json ./sources.json
+COPY tools/morph-compare/sentence-reviews.json ./sentence-reviews.json
 COPY tools/morph-compare/python ./python
 RUN python -m unittest discover --start-directory python --pattern 'test_*.py'
 RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
@@ -26,6 +27,18 @@ RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
         --metadata /benchmark/human-untagged-metadata.json \
         --split test \
         --query-mode untagged \
+    && python python/dataset.py \
+        --manifest sources.json \
+        --sources /corpora \
+        --output /benchmark/robustness-candidate-cases.jsonl \
+        --metadata /benchmark/robustness-candidate-metadata.json \
+        --split test \
+        --source-set robustness-candidate \
+    && python python/review_registry.py \
+        --manifest sources.json \
+        --sources /corpora \
+        --output /benchmark/robustness-reviewed-sentences.jsonl \
+        --metadata /benchmark/robustness-reviewed-sentences-metadata.json \
     && python python/query_matrix.py \
         --manifest sources.json \
         --sources /corpora \
@@ -110,6 +123,8 @@ COPY tools/morph-compare/external/query-matrix-baselines.json \
     /opt/morph-benchmark/query-matrix-external-baselines.json
 COPY tools/morph-compare/python /opt/morph-benchmark/python
 COPY tools/morph-compare/sources.json /opt/morph-benchmark/sources.json
+COPY tools/morph-compare/sentence-reviews.json \
+    /opt/morph-benchmark/sentence-reviews.json
 
 WORKDIR /opt/morph-benchmark
 RUN python -m unittest discover --start-directory python --pattern 'test_*.py' \
