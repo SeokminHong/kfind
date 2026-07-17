@@ -617,6 +617,9 @@ impl MorphMatcher {
         if self.accepts_product_copula_frame(haystack, candidate, branch, resolver, patterns) {
             return true;
         }
+        if self.accepts_lexical_adverb_particle_frame(haystack, candidate, branch, patterns) {
+            return true;
+        }
         let licensed_trailing =
             self.licensed_structural_trailing(haystack, candidate, branch, resolver);
         if licensed_trailing.is_none()
@@ -796,6 +799,44 @@ impl MorphMatcher {
                             .verify_exact(nominal, particles)
                             .is_some()
                 })
+    }
+
+    fn accepts_lexical_adverb_particle_frame(
+        &self,
+        haystack: &[u8],
+        candidate: &ExecutedCandidate,
+        branch: &CandidateProgram,
+        patterns: &[kfind_morph::QueryMorphPattern],
+    ) -> bool {
+        if !matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        ) || candidate.suffix_rules.is_empty()
+            || !patterns.iter().any(|pattern| {
+                matches!(pattern.fine_pos, DataFinePos::Mag | DataFinePos::Maj)
+                    && matches!(
+                        pattern.continuation,
+                        kfind_morph::MorphContinuation::NominalParticles
+                    )
+            })
+        {
+            return false;
+        }
+        let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
+        if candidate.verified.core.start != whole.start
+            || candidate.anchor != candidate.verified.core
+            || candidate.consumed != whole
+        {
+            return false;
+        }
+        let boundary = branch.boundary();
+        accepts_requirements(
+            haystack,
+            candidate.verified.core.clone(),
+            candidate.consumed.clone(),
+            boundary.require_left,
+            boundary.require_right,
+        )
     }
 
     fn licensed_nominal_copula_trailing(

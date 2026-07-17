@@ -1571,6 +1571,8 @@ right condition: 토큰 경계 또는 다음 한국어 토큰 시작
 기본 `inflection`은 사전에 부사로 분석된 표면 뒤에 규칙 데이터가 허용한 보조사 연쇄를
 소비한다. 이 결합은 새 품사를 만드는 파생이 아니므로 `derivation`에 한정하지 않는다.
 `literal`은 입력 표면만 검색하며, 부사 뒤 격조사는 허용하지 않는다.
+부사 표면 전체가 `체언 + 격조사`로도 분석되더라도 쿼리의 부사 분석과 허용 보조사 연쇄가
+완전하면 부사 구조를 보존한다. 이 동형 구조의 문맥 의미 판별은 비범위다.
 반복 token 구조를 사용하는 `smart` 부사 program은 surface registry 대신
 `AdjacentTokenConstraint::RepeatedToken`과 세부 품사 pattern을 선언한다.
 

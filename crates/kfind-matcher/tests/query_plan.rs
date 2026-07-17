@@ -838,6 +838,35 @@ fn inflection_adverb_plan_matches_only_auxiliary_particles() {
 }
 
 #[test]
+fn adverb_particle_chain_survives_a_competing_nominal_particle_path() {
+    let resource = component_resource_from_entries([
+        component_entry("실제", "NNG"),
+        component_entry("로", "JKB"),
+        component_entry("는", "JX"),
+        component_entry("가", "JKS"),
+    ]);
+    let matcher = compile_embedded_with_resource(
+        "실제로",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Adverb),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    assert!(
+        matcher
+            .find_at_with_meta("실제로는".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        matcher
+            .find_at_with_meta("실제로가".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn compiled_plans_reject_unlicensed_predicate_and_particle_surfaces() {
     let pretty = compile("예쁘다", CompileOptions::default());
     assert!(
