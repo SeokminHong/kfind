@@ -579,11 +579,13 @@ struct Unit {
     span: Range<usize>,
     pos: DataFinePos,
     evidence: StructuralEvidence,
+    from_whole_nominal: bool,
 }
 
 #[derive(Debug, Default)]
 struct TokenEvidence {
     units: Vec<Unit>,
+    has_whole_nominal_source_components: bool,
     runtime_spans: Vec<Range<usize>>,
     attached_auxiliary_spans: Box<[Range<usize>]>,
     nominal_copula_hosts: Box<[Range<usize>]>,
@@ -696,6 +698,7 @@ impl TokenEvidence {
             Box::default()
         };
         let mut units = Vec::new();
+        let mut has_whole_nominal_source_components = false;
         let mut runtime_spans = Vec::new();
         let mut adnominal_ends = Vec::new();
         for (index, edge) in edges.iter().enumerate() {
@@ -713,6 +716,13 @@ impl TokenEvidence {
             }
             let whole_edge = edge.span == (0..text.len());
             let has_one_position = edge.pos.split('+').filter_map(DataFinePos::parse).count() == 1;
+            let whole_nominal_analysis = whole_edge
+                && has_one_position
+                && edge
+                    .pos
+                    .split('+')
+                    .filter_map(DataFinePos::parse)
+                    .all(DataFinePos::is_nominal);
             for pos in edge.pos.split('+').filter_map(DataFinePos::parse) {
                 units.push(Unit {
                     span: edge.span.clone(),
@@ -722,6 +732,7 @@ impl TokenEvidence {
                     } else {
                         StructuralEvidence::RuntimeComponent
                     },
+                    from_whole_nominal: false,
                 });
             }
             for component in &edge.components {
@@ -731,11 +742,15 @@ impl TokenEvidence {
                 let Some(pos) = DataFinePos::parse(component.pos) else {
                     continue;
                 };
+                let span =
+                    edge.span.start + component.span.start..edge.span.start + component.span.end;
+                let from_whole_nominal = whole_nominal_analysis && pos.is_nominal();
+                has_whole_nominal_source_components |= from_whole_nominal;
                 units.push(Unit {
-                    span: edge.span.start + component.span.start
-                        ..edge.span.start + component.span.end,
+                    span,
                     pos,
                     evidence: StructuralEvidence::SourceComponent,
+                    from_whole_nominal,
                 });
             }
         }
@@ -758,6 +773,7 @@ impl TokenEvidence {
                         } else {
                             StructuralEvidence::RuntimeComponent
                         },
+                        from_whole_nominal: false,
                     });
                 }
                 for component in edge.components.iter().filter(|part| {
@@ -770,6 +786,7 @@ impl TokenEvidence {
                             ..edge.span.start + component.span.end,
                         pos: DataFinePos::Nnb,
                         evidence: StructuralEvidence::SourceComponent,
+                        from_whole_nominal: false,
                     });
                 }
             }
@@ -796,15 +813,27 @@ impl TokenEvidence {
                 unit.span.end,
                 unit.pos,
                 unit.evidence as u8,
+                !unit.from_whole_nominal,
             )
         });
-        units.dedup();
+        units.dedup_by(|current, previous| {
+            let same_unit = current.span == previous.span
+                && current.pos == previous.pos
+                && current.evidence == previous.evidence;
+            if same_unit {
+                let from_whole_nominal = current.from_whole_nominal || previous.from_whole_nominal;
+                current.from_whole_nominal = from_whole_nominal;
+                previous.from_whole_nominal = from_whole_nominal;
+            }
+            same_unit
+        });
         runtime_spans.sort_unstable_by_key(|span| (span.start, span.end));
         runtime_spans.dedup();
         adnominal_ends.sort_unstable();
         adnominal_ends.dedup();
         Ok(Self {
             units,
+            has_whole_nominal_source_components,
             runtime_spans,
             attached_auxiliary_spans,
             nominal_copula_hosts,
@@ -819,6 +848,15 @@ impl TokenEvidence {
         self.units
             .iter()
             .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos == pos)
+    }
+
+    fn has_whole_nominal_source_component(&self, span: &Range<usize>, pos: DataFinePos) -> bool {
+        self.units.iter().any(|unit| {
+            unit.from_whole_nominal
+                && unit.span == *span
+                && unit.pos == pos
+                && unit.evidence == StructuralEvidence::SourceComponent
+        })
     }
 
     fn has_predicate_ending_at(&self, end: usize) -> bool {
@@ -1266,6 +1304,7 @@ enum StructureSelection {
     NominalSpan {
         selected: Range<usize>,
         allow_components: bool,
+        allow_whole_nominal_source_components: bool,
     },
     CopularFrame {
         nominal: Range<usize>,
@@ -1319,12 +1358,19 @@ impl StructureSelection {
             Self::NominalSpan {
                 selected,
                 allow_components,
+                allow_whole_nominal_source_components,
             } => {
                 (support.evidence == StructuralEvidence::Whole
                     && spans.core == spans.token
                     && spans.consumed == spans.token)
                     || (pattern.fine_pos.is_nominal()
-                        && (spans.core == *selected
+                        && ((*allow_whole_nominal_source_components
+                            && support.evidence == StructuralEvidence::SourceComponent
+                            && evidence.has_whole_nominal_source_component(
+                                &spans.core,
+                                pattern.fine_pos,
+                            ))
+                            || spans.core == *selected
                             || (spans.core.start == selected.start
                                 && spans.consumed.end == selected.end
                                 && evidence.units.iter().any(|unit| {
@@ -1740,9 +1786,12 @@ fn select_structure(
     }
     let fallback = if let Some(host) = particle_host {
         let allow_components = false;
+        let allow_whole_nominal_source_components =
+            host != (0..context.current.len()) && evidence.has_whole_nominal_source_components;
         StructureSelection::NominalSpan {
             selected: host,
             allow_components,
+            allow_whole_nominal_source_components,
         }
     } else {
         StructureSelection::RuntimeCompatible {

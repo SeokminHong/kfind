@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [whole 체언 내부 source component recall](2026-07-17-whole-nominal-component-recall.md)
 - [관형형 의문 종결 recall](2026-07-17-adnominal-interrogative-recall.md)
 - [연결 어미 뒤 topic recall](2026-07-17-connective-topic-recall.md)
 - [`-다는` source 어미 recall](2026-07-17-declarative-adnominal-recall.md)
@@ -274,3 +275,17 @@ annotation과 gate는 변경하지 않았다.
 3건이다. 다음 제품 recall 작업은 표준형 내부 체언 성분인 `1년간→간`, `어느날→날`,
 `첫번째로→번째`, `자본주의→주의`를 `compound-substring` hard-negative와 함께 분류해
 공통 typed 구조로 안전하게 회수할 수 있는지 검증한다.
+
+[whole 체언 내부 source component recall](2026-07-17-whole-nominal-component-recall.md)에서
+whole `자본주의/NNG`가 선언한 `주의/NNG` component를 더 짧은 `자본주 + 의/JKG` 조사
+host가 가리지 않도록 했다. Test matrix embedded·full-POS·Human은 이 1건을 회수해
+`PNᶜ=1,401`에서 FNᶜ가 각각 139→138, 54→53, 56→55가 됐고 완전 회수 문장도 각각
+1개 늘었다. FP·FPᶜ와 hard-negative는 변하지 않았다. Component provenance는 기존
+`Unit`에 합쳐 추가 collection 할당을 만들지 않는다. 후보 Agent는 25,459.7 cases/s로
+Lindera snapshot보다 22.25% 빠르며 모든 성능 변화는 10% 경고선 안이다. Matrix contract
+정의, annotation과 gate는 변경하지 않았다.
+
+함께 분류한 `1년간→간`은 ASCII 숫자+단위 뒤 nominal tail, `어느날→날`은 `MM + NNG`
+path라서 서로 다른 구조다. `첫번째로→번째`는 `NNBC + XSN` 경계를 가로질러 exact component
+계약으로 열지 않는다. 다음 제품 recall 작업은 앞의 두 표준형을 hard-negative와 대조해 더
+큰 typed 구조 하나를 고른다.
