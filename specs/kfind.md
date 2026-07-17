@@ -281,19 +281,34 @@
   분석·아키텍처·최적화 문서는 query compile부터 anchor scan, 국소 구조 판정, span·provenance
   반환까지의 흐름과 corpus 전체를 분석하지 않는 이유를 텍스트와 접근 가능한 도해로 설명한다.
 - playground는 현재 source의 `kfind-wasm`을 browser용 WebAssembly로 빌드해 embedded lexicon으로
-  실행한다. Query, 입력 text, expand·boundary·POS·normalization·max gap을 바꿀 수 있고,
-  UTF-16 span에 맞춰 match를 강조하며 surface와 provenance를 표시한다.
-- 검색 예시는 query, text와 관련 compile option을 하나의 설정으로 불러온다. 예시 선택과 개별
-  option control은 같은 input state를 갱신하고, 별도의 preset 선택 상태를 유지하지 않는다. 1 MiB의
-  결정적인 입력을 만드는 대용량 예시를 제공하며 editor에는 문자 수와 UTF-8 byte 수를, 검색
-  결과에는 query compile과 전체 text scan을 합친 실행 시간을 표시한다.
+  실행한다. Query, 입력 text, expand·boundary·POS·max gap을 바꿀 수 있고, UTF-16 span에 맞춰
+  match를 강조하며 surface와 provenance를 표시한다. Browser 사용자가 Unicode normalization을
+  선택하지 않도록 canonical NFC+NFD 검색을 고정 적용한다.
+- 검색 예시는 query, text와 관련 compile option을 하나의 설정으로 불러오는 action button으로
+  제공한다. 예시 action과 개별 option control은 같은 input state를 갱신하고, 별도의 preset 선택
+  상태를 유지하지 않는다. 1 MiB의 결정적인 입력을 만드는 대용량 예시를 제공하며 editor에는
+  문자 수와 UTF-8 byte 수를, 검색 결과에는 query compile과 전체 text scan을 합친 실행 시간을
+  표시한다.
+- Playground는 query·text·option 변경을 debounce한 뒤 자동으로 검색하며 별도의 검색 실행
+  button을 두지 않는다. Query label에서 지원 atom 태그와 품사를 확인할 수 있어야 한다. POS
+  control은 atom 태그와 전역 POS 중 어느 쪽도 우선하지 않고, `auto`가 아니면 같은 품사일 때만
+  허용하며 다르면 compile 오류라는 규칙을 항상 설명한다. Expand control은 각 값의 생성 범위를
+  현재 선택값과 option list에서 설명한다.
 - 입력 text는 CodeMirror 기반 plain-text editor에서 수정한다. 검색 span은 UTF-16 document offset을
   사용하는 decoration으로 실제 편집 text에 표시하며 별도의 highlight layer나 결과 preview를 중복해
-  두지 않는다. Editor는 selection, IME composition과 undo history를 보존하고, 대용량 입력은 현재
-  viewport 중심으로 렌더링한다. Rich-text document model과 collaboration 기능은 추가하지 않는다.
+  두지 않는다. Editor와 query control은 IME composition 중 search state를 갱신하지 않고 composition이
+  끝난 값만 반영한다. 외부 preset 적용 외에는 editor document를 다시 쓰지 않아 selection, caret과
+  undo history를 보존하고, 대용량 입력은 현재 viewport 중심으로 렌더링한다. Rich-text document
+  model과 collaboration 기능은 추가하지 않는다.
+- 결과 panel은 `Matches`와 `Raw JSON` tab을 제공하고 한 번에 선택한 detail만 표시한다. 기본 tab은
+  사람이 읽는 surface·span·provenance 목록이며 Raw JSON은 같은 match의 전체 구조를 표시한다.
 - Playground 입력은 browser 밖으로 보내지 않는다. Full POS와 약 36 MiB의 compact component
   resource는 기본 demo에 포함하지 않는다. 사용자가 고급 `smart` 지원을 요청할 때만 같은 origin의
-  Pages Function에서 component resource를 한 번 내려받아 기존 WASM engine에 load한다.
+  Pages Function에서 component resource를 한 번 내려받아 기존 WASM engine에 load한다. 검증된
+  resource response는 browser Cache Storage에 보관하고 같은 build로 playground에 다시 들어오면
+  network 요청 없이 자동으로 복원한다. Cache key는 개발 build에서 전체 Git commit, version tag를
+  정확히 checkout한 release build에서는 tag를 사용하며 다른 key의 resource를 현재 engine에
+  적용하지 않는다.
 - Component resource는 25 MiB 단일 값 제한이 있는 Workers KV가 아니라 `kfind-assets` R2 bucket에
   둔다. Pages Function은 `KFIND_ASSETS` binding으로 고정 object를 읽어 body를 buffering하지 않고
   stream하며 content type, ETag와 cache header를 보존한다. R2 object가 없거나 손상되면 embedded
