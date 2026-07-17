@@ -32,117 +32,162 @@ fn ordinary_adverb_context_rejects_a_runtime_nominal_prefix() {
 }
 
 #[test]
-fn leading_adverb_component_requires_a_complete_non_whole_path() {
-    let resolver = resolver_from_entries([
-        atomic("안", "MAG"),
-        atomic("팔", "VV"),
-        atomic("아서", "EC"),
-        atomic("안개", "NNG"),
-        atomic("개", "NNG"),
-    ]);
-    let pattern = component_pattern(DataFinePos::Mag, "안");
-
-    let attached_predicate = resolver.resolve_candidate(
-        BoundedTokenContext::current("안팔아서"),
-        CandidateSpans {
-            core: 0.."안".len(),
-            anchor: 0.."안".len(),
-            consumed: 0.."안".len(),
-            token: 0.."안팔아서".len(),
-        },
-        std::slice::from_ref(&pattern),
-        128,
-    );
-    let whole_nominal = resolver.resolve_candidate(
-        BoundedTokenContext::current("안개"),
-        CandidateSpans {
-            core: 0.."안".len(),
-            anchor: 0.."안".len(),
-            consumed: 0.."안".len(),
-            token: 0.."안개".len(),
-        },
-        &[pattern],
-        128,
-    );
-    let incomplete_suffix = resolver.resolve_candidate(
-        BoundedTokenContext::current("안미상"),
-        CandidateSpans {
-            core: 0.."안".len(),
-            anchor: 0.."안".len(),
-            consumed: 0.."안".len(),
-            token: 0.."안미상".len(),
-        },
-        &[component_pattern(DataFinePos::Mag, "안")],
-        128,
-    );
-
-    assert_eq!(attached_predicate.outcome, ConstraintOutcome::Supported);
-    assert!(ProductPolicy::RecallFirst.accepts(&attached_predicate));
-    assert_eq!(whole_nominal.outcome, ConstraintOutcome::Contradicted);
-    assert!(!ProductPolicy::RecallFirst.accepts(&whole_nominal));
-    assert_eq!(incomplete_suffix.outcome, ConstraintOutcome::Contradicted);
-    assert!(!ProductPolicy::RecallFirst.accepts(&incomplete_suffix));
-}
-
-#[test]
-fn leading_adverb_predicate_paths_survive_nominal_particle_competitors() {
+fn runtime_path_does_not_join_an_adverb_to_an_attached_predicate() {
     let resolver = resolver_from_entries([
         atomic("못", "MAG"),
         atomic("못", "NNG"),
-        atomic("안", "MAG"),
-        atomic("안", "NNG"),
-        atomic("해", "JKB"),
-        atomic("요", "JX"),
-        atomic("해요", "VV+EF"),
-        atomic("나와요", "VV+EF"),
-        atomic("으로", "JKB"),
+        atomic("못했", "VA"),
+        atomic("했다", "NNG"),
+        atomic("다", "EF"),
     ]);
-    let mot_pattern = component_pattern(DataFinePos::Mag, "못");
-
-    let attached_predicate = resolver.resolve_candidate(
-        BoundedTokenContext::current("못해요"),
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("못했다"),
         CandidateSpans {
             core: 0.."못".len(),
             anchor: 0.."못".len(),
             consumed: 0.."못".len(),
-            token: 0.."못해요".len(),
+            token: 0.."못했다".len(),
         },
-        std::slice::from_ref(&mot_pattern),
+        &[component_pattern(DataFinePos::Mag, "못")],
         128,
     );
-    let particle_only = resolver.resolve_candidate(
-        BoundedTokenContext::current("못으로"),
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
+fn noun_derivation_requires_source_aligned_components() {
+    let resolver = resolver_from_entries([
+        atomic("못", "MAG"),
+        atomic("못", "NNG"),
+        atomic("공부", "NNG"),
+        atomic("하", "XSV"),
+        atomic("하다", "VV"),
+        atomic("다", "EF"),
+        expression("못하다", "VA+EF", "못하/VA/*+다/EF/*"),
+        expression("공부하다", "NNG+XSV+EF", "공부/NNG/*+하/XSV/*+다/EF/*"),
+    ]);
+    let unsupported = resolver.resolve_candidate(
+        BoundedTokenContext::current("못하다"),
         CandidateSpans {
             core: 0.."못".len(),
             anchor: 0.."못".len(),
             consumed: 0.."못".len(),
-            token: 0.."못으로".len(),
+            token: 0.."못하다".len(),
         },
-        &[mot_pattern],
+        &[component_pattern(DataFinePos::Nng, "못")],
         128,
     );
-    let an_pattern = component_pattern(DataFinePos::Mag, "안");
-    let attached_predicate_with_longer_suffix = resolver.resolve_candidate(
-        BoundedTokenContext::current("안나와요"),
+    let supported = resolver.resolve_candidate(
+        BoundedTokenContext::current("공부하다"),
         CandidateSpans {
-            core: 0.."안".len(),
-            anchor: 0.."안".len(),
-            consumed: 0.."안".len(),
-            token: 0.."안나와요".len(),
+            core: 0.."공부".len(),
+            anchor: 0.."공부".len(),
+            consumed: 0.."공부".len(),
+            token: 0.."공부하다".len(),
         },
-        &[an_pattern],
+        &[component_pattern(DataFinePos::Nng, "공부")],
         128,
     );
 
-    assert_eq!(attached_predicate.outcome, ConstraintOutcome::Supported);
-    assert!(ProductPolicy::RecallFirst.accepts(&attached_predicate));
+    assert_eq!(unsupported.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&unsupported));
+    assert_eq!(supported.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&supported));
+    assert!(
+        supported
+            .supported
+            .iter()
+            .any(|support| support.evidence == StructuralEvidence::SourceComponent)
+    );
+}
+
+#[test]
+fn runtime_path_does_not_join_a_noun_to_an_attached_predicate() {
+    let resolver = resolver_from_entries([
+        atomic("못", "NNG"),
+        atomic("못하", "VA"),
+        atomic("하다", "VV"),
+        atomic("하다", "NNG"),
+        atomic("다", "EF"),
+    ]);
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("못하다"),
+        CandidateSpans {
+            core: 0.."못".len(),
+            anchor: 0.."못".len(),
+            consumed: 0.."못".len(),
+            token: 0.."못하다".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "못")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
+fn complete_ha_predicate_path_selects_an_adjacent_adverb() {
+    let resolver = resolver_from_entries([
+        atomic("못", "MAG"),
+        atomic("못", "NNG"),
+        atomic("하", "VV"),
+        atomic("했", "VV+EP"),
+        atomic("박", "VV"),
+        atomic("겠", "EP"),
+        atomic("았", "EP"),
+        atomic("어요", "EF"),
+    ]);
+    let ha_context = BoundedTokenContext {
+        previous: None,
+        current: "못",
+        next: Some("하겠어요"),
+    };
+    let other_predicate_context = BoundedTokenContext {
+        next: Some("박았어요"),
+        ..ha_context
+    };
+
+    let noun = resolver.resolve_candidate(
+        ha_context,
+        spans(0.."못".len(), 0.."못".len()),
+        &[whole_pattern(DataFinePos::Nng, "못")],
+        128,
+    );
+    let adverb = resolver.resolve_candidate(
+        ha_context,
+        spans(0.."못".len(), 0.."못".len()),
+        &[whole_pattern(DataFinePos::Mag, "못")],
+        128,
+    );
+    let noun_before_other_predicate = resolver.resolve_candidate(
+        other_predicate_context,
+        spans(0.."못".len(), 0.."못".len()),
+        &[whole_pattern(DataFinePos::Nng, "못")],
+        128,
+    );
+
+    assert_eq!(noun.outcome, ConstraintOutcome::Contradicted);
+    assert_eq!(adverb.outcome, ConstraintOutcome::Supported);
     assert_eq!(
-        attached_predicate_with_longer_suffix.outcome,
+        noun_before_other_predicate.outcome,
         ConstraintOutcome::Supported
     );
-    assert!(ProductPolicy::RecallFirst.accepts(&attached_predicate_with_longer_suffix));
-    assert_eq!(particle_only.outcome, ConstraintOutcome::Contradicted);
-    assert!(!ProductPolicy::RecallFirst.accepts(&particle_only));
+
+    let past_context = BoundedTokenContext {
+        previous: None,
+        current: "못",
+        next: Some("했어요"),
+    };
+    let noun_before_past = resolver.resolve_candidate(
+        past_context,
+        spans(0.."못".len(), 0.."못".len()),
+        &[whole_pattern(DataFinePos::Nng, "못")],
+        128,
+    );
+    assert_eq!(noun_before_past.outcome, ConstraintOutcome::Contradicted);
 }
 
 #[test]
