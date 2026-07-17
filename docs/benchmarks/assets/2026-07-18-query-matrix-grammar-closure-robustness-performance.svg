@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="850" viewBox="0 0 1280 850" role="img" aria-labelledby="title desc">
+<title id="title">Robust workload performance</title>
+<desc id="desc">Four panels compare throughput, initialization, p95 latency, and peak RSS for kfind Agent and four external analyzers on the same noisy fixture.</desc>
+
+<style>
+  .background { fill: #ffffff; }
+  text { fill: #111827; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .muted { fill: #4b5563; }
+  .grid { stroke: #d1d5db; stroke-width: 1; }
+  .axis { stroke: #6b7280; stroke-width: 1; }
+  @media (prefers-color-scheme: dark) {
+    .background { fill: #0d1117; }
+    text { fill: #f3f4f6; }
+    .muted { fill: #9ca3af; }
+    .grid { stroke: #374151; }
+    .axis { stroke: #9ca3af; }
+  }
+</style>
+
+<rect class="background" width="1280" height="850"/>
+<text x="52.0" y="38.0" text-anchor="start">Robust workload performance</text>
+<text x="52.0" y="62.0" text-anchor="start" class="muted">Same 500 natural noisy cases · one warm-up + five fresh-process measurements</text>
+<text x="52.0" y="82.0" text-anchor="start" class="muted">Quality and execution cost are reported separately; lower is better except throughput</text>
+<text x="52.0" y="130.0" text-anchor="start">Throughput</text>
+<text x="600.0" y="130.0" text-anchor="end" class="muted">higher is better</text>
+<text x="52.0" y="178.0" text-anchor="start">kfind Agent</text>
+<rect x="164.0" y="161.0" width="254.6" height="25.0" rx="3" fill="#2563eb"/>
+<text x="449.0" y="179.0" text-anchor="start">54058.2 cases/s</text>
+<text x="52.0" y="221.0" text-anchor="start">Kiwi</text>
+<rect x="164.0" y="204.0" width="8.1" height="25.0" rx="3" fill="#059669"/>
+<text x="449.0" y="222.0" text-anchor="start">1713.4 cases/s</text>
+<text x="52.0" y="264.0" text-anchor="start">Lindera</text>
+<rect x="164.0" y="247.0" width="117.6" height="25.0" rx="3" fill="#d97706"/>
+<text x="449.0" y="265.0" text-anchor="start">24956.2 cases/s</text>
+<text x="52.0" y="307.0" text-anchor="start">MeCab-ko</text>
+<rect x="164.0" y="290.0" width="54.0" height="25.0" rx="3" fill="#dc2626"/>
+<text x="449.0" y="308.0" text-anchor="start">11454.7 cases/s</text>
+<text x="52.0" y="350.0" text-anchor="start">KOMORAN</text>
+<rect x="164.0" y="333.0" width="6.3" height="25.0" rx="3" fill="#0891b2"/>
+<text x="449.0" y="351.0" text-anchor="start">1329.2 cases/s</text>
+<text x="680.0" y="130.0" text-anchor="start">Initialization</text>
+<text x="1228.0" y="130.0" text-anchor="end" class="muted">lower is better</text>
+<text x="680.0" y="178.0" text-anchor="start">kfind Agent</text>
+<rect x="792.0" y="161.0" width="0.3" height="25.0" rx="3" fill="#2563eb"/>
+<text x="1077.0" y="179.0" text-anchor="start">0.0020 s</text>
+<text x="680.0" y="221.0" text-anchor="start">Kiwi</text>
+<rect x="792.0" y="204.0" width="254.6" height="25.0" rx="3" fill="#059669"/>
+<text x="1077.0" y="222.0" text-anchor="start">1.8788 s</text>
+<text x="680.0" y="264.0" text-anchor="start">Lindera</text>
+<rect x="792.0" y="247.0" width="4.0" height="25.0" rx="3" fill="#d97706"/>
+<text x="1077.0" y="265.0" text-anchor="start">0.0293 s</text>
+<text x="680.0" y="307.0" text-anchor="start">MeCab-ko</text>
+<rect x="792.0" y="290.0" width="0.0" height="25.0" rx="3" fill="#dc2626"/>
+<text x="1077.0" y="308.0" text-anchor="start">0.0003 s</text>
+<text x="680.0" y="350.0" text-anchor="start">KOMORAN</text>
+<rect x="792.0" y="333.0" width="157.8" height="25.0" rx="3" fill="#0891b2"/>
+<text x="1077.0" y="351.0" text-anchor="start">1.1644 s</text>
+<text x="52.0" y="480.0" text-anchor="start">p95 latency</text>
+<text x="600.0" y="480.0" text-anchor="end" class="muted">lower is better</text>
+<text x="52.0" y="528.0" text-anchor="start">kfind Agent</text>
+<rect x="164.0" y="511.0" width="7.0" height="25.0" rx="3" fill="#2563eb"/>
+<text x="449.0" y="529.0" text-anchor="start">0.0493 ms</text>
+<text x="52.0" y="571.0" text-anchor="start">Kiwi</text>
+<rect x="164.0" y="554.0" width="193.3" height="25.0" rx="3" fill="#059669"/>
+<text x="449.0" y="572.0" text-anchor="start">1.3710 ms</text>
+<text x="52.0" y="614.0" text-anchor="start">Lindera</text>
+<rect x="164.0" y="597.0" width="14.2" height="25.0" rx="3" fill="#d97706"/>
+<text x="449.0" y="615.0" text-anchor="start">0.1007 ms</text>
+<text x="52.0" y="657.0" text-anchor="start">MeCab-ko</text>
+<rect x="164.0" y="640.0" width="30.6" height="25.0" rx="3" fill="#dc2626"/>
+<text x="449.0" y="658.0" text-anchor="start">0.2169 ms</text>
+<text x="52.0" y="700.0" text-anchor="start">KOMORAN</text>
+<rect x="164.0" y="683.0" width="254.6" height="25.0" rx="3" fill="#0891b2"/>
+<text x="449.0" y="701.0" text-anchor="start">1.8062 ms</text>
+<text x="680.0" y="480.0" text-anchor="start">Peak RSS</text>
+<text x="1228.0" y="480.0" text-anchor="end" class="muted">lower is better</text>
+<text x="680.0" y="528.0" text-anchor="start">kfind Agent</text>
+<rect x="792.0" y="511.0" width="2.2" height="25.0" rx="3" fill="#2563eb"/>
+<text x="1077.0" y="529.0" text-anchor="start">4.6 MiB</text>
+<text x="680.0" y="571.0" text-anchor="start">Kiwi</text>
+<rect x="792.0" y="554.0" width="254.6" height="25.0" rx="3" fill="#059669"/>
+<text x="1077.0" y="572.0" text-anchor="start">527.5 MiB</text>
+<text x="680.0" y="614.0" text-anchor="start">Lindera</text>
+<rect x="792.0" y="597.0" width="79.9" height="25.0" rx="3" fill="#d97706"/>
+<text x="1077.0" y="615.0" text-anchor="start">165.4 MiB</text>
+<text x="680.0" y="657.0" text-anchor="start">MeCab-ko</text>
+<rect x="792.0" y="640.0" width="46.1" height="25.0" rx="3" fill="#dc2626"/>
+<text x="1077.0" y="658.0" text-anchor="start">95.4 MiB</text>
+<text x="680.0" y="700.0" text-anchor="start">KOMORAN</text>
+<rect x="792.0" y="683.0" width="252.2" height="25.0" rx="3" fill="#0891b2"/>
+<text x="1077.0" y="701.0" text-anchor="start">522.4 MiB</text>
+<text x="52.0" y="814.0" text-anchor="start" class="muted">kfind Agent is measured in the current run; external analyzers use fixture-bound snapshots</text>
+</svg>

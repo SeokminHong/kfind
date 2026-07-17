@@ -512,3 +512,20 @@ gate는 변경하지 않았다.
 평가 cases/s -9.65%, p95 +8.47%는 10% 경고선 안이지만 범위가 겹치지 않아 다음 측정에서도
 감시한다. 다음 성능 작업은 optional 조합의 가장 큰 단일 구간인 full-POS base 약 40ms를
 profile하고 두 자릿수 millisecond 병목만 고른다.
+
+[Query matrix 문법 구조와 잔여 FN 처분](2026-07-18-query-matrix-grammar-closure.md)에서
+특정 표면형 예외 없이 조사 host·전이, 체언 subpath, 지정사, 용언 continuation과 source 품사
+증거를 공통 구조로 정리했다. `까지 → 도/만/는` 전이는 `까지도`, `까지만`, `까지는`,
+`까지만은`을 함께 허용하고 역전이와 중복 보조사는 거부한다. Test matrix full-POS는
+`1,250/8/1,288/46`에서 `1,278/8/1,288/18`이 됐고 canonical full-POS는
+`485/2/498/15`에서 `493/2/498/7`이 됐다. Test matrix와 hard-negative FP는 늘지 않았다.
+
+남은 raw FN 18건은 fixture와 report를 대조하는 처분 장부에서
+`structurally-unresolvable 1`, `gold-or-adapter 7`, `out-of-contract 9`,
+`cost-prohibitive 1`로 모두 검증했다. 한국어기초사전·표준국어대사전·우리말샘 원본의 exact
+표제어·품사·관계 audit 결과 안전한 `dictionary-required` case는 0건이다. 이 18건을 제품
+규칙 완화나 문자열 alias로 회수하지 않는다. 다음 품질 작업은 기존 raw FN 감소가 아니라
+새 독립 문장·질의에서 조사 graph와 용언 구조의 미포함 문법군을 찾는 coverage audit 또는
+source adapter의 lemma/POS/span 정렬 검증으로 진행한다. Development의 신규 strict FP
+`이다→였다`, `혹→혹은`도 실제 문법 경로이므로 제품에서 막지 않고 source 정렬 문제로
+계속 보존한다.
