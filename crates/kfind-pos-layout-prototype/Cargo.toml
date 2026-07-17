@@ -1,0 +1,16 @@
+[package]
+name = "kfind-pos-layout-prototype"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+kfind-data.workspace = true
+sha2 = "0.10.9"
+unicode-normalization.workspace = true
+
+[lints]
+workspace = true

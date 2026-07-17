@@ -693,6 +693,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "kfind-pos-layout-prototype"
+version = "0.3.0-rc.3"
+dependencies = [
+ "kfind-data",
+ "sha2",
+ "unicode-normalization",
+]
+
+[[package]]
 name = "kfind-query"
 version = "0.3.0-rc.3"
 dependencies = [
@@ -732,6 +741,7 @@ version = "0.3.0-rc.3"
 dependencies = [
  "js-sys",
  "kfind",
+ "kfind-pos-layout-prototype",
  "serde",
  "serde-wasm-bindgen",
  "wasm-bindgen",

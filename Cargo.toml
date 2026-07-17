@@ -6,6 +6,7 @@ members = [
   "crates/kfind-data",
   "crates/kfind-matcher",
   "crates/kfind-morph",
+  "crates/kfind-pos-layout-prototype",
   "crates/kfind-query",
   "crates/kfind-search",
   "crates/kfind-testkit",
@@ -34,6 +35,7 @@ kfind = { path = "crates/kfind" }
 kfind-data = { path = "crates/kfind-data" }
 kfind-matcher = { path = "crates/kfind-matcher" }
 kfind-morph = { path = "crates/kfind-morph" }
+kfind-pos-layout-prototype = { path = "crates/kfind-pos-layout-prototype" }
 kfind-query = { path = "crates/kfind-query" }
 kfind-search = { path = "crates/kfind-search" }
 kfind-testkit = { path = "crates/kfind-testkit" }
