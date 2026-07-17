@@ -123,8 +123,10 @@
   core보다 길지 않아도 되지만, 후행 연쇄가 완전한 구조 경로를 만들지 못하면 확장하지 않는다.
 - full-POS `smart`의 `VX` query는 compact resource가 token 왼쪽 경계부터 일반 용언과
   `EC`로 candidate core 직전까지 이어지고, core에 정렬된 `VX`와 선택적 어미가 token 끝까지
-  이어지는 완전한 path를 증명할 때 token 내부 보조용언을 유지한다. 선행 일반 용언이나 core
-  직전 `EC`가 없는 내부 substring은 이 경로로 열지 않는다.
+  이어지는 완전한 path를 증명할 때 token 내부 보조용언을 유지한다. 용언 시작은 `VV/VA`
+  또는 `XR + XSV/XSA`이며, `EC + VX + E+`가 한 source edge에 묶이거나 여러 edge로 나뉜
+  경우를 같은 경로로 조립한다. 선행 일반 용언이나 core 직전 `EC`가 없는 내부 substring은
+  이 경로로 열지 않는다.
 - 이유·근거·전제를 나타내는 `ending.connective-ni`는 `-니/-으니`, `-니까/-으니까`,
   `-니까는/-으니까는`과 그 준말 `-니깐/-으니깐`을 완성된 predicate token으로
   소비한다. 받침 없는 어간과 `ㄹ` 받침 어간은 `으`가 없는 이형태, 그 밖의 받침

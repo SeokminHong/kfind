@@ -992,9 +992,82 @@ fn attached_auxiliary_spans(text_len: usize, edges: &[Edge<'_>]) -> Box<[Range<u
             .filter(|edge| edge.span == (0..text_len) && is_attached_auxiliary_whole_path(edge.pos))
             .map(|edge| edge.span.clone()),
     );
+    if has_complete_attached_auxiliary_path(text_len, edges) {
+        spans.push(0..text_len);
+    }
     spans.sort_unstable_by_key(|span| (span.start, span.end));
     spans.dedup();
     spans.into_boxed_slice()
+}
+
+#[derive(Clone, Copy)]
+#[repr(usize)]
+enum AttachedAuxiliaryState {
+    Start,
+    Root,
+    Predicate,
+    Connective,
+    Auxiliary,
+    AuxiliaryEnding,
+}
+
+const ATTACHED_AUXILIARY_STATES: [AttachedAuxiliaryState; 6] = [
+    AttachedAuxiliaryState::Start,
+    AttachedAuxiliaryState::Root,
+    AttachedAuxiliaryState::Predicate,
+    AttachedAuxiliaryState::Connective,
+    AttachedAuxiliaryState::Auxiliary,
+    AttachedAuxiliaryState::AuxiliaryEnding,
+];
+const ATTACHED_AUXILIARY_STATE_COUNT: usize = ATTACHED_AUXILIARY_STATES.len();
+
+fn has_complete_attached_auxiliary_path(text_len: usize, edges: &[Edge<'_>]) -> bool {
+    let mut reachable = vec![[false; ATTACHED_AUXILIARY_STATE_COUNT]; text_len + 1];
+    reachable[0][AttachedAuxiliaryState::Start as usize] = true;
+    for start in 0..text_len {
+        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+            for state in ATTACHED_AUXILIARY_STATES {
+                if !reachable[start][state as usize] {
+                    continue;
+                }
+                if let Some(next) = advance_attached_auxiliary_path(state, edge.pos) {
+                    reachable[edge.span.end][next as usize] = true;
+                }
+            }
+        }
+    }
+    reachable[text_len][AttachedAuxiliaryState::AuxiliaryEnding as usize]
+}
+
+fn advance_attached_auxiliary_path(
+    mut state: AttachedAuxiliaryState,
+    positions: &str,
+) -> Option<AttachedAuxiliaryState> {
+    for pos in positions.split('+') {
+        state = match (state, pos) {
+            (AttachedAuxiliaryState::Start, "VV" | "VA") => AttachedAuxiliaryState::Predicate,
+            (AttachedAuxiliaryState::Start, "XR") => AttachedAuxiliaryState::Root,
+            (AttachedAuxiliaryState::Root, "XSV" | "XSA") => AttachedAuxiliaryState::Predicate,
+            (AttachedAuxiliaryState::Predicate | AttachedAuxiliaryState::Connective, pos)
+                if pos.starts_with('E') =>
+            {
+                if pos == "EC" {
+                    AttachedAuxiliaryState::Connective
+                } else {
+                    AttachedAuxiliaryState::Predicate
+                }
+            }
+            (AttachedAuxiliaryState::Connective, "VX") => AttachedAuxiliaryState::Auxiliary,
+            (AttachedAuxiliaryState::Auxiliary, pos) if pos.starts_with('E') => {
+                AttachedAuxiliaryState::AuxiliaryEnding
+            }
+            (AttachedAuxiliaryState::AuxiliaryEnding, pos) if pos.starts_with('E') => {
+                AttachedAuxiliaryState::AuxiliaryEnding
+            }
+            _ => return None,
+        };
+    }
+    Some(state)
 }
 
 fn is_attached_auxiliary_whole_path(pos: &str) -> bool {

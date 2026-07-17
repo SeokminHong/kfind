@@ -1431,6 +1431,53 @@ fn attached_auxiliary_accepts_a_contracted_whole_source_analysis() {
 }
 
 #[test]
+fn attached_auxiliary_path_composes_a_split_derivational_source_analysis() {
+    let root_end = "뚜렷".len();
+    let auxiliary_end = "뚜렷해졌".len();
+    let token_end = "뚜렷해졌다".len();
+    let edges = [
+        Edge {
+            span: 0..root_end,
+            pos: "XR",
+            components: Vec::new(),
+        },
+        Edge {
+            span: root_end..auxiliary_end,
+            pos: "XSA+EC+VX+EP",
+            components: Vec::new(),
+        },
+        Edge {
+            span: auxiliary_end..token_end,
+            pos: "EF",
+            components: Vec::new(),
+        },
+    ];
+    assert!(has_complete_attached_auxiliary_path(token_end, &edges));
+
+    let without_connective = [
+        Edge {
+            span: 0..root_end,
+            pos: "XR",
+            components: Vec::new(),
+        },
+        Edge {
+            span: root_end..auxiliary_end,
+            pos: "XSA+VX+EP",
+            components: Vec::new(),
+        },
+        Edge {
+            span: auxiliary_end..token_end,
+            pos: "EF",
+            components: Vec::new(),
+        },
+    ];
+    assert!(!has_complete_attached_auxiliary_path(
+        token_end,
+        &without_connective,
+    ));
+}
+
+#[test]
 fn a_different_whole_predicate_blocks_a_prefix_fallback() {
     let resolver = resolver();
 
