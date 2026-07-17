@@ -39,6 +39,7 @@ from python.validation import (
     load_cases,
     validate_dataset,
     validate_query_matrix_dataset,
+    validate_robustness_dataset,
 )
 
 
@@ -371,6 +372,10 @@ def main() -> int:
     metadata = json.loads(args.metadata.read_text(encoding="utf-8"))
     if metadata.get("fixture_type") == "query-matrix":
         validate_query_matrix_dataset(
+            args.cases, cases, metadata, "explicit-pos"
+        )
+    elif metadata.get("fixture_type") == "robustness":
+        validate_robustness_dataset(
             args.cases, cases, metadata, "explicit-pos"
         )
     else:

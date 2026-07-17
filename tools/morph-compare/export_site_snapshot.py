@@ -18,6 +18,7 @@ SNAPSHOT_FIELDS = (
     "product_use_cases",
     "product_persona_comparison",
     "external_baselines",
+    "robustness",
 )
 REVISION_PATTERN = re.compile(r"[0-9a-f]{7,40}")
 
@@ -33,7 +34,7 @@ def export_snapshot(report_path: Path, revision: str) -> dict[str, object]:
         raise ValueError(f"report is missing site chart fields: {', '.join(missing)}")
 
     return {
-        "site_snapshot_schema_version": 1,
+        "site_snapshot_schema_version": 2,
         "source_report": {
             "revision": revision,
             "sha256": hashlib.sha256(report_bytes).hexdigest(),

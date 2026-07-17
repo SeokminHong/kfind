@@ -719,6 +719,183 @@ def render_product_external_comparison(report: dict[str, object]) -> str:
     )
 
 
+def robustness_product_comparison(
+    report: dict[str, object],
+) -> tuple[tuple[str, dict[str, object], dict[str, object], str], ...]:
+    robustness = report["robustness"]
+    agent = robustness["workflows"]["agent-embedded-any-explicit-pos"]
+    rows = [
+        (
+            "kfind Agent",
+            agent["quality"],
+            agent["performance"],
+            COLORS["kfind-embedded"],
+        )
+    ]
+    explicit = robustness["explicit_pos"]
+    for backend in EXTERNAL_BACKENDS:
+        if backend not in explicit["quality"]:
+            continue
+        rows.append(
+            (
+                EXTERNAL_LABELS[backend],
+                explicit["quality"][backend],
+                explicit["performance"][backend],
+                COLORS[backend],
+            )
+        )
+    return tuple(rows)
+
+
+def render_robustness_quality(report: dict[str, object]) -> str:
+    rows = robustness_product_comparison(report)
+    width, height = 1280, 760
+    body = [
+        text(52, 38, "Robust quality on natural erroneous Korean"),
+        text(
+            52,
+            62,
+            "UD Korean-KSL · 250 positive / 250 negative · target 100 + context 150 positives · robustness off",
+            "muted",
+        ),
+        text(
+            52,
+            82,
+            "Manually reviewed noisy sentences · reported separately from the standard-orthography canonical score",
+            "muted",
+        ),
+    ]
+    panels = (
+        (52, 130, "Precision", "overall", "precision_percent", 92, 190),
+        (455, 130, "Recall", "overall", "recall_percent", 92, 190),
+        (858, 130, "F1", "overall", "f1_percent", 92, 190),
+        (52, 430, "Target-span recall · 100 positives", "target-span", "recall_percent", 112, 300),
+        (680, 430, "Context-only recall · 150 positives", "context-only", "recall_percent", 112, 300),
+    )
+    for panel_x, panel_y, label, scope, key, label_width, bar_width in panels:
+        body.append(text(panel_x, panel_y, f"{label} · percent"))
+        for index, (product, quality, _, color) in enumerate(rows):
+            row_y = panel_y + 24 + index * 42
+            metrics = (
+                quality["overall"]
+                if scope == "overall"
+                else quality["by_noise_scope"][scope]
+            )
+            value = float(metrics[key])
+            body.append(text(panel_x, row_y + 23, product))
+            body.append(
+                rect(
+                    panel_x + label_width,
+                    row_y + 6,
+                    bar_width * value / 100,
+                    24,
+                    color,
+                )
+            )
+            body.append(
+                text(
+                    panel_x + label_width + bar_width + 10,
+                    row_y + 24,
+                    f"{value:.2f}%",
+                )
+            )
+    body.extend(
+        [
+            text(
+                52,
+                724,
+                "Same explicit-POS gold and default settings; target-span errors overlap the searched morphology",
+                "muted",
+            ),
+            text(
+                1228,
+                724,
+                "Precision / recall / F1 use all 500 balanced cases",
+                "muted",
+                "end",
+            ),
+        ]
+    )
+    return svg_document(
+        width,
+        height,
+        "Robust quality on natural erroneous Korean",
+        "Five product rows compare precision, recall, F1, target-span recall, and context-only recall on 500 manually reviewed noisy Korean cases.",
+        body,
+    )
+
+
+def render_robustness_performance(report: dict[str, object]) -> str:
+    rows = robustness_product_comparison(report)
+    width, height = 1280, 850
+    body = [
+        text(52, 38, "Robust workload performance"),
+        text(
+            52,
+            62,
+            "Same 500 natural noisy cases · one warm-up + five fresh-process measurements",
+            "muted",
+        ),
+        text(
+            52,
+            82,
+            "Quality and execution cost are reported separately; lower is better except throughput",
+            "muted",
+        ),
+    ]
+    panels = (
+        (52, 130, "Throughput", "cases_per_second", "cases/s", True),
+        (680, 130, "Initialization", "initialization_seconds", "s", False),
+        (52, 480, "p95 latency", "latency_p95_ms", "ms", False),
+        (680, 480, "Peak RSS", "peak_rss_kib", "MiB", False),
+    )
+    for panel_x, panel_y, label, key, unit, higher_better in panels:
+        values = []
+        for product, _, performance, color in rows:
+            value = float(performance[key])
+            if key == "peak_rss_kib":
+                value /= 1024
+            values.append((product, value, color))
+        maximum = max(value for _, value, _ in values) * 1.08
+        direction = "higher is better" if higher_better else "lower is better"
+        body.append(text(panel_x, panel_y, label))
+        body.append(text(panel_x + 548, panel_y, direction, "muted", "end"))
+        for index, (product, value, color) in enumerate(values):
+            row_y = panel_y + 24 + index * 43
+            body.append(text(panel_x, row_y + 24, product))
+            body.append(
+                rect(
+                    panel_x + 112,
+                    row_y + 7,
+                    275 * value / maximum,
+                    25,
+                    color,
+                )
+            )
+            body.append(
+                text(
+                    panel_x + 397,
+                    row_y + 25,
+                    f"{metric_value(value, unit)} {unit}",
+                )
+            )
+    body.append(
+        text(
+            52,
+            814,
+            "kfind Agent is measured in the current run; external analyzers use fixture-bound snapshots",
+            "muted",
+        )
+    )
+    return svg_document(
+        width,
+        height,
+        "Robust workload performance",
+        "Four panels compare throughput, initialization, p95 latency, and peak RSS for kfind Agent and four external analyzers on the same noisy fixture.",
+        body,
+    )
+
+
 def render_boundary_quality(report: dict[str, object]) -> str:
     width, height = 1280, 680
     left, right, top, bottom = 80, 32, 86, 116
@@ -945,6 +1122,13 @@ def main() -> None:
     if "product_persona_comparison" in report and "external_baselines" in report:
         (args.output / f"{args.prefix}product-external-comparison.svg").write_text(
             render_product_external_comparison(report), encoding="utf-8"
+        )
+    if "robustness" in report:
+        (args.output / f"{args.prefix}robustness-quality.svg").write_text(
+            render_robustness_quality(report), encoding="utf-8"
+        )
+        (args.output / f"{args.prefix}robustness-performance.svg").write_text(
+            render_robustness_performance(report), encoding="utf-8"
         )
     if "boundary_comparison" in report:
         (args.output / f"{args.prefix}boundary-quality.svg").write_text(

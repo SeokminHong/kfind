@@ -216,7 +216,7 @@ class DatasetTests(unittest.TestCase):
             ["blind"],
         )
 
-    def test_source_sets_keep_scored_and_annotation_required_corpora_separate(self) -> None:
+    def test_source_sets_keep_canonical_and_robustness_corpora_separate(self) -> None:
         manifest = {
             "schema_version": 4,
             "source_sets": {
@@ -225,10 +225,10 @@ class DatasetTests(unittest.TestCase):
                     "positive_quotas_per_source": {"noun": 2},
                     "scoring_status": "scored",
                 },
-                "robustness-candidate": {
+                "robustness": {
                     "sources": ["learner"],
                     "positive_quotas_per_source": {"noun": 1},
-                    "scoring_status": "annotation-required",
+                    "scoring_status": "scored",
                 },
             },
             "sources": [{"name": "edited"}, {"name": "learner"}],
@@ -238,7 +238,7 @@ class DatasetTests(unittest.TestCase):
             manifest, "canonical"
         )
         robustness, robustness_quotas, robustness_status = resolve_source_set(
-            manifest, "robustness-candidate"
+            manifest, "robustness"
         )
 
         self.assertEqual([source["name"] for source in canonical], ["edited"])
@@ -246,7 +246,7 @@ class DatasetTests(unittest.TestCase):
         self.assertEqual(canonical_status, "scored")
         self.assertEqual([source["name"] for source in robustness], ["learner"])
         self.assertEqual(robustness_quotas, {"noun": 1})
-        self.assertEqual(robustness_status, "annotation-required")
+        self.assertEqual(robustness_status, "scored")
 
 
 if __name__ == "__main__":

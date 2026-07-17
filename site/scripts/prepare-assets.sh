@@ -33,6 +33,12 @@ install -m 0644 \
 install -m 0644 \
   "$rendered_benchmark_dir/product-external-comparison.svg" \
   "$benchmark_dir/product-external-comparison.svg"
+install -m 0644 \
+  "$rendered_benchmark_dir/robustness-quality.svg" \
+  "$benchmark_dir/robustness-quality.svg"
+install -m 0644 \
+  "$rendered_benchmark_dir/robustness-performance.svg" \
+  "$benchmark_dir/robustness-performance.svg"
 
 wasm_bytes="$(wc -c < "$wasm_dir/kfind_bg.wasm")"
 pages_file_limit=$((25 * 1024 * 1024))

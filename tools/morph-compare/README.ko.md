@@ -11,8 +11,9 @@ fixture는 Universal Dependencies 2.18의 Korean-Kaist와 Korean-KSL test/dev sp
 1,000-case fixture는 수동 검토를 통과한 Korean-Kaist 문장만 사용해 품사별 positive 500개와
 deterministic negative 500개를 대응시킨다. `sentence-reviews.json`은 검토한 dev/test 문장
 pool 전체를 고정하고 제외 문장을 점수 없는 robustness 후보 registry로 보존한다. Korean-KSL은
-query-level annotation을 마칠 때까지 별도의 점수 없는 후보 pool로 유지한다. 개발은 dev
-fixture로 수행하고 test fixture는 regression baseline으로 유지한다.
+별도 수동 검토 문장 registry를 사용하며, 실제 오류로 확정한 문장으로 scored 500-case Robust
+fixture를 만든다. 개발은 dev fixture로 수행하고 test fixture는 regression baseline으로
+유지한다.
 이미지는 사람의 무품사 사용을 위한 별도 1,000-case fixture도 만든다. 쿼리는 품사를
 생략하며, negative 문장에는 해당 표제어가 지원하는 어떤 품사로도 존재하지 않는다.
 
@@ -23,10 +24,13 @@ kfind 사람용 profile을 측정한다. 보고서는 strict와 contract-adjuste
 matrix, 문장 안 모든 존재 질의 회수율과 문장 group cluster bootstrap 95% 구간을
 `query_matrix` 절에 병렬로 기록한다. 고정 크기 1,000-case 회귀선과는 분리한다.
 
-보고서는 Korean-KSL을 `robustness=off`인 별도 500-case robustness 후보 성능 workload로도
-측정한다. 명시적 품사 입력과 무품사 입력을 각각 1회 warm-up 뒤 새 process에서 실행한다.
-아직 query-level annotation이 필요하므로 이 절에는 초기화·처리량·p50/p95 지연·peak RSS만
-기록하고 품질이나 분석기 순위는 내지 않는다.
+보고서는 Korean-KSL을 250 positive·250 negative의 별도 scored 500-case Robust workload로도
+측정한다. Pre-review pool의 source-signal·보충 문장을 모두 수동 검토하고, 선택한 query·품사·
+expected·원문 byte span도 다시 검토한다. 명시적 품사 fixture에서는 같은 gold로 kfind와 고정
+외부 분석기 기본 설정의 precision·recall·F1, 오류 scope별 recall과 성능을 비교한다. 무품사
+fixture는 kfind Human workflow를 별도로 측정한다. 두 입력 모두 `robustness=off`를 유지하고
+warm-up 1회 뒤 fresh process에서 5회 측정하며, 표준 맞춤법을 검증한 canonical 점수와 합치지
+않는다.
 
 ```sh
 scripts/benchmark-morphology.sh

@@ -34,6 +34,7 @@
 - [혼합 수량 구조 recall](2026-07-17-mixed-numeral-unit-recall.md)
 - [한글 수사 연쇄 recall](2026-07-17-hangul-numeral-recall.md)
 - [검토된 UD 코퍼스 재샘플링과 Robust 성능](2026-07-17-query-matrix.md)
+- [수동 검토 자연 오류 Robust 품질·성능](2026-07-17-robustness-quality.md)
 - [숫자 뒤 단위 구조 recall](2026-07-17-numeric-unit-recall.md)
 - [질의 컴파일 병목 제거](2026-07-17-compile-hotpath-performance.md)
 - [구조 증거로 줄인 검색 누락](2026-07-17-structural-recall.md)
@@ -99,8 +100,10 @@ bytes에서 version field 32 bytes가 추가된 37,103,813 bytes다. full morpho
   일치해야 한다. cost path 결론 일치는 제품 gate가 아니다.
 - morphology benchmark는 fresh process에서 warm-up 1회 후 5회 측정한다. initialization,
   cases/s, p95 latency와 RSS의 median/min/max를 최신 `origin/main`과 같은 환경에서 비교한다.
-- annotation-required Robust 후보는 canonical 품질과 분리한다. `robustness=off`인 명시 POS와
-  무태그 workload의 initialization, cases/s, p50·p95와 RSS만 같은 반복 계약으로 측정한다.
+- 수동 검토한 자연 오류 Robust fixture는 canonical 품질과 분리한다. `robustness=off`인 같은
+  explicit-POS gold에서 제품별 TP·FP·TN·FN, precision·recall·F1과 오류 class·scope별 품질을
+  비교한다. 무태그 Human은 입력 계약이 달라 별도 workflow로 보고한다. 성능은 같은 fixture에서
+  initialization, cases/s, p50·p95와 RSS를 같은 반복 계약으로 측정한다.
 - query compile은 Criterion `new/sample.json`의 sample별 `times[i] / iters[i]`를 nearest-rank
   p95로 비교한다.
 - strict TP·FP·TN·FN은 항상 보존한다. 제품 실행 전에 검토한 `same-pos-homograph`와
@@ -119,12 +122,12 @@ bytes에서 version field 32 bytes가 추가된 37,103,813 bytes다. full morpho
 
 ## 다음 작업
 
-검토된 Korean-Kaist canonical과 Robust 후보의 경계는
-[재샘플링 보고서](2026-07-17-query-matrix.md)에 고정했다. 다음 robustness 작업은 Korean-Kaist
-제외 121문장과 Korean-KSL 후보에 query/POS/raw span·noise class를 수동 annotation한 뒤
-robust-only precision, over-acceptance와 canonical retention을 측정하는 것이다. 현재
-`robustness=off` 성능 기준선은 명시 POS 500-case와 무태그 500-case에만 적용하며 품질 수치로
-해석하지 않는다.
+Korean-KSL source-signal 441문장과 quota 보충 4문장을 모두 검토해 실제 오류 439문장을
+확정하고, query·품사·expected·raw span을 검토한 explicit-POS와 무태그 500-case를 고정했다.
+[Robust 품질·성능 보고서](2026-07-17-robustness-quality.md)는 `robustness=off`에서 제품 기본
+경로의 품질과 실행 비용을 분리해 기록한다. 다음 robustness 작업은 opt-in 복구 기능의 candidate
+budget과 원문 span 역매핑 계약을 먼저 고정하고, default 행과 분리한 feature-matched 표를 만드는
+것이다. Korean-Kaist 제외 121문장은 query-level gold가 없는 sentence registry로 유지한다.
 
 [표준 띄어쓰기와 component 버전 계약](2026-07-17-standard-spacing-component-version.md)에서
 붙여 쓴 `못했다`의 부사 `못`, `못하다` 내부의 명사 `못`과 띄어 쓴 `못 하겠어요`의 부사

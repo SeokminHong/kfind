@@ -131,29 +131,49 @@ def validate_untagged_dataset(
             raise ValueError("untagged negative does not reference a positive case")
 
 
-def validate_robustness_candidate_dataset(
+def validate_robustness_dataset(
     cases_path: Path,
     cases: list[dict[str, object]],
     metadata: dict[str, object],
     query_mode: str,
 ) -> None:
-    if metadata.get("source_set") != "robustness-candidate":
-        raise ValueError("robustness performance requires its candidate source set")
-    if metadata.get("scoring_status") != "annotation-required":
-        raise ValueError("robustness performance requires annotation-required data")
+    if metadata.get("source_set") != "robustness":
+        raise ValueError("robustness benchmark requires its reviewed source set")
+    if metadata.get("scoring_status") != "scored":
+        raise ValueError("robustness benchmark requires scored data")
+    if metadata.get("fixture_type") != "robustness":
+        raise ValueError("robustness fixture_type must be robustness")
     if metadata.get("query_mode") != query_mode:
-        raise ValueError(f"robustness performance requires query_mode={query_mode}")
+        raise ValueError(f"robustness benchmark requires query_mode={query_mode}")
     validate_fixture_identity(cases_path, cases, metadata)
     if len(cases) != metadata.get("cases"):
-        raise ValueError("robustness candidate case count differs from metadata")
+        raise ValueError("robustness case count differs from metadata")
     positives = sum(bool(case["expected"]) for case in cases)
     negatives = len(cases) - positives
     if positives == 0 or positives != negatives:
-        raise ValueError("robustness performance requires balanced candidate cases")
+        raise ValueError("robustness benchmark requires balanced cases")
     if metadata.get("positive_cases") != positives:
-        raise ValueError("robustness candidate positive count differs from metadata")
+        raise ValueError("robustness positive count differs from metadata")
     if metadata.get("negative_cases") != negatives:
-        raise ValueError("robustness candidate negative count differs from metadata")
+        raise ValueError("robustness negative count differs from metadata")
+    case_review = metadata.get("case_review")
+    if not isinstance(case_review, dict) or case_review.get("status") != "reviewed":
+        raise ValueError("robustness benchmark requires reviewed query-level gold")
+    if any(
+        case.get("noise_origin") != "natural"
+        or not isinstance(case.get("noise_class"), str)
+        or case.get("noise_scope") not in {"target-span", "context-only"}
+        for case in cases
+    ):
+        raise ValueError("robustness case has invalid noise metadata")
+    if query_mode == "untagged":
+        positive_ids = {str(case["id"]) for case in cases if case["expected"]}
+        for case in cases:
+            if case["expected"]:
+                if not str(case["id"]).startswith("untagged:pos:"):
+                    raise ValueError("robustness untagged positive ID is invalid")
+            elif case.get("paired_positive_id") not in positive_ids:
+                raise ValueError("robustness untagged negative is not paired")
 
 
 def validate_query_matrix_dataset(

@@ -291,7 +291,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 18,
+        "schema_version": 19,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "backends": list(backends),
@@ -415,9 +415,7 @@ def render_markdown(report: dict[str, object]) -> str:
     append_boundary_comparison(lines, report.get("boundary_comparison"))
     append_human_untagged(lines, report.get("human_untagged"))
     append_query_matrix(lines, report.get("query_matrix"))
-    append_robustness_candidate_performance(
-        lines, report.get("robustness_candidate_performance")
-    )
+    append_robustness(lines, report.get("robustness"))
     append_component_startup(lines, report.get("component_startup"))
     append_shadow_verification(lines, report)
     append_profile_comparison(lines, report)
@@ -435,7 +433,7 @@ def render_markdown(report: dict[str, object]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def append_robustness_candidate_performance(
+def append_robustness(
     lines: list[str], robustness: dict[str, object] | None
 ) -> None:
     if robustness is None:
@@ -445,11 +443,11 @@ def append_robustness_candidate_performance(
     lines.extend(
         [
             "",
-            "## Robustness candidate performance",
+            "## Robustness quality and performance",
             "",
-            "This performance-only workload keeps robustness mode off. Its noisy-text "
-            "sentences still require query-level annotation, so no quality metric is "
-            "reported.",
+            "This scored workload uses only manually reviewed natural noisy sentences. "
+            "It stays separate from the standard-orthography canonical score and keeps "
+            "kfind robustness mode off for the default comparison.",
             "",
             f"- explicit-POS fixture: `{explicit['fixture_sha256']}`; "
             f"{explicit['cases']} cases",
@@ -458,12 +456,123 @@ def append_robustness_candidate_performance(
             f"- scoring status: `{robustness['scoring_status']}`",
             f"- robustness mode: `{robustness['robustness_mode']}`",
             "",
+            "### Default product comparison",
+            "",
+            "Agent uses kfind embedded + any with explicit POS. External rows use the "
+            "same explicit-POS fixture with each analyzer's pinned default settings. "
+            "Target recall isolates the 100 positives whose error overlaps the gold span; "
+            "context recall covers the other 150 positives.",
+            "",
+            "| product | precision | recall | F1 | FP | target recall | context recall |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    explicit_result = robustness["explicit_pos"]
+    agent = robustness["workflows"]["agent-embedded-any-explicit-pos"]
+    append_robustness_product_row(lines, "kfind Agent", agent["quality"])
+    for backend in explicit_result["backends"]:
+        if not backend.startswith("kfind-"):
+            append_robustness_product_row(
+                lines, backend, explicit_result["quality"][backend]
+            )
+    lines.extend(
+        [
+            "",
+            "### Explicit-POS quality",
+            "",
+            "| backend | precision | recall | F1 | TP | FP | TN | FN | exact raw span / overlap TP |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for backend in explicit_result["backends"]:
+        quality = explicit_result["quality"][backend]
+        overall = quality["overall"]
+        raw_span = quality.get("raw_span")
+        exact = (
+            f"{raw_span['exact_true_positives']} / "
+            f"{raw_span['overlap_true_positives']}"
+            if raw_span is not None
+            else "n/a"
+        )
+        lines.append(
+            f"| {backend} | {overall['precision_percent']}% | "
+            f"{overall['recall_percent']}% | {overall['f1_percent']}% | "
+            f"{overall['tp']} | {overall['fp']} | {overall['tn']} | "
+            f"{overall['fn']} | {exact} |"
+        )
+    lines.extend(
+        [
+            "",
+            "### Quality by noise scope",
+            "",
+            "| scope | backend | cases | precision | recall | F1 |",
+            "| --- | --- | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for scope in ("target-span", "context-only"):
+        for backend in explicit_result["backends"]:
+            metrics = explicit_result["quality"][backend]["by_noise_scope"][scope]
+            lines.append(
+                f"| {scope} | {backend} | {metrics['cases']} | "
+                f"{metrics['precision_percent']}% | {metrics['recall_percent']}% | "
+                f"{metrics['f1_percent']}% |"
+            )
+    lines.extend(
+        [
+            "",
+            "### Quality by noise class",
+            "",
+            "| class | backend | cases | precision | recall | F1 |",
+            "| --- | --- | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    noise_classes = sorted(
+        explicit_result["quality"][explicit_result["backends"][0]][
+            "by_noise_class"
+        ]
+    )
+    for noise_class in noise_classes:
+        for backend in explicit_result["backends"]:
+            metrics = explicit_result["quality"][backend]["by_noise_class"][
+                noise_class
+            ]
+            lines.append(
+                f"| {noise_class} | {backend} | {metrics['cases']} | "
+                f"{metrics['precision_percent']}% | {metrics['recall_percent']}% | "
+                f"{metrics['f1_percent']}% |"
+            )
+    lines.extend(
+        [
+            "",
+            "### Workflow quality",
+            "",
+            "| workflow | input | precision | recall | F1 |",
+            "| --- | --- | ---: | ---: | ---: |",
+        ]
+    )
+    for name, workflow in robustness["workflows"].items():
+        metrics = workflow["quality"]["overall"]
+        lines.append(
+            f"| {name} | {workflow['input']} | {metrics['precision_percent']}% | "
+            f"{metrics['recall_percent']}% | {metrics['f1_percent']}% |"
+        )
+    lines.extend(
+        [
+            "",
+            "### Performance",
+            "",
             "| workload | runs | init median [min, max] | cases/s median [min, max] | p50 median [min, max] | p95 median [min, max] | peak RSS median [min, max] |",
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
-    for name, workload in robustness["workloads"].items():
-        metrics = workload["performance"]
+    performance_rows = {
+        **explicit_result["performance"],
+        **{
+            name: workflow["performance"]
+            for name, workflow in robustness["workflows"].items()
+        },
+    }
+    for name, metrics in performance_rows.items():
         lines.append(
             f"| {name} | {metrics['runs']} | "
             f"{format_metric_range(metrics, 'initialization_seconds', '.4f', 's')} | "
@@ -472,6 +581,19 @@ def append_robustness_candidate_performance(
             f"{format_metric_range(metrics, 'latency_p95_ms', '.4f', ' ms')} | "
             f"{format_rss_range(metrics, 'peak_rss_kib')} |"
         )
+
+
+def append_robustness_product_row(
+    lines: list[str], name: str, quality: dict[str, object]
+) -> None:
+    overall = quality["overall"]
+    scope = quality["by_noise_scope"]
+    lines.append(
+        f"| {name} | {overall['precision_percent']}% | "
+        f"{overall['recall_percent']}% | {overall['f1_percent']}% | "
+        f"{overall['fp']} | {scope['target-span']['recall_percent']}% | "
+        f"{scope['context-only']['recall_percent']}% |"
+    )
 
 
 def append_query_matrix(
