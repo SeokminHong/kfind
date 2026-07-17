@@ -542,7 +542,7 @@ impl PreparedStructuralContext {
             .into_iter()
             .filter(|support| {
                 self.selection
-                    .accepts(support, &spans, patterns, &self.evidence)
+                    .accepts(support, &spans, patterns, &self.text, &self.evidence)
             })
             .collect::<Vec<_>>();
         supported.sort_unstable_by_key(|support| (support.pattern_index, support.evidence as u8));
@@ -848,6 +848,12 @@ impl TokenEvidence {
         self.units
             .iter()
             .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos == pos)
+    }
+
+    fn has_whole_analysis(&self, span: &Range<usize>) -> bool {
+        self.units
+            .iter()
+            .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.span == *span)
     }
 
     fn has_whole_nominal_source_component(&self, span: &Range<usize>, pos: DataFinePos) -> bool {
@@ -1336,6 +1342,7 @@ impl StructureSelection {
         support: &ConstraintSupport,
         spans: &CandidateSpans,
         patterns: &[QueryMorphPattern],
+        text: &str,
         evidence: &TokenEvidence,
     ) -> bool {
         let Some(pattern) = patterns.get(support.pattern_index) else {
@@ -1370,6 +1377,23 @@ impl StructureSelection {
                                 &spans.core,
                                 pattern.fine_pos,
                             ))
+                            || (matches!(
+                                pattern.fine_pos,
+                                DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
+                            ) && !evidence.has_whole_analysis(&spans.token)
+                                && (modifier_led_nominal_component_is_on_preferred_path(
+                                    &spans.core,
+                                    selected,
+                                    text,
+                                    evidence,
+                                ) || (selected.start == spans.token.start
+                                    && selected.end == spans.core.start
+                                    && modifier_led_nominal_component_is_on_preferred_path(
+                                        &spans.core,
+                                        &spans.token,
+                                        text,
+                                        evidence,
+                                    ))))
                             || spans.core == *selected
                             || (spans.core.start == selected.start
                                 && spans.consumed.end == selected.end
@@ -1437,7 +1461,7 @@ impl StructureSelection {
             Self::NumeralSequence { fallback } => {
                 (pattern.fine_pos == DataFinePos::Nr
                     && evidence.numeric_spans.contains(&spans.core))
-                    || fallback.accepts(support, spans, patterns, evidence)
+                    || fallback.accepts(support, spans, patterns, text, evidence)
             }
             Self::RuntimeCompatible { graph_nominal_host } => match support.evidence {
                 StructuralEvidence::Whole | StructuralEvidence::SourceComponent => true,
@@ -1476,15 +1500,86 @@ fn nominal_component_is_on_preferred_path(
     selected: &Range<usize>,
     evidence: &TokenEvidence,
 ) -> bool {
+    component_is_on_preferred_path(core, selected, evidence, |unit| {
+        unit.pos.is_nominal() && unit.span != *selected
+    })
+}
+
+fn modifier_led_nominal_component_is_on_preferred_path(
+    core: &Range<usize>,
+    selected: &Range<usize>,
+    text: &str,
+    evidence: &TokenEvidence,
+) -> bool {
+    if core.start == selected.start {
+        return false;
+    }
+    let mut has_leading_modifier = false;
+    for unit in &evidence.units {
+        if unit.span == *selected && unit.evidence == StructuralEvidence::Whole {
+            return false;
+        }
+        has_leading_modifier |= unit.pos == DataFinePos::Mm
+            && unit.span.start == selected.start
+            && matches!(
+                unit.evidence,
+                StructuralEvidence::SourceComponent | StructuralEvidence::RuntimeComponent
+            );
+    }
+    if !has_leading_modifier {
+        return false;
+    }
+    let direct_modifier = selected.start..core.start;
+    let single_syllable_direct_modifier = core.end == selected.end
+        && evidence.units.iter().any(|unit| {
+            unit.pos == DataFinePos::Mm
+                && unit.span == direct_modifier
+                && text
+                    .get(unit.span.clone())
+                    .is_some_and(|surface| surface.chars().count() == 1)
+        });
+    if single_syllable_direct_modifier
+        && !evidence.units.iter().any(|unit| {
+            unit.pos == DataFinePos::Nr
+                && unit.span == direct_modifier
+                && matches!(
+                    unit.evidence,
+                    StructuralEvidence::SourceComponent | StructuralEvidence::RuntimeComponent
+                )
+        })
+    {
+        return false;
+    }
+    component_is_on_preferred_path(core, selected, evidence, |unit| {
+        (unit.pos == DataFinePos::Mm && unit.span.start == selected.start)
+            || (matches!(
+                unit.pos,
+                DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
+            ) && unit.span.start > selected.start)
+    })
+}
+
+fn component_is_on_preferred_path(
+    core: &Range<usize>,
+    selected: &Range<usize>,
+    evidence: &TokenEvidence,
+    accepts: impl Fn(&Unit) -> bool,
+) -> bool {
+    if core.start < selected.start
+        || core.end > selected.end
+        || core.is_empty()
+        || selected.is_empty()
+    {
+        return false;
+    }
     let span_len = selected.len();
     let mut edges = evidence
         .units
         .iter()
         .filter(|unit| {
-            unit.pos.is_nominal()
-                && unit.span.start >= selected.start
+            unit.span.start >= selected.start
                 && unit.span.end <= selected.end
-                && unit.span != *selected
+                && accepts(unit)
                 && matches!(
                     unit.evidence,
                     StructuralEvidence::SourceComponent | StructuralEvidence::RuntimeComponent

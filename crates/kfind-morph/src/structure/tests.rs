@@ -372,6 +372,100 @@ fn whole_nominal_source_component_outranks_a_shorter_particle_host() {
 }
 
 #[test]
+fn modifier_led_nominal_path_preserves_exact_tail_components() {
+    let resolver = resolver_from_entries([
+        atomic("어느", "MM"),
+        atomic("어느", "NP"),
+        atomic("날", "NNG"),
+        atomic("날", "JKO"),
+        atomic("매", "MM"),
+        atomic("매", "NNG"),
+        atomic("일", "NNG"),
+        atomic("일", "JKO"),
+        atomic("매일", "MAG"),
+        atomic("아무", "MM"),
+        atomic("아무", "NP"),
+        atomic("나", "NP"),
+        atomic("나", "JKO"),
+        atomic("칠", "MM"),
+        atomic("칠", "NR"),
+        atomic("월", "NNG"),
+        atomic("월", "NNBC"),
+        atomic("소", "MM"),
+        atomic("소", "NNG"),
+        atomic("년", "NNG"),
+        atomic("년", "NNB"),
+        atomic("은", "JX"),
+    ]);
+    let day = "어느".len().."어느날".len();
+    let day_decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("어느날"),
+        CandidateSpans {
+            core: day.clone(),
+            anchor: day.clone(),
+            consumed: day,
+            token: 0.."어느날".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "날")],
+        128,
+    );
+    let every_day = "매".len().."매일".len();
+    let every_day_decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("매일"),
+        CandidateSpans {
+            core: every_day.clone(),
+            anchor: every_day.clone(),
+            consumed: every_day,
+            token: 0.."매일".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "일")],
+        128,
+    );
+    let anyone = "아무".len().."아무나".len();
+    let anyone_decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("아무나"),
+        CandidateSpans {
+            core: anyone.clone(),
+            anchor: anyone.clone(),
+            consumed: anyone,
+            token: 0.."아무나".len(),
+        },
+        &[component_pattern(DataFinePos::Np, "나")],
+        128,
+    );
+    let month = "칠".len().."칠월".len();
+    let month_decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("칠월"),
+        CandidateSpans {
+            core: month.clone(),
+            anchor: month.clone(),
+            consumed: month,
+            token: 0.."칠월".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "월")],
+        128,
+    );
+    let year = "소".len().."소년".len();
+    let boy_decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("소년은"),
+        CandidateSpans {
+            core: year.clone(),
+            anchor: year.clone(),
+            consumed: "소".len().."소년은".len(),
+            token: 0.."소년은".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "년")],
+        128,
+    );
+
+    assert_eq!(day_decision.outcome, ConstraintOutcome::Supported);
+    assert_eq!(every_day_decision.outcome, ConstraintOutcome::Contradicted);
+    assert_eq!(anyone_decision.outcome, ConstraintOutcome::Contradicted);
+    assert_eq!(month_decision.outcome, ConstraintOutcome::Supported);
+    assert_eq!(boy_decision.outcome, ConstraintOutcome::Contradicted);
+}
+
+#[test]
 fn exact_nominal_token_survives_a_graph_only_decomposition() {
     let resolver = resolver();
     let pattern = QueryMorphPattern::new(DataFinePos::Nng, "선거운동").with_candidate_contract(
@@ -1204,6 +1298,13 @@ fn resolver() -> ConstraintResolver {
         atomic("사", "NNG"),
         atomic("사진", "NNG"),
     ];
+    resolver_from_entries(entries)
+}
+
+fn resolver_from_entries(
+    entries: impl IntoIterator<Item = MecabSourceMorphologyEntry>,
+) -> ConstraintResolver {
+    let entries = entries.into_iter().collect::<Vec<_>>();
     let bytes = encode_component_resource([9; 32], &entries).expect("valid resource");
     let resource =
         decode_component_resource("fixture", bytes, &[9; 32]).expect("decodable resource");

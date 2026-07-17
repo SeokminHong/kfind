@@ -472,6 +472,80 @@ fn whole_nominal_source_component_survives_a_shorter_particle_split() {
 }
 
 #[test]
+fn modifier_led_nominal_path_keeps_exact_tail_but_not_a_whole_adverb_component() {
+    let resource = component_resource_from_entries([
+        component_entry("어느", "MM"),
+        component_entry("어느", "NP"),
+        component_entry("날", "NNG"),
+        component_entry("날", "JKO"),
+        component_entry("매", "MM"),
+        component_entry("매", "NNG"),
+        component_entry("일", "NNG"),
+        component_entry("일", "JKO"),
+        component_entry("매일", "MAG"),
+        component_entry("아무", "MM"),
+        component_entry("아무", "NP"),
+        component_entry("나", "NP"),
+        component_entry("나", "JKO"),
+        component_entry("칠", "MM"),
+        component_entry("칠", "NR"),
+        component_entry("월", "NNG"),
+        component_entry("월", "NNBC"),
+        component_entry("소", "MM"),
+        component_entry("소", "NNG"),
+        component_entry("년", "NNG"),
+        component_entry("년", "NNB"),
+        component_entry("은", "JX"),
+    ]);
+    let day = compile_embedded_with_resource(
+        "날",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        Arc::clone(&resource),
+    );
+    let every_day = compile_embedded_with_resource(
+        "일",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        Arc::clone(&resource),
+    );
+    let anyone = compile_embedded_with_resource(
+        "나",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Pronoun),
+            ..CompileOptions::default()
+        },
+        Arc::clone(&resource),
+    );
+    let month = compile_embedded_with_resource(
+        "월",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        Arc::clone(&resource),
+    );
+    let year = compile_embedded_with_resource(
+        "년",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    assert!(day.find_at_with_meta("어느날".as_bytes(), 0).is_some());
+    assert!(every_day.find_at_with_meta("매일".as_bytes(), 0).is_none());
+    assert!(anyone.find_at_with_meta("아무나".as_bytes(), 0).is_none());
+    assert!(month.find_at_with_meta("칠월".as_bytes(), 0).is_some());
+    assert!(year.find_at_with_meta("소년은".as_bytes(), 0).is_none());
+}
+
+#[test]
 fn compiled_predicate_plan_applies_ending_pos_requirements() {
     let verb = compile("가다", CompileOptions::default());
     let adjective = compile("예쁘다", CompileOptions::default());
@@ -983,11 +1057,29 @@ fn compile(query: &str, options: CompileOptions) -> MorphMatcher {
 }
 
 fn compile_embedded_with_component(query: &str, options: CompileOptions) -> MorphMatcher {
+    compile_embedded_with_resource(query, options, component_resource())
+}
+
+fn compile_embedded_with_resource(
+    query: &str,
+    options: CompileOptions,
+    resource: Arc<ComponentResource>,
+) -> MorphMatcher {
     let lexicons = Arc::new(Lexicons::embedded().expect("embedded lexicons must be valid"));
     let analyzer = LexiconQueryAnalyzer::new(lexicons);
     let plan = Arc::new(compile_query(query, &options, &analyzer).expect("query must compile"));
-    MorphMatcher::with_component_resource(plan, component_resource())
+    MorphMatcher::with_component_resource(plan, resource)
         .expect("component-aware matcher must build")
+}
+
+fn component_resource_from_entries(
+    entries: impl IntoIterator<Item = MecabSourceMorphologyEntry>,
+) -> Arc<ComponentResource> {
+    let entries = entries.into_iter().collect::<Vec<_>>();
+    let bytes = encode_component_resource([8; 32], &entries).expect("valid component entries");
+    Arc::new(
+        decode_component_resource("test", bytes, &[8; 32]).expect("component entries must decode"),
+    )
 }
 
 fn compile_with_full_pos(query: &str, options: CompileOptions) -> MorphMatcher {
