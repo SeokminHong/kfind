@@ -456,6 +456,20 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_attached_auxiliary_whole_path(&self, text: &str) -> bool {
+        let mut supported = false;
+        self.resource
+            .common_prefixes(text.as_bytes(), |length, analyses| {
+                if length == text.len() {
+                    supported |= analyses
+                        .iter()
+                        .any(|analysis| is_attached_auxiliary_whole_path(analysis.pos));
+                }
+            });
+        supported
+    }
+
+    #[must_use]
     pub fn resolve_candidate(
         &self,
         context: BoundedTokenContext<'_>,
@@ -967,9 +981,40 @@ fn attached_auxiliary_spans(text_len: usize, edges: &[Edge<'_>]) -> Box<[Range<u
         })
         .map(|edge| edge.span.clone())
         .collect::<Vec<_>>();
+    spans.extend(
+        edges
+            .iter()
+            .filter(|edge| edge.span == (0..text_len) && is_attached_auxiliary_whole_path(edge.pos))
+            .map(|edge| edge.span.clone()),
+    );
     spans.sort_unstable_by_key(|span| (span.start, span.end));
     spans.dedup();
     spans.into_boxed_slice()
+}
+
+fn is_attached_auxiliary_whole_path(pos: &str) -> bool {
+    let mut positions = pos.split('+');
+    match positions.next() {
+        Some("VV" | "VA") => {}
+        Some("XR") if matches!(positions.next(), Some("XSV" | "XSA")) => {}
+        _ => return false,
+    }
+
+    let mut connective_before_auxiliary = false;
+    for position in &mut positions {
+        if position == "VX" {
+            return connective_before_auxiliary
+                && positions
+                    .next()
+                    .is_some_and(|ending| ending.starts_with('E'))
+                && positions.all(|ending| ending.starts_with('E'));
+        }
+        if !position.starts_with('E') {
+            return false;
+        }
+        connective_before_auxiliary = position == "EC";
+    }
+    false
 }
 
 fn leading_predicate_spans(text_len: usize, edges: &[Edge<'_>]) -> Box<[Range<usize>]> {
@@ -1372,6 +1417,7 @@ fn collect_pattern_supports(
         if supports.len() == support_start
             && pattern.component_capability.allows_runtime()
             && (evidence.runtime_spans.contains(&spans.core)
+                || attached_auxiliary_is_supported(pattern, spans, evidence)
                 || (pattern.fine_pos.is_nominal() && evidence.has_nominal_copula_host(&spans.core))
                 || (pattern.fine_pos.is_nominal()
                     && graph_nominal_host == Some(&spans.core)
@@ -1861,8 +1907,7 @@ fn runtime_position_is_supported(
         || spans.core.len() > pattern.lexical_form.len());
     let whole_predicate_continuation = whole_predicate_continuation(pattern, spans, evidence);
     let copula_nominal_host = copula_has_complete_nominal_host(pattern, spans, evidence);
-    let attached_auxiliary = pattern.fine_pos == DataFinePos::Vx
-        && evidence.attached_auxiliary_spans.contains(&spans.core);
+    let attached_auxiliary = attached_auxiliary_is_supported(pattern, spans, evidence);
     let trailing_predicate_subspan = predicate
         && spans.consumed.end != spans.token.end
         && !terminal_predicate_component
@@ -1937,6 +1982,21 @@ fn runtime_position_is_supported(
         && !trailing_nominal_chain
         && !nominal_after_predicate
         && !terminal_nominal_in_predicate_frame
+}
+
+fn attached_auxiliary_is_supported(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    evidence: &TokenEvidence,
+) -> bool {
+    pattern.fine_pos == DataFinePos::Vx
+        && evidence.attached_auxiliary_spans.iter().any(|frame| {
+            frame == &spans.core
+                || (pattern.lexical_form.as_ref() == "지"
+                    && frame == &spans.token
+                    && frame.start < spans.core.start
+                    && spans.core.end <= frame.end)
+        })
 }
 
 fn whole_predicate_continuation(

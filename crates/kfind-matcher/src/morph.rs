@@ -1048,6 +1048,14 @@ fn has_conflicting_whole_predicate(
     }
     let normalized_core_start = normalized_prefix.len();
     let normalized_core_end = normalized_core_start + core.nfc().collect::<String>().len();
+    let attached_auxiliary = internal_core
+        && branch.structural_patterns().iter().any(|pattern| {
+            pattern.fine_pos == kfind_data::DataFinePos::Vx && pattern.lexical_form.as_ref() == "지"
+        })
+        && resolver.has_attached_auxiliary_whole_path(&normalized_token);
+    if attached_auxiliary {
+        return false;
+    }
     resolver.whole_predicate_conflicts_at(
         &normalized_token,
         normalized_core_start..normalized_core_end,

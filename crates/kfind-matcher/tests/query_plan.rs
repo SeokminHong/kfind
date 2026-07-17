@@ -399,6 +399,36 @@ fn smart_auxiliary_query_accepts_a_complete_attached_source_path() {
 }
 
 #[test]
+fn smart_auxiliary_query_accepts_an_unaligned_whole_source_path() {
+    let resource = component_resource_from_entries([
+        component_expression_entry("빨라져", "VA+EC+VX+EC", "빠르/VA/*+아/EC/*+지/VX/*+어/EC/*"),
+        component_expression_entry("알려진", "VV+EC+VX+ETM", "알리/VV/*+어/EC/*+지/VX/*+ᆫ/ETM/*"),
+        component_expression_entry(
+            "뚜렷해졌다",
+            "XR+XSA+EC+VX+EP+EF",
+            "뚜렷/XR/*+하/XSA/*+어/EC/*+지/VX/*+었/EP/*+다/EF/*",
+        ),
+        component_entry("사진", "NNG"),
+    ]);
+    let matcher = compile_with_full_pos_and_resource(
+        "지다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    for text in ["빨라져", "알려진", "뚜렷해졌다"] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "unaligned attached auxiliary source path was rejected for {text}"
+        );
+    }
+    assert!(matcher.find_at_with_meta("사진".as_bytes(), 0).is_none());
+}
+
+#[test]
 fn adjacent_layout_limits_disambiguation_to_supported_pos_competitions() {
     let noun = compile_with_full_pos(
         "새",

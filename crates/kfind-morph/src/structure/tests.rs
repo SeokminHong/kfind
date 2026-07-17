@@ -1332,6 +1332,105 @@ fn attached_auxiliary_requires_a_predicate_connective_path() {
 }
 
 #[test]
+fn attached_auxiliary_accepts_a_contracted_whole_source_analysis() {
+    let resolver = resolver_from_entries([
+        expression("빨라져", "VA+EC+VX+EC", "빠르/VA/*+아/EC/*+지/VX/*+어/EC/*"),
+        expression(
+            "알려진",
+            "VV+EC+VX+ETM",
+            "알리/VV/*+어/EC/*+지/VX/*+ㄴ/ETM/*",
+        ),
+        expression(
+            "뚜렷해졌다",
+            "XR+XSA+EC+VX+EP+EF",
+            "뚜렷/XR/*+하/XSA/*+어/EC/*+지/VX/*+었/EP/*+다/EF/*",
+        ),
+        atomic("비춰", "VV+EC"),
+        atomic("볼", "VX+ETM"),
+        atomic("사진", "NNG"),
+    ]);
+    let pattern = QueryMorphPattern::new(DataFinePos::Vx, "지").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    for (token, core_start) in [
+        ("빨라져", "빨라".len()),
+        ("알려진", "알려".len()),
+        ("뚜렷해졌다", "뚜렷해".len()),
+    ] {
+        let supported = resolver.resolve_candidate(
+            BoundedTokenContext::current(token),
+            CandidateSpans {
+                core: core_start..token.len(),
+                anchor: core_start..token.len(),
+                consumed: core_start..token.len(),
+                token: 0..token.len(),
+            },
+            std::slice::from_ref(&pattern),
+            128,
+        );
+        assert_eq!(supported.outcome, ConstraintOutcome::Supported, "{token}");
+    }
+    let rejected = resolver.resolve_candidate(
+        BoundedTokenContext::current("사진"),
+        CandidateSpans {
+            core: "사".len().."사진".len(),
+            anchor: "사".len().."사진".len(),
+            consumed: "사".len().."사진".len(),
+            token: 0.."사진".len(),
+        },
+        &[pattern],
+        128,
+    );
+    let unrelated = QueryMorphPattern::new(DataFinePos::Vx, "빠지").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let unrelated = resolver.resolve_candidate(
+        BoundedTokenContext::current("빨라져"),
+        CandidateSpans {
+            core: "빨".len().."빨라져".len(),
+            anchor: "빨".len().."빨라져".len(),
+            consumed: "빨".len().."빨라져".len(),
+            token: 0.."빨라져".len(),
+        },
+        &[unrelated],
+        128,
+    );
+    let aligned_auxiliary = QueryMorphPattern::new(DataFinePos::Vx, "보").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let aligned_auxiliary = resolver.resolve_candidate(
+        BoundedTokenContext::current("비춰볼"),
+        CandidateSpans {
+            core: "비춰".len().."비춰볼".len(),
+            anchor: "비춰".len().."비춰볼".len(),
+            consumed: "비춰".len().."비춰볼".len(),
+            token: 0.."비춰볼".len(),
+        },
+        &[aligned_auxiliary],
+        128,
+    );
+
+    assert_eq!(rejected.outcome, ConstraintOutcome::Contradicted);
+    assert_eq!(unrelated.outcome, ConstraintOutcome::Contradicted);
+    assert_eq!(aligned_auxiliary.outcome, ConstraintOutcome::Supported);
+}
+
+#[test]
 fn a_different_whole_predicate_blocks_a_prefix_fallback() {
     let resolver = resolver();
 
