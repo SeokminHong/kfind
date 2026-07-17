@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [숫자 단위 뒤 의존명사 tail recall](2026-07-17-numeric-unit-dependent-tail-recall.md)
 - [관형사 뒤 명사 component recall](2026-07-17-modifier-noun-component-recall.md)
 - [whole 체언 내부 source component recall](2026-07-17-whole-nominal-component-recall.md)
 - [관형형 의문 종결 recall](2026-07-17-adnominal-interrogative-recall.md)
@@ -304,3 +305,18 @@ annotation과 gate는 변경하지 않았다.
 이미 지원하지만 단위 크기 순서와 숫자값은 검산하지 않는다. 다음 제품 recall 작업은
 `1년간→간`의 ASCII 숫자+단위+nominal tail을 먼저 분리 검증한다. 숫자 단위 순서 검산은
 precision 후보로 별도 측정하고 matrix contract는 변경하지 않는다.
+
+[숫자 단위 뒤 의존명사 tail recall](2026-07-17-numeric-unit-dependent-tail-recall.md)에서
+ASCII 숫자와 `NNB/NNBC/NR` 단위 뒤의 정확한 `NNB/NNBC` tail, 선택적 조사 연쇄를 하나의
+완성 path로 유지했다. 같은 범위의 긴 단일 단위를 먼저 골라 `10시간`을 `10시+간`으로
+분해하지 않는다. Test matrix embedded·full-POS·Human은 `1년간→간` 1건을 회수해
+`PNᶜ=1,401`에서 FNᶜ가 각각 137→136, 52→51, 54→53이 됐다. Development matrix의
+두 explicit-POS profile은 `8시간쯤→시간`, `15층이상→층`을 회수해 FNᶜ가 각각 2건 줄었다.
+FP·FPᶜ, canonical과 hard-negative는 변하지 않았다. 후보 Agent는 26,797.8 cases/s로
+Lindera snapshot보다 28.68% 빠르다. Matrix contract 정의, annotation과 gate는 변경하지
+않았다.
+
+남은 matrix full-POS FNᶜ는 51건이다. 반복 2건 이상인 묶음은 비표준·붙여쓰기 입력 또는
+무표면 지정사라 canonical 규칙으로 넓히지 않는다. 다음 recall 진단은 제품 규칙이 이미
+의도한 `어느날→날`이 고정 resource 단위 검증과 달리 matrix에서 남는 candidate span 경로를
+먼저 재현한다. 한글 수사 단위 순서와 산술값 검산은 recall과 분리한 precision 후보로 둔다.
