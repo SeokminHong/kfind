@@ -41,6 +41,10 @@
 - morphology benchmark는 fresh process에서 warm-up 1회 후 5회 측정한다.
   initialization, cases/s, p95 latency, RSS의 median/min/max를 기록한다. CLI 변경은
   해당 CLI workload benchmark를 별도로 사용한다.
+- morphology benchmark의 로컬 Python test는 `tools/morph-compare`에서
+  `python3 -m unittest discover --start-directory python --pattern 'test_*.py'`로 실행한다.
+  두 import root가 모두 필요한 suite이므로 repository root에서 `python` 하위만 직접
+  discovery하지 않는다.
 - PR 본문에는 baseline/candidate 결과, 증감률과 회귀 여부를 적는다. 품질 지표와
   성능 지표를 분리하고 불리한 결과도 누락하지 않는다.
 - 성능 문서화가 필요한 변경은 `docs/benchmarks`의 기존 구조에 맞춰 날짜별 보고서, 생성
