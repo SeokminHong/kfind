@@ -446,6 +446,15 @@
   검증할 때만 사용하고 token 전체의 품사 구조를 선택하는 근거로 쓰지 않는다. host 왼쪽
   경계에 정렬된 두 음절 이상의 nominal prefix는 유지하고, 한 음절 prefix와 host 내부
   양쪽 경계를 가로지르는 후보에는 선호 경로 검증을 적용한다.
+- token 또는 조사 host의 왼쪽 경계에서 정확한 `MM` node 하나로 시작하고 나머지 host가
+  `NNG`·`NNP`·`NNB/NNBC` node만으로 완성되는 선호 경로에서는 그 경로의 exact 명사
+  component를 유지한다. 단, 한 음절 `MM`과 명사 component 하나만으로 완성되는 경로는
+  같은 선두 span의 `NR` node도 있을 때만 유지한다.
+  따라서 `어느/MM + 날/NNG`, `세/MM + 시/NNBC + 반/NNG + 에/JKB`의 `날`, `반`을
+  유지하고, `칠/MM|NR + 월/NNBC`의 `월`도 유지한다. token 전체의 단일 품사 분석이
+  경쟁하거나 `MM` 뒤의 체언 경로가 불완전하면 이 근거를 사용하지 않는다.
+  `매일/MAG` 안의 `일`, `아무/MM + 나/NP`의 대명사 `나`, `소/MM + 년/NNB`로도
+  분해되는 `소년` 안의 `년`과 component 경계를 가로지르는 span은 계속 거부한다.
 - 두 음절 이상의 `NNP`가 host 왼쪽 경계부터 query core 직전까지 이어지고, 한 음절 `NNB`
   core가 host 오른쪽 경계에서 끝난 뒤 유효한 조사 continuation을 소비하면 인명+의존명사
   구조로 유지한다. 이 예외는 문자열 substring이나 표제어 의미가 아니라 complete path의
