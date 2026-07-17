@@ -10,6 +10,7 @@ use crate::{
 };
 use kfind_data::{
     DICTIONARY_CONJUGATION_RULE_ID, DICTIONARY_RELATED_ADVERB_RULE_ID, DerivationRule,
+    ParticleHost, ParticleRuleRole,
 };
 use kfind_morph::{
     CoarsePos, ComponentCapability, ParticleTransition, RuleId, generate_predicate_branches,
@@ -82,15 +83,6 @@ const NOMINAL_CONSUMPTION_RULE_IDS: &[&str] = &[
     "particle.even.jocha",
     "particle.even.majeo",
 ];
-const ADVERB_PARTICLE_RULE_IDS: &[&str] = &[
-    "particle.topic",
-    "particle.additive",
-    "particle.only",
-    "particle.limit.ggaji",
-    "particle.from",
-    "particle.even.jocha",
-    "particle.even.majeo",
-];
 const NON_REPLACING_NOMINAL_OVERRIDE_RULE_IDS: &[&str] = &["particle.genitive"];
 
 pub fn compile_query(
@@ -118,8 +110,15 @@ pub fn compile_query(
         .collect::<HashSet<_>>();
     let allowed_predicate_rules = allowed_rules(&known_rule_ids, |_| true);
     let allowed_particle_rules = allowed_rules(&known_rule_ids, |id| id.starts_with("particle."));
-    let allowed_adverb_particle_rules =
-        allowed_rules(&known_rule_ids, |id| ADVERB_PARTICLE_RULE_IDS.contains(&id));
+    let allowed_auxiliary_particle_rules =
+        particle_rules(analyzer, |rule| rule.role == ParticleRuleRole::Auxiliary);
+    let allowed_adverb_initial_particle_rules = particle_rules(analyzer, |rule| {
+        rule.role == ParticleRuleRole::Auxiliary && rule.hosts.contains(&ParticleHost::Adverb)
+    });
+    let allowed_predicate_ending_initial_particle_rules = particle_rules(analyzer, |rule| {
+        rule.role == ParticleRuleRole::Auxiliary
+            && rule.hosts.contains(&ParticleHost::PredicateEnding)
+    });
     let particle_transitions = analyzer
         .lexicons()
         .rules()
@@ -148,7 +147,9 @@ pub fn compile_query(
     let mut estimated_matcher_bytes = shared_rule_bytes(&[
         &allowed_predicate_rules,
         &allowed_particle_rules,
-        &allowed_adverb_particle_rules,
+        &allowed_auxiliary_particle_rules,
+        &allowed_adverb_initial_particle_rules,
+        &allowed_predicate_ending_initial_particle_rules,
     ]);
     let mut uses_predicate_consumption = false;
     let mut uses_nominal_consumption = false;
@@ -190,7 +191,8 @@ pub fn compile_query(
                 analyzer,
                 &allowed_predicate_rules,
                 &allowed_particle_rules,
-                &allowed_adverb_particle_rules,
+                &allowed_auxiliary_particle_rules,
+                &allowed_adverb_initial_particle_rules,
                 &known_rule_ids,
                 &mut excluded_rules,
                 &mut drafts,
@@ -273,6 +275,8 @@ pub fn compile_query(
         limits: options.limits,
         diagnostics,
         particle_transitions: particle_transitions.into(),
+        auxiliary_particle_rules: allowed_auxiliary_particle_rules,
+        predicate_ending_initial_particle_rules: allowed_predicate_ending_initial_particle_rules,
         estimated_matcher_bytes,
     })
 }
@@ -286,7 +290,8 @@ fn compile_analysis(
     analyzer: &LexiconQueryAnalyzer,
     predicate_rules: &Arc<[RuleId]>,
     particle_rules: &Arc<[RuleId]>,
-    adverb_particle_rules: &Arc<[RuleId]>,
+    auxiliary_particle_rules: &Arc<[RuleId]>,
+    adverb_initial_particle_rules: &Arc<[RuleId]>,
     known_rule_ids: &HashSet<&str>,
     excluded_rules: &mut Vec<RuleId>,
     output: &mut Vec<DraftBranch>,
@@ -302,7 +307,8 @@ fn compile_analysis(
             output.push(DraftBranch {
                 anchor: atom_surface.to_owned(),
                 consumption: CandidateConsumption::NominalParticleChain {
-                    allowed_rule_ids: Arc::clone(adverb_particle_rules),
+                    initial_allowed_rule_ids: Arc::clone(adverb_initial_particle_rules),
+                    allowed_rule_ids: Arc::clone(auxiliary_particle_rules),
                     blocked_rule_ids: Arc::from([]),
                 },
                 core_mapping: CoreMapping::WholeAnchor,
@@ -344,6 +350,7 @@ fn compile_analysis(
             output.push(DraftBranch {
                 anchor: analysis.lemma.to_string(),
                 consumption: CandidateConsumption::NominalParticleChain {
+                    initial_allowed_rule_ids: Arc::clone(particle_rules),
                     allowed_rule_ids: Arc::clone(particle_rules),
                     blocked_rule_ids,
                 },
@@ -601,6 +608,7 @@ fn compile_derivations(
             output.push(DraftBranch {
                 anchor: derived_lemma,
                 consumption: CandidateConsumption::NominalParticleChain {
+                    initial_allowed_rule_ids: Arc::clone(particle_rules),
                     allowed_rule_ids: Arc::clone(particle_rules),
                     blocked_rule_ids: Arc::from([]),
                 },
@@ -707,6 +715,22 @@ fn allowed_rules(known: &HashSet<&str>, include: impl Fn(&str) -> bool) -> Arc<[
         .copied()
         .filter(|id| include(id))
         .map(RuleId::from)
+        .collect::<Vec<_>>();
+    rules.sort();
+    rules.into()
+}
+
+fn particle_rules(
+    analyzer: &LexiconQueryAnalyzer,
+    include: impl Fn(&kfind_data::ParticleTransitionRule) -> bool,
+) -> Arc<[RuleId]> {
+    let mut rules = analyzer
+        .lexicons()
+        .rules()
+        .particles
+        .iter()
+        .filter(|rule| include(rule))
+        .map(|rule| RuleId::from(rule.id.clone()))
         .collect::<Vec<_>>();
     rules.sort();
     rules.into()

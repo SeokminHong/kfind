@@ -19,6 +19,7 @@ from nikl_import import (
 from nikl_endings import ending_categories, krdict_endings, normalize_ending, stdict_endings
 from nikl_particles import (
     generated_surfaces,
+    grammar_hosts,
     krdict_particles,
     normalize_particle,
     opendict_particles,
@@ -160,12 +161,16 @@ class NiklImportTest(unittest.TestCase):
     def test_extracts_particle_headwords_without_definition_text(self) -> None:
         krdict = ET.fromstring(
             """<LexicalEntry val="1"><feat att="partOfSpeech" val="조사"/>
-            <Lemma><feat att="writtenForm" val="까지"/></Lemma></LexicalEntry>"""
+            <Lemma><feat att="writtenForm" val="까지"/></Lemma>
+            <Sense><feat att="annotation" val="체언이나 부사어 뒤에 붙는다."/></Sense>
+            </LexicalEntry>"""
         )
         stdict = ET.fromstring(
             """<item><target_code>2</target_code><word_info><word>도07</word>
             <pos_info><pos_code>3</pos_code><pos>조사</pos><comm_pattern_info>
-            <sense_info><type>일반어</type><definition>복사하지 않을 내용</definition></sense_info>
+            <sense_info><type>일반어</type><sense_grammar_info>
+            <grammar>체언이나 부사어 뒤에 붙는다.</grammar></sense_grammar_info>
+            <definition>복사하지 않을 내용</definition></sense_info>
             </comm_pattern_info></pos_info></word_info></item>"""
         )
         opendict = ET.fromstring(
@@ -175,9 +180,15 @@ class NiklImportTest(unittest.TestCase):
 
         self.assertEqual(normalize_particle(" -까지01 "), ("-까지01", "까지"))
         self.assertEqual(krdict_particles(krdict)[0].surface, "까지")
+        self.assertEqual(krdict_particles(krdict)[0].hosts, ("adverb", "nominal"))
         self.assertEqual(stdict_particles(stdict)[0].source_id, "2:3")
         self.assertEqual(stdict_particles(stdict)[0].statuses, ("일반어",))
+        self.assertEqual(stdict_particles(stdict)[0].hosts, ("adverb", "nominal"))
         self.assertEqual(opendict_particles(opendict)[0].source_id, "4:1")
+        self.assertEqual(
+            grammar_hosts(["받침 없는 체언이나 연결 어미 뒤에 붙는다."]),
+            ("nominal", "predicate-ending"),
+        )
 
     def test_generates_particle_catalog_surfaces_from_bounded_transitions(self) -> None:
         generated = generated_surfaces(

@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::validation::{require_nfc, require_rule_id};
 use crate::{DataError, DataErrorKind};
 
-use super::{ParticleSelection, RuleLocations, RuleSet};
+use super::{ParticleHost, ParticleRuleRole, ParticleSelection, RuleLocations, RuleSet};
 
 pub(super) fn validate_rules(rules: &RuleSet, locations: &RuleLocations) -> Result<(), DataError> {
     let mut ids = BTreeMap::<&str, &str>::new();
@@ -198,6 +198,42 @@ fn validate_particles(rules: &RuleSet, locations: &RuleLocations) -> Result<(), 
         .collect::<BTreeSet<_>>();
     for rule in &rules.particles {
         validate_forms(source, &rule.id, &rule.forms, locations)?;
+        let hosts = rule.hosts.iter().copied().collect::<BTreeSet<_>>();
+        if hosts.len() != rule.hosts.len() || hosts.is_empty() {
+            return Err(invalid_rule_value(
+                locations,
+                source,
+                &rule.id,
+                "hosts",
+                format!("{:?}", rule.hosts),
+                "하나 이상의 중복 없는 host여야 합니다",
+            ));
+        }
+        if (rule.id == "particle.plural") != (rule.role == ParticleRuleRole::Plural) {
+            return Err(invalid_rule_value(
+                locations,
+                source,
+                &rule.id,
+                "role",
+                format!("{:?}", rule.role),
+                "particle.plural만 plural role이어야 합니다",
+            ));
+        }
+        if rule.role != ParticleRuleRole::Auxiliary
+            && rule
+                .hosts
+                .iter()
+                .any(|host| matches!(host, ParticleHost::Adverb | ParticleHost::PredicateEnding))
+        {
+            return Err(invalid_rule_value(
+                locations,
+                source,
+                &rule.id,
+                "hosts",
+                format!("{:?}", rule.hosts),
+                "adverb와 predicate-ending host는 auxiliary role에만 허용됩니다",
+            ));
+        }
         let expected_forms = match rule.selection {
             ParticleSelection::Literal => None,
             ParticleSelection::FinalPair | ParticleSelection::EuroRo => Some(2),

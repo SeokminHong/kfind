@@ -48,6 +48,9 @@ separate structural checks.
 only structured headword, POS, status, and source-ID fields. Definitions and
 examples are not copied or mined for particle chains.
 
-The catalog inventories atomic particle vocabulary. Particle combinations are
-accepted only through `data/rules/particles.toml` transitions, so a compound
+The catalog inventories atomic particle vocabulary and normalized host classes
+from Korean Basic Dictionary grammatical annotations and Standard Korean
+Language Dictionary `grammar_info`. Definitions and examples are not used for
+host classification. Particle combinations are accepted only through the role,
+host, and transition fields in `data/rules/particles.toml`, so a compound
 surface such as `까지도` is represented as `까지 → 도`, not as a new atomic form.

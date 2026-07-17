@@ -42,6 +42,7 @@ pub use morphology::{
 };
 pub use rules::{
     AlternationRule, ContractionRule, DerivationRule, EndingCategory, EndingInitial, EndingRule,
-    ParticleSelection, ParticleTransitionRule, RuleSet, RuleSources, parse_rule_set,
+    ParticleHost, ParticleRuleRole, ParticleSelection, ParticleTransitionRule, RuleSet,
+    RuleSources, parse_rule_set,
 };
 pub use validation::{ValidatedData, load_data_dir, validate_data, validate_predicates};

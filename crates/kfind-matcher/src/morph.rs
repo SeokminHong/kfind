@@ -912,8 +912,17 @@ impl MorphMatcher {
                     let ending = ending.nfc().collect::<String>();
                     let trailing = trailing.nfc().collect::<String>();
                     self.particle_verifier
-                        .verify_auxiliary_exact(&ending, &trailing)
-                        .is_some()
+                        .verify_exact(&ending, &trailing)
+                        .is_some_and(|matched| {
+                            matched.rule_path.first().is_some_and(|rule| {
+                                contains_rule(
+                                    &self.plan.predicate_ending_initial_particle_rules,
+                                    rule,
+                                )
+                            }) && matched.rule_path.iter().all(|rule| {
+                                contains_rule(&self.plan.auxiliary_particle_rules, rule)
+                            })
+                        })
                 });
         let has_rule = |expected: &str| {
             branch
@@ -1587,6 +1596,12 @@ fn is_better_span(candidate: &VerifiedSpan, current: &VerifiedSpan) -> bool {
 
 fn same_span(left: &VerifiedSpan, right: &VerifiedSpan) -> bool {
     left.core == right.core && left.token == right.token
+}
+
+fn contains_rule(rules: &[RuleId], rule: &RuleId) -> bool {
+    rules
+        .binary_search_by_key(&rule.as_str(), |known| known.as_str())
+        .is_ok()
 }
 
 fn merge_duplicate_spans(spans: &mut Vec<VerifiedSpan>) {

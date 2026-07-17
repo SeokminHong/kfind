@@ -18,6 +18,8 @@ pub struct QueryPlan {
     pub limits: PlanLimits,
     pub diagnostics: Vec<QueryDiagnostic>,
     pub particle_transitions: Arc<[ParticleTransition]>,
+    pub auxiliary_particle_rules: Arc<[RuleId]>,
+    pub predicate_ending_initial_particle_rules: Arc<[RuleId]>,
     pub estimated_matcher_bytes: usize,
 }
 
@@ -58,6 +60,7 @@ pub enum CandidateConsumption {
         allowed_suffixes: Arc<[Box<str>]>,
     },
     NominalParticleChain {
+        initial_allowed_rule_ids: Arc<[RuleId]>,
         allowed_rule_ids: Arc<[RuleId]>,
         blocked_rule_ids: Arc<[RuleId]>,
     },
@@ -88,16 +91,23 @@ impl CandidateConsumption {
                 .iter()
                 .all(|rule| rule.as_str() == "structural.ending-path"),
             Self::NominalParticleChain {
+                initial_allowed_rule_ids,
                 allowed_rule_ids,
                 blocked_rule_ids,
-            } => rules.iter().all(|rule| {
-                allowed_rule_ids
-                    .binary_search_by_key(&rule.as_str(), |known| known.as_str())
-                    .is_ok()
-                    && blocked_rule_ids
-                        .binary_search_by_key(&rule.as_str(), |blocked| blocked.as_str())
-                        .is_err()
-            }),
+            } => {
+                rules.first().is_none_or(|rule| {
+                    initial_allowed_rule_ids
+                        .binary_search_by_key(&rule.as_str(), |known| known.as_str())
+                        .is_ok()
+                }) && rules.iter().all(|rule| {
+                    allowed_rule_ids
+                        .binary_search_by_key(&rule.as_str(), |known| known.as_str())
+                        .is_ok()
+                        && blocked_rule_ids
+                            .binary_search_by_key(&rule.as_str(), |blocked| blocked.as_str())
+                            .is_err()
+                })
+            }
         }
     }
 

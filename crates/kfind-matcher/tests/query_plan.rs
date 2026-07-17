@@ -319,6 +319,7 @@ fn predicate_endings_accept_only_source_backed_auxiliary_particle_chains() {
         component_entry("만", "JX"),
         component_entry("조차", "JX"),
         component_entry("커녕", "JX"),
+        component_entry("뿐", "JX"),
         component_entry("를", "JKO"),
     ]);
     let matcher = compile_with_full_pos_and_resource(
@@ -336,7 +337,7 @@ fn predicate_endings_accept_only_source_backed_auxiliary_particle_chains() {
             "source-backed auxiliary particle chain was rejected in {text}"
         );
     }
-    for text in ["먹고를", "먹고도는"] {
+    for text in ["먹고를", "먹고뿐", "먹고도는"] {
         assert!(
             matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
             "unlicensed predicate-ending particle chain was accepted in {text}"
@@ -940,6 +941,36 @@ fn inflection_adverb_plan_matches_only_auxiliary_particles() {
     assert!(
         literal
             .find_at_with_meta("일을 빨리도 끝냈다.".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
+fn adverb_particle_hosts_and_transitions_cover_complete_families() {
+    let adverb_options = CompileOptions {
+        global_pos: Some(CoarsePos::Adverb),
+        ..CompileOptions::default()
+    };
+    let maybe = compile("혹시", adverb_options.clone());
+    let far = compile("멀리", adverb_options.clone());
+    let actually = compile("실제로", adverb_options);
+
+    assert!(maybe.find_at_with_meta("혹시나".as_bytes(), 0).is_some());
+    for text in ["멀리까지도", "멀리까지만", "멀리까지는"] {
+        assert!(
+            far.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "adverb particle graph rejected {text}"
+        );
+    }
+    assert!(
+        actually
+            .find_at_with_meta("실제로는커녕".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(maybe.find_at_with_meta("혹시가".as_bytes(), 0).is_none());
+    assert!(
+        actually
+            .find_at_with_meta("실제로커녕".as_bytes(), 0)
             .is_none()
     );
 }

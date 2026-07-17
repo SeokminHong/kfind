@@ -1,7 +1,9 @@
-schema_version = 1
+schema_version = 2
 
 [[particle]]
 id = "particle.plural"
+role = "plural"
+hosts = ["nominal"]
 forms = ["들"]
 selection = "literal"
 next = ["particle.subject", "particle.subject.honorific", "particle.object", "particle.topic", "particle.comitative", "particle.comitative.irang-rang", "particle.direction", "particle.dative", "particle.dative.deoreo", "particle.dative.bogo", "particle.locative", "particle.source", "particle.source.egeseo", "particle.source.hanteseo", "particle.from", "particle.genitive", "particle.additive", "particle.only", "particle.restrictive.ppun", "particle.exclusive.bakke", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.similarity.gachi", "particle.similarity.cheoreom", "particle.conformance.daero", "particle.distributive.mada", "particle.extent.mankeum", "particle.comparison.boda", "particle.contrast.keonyeong", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
@@ -9,6 +11,8 @@ terminal = true
 
 [[particle]]
 id = "particle.subject"
+role = "case"
+hosts = ["nominal"]
 forms = ["이", "가"]
 selection = "final-pair"
 next = ["particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
@@ -16,6 +20,8 @@ terminal = true
 
 [[particle]]
 id = "particle.object"
+role = "case"
+hosts = ["nominal"]
 forms = ["을", "를"]
 selection = "final-pair"
 next = ["particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
@@ -23,6 +29,8 @@ terminal = true
 
 [[particle]]
 id = "particle.topic"
+role = "auxiliary"
+hosts = ["nominal", "adverb", "predicate-ending"]
 forms = ["은", "는"]
 selection = "final-pair"
 next = ["particle.contrast.keonyeong"]
@@ -30,6 +38,8 @@ terminal = true
 
 [[particle]]
 id = "particle.comitative"
+role = "case"
+hosts = ["nominal"]
 forms = ["과", "와"]
 selection = "final-pair"
 next = ["particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
@@ -37,6 +47,8 @@ terminal = true
 
 [[particle]]
 id = "particle.connector-myeon"
+role = "case"
+hosts = ["nominal"]
 forms = ["이면", "면"]
 selection = "final-pair"
 next = []
@@ -44,6 +56,8 @@ terminal = true
 
 [[particle]]
 id = "particle.direction"
+role = "case"
+hosts = ["nominal"]
 forms = ["으로", "로"]
 selection = "euro-ro"
 next = ["particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
@@ -51,6 +65,8 @@ terminal = true
 
 [[particle]]
 id = "particle.dative"
+role = "case"
+hosts = ["nominal"]
 forms = ["에게", "한테", "께"]
 selection = "literal"
 next = ["particle.direction", "particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
@@ -58,6 +74,8 @@ terminal = true
 
 [[particle]]
 id = "particle.locative"
+role = "case"
+hosts = ["nominal"]
 forms = ["에"]
 selection = "literal"
 next = ["particle.direction", "particle.from", "particle.genitive", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
@@ -65,6 +83,8 @@ terminal = true
 
 [[particle]]
 id = "particle.source"
+role = "case"
+hosts = ["nominal"]
 forms = ["에서"]
 selection = "literal"
 next = ["particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
@@ -72,6 +92,8 @@ terminal = true
 
 [[particle]]
 id = "particle.source.egeseo"
+role = "case"
+hosts = ["nominal"]
 forms = ["에게서"]
 selection = "literal"
 next = ["particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
@@ -79,6 +101,8 @@ terminal = true
 
 [[particle]]
 id = "particle.source.hanteseo"
+role = "case"
+hosts = ["nominal"]
 forms = ["한테서"]
 selection = "literal"
 next = ["particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
@@ -86,6 +110,8 @@ terminal = true
 
 [[particle]]
 id = "particle.from"
+role = "auxiliary"
+hosts = ["nominal", "adverb", "predicate-ending"]
 forms = ["부터"]
 selection = "literal"
 next = ["particle.genitive", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
@@ -93,6 +119,8 @@ terminal = true
 
 [[particle]]
 id = "particle.genitive"
+role = "case"
+hosts = ["nominal"]
 forms = ["의"]
 selection = "literal"
 next = ["particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
@@ -100,6 +128,8 @@ terminal = true
 
 [[particle]]
 id = "particle.additive"
+role = "auxiliary"
+hosts = ["nominal", "adverb", "predicate-ending"]
 forms = ["도"]
 selection = "literal"
 next = []
@@ -107,6 +137,8 @@ terminal = true
 
 [[particle]]
 id = "particle.only"
+role = "auxiliary"
+hosts = ["nominal", "adverb", "predicate-ending"]
 forms = ["만"]
 selection = "literal"
 next = ["particle.topic", "particle.additive"]
@@ -114,6 +146,8 @@ terminal = true
 
 [[particle]]
 id = "particle.limit.ggaji"
+role = "auxiliary"
+hosts = ["nominal", "adverb", "predicate-ending"]
 forms = ["까지"]
 selection = "literal"
 next = ["particle.topic", "particle.additive", "particle.only", "particle.even.jocha", "particle.even.majeo"]
@@ -121,6 +155,8 @@ terminal = true
 
 [[particle]]
 id = "particle.even.jocha"
+role = "auxiliary"
+hosts = ["nominal", "adverb", "predicate-ending"]
 forms = ["조차"]
 selection = "literal"
 next = ["particle.additive"]
@@ -128,6 +164,8 @@ terminal = true
 
 [[particle]]
 id = "particle.even.majeo"
+role = "auxiliary"
+hosts = ["nominal", "adverb", "predicate-ending"]
 forms = ["마저"]
 selection = "literal"
 next = ["particle.additive"]
@@ -135,6 +173,8 @@ terminal = true
 
 [[particle]]
 id = "particle.subject.honorific"
+role = "case"
+hosts = ["nominal"]
 forms = ["께서"]
 selection = "literal"
 next = ["particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
@@ -142,6 +182,8 @@ terminal = true
 
 [[particle]]
 id = "particle.similarity.gachi"
+role = "case"
+hosts = ["nominal"]
 forms = ["같이"]
 selection = "literal"
 next = ["particle.topic", "particle.additive", "particle.only"]
@@ -149,6 +191,8 @@ terminal = true
 
 [[particle]]
 id = "particle.conformance.daero"
+role = "auxiliary"
+hosts = ["nominal"]
 forms = ["대로"]
 selection = "literal"
 next = ["particle.topic", "particle.additive", "particle.only"]
@@ -156,6 +200,8 @@ terminal = true
 
 [[particle]]
 id = "particle.dative.deoreo"
+role = "case"
+hosts = ["nominal"]
 forms = ["더러"]
 selection = "literal"
 next = ["particle.topic", "particle.additive", "particle.only"]
@@ -163,6 +209,8 @@ terminal = true
 
 [[particle]]
 id = "particle.distributive.mada"
+role = "auxiliary"
+hosts = ["nominal"]
 forms = ["마다"]
 selection = "literal"
 next = ["particle.topic", "particle.additive", "particle.only"]
@@ -170,6 +218,8 @@ terminal = true
 
 [[particle]]
 id = "particle.extent.mankeum"
+role = "auxiliary"
+hosts = ["nominal"]
 forms = ["만큼"]
 selection = "literal"
 next = ["particle.topic", "particle.additive", "particle.only"]
@@ -177,6 +227,8 @@ terminal = true
 
 [[particle]]
 id = "particle.exclusive.bakke"
+role = "auxiliary"
+hosts = ["nominal"]
 forms = ["밖에"]
 selection = "literal"
 next = ["particle.topic", "particle.additive", "particle.only"]
@@ -184,6 +236,8 @@ terminal = true
 
 [[particle]]
 id = "particle.dative.bogo"
+role = "case"
+hosts = ["nominal"]
 forms = ["보고"]
 selection = "literal"
 next = ["particle.topic", "particle.additive", "particle.only"]
@@ -191,6 +245,8 @@ terminal = true
 
 [[particle]]
 id = "particle.comparison.boda"
+role = "case"
+hosts = ["nominal"]
 forms = ["보다"]
 selection = "literal"
 next = ["particle.topic", "particle.additive", "particle.only"]
@@ -198,6 +254,8 @@ terminal = true
 
 [[particle]]
 id = "particle.restrictive.ppun"
+role = "auxiliary"
+hosts = ["nominal"]
 forms = ["뿐"]
 selection = "literal"
 next = ["particle.topic", "particle.additive", "particle.only"]
@@ -205,6 +263,8 @@ terminal = true
 
 [[particle]]
 id = "particle.similarity.cheoreom"
+role = "case"
+hosts = ["nominal"]
 forms = ["처럼"]
 selection = "literal"
 next = ["particle.topic", "particle.additive", "particle.only"]
@@ -212,6 +272,8 @@ terminal = true
 
 [[particle]]
 id = "particle.contrast.keonyeong"
+role = "auxiliary"
+hosts = ["nominal"]
 forms = ["커녕"]
 selection = "literal"
 next = []
@@ -219,6 +281,8 @@ terminal = true
 
 [[particle]]
 id = "particle.alternative.ina-na"
+role = "auxiliary"
+hosts = ["nominal", "adverb"]
 forms = ["이나", "나"]
 selection = "final-pair"
 next = []
@@ -226,6 +290,8 @@ terminal = true
 
 [[particle]]
 id = "particle.concessive.inama-nama"
+role = "auxiliary"
+hosts = ["nominal", "predicate-ending"]
 forms = ["이나마", "나마"]
 selection = "final-pair"
 next = []
@@ -233,6 +299,8 @@ terminal = true
 
 [[particle]]
 id = "particle.concessive.irado-rado"
+role = "auxiliary"
+hosts = ["nominal", "predicate-ending"]
 forms = ["이라도", "라도"]
 selection = "final-pair"
 next = []
@@ -240,6 +308,8 @@ terminal = true
 
 [[particle]]
 id = "particle.comitative.irang-rang"
+role = "case"
+hosts = ["nominal"]
 forms = ["이랑", "랑"]
 selection = "final-pair"
 next = ["particle.topic", "particle.additive", "particle.only"]

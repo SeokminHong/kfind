@@ -11,6 +11,7 @@ mod validation;
 use validation::validate_rules;
 
 const SCHEMA_VERSION: u16 = 1;
+const PARTICLE_SCHEMA_VERSION: u16 = 2;
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq)]
 #[serde(rename_all = "kebab-case")]
@@ -89,10 +90,28 @@ pub enum ParticleSelection {
     EuroRo,
 }
 
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd)]
+#[serde(rename_all = "kebab-case")]
+pub enum ParticleRuleRole {
+    Plural,
+    Case,
+    Auxiliary,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Ord, PartialEq, PartialOrd)]
+#[serde(rename_all = "kebab-case")]
+pub enum ParticleHost {
+    Nominal,
+    Adverb,
+    PredicateEnding,
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct ParticleTransitionRule {
     pub id: String,
+    pub role: ParticleRuleRole,
+    pub hosts: Vec<ParticleHost>,
     pub forms: Vec<String>,
     pub selection: ParticleSelection,
     #[serde(default)]
@@ -308,7 +327,14 @@ pub fn parse_rule_set(sources: RuleSources<'_>) -> Result<RuleSet, DataError> {
         .collect::<Result<Vec<_>, DataError>>()?;
 
     let particles_file: ParticlesFile = parse_toml("data/rules/particles.toml", sources.particles)?;
-    require_schema("data/rules/particles.toml", particles_file.schema_version)?;
+    if particles_file.schema_version != PARTICLE_SCHEMA_VERSION {
+        return Err(invalid_value(
+            "data/rules/particles.toml",
+            "schema_version",
+            particles_file.schema_version.to_string(),
+            &format!("{PARTICLE_SCHEMA_VERSION}이어야 합니다"),
+        ));
+    }
 
     let rules = RuleSet {
         max_continuation_depth: endings_file.max_continuation_depth,

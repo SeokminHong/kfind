@@ -4,11 +4,12 @@ use std::path::{Path, PathBuf};
 
 use kfind_data::{
     DICTIONARY_CONJUGATION_RULE_ID, DICTIONARY_RELATED_ADVERB_RULE_ID, DataAlternation,
-    DataErrorKind, DataFinePos, DataWarning, LexiconSources, NominalRecord, PosLexiconEntry,
-    RuleSources, SurfaceOverride, collect_pos_entries, decode_pos_lexicon, encode_pos_lexicon,
-    extract_mecab_ko_dic, extract_mecab_morphology, extract_mecab_source_morphology, load_data_dir,
-    parse_lexicons, parse_mecab_connection_matrix, parse_predicates_tsv, parse_rule_set,
-    parse_user_lexicon_toml, validate_data, validate_predicates,
+    DataErrorKind, DataFinePos, DataWarning, LexiconSources, NominalRecord, ParticleHost,
+    ParticleRuleRole, PosLexiconEntry, RuleSources, SurfaceOverride, collect_pos_entries,
+    decode_pos_lexicon, encode_pos_lexicon, extract_mecab_ko_dic, extract_mecab_morphology,
+    extract_mecab_source_morphology, load_data_dir, parse_lexicons, parse_mecab_connection_matrix,
+    parse_predicates_tsv, parse_rule_set, parse_user_lexicon_toml, validate_data,
+    validate_predicates,
 };
 
 fn data_root() -> PathBuf {
@@ -93,6 +94,21 @@ fn repository_data_is_complete_and_valid() {
             .iter()
             .all(|form| !["까지도", "까지만", "까지는", "으로부터의"].contains(&form.as_str()))
     }));
+    let alternative = data
+        .rules
+        .particles
+        .iter()
+        .find(|rule| rule.id == "particle.alternative.ina-na")
+        .expect("alternative particle rule");
+    assert_eq!(alternative.role, ParticleRuleRole::Auxiliary);
+    assert!(alternative.hosts.contains(&ParticleHost::Adverb));
+    let contrast = data
+        .rules
+        .particles
+        .iter()
+        .find(|rule| rule.id == "particle.contrast.keonyeong")
+        .expect("contrast particle rule");
+    assert!(!contrast.hosts.contains(&ParticleHost::Adverb));
     assert!(ids.contains("ending.honorific"));
     for continuation in [
         "ending.connective-jiman",
@@ -399,7 +415,7 @@ fn rule_parser_rejects_duplicate_and_unknown_rule_ids() {
     let contractions = read("rules/contractions.toml");
     let derivations = read("rules/derivations.toml");
     let particles = format!(
-        "{}\n[[particle]]\nid = \"particle.subject\"\nforms = [\"이\", \"가\"]\nselection = \"final-pair\"\nnext = []\nterminal = true\n",
+        "{}\n[[particle]]\nid = \"particle.subject\"\nrole = \"case\"\nhosts = [\"nominal\"]\nforms = [\"이\", \"가\"]\nselection = \"final-pair\"\nnext = []\nterminal = true\n",
         read("rules/particles.toml")
     );
     let error = parse_rule_set(RuleSources {
@@ -475,12 +491,16 @@ fn particle_graph_rejects_cycles_without_rejecting_long_bounded_paths() {
     let particles = read("rules/particles.toml").replacen(
         concat!(
             "id = \"particle.additive\"\n",
+            "role = \"auxiliary\"\n",
+            "hosts = [\"nominal\", \"adverb\", \"predicate-ending\"]\n",
             "forms = [\"도\"]\n",
             "selection = \"literal\"\n",
             "next = []",
         ),
         concat!(
             "id = \"particle.additive\"\n",
+            "role = \"auxiliary\"\n",
+            "hosts = [\"nominal\", \"adverb\", \"predicate-ending\"]\n",
             "forms = [\"도\"]\n",
             "selection = \"literal\"\n",
             "next = [\"particle.limit.ggaji\"]",

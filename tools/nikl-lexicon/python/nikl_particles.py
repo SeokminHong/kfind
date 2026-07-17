@@ -20,12 +20,25 @@ class ParticleRecord:
     headword: str
     surface: str
     statuses: tuple[str, ...]
+    hosts: tuple[str, ...]
 
 
 def normalize_particle(raw: str) -> tuple[str, str]:
     headword = normalize_text(raw)
     surface, _ = normalize_headword(headword)
     return headword, surface
+
+
+def grammar_hosts(notes: Iterable[str]) -> tuple[str, ...]:
+    text = " ".join(normalize_text(note) for note in notes if normalize_text(note))
+    hosts = set()
+    if any(marker in text for marker in ("체언", "명사", "대명사", "수사")):
+        hosts.add("nominal")
+    if "부사" in text:
+        hosts.add("adverb")
+    if any(marker in text for marker in ("어미", "활용형", "용언")):
+        hosts.add("predicate-ending")
+    return tuple(sorted(hosts))
 
 
 def krdict_particles(entry: ET.Element) -> tuple[ParticleRecord, ...]:
@@ -45,6 +58,10 @@ def krdict_particles(entry: ET.Element) -> tuple[ParticleRecord, ...]:
             headword=headword,
             surface=surface,
             statuses=("일반어",),
+            hosts=grammar_hosts(
+                direct_feat(sense, "annotation") or ""
+                for sense in entry.findall("./Sense")
+            ),
         ),
     )
 
@@ -73,6 +90,9 @@ def stdict_particles(item: ET.Element) -> tuple[ParticleRecord, ...]:
                 headword=headword,
                 surface=surface,
                 statuses=statuses,
+                hosts=grammar_hosts(
+                    grammar.text or "" for grammar in pos_info.findall(".//grammar")
+                ),
             )
         )
     return tuple(records)
@@ -99,6 +119,9 @@ def opendict_particles(item: ET.Element) -> tuple[ParticleRecord, ...]:
                 headword=headword,
                 surface=surface,
                 statuses=statuses,
+                hosts=grammar_hosts(
+                    grammar.text or "" for grammar in sense.findall(".//grammar")
+                ),
             )
         )
     return tuple(records)
@@ -118,6 +141,9 @@ def write_catalog(path: Path, records: Iterable[ParticleRecord]) -> None:
                 "opendict_ids",
                 "stdict_statuses",
                 "opendict_statuses",
+                "krdict_hosts",
+                "stdict_hosts",
+                "opendict_hosts",
             )
         )
         for surface, values in sorted(grouped.items()):
@@ -132,6 +158,9 @@ def write_catalog(path: Path, records: Iterable[ParticleRecord]) -> None:
                     source_values(values, "opendict", "source_id"),
                     source_statuses(values, "stdict"),
                     source_statuses(values, "opendict"),
+                    source_hosts(values, "krdict"),
+                    source_hosts(values, "stdict"),
+                    source_hosts(values, "opendict"),
                 )
             )
 
@@ -150,11 +179,26 @@ def write_coverage_report(
     opendict = source_surfaces(grouped, "opendict")
     primary_modern = krdict | stdict_general
     consensus = krdict & stdict_general
-    runtime, transitions = runtime_model(rules_path)
+    runtime, transitions, rule_grammar = runtime_model(rules_path)
     runtime_surfaces = set(runtime)
     generated = generated_surfaces(runtime, transitions, max_rules=4)
     graph_covered_modern = primary_modern & set(generated)
     graph_covered_consensus = consensus & set(generated)
+    consensus_adverb_hosts = {
+        surface
+        for surface, values in grouped.items()
+        if source_has_host(values, "krdict", "adverb")
+        and source_has_host(values, "stdict", "adverb", require_general=True)
+    }
+    runtime_adverb_hosts = {
+        surface
+        for surface, rule_ids in runtime.items()
+        if any(
+            rule_grammar[rule_id]["role"] == "auxiliary"
+            and "adverb" in rule_grammar[rule_id]["hosts"]
+            for rule_id in rule_ids
+        )
+    }
     report = {
         "krdict_surface_count": len(krdict),
         "stdict_surface_count": len(stdict),
@@ -178,6 +222,15 @@ def write_coverage_report(
             consensus - graph_covered_consensus
         ),
         "runtime_surfaces_outside_primary_modern": sorted(runtime_surfaces - primary_modern),
+        "dictionary_consensus_adverb_host_surfaces": sorted(consensus_adverb_hosts),
+        "runtime_adverb_host_surfaces": sorted(runtime_adverb_hosts),
+        "runtime_adverb_host_missing_consensus": sorted(
+            consensus_adverb_hosts - runtime_adverb_hosts
+        ),
+        "runtime_adverb_host_outside_consensus": sorted(
+            runtime_adverb_hosts - consensus_adverb_hosts
+        ),
+        "runtime_rule_grammar": rule_grammar,
         "runtime_rules": runtime,
     }
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -222,14 +275,47 @@ def source_statuses(records: Iterable[ParticleRecord], source: str) -> str:
     return "|".join(values) if values else "-"
 
 
+def source_hosts(records: Iterable[ParticleRecord], source: str) -> str:
+    values = sorted(
+        {
+            host
+            for record in records
+            if record.source == source
+            for host in record.hosts
+        }
+    )
+    return "|".join(values) if values else "-"
+
+
+def source_has_host(
+    records: Iterable[ParticleRecord],
+    source: str,
+    host: str,
+    require_general: bool = False,
+) -> bool:
+    return any(
+        record.source == source
+        and host in record.hosts
+        and (not require_general or "일반어" in record.statuses)
+        for record in records
+    )
+
+
 def runtime_model(
     path: Path,
-) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
+) -> tuple[
+    dict[str, list[str]], dict[str, list[str]], dict[str, dict[str, object]]
+]:
     parsed = tomllib.loads(path.read_text(encoding="utf-8"))
     by_surface: dict[str, list[str]] = defaultdict(list)
     transitions = {}
+    grammar = {}
     for rule in parsed.get("particle", []):
         transitions[rule["id"]] = rule.get("next", [])
+        grammar[rule["id"]] = {
+            "role": rule["role"],
+            "hosts": rule["hosts"],
+        }
         for surface in rule.get("forms", []):
             by_surface[surface].append(rule["id"])
     return (
@@ -238,6 +324,7 @@ def runtime_model(
             for surface, rule_ids in sorted(by_surface.items())
         },
         transitions,
+        grammar,
     )
 
 

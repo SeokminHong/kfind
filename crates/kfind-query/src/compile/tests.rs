@@ -320,6 +320,44 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
 }
 
 #[test]
+fn adverb_particle_program_uses_data_driven_hosts_and_auxiliary_transitions() {
+    let plan = compile_query(
+        "혹시",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Adverb),
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    let consumption = &plan.atoms[0].programs[0].consumption;
+    let CandidateConsumption::NominalParticleChain {
+        initial_allowed_rule_ids,
+        allowed_rule_ids,
+        ..
+    } = consumption
+    else {
+        panic!("adverb must compile to a particle-chain program");
+    };
+    let contains = |rules: &[RuleId], expected: &str| {
+        rules
+            .binary_search_by_key(&expected, |rule| rule.as_str())
+            .is_ok()
+    };
+
+    assert!(contains(
+        initial_allowed_rule_ids,
+        "particle.alternative.ina-na"
+    ));
+    assert!(!contains(
+        initial_allowed_rule_ids,
+        "particle.contrast.keonyeong"
+    ));
+    assert!(contains(allowed_rule_ids, "particle.contrast.keonyeong"));
+    assert!(!contains(allowed_rule_ids, "particle.subject"));
+}
+
+#[test]
 fn candidate_programs_materialize_structural_patterns_from_plan_analyses() {
     let predicate = compile_query(
         "걷다",

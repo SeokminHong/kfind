@@ -251,6 +251,8 @@ fn component_context_without_a_resource_is_a_build_error() {
         limits: PlanLimits::default(),
         diagnostics: Vec::new(),
         particle_transitions: Arc::from([]),
+        auxiliary_particle_rules: Arc::from([]),
+        predicate_ending_initial_particle_rules: Arc::from([]),
         estimated_matcher_bytes: 0,
     });
 
@@ -417,6 +419,8 @@ fn verification_counters_treat_accepted_components_as_verified_programs() {
         limits: PlanLimits::default(),
         diagnostics: Vec::new(),
         particle_transitions: Arc::from([]),
+        auxiliary_particle_rules: Arc::from([]),
+        predicate_ending_initial_particle_rules: Arc::from([]),
         estimated_matcher_bytes: 0,
     };
     let matcher =
@@ -748,6 +752,8 @@ fn matcher(atoms: Vec<AtomPlan>, max_gap: usize) -> MorphMatcher {
         limits: PlanLimits::default(),
         diagnostics: Vec::new(),
         particle_transitions: Arc::from([]),
+        auxiliary_particle_rules: Arc::from([]),
+        predicate_ending_initial_particle_rules: Arc::from([]),
         estimated_matcher_bytes: 0,
     }))
     .unwrap()
@@ -807,6 +813,8 @@ fn component_matcher_with_analysis_and_particle_rules(
             ),
             ParticleTransition::new("particle.only", Vec::<RuleId>::new().into_boxed_slice()),
         ]),
+        auxiliary_particle_rules: Arc::from([]),
+        predicate_ending_initial_particle_rules: Arc::from([]),
         estimated_matcher_bytes: 0,
     };
     MorphMatcher::with_component_resource(Arc::new(plan), resource).unwrap()
@@ -830,6 +838,8 @@ fn contextual_matcher(
         limits: PlanLimits::default(),
         diagnostics: Vec::new(),
         particle_transitions: Arc::from([]),
+        auxiliary_particle_rules: Arc::from([]),
+        predicate_ending_initial_particle_rules: Arc::from([]),
         estimated_matcher_bytes: 0,
     };
     MorphMatcher::with_component_resource(Arc::new(plan), resource).unwrap()
@@ -952,6 +962,7 @@ fn nominal_branch(anchor: &str, allowed_rule_ids: Arc<[RuleId]>) -> CandidatePro
     CandidateProgram {
         anchor: anchor.as_bytes().into(),
         consumption: CandidateConsumption::NominalParticleChain {
+            initial_allowed_rule_ids: Arc::clone(&allowed_rule_ids),
             allowed_rule_ids,
             blocked_rule_ids: Arc::from([]),
         },
