@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="710" viewBox="0 0 1280 710" role="img" aria-labelledby="title desc">
+<title id="title">Product profile trade-offs</title>
+<desc id="desc">Precision, recall, F1, and false-positive candidates are shown beside fresh-process CLI wall time, throughput, and peak RSS for the agent and human profiles.</desc>
+
+<style>
+  .background { fill: #ffffff; }
+  text { fill: #111827; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .muted { fill: #4b5563; }
+  .grid { stroke: #d1d5db; stroke-width: 1; }
+  .axis { stroke: #6b7280; stroke-width: 1; }
+  @media (prefers-color-scheme: dark) {
+    .background { fill: #0d1117; }
+    text { fill: #f3f4f6; }
+    .muted { fill: #9ca3af; }
+    .grid { stroke: #374151; }
+    .axis { stroke: #9ca3af; }
+  }
+</style>
+
+<rect class="background" width="1280" height="710"/>
+<text x="52.0" y="38.0" text-anchor="start">Product profile trade-offs</text>
+<text x="52.0" y="62.0" text-anchor="start" class="muted">Agent: embedded · any · explicit POS  |  Human: full-POS · smart · untagged</text>
+<text x="52.0" y="84.0" text-anchor="start">Held-out profile quality · percent</text>
+<line class="grid" x1="202.0" y1="104" x2="202.0" y2="394"/>
+<text x="202.0" y="420.0" text-anchor="middle" class="muted">0</text>
+<line class="grid" x1="284.5" y1="104" x2="284.5" y2="394"/>
+<text x="284.5" y="420.0" text-anchor="middle" class="muted">25</text>
+<line class="grid" x1="367.0" y1="104" x2="367.0" y2="394"/>
+<text x="367.0" y="420.0" text-anchor="middle" class="muted">50</text>
+<line class="grid" x1="449.5" y1="104" x2="449.5" y2="394"/>
+<text x="449.5" y="420.0" text-anchor="middle" class="muted">75</text>
+<line class="grid" x1="532.0" y1="104" x2="532.0" y2="394"/>
+<text x="532.0" y="420.0" text-anchor="middle" class="muted">100</text>
+<text x="52.0" y="136.0" text-anchor="start">Agent · precision</text>
+<rect x="202.0" y="119.0" width="322.0" height="25.0" rx="3" fill="#2563eb"/>
+<text x="544.0" y="137.0" text-anchor="start">97.59%</text>
+<text x="52.0" y="184.0" text-anchor="start">Agent · recall</text>
+<rect x="202.0" y="167.0" width="320.1" height="25.0" rx="3" fill="#2563eb"/>
+<text x="544.0" y="185.0" text-anchor="start">97.00%</text>
+<text x="52.0" y="232.0" text-anchor="start">Agent · F1</text>
+<rect x="202.0" y="215.0" width="321.1" height="25.0" rx="3" fill="#2563eb"/>
+<text x="544.0" y="233.0" text-anchor="start">97.29%</text>
+<text x="52.0" y="280.0" text-anchor="start">Human · precision</text>
+<rect x="202.0" y="263.0" width="329.3" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="544.0" y="281.0" text-anchor="start">99.79%</text>
+<text x="52.0" y="328.0" text-anchor="start">Human · recall</text>
+<rect x="202.0" y="311.0" width="320.8" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="544.0" y="329.0" text-anchor="start">97.20%</text>
+<text x="52.0" y="376.0" text-anchor="start">Human · F1</text>
+<rect x="202.0" y="359.0" width="325.0" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="544.0" y="377.0" text-anchor="start">98.48%</text>
+<text x="52.0" y="448.0" text-anchor="start">False-positive candidates · 500 negative cases</text>
+<text x="52.0" y="500.0" text-anchor="start">Agent</text>
+<rect x="202.0" y="483.0" width="305.6" height="25.0" rx="3" fill="#2563eb"/>
+<text x="544.0" y="501.0" text-anchor="start">12</text>
+<text x="52.0" y="548.0" text-anchor="start">Human</text>
+<rect x="202.0" y="531.0" width="25.5" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="544.0" y="549.0" text-anchor="start">1</text>
+<text x="700.0" y="84.0" text-anchor="start">Fresh-process CLI wall time · ms · lower is better</text>
+<text x="700.0" y="136.0" text-anchor="start">Agent</text>
+<rect x="800.0" y="119.0" width="55.1" height="25.0" rx="3" fill="#2563eb"/>
+<text x="1162.0" y="137.0" text-anchor="start">18.2 ms</text>
+<text x="700.0" y="184.0" text-anchor="start">Human</text>
+<rect x="800.0" y="167.0" width="324.1" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="1162.0" y="185.0" text-anchor="start">106.7 ms</text>
+<text x="700.0" y="256.0" text-anchor="start">100 MiB CLI throughput · MiB/s · higher is better</text>
+<text x="700.0" y="308.0" text-anchor="start">Agent</text>
+<rect x="800.0" y="291.0" width="324.1" height="25.0" rx="3" fill="#2563eb"/>
+<text x="1162.0" y="309.0" text-anchor="start">5,507.5</text>
+<text x="700.0" y="356.0" text-anchor="start">Human</text>
+<rect x="800.0" y="339.0" width="55.1" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="1162.0" y="357.0" text-anchor="start">936.9</text>
+<text x="700.0" y="428.0" text-anchor="start">Fresh-process CLI peak RSS · MiB · lower is better</text>
+<text x="700.0" y="480.0" text-anchor="start">Agent</text>
+<rect x="800.0" y="463.0" width="43.7" height="25.0" rx="3" fill="#2563eb"/>
+<text x="1162.0" y="481.0" text-anchor="start">7.6 MiB</text>
+<text x="700.0" y="528.0" text-anchor="start">Human</text>
+<rect x="800.0" y="511.0" width="324.1" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="1162.0" y="529.0" text-anchor="start">56.1 MiB</text>
+<text x="52.0" y="648.0" text-anchor="start" class="muted">Quality: separate 1,000-case held-out fixtures</text>
+<text x="1228.0" y="648.0" text-anchor="end" class="muted">CLI cost: 100 MiB across 1,000 files · one match · warm cache</text>
+</svg>
