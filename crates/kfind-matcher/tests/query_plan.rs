@@ -77,6 +77,24 @@ fn compiled_predicate_plan_matches_irregular_and_homonymous_surfaces() {
 }
 
 #[test]
+fn compiled_predicate_plan_matches_a_prospective_final() {
+    let matcher = compile(
+        "않다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+    );
+
+    assert!(
+        matcher
+            .find_at_with_meta("투명하지는 않으리라 생각된다.".as_bytes(), 0)
+            .is_some(),
+        "compiled 않다 plan rejected the prospective final"
+    );
+}
+
+#[test]
 fn full_pos_smart_predicate_plan_preserves_a_same_pos_homograph_union() {
     for query in ["걷다", "걸다"] {
         let matcher = compile_with_full_pos(
@@ -699,6 +717,19 @@ fn compiled_plans_reject_unlicensed_predicate_and_particle_surfaces() {
     assert!(
         pretty
             .find_at_with_meta("꽃이 예쁘어 보인다".as_bytes(), 0)
+            .is_none()
+    );
+
+    let see = compile(
+        "보다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            boundary: BoundaryPolicy::Any,
+            ..CompileOptions::default()
+        },
+    );
+    assert!(
+        see.find_at_with_meta("방을 보로 가다".as_bytes(), 0)
             .is_none()
     );
 

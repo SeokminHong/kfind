@@ -80,6 +80,7 @@ const DECLARATIVE_JI: Suffix = suffix("지", &["ending.quotative-ji"]);
 
 const EU_SUFFIXES: &[Suffix] = &[
     suffix("리라고", &["ending.prospective-quotative"]),
+    suffix("리라", &["ending.prospective-final"]),
     suffix(
         "시겠습니다",
         &[
@@ -322,6 +323,19 @@ mod tests {
         )
         .expect("prospective quotative");
         assert_eq!(prospective.token_end, "얻으리라고".len());
+
+        let prospective_final = verify_predicate_continuation(
+            ContinuationState::Eu,
+            PredicatePos::Verb,
+            "않으",
+            "리라 생각했다",
+        )
+        .expect("prospective final");
+        assert_eq!(prospective_final.token_end, "않으리라".len());
+        assert_eq!(
+            prospective_final.rule_path,
+            [RuleId::from("ending.prospective-final")]
+        );
     }
 
     #[test]

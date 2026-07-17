@@ -402,6 +402,14 @@ fn compile_rieul_eu_endings(
     push_branch(
         branches,
         entry,
+        format!("{stem}리라"),
+        stem.len(),
+        ContinuationState::Terminal,
+        vec![rule("ending.prospective-final")],
+    );
+    push_branch(
+        branches,
+        entry,
         format!("{stem}리라고"),
         stem.len(),
         ContinuationState::Terminal,
