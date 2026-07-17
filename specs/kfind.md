@@ -315,7 +315,13 @@
   preview로 조용히 fallback하지 않고 playground에 오류를 표시한다.
 - `site` package는 현재 source의 WASM과 version control에 보존한 승인 benchmark snapshot에서
   chart를 다시 생성해 정적 `dist`를 만든다. Snapshot은 source report의 revision과 SHA-256을
-  기록하며, 승인된 benchmark가 바뀌면 같은 변경에서 갱신한다.
+  기록하며, 승인된 benchmark가 바뀌면 같은 변경에서 갱신한다. 형태 품질은 수동 검토를 통과한
+  표준 맞춤법 canonical과 실제 오류 문장만 남긴 Robust를 별도 section과 chart로 표시한다.
+  Robust chart는 동일한 gold fixture에서 backend별 precision·recall·F1과 실행 비용을 비교하고,
+  오류 class, positive/negative 분모, robustness 설정과 표준문 품질에 합산하지 않는다는 점을
+  chart subtitle과 인접 본문에 명시한다. Robust 500-case는 positive 250, negative 250으로
+  고정하고 positive 중 오류 표식이 gold token에 직접 걸린 `target-span` 100건과 오류가 다른
+  token에 있는 `context-only` 150건을 분리해 보고한다.
 - 기존 `kfind` Pages project는 direct upload 방식을 유지한다. GitHub Actions는 pull request에서
   site format, lint, type check와 build를 검증한다. Format과 lint는 각각 `Site format`,
   `Site lint` 독립 status check이며 `main` branch protection의 required check다. `main` push에서는
@@ -2352,22 +2358,49 @@ negative 500개를 유지해 총 1,000개와 positive/negative 1:1 균형을 만
 순서가 아니라 case 식별자의 SHA-256 순서를 사용한다. 최종 positive는 한 문장에 최대 3개만
 선택하며 상한에 도달한 문장의 다음 후보는 건너뛴다.
 
-비문·오타가 포함된 UD Korean-KSL은 core에서 제외하고 별도 `robustness-candidate` source
-set으로 보존한다. 이 set은 명사 90, 동사 60, 형용사 40, 부사 25, 대명사 15, 관형사 10,
-수사 10개의 positive와 paired negative 250개씩을 같은 seed로 생성한다. Source 전체를 후보
-pool로 분리하는 것이며 모든 문장을 오류 사례로 간주하지 않는다. Core 검토에서 제외한 KAIST
-문장도 별도 sentence-level robustness candidate registry에 원문, split, sentence ID, 사유 class와
-annotation을 보존한다. 이 registry의 사유 class는 corpus 정제 근거이며 query-level 제품
-`noise_class` gold를 대신하지 않는다. 자연 원문 row는 수동 검토로 `noise_class`, raw span과
-expected를 확정하기 전에는 robustness 품질 점수나 제품 규칙 선택에 사용하지 않는다.
+비문·오타가 포함된 UD Korean-KSL은 core에서 제외하고 별도 `robustness` source set으로
+보존한다. Source 이름만으로 모든 문장을 오류 사례로 간주하지 않는다. Korean-KSL test split의
+`Typo=Yes`·`goeswith` source signal 문장과 품사 quota를 채우는 deterministic 보충 후보로
+pre-review pool을 먼저 고정하고, pool에 들어온 고유 문장을 모두 수동 검토한다. Review
+manifest는 정렬된 `(source, sent_id, text)` 전체의 SHA-256과 각 문장의
+`clean`·`noisy`·`source-artifact` 판정, 하나 이상의 오류 class와 짧은 annotation을 보존한다.
+Source signal은 후보 수집에만 사용하며 수동 판정을 대신하지 않는다. `clean`과
+`source-artifact` 문장은 Robust 품질 fixture에서 제외한다.
 
-`robustness-candidate`는 canonical과 분리한 성능 전용 workload도 제공한다. 같은 KSL 문장에서
-명시적 품사 500-case와 무품사 500-case를 생성하고 현재 제품의 robustness `off` 경로를
-fresh process warm-up 1회 뒤 5회 측정한다. Embedded/full-POS `smart`, Agent의
-`embedded + any + explicit POS`, Human의 `full-POS + smart + untagged`에 대해 initialization,
-cases/s, p50·p95 latency와 peak RSS의 median/min/max를 기록한다. 이 workload에는 품질 점수,
-canonical 합계나 backend 순위를 붙이지 않는다. Core 검토에서 제외한 KAIST 문장은 query,
-POS와 raw span annotation을 마친 뒤에만 이 성능 workload에 추가한다.
+오류 class는 최소한 `hangul-typo`, `foreign-text-typo`, `spacing-merge`, `spacing-split`,
+`nonstandard-morphology`, `nonstandard-syntax`, `repetition`을 구분한다. 여러 오류가 있는 문장은
+모든 class를 기록하되 chart 집계용 primary class를 하나 고정한다. 의미 선택만 잘못되어
+lemma·품사·span gold를 객관적으로 확정할 수 없는 문장은 `noisy` 판정을 보존하고 case 후보에서는
+제외한다.
+
+수동 검토에서 `noisy`로 판정한 문장만 대상으로 명사 90, 동사 60, 형용사 40, 부사 25,
+대명사 15, 관형사 10, 수사 10개의 positive와 paired negative 250개씩을 같은 seed로 생성한다.
+최종 500개 case는 제품이나 외부 분석기 결과를 보기 전에 query, coarse/fine POS, expected와
+positive의 원문 UTF-8 byte span을 다시 수동 검토한다. Negative는 해당 lemma·품사가 문장에
+없음을, 무품사 negative는 지원 품사 전체에 lemma가 없음을 확인한다. 각 case에는 오류가 gold
+span에 직접 있는 `target-span`과 주변 문맥에만 있는 `context-only`를 구분한 `noise_scope`,
+primary `noise_class`와 검토 annotation을 보존한다. Ambiguous gold나 annotation이 빠진 case로
+quota를 자동 보충하지 않고 다음 검토 후보를 사용한다.
+
+Core 검토에서 제외한 KAIST 문장도 별도 sentence-level robustness candidate registry에 원문,
+split, sentence ID, 사유 class와 annotation을 보존한다. 이 registry의 사유 class는 corpus 정제
+근거이며 query-level 제품 `noise_class` gold를 대신하지 않는다. Query, POS, expected, raw span과
+noise scope를 확정하기 전에는 Robust 품질 합계에 넣지 않는다.
+
+Robust 품질은 canonical과 분리한 같은 500-case explicit-POS fixture에서 모든 backend를
+비교한다. 전체와 오류 class·scope·품사별 TP·FP·TN·FN, precision, recall, F1과 실패 case를
+기록한다. Micro 전체는 동일한 자연 오류 fixture 안에서만 비교하며 natural·synthetic,
+explicit-POS·untagged 또는 서로 다른 오류 class를 합쳐 단일 제품 점수나 순위를 만들지 않는다.
+현재 제품 robustness가 구현되기 전의 첫 기준선은 kfind `off`와 각 외부 분석기의 고정 default
+설정을 비교한다. Native robustness 기능이 있는 backend의 feature-matched 행은 같은 class,
+candidate budget과 원문 span 역매핑 계약을 고정한 뒤 별도 표로 추가하며 default 행과 합치지
+않는다.
+
+같은 Robust fixture의 성능도 fresh process warm-up 1회 뒤 5회 측정한다. Embedded/full-POS
+`smart`, Agent의 `embedded + any + explicit POS`, Human의 `full-POS + smart + untagged`와 고정
+외부 backend에 대해 initialization, cases/s, p50·p95 latency와 peak RSS의 median/min/max를
+기록한다. 품질과 성능은 같은 보고서에서 별도 표와 chart로 제시하고 canonical 합계와 섞지
+않는다.
 
 gold 후보는 CoNLL-U의 정렬된 lemma/XPOS 형태소 쌍에서 추출하고, lemma가 축약된 KAIST
 어절은 `OrigLemma`를 우선 사용한다. 지원 품사에 속하고 표제어가 한글 음절로만 구성된
