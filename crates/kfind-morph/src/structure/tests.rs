@@ -333,6 +333,45 @@ fn exact_nominal_particle_host_outranks_a_longer_runtime_decomposition() {
 }
 
 #[test]
+fn whole_nominal_source_component_outranks_a_shorter_particle_host() {
+    let resolver = resolver();
+    let core = "자본".len().."자본주의".len();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("자본주의"),
+        CandidateSpans {
+            core: core.clone(),
+            anchor: core.clone(),
+            consumed: core,
+            token: 0.."자본주의".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "주의")],
+        128,
+    );
+    let crossing = resolver.resolve_candidate(
+        BoundedTokenContext::current("자본주의"),
+        CandidateSpans {
+            core: "자".len().."자본주".len(),
+            anchor: "자".len().."자본주".len(),
+            consumed: "자".len().."자본주".len(),
+            token: 0.."자본주의".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "본주")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(
+        decision
+            .supported
+            .iter()
+            .any(|support| support.evidence == StructuralEvidence::SourceComponent)
+    );
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+    assert_eq!(crossing.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&crossing));
+}
+
+#[test]
 fn exact_nominal_token_survives_a_graph_only_decomposition() {
     let resolver = resolver();
     let pattern = QueryMorphPattern::new(DataFinePos::Nng, "선거운동").with_candidate_contract(
@@ -1096,6 +1135,8 @@ fn resolver() -> ConstraintResolver {
         atomic("이", "JKS"),
         atomic("날", "NNG"),
         atomic("날씨", "NNG"),
+        atomic("자본주", "NNG"),
+        expression("자본주의", "NNG", "자본/NNG/*+주의/NNG/*"),
         atomic("는", "JX"),
         atomic("을", "ETM"),
         atomic("보고", "VV+EC"),

@@ -443,6 +443,35 @@ fn runtime_nominal_component_remains_available_without_a_source_decomposition() 
 }
 
 #[test]
+fn whole_nominal_source_component_survives_a_shorter_particle_split() {
+    let matcher = compile_embedded_with_component(
+        "주의",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+    );
+    let crossing = compile_embedded_with_component(
+        "본주",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+    );
+
+    assert!(
+        matcher
+            .find_at_with_meta("자본주의".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        crossing
+            .find_at_with_meta("자본주의".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn compiled_predicate_plan_applies_ending_pos_requirements() {
     let verb = compile("가다", CompileOptions::default());
     let adjective = compile("예쁘다", CompileOptions::default());
@@ -1049,6 +1078,8 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("문서", "NNG"),
             component_entry("학교", "NNG"),
             component_entry("학교에서", "NNG"),
+            component_entry("자본주", "NNG"),
+            component_expression_entry("자본주의", "NNG", "자본/NNG/*+주의/NNG/*"),
             component_entry("에", "NNG"),
             component_entry("에서", "JKB"),
             component_entry("서", "JKB"),

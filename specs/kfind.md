@@ -371,6 +371,11 @@
   다른 위치에서 우연히 성립한 분할을 후보 근거로 쓰지 않는다. 조사 host는 exact
   whole 명사 host를 먼저 선택한다. exact host가 없을 때 whole-token 단일 품사 또는
   완성된 용언 분석이 있으면 이를 graph로 조합한 명사 host보다 우선한다.
+- whole-token 단일 체언 분석과 더 짧은 `체언+조사` 분할이 경쟁해도 whole 분석이 정렬해
+  선언한 체언 source component를 조사 host 선택으로 가리지 않는다. 이 추가 근거는 source
+  component와 정확히 일치하는 체언 query에만 적용한다. 따라서 `자본주의`의 선언된 `주의`
+  component는 유지하지만, 비체언 분석이나 큰 component의 substring, 여러 component 경계를
+  가로지르는 span은 열지 않는다.
 - host span이 같은 체언+조사와 용언+어미 path가 경쟁해도 candidate program이 실제로
   소비한 continuation과 맞지 않는 path까지 허용하지 않는다. 예를 들어 `걸을`에서
   `걷다`의 `걸으-+-ㄹ` program은 유지하지만, `걸다`의 bare `걸` program은 `-을`을
