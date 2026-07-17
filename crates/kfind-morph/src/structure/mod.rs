@@ -1494,7 +1494,8 @@ fn collect_pattern_supports(
         }
         if supports.len() == support_start
             && pattern.component_capability.allows_runtime()
-            && (evidence.runtime_spans.contains(&spans.core)
+            && (query_nominal_particle_path(pattern, spans)
+                || evidence.runtime_spans.contains(&spans.core)
                 || attached_auxiliary_is_supported(pattern, spans, evidence)
                 || (pattern.fine_pos.is_nominal() && evidence.has_nominal_copula_host(&spans.core))
                 || (pattern.fine_pos.is_nominal()
@@ -1573,6 +1574,9 @@ impl StructureSelection {
         let Some(pattern) = patterns.get(support.pattern_index) else {
             return false;
         };
+        if query_nominal_particle_path(pattern, spans) {
+            return true;
+        }
         match self {
             Self::Whole => support.evidence == StructuralEvidence::Whole,
             Self::Adverb => {
@@ -2120,6 +2124,14 @@ fn is_predicate_nominalization(pattern: &QueryMorphPattern) -> bool {
             ..
         }
     )
+}
+
+fn query_nominal_particle_path(pattern: &QueryMorphPattern, spans: &CandidateSpans) -> bool {
+    pattern.fine_pos.is_nominal()
+        && matches!(pattern.continuation, MorphContinuation::NominalParticles)
+        && spans.core.start == spans.token.start
+        && spans.core.end < spans.consumed.end
+        && spans.consumed == spans.token
 }
 
 fn select_structure(

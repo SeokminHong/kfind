@@ -1110,6 +1110,37 @@ fn compiled_nominal_plan_covers_particle_transition_families() {
 }
 
 #[test]
+fn forced_nominal_host_consumes_a_complete_particle_chain_without_a_dictionary_entry() {
+    let resource = component_resource_from_entries([
+        component_entry("신", "NNG"),
+        component_entry("조", "NNG"),
+        component_entry("어", "NNG"),
+        component_entry("는", "JX"),
+    ]);
+    let matcher = compile_with_full_pos_and_resource(
+        "신조어",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    for valid in ["신조어는 늘어난다.", "신조어로써도 쓰인다."] {
+        assert!(
+            matcher.find_at_with_meta(valid.as_bytes(), 0).is_some(),
+            "rejected forced nominal particle host {valid:?}"
+        );
+    }
+    for invalid in ["신조어하다", "옛신조어는"] {
+        assert!(
+            matcher.find_at_with_meta(invalid.as_bytes(), 0).is_none(),
+            "accepted invalid forced nominal continuation {invalid:?}"
+        );
+    }
+}
+
+#[test]
 fn compiled_nominal_plan_composes_particle_chains_with_copula_grammar() {
     let matcher = compile("사용자", CompileOptions::default());
 
