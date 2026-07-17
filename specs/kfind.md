@@ -465,11 +465,12 @@
   복구하지만, core와 지정사 사이에 다른 체언이 남는 `홍씨이다`, 지정사가 아닌 용언이
   이어지는 `맛있다`, 지정사 자체와 겹치는 `이다` 안의 체언 `이`는 열지 않는다.
 - `smart` 체언 query가 token 왼쪽 경계부터 시작하고 query program이 하나 이상의 조사를
-  소비한 경우에도, source graph가 같은 체언 host 뒤의 `J+`를 candidate의 소비 끝과 정확히
-  같은 위치까지 완성하고 이어서 `VCP + E+`와 선택적 조사 연쇄를 token 끝까지 완성하면
-  체언 core를 유지한다. 따라서 `대학뿐이다`처럼 보조사를 포함한 명사구 뒤 지정사를
-  지원하되, source `J+` 경로와 candidate가 어긋나거나 지정사·어미가 완결되지 않은 표면은
-  열지 않는다.
+  소비한 경우에도, 조사 verifier가 허용한 연쇄의 끝에서 시작하는 나머지 표면 전체가
+  predicate generator의 지정사 활용과 정확히 일치하면 체언 core를 유지한다. 조사 연쇄는
+  candidate program이, 지정사와 어미는 기존 생산 문법이 각각 증명하며 compact source
+  graph에 같은 `J+VCP+E+` 분할을 중복 요구하지 않는다. 따라서 `대학뿐이다`,
+  `대학뿐만이다`처럼 보조사를 포함한 명사구 뒤 지정사를 일반적으로 지원하되, 허용되지 않은
+  조사 연쇄나 지정사·어미가 완결되지 않은 표면은 열지 않는다.
 - predicate program이 `-기` 또는 `-ㅁ/음`을 실제로 소비했고 그 nominalized span이
   whole nominal 또는 source nominal component와 일치하면 predicate query를 유지한다.
   이 규칙은 `걷기`, `걸음`, `발걸음`, `걸음걸이`처럼 명사형 자체와 compound 내부의
