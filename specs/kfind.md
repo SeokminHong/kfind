@@ -422,6 +422,11 @@
   `NNB + J+` 순서의 완성된 path를 증명하는 경우에만 구조 검증 범위를 전체 token으로
   확장한다. 따라서 `오다`는 `온지를`에서 회수하지만, source 관형형·의존명사·조사 중 하나가
   없거나 순서가 다른 path는 열지 않는다.
+- 관형형 candidate 뒤에 정확히 `가`만 남으면, 같은 품사의 source graph가 query core부터
+  token 끝까지 `predicate + E+` 순서의 완성된 path를 증명하는 경우에만 구조 검증 범위를
+  전체 token으로 확장한다. `MM + E` 경쟁 path는 단독 근거로 사용하지 않으며, predicate
+  path와 함께 있으면 recall-first 정책에 따라 용언 후보를 유지한다. 따라서 `어떻다`는
+  `어떤가`에서 회수하지만, predicate path가 없거나 조사까지 더 남는 후보는 열지 않는다.
   그 밖의 runtime compound와 해결되지 않은 complete path 경쟁은 순위를 매기지 않는다.
 - 구조적 경쟁이 여전히 모호하면 `ProductPolicy`는 recall을 우선해 지원 가능한
   query 후보를 유지한다. `Ambiguous`와 경쟁 proof 전체는 진단 evaluator에서만 물질화한다.

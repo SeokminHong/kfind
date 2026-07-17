@@ -280,6 +280,35 @@ fn adnominal_dependent_noun_particle_uses_a_complete_source_path() {
 }
 
 #[test]
+fn adnominal_interrogative_uses_a_complete_source_predicate_path() {
+    let options = CompileOptions {
+        global_pos: Some(CoarsePos::Adjective),
+        ..CompileOptions::default()
+    };
+    for matcher in [
+        compile_embedded_with_component("어떻다", options.clone()),
+        compile_with_full_pos("어떻다", options),
+    ] {
+        let text = "반면 미국은 어떤가.";
+        let matched = matcher
+            .find_at_with_meta(text.as_bytes(), 0)
+            .expect("adnominal interrogative source path was rejected");
+
+        assert_eq!(&text[matched.atoms[0].core.clone()], "어떤");
+        assert!(
+            matcher
+                .find_at_with_meta("어떤가를".as_bytes(), 0)
+                .is_none()
+        );
+    }
+    assert!(
+        compile("어떻다", CompileOptions::default())
+            .find_at_with_meta("어떤가".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn smart_auxiliary_query_accepts_a_complete_attached_source_path() {
     let matcher = compile_with_full_pos(
         "지다",
@@ -924,6 +953,14 @@ fn compile(query: &str, options: CompileOptions) -> MorphMatcher {
     compile_with_lexicons(query, options, lexicons)
 }
 
+fn compile_embedded_with_component(query: &str, options: CompileOptions) -> MorphMatcher {
+    let lexicons = Arc::new(Lexicons::embedded().expect("embedded lexicons must be valid"));
+    let analyzer = LexiconQueryAnalyzer::new(lexicons);
+    let plan = Arc::new(compile_query(query, &options, &analyzer).expect("query must compile"));
+    MorphMatcher::with_component_resource(plan, component_resource())
+        .expect("component-aware matcher must build")
+}
+
 fn compile_with_full_pos(query: &str, options: CompileOptions) -> MorphMatcher {
     let mut lexicons = Lexicons::embedded().expect("embedded lexicons must be valid");
     let full_data = LexiconData {
@@ -1035,6 +1072,9 @@ fn component_resource() -> Arc<ComponentResource> {
             component_expression_entry("주지", "VV+EC", "주/VV/*+지/EC/*"),
             component_entry("온", "MM"),
             component_expression_entry("온", "VV+ETM", "오/VV/*+ᆫ/ETM/*"),
+            component_entry("어떤", "VA"),
+            component_entry("어떤가", "MM+EC"),
+            component_entry("가", "EC"),
             component_entry("지", "NNB"),
             component_entry("빼", "VV"),
             component_entry("놓", "VX"),

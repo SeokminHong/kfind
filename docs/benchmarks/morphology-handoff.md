@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [관형형 의문 종결 recall](2026-07-17-adnominal-interrogative-recall.md)
 - [연결 어미 뒤 topic recall](2026-07-17-connective-topic-recall.md)
 - [`-다는` source 어미 recall](2026-07-17-declarative-adnominal-recall.md)
 - [분해된 체언 host recall](2026-07-17-graph-nominal-host-recall.md)
@@ -256,5 +257,20 @@ candidate가 소비한 경계까지 마지막 어미가 `ETM`인 `predicate + E*
 contract 정의, annotation과 gate는 변경하지 않았다.
 
 남은 큰 동일 질의 묶음인 부사 `안` 3건과 형용사 `이다` 3건은 비표준 입력이다. 다음 제품
-recall 작업은 표준형 `어떻다→어떤가`의 source `VA + EF`와 경쟁 `MM + JKS` 경로를 대조해
+recall 작업은 표준형 `어떻다→어떤가`의 source `VA + EC`와 경쟁 `MM + EC` 경로를 대조해
 용언 완성 경로만 안전하게 회수할 수 있는지 검증한다.
+
+[관형형 의문 종결 recall](2026-07-17-adnominal-interrogative-recall.md)에서 관형형 candidate가
+정확히 `가`만 남기고 source graph가 같은 품사의 `predicate + E+` 완성 경로를 증명하면
+경쟁 whole modifier가 있어도 용언 후보를 유지했다. 실제 고정 resource는 `어떤/VA + 가/EC`와
+`어떤가/MM+EC`를 함께 보존한다. Canonical embedded·full-POS·Human은 `어떻다→어떤가`
+1건을 회수해 `PNᶜ=500`에서 FNᶜ가 각각 54→53, 12→11, 16→15다. Matrix의 세 smart
+profile도 같은 1건을 회수해 embedded·full-POS·Human FNᶜ가 각각 140→139, 55→54,
+57→56이고 완전 회수 문장은 각각 1개 늘었다. FP·FPᶜ와 hard-negative는 변하지 않았다.
+후보 Agent는 25,096.2 cases/s로 Lindera snapshot보다 20.51% 빠르다. Matrix contract 정의,
+annotation과 gate는 변경하지 않았다.
+
+남은 가장 큰 동일 질의 묶음은 비표준 입력이 섞인 부사 `안`, 형용사 `이다`, `되다` 각
+3건이다. 다음 제품 recall 작업은 표준형 내부 체언 성분인 `1년간→간`, `어느날→날`,
+`첫번째로→번째`, `자본주의→주의`를 `compound-substring` hard-negative와 함께 분류해
+공통 typed 구조로 안전하게 회수할 수 있는지 검증한다.
