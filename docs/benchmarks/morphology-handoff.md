@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [선두 부사와 predicate 경쟁 경로 recall](2026-07-17-adverb-predicate-competitor-recall.md)
 - [선두 부사 component recall](2026-07-17-leading-adverb-component-recall.md)
 - [component SHA-256 hardware backend](2026-07-17-component-hardware-digest-startup.md)
 - [full POS validation prefix 재검사 제거](2026-07-17-full-pos-validation-startup.md)
@@ -416,3 +417,16 @@ hard-negative는 같다. Matrix contract 정의, annotation과 gate는 변경하
 `못해요→못`, `안나와요→안`이므로 이번 완전 경로 조건을 약화하지 않는다. 다음 작업은 이
 두 token의 source path 부재를 먼저 확인하고, noisy-text 전용 근거가 아니면 표준어
 predicate/continuation 경계 거부를 다음 독립 slice로 고른다.
+
+[선두 부사와 predicate 경쟁 경로 recall](2026-07-17-adverb-predicate-competitor-recall.md)에서
+체언+조사 host가 경쟁하더라도 token 시작의 `MAG` 뒤를 완전 predicate edge가 채우면 부사를
+유지했다. Test matrix embedded·full-POS와 Human은 `안나와요→안`을 회수해
+`PNᶜ=1,401`에서 FNᶜ가 각각 131→130, 46→45, 49→48이 됐다. 모든 FP·FPᶜ case와
+canonical, development, Agent, hard-negative는 같다. Matrix contract 정의, annotation과
+gate는 변경하지 않았다.
+
+남은 test matrix full-POS FNᶜ 45건은 `boundary-rejected` 21건,
+`gold-or-adapter` 15건, `surface-missing` 6건, `continuation-rejected` 2건,
+`span-mismatch` 1건이다. 남은 부사 경계 거부 `못해요→못`은 실제 component resource에
+완전 predicate suffix edge가 없다. 이 조건을 약화하지 않고, 다음 제품 recall 작업은 남은
+표준형 predicate/continuation 경계 거부를 동일 구조별로 다시 묶어 가장 큰 slice를 고른다.
