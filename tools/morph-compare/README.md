@@ -48,6 +48,9 @@ The default run performs one warm-up and five measured runs per kfind profile.
 It does not execute external analyzers; it reads only the version-controlled
 snapshot bound to the test fixture SHA-256. Results are written to
 `target/morph-benchmark/report.json` and `report.md`.
+By default, stdout contains only phase progress and the final report paths;
+failures and tool diagnostics use stderr. Set `KFIND_MORPH_VERBOSE=1` to show
+the Docker build output and generated Markdown report in the terminal.
 After the image is built, the container runs with `--network none`.
 `scripts/compare-morphology.sh` is an alias for the same benchmark.
 The image build creates the pinned full-POS artifact and fails if its checksum

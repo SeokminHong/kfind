@@ -8,6 +8,7 @@ import math
 import subprocess
 import sys
 import tempfile
+from collections.abc import Sequence
 from pathlib import Path
 from statistics import median
 
@@ -708,7 +709,7 @@ def evaluate_dataset(
     }
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(arguments: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--cases", type=Path, default=DEFAULT_CASES)
     parser.add_argument("--metadata", type=Path, default=DEFAULT_METADATA)
@@ -785,8 +786,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--runner", type=Path, default=DEFAULT_RUNNER)
     parser.add_argument("--runs", type=int, default=DEFAULT_RUNS)
     parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--progress", action="store_true")
+    parser.add_argument("--print-report", action="store_true")
     parser.add_argument("--output", type=Path, default=Path("/output/report.json"))
-    return parser.parse_args()
+    return parser.parse_args(arguments)
+
+
+def announce_progress(enabled: bool, message: str) -> None:
+    if enabled:
+        print(f"[morphology] {message}", flush=True)
 
 
 def main() -> int:
@@ -794,6 +802,7 @@ def main() -> int:
     try:
         if args.runs < 1:
             raise ValueError("--runs must be at least 1")
+        announce_progress(args.progress, "validating fixtures")
         cases = load_cases(args.cases)
         metadata = json.loads(args.metadata.read_text(encoding="utf-8"))
         validate_dataset(args.cases, cases, metadata)
@@ -879,6 +888,7 @@ def main() -> int:
                 write_cases(
                     human_untagged_smoke_path, human_untagged_smoke_cases
                 )
+                announce_progress(args.progress, "measuring smoke profiles")
                 baseline = evaluate_dataset(
                     smoke_cases, smoke_path, args.runner, 1, True
                 )
@@ -891,6 +901,9 @@ def main() -> int:
                     baseline["performance"],
                     baseline["diagnostics"],
                     baseline["shadow_verification"],
+                )
+                announce_progress(
+                    args.progress, "measuring startup and boundary profiles"
                 )
                 report["component_startup"] = evaluate_component_startup(
                     args.runner, args.runs
@@ -923,15 +936,18 @@ def main() -> int:
                         report["boundary_comparison"],
                     )
                 )
+                announce_progress(args.progress, "measuring product CLI workflows")
                 report["product_use_cases"] = measure_product_workflows(
                     runs=1, smoke=True
                 )
+                announce_progress(args.progress, "collecting shadow diagnostics")
                 report["agent_precision_shadow"] = {
                     "development": build_agent_shadow_report(
                         smoke_cases,
                         run_native_agent_shadow(args.runner, smoke_path),
                     )
                 }
+                announce_progress(args.progress, "evaluating query matrix")
                 report["query_matrix"] = evaluate_query_matrix_smoke(
                     directory=Path(directory),
                     explicit_cases=query_matrix_dev_cases,
@@ -943,6 +959,7 @@ def main() -> int:
                     evaluate_boundary=evaluate_boundary_comparison,
                     evaluate_human=evaluate_human_untagged,
                 )
+                announce_progress(args.progress, "evaluating robustness")
                 report["robustness"] = (
                     evaluate_robustness_smoke(
                         directory=Path(directory),
@@ -956,12 +973,18 @@ def main() -> int:
                         evaluate_untagged_profile=evaluate_untagged_profile_runs,
                     )
                 )
-                return write_report(args.output, report)
+                announce_progress(args.progress, "writing reports")
+                return write_report(args.output, report, args.print_report)
 
+        announce_progress(
+            args.progress,
+            f"measuring regression profiles ({args.runs} measured runs)",
+        )
         baseline = evaluate_dataset(cases, args.cases, args.runner, args.runs, True)
         external = load_external_baselines(args.external_baselines, cases, metadata)
         for key in ("versions", "predictions", "matches"):
             baseline[key].update(external[key])
+        announce_progress(args.progress, "evaluating development and hard negatives")
         development = evaluate_dataset(dev_cases, args.dev_cases, args.runner, 1, False)
         hard_negatives = evaluate_dataset(
             hard_cases, args.hard_negatives, args.runner, 1, False
@@ -1001,6 +1024,7 @@ def main() -> int:
             hard_negatives["diagnostics"],
             hard_negatives["shadow_verification"],
         )
+        announce_progress(args.progress, "measuring startup and boundary profiles")
         report["component_startup"] = evaluate_component_startup(
             args.runner, args.runs
         )
@@ -1025,9 +1049,11 @@ def main() -> int:
             args.runs,
             report["boundary_comparison"],
         )
+        announce_progress(args.progress, "measuring product CLI workflows")
         report["product_use_cases"] = measure_product_workflows(
             runs=args.runs, smoke=False
         )
+        announce_progress(args.progress, "collecting shadow diagnostics")
         report["agent_precision_shadow"] = {
             "development": build_agent_shadow_report(
                 dev_cases,
@@ -1042,6 +1068,7 @@ def main() -> int:
                 run_native_agent_shadow(args.runner, args.cases),
             ),
         }
+        announce_progress(args.progress, "evaluating query matrix")
         report["query_matrix"] = evaluate_query_matrix_full(
             explicit_cases=query_matrix_cases,
             explicit_metadata=query_matrix_metadata,
@@ -1059,6 +1086,7 @@ def main() -> int:
             evaluate_boundary=evaluate_boundary_comparison,
             evaluate_human=evaluate_human_untagged,
         )
+        announce_progress(args.progress, "evaluating robustness")
         report["robustness"] = (
             evaluate_robustness(
                 explicit_cases=robustness_cases,
@@ -1075,15 +1103,19 @@ def main() -> int:
                 evaluate_untagged_profile=evaluate_untagged_profile_runs,
             )
         )
-        return write_report(args.output, report)
+        announce_progress(args.progress, "writing reports")
+        return write_report(args.output, report, args.print_report)
     except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:
         print(f"benchmark failed: {error}", file=sys.stderr)
         return 2
 
 
-def write_report(output: Path, report: dict[str, object]) -> int:
+def write_report(
+    output: Path, report: dict[str, object], print_report: bool = False
+) -> int:
     markdown = render_markdown(report)
-    print(markdown, end="")
+    if print_report:
+        print(markdown, end="")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
