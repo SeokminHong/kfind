@@ -2346,6 +2346,14 @@ annotation을 보존한다. 이 registry의 사유 class는 corpus 정제 근거
 `noise_class` gold를 대신하지 않는다. 자연 원문 row는 수동 검토로 `noise_class`, raw span과
 expected를 확정하기 전에는 robustness 품질 점수나 제품 규칙 선택에 사용하지 않는다.
 
+`robustness-candidate`는 canonical과 분리한 성능 전용 workload도 제공한다. 같은 KSL 문장에서
+명시적 품사 500-case와 무품사 500-case를 생성하고 현재 제품의 robustness `off` 경로를
+fresh process warm-up 1회 뒤 5회 측정한다. Embedded/full-POS `smart`, Agent의
+`embedded + any + explicit POS`, Human의 `full-POS + smart + untagged`에 대해 initialization,
+cases/s, p50·p95 latency와 peak RSS의 median/min/max를 기록한다. 이 workload에는 품질 점수,
+canonical 합계나 backend 순위를 붙이지 않는다. Core 검토에서 제외한 KAIST 문장은 query,
+POS와 raw span annotation을 마친 뒤에만 이 성능 workload에 추가한다.
+
 gold 후보는 CoNLL-U의 정렬된 lemma/XPOS 형태소 쌍에서 추출하고, lemma가 축약된 KAIST
 어절은 `OrigLemma`를 우선 사용한다. 지원 품사에 속하고 표제어가 한글 음절로만 구성된
 형태소만 포함한다. VV·VA·VX·VCP·VCN과 이에 대응하는 KAIST 용언 태그는 어간에 `다`를

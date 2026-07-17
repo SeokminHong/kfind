@@ -13,6 +13,7 @@ from report import (
     append_product_workflows,
     append_product_use_cases,
     append_query_matrix,
+    append_robustness_candidate_performance,
     build_report,
     classify_lattice_paths,
     classify_primary_cause,
@@ -812,6 +813,53 @@ class QueryMatrixReportTests(unittest.TestCase):
         )
         self.assertIn("| agent | 99.0% | 90.0% |", rendered)
         self.assertIn("| agent | 99.5% | 91.0% | 95.06% |", rendered)
+
+
+class RobustnessCandidatePerformanceReportTests(unittest.TestCase):
+    def test_renders_performance_without_quality(self) -> None:
+        performance = {
+            "runs": 5,
+            "initialization_seconds": 0.1,
+            "cases_per_second": 1200.0,
+            "latency_p50_ms": 0.2,
+            "latency_p95_ms": 0.5,
+            "peak_rss_kib": 10240,
+            "run_min": {
+                "initialization_seconds": 0.09,
+                "cases_per_second": 1100.0,
+                "latency_p50_ms": 0.18,
+                "latency_p95_ms": 0.45,
+                "peak_rss_kib": 9216,
+            },
+            "run_max": {
+                "initialization_seconds": 0.11,
+                "cases_per_second": 1300.0,
+                "latency_p50_ms": 0.22,
+                "latency_p95_ms": 0.55,
+                "peak_rss_kib": 11264,
+            },
+        }
+        robustness = {
+            "scoring_status": "annotation-required",
+            "robustness_mode": "off",
+            "datasets": {
+                "explicit_pos": {"fixture_sha256": "explicit", "cases": 500},
+                "untagged": {"fixture_sha256": "untagged", "cases": 500},
+            },
+            "workloads": {
+                "embedded-smart-explicit-pos": {"performance": performance}
+            },
+        }
+        lines: list[str] = []
+
+        append_robustness_candidate_performance(lines, robustness)
+
+        rendered = "\n".join(lines)
+        self.assertIn("## Robustness candidate performance", rendered)
+        self.assertIn("no quality metric is reported", rendered)
+        self.assertIn("| embedded-smart-explicit-pos | 5 |", rendered)
+        self.assertIn("1200.0 [1100.0, 1300.0]", rendered)
+        self.assertNotIn("precision", rendered)
 
 
 class ShadowVerificationTests(unittest.TestCase):

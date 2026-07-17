@@ -23,6 +23,11 @@ kfind 사람용 profile을 측정한다. 보고서는 strict와 contract-adjuste
 matrix, 문장 안 모든 존재 질의 회수율과 문장 group cluster bootstrap 95% 구간을
 `query_matrix` 절에 병렬로 기록한다. 고정 크기 1,000-case 회귀선과는 분리한다.
 
+보고서는 Korean-KSL을 `robustness=off`인 별도 500-case robustness 후보 성능 workload로도
+측정한다. 명시적 품사 입력과 무품사 입력을 각각 1회 warm-up 뒤 새 process에서 실행한다.
+아직 query-level annotation이 필요하므로 이 절에는 초기화·처리량·p50/p95 지연·peak RSS만
+기록하고 품질이나 분석기 순위는 내지 않는다.
+
 ```sh
 scripts/benchmark-morphology.sh
 ```

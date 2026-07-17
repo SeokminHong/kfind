@@ -34,6 +34,14 @@ RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
         --metadata /benchmark/robustness-candidate-metadata.json \
         --split test \
         --source-set robustness-candidate \
+    && python python/dataset.py \
+        --manifest sources.json \
+        --sources /corpora \
+        --output /benchmark/robustness-candidate-untagged-cases.jsonl \
+        --metadata /benchmark/robustness-candidate-untagged-metadata.json \
+        --split test \
+        --query-mode untagged \
+        --source-set robustness-candidate \
     && python python/review_registry.py \
         --manifest sources.json \
         --sources /corpora \

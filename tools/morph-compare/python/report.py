@@ -291,7 +291,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 17,
+        "schema_version": 18,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "backends": list(backends),
@@ -415,6 +415,9 @@ def render_markdown(report: dict[str, object]) -> str:
     append_boundary_comparison(lines, report.get("boundary_comparison"))
     append_human_untagged(lines, report.get("human_untagged"))
     append_query_matrix(lines, report.get("query_matrix"))
+    append_robustness_candidate_performance(
+        lines, report.get("robustness_candidate_performance")
+    )
     append_component_startup(lines, report.get("component_startup"))
     append_shadow_verification(lines, report)
     append_profile_comparison(lines, report)
@@ -430,6 +433,45 @@ def render_markdown(report: dict[str, object]) -> str:
         ]
     )
     return "\n".join(lines) + "\n"
+
+
+def append_robustness_candidate_performance(
+    lines: list[str], robustness: dict[str, object] | None
+) -> None:
+    if robustness is None:
+        return
+    explicit = robustness["datasets"]["explicit_pos"]
+    untagged = robustness["datasets"]["untagged"]
+    lines.extend(
+        [
+            "",
+            "## Robustness candidate performance",
+            "",
+            "This performance-only workload keeps robustness mode off. Its noisy-text "
+            "sentences still require query-level annotation, so no quality metric is "
+            "reported.",
+            "",
+            f"- explicit-POS fixture: `{explicit['fixture_sha256']}`; "
+            f"{explicit['cases']} cases",
+            f"- untagged fixture: `{untagged['fixture_sha256']}`; "
+            f"{untagged['cases']} cases",
+            f"- scoring status: `{robustness['scoring_status']}`",
+            f"- robustness mode: `{robustness['robustness_mode']}`",
+            "",
+            "| workload | runs | init median [min, max] | cases/s median [min, max] | p50 median [min, max] | p95 median [min, max] | peak RSS median [min, max] |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
+    for name, workload in robustness["workloads"].items():
+        metrics = workload["performance"]
+        lines.append(
+            f"| {name} | {metrics['runs']} | "
+            f"{format_metric_range(metrics, 'initialization_seconds', '.4f', 's')} | "
+            f"{format_metric_range(metrics, 'cases_per_second', '.1f')} | "
+            f"{format_metric_range(metrics, 'latency_p50_ms', '.4f', ' ms')} | "
+            f"{format_metric_range(metrics, 'latency_p95_ms', '.4f', ' ms')} | "
+            f"{format_rss_range(metrics, 'peak_rss_kib')} |"
+        )
 
 
 def append_query_matrix(
@@ -1018,6 +1060,32 @@ def format_seconds(metrics: dict[str, object], name: str) -> str:
     return (
         f"{value:.4f}s [{metrics['run_min'][name]:.4f}, "
         f"{metrics['run_max'][name]:.4f}]"
+    )
+
+
+def format_metric_range(
+    metrics: dict[str, object], name: str, format_spec: str, suffix: str = ""
+) -> str:
+    value = metrics[name]
+    minimum = metrics["run_min"][name]
+    maximum = metrics["run_max"][name]
+    if value is None or minimum is None or maximum is None:
+        return "n/a"
+    return (
+        f"{value:{format_spec}}{suffix} "
+        f"[{minimum:{format_spec}}, {maximum:{format_spec}}]"
+    )
+
+
+def format_rss_range(metrics: dict[str, object], name: str) -> str:
+    value = metrics[name]
+    minimum = metrics["run_min"][name]
+    maximum = metrics["run_max"][name]
+    if value is None or minimum is None or maximum is None:
+        return "n/a"
+    return (
+        f"{format_rss(value)} "
+        f"[{minimum / 1024:.1f}, {maximum / 1024:.1f}]"
     )
 
 

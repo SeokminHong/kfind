@@ -29,6 +29,12 @@ strict and contract-adjusted confusion matrices, sentence coverage, and
 sentence-cluster bootstrap 95% intervals in parallel. The fixed-size 1,000-case
 regression baseline remains separate.
 
+The report also measures Korean-KSL as a separate 500-case robustness-candidate
+performance workload with robustness mode off. Explicit-POS and untagged inputs
+run in fresh processes after one warm-up. Because the sentences still require
+query-level annotation, this section reports initialization, throughput, p50/p95
+latency, and peak RSS only; it does not report quality or rank analyzers.
+
 ```sh
 scripts/benchmark-morphology.sh
 ```
