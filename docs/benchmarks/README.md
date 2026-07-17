@@ -131,12 +131,17 @@ scripts/benchmark-criterion.sh structural_constraint
 
 ## Morphology comparison
 
-독립된 UD Korean-Kaist·KSL test split에서 `kfind` embedded/full-POS를 실행하고
+수동 검토를 통과한 UD Korean-Kaist test 문장에서 `kfind` embedded/full-POS를 실행하고
 Kiwi·Lindera·MeCab-ko·KOMORAN의 고정 품질·성능 스냅샷과 lemma/POS/span task를 비교한다.
 full-POS 프로필은 제품 기본 CLI와 같은 enriched 용언 metadata를 함께 읽고, embedded
 프로필은 두 외부 어휘 resource를 모두 읽지 않는다.
 기본 실행은 kfind만 다시 측정하고 외부 결과는 저장된 스냅샷에서 읽는다. dev의 VCP/VCN
 분석 slice는 성능 측정에서 제외한다.
+Korean-KSL과 core 검토에서 제외한 Korean-Kaist 문장은 annotation-required robustness 후보로
+보존하며 canonical 품질 합계에는 넣지 않는다.
+Korean-KSL은 `robustness=off`에서 명시적 품사·무품사 500-case 성능 workload로만 별도
+실행한다. fresh process warm-up 1회 뒤 5회 측정한 초기화, cases/s, p50/p95, RSS의
+median/min/max를 기록하며 품질 지표나 분석기 순위를 만들지 않는다.
 별도 human fixture는 품사 옵션과 atom 태그를 생략하고, query 표제어가 어떤 지원 품사로도
 없는 문장을 negative로 사용한다. embedded/full-POS의 smart/any 품질·성능과 auto plan
 사용성을 같은 보고서의 `human_untagged` 절에 기록한다. 무품사 결과를 개선하기 위해 fixture,

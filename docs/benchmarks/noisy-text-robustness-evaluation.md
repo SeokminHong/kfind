@@ -6,9 +6,16 @@
 
 ## 평가 corpus
 
-기존 UD fixture는 표준 형태 회귀를, 25-case 현실 기술 코퍼스는 blind 진단을 담당한다. 현재
+수동 검토를 통과한 UD Korean-Kaist fixture는 표준 형태 회귀를, Korean-KSL과 core 검토에서
+제외한 문장은 annotation-required robustness 후보를 담당한다. 후보 문장은 query-level gold가
+아니므로 품질 합계에 넣지 않는다. 25-case 현실 기술 코퍼스는 blind 진단을 담당한다. 현재
 현실 기술 코퍼스의 User `spacing-error` 5건은 TP 1 / FN 4이지만 사례 수와 negative가 부족해
 robustness threshold나 규칙 선택에 쓰지 않는다.
+
+Korean-KSL 후보의 실행 비용은 품질과 분리한 performance-only 기준선으로 측정한다. 제품
+robustness mode가 구현되기 전에는 `off`만 실행하며 명시적 품사와 무품사 500-case의
+initialization, cases/s, p50·p95 latency, peak RSS만 보고한다. Query-level annotation이 없는
+core 제외 문장은 이 workload에 넣지 않는다.
 
 별도 `noisy_text` fixture는 다음 두 층으로 만든다.
 

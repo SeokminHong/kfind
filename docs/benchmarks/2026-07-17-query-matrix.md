@@ -1,177 +1,247 @@
-# 같은 문장의 누적 검색 누락 검증
+# 검토된 UD 코퍼스 재샘플링과 Robust 성능
 
 - 측정일: 2026-07-17
-- 기준 revision: `5d41e950e54a8168db2415e1ea37e8535ba6dacd`
-- 후보 revision: `e08d98f3f0d87a649114b4f8f8edb163134b401d`
+- 기준 revision: `0932120b7b94672dc17b26b2ef95adaefc5e2b25`
+- 후보 revision: `66dc8304372a859eed462710e4397c21832a73f6`
 - 환경: Linux 6.12.76/linuxkit aarch64, 10 logical CPUs, Python 3.12.13,
   Rust 1.97.0, Docker 29.6.1
-- 반복: fresh process warm-up 1회 뒤 5회 측정의 중앙값
+- 반복: fresh process warm-up 1회 뒤 5회 측정의 중앙값과 min/max
+- source manifest SHA-256:
+  `19d0cb7c267ca1b20f9c0c94312c392da60079ad1696825e363266076b58bbc1`
+- sentence review SHA-256:
+  `4f555398ca6d30f455be3fee44228da766cbd8ab5763479c15cbe3bfc8449fed`
 - canonical test fixture:
-  `933bc12197da866d2363d7df9107d4d9be89a65ddaafd73968ad5384832b21ff`
+  `1497b958a6970c55bc68ff148e435a88366b650c971231c3ae40adb9d8c46572`
 - explicit-POS matrix:
-  `fbcce40b533655085ff8a4e9031559f99b54f86abe188b6ddc1d690dd44326c6`
+  `b4a7294e15b137407fffbaa90202ffeaf05598a01404b06a839931ca9563088b`
 - untagged matrix:
-  `b9dd7601301fa19b35acba735a977eba7c56a0c9d67c65dee32db5c8028c71bb`
+  `136bc11ee8b3d9013089b1501339aa83275f3b5570e3df65c99cba41ccfc156e`
 - development matrix:
-  `bc67497c3dc966fb7453b238df52c6d781b1b4485d40e8a5d6a38104dcc7abed`
-- external matrix snapshot SHA-256:
-  `1168cde228f571de0fea687114adc597d266b5a2e7eac11784bfdf431ed1d60a`
+  `0398c87744aa8136dc4bc80f9e042531a931d3f92fa177fc961bf8f77958413b`
+- canonical external snapshot SHA-256:
+  `28d0ade4b3725ad28c9ea0fd2399fa187c80478aed82dd85b059b26bdbd93a95`
+- matrix external snapshot SHA-256:
+  `a6906d6a2563153faa9f2de347d06cf73de3dd4e611ce921073728e73614c9fc`
 - 기준 report SHA-256:
-  `65edaf4134e7b39816245b29940057410c390ae94089fc837aa4cb7fb618fbb8`
+  `3a343c1c083daffab46a7d6890047728e7d3aa55128e1d0a0860a18f6db83c90`
 - 후보 report SHA-256:
-  `1c32f59b23cdc0dd2d72af4213efd9669ec458cc4b411deb8a71a2a36339a7d0`
+  `dbf1c951e996dea2c27334078d4eaecce404c683b19bc9b5b4158a07e0fd6b94`
 
 ## 결론
 
-기존 canonical 1,000-case는 그대로 유지하면서, positive가 있는 468개 문장의 검색 질의를
-최대 3개로 늘렸다. 모든 canonical positive를 보존하고 같은 품사의 paired negative를
-대응시켜 1,401 positive와 1,401 negative, 총 2,802-case를 만들었다.
+기존 scored fixture에는 UD Korean-Kaist와 Korean-KSL이 함께 들어 있었다. Korean-KSL은
+학습자 문장이라 비문과 오타가 많으므로 canonical 점수에서 전부 분리했다. Korean-Kaist는
+실제 샘플링 대상이 된 test 813문장과 dev 792문장을 모두 수동 검토했다. 비문·오타·source
+artifact 121문장은 점수 없는 Robust registry로 옮기고, 통과한 문장에서 positive 500개와
+negative 500개를 다시 샘플링했다.
 
-동일 explicit-POS 입력에서 matrix recall은 80.51~92.86%였다. 한 문장의 선택 질의를 모두
-찾은 비율은 54.70~80.13%로 더 낮았다. 개별 query recall만으로 보이지 않던 누적 누락을
-문장 단위 지표가 분리한다. Canonical은 고정 회귀선으로 유지하고 matrix는 별도 진단
-workload로 사용한다.
+새 canonical test는 1,000-case, explicit-POS query matrix는 432문장의 2,592-case다.
+Matrix에서 kfind full-POS `smart`는 precision 99.36%, recall 96.45%, 문장 안 세 질의를 모두
+찾은 비율 89.58%였다. Agent workflow는 recall 97.30%, Human workflow는 precision 99.68%였다.
 
-Matrix의 strict와 contract-adjusted confusion matrix, 문장별 모든 positive 회수율과 cluster
-bootstrap 구간을 함께 기록한다. 현재 matrix에는 제품 실행 전에 선언한 `contract_expected`가
-없어 `reclassified=0`이며 두 결과가 같다. 이는 hard-negative의 기존 annotation을 자동으로
-복사하지 않고 matrix 자체에서 사전 검토한 case만 보정한다는 계약과 일치한다.
+Robust 성능은 품질과 분리했다. Annotation이 끝나지 않은 Korean-KSL에서 명시 POS 500-case와
+무태그 500-case를 만들고 현재 `robustness=off`만 측정했다. 후보의 처리량은 workload에 따라
+14,485.8~26,746.4 cases/s였으며 품질 점수나 backend 순위는 내지 않았다.
 
-## 동일 입력 비교
+기준과 후보의 case별 품질·실패 목록은 완전히 같다. 성능의 최대 불리 변화는 matrix Human
+처리량 -7.94%로 10% 경고선 안이다. 제품 Rust·resource·runner 입력도 두 revision 사이에
+변경이 없어 회귀로 판정하지 않는다.
 
-Canonical과 matrix의 positive 분모는 각각 500건과 1,401건이다. Matrix는 canonical
-positive 500건을 모두 포함하지만 추가 query의 품사 구성이 달라지므로 recall 차이를 새
-corpus에 대한 일반화 향상으로 해석하지 않는다.
+## 코퍼스 출처와 문장 검토
 
-| backend | canonical recall | matrix precision | matrix recall | 증감 | matrix F1 | 모든 질의 회수율 |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| kfind embedded `smart` | 87.60% | 99.60% | 88.29% | +0.69%p | 93.61% | 68.38% |
-| kfind full-POS `smart` | 94.60% | 99.62% | 92.86% | -1.74%p | 96.12% | 80.13% |
-| Kiwi 0.23.2 | 85.20% | 100.00% | 87.87% | +2.67%p | 93.54% | 67.74% |
-| Lindera 4.0.0 | 78.60% | 99.82% | 80.51% | +1.91%p | 89.13% | 54.70% |
-| MeCab-ko 1.0.2 | 80.60% | 99.91% | 82.94% | +2.34%p | 90.64% | 59.40% |
-| KOMORAN 3.3.9 | 81.20% | 99.92% | 84.73% | +3.53%p | 91.70% | 61.11% |
+원문은 Universal Dependencies 2.18이다.
 
-Recall 95% 구간은 query를 독립 표본으로 취급하지 않고 문장을 cluster로 삼아 10,000회
+| source | split | 원문 SHA-256 | 역할 |
+| --- | --- | --- | --- |
+| Korean-Kaist | test | `fd94dc89afb01d1f7f340a46d567e0f27ae6903a70d7b6f650b49f7427f83b97` | 검토된 canonical |
+| Korean-Kaist | dev | `a1ce2dceee65683c2df3b0cce96c83d01e5ff67756060b998fe01d8bc8ca4faa` | 검토된 development |
+| Korean-KSL | test | `62574d11b83f62217494a53fd2a7cbf75b7fc3fe5df74021a91e66df65149033` | annotation-required Robust 후보 |
+
+검토 범위는 generator가 quota를 채우기 전에 고정한 Korean-Kaist pre-review pool 전체다.
+Review file은 문장 ID와 text digest를 고정하므로 원문이나 selection 순서가 바뀌면 생성이
+실패한다.
+
+| split | 검토 문장 | 통과 | Robust 분리 | pool SHA-256 |
+| --- | ---: | ---: | ---: | --- |
+| test | 813 | 756 | 57 | `9ec2f1da62c94fcf392cfbc0cf701dc6a08d59ac54517c835efd85bf7fa3d1e1` |
+| dev | 792 | 728 | 64 | `8e1a38476da07f6685ee7cc7f82d632a60729de114b76d8be8124ffda5a63500` |
+| 합계 | 1,605 | 1,484 | 121 | — |
+
+| 제외 사유 | 문장 |
+| --- | ---: |
+| 한글 오타 | 47 |
+| 비표준 문법 | 21 |
+| 붙여쓰기 | 19 |
+| source artifact | 11 |
+| 띄어쓰기 분리 | 7 |
+| 외국어 표기 오타 | 6 |
+| 반복 | 5 |
+| 철자 혼동 | 4 |
+| 문장 파편 | 1 |
+
+121문장은 query/POS/raw span gold가 아직 없으므로 문장 단위 Robust registry
+`403dfdbb315d9dee7536210bd464faaeca25ad4357e61a87731e3a64d831de88`에만 보존한다.
+
+## Canonical 재샘플링
+
+검토를 통과한 Korean-Kaist에서 다음 quota로 positive를 고르고 동일한 수의 deterministic
+negative를 대응시켰다. Test clean pool의 서로 다른 대명사 candidate가 26개뿐이어서 대명사
+quota를 30에서 26으로 낮추고 명사에 4개를 옮겼다.
+
+| POS | positive | negative |
+| --- | ---: | ---: |
+| noun | 184 | 184 |
+| verb | 120 | 120 |
+| adjective | 80 | 80 |
+| adverb | 50 | 50 |
+| pronoun | 26 | 26 |
+| determiner | 20 | 20 |
+| numeral | 20 | 20 |
+| 합계 | 500 | 500 |
+
+| backend | precision | recall | F1 | TP | FP | TN | FN |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| kfind embedded `smart` | 99.78% | 90.20% | 94.75% | 451 | 1 | 499 | 49 |
+| kfind full-POS `smart` | 99.59% | 97.00% | 98.28% | 485 | 2 | 498 | 15 |
+| Kiwi 0.23.2 | 100.00% | 83.60% | 91.07% | 418 | 0 | 500 | 82 |
+| Lindera 4.0.0 | 100.00% | 75.40% | 85.97% | 377 | 0 | 500 | 123 |
+| MeCab-ko 1.0.2 | 100.00% | 78.00% | 87.64% | 390 | 0 | 500 | 110 |
+| KOMORAN 3.3.9 | 100.00% | 78.60% | 88.02% | 393 | 0 | 500 | 107 |
+
+Dataset 자체가 바뀌었으므로 이 수치는 이전 fixture와 행 단위 회귀 비교하지 않는다.
+
+## Query matrix
+
+Canonical positive 500개가 속한 432개 문장에서 정렬된 존재 질의를 문장마다 3개씩 선택하고,
+각 positive와 같은 품사의 부재 질의를 대응시켰다. 총 1,296 positive와 1,296 negative다.
+현재 사전 선언된 `contract_expected`가 없어 strict와 contract-adjusted 결과는 같고
+`reclassified=0`이다.
+
+| backend | precision | recall | F1 | TP | FP | TN | FN | 세 질의 모두 회수 | cluster 95% CI |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| kfind embedded `smart` | 99.41% | 90.28% | 94.62% | 1,170 | 7 | 1,289 | 126 | 73.61% | 88.66~91.90% |
+| kfind full-POS `smart` | 99.36% | 96.45% | 97.89% | 1,250 | 8 | 1,288 | 46 | 89.58% | 95.45~97.45% |
+| Kiwi 0.23.2 | 100.00% | 85.49% | 92.18% | 1,108 | 0 | 1,296 | 188 | 62.73% | 83.49~87.42% |
+| Lindera 4.0.0 | 100.00% | 76.70% | 86.81% | 994 | 0 | 1,296 | 302 | 45.83% | 74.31~79.01% |
+| MeCab-ko 1.0.2 | 100.00% | 79.94% | 88.85% | 1,036 | 0 | 1,296 | 260 | 52.55% | 77.70~82.18% |
+| KOMORAN 3.3.9 | 100.00% | 82.10% | 90.17% | 1,064 | 0 | 1,296 | 232 | 54.86% | 79.94~84.18% |
+
+95% 구간은 query를 독립 표본으로 취급하지 않고 문장을 cluster로 삼아 10,000회
 bootstrap했다.
 
-| backend | recall 95% 구간 | 전부 찾은 문장 / 전체 문장 |
-| --- | ---: | ---: |
-| kfind embedded `smart` | 86.60~89.93% | 320 / 468 |
-| kfind full-POS `smart` | 91.50~94.16% | 375 / 468 |
-| Kiwi 0.23.2 | 86.18~89.58% | 317 / 468 |
-| Lindera 4.0.0 | 78.29~82.67% | 256 / 468 |
-| MeCab-ko 1.0.2 | 80.84~84.96% | 278 / 468 |
-| KOMORAN 3.3.9 | 82.86~86.63% | 286 / 468 |
+### 제품 workflow
 
-## Contract-adjusted 결과
+| workflow | precision | recall | F1 | TP | FP | TN | FN | 모든 질의 회수 | cases/s | p95 | RSS |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Agent: embedded + any + explicit POS | 98.13% | 97.30% | 97.71% | 1,261 | 24 | 1,272 | 35 | 91.90% | 26,839.2 | 0.0620 ms | 8.0 MiB |
+| Human: full-POS + smart + untagged | 99.68% | 96.06% | 97.84% | 1,245 | 4 | 1,292 | 51 | 88.43% | 13,864.5 | 0.1511 ms | 57.0 MiB |
 
-| backend | contract precision | contract recall | contract F1 | TPᶜ | FPᶜ | TNᶜ | FNᶜ | 모든 contract 질의 회수율 | reclassified |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| kfind embedded `smart` | 99.60% | 88.29% | 93.61% | 1,237 | 5 | 1,396 | 164 | 68.38% | 0 |
-| kfind full-POS `smart` | 99.62% | 92.86% | 96.12% | 1,301 | 5 | 1,396 | 100 | 80.13% | 0 |
-| Kiwi 0.23.2 | 100.00% | 87.87% | 93.54% | 1,231 | 0 | 1,401 | 170 | 67.74% | 0 |
-| Lindera 4.0.0 | 99.82% | 80.51% | 89.13% | 1,128 | 2 | 1,399 | 273 | 54.70% | 0 |
-| MeCab-ko 1.0.2 | 99.91% | 82.94% | 90.64% | 1,162 | 1 | 1,400 | 239 | 59.40% | 0 |
-| KOMORAN 3.3.9 | 99.92% | 84.73% | 91.70% | 1,187 | 1 | 1,400 | 214 | 61.11% | 0 |
+### Explicit-POS matrix 성능
 
-## 제품 workflow
-
-Agent는 명시 POS와 `any` 경계로 recall을 우선하고, Human은 무태그 query와 `smart` 경계로
-precision을 우선한다. 입력 계약이 다르므로 두 결과를 하나의 순위로 합치지 않는다.
-
-| workflow | precision | recall | F1 | 모든 질의 회수율 | cases/s |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Agent: embedded + any + explicit POS | 98.48% | 96.93% | 97.70% | 90.81% | 17,471.5 |
-| Human: full-POS + smart + untagged | 99.69% | 93.15% | 96.31% | 80.56% | 11,648.6 |
-
-| workflow | contract precision | contract recall | contract F1 | TPᶜ | FPᶜ | TNᶜ | FNᶜ | 모든 contract 질의 회수율 | reclassified |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Agent: embedded + any + explicit POS | 98.48% | 96.93% | 97.70% | 1,358 | 21 | 1,380 | 43 | 90.81% | 0 |
-| Human: full-POS + smart + untagged | 99.69% | 93.15% | 96.31% | 1,305 | 4 | 1,397 | 96 | 80.56% | 0 |
-
-## 품사별 결과
-
-수사는 외부 분석기에서 43.75~46.88%로 가장 낮았다. kfind의 숫자 단위 구조 판정은 수사
-recall을 두 profile 모두 93.75%로 높였다. Embedded의 남은 약점은 형용사 76.89%와 동사
-79.74%이며, full-POS resource를 사용하면 각각 89.50%, 89.39%다.
-
-| POS | positive | embedded | full-POS | Kiwi | Lindera | MeCab-ko | KOMORAN |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| adjective | 238 | 76.89% | 89.50% | 83.19% | 84.45% | 79.41% | 76.05% |
-| adverb | 186 | 94.09% | 96.24% | 92.47% | 86.02% | 93.55% | 94.62% |
-| determiner | 56 | 98.21% | 98.21% | 94.64% | 53.57% | 94.64% | 91.07% |
-| noun | 502 | 94.42% | 94.42% | 91.63% | 81.27% | 82.27% | 86.85% |
-| numeral | 32 | 93.75% | 93.75% | 46.88% | 43.75% | 46.88% | 46.88% |
-| pronoun | 76 | 94.74% | 94.74% | 80.26% | 86.84% | 81.58% | 76.32% |
-| verb | 311 | 79.74% | 89.39% | 87.46% | 80.06% | 82.32% | 86.82% |
-
-## 성능
-
-외부 분석기와 kfind 모두 같은 2,802-case explicit-POS workload를 fresh process로 실행했다.
-처리량은 품질 또는 제품 입력 계약과 합친 순위가 아니다.
+외부 행은 갱신한 고정 snapshot이다. 처리량을 품질 또는 persona가 다른 workflow와 합친
+순위로 해석하지 않는다.
 
 | backend | initialization | cases/s | p95 | peak RSS |
 | --- | ---: | ---: | ---: | ---: |
-| kfind embedded `smart` | 0.240241 s | 14,819.9 | 0.1304 ms | 43.6 MiB |
-| kfind full-POS `smart` | 0.384949 s | 12,961.4 | 0.1687 ms | 82.7 MiB |
-| Kiwi 0.23.2 | 1.776459 s | 1,534.7 | 1.2421 ms | 531.5 MiB |
-| Lindera 4.0.0 | 0.030357 s | 19,829.6 | 0.1007 ms | 199.5 MiB |
-| MeCab-ko 1.0.2 | 0.000333 s | 9,838.8 | 0.2001 ms | 104.1 MiB |
-| KOMORAN 3.3.9 | 1.216210 s | 1,786.4 | 1.0587 ms | 897.6 MiB |
+| kfind embedded `smart` | 0.040815 s | 21,335.1 | 0.0700 ms | 43.6 MiB |
+| kfind full-POS `smart` | 0.079575 s | 16,250.1 | 0.1168 ms | 57.0 MiB |
+| Kiwi 0.23.2 | 1.553041 s | 1,720.9 | 0.9583 ms | 533.2 MiB |
+| Lindera 4.0.0 | 0.028482 s | 24,240.9 | 0.0713 ms | 201.3 MiB |
+| MeCab-ko 1.0.2 | 0.000255 s | 11,292.4 | 0.1410 ms | 104.4 MiB |
+| KOMORAN 3.3.9 | 1.093550 s | 1,834.0 | 0.9067 ms | 860.1 MiB |
 
-최신 `origin/main`과 후보를 같은 fixture·이미지 설정으로 연속 측정했다. 처리량은 높을수록,
-나머지는 낮을수록 좋다.
+## Robust set과 성능
 
-| workload | initialization 기준 → 후보 | cases/s 기준 → 후보 | p95 기준 → 후보 | peak RSS 기준 → 후보 |
+Robust 자료는 두 층으로 분리했다.
+
+- Korean-Kaist 검토 제외 121문장은 사유가 확정된 sentence registry다. Query-level gold가
+  없으므로 아직 실행하지 않는다.
+- Korean-KSL은 학습자 원문의 성능 비용을 보는 annotation-required 후보 pool이다. 명시 POS
+  fixture `2dabb1b4bffa57f2c8e2efdf606dcd70989c6d56f46a82b27c14537369c03331`과
+  무태그 fixture `a8962a1f1470d3774fd7e08049d2b5020bd7cd52b907c0329b37d6a6f2a17c18`이
+  각각 250 positive와 250 negative를 가진다.
+
+다음 값은 후보 revision의 median `[min, max]`다. `robustness=off`이며 품질 지표가 아니다.
+
+| workload | init s | cases/s | p50 ms | p95 ms | peak RSS MiB |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| embedded + smart + explicit POS | 0.0409 `[0.0405, 0.0428]` | 21,190.3 `[20,895.4, 21,299.0]` | 0.0440 `[0.0433, 0.0448]` | 0.0710 `[0.0684, 0.0718]` | 40.1 `[40.1, 40.1]` |
+| full-POS + smart + explicit POS | 0.0794 `[0.0785, 0.0814]` | 16,113.0 `[15,361.8, 16,341.3]` | 0.0527 `[0.0519, 0.0537]` | 0.1152 `[0.1112, 0.1253]` | 56.1 `[56.0, 57.9]` |
+| Agent: embedded + any + explicit POS | 0.0015 `[0.0014, 0.0016]` | 26,746.4 `[26,171.0, 26,876.6]` | 0.0236 `[0.0235, 0.0245]` | 0.0631 `[0.0620, 0.0657]` | 4.4 `[4.4, 4.4]` |
+| Human: full-POS + smart + untagged | 0.0798 `[0.0782, 0.0803]` | 14,485.8 `[14,079.6, 14,565.7]` | 0.0519 `[0.0518, 0.0535]` | 0.1387 `[0.1372, 0.1430]` | 57.0 `[56.0, 57.3]` |
+
+| workload | init 기준 → 후보 | cases/s 기준 → 후보 | p50 기준 → 후보 | p95 기준 → 후보 | RSS 기준 → 후보 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| embedded smart explicit | 0.040659 → 0.040887 (+0.56%) | 21,060.8 → 21,190.3 (+0.61%) | 0.0442 → 0.0440 (-0.45%) | 0.0717 → 0.0710 (-0.98%) | 40.1 → 40.1 MiB (+0.01%) |
+| full-POS smart explicit | 0.079604 → 0.079350 (-0.32%) | 16,298.1 → 16,113.0 (-1.14%) | 0.0519 → 0.0527 (+1.54%) | 0.1135 → 0.1152 (+1.50%) | 57.0 → 56.1 MiB (-1.55%) |
+| Agent explicit | 0.001450 → 0.001462 (+0.83%) | 26,728.3 → 26,746.4 (+0.07%) | 0.0235 → 0.0236 (+0.43%) | 0.0622 → 0.0631 (+1.45%) | 4.4 → 4.4 MiB (-0.26%) |
+| Human untagged | 0.079999 → 0.079774 (-0.28%) | 14,493.2 → 14,485.8 (-0.05%) | 0.0514 → 0.0519 (+0.97%) | 0.1386 → 0.1387 (+0.07%) | 57.1 → 57.0 MiB (-0.05%) |
+
+## Canonical·matrix 성능 비교
+
+기준 이미지는 `origin/main` archive에 후보의 fixture·reporting harness만 덮어써 같은 입력과
+schema를 사용했다. Product build input은 archive의 것을 유지했다. Docker가 두 context에
+대해 같은 image digest `f1faee3d7e3dda95afed447573c5f9f61e25b1443a3ee628f3b19dffcef8e5f6`를
+생성해 제품 바이너리 동일성도 확인했다.
+
+| workload | init 기준 → 후보 | cases/s 기준 → 후보 | p95 기준 → 후보 | RSS 기준 → 후보 |
 | --- | ---: | ---: | ---: | ---: |
-| embedded `smart` | 0.234727 → 0.240241 s (+2.35%) | 15,600.7 → 14,819.9 (-5.00%) | 0.1230 → 0.1304 ms (+6.02%) | 43.6 → 43.6 MiB (0.00%) |
-| full-POS `smart` | 0.377576 → 0.384949 s (+1.95%) | 12,969.9 → 12,961.4 (-0.07%) | 0.1667 → 0.1687 ms (+1.20%) | 82.8 → 82.7 MiB (0.00%) |
-| Agent | 0.001483 → 0.001486 s (+0.20%) | 17,232.3 → 17,471.5 (+1.39%) | 0.1250 → 0.1231 ms (-1.52%) | 8.4 → 8.3 MiB (-0.05%) |
-| Human | 0.376379 → 0.377597 s (+0.32%) | 11,506.5 → 11,648.6 (+1.23%) | 0.1965 → 0.1955 ms (-0.51%) | 82.7 → 82.7 MiB (0.00%) |
-
-최대 불리 변화는 embedded p95 +6.02%로 10% 경고선 안이다. Reporting 경로 추가가 timed
-검색 구간의 품질이나 제품 코드를 바꾸지 않았고, 기준·후보의 모든 matrix prediction도 같다.
+| canonical embedded smart | 0.041533 → 0.041249 s (-0.68%) | 20,465.5 → 20,919.4 (+2.22%) | 0.0737 → 0.0712 ms (-3.39%) | 41.0 → 41.0 MiB (+0.01%) |
+| canonical full-POS smart | 0.081819 → 0.079696 s (-2.59%) | 15,398.1 → 16,113.8 (+4.65%) | 0.1215 → 0.1143 ms (-5.93%) | 57.2 → 56.3 MiB (-1.60%) |
+| matrix Agent | 0.001450 → 0.001514 s (+4.41%) | 27,015.1 → 26,839.2 (-0.65%) | 0.0605 → 0.0620 ms (+2.48%) | 8.0 → 8.0 MiB (0.00%) |
+| matrix Human | 0.079895 → 0.079664 s (-0.29%) | 15,061.1 → 13,864.5 (-7.94%) | 0.1415 → 0.1511 ms (+6.78%) | 57.0 → 57.0 MiB (-0.01%) |
 
 ## Development 확인
 
-별도 development matrix는 466문장, 2,782-case다. Embedded recall은 87.20%, 모든 질의
-회수율은 66.31%였고 full-POS는 각각 90.44%, 73.82%였다. Test와 절대값은 다르지만 개별
-recall보다 문장 완전 회수율이 낮은 방향은 같다.
+Development matrix는 424문장, 2,532-case다. Test와 절대값은 다르지만 개별 recall보다 문장
+완전 회수율이 낮은 방향은 같다.
 
-| backend | contract precision | contract recall | contract F1 | TPᶜ | FPᶜ | TNᶜ | FNᶜ | 모든 contract 질의 회수율 | reclassified |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| kfind embedded `smart` | 99.43% | 87.20% | 92.91% | 1,213 | 7 | 1,384 | 178 | 66.31% | 0 |
-| kfind full-POS `smart` | 99.37% | 90.44% | 94.69% | 1,258 | 8 | 1,383 | 133 | 73.82% | 0 |
+| backend | precision | recall | F1 | TP | FP | TN | FN | 모든 질의 회수 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| kfind embedded `smart` | 99.82% | 89.97% | 94.64% | 1,139 | 2 | 1,264 | 127 | 71.93% |
+| kfind full-POS `smart` | 99.83% | 94.15% | 96.91% | 1,192 | 2 | 1,264 | 74 | 82.78% |
 
 ## 한계
 
-Matrix는 문장 수를 늘리지 않고 같은 468개 문장의 질의를 늘린다. 새 문장 source에 대한
-일반화나 noisy text robustness를 직접 증명하지 않는다. Paired negative도 같은 품사의 명시적
-부재를 보장한 통제 표본이며 실제 사용자 negative query 분포와 같지 않다. 새 corpus와
-비표준 입력은 별도 fixture로 평가한다.
+Canonical과 matrix는 검토된 Korean-Kaist만 평가한다. Matrix는 새 문장을 추가하지 않고 같은
+432개 문장의 질의를 늘린 진단 workload다. Korean-KSL 성능 fixture는 학습자 원문 전체에서
+만든 annotation-required 후보라 clean 문장과 noisy 문장이 섞일 수 있다. 따라서 현재 Robust
+표는 처리 비용만 보여 주며 비문·오타 복구율, robust-only precision이나 over-acceptance를
+증명하지 않는다. 이 품질 지표는 query/POS/raw span과 noise class를 확정한 뒤 측정한다.
 
 ## 재현
 
+외부 snapshot은 새 canonical과 query matrix에 맞춰 다음 명령으로 갱신했다.
+
 ```console
-KFIND_MORPH_IMAGE=kfind-morph-benchmark:matrix-contract-latest-candidate \
-KFIND_MORPH_RUNS=5 \
-scripts/benchmark-morphology.sh target/matrix-contract-latest-candidate
-
-mkdir -p target/matrix-contract-latest-origin-main-source
-git archive --format=tar \
-  --output=target/matrix-contract-latest-origin-main.tar origin/main
-tar -xf target/matrix-contract-latest-origin-main.tar \
-  -C target/matrix-contract-latest-origin-main-source
-
-BASELINE_ROOT="$PWD/target/matrix-contract-latest-origin-main-source"
-KFIND_MORPH_IMAGE=kfind-morph-benchmark:matrix-contract-latest-origin-main \
-KFIND_MORPH_RUNS=5 \
-scripts/benchmark-run.sh run --name morphology-latest-origin-main -- \
-  "$BASELINE_ROOT/scripts/benchmark-morphology.sh" \
-  "$PWD/target/matrix-contract-latest-origin-main"
+KFIND_MORPH_IMAGE=kfind-morph-benchmark:curated-0c54cc3 \
+KFIND_MORPH_REFRESH_IMAGE=kfind-morph-baseline-refresh:curated-0c54cc3 \
+scripts/refresh-morph-baselines.sh
 ```
 
-두 실행은 저장한 외부 snapshot을 검증한 뒤 kfind canonical, hard-negative, explicit-POS
-matrix, untagged matrix와 development matrix를 측정한다. 외부 snapshot은 fixture·adapter
-schema·버전이 바뀌지 않아 갱신하지 않았다.
+후보를 측정했다.
+
+```console
+KFIND_MORPH_IMAGE=kfind-morph-benchmark:reviewed-66dc830 \
+KFIND_MORPH_RUNS=5 \
+scripts/benchmark-morphology.sh target/morph-reviewed-candidate-66dc830
+```
+
+기준선은 `origin/main` archive에 후보의 `tools/morph-compare/python`, Dockerfile, benchmark
+entrypoint, source/review manifest와 external snapshot만 복사한 뒤 측정했다.
+
+```console
+baseline_root="$PWD/target/morph-reviewed-origin-main-source"
+mkdir -p "$baseline_root"
+git archive origin/main | tar -x -C "$baseline_root"
+cp -R tools/morph-compare/python/. "$baseline_root/tools/morph-compare/python/"
+cp tools/morph-compare/{Dockerfile,benchmark.py,sources.json,sentence-reviews.json} \
+  "$baseline_root/tools/morph-compare/"
+cp tools/morph-compare/external/{baselines.json,query-matrix-baselines.json} \
+  "$baseline_root/tools/morph-compare/external/"
+KFIND_MORPH_IMAGE=kfind-morph-benchmark:reviewed-origin-main-0932120 \
+KFIND_MORPH_RUNS=5 \
+scripts/benchmark-run.sh run --name morphology-reviewed-origin-main -- \
+  "$baseline_root/scripts/benchmark-morphology.sh" \
+  "$PWD/target/morph-reviewed-baseline-0932120"
+```

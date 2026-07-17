@@ -59,7 +59,7 @@ def smoke_metadata(
     development_metadata: dict[str, object],
     split: str = "dev-smoke",
 ) -> dict[str, object]:
-    return {
+    metadata = {
         "schema_version": 1,
         "split": split,
         "fixture_sha256": sha256(cases_path),
@@ -70,6 +70,10 @@ def smoke_metadata(
         "ud_release": development_metadata["ud_release"],
         "sources": development_metadata["sources"],
     }
+    for key in ("source_set", "scoring_status", "query_mode"):
+        if key in development_metadata:
+            metadata[key] = development_metadata[key]
+    return metadata
 
 def validate_fixture_identity(
     cases_path: Path, cases: list[dict[str, object]], metadata: dict[str, object]
@@ -86,6 +90,10 @@ def validate_fixture_identity(
 def validate_dataset(
     cases_path: Path, cases: list[dict[str, object]], metadata: dict[str, object]
 ) -> None:
+    if metadata.get("source_set") != "canonical":
+        raise ValueError("benchmark requires the canonical source set")
+    if metadata.get("scoring_status") != "scored":
+        raise ValueError("benchmark requires a scored source set")
     if len(cases) != 1_000 or metadata["cases"] != 1_000:
         raise ValueError("benchmark requires exactly 1,000 cases")
     validate_fixture_identity(cases_path, cases, metadata)
@@ -123,12 +131,41 @@ def validate_untagged_dataset(
             raise ValueError("untagged negative does not reference a positive case")
 
 
+def validate_robustness_candidate_dataset(
+    cases_path: Path,
+    cases: list[dict[str, object]],
+    metadata: dict[str, object],
+    query_mode: str,
+) -> None:
+    if metadata.get("source_set") != "robustness-candidate":
+        raise ValueError("robustness performance requires its candidate source set")
+    if metadata.get("scoring_status") != "annotation-required":
+        raise ValueError("robustness performance requires annotation-required data")
+    if metadata.get("query_mode") != query_mode:
+        raise ValueError(f"robustness performance requires query_mode={query_mode}")
+    validate_fixture_identity(cases_path, cases, metadata)
+    if len(cases) != metadata.get("cases"):
+        raise ValueError("robustness candidate case count differs from metadata")
+    positives = sum(bool(case["expected"]) for case in cases)
+    negatives = len(cases) - positives
+    if positives == 0 or positives != negatives:
+        raise ValueError("robustness performance requires balanced candidate cases")
+    if metadata.get("positive_cases") != positives:
+        raise ValueError("robustness candidate positive count differs from metadata")
+    if metadata.get("negative_cases") != negatives:
+        raise ValueError("robustness candidate negative count differs from metadata")
+
+
 def validate_query_matrix_dataset(
     cases_path: Path,
     cases: list[dict[str, object]],
     metadata: dict[str, object],
     query_mode: str,
 ) -> None:
+    if metadata.get("source_set") != "canonical":
+        raise ValueError("query matrix requires the canonical source set")
+    if metadata.get("scoring_status") != "scored":
+        raise ValueError("query matrix requires a scored source set")
     if metadata.get("fixture_type") != "query-matrix":
         raise ValueError("query matrix fixture_type must be query-matrix")
     if metadata.get("query_mode") != query_mode:

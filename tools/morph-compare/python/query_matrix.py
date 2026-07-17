@@ -13,10 +13,13 @@ try:
         BenchmarkCase,
         GoldCandidate,
         Sentence,
+        apply_sentence_review,
+        load_sentence_reviews,
         parse_conllu,
         positive_case,
         rank,
-        select_manifest_sources,
+        resolve_source_set,
+        sentence_review_path,
         sha256,
     )
     from .quality import contract_expected
@@ -25,10 +28,13 @@ except ImportError:
         BenchmarkCase,
         GoldCandidate,
         Sentence,
+        apply_sentence_review,
+        load_sentence_reviews,
         parse_conllu,
         positive_case,
         rank,
-        select_manifest_sources,
+        resolve_source_set,
+        sentence_review_path,
         sha256,
     )
     from quality import contract_expected
@@ -234,6 +240,7 @@ def source_metadata(
     split_name: str,
     parsing: dict[str, int],
     cases: list[dict[str, object]],
+    sentence_review: dict[str, object] | None,
 ) -> dict[str, object]:
     split = source["splits"][split_name]
     source_cases = [case for case in cases if case["source"] == source["name"]]
@@ -247,6 +254,7 @@ def source_metadata(
         "license": source["license"],
         "license_file": source["license_file"],
         "parsing": parsing,
+        "sentence_review": sentence_review,
         "positive_cases": sum(bool(case["expected"]) for case in source_cases),
         "negative_cases": sum(not case["expected"] for case in source_cases),
         "sentences": len({str(case["matrix_group_id"]) for case in source_cases}),
@@ -266,7 +274,9 @@ def build_query_matrix(
     if query_mode not in {"explicit-pos", "untagged"}:
         raise ValueError(f"unsupported query mode: {query_mode}")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    sources = select_manifest_sources(manifest, manifest["benchmark_sources"])
+    sources, _, scoring_status = resolve_source_set(manifest, "canonical")
+    review_path = sentence_review_path(manifest_path, manifest, "canonical")
+    reviews = load_sentence_reviews(review_path) if review_path is not None else None
     canonical_cases = load_cases(canonical_cases_path)
     canonical_positives = [case for case in canonical_cases if case["expected"]]
     canonical_by_sentence: dict[tuple[str, str], list[dict[str, object]]] = defaultdict(list)
@@ -286,6 +296,16 @@ def build_query_matrix(
         if sha256(source_path) != split["data_sha256"]:
             raise ValueError(f"source hash mismatch: {source['name']}")
         sentences, parsing = parse_conllu(str(source["name"]), source_path)
+        sentence_review = None
+        if reviews is not None and review_path is not None:
+            sentences, sentence_review = apply_sentence_review(
+                sentences=sentences,
+                source_name=str(source["name"]),
+                split_name=split_name,
+                seed=seed,
+                reviews=reviews,
+                review_file=review_path.name,
+            )
         sentence_index = {sentence.sent_id: sentence for sentence in sentences}
         pool = negative_query_pool(sentences)
         source_cases = []
@@ -342,7 +362,13 @@ def build_query_matrix(
             source_cases.extend(negatives)
         all_cases.extend(source_cases)
         metadata_sources.append(
-            source_metadata(source, split_name, parsing, source_cases)
+            source_metadata(
+                source,
+                split_name,
+                parsing,
+                source_cases,
+                sentence_review,
+            )
         )
 
     all_cases.sort(key=lambda case: rank(seed, "query-matrix-case-order", case["id"]))
@@ -363,6 +389,8 @@ def build_query_matrix(
         "fixture_type": "query-matrix",
         "split": split_name,
         "query_mode": query_mode,
+        "source_set": "canonical",
+        "scoring_status": scoring_status,
         "ud_release": manifest["ud_release"],
         "seed": seed,
         "fixture_sha256": sha256(output),

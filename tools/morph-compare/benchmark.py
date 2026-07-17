@@ -34,6 +34,7 @@ from python.validation import (
     validate_dataset,
     validate_hard_negatives,
     validate_query_matrix_dataset,
+    validate_robustness_candidate_dataset,
     validate_untagged_dataset,
     write_cases,
 )
@@ -41,6 +42,10 @@ from python.workflows.performance import measure_product_workflows
 from python.workflows.query_matrix import (
     evaluate_query_matrix_full,
     evaluate_query_matrix_smoke,
+)
+from python.workflows.robustness import (
+    evaluate_robustness_candidate_performance,
+    evaluate_robustness_candidate_smoke,
 )
 
 
@@ -71,6 +76,18 @@ DEFAULT_QUERY_MATRIX_UNTAGGED_CASES = Path(
 )
 DEFAULT_QUERY_MATRIX_UNTAGGED_METADATA = Path(
     "/opt/morph-benchmark/data/query-matrix-untagged-metadata.json"
+)
+DEFAULT_ROBUSTNESS_CANDIDATE_CASES = Path(
+    "/opt/morph-benchmark/data/robustness-candidate-cases.jsonl"
+)
+DEFAULT_ROBUSTNESS_CANDIDATE_METADATA = Path(
+    "/opt/morph-benchmark/data/robustness-candidate-metadata.json"
+)
+DEFAULT_ROBUSTNESS_CANDIDATE_UNTAGGED_CASES = Path(
+    "/opt/morph-benchmark/data/robustness-candidate-untagged-cases.jsonl"
+)
+DEFAULT_ROBUSTNESS_CANDIDATE_UNTAGGED_METADATA = Path(
+    "/opt/morph-benchmark/data/robustness-candidate-untagged-metadata.json"
 )
 DEFAULT_HARD_NEGATIVES = Path("/opt/morph-benchmark/hard-negatives.jsonl")
 DEFAULT_EXTERNAL_BASELINES = Path(
@@ -727,6 +744,26 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=DEFAULT_QUERY_MATRIX_UNTAGGED_METADATA,
     )
+    parser.add_argument(
+        "--robustness-candidate-cases",
+        type=Path,
+        default=DEFAULT_ROBUSTNESS_CANDIDATE_CASES,
+    )
+    parser.add_argument(
+        "--robustness-candidate-metadata",
+        type=Path,
+        default=DEFAULT_ROBUSTNESS_CANDIDATE_METADATA,
+    )
+    parser.add_argument(
+        "--robustness-candidate-untagged-cases",
+        type=Path,
+        default=DEFAULT_ROBUSTNESS_CANDIDATE_UNTAGGED_CASES,
+    )
+    parser.add_argument(
+        "--robustness-candidate-untagged-metadata",
+        type=Path,
+        default=DEFAULT_ROBUSTNESS_CANDIDATE_UNTAGGED_METADATA,
+    )
     parser.add_argument("--hard-negatives", type=Path, default=DEFAULT_HARD_NEGATIVES)
     parser.add_argument(
         "--external-baselines", type=Path, default=DEFAULT_EXTERNAL_BASELINES
@@ -793,6 +830,28 @@ def main() -> int:
             args.query_matrix_untagged_cases,
             query_matrix_untagged_cases,
             query_matrix_untagged_metadata,
+            "untagged",
+        )
+        robustness_candidate_cases = load_cases(args.robustness_candidate_cases)
+        robustness_candidate_metadata = json.loads(
+            args.robustness_candidate_metadata.read_text(encoding="utf-8")
+        )
+        validate_robustness_candidate_dataset(
+            args.robustness_candidate_cases,
+            robustness_candidate_cases,
+            robustness_candidate_metadata,
+            "explicit-pos",
+        )
+        robustness_candidate_untagged_cases = load_cases(
+            args.robustness_candidate_untagged_cases
+        )
+        robustness_candidate_untagged_metadata = json.loads(
+            args.robustness_candidate_untagged_metadata.read_text(encoding="utf-8")
+        )
+        validate_robustness_candidate_dataset(
+            args.robustness_candidate_untagged_cases,
+            robustness_candidate_untagged_cases,
+            robustness_candidate_untagged_metadata,
             "untagged",
         )
         hard_cases = load_cases(args.hard_negatives)
@@ -874,6 +933,19 @@ def main() -> int:
                     evaluate_dataset=evaluate_dataset,
                     evaluate_boundary=evaluate_boundary_comparison,
                     evaluate_human=evaluate_human_untagged,
+                )
+                report["robustness_candidate_performance"] = (
+                    evaluate_robustness_candidate_smoke(
+                        directory=Path(directory),
+                        explicit_cases=robustness_candidate_cases,
+                        explicit_metadata=robustness_candidate_metadata,
+                        untagged_cases=robustness_candidate_untagged_cases,
+                        untagged_metadata=robustness_candidate_untagged_metadata,
+                        runner=args.runner,
+                        evaluate_dataset=evaluate_dataset,
+                        evaluate_boundary_profile=evaluate_boundary_profile_runs,
+                        evaluate_untagged_profile=evaluate_untagged_profile_runs,
+                    )
                 )
                 return write_report(args.output, report)
 
@@ -977,6 +1049,21 @@ def main() -> int:
             evaluate_dataset=evaluate_dataset,
             evaluate_boundary=evaluate_boundary_comparison,
             evaluate_human=evaluate_human_untagged,
+        )
+        report["robustness_candidate_performance"] = (
+            evaluate_robustness_candidate_performance(
+                explicit_cases=robustness_candidate_cases,
+                explicit_metadata=robustness_candidate_metadata,
+                explicit_path=args.robustness_candidate_cases,
+                untagged_cases=robustness_candidate_untagged_cases,
+                untagged_metadata=robustness_candidate_untagged_metadata,
+                untagged_path=args.robustness_candidate_untagged_cases,
+                runner=args.runner,
+                runs=args.runs,
+                evaluate_dataset=evaluate_dataset,
+                evaluate_boundary_profile=evaluate_boundary_profile_runs,
+                evaluate_untagged_profile=evaluate_untagged_profile_runs,
+            )
         )
         return write_report(args.output, report)
     except (OSError, RuntimeError, ValueError, json.JSONDecodeError) as error:
