@@ -643,6 +643,7 @@ struct TokenEvidence {
     has_complete_path: bool,
     leading_predicate_spans: Box<[Range<usize>]>,
     runtime_nominal_derivation_spans: Box<[Range<usize>]>,
+    derivational_suffix_starts: Box<[usize]>,
     numeric_spans: Box<[Range<usize>]>,
     numeric_dependent_tail: Option<Range<usize>>,
     has_numeral_sequence: bool,
@@ -743,6 +744,7 @@ impl TokenEvidence {
         let has_complete_path = forward[text.len()];
         let leading_predicate_spans = leading_predicate_spans(text.len(), &edges);
         let runtime_nominal_derivation_spans = runtime_nominal_derivation_spans(&edges, &complete);
+        let derivational_suffix_starts = derivational_suffix_starts(&edges, &complete);
         let attached_auxiliary_spans = if include_attached_auxiliary {
             attached_auxiliary_spans(text.len(), &edges)
         } else {
@@ -897,6 +899,7 @@ impl TokenEvidence {
             has_complete_path,
             leading_predicate_spans,
             runtime_nominal_derivation_spans,
+            derivational_suffix_starts,
             numeric_spans,
             numeric_dependent_tail: numeric_path.and_then(|path| path.dependent_tail),
             has_numeral_sequence,
@@ -1149,6 +1152,25 @@ fn runtime_nominal_derivation_spans(edges: &[Edge<'_>], complete: &[bool]) -> Bo
     spans.sort_unstable_by_key(|span| (span.start, span.end));
     spans.dedup();
     spans.into_boxed_slice()
+}
+
+fn derivational_suffix_starts(edges: &[Edge<'_>], complete: &[bool]) -> Box<[usize]> {
+    let mut starts = edges
+        .iter()
+        .enumerate()
+        .filter(|(index, edge)| {
+            complete[*index]
+                && edge
+                    .pos
+                    .split('+')
+                    .next()
+                    .is_some_and(|pos| matches!(pos, "XSV" | "XSA"))
+        })
+        .map(|(_, edge)| edge.span.start)
+        .collect::<Vec<_>>();
+    starts.sort_unstable();
+    starts.dedup();
+    starts.into_boxed_slice()
 }
 
 #[derive(Clone, Copy)]
@@ -1495,6 +1517,7 @@ fn collect_pattern_supports(
         if supports.len() == support_start
             && pattern.component_capability.allows_runtime()
             && (query_nominal_particle_path(pattern, spans)
+                || composed_nominal_subpath(pattern, spans, evidence)
                 || evidence.runtime_spans.contains(&spans.core)
                 || attached_auxiliary_is_supported(pattern, spans, evidence)
                 || (pattern.fine_pos.is_nominal() && evidence.has_nominal_copula_host(&spans.core))
@@ -1575,6 +1598,9 @@ impl StructureSelection {
             return false;
         };
         if query_nominal_particle_path(pattern, spans) {
+            return true;
+        }
+        if composed_nominal_subpath(pattern, spans, evidence) {
             return true;
         }
         match self {
@@ -2132,6 +2158,69 @@ fn query_nominal_particle_path(pattern: &QueryMorphPattern, spans: &CandidateSpa
         && spans.core.start == spans.token.start
         && spans.core.end < spans.consumed.end
         && spans.consumed == spans.token
+}
+
+fn composed_nominal_subpath(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    evidence: &TokenEvidence,
+) -> bool {
+    if !pattern.fine_pos.is_nominal()
+        || !matches!(pattern.continuation, MorphContinuation::NominalParticles)
+        || evidence
+            .derivational_suffix_starts
+            .binary_search(&spans.core.end)
+            .is_ok()
+        || minimum_unit_path(&spans.core, evidence, DataFinePos::is_nominal)
+            .is_none_or(|units| units < 2)
+    {
+        return false;
+    }
+    evidence
+        .units
+        .iter()
+        .map(|unit| unit.span.end)
+        .filter(|&host_end| host_end >= spans.core.end && host_end <= spans.token.end)
+        .any(|host_end| {
+            minimum_unit_path(
+                &(spans.token.start..host_end),
+                evidence,
+                DataFinePos::is_nominal,
+            )
+            .is_some()
+                && minimum_unit_path(
+                    &(host_end..spans.token.end),
+                    evidence,
+                    DataFinePos::is_particle,
+                )
+                .is_some()
+        })
+}
+
+fn minimum_unit_path(
+    span: &Range<usize>,
+    evidence: &TokenEvidence,
+    accepts: impl Fn(DataFinePos) -> bool,
+) -> Option<usize> {
+    if span.is_empty() {
+        return Some(0);
+    }
+    let mut costs = vec![None; span.end + 1];
+    costs[span.start] = Some(0_usize);
+    for start in span.start..span.end {
+        let Some(cost) = costs[start] else {
+            continue;
+        };
+        for unit in evidence.units.iter().filter(|unit| {
+            unit.span.start == start && unit.span.end <= span.end && accepts(unit.pos)
+        }) {
+            let next = cost + 1;
+            if costs[unit.span.end].is_none_or(|current| next < current) {
+                costs[unit.span.end] = Some(next);
+            }
+        }
+    }
+    costs[span.end]
 }
 
 fn select_structure(

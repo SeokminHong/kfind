@@ -1141,6 +1141,88 @@ fn forced_nominal_host_consumes_a_complete_particle_chain_without_a_dictionary_e
 }
 
 #[test]
+fn composed_nominal_query_matches_a_contiguous_multi_node_subpath() {
+    let prefix = compile_with_full_pos_and_resource(
+        "경영전략",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("경영", "NNG"),
+            component_entry("전략", "NNG"),
+            component_entry("시스템", "NNG"),
+        ]),
+    );
+    let internal = compile_with_full_pos_and_resource(
+        "회사측",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("선박", "NNG"),
+            component_entry("회사", "NNG"),
+            component_entry("측", "NNG"),
+            component_entry("에서", "JKB"),
+            component_entry("는", "JX"),
+        ]),
+    );
+
+    assert!(
+        prefix
+            .find_at_with_meta("경영전략시스템".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        internal
+            .find_at_with_meta("선박회사측에서는".as_bytes(), 0)
+            .is_some()
+    );
+}
+
+#[test]
+fn composed_nominal_query_rejects_one_node_and_predicate_suffix_paths() {
+    let one_node = compile_with_full_pos_and_resource(
+        "옆",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("빙원", "NNG"),
+            component_entry("옆", "NNG"),
+            component_entry("에", "JKB"),
+        ]),
+    );
+    let predicate_suffix = compile_with_full_pos_and_resource(
+        "잠식당",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("잠식", "NNG"),
+            component_entry("당", "NNG"),
+            component_entry("하", "XSV"),
+            component_entry("기", "ETN"),
+            component_entry("잠식당하기", "NNP"),
+        ]),
+    );
+
+    assert!(
+        one_node
+            .find_at_with_meta("빙원옆에".as_bytes(), 0)
+            .is_none()
+    );
+    assert!(
+        predicate_suffix
+            .find_at_with_meta("잠식당하기".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn compiled_nominal_plan_composes_particle_chains_with_copula_grammar() {
     let matcher = compile("사용자", CompileOptions::default());
 
