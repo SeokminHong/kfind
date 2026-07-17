@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use kfind_morph::{
     CandidateTokenRelation, ComponentCapability, ContinuationState, MorphContinuation,
-    ParticleTransition, PredicateFlags, PredicatePos, PredicateStemClass, QueryMorphPattern,
-    RuleId,
+    ParticleAllomorph, ParticleTransition, PredicateFlags, PredicatePos, PredicatePosSet,
+    PredicateStemClass, QueryMorphPattern, RuleId,
 };
 
 use crate::{Analysis, BoundaryPolicy, Morphology, NormalizationMode, PhrasePolicy, PlanLimits};
@@ -17,7 +17,10 @@ pub struct QueryPlan {
     pub normalization: NormalizationMode,
     pub limits: PlanLimits,
     pub diagnostics: Vec<QueryDiagnostic>,
+    pub particle_allomorphs: Arc<[ParticleAllomorph]>,
     pub particle_transitions: Arc<[ParticleTransition]>,
+    pub auxiliary_particle_rules: Arc<[RuleId]>,
+    pub predicate_ending_initial_particle_rules: Arc<[RuleId]>,
     pub estimated_matcher_bytes: usize,
 }
 
@@ -45,12 +48,14 @@ pub enum CandidateConsumption {
     PredicateContinuation {
         continuation: ContinuationState,
         pos: PredicatePos,
+        source_positions: PredicatePosSet,
         allowed_rule_ids: Arc<[RuleId]>,
         nominal_particle_transition: bool,
         left_context: CandidateLeftContext,
     },
     StructuralPredicateEnding {
         pos: PredicatePos,
+        source_positions: PredicatePosSet,
         flags: PredicateFlags,
         base_state: ContinuationState,
         validate_anchor: bool,
@@ -58,6 +63,7 @@ pub enum CandidateConsumption {
         allowed_suffixes: Arc<[Box<str>]>,
     },
     NominalParticleChain {
+        initial_allowed_rule_ids: Arc<[RuleId]>,
         allowed_rule_ids: Arc<[RuleId]>,
         blocked_rule_ids: Arc<[RuleId]>,
     },
@@ -73,6 +79,101 @@ pub enum CandidateLeftContext {
 }
 
 impl CandidateConsumption {
+    pub(crate) fn merge_compatible(&self, other: &Self) -> bool {
+        match (self, other) {
+            (
+                Self::PredicateContinuation {
+                    continuation: left_continuation,
+                    pos: left_pos,
+                    allowed_rule_ids: left_allowed,
+                    nominal_particle_transition: left_nominal,
+                    left_context: left_context_value,
+                    ..
+                },
+                Self::PredicateContinuation {
+                    continuation: right_continuation,
+                    pos: right_pos,
+                    allowed_rule_ids: right_allowed,
+                    nominal_particle_transition: right_nominal,
+                    left_context: right_context_value,
+                    ..
+                },
+            ) => {
+                left_continuation == right_continuation
+                    && left_pos == right_pos
+                    && left_allowed == right_allowed
+                    && left_nominal == right_nominal
+                    && left_context_value == right_context_value
+            }
+            (
+                Self::StructuralPredicateEnding {
+                    pos: left_pos,
+                    flags: left_flags,
+                    base_state: left_state,
+                    validate_anchor: left_validate,
+                    stem_class: left_class,
+                    allowed_suffixes: left_suffixes,
+                    ..
+                },
+                Self::StructuralPredicateEnding {
+                    pos: right_pos,
+                    flags: right_flags,
+                    base_state: right_state,
+                    validate_anchor: right_validate,
+                    stem_class: right_class,
+                    allowed_suffixes: right_suffixes,
+                    ..
+                },
+            ) => {
+                left_pos == right_pos
+                    && left_flags == right_flags
+                    && left_state == right_state
+                    && left_validate == right_validate
+                    && left_class == right_class
+                    && left_suffixes == right_suffixes
+            }
+            _ => self == other,
+        }
+    }
+
+    pub(crate) fn merge_source_positions(&mut self, other: &Self) {
+        match (self, other) {
+            (
+                Self::PredicateContinuation {
+                    source_positions: left,
+                    ..
+                },
+                Self::PredicateContinuation {
+                    source_positions: right,
+                    ..
+                },
+            )
+            | (
+                Self::StructuralPredicateEnding {
+                    source_positions: left,
+                    ..
+                },
+                Self::StructuralPredicateEnding {
+                    source_positions: right,
+                    ..
+                },
+            ) => *left |= *right,
+            _ => {}
+        }
+    }
+
+    pub(crate) fn add_source_position(&mut self, pos: PredicatePos) {
+        match self {
+            Self::PredicateContinuation {
+                source_positions, ..
+            }
+            | Self::StructuralPredicateEnding {
+                source_positions, ..
+            } => *source_positions |= PredicatePosSet::one(pos),
+            _ => {}
+        }
+    }
+
     #[must_use]
     pub fn allows_rule_path(&self, rules: &[RuleId]) -> bool {
         match self {
@@ -88,16 +189,23 @@ impl CandidateConsumption {
                 .iter()
                 .all(|rule| rule.as_str() == "structural.ending-path"),
             Self::NominalParticleChain {
+                initial_allowed_rule_ids,
                 allowed_rule_ids,
                 blocked_rule_ids,
-            } => rules.iter().all(|rule| {
-                allowed_rule_ids
-                    .binary_search_by_key(&rule.as_str(), |known| known.as_str())
-                    .is_ok()
-                    && blocked_rule_ids
-                        .binary_search_by_key(&rule.as_str(), |blocked| blocked.as_str())
-                        .is_err()
-            }),
+            } => {
+                rules.first().is_none_or(|rule| {
+                    initial_allowed_rule_ids
+                        .binary_search_by_key(&rule.as_str(), |known| known.as_str())
+                        .is_ok()
+                }) && rules.iter().all(|rule| {
+                    allowed_rule_ids
+                        .binary_search_by_key(&rule.as_str(), |known| known.as_str())
+                        .is_ok()
+                        && blocked_rule_ids
+                            .binary_search_by_key(&rule.as_str(), |blocked| blocked.as_str())
+                            .is_err()
+                })
+            }
         }
     }
 

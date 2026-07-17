@@ -525,8 +525,16 @@ fn ha_rieul_and_copula_rules_cover_required_forms() {
             "이라는",
             "이지",
             "이며",
+            "이므로",
         ],
     );
+
+    let negative = surfaces(&entry(
+        "아니다",
+        PredicatePos::Adjective,
+        LexicalAlternation::Regular,
+    ));
+    assert!(negative.contains("아닐세"));
 }
 
 #[test]
@@ -566,6 +574,40 @@ fn action_present_declarative_and_copula_past_are_compiled() {
     let copula = entry("이다", PredicatePos::Copula, LexicalAlternation::Copula);
     let copula_surfaces = surfaces(&copula);
     assert!(copula_surfaces.contains("이었"));
+}
+
+#[test]
+fn complete_copula_surface_requires_an_exact_generated_inflection() {
+    for surface in ["이다", "입니다", "이었다", "인", "다", "였다", "여서"] {
+        assert!(verify_complete_copula_surface(surface), "{surface}");
+    }
+    for surface in ["이", "입", "이어", "이었", "였", "이기는", "이다른"] {
+        assert!(!verify_complete_copula_surface(surface), "{surface}");
+    }
+}
+
+#[test]
+fn nominal_copula_contraction_depends_on_the_preceding_syllable() {
+    for surface in ["다", "였다", "였고", "여서"] {
+        assert!(
+            verify_copula_surface_after_nominal('표', surface),
+            "{surface}"
+        );
+        assert!(
+            !verify_copula_surface_after_nominal('학', surface),
+            "{surface}"
+        );
+    }
+    for preceding in ['표', '학'] {
+        for surface in ["이다", "이었다", "인", "일"] {
+            assert!(
+                verify_copula_surface_after_nominal(preceding, surface),
+                "{preceding}{surface}"
+            );
+        }
+    }
+    assert!(!verify_copula_surface_after_nominal('A', "다"));
+    assert!(!verify_copula_surface_after_nominal('표', "였"));
 }
 
 #[test]

@@ -1,8 +1,13 @@
+use std::collections::HashSet;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::sync::Arc;
 
-use kfind_morph::{CoarsePos, FinePos, PredicateEntry, PredicatePos, RuleId};
+use kfind_data::{ParticleHost, ParticleRuleRole, ParticleSelection};
+use kfind_morph::{
+    CoarsePos, FinalCondition, FinePos, ParticleAllomorph, ParticleKind, ParticleRole,
+    ParticleTransition, PredicateEntry, PredicatePos, RuleId,
+};
 
 use crate::lexicons::predicate_shape_alternation;
 use crate::{Lexicons, QueryAtom};
@@ -77,18 +82,135 @@ pub trait QueryAnalyzer: Send + Sync {
 #[derive(Debug, Clone)]
 pub struct LexiconQueryAnalyzer {
     lexicons: Arc<Lexicons>,
+    particle_rules: ParticleCompileRules,
 }
 
 impl LexiconQueryAnalyzer {
     #[must_use]
     pub fn new(lexicons: Arc<Lexicons>) -> Self {
-        Self { lexicons }
+        let particle_rules = ParticleCompileRules::new(&lexicons);
+        Self {
+            lexicons,
+            particle_rules,
+        }
     }
 
     #[must_use]
     pub fn lexicons(&self) -> &Arc<Lexicons> {
         &self.lexicons
     }
+
+    pub(crate) fn particle_rules(&self) -> &ParticleCompileRules {
+        &self.particle_rules
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct ParticleCompileRules {
+    pub known: Arc<HashSet<Box<str>>>,
+    pub predicate: Arc<[RuleId]>,
+    pub particle: Arc<[RuleId]>,
+    pub allomorphs: Arc<[ParticleAllomorph]>,
+    pub transitions: Arc<[ParticleTransition]>,
+    pub auxiliary: Arc<[RuleId]>,
+    pub adverb_initial: Arc<[RuleId]>,
+    pub predicate_ending_initial: Arc<[RuleId]>,
+}
+
+impl ParticleCompileRules {
+    fn new(lexicons: &Lexicons) -> Self {
+        let known = lexicons
+            .rules()
+            .all_ids()
+            .map(Box::<str>::from)
+            .collect::<HashSet<_>>();
+        let mut allomorphs = Vec::new();
+        for rule in &lexicons.rules().particles {
+            let role = match rule.role {
+                ParticleRuleRole::Plural => continue,
+                ParticleRuleRole::Case => ParticleRole::Case,
+                ParticleRuleRole::Auxiliary => ParticleRole::Auxiliary,
+            };
+            for (index, surface) in rule.forms.iter().enumerate() {
+                let condition = match (rule.selection, index) {
+                    (ParticleSelection::Literal, _) => FinalCondition::Any,
+                    (ParticleSelection::FinalPair, 0) => FinalCondition::Consonant,
+                    (ParticleSelection::FinalPair, _) => FinalCondition::Vowel,
+                    (ParticleSelection::EuroRo, 0) => FinalCondition::ConsonantExceptRieul,
+                    (ParticleSelection::EuroRo, _) => FinalCondition::VowelOrRieul,
+                };
+                allomorphs.push(ParticleAllomorph::new(
+                    ParticleKind::Catalog,
+                    role,
+                    surface.clone(),
+                    condition,
+                    rule.id.clone(),
+                ));
+            }
+        }
+        let transitions = lexicons
+            .rules()
+            .particles
+            .iter()
+            .map(|rule| {
+                ParticleTransition::new(
+                    rule.id.clone(),
+                    rule.next
+                        .iter()
+                        .cloned()
+                        .map(RuleId::from)
+                        .collect::<Vec<_>>()
+                        .into_boxed_slice(),
+                )
+            })
+            .collect::<Vec<_>>();
+        Self {
+            predicate: collect_allowed_rules(&known, |_| true),
+            particle: collect_allowed_rules(&known, |id| id.starts_with("particle.")),
+            known: Arc::new(known),
+            allomorphs: allomorphs.into(),
+            transitions: transitions.into(),
+            auxiliary: collect_particle_rules(lexicons, |rule| {
+                rule.role == ParticleRuleRole::Auxiliary
+            }),
+            adverb_initial: collect_particle_rules(lexicons, |rule| {
+                rule.role == ParticleRuleRole::Auxiliary
+                    && rule.hosts.contains(&ParticleHost::Adverb)
+            }),
+            predicate_ending_initial: collect_particle_rules(lexicons, |rule| {
+                rule.role == ParticleRuleRole::Auxiliary
+                    && rule.hosts.contains(&ParticleHost::PredicateEnding)
+            }),
+        }
+    }
+}
+
+fn collect_allowed_rules(
+    known: &HashSet<Box<str>>,
+    include: impl Fn(&str) -> bool,
+) -> Arc<[RuleId]> {
+    let mut rules = known
+        .iter()
+        .filter(|id| include(id))
+        .map(|id| RuleId::from(id.to_string()))
+        .collect::<Vec<_>>();
+    rules.sort();
+    rules.into()
+}
+
+fn collect_particle_rules(
+    lexicons: &Lexicons,
+    include: impl Fn(&kfind_data::ParticleTransitionRule) -> bool,
+) -> Arc<[RuleId]> {
+    let mut rules = lexicons
+        .rules()
+        .particles
+        .iter()
+        .filter(|rule| include(rule))
+        .map(|rule| RuleId::from(rule.id.clone()))
+        .collect::<Vec<_>>();
+    rules.sort();
+    rules.into()
 }
 
 impl QueryAnalyzer for LexiconQueryAnalyzer {
@@ -161,6 +283,9 @@ impl LexiconQueryAnalyzer {
             if forced_pos == CoarsePos::Noun && includes_full_pos {
                 append_missing_forced_noun_analyses(lemma, &mut matching);
             }
+            if forced_pos == CoarsePos::Verb {
+                append_missing_forced_auxiliary_verb(lemma, &mut matching);
+            }
             return Ok(matching);
         }
 
@@ -169,7 +294,11 @@ impl LexiconQueryAnalyzer {
                 && productive.coarse_pos == forced_pos
             {
                 productive.source = AnalysisSource::Forced;
-                return Ok(vec![productive]);
+                let mut analyses = vec![productive];
+                if forced_pos == CoarsePos::Verb {
+                    append_missing_forced_auxiliary_verb(lemma, &mut analyses);
+                }
+                return Ok(analyses);
             }
             let stem = lemma.strip_suffix('다').filter(|stem| !stem.is_empty());
             if stem.is_none() {
@@ -189,13 +318,17 @@ impl LexiconQueryAnalyzer {
                 predicate_shape_alternation(lemma, forced_pos)
                     .unwrap_or(kfind_morph::LexicalAlternation::Regular),
             );
-            return Ok(vec![Analysis {
+            let mut analyses = vec![Analysis {
                 lemma: lemma.into(),
                 coarse_pos: forced_pos,
                 fine_pos: predicate_pos.fine(),
                 morphology: Morphology::Predicate(predicate),
                 source: AnalysisSource::Forced,
-            }]);
+            }];
+            if forced_pos == CoarsePos::Verb {
+                append_missing_forced_auxiliary_verb(lemma, &mut analyses);
+            }
+            return Ok(analyses);
         }
 
         Ok(forced_non_predicates(lemma, forced_pos))
@@ -219,6 +352,34 @@ fn append_missing_forced_noun_analyses(lemma: &str, analyses: &mut Vec<Analysis>
             ));
         }
     }
+}
+
+fn append_missing_forced_auxiliary_verb(lemma: &str, analyses: &mut Vec<Analysis>) {
+    if analyses
+        .iter()
+        .any(|analysis| analysis.fine_pos == FinePos::AuxiliaryVerb)
+    {
+        return;
+    }
+    let Some(mut predicate) = analyses.iter().find_map(|analysis| {
+        if analysis.fine_pos != FinePos::Verb {
+            return None;
+        }
+        match &analysis.morphology {
+            Morphology::Predicate(predicate) => Some(predicate.clone()),
+            _ => None,
+        }
+    }) else {
+        return;
+    };
+    predicate.pos = PredicatePos::AuxiliaryVerb;
+    analyses.push(Analysis {
+        lemma: lemma.into(),
+        coarse_pos: CoarsePos::Verb,
+        fine_pos: FinePos::AuxiliaryVerb,
+        morphology: Morphology::Predicate(predicate),
+        source: AnalysisSource::Forced,
+    });
 }
 
 fn forced_non_predicates(lemma: &str, pos: CoarsePos) -> Vec<Analysis> {

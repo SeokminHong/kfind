@@ -456,6 +456,25 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_attached_auxiliary_whole_path(&self, text: &str) -> bool {
+        let mut supported = false;
+        self.resource
+            .common_prefixes(text.as_bytes(), |length, analyses| {
+                if length == text.len() {
+                    supported |= analyses
+                        .iter()
+                        .any(|analysis| is_attached_auxiliary_whole_path(analysis.pos));
+                }
+            });
+        supported
+    }
+
+    #[must_use]
+    pub fn has_complete_nominal_surface(&self, text: &str) -> bool {
+        !text.is_empty() && complete_nominal_host(&self.resource, text)
+    }
+
+    #[must_use]
     pub fn resolve_candidate(
         &self,
         context: BoundedTokenContext<'_>,
@@ -624,6 +643,7 @@ struct TokenEvidence {
     has_complete_path: bool,
     leading_predicate_spans: Box<[Range<usize>]>,
     runtime_nominal_derivation_spans: Box<[Range<usize>]>,
+    derivational_suffix_starts: Box<[usize]>,
     numeric_spans: Box<[Range<usize>]>,
     numeric_dependent_tail: Option<Range<usize>>,
     has_numeral_sequence: bool,
@@ -724,6 +744,7 @@ impl TokenEvidence {
         let has_complete_path = forward[text.len()];
         let leading_predicate_spans = leading_predicate_spans(text.len(), &edges);
         let runtime_nominal_derivation_spans = runtime_nominal_derivation_spans(&edges, &complete);
+        let derivational_suffix_starts = derivational_suffix_starts(&edges, &complete);
         let attached_auxiliary_spans = if include_attached_auxiliary {
             attached_auxiliary_spans(text.len(), &edges)
         } else {
@@ -878,6 +899,7 @@ impl TokenEvidence {
             has_complete_path,
             leading_predicate_spans,
             runtime_nominal_derivation_spans,
+            derivational_suffix_starts,
             numeric_spans,
             numeric_dependent_tail: numeric_path.and_then(|path| path.dependent_tail),
             has_numeral_sequence,
@@ -967,9 +989,113 @@ fn attached_auxiliary_spans(text_len: usize, edges: &[Edge<'_>]) -> Box<[Range<u
         })
         .map(|edge| edge.span.clone())
         .collect::<Vec<_>>();
+    spans.extend(
+        edges
+            .iter()
+            .filter(|edge| edge.span == (0..text_len) && is_attached_auxiliary_whole_path(edge.pos))
+            .map(|edge| edge.span.clone()),
+    );
+    if has_complete_attached_auxiliary_path(text_len, edges) {
+        spans.push(0..text_len);
+    }
     spans.sort_unstable_by_key(|span| (span.start, span.end));
     spans.dedup();
     spans.into_boxed_slice()
+}
+
+#[derive(Clone, Copy)]
+#[repr(usize)]
+enum AttachedAuxiliaryState {
+    Start,
+    Root,
+    Predicate,
+    Connective,
+    Auxiliary,
+    AuxiliaryEnding,
+}
+
+const ATTACHED_AUXILIARY_STATES: [AttachedAuxiliaryState; 6] = [
+    AttachedAuxiliaryState::Start,
+    AttachedAuxiliaryState::Root,
+    AttachedAuxiliaryState::Predicate,
+    AttachedAuxiliaryState::Connective,
+    AttachedAuxiliaryState::Auxiliary,
+    AttachedAuxiliaryState::AuxiliaryEnding,
+];
+const ATTACHED_AUXILIARY_STATE_COUNT: usize = ATTACHED_AUXILIARY_STATES.len();
+
+fn has_complete_attached_auxiliary_path(text_len: usize, edges: &[Edge<'_>]) -> bool {
+    let mut reachable = vec![[false; ATTACHED_AUXILIARY_STATE_COUNT]; text_len + 1];
+    reachable[0][AttachedAuxiliaryState::Start as usize] = true;
+    for start in 0..text_len {
+        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+            for state in ATTACHED_AUXILIARY_STATES {
+                if !reachable[start][state as usize] {
+                    continue;
+                }
+                if let Some(next) = advance_attached_auxiliary_path(state, edge.pos) {
+                    reachable[edge.span.end][next as usize] = true;
+                }
+            }
+        }
+    }
+    reachable[text_len][AttachedAuxiliaryState::AuxiliaryEnding as usize]
+}
+
+fn advance_attached_auxiliary_path(
+    mut state: AttachedAuxiliaryState,
+    positions: &str,
+) -> Option<AttachedAuxiliaryState> {
+    for pos in positions.split('+') {
+        state = match (state, pos) {
+            (AttachedAuxiliaryState::Start, "VV" | "VA") => AttachedAuxiliaryState::Predicate,
+            (AttachedAuxiliaryState::Start, "XR") => AttachedAuxiliaryState::Root,
+            (AttachedAuxiliaryState::Root, "XSV" | "XSA") => AttachedAuxiliaryState::Predicate,
+            (AttachedAuxiliaryState::Predicate | AttachedAuxiliaryState::Connective, pos)
+                if pos.starts_with('E') =>
+            {
+                if pos == "EC" {
+                    AttachedAuxiliaryState::Connective
+                } else {
+                    AttachedAuxiliaryState::Predicate
+                }
+            }
+            (AttachedAuxiliaryState::Connective, "VX") => AttachedAuxiliaryState::Auxiliary,
+            (AttachedAuxiliaryState::Auxiliary, pos) if pos.starts_with('E') => {
+                AttachedAuxiliaryState::AuxiliaryEnding
+            }
+            (AttachedAuxiliaryState::AuxiliaryEnding, pos) if pos.starts_with('E') => {
+                AttachedAuxiliaryState::AuxiliaryEnding
+            }
+            _ => return None,
+        };
+    }
+    Some(state)
+}
+
+fn is_attached_auxiliary_whole_path(pos: &str) -> bool {
+    let mut positions = pos.split('+');
+    match positions.next() {
+        Some("VV" | "VA") => {}
+        Some("XR") if matches!(positions.next(), Some("XSV" | "XSA")) => {}
+        _ => return false,
+    }
+
+    let mut connective_before_auxiliary = false;
+    for position in &mut positions {
+        if position == "VX" {
+            return connective_before_auxiliary
+                && positions
+                    .next()
+                    .is_some_and(|ending| ending.starts_with('E'))
+                && positions.all(|ending| ending.starts_with('E'));
+        }
+        if !position.starts_with('E') {
+            return false;
+        }
+        connective_before_auxiliary = position == "EC";
+    }
+    false
 }
 
 fn leading_predicate_spans(text_len: usize, edges: &[Edge<'_>]) -> Box<[Range<usize>]> {
@@ -1026,6 +1152,25 @@ fn runtime_nominal_derivation_spans(edges: &[Edge<'_>], complete: &[bool]) -> Bo
     spans.sort_unstable_by_key(|span| (span.start, span.end));
     spans.dedup();
     spans.into_boxed_slice()
+}
+
+fn derivational_suffix_starts(edges: &[Edge<'_>], complete: &[bool]) -> Box<[usize]> {
+    let mut starts = edges
+        .iter()
+        .enumerate()
+        .filter(|(index, edge)| {
+            complete[*index]
+                && edge
+                    .pos
+                    .split('+')
+                    .next()
+                    .is_some_and(|pos| matches!(pos, "XSV" | "XSA"))
+        })
+        .map(|(_, edge)| edge.span.start)
+        .collect::<Vec<_>>();
+    starts.sort_unstable();
+    starts.dedup();
+    starts.into_boxed_slice()
 }
 
 #[derive(Clone, Copy)]
@@ -1357,7 +1502,7 @@ fn collect_pattern_supports(
                 });
             }
         }
-        if supports.len() == support_start && predicate_nominalization(pattern, spans) {
+        if supports.len() == support_start && is_predicate_nominalization(pattern) {
             for unit in evidence
                 .units
                 .iter()
@@ -1371,7 +1516,10 @@ fn collect_pattern_supports(
         }
         if supports.len() == support_start
             && pattern.component_capability.allows_runtime()
-            && (evidence.runtime_spans.contains(&spans.core)
+            && (query_nominal_particle_path(pattern, spans)
+                || composed_nominal_subpath(pattern, spans, evidence)
+                || evidence.runtime_spans.contains(&spans.core)
+                || attached_auxiliary_is_supported(pattern, spans, evidence)
                 || (pattern.fine_pos.is_nominal() && evidence.has_nominal_copula_host(&spans.core))
                 || (pattern.fine_pos.is_nominal()
                     && graph_nominal_host == Some(&spans.core)
@@ -1405,6 +1553,7 @@ enum StructureSelection {
     AdjacentDeterminer,
     NominalSpan {
         selected: Range<usize>,
+        particle_hosts: Box<[Range<usize>]>,
         allow_components: bool,
         allow_whole_nominal_source_components: bool,
     },
@@ -1448,6 +1597,12 @@ impl StructureSelection {
         let Some(pattern) = patterns.get(support.pattern_index) else {
             return false;
         };
+        if query_nominal_particle_path(pattern, spans) {
+            return true;
+        }
+        if composed_nominal_subpath(pattern, spans, evidence) {
+            return true;
+        }
         match self {
             Self::Whole => support.evidence == StructuralEvidence::Whole,
             Self::Adverb => {
@@ -1464,6 +1619,7 @@ impl StructureSelection {
             }
             Self::NominalSpan {
                 selected,
+                particle_hosts,
                 allow_components,
                 allow_whole_nominal_source_components,
             } => {
@@ -1501,6 +1657,12 @@ impl StructureSelection {
                                         evidence,
                                     ))))
                             || spans.core == *selected
+                            || (particle_hosts.contains(&spans.core)
+                                && spans.consumed == spans.token
+                                && matches!(
+                                    pattern.continuation,
+                                    MorphContinuation::NominalParticles
+                                ))
                             || (spans.core.start == selected.start
                                 && spans.consumed.end == selected.end
                                 && evidence.units.iter().any(|unit| {
@@ -1519,7 +1681,7 @@ impl StructureSelection {
                             )) && spans.core.start >= selected.start
                                 && spans.core.end <= selected.end
                                 && spans.core != *selected)))
-                    || (predicate_nominalization(pattern, spans)
+                    || (is_predicate_nominalization(pattern)
                         && spans.anchor.start >= selected.start
                         && spans.anchor.end <= selected.end
                         && (spans.consumed.end == spans.token.end
@@ -1861,8 +2023,7 @@ fn runtime_position_is_supported(
         || spans.core.len() > pattern.lexical_form.len());
     let whole_predicate_continuation = whole_predicate_continuation(pattern, spans, evidence);
     let copula_nominal_host = copula_has_complete_nominal_host(pattern, spans, evidence);
-    let attached_auxiliary = pattern.fine_pos == DataFinePos::Vx
-        && evidence.attached_auxiliary_spans.contains(&spans.core);
+    let attached_auxiliary = attached_auxiliary_is_supported(pattern, spans, evidence);
     let trailing_predicate_subspan = predicate
         && spans.consumed.end != spans.token.end
         && !terminal_predicate_component
@@ -1872,7 +2033,7 @@ fn runtime_position_is_supported(
         && spans.core.start != spans.token.start
         && spans.consumed == spans.core
         && !attached_auxiliary
-        && !predicate_nominalization(pattern, spans);
+        && !is_predicate_nominalization(pattern);
     let modifier_before_predicate = predicate
         && !copula_nominal_host
         && !attached_auxiliary
@@ -1939,6 +2100,21 @@ fn runtime_position_is_supported(
         && !terminal_nominal_in_predicate_frame
 }
 
+fn attached_auxiliary_is_supported(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    evidence: &TokenEvidence,
+) -> bool {
+    pattern.fine_pos == DataFinePos::Vx
+        && evidence.attached_auxiliary_spans.iter().any(|frame| {
+            frame == &spans.core
+                || (pattern.lexical_form.as_ref() == "지"
+                    && frame == &spans.token
+                    && frame.start < spans.core.start
+                    && spans.core.end <= frame.end)
+        })
+}
+
 fn whole_predicate_continuation(
     pattern: &QueryMorphPattern,
     spans: &CandidateSpans,
@@ -1966,14 +2142,85 @@ fn copula_has_complete_nominal_host(
             .any(|unit| unit.span == (spans.token.start..spans.core.start) && unit.pos.is_nominal())
 }
 
-fn predicate_nominalization(pattern: &QueryMorphPattern, spans: &CandidateSpans) -> bool {
+fn is_predicate_nominalization(pattern: &QueryMorphPattern) -> bool {
     matches!(
         pattern.continuation,
         MorphContinuation::Predicate {
             nominal_particles: true,
             ..
         }
-    ) && spans.anchor != spans.core
+    )
+}
+
+fn query_nominal_particle_path(pattern: &QueryMorphPattern, spans: &CandidateSpans) -> bool {
+    pattern.fine_pos.is_nominal()
+        && matches!(pattern.continuation, MorphContinuation::NominalParticles)
+        && spans.core.start == spans.token.start
+        && spans.core.end < spans.consumed.end
+        && spans.consumed == spans.token
+}
+
+fn composed_nominal_subpath(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    evidence: &TokenEvidence,
+) -> bool {
+    if !pattern.fine_pos.is_nominal()
+        || !matches!(pattern.continuation, MorphContinuation::NominalParticles)
+        || evidence
+            .derivational_suffix_starts
+            .binary_search(&spans.core.end)
+            .is_ok()
+        || minimum_unit_path(&spans.core, evidence, DataFinePos::is_nominal)
+            .is_none_or(|units| units < 2)
+    {
+        return false;
+    }
+    evidence
+        .units
+        .iter()
+        .map(|unit| unit.span.end)
+        .filter(|&host_end| host_end >= spans.core.end && host_end <= spans.token.end)
+        .any(|host_end| {
+            minimum_unit_path(
+                &(spans.token.start..host_end),
+                evidence,
+                DataFinePos::is_nominal,
+            )
+            .is_some()
+                && minimum_unit_path(
+                    &(host_end..spans.token.end),
+                    evidence,
+                    DataFinePos::is_particle,
+                )
+                .is_some()
+        })
+}
+
+fn minimum_unit_path(
+    span: &Range<usize>,
+    evidence: &TokenEvidence,
+    accepts: impl Fn(DataFinePos) -> bool,
+) -> Option<usize> {
+    if span.is_empty() {
+        return Some(0);
+    }
+    let mut costs = vec![None; span.end + 1];
+    costs[span.start] = Some(0_usize);
+    for start in span.start..span.end {
+        let Some(cost) = costs[start] else {
+            continue;
+        };
+        for unit in evidence.units.iter().filter(|unit| {
+            unit.span.start == start && unit.span.end <= span.end && accepts(unit.pos)
+        }) {
+            let next = cost + 1;
+            if costs[unit.span.end].is_none_or(|current| next < current) {
+                costs[unit.span.end] = Some(next);
+            }
+        }
+    }
+    costs[span.end]
 }
 
 fn select_structure(
@@ -2002,9 +2249,13 @@ fn select_structure(
             exact_analysis_starts_with_pos(resource, next, |pos| pos.starts_with('N'));
         let exact_competitor =
             exact_analysis_starts_with_pos(resource, next, |pos| !pos.starts_with('N'));
-        nominal_particle_host(resource, next).is_some() || (exact_nominal && !exact_competitor)
+        let complete_nominal = complete_nominal_host(resource, next)
+            || complete_nominal_particle_host(resource, next).is_some();
+        !nominal_particle_hosts(resource, next).is_empty()
+            || (!exact_competitor && (exact_nominal || complete_nominal))
     });
-    let particle_host = nominal_particle_host(resource, context.current);
+    let particle_hosts = nominal_particle_hosts(resource, context.current);
+    let particle_host = particle_hosts.last().cloned();
     if next_starts_nominal
         && context.current.chars().count() == 1
         && evidence.has_whole(DataFinePos::Mm)
@@ -2050,6 +2301,7 @@ fn select_structure(
             host != (0..context.current.len()) && evidence.has_whole_nominal_source_components;
         StructureSelection::NominalSpan {
             selected: host,
+            particle_hosts: particle_hosts.into_boxed_slice(),
             allow_components,
             allow_whole_nominal_source_components,
         }
@@ -2204,7 +2456,7 @@ fn unique_copular_split(resource: &ComponentResource, current: &str) -> Option<u
     matches.next().is_none().then_some(split)
 }
 
-fn nominal_particle_host(resource: &ComponentResource, current: &str) -> Option<Range<usize>> {
+fn nominal_particle_hosts(resource: &ComponentResource, current: &str) -> Vec<Range<usize>> {
     current
         .char_indices()
         .map(|(offset, _)| offset)
@@ -2213,8 +2465,8 @@ fn nominal_particle_host(resource: &ComponentResource, current: &str) -> Option<
             has_exact_fine_pos(resource, &current[..split], DataFinePos::is_nominal)
                 && complete_suffix(resource, &current[split..], |pos| pos.starts_with('J'))
         })
-        .max()
         .map(|end| 0..end)
+        .collect()
 }
 
 fn complete_nominal_particle_host(

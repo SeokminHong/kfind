@@ -533,6 +533,33 @@ fn longest_nominal_particle_host_hides_an_inner_component() {
 }
 
 #[test]
+fn competing_nominal_particle_hosts_are_all_preserved() {
+    let resolver = resolver_from_entries([
+        atomic("후", "NNG"),
+        atomic("후에", "NNP"),
+        atomic("에", "JKB"),
+        atomic("도", "JX"),
+    ]);
+    let shorter = resolver.resolve_candidate(
+        BoundedTokenContext::current("후에도"),
+        spans(0.."후".len(), 0.."후에도".len()),
+        &[nominal_pattern(DataFinePos::Nng, "후")],
+        128,
+    );
+    let longer = resolver.resolve_candidate(
+        BoundedTokenContext::current("후에도"),
+        spans(0.."후에".len(), 0.."후에도".len()),
+        &[nominal_pattern(DataFinePos::Nnp, "후에")],
+        128,
+    );
+
+    assert_eq!(shorter.outcome, ConstraintOutcome::Supported);
+    assert_eq!(longer.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&shorter));
+    assert!(ProductPolicy::RecallFirst.accepts(&longer));
+}
+
+#[test]
 fn exact_nominal_particle_host_outranks_a_longer_runtime_decomposition() {
     let resolver = resolver();
     let pattern = QueryMorphPattern::new(DataFinePos::Nng, "학교").with_candidate_contract(
@@ -1207,6 +1234,36 @@ fn predicate_nominalization_aligns_with_whole_and_source_nominal_spans() {
 }
 
 #[test]
+fn predicate_nominalization_keeps_same_syllable_stem_composition() {
+    let resolver = resolver_from_entries([
+        atomic("봄", "NNG"),
+        atomic("으로써", "JKB"),
+        atomic("봄으로써", "NNG+JKB"),
+    ]);
+    let pattern = QueryMorphPattern::new(DataFinePos::Vv, "보").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: true,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("봄으로써"),
+        CandidateSpans {
+            core: 0.."봄".len(),
+            anchor: 0.."봄".len(),
+            consumed: 0.."봄으로써".len(),
+            token: 0.."봄으로써".len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+}
+
+#[test]
 fn predicate_ending_path_consumes_an_open_ended_ending_sequence() {
     let resolver = resolver();
 
@@ -1329,6 +1386,152 @@ fn attached_auxiliary_requires_a_predicate_connective_path() {
 
     assert_eq!(supported.outcome, ConstraintOutcome::Supported);
     assert_eq!(rejected.outcome, ConstraintOutcome::Contradicted);
+}
+
+#[test]
+fn attached_auxiliary_accepts_a_contracted_whole_source_analysis() {
+    let resolver = resolver_from_entries([
+        expression("빨라져", "VA+EC+VX+EC", "빠르/VA/*+아/EC/*+지/VX/*+어/EC/*"),
+        expression(
+            "알려진",
+            "VV+EC+VX+ETM",
+            "알리/VV/*+어/EC/*+지/VX/*+ㄴ/ETM/*",
+        ),
+        expression(
+            "뚜렷해졌다",
+            "XR+XSA+EC+VX+EP+EF",
+            "뚜렷/XR/*+하/XSA/*+어/EC/*+지/VX/*+었/EP/*+다/EF/*",
+        ),
+        atomic("비춰", "VV+EC"),
+        atomic("볼", "VX+ETM"),
+        atomic("사진", "NNG"),
+    ]);
+    let pattern = QueryMorphPattern::new(DataFinePos::Vx, "지").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    for (token, core_start) in [
+        ("빨라져", "빨라".len()),
+        ("알려진", "알려".len()),
+        ("뚜렷해졌다", "뚜렷해".len()),
+    ] {
+        let supported = resolver.resolve_candidate(
+            BoundedTokenContext::current(token),
+            CandidateSpans {
+                core: core_start..token.len(),
+                anchor: core_start..token.len(),
+                consumed: core_start..token.len(),
+                token: 0..token.len(),
+            },
+            std::slice::from_ref(&pattern),
+            128,
+        );
+        assert_eq!(supported.outcome, ConstraintOutcome::Supported, "{token}");
+    }
+    let rejected = resolver.resolve_candidate(
+        BoundedTokenContext::current("사진"),
+        CandidateSpans {
+            core: "사".len().."사진".len(),
+            anchor: "사".len().."사진".len(),
+            consumed: "사".len().."사진".len(),
+            token: 0.."사진".len(),
+        },
+        &[pattern],
+        128,
+    );
+    let unrelated = QueryMorphPattern::new(DataFinePos::Vx, "빠지").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let unrelated = resolver.resolve_candidate(
+        BoundedTokenContext::current("빨라져"),
+        CandidateSpans {
+            core: "빨".len().."빨라져".len(),
+            anchor: "빨".len().."빨라져".len(),
+            consumed: "빨".len().."빨라져".len(),
+            token: 0.."빨라져".len(),
+        },
+        &[unrelated],
+        128,
+    );
+    let aligned_auxiliary = QueryMorphPattern::new(DataFinePos::Vx, "보").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let aligned_auxiliary = resolver.resolve_candidate(
+        BoundedTokenContext::current("비춰볼"),
+        CandidateSpans {
+            core: "비춰".len().."비춰볼".len(),
+            anchor: "비춰".len().."비춰볼".len(),
+            consumed: "비춰".len().."비춰볼".len(),
+            token: 0.."비춰볼".len(),
+        },
+        &[aligned_auxiliary],
+        128,
+    );
+
+    assert_eq!(rejected.outcome, ConstraintOutcome::Contradicted);
+    assert_eq!(unrelated.outcome, ConstraintOutcome::Contradicted);
+    assert_eq!(aligned_auxiliary.outcome, ConstraintOutcome::Supported);
+}
+
+#[test]
+fn attached_auxiliary_path_composes_a_split_derivational_source_analysis() {
+    let root_end = "뚜렷".len();
+    let auxiliary_end = "뚜렷해졌".len();
+    let token_end = "뚜렷해졌다".len();
+    let edges = [
+        Edge {
+            span: 0..root_end,
+            pos: "XR",
+            components: Vec::new(),
+        },
+        Edge {
+            span: root_end..auxiliary_end,
+            pos: "XSA+EC+VX+EP",
+            components: Vec::new(),
+        },
+        Edge {
+            span: auxiliary_end..token_end,
+            pos: "EF",
+            components: Vec::new(),
+        },
+    ];
+    assert!(has_complete_attached_auxiliary_path(token_end, &edges));
+
+    let without_connective = [
+        Edge {
+            span: 0..root_end,
+            pos: "XR",
+            components: Vec::new(),
+        },
+        Edge {
+            span: root_end..auxiliary_end,
+            pos: "XSA+VX+EP",
+            components: Vec::new(),
+        },
+        Edge {
+            span: auxiliary_end..token_end,
+            pos: "EF",
+            components: Vec::new(),
+        },
+    ];
+    assert!(!has_complete_attached_auxiliary_path(
+        token_end,
+        &without_connective,
+    ));
 }
 
 #[test]

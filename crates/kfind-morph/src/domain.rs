@@ -89,6 +89,58 @@ impl PredicatePos {
     pub const fn is_action(self) -> bool {
         matches!(self, Self::Verb | Self::AuxiliaryVerb)
     }
+
+    #[must_use]
+    pub const fn execution(self) -> Self {
+        match self {
+            Self::AuxiliaryVerb => Self::Verb,
+            Self::AuxiliaryAdjective => Self::Adjective,
+            other => other,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+pub struct PredicatePosSet(u8);
+
+impl PredicatePosSet {
+    pub const EMPTY: Self = Self(0);
+
+    #[must_use]
+    pub const fn one(pos: PredicatePos) -> Self {
+        Self(1 << pos as u8)
+    }
+
+    #[must_use]
+    pub const fn contains(self, pos: PredicatePos) -> bool {
+        self.0 & Self::one(pos).0 != 0
+    }
+
+    pub fn iter(self) -> impl Iterator<Item = PredicatePos> {
+        [
+            PredicatePos::Verb,
+            PredicatePos::Adjective,
+            PredicatePos::AuxiliaryVerb,
+            PredicatePos::AuxiliaryAdjective,
+            PredicatePos::Copula,
+        ]
+        .into_iter()
+        .filter(move |pos| self.contains(*pos))
+    }
+}
+
+impl BitOr for PredicatePosSet {
+    type Output = Self;
+
+    fn bitor(self, rhs: Self) -> Self::Output {
+        Self(self.0 | rhs.0)
+    }
+}
+
+impl BitOrAssign for PredicatePosSet {
+    fn bitor_assign(&mut self, rhs: Self) {
+        self.0 |= rhs.0;
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]

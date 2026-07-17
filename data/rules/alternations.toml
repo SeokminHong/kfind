@@ -4,7 +4,7 @@ schema_version = 1
 id = "lexical.regular"
 kind = "Regular"
 flags = ["EU_DROP", "RIEUL_DROP", "NO_I_EO_CONTRACTION", "NO_DECLARATIVE_CONTINUATION"]
-ending_ids = ["ending.final-da", "ending.connective-go", "ending.connective-ji", "ending.adverbial-ge", "ending.concessive-deorado", "ending.present-adnominal", "ending.past-adnominal", "ending.future-adnominal", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.connective-eudoe", "ending.future", "ending.honorific", "ending.conditional", "ending.coordinate-myeo", "ending.polite-declarative", "ending.imperative-geora", "ending.imperative-neora", "ending.nominalizer", "ending.nominalizer-gi"]
+ending_ids = ["ending.final-da", "ending.connective-go", "ending.connective-ji", "ending.adverbial-ge", "ending.concessive-deorado", "ending.present-adnominal", "ending.past-adnominal", "ending.future-adnominal", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.connective-eudoe", "ending.future", "ending.honorific", "ending.conditional", "ending.coordinate-myeo", "ending.polite-declarative", "ending.imperative-geora", "ending.imperative-neora", "ending.final-rieulse", "ending.nominalizer", "ending.nominalizer-gi"]
 
 [[alternation]]
 id = "lexical.d-to-l"
@@ -64,7 +64,7 @@ ending_ids = ["ending.concessive-deorado", "ending.aoeo", "ending.aoeo-seo", "en
 id = "lexical.copula"
 kind = "Copula"
 flags = []
-ending_ids = ["ending.connective-go", "ending.connective-ji", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.connective-eudoe", "ending.present-adnominal", "ending.past-adnominal", "ending.future-adnominal", "ending.coordinate-myeo", "ending.polite-declarative", "ending.copula-quotative-go", "ending.copula-quotative-adnominal", "ending.nominalizer", "ending.nominalizer-gi"]
+ending_ids = ["ending.connective-go", "ending.connective-ji", "ending.connective-meuro", "ending.aoeo", "ending.aoeo-seo", "ending.past", "ending.connective-eudoe", "ending.present-adnominal", "ending.past-adnominal", "ending.future-adnominal", "ending.coordinate-myeo", "ending.polite-declarative", "ending.copula-quotative-go", "ending.copula-quotative-adnominal", "ending.nominalizer", "ending.nominalizer-gi"]
 
 [[alternation]]
 id = "lexical.suppletive"

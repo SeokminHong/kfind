@@ -95,6 +95,41 @@ fn compiled_predicate_plan_matches_a_prospective_final() {
 }
 
 #[test]
+fn nikl_attested_endings_require_complete_source_paths() {
+    let resource = component_resource_from_entries([
+        component_entry("섬나라", "NNG"),
+        component_entry("이", "VCP"),
+        component_entry("므로", "EC"),
+        component_expression_entry("아닐세", "VCN+EF", "아니/VCN/*+ᆯ세/EF/*"),
+    ]);
+    let copula =
+        compile_embedded_with_resource("이다", CompileOptions::default(), Arc::clone(&resource));
+    let negative_copula =
+        compile_embedded_with_resource("아니다", CompileOptions::default(), resource);
+
+    assert!(
+        copula
+            .find_at_with_meta("섬나라이므로".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        copula
+            .find_at_with_meta("섬나라므로".as_bytes(), 0)
+            .is_none()
+    );
+    assert!(
+        negative_copula
+            .find_at_with_meta("아닐세".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        negative_copula
+            .find_at_with_meta("아닐새".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn full_pos_smart_predicate_plan_preserves_a_same_pos_homograph_union() {
     for query in ["걷다", "걸다"] {
         let matcher = compile_with_full_pos(
@@ -275,6 +310,56 @@ fn connective_topic_uses_an_ending_then_particle_source_path() {
 }
 
 #[test]
+fn predicate_endings_accept_only_source_backed_auxiliary_particle_chains() {
+    let resource = component_resource_from_entries([
+        component_entry("먹", "VV"),
+        component_entry("고", "EC"),
+        component_entry("는", "JX"),
+        component_entry("도", "JX"),
+        component_entry("만", "JX"),
+        component_entry("조차", "JX"),
+        component_entry("커녕", "JX"),
+        component_entry("뿐", "JX"),
+        component_entry("를", "JKO"),
+    ]);
+    let matcher = compile_with_full_pos_and_resource(
+        "먹다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    for text in ["먹고는", "먹고도", "먹고만", "먹고조차", "먹고는커녕"] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "source-backed auxiliary particle chain was rejected in {text}"
+        );
+    }
+    for text in ["먹고를", "먹고뿐", "먹고도는"] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+            "unlicensed predicate-ending particle chain was accepted in {text}"
+        );
+    }
+
+    let without_particle_source = compile_with_full_pos_and_resource(
+        "먹다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([component_entry("먹", "VV"), component_entry("고", "EC")]),
+    );
+    assert!(
+        without_particle_source
+            .find_at_with_meta("먹고도".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn adverbial_ge_uses_an_ending_then_auxiliary_particle_source_path() {
     let matcher = compile_with_full_pos(
         "이렇다",
@@ -284,12 +369,14 @@ fn adverbial_ge_uses_an_ending_then_auxiliary_particle_source_path() {
         },
     );
 
-    let text = "또 이렇게도 비판하고 있다.";
-    let matched = matcher
-        .find_at_with_meta(text.as_bytes(), 0)
-        .expect("adverbial -게 plus auxiliary particle source path was rejected");
-    assert_eq!(&text[matched.atoms[0].core.clone()], "이렇");
-    assert_eq!(&text[matched.atoms[0].token.clone()], "이렇게");
+    for text in ["또 이렇게도 비판하고 있다.", "또 이렇게는 비판하지 않는다."]
+    {
+        let matched = matcher
+            .find_at_with_meta(text.as_bytes(), 0)
+            .expect("adverbial -게 plus auxiliary particle source path was rejected");
+        assert_eq!(&text[matched.atoms[0].core.clone()], "이렇");
+        assert_eq!(&text[matched.atoms[0].token.clone()], "이렇게");
+    }
 
     assert!(
         matcher
@@ -399,6 +486,80 @@ fn smart_auxiliary_query_accepts_a_complete_attached_source_path() {
 }
 
 #[test]
+fn forced_main_verb_query_preserves_a_source_backed_auxiliary_path() {
+    let resource = component_resource_from_entries([
+        component_expression_entry("먹어가", "VV+EC+VX", "먹/VV/*+어/EC/*+가/VX/*"),
+        component_entry("사과", "NNG"),
+    ]);
+    let matcher = compile_with_full_pos_and_resource(
+        "가다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    assert!(matcher.find_at_with_meta("먹어가".as_bytes(), 0).is_some());
+    assert!(matcher.find_at_with_meta("사과".as_bytes(), 0).is_none());
+}
+
+#[test]
+fn smart_auxiliary_query_accepts_an_unaligned_whole_source_path() {
+    let resource = component_resource_from_entries([
+        component_expression_entry("빨라져", "VA+EC+VX+EC", "빠르/VA/*+아/EC/*+지/VX/*+어/EC/*"),
+        component_expression_entry("알려진", "VV+EC+VX+ETM", "알리/VV/*+어/EC/*+지/VX/*+ᆫ/ETM/*"),
+        component_expression_entry(
+            "뚜렷해졌다",
+            "XR+XSA+EC+VX+EP+EF",
+            "뚜렷/XR/*+하/XSA/*+어/EC/*+지/VX/*+었/EP/*+다/EF/*",
+        ),
+        component_entry("사진", "NNG"),
+    ]);
+    let matcher = compile_with_full_pos_and_resource(
+        "지다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    for text in ["빨라져", "알려진", "뚜렷해졌다"] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "unaligned attached auxiliary source path was rejected for {text}"
+        );
+    }
+    assert!(matcher.find_at_with_meta("사진".as_bytes(), 0).is_none());
+}
+
+#[test]
+fn smart_auxiliary_query_accepts_a_split_derivational_source_path() {
+    let resource = component_resource_from_entries([
+        component_entry("뚜렷", "XR"),
+        component_expression_entry("해졌", "XSA+EC+VX+EP", "하/XSA/*+어/EC/*+지/VX/*+었/EP/*"),
+        component_entry("다", "EF"),
+        component_entry("사진", "NNG"),
+    ]);
+    let matcher = compile_with_full_pos_and_resource(
+        "지다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    assert!(
+        matcher
+            .find_at_with_meta("뚜렷해졌다".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(matcher.find_at_with_meta("사진".as_bytes(), 0).is_none());
+}
+
+#[test]
 fn adjacent_layout_limits_disambiguation_to_supported_pos_competitions() {
     let noun = compile_with_full_pos(
         "새",
@@ -485,6 +646,39 @@ fn adjacent_layout_limits_disambiguation_to_supported_pos_competitions() {
     );
     assert!(pronoun.find_at_with_meta("제 나라".as_bytes(), 0).is_some());
     assert!(numeral.find_at_with_meta("한 사람".as_bytes(), 0).is_some());
+}
+
+#[test]
+fn determiner_accepts_a_complete_derived_nominal_phrase_in_the_next_token() {
+    let resource = component_resource_from_entries([
+        component_entry("전", "MM"),
+        component_entry("전", "NNG"),
+        component_entry("전", "NNB"),
+        component_entry("가구", "NNG"),
+        component_entry("별", "XSN"),
+        component_entry("로", "JKB"),
+        component_entry("는", "ETM"),
+        component_entry("한다고", "VV+EF+EC"),
+    ]);
+    let matcher = compile_with_full_pos_and_resource(
+        "전",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Determiner),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    assert!(
+        matcher
+            .find_at_with_meta("경우에는 전 가구별로".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        matcher
+            .find_at_with_meta("경우에는 전 한다고".as_bytes(), 0)
+            .is_none()
+    );
 }
 
 #[test]
@@ -741,23 +935,90 @@ fn compiled_predicate_plan_rejects_a_surface_attached_as_a_particle() {
 }
 
 #[test]
-fn derivation_adverb_plan_matches_only_auxiliary_particles() {
-    let matcher = compile(
+fn inflection_adverb_plan_matches_only_auxiliary_particles() {
+    let matcher = compile("빨리", CompileOptions::default());
+
+    for text in ["일을 빨리도 끝냈다.", "빨리는 끝냈다."] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "default inflection rejected the adverb-particle structure in {text}"
+        );
+    }
+    assert!(
+        matcher
+            .find_at_with_meta("빨리가 답이다.".as_bytes(), 0)
+            .is_none()
+    );
+
+    let literal = compile(
         "빨리",
         CompileOptions {
-            expand: ExpandMode::Derivation,
+            expand: ExpandMode::Literal,
             ..CompileOptions::default()
         },
+    );
+    assert!(
+        literal
+            .find_at_with_meta("일을 빨리도 끝냈다.".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
+fn adverb_particle_hosts_and_transitions_cover_complete_families() {
+    let adverb_options = CompileOptions {
+        global_pos: Some(CoarsePos::Adverb),
+        ..CompileOptions::default()
+    };
+    let maybe = compile("혹시", adverb_options.clone());
+    let far = compile("멀리", adverb_options.clone());
+    let actually = compile("실제로", adverb_options);
+
+    assert!(maybe.find_at_with_meta("혹시나".as_bytes(), 0).is_some());
+    for text in ["멀리까지도", "멀리까지만", "멀리까지는"] {
+        assert!(
+            far.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "adverb particle graph rejected {text}"
+        );
+    }
+    assert!(
+        actually
+            .find_at_with_meta("실제로는커녕".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(maybe.find_at_with_meta("혹시가".as_bytes(), 0).is_none());
+    assert!(
+        actually
+            .find_at_with_meta("실제로커녕".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
+fn adverb_particle_chain_survives_a_competing_nominal_particle_path() {
+    let resource = component_resource_from_entries([
+        component_entry("실제", "NNG"),
+        component_entry("로", "JKB"),
+        component_entry("는", "JX"),
+        component_entry("가", "JKS"),
+    ]);
+    let matcher = compile_embedded_with_resource(
+        "실제로",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Adverb),
+            ..CompileOptions::default()
+        },
+        resource,
     );
 
     assert!(
         matcher
-            .find_at_with_meta("일을 빨리도 끝냈다.".as_bytes(), 0)
+            .find_at_with_meta("실제로는".as_bytes(), 0)
             .is_some()
     );
     assert!(
         matcher
-            .find_at_with_meta("빨리가 답이다.".as_bytes(), 0)
+            .find_at_with_meta("실제로가".as_bytes(), 0)
             .is_none()
     );
 }
@@ -826,6 +1087,233 @@ fn compiled_nominal_plan_enforces_particle_transitions() {
         assert!(
             matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
             "accepted forbidden particle chain {text}"
+        );
+    }
+}
+
+#[test]
+fn compiled_nominal_plan_covers_particle_transition_families() {
+    let matcher = compile("사용자", CompileOptions::default());
+
+    for text in [
+        "사용자까지도 왔다.",
+        "사용자까지만 왔다.",
+        "사용자까지는 왔다.",
+        "사용자까지만은 허용한다.",
+        "사용자로부터의 요청이다.",
+        "사용자에게로 보냈다.",
+        "사용자에서부터 시작했다.",
+        "사용자에의 의존이다.",
+        "사용자조차도 동의했다.",
+        "사용자마저도 동의했다.",
+        "사용자들로부터의 요청이다.",
+        "사용자로서도 참여했다.",
+        "사용자로써는 부족하다.",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "rejected particle transition family: {text}"
+        );
+    }
+    for text in [
+        "사용자는에게",
+        "사용자도까지",
+        "사용자까지도만",
+        "사용자들로부터까지만",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+            "accepted forbidden or overlong particle chain: {text}"
+        );
+    }
+}
+
+#[test]
+fn forced_nominal_host_consumes_a_complete_particle_chain_without_a_dictionary_entry() {
+    let resource = component_resource_from_entries([
+        component_entry("신", "NNG"),
+        component_entry("조", "NNG"),
+        component_entry("어", "NNG"),
+        component_entry("는", "JX"),
+    ]);
+    let matcher = compile_with_full_pos_and_resource(
+        "신조어",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    for valid in ["신조어는 늘어난다.", "신조어로써도 쓰인다."] {
+        assert!(
+            matcher.find_at_with_meta(valid.as_bytes(), 0).is_some(),
+            "rejected forced nominal particle host {valid:?}"
+        );
+    }
+    for invalid in ["신조어하다", "옛신조어는"] {
+        assert!(
+            matcher.find_at_with_meta(invalid.as_bytes(), 0).is_none(),
+            "accepted invalid forced nominal continuation {invalid:?}"
+        );
+    }
+}
+
+#[test]
+fn composed_nominal_query_matches_a_contiguous_multi_node_subpath() {
+    let prefix = compile_with_full_pos_and_resource(
+        "경영전략",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("경영", "NNG"),
+            component_entry("전략", "NNG"),
+            component_entry("시스템", "NNG"),
+        ]),
+    );
+    let internal = compile_with_full_pos_and_resource(
+        "회사측",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("선박", "NNG"),
+            component_entry("회사", "NNG"),
+            component_entry("측", "NNG"),
+            component_entry("에서", "JKB"),
+            component_entry("는", "JX"),
+        ]),
+    );
+
+    assert!(
+        prefix
+            .find_at_with_meta("경영전략시스템".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        internal
+            .find_at_with_meta("선박회사측에서는".as_bytes(), 0)
+            .is_some()
+    );
+}
+
+#[test]
+fn composed_nominal_query_rejects_one_node_and_predicate_suffix_paths() {
+    let one_node = compile_with_full_pos_and_resource(
+        "옆",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("빙원", "NNG"),
+            component_entry("옆", "NNG"),
+            component_entry("에", "JKB"),
+        ]),
+    );
+    let predicate_suffix = compile_with_full_pos_and_resource(
+        "잠식당",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("잠식", "NNG"),
+            component_entry("당", "NNG"),
+            component_entry("하", "XSV"),
+            component_entry("기", "ETN"),
+            component_entry("잠식당하기", "NNP"),
+        ]),
+    );
+
+    assert!(
+        one_node
+            .find_at_with_meta("빙원옆에".as_bytes(), 0)
+            .is_none()
+    );
+    assert!(
+        predicate_suffix
+            .find_at_with_meta("잠식당하기".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
+fn compiled_nominal_plan_composes_particle_chains_with_copula_grammar() {
+    let matcher = compile("사용자", CompileOptions::default());
+
+    for text in [
+        "대상은 사용자뿐이다.",
+        "대상은 사용자뿐만이다.",
+        "범위는 사용자까지다.",
+        "범위는 사용자로부터였다.",
+        "대상은 사용자뿐이었다.",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "rejected nominal-particle-copula structure: {text}"
+        );
+    }
+    for text in [
+        "대상은 사용자뿐다.",
+        "대상은 사용자뿐였다.",
+        "대상은 사용자뿐이.",
+        "대상은 사용자뿐도만이다.",
+        "범위는 사용자까지였.",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+            "accepted invalid nominal-particle-copula structure: {text}"
+        );
+    }
+}
+
+#[test]
+fn compiled_nominal_plan_covers_dictionary_consensus_particle_families() {
+    let matcher = compile("사용자", CompileOptions::default());
+
+    for text in [
+        "사용자께서 오셨다.",
+        "사용자같이 처리한다.",
+        "사용자대로 둔다.",
+        "사용자더러 말했다.",
+        "사용자마다 다르다.",
+        "사용자만큼 빠르다.",
+        "사용자밖에 없다.",
+        "사용자보고 말했다.",
+        "사용자보다 빠르다.",
+        "사용자뿐 남았다.",
+        "사용자처럼 행동한다.",
+        "사용자커녕 아무도 없다.",
+        "사용자께서는 오셨다.",
+        "사용자뿐만 남았다.",
+        "사용자는커녕 아무도 없다.",
+        "사용자들마다 다르다.",
+        "사용자보다도 빠르다.",
+        "사용자나 관리자가 처리한다.",
+        "사용자나마 남았다.",
+        "사용자라도 처리한다.",
+        "사용자랑 관리자가 처리한다.",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "rejected dictionary particle family: {text}"
+        );
+    }
+    for text in [
+        "사용자이나",
+        "사용자이나마",
+        "사용자이라도",
+        "사용자이랑",
+        "사용자은커녕",
+        "사용자ㄴ커녕",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+            "accepted invalid dictionary particle allomorph: {text}"
         );
     }
 }
@@ -928,6 +1416,44 @@ fn compiled_mieum_nominalizer_consumes_only_valid_particle_chains() {
 }
 
 #[test]
+fn compiled_mieum_nominalizer_keeps_same_syllable_composition() {
+    let resource = component_resource_from_entries([
+        component_entry("봄", "NNG"),
+        component_entry("이름", "NNG"),
+        component_entry("으로써", "JKB"),
+    ]);
+    for (query, text) in [("보다", "봄으로써"), ("이르다", "이름으로써")] {
+        let matcher = compile_with_full_pos_and_resource(
+            query,
+            CompileOptions::default(),
+            Arc::clone(&resource),
+        );
+        let matched = matcher
+            .find_at_with_meta(text.as_bytes(), 0)
+            .unwrap_or_else(|| panic!("rejected composed nominalizer {query:?} in {text:?}"));
+        assert_eq!(&text[matched.atoms[0].token.clone()], text);
+        assert!(matched.atoms[0].origins.iter().any(|origin| {
+            origin
+                .rule_path
+                .iter()
+                .any(|rule| rule.as_str() == "ending.nominalizer")
+        }));
+    }
+
+    let matcher = compile_with_full_pos_and_resource(
+        "보다",
+        CompileOptions::default(),
+        Arc::clone(&resource),
+    );
+    for invalid in ["봄가", "봄으로써를"] {
+        assert!(
+            matcher.find_at_with_meta(invalid.as_bytes(), 0).is_none(),
+            "accepted invalid composed nominalizer chain {invalid:?}"
+        );
+    }
+}
+
+#[test]
 fn any_boundary_keeps_invalid_suffix_candidates_and_extends_valid_tokens() {
     let matcher = compile(
         "걷다",
@@ -995,6 +1521,45 @@ fn compiled_vcp_plan_accepts_corpus_attestations_and_licensed_contraction() {
             .find_at_with_meta("학생이여서 참석했다.".as_bytes(), 0)
             .is_none()
     );
+}
+
+#[test]
+fn compiled_vcp_plan_uses_complete_nominal_and_particle_hosts() {
+    let resource = component_resource_from_entries([
+        component_entry("상표", "NNG"),
+        component_entry("구경거리", "NNG"),
+        component_entry("학교", "NNG"),
+        component_entry("대학", "NNG"),
+        component_entry("매", "NNG"),
+        component_entry("매일", "MAG"),
+    ]);
+    let matcher = compile_with_full_pos_and_resource("이다", CompileOptions::default(), resource);
+
+    for text in [
+        "버버리는 회사 상표다.",
+        "끔찍한 구경거리였다.",
+        "범위는 학교까지였다.",
+        "대상은 대학뿐이다.",
+        "대상은 대학뿐이었다.",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "rejected complete copula frame: {text}"
+        );
+    }
+    for text in [
+        "대학다.",
+        "대학였다.",
+        "대학여서 갔다.",
+        "매일 만났다.",
+        "다.",
+        "학교다른.",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+            "accepted invalid copula frame: {text}"
+        );
+    }
 }
 
 #[test]
@@ -1129,6 +1694,52 @@ fn nominal_overrides_preserve_replacement_and_alias_contracts() {
 }
 
 #[test]
+fn nominal_topic_contraction_covers_the_pronoun_family() {
+    for (query, contracted, full) in [
+        ("이거", "이건", "이거는"),
+        ("그거", "그건", "그거는"),
+        ("저거", "저건", "저거는"),
+    ] {
+        let matcher = compile(
+            query,
+            CompileOptions {
+                global_pos: Some(CoarsePos::Pronoun),
+                ..CompileOptions::default()
+            },
+        );
+        assert!(
+            matcher
+                .find_at_with_meta(contracted.as_bytes(), 0)
+                .is_some(),
+            "{query} must accept contracted topic form {contracted}"
+        );
+        assert!(
+            matcher.find_at_with_meta(full.as_bytes(), 0).is_some(),
+            "{query} must preserve full topic form {full}"
+        );
+        let compound = format!("{contracted}물");
+        assert!(
+            matcher.find_at_with_meta(compound.as_bytes(), 0).is_none(),
+            "{query} must not leak the contraction into {compound}"
+        );
+    }
+
+    let other_pronoun = compile(
+        "누구",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Pronoun),
+            ..CompileOptions::default()
+        },
+    );
+    assert!(
+        other_pronoun.plan().atoms[0]
+            .programs
+            .iter()
+            .all(|branch| branch.anchor.as_ref() != "누건".as_bytes())
+    );
+}
+
+#[test]
 fn direct_particle_plans_validate_the_attached_host_in_smart_mode() {
     let options = CompileOptions {
         global_pos: Some(CoarsePos::Particle),
@@ -1137,6 +1748,10 @@ fn direct_particle_plans_validate_the_attached_host_in_smart_mode() {
     for (query, accepted, rejected) in [
         ("는", ["사용자는", "권한은"], ["사용자은", "권한는"]),
         ("로", ["길로", "학교로"], ["길으로", "집로"]),
+        ("나", ["집이나", "바다나"], ["집나", "바다이나"]),
+        ("나마", ["집이나마", "바다나마"], ["집나마", "바다이나마"]),
+        ("라도", ["집이라도", "바다라도"], ["집라도", "바다이라도"]),
+        ("랑", ["집이랑", "바다랑"], ["집랑", "바다이랑"]),
     ] {
         let matcher = compile(query, options.clone());
         for text in accepted {

@@ -2,6 +2,7 @@
 
 use std::error::Error;
 use std::fmt;
+use std::sync::OnceLock;
 
 use crate::hangul::{
     JONG_NONE, JONG_RIEUL, JONG_SSANGSIOT, JUNG_YEO, add_final, decompose_syllable,
@@ -155,6 +156,61 @@ pub fn generate_predicate_branches(
     }
 
     Ok(branches)
+}
+
+/// Returns whether the whole surface is a generated inflection of the copula `이다`.
+///
+/// This is intentionally stricter than prefix verification: terminal branches must consume the
+/// whole input, and productive branches must also consume their complete continuation.
+#[must_use]
+fn verify_complete_copula_surface(surface: &str) -> bool {
+    static BRANCHES: OnceLock<Box<[SurfaceBranchSpec]>> = OnceLock::new();
+
+    BRANCHES
+        .get_or_init(|| {
+            generate_predicate_branches(&PredicateEntry::new(
+                "이다",
+                PredicatePos::Copula,
+                LexicalAlternation::Copula,
+            ))
+            .unwrap_or_default()
+            .into_boxed_slice()
+        })
+        .iter()
+        .any(|branch| {
+            surface
+                .strip_prefix(branch.anchor.as_ref())
+                .and_then(|following| {
+                    verify_predicate_continuation(
+                        branch.continuation,
+                        branch.pos,
+                        branch.anchor.as_ref(),
+                        following,
+                    )
+                })
+                .is_some_and(|matched| {
+                    matched.token_end == surface.len()
+                        && (branch.continuation == ContinuationState::Terminal
+                            || matched.consumed_bytes > 0)
+                })
+        })
+}
+
+/// Verifies an explicit or phonologically contracted copula after a nominal surface.
+#[must_use]
+pub fn verify_copula_surface_after_nominal(preceding: char, surface: &str) -> bool {
+    if !verify_complete_copula_surface(surface) {
+        return false;
+    }
+    !is_contracted_copula_surface(surface) || preceding_allows_copula_contraction(preceding)
+}
+
+fn preceding_allows_copula_contraction(preceding: char) -> bool {
+    decompose_syllable(preceding).is_some_and(|syllable| syllable.jongseong == JONG_NONE)
+}
+
+fn is_contracted_copula_surface(surface: &str) -> bool {
+    surface == "다" || surface.starts_with(['였', '여'])
 }
 
 pub fn generate_predicate_fallback_stems(
@@ -373,6 +429,14 @@ fn compile_productive(
         future_adnominal(entry, stem)?,
         ContinuationState::Terminal,
     );
+    let mut rieulse = future_adnominal(entry, stem)?;
+    rieulse.surface.push('세');
+    let ending = rieulse
+        .rules
+        .last_mut()
+        .expect("future adnominal surface has an ending rule");
+    *ending = rule("ending.final-rieulse");
+    push_derived(branches, entry, rieulse, ContinuationState::Terminal);
     push_derived(
         branches,
         entry,
@@ -486,6 +550,11 @@ fn compile_copula(
     }
     for (surface, continuation, ending_rule) in [
         (
+            "다".to_owned(),
+            ContinuationState::Terminal,
+            "ending.final-da",
+        ),
+        (
             format!("{stem}고"),
             ContinuationState::Terminal,
             "ending.connective-go",
@@ -526,6 +595,11 @@ fn compile_copula(
             ContinuationState::Terminal,
             "ending.coordinate-myeo",
         ),
+        (
+            format!("{stem}므로"),
+            ContinuationState::Terminal,
+            "ending.connective-meuro",
+        ),
     ] {
         push_branch(
             branches,
@@ -547,6 +621,14 @@ fn compile_copula(
         branches,
         entry,
         past,
+        stem.len(),
+        ContinuationState::Past,
+        vec![rule("lexical.copula"), rule("ending.past")],
+    );
+    push_branch(
+        branches,
+        entry,
+        "였".to_owned(),
         stem.len(),
         ContinuationState::Past,
         vec![rule("lexical.copula"), rule("ending.past")],

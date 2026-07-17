@@ -15,6 +15,26 @@ fn analyzer() -> LexiconQueryAnalyzer {
     LexiconQueryAnalyzer::new(Arc::new(Lexicons::embedded().unwrap()))
 }
 
+#[test]
+fn plans_share_the_analyzers_particle_graph() {
+    let analyzer = analyzer();
+    let first = compile_query("학교", &CompileOptions::default(), &analyzer).unwrap();
+    let second = compile_query("사람", &CompileOptions::default(), &analyzer).unwrap();
+
+    assert!(Arc::ptr_eq(
+        &first.particle_allomorphs,
+        &second.particle_allomorphs
+    ));
+    assert!(Arc::ptr_eq(
+        &first.particle_transitions,
+        &second.particle_transitions
+    ));
+    assert!(Arc::ptr_eq(
+        &first.auxiliary_particle_rules,
+        &second.auxiliary_particle_rules
+    ));
+}
+
 fn full_pos_analyzer() -> LexiconQueryAnalyzer {
     let mut lexicons = Lexicons::embedded().unwrap();
     let full_data = LexiconData {
@@ -79,6 +99,51 @@ fn global_pos_forces_an_untagged_atom() {
         plan.atoms[0].analyses[0].morphology,
         Morphology::Predicate(_)
     ));
+}
+
+#[test]
+fn forced_verb_preserves_main_and_auxiliary_fine_positions() {
+    let plan = compile_query(
+        "가다",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    let fine_positions = plan.atoms[0]
+        .analyses
+        .iter()
+        .map(|analysis| analysis.fine_pos)
+        .collect::<BTreeSet<_>>();
+
+    assert_eq!(
+        fine_positions,
+        BTreeSet::from([
+            kfind_morph::FinePos::Verb,
+            kfind_morph::FinePos::AuxiliaryVerb,
+        ])
+    );
+    assert!(plan.atoms[0].programs.iter().any(|program| {
+        let CandidateConsumption::PredicateContinuation {
+            pos,
+            source_positions,
+            ..
+        } = program.consumption
+        else {
+            return false;
+        };
+        pos == kfind_morph::PredicatePos::Verb
+            && source_positions.contains(kfind_morph::PredicatePos::Verb)
+            && source_positions.contains(kfind_morph::PredicatePos::AuxiliaryVerb)
+            && program
+                .origins
+                .iter()
+                .map(|origin| origin.analysis_index)
+                .collect::<BTreeSet<_>>()
+                == BTreeSet::from([0, 1])
+    }));
 }
 
 #[test]
@@ -317,6 +382,77 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
             .iter()
             .all(|branch| { !branch.boundary().require_right && !branch.decision.is_structural() })
     );
+}
+
+#[test]
+fn adverb_particle_program_uses_data_driven_hosts_and_auxiliary_transitions() {
+    let plan = compile_query(
+        "혹시",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Adverb),
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    let consumption = &plan.atoms[0].programs[0].consumption;
+    let CandidateConsumption::NominalParticleChain {
+        initial_allowed_rule_ids,
+        allowed_rule_ids,
+        ..
+    } = consumption
+    else {
+        panic!("adverb must compile to a particle-chain program");
+    };
+    let contains = |rules: &[RuleId], expected: &str| {
+        rules
+            .binary_search_by_key(&expected, |rule| rule.as_str())
+            .is_ok()
+    };
+
+    assert!(contains(
+        initial_allowed_rule_ids,
+        "particle.alternative.ina-na"
+    ));
+    assert!(!contains(
+        initial_allowed_rule_ids,
+        "particle.contrast.keonyeong"
+    ));
+    assert!(contains(allowed_rule_ids, "particle.contrast.keonyeong"));
+    assert!(!contains(allowed_rule_ids, "particle.subject"));
+}
+
+#[test]
+fn query_plan_materializes_particle_allomorphs_from_rule_data() {
+    let plan = compile_query(
+        "학생",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    for (rule_id, consonant, vowel) in [
+        ("particle.capacity.roseo", "으로서", "로서"),
+        ("particle.instrument.rosseo", "으로써", "로써"),
+    ] {
+        let first = plan
+            .particle_allomorphs
+            .iter()
+            .find(|form| form.rule_id.as_str() == rule_id && form.surface.as_ref() == consonant)
+            .unwrap_or_else(|| panic!("missing {rule_id} consonant allomorph"));
+        let second = plan
+            .particle_allomorphs
+            .iter()
+            .find(|form| form.rule_id.as_str() == rule_id && form.surface.as_ref() == vowel)
+            .unwrap_or_else(|| panic!("missing {rule_id} vowel allomorph"));
+        assert_eq!(
+            first.condition,
+            kfind_morph::FinalCondition::ConsonantExceptRieul
+        );
+        assert_eq!(second.condition, kfind_morph::FinalCondition::VowelOrRieul);
+    }
 }
 
 #[test]
@@ -847,36 +983,98 @@ fn derivation_nominal_particle_and_override_branches_use_distinct_verifiers() {
 }
 
 #[test]
-fn derivation_allows_adverb_auxiliaries_but_not_case_particles() {
-    let options = CompileOptions {
-        expand: ExpandMode::Derivation,
-        ..CompileOptions::default()
-    };
-
-    for query in ["빨리", "잘"] {
-        let plan = compile_query(query, &options, &analyzer()).unwrap();
-        assert!(plan.requires_component_resource());
+fn pronoun_topic_contraction_is_rule_driven_and_pos_scoped() {
+    for lemma in ["이거", "그거", "저거"] {
+        let plan = compile_query(
+            lemma,
+            &CompileOptions {
+                global_pos: Some(CoarsePos::Pronoun),
+                ..CompileOptions::default()
+            },
+            &analyzer(),
+        )
+        .unwrap();
+        let contracted = format!("{}건", lemma.strip_suffix('거').unwrap());
         let branch = plan.atoms[0]
             .programs
             .iter()
-            .find(|branch| branch.anchor.as_ref() == query.as_bytes())
-            .expect("adverb base branch");
+            .find(|branch| branch.anchor.as_ref() == contracted.as_bytes())
+            .unwrap_or_else(|| panic!("missing topic contraction {contracted}"));
+        assert!(branch.origins.iter().any(|origin| {
+            origin
+                .rule_path
+                .iter()
+                .any(|rule| rule.as_str() == "contraction.nominal-topic-neun")
+        }));
+    }
 
-        assert!(
-            branch
-                .consumption
-                .allows_rule_path(&[RuleId::from("particle.additive")])
-        );
-        assert!(
-            branch
-                .consumption
-                .allows_rule_path(&[RuleId::from("particle.only")])
-        );
-        assert!(
-            !branch
-                .consumption
-                .allows_rule_path(&[RuleId::from("particle.subject")])
-        );
+    let noun = compile_query(
+        "그거",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    assert!(
+        noun.atoms[0]
+            .programs
+            .iter()
+            .all(|branch| branch.anchor.as_ref() != "그건".as_bytes())
+    );
+
+    let literal = compile_query(
+        "그거",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Pronoun),
+            expand: ExpandMode::Literal,
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    assert!(
+        literal.atoms[0]
+            .programs
+            .iter()
+            .all(|branch| branch.anchor.as_ref() != "그건".as_bytes())
+    );
+}
+
+#[test]
+fn inflection_and_derivation_allow_adverb_auxiliaries_but_not_case_particles() {
+    for expand in [ExpandMode::Inflection, ExpandMode::Derivation] {
+        let options = CompileOptions {
+            expand,
+            ..CompileOptions::default()
+        };
+
+        for query in ["빨리", "잘"] {
+            let plan = compile_query(query, &options, &analyzer()).unwrap();
+            assert!(plan.requires_component_resource());
+            let branch = plan.atoms[0]
+                .programs
+                .iter()
+                .find(|branch| branch.anchor.as_ref() == query.as_bytes())
+                .expect("adverb base branch");
+
+            assert!(
+                branch
+                    .consumption
+                    .allows_rule_path(&[RuleId::from("particle.additive")])
+            );
+            assert!(
+                branch
+                    .consumption
+                    .allows_rule_path(&[RuleId::from("particle.only")])
+            );
+            assert!(
+                !branch
+                    .consumption
+                    .allows_rule_path(&[RuleId::from("particle.subject")])
+            );
+        }
     }
 }
 

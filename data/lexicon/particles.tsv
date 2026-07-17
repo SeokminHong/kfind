@@ -1,11 +1,25 @@
 lemma	pos	rule_id	variants	flags
 가	JKS	particle.subject	이|가	
+같이	JKB	particle.similarity.gachi	같이	
 과	JC	particle.comitative	과|와	
+께서	JKS	particle.subject.honorific	께서	
+나	JX	particle.alternative.ina-na	이나|나	
+나마	JX	particle.concessive.inama-nama	이나마|나마	
+대로	JX	particle.conformance.daero	대로	
+더러	JKB	particle.dative.deoreo	더러	
 는	JX	particle.topic	은|는	
 도	JX	particle.additive	도	
 로	JKB	particle.direction	으로|로	RIEUL_AS_VOWEL
+라도	JX	particle.concessive.irado-rado	이라도|라도	
+랑	JC	particle.comitative.irang-rang	이랑|랑	
+마다	JX	particle.distributive.mada	마다	
 만	JX	particle.only	만	
+만큼	JX	particle.extent.mankeum	만큼	
+밖에	JX	particle.exclusive.bakke	밖에	
+보고	JKB	particle.dative.bogo	보고	
+보다	JKB	particle.comparison.boda	보다	
 부터	JX	particle.from	부터	
+뿐	JX	particle.restrictive.ppun	뿐	
 에게	JKB	particle.dative	에게|한테|께	
 에	JKB	particle.locative	에	
 에서	JKB	particle.source	에서	
@@ -14,3 +28,5 @@ lemma	pos	rule_id	variants	flags
 의	JKG	particle.genitive	의	
 이	JKS	particle.subject	이|가	
 이면	JC	particle.connector-myeon	이면|면	
+처럼	JKB	particle.similarity.cheoreom	처럼	
+커녕	JX	particle.contrast.keonyeong	커녕	

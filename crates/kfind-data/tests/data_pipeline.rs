@@ -4,11 +4,12 @@ use std::path::{Path, PathBuf};
 
 use kfind_data::{
     DICTIONARY_CONJUGATION_RULE_ID, DICTIONARY_RELATED_ADVERB_RULE_ID, DataAlternation,
-    DataErrorKind, DataFinePos, DataWarning, LexiconSources, NominalRecord, PosLexiconEntry,
-    RuleSources, SurfaceOverride, collect_pos_entries, decode_pos_lexicon, encode_pos_lexicon,
-    extract_mecab_ko_dic, extract_mecab_morphology, extract_mecab_source_morphology, load_data_dir,
-    parse_lexicons, parse_mecab_connection_matrix, parse_predicates_tsv, parse_rule_set,
-    parse_user_lexicon_toml, validate_data, validate_predicates,
+    DataErrorKind, DataFinePos, DataWarning, LexiconSources, NominalRecord, ParticleHost,
+    ParticleRuleRole, PosLexiconEntry, RuleSources, SurfaceOverride, collect_pos_entries,
+    decode_pos_lexicon, encode_pos_lexicon, extract_mecab_ko_dic, extract_mecab_morphology,
+    extract_mecab_source_morphology, load_data_dir, parse_lexicons, parse_mecab_connection_matrix,
+    parse_predicates_tsv, parse_rule_set, parse_user_lexicon_toml, validate_data,
+    validate_predicates,
 };
 
 fn data_root() -> PathBuf {
@@ -49,9 +50,80 @@ fn repository_data_is_complete_and_valid() {
         "particle.limit.ggaji",
         "particle.even.jocha",
         "particle.even.majeo",
+        "particle.subject.honorific",
+        "particle.similarity.gachi",
+        "particle.conformance.daero",
+        "particle.dative.deoreo",
+        "particle.distributive.mada",
+        "particle.extent.mankeum",
+        "particle.exclusive.bakke",
+        "particle.dative.bogo",
+        "particle.capacity.roseo",
+        "particle.instrument.rosseo",
+        "particle.comparison.boda",
+        "particle.restrictive.ppun",
+        "particle.similarity.cheoreom",
+        "particle.contrast.keonyeong",
+        "particle.alternative.ina-na",
+        "particle.concessive.inama-nama",
+        "particle.concessive.irado-rado",
+        "particle.comitative.irang-rang",
     ] {
         assert!(ids.contains(verifier_rule), "missing {verifier_rule}");
     }
+    for (rule_id, next_id) in [
+        ("particle.limit.ggaji", "particle.topic"),
+        ("particle.limit.ggaji", "particle.additive"),
+        ("particle.limit.ggaji", "particle.only"),
+        ("particle.from", "particle.genitive"),
+        ("particle.source", "particle.from"),
+        ("particle.dative", "particle.direction"),
+        ("particle.locative", "particle.genitive"),
+        ("particle.capacity.roseo", "particle.additive"),
+        ("particle.instrument.rosseo", "particle.topic"),
+    ] {
+        let rule = data
+            .rules
+            .particles
+            .iter()
+            .find(|rule| rule.id == rule_id)
+            .unwrap_or_else(|| panic!("missing {rule_id}"));
+        assert!(
+            rule.next.iter().any(|next| next == next_id),
+            "missing transition {rule_id} -> {next_id}"
+        );
+    }
+    assert!(data.rules.particles.iter().all(|rule| {
+        rule.forms
+            .iter()
+            .all(|form| !["까지도", "까지만", "까지는", "으로부터의"].contains(&form.as_str()))
+    }));
+    let nominal_topic_contraction = data
+        .rules
+        .contractions
+        .iter()
+        .find(|rule| rule.id == "contraction.nominal-topic-neun")
+        .expect("nominal topic contraction rule");
+    assert_eq!(nominal_topic_contraction.kind, "nominal-particle-compose");
+    assert_eq!(nominal_topic_contraction.left, "거");
+    assert_eq!(nominal_topic_contraction.right, "는");
+    assert_eq!(nominal_topic_contraction.result, "건");
+    assert!(nominal_topic_contraction.ending_ids.is_empty());
+    let alternative = data
+        .rules
+        .particles
+        .iter()
+        .find(|rule| rule.id == "particle.alternative.ina-na")
+        .expect("alternative particle rule");
+    assert_eq!(alternative.role, ParticleRuleRole::Auxiliary);
+    assert!(alternative.hosts.contains(&ParticleHost::Adverb));
+    let contrast = data
+        .rules
+        .particles
+        .iter()
+        .find(|rule| rule.id == "particle.contrast.keonyeong")
+        .expect("contrast particle rule");
+    assert!(!contrast.hosts.contains(&ParticleHost::Adverb));
     assert!(ids.contains("ending.honorific"));
     for continuation in [
         "ending.connective-jiman",
@@ -358,7 +430,7 @@ fn rule_parser_rejects_duplicate_and_unknown_rule_ids() {
     let contractions = read("rules/contractions.toml");
     let derivations = read("rules/derivations.toml");
     let particles = format!(
-        "{}\n[[particle]]\nid = \"particle.subject\"\nforms = [\"이\", \"가\"]\nselection = \"final-pair\"\nnext = []\nterminal = true\n",
+        "{}\n[[particle]]\nid = \"particle.subject\"\nrole = \"case\"\nhosts = [\"nominal\"]\nforms = [\"이\", \"가\"]\nselection = \"final-pair\"\nnext = []\nterminal = true\n",
         read("rules/particles.toml")
     );
     let error = parse_rule_set(RuleSources {
@@ -427,6 +499,69 @@ fn rule_parser_rejects_unknown_features_and_nonterminal_leaves() {
         DataErrorKind::InvalidValue { ref field, .. } if field == "terminal"
     ));
     assert!(error.location.line.is_some());
+}
+
+#[test]
+fn nominal_particle_contraction_requires_a_nominal_host_particle() {
+    let contractions = read("rules/contractions.toml").replacen(
+        "right = \"는\"",
+        "right = \"등록되지않은조사\"",
+        1,
+    );
+    let error = parse_rule_set(RuleSources {
+        endings: &read("rules/endings.toml"),
+        alternations: &read("rules/alternations.toml"),
+        contractions: &contractions,
+        derivations: &read("rules/derivations.toml"),
+        particles: &read("rules/particles.toml"),
+    })
+    .unwrap_err();
+
+    assert!(matches!(
+        *error.kind,
+        DataErrorKind::InvalidValue { ref field, .. } if field == "right"
+    ));
+    assert!(error.location.line.is_some());
+}
+
+#[test]
+fn particle_graph_rejects_cycles_without_rejecting_long_bounded_paths() {
+    let particles = read("rules/particles.toml").replacen(
+        concat!(
+            "id = \"particle.additive\"\n",
+            "role = \"auxiliary\"\n",
+            "hosts = [\"nominal\", \"adverb\", \"predicate-ending\"]\n",
+            "forms = [\"도\"]\n",
+            "selection = \"literal\"\n",
+            "next = []",
+        ),
+        concat!(
+            "id = \"particle.additive\"\n",
+            "role = \"auxiliary\"\n",
+            "hosts = [\"nominal\", \"adverb\", \"predicate-ending\"]\n",
+            "forms = [\"도\"]\n",
+            "selection = \"literal\"\n",
+            "next = [\"particle.limit.ggaji\"]",
+        ),
+        1,
+    );
+    let error = parse_rule_set(RuleSources {
+        endings: &read("rules/endings.toml"),
+        alternations: &read("rules/alternations.toml"),
+        contractions: &read("rules/contractions.toml"),
+        derivations: &read("rules/derivations.toml"),
+        particles: &particles,
+    })
+    .unwrap_err();
+
+    assert!(matches!(
+        *error.kind,
+        DataErrorKind::InvalidValue {
+            ref field,
+            ref reason,
+            ..
+        } if field == "continuation" && reason == "순환 전이는 허용하지 않습니다"
+    ));
 }
 
 #[test]

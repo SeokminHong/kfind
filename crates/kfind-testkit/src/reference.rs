@@ -240,22 +240,12 @@ impl ReferenceMatcher {
             previous = Some('들');
             rules.push(RuleId::from("particle.plural"));
         }
-        if let Some(form) = self.longest_reference_particle(
-            &following[consumed..],
-            previous,
-            rules.last(),
-            ReferenceParticleRole::Case,
-        ) {
-            consumed += form.surface.len();
-            previous = form.surface.chars().next_back();
-            rules.push(RuleId::from(form.rule_id));
-        }
-        for _ in 0..2 {
+        while rules.len() < 4 {
             let Some(form) = self.longest_reference_particle(
                 &following[consumed..],
                 previous,
                 rules.last(),
-                ReferenceParticleRole::Auxiliary,
+                ReferenceParticleRole::Any,
             ) else {
                 break;
             };
@@ -277,7 +267,7 @@ impl ReferenceMatcher {
         REFERENCE_PARTICLES
             .iter()
             .filter(|form| {
-                form.role == role
+                (role == ReferenceParticleRole::Any || form.role == role)
                     && following.starts_with(form.surface)
                     && form.condition.accepts(previous)
                     && self.reference_transition_allows(previous_rule, form.rule_id)
@@ -299,6 +289,7 @@ impl ReferenceMatcher {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ReferenceParticleRole {
+    Any,
     Case,
     Auxiliary,
 }
@@ -364,6 +355,42 @@ const REFERENCE_PARTICLES: &[ReferenceParticle] = &[
         ReferenceFinalCondition::Any,
     ),
     reference_particle(
+        "으로서",
+        "particle.capacity.roseo",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::ConsonantExceptRieul,
+    ),
+    reference_particle(
+        "으로써",
+        "particle.instrument.rosseo",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::ConsonantExceptRieul,
+    ),
+    reference_particle(
+        "로서",
+        "particle.capacity.roseo",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::VowelOrRieul,
+    ),
+    reference_particle(
+        "로써",
+        "particle.instrument.rosseo",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::VowelOrRieul,
+    ),
+    reference_particle(
+        "이라도",
+        "particle.concessive.irado-rado",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Consonant,
+    ),
+    reference_particle(
+        "이나마",
+        "particle.concessive.inama-nama",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Consonant,
+    ),
+    reference_particle(
         "으로",
         "particle.direction",
         ReferenceParticleRole::Case,
@@ -386,6 +413,90 @@ const REFERENCE_PARTICLES: &[ReferenceParticle] = &[
         "particle.dative",
         ReferenceParticleRole::Case,
         ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "께서",
+        "particle.subject.honorific",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "같이",
+        "particle.similarity.gachi",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "대로",
+        "particle.conformance.daero",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "더러",
+        "particle.dative.deoreo",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "마다",
+        "particle.distributive.mada",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "만큼",
+        "particle.extent.mankeum",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "밖에",
+        "particle.exclusive.bakke",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "보고",
+        "particle.dative.bogo",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "보다",
+        "particle.comparison.boda",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "뿐",
+        "particle.restrictive.ppun",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "처럼",
+        "particle.similarity.cheoreom",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "커녕",
+        "particle.contrast.keonyeong",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "이나",
+        "particle.alternative.ina-na",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Consonant,
+    ),
+    reference_particle(
+        "이랑",
+        "particle.comitative.irang-rang",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Consonant,
     ),
     reference_particle(
         "께",
@@ -506,6 +617,30 @@ const REFERENCE_PARTICLES: &[ReferenceParticle] = &[
         "particle.even.majeo",
         ReferenceParticleRole::Auxiliary,
         ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
+        "라도",
+        "particle.concessive.irado-rado",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Vowel,
+    ),
+    reference_particle(
+        "나마",
+        "particle.concessive.inama-nama",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Vowel,
+    ),
+    reference_particle(
+        "나",
+        "particle.alternative.ina-na",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Vowel,
+    ),
+    reference_particle(
+        "랑",
+        "particle.comitative.irang-rang",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Vowel,
     ),
 ];
 

@@ -7,10 +7,13 @@ use crate::hangul::{decompose_syllable, has_final, has_rieul_final};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ParticleKind {
+    Catalog,
     Topic,
     Subject,
+    HonorificSubject,
     Object,
     Comitative,
+    InformalComitative,
     Connector,
     Instrumental,
     Dative,
@@ -22,6 +25,15 @@ pub enum ParticleKind {
     Limit,
     StartingPoint,
     Even,
+    Similarity,
+    Conformance,
+    Distributive,
+    Extent,
+    Exclusion,
+    Comparison,
+    Contrast,
+    Alternative,
+    Concessive,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -101,24 +113,77 @@ impl ParticleTransition {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParticleChainModel {
-    pub allomorphs: Box<[ParticleAllomorph]>,
+    pub allomorphs: Arc<[ParticleAllomorph]>,
     pub transitions: Arc<[ParticleTransition]>,
     pub allow_plural: bool,
-    pub max_auxiliaries: usize,
+    pub max_rules: usize,
+}
+
+impl ParticleChainModel {
+    #[must_use]
+    pub fn with_graph(
+        allomorphs: Arc<[ParticleAllomorph]>,
+        transitions: Arc<[ParticleTransition]>,
+    ) -> Self {
+        Self {
+            allomorphs,
+            transitions,
+            allow_plural: true,
+            max_rules: 4,
+        }
+    }
 }
 
 impl Default for ParticleChainModel {
     fn default() -> Self {
         use FinalCondition::{Any, Consonant, ConsonantExceptRieul, Vowel, VowelOrRieul};
         use ParticleKind::{
-            Additive, Comitative, Connector, Dative, Even, Instrumental, Limit, Locative, Object,
-            Possessive, Restrictive, Source, StartingPoint, Subject, Topic,
+            Additive, Alternative, Comitative, Comparison, Concessive, Conformance, Connector,
+            Contrast, Dative, Distributive, Even, Exclusion, Extent, HonorificSubject,
+            InformalComitative, Instrumental, Limit, Locative, Object, Possessive, Restrictive,
+            Similarity, Source, StartingPoint, Subject, Topic,
         };
         use ParticleRole::{Auxiliary, Case};
 
         let forms = [
             allomorph(Source, Case, "에게서", Any, "source.egeseo"),
             allomorph(Source, Case, "한테서", Any, "source.hanteseo"),
+            allomorph(
+                Instrumental,
+                Case,
+                "으로서",
+                ConsonantExceptRieul,
+                "capacity.roseo",
+            ),
+            allomorph(
+                Instrumental,
+                Case,
+                "으로써",
+                ConsonantExceptRieul,
+                "instrument.rosseo",
+            ),
+            allomorph(Instrumental, Case, "로서", VowelOrRieul, "capacity.roseo"),
+            allomorph(
+                Instrumental,
+                Case,
+                "로써",
+                VowelOrRieul,
+                "instrument.rosseo",
+            ),
+            allomorph(
+                Concessive,
+                Auxiliary,
+                "이라도",
+                Consonant,
+                "concessive.irado-rado",
+            ),
+            allomorph(
+                Concessive,
+                Auxiliary,
+                "이나마",
+                Consonant,
+                "concessive.inama-nama",
+            ),
             allomorph(
                 Instrumental,
                 Case,
@@ -129,6 +194,32 @@ impl Default for ParticleChainModel {
             allomorph(Instrumental, Case, "로", VowelOrRieul, "direction"),
             allomorph(Dative, Case, "에게", Any, "dative"),
             allomorph(Dative, Case, "한테", Any, "dative"),
+            allomorph(HonorificSubject, Case, "께서", Any, "subject.honorific"),
+            allomorph(Similarity, Case, "같이", Any, "similarity.gachi"),
+            allomorph(Conformance, Auxiliary, "대로", Any, "conformance.daero"),
+            allomorph(Dative, Case, "더러", Any, "dative.deoreo"),
+            allomorph(Distributive, Auxiliary, "마다", Any, "distributive.mada"),
+            allomorph(Extent, Auxiliary, "만큼", Any, "extent.mankeum"),
+            allomorph(Exclusion, Auxiliary, "밖에", Any, "exclusive.bakke"),
+            allomorph(Dative, Case, "보고", Any, "dative.bogo"),
+            allomorph(Comparison, Case, "보다", Any, "comparison.boda"),
+            allomorph(Restrictive, Auxiliary, "뿐", Any, "restrictive.ppun"),
+            allomorph(Similarity, Case, "처럼", Any, "similarity.cheoreom"),
+            allomorph(Contrast, Auxiliary, "커녕", Any, "contrast.keonyeong"),
+            allomorph(
+                Alternative,
+                Auxiliary,
+                "이나",
+                Consonant,
+                "alternative.ina-na",
+            ),
+            allomorph(
+                InformalComitative,
+                Case,
+                "이랑",
+                Consonant,
+                "comitative.irang-rang",
+            ),
             allomorph(Dative, Case, "께", Any, "dative"),
             allomorph(Source, Case, "에서", Any, "source"),
             allomorph(Locative, Case, "에", Any, "locative"),
@@ -149,12 +240,34 @@ impl Default for ParticleChainModel {
             allomorph(StartingPoint, Auxiliary, "부터", Any, "from"),
             allomorph(Even, Auxiliary, "조차", Any, "even.jocha"),
             allomorph(Even, Auxiliary, "마저", Any, "even.majeo"),
+            allomorph(
+                Concessive,
+                Auxiliary,
+                "라도",
+                Vowel,
+                "concessive.irado-rado",
+            ),
+            allomorph(
+                Concessive,
+                Auxiliary,
+                "나마",
+                Vowel,
+                "concessive.inama-nama",
+            ),
+            allomorph(Alternative, Auxiliary, "나", Vowel, "alternative.ina-na"),
+            allomorph(
+                InformalComitative,
+                Case,
+                "랑",
+                Vowel,
+                "comitative.irang-rang",
+            ),
         ];
         Self {
-            allomorphs: Box::new(forms),
-            transitions: Arc::from([]),
+            allomorphs: Arc::from(forms),
+            transitions: default_particle_transitions(),
             allow_plural: true,
-            max_auxiliaries: 2,
+            max_rules: 4,
         }
     }
 }
@@ -192,7 +305,7 @@ impl ParticleVerifier {
         let mut previous = core.chars().next_back();
         let mut previous_rule = None;
 
-        if self.model.allow_plural && following.starts_with('들') {
+        if self.model.allow_plural && self.model.max_rules > 0 && following.starts_with('들') {
             consumed += '들'.len_utf8();
             previous = Some('들');
             let plural = RuleId::from("particle.plural");
@@ -200,31 +313,16 @@ impl ParticleVerifier {
             previous_rule = Some(plural);
         }
 
-        if let Some(case) = self.longest_match(
-            &following[consumed..],
-            previous,
-            previous_rule.as_ref(),
-            ParticleRole::Case,
-        ) {
-            consumed += case.surface.len();
-            previous = case.surface.chars().next_back();
-            rule_path.push(case.rule_id.clone());
-            previous_rule = Some(case.rule_id.clone());
-        }
-
-        for _ in 0..self.model.max_auxiliaries {
-            let Some(auxiliary) = self.longest_match(
-                &following[consumed..],
-                previous,
-                previous_rule.as_ref(),
-                ParticleRole::Auxiliary,
-            ) else {
+        for _ in rule_path.len()..self.model.max_rules {
+            let Some(particle) =
+                self.longest_match(&following[consumed..], previous, previous_rule.as_ref())
+            else {
                 break;
             };
-            consumed += auxiliary.surface.len();
-            previous = auxiliary.surface.chars().next_back();
-            rule_path.push(auxiliary.rule_id.clone());
-            previous_rule = Some(auxiliary.rule_id.clone());
+            consumed += particle.surface.len();
+            previous = particle.surface.chars().next_back();
+            rule_path.push(particle.rule_id.clone());
+            previous_rule = Some(particle.rule_id.clone());
         }
 
         ParticleMatch {
@@ -241,20 +339,31 @@ impl ParticleVerifier {
         (matched.consumed_bytes == following.len()).then_some(matched)
     }
 
+    /// Verifies a non-empty particle chain whose every rule is auxiliary.
+    #[must_use]
+    pub fn verify_auxiliary_exact(&self, core: &str, following: &str) -> Option<ParticleMatch> {
+        let matched = self.verify_exact(core, following)?;
+        (!matched.rule_path.is_empty()
+            && matched.rule_path.iter().all(|rule| {
+                self.model.allomorphs.iter().any(|allomorph| {
+                    allomorph.rule_id == *rule && allomorph.role == ParticleRole::Auxiliary
+                })
+            }))
+        .then_some(matched)
+    }
+
     fn longest_match(
         &self,
         remaining: &str,
         previous: Option<char>,
         previous_rule: Option<&RuleId>,
-        role: ParticleRole,
     ) -> Option<&ParticleAllomorph> {
         let previous = previous?;
         self.model
             .allomorphs
             .iter()
             .filter(|form| {
-                form.role == role
-                    && remaining.starts_with(form.surface.as_ref())
+                remaining.starts_with(form.surface.as_ref())
                     && form.condition.accepts(previous)
                     && self.transition_allows(previous_rule, &form.rule_id)
             })
@@ -265,9 +374,6 @@ impl ParticleVerifier {
         let Some(previous) = previous else {
             return true;
         };
-        if self.model.transitions.is_empty() {
-            return true;
-        }
         self.model
             .transitions
             .iter()
@@ -289,6 +395,248 @@ fn allomorph(
         surface,
         condition,
         RuleId::from(format!("particle.{rule_suffix}")),
+    )
+}
+
+fn default_particle_transitions() -> Arc<[ParticleTransition]> {
+    // Fallback for callers that construct a verifier without a compiled QueryPlan.
+    // Product plans replace this table with data/rules/particles.toml.
+    const FOCUS: &[&str] = &[
+        "particle.topic",
+        "particle.additive",
+        "particle.only",
+        "particle.limit.ggaji",
+        "particle.even.jocha",
+        "particle.even.majeo",
+    ];
+    Arc::from([
+        transition(
+            "particle.plural",
+            &[
+                "particle.subject",
+                "particle.subject.honorific",
+                "particle.object",
+                "particle.topic",
+                "particle.comitative",
+                "particle.comitative.irang-rang",
+                "particle.direction",
+                "particle.capacity.roseo",
+                "particle.instrument.rosseo",
+                "particle.dative",
+                "particle.dative.deoreo",
+                "particle.dative.bogo",
+                "particle.locative",
+                "particle.source",
+                "particle.source.egeseo",
+                "particle.source.hanteseo",
+                "particle.from",
+                "particle.genitive",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+                "particle.similarity.gachi",
+                "particle.similarity.cheoreom",
+                "particle.conformance.daero",
+                "particle.distributive.mada",
+                "particle.extent.mankeum",
+                "particle.comparison.boda",
+                "particle.restrictive.ppun",
+                "particle.exclusive.bakke",
+                "particle.contrast.keonyeong",
+                "particle.alternative.ina-na",
+                "particle.concessive.inama-nama",
+                "particle.concessive.irado-rado",
+            ],
+        ),
+        transition("particle.subject", FOCUS),
+        transition("particle.object", FOCUS),
+        transition("particle.topic", &["particle.contrast.keonyeong"]),
+        transition("particle.comitative", FOCUS),
+        transition("particle.connector-myeon", &[]),
+        transition(
+            "particle.direction",
+            &[
+                "particle.from",
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+                "particle.alternative.ina-na",
+                "particle.concessive.inama-nama",
+                "particle.concessive.irado-rado",
+            ],
+        ),
+        transition("particle.capacity.roseo", FOCUS),
+        transition("particle.instrument.rosseo", FOCUS),
+        transition(
+            "particle.dative",
+            &[
+                "particle.direction",
+                "particle.from",
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+                "particle.alternative.ina-na",
+                "particle.concessive.inama-nama",
+                "particle.concessive.irado-rado",
+            ],
+        ),
+        transition(
+            "particle.locative",
+            &[
+                "particle.direction",
+                "particle.from",
+                "particle.genitive",
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+                "particle.alternative.ina-na",
+                "particle.concessive.inama-nama",
+                "particle.concessive.irado-rado",
+            ],
+        ),
+        transition(
+            "particle.source",
+            &[
+                "particle.from",
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+                "particle.alternative.ina-na",
+                "particle.concessive.inama-nama",
+                "particle.concessive.irado-rado",
+            ],
+        ),
+        transition(
+            "particle.source.egeseo",
+            &[
+                "particle.from",
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+                "particle.alternative.ina-na",
+                "particle.concessive.inama-nama",
+                "particle.concessive.irado-rado",
+            ],
+        ),
+        transition(
+            "particle.source.hanteseo",
+            &[
+                "particle.from",
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+                "particle.alternative.ina-na",
+                "particle.concessive.inama-nama",
+                "particle.concessive.irado-rado",
+            ],
+        ),
+        transition(
+            "particle.from",
+            &[
+                "particle.genitive",
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+                "particle.alternative.ina-na",
+                "particle.concessive.inama-nama",
+                "particle.concessive.irado-rado",
+            ],
+        ),
+        transition("particle.genitive", FOCUS),
+        transition("particle.additive", &[]),
+        transition("particle.only", &["particle.topic", "particle.additive"]),
+        transition(
+            "particle.limit.ggaji",
+            &[
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.even.jocha",
+                "particle.even.majeo",
+            ],
+        ),
+        transition("particle.even.jocha", &["particle.additive"]),
+        transition("particle.even.majeo", &["particle.additive"]),
+        transition("particle.subject.honorific", FOCUS),
+        transition(
+            "particle.similarity.gachi",
+            &["particle.topic", "particle.additive", "particle.only"],
+        ),
+        transition(
+            "particle.conformance.daero",
+            &["particle.topic", "particle.additive", "particle.only"],
+        ),
+        transition(
+            "particle.dative.deoreo",
+            &["particle.topic", "particle.additive", "particle.only"],
+        ),
+        transition(
+            "particle.distributive.mada",
+            &["particle.topic", "particle.additive", "particle.only"],
+        ),
+        transition(
+            "particle.extent.mankeum",
+            &["particle.topic", "particle.additive", "particle.only"],
+        ),
+        transition(
+            "particle.exclusive.bakke",
+            &["particle.topic", "particle.additive", "particle.only"],
+        ),
+        transition(
+            "particle.dative.bogo",
+            &["particle.topic", "particle.additive", "particle.only"],
+        ),
+        transition(
+            "particle.comparison.boda",
+            &["particle.topic", "particle.additive", "particle.only"],
+        ),
+        transition(
+            "particle.restrictive.ppun",
+            &["particle.topic", "particle.additive", "particle.only"],
+        ),
+        transition(
+            "particle.similarity.cheoreom",
+            &["particle.topic", "particle.additive", "particle.only"],
+        ),
+        transition("particle.contrast.keonyeong", &[]),
+        transition("particle.alternative.ina-na", &[]),
+        transition("particle.concessive.inama-nama", &[]),
+        transition("particle.concessive.irado-rado", &[]),
+        transition("particle.comitative.irang-rang", FOCUS),
+    ])
+}
+
+fn transition(rule_id: &str, next: &[&str]) -> ParticleTransition {
+    ParticleTransition::new(
+        rule_id,
+        next.iter()
+            .copied()
+            .map(RuleId::from)
+            .collect::<Vec<_>>()
+            .into_boxed_slice(),
     )
 }
 
@@ -333,9 +681,15 @@ mod tests {
         assert!(verifier.verify_exact("길", "로").is_some());
         assert!(verifier.verify_exact("집", "으로").is_some());
         assert!(verifier.verify_exact("바다", "로").is_some());
+        assert!(verifier.verify_exact("학생", "으로서").is_some());
+        assert!(verifier.verify_exact("학교", "로써").is_some());
+        assert!(verifier.verify_exact("서울", "로서").is_some());
         assert!(verifier.verify_exact("길", "길으로").is_none());
         assert!(verifier.verify_exact("길", "으로").is_none());
         assert!(verifier.verify_exact("집", "로").is_none());
+        assert!(verifier.verify_exact("학생", "로서").is_none());
+        assert!(verifier.verify_exact("학교", "으로써").is_none());
+        assert!(verifier.verify_exact("서울", "으로서").is_none());
     }
 
     #[test]
@@ -355,11 +709,98 @@ mod tests {
     }
 
     #[test]
-    fn permits_auxiliary_particles_only_after_the_case_slot() {
+    fn follows_particle_transitions_instead_of_fixed_role_slots() {
         let verifier = ParticleVerifier::default();
-        assert!(verifier.verify_exact("학교", "에서는").is_some());
-        assert!(verifier.verify_exact("사용자", "에게까지만").is_some());
-        assert!(verifier.verify_exact("사용자", "는에게").is_none());
+        for suffix in [
+            "에서는",
+            "까지도",
+            "까지만",
+            "까지는",
+            "까지만은",
+            "에게까지만",
+            "로부터의",
+            "에게로",
+            "에서부터",
+            "에의",
+            "조차도",
+            "마저도",
+            "들로부터의",
+        ] {
+            assert!(
+                verifier.verify_exact("사용자", suffix).is_some(),
+                "rejected 사용자{suffix}"
+            );
+        }
+        for suffix in ["는에게", "도까지", "까지도만", "들로부터까지만"] {
+            assert!(
+                verifier.verify_exact("사용자", suffix).is_none(),
+                "accepted 사용자{suffix}"
+            );
+        }
+    }
+
+    #[test]
+    fn covers_dictionary_consensus_nominal_particles_and_allomorphs() {
+        let verifier = ParticleVerifier::default();
+        for suffix in [
+            "께서",
+            "같이",
+            "대로",
+            "더러",
+            "마다",
+            "만큼",
+            "밖에",
+            "보고",
+            "보다",
+            "뿐",
+            "처럼",
+            "커녕",
+            "께서는",
+            "뿐만",
+            "는커녕",
+            "들마다",
+            "보다도",
+        ] {
+            assert!(
+                verifier.verify_exact("사용자", suffix).is_some(),
+                "rejected 사용자{suffix}"
+            );
+        }
+        for (core, suffix) in [
+            ("집", "이나"),
+            ("바다", "나"),
+            ("집", "이나마"),
+            ("바다", "나마"),
+            ("집", "이라도"),
+            ("바다", "라도"),
+            ("집", "이랑"),
+            ("바다", "랑"),
+            ("집", "은커녕"),
+            ("바다", "는커녕"),
+        ] {
+            assert!(
+                verifier.verify_exact(core, suffix).is_some(),
+                "rejected {core}{suffix}"
+            );
+        }
+        for (core, suffix) in [
+            ("집", "나"),
+            ("바다", "이나"),
+            ("집", "나마"),
+            ("바다", "이나마"),
+            ("집", "라도"),
+            ("바다", "이라도"),
+            ("집", "랑"),
+            ("바다", "이랑"),
+            ("집", "는커녕"),
+            ("바다", "은커녕"),
+            ("바다", "ㄴ커녕"),
+        ] {
+            assert!(
+                verifier.verify_exact(core, suffix).is_none(),
+                "accepted {core}{suffix}"
+            );
+        }
     }
 
     #[test]
@@ -393,5 +834,23 @@ mod tests {
         assert!(verifier.verify_exact("사용자", "는").is_some());
         assert!(verifier.verify_exact("사용자", "는은").is_none());
         assert!(verifier.verify_exact("사용자", "도만").is_none());
+    }
+
+    #[test]
+    fn auxiliary_chain_verification_excludes_case_particles_and_plural() {
+        let verifier = ParticleVerifier::default();
+
+        for suffix in ["는", "도", "만", "조차", "는커녕"] {
+            assert!(
+                verifier.verify_auxiliary_exact("먹고", suffix).is_some(),
+                "auxiliary particle chain was rejected: {suffix}"
+            );
+        }
+        for suffix in ["를", "로", "들"] {
+            assert!(
+                verifier.verify_auxiliary_exact("먹고", suffix).is_none(),
+                "non-auxiliary particle chain was accepted: {suffix}"
+            );
+        }
     }
 }

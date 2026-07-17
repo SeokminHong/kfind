@@ -3,7 +3,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::validation::{require_nfc, require_rule_id};
 use crate::{DataError, DataErrorKind};
 
-use super::{ParticleSelection, RuleLocations, RuleSet};
+use super::{ParticleHost, ParticleRuleRole, ParticleSelection, RuleLocations, RuleSet};
 
 pub(super) fn validate_rules(rules: &RuleSet, locations: &RuleLocations) -> Result<(), DataError> {
     let mut ids = BTreeMap::<&str, &str>::new();
@@ -82,9 +82,9 @@ fn validate_endings(rules: &RuleSet, locations: &RuleLocations) -> Result<(), Da
         }
         validate_terminal_transition(source, &rule.id, rule.terminal, &rule.next, locations)?;
     }
-    validate_graph_depth(
+    validate_graph(
         source,
-        rules.max_continuation_depth,
+        Some(rules.max_continuation_depth),
         rules
             .endings
             .iter()
@@ -121,12 +121,29 @@ fn validate_alternations(rules: &RuleSet, locations: &RuleLocations) -> Result<(
 
 fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(), DataError> {
     let source = "data/rules/contractions.toml";
+    const KINDS: &[&str] = &["vowel-compose", "stem-rewrite", "nominal-particle-compose"];
     let ending_ids = rules
         .endings
         .iter()
         .map(|rule| rule.id.as_str())
         .collect::<BTreeSet<_>>();
+    let nominal_particle_forms = rules
+        .particles
+        .iter()
+        .filter(|rule| rule.hosts.contains(&ParticleHost::Nominal))
+        .flat_map(|rule| rule.forms.iter().map(String::as_str))
+        .collect::<BTreeSet<_>>();
     for rule in &rules.contractions {
+        if !KINDS.contains(&rule.kind.as_str()) {
+            return Err(invalid_rule_value(
+                locations,
+                source,
+                &rule.id,
+                "kind",
+                &rule.kind,
+                "지원하는 contraction kind여야 합니다",
+            ));
+        }
         for (field, value) in [
             ("kind", rule.kind.as_str()),
             ("left", rule.left.as_str()),
@@ -147,6 +164,28 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
         }
         for ending_id in &rule.ending_ids {
             require_reference(source, &rule.id, ending_id, &ending_ids, locations)?;
+        }
+        if rule.kind == "nominal-particle-compose" && !rule.ending_ids.is_empty() {
+            return Err(invalid_rule_value(
+                locations,
+                source,
+                &rule.id,
+                "ending_ids",
+                rule.ending_ids.join("|"),
+                "nominal particle contraction은 predicate ending을 참조하지 않습니다",
+            ));
+        }
+        if rule.kind == "nominal-particle-compose"
+            && !nominal_particle_forms.contains(rule.right.as_str())
+        {
+            return Err(invalid_rule_value(
+                locations,
+                source,
+                &rule.id,
+                "right",
+                &rule.right,
+                "nominal host를 허용하는 particle surface여야 합니다",
+            ));
         }
     }
     Ok(())
@@ -198,6 +237,42 @@ fn validate_particles(rules: &RuleSet, locations: &RuleLocations) -> Result<(), 
         .collect::<BTreeSet<_>>();
     for rule in &rules.particles {
         validate_forms(source, &rule.id, &rule.forms, locations)?;
+        let hosts = rule.hosts.iter().copied().collect::<BTreeSet<_>>();
+        if hosts.len() != rule.hosts.len() || hosts.is_empty() {
+            return Err(invalid_rule_value(
+                locations,
+                source,
+                &rule.id,
+                "hosts",
+                format!("{:?}", rule.hosts),
+                "하나 이상의 중복 없는 host여야 합니다",
+            ));
+        }
+        if (rule.id == "particle.plural") != (rule.role == ParticleRuleRole::Plural) {
+            return Err(invalid_rule_value(
+                locations,
+                source,
+                &rule.id,
+                "role",
+                format!("{:?}", rule.role),
+                "particle.plural만 plural role이어야 합니다",
+            ));
+        }
+        if rule.role != ParticleRuleRole::Auxiliary
+            && rule
+                .hosts
+                .iter()
+                .any(|host| matches!(host, ParticleHost::Adverb | ParticleHost::PredicateEnding))
+        {
+            return Err(invalid_rule_value(
+                locations,
+                source,
+                &rule.id,
+                "hosts",
+                format!("{:?}", rule.hosts),
+                "adverb와 predicate-ending host는 auxiliary role에만 허용됩니다",
+            ));
+        }
         let expected_forms = match rule.selection {
             ParticleSelection::Literal => None,
             ParticleSelection::FinalPair | ParticleSelection::EuroRo => Some(2),
@@ -219,9 +294,9 @@ fn validate_particles(rules: &RuleSet, locations: &RuleLocations) -> Result<(), 
         }
         validate_terminal_transition(source, &rule.id, rule.terminal, &rule.next, locations)?;
     }
-    validate_graph_depth(
+    validate_graph(
         source,
-        rules.max_continuation_depth,
+        None,
         rules
             .particles
             .iter()
@@ -324,9 +399,9 @@ fn validate_forms(
     Ok(())
 }
 
-fn validate_graph_depth<'a>(
+fn validate_graph<'a>(
     source: &str,
-    limit: u8,
+    depth_limit: Option<u8>,
     rules: impl Iterator<Item = (&'a str, &'a [String])>,
     locations: &RuleLocations,
 ) -> Result<(), DataError> {
@@ -338,10 +413,10 @@ fn validate_graph_depth<'a>(
         graph: &BTreeMap<&'a str, &'a [String]>,
         active: &mut BTreeSet<&'a str>,
         depth: u8,
-        limit: u8,
+        depth_limit: Option<u8>,
         locations: &RuleLocations,
     ) -> Result<(), DataError> {
-        if depth > limit {
+        if depth_limit.is_some_and(|limit| depth > limit) {
             return Err(invalid_rule_value(
                 locations,
                 source,
@@ -363,7 +438,15 @@ fn validate_graph_depth<'a>(
         }
         if let Some(next) = graph.get(id) {
             for next_id in *next {
-                visit(source, next_id, graph, active, depth + 1, limit, locations)?;
+                visit(
+                    source,
+                    next_id,
+                    graph,
+                    active,
+                    depth + 1,
+                    depth_limit,
+                    locations,
+                )?;
             }
         }
         active.remove(id);
@@ -377,7 +460,7 @@ fn validate_graph_depth<'a>(
             &graph,
             &mut BTreeSet::new(),
             1,
-            limit,
+            depth_limit,
             locations,
         )?;
     }

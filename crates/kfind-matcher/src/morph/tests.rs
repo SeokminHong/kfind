@@ -3,7 +3,7 @@ use kfind_data::{
     ComponentResource, MecabSourceMorphologyEntry, decode_component_resource,
     encode_component_resource,
 };
-use kfind_morph::{CoarsePos, ContinuationState, FinePos, RuleId};
+use kfind_morph::{CoarsePos, ContinuationState, FinePos, ParticleTransition, RuleId};
 use kfind_query::{
     Analysis, AnalysisSource, AtomPlan, BoundaryPolicy, BoundaryProof, CandidateConsumption,
     CandidateDecision, CandidateLeftContext, CandidateProgram, CoreMapping, Morphology,
@@ -250,7 +250,10 @@ fn component_context_without_a_resource_is_a_build_error() {
         normalization: kfind_query::NormalizationMode::Nfc,
         limits: PlanLimits::default(),
         diagnostics: Vec::new(),
+        particle_allomorphs: Arc::from([]),
         particle_transitions: Arc::from([]),
+        auxiliary_particle_rules: Arc::from([]),
+        predicate_ending_initial_particle_rules: Arc::from([]),
         estimated_matcher_bytes: 0,
     });
 
@@ -320,11 +323,51 @@ fn nominal_component_does_not_bypass_a_rejected_particle_allomorph() {
 fn nominal_host_can_precede_a_complete_copula_suffix() {
     let resource = Arc::new(component_resource());
     let result = component_matcher("결과", Arc::clone(&resource));
-    let solid = component_matcher("고체", resource);
+    let solid = component_matcher("고체", Arc::clone(&resource));
+    let university = component_matcher("대학", resource);
 
     assert!(result.find_at_with_meta("결과이다".as_bytes(), 0).is_some());
     assert!(solid.find_at_with_meta("고체이긴".as_bytes(), 0).is_some());
-    assert!(result.find_at_with_meta("결과이".as_bytes(), 0).is_none());
+    for text in ["결과다", "결과였다", "결과였고", "결과여서"] {
+        assert!(
+            result.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "{text}"
+        );
+    }
+    for text in ["결과이", "결과였"] {
+        assert!(
+            result.find_at_with_meta(text.as_bytes(), 0).is_none(),
+            "{text}"
+        );
+    }
+    for text in ["대학다", "대학였다", "대학여서"] {
+        assert!(
+            university.find_at_with_meta(text.as_bytes(), 0).is_none(),
+            "{text}"
+        );
+    }
+}
+
+#[test]
+fn verified_particle_chains_can_precede_complete_copula_suffixes() {
+    let matcher = component_matcher_with_particle_rules(
+        "대학",
+        rules(&["particle.restrictive.ppun", "particle.only"]),
+        Arc::new(component_resource()),
+    );
+
+    for text in ["대학뿐이다", "대학뿐인", "대학뿐만이다"] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "{text}"
+        );
+    }
+    for text in ["대학뿐이", "대학뿐여서", "대학뿐이다른", "대학뿐도만이다"] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+            "{text}"
+        );
+    }
 }
 
 #[test]
@@ -376,7 +419,10 @@ fn verification_counters_treat_accepted_components_as_verified_programs() {
         normalization: kfind_query::NormalizationMode::Nfc,
         limits: PlanLimits::default(),
         diagnostics: Vec::new(),
+        particle_allomorphs: Arc::from([]),
         particle_transitions: Arc::from([]),
+        auxiliary_particle_rules: Arc::from([]),
+        predicate_ending_initial_particle_rules: Arc::from([]),
         estimated_matcher_bytes: 0,
     };
     let matcher =
@@ -707,7 +753,10 @@ fn matcher(atoms: Vec<AtomPlan>, max_gap: usize) -> MorphMatcher {
         normalization: kfind_query::NormalizationMode::Nfc,
         limits: PlanLimits::default(),
         diagnostics: Vec::new(),
+        particle_allomorphs: Arc::from([]),
         particle_transitions: Arc::from([]),
+        auxiliary_particle_rules: Arc::from([]),
+        predicate_ending_initial_particle_rules: Arc::from([]),
         estimated_matcher_bytes: 0,
     }))
     .unwrap()
@@ -722,8 +771,30 @@ fn component_matcher_with_analysis(
     analysis: Analysis,
     resource: Arc<ComponentResource>,
 ) -> MorphMatcher {
+    component_matcher_with_analysis_and_particle_rules(anchor, analysis, Arc::from([]), resource)
+}
+
+fn component_matcher_with_particle_rules(
+    anchor: &str,
+    allowed_rule_ids: Arc<[RuleId]>,
+    resource: Arc<ComponentResource>,
+) -> MorphMatcher {
+    component_matcher_with_analysis_and_particle_rules(
+        anchor,
+        nominal_analysis(anchor),
+        allowed_rule_ids,
+        resource,
+    )
+}
+
+fn component_matcher_with_analysis_and_particle_rules(
+    anchor: &str,
+    analysis: Analysis,
+    allowed_rule_ids: Arc<[RuleId]>,
+    resource: Arc<ComponentResource>,
+) -> MorphMatcher {
     let mut branch = if matches!(&analysis.morphology, Morphology::Nominal(_)) {
-        nominal_branch(anchor, rules(&[]))
+        nominal_branch(anchor, allowed_rule_ids)
     } else {
         exact_branch(anchor, true)
     };
@@ -738,7 +809,16 @@ fn component_matcher_with_analysis(
         normalization: kfind_query::NormalizationMode::Nfc,
         limits: PlanLimits::default(),
         diagnostics: Vec::new(),
-        particle_transitions: Arc::from([]),
+        particle_allomorphs: Arc::from([]),
+        particle_transitions: Arc::from([
+            ParticleTransition::new(
+                "particle.restrictive.ppun",
+                vec![RuleId::from("particle.only")].into_boxed_slice(),
+            ),
+            ParticleTransition::new("particle.only", Vec::<RuleId>::new().into_boxed_slice()),
+        ]),
+        auxiliary_particle_rules: Arc::from([]),
+        predicate_ending_initial_particle_rules: Arc::from([]),
         estimated_matcher_bytes: 0,
     };
     MorphMatcher::with_component_resource(Arc::new(plan), resource).unwrap()
@@ -761,7 +841,10 @@ fn contextual_matcher(
         normalization: kfind_query::NormalizationMode::Nfc,
         limits: PlanLimits::default(),
         diagnostics: Vec::new(),
+        particle_allomorphs: Arc::from([]),
         particle_transitions: Arc::from([]),
+        auxiliary_particle_rules: Arc::from([]),
+        predicate_ending_initial_particle_rules: Arc::from([]),
         estimated_matcher_bytes: 0,
     };
     MorphMatcher::with_component_resource(Arc::new(plan), resource).unwrap()
@@ -828,6 +911,7 @@ fn component_resource() -> ComponentResource {
         component_entry("경계밖", "NNG", 0),
         component_entry("결과", "NNG", 0),
         component_entry("고체", "NNG", 0),
+        component_entry("대학", "NNG", 0),
         component_entry("이", "VCP", 0),
         component_entry("다", "EF", 0),
         component_entry("긴", "ETN+JX", 0),
@@ -883,6 +967,7 @@ fn nominal_branch(anchor: &str, allowed_rule_ids: Arc<[RuleId]>) -> CandidatePro
     CandidateProgram {
         anchor: anchor.as_bytes().into(),
         consumption: CandidateConsumption::NominalParticleChain {
+            initial_allowed_rule_ids: Arc::clone(&allowed_rule_ids),
             allowed_rule_ids,
             blocked_rule_ids: Arc::from([]),
         },
@@ -905,6 +990,7 @@ fn predicate_branch(
         consumption: CandidateConsumption::PredicateContinuation {
             continuation,
             pos: kfind_morph::PredicatePos::Verb,
+            source_positions: kfind_morph::PredicatePosSet::one(kfind_morph::PredicatePos::Verb),
             allowed_rule_ids,
             nominal_particle_transition: false,
             left_context: CandidateLeftContext::Any,
