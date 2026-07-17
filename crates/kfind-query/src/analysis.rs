@@ -2,7 +2,11 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::sync::Arc;
 
-use kfind_morph::{CoarsePos, FinePos, PredicateEntry, PredicatePos, RuleId};
+use kfind_data::{ParticleHost, ParticleRuleRole, ParticleSelection};
+use kfind_morph::{
+    CoarsePos, FinalCondition, FinePos, ParticleAllomorph, ParticleKind, ParticleRole,
+    ParticleTransition, PredicateEntry, PredicatePos, RuleId,
+};
 
 use crate::lexicons::predicate_shape_alternation;
 use crate::{Lexicons, QueryAtom};
@@ -77,18 +81,111 @@ pub trait QueryAnalyzer: Send + Sync {
 #[derive(Debug, Clone)]
 pub struct LexiconQueryAnalyzer {
     lexicons: Arc<Lexicons>,
+    particle_rules: ParticleCompileRules,
 }
 
 impl LexiconQueryAnalyzer {
     #[must_use]
     pub fn new(lexicons: Arc<Lexicons>) -> Self {
-        Self { lexicons }
+        let particle_rules = ParticleCompileRules::new(&lexicons);
+        Self {
+            lexicons,
+            particle_rules,
+        }
     }
 
     #[must_use]
     pub fn lexicons(&self) -> &Arc<Lexicons> {
         &self.lexicons
     }
+
+    pub(crate) fn particle_rules(&self) -> &ParticleCompileRules {
+        &self.particle_rules
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct ParticleCompileRules {
+    pub allomorphs: Arc<[ParticleAllomorph]>,
+    pub transitions: Arc<[ParticleTransition]>,
+    pub auxiliary: Arc<[RuleId]>,
+    pub adverb_initial: Arc<[RuleId]>,
+    pub predicate_ending_initial: Arc<[RuleId]>,
+}
+
+impl ParticleCompileRules {
+    fn new(lexicons: &Lexicons) -> Self {
+        let mut allomorphs = Vec::new();
+        for rule in &lexicons.rules().particles {
+            let role = match rule.role {
+                ParticleRuleRole::Plural => continue,
+                ParticleRuleRole::Case => ParticleRole::Case,
+                ParticleRuleRole::Auxiliary => ParticleRole::Auxiliary,
+            };
+            for (index, surface) in rule.forms.iter().enumerate() {
+                let condition = match (rule.selection, index) {
+                    (ParticleSelection::Literal, _) => FinalCondition::Any,
+                    (ParticleSelection::FinalPair, 0) => FinalCondition::Consonant,
+                    (ParticleSelection::FinalPair, _) => FinalCondition::Vowel,
+                    (ParticleSelection::EuroRo, 0) => FinalCondition::ConsonantExceptRieul,
+                    (ParticleSelection::EuroRo, _) => FinalCondition::VowelOrRieul,
+                };
+                allomorphs.push(ParticleAllomorph::new(
+                    ParticleKind::Catalog,
+                    role,
+                    surface.clone(),
+                    condition,
+                    rule.id.clone(),
+                ));
+            }
+        }
+        let transitions = lexicons
+            .rules()
+            .particles
+            .iter()
+            .map(|rule| {
+                ParticleTransition::new(
+                    rule.id.clone(),
+                    rule.next
+                        .iter()
+                        .cloned()
+                        .map(RuleId::from)
+                        .collect::<Vec<_>>()
+                        .into_boxed_slice(),
+                )
+            })
+            .collect::<Vec<_>>();
+        Self {
+            allomorphs: allomorphs.into(),
+            transitions: transitions.into(),
+            auxiliary: collect_particle_rules(lexicons, |rule| {
+                rule.role == ParticleRuleRole::Auxiliary
+            }),
+            adverb_initial: collect_particle_rules(lexicons, |rule| {
+                rule.role == ParticleRuleRole::Auxiliary
+                    && rule.hosts.contains(&ParticleHost::Adverb)
+            }),
+            predicate_ending_initial: collect_particle_rules(lexicons, |rule| {
+                rule.role == ParticleRuleRole::Auxiliary
+                    && rule.hosts.contains(&ParticleHost::PredicateEnding)
+            }),
+        }
+    }
+}
+
+fn collect_particle_rules(
+    lexicons: &Lexicons,
+    include: impl Fn(&kfind_data::ParticleTransitionRule) -> bool,
+) -> Arc<[RuleId]> {
+    let mut rules = lexicons
+        .rules()
+        .particles
+        .iter()
+        .filter(|rule| include(rule))
+        .map(|rule| RuleId::from(rule.id.clone()))
+        .collect::<Vec<_>>();
+    rules.sort();
+    rules.into()
 }
 
 impl QueryAnalyzer for LexiconQueryAnalyzer {

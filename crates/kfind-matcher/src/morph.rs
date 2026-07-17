@@ -122,13 +122,15 @@ impl MorphMatcher {
                 max_memory_bytes: plan.limits.max_matcher_bytes,
             },
         )?;
-        let mut particle_model = ParticleChainModel::default();
-        if !plan.particle_allomorphs.is_empty() {
-            particle_model.allomorphs = plan.particle_allomorphs.to_vec().into_boxed_slice();
-        }
-        if !plan.particle_transitions.is_empty() {
-            particle_model.transitions = Arc::clone(&plan.particle_transitions);
-        }
+        let particle_model =
+            if plan.particle_allomorphs.is_empty() || plan.particle_transitions.is_empty() {
+                ParticleChainModel::default()
+            } else {
+                ParticleChainModel::with_graph(
+                    Arc::clone(&plan.particle_allomorphs),
+                    Arc::clone(&plan.particle_transitions),
+                )
+            };
         let particle_verifier = ParticleVerifier::new(particle_model);
         Ok(Self {
             plan,

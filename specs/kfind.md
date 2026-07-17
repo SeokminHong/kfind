@@ -805,6 +805,9 @@ pub struct CandidateProgram {
 어미와 조사 continuation은 쿼리마다 복제하지 않는다. 빌드 시 생성한 전역 suffix DFA
 또는 trie를 공유하고, 각 pattern은 시작 상태만 참조한다. Aho-Corasick에는 완성
 활용형 전체가 아니라 고유 앵커만 등록한다.
+lexicon rule에서 투영한 조사 allomorph·전이·host별 rule 집합은 analyzer를 만들 때 한 번
+물질화하고 immutable `Arc`로 plan과 matcher가 공유한다. query compile과 matcher build는
+이 전역 조사 graph를 다시 순회하거나 allomorph 문자열을 깊은 복제하지 않는다.
 
 ### 3.2 용언 분류와 활용 생성을 분리한다
 

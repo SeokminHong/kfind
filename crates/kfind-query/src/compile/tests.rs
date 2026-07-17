@@ -15,6 +15,26 @@ fn analyzer() -> LexiconQueryAnalyzer {
     LexiconQueryAnalyzer::new(Arc::new(Lexicons::embedded().unwrap()))
 }
 
+#[test]
+fn plans_share_the_analyzers_particle_graph() {
+    let analyzer = analyzer();
+    let first = compile_query("학교", &CompileOptions::default(), &analyzer).unwrap();
+    let second = compile_query("사람", &CompileOptions::default(), &analyzer).unwrap();
+
+    assert!(Arc::ptr_eq(
+        &first.particle_allomorphs,
+        &second.particle_allomorphs
+    ));
+    assert!(Arc::ptr_eq(
+        &first.particle_transitions,
+        &second.particle_transitions
+    ));
+    assert!(Arc::ptr_eq(
+        &first.auxiliary_particle_rules,
+        &second.auxiliary_particle_rules
+    ));
+}
+
 fn full_pos_analyzer() -> LexiconQueryAnalyzer {
     let mut lexicons = Lexicons::embedded().unwrap();
     let full_data = LexiconData {
@@ -105,6 +125,13 @@ fn forced_verb_preserves_main_and_auxiliary_fine_positions() {
             kfind_morph::FinePos::AuxiliaryVerb,
         ])
     );
+    assert!(plan.atoms[0].programs.iter().any(|program| matches!(
+        program.consumption,
+        CandidateConsumption::PredicateContinuation {
+            pos: kfind_morph::PredicatePos::AuxiliaryVerb,
+            ..
+        }
+    )));
 }
 
 #[test]

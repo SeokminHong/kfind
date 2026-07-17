@@ -113,10 +113,25 @@ impl ParticleTransition {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParticleChainModel {
-    pub allomorphs: Box<[ParticleAllomorph]>,
+    pub allomorphs: Arc<[ParticleAllomorph]>,
     pub transitions: Arc<[ParticleTransition]>,
     pub allow_plural: bool,
     pub max_rules: usize,
+}
+
+impl ParticleChainModel {
+    #[must_use]
+    pub fn with_graph(
+        allomorphs: Arc<[ParticleAllomorph]>,
+        transitions: Arc<[ParticleTransition]>,
+    ) -> Self {
+        Self {
+            allomorphs,
+            transitions,
+            allow_plural: true,
+            max_rules: 4,
+        }
+    }
 }
 
 impl Default for ParticleChainModel {
@@ -249,7 +264,7 @@ impl Default for ParticleChainModel {
             ),
         ];
         Self {
-            allomorphs: Box::new(forms),
+            allomorphs: Arc::from(forms),
             transitions: default_particle_transitions(),
             allow_plural: true,
             max_rules: 4,

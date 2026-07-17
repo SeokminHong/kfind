@@ -10,11 +10,10 @@ use crate::{
 };
 use kfind_data::{
     DICTIONARY_CONJUGATION_RULE_ID, DICTIONARY_RELATED_ADVERB_RULE_ID, DerivationRule,
-    ParticleHost, ParticleRuleRole, ParticleSelection,
 };
 use kfind_morph::{
-    CoarsePos, ComponentCapability, FinalCondition, ParticleAllomorph, ParticleKind, ParticleRole,
-    ParticleTransition, RuleId, generate_predicate_branches, generate_predicate_fallback_stems,
+    CoarsePos, ComponentCapability, ParticleAllomorph, RuleId, generate_predicate_branches,
+    generate_predicate_fallback_stems,
 };
 
 mod normalization;
@@ -112,33 +111,13 @@ pub fn compile_query(
         .collect::<HashSet<_>>();
     let allowed_predicate_rules = allowed_rules(&known_rule_ids, |_| true);
     let allowed_particle_rules = allowed_rules(&known_rule_ids, |id| id.starts_with("particle."));
-    let particle_allomorphs = particle_allomorphs(analyzer);
-    let allowed_auxiliary_particle_rules =
-        particle_rules(analyzer, |rule| rule.role == ParticleRuleRole::Auxiliary);
-    let allowed_adverb_initial_particle_rules = particle_rules(analyzer, |rule| {
-        rule.role == ParticleRuleRole::Auxiliary && rule.hosts.contains(&ParticleHost::Adverb)
-    });
-    let allowed_predicate_ending_initial_particle_rules = particle_rules(analyzer, |rule| {
-        rule.role == ParticleRuleRole::Auxiliary
-            && rule.hosts.contains(&ParticleHost::PredicateEnding)
-    });
-    let particle_transitions = analyzer
-        .lexicons()
-        .rules()
-        .particles
-        .iter()
-        .map(|rule| {
-            ParticleTransition::new(
-                rule.id.clone(),
-                rule.next
-                    .iter()
-                    .cloned()
-                    .map(RuleId::from)
-                    .collect::<Vec<_>>()
-                    .into_boxed_slice(),
-            )
-        })
-        .collect::<Vec<_>>();
+    let particle_rules = analyzer.particle_rules();
+    let particle_allomorphs = Arc::clone(&particle_rules.allomorphs);
+    let particle_transitions = Arc::clone(&particle_rules.transitions);
+    let allowed_auxiliary_particle_rules = Arc::clone(&particle_rules.auxiliary);
+    let allowed_adverb_initial_particle_rules = Arc::clone(&particle_rules.adverb_initial);
+    let allowed_predicate_ending_initial_particle_rules =
+        Arc::clone(&particle_rules.predicate_ending_initial);
     let mut diagnostics = Vec::new();
     if options.requires_full_pos_lexicon() && !analyzer.lexicons().full_pos_loaded() {
         diagnostics.push(QueryDiagnostic::FullPosLexiconUnavailable);
@@ -281,7 +260,7 @@ pub fn compile_query(
         limits: options.limits,
         diagnostics,
         particle_allomorphs,
-        particle_transitions: particle_transitions.into(),
+        particle_transitions,
         auxiliary_particle_rules: allowed_auxiliary_particle_rules,
         predicate_ending_initial_particle_rules: allowed_predicate_ending_initial_particle_rules,
         estimated_matcher_bytes,
@@ -754,50 +733,6 @@ fn allowed_rules(known: &HashSet<&str>, include: impl Fn(&str) -> bool) -> Arc<[
         .collect::<Vec<_>>();
     rules.sort();
     rules.into()
-}
-
-fn particle_rules(
-    analyzer: &LexiconQueryAnalyzer,
-    include: impl Fn(&kfind_data::ParticleTransitionRule) -> bool,
-) -> Arc<[RuleId]> {
-    let mut rules = analyzer
-        .lexicons()
-        .rules()
-        .particles
-        .iter()
-        .filter(|rule| include(rule))
-        .map(|rule| RuleId::from(rule.id.clone()))
-        .collect::<Vec<_>>();
-    rules.sort();
-    rules.into()
-}
-
-fn particle_allomorphs(analyzer: &LexiconQueryAnalyzer) -> Arc<[ParticleAllomorph]> {
-    let mut forms = Vec::new();
-    for rule in &analyzer.lexicons().rules().particles {
-        let role = match rule.role {
-            ParticleRuleRole::Plural => continue,
-            ParticleRuleRole::Case => ParticleRole::Case,
-            ParticleRuleRole::Auxiliary => ParticleRole::Auxiliary,
-        };
-        for (index, surface) in rule.forms.iter().enumerate() {
-            let condition = match (rule.selection, index) {
-                (ParticleSelection::Literal, _) => FinalCondition::Any,
-                (ParticleSelection::FinalPair, 0) => FinalCondition::Consonant,
-                (ParticleSelection::FinalPair, _) => FinalCondition::Vowel,
-                (ParticleSelection::EuroRo, 0) => FinalCondition::ConsonantExceptRieul,
-                (ParticleSelection::EuroRo, _) => FinalCondition::VowelOrRieul,
-            };
-            forms.push(ParticleAllomorph::new(
-                ParticleKind::Catalog,
-                role,
-                surface.clone(),
-                condition,
-                rule.id.clone(),
-            ));
-        }
-    }
-    forms.into()
 }
 
 fn modern_ending_surfaces() -> Arc<[Box<str>]> {
