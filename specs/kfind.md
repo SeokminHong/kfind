@@ -248,7 +248,7 @@
   /concepts/architecture    compile·scan·verify 실행 구조
   /concepts/optimization    program·anchor·resource·streaming 최적화
   /benchmarks               workload별 품질·성능 근거
-  /playground               WebAssembly 검색 실습
+  /playground               WebAssembly 플레이그라운드
   ```
 
 - 문서 site의 popup, select, collapsible과 form control은 `@base-ui/react`의 unstyled primitive로
@@ -284,11 +284,22 @@
   실행한다. Query, 입력 text, expand·boundary·POS·max gap을 바꿀 수 있고, UTF-16 span에 맞춰
   match를 강조하며 surface와 provenance를 표시한다. Browser 사용자가 Unicode normalization을
   선택하지 않도록 canonical NFC+NFD 검색을 고정 적용한다.
+- Query와 입력 text는 검색 작업의 주 입력으로서 playground 상단의 한 input stack에 이 순서로
+  인접 배치한다. 넓은 화면은 짧은 Query와 장문 text editor를 왼쪽 main pane에 두고 예시 action,
+  compile option과 component resource를 오른쪽 보조 panel에 둔다. 검색 결과는 두 pane 아래의 전체
+  너비 하단 panel에 표시한다. Query control은 일반적인 짧은 입력에 맞춰 너비를 제한하되 text
+  editor는 main pane을 채운다.
+- 좁은 화면은 Query → text → 결과의 인지 순서를 우선한다. 예시 action, compile option과 component
+  resource는 현재 주요 option 요약을 표시하는 `검색 옵션` button으로 여는 modal 안에 두며 결과보다
+  앞에서 긴 설정 목록을 펼치지 않는다. Modal은 keyboard focus trap, touch scroll lock, 명시적인 닫기
+  control을 제공한다. 모든 화면에서 가로 scroll을 만들지 않는다.
 - 검색 예시는 query, text와 관련 compile option을 하나의 설정으로 불러오는 action button으로
   제공한다. 예시 action과 개별 option control은 같은 input state를 갱신하고, 별도의 preset 선택
   상태를 유지하지 않는다. 1 MiB의 결정적인 입력을 만드는 대용량 예시를 제공하며 editor에는
   문자 수와 UTF-8 byte 수를, 검색 결과에는 query compile과 전체 text scan을 합친 실행 시간을
-  표시한다.
+  표시한다. 예시 action은 짧은 button row로 줄바꿈하며 단순 목록을 별도 card grid처럼 크게
+  그리지 않는다. Compile option은 현재 값과 설명을 확인할 수 있되 주 입력보다 시각적으로 앞서지
+  않는 compact control grid로 배치한다.
 - Playground는 query·text·option 변경을 debounce한 뒤 자동으로 검색하며 별도의 검색 실행
   button을 두지 않는다. Query label에서 지원 atom 태그와 품사를 확인할 수 있어야 한다. POS
   control은 atom 태그와 전역 POS 중 어느 쪽도 우선하지 않고, `auto`가 아니면 같은 품사일 때만
@@ -302,13 +313,21 @@
   model과 collaboration 기능은 추가하지 않는다.
 - 결과 panel은 `Matches`와 `Raw JSON` tab을 제공하고 한 번에 선택한 detail만 표시한다. 기본 tab은
   사람이 읽는 surface·span·provenance 목록이며 Raw JSON은 같은 match의 전체 구조를 표시한다.
+  Match 목록은 surface, span과 provenance를 빠르게 훑을 수 있는 compact row로 표시하고 각 항목을
+  독립된 큰 card로 확장하지 않는다. 좁은 화면에서는 provenance만 다음 줄로 내려 row의 정보 순서를
+  보존한다. Match row를 활성화하면 해당 UTF-16 span을 editor에서 선택하고 editor 내부 scroll과
+  문서 viewport를 그 위치로 이동한다.
 - Playground 입력은 browser 밖으로 보내지 않는다. Full POS와 약 36 MiB의 compact component
   resource는 기본 demo에 포함하지 않는다. 사용자가 고급 `smart` 지원을 요청할 때만 같은 origin의
   Pages Function에서 component resource를 한 번 내려받아 기존 WASM engine에 load한다. 검증된
-  resource response는 browser Cache Storage에 보관하고 같은 build로 playground에 다시 들어오면
-  network 요청 없이 자동으로 복원한다. Cache key는 개발 build에서 전체 Git commit, version tag를
-  정확히 checkout한 release build에서는 tag를 사용하며 다른 key의 resource를 현재 engine에
-  적용하지 않는다.
+  resource response는 browser Cache Storage에 보관하고 호환되는 resource revision으로 playground에
+  다시 들어오면 network 요청 없이 자동으로 복원한다. Cache key는 version tag를 정확히 checkout한
+  release build에서는 tag를 사용하고, 그 외 개발 build에서는 component artifact checksum을 마지막으로
+  고정한 전체 Git commit을 사용한다. Site UI만 바뀐 commit은 동일한 resource를 무효화하지 않는다.
+  Playground 진입 시 현재 key를 먼저 확인하고, 기존 site build key로 저장한 같은-origin entry도 engine의
+  schema·version·digest 검증을 통과하면 현재 key로 옮긴다. 호환되지 않는 entry는 삭제한다. 검색은 이
+  확인이 끝난 뒤 시작하며 resource row는 확인 중 상태와 저장소 복원 완료 상태를 구분해 처음부터
+  표시한다.
 - Component resource는 25 MiB 단일 값 제한이 있는 Workers KV가 아니라 `kfind-assets` R2 bucket에
   둔다. Pages Function은 `KFIND_ASSETS` binding으로 고정 object를 읽어 body를 buffering하지 않고
   stream하며 content type, ETag와 cache header를 보존한다. R2 object가 없거나 손상되면 embedded
