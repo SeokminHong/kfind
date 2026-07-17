@@ -121,10 +121,11 @@ impl MorphMatcher {
                 max_memory_bytes: plan.limits.max_matcher_bytes,
             },
         )?;
-        let particle_verifier = ParticleVerifier::new(ParticleChainModel {
-            transitions: Arc::clone(&plan.particle_transitions),
-            ..ParticleChainModel::default()
-        });
+        let mut particle_model = ParticleChainModel::default();
+        if !plan.particle_transitions.is_empty() {
+            particle_model.transitions = Arc::clone(&plan.particle_transitions);
+        }
+        let particle_verifier = ParticleVerifier::new(particle_model);
         Ok(Self {
             plan,
             anchor_engine,

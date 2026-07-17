@@ -52,6 +52,31 @@ fn repository_data_is_complete_and_valid() {
     ] {
         assert!(ids.contains(verifier_rule), "missing {verifier_rule}");
     }
+    for (rule_id, next_id) in [
+        ("particle.limit.ggaji", "particle.topic"),
+        ("particle.limit.ggaji", "particle.additive"),
+        ("particle.limit.ggaji", "particle.only"),
+        ("particle.from", "particle.genitive"),
+        ("particle.source", "particle.from"),
+        ("particle.dative", "particle.direction"),
+        ("particle.locative", "particle.genitive"),
+    ] {
+        let rule = data
+            .rules
+            .particles
+            .iter()
+            .find(|rule| rule.id == rule_id)
+            .unwrap_or_else(|| panic!("missing {rule_id}"));
+        assert!(
+            rule.next.iter().any(|next| next == next_id),
+            "missing transition {rule_id} -> {next_id}"
+        );
+    }
+    assert!(data.rules.particles.iter().all(|rule| {
+        rule.forms
+            .iter()
+            .all(|form| !["까지도", "까지만", "까지는", "으로부터의"].contains(&form.as_str()))
+    }));
     assert!(ids.contains("ending.honorific"));
     for continuation in [
         "ending.connective-jiman",
@@ -427,6 +452,42 @@ fn rule_parser_rejects_unknown_features_and_nonterminal_leaves() {
         DataErrorKind::InvalidValue { ref field, .. } if field == "terminal"
     ));
     assert!(error.location.line.is_some());
+}
+
+#[test]
+fn particle_graph_rejects_cycles_without_rejecting_long_bounded_paths() {
+    let particles = read("rules/particles.toml").replacen(
+        concat!(
+            "id = \"particle.additive\"\n",
+            "forms = [\"도\"]\n",
+            "selection = \"literal\"\n",
+            "next = []",
+        ),
+        concat!(
+            "id = \"particle.additive\"\n",
+            "forms = [\"도\"]\n",
+            "selection = \"literal\"\n",
+            "next = [\"particle.limit.ggaji\"]",
+        ),
+        1,
+    );
+    let error = parse_rule_set(RuleSources {
+        endings: &read("rules/endings.toml"),
+        alternations: &read("rules/alternations.toml"),
+        contractions: &read("rules/contractions.toml"),
+        derivations: &read("rules/derivations.toml"),
+        particles: &particles,
+    })
+    .unwrap_err();
+
+    assert!(matches!(
+        *error.kind,
+        DataErrorKind::InvalidValue {
+            ref field,
+            ref reason,
+            ..
+        } if field == "continuation" && reason == "순환 전이는 허용하지 않습니다"
+    ));
 }
 
 #[test]

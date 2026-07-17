@@ -240,22 +240,12 @@ impl ReferenceMatcher {
             previous = Some('들');
             rules.push(RuleId::from("particle.plural"));
         }
-        if let Some(form) = self.longest_reference_particle(
-            &following[consumed..],
-            previous,
-            rules.last(),
-            ReferenceParticleRole::Case,
-        ) {
-            consumed += form.surface.len();
-            previous = form.surface.chars().next_back();
-            rules.push(RuleId::from(form.rule_id));
-        }
-        for _ in 0..2 {
+        while rules.len() < 4 {
             let Some(form) = self.longest_reference_particle(
                 &following[consumed..],
                 previous,
                 rules.last(),
-                ReferenceParticleRole::Auxiliary,
+                ReferenceParticleRole::Any,
             ) else {
                 break;
             };
@@ -277,7 +267,7 @@ impl ReferenceMatcher {
         REFERENCE_PARTICLES
             .iter()
             .filter(|form| {
-                form.role == role
+                (role == ReferenceParticleRole::Any || form.role == role)
                     && following.starts_with(form.surface)
                     && form.condition.accepts(previous)
                     && self.reference_transition_allows(previous_rule, form.rule_id)
@@ -299,6 +289,7 @@ impl ReferenceMatcher {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum ReferenceParticleRole {
+    Any,
     Case,
     Auxiliary,
 }

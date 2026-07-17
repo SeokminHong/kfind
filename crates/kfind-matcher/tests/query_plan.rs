@@ -898,6 +898,41 @@ fn compiled_nominal_plan_enforces_particle_transitions() {
 }
 
 #[test]
+fn compiled_nominal_plan_covers_particle_transition_families() {
+    let matcher = compile("사용자", CompileOptions::default());
+
+    for text in [
+        "사용자까지도 왔다.",
+        "사용자까지만 왔다.",
+        "사용자까지는 왔다.",
+        "사용자까지만은 허용한다.",
+        "사용자로부터의 요청이다.",
+        "사용자에게로 보냈다.",
+        "사용자에서부터 시작했다.",
+        "사용자에의 의존이다.",
+        "사용자조차도 동의했다.",
+        "사용자마저도 동의했다.",
+        "사용자들로부터의 요청이다.",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "rejected particle transition family: {text}"
+        );
+    }
+    for text in [
+        "사용자는에게",
+        "사용자도까지",
+        "사용자까지도만",
+        "사용자들로부터까지만",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+            "accepted forbidden or overlong particle chain: {text}"
+        );
+    }
+}
+
+#[test]
 fn compiled_gi_nominalizer_consumes_only_valid_particle_chains() {
     for boundary in [BoundaryPolicy::Smart, BoundaryPolicy::Token] {
         let matcher = compile(

@@ -82,9 +82,9 @@ fn validate_endings(rules: &RuleSet, locations: &RuleLocations) -> Result<(), Da
         }
         validate_terminal_transition(source, &rule.id, rule.terminal, &rule.next, locations)?;
     }
-    validate_graph_depth(
+    validate_graph(
         source,
-        rules.max_continuation_depth,
+        Some(rules.max_continuation_depth),
         rules
             .endings
             .iter()
@@ -219,9 +219,9 @@ fn validate_particles(rules: &RuleSet, locations: &RuleLocations) -> Result<(), 
         }
         validate_terminal_transition(source, &rule.id, rule.terminal, &rule.next, locations)?;
     }
-    validate_graph_depth(
+    validate_graph(
         source,
-        rules.max_continuation_depth,
+        None,
         rules
             .particles
             .iter()
@@ -324,9 +324,9 @@ fn validate_forms(
     Ok(())
 }
 
-fn validate_graph_depth<'a>(
+fn validate_graph<'a>(
     source: &str,
-    limit: u8,
+    depth_limit: Option<u8>,
     rules: impl Iterator<Item = (&'a str, &'a [String])>,
     locations: &RuleLocations,
 ) -> Result<(), DataError> {
@@ -338,10 +338,10 @@ fn validate_graph_depth<'a>(
         graph: &BTreeMap<&'a str, &'a [String]>,
         active: &mut BTreeSet<&'a str>,
         depth: u8,
-        limit: u8,
+        depth_limit: Option<u8>,
         locations: &RuleLocations,
     ) -> Result<(), DataError> {
-        if depth > limit {
+        if depth_limit.is_some_and(|limit| depth > limit) {
             return Err(invalid_rule_value(
                 locations,
                 source,
@@ -363,7 +363,15 @@ fn validate_graph_depth<'a>(
         }
         if let Some(next) = graph.get(id) {
             for next_id in *next {
-                visit(source, next_id, graph, active, depth + 1, limit, locations)?;
+                visit(
+                    source,
+                    next_id,
+                    graph,
+                    active,
+                    depth + 1,
+                    depth_limit,
+                    locations,
+                )?;
             }
         }
         active.remove(id);
@@ -377,7 +385,7 @@ fn validate_graph_depth<'a>(
             &graph,
             &mut BTreeSet::new(),
             1,
-            limit,
+            depth_limit,
             locations,
         )?;
     }

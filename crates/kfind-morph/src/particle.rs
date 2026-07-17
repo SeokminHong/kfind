@@ -104,7 +104,7 @@ pub struct ParticleChainModel {
     pub allomorphs: Box<[ParticleAllomorph]>,
     pub transitions: Arc<[ParticleTransition]>,
     pub allow_plural: bool,
-    pub max_auxiliaries: usize,
+    pub max_rules: usize,
 }
 
 impl Default for ParticleChainModel {
@@ -152,9 +152,9 @@ impl Default for ParticleChainModel {
         ];
         Self {
             allomorphs: Box::new(forms),
-            transitions: Arc::from([]),
+            transitions: default_particle_transitions(),
             allow_plural: true,
-            max_auxiliaries: 2,
+            max_rules: 4,
         }
     }
 }
@@ -192,7 +192,7 @@ impl ParticleVerifier {
         let mut previous = core.chars().next_back();
         let mut previous_rule = None;
 
-        if self.model.allow_plural && following.starts_with('들') {
+        if self.model.allow_plural && self.model.max_rules > 0 && following.starts_with('들') {
             consumed += '들'.len_utf8();
             previous = Some('들');
             let plural = RuleId::from("particle.plural");
@@ -200,31 +200,16 @@ impl ParticleVerifier {
             previous_rule = Some(plural);
         }
 
-        if let Some(case) = self.longest_match(
-            &following[consumed..],
-            previous,
-            previous_rule.as_ref(),
-            ParticleRole::Case,
-        ) {
-            consumed += case.surface.len();
-            previous = case.surface.chars().next_back();
-            rule_path.push(case.rule_id.clone());
-            previous_rule = Some(case.rule_id.clone());
-        }
-
-        for _ in 0..self.model.max_auxiliaries {
-            let Some(auxiliary) = self.longest_match(
-                &following[consumed..],
-                previous,
-                previous_rule.as_ref(),
-                ParticleRole::Auxiliary,
-            ) else {
+        for _ in rule_path.len()..self.model.max_rules {
+            let Some(particle) =
+                self.longest_match(&following[consumed..], previous, previous_rule.as_ref())
+            else {
                 break;
             };
-            consumed += auxiliary.surface.len();
-            previous = auxiliary.surface.chars().next_back();
-            rule_path.push(auxiliary.rule_id.clone());
-            previous_rule = Some(auxiliary.rule_id.clone());
+            consumed += particle.surface.len();
+            previous = particle.surface.chars().next_back();
+            rule_path.push(particle.rule_id.clone());
+            previous_rule = Some(particle.rule_id.clone());
         }
 
         ParticleMatch {
@@ -246,15 +231,13 @@ impl ParticleVerifier {
         remaining: &str,
         previous: Option<char>,
         previous_rule: Option<&RuleId>,
-        role: ParticleRole,
     ) -> Option<&ParticleAllomorph> {
         let previous = previous?;
         self.model
             .allomorphs
             .iter()
             .filter(|form| {
-                form.role == role
-                    && remaining.starts_with(form.surface.as_ref())
+                remaining.starts_with(form.surface.as_ref())
                     && form.condition.accepts(previous)
                     && self.transition_allows(previous_rule, &form.rule_id)
             })
@@ -265,9 +248,6 @@ impl ParticleVerifier {
         let Some(previous) = previous else {
             return true;
         };
-        if self.model.transitions.is_empty() {
-            return true;
-        }
         self.model
             .transitions
             .iter()
@@ -289,6 +269,161 @@ fn allomorph(
         surface,
         condition,
         RuleId::from(format!("particle.{rule_suffix}")),
+    )
+}
+
+fn default_particle_transitions() -> Arc<[ParticleTransition]> {
+    // Fallback for callers that construct a verifier without a compiled QueryPlan.
+    // Product plans replace this table with data/rules/particles.toml.
+    const FOCUS: &[&str] = &[
+        "particle.topic",
+        "particle.additive",
+        "particle.only",
+        "particle.limit.ggaji",
+        "particle.even.jocha",
+        "particle.even.majeo",
+    ];
+    Arc::from([
+        transition(
+            "particle.plural",
+            &[
+                "particle.subject",
+                "particle.object",
+                "particle.topic",
+                "particle.comitative",
+                "particle.direction",
+                "particle.dative",
+                "particle.locative",
+                "particle.source",
+                "particle.source.egeseo",
+                "particle.source.hanteseo",
+                "particle.from",
+                "particle.genitive",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+            ],
+        ),
+        transition("particle.subject", FOCUS),
+        transition("particle.object", FOCUS),
+        transition("particle.topic", &[]),
+        transition("particle.comitative", FOCUS),
+        transition("particle.connector-myeon", &[]),
+        transition(
+            "particle.direction",
+            &[
+                "particle.from",
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+            ],
+        ),
+        transition(
+            "particle.dative",
+            &[
+                "particle.direction",
+                "particle.from",
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+            ],
+        ),
+        transition(
+            "particle.locative",
+            &[
+                "particle.direction",
+                "particle.from",
+                "particle.genitive",
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+            ],
+        ),
+        transition(
+            "particle.source",
+            &[
+                "particle.from",
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+            ],
+        ),
+        transition(
+            "particle.source.egeseo",
+            &[
+                "particle.from",
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+            ],
+        ),
+        transition(
+            "particle.source.hanteseo",
+            &[
+                "particle.from",
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+            ],
+        ),
+        transition(
+            "particle.from",
+            &[
+                "particle.genitive",
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+            ],
+        ),
+        transition("particle.genitive", FOCUS),
+        transition("particle.additive", &[]),
+        transition("particle.only", &["particle.topic", "particle.additive"]),
+        transition(
+            "particle.limit.ggaji",
+            &[
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.even.jocha",
+                "particle.even.majeo",
+            ],
+        ),
+        transition("particle.even.jocha", &["particle.additive"]),
+        transition("particle.even.majeo", &["particle.additive"]),
+    ])
+}
+
+fn transition(rule_id: &str, next: &[&str]) -> ParticleTransition {
+    ParticleTransition::new(
+        rule_id,
+        next.iter()
+            .copied()
+            .map(RuleId::from)
+            .collect::<Vec<_>>()
+            .into_boxed_slice(),
     )
 }
 
@@ -355,11 +490,34 @@ mod tests {
     }
 
     #[test]
-    fn permits_auxiliary_particles_only_after_the_case_slot() {
+    fn follows_particle_transitions_instead_of_fixed_role_slots() {
         let verifier = ParticleVerifier::default();
-        assert!(verifier.verify_exact("학교", "에서는").is_some());
-        assert!(verifier.verify_exact("사용자", "에게까지만").is_some());
-        assert!(verifier.verify_exact("사용자", "는에게").is_none());
+        for suffix in [
+            "에서는",
+            "까지도",
+            "까지만",
+            "까지는",
+            "까지만은",
+            "에게까지만",
+            "로부터의",
+            "에게로",
+            "에서부터",
+            "에의",
+            "조차도",
+            "마저도",
+            "들로부터의",
+        ] {
+            assert!(
+                verifier.verify_exact("사용자", suffix).is_some(),
+                "rejected 사용자{suffix}"
+            );
+        }
+        for suffix in ["는에게", "도까지", "까지도만", "들로부터까지만"] {
+            assert!(
+                verifier.verify_exact("사용자", suffix).is_none(),
+                "accepted 사용자{suffix}"
+            );
+        }
     }
 
     #[test]
