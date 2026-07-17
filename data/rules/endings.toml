@@ -452,6 +452,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.prospective-final"
+category = "final"
+initial = "eu"
+forms = ["리라", "으리라"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.prospective-quotative"
 category = "connective"
 initial = "eu"

@@ -590,6 +590,7 @@ fn reference_predicate_continuation(
     ];
     const EU: &[ReferenceSuffix] = &[
         reference_suffix("리라고", &["ending.prospective-quotative"]),
+        reference_suffix("리라", &["ending.prospective-final"]),
         reference_suffix(
             "시겠습니다",
             &[

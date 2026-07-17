@@ -45,6 +45,7 @@ fn test_surfaces(branch: &SurfaceBranchSpec) -> Vec<String> {
             format!("{}니까", branch.anchor),
             format!("{}니까는", branch.anchor),
             format!("{}니깐", branch.anchor),
+            format!("{}리라", branch.anchor),
             format!("{}리라고", branch.anchor),
             format!("{}셨다", branch.anchor),
             format!("{}시다", branch.anchor),
@@ -291,26 +292,30 @@ fn productive_predicates_cover_concessive_connectives() {
 }
 
 #[test]
-fn productive_predicates_cover_prospective_quotatives() {
+fn productive_predicates_cover_prospective_endings() {
     for (predicate, expected) in [
         (
             entry("얻다", PredicatePos::Verb, LexicalAlternation::Regular),
-            "얻으리라고",
+            ["얻으리라", "얻으리라고"],
         ),
         (
             entry("가다", PredicatePos::Verb, LexicalAlternation::Regular),
-            "가리라고",
+            ["가리라", "가리라고"],
         ),
         (
             entry("듣다", PredicatePos::Verb, LexicalAlternation::DToL),
-            "들으리라고",
+            ["들으리라", "들으리라고"],
         ),
         (
             entry("돕다", PredicatePos::Verb, LexicalAlternation::BToWa),
-            "도우리라고",
+            ["도우리라", "도우리라고"],
+        ),
+        (
+            entry("살다", PredicatePos::Verb, LexicalAlternation::Regular),
+            ["살리라", "살리라고"],
         ),
     ] {
-        assert!(surfaces(&predicate).contains(expected));
+        assert_has_all(&surfaces(&predicate), &expected);
     }
 }
 
