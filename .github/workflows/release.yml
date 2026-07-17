@@ -72,6 +72,7 @@ jobs:
             dist/full-pos/lexicon.bin \
             dist/component/morphology-component-compact.kfc
           cargo run --locked --package kfind-cli --features distribution-assets --bin kfind-generate-assets -- dist/assets
+          KFIND_COMPONENT_RESOURCE_DIR="$PWD/dist/component" pnpm --dir packages/kfind run test
           pnpm --dir packages/kfind run pack:check
           git archive --format=tar.gz --prefix="kfind-${VERSION}/" --output="dist/kfind-${VERSION}.tar.gz" "$GITHUB_SHA"
           tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -czf "dist/kfind-full-pos-${VERSION}.tar.gz" -C dist/full-pos .
@@ -112,6 +113,7 @@ jobs:
 
       - name: Publish the npm package
         env:
+          KFIND_COMPONENT_RESOURCE_DIR: ${{ github.workspace }}/dist/component
           VERSION: ${{ steps.metadata.outputs.version }}
         run: |
           npm_tag=latest
