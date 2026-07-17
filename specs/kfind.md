@@ -324,6 +324,8 @@
   다시 들어오면 network 요청 없이 자동으로 복원한다. Cache key는 version tag를 정확히 checkout한
   release build에서는 tag를 사용하고, 그 외 개발 build에서는 component artifact checksum을 마지막으로
   고정한 전체 Git commit을 사용한다. Site UI만 바뀐 commit은 동일한 resource를 무효화하지 않는다.
+  이 Git commit을 산출하는 site build는 전체 history를 요구하며 shallow checkout에서는 잘못된 현재
+  HEAD를 version으로 사용하지 않고 실패한다. CI의 site build와 Pages deploy는 전체 history를 checkout한다.
   Playground 진입 시 현재 key를 먼저 확인하고, 기존 site build key로 저장한 같은-origin entry도 engine의
   schema·version·digest 검증을 통과하면 현재 key로 옮긴다. 호환되지 않는 entry는 삭제한다. 검색은 이
   확인이 끝난 뒤 시작하며 resource row는 확인 중 상태와 저장소 복원 완료 상태를 구분해 처음부터
