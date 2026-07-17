@@ -56,13 +56,13 @@ fn resource_rejects_schema_source_and_content_mismatches() {
     for range in ranges {
         let mut content = bytes.clone();
         content[range.start] ^= 1;
-        assert!(matches!(
+        assert_eq!(
             decode_component_resource("fixture", content, &[7; 32])
                 .unwrap_err()
                 .kind
                 .as_ref(),
-            DataErrorKind::ComponentResourceCorrupt(_)
-        ));
+            &DataErrorKind::ComponentResourceCorrupt("section digest mismatch".to_owned())
+        );
     }
 }
 

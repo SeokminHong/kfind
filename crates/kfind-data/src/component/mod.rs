@@ -226,12 +226,45 @@ pub fn decode_component_resource(
         return Err(resource_error(source, "invalid header length"));
     }
     let ranges = section_ranges(source, bytes.len(), cursor, lengths)?;
-    validate_section_digests(source, &bytes, &ranges, digests)?;
     let sections = Sections {
         index: ranges[0].clone(),
         payload: ranges[1].clone(),
         strings: ranges[2].clone(),
     };
+    let (strings, payload, pos_counts) = validate_resource_sections(
+        source,
+        &bytes,
+        &ranges,
+        digests,
+        &sections,
+        surface_count,
+        analysis_count,
+        component_count,
+    )?;
+    Ok(ComponentResource {
+        bytes,
+        stats: ComponentResourceStats {
+            schema_version: SCHEMA_VERSION,
+            surface_count,
+            analysis_count,
+            component_count,
+            pos_counts,
+        },
+        sections,
+        payload,
+        strings,
+    })
+}
+
+#[allow(clippy::too_many_arguments)]
+fn validate_resource_layout(
+    source: &str,
+    bytes: &[u8],
+    sections: &Sections,
+    surface_count: u32,
+    analysis_count: u32,
+    component_count: u32,
+) -> Result<(StringLayout, PayloadLayout, BTreeMap<String, u32>), DataError> {
     if sections.index.is_empty() || !sections.index.len().is_multiple_of(4) {
         return Err(resource_error(source, "invalid Double-Array section"));
     }
@@ -248,18 +281,88 @@ pub fn decode_component_resource(
         &bytes[sections.strings.clone()],
         &strings,
     )?;
-    Ok(ComponentResource {
+    Ok((strings, payload, pos_counts))
+}
+
+#[cfg(target_arch = "wasm32")]
+#[allow(clippy::too_many_arguments)]
+fn validate_resource_sections(
+    source: &str,
+    bytes: &[u8],
+    ranges: &[Range<usize>; SECTION_COUNT],
+    digests: [[u8; 32]; SECTION_COUNT],
+    sections: &Sections,
+    surface_count: u32,
+    analysis_count: u32,
+    component_count: u32,
+) -> Result<(StringLayout, PayloadLayout, BTreeMap<String, u32>), DataError> {
+    validate_section_digests(source, bytes, ranges, digests)?;
+    validate_resource_layout(
+        source,
         bytes,
-        stats: ComponentResourceStats {
-            schema_version: SCHEMA_VERSION,
+        sections,
+        surface_count,
+        analysis_count,
+        component_count,
+    )
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[allow(clippy::too_many_arguments)]
+fn validate_resource_sections(
+    source: &str,
+    bytes: &[u8],
+    ranges: &[Range<usize>; SECTION_COUNT],
+    digests: [[u8; 32]; SECTION_COUNT],
+    sections: &Sections,
+    surface_count: u32,
+    analysis_count: u32,
+    component_count: u32,
+) -> Result<(StringLayout, PayloadLayout, BTreeMap<String, u32>), DataError> {
+    if ranges[0].len() < PARALLEL_DIGEST_MIN_SECTION_LEN
+        || ranges[1].len() < PARALLEL_DIGEST_MIN_SECTION_LEN
+    {
+        validate_section_digests(source, bytes, ranges, digests)?;
+        return validate_resource_layout(
+            source,
+            bytes,
+            sections,
             surface_count,
             analysis_count,
             component_count,
-            pos_counts,
-        },
-        sections,
-        payload,
-        strings,
+        );
+    }
+
+    std::thread::scope(|scope| {
+        let worker = std::thread::Builder::new()
+            .name("kfind-component-payload-validation".to_owned())
+            .spawn_scoped(scope, || {
+                validate_resource_layout(
+                    source,
+                    bytes,
+                    sections,
+                    surface_count,
+                    analysis_count,
+                    component_count,
+                )
+            });
+        let digest_result = validate_section_digests(source, bytes, ranges, digests);
+        let Ok(worker) = worker else {
+            digest_result?;
+            return validate_resource_layout(
+                source,
+                bytes,
+                sections,
+                surface_count,
+                analysis_count,
+                component_count,
+            );
+        };
+        let layout_result = worker
+            .join()
+            .unwrap_or_else(|payload| std::panic::resume_unwind(payload));
+        digest_result?;
+        layout_result
     })
 }
 

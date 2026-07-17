@@ -10,6 +10,7 @@
 - [exact `지` predicate 어미 경로 recall](2026-07-17-exact-predicate-ji-recall.md)
 - [선두 부사와 predicate 경쟁 경로 recall](2026-07-17-adverb-predicate-competitor-recall.md)
 - [선두 부사 component recall](2026-07-17-leading-adverb-component-recall.md)
+- [component payload 검증 병렬화](2026-07-17-component-payload-validation.md)
 - [component SHA-256 hardware backend](2026-07-17-component-hardware-digest-startup.md)
 - [full POS validation prefix 재검사 제거](2026-07-17-full-pos-validation-startup.md)
 - [full POS packed lookup index](2026-07-17-full-pos-packed-startup.md)
@@ -470,3 +471,20 @@ full-POS와 Human은 `이렇게도→이렇다`를 회수해 `PNᶜ=1,401`에서
 `gold-or-adapter` 15건, `surface-missing` 6건, `continuation-rejected` 1건,
 `span-mismatch` 1건이다. `보로`, 오탈자, 비표준 활용, 띄어쓰기 오류와 기본 `inflection`
 범위를 벗어나는 생산 파생은 다음 제품 recall 후보에서 제외한다.
+
+표준어 범위로 다시 좁힌 후보에서도 안전한 공통 구조를 찾지 못했다. `반`은 같은 표면의
+`MM`과 명사 품사가 경쟁해 adjacent determiner precision 계약을 보존하며 열 근거가 없고,
+나머지는 고정 resource가 완성 typed path를 증명하지 못한다. FNᶜ를 줄이기 위해 규칙을
+약화하지 않는다. Noisy-text 입력은 별도 robustness 계획에 남긴다.
+
+[component payload 검증 병렬화](2026-07-17-component-payload-validation.md)에서 최신 profile의
+payload record 검증 약 15ms를 section digest 임계 경로 약 12ms와 겹쳤다. Embedded component
+구간은 56.38→31.09ms로 44.85%, full-POS 조합 전체는 86.48→75.51ms로 12.69% 줄었다.
+100MiB CLI Human 처리량은 934.89→1,125.70MiB/s로 20.41% 늘었다. 모든 canonical·matrix·
+Human·hard-negative prediction과 span, FNᶜ/PNᶜ는 같다. Matrix contract 정의, annotation과
+gate는 변경하지 않았다.
+
+후보 Agent는 25,520.7 cases/s로 Lindera snapshot보다 22.54% 빠르다. 확인 측정의 Human
+평가 cases/s -9.65%, p95 +8.47%는 10% 경고선 안이지만 범위가 겹치지 않아 다음 측정에서도
+감시한다. 다음 성능 작업은 optional 조합의 가장 큰 단일 구간인 full-POS base 약 40ms를
+profile하고 두 자릿수 millisecond 병목만 고른다.
