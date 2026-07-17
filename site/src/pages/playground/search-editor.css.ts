@@ -40,13 +40,18 @@ export const editor = style({
 });
 
 globalStyle(`${editor} .cm-editor`, {
-  minHeight: '14rem',
+  minHeight: '20rem',
   maxHeight: '30rem',
   background: vars.color.codeBackground,
   color: vars.color.codeText,
   fontFamily: '"SFMono-Regular", Consolas, monospace',
   fontSize: '0.76rem',
   lineHeight: 1.65,
+  '@media': {
+    '(max-width: 64rem)': {
+      minHeight: '14rem',
+    },
+  },
 });
 
 globalStyle(`${editor} .cm-editor.cm-focused`, {
@@ -54,18 +59,28 @@ globalStyle(`${editor} .cm-editor.cm-focused`, {
 });
 
 globalStyle(`${editor} .cm-scroller`, {
-  minHeight: '14rem',
+  minHeight: '20rem',
   maxHeight: '30rem',
   overflow: 'auto',
   fontFamily: 'inherit',
   lineHeight: 'inherit',
+  '@media': {
+    '(max-width: 64rem)': {
+      minHeight: '14rem',
+    },
+  },
 });
 
 globalStyle(`${editor} .cm-content`, {
-  minHeight: '14rem',
+  minHeight: '20rem',
   padding: vars.space.medium,
   caretColor: vars.color.text,
   tabSize: 2,
+  '@media': {
+    '(max-width: 64rem)': {
+      minHeight: '14rem',
+    },
+  },
 });
 
 globalStyle(`${editor} .cm-line`, {

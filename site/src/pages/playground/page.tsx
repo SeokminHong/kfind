@@ -5,6 +5,8 @@ import type {
   PlaygroundResult,
 } from '../../playground';
 
+import type { SearchEditorHandle } from './search-editor';
+
 import { Button } from '@base-ui/react/button';
 import { Field } from '@base-ui/react/field';
 import { Input } from '@base-ui/react/input';
@@ -16,6 +18,7 @@ import {
   DocumentSection,
   PageIntro,
 } from '../../components/document';
+import { Modal } from '../../components/modal';
 import { BoundaryPolicy, ExpandMode, PartOfSpeech } from '../../kfind-wasm';
 import {
   applyPlaygroundPreset,
@@ -91,7 +94,9 @@ enum PlaygroundOutputTab {
 
 export default function PlaygroundPage(): React.JSX.Element {
   const controllerRef = useRef<PlaygroundController>(null);
+  const searchEditorRef = useRef<SearchEditorHandle>(null);
   const [input, setInput] = useState(initialPlaygroundInput);
+  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [status, setStatus] = useState(initialPlaygroundStatus);
   const [resourceStatus, setResourceStatus] = useState(
     initialComponentResourceStatus,
@@ -134,6 +139,9 @@ export default function PlaygroundPage(): React.JSX.Element {
     resourceStatus.state === ComponentResourceState.Checking ||
     resourceStatus.state === ComponentResourceState.Loading ||
     resourceStatus.state === ComponentResourceState.Ready;
+  const compactResourceStatus = componentResourceCompactStatus(
+    resourceStatus.state,
+  );
 
   return (
     <DocumentPage>
@@ -143,7 +151,7 @@ export default function PlaygroundPage(): React.JSX.Element {
         summary="현재 source에서 빌드한 kfind-wasm을 사용합니다. 입력한 query와 text는 브라우저 안에서만 처리하며 외부 분석 API로 전송하지 않습니다."
       />
 
-      <DocumentSection title="검색 실습">
+      <DocumentSection title="플레이그라운드">
         <div className="section-title-row">
           <p>
             Query, text나 옵션을 바꾸면 잠시 뒤 embedded lexicon으로 query
@@ -162,121 +170,101 @@ export default function PlaygroundPage(): React.JSX.Element {
         </div>
 
         <div className="playground-layout">
-          <div className="playground-controls">
-            <QueryField
-              onValueChange={(value) => {
-                updateInput('query', value);
-              }}
-              value={input.query}
-            />
+          <div className="playground-workspace">
+            <div className="playground-main-inputs">
+              <QueryField
+                onValueChange={(value) => {
+                  updateInput('query', value);
+                }}
+                value={input.query}
+              />
 
-            <div className="preset-picker">
-              <span className="preset-label">예시 전체 설정 불러오기</span>
-              <div className="preset-actions">
-                {playgroundPresetOptions.map((preset) => (
-                  <Button
-                    data-glossary-skip=""
-                    key={preset.value}
-                    onClick={() => {
-                      setInput(applyPlaygroundPreset(preset.value));
-                    }}
-                    type="button"
-                  >
-                    {preset.label}
-                  </Button>
-                ))}
-              </div>
-              <p>각 버튼은 Query, text와 모든 검색 옵션을 함께 바꿉니다.</p>
+              <SearchEditor
+                ref={searchEditorRef}
+                matches={currentMatches}
+                onValueChange={(value) => {
+                  updateInput('text', value);
+                }}
+                value={input.text}
+              />
             </div>
 
-            <div className="option-grid">
-              <SelectField<PartOfSpeech>
-                description="Atom 태그와 선택 품사 중 어느 쪽도 우선하지 않습니다. auto가 아니면 서로 같아야 하며, 다르면 오류입니다."
-                id="pos-select"
-                label="품사"
-                name="pos"
-                onValueChange={(value) => {
-                  updateInput('pos', value);
-                }}
-                options={partOfSpeechOptions}
-                value={input.pos}
-              />
-              <SelectField<BoundaryPolicy>
-                description={selectedOptionDescription(
-                  boundaryOptions,
-                  input.boundary,
-                )}
-                id="boundary-select"
-                label="경계"
-                name="boundary"
-                onValueChange={(value) => {
-                  updateInput('boundary', value);
-                }}
-                options={boundaryOptions}
-                value={input.boundary}
-              />
-              <SelectField<ExpandMode>
-                description={selectedOptionDescription(
-                  expandOptions,
-                  input.expand,
-                )}
-                id="expand-select"
-                label="확장"
-                name="expand"
-                onValueChange={(value) => {
-                  updateInput('expand', value);
-                }}
-                options={expandOptions}
-                value={input.expand}
-              />
-              <Field.Root className="field field-gap" name="maxGap">
-                <Field.Label data-glossary-skip="">
-                  구(句) 최대 간격
-                </Field.Label>
-                <Input
-                  className="text-control"
-                  min="0"
-                  onValueChange={(value) => {
-                    updateInput('maxGap', value);
-                  }}
-                  type="number"
-                  value={input.maxGap}
-                />
-                <Field.Description>
-                  Phrase atom 사이에 허용할 최대 Unicode 문자 수입니다.
-                </Field.Description>
-              </Field.Root>
-            </div>
-
-            <SearchEditor
-              matches={currentMatches}
-              onValueChange={(value) => {
-                updateInput('text', value);
-              }}
-              value={input.text}
-            />
-
-            <div className="resource-loader">
-              <div>
-                <strong>고급 smart 리소스</strong>
-                <span data-state={resourceStatus.state}>
-                  {resourceStatus.message}
-                </span>
-              </div>
-              <Button
-                data-glossary-skip=""
-                disabled={isResourceButtonDisabled}
-                onClick={() => {
+            <aside className="desktop-settings" aria-label="검색 옵션">
+              <PlaygroundSettings
+                idPrefix="desktop"
+                input={input}
+                isResourceButtonDisabled={isResourceButtonDisabled}
+                onInputChange={updateInput}
+                onLoadResource={() => {
                   controllerRef.current?.loadComponentResource();
                 }}
-                type="button"
-              >
-                {componentResourceButtonLabel(resourceStatus.state)}
-              </Button>
-            </div>
+                onPresetApply={(preset) => {
+                  setInput(applyPlaygroundPreset(preset));
+                }}
+                resourceStatus={resourceStatus}
+              />
+            </aside>
           </div>
 
-          <PlaygroundOutput input={input} result={currentResult} />
+          <div className="mobile-settings">
+            <Modal
+              onOpenChange={setIsOptionsModalOpen}
+              open={isOptionsModalOpen}
+            >
+              <Modal.Trigger data-glossary-skip="">
+                <span className="mobile-settings-heading">
+                  <span>검색 옵션</span>
+                  {compactResourceStatus === undefined ? null : (
+                    <small
+                      className="mobile-resource-state"
+                      data-state={resourceStatus.state}
+                    >
+                      {compactResourceStatus}
+                    </small>
+                  )}
+                </span>
+                <small className="mobile-settings-summary">
+                  {formatSettingsSummary(input)}
+                </small>
+              </Modal.Trigger>
+              <Modal.Content>
+                <Modal.Section>
+                  <div className="options-modal-heading">
+                    <div>
+                      <Modal.Title>검색 옵션</Modal.Title>
+                      <Modal.Description>
+                        변경한 설정은 검색에 바로 반영됩니다.
+                      </Modal.Description>
+                    </div>
+                    <Modal.Close data-glossary-skip="">닫기</Modal.Close>
+                  </div>
+                </Modal.Section>
+                <Modal.Section>
+                  <PlaygroundSettings
+                    idPrefix="mobile"
+                    input={input}
+                    isResourceButtonDisabled={isResourceButtonDisabled}
+                    onInputChange={updateInput}
+                    onLoadResource={() => {
+                      controllerRef.current?.loadComponentResource();
+                    }}
+                    onPresetApply={(preset) => {
+                      setInput(applyPlaygroundPreset(preset));
+                    }}
+                    resourceStatus={resourceStatus}
+                  />
+                </Modal.Section>
+              </Modal.Content>
+            </Modal>
+          </div>
+
+          <PlaygroundOutput
+            input={input}
+            onMatchActivate={(match) => {
+              searchEditorRef.current?.revealMatch(match);
+            }}
+            result={currentResult}
+          />
         </div>
 
         <p>
@@ -284,21 +272,160 @@ export default function PlaygroundPage(): React.JSX.Element {
           검색이 명사·대명사·수사·관형사 또는 full-POS 일반 용언의 component
           근거를 요구하면 사용자가 고급 resource를 명시적으로 불러와야 합니다.
           이때 같은 origin의 Pages Function이 R2 객체를 streaming하고, engine은
-          schema와 checksum 검증을 마친 뒤 현재 build key로 브라우저 저장소에
-          보관합니다. 같은 build로 다시 들어오면 저장된 resource를 자동으로
-          복원합니다. Resource가 필요 없는 query는 최초 network 요청을 하지
-          않습니다.
+          schema와 checksum 검증을 마친 뒤 resource revision별로 브라우저
+          저장소에 보관합니다. UI만 바뀐 build에서도 호환되는 resource를
+          자동으로 복원합니다. Resource가 필요 없는 query는 최초 network 요청을
+          하지 않습니다.
         </p>
       </DocumentSection>
     </DocumentPage>
   );
 }
 
+interface PlaygroundSettingsProps {
+  readonly idPrefix: string;
+  readonly input: PlaygroundInput;
+  readonly isResourceButtonDisabled: boolean;
+  readonly onInputChange: <Key extends keyof PlaygroundInput>(
+    key: Key,
+    value: PlaygroundInput[Key],
+  ) => void;
+  readonly onLoadResource: () => void;
+  readonly onPresetApply: (
+    preset: (typeof playgroundPresetOptions)[number]['value'],
+  ) => void;
+  readonly resourceStatus: typeof initialComponentResourceStatus;
+}
+
+function PlaygroundSettings({
+  idPrefix,
+  input,
+  isResourceButtonDisabled,
+  onInputChange,
+  onLoadResource,
+  onPresetApply,
+  resourceStatus,
+}: PlaygroundSettingsProps): React.JSX.Element {
+  return (
+    <div className="playground-settings">
+      <div className="preset-picker">
+        <div className="control-heading">
+          <strong>예시</strong>
+          <span>Query·text·검색 설정 전체 적용</span>
+        </div>
+        <div className="preset-actions">
+          {playgroundPresetOptions.map((preset) => (
+            <Button
+              data-glossary-skip=""
+              key={preset.value}
+              onClick={() => {
+                onPresetApply(preset.value);
+              }}
+              type="button"
+            >
+              {preset.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      <div className="option-panel">
+        <div className="control-heading">
+          <strong>검색 설정</strong>
+          <span>변경하면 250ms 뒤 자동 적용</span>
+        </div>
+        <div className="option-grid">
+          <SelectField<PartOfSpeech>
+            description="Atom 태그와 전역 POS는 함께 적용됩니다. auto가 아닐 때 서로 다르면 compile 오류입니다."
+            id={`${idPrefix}-pos-select`}
+            label="품사"
+            name={`${idPrefix}-pos`}
+            onValueChange={(value) => {
+              onInputChange('pos', value);
+            }}
+            options={partOfSpeechOptions}
+            value={input.pos}
+          />
+          <SelectField<BoundaryPolicy>
+            description={selectedOptionDescription(
+              boundaryOptions,
+              input.boundary,
+            )}
+            id={`${idPrefix}-boundary-select`}
+            label="경계"
+            name={`${idPrefix}-boundary`}
+            onValueChange={(value) => {
+              onInputChange('boundary', value);
+            }}
+            options={boundaryOptions}
+            value={input.boundary}
+          />
+          <SelectField<ExpandMode>
+            description={selectedOptionDescription(expandOptions, input.expand)}
+            id={`${idPrefix}-expand-select`}
+            label="확장"
+            name={`${idPrefix}-expand`}
+            onValueChange={(value) => {
+              onInputChange('expand', value);
+            }}
+            options={expandOptions}
+            value={input.expand}
+          />
+          <Field.Root className="field" name={`${idPrefix}-max-gap`}>
+            <Field.Label data-glossary-skip="">구(句) 최대 간격</Field.Label>
+            <Input
+              className="text-control"
+              min="0"
+              onValueChange={(value) => {
+                onInputChange('maxGap', value);
+              }}
+              type="number"
+              value={input.maxGap}
+            />
+            <Field.Description>
+              Phrase atom 사이에 허용할 최대 Unicode 문자 수입니다.
+            </Field.Description>
+          </Field.Root>
+        </div>
+      </div>
+
+      <div
+        className="resource-loader"
+        data-state={resourceStatus.state}
+        role="status"
+        aria-live="polite"
+      >
+        <div>
+          <span className="resource-dot" aria-hidden="true" />
+          <div>
+            <strong>고급 smart 리소스</strong>
+            <span>{resourceStatus.message}</span>
+          </div>
+        </div>
+        {resourceStatus.state === ComponentResourceState.Ready ? (
+          <span className="resource-ready-label">사용 가능</span>
+        ) : (
+          <Button
+            data-glossary-skip=""
+            disabled={isResourceButtonDisabled}
+            onClick={onLoadResource}
+            type="button"
+          >
+            {componentResourceButtonLabel(resourceStatus.state)}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function PlaygroundOutput({
   input,
+  onMatchActivate,
   result,
 }: {
   readonly input: PlaygroundInput;
+  readonly onMatchActivate: (match: Match) => void;
   readonly result: PlaygroundResult | undefined;
 }): React.JSX.Element {
   const [activeTab, setActiveTab] = useState(PlaygroundOutputTab.Matches);
@@ -348,7 +475,11 @@ function PlaygroundOutput({
           className="result-tab-panel"
           value={PlaygroundOutputTab.Matches}
         >
-          <MatchList input={input} result={result} />
+          <MatchList
+            input={input}
+            onMatchActivate={onMatchActivate}
+            result={result}
+          />
         </Tabs.Panel>
         <Tabs.Panel
           className="result-tab-panel raw-json-panel"
@@ -377,9 +508,11 @@ function resultSummary(result: PlaygroundResult | undefined): string {
 
 function MatchList({
   input,
+  onMatchActivate,
   result,
 }: {
   readonly input: PlaygroundInput;
+  readonly onMatchActivate: (match: Match) => void;
   readonly result: PlaygroundResult | undefined;
 }): React.JSX.Element {
   if (result?.state !== PlaygroundResultState.Success) {
@@ -411,6 +544,9 @@ function MatchList({
           index={index}
           key={matchKey(match, index)}
           match={match}
+          onActivate={() => {
+            onMatchActivate(match);
+          }}
           text={input.text}
         />
       ))}
@@ -421,22 +557,34 @@ function MatchList({
 function MatchItem({
   index,
   match,
+  onActivate,
   text,
 }: {
   readonly index: number;
   readonly match: Match;
+  readonly onActivate: () => void;
   readonly text: string;
 }): React.JSX.Element {
+  const surface = text.slice(match.start, match.end);
+
   return (
     <li>
-      <div>
-        <span>{String(index + 1).padStart(2, '0')}</span>
-        <strong>{text.slice(match.start, match.end)}</strong>
+      <button
+        aria-label={`${surface} match를 editor에서 보기`}
+        className="match-item"
+        data-glossary-skip=""
+        onClick={onActivate}
+        type="button"
+      >
+        <span className="match-index">
+          {String(index + 1).padStart(2, '0')}
+        </span>
+        <strong>{surface}</strong>
         <code>
           [{match.start}, {match.end})
         </code>
-      </div>
-      <p>{formatProvenance(match)}</p>
+        <span className="match-provenance">{formatProvenance(match)}</span>
+      </button>
     </li>
   );
 }
@@ -455,6 +603,14 @@ function selectedOptionDescription<Value extends string>(
   return options.find((option) => option.value === value)?.description ?? '';
 }
 
+function formatSettingsSummary(input: PlaygroundInput): string {
+  const partOfSpeech =
+    partOfSpeechOptions.find((option) => option.value === input.pos)?.label ??
+    input.pos;
+
+  return `${partOfSpeech} · ${input.boundary} · ${input.expand}`;
+}
+
 function componentResourceButtonLabel(state: ComponentResourceState): string {
   if (state === ComponentResourceState.Checking) {
     return '브라우저 저장소 확인 중';
@@ -467,6 +623,28 @@ function componentResourceButtonLabel(state: ComponentResourceState): string {
   return state === ComponentResourceState.Ready
     ? 'Component asset 준비됨'
     : 'Component asset 불러오기';
+}
+
+function componentResourceCompactStatus(
+  state: ComponentResourceState,
+): string | undefined {
+  if (state === ComponentResourceState.Checking) {
+    return '저장소 확인 중';
+  }
+
+  if (state === ComponentResourceState.Needed) {
+    return '리소스 필요';
+  }
+
+  if (state === ComponentResourceState.Loading) {
+    return '불러오는 중';
+  }
+
+  if (state === ComponentResourceState.Ready) {
+    return '리소스 사용 가능';
+  }
+
+  return state === ComponentResourceState.Error ? '리소스 오류' : undefined;
 }
 
 function isPlaygroundOutputTab(value: unknown): value is PlaygroundOutputTab {
