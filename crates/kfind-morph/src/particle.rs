@@ -301,6 +301,19 @@ impl ParticleVerifier {
         (matched.consumed_bytes == following.len()).then_some(matched)
     }
 
+    /// Verifies a non-empty particle chain whose every rule is auxiliary.
+    #[must_use]
+    pub fn verify_auxiliary_exact(&self, core: &str, following: &str) -> Option<ParticleMatch> {
+        let matched = self.verify_exact(core, following)?;
+        (!matched.rule_path.is_empty()
+            && matched.rule_path.iter().all(|rule| {
+                self.model.allomorphs.iter().any(|allomorph| {
+                    allomorph.rule_id == *rule && allomorph.role == ParticleRole::Auxiliary
+                })
+            }))
+        .then_some(matched)
+    }
+
     fn longest_match(
         &self,
         remaining: &str,
@@ -773,5 +786,23 @@ mod tests {
         assert!(verifier.verify_exact("사용자", "는").is_some());
         assert!(verifier.verify_exact("사용자", "는은").is_none());
         assert!(verifier.verify_exact("사용자", "도만").is_none());
+    }
+
+    #[test]
+    fn auxiliary_chain_verification_excludes_case_particles_and_plural() {
+        let verifier = ParticleVerifier::default();
+
+        for suffix in ["는", "도", "만", "조차", "는커녕"] {
+            assert!(
+                verifier.verify_auxiliary_exact("먹고", suffix).is_some(),
+                "auxiliary particle chain was rejected: {suffix}"
+            );
+        }
+        for suffix in ["를", "로", "들"] {
+            assert!(
+                verifier.verify_auxiliary_exact("먹고", suffix).is_none(),
+                "non-auxiliary particle chain was accepted: {suffix}"
+            );
+        }
     }
 }

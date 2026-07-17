@@ -904,6 +904,17 @@ impl MorphMatcher {
                 .and_then(|bytes| std::str::from_utf8(bytes).ok())
                 .and_then(|consumed| consumed.nfc().last())
                 == Some('다');
+        let ending_auxiliary_particles = !declarative_adnominal
+            && haystack
+                .get(candidate.consumed.clone())
+                .and_then(|bytes| std::str::from_utf8(bytes).ok())
+                .is_some_and(|ending| {
+                    let ending = ending.nfc().collect::<String>();
+                    let trailing = trailing.nfc().collect::<String>();
+                    self.particle_verifier
+                        .verify_auxiliary_exact(&ending, &trailing)
+                        .is_some()
+                });
         let has_rule = |expected: &str| {
             branch
                 .origins
@@ -912,21 +923,12 @@ impl MorphMatcher {
                 .chain(&candidate.suffix_rules)
                 .any(|rule| rule.as_str() == expected)
         };
-        let connective_topic = trailing.nfc().eq("는".chars())
-            && ["ending.aoeo-seo", "ending.connective-ji"]
-                .iter()
-                .any(|rule| has_rule(rule));
-        let adverbial_auxiliary_particle = ["도", "는"]
-            .iter()
-            .any(|particle| trailing.nfc().eq(particle.chars()))
-            && has_rule("ending.adverbial-ge");
         let has_adnominal_rule = ADNOMINAL_RULE_IDS.iter().any(|rule| has_rule(rule));
         let adnominal_dependent_noun_particle =
             trailing.nfc().next() == Some('지') && has_adnominal_rule;
         let adnominal_interrogative = trailing.nfc().eq("가".chars()) && has_adnominal_rule;
         let licensed_non_ending_trailing = declarative_adnominal
-            || connective_topic
-            || adverbial_auxiliary_particle
+            || ending_auxiliary_particles
             || adnominal_dependent_noun_particle
             || adnominal_interrogative;
         let valid_position = if pos == kfind_morph::PredicatePos::Copula {
@@ -966,7 +968,7 @@ impl MorphMatcher {
                     if resolver.has_whole_modifier(token) && !adnominal_interrogative {
                         return false;
                     }
-                    return if connective_topic || adverbial_auxiliary_particle {
+                    return if ending_auxiliary_particles {
                         resolver.supports_predicate_ending_particle_path(
                             token,
                             core.len(),
@@ -997,7 +999,7 @@ impl MorphMatcher {
                 if resolver.has_whole_modifier(&normalized) && !adnominal_interrogative {
                     return false;
                 }
-                if connective_topic || adverbial_auxiliary_particle {
+                if ending_auxiliary_particles {
                     resolver.supports_predicate_ending_particle_path(
                         &normalized,
                         core_len,

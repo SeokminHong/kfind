@@ -310,6 +310,55 @@ fn connective_topic_uses_an_ending_then_particle_source_path() {
 }
 
 #[test]
+fn predicate_endings_accept_only_source_backed_auxiliary_particle_chains() {
+    let resource = component_resource_from_entries([
+        component_entry("먹", "VV"),
+        component_entry("고", "EC"),
+        component_entry("는", "JX"),
+        component_entry("도", "JX"),
+        component_entry("만", "JX"),
+        component_entry("조차", "JX"),
+        component_entry("커녕", "JX"),
+        component_entry("를", "JKO"),
+    ]);
+    let matcher = compile_with_full_pos_and_resource(
+        "먹다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    for text in ["먹고는", "먹고도", "먹고만", "먹고조차", "먹고는커녕"] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "source-backed auxiliary particle chain was rejected in {text}"
+        );
+    }
+    for text in ["먹고를", "먹고도는"] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+            "unlicensed predicate-ending particle chain was accepted in {text}"
+        );
+    }
+
+    let without_particle_source = compile_with_full_pos_and_resource(
+        "먹다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([component_entry("먹", "VV"), component_entry("고", "EC")]),
+    );
+    assert!(
+        without_particle_source
+            .find_at_with_meta("먹고도".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn adverbial_ge_uses_an_ending_then_auxiliary_particle_source_path() {
     let matcher = compile_with_full_pos(
         "이렇다",
