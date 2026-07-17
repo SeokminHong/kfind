@@ -120,6 +120,21 @@ scripts/benchmark-morphology.sh
 pnpm --dir packages/kfind run benchmark:startup
 ```
 
+## Browser optional resource startup
+
+현재 `kfind-wasm` web target의 초기 bundle과 optional resource 비용을 headless Chrome에서 측정한다.
+현재 playground의 embedded→component load 경로와 full POS·component 병렬 fetch 뒤 단일
+`withResources` 생성 경로를 cold·warm HTTP cache로 나눈다. Loopback server를 사용하므로 결과는
+browser 내부 fetch, `arrayBuffer`, JavaScript→WASM copy, 검증·초기화와 memory checkpoint만
+설명하며 R2·WAN latency를 포함하지 않는다. 같은 source entry를 lemma blob과 고정 폭
+`offset + length + fine-POS bit mask` record로 만든 direct packed layout prototype은 고정
+artifact SHA-256 fast path와 전체 record 검증을 각각 측정한다. 제품 schema 1 artifact와
+decoder는 이 benchmark에서 변경하지 않는다.
+
+```console
+scripts/benchmark-browser-startup.sh
+```
+
 ## Structural constraint
 
 제품용 `ConstraintResolver`의 구조 판정을 고정 문장 배치에서 측정한다. full morphology

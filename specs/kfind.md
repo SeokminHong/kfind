@@ -61,6 +61,12 @@
   표제어의 UTF-8을 보장한다. ASCII와 완성형 한글 음절만 있는 표제어는 그 구성으로 NFC를
   증명하고 그 밖의 표제어는 일반 NFC 검사를 수행한다. 엄격한 정렬 순서, entry 수와 누적
   decoded byte 상한 검증도 유지한다.
+- Direct packed layout prototype은 제품 schema 1과 별도 artifact로 유지한다. NFC lemma blob과
+  고정 폭 `offset + length + fine-POS bit mask` record를 직접 저장하고 schema·entry 수·lemma 수·
+  section digest를 보존한다. 완전 검증은 모든 record의 UTF-8·NFC, mask, 정렬 순서와 누적 entry
+  수를 검사한다. Attested fast path는 caller가 고정한 artifact SHA-256이 일치할 때만 전체 record
+  순회를 생략하고 section length와 header count를 검증한다. 이 prototype의 결과만으로 제품
+  schema나 legacy decoder 지원을 바꾸지 않는다.
 - 지연 조회에서도 기존 우선순위를 보존한다. core와 enriched 용언은 같은 표제어·coarse 품사의
   full POS 용언을 억제하고, 동일한 분석은 중복하지 않는다. user lexicon의 append는 full POS
   후보를 보존하며 `replace = true`는 해당 morphology category의 core, enriched와 full POS
@@ -294,6 +300,16 @@
 - Playground 입력은 browser 밖으로 보내지 않는다. Full POS와 약 36 MiB의 compact component
   resource는 기본 demo에 포함하지 않는다. 사용자가 고급 `smart` 지원을 요청할 때만 같은 origin의
   Pages Function에서 component resource를 한 번 내려받아 기존 WASM engine에 load한다.
+- Browser optional-resource startup benchmark는 현재 source의 `kfind-wasm` web target을 별도
+  same-origin loopback server에서 실행한다. Production playground의 기본 profile이나 배포 asset을
+  바꾸지 않으며, embedded engine 뒤 component를 load하는 현재 경로와 full POS·component를 병렬
+  fetch한 뒤 `Kfind.withResources`로 한 번에 생성하는 조합 경로를 분리한다.
+- Browser benchmark는 cold·warm HTTP cache를 구분하고 각 조건을 독립 process에서 warm-up 1회 뒤
+  5회 측정한다. WASM·JavaScript glue의 raw·gzip·Brotli 크기, resource별 response·`arrayBuffer`
+  materialization, 병렬 fetch 임계 경로, JavaScript→WASM copy 전용 probe, engine 초기화와 전체 시간을
+  기록한다. 메모리는 resource buffer 보유 전후의 JavaScript heap과 WASM linear memory high-water를
+  checkpoint로 남긴다. Loopback 결과는 browser 내부 전송·복사·검증 비용만 비교하며 R2·WAN latency나
+  전체 process RSS로 해석하지 않는다.
 - Component resource는 25 MiB 단일 값 제한이 있는 Workers KV가 아니라 `kfind-assets` R2 bucket에
   둔다. Pages Function은 `KFIND_ASSETS` binding으로 고정 object를 읽어 body를 buffering하지 않고
   stream하며 content type, ETag와 cache header를 보존한다. R2 object가 없거나 손상되면 embedded
@@ -610,6 +626,9 @@
   Rust 1.97에서 `wasm32-unknown-unknown` 대상으로 빌드되어야 한다.
 - `kfind-wasm`은 `wasm-bindgen` JavaScript glue와 TypeScript declaration을 생성한다.
   npm package metadata와 게시 계약은 0.8절을 따른다.
+- `browser-startup-benchmark` feature는 게시 산출물에서 비활성화하고 JavaScript→WASM byte copy만
+  측정하는 전용 export와 direct packed prototype owner를 추가한다. 이 export는 제품 API나 TypeScript
+  declaration 계약에 포함하지 않으며 browser benchmark의 독립 fresh-page probe에서만 사용한다.
 - JavaScript API는 `Kfind.withResources({ fullPos?, enrichedPredicates?, component? })`를 전체 사전
   profile의 기본 생성 API로 제공한다. binary resource는 `Uint8Array`, enriched predicate TSV는
   JavaScript string이다. `new Kfind(componentResource?)`와
