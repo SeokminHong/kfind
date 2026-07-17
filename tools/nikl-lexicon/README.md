@@ -54,3 +54,25 @@ Language Dictionary `grammar_info`. Definitions and examples are not used for
 host classification. Particle combinations are accepted only through the role,
 host, and transition fields in `data/rules/particles.toml`, so a compound
 surface such as `까지도` is represented as `까지 → 도`, not as a new atomic form.
+
+## Exact lexeme audit
+
+`audit_lexemes.py` looks up an explicit set of headwords in all three pinned
+snapshots and writes their structured POS and lexical relations as JSON. It is
+intended for failure triage where a dictionary-backed lemma, derivation, or
+abbreviation claim must be distinguished from a corpus example or free-text
+definition.
+
+```sh
+python3 tools/nikl-lexicon/audit_lexemes.py \
+  --krdict /path/to/krdict.zip \
+  --stdict /path/to/stdict.zip \
+  --opendict /path/to/opendict.zip \
+  --cache-dir ~/.cache/kfind/nikl \
+  --query 누구 --query 누군가 --query 무어 --query 무언가 \
+  --output target/nikl-lexemes.json
+```
+
+The report includes pinned snapshot hashes and exact missing-headword lists by
+source. It preserves only headword, POS, status, source identifier, and explicit
+relation fields; definitions and examples are excluded.
