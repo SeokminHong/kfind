@@ -70,6 +70,10 @@ Homebrew releases are published through the personal tap:
 brew install seokminhong/brew/kfind
 ```
 
+`brew install` and `brew upgrade` install the component resource built for the
+same kfind version and run an integrity check after installation. Run
+`kfind --check-data` to repeat that check manually.
+
 To build the current checkout with Rust 1.97 or newer:
 
 ```sh
@@ -304,6 +308,7 @@ conversion.
 | Option | Default | Description |
 | --- | --- | --- |
 | `--data-dir <PATH>` | automatic discovery | Reads `lexicon.bin`, optional `predicates.enriched.tsv`, and `morphology-component-compact.kfc` from one explicit directory. |
+| `--check-data` | off | Validates the installed full POS and component resources, including the exact component package version, then exits. Supports `--json` and `--data-dir`. |
 | `--user-lexicon <PATH>` | XDG config path | Loads a TOML user lexicon instead of the default config lookup. |
 | `--init` | off | Initializes the kfind skill in the current directory without a query. |
 | `--agent <AGENT>` | TTY selection or stdin; repeatable | Selects `claude-code`, `codex`, `gemini`, or `custom`; requires `--init`. |
@@ -330,7 +335,7 @@ existing analyses in the same morphology category for that lemma.
 
 | Code | Meaning |
 | ---: | --- |
-| `0` | At least one match was found, or agent initialization succeeded. |
+| `0` | At least one match was found, or initialization/data validation succeeded. |
 | `1` | No match was found. |
 | `2` | Usage, query compilation, data, I/O, or search error. |
 
@@ -345,6 +350,11 @@ Core irregular predicates and rules are embedded in the binary. Homebrew also
 installs the pinned full POS lexicon, CC BY-SA enriched predicate metadata and
 surfaces, and compact morphology-component resource under `share/kfind`;
 runtime network access is never required.
+
+The component header records its kfind package version. A mismatched binary and
+component fail during decoding instead of falling back to a stale resource.
+Package upgrades replace both artifacts; kfind never updates them in the
+background.
 
 Without the full POS file, searches continue with the core lexicon and
 heuristics. `--explain-query` reports that preview state. `--data-dir` or
@@ -442,6 +452,8 @@ and the component resource as
 `kfind/assets/morphology-component-compact.kfc`, both separate from the WASM
 binary. Constructing `Kfind` without resources loads neither external asset.
 Component bytes can also be installed later with `loadComponentResource`.
+The package `prepack` check rebuilds the WASM and version-matched component,
+runs Node and TypeScript smoke tests, and verifies the packed asset list.
 
 The package has not been published to the registry yet. Its release artifact
 can be built and checked locally:
@@ -485,9 +497,10 @@ the image.
 ## Release
 
 Pushing a matching `vX.Y.Z` tag runs the release workflow. It rebuilds and
-verifies the full POS resource, publishes source/data/CLI assets, and opens a
-Formula PR against `SeokminHong/homebrew-brew`. The tap's `pr-pull` label is
-applied only after its Formula tests pass.
+verifies the full POS and component resources, publishes source/data/CLI assets
+and the npm package, and opens a Formula PR against `SeokminHong/homebrew-brew`.
+Prereleases use the npm `next` tag and stable releases use `latest`. The tap's
+`pr-pull` label is applied only after its Formula tests pass.
 
 The release workflow requires a `TAP_GITHUB_TOKEN` secret with write access to
 the tap. It validates the MIT Cargo package metadata before publishing.

@@ -5,8 +5,6 @@ class Kfind < Formula
   sha256 "@SOURCE_SHA256@"
   @FORMULA_LICENSE@
 
-  head "https://github.com/SeokminHong/kfind.git", branch: "main"
-
   depends_on "rustup" => :build
 
   resource "full-pos-lexicon" do
@@ -53,6 +51,10 @@ class Kfind < Formula
     (share/"doc/kfind/LICENSES").install Dir["LICENSE*"]
   end
 
+  def post_install
+    system bin/"kfind", "--check-data", "--data-dir", pkgshare
+  end
+
   test do
     sample = testpath/"sample.txt"
     sample.write("아주 예쁜 길을 걸어 갔다.\n")
@@ -72,6 +74,9 @@ class Kfind < Formula
     component.write("사용자권한을 확인했다.\n대학교를 방문했다.\n")
     assert_match "사용자권한", shell_output("#{bin}/kfind 권한 #{component}")
     assert_empty shell_output("#{bin}/kfind 학교 #{component}", 1)
+    data_check = shell_output("#{bin}/kfind --check-data --json --data-dir #{pkgshare}")
+    assert_match '"status":"ok"', data_check
+    assert_match '"resource_version":"@VERSION@"', data_check
 
     assert_predicate pkgshare/"skills/kfind/SKILL.md", :file?
     assert_predicate pkgshare/"predicates.enriched.tsv", :file?

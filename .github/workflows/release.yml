@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   release:
@@ -45,6 +46,21 @@ jobs:
           cargo test --workspace --locked
           cargo clippy --workspace --all-targets --locked -- -D warnings
 
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - name: Install npm and wasm-pack
+        run: |
+          npm install --global npm@11.5.1
+          cargo install wasm-pack --version 0.15.0 --locked
+
       - name: Build release artifacts
         env:
           VERSION: ${{ steps.metadata.outputs.version }}
@@ -56,6 +72,7 @@ jobs:
             dist/full-pos/lexicon.bin \
             dist/component/morphology-component-compact.kfc
           cargo run --locked --package kfind-cli --features distribution-assets --bin kfind-generate-assets -- dist/assets
+          pnpm --dir packages/kfind run pack:check
           git archive --format=tar.gz --prefix="kfind-${VERSION}/" --output="dist/kfind-${VERSION}.tar.gz" "$GITHUB_SHA"
           tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -czf "dist/kfind-full-pos-${VERSION}.tar.gz" -C dist/full-pos .
           tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -czf "dist/kfind-component-${VERSION}.tar.gz" -C dist/component .
@@ -92,6 +109,16 @@ jobs:
             --generate-notes \
             --title "kfind ${VERSION}" \
             "${release_flags[@]}"
+
+      - name: Publish the npm package
+        env:
+          VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          npm_tag=latest
+          if [[ "$VERSION" == *-* ]]; then
+            npm_tag=next
+          fi
+          npm publish packages/kfind --access public --provenance --tag "$npm_tag"
 
       - name: Open the Homebrew tap pull request
         env:

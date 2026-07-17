@@ -18,12 +18,12 @@ test "$cargo_version" = "$npm_version"
 test "$npm_name" = "kfind"
 test "$npm_license" = "SEE LICENSE IN LICENSES.md"
 
-npm pack --dry-run --json "$package_dir" | node -e '
+npm pack --ignore-scripts --dry-run --json "$package_dir" | node -e '
   const fs = require("node:fs");
   const report = JSON.parse(fs.readFileSync(0, "utf8"))[0];
   const files = new Map(report.files.map((file) => [file.path, file.size]));
   const asset = "assets/morphology-component-compact.kfc";
-  if (files.get(asset) !== 37103781) {
+  if (files.get(asset) !== 37103813) {
     throw new Error("missing or invalid " + asset);
   }
   const enriched = "assets/predicates.enriched.tsv";
