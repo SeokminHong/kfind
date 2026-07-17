@@ -275,6 +275,30 @@ fn connective_topic_uses_an_ending_then_particle_source_path() {
 }
 
 #[test]
+fn adverbial_ge_uses_an_ending_then_auxiliary_particle_source_path() {
+    let matcher = compile_with_full_pos(
+        "이렇다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Adjective),
+            ..CompileOptions::default()
+        },
+    );
+
+    let text = "또 이렇게도 비판하고 있다.";
+    let matched = matcher
+        .find_at_with_meta(text.as_bytes(), 0)
+        .expect("adverbial -게 plus auxiliary particle source path was rejected");
+    assert_eq!(&text[matched.atoms[0].core.clone()], "이렇");
+    assert_eq!(&text[matched.atoms[0].token.clone()], "이렇게");
+
+    assert!(
+        matcher
+            .find_at_with_meta("문서에 이렇게를 적었다.".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn adnominal_dependent_noun_particle_uses_a_complete_source_path() {
     let matcher = compile_with_full_pos(
         "오다",
@@ -1252,6 +1276,10 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("지는", "EC+JX"),
             component_entry("서를", "EC+JKO"),
             component_entry("지를", "EC+JKO"),
+            component_entry("이렇", "VA"),
+            component_entry("게", "EC"),
+            component_entry("도", "JX"),
+            component_expression_entry("이렇게", "MAG", "이렇게/MAG/*"),
             component_entry("메꾸", "VV"),
             component_entry("졌", "VX+EP"),
             component_entry("떨", "VV"),

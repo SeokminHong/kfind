@@ -435,6 +435,10 @@
   같은 품사의 source graph가 query core부터 token 끝까지 `predicate + E+ + J+` 순서의
   완성된 path를 증명하는 경우에만 구조 검증 범위를 전체 token으로 확장한다. 따라서
   `위해서는`, `대해서는`, `없지는`을 회수하지만, 다른 조사나 어미 뒤 조사 연쇄는 열지 않는다.
+- 부사형 candidate가 `-게`까지 소비한 뒤 정확히 보조사 `도`만 남기면, 같은 품사의 source
+  graph가 query core부터 token 끝까지 `predicate + E+ + J+` 순서의 완성된 path를 증명하는
+  경우에만 구조 검증 범위를 전체 token으로 확장한다. 따라서 `이렇다`는 `이렇게도`에서
+  회수하지만, 다른 조사나 source path 없는 suffix 조합은 열지 않는다.
 - 관형형 candidate 뒤에 의존명사 `지`와 조사가 붙으면, 같은 품사의 source graph가
   candidate가 소비한 경계까지 `predicate + E* + ETM`, 그 뒤 token 끝까지
   `NNB + J+` 순서의 완성된 path를 증명하는 경우에만 구조 검증 범위를 전체 token으로
