@@ -12,6 +12,7 @@
 - [선두 부사와 predicate 경쟁 경로 recall](2026-07-17-adverb-predicate-competitor-recall.md)
 - [선두 부사 component recall](2026-07-17-leading-adverb-component-recall.md)
 - [component payload 검증 병렬화](2026-07-17-component-payload-validation.md)
+- [브라우저 optional resource와 direct packed full POS](2026-07-17-browser-optional-resource-startup.md)
 - [component SHA-256 hardware backend](2026-07-17-component-hardware-digest-startup.md)
 - [full POS validation prefix 재검사 제거](2026-07-17-full-pos-validation-startup.md)
 - [full POS packed lookup index](2026-07-17-full-pos-packed-startup.md)
@@ -498,5 +499,12 @@ gate는 변경하지 않았다.
 
 후보 Agent는 25,520.7 cases/s로 Lindera snapshot보다 22.54% 빠르다. 확인 측정의 Human
 평가 cases/s -9.65%, p95 +8.47%는 10% 경고선 안이지만 범위가 겹치지 않아 다음 측정에서도
-감시한다. 다음 성능 작업은 optional 조합의 가장 큰 단일 구간인 full-POS base 약 40ms를
+감시한다. Native 성능 작업은 optional 조합의 가장 큰 단일 구간인 full-POS base 약 40ms를
 profile하고 두 자릿수 millisecond 병목만 고른다.
+
+[브라우저 optional resource와 direct packed full POS](2026-07-17-browser-optional-resource-startup.md)에서
+현재 playground의 component lazy load와 full-POS 조합을 cold·warm Chrome으로 분리했다. Direct
+packed는 schema 1보다 Brotli artifact가 102.87% 커지고 전체 검증 조합은 warm activation이
+8.33% 느리다. WASM peak는 18.97% 줄지만 resource buffer까지 합친 loading checkpoint는 3.32%
+줄어 제품 schema로 채택하지 않는다. Browser의 다음 성능 작업은 약 896ms인 component 검증을
+Web Crypto 또는 배포 attestation 경계로 옮길 수 있는지 먼저 검증한다.
