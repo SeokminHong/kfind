@@ -1657,7 +1657,7 @@ impl StructureSelection {
                                         evidence,
                                     ))))
                             || spans.core == *selected
-                            || (particle_hosts.iter().any(|host| spans.core == *host)
+                            || (particle_hosts.contains(&spans.core)
                                 && spans.consumed == spans.token
                                 && matches!(
                                     pattern.continuation,
