@@ -105,6 +105,17 @@ python3 tools/morph-compare/render_charts.py \
   --prefix smart-component-
 ```
 
+A query-matrix FNc disposition ledger must match the report's fixture hash,
+backend, case ID, query, POS, gold byte span, and failure cause. This command
+checks that every current FNc is classified exactly once without reclassifying
+raw FNc as success:
+
+```sh
+python3 tools/morph-compare/validate_fnc_dispositions.py \
+  target/morph-benchmark/report.json \
+  docs/benchmarks/query-matrix-fnc-dispositions.tsv
+```
+
 See the [benchmark contract](../../docs/benchmarks/README.md) for the current
 measurement and reporting requirements.
 

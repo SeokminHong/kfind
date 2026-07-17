@@ -91,6 +91,16 @@ python3 tools/morph-compare/render_charts.py \
   --prefix smart-component-
 ```
 
+Query matrix의 남은 FNc disposition 장부는 report의 fixture hash, backend, case ID, 질의,
+품사, gold byte span과 failure cause가 모두 일치해야 한다. 다음 명령은 현재 FNc가 빠짐없이
+한 번씩 분류됐는지 검증하며 원시 FNc를 성공으로 재계산하지 않는다.
+
+```sh
+python3 tools/morph-compare/validate_fnc_dispositions.py \
+  target/morph-benchmark/report.json \
+  docs/benchmarks/query-matrix-fnc-dispositions.tsv
+```
+
 [벤치마크 계약](../../docs/benchmarks/README.md)에서 현재 측정·보고 요건을 확인한다.
 
 직접 실행하려면 다음 명령을 사용한다.
