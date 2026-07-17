@@ -13,9 +13,10 @@ BY-SA 4.0 licenses are pinned in `sources.json`. The scored 1,000-case fixture
 uses only manually reviewed Korean-Kaist sentences and keeps 500 POS-stratified
 positives paired with 500 deterministic negatives. `sentence-reviews.json`
 pins every reviewed dev/test sentence pool and records rejected sentences as an
-unscored robustness-candidate registry. Korean-KSL remains a separate unscored
-candidate pool until query-level annotation is complete. Development uses the
-development fixture; the test fixture remains the regression baseline.
+unscored robustness-candidate registry. Korean-KSL uses a separate manually
+reviewed sentence registry, and its confirmed noisy sentences form a separate
+scored 500-case Robust fixture. Development uses the development fixture; the
+test fixture remains the regression baseline.
 The image also builds a separate 1,000-case human-usage fixture. Its queries omit
 POS, and each negative excludes the query lemma under every supported POS.
 
@@ -29,11 +30,15 @@ strict and contract-adjusted confusion matrices, sentence coverage, and
 sentence-cluster bootstrap 95% intervals in parallel. The fixed-size 1,000-case
 regression baseline remains separate.
 
-The report also measures Korean-KSL as a separate 500-case robustness-candidate
-performance workload with robustness mode off. Explicit-POS and untagged inputs
-run in fresh processes after one warm-up. Because the sentences still require
-query-level annotation, this section reports initialization, throughput, p50/p95
-latency, and peak RSS only; it does not report quality or rank analyzers.
+The report also measures Korean-KSL as a separate scored 500-case Robust
+workload with 250 positives and 250 negatives. Every source-signal and supplement
+sentence in the pre-review pool is manually inspected, and every selected query,
+POS, expected result, and raw byte span is reviewed. The explicit-POS fixture
+compares precision, recall, F1, error-scope recall, and performance for kfind and
+the pinned external defaults. The untagged fixture measures the kfind human
+workflow separately. Both keep robustness mode off, run in fresh processes after
+one warm-up, and remain separate from the manually verified standard-orthography
+canonical score.
 
 ```sh
 scripts/benchmark-morphology.sh
@@ -171,3 +176,7 @@ The generated `product-external-comparison.svg` compares Agent, User, Kiwi,
 Lindera, MeCab-ko, and KOMORAN on precision, recall, F1, initialization,
 throughput, p95, and peak RSS. Its row labels contain only persona or backend
 names; the input conditions are documented alongside the chart.
+The generated `robustness-quality.svg` compares the product defaults on the same
+natural noisy fixture, including target-span and context-only recall.
+`robustness-performance.svg` shows the corresponding initialization, throughput,
+p95, and peak RSS medians from one warm-up and five measured fresh processes.

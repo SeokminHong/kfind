@@ -10,8 +10,125 @@ export default function BenchmarksPage(): React.JSX.Element {
       <PageIntro
         eyebrow="EVIDENCE · QUALITY & PERFORMANCE"
         title="워크로드를 섞지 않는 벤치마크"
-        summary="형태 검색 품질, end-to-end CLI 비용, 초기화 비용과 literal scan은 서로 다른 경로를 측정합니다. 수치는 입력·환경·revision이 고정된 source report 안에서 해석해야 하며, 단위가 다른 결과를 하나의 점수로 합칠 수 없습니다. 외부 분석기 비교도 같은 제품 task에 필요한 query 준비, 분석과 matching을 포함하므로 순수 tokenizer 처리량 순위가 아닙니다."
+        summary="형태 검색 품질, 오류 입력 Robust 품질, end-to-end CLI 비용과 초기화 비용은 서로 다른 경로를 측정합니다. Canonical은 사람이 표준 맞춤법을 검증한 문장만 사용하고, 비문·오타 문장은 별도 Robust set에서 평가합니다. 수치는 입력·환경·revision이 고정된 source report 안에서 해석해야 하며 서로 다른 workload를 하나의 점수로 합치지 않습니다."
       />
+
+      <DocumentSection title="표준문과 오류문을 분리한 품질 평가">
+        <p>
+          Canonical 품질은 UD Korean-Kaist의 실제 샘플링 후보 문장을 사람이 모두
+          읽고 표준 맞춤법과 문장성을 검증한 뒤 통과한 문장만 사용합니다. Test
+          후보 813문장 중 57문장, development 후보 792문장 중 64문장의 비문,
+          오타, 띄어쓰기 오류와 source artifact를 제외했습니다. 최종 canonical은
+          500 positive와 500 negative이며 Robust 점수와 합산하지 않습니다.
+        </p>
+        <p>
+          Robust 품질은 오류가 많은 UD Korean-KSL test split에서 source signal
+          문장 441개와 quota 보충 문장 4개를 전부 수동 검토해 만들었습니다. 실제
+          오류 문장 439개만 남기고 정상문 5개와 source artifact 1개를 제외한 뒤,
+          query·품사·원문 byte span을 다시 검증해 250 positive와 250 negative를
+          고정했습니다. Synthetic 교정문이 아니라 원문 오류 문장 자체를
+          평가하며, 현재 비교는 모든 제품의 기본 설정과 kfind{' '}
+          <code>robustness=off</code> 기준입니다.
+        </p>
+        <p>
+          Positive 250건 중 100건은 오타가 찾으려는 형태소 span에 직접 걸린{' '}
+          <code>target-span</code>, 150건은 오류가 주변 문맥에만 있는{' '}
+          <code>context-only</code>입니다. 아래 표의 전체 precision·recall·F1은
+          같은 500건에서 계산하고, 두 recall을 함께 공개해 목표 오타 복구와 주변
+          오류 내성을 구분합니다.
+        </p>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">제품 기본 경로</th>
+                <th scope="col">Precision</th>
+                <th scope="col">Recall</th>
+                <th scope="col">F1</th>
+                <th scope="col">FP</th>
+                <th scope="col">Target recall</th>
+                <th scope="col">Context recall</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>kfind Agent · embedded + any</td>
+                <td>97.89%</td>
+                <td>92.80%</td>
+                <td>95.28%</td>
+                <td>5</td>
+                <td>90.00%</td>
+                <td>94.67%</td>
+              </tr>
+              <tr>
+                <td>Kiwi 0.23.2</td>
+                <td>100.00%</td>
+                <td>85.20%</td>
+                <td>92.01%</td>
+                <td>0</td>
+                <td>85.00%</td>
+                <td>85.33%</td>
+              </tr>
+              <tr>
+                <td>Lindera 4.0.0</td>
+                <td>100.00%</td>
+                <td>83.20%</td>
+                <td>90.83%</td>
+                <td>0</td>
+                <td>83.00%</td>
+                <td>83.33%</td>
+              </tr>
+              <tr>
+                <td>MeCab-ko 1.0.2</td>
+                <td>100.00%</td>
+                <td>82.40%</td>
+                <td>90.35%</td>
+                <td>0</td>
+                <td>83.00%</td>
+                <td>82.00%</td>
+              </tr>
+              <tr>
+                <td>KOMORAN 3.3.9</td>
+                <td>100.00%</td>
+                <td>82.00%</td>
+                <td>90.11%</td>
+                <td>0</td>
+                <td>81.00%</td>
+                <td>82.67%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          같은 explicit-POS gold에서 kfind Agent가 recall과 F1은 가장 높았지만
+          false positive 5건이 있었고, 외부 네 제품은 false positive 없이 더
+          낮은 recall을 기록했습니다. 품사를 생략한 kfind Human 경로는 별도
+          fixture에서 precision 99.52%, recall 83.60%, F1 90.87%, target recall
+          68.00%였습니다. 입력 계약이 다르므로 위 제품 순위에 합치지 않습니다.
+        </p>
+        <figure className="benchmark-figure">
+          <img
+            src="/benchmarks/robustness-quality.svg"
+            alt="실제 오류 문장 500건에서 kfind Agent, Kiwi, Lindera, MeCab-ko, KOMORAN의 precision, recall, F1과 오류 위치별 recall 비교"
+            loading="lazy"
+          />
+          <figcaption>
+            250 positive / 250 negative. Target 100건과 context 150건은 positive
+            분모이며, canonical 표준문 점수와 분리합니다.
+          </figcaption>
+        </figure>
+        <figure className="benchmark-figure">
+          <img
+            src="/benchmarks/robustness-performance.svg"
+            alt="동일한 Robust 오류 문장 500건에서 제품별 처리량, 초기화, p95 latency와 peak RSS 비교"
+            loading="lazy"
+          />
+          <figcaption>
+            Fresh process에서 warm-up 1회 후 5회 측정한 중앙값입니다. 품질과
+            실행 비용은 별도 축으로 해석합니다.
+          </figcaption>
+        </figure>
+      </DocumentSection>
 
       <DocumentSection title="제품 persona 결과">
         <p>
@@ -39,21 +156,21 @@ export default function BenchmarksPage(): React.JSX.Element {
             <tbody>
               <tr>
                 <td>Agent · embedded + any + explicit POS</td>
-                <td>482 / 11 / 18</td>
-                <td>97.77%</td>
-                <td>96.40%</td>
-                <td>97.08%</td>
-                <td>13,442.9</td>
-                <td>5.2 MiB</td>
+                <td>483 / 7 / 17</td>
+                <td>98.57%</td>
+                <td>96.60%</td>
+                <td>97.58%</td>
+                <td>25,266.1</td>
+                <td>5.3 MiB</td>
               </tr>
               <tr>
                 <td>User · full POS + smart + untagged</td>
-                <td>451 / 0 / 49</td>
-                <td>100.00%</td>
-                <td>90.20%</td>
-                <td>94.85%</td>
-                <td>9,211.7</td>
-                <td>92.3 MiB</td>
+                <td>482 / 2 / 18</td>
+                <td>99.59%</td>
+                <td>96.40%</td>
+                <td>97.97%</td>
+                <td>13,201.7</td>
+                <td>56.3 MiB</td>
               </tr>
             </tbody>
           </table>
@@ -277,6 +394,11 @@ export default function BenchmarksPage(): React.JSX.Element {
 
       <DocumentSection title="원본 보고서">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-17-robustness-quality.md">
+              수동 검토 자연 오류 Robust 품질·성능
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-15-descriptive-declarative-continuation.md">
               상태 용언 현재 평서형 후속 형태 continuation

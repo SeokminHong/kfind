@@ -294,9 +294,20 @@ globalStyle('.section-title-row p', {
 globalStyle('.benchmark-figure', {
   margin: `${vars.space.xlarge} 0 0`,
   padding: vars.space.medium,
+  overflowX: 'auto',
   border: `1px solid ${vars.color.border}`,
   borderRadius: vars.radius.small,
   background: vars.color.surface,
+});
+
+globalStyle('.benchmark-figure img', {
+  display: 'block',
+  width: '100%',
+  '@media': {
+    '(max-width: 42rem)': {
+      minWidth: '48rem',
+    },
+  },
 });
 
 globalStyle('.benchmark-figure figcaption', {

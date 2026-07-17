@@ -1,5 +1,9 @@
 # 검토된 UD 코퍼스 재샘플링과 Robust 성능
 
+> 이 보고서의 Robust 절은 query-level gold를 만들기 전의 performance-only 기록이다. 현재
+> scored fixture와 제품별 오류 입력 품질은
+> [수동 검토 자연 오류 Robust 품질·성능](2026-07-17-robustness-quality.md)이 대체한다.
+
 - 측정일: 2026-07-17
 - 기준 revision: `0932120b7b94672dc17b26b2ef95adaefc5e2b25`
 - 후보 revision: `66dc8304372a859eed462710e4397c21832a73f6`
