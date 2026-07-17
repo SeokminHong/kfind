@@ -29,6 +29,12 @@ use context::{PreparedStructuralContextAnalysis, StructuralRequest};
 use phrase::{PhraseMatchLimit, PhraseSelection, select_phrase_matches};
 
 const MAX_CONSUMPTION_BYTES: usize = 256;
+const ADNOMINAL_RULE_IDS: [&str; 4] = [
+    "ending.present-adnominal",
+    "ending.past-adnominal",
+    "ending.future-adnominal",
+    "ending.retrospective-adnominal",
+];
 type StructuralCache = HashMap<(usize, usize, bool), Option<PreparedStructuralContextAnalysis>>;
 /// A query-plan matcher backed by one shared set of unique anchors.
 #[derive(Debug)]
@@ -541,11 +547,55 @@ impl MorphMatcher {
         match &branch.decision {
             CandidateDecision::Boundary(_) => {
                 self.accepts_token_boundary(haystack, &candidate.verified, branch)
+                    || self.accepts_boundary_adnominal_interrogative(haystack, candidate, branch)
             }
             CandidateDecision::Structural(_) => {
                 self.accepts_structural(haystack, candidate, branch, structural_cache)
             }
         }
+    }
+
+    fn accepts_boundary_adnominal_interrogative(
+        &self,
+        haystack: &[u8],
+        candidate: &ExecutedCandidate,
+        branch: &CandidateProgram,
+    ) -> bool {
+        let Some(resolver) = self.constraint_resolver.as_ref() else {
+            return false;
+        };
+        let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
+        if candidate.consumed.end >= whole.end {
+            return false;
+        }
+        let Some(trailing) = haystack
+            .get(candidate.consumed.end..whole.end)
+            .and_then(|bytes| std::str::from_utf8(bytes).ok())
+        else {
+            return false;
+        };
+        let has_adnominal_rule = branch
+            .origins
+            .iter()
+            .flat_map(|origin| &origin.rule_path)
+            .chain(&candidate.suffix_rules)
+            .any(|rule| ADNOMINAL_RULE_IDS.contains(&rule.as_str()));
+        if !trailing.nfc().eq("가".chars())
+            || !has_adnominal_rule
+            || !self.supports_source_predicate_trailing(
+                haystack, candidate, &whole, trailing, branch, resolver,
+            )
+        {
+            return false;
+        }
+        let boundary = branch.boundary();
+        accepts_requirements(
+            haystack,
+            candidate.verified.core.clone(),
+            candidate.consumed.start..whole.end,
+            boundary.require_left,
+            boundary.require_right,
+        )
     }
 
     fn accepts_structural(
@@ -647,14 +697,7 @@ impl MorphMatcher {
             || (trailing.starts_with(['아', '어', '여'])
                 && has_rule("ending.past")
                 && resolver.supports_ending_suffix_path(trailing, 0, DEFAULT_LATTICE_NODE_LIMIT))
-            || ([
-                "ending.present-adnominal",
-                "ending.past-adnominal",
-                "ending.future-adnominal",
-                "ending.retrospective-adnominal",
-            ]
-            .iter()
-            .any(|rule| has_rule(rule))
+            || (ADNOMINAL_RULE_IDS.iter().any(|rule| has_rule(rule))
                 && ["때", "게"].iter().any(|noun| trailing.starts_with(noun)))
             || (candidate.suffix_rules.is_empty()
                 && has_rule("ending.aoeo")
@@ -696,17 +739,14 @@ impl MorphMatcher {
             && ["ending.aoeo-seo", "ending.connective-ji"]
                 .iter()
                 .any(|rule| has_rule(rule));
-        let adnominal_dependent_noun_particle = trailing.nfc().next() == Some('지')
-            && [
-                "ending.present-adnominal",
-                "ending.past-adnominal",
-                "ending.future-adnominal",
-                "ending.retrospective-adnominal",
-            ]
-            .iter()
-            .any(|rule| has_rule(rule));
-        let licensed_non_ending_trailing =
-            declarative_adnominal || connective_topic || adnominal_dependent_noun_particle;
+        let has_adnominal_rule = ADNOMINAL_RULE_IDS.iter().any(|rule| has_rule(rule));
+        let adnominal_dependent_noun_particle =
+            trailing.nfc().next() == Some('지') && has_adnominal_rule;
+        let adnominal_interrogative = trailing.nfc().eq("가".chars()) && has_adnominal_rule;
+        let licensed_non_ending_trailing = declarative_adnominal
+            || connective_topic
+            || adnominal_dependent_noun_particle
+            || adnominal_interrogative;
         let valid_position = if pos == kfind_morph::PredicatePos::Copula {
             candidate.verified.core.start > whole.start
         } else {
@@ -741,7 +781,7 @@ impl MorphMatcher {
             .zip(ending)
             .is_some_and(|((token, core), ending)| {
                 if is_nfc(token) {
-                    if resolver.has_whole_modifier(token) {
+                    if resolver.has_whole_modifier(token) && !adnominal_interrogative {
                         return false;
                     }
                     return if connective_topic {
@@ -772,7 +812,7 @@ impl MorphMatcher {
                 let normalized = token.nfc().collect::<String>();
                 let core_len = core.nfc().map(char::len_utf8).sum();
                 let ending_len = ending.nfc().map(char::len_utf8).sum();
-                if resolver.has_whole_modifier(&normalized) {
+                if resolver.has_whole_modifier(&normalized) && !adnominal_interrogative {
                     return false;
                 }
                 if connective_topic {

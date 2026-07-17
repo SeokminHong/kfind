@@ -782,6 +782,13 @@ fn predicate_ending_path_consumes_an_open_ended_ending_sequence() {
         crate::PredicatePos::Verb,
         128,
     ));
+    assert!(resolver.has_whole_modifier("어떤가"));
+    assert!(resolver.supports_predicate_ending_path(
+        "어떤가",
+        "어떤".len(),
+        crate::PredicatePos::Adjective,
+        128,
+    ));
 }
 
 #[test]
@@ -1130,6 +1137,9 @@ fn resolver() -> ConstraintResolver {
         expression("미친다", "VV+EF", "미치/VV/*+ᆫ다/EF/*"),
         atomic("온", "MM"),
         expression("온", "VV+ETM", "오/VV/*+ᆫ/ETM/*"),
+        atomic("어떤", "VA"),
+        atomic("어떤가", "MM+EC"),
+        atomic("가", "EC"),
         atomic("를", "JKO"),
         atomic("입니", "VCP+EF"),
         expression("입니다", "VCP+EF", "이/VCP/*+ᆸ니다/EF/*"),
