@@ -167,7 +167,7 @@ export const initialPlaygroundStatus: PlaygroundStatus = {
 
 export const initialComponentResourceStatus: ComponentResourceStatus = {
   state: ComponentResourceState.Idle,
-  message: '필요한 경우 R2에서 45.6 MiB를 받습니다.',
+  message: '필요한 경우 R2에서 35.4 MiB를 받습니다.',
 };
 
 export function applyPlaygroundPreset(
