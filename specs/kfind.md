@@ -546,6 +546,22 @@
   검증할 때만 사용하고 token 전체의 품사 구조를 선택하는 근거로 쓰지 않는다. host 왼쪽
   경계에 정렬된 두 음절 이상의 nominal prefix는 유지하고, 한 음절 prefix와 host 내부
   양쪽 경계를 가로지르는 후보에는 선호 경로 검증을 적용한다.
+- token을 임의 품사의 edge로 끝까지 덮을 수 있다는 사실만으로 token보다 짧은 query 품사의
+  runtime component를 합성하지 않는다. 특히 `NP`·`MM`·`MAG/MAJ` 내부 component는 query
+  core와 같은 span의 같은 세부 품사 node가 완전한 typed path에 있어야 한다. 이 조건은 query가
+  명시한 품사를 다른 체언·용언 edge의 span으로 대신 증명하지 못하게 하며, query 표면과 token
+  전체가 같은 독립 후보에는 적용하지 않는다.
+- whole 체언 분석과 더 짧은 runtime 체언+조사 분할이 경쟁할 때, 한 node짜리 내부 체언
+  prefix는 whole 분석이 정렬해 선언한 source component이거나 실제 조사 host 전체인 경우에만
+  유지한다. 두 node 이상의 복합명사 subpath와 `MM + 체언` 선호 경로는 각각 별도 typed
+  규칙으로 검증한다. 독립 whole 체언의 첫 음절을 임의의 대명사·명사 component로 만들지
+  않는다.
+- 일반 용언 query의 runtime component는 token 왼쪽 경계에서 시작한 용언+어미 path 또는
+  `용언 + EC + VX + 선택적 어미`의 보조용언 path에 속해야 한다. token 내부에서 우연히 같은
+  세부 품사의 edge가 query core부터 token 끝까지 있다는 사실만으로 독립 용언 stem을 만들지
+  않는다. 보조용언 path와 token 전체의 `MAG/MAJ` 분석이 경쟁하면 통째 부사 분석을 선택한다.
+  체언 뒤 `XSV/XSA + E*`가 완성된 파생 용언 path에서는 파생 접미사 시작 span의 runtime
+  체언 후보도 source가 체언 component를 정렬해 선언하지 않은 한 거부한다.
 - token 또는 조사 host의 왼쪽 경계에서 정확한 `MM` node 하나로 시작하고 나머지 host가
   `NNG`·`NNP`·`NNB/NNBC` node만으로 완성되는 선호 경로에서는 그 경로의 exact 명사
   component를 유지한다. 단, 한 음절 `MM`과 명사 component 하나만으로 완성되는 경로는

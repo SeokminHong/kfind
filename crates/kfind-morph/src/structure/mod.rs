@@ -644,6 +644,7 @@ struct TokenEvidence {
     leading_predicate_spans: Box<[Range<usize>]>,
     runtime_nominal_derivation_spans: Box<[Range<usize>]>,
     derivational_suffix_starts: Box<[usize]>,
+    adnominal_derivation_suffix_starts: Box<[usize]>,
     numeric_spans: Box<[Range<usize>]>,
     numeric_dependent_tail: Option<Range<usize>>,
     has_numeral_sequence: bool,
@@ -745,6 +746,8 @@ impl TokenEvidence {
         let leading_predicate_spans = leading_predicate_spans(text.len(), &edges);
         let runtime_nominal_derivation_spans = runtime_nominal_derivation_spans(&edges, &complete);
         let derivational_suffix_starts = derivational_suffix_starts(&edges, &complete);
+        let adnominal_derivation_suffix_starts =
+            adnominal_derivation_suffix_starts(text.len(), &edges);
         let attached_auxiliary_spans = if include_attached_auxiliary {
             attached_auxiliary_spans(text.len(), &edges)
         } else {
@@ -900,6 +903,7 @@ impl TokenEvidence {
             leading_predicate_spans,
             runtime_nominal_derivation_spans,
             derivational_suffix_starts,
+            adnominal_derivation_suffix_starts,
             numeric_spans,
             numeric_dependent_tail: numeric_path.and_then(|path| path.dependent_tail),
             has_numeral_sequence,
@@ -1171,6 +1175,82 @@ fn derivational_suffix_starts(edges: &[Edge<'_>], complete: &[bool]) -> Box<[usi
     starts.sort_unstable();
     starts.dedup();
     starts.into_boxed_slice()
+}
+
+fn adnominal_derivation_suffix_starts(text_len: usize, edges: &[Edge<'_>]) -> Box<[usize]> {
+    let mut nominal_prefix = vec![false; text_len + 1];
+    nominal_prefix[0] = true;
+    for start in 0..text_len {
+        if !nominal_prefix[start] {
+            continue;
+        }
+        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+            if edge.pos.split('+').all(nominal_host_pos) {
+                nominal_prefix[edge.span.end] = true;
+            }
+        }
+    }
+
+    let mut adnominal_ending_suffix = vec![false; text_len + 1];
+    for start in (0..text_len).rev() {
+        adnominal_ending_suffix[start] =
+            edges
+                .iter()
+                .filter(|edge| edge.span.start == start)
+                .any(|edge| {
+                    ending_path_reaches_adnominal_boundary(
+                        edge.pos,
+                        edge.span.end,
+                        text_len,
+                        &adnominal_ending_suffix,
+                    )
+                });
+    }
+
+    let mut starts = edges
+        .iter()
+        .filter_map(|edge| {
+            if !nominal_prefix[edge.span.start] {
+                return None;
+            }
+            let (first, endings) = edge.pos.split_once('+').unwrap_or((edge.pos, ""));
+            if !matches!(first, "XSV" | "XSA") {
+                return None;
+            }
+            let complete = ending_path_reaches_adnominal_boundary(
+                endings,
+                edge.span.end,
+                text_len,
+                &adnominal_ending_suffix,
+            );
+            complete.then_some(edge.span.start)
+        })
+        .collect::<Vec<_>>();
+    starts.sort_unstable();
+    starts.dedup();
+    starts.into_boxed_slice()
+}
+
+fn ending_path_reaches_adnominal_boundary(
+    positions: &str,
+    end: usize,
+    text_len: usize,
+    suffix: &[bool],
+) -> bool {
+    let mut saw_adnominal = false;
+    let mut last = None;
+    for position in positions.split('+').filter(|position| !position.is_empty()) {
+        if !position.starts_with('E') {
+            return false;
+        }
+        saw_adnominal |= position == "ETM";
+        last = Some(position);
+    }
+    if saw_adnominal {
+        last == Some("ETM") && end == text_len
+    } else {
+        suffix[end]
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -1518,7 +1598,8 @@ fn collect_pattern_supports(
             && pattern.component_capability.allows_runtime()
             && (query_nominal_particle_path(pattern, spans)
                 || composed_nominal_subpath(pattern, spans, evidence)
-                || evidence.runtime_spans.contains(&spans.core)
+                || ((!requires_aligned_component_evidence(pattern) || spans.core == spans.token)
+                    && evidence.runtime_spans.contains(&spans.core))
                 || attached_auxiliary_is_supported(pattern, spans, evidence)
                 || (pattern.fine_pos.is_nominal() && evidence.has_nominal_copula_host(&spans.core))
                 || (pattern.fine_pos.is_nominal()
@@ -1544,6 +1625,13 @@ fn collect_pattern_supports(
         }
     }
     supports
+}
+
+fn requires_aligned_component_evidence(pattern: &QueryMorphPattern) -> bool {
+    matches!(
+        pattern.fine_pos,
+        DataFinePos::Np | DataFinePos::Mm | DataFinePos::Mag | DataFinePos::Maj
+    )
 }
 
 #[derive(Clone, Debug)]
@@ -1572,6 +1660,9 @@ enum StructureSelection {
     NumeralSequence {
         fallback: Box<StructureSelection>,
     },
+    AdnominalDerivation {
+        fallback: Box<StructureSelection>,
+    },
     RuntimeCompatible {
         graph_nominal_host: Option<Range<usize>>,
     },
@@ -1582,6 +1673,7 @@ impl StructureSelection {
         match self {
             Self::RuntimeCompatible { graph_nominal_host } => graph_nominal_host.as_ref(),
             Self::NumeralSequence { fallback } => fallback.graph_nominal_host(),
+            Self::AdnominalDerivation { fallback } => fallback.graph_nominal_host(),
             _ => None,
         }
     }
@@ -1737,6 +1829,15 @@ impl StructureSelection {
                 (pattern.fine_pos == DataFinePos::Nr
                     && evidence.numeric_spans.contains(&spans.core))
                     || fallback.accepts(support, spans, patterns, text, evidence)
+            }
+            Self::AdnominalDerivation { fallback } => {
+                !(support.evidence == StructuralEvidence::RuntimeComponent
+                    && pattern.fine_pos.is_nominal()
+                    && evidence
+                        .adnominal_derivation_suffix_starts
+                        .binary_search(&spans.core.start)
+                        .is_ok())
+                    && fallback.accepts(support, spans, patterns, text, evidence)
             }
             Self::RuntimeCompatible { graph_nominal_host } => match support.evidence {
                 StructuralEvidence::Whole => true,
@@ -2012,6 +2113,9 @@ fn runtime_position_is_supported(
         pattern.fine_pos,
         DataFinePos::Np | DataFinePos::Nr | DataFinePos::Mm | DataFinePos::Mag
     );
+    let modifier_without_nominal_tail = pattern.fine_pos == DataFinePos::Mm
+        && spans.core != spans.token
+        && !modifier_has_complete_nominal_tail(&spans.core, &spans.token, evidence);
     let predicate = matches!(pattern.continuation, MorphContinuation::Predicate { .. });
     let terminal_predicate_component = matches!(
         pattern.continuation,
@@ -2091,6 +2195,7 @@ fn runtime_position_is_supported(
         );
 
     (!leading_only || starts_token)
+        && !modifier_without_nominal_tail
         && !trailing_predicate_subspan
         && !internal_runtime_predicate
         && !modifier_before_predicate
@@ -2100,12 +2205,34 @@ fn runtime_position_is_supported(
         && !terminal_nominal_in_predicate_frame
 }
 
+fn modifier_has_complete_nominal_tail(
+    core: &Range<usize>,
+    token: &Range<usize>,
+    evidence: &TokenEvidence,
+) -> bool {
+    if core.start != token.start || core.end >= token.end {
+        return false;
+    }
+    evidence
+        .units
+        .iter()
+        .map(|unit| unit.span.end)
+        .filter(|&host_end| host_end > core.end && host_end <= token.end)
+        .any(|host_end| {
+            minimum_unit_path(&(core.end..host_end), evidence, DataFinePos::is_nominal).is_some()
+                && minimum_unit_path(&(host_end..token.end), evidence, DataFinePos::is_particle)
+                    .is_some()
+        })
+}
+
 fn attached_auxiliary_is_supported(
     pattern: &QueryMorphPattern,
     spans: &CandidateSpans,
     evidence: &TokenEvidence,
 ) -> bool {
     pattern.fine_pos == DataFinePos::Vx
+        && !evidence.has_whole(DataFinePos::Mag)
+        && !evidence.has_whole(DataFinePos::Maj)
         && evidence.attached_auxiliary_spans.iter().any(|frame| {
             frame == &spans.core
                 || (pattern.lexical_form.as_ref() == "지"
@@ -2309,6 +2436,14 @@ fn select_structure(
         StructureSelection::RuntimeCompatible {
             graph_nominal_host: complete_nominal_particle_host(resource, context.current),
         }
+    };
+    let fallback = if next_starts_nominal && !evidence.adnominal_derivation_suffix_starts.is_empty()
+    {
+        StructureSelection::AdnominalDerivation {
+            fallback: Box::new(fallback),
+        }
+    } else {
+        fallback
     };
     if evidence.has_numeral_sequence {
         StructureSelection::NumeralSequence {
