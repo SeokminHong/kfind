@@ -525,8 +525,16 @@ fn ha_rieul_and_copula_rules_cover_required_forms() {
             "이라는",
             "이지",
             "이며",
+            "이므로",
         ],
     );
+
+    let negative = surfaces(&entry(
+        "아니다",
+        PredicatePos::Adjective,
+        LexicalAlternation::Regular,
+    ));
+    assert!(negative.contains("아닐세"));
 }
 
 #[test]

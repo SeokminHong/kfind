@@ -373,6 +373,14 @@ fn compile_productive(
         future_adnominal(entry, stem)?,
         ContinuationState::Terminal,
     );
+    let mut rieulse = future_adnominal(entry, stem)?;
+    rieulse.surface.push('세');
+    let ending = rieulse
+        .rules
+        .last_mut()
+        .expect("future adnominal surface has an ending rule");
+    *ending = rule("ending.final-rieulse");
+    push_derived(branches, entry, rieulse, ContinuationState::Terminal);
     push_derived(
         branches,
         entry,
@@ -525,6 +533,11 @@ fn compile_copula(
             format!("{stem}며"),
             ContinuationState::Terminal,
             "ending.coordinate-myeo",
+        ),
+        (
+            format!("{stem}므로"),
+            ContinuationState::Terminal,
+            "ending.connective-meuro",
         ),
     ] {
         push_branch(

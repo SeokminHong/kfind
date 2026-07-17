@@ -95,6 +95,41 @@ fn compiled_predicate_plan_matches_a_prospective_final() {
 }
 
 #[test]
+fn nikl_attested_endings_require_complete_source_paths() {
+    let resource = component_resource_from_entries([
+        component_entry("섬나라", "NNG"),
+        component_entry("이", "VCP"),
+        component_entry("므로", "EC"),
+        component_expression_entry("아닐세", "VCN+EF", "아니/VCN/*+ᆯ세/EF/*"),
+    ]);
+    let copula =
+        compile_embedded_with_resource("이다", CompileOptions::default(), Arc::clone(&resource));
+    let negative_copula =
+        compile_embedded_with_resource("아니다", CompileOptions::default(), resource);
+
+    assert!(
+        copula
+            .find_at_with_meta("섬나라이므로".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        copula
+            .find_at_with_meta("섬나라므로".as_bytes(), 0)
+            .is_none()
+    );
+    assert!(
+        negative_copula
+            .find_at_with_meta("아닐세".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        negative_copula
+            .find_at_with_meta("아닐새".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn full_pos_smart_predicate_plan_preserves_a_same_pos_homograph_union() {
     for query in ["걷다", "걸다"] {
         let matcher = compile_with_full_pos(

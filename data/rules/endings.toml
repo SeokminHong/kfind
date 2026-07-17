@@ -212,6 +212,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.connective-meuro"
+category = "connective"
+initial = "consonant"
+forms = ["므로"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.connective-eudoe"
 category = "connective"
 initial = "other"
@@ -456,6 +466,16 @@ id = "ending.prospective-final"
 category = "final"
 initial = "eu"
 forms = ["리라", "으리라"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.final-rieulse"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ세"]
 required = []
 forbidden = []
 next = []
