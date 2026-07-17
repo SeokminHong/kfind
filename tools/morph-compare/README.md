@@ -9,10 +9,13 @@ the product binary or default search path.
 
 Fixtures are generated from the Universal Dependencies 2.18 Korean-Kaist and
 Korean-KSL test and development splits. Their URLs, SHA-256 digests, and CC
-BY-SA 4.0 licenses are pinned in `sources.json`. For each split, the generator
-selects 250 POS-stratified positive cases from each source and pairs each with a
-deterministic negative from the same source, producing 1,000 cases. Development
-uses the development fixture; the test fixture remains the regression baseline.
+BY-SA 4.0 licenses are pinned in `sources.json`. The scored 1,000-case fixture
+uses only manually reviewed Korean-Kaist sentences and keeps 500 POS-stratified
+positives paired with 500 deterministic negatives. `sentence-reviews.json`
+pins every reviewed dev/test sentence pool and records rejected sentences as an
+unscored robustness-candidate registry. Korean-KSL remains a separate unscored
+candidate pool until query-level annotation is complete. Development uses the
+development fixture; the test fixture remains the regression baseline.
 The image also builds a separate 1,000-case human-usage fixture. Its queries omit
 POS, and each negative excludes the query lemma under every supported POS.
 
@@ -23,8 +26,8 @@ matrix evaluates kfind and all four external analyzers, while a separate untagge
 matrix evaluates the human kfind profiles. The `query_matrix` report section keeps
 query-level quality separate from all-present-query sentence coverage. It reports
 strict and contract-adjusted confusion matrices, sentence coverage, and
-sentence-cluster bootstrap 95% intervals in parallel. The fixed 1,000-case
-regression baseline remains unchanged.
+sentence-cluster bootstrap 95% intervals in parallel. The fixed-size 1,000-case
+regression baseline remains separate.
 
 ```sh
 scripts/benchmark-morphology.sh

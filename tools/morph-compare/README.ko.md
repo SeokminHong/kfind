@@ -7,10 +7,12 @@ Kiwi·Lindera·MeCab-ko·KOMORAN의 고정 품질·성능 스냅샷과 비교한
 제품 바이너리나 기본 검색 경로에 포함되지 않는다.
 
 fixture는 Universal Dependencies 2.18의 Korean-Kaist와 Korean-KSL test/dev split에서
-생성한다. URL, SHA-256, CC BY-SA 4.0 라이선스는 `sources.json`에 고정되어 있다. split별로
-각 source에서 품사별 250개 positive를 선택하고 같은 source의 deterministic negative를
-대응시켜 총 1,000개를 만든다. 개발은 dev split으로 수행하고 test split은 regression
-baseline으로 유지한다.
+생성한다. URL, SHA-256, CC BY-SA 4.0 라이선스는 `sources.json`에 고정되어 있다. 점수를 내는
+1,000-case fixture는 수동 검토를 통과한 Korean-Kaist 문장만 사용해 품사별 positive 500개와
+deterministic negative 500개를 대응시킨다. `sentence-reviews.json`은 검토한 dev/test 문장
+pool 전체를 고정하고 제외 문장을 점수 없는 robustness 후보 registry로 보존한다. Korean-KSL은
+query-level annotation을 마칠 때까지 별도의 점수 없는 후보 pool로 유지한다. 개발은 dev
+fixture로 수행하고 test fixture는 regression baseline으로 유지한다.
 이미지는 사람의 무품사 사용을 위한 별도 1,000-case fixture도 만든다. 쿼리는 품사를
 생략하며, negative 문장에는 해당 표제어가 지원하는 어떤 품사로도 존재하지 않는다.
 
@@ -19,7 +21,7 @@ baseline으로 유지한다.
 동일 문장에 대응시킨다. 명시적 품사 matrix는 kfind와 외부 분석기 4종을, 별도 무품사 matrix는
 kfind 사람용 profile을 측정한다. 보고서는 strict와 contract-adjusted의 질의별 confusion
 matrix, 문장 안 모든 존재 질의 회수율과 문장 group cluster bootstrap 95% 구간을
-`query_matrix` 절에 병렬로 기록한다. 기존 1,000-case 회귀선은 그대로 유지한다.
+`query_matrix` 절에 병렬로 기록한다. 고정 크기 1,000-case 회귀선과는 분리한다.
 
 ```sh
 scripts/benchmark-morphology.sh
