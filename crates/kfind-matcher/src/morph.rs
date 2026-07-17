@@ -739,12 +739,15 @@ impl MorphMatcher {
             && ["ending.aoeo-seo", "ending.connective-ji"]
                 .iter()
                 .any(|rule| has_rule(rule));
+        let adverbial_auxiliary_particle =
+            trailing.nfc().eq("도".chars()) && has_rule("ending.adverbial-ge");
         let has_adnominal_rule = ADNOMINAL_RULE_IDS.iter().any(|rule| has_rule(rule));
         let adnominal_dependent_noun_particle =
             trailing.nfc().next() == Some('지') && has_adnominal_rule;
         let adnominal_interrogative = trailing.nfc().eq("가".chars()) && has_adnominal_rule;
         let licensed_non_ending_trailing = declarative_adnominal
             || connective_topic
+            || adverbial_auxiliary_particle
             || adnominal_dependent_noun_particle
             || adnominal_interrogative;
         let valid_position = if pos == kfind_morph::PredicatePos::Copula {
@@ -784,7 +787,7 @@ impl MorphMatcher {
                     if resolver.has_whole_modifier(token) && !adnominal_interrogative {
                         return false;
                     }
-                    return if connective_topic {
+                    return if connective_topic || adverbial_auxiliary_particle {
                         resolver.supports_predicate_ending_particle_path(
                             token,
                             core.len(),
@@ -815,7 +818,7 @@ impl MorphMatcher {
                 if resolver.has_whole_modifier(&normalized) && !adnominal_interrogative {
                     return false;
                 }
-                if connective_topic {
+                if connective_topic || adverbial_auxiliary_particle {
                     resolver.supports_predicate_ending_particle_path(
                         &normalized,
                         core_len,
