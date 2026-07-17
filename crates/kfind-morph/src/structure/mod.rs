@@ -138,10 +138,31 @@ impl ConstraintResolver {
         pos: PredicatePos,
         node_limit: usize,
     ) -> bool {
-        if anchor_len == 0 || anchor_len >= text.len() || !text.is_char_boundary(anchor_len) {
+        self.supports_predicate_ending_path_with_terminal(
+            text, anchor_len, pos, node_limit, None, false,
+        )
+    }
+
+    fn supports_predicate_ending_path_with_terminal(
+        &self,
+        text: &str,
+        anchor_len: usize,
+        pos: PredicatePos,
+        node_limit: usize,
+        required_terminal: Option<&str>,
+        allow_complete_anchor: bool,
+    ) -> bool {
+        if anchor_len == 0
+            || if allow_complete_anchor {
+                anchor_len > text.len()
+            } else {
+                anchor_len >= text.len()
+            }
+            || !text.is_char_boundary(anchor_len)
+        {
             return false;
         }
-        let mut visited = vec![[false; 2]; text.len() + 1];
+        let mut visited = vec![[[false; 2]; 2]; text.len() + 1];
         let mut pending = Vec::new();
         let mut nodes = 0;
         self.resource
@@ -160,18 +181,26 @@ impl ConstraintResolver {
                         && endings.iter().all(|ending| ending.starts_with('E'))
                     {
                         let has_ending = !endings.is_empty();
-                        if !visited[length][usize::from(has_ending)] {
-                            visited[length][usize::from(has_ending)] = true;
-                            pending.push((length, has_ending));
+                        let terminal_matches = endings.last().is_some_and(|ending| {
+                            required_terminal.is_none_or(|tag| *ending == tag)
+                        });
+                        if !visited[length][usize::from(has_ending)][usize::from(terminal_matches)]
+                        {
+                            visited[length][usize::from(has_ending)]
+                                [usize::from(terminal_matches)] = true;
+                            pending.push((length, has_ending, terminal_matches));
                         }
                     }
                 }
             });
-        while let Some((start, has_ending)) = pending.pop() {
+        while let Some((start, has_ending, terminal_matches)) = pending.pop() {
             if nodes > node_limit {
                 return false;
             }
-            if start == text.len() && has_ending {
+            if start == text.len()
+                && has_ending
+                && required_terminal.is_none_or(|_| terminal_matches)
+            {
                 return true;
             }
             self.resource
@@ -181,21 +210,54 @@ impl ConstraintResolver {
                     }
                     for analysis in analyses {
                         nodes += 1;
-                        if analysis
-                            .pos
-                            .split('+')
-                            .all(|ending| ending.starts_with('E'))
+                        let endings = analysis.pos.split('+').collect::<Vec<_>>();
+                        if !endings.is_empty()
+                            && endings.iter().all(|ending| ending.starts_with('E'))
                         {
                             let end = start + length;
-                            if !visited[end][1] {
-                                visited[end][1] = true;
-                                pending.push((end, true));
+                            let terminal_matches = endings.last().is_some_and(|ending| {
+                                required_terminal.is_none_or(|tag| *ending == tag)
+                            });
+                            if !visited[end][1][usize::from(terminal_matches)] {
+                                visited[end][1][usize::from(terminal_matches)] = true;
+                                pending.push((end, true, terminal_matches));
                             }
                         }
                     }
                 });
         }
         false
+    }
+
+    #[must_use]
+    pub fn supports_adnominal_dependent_noun_particle_path(
+        &self,
+        text: &str,
+        anchor_len: usize,
+        adnominal_len: usize,
+        pos: PredicatePos,
+        node_limit: usize,
+    ) -> bool {
+        if anchor_len == 0
+            || anchor_len > adnominal_len
+            || adnominal_len >= text.len()
+            || !text.is_char_boundary(anchor_len)
+            || !text.is_char_boundary(adnominal_len)
+        {
+            return false;
+        }
+        self.supports_predicate_ending_path_with_terminal(
+            &text[..adnominal_len],
+            anchor_len,
+            pos,
+            node_limit,
+            Some("ETM"),
+            true,
+        ) && complete_dependent_noun_particle_suffix(
+            &self.resource,
+            &text[adnominal_len..],
+            node_limit,
+        )
     }
 
     #[must_use]
@@ -1874,6 +1936,53 @@ fn complete_suffix(
     });
     next.into_iter()
         .any(|length| complete_suffix(resource, &suffix[length..], accepts))
+}
+
+fn complete_dependent_noun_particle_suffix(
+    resource: &ComponentResource,
+    suffix: &str,
+    node_limit: usize,
+) -> bool {
+    let mut visited = vec![[false; 3]; suffix.len() + 1];
+    let mut pending = vec![(0, 0_usize)];
+    let mut nodes = 0;
+    while let Some((start, state)) = pending.pop() {
+        if nodes > node_limit {
+            return false;
+        }
+        if start == suffix.len() {
+            if state == 2 {
+                return true;
+            }
+            continue;
+        }
+        resource.common_prefixes(&suffix.as_bytes()[start..], |length, analyses| {
+            if length == 0 || start + length > suffix.len() {
+                return;
+            }
+            for analysis in analyses {
+                nodes += 1;
+                let mut next_state = state;
+                let valid = analysis.pos.split('+').all(|position| match next_state {
+                    0 if matches!(position, "NNB" | "NNBC") => {
+                        next_state = 1;
+                        true
+                    }
+                    1 | 2 if position.starts_with('J') => {
+                        next_state = 2;
+                        true
+                    }
+                    _ => false,
+                });
+                let end = start + length;
+                if valid && !visited[end][next_state] {
+                    visited[end][next_state] = true;
+                    pending.push((end, next_state));
+                }
+            }
+        });
+    }
+    false
 }
 
 fn has_exact_fine_pos(

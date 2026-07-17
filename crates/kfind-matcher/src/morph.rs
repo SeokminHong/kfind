@@ -696,16 +696,27 @@ impl MorphMatcher {
             && ["ending.aoeo-seo", "ending.connective-ji"]
                 .iter()
                 .any(|rule| has_rule(rule));
-        let licensed_particle_trailing = declarative_adnominal || connective_topic;
+        let adnominal_dependent_noun_particle = trailing.nfc().next() == Some('지')
+            && [
+                "ending.present-adnominal",
+                "ending.past-adnominal",
+                "ending.future-adnominal",
+                "ending.retrospective-adnominal",
+            ]
+            .iter()
+            .any(|rule| has_rule(rule));
+        let licensed_non_ending_trailing =
+            declarative_adnominal || connective_topic || adnominal_dependent_noun_particle;
         let valid_position = if pos == kfind_morph::PredicatePos::Copula {
             candidate.verified.core.start > whole.start
         } else {
-            (continuation != kfind_morph::ContinuationState::Terminal || licensed_particle_trailing)
+            (continuation != kfind_morph::ContinuationState::Terminal
+                || licensed_non_ending_trailing)
                 && candidate.verified.core.start == whole.start
         };
         if !valid_position
             || (pos != kfind_morph::PredicatePos::Copula
-                && !licensed_particle_trailing
+                && !licensed_non_ending_trailing
                 && self
                     .particle_verifier
                     .model()
@@ -741,6 +752,14 @@ impl MorphMatcher {
                             pos,
                             DEFAULT_LATTICE_NODE_LIMIT,
                         )
+                    } else if adnominal_dependent_noun_particle {
+                        resolver.supports_adnominal_dependent_noun_particle_path(
+                            token,
+                            core.len(),
+                            ending.len(),
+                            pos,
+                            DEFAULT_LATTICE_NODE_LIMIT,
+                        )
                     } else {
                         resolver.supports_predicate_ending_path(
                             token,
@@ -758,6 +777,14 @@ impl MorphMatcher {
                 }
                 if connective_topic {
                     resolver.supports_predicate_ending_particle_path(
+                        &normalized,
+                        core_len,
+                        ending_len,
+                        pos,
+                        DEFAULT_LATTICE_NODE_LIMIT,
+                    )
+                } else if adnominal_dependent_noun_particle {
+                    resolver.supports_adnominal_dependent_noun_particle_path(
                         &normalized,
                         core_len,
                         ending_len,

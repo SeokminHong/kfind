@@ -245,3 +245,16 @@ annotation과 gate는 변경하지 않았다.
 남은 표준형 `오다→온지를`는 adnominal 뒤 nominalizer와 조사 경로다. 다음 제품 recall 작업은
 hard-negative `nominalizer-particle` slice와 함께 source `용언 + ETM + NNB/NNG + J*`의
 정확한 경계를 검증한다.
+
+[관형형 뒤 의존명사·조사 recall](2026-07-17-adnominal-dependent-noun-recall.md)에서 관형형
+candidate가 소비한 경계까지 마지막 어미가 `ETM`인 `predicate + E* + ETM`, 그 뒤 token
+끝까지 `NNB/NNBC + J+`인 source path를 열었다. Canonical full-POS·Human은 `온지를`의
+`오다`를 회수해 `PNᶜ=500`에서 FNᶜ가 각각 13→12, 17→16이다. Matrix full-POS·Human은
+`온지를`의 `오다`, `좋아할지도`의 `좋아하다`를 회수해 `PNᶜ=1,401`에서 FNᶜ가 각각
+57→55, 59→57이고 완전 회수 문장은 각각 414→416, 411→413이다. FP·FPᶜ와 hard-negative는
+변하지 않았다. 후보 Agent는 26,661.7 cases/s로 Lindera snapshot보다 28.02% 빠르다. Matrix
+contract 정의, annotation과 gate는 변경하지 않았다.
+
+남은 큰 동일 질의 묶음인 부사 `안` 3건과 형용사 `이다` 3건은 비표준 입력이다. 다음 제품
+recall 작업은 표준형 `어떻다→어떤가`의 source `VA + EF`와 경쟁 `MM + JKS` 경로를 대조해
+용언 완성 경로만 안전하게 회수할 수 있는지 검증한다.
