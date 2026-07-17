@@ -277,6 +277,26 @@ fn adnominal_dependent_noun_particle_uses_a_complete_source_path() {
             "accepted incomplete adnominal dependent-noun path {rejected}"
         );
     }
+
+    let exact_resource = component_resource_from_entries([
+        component_expression_entry("올", "VV+ETM", "오/VV/*+ᆯ/ETM/*"),
+        component_entry("지", "NNB"),
+        component_entry("올지", "VV+EC"),
+    ]);
+    let exact_ending = compile_with_full_pos_and_resource(
+        "오다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        exact_resource,
+    );
+    assert!(
+        exact_ending
+            .find_at_with_meta("올지".as_bytes(), 0)
+            .is_some(),
+        "exact whole predicate ending path was rejected"
+    );
 }
 
 #[test]
@@ -1117,6 +1137,14 @@ fn component_resource_from_entries(
 }
 
 fn compile_with_full_pos(query: &str, options: CompileOptions) -> MorphMatcher {
+    compile_with_full_pos_and_resource(query, options, component_resource())
+}
+
+fn compile_with_full_pos_and_resource(
+    query: &str,
+    options: CompileOptions,
+    resource: Arc<ComponentResource>,
+) -> MorphMatcher {
     let mut lexicons = Lexicons::embedded().expect("embedded lexicons must be valid");
     let full_data = LexiconData {
         predicates: vec![PredicateRecord {
@@ -1137,7 +1165,7 @@ fn compile_with_full_pos(query: &str, options: CompileOptions) -> MorphMatcher {
     lexicons
         .load_full_pos(&encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap())
         .expect("test full-POS lexicon must load");
-    compile_with_lexicons(query, options, Arc::new(lexicons))
+    compile_with_lexicons_and_resource(query, options, Arc::new(lexicons), resource)
 }
 
 fn compile_with_lexicons(
@@ -1145,10 +1173,19 @@ fn compile_with_lexicons(
     options: CompileOptions,
     lexicons: Arc<Lexicons>,
 ) -> MorphMatcher {
+    compile_with_lexicons_and_resource(query, options, lexicons, component_resource())
+}
+
+fn compile_with_lexicons_and_resource(
+    query: &str,
+    options: CompileOptions,
+    lexicons: Arc<Lexicons>,
+    resource: Arc<ComponentResource>,
+) -> MorphMatcher {
     let analyzer = LexiconQueryAnalyzer::new(lexicons);
     let plan = Arc::new(compile_query(query, &options, &analyzer).expect("query must compile"));
     if plan.requires_component_resource() {
-        MorphMatcher::with_component_resource(plan, component_resource())
+        MorphMatcher::with_component_resource(plan, resource)
             .expect("component-aware matcher must build")
     } else {
         MorphMatcher::new(plan).expect("matcher must build")

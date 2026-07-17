@@ -440,6 +440,10 @@
   `NNB + J+` 순서의 완성된 path를 증명하는 경우에만 구조 검증 범위를 전체 token으로
   확장한다. 따라서 `오다`는 `온지를`에서 회수하지만, source 관형형·의존명사·조사 중 하나가
   없거나 순서가 다른 path는 열지 않는다.
+- 관형형 candidate 뒤에 조사 없는 `지`가 남아도 token 전체와 정확히 일치하는 source
+  분석이 같은 품사의 `predicate + E+`를 선언하면 의존명사가 아닌 어미 경로로 전체 token을
+  소비한다. 따라서 `들리다`는 exact `VV+EC` 근거가 있는 `들릴지`에서 회수하지만, 분리된
+  `ETM`과 `지/NNB` 또는 일반 suffix 조합만 있는 `온지`는 열지 않는다.
 - 관형형 candidate 뒤에 정확히 `가`만 남으면, 같은 품사의 source graph가 query core부터
   token 끝까지 `predicate + E+` 순서의 완성된 path를 증명하는 경우에만 구조 검증 범위를
   전체 token으로 확장한다. `MM + E` 경쟁 path는 단독 근거로 사용하지 않으며, predicate

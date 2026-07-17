@@ -143,6 +143,31 @@ impl ConstraintResolver {
         )
     }
 
+    #[must_use]
+    pub fn has_exact_predicate_ending_path(&self, text: &str, pos: PredicatePos) -> bool {
+        let mut matched = false;
+        self.resource
+            .common_prefixes(text.as_bytes(), |length, analyses| {
+                if length != text.len() {
+                    return;
+                }
+                matched |= analyses.iter().any(|analysis| {
+                    let mut positions = analysis.pos.split('+');
+                    let Some(first) = positions.next() else {
+                        return false;
+                    };
+                    let mut has_ending = false;
+                    predicate_pos_matches(first, pos)
+                        && positions.all(|position| {
+                            has_ending = true;
+                            position.starts_with('E')
+                        })
+                        && has_ending
+                });
+            });
+        matched
+    }
+
     fn supports_predicate_ending_path_with_terminal(
         &self,
         text: &str,
