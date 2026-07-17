@@ -77,6 +77,18 @@ export interface LoadedKfind {
   readonly loadMilliseconds: number;
 }
 
+export interface LoadedComponentResource {
+  readonly byteLength: number;
+  readonly stored: boolean;
+}
+
+declare const __KFIND_BUILD_VERSION__: string;
+
+const COMPONENT_RESOURCE_CACHE = 'kfind-component-resource-v1';
+const COMPONENT_RESOURCE_URL = '/api/component-resource';
+
+export const componentResourceVersion = __KFIND_BUILD_VERSION__;
+
 export async function loadKfind(): Promise<LoadedKfind> {
   const startedAt = performance.now();
   const module = (await import('./generated-wasm/kfind.js')) as KfindModule;
@@ -107,8 +119,9 @@ export function findMatches(
 export async function loadComponentResource(
   engine: KfindEngine,
   signal?: AbortSignal,
-): Promise<number> {
-  const response = await fetch('/api/component-resource', { signal });
+): Promise<LoadedComponentResource> {
+  const request = componentResourceRequest();
+  const response = await fetch(request, { signal });
 
   if (!response.ok) {
     throw new Error(
@@ -116,7 +129,77 @@ export async function loadComponentResource(
     );
   }
 
+  const cacheResponse = response.clone();
   const bytes = new Uint8Array(await response.arrayBuffer());
   engine.loadComponentResource(bytes);
+
+  return {
+    byteLength: bytes.byteLength,
+    stored: await storeComponentResource(request, cacheResponse),
+  };
+}
+
+export async function restoreComponentResource(
+  engine: KfindEngine,
+  signal?: AbortSignal,
+): Promise<number | null> {
+  if (!('caches' in globalThis)) {
+    return null;
+  }
+
+  signal?.throwIfAborted();
+  const cache = await globalThis.caches.open(COMPONENT_RESOURCE_CACHE);
+  const request = componentResourceRequest();
+  const response = await cache.match(request);
+
+  if (response === undefined) {
+    return null;
+  }
+
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  signal?.throwIfAborted();
+
+  try {
+    engine.loadComponentResource(bytes);
+  } catch (error) {
+    await cache.delete(request);
+    throw error;
+  }
+
   return bytes.byteLength;
+}
+
+function componentResourceRequest(): Request {
+  const url = new URL(COMPONENT_RESOURCE_URL, globalThis.location.origin);
+  url.searchParams.set('build', componentResourceVersion);
+  return new Request(url, { method: 'GET' });
+}
+
+async function storeComponentResource(
+  request: Request,
+  response: Response,
+): Promise<boolean> {
+  if (!('caches' in globalThis)) {
+    return false;
+  }
+
+  try {
+    const cache = await globalThis.caches.open(COMPONENT_RESOURCE_CACHE);
+    await cache.put(request, response);
+
+    try {
+      const cachedRequests = await cache.keys();
+      await Promise.all(
+        cachedRequests
+          .filter((cachedRequest) => cachedRequest.url !== request.url)
+          .map(async (cachedRequest) => cache.delete(cachedRequest)),
+      );
+    } catch {
+      // The verified current entry remains usable when stale-entry cleanup fails.
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
 }

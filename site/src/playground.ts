@@ -2,12 +2,14 @@ import type { CompileOptions, KfindEngine, Match } from './kfind-wasm';
 
 import {
   BoundaryPolicy,
+  componentResourceVersion,
   ExpandMode,
   findMatches,
   loadComponentResource,
   loadKfind,
   NormalizationMode,
   PartOfSpeech,
+  restoreComponentResource,
 } from './kfind-wasm';
 
 export enum PlaygroundState {
@@ -23,6 +25,7 @@ export enum PlaygroundResultState {
 }
 
 export enum ComponentResourceState {
+  Checking = 'checking',
   Idle = 'idle',
   Needed = 'needed',
   Loading = 'loading',
@@ -42,7 +45,6 @@ export interface PlaygroundInput {
   readonly boundary: BoundaryPolicy;
   readonly expand: ExpandMode;
   readonly maxGap: string;
-  readonly normalization: NormalizationMode;
   readonly pos: PartOfSpeech;
   readonly query: string;
   readonly text: string;
@@ -69,7 +71,6 @@ export interface PlaygroundResult {
 export interface PlaygroundController {
   readonly dispose: () => void;
   readonly loadComponentResource: () => void;
-  readonly run: (input: PlaygroundInput) => void;
   readonly scheduleRun: (input: PlaygroundInput) => void;
 }
 
@@ -83,12 +84,12 @@ interface PresetDefinition {
   readonly boundary: BoundaryPolicy;
   readonly expand: ExpandMode;
   readonly maxGap: string;
-  readonly normalization: NormalizationMode;
   readonly pos: PartOfSpeech;
   readonly query: string;
   readonly text: string | (() => string);
 }
 
+const SEARCH_DEBOUNCE_MILLISECONDS = 250;
 const LARGE_INPUT_BYTE_LENGTH = 1024 * 1024;
 const LARGE_INPUT_HEADER =
   '기준표식은 대용량 입력의 전체 scan 시간을 확인하기 위해 한 번만 등장합니다.\n';
@@ -104,7 +105,6 @@ const presets: Readonly<Record<PlaygroundPresetName, PresetDefinition>> = {
     pos: PartOfSpeech.Verb,
     boundary: BoundaryPolicy.Smart,
     expand: ExpandMode.Inflection,
-    normalization: NormalizationMode.Nfc,
     maxGap: '24',
   },
   [PlaygroundPresetName.Phrase]: {
@@ -113,7 +113,6 @@ const presets: Readonly<Record<PlaygroundPresetName, PresetDefinition>> = {
     pos: PartOfSpeech.Auto,
     boundary: BoundaryPolicy.Any,
     expand: ExpandMode.Inflection,
-    normalization: NormalizationMode.Nfc,
     maxGap: '24',
   },
   [PlaygroundPresetName.Component]: {
@@ -122,7 +121,6 @@ const presets: Readonly<Record<PlaygroundPresetName, PresetDefinition>> = {
     pos: PartOfSpeech.Auto,
     boundary: BoundaryPolicy.Smart,
     expand: ExpandMode.Inflection,
-    normalization: NormalizationMode.Nfc,
     maxGap: '24',
   },
   [PlaygroundPresetName.Literal]: {
@@ -131,7 +129,6 @@ const presets: Readonly<Record<PlaygroundPresetName, PresetDefinition>> = {
     pos: PartOfSpeech.Literal,
     boundary: BoundaryPolicy.Smart,
     expand: ExpandMode.Literal,
-    normalization: NormalizationMode.Nfc,
     maxGap: '24',
   },
   [PlaygroundPresetName.LargeInput]: {
@@ -140,7 +137,6 @@ const presets: Readonly<Record<PlaygroundPresetName, PresetDefinition>> = {
     pos: PartOfSpeech.Literal,
     boundary: BoundaryPolicy.Any,
     expand: ExpandMode.Literal,
-    normalization: NormalizationMode.Nfc,
     maxGap: '24',
   },
 };
@@ -166,8 +162,13 @@ export const initialPlaygroundStatus: PlaygroundStatus = {
 };
 
 export const initialComponentResourceStatus: ComponentResourceStatus = {
+  state: ComponentResourceState.Checking,
+  message: `저장된 resource 확인 중 · ${formatResourceVersion()}`,
+};
+
+const idleComponentResourceStatus: ComponentResourceStatus = {
   state: ComponentResourceState.Idle,
-  message: '필요한 경우 R2에서 35.4 MiB를 받습니다.',
+  message: `필요한 경우 R2에서 35.4 MiB를 받습니다 · ${formatResourceVersion()}`,
 };
 
 export function applyPlaygroundPreset(
@@ -186,6 +187,7 @@ export function initializePlayground(
   let latestInput = initialInput;
   let pendingRun: ReturnType<typeof globalThis.setTimeout> | undefined;
   let resourceState = initialComponentResourceStatus.state;
+  let resourceCheckComplete = false;
 
   const setResourceStatus = (status: ComponentResourceStatus): void => {
     resourceState = status.state;
@@ -193,7 +195,7 @@ export function initializePlayground(
   };
 
   const execute = (): void => {
-    if (engine === undefined || signal.aborted) {
+    if (engine === undefined || signal.aborted || !resourceCheckComplete) {
       return;
     }
 
@@ -202,24 +204,17 @@ export function initializePlayground(
     if (
       result.state === PlaygroundResultState.Error &&
       result.message.toLowerCase().includes('component') &&
-      resourceState !== ComponentResourceState.Loading &&
-      resourceState !== ComponentResourceState.Ready
+      resourceState === ComponentResourceState.Idle
     ) {
       setResourceStatus({
         state: ComponentResourceState.Needed,
         message: '이 query를 실행하려면 component asset이 필요합니다.',
       });
     } else if (resourceState === ComponentResourceState.Needed) {
-      setResourceStatus(initialComponentResourceStatus);
+      setResourceStatus(idleComponentResourceStatus);
     }
 
     callbacks.onResult(result);
-  };
-
-  const run = (input: PlaygroundInput): void => {
-    latestInput = input;
-    globalThis.clearTimeout(pendingRun);
-    execute();
   };
 
   const scheduleRun = (input: PlaygroundInput): void => {
@@ -230,13 +225,14 @@ export function initializePlayground(
       return;
     }
 
-    pendingRun = globalThis.setTimeout(execute, 120);
+    pendingRun = globalThis.setTimeout(execute, SEARCH_DEBOUNCE_MILLISECONDS);
   };
 
   callbacks.onStatusChange(initialPlaygroundStatus);
+  callbacks.onResourceStatusChange(initialComponentResourceStatus);
 
   void loadKfind()
-    .then((loaded) => {
+    .then(async (loaded) => {
       if (signal.aborted) {
         loaded.engine.free();
         return;
@@ -247,6 +243,37 @@ export function initializePlayground(
         state: PlaygroundState.Ready,
         message: `WASM ready · embedded lexicon · ${loaded.loadMilliseconds.toFixed(0)} ms`,
       });
+
+      try {
+        const restoredByteLength = await restoreComponentResource(
+          loaded.engine,
+          signal,
+        );
+
+        if (isAborted(signal)) {
+          return;
+        }
+
+        setResourceStatus(
+          restoredByteLength === null
+            ? idleComponentResourceStatus
+            : {
+                state: ComponentResourceState.Ready,
+                message: `${formatMebibytes(restoredByteLength)} MiB 저장소에서 복원 완료 · ${formatResourceVersion()}`,
+              },
+        );
+      } catch (error) {
+        if (isAborted(signal)) {
+          return;
+        }
+
+        setResourceStatus({
+          state: ComponentResourceState.Error,
+          message: `저장된 resource 검증 실패: ${readableError(error)}`,
+        });
+      }
+
+      resourceCheckComplete = true;
       execute();
     })
     .catch((error: unknown) => {
@@ -275,7 +302,6 @@ export function initializePlayground(
         );
       }
     },
-    run,
     scheduleRun,
   };
 }
@@ -340,14 +366,16 @@ async function enableComponentResource(
   });
 
   try {
-    const byteLength = await loadComponentResource(engine, signal);
+    const loaded = await loadComponentResource(engine, signal);
     if (signal.aborted) {
       return;
     }
 
     setResourceStatus({
       state: ComponentResourceState.Ready,
-      message: `${formatMebibytes(byteLength)} MiB 불러오기·검증 완료`,
+      message: loaded.stored
+        ? `${formatMebibytes(loaded.byteLength)} MiB 불러오기·검증·저장 완료 · ${formatResourceVersion()}`
+        : `${formatMebibytes(loaded.byteLength)} MiB 불러오기·검증 완료 · 저장소 미지원`,
     });
     rerun();
   } catch (error) {
@@ -421,7 +449,6 @@ function createPresetInput(presetName: PlaygroundPresetName): PlaygroundInput {
     boundary: preset.boundary,
     expand: preset.expand,
     maxGap: preset.maxGap,
-    normalization: preset.normalization,
     pos: preset.pos,
     query: preset.query,
     text: typeof preset.text === 'function' ? preset.text() : preset.text,
@@ -456,7 +483,7 @@ function readOptions(input: PlaygroundInput): CompileOptions {
     pos: input.pos,
     boundary: input.boundary,
     expand: input.expand,
-    normalization: input.normalization,
+    normalization: NormalizationMode.Canonical,
     maxGap: Number.isNaN(parsedMaxGap) ? 0 : Math.max(0, parsedMaxGap),
   };
 }
@@ -467,4 +494,14 @@ function readableError(error: unknown): string {
 
 function formatMebibytes(byteLength: number): string {
   return (byteLength / (1024 * 1024)).toFixed(1);
+}
+
+function formatResourceVersion(): string {
+  return componentResourceVersion.startsWith('v')
+    ? componentResourceVersion
+    : componentResourceVersion.slice(0, 12);
+}
+
+function isAborted(signal: AbortSignal): boolean {
+  return signal.aborted;
 }

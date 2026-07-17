@@ -1,4 +1,4 @@
-import { style } from '@vanilla-extract/css';
+import { globalStyle, style } from '@vanilla-extract/css';
 
 import { vars } from '../../theme.css';
 
@@ -68,4 +68,23 @@ export const item = style({
       fontWeight: 650,
     },
   },
+});
+
+export const itemText = style({
+  display: 'grid',
+  gap: '0.1rem',
+});
+
+export const description = style({
+  margin: 0,
+  color: vars.color.muted,
+  fontSize: '0.68rem',
+  lineHeight: 1.45,
+});
+
+globalStyle(`${itemText} small`, {
+  color: vars.color.muted,
+  fontSize: '0.66rem',
+  fontWeight: 400,
+  lineHeight: 1.4,
 });

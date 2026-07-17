@@ -12,7 +12,7 @@ import {
   Transaction,
 } from '@codemirror/state';
 import { Decoration, EditorView, keymap } from '@codemirror/view';
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
 
 import { mergeMatchSpans } from '../../playground';
 
@@ -60,7 +60,9 @@ export function SearchEditor({
   const editorHostRef = useRef<HTMLDivElement>(null);
   const editorViewRef = useRef<EditorView>(null);
   const initialValueRef = useRef(value);
+  const lastPublishedValueRef = useRef(value);
   const onValueChangeRef = useRef(onValueChange);
+  const pendingHighlightsRef = useRef<readonly SearchHighlight[]>([]);
   const byteLength = useMemo(
     () => new TextEncoder().encode(value).byteLength,
     [value],
@@ -69,6 +71,27 @@ export function SearchEditor({
   useLayoutEffect(() => {
     onValueChangeRef.current = onValueChange;
   }, [onValueChange]);
+
+  const publishEditorValue = useCallback((editorView: EditorView): void => {
+    const nextValue = editorView.state.doc.toString();
+
+    if (nextValue === lastPublishedValueRef.current) {
+      return;
+    }
+
+    lastPublishedValueRef.current = nextValue;
+    onValueChangeRef.current(nextValue);
+  }, []);
+
+  const applySearchHighlights = useCallback((editorView: EditorView): void => {
+    if (editorView.composing) {
+      return;
+    }
+
+    editorView.dispatch({
+      effects: setSearchHighlights.of(pendingHighlightsRef.current),
+    });
+  }, []);
 
   useLayoutEffect(() => {
     const editorHost = editorHostRef.current;
@@ -93,14 +116,26 @@ export function SearchEditor({
         history(),
         keymap.of(historyKeymap),
         searchHighlightField,
+        EditorView.domEventHandlers({
+          compositionend: (_event, editorView) => {
+            globalThis.queueMicrotask(() => {
+              publishEditorValue(editorView);
+              applySearchHighlights(editorView);
+            });
+          },
+        }),
         EditorView.updateListener.of((update) => {
           const isExternalUpdate = update.transactions.some(
             (transaction) =>
               transaction.annotation(externalValueUpdate) === true,
           );
 
-          if (update.docChanged && !isExternalUpdate) {
-            onValueChangeRef.current(update.state.doc.toString());
+          if (
+            update.docChanged &&
+            !isExternalUpdate &&
+            !update.view.composing
+          ) {
+            publishEditorValue(update.view);
           }
         }),
       ],
@@ -113,7 +148,7 @@ export function SearchEditor({
       editorViewRef.current = null;
       editorView.destroy();
     };
-  }, []);
+  }, [applySearchHighlights, publishEditorValue]);
 
   useLayoutEffect(() => {
     const editorView = editorViewRef.current;
@@ -133,6 +168,7 @@ export function SearchEditor({
         to: editorView.state.doc.length,
       },
     });
+    lastPublishedValueRef.current = value;
   }, [value]);
 
   useLayoutEffect(() => {
@@ -142,12 +178,12 @@ export function SearchEditor({
       return;
     }
 
-    editorView.dispatch({
-      effects: setSearchHighlights.of(
-        mergeMatchSpans(matches, editorView.state.doc.length),
-      ),
-    });
-  }, [matches]);
+    pendingHighlightsRef.current = mergeMatchSpans(
+      matches,
+      editorView.state.doc.length,
+    );
+    applySearchHighlights(editorView);
+  }, [applySearchHighlights, matches]);
 
   return (
     <Field.Root className={styles.field} name="text">
