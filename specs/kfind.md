@@ -399,8 +399,12 @@
   추측하지 않는다. 따라서 부사와 용언 사이에 어절 경계가 필요한 `안 팔아서`, `못 했다`를
   `안팔아서`, `못했다` 안의 component로 열지 않고, source 파생 근거가 없는 `못하다` 안의
   명사 `못`도 열지 않는다. `공부하다`처럼 같은 source 분석이 정렬된 명사 component와 파생
-  접미사를 선언한 경우에는 source component를 유지한다. 이 판정은 runtime path 전체의
-  품사 전이를 제한하지 않으므로 `MAG + JX`인 `드디어는`, `많이들`과 source가 선언한
+  접미사를 선언한 경우에는 source component를 유지한다. 한 source 분석에 component가
+  정렬되지 않았더라도, 두 음절 이상인 체언 뒤에 `XSV`, `XSA` 또는 용언 source edge가 붙어
+  완전한 별도 path를 이루고 더 긴 whole 용언 분석도 있으면 보수적 runtime 파생 근거로
+  인정한다. 따라서 `시작했습니다`, `진정한`, `재미있어요`의 체언은 유지하되, 한 음절 체언은
+  정렬된 source component 없이는 이 fallback을 사용하지 않는다. 이 판정은 runtime path
+  전체의 품사 전이를 제한하지 않으므로 `MAG + JX`인 `드디어는`, `많이들`과 검증된
   `NNG + XSV` 파생을 보존한다. `안팔아서`, `안좋습니다`, `안나와요` 같은
   nonstandard-spacing 입력은 향후 별도 robust 지원에서 다루며 현재 표준형 `smart` 계약에서는
   FP 또는 FN을 허용한다. continuation을 하나도 소비하지 않은 bare predicate가 더 큰 token의

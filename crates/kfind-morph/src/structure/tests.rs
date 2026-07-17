@@ -66,6 +66,7 @@ fn noun_derivation_requires_source_aligned_components() {
         atomic("하다", "VV"),
         atomic("다", "EF"),
         expression("못하다", "VA+EF", "못하/VA/*+다/EF/*"),
+        expression("못하다", "NNG+XSA+EF", "못/NNG/*+하/XSA/*+다/EF/*"),
         expression("공부하다", "NNG+XSV+EF", "공부/NNG/*+하/XSV/*+다/EF/*"),
     ]);
     let unsupported = resolver.resolve_candidate(
@@ -76,7 +77,11 @@ fn noun_derivation_requires_source_aligned_components() {
             consumed: 0.."못".len(),
             token: 0.."못하다".len(),
         },
-        &[component_pattern(DataFinePos::Nng, "못")],
+        &[
+            component_pattern(DataFinePos::Nng, "못"),
+            component_pattern(DataFinePos::Nnp, "못"),
+            component_pattern(DataFinePos::Nnb, "못"),
+        ],
         128,
     );
     let supported = resolver.resolve_candidate(
@@ -104,13 +109,40 @@ fn noun_derivation_requires_source_aligned_components() {
 }
 
 #[test]
+fn multisyllable_runtime_nominal_derivation_survives_a_whole_predicate() {
+    let resolver = resolver_from_entries([
+        atomic("재미", "NNG"),
+        atomic("있", "VA"),
+        atomic("어요", "EF"),
+        atomic("재미있", "VA"),
+    ]);
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("재미있어요"),
+        CandidateSpans {
+            core: 0.."재미".len(),
+            anchor: 0.."재미".len(),
+            consumed: 0.."재미".len(),
+            token: 0.."재미있어요".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "재미")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
 fn runtime_path_does_not_join_a_noun_to_an_attached_predicate() {
     let resolver = resolver_from_entries([
         atomic("못", "NNG"),
         atomic("못하", "VA"),
         atomic("하다", "VV"),
         atomic("하다", "NNG"),
+        atomic("하", "XSV"),
+        atomic("하", "JKV"),
         atomic("다", "EF"),
+        atomic("다", "JX"),
     ]);
     let decision = resolver.resolve_candidate(
         BoundedTokenContext::current("못하다"),
@@ -129,6 +161,29 @@ fn runtime_path_does_not_join_a_noun_to_an_attached_predicate() {
 }
 
 #[test]
+fn one_syllable_nominal_particle_path_survives_a_whole_predicate() {
+    let resolver = resolver_from_entries([
+        atomic("벼", "NNG"),
+        atomic("를", "JKO"),
+        atomic("벼를", "VV+ETM"),
+    ]);
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("벼를"),
+        CandidateSpans {
+            core: 0.."벼".len(),
+            anchor: 0.."벼".len(),
+            consumed: 0.."벼를".len(),
+            token: 0.."벼를".len(),
+        },
+        &[component_pattern(DataFinePos::Nng, "벼")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
 fn complete_ha_predicate_path_selects_an_adjacent_adverb() {
     let resolver = resolver_from_entries([
         atomic("못", "MAG"),
@@ -136,6 +191,7 @@ fn complete_ha_predicate_path_selects_an_adjacent_adverb() {
         atomic("하", "VV"),
         atomic("했", "VV+EP"),
         atomic("박", "VV"),
+        atomic("이브리드", "NNG"),
         atomic("겠", "EP"),
         atomic("았", "EP"),
         atomic("어요", "EF"),
@@ -188,6 +244,10 @@ fn complete_ha_predicate_path_selects_an_adjacent_adverb() {
         128,
     );
     assert_eq!(noun_before_past.outcome, ConstraintOutcome::Contradicted);
+    assert!(!complete_ha_predicate_path(
+        resolver.resource(),
+        "하이브리드"
+    ));
 }
 
 #[test]
