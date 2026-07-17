@@ -11,9 +11,13 @@ publish = false
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[features]
+browser-startup-benchmark = ["dep:kfind-pos-layout-prototype"]
+
 [dependencies]
 js-sys.workspace = true
 kfind.workspace = true
+kfind-pos-layout-prototype = { workspace = true, optional = true }
 serde = { version = "1.0", features = ["derive"] }
 serde-wasm-bindgen.workspace = true
 wasm-bindgen.workspace = true

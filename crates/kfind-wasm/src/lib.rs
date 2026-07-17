@@ -148,6 +148,53 @@ fn initialization_error(error: kfind::DataError) -> JsError {
     JsError::new(&format!("failed to initialize kfind: {error}"))
 }
 
+#[cfg(feature = "browser-startup-benchmark")]
+#[wasm_bindgen(js_name = benchmarkCopyBytes)]
+pub fn benchmark_copy_bytes(bytes: js_sys::Uint8Array) -> u32 {
+    let copied = bytes.to_vec();
+    let length = copied.len();
+    std::hint::black_box(copied);
+    u32::try_from(length).unwrap_or(u32::MAX)
+}
+
+#[cfg(feature = "browser-startup-benchmark")]
+#[wasm_bindgen]
+pub struct BenchmarkFullPosPacked {
+    inner: kfind_pos_layout_prototype::DirectPackedPosLexicon,
+}
+
+#[cfg(feature = "browser-startup-benchmark")]
+#[wasm_bindgen]
+impl BenchmarkFullPosPacked {
+    #[wasm_bindgen(constructor)]
+    pub fn new(
+        bytes: js_sys::Uint8Array,
+        expected_artifact_sha256: &str,
+        full_validation: bool,
+    ) -> Result<BenchmarkFullPosPacked, JsError> {
+        let expected = kfind_pos_layout_prototype::parse_sha256(expected_artifact_sha256)
+            .map_err(|error| JsError::new(&format!("invalid prototype attestation: {error}")))?;
+        let mode = if full_validation {
+            kfind_pos_layout_prototype::ValidationMode::Full
+        } else {
+            kfind_pos_layout_prototype::ValidationMode::Attested
+        };
+        kfind_pos_layout_prototype::decode(bytes.to_vec(), expected, mode)
+            .map(|inner| Self { inner })
+            .map_err(|error| JsError::new(&format!("invalid direct packed prototype: {error}")))
+    }
+
+    #[wasm_bindgen(getter, js_name = entryCount)]
+    pub fn entry_count(&self) -> u32 {
+        self.inner.entry_count()
+    }
+
+    #[wasm_bindgen(getter, js_name = lemmaCount)]
+    pub fn lemma_count(&self) -> u32 {
+        self.inner.lemma_count()
+    }
+}
+
 /// A compiled query exposed to JavaScript.
 #[wasm_bindgen]
 pub struct Matcher {
