@@ -38,7 +38,11 @@ scripts/benchmark-morphology.sh
 
 기본 실행은 kfind 프로필마다 1회 warm-up 뒤 5회 측정하고 외부 분석기는 실행하지 않는다.
 test fixture SHA-256에 맞는 version-controlled 스냅샷만 읽는다. 결과는
-`target/morph-benchmark/report.json`과 `report.md`에 생성된다. 이미지를 빌드한 뒤
+`target/morph-benchmark/report.json`과 `report.md`에 생성된다.
+기본 stdout에는 현재 단계와 최종 보고서 경로만 출력하고 실패와 도구 진단은 stderr에
+출력한다. Docker 빌드 과정과 생성된 Markdown 보고서 전문이 필요하면
+`KFIND_MORPH_VERBOSE=1`을 지정한다.
+이미지를 빌드한 뒤
 컨테이너는 `--network none`으로 실행된다. `scripts/compare-morphology.sh`도 같은
 벤치마크를 실행한다. 이미지 빌드는 고정 checksum의 full-POS artifact를 생성하며,
 artifact가 없거나 검증에 실패하면 벤치마크를 중단한다.

@@ -197,6 +197,10 @@ python3 tools/morph-compare/export_site_snapshot.py \
   --revision "$(git rev-parse --short=12 HEAD)"
 ```
 
+`benchmark-morphology.sh`는 기본적으로 현재 단계와 최종 보고서 경로만 stdout에 출력하고,
+실패 진단은 stderr에 출력한다. Docker 빌드 과정과 생성된 Markdown 보고서 전문이 필요하면
+`KFIND_MORPH_VERBOSE=1 scripts/benchmark-morphology.sh`를 사용한다.
+
 `site-morphology.json`은 공개 site 차트에 필요한 승인 보고서 필드와 원본 report의 revision,
 SHA-256을 보존한다. 승인 보고서와 site 차트를 갱신할 때 같은 변경에서 다시 생성한다.
 
