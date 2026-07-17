@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [full POS decoder 중복 소유 제거](2026-07-17-full-pos-decoder-startup.md)
 - [관형사 뒤 명사 우선 경로 recall](2026-07-17-modifier-noun-preferred-path-recall.md)
 - [숫자 단위 뒤 의존명사 tail recall](2026-07-17-numeric-unit-dependent-tail-recall.md)
 - [관형사 뒤 명사 component recall](2026-07-17-modifier-noun-component-recall.md)
@@ -335,3 +336,14 @@ gate는 변경하지 않았다.
 비표준·붙여쓰기 또는 무표면 지정사다. 다음 작업은 canonical 규칙을 무리하게 넓히지 않고
 profile로 현재 scan/startup 병목을 다시 고른다. 한글 수사 단위 순서와 산술값 검산은 recall과
 분리한 precision 후보로 둔다.
+
+[full POS decoder 중복 소유 제거](2026-07-17-full-pos-decoder-startup.md)에서
+front-compressed 632,667 entry를 복원할 때 결과와 별도로 직전 표제어를 clone하던 소유를
+없앴다. Full POS 단독 base 초기화는 131.80ms에서 120.44ms로 8.62%, Human 전체 초기화는
+4.60% 줄었다. 100MiB CLI Human 처리량은 340.70에서 358.57MiB/s로 5.24% 늘었다. 모든
+canonical·matrix·hard-negative prediction과 FNᶜ/PNᶜ는 같다. Matrix contract 정의,
+annotation과 gate는 변경하지 않았다.
+
+Component resource decoder는 여전히 약 130ms로 가장 큰 다음 optional startup 병목이다.
+다음 작업은 section digest, index decode와 component vector 검증 시간을 분리 측정한 뒤 가장
+큰 구간만 최적화한다.

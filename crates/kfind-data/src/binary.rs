@@ -208,11 +208,14 @@ pub fn decode_pos_lexicon(input: &[u8]) -> Result<DecodedPosLexicon, DataError> 
     entries
         .try_reserve_exact(count)
         .map_err(|_| binary_error("entry 저장 공간을 할당할 수 없습니다"))?;
-    let mut previous = String::new();
     let mut decoded_lemma_bytes = 0_usize;
     for _ in 0..count {
         let prefix = read_varint(input, &mut cursor)? as usize;
         let suffix_len = read_varint(input, &mut cursor)? as usize;
+        let previous = entries
+            .last()
+            .map(|entry| entry.lemma.as_str())
+            .unwrap_or_default();
         if prefix > previous.len() || !previous.is_char_boundary(prefix) {
             return Err(binary_error(
                 "prefix 길이가 이전 표제어의 문자 경계가 아닙니다",
@@ -249,7 +252,6 @@ pub fn decode_pos_lexicon(input: &[u8]) -> Result<DecodedPosLexicon, DataError> 
         {
             return Err(binary_error("entry가 엄격한 정렬 순서가 아닙니다"));
         }
-        previous = entry.lemma.clone();
         entries.push(entry);
     }
     if cursor != input.len() {
