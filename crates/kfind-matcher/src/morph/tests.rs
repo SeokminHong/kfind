@@ -990,6 +990,7 @@ fn predicate_branch(
         consumption: CandidateConsumption::PredicateContinuation {
             continuation,
             pos: kfind_morph::PredicatePos::Verb,
+            source_positions: kfind_morph::PredicatePosSet::one(kfind_morph::PredicatePos::Verb),
             allowed_rule_ids,
             nominal_particle_transition: false,
             left_context: CandidateLeftContext::Any,

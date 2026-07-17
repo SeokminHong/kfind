@@ -808,6 +808,10 @@ pub struct CandidateProgram {
 lexicon rule에서 투영한 조사 allomorph·전이·host별 rule 집합은 analyzer를 만들 때 한 번
 물질화하고 immutable `Arc`로 plan과 matcher가 공유한다. query compile과 matcher build는
 이 전역 조사 graph를 다시 순회하거나 allomorph 문자열을 깊은 복제하지 않는다.
+본용언과 보조용언처럼 활용 실행 class가 같은 분석은 anchor·continuation program을 공유하되,
+각 program은 허용하는 source predicate 품사 집합을 별도로 보존한다. 따라서 `VV/VX`와
+`VA/VX`의 중복 활용 program은 합칠 수 있지만 고정 형태소 자원의 exact path와 whole-token
+충돌은 합쳐진 집합의 모든 source 품사를 검사해야 하며 `VV`, `VA`, `VX`를 서로 바꾸지 않는다.
 
 ### 3.2 용언 분류와 활용 생성을 분리한다
 

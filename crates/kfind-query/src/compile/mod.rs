@@ -12,8 +12,8 @@ use kfind_data::{
     DICTIONARY_CONJUGATION_RULE_ID, DICTIONARY_RELATED_ADVERB_RULE_ID, DerivationRule,
 };
 use kfind_morph::{
-    CoarsePos, ComponentCapability, ParticleAllomorph, RuleId, generate_predicate_branches,
-    generate_predicate_fallback_stems,
+    CoarsePos, ComponentCapability, ParticleAllomorph, PredicatePosSet, RuleId,
+    generate_predicate_branches, generate_predicate_fallback_stems,
 };
 
 mod normalization;
@@ -166,22 +166,46 @@ pub fn compile_query(
             });
         }
 
-        let mut drafts = Vec::new();
+        let mut drafts = Vec::<DraftBranch>::new();
+        let mut analysis_draft_ranges = Vec::<(usize, usize)>::with_capacity(analyses.len());
         for (analysis_index, analysis) in analyses.iter().enumerate() {
-            compile_analysis(
-                &effective.raw,
-                analysis_index as u16,
-                analysis,
-                options,
-                analyzer,
-                &allowed_predicate_rules,
-                &allowed_particle_rules,
-                &allowed_auxiliary_particle_rules,
-                &allowed_adverb_initial_particle_rules,
-                &known_rule_ids,
-                &mut excluded_rules,
-                &mut drafts,
-            )?;
+            let draft_range = if let Some((prior_index, source_pos)) =
+                reusable_predicate_analysis(&analyses, analysis_index)
+            {
+                let (prior_start, prior_end) = analysis_draft_ranges[prior_index];
+                for draft in &mut drafts[prior_start..prior_end] {
+                    draft.consumption.add_source_position(source_pos);
+                    let mut origins = draft
+                        .origins
+                        .iter()
+                        .filter(|origin| origin.analysis_index == prior_index as u16)
+                        .cloned()
+                        .collect::<Vec<_>>();
+                    for origin in &mut origins {
+                        origin.analysis_index = analysis_index as u16;
+                    }
+                    draft.origins.extend(origins);
+                }
+                (prior_start, prior_end)
+            } else {
+                let start = drafts.len();
+                compile_analysis(
+                    &effective.raw,
+                    analysis_index as u16,
+                    analysis,
+                    options,
+                    analyzer,
+                    &allowed_predicate_rules,
+                    &allowed_particle_rules,
+                    &allowed_auxiliary_particle_rules,
+                    &allowed_adverb_initial_particle_rules,
+                    &known_rule_ids,
+                    &mut excluded_rules,
+                    &mut drafts,
+                )?;
+                (start, drafts.len())
+            };
+            analysis_draft_ranges.push(draft_range);
         }
         let programs = normalize_and_merge(
             drafts,
@@ -267,6 +291,32 @@ pub fn compile_query(
     })
 }
 
+fn reusable_predicate_analysis(
+    analyses: &[Analysis],
+    current_index: usize,
+) -> Option<(usize, kfind_morph::PredicatePos)> {
+    let current = analyses.get(current_index)?;
+    let Morphology::Predicate(current_predicate) = &current.morphology else {
+        return None;
+    };
+    analyses[..current_index]
+        .iter()
+        .enumerate()
+        .find_map(|(index, previous)| {
+            let Morphology::Predicate(previous_predicate) = &previous.morphology else {
+                return None;
+            };
+            (current.lemma == previous.lemma
+                && current.coarse_pos == previous.coarse_pos
+                && current.source == previous.source
+                && current_predicate.pos.execution() == previous_predicate.pos.execution()
+                && current_predicate.alternation == previous_predicate.alternation
+                && current_predicate.flags == previous_predicate.flags
+                && current_predicate.overrides == previous_predicate.overrides)
+                .then_some((index, current_predicate.pos))
+        })
+}
+
 #[allow(clippy::too_many_arguments)]
 fn compile_analysis(
     atom_surface: &str,
@@ -298,10 +348,10 @@ fn compile_analysis(
                     blocked_rule_ids: Arc::from([]),
                 },
                 core_mapping: CoreMapping::WholeAnchor,
-                origin: Origin {
+                origins: vec![Origin {
                     analysis_index,
                     rule_path: Vec::new(),
-                },
+                }],
                 smart_left: true,
                 decision,
             });
@@ -341,10 +391,10 @@ fn compile_analysis(
                     blocked_rule_ids,
                 },
                 core_mapping: CoreMapping::WholeAnchor,
-                origin: Origin {
+                origins: vec![Origin {
                     analysis_index,
                     rule_path: Vec::new(),
-                },
+                }],
                 smart_left: true,
                 decision: DraftDecision::Structural(ComponentCapability::SourceAndRuntime),
             });
@@ -385,10 +435,10 @@ fn compile_analysis(
                             rule_id: rule_id.clone(),
                         },
                         core_mapping: CoreMapping::WholeAnchor,
-                        origin: Origin {
+                        origins: vec![Origin {
                             analysis_index,
                             rule_path: vec![rule_id.clone()],
-                        },
+                        }],
                         smart_left: false,
                         decision: DraftDecision::Boundary,
                     });
@@ -492,16 +542,17 @@ fn compile_predicate(
             anchor: branch.anchor.to_string(),
             consumption: CandidateConsumption::PredicateContinuation {
                 continuation: branch.continuation,
-                pos: predicate.pos,
+                pos: predicate.pos.execution(),
+                source_positions: PredicatePosSet::one(predicate.pos),
                 allowed_rule_ids: Arc::clone(allowed_rules),
                 nominal_particle_transition,
                 left_context: environment,
             },
             core_mapping: CoreMapping::PrefixBytes(branch.core_len),
-            origin: Origin {
+            origins: vec![Origin {
                 analysis_index,
                 rule_path,
-            },
+            }],
             smart_left,
             decision: if predicate.alternation == kfind_morph::LexicalAlternation::Copula
                 || exact_component
@@ -555,7 +606,8 @@ fn compile_predicate(
             output.push(DraftBranch {
                 anchor: stem.anchor.into(),
                 consumption: CandidateConsumption::StructuralPredicateEnding {
-                    pos: predicate.pos,
+                    pos: predicate.pos.execution(),
+                    source_positions: PredicatePosSet::one(predicate.pos),
                     flags: predicate.flags,
                     base_state,
                     validate_anchor,
@@ -563,10 +615,10 @@ fn compile_predicate(
                     allowed_suffixes: modern_ending_surfaces(),
                 },
                 core_mapping: CoreMapping::PrefixBytes(stem.core_len),
-                origin: Origin {
+                origins: vec![Origin {
                     analysis_index,
                     rule_path,
-                },
+                }],
                 smart_left: true,
                 decision: DraftDecision::Structural(ComponentCapability::SourceAndRuntime),
             });
@@ -628,10 +680,10 @@ fn compile_derivations(
                     blocked_rule_ids: Arc::from([]),
                 },
                 core_mapping: CoreMapping::WholeAnchor,
-                origin: Origin {
+                origins: vec![Origin {
                     analysis_index,
                     rule_path: derivation_path,
-                },
+                }],
                 smart_left: true,
                 decision: DraftDecision::Structural(ComponentCapability::SourceAndRuntime),
             });
@@ -715,10 +767,10 @@ fn exact_branch_with_decision(
         anchor: surface.to_owned(),
         consumption: CandidateConsumption::Anchor,
         core_mapping: CoreMapping::WholeAnchor,
-        origin: Origin {
+        origins: vec![Origin {
             analysis_index,
             rule_path,
-        },
+        }],
         smart_left,
         decision,
     }

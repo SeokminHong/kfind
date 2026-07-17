@@ -14,7 +14,7 @@ pub(super) struct DraftBranch {
     pub anchor: String,
     pub consumption: CandidateConsumption,
     pub core_mapping: CoreMapping,
-    pub origin: Origin,
+    pub origins: Vec<Origin>,
     pub smart_left: bool,
     pub decision: DraftDecision,
 }
@@ -48,7 +48,7 @@ impl ProgramKey {
         boundary: BoundaryProof,
         decision: DraftDecision,
     ) -> bool {
-        self.consumption == *consumption
+        self.consumption.merge_compatible(consumption)
             && self.core_mapping == core_mapping
             && self.boundary == boundary
             && self.decision == decision
@@ -91,11 +91,18 @@ pub(super) fn normalize_and_merge(
                         boundary_proof,
                         decision,
                     ) {
-                        let origins = &mut merged[index].origins;
-                        if !origins.contains(&draft.origin) {
-                            origins.push(draft.origin.clone());
-                            origins.sort();
+                        let program = &mut merged[index];
+                        program
+                            .key
+                            .consumption
+                            .merge_source_positions(&draft.consumption);
+                        let origins = &mut program.origins;
+                        for origin in &draft.origins {
+                            if !origins.contains(origin) {
+                                origins.push(origin.clone());
+                            }
                         }
+                        origins.sort();
                         continue 'forms;
                     }
                     current = merged[index].next_same_anchor;
@@ -110,7 +117,7 @@ pub(super) fn normalize_and_merge(
                         boundary: boundary_proof,
                         decision,
                     },
-                    origins: vec![draft.origin.clone()],
+                    origins: draft.origins.clone(),
                     next_same_anchor: Some(previous_head),
                 });
                 *head = index;
@@ -126,7 +133,7 @@ pub(super) fn normalize_and_merge(
                         boundary: boundary_proof,
                         decision,
                     },
-                    origins: vec![draft.origin.clone()],
+                    origins: draft.origins.clone(),
                     next_same_anchor: None,
                 });
             }

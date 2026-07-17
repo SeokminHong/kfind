@@ -17,7 +17,7 @@ pub use constraint::{
 pub use domain::{
     CoarsePos, ContinuationState, EndingCategory, EndingInitial, EndingSpec, FinePos,
     LexicalAlternation, MorphFeatureMask, Origin, PredicateEntry, PredicateFlags, PredicatePos,
-    PredicateStemClass, RuleId, SurfaceBranchSpec, SurfaceOverride,
+    PredicatePosSet, PredicateStemClass, RuleId, SurfaceBranchSpec, SurfaceOverride,
 };
 pub use hangul::{
     Syllable, add_final, compose_syllable, decompose_syllable, drop_final, drop_last_final,

@@ -125,13 +125,25 @@ fn forced_verb_preserves_main_and_auxiliary_fine_positions() {
             kfind_morph::FinePos::AuxiliaryVerb,
         ])
     );
-    assert!(plan.atoms[0].programs.iter().any(|program| matches!(
-        program.consumption,
-        CandidateConsumption::PredicateContinuation {
-            pos: kfind_morph::PredicatePos::AuxiliaryVerb,
+    assert!(plan.atoms[0].programs.iter().any(|program| {
+        let CandidateConsumption::PredicateContinuation {
+            pos,
+            source_positions,
             ..
-        }
-    )));
+        } = program.consumption
+        else {
+            return false;
+        };
+        pos == kfind_morph::PredicatePos::Verb
+            && source_positions.contains(kfind_morph::PredicatePos::Verb)
+            && source_positions.contains(kfind_morph::PredicatePos::AuxiliaryVerb)
+            && program
+                .origins
+                .iter()
+                .map(|origin| origin.analysis_index)
+                .collect::<BTreeSet<_>>()
+                == BTreeSet::from([0, 1])
+    }));
 }
 
 #[test]

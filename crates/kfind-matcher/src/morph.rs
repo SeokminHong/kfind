@@ -428,6 +428,7 @@ impl MorphMatcher {
             }
             CandidateConsumption::StructuralPredicateEnding {
                 pos,
+                source_positions,
                 flags,
                 base_state,
                 validate_anchor,
@@ -461,12 +462,14 @@ impl MorphMatcher {
                         suffix,
                     )
                     && if *validate_anchor {
-                        resolver.supports_predicate_ending_path(
-                            &normalized_token,
-                            normalized_anchor.len(),
-                            *pos,
-                            DEFAULT_LATTICE_NODE_LIMIT,
-                        )
+                        source_positions.iter().any(|source_pos| {
+                            resolver.supports_predicate_ending_path(
+                                &normalized_token,
+                                normalized_anchor.len(),
+                                source_pos,
+                                DEFAULT_LATTICE_NODE_LIMIT,
+                            )
+                        })
                     } else {
                         resolver.supports_ending_suffix_path(
                             &normalized_token,
@@ -483,11 +486,13 @@ impl MorphMatcher {
                     });
                 if (!ending_path && !auxiliary_path)
                     || (!auxiliary_path
-                        && resolver.whole_predicate_conflicts(
-                            &normalized_token,
-                            normalized_core_len,
-                            *pos,
-                        ))
+                        && source_positions.iter().any(|source_pos| {
+                            resolver.whole_predicate_conflicts(
+                                &normalized_token,
+                                normalized_core_len,
+                                source_pos,
+                            )
+                        }))
                 {
                     return None;
                 }
@@ -898,7 +903,10 @@ impl MorphMatcher {
         resolver: &ConstraintResolver,
     ) -> bool {
         let CandidateConsumption::PredicateContinuation {
-            continuation, pos, ..
+            continuation,
+            pos,
+            source_positions,
+            ..
         } = branch.consumption
         else {
             return false;
@@ -983,28 +991,34 @@ impl MorphMatcher {
                         return false;
                     }
                     return if ending_auxiliary_particles {
-                        resolver.supports_predicate_ending_particle_path(
-                            token,
-                            core.len(),
-                            ending.len(),
-                            pos,
-                            DEFAULT_LATTICE_NODE_LIMIT,
-                        )
+                        source_positions.iter().any(|source_pos| {
+                            resolver.supports_predicate_ending_particle_path(
+                                token,
+                                core.len(),
+                                ending.len(),
+                                source_pos,
+                                DEFAULT_LATTICE_NODE_LIMIT,
+                            )
+                        })
                     } else if adnominal_dependent_noun_particle {
-                        resolver.supports_adnominal_dependent_noun_particle_path(
-                            token,
-                            core.len(),
-                            ending.len(),
-                            pos,
-                            DEFAULT_LATTICE_NODE_LIMIT,
-                        ) || resolver.has_exact_predicate_ending_path(token, pos)
+                        source_positions.iter().any(|source_pos| {
+                            resolver.supports_adnominal_dependent_noun_particle_path(
+                                token,
+                                core.len(),
+                                ending.len(),
+                                source_pos,
+                                DEFAULT_LATTICE_NODE_LIMIT,
+                            ) || resolver.has_exact_predicate_ending_path(token, source_pos)
+                        })
                     } else {
-                        resolver.supports_predicate_ending_path(
-                            token,
-                            core.len(),
-                            pos,
-                            DEFAULT_LATTICE_NODE_LIMIT,
-                        )
+                        source_positions.iter().any(|source_pos| {
+                            resolver.supports_predicate_ending_path(
+                                token,
+                                core.len(),
+                                source_pos,
+                                DEFAULT_LATTICE_NODE_LIMIT,
+                            )
+                        })
                     };
                 }
                 let normalized = token.nfc().collect::<String>();
@@ -1014,28 +1028,34 @@ impl MorphMatcher {
                     return false;
                 }
                 if ending_auxiliary_particles {
-                    resolver.supports_predicate_ending_particle_path(
-                        &normalized,
-                        core_len,
-                        ending_len,
-                        pos,
-                        DEFAULT_LATTICE_NODE_LIMIT,
-                    )
+                    source_positions.iter().any(|source_pos| {
+                        resolver.supports_predicate_ending_particle_path(
+                            &normalized,
+                            core_len,
+                            ending_len,
+                            source_pos,
+                            DEFAULT_LATTICE_NODE_LIMIT,
+                        )
+                    })
                 } else if adnominal_dependent_noun_particle {
-                    resolver.supports_adnominal_dependent_noun_particle_path(
-                        &normalized,
-                        core_len,
-                        ending_len,
-                        pos,
-                        DEFAULT_LATTICE_NODE_LIMIT,
-                    ) || resolver.has_exact_predicate_ending_path(&normalized, pos)
+                    source_positions.iter().any(|source_pos| {
+                        resolver.supports_adnominal_dependent_noun_particle_path(
+                            &normalized,
+                            core_len,
+                            ending_len,
+                            source_pos,
+                            DEFAULT_LATTICE_NODE_LIMIT,
+                        ) || resolver.has_exact_predicate_ending_path(&normalized, source_pos)
+                    })
                 } else {
-                    resolver.supports_predicate_ending_path(
-                        &normalized,
-                        core_len,
-                        pos,
-                        DEFAULT_LATTICE_NODE_LIMIT,
-                    )
+                    source_positions.iter().any(|source_pos| {
+                        resolver.supports_predicate_ending_path(
+                            &normalized,
+                            core_len,
+                            source_pos,
+                            DEFAULT_LATTICE_NODE_LIMIT,
+                        )
+                    })
                 }
             })
     }
@@ -1076,7 +1096,7 @@ impl MorphMatcher {
             return true;
         }
         let CandidateConsumption::PredicateContinuation {
-            pos,
+            source_positions,
             nominal_particle_transition,
             ..
         } = branch.consumption
@@ -1113,12 +1133,14 @@ impl MorphMatcher {
                 return false;
             };
             let normalized_core_len = core.nfc().collect::<String>().len();
-            resolver.supports_predicate_ending_path(
-                &normalized_prefix,
-                normalized_core_len,
-                pos,
-                DEFAULT_LATTICE_NODE_LIMIT,
-            )
+            source_positions.iter().any(|source_pos| {
+                resolver.supports_predicate_ending_path(
+                    &normalized_prefix,
+                    normalized_core_len,
+                    source_pos,
+                    DEFAULT_LATTICE_NODE_LIMIT,
+                )
+            })
         })
     }
 
@@ -1219,7 +1241,10 @@ fn has_conflicting_whole_predicate(
     branch: &CandidateProgram,
     resolver: &ConstraintResolver,
 ) -> bool {
-    let CandidateConsumption::PredicateContinuation { pos, .. } = branch.consumption else {
+    let CandidateConsumption::PredicateContinuation {
+        source_positions, ..
+    } = branch.consumption
+    else {
         return false;
     };
     let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
@@ -1266,11 +1291,13 @@ fn has_conflicting_whole_predicate(
     if attached_auxiliary {
         return false;
     }
-    resolver.whole_predicate_conflicts_at(
-        &normalized_token,
-        normalized_core_start..normalized_core_end,
-        pos,
-    )
+    source_positions.iter().any(|source_pos| {
+        resolver.whole_predicate_conflicts_at(
+            &normalized_token,
+            normalized_core_start..normalized_core_end,
+            source_pos,
+        )
+    })
 }
 
 fn stem_accepts_ending(
