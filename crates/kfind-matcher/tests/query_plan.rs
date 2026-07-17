@@ -284,12 +284,14 @@ fn adverbial_ge_uses_an_ending_then_auxiliary_particle_source_path() {
         },
     );
 
-    let text = "또 이렇게도 비판하고 있다.";
-    let matched = matcher
-        .find_at_with_meta(text.as_bytes(), 0)
-        .expect("adverbial -게 plus auxiliary particle source path was rejected");
-    assert_eq!(&text[matched.atoms[0].core.clone()], "이렇");
-    assert_eq!(&text[matched.atoms[0].token.clone()], "이렇게");
+    for text in ["또 이렇게도 비판하고 있다.", "또 이렇게는 비판하지 않는다."]
+    {
+        let matched = matcher
+            .find_at_with_meta(text.as_bytes(), 0)
+            .expect("adverbial -게 plus auxiliary particle source path was rejected");
+        assert_eq!(&text[matched.atoms[0].core.clone()], "이렇");
+        assert_eq!(&text[matched.atoms[0].token.clone()], "이렇게");
+    }
 
     assert!(
         matcher

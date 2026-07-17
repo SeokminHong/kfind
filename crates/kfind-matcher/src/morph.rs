@@ -739,8 +739,10 @@ impl MorphMatcher {
             && ["ending.aoeo-seo", "ending.connective-ji"]
                 .iter()
                 .any(|rule| has_rule(rule));
-        let adverbial_auxiliary_particle =
-            trailing.nfc().eq("도".chars()) && has_rule("ending.adverbial-ge");
+        let adverbial_auxiliary_particle = ["도", "는"]
+            .iter()
+            .any(|particle| trailing.nfc().eq(particle.chars()))
+            && has_rule("ending.adverbial-ge");
         let has_adnominal_rule = ADNOMINAL_RULE_IDS.iter().any(|rule| has_rule(rule));
         let adnominal_dependent_noun_particle =
             trailing.nfc().next() == Some('지') && has_adnominal_rule;
