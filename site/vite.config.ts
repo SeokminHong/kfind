@@ -32,6 +32,12 @@ function readComponentResourceVersion(): string {
     }
   }
 
+  if (readGitValue(['rev-parse', '--is-shallow-repository']) === 'true') {
+    throw new Error(
+      'component resource version requires full Git history; checkout with fetch-depth: 0',
+    );
+  }
+
   return readGitValue([
     'log',
     '-1',
