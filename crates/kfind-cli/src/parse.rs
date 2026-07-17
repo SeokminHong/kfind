@@ -183,6 +183,11 @@ const HELP_TEXT: &[(&str, &str, &str)] = &[
         "PATH에서 사용자 사전을 읽습니다.",
     ),
     (
+        "check_data",
+        "Validate installed full POS and component resources, then exit.",
+        "설치된 full POS와 component resource를 검증한 뒤 종료합니다.",
+    ),
+    (
         "init",
         "Initialize the kfind skill for coding agents in the current directory.",
         "현재 디렉터리에 coding agent용 kfind skill을 초기화합니다.",

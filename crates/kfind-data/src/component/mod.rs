@@ -13,10 +13,13 @@ mod payload;
 use payload::{PayloadLayout, StringLayout};
 
 const MAGIC: &[u8; 8] = b"KFCMPLT\0";
-const SCHEMA_VERSION: u32 = 4;
+const SCHEMA_VERSION: u32 = 5;
 const INDEX_KIND_DOUBLE_ARRAY: u8 = 1;
 const SECTION_COUNT: usize = 3;
-const HEADER_LEN: usize = 180;
+const RESOURCE_VERSION_LEN: usize = 32;
+#[cfg(test)]
+const SECTION_LENGTHS_OFFSET: usize = 92;
+const HEADER_LEN: usize = 212;
 #[cfg(not(target_arch = "wasm32"))]
 const PARALLEL_DIGEST_MIN_SECTION_LEN: usize = 1024 * 1024;
 
@@ -24,6 +27,7 @@ pub const COMPONENT_RESOURCE_SOURCE_DIGEST: [u8; 32] = [
     0xfd, 0x62, 0xd3, 0xd6, 0xd8, 0xfa, 0x85, 0x14, 0x55, 0x28, 0x06, 0x5f, 0xab, 0xad, 0x4d, 0x7c,
     0xb2, 0x0f, 0x6b, 0x22, 0x01, 0xe7, 0x1b, 0xe4, 0x08, 0x1a, 0x4e, 0x97, 0x01, 0xa5, 0xb3, 0x30,
 ];
+pub const COMPONENT_RESOURCE_VERSION: &str = env!("CARGO_PKG_VERSION");
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ComponentPart<'a> {
@@ -40,6 +44,7 @@ pub struct ComponentAnalysis<'a> {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ComponentResourceStats {
     pub schema_version: u32,
+    pub resource_version: String,
     pub surface_count: u32,
     pub analysis_count: u32,
     pub component_count: u32,
@@ -139,6 +144,7 @@ pub fn encode_component_resource(
     output.push(INDEX_KIND_DOUBLE_ARRAY);
     output.extend_from_slice(&[0; 3]);
     output.extend_from_slice(&source_digest);
+    output.extend_from_slice(&encoded_resource_version()?);
     output.extend_from_slice(
         &u32::try_from(groups.len())
             .map_err(build_conversion_error)?
@@ -201,6 +207,18 @@ pub fn decode_component_resource(
             DataErrorKind::ComponentResourceSourceMismatch,
         ));
     }
+    let version_bytes = read_array::<RESOURCE_VERSION_LEN>(&bytes, &mut cursor)
+        .map_err(|message| resource_error(source, message))?;
+    let resource_version = decode_resource_version(source, &version_bytes)?;
+    if resource_version != COMPONENT_RESOURCE_VERSION {
+        return Err(DataError::new(
+            SourceLocation::new(source),
+            DataErrorKind::ComponentResourceVersionMismatch {
+                expected: COMPONENT_RESOURCE_VERSION.to_owned(),
+                actual: resource_version.to_owned(),
+            },
+        ));
+    }
     let surface_count =
         read_u32(&bytes, &mut cursor).map_err(|message| resource_error(source, message))?;
     let analysis_count =
@@ -245,6 +263,7 @@ pub fn decode_component_resource(
         bytes,
         stats: ComponentResourceStats {
             schema_version: SCHEMA_VERSION,
+            resource_version: resource_version.to_owned(),
             surface_count,
             analysis_count,
             component_count,
@@ -363,6 +382,37 @@ fn validate_resource_sections(
             .unwrap_or_else(|payload| std::panic::resume_unwind(payload));
         digest_result?;
         layout_result
+    })
+}
+
+fn encoded_resource_version() -> Result<[u8; RESOURCE_VERSION_LEN], DataError> {
+    let version = COMPONENT_RESOURCE_VERSION.as_bytes();
+    if version.is_empty() || version.len() > RESOURCE_VERSION_LEN {
+        return Err(build_error(
+            "component resource version does not fit the header",
+        ));
+    }
+    let mut encoded = [0_u8; RESOURCE_VERSION_LEN];
+    encoded[..version.len()].copy_from_slice(version);
+    Ok(encoded)
+}
+
+fn decode_resource_version<'a>(
+    source: &str,
+    encoded: &'a [u8; RESOURCE_VERSION_LEN],
+) -> Result<&'a str, DataError> {
+    let end = encoded
+        .iter()
+        .position(|byte| *byte == 0)
+        .unwrap_or(encoded.len());
+    if end == 0 || encoded[end..].iter().any(|byte| *byte != 0) {
+        return Err(resource_error(source, "invalid component resource version"));
+    }
+    std::str::from_utf8(&encoded[..end]).map_err(|error| {
+        resource_error(
+            source,
+            &format!("invalid component resource version: {error}"),
+        )
     })
 }
 

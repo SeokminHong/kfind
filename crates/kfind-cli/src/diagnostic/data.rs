@@ -130,6 +130,20 @@ pub(super) fn write_error(
             language.select("expected", "기대값"),
             language.select("got", "실제값")
         ),
+        DataErrorKind::ComponentResourceVersionMismatch { expected, actual } => write!(
+            formatter,
+            "{}: {} {expected}, {} {actual}; {}",
+            language.select(
+                "component resource version mismatch",
+                "component resource version이 일치하지 않습니다"
+            ),
+            language.select("expected", "기대값"),
+            language.select("got", "실제값"),
+            language.select(
+                "reinstall kfind with your package manager",
+                "패키지 관리자로 kfind를 다시 설치하십시오"
+            )
+        ),
         DataErrorKind::ComponentResourceSourceMismatch => formatter.write_str(language.select(
             "component resource source digest mismatch",
             "component resource source digest가 일치하지 않습니다",

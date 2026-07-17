@@ -81,6 +81,10 @@ pub enum DataErrorKind {
         expected: u32,
         actual: u32,
     },
+    ComponentResourceVersionMismatch {
+        expected: String,
+        actual: String,
+    },
     ComponentResourceSourceMismatch,
     ComponentResourceCorrupt(String),
     MissingFixtureCoverage(String),
@@ -150,6 +154,10 @@ impl Display for DataErrorKind {
             Self::ComponentResourceSchema { expected, actual } => write!(
                 formatter,
                 "component resource schema가 올바르지 않습니다: expected {expected}, got {actual}"
+            ),
+            Self::ComponentResourceVersionMismatch { expected, actual } => write!(
+                formatter,
+                "component resource version이 일치하지 않습니다: expected {expected}, got {actual}"
             ),
             Self::ComponentResourceSourceMismatch => {
                 formatter.write_str("component resource source digest가 일치하지 않습니다")

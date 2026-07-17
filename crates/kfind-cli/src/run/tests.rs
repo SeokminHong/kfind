@@ -162,6 +162,35 @@ fn explicit_missing_data_directory_is_an_error() {
 }
 
 #[test]
+fn data_check_validates_and_reports_both_installed_resources() {
+    let temp = TempDir::new();
+    temp.write_bytes(FULL_POS_FILE, &full_pos_resource());
+    temp.write_bytes(COMPONENT_RESOURCE_FILE, &component_resource());
+    let args = Args::try_parse_from([
+        "kfind",
+        "--check-data",
+        "--json",
+        "--data-dir",
+        temp.0.to_str().unwrap(),
+    ])
+    .unwrap();
+
+    let (status, stdout, stderr) = run(args, &[], true);
+    let report: serde_json::Value = serde_json::from_slice(&stdout).unwrap();
+
+    assert_eq!(status, ExitStatus::Match);
+    assert_eq!(report["type"], "data-check");
+    assert_eq!(report["status"], "ok");
+    assert_eq!(report["kfind_version"], env!("CARGO_PKG_VERSION"));
+    assert_eq!(report["full_pos"]["schema_version"], 1);
+    assert_eq!(
+        report["component"]["resource_version"],
+        env!("CARGO_PKG_VERSION")
+    );
+    assert!(stderr.is_empty());
+}
+
+#[test]
 fn literal_query_does_not_decode_full_pos_lexicon() {
     let temp = TempDir::new();
     temp.write("lexicon.bin", "not a lexicon");
