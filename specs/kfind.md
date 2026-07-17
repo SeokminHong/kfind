@@ -393,16 +393,17 @@
   소비한 continuation과 맞지 않는 path까지 허용하지 않는다. 예를 들어 `걸을`에서
   `걷다`의 `걸으-+-ㄹ` program은 유지하지만, `걸다`의 bare `걸` program은 `-을`을
   소비하지 않았으므로 제외한다.
-- source가 정렬해 선언한 component는 같은 span의 runtime 분할보다 우선한다. 서로 다른
-  source edge를 이어 만든 runtime path는 같은 token 안에서 실제로 붙을 수 있는 형태 전이만
-  허용한다. `MAG + JX`처럼 보조사가 붙는 `드디어는`, `많이들`은 유지하지만, 부사와 용언
-  사이에 어절 경계가 필요한 `안 팔아서`, `못 했다`를 `안팔아서`, `못했다` 안의 component로
-  추측하지 않는다. `안팔아서`, `안좋습니다`, `안나와요` 같은 nonstandard-spacing 입력은
-  향후 별도 robust 지원에서 다루며 현재 표준형 `smart` 계약에서는 FP 또는 FN을 허용한다.
-  runtime `NNG + XSV`도 임의의 명사와 `-하-` edge를 이어 만들지 않는다. `공부하다`처럼
-  같은 source 분석이 정렬된 명사 component와 파생 접미사를 선언한 경우에만 명사
-  component를 유지한다. 따라서 source 파생 근거가 없는 `못하다` 안의 명사 `못`은 열지
-  않는다. continuation을 하나도 소비하지 않은 bare predicate가 더 큰 token의
+- source가 정렬해 선언한 component는 같은 span의 runtime 분할보다 우선한다. 조사로
+  완결되는 체언 host가 없는 token에서, 왼쪽 경계부터 시작한 더 긴 source 용언 분석과
+  `E+` suffix가 token 끝까지 완성되면 그 안의 runtime 체언·부사 prefix는 component로
+  추측하지 않는다. 따라서 부사와 용언 사이에 어절 경계가 필요한 `안 팔아서`, `못 했다`를
+  `안팔아서`, `못했다` 안의 component로 열지 않고, source 파생 근거가 없는 `못하다` 안의
+  명사 `못`도 열지 않는다. `공부하다`처럼 같은 source 분석이 정렬된 명사 component와 파생
+  접미사를 선언한 경우에는 source component를 유지한다. 이 판정은 runtime path 전체의
+  품사 전이를 제한하지 않으므로 `MAG + JX`인 `드디어는`, `많이들`과 source가 선언한
+  `NNG + XSV` 파생을 보존한다. `안팔아서`, `안좋습니다`, `안나와요` 같은
+  nonstandard-spacing 입력은 향후 별도 robust 지원에서 다루며 현재 표준형 `smart` 계약에서는
+  FP 또는 FN을 허용한다. continuation을 하나도 소비하지 않은 bare predicate가 더 큰 token의
   일부이거나, predicate component 직후의 체언+조사 후보이면 구조적으로 반증한다.
 - 현재 token에 whole `MAG`와 whole 체언이 경쟁하고 다음 token의 완전한 component path가
   `하다` 활용의 `하/VV` 또는 교체형 `해-/했-/VV`로 시작하면 부사 구조를 선택한다. 따라서
@@ -518,7 +519,7 @@
   NFC이면 normalized byte offset과 원문 상대 offset의 identity mapping을 사용하고,
   NFC가 아닌 window만 prefix 안정 경계를 계산한다. 인접 token도 NFC이면 원문 slice를
   직접 빌려 구조를 준비하고, 비 NFC token만 bounded normalized 문자열을 소유한다.
-- compact morphology resource는 schema 4 container다. NFC surface index, source node의
+- compact morphology resource는 schema 5 container다. NFC surface index, source node의
   POS, NFC 안정 경계에 정렬된 component span과 source identity만 보존한다. left/right
   context ID, word cost, 연결 비용 행렬, unknown model과 원본 expression 문자열은 싣지 않는다.
   국소 graph를 준비할 때는 검증된 resource의 POS 문자열과 component를 빌려 쓰며 token마다

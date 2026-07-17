@@ -622,7 +622,7 @@ struct TokenEvidence {
     nominal_copula_hosts: Box<[Range<usize>]>,
     adnominal_ends: Vec<usize>,
     has_complete_path: bool,
-    has_leading_predicate_path: bool,
+    leading_predicate_spans: Box<[Range<usize>]>,
     numeric_spans: Box<[Range<usize>]>,
     numeric_dependent_tail: Option<Range<usize>>,
     has_numeral_sequence: bool,
@@ -715,9 +715,13 @@ impl TokenEvidence {
             .as_ref()
             .map(|unit| unit.start)
             .or_else(|| (!mixed_numeral_spans.is_empty()).then_some(numeric_end));
-        let paths = runtime_paths(text.len(), &edges, numeric_prefix);
-        let has_complete_path = paths.has_complete_path;
-        let has_leading_predicate_path = leading_predicate_path(text.len(), &edges);
+        let forward = numeric_prefix.map_or_else(
+            || forward_positions(text.len(), &edges),
+            |prefix_end| forward_positions_with_prefix(text.len(), &edges, prefix_end),
+        );
+        let complete = complete_edges(text.len(), &edges, &forward);
+        let has_complete_path = forward[text.len()];
+        let leading_predicate_spans = leading_predicate_spans(text.len(), &edges);
         let attached_auxiliary_spans = if include_attached_auxiliary {
             attached_auxiliary_spans(text.len(), &edges)
         } else {
@@ -734,9 +738,9 @@ impl TokenEvidence {
         let mut adnominal_ends = Vec::new();
         for (index, edge) in edges.iter().enumerate() {
             let eligible = if has_complete_path {
-                paths.complete[index]
+                complete[index]
             } else {
-                paths.reachable[index]
+                forward[edge.span.start]
             };
             if !eligible {
                 continue;
@@ -788,9 +792,9 @@ impl TokenEvidence {
         if let Some(unit) = numeric_unit.as_ref() {
             for (index, edge) in edges.iter().enumerate() {
                 let eligible = if has_complete_path {
-                    paths.complete[index]
+                    complete[index]
                 } else {
-                    paths.reachable[index]
+                    forward[edge.span.start]
                 };
                 if !eligible {
                     continue;
@@ -870,7 +874,7 @@ impl TokenEvidence {
             nominal_copula_hosts,
             adnominal_ends,
             has_complete_path,
-            has_leading_predicate_path,
+            leading_predicate_spans,
             numeric_spans,
             numeric_dependent_tail: numeric_path.and_then(|path| path.dependent_tail),
             has_numeral_sequence,
@@ -965,7 +969,7 @@ fn attached_auxiliary_spans(text_len: usize, edges: &[Edge<'_>]) -> Box<[Range<u
     spans.into_boxed_slice()
 }
 
-fn leading_predicate_path(text_len: usize, edges: &[Edge<'_>]) -> bool {
+fn leading_predicate_spans(text_len: usize, edges: &[Edge<'_>]) -> Box<[Range<usize>]> {
     let mut ending_suffix = vec![false; text_len + 1];
     ending_suffix[text_len] = true;
     for edge in edges.iter().rev() {
@@ -973,17 +977,23 @@ fn leading_predicate_path(text_len: usize, edges: &[Edge<'_>]) -> bool {
             ending_suffix[edge.span.start] = true;
         }
     }
-    edges.iter().any(|edge| {
-        let mut positions = edge.pos.split('+');
-        edge.span.start == 0
-            && edge.span.end < text_len
-            && positions
-                .next()
-                .and_then(DataFinePos::parse)
-                .is_some_and(DataFinePos::is_predicate)
-            && positions.all(|pos| pos.starts_with('E'))
-            && ending_suffix[edge.span.end]
-    })
+    let mut spans = edges
+        .iter()
+        .filter_map(|edge| {
+            let mut positions = edge.pos.split('+');
+            (edge.span.start == 0
+                && positions
+                    .next()
+                    .and_then(DataFinePos::parse)
+                    .is_some_and(DataFinePos::is_predicate)
+                && positions.all(|pos| pos.starts_with('E'))
+                && ending_suffix[edge.span.end])
+                .then(|| edge.span.clone())
+        })
+        .collect::<Vec<_>>();
+    spans.sort_unstable_by_key(|span| (span.start, span.end));
+    spans.dedup();
+    spans.into_boxed_slice()
 }
 
 #[derive(Clone, Copy)]
@@ -1115,67 +1125,37 @@ fn ending_path_ends_in_connective(pos: &str) -> Option<bool> {
     Some(last == Some("EC"))
 }
 
-#[derive(Debug)]
-struct RuntimePaths {
-    reachable: Vec<bool>,
-    complete: Vec<bool>,
-    has_complete_path: bool,
+fn forward_positions(text_len: usize, edges: &[Edge<'_>]) -> Vec<bool> {
+    let mut forward = vec![false; text_len + 1];
+    forward[0] = true;
+    for start in 0..text_len {
+        if !forward[start] {
+            continue;
+        }
+        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+            forward[edge.span.end] = true;
+        }
+    }
+    forward
 }
 
-fn runtime_paths(
+fn forward_positions_with_prefix(
     text_len: usize,
     edges: &[Edge<'_>],
-    synthetic_prefix_end: Option<usize>,
-) -> RuntimePaths {
-    let mut starting_at = vec![Vec::new(); text_len + 1];
-    let mut ending_at = vec![Vec::new(); text_len + 1];
-    for (index, edge) in edges.iter().enumerate() {
-        starting_at[edge.span.start].push(index);
-        ending_at[edge.span.end].push(index);
+    prefix_end: usize,
+) -> Vec<bool> {
+    let mut forward = vec![false; text_len + 1];
+    forward[0] = true;
+    forward[prefix_end] = true;
+    for start in 0..text_len {
+        if !forward[start] {
+            continue;
+        }
+        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+            forward[edge.span.end] = true;
+        }
     }
-
-    let mut reachable = vec![false; edges.len()];
-    for (index, edge) in edges.iter().enumerate() {
-        let starts_path = edge.span.start == 0 || synthetic_prefix_end == Some(edge.span.start);
-        reachable[index] = starts_path
-            || ending_at[edge.span.start].iter().any(|&previous_index| {
-                let previous = &edges[previous_index];
-                reachable[previous_index] && runtime_transition_is_allowed(previous.pos, edge.pos)
-            });
-    }
-
-    let mut reaches_end = vec![false; edges.len()];
-    for (index, edge) in edges.iter().enumerate().rev() {
-        reaches_end[index] = edge.span.end == text_len
-            || starting_at[edge.span.end].iter().any(|&next_index| {
-                runtime_transition_is_allowed(edge.pos, edges[next_index].pos)
-                    && reaches_end[next_index]
-            });
-    }
-
-    let complete = reachable
-        .iter()
-        .zip(reaches_end)
-        .map(|(reachable, reaches_end)| *reachable && reaches_end)
-        .collect::<Vec<_>>();
-    let has_complete_path = edges
-        .iter()
-        .zip(&reachable)
-        .any(|(edge, reachable)| *reachable && edge.span.end == text_len);
-    RuntimePaths {
-        reachable,
-        complete,
-        has_complete_path,
-    }
-}
-
-fn runtime_transition_is_allowed(left: &str, right: &str) -> bool {
-    let left = left.split('+').next_back().unwrap_or(left);
-    let right = right.split('+').next().unwrap_or(right);
-    let adverb_to_attached_word = matches!(left, "MAG" | "MAJ") && right != "JX";
-    let nominal_to_attached_predicate = matches!(left, "NNG" | "NNP" | "NNB" | "NR" | "NP")
-        && ((right.starts_with('V') && right != "VCP") || matches!(right, "XSV" | "XSA"));
-    !adverb_to_attached_word && !nominal_to_attached_predicate
+    forward
 }
 
 #[derive(Clone, Copy)]
@@ -1303,6 +1283,21 @@ fn numeral_sequence_spans(
     spans
 }
 
+fn complete_edges(text_len: usize, edges: &[Edge<'_>], forward: &[bool]) -> Vec<bool> {
+    let mut backward = vec![false; text_len + 1];
+    backward[text_len] = true;
+    for start in (0..text_len).rev() {
+        backward[start] = edges
+            .iter()
+            .filter(|edge| edge.span.start == start)
+            .any(|edge| backward[edge.span.end]);
+    }
+    edges
+        .iter()
+        .map(|edge| forward[edge.span.start] && backward[edge.span.end])
+        .collect()
+}
+
 fn collect_pattern_supports(
     evidence: &TokenEvidence,
     spans: &CandidateSpans,
@@ -1375,7 +1370,6 @@ fn collect_pattern_supports(
 enum StructureSelection {
     Whole,
     Adverb,
-    PredicatePath,
     AdjacentDeterminer,
     NominalSpan {
         selected: Range<usize>,
@@ -1428,14 +1422,6 @@ impl StructureSelection {
                 support.evidence == StructuralEvidence::Whole
                     && pattern.fine_pos == DataFinePos::Mag
             }
-            Self::PredicatePath => match support.evidence {
-                StructuralEvidence::Whole | StructuralEvidence::SourceComponent => true,
-                StructuralEvidence::RuntimeComponent => {
-                    !pattern.fine_pos.is_nominal()
-                        && !matches!(pattern.fine_pos, DataFinePos::Mag | DataFinePos::Maj)
-                        && runtime_position_is_supported(pattern, spans, text, evidence)
-                }
-            },
             Self::AdjacentDeterminer => {
                 (support.evidence == StructuralEvidence::Whole
                     && pattern.fine_pos == DataFinePos::Mm)
@@ -1555,7 +1541,8 @@ impl StructureSelection {
             Self::RuntimeCompatible { graph_nominal_host } => match support.evidence {
                 StructuralEvidence::Whole | StructuralEvidence::SourceComponent => true,
                 StructuralEvidence::RuntimeComponent => {
-                    runtime_position_is_supported(pattern, spans, text, evidence)
+                    !runtime_component_is_shadowed_by_predicate(pattern, spans, evidence)
+                        && runtime_position_is_supported(pattern, spans, text, evidence)
                         && runtime_nominal_component_is_supported(
                             pattern,
                             spans,
@@ -1566,6 +1553,19 @@ impl StructureSelection {
             },
         }
     }
+}
+
+fn runtime_component_is_shadowed_by_predicate(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    evidence: &TokenEvidence,
+) -> bool {
+    (pattern.fine_pos.is_nominal()
+        || matches!(pattern.fine_pos, DataFinePos::Mag | DataFinePos::Maj))
+        && evidence
+            .leading_predicate_spans
+            .iter()
+            .any(|predicate| predicate.start == spans.core.start && predicate.end > spans.core.end)
 }
 
 fn nominal_component_is_supported(
@@ -1992,9 +1992,6 @@ fn select_structure(
         if let Some(unit) = evidence.numeric_spans.first() {
             return StructureSelection::NumericUnit { unit: unit.clone() };
         }
-    }
-    if evidence.has_leading_predicate_path {
-        return StructureSelection::PredicatePath;
     }
     let fallback = if let Some(host) = particle_host {
         let allow_components = false;
