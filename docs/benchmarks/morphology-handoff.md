@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [component SHA-256 hardware backend](2026-07-17-component-hardware-digest-startup.md)
 - [full POS validation prefix 재검사 제거](2026-07-17-full-pos-validation-startup.md)
 - [full POS packed lookup index](2026-07-17-full-pos-packed-startup.md)
 - [component section digest 병렬 검증](2026-07-17-component-digest-startup.md)
@@ -387,3 +388,15 @@ prediction과 span, FNᶜ/PNᶜ는 같다. Matrix contract 정의, annotation과
 이제 full-POS+component 전체 132.75ms 중 component가 94.46ms로 71%다. 다음 성능 작업은
 component file read, 병렬 section digest와 payload 구조 검증을 최신 코드에서 다시 분리
 측정해 가장 큰 구간만 줄인다. Full POS decoder의 남은 38.54ms는 우선하지 않는다.
+
+[component SHA-256 hardware backend](2026-07-17-component-hardware-digest-startup.md)에서
+최신 profile의 164개 CPU sample 중 135개를 차지한 portable SHA-256을 runtime-detected
+hardware backend로 바꿨다. Embedded component load는 92.85→49.49ms로 46.70%, full-POS
+조합의 component load는 94.38→47.28ms로 49.91% 줄었다. 100MiB CLI Human wall은 30.95%
+줄고 처리량은 44.83% 늘었다. 모든 canonical·matrix·Human·hard-negative prediction과
+span, FNᶜ/PNᶜ는 같다. Matrix contract 정의, annotation과 gate는 변경하지 않았다.
+
+이제 full-POS+component 전체 86.57ms 중 component는 47.28ms, full-POS base는 39.20ms다.
+Component의 다음 성능 후보는 payload record 검증과 file read지만, profile에서 payload parse는
+21개 sample이다. 두 자릿수 millisecond 개선을 확인할 때만 진행하고, 다음 제품 품질 작업은
+남은 test matrix full-POS FNᶜ 50건을 현재 contract 그대로 원인별 재분류한다.
