@@ -22,7 +22,6 @@ use normalization::{DraftBranch, DraftDecision, normalize_and_merge, normalize_a
 
 const PROGRAM_OVERHEAD_BYTES: usize = 64;
 const NIKL_ENDING_CATALOG: &str = include_str!("../../../../data/rules/nikl-modern-endings.tsv");
-const COPULA_CONTRACTED_AOEO_RULE_ID: &str = "ending.aoeo-seo";
 const CONNECTIVE_JI_RULE_ID: &str = "ending.connective-ji";
 const NOMINALIZER_RULE_IDS: &[&str] = &["ending.nominalizer", "ending.nominalizer-gi"];
 const INTERNAL_PROVENANCE_IDS: &[&str] = &[
@@ -643,13 +642,9 @@ fn predicate_environment(
     predicate: &kfind_morph::PredicateEntry,
     branch: &kfind_morph::SurfaceBranchSpec,
 ) -> CandidateLeftContext {
-    let is_contracted_copula_aoeo = predicate.alternation
-        == kfind_morph::LexicalAlternation::Copula
-        && branch
-            .rule_path
-            .iter()
-            .any(|rule| rule.as_str() == COPULA_CONTRACTED_AOEO_RULE_ID);
-    if !is_contracted_copula_aoeo {
+    let is_contracted_copula = predicate.alternation == kfind_morph::LexicalAlternation::Copula
+        && matches!(branch.anchor.as_ref(), "다" | "였" | "여서");
+    if !is_contracted_copula {
         return CandidateLeftContext::Any;
     }
 

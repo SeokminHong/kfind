@@ -614,6 +614,9 @@ impl MorphMatcher {
         if patterns.is_empty() {
             return false;
         }
+        if self.accepts_product_copula_frame(haystack, candidate, branch, resolver, patterns) {
+            return true;
+        }
         let licensed_trailing =
             self.licensed_structural_trailing(haystack, candidate, branch, resolver);
         if licensed_trailing.is_none()
@@ -639,8 +642,16 @@ impl MorphMatcher {
         {
             return false;
         }
-        let include_nominal_copula = patterns.iter().any(|pattern| pattern.fine_pos.is_nominal())
-            && nominal_copula_surface_follows(haystack, candidate);
+        let copula_program = matches!(
+            branch.consumption,
+            CandidateConsumption::PredicateContinuation {
+                pos: kfind_morph::PredicatePos::Copula,
+                ..
+            }
+        );
+        let include_nominal_copula = copula_program
+            || (patterns.iter().any(|pattern| pattern.fine_pos.is_nominal())
+                && nominal_copula_surface_follows(haystack, candidate));
         let consumed = licensed_trailing.unwrap_or_else(|| candidate.consumed.clone());
         let rejected_suffix =
             self.has_rejected_structural_suffix(haystack, candidate, &consumed, branch, resolver);
@@ -652,7 +663,7 @@ impl MorphMatcher {
         {
             return false;
         }
-        let window = whole;
+        let window = whole.clone();
         let context = structural_cache
             .entry((window.start, window.end, include_nominal_copula))
             .or_insert_with(|| {
@@ -730,6 +741,61 @@ impl MorphMatcher {
                 && resolver.supports_auxiliary_sequence(trailing, DEFAULT_LATTICE_NODE_LIMIT))
             || source_predicate_continuation;
         licensed.then_some(candidate.consumed.start..whole.end)
+    }
+
+    fn accepts_product_copula_frame(
+        &self,
+        haystack: &[u8],
+        candidate: &ExecutedCandidate,
+        branch: &CandidateProgram,
+        resolver: &ConstraintResolver,
+        patterns: &[kfind_morph::QueryMorphPattern],
+    ) -> bool {
+        let CandidateConsumption::PredicateContinuation { pos, .. } = branch.consumption else {
+            return false;
+        };
+        if pos != kfind_morph::PredicatePos::Copula
+            || !patterns
+                .iter()
+                .any(|pattern| pattern.fine_pos == DataFinePos::Vcp)
+        {
+            return false;
+        }
+        let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
+        if candidate.verified.core.start <= whole.start || candidate.consumed.end != whole.end {
+            return false;
+        }
+        let Some(token) = haystack
+            .get(whole.clone())
+            .and_then(|bytes| std::str::from_utf8(bytes).ok())
+        else {
+            return false;
+        };
+        let token = token.nfc().collect::<String>();
+        if resolver.has_whole_modifier(&token) {
+            return false;
+        }
+        let Some(host) = haystack
+            .get(whole.start..candidate.verified.core.start)
+            .and_then(|bytes| std::str::from_utf8(bytes).ok())
+        else {
+            return false;
+        };
+        let host = host.nfc().collect::<String>();
+        resolver.has_complete_nominal_surface(&host)
+            || host
+                .char_indices()
+                .map(|(offset, _)| offset)
+                .skip(1)
+                .any(|split| {
+                    let nominal = &host[..split];
+                    let particles = &host[split..];
+                    resolver.has_complete_nominal_surface(nominal)
+                        && self
+                            .particle_verifier
+                            .verify_exact(nominal, particles)
+                            .is_some()
+                })
     }
 
     fn licensed_nominal_copula_trailing(

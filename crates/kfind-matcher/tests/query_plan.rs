@@ -1177,6 +1177,45 @@ fn compiled_vcp_plan_accepts_corpus_attestations_and_licensed_contraction() {
 }
 
 #[test]
+fn compiled_vcp_plan_uses_complete_nominal_and_particle_hosts() {
+    let resource = component_resource_from_entries([
+        component_entry("상표", "NNG"),
+        component_entry("구경거리", "NNG"),
+        component_entry("학교", "NNG"),
+        component_entry("대학", "NNG"),
+        component_entry("매", "NNG"),
+        component_entry("매일", "MAG"),
+    ]);
+    let matcher = compile_with_full_pos_and_resource("이다", CompileOptions::default(), resource);
+
+    for text in [
+        "버버리는 회사 상표다.",
+        "끔찍한 구경거리였다.",
+        "범위는 학교까지였다.",
+        "대상은 대학뿐이다.",
+        "대상은 대학뿐이었다.",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "rejected complete copula frame: {text}"
+        );
+    }
+    for text in [
+        "대학다.",
+        "대학였다.",
+        "대학여서 갔다.",
+        "매일 만났다.",
+        "다.",
+        "학교다른.",
+    ] {
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+            "accepted invalid copula frame: {text}"
+        );
+    }
+}
+
+#[test]
 fn smart_vcp_corpus_fixtures_apply_component_evidence() {
     let matcher = compile("이다", CompileOptions::default());
     assert!(

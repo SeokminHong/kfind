@@ -470,6 +470,11 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_complete_nominal_surface(&self, text: &str) -> bool {
+        !text.is_empty() && complete_nominal_host(&self.resource, text)
+    }
+
+    #[must_use]
     pub fn resolve_candidate(
         &self,
         context: BoundedTokenContext<'_>,

@@ -199,24 +199,18 @@ fn verify_complete_copula_surface(surface: &str) -> bool {
 /// Verifies an explicit or phonologically contracted copula after a nominal surface.
 #[must_use]
 pub fn verify_copula_surface_after_nominal(preceding: char, surface: &str) -> bool {
-    if verify_complete_copula_surface(surface) {
-        return !surface.starts_with('여') || preceding_allows_copula_contraction(preceding);
-    }
-    if !preceding_allows_copula_contraction(preceding) {
+    if !verify_complete_copula_surface(surface) {
         return false;
     }
-    let expanded = if surface == "다" {
-        Some("이다".to_owned())
-    } else {
-        surface
-            .strip_prefix("였")
-            .map(|following| format!("이었{following}"))
-    };
-    expanded.is_some_and(|surface| verify_complete_copula_surface(&surface))
+    !is_contracted_copula_surface(surface) || preceding_allows_copula_contraction(preceding)
 }
 
 fn preceding_allows_copula_contraction(preceding: char) -> bool {
     decompose_syllable(preceding).is_some_and(|syllable| syllable.jongseong == JONG_NONE)
+}
+
+fn is_contracted_copula_surface(surface: &str) -> bool {
+    surface == "다" || surface.starts_with(['였', '여'])
 }
 
 pub fn generate_predicate_fallback_stems(
@@ -556,6 +550,11 @@ fn compile_copula(
     }
     for (surface, continuation, ending_rule) in [
         (
+            "다".to_owned(),
+            ContinuationState::Terminal,
+            "ending.final-da",
+        ),
+        (
             format!("{stem}고"),
             ContinuationState::Terminal,
             "ending.connective-go",
@@ -622,6 +621,14 @@ fn compile_copula(
         branches,
         entry,
         past,
+        stem.len(),
+        ContinuationState::Past,
+        vec![rule("lexical.copula"), rule("ending.past")],
+    );
+    push_branch(
+        branches,
+        entry,
+        "였".to_owned(),
         stem.len(),
         ContinuationState::Past,
         vec![rule("lexical.copula"), rule("ending.past")],
