@@ -1529,6 +1529,7 @@ enum StructureSelection {
     AdjacentDeterminer,
     NominalSpan {
         selected: Range<usize>,
+        particle_hosts: Box<[Range<usize>]>,
         allow_components: bool,
         allow_whole_nominal_source_components: bool,
     },
@@ -1588,6 +1589,7 @@ impl StructureSelection {
             }
             Self::NominalSpan {
                 selected,
+                particle_hosts,
                 allow_components,
                 allow_whole_nominal_source_components,
             } => {
@@ -1625,6 +1627,12 @@ impl StructureSelection {
                                         evidence,
                                     ))))
                             || spans.core == *selected
+                            || (particle_hosts.iter().any(|host| spans.core == *host)
+                                && spans.consumed == spans.token
+                                && matches!(
+                                    pattern.continuation,
+                                    MorphContinuation::NominalParticles
+                                ))
                             || (spans.core.start == selected.start
                                 && spans.consumed.end == selected.end
                                 && evidence.units.iter().any(|unit| {
@@ -2142,10 +2150,11 @@ fn select_structure(
             exact_analysis_starts_with_pos(resource, next, |pos| !pos.starts_with('N'));
         let complete_nominal = complete_nominal_host(resource, next)
             || complete_nominal_particle_host(resource, next).is_some();
-        nominal_particle_host(resource, next).is_some()
+        !nominal_particle_hosts(resource, next).is_empty()
             || (!exact_competitor && (exact_nominal || complete_nominal))
     });
-    let particle_host = nominal_particle_host(resource, context.current);
+    let particle_hosts = nominal_particle_hosts(resource, context.current);
+    let particle_host = particle_hosts.last().cloned();
     if next_starts_nominal
         && context.current.chars().count() == 1
         && evidence.has_whole(DataFinePos::Mm)
@@ -2191,6 +2200,7 @@ fn select_structure(
             host != (0..context.current.len()) && evidence.has_whole_nominal_source_components;
         StructureSelection::NominalSpan {
             selected: host,
+            particle_hosts: particle_hosts.into_boxed_slice(),
             allow_components,
             allow_whole_nominal_source_components,
         }
@@ -2345,7 +2355,7 @@ fn unique_copular_split(resource: &ComponentResource, current: &str) -> Option<u
     matches.next().is_none().then_some(split)
 }
 
-fn nominal_particle_host(resource: &ComponentResource, current: &str) -> Option<Range<usize>> {
+fn nominal_particle_hosts(resource: &ComponentResource, current: &str) -> Vec<Range<usize>> {
     current
         .char_indices()
         .map(|(offset, _)| offset)
@@ -2354,8 +2364,8 @@ fn nominal_particle_host(resource: &ComponentResource, current: &str) -> Option<
             has_exact_fine_pos(resource, &current[..split], DataFinePos::is_nominal)
                 && complete_suffix(resource, &current[split..], |pos| pos.starts_with('J'))
         })
-        .max()
         .map(|end| 0..end)
+        .collect()
 }
 
 fn complete_nominal_particle_host(

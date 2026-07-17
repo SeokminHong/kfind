@@ -533,6 +533,33 @@ fn longest_nominal_particle_host_hides_an_inner_component() {
 }
 
 #[test]
+fn competing_nominal_particle_hosts_are_all_preserved() {
+    let resolver = resolver_from_entries([
+        atomic("후", "NNG"),
+        atomic("후에", "NNP"),
+        atomic("에", "JKB"),
+        atomic("도", "JX"),
+    ]);
+    let shorter = resolver.resolve_candidate(
+        BoundedTokenContext::current("후에도"),
+        spans(0.."후".len(), 0.."후에도".len()),
+        &[nominal_pattern(DataFinePos::Nng, "후")],
+        128,
+    );
+    let longer = resolver.resolve_candidate(
+        BoundedTokenContext::current("후에도"),
+        spans(0.."후에".len(), 0.."후에도".len()),
+        &[nominal_pattern(DataFinePos::Nnp, "후에")],
+        128,
+    );
+
+    assert_eq!(shorter.outcome, ConstraintOutcome::Supported);
+    assert_eq!(longer.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&shorter));
+    assert!(ProductPolicy::RecallFirst.accepts(&longer));
+}
+
+#[test]
 fn exact_nominal_particle_host_outranks_a_longer_runtime_decomposition() {
     let resolver = resolver();
     let pattern = QueryMorphPattern::new(DataFinePos::Nng, "학교").with_candidate_contract(
