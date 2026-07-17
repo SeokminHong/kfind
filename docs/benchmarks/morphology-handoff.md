@@ -459,3 +459,14 @@ Raw test matrix full-POS FNᶜ 43건은 `boundary-rejected` 20건,
 `span-mismatch` 1건이다. 남은 continuation case인 `보로`와 그 밖의 비표준·오타 case는
 제품 recall 탐색에서 제외한다. 다음 작업은 raw FN에서 표준어 case만 먼저 분리하고, 공통
 형태 구조가 확인된 경우에만 구현한다.
+
+[부사형 뒤 보조사 recall](2026-07-17-adverbial-particle-recall.md)에서 source graph가
+`predicate + E+ + J+`를 완성할 때 `-게` 뒤 정확한 보조사 `도`를 허용했다. Test matrix
+full-POS와 Human은 `이렇게도→이렇다`를 회수해 `PNᶜ=1,401`에서 FNᶜ가 각각 43→42,
+46→45가 됐다. 모든 FP·FPᶜ, embedded, Agent, canonical, development와 hard-negative는
+같다. Matrix contract 정의, annotation과 gate는 변경하지 않았다.
+
+남은 raw test matrix full-POS FNᶜ 42건은 `boundary-rejected` 19건,
+`gold-or-adapter` 15건, `surface-missing` 6건, `continuation-rejected` 1건,
+`span-mismatch` 1건이다. `보로`, 오탈자, 비표준 활용, 띄어쓰기 오류와 기본 `inflection`
+범위를 벗어나는 생산 파생은 다음 제품 recall 후보에서 제외한다.

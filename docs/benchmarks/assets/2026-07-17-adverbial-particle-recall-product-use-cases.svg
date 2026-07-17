@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800" role="img" aria-labelledby="title desc">
+<title id="title">Product use-case performance</title>
+<desc id="desc">Fresh-process agent and human CLI wall time, throughput, and peak RSS are shown separately from library resource initialization and memory costs.</desc>
+
+<style>
+  .background { fill: #ffffff; }
+  text { fill: #111827; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .muted { fill: #4b5563; }
+  .grid { stroke: #d1d5db; stroke-width: 1; }
+  .axis { stroke: #6b7280; stroke-width: 1; }
+  @media (prefers-color-scheme: dark) {
+    .background { fill: #0d1117; }
+    text { fill: #f3f4f6; }
+    .muted { fill: #9ca3af; }
+    .grid { stroke: #374151; }
+    .axis { stroke: #9ca3af; }
+  }
+</style>
+
+<rect class="background" width="1280" height="800"/>
+<text x="52.0" y="38.0" text-anchor="start">Product use-case performance</text>
+<text x="52.0" y="62.0" text-anchor="start" class="muted">Fresh CLI process · warm filesystem cache · 100 MiB across 1,000 files · one match</text>
+<text x="52.0" y="112.0" text-anchor="start">Wall time · ms · lower is better</text>
+<text x="52.0" y="168.0" text-anchor="start">Agent</text>
+<rect x="124.0" y="151.0" width="30.1" height="25.0" rx="3" fill="#2563eb"/>
+<text x="332.0" y="169.0" text-anchor="start">19.0 ms</text>
+<text x="52.0" y="232.0" text-anchor="start">Human</text>
+<rect x="124.0" y="215.0" width="183.3" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="332.0" y="233.0" text-anchor="start">116.1 ms</text>
+<text x="455.0" y="112.0" text-anchor="start">Throughput · MiB/s · higher is better</text>
+<text x="455.0" y="168.0" text-anchor="start">Agent</text>
+<rect x="527.0" y="151.0" width="183.3" height="25.0" rx="3" fill="#2563eb"/>
+<text x="735.0" y="169.0" text-anchor="start">5,252.8</text>
+<text x="455.0" y="232.0" text-anchor="start">Human</text>
+<rect x="527.0" y="215.0" width="30.1" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="735.0" y="233.0" text-anchor="start">861.2</text>
+<text x="858.0" y="112.0" text-anchor="start">Peak RSS · MiB · lower is better</text>
+<text x="858.0" y="168.0" text-anchor="start">Agent</text>
+<rect x="930.0" y="151.0" width="25.0" height="25.0" rx="3" fill="#2563eb"/>
+<text x="1138.0" y="169.0" text-anchor="start">7.6 MiB</text>
+<text x="858.0" y="232.0" text-anchor="start">Human</text>
+<rect x="930.0" y="215.0" width="183.3" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="1138.0" y="233.0" text-anchor="start">56.2 MiB</text>
+<text x="52.0" y="374.0" text-anchor="start">Library initialization · ms · lower is better</text>
+<text x="52.0" y="430.0" text-anchor="start">Embedded</text>
+<rect x="242.0" y="413.0" width="3.3" height="25.0" rx="3" fill="#2563eb"/>
+<text x="487.0" y="431.0" text-anchor="start">1.5 ms</text>
+<text x="52.0" y="488.0" text-anchor="start">Embedded + component</text>
+<rect x="242.0" y="471.0" width="125.9" height="25.0" rx="3" fill="#2563eb"/>
+<text x="487.0" y="489.0" text-anchor="start">55.9 ms</text>
+<text x="52.0" y="546.0" text-anchor="start">Full-POS</text>
+<rect x="242.0" y="529.0" width="91.9" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="487.0" y="547.0" text-anchor="start">40.8 ms</text>
+<text x="52.0" y="604.0" text-anchor="start">Full-POS + component</text>
+<rect x="242.0" y="587.0" width="217.6" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="487.0" y="605.0" text-anchor="start">96.6 ms</text>
+<text x="680.0" y="374.0" text-anchor="start">Library peak RSS · MiB · lower is better</text>
+<text x="680.0" y="430.0" text-anchor="start">Embedded</text>
+<rect x="870.0" y="413.0" width="14.6" height="25.0" rx="3" fill="#2563eb"/>
+<text x="1115.0" y="431.0" text-anchor="start">3.5 MiB</text>
+<text x="680.0" y="488.0" text-anchor="start">Embedded + component</text>
+<rect x="870.0" y="471.0" width="164.4" height="25.0" rx="3" fill="#2563eb"/>
+<text x="1115.0" y="489.0" text-anchor="start">39.1 MiB</text>
+<text x="680.0" y="546.0" text-anchor="start">Full-POS</text>
+<rect x="870.0" y="529.0" width="84.9" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="1115.0" y="547.0" text-anchor="start">20.2 MiB</text>
+<text x="680.0" y="604.0" text-anchor="start">Full-POS + component</text>
+<rect x="870.0" y="587.0" width="217.6" height="25.0" rx="3" fill="#7c3aed"/>
+<text x="1115.0" y="605.0" text-anchor="start">51.7 MiB</text>
+<rect x="52.0" y="710.0" width="16.0" height="16.0" rx="2" fill="#2563eb"/>
+<text x="76.0" y="723.0" text-anchor="start">Agent / embedded resource path</text>
+<rect x="390.0" y="710.0" width="16.0" height="16.0" rx="2" fill="#7c3aed"/>
+<text x="414.0" y="723.0" text-anchor="start">Human / full-POS resource path</text>
+<text x="1228.0" y="723.0" text-anchor="end" class="muted">CLI wall time includes startup, scan, verification, and output serialization</text>
+</svg>
