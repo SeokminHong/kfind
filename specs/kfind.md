@@ -546,10 +546,11 @@
   검증할 때만 사용하고 token 전체의 품사 구조를 선택하는 근거로 쓰지 않는다. host 왼쪽
   경계에 정렬된 두 음절 이상의 nominal prefix는 유지하고, 한 음절 prefix와 host 내부
   양쪽 경계를 가로지르는 후보에는 선호 경로 검증을 적용한다.
-- token을 임의 품사의 edge로 끝까지 덮을 수 있다는 사실만으로 query 품사의 runtime
-  component를 합성하지 않는다. 특히 `NP`·`MM`·`MAG/MAJ`는 query core와 같은 span의 같은
-  세부 품사 node가 완전한 typed path에 있어야 한다. 이 조건은 query가 명시한 품사를 다른
-  체언·용언 edge의 span으로 대신 증명하지 못하게 하며, full POS 표제어 유무와 독립적이다.
+- token을 임의 품사의 edge로 끝까지 덮을 수 있다는 사실만으로 token보다 짧은 query 품사의
+  runtime component를 합성하지 않는다. 특히 `NP`·`MM`·`MAG/MAJ` 내부 component는 query
+  core와 같은 span의 같은 세부 품사 node가 완전한 typed path에 있어야 한다. 이 조건은 query가
+  명시한 품사를 다른 체언·용언 edge의 span으로 대신 증명하지 못하게 하며, query 표면과 token
+  전체가 같은 독립 후보에는 적용하지 않는다.
 - whole 체언 분석과 더 짧은 runtime 체언+조사 분할이 경쟁할 때, 한 node짜리 내부 체언
   prefix는 whole 분석이 정렬해 선언한 source component이거나 실제 조사 host 전체인 경우에만
   유지한다. 두 node 이상의 복합명사 subpath와 `MM + 체언` 선호 경로는 각각 별도 typed

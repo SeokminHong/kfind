@@ -731,6 +731,65 @@ fn standard_spacing_disambiguates_mot_homographs() {
 }
 
 #[test]
+fn smart_components_require_matching_pos_and_typed_token_paths() {
+    let resource = component_resource_from_entries([
+        component_entry("그", "NP"),
+        component_entry("그", "MM"),
+        component_entry("때", "NNG"),
+        component_entry("그때", "NP"),
+        component_entry("남", "NNG"),
+        component_entry("남", "VV+EC"),
+        component_entry("아있", "VV"),
+        component_entry("는", "ETM"),
+        component_entry("그러했", "VA+EP"),
+        component_entry("던", "ETM"),
+        component_entry("그", "VV"),
+        component_entry("러", "EC"),
+        component_entry("나", "VX+EF"),
+        component_entry("그러나", "MAJ"),
+        component_entry("진출", "NNG"),
+        component_entry("한", "NNG"),
+        component_entry("한", "XSV+ETM"),
+        component_entry("일본기업들", "NNG"),
+        component_entry("이", "JKS"),
+    ]);
+    let matches = |query: &str, pos, text: &str| {
+        compile_embedded_with_resource(
+            query,
+            CompileOptions {
+                global_pos: Some(pos),
+                ..CompileOptions::default()
+            },
+            Arc::clone(&resource),
+        )
+        .find_at_with_meta(text.as_bytes(), 0)
+        .is_some()
+    };
+
+    assert!(!matches(
+        "남",
+        CoarsePos::Pronoun,
+        "그때부터 남아있는 사람들이 왔다."
+    ));
+    assert!(!matches(
+        "그",
+        CoarsePos::Determiner,
+        "그러했던 것처럼 달라졌다."
+    ));
+    assert!(!matches(
+        "나다",
+        CoarsePos::Verb,
+        "그러나 중남미 경제는 회복했다."
+    ));
+    assert!(!matches(
+        "한",
+        CoarsePos::Noun,
+        "진출한 일본기업들이 늘었다."
+    ));
+    assert!(matches("그", CoarsePos::Pronoun, "그때부터 달라졌다."));
+}
+
+#[test]
 fn whole_nominal_source_component_survives_a_shorter_particle_split() {
     let matcher = compile_embedded_with_component(
         "주의",
