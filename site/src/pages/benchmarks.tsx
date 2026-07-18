@@ -164,18 +164,18 @@ export default function BenchmarksPage(): React.JSX.Element {
               </tr>
               <tr>
                 <td>full POS + smart</td>
-                <td>99.69% / 98.61%</td>
-                <td>100.00% / 98.92%</td>
-                <td>4 / 18</td>
-                <td>0 / 14</td>
+                <td>99.69% / 99.00%</td>
+                <td>100.00% / 99.31%</td>
+                <td>4 / 13</td>
+                <td>0 / 9</td>
               </tr>
             </tbody>
           </table>
         </div>
         <p>
-          Full-POS의 FNᶜ 14건은 표준 부사·피동 파생, source 정렬 용언 성분,
-          대명사 축약과 반환 span 복원처럼 아직 구현하지 않은 제품 목표입니다.
-          비용이나 현재 profile을 이유로 계약 분모에서 빼지 않습니다.
+          Full-POS의 FNᶜ 9건은 피동 파생, source 정렬 용언 성분, 대명사 축약과
+          반환 span 복원처럼 아직 구현하지 않은 제품 목표입니다. 비용이나 현재
+          profile을 이유로 계약 분모에서 빼지 않습니다.
         </p>
         <figure className="benchmark-figure">
           <img
@@ -185,8 +185,8 @@ export default function BenchmarksPage(): React.JSX.Element {
           />
           <figcaption>
             FPᶜ, FNᶜ, precisionᶜ, recallᶜ는 version-controlled registry가 실제로
-            적용된 값이며 raw 지표의 별칭이 아닙니다. Review 22건은 구현 목표
-            확인 14건, 기대값 변경 5건, 비표준 입력 제외 3건입니다.
+            적용된 값이며 raw 지표의 별칭이 아닙니다. Review 22건의 판정은
+            유지되며, 확인한 구현 목표 14건 중 5건을 해소했습니다.
           </figcaption>
         </figure>
       </DocumentSection>
@@ -440,21 +440,25 @@ export default function BenchmarksPage(): React.JSX.Element {
         <p>
           두 국립국어원 사전이 함께 지지하는 활용형 12,888개 중 12,758개는 기존
           분석과 생산 규칙으로 생성합니다. 배포 데이터에는 생성되지 않는 활용형
-          130개와 한국어기초사전에서 entry ID·표면형이 양방향으로 일치하는
-          용언·부사 파생 관계 153개만 저장합니다. 결과는 283행, 27,707바이트이며
-          정의와 예문은 포함하지 않습니다.
+          130개, 두 사전이 독립 등재한 제한된 형용사 부사형 88개와 나머지 양방향
+          파생 관계 77개를 저장합니다. 결과는 295행, 28,286바이트이며 정의와
+          예문은 포함하지 않습니다.
         </p>
         <p>
-          Main <code>8f42396</code> 대비 후보 <code>4b25582</code>는 test
-          embedded와 full-POS <code>smart</code>의 FN을 각각 2건, Agent와
-          Human의 FN을 각각 1건 줄였습니다. Development와 hard-negative FP는
-          변하지 않았습니다. Agent morphology cases/s는 1.05% 낮았고 Human
-          morphology와 두 CLI wall 측정 범위는 겹쳤습니다.
+          Main <code>2ef39d2</code> 대비 후보 <code>596b272</code>는 test matrix
+          full-POS <code>smart</code>의 FN을 5건 줄이고 FP는 유지했습니다. 신규
+          대조군은 조사 구조라서 거부했고, 초기화·처리량·p95·RSS 변화는 최신
+          성능 gate 안입니다.
         </p>
       </DocumentSection>
 
       <DocumentSection title="원본 보고서">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-dictionary-adverbial-i.md">
+              사전 합의 -이 부사형 recall
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-query-matrix-contract-metrics.md">
               Query matrix raw·계약 품질 교정

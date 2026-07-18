@@ -375,11 +375,12 @@ scripts/build-enriched-predicates.sh
 ```
 
 Of 12,888 conjugations supported by two NIKL dictionaries, the enriched
-generator stores only the 130 that productive rules cannot generate. It also
-stores 153 predicate-to-adverb forms whose Korean Basic Dictionary entry IDs
-agree in both directions. The resulting TSV has 283 surface-only rows and is
-27,707 bytes. Conjugations are available in the default `inflection` mode;
-derived adverbs require `derivation`.
+generator stores only the 130 that productive rules cannot generate. It stores
+88 bounded adjective-to-adverb forms independently attested by both dictionaries;
+these are available in the default `inflection` mode. Of 153 bidirectional
+predicate-to-adverb relations from the Korean Basic Dictionary, 76 overlap with
+that stronger evidence and the other 77 require `derivation`. The resulting TSV
+has 295 surface-only rows and is 28,286 bytes.
 
 ## Benchmarks
 

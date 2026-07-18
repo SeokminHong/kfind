@@ -1,5 +1,8 @@
 # Query matrix raw·계약 품질 교정
 
+> 현재 제품 결과는 [사전 합의 `-이` 부사형 recall](2026-07-18-dictionary-adverbial-i.md)이
+> 이어받는다. 이 문서는 contract 교정 시점의 측정값을 보존한다.
+
 - 측정일: 2026-07-18
 - 최신 `origin/main` 및 기준 revision:
   `ad7a4dd3478e7aec26ac185900b72ae9fd8cf084`
