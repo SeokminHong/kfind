@@ -8,7 +8,8 @@
 /packages/kfind/LICENSE
 /packages/kfind/*.tgz
 /site/node_modules/
-/site/dist/
+/site/build/
+/site/.react-router/
 /site/public/benchmarks/
 /site/src/generated-wasm/
 /site/.wrangler/

@@ -1,10 +1,10 @@
 import { execFileSync } from 'node:child_process';
+import { reactRouter } from '@react-router/dev/vite';
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
-import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  plugins: [react(), vanillaExtractPlugin()],
+  plugins: [reactRouter(), vanillaExtractPlugin()],
   define: {
     __KFIND_COMPONENT_RESOURCE_VERSION__: JSON.stringify(
       readComponentResourceVersion(),

@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 
+import { createDocumentMeta } from '../app/metadata';
 import { RoutePath } from '../app/navigation';
 import { DocumentSection, PageIntro } from '../components/document';
 import {
@@ -9,6 +10,8 @@ import {
 } from '../components/glossary';
 
 import * as styles from './glossary.css';
+
+export const meta = createDocumentMeta(RoutePath.Glossary);
 
 export default function GlossaryPage(): React.JSX.Element {
   return (

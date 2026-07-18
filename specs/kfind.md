@@ -244,8 +244,11 @@
   논증한다. 핵심 설명은 본문만 읽어도 완결되어야 하며, callout·card·도해와 단편적인 label의
   나열로 본문을 대신하지 않는다. 표, 도해와 코드 예시는 정확한 대응 관계나 실행 흐름을
   보충할 때만 사용하고 앞뒤 문단에서 해석한다.
-- 문서 site는 React와 React Router의 data router로 구성한다. Cloudflare Pages의 SPA fallback을
-  사용해 clean URL을 직접 열 수 있어야 하며, 공통 shell 안에서 다음 경로를 제공한다.
+- 문서 site는 React Router Framework Mode로 구성한다. Runtime SSR은 사용하지 않고 고정된 모든
+  문서 route를 build 시점에 HTML로 prerender한다. 각 clean URL의 최초 response에는 해당 route의
+  본문, 고유 title·description·canonical URL과 Open Graph metadata가 들어 있어야 한다. Browser는
+  이 HTML을 hydrate하며 이후 route 전환은 전체 페이지를 다시 요청하지 않는다. 공통 shell 안에서
+  다음 경로를 제공한다.
 
   ```text
   /                         개요와 제품 범위
@@ -278,10 +281,31 @@
 - 공통 spacing scale은 `0.25rem`, `0.5rem`, `0.75rem`, `1rem`, `1.5rem`과 section 간격
   `2.5rem`을 사용한다. 문서 카드와 playground panel은 이 scale로 padding과 gap을 제한하며,
   상태 badge와 짧은 token은 좁은 화면에서도 내용 너비만 차지한다.
-- 각 route 구현은 지연 로드해 첫 문서 화면에 불필요한 페이지 코드가 포함되지 않게 한다.
+- Framework Mode의 route code splitting으로 첫 문서 화면에 불필요한 페이지 코드가 포함되지 않게 한다.
   Playground의 WASM module과 선택적 component resource는 `/playground`에 들어가기 전에는
   불러오지 않는다. 문서 route 전환은 전체 페이지를 다시 요청하지 않고, 현재 경로와 제목을
   접근 가능한 navigation 상태로 표시한다.
+- Build는 실제 `robots.txt`와 전체 문서 route를 열거한 `sitemap.xml`을 배포한다. 정의되지 않은
+  경로는 SPA fallback으로 `200`을 반환하지 않고 prerender한 `404.html`과 HTTP 404를 반환한다.
+- 문서 HTML, metadata, `robots.txt`, `sitemap.xml`과 `404.html`에는 장기 browser cache를 적용하지
+  않는다. Cloudflare Pages의 deployment invalidation, ETag와 revalidation을 사용해 `main` 배포마다
+  최신 문서를 확인한다. Content hash가 filename에 포함된 `/assets/*`만 `immutable` 장기 cache를
+  적용하며, HTML과 Pages Function을 포함하는 broad Cache Rule은 두지 않는다. Playground의
+  component resource Cache Storage는 이 문서 cache와 분리하고 아래 resource revision 계약을 따른다.
+- 문서 locale은 URL path나 query를 바꾸지 않고 같은 route와 UI 구조에서 전환한다. 현재 지원 locale은
+  한국어 `ko` 하나이며 SSG HTML의 기본 locale도 한국어다. Locale별 공통 UI 문구, navigation과 SEO
+  metadata는 typed catalog로 분리하고 장문 route 본문도 같은 locale model을 사용해 확장할 수 있어야
+  한다. Catalog 조회, interpolation과 plural 처리는 `i18next`와 `react-i18next`에 위임하고 직접 문자열을
+  치환하거나 번역 key를 동적으로 조립하지 않는다. 지원 locale이 둘 이상일 때만 공통 shell에 언어
+  control을 표시한다.
+- 선택한 locale은 `kfind-document-locale` cookie에 site 전체 path로 보존한다. Hydration은 SSG의 기본
+  locale로 시작한 뒤 browser cookie가 지원 값이면 같은 URL에서 해당 locale을 적용한다. Cookie가 없거나
+  지원하지 않는 값이면 기본 locale을 유지하며 `Accept-Language`에 따른 자동 redirect는 하지 않는다.
+  Cookie 감지와 보존은 i18next language detector에 위임한다. Locale cookie는 UI preference일 뿐
+  인증·권한 판단에 사용하지 않는다.
+- 같은 canonical URL에서 cookie로 locale을 구분하므로 locale별 alternate URL이나 `hreflang`은 만들지
+  않는다. 검색 engine에는 SSG가 만든 기본 한국어 문서를 제공하고, 향후 추가 locale은 동일 URL의 사용자
+  preference로 취급한다.
 - 좁은 화면의 문서 navigation은 두 열 grid로 배치한다. 각 navigation group은 링크 수와 관계없이
   내용 높이를 유지하며, 같은 grid 행의 다른 group 높이에 맞춰 내부 link를 늘리지 않는다.
 - 옵션 문서는 `inflection`, `derivation`, `literal`의 생성 범위와 차이, `--literal` 단축 옵션의
@@ -344,7 +368,8 @@
   stream하며 content type, ETag와 cache header를 보존한다. R2 object가 없거나 손상되면 embedded
   preview로 조용히 fallback하지 않고 playground에 오류를 표시한다.
 - `site` package는 현재 source의 WASM과 version control에 보존한 승인 benchmark snapshot에서
-  chart를 다시 생성해 정적 `dist`를 만든다. Snapshot은 source report의 revision과 SHA-256을
+  chart를 다시 생성해 prerender HTML과 정적 asset이 있는 `build/client`를 만든다. Snapshot은
+  source report의 revision과 SHA-256을
   기록하며, 승인된 benchmark가 바뀌면 같은 변경에서 갱신한다. 형태 품질은 수동 검토를 통과한
   표준 맞춤법 canonical과 실제 오류 문장만 남긴 Robust를 별도 section과 chart로 표시한다.
   Robust chart는 동일한 gold fixture에서 backend별 precision·recall·F1과 실행 비용을 비교하고,

@@ -1,35 +1,26 @@
-import type { DocumentRouteHandle } from './router';
-
 import { Collapsible } from '@base-ui/react/collapsible';
-import { useEffect } from 'react';
-import { NavLink, Outlet, ScrollRestoration, useMatches } from 'react-router';
+import { NavLink, Outlet } from 'react-router';
 
+import { useDocumentTranslation } from './i18n';
+import { DocumentLocaleSync } from './i18n-provider';
+import { DocumentMetadataSync } from './metadata';
 import { navigationGroups, RoutePath } from './navigation';
 
-const defaultDescription =
-  '한국어 표제어와 활용형을 찾는 text matcher kfind의 기술 문서와 WebAssembly playground';
-
-function isDocumentRouteHandle(value: unknown): value is DocumentRouteHandle {
-  if (typeof value !== 'object' || value === null) {
-    return false;
-  }
-
-  return 'title' in value && 'description' in value;
-}
-
 function Navigation(): React.JSX.Element {
+  const { t } = useDocumentTranslation();
+
   return (
-    <nav aria-label="문서 목차">
+    <nav aria-label={t('common.navigation.toc_aria')}>
       {navigationGroups.map((group) => (
-        <div className="navigation-group" key={group.label}>
-          <p>{group.label}</p>
+        <div className="navigation-group" key={group.labelKey}>
+          <p>{t(group.labelKey)}</p>
           {group.items.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               end={item.path === RoutePath.Overview}
             >
-              {item.label}
+              {t(item.labelKey)}
             </NavLink>
           ))}
         </div>
@@ -39,45 +30,34 @@ function Navigation(): React.JSX.Element {
 }
 
 export function Shell(): React.JSX.Element {
-  const matches = useMatches();
-  let handle: DocumentRouteHandle | undefined;
-
-  for (const match of matches) {
-    if (isDocumentRouteHandle(match.handle)) {
-      handle = match.handle;
-    }
-  }
-
-  useEffect(() => {
-    const title = handle?.title ?? '문서';
-    document.title = `${title} · kfind`;
-
-    const description = document.querySelector('meta[name="description"]');
-    description?.setAttribute(
-      'content',
-      handle?.description ?? defaultDescription,
-    );
-  }, [handle]);
+  const { t } = useDocumentTranslation();
 
   return (
     <>
+      <DocumentLocaleSync />
+      <DocumentMetadataSync />
       <a className="skip-link" href="#content">
-        본문으로 건너뛰기
+        {t('common.skip_to_content')}
       </a>
       <header className="docs-header">
         <div className="header-inner">
           <NavLink
             className="brand"
             to={RoutePath.Overview}
-            aria-label="kfind 문서 처음으로"
+            aria-label={t('common.brand.home_aria')}
           >
             <span className="brand-mark" aria-hidden="true">
               k/
             </span>
             <span>kfind</span>
-            <span className="brand-suffix">문서</span>
+            <span className="brand-suffix">
+              {t('common.brand.document_suffix')}
+            </span>
           </NavLink>
-          <nav className="header-links" aria-label="외부 문서">
+          <nav
+            className="header-links"
+            aria-label={t('common.header.external_aria')}
+          >
             <a href="https://github.com/SeokminHong/kfind">GitHub</a>
             <a href="https://github.com/SeokminHong/kfind/blob/main/README.ko.md">
               README
@@ -87,7 +67,9 @@ export function Shell(): React.JSX.Element {
       </header>
 
       <Collapsible.Root className="mobile-navigation">
-        <Collapsible.Trigger>문서 메뉴</Collapsible.Trigger>
+        <Collapsible.Trigger>
+          {t('common.mobile_navigation.trigger')}
+        </Collapsible.Trigger>
         <Collapsible.Panel>
           <Navigation />
         </Collapsible.Panel>
@@ -102,20 +84,21 @@ export function Shell(): React.JSX.Element {
           <footer className="docs-footer">
             <span>kfind 0.3.0-rc.3</span>
             <a href="https://github.com/SeokminHong/kfind/blob/main/LICENSE">
-              MIT License
+              {t('common.footer.license')}
             </a>
           </footer>
         </main>
       </div>
-      <ScrollRestoration />
     </>
   );
 }
 
 export function DocumentLoading(): React.JSX.Element {
+  const { t } = useDocumentTranslation();
+
   return (
     <main className="route-loading" role="status">
-      문서를 불러오는 중…
+      {t('common.loading.document')}
     </main>
   );
 }

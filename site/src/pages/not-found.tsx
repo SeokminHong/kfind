@@ -3,6 +3,8 @@ import { Link } from 'react-router';
 import { RoutePath } from '../app/navigation';
 import { PageIntro } from '../components/document';
 
+export { notFoundMeta as meta } from '../app/metadata';
+
 export default function NotFoundPage(): React.JSX.Element {
   return (
     <article>

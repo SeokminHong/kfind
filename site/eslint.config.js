@@ -6,7 +6,8 @@ export default config({
   extensions: [react({ reactRouter: true })],
   ignores: [
     'node_modules',
-    'dist',
+    'build',
+    '.react-router',
     '.wrangler',
     'public/benchmarks',
     'src/generated-wasm',

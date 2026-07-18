@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://kfind.pages.dev/</loc></url>
+  <url><loc>https://kfind.pages.dev/guide/getting-started</loc></url>
+  <url><loc>https://kfind.pages.dev/reference/options</loc></url>
+  <url><loc>https://kfind.pages.dev/reference/glossary</loc></url>
+  <url><loc>https://kfind.pages.dev/concepts/analysis</loc></url>
+  <url><loc>https://kfind.pages.dev/concepts/architecture</loc></url>
+  <url><loc>https://kfind.pages.dev/concepts/optimization</loc></url>
+  <url><loc>https://kfind.pages.dev/benchmarks</loc></url>
+  <url><loc>https://kfind.pages.dev/playground</loc></url>
+</urlset>
