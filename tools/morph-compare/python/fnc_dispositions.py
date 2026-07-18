@@ -11,10 +11,9 @@ ALLOWED_DISPOSITIONS = frozenset(
     {
         "product-fix",
         "dictionary-required",
-        "structurally-unresolvable",
-        "cost-prohibitive",
-        "gold-or-adapter",
-        "out-of-contract",
+        "structural-redesign",
+        "gold-alignment-error",
+        "nonstandard-input",
     }
 )
 LEDGER_FIELDS = (

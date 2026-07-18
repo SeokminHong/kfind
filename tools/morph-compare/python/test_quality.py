@@ -49,6 +49,34 @@ class ContractQualityTests(unittest.TestCase):
         self.assertEqual((0, 0, 1, 0), _strict_counts(strict))
         self.assertEqual((0, 0, 0, 1), _contract_counts(adjusted))
 
+    def test_corrects_misaligned_strict_positive_to_contract_negative(self) -> None:
+        case = {
+            "id": "misaligned",
+            "expected": True,
+            "contract_expected": False,
+            "contract_reason": "gold-alignment-error",
+        }
+
+        strict = quality_metrics([case], {"misaligned": False})
+        adjusted = contract_quality_metrics([case], {"misaligned": False})
+
+        self.assertEqual((0, 0, 0, 1), _strict_counts(strict))
+        self.assertEqual((0, 0, 1, 0), _contract_counts(adjusted))
+
+    def test_records_reviewed_implementation_target_without_reclassifying(self) -> None:
+        case = {
+            "id": "future-target",
+            "expected": True,
+            "contract_expected": True,
+            "contract_reason": "implementation-target",
+        }
+
+        adjusted = contract_quality_metrics([case], {"future-target": False})
+
+        self.assertEqual((0, 0, 0, 1), _contract_counts(adjusted))
+        self.assertEqual(1, adjusted["confirmed_cases"])
+        self.assertEqual(0, adjusted["reclassified_cases"])
+
     def test_rejects_annotation_without_a_review_reason(self) -> None:
         case = {"id": "unreviewed", "expected": False, "contract_expected": True}
 
@@ -62,7 +90,7 @@ class ContractQualityTests(unittest.TestCase):
                 "id": "excluded",
                 "expected": True,
                 "contract_expected": None,
-                "contract_reason": "out-of-contract",
+                "contract_reason": "nonstandard-input",
             },
         ]
 
@@ -74,7 +102,7 @@ class ContractQualityTests(unittest.TestCase):
         self.assertEqual(1, adjusted["cases"])
         self.assertEqual(1, adjusted["excluded_cases"])
         self.assertEqual(
-            {"out-of-contract": 1}, adjusted["excluded_by_reason"]
+            {"nonstandard-input": 1}, adjusted["excluded_by_reason"]
         )
 
     def test_rejects_exclusion_without_an_exclusion_reason(self) -> None:

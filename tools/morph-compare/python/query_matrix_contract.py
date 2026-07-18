@@ -24,7 +24,12 @@ REVIEW_FIELDS = (
     "contract_reason",
     "note",
 )
-CONTRACT_STATUSES = {"contract-positive", "excluded"}
+CONTRACT_STATUSES = {
+    "confirmed",
+    "contract-negative",
+    "contract-positive",
+    "excluded",
+}
 
 
 @dataclass(frozen=True)
@@ -109,25 +114,38 @@ def apply_contract_reviews(
         )
         if identity != reviewed_identity:
             raise ValueError(f"contract review identity differs: {review.case_id}")
-        case["contract_expected"] = (
-            True if review.contract_status == "contract-positive" else None
-        )
+        case["contract_expected"] = {
+            "confirmed": review.strict_expected,
+            "contract-negative": False,
+            "contract-positive": True,
+            "excluded": None,
+        }[review.contract_status]
         case["contract_reason"] = review.contract_reason
         contract_expected(case)
     return contract_case_summary(cases)
 
 
 def contract_case_summary(cases: list[dict[str, object]]) -> dict[str, object]:
+    confirmed = Counter()
     reclassified = Counter()
     excluded = Counter()
     for case in cases:
         expected = contract_expected(case)
         if "contract_expected" not in case:
             continue
-        target = excluded if expected is None else reclassified
+        if expected is None:
+            target = excluded
+        elif expected == bool(case["expected"]):
+            target = confirmed
+        else:
+            target = reclassified
         target[str(case["contract_reason"])] += 1
     return {
-        "reviewed_cases": sum(reclassified.values()) + sum(excluded.values()),
+        "reviewed_cases": sum(confirmed.values())
+        + sum(reclassified.values())
+        + sum(excluded.values()),
+        "confirmed_cases": sum(confirmed.values()),
+        "confirmed_by_reason": dict(sorted(confirmed.items())),
         "reclassified_cases": sum(reclassified.values()),
         "reclassified_by_reason": dict(sorted(reclassified.items())),
         "excluded_cases": sum(excluded.values()),

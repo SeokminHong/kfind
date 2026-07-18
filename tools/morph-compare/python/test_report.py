@@ -290,6 +290,7 @@ class QualityMetricsTests(unittest.TestCase):
                             "contract_tn": 2,
                             "contract_fn": 0,
                             "reviewed_cases": 3,
+                            "confirmed_cases": 0,
                             "reclassified_cases": 3,
                             "excluded_cases": 0,
                         }
@@ -302,7 +303,7 @@ class QualityMetricsTests(unittest.TestCase):
         append_contract_quality(lines, report)
 
         self.assertIn(
-            "| kfind-embedded | 75.0% / 90.0% | 80.0% / 100.0% | 2 / 1 | 1 / 0 | 3 / 0 |",
+            "| kfind-embedded | 75.0% / 90.0% | 80.0% / 100.0% | 2 / 1 | 1 / 0 | 3 / 0 / 3 / 0 |",
             "\n".join(lines),
         )
 
@@ -760,6 +761,7 @@ class QueryMatrixReportTests(unittest.TestCase):
             "contract_tn": 98,
             "contract_fn": 9,
             "reviewed_cases": 3,
+            "confirmed_cases": 0,
             "reclassified_cases": 1,
             "excluded_cases": 2,
         }

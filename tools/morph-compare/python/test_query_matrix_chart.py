@@ -24,6 +24,8 @@ class QueryMatrixChartTests(unittest.TestCase):
             "contract_tn": 90,
             "contract_fn": 0,
             "reviewed_cases": 20,
+            "confirmed_cases": 7,
+            "reclassified_cases": 3,
             "excluded_cases": 10,
         }
         report = {
@@ -32,6 +34,7 @@ class QueryMatrixChartTests(unittest.TestCase):
                     "dataset": {
                         "cases": 200,
                         "contract_review": {
+                            "confirmed_cases": 7,
                             "reclassified_cases": 10,
                             "excluded_cases": 10,
                         },
@@ -51,6 +54,7 @@ class QueryMatrixChartTests(unittest.TestCase):
 
         self.assertIn("Raw   TP 90 · FP 1 · TN 99 · FN 10", rendered)
         self.assertIn("Contract   TPᶜ 90 · FPᶜ 0 · TNᶜ 90 · FNᶜ 0", rendered)
+        self.assertIn("confirmed 7 · reclassified 3 · excluded 10", rendered)
         self.assertIn("they are not aliases of raw values", rendered)
 
 

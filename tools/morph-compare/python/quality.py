@@ -4,17 +4,14 @@ from collections import defaultdict
 from collections.abc import Callable
 
 
-RECLASSIFICATION_REASONS = {
+POSITIVE_RECLASSIFICATION_REASONS = {
     "aligned-source-component",
     "same-pos-homograph",
     "structurally-indistinguishable-homograph",
 }
-EXCLUSION_REASONS = {
-    "cost-prohibitive",
-    "gold-or-adapter",
-    "out-of-contract",
-    "structurally-unresolvable",
-}
+NEGATIVE_RECLASSIFICATION_REASONS = {"gold-alignment-error"}
+CONFIRMATION_REASONS = {"implementation-target"}
+EXCLUSION_REASONS = {"nonstandard-input"}
 
 
 def contract_expected(case: dict[str, object]) -> bool | None:
@@ -39,14 +36,17 @@ def contract_expected(case: dict[str, object]) -> bool | None:
             f"case {case['id']} contract_expected must be boolean or null"
         )
     if adjusted_expected == strict_expected:
-        raise ValueError(
-            f"case {case['id']} contract_expected must differ from expected"
-        )
-    if strict_expected or not adjusted_expected:
-        raise ValueError(
-            f"case {case['id']} may only reclassify strict negative to contract positive"
-        )
-    if reason not in RECLASSIFICATION_REASONS:
+        if reason not in CONFIRMATION_REASONS:
+            raise ValueError(
+                f"case {case['id']} has unsupported confirmation reason {reason!r}"
+            )
+        return adjusted_expected
+    allowed_reasons = (
+        NEGATIVE_RECLASSIFICATION_REASONS
+        if strict_expected
+        else POSITIVE_RECLASSIFICATION_REASONS
+    )
+    if reason not in allowed_reasons:
         raise ValueError(
             f"case {case['id']} has unsupported contract_reason {reason!r}"
         )
@@ -66,18 +66,27 @@ def contract_quality_metrics(
     included_cases = [case for case in cases if contract_expected(case) is not None]
     counts = _confusion_counts(included_cases, predictions, contract_expected)
     metrics = _derived_metrics(len(included_cases), counts, "contract_")
+    confirmed_reasons: dict[str, int] = defaultdict(int)
     reclassified_reasons: dict[str, int] = defaultdict(int)
     excluded_reasons: dict[str, int] = defaultdict(int)
     for case in cases:
         expected = contract_expected(case)
         if "contract_expected" not in case:
             continue
-        reasons = excluded_reasons if expected is None else reclassified_reasons
+        if expected is None:
+            reasons = excluded_reasons
+        elif expected == bool(case["expected"]):
+            reasons = confirmed_reasons
+        else:
+            reasons = reclassified_reasons
         reasons[str(case["contract_reason"])] += 1
     return {
         **metrics,
-        "reviewed_cases": sum(reclassified_reasons.values())
+        "reviewed_cases": sum(confirmed_reasons.values())
+        + sum(reclassified_reasons.values())
         + sum(excluded_reasons.values()),
+        "confirmed_cases": sum(confirmed_reasons.values()),
+        "confirmed_by_reason": dict(sorted(confirmed_reasons.items())),
         "reclassified_cases": sum(reclassified_reasons.values()),
         "reclassified_by_reason": dict(sorted(reclassified_reasons.items())),
         "excluded_cases": sum(excluded_reasons.values()),

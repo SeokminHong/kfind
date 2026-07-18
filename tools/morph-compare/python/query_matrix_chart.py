@@ -58,8 +58,8 @@ def render_query_matrix_quality(report: dict[str, object]) -> str:
         text(
             52,
             62,
-            f"{dataset['cases']} cases · {review['reclassified_cases']} contract-positive · "
-            f"{review['excluded_cases']} excluded",
+            f"{dataset['cases']} cases · {review['confirmed_cases']} confirmed · "
+            f"{review['reclassified_cases']} reclassified · {review['excluded_cases']} excluded",
             "muted",
         ),
         rect(930, 27, 16, 16, RAW_COLOR, 2),
@@ -143,7 +143,8 @@ def render_query_matrix_quality(report: dict[str, object]) -> str:
             text(
                 panel_x,
                 530,
-                f"Reviewed {contract['reviewed_cases']} · excluded {contract['excluded_cases']}",
+                f"Reviewed {contract['reviewed_cases']} · confirmed {contract['confirmed_cases']} · "
+                f"reclassified {contract['reclassified_cases']} · excluded {contract['excluded_cases']}",
                 "muted",
             )
         )

@@ -640,10 +640,11 @@ def append_query_matrix(
             "### kfind explicit-POS raw and contract-adjusted quality",
             "",
             "The raw columns preserve corpus gold. The contract columns apply the "
-            "versioned kfind review registry; structurally indistinguishable matches "
-            "are positive and excluded cases are outside the contract denominator.",
+            "versioned kfind review registry. It confirms implementation targets, "
+            "corrects reviewed gold alignment, treats structurally indistinguishable "
+            "matches as positive, and excludes only nonstandard input.",
             "",
-            "| backend | raw precision / recall | precisionᶜ / recallᶜ | TP / FP / TN / FN | TPᶜ / FPᶜ / TNᶜ / FNᶜ | all raw / contract queries | reviewed / excluded |",
+            "| backend | raw precision / recall | precisionᶜ / recallᶜ | TP / FP / TN / FN | TPᶜ / FPᶜ / TNᶜ / FNᶜ | all raw / contract queries | reviewed / confirmed / reclassified / excluded |",
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
@@ -663,7 +664,8 @@ def append_query_matrix(
             f"{quality['contract_tn']} / {quality['contract_fn']} | "
             f"{raw_coverage['all_present_queries_recovered_percent']}% / "
             f"{coverage['all_present_queries_recovered_percent']}% | "
-            f"{quality['reviewed_cases']} / {quality['excluded_cases']} |"
+            f"{quality['reviewed_cases']} / {quality['confirmed_cases']} / "
+            f"{quality['reclassified_cases']} / {quality['excluded_cases']} |"
         )
     lines.extend(
         [
@@ -693,7 +695,7 @@ def append_query_matrix(
             "",
             "### Query-matrix product workflows: raw and contract-adjusted",
             "",
-            "| workflow | raw precision / recall | precisionᶜ / recallᶜ | FP / FPᶜ | FN / FNᶜ | all raw / contract queries | reviewed / excluded |",
+            "| workflow | raw precision / recall | precisionᶜ / recallᶜ | FP / FPᶜ | FN / FNᶜ | all raw / contract queries | reviewed / confirmed / reclassified / excluded |",
             "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
@@ -712,7 +714,8 @@ def append_query_matrix(
             f"{raw_quality['fn']} / {quality['contract_fn']} | "
             f"{raw_coverage['all_present_queries_recovered_percent']}% / "
             f"{coverage['all_present_queries_recovered_percent']}% | "
-            f"{quality['reviewed_cases']} / {quality['excluded_cases']} |"
+            f"{quality['reviewed_cases']} / {quality['confirmed_cases']} / "
+            f"{quality['reclassified_cases']} / {quality['excluded_cases']} |"
         )
     development = query_matrix.get("development")
     if development is not None:
@@ -736,7 +739,7 @@ def append_query_matrix(
         lines.extend(
             [
                 "",
-                "| backend | raw precision / recall | precisionᶜ / recallᶜ | FP / FPᶜ | FN / FNᶜ | all raw / contract queries | reviewed / excluded |",
+                "| backend | raw precision / recall | precisionᶜ / recallᶜ | FP / FPᶜ | FN / FNᶜ | all raw / contract queries | reviewed / confirmed / reclassified / excluded |",
                 "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
             ]
         )
@@ -758,7 +761,8 @@ def append_query_matrix(
                 f"{raw_quality['fn']} / {quality['contract_fn']} | "
                 f"{raw_coverage['all_present_queries_recovered_percent']}% / "
                 f"{coverage['all_present_queries_recovered_percent']}% | "
-                f"{quality['reviewed_cases']} / {quality['excluded_cases']} |"
+                f"{quality['reviewed_cases']} / {quality['confirmed_cases']} / "
+                f"{quality['reclassified_cases']} / {quality['excluded_cases']} |"
             )
 
 
@@ -1026,9 +1030,9 @@ def append_contract_quality(lines: list[str], report: dict[str, object]) -> None
             "### Contract-adjusted quality",
             "",
             "Strict corpus-gold counts remain in the preceding table. The kfind contract "
-            "columns apply reviewed reclassifications and exclusions.",
+            "columns apply reviewed confirmations, reclassifications, and exclusions.",
             "",
-            "| backend | raw precision / recall | precisionᶜ / recallᶜ | FP / FPᶜ | FN / FNᶜ | reviewed / excluded |",
+            "| backend | raw precision / recall | precisionᶜ / recallᶜ | FP / FPᶜ | FN / FNᶜ | reviewed / confirmed / reclassified / excluded |",
             "| --- | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
@@ -1042,7 +1046,8 @@ def append_contract_quality(lines: list[str], report: dict[str, object]) -> None
             f"{metrics['contract_recall_percent']}% | "
             f"{raw['fp']} / {metrics['contract_fp']} | "
             f"{raw['fn']} / {metrics['contract_fn']} | "
-            f"{metrics['reviewed_cases']} / {metrics['excluded_cases']} |"
+            f"{metrics['reviewed_cases']} / {metrics['confirmed_cases']} / "
+            f"{metrics['reclassified_cases']} / {metrics['excluded_cases']} |"
         )
 
 

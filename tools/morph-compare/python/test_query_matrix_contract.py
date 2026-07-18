@@ -15,10 +15,12 @@ HEADER = (
 
 
 class QueryMatrixContractReviewTests(unittest.TestCase):
-    def test_applies_contract_positive_and_exclusion(self) -> None:
+    def test_applies_all_contract_review_statuses(self) -> None:
         cases = [
             self.case("ambiguous", "불과", "noun", False, "불과 수미터"),
-            self.case("derived", "없다", "adjective", True, "거의 없이"),
+            self.case("misaligned", "이", "pronoun", True, "이중 구조"),
+            self.case("target", "없다", "adjective", True, "거의 없이"),
+            self.case("nonstandard", "옆", "noun", True, "빙원옆에"),
         ]
         rows = [
             self.row(
@@ -26,7 +28,9 @@ class QueryMatrixContractReviewTests(unittest.TestCase):
                 "contract-positive",
                 "structurally-indistinguishable-homograph",
             ),
-            self.row(cases[1], "excluded", "out-of-contract"),
+            self.row(cases[1], "contract-negative", "gold-alignment-error"),
+            self.row(cases[2], "confirmed", "implementation-target"),
+            self.row(cases[3], "excluded", "nonstandard-input"),
         ]
 
         reviews = self.load_reviews(rows)
@@ -35,9 +39,12 @@ class QueryMatrixContractReviewTests(unittest.TestCase):
         )
 
         self.assertIs(cases[0]["contract_expected"], True)
-        self.assertIsNone(cases[1]["contract_expected"])
-        self.assertEqual(2, summary["reviewed_cases"])
-        self.assertEqual(1, summary["reclassified_cases"])
+        self.assertIs(cases[1]["contract_expected"], False)
+        self.assertIs(cases[2]["contract_expected"], True)
+        self.assertIsNone(cases[3]["contract_expected"])
+        self.assertEqual(4, summary["reviewed_cases"])
+        self.assertEqual(1, summary["confirmed_cases"])
+        self.assertEqual(2, summary["reclassified_cases"])
         self.assertEqual(1, summary["excluded_cases"])
 
     def test_rejects_changed_case_identity(self) -> None:

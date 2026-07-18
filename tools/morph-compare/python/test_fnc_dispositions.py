@@ -20,7 +20,7 @@ class DispositionLedgerTests(unittest.TestCase):
 
         self.assertEqual(summary.raw_false_negatives, 1)
         self.assertEqual(summary.unclassified_raw_false_negatives, 0)
-        self.assertEqual(summary.disposition_counts, {"out-of-contract": 1})
+        self.assertEqual(summary.disposition_counts, {"product-fix": 1})
 
     def test_rejects_a_stale_case(self) -> None:
         ledger = [self.row(case_id="matrix:stale")]
@@ -57,8 +57,8 @@ class DispositionLedgerTests(unittest.TestCase):
                             "case": {
                                 "id": "matrix:fn",
                                 "expected": True,
-                                "contract_expected": None,
-                                "contract_reason": "out-of-contract",
+                                "contract_expected": True,
+                                "contract_reason": "implementation-target",
                                 "query": "없다",
                                 "pos": "adjective",
                                 "text": "거의 없이",
@@ -86,8 +86,8 @@ class DispositionLedgerTests(unittest.TestCase):
             "pos": "adjective",
             "gold_surface": "없이",
             "failure_cause": "gold-or-adapter",
-            "disposition": "out-of-contract",
-            "rationale": "파생 부사 표면은 활용 검색 범위가 아니다.",
+            "disposition": "product-fix",
+            "rationale": "파생 부사 표면은 derivation 구현 목표다.",
             "dictionary_evidence": "두 기본 사전은 별도 표제어로 기록한다.",
         }
         row.update(overrides)
