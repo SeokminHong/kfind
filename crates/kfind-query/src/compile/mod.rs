@@ -9,7 +9,8 @@ use crate::{
     parse_query,
 };
 use kfind_data::{
-    DICTIONARY_CONJUGATION_RULE_ID, DICTIONARY_RELATED_ADVERB_RULE_ID, DerivationRule,
+    DICTIONARY_ADVERBIAL_I_RULE_ID, DICTIONARY_CONJUGATION_RULE_ID,
+    DICTIONARY_RELATED_ADVERB_RULE_ID, DerivationRule,
 };
 use kfind_morph::{
     CoarsePos, ComponentCapability, ParticleAllomorph, PredicatePosSet, RuleId,
@@ -28,6 +29,7 @@ const INTERNAL_PROVENANCE_IDS: &[&str] = &[
     "contraction.eu-drop",
     "contraction.h-irregular",
     "contraction.identical-vowel",
+    DICTIONARY_ADVERBIAL_I_RULE_ID,
     DICTIONARY_CONJUGATION_RULE_ID,
     DICTIONARY_RELATED_ADVERB_RULE_ID,
     "structural.ending-path",
@@ -525,6 +527,9 @@ fn compile_predicate(
         let nominal_particle_transition = rule_path
             .last()
             .is_some_and(|rule| NOMINALIZER_RULE_IDS.contains(&rule.as_str()));
+        let dictionary_adverbial = rule_path
+            .iter()
+            .any(|rule| rule.as_str() == DICTIONARY_ADVERBIAL_I_RULE_ID);
         let smart_left = predicate.alternation != kfind_morph::LexicalAlternation::Copula
             && !(analysis.source == AnalysisSource::Forced
                 && rule_path
@@ -536,13 +541,17 @@ fn compile_predicate(
                 .any(|rule| rule.as_str() == "ending.future-adnominal");
         output.push(DraftBranch {
             anchor: branch.anchor.to_string(),
-            consumption: CandidateConsumption::PredicateContinuation {
-                continuation: branch.continuation,
-                pos: predicate.pos.execution(),
-                source_positions: PredicatePosSet::one(predicate.pos),
-                allowed_rule_ids: Arc::clone(allowed_rules),
-                nominal_particle_transition,
-                left_context: environment,
+            consumption: if dictionary_adverbial {
+                CandidateConsumption::Anchor
+            } else {
+                CandidateConsumption::PredicateContinuation {
+                    continuation: branch.continuation,
+                    pos: predicate.pos.execution(),
+                    source_positions: PredicatePosSet::one(predicate.pos),
+                    allowed_rule_ids: Arc::clone(allowed_rules),
+                    nominal_particle_transition,
+                    left_context: environment,
+                }
             },
             core_mapping: CoreMapping::PrefixBytes(branch.core_len),
             origins: vec![Origin {
@@ -550,7 +559,8 @@ fn compile_predicate(
                 rule_path,
             }],
             smart_left,
-            decision: if predicate.alternation == kfind_morph::LexicalAlternation::Copula
+            decision: if dictionary_adverbial
+                || predicate.alternation == kfind_morph::LexicalAlternation::Copula
                 || exact_component
                 || structural_future_adnominal
             {

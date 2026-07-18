@@ -176,6 +176,7 @@ mod tests {
                 .map(|value| (*value).to_owned())
                 .collect(),
             related_adverbs: BTreeSet::new(),
+            attested_adverbials: BTreeMap::new(),
         }
     }
 

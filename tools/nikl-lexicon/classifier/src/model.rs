@@ -179,6 +179,7 @@ pub struct SourceRecord {
     pub lexical_status: String,
     pub conjugations: BTreeSet<String>,
     pub related_adverbs: BTreeSet<String>,
+    pub attested_adverbials: BTreeMap<String, BTreeSet<String>>,
 }
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -261,7 +262,7 @@ pub fn parse_source_records(input: &str) -> Result<Vec<SourceRecord>, UsageError
     let mut lines = input.lines();
     let header = lines.next().unwrap_or_default();
     if header
-        != "source\tsource_id\traw_homonym\tlemma\tpos\tlexical_status\tconjugations\trelated_adverbs"
+        != "source\tsource_id\traw_homonym\tlemma\tpos\tlexical_status\tconjugations\trelated_adverbs\tattested_adverbials"
     {
         return Err(UsageError::new("unexpected normalized records header"));
     }
@@ -269,7 +270,7 @@ pub fn parse_source_records(input: &str) -> Result<Vec<SourceRecord>, UsageError
         .enumerate()
         .map(|(index, line)| {
             let fields = line.split('\t').collect::<Vec<_>>();
-            if fields.len() != 8 {
+            if fields.len() != 9 {
                 return Err(UsageError::new(format!(
                     "normalized records line {} has {} fields",
                     index + 2,
@@ -292,7 +293,32 @@ pub fn parse_source_records(input: &str) -> Result<Vec<SourceRecord>, UsageError
                     .filter(|value| !value.is_empty())
                     .map(str::to_owned)
                     .collect(),
+                attested_adverbials: parse_attested_adverbials(fields[8], index + 2)?,
             })
         })
         .collect()
+}
+
+fn parse_attested_adverbials(
+    value: &str,
+    line: usize,
+) -> Result<BTreeMap<String, BTreeSet<String>>, UsageError> {
+    let mut output = BTreeMap::<String, BTreeSet<String>>::new();
+    for item in value.split('|').filter(|item| !item.is_empty()) {
+        let Some((surface, target_id)) = item.split_once('=') else {
+            return Err(UsageError::new(format!(
+                "normalized records line {line} has an invalid attested adverbial"
+            )));
+        };
+        if surface.is_empty() || target_id.is_empty() {
+            return Err(UsageError::new(format!(
+                "normalized records line {line} has an empty attested adverbial field"
+            )));
+        }
+        output
+            .entry(surface.to_owned())
+            .or_default()
+            .insert(target_id.to_owned());
+    }
+    Ok(output)
 }

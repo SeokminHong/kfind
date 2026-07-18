@@ -1,6 +1,7 @@
 use std::ops::Range;
 use std::sync::Arc;
 
+use kfind_data::{DICTIONARY_ADVERBIAL_I_RULE_ID, DataFinePos};
 use kfind_morph::{
     CandidateTokenRelation, ComponentCapability, ContinuationState, MorphContinuation,
     ParticleAllomorph, ParticleTransition, PredicateFlags, PredicatePos, PredicatePosSet,
@@ -280,6 +281,24 @@ impl CandidateProgram {
         };
         let mut patterns = Vec::new();
         for origin in &self.origins {
+            if origin
+                .rule_path
+                .iter()
+                .any(|rule| rule.as_str() == DICTIONARY_ADVERBIAL_I_RULE_ID)
+            {
+                if let Ok(surface) = std::str::from_utf8(&self.anchor) {
+                    let pattern = QueryMorphPattern::new(DataFinePos::Mag, surface)
+                        .with_candidate_contract(
+                            CandidateTokenRelation::Whole,
+                            MorphContinuation::Exact,
+                            component_capability,
+                        );
+                    if !patterns.contains(&pattern) {
+                        patterns.push(pattern);
+                    }
+                }
+                continue;
+            }
             let Some(analysis) = analyses.get(usize::from(origin.analysis_index)) else {
                 continue;
             };

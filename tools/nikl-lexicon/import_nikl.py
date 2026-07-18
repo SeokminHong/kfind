@@ -15,6 +15,7 @@ from nikl_import import (  # noqa: E402
     KRDICT_SHA256,
     OPENDICT_SHA256,
     STDICT_SHA256,
+    attach_attested_adverbials,
     attach_krdict_related_adverbs,
     import_snapshot,
     krdict_record,
@@ -84,6 +85,12 @@ def main() -> int:
                 imported, path, args.cache_dir
             )
             source_stats = replace(source_stats, related_adverb_count=related_adverb_count)
+        imported, attested_adverbial_count = attach_attested_adverbials(
+            imported, source, path, args.cache_dir
+        )
+        source_stats = replace(
+            source_stats, attested_adverbial_count=attested_adverbial_count
+        )
         records.extend(imported)
         stats.append(source_stats)
     write_records(args.output, sorted(records))

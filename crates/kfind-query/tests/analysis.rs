@@ -7,8 +7,8 @@ use kfind_data::{
 };
 use kfind_morph::{CoarsePos, FinePos, LexicalAlternation};
 use kfind_query::{
-    AnalysisSource, CompileOptions, ExpandMode, LexiconQueryAnalyzer, Lexicons, Morphology,
-    QueryAnalyzer, QueryAtom, QueryDiagnostic, compile_query,
+    AnalysisSource, CandidateConsumption, CompileOptions, ExpandMode, LexiconQueryAnalyzer,
+    Lexicons, Morphology, QueryAnalyzer, QueryAtom, QueryDiagnostic, compile_query,
 };
 
 fn atom(value: &str) -> QueryAtom {
@@ -224,6 +224,7 @@ fn dictionary_surfaces_preserve_inflection_and_derivation_boundaries() {
             concat!(
                 "lemma\tpos\talternation\tflags\toverrides\n",
                 "있다\tVA\tSurfaceOnly\t\tlexical.dictionary-conjugation=있는\n",
+                "같다\tVA\tSurfaceOnly\t\tlexical.dictionary-adverbial-i=같이\n",
                 "상관없다\tVA\tSurfaceOnly\t\tlexical.dictionary-related-adverb=상관없이\n",
             ),
         )
@@ -240,6 +241,23 @@ fn dictionary_surfaces_preserve_inflection_and_derivation_boundaries() {
                     .any(|rule| rule.as_str() == "lexical.dictionary-conjugation")
             })
     }));
+
+    let adverbial = compile_query("같다", &CompileOptions::default(), &analyzer).unwrap();
+    let branch = adverbial.atoms[0]
+        .programs
+        .iter()
+        .find(|branch| {
+            branch.anchor.as_ref() == "같이".as_bytes()
+                && branch.origins.iter().any(|origin| {
+                    origin
+                        .rule_path
+                        .iter()
+                        .any(|rule| rule.as_str() == "lexical.dictionary-adverbial-i")
+                })
+        })
+        .expect("dictionary-attested adverbial branch");
+    assert_eq!(branch.consumption, CandidateConsumption::Anchor);
+    assert_eq!(branch.structural_patterns()[0].fine_pos, DataFinePos::Mag);
 
     let default_plan = compile_query("상관없다", &CompileOptions::default(), &analyzer).unwrap();
     assert!(

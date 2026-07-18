@@ -1,8 +1,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use kfind_data::{
-    DICTIONARY_CONJUGATION_RULE_ID, DICTIONARY_RELATED_ADVERB_RULE_ID, DataAlternation,
-    DerivationRule, PredicateRecord,
+    DICTIONARY_ADVERBIAL_I_RULE_ID, DICTIONARY_CONJUGATION_RULE_ID,
+    DICTIONARY_RELATED_ADVERB_RULE_ID, DataAlternation, DerivationRule, PredicateRecord,
 };
 use kfind_morph::{
     LexicalAlternation, PredicateEntry, PredicateFlags, PredicatePos, generate_predicate_branches,
@@ -15,6 +15,7 @@ use crate::output::{CandidateStatus, candidate_status};
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub enum SurfaceKind {
     Conjugation,
+    AttestedAdverbial,
     RelatedAdverb,
 }
 
@@ -22,6 +23,7 @@ impl SurfaceKind {
     pub const fn rule_id(self) -> &'static str {
         match self {
             Self::Conjugation => DICTIONARY_CONJUGATION_RULE_ID,
+            Self::AttestedAdverbial => DICTIONARY_ADVERBIAL_I_RULE_ID,
             Self::RelatedAdverb => DICTIONARY_RELATED_ADVERB_RULE_ID,
         }
     }
@@ -29,6 +31,7 @@ impl SurfaceKind {
     pub const fn status(self) -> &'static str {
         match self {
             Self::Conjugation => "dictionary-conjugation",
+            Self::AttestedAdverbial => "dictionary-adverbial-i",
             Self::RelatedAdverb => "dictionary-related-adverb",
         }
     }
@@ -53,7 +56,9 @@ pub struct SurfaceCollection {
     pub candidates: Vec<SurfaceCandidate>,
     pub agreed_conjugation_count: usize,
     pub generated_conjugation_count: usize,
+    pub agreed_adverbial_i_count: usize,
     pub related_adverb_count: usize,
+    pub surface_related_adverb_count: usize,
 }
 
 pub fn collect_surfaces(
@@ -64,6 +69,7 @@ pub fn collect_surfaces(
     derivations: &[DerivationRule],
 ) -> SurfaceCollection {
     let mut conjugations = BTreeMap::<SurfaceKey, Evidence>::new();
+    let mut attested_adverbials = BTreeMap::<SurfaceKey, Evidence>::new();
     let mut related_adverbs = BTreeMap::<SurfaceKey, Evidence>::new();
     for record in records {
         if record.lexical_status != "일반어" || predicate_pos(&record.pos).is_none() {
@@ -95,9 +101,31 @@ pub fn collect_surfaces(
                     .add(&record.source, &record.source_id);
             }
         }
+        for (surface, target_ids) in &record.attested_adverbials {
+            let evidence = attested_adverbials
+                .entry(SurfaceKey {
+                    lemma: record.lemma.clone(),
+                    pos: record.pos.clone(),
+                    surface: surface.clone(),
+                    kind: SurfaceKind::AttestedAdverbial,
+                })
+                .or_default();
+            for target_id in target_ids {
+                evidence.add(&record.source, &format!("{}>{target_id}", record.source_id));
+            }
+        }
     }
 
     conjugations.retain(|_, evidence| evidence.has_required_sources());
+    attested_adverbials.retain(|_, evidence| evidence.has_required_sources());
+    for key in attested_adverbials.keys() {
+        related_adverbs.remove(&SurfaceKey {
+            lemma: key.lemma.clone(),
+            pos: key.pos.clone(),
+            surface: key.surface.clone(),
+            kind: SurfaceKind::RelatedAdverb,
+        });
+    }
     let dictionary_keys = conjugations
         .keys()
         .map(|key| (key.lemma.clone(), key.pos.clone()))
@@ -125,6 +153,15 @@ pub fn collect_surfaces(
         }
     }
     output.extend(
+        attested_adverbials
+            .iter()
+            .map(|(key, evidence)| SurfaceCandidate {
+                key: key.clone(),
+                evidence: evidence.clone(),
+            }),
+    );
+    let surface_related_adverb_count = related_adverbs.len();
+    output.extend(
         related_adverbs
             .into_iter()
             .map(|(key, evidence)| SurfaceCandidate { key, evidence }),
@@ -134,11 +171,13 @@ pub fn collect_surfaces(
         candidates: output,
         agreed_conjugation_count: conjugations.len(),
         generated_conjugation_count,
+        agreed_adverbial_i_count: attested_adverbials.len(),
         related_adverb_count: records
             .iter()
             .filter(|record| record.source == "krdict")
             .map(|record| record.related_adverbs.len())
             .sum(),
+        surface_related_adverb_count,
     }
 }
 
@@ -302,4 +341,62 @@ fn alternation_from_rule_id(id: &str) -> Option<LexicalAlternation> {
         "lexical.u-to-eo" => LexicalAlternation::UToEo,
         _ => return None,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn record(source: &str, source_id: &str, attested: bool) -> SourceRecord {
+        SourceRecord {
+            source: source.to_owned(),
+            source_id: source_id.to_owned(),
+            lemma: "같다".to_owned(),
+            pos: "VA".to_owned(),
+            lexical_status: "일반어".to_owned(),
+            conjugations: BTreeSet::new(),
+            related_adverbs: (source == "krdict")
+                .then(|| "같이".to_owned())
+                .into_iter()
+                .collect(),
+            attested_adverbials: attested
+                .then(|| {
+                    (
+                        "같이".to_owned(),
+                        [format!("{source_id}-adverb")].into_iter().collect(),
+                    )
+                })
+                .into_iter()
+                .collect(),
+        }
+    }
+
+    #[test]
+    fn promotes_only_cross_dictionary_adverbials_and_prefers_them_to_relations() {
+        let records = vec![record("krdict", "k1", true), record("stdict", "s1", true)];
+        let surfaces = collect_surfaces(&records, &[], &BTreeMap::new(), &CoreEntries::new(), &[]);
+
+        assert_eq!(surfaces.candidates.len(), 1);
+        assert_eq!(
+            surfaces.candidates[0].key.kind,
+            SurfaceKind::AttestedAdverbial
+        );
+        assert_eq!(surfaces.agreed_adverbial_i_count, 1);
+        assert_eq!(surfaces.related_adverb_count, 1);
+        assert_eq!(surfaces.surface_related_adverb_count, 0);
+
+        let single_source = collect_surfaces(
+            &[record("krdict", "k1", true)],
+            &[],
+            &BTreeMap::new(),
+            &CoreEntries::new(),
+            &[],
+        );
+        assert_eq!(single_source.candidates.len(), 1);
+        assert_eq!(
+            single_source.candidates[0].key.kind,
+            SurfaceKind::RelatedAdverb
+        );
+        assert_eq!(single_source.agreed_adverbial_i_count, 0);
+    }
 }

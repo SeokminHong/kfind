@@ -8,12 +8,15 @@ when independently supported records require it alongside an irregular analysis
 for the same lemma and fine POS.
 
 The Python adapter reads the three ZIP snapshots, preserves source-record and
-homonym identity, and emits normalized predicate records. The Rust classifier
-uses kfind's predicate generator to identify diagnostic conjugations. A record
-is promoted only when Korean Basic Dictionary and Standard Korean Language
-Dictionary independently support the same analysis. Urimalsaem is retained as
-audit evidence. Core duplicates and analyses already covered by productive
-suffix rules are recorded in the report but omitted from the enriched artifact.
+homonym identity, and emits normalized predicate records. It also proposes only
+bounded adjective-to-adverb shapes (`-없다`/`-같다` plus `이`, and `르` to
+`ㄹ리`) and records them when both the Korean Basic Dictionary and Standard
+Korean Language Dictionary independently list the adjective and resulting
+adverb. The Rust classifier uses kfind's predicate generator to identify
+diagnostic conjugations and promotes only cross-dictionary agreement. Urimalsaem
+is retained as audit evidence. Core duplicates and analyses already covered by
+productive suffix rules are recorded in the report but omitted from the
+enriched artifact.
 
 Run from the repository root:
 

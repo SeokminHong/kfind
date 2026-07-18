@@ -9,6 +9,8 @@ from unittest.mock import patch
 
 from nikl_import import (
     KrDictEntry,
+    adverb_headwords,
+    adverbial_i_candidates,
     import_snapshot,
     krdict_record,
     krdict_related_adverbs,
@@ -138,6 +140,31 @@ class NiklImportTest(unittest.TestCase):
         }
 
         self.assertEqual(krdict_related_adverbs(entries), {"1": ("상관없이",)})
+
+    def test_generates_bounded_adverbial_i_candidates(self) -> None:
+        self.assertEqual(adverbial_i_candidates("같다"), ("같이",))
+        self.assertEqual(adverbial_i_candidates("없다"), ("없이",))
+        self.assertEqual(adverbial_i_candidates("다르다"), ("달리",))
+        self.assertEqual(adverbial_i_candidates("깊다"), ())
+        self.assertEqual(adverbial_i_candidates("명사"), ())
+
+    def test_extracts_only_general_adverb_headwords(self) -> None:
+        krdict = ET.fromstring(
+            """<LexicalEntry val="2"><feat att="partOfSpeech" val="부사"/>
+            <Lemma><feat att="writtenForm" val="같이"/></Lemma></LexicalEntry>"""
+        )
+        stdict = ET.fromstring(
+            """<item><target_code>3</target_code><word_info><word>달리01</word>
+            <pos_info><pos_code>4</pos_code><pos>부사</pos><comm_pattern_info>
+            <sense_info><type>일반어</type><definition>내용</definition></sense_info>
+            </comm_pattern_info></pos_info></word_info></item>"""
+        )
+
+        self.assertEqual(adverb_headwords("krdict", krdict, {"같이"}), (("같이", "2"),))
+        self.assertEqual(
+            adverb_headwords("stdict", stdict, {"달리"}),
+            (("달리", "3:4"),),
+        )
 
     def test_extracts_and_classifies_ending_headwords(self) -> None:
         krdict = ET.fromstring(

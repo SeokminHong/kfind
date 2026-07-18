@@ -207,13 +207,15 @@ pub fn write_stats(
             .count()
     };
     let mut output = format!(
-        "schema_version = 3\ngenerator = \"nikl-lexicon-classifier@0.3.0\"\nrecord_count = {}\ncandidate_count = {}\nagreed_conjugation_count = {}\ngenerated_conjugation_count = {}\nsurface_conjugation_count = {}\nrelated_adverb_count = {}\nsurface_only_count = {}\nartifact_bytes = {}\n",
+        "schema_version = 4\ngenerator = \"nikl-lexicon-classifier@0.4.0\"\nrecord_count = {}\ncandidate_count = {}\nagreed_conjugation_count = {}\ngenerated_conjugation_count = {}\nsurface_conjugation_count = {}\nagreed_adverbial_i_count = {}\nrelated_adverb_count = {}\nsurface_related_adverb_count = {}\nsurface_only_count = {}\nartifact_bytes = {}\n",
         records.len(),
         candidates.len(),
         surfaces.agreed_conjugation_count,
         surfaces.generated_conjugation_count,
         surfaces.agreed_conjugation_count - surfaces.generated_conjugation_count,
+        surfaces.agreed_adverbial_i_count,
         surfaces.related_adverb_count,
+        surfaces.surface_related_adverb_count,
         surfaces.candidates.len(),
         artifact_bytes,
     );
