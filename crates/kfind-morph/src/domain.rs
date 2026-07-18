@@ -256,12 +256,19 @@ pub struct SurfaceOverride {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PredicateDerivation {
+    pub target_lemma: Box<str>,
+    pub rule_id: RuleId,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PredicateEntry {
     pub lemma: Box<str>,
     pub pos: PredicatePos,
     pub alternation: LexicalAlternation,
     pub flags: PredicateFlags,
     pub overrides: Box<[SurfaceOverride]>,
+    pub derivations: Box<[PredicateDerivation]>,
 }
 
 impl PredicateEntry {
@@ -277,6 +284,7 @@ impl PredicateEntry {
             alternation,
             flags: PredicateFlags::NONE,
             overrides: Box::new([]),
+            derivations: Box::new([]),
         }
     }
 }

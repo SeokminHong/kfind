@@ -10,7 +10,7 @@ use crate::{
 };
 use kfind_data::{
     DICTIONARY_ADVERBIAL_I_RULE_ID, DICTIONARY_CONJUGATION_RULE_ID,
-    DICTIONARY_RELATED_ADVERB_RULE_ID, DerivationRule,
+    DICTIONARY_RELATED_ADVERB_RULE_ID, DICTIONARY_VOICE_DERIVATION_RULE_ID, DerivationRule,
 };
 use kfind_morph::{
     CoarsePos, ComponentCapability, ParticleAllomorph, PredicatePosSet, RuleId,
@@ -31,6 +31,7 @@ const INTERNAL_PROVENANCE_IDS: &[&str] = &[
     "contraction.identical-vowel",
     DICTIONARY_ADVERBIAL_I_RULE_ID,
     DICTIONARY_CONJUGATION_RULE_ID,
+    DICTIONARY_VOICE_DERIVATION_RULE_ID,
     DICTIONARY_RELATED_ADVERB_RULE_ID,
     "structural.ending-path",
 ];
@@ -311,7 +312,8 @@ fn reusable_predicate_analysis(
                 && current_predicate.pos.execution() == previous_predicate.pos.execution()
                 && current_predicate.alternation == previous_predicate.alternation
                 && current_predicate.flags == previous_predicate.flags
-                && current_predicate.overrides == previous_predicate.overrides)
+                && current_predicate.overrides == previous_predicate.overrides
+                && current_predicate.derivations == previous_predicate.derivations)
                 .then_some((index, current_predicate.pos))
         })
 }
@@ -526,6 +528,34 @@ fn compile_predicate(
     let Morphology::Predicate(predicate) = &analysis.morphology else {
         unreachable!("predicate compile received non-predicate analysis")
     };
+    for derivation in &predicate.derivations {
+        let derived_predicate = kfind_morph::PredicateEntry::new(
+            derivation.target_lemma.clone(),
+            predicate.pos,
+            kfind_morph::LexicalAlternation::Regular,
+        );
+        let derived_analysis = Analysis {
+            lemma: derivation.target_lemma.clone(),
+            coarse_pos: analysis.coarse_pos,
+            fine_pos: analysis.fine_pos,
+            morphology: Morphology::Predicate(derived_predicate),
+            source: AnalysisSource::EnrichedLexicon,
+        };
+        let mut derivation_path = prefix_rules.clone();
+        derivation_path.push(derivation.rule_id.clone());
+        compile_predicate(
+            &derived_analysis,
+            analysis_index,
+            derivation_path,
+            expand,
+            exact_component,
+            structural_fallback,
+            allowed_rules,
+            known_rule_ids,
+            excluded_rules,
+            output,
+        )?;
+    }
     let branches = generate_predicate_branches(predicate)
         .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?;
     for branch in &branches {

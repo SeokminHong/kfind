@@ -83,6 +83,7 @@ fn full_pos_adds_regular_analysis_for_non_core_predicates() {
             alternation: DataAlternation::Regular,
             flags: BTreeSet::new(),
             overrides: Vec::new(),
+            derivations: Vec::new(),
         }],
         ..LexiconData::default()
     };
@@ -111,6 +112,7 @@ fn full_pos_preserves_multiple_predicate_pos_candidates() {
                 alternation: DataAlternation::Regular,
                 flags: BTreeSet::new(),
                 overrides: Vec::new(),
+                derivations: Vec::new(),
             },
             PredicateRecord {
                 lemma: "나쁘다".to_owned(),
@@ -118,6 +120,7 @@ fn full_pos_preserves_multiple_predicate_pos_candidates() {
                 alternation: DataAlternation::Regular,
                 flags: BTreeSet::new(),
                 overrides: Vec::new(),
+                derivations: Vec::new(),
             },
         ],
         ..LexiconData::default()
@@ -144,6 +147,7 @@ fn full_pos_preserves_productive_alternation_for_non_core_predicates() {
             alternation: DataAlternation::Regular,
             flags: BTreeSet::new(),
             overrides: Vec::new(),
+            derivations: Vec::new(),
         }],
         ..LexiconData::default()
     };
@@ -180,6 +184,7 @@ fn known_predicate_shape_selects_productive_alternation_for_its_pos() {
                 alternation: DataAlternation::Regular,
                 flags: BTreeSet::new(),
                 overrides: Vec::new(),
+                derivations: Vec::new(),
             },
             PredicateRecord {
                 lemma: "자유롭다".to_owned(),
@@ -187,6 +192,7 @@ fn known_predicate_shape_selects_productive_alternation_for_its_pos() {
                 alternation: DataAlternation::Regular,
                 flags: BTreeSet::new(),
                 overrides: Vec::new(),
+                derivations: Vec::new(),
             },
         ],
         ..LexiconData::default()
@@ -283,6 +289,79 @@ fn dictionary_surfaces_preserve_inflection_and_derivation_boundaries() {
 }
 
 #[test]
+fn dictionary_voice_derivation_reuses_the_target_predicate_inflection() {
+    let mut lexicons = Lexicons::embedded().unwrap();
+    lexicons
+        .load_enriched_predicates(
+            "fixture.tsv",
+            concat!(
+                "lemma\tpos\talternation\tflags\toverrides\tderivations\n",
+                "밀다\tVV\tSurfaceOnly\t\t\tlexical.dictionary-voice=밀리다\n",
+            ),
+        )
+        .unwrap();
+    let analyzer = LexiconQueryAnalyzer::new(Arc::new(lexicons));
+
+    let inflection = compile_query("밀다", &CompileOptions::default(), &analyzer).unwrap();
+    assert!(inflection.atoms[0].programs.iter().any(|branch| {
+        branch.anchor.as_ref() == "밀려".as_bytes()
+            && branch.origins.iter().any(|origin| {
+                origin
+                    .rule_path
+                    .iter()
+                    .any(|rule| rule.as_str() == "lexical.dictionary-voice")
+            })
+    }));
+
+    let literal = compile_query(
+        "밀다",
+        &CompileOptions {
+            expand: ExpandMode::Literal,
+            ..CompileOptions::default()
+        },
+        &analyzer,
+    )
+    .unwrap();
+    assert!(
+        literal.atoms[0]
+            .programs
+            .iter()
+            .all(|branch| branch.anchor.as_ref() != "밀려".as_bytes())
+    );
+}
+
+#[test]
+fn distinct_dictionary_voice_derivations_compile_independently() {
+    let mut lexicons = Lexicons::embedded().unwrap();
+    lexicons
+        .load_enriched_predicates(
+            "fixture.tsv",
+            concat!(
+                "lemma\tpos\talternation\tflags\toverrides\tderivations\n",
+                "들다\tVV\tSurfaceOnly\t\t\tlexical.dictionary-voice=들리다\n",
+                "들다\tVV\tSurfaceOnly\t\t\tlexical.dictionary-voice=들이다\n",
+            ),
+        )
+        .unwrap();
+    let analyzer = LexiconQueryAnalyzer::new(Arc::new(lexicons));
+
+    let plan = compile_query("들다", &CompileOptions::default(), &analyzer).unwrap();
+
+    assert!(
+        plan.atoms[0]
+            .programs
+            .iter()
+            .any(|branch| branch.anchor.as_ref() == "들려".as_bytes())
+    );
+    assert!(
+        plan.atoms[0]
+            .programs
+            .iter()
+            .any(|branch| branch.anchor.as_ref() == "들여".as_bytes())
+    );
+}
+
+#[test]
 fn core_predicate_analysis_suppresses_the_same_full_pos_coarse_pos() {
     let full_data = LexiconData {
         predicates: vec![
@@ -292,6 +371,7 @@ fn core_predicate_analysis_suppresses_the_same_full_pos_coarse_pos() {
                 alternation: DataAlternation::Regular,
                 flags: BTreeSet::new(),
                 overrides: Vec::new(),
+                derivations: Vec::new(),
             },
             PredicateRecord {
                 lemma: "걷다".to_owned(),
@@ -299,6 +379,7 @@ fn core_predicate_analysis_suppresses_the_same_full_pos_coarse_pos() {
                 alternation: DataAlternation::Regular,
                 flags: BTreeSet::new(),
                 overrides: Vec::new(),
+                derivations: Vec::new(),
             },
             PredicateRecord {
                 lemma: "걷다".to_owned(),
@@ -306,6 +387,7 @@ fn core_predicate_analysis_suppresses_the_same_full_pos_coarse_pos() {
                 alternation: DataAlternation::Regular,
                 flags: BTreeSet::new(),
                 overrides: Vec::new(),
+                derivations: Vec::new(),
             },
         ],
         ..LexiconData::default()
@@ -333,6 +415,7 @@ fn user_replace_suppresses_lazy_full_pos_category() {
             alternation: DataAlternation::Regular,
             flags: BTreeSet::new(),
             overrides: Vec::new(),
+            derivations: Vec::new(),
         }],
         ..LexiconData::default()
     };
@@ -409,6 +492,7 @@ fn user_append_preserves_lazy_full_pos_candidate() {
             alternation: DataAlternation::Regular,
             flags: BTreeSet::new(),
             overrides: Vec::new(),
+            derivations: Vec::new(),
         }],
         ..LexiconData::default()
     };

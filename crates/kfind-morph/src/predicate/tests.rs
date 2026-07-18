@@ -10,6 +10,7 @@ fn entry(lemma: &str, pos: PredicatePos, alternation: LexicalAlternation) -> Pre
         alternation,
         flags: PredicateFlags::NONE,
         overrides: Box::new([]),
+        derivations: Box::new([]),
     }
 }
 

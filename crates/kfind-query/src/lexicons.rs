@@ -8,8 +8,8 @@ use kfind_data::{
     parse_predicates_tsv, parse_rule_set, validate_predicates,
 };
 use kfind_morph::{
-    CoarsePos, ContinuationState, FinePos, LexicalAlternation, PredicateEntry, PredicateFlags,
-    PredicatePos, RuleId, SurfaceOverride,
+    CoarsePos, ContinuationState, FinePos, LexicalAlternation, PredicateDerivation, PredicateEntry,
+    PredicateFlags, PredicatePos, RuleId, SurfaceOverride,
 };
 
 use crate::{
@@ -440,12 +440,21 @@ fn predicate_analysis(record: &kfind_data::PredicateRecord, source: AnalysisSour
             rule_id: RuleId::from(entry.rule_id.clone()),
         })
         .collect();
+    let derivations = record
+        .derivations
+        .iter()
+        .map(|entry| PredicateDerivation {
+            target_lemma: entry.target_lemma.clone().into_boxed_str(),
+            rule_id: RuleId::from(entry.rule_id.clone()),
+        })
+        .collect();
     let predicate = PredicateEntry {
         lemma: record.lemma.clone().into_boxed_str(),
         pos,
         alternation: data_alternation(record.alternation),
         flags,
         overrides,
+        derivations,
     };
     Analysis {
         lemma: predicate.lemma.clone(),
@@ -673,6 +682,7 @@ mod tests {
                     alternation: DataAlternation::Regular,
                     flags: BTreeSet::new(),
                     overrides: Vec::new(),
+                    derivations: Vec::new(),
                 },
                 kfind_data::PredicateRecord {
                     lemma: "가르다".to_owned(),
@@ -680,6 +690,7 @@ mod tests {
                     alternation: DataAlternation::Regular,
                     flags: BTreeSet::new(),
                     overrides: Vec::new(),
+                    derivations: Vec::new(),
                 },
                 kfind_data::PredicateRecord {
                     lemma: "가르다".to_owned(),
@@ -687,6 +698,7 @@ mod tests {
                     alternation: DataAlternation::Regular,
                     flags: BTreeSet::new(),
                     overrides: Vec::new(),
+                    derivations: Vec::new(),
                 },
             ],
             ..LexiconData::default()
