@@ -21,9 +21,9 @@ gold 또는 negative 선택을 바꾸지 않는다.
 미구현 표준 문법과 구조 설계 비용은 FNᶜ로 유지한다. 결과 표의 TPᶜ·FPᶜ·TNᶜ·FNᶜ는 각각
 `contract_tp`·`contract_fp`·`contract_tn`·`contract_fn`이며 strict 지표를 대체하지 않는다.
 
-현재 query matrix full-POS는 raw `FP 4 / FN 7 / recall 99.46%`, contract
-`FPᶜ 0 / FNᶜ 3 / recallᶜ 99.77%`다. 상세 결과는
-[사전 voice 파생 활용 recall](2026-07-18-dictionary-voice-derivation.md)에 둔다.
+현재 query matrix full-POS는 raw `FP 4 / FN 6 / recall 99.54%`, contract
+`FPᶜ 0 / FNᶜ 2 / recallᶜ 99.85%`다. 상세 결과는
+[파생 용언 앞 명사 파생 경로 recall](2026-07-18-nominal-derivational-predicate.md)에 둔다.
 
 현재 제품 기준선:
 
@@ -31,11 +31,11 @@ gold 또는 negative 선택을 바꾸지 않는다.
 | --- | ---: | ---: | ---: | ---: |
 | dev embedded smart | 455 / 2 / 45 | 99.56% | 91.0% | 95.09% |
 | dev full-POS smart | 485 / 2 / 15 | 99.59% | 97.0% | 98.28% |
-| test embedded smart | 460 / 1 / 40 | 99.78% | 92.0% | 95.73% |
-| test full-POS smart | 497 / 2 / 3 | 99.60% | 99.4% | 99.50% |
+| test embedded smart | 461 / 1 / 39 | 99.78% | 92.2% | 95.84% |
+| test full-POS smart | 498 / 2 / 2 | 99.60% | 99.6% | 99.60% |
 
 세부 품사, strict/contract-adjusted hard-negative와 성능 결과는
-[사전 voice 파생 활용 recall](2026-07-18-dictionary-voice-derivation.md)에 둔다.
+[파생 용언 앞 명사 파생 경로 recall](2026-07-18-nominal-derivational-predicate.md)에 둔다.
 
 비표준 활용, 오타와 불안정한 띄어쓰기는 이 canonical 기준선에 합치지 않는다. 별도 fixture와
 robust-only precision, over-acceptance, canonical retention, raw-span 지표는
