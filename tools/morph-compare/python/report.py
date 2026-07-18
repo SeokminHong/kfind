@@ -291,7 +291,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 19,
+        "schema_version": 20,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "backends": list(backends),
@@ -637,25 +637,33 @@ def append_query_matrix(
     lines.extend(
         [
             "",
-            "### Explicit-POS contract-adjusted quality and sentence coverage",
+            "### kfind explicit-POS raw and contract-adjusted quality",
             "",
-            "| backend | contract precision | contract recall | contract F1 | TPᶜ | FPᶜ | TNᶜ | FNᶜ | all contract queries | cluster 95% CI | reclassified |",
-            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+            "The raw columns preserve corpus gold. The contract columns apply the "
+            "versioned kfind review registry; structurally indistinguishable matches "
+            "are positive and excluded cases are outside the contract denominator.",
+            "",
+            "| backend | raw precision / recall | precisionᶜ / recallᶜ | TP / FP / TN / FN | TPᶜ / FPᶜ / TNᶜ / FNᶜ | all raw / contract queries | reviewed / excluded |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
-    for backend in explicit["backends"]:
+    for backend in (name for name in KFIND_PROFILES if name in explicit["backends"]):
+        raw_quality = explicit["quality"][backend]["overall"]
         quality = explicit["quality"][backend]["contract_adjusted"]["overall"]
+        raw_coverage = explicit["sentence_coverage"][backend]
         coverage = explicit["contract_adjusted_sentence_coverage"][backend]
-        interval = coverage["recall_sentence_cluster_bootstrap_95_percent"]
         lines.append(
-            f"| {backend} | {quality['contract_precision_percent']}% | "
+            f"| {backend} | {raw_quality['precision_percent']}% / "
+            f"{raw_quality['recall_percent']}% | "
+            f"{quality['contract_precision_percent']}% / "
             f"{quality['contract_recall_percent']}% | "
-            f"{quality['contract_f1_percent']}% | "
-            f"{quality['contract_tp']} | {quality['contract_fp']} | "
-            f"{quality['contract_tn']} | {quality['contract_fn']} | "
+            f"{raw_quality['tp']} / {raw_quality['fp']} / "
+            f"{raw_quality['tn']} / {raw_quality['fn']} | "
+            f"{quality['contract_tp']} / {quality['contract_fp']} / "
+            f"{quality['contract_tn']} / {quality['contract_fn']} | "
+            f"{raw_coverage['all_present_queries_recovered_percent']}% / "
             f"{coverage['all_present_queries_recovered_percent']}% | "
-            f"{interval[0]}%–{interval[1]}% | "
-            f"{quality['reclassified_cases']} |"
+            f"{quality['reviewed_cases']} / {quality['excluded_cases']} |"
         )
     lines.extend(
         [
@@ -683,24 +691,28 @@ def append_query_matrix(
     lines.extend(
         [
             "",
-            "### Query-matrix contract-adjusted product workflows",
+            "### Query-matrix product workflows: raw and contract-adjusted",
             "",
-            "| workflow | contract precision | contract recall | contract F1 | TPᶜ | FPᶜ | TNᶜ | FNᶜ | all contract queries | reclassified |",
-            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+            "| workflow | raw precision / recall | precisionᶜ / recallᶜ | FP / FPᶜ | FN / FNᶜ | all raw / contract queries | reviewed / excluded |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
     for workflow_name in ("agent", "human"):
         workflow = query_matrix["product_workflows"][workflow_name]
+        raw_quality = workflow["quality"]
         quality = workflow["contract_adjusted_quality"]
+        raw_coverage = workflow["sentence_coverage"]
         coverage = workflow["contract_adjusted_sentence_coverage"]
         lines.append(
-            f"| {workflow_name} | {quality['contract_precision_percent']}% | "
+            f"| {workflow_name} | {raw_quality['precision_percent']}% / "
+            f"{raw_quality['recall_percent']}% | "
+            f"{quality['contract_precision_percent']}% / "
             f"{quality['contract_recall_percent']}% | "
-            f"{quality['contract_f1_percent']}% | "
-            f"{quality['contract_tp']} | {quality['contract_fp']} | "
-            f"{quality['contract_tn']} | {quality['contract_fn']} | "
+            f"{raw_quality['fp']} / {quality['contract_fp']} | "
+            f"{raw_quality['fn']} / {quality['contract_fn']} | "
+            f"{raw_coverage['all_present_queries_recovered_percent']}% / "
             f"{coverage['all_present_queries_recovered_percent']}% | "
-            f"{quality['reclassified_cases']} |"
+            f"{quality['reviewed_cases']} / {quality['excluded_cases']} |"
         )
     development = query_matrix.get("development")
     if development is not None:
@@ -724,23 +736,29 @@ def append_query_matrix(
         lines.extend(
             [
                 "",
-                "| backend | contract precision | contract recall | contract F1 | TPᶜ | FPᶜ | TNᶜ | FNᶜ | all contract queries | reclassified |",
-                "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+                "| backend | raw precision / recall | precisionᶜ / recallᶜ | FP / FPᶜ | FN / FNᶜ | all raw / contract queries | reviewed / excluded |",
+                "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
             ]
         )
-        for backend in development["backends"]:
+        for backend in (
+            name for name in KFIND_PROFILES if name in development["backends"]
+        ):
+            raw_quality = development["quality"][backend]["overall"]
             quality = development["quality"][backend]["contract_adjusted"][
                 "overall"
             ]
+            raw_coverage = development["sentence_coverage"][backend]
             coverage = development["contract_adjusted_sentence_coverage"][backend]
             lines.append(
-                f"| {backend} | {quality['contract_precision_percent']}% | "
+                f"| {backend} | {raw_quality['precision_percent']}% / "
+                f"{raw_quality['recall_percent']}% | "
+                f"{quality['contract_precision_percent']}% / "
                 f"{quality['contract_recall_percent']}% | "
-                f"{quality['contract_f1_percent']}% | "
-                f"{quality['contract_tp']} | {quality['contract_fp']} | "
-                f"{quality['contract_tn']} | {quality['contract_fn']} | "
+                f"{raw_quality['fp']} / {quality['contract_fp']} | "
+                f"{raw_quality['fn']} / {quality['contract_fn']} | "
+                f"{raw_coverage['all_present_queries_recovered_percent']}% / "
                 f"{coverage['all_present_queries_recovered_percent']}% | "
-                f"{quality['reclassified_cases']} |"
+                f"{quality['reviewed_cases']} / {quality['excluded_cases']} |"
             )
 
 
@@ -1007,21 +1025,24 @@ def append_contract_quality(lines: list[str], report: dict[str, object]) -> None
             "",
             "### Contract-adjusted quality",
             "",
-            "Strict corpus-gold counts remain in the preceding table. Contract counts only "
-            "apply reviewed `contract_expected` annotations.",
+            "Strict corpus-gold counts remain in the preceding table. The kfind contract "
+            "columns apply reviewed reclassifications and exclusions.",
             "",
-            "| backend | contract precision | contract recall | contract F1 | TPᶜ | FPᶜ | TNᶜ | FNᶜ | reclassified |",
-            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+            "| backend | raw precision / recall | precisionᶜ / recallᶜ | FP / FPᶜ | FN / FNᶜ | reviewed / excluded |",
+            "| --- | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
-    for backend in report["backends"]:
+    for backend in (name for name in KFIND_PROFILES if name in report["backends"]):
+        raw = report["quality"][backend]["overall"]
         metrics = report["quality"][backend]["contract_adjusted"]["overall"]
         lines.append(
-            f"| {backend} | {metrics['contract_precision_percent']}% | "
+            f"| {backend} | {raw['precision_percent']}% / "
+            f"{raw['recall_percent']}% | "
+            f"{metrics['contract_precision_percent']}% / "
             f"{metrics['contract_recall_percent']}% | "
-            f"{metrics['contract_f1_percent']}% | {metrics['contract_tp']} | "
-            f"{metrics['contract_fp']} | {metrics['contract_tn']} | "
-            f"{metrics['contract_fn']} | {metrics['reclassified_cases']} |"
+            f"{raw['fp']} / {metrics['contract_fp']} | "
+            f"{raw['fn']} / {metrics['contract_fn']} | "
+            f"{metrics['reviewed_cases']} / {metrics['excluded_cases']} |"
         )
 
 

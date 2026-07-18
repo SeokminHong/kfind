@@ -274,6 +274,12 @@ class QualityMetricsTests(unittest.TestCase):
             "backends": ["kfind-embedded"],
             "quality": {
                 "kfind-embedded": {
+                    "overall": {
+                        "precision_percent": 75.0,
+                        "recall_percent": 90.0,
+                        "fp": 2,
+                        "fn": 1,
+                    },
                     "contract_adjusted": {
                         "overall": {
                             "contract_precision_percent": 80.0,
@@ -283,7 +289,9 @@ class QualityMetricsTests(unittest.TestCase):
                             "contract_fp": 1,
                             "contract_tn": 2,
                             "contract_fn": 0,
+                            "reviewed_cases": 3,
                             "reclassified_cases": 3,
+                            "excluded_cases": 0,
                         }
                     }
                 }
@@ -293,9 +301,8 @@ class QualityMetricsTests(unittest.TestCase):
 
         append_contract_quality(lines, report)
 
-        self.assertIn("TPᶜ", "\n".join(lines))
         self.assertIn(
-            "| kfind-embedded | 80.0% | 100.0% | 88.89% | 4 | 1 | 2 | 0 | 3 |",
+            "| kfind-embedded | 75.0% / 90.0% | 80.0% / 100.0% | 2 / 1 | 1 / 0 | 3 / 0 |",
             "\n".join(lines),
         )
 
@@ -752,7 +759,9 @@ class QueryMatrixReportTests(unittest.TestCase):
             "contract_fp": 1,
             "contract_tn": 98,
             "contract_fn": 9,
+            "reviewed_cases": 3,
             "reclassified_cases": 1,
+            "excluded_cases": 2,
         }
         contract_coverage = {
             "all_present_queries_recovered_percent": 72.5,
@@ -807,12 +816,12 @@ class QueryMatrixReportTests(unittest.TestCase):
         self.assertIn("## Query matrix", rendered)
         self.assertIn("100 same-sentence negative", rendered)
         self.assertIn("| kfind-embedded | 99.0% | 90.0% |", rendered)
-        self.assertIn(
-            "| kfind-embedded | 99.5% | 91.0% | 95.06% | 91 | 1 | 98 | 9 | 72.5% |",
-            rendered,
-        )
+        self.assertIn("99.0% / 90.0%", rendered)
+        self.assertIn("99.5% / 91.0%", rendered)
+        self.assertIn("90 / 1 / 99 / 10", rendered)
+        self.assertIn("91 / 1 / 98 / 9", rendered)
         self.assertIn("| agent | 99.0% | 90.0% |", rendered)
-        self.assertIn("| agent | 99.5% | 91.0% | 95.06% |", rendered)
+        self.assertIn("| agent | 99.0% / 90.0% | 99.5% / 91.0% |", rendered)
 
 
 class RobustnessReportTests(unittest.TestCase):

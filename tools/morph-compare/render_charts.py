@@ -7,6 +7,8 @@ import html
 import json
 from pathlib import Path
 
+from python.query_matrix_chart import render_query_matrix_quality
+
 
 BACKENDS = (
     "kfind-embedded",
@@ -1140,6 +1142,10 @@ def main() -> None:
     if "human_untagged" in report:
         (args.output / f"{args.prefix}human-untagged-quality.svg").write_text(
             render_human_untagged_quality(report), encoding="utf-8"
+        )
+    if "query_matrix" in report:
+        (args.output / f"{args.prefix}query-matrix-quality.svg").write_text(
+            render_query_matrix_quality(report), encoding="utf-8"
         )
 
 
