@@ -44,6 +44,15 @@ impl Display for LocalizedCliError<'_> {
                 self.language.select("failed to read", "읽을 수 없습니다:"),
                 path.display()
             ),
+            CliError::ResourceTooLarge { path, limit } => write!(
+                formatter,
+                "{} {}: {limit} bytes",
+                self.language.select(
+                    "resource exceeds the size limit",
+                    "resource가 크기 상한을 초과했습니다:"
+                ),
+                path.display()
+            ),
             CliError::MissingData(path) => write!(
                 formatter,
                 "{}: {}",

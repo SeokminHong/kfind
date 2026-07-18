@@ -20,6 +20,7 @@ const RESOURCE_VERSION_LEN: usize = 32;
 #[cfg(test)]
 const SECTION_LENGTHS_OFFSET: usize = 92;
 const HEADER_LEN: usize = 212;
+pub const MAX_COMPONENT_RESOURCE_BYTES: usize = 128 * 1024 * 1024;
 #[cfg(not(target_arch = "wasm32"))]
 const PARALLEL_DIGEST_MIN_SECTION_LEN: usize = 1024 * 1024;
 
@@ -176,6 +177,7 @@ pub fn decode_component_resource(
     input: Vec<u8>,
     expected_source_digest: &[u8; 32],
 ) -> Result<ComponentResource, DataError> {
+    validate_encoded_size(input.len(), source)?;
     let bytes = input.into_boxed_slice();
     if bytes.len() < HEADER_LEN || bytes.get(..MAGIC.len()) != Some(MAGIC) {
         return Err(resource_error(source, "truncated header or invalid magic"));
@@ -273,6 +275,13 @@ pub fn decode_component_resource(
         payload,
         strings,
     })
+}
+
+fn validate_encoded_size(len: usize, source: &str) -> Result<(), DataError> {
+    if len > MAX_COMPONENT_RESOURCE_BYTES {
+        return Err(resource_error(source, "resource size exceeds the limit"));
+    }
+    Ok(())
 }
 
 #[allow(clippy::too_many_arguments)]
