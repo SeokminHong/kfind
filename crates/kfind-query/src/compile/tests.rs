@@ -345,12 +345,14 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
 
     let smart_copula = compile_query("이다", &CompileOptions::default(), &analyzer()).unwrap();
     assert!(smart_copula.requires_component_resource());
-    assert!(
-        smart_copula.atoms[0]
-            .programs
-            .iter()
-            .all(|branch| !branch.boundary().require_left && branch.decision.is_structural())
-    );
+    assert!(smart_copula.atoms[0].programs.iter().all(|branch| {
+        branch.decision.is_structural()
+            && (branch.boundary().require_left
+                == matches!(
+                    branch.consumption,
+                    CandidateConsumption::CopulaHostEndingCompose
+                ))
+    }));
 
     let token_options = CompileOptions {
         boundary: BoundaryPolicy::Token,
@@ -1091,6 +1093,54 @@ fn pronoun_copula_ending_contraction_is_source_structural_and_pos_scoped() {
             .iter()
             .all(|branch| branch.anchor.as_ref() != "무언가".as_bytes())
     );
+}
+
+#[test]
+fn lost_copula_span_uses_a_smart_only_grammar_anchor() {
+    let smart = compile_query(
+        "이다",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Adjective),
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    let branch = smart.atoms[0]
+        .programs
+        .iter()
+        .find(|branch| branch.anchor.as_ref() == "걸까".as_bytes())
+        .expect("missing contracted copula anchor");
+    assert!(matches!(
+        branch.consumption,
+        CandidateConsumption::CopulaHostEndingCompose
+    ));
+    assert!(branch.decision.is_structural());
+    assert!(branch.origins.iter().any(|origin| {
+        origin
+            .rule_path
+            .iter()
+            .any(|rule| rule.as_str() == "contraction.geos-copula-rieul-kka")
+    }));
+
+    for boundary in [BoundaryPolicy::Token, BoundaryPolicy::Any] {
+        let plan = compile_query(
+            "이다",
+            &CompileOptions {
+                boundary,
+                global_pos: Some(CoarsePos::Adjective),
+                ..CompileOptions::default()
+            },
+            &analyzer(),
+        )
+        .unwrap();
+        assert!(
+            plan.atoms[0]
+                .programs
+                .iter()
+                .all(|branch| branch.anchor.as_ref() != "걸까".as_bytes())
+        );
+    }
 }
 
 #[test]

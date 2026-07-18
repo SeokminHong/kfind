@@ -95,3 +95,11 @@ left = "무엇"
 right = "ㄴ가"
 result = "무언가"
 ending_ids = []
+
+[[contraction]]
+id = "contraction.geos-copula-rieul-kka"
+kind = "copula-host-ending-compose"
+left = "것"
+right = "ㄹ까"
+result = "걸까"
+ending_ids = []

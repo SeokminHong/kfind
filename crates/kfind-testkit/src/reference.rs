@@ -130,7 +130,9 @@ impl ReferenceMatcher {
         let consumption_anchor = normalized_anchor.as_deref().unwrap_or(anchor);
         let consumption_following = normalized_following.as_deref().unwrap_or(following);
         let (normalized_consumed, suffix_rules) = match &branch.consumption {
-            CandidateConsumption::Anchor => (0, Vec::new()),
+            CandidateConsumption::Anchor | CandidateConsumption::CopulaHostEndingCompose => {
+                (0, Vec::new())
+            }
             CandidateConsumption::PredicateContinuation {
                 continuation,
                 pos,

@@ -13,7 +13,7 @@ use kfind_data::{
     DICTIONARY_RELATED_ADVERB_RULE_ID, DICTIONARY_VOICE_DERIVATION_RULE_ID, DerivationRule,
 };
 use kfind_morph::{
-    CoarsePos, ComponentCapability, ParticleAllomorph, PredicatePosSet, RuleId,
+    CoarsePos, ComponentCapability, FinePos, ParticleAllomorph, PredicatePosSet, RuleId,
     generate_predicate_branches, generate_predicate_fallback_stems,
 };
 
@@ -369,19 +369,28 @@ fn compile_analysis(
     }
 
     match &analysis.morphology {
-        Morphology::Predicate(_) => compile_predicate(
-            analysis,
-            analysis_index,
-            Vec::new(),
-            options.expand,
-            analyzer.lexicons().full_pos_loaded(),
-            options.boundary == crate::BoundaryPolicy::Smart
-                && analyzer.lexicons().full_pos_loaded(),
-            predicate_rules,
-            known_rule_ids,
-            excluded_rules,
-            output,
-        )?,
+        Morphology::Predicate(_) => {
+            compile_predicate(
+                analysis,
+                analysis_index,
+                Vec::new(),
+                options.expand,
+                analyzer.lexicons().full_pos_loaded(),
+                options.boundary == crate::BoundaryPolicy::Smart
+                    && analyzer.lexicons().full_pos_loaded(),
+                predicate_rules,
+                known_rule_ids,
+                excluded_rules,
+                output,
+            )?;
+            compile_copula_host_ending_contractions(
+                analysis,
+                analysis_index,
+                options,
+                analyzer,
+                output,
+            );
+        }
         Morphology::Nominal(nominal) => {
             let blocked_rule_ids = blocked_override_rules(nominal);
             output.push(DraftBranch {
@@ -501,6 +510,40 @@ fn compile_nominal_contractions(
             }
             _ => {}
         }
+    }
+}
+
+fn compile_copula_host_ending_contractions(
+    analysis: &Analysis,
+    analysis_index: u16,
+    options: &CompileOptions,
+    analyzer: &LexiconQueryAnalyzer,
+    output: &mut Vec<DraftBranch>,
+) {
+    if options.boundary != crate::BoundaryPolicy::Smart
+        || options.expand == ExpandMode::Literal
+        || analysis.fine_pos != FinePos::Copula
+    {
+        return;
+    }
+    for rule in analyzer
+        .lexicons()
+        .rules()
+        .contractions
+        .iter()
+        .filter(|rule| rule.kind == "copula-host-ending-compose")
+    {
+        output.push(DraftBranch {
+            anchor: rule.result.clone(),
+            consumption: CandidateConsumption::CopulaHostEndingCompose,
+            core_mapping: CoreMapping::WholeAnchor,
+            origins: vec![Origin {
+                analysis_index,
+                rule_path: vec![RuleId::from(rule.id.clone())],
+            }],
+            smart_left: true,
+            decision: DraftDecision::Structural(ComponentCapability::Source),
+        });
     }
 }
 

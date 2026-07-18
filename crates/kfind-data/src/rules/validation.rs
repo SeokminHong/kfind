@@ -126,6 +126,7 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
         "stem-rewrite",
         "nominal-particle-compose",
         "nominal-copula-ending-compose",
+        "copula-host-ending-compose",
     ];
     let ending_ids = rules
         .endings
@@ -172,7 +173,9 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
         }
         if matches!(
             rule.kind.as_str(),
-            "nominal-particle-compose" | "nominal-copula-ending-compose"
+            "nominal-particle-compose"
+                | "nominal-copula-ending-compose"
+                | "copula-host-ending-compose"
         ) && !rule.ending_ids.is_empty()
         {
             return Err(invalid_rule_value(

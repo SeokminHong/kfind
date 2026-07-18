@@ -127,6 +127,17 @@ fn repository_data_is_complete_and_valid() {
         assert_eq!(contraction.result, result);
         assert!(contraction.ending_ids.is_empty());
     }
+    let lost_copula = data
+        .rules
+        .contractions
+        .iter()
+        .find(|rule| rule.id == "contraction.geos-copula-rieul-kka")
+        .expect("dependent-noun copula contraction rule");
+    assert_eq!(lost_copula.kind, "copula-host-ending-compose");
+    assert_eq!(lost_copula.left, "것");
+    assert_eq!(lost_copula.right, "ㄹ까");
+    assert_eq!(lost_copula.result, "걸까");
+    assert!(lost_copula.ending_ids.is_empty());
     let alternative = data
         .rules
         .particles

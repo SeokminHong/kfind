@@ -157,25 +157,25 @@ export default function BenchmarksPage(): React.JSX.Element {
             <tbody>
               <tr>
                 <td>embedded + smart</td>
-                <td>99.67% / 92.21%</td>
-                <td>100.00% / 92.52%</td>
-                <td>4 / 101</td>
-                <td>0 / 97</td>
+                <td>99.67% / 92.28%</td>
+                <td>100.00% / 92.59%</td>
+                <td>4 / 100</td>
+                <td>0 / 96</td>
               </tr>
               <tr>
                 <td>full POS + smart</td>
-                <td>99.69% / 99.54%</td>
-                <td>100.00% / 99.85%</td>
-                <td>4 / 6</td>
-                <td>0 / 2</td>
+                <td>99.69% / 99.61%</td>
+                <td>100.00% / 99.92%</td>
+                <td>4 / 5</td>
+                <td>0 / 1</td>
               </tr>
             </tbody>
           </table>
         </div>
         <p>
-          Full-POS의 FNᶜ 2건은 반환 span 복원과 한 음절 명사 성분처럼 아직
-          구현하지 않은 제품 목표입니다. 비용이나 현재 profile을 이유로 계약
-          분모에서 빼지 않습니다.
+          Full-POS의 FNᶜ 1건은 한 음절 명사 성분으로 아직 구현하지 않은 제품
+          목표입니다. 비용이나 현재 profile을 이유로 계약 분모에서 빼지
+          않습니다.
         </p>
         <figure className="benchmark-figure">
           <img
@@ -186,7 +186,7 @@ export default function BenchmarksPage(): React.JSX.Element {
           <figcaption>
             FPᶜ, FNᶜ, precisionᶜ, recallᶜ는 version-controlled registry가 실제로
             적용된 값이며 raw 지표의 별칭이 아닙니다. Review 22건의 판정은
-            유지되며, 확인한 구현 목표 14건 중 12건을 해소했습니다.
+            유지되며, 확인한 구현 목표 14건 중 13건을 해소했습니다.
           </figcaption>
         </figure>
       </DocumentSection>
@@ -509,8 +509,26 @@ export default function BenchmarksPage(): React.JSX.Element {
         </p>
       </DocumentSection>
 
+      <DocumentSection title="소실 지정사 축약">
+        <p>
+          <code>smart</code> 지정사 query는 선언된 <code>걸까</code> anchor가
+          맞은 뒤 exact source의 <code>체언+ + VCP + E+</code>와 종단{' '}
+          <code>EC/EF</code>를 검증합니다. 이 구조로 <code>이다</code>가{' '}
+          <code>걸까</code> 전체 span에 매칭됩니다.
+        </p>
+        <p>
+          정렬된 <code>VCP</code> span이 있는 일반 활용과 미완결 어미는
+          거부하며, 다른 어절을 지정사 후보로 열거하지 않습니다.
+        </p>
+      </DocumentSection>
+
       <DocumentSection title="원본 보고서">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-copula-lost-span.md">
+              소실 지정사 축약 recall
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-nominal-derivational-predicate.md">
               파생 용언 앞 명사 파생 경로 recall
