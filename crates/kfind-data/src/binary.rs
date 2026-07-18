@@ -12,7 +12,7 @@ use crate::{DataError, DataErrorKind, SourceLocation};
 
 const MAGIC: &[u8; 8] = b"KFPOS\0\x01\0";
 const MAX_ENTRY_COUNT: u32 = 1_000_000;
-const MAX_BINARY_BYTES: usize = 128 * 1024 * 1024;
+pub const MAX_POS_LEXICON_BYTES: usize = 128 * 1024 * 1024;
 const MAX_DECODED_LEMMA_BYTES: usize = 64 * 1024 * 1024;
 const MIN_ENCODED_ENTRY_BYTES: usize = 3;
 
@@ -250,16 +250,14 @@ pub fn encode_pos_lexicon(lexicon: &ApprovedPosLexicon) -> Result<Vec<u8>, DataE
         output.push(entry.pos.code());
         previous = &entry.lemma;
     }
-    if output.len() > MAX_BINARY_BYTES {
+    if output.len() > MAX_POS_LEXICON_BYTES {
         return Err(binary_error("binary 파일 크기 상한을 초과합니다"));
     }
     Ok(output)
 }
 
 pub fn decode_pos_lexicon(input: &[u8]) -> Result<DecodedPosLexicon, DataError> {
-    if input.len() > MAX_BINARY_BYTES {
-        return Err(binary_error("binary 파일 크기 상한을 초과합니다"));
-    }
+    validate_encoded_size(input.len())?;
     if input.len() < MAGIC.len() + 4 || &input[..MAGIC.len()] != MAGIC {
         return Err(binary_error(
             "magic 또는 format version이 올바르지 않습니다",
@@ -380,6 +378,13 @@ fn checked_decoded_bytes(current: usize, additional: usize) -> Result<usize, Dat
     Ok(total)
 }
 
+fn validate_encoded_size(len: usize) -> Result<(), DataError> {
+    if len > MAX_POS_LEXICON_BYTES {
+        return Err(binary_error("binary 파일 크기 상한을 초과합니다"));
+    }
+    Ok(())
+}
+
 fn common_char_boundary_prefix(left: &str, right: &str) -> usize {
     let mut length = left
         .bytes()
@@ -462,6 +467,12 @@ mod tests {
     fn decoded_lemma_byte_limit_is_checked_with_overflow_protection() {
         assert!(checked_decoded_bytes(MAX_DECODED_LEMMA_BYTES, 1).is_err());
         assert!(checked_decoded_bytes(usize::MAX, 1).is_err());
+    }
+
+    #[test]
+    fn encoded_size_limit_is_checked_without_allocating_the_input() {
+        assert!(validate_encoded_size(MAX_POS_LEXICON_BYTES).is_ok());
+        assert!(validate_encoded_size(MAX_POS_LEXICON_BYTES + 1).is_err());
     }
 
     #[test]

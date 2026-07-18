@@ -14,6 +14,8 @@ targets=(
   user_lexicon
   json_output
   binary_detection
+  pos_resource
+  component_resource
 )
 
 shopt -s nullglob

@@ -8,8 +8,8 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use kfind_data::{
-    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataError, decode_component_resource,
-    decode_pos_lexicon, parse_user_lexicon_toml,
+    COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataError, MAX_COMPONENT_RESOURCE_BYTES,
+    MAX_POS_LEXICON_BYTES, decode_component_resource, decode_pos_lexicon, parse_user_lexicon_toml,
 };
 use kfind_matcher::{MorphMatcher, MorphMatcherBuildError};
 use kfind_query::{
@@ -29,6 +29,7 @@ use crate::{
 const FULL_POS_FILE: &str = "lexicon.bin";
 const COMPONENT_RESOURCE_FILE: &str = "morphology-component-compact.kfc";
 const ENRICHED_PREDICATES_FILE: &str = "predicates.enriched.tsv";
+const MAX_TEXT_RESOURCE_BYTES: usize = 16 * 1024 * 1024;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 #[repr(u8)]
@@ -223,19 +224,13 @@ fn check_data(args: &Args, stdout: &mut impl Write) -> Result<ExitStatus, CliErr
         }
         FullPosStatus::NotRequired(_) => unreachable!("data check always requires full POS"),
     };
-    let full_pos_bytes = fs::read(&full_pos_path).map_err(|source| CliError::Read {
-        path: full_pos_path.clone(),
-        source,
-    })?;
+    let full_pos_bytes = read_resource(&full_pos_path, MAX_POS_LEXICON_BYTES)?;
     let full_pos_stats = decode_pos_lexicon(&full_pos_bytes)
         .map_err(CliError::Data)?
         .stats();
 
     let component_path = resolve_component_resource(args)?;
-    let component_bytes = fs::read(&component_path).map_err(|source| CliError::Read {
-        path: component_path.clone(),
-        source,
-    })?;
+    let component_bytes = read_resource(&component_path, MAX_COMPONENT_RESOURCE_BYTES)?;
     let component = decode_component_resource(
         &component_path.to_string_lossy(),
         component_bytes,
@@ -316,10 +311,7 @@ fn load_lexicons(args: &Args, full_pos_mode: FullPosMode) -> Result<LoadedLexico
     if !args.embedded
         && let Some(path) = resolve_enriched_predicates(args)
     {
-        let source = fs::read_to_string(&path).map_err(|source| CliError::Read {
-            path: path.clone(),
-            source,
-        })?;
+        let source = read_text_resource(&path, MAX_TEXT_RESOURCE_BYTES)?;
         lexicons
             .load_enriched_predicates(&path.to_string_lossy(), &source)
             .map_err(CliError::Data)?;
@@ -328,10 +320,7 @@ fn load_lexicons(args: &Args, full_pos_mode: FullPosMode) -> Result<LoadedLexico
         FullPosMode::Auto => {
             let resolved_full_pos = resolve_full_pos(args)?;
             if let FullPosStatus::Loaded { path } = &resolved_full_pos {
-                let bytes = fs::read(path).map_err(|source| CliError::Read {
-                    path: path.clone(),
-                    source,
-                })?;
+                let bytes = read_resource(path, MAX_POS_LEXICON_BYTES)?;
                 lexicons.load_full_pos(&bytes).map_err(CliError::Data)?;
             }
             resolved_full_pos
@@ -339,10 +328,7 @@ fn load_lexicons(args: &Args, full_pos_mode: FullPosMode) -> Result<LoadedLexico
         FullPosMode::Disabled(reason) => FullPosStatus::NotRequired(reason),
     };
     if let Some(path) = user_lexicon_path(args) {
-        let source = fs::read_to_string(&path).map_err(|source| CliError::Read {
-            path: path.clone(),
-            source,
-        })?;
+        let source = read_text_resource(&path, MAX_TEXT_RESOURCE_BYTES)?;
         let user = parse_user_lexicon_toml(&path.to_string_lossy(), &source, lexicons.rules())
             .map_err(CliError::Data)?;
         lexicons.merge_user(&user);
@@ -374,10 +360,7 @@ fn resolve_enriched_predicates(args: &Args) -> Option<PathBuf> {
 
 fn load_component_resource(args: &Args) -> Result<ComponentResource, CliError> {
     let path = resolve_component_resource(args)?;
-    let bytes = fs::read(&path).map_err(|source| CliError::Read {
-        path: path.clone(),
-        source,
-    })?;
+    let bytes = read_resource(&path, MAX_COMPONENT_RESOURCE_BYTES)?;
     decode_component_resource(
         &path.to_string_lossy(),
         bytes,
@@ -396,6 +379,51 @@ fn resolve_component_resource(args: &Args) -> Result<PathBuf, CliError> {
         ]);
     }
     require_component_candidate(auto_component_candidates())
+}
+
+fn read_resource(path: &Path, limit: usize) -> Result<Vec<u8>, CliError> {
+    let file = fs::File::open(path).map_err(|source| CliError::Read {
+        path: path.to_path_buf(),
+        source,
+    })?;
+    let metadata = file.metadata().map_err(|source| CliError::Read {
+        path: path.to_path_buf(),
+        source,
+    })?;
+    if metadata.len() > limit as u64 {
+        return Err(CliError::ResourceTooLarge {
+            path: path.to_path_buf(),
+            limit,
+        });
+    }
+
+    let mut bytes = Vec::new();
+    bytes
+        .try_reserve_exact(metadata.len() as usize)
+        .map_err(|source| CliError::Read {
+            path: path.to_path_buf(),
+            source: io::Error::other(source),
+        })?;
+    file.take(limit as u64 + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|source| CliError::Read {
+            path: path.to_path_buf(),
+            source,
+        })?;
+    if bytes.len() > limit {
+        return Err(CliError::ResourceTooLarge {
+            path: path.to_path_buf(),
+            limit,
+        });
+    }
+    Ok(bytes)
+}
+
+fn read_text_resource(path: &Path, limit: usize) -> Result<String, CliError> {
+    String::from_utf8(read_resource(path, limit)?).map_err(|source| CliError::Read {
+        path: path.to_path_buf(),
+        source: io::Error::new(io::ErrorKind::InvalidData, source),
+    })
 }
 
 fn require_component_candidate(candidates: Vec<PathBuf>) -> Result<PathBuf, CliError> {
@@ -654,6 +682,7 @@ pub enum CliError {
     Search(SearchRunError),
     Output(OutputError),
     Read { path: PathBuf, source: io::Error },
+    ResourceTooLarge { path: PathBuf, limit: usize },
     MissingData(PathBuf),
     MissingComponent(Box<[PathBuf]>),
     Stderr(io::Error),
@@ -673,6 +702,11 @@ impl Display for CliError {
             Self::Read { path, source } => {
                 write!(formatter, "failed to read {}: {source}", path.display())
             }
+            Self::ResourceTooLarge { path, limit } => write!(
+                formatter,
+                "resource {} exceeds the {limit}-byte size limit",
+                path.display()
+            ),
             Self::MissingData(path) => {
                 write!(formatter, "full POS lexicon is missing: {}", path.display())
             }
@@ -700,7 +734,9 @@ impl Error for CliError {
             Self::Search(error) => Some(error),
             Self::Output(error) => Some(error),
             Self::Read { source, .. } | Self::Stderr(source) => Some(source),
-            Self::MissingData(_) | Self::MissingComponent(_) => None,
+            Self::ResourceTooLarge { .. } | Self::MissingData(_) | Self::MissingComponent(_) => {
+                None
+            }
         }
     }
 }

@@ -31,6 +31,27 @@ fn top_level_errors_escape_terminal_control_characters() {
 }
 
 #[test]
+fn resource_size_errors_are_localized() {
+    let error = CliError::ResourceTooLarge {
+        path: "lexicon.bin".into(),
+        limit: 128 * 1024 * 1024,
+    };
+
+    assert!(
+        error
+            .localized(Language::English)
+            .to_string()
+            .contains("resource exceeds the size limit")
+    );
+    assert!(
+        error
+            .localized(Language::Korean)
+            .to_string()
+            .contains("resource가 크기 상한을 초과했습니다")
+    );
+}
+
+#[test]
 fn init_errors_escape_terminal_control_characters() {
     let error = CliError::Init(InitError::UnknownAgent {
         value: "bad\u{1b}[31m\nagent".to_owned(),

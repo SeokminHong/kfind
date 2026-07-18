@@ -3,6 +3,12 @@ use crate::MecabSourceMorphologyEntry;
 use super::*;
 
 #[test]
+fn resource_size_limit_is_checked_without_allocating_the_input() {
+    assert!(validate_encoded_size(MAX_COMPONENT_RESOURCE_BYTES, "fixture").is_ok());
+    assert!(validate_encoded_size(MAX_COMPONENT_RESOURCE_BYTES + 1, "fixture").is_err());
+}
+
+#[test]
 fn resource_owns_bytes_and_preserves_only_aligned_structure() {
     let resource = decode_component_resource("fixture", fixture_resource(), &[7; 32]).unwrap();
     let mut prefixes = Vec::new();

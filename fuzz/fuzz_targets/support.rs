@@ -6,6 +6,7 @@ use kfind_query::{
     compile_query,
 };
 
+#[allow(dead_code)]
 pub(crate) fn build_match_fixture() -> (Arc<QueryPlan>, MorphMatcher) {
     let lexicons = Arc::new(Lexicons::embedded().expect("embedded lexicons must be valid"));
     let analyzer = LexiconQueryAnalyzer::new(Arc::clone(&lexicons));

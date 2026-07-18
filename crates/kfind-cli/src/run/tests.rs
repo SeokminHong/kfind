@@ -191,6 +191,32 @@ fn data_check_validates_and_reports_both_installed_resources() {
 }
 
 #[test]
+fn resource_reader_rejects_oversized_files_before_parsing() {
+    let temp = TempDir::new();
+    let path = temp.write("resource.bin", "12345");
+
+    let error = read_resource(&path, 4).unwrap_err();
+
+    assert!(matches!(
+        error,
+        CliError::ResourceTooLarge { path: actual, limit: 4 } if actual == path
+    ));
+}
+
+#[test]
+fn text_resource_reader_rejects_invalid_utf8_as_a_read_error() {
+    let temp = TempDir::new();
+    let path = temp.write_bytes("resource.tsv", &[0xff]);
+
+    let error = read_text_resource(&path, 4).unwrap_err();
+
+    assert!(matches!(
+        error,
+        CliError::Read { source, .. } if source.kind() == io::ErrorKind::InvalidData
+    ));
+}
+
+#[test]
 fn literal_query_does_not_decode_full_pos_lexicon() {
     let temp = TempDir::new();
     temp.write("lexicon.bin", "not a lexicon");

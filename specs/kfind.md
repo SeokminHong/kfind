@@ -60,7 +60,8 @@
   view를 지연 생성한다. 새 suffix의 UTF-8을 검증한 뒤 이미 검증된 prefix에 붙여 전체
   표제어의 UTF-8을 보장한다. ASCII와 완성형 한글 음절만 있는 표제어는 그 구성으로 NFC를
   증명하고 그 밖의 표제어는 일반 NFC 검사를 수행한다. 엄격한 정렬 순서, entry 수와 누적
-  decoded byte 상한 검증도 유지한다.
+  decoded byte 상한 검증도 유지한다. Encoded full POS resource는 128 MiB를 초과할 수 없으며,
+  decoder는 entry 저장 공간을 예약하기 전에 이 상한을 검사한다.
 - 지연 조회에서도 기존 우선순위를 보존한다. core와 enriched 용언은 같은 표제어·coarse 품사의
   full POS 용언을 억제하고, 동일한 분석은 중복하지 않는다. user lexicon의 append는 full POS
   후보를 보존하며 `replace = true`는 해당 morphology category의 core, enriched와 full POS
@@ -731,6 +732,8 @@
   fallback하지 않는다.
 - component resource decoder는 resource를 공개하기 전에 모든 section digest와 payload 구조를
   검증하고 header의 package version이 현재 binary/library version과 정확히 같은지 확인한다.
+  Encoded component resource는 128 MiB를 초과할 수 없으며, decoder는 section digest 계산이나
+  payload 구조 검증을 시작하기 전에 이 상한을 검사한다.
   Native에서는 큰 index와 payload section의 digest를 서로 다른 thread에서 검증할 수 있고,
   같은 큰 resource의 payload 구조 검증을 section digest 검증과 겹쳐 수행할 수 있다. Thread를
   만들 수 없으면 순차 검증으로 돌아가고 WASM은 순차 검증한다. 어느 경로도 digest나 payload
@@ -2506,13 +2509,16 @@ target과 경계:
 | `user_lexicon` | malformed 사용자 사전 TOML의 구문·의미 검증 |
 | `json_output` | 임의 byte line과 검증된 match metadata의 JSON Lines 직렬화 |
 | `binary_detection` | 임의 위치의 최초 NUL과 NUL이 없는 입력의 binary 판별 경계 |
+| `pos_resource` | 임의 byte full POS resource의 크기·header·varint·UTF-8·NFC·정렬·누적 decode 상한 |
+| `component_resource` | 임의 byte component resource와 임의의 유효한 소형 resource의 header·digest·payload·prefix lookup |
 
 CI는 `nightly-2026-07-11`과 `cargo-fuzz 0.13.2`로 모든 target을 실제 실행한다. target당
 `max_total_time=15`, 개별 입력 `timeout=5`, `rss_limit_mb=2048`을 적용하며 전체 job timeout은
 10분이다. `scripts/run-fuzz.sh`가 target 목록과 이 예산을 단일 진입점으로 유지한다. 각 실행은
 version-controlled seed만 임시 corpus로 복사해 이전 실행에서 생성된 입력과 격리한다. 반복 span과
-큰 gap의 phrase, 손상 UTF-8, component resource가 필요한 plan, malformed TOML과 출력 제어 문자를
-고정 seed로 시작한다. crash·panic·timeout·RSS 초과는 CI 실패다.
+큰 gap의 phrase, 손상 UTF-8, component resource가 필요한 plan, malformed TOML, 출력 제어 문자,
+최소 유효 full POS resource와 유효한 소형 component entry를 고정 seed로 시작한다.
+crash·panic·timeout·RSS 초과는 CI 실패다.
 
 ### 19.5 gold corpus
 
@@ -3000,7 +3006,12 @@ end
 
 ## 22. 보안과 견고성
 
-- 모든 파일 크기와 candidate program 수에 상한을 둔다.
+- 메모리에 일괄 적재하는 full POS와 component resource는 각각 128 MiB, enriched predicate와
+  user lexicon text는 각각 16 MiB로 제한한다. Native CLI는 metadata의 크기를 먼저 거부하고
+  metadata가 없거나 읽는 중 파일이 바뀌는 경우에도 `limit + 1` byte까지만 읽어 상한을 다시
+  검사한다. 검색 대상 파일은 이 일괄 적재 상한의 적용 대상이 아니며 streaming search 계약을
+  따른다.
+- candidate program 수에 상한을 둔다.
 - phrase matcher의 DP 상태는 검증된 atom span 수의 합에 비례하며, 전체 조합용 API의 중간
   partial 수에는 명시적 상한을 둔다.
 - 사용자 사전 파싱 오류에는 파일명과 줄 번호를 표시한다.
