@@ -443,9 +443,12 @@ fn predicate_analysis(record: &kfind_data::PredicateRecord, source: AnalysisSour
     let derivations = record
         .derivations
         .iter()
-        .map(|entry| PredicateDerivation {
-            target_lemma: entry.target_lemma.clone().into_boxed_str(),
-            rule_id: RuleId::from(entry.rule_id.clone()),
+        .map(|entry| {
+            PredicateDerivation::new(
+                entry.target_lemma.clone(),
+                pos,
+                RuleId::from(entry.rule_id.clone()),
+            )
         })
         .collect();
     let predicate = PredicateEntry {

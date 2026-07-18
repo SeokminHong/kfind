@@ -1,5 +1,8 @@
 use std::fmt;
 use std::ops::{BitOr, BitOrAssign};
+use std::sync::{Arc, OnceLock};
+
+use crate::predicate::GenerateError;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum CoarsePos {
@@ -255,11 +258,54 @@ pub struct SurfaceOverride {
     pub rule_id: RuleId,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+type SharedGenerated<T> = Arc<OnceLock<Result<Box<[T]>, GenerateError>>>;
+
+#[derive(Clone)]
 pub struct PredicateDerivation {
     pub target_lemma: Box<str>,
+    pub target_pos: PredicatePos,
     pub rule_id: RuleId,
+    pub(crate) branches: SharedGenerated<SurfaceBranchSpec>,
+    pub(crate) fallback_stems: SharedGenerated<(SurfaceBranchSpec, PredicateStemClass)>,
 }
+
+impl PredicateDerivation {
+    #[must_use]
+    pub fn new(
+        target_lemma: impl Into<Box<str>>,
+        target_pos: PredicatePos,
+        rule_id: RuleId,
+    ) -> Self {
+        Self {
+            target_lemma: target_lemma.into(),
+            target_pos,
+            rule_id,
+            branches: Arc::new(OnceLock::new()),
+            fallback_stems: Arc::new(OnceLock::new()),
+        }
+    }
+}
+
+impl fmt::Debug for PredicateDerivation {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("PredicateDerivation")
+            .field("target_lemma", &self.target_lemma)
+            .field("target_pos", &self.target_pos)
+            .field("rule_id", &self.rule_id)
+            .finish_non_exhaustive()
+    }
+}
+
+impl PartialEq for PredicateDerivation {
+    fn eq(&self, other: &Self) -> bool {
+        self.target_lemma == other.target_lemma
+            && self.target_pos == other.target_pos
+            && self.rule_id == other.rule_id
+    }
+}
+
+impl Eq for PredicateDerivation {}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PredicateEntry {

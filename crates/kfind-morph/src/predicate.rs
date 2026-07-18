@@ -9,8 +9,8 @@ use crate::hangul::{
     drop_last_final, has_rieul_final, replace_last_vowel,
 };
 use crate::{
-    ContinuationState, LexicalAlternation, PredicateEntry, PredicateFlags, PredicatePos,
-    PredicateStemClass, RuleId, SurfaceBranchSpec,
+    ContinuationState, LexicalAlternation, PredicateDerivation, PredicateEntry, PredicateFlags,
+    PredicatePos, PredicateStemClass, RuleId, SurfaceBranchSpec,
 };
 
 mod alternation;
@@ -60,6 +60,38 @@ impl fmt::Display for GenerateError {
 }
 
 impl Error for GenerateError {}
+
+impl PredicateDerivation {
+    pub fn generated_branches(&self) -> Result<&[SurfaceBranchSpec], GenerateError> {
+        self.branches
+            .get_or_init(|| {
+                generate_predicate_branches(&PredicateEntry::new(
+                    self.target_lemma.clone(),
+                    self.target_pos,
+                    LexicalAlternation::Regular,
+                ))
+                .map(Vec::into_boxed_slice)
+            })
+            .as_deref()
+            .map_err(Clone::clone)
+    }
+
+    pub fn generated_fallback_stems(
+        &self,
+    ) -> Result<&[(SurfaceBranchSpec, PredicateStemClass)], GenerateError> {
+        self.fallback_stems
+            .get_or_init(|| {
+                generate_predicate_fallback_stems(&PredicateEntry::new(
+                    self.target_lemma.clone(),
+                    self.target_pos,
+                    LexicalAlternation::Regular,
+                ))
+                .map(Vec::into_boxed_slice)
+            })
+            .as_deref()
+            .map_err(Clone::clone)
+    }
+}
 
 #[derive(Debug, Clone)]
 struct DerivedSurface {

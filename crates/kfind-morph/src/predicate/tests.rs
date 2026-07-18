@@ -55,6 +55,33 @@ fn test_surfaces(branch: &SurfaceBranchSpec) -> Vec<String> {
     }
 }
 
+#[test]
+fn dictionary_derivation_clones_share_generated_forms() {
+    let derivation = PredicateDerivation::new(
+        "밀리다",
+        PredicatePos::Verb,
+        RuleId::from("lexical.dictionary-voice"),
+    );
+    let cloned = derivation.clone();
+
+    let branches = derivation.generated_branches().expect("valid derivation");
+    let cloned_branches = cloned.generated_branches().expect("valid clone");
+    assert!(std::ptr::eq(branches, cloned_branches));
+    assert!(
+        branches
+            .iter()
+            .any(|branch| branch.anchor.as_ref() == "밀려")
+    );
+
+    let fallback_stems = derivation
+        .generated_fallback_stems()
+        .expect("valid fallback stems");
+    let cloned_fallback_stems = cloned
+        .generated_fallback_stems()
+        .expect("valid cloned fallback stems");
+    assert!(std::ptr::eq(fallback_stems, cloned_fallback_stems));
+}
+
 fn assert_has_all(actual: &BTreeSet<String>, expected: &[&str]) {
     for expected in expected {
         assert!(

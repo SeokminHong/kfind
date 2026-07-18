@@ -525,13 +525,49 @@ fn compile_predicate(
     excluded_rules: &mut Vec<RuleId>,
     output: &mut Vec<DraftBranch>,
 ) -> Result<(), CompileError> {
+    compile_predicate_with_generated(
+        analysis,
+        analysis_index,
+        prefix_rules,
+        expand,
+        exact_component,
+        structural_fallback,
+        allowed_rules,
+        known_rule_ids,
+        excluded_rules,
+        output,
+        None,
+        None,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn compile_predicate_with_generated(
+    analysis: &Analysis,
+    analysis_index: u16,
+    prefix_rules: Vec<RuleId>,
+    expand: ExpandMode,
+    exact_component: bool,
+    structural_fallback: bool,
+    allowed_rules: &Arc<[RuleId]>,
+    known_rule_ids: &HashSet<Box<str>>,
+    excluded_rules: &mut Vec<RuleId>,
+    output: &mut Vec<DraftBranch>,
+    generated_branches: Option<&[kfind_morph::SurfaceBranchSpec]>,
+    generated_fallback_stems: Option<
+        &[(
+            kfind_morph::SurfaceBranchSpec,
+            kfind_morph::PredicateStemClass,
+        )],
+    >,
+) -> Result<(), CompileError> {
     let Morphology::Predicate(predicate) = &analysis.morphology else {
         unreachable!("predicate compile received non-predicate analysis")
     };
     for derivation in &predicate.derivations {
         let derived_predicate = kfind_morph::PredicateEntry::new(
             derivation.target_lemma.clone(),
-            predicate.pos,
+            derivation.target_pos,
             kfind_morph::LexicalAlternation::Regular,
         );
         let derived_analysis = Analysis {
@@ -543,7 +579,14 @@ fn compile_predicate(
         };
         let mut derivation_path = prefix_rules.clone();
         derivation_path.push(derivation.rule_id.clone());
-        compile_predicate(
+        let branches = derivation
+            .generated_branches()
+            .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?;
+        let fallback_stems = structural_fallback
+            .then(|| derivation.generated_fallback_stems())
+            .transpose()
+            .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?;
+        compile_predicate_with_generated(
             &derived_analysis,
             analysis_index,
             derivation_path,
@@ -554,11 +597,19 @@ fn compile_predicate(
             known_rule_ids,
             excluded_rules,
             output,
+            Some(branches),
+            fallback_stems,
         )?;
     }
-    let branches = generate_predicate_branches(predicate)
-        .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?;
-    for branch in &branches {
+    let owned_branches;
+    let branches = if let Some(branches) = generated_branches {
+        branches
+    } else {
+        owned_branches = generate_predicate_branches(predicate)
+            .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?;
+        &owned_branches
+    };
+    for branch in branches {
         let environment = predicate_environment(predicate, branch);
         let mut rule_path = prefix_rules.clone();
         rule_path.extend(branch.rule_path.iter().cloned());
@@ -625,11 +676,15 @@ fn compile_predicate(
         });
     }
     if structural_fallback {
-        let mut stems = generate_predicate_fallback_stems(predicate)
-            .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?
-            .into_iter()
-            .map(|(stem, class)| (stem, class, kfind_morph::ContinuationState::Terminal, true))
-            .collect::<Vec<_>>();
+        let mut stems = if let Some(stems) = generated_fallback_stems {
+            stems.to_vec()
+        } else {
+            generate_predicate_fallback_stems(predicate)
+                .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?
+        }
+        .into_iter()
+        .map(|(stem, class)| (stem, class, kfind_morph::ContinuationState::Terminal, true))
+        .collect::<Vec<_>>();
         stems.extend(
             branches
                 .iter()
