@@ -28,6 +28,75 @@ fn edge_graph_start_index_matches_a_linear_scan_at_every_byte() {
     }
 }
 
+#[test]
+fn nominal_path_facts_match_direct_resource_traversal() {
+    let resolver = resolver_from_entries(vec![
+        atomic("나", "NNG"),
+        atomic("나", "JX"),
+        atomic("나나", "NNG"),
+        atomic("나나", "JX"),
+        atomic("나나나", "JX"),
+        atomic("맨", "XPN"),
+        atomic("맨나", "XPN+NNG"),
+    ]);
+
+    for text in ["나나", "나나나", "맨나나"] {
+        let graph = EdgeGraph::collect(resolver.resource(), text, 4_096).expect("bounded graph");
+        let facts = NominalPathFacts::collect(text, &graph);
+
+        assert_eq!(
+            facts.particle_hosts.as_ref(),
+            nominal_particle_hosts(resolver.resource(), text)
+        );
+        assert_eq!(
+            facts.complete_particle_host,
+            complete_nominal_particle_host(resolver.resource(), text)
+        );
+    }
+}
+
+fn arbitrary_dense_nominal_resource() -> impl Strategy<Value = (String, Vec<(String, &'static str)>)>
+{
+    (1_usize..=12).prop_flat_map(|text_len| {
+        let positions = [
+            "NNG", "NNP", "JX", "JX+JC", "XPN", "XSN", "XR", "VV", "XPN+NNG",
+        ];
+        prop::collection::vec((1_usize..=text_len, 0_usize..positions.len()), 1..64).prop_map(
+            move |entries| {
+                (
+                    "나".repeat(text_len),
+                    entries
+                        .into_iter()
+                        .map(|(length, pos)| ("나".repeat(length), positions[pos]))
+                        .collect(),
+                )
+            },
+        )
+    })
+}
+
+proptest! {
+    #[test]
+    fn nominal_path_facts_match_direct_resource_on_arbitrary_dense_prefixes(
+        (text, entries) in arbitrary_dense_nominal_resource(),
+    ) {
+        let resolver = resolver_from_entries(
+            entries
+                .iter()
+                .map(|(surface, pos)| atomic(surface, pos)),
+        );
+        let graph = EdgeGraph::collect(resolver.resource(), &text, 4_096).expect("bounded graph");
+        let facts = NominalPathFacts::collect(&text, &graph);
+        let direct_hosts = nominal_particle_hosts(resolver.resource(), &text);
+
+        prop_assert_eq!(facts.particle_hosts.as_ref(), direct_hosts.as_slice());
+        prop_assert_eq!(
+            facts.complete_particle_host,
+            complete_nominal_particle_host(resolver.resource(), &text)
+        );
+    }
+}
+
 proptest! {
     #[test]
     fn edge_graph_start_index_matches_arbitrary_sorted_edges(
