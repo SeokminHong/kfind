@@ -500,6 +500,7 @@ dependencies = [
  "kfind-cli",
  "kfind-data",
  "kfind-matcher",
+ "kfind-morph",
  "kfind-query",
  "kfind-search",
  "libfuzzer-sys",

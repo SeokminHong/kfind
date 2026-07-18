@@ -13,6 +13,7 @@ cargo-fuzz = true
 kfind-cli = { path = "../crates/kfind-cli" }
 kfind-data = { path = "../crates/kfind-data" }
 kfind-matcher = { path = "../crates/kfind-matcher" }
+kfind-morph = { path = "../crates/kfind-morph" }
 kfind-query = { path = "../crates/kfind-query" }
 kfind-search = { path = "../crates/kfind-search" }
 libfuzzer-sys = "0.4.10"
@@ -77,6 +78,13 @@ bench = false
 [[bin]]
 name = "search_executor"
 path = "fuzz_targets/search_executor.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "structural_preparation"
+path = "fuzz_targets/structural_preparation.rs"
 test = false
 doc = false
 bench = false

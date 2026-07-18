@@ -252,11 +252,24 @@ fn matcher_scan(criterion: &mut Criterion) {
         });
     });
 
-    let context_plan = compile_query("adv:매일", &CompileOptions::default(), &analyzer)
-        .expect("context benchmark query must compile");
-    let context_matcher =
-        MorphMatcher::with_component_resource(Arc::new(context_plan), component_resource)
-            .expect("context benchmark matcher must build");
+    let context_plan = Arc::new(
+        compile_query("adv:매일", &CompileOptions::default(), &analyzer)
+            .expect("context benchmark query must compile"),
+    );
+    let context_first_text = "매일 보고".as_bytes();
+    group.throughput(Throughput::Elements(1));
+    group.bench_function("build_and_find_structural_exact", |bencher| {
+        bencher.iter(|| {
+            MorphMatcher::with_component_resource(
+                Arc::clone(black_box(&context_plan)),
+                Arc::clone(black_box(&component_resource)),
+            )
+            .expect("context benchmark matcher must build")
+            .find_all_with_meta(black_box(context_first_text))
+        });
+    });
+    let context_matcher = MorphMatcher::with_component_resource(context_plan, component_resource)
+        .expect("context benchmark matcher must build");
     let context_line = "매일 ".repeat(CONTEXT_REPETITIONS).into_bytes();
     assert_eq!(
         context_matcher.find_all_with_meta(&context_line).len(),
@@ -314,6 +327,27 @@ fn matcher_scan(criterion: &mut Criterion) {
     group.throughput(Throughput::Bytes(unique_context.len() as u64));
     group.bench_function("context_unique_neighbors_long_line", |bencher| {
         bencher.iter(|| context_matcher.find_all_with_meta(black_box(&unique_context)));
+    });
+
+    let mut unique_current = String::with_capacity(constant_context.len());
+    for index in 0..UNIQUE_CONTEXT_REPETITIONS {
+        use std::fmt::Write;
+        let first = char::from_u32(0xac00 + (index / 128) as u32)
+            .expect("benchmark token suffix must be valid Hangul");
+        let second = char::from_u32(0xac00 + (index % 128) as u32)
+            .expect("benchmark token suffix must be valid Hangul");
+        write!(unique_current, "매일{first}{second} ")
+            .expect("writing benchmark current token must succeed");
+    }
+    let unique_current = unique_current.into_bytes();
+    assert!(
+        context_matcher
+            .find_all_with_meta(&unique_current)
+            .is_empty()
+    );
+    group.throughput(Throughput::Bytes(unique_current.len() as u64));
+    group.bench_function("context_unique_current_long_line", |bencher| {
+        bencher.iter(|| context_matcher.find_all_with_meta(black_box(&unique_current)));
     });
     group.finish();
 }

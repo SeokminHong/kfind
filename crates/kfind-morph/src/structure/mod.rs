@@ -629,34 +629,114 @@ impl ConstraintResolver {
         include_nominal_copula: bool,
         include_nominal_derivation_predicate: bool,
     ) -> Result<PreparedStructuralContext, ConstraintUnavailable> {
-        let evidence = TokenEvidence::collect(
-            &self.resource,
+        let token = self.prepare_token_graph_inner(
             context.current,
             node_limit,
             include_attached_auxiliary,
             include_nominal_copula,
             include_nominal_derivation_predicate,
         )?;
-        let selection = select_structure(&self.resource, context, &evidence);
+        let selection = select_structure(&self.resource, context, &token.evidence);
         Ok(PreparedStructuralContext {
-            text: context.current.into(),
-            evidence,
+            token: PreparedTokenGraphStorage::Owned(token),
             selection,
+        })
+    }
+
+    pub fn prepare_token_graph_for_candidate(
+        &self,
+        current: &str,
+        node_limit: usize,
+        include_nominal_copula: bool,
+        include_nominal_derivation_predicate: bool,
+    ) -> Result<PreparedTokenGraph, ConstraintUnavailable> {
+        self.prepare_token_graph_inner(
+            current,
+            node_limit,
+            self.attached_auxiliary,
+            include_nominal_copula,
+            include_nominal_derivation_predicate,
+        )
+    }
+
+    pub fn prepare_context_with_token_graph(
+        &self,
+        context: BoundedTokenContext<'_>,
+        token: Arc<PreparedTokenGraph>,
+    ) -> Result<PreparedStructuralContext, ConstraintUnavailable> {
+        if token.text.as_ref() != context.current {
+            return Err(ConstraintUnavailable::InvalidSpans);
+        }
+        let selection = select_structure(&self.resource, context, &token.evidence);
+        Ok(PreparedStructuralContext {
+            token: PreparedTokenGraphStorage::Shared(token),
+            selection,
+        })
+    }
+
+    fn prepare_token_graph_inner(
+        &self,
+        current: &str,
+        node_limit: usize,
+        include_attached_auxiliary: bool,
+        include_nominal_copula: bool,
+        include_nominal_derivation_predicate: bool,
+    ) -> Result<PreparedTokenGraph, ConstraintUnavailable> {
+        let evidence = TokenEvidence::collect(
+            &self.resource,
+            current,
+            node_limit,
+            include_attached_auxiliary,
+            include_nominal_copula,
+            include_nominal_derivation_predicate,
+        )?;
+        Ok(PreparedTokenGraph {
+            text: current.into(),
+            evidence,
         })
     }
 }
 
 #[derive(Debug)]
-pub struct PreparedStructuralContext {
+pub struct PreparedTokenGraph {
     text: Box<str>,
     evidence: TokenEvidence,
+}
+
+impl PreparedTokenGraph {
+    #[must_use]
+    pub fn memory_usage(&self) -> usize {
+        std::mem::size_of::<Self>() + self.text.len() + self.evidence.memory_usage()
+    }
+}
+
+#[derive(Debug)]
+pub struct PreparedStructuralContext {
+    token: PreparedTokenGraphStorage,
     selection: StructureSelection,
+}
+
+#[derive(Debug)]
+// The inline owned variant preserves the allocation-free one-shot preparation path.
+#[allow(clippy::large_enum_variant)]
+enum PreparedTokenGraphStorage {
+    Owned(PreparedTokenGraph),
+    Shared(Arc<PreparedTokenGraph>),
+}
+
+impl PreparedTokenGraphStorage {
+    fn as_ref(&self) -> &PreparedTokenGraph {
+        match self {
+            Self::Owned(token) => token,
+            Self::Shared(token) => token,
+        }
+    }
 }
 
 impl PreparedStructuralContext {
     #[must_use]
     pub fn has_nominal_copula_host(&self, span: &Range<usize>) -> bool {
-        self.evidence.has_nominal_copula_host(span)
+        self.token.as_ref().evidence.has_nominal_copula_host(span)
     }
 
     #[must_use]
@@ -665,14 +745,15 @@ impl PreparedStructuralContext {
         spans: CandidateSpans,
         patterns: &[QueryMorphPattern],
     ) -> ConstraintDecision {
-        if !spans.is_valid_for(&self.text)
-            || spans.token != (0..self.text.len())
+        let token = self.token.as_ref();
+        if !spans.is_valid_for(&token.text)
+            || spans.token != (0..token.text.len())
             || patterns.iter().any(|pattern| !pattern.is_well_formed())
         {
             return ConstraintDecision::unavailable(ConstraintUnavailable::InvalidSpans);
         }
         let raw = collect_pattern_supports(
-            &self.evidence,
+            &token.evidence,
             &spans,
             patterns,
             self.selection.graph_nominal_host(),
@@ -687,7 +768,7 @@ impl PreparedStructuralContext {
             .into_iter()
             .filter(|support| {
                 self.selection
-                    .accepts(support, &spans, patterns, &self.text, &self.evidence)
+                    .accepts(support, &spans, patterns, &token.text, &token.evidence)
             })
             .collect::<Vec<_>>();
         supported.sort_unstable_by_key(|support| (support.pattern_index, support.evidence as u8));
@@ -754,6 +835,21 @@ struct TokenEvidence {
 }
 
 impl TokenEvidence {
+    fn memory_usage(&self) -> usize {
+        self.units.capacity() * std::mem::size_of::<Unit>()
+            + self.runtime_spans.capacity() * std::mem::size_of::<Range<usize>>()
+            + self.compound_predicate_components.len() * std::mem::size_of::<PredicateComponent>()
+            + self.attached_auxiliary_spans.len() * std::mem::size_of::<Range<usize>>()
+            + self.nominal_copula_hosts.len() * std::mem::size_of::<Range<usize>>()
+            + self.adnominal_ends.capacity() * std::mem::size_of::<usize>()
+            + self.leading_predicate_spans.len() * std::mem::size_of::<Range<usize>>()
+            + self.runtime_nominal_derivation_spans.len() * std::mem::size_of::<Range<usize>>()
+            + self.nominal_derivation_predicate_prefixes.len() * std::mem::size_of::<Range<usize>>()
+            + self.derivational_suffix_starts.len() * std::mem::size_of::<usize>()
+            + self.adnominal_derivation_suffix_starts.len() * std::mem::size_of::<usize>()
+            + self.numeric_spans.len() * std::mem::size_of::<Range<usize>>()
+    }
+
     fn collect(
         resource: &ComponentResource,
         text: &str,
