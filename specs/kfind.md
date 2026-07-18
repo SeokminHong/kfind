@@ -592,9 +592,12 @@
   않는다. 보조용언 path와 token 전체의 `MAG/MAJ` 분석이 경쟁하면 통째 부사 분석을 선택한다.
   체언 뒤 `XSV/XSA + E*`가 완성된 파생 용언 path에서는 파생 접미사 시작 span의 runtime
   체언 후보도 source가 체언 component를 정렬해 선언하지 않은 한 거부한다.
-- token 왼쪽 경계부터 `용언 + EC + 용언 + E* + J*` 순서로 끝까지 이어지는 source path가
+- token 왼쪽 경계부터 `용언 + EP* + EC + 용언 + E* + J*` 순서로 끝까지 이어지는 source path가
   있고, 두 번째 용언 edge 또는 source component가 query core와 같은 span·세부 품사이며 query
   program도 그 위치부터 token 끝까지 continuation을 소비하면 내부 용언 component를 유지한다.
+  첫 용언의 connective 경로는 `EP` 뒤의 단일 `EC`로만 끝나며 `ETM`·`ETN`·`EF` 뒤에 다른
+  `EC`를 이어 붙이지 않는다. 따라서 완성 체언+주격 조사 `친구/NNG + 가/JKS`를
+  `친/VV+ETM + 구/EC + 가/VV`로 다시 조합하지 않는다.
   token 전체의 독립 용언 분석이 경쟁해도 이 완전 경로를 가리지 않는다. 이 규칙은
   `올라가`의 `가다`, `생겨나`의 `나다`, `들어와서는`의 `오다`처럼 source가 정렬한 합성·보조
   용언 tail에 적용하며, 더 큰 node의 substring이나 token 앞뒤가 불완전한 runtime 분할은
