@@ -226,6 +226,32 @@ fn matcher_scan(criterion: &mut Criterion) {
         });
     });
 
+    let mut sparse_tail_line = "가 ".repeat(MISSING_ATOM_LINE_REPETITIONS - 1);
+    assert_eq!(sparse_tail_line.pop(), Some(' '));
+    sparse_tail_line.push_str("나  ");
+    let sparse_tail_line = sparse_tail_line.into_bytes();
+    assert_eq!(sparse_tail_line.len(), 1024 * 1024);
+    let sparse_tail_result = input_searcher
+        .search_reader(
+            &input_searcher_matcher,
+            PathBuf::from("sparse-tail-line.txt"),
+            Cursor::new(&sparse_tail_line),
+        )
+        .expect("sparse-tail benchmark corpus must be searchable");
+    assert_eq!(sparse_tail_result.matched_spans, Some(1));
+    group.throughput(Throughput::Bytes(sparse_tail_line.len() as u64));
+    group.bench_function("phrase_input_searcher_sparse_tail_long_line", |bencher| {
+        bencher.iter(|| {
+            input_searcher
+                .search_reader(
+                    black_box(&input_searcher_matcher),
+                    PathBuf::from("sparse-tail-line.txt"),
+                    Cursor::new(black_box(&sparse_tail_line)),
+                )
+                .expect("sparse-tail benchmark corpus must be searchable")
+        });
+    });
+
     let context_plan = compile_query("adv:매일", &CompileOptions::default(), &analyzer)
         .expect("context benchmark query must compile");
     let context_matcher =

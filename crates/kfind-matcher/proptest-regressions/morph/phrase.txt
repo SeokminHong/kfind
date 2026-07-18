@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 07d0a1b0c5534541e92df6a585d46855346ec2b4aee32908d6f131296eca1839 # shrinks to first = [(11, 1), (1, 4), (0, 1)], second = [(3, 2), (12, 1)], third = [(16, 1), (5, 1)], max_gap = 7
