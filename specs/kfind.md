@@ -2983,6 +2983,13 @@ ambiguous 입력을 순환하며 제품용 component 판정만 측정한다. `lo
 Criterion 설정으로 비교하고, 제품 판정 p95가 10% 이상 악화되면 회귀로 본다. 이 microbenchmark는
 1,000-case morphology 품질·성능 보고서를 대체하지 않는다.
 
+`structural_constraint/prepare_dense_token_graph`는 63개 음절 token의 모든 접두 surface에 두
+분석을 등록해 node 상한 바로 아래인 4,032개 edge를 만든다. 매 iteration에서 token graph를 새로
+준비해 matcher나 context cache가 개입하지 않게 하고, 구조 상태기계가 시작 위치별 edge index를
+공유해 `token byte 수 × 전체 edge 수` 반복 scan으로 돌아가지 않는지 감시한다. 일반적인 짧은
+구조 판정과 morphology 제품 workload를 함께 측정해 최악 입력 개선을 일반 입력 회귀와 바꾸지
+않는다.
+
 p95는 Criterion `new/sample.json`의 각 sample에 대해 `times[i] / iters[i]`로 계산한
 1회당 nanoseconds를 오름차순으로 정렬하고 nearest-rank 방식으로 선택한다. 정식 목표 판정은
 기본 sample 설정으로 수행한다. `--quick` 결과는 benchmark가 실행되는지만 확인하는 smoke
