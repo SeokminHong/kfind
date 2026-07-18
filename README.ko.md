@@ -259,7 +259,7 @@ kfind --init [--agent <AGENT>]...
 | `--column` | 사용 안 함 | 1부터 시작하는 Unicode scalar 열을 출력하며 줄 번호도 함께 표시합니다. |
 | `--explain-query` | 사용 안 함 | 결과보다 먼저 추론한 분석, candidate program, consumption 상태, 정규화와 사전 상태를 출력합니다. |
 | `--explain-match` | 사용 안 함 | 각 text match를 생성한 표제어와 규칙 경로를 추가합니다. JSON에는 생성 근거가 기본으로 포함됩니다. |
-| `--sort path` | 정렬하지 않는 병렬 stream | 파일 결과를 완성한 뒤 buffering해 경로순으로 출력합니다. 결과에 비례한 메모리를 사용하고 병렬 처리량이 낮아질 수 있습니다. |
+| `--sort path` | 정렬하지 않는 병렬 stream | 대상 경로를 수집·정렬한 뒤 bounded 병렬 file stream을 경로순으로 출력합니다. 경로 수집 동안 첫 출력이 지연되고 파일 수에 비례한 메모리를 사용하며 처리량이 낮아질 수 있습니다. |
 
 디렉터리나 여러 입력을 검색하면 파일 이름을 자동으로 출력합니다. Match 줄과 문맥 줄은 각각
 `:`와 `-` 구분자를 사용합니다. 일반 text 결과를 TTY stdin/stdout에서 쓰면 검색 시작과 함께 내장

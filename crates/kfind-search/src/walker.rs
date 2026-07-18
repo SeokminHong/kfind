@@ -93,6 +93,15 @@ pub fn build_walker(
     Ok(builder.build_parallel())
 }
 
+pub(crate) fn worker_threads(options: &WalkOptions) -> usize {
+    match options.threads {
+        Some(threads) if threads > 0 => threads,
+        Some(_) | None => std::thread::available_parallelism()
+            .map_or(1, |count| count.get())
+            .min(12),
+    }
+}
+
 fn is_hidden(entry: &ignore::DirEntry) -> bool {
     if entry.file_name().to_string_lossy().starts_with('.') {
         return true;

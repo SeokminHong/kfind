@@ -1,14 +1,14 @@
 use std::io;
 use std::panic::{self, AssertUnwindSafe};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use crossbeam_channel::Receiver;
 
 use super::{
-    ExecutionOptions, FileSearchResult, ResultOrder, SearchEvent, SearchIssue, SearchIssueKind,
-    SearchRecord, SearchRunError, SearchSummary, panic_message,
+    ExecutionOptions, FileSearchResult, SearchEvent, SearchIssue, SearchIssueKind, SearchRecord,
+    SearchRunError, SearchSummary, panic_message,
 };
 
 pub(super) enum WorkerEvent {
@@ -28,20 +28,6 @@ pub(super) enum FileMessage {
     Issue(SearchIssue),
 }
 
-enum CompletedEvent {
-    File(FileSearchResult),
-    Issue(SearchIssue),
-}
-
-impl CompletedEvent {
-    fn path(&self) -> Option<&Path> {
-        match self {
-            Self::File(result) => Some(&result.path),
-            Self::Issue(issue) => issue.path.as_deref(),
-        }
-    }
-}
-
 pub(super) fn write_events<F>(
     receiver: Receiver<WorkerEvent>,
     cancelled: Arc<AtomicBool>,
@@ -52,20 +38,6 @@ where
     F: FnMut(&SearchEvent) -> io::Result<()>,
 {
     let mut summary = SearchSummary::default();
-    if options.order == ResultOrder::Path && !options.quiet {
-        let mut events = receiver
-            .iter()
-            .map(collect_completed_event)
-            .collect::<Vec<_>>();
-        events.sort_by(|left, right| left.path().cmp(&right.path()));
-        for event in events {
-            if !write_completed_event(event, &mut summary, &cancelled, options, &mut callback)? {
-                break;
-            }
-        }
-        return Ok(summary);
-    }
-
     for event in receiver {
         let keep_writing = match event {
             WorkerEvent::File(stream) => {
@@ -91,81 +63,6 @@ where
         }
     }
     Ok(summary)
-}
-
-fn collect_completed_event(event: WorkerEvent) -> CompletedEvent {
-    match event {
-        WorkerEvent::Issue(issue) => CompletedEvent::Issue(issue),
-        WorkerEvent::Completed(result) => CompletedEvent::File(result),
-        WorkerEvent::File(stream) => {
-            let mut records = Vec::new();
-            for message in stream.receiver {
-                match message {
-                    FileMessage::Record(record) => records.push(record),
-                    FileMessage::Finished(mut result) => {
-                        result.records = records;
-                        return CompletedEvent::File(result);
-                    }
-                    FileMessage::Issue(issue) => return CompletedEvent::Issue(issue),
-                }
-            }
-            CompletedEvent::Issue(disconnected_stream_issue(stream.path))
-        }
-    }
-}
-
-fn write_completed_event<F>(
-    event: CompletedEvent,
-    summary: &mut SearchSummary,
-    cancelled: &AtomicBool,
-    options: ExecutionOptions,
-    callback: &mut F,
-) -> Result<bool, SearchRunError>
-where
-    F: FnMut(&SearchEvent) -> io::Result<()>,
-{
-    match event {
-        CompletedEvent::Issue(issue) => write_search_event(
-            SearchEvent::Issue(issue),
-            summary,
-            cancelled,
-            options,
-            callback,
-        ),
-        CompletedEvent::File(mut result) => {
-            let path = result.path.clone();
-            if !write_search_event(
-                SearchEvent::FileStart { path: path.clone() },
-                summary,
-                cancelled,
-                options,
-                callback,
-            )? {
-                return Ok(false);
-            }
-            for record in std::mem::take(&mut result.records) {
-                if !write_search_event(
-                    SearchEvent::Record {
-                        path: path.clone(),
-                        record,
-                    },
-                    summary,
-                    cancelled,
-                    options,
-                    callback,
-                )? {
-                    return Ok(false);
-                }
-            }
-            write_search_event(
-                SearchEvent::FileEnd(result),
-                summary,
-                cancelled,
-                options,
-                callback,
-            )
-        }
-    }
 }
 
 fn write_file_stream<F>(

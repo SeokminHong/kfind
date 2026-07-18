@@ -1937,7 +1937,7 @@ WalkParallel workers
 --sort path
 ```
 
-정렬 옵션만 모든 file stream을 완성된 결과로 버퍼링한 뒤 path로 정렬한다. 따라서 기본값이 아니며, 결과 수에 비례해 메모리를 사용하고 병렬 성능이 낮아질 수 있음을 도움말에 명시한다.
+정렬 옵션은 검색 전에 대상 경로와 탐색 오류만 수집해 path 순서를 확정한다. 정렬된 경로는 제한된 work queue로 worker에 분배하고, writer에는 각 경로의 bounded record stream을 path 순서로 먼저 전달한다. writer가 현재 경로를 비우는 동안 뒷 경로 worker는 per-file channel의 backpressure를 받는다. 따라서 결과 record 메모리는 전체 match 수가 아니라 worker 수와 channel capacity에 의해 제한되어야 하며, 경로 수집 메모리만 검색 대상 수에 비례할 수 있다. 전체 결과를 `Vec`에 모은 뒤 정렬하는 구현은 허용하지 않는다. 정렬 순서와 파일별 연속 block은 기존 계약과 같아야 하며, worker panic과 검색 오류도 해당 path 위치의 event로 변환한다. 경로 탐색을 끝내기 전에는 첫 결과를 출력하지 않으며, 경로 정렬과 병렬 worker 조정 비용으로 기본 unsorted stream보다 처리량이 낮아질 수 있음을 도움말에 명시한다.
 
 broken pipe는 정상 종료로 처리한다.
 
