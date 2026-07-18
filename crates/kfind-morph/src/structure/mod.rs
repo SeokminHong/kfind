@@ -1123,9 +1123,10 @@ fn predicate_connective_boundaries(text_len: usize, edges: &[Edge<'_>]) -> Vec<b
             None
         };
         if let Some(ends_in_connective) = ends_in_connective {
-            predicate_path[edge.span.end] = true;
             if ends_in_connective {
                 connective_boundary[edge.span.end] = true;
+            } else {
+                predicate_path[edge.span.end] = true;
             }
         }
     }
@@ -1580,25 +1581,25 @@ fn predicate_path_ends_in_connective(pos: &str) -> Option<bool> {
     if !matches!(positions.next(), Some("VV" | "VA")) {
         return None;
     }
-    let mut last = None;
-    for position in positions {
-        if !position.starts_with('E') {
-            return None;
-        }
-        last = Some(position);
-    }
-    Some(last == Some("EC"))
+    ending_positions_end_in_connective(positions)
 }
 
 fn ending_path_ends_in_connective(pos: &str) -> Option<bool> {
-    let mut last = None;
-    for position in pos.split('+') {
-        if !position.starts_with('E') {
-            return None;
+    ending_positions_end_in_connective(pos.split('+'))
+}
+
+fn ending_positions_end_in_connective<'a>(
+    positions: impl IntoIterator<Item = &'a str>,
+) -> Option<bool> {
+    let mut connective = false;
+    for position in positions {
+        match position {
+            "EP" if !connective => {}
+            "EC" if !connective => connective = true,
+            _ => return None,
         }
-        last = Some(position);
     }
-    Some(last == Some("EC"))
+    Some(connective)
 }
 
 fn forward_positions(text_len: usize, edges: &[Edge<'_>]) -> Vec<bool> {

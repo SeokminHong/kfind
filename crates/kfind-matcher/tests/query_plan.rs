@@ -548,6 +548,39 @@ fn forced_verb_query_keeps_source_aligned_compound_tails() {
 }
 
 #[test]
+fn compound_predicate_tail_rejects_a_terminal_adnominal_prefix() {
+    let resource = component_resource_from_entries([
+        component_entry("친", "VV+ETM"),
+        component_entry("구", "EC"),
+        component_entry("친구", "NNG"),
+        component_entry("가", "JKS"),
+        component_entry("가", "VV"),
+    ]);
+    let matcher = compile_with_full_pos_and_resource(
+        "가다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    assert!(
+        matcher.find_at_with_meta("친구가".as_bytes(), 0).is_none(),
+        "a terminal adnominal ending must not continue into a connective ending"
+    );
+
+    let text = "그래 네가 가.";
+    let matched = matcher
+        .find_at_with_meta(text.as_bytes(), 0)
+        .expect("a token-initial imperative verb must remain searchable");
+    let start = text
+        .rfind('가')
+        .expect("fixture must contain the imperative");
+    assert_eq!(matched.span, start..start + "가".len());
+}
+
+#[test]
 fn smart_auxiliary_query_accepts_an_unaligned_whole_source_path() {
     let resource = component_resource_from_entries([
         component_expression_entry("빨라져", "VA+EC+VX+EC", "빠르/VA/*+아/EC/*+지/VX/*+어/EC/*"),

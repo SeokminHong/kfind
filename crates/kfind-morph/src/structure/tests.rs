@@ -350,7 +350,7 @@ fn whole_inflected_analysis_supports_a_predicate_stem_program() {
             consumed: 0.."곱아".len(),
             token: 0.."곱아".len(),
         },
-        &[pattern],
+        std::slice::from_ref(&pattern),
         128,
     );
 
@@ -461,6 +461,27 @@ fn compound_predicate_tail_requires_a_complete_typed_path() {
             anchor: "그러".len().."그러나".len(),
             consumed: "그러".len().."그러나".len(),
             token: 0.."그러나".len(),
+        },
+        std::slice::from_ref(&pattern),
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+
+    let resolver = resolver_from_entries([
+        atomic("친", "VV+ETM"),
+        atomic("구", "EC"),
+        atomic("가", "VV"),
+        atomic("친구", "NNG"),
+        atomic("가", "JKS"),
+    ]);
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("친구가"),
+        CandidateSpans {
+            core: "친구".len().."친구가".len(),
+            anchor: "친구".len().."친구가".len(),
+            consumed: "친구".len().."친구가".len(),
+            token: 0.."친구가".len(),
         },
         &[pattern],
         128,
