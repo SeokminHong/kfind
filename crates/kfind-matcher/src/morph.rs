@@ -425,7 +425,9 @@ impl MorphMatcher {
         let anchor = std::str::from_utf8(haystack.get(hit.span.clone())?).ok()?;
         let core = mapped_core(&hit.span, branch.core_mapping, anchor)?;
         let (consumed_bytes, suffix_rules) = match &branch.consumption {
-            CandidateConsumption::Anchor => (0, Vec::new()),
+            CandidateConsumption::Anchor | CandidateConsumption::CopulaHostEndingCompose => {
+                (0, Vec::new())
+            }
             CandidateConsumption::PredicateContinuation {
                 continuation,
                 pos,
@@ -665,6 +667,9 @@ impl MorphMatcher {
         let patterns = branch.structural_patterns();
         if patterns.is_empty() {
             return false;
+        }
+        if self.accepts_lost_span_copula_ending(haystack, candidate, branch, resolver, patterns) {
+            return true;
         }
         if self.accepts_pronoun_copula_ending(haystack, candidate, branch, resolver, patterns) {
             return true;
@@ -939,6 +944,41 @@ impl MorphMatcher {
         };
         let normalized = anchor.nfc().collect::<String>();
         resolver.has_exact_pronoun_copula_ending_path(&normalized)
+            && self.accepts_token_boundary(haystack, &candidate.verified, branch)
+    }
+
+    fn accepts_lost_span_copula_ending(
+        &self,
+        haystack: &[u8],
+        candidate: &ExecutedCandidate,
+        branch: &CandidateProgram,
+        resolver: &ConstraintResolver,
+        patterns: &[kfind_morph::QueryMorphPattern],
+    ) -> bool {
+        if !matches!(
+            branch.consumption,
+            CandidateConsumption::CopulaHostEndingCompose
+        ) || !patterns
+            .iter()
+            .any(|pattern| pattern.fine_pos == DataFinePos::Vcp)
+        {
+            return false;
+        }
+        let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
+        if candidate.anchor != candidate.verified.core
+            || candidate.consumed != whole
+            || candidate.verified.core != whole
+        {
+            return false;
+        }
+        let Some(anchor) = haystack
+            .get(candidate.anchor.clone())
+            .and_then(|bytes| std::str::from_utf8(bytes).ok())
+        else {
+            return false;
+        };
+        let normalized = anchor.nfc().collect::<String>();
+        resolver.has_exact_lost_span_copula_ending_path(&normalized)
             && self.accepts_token_boundary(haystack, &candidate.verified, branch)
     }
 

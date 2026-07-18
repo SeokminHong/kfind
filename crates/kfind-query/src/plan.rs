@@ -73,6 +73,7 @@ pub enum CandidateConsumption {
         allowed_rule_ids: Arc<[RuleId]>,
         blocked_rule_ids: Arc<[RuleId]>,
     },
+    CopulaHostEndingCompose,
     DirectParticleHost {
         rule_id: RuleId,
     },
@@ -183,7 +184,9 @@ impl CandidateConsumption {
     #[must_use]
     pub fn allows_rule_path(&self, rules: &[RuleId]) -> bool {
         match self {
-            Self::Anchor | Self::DirectParticleHost { .. } => rules.is_empty(),
+            Self::Anchor | Self::CopulaHostEndingCompose | Self::DirectParticleHost { .. } => {
+                rules.is_empty()
+            }
             Self::PredicateContinuation {
                 allowed_rule_ids, ..
             } => rules.iter().all(|rule| {
@@ -366,6 +369,9 @@ impl CandidateProgram {
                 CandidateTokenRelation::PrefixWithContinuation,
                 MorphContinuation::NominalCopulaEnding,
             ),
+            CandidateConsumption::CopulaHostEndingCompose => {
+                (CandidateTokenRelation::Whole, MorphContinuation::Exact)
+            }
             CandidateConsumption::DirectParticleHost { .. } => return None,
         })
     }

@@ -460,13 +460,12 @@
   분석이 `NP + VCP + E+` 순서이며 `EC` 또는 `EF`로 끝날 때만 후보를 유지한다. 융합 때문에
   component byte span을 만들 수 없는 source expression은 이 전체 품사열로 검증하고, query
   표제어나 결과 표면을 source component span으로 추정하지 않는다.
-- `smart` 지정사 query는 표면에서 VCP anchor가 소실될 수 있으므로 일반 anchor candidate와
-  별도로 완성된 어절 전체를 제약 없이 한 번씩 candidate로 생성한다. 생성 단계에서는 component
-  resource나 품사열을 조회하지 않는다. 검증 단계는 exact source 분석이 하나 이상의 체언 품사,
-  `VCP`, 하나 이상의 `E+` 순서이고 `EC` 또는 `EF`로 끝나며, 정렬된 `VCP` component span은
-  없을 때만 이 candidate를 유지한다. 반환 span은 source에 없는 VCP 부분 span을 추정하지 않고
-  `걸까`처럼 양의 span을 보존하는 어절 전체로 한다. 정렬된 VCP span이 있는 일반 활용,
-  미완결 어미, VCP 뒤의 비어미 성분은 기존 anchor 경로에서만 처리한다.
+- `copula-host-ending-compose` program은 규칙에 선언된 체언 host·어미 축약 결과를 `smart`
+  지정사 query의 anchor로 사용한다. Anchor가 맞은 뒤 exact source 분석이 하나 이상의 체언 품사,
+  `VCP`, 하나 이상의 `E+` 순서이고 `EC` 또는 `EF`로 끝나며 정렬된 `VCP` component span은
+  없을 때만 후보를 유지한다. 반환 span은 source에 없는 VCP 부분 span을 추정하지 않고 `걸까`처럼
+  양의 span을 보존하는 축약 anchor 전체로 한다. `token`과 `any`, 미완결 어미, VCP 뒤의 비어미
+  성분은 이 program을 만들지 않는다.
 - 체언+조사와 용언+어미 path는 host span이 같을 때만 구조적으로 해결되지 않은
   경쟁으로 본다. host가 다르면 더 긴 조사 host 또는 완성된 용언 host를 선택하고,
   다른 위치에서 우연히 성립한 분할을 후보 근거로 쓰지 않는다. 조사 host는 exact
@@ -1662,9 +1661,10 @@ right consumption:
 있고 마지막 품사가 `EC` 또는 `EF`인 source 분석을 추가로 요구한다. 별도 등재된 `누군가`와
 `무언가`를 원 표제어의 사전 alias로 간주하거나, 같은 음운 모양을 임의의 대명사에 생산적으로
 적용하지 않는다.
-`이다`의 어간 자체가 표면에서 소실된 `것일까 → 걸까` 같은 축약은 표면 대응 목록으로 생성하지
-않는다. `smart` matcher가 어절 candidate를 먼저 생성한 뒤 exact source의
-`체언 + VCP + EC/EF` 구조와 VCP component span 소실을 검증하며, 결과는 `걸까` 전체다.
+`것일까 → 걸까`처럼 `이다`의 어간 자체가 표면에서 소실된 축약은
+`kind=copula-host-ending-compose`의 문법 대응으로 제한한다. `smart`는 선언된 축약 anchor가
+맞은 뒤 exact source의 `체언 + VCP + EC/EF` 구조와 VCP component span 소실을 검증하며,
+결과는 축약 anchor 전체다. 어절 전체를 무조건 지정사 candidate로 열거하지 않는다.
 미지원 항목은 사양의 known limitation에 기록한다.
 
 ### 10.3 동사와 형용사
