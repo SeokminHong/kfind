@@ -8,7 +8,7 @@ use std::sync::Arc;
 use grep_matcher::{LineMatchKind, LineTerminator, Match, Matcher, NoCaptures, NoError};
 use kfind_data::{ComponentResource, DataFinePos};
 use kfind_morph::{
-    ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, MorphContinuation, ParticleChainModel,
+    ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, FinePos, MorphContinuation, ParticleChainModel,
     ParticleVerifier, PredicateStemClass, ProductPolicy, RuleId,
     verify_copula_surface_after_nominal, verify_predicate_continuation,
 };
@@ -18,7 +18,7 @@ use kfind_query::{
 };
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
-use crate::boundary::{accepts_requirements, surrounding_token_span};
+use crate::boundary::{accepts_requirements, next_token_span, surrounding_token_span};
 use crate::{AnchorBuildError, AnchorBuildLimits, AnchorEngine, AnchorHit};
 
 mod candidates;
@@ -55,6 +55,7 @@ pub struct MorphMatcher {
     plan: Arc<QueryPlan>,
     anchor_engine: AnchorEngine,
     anchor_programs: Vec<Box<[ProgramRef]>>,
+    lost_span_copula_origins: Vec<Box<[Origin]>>,
     max_anchor_bytes: usize,
     is_line_local: bool,
     particle_verifier: ParticleVerifier,
@@ -125,6 +126,7 @@ impl MorphMatcher {
         }
 
         let (anchors, anchor_programs) = unique_anchors(&plan);
+        let lost_span_copula_origins = lost_span_copula_origins(&plan);
         let max_anchor_bytes = anchors.iter().map(|anchor| anchor.len()).max().unwrap_or(0);
         let is_line_local = anchors.iter().all(|anchor| !anchor.contains(&b'\n'));
         let anchor_engine = AnchorEngine::new_with_limits(
@@ -148,6 +150,7 @@ impl MorphMatcher {
             plan,
             anchor_engine,
             anchor_programs,
+            lost_span_copula_origins,
             max_anchor_bytes,
             is_line_local,
             particle_verifier,
@@ -347,6 +350,21 @@ impl MorphMatcher {
                 merge_best_span(&mut best, candidate);
             }
         }
+        let mut token_at = at;
+        while let Some(token) = next_token_span(haystack, token_at) {
+            if best
+                .as_ref()
+                .is_some_and(|matched| token.start > matched.token.start)
+            {
+                break;
+            }
+            token_at = token.end;
+            if let Some(candidate) =
+                self.validate_lost_span_copula(haystack, 0, token, metadata, structural_cache)
+            {
+                merge_best_span(&mut best, candidate);
+            }
+        }
         best
     }
 
@@ -396,10 +414,95 @@ impl MorphMatcher {
                 }
             }
         }
+        let mut token_at = at;
+        while let Some(token) = next_token_span(haystack, token_at) {
+            token_at = token.end;
+            for atom_index in 0..self.plan.atoms.len() {
+                if let Some(span) = self.validate_lost_span_copula(
+                    haystack,
+                    atom_index,
+                    token.clone(),
+                    metadata,
+                    &mut structural_cache,
+                ) {
+                    atom_spans[atom_index].push(span);
+                }
+            }
+        }
         for spans in &mut atom_spans {
             merge_duplicate_spans(spans);
         }
         atom_spans
+    }
+
+    fn validate_lost_span_copula(
+        &self,
+        haystack: &[u8],
+        atom_index: usize,
+        token: Range<usize>,
+        metadata: MatchMetadata,
+        structural_cache: &mut StructuralCache,
+    ) -> Option<VerifiedSpan> {
+        let origins = self.lost_span_copula_origins.get(atom_index)?;
+        if origins.is_empty() || token.len() > MAX_CONSUMPTION_BYTES {
+            return None;
+        }
+        let resolver = self.constraint_resolver.as_ref()?;
+        let surface = std::str::from_utf8(haystack.get(token.clone())?).ok()?;
+        let normalized = surface.nfc().collect::<String>();
+        if !resolver.has_exact_lost_span_copula_ending_path(&normalized)
+            || self.has_verified_anchor_candidate_in_token(
+                haystack,
+                atom_index,
+                &token,
+                structural_cache,
+            )
+        {
+            return None;
+        }
+        Some(VerifiedSpan {
+            core: token.clone(),
+            token,
+            origins: match metadata {
+                MatchMetadata::SpanOnly => Vec::new(),
+                MatchMetadata::Provenance => origins.to_vec(),
+            },
+        })
+    }
+
+    fn has_verified_anchor_candidate_in_token(
+        &self,
+        haystack: &[u8],
+        atom_index: usize,
+        token: &Range<usize>,
+        structural_cache: &mut StructuralCache,
+    ) -> bool {
+        for hit in self.anchor_engine.hits(haystack, token.start) {
+            if hit.span.start >= token.end {
+                break;
+            }
+            for branch_ref in &self.anchor_programs[hit.anchor_index] {
+                if branch_ref.atom_index != atom_index {
+                    continue;
+                }
+                let branch = &self.plan.atoms[atom_index].programs[branch_ref.program_index];
+                if self
+                    .execute_program_with_metadata(
+                        haystack,
+                        &hit,
+                        branch,
+                        MatchMetadata::SpanOnly,
+                        structural_cache,
+                    )
+                    .is_some_and(|candidate| {
+                        surrounding_token_span(haystack, candidate.core) == *token
+                    })
+                {
+                    return true;
+                }
+            }
+        }
+        false
     }
 
     fn execute_program_with_metadata(
@@ -1581,6 +1684,13 @@ impl Matcher for MorphMatcher {
     }
 
     fn find_candidate_line(&self, haystack: &[u8]) -> Result<Option<LineMatchKind>, Self::Error> {
+        if self
+            .lost_span_copula_origins
+            .iter()
+            .any(|origins| !origins.is_empty())
+        {
+            return Ok(Some(LineMatchKind::Candidate(0)));
+        }
         Ok(self
             .anchor_engine
             .hits(haystack, 0)
@@ -1646,6 +1756,34 @@ fn unique_anchors(plan: &QueryPlan) -> AnchorsAndPrograms {
             .map(Vec::into_boxed_slice)
             .collect(),
     )
+}
+
+fn lost_span_copula_origins(plan: &QueryPlan) -> Vec<Box<[Origin]>> {
+    plan.atoms
+        .iter()
+        .map(|atom| {
+            if !atom.programs.iter().any(|program| {
+                program
+                    .structural_patterns()
+                    .iter()
+                    .any(|pattern| pattern.fine_pos == DataFinePos::Vcp)
+            }) {
+                return Box::new([]) as Box<[Origin]>;
+            }
+            atom.analyses
+                .iter()
+                .enumerate()
+                .filter(|(_, analysis)| analysis.fine_pos == FinePos::Copula)
+                .filter_map(|(analysis_index, _)| {
+                    Some(Origin {
+                        analysis_index: u16::try_from(analysis_index).ok()?,
+                        rule_path: vec![RuleId::from("structural.lost-span-copula-ending")],
+                    })
+                })
+                .collect::<Vec<_>>()
+                .into_boxed_slice()
+        })
+        .collect()
 }
 
 fn mapped_core(

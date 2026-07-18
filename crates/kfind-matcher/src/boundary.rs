@@ -82,6 +82,41 @@ pub(crate) fn surrounding_token_span(haystack: &[u8], span: Range<usize>) -> Ran
     start..end
 }
 
+pub(crate) fn next_token_span(haystack: &[u8], at: usize) -> Option<Range<usize>> {
+    if at >= haystack.len() {
+        return None;
+    }
+    let mut cursor = at;
+    if previous_character(haystack, cursor).is_some_and(is_token_character) {
+        while let Some((end, character)) = next_character_with_end(haystack, cursor) {
+            cursor = end;
+            if !is_token_character(character) {
+                break;
+            }
+        }
+    }
+    while cursor < haystack.len() {
+        let Some((end, character)) = next_character_with_end(haystack, cursor) else {
+            cursor += 1;
+            continue;
+        };
+        if !is_token_character(character) {
+            cursor = end;
+            continue;
+        }
+        let start = cursor;
+        cursor = end;
+        while let Some((end, character)) = next_character_with_end(haystack, cursor) {
+            if !is_token_character(character) {
+                break;
+            }
+            cursor = end;
+        }
+        return Some(start..cursor);
+    }
+    None
+}
+
 pub(crate) fn bounded_surrounding_token_span(
     haystack: &[u8],
     span: Range<usize>,
@@ -227,6 +262,20 @@ mod tests {
         assert_eq!(
             &text[surrounding_token_span(text.as_bytes(), span)],
             "매일_일"
+        );
+    }
+
+    #[test]
+    fn next_token_span_enumerates_whole_tokens_without_reopening_the_current_token() {
+        let text = "앞 걸까 뒤";
+        let first = next_token_span(text.as_bytes(), 0).unwrap();
+        let second = next_token_span(text.as_bytes(), first.end).unwrap();
+
+        assert_eq!(&text[first], "앞");
+        assert_eq!(&text[second.clone()], "걸까");
+        assert_eq!(
+            next_token_span(text.as_bytes(), second.start + '걸'.len_utf8()),
+            Some(11..14)
         );
     }
 

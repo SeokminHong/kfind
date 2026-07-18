@@ -2051,6 +2051,84 @@ fn pronoun_copula_ending_contractions_require_source_structure() {
 }
 
 #[test]
+fn lost_span_copula_returns_the_complete_source_backed_token() {
+    let resource = component_resource_from_entries([
+        component_expression_entry("걸까", "NNB+VCP+EC", "것/NNB/*+이/VCP/*+ᆯ까/EC/*"),
+        component_expression_entry("걸까", "NNB+VCP+EF", "것/NNB/*+이/VCP/*+ᆯ까/EF/*"),
+    ]);
+    let matcher = compile_embedded_with_resource(
+        "이다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Adjective),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+    let text = "아니면 주변 어디에 남아있는 걸까?";
+    let matched = matcher
+        .find_at_with_meta(text.as_bytes(), 0)
+        .expect("source-backed lost copula span must match");
+
+    assert_eq!(&text[matched.span], "걸까");
+    assert!(matched.atoms[0].origins.iter().any(|origin| {
+        origin
+            .rule_path
+            .iter()
+            .any(|rule| rule.as_str() == "structural.lost-span-copula-ending")
+    }));
+}
+
+#[test]
+fn lost_span_copula_constraints_are_applied_only_during_smart_validation() {
+    for pos in ["VV+EC", "NNB+VCP+ETM", "NNB+VCP+EC+VCP"] {
+        let matcher = compile_embedded_with_resource(
+            "이다",
+            CompileOptions {
+                global_pos: Some(CoarsePos::Adjective),
+                ..CompileOptions::default()
+            },
+            component_resource_from_entries([component_entry("걸까", pos)]),
+        );
+        assert!(
+            matcher.find_at_with_meta("걸까".as_bytes(), 0).is_none(),
+            "smart validation accepted {pos}"
+        );
+    }
+
+    let any = compile(
+        "이다",
+        CompileOptions {
+            boundary: BoundaryPolicy::Any,
+            global_pos: Some(CoarsePos::Adjective),
+            ..CompileOptions::default()
+        },
+    );
+    assert!(any.find_at_with_meta("걸까".as_bytes(), 0).is_none());
+}
+
+#[test]
+fn lost_span_copula_does_not_replace_a_verified_visible_anchor() {
+    let matcher = compile_embedded_with_resource(
+        "이다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Adjective),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("것", "NNB"),
+            component_expression_entry("일까", "VCP+EF", "이/VCP/*+ᆯ까/EF/*"),
+            component_expression_entry("것일까", "NNB+VCP+EF", "것/NNB/*+이/VCP/*+ᆯ까/EF/*"),
+        ]),
+    );
+    let text = "그것일까?";
+    let matched = matcher
+        .find_at_with_meta(text.as_bytes(), 0)
+        .expect("visible copula anchor must remain searchable");
+
+    assert_eq!(&text[matched.span], "일");
+}
+
+#[test]
 fn direct_particle_plans_validate_the_attached_host_in_smart_mode() {
     let options = CompileOptions {
         global_pos: Some(CoarsePos::Particle),

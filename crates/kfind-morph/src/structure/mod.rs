@@ -190,6 +190,38 @@ impl ConstraintResolver {
         matched
     }
 
+    #[must_use]
+    pub fn has_exact_lost_span_copula_ending_path(&self, text: &str) -> bool {
+        let mut matched = false;
+        self.resource
+            .common_prefixes(text.as_bytes(), |length, analyses| {
+                if length != text.len() {
+                    return;
+                }
+                matched |= analyses.iter().any(|analysis| {
+                    let positions = analysis.pos.split('+').collect::<Vec<_>>();
+                    let Some(copula_index) = positions.iter().position(|pos| *pos == "VCP") else {
+                        return false;
+                    };
+                    copula_index > 0
+                        && positions[..copula_index]
+                            .iter()
+                            .all(|pos| DataFinePos::parse(pos).is_some_and(DataFinePos::is_nominal))
+                        && positions[copula_index + 1..]
+                            .iter()
+                            .all(|pos| pos.starts_with('E'))
+                        && positions
+                            .last()
+                            .is_some_and(|pos| matches!(*pos, "EC" | "EF"))
+                        && !analysis
+                            .components
+                            .iter()
+                            .any(|component| component.pos == "VCP")
+                });
+            });
+        matched
+    }
+
     fn supports_predicate_ending_path_with_terminal(
         &self,
         text: &str,
