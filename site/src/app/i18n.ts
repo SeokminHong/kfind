@@ -17,7 +17,7 @@ export const supportedDocumentLocales: readonly DocumentLocale[] =
 const localeCookieName = 'kfind-document-locale';
 const languageDetector = new LanguageDetector(undefined, {
   order: ['cookie'],
-  caches: ['cookie'],
+  caches: [],
   lookupCookie: localeCookieName,
   cookieMinutes: 365 * 24 * 60,
   cookieOptions: {
