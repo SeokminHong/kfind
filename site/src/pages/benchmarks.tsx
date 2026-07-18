@@ -173,9 +173,9 @@ export default function BenchmarksPage(): React.JSX.Element {
           </table>
         </div>
         <p>
-          Full-POS의 FNᶜ 7건은 피동 파생, source 정렬 용언 성분과
-          반환 span 복원처럼 아직 구현하지 않은 제품 목표입니다. 비용이나 현재
-          profile을 이유로 계약 분모에서 빼지 않습니다.
+          Full-POS의 FNᶜ 7건은 피동 파생, source 정렬 용언 성분과 반환 span
+          복원처럼 아직 구현하지 않은 제품 목표입니다. 비용이나 현재 profile을
+          이유로 계약 분모에서 빼지 않습니다.
         </p>
         <figure className="benchmark-figure">
           <img
@@ -438,8 +438,8 @@ export default function BenchmarksPage(): React.JSX.Element {
 
       <DocumentSection title="대명사 계사·의문 어미 축약">
         <p>
-          <code>누구·무어·무엇 + 이(VCP) + -ㄴ가(EC/EF)</code>의 선언된
-          축약 표면만 생성합니다. <code>smart</code>는 표면 전체에 같은 source
+          <code>누구·무어·무엇 + 이(VCP) + -ㄴ가(EC/EF)</code>의 선언된 축약
+          표면만 생성합니다. <code>smart</code>는 표면 전체에 같은 source
           품사열이 있을 때만 승인하고 뒤의 조사는 기존 조사 전이로 검증합니다.
           별도 표제어를 원 대명사의 alias로 합치지 않습니다.
         </p>
