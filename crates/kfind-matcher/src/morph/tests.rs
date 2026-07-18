@@ -651,6 +651,29 @@ fn grep_matcher_advertises_raw_anchor_candidates_for_line_local_plans() {
 }
 
 #[test]
+fn grep_matcher_requires_every_phrase_atom_on_the_same_candidate_line() {
+    let matcher = matcher(
+        vec![
+            atom(BoundaryPolicy::Any, vec![exact_branch("권한", true)]),
+            atom(BoundaryPolicy::Any, vec![exact_branch("검증", true)]),
+        ],
+        24,
+    );
+    let missing_per_line = "권한 권한\n검증 검증";
+    assert!(
+        Matcher::find_candidate_line(&matcher, missing_per_line.as_bytes())
+            .unwrap()
+            .is_none()
+    );
+
+    let candidate = "권한 권한\n검증 권한";
+    assert!(matches!(
+        Matcher::find_candidate_line(&matcher, candidate.as_bytes()).unwrap(),
+        Some(LineMatchKind::Candidate(at)) if at == "권한 권한\n".len()
+    ));
+}
+
+#[test]
 fn grep_matcher_keeps_newline_literal_plans_on_the_safe_path() {
     let matcher = matcher(
         vec![atom(

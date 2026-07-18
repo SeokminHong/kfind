@@ -1878,6 +1878,9 @@ anchor hit
 ```
 
 후보 없는 buffer 구간에는 줄별 matcher 호출, Unicode scalar 순회, 형태 규칙 실행을 하지 않는다.
+Line-local phrase plan은 같은 물리적 줄에 모든 atom index의 raw anchor가 하나 이상 있을 때만
+그 줄을 검증 후보로 전달한다. 이 단계는 형태·경계 의미를 확정하지 않는 false-positive 허용
+prefilter이며, atom 하나라도 raw anchor가 없는 줄에서는 검증된 span 목록을 만들지 않는다.
 
 ### 12.4 phrase 결합
 
@@ -2922,6 +2925,11 @@ phrase가 4,096번 반복되는 입력을 `InputSearcher`의 metadata 출력 경
 anchor와 atom span을 한 번만 수집하는지와 match 수에 따른 반복 suffix scan 회귀를 감시한다.
 같은 입력의 `matcher/phrase_input_searcher_repeated_line_exists`는 metadata를 수집하지 않는
 summary 경로를 측정해 line 평가 전달 비용이 존재 판정 경로를 악화시키지 않는지 감시한다.
+`matcher/phrase_input_searcher_missing_atom_long_line`은 `lit:가 lit:나` 중 첫 atom만 반복되는
+1 MiB 단일 줄을 summary 경로로 검색한다. 결과가 불가능한 줄에서 모든 atom의 raw anchor coverage를
+먼저 판정해 verifier와 atom span 적재를 건너뛰는지 감시한다. 이 workload의 wall time과 maximum
+RSS를 함께 비교하며, 모든 atom이 존재하는 줄의 phrase 선택 메모리 상한을 증명하는 근거로는
+사용하지 않는다.
 
 `matcher/context_repeated_long_line`은 `매일`이 16,384번 반복되는 줄바꿈 없는 UTF-8 입력을
 `RepeatedToken + MAG` 구조 pattern을 가진 `smart` 부사 matcher로 검색한다. 각 candidate의

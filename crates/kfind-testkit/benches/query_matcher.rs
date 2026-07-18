@@ -30,6 +30,7 @@ const REPEATED_PHRASE_QUERY: &str = "lit:가 lit:가 lit:가 lit:가 lit:가 lit
 const REPEATED_PHRASE_SPANS: usize = 128;
 const INPUT_SEARCHER_PHRASE_QUERY: &str = "lit:가 lit:나";
 const INPUT_SEARCHER_PHRASE_REPETITIONS: usize = 4_096;
+const MISSING_ATOM_LINE_REPETITIONS: usize = 262_144;
 const CONTEXT_REPETITIONS: usize = 16_384;
 const UNIQUE_CONTEXT_REPETITIONS: usize = CONTEXT_REPETITIONS;
 const PHRASE_8_ATOMS_QUERY: &str =
@@ -199,6 +200,29 @@ fn matcher_scan(criterion: &mut Criterion) {
                     Cursor::new(black_box(&input_searcher_line)),
                 )
                 .expect("summary benchmark corpus must be searchable")
+        });
+    });
+
+    let missing_atom_line = "가 ".repeat(MISSING_ATOM_LINE_REPETITIONS).into_bytes();
+    assert_eq!(missing_atom_line.len(), 1024 * 1024);
+    let missing_atom_result = summary_input_searcher
+        .search_reader(
+            &input_searcher_matcher,
+            PathBuf::from("missing-atom-line.txt"),
+            Cursor::new(&missing_atom_line),
+        )
+        .expect("missing-atom benchmark corpus must be searchable");
+    assert!(!missing_atom_result.has_match());
+    group.throughput(Throughput::Bytes(missing_atom_line.len() as u64));
+    group.bench_function("phrase_input_searcher_missing_atom_long_line", |bencher| {
+        bencher.iter(|| {
+            summary_input_searcher
+                .search_reader(
+                    black_box(&input_searcher_matcher),
+                    PathBuf::from("missing-atom-line.txt"),
+                    Cursor::new(black_box(&missing_atom_line)),
+                )
+                .expect("missing-atom benchmark corpus must be searchable")
         });
     });
 
