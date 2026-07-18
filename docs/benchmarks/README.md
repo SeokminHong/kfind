@@ -170,6 +170,10 @@ cost-lattice 진단은 이 제품 benchmark에 포함하지 않는다.
 scripts/benchmark-criterion.sh structural_constraint
 ```
 
+`structural_constraint/resolve_candidate`는 고정된 짧은 제품 문맥을 측정한다.
+`structural_constraint/prepare_dense_token_graph`는 node 상한에 가까운 합성 token graph를 매번
+새로 준비해 시작 위치별 edge 탐색의 최악 복잡도를 감시한다. 두 workload를 함께 비교한다.
+
 ## Morphology comparison
 
 수동 검토를 통과한 UD Korean-Kaist test 문장에서 `kfind` embedded/full-POS를 실행하고

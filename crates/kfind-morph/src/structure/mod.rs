@@ -898,41 +898,16 @@ impl TokenEvidence {
             None
         };
         let numeric_unit = numeric_path.as_ref().map(|path| path.unit.clone());
-        let mut edges = Vec::new();
-        for start in text
-            .char_indices()
-            .map(|(offset, _)| offset)
-            .chain(std::iter::once(text.len()))
-        {
-            if start == text.len() {
-                continue;
-            }
-            resource.common_prefix_groups(&text.as_bytes()[start..], |length, analyses| {
-                if length == 0 || start + length > text.len() {
-                    return;
-                }
-                for analysis in analyses {
-                    edges.push(Edge {
-                        span: start..start + length,
-                        pos: analysis.pos,
-                        components: analysis.components,
-                    });
-                }
-            });
-            if edges.len() > node_limit {
-                return Err(ConstraintUnavailable::NodeLimit {
-                    actual: edges.len(),
-                    limit: node_limit,
-                });
-            }
-        }
+        let graph = EdgeGraph::collect(resource, text, node_limit)?;
+        let edges = graph.edges();
         let mixed_numeral_spans = if NUMERIC
             && numeric_unit.is_none()
-            && edges
+            && graph
+                .starting_at(numeric_end)
                 .iter()
-                .any(|edge| edge.span.start == numeric_end && edge.pos == "NR")
+                .any(|edge| edge.pos == "NR")
         {
-            numeral_sequence_spans(text.len(), numeric_end, &edges, true)
+            numeral_sequence_spans(text.len(), numeric_end, &graph, true)
         } else {
             Vec::new()
         };
@@ -941,29 +916,29 @@ impl TokenEvidence {
             .map(|unit| unit.start)
             .or_else(|| (!mixed_numeral_spans.is_empty()).then_some(numeric_end));
         let forward = numeric_prefix.map_or_else(
-            || forward_positions(text.len(), &edges),
-            |prefix_end| forward_positions_with_prefix(text.len(), &edges, prefix_end),
+            || forward_positions(text.len(), &graph),
+            |prefix_end| forward_positions_with_prefix(text.len(), &graph, prefix_end),
         );
-        let complete = complete_edges(text.len(), &edges, &forward);
+        let complete = complete_edges(text.len(), &graph, &forward);
         let has_complete_path = forward[text.len()];
-        let leading_predicate_spans = leading_predicate_spans(text.len(), &edges);
-        let compound_predicate_components = compound_predicate_components(text.len(), &edges);
-        let runtime_nominal_derivation_spans = runtime_nominal_derivation_spans(&edges, &complete);
+        let leading_predicate_spans = leading_predicate_spans(text.len(), edges);
+        let compound_predicate_components = compound_predicate_components(text.len(), &graph);
+        let runtime_nominal_derivation_spans = runtime_nominal_derivation_spans(&graph, &complete);
         let nominal_derivation_predicate_prefixes = if include_nominal_derivation_predicate {
-            nominal_derivation_predicate_prefixes(text.len(), &edges)
+            nominal_derivation_predicate_prefixes(text.len(), &graph)
         } else {
             Box::default()
         };
-        let derivational_suffix_starts = derivational_suffix_starts(&edges, &complete);
+        let derivational_suffix_starts = derivational_suffix_starts(edges, &complete);
         let adnominal_derivation_suffix_starts =
-            adnominal_derivation_suffix_starts(text.len(), &edges);
+            adnominal_derivation_suffix_starts(text.len(), &graph);
         let attached_auxiliary_spans = if include_attached_auxiliary {
-            attached_auxiliary_spans(text.len(), &edges)
+            attached_auxiliary_spans(text.len(), &graph)
         } else {
             Box::default()
         };
         let nominal_copula_hosts = if include_nominal_copula {
-            nominal_copula_hosts(text, &edges)
+            nominal_copula_hosts(text, &graph)
         } else {
             Box::default()
         };
@@ -1065,13 +1040,8 @@ impl TokenEvidence {
             (vec![unit].into_boxed_slice(), false)
         } else if !mixed_numeral_spans.is_empty() {
             (mixed_numeral_spans.into_boxed_slice(), true)
-        } else if !NUMERIC
-            && edges
-                .iter()
-                .take_while(|edge| edge.span.start == 0)
-                .any(|edge| edge.pos == "NR")
-        {
-            let spans = hangul_numeral_spans(text.len(), &edges);
+        } else if !NUMERIC && graph.starting_at(0).iter().any(|edge| edge.pos == "NR") {
+            let spans = hangul_numeral_spans(text.len(), &graph);
             let has_numeral_sequence = !spans.is_empty();
             (spans.into_boxed_slice(), has_numeral_sequence)
         } else {
@@ -1172,6 +1142,83 @@ struct Edge<'a> {
     components: Vec<ComponentPart<'a>>,
 }
 
+#[derive(Debug)]
+struct EdgeGraph<'a> {
+    edges: Vec<Edge<'a>>,
+    // `start_offsets[p]..start_offsets[p + 1]` contains edges at byte position `p`.
+    start_offsets: Box<[usize]>,
+}
+
+impl<'a> EdgeGraph<'a> {
+    fn collect(
+        resource: &'a ComponentResource,
+        text: &str,
+        node_limit: usize,
+    ) -> Result<Self, ConstraintUnavailable> {
+        let mut edges = Vec::new();
+        for start in text.char_indices().map(|(offset, _)| offset) {
+            resource.common_prefix_groups(&text.as_bytes()[start..], |length, analyses| {
+                if length == 0 || start + length > text.len() {
+                    return;
+                }
+                for analysis in analyses {
+                    edges.push(Edge {
+                        span: start..start + length,
+                        pos: analysis.pos,
+                        components: analysis.components,
+                    });
+                }
+            });
+            if edges.len() > node_limit {
+                return Err(ConstraintUnavailable::NodeLimit {
+                    actual: edges.len(),
+                    limit: node_limit,
+                });
+            }
+        }
+
+        Ok(Self::from_edges(text.len(), edges))
+    }
+
+    fn from_edges(text_len: usize, edges: Vec<Edge<'a>>) -> Self {
+        debug_assert!(
+            edges
+                .windows(2)
+                .all(|pair| pair[0].span.start <= pair[1].span.start)
+        );
+        let mut start_offsets = Vec::with_capacity(text_len + 2);
+        let mut edge_index = 0;
+        for start in 0..text_len + 2 {
+            while edges
+                .get(edge_index)
+                .is_some_and(|edge| edge.span.start < start)
+            {
+                edge_index += 1;
+            }
+            start_offsets.push(edge_index);
+        }
+        Self {
+            edges,
+            start_offsets: start_offsets.into_boxed_slice(),
+        }
+    }
+
+    fn edges(&self) -> &[Edge<'a>] {
+        &self.edges
+    }
+
+    fn starting_range(&self, start: usize) -> Range<usize> {
+        if start + 1 >= self.start_offsets.len() {
+            return 0..0;
+        }
+        self.start_offsets[start]..self.start_offsets[start + 1]
+    }
+
+    fn starting_at(&self, start: usize) -> &[Edge<'a>] {
+        &self.edges[self.starting_range(start)]
+    }
+}
+
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 struct PredicateComponent {
     start: usize,
@@ -1189,7 +1236,11 @@ enum CompoundTailState {
 
 const COMPOUND_TAIL_STATE_COUNT: usize = 3;
 
-fn compound_predicate_components(text_len: usize, edges: &[Edge<'_>]) -> Box<[PredicateComponent]> {
+fn compound_predicate_components(
+    text_len: usize,
+    graph: &EdgeGraph<'_>,
+) -> Box<[PredicateComponent]> {
+    let edges = graph.edges();
     let connective_boundary = predicate_connective_boundaries(text_len, edges);
 
     let mut suffix = vec![[false; COMPOUND_TAIL_STATE_COUNT]; text_len + 1];
@@ -1197,7 +1248,7 @@ fn compound_predicate_components(text_len: usize, edges: &[Edge<'_>]) -> Box<[Pr
         suffix[text_len][state as usize] = true;
     }
     for start in (0..text_len).rev() {
-        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+        for edge in graph.starting_at(start) {
             for state in compound_tail_states() {
                 let Some(next) = advance_compound_tail_suffix(state, edge.pos) else {
                     continue;
@@ -1208,7 +1259,7 @@ fn compound_predicate_components(text_len: usize, edges: &[Edge<'_>]) -> Box<[Pr
     }
 
     let mut components = Vec::new();
-    for edge in edges.iter().filter(|edge| edge.span.start == 0) {
+    for edge in graph.starting_at(0) {
         let Some((pos, state)) = compound_tail_inside_analysis(edge.pos) else {
             continue;
         };
@@ -1343,7 +1394,8 @@ fn advance_compound_tail_position(
     }
 }
 
-fn attached_auxiliary_spans(text_len: usize, edges: &[Edge<'_>]) -> Box<[Range<usize>]> {
+fn attached_auxiliary_spans(text_len: usize, graph: &EdgeGraph<'_>) -> Box<[Range<usize>]> {
+    let edges = graph.edges();
     let connective_boundary = predicate_connective_boundaries(text_len, edges);
 
     let mut ending_suffix = vec![false; text_len + 1];
@@ -1371,7 +1423,7 @@ fn attached_auxiliary_spans(text_len: usize, edges: &[Edge<'_>]) -> Box<[Range<u
             .filter(|edge| edge.span == (0..text_len) && is_attached_auxiliary_whole_path(edge.pos))
             .map(|edge| edge.span.clone()),
     );
-    if has_complete_attached_auxiliary_path(text_len, edges) {
+    if has_complete_attached_auxiliary_path(text_len, graph) {
         spans.push(0..text_len);
     }
     spans.sort_unstable_by_key(|span| (span.start, span.end));
@@ -1400,11 +1452,11 @@ const ATTACHED_AUXILIARY_STATES: [AttachedAuxiliaryState; 6] = [
 ];
 const ATTACHED_AUXILIARY_STATE_COUNT: usize = ATTACHED_AUXILIARY_STATES.len();
 
-fn has_complete_attached_auxiliary_path(text_len: usize, edges: &[Edge<'_>]) -> bool {
+fn has_complete_attached_auxiliary_path(text_len: usize, graph: &EdgeGraph<'_>) -> bool {
     let mut reachable = vec![[false; ATTACHED_AUXILIARY_STATE_COUNT]; text_len + 1];
     reachable[0][AttachedAuxiliaryState::Start as usize] = true;
     for start in 0..text_len {
-        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+        for edge in graph.starting_at(start) {
             for state in ATTACHED_AUXILIARY_STATES {
                 if !reachable[start][state as usize] {
                     continue;
@@ -1501,29 +1553,32 @@ fn leading_predicate_spans(text_len: usize, edges: &[Edge<'_>]) -> Box<[Range<us
     spans.into_boxed_slice()
 }
 
-fn runtime_nominal_derivation_spans(edges: &[Edge<'_>], complete: &[bool]) -> Box<[Range<usize>]> {
+fn runtime_nominal_derivation_spans(
+    graph: &EdgeGraph<'_>,
+    complete: &[bool],
+) -> Box<[Range<usize>]> {
+    let edges = graph.edges();
     let mut spans =
-        edges
-            .iter()
-            .enumerate()
-            .filter(|(index, edge)| {
-                complete[*index]
-                    && edge.span.start == 0
+        graph
+            .starting_range(0)
+            .filter(|&index| {
+                let edge = &edges[index];
+                complete[index]
                     && edge
                         .pos
                         .split('+')
                         .next_back()
                         .and_then(DataFinePos::parse)
                         .is_some_and(DataFinePos::is_nominal)
-                    && edges.iter().enumerate().any(|(next_index, next)| {
+                    && graph.starting_range(edge.span.end).any(|next_index| {
+                        let next = &edges[next_index];
                         complete[next_index]
-                            && next.span.start == edge.span.end
                             && next.pos.split('+').next().is_some_and(|pos| {
                                 pos.starts_with('V') || matches!(pos, "XSV" | "XSA")
                             })
                     })
             })
-            .map(|(_, edge)| edge.span.clone())
+            .map(|index| edges[index].span.clone())
             .collect::<Vec<_>>();
     spans.sort_unstable_by_key(|span| (span.start, span.end));
     spans.dedup();
@@ -1573,12 +1628,12 @@ fn advance_nominal_derivation(
 
 fn nominal_derivation_predicate_prefixes(
     text_len: usize,
-    edges: &[Edge<'_>],
+    graph: &EdgeGraph<'_>,
 ) -> Box<[Range<usize>]> {
     let mut nominal_prefix = vec![[false; NOMINAL_DERIVATION_STATE_COUNT]; text_len + 1];
     nominal_prefix[0][NominalDerivationState::Start as usize] = true;
     for start in 0..text_len {
-        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+        for edge in graph.starting_at(start) {
             for state_index in 0..NOMINAL_DERIVATION_STATE_COUNT {
                 if !nominal_prefix[start][state_index] {
                     continue;
@@ -1597,27 +1652,21 @@ fn nominal_derivation_predicate_prefixes(
     let mut ending_suffix = vec![false; text_len + 1];
     ending_suffix[text_len] = true;
     for start in (0..text_len).rev() {
-        ending_suffix[start] = edges
-            .iter()
-            .filter(|edge| edge.span.start == start)
-            .any(|edge| {
-                edge.pos.split('+').all(|pos| pos.starts_with('E')) && ending_suffix[edge.span.end]
-            });
+        ending_suffix[start] = graph.starting_at(start).iter().any(|edge| {
+            edge.pos.split('+').all(|pos| pos.starts_with('E')) && ending_suffix[edge.span.end]
+        });
     }
 
     let mut prefixes = (0..text_len)
         .filter(|&end| {
             nominal_prefix[end][NominalDerivationState::DerivedNominal as usize]
-                && edges
-                    .iter()
-                    .filter(|edge| edge.span.start == end)
-                    .any(|edge| {
-                        let mut positions = edge.pos.split('+');
-                        matches!(positions.next(), Some("XSV" | "XSA"))
-                            && positions.clone().all(|pos| pos.starts_with('E'))
-                            && ending_suffix[edge.span.end]
-                            && (positions.next().is_some() || edge.span.end < text_len)
-                    })
+                && graph.starting_at(end).iter().any(|edge| {
+                    let mut positions = edge.pos.split('+');
+                    matches!(positions.next(), Some("XSV" | "XSA"))
+                        && positions.clone().all(|pos| pos.starts_with('E'))
+                        && ending_suffix[edge.span.end]
+                        && (positions.next().is_some() || edge.span.end < text_len)
+                })
         })
         .map(|end| 0..end)
         .collect::<Vec<_>>();
@@ -1645,14 +1694,15 @@ fn derivational_suffix_starts(edges: &[Edge<'_>], complete: &[bool]) -> Box<[usi
     starts.into_boxed_slice()
 }
 
-fn adnominal_derivation_suffix_starts(text_len: usize, edges: &[Edge<'_>]) -> Box<[usize]> {
+fn adnominal_derivation_suffix_starts(text_len: usize, graph: &EdgeGraph<'_>) -> Box<[usize]> {
+    let edges = graph.edges();
     let mut nominal_prefix = vec![false; text_len + 1];
     nominal_prefix[0] = true;
     for start in 0..text_len {
         if !nominal_prefix[start] {
             continue;
         }
-        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+        for edge in graph.starting_at(start) {
             if edge.pos.split('+').all(nominal_host_pos) {
                 nominal_prefix[edge.span.end] = true;
             }
@@ -1661,18 +1711,14 @@ fn adnominal_derivation_suffix_starts(text_len: usize, edges: &[Edge<'_>]) -> Bo
 
     let mut adnominal_ending_suffix = vec![false; text_len + 1];
     for start in (0..text_len).rev() {
-        adnominal_ending_suffix[start] =
-            edges
-                .iter()
-                .filter(|edge| edge.span.start == start)
-                .any(|edge| {
-                    ending_path_reaches_adnominal_boundary(
-                        edge.pos,
-                        edge.span.end,
-                        text_len,
-                        &adnominal_ending_suffix,
-                    )
-                });
+        adnominal_ending_suffix[start] = graph.starting_at(start).iter().any(|edge| {
+            ending_path_reaches_adnominal_boundary(
+                edge.pos,
+                edge.span.end,
+                text_len,
+                &adnominal_ending_suffix,
+            )
+        });
     }
 
     let mut starts = edges
@@ -1732,7 +1778,7 @@ enum CopulaSuffixState {
 
 const COPULA_SUFFIX_STATE_COUNT: usize = 4;
 
-fn nominal_copula_hosts(text: &str, edges: &[Edge<'_>]) -> Box<[Range<usize>]> {
+fn nominal_copula_hosts(text: &str, graph: &EdgeGraph<'_>) -> Box<[Range<usize>]> {
     if !text
         .char_indices()
         .skip(1)
@@ -1747,7 +1793,7 @@ fn nominal_copula_hosts(text: &str, edges: &[Edge<'_>]) -> Box<[Range<usize>]> {
         if !nominal_prefix[start] {
             continue;
         }
-        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+        for edge in graph.starting_at(start) {
             if edge.pos.split('+').all(nominal_host_pos) {
                 nominal_prefix[edge.span.end] = true;
             }
@@ -1758,7 +1804,7 @@ fn nominal_copula_hosts(text: &str, edges: &[Edge<'_>]) -> Box<[Range<usize>]> {
     suffix[text_len][CopulaSuffixState::Ending as usize] = true;
     suffix[text_len][CopulaSuffixState::Particle as usize] = true;
     for start in (0..text_len).rev() {
-        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+        for edge in graph.starting_at(start) {
             for state in copula_suffix_states() {
                 let Some(next) = advance_copula_suffix(state, edge.pos) else {
                     continue;
@@ -1850,14 +1896,14 @@ fn ending_positions_end_in_connective<'a>(
     Some(connective)
 }
 
-fn forward_positions(text_len: usize, edges: &[Edge<'_>]) -> Vec<bool> {
+fn forward_positions(text_len: usize, graph: &EdgeGraph<'_>) -> Vec<bool> {
     let mut forward = vec![false; text_len + 1];
     forward[0] = true;
     for start in 0..text_len {
         if !forward[start] {
             continue;
         }
-        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+        for edge in graph.starting_at(start) {
             forward[edge.span.end] = true;
         }
     }
@@ -1866,7 +1912,7 @@ fn forward_positions(text_len: usize, edges: &[Edge<'_>]) -> Vec<bool> {
 
 fn forward_positions_with_prefix(
     text_len: usize,
-    edges: &[Edge<'_>],
+    graph: &EdgeGraph<'_>,
     prefix_end: usize,
 ) -> Vec<bool> {
     let mut forward = vec![false; text_len + 1];
@@ -1876,7 +1922,7 @@ fn forward_positions_with_prefix(
         if !forward[start] {
             continue;
         }
-        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+        for edge in graph.starting_at(start) {
             forward[edge.span.end] = true;
         }
     }
@@ -1947,20 +1993,20 @@ fn complete_numeral_path_state(state: NumeralPathState, require_unit: bool) -> b
     }
 }
 
-fn hangul_numeral_spans(text_len: usize, edges: &[Edge<'_>]) -> Vec<Range<usize>> {
-    numeral_sequence_spans(text_len, 0, edges, false)
+fn hangul_numeral_spans(text_len: usize, graph: &EdgeGraph<'_>) -> Vec<Range<usize>> {
+    numeral_sequence_spans(text_len, 0, graph, false)
 }
 
 fn numeral_sequence_spans(
     text_len: usize,
     sequence_start: usize,
-    edges: &[Edge<'_>],
+    graph: &EdgeGraph<'_>,
     require_unit: bool,
 ) -> Vec<Range<usize>> {
     let mut forward = vec![[false; NUMERAL_PATH_STATE_COUNT]; text_len + 1];
     forward[sequence_start][NumeralPathState::Start as usize] = true;
     for start in sequence_start..text_len {
-        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+        for edge in graph.starting_at(start) {
             for state_index in 0..NUMERAL_PATH_STATE_COUNT {
                 if !forward[start][state_index] {
                     continue;
@@ -1978,7 +2024,7 @@ fn numeral_sequence_spans(
         *complete = complete_numeral_path_state(numeral_path_state(state_index), require_unit);
     }
     for start in (0..text_len).rev() {
-        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+        for edge in graph.starting_at(start) {
             for state_index in 0..NUMERAL_PATH_STATE_COUNT {
                 let state = numeral_path_state(state_index);
                 let Some(next) = numeral_path_transition(state, edge.pos) else {
@@ -1990,7 +2036,7 @@ fn numeral_sequence_spans(
     }
 
     let mut spans = Vec::new();
-    for edge in edges.iter().filter(|edge| edge.pos == "NR") {
+    for edge in graph.edges().iter().filter(|edge| edge.pos == "NR") {
         let belongs_to_complete_path = (0..NUMERAL_PATH_STATE_COUNT).any(|state_index| {
             if !forward[edge.span.start][state_index] {
                 return false;
@@ -2008,16 +2054,17 @@ fn numeral_sequence_spans(
     spans
 }
 
-fn complete_edges(text_len: usize, edges: &[Edge<'_>], forward: &[bool]) -> Vec<bool> {
+fn complete_edges(text_len: usize, graph: &EdgeGraph<'_>, forward: &[bool]) -> Vec<bool> {
     let mut backward = vec![false; text_len + 1];
     backward[text_len] = true;
     for start in (0..text_len).rev() {
-        backward[start] = edges
+        backward[start] = graph
+            .starting_at(start)
             .iter()
-            .filter(|edge| edge.span.start == start)
             .any(|edge| backward[edge.span.end]);
     }
-    edges
+    graph
+        .edges()
         .iter()
         .map(|edge| forward[edge.span.start] && backward[edge.span.end])
         .collect()

@@ -415,6 +415,27 @@ fn structural_constraint(criterion: &mut Criterion) {
             }
         });
     });
+
+    let dense_resource = Arc::new(dense_component_resource());
+    let dense_resolver = ConstraintResolver::new(dense_resource).with_attached_auxiliary(true);
+    let dense_token = "가".repeat(63);
+    let dense_graph = dense_resolver
+        .prepare_token_graph_for_candidate(&dense_token, DEFAULT_LATTICE_NODE_LIMIT, true, true)
+        .expect("dense token graph must stay inside the node limit");
+    assert!(dense_graph.memory_usage() > dense_token.len());
+    group.throughput(Throughput::Elements(4_032));
+    group.bench_function("prepare_dense_token_graph", |bencher| {
+        bencher.iter(|| {
+            black_box(&dense_resolver)
+                .prepare_token_graph_for_candidate(
+                    black_box(&dense_token),
+                    DEFAULT_LATTICE_NODE_LIMIT,
+                    true,
+                    true,
+                )
+                .expect("dense token graph must stay inside the node limit")
+        });
+    });
     group.finish();
 }
 
@@ -460,6 +481,20 @@ fn component_resource() -> kfind_data::ComponentResource {
         .expect("benchmark component resource must encode");
     decode_component_resource("benchmark", bytes, &COMPONENT_RESOURCE_SOURCE_DIGEST)
         .expect("benchmark component resource must decode")
+}
+
+fn dense_component_resource() -> kfind_data::ComponentResource {
+    let mut entries = Vec::with_capacity(126);
+    let mut surface = String::new();
+    for _ in 0..63 {
+        surface.push('가');
+        entries.push(component_entry(&surface, "NNG", 0));
+        entries.push(component_entry(&surface, "VV+EC", 0));
+    }
+    let bytes = encode_component_resource(COMPONENT_RESOURCE_SOURCE_DIGEST, &entries)
+        .expect("dense benchmark component resource must encode");
+    decode_component_resource("dense benchmark", bytes, &COMPONENT_RESOURCE_SOURCE_DIGEST)
+        .expect("dense benchmark component resource must decode")
 }
 
 fn component_entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorphologyEntry {
