@@ -99,6 +99,9 @@
 ### 0.2 토큰 경계와 phrase 거리
 
 - 토큰 문자는 Unicode 문자·숫자·결합 문자와 `_`다. 한글 완성형과 자모도 토큰 문자에 포함한다.
+  분류기는 ASCII 영숫자와 전체가 문자로 할당된 한글 완성형 음절 범위를 먼저 판정할 수 있지만,
+  나머지는 Unicode 영숫자·일반 범주 판정으로 fallback해 같은 집합을 유지한다. 인접 scalar 해독은
+  선두 byte의 UTF-8 폭을 확인한 뒤 정확히 한 scalar인지 검증하며 잘못된 byte는 토큰 경계로 취급한다.
 - `smart`는 program의 consumption이 허용된 조사·어미를 소비한 token span의 바깥 경계를
   검사한다. 체언, literal, 한 음절 atom은 core 시작도 토큰 경계여야 한다. 단, 조사를 직접
   검색할 때는 붙은 조사를 찾을 수 있도록 core 왼쪽 경계 대신 바로 앞 host와 조사 이형태
@@ -2914,6 +2917,8 @@ anchor와 atom span을 한 번만 수집하는지와 match 수에 따른 반복 
 `matcher/context_repeated_long_line`은 `매일`이 16,384번 반복되는 줄바꿈 없는 UTF-8 입력을
 `RepeatedToken + MAG` 구조 pattern을 가진 `smart` 부사 matcher로 검색한다. 각 candidate의
 인접 token만 해독하는지와 candidate마다 전체 입력의 UTF-8을 다시 검증하는 회귀를 감시한다.
+`matcher/context_alternating_spacing_long_line`은 같은 token 사이의 공백을 1바이트와 2바이트로
+교대해 직전 cache entry가 연속해서 일치하지 않는 경로의 비용을 감시한다.
 단일 atom `find_all` 구조 검색은 같은 호출 안에서 동일한 bounded raw context의 준비된 구조 분석을
 재사용할 수 있다. Cache key는 raw context bytes, 해당 context 안의 current token 상대 span,
 node limit과 nominal-copula 포함 여부를 모두 구분하고 hash collision은 원본 값 비교로 확인한다.

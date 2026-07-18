@@ -70,6 +70,7 @@ cargo bench -p kfind-testkit --bench query_matcher -- matcher/phrase_find_all
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/phrase_find_all_repeated
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/phrase_input_searcher_repeated_line
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_repeated_long_line
+cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_alternating_spacing_long_line
 ```
 
 세 benchmark 모두 입력의 anchor·atom span 수집과 leftmost-longest non-overlapping 결과 선택을
@@ -77,6 +78,8 @@ cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_repeated_l
 `phrase_input_searcher_repeated_line`은 줄바꿈 없는 한 줄의 여러 결과를 실제 metadata 출력 경로로
 수집할 때 남은 입력을 반복해서 다시 스캔하지 않는지 감시한다.
 `context_repeated_long_line`은 문맥 candidate마다 전체 줄의 UTF-8을 반복 검증하지 않는지 감시한다.
+`context_alternating_spacing_long_line`은 직전 문맥 cache가 빗나갈 때 bounded 해독과 hash cache
+fallback 비용이 악화되지 않는지 감시한다.
 
 ## TUI pager held-key scroll
 
