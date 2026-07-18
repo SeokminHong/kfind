@@ -157,25 +157,25 @@ export default function BenchmarksPage(): React.JSX.Element {
             <tbody>
               <tr>
                 <td>embedded + smart</td>
-                <td>99.67% / 92.13%</td>
-                <td>100.00% / 92.44%</td>
-                <td>4 / 102</td>
-                <td>0 / 98</td>
+                <td>99.67% / 92.21%</td>
+                <td>100.00% / 92.52%</td>
+                <td>4 / 101</td>
+                <td>0 / 97</td>
               </tr>
               <tr>
                 <td>full POS + smart</td>
-                <td>99.69% / 99.46%</td>
-                <td>100.00% / 99.77%</td>
-                <td>4 / 7</td>
-                <td>0 / 3</td>
+                <td>99.69% / 99.54%</td>
+                <td>100.00% / 99.85%</td>
+                <td>4 / 6</td>
+                <td>0 / 2</td>
               </tr>
             </tbody>
           </table>
         </div>
         <p>
-          Full-POS의 FNᶜ 3건은 파생 용언 앞 명사 성분, 반환 span 복원과 한 음절
-          명사 성분처럼 아직 구현하지 않은 제품 목표입니다. 비용이나 현재
-          profile을 이유로 계약 분모에서 빼지 않습니다.
+          Full-POS의 FNᶜ 2건은 반환 span 복원과 한 음절 명사 성분처럼 아직
+          구현하지 않은 제품 목표입니다. 비용이나 현재 profile을 이유로 계약
+          분모에서 빼지 않습니다.
         </p>
         <figure className="benchmark-figure">
           <img
@@ -186,7 +186,7 @@ export default function BenchmarksPage(): React.JSX.Element {
           <figcaption>
             FPᶜ, FNᶜ, precisionᶜ, recallᶜ는 version-controlled registry가 실제로
             적용된 값이며 raw 지표의 별칭이 아닙니다. Review 22건의 판정은
-            유지되며, 확인한 구현 목표 14건 중 11건을 해소했습니다.
+            유지되며, 확인한 구현 목표 14건 중 12건을 해소했습니다.
           </figcaption>
         </figure>
       </DocumentSection>
@@ -495,8 +495,27 @@ export default function BenchmarksPage(): React.JSX.Element {
         </p>
       </DocumentSection>
 
+      <DocumentSection title="파생 용언 앞 명사 파생 경로">
+        <p>
+          <code>smart</code>는 token 왼쪽부터 <code>N+ + XSN+</code>로 끝나는
+          query core와 이어지는 <code>XSV/XSA + E+</code> 경로가 모두 완성될 때
+          파생 명사를 유지합니다. 이 구조로 <code>잠식당</code>이{' '}
+          <code>잠식당하기</code>에 매칭됩니다.
+        </p>
+        <p>
+          Query 경계가 source node와 정확히 일치해야 하므로 token 내부
+          substring, 접미사 경계를 가로지르는 core와 어미가 없는 파생 용언은
+          열지 않습니다.
+        </p>
+      </DocumentSection>
+
       <DocumentSection title="원본 보고서">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-nominal-derivational-predicate.md">
+              파생 용언 앞 명사 파생 경로 recall
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-dictionary-voice-derivation.md">
               사전 voice 파생 활용 recall

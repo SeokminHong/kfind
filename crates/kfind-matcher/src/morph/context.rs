@@ -34,6 +34,7 @@ struct CachedPreparedContext {
     current: Range<usize>,
     node_limit: usize,
     include_nominal_copula: bool,
+    include_nominal_derivation_predicate: bool,
     prepared: Option<Arc<PreparedStructuralContext>>,
 }
 
@@ -51,6 +52,7 @@ impl PreparedStructuralContextAnalysis {
         resolver: &ConstraintResolver,
         node_limit: usize,
         include_nominal_copula: bool,
+        include_nominal_derivation_predicate: bool,
         prepared_cache: &mut PreparedStructuralContextCache,
     ) -> Option<Self> {
         let current =
@@ -85,6 +87,7 @@ impl PreparedStructuralContextAnalysis {
             &relative_current,
             node_limit,
             include_nominal_copula,
+            include_nominal_derivation_predicate,
         ) {
             return prepared.map(|prepared| Self { current, prepared });
         }
@@ -100,7 +103,12 @@ impl PreparedStructuralContextAnalysis {
             next: next.as_deref(),
         };
         let prepared = resolver
-            .prepare_context_for_candidate(context, node_limit, include_nominal_copula)
+            .prepare_context_for_candidate(
+                context,
+                node_limit,
+                include_nominal_copula,
+                include_nominal_derivation_predicate,
+            )
             .ok()
             .map(Arc::new);
         prepared_cache.insert(
@@ -108,6 +116,7 @@ impl PreparedStructuralContextAnalysis {
             relative_current,
             node_limit,
             include_nominal_copula,
+            include_nominal_derivation_predicate,
             prepared.clone(),
         );
         prepared.map(|prepared| Self { current, prepared })
@@ -145,9 +154,15 @@ impl PreparedStructuralContextCache {
         current: &Range<usize>,
         node_limit: usize,
         include_nominal_copula: bool,
+        include_nominal_derivation_predicate: bool,
     ) -> Option<Option<Arc<PreparedStructuralContext>>> {
-        let fingerprint =
-            self.fingerprint(raw_context, current, node_limit, include_nominal_copula);
+        let fingerprint = self.fingerprint(
+            raw_context,
+            current,
+            node_limit,
+            include_nominal_copula,
+            include_nominal_derivation_predicate,
+        );
         self.entries.get(&fingerprint).and_then(|entries| {
             entries
                 .iter()
@@ -156,6 +171,8 @@ impl PreparedStructuralContextCache {
                         && entry.current == *current
                         && entry.node_limit == node_limit
                         && entry.include_nominal_copula == include_nominal_copula
+                        && entry.include_nominal_derivation_predicate
+                            == include_nominal_derivation_predicate
                 })
                 .map(|entry| entry.prepared.clone())
         })
@@ -167,13 +184,19 @@ impl PreparedStructuralContextCache {
         current: Range<usize>,
         node_limit: usize,
         include_nominal_copula: bool,
+        include_nominal_derivation_predicate: bool,
         prepared: Option<Arc<PreparedStructuralContext>>,
     ) {
         if self.entry_count >= MAX_PREPARED_CONTEXT_CACHE_ENTRIES {
             return;
         }
-        let fingerprint =
-            self.fingerprint(raw_context, &current, node_limit, include_nominal_copula);
+        let fingerprint = self.fingerprint(
+            raw_context,
+            &current,
+            node_limit,
+            include_nominal_copula,
+            include_nominal_derivation_predicate,
+        );
         self.entries
             .entry(fingerprint)
             .or_default()
@@ -182,6 +205,7 @@ impl PreparedStructuralContextCache {
                 current,
                 node_limit,
                 include_nominal_copula,
+                include_nominal_derivation_predicate,
                 prepared,
             });
         self.entry_count += 1;
@@ -193,12 +217,14 @@ impl PreparedStructuralContextCache {
         current: &Range<usize>,
         node_limit: usize,
         include_nominal_copula: bool,
+        include_nominal_derivation_predicate: bool,
     ) -> u64 {
         let mut hasher = self.fingerprint_builder.build_hasher();
         raw_context.hash(&mut hasher);
         current.hash(&mut hasher);
         node_limit.hash(&mut hasher);
         include_nominal_copula.hash(&mut hasher);
+        include_nominal_derivation_predicate.hash(&mut hasher);
         hasher.finish()
     }
 }

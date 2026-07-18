@@ -400,6 +400,11 @@ path from its left boundary. Attributive, nominalizing, and final endings cannot
 reopen that connective path; independent imperatives such as token-initial `가`
 remain searchable.
 
+A noun derivation remains searchable before a derived predicate when the token
+has a complete source `N+ + XSN+ + XSV/XSA + E+` path. The query core must end
+exactly at the derivational noun-suffix boundary, so `잠식당` matches
+`잠식당하기` without exposing an internal substring or an incomplete predicate.
+
 ## Benchmarks
 
 kfind measures morphology quality, end-to-end CLI throughput, resource startup,
