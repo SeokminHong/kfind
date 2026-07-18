@@ -168,6 +168,28 @@ impl ConstraintResolver {
         matched
     }
 
+    #[must_use]
+    pub fn has_exact_pronoun_copula_ending_path(&self, text: &str) -> bool {
+        let mut matched = false;
+        self.resource
+            .common_prefixes(text.as_bytes(), |length, analyses| {
+                if length != text.len() {
+                    return;
+                }
+                matched |= analyses.iter().any(|analysis| {
+                    let positions = analysis.pos.split('+').collect::<Vec<_>>();
+                    positions.len() >= 3
+                        && positions[0] == "NP"
+                        && positions[1] == "VCP"
+                        && positions[2..].iter().all(|pos| pos.starts_with('E'))
+                        && positions
+                            .last()
+                            .is_some_and(|pos| matches!(*pos, "EC" | "EF"))
+                });
+            });
+        matched
+    }
+
     fn supports_predicate_ending_path_with_terminal(
         &self,
         text: &str,

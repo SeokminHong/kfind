@@ -229,6 +229,7 @@ pub fn compile_query(
             matches!(
                 &program.consumption,
                 CandidateConsumption::NominalParticleChain { .. }
+                    | CandidateConsumption::NominalCopulaEndingChain { .. }
             )
         });
         total_programs += programs.len();
@@ -404,7 +405,13 @@ fn compile_analysis(
                     true,
                 ));
             }
-            compile_nominal_contractions(analysis, analysis_index, analyzer, output);
+            compile_nominal_contractions(
+                analysis,
+                analysis_index,
+                analyzer,
+                particle_rules,
+                output,
+            );
             if options.expand == ExpandMode::Derivation {
                 compile_derivations(
                     analysis,
@@ -454,27 +461,44 @@ fn compile_nominal_contractions(
     analysis: &Analysis,
     analysis_index: u16,
     analyzer: &LexiconQueryAnalyzer,
+    particle_rules: &Arc<[RuleId]>,
     output: &mut Vec<DraftBranch>,
 ) {
     if analysis.coarse_pos != CoarsePos::Pronoun {
         return;
     }
-    for rule in analyzer
-        .lexicons()
-        .rules()
-        .contractions
-        .iter()
-        .filter(|rule| rule.kind == "nominal-particle-compose")
-    {
-        let Some(prefix) = analysis.lemma.strip_suffix(&rule.left) else {
-            continue;
-        };
-        output.push(exact_branch(
-            &format!("{prefix}{}", rule.result),
-            analysis_index,
-            vec![RuleId::from(rule.id.clone())],
-            true,
-        ));
+    for rule in &analyzer.lexicons().rules().contractions {
+        match rule.kind.as_str() {
+            "nominal-particle-compose" => {
+                let Some(prefix) = analysis.lemma.strip_suffix(&rule.left) else {
+                    continue;
+                };
+                output.push(exact_branch(
+                    &format!("{prefix}{}", rule.result),
+                    analysis_index,
+                    vec![RuleId::from(rule.id.clone())],
+                    true,
+                ));
+            }
+            "nominal-copula-ending-compose" if analysis.lemma.as_ref() == rule.left => {
+                output.push(DraftBranch {
+                    anchor: rule.result.clone(),
+                    consumption: CandidateConsumption::NominalCopulaEndingChain {
+                        initial_allowed_rule_ids: Arc::clone(particle_rules),
+                        allowed_rule_ids: Arc::clone(particle_rules),
+                        blocked_rule_ids: Arc::from([]),
+                    },
+                    core_mapping: CoreMapping::WholeAnchor,
+                    origins: vec![Origin {
+                        analysis_index,
+                        rule_path: vec![RuleId::from(rule.id.clone())],
+                    }],
+                    smart_left: true,
+                    decision: DraftDecision::Structural(ComponentCapability::Source),
+                });
+            }
+            _ => {}
+        }
     }
 }
 

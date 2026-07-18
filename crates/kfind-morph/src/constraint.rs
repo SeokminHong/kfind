@@ -38,6 +38,7 @@ pub enum MorphContinuation {
         nominal_particles: bool,
     },
     NominalParticles,
+    NominalCopulaEnding,
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -142,7 +143,9 @@ impl QueryMorphPattern {
                 (CandidateTokenRelation::Whole, MorphContinuation::Exact)
                     | (
                         CandidateTokenRelation::PrefixWithContinuation,
-                        MorphContinuation::Predicate { .. } | MorphContinuation::NominalParticles
+                        MorphContinuation::Predicate { .. }
+                            | MorphContinuation::NominalParticles
+                            | MorphContinuation::NominalCopulaEnding
                     )
             )
     }

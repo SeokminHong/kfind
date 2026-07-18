@@ -159,7 +159,8 @@ impl ReferenceMatcher {
                 (consumed, rules)
             }
             CandidateConsumption::StructuralPredicateEnding { .. } => return None,
-            CandidateConsumption::NominalParticleChain { .. } => {
+            CandidateConsumption::NominalParticleChain { .. }
+            | CandidateConsumption::NominalCopulaEndingChain { .. } => {
                 let (consumed, rules) =
                     self.reference_particles(consumption_anchor, consumption_following);
                 if !branch.consumption.allows_rule_path(&rules) {

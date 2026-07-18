@@ -6,6 +6,24 @@ use super::*;
 use crate::{CandidateTokenRelation, ComponentCapability, MorphContinuation};
 
 #[test]
+fn exact_pronoun_copula_ending_path_requires_the_complete_source_sequence() {
+    let supported = resolver_from_entries([
+        expression("누군가", "NP+VCP+EF", "누구/NP/*+이/VCP/*+ᆫ가/EF/*"),
+        atomic("무언가", "NP+VCP+EC"),
+    ]);
+    assert!(supported.has_exact_pronoun_copula_ending_path("누군가"));
+    assert!(supported.has_exact_pronoun_copula_ending_path("무언가"));
+
+    for pos in ["NP", "NP+EF", "NP+VCP", "NNG+VCP+EF", "NP+VCP+ETM"] {
+        let resolver = resolver_from_entries([atomic("누군가", pos)]);
+        assert!(
+            !resolver.has_exact_pronoun_copula_ending_path("누군가"),
+            "unexpectedly accepted {pos}"
+        );
+    }
+}
+
+#[test]
 fn ordinary_adverb_context_rejects_a_runtime_nominal_prefix() {
     let resolver = resolver();
     let context = BoundedTokenContext {

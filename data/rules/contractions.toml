@@ -71,3 +71,27 @@ left = "거"
 right = "는"
 result = "건"
 ending_ids = []
+
+[[contraction]]
+id = "contraction.pronoun-copula-nuga"
+kind = "nominal-copula-ending-compose"
+left = "누구"
+right = "ㄴ가"
+result = "누군가"
+ending_ids = []
+
+[[contraction]]
+id = "contraction.pronoun-copula-mueo"
+kind = "nominal-copula-ending-compose"
+left = "무어"
+right = "ㄴ가"
+result = "무언가"
+ending_ids = []
+
+[[contraction]]
+id = "contraction.pronoun-copula-mueot"
+kind = "nominal-copula-ending-compose"
+left = "무엇"
+right = "ㄴ가"
+result = "무언가"
+ending_ids = []

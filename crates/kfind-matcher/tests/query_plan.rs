@@ -1855,6 +1855,44 @@ fn nominal_topic_contraction_covers_the_pronoun_family() {
 }
 
 #[test]
+fn pronoun_copula_ending_contractions_require_source_structure() {
+    for (query, text, expected) in [
+        ("누구", "누군가가 왔다.", "누군가가"),
+        ("무어", "무언가 새롭다.", "무언가"),
+        ("무엇", "무언가는 남았다.", "무언가는"),
+    ] {
+        let matcher = compile_embedded_with_component(
+            query,
+            CompileOptions {
+                global_pos: Some(CoarsePos::Pronoun),
+                ..CompileOptions::default()
+            },
+        );
+        let matched = matcher
+            .find_at_with_meta(text.as_bytes(), 0)
+            .unwrap_or_else(|| panic!("{query} must match {text}"));
+        assert_eq!(&text[matched.span], expected);
+    }
+
+    let unsupported = compile_embedded_with_resource(
+        "누구",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Pronoun),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("누군가", "NP"),
+            component_entry("가", "JKS"),
+        ]),
+    );
+    assert!(
+        unsupported
+            .find_at_with_meta("누군가가 왔다.".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn direct_particle_plans_validate_the_attached_host_in_smart_mode() {
     let options = CompileOptions {
         global_pos: Some(CoarsePos::Particle),
@@ -2087,6 +2125,10 @@ fn component_resource() -> Arc<ComponentResource> {
             component_expression_entry("주지", "VV+EC", "주/VV/*+지/EC/*"),
             component_entry("온", "MM"),
             component_expression_entry("온", "VV+ETM", "오/VV/*+ᆫ/ETM/*"),
+            component_entry("누군가", "NP"),
+            component_expression_entry("누군가", "NP+VCP+EF", "누구/NP/*+이/VCP/*+ᆫ가/EF/*"),
+            component_entry("무언가", "NNG"),
+            component_expression_entry("무언가", "NP+VCP+EF", "무어/NP/*+이/VCP/*+ㄴ가/EF/*"),
             component_entry("어떤", "VA"),
             component_entry("어떤가", "MM+EC"),
             component_entry("가", "EC"),

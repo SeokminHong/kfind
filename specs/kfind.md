@@ -455,6 +455,11 @@
   `VX` 보조용언+어미의 완전한 연쇄로 증명할 때만 같은 predicate token으로 확장한다. 한 음절 안의
   축약은 anchor와 core의 byte 끝이 같을 수 있으므로 span 길이 차이를 별도 증명 조건으로
   요구하지 않는다.
+- `nominal-copula-ending-compose` program은 규칙에 선언된 축약 표면을 anchor로 사용하고
+  선택적 조사 연쇄를 token 끝까지 소비한다. `smart`는 anchor 전체와 정확히 일치하는 source
+  분석이 `NP + VCP + E+` 순서이며 `EC` 또는 `EF`로 끝날 때만 후보를 유지한다. 융합 때문에
+  component byte span을 만들 수 없는 source expression은 이 전체 품사열로 검증하고, query
+  표제어나 결과 표면을 source component span으로 추정하지 않는다.
 - 체언+조사와 용언+어미 path는 host span이 같을 때만 구조적으로 해결되지 않은
   경쟁으로 본다. host가 다르면 더 긴 조사 host 또는 완성된 용언 host를 선택하고,
   다른 위치에서 우연히 성립한 분할을 후보 근거로 쓰지 않는다. 조사 host는 exact
@@ -1623,6 +1628,12 @@ right consumption:
 `kind=nominal-particle-compose` contraction 하나로 합성한다. 완전형 `그거는`을 보존하고 축약형
 `그건`을 alias로 추가하며, 품사가 대명사가 아니거나 `거`로 끝나지 않는 표제어에는 적용하지
 않는다.
+`누구·무어·무엇 + 이(VCP) + -ㄴ가(EC/EF)`의 축약은
+`kind=nominal-copula-ending-compose`의 표제어별 표면 대응으로 제한한다. `token`과 `any`는
+선언된 표면과 선택적 조사 연쇄만 소비한다. `smart`는 축약 표면 전체에 `NP + VCP + E+`가
+있고 마지막 품사가 `EC` 또는 `EF`인 source 분석을 추가로 요구한다. 별도 등재된 `누군가`와
+`무언가`를 원 표제어의 사전 alias로 간주하거나, 같은 음운 모양을 임의의 대명사에 생산적으로
+적용하지 않는다.
 미지원 항목은 사양의 known limitation에 기록한다.
 
 ### 10.3 동사와 형용사
