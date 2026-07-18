@@ -40,6 +40,7 @@
 - [Query matrix raw·계약 품질 교정](2026-07-18-query-matrix-contract-metrics.md)
 - [사전 합의 `-이` 부사형 recall](2026-07-18-dictionary-adverbial-i.md)
 - [대명사 계사·의문 어미 축약 recall](2026-07-18-pronoun-copula-ending.md)
+- [source 정렬 합성용언 tail recall](2026-07-18-source-aligned-compound-predicate-tail.md)
 - [숫자 뒤 단위 구조 recall](2026-07-17-numeric-unit-recall.md)
 - [질의 컴파일 병목 제거](2026-07-17-compile-hotpath-performance.md)
 - [구조 증거로 줄인 검색 누락](2026-07-17-structural-recall.md)
@@ -570,3 +571,15 @@ raw FN 13→11, FNᶜ 9→7이고 FP 4·FPᶜ 0을 유지했다. Canonical embed
 다음 독립 PR은 고정 source가 독립 동사로 선언한 합성용언 tail 3건 `가다→올라가`,
 `나다→생겨나`, `오다→들어와서는`을 처리한다. 어휘 관계를 사전 alias로 만들지 않고 source가
 정렬한 predicate component와 continuation 범위를 구조로 검증한다.
+
+[source 정렬 합성용언 tail recall](2026-07-18-source-aligned-compound-predicate-tail.md)에서
+token 왼쪽부터 `용언 + EP* + EC + 용언 + E* + J*`가 완결되고 두 번째 용언의 span·품사가
+query core와 일치할 때 내부 tail을 유지했다. 세 목표를 회수해 test matrix full-POS raw FN은
+11→8, FNᶜ는 7→4가 됐고 FP 4·FPᶜ 0과 hard-negative `FP 6 / TN 33`을 유지했다.
+`ETM·ETN·EF` 뒤에 `EC`를 잇지 않아 `친구가`의 주격 조사를 용언으로 열지 않으며,
+token 왼쪽 경계의 독립 명령형 `가`는 계속 회수한다. 잔여 raw FN 8건은 `product-fix 2`,
+`structural-redesign 2`, `gold-alignment-error 1`, `nonstandard-input 3`, 미분류 0건이다.
+
+다음 독립 PR은 표준 피동 파생 1건 `밀다→밀려`를 처리한다. 독립 표제어 alias 합의가 없으므로
+surface alias가 아니라 `밀/VV + 리/XSV + 어/EC`의 source 파생 구조와 query 원형의
+derivational provenance를 함께 검증한다.

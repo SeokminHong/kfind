@@ -164,18 +164,18 @@ export default function BenchmarksPage(): React.JSX.Element {
               </tr>
               <tr>
                 <td>full POS + smart</td>
-                <td>99.69% / 99.15%</td>
-                <td>100.00% / 99.46%</td>
-                <td>4 / 11</td>
-                <td>0 / 7</td>
+                <td>99.69% / 99.38%</td>
+                <td>100.00% / 99.69%</td>
+                <td>4 / 8</td>
+                <td>0 / 4</td>
               </tr>
             </tbody>
           </table>
         </div>
         <p>
-          Full-POS의 FNᶜ 7건은 피동 파생, source 정렬 용언 성분과 반환 span
-          복원처럼 아직 구현하지 않은 제품 목표입니다. 비용이나 현재 profile을
-          이유로 계약 분모에서 빼지 않습니다.
+          Full-POS의 FNᶜ 4건은 피동 파생, 파생 용언 앞 명사 성분, 반환 span
+          복원과 한 음절 명사 성분처럼 아직 구현하지 않은 제품 목표입니다.
+          비용이나 현재 profile을 이유로 계약 분모에서 빼지 않습니다.
         </p>
         <figure className="benchmark-figure">
           <img
@@ -186,7 +186,7 @@ export default function BenchmarksPage(): React.JSX.Element {
           <figcaption>
             FPᶜ, FNᶜ, precisionᶜ, recallᶜ는 version-controlled registry가 실제로
             적용된 값이며 raw 지표의 별칭이 아닙니다. Review 22건의 판정은
-            유지되며, 확인한 구현 목표 14건 중 7건을 해소했습니다.
+            유지되며, 확인한 구현 목표 14건 중 10건을 해소했습니다.
           </figcaption>
         </figure>
       </DocumentSection>
@@ -450,6 +450,22 @@ export default function BenchmarksPage(): React.JSX.Element {
         </p>
       </DocumentSection>
 
+      <DocumentSection title="source 정렬 합성용언 tail">
+        <p>
+          <code>smart</code>는 token 왼쪽부터{' '}
+          <code>용언 + EP* + EC + 용언 + E* + J*</code>가 끝까지 이어지고 두
+          번째 용언의 span과 세부 품사가 query core에 맞을 때 뒤쪽 용언을
+          유지합니다. 관형·명사형·종결 어미 뒤에서는 연결 경로를 다시 열지
+          않습니다.
+        </p>
+        <p>
+          이 구조로 <code>올라가</code>, <code>생겨나</code>,{' '}
+          <code>들어와서는</code>의 뒤쪽 용언을 회수합니다. <code>친구가</code>
+          의 조사 <code>가</code>는 거부하고, <code>그래 네가 가.</code>의 token
+          시작 명령형 <code>가</code>는 그대로 매칭합니다.
+        </p>
+      </DocumentSection>
+
       <DocumentSection title="제한된 사전 표면형 계층">
         <p>
           두 국립국어원 사전이 함께 지지하는 활용형 12,888개 중 12,758개는 기존
@@ -468,6 +484,11 @@ export default function BenchmarksPage(): React.JSX.Element {
 
       <DocumentSection title="원본 보고서">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-source-aligned-compound-predicate-tail.md">
+              source 정렬 합성용언 tail recall
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-pronoun-copula-ending.md">
               대명사 계사·의문 어미 축약 recall

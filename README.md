@@ -388,6 +388,12 @@ source `NP + VCP + EC/EF` analysis, and existing nominal-particle transitions
 validate any following particles. Separately listed dictionary headwords are
 not merged into aliases of the source pronouns.
 
+In `smart` mode, a trailing predicate in a compound predicate remains searchable
+when the token has a complete source `predicate + EP* + EC + predicate + E* + J*`
+path from its left boundary. Attributive, nominalizing, and final endings cannot
+reopen that connective path; independent imperatives such as token-initial `가`
+remain searchable.
+
 ## Benchmarks
 
 kfind measures morphology quality, end-to-end CLI throughput, resource startup,
