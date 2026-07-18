@@ -23,6 +23,7 @@ use crate::{AnchorBuildError, AnchorBuildLimits, AnchorEngine, AnchorHit};
 
 mod candidates;
 mod context;
+mod line_candidate;
 mod phrase;
 
 pub use candidates::LocalAnalysisCandidate;
@@ -1621,11 +1622,7 @@ impl Matcher for MorphMatcher {
     }
 
     fn find_candidate_line(&self, haystack: &[u8]) -> Result<Option<LineMatchKind>, Self::Error> {
-        Ok(self
-            .anchor_engine
-            .hits(haystack, 0)
-            .next()
-            .map(|hit| LineMatchKind::Candidate(hit.span.start)))
+        Ok(line_candidate::find(self, haystack))
     }
 }
 
