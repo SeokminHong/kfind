@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+<title id="title">kfind query matrix raw and contract-adjusted quality</title>
+<desc id="desc">Raw corpus-gold and reviewed kfind contract precision, recall, and confusion counts are compared for embedded and full-POS profiles.</desc>
+
+<style>
+  .background { fill: #ffffff; }
+  text { fill: #111827; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .muted { fill: #4b5563; }
+  .grid { stroke: #d1d5db; stroke-width: 1; }
+  @media (prefers-color-scheme: dark) {
+    .background { fill: #0d1117; }
+    text { fill: #f3f4f6; }
+    .muted { fill: #9ca3af; }
+    .grid { stroke: #374151; }
+  }
+</style>
+
+<rect class="background" width="1280" height="720"/>
+<text x="52.0" y="38.0" text-anchor="start">kfind query matrix · raw vs contract-adjusted</text>
+<text x="52.0" y="62.0" text-anchor="start" class="muted">2592 cases · 14 confirmed · 5 reclassified · 3 excluded</text>
+<rect x="930.0" y="27.0" width="16.0" height="16.0" rx="2" fill="#64748b"/>
+<text x="954.0" y="40.0" text-anchor="start">Raw corpus gold</text>
+<rect x="1090.0" y="27.0" width="16.0" height="16.0" rx="2" fill="#059669"/>
+<text x="1114.0" y="40.0" text-anchor="start">Contract</text>
+<rect x="52.0" y="96.0" width="8.0" height="28.0" rx="2" fill="#2563eb"/>
+<text x="72.0" y="117.0" text-anchor="start">kfind-embedded</text>
+<text x="612.0" y="117.0" text-anchor="end" class="muted">contract denominator 2589</text>
+<text x="52.0" y="190.0" text-anchor="start">Precision</text>
+<text x="142.0" y="188.0" text-anchor="start" class="muted">Raw</text>
+<rect x="214.0" y="171.0" width="358.8" height="24.0" rx="3" fill="#64748b"/>
+<text x="612.0" y="189.0" text-anchor="end">99.67%</text>
+<text x="142.0" y="228.0" text-anchor="start" class="muted">Contract</text>
+<rect x="214.0" y="211.0" width="360.0" height="24.0" rx="3" fill="#059669"/>
+<text x="612.0" y="229.0" text-anchor="end">100.00%</text>
+<text x="52.0" y="306.0" text-anchor="start">Recall</text>
+<text x="142.0" y="304.0" text-anchor="start" class="muted">Raw</text>
+<rect x="214.0" y="287.0" width="331.1" height="24.0" rx="3" fill="#64748b"/>
+<text x="612.0" y="305.0" text-anchor="end">91.98%</text>
+<text x="142.0" y="344.0" text-anchor="start" class="muted">Contract</text>
+<rect x="214.0" y="327.0" width="332.2" height="24.0" rx="3" fill="#059669"/>
+<text x="612.0" y="345.0" text-anchor="end">92.28%</text>
+<text x="52.0" y="420.0" text-anchor="start">Confusion counts</text>
+<text x="52.0" y="454.0" text-anchor="start">Raw   TP 1192 · FP 4 · TN 1292 · FN 104</text>
+<text x="52.0" y="486.0" text-anchor="start">Contract   TPᶜ 1196 · FPᶜ 0 · TNᶜ 1293 · FNᶜ 100</text>
+<text x="52.0" y="530.0" text-anchor="start" class="muted">Reviewed 22 · confirmed 14 · reclassified 5 · excluded 3</text>
+<rect x="680.0" y="96.0" width="8.0" height="28.0" rx="2" fill="#7c3aed"/>
+<text x="700.0" y="117.0" text-anchor="start">kfind-full-pos</text>
+<text x="1240.0" y="117.0" text-anchor="end" class="muted">contract denominator 2589</text>
+<text x="680.0" y="190.0" text-anchor="start">Precision</text>
+<text x="770.0" y="188.0" text-anchor="start" class="muted">Raw</text>
+<rect x="842.0" y="171.0" width="358.9" height="24.0" rx="3" fill="#64748b"/>
+<text x="1240.0" y="189.0" text-anchor="end">99.69%</text>
+<text x="770.0" y="228.0" text-anchor="start" class="muted">Contract</text>
+<rect x="842.0" y="211.0" width="360.0" height="24.0" rx="3" fill="#059669"/>
+<text x="1240.0" y="229.0" text-anchor="end">100.00%</text>
+<text x="680.0" y="306.0" text-anchor="start">Recall</text>
+<text x="770.0" y="304.0" text-anchor="start" class="muted">Raw</text>
+<rect x="842.0" y="287.0" width="355.0" height="24.0" rx="3" fill="#64748b"/>
+<text x="1240.0" y="305.0" text-anchor="end">98.61%</text>
+<text x="770.0" y="344.0" text-anchor="start" class="muted">Contract</text>
+<rect x="842.0" y="327.0" width="356.1" height="24.0" rx="3" fill="#059669"/>
+<text x="1240.0" y="345.0" text-anchor="end">98.92%</text>
+<text x="680.0" y="420.0" text-anchor="start">Confusion counts</text>
+<text x="680.0" y="454.0" text-anchor="start">Raw   TP 1278 · FP 4 · TN 1292 · FN 18</text>
+<text x="680.0" y="486.0" text-anchor="start">Contract   TPᶜ 1282 · FPᶜ 0 · TNᶜ 1293 · FNᶜ 14</text>
+<text x="680.0" y="530.0" text-anchor="start" class="muted">Reviewed 22 · confirmed 14 · reclassified 5 · excluded 3</text>
+<text x="52.0" y="624.0" text-anchor="start" class="muted">Raw preserves source corpus gold for comparison.</text>
+<text x="52.0" y="652.0" text-anchor="start" class="muted">FPᶜ, FNᶜ, precisionᶜ and recallᶜ apply the versioned kfind contract registry; they are not aliases of raw values.</text>
+</svg>
