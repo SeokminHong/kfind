@@ -19,6 +19,12 @@ importers:
       '@codemirror/view':
         specifier: 6.43.6
         version: 6.43.6
+      i18next:
+        specifier: 26.3.6
+        version: 26.3.6(typescript@6.0.3)
+      i18next-browser-languagedetector:
+        specifier: 8.2.1
+        version: 8.2.1
       isbot:
         specifier: 5.2.1
         version: 5.2.1
@@ -28,6 +34,9 @@ importers:
       react-dom:
         specifier: 19.2.7
         version: 19.2.7(react@19.2.7)
+      react-i18next:
+        specifier: 17.0.10
+        version: 17.0.10(i18next@26.3.6(typescript@6.0.3))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3)
       react-router:
         specifier: 8.2.0
         version: 8.2.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -3375,6 +3384,29 @@ packages:
         integrity: sha512-6pEjquH3rqaI6cYAXYPcz9MS4rY6R4ngRgrgfDshRptUZIc3lw0MCIJIGDj9++mfySOuPTHB4nrSW99BCvOPIA==,
       }
 
+  html-parse-stringify@3.0.1:
+    resolution:
+      {
+        integrity: sha512-KknJ50kTInJ7qIScF3jeaFRpMpE8/lfiTdzf/twXyPBLAGrLRTmkz3AdTnKeh40X8k9L2fdYwEp/42WGXIRGcg==,
+      }
+
+  i18next-browser-languagedetector@8.2.1:
+    resolution:
+      {
+        integrity: sha512-bZg8+4bdmaOiApD7N7BPT9W8MLZG+nPTOFlLiJiT8uzKXFjhxw4v2ierCXOwB5sFDMtuA5G4kgYZ0AznZxQ/cw==,
+      }
+
+  i18next@26.3.6:
+    resolution:
+      {
+        integrity: sha512-Bu5Z2nAXgfVyM8xvW3jk9EKRIuX37PudsrBViThNFx7CR7aaYTpP01cxNB/E4c4UUzTDiAZRstEhsRfPOL/8xA==,
+      }
+    peerDependencies:
+      typescript: ^5 || ^6 || ^7
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   ignore@5.3.2:
     resolution:
       {
@@ -4256,6 +4288,25 @@ packages:
     peerDependencies:
       react: ^19.2.7
 
+  react-i18next@17.0.10:
+    resolution:
+      {
+        integrity: sha512-XneHftyYA774MJkkccSkZ5oKrUpCnXIPmxio3wemqrVzCRLWiGXOMbIzObrer03fNDEnm8g8R5yYls4HcE+esg==,
+      }
+    peerDependencies:
+      i18next: '>= 26.2.0'
+      react: '>= 16.8.0'
+      react-dom: '*'
+      react-native: '*'
+      typescript: ^5 || ^6 || ^7
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
+      typescript:
+        optional: true
+
   react-is@16.13.1:
     resolution:
       {
@@ -4859,6 +4910,13 @@ packages:
         optional: true
       yaml:
         optional: true
+
+  void-elements@3.1.0:
+    resolution:
+      {
+        integrity: sha512-Dhxzh5HZuiHQhbvTW9AMetFfBHDMYpo23Uo9btPXgdYP+3T5S+p+jgNy7spra+veYhBP2dCSgxR/i2Y02h5/6w==,
+      }
+    engines: { node: '>=0.10.0' }
 
   w3c-keyname@2.2.8:
     resolution:
@@ -7069,6 +7127,18 @@ snapshots:
     dependencies:
       hermes-estree: 0.25.1
 
+  html-parse-stringify@3.0.1:
+    dependencies:
+      void-elements: 3.1.0
+
+  i18next-browser-languagedetector@8.2.1:
+    dependencies:
+      '@babel/runtime': 7.29.7
+
+  i18next@26.3.6(typescript@6.0.3):
+    optionalDependencies:
+      typescript: 6.0.3
+
   ignore@5.3.2: {}
 
   ignore@7.0.6: {}
@@ -7580,6 +7650,17 @@ snapshots:
       react: 19.2.7
       scheduler: 0.27.0
 
+  react-i18next@17.0.10(i18next@26.3.6(typescript@6.0.3))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@6.0.3):
+    dependencies:
+      '@babel/runtime': 7.29.7
+      html-parse-stringify: 3.0.1
+      i18next: 26.3.6(typescript@6.0.3)
+      react: 19.2.7
+      use-sync-external-store: 1.6.0(react@19.2.7)
+    optionalDependencies:
+      react-dom: 19.2.7(react@19.2.7)
+      typescript: 6.0.3
+
   react-is@16.13.1: {}
 
   react-is@17.0.2: {}
@@ -8056,6 +8137,8 @@ snapshots:
       '@types/node': 26.1.1
       esbuild: 0.28.1
       fsevents: 2.3.3
+
+  void-elements@3.1.0: {}
 
   w3c-keyname@2.2.8: {}
 

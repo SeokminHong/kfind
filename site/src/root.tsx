@@ -6,6 +6,8 @@ import './playground.css';
 
 import { Links, Meta, Scripts, ScrollRestoration } from 'react-router';
 
+import { defaultDocumentLocale } from './app/i18n';
+import { DocumentI18nProvider } from './app/i18n-provider';
 import { DocumentLoading, Shell } from './app/shell';
 
 export const links: LinksFunction = () => [
@@ -19,7 +21,7 @@ export const links: LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko">
+    <html lang={defaultDocumentLocale} dir="ltr">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -37,9 +39,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export function HydrateFallback(): React.JSX.Element {
-  return <DocumentLoading />;
+  return (
+    <DocumentI18nProvider>
+      <DocumentLoading />
+    </DocumentI18nProvider>
+  );
 }
 
 export default function App(): React.JSX.Element {
-  return <Shell />;
+  return (
+    <DocumentI18nProvider>
+      <Shell />
+    </DocumentI18nProvider>
+  );
 }

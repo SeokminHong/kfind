@@ -1,3 +1,5 @@
+import type { DocumentTranslationKey } from './translations.ko';
+
 export enum RoutePath {
   Overview = '/',
   GettingStarted = '/guide/getting-started',
@@ -14,41 +16,52 @@ export const documentRoutePaths: readonly RoutePath[] =
   Object.values(RoutePath);
 
 export interface NavigationItem {
-  readonly label: string;
+  readonly labelKey: DocumentTranslationKey;
   readonly path: RoutePath;
 }
 
 export interface NavigationGroup {
-  readonly label: string;
+  readonly labelKey: DocumentTranslationKey;
   readonly items: readonly NavigationItem[];
 }
 
 export const navigationGroups: readonly NavigationGroup[] = [
   {
-    label: '시작',
+    labelKey: 'navigation.group.start',
     items: [
-      { label: '개요', path: RoutePath.Overview },
-      { label: '시작하기', path: RoutePath.GettingStarted },
-      { label: 'Playground', path: RoutePath.Playground },
+      { labelKey: 'navigation.item.overview', path: RoutePath.Overview },
+      {
+        labelKey: 'navigation.item.getting_started',
+        path: RoutePath.GettingStarted,
+      },
+      { labelKey: 'navigation.item.playground', path: RoutePath.Playground },
     ],
   },
   {
-    label: '참조',
+    labelKey: 'navigation.group.reference',
     items: [
-      { label: '쿼리와 옵션', path: RoutePath.Options },
-      { label: '단어장', path: RoutePath.Glossary },
+      { labelKey: 'navigation.item.options', path: RoutePath.Options },
+      { labelKey: 'navigation.item.glossary', path: RoutePath.Glossary },
     ],
   },
   {
-    label: '내부 원리',
+    labelKey: 'navigation.group.internals',
     items: [
-      { label: '형태 분석', path: RoutePath.Analysis },
-      { label: '아키텍처', path: RoutePath.Architecture },
-      { label: '설계와 최적화', path: RoutePath.Optimization },
+      { labelKey: 'navigation.item.analysis', path: RoutePath.Analysis },
+      {
+        labelKey: 'navigation.item.architecture',
+        path: RoutePath.Architecture,
+      },
+      {
+        labelKey: 'navigation.item.optimization',
+        path: RoutePath.Optimization,
+      },
     ],
   },
   {
-    label: '근거',
-    items: [{ label: '벤치마크', path: RoutePath.Benchmarks }],
+    labelKey: 'navigation.group.evidence',
+    items: [
+      { labelKey: 'navigation.item.benchmarks', path: RoutePath.Benchmarks },
+    ],
   },
 ];

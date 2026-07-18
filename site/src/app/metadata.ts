@@ -1,54 +1,74 @@
+import type { TFunction } from 'i18next';
 import type { MetaDescriptor, MetaFunction } from 'react-router';
 
+import type { DocumentTranslationKey } from './translations.ko';
+
+import { useEffect } from 'react';
+import { useLocation } from 'react-router';
+
+import { getDocumentTranslation, useDocumentTranslation } from './i18n';
 import { RoutePath } from './navigation';
 
 const siteOrigin = 'https://kfind.pages.dev';
+
+interface DocumentMetadataKeys {
+  readonly titleKey: DocumentTranslationKey;
+  readonly descriptionKey: DocumentTranslationKey;
+}
+
+const routeMetadataKeys: Readonly<Record<RoutePath, DocumentMetadataKeys>> = {
+  [RoutePath.Overview]: {
+    titleKey: 'metadata.overview.title',
+    descriptionKey: 'metadata.overview.description',
+  },
+  [RoutePath.GettingStarted]: {
+    titleKey: 'metadata.getting_started.title',
+    descriptionKey: 'metadata.getting_started.description',
+  },
+  [RoutePath.Options]: {
+    titleKey: 'metadata.options.title',
+    descriptionKey: 'metadata.options.description',
+  },
+  [RoutePath.Glossary]: {
+    titleKey: 'metadata.glossary.title',
+    descriptionKey: 'metadata.glossary.description',
+  },
+  [RoutePath.Analysis]: {
+    titleKey: 'metadata.analysis.title',
+    descriptionKey: 'metadata.analysis.description',
+  },
+  [RoutePath.Architecture]: {
+    titleKey: 'metadata.architecture.title',
+    descriptionKey: 'metadata.architecture.description',
+  },
+  [RoutePath.Optimization]: {
+    titleKey: 'metadata.optimization.title',
+    descriptionKey: 'metadata.optimization.description',
+  },
+  [RoutePath.Benchmarks]: {
+    titleKey: 'metadata.benchmarks.title',
+    descriptionKey: 'metadata.benchmarks.description',
+  },
+  [RoutePath.Playground]: {
+    titleKey: 'metadata.playground.title',
+    descriptionKey: 'metadata.playground.description',
+  },
+};
 
 interface DocumentMetadata {
   readonly title: string;
   readonly description: string;
 }
 
-const routeMetadata: Readonly<Record<RoutePath, DocumentMetadata>> = {
-  [RoutePath.Overview]: {
-    title: '개요',
-    description: 'kfind의 목적, 검색 모델과 사용 경로를 설명합니다.',
-  },
-  [RoutePath.GettingStarted]: {
-    title: '시작하기',
-    description: 'kfind 설치와 첫 형태 검색 방법을 설명합니다.',
-  },
-  [RoutePath.Options]: {
-    title: '쿼리와 옵션',
-    description: '확장, 경계, 품사, 정규화와 구 검색 옵션을 설명합니다.',
-  },
-  [RoutePath.Glossary]: {
-    title: '단어장',
-    description: 'kfind 문서에서 사용하는 검색과 형태 분석 용어를 정의합니다.',
-  },
-  [RoutePath.Analysis]: {
-    title: '형태 분석',
-    description:
-      'Query에서 표면형과 verifier를 만드는 형태 분석 원리를 설명합니다.',
-  },
-  [RoutePath.Architecture]: {
-    title: '아키텍처',
-    description:
-      'Query compile부터 anchor scan, verifier와 출력까지의 구조를 설명합니다.',
-  },
-  [RoutePath.Optimization]: {
-    title: '설계와 최적화',
-    description: '검색 계획과 실행 엔진의 성능 설계를 설명합니다.',
-  },
-  [RoutePath.Benchmarks]: {
-    title: '벤치마크',
-    description: 'kfind의 품질과 성능 측정 계약을 설명합니다.',
-  },
-  [RoutePath.Playground]: {
-    title: 'Playground',
-    description: '브라우저에서 kfind WebAssembly 검색을 실행합니다.',
-  },
-};
+function translateMetadata(
+  keys: DocumentMetadataKeys,
+  t: TFunction,
+): DocumentMetadata {
+  return {
+    title: t(keys.titleKey),
+    description: t(keys.descriptionKey),
+  };
+}
 
 function createDescriptors(
   path: RoutePath,
@@ -69,11 +89,51 @@ function createDescriptors(
 }
 
 export function createDocumentMeta(path: RoutePath): MetaFunction {
-  return () => createDescriptors(path, routeMetadata[path]);
+  return () =>
+    createDescriptors(
+      path,
+      translateMetadata(routeMetadataKeys[path], getDocumentTranslation()),
+    );
 }
 
-export const notFoundMeta: MetaFunction = () => [
-  { title: '페이지를 찾을 수 없음 · kfind' },
-  { name: 'description', content: '요청한 kfind 문서 경로가 없습니다.' },
-  { name: 'robots', content: 'noindex' },
-];
+export const notFoundMeta: MetaFunction = () => {
+  const t = getDocumentTranslation();
+
+  return [
+    { title: `${t('metadata.not_found.title')} · kfind` },
+    {
+      name: 'description',
+      content: t('metadata.not_found.description'),
+    },
+    { name: 'robots', content: 'noindex' },
+  ];
+};
+
+function isRoutePath(pathname: string): pathname is RoutePath {
+  return Object.values(RoutePath).includes(pathname as RoutePath);
+}
+
+function setMetaContent(selector: string, content: string): void {
+  document.querySelector(selector)?.setAttribute('content', content);
+}
+
+export function DocumentMetadataSync(): null {
+  const { t } = useDocumentTranslation();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!isRoutePath(location.pathname)) {
+      return;
+    }
+
+    const metadata = translateMetadata(routeMetadataKeys[location.pathname], t);
+    const title = `${metadata.title} · kfind`;
+
+    document.title = title;
+    setMetaContent('meta[name="description"]', metadata.description);
+    setMetaContent('meta[property="og:title"]', title);
+    setMetaContent('meta[property="og:description"]', metadata.description);
+  }, [location.pathname, t]);
+
+  return null;
+}

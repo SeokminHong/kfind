@@ -5,6 +5,9 @@ guides, option reference, internals, benchmarks, and playground. The build
 prerenders every document route to `build/client`, then Cloudflare Pages serves
 each clean URL as static HTML. Route modules are split, and the playground route
 builds the current `kfind-wasm` crate for the browser.
+Shared interface and metadata copy uses an i18next catalog. The prerendered
+document locale is Korean, and future same-URL locale choices are stored in the
+`kfind-document-locale` cookie after hydration.
 Benchmark charts come from the approved
 `docs/benchmarks/site-morphology.json` snapshot.
 The optional smart component resource is stored in the `kfind-assets` R2 bucket
