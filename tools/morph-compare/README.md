@@ -105,10 +105,11 @@ python3 tools/morph-compare/render_charts.py \
   --prefix smart-component-
 ```
 
-A query-matrix FNc disposition ledger must match the report's fixture hash,
+A query-matrix raw-FN disposition ledger must match the report's fixture hash,
 backend, case ID, query, POS, gold byte span, and failure cause. This command
-checks that every current FNc is classified exactly once without reclassifying
-raw FNc as success:
+checks that every current raw FN is classified exactly once. The separate
+contract registry records confirmed implementation targets, reviewed expectation
+changes, and nonstandard-input exclusions:
 
 ```sh
 python3 tools/morph-compare/validate_fnc_dispositions.py \
@@ -139,6 +140,9 @@ also embeds development results and a version-controlled hard-negative fixture
 with six slices. Strict corpus-gold TP/FP/TN/FN always remain visible. Reviewed
 `contract_expected` annotations additionally produce contract-adjusted TPᶜ,
 FPᶜ, TNᶜ, FNᶜ, precision, recall, and F1 without replacing the strict metrics.
+Kfind tables and charts show raw and contract values side by side. Contract
+exclusions are limited to nonstandard input; unimplemented standard grammar
+remains FNᶜ.
 Each kfind false negative records an automatic `primary_cause` and its evidence.
 The report also records each `kfind` profile and artifact SHA-256, plus separate
 lists of recovered, still-missed, and newly regressed false negatives.

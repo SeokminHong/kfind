@@ -5,27 +5,27 @@
         "model": "0.23.0"
       },
       "performance": {
-        "cases_per_second": 1720.9,
-        "evaluation_seconds": 1.506171,
-        "initialization_seconds": 1.553041,
-        "latency_p50_ms": 0.5622,
-        "latency_p95_ms": 0.9583,
-        "peak_rss_kib": 546016,
+        "cases_per_second": 1701.5,
+        "evaluation_seconds": 1.523372,
+        "initialization_seconds": 1.473097,
+        "latency_p50_ms": 0.5663,
+        "latency_p95_ms": 0.9763,
+        "peak_rss_kib": 545584,
         "run_max": {
-          "cases_per_second": 1730.3,
-          "evaluation_seconds": 1.832536,
-          "initialization_seconds": 1.573719,
-          "latency_p50_ms": 0.6533,
-          "latency_p95_ms": 1.2912,
-          "peak_rss_kib": 547064
+          "cases_per_second": 1742.3,
+          "evaluation_seconds": 1.623902,
+          "initialization_seconds": 1.525699,
+          "latency_p50_ms": 0.6015,
+          "latency_p95_ms": 1.0583,
+          "peak_rss_kib": 545856
         },
         "run_min": {
-          "cases_per_second": 1414.4,
-          "evaluation_seconds": 1.498027,
-          "initialization_seconds": 1.44827,
-          "latency_p50_ms": 0.559,
-          "latency_p95_ms": 0.9528,
-          "peak_rss_kib": 543960
+          "cases_per_second": 1596.2,
+          "evaluation_seconds": 1.487668,
+          "initialization_seconds": 1.46449,
+          "latency_p50_ms": 0.5563,
+          "latency_p95_ms": 0.9543,
+          "peak_rss_kib": 545040
         },
         "runs": 5,
         "warmup_runs": 1
@@ -17151,27 +17151,27 @@
         "model": "FULL"
       },
       "performance": {
-        "cases_per_second": 1834.0,
-        "evaluation_seconds": 1.413276,
-        "initialization_seconds": 1.09355,
-        "latency_p50_ms": 0.4953,
-        "latency_p95_ms": 0.9067,
-        "peak_rss_kib": 880720,
+        "cases_per_second": 1837.9,
+        "evaluation_seconds": 1.410316,
+        "initialization_seconds": 1.091099,
+        "latency_p50_ms": 0.492,
+        "latency_p95_ms": 0.9018,
+        "peak_rss_kib": 889552,
         "run_max": {
-          "cases_per_second": 1853.3,
-          "evaluation_seconds": 1.485154,
-          "initialization_seconds": 1.118863,
-          "latency_p50_ms": 0.5214,
-          "latency_p95_ms": 0.9744,
-          "peak_rss_kib": 894304
+          "cases_per_second": 1856.9,
+          "evaluation_seconds": 1.46439,
+          "initialization_seconds": 1.193038,
+          "latency_p50_ms": 0.5211,
+          "latency_p95_ms": 0.9323,
+          "peak_rss_kib": 946024
         },
         "run_min": {
-          "cases_per_second": 1745.3,
-          "evaluation_seconds": 1.39858,
-          "initialization_seconds": 1.069094,
-          "latency_p50_ms": 0.4917,
-          "latency_p95_ms": 0.8997,
-          "peak_rss_kib": 844588
+          "cases_per_second": 1770.0,
+          "evaluation_seconds": 1.395854,
+          "initialization_seconds": 1.064954,
+          "latency_p50_ms": 0.4879,
+          "latency_p95_ms": 0.9005,
+          "peak_rss_kib": 858956
         },
         "runs": 5,
         "warmup_runs": 1
@@ -34025,27 +34025,27 @@
         "dictionary": "embedded-ko-dic"
       },
       "performance": {
-        "cases_per_second": 24240.9,
-        "evaluation_seconds": 0.106927,
-        "initialization_seconds": 0.028482,
-        "latency_p50_ms": 0.0375,
-        "latency_p95_ms": 0.0713,
-        "peak_rss_kib": 206172,
+        "cases_per_second": 23457.6,
+        "evaluation_seconds": 0.110497,
+        "initialization_seconds": 0.028187,
+        "latency_p50_ms": 0.0389,
+        "latency_p95_ms": 0.0735,
+        "peak_rss_kib": 206156,
         "run_max": {
-          "cases_per_second": 25480.2,
-          "evaluation_seconds": 0.108666,
-          "initialization_seconds": 0.030154,
-          "latency_p50_ms": 0.0383,
-          "latency_p95_ms": 0.0728,
-          "peak_rss_kib": 206176
+          "cases_per_second": 25456.0,
+          "evaluation_seconds": 0.128949,
+          "initialization_seconds": 0.029123,
+          "latency_p50_ms": 0.0456,
+          "latency_p95_ms": 0.0861,
+          "peak_rss_kib": 206160
         },
         "run_min": {
-          "cases_per_second": 23853.0,
-          "evaluation_seconds": 0.101726,
-          "initialization_seconds": 0.02798,
-          "latency_p50_ms": 0.036,
-          "latency_p95_ms": 0.0658,
-          "peak_rss_kib": 206156
+          "cases_per_second": 20101.0,
+          "evaluation_seconds": 0.101823,
+          "initialization_seconds": 0.027697,
+          "latency_p50_ms": 0.0363,
+          "latency_p95_ms": 0.0655,
+          "peak_rss_kib": 206152
         },
         "runs": 5,
         "warmup_runs": 1
@@ -50541,27 +50541,27 @@
         "dictionary": "1.0.0"
       },
       "performance": {
-        "cases_per_second": 11292.4,
-        "evaluation_seconds": 0.229535,
-        "initialization_seconds": 0.000255,
-        "latency_p50_ms": 0.0859,
-        "latency_p95_ms": 0.141,
-        "peak_rss_kib": 106880,
+        "cases_per_second": 11348.2,
+        "evaluation_seconds": 0.228406,
+        "initialization_seconds": 0.000253,
+        "latency_p50_ms": 0.0856,
+        "latency_p95_ms": 0.1404,
+        "peak_rss_kib": 106380,
         "run_max": {
-          "cases_per_second": 11318.0,
-          "evaluation_seconds": 0.24762,
-          "initialization_seconds": 0.000333,
-          "latency_p50_ms": 0.0917,
-          "latency_p95_ms": 0.1561,
-          "peak_rss_kib": 106884
+          "cases_per_second": 11379.8,
+          "evaluation_seconds": 0.233841,
+          "initialization_seconds": 0.000258,
+          "latency_p50_ms": 0.0876,
+          "latency_p95_ms": 0.1445,
+          "peak_rss_kib": 106388
         },
         "run_min": {
-          "cases_per_second": 10467.6,
-          "evaluation_seconds": 0.229016,
-          "initialization_seconds": 0.000244,
-          "latency_p50_ms": 0.0855,
-          "latency_p95_ms": 0.1406,
-          "peak_rss_kib": 106816
+          "cases_per_second": 11084.4,
+          "evaluation_seconds": 0.227772,
+          "initialization_seconds": 0.000252,
+          "latency_p50_ms": 0.0852,
+          "latency_p95_ms": 0.1389,
+          "peak_rss_kib": 106364
         },
         "runs": 5,
         "warmup_runs": 1
@@ -67253,6 +67253,6 @@
     "platform": "Linux-6.12.76-linuxkit-aarch64-with-glibc2.36",
     "python": "3.12.13"
   },
-  "fixture_sha256": "b4a7294e15b137407fffbaa90202ffeaf05598a01404b06a839931ca9563088b",
+  "fixture_sha256": "e862d8af010c23462ba3a9ebf4f1134275b68de5004bc60035565734f5f19999",
   "schema_version": 2
 }

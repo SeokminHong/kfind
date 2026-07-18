@@ -18,7 +18,7 @@ from fnc_dispositions import (  # noqa: E402
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Validate a query-matrix FNc disposition ledger against a report."
+        description="Validate a query-matrix raw FN disposition ledger against a report."
     )
     parser.add_argument("report", type=Path)
     parser.add_argument("ledger", type=Path)
@@ -35,9 +35,9 @@ def main() -> int:
         json.dumps(
             {
                 "backend": args.backend,
-                "raw_contract_false_negatives": summary.raw_contract_false_negatives,
-                "unclassified_contract_false_negatives": (
-                    summary.unclassified_contract_false_negatives
+                "raw_false_negatives": summary.raw_false_negatives,
+                "unclassified_raw_false_negatives": (
+                    summary.unclassified_raw_false_negatives
                 ),
                 "disposition_counts": summary.disposition_counts,
             },

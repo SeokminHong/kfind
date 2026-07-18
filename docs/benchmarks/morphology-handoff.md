@@ -36,7 +36,8 @@
 - [검토된 UD 코퍼스 재샘플링과 Robust 성능](2026-07-17-query-matrix.md)
 - [수동 검토 자연 오류 Robust 품질·성능](2026-07-17-robustness-quality.md)
 - [Query matrix 문법 구조와 잔여 FN 처분](2026-07-18-query-matrix-grammar-closure.md)
-- [Query matrix 잔여 FNc·FPc 구조 분석](2026-07-18-query-matrix-residual-structure.md)
+- [Query matrix 잔여 raw FN·FP 구조 분석](2026-07-18-query-matrix-residual-structure.md)
+- [Query matrix raw·계약 품질 교정](2026-07-18-query-matrix-contract-metrics.md)
 - [숫자 뒤 단위 구조 recall](2026-07-17-numeric-unit-recall.md)
 - [질의 컴파일 병목 제거](2026-07-17-compile-hotpath-performance.md)
 - [구조 증거로 줄인 검색 누락](2026-07-17-structural-recall.md)
@@ -108,8 +109,9 @@ bytes에서 version field 32 bytes가 추가된 37,103,813 bytes다. full morpho
   initialization, cases/s, p50·p95와 RSS를 같은 반복 계약으로 측정한다.
 - query compile은 Criterion `new/sample.json`의 sample별 `times[i] / iters[i]`를 nearest-rank
   p95로 비교한다.
-- strict TP·FP·TN·FN은 항상 보존한다. 제품 실행 전에 검토한 `same-pos-homograph`와
-  `aligned-source-component`만 TPᶜ·FPᶜ·TNᶜ·FNᶜ에 병렬로 반영한다.
+- strict TP·FP·TN·FN은 항상 보존한다. 제품 실행 전에 검토한 동형이의·source component,
+  gold 정렬 교정과 비표준 입력 제외만 TPᶜ·FPᶜ·TNᶜ·FNᶜ에 병렬로 반영한다. 비용이나 현재
+  구현 범위는 제외 사유가 아니며 미구현 표준 문법은 FNᶜ로 유지한다.
 - canonical·hard-negative recall 개선은 contract-positive 분모 `PNᶜ = TPᶜ + FNᶜ`,
   `FNᶜ`와 `recallᶜ = TPᶜ / PNᶜ`를 함께 기록한다.
 
@@ -522,24 +524,23 @@ profile하고 두 자릿수 millisecond 병목만 고른다.
 `1,250/8/1,288/46`에서 `1,278/8/1,288/18`이 됐고 canonical full-POS는
 `485/2/498/15`에서 `493/2/498/7`이 됐다. Test matrix와 hard-negative FP는 늘지 않았다.
 
-남은 raw FN 18건은 fixture와 report를 대조하는 처분 장부에서
-`structurally-unresolvable 1`, `gold-or-adapter 7`, `out-of-contract 9`,
-`cost-prohibitive 1`로 모두 검증했다. 한국어기초사전·표준국어대사전·우리말샘 원본의 exact
-표제어·품사·관계 audit 결과 안전한 `dictionary-required` case는 0건이다. 이 18건을 제품
-규칙 완화나 문자열 alias로 회수하지 않는다. 다음 품질 작업은 기존 raw FN 감소가 아니라
-새 독립 문장·질의에서 조사 graph와 용언 구조의 미포함 문법군을 찾는 coverage audit 또는
-source adapter의 lemma/POS/span 정렬 검증으로 진행한다. Development의 신규 strict FP
-`이다→였다`, `혹→혹은`도 실제 문법 경로이므로 제품에서 막지 않고 source 정렬 문제로
-계속 보존한다.
+당시 raw FN 18건의 원인 장부는 `structurally-unresolvable 1`, `gold-or-adapter 7`,
+`out-of-contract 9`, `cost-prohibitive 1`로 기록했다. 이후 전체 계약 재검토에서 비용·현재
+profile·반환 span 설계 난이도는 제외 근거가 아니라는 점을 바로잡았다. 현재 처분은
+`product-fix 12`, `structural-redesign 2`, `gold-alignment-error 1`, `nonstandard-input 3`이며,
+앞의 두 분류 14건은 FNᶜ이자 향후 제품 목표다. 한국어기초사전·표준국어대사전·우리말샘
+원본의 exact 표제어·품사·관계 audit에서 직접 추가할 안전한 alias가 없다는 사실도 이 목표를
+제외하지 않는다. Development의 신규 strict FP `이다→였다`, `혹→혹은`은 실제 문법 경로이므로
+제품에서 막지 않고 source 정렬 문제로 계속 보존한다.
 
-[Query matrix 잔여 FNc·FPc 구조 분석](2026-07-18-query-matrix-residual-structure.md)에서
+[Query matrix 잔여 raw FN·FP 구조 분석](2026-07-18-query-matrix-residual-structure.md)에서
 임의 byte-cover 경로가 query 품사를 합성하던 문제, 명사 tail 없는 관형사, 파생 관형형의
 접미사 시작 명사, whole 부사와 경쟁하는 내부 보조용언을 구조 규칙으로 닫았다. Test matrix
 full-POS는 `1,278/8/1,288/18`에서 `1,278/4/1,292/18`이 됐고 canonical,
 development와 hard-negative는 그대로다. Embedded도 FP 3건을 제거했다.
 
-잔여 FPc는 `그→그것이야말로`, 명사 `불과`, 대명사 `제`, 수사 `만` 4건이다. 세 사전의
-exact 품사와 graph를 대조해도 동형어 의미 또는 source POS 정렬 없이 선택할 수 없다.
-잔여 FNc 18건은 기존 처분 장부와 다시 대조해 미분류 0건이다. 다음 품질 작업은 이 case를
-표면 예외로 막지 않고, `제/그/수/하순`의 source adapter lemma·POS 정렬을 독립적으로 감사하거나
-새 독립 문장에서 아직 다루지 않은 문법군을 찾는다.
+이 4건은 raw FP다. [raw·계약 품질 교정](2026-07-18-query-matrix-contract-metrics.md)에서
+동형이의·source component 계약 양성으로 고정해 FPᶜ는 0이다. Raw FN 18건 중 `이→이중`은
+gold 정렬을 contract negative로 교정하고 `국경없는`, `권위있는`, `빙원옆에`는 비표준 입력으로
+제외했다. 나머지 표준 문법 14건은 구현 난이도와 무관하게 FNᶜ로 유지한다. Full-POS의 현재 값은
+raw `FP 4 / FN 18 / recall 98.61%`, contract `FPᶜ 0 / FNᶜ 14 / recallᶜ 98.92%`다.

@@ -23,6 +23,11 @@ try:
         sha256,
     )
     from .quality import contract_expected
+    from .query_matrix_contract import (
+        apply_contract_reviews,
+        load_contract_reviews,
+        sha256 as contract_review_sha256,
+    )
 except ImportError:
     from dataset import (
         BenchmarkCase,
@@ -38,6 +43,11 @@ except ImportError:
         sha256,
     )
     from quality import contract_expected
+    from query_matrix_contract import (
+        apply_contract_reviews,
+        load_contract_reviews,
+        sha256 as contract_review_sha256,
+    )
 
 
 MAX_PRESENT_QUERIES_PER_SENTENCE = 3
@@ -268,6 +278,7 @@ def build_query_matrix(
     canonical_cases_path: Path,
     output: Path,
     metadata_path: Path,
+    contract_reviews_path: Path,
     split_name: str,
     query_mode: str,
 ) -> dict[str, object]:
@@ -372,6 +383,12 @@ def build_query_matrix(
         )
 
     all_cases.sort(key=lambda case: rank(seed, "query-matrix-case-order", case["id"]))
+    contract_review = apply_contract_reviews(
+        all_cases,
+        load_contract_reviews(contract_reviews_path),
+        query_mode=query_mode,
+        split=split_name,
+    )
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("w", encoding="utf-8") as fixture_file:
         for case in all_cases:
@@ -413,6 +430,10 @@ def build_query_matrix(
             if case["expected"]
         ),
         "repeated_query_pos_pairs": repeated_pairs,
+        "contract_review": {
+            "registry_sha256": contract_review_sha256(contract_reviews_path),
+            **contract_review,
+        },
         "sources": metadata_sources,
     }
     metadata_path.write_text(
@@ -480,95 +501,6 @@ def query_matrix_metrics(
     }
 
 
-def select_query_matrix_smoke_cases(
-    cases: list[dict[str, object]],
-) -> list[dict[str, object]]:
-    groups: dict[str, list[dict[str, object]]] = defaultdict(list)
-    for case in cases:
-        groups[str(case["matrix_group_id"])].append(case)
-    selected_groups = set()
-    covered = set()
-    for case in cases:
-        if not case["expected"]:
-            continue
-        key = (str(case["source"]), str(case["pos"]))
-        if key in covered:
-            continue
-        group_id = str(case["matrix_group_id"])
-        selected_groups.add(group_id)
-        covered.update(
-            (str(group_case["source"]), str(group_case["pos"]))
-            for group_case in groups[group_id]
-            if group_case["expected"]
-        )
-    return [
-        case for case in cases if str(case["matrix_group_id"]) in selected_groups
-    ]
-
-
-def query_matrix_smoke_metadata(
-    cases_path: Path,
-    cases: list[dict[str, object]],
-    parent: dict[str, object],
-) -> dict[str, object]:
-    positive_cases = [case for case in cases if case["expected"]]
-    negative_cases = [case for case in cases if not case["expected"]]
-    groups = {str(case["matrix_group_id"]) for case in cases}
-    distribution: Counter[str] = Counter()
-    for group_id in groups:
-        distribution[
-            str(
-                sum(
-                    bool(case["expected"])
-                    for case in cases
-                    if case["matrix_group_id"] == group_id
-                )
-            )
-        ] += 1
-    sources = []
-    for source in parent["sources"]:
-        source_name = str(source["name"])
-        source_cases = [case for case in cases if case["source"] == source_name]
-        source_groups = {
-            str(case["matrix_group_id"]) for case in source_cases
-        }
-        sources.append(
-            {
-                **source,
-                "positive_cases": sum(
-                    bool(case["expected"]) for case in source_cases
-                ),
-                "negative_cases": sum(
-                    not case["expected"] for case in source_cases
-                ),
-                "sentences": len(source_groups),
-            }
-        )
-    return {
-        **parent,
-        "split": f"{parent['split']}-smoke",
-        "fixture_sha256": sha256(cases_path),
-        "cases": len(cases),
-        "positive_cases": len(positive_cases),
-        "negative_cases": len(negative_cases),
-        "sentences": len(groups),
-        "present_queries_per_sentence": dict(sorted(distribution.items())),
-        "canonical_positive_cases": sum(
-            case["canonical_positive_id"] is not None for case in positive_cases
-        ),
-        "canonical_positive_coverage": sum(
-            case["canonical_positive_id"] is not None for case in positive_cases
-        ),
-        "positive_pos_counts": dict(
-            sorted(Counter(str(case["pos"]) for case in positive_cases).items())
-        ),
-        "negative_pos_counts": dict(
-            sorted(Counter(str(case["pos"]) for case in negative_cases).items())
-        ),
-        "sources": sources,
-    }
-
-
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, required=True)
@@ -576,6 +508,7 @@ def main() -> None:
     parser.add_argument("--canonical-cases", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--metadata", type=Path, required=True)
+    parser.add_argument("--contract-reviews", type=Path, required=True)
     parser.add_argument("--split", choices=("dev", "test"), default="test")
     parser.add_argument(
         "--query-mode", choices=("explicit-pos", "untagged"), default="explicit-pos"
@@ -587,6 +520,7 @@ def main() -> None:
         canonical_cases_path=args.canonical_cases,
         output=args.output,
         metadata_path=args.metadata,
+        contract_reviews_path=args.contract_reviews,
         split_name=args.split,
         query_mode=args.query_mode,
     )

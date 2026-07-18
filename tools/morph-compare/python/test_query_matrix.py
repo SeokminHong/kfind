@@ -81,12 +81,19 @@ class QueryMatrixTests(unittest.TestCase):
         manifest, sources, canonical = self.fixture(directory)
         output = directory / f"{query_mode}.jsonl"
         metadata_path = directory / f"{query_mode}.json"
+        contract_reviews_path = directory / "contract-reviews.tsv"
+        contract_reviews_path.write_text(
+            "query_mode\tsplit\tcase_id\tquery\tpos\tstrict_expected\t"
+            "text_sha256\tcontract_status\tcontract_reason\tnote\n",
+            encoding="utf-8",
+        )
         metadata = build_query_matrix(
             manifest_path=manifest,
             sources_dir=sources,
             canonical_cases_path=canonical,
             output=output,
             metadata_path=metadata_path,
+            contract_reviews_path=contract_reviews_path,
             split_name="test",
             query_mode=query_mode,
         )
@@ -109,6 +116,7 @@ class QueryMatrixTests(unittest.TestCase):
         )
         self.assertEqual(metadata["canonical_positive_coverage"], 1)
         self.assertEqual(metadata["present_queries_per_sentence"], {"3": 1})
+        self.assertEqual(metadata["contract_review"]["reviewed_cases"], 0)
         selected_pairs = {(case["query"], case["pos"]) for case in positives}
         self.assertTrue(
             selected_pairs.isdisjoint(

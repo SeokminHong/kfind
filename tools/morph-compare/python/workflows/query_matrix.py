@@ -4,8 +4,8 @@ from collections.abc import Callable
 from pathlib import Path
 
 from python.external_baselines import load_external_baselines
-from python.query_matrix import (
-    query_matrix_metrics,
+from python.query_matrix import query_matrix_metrics
+from python.query_matrix_smoke import (
     query_matrix_smoke_metadata,
     select_query_matrix_smoke_cases,
 )

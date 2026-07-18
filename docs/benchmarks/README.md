@@ -161,8 +161,10 @@ canonical 회귀선과 합치거나 대체하지 않는다.
 hard-negative 신규 contract FP 0을 지킨다. FN이 같은 후보끼리만 FP를 비교한다.
 보고서는 기존 corpus-gold TP·FP·TN·FN과 precision·recall·F1을 그대로 보존하고, 수동 검토한
 `contract_expected`가 있는 fixture에는 TPᶜ·FPᶜ·TNᶜ·FNᶜ와 contract precision·recall·F1을
-추가한다. 같은 품사의 동형 활용과 정렬 source component처럼 제품 계약이 명시적으로 허용한
-strict FP만 보정하며, 두 지표를 합치거나 strict FP를 숨기지 않는다.
+추가한다. Contract registry는 문법 구조로 구분할 수 없는 동형이의와 source component를
+contract positive로, gold 정렬 오류를 contract negative로 교정한다. 현재 비문·비표준 입력만
+분모에서 제외하며 비용, 현재 profile과 미구현 표준 문법은 제외하지 않는다. kfind 표·차트는
+raw와 contract를 나란히 표시하고 두 지표를 합치거나 strict 오류를 숨기지 않는다.
 Canonical·hard-negative의 contract-positive 분모는 `PNᶜ = TPᶜ + FNᶜ`로 표기한다.
 Recall 개선 보고서는 `PNᶜ`, `FNᶜ`와 `recallᶜ = TPᶜ / PNᶜ`를 함께 기록한다.
 보고서의 `product_workflows`는 에이전트용 `embedded + any + 명시적 품사`와 사람용

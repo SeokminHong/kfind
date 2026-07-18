@@ -16,9 +16,14 @@ gold 또는 negative 선택을 바꾸지 않는다.
 
 보고서의 기본 TP·FP·TN·FN은 corpus gold를 그대로 적용한 strict 지표다. 별도의
 `contract_adjusted` 지표는 버전 관리 fixture에 제품 실행 전에 선언한 `contract_expected`만
-적용한다. 같은 품사의 동형 활용은 `same-pos-homograph`, source에 정렬된 내부 성분 검색은
-`aligned-source-component`로 근거를 제한한다. 결과 표의 TPᶜ·FPᶜ·TNᶜ·FNᶜ는 각각
+적용한다. 같은 품사의 동형 활용과 문법 구조로 구분할 수 없는 동형이의는 contract positive,
+완성 어휘 내부의 잘못된 gold 정렬은 contract negative다. 현재 비문·비표준 입력만 제외하며
+미구현 표준 문법과 구조 설계 비용은 FNᶜ로 유지한다. 결과 표의 TPᶜ·FPᶜ·TNᶜ·FNᶜ는 각각
 `contract_tp`·`contract_fp`·`contract_tn`·`contract_fn`이며 strict 지표를 대체하지 않는다.
+
+현재 query matrix full-POS는 raw `FP 4 / FN 18 / recall 98.61%`, contract
+`FPᶜ 0 / FNᶜ 14 / recallᶜ 98.92%`다. 상세 annotation과 raw·contract 차트는
+[query matrix raw·계약 품질 교정](2026-07-18-query-matrix-contract-metrics.md)에 둔다.
 
 현재 제품 기준선:
 

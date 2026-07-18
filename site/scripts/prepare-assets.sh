@@ -39,6 +39,9 @@ install -m 0644 \
 install -m 0644 \
   "$rendered_benchmark_dir/robustness-performance.svg" \
   "$benchmark_dir/robustness-performance.svg"
+install -m 0644 \
+  "$rendered_benchmark_dir/query-matrix-quality.svg" \
+  "$benchmark_dir/query-matrix-quality.svg"
 
 wasm_bytes="$(wc -c < "$wasm_dir/kfind_bg.wasm")"
 pages_file_limit=$((25 * 1024 * 1024))

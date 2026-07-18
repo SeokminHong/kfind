@@ -11,10 +11,9 @@ ALLOWED_DISPOSITIONS = frozenset(
     {
         "product-fix",
         "dictionary-required",
-        "structurally-unresolvable",
-        "cost-prohibitive",
-        "gold-or-adapter",
-        "out-of-contract",
+        "structural-redesign",
+        "gold-alignment-error",
+        "nonstandard-input",
     }
 )
 LEDGER_FIELDS = (
@@ -32,7 +31,7 @@ LEDGER_FIELDS = (
 
 
 @dataclass(frozen=True)
-class ContractFalseNegative:
+class RawFalseNegative:
     fixture_sha256: str
     backend: str
     case_id: str
@@ -44,8 +43,8 @@ class ContractFalseNegative:
 
 @dataclass(frozen=True)
 class DispositionSummary:
-    raw_contract_false_negatives: int
-    unclassified_contract_false_negatives: int
+    raw_false_negatives: int
+    unclassified_raw_false_negatives: int
     disposition_counts: dict[str, int]
 
 
@@ -68,25 +67,24 @@ def load_ledger(path: Path) -> list[dict[str, str]]:
         return [dict(row) for row in reader]
 
 
-def contract_false_negatives(
+def raw_false_negatives(
     report: dict[str, object], backend: str
-) -> dict[str, ContractFalseNegative]:
+) -> dict[str, RawFalseNegative]:
     explicit_pos = report["query_matrix"]["explicit_pos"]
     fixture_sha256 = explicit_pos["dataset"]["fixture_sha256"]
     failures = explicit_pos["failures"]
     false_negatives = {}
     for failure in failures:
         case = failure["case"]
-        expected = case.get("contract_expected", case["expected"])
-        if not expected or failure["predictions"].get(backend) is not False:
+        if not case["expected"] or failure["predictions"].get(backend) is not False:
             continue
         cause = failure["profile_causes"].get(backend) or failure["primary_cause"]
         if not isinstance(cause, str) or not cause:
-            raise ValueError(f"contract FN has no failure cause: {case['id']}")
+            raise ValueError(f"raw FN has no failure cause: {case['id']}")
         case_id = str(case["id"])
         if case_id in false_negatives:
-            raise ValueError(f"duplicate contract FN case: {case_id}")
-        false_negatives[case_id] = ContractFalseNegative(
+            raise ValueError(f"duplicate raw FN case: {case_id}")
+        false_negatives[case_id] = RawFalseNegative(
             fixture_sha256=str(fixture_sha256),
             backend=backend,
             case_id=case_id,
@@ -101,7 +99,7 @@ def contract_false_negatives(
 def validate_disposition_ledger(
     report: dict[str, object], ledger: list[dict[str, str]], backend: str
 ) -> DispositionSummary:
-    false_negatives = contract_false_negatives(report, backend)
+    false_negatives = raw_false_negatives(report, backend)
     ledger_by_id = {}
     for row_number, row in enumerate(ledger, start=2):
         case_id = row["case_id"]
@@ -120,7 +118,7 @@ def validate_disposition_ledger(
         if stale:
             details.append("stale=" + ",".join(stale))
         raise ValueError(
-            "disposition ledger does not match current contract FN set: "
+            "disposition ledger does not match current raw FN set: "
             + "; ".join(details)
         )
 
@@ -149,8 +147,8 @@ def validate_disposition_ledger(
         counts[disposition] += 1
 
     return DispositionSummary(
-        raw_contract_false_negatives=len(false_negatives),
-        unclassified_contract_false_negatives=0,
+        raw_false_negatives=len(false_negatives),
+        unclassified_raw_false_negatives=0,
         disposition_counts=dict(sorted(counts.items())),
     )
 

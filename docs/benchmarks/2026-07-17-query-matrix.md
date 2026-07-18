@@ -3,6 +3,8 @@
 > 이 보고서의 Robust 절은 query-level gold를 만들기 전의 performance-only 기록이다. 현재
 > scored fixture와 제품별 오류 입력 품질은
 > [수동 검토 자연 오류 Robust 품질·성능](2026-07-17-robustness-quality.md)이 대체한다.
+> 당시 query matrix에는 contract annotation이 없었다. 현재 raw·contract 지표와 fixture는
+> [query matrix raw·계약 품질 교정](2026-07-18-query-matrix-contract-metrics.md)이 대체한다.
 
 - 측정일: 2026-07-17
 - 기준 revision: `0932120b7b94672dc17b26b2ef95adaefc5e2b25`

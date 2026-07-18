@@ -29,6 +29,8 @@ class ContractQualityTests(unittest.TestCase):
         self.assertEqual((1, 2, 1, 0), _strict_counts(strict))
         self.assertEqual((2, 1, 1, 0), _contract_counts(adjusted))
         self.assertEqual(1, adjusted["reclassified_cases"])
+        self.assertEqual(0, adjusted["excluded_cases"])
+        self.assertEqual(1, adjusted["reviewed_cases"])
         self.assertEqual(
             {"same-pos-homograph": 1}, adjusted["reclassified_by_reason"]
         )
@@ -47,10 +49,71 @@ class ContractQualityTests(unittest.TestCase):
         self.assertEqual((0, 0, 1, 0), _strict_counts(strict))
         self.assertEqual((0, 0, 0, 1), _contract_counts(adjusted))
 
+    def test_corrects_misaligned_strict_positive_to_contract_negative(self) -> None:
+        case = {
+            "id": "misaligned",
+            "expected": True,
+            "contract_expected": False,
+            "contract_reason": "gold-alignment-error",
+        }
+
+        strict = quality_metrics([case], {"misaligned": False})
+        adjusted = contract_quality_metrics([case], {"misaligned": False})
+
+        self.assertEqual((0, 0, 0, 1), _strict_counts(strict))
+        self.assertEqual((0, 0, 1, 0), _contract_counts(adjusted))
+
+    def test_records_reviewed_implementation_target_without_reclassifying(self) -> None:
+        case = {
+            "id": "future-target",
+            "expected": True,
+            "contract_expected": True,
+            "contract_reason": "implementation-target",
+        }
+
+        adjusted = contract_quality_metrics([case], {"future-target": False})
+
+        self.assertEqual((0, 0, 0, 1), _contract_counts(adjusted))
+        self.assertEqual(1, adjusted["confirmed_cases"])
+        self.assertEqual(0, adjusted["reclassified_cases"])
+
     def test_rejects_annotation_without_a_review_reason(self) -> None:
         case = {"id": "unreviewed", "expected": False, "contract_expected": True}
 
         with self.assertRaisesRegex(ValueError, "unsupported contract_reason"):
+            contract_expected(case)
+
+    def test_excludes_reviewed_case_from_contract_metrics(self) -> None:
+        cases = [
+            {"id": "included", "expected": True},
+            {
+                "id": "excluded",
+                "expected": True,
+                "contract_expected": None,
+                "contract_reason": "nonstandard-input",
+            },
+        ]
+
+        adjusted = contract_quality_metrics(
+            cases, {"included": True, "excluded": False}
+        )
+
+        self.assertEqual((1, 0, 0, 0), _contract_counts(adjusted))
+        self.assertEqual(1, adjusted["cases"])
+        self.assertEqual(1, adjusted["excluded_cases"])
+        self.assertEqual(
+            {"nonstandard-input": 1}, adjusted["excluded_by_reason"]
+        )
+
+    def test_rejects_exclusion_without_an_exclusion_reason(self) -> None:
+        case = {
+            "id": "invalid-exclusion",
+            "expected": True,
+            "contract_expected": None,
+            "contract_reason": "same-pos-homograph",
+        }
+
+        with self.assertRaisesRegex(ValueError, "unsupported exclusion reason"):
             contract_expected(case)
 
 
