@@ -95,6 +95,8 @@ cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_repeated_l
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_alternating_spacing_long_line
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_constant_neighbors_long_line
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_unique_neighbors_long_line
+cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_unique_current_long_line
+cargo bench -p kfind-testkit --bench query_matcher -- matcher/build_and_find_structural_exact
 ```
 
 앞의 phrase benchmark는 입력의 anchor·atom span 수집과 leftmost-longest non-overlapping 결과 선택을
@@ -113,6 +115,9 @@ verifier와 atom span 적재를 건너뛰는지 감시한다. 모든 atom이 있
 workload는 모두 warm cache hit에 편중될 수 있다. Byte 수와 match 수가 같은
 `context_constant_neighbors_long_line`과 `context_unique_neighbors_long_line`을 함께 측정해
 반복 context hit와 고유 context miss를 분리한다.
+`context_unique_current_long_line`은 현재 token까지 매번 바꾼 거부 입력으로 query 불변 token
+graph 재사용이 불가능한 miss 비용을 감시한다. `build_and_find_structural_exact`는 matcher 생성과
+첫 구조 검색을 함께 측정해 lazy graph 준비가 steady-state 수치에 가려지지 않게 한다.
 
 ## TUI pager held-key scroll
 
