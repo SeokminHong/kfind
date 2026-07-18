@@ -130,6 +130,63 @@ export default function BenchmarksPage(): React.JSX.Element {
         </figure>
       </DocumentSection>
 
+      <DocumentSection title="Query matrix raw와 contract 품질">
+        <p>
+          Explicit-POS query matrix는 432개 표준문에서 2,592개 질의를
+          평가합니다. Raw 지표는 source corpus gold를 그대로 보존합니다.
+          Contract 지표는 제품 실행 전에 고정한 review registry를 적용해, 문법
+          구조로 구분할 수 없는 동형이의와 source 정렬 성분을 양성으로 보고 gold
+          정렬 오류를 교정합니다. 현재 비표준 띄어쓰기 3건만 분모에서
+          제외합니다.
+        </p>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">kfind profile</th>
+                <th scope="col">Raw precision / recall</th>
+                <th scope="col">Precisionᶜ / recallᶜ</th>
+                <th scope="col">Raw FP / FN</th>
+                <th scope="col">FPᶜ / FNᶜ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>embedded + smart</td>
+                <td>99.67% / 91.98%</td>
+                <td>100.00% / 92.28%</td>
+                <td>4 / 104</td>
+                <td>0 / 100</td>
+              </tr>
+              <tr>
+                <td>full POS + smart</td>
+                <td>99.69% / 98.61%</td>
+                <td>100.00% / 98.92%</td>
+                <td>4 / 18</td>
+                <td>0 / 14</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Full-POS의 FNᶜ 14건은 표준 부사·피동 파생, source 정렬 용언 성분,
+          대명사 축약과 반환 span 복원처럼 아직 구현하지 않은 제품 목표입니다.
+          비용이나 현재 profile을 이유로 계약 분모에서 빼지 않습니다.
+        </p>
+        <figure className="benchmark-figure">
+          <img
+            src="/benchmarks/query-matrix-quality.svg"
+            alt="kfind embedded와 full POS query matrix에서 raw와 contract precision, recall, confusion matrix 비교"
+            loading="lazy"
+          />
+          <figcaption>
+            FPᶜ, FNᶜ, precisionᶜ, recallᶜ는 version-controlled registry가 실제로
+            적용된 값이며 raw 지표의 별칭이 아닙니다. Review 22건은 구현 목표
+            확인 14건, 기대값 변경 5건, 비표준 입력 제외 3건입니다.
+          </figcaption>
+        </figure>
+      </DocumentSection>
+
       <DocumentSection title="제품 persona 결과">
         <p>
           Agent workflow와 User workflow는 실제 사용자가 제공하는 정보와 오류
@@ -156,21 +213,21 @@ export default function BenchmarksPage(): React.JSX.Element {
             <tbody>
               <tr>
                 <td>Agent · embedded + any + explicit POS</td>
-                <td>483 / 7 / 17</td>
+                <td>484 / 7 / 16</td>
                 <td>98.57%</td>
-                <td>96.60%</td>
-                <td>97.58%</td>
-                <td>25,266.1</td>
-                <td>5.3 MiB</td>
+                <td>96.80%</td>
+                <td>97.68%</td>
+                <td>53,317.6</td>
+                <td>5.4 MiB</td>
               </tr>
               <tr>
                 <td>User · full POS + smart + untagged</td>
-                <td>482 / 2 / 18</td>
+                <td>489 / 2 / 11</td>
                 <td>99.59%</td>
-                <td>96.40%</td>
-                <td>97.97%</td>
-                <td>13,201.7</td>
-                <td>56.3 MiB</td>
+                <td>97.80%</td>
+                <td>98.69%</td>
+                <td>19,994.1</td>
+                <td>57.4 MiB</td>
               </tr>
             </tbody>
           </table>
@@ -394,6 +451,11 @@ export default function BenchmarksPage(): React.JSX.Element {
 
       <DocumentSection title="원본 보고서">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-query-matrix-contract-metrics.md">
+              Query matrix raw·계약 품질 교정
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-17-robustness-quality.md">
               수동 검토 자연 오류 Robust 품질·성능
