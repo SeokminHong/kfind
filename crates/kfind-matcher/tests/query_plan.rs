@@ -505,6 +505,82 @@ fn forced_main_verb_query_preserves_a_source_backed_auxiliary_path() {
 }
 
 #[test]
+fn forced_verb_query_keeps_source_aligned_compound_tails() {
+    let resource = component_resource_from_entries([
+        component_entry("올라가", "VV"),
+        component_entry("올라", "VV+EC"),
+        component_entry("가", "VV"),
+        component_entry("생겨나", "VV"),
+        component_entry("생겨", "VV+EC"),
+        component_entry("나", "VV"),
+        component_entry("들어와서", "NNG"),
+        component_entry("들어", "VV+EC"),
+        component_entry("와", "VV"),
+        component_entry("서", "EC"),
+        component_entry("는", "JX"),
+        component_entry("그러나", "MAJ"),
+        component_entry("그러", "VV+EC"),
+        component_entry("나", "VV+EF"),
+    ]);
+    let options = CompileOptions {
+        global_pos: Some(CoarsePos::Verb),
+        ..CompileOptions::default()
+    };
+
+    for (query, text) in [
+        ("가다", "올라가"),
+        ("나다", "생겨나"),
+        ("오다", "들어와서는"),
+    ] {
+        let matcher =
+            compile_with_full_pos_and_resource(query, options.clone(), Arc::clone(&resource));
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "source-aligned compound tail was rejected for {query} in {text}"
+        );
+    }
+
+    let matcher = compile_with_full_pos_and_resource("나다", options, resource);
+    assert!(
+        matcher.find_at_with_meta("그러나".as_bytes(), 0).is_none(),
+        "a whole modifier must outrank a graph-built predicate tail"
+    );
+}
+
+#[test]
+fn compound_predicate_tail_rejects_a_terminal_adnominal_prefix() {
+    let resource = component_resource_from_entries([
+        component_entry("친", "VV+ETM"),
+        component_entry("구", "EC"),
+        component_entry("친구", "NNG"),
+        component_entry("가", "JKS"),
+        component_entry("가", "VV"),
+    ]);
+    let matcher = compile_with_full_pos_and_resource(
+        "가다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    assert!(
+        matcher.find_at_with_meta("친구가".as_bytes(), 0).is_none(),
+        "a terminal adnominal ending must not continue into a connective ending"
+    );
+
+    let text = "그래 네가 가.";
+    let matched = matcher
+        .find_at_with_meta(text.as_bytes(), 0)
+        .expect("a token-initial imperative verb must remain searchable");
+    let start = text
+        .rfind('가')
+        .expect("fixture must contain the imperative");
+    assert_eq!(matched.span, start..start + "가".len());
+}
+
+#[test]
 fn smart_auxiliary_query_accepts_an_unaligned_whole_source_path() {
     let resource = component_resource_from_entries([
         component_expression_entry("빨라져", "VA+EC+VX+EC", "빠르/VA/*+아/EC/*+지/VX/*+어/EC/*"),

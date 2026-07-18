@@ -21,21 +21,21 @@ gold 또는 negative 선택을 바꾸지 않는다.
 미구현 표준 문법과 구조 설계 비용은 FNᶜ로 유지한다. 결과 표의 TPᶜ·FPᶜ·TNᶜ·FNᶜ는 각각
 `contract_tp`·`contract_fp`·`contract_tn`·`contract_fn`이며 strict 지표를 대체하지 않는다.
 
-현재 query matrix full-POS는 raw `FP 4 / FN 11 / recall 99.15%`, contract
-`FPᶜ 0 / FNᶜ 7 / recallᶜ 99.46%`다. 상세 결과는
-[대명사 계사·의문 어미 축약 recall](2026-07-18-pronoun-copula-ending.md)에 둔다.
+현재 query matrix full-POS는 raw `FP 4 / FN 8 / recall 99.38%`, contract
+`FPᶜ 0 / FNᶜ 4 / recallᶜ 99.69%`다. 상세 결과는
+[source 정렬 합성용언 tail recall](2026-07-18-source-aligned-compound-predicate-tail.md)에 둔다.
 
 현재 제품 기준선:
 
 | fixture/profile | TP / FP / FN | precision | recall | F1 |
 | --- | ---: | ---: | ---: | ---: |
 | dev embedded smart | 455 / 2 / 45 | 99.56% | 91.0% | 95.09% |
-| dev full-POS smart | 485 / 3 / 15 | 99.39% | 97.0% | 98.18% |
+| dev full-POS smart | 485 / 2 / 15 | 99.59% | 97.0% | 98.28% |
 | test embedded smart | 460 / 1 / 40 | 99.78% | 92.0% | 95.73% |
 | test full-POS smart | 496 / 2 / 4 | 99.60% | 99.2% | 99.40% |
 
 세부 품사, strict/contract-adjusted hard-negative와 성능 결과는
-[대명사 계사·의문 어미 축약 recall](2026-07-18-pronoun-copula-ending.md)에 둔다.
+[source 정렬 합성용언 tail recall](2026-07-18-source-aligned-compound-predicate-tail.md)에 둔다.
 
 비표준 활용, 오타와 불안정한 띄어쓰기는 이 canonical 기준선에 합치지 않는다. 별도 fixture와
 robust-only precision, over-acceptance, canonical retention, raw-span 지표는

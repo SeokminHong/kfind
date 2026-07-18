@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use kfind_data::{ComponentPart, ComponentResource, DataFinePos};
 
-use crate::PredicatePos;
 use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern, StructuralSignature};
+use crate::{PredicatePos, PredicatePosSet};
 
 #[derive(Clone, Copy, Debug)]
 pub struct BoundedTokenContext<'a> {
@@ -478,6 +478,40 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_source_aligned_compound_predicate_component(
+        &self,
+        text: &str,
+        anchor: Range<usize>,
+        source_positions: PredicatePosSet,
+        node_limit: usize,
+    ) -> bool {
+        if anchor.is_empty()
+            || anchor.start == 0
+            || anchor.end > text.len()
+            || !text.is_char_boundary(anchor.start)
+            || !text.is_char_boundary(anchor.end)
+        {
+            return false;
+        }
+        TokenEvidence::collect(&self.resource, text, node_limit, false, false).is_ok_and(
+            |evidence| {
+                !evidence.has_whole_modifier()
+                    && evidence
+                        .compound_predicate_components
+                        .iter()
+                        .filter(|component| {
+                            component.start == anchor.start && component.end == anchor.end
+                        })
+                        .any(|component| {
+                            source_positions
+                                .iter()
+                                .any(|pos| predicate_pos_matches(component.pos.as_str(), pos))
+                        })
+            },
+        )
+    }
+
+    #[must_use]
     pub fn has_attached_auxiliary_whole_path(&self, text: &str) -> bool {
         let mut supported = false;
         self.resource
@@ -659,6 +693,7 @@ struct TokenEvidence {
     units: Vec<Unit>,
     has_whole_nominal_source_components: bool,
     runtime_spans: Vec<Range<usize>>,
+    compound_predicate_components: Box<[PredicateComponent]>,
     attached_auxiliary_spans: Box<[Range<usize>]>,
     nominal_copula_hosts: Box<[Range<usize>]>,
     adnominal_ends: Vec<usize>,
@@ -766,6 +801,7 @@ impl TokenEvidence {
         let complete = complete_edges(text.len(), &edges, &forward);
         let has_complete_path = forward[text.len()];
         let leading_predicate_spans = leading_predicate_spans(text.len(), &edges);
+        let compound_predicate_components = compound_predicate_components(text.len(), &edges);
         let runtime_nominal_derivation_spans = runtime_nominal_derivation_spans(&edges, &complete);
         let derivational_suffix_starts = derivational_suffix_starts(&edges, &complete);
         let adnominal_derivation_suffix_starts =
@@ -918,6 +954,7 @@ impl TokenEvidence {
             units,
             has_whole_nominal_source_components,
             runtime_spans,
+            compound_predicate_components,
             attached_auxiliary_spans,
             nominal_copula_hosts,
             adnominal_ends,
@@ -936,6 +973,12 @@ impl TokenEvidence {
         self.units
             .iter()
             .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos == pos)
+    }
+
+    fn has_whole_modifier(&self) -> bool {
+        [DataFinePos::Mm, DataFinePos::Mag, DataFinePos::Maj]
+            .into_iter()
+            .any(|pos| self.has_whole(pos))
     }
 
     fn has_whole_analysis(&self, span: &Range<usize>) -> bool {
@@ -977,7 +1020,98 @@ struct Edge<'a> {
     components: Vec<ComponentPart<'a>>,
 }
 
-fn attached_auxiliary_spans(text_len: usize, edges: &[Edge<'_>]) -> Box<[Range<usize>]> {
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct PredicateComponent {
+    start: usize,
+    end: usize,
+    pos: DataFinePos,
+}
+
+#[derive(Clone, Copy)]
+#[repr(usize)]
+enum CompoundTailState {
+    Predicate,
+    Ending,
+    Particle,
+}
+
+const COMPOUND_TAIL_STATE_COUNT: usize = 3;
+
+fn compound_predicate_components(text_len: usize, edges: &[Edge<'_>]) -> Box<[PredicateComponent]> {
+    let connective_boundary = predicate_connective_boundaries(text_len, edges);
+
+    let mut suffix = vec![[false; COMPOUND_TAIL_STATE_COUNT]; text_len + 1];
+    for state in compound_tail_states() {
+        suffix[text_len][state as usize] = true;
+    }
+    for start in (0..text_len).rev() {
+        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+            for state in compound_tail_states() {
+                let Some(next) = advance_compound_tail_suffix(state, edge.pos) else {
+                    continue;
+                };
+                suffix[start][state as usize] |= suffix[edge.span.end][next as usize];
+            }
+        }
+    }
+
+    let mut components = Vec::new();
+    for edge in edges.iter().filter(|edge| edge.span.start == 0) {
+        let Some((pos, state)) = compound_tail_inside_analysis(edge.pos) else {
+            continue;
+        };
+        if !suffix[edge.span.end][state as usize] {
+            continue;
+        }
+        components.extend(
+            edge.components
+                .iter()
+                .filter(|component| DataFinePos::parse(component.pos) == Some(pos))
+                .map(|component| PredicateComponent {
+                    start: edge.span.start + component.span.start,
+                    end: edge.span.start + component.span.end,
+                    pos,
+                }),
+        );
+    }
+    for edge in edges
+        .iter()
+        .filter(|edge| connective_boundary[edge.span.start])
+    {
+        let (first, suffix_positions) = edge.pos.split_once('+').unwrap_or((edge.pos, ""));
+        let Some(pos) = DataFinePos::parse(first).filter(|pos| pos.is_predicate()) else {
+            continue;
+        };
+        let Some(state) =
+            advance_compound_tail_suffix(CompoundTailState::Predicate, suffix_positions)
+        else {
+            continue;
+        };
+        if !suffix[edge.span.end][state as usize] {
+            continue;
+        }
+        components.push(PredicateComponent {
+            start: edge.span.start,
+            end: edge.span.end,
+            pos,
+        });
+        components.extend(
+            edge.components
+                .iter()
+                .filter(|component| DataFinePos::parse(component.pos) == Some(pos))
+                .map(|component| PredicateComponent {
+                    start: edge.span.start + component.span.start,
+                    end: edge.span.start + component.span.end,
+                    pos,
+                }),
+        );
+    }
+    components.sort_unstable();
+    components.dedup();
+    components.into_boxed_slice()
+}
+
+fn predicate_connective_boundaries(text_len: usize, edges: &[Edge<'_>]) -> Vec<bool> {
     let mut predicate_path = vec![false; text_len + 1];
     let mut connective_boundary = vec![false; text_len + 1];
     for edge in edges {
@@ -989,12 +1123,76 @@ fn attached_auxiliary_spans(text_len: usize, edges: &[Edge<'_>]) -> Box<[Range<u
             None
         };
         if let Some(ends_in_connective) = ends_in_connective {
-            predicate_path[edge.span.end] = true;
             if ends_in_connective {
                 connective_boundary[edge.span.end] = true;
+            } else {
+                predicate_path[edge.span.end] = true;
             }
         }
     }
+    connective_boundary
+}
+
+fn compound_tail_inside_analysis(positions: &str) -> Option<(DataFinePos, CompoundTailState)> {
+    let mut positions = positions.split('+');
+    positions
+        .next()
+        .and_then(DataFinePos::parse)
+        .filter(|pos| pos.is_predicate())?;
+    let mut connective = false;
+    for position in &mut positions {
+        if position.starts_with('E') {
+            connective = position == "EC";
+            continue;
+        }
+        let pos = DataFinePos::parse(position).filter(|pos| pos.is_predicate())?;
+        if !connective {
+            return None;
+        }
+        let mut state = CompoundTailState::Predicate;
+        for suffix in positions {
+            state = advance_compound_tail_position(state, suffix)?;
+        }
+        return Some((pos, state));
+    }
+    None
+}
+
+const fn compound_tail_states() -> [CompoundTailState; COMPOUND_TAIL_STATE_COUNT] {
+    [
+        CompoundTailState::Predicate,
+        CompoundTailState::Ending,
+        CompoundTailState::Particle,
+    ]
+}
+
+fn advance_compound_tail_suffix(
+    mut state: CompoundTailState,
+    positions: &str,
+) -> Option<CompoundTailState> {
+    for pos in positions.split('+').filter(|pos| !pos.is_empty()) {
+        state = advance_compound_tail_position(state, pos)?;
+    }
+    Some(state)
+}
+
+fn advance_compound_tail_position(
+    state: CompoundTailState,
+    pos: &str,
+) -> Option<CompoundTailState> {
+    match (state, pos) {
+        (CompoundTailState::Predicate | CompoundTailState::Ending, pos) if pos.starts_with('E') => {
+            Some(CompoundTailState::Ending)
+        }
+        (CompoundTailState::Ending | CompoundTailState::Particle, pos) if pos.starts_with('J') => {
+            Some(CompoundTailState::Particle)
+        }
+        _ => None,
+    }
+}
+
+fn attached_auxiliary_spans(text_len: usize, edges: &[Edge<'_>]) -> Box<[Range<usize>]> {
+    let connective_boundary = predicate_connective_boundaries(text_len, edges);
 
     let mut ending_suffix = vec![false; text_len + 1];
     ending_suffix[text_len] = true;
@@ -1383,25 +1581,25 @@ fn predicate_path_ends_in_connective(pos: &str) -> Option<bool> {
     if !matches!(positions.next(), Some("VV" | "VA")) {
         return None;
     }
-    let mut last = None;
-    for position in positions {
-        if !position.starts_with('E') {
-            return None;
-        }
-        last = Some(position);
-    }
-    Some(last == Some("EC"))
+    ending_positions_end_in_connective(positions)
 }
 
 fn ending_path_ends_in_connective(pos: &str) -> Option<bool> {
-    let mut last = None;
-    for position in pos.split('+') {
-        if !position.starts_with('E') {
-            return None;
+    ending_positions_end_in_connective(pos.split('+'))
+}
+
+fn ending_positions_end_in_connective<'a>(
+    positions: impl IntoIterator<Item = &'a str>,
+) -> Option<bool> {
+    let mut connective = false;
+    for position in positions {
+        match position {
+            "EP" if !connective => {}
+            "EC" if !connective => connective = true,
+            _ => return None,
         }
-        last = Some(position);
     }
-    Some(last == Some("EC"))
+    Some(connective)
 }
 
 fn forward_positions(text_len: usize, edges: &[Edge<'_>]) -> Vec<bool> {
@@ -1717,6 +1915,9 @@ impl StructureSelection {
         if composed_nominal_subpath(pattern, spans, evidence) {
             return true;
         }
+        if compound_predicate_component_is_supported(pattern, spans, evidence) {
+            return true;
+        }
         match self {
             Self::Whole => support.evidence == StructuralEvidence::Whole,
             Self::Adverb => {
@@ -1879,6 +2080,26 @@ impl StructureSelection {
             },
         }
     }
+}
+
+fn compound_predicate_component_is_supported(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    evidence: &TokenEvidence,
+) -> bool {
+    matches!(pattern.continuation, MorphContinuation::Predicate { .. })
+        && !evidence.has_whole_modifier()
+        && spans.core.start > spans.token.start
+        && spans.consumed.start == spans.core.start
+        && spans.consumed.end == spans.token.end
+        && evidence
+            .compound_predicate_components
+            .binary_search(&PredicateComponent {
+                start: spans.core.start,
+                end: spans.core.end,
+                pos: pattern.fine_pos,
+            })
+            .is_ok()
 }
 
 fn component_is_shadowed_by_predicate(

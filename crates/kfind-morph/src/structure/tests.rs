@@ -350,12 +350,144 @@ fn whole_inflected_analysis_supports_a_predicate_stem_program() {
             consumed: 0.."곱아".len(),
             token: 0.."곱아".len(),
         },
-        &[pattern],
+        std::slice::from_ref(&pattern),
         128,
     );
 
     assert_eq!(decision.outcome, ConstraintOutcome::Supported);
     assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
+fn source_aligned_compound_predicate_tails_survive_competing_whole_paths() {
+    let resolver = resolver_from_entries([
+        atomic("올라가", "VV"),
+        atomic("올라", "VV+EC"),
+        atomic("가", "VV"),
+        atomic("생겨나", "VV"),
+        atomic("생겨", "VV+EC"),
+        atomic("나", "VV"),
+        atomic("들어와서", "NNG"),
+        atomic("들어", "VV+EC"),
+        atomic("와", "VV"),
+        atomic("서", "EC"),
+        atomic("는", "JX"),
+        atomic("끌어가", "VV"),
+        expression("끌어가", "VV+EC+VX", "끌/VV/*+어/EC/*+가/VX/*"),
+    ]);
+    for (text, core, lexical_form, pos) in [
+        (
+            "올라가",
+            "올라".len().."올라가".len(),
+            "가",
+            DataFinePos::Vv,
+        ),
+        (
+            "생겨나",
+            "생겨".len().."생겨나".len(),
+            "나",
+            DataFinePos::Vv,
+        ),
+        (
+            "들어와서는",
+            "들어".len().."들어와".len(),
+            "오",
+            DataFinePos::Vv,
+        ),
+        (
+            "끌어가",
+            "끌어".len().."끌어가".len(),
+            "가",
+            DataFinePos::Vx,
+        ),
+    ] {
+        let consumed = core.start..text.len();
+        let decision = resolver.resolve_candidate(
+            BoundedTokenContext::current(text),
+            CandidateSpans {
+                anchor: core.clone(),
+                core,
+                consumed,
+                token: 0..text.len(),
+            },
+            &[predicate_pattern(pos, lexical_form)],
+            128,
+        );
+
+        assert_eq!(decision.outcome, ConstraintOutcome::Supported, "{text}");
+    }
+}
+
+#[test]
+fn compound_predicate_tail_requires_a_complete_typed_path() {
+    let pattern = predicate_pattern(DataFinePos::Vv, "가");
+    for entries in [
+        [
+            atomic("올라", "NNG+EC"),
+            atomic("가", "VV"),
+            atomic("말", "NNG"),
+        ],
+        [
+            atomic("올라", "VV+EC"),
+            atomic("가", "VV"),
+            atomic("말", "NNG"),
+        ],
+    ] {
+        let resolver = resolver_from_entries(entries);
+        let decision = resolver.resolve_candidate(
+            BoundedTokenContext::current("올라가말"),
+            CandidateSpans {
+                core: "올라".len().."올라가".len(),
+                anchor: "올라".len().."올라가".len(),
+                consumed: "올라".len().."올라가".len(),
+                token: 0.."올라가말".len(),
+            },
+            std::slice::from_ref(&pattern),
+            128,
+        );
+
+        assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+    }
+
+    let resolver = resolver_from_entries([
+        atomic("그러나", "MAJ"),
+        atomic("그러", "VV+EC"),
+        atomic("나", "VV+EF"),
+    ]);
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("그러나"),
+        CandidateSpans {
+            core: "그러".len().."그러나".len(),
+            anchor: "그러".len().."그러나".len(),
+            consumed: "그러".len().."그러나".len(),
+            token: 0.."그러나".len(),
+        },
+        std::slice::from_ref(&pattern),
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+
+    let resolver = resolver_from_entries([
+        atomic("친", "VV+ETM"),
+        atomic("구", "EC"),
+        atomic("가", "VV"),
+        atomic("친구", "NNG"),
+        atomic("가", "JKS"),
+    ]);
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("친구가"),
+        CandidateSpans {
+            core: "친구".len().."친구가".len(),
+            anchor: "친구".len().."친구가".len(),
+            consumed: "친구".len().."친구가".len(),
+            token: 0.."친구가".len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
 }
 
 #[test]
@@ -1866,6 +1998,17 @@ fn component_pattern(pos: DataFinePos, lexical_form: &str) -> QueryMorphPattern 
     QueryMorphPattern::new(pos, lexical_form).with_candidate_contract(
         CandidateTokenRelation::Whole,
         MorphContinuation::Exact,
+        ComponentCapability::SourceAndRuntime,
+    )
+}
+
+fn predicate_pattern(pos: DataFinePos, lexical_form: &str) -> QueryMorphPattern {
+    QueryMorphPattern::new(pos, lexical_form).with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: false,
+        },
         ComponentCapability::SourceAndRuntime,
     )
 }
