@@ -981,6 +981,8 @@ any: 왼쪽과 오른쪽 경계를 검사하지 않는 부분 문자열 검색
 `--boundary any`를 사용한다. 한 음절 쿼리는 `smart`에서도 `token`에 가까운 경계를 적용한다.
 
 `derivation`은 `inflection`을 포함하며 `-적`, `-하다`, `-되다`, `-시키다` 같은 생산적 파생을 추가한다.
+두 기본 사전이 독립적으로 확인한 형용사 `-이` 부사형은 생산 규칙이 아니라 사전 표면형으로
+취급하므로 기본 `inflection`에도 포함한다. 사전에 없는 `-이` 후보를 생산적으로 확장하지 않는다.
 
 ## 4. 사용자 사용법
 
@@ -2243,15 +2245,26 @@ importer의 원시 레코드 grain은 `(source, source_id, raw_homonym, lemma, f
 구조화된 사전 표면형은 기존 enriched predicate TSV 안의 `SurfaceOnly` 분석으로 저장한다.
 별도 전체 활용형 사전이나 런타임 문장 분석기는 추가하지 않는다. `SurfaceOnly`는 같은 품사의
 core·enriched 분석이나 full POS fallback을 가리지 않으며, 기본형과 사전에 기록된 정확한
-표면형만 만든다. provenance-only rule id `lexical.dictionary-conjugation`과
-`lexical.dictionary-related-adverb`는 rule registry의 생산 규칙이 아니며 이 분석에서만
-허용한다.
+표면형만 만든다. provenance-only rule id `lexical.dictionary-conjugation`,
+`lexical.dictionary-adverbial-i`, `lexical.dictionary-related-adverb`는 rule registry의 생산
+규칙이 아니며 이 분석에서만 허용한다.
 
 사전 활용형은 한국어기초사전과 표준국어대사전의 `일반어` record가 같은
 `(lemma, fine_pos, surface)`를 지지할 때만 후보로 삼는다. core, 자동 승격된 alternation과
 품사가 확인된 `하다`, `스럽다`, `답다`, `롭다`의 생산 규칙으로 이미 생성되는 surface는
 저장하지 않는다. 남은 surface만 `lexical.dictionary-conjugation`으로 기록하며
 `inflection`과 `derivation`에서 사용할 수 있다.
+
+형용사 `-이` 부사형은 importer가 `-없다`, `-같다` 계열의 `어간 + 이`와 `르 → ㄹ리` 후보만
+계산한다. 일반 정규 어간 전체에는 적용하지 않는다.
+한국어기초사전과 표준국어대사전의 `일반어` record가 각각 원형을 형용사로, 같은 후보 표면을
+부사로 독립 등재한 경우에만 `lexical.dictionary-adverbial-i`로 승격한다. 이 표면형은
+`inflection`과 `derivation`에서 사용할 수 있다. 원형·결과 표제어의 source record ID를 함께
+보존하며, 사전에서 확인되지 않은 후보와 자유 텍스트에서 추출한 형태는 저장하지 않는다.
+`smart`는 이 표면형의 양쪽 token 경계와 전체 `MAG` 구조 근거를 요구하며 다른 어휘나 조사에
+붙은 내부 span으로 확장하지 않는다.
+같은 `(lemma, fine_pos, surface)`가 아래의 양방향 관계에도 포함되면 두 사전 합의를 우선해
+`lexical.dictionary-adverbial-i` 하나로 기록한다.
 
 한국어기초사전 `RelatedForm`은 source가 동사·형용사이고 target이 부사이며, 양쪽 entry가 서로의
 ID를 가리키고 각 `writtenForm`이 참조한 entry의 표제어와 일치하는 `파생어` 관계만 사용한다.

@@ -1024,6 +1024,62 @@ fn inflection_adverb_plan_matches_only_auxiliary_particles() {
 }
 
 #[test]
+fn dictionary_adverbial_i_requires_an_attested_adverb_structure() {
+    let mut lexicons = Lexicons::embedded().expect("embedded lexicons must be valid");
+    lexicons
+        .load_enriched_predicates(
+            "fixture.tsv",
+            concat!(
+                "lemma\tpos\talternation\tflags\toverrides\n",
+                "빠르다\tVA\tSurfaceOnly\t\tlexical.dictionary-adverbial-i=빨리\n",
+                "같다\tVA\tSurfaceOnly\t\tlexical.dictionary-adverbial-i=같이\n",
+                "없다\tVA\tSurfaceOnly\t\tlexical.dictionary-adverbial-i=없이\n",
+            ),
+        )
+        .expect("dictionary adverbial fixture must load");
+    let lexicons = Arc::new(lexicons);
+    let resource = component_resource_from_entries([
+        component_entry("빨리", "MAG"),
+        component_entry("같이", "MAG"),
+        component_entry("없이", "MAG"),
+        component_expression_entry("친구같이", "NNG+JKB", "친구/NNG/*+같이/JKB/*"),
+    ]);
+    let options = CompileOptions {
+        global_pos: Some(CoarsePos::Adjective),
+        ..CompileOptions::default()
+    };
+
+    for (query, text) in [
+        ("빠르다", "빨리 끝냈다."),
+        ("같다", "같이 움직였다."),
+        ("없다", "없이 진행했다."),
+    ] {
+        let matcher = compile_with_lexicons_and_resource(
+            query,
+            options.clone(),
+            Arc::clone(&lexicons),
+            Arc::clone(&resource),
+        );
+        assert!(
+            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
+            "dictionary adverbial rejected {text}"
+        );
+    }
+
+    let text = "친구같이 행동했다.";
+    let matcher = compile_with_lexicons_and_resource(
+        "같다",
+        options,
+        Arc::clone(&lexicons),
+        Arc::clone(&resource),
+    );
+    assert!(
+        matcher.find_at_with_meta(text.as_bytes(), 0).is_none(),
+        "dictionary adverbial accepted a non-adverb structure in {text}"
+    );
+}
+
+#[test]
 fn adverb_particle_hosts_and_transitions_cover_complete_families() {
     let adverb_options = CompileOptions {
         global_pos: Some(CoarsePos::Adverb),

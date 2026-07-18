@@ -43,6 +43,7 @@ class PredicateRecord:
     lexical_status: str
     conjugations: tuple[str, ...]
     related_adverbs: tuple[str, ...]
+    attested_adverbials: tuple[tuple[str, str], ...]
 
 
 @dataclass(frozen=True)
@@ -54,6 +55,7 @@ class ImportStats:
     predicate_count: int
     predicate_with_conjugations_count: int
     related_adverb_count: int
+    attested_adverbial_count: int
     sanitized_byte_count: int
     sanitized_locations: tuple[str, ...]
 
@@ -115,6 +117,7 @@ def krdict_record(entry: ET.Element) -> Iterable[PredicateRecord]:
             lexical_status="일반어",
             conjugations=tuple(sorted(set(forms))),
             related_adverbs=(),
+            attested_adverbials=(),
         ),
     )
 
@@ -154,6 +157,7 @@ def stdict_record(item: ET.Element) -> Iterable[PredicateRecord]:
                 lexical_status=status,
                 conjugations=forms,
                 related_adverbs=(),
+                attested_adverbials=(),
             )
         )
     return records
@@ -192,6 +196,7 @@ def opendict_record(item: ET.Element) -> Iterable[PredicateRecord]:
                 lexical_status=lexical_status(types, definitions),
                 conjugations=forms,
                 related_adverbs=(),
+                attested_adverbials=(),
             )
         )
     return records
@@ -251,6 +256,7 @@ def import_snapshot(
         predicate_count=len(records),
         predicate_with_conjugations_count=sum(bool(record.conjugations) for record in records),
         related_adverb_count=sum(len(record.related_adverbs) for record in records),
+        attested_adverbial_count=sum(len(record.attested_adverbials) for record in records),
         sanitized_byte_count=len(sanitized_locations),
         sanitized_locations=tuple(sanitized_locations),
     )
@@ -338,6 +344,122 @@ def krdict_related_adverbs(
     return related_by_source
 
 
+def attach_attested_adverbials(
+    records: Iterable[PredicateRecord],
+    source: str,
+    path: Path,
+    cache_directory: Path | None,
+) -> tuple[list[PredicateRecord], int]:
+    records = list(records)
+    requested = {
+        surface
+        for record in records
+        if record.pos == "VA" and record.lexical_status == "일반어"
+        for surface in adverbial_i_candidates(record.lemma)
+    }
+    target_ids: dict[str, set[str]] = {}
+    sha256 = file_sha256(path)
+    for _, raw in snapshot_members(source, path, sha256, cache_directory):
+        raw = raw.replace(INVALID_XML_BYTE, b"")
+        for _, element in ET.iterparse(io.BytesIO(raw), events=("end",)):
+            if element.tag != ("LexicalEntry" if source == "krdict" else "item"):
+                continue
+            for surface, target_id in adverb_headwords(source, element, requested):
+                target_ids.setdefault(surface, set()).add(target_id)
+            element.clear()
+
+    enriched = []
+    for record in records:
+        attested = tuple(
+            sorted(
+                (surface, target_id)
+                for surface in adverbial_i_candidates(record.lemma)
+                for target_id in target_ids.get(surface, ())
+            )
+        ) if record.pos == "VA" and record.lexical_status == "일반어" else ()
+        enriched.append(replace(record, attested_adverbials=attested))
+    return enriched, sum(len(record.attested_adverbials) for record in enriched)
+
+
+def adverbial_i_candidates(lemma: str) -> tuple[str, ...]:
+    stem = lemma.removesuffix("다")
+    if not stem or stem == lemma:
+        return ()
+    candidates = set()
+    if stem.endswith(("없", "같")):
+        candidates.add(f"{stem}이")
+    if stem.endswith("르") and len(stem) > 1:
+        prefix = stem[:-1]
+        final = add_rieul_final(prefix[-1])
+        if final is not None:
+            candidates.add(f"{prefix[:-1]}{final}리")
+    return tuple(sorted(candidates))
+
+
+def add_rieul_final(character: str) -> str | None:
+    codepoint = ord(character)
+    offset = codepoint - 0xAC00
+    if not 0 <= offset < 11172 or offset % 28 != 0:
+        return None
+    return chr(codepoint + 8)
+
+
+def adverb_headwords(
+    source: str,
+    element: ET.Element,
+    requested: set[str],
+) -> tuple[tuple[str, str], ...]:
+    if source == "krdict":
+        lemma_element = element.find("./Lemma")
+        raw = direct_feat(lemma_element, "writtenForm") if lemma_element is not None else None
+        if direct_feat(element, "partOfSpeech") != "부사" or not raw:
+            return ()
+        lemma, _ = normalize_headword(raw)
+        if lemma not in requested:
+            return ()
+        return ((lemma, element.get("val") or element.get("id") or ""),)
+
+    if source == "stdict":
+        word_info = element.find("./word_info")
+        if word_info is None:
+            return ()
+        lemma, _ = normalize_headword(word_info.findtext("./word", ""))
+        if lemma not in requested:
+            return ()
+        target_code = normalize_text(element.findtext("./target_code", ""))
+        records = []
+        for pos_info in word_info.findall("./pos_info"):
+            if normalize_text(pos_info.findtext("./pos", "")) != "부사":
+                continue
+            types = descendant_texts(pos_info, (".//sense_info/type",))
+            definitions = descendant_texts(pos_info, (".//sense_info/definition",))
+            if lexical_status(types, definitions) != "일반어":
+                continue
+            pos_code = normalize_text(pos_info.findtext("./pos_code", ""))
+            records.append((lemma, f"{target_code}:{pos_code}" if pos_code else target_code))
+        return tuple(records)
+
+    if source == "opendict":
+        word_info = element.find("./wordInfo")
+        if word_info is None:
+            return ()
+        lemma, _ = normalize_headword(word_info.findtext("./word", ""))
+        if lemma not in requested:
+            return ()
+        target_code = normalize_text(element.findtext("./target_code", ""))
+        return tuple(
+            (lemma, f"{target_code}:{index}")
+            for index, sense in enumerate(element.findall("./senseInfo"), start=1)
+            if normalize_text(sense.findtext("./pos", "")) == "부사"
+            and lexical_status(
+                descendant_texts(sense, ("./type",)),
+                descendant_texts(sense, ("./definition",)),
+            ) == "일반어"
+        )
+
+    raise ValueError(f"unsupported source: {source}")
+
+
 def snapshot_members(
     source: str,
     archive_path: Path,
@@ -406,6 +528,7 @@ def write_records(path: Path, records: Iterable[PredicateRecord]) -> None:
                 "lexical_status",
                 "conjugations",
                 "related_adverbs",
+                "attested_adverbials",
             )
         )
         for record in records:
@@ -419,6 +542,10 @@ def write_records(path: Path, records: Iterable[PredicateRecord]) -> None:
                     record.lexical_status,
                     "|".join(record.conjugations),
                     "|".join(record.related_adverbs),
+                    "|".join(
+                        f"{surface}={target_id}"
+                        for surface, target_id in record.attested_adverbials
+                    ),
                 )
             )
 
@@ -426,11 +553,12 @@ def write_records(path: Path, records: Iterable[PredicateRecord]) -> None:
 def write_stats(path: Path, stats: Iterable[ImportStats]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = [
-        "schema_version = 2",
-        'generator = "tools/nikl-lexicon/import_nikl.py@2"',
+        "schema_version = 3",
+        'generator = "tools/nikl-lexicon/import_nikl.py@3"',
         'license = "CC BY-SA 2.0 KR"',
         'extracted_fields = ["source_id", "homonym", "lemma", '
-        '"part-of-speech", "conjugation", "related-form-id", "related-form-surface"]',
+        '"part-of-speech", "conjugation", "related-form-id", "related-form-surface", '
+        '"attested-adverb-id", "attested-adverb-surface"]',
     ]
     for value in stats:
         lines.extend(
@@ -445,6 +573,7 @@ def write_stats(path: Path, stats: Iterable[ImportStats]) -> None:
                 "predicate_with_conjugations_count = "
                 f"{value.predicate_with_conjugations_count}",
                 f"related_adverb_count = {value.related_adverb_count}",
+                f"attested_adverbial_count = {value.attested_adverbial_count}",
                 f"sanitized_byte_count = {value.sanitized_byte_count}",
                 "sanitized_locations = ["
                 + ", ".join(toml_string(location) for location in value.sanitized_locations)

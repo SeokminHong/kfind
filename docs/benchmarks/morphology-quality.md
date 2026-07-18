@@ -21,21 +21,21 @@ gold 또는 negative 선택을 바꾸지 않는다.
 미구현 표준 문법과 구조 설계 비용은 FNᶜ로 유지한다. 결과 표의 TPᶜ·FPᶜ·TNᶜ·FNᶜ는 각각
 `contract_tp`·`contract_fp`·`contract_tn`·`contract_fn`이며 strict 지표를 대체하지 않는다.
 
-현재 query matrix full-POS는 raw `FP 4 / FN 18 / recall 98.61%`, contract
-`FPᶜ 0 / FNᶜ 14 / recallᶜ 98.92%`다. 상세 annotation과 raw·contract 차트는
-[query matrix raw·계약 품질 교정](2026-07-18-query-matrix-contract-metrics.md)에 둔다.
+현재 query matrix full-POS는 raw `FP 4 / FN 13 / recall 99.00%`, contract
+`FPᶜ 0 / FNᶜ 9 / recallᶜ 99.31%`다. 상세 결과는
+[사전 합의 `-이` 부사형 recall](2026-07-18-dictionary-adverbial-i.md)에 둔다.
 
 현재 제품 기준선:
 
 | fixture/profile | TP / FP / FN | precision | recall | F1 |
 | --- | ---: | ---: | ---: | ---: |
-| dev embedded smart | 447 / 4 / 53 | 99.11% | 89.4% | 94.01% |
-| dev full-POS smart | 456 / 4 / 44 | 99.13% | 91.2% | 95.00% |
-| test embedded smart | 435 / 0 / 65 | 100.00% | 87.0% | 93.05% |
-| test full-POS smart | 470 / 0 / 30 | 100.00% | 94.0% | 96.91% |
+| dev embedded smart | 455 / 2 / 45 | 99.56% | 91.0% | 95.09% |
+| dev full-POS smart | 485 / 3 / 15 | 99.39% | 97.0% | 98.18% |
+| test embedded smart | 458 / 1 / 42 | 99.78% | 91.6% | 95.52% |
+| test full-POS smart | 494 / 2 / 6 | 99.60% | 98.8% | 99.20% |
 
 세부 품사, strict/contract-adjusted hard-negative와 성능 결과는
-[구조 증거로 줄인 검색 누락](2026-07-17-structural-recall.md)에 둔다.
+[사전 합의 `-이` 부사형 recall](2026-07-18-dictionary-adverbial-i.md)에 둔다.
 
 비표준 활용, 오타와 불안정한 띄어쓰기는 이 canonical 기준선에 합치지 않는다. 별도 fixture와
 robust-only precision, over-acceptance, canonical retention, raw-span 지표는

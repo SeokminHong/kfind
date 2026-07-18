@@ -177,12 +177,15 @@ pub enum DataAlternation {
 }
 
 pub const DICTIONARY_CONJUGATION_RULE_ID: &str = "lexical.dictionary-conjugation";
+pub const DICTIONARY_ADVERBIAL_I_RULE_ID: &str = "lexical.dictionary-adverbial-i";
 pub const DICTIONARY_RELATED_ADVERB_RULE_ID: &str = "lexical.dictionary-related-adverb";
 
 pub fn is_dictionary_surface_rule(id: &str) -> bool {
     matches!(
         id,
-        DICTIONARY_CONJUGATION_RULE_ID | DICTIONARY_RELATED_ADVERB_RULE_ID
+        DICTIONARY_CONJUGATION_RULE_ID
+            | DICTIONARY_ADVERBIAL_I_RULE_ID
+            | DICTIONARY_RELATED_ADVERB_RULE_ID
     )
 }
 

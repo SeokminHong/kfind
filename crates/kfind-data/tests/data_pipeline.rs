@@ -3,13 +3,13 @@ use std::io::Cursor;
 use std::path::{Path, PathBuf};
 
 use kfind_data::{
-    DICTIONARY_CONJUGATION_RULE_ID, DICTIONARY_RELATED_ADVERB_RULE_ID, DataAlternation,
-    DataErrorKind, DataFinePos, DataWarning, LexiconSources, NominalRecord, ParticleHost,
-    ParticleRuleRole, PosLexiconEntry, RuleSources, SurfaceOverride, collect_pos_entries,
-    decode_pos_lexicon, encode_pos_lexicon, extract_mecab_ko_dic, extract_mecab_morphology,
-    extract_mecab_source_morphology, load_data_dir, parse_lexicons, parse_mecab_connection_matrix,
-    parse_predicates_tsv, parse_rule_set, parse_user_lexicon_toml, validate_data,
-    validate_predicates,
+    DICTIONARY_ADVERBIAL_I_RULE_ID, DICTIONARY_CONJUGATION_RULE_ID,
+    DICTIONARY_RELATED_ADVERB_RULE_ID, DataAlternation, DataErrorKind, DataFinePos, DataWarning,
+    LexiconSources, NominalRecord, ParticleHost, ParticleRuleRole, PosLexiconEntry, RuleSources,
+    SurfaceOverride, collect_pos_entries, decode_pos_lexicon, encode_pos_lexicon,
+    extract_mecab_ko_dic, extract_mecab_morphology, extract_mecab_source_morphology, load_data_dir,
+    parse_lexicons, parse_mecab_connection_matrix, parse_predicates_tsv, parse_rule_set,
+    parse_user_lexicon_toml, validate_data, validate_predicates,
 };
 
 fn data_root() -> PathBuf {
@@ -223,7 +223,7 @@ fn repository_enriched_predicates_are_valid_and_disjoint_from_core() {
         .iter()
         .filter(|entry| entry.alternation == DataAlternation::SurfaceOnly)
         .collect::<Vec<_>>();
-    assert_eq!(surface_only.len(), 283);
+    assert_eq!(surface_only.len(), 295);
     assert!(read("enriched/predicates.tsv").len() <= 64 * 1024);
     assert_eq!(
         surface_only
@@ -237,7 +237,14 @@ fn repository_enriched_predicates_are_valid_and_disjoint_from_core() {
             .iter()
             .filter(|entry| entry.overrides[0].rule_id == DICTIONARY_RELATED_ADVERB_RULE_ID)
             .count(),
-        153
+        77
+    );
+    assert_eq!(
+        surface_only
+            .iter()
+            .filter(|entry| entry.overrides[0].rule_id == DICTIONARY_ADVERBIAL_I_RULE_ID)
+            .count(),
+        88
     );
 }
 
