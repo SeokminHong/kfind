@@ -808,6 +808,213 @@ struct Unit {
     from_whole_nominal: bool,
 }
 
+#[derive(Debug)]
+struct StartGraph<T> {
+    items: Vec<T>,
+    start_offsets: Box<[usize]>,
+}
+
+impl<T> Default for StartGraph<T> {
+    fn default() -> Self {
+        Self {
+            items: Vec::new(),
+            start_offsets: Box::default(),
+        }
+    }
+}
+
+impl<T> StartGraph<T> {
+    fn from_sorted_by(
+        text_len: usize,
+        items: Vec<T>,
+        start_of: impl Copy + Fn(&T) -> usize,
+    ) -> Self {
+        debug_assert!(
+            items
+                .windows(2)
+                .all(|pair| start_of(&pair[0]) <= start_of(&pair[1]))
+        );
+        debug_assert!(items.iter().all(|item| start_of(item) <= text_len));
+
+        let mut start_offsets = Vec::with_capacity(text_len + 2);
+        let mut item_index = 0;
+        for start in 0..text_len + 2 {
+            while items
+                .get(item_index)
+                .is_some_and(|item| start_of(item) < start)
+            {
+                item_index += 1;
+            }
+            start_offsets.push(item_index);
+        }
+        Self {
+            items,
+            start_offsets: start_offsets.into_boxed_slice(),
+        }
+    }
+
+    fn all(&self) -> &[T] {
+        &self.items
+    }
+
+    fn starting_range(&self, start: usize) -> Range<usize> {
+        let Some(next) = start.checked_add(1) else {
+            return 0..0;
+        };
+        let (Some(&range_start), Some(&range_end)) =
+            (self.start_offsets.get(start), self.start_offsets.get(next))
+        else {
+            return 0..0;
+        };
+        range_start..range_end
+    }
+
+    fn starting_at(&self, start: usize) -> &[T] {
+        &self.items[self.starting_range(start)]
+    }
+
+    fn memory_usage(&self) -> usize {
+        self.items.capacity() * std::mem::size_of::<T>()
+            + self.start_offsets.len() * std::mem::size_of::<usize>()
+    }
+}
+
+type UnitGraph = StartGraph<Unit>;
+
+#[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
+struct UnitPathCost {
+    units: usize,
+    runtime_components: usize,
+}
+
+impl UnitPathCost {
+    fn append(self, unit: &Unit) -> Self {
+        Self {
+            units: self.units + 1,
+            runtime_components: self.runtime_components
+                + usize::from(unit.evidence != StructuralEvidence::SourceComponent),
+        }
+    }
+
+    fn combine(self, suffix: Self) -> Self {
+        Self {
+            units: self.units + suffix.units,
+            runtime_components: self.runtime_components + suffix.runtime_components,
+        }
+    }
+}
+
+impl StartGraph<Unit> {
+    fn minimum_path_len(
+        &self,
+        span: &Range<usize>,
+        accepts: impl Copy + Fn(DataFinePos) -> bool,
+    ) -> Option<usize> {
+        if span.is_empty() {
+            return Some(0);
+        }
+        let mut costs = vec![None; span.len() + 1];
+        costs[0] = Some(0_usize);
+        for offset in 0..span.len() {
+            let Some(cost) = costs[offset] else {
+                continue;
+            };
+            let start = span.start + offset;
+            for unit in self
+                .starting_at(start)
+                .iter()
+                .filter(|unit| unit.span.end <= span.end && accepts(unit.pos))
+            {
+                let end = unit.span.end - span.start;
+                let next = cost + 1;
+                if costs[end].is_none_or(|current| next < current) {
+                    costs[end] = Some(next);
+                }
+            }
+        }
+        costs[span.len()]
+    }
+
+    fn contains_on_preferred_path(
+        &self,
+        core: &Range<usize>,
+        selected: &Range<usize>,
+        accepts: impl Copy + Fn(&Unit) -> bool,
+    ) -> bool {
+        if core.start < selected.start
+            || core.end > selected.end
+            || core.is_empty()
+            || selected.is_empty()
+        {
+            return false;
+        }
+        let eligible = |unit: &Unit| {
+            unit.span.end <= selected.end
+                && accepts(unit)
+                && matches!(
+                    unit.evidence,
+                    StructuralEvidence::SourceComponent | StructuralEvidence::RuntimeComponent
+                )
+        };
+
+        let span_len = selected.len();
+        let mut prefix_costs = vec![None; span_len + 1];
+        prefix_costs[0] = Some(UnitPathCost::default());
+        for offset in 0..span_len {
+            let Some(prefix) = prefix_costs[offset] else {
+                continue;
+            };
+            for unit in self
+                .starting_at(selected.start + offset)
+                .iter()
+                .filter(|unit| eligible(unit))
+            {
+                let end = unit.span.end - selected.start;
+                let candidate = prefix.append(unit);
+                if prefix_costs[end].is_none_or(|current| candidate < current) {
+                    prefix_costs[end] = Some(candidate);
+                }
+            }
+        }
+        let Some(best) = prefix_costs[span_len] else {
+            return false;
+        };
+
+        let mut suffix_costs = vec![None; span_len + 1];
+        suffix_costs[span_len] = Some(UnitPathCost::default());
+        for offset in (0..span_len).rev() {
+            for unit in self
+                .starting_at(selected.start + offset)
+                .iter()
+                .filter(|unit| eligible(unit))
+            {
+                let end = unit.span.end - selected.start;
+                let Some(suffix) = suffix_costs[end] else {
+                    continue;
+                };
+                let candidate = UnitPathCost::default().append(unit).combine(suffix);
+                if suffix_costs[offset].is_none_or(|current| candidate < current) {
+                    suffix_costs[offset] = Some(candidate);
+                }
+            }
+        }
+
+        let core_start = core.start - selected.start;
+        let core_end = core.end - selected.start;
+        self.starting_at(core.start)
+            .iter()
+            .filter(|unit| unit.span == *core && eligible(unit))
+            .any(|unit| {
+                let (Some(prefix), Some(suffix)) =
+                    (prefix_costs[core_start], suffix_costs[core_end])
+                else {
+                    return false;
+                };
+                prefix.append(unit).combine(suffix) == best
+            })
+    }
+}
+
 #[derive(Clone, Debug)]
 struct NumericUnitPath {
     unit: Range<usize>,
@@ -816,7 +1023,7 @@ struct NumericUnitPath {
 
 #[derive(Debug, Default)]
 struct TokenEvidence {
-    units: Vec<Unit>,
+    units: UnitGraph,
     has_whole_nominal_source_components: bool,
     runtime_spans: Vec<Range<usize>>,
     compound_predicate_components: Box<[PredicateComponent]>,
@@ -836,7 +1043,7 @@ struct TokenEvidence {
 
 impl TokenEvidence {
     fn memory_usage(&self) -> usize {
-        self.units.capacity() * std::mem::size_of::<Unit>()
+        self.units.memory_usage()
             + self.runtime_spans.capacity() * std::mem::size_of::<Range<usize>>()
             + self.compound_predicate_components.len() * std::mem::size_of::<PredicateComponent>()
             + self.attached_auxiliary_spans.len() * std::mem::size_of::<Range<usize>>()
@@ -1072,7 +1279,7 @@ impl TokenEvidence {
         adnominal_ends.sort_unstable();
         adnominal_ends.dedup();
         Ok(Self {
-            units,
+            units: UnitGraph::from_sorted_by(text.len(), units, |unit| unit.span.start),
             has_whole_nominal_source_components,
             runtime_spans,
             compound_predicate_components,
@@ -1093,6 +1300,7 @@ impl TokenEvidence {
 
     fn has_whole(&self, pos: DataFinePos) -> bool {
         self.units
+            .all()
             .iter()
             .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos == pos)
     }
@@ -1105,12 +1313,13 @@ impl TokenEvidence {
 
     fn has_whole_analysis(&self, span: &Range<usize>) -> bool {
         self.units
+            .all()
             .iter()
             .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.span == *span)
     }
 
     fn has_whole_nominal_source_component(&self, span: &Range<usize>, pos: DataFinePos) -> bool {
-        self.units.iter().any(|unit| {
+        self.units.all().iter().any(|unit| {
             unit.from_whole_nominal
                 && unit.span == *span
                 && unit.pos == pos
@@ -1120,6 +1329,7 @@ impl TokenEvidence {
 
     fn has_predicate_ending_at(&self, end: usize) -> bool {
         self.units
+            .all()
             .iter()
             .any(|unit| unit.span.end == end && unit.pos.is_predicate())
     }
@@ -1142,14 +1352,9 @@ struct Edge<'a> {
     components: Vec<ComponentPart<'a>>,
 }
 
-#[derive(Debug)]
-struct EdgeGraph<'a> {
-    edges: Vec<Edge<'a>>,
-    // `start_offsets[p]..start_offsets[p + 1]` contains edges at byte position `p`.
-    start_offsets: Box<[usize]>,
-}
+type EdgeGraph<'a> = StartGraph<Edge<'a>>;
 
-impl<'a> EdgeGraph<'a> {
+impl<'a> StartGraph<Edge<'a>> {
     fn collect(
         resource: &'a ComponentResource,
         text: &str,
@@ -1181,41 +1386,11 @@ impl<'a> EdgeGraph<'a> {
     }
 
     fn from_edges(text_len: usize, edges: Vec<Edge<'a>>) -> Self {
-        debug_assert!(
-            edges
-                .windows(2)
-                .all(|pair| pair[0].span.start <= pair[1].span.start)
-        );
-        let mut start_offsets = Vec::with_capacity(text_len + 2);
-        let mut edge_index = 0;
-        for start in 0..text_len + 2 {
-            while edges
-                .get(edge_index)
-                .is_some_and(|edge| edge.span.start < start)
-            {
-                edge_index += 1;
-            }
-            start_offsets.push(edge_index);
-        }
-        Self {
-            edges,
-            start_offsets: start_offsets.into_boxed_slice(),
-        }
+        Self::from_sorted_by(text_len, edges, |edge| edge.span.start)
     }
 
     fn edges(&self) -> &[Edge<'a>] {
-        &self.edges
-    }
-
-    fn starting_range(&self, start: usize) -> Range<usize> {
-        if start + 1 >= self.start_offsets.len() {
-            return 0..0;
-        }
-        self.start_offsets[start]..self.start_offsets[start + 1]
-    }
-
-    fn starting_at(&self, start: usize) -> &[Edge<'a>] {
-        &self.edges[self.starting_range(start)]
+        self.all()
     }
 }
 
@@ -2079,7 +2254,7 @@ fn collect_pattern_supports(
     let mut supports = Vec::new();
     for (pattern_index, pattern) in patterns.iter().enumerate() {
         let support_start = supports.len();
-        for unit in &evidence.units {
+        for unit in evidence.units.all() {
             if unit.span != spans.core || unit.pos != pattern.fine_pos {
                 continue;
             }
@@ -2100,6 +2275,7 @@ fn collect_pattern_supports(
         if supports.len() == support_start && is_predicate_nominalization(pattern) {
             for unit in evidence
                 .units
+                .all()
                 .iter()
                 .filter(|unit| unit.span == spans.anchor && unit.pos.is_nominal())
             {
@@ -2279,7 +2455,7 @@ impl StructureSelection {
                                 ))
                             || (spans.core.start == selected.start
                                 && spans.consumed.end == selected.end
-                                && evidence.units.iter().any(|unit| {
+                                && evidence.units.all().iter().any(|unit| {
                                     unit.span == (spans.core.end..selected.end)
                                         && unit.pos.is_particle()
                                 }))
@@ -2303,7 +2479,7 @@ impl StructureSelection {
                             || spans.anchor.start > selected.start
                             || spans.anchor.end < selected.end
                             || (spans.anchor != spans.token
-                                && evidence.units.iter().any(|unit| {
+                                && evidence.units.all().iter().any(|unit| {
                                     unit.span == spans.token
                                         && unit.evidence == StructuralEvidence::Whole
                                         && unit.pos.is_nominal()
@@ -2462,7 +2638,7 @@ fn modifier_led_nominal_component_is_on_preferred_path(
         return false;
     }
     let mut has_leading_modifier = false;
-    for unit in &evidence.units {
+    for unit in evidence.units.all() {
         if unit.span == *selected && unit.evidence == StructuralEvidence::Whole {
             return false;
         }
@@ -2478,7 +2654,7 @@ fn modifier_led_nominal_component_is_on_preferred_path(
     }
     let direct_modifier = selected.start..core.start;
     let single_syllable_direct_modifier = core.end == selected.end
-        && evidence.units.iter().any(|unit| {
+        && evidence.units.all().iter().any(|unit| {
             unit.pos == DataFinePos::Mm
                 && unit.span == direct_modifier
                 && text
@@ -2486,7 +2662,7 @@ fn modifier_led_nominal_component_is_on_preferred_path(
                     .is_some_and(|surface| surface.chars().count() == 1)
         });
     if single_syllable_direct_modifier
-        && !evidence.units.iter().any(|unit| {
+        && !evidence.units.all().iter().any(|unit| {
             unit.pos == DataFinePos::Nr
                 && unit.span == direct_modifier
                 && matches!(
@@ -2510,88 +2686,11 @@ fn component_is_on_preferred_path(
     core: &Range<usize>,
     selected: &Range<usize>,
     evidence: &TokenEvidence,
-    accepts: impl Fn(&Unit) -> bool,
+    accepts: impl Copy + Fn(&Unit) -> bool,
 ) -> bool {
-    if core.start < selected.start
-        || core.end > selected.end
-        || core.is_empty()
-        || selected.is_empty()
-    {
-        return false;
-    }
-    let span_len = selected.len();
-    let mut edges = evidence
+    evidence
         .units
-        .iter()
-        .filter(|unit| {
-            unit.span.start >= selected.start
-                && unit.span.end <= selected.end
-                && accepts(unit)
-                && matches!(
-                    unit.evidence,
-                    StructuralEvidence::SourceComponent | StructuralEvidence::RuntimeComponent
-                )
-        })
-        .map(|unit| {
-            (
-                unit.span.start - selected.start,
-                unit.span.end - selected.start,
-                (
-                    1_usize,
-                    usize::from(unit.evidence != StructuralEvidence::SourceComponent),
-                ),
-            )
-        })
-        .collect::<Vec<_>>();
-    edges.sort_unstable_by_key(|(start, end, cost)| (*start, *end, *cost));
-    edges.dedup_by(|left, right| left.0 == right.0 && left.1 == right.1);
-
-    let mut forward = vec![None; span_len + 1];
-    forward[0] = Some((0_usize, 0_usize));
-    for position in 0..span_len {
-        let Some(prefix) = forward[position] else {
-            continue;
-        };
-        for (_, end, cost) in edges.iter().filter(|(start, _, _)| *start == position) {
-            update_min_cost(&mut forward[*end], add_cost(prefix, *cost));
-        }
-    }
-    let Some(best) = forward[span_len] else {
-        return false;
-    };
-
-    let mut backward = vec![None; span_len + 1];
-    backward[span_len] = Some((0_usize, 0_usize));
-    for position in (1..=span_len).rev() {
-        let Some(suffix) = backward[position] else {
-            continue;
-        };
-        for (start, _, cost) in edges.iter().filter(|(_, end, _)| *end == position) {
-            update_min_cost(&mut backward[*start], add_cost(*cost, suffix));
-        }
-    }
-
-    let core_start = core.start - selected.start;
-    let core_end = core.end - selected.start;
-    edges.iter().any(|(start, end, cost)| {
-        if *start != core_start || *end != core_end {
-            return false;
-        }
-        let (Some(prefix), Some(suffix)) = (forward[*start], backward[*end]) else {
-            return false;
-        };
-        add_cost(add_cost(prefix, *cost), suffix) == best
-    })
-}
-
-fn add_cost(left: (usize, usize), right: (usize, usize)) -> (usize, usize) {
-    (left.0 + right.0, left.1 + right.1)
-}
-
-fn update_min_cost(current: &mut Option<(usize, usize)>, candidate: (usize, usize)) {
-    if current.is_none_or(|value| candidate < value) {
-        *current = Some(candidate);
-    }
+        .contains_on_preferred_path(core, selected, accepts)
 }
 
 fn runtime_nominal_component_is_supported(
@@ -2635,13 +2734,13 @@ fn proper_noun_dependent_noun_frame(
         && matches!(pattern.continuation, MorphContinuation::NominalParticles)
         && spans.core.end == host.end
         && spans.consumed.end > spans.core.end
-        && evidence.units.iter().any(|unit| {
+        && evidence.units.all().iter().any(|unit| {
             unit.pos == DataFinePos::Nnp
                 && unit.span.start == host.start
                 && unit.span.end == spans.core.start
                 && unit.span.len() > spans.core.len()
         })
-        && evidence.units.iter().any(|unit| {
+        && evidence.units.all().iter().any(|unit| {
             unit.pos.is_particle()
                 && unit.span.start == spans.core.end
                 && unit.span.end <= spans.consumed.end
@@ -2661,7 +2760,7 @@ fn attached_nominal_suffix_is_supported(
         && spans.core.start > spans.token.start
         && spans.consumed.end == spans.token.end
         && spans.consumed.end > spans.core.end
-        && !evidence.units.iter().any(|unit| {
+        && !evidence.units.all().iter().any(|unit| {
             unit.span == nominal_host && unit.evidence != StructuralEvidence::SourceComponent
         })
         && is_nikl_attached_nominal_suffix(&pattern.lexical_form)
@@ -2735,7 +2834,7 @@ fn runtime_position_is_supported(
         && !copula_nominal_host
         && !attached_auxiliary
         && spans.core.start != spans.token.start
-        && evidence.units.iter().any(|unit| {
+        && evidence.units.all().iter().any(|unit| {
             unit.span.end == spans.core.start
                 && matches!(unit.pos, DataFinePos::Mag | DataFinePos::Maj)
         });
@@ -2749,6 +2848,7 @@ fn runtime_position_is_supported(
         && starts_token
         && !evidence
             .units
+            .all()
             .iter()
             .any(|unit| unit.evidence == StructuralEvidence::Whole);
     let trailing_exact_subspan = matches!(pattern.continuation, MorphContinuation::Exact)
@@ -2781,7 +2881,7 @@ fn runtime_position_is_supported(
         && pattern.lexical_form.chars().count() == 1
         && spans.core.start > spans.token.start
         && spans.core.end == spans.token.end
-        && evidence.units.iter().any(|unit| {
+        && evidence.units.all().iter().any(|unit| {
             unit.pos.is_predicate()
                 && ((unit.span.start == spans.token.start && unit.span.end <= spans.core.start)
                     || (unit.span.start < spans.core.start && unit.span.end >= spans.core.end))
@@ -2816,6 +2916,7 @@ fn modifier_has_complete_nominal_tail(
     }
     evidence
         .units
+        .all()
         .iter()
         .map(|unit| unit.span.end)
         .filter(|&host_end| host_end > core.end && host_end <= token.end)
@@ -2848,7 +2949,7 @@ fn whole_predicate_continuation(
     spans: &CandidateSpans,
     evidence: &TokenEvidence,
 ) -> bool {
-    evidence.units.iter().any(|unit| {
+    evidence.units.all().iter().any(|unit| {
         unit.span == (spans.core.start..spans.token.end)
             && unit.pos == pattern.fine_pos
             && unit.pos.is_predicate()
@@ -2866,6 +2967,7 @@ fn copula_has_complete_nominal_host(
         && spans.core.start > spans.token.start
         && evidence
             .units
+            .all()
             .iter()
             .any(|unit| unit.span == (spans.token.start..spans.core.start) && unit.pos.is_nominal())
 }
@@ -2922,6 +3024,7 @@ fn composed_nominal_subpath(
     }
     evidence
         .units
+        .all()
         .iter()
         .map(|unit| unit.span.end)
         .filter(|&host_end| host_end >= spans.core.end && host_end <= spans.token.end)
@@ -2944,27 +3047,9 @@ fn composed_nominal_subpath(
 fn minimum_unit_path(
     span: &Range<usize>,
     evidence: &TokenEvidence,
-    accepts: impl Fn(DataFinePos) -> bool,
+    accepts: impl Copy + Fn(DataFinePos) -> bool,
 ) -> Option<usize> {
-    if span.is_empty() {
-        return Some(0);
-    }
-    let mut costs = vec![None; span.end + 1];
-    costs[span.start] = Some(0_usize);
-    for start in span.start..span.end {
-        let Some(cost) = costs[start] else {
-            continue;
-        };
-        for unit in evidence.units.iter().filter(|unit| {
-            unit.span.start == start && unit.span.end <= span.end && accepts(unit.pos)
-        }) {
-            let next = cost + 1;
-            if costs[unit.span.end].is_none_or(|current| next < current) {
-                costs[unit.span.end] = Some(next);
-            }
-        }
-    }
-    costs[span.end]
+    evidence.units.minimum_path_len(span, accepts)
 }
 
 fn select_structure(
@@ -2980,6 +3065,7 @@ fn select_structure(
     if evidence.has_whole(DataFinePos::Mag)
         && evidence
             .units
+            .all()
             .iter()
             .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal())
         && context
