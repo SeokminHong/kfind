@@ -31,6 +31,7 @@ const REPEATED_PHRASE_SPANS: usize = 128;
 const INPUT_SEARCHER_PHRASE_QUERY: &str = "lit:가 lit:나";
 const INPUT_SEARCHER_PHRASE_REPETITIONS: usize = 4_096;
 const CONTEXT_REPETITIONS: usize = 16_384;
+const UNIQUE_CONTEXT_REPETITIONS: usize = CONTEXT_REPETITIONS;
 const PHRASE_8_ATOMS_QUERY: &str =
     "n:사용자 n:권한 v:검증하다 adj:예쁘다 det:새 adv:빨리 n:기술 v:걷다";
 const SHORT_MATCHING_TEXT: &[u8] = "길을 걸었다.".as_bytes();
@@ -174,6 +175,33 @@ fn matcher_scan(criterion: &mut Criterion) {
         });
     });
 
+    let mut summary_input_searcher = InputSearcher::new(InputOptions {
+        capture_records: false,
+        ..InputOptions::default()
+    })
+    .expect("summary input searcher must build");
+    let summary = summary_input_searcher
+        .search_reader(
+            &input_searcher_matcher,
+            PathBuf::from("repeated-line.txt"),
+            Cursor::new(&input_searcher_line),
+        )
+        .expect("summary benchmark corpus must be searchable");
+    assert_eq!(summary.matching_lines, 1);
+    assert_eq!(summary.matched_spans, None);
+    group.throughput(Throughput::Bytes(input_searcher_line.len() as u64));
+    group.bench_function("phrase_input_searcher_repeated_line_exists", |bencher| {
+        bencher.iter(|| {
+            summary_input_searcher
+                .search_reader(
+                    black_box(&input_searcher_matcher),
+                    PathBuf::from("repeated-line.txt"),
+                    Cursor::new(black_box(&input_searcher_line)),
+                )
+                .expect("summary benchmark corpus must be searchable")
+        });
+    });
+
     let context_plan = compile_query("adv:매일", &CompileOptions::default(), &analyzer)
         .expect("context benchmark query must compile");
     let context_matcher =
@@ -204,6 +232,38 @@ fn matcher_scan(criterion: &mut Criterion) {
     group.throughput(Throughput::Bytes(alternating_context.len() as u64));
     group.bench_function("context_alternating_spacing_long_line", |bencher| {
         bencher.iter(|| context_matcher.find_all_with_meta(black_box(&alternating_context)));
+    });
+
+    let constant_context = "가 매일 나 "
+        .repeat(UNIQUE_CONTEXT_REPETITIONS)
+        .into_bytes();
+    assert_eq!(
+        context_matcher.find_all_with_meta(&constant_context).len(),
+        UNIQUE_CONTEXT_REPETITIONS
+    );
+    group.throughput(Throughput::Bytes(constant_context.len() as u64));
+    group.bench_function("context_constant_neighbors_long_line", |bencher| {
+        bencher.iter(|| context_matcher.find_all_with_meta(black_box(&constant_context)));
+    });
+
+    let mut unique_context = String::with_capacity(constant_context.len());
+    for index in 0..UNIQUE_CONTEXT_REPETITIONS {
+        use std::fmt::Write;
+        let previous = char::from_u32(0xac00 + (index / 128) as u32)
+            .expect("benchmark previous token must be valid Hangul");
+        let next = char::from_u32(0xac00 + (index % 128) as u32)
+            .expect("benchmark next token must be valid Hangul");
+        write!(unique_context, "{previous} 매일 {next} ")
+            .expect("writing benchmark context must succeed");
+    }
+    let unique_context = unique_context.into_bytes();
+    assert_eq!(
+        context_matcher.find_all_with_meta(&unique_context).len(),
+        UNIQUE_CONTEXT_REPETITIONS
+    );
+    group.throughput(Throughput::Bytes(unique_context.len() as u64));
+    group.bench_function("context_unique_neighbors_long_line", |bencher| {
+        bencher.iter(|| context_matcher.find_all_with_meta(black_box(&unique_context)));
     });
     group.finish();
 }
