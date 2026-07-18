@@ -295,11 +295,14 @@
 - 문서 locale은 URL path나 query를 바꾸지 않고 같은 route와 UI 구조에서 전환한다. 현재 지원 locale은
   한국어 `ko` 하나이며 SSG HTML의 기본 locale도 한국어다. Locale별 공통 UI 문구, navigation과 SEO
   metadata는 typed catalog로 분리하고 장문 route 본문도 같은 locale model을 사용해 확장할 수 있어야
-  한다. 지원 locale이 둘 이상일 때만 공통 shell에 언어 control을 표시한다.
+  한다. Catalog 조회, interpolation과 plural 처리는 `i18next`와 `react-i18next`에 위임하고 직접 문자열을
+  치환하거나 번역 key를 동적으로 조립하지 않는다. 지원 locale이 둘 이상일 때만 공통 shell에 언어
+  control을 표시한다.
 - 선택한 locale은 `kfind-document-locale` cookie에 site 전체 path로 보존한다. Hydration은 SSG의 기본
   locale로 시작한 뒤 browser cookie가 지원 값이면 같은 URL에서 해당 locale을 적용한다. Cookie가 없거나
   지원하지 않는 값이면 기본 locale을 유지하며 `Accept-Language`에 따른 자동 redirect는 하지 않는다.
-  Locale cookie는 UI preference일 뿐 인증·권한 판단에 사용하지 않는다.
+  Cookie 감지와 보존은 i18next language detector에 위임한다. Locale cookie는 UI preference일 뿐
+  인증·권한 판단에 사용하지 않는다.
 - 같은 canonical URL에서 cookie로 locale을 구분하므로 locale별 alternate URL이나 `hreflang`은 만들지
   않는다. 검색 engine에는 SSG가 만든 기본 한국어 문서를 제공하고, 향후 추가 locale은 동일 URL의 사용자
   preference로 취급한다.
