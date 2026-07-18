@@ -188,6 +188,23 @@ fn matcher_scan(criterion: &mut Criterion) {
     group.bench_function("context_repeated_long_line", |bencher| {
         bencher.iter(|| context_matcher.find_all_with_meta(black_box(&context_line)));
     });
+
+    let mut alternating_context = String::with_capacity(context_line.len() + CONTEXT_REPETITIONS);
+    for index in 0..CONTEXT_REPETITIONS {
+        alternating_context.push_str("매일");
+        alternating_context.push_str(if index % 2 == 0 { " " } else { "  " });
+    }
+    let alternating_context = alternating_context.into_bytes();
+    assert_eq!(
+        context_matcher
+            .find_all_with_meta(&alternating_context)
+            .len(),
+        CONTEXT_REPETITIONS
+    );
+    group.throughput(Throughput::Bytes(alternating_context.len() as u64));
+    group.bench_function("context_alternating_spacing_long_line", |bencher| {
+        bencher.iter(|| context_matcher.find_all_with_meta(black_box(&alternating_context)));
+    });
     group.finish();
 }
 

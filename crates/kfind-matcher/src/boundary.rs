@@ -38,13 +38,16 @@ pub(crate) fn accepts_requirements(
 #[must_use]
 pub fn is_token_character(character: char) -> bool {
     character == '_'
-        || character.is_alphanumeric()
-        || matches!(
-            get_general_category(character),
-            GeneralCategory::NonspacingMark
-                | GeneralCategory::SpacingMark
-                | GeneralCategory::EnclosingMark
-        )
+        || character.is_ascii_alphanumeric()
+        || matches!(character, '\u{ac00}'..='\u{d7a3}')
+        || (!character.is_ascii() && character.is_alphanumeric())
+        || (!character.is_ascii()
+            && matches!(
+                get_general_category(character),
+                GeneralCategory::NonspacingMark
+                    | GeneralCategory::SpacingMark
+                    | GeneralCategory::EnclosingMark
+            ))
 }
 
 fn valid_ranges(length: usize, core: &Range<usize>, token: &Range<usize>) -> bool {
@@ -124,13 +127,14 @@ fn previous_character_with_start(haystack: &[u8], at: usize) -> Option<(usize, c
     if at == 0 || at > haystack.len() {
         return None;
     }
-    let earliest = at.saturating_sub(4);
-    (earliest..at).rev().find_map(|start| {
-        let text = std::str::from_utf8(&haystack[start..at]).ok()?;
-        let mut characters = text.chars();
-        let character = characters.next()?;
-        characters.next().is_none().then_some((start, character))
-    })
+    let mut start = at - 1;
+    while start > at.saturating_sub(4) && is_utf8_continuation(haystack[start]) {
+        start -= 1;
+    }
+    let text = std::str::from_utf8(haystack.get(start..at)?).ok()?;
+    let mut characters = text.chars();
+    let character = characters.next()?;
+    characters.next().is_none().then_some((start, character))
 }
 
 fn next_character(haystack: &[u8], at: usize) -> Option<char> {
@@ -138,21 +142,32 @@ fn next_character(haystack: &[u8], at: usize) -> Option<char> {
 }
 
 fn next_character_with_end(haystack: &[u8], at: usize) -> Option<(usize, char)> {
-    if at >= haystack.len() {
-        return None;
+    let width = utf8_width(*haystack.get(at)?)?;
+    let end = at.checked_add(width).filter(|&end| end <= haystack.len())?;
+    let text = std::str::from_utf8(haystack.get(at..end)?).ok()?;
+    let mut characters = text.chars();
+    let character = characters.next()?;
+    characters.next().is_none().then_some((end, character))
+}
+
+fn utf8_width(first: u8) -> Option<usize> {
+    match first {
+        0x00..=0x7f => Some(1),
+        0xc2..=0xdf => Some(2),
+        0xe0..=0xef => Some(3),
+        0xf0..=0xf4 => Some(4),
+        _ => None,
     }
-    let latest = (at + 4).min(haystack.len());
-    ((at + 1)..=latest).find_map(|end| {
-        let text = std::str::from_utf8(&haystack[at..end]).ok()?;
-        let mut characters = text.chars();
-        let character = characters.next()?;
-        characters.next().is_none().then_some((end, character))
-    })
+}
+
+fn is_utf8_continuation(byte: u8) -> bool {
+    byte & 0b1100_0000 == 0b1000_0000
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use proptest::prelude::*;
 
     fn verifier(policy: BoundaryPolicy, require_smart_left: bool) -> BoundaryVerifier {
         BoundaryVerifier {
@@ -244,5 +259,70 @@ mod tests {
             bounded_surrounding_token_span(text.as_bytes(), span, 8),
             Err(9)
         );
+    }
+
+    fn reference_is_token_character(character: char) -> bool {
+        character == '_'
+            || character.is_alphanumeric()
+            || matches!(
+                get_general_category(character),
+                GeneralCategory::NonspacingMark
+                    | GeneralCategory::SpacingMark
+                    | GeneralCategory::EnclosingMark
+            )
+    }
+
+    fn reference_previous_character_with_start(
+        haystack: &[u8],
+        at: usize,
+    ) -> Option<(usize, char)> {
+        if at == 0 || at > haystack.len() {
+            return None;
+        }
+        let earliest = at.saturating_sub(4);
+        (earliest..at).rev().find_map(|start| {
+            let text = std::str::from_utf8(&haystack[start..at]).ok()?;
+            let mut characters = text.chars();
+            let character = characters.next()?;
+            characters.next().is_none().then_some((start, character))
+        })
+    }
+
+    fn reference_next_character_with_end(haystack: &[u8], at: usize) -> Option<(usize, char)> {
+        if at >= haystack.len() {
+            return None;
+        }
+        let latest = (at + 4).min(haystack.len());
+        ((at + 1)..=latest).find_map(|end| {
+            let text = std::str::from_utf8(&haystack[at..end]).ok()?;
+            let mut characters = text.chars();
+            let character = characters.next()?;
+            characters.next().is_none().then_some((end, character))
+        })
+    }
+
+    proptest! {
+        #[test]
+        fn token_character_fast_paths_preserve_the_unicode_contract(character in any::<char>()) {
+            prop_assert_eq!(
+                is_token_character(character),
+                reference_is_token_character(character)
+            );
+        }
+
+        #[test]
+        fn bounded_scalar_decoders_match_the_reference_on_arbitrary_bytes(
+            haystack in prop::collection::vec(any::<u8>(), 0..512),
+            at in 0usize..600,
+        ) {
+            prop_assert_eq!(
+                previous_character_with_start(&haystack, at),
+                reference_previous_character_with_start(&haystack, at)
+            );
+            prop_assert_eq!(
+                next_character_with_end(&haystack, at),
+                reference_next_character_with_end(&haystack, at)
+            );
+        }
     }
 }
