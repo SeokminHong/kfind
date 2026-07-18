@@ -8,9 +8,9 @@ use std::sync::Arc;
 use grep_matcher::{LineMatchKind, LineTerminator, Match, Matcher, NoCaptures, NoError};
 use kfind_data::{ComponentResource, DataFinePos};
 use kfind_morph::{
-    ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, ParticleChainModel, ParticleVerifier,
-    PredicateStemClass, ProductPolicy, RuleId, verify_copula_surface_after_nominal,
-    verify_predicate_continuation,
+    ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, MorphContinuation, ParticleChainModel,
+    ParticleVerifier, PredicateStemClass, ProductPolicy, RuleId,
+    verify_copula_surface_after_nominal, verify_predicate_continuation,
 };
 use kfind_query::{
     CandidateConsumption, CandidateDecision, CandidateLeftContext, CandidateProgram, CoreMapping,
@@ -40,7 +40,7 @@ const ADNOMINAL_RULE_IDS: [&str; 4] = [
 ];
 #[derive(Default)]
 struct StructuralCache {
-    windows: HashMap<(usize, usize, bool), Option<PreparedStructuralContextAnalysis>>,
+    windows: HashMap<(usize, usize, bool, bool), Option<PreparedStructuralContextAnalysis>>,
     prepared_contexts: PreparedStructuralContextCache,
 }
 
@@ -710,6 +710,11 @@ impl MorphMatcher {
         let include_nominal_copula = copula_program
             || (patterns.iter().any(|pattern| pattern.fine_pos.is_nominal())
                 && nominal_copula_surface_follows(haystack, candidate));
+        let include_nominal_derivation_predicate = patterns.iter().any(|pattern| {
+            pattern.fine_pos.is_nominal()
+                && matches!(pattern.continuation, MorphContinuation::NominalParticles)
+                && pattern.component_capability.allows_runtime()
+        });
         let consumed = licensed_trailing.unwrap_or_else(|| candidate.consumed.clone());
         let rejected_suffix =
             self.has_rejected_structural_suffix(haystack, candidate, &consumed, branch, resolver);
@@ -724,7 +729,12 @@ impl MorphMatcher {
         let window = whole.clone();
         let context = structural_cache
             .windows
-            .entry((window.start, window.end, include_nominal_copula))
+            .entry((
+                window.start,
+                window.end,
+                include_nominal_copula,
+                include_nominal_derivation_predicate,
+            ))
             .or_insert_with(|| {
                 PreparedStructuralContextAnalysis::extract(
                     haystack,
@@ -732,6 +742,7 @@ impl MorphMatcher {
                     resolver,
                     DEFAULT_LATTICE_NODE_LIMIT,
                     include_nominal_copula,
+                    include_nominal_derivation_predicate,
                     &mut structural_cache.prepared_contexts,
                 )
             });

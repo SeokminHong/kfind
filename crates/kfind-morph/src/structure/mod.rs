@@ -493,7 +493,7 @@ impl ConstraintResolver {
         {
             return false;
         }
-        TokenEvidence::collect(&self.resource, text, node_limit, false, false).is_ok_and(
+        TokenEvidence::collect(&self.resource, text, node_limit, false, false, false).is_ok_and(
             |evidence| {
                 !evidence.has_whole_modifier()
                     && evidence
@@ -544,11 +544,17 @@ impl ConstraintResolver {
                 .any(|pattern| pattern.fine_pos == DataFinePos::Vx);
         let include_nominal_copula = patterns.iter().any(|pattern| pattern.fine_pos.is_nominal())
             && copula_surface_begins_at(context.current, spans.core.end);
+        let include_nominal_derivation_predicate = patterns.iter().any(|pattern| {
+            pattern.fine_pos.is_nominal()
+                && matches!(pattern.continuation, MorphContinuation::NominalParticles)
+                && pattern.component_capability.allows_runtime()
+        });
         let prepared = match self.prepare_context_inner(
             context,
             node_limit,
             include_attached_auxiliary,
             include_nominal_copula,
+            include_nominal_derivation_predicate,
         ) {
             Ok(prepared) => prepared,
             Err(reason) => return ConstraintDecision::unavailable(reason),
@@ -561,7 +567,7 @@ impl ConstraintResolver {
         context: BoundedTokenContext<'_>,
         node_limit: usize,
     ) -> Result<PreparedStructuralContext, ConstraintUnavailable> {
-        self.prepare_context_inner(context, node_limit, self.attached_auxiliary, false)
+        self.prepare_context_inner(context, node_limit, self.attached_auxiliary, false, true)
     }
 
     pub fn prepare_context_for_candidate(
@@ -569,12 +575,14 @@ impl ConstraintResolver {
         context: BoundedTokenContext<'_>,
         node_limit: usize,
         include_nominal_copula: bool,
+        include_nominal_derivation_predicate: bool,
     ) -> Result<PreparedStructuralContext, ConstraintUnavailable> {
         self.prepare_context_inner(
             context,
             node_limit,
             self.attached_auxiliary,
             include_nominal_copula,
+            include_nominal_derivation_predicate,
         )
     }
 
@@ -584,6 +592,7 @@ impl ConstraintResolver {
         node_limit: usize,
         include_attached_auxiliary: bool,
         include_nominal_copula: bool,
+        include_nominal_derivation_predicate: bool,
     ) -> Result<PreparedStructuralContext, ConstraintUnavailable> {
         let evidence = TokenEvidence::collect(
             &self.resource,
@@ -591,6 +600,7 @@ impl ConstraintResolver {
             node_limit,
             include_attached_auxiliary,
             include_nominal_copula,
+            include_nominal_derivation_predicate,
         )?;
         let selection = select_structure(&self.resource, context, &evidence);
         Ok(PreparedStructuralContext {
@@ -715,6 +725,7 @@ impl TokenEvidence {
         node_limit: usize,
         include_attached_auxiliary: bool,
         include_nominal_copula: bool,
+        include_nominal_derivation_predicate: bool,
     ) -> Result<Self, ConstraintUnavailable> {
         if text.as_bytes().first().is_some_and(u8::is_ascii_digit) {
             Self::collect_mode::<true>(
@@ -723,6 +734,7 @@ impl TokenEvidence {
                 node_limit,
                 include_attached_auxiliary,
                 include_nominal_copula,
+                include_nominal_derivation_predicate,
             )
         } else {
             Self::collect_mode::<false>(
@@ -731,6 +743,7 @@ impl TokenEvidence {
                 node_limit,
                 include_attached_auxiliary,
                 include_nominal_copula,
+                include_nominal_derivation_predicate,
             )
         }
     }
@@ -741,6 +754,7 @@ impl TokenEvidence {
         node_limit: usize,
         include_attached_auxiliary: bool,
         include_nominal_copula: bool,
+        include_nominal_derivation_predicate: bool,
     ) -> Result<Self, ConstraintUnavailable> {
         let numeric_end = if NUMERIC {
             text.bytes().take_while(u8::is_ascii_digit).count()
@@ -804,8 +818,11 @@ impl TokenEvidence {
         let leading_predicate_spans = leading_predicate_spans(text.len(), &edges);
         let compound_predicate_components = compound_predicate_components(text.len(), &edges);
         let runtime_nominal_derivation_spans = runtime_nominal_derivation_spans(&edges, &complete);
-        let nominal_derivation_predicate_prefixes =
-            nominal_derivation_predicate_prefixes(text.len(), &edges);
+        let nominal_derivation_predicate_prefixes = if include_nominal_derivation_predicate {
+            nominal_derivation_predicate_prefixes(text.len(), &edges)
+        } else {
+            Box::default()
+        };
         let derivational_suffix_starts = derivational_suffix_starts(&edges, &complete);
         let adnominal_derivation_suffix_starts =
             adnominal_derivation_suffix_starts(text.len(), &edges);
