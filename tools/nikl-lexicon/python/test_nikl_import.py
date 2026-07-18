@@ -14,6 +14,7 @@ from nikl_import import (
     import_snapshot,
     krdict_record,
     krdict_related_adverbs,
+    krdict_related_voice_derivations,
     normalize_headword,
     opendict_record,
     stdict_record,
@@ -140,6 +141,19 @@ class NiklImportTest(unittest.TestCase):
         }
 
         self.assertEqual(krdict_related_adverbs(entries), {"1": ("상관없이",)})
+
+    def test_accepts_only_bidirectional_bounded_voice_relations(self) -> None:
+        entries = {
+            "1": KrDictEntry(
+                "밀다",
+                "동사",
+                (("파생어", "2", "밀리다"), ("파생어", "3", "밀어내다")),
+            ),
+            "2": KrDictEntry("밀리다", "동사", (("☞(가 보라)", "1", "밀다"),)),
+            "3": KrDictEntry("밀어내다", "동사", (("☞(가 보라)", "1", "밀다"),)),
+        }
+
+        self.assertEqual(krdict_related_voice_derivations(entries), {"1": (("밀리다", "2"),)})
 
     def test_generates_bounded_adverbial_i_candidates(self) -> None:
         self.assertEqual(adverbial_i_candidates("같다"), ("같이",))

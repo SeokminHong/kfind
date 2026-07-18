@@ -12,9 +12,12 @@ homonym identity, and emits normalized predicate records. It also proposes only
 bounded adjective-to-adverb shapes (`-없다`/`-같다` plus `이`, and `르` to
 `ㄹ리`) and records them when both the Korean Basic Dictionary and Standard
 Korean Language Dictionary independently list the adjective and resulting
-adverb. The Rust classifier uses kfind's predicate generator to identify
-diagnostic conjugations and promotes only cross-dictionary agreement. Urimalsaem
-is retained as audit evidence. Core duplicates and analyses already covered by
+adverb. It also reads direct, reciprocal Korean Basic Dictionary derivation
+relations whose verb target has a bounded `-이/-히/-리/-기-` voice shape. The
+Rust classifier uses kfind's predicate generator to identify diagnostic
+conjugations and promotes only cross-dictionary agreement, including independent
+Standard Korean Language Dictionary records for both voice lemmas. Urimalsaem is
+retained as audit evidence. Core duplicates and analyses already covered by
 productive suffix rules are recorded in the report but omitted from the
 enriched artifact.
 
@@ -22,6 +25,15 @@ Run from the repository root:
 
 ```sh
 scripts/build-enriched-predicates.sh
+```
+
+Generation writes a reusable candidate under `target/` before validating its
+distribution size and installing it. A failed candidate remains there. After
+changing only validation policy, rerun validation and installation without
+regenerating dictionary data:
+
+```sh
+scripts/install-enriched-predicates.sh target/kfind-enriched-candidate.XXXXXX
 ```
 
 Set `KFIND_NIKL_DOWNLOADS` when the pinned ZIP files are outside `~/Downloads`.
