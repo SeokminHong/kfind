@@ -522,6 +522,60 @@ fn structural_constraint(criterion: &mut Criterion) {
             },
         );
     }
+
+    let dense_selection_text = "나".repeat(20);
+    let dense_selection_resolver =
+        ConstraintResolver::new(Arc::new(dense_nominal_particle_resource(20)));
+    let dense_selection_graph = Arc::new(
+        dense_selection_resolver
+            .prepare_token_graph_for_candidate(
+                &dense_selection_text,
+                DEFAULT_LATTICE_NODE_LIMIT,
+                false,
+                false,
+            )
+            .expect("dense selection token graph must prepare"),
+    );
+    dense_selection_resolver
+        .prepare_context_with_token_graph(
+            BoundedTokenContext {
+                previous: None,
+                current: &dense_selection_text,
+                next: None,
+            },
+            Arc::clone(&dense_selection_graph),
+        )
+        .expect("dense selection context must prepare");
+    group.bench_function("select_dense_nominal_particle_facts", |bencher| {
+        bencher.iter(|| {
+            dense_selection_resolver
+                .prepare_context_with_token_graph(
+                    BoundedTokenContext {
+                        previous: None,
+                        current: black_box(&dense_selection_text),
+                        next: None,
+                    },
+                    Arc::clone(black_box(&dense_selection_graph)),
+                )
+                .expect("dense selection context must prepare")
+        });
+    });
+    group.bench_function("prepare_dense_nominal_particle_context", |bencher| {
+        bencher.iter(|| {
+            dense_selection_resolver
+                .prepare_context_for_candidate(
+                    BoundedTokenContext {
+                        previous: None,
+                        current: black_box(&dense_selection_text),
+                        next: None,
+                    },
+                    DEFAULT_LATTICE_NODE_LIMIT,
+                    false,
+                    false,
+                )
+                .expect("dense selection context must prepare")
+        });
+    });
     group.finish();
 }
 
@@ -619,6 +673,24 @@ fn ambiguous_particle_suffix_resource(repetitions: usize) -> kfind_data::Compone
         &COMPONENT_RESOURCE_SOURCE_DIGEST,
     )
     .expect("ambiguous suffix benchmark component resource must decode")
+}
+
+fn dense_nominal_particle_resource(repetitions: usize) -> kfind_data::ComponentResource {
+    let mut entries = Vec::with_capacity(repetitions * 2);
+    let mut surface = String::new();
+    for _ in 0..repetitions {
+        surface.push('나');
+        entries.push(component_entry(&surface, "NNG", 0));
+        entries.push(component_entry(&surface, "JX", 0));
+    }
+    let bytes = encode_component_resource(COMPONENT_RESOURCE_SOURCE_DIGEST, &entries)
+        .expect("dense selection benchmark component resource must encode");
+    decode_component_resource(
+        "dense selection benchmark",
+        bytes,
+        &COMPONENT_RESOURCE_SOURCE_DIGEST,
+    )
+    .expect("dense selection benchmark component resource must decode")
 }
 
 fn component_entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorphologyEntry {

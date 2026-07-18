@@ -178,6 +178,9 @@ scripts/benchmark-criterion.sh structural_constraint
 `structural_constraint/reject_ambiguous_particle_suffix_*`는 완성 경로가 없는 다분기 suffix의
 12개·20개 반복 입력을 각각 거부해 중복 재귀와 stack 성장 회귀를 감시한다. 모든 workload를 함께
 비교한다.
+`structural_constraint/select_dense_nominal_particle_facts`는 준비된 token graph를 공유한 선택 비용,
+`structural_constraint/prepare_dense_nominal_particle_context`는 같은 입력의 graph 생성부터 선택까지를
+측정한다. 두 workload를 함께 비교해 graph 공유 표본의 편중을 확인한다.
 
 ## Morphology comparison
 

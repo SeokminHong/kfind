@@ -1024,6 +1024,8 @@ struct NumericUnitPath {
 #[derive(Debug, Default)]
 struct TokenEvidence {
     units: UnitGraph,
+    nominal_particle_hosts: Box<[Range<usize>]>,
+    complete_nominal_particle_host: Option<Range<usize>>,
     has_whole_nominal_source_components: bool,
     runtime_spans: Vec<Range<usize>>,
     compound_predicate_components: Box<[PredicateComponent]>,
@@ -1044,6 +1046,7 @@ struct TokenEvidence {
 impl TokenEvidence {
     fn memory_usage(&self) -> usize {
         self.units.memory_usage()
+            + self.nominal_particle_hosts.len() * std::mem::size_of::<Range<usize>>()
             + self.runtime_spans.capacity() * std::mem::size_of::<Range<usize>>()
             + self.compound_predicate_components.len() * std::mem::size_of::<PredicateComponent>()
             + self.attached_auxiliary_spans.len() * std::mem::size_of::<Range<usize>>()
@@ -1106,6 +1109,7 @@ impl TokenEvidence {
         };
         let numeric_unit = numeric_path.as_ref().map(|path| path.unit.clone());
         let graph = EdgeGraph::collect(resource, text, node_limit)?;
+        let nominal_paths = NominalPathFacts::collect(text, &graph);
         let edges = graph.edges();
         let mixed_numeral_spans = if NUMERIC
             && numeric_unit.is_none()
@@ -1280,6 +1284,8 @@ impl TokenEvidence {
         adnominal_ends.dedup();
         Ok(Self {
             units: UnitGraph::from_sorted_by(text.len(), units, |unit| unit.span.start),
+            nominal_particle_hosts: nominal_paths.particle_hosts,
+            complete_nominal_particle_host: nominal_paths.complete_particle_host,
             has_whole_nominal_source_components,
             runtime_spans,
             compound_predicate_components,
@@ -1353,6 +1359,76 @@ struct Edge<'a> {
 }
 
 type EdgeGraph<'a> = StartGraph<Edge<'a>>;
+
+#[derive(Default)]
+struct NominalPathFacts {
+    particle_hosts: Box<[Range<usize>]>,
+    complete_particle_host: Option<Range<usize>>,
+}
+
+impl NominalPathFacts {
+    fn collect(text: &str, graph: &EdgeGraph<'_>) -> Self {
+        if !graph
+            .edges()
+            .iter()
+            .any(|edge| edge.pos.split('+').all(|pos| pos.starts_with('J')))
+        {
+            return Self::default();
+        }
+        let mut particle_suffix = vec![false; text.len() + 1];
+        particle_suffix[text.len()] = true;
+        for start in (0..text.len()).rev() {
+            particle_suffix[start] = graph.starting_at(start).iter().any(|edge| {
+                particle_suffix[edge.span.end]
+                    && edge.pos.split('+').all(|pos| pos.starts_with('J'))
+            });
+        }
+
+        let mut nominal_prefix = vec![[false; 2]; text.len() + 1];
+        nominal_prefix[0][0] = true;
+        for start in 0..text.len() {
+            for has_nominal in [false, true] {
+                if !nominal_prefix[start][usize::from(has_nominal)] {
+                    continue;
+                }
+                for edge in graph.starting_at(start) {
+                    let mut next_has_nominal = has_nominal;
+                    let valid = edge.pos.split('+').all(|pos| {
+                        if DataFinePos::parse(pos).is_some_and(DataFinePos::is_nominal) {
+                            next_has_nominal = true;
+                            true
+                        } else {
+                            matches!(pos, "XPN" | "XSN" | "XR")
+                        }
+                    });
+                    if valid {
+                        nominal_prefix[edge.span.end][usize::from(next_has_nominal)] = true;
+                    }
+                }
+            }
+        }
+
+        let mut exact_nominal_end = vec![false; text.len() + 1];
+        for edge in graph.starting_at(0) {
+            exact_nominal_end[edge.span.end] |=
+                DataFinePos::parse(edge.pos).is_some_and(DataFinePos::is_nominal);
+        }
+        let mut particle_hosts = Vec::new();
+        let mut complete_particle_host = None;
+        for split in text.char_indices().map(|(offset, _)| offset).skip(1) {
+            if exact_nominal_end[split] && particle_suffix[split] {
+                particle_hosts.push(0..split);
+            }
+            if nominal_prefix[split][1] && particle_suffix[split] {
+                complete_particle_host = Some(0..split);
+            }
+        }
+        Self {
+            particle_hosts: particle_hosts.into_boxed_slice(),
+            complete_particle_host,
+        }
+    }
+}
 
 impl<'a> StartGraph<Edge<'a>> {
     fn collect(
@@ -2333,7 +2409,6 @@ enum StructureSelection {
     AdjacentDeterminer,
     NominalSpan {
         selected: Range<usize>,
-        particle_hosts: Box<[Range<usize>]>,
         allow_components: bool,
         allow_whole_nominal_source_components: bool,
     },
@@ -2409,7 +2484,6 @@ impl StructureSelection {
             }
             Self::NominalSpan {
                 selected,
-                particle_hosts,
                 allow_components,
                 allow_whole_nominal_source_components,
             } => {
@@ -2447,7 +2521,7 @@ impl StructureSelection {
                                         evidence,
                                     ))))
                             || spans.core == *selected
-                            || (particle_hosts.contains(&spans.core)
+                            || (evidence.nominal_particle_hosts.contains(&spans.core)
                                 && spans.consumed == spans.token
                                 && matches!(
                                     pattern.continuation,
@@ -3084,8 +3158,7 @@ fn select_structure(
         !nominal_particle_hosts(resource, next).is_empty()
             || (!exact_competitor && (exact_nominal || complete_nominal))
     });
-    let particle_hosts = nominal_particle_hosts(resource, context.current);
-    let particle_host = particle_hosts.last().cloned();
+    let particle_host = evidence.nominal_particle_hosts.last().cloned();
     if next_starts_nominal
         && context.current.chars().count() == 1
         && evidence.has_whole(DataFinePos::Mm)
@@ -3131,13 +3204,12 @@ fn select_structure(
             host != (0..context.current.len()) && evidence.has_whole_nominal_source_components;
         StructureSelection::NominalSpan {
             selected: host,
-            particle_hosts: particle_hosts.into_boxed_slice(),
             allow_components,
             allow_whole_nominal_source_components,
         }
     } else {
         StructureSelection::RuntimeCompatible {
-            graph_nominal_host: complete_nominal_particle_host(resource, context.current),
+            graph_nominal_host: evidence.complete_nominal_particle_host.clone(),
         }
     };
     let fallback = if next_starts_nominal && !evidence.adnominal_derivation_suffix_starts.is_empty()
