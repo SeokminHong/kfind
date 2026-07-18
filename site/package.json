@@ -8,13 +8,14 @@
     "upload:component": "./scripts/upload-component-resource.sh",
     "types": "wrangler types worker-configuration.d.ts --env-interface CloudflareBindings --include-runtime=false",
     "types:check": "wrangler types worker-configuration.d.ts --env-interface CloudflareBindings --include-runtime=false --check",
-    "dev": "pnpm run prepare:assets && vite",
-    "dev:pages": "pnpm run build && wrangler pages dev",
-    "build": "pnpm run prepare:assets && tsc --noEmit && tsc --noEmit --project functions/tsconfig.json && vite build",
+    "typegen": "react-router typegen",
+    "dev": "pnpm run prepare:assets && react-router dev",
+    "dev:pages": "pnpm run build && wrangler pages dev build/client",
+    "build": "pnpm run prepare:assets && react-router typegen && tsc --noEmit && tsc --noEmit --project functions/tsconfig.json && react-router build",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "preview": "vite preview",
+    "preview": "wrangler pages dev build/client",
     "deploy": "pnpm run upload:component && pnpm run build && wrangler pages deploy build/client --project-name kfind --branch main"
   },
   "devDependencies": {
