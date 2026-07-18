@@ -10,7 +10,9 @@ use grep_searcher::{
 use kfind_matcher::MorphMatcher;
 use kfind_query::PhraseMatch;
 
-const MAX_MATCHES_PER_LINE: usize = 65_536;
+use self::line_matcher::LineMatcher;
+
+mod line_matcher;
 
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum InputEncoding {
@@ -149,13 +151,14 @@ impl InputSearcher {
     where
         F: FnMut(SearchRecord) -> bool,
     {
+        let line_matcher = LineMatcher::new(matcher, self.options.capture_records);
         let mut sink = MatchSink::new(
             path.to_path_buf(),
-            matcher,
+            &line_matcher,
             self.options.capture_records,
             emit,
         );
-        self.searcher.search_path(matcher, path, &mut sink)?;
+        self.searcher.search_path(&line_matcher, path, &mut sink)?;
         Ok(sink.finish())
     }
 
@@ -169,8 +172,15 @@ impl InputSearcher {
     where
         F: FnMut(SearchRecord) -> bool,
     {
-        let mut sink = MatchSink::new(display_path, matcher, self.options.capture_records, emit);
-        self.searcher.search_reader(matcher, reader, &mut sink)?;
+        let line_matcher = LineMatcher::new(matcher, self.options.capture_records);
+        let mut sink = MatchSink::new(
+            display_path,
+            &line_matcher,
+            self.options.capture_records,
+            emit,
+        );
+        self.searcher
+            .search_reader(&line_matcher, reader, &mut sink)?;
         Ok(sink.finish())
     }
 }
@@ -214,7 +224,7 @@ fn build_searcher(options: InputOptions) -> Result<Searcher, InputSearchError> {
 
 struct MatchSink<'a, F> {
     result: FileSearchResult,
-    matcher: &'a MorphMatcher,
+    matcher: &'a LineMatcher<'a>,
     capture_records: bool,
     emit: F,
 }
@@ -223,7 +233,7 @@ impl<'a, F> MatchSink<'a, F>
 where
     F: FnMut(SearchRecord) -> bool,
 {
-    fn new(path: PathBuf, matcher: &'a MorphMatcher, capture_records: bool, emit: F) -> Self {
+    fn new(path: PathBuf, matcher: &'a LineMatcher<'a>, capture_records: bool, emit: F) -> Self {
         Self {
             result: FileSearchResult {
                 path,
@@ -274,7 +284,7 @@ where
     ) -> Result<bool, Self::Error> {
         self.result.matching_lines += 1;
         let matches = if self.capture_records {
-            collect_line_matches(self.matcher, matched.bytes(), MAX_MATCHES_PER_LINE)?
+            self.matcher.take_line_matches(matched.bytes())?
         } else {
             Vec::new()
         };
@@ -320,18 +330,6 @@ where
     }
 }
 
-fn collect_line_matches(
-    matcher: &MorphMatcher,
-    bytes: &[u8],
-    limit: usize,
-) -> Result<Vec<PhraseMatch>, InputSearchError> {
-    matcher
-        .find_all_with_meta_limit(bytes, limit)
-        .map_err(|error| InputSearchError::MatchLimitExceeded {
-            limit: error.limit(),
-        })
-}
-
 #[derive(Debug)]
 pub enum InputSearchError {
     Encoding(String),
@@ -362,7 +360,14 @@ impl Error for InputSearchError {
 
 impl SinkError for InputSearchError {
     fn error_message<T: Display>(message: T) -> Self {
-        Self::Io(io::Error::other(message.to_string()))
+        let message = message.to_string();
+        if let Some(limit) = message
+            .strip_prefix("matches per line exceed limit ")
+            .and_then(|limit| limit.parse().ok())
+        {
+            return Self::MatchLimitExceeded { limit };
+        }
+        Self::Io(io::Error::other(message))
     }
 
     fn error_io(error: io::Error) -> Self {
@@ -523,11 +528,34 @@ mod tests {
     #[test]
     fn line_match_metadata_stops_at_the_configured_limit() {
         let matcher = matcher("권한");
-        let error = collect_line_matches(&matcher, "권한 권한 권한".as_bytes(), 2).unwrap_err();
+        let error = line_matcher::collect_line_matches(&matcher, "권한 권한 권한".as_bytes(), 2)
+            .unwrap_err();
 
         assert!(matches!(
             error,
             InputSearchError::MatchLimitExceeded { limit: 2 }
         ));
+    }
+
+    #[test]
+    fn line_match_metadata_handoff_is_one_shot_without_panicking() {
+        let matcher = matcher("권한");
+        let line_matcher = LineMatcher::new(&matcher, true);
+        let found = grep_matcher::Matcher::find_at(&line_matcher, "권한".as_bytes(), 0)
+            .expect("line evaluation must succeed");
+        assert_eq!(
+            found.map(|matched| matched.start()..matched.end()),
+            Some(0..6)
+        );
+
+        let matches = line_matcher
+            .take_line_matches("권한\n".as_bytes())
+            .expect("sink must consume the pending line evaluation");
+        assert_eq!(matches.len(), 1);
+
+        let error = line_matcher
+            .take_line_matches("권한\n".as_bytes())
+            .unwrap_err();
+        assert!(matches!(error, InputSearchError::Io(_)));
     }
 }

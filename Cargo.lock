@@ -706,6 +706,7 @@ name = "kfind-search"
 version = "0.3.0-rc.3"
 dependencies = [
  "crossbeam-channel",
+ "grep-matcher",
  "grep-searcher",
  "ignore",
  "kfind-matcher",

@@ -28,8 +28,8 @@ pub(super) fn select_phrase_matches(
         };
     }
 
-    let text_index = TextIndex::new(text, atom_spans);
-    let suffixes = suffix_states(atom_spans, policy, &text_index);
+    let candidate_index = CandidateIndex::new(text, atom_spans);
+    let suffixes = suffix_states(atom_spans, policy, &candidate_index);
     collect_matches(atom_spans, &suffixes, limit)
 }
 
@@ -42,7 +42,7 @@ struct SuffixState {
 fn suffix_states(
     atom_spans: &[Vec<VerifiedSpan>],
     policy: PhrasePolicy,
-    text_index: &TextIndex,
+    candidate_index: &CandidateIndex,
 ) -> Vec<Vec<Option<SuffixState>>> {
     let mut suffixes = vec![Vec::new(); atom_spans.len()];
     let last_atom_index = atom_spans.len() - 1;
@@ -61,8 +61,15 @@ fn suffix_states(
         let range_maximum = RangeMaximum::new(&suffixes[atom_index + 1]);
         suffixes[atom_index] = atom_spans[atom_index]
             .iter()
-            .map(|span| {
-                let range = compatible_successors(text_index, span, next_spans, policy.max_gap);
+            .enumerate()
+            .map(|(span_index, span)| {
+                let range = compatible_successors(
+                    span,
+                    candidate_index.metrics(atom_index, span_index),
+                    next_spans,
+                    candidate_index.atom_metrics(atom_index + 1),
+                    policy.max_gap,
+                );
                 range_maximum.query(range).map(|choice| SuffixState {
                     final_end: choice.final_end,
                     next_span_index: Some(choice.span_index),
@@ -75,15 +82,15 @@ fn suffix_states(
 }
 
 fn compatible_successors(
-    text_index: &TextIndex,
     current: &VerifiedSpan,
+    current_metrics: SpanMetrics,
     next_spans: &[VerifiedSpan],
+    next_metrics: &[SpanMetrics],
     max_gap: usize,
 ) -> Range<usize> {
     let start = next_spans.partition_point(|next| next.token.start < current.token.end);
-    let compatible = next_spans[start..].partition_point(|next| {
-        text_index.gap_allowed(current.token.end, next.token.start, max_gap)
-    });
+    let compatible = next_metrics[start..]
+        .partition_point(|next| current_metrics.end.gap_allowed(next.start, max_gap));
     start..start + compatible
 }
 
@@ -234,12 +241,11 @@ fn preferred_optional(
     }
 }
 
-struct TextIndex {
-    positions: Vec<usize>,
-    prefixes: Vec<PrefixMetrics>,
+struct CandidateIndex {
+    atom_metrics: Vec<Vec<SpanMetrics>>,
 }
 
-impl TextIndex {
+impl CandidateIndex {
     fn new(text: &str, atom_spans: &[Vec<VerifiedSpan>]) -> Self {
         let mut positions = atom_spans
             .iter()
@@ -263,30 +269,52 @@ impl TextIndex {
             }
             prefixes.push(prefix);
         }
-        Self {
-            positions,
-            prefixes,
-        }
+        let atom_metrics = atom_spans
+            .iter()
+            .map(|spans| {
+                spans
+                    .iter()
+                    .map(|span| SpanMetrics {
+                        start: prefix_at(&positions, &prefixes, span.token.start),
+                        end: prefix_at(&positions, &prefixes, span.token.end),
+                    })
+                    .collect()
+            })
+            .collect();
+        Self { atom_metrics }
     }
 
-    fn gap_allowed(&self, from: usize, to: usize, max_gap: usize) -> bool {
-        let from_prefix = self.prefixes[self
-            .positions
-            .binary_search(&from)
-            .expect("verified span end is indexed")];
-        let to_prefix = self.prefixes[self
-            .positions
-            .binary_search(&to)
-            .expect("verified span start is indexed")];
-        to_prefix.line_breaks == from_prefix.line_breaks
-            && to_prefix.scalars.saturating_sub(from_prefix.scalars) <= max_gap
+    fn metrics(&self, atom_index: usize, span_index: usize) -> SpanMetrics {
+        self.atom_metrics[atom_index][span_index]
     }
+
+    fn atom_metrics(&self, atom_index: usize) -> &[SpanMetrics] {
+        &self.atom_metrics[atom_index]
+    }
+}
+
+fn prefix_at(positions: &[usize], prefixes: &[PrefixMetrics], position: usize) -> PrefixMetrics {
+    prefixes[positions
+        .binary_search(&position)
+        .expect("verified span endpoint is indexed")]
+}
+
+#[derive(Clone, Copy, Debug)]
+struct SpanMetrics {
+    start: PrefixMetrics,
+    end: PrefixMetrics,
 }
 
 #[derive(Clone, Copy, Debug, Default)]
 struct PrefixMetrics {
     scalars: usize,
     line_breaks: usize,
+}
+
+impl PrefixMetrics {
+    fn gap_allowed(self, to: Self, max_gap: usize) -> bool {
+        to.line_breaks == self.line_breaks && to.scalars.saturating_sub(self.scalars) <= max_gap
+    }
 }
 
 #[cfg(test)]

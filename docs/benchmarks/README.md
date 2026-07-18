@@ -69,17 +69,24 @@ scripts/benchmark-criterion.sh query_compile
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/phrase_find_all
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/phrase_find_all_repeated
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/phrase_input_searcher_repeated_line
+cargo bench -p kfind-testkit --bench query_matcher -- matcher/phrase_input_searcher_repeated_line_exists
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_repeated_long_line
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_alternating_spacing_long_line
+cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_constant_neighbors_long_line
+cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_unique_neighbors_long_line
 ```
 
 세 benchmark 모두 입력의 anchor·atom span 수집과 leftmost-longest non-overlapping 결과 선택을
 포함한다. `phrase_find_all_repeated`는 가능한 atom 조합을 모두 만들어 메모리에 쌓지 않는지 감시한다.
 `phrase_input_searcher_repeated_line`은 줄바꿈 없는 한 줄의 여러 결과를 실제 metadata 출력 경로로
 수집할 때 남은 입력을 반복해서 다시 스캔하지 않는지 감시한다.
+`phrase_input_searcher_repeated_line_exists`는 같은 입력의 metadata 없는 존재 판정 경로를 분리해
+측정한다.
 `context_repeated_long_line`은 문맥 candidate마다 전체 줄의 UTF-8을 반복 검증하지 않는지 감시한다.
-`context_alternating_spacing_long_line`은 직전 문맥 cache가 빗나갈 때 bounded 해독과 hash cache
-fallback 비용이 악화되지 않는지 감시한다.
+`context_alternating_spacing_long_line`은 두 문맥 형태가 교대할 때의 비용을 감시한다. 반복·교대
+workload는 모두 warm cache hit에 편중될 수 있다. Byte 수와 match 수가 같은
+`context_constant_neighbors_long_line`과 `context_unique_neighbors_long_line`을 함께 측정해
+반복 context hit와 고유 context miss를 분리한다.
 
 ## TUI pager held-key scroll
 
