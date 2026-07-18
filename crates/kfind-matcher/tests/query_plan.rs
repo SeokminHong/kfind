@@ -120,6 +120,45 @@ fn dictionary_voice_derivation_matches_the_complete_passive_predicate() {
 }
 
 #[test]
+fn derived_nominal_prefix_matches_before_a_complete_predicate_nominalization() {
+    let matcher = compile_embedded_with_resource(
+        "잠식당",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("잠식", "NNG"),
+            component_entry("당", "XSN"),
+            component_entry("당하", "XSV"),
+            component_entry("하", "XSV"),
+            component_entry("기", "ETN"),
+        ]),
+    );
+    let text = "시장이 잠식당하기 시작했다.";
+    let matched = matcher
+        .find_at_with_meta(text.as_bytes(), 0)
+        .expect("derived nominal prefix must match");
+
+    assert_eq!(&text[matched.span], "잠식당");
+
+    let internal = compile_embedded_with_resource(
+        "식당",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("잠식", "NNG"),
+            component_entry("당", "XSN"),
+            component_entry("하", "XSV"),
+            component_entry("기", "ETN"),
+        ]),
+    );
+    assert!(internal.find_at_with_meta(text.as_bytes(), 0).is_none());
+}
+
+#[test]
 fn compiled_predicate_plan_matches_a_prospective_final() {
     let matcher = compile(
         "않다",

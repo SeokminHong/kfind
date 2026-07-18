@@ -700,6 +700,7 @@ struct TokenEvidence {
     has_complete_path: bool,
     leading_predicate_spans: Box<[Range<usize>]>,
     runtime_nominal_derivation_spans: Box<[Range<usize>]>,
+    nominal_derivation_predicate_prefixes: Box<[Range<usize>]>,
     derivational_suffix_starts: Box<[usize]>,
     adnominal_derivation_suffix_starts: Box<[usize]>,
     numeric_spans: Box<[Range<usize>]>,
@@ -803,6 +804,8 @@ impl TokenEvidence {
         let leading_predicate_spans = leading_predicate_spans(text.len(), &edges);
         let compound_predicate_components = compound_predicate_components(text.len(), &edges);
         let runtime_nominal_derivation_spans = runtime_nominal_derivation_spans(&edges, &complete);
+        let nominal_derivation_predicate_prefixes =
+            nominal_derivation_predicate_prefixes(text.len(), &edges);
         let derivational_suffix_starts = derivational_suffix_starts(&edges, &complete);
         let adnominal_derivation_suffix_starts =
             adnominal_derivation_suffix_starts(text.len(), &edges);
@@ -961,6 +964,7 @@ impl TokenEvidence {
             has_complete_path,
             leading_predicate_spans,
             runtime_nominal_derivation_spans,
+            nominal_derivation_predicate_prefixes,
             derivational_suffix_starts,
             adnominal_derivation_suffix_starts,
             numeric_spans,
@@ -1376,6 +1380,102 @@ fn runtime_nominal_derivation_spans(edges: &[Edge<'_>], complete: &[bool]) -> Bo
     spans.sort_unstable_by_key(|span| (span.start, span.end));
     spans.dedup();
     spans.into_boxed_slice()
+}
+
+#[derive(Clone, Copy)]
+#[repr(usize)]
+enum NominalDerivationState {
+    Start,
+    Nominal,
+    DerivedNominal,
+}
+
+const NOMINAL_DERIVATION_STATE_COUNT: usize = 3;
+
+fn nominal_derivation_state(index: usize) -> NominalDerivationState {
+    match index {
+        0 => NominalDerivationState::Start,
+        1 => NominalDerivationState::Nominal,
+        2 => NominalDerivationState::DerivedNominal,
+        _ => unreachable!("invalid nominal derivation state"),
+    }
+}
+
+fn advance_nominal_derivation(
+    state: NominalDerivationState,
+    pos: &str,
+) -> Option<NominalDerivationState> {
+    match (state, pos) {
+        (NominalDerivationState::Start, pos)
+            if DataFinePos::parse(pos).is_some_and(DataFinePos::is_nominal) =>
+        {
+            Some(NominalDerivationState::Nominal)
+        }
+        (NominalDerivationState::Nominal, pos)
+            if DataFinePos::parse(pos).is_some_and(DataFinePos::is_nominal) =>
+        {
+            Some(NominalDerivationState::Nominal)
+        }
+        (NominalDerivationState::Nominal | NominalDerivationState::DerivedNominal, "XSN") => {
+            Some(NominalDerivationState::DerivedNominal)
+        }
+        _ => None,
+    }
+}
+
+fn nominal_derivation_predicate_prefixes(
+    text_len: usize,
+    edges: &[Edge<'_>],
+) -> Box<[Range<usize>]> {
+    let mut nominal_prefix = vec![[false; NOMINAL_DERIVATION_STATE_COUNT]; text_len + 1];
+    nominal_prefix[0][NominalDerivationState::Start as usize] = true;
+    for start in 0..text_len {
+        for edge in edges.iter().filter(|edge| edge.span.start == start) {
+            for state_index in 0..NOMINAL_DERIVATION_STATE_COUNT {
+                if !nominal_prefix[start][state_index] {
+                    continue;
+                }
+                let Some(next) = edge.pos.split('+').try_fold(
+                    nominal_derivation_state(state_index),
+                    advance_nominal_derivation,
+                ) else {
+                    continue;
+                };
+                nominal_prefix[edge.span.end][next as usize] = true;
+            }
+        }
+    }
+
+    let mut ending_suffix = vec![false; text_len + 1];
+    ending_suffix[text_len] = true;
+    for start in (0..text_len).rev() {
+        ending_suffix[start] = edges
+            .iter()
+            .filter(|edge| edge.span.start == start)
+            .any(|edge| {
+                edge.pos.split('+').all(|pos| pos.starts_with('E')) && ending_suffix[edge.span.end]
+            });
+    }
+
+    let mut prefixes = (0..text_len)
+        .filter(|&end| {
+            nominal_prefix[end][NominalDerivationState::DerivedNominal as usize]
+                && edges
+                    .iter()
+                    .filter(|edge| edge.span.start == end)
+                    .any(|edge| {
+                        let mut positions = edge.pos.split('+');
+                        matches!(positions.next(), Some("XSV" | "XSA"))
+                            && positions.clone().all(|pos| pos.starts_with('E'))
+                            && ending_suffix[edge.span.end]
+                            && (positions.next().is_some() || edge.span.end < text_len)
+                    })
+        })
+        .map(|end| 0..end)
+        .collect::<Vec<_>>();
+    prefixes.sort_unstable_by_key(|span| (span.start, span.end));
+    prefixes.dedup();
+    prefixes.into_boxed_slice()
 }
 
 fn derivational_suffix_starts(edges: &[Edge<'_>], complete: &[bool]) -> Box<[usize]> {
@@ -1818,6 +1918,7 @@ fn collect_pattern_supports(
             && pattern.component_capability.allows_runtime()
             && (query_nominal_particle_path(pattern, spans)
                 || composed_nominal_subpath(pattern, spans, evidence)
+                || nominal_derivation_before_predicate(pattern, spans, evidence)
                 || ((!requires_aligned_component_evidence(pattern) || spans.core == spans.token)
                     && evidence.runtime_spans.contains(&spans.core))
                 || attached_auxiliary_is_supported(pattern, spans, evidence)
@@ -1913,6 +2014,9 @@ impl StructureSelection {
             return true;
         }
         if composed_nominal_subpath(pattern, spans, evidence) {
+            return true;
+        }
+        if nominal_derivation_before_predicate(pattern, spans, evidence) {
             return true;
         }
         if compound_predicate_component_is_supported(pattern, spans, evidence) {
@@ -2528,6 +2632,22 @@ fn query_nominal_particle_path(pattern: &QueryMorphPattern, spans: &CandidateSpa
         && spans.core.start == spans.token.start
         && spans.core.end < spans.consumed.end
         && spans.consumed == spans.token
+}
+
+fn nominal_derivation_before_predicate(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    evidence: &TokenEvidence,
+) -> bool {
+    pattern.fine_pos.is_nominal()
+        && matches!(pattern.continuation, MorphContinuation::NominalParticles)
+        && spans.core.start == spans.token.start
+        && evidence
+            .nominal_derivation_predicate_prefixes
+            .binary_search_by_key(&(spans.core.start, spans.core.end), |prefix| {
+                (prefix.start, prefix.end)
+            })
+            .is_ok()
 }
 
 fn composed_nominal_subpath(

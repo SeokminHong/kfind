@@ -151,6 +151,56 @@ fn multisyllable_runtime_nominal_derivation_survives_a_whole_predicate() {
 }
 
 #[test]
+fn derived_nominal_prefix_requires_a_complete_derivational_predicate() {
+    let resolver = resolver_from_entries([
+        atomic("잠식", "NNG"),
+        atomic("당", "XSN"),
+        atomic("당하", "XSV"),
+        atomic("하", "XSV"),
+        atomic("기", "ETN"),
+    ]);
+    let core = 0.."잠식당".len();
+    let supported = resolver.resolve_candidate(
+        BoundedTokenContext::current("잠식당하기"),
+        CandidateSpans {
+            core: core.clone(),
+            anchor: core.clone(),
+            consumed: core,
+            token: 0.."잠식당하기".len(),
+        },
+        &[nominal_pattern(DataFinePos::Nng, "잠식당")],
+        128,
+    );
+    let internal = resolver.resolve_candidate(
+        BoundedTokenContext::current("잠식당하기"),
+        CandidateSpans {
+            core: "잠".len().."잠식당".len(),
+            anchor: "잠".len().."잠식당".len(),
+            consumed: "잠".len().."잠식당".len(),
+            token: 0.."잠식당하기".len(),
+        },
+        &[nominal_pattern(DataFinePos::Nng, "식당")],
+        128,
+    );
+    let incomplete = resolver.resolve_candidate(
+        BoundedTokenContext::current("잠식당하"),
+        CandidateSpans {
+            core: 0.."잠식당".len(),
+            anchor: 0.."잠식당".len(),
+            consumed: 0.."잠식당".len(),
+            token: 0.."잠식당하".len(),
+        },
+        &[nominal_pattern(DataFinePos::Nng, "잠식당")],
+        128,
+    );
+
+    assert_eq!(supported.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&supported));
+    assert_eq!(internal.outcome, ConstraintOutcome::Contradicted);
+    assert_eq!(incomplete.outcome, ConstraintOutcome::Contradicted);
+}
+
+#[test]
 fn runtime_path_does_not_join_a_noun_to_an_attached_predicate() {
     let resolver = resolver_from_entries([
         atomic("못", "NNG"),
