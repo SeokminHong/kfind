@@ -464,9 +464,8 @@
   별도로 완성된 어절 전체를 제약 없이 한 번씩 candidate로 생성한다. 생성 단계에서는 component
   resource나 품사열을 조회하지 않는다. 검증 단계는 exact source 분석이 하나 이상의 체언 품사,
   `VCP`, 하나 이상의 `E+` 순서이고 `EC` 또는 `EF`로 끝나며, 정렬된 `VCP` component span은
-  없고 같은 query analysis의 일반 anchor candidate도 그 어절에서 검증되지 않을 때만 이
-  candidate를 유지한다. 반환 span은 source에 없는 VCP 부분 span을 추정하지 않고 `걸까`처럼
-  양의 span을 보존하는 어절 전체로 한다. 정렬된 VCP span이나 검증된 anchor가 있는 일반 활용,
+  없을 때만 이 candidate를 유지한다. 반환 span은 source에 없는 VCP 부분 span을 추정하지 않고
+  `걸까`처럼 양의 span을 보존하는 어절 전체로 한다. 정렬된 VCP span이 있는 일반 활용,
   미완결 어미, VCP 뒤의 비어미 성분은 기존 anchor 경로에서만 처리한다.
 - 체언+조사와 용언+어미 path는 host span이 같을 때만 구조적으로 해결되지 않은
   경쟁으로 본다. host가 다르면 더 긴 조사 host 또는 완성된 용언 host를 선택하고,

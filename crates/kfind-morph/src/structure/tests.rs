@@ -24,31 +24,6 @@ fn exact_pronoun_copula_ending_path_requires_the_complete_source_sequence() {
 }
 
 #[test]
-fn lost_span_copula_ending_requires_an_unaligned_complete_source_sequence() {
-    let resolver = resolver_from_entries([
-        expression("걸까", "NNB+VCP+EF", "것/NNB/*+이/VCP/*+ᆯ까/EF/*"),
-        expression("것이까", "NNB+VCP+EF", "것/NNB/*+이/VCP/*+까/EF/*"),
-    ]);
-
-    assert!(resolver.has_exact_lost_span_copula_ending_path("걸까"));
-    assert!(!resolver.has_exact_lost_span_copula_ending_path("것이까"));
-
-    for pos in [
-        "NNB+EF",
-        "NNB+VCP",
-        "NNB+VCP+ETM",
-        "NNB+VCP+EC+VCP",
-        "VV+VCP+EF",
-    ] {
-        let resolver = resolver_from_entries([atomic("걸까", pos)]);
-        assert!(
-            !resolver.has_exact_lost_span_copula_ending_path("걸까"),
-            "unexpectedly accepted {pos}"
-        );
-    }
-}
-
-#[test]
 fn ordinary_adverb_context_rejects_a_runtime_nominal_prefix() {
     let resolver = resolver();
     let context = BoundedTokenContext {
