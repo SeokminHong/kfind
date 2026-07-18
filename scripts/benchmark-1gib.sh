@@ -17,6 +17,9 @@ SEED=${KFIND_BENCH_SEED:-323301756484}
 RUNS=${KFIND_BENCH_RUNS:-3}
 SCAN_REPETITIONS=${KFIND_BENCH_SCAN_REPETITIONS:-10}
 QUERY=${KFIND_BENCH_QUERY:-kfind-희귀-검색-표식-7d4b}
+WALL_RATIO_LIMIT=1.25
+THROUGHPUT_PERCENT_FLOOR=80
+RSS_MIB_LIMIT=16
 CORPUS_DIR=${KFIND_BENCH_CORPUS_DIR:-"$ROOT/target/benchmark/1gib-mixed"}
 REPORT=${KFIND_BENCH_REPORT:-"$ROOT/docs/benchmarks/$(date +%Y-%m-%d)-1gib-mixed.md"}
 KEEP_CORPUS=${KFIND_BENCH_KEEP_CORPUS:-0}
@@ -240,9 +243,12 @@ wall_ratio=$(awk -v kfind="$kfind_wall" -v rg="$rg_wall" 'BEGIN { printf "%.3f",
 throughput_ratio=$(awk -v kfind="$kfind_throughput" -v rg="$rg_throughput" \
     'BEGIN { printf "%.1f", kfind / rg * 100 }')
 rss_mib=$(awk -v bytes="$kfind_rss" 'BEGIN { printf "%.2f", bytes / 1048576 }')
-wall_result=$(awk -v ratio="$wall_ratio" 'BEGIN { print (ratio <= 1.5 ? "PASS" : "FAIL") }')
-throughput_result=$(awk -v ratio="$throughput_ratio" 'BEGIN { print (ratio >= 70 ? "PASS" : "FAIL") }')
-rss_result=$(awk -v mib="$rss_mib" 'BEGIN { print (mib <= 40 ? "PASS" : "FAIL") }')
+wall_result=$(awk -v ratio="$wall_ratio" -v limit="$WALL_RATIO_LIMIT" \
+    'BEGIN { print (ratio <= limit ? "PASS" : "FAIL") }')
+throughput_result=$(awk -v ratio="$throughput_ratio" -v floor="$THROUGHPUT_PERCENT_FLOOR" \
+    'BEGIN { print (ratio >= floor ? "PASS" : "FAIL") }')
+rss_result=$(awk -v mib="$rss_mib" -v limit="$RSS_MIB_LIMIT" \
+    'BEGIN { print (mib <= limit ? "PASS" : "FAIL") }')
 
 architecture=$(uname -m)
 if [[ "$SYSTEM_NAME" == Darwin ]]; then
@@ -333,9 +339,9 @@ EOF
 
 | 목표 | 측정 | 판정 |
 | --- | ---: | :---: |
-| kfind wall <= rg -F x 1.5 | x $wall_ratio | $wall_result |
-| kfind throughput >= rg -F 70% | $throughput_ratio% | $throughput_result |
-| kfind RSS <= 40 MiB | $rss_mib MiB | $rss_result |
+| kfind wall <= rg -F x $WALL_RATIO_LIMIT | x $wall_ratio | $wall_result |
+| kfind throughput >= rg -F $THROUGHPUT_PERCENT_FLOOR% | $throughput_ratio% | $throughput_result |
+| kfind RSS <= $RSS_MIB_LIMIT MiB | $rss_mib MiB | $rss_result |
 
 이 비교는 기능의 절대 우열이 아니라 동일한 low-hit I/O 경로의 회귀 기준이다.
 EOF

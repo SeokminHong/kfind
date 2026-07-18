@@ -2761,11 +2761,11 @@ policy로 분리한다.
 제품 목표:
 
 ```text
-단일 atom query compile p95: 15 ms 이하
-8 atom phrase compile p95: 50 ms 이하
-낮은 hit 비율의 scan: rg -F wall time의 1.5배 이내
-낮은 hit 비율의 처리량: rg -F의 70% 이상
-기본 RSS: 40 MiB 이하
+단일 atom query compile p95: 0.25 ms 이하
+8 atom phrase compile p95: 0.75 ms 이하
+낮은 hit 비율의 scan: rg -F wall time의 1.25배 이내
+낮은 hit 비율의 처리량: rg -F의 80% 이상
+기본 RSS: 16 MiB 이하
 corpus 크기에 비례하는 결과 버퍼링 없음
 ```
 
