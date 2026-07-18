@@ -436,6 +436,62 @@ fn structural_constraint(criterion: &mut Criterion) {
                 .expect("dense token graph must stay inside the node limit")
         });
     });
+
+    let dense_path_resource = Arc::new(dense_unit_path_component_resource());
+    let dense_path_resolver = ConstraintResolver::new(dense_path_resource);
+    let dense_path_token = "가".repeat(63);
+    let dense_path_graph = Arc::new(
+        dense_path_resolver
+            .prepare_token_graph_for_candidate(
+                &dense_path_token,
+                DEFAULT_LATTICE_NODE_LIMIT,
+                false,
+                false,
+            )
+            .expect("dense path graph must stay inside the node limit"),
+    );
+    let dense_path_context = dense_path_resolver
+        .prepare_context_with_token_graph(
+            BoundedTokenContext::current(&dense_path_token),
+            dense_path_graph,
+        )
+        .expect("dense path context must use the prepared token graph");
+    let dense_path_cases = (8_usize..24)
+        .map(|syllables| {
+            let core_end = syllables * "가".len();
+            (
+                CandidateSpans {
+                    core: 0..core_end,
+                    anchor: 0..core_end,
+                    consumed: 0..core_end,
+                    token: 0..dense_path_token.len(),
+                },
+                QueryMorphPattern::new(DataFinePos::Nng, &dense_path_token[..core_end])
+                    .with_candidate_contract(
+                        CandidateTokenRelation::Whole,
+                        MorphContinuation::Exact,
+                        ComponentCapability::SourceAndRuntime,
+                    ),
+            )
+        })
+        .collect::<Vec<_>>();
+    assert!(dense_path_cases.iter().all(|(spans, pattern)| {
+        dense_path_context
+            .resolve_candidate(spans.clone(), std::slice::from_ref(pattern))
+            .outcome
+            == ConstraintOutcome::Supported
+    }));
+    group.throughput(Throughput::Elements(dense_path_cases.len() as u64));
+    group.bench_function("resolve_dense_preferred_paths", |bencher| {
+        bencher.iter(|| {
+            for (spans, pattern) in &dense_path_cases {
+                black_box(black_box(&dense_path_context).resolve_candidate(
+                    black_box(spans.clone()),
+                    std::slice::from_ref(black_box(pattern)),
+                ));
+            }
+        });
+    });
     group.finish();
 }
 
@@ -495,6 +551,25 @@ fn dense_component_resource() -> kfind_data::ComponentResource {
         .expect("dense benchmark component resource must encode");
     decode_component_resource("dense benchmark", bytes, &COMPONENT_RESOURCE_SOURCE_DIGEST)
         .expect("dense benchmark component resource must decode")
+}
+
+fn dense_unit_path_component_resource() -> kfind_data::ComponentResource {
+    let mut entries = Vec::with_capacity(127);
+    entries.push(component_entry("가", "JX", 0));
+    let mut surface = String::new();
+    for _ in 0..63 {
+        surface.push('가');
+        entries.push(component_entry(&surface, "NNG", 0));
+        entries.push(component_entry(&surface, "VV+EC", 0));
+    }
+    let bytes = encode_component_resource(COMPONENT_RESOURCE_SOURCE_DIGEST, &entries)
+        .expect("dense path benchmark component resource must encode");
+    decode_component_resource(
+        "dense path benchmark",
+        bytes,
+        &COMPONENT_RESOURCE_SOURCE_DIGEST,
+    )
+    .expect("dense path benchmark component resource must decode")
 }
 
 fn component_entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorphologyEntry {
