@@ -1,9 +1,70 @@
 use kfind_data::{
     MecabSourceMorphologyEntry, decode_component_resource, encode_component_resource,
 };
+use proptest::prelude::*;
 
 use super::*;
 use crate::{CandidateTokenRelation, ComponentCapability, MorphContinuation};
+
+#[test]
+fn edge_graph_start_index_matches_a_linear_scan_at_every_byte() {
+    let resolver = resolver();
+    let text = "공부한";
+    let graph = EdgeGraph::collect(resolver.resource(), text, 4_096).expect("bounded graph");
+
+    for start in 0..=text.len() {
+        let indexed = graph
+            .starting_at(start)
+            .iter()
+            .map(|edge| (edge.span.clone(), edge.pos))
+            .collect::<Vec<_>>();
+        let linear = graph
+            .edges()
+            .iter()
+            .filter(|edge| edge.span.start == start)
+            .map(|edge| (edge.span.clone(), edge.pos))
+            .collect::<Vec<_>>();
+        assert_eq!(indexed, linear, "start={start}");
+    }
+}
+
+proptest! {
+    #[test]
+    fn edge_graph_start_index_matches_arbitrary_sorted_edges(
+        text_len in 0_usize..=256,
+        starts in prop::collection::vec(0_usize..256, 0..512),
+    ) {
+        let mut starts = starts
+            .into_iter()
+            .filter(|start| *start < text_len)
+            .collect::<Vec<_>>();
+        starts.sort_unstable();
+        let edges = starts
+            .into_iter()
+            .map(|start| Edge {
+                span: start..start + 1,
+                pos: "NNG",
+                components: Vec::new(),
+            })
+            .collect::<Vec<_>>();
+        let graph = EdgeGraph::from_edges(text_len, edges);
+
+        for start in 0..=text_len {
+            let indexed = graph
+                .starting_at(start)
+                .iter()
+                .map(|edge| edge.span.clone())
+                .collect::<Vec<_>>();
+            let linear = graph
+                .edges()
+                .iter()
+                .filter(|edge| edge.span.start == start)
+                .map(|edge| edge.span.clone())
+                .collect::<Vec<_>>();
+            prop_assert_eq!(indexed, linear);
+        }
+    }
+}
 
 #[test]
 fn exact_pronoun_copula_ending_path_requires_the_complete_source_sequence() {
@@ -1359,24 +1420,10 @@ fn ascii_prefixed_numeral_sequences_require_a_dependent_unit() {
     }
 
     for text in ["3천사", "197명사", "5천톤사"] {
-        let mut edges = Vec::new();
-        for start in text.char_indices().map(|(offset, _)| offset) {
-            resolver.resource().common_prefix_groups(
-                &text.as_bytes()[start..],
-                |length, analyses| {
-                    for analysis in analyses {
-                        edges.push(Edge {
-                            span: start..start + length,
-                            pos: analysis.pos,
-                            components: analysis.components,
-                        });
-                    }
-                },
-            );
-        }
+        let graph = EdgeGraph::collect(resolver.resource(), text, 4_096).expect("bounded graph");
         let numeric_end = text.bytes().take_while(u8::is_ascii_digit).count();
         assert!(
-            numeral_sequence_spans(text.len(), numeric_end, &edges, true).is_empty(),
+            numeral_sequence_spans(text.len(), numeric_end, &graph, true).is_empty(),
             "{text}"
         );
     }
@@ -1386,23 +1433,9 @@ fn ascii_prefixed_numeral_sequences_require_a_dependent_unit() {
 fn hangul_numeral_sequences_reject_an_ordinary_noun_tail() {
     let resolver = resolver();
     for text in ["백명사전", "일월산맥길"] {
-        let mut edges = Vec::new();
-        for start in text.char_indices().map(|(offset, _)| offset) {
-            resolver.resource().common_prefix_groups(
-                &text.as_bytes()[start..],
-                |length, analyses| {
-                    for analysis in analyses {
-                        edges.push(Edge {
-                            span: start..start + length,
-                            pos: analysis.pos,
-                            components: analysis.components,
-                        });
-                    }
-                },
-            );
-        }
+        let graph = EdgeGraph::collect(resolver.resource(), text, 4_096).expect("bounded graph");
         assert!(
-            hangul_numeral_spans(text.len(), &edges).is_empty(),
+            hangul_numeral_spans(text.len(), &graph).is_empty(),
             "{text}"
         );
     }
@@ -1807,7 +1840,8 @@ fn attached_auxiliary_path_composes_a_split_derivational_source_analysis() {
             components: Vec::new(),
         },
     ];
-    assert!(has_complete_attached_auxiliary_path(token_end, &edges));
+    let graph = EdgeGraph::from_edges(token_end, edges.into());
+    assert!(has_complete_attached_auxiliary_path(token_end, &graph));
 
     let without_connective = [
         Edge {
@@ -1826,6 +1860,7 @@ fn attached_auxiliary_path_composes_a_split_derivational_source_analysis() {
             components: Vec::new(),
         },
     ];
+    let without_connective = EdgeGraph::from_edges(token_end, without_connective.into());
     assert!(!has_complete_attached_auxiliary_path(
         token_end,
         &without_connective,
