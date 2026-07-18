@@ -27,7 +27,7 @@ npm pack --ignore-scripts --dry-run --json "$package_dir" | node -e '
     throw new Error("missing or invalid " + asset);
   }
   const enriched = "assets/predicates.enriched.tsv";
-  if (files.get(enriched) !== 27707) {
+  if (files.get(enriched) !== 28286) {
     throw new Error("missing or invalid " + enriched);
   }
   for (const required of [
