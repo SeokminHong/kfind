@@ -1043,6 +1043,57 @@ fn pronoun_topic_contraction_is_rule_driven_and_pos_scoped() {
 }
 
 #[test]
+fn pronoun_copula_ending_contraction_is_source_structural_and_pos_scoped() {
+    for (lemma, contracted, rule_id) in [
+        ("누구", "누군가", "contraction.pronoun-copula-nuga"),
+        ("무어", "무언가", "contraction.pronoun-copula-mueo"),
+        ("무엇", "무언가", "contraction.pronoun-copula-mueot"),
+    ] {
+        let plan = compile_query(
+            lemma,
+            &CompileOptions {
+                global_pos: Some(CoarsePos::Pronoun),
+                ..CompileOptions::default()
+            },
+            &analyzer(),
+        )
+        .unwrap();
+        let branch = plan.atoms[0]
+            .programs
+            .iter()
+            .find(|branch| branch.anchor.as_ref() == contracted.as_bytes())
+            .unwrap_or_else(|| panic!("missing copula contraction {contracted}"));
+        assert!(matches!(
+            branch.consumption,
+            CandidateConsumption::NominalCopulaEndingChain { .. }
+        ));
+        assert!(branch.decision.is_structural());
+        assert!(
+            branch
+                .origins
+                .iter()
+                .any(|origin| { origin.rule_path.iter().any(|rule| rule.as_str() == rule_id) })
+        );
+    }
+
+    let noun = compile_query(
+        "무어",
+        &CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        &analyzer(),
+    )
+    .unwrap();
+    assert!(
+        noun.atoms[0]
+            .programs
+            .iter()
+            .all(|branch| branch.anchor.as_ref() != "무언가".as_bytes())
+    );
+}
+
+#[test]
 fn inflection_and_derivation_allow_adverb_auxiliaries_but_not_case_particles() {
     for expand in [ExpandMode::Inflection, ExpandMode::Derivation] {
         let options = CompileOptions {

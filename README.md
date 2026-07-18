@@ -382,6 +382,12 @@ predicate-to-adverb relations from the Korean Basic Dictionary, 76 overlap with
 that stronger evidence and the other 77 require `derivation`. The resulting TSV
 has 295 surface-only rows and is 28,286 bytes.
 
+The `누구·무어·무엇 + 이 + -ㄴ가` contractions generate only the declared
+`누군가·무언가` surfaces. In `smart` mode the complete surface must have a
+source `NP + VCP + EC/EF` analysis, and existing nominal-particle transitions
+validate any following particles. Separately listed dictionary headwords are
+not merged into aliases of the source pronouns.
+
 ## Benchmarks
 
 kfind measures morphology quality, end-to-end CLI throughput, resource startup,

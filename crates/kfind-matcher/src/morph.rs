@@ -542,7 +542,8 @@ impl MorphMatcher {
                     vec![RuleId::from("structural.ending-path")],
                 )
             }
-            CandidateConsumption::NominalParticleChain { .. } => {
+            CandidateConsumption::NominalParticleChain { .. }
+            | CandidateConsumption::NominalCopulaEndingChain { .. } => {
                 let following = valid_utf8_prefix(&haystack[hit.span.end..]);
                 let (consumption_anchor, consumption_following) =
                     normalized_consumption_text(anchor, following);
@@ -664,6 +665,9 @@ impl MorphMatcher {
         let patterns = branch.structural_patterns();
         if patterns.is_empty() {
             return false;
+        }
+        if self.accepts_pronoun_copula_ending(haystack, candidate, branch, resolver, patterns) {
+            return true;
         }
         if self.accepts_product_copula_frame(haystack, candidate, branch, resolver, patterns) {
             return true;
@@ -890,6 +894,41 @@ impl MorphMatcher {
             boundary.require_left,
             boundary.require_right,
         )
+    }
+
+    fn accepts_pronoun_copula_ending(
+        &self,
+        haystack: &[u8],
+        candidate: &ExecutedCandidate,
+        branch: &CandidateProgram,
+        resolver: &ConstraintResolver,
+        patterns: &[kfind_morph::QueryMorphPattern],
+    ) -> bool {
+        if !matches!(
+            branch.consumption,
+            CandidateConsumption::NominalCopulaEndingChain { .. }
+        ) || !patterns.iter().any(|pattern| {
+            pattern.fine_pos == DataFinePos::Np
+                && matches!(
+                    pattern.continuation,
+                    kfind_morph::MorphContinuation::NominalCopulaEnding
+                )
+        }) {
+            return false;
+        }
+        let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
+        if candidate.anchor != candidate.verified.core || candidate.consumed != whole {
+            return false;
+        }
+        let Some(anchor) = haystack
+            .get(candidate.anchor.clone())
+            .and_then(|bytes| std::str::from_utf8(bytes).ok())
+        else {
+            return false;
+        };
+        let normalized = anchor.nfc().collect::<String>();
+        resolver.has_exact_pronoun_copula_ending_path(&normalized)
+            && self.accepts_token_boundary(haystack, &candidate.verified, branch)
     }
 
     fn licensed_nominal_copula_trailing(

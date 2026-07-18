@@ -68,6 +68,11 @@ pub enum CandidateConsumption {
         allowed_rule_ids: Arc<[RuleId]>,
         blocked_rule_ids: Arc<[RuleId]>,
     },
+    NominalCopulaEndingChain {
+        initial_allowed_rule_ids: Arc<[RuleId]>,
+        allowed_rule_ids: Arc<[RuleId]>,
+        blocked_rule_ids: Arc<[RuleId]>,
+    },
     DirectParticleHost {
         rule_id: RuleId,
     },
@@ -190,6 +195,11 @@ impl CandidateConsumption {
                 .iter()
                 .all(|rule| rule.as_str() == "structural.ending-path"),
             Self::NominalParticleChain {
+                initial_allowed_rule_ids,
+                allowed_rule_ids,
+                blocked_rule_ids,
+            }
+            | Self::NominalCopulaEndingChain {
                 initial_allowed_rule_ids,
                 allowed_rule_ids,
                 blocked_rule_ids,
@@ -351,6 +361,10 @@ impl CandidateProgram {
             CandidateConsumption::NominalParticleChain { .. } => (
                 CandidateTokenRelation::PrefixWithContinuation,
                 MorphContinuation::NominalParticles,
+            ),
+            CandidateConsumption::NominalCopulaEndingChain { .. } => (
+                CandidateTokenRelation::PrefixWithContinuation,
+                MorphContinuation::NominalCopulaEnding,
             ),
             CandidateConsumption::DirectParticleHost { .. } => return None,
         })

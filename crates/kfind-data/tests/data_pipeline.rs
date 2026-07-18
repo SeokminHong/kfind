@@ -109,6 +109,23 @@ fn repository_data_is_complete_and_valid() {
     assert_eq!(nominal_topic_contraction.right, "는");
     assert_eq!(nominal_topic_contraction.result, "건");
     assert!(nominal_topic_contraction.ending_ids.is_empty());
+    for (id, left, result) in [
+        ("contraction.pronoun-copula-nuga", "누구", "누군가"),
+        ("contraction.pronoun-copula-mueo", "무어", "무언가"),
+        ("contraction.pronoun-copula-mueot", "무엇", "무언가"),
+    ] {
+        let contraction = data
+            .rules
+            .contractions
+            .iter()
+            .find(|rule| rule.id == id)
+            .unwrap_or_else(|| panic!("missing {id}"));
+        assert_eq!(contraction.kind, "nominal-copula-ending-compose");
+        assert_eq!(contraction.left, left);
+        assert_eq!(contraction.right, "ㄴ가");
+        assert_eq!(contraction.result, result);
+        assert!(contraction.ending_ids.is_empty());
+    }
     let alternative = data
         .rules
         .particles

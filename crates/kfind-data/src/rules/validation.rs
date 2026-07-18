@@ -121,7 +121,12 @@ fn validate_alternations(rules: &RuleSet, locations: &RuleLocations) -> Result<(
 
 fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(), DataError> {
     let source = "data/rules/contractions.toml";
-    const KINDS: &[&str] = &["vowel-compose", "stem-rewrite", "nominal-particle-compose"];
+    const KINDS: &[&str] = &[
+        "vowel-compose",
+        "stem-rewrite",
+        "nominal-particle-compose",
+        "nominal-copula-ending-compose",
+    ];
     let ending_ids = rules
         .endings
         .iter()
@@ -165,14 +170,18 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
         for ending_id in &rule.ending_ids {
             require_reference(source, &rule.id, ending_id, &ending_ids, locations)?;
         }
-        if rule.kind == "nominal-particle-compose" && !rule.ending_ids.is_empty() {
+        if matches!(
+            rule.kind.as_str(),
+            "nominal-particle-compose" | "nominal-copula-ending-compose"
+        ) && !rule.ending_ids.is_empty()
+        {
             return Err(invalid_rule_value(
                 locations,
                 source,
                 &rule.id,
                 "ending_ids",
                 rule.ending_ids.join("|"),
-                "nominal particle contraction은 predicate ending을 참조하지 않습니다",
+                "nominal contraction은 predicate ending을 참조하지 않습니다",
             ));
         }
         if rule.kind == "nominal-particle-compose"

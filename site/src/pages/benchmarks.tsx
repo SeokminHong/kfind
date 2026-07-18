@@ -157,25 +157,25 @@ export default function BenchmarksPage(): React.JSX.Element {
             <tbody>
               <tr>
                 <td>embedded + smart</td>
-                <td>99.67% / 91.98%</td>
-                <td>100.00% / 92.28%</td>
-                <td>4 / 104</td>
-                <td>0 / 100</td>
+                <td>99.67% / 92.13%</td>
+                <td>100.00% / 92.44%</td>
+                <td>4 / 102</td>
+                <td>0 / 98</td>
               </tr>
               <tr>
                 <td>full POS + smart</td>
-                <td>99.69% / 99.00%</td>
-                <td>100.00% / 99.31%</td>
-                <td>4 / 13</td>
-                <td>0 / 9</td>
+                <td>99.69% / 99.15%</td>
+                <td>100.00% / 99.46%</td>
+                <td>4 / 11</td>
+                <td>0 / 7</td>
               </tr>
             </tbody>
           </table>
         </div>
         <p>
-          Full-POS의 FNᶜ 9건은 피동 파생, source 정렬 용언 성분, 대명사 축약과
-          반환 span 복원처럼 아직 구현하지 않은 제품 목표입니다. 비용이나 현재
-          profile을 이유로 계약 분모에서 빼지 않습니다.
+          Full-POS의 FNᶜ 7건은 피동 파생, source 정렬 용언 성분과 반환 span
+          복원처럼 아직 구현하지 않은 제품 목표입니다. 비용이나 현재 profile을
+          이유로 계약 분모에서 빼지 않습니다.
         </p>
         <figure className="benchmark-figure">
           <img
@@ -186,7 +186,7 @@ export default function BenchmarksPage(): React.JSX.Element {
           <figcaption>
             FPᶜ, FNᶜ, precisionᶜ, recallᶜ는 version-controlled registry가 실제로
             적용된 값이며 raw 지표의 별칭이 아닙니다. Review 22건의 판정은
-            유지되며, 확인한 구현 목표 14건 중 5건을 해소했습니다.
+            유지되며, 확인한 구현 목표 14건 중 7건을 해소했습니다.
           </figcaption>
         </figure>
       </DocumentSection>
@@ -436,6 +436,20 @@ export default function BenchmarksPage(): React.JSX.Element {
         </p>
       </DocumentSection>
 
+      <DocumentSection title="대명사 계사·의문 어미 축약">
+        <p>
+          <code>누구·무어·무엇 + 이(VCP) + -ㄴ가(EC/EF)</code>의 선언된 축약
+          표면만 생성합니다. <code>smart</code>는 표면 전체에 같은 source
+          품사열이 있을 때만 승인하고 뒤의 조사는 기존 조사 전이로 검증합니다.
+          별도 표제어를 원 대명사의 alias로 합치지 않습니다.
+        </p>
+        <p>
+          Main <code>67b5606</code> 대비 후보 <code>a240de5</code>는 test matrix
+          full-POS FN을 2건 줄이고 FP를 유지했습니다. 성능 변화는 gate 안이고
+          측정 범위가 겹치며 RSS는 감소했습니다.
+        </p>
+      </DocumentSection>
+
       <DocumentSection title="제한된 사전 표면형 계층">
         <p>
           두 국립국어원 사전이 함께 지지하는 활용형 12,888개 중 12,758개는 기존
@@ -454,6 +468,11 @@ export default function BenchmarksPage(): React.JSX.Element {
 
       <DocumentSection title="원본 보고서">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-pronoun-copula-ending.md">
+              대명사 계사·의문 어미 축약 recall
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-dictionary-adverbial-i.md">
               사전 합의 -이 부사형 recall
