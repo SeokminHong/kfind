@@ -63,7 +63,173 @@ proptest! {
                 .collect::<Vec<_>>();
             prop_assert_eq!(indexed, linear);
         }
+        prop_assert!(graph.starting_at(usize::MAX).is_empty());
     }
+}
+
+fn arbitrary_unit_graph() -> impl Strategy<Value = (usize, Vec<Unit>, Range<usize>)> {
+    (1_usize..=64).prop_flat_map(|text_len| {
+        (
+            Just(text_len),
+            prop::collection::vec(
+                (
+                    0_usize..text_len,
+                    1_usize..=text_len,
+                    any::<bool>(),
+                    any::<bool>(),
+                ),
+                0..256,
+            ),
+            0_usize..text_len,
+            1_usize..=text_len,
+        )
+            .prop_map(|(text_len, raw_units, core_start, core_end)| {
+                let mut units = raw_units
+                    .into_iter()
+                    .filter(|(start, end, _, _)| start < end)
+                    .map(|(start, end, nominal, source)| Unit {
+                        span: start..end,
+                        pos: if nominal {
+                            DataFinePos::Nng
+                        } else {
+                            DataFinePos::Vv
+                        },
+                        evidence: if source {
+                            StructuralEvidence::SourceComponent
+                        } else {
+                            StructuralEvidence::RuntimeComponent
+                        },
+                        from_whole_nominal: false,
+                    })
+                    .collect::<Vec<_>>();
+                units.sort_unstable_by_key(|unit| {
+                    (
+                        unit.span.start,
+                        unit.span.end,
+                        unit.pos,
+                        unit.evidence as u8,
+                    )
+                });
+                let core_start = core_start.min(text_len - 1);
+                let core_end = core_end.max(core_start + 1).min(text_len);
+                (text_len, units, core_start..core_end)
+            })
+    })
+}
+
+proptest! {
+    #[test]
+    fn indexed_unit_paths_match_linear_reference(
+        (text_len, units, core) in arbitrary_unit_graph(),
+    ) {
+        let graph = UnitGraph::from_sorted_by(text_len, units, |unit| unit.span.start);
+        let selected = 0..text_len;
+
+        prop_assert_eq!(
+            graph.minimum_path_len(&selected, DataFinePos::is_nominal),
+            linear_minimum_path_len(&graph, &selected, DataFinePos::is_nominal),
+        );
+        prop_assert_eq!(
+            graph.contains_on_preferred_path(&core, &selected, |_| true),
+            linear_preferred_path_contains(&graph, &core, &selected),
+        );
+    }
+}
+
+fn linear_minimum_path_len(
+    graph: &UnitGraph,
+    span: &Range<usize>,
+    accepts: impl Fn(DataFinePos) -> bool,
+) -> Option<usize> {
+    let mut costs = vec![None; span.len() + 1];
+    costs[0] = Some(0_usize);
+    for offset in 0..span.len() {
+        let Some(cost) = costs[offset] else {
+            continue;
+        };
+        let start = span.start + offset;
+        for unit in graph.all().iter().filter(|unit| {
+            unit.span.start == start && unit.span.end <= span.end && accepts(unit.pos)
+        }) {
+            let end = unit.span.end - span.start;
+            let candidate = cost + 1;
+            if costs[end].is_none_or(|current| candidate < current) {
+                costs[end] = Some(candidate);
+            }
+        }
+    }
+    costs[span.len()]
+}
+
+fn linear_preferred_path_contains(
+    graph: &UnitGraph,
+    core: &Range<usize>,
+    selected: &Range<usize>,
+) -> bool {
+    let mut edges = graph
+        .all()
+        .iter()
+        .filter(|unit| unit.span.end <= selected.end)
+        .map(|unit| {
+            (
+                unit.span.start,
+                unit.span.end,
+                UnitPathCost::default().append(unit),
+            )
+        })
+        .collect::<Vec<_>>();
+    edges.sort_unstable_by_key(|(start, end, cost)| (*start, *end, *cost));
+    edges.dedup_by(|left, right| left.0 == right.0 && left.1 == right.1);
+
+    let mut prefix = vec![None; selected.len() + 1];
+    prefix[0] = Some(UnitPathCost::default());
+    for offset in 0..selected.len() {
+        let Some(cost) = prefix[offset] else {
+            continue;
+        };
+        let start = selected.start + offset;
+        for (_, end, edge_cost) in edges
+            .iter()
+            .filter(|(edge_start, _, _)| *edge_start == start)
+        {
+            let end = *end - selected.start;
+            let candidate = cost.combine(*edge_cost);
+            if prefix[end].is_none_or(|current| candidate < current) {
+                prefix[end] = Some(candidate);
+            }
+        }
+    }
+    let Some(best) = prefix[selected.len()] else {
+        return false;
+    };
+
+    let mut suffix = vec![None; selected.len() + 1];
+    suffix[selected.len()] = Some(UnitPathCost::default());
+    for offset in (1..=selected.len()).rev() {
+        let Some(cost) = suffix[offset] else {
+            continue;
+        };
+        let end = selected.start + offset;
+        for (start, _, edge_cost) in edges.iter().filter(|(_, edge_end, _)| *edge_end == end) {
+            let start = *start - selected.start;
+            let candidate = edge_cost.combine(cost);
+            if suffix[start].is_none_or(|current| candidate < current) {
+                suffix[start] = Some(candidate);
+            }
+        }
+    }
+
+    let core_start = core.start - selected.start;
+    let core_end = core.end - selected.start;
+    edges.iter().any(|(start, end, edge_cost)| {
+        if *start != core.start || *end != core.end {
+            return false;
+        }
+        let (Some(prefix), Some(suffix)) = (prefix[core_start], suffix[core_end]) else {
+            return false;
+        };
+        prefix.combine(*edge_cost).combine(suffix) == best
+    })
 }
 
 #[test]
