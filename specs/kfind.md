@@ -1884,27 +1884,37 @@ prefilter이며, atom 하나라도 raw anchor가 없는 줄에서는 검증된 s
 
 ### 12.4 phrase 결합
 
-각 atom의 검증된 span 목록을 구한 뒤 순서 결합한다.
+검증된 span을 위치순 candidate stream으로 만들면서 순서 결합한다.
 
 ```text
-atom 0 spans
-atom 1 spans
-atom 2 spans
-  → two-pointer 또는 제한된 DP
+anchor hits
+  → token.start 순 candidate group
+  → atom별 active prefix state
   → 순서 유지
   → max-gap 검사
+  → settled leftmost-longest match
 ```
 
 표면형 후보들의 데카르트 곱을 정규식으로 만들지 않는다.
 
-제품 matcher는 가능한 atom 조합마다 `PhraseMatch`를 미리 만들지 않는다. 뒤 atom부터 span별 최적
-suffix와 다음 span index만 계산하고 시작 위치 범위의 최적 suffix를 제한된 range join으로
-조회한다. DP 상태 수는 검증된 atom span 수의 합에 비례해야 한다. `find_span_at`은 가장 이른
-leftmost-longest 결과 하나만 복원하고, `find_all_with_meta`는 입력의 anchor와 atom span을 한 번
-수집한 뒤 선택된 non-overlapping 결과의 atom metadata만 복원한다. match 하나를 반환할 때마다
-남은 전체 입력의 anchor와 span 결합을 다시 계산하지 않는다. `InputSearcher`가 한 줄의 metadata를
-수집하는 경로도 같은 일괄 API를 사용하며, 65,536개 상한은 결과를 모두 만든 뒤가 아니라 선택
-중에 적용한다.
+제품 matcher는 가능한 atom 조합이나 줄 전체의 검증 span을 미리 만들지 않는다. Anchor hit의
+끝 위치와 plan의 최대 anchor 길이를 이용해 더 이른 `token.start`가 나올 수 없는 candidate group만
+순서대로 확정하고, 같은 atom의 동일 core·token span은 이 단계에서 병합한다. 각 atom layer는
+다음 atom과 연결될 수 있는 max-gap 범위의 prefix state만 유지하며, 현재 non-overlap cursor
+구간의 동일한 token end에서는 leftmost-longest tie-break상 우선하는 prefix 하나만 남긴다.
+범위를 벗어나거나 줄을 건넌 state는 즉시 제거한다. 가장 이른 시작점의 연장 가능한 state가
+없어졌을 때만 완성 match를 확정한다. 완성 match 때문에 cursor가 전진하면 이미 지나간 후보 중
+새 cursor 이후에 시작하는 제한된 구간만 재생해, 이전 match와 겹쳐 우선순위에서 밀렸던 다음
+prefix를 복구한다. 재생 구간의 시작은 대기 중인 가장 이른 완성 match의 최종 end를 따라
+전진하며, 완성 match가 없으면 별도 후보 이력을 유지하지 않는다.
+
+Active DP와 재생 이력 메모리는 줄 전체 candidate 수가 아니라 query atom 수, max-gap 안의 서로
+다른 candidate endpoint 수, 대기 중인 match 이후의 제한된 phrase 도달 범위에 비례해야 한다.
+사용자가 지정한 max-gap은 이 runtime 작업 범위에도 직접 반영된다.
+`find_span_at`은 가장 이른 leftmost-longest 결과 하나만 복원하고, `find_all_with_meta`는 선택된
+non-overlapping 결과의 atom metadata만 복원한다. match 하나를 반환할 때마다 남은 전체 입력의
+anchor를 다시 검색하지 않는다. `InputSearcher`가 한 줄의 metadata를 수집하는 경로도 같은 stream을
+사용하며, 65,536개 상한은 결과를 모두 만든 뒤가 아니라 선택 중에 적용한다.
 
 reference·expert API의 전체 조합용 `join_phrase_spans`는 중간 partial을 65,536개까지만
 허용하고 초과하면 `PhraseJoinError::CandidateLimitExceeded`를 반환한다.
@@ -2930,6 +2940,9 @@ summary 경로를 측정해 line 평가 전달 비용이 존재 판정 경로를
 먼저 판정해 verifier와 atom span 적재를 건너뛰는지 감시한다. 이 workload의 wall time과 maximum
 RSS를 함께 비교하며, 모든 atom이 존재하는 줄의 phrase 선택 메모리 상한을 증명하는 근거로는
 사용하지 않는다.
+`matcher/phrase_input_searcher_sparse_tail_long_line`은 1 MiB 단일 줄의 끝에 둘째 atom을 한 번 넣어
+raw coverage prefilter를 통과시키고 실제 match 하나를 만든다. Max-gap 밖의 첫 atom candidate를
+active state에서 제거해 줄 전체 검증 span을 적재하지 않는지 wall time과 maximum RSS로 확인한다.
 
 `matcher/context_repeated_long_line`은 `매일`이 16,384번 반복되는 줄바꿈 없는 UTF-8 입력을
 `RepeatedToken + MAG` 구조 pattern을 가진 `smart` 부사 matcher로 검색한다. 각 candidate의

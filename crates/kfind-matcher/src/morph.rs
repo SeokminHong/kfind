@@ -25,12 +25,13 @@ mod candidates;
 mod context;
 mod line_candidate;
 mod phrase;
+mod streaming_phrase;
 
 pub use candidates::LocalAnalysisCandidate;
 use context::{
     PreparedStructuralContextAnalysis, PreparedStructuralContextCache, StructuralRequest,
 };
-use phrase::{PhraseMatchLimit, PhraseSelection, select_phrase_matches};
+use phrase::{PhraseMatchLimit, PhraseSelection};
 
 const MAX_CONSUMPTION_BYTES: usize = 256;
 const ADNOMINAL_RULE_IDS: [&str; 4] = [
@@ -263,9 +264,7 @@ impl MorphMatcher {
     }
 
     fn find_phrases_with_meta(&self, haystack: &[u8], limit: PhraseMatchLimit) -> PhraseSelection {
-        let text = phrase_join_text(haystack);
-        let atom_spans = self.collect_atom_spans(haystack, 0, MatchMetadata::Provenance);
-        select_phrase_matches(&text, &atom_spans, self.plan.phrase_policy, limit)
+        streaming_phrase::select(self, haystack, 0, MatchMetadata::Provenance, limit)
     }
 
     #[must_use]
@@ -361,46 +360,10 @@ impl MorphMatcher {
         at: usize,
         metadata: MatchMetadata,
     ) -> Option<PhraseMatch> {
-        let text = phrase_join_text(haystack);
-        let atom_spans = self.collect_atom_spans(haystack, at, metadata);
-        select_phrase_matches(
-            &text,
-            &atom_spans,
-            self.plan.phrase_policy,
-            PhraseMatchLimit::First,
-        )
-        .matches
-        .into_iter()
-        .next()
-    }
-
-    fn collect_atom_spans(
-        &self,
-        haystack: &[u8],
-        at: usize,
-        metadata: MatchMetadata,
-    ) -> Vec<Vec<VerifiedSpan>> {
-        let mut atom_spans = vec![Vec::new(); self.plan.atoms.len()];
-        let mut structural_cache = StructuralCache::default();
-        for hit in self.anchor_engine.hits(haystack, at) {
-            for branch_ref in &self.anchor_programs[hit.anchor_index] {
-                let atom = &self.plan.atoms[branch_ref.atom_index];
-                let branch = &atom.programs[branch_ref.program_index];
-                if let Some(span) = self.execute_program_with_metadata(
-                    haystack,
-                    &hit,
-                    branch,
-                    metadata,
-                    &mut structural_cache,
-                ) {
-                    atom_spans[branch_ref.atom_index].push(span);
-                }
-            }
-        }
-        for spans in &mut atom_spans {
-            merge_duplicate_spans(spans);
-        }
-        atom_spans
+        streaming_phrase::select(self, haystack, at, metadata, PhraseMatchLimit::First)
+            .matches
+            .into_iter()
+            .next()
     }
 
     fn execute_program_with_metadata(
@@ -1826,29 +1789,6 @@ fn contains_rule(rules: &[RuleId], rule: &RuleId) -> bool {
     rules
         .binary_search_by_key(&rule.as_str(), |known| known.as_str())
         .is_ok()
-}
-
-fn merge_duplicate_spans(spans: &mut Vec<VerifiedSpan>) {
-    spans.sort_by_key(|span| {
-        (
-            span.token.start,
-            span.token.end,
-            span.core.start,
-            span.core.end,
-        )
-    });
-    let mut merged = Vec::<VerifiedSpan>::with_capacity(spans.len());
-    for span in spans.drain(..) {
-        if let Some(previous) = merged
-            .last_mut()
-            .filter(|previous| same_span(previous, &span))
-        {
-            merge_origins(&mut previous.origins, span.origins);
-        } else {
-            merged.push(span);
-        }
-    }
-    *spans = merged;
 }
 
 fn merge_origins(origins: &mut Vec<Origin>, additional: Vec<Origin>) {

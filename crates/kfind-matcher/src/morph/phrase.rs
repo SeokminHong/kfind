@@ -1,3 +1,5 @@
+#![cfg_attr(not(test), allow(dead_code))]
+
 use std::ops::Range;
 
 use kfind_query::{PhraseMatch, PhrasePolicy, VerifiedSpan};
@@ -371,6 +373,8 @@ mod tests {
     }
 
     proptest! {
+        #![proptest_config(ProptestConfig::with_cases(1_024))]
+
         #[test]
         fn bounded_selection_matches_exhaustive_join(
             first in prop::collection::vec((0usize..20, 1usize..5), 0..8),
@@ -407,14 +411,52 @@ mod tests {
                 PhraseMatchLimit::All,
             ).matches;
             prop_assert_eq!(selected.clone(), exhaustive.clone());
+            let streamed = super::super::streaming_phrase::select_verified_spans(
+                &text,
+                &atom_spans,
+                policy,
+                PhraseMatchLimit::All,
+            ).matches;
+            prop_assert_eq!(streamed, exhaustive.clone());
 
-            let first = select_phrase_matches(
+            let expected_first = exhaustive.iter().take(1).cloned().collect::<Vec<_>>();
+            let bulk_first = select_phrase_matches(
                 &text,
                 &atom_spans,
                 policy,
                 PhraseMatchLimit::First,
             ).matches;
-            prop_assert_eq!(first, exhaustive.into_iter().take(1).collect::<Vec<_>>());
+            prop_assert_eq!(bulk_first, expected_first.clone());
+            let streamed_first = super::super::streaming_phrase::select_verified_spans(
+                &text,
+                &atom_spans,
+                policy,
+                PhraseMatchLimit::First,
+            ).matches;
+            prop_assert_eq!(streamed_first, expected_first);
+
+            for maximum in 0..=3 {
+                let expected = PhraseSelection {
+                    matches: exhaustive.iter().take(maximum).cloned().collect(),
+                    limit_exceeded: exhaustive.len() > maximum,
+                };
+                let bulk = select_phrase_matches(
+                    &text,
+                    &atom_spans,
+                    policy,
+                    PhraseMatchLimit::Bounded(maximum),
+                );
+                prop_assert_eq!(bulk.matches, expected.matches.clone());
+                prop_assert_eq!(bulk.limit_exceeded, expected.limit_exceeded);
+                let streamed = super::super::streaming_phrase::select_verified_spans(
+                    &text,
+                    &atom_spans,
+                    policy,
+                    PhraseMatchLimit::Bounded(maximum),
+                );
+                prop_assert_eq!(streamed.matches, expected.matches);
+                prop_assert_eq!(streamed.limit_exceeded, expected.limit_exceeded);
+            }
         }
     }
 
