@@ -190,6 +190,38 @@ fn path_order_consumes_high_hit_records_before_eof() {
 }
 
 #[test]
+fn path_order_unit_capacity_drains_parallel_file_streams() {
+    const FILES: usize = 32;
+    const LINES_PER_FILE: usize = 128;
+
+    let tree = TempTree::new();
+    for index in (0..FILES).rev() {
+        tree.write(format!("{index:02}.txt"), &"걸어\n".repeat(LINES_PER_FILE));
+    }
+    let mut search = config(vec![tree.0.clone()]);
+    search.execution.order = ResultOrder::Path;
+    search.execution.channel_capacity = 0;
+
+    let (summary, events) = collect(search);
+    let paths = events
+        .iter()
+        .filter_map(|event| match event {
+            SearchEvent::FileEnd(result) => Some(result.path.clone()),
+            SearchEvent::FileStart { .. } | SearchEvent::Record { .. } | SearchEvent::Issue(_) => {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+    let mut expected = paths.clone();
+    expected.sort();
+
+    assert_eq!(summary.searched_files, FILES as u64);
+    assert_eq!(summary.matching_lines, (FILES * LINES_PER_FILE) as u64);
+    assert_eq!(summary.errors, 0);
+    assert_eq!(paths, expected);
+}
+
+#[test]
 fn ignored_files_are_skipped_but_explicit_files_are_searched() {
     let tree = TempTree::new();
     tree.write(".git/HEAD", "ref: refs/heads/main\n");
