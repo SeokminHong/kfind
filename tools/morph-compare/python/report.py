@@ -255,7 +255,7 @@ def build_report(
             value != bool(case["expected"])
             for value in backend_predictions.values()
         )
-        contract_failure = any(
+        contract_failure = adjusted_expected is not None and any(
             value != adjusted_expected for value in backend_predictions.values()
         )
         if not strict_failure and not contract_failure:

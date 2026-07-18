@@ -4,13 +4,20 @@ from collections import defaultdict
 from collections.abc import Callable
 
 
-CONTRACT_REASONS = {
+RECLASSIFICATION_REASONS = {
     "aligned-source-component",
     "same-pos-homograph",
+    "structurally-indistinguishable-homograph",
+}
+EXCLUSION_REASONS = {
+    "cost-prohibitive",
+    "gold-or-adapter",
+    "out-of-contract",
+    "structurally-unresolvable",
 }
 
 
-def contract_expected(case: dict[str, object]) -> bool:
+def contract_expected(case: dict[str, object]) -> bool | None:
     strict_expected = bool(case["expected"])
     if "contract_expected" not in case:
         if "contract_reason" in case:
@@ -20,8 +27,17 @@ def contract_expected(case: dict[str, object]) -> bool:
         return strict_expected
 
     adjusted_expected = case["contract_expected"]
+    reason = case.get("contract_reason")
+    if adjusted_expected is None:
+        if reason not in EXCLUSION_REASONS:
+            raise ValueError(
+                f"case {case['id']} has unsupported exclusion reason {reason!r}"
+            )
+        return None
     if not isinstance(adjusted_expected, bool):
-        raise ValueError(f"case {case['id']} contract_expected must be boolean")
+        raise ValueError(
+            f"case {case['id']} contract_expected must be boolean or null"
+        )
     if adjusted_expected == strict_expected:
         raise ValueError(
             f"case {case['id']} contract_expected must differ from expected"
@@ -30,8 +46,7 @@ def contract_expected(case: dict[str, object]) -> bool:
         raise ValueError(
             f"case {case['id']} may only reclassify strict negative to contract positive"
         )
-    reason = case.get("contract_reason")
-    if reason not in CONTRACT_REASONS:
+    if reason not in RECLASSIFICATION_REASONS:
         raise ValueError(
             f"case {case['id']} has unsupported contract_reason {reason!r}"
         )
@@ -48,17 +63,25 @@ def quality_metrics(
 def contract_quality_metrics(
     cases: list[dict[str, object]], predictions: dict[str, bool]
 ) -> dict[str, object]:
-    counts = _confusion_counts(cases, predictions, contract_expected)
-    metrics = _derived_metrics(len(cases), counts, "contract_")
-    reasons: dict[str, int] = defaultdict(int)
+    included_cases = [case for case in cases if contract_expected(case) is not None]
+    counts = _confusion_counts(included_cases, predictions, contract_expected)
+    metrics = _derived_metrics(len(included_cases), counts, "contract_")
+    reclassified_reasons: dict[str, int] = defaultdict(int)
+    excluded_reasons: dict[str, int] = defaultdict(int)
     for case in cases:
-        contract_expected(case)
-        if "contract_expected" in case:
-            reasons[str(case["contract_reason"])] += 1
+        expected = contract_expected(case)
+        if "contract_expected" not in case:
+            continue
+        reasons = excluded_reasons if expected is None else reclassified_reasons
+        reasons[str(case["contract_reason"])] += 1
     return {
         **metrics,
-        "reclassified_cases": sum(reasons.values()),
-        "reclassified_by_reason": dict(sorted(reasons.items())),
+        "reviewed_cases": sum(reclassified_reasons.values())
+        + sum(excluded_reasons.values()),
+        "reclassified_cases": sum(reclassified_reasons.values()),
+        "reclassified_by_reason": dict(sorted(reclassified_reasons.items())),
+        "excluded_cases": sum(excluded_reasons.values()),
+        "excluded_by_reason": dict(sorted(excluded_reasons.items())),
     }
 
 
@@ -77,11 +100,13 @@ def grouped_contract_quality(
 def _confusion_counts(
     cases: list[dict[str, object]],
     predictions: dict[str, bool],
-    expected_for: Callable[[dict[str, object]], bool],
+    expected_for: Callable[[dict[str, object]], bool | None],
 ) -> tuple[int, int, int, int]:
     tp = fp = tn = fn = 0
     for case in cases:
         expected = expected_for(case)
+        if expected is None:
+            raise ValueError("excluded case reached confusion count")
         predicted = predictions[str(case["id"])]
         if expected and predicted:
             tp += 1
@@ -108,7 +133,9 @@ def _derived_metrics(
         f"{prefix}fp": fp,
         f"{prefix}tn": tn,
         f"{prefix}fn": fn,
-        f"{prefix}accuracy_percent": round(100 * (tp + tn) / case_count, 2),
+        f"{prefix}accuracy_percent": round(100 * (tp + tn) / case_count, 2)
+        if case_count
+        else 0.0,
         f"{prefix}precision_percent": round(100 * precision, 2),
         f"{prefix}hard_negative_precision_percent": round(
             100 * negative_precision, 2
