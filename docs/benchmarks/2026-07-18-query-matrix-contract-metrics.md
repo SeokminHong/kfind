@@ -1,6 +1,6 @@
 # Query matrix raw·계약 품질 교정
 
-> 현재 제품 결과는 [source 정렬 합성용언 tail recall](2026-07-18-source-aligned-compound-predicate-tail.md)이
+> 현재 제품 결과는 [사전 voice 파생 활용 recall](2026-07-18-dictionary-voice-derivation.md)이
 > 이어받는다. 이 문서는 contract 교정 시점의 측정값을 보존한다.
 
 - 측정일: 2026-07-18
