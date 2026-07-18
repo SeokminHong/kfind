@@ -169,25 +169,52 @@ pub fn validate_predicates(
                 },
             ));
         }
-        if predicate.alternation == crate::DataAlternation::SurfaceOnly
-            && (predicate.overrides.len() != 1
-                || !predicate
-                    .overrides
-                    .iter()
-                    .all(|entry| crate::is_dictionary_surface_rule(&entry.rule_id)))
+        let surface_provenance_count = predicate.overrides.len() + predicate.derivations.len();
+        if !predicate.derivations.is_empty()
+            && predicate.alternation != crate::DataAlternation::SurfaceOnly
         {
             return Err(DataError::new(
                 SourceLocation::new(source),
                 DataErrorKind::InvalidValue {
-                    field: "overrides".to_owned(),
+                    field: "derivations".to_owned(),
                     value: predicate
-                        .overrides
+                        .derivations
                         .iter()
                         .map(|entry| entry.rule_id.as_str())
                         .collect::<Vec<_>>()
                         .join(","),
-                    reason: "SurfaceOnly는 사전 provenance override 하나만 가져야 합니다"
-                        .to_owned(),
+                    reason: "사전 파생 관계는 SurfaceOnly 분석에서만 허용합니다".to_owned(),
+                },
+            ));
+        }
+        let valid_surface_only = predicate
+            .overrides
+            .iter()
+            .all(|entry| crate::is_dictionary_surface_rule(&entry.rule_id))
+            && predicate
+                .derivations
+                .iter()
+                .all(|entry| entry.rule_id == crate::DICTIONARY_VOICE_DERIVATION_RULE_ID);
+        if predicate.alternation == crate::DataAlternation::SurfaceOnly
+            && (surface_provenance_count != 1 || !valid_surface_only)
+        {
+            return Err(DataError::new(
+                SourceLocation::new(source),
+                DataErrorKind::InvalidValue {
+                    field: "overrides/derivations".to_owned(),
+                    value: predicate
+                        .overrides
+                        .iter()
+                        .map(|entry| entry.rule_id.as_str())
+                        .chain(
+                            predicate
+                                .derivations
+                                .iter()
+                                .map(|entry| entry.rule_id.as_str()),
+                        )
+                        .collect::<Vec<_>>()
+                        .join(","),
+                    reason: "SurfaceOnly는 사전 provenance 항목 하나만 가져야 합니다".to_owned(),
                 },
             ));
         }
@@ -196,6 +223,14 @@ pub fn validate_predicates(
                 && !(predicate.alternation == crate::DataAlternation::SurfaceOnly
                     && crate::is_dictionary_surface_rule(&entry.rule_id))
             {
+                return Err(DataError::new(
+                    SourceLocation::new(source),
+                    DataErrorKind::UnknownRuleId(entry.rule_id.clone()),
+                ));
+            }
+        }
+        for entry in &predicate.derivations {
+            if entry.rule_id != crate::DICTIONARY_VOICE_DERIVATION_RULE_ID {
                 return Err(DataError::new(
                     SourceLocation::new(source),
                     DataErrorKind::UnknownRuleId(entry.rule_id.clone()),

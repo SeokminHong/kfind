@@ -41,6 +41,7 @@
 - [사전 합의 `-이` 부사형 recall](2026-07-18-dictionary-adverbial-i.md)
 - [대명사 계사·의문 어미 축약 recall](2026-07-18-pronoun-copula-ending.md)
 - [source 정렬 합성용언 tail recall](2026-07-18-source-aligned-compound-predicate-tail.md)
+- [사전 voice 파생 활용 recall](2026-07-18-dictionary-voice-derivation.md)
 - [숫자 뒤 단위 구조 recall](2026-07-17-numeric-unit-recall.md)
 - [질의 컴파일 병목 제거](2026-07-17-compile-hotpath-performance.md)
 - [구조 증거로 줄인 검색 누락](2026-07-17-structural-recall.md)
@@ -583,3 +584,16 @@ token 왼쪽 경계의 독립 명령형 `가`는 계속 회수한다. 잔여 raw
 다음 독립 PR은 표준 피동 파생 1건 `밀다→밀려`를 처리한다. 독립 표제어 alias 합의가 없으므로
 surface alias가 아니라 `밀/VV + 리/XSV + 어/EC`의 source 파생 구조와 query 원형의
 derivational provenance를 함께 검증한다.
+
+[사전 voice 파생 활용 recall](2026-07-18-dictionary-voice-derivation.md)에서
+한국어기초사전의 직접 `파생어` 관계와 표준국어대사전의 source·target 일반 동사 등재가 함께
+확인된 `-이-/-히-/-리-/-기-` 관계 225개를 enriched metadata로 승격했다. Query compiler는
+target lemma의 일반 활용기를 재사용하고 `smart`는 완성된 target 용언+어미 구조를 요구한다.
+`밀다→밀려`를 회수해 test matrix full-POS raw FN은 8→7, FNᶜ는 4→3이 됐으며
+FP 4·FPᶜ 0과 hard-negative `FP 6 / TN 33`을 유지했다. 잔여 raw FN 7건은
+`product-fix 1`, `structural-redesign 2`, `gold-alignment-error 1`, `nonstandard-input 3`,
+미분류 0건이다.
+
+다음 독립 PR은 `잠식당→잠식당하기`의 파생 용언 앞 source 체언 성분을 처리한다. 독립 명사
+alias를 만들지 않고 `잠식/NNG + 당/XSN + 하/XSV + 기/ETN`처럼 source가 정렬한 명사 성분과
+파생 용언·명사형의 완성 경로를 함께 검증한다.

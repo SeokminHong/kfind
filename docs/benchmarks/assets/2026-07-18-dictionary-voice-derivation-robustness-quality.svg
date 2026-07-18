@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760" role="img" aria-labelledby="title desc">
+<title id="title">Robust quality on natural erroneous Korean</title>
+<desc id="desc">Five product rows compare precision, recall, F1, target-span recall, and context-only recall on 500 manually reviewed noisy Korean cases.</desc>
+
+<style>
+  .background { fill: #ffffff; }
+  text { fill: #111827; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .muted { fill: #4b5563; }
+  .grid { stroke: #d1d5db; stroke-width: 1; }
+  .axis { stroke: #6b7280; stroke-width: 1; }
+  @media (prefers-color-scheme: dark) {
+    .background { fill: #0d1117; }
+    text { fill: #f3f4f6; }
+    .muted { fill: #9ca3af; }
+    .grid { stroke: #374151; }
+    .axis { stroke: #9ca3af; }
+  }
+</style>
+
+<rect class="background" width="1280" height="760"/>
+<text x="52.0" y="38.0" text-anchor="start">Robust quality on natural erroneous Korean</text>
+<text x="52.0" y="62.0" text-anchor="start" class="muted">UD Korean-KSL · 250 positive / 250 negative · target 100 + context 150 positives · robustness off</text>
+<text x="52.0" y="82.0" text-anchor="start" class="muted">Manually reviewed noisy sentences · reported separately from the standard-orthography canonical score</text>
+<text x="52.0" y="130.0" text-anchor="start">Precision · percent</text>
+<text x="52.0" y="177.0" text-anchor="start">kfind Agent</text>
+<rect x="144.0" y="160.0" width="185.2" height="24.0" rx="3" fill="#2563eb"/>
+<text x="344.0" y="178.0" text-anchor="start">97.46%</text>
+<text x="52.0" y="219.0" text-anchor="start">Kiwi</text>
+<rect x="144.0" y="202.0" width="190.0" height="24.0" rx="3" fill="#059669"/>
+<text x="344.0" y="220.0" text-anchor="start">100.00%</text>
+<text x="52.0" y="261.0" text-anchor="start">Lindera</text>
+<rect x="144.0" y="244.0" width="190.0" height="24.0" rx="3" fill="#d97706"/>
+<text x="344.0" y="262.0" text-anchor="start">100.00%</text>
+<text x="52.0" y="303.0" text-anchor="start">MeCab-ko</text>
+<rect x="144.0" y="286.0" width="190.0" height="24.0" rx="3" fill="#dc2626"/>
+<text x="344.0" y="304.0" text-anchor="start">100.00%</text>
+<text x="52.0" y="345.0" text-anchor="start">KOMORAN</text>
+<rect x="144.0" y="328.0" width="190.0" height="24.0" rx="3" fill="#0891b2"/>
+<text x="344.0" y="346.0" text-anchor="start">100.00%</text>
+<text x="455.0" y="130.0" text-anchor="start">Recall · percent</text>
+<text x="455.0" y="177.0" text-anchor="start">kfind Agent</text>
+<rect x="547.0" y="160.0" width="174.8" height="24.0" rx="3" fill="#2563eb"/>
+<text x="747.0" y="178.0" text-anchor="start">92.00%</text>
+<text x="455.0" y="219.0" text-anchor="start">Kiwi</text>
+<rect x="547.0" y="202.0" width="161.9" height="24.0" rx="3" fill="#059669"/>
+<text x="747.0" y="220.0" text-anchor="start">85.20%</text>
+<text x="455.0" y="261.0" text-anchor="start">Lindera</text>
+<rect x="547.0" y="244.0" width="158.1" height="24.0" rx="3" fill="#d97706"/>
+<text x="747.0" y="262.0" text-anchor="start">83.20%</text>
+<text x="455.0" y="303.0" text-anchor="start">MeCab-ko</text>
+<rect x="547.0" y="286.0" width="156.6" height="24.0" rx="3" fill="#dc2626"/>
+<text x="747.0" y="304.0" text-anchor="start">82.40%</text>
+<text x="455.0" y="345.0" text-anchor="start">KOMORAN</text>
+<rect x="547.0" y="328.0" width="155.8" height="24.0" rx="3" fill="#0891b2"/>
+<text x="747.0" y="346.0" text-anchor="start">82.00%</text>
+<text x="858.0" y="130.0" text-anchor="start">F1 · percent</text>
+<text x="858.0" y="177.0" text-anchor="start">kfind Agent</text>
+<rect x="950.0" y="160.0" width="179.8" height="24.0" rx="3" fill="#2563eb"/>
+<text x="1150.0" y="178.0" text-anchor="start">94.65%</text>
+<text x="858.0" y="219.0" text-anchor="start">Kiwi</text>
+<rect x="950.0" y="202.0" width="174.8" height="24.0" rx="3" fill="#059669"/>
+<text x="1150.0" y="220.0" text-anchor="start">92.01%</text>
+<text x="858.0" y="261.0" text-anchor="start">Lindera</text>
+<rect x="950.0" y="244.0" width="172.6" height="24.0" rx="3" fill="#d97706"/>
+<text x="1150.0" y="262.0" text-anchor="start">90.83%</text>
+<text x="858.0" y="303.0" text-anchor="start">MeCab-ko</text>
+<rect x="950.0" y="286.0" width="171.7" height="24.0" rx="3" fill="#dc2626"/>
+<text x="1150.0" y="304.0" text-anchor="start">90.35%</text>
+<text x="858.0" y="345.0" text-anchor="start">KOMORAN</text>
+<rect x="950.0" y="328.0" width="171.2" height="24.0" rx="3" fill="#0891b2"/>
+<text x="1150.0" y="346.0" text-anchor="start">90.11%</text>
+<text x="52.0" y="430.0" text-anchor="start">Target-span recall · 100 positives · percent</text>
+<text x="52.0" y="477.0" text-anchor="start">kfind Agent</text>
+<rect x="164.0" y="460.0" width="264.0" height="24.0" rx="3" fill="#2563eb"/>
+<text x="474.0" y="478.0" text-anchor="start">88.00%</text>
+<text x="52.0" y="519.0" text-anchor="start">Kiwi</text>
+<rect x="164.0" y="502.0" width="255.0" height="24.0" rx="3" fill="#059669"/>
+<text x="474.0" y="520.0" text-anchor="start">85.00%</text>
+<text x="52.0" y="561.0" text-anchor="start">Lindera</text>
+<rect x="164.0" y="544.0" width="249.0" height="24.0" rx="3" fill="#d97706"/>
+<text x="474.0" y="562.0" text-anchor="start">83.00%</text>
+<text x="52.0" y="603.0" text-anchor="start">MeCab-ko</text>
+<rect x="164.0" y="586.0" width="249.0" height="24.0" rx="3" fill="#dc2626"/>
+<text x="474.0" y="604.0" text-anchor="start">83.00%</text>
+<text x="52.0" y="645.0" text-anchor="start">KOMORAN</text>
+<rect x="164.0" y="628.0" width="243.0" height="24.0" rx="3" fill="#0891b2"/>
+<text x="474.0" y="646.0" text-anchor="start">81.00%</text>
+<text x="680.0" y="430.0" text-anchor="start">Context-only recall · 150 positives · percent</text>
+<text x="680.0" y="477.0" text-anchor="start">kfind Agent</text>
+<rect x="792.0" y="460.0" width="284.0" height="24.0" rx="3" fill="#2563eb"/>
+<text x="1102.0" y="478.0" text-anchor="start">94.67%</text>
+<text x="680.0" y="519.0" text-anchor="start">Kiwi</text>
+<rect x="792.0" y="502.0" width="256.0" height="24.0" rx="3" fill="#059669"/>
+<text x="1102.0" y="520.0" text-anchor="start">85.33%</text>
+<text x="680.0" y="561.0" text-anchor="start">Lindera</text>
+<rect x="792.0" y="544.0" width="250.0" height="24.0" rx="3" fill="#d97706"/>
+<text x="1102.0" y="562.0" text-anchor="start">83.33%</text>
+<text x="680.0" y="603.0" text-anchor="start">MeCab-ko</text>
+<rect x="792.0" y="586.0" width="246.0" height="24.0" rx="3" fill="#dc2626"/>
+<text x="1102.0" y="604.0" text-anchor="start">82.00%</text>
+<text x="680.0" y="645.0" text-anchor="start">KOMORAN</text>
+<rect x="792.0" y="628.0" width="248.0" height="24.0" rx="3" fill="#0891b2"/>
+<text x="1102.0" y="646.0" text-anchor="start">82.67%</text>
+<text x="52.0" y="724.0" text-anchor="start" class="muted">Same explicit-POS gold and default settings; target-span errors overlap the searched morphology</text>
+<text x="1228.0" y="724.0" text-anchor="end" class="muted">Precision / recall / F1 use all 500 balanced cases</text>
+</svg>

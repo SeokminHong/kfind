@@ -9,9 +9,6 @@ use crate::classify::is_productive_duplicate;
 use crate::model::{CandidateKey, Classification, CoreEntries, Evidence, SourceRecord, core_key};
 use crate::surface::SurfaceCollection;
 
-const MAX_SURFACE_ONLY_ROWS: usize = 512;
-const MAX_PREDICATES_BYTES: usize = 64 * 1024;
-
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum CandidateStatus {
     Promoted,
@@ -104,14 +101,7 @@ pub fn write_predicates(
     derivations: &[DerivationRule],
     surfaces: &SurfaceCollection,
 ) -> Result<usize, Box<dyn Error>> {
-    if surfaces.candidates.len() > MAX_SURFACE_ONLY_ROWS {
-        return Err(format!(
-            "surface-only rows exceed limit: {} > {MAX_SURFACE_ONLY_ROWS}",
-            surfaces.candidates.len()
-        )
-        .into());
-    }
-    let mut output = String::from("lemma\tpos\talternation\tflags\toverrides\n");
+    let mut output = String::from("lemma\tpos\talternation\tflags\toverrides\tderivations\n");
     for (candidate, evidence) in candidates {
         if !matches!(
             candidate_status(candidate, evidence, candidates, core, derivations),
@@ -120,7 +110,7 @@ pub fn write_predicates(
             continue;
         }
         output.push_str(&format!(
-            "{}\t{}\t{}\t{}\t\n",
+            "{}\t{}\t{}\t{}\t\t\n",
             candidate.lemma,
             candidate.pos,
             candidate.classification.alternation(),
@@ -129,19 +119,21 @@ pub fn write_predicates(
     }
     for candidate in &surfaces.candidates {
         output.push_str(&format!(
-            "{}\t{}\tSurfaceOnly\t\t{}={}\n",
+            "{}\t{}\tSurfaceOnly\t\t{}={}\t\n",
             candidate.key.lemma,
             candidate.key.pos,
             candidate.key.kind.rule_id(),
             candidate.key.surface,
         ));
     }
-    if output.len() > MAX_PREDICATES_BYTES {
-        return Err(format!(
-            "predicates.tsv exceeds limit: {} > {MAX_PREDICATES_BYTES}",
-            output.len()
-        )
-        .into());
+    for candidate in &surfaces.predicate_derivations {
+        output.push_str(&format!(
+            "{}\t{}\tSurfaceOnly\t\t\t{}={}\n",
+            candidate.key.lemma,
+            candidate.key.pos,
+            candidate.rule_id(),
+            candidate.key.target_lemma,
+        ));
     }
     fs::write(path, output)?;
     Ok(fs::metadata(path)?.len() as usize)
@@ -155,12 +147,12 @@ pub fn write_report(
     surfaces: &SurfaceCollection,
 ) -> Result<(), Box<dyn Error>> {
     let mut output = String::from(
-        "lemma\tpos\talternation\tflags\tsurface\tkrdict_ids\tstdict_ids\topendict_ids\tstatus\n",
+        "lemma\tpos\talternation\tflags\tsurface\ttarget_lemma\tkrdict_ids\tstdict_ids\topendict_ids\tstatus\n",
     );
     for (candidate, evidence) in candidates {
         let status = candidate_status(candidate, evidence, candidates, core, derivations);
         output.push_str(&format!(
-            "{}\t{}\t{}\t{}\t\t{}\t{}\t{}\t{}\n",
+            "{}\t{}\t{}\t{}\t\t\t{}\t{}\t{}\t{}\n",
             candidate.lemma,
             candidate.pos,
             candidate.classification.alternation(),
@@ -173,7 +165,7 @@ pub fn write_report(
     }
     for candidate in &surfaces.candidates {
         output.push_str(&format!(
-            "{}\t{}\tSurfaceOnly\t\t{}\t{}\t{}\t{}\t{}\n",
+            "{}\t{}\tSurfaceOnly\t\t{}\t\t{}\t{}\t{}\t{}\n",
             candidate.key.lemma,
             candidate.key.pos,
             candidate.key.surface,
@@ -181,6 +173,17 @@ pub fn write_report(
             candidate.evidence.ids("stdict"),
             candidate.evidence.ids("opendict"),
             candidate.key.kind.status(),
+        ));
+    }
+    for candidate in &surfaces.predicate_derivations {
+        output.push_str(&format!(
+            "{}\t{}\tSurfaceOnly\t\t\t{}\t{}\t{}\t{}\tdictionary-voice\n",
+            candidate.key.lemma,
+            candidate.key.pos,
+            candidate.key.target_lemma,
+            candidate.evidence.ids("krdict"),
+            candidate.evidence.ids("stdict"),
+            candidate.evidence.ids("opendict"),
         ));
     }
     fs::write(path, output)?;
@@ -207,7 +210,7 @@ pub fn write_stats(
             .count()
     };
     let mut output = format!(
-        "schema_version = 4\ngenerator = \"nikl-lexicon-classifier@0.4.0\"\nrecord_count = {}\ncandidate_count = {}\nagreed_conjugation_count = {}\ngenerated_conjugation_count = {}\nsurface_conjugation_count = {}\nagreed_adverbial_i_count = {}\nrelated_adverb_count = {}\nsurface_related_adverb_count = {}\nsurface_only_count = {}\nartifact_bytes = {}\n",
+        "schema_version = 5\ngenerator = \"nikl-lexicon-classifier@0.5.0\"\nrecord_count = {}\ncandidate_count = {}\nagreed_conjugation_count = {}\ngenerated_conjugation_count = {}\nsurface_conjugation_count = {}\nagreed_adverbial_i_count = {}\nrelated_adverb_count = {}\nsurface_related_adverb_count = {}\nrelated_voice_derivation_count = {}\npredicate_derivation_count = {}\nsurface_only_count = {}\nartifact_bytes = {}\n",
         records.len(),
         candidates.len(),
         surfaces.agreed_conjugation_count,
@@ -216,7 +219,9 @@ pub fn write_stats(
         surfaces.agreed_adverbial_i_count,
         surfaces.related_adverb_count,
         surfaces.surface_related_adverb_count,
-        surfaces.candidates.len(),
+        surfaces.related_voice_derivation_count,
+        surfaces.predicate_derivations.len(),
+        surfaces.candidates.len() + surfaces.predicate_derivations.len(),
         artifact_bytes,
     );
     for status in CandidateStatus::VALUES {

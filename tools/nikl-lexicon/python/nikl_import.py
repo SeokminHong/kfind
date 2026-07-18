@@ -43,6 +43,7 @@ class PredicateRecord:
     lexical_status: str
     conjugations: tuple[str, ...]
     related_adverbs: tuple[str, ...]
+    related_voice_derivations: tuple[tuple[str, str], ...]
     attested_adverbials: tuple[tuple[str, str], ...]
 
 
@@ -55,6 +56,7 @@ class ImportStats:
     predicate_count: int
     predicate_with_conjugations_count: int
     related_adverb_count: int
+    related_voice_derivation_count: int
     attested_adverbial_count: int
     sanitized_byte_count: int
     sanitized_locations: tuple[str, ...]
@@ -117,6 +119,7 @@ def krdict_record(entry: ET.Element) -> Iterable[PredicateRecord]:
             lexical_status="일반어",
             conjugations=tuple(sorted(set(forms))),
             related_adverbs=(),
+            related_voice_derivations=(),
             attested_adverbials=(),
         ),
     )
@@ -157,6 +160,7 @@ def stdict_record(item: ET.Element) -> Iterable[PredicateRecord]:
                 lexical_status=status,
                 conjugations=forms,
                 related_adverbs=(),
+                related_voice_derivations=(),
                 attested_adverbials=(),
             )
         )
@@ -196,6 +200,7 @@ def opendict_record(item: ET.Element) -> Iterable[PredicateRecord]:
                 lexical_status=lexical_status(types, definitions),
                 conjugations=forms,
                 related_adverbs=(),
+                related_voice_derivations=(),
                 attested_adverbials=(),
             )
         )
@@ -256,6 +261,7 @@ def import_snapshot(
         predicate_count=len(records),
         predicate_with_conjugations_count=sum(bool(record.conjugations) for record in records),
         related_adverb_count=sum(len(record.related_adverbs) for record in records),
+        related_voice_derivation_count=sum(len(record.related_voice_derivations) for record in records),
         attested_adverbial_count=sum(len(record.attested_adverbials) for record in records),
         sanitized_byte_count=len(sanitized_locations),
         sanitized_locations=tuple(sanitized_locations),
@@ -270,11 +276,11 @@ class KrDictEntry:
     related_forms: tuple[tuple[str, str, str], ...]
 
 
-def attach_krdict_related_adverbs(
+def attach_krdict_relations(
     records: Iterable[PredicateRecord],
     path: Path,
     cache_directory: Path | None,
-) -> tuple[list[PredicateRecord], int]:
+) -> tuple[list[PredicateRecord], int, int]:
     sha256 = file_sha256(path)
     if sha256 != KRDICT_SHA256:
         raise ValueError(f"krdict: expected SHA-256 {KRDICT_SHA256}, found {sha256}")
@@ -289,31 +295,43 @@ def attach_krdict_related_adverbs(
             raw_lemma = (
                 direct_feat(lemma_element, "writtenForm") if lemma_element is not None else None
             )
-            if source_id and raw_lemma:
+            pos = direct_feat(element, "partOfSpeech") or ""
+            if source_id and raw_lemma and pos:
                 lemma, _ = normalize_headword(raw_lemma)
                 related_forms = tuple(
                     sorted(
                         (
                             direct_feat(related, "type") or "",
                             direct_feat(related, "id") or "",
-                            normalize_text(direct_feat(related, "writtenForm") or ""),
+                            normalize_headword(
+                                direct_feat(related, "writtenForm") or ""
+                            )[0],
                         )
                         for related in element.findall("./RelatedForm")
                     )
                 )
                 entries[source_id] = KrDictEntry(
                     lemma=lemma,
-                    pos=direct_feat(element, "partOfSpeech") or "",
+                    pos=pos,
                     related_forms=related_forms,
                 )
             element.clear()
 
     related_by_source = krdict_related_adverbs(entries)
+    voice_derivations_by_source = krdict_related_voice_derivations(entries)
     enriched = [
-        replace(record, related_adverbs=related_by_source.get(record.source_id, ()))
+        replace(
+            record,
+            related_adverbs=related_by_source.get(record.source_id, ()),
+            related_voice_derivations=voice_derivations_by_source.get(record.source_id, ()),
+        )
         for record in records
     ]
-    return enriched, sum(len(values) for values in related_by_source.values())
+    return (
+        enriched,
+        sum(len(values) for values in related_by_source.values()),
+        sum(len(values) for values in voice_derivations_by_source.values()),
+    )
 
 
 def krdict_related_adverbs(
@@ -341,6 +359,38 @@ def krdict_related_adverbs(
                 surfaces.add(target.lemma)
         if surfaces:
             related_by_source[source_id] = tuple(sorted(surfaces))
+    return related_by_source
+
+
+def krdict_related_voice_derivations(
+    entries: dict[str, KrDictEntry],
+) -> dict[str, tuple[tuple[str, str], ...]]:
+    related_by_source: dict[str, tuple[tuple[str, str], ...]] = {}
+    for source_id, source in entries.items():
+        if source.pos != "동사" or not source.lemma.endswith("다"):
+            continue
+        voice_lemmas = {
+            f"{source.lemma[:-1]}{suffix}다" for suffix in ("이", "히", "리", "기")
+        }
+        targets = set()
+        for relation_type, target_id, written_form in source.related_forms:
+            target = entries.get(target_id)
+            if (
+                relation_type != "파생어"
+                or target is None
+                or target.pos != "동사"
+                or target.lemma not in voice_lemmas
+                or written_form != target.lemma
+            ):
+                continue
+            reverse_matches = any(
+                reverse_id == source_id and reverse_written == source.lemma
+                for _, reverse_id, reverse_written in target.related_forms
+            )
+            if reverse_matches:
+                targets.add((target.lemma, target_id))
+        if targets:
+            related_by_source[source_id] = tuple(sorted(targets))
     return related_by_source
 
 
@@ -528,6 +578,7 @@ def write_records(path: Path, records: Iterable[PredicateRecord]) -> None:
                 "lexical_status",
                 "conjugations",
                 "related_adverbs",
+                "related_voice_derivations",
                 "attested_adverbials",
             )
         )
@@ -543,6 +594,10 @@ def write_records(path: Path, records: Iterable[PredicateRecord]) -> None:
                     "|".join(record.conjugations),
                     "|".join(record.related_adverbs),
                     "|".join(
+                        f"{target_lemma}={target_id}"
+                        for target_lemma, target_id in record.related_voice_derivations
+                    ),
+                    "|".join(
                         f"{surface}={target_id}"
                         for surface, target_id in record.attested_adverbials
                     ),
@@ -553,12 +608,13 @@ def write_records(path: Path, records: Iterable[PredicateRecord]) -> None:
 def write_stats(path: Path, stats: Iterable[ImportStats]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = [
-        "schema_version = 3",
-        'generator = "tools/nikl-lexicon/import_nikl.py@3"',
+        "schema_version = 4",
+        'generator = "tools/nikl-lexicon/import_nikl.py@4"',
         'license = "CC BY-SA 2.0 KR"',
         'extracted_fields = ["source_id", "homonym", "lemma", '
         '"part-of-speech", "conjugation", "related-form-id", "related-form-surface", '
-        '"attested-adverb-id", "attested-adverb-surface"]',
+        '"attested-adverb-id", "attested-adverb-surface", '
+        '"voice-target-id", "voice-target-lemma"]',
     ]
     for value in stats:
         lines.extend(
@@ -573,6 +629,7 @@ def write_stats(path: Path, stats: Iterable[ImportStats]) -> None:
                 "predicate_with_conjugations_count = "
                 f"{value.predicate_with_conjugations_count}",
                 f"related_adverb_count = {value.related_adverb_count}",
+                f"related_voice_derivation_count = {value.related_voice_derivation_count}",
                 f"attested_adverbial_count = {value.attested_adverbial_count}",
                 f"sanitized_byte_count = {value.sanitized_byte_count}",
                 "sanitized_locations = ["

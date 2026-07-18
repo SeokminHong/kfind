@@ -24,11 +24,11 @@ pub use error::{DataError, DataErrorKind, DataWarning, SourceLocation};
 pub use fixture::{ExpectedMatch, FixturePos, MorphologyCase, parse_morphology_cases_tsv};
 pub use lexicon::{
     DICTIONARY_ADVERBIAL_I_RULE_ID, DICTIONARY_CONJUGATION_RULE_ID,
-    DICTIONARY_RELATED_ADVERB_RULE_ID, DataAlternation, DataFinePos, LexiconData, LexiconSources,
-    ModifierRecord, NominalRecord, ParticleRecord, PredicateRecord, SurfaceOverride, UserLexicon,
-    UserNominalRecord, UserPredicateRecord, is_dictionary_surface_rule, parse_lexicons,
-    parse_modifiers_tsv, parse_nominals_tsv, parse_particles_tsv, parse_predicates_tsv,
-    parse_user_lexicon_toml,
+    DICTIONARY_RELATED_ADVERB_RULE_ID, DICTIONARY_VOICE_DERIVATION_RULE_ID, DataAlternation,
+    DataFinePos, LexiconData, LexiconSources, ModifierRecord, NominalRecord, ParticleRecord,
+    PredicateDerivation, PredicateRecord, SurfaceOverride, UserLexicon, UserNominalRecord,
+    UserPredicateRecord, is_dictionary_surface_rule, parse_lexicons, parse_modifiers_tsv,
+    parse_nominals_tsv, parse_particles_tsv, parse_predicates_tsv, parse_user_lexicon_toml,
 };
 pub use mecab::{
     MecabConnectionMatrix, MecabExtraction, MecabMorphologyEntry, MecabMorphologyExtraction,

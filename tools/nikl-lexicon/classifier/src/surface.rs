@@ -2,7 +2,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use kfind_data::{
     DICTIONARY_ADVERBIAL_I_RULE_ID, DICTIONARY_CONJUGATION_RULE_ID,
-    DICTIONARY_RELATED_ADVERB_RULE_ID, DataAlternation, DerivationRule, PredicateRecord,
+    DICTIONARY_RELATED_ADVERB_RULE_ID, DICTIONARY_VOICE_DERIVATION_RULE_ID, DataAlternation,
+    DerivationRule, PredicateRecord,
 };
 use kfind_morph::{
     LexicalAlternation, PredicateEntry, PredicateFlags, PredicatePos, generate_predicate_branches,
@@ -51,14 +52,35 @@ pub struct SurfaceCandidate {
     pub evidence: Evidence,
 }
 
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct PredicateDerivationKey {
+    pub lemma: String,
+    pub pos: String,
+    pub target_lemma: String,
+}
+
+#[derive(Clone, Debug)]
+pub struct PredicateDerivationCandidate {
+    pub key: PredicateDerivationKey,
+    pub evidence: Evidence,
+}
+
+impl PredicateDerivationCandidate {
+    pub const fn rule_id(&self) -> &'static str {
+        DICTIONARY_VOICE_DERIVATION_RULE_ID
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct SurfaceCollection {
     pub candidates: Vec<SurfaceCandidate>,
+    pub predicate_derivations: Vec<PredicateDerivationCandidate>,
     pub agreed_conjugation_count: usize,
     pub generated_conjugation_count: usize,
     pub agreed_adverbial_i_count: usize,
     pub related_adverb_count: usize,
     pub surface_related_adverb_count: usize,
+    pub related_voice_derivation_count: usize,
 }
 
 pub fn collect_surfaces(
@@ -71,6 +93,24 @@ pub fn collect_surfaces(
     let mut conjugations = BTreeMap::<SurfaceKey, Evidence>::new();
     let mut attested_adverbials = BTreeMap::<SurfaceKey, Evidence>::new();
     let mut related_adverbs = BTreeMap::<SurfaceKey, Evidence>::new();
+    let general_predicates = records
+        .iter()
+        .filter(|record| record.lexical_status == "일반어")
+        .fold(
+            BTreeMap::<(String, String, String), BTreeSet<String>>::new(),
+            |mut output, record| {
+                output
+                    .entry((
+                        record.source.clone(),
+                        record.lemma.clone(),
+                        record.pos.clone(),
+                    ))
+                    .or_default()
+                    .insert(record.source_id.clone());
+                output
+            },
+        );
+    let mut predicate_derivations = BTreeMap::<PredicateDerivationKey, Evidence>::new();
     for record in records {
         if record.lexical_status != "일반어" || predicate_pos(&record.pos).is_none() {
             continue;
@@ -100,6 +140,38 @@ pub fn collect_surfaces(
                     .or_default()
                     .add(&record.source, &record.source_id);
             }
+            for (target_lemma, target_ids) in &record.related_voice_derivations {
+                let evidence = predicate_derivations
+                    .entry(PredicateDerivationKey {
+                        lemma: record.lemma.clone(),
+                        pos: record.pos.clone(),
+                        target_lemma: target_lemma.clone(),
+                    })
+                    .or_default();
+                for target_id in target_ids {
+                    evidence.add(&record.source, &format!("{}>{target_id}", record.source_id));
+                }
+                for source in ["stdict", "opendict"] {
+                    let source_ids = general_predicates.get(&(
+                        source.to_owned(),
+                        record.lemma.clone(),
+                        record.pos.clone(),
+                    ));
+                    let target_ids = general_predicates.get(&(
+                        source.to_owned(),
+                        target_lemma.clone(),
+                        record.pos.clone(),
+                    ));
+                    if let (Some(source_ids), Some(target_ids)) = (source_ids, target_ids) {
+                        for source_id in source_ids {
+                            evidence.add(source, &format!("source:{source_id}"));
+                        }
+                        for target_id in target_ids {
+                            evidence.add(source, &format!("target:{target_id}"));
+                        }
+                    }
+                }
+            }
         }
         for (surface, target_ids) in &record.attested_adverbials {
             let evidence = attested_adverbials
@@ -118,6 +190,7 @@ pub fn collect_surfaces(
 
     conjugations.retain(|_, evidence| evidence.has_required_sources());
     attested_adverbials.retain(|_, evidence| evidence.has_required_sources());
+    predicate_derivations.retain(|_, evidence| evidence.has_required_sources());
     for key in attested_adverbials.keys() {
         related_adverbs.remove(&SurfaceKey {
             lemma: key.lemma.clone(),
@@ -167,8 +240,13 @@ pub fn collect_surfaces(
             .map(|(key, evidence)| SurfaceCandidate { key, evidence }),
     );
     output.sort_by(|left, right| left.key.cmp(&right.key));
+    let predicate_derivations = predicate_derivations
+        .into_iter()
+        .map(|(key, evidence)| PredicateDerivationCandidate { key, evidence })
+        .collect();
     SurfaceCollection {
         candidates: output,
+        predicate_derivations,
         agreed_conjugation_count: conjugations.len(),
         generated_conjugation_count,
         agreed_adverbial_i_count: attested_adverbials.len(),
@@ -178,6 +256,11 @@ pub fn collect_surfaces(
             .map(|record| record.related_adverbs.len())
             .sum(),
         surface_related_adverb_count,
+        related_voice_derivation_count: records
+            .iter()
+            .filter(|record| record.source == "krdict")
+            .map(|record| record.related_voice_derivations.len())
+            .sum(),
     }
 }
 
@@ -359,6 +442,7 @@ mod tests {
                 .then(|| "같이".to_owned())
                 .into_iter()
                 .collect(),
+            related_voice_derivations: BTreeMap::new(),
             attested_adverbials: attested
                 .then(|| {
                     (
@@ -368,6 +452,33 @@ mod tests {
                 })
                 .into_iter()
                 .collect(),
+        }
+    }
+
+    fn voice_record(
+        source: &str,
+        source_id: &str,
+        lemma: &str,
+        target: Option<(&str, &str)>,
+    ) -> SourceRecord {
+        SourceRecord {
+            source: source.to_owned(),
+            source_id: source_id.to_owned(),
+            lemma: lemma.to_owned(),
+            pos: "VV".to_owned(),
+            lexical_status: "일반어".to_owned(),
+            conjugations: BTreeSet::new(),
+            related_adverbs: BTreeSet::new(),
+            related_voice_derivations: target
+                .map(|(target_lemma, target_id)| {
+                    (
+                        target_lemma.to_owned(),
+                        [target_id.to_owned()].into_iter().collect(),
+                    )
+                })
+                .into_iter()
+                .collect(),
+            attested_adverbials: BTreeMap::new(),
         }
     }
 
@@ -398,5 +509,29 @@ mod tests {
             SurfaceKind::RelatedAdverb
         );
         assert_eq!(single_source.agreed_adverbial_i_count, 0);
+    }
+
+    #[test]
+    fn promotes_voice_derivation_only_when_both_lemmas_exist_in_required_sources() {
+        let records = vec![
+            voice_record("krdict", "k1", "밀다", Some(("밀리다", "k2"))),
+            voice_record("krdict", "k2", "밀리다", None),
+            voice_record("stdict", "s1", "밀다", None),
+            voice_record("stdict", "s2", "밀리다", None),
+        ];
+        let surfaces = collect_surfaces(&records, &[], &BTreeMap::new(), &CoreEntries::new(), &[]);
+
+        assert_eq!(surfaces.predicate_derivations.len(), 1);
+        assert_eq!(surfaces.predicate_derivations[0].key.lemma, "밀다");
+        assert_eq!(surfaces.predicate_derivations[0].key.target_lemma, "밀리다");
+
+        let without_stdict_target = collect_surfaces(
+            &records[..3],
+            &[],
+            &BTreeMap::new(),
+            &CoreEntries::new(),
+            &[],
+        );
+        assert!(without_stdict_target.predicate_derivations.is_empty());
     }
 }

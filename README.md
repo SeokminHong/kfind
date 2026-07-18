@@ -380,7 +380,13 @@ generator stores only the 130 that productive rules cannot generate. It stores
 these are available in the default `inflection` mode. Of 153 bidirectional
 predicate-to-adverb relations from the Korean Basic Dictionary, 76 overlap with
 that stronger evidence and the other 77 require `derivation`. The resulting TSV
-has 295 surface-only rows and is 28,286 bytes.
+contains the existing 295 surface-only rows plus 225 dictionary voice relations,
+for 520 rows and 42,910 bytes. A voice relation is available in the default
+`inflection` mode only when the Korean Basic Dictionary directly links the source
+and target verbs and the Standard Korean Language Dictionary independently lists
+both as general verbs. The target lemma then uses the regular predicate generator.
+Generation retains one reusable candidate; a separate validator checks UTF-8,
+schema, statistics, and the 64 KiB distribution limit.
 
 The `누구·무어·무엇 + 이 + -ㄴ가` contractions generate only the declared
 `누군가·무언가` surfaces. In `smart` mode the complete surface must have a

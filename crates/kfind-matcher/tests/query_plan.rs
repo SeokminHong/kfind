@@ -77,6 +77,49 @@ fn compiled_predicate_plan_matches_irregular_and_homonymous_surfaces() {
 }
 
 #[test]
+fn dictionary_voice_derivation_matches_the_complete_passive_predicate() {
+    let mut lexicons = Lexicons::embedded().expect("embedded lexicons must be valid");
+    lexicons
+        .load_enriched_predicates(
+            "fixture.tsv",
+            concat!(
+                "lemma\tpos\talternation\tflags\toverrides\tderivations\n",
+                "밀다\tVV\tSurfaceOnly\t\t\tlexical.dictionary-voice=밀리다\n",
+            ),
+        )
+        .unwrap();
+    let full_data = LexiconData {
+        predicates: vec![PredicateRecord {
+            lemma: "밀다".to_owned(),
+            pos: DataFinePos::Vv,
+            alternation: DataAlternation::Regular,
+            flags: Default::default(),
+            overrides: Vec::new(),
+            derivations: Vec::new(),
+        }],
+        ..LexiconData::default()
+    };
+    lexicons
+        .load_full_pos(&encode_pos_lexicon(&collect_pos_entries(&full_data)).unwrap())
+        .unwrap();
+    let matcher = compile_with_lexicons_and_resource(
+        "밀다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        Arc::new(lexicons),
+        component_resource_from_entries([component_entry("밀려", "VV+EC")]),
+    );
+
+    let text = "강대국의 압력에 밀려 시장을 열었다.";
+    let matched = matcher
+        .find_at_with_meta(text.as_bytes(), 0)
+        .expect("dictionary-backed passive surface must match");
+    assert_eq!(&text[matched.span], "밀려");
+}
+
+#[test]
 fn compiled_predicate_plan_matches_a_prospective_final() {
     let matcher = compile(
         "않다",
@@ -2084,6 +2127,7 @@ fn compile_with_full_pos_and_resource(
             alternation: DataAlternation::Regular,
             flags: Default::default(),
             overrides: Vec::new(),
+            derivations: Vec::new(),
         }],
         nominals: vec![NominalRecord {
             lemma: "전체사전표식".to_owned(),

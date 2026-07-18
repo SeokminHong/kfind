@@ -164,18 +164,18 @@ export default function BenchmarksPage(): React.JSX.Element {
               </tr>
               <tr>
                 <td>full POS + smart</td>
-                <td>99.69% / 99.38%</td>
-                <td>100.00% / 99.69%</td>
-                <td>4 / 8</td>
-                <td>0 / 4</td>
+                <td>99.69% / 99.46%</td>
+                <td>100.00% / 99.77%</td>
+                <td>4 / 7</td>
+                <td>0 / 3</td>
               </tr>
             </tbody>
           </table>
         </div>
         <p>
-          Full-POS의 FNᶜ 4건은 피동 파생, 파생 용언 앞 명사 성분, 반환 span
-          복원과 한 음절 명사 성분처럼 아직 구현하지 않은 제품 목표입니다.
-          비용이나 현재 profile을 이유로 계약 분모에서 빼지 않습니다.
+          Full-POS의 FNᶜ 3건은 파생 용언 앞 명사 성분, 반환 span 복원과 한 음절
+          명사 성분처럼 아직 구현하지 않은 제품 목표입니다. 비용이나 현재
+          profile을 이유로 계약 분모에서 빼지 않습니다.
         </p>
         <figure className="benchmark-figure">
           <img
@@ -186,7 +186,7 @@ export default function BenchmarksPage(): React.JSX.Element {
           <figcaption>
             FPᶜ, FNᶜ, precisionᶜ, recallᶜ는 version-controlled registry가 실제로
             적용된 값이며 raw 지표의 별칭이 아닙니다. Review 22건의 판정은
-            유지되며, 확인한 구현 목표 14건 중 10건을 해소했습니다.
+            유지되며, 확인한 구현 목표 14건 중 11건을 해소했습니다.
           </figcaption>
         </figure>
       </DocumentSection>
@@ -471,19 +471,37 @@ export default function BenchmarksPage(): React.JSX.Element {
           두 국립국어원 사전이 함께 지지하는 활용형 12,888개 중 12,758개는 기존
           분석과 생산 규칙으로 생성합니다. 배포 데이터에는 생성되지 않는 활용형
           130개, 두 사전이 독립 등재한 제한된 형용사 부사형 88개와 나머지 양방향
-          파생 관계 77개를 저장합니다. 결과는 295행, 28,286바이트이며 정의와
-          예문은 포함하지 않습니다.
+          파생 관계 77개를 저장합니다. 여기에 구조화된 voice 파생 관계 225개를
+          더해 결과는 520행, 42,910바이트이며 정의와 예문은 포함하지 않습니다.
         </p>
         <p>
-          Main <code>2ef39d2</code> 대비 후보 <code>596b272</code>는 test matrix
-          full-POS <code>smart</code>의 FN을 5건 줄이고 FP는 유지했습니다. 신규
-          대조군은 조사 구조라서 거부했고, 초기화·처리량·p95·RSS 변화는 최신
-          성능 gate 안입니다.
+          생성기는 한도와 무관하게 candidate를 한 번 만들고 보존합니다. 별도
+          validator가 UTF-8, schema, 통계 일치와 64 KiB 배포 한도를 검사합니다.
+        </p>
+      </DocumentSection>
+
+      <DocumentSection title="사전 voice 파생 활용">
+        <p>
+          한국어기초사전이 source 동사와 target 동사를 직접 <code>파생어</code>
+          로 연결하고 표준국어대사전이 양쪽을 일반어 동사로 확인할 때만{' '}
+          <code>-이-/-히-/-리-/-기-</code> 관계를 기본 <code>inflection</code>에
+          엽니다. Target lemma의 일반 활용기를 재사용하므로 <code>밀다</code>가{' '}
+          <code>밀려</code>에 매칭됩니다.
+        </p>
+        <p>
+          <code>smart</code>는 target 표면 전체의 용언+어미 구조를 요구합니다.
+          모든 동사에 접미사를 추측하거나 target 표면을 단순 alias로 취급하지
+          않습니다.
         </p>
       </DocumentSection>
 
       <DocumentSection title="원본 보고서">
         <ul className="reference-list">
+          <li>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-dictionary-voice-derivation.md">
+              사전 voice 파생 활용 recall
+            </a>
+          </li>
           <li>
             <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-source-aligned-compound-predicate-tail.md">
               source 정렬 합성용언 tail recall

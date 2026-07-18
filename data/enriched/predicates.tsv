@@ -1,576 +1,801 @@
-lemma	pos	alternation	flags	overrides
-가깝다	VA	BToWo		
-가느다랗다	VA	DropH		
-가렵다	VA	BToWo		
-가로눕다	VV	BToWo		
-가로젓다	VV	DropS		
-가로지르다	VV	ReuDoubleL		
-가르다	VV	ReuDoubleL		
-가맣다	VA	DropH		
-가엽다	VA	BToWo		
-가파르다	VA	ReuDoubleL		
-간지럽다	VA	BToWo		
-강마르다	VA	ReuDoubleL		
-거르다	VV	ReuDoubleL		
-거스르다	VV	ReuDoubleL		
-건너지르다	VV	ReuDoubleL		
-검푸르다	VA	Reo		
-게으르다	VA	ReuDoubleL		
-결론짓다	VV	DropS		
-결정짓다	VV	DropS		
-겹다	VA	BToWo		
-고깝다	VA	BToWo		
-고렇다	VA	DropH		
-고르다	VA	ReuDoubleL		
-고르다	VV	ReuDoubleL		
-고맙다	VA	BToWo		
-곧바르다	VA	ReuDoubleL		
-곧이듣다	VV	DToL		
-곱다	VA	BToWa		
-곱다	VA	Regular		
-곱다랗다	VA	DropH		
-곱디곱다	VA	BToWa		
-관련짓다	VV	DropS		
-괴어오르다	VV	ReuDoubleL		
-구르다	VV	ReuDoubleL		
-굵다랗다	VA	DropH		
-굽다	VV	BToWo		
-굽다	VV	Regular		
-귀담아듣다	VV	DToL		
-귀엽다	VA	BToWo		
-규정짓다	VV	DropS		
-그르다	VA	ReuDoubleL		
-그르다	VV	ReuDoubleL		
-그립다	VA	BToWo		
-근지럽다	VA	BToWo		
-긋다	VV	DropS		
-기껍다	VA	BToWo		
-기다랗다	VA	DropH		
-기르다	VV	ReuDoubleL		
-기어오르다	VV	ReuDoubleL		
-긷다	VV	DToL		
-깁다	VV	BToWo		
-깊다랗다	VA	DropH		
-까맣다	VA	DropH		
-까부르다	VV	ReuDoubleL		
-깡마르다	VA	ReuDoubleL		
-깨닫다	VV	DToL		
-껄끄럽다	VA	BToWo		
-꼴사납다	VA	BToWo		
-끄르다	VV	ReuDoubleL		
-끓어오르다	VV	ReuDoubleL		
-나르다	VV	ReuDoubleL		
-날아오르다	VV	ReuDoubleL		
-남다르다	VA	ReuDoubleL		
-남모르다	VV	ReuDoubleL		
-남부끄럽다	VA	BToWo		
-낫다	VV	DropS		
-낯간지럽다	VA	BToWo		
-낯모르다	VV	ReuDoubleL		
-낯부끄럽다	VA	BToWo		
-내닫다	VV	DToL		
-내두르다	VV	ReuDoubleL		
-내리긋다	VV	DropS		
-내리누르다	VV	ReuDoubleL		
-내리붓다	VV	DropS		
-내리지르다	VV	ReuDoubleL		
-내리퍼붓다	VV	DropS		
-내젓다	VV	DropS		
-내지르다	VV	ReuDoubleL		
-내휘두르다	VV	ReuDoubleL		
-너그럽다	VA	BToWo		
-너르다	VA	ReuDoubleL		
-널따랗다	VA	DropH		
-넘쳐흐르다	VV	ReuDoubleL		
-노랗다	VA	DropH		
-노엽다	VA	BToWo		
-놀랍다	VA	BToWo		
-농사짓다	VV	DropS		
-높다랗다	VA	DropH		
-높푸르다	VA	Reo		
-놓아기르다	VV	ReuDoubleL		
-눈꼴사납다	VA	BToWo		
-눈물겹다	VA	BToWo		
-눈물짓다	VV	DropS		
-눋다	VV	DToL		
-느껍다	VA	BToWo		
-달갑다	VA	BToWo		
-달아오르다	VV	ReuDoubleL		
-댕그랗다	VA	DropH		
-더럽다	VA	BToWo		
-덥다	VA	BToWo		
-덧바르다	VV	ReuDoubleL		
-덩그맣다	VA	DropH		
-돌아눕다	VV	BToWo		
-동그랗다	VA	DropH		
-되묻다	VV	DToL		
-두껍다	VA	BToWo		
-두렵다	VA	BToWo		
-두르다	VV	ReuDoubleL		
-두텁다	VA	BToWo		
-뒤잇다	VV	DropS		
-드러눕다	VV	BToWo		
-듣잡다	VV	BToWa		
-들어붓다	VV	DropS		
-들이붓다	VV	DropS		
-따갑다	VA	BToWo		
-따습다	VA	BToWo		
-떠오르다	VV	ReuDoubleL		
-똑바르다	VA	ReuDoubleL		
-똥그랗다	VA	DropH		
-뛰어오르다	VV	ReuDoubleL		
-뜨겁다	VA	BToWo		
-마렵다	VA	BToWo		
-마르다	VV	ReuDoubleL		
-말갛다	VA	DropH		
-매끄럽다	VA	BToWo		
-매듭짓다	VV	DropS		
-매섭다	VA	BToWo		
-매스껍다	VA	BToWo		
-맵다	VA	BToWo		
-맵디맵다	VA	BToWo		
-머무르다	VV	ReuDoubleL		
-멋모르다	VV	ReuDoubleL		
-메마르다	VA	ReuDoubleL		
-메스껍다	VA	BToWo		
-목마르다	VA	ReuDoubleL		
-목마르다	VV	ReuDoubleL		
-몸져눕다	VV	BToWo		
-무덥다	VA	BToWo		
-무르다	VA	ReuDoubleL		
-무르다	VV	ReuDoubleL		
-무찌르다	VV	ReuDoubleL		
-문지르다	VV	ReuDoubleL		
-물오르다	VV	ReuDoubleL		
-미끄럽다	VA	BToWo		
-미덥다	VA	BToWo		
-밉다	VA	BToWo		
-바르다	VA	ReuDoubleL		
-바르다	VV	ReuDoubleL		
-반갑다	VA	BToWo		
-받잡다	VV	BToWa		
-발갛다	VA	DropH		
-배부르다	VA	ReuDoubleL		
-버겁다	VA	BToWo		
-벅차오르다	VV	ReuDoubleL		
-벼르다	VV	ReuDoubleL		
-보드랍다	VA	BToWo		
-보얗다	VA	DropH		
-볼썽사납다	VA	BToWo		
-부끄럽다	VA	BToWo		
-부드럽다	VA	BToWo		
-부럽다	VA	BToWo		
-부르다	VA	ReuDoubleL		
-부어오르다	VV	ReuDoubleL		
-부옇다	VA	DropH		
-분지르다	VV	ReuDoubleL		
-붇다	VV	DToL		
-불사르다	VV	ReuDoubleL		
-불타오르다	VV	ReuDoubleL		
-붓다	VV	DropS		
-빨갛다	VA	DropH		
-뻗쳐오르다	VV	ReuDoubleL		
-뽀얗다	VA	DropH		
-뿌옇다	VA	DropH		
-사납다	VA	BToWo		
-사르다	VV	ReuDoubleL		
-살갑다	VA	BToWo		
-새겨듣다	VV	DToL		
-새까맣다	VA	DropH		
-새빨갛다	VA	DropH		
-새카맣다	VA	DropH		
-새파랗다	VA	DropH		
-새하얗다	VA	DropH		
-색다르다	VA	ReuDoubleL		
-샛노랗다	VA	DropH		
-서두르다	VV	ReuDoubleL		
-서럽다	VA	BToWo		
-서투르다	VA	ReuDoubleL		
-섣부르다	VA	ReuDoubleL		
-성마르다	VA	ReuDoubleL		
-손쉽다	VA	BToWo		
-솟아오르다	VV	ReuDoubleL		
-시끄럽다	VA	BToWo		
-싱겁다	VA	BToWo		
-싱그럽다	VA	BToWo		
-싸느랗다	VA	DropH		
-싸지르다	VV	ReuDoubleL		
-아깝다	VA	BToWo		
-아니꼽다	VA	BToWo		
-아리땁다	VA	BToWo		
-아무렇다	VA	DropH		
-아우르다	VV	ReuDoubleL		
-안쓰럽다	VA	BToWo		
-안타깝다	VA	BToWo		
-알아듣다	VV	DToL		
-앓아눕다	VV	BToWo		
-앞지르다	VV	ReuDoubleL		
-약삭빠르다	VA	ReuDoubleL		
-얄밉다	VA	BToWo		
-양지바르다	VA	ReuDoubleL		
-어둡다	VA	BToWo		
-어렵다	VA	BToWo		
-어르다	VV	ReuDoubleL		
-어지럽다	VA	BToWo		
-어지르다	VV	ReuDoubleL		
-억누르다	VV	ReuDoubleL		
-얻어듣다	VV	DToL		
-엎지르다	VV	ReuDoubleL		
-여쭙다	VV	BToWo		
-역겹다	VA	BToWo		
-엿듣다	VV	DToL		
-올바르다	VA	ReuDoubleL		
-요렇다	VA	DropH		
-우습다	VA	BToWo		
-으르다	VV	ReuDoubleL		
-윽박지르다	VV	ReuDoubleL		
-일컫다	VV	DToL		
-자그맣다	VA	DropH		
-재빠르다	VA	ReuDoubleL		
-저렇다	VA	DropH		
-저지르다	VV	ReuDoubleL		
-젓다	VV	DropS		
-정겹다	VA	BToWo		
-조그맣다	VA	DropH		
-조렇다	VA	DropH		
-조르다	VV	ReuDoubleL		
-좁다랗다	VA	DropH		
-종결짓다	VV	DropS		
-죄짓다	VV	DropS		
-주무르다	VV	ReuDoubleL		
-주워듣다	VV	DToL		
-줍다	VV	BToWo		
-쥐어지르다	VV	ReuDoubleL		
-즐겁다	VA	BToWo		
-지겹다	VA	BToWo		
-지르다	VV	ReuDoubleL		
-짓누르다	VV	ReuDoubleL		
-짓무르다	VV	ReuDoubleL		
-징그럽다	VA	BToWo		
-짙푸르다	VA	Reo		
-짝짓다	VV	DropS		
-짤따랗다	VA	DropH		
-쪼그맣다	VA	DropH		
-쪼끄맣다	VA	DropH		
-찌르다	VV	ReuDoubleL		
-차갑다	VA	BToWo		
-차오르다	VV	ReuDoubleL		
-철모르다	VV	ReuDoubleL		
-추스르다	VV	ReuDoubleL		
-치닫다	VV	DToL		
-치오르다	VV	ReuDoubleL		
-캐묻다	VV	DToL		
-캐어묻다	VV	DToL		
-타오르다	VV	ReuDoubleL		
-타이르다	VV	ReuDoubleL		
-특징짓다	VV	DropS		
-퍼붓다	VV	DropS		
-퍼지르다	VV	ReuDoubleL		
-피어오르다	VV	ReuDoubleL		
-하얗다	VA	DropH		
-한숨짓다	VV	DropS		
-허옇다	VA	DropH		
-헐겁다	VA	BToWo		
-후덥다	VA	BToWo		
-휘두르다	VV	ReuDoubleL		
-휘젓다	VV	DropS		
-흥겹다	VA	BToWo		
-희떱다	VA	BToWo		
-희부옇다	VA	DropH		
-희뿌옇다	VA	DropH		
-힘겹다	VA	BToWo		
-간데없다	VA	SurfaceOnly		lexical.dictionary-conjugation=간데없는
-간데없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=간데없이
-감쪽같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=감쪽같이
-갑작스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=갑작스레
-값있다	VA	SurfaceOnly		lexical.dictionary-conjugation=값있는
-같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=같이
-거멓다	VA	SurfaceOnly		lexical.dictionary-conjugation=거머니
-거멓다	VA	SurfaceOnly		lexical.dictionary-conjugation=거메
-거침없다	VA	SurfaceOnly		lexical.dictionary-conjugation=거침없는
-거침없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=거침없이
-걱정스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=걱정스레
-게으르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=게을리
-겸연스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=겸연스레
-고러다	VV	SurfaceOnly		lexical.dictionary-conjugation=고래
-고집스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=고집스레
-공연스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=공연스레
-관계없다	VA	SurfaceOnly		lexical.dictionary-conjugation=관계없는
-관계없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=관계없이
-관계있다	VA	SurfaceOnly		lexical.dictionary-conjugation=관계있는
-괜스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=괜스레
-구접스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=구접스레
-굳다	VA	SurfaceOnly		lexical.dictionary-conjugation=굳는
-귀신같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=귀신같이
-그러다	VV	SurfaceOnly		lexical.dictionary-conjugation=그래
-그악스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=그악스레
-그지없다	VA	SurfaceOnly		lexical.dictionary-conjugation=그지없는
-그지없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=그지없이
-극성스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=극성스레
-급작스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=급작스레
-기탄없다	VA	SurfaceOnly		lexical.dictionary-conjugation=기탄없는
-기탄없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=기탄없이
-까딱없다	VA	SurfaceOnly		lexical.dictionary-conjugation=까딱없는
-까딱없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=까딱없이
-꺼멓다	VA	SurfaceOnly		lexical.dictionary-conjugation=꺼머니
-꺼멓다	VA	SurfaceOnly		lexical.dictionary-conjugation=꺼메
-꼼짝없다	VA	SurfaceOnly		lexical.dictionary-conjugation=꼼짝없는
-꼼짝없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=꼼짝없이
-꾸밈없다	VA	SurfaceOnly		lexical.dictionary-conjugation=꾸밈없는
-꾸밈없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=꾸밈없이
-끄떡없다	VA	SurfaceOnly		lexical.dictionary-conjugation=끄떡없는
-끄떡없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=끄떡없이
-끊임없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=끊임없이
-끝없다	VA	SurfaceOnly		lexical.dictionary-conjugation=끝없는
-끝없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=끝없이
-난데없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=난데없이
-남다르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=남달리
-너르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=널리
-넉살스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=넉살스레
-누렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=누러니
-누렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=누레
-느닷없다	VA	SurfaceOnly		lexical.dictionary-conjugation=느닷없는
-느닷없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=느닷없이
-능청스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=능청스레
-다르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=달리
-다름없다	VA	SurfaceOnly		lexical.dictionary-conjugation=다름없는
-다름없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=다름없이
-다정스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=다정스레
-다채롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=다채로이
-다행스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=다행스레
-단조롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=단조로이
-대수롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=대수로이
-대중없다	VA	SurfaceOnly		lexical.dictionary-conjugation=대중없는
-대중없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=대중없이
-더없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=더없이
-덧없다	VA	SurfaceOnly		lexical.dictionary-conjugation=덧없는
-덧없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=덧없이
-동트다	VV	SurfaceOnly		lexical.dictionary-conjugation=동터
-두말없다	VA	SurfaceOnly		lexical.dictionary-conjugation=두말없는
-두말없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=두말없이
-둥그렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=둥그러니
-둥그렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=둥그레
-듣잡다	VV	SurfaceOnly		lexical.dictionary-conjugation=듣자오니
-따사롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=따사로이
-똑같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=똑같이
-뜬금없다	VA	SurfaceOnly		lexical.dictionary-conjugation=뜬금없는
-뜬금없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=뜬금없이
-뜻있다	VA	SurfaceOnly		lexical.dictionary-conjugation=뜻있는
-막힘없다	VA	SurfaceOnly		lexical.dictionary-conjugation=막힘없는
-막힘없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=막힘없이
-만족스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=만족스레
-많다	VA	SurfaceOnly		lexical.dictionary-related-adverb=많이
-말끔하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=말끔히
-말다	VV	SurfaceOnly		lexical.dictionary-conjugation=마오
-맛깔스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=맛깔스레
-맛없다	VA	SurfaceOnly		lexical.dictionary-conjugation=맛없는
-맛없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=맛없이
-맛있다	VA	SurfaceOnly		lexical.dictionary-conjugation=맛있는
-망령되다	VA	SurfaceOnly		lexical.dictionary-related-adverb=망령되이
-망연하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=망연히
-매끈하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=매끈히
-매정하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=매정히
-맥없다	VA	SurfaceOnly		lexical.dictionary-conjugation=맥없는
-맥없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=맥없이
-먹음직스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=먹음직스레
-멀겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=멀거니
-멀겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=멀게
-멋없다	VA	SurfaceOnly		lexical.dictionary-conjugation=멋없는
-멋있다	VA	SurfaceOnly		lexical.dictionary-conjugation=멋있는
-명예롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=명예로이
-못쓰다	VV	SurfaceOnly		lexical.dictionary-conjugation=못써
-문제없다	VA	SurfaceOnly		lexical.dictionary-conjugation=문제없는
-문제없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=문제없이
-물색없다	VA	SurfaceOnly		lexical.dictionary-conjugation=물색없는
-물색없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=물색없이
-물샐틈없다	VA	SurfaceOnly		lexical.dictionary-conjugation=물샐틈없는
-물샐틈없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=물샐틈없이
-미련스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=미련스레
-받아쓰다	VV	SurfaceOnly		lexical.dictionary-conjugation=받아써
-받잡다	VV	SurfaceOnly		lexical.dictionary-conjugation=받자오니
-배부르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=배불리
-버릇없다	VA	SurfaceOnly		lexical.dictionary-conjugation=버릇없는
-버릇없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=버릇없이
-번거롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=번거로이
-벌겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=벌거니
-벌겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=벌게
-변함없다	VA	SurfaceOnly		lexical.dictionary-conjugation=변함없는
-변함없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=변함없이
-별다르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=별달리
-보잘것없다	VA	SurfaceOnly		lexical.dictionary-conjugation=보잘것없는
-본뜨다	VV	SurfaceOnly		lexical.dictionary-conjugation=본떠
-볼품없다	VA	SurfaceOnly		lexical.dictionary-conjugation=볼품없는
-볼품없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=볼품없이
-부산스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=부산스레
-부지런하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=부지런히
-부질없다	VA	SurfaceOnly		lexical.dictionary-conjugation=부질없는
-부질없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=부질없이
-분명하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=분명히
-분별없다	VA	SurfaceOnly		lexical.dictionary-conjugation=분별없는
-분별없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=분별없이
-분분하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=분분히
-분수없다	VA	SurfaceOnly		lexical.dictionary-conjugation=분수없는
-분수없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=분수없이
-불같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=불같이
-불만스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=불만스레
-불쌍하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=불쌍히
-불안스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=불안스레
-불행하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=불행히
-비밀스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=비밀스레
-빈틈없다	VA	SurfaceOnly		lexical.dictionary-conjugation=빈틈없는
-빈틈없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=빈틈없이
-빠르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=빨리
-뻔뻔스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=뻔뻔스레
-뻘겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=뻘거니
-뻘겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=뻘게
-사사롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=사사로이
-상관없다	VA	SurfaceOnly		lexical.dictionary-conjugation=상관없는
-상관없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=상관없이
-상관있다	VA	SurfaceOnly		lexical.dictionary-conjugation=상관있는
-새롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=새로이
-새삼스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=새삼스레
-서슴없다	VA	SurfaceOnly		lexical.dictionary-conjugation=서슴없는
-서슴없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=서슴없이
-섣부르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=섣불리
-섧다	VA	SurfaceOnly		lexical.dictionary-conjugation=설우니
-섧다	VA	SurfaceOnly		lexical.dictionary-conjugation=설워
-성화같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=성화같이
-소담스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=소담스레
-소용없다	VA	SurfaceOnly		lexical.dictionary-conjugation=소용없는
-속없다	VA	SurfaceOnly		lexical.dictionary-conjugation=속없는
-속절없다	VA	SurfaceOnly		lexical.dictionary-conjugation=속절없는
-속절없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=속절없이
-손색없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=손색없이
-손쓰다	VV	SurfaceOnly		lexical.dictionary-conjugation=손써
-수고롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=수고로이
-수고스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=수고스레
-수없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=수없이
-순조롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=순조로이
-스스럼없다	VA	SurfaceOnly		lexical.dictionary-conjugation=스스럼없는
-스스럼없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=스스럼없이
-슬프다	VA	SurfaceOnly		lexical.dictionary-related-adverb=슬피
-시급하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=시급히
-시꺼멓다	VA	SurfaceOnly		lexical.dictionary-conjugation=시꺼머니
-시꺼멓다	VA	SurfaceOnly		lexical.dictionary-conjugation=시꺼메
-시뻘겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=시뻘거니
-시뻘겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=시뻘게
-시원스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=시원스레
-시원하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=시원히
-시커멓다	VA	SurfaceOnly		lexical.dictionary-conjugation=시커머니
-시커멓다	VA	SurfaceOnly		lexical.dictionary-conjugation=시커메
-시퍼렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=시퍼러니
-시퍼렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=시퍼레
-신랄하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=신랄히
-실낱같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=실낱같이
-실없다	VA	SurfaceOnly		lexical.dictionary-conjugation=실없는
-실없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=실없이
-싹수없다	VA	SurfaceOnly		lexical.dictionary-conjugation=싹수없는
-싹트다	VV	SurfaceOnly		lexical.dictionary-conjugation=싹터
-쏜살같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=쏜살같이
-쓸데없다	VA	SurfaceOnly		lexical.dictionary-conjugation=쓸데없는
-쓸데없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=쓸데없이
-쓸모없다	VA	SurfaceOnly		lexical.dictionary-conjugation=쓸모없는
-쓸모없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=쓸모없이
-아낌없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=아낌없이
-아랑곳없다	VA	SurfaceOnly		lexical.dictionary-conjugation=아랑곳없는
-아랑곳없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=아랑곳없이
-악쓰다	VV	SurfaceOnly		lexical.dictionary-conjugation=악써
-악착같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=악착같이
-야단스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=야단스레
-어김없다	VA	SurfaceOnly		lexical.dictionary-conjugation=어김없는
-어김없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=어김없이
-어른스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=어른스레
-어림없다	VA	SurfaceOnly		lexical.dictionary-conjugation=어림없는
-어이없다	VA	SurfaceOnly		lexical.dictionary-conjugation=어이없는
-어이없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=어이없이
-어쩌다	VV	SurfaceOnly		lexical.dictionary-conjugation=어째
-어처구니없다	VA	SurfaceOnly		lexical.dictionary-conjugation=어처구니없는
-어처구니없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=어처구니없이
-없다	VA	SurfaceOnly		lexical.dictionary-conjugation=없는
-없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=없이
-여지없다	VA	SurfaceOnly		lexical.dictionary-conjugation=여지없는
-여지없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=여지없이
-염치없다	VA	SurfaceOnly		lexical.dictionary-conjugation=염치없는
-영락없다	VA	SurfaceOnly		lexical.dictionary-conjugation=영락없는
-영락없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=영락없이
-온데간데없다	VA	SurfaceOnly		lexical.dictionary-conjugation=온데간데없는
-온데간데없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=온데간데없이
-외롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=외로이
-요란스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=요란스레
-요러다	VV	SurfaceOnly		lexical.dictionary-conjugation=요래
-원만하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=원만히
-원망스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=원망스레
-유난스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=유난스레
-유례없다	VA	SurfaceOnly		lexical.dictionary-conjugation=유례없는
-유례없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=유례없이
-이러다	VV	SurfaceOnly		lexical.dictionary-conjugation=이래
-이상스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=이상스레
-인정사정없다	VA	SurfaceOnly		lexical.dictionary-conjugation=인정사정없는
-인정사정없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=인정사정없이
-일없다	VA	SurfaceOnly		lexical.dictionary-conjugation=일없는
-일없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=일없이
-있다	VA	SurfaceOnly		lexical.dictionary-conjugation=있는
-자랑스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=자랑스레
-자연스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=자연스레
-자유롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=자유로이
-잠잠하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=잠잠히
-장렬하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=장렬히
-재미없다	VA	SurfaceOnly		lexical.dictionary-conjugation=재미없는
-재미있다	VA	SurfaceOnly		lexical.dictionary-conjugation=재미있는
-재밌다	VA	SurfaceOnly		lexical.dictionary-conjugation=재밌는
-재빠르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=재빨리
-저러다	VV	SurfaceOnly		lexical.dictionary-conjugation=저래
-적잖다	VA	SurfaceOnly		lexical.dictionary-related-adverb=적잖이
-정성스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=정성스레
-정신없다	VA	SurfaceOnly		lexical.dictionary-conjugation=정신없는
-정신없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=정신없이
-조러다	VV	SurfaceOnly		lexical.dictionary-conjugation=조래
-조심스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=조심스레
-주책없다	VA	SurfaceOnly		lexical.dictionary-conjugation=주책없는
-주책없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=주책없이
-즐겁다	VA	SurfaceOnly		lexical.dictionary-related-adverb=즐거이
-지독스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=지독스레
-지독하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=지독히
-진배없다	VA	SurfaceOnly		lexical.dictionary-conjugation=진배없는
-진배없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=진배없이
-채신없다	VA	SurfaceOnly		lexical.dictionary-conjugation=채신없는
-철석같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=철석같이
-철없다	VA	SurfaceOnly		lexical.dictionary-conjugation=철없는
-철없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=철없이
-크나크다	VA	SurfaceOnly		lexical.dictionary-conjugation=크나커
-태연스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=태연스레
-터무니없다	VA	SurfaceOnly		lexical.dictionary-conjugation=터무니없는
-터무니없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=터무니없이
-턱없다	VA	SurfaceOnly		lexical.dictionary-conjugation=턱없는
-턱없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=턱없이
-틀림없다	VA	SurfaceOnly		lexical.dictionary-conjugation=틀림없는
-틀림없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=틀림없이
-퍼렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=퍼러니
-퍼렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=퍼레
-하나같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=하나같이
-하릴없다	VA	SurfaceOnly		lexical.dictionary-conjugation=하릴없는
-하릴없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=하릴없이
-하염없다	VA	SurfaceOnly		lexical.dictionary-conjugation=하염없는
-하염없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=하염없이
-하잘것없다	VA	SurfaceOnly		lexical.dictionary-conjugation=하잘것없는
-한가롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=한가로이
-한결같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=한결같이
-한량없다	VA	SurfaceOnly		lexical.dictionary-conjugation=한량없는
-한량없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=한량없이
-한없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=한없이
-허물없다	VA	SurfaceOnly		lexical.dictionary-conjugation=허물없는
-허물없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=허물없이
-허여멀겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=허여멀거니
-허여멀겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=허여멀게
-형편없다	VA	SurfaceOnly		lexical.dictionary-conjugation=형편없는
-형편없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=형편없이
-호사스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=호사스레
-황당하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=황당히
-훌륭하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=훌륭히
-훤칠하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=훤칠히
-휘둥그렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=휘둥그러니
-휘둥그렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=휘둥그레
-희멀겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=희멀거니
-희멀겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=희멀게
-힘없다	VA	SurfaceOnly		lexical.dictionary-conjugation=힘없는
-힘없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=힘없이
+lemma	pos	alternation	flags	overrides	derivations
+가깝다	VA	BToWo			
+가느다랗다	VA	DropH			
+가렵다	VA	BToWo			
+가로눕다	VV	BToWo			
+가로젓다	VV	DropS			
+가로지르다	VV	ReuDoubleL			
+가르다	VV	ReuDoubleL			
+가맣다	VA	DropH			
+가엽다	VA	BToWo			
+가파르다	VA	ReuDoubleL			
+간지럽다	VA	BToWo			
+강마르다	VA	ReuDoubleL			
+거르다	VV	ReuDoubleL			
+거스르다	VV	ReuDoubleL			
+건너지르다	VV	ReuDoubleL			
+검푸르다	VA	Reo			
+게으르다	VA	ReuDoubleL			
+결론짓다	VV	DropS			
+결정짓다	VV	DropS			
+겹다	VA	BToWo			
+고깝다	VA	BToWo			
+고렇다	VA	DropH			
+고르다	VA	ReuDoubleL			
+고르다	VV	ReuDoubleL			
+고맙다	VA	BToWo			
+곧바르다	VA	ReuDoubleL			
+곧이듣다	VV	DToL			
+곱다	VA	BToWa			
+곱다	VA	Regular			
+곱다랗다	VA	DropH			
+곱디곱다	VA	BToWa			
+관련짓다	VV	DropS			
+괴어오르다	VV	ReuDoubleL			
+구르다	VV	ReuDoubleL			
+굵다랗다	VA	DropH			
+굽다	VV	BToWo			
+굽다	VV	Regular			
+귀담아듣다	VV	DToL			
+귀엽다	VA	BToWo			
+규정짓다	VV	DropS			
+그르다	VA	ReuDoubleL			
+그르다	VV	ReuDoubleL			
+그립다	VA	BToWo			
+근지럽다	VA	BToWo			
+긋다	VV	DropS			
+기껍다	VA	BToWo			
+기다랗다	VA	DropH			
+기르다	VV	ReuDoubleL			
+기어오르다	VV	ReuDoubleL			
+긷다	VV	DToL			
+깁다	VV	BToWo			
+깊다랗다	VA	DropH			
+까맣다	VA	DropH			
+까부르다	VV	ReuDoubleL			
+깡마르다	VA	ReuDoubleL			
+깨닫다	VV	DToL			
+껄끄럽다	VA	BToWo			
+꼴사납다	VA	BToWo			
+끄르다	VV	ReuDoubleL			
+끓어오르다	VV	ReuDoubleL			
+나르다	VV	ReuDoubleL			
+날아오르다	VV	ReuDoubleL			
+남다르다	VA	ReuDoubleL			
+남모르다	VV	ReuDoubleL			
+남부끄럽다	VA	BToWo			
+낫다	VV	DropS			
+낯간지럽다	VA	BToWo			
+낯모르다	VV	ReuDoubleL			
+낯부끄럽다	VA	BToWo			
+내닫다	VV	DToL			
+내두르다	VV	ReuDoubleL			
+내리긋다	VV	DropS			
+내리누르다	VV	ReuDoubleL			
+내리붓다	VV	DropS			
+내리지르다	VV	ReuDoubleL			
+내리퍼붓다	VV	DropS			
+내젓다	VV	DropS			
+내지르다	VV	ReuDoubleL			
+내휘두르다	VV	ReuDoubleL			
+너그럽다	VA	BToWo			
+너르다	VA	ReuDoubleL			
+널따랗다	VA	DropH			
+넘쳐흐르다	VV	ReuDoubleL			
+노랗다	VA	DropH			
+노엽다	VA	BToWo			
+놀랍다	VA	BToWo			
+농사짓다	VV	DropS			
+높다랗다	VA	DropH			
+높푸르다	VA	Reo			
+놓아기르다	VV	ReuDoubleL			
+눈꼴사납다	VA	BToWo			
+눈물겹다	VA	BToWo			
+눈물짓다	VV	DropS			
+눋다	VV	DToL			
+느껍다	VA	BToWo			
+달갑다	VA	BToWo			
+달아오르다	VV	ReuDoubleL			
+댕그랗다	VA	DropH			
+더럽다	VA	BToWo			
+덥다	VA	BToWo			
+덧바르다	VV	ReuDoubleL			
+덩그맣다	VA	DropH			
+돌아눕다	VV	BToWo			
+동그랗다	VA	DropH			
+되묻다	VV	DToL			
+두껍다	VA	BToWo			
+두렵다	VA	BToWo			
+두르다	VV	ReuDoubleL			
+두텁다	VA	BToWo			
+뒤잇다	VV	DropS			
+드러눕다	VV	BToWo			
+듣잡다	VV	BToWa			
+들어붓다	VV	DropS			
+들이붓다	VV	DropS			
+따갑다	VA	BToWo			
+따습다	VA	BToWo			
+떠오르다	VV	ReuDoubleL			
+똑바르다	VA	ReuDoubleL			
+똥그랗다	VA	DropH			
+뛰어오르다	VV	ReuDoubleL			
+뜨겁다	VA	BToWo			
+마렵다	VA	BToWo			
+마르다	VV	ReuDoubleL			
+말갛다	VA	DropH			
+매끄럽다	VA	BToWo			
+매듭짓다	VV	DropS			
+매섭다	VA	BToWo			
+매스껍다	VA	BToWo			
+맵다	VA	BToWo			
+맵디맵다	VA	BToWo			
+머무르다	VV	ReuDoubleL			
+멋모르다	VV	ReuDoubleL			
+메마르다	VA	ReuDoubleL			
+메스껍다	VA	BToWo			
+목마르다	VA	ReuDoubleL			
+목마르다	VV	ReuDoubleL			
+몸져눕다	VV	BToWo			
+무덥다	VA	BToWo			
+무르다	VA	ReuDoubleL			
+무르다	VV	ReuDoubleL			
+무찌르다	VV	ReuDoubleL			
+문지르다	VV	ReuDoubleL			
+물오르다	VV	ReuDoubleL			
+미끄럽다	VA	BToWo			
+미덥다	VA	BToWo			
+밉다	VA	BToWo			
+바르다	VA	ReuDoubleL			
+바르다	VV	ReuDoubleL			
+반갑다	VA	BToWo			
+받잡다	VV	BToWa			
+발갛다	VA	DropH			
+배부르다	VA	ReuDoubleL			
+버겁다	VA	BToWo			
+벅차오르다	VV	ReuDoubleL			
+벼르다	VV	ReuDoubleL			
+보드랍다	VA	BToWo			
+보얗다	VA	DropH			
+볼썽사납다	VA	BToWo			
+부끄럽다	VA	BToWo			
+부드럽다	VA	BToWo			
+부럽다	VA	BToWo			
+부르다	VA	ReuDoubleL			
+부어오르다	VV	ReuDoubleL			
+부옇다	VA	DropH			
+분지르다	VV	ReuDoubleL			
+붇다	VV	DToL			
+불사르다	VV	ReuDoubleL			
+불타오르다	VV	ReuDoubleL			
+붓다	VV	DropS			
+빨갛다	VA	DropH			
+뻗쳐오르다	VV	ReuDoubleL			
+뽀얗다	VA	DropH			
+뿌옇다	VA	DropH			
+사납다	VA	BToWo			
+사르다	VV	ReuDoubleL			
+살갑다	VA	BToWo			
+새겨듣다	VV	DToL			
+새까맣다	VA	DropH			
+새빨갛다	VA	DropH			
+새카맣다	VA	DropH			
+새파랗다	VA	DropH			
+새하얗다	VA	DropH			
+색다르다	VA	ReuDoubleL			
+샛노랗다	VA	DropH			
+서두르다	VV	ReuDoubleL			
+서럽다	VA	BToWo			
+서투르다	VA	ReuDoubleL			
+섣부르다	VA	ReuDoubleL			
+성마르다	VA	ReuDoubleL			
+손쉽다	VA	BToWo			
+솟아오르다	VV	ReuDoubleL			
+시끄럽다	VA	BToWo			
+싱겁다	VA	BToWo			
+싱그럽다	VA	BToWo			
+싸느랗다	VA	DropH			
+싸지르다	VV	ReuDoubleL			
+아깝다	VA	BToWo			
+아니꼽다	VA	BToWo			
+아리땁다	VA	BToWo			
+아무렇다	VA	DropH			
+아우르다	VV	ReuDoubleL			
+안쓰럽다	VA	BToWo			
+안타깝다	VA	BToWo			
+알아듣다	VV	DToL			
+앓아눕다	VV	BToWo			
+앞지르다	VV	ReuDoubleL			
+약삭빠르다	VA	ReuDoubleL			
+얄밉다	VA	BToWo			
+양지바르다	VA	ReuDoubleL			
+어둡다	VA	BToWo			
+어렵다	VA	BToWo			
+어르다	VV	ReuDoubleL			
+어지럽다	VA	BToWo			
+어지르다	VV	ReuDoubleL			
+억누르다	VV	ReuDoubleL			
+얻어듣다	VV	DToL			
+엎지르다	VV	ReuDoubleL			
+여쭙다	VV	BToWo			
+역겹다	VA	BToWo			
+엿듣다	VV	DToL			
+올바르다	VA	ReuDoubleL			
+요렇다	VA	DropH			
+우습다	VA	BToWo			
+으르다	VV	ReuDoubleL			
+윽박지르다	VV	ReuDoubleL			
+일컫다	VV	DToL			
+자그맣다	VA	DropH			
+재빠르다	VA	ReuDoubleL			
+저렇다	VA	DropH			
+저지르다	VV	ReuDoubleL			
+젓다	VV	DropS			
+정겹다	VA	BToWo			
+조그맣다	VA	DropH			
+조렇다	VA	DropH			
+조르다	VV	ReuDoubleL			
+좁다랗다	VA	DropH			
+종결짓다	VV	DropS			
+죄짓다	VV	DropS			
+주무르다	VV	ReuDoubleL			
+주워듣다	VV	DToL			
+줍다	VV	BToWo			
+쥐어지르다	VV	ReuDoubleL			
+즐겁다	VA	BToWo			
+지겹다	VA	BToWo			
+지르다	VV	ReuDoubleL			
+짓누르다	VV	ReuDoubleL			
+짓무르다	VV	ReuDoubleL			
+징그럽다	VA	BToWo			
+짙푸르다	VA	Reo			
+짝짓다	VV	DropS			
+짤따랗다	VA	DropH			
+쪼그맣다	VA	DropH			
+쪼끄맣다	VA	DropH			
+찌르다	VV	ReuDoubleL			
+차갑다	VA	BToWo			
+차오르다	VV	ReuDoubleL			
+철모르다	VV	ReuDoubleL			
+추스르다	VV	ReuDoubleL			
+치닫다	VV	DToL			
+치오르다	VV	ReuDoubleL			
+캐묻다	VV	DToL			
+캐어묻다	VV	DToL			
+타오르다	VV	ReuDoubleL			
+타이르다	VV	ReuDoubleL			
+특징짓다	VV	DropS			
+퍼붓다	VV	DropS			
+퍼지르다	VV	ReuDoubleL			
+피어오르다	VV	ReuDoubleL			
+하얗다	VA	DropH			
+한숨짓다	VV	DropS			
+허옇다	VA	DropH			
+헐겁다	VA	BToWo			
+후덥다	VA	BToWo			
+휘두르다	VV	ReuDoubleL			
+휘젓다	VV	DropS			
+흥겹다	VA	BToWo			
+희떱다	VA	BToWo			
+희부옇다	VA	DropH			
+희뿌옇다	VA	DropH			
+힘겹다	VA	BToWo			
+간데없다	VA	SurfaceOnly		lexical.dictionary-conjugation=간데없는	
+간데없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=간데없이	
+감쪽같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=감쪽같이	
+갑작스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=갑작스레	
+값있다	VA	SurfaceOnly		lexical.dictionary-conjugation=값있는	
+같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=같이	
+거멓다	VA	SurfaceOnly		lexical.dictionary-conjugation=거머니	
+거멓다	VA	SurfaceOnly		lexical.dictionary-conjugation=거메	
+거침없다	VA	SurfaceOnly		lexical.dictionary-conjugation=거침없는	
+거침없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=거침없이	
+걱정스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=걱정스레	
+게으르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=게을리	
+겸연스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=겸연스레	
+고러다	VV	SurfaceOnly		lexical.dictionary-conjugation=고래	
+고집스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=고집스레	
+공연스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=공연스레	
+관계없다	VA	SurfaceOnly		lexical.dictionary-conjugation=관계없는	
+관계없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=관계없이	
+관계있다	VA	SurfaceOnly		lexical.dictionary-conjugation=관계있는	
+괜스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=괜스레	
+구접스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=구접스레	
+굳다	VA	SurfaceOnly		lexical.dictionary-conjugation=굳는	
+귀신같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=귀신같이	
+그러다	VV	SurfaceOnly		lexical.dictionary-conjugation=그래	
+그악스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=그악스레	
+그지없다	VA	SurfaceOnly		lexical.dictionary-conjugation=그지없는	
+그지없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=그지없이	
+극성스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=극성스레	
+급작스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=급작스레	
+기탄없다	VA	SurfaceOnly		lexical.dictionary-conjugation=기탄없는	
+기탄없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=기탄없이	
+까딱없다	VA	SurfaceOnly		lexical.dictionary-conjugation=까딱없는	
+까딱없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=까딱없이	
+꺼멓다	VA	SurfaceOnly		lexical.dictionary-conjugation=꺼머니	
+꺼멓다	VA	SurfaceOnly		lexical.dictionary-conjugation=꺼메	
+꼼짝없다	VA	SurfaceOnly		lexical.dictionary-conjugation=꼼짝없는	
+꼼짝없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=꼼짝없이	
+꾸밈없다	VA	SurfaceOnly		lexical.dictionary-conjugation=꾸밈없는	
+꾸밈없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=꾸밈없이	
+끄떡없다	VA	SurfaceOnly		lexical.dictionary-conjugation=끄떡없는	
+끄떡없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=끄떡없이	
+끊임없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=끊임없이	
+끝없다	VA	SurfaceOnly		lexical.dictionary-conjugation=끝없는	
+끝없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=끝없이	
+난데없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=난데없이	
+남다르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=남달리	
+너르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=널리	
+넉살스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=넉살스레	
+누렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=누러니	
+누렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=누레	
+느닷없다	VA	SurfaceOnly		lexical.dictionary-conjugation=느닷없는	
+느닷없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=느닷없이	
+능청스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=능청스레	
+다르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=달리	
+다름없다	VA	SurfaceOnly		lexical.dictionary-conjugation=다름없는	
+다름없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=다름없이	
+다정스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=다정스레	
+다채롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=다채로이	
+다행스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=다행스레	
+단조롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=단조로이	
+대수롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=대수로이	
+대중없다	VA	SurfaceOnly		lexical.dictionary-conjugation=대중없는	
+대중없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=대중없이	
+더없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=더없이	
+덧없다	VA	SurfaceOnly		lexical.dictionary-conjugation=덧없는	
+덧없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=덧없이	
+동트다	VV	SurfaceOnly		lexical.dictionary-conjugation=동터	
+두말없다	VA	SurfaceOnly		lexical.dictionary-conjugation=두말없는	
+두말없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=두말없이	
+둥그렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=둥그러니	
+둥그렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=둥그레	
+듣잡다	VV	SurfaceOnly		lexical.dictionary-conjugation=듣자오니	
+따사롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=따사로이	
+똑같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=똑같이	
+뜬금없다	VA	SurfaceOnly		lexical.dictionary-conjugation=뜬금없는	
+뜬금없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=뜬금없이	
+뜻있다	VA	SurfaceOnly		lexical.dictionary-conjugation=뜻있는	
+막힘없다	VA	SurfaceOnly		lexical.dictionary-conjugation=막힘없는	
+막힘없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=막힘없이	
+만족스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=만족스레	
+많다	VA	SurfaceOnly		lexical.dictionary-related-adverb=많이	
+말끔하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=말끔히	
+말다	VV	SurfaceOnly		lexical.dictionary-conjugation=마오	
+맛깔스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=맛깔스레	
+맛없다	VA	SurfaceOnly		lexical.dictionary-conjugation=맛없는	
+맛없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=맛없이	
+맛있다	VA	SurfaceOnly		lexical.dictionary-conjugation=맛있는	
+망령되다	VA	SurfaceOnly		lexical.dictionary-related-adverb=망령되이	
+망연하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=망연히	
+매끈하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=매끈히	
+매정하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=매정히	
+맥없다	VA	SurfaceOnly		lexical.dictionary-conjugation=맥없는	
+맥없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=맥없이	
+먹음직스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=먹음직스레	
+멀겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=멀거니	
+멀겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=멀게	
+멋없다	VA	SurfaceOnly		lexical.dictionary-conjugation=멋없는	
+멋있다	VA	SurfaceOnly		lexical.dictionary-conjugation=멋있는	
+명예롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=명예로이	
+못쓰다	VV	SurfaceOnly		lexical.dictionary-conjugation=못써	
+문제없다	VA	SurfaceOnly		lexical.dictionary-conjugation=문제없는	
+문제없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=문제없이	
+물색없다	VA	SurfaceOnly		lexical.dictionary-conjugation=물색없는	
+물색없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=물색없이	
+물샐틈없다	VA	SurfaceOnly		lexical.dictionary-conjugation=물샐틈없는	
+물샐틈없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=물샐틈없이	
+미련스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=미련스레	
+받아쓰다	VV	SurfaceOnly		lexical.dictionary-conjugation=받아써	
+받잡다	VV	SurfaceOnly		lexical.dictionary-conjugation=받자오니	
+배부르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=배불리	
+버릇없다	VA	SurfaceOnly		lexical.dictionary-conjugation=버릇없는	
+버릇없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=버릇없이	
+번거롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=번거로이	
+벌겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=벌거니	
+벌겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=벌게	
+변함없다	VA	SurfaceOnly		lexical.dictionary-conjugation=변함없는	
+변함없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=변함없이	
+별다르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=별달리	
+보잘것없다	VA	SurfaceOnly		lexical.dictionary-conjugation=보잘것없는	
+본뜨다	VV	SurfaceOnly		lexical.dictionary-conjugation=본떠	
+볼품없다	VA	SurfaceOnly		lexical.dictionary-conjugation=볼품없는	
+볼품없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=볼품없이	
+부산스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=부산스레	
+부지런하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=부지런히	
+부질없다	VA	SurfaceOnly		lexical.dictionary-conjugation=부질없는	
+부질없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=부질없이	
+분명하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=분명히	
+분별없다	VA	SurfaceOnly		lexical.dictionary-conjugation=분별없는	
+분별없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=분별없이	
+분분하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=분분히	
+분수없다	VA	SurfaceOnly		lexical.dictionary-conjugation=분수없는	
+분수없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=분수없이	
+불같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=불같이	
+불만스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=불만스레	
+불쌍하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=불쌍히	
+불안스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=불안스레	
+불행하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=불행히	
+비밀스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=비밀스레	
+빈틈없다	VA	SurfaceOnly		lexical.dictionary-conjugation=빈틈없는	
+빈틈없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=빈틈없이	
+빠르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=빨리	
+뻔뻔스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=뻔뻔스레	
+뻘겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=뻘거니	
+뻘겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=뻘게	
+사사롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=사사로이	
+상관없다	VA	SurfaceOnly		lexical.dictionary-conjugation=상관없는	
+상관없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=상관없이	
+상관있다	VA	SurfaceOnly		lexical.dictionary-conjugation=상관있는	
+새롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=새로이	
+새삼스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=새삼스레	
+서슴없다	VA	SurfaceOnly		lexical.dictionary-conjugation=서슴없는	
+서슴없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=서슴없이	
+섣부르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=섣불리	
+섧다	VA	SurfaceOnly		lexical.dictionary-conjugation=설우니	
+섧다	VA	SurfaceOnly		lexical.dictionary-conjugation=설워	
+성화같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=성화같이	
+소담스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=소담스레	
+소용없다	VA	SurfaceOnly		lexical.dictionary-conjugation=소용없는	
+속없다	VA	SurfaceOnly		lexical.dictionary-conjugation=속없는	
+속절없다	VA	SurfaceOnly		lexical.dictionary-conjugation=속절없는	
+속절없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=속절없이	
+손색없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=손색없이	
+손쓰다	VV	SurfaceOnly		lexical.dictionary-conjugation=손써	
+수고롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=수고로이	
+수고스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=수고스레	
+수없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=수없이	
+순조롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=순조로이	
+스스럼없다	VA	SurfaceOnly		lexical.dictionary-conjugation=스스럼없는	
+스스럼없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=스스럼없이	
+슬프다	VA	SurfaceOnly		lexical.dictionary-related-adverb=슬피	
+시급하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=시급히	
+시꺼멓다	VA	SurfaceOnly		lexical.dictionary-conjugation=시꺼머니	
+시꺼멓다	VA	SurfaceOnly		lexical.dictionary-conjugation=시꺼메	
+시뻘겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=시뻘거니	
+시뻘겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=시뻘게	
+시원스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=시원스레	
+시원하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=시원히	
+시커멓다	VA	SurfaceOnly		lexical.dictionary-conjugation=시커머니	
+시커멓다	VA	SurfaceOnly		lexical.dictionary-conjugation=시커메	
+시퍼렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=시퍼러니	
+시퍼렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=시퍼레	
+신랄하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=신랄히	
+실낱같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=실낱같이	
+실없다	VA	SurfaceOnly		lexical.dictionary-conjugation=실없는	
+실없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=실없이	
+싹수없다	VA	SurfaceOnly		lexical.dictionary-conjugation=싹수없는	
+싹트다	VV	SurfaceOnly		lexical.dictionary-conjugation=싹터	
+쏜살같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=쏜살같이	
+쓸데없다	VA	SurfaceOnly		lexical.dictionary-conjugation=쓸데없는	
+쓸데없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=쓸데없이	
+쓸모없다	VA	SurfaceOnly		lexical.dictionary-conjugation=쓸모없는	
+쓸모없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=쓸모없이	
+아낌없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=아낌없이	
+아랑곳없다	VA	SurfaceOnly		lexical.dictionary-conjugation=아랑곳없는	
+아랑곳없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=아랑곳없이	
+악쓰다	VV	SurfaceOnly		lexical.dictionary-conjugation=악써	
+악착같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=악착같이	
+야단스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=야단스레	
+어김없다	VA	SurfaceOnly		lexical.dictionary-conjugation=어김없는	
+어김없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=어김없이	
+어른스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=어른스레	
+어림없다	VA	SurfaceOnly		lexical.dictionary-conjugation=어림없는	
+어이없다	VA	SurfaceOnly		lexical.dictionary-conjugation=어이없는	
+어이없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=어이없이	
+어쩌다	VV	SurfaceOnly		lexical.dictionary-conjugation=어째	
+어처구니없다	VA	SurfaceOnly		lexical.dictionary-conjugation=어처구니없는	
+어처구니없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=어처구니없이	
+없다	VA	SurfaceOnly		lexical.dictionary-conjugation=없는	
+없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=없이	
+여지없다	VA	SurfaceOnly		lexical.dictionary-conjugation=여지없는	
+여지없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=여지없이	
+염치없다	VA	SurfaceOnly		lexical.dictionary-conjugation=염치없는	
+영락없다	VA	SurfaceOnly		lexical.dictionary-conjugation=영락없는	
+영락없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=영락없이	
+온데간데없다	VA	SurfaceOnly		lexical.dictionary-conjugation=온데간데없는	
+온데간데없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=온데간데없이	
+외롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=외로이	
+요란스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=요란스레	
+요러다	VV	SurfaceOnly		lexical.dictionary-conjugation=요래	
+원만하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=원만히	
+원망스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=원망스레	
+유난스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=유난스레	
+유례없다	VA	SurfaceOnly		lexical.dictionary-conjugation=유례없는	
+유례없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=유례없이	
+이러다	VV	SurfaceOnly		lexical.dictionary-conjugation=이래	
+이상스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=이상스레	
+인정사정없다	VA	SurfaceOnly		lexical.dictionary-conjugation=인정사정없는	
+인정사정없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=인정사정없이	
+일없다	VA	SurfaceOnly		lexical.dictionary-conjugation=일없는	
+일없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=일없이	
+있다	VA	SurfaceOnly		lexical.dictionary-conjugation=있는	
+자랑스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=자랑스레	
+자연스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=자연스레	
+자유롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=자유로이	
+잠잠하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=잠잠히	
+장렬하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=장렬히	
+재미없다	VA	SurfaceOnly		lexical.dictionary-conjugation=재미없는	
+재미있다	VA	SurfaceOnly		lexical.dictionary-conjugation=재미있는	
+재밌다	VA	SurfaceOnly		lexical.dictionary-conjugation=재밌는	
+재빠르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=재빨리	
+저러다	VV	SurfaceOnly		lexical.dictionary-conjugation=저래	
+적잖다	VA	SurfaceOnly		lexical.dictionary-related-adverb=적잖이	
+정성스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=정성스레	
+정신없다	VA	SurfaceOnly		lexical.dictionary-conjugation=정신없는	
+정신없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=정신없이	
+조러다	VV	SurfaceOnly		lexical.dictionary-conjugation=조래	
+조심스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=조심스레	
+주책없다	VA	SurfaceOnly		lexical.dictionary-conjugation=주책없는	
+주책없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=주책없이	
+즐겁다	VA	SurfaceOnly		lexical.dictionary-related-adverb=즐거이	
+지독스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=지독스레	
+지독하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=지독히	
+진배없다	VA	SurfaceOnly		lexical.dictionary-conjugation=진배없는	
+진배없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=진배없이	
+채신없다	VA	SurfaceOnly		lexical.dictionary-conjugation=채신없는	
+철석같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=철석같이	
+철없다	VA	SurfaceOnly		lexical.dictionary-conjugation=철없는	
+철없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=철없이	
+크나크다	VA	SurfaceOnly		lexical.dictionary-conjugation=크나커	
+태연스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=태연스레	
+터무니없다	VA	SurfaceOnly		lexical.dictionary-conjugation=터무니없는	
+터무니없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=터무니없이	
+턱없다	VA	SurfaceOnly		lexical.dictionary-conjugation=턱없는	
+턱없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=턱없이	
+틀림없다	VA	SurfaceOnly		lexical.dictionary-conjugation=틀림없는	
+틀림없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=틀림없이	
+퍼렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=퍼러니	
+퍼렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=퍼레	
+하나같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=하나같이	
+하릴없다	VA	SurfaceOnly		lexical.dictionary-conjugation=하릴없는	
+하릴없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=하릴없이	
+하염없다	VA	SurfaceOnly		lexical.dictionary-conjugation=하염없는	
+하염없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=하염없이	
+하잘것없다	VA	SurfaceOnly		lexical.dictionary-conjugation=하잘것없는	
+한가롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=한가로이	
+한결같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=한결같이	
+한량없다	VA	SurfaceOnly		lexical.dictionary-conjugation=한량없는	
+한량없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=한량없이	
+한없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=한없이	
+허물없다	VA	SurfaceOnly		lexical.dictionary-conjugation=허물없는	
+허물없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=허물없이	
+허여멀겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=허여멀거니	
+허여멀겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=허여멀게	
+형편없다	VA	SurfaceOnly		lexical.dictionary-conjugation=형편없는	
+형편없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=형편없이	
+호사스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=호사스레	
+황당하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=황당히	
+훌륭하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=훌륭히	
+훤칠하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=훤칠히	
+휘둥그렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=휘둥그러니	
+휘둥그렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=휘둥그레	
+희멀겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=희멀거니	
+희멀겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=희멀게	
+힘없다	VA	SurfaceOnly		lexical.dictionary-conjugation=힘없는	
+힘없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=힘없이	
+가라앉다	VV	SurfaceOnly			lexical.dictionary-voice=가라앉히다
+가로놓다	VV	SurfaceOnly			lexical.dictionary-voice=가로놓이다
+가로막다	VV	SurfaceOnly			lexical.dictionary-voice=가로막히다
+갈다	VV	SurfaceOnly			lexical.dictionary-voice=갈리다
+갈아입다	VV	SurfaceOnly			lexical.dictionary-voice=갈아입히다
+감다	VV	SurfaceOnly			lexical.dictionary-voice=감기다
+감싸다	VV	SurfaceOnly			lexical.dictionary-voice=감싸이다
+건너다보다	VV	SurfaceOnly			lexical.dictionary-voice=건너다보이다
+걷다	VV	SurfaceOnly			lexical.dictionary-voice=걷히다
+걸다	VV	SurfaceOnly			lexical.dictionary-voice=걸리다
+곁들다	VV	SurfaceOnly			lexical.dictionary-voice=곁들이다
+곯다	VV	SurfaceOnly			lexical.dictionary-voice=곯리다
+괴다	VV	SurfaceOnly			lexical.dictionary-voice=괴이다
+굳다	VV	SurfaceOnly			lexical.dictionary-voice=굳히다
+굶다	VV	SurfaceOnly			lexical.dictionary-voice=굶기다
+굽다	VV	SurfaceOnly			lexical.dictionary-voice=굽히다
+굽어보다	VV	SurfaceOnly			lexical.dictionary-voice=굽어보이다
+그슬다	VV	SurfaceOnly			lexical.dictionary-voice=그슬리다
+그을다	VV	SurfaceOnly			lexical.dictionary-voice=그을리다
+긁다	VV	SurfaceOnly			lexical.dictionary-voice=긁히다
+기울다	VV	SurfaceOnly			lexical.dictionary-voice=기울이다
+기죽다	VV	SurfaceOnly			lexical.dictionary-voice=기죽이다
+길들다	VV	SurfaceOnly			lexical.dictionary-voice=길들이다
+까다	VV	SurfaceOnly			lexical.dictionary-voice=까이다
+깎다	VV	SurfaceOnly			lexical.dictionary-voice=깎이다
+깔다	VV	SurfaceOnly			lexical.dictionary-voice=깔리다
+깨다	VV	SurfaceOnly			lexical.dictionary-voice=깨이다
+꺾다	VV	SurfaceOnly			lexical.dictionary-voice=꺾이다
+껴입다	VV	SurfaceOnly			lexical.dictionary-voice=껴입히다
+꼬다	VV	SurfaceOnly			lexical.dictionary-voice=꼬이다
+꼬집다	VV	SurfaceOnly			lexical.dictionary-voice=꼬집히다
+꼽다	VV	SurfaceOnly			lexical.dictionary-voice=꼽히다
+꽂다	VV	SurfaceOnly			lexical.dictionary-voice=꽂히다
+꾀다	VV	SurfaceOnly			lexical.dictionary-voice=꾀이다
+꿇다	VV	SurfaceOnly			lexical.dictionary-voice=꿇리다
+꿇어앉다	VV	SurfaceOnly			lexical.dictionary-voice=꿇어앉히다
+꿰다	VV	SurfaceOnly			lexical.dictionary-voice=꿰이다
+끊다	VV	SurfaceOnly			lexical.dictionary-voice=끊기다
+끌다	VV	SurfaceOnly			lexical.dictionary-voice=끌리다
+끓다	VV	SurfaceOnly			lexical.dictionary-voice=끓이다
+끼다	VV	SurfaceOnly			lexical.dictionary-voice=끼이다
+나누다	VV	SurfaceOnly			lexical.dictionary-voice=나누이다
+낙인찍다	VV	SurfaceOnly			lexical.dictionary-voice=낙인찍히다
+낚다	VV	SurfaceOnly			lexical.dictionary-voice=낚이다
+날다	VV	SurfaceOnly			lexical.dictionary-voice=날리다
+남다	VV	SurfaceOnly			lexical.dictionary-voice=남기다
+내걸다	VV	SurfaceOnly			lexical.dictionary-voice=내걸리다
+내다보다	VV	SurfaceOnly			lexical.dictionary-voice=내다보이다
+내려다보다	VV	SurfaceOnly			lexical.dictionary-voice=내려다보이다
+내리깔다	VV	SurfaceOnly			lexical.dictionary-voice=내리깔리다
+내리꽂다	VV	SurfaceOnly			lexical.dictionary-voice=내리꽂히다
+내몰다	VV	SurfaceOnly			lexical.dictionary-voice=내몰리다
+내밀다	VV	SurfaceOnly			lexical.dictionary-voice=내밀리다
+내보다	VV	SurfaceOnly			lexical.dictionary-voice=내보이다
+내쫓다	VV	SurfaceOnly			lexical.dictionary-voice=내쫓기다
+널다	VV	SurfaceOnly			lexical.dictionary-voice=널리다
+넘다	VV	SurfaceOnly			lexical.dictionary-voice=넘기다
+녹다	VV	SurfaceOnly			lexical.dictionary-voice=녹이다
+놀다	VV	SurfaceOnly			lexical.dictionary-voice=놀리다
+놓다	VV	SurfaceOnly			lexical.dictionary-voice=놓이다
+누다	VV	SurfaceOnly			lexical.dictionary-voice=누이다
+눅다	VV	SurfaceOnly			lexical.dictionary-voice=눅이다
+눕다	VV	SurfaceOnly			lexical.dictionary-voice=눕히다
+늘다	VV	SurfaceOnly			lexical.dictionary-voice=늘리다
+다물다	VV	SurfaceOnly			lexical.dictionary-voice=다물리다
+닦다	VV	SurfaceOnly			lexical.dictionary-voice=닦이다
+닫다	VV	SurfaceOnly			lexical.dictionary-voice=닫히다
+달다	VV	SurfaceOnly			lexical.dictionary-voice=달리다
+담다	VV	SurfaceOnly			lexical.dictionary-voice=담기다
+덧붙다	VV	SurfaceOnly			lexical.dictionary-voice=덧붙이다
+덮다	VV	SurfaceOnly			lexical.dictionary-voice=덮이다
+도맡다	VV	SurfaceOnly			lexical.dictionary-voice=도맡기다
+돌다	VV	SurfaceOnly			lexical.dictionary-voice=돌리다
+되돌다	VV	SurfaceOnly			lexical.dictionary-voice=되돌리다
+되살다	VV	SurfaceOnly			lexical.dictionary-voice=되살리다
+뒤덮다	VV	SurfaceOnly			lexical.dictionary-voice=뒤덮이다
+뒤얽다	VV	SurfaceOnly			lexical.dictionary-voice=뒤얽히다
+뒤집다	VV	SurfaceOnly			lexical.dictionary-voice=뒤집히다
+뒤쫓다	VV	SurfaceOnly			lexical.dictionary-voice=뒤쫓기다
+뒤틀다	VV	SurfaceOnly			lexical.dictionary-voice=뒤틀리다
+뒤흔들다	VV	SurfaceOnly			lexical.dictionary-voice=뒤흔들리다
+들다	VV	SurfaceOnly			lexical.dictionary-voice=들리다
+들다	VV	SurfaceOnly			lexical.dictionary-voice=들이다
+들볶다	VV	SurfaceOnly			lexical.dictionary-voice=들볶이다
+들어앉다	VV	SurfaceOnly			lexical.dictionary-voice=들어앉히다
+들여다보다	VV	SurfaceOnly			lexical.dictionary-voice=들여다보이다
+따라잡다	VV	SurfaceOnly			lexical.dictionary-voice=따라잡히다
+떠맡다	VV	SurfaceOnly			lexical.dictionary-voice=떠맡기다
+떠먹다	VV	SurfaceOnly			lexical.dictionary-voice=떠먹이다
+떠밀다	VV	SurfaceOnly			lexical.dictionary-voice=떠밀리다
+떠받다	VV	SurfaceOnly			lexical.dictionary-voice=떠받히다
+떠안다	VV	SurfaceOnly			lexical.dictionary-voice=떠안기다
+떨다	VV	SurfaceOnly			lexical.dictionary-voice=떨리다
+뚫다	VV	SurfaceOnly			lexical.dictionary-voice=뚫리다
+뜨다	VV	SurfaceOnly			lexical.dictionary-voice=뜨이다
+뜯다	VV	SurfaceOnly			lexical.dictionary-voice=뜯기다
+막다	VV	SurfaceOnly			lexical.dictionary-voice=막히다
+말다	VV	SurfaceOnly			lexical.dictionary-voice=말리다
+맞다	VV	SurfaceOnly			lexical.dictionary-voice=맞히다
+맞물다	VV	SurfaceOnly			lexical.dictionary-voice=맞물리다
+맞붙다	VV	SurfaceOnly			lexical.dictionary-voice=맞붙이다
+맡다	VV	SurfaceOnly			lexical.dictionary-voice=맡기다
+매다	VV	SurfaceOnly			lexical.dictionary-voice=매이다
+매달다	VV	SurfaceOnly			lexical.dictionary-voice=매달리다
+맺다	VV	SurfaceOnly			lexical.dictionary-voice=맺히다
+먹다	VV	SurfaceOnly			lexical.dictionary-voice=먹이다
+먹다	VV	SurfaceOnly			lexical.dictionary-voice=먹히다
+몰다	VV	SurfaceOnly			lexical.dictionary-voice=몰리다
+묵다	VV	SurfaceOnly			lexical.dictionary-voice=묵히다
+묶다	VV	SurfaceOnly			lexical.dictionary-voice=묶이다
+묻다	VV	SurfaceOnly			lexical.dictionary-voice=묻히다
+물다	VV	SurfaceOnly			lexical.dictionary-voice=물리다
+물들다	VV	SurfaceOnly			lexical.dictionary-voice=물들이다
+믿다	VV	SurfaceOnly			lexical.dictionary-voice=믿기다
+밀다	VV	SurfaceOnly			lexical.dictionary-voice=밀리다
+밉보다	VV	SurfaceOnly			lexical.dictionary-voice=밉보이다
+바라보다	VV	SurfaceOnly			lexical.dictionary-voice=바라보이다
+바람맞다	VV	SurfaceOnly			lexical.dictionary-voice=바람맞히다
+바로잡다	VV	SurfaceOnly			lexical.dictionary-voice=바로잡히다
+박다	VV	SurfaceOnly			lexical.dictionary-voice=박히다
+받다	VV	SurfaceOnly			lexical.dictionary-voice=받히다
+발가벗다	VV	SurfaceOnly			lexical.dictionary-voice=발가벗기다
+밟다	VV	SurfaceOnly			lexical.dictionary-voice=밟히다
+벌거벗다	VV	SurfaceOnly			lexical.dictionary-voice=벌거벗기다
+벗다	VV	SurfaceOnly			lexical.dictionary-voice=벗기다
+베다	VV	SurfaceOnly			lexical.dictionary-voice=베이다
+보다	VV	SurfaceOnly			lexical.dictionary-voice=보이다
+볶다	VV	SurfaceOnly			lexical.dictionary-voice=볶이다
+부딪다	VV	SurfaceOnly			lexical.dictionary-voice=부딪히다
+부풀다	VV	SurfaceOnly			lexical.dictionary-voice=부풀리다
+붙다	VV	SurfaceOnly			lexical.dictionary-voice=붙이다
+붙들다	VV	SurfaceOnly			lexical.dictionary-voice=붙들리다
+붙잡다	VV	SurfaceOnly			lexical.dictionary-voice=붙잡히다
+비틀다	VV	SurfaceOnly			lexical.dictionary-voice=비틀리다
+빗다	VV	SurfaceOnly			lexical.dictionary-voice=빗기다
+빨다	VV	SurfaceOnly			lexical.dictionary-voice=빨리다
+빼앗다	VV	SurfaceOnly			lexical.dictionary-voice=빼앗기다
+뻗다	VV	SurfaceOnly			lexical.dictionary-voice=뻗히다
+뽑다	VV	SurfaceOnly			lexical.dictionary-voice=뽑히다
+사로잡다	VV	SurfaceOnly			lexical.dictionary-voice=사로잡히다
+삭다	VV	SurfaceOnly			lexical.dictionary-voice=삭이다
+삭다	VV	SurfaceOnly			lexical.dictionary-voice=삭히다
+살다	VV	SurfaceOnly			lexical.dictionary-voice=살리다
+섞다	VV	SurfaceOnly			lexical.dictionary-voice=섞이다
+속다	VV	SurfaceOnly			lexical.dictionary-voice=속이다
+손꼽다	VV	SurfaceOnly			lexical.dictionary-voice=손꼽히다
+숨다	VV	SurfaceOnly			lexical.dictionary-voice=숨기다
+식다	VV	SurfaceOnly			lexical.dictionary-voice=식히다
+신다	VV	SurfaceOnly			lexical.dictionary-voice=신기다
+싸다	VV	SurfaceOnly			lexical.dictionary-voice=싸이다
+싸잡다	VV	SurfaceOnly			lexical.dictionary-voice=싸잡히다
+쌓다	VV	SurfaceOnly			lexical.dictionary-voice=쌓이다
+썩다	VV	SurfaceOnly			lexical.dictionary-voice=썩이다
+썩다	VV	SurfaceOnly			lexical.dictionary-voice=썩히다
+썰다	VV	SurfaceOnly			lexical.dictionary-voice=썰리다
+쏘다	VV	SurfaceOnly			lexical.dictionary-voice=쏘이다
+쓰다	VV	SurfaceOnly			lexical.dictionary-voice=쓰이다
+쓸다	VV	SurfaceOnly			lexical.dictionary-voice=쓸리다
+씹다	VV	SurfaceOnly			lexical.dictionary-voice=씹히다
+씻다	VV	SurfaceOnly			lexical.dictionary-voice=씻기다
+안다	VV	SurfaceOnly			lexical.dictionary-voice=안기다
+앉다	VV	SurfaceOnly			lexical.dictionary-voice=앉히다
+알다	VV	SurfaceOnly			lexical.dictionary-voice=알리다
+애먹다	VV	SurfaceOnly			lexical.dictionary-voice=애먹이다
+얹다	VV	SurfaceOnly			lexical.dictionary-voice=얹히다
+얼다	VV	SurfaceOnly			lexical.dictionary-voice=얼리다
+얽다	VV	SurfaceOnly			lexical.dictionary-voice=얽히다
+얽매다	VV	SurfaceOnly			lexical.dictionary-voice=얽매이다
+업다	VV	SurfaceOnly			lexical.dictionary-voice=업히다
+에워싸다	VV	SurfaceOnly			lexical.dictionary-voice=에워싸이다
+엮다	VV	SurfaceOnly			lexical.dictionary-voice=엮이다
+열다	VV	SurfaceOnly			lexical.dictionary-voice=열리다
+엿보다	VV	SurfaceOnly			lexical.dictionary-voice=엿보이다
+옥죄다	VV	SurfaceOnly			lexical.dictionary-voice=옥죄이다
+옮다	VV	SurfaceOnly			lexical.dictionary-voice=옮기다
+욕보다	VV	SurfaceOnly			lexical.dictionary-voice=욕보이다
+우러러보다	VV	SurfaceOnly			lexical.dictionary-voice=우러러보이다
+울다	VV	SurfaceOnly			lexical.dictionary-voice=울리다
+웃다	VV	SurfaceOnly			lexical.dictionary-voice=웃기다
+이끌다	VV	SurfaceOnly			lexical.dictionary-voice=이끌리다
+익다	VV	SurfaceOnly			lexical.dictionary-voice=익히다
+읽다	VV	SurfaceOnly			lexical.dictionary-voice=읽히다
+입다	VV	SurfaceOnly			lexical.dictionary-voice=입히다
+잊다	VV	SurfaceOnly			lexical.dictionary-voice=잊히다
+잡다	VV	SurfaceOnly			lexical.dictionary-voice=잡히다
+잡아끌다	VV	SurfaceOnly			lexical.dictionary-voice=잡아끌리다
+잡아먹다	VV	SurfaceOnly			lexical.dictionary-voice=잡아먹히다
+장가들다	VV	SurfaceOnly			lexical.dictionary-voice=장가들이다
+적다	VV	SurfaceOnly			lexical.dictionary-voice=적히다
+절다	VV	SurfaceOnly			lexical.dictionary-voice=절이다
+접다	VV	SurfaceOnly			lexical.dictionary-voice=접히다
+정들다	VV	SurfaceOnly			lexical.dictionary-voice=정들이다
+졸다	VV	SurfaceOnly			lexical.dictionary-voice=졸이다
+주저앉다	VV	SurfaceOnly			lexical.dictionary-voice=주저앉히다
+죽다	VV	SurfaceOnly			lexical.dictionary-voice=죽이다
+줄다	VV	SurfaceOnly			lexical.dictionary-voice=줄이다
+쥐어뜯다	VV	SurfaceOnly			lexical.dictionary-voice=쥐어뜯기다
+집다	VV	SurfaceOnly			lexical.dictionary-voice=집히다
+짓밟다	VV	SurfaceOnly			lexical.dictionary-voice=짓밟히다
+짜다	VV	SurfaceOnly			lexical.dictionary-voice=짜이다
+쫓다	VV	SurfaceOnly			lexical.dictionary-voice=쫓기다
+찍다	VV	SurfaceOnly			lexical.dictionary-voice=찍히다
+찢다	VV	SurfaceOnly			lexical.dictionary-voice=찢기다
+차다	VV	SurfaceOnly			lexical.dictionary-voice=차이다
+처박다	VV	SurfaceOnly			lexical.dictionary-voice=처박히다
+치다	VV	SurfaceOnly			lexical.dictionary-voice=치이다
+털다	VV	SurfaceOnly			lexical.dictionary-voice=털리다
+튀다	VV	SurfaceOnly			lexical.dictionary-voice=튀기다
+트다	VV	SurfaceOnly			lexical.dictionary-voice=트이다
+틀다	VV	SurfaceOnly			lexical.dictionary-voice=틀리다
+틀어박다	VV	SurfaceOnly			lexical.dictionary-voice=틀어박히다
+파다	VV	SurfaceOnly			lexical.dictionary-voice=파이다
+파묻다	VV	SurfaceOnly			lexical.dictionary-voice=파묻히다
+팔다	VV	SurfaceOnly			lexical.dictionary-voice=팔리다
+풀다	VV	SurfaceOnly			lexical.dictionary-voice=풀리다
+헐다	VV	SurfaceOnly			lexical.dictionary-voice=헐리다
+헝클다	VV	SurfaceOnly			lexical.dictionary-voice=헝클리다
+휘감다	VV	SurfaceOnly			lexical.dictionary-voice=휘감기다
+휘덮다	VV	SurfaceOnly			lexical.dictionary-voice=휘덮이다
+휘돌다	VV	SurfaceOnly			lexical.dictionary-voice=휘돌리다
+휘말다	VV	SurfaceOnly			lexical.dictionary-voice=휘말리다
+휘몰다	VV	SurfaceOnly			lexical.dictionary-voice=휘몰리다
+휩싸다	VV	SurfaceOnly			lexical.dictionary-voice=휩싸이다
+휩쓸다	VV	SurfaceOnly			lexical.dictionary-voice=휩쓸리다
+흔들다	VV	SurfaceOnly			lexical.dictionary-voice=흔들리다

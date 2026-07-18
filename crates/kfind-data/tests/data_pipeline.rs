@@ -4,12 +4,13 @@ use std::path::{Path, PathBuf};
 
 use kfind_data::{
     DICTIONARY_ADVERBIAL_I_RULE_ID, DICTIONARY_CONJUGATION_RULE_ID,
-    DICTIONARY_RELATED_ADVERB_RULE_ID, DataAlternation, DataErrorKind, DataFinePos, DataWarning,
-    LexiconSources, NominalRecord, ParticleHost, ParticleRuleRole, PosLexiconEntry, RuleSources,
-    SurfaceOverride, collect_pos_entries, decode_pos_lexicon, encode_pos_lexicon,
-    extract_mecab_ko_dic, extract_mecab_morphology, extract_mecab_source_morphology, load_data_dir,
-    parse_lexicons, parse_mecab_connection_matrix, parse_predicates_tsv, parse_rule_set,
-    parse_user_lexicon_toml, validate_data, validate_predicates,
+    DICTIONARY_RELATED_ADVERB_RULE_ID, DICTIONARY_VOICE_DERIVATION_RULE_ID, DataAlternation,
+    DataErrorKind, DataFinePos, DataWarning, LexiconSources, NominalRecord, ParticleHost,
+    ParticleRuleRole, PosLexiconEntry, PredicateDerivation, RuleSources, SurfaceOverride,
+    collect_pos_entries, decode_pos_lexicon, encode_pos_lexicon, extract_mecab_ko_dic,
+    extract_mecab_morphology, extract_mecab_source_morphology, load_data_dir, parse_lexicons,
+    parse_mecab_connection_matrix, parse_predicates_tsv, parse_rule_set, parse_user_lexicon_toml,
+    validate_data, validate_predicates,
 };
 
 fn data_root() -> PathBuf {
@@ -240,29 +241,57 @@ fn repository_enriched_predicates_are_valid_and_disjoint_from_core() {
         .iter()
         .filter(|entry| entry.alternation == DataAlternation::SurfaceOnly)
         .collect::<Vec<_>>();
-    assert_eq!(surface_only.len(), 295);
+    assert_eq!(surface_only.len(), 520);
     assert!(read("enriched/predicates.tsv").len() <= 64 * 1024);
     assert_eq!(
         surface_only
             .iter()
-            .filter(|entry| entry.overrides[0].rule_id == DICTIONARY_CONJUGATION_RULE_ID)
+            .filter(
+                |entry| entry.overrides.first().is_some_and(|override_form| {
+                    override_form.rule_id == DICTIONARY_CONJUGATION_RULE_ID
+                })
+            )
             .count(),
         130
     );
     assert_eq!(
         surface_only
             .iter()
-            .filter(|entry| entry.overrides[0].rule_id == DICTIONARY_RELATED_ADVERB_RULE_ID)
+            .filter(
+                |entry| entry.overrides.first().is_some_and(|override_form| {
+                    override_form.rule_id == DICTIONARY_RELATED_ADVERB_RULE_ID
+                })
+            )
             .count(),
         77
     );
     assert_eq!(
         surface_only
             .iter()
-            .filter(|entry| entry.overrides[0].rule_id == DICTIONARY_ADVERBIAL_I_RULE_ID)
+            .filter(
+                |entry| entry.overrides.first().is_some_and(|override_form| {
+                    override_form.rule_id == DICTIONARY_ADVERBIAL_I_RULE_ID
+                })
+            )
             .count(),
         88
     );
+    assert_eq!(
+        surface_only
+            .iter()
+            .filter(|entry| entry.derivations.first().is_some_and(|derivation| {
+                derivation.rule_id == DICTIONARY_VOICE_DERIVATION_RULE_ID
+            }))
+            .count(),
+        225
+    );
+    assert!(surface_only.iter().any(|entry| {
+        entry.lemma == "밀다"
+            && entry.derivations.iter().any(|derivation| {
+                derivation.rule_id == DICTIONARY_VOICE_DERIVATION_RULE_ID
+                    && derivation.target_lemma == "밀리다"
+            })
+    }));
 }
 
 #[test]
@@ -322,10 +351,38 @@ fn cross_validation_rejects_unknown_rules_and_override_conflicts() {
             surface: "나가".to_owned(),
         }],
     });
-    let error = validate_data(conflicting, valid.rules, valid.fixtures, Vec::new()).unwrap_err();
+    let error = validate_data(
+        conflicting,
+        valid.rules.clone(),
+        valid.fixtures.clone(),
+        Vec::new(),
+    )
+    .unwrap_err();
     assert!(matches!(
         *error.kind,
         DataErrorKind::OverrideConflict { .. }
+    ));
+
+    let mut misplaced_derivation = valid.lexicon.clone();
+    let predicate = misplaced_derivation
+        .predicates
+        .iter_mut()
+        .find(|predicate| predicate.alternation != DataAlternation::SurfaceOnly)
+        .unwrap();
+    predicate.derivations.push(PredicateDerivation {
+        rule_id: DICTIONARY_VOICE_DERIVATION_RULE_ID.to_owned(),
+        target_lemma: "밀리다".to_owned(),
+    });
+    let error = validate_data(
+        misplaced_derivation,
+        valid.rules,
+        valid.fixtures,
+        Vec::new(),
+    )
+    .unwrap_err();
+    assert!(matches!(
+        *error.kind,
+        DataErrorKind::InvalidValue { ref field, .. } if field == "derivations"
     ));
 }
 

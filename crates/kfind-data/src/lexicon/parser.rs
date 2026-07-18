@@ -6,7 +6,7 @@ use crate::{DataError, DataErrorKind, DataWarning};
 
 use super::{
     DataAlternation, DataFinePos, LexiconData, ModifierRecord, NominalRecord, ParticleRecord,
-    PredicateRecord, SurfaceOverride,
+    PredicateDerivation, PredicateRecord, SurfaceOverride,
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -46,11 +46,23 @@ pub fn parse_predicates_tsv(
     source: &str,
     input: &str,
 ) -> Result<(Vec<PredicateRecord>, Vec<DataWarning>), DataError> {
-    let parsed = parse_rows(
-        source,
-        input,
-        &["lemma", "pos", "alternation", "flags", "overrides"],
-    )?;
+    let has_derivations = input
+        .lines()
+        .next()
+        .is_some_and(|header| header == "lemma\tpos\talternation\tflags\toverrides\tderivations");
+    let columns = if has_derivations {
+        &[
+            "lemma",
+            "pos",
+            "alternation",
+            "flags",
+            "overrides",
+            "derivations",
+        ][..]
+    } else {
+        &["lemma", "pos", "alternation", "flags", "overrides"][..]
+    };
+    let parsed = parse_rows(source, input, columns)?;
     let mut records = Vec::with_capacity(parsed.rows.len());
     for row in parsed.rows {
         let lemma = parse_nfc(source, row.line, "lemma", row.fields[0])?;
@@ -86,9 +98,52 @@ pub fn parse_predicates_tsv(
             alternation,
             flags: parse_flags(source, row.line, row.fields[3])?,
             overrides: parse_overrides(source, row.line, row.fields[4])?,
+            derivations: if has_derivations {
+                parse_derivations(source, row.line, row.fields[5])?
+            } else {
+                Vec::new()
+            },
         });
     }
     Ok((records, parsed.warnings))
+}
+
+fn parse_derivations(
+    source: &str,
+    line: usize,
+    value: &str,
+) -> Result<Vec<PredicateDerivation>, DataError> {
+    let mut records = Vec::new();
+    let mut seen = BTreeSet::new();
+    for item in value.split(';').filter(|item| !item.is_empty()) {
+        let Some((rule_id, target_lemma)) = item.split_once('=') else {
+            return Err(invalid_value(
+                source,
+                line,
+                "derivations",
+                item,
+                "`rule.id=target-lemma` 형식이어야 합니다",
+            ));
+        };
+        require_rule_id(source, rule_id)?;
+        require_nfc(source, Some(line), "derivation target lemma", target_lemma)?;
+        if target_lemma.strip_suffix('다').is_none_or(str::is_empty) {
+            return Err(invalid_value(
+                source,
+                line,
+                "derivations",
+                item,
+                "target lemma는 `다`로 끝나는 용언 기본형이어야 합니다",
+            ));
+        }
+        if seen.insert((rule_id, target_lemma)) {
+            records.push(PredicateDerivation {
+                rule_id: rule_id.to_owned(),
+                target_lemma: target_lemma.to_owned(),
+            });
+        }
+    }
+    Ok(records)
 }
 
 pub fn parse_nominals_tsv(

@@ -180,6 +180,7 @@ fn parse_predicate(
             alternation,
             flags,
             overrides,
+            derivations: Vec::new(),
         },
         replace: raw.replace,
     })

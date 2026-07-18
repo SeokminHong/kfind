@@ -179,6 +179,7 @@ pub enum DataAlternation {
 pub const DICTIONARY_CONJUGATION_RULE_ID: &str = "lexical.dictionary-conjugation";
 pub const DICTIONARY_ADVERBIAL_I_RULE_ID: &str = "lexical.dictionary-adverbial-i";
 pub const DICTIONARY_RELATED_ADVERB_RULE_ID: &str = "lexical.dictionary-related-adverb";
+pub const DICTIONARY_VOICE_DERIVATION_RULE_ID: &str = "lexical.dictionary-voice";
 
 pub fn is_dictionary_surface_rule(id: &str) -> bool {
     matches!(
@@ -270,6 +271,12 @@ pub struct SurfaceOverride {
     pub surface: String,
 }
 
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct PredicateDerivation {
+    pub rule_id: String,
+    pub target_lemma: String,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PredicateRecord {
     pub lemma: String,
@@ -277,6 +284,7 @@ pub struct PredicateRecord {
     pub alternation: DataAlternation,
     pub flags: BTreeSet<String>,
     pub overrides: Vec<SurfaceOverride>,
+    pub derivations: Vec<PredicateDerivation>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
