@@ -180,6 +180,25 @@ fn structural_components_remain_possible_when_whole_analyses_compete() {
 }
 
 #[test]
+fn repeated_structural_contexts_preserve_each_absolute_span() {
+    let matcher = component_matcher("학교", Arc::new(component_resource()));
+    let text = "대학교 대학교 대학교 대학교";
+    let expected = text
+        .match_indices("학교")
+        .map(|(start, token)| start..start + token.len())
+        .collect::<Vec<_>>();
+
+    assert_eq!(
+        matcher
+            .find_all_with_meta(text.as_bytes())
+            .into_iter()
+            .map(|matched| matched.span)
+            .collect::<Vec<_>>(),
+        expected
+    );
+}
+
+#[test]
 fn nominal_particle_host_rejects_a_component_crossing_substring() {
     let matcher = component_matcher("사과", Arc::new(component_resource()));
 

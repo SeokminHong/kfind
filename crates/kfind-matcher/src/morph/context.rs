@@ -1,5 +1,9 @@
 use std::borrow::Cow;
+use std::collections::HashMap;
+use std::collections::hash_map::RandomState;
+use std::hash::{BuildHasher, Hash, Hasher};
 use std::ops::Range;
+use std::sync::Arc;
 
 use kfind_morph::{
     BoundedTokenContext, CandidateSpans, ConstraintDecision, ConstraintResolver,
@@ -10,10 +14,27 @@ use unicode_normalization::{UnicodeNormalization, is_nfc};
 
 use crate::{AnalysisWindow, DEFAULT_ANALYSIS_WINDOW_LIMITS, is_token_character};
 
+const MAX_PREPARED_CONTEXT_CACHE_ENTRIES: usize = 256;
+
 #[derive(Debug)]
 pub(super) struct PreparedStructuralContextAnalysis {
     current: AnalysisWindow,
-    prepared: PreparedStructuralContext,
+    prepared: Arc<PreparedStructuralContext>,
+}
+
+#[derive(Default)]
+pub(super) struct PreparedStructuralContextCache {
+    fingerprint_builder: RandomState,
+    entries: HashMap<u64, Vec<CachedPreparedContext>>,
+    entry_count: usize,
+}
+
+struct CachedPreparedContext {
+    raw_context: Box<[u8]>,
+    current: Range<usize>,
+    node_limit: usize,
+    include_nominal_copula: bool,
+    prepared: Option<Arc<PreparedStructuralContext>>,
 }
 
 pub(super) struct StructuralRequest<'a> {
@@ -30,6 +51,7 @@ impl PreparedStructuralContextAnalysis {
         resolver: &ConstraintResolver,
         node_limit: usize,
         include_nominal_copula: bool,
+        prepared_cache: &mut PreparedStructuralContextCache,
     ) -> Option<Self> {
         let current =
             AnalysisWindow::extract(haystack, candidate, DEFAULT_ANALYSIS_WINDOW_LIMITS).ok()?;
@@ -55,7 +77,18 @@ impl PreparedStructuralContextAnalysis {
         if context_span.len() > DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes {
             return None;
         }
-        let context_text = std::str::from_utf8(haystack.get(context_span)?).ok()?;
+        let raw_context = haystack.get(context_span.clone())?;
+        let relative_current = current_span.start.checked_sub(context_span.start)?
+            ..current_span.end.checked_sub(context_span.start)?;
+        if let Some(prepared) = prepared_cache.get(
+            raw_context,
+            &relative_current,
+            node_limit,
+            include_nominal_copula,
+        ) {
+            return prepared.map(|prepared| Self { current, prepared });
+        }
+        let context_text = std::str::from_utf8(raw_context).ok()?;
         if context_text.nfc().count() > DEFAULT_ANALYSIS_WINDOW_LIMITS.max_normalized_scalars {
             return None;
         }
@@ -68,8 +101,16 @@ impl PreparedStructuralContextAnalysis {
         };
         let prepared = resolver
             .prepare_context_for_candidate(context, node_limit, include_nominal_copula)
-            .ok()?;
-        Some(Self { current, prepared })
+            .ok()
+            .map(Arc::new);
+        prepared_cache.insert(
+            raw_context,
+            relative_current,
+            node_limit,
+            include_nominal_copula,
+            prepared.clone(),
+        );
+        prepared.map(|prepared| Self { current, prepared })
     }
 
     pub(super) fn resolve(&self, request: StructuralRequest<'_>) -> Option<ConstraintDecision> {
@@ -94,6 +135,71 @@ impl PreparedStructuralContextAnalysis {
         self.current
             .normalized_span(span)
             .is_some_and(|span| self.prepared.has_nominal_copula_host(&span))
+    }
+}
+
+impl PreparedStructuralContextCache {
+    fn get(
+        &self,
+        raw_context: &[u8],
+        current: &Range<usize>,
+        node_limit: usize,
+        include_nominal_copula: bool,
+    ) -> Option<Option<Arc<PreparedStructuralContext>>> {
+        let fingerprint =
+            self.fingerprint(raw_context, current, node_limit, include_nominal_copula);
+        self.entries.get(&fingerprint).and_then(|entries| {
+            entries
+                .iter()
+                .find(|entry| {
+                    entry.raw_context.as_ref() == raw_context
+                        && entry.current == *current
+                        && entry.node_limit == node_limit
+                        && entry.include_nominal_copula == include_nominal_copula
+                })
+                .map(|entry| entry.prepared.clone())
+        })
+    }
+
+    fn insert(
+        &mut self,
+        raw_context: &[u8],
+        current: Range<usize>,
+        node_limit: usize,
+        include_nominal_copula: bool,
+        prepared: Option<Arc<PreparedStructuralContext>>,
+    ) {
+        if self.entry_count >= MAX_PREPARED_CONTEXT_CACHE_ENTRIES {
+            return;
+        }
+        let fingerprint =
+            self.fingerprint(raw_context, &current, node_limit, include_nominal_copula);
+        self.entries
+            .entry(fingerprint)
+            .or_default()
+            .push(CachedPreparedContext {
+                raw_context: raw_context.into(),
+                current,
+                node_limit,
+                include_nominal_copula,
+                prepared,
+            });
+        self.entry_count += 1;
+    }
+
+    fn fingerprint(
+        &self,
+        raw_context: &[u8],
+        current: &Range<usize>,
+        node_limit: usize,
+        include_nominal_copula: bool,
+    ) -> u64 {
+        let mut hasher = self.fingerprint_builder.build_hasher();
+        raw_context.hash(&mut hasher);
+        current.hash(&mut hasher);
+        node_limit.hash(&mut hasher);
+        include_nominal_copula.hash(&mut hasher);
+        hasher.finish()
     }
 }
 
