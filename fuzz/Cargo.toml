@@ -74,5 +74,12 @@ test = false
 doc = false
 bench = false
 
+[[bin]]
+name = "search_executor"
+path = "fuzz_targets/search_executor.rs"
+test = false
+doc = false
+bench = false
+
 [workspace]
 resolver = "3"

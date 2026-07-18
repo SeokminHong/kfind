@@ -275,7 +275,7 @@ binary.
 | `--column` | off | Prints a one-based Unicode scalar column and implies line-number output. |
 | `--explain-query` | off | Prints inferred analyses, candidate programs, consumption states, normalization, and lexicon status before results. |
 | `--explain-match` | off | Adds the lemma and rule path behind each text match. JSON already includes origin metadata. |
-| `--sort path` | unsorted parallel stream | Buffers completed file results and emits path order; this uses memory proportional to results and can reduce parallel throughput. |
+| `--sort path` | unsorted parallel stream | Collects and sorts target paths, then emits bounded parallel file streams in path order. Path collection delays first output, uses memory proportional to file count, and can reduce throughput. |
 
 File names are printed automatically when searching a directory or multiple
 inputs. Match and context lines use `:` and `-` separators respectively. Standard

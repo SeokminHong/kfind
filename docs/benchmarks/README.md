@@ -50,6 +50,25 @@ KFIND_BENCH_KEEP_CORPUS=1 KFIND_BENCH_REUSE_CORPUS=1 scripts/benchmark-1gib.sh
 
 이미 빌드한 release binary를 측정할 때는 `KFIND_BENCH_SKIP_BUILD=1`, `KFIND_BENCH_KFIND_BIN`, `KFIND_BENCH_GENERATOR_BIN`, `KFIND_BENCH_REVISION`을 함께 지정한다. 보고서의 revision과 실제 binary가 일치하도록 호출자가 보장해야 한다.
 
+## Path-sorted output
+
+`--sort path`의 결과 메모리, 정렬 조정 비용과 입력 편중을 분리해 측정한다.
+
+```console
+scripts/benchmark-sorted-output.sh
+```
+
+고정 생성기는 동일한 match 행을 반복한 high-hit, 모든 행의 내용이 다른 high-hit,
+많은 작은 파일에 match가 없는 low-hit corpus를 만든다. 반복과 고유 high-hit을 함께
+보아 반복 샘플에만 유리한 캐시·분기 효과를 분리하고, low-hit으로 경로 수집
+비용을 감시한다. 각 corpus에서 sorted와 unsorted를 fresh process로 교대 실행하며,
+warm-up 1회 후 wall time과 peak RSS를 5회 기록한다. 결과 TSV와 input·binary checksum,
+revision, 도구 버전은 `target/benchmark/sorted-output/<revision>`에 저장한다.
+
+이미 build한 binary는 `KFIND_BENCH_SKIP_BUILD=1`, `KFIND_BENCH_KFIND_BIN`,
+`KFIND_BENCH_REVISION`으로 지정한다. 기준과 후보는 같은 `KFIND_BENCH_THREADS`, fixture 크기와
+실행 횟수를 사용해야 한다.
+
 ## Query compile
 
 단일 atom과 8 atom phrase compile benchmark는 다음 명령으로 실행한다.

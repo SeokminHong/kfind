@@ -16,6 +16,7 @@ targets=(
   binary_detection
   pos_resource
   component_resource
+  search_executor
 )
 
 shopt -s nullglob

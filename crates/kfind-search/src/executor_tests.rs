@@ -135,7 +135,7 @@ fn parallel_results_are_delivered_as_complete_file_blocks() {
 }
 
 #[test]
-fn path_order_buffers_and_sorts_file_blocks() {
+fn path_order_streams_sorted_file_blocks() {
     let tree = TempTree::new();
     tree.write("z.txt", "걸어\n");
     tree.write("a.txt", "걸어\n");
@@ -152,6 +152,72 @@ fn path_order_buffers_and_sorts_file_blocks() {
     let mut expected = paths.clone();
     expected.sort();
 
+    assert_eq!(paths, expected);
+}
+
+#[test]
+fn path_order_consumes_high_hit_records_before_eof() {
+    const HIGH_HIT_LINES: usize = 20_000;
+
+    let corpus = "걸어\n".repeat(HIGH_HIT_LINES).into_bytes();
+    let corpus_bytes = corpus.len();
+    let bytes_read = Arc::new(AtomicUsize::new(0));
+    let records_seen = Arc::new(AtomicUsize::new(0));
+    let reader = CountingReader {
+        inner: io::Cursor::new(corpus),
+        bytes_read: Arc::clone(&bytes_read),
+    };
+    let mut search = config(vec![PathBuf::from("-")]);
+    search.execution.order = ResultOrder::Path;
+    search.execution.channel_capacity = 1;
+    let callback_records = Arc::clone(&records_seen);
+
+    let summary = execute_search_with_stdin(matcher(), search, reader, move |event| {
+        if matches!(event, SearchEvent::Record { .. }) {
+            callback_records.fetch_add(1, Ordering::Relaxed);
+            return Err(io::Error::new(io::ErrorKind::BrokenPipe, "closed"));
+        }
+        Ok(())
+    })
+    .unwrap();
+
+    assert!(summary.output_closed);
+    assert_eq!(records_seen.load(Ordering::Relaxed), 1);
+    assert!(
+        bytes_read.load(Ordering::Relaxed) < corpus_bytes,
+        "path-ordered search buffered the complete high-hit input"
+    );
+}
+
+#[test]
+fn path_order_unit_capacity_drains_parallel_file_streams() {
+    const FILES: usize = 32;
+    const LINES_PER_FILE: usize = 128;
+
+    let tree = TempTree::new();
+    for index in (0..FILES).rev() {
+        tree.write(format!("{index:02}.txt"), &"걸어\n".repeat(LINES_PER_FILE));
+    }
+    let mut search = config(vec![tree.0.clone()]);
+    search.execution.order = ResultOrder::Path;
+    search.execution.channel_capacity = 0;
+
+    let (summary, events) = collect(search);
+    let paths = events
+        .iter()
+        .filter_map(|event| match event {
+            SearchEvent::FileEnd(result) => Some(result.path.clone()),
+            SearchEvent::FileStart { .. } | SearchEvent::Record { .. } | SearchEvent::Issue(_) => {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+    let mut expected = paths.clone();
+    expected.sort();
+
+    assert_eq!(summary.searched_files, FILES as u64);
+    assert_eq!(summary.matching_lines, (FILES * LINES_PER_FILE) as u64);
+    assert_eq!(summary.errors, 0);
     assert_eq!(paths, expected);
 }
 

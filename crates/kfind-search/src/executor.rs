@@ -17,6 +17,7 @@ use crate::{
     WalkOptions, build_walker,
 };
 
+mod ordered;
 mod writer;
 
 use writer::{FileMessage, FileStream, WorkerEvent, write_events};
@@ -182,6 +183,22 @@ where
         .then(|| build_walker(&file_paths, &config.walk))
         .transpose()
         .map_err(SearchRunError::Walk)?;
+    if config.execution.order == ResultOrder::Path && !config.execution.quiet {
+        let worker_threads = crate::walker::worker_threads(&config.walk);
+        return ordered::execute(
+            ordered::OrderedExecution {
+                matcher,
+                input_options,
+                execution_options: config.execution,
+                stdin_searcher,
+                stdin,
+                walker,
+                search_stdin,
+                worker_threads,
+            },
+            callback,
+        );
+    }
     let capacity = config.execution.channel_capacity.max(1);
     let (sender, receiver) = bounded::<WorkerEvent>(capacity);
     let cancelled = Arc::new(AtomicBool::new(false));
