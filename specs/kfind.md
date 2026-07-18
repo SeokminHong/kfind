@@ -589,6 +589,18 @@
   검증할 때만 사용하고 token 전체의 품사 구조를 선택하는 근거로 쓰지 않는다. host 왼쪽
   경계에 정렬된 두 음절 이상의 nominal prefix는 유지하고, 한 음절 prefix와 host 내부
   양쪽 경계를 가로지르는 후보에는 선호 경로 검증을 적용한다.
+- 국립국어원 고정 사전에서 검토한 명사 결합 접미사 어휘는 후보를 다시 생성하지 않고 체언
+  구조 검증에만 사용한다. 사전 generator는 고정 snapshot을 한 번 읽어 재사용 가능한 catalog
+  candidate를 만들고, 별도 validator가 기본 사전 합의와 schema를 검사한 뒤 설치한다. 검증
+  정책만 바뀌면 catalog를 다시 생성하지 않는다. 한 음절 보통명사 query가 이 어휘에 속하고 조사 host의
+  마지막 source node와 정확히 일치하며, 그 앞의 체언 node부터 뒤의 조사 연쇄까지 token
+  전체를 완성하고 host 전체를 덮는 단일 source edge가 없으면 선호 nominal path의
+  component로 유지한다. 따라서 `책임/NNG + 하/NNG + 에서/JKB`의 `하`를 회수하지만,
+  `빙원/NNG + 옆/NNG + 에/JKB`의 독립 명사, 완성 어휘의 내부 음절, 조사 node, particle을
+  소비하지 않고 whole 체언 분석도 없는 내부 한 음절 후보는 열지 않는다. Whole 체언이 같은
+  span을 source component로 함께 선언한 기존 exact component는 보존한다. 이 체언 검증은 용언
+  program을 바꾸지 않으므로 `가다`는 `그래 네가 가.`에서 token 전체 명령형 `가`를 계속
+  회수한다.
 - token을 임의 품사의 edge로 끝까지 덮을 수 있다는 사실만으로 token보다 짧은 query 품사의
   runtime component를 합성하지 않는다. 특히 `NP`·`MM`·`MAG/MAJ` 내부 component는 query
   core와 같은 span의 같은 세부 품사 node가 완전한 typed path에 있어야 한다. 이 조건은 query가
