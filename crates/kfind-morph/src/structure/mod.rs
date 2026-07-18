@@ -3364,21 +3364,28 @@ fn complete_suffix(
     suffix: &str,
     accepts: impl Copy + Fn(&str) -> bool,
 ) -> bool {
-    if suffix.is_empty() {
-        return true;
-    }
-    let mut next = Vec::new();
-    resource.common_prefixes(suffix.as_bytes(), |length, analyses| {
-        if length > 0
-            && analyses
+    let mut reachable = vec![false; suffix.len() + 1];
+    reachable[0] = true;
+    for start in 0..suffix.len() {
+        if !reachable[start] {
+            continue;
+        }
+        resource.common_prefixes(&suffix.as_bytes()[start..], |length, analyses| {
+            let Some(end) = start
+                .checked_add(length)
+                .filter(|&end| length > 0 && end <= suffix.len())
+            else {
+                return;
+            };
+            if analyses
                 .iter()
                 .any(|analysis| analysis.pos.split('+').all(accepts))
-        {
-            next.push(length);
-        }
-    });
-    next.into_iter()
-        .any(|length| complete_suffix(resource, &suffix[length..], accepts))
+            {
+                reachable[end] = true;
+            }
+        });
+    }
+    reachable[suffix.len()]
 }
 
 fn complete_dependent_noun_particle_suffix(
