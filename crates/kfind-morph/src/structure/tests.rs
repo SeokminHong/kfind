@@ -1813,6 +1813,27 @@ fn predicate_ending_particle_path_requires_endings_before_particles() {
 }
 
 #[test]
+fn ambiguous_incomplete_particle_suffix_uses_bounded_reachability() {
+    let repetitions = 64;
+    let mut entries = vec![atomic("가", "VV"), atomic("다", "EF")];
+    let mut surface = String::new();
+    for _ in 0..repetitions {
+        surface.push('나');
+        entries.push(atomic(&surface, "JX"));
+    }
+    let resolver = resolver_from_entries(entries);
+    let text = format!("가다{}끝", "나".repeat(repetitions));
+
+    assert!(!resolver.supports_predicate_ending_particle_path(
+        &text,
+        "가".len(),
+        "가다".len(),
+        crate::PredicatePos::Verb,
+        4_096,
+    ));
+}
+
+#[test]
 fn adnominal_dependent_noun_particle_path_requires_each_typed_segment() {
     let resolver = resolver();
 
