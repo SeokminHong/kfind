@@ -490,6 +490,13 @@
   nonstandard-spacing 입력은 향후 별도 robust 지원에서 다루며 현재 표준형 `smart` 계약에서는
   FP 또는 FN을 허용한다. continuation을 하나도 소비하지 않은 bare predicate가 더 큰 token의
   일부이거나, predicate component 직후의 체언+조사 후보이면 구조적으로 반증한다.
+- `smart` 체언 query core가 token 왼쪽 경계부터 `N+ + XSN+`의 완성된 명사 파생 경로와
+  정확히 일치하고, 그 직후부터 token 끝까지 `XSV/XSA + E+`의 완성된 용언 파생·어미 경로가
+  이어지면 그 체언 core를 유지한다. 명사와 `XSN`은 각각 하나 이상이어야 하며 query core의
+  양쪽 끝은 source node 경계와 일치해야 한다. 따라서 `잠식/NNG + 당/XSN + 하/XSV + 기/ETN`의
+  `잠식당`을 회수하지만, token 내부에서 시작하거나 `XSN` component를 가로지르거나 용언
+  파생 뒤 어미가 없는 후보는 열지 않는다. 더 낮은 비용의 `잠식/NNG + 당하/XSV + 기/ETN`
+  경로가 경쟁해도 비용으로 정렬된 명사 파생 경로를 제거하지 않는다.
 - 현재 token에 whole `MAG`와 whole 체언이 경쟁하고 다음 token의 완전한 component path가
   `하다` 활용의 `하/VV` 또는 교체형 `해-/했-/VV`로 시작하면 부사 구조를 선택한다. 따라서
   `못 하겠어요`, `못 했다`의
