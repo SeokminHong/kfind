@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from nikl_lexemes import krdict_lexemes, opendict_lexemes, stdict_lexemes, write_report
+from nikl_nominal_suffixes import attached_nominal_suffixes, validate_catalog, write_catalog
 
 
 class NiklLexemeTest(unittest.TestCase):
@@ -107,6 +108,60 @@ class NiklLexemeTest(unittest.TestCase):
 
         self.assertEqual(report["missing_by_source"]["krdict"], ["누구"])
         self.assertEqual(report["missing_by_source"]["stdict"], ["누구", "후"])
+
+    def test_attached_nominal_suffix_catalog_keeps_reviewed_modern_suffixes(self) -> None:
+        requested = frozenset({"하"})
+        krdict = ET.fromstring(
+            """
+            <LexicalEntry val="88469">
+              <feat att="partOfSpeech" val="접사" />
+              <Lemma><feat att="writtenForm" val="-하" /></Lemma>
+            </LexicalEntry>
+            """
+        )
+        stdict = ET.fromstring(
+            """
+            <item><target_code>362661</target_code><word_info><word>-하12</word>
+              <pos_info><pos_code>362661001</pos_code><pos>접사</pos>
+                <sense_info><type>일반어</type></sense_info>
+              </pos_info>
+            </word_info></item>
+            """
+        )
+        records = (*krdict_lexemes(krdict, requested), *stdict_lexemes(stdict, requested))
+
+        suffixes = attached_nominal_suffixes(records, requested)
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "suffixes.tsv"
+            write_catalog(output, requested, suffixes)
+            validate_catalog(output, requested)
+            lines = output.read_text(encoding="utf-8").splitlines()
+
+        self.assertEqual(
+            lines,
+            [
+                "surface\theadwords\tkrdict_ids\tstdict_ids\topendict_ids",
+                "하\t-하|-하12\t88469\t362661:362661001\t-",
+            ],
+        )
+
+    def test_attached_nominal_suffix_validation_is_separate_from_generation(self) -> None:
+        requested = frozenset({"하"})
+        krdict = ET.fromstring(
+            """
+            <LexicalEntry val="88469">
+              <feat att="partOfSpeech" val="접사" />
+              <Lemma><feat att="writtenForm" val="-하" /></Lemma>
+            </LexicalEntry>
+            """
+        )
+        records = krdict_lexemes(krdict, requested)
+
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "suffixes.tsv"
+            write_catalog(output, requested, records)
+            with self.assertRaisesRegex(ValueError, "missing modern suffix evidence from stdict"):
+                validate_catalog(output, requested)
 
 
 if __name__ == "__main__":

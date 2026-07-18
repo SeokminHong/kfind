@@ -1,10 +1,13 @@
 use std::ops::Range;
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 use kfind_data::{ComponentPart, ComponentResource, DataFinePos};
 
 use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern, StructuralSignature};
 use crate::{PredicatePos, PredicatePosSet};
+
+const NIKL_ATTACHED_NOMINAL_SUFFIXES: &str =
+    include_str!("../../../../data/rules/nikl-attached-nominal-suffixes.tsv");
 
 #[derive(Clone, Copy, Debug)]
 pub struct BoundedTokenContext<'a> {
@@ -2137,6 +2140,7 @@ impl StructureSelection {
                                     unit.span == (spans.core.end..selected.end)
                                         && unit.pos.is_particle()
                                 }))
+                            || attached_nominal_suffix_is_supported(pattern, spans, evidence)
                             || ((nominal_component_is_supported(
                                 *allow_components,
                                 support.evidence,
@@ -2466,6 +2470,9 @@ fn runtime_nominal_component_is_supported(
     if proper_noun_dependent_noun_frame(pattern, spans, host, evidence) {
         return true;
     }
+    if attached_nominal_suffix_is_supported(pattern, spans, evidence) {
+        return true;
+    }
     if spans.core.start == host.start && pattern.lexical_form.chars().count() > 1 {
         return true;
     }
@@ -2496,6 +2503,53 @@ fn proper_noun_dependent_noun_frame(
                 && unit.span.start == spans.core.end
                 && unit.span.end <= spans.consumed.end
         })
+}
+
+fn attached_nominal_suffix_is_supported(
+    pattern: &QueryMorphPattern,
+    spans: &CandidateSpans,
+    evidence: &TokenEvidence,
+) -> bool {
+    let nominal_host = spans.token.start..spans.core.end;
+    pattern.fine_pos == DataFinePos::Nng
+        && pattern.lexical_form.chars().count() == 1
+        && matches!(pattern.continuation, MorphContinuation::NominalParticles)
+        && evidence.has_complete_path
+        && spans.core.start > spans.token.start
+        && spans.consumed.end == spans.token.end
+        && spans.consumed.end > spans.core.end
+        && !evidence.units.iter().any(|unit| {
+            unit.span == nominal_host && unit.evidence != StructuralEvidence::SourceComponent
+        })
+        && is_nikl_attached_nominal_suffix(&pattern.lexical_form)
+        && minimum_unit_path(
+            &(spans.token.start..spans.core.start),
+            evidence,
+            DataFinePos::is_nominal,
+        )
+        .is_some()
+        && minimum_unit_path(
+            &(spans.core.end..spans.consumed.end),
+            evidence,
+            DataFinePos::is_particle,
+        )
+        .is_some()
+}
+
+fn is_nikl_attached_nominal_suffix(lexical_form: &str) -> bool {
+    static SURFACES: OnceLock<Box<[&'static str]>> = OnceLock::new();
+    let surfaces = SURFACES.get_or_init(|| {
+        let mut surfaces = NIKL_ATTACHED_NOMINAL_SUFFIXES
+            .lines()
+            .skip(1)
+            .filter_map(|line| line.split_once('\t').map(|(surface, _)| surface))
+            .filter(|surface| !surface.is_empty())
+            .collect::<Vec<_>>();
+        surfaces.sort_unstable();
+        surfaces.dedup();
+        surfaces.into_boxed_slice()
+    });
+    surfaces.binary_search(&lexical_form).is_ok()
 }
 
 fn runtime_position_is_supported(
@@ -2571,6 +2625,13 @@ fn runtime_position_is_supported(
         && pattern.lexical_form.chars().count() == 1
         && spans.consumed.end > spans.core.end
         && evidence.has_predicate_ending_at(spans.core.start);
+    let unlexicalized_internal_one_syllable_nominal =
+        matches!(pattern.fine_pos, DataFinePos::Nng | DataFinePos::Nnp)
+            && pattern.lexical_form.chars().count() == 1
+            && matches!(pattern.continuation, MorphContinuation::NominalParticles)
+            && spans.core.start > spans.token.start
+            && spans.consumed == spans.core
+            && !evidence.has_whole_analysis(&spans.token);
     let glued_dependent_noun =
         pattern.fine_pos == DataFinePos::Nnb && evidence.has_adnominal_ending_at(spans.core.start);
     let terminal_nominal_in_predicate_frame = pattern.fine_pos.is_nominal()
@@ -2598,6 +2659,7 @@ fn runtime_position_is_supported(
         && !trailing_exact_subspan
         && !trailing_nominal_chain
         && !nominal_after_predicate
+        && !unlexicalized_internal_one_syllable_nominal
         && !terminal_nominal_in_predicate_frame
 }
 

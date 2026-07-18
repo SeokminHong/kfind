@@ -159,6 +159,51 @@ fn derived_nominal_prefix_matches_before_a_complete_predicate_nominalization() {
 }
 
 #[test]
+fn attached_nominal_suffix_matches_only_the_complete_particle_path() {
+    let resource = component_resource_from_entries([
+        component_entry("책임", "NNG"),
+        component_entry("하", "NNG"),
+        component_entry("하", "JKV"),
+        component_entry("에서", "JKB"),
+        component_entry("날", "NNG"),
+        component_entry("씨", "NNG"),
+        component_entry("날씨", "NNG"),
+        component_entry("는", "JX"),
+        component_entry("빙원", "NNG"),
+        component_entry("옆", "NNG"),
+        component_entry("에", "JKB"),
+    ]);
+    let options = CompileOptions {
+        global_pos: Some(CoarsePos::Noun),
+        ..CompileOptions::default()
+    };
+    let matcher = compile_with_full_pos_and_resource("하", options.clone(), Arc::clone(&resource));
+    let text = "기업도 자신의 책임하에서 자유롭게 업종을 선택했다.";
+    let matched = matcher
+        .find_at_with_meta(text.as_bytes(), 0)
+        .expect("the terminal source noun and its particle must match");
+    assert_eq!(&text[matched.span], "하에서");
+    assert_eq!(&text[matched.atoms[0].core.clone()], "하");
+
+    let lexicalized =
+        compile_with_full_pos_and_resource("씨", options.clone(), Arc::clone(&resource));
+    assert!(
+        lexicalized
+            .find_at_with_meta("날씨는 맑다.".as_bytes(), 0)
+            .is_none(),
+        "a syllable inside a lexicalized whole noun must remain rejected"
+    );
+
+    let independent = compile_with_full_pos_and_resource("옆", options, resource);
+    assert!(
+        independent
+            .find_at_with_meta("빙원옆에".as_bytes(), 0)
+            .is_none(),
+        "an independent noun must not inherit the suffix-only exception"
+    );
+}
+
+#[test]
 fn compiled_predicate_plan_matches_a_prospective_final() {
     let matcher = compile(
         "않다",

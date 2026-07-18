@@ -1085,6 +1085,79 @@ fn one_syllable_suffix_without_a_proper_noun_frame_is_rejected() {
 }
 
 #[test]
+fn attached_nominal_suffix_requires_a_complete_nominal_particle_path() {
+    let resolver = resolver_from_entries([
+        atomic("책임", "NNG"),
+        atomic("하", "NNG"),
+        atomic("하", "JKV"),
+        atomic("에서", "JKB"),
+        atomic("날", "NNG"),
+        atomic("씨", "NNG"),
+        atomic("날씨", "NNG"),
+        atomic("는", "JX"),
+        atomic("빙원", "NNG"),
+        atomic("옆", "NNG"),
+        atomic("에", "JKB"),
+    ]);
+    let target_start = "책임".len();
+    let target_end = "책임하".len();
+    let supported = resolver.resolve_candidate(
+        BoundedTokenContext::current("책임하에서"),
+        CandidateSpans {
+            core: target_start..target_end,
+            anchor: target_start..target_end,
+            consumed: target_start.."책임하에서".len(),
+            token: 0.."책임하에서".len(),
+        },
+        &[nominal_pattern(DataFinePos::Nng, "하")],
+        128,
+    );
+    let lexicalized_start = "날".len();
+    let lexicalized_end = "날씨".len();
+    let lexicalized = resolver.resolve_candidate(
+        BoundedTokenContext::current("날씨는"),
+        CandidateSpans {
+            core: lexicalized_start..lexicalized_end,
+            anchor: lexicalized_start..lexicalized_end,
+            consumed: lexicalized_start.."날씨는".len(),
+            token: 0.."날씨는".len(),
+        },
+        &[nominal_pattern(DataFinePos::Nng, "씨")],
+        128,
+    );
+    let without_particle = resolver.resolve_candidate(
+        BoundedTokenContext::current("책임하"),
+        CandidateSpans {
+            core: target_start..target_end,
+            anchor: target_start..target_end,
+            consumed: target_start..target_end,
+            token: 0..target_end,
+        },
+        &[nominal_pattern(DataFinePos::Nng, "하")],
+        128,
+    );
+    let independent_start = "빙원".len();
+    let independent_end = "빙원옆".len();
+    let independent = resolver.resolve_candidate(
+        BoundedTokenContext::current("빙원옆에"),
+        CandidateSpans {
+            core: independent_start..independent_end,
+            anchor: independent_start..independent_end,
+            consumed: independent_start.."빙원옆에".len(),
+            token: 0.."빙원옆에".len(),
+        },
+        &[nominal_pattern(DataFinePos::Nng, "옆")],
+        128,
+    );
+
+    assert_eq!(supported.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&supported));
+    assert_eq!(lexicalized.outcome, ConstraintOutcome::Contradicted);
+    assert_eq!(without_particle.outcome, ConstraintOutcome::Contradicted);
+    assert_eq!(independent.outcome, ConstraintOutcome::Contradicted);
+}
+
+#[test]
 fn ascii_number_supports_only_an_aligned_numeric_unit() {
     let resolver = resolver();
     let year_start = "2014".len();
