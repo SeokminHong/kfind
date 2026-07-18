@@ -12,7 +12,7 @@ use kfind_matcher::MorphMatcher;
 use kfind_morph::{
     BoundedTokenContext, CandidateSpans, CandidateTokenRelation, ComponentCapability,
     ConstraintOutcome, ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, MorphContinuation,
-    QueryMorphPattern,
+    PredicatePos, QueryMorphPattern,
 };
 use kfind_query::{
     BoundaryPolicy, CompileOptions, LexiconQueryAnalyzer, Lexicons, PhrasePolicy, compile_query,
@@ -492,6 +492,36 @@ fn structural_constraint(criterion: &mut Criterion) {
             }
         });
     });
+
+    let ambiguous_suffix_resolver =
+        ConstraintResolver::new(Arc::new(ambiguous_particle_suffix_resource(20)));
+    for repetitions in [12_usize, 20] {
+        let text = format!("가다{}끝", "나".repeat(repetitions));
+        assert!(
+            !ambiguous_suffix_resolver.supports_predicate_ending_particle_path(
+                &text,
+                "가".len(),
+                "가다".len(),
+                PredicatePos::Verb,
+                DEFAULT_LATTICE_NODE_LIMIT,
+            )
+        );
+        group.throughput(Throughput::Elements(1));
+        group.bench_function(
+            format!("reject_ambiguous_particle_suffix_{repetitions}"),
+            |bencher| {
+                bencher.iter(|| {
+                    black_box(&ambiguous_suffix_resolver).supports_predicate_ending_particle_path(
+                        black_box(&text),
+                        "가".len(),
+                        "가다".len(),
+                        PredicatePos::Verb,
+                        DEFAULT_LATTICE_NODE_LIMIT,
+                    )
+                });
+            },
+        );
+    }
     group.finish();
 }
 
@@ -570,6 +600,25 @@ fn dense_unit_path_component_resource() -> kfind_data::ComponentResource {
         &COMPONENT_RESOURCE_SOURCE_DIGEST,
     )
     .expect("dense path benchmark component resource must decode")
+}
+
+fn ambiguous_particle_suffix_resource(repetitions: usize) -> kfind_data::ComponentResource {
+    let mut entries = Vec::with_capacity(repetitions + 2);
+    entries.push(component_entry("가", "VV", 0));
+    entries.push(component_entry("다", "EF", 0));
+    let mut surface = String::new();
+    for _ in 0..repetitions {
+        surface.push('나');
+        entries.push(component_entry(&surface, "JX", 0));
+    }
+    let bytes = encode_component_resource(COMPONENT_RESOURCE_SOURCE_DIGEST, &entries)
+        .expect("ambiguous suffix benchmark component resource must encode");
+    decode_component_resource(
+        "ambiguous suffix benchmark",
+        bytes,
+        &COMPONENT_RESOURCE_SOURCE_DIGEST,
+    )
+    .expect("ambiguous suffix benchmark component resource must decode")
 }
 
 fn component_entry(surface: &str, pos: &str, word_cost: i32) -> MecabSourceMorphologyEntry {
