@@ -410,6 +410,11 @@ host-ending contraction. For example, `이다` matches the whole `걸까` span o
 when the source proves a complete nominal host, `VCP`, and final `EC/EF` path;
 ordinary tokens are not enumerated as copula candidates.
 
+A one-syllable noun used as an attached nominal suffix remains searchable only
+when a reviewed NIKL catalog contains that suffix and the source proves complete
+nominal-prefix, suffix, and particle paths. The catalog participates in validation,
+not candidate generation; ordinary internal noun substrings remain rejected.
+
 ## Benchmarks
 
 kfind measures morphology quality, end-to-end CLI throughput, resource startup,
