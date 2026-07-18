@@ -15,17 +15,17 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview",
-    "deploy": "pnpm run upload:component && pnpm run build && wrangler pages deploy dist --project-name kfind --branch main"
+    "deploy": "pnpm run upload:component && pnpm run build && wrangler pages deploy build/client --project-name kfind --branch main"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "5.20260713.1",
     "@ianvs/prettier-plugin-sort-imports": "4.7.1",
+    "@react-router/dev": "8.2.0",
     "@seokminhong/configs": "3.1.0",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
     "@vanilla-extract/css": "1.21.1",
     "@vanilla-extract/vite-plugin": "5.2.4",
-    "@vitejs/plugin-react": "6.0.3",
     "eslint": "9.39.5",
     "prettier": "3.9.5",
     "typescript": "6.0.3",
@@ -39,6 +39,7 @@
     "@codemirror/commands": "6.10.4",
     "@codemirror/state": "6.7.1",
     "@codemirror/view": "6.43.6",
+    "isbot": "5.2.1",
     "react": "19.2.7",
     "react-dom": "19.2.7",
     "react-router": "8.2.0"

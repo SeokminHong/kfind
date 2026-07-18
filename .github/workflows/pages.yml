@@ -60,4 +60,4 @@ jobs:
           packageManager: pnpm
           workingDirectory: site
           wranglerVersion: 4.110.0
-          command: pages deploy dist --project-name=kfind --branch=main
+          command: pages deploy build/client --project-name=kfind --branch=main

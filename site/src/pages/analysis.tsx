@@ -1,8 +1,12 @@
+import { createDocumentMeta } from '../app/metadata';
+import { RoutePath } from '../app/navigation';
 import {
   DocumentPage,
   DocumentSection,
   PageIntro,
 } from '../components/document';
+
+export const meta = createDocumentMeta(RoutePath.Analysis);
 
 export default function AnalysisPage(): React.JSX.Element {
   return (

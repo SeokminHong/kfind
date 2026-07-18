@@ -1,4 +1,5 @@
-dist
+build
+.react-router
 node_modules
 .wrangler
 public/benchmarks

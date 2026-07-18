@@ -10,6 +10,9 @@ export enum RoutePath {
   Playground = '/playground',
 }
 
+export const documentRoutePaths: readonly RoutePath[] =
+  Object.values(RoutePath);
+
 export interface NavigationItem {
   readonly label: string;
   readonly path: RoutePath;

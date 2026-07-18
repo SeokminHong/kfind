@@ -1,21 +1,7 @@
-import type { DocumentRouteHandle } from './router';
-
 import { Collapsible } from '@base-ui/react/collapsible';
-import { useEffect } from 'react';
-import { NavLink, Outlet, ScrollRestoration, useMatches } from 'react-router';
+import { NavLink, Outlet } from 'react-router';
 
 import { navigationGroups, RoutePath } from './navigation';
-
-const defaultDescription =
-  '한국어 표제어와 활용형을 찾는 text matcher kfind의 기술 문서와 WebAssembly playground';
-
-function isDocumentRouteHandle(value: unknown): value is DocumentRouteHandle {
-  if (typeof value !== 'object' || value === null) {
-    return false;
-  }
-
-  return 'title' in value && 'description' in value;
-}
 
 function Navigation(): React.JSX.Element {
   return (
@@ -39,26 +25,6 @@ function Navigation(): React.JSX.Element {
 }
 
 export function Shell(): React.JSX.Element {
-  const matches = useMatches();
-  let handle: DocumentRouteHandle | undefined;
-
-  for (const match of matches) {
-    if (isDocumentRouteHandle(match.handle)) {
-      handle = match.handle;
-    }
-  }
-
-  useEffect(() => {
-    const title = handle?.title ?? '문서';
-    document.title = `${title} · kfind`;
-
-    const description = document.querySelector('meta[name="description"]');
-    description?.setAttribute(
-      'content',
-      handle?.description ?? defaultDescription,
-    );
-  }, [handle]);
-
   return (
     <>
       <a className="skip-link" href="#content">
@@ -107,7 +73,6 @@ export function Shell(): React.JSX.Element {
           </footer>
         </main>
       </div>
-      <ScrollRestoration />
     </>
   );
 }

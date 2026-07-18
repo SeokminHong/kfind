@@ -2,7 +2,13 @@
   "extends": "@seokminhong/configs/tsconfig/react",
   "compilerOptions": {
     "noEmit": true,
+    "rootDirs": [".", "./.react-router/types"],
     "types": ["vite/client"]
   },
-  "include": ["src", "vite.config.ts"]
+  "include": [
+    "src",
+    ".react-router/types/**/*",
+    "react-router.config.ts",
+    "vite.config.ts"
+  ]
 }

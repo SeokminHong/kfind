@@ -1,8 +1,12 @@
+import { createDocumentMeta } from '../app/metadata';
+import { RoutePath } from '../app/navigation';
 import {
   DocumentPage,
   DocumentSection,
   PageIntro,
 } from '../components/document';
+
+export const meta = createDocumentMeta(RoutePath.Optimization);
 
 export default function OptimizationPage(): React.JSX.Element {
   return (

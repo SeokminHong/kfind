@@ -13,6 +13,8 @@ import { Input } from '@base-ui/react/input';
 import { Tabs } from '@base-ui/react/tabs';
 import { useEffect, useRef, useState } from 'react';
 
+import { createDocumentMeta } from '../../app/metadata';
+import { RoutePath } from '../../app/navigation';
 import {
   DocumentPage,
   DocumentSection,
@@ -36,6 +38,8 @@ import {
 import { QueryField } from './query-field';
 import { SearchEditor } from './search-editor';
 import { SelectField } from './select-field';
+
+export const meta = createDocumentMeta(RoutePath.Playground);
 
 const partOfSpeechOptions = [
   { label: '자동', value: PartOfSpeech.Auto },
