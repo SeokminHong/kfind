@@ -1035,12 +1035,19 @@ impl MorphMatcher {
             || ending_auxiliary_particles
             || adnominal_dependent_noun_particle
             || adnominal_interrogative;
+        let source_aligned_compound = source_aligned_compound_predicate_position(
+            haystack,
+            candidate,
+            whole,
+            source_positions,
+            resolver,
+        );
         let valid_position = if pos == kfind_morph::PredicatePos::Copula {
             candidate.verified.core.start > whole.start
         } else {
             (continuation != kfind_morph::ContinuationState::Terminal
                 || licensed_non_ending_trailing)
-                && candidate.verified.core.start == whole.start
+                && (candidate.verified.core.start == whole.start || source_aligned_compound)
         };
         if !valid_position
             || (pos != kfind_morph::PredicatePos::Copula
@@ -1365,6 +1372,15 @@ fn has_conflicting_whole_predicate(
     }
     let normalized_core_start = normalized_prefix.len();
     let normalized_core_end = normalized_core_start + core.nfc().collect::<String>().len();
+    if source_aligned_compound_predicate_position(
+        haystack,
+        candidate,
+        &whole,
+        source_positions,
+        resolver,
+    ) {
+        return false;
+    }
     let attached_auxiliary = internal_core
         && branch.structural_patterns().iter().any(|pattern| {
             pattern.fine_pos == kfind_data::DataFinePos::Vx && pattern.lexical_form.as_ref() == "지"
@@ -1380,6 +1396,45 @@ fn has_conflicting_whole_predicate(
             source_pos,
         )
     })
+}
+
+fn source_aligned_compound_predicate_position(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    whole: &Range<usize>,
+    source_positions: kfind_morph::PredicatePosSet,
+    resolver: &ConstraintResolver,
+) -> bool {
+    if candidate.verified.core.start <= whole.start || candidate.verified.core.end > whole.end {
+        return false;
+    }
+    let Some(token) = haystack
+        .get(whole.clone())
+        .and_then(|bytes| std::str::from_utf8(bytes).ok())
+    else {
+        return false;
+    };
+    let Some(prefix) = haystack
+        .get(whole.start..candidate.verified.core.start)
+        .and_then(|bytes| std::str::from_utf8(bytes).ok())
+    else {
+        return false;
+    };
+    let Some(core) = haystack
+        .get(candidate.verified.core.clone())
+        .and_then(|bytes| std::str::from_utf8(bytes).ok())
+    else {
+        return false;
+    };
+    let normalized_token = token.nfc().collect::<String>();
+    let normalized_core_start = prefix.nfc().map(char::len_utf8).sum::<usize>();
+    let normalized_core_end = normalized_core_start + core.nfc().map(char::len_utf8).sum::<usize>();
+    resolver.has_source_aligned_compound_predicate_component(
+        &normalized_token,
+        normalized_core_start..normalized_core_end,
+        source_positions,
+        DEFAULT_LATTICE_NODE_LIMIT,
+    )
 }
 
 fn stem_accepts_ending(
