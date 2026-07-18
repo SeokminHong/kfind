@@ -91,3 +91,21 @@ python3 tools/nikl-lexicon/audit_lexemes.py \
 The report includes pinned snapshot hashes and exact missing-headword lists by
 source. It preserves only headword, POS, status, source identifier, and explicit
 relation fields; definitions and examples are excluded.
+
+## Attached nominal suffix catalog
+
+`scripts/audit-nikl-attached-nominal-suffixes.sh` generates one reusable catalog
+candidate from the pinned snapshots. A separate installer validates the schema,
+reviewed surface set, and Korean Basic Dictionary plus Standard Korean Language
+Dictionary evidence before copying that candidate into `data/rules`. Urimalsaem
+identifiers remain additional provenance. Rerun validation after policy changes
+without reading the dictionary snapshots again:
+
+```sh
+scripts/install-nikl-attached-nominal-suffixes.sh \
+  target/kfind-attached-nominal-suffix-candidate.XXXXXX/suffixes.tsv
+```
+
+Adding a surface to the catalog does not generate another matcher candidate. The
+runtime validator still requires aligned nominal-prefix, suffix, and particle
+paths.
