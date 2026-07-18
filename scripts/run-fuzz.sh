@@ -17,6 +17,7 @@ targets=(
   pos_resource
   component_resource
   search_executor
+  structural_preparation
 )
 
 shopt -s nullglob

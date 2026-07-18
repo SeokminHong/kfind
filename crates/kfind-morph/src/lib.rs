@@ -40,5 +40,6 @@ pub use predicate::{
 };
 pub use structure::{
     BoundedTokenContext, ConstraintDecision, ConstraintOutcome, ConstraintResolver,
-    ConstraintUnavailable, PreparedStructuralContext, ProductPolicy, StructuralEvidence,
+    ConstraintUnavailable, PreparedStructuralContext, PreparedTokenGraph, ProductPolicy,
+    StructuralEvidence,
 };

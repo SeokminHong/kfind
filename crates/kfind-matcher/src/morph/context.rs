@@ -12,6 +12,7 @@ use kfind_morph::{
 use kfind_query::VerifiedSpan;
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
+use super::PreparedExactTokenGraphs;
 use crate::{AnalysisWindow, DEFAULT_ANALYSIS_WINDOW_LIMITS, is_token_character};
 
 const MAX_PREPARED_CONTEXT_CACHE_ENTRIES: usize = 256;
@@ -45,16 +46,28 @@ pub(super) struct StructuralRequest<'a> {
     pub(super) patterns: &'a [QueryMorphPattern],
 }
 
+pub(super) struct StructuralPreparation<'a> {
+    pub(super) resolver: &'a ConstraintResolver,
+    pub(super) node_limit: usize,
+    pub(super) include_nominal_copula: bool,
+    pub(super) include_nominal_derivation_predicate: bool,
+    pub(super) prepared_exact_tokens: &'a PreparedExactTokenGraphs,
+}
+
 impl PreparedStructuralContextAnalysis {
     pub(super) fn extract(
         haystack: &[u8],
         candidate: Range<usize>,
-        resolver: &ConstraintResolver,
-        node_limit: usize,
-        include_nominal_copula: bool,
-        include_nominal_derivation_predicate: bool,
+        preparation: StructuralPreparation<'_>,
         prepared_cache: &mut PreparedStructuralContextCache,
     ) -> Option<Self> {
+        let StructuralPreparation {
+            resolver,
+            node_limit,
+            include_nominal_copula,
+            include_nominal_derivation_predicate,
+            prepared_exact_tokens,
+        } = preparation;
         let current =
             AnalysisWindow::extract(haystack, candidate, DEFAULT_ANALYSIS_WINDOW_LIMITS).ok()?;
         let current_span = current.raw_span();
@@ -102,14 +115,29 @@ impl PreparedStructuralContextAnalysis {
             current: current.normalized(),
             next: next.as_deref(),
         };
-        let prepared = resolver
-            .prepare_context_for_candidate(
-                context,
-                node_limit,
+        let prepared = prepared_exact_tokens
+            .get_or_prepare(
+                current.normalized(),
                 include_nominal_copula,
                 include_nominal_derivation_predicate,
+                resolver,
+                node_limit,
             )
-            .ok()
+            .and_then(|token| {
+                resolver
+                    .prepare_context_with_token_graph(context, token)
+                    .ok()
+            })
+            .or_else(|| {
+                resolver
+                    .prepare_context_for_candidate(
+                        context,
+                        node_limit,
+                        include_nominal_copula,
+                        include_nominal_derivation_predicate,
+                    )
+                    .ok()
+            })
             .map(Arc::new);
         prepared_cache.insert(
             raw_context,

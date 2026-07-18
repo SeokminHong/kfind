@@ -227,6 +227,74 @@ fn registered_context_surface_preserves_the_raw_component_decision() {
 }
 
 #[test]
+fn exact_structural_token_graph_is_prepared_without_covering_larger_tokens() {
+    let matcher = component_matcher_with_analysis(
+        "매일",
+        non_predicate_analysis("매일", CoarsePos::Adverb, FinePos::GeneralAdverb),
+        Arc::new(component_resource()),
+    );
+
+    let entries = &matcher.prepared_exact_tokens.entries[prepared_token_slot(false, false)];
+    let prepared = entries
+        .iter()
+        .find(|entry| entry.text.as_ref() == "매일")
+        .expect("exact structural token must be registered");
+    assert!(prepared.graph.get().is_none());
+    assert!(entries.iter().all(|entry| entry.text.as_ref() != "매일가"));
+    assert_eq!(matcher.find_all_with_meta("매일 매일".as_bytes()).len(), 2);
+    assert!(prepared.graph.get().is_some_and(Option::is_some));
+    assert!(matcher.find_all_with_meta("매일가".as_bytes()).is_empty());
+}
+
+#[test]
+fn exact_structural_token_graph_is_published_once_for_concurrent_searches() {
+    let matcher = Arc::new(component_matcher_with_analysis(
+        "매일",
+        non_predicate_analysis("매일", CoarsePos::Adverb, FinePos::GeneralAdverb),
+        Arc::new(component_resource()),
+    ));
+
+    std::thread::scope(|scope| {
+        let handles = (0..8)
+            .map(|_| {
+                let matcher = Arc::clone(&matcher);
+                scope.spawn(move || matcher.find_all_with_meta("매일 매일".as_bytes()).len())
+            })
+            .collect::<Vec<_>>();
+        for handle in handles {
+            assert_eq!(handle.join().expect("structural search must not panic"), 2);
+        }
+    });
+
+    let entries = &matcher.prepared_exact_tokens.entries[prepared_token_slot(false, false)];
+    let prepared = entries
+        .iter()
+        .find(|entry| entry.text.as_ref() == "매일")
+        .expect("exact structural token must be registered");
+    assert!(prepared.graph.get().is_some_and(Option::is_some));
+}
+
+#[test]
+fn exact_structural_token_preparation_is_bounded_by_plan_program_count() {
+    let branches = (0..=MAX_PREPARED_EXACT_TOKEN_PROGRAMS)
+        .map(|_| {
+            let mut branch = exact_branch("공유", true);
+            mark_structural(&mut branch);
+            branch
+        })
+        .collect();
+    let matcher = contextual_matcher(branches, Arc::new(component_resource()));
+
+    assert!(
+        matcher
+            .prepared_exact_tokens
+            .entries
+            .iter()
+            .all(|entries| entries.is_empty())
+    );
+}
+
+#[test]
 fn exact_component_accepts_pronoun_numeral_and_determiner_spans() {
     let resource = Arc::new(component_resource());
     let pronoun = component_matcher_with_analysis(

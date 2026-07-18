@@ -452,6 +452,15 @@
 - `ConstraintResolver`는 query pattern의 structural signature가 선택된 corpus 구조와
   일치하면 `Supported`, 다른 구조가 유일하게 선택되면 `Contradicted`, resource 오류나
   상한 초과는 `Unavailable`로 반환한다.
+- 구조 준비는 현재 token 자체에서 얻는 형태 graph와 앞뒤 token에 따른 구조 선택을 별도
+  단계로 유지한다. Matcher는 전체 program이 8개 이하인 작은 plan에서 structural program의
+  정규화된 anchor를 현재 token 후보로 최대 64개까지 matcher memory 상한 안에서 등록한다.
+  Corpus candidate의 정규화된 현재 token이
+  등록 anchor와 정확히 같을 때 graph를 최초 1회 생성해 matcher 수명 동안 재사용하며, 검색되지
+  않은 anchor의 graph는 만들지 않는다. 동시 최초 접근도 하나의 graph만 게시하고 실제 graph
+  메모리를 matcher 상한에서 원자적으로 예약한다. 앞뒤 token에 따른 선택과 원문·NFC span
+  역매핑은 candidate마다 실행한다. 큰 plan, 다른 현재 token, 등록 개수·메모리 상한 초과와
+  graph 생성 실패는 기존 bounded candidate 준비 경로를 사용하며 결과 판정은 바꾸지 않는다.
 - 구조적으로 다른 경쟁 path는 인접 성분 배치로 하나를 선택할 수 있는지 판정할
   때까지 평가한다. 이때 분해·품사·인접 제약이 같은 어휘 의미 후보는 추가로
   열거하지 않는다.
@@ -2532,13 +2541,15 @@ target과 경계:
 | `binary_detection` | 임의 위치의 최초 NUL과 NUL이 없는 입력의 binary 판별 경계 |
 | `pos_resource` | 임의 byte full POS resource의 크기·header·varint·UTF-8·NFC·정렬·누적 decode 상한 |
 | `component_resource` | 임의 byte component resource와 임의의 유효한 소형 resource의 header·digest·payload·prefix lookup |
+| `search_executor` | 임의 byte record와 작은 channel에서 병렬 검색 결과의 bounded 수집·정렬·summary 경로 |
+| `structural_preparation` | 현재 token graph와 인접 token 선택을 분리한 경로가 일괄 준비 경로와 같은 판정을 내리는지 비교 |
 
 CI는 `nightly-2026-07-11`과 `cargo-fuzz 0.13.2`로 모든 target을 실제 실행한다. target당
 `max_total_time=15`, 개별 입력 `timeout=5`, `rss_limit_mb=2048`을 적용하며 전체 job timeout은
 10분이다. `scripts/run-fuzz.sh`가 target 목록과 이 예산을 단일 진입점으로 유지한다. 각 실행은
 version-controlled seed만 임시 corpus로 복사해 이전 실행에서 생성된 입력과 격리한다. 반복 span과
 큰 gap의 phrase, 손상 UTF-8, component resource가 필요한 plan, malformed TOML, 출력 제어 문자,
-최소 유효 full POS resource와 유효한 소형 component entry를 고정 seed로 시작한다.
+최소 유효 full POS resource, 유효한 소형 component entry와 구조 준비 경계 문맥을 고정 seed로 시작한다.
 crash·panic·timeout·RSS 초과는 CI 실패다.
 
 ### 19.5 gold corpus
@@ -2955,6 +2966,10 @@ hit인 반복 표본이므로 cache miss 비용의 근거로 사용하지 않는
 입력을 사용한다. 전자는 같은 앞뒤 token을 반복하고 후자는 매 candidate의 앞뒤 한글 token 쌍을
 바꿔 raw context를 모두 고유하게 만든다. 두 결과를 함께 비교해 cache hit 편중과 miss 비용을
 보고한다.
+`matcher/context_unique_current_long_line`은 anchor 뒤에 서로 다른 한글 token suffix를 붙여
+현재 token 자체를 모두 다르게 만들고 구조 후보를 모두 거부한다. Query에서 확정한 exact
+whole-token graph의 이득을 고유 인접 token과 함께 확인하되, 이 miss 대조군의 비용이나 matcher
+생성·첫 검색 비용을 악화시키지 않는지 별도로 판정한다.
 단일 atom `find_all` 구조 검색은 같은 호출 안에서 동일한 bounded raw context의 준비된 구조 분석을
 재사용할 수 있다. Cache key는 raw context bytes, 해당 context 안의 current token 상대 span,
 node limit과 nominal-copula 포함 여부를 모두 구분하고 hash collision은 원본 값 비교로 확인한다.
