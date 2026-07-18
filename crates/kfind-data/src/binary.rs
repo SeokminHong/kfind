@@ -315,18 +315,18 @@ pub fn decode_pos_lexicon(input: &[u8]) -> Result<DecodedPosLexicon, DataError> 
         if lemma.is_empty() {
             return Err(binary_error("표제어가 비어 있습니다"));
         }
-        require_pos_lemma_nfc(&lemma)?;
+        require_pos_lemma_nfc(&lemma, suffix)?;
         let same_lemma = if let Some(previous_entry) = entries.last() {
             let previous_start = previous_entry.lemma_start as usize;
             let previous_end = previous_start + previous_entry.lemma_len as usize;
             let previous_lemma = &lemma_bytes.as_bytes()[previous_start..previous_end];
-            let ordering = previous_lemma
-                .cmp(lemma.as_bytes())
-                .then(previous_entry.pos.cmp(&pos));
-            if ordering != Ordering::Less {
+            let lemma_ordering = previous_lemma.cmp(lemma.as_bytes());
+            if lemma_ordering == Ordering::Greater
+                || (lemma_ordering == Ordering::Equal && previous_entry.pos >= pos)
+            {
                 return Err(binary_error("entry가 엄격한 정렬 순서가 아닙니다"));
             }
-            previous_lemma == lemma.as_bytes()
+            lemma_ordering == Ordering::Equal
         } else {
             false
         };
@@ -358,11 +358,13 @@ pub fn decode_pos_lexicon(input: &[u8]) -> Result<DecodedPosLexicon, DataError> 
     })
 }
 
-fn require_pos_lemma_nfc(lemma: &str) -> Result<(), DataError> {
-    let structurally_nfc = lemma
+fn require_pos_lemma_nfc(lemma: &str, suffix: &str) -> Result<(), DataError> {
+    // The prefix comes from an NFC lemma. ASCII and precomposed Hangul suffixes
+    // cannot introduce a new composition across that prefix boundary.
+    let structurally_nfc_suffix = suffix
         .chars()
         .all(|character| character.is_ascii() || ('가'..='힣').contains(&character));
-    if structurally_nfc {
+    if structurally_nfc_suffix {
         return Ok(());
     }
     require_nfc("POS lexicon decoder", None, "lemma", lemma)
@@ -399,8 +401,16 @@ fn write_varint(output: &mut Vec<u8>, mut value: u32) {
 }
 
 fn read_varint(input: &[u8], cursor: &mut usize) -> Result<u32, DataError> {
-    let mut value = 0_u32;
-    for shift in (0..=28).step_by(7) {
+    let first = *input
+        .get(*cursor)
+        .ok_or_else(|| binary_error("varint가 중간에 끝났습니다"))?;
+    *cursor += 1;
+    if first & 0x80 == 0 {
+        return Ok(u32::from(first));
+    }
+
+    let mut value = u32::from(first & 0x7f);
+    for shift in (7..=28).step_by(7) {
         let byte = *input
             .get(*cursor)
             .ok_or_else(|| binary_error("varint가 중간에 끝났습니다"))?;
@@ -452,6 +462,18 @@ mod tests {
     fn decoded_lemma_byte_limit_is_checked_with_overflow_protection() {
         assert!(checked_decoded_bytes(MAX_DECODED_LEMMA_BYTES, 1).is_err());
         assert!(checked_decoded_bytes(usize::MAX, 1).is_err());
+    }
+
+    #[test]
+    fn varint_fast_path_and_continuation_round_trip_u32_values() {
+        for value in [0, 0x7f, 0x80, 0x3fff, 0x4000, u32::MAX] {
+            let mut encoded = Vec::new();
+            write_varint(&mut encoded, value);
+            let mut cursor = 0;
+
+            assert_eq!(read_varint(&encoded, &mut cursor).unwrap(), value);
+            assert_eq!(cursor, encoded.len());
+        }
     }
 
     #[test]
@@ -515,6 +537,24 @@ mod tests {
         write_varint(&mut input, 0);
         write_varint(&mut input, decomposed.len() as u32);
         input.extend_from_slice(decomposed.as_bytes());
+        input.push(DataFinePos::Nng.code());
+
+        let error = decode_pos_lexicon(&input).unwrap_err();
+        assert!(matches!(*error.kind, DataErrorKind::NonNfc { .. }));
+    }
+
+    #[test]
+    fn packed_decoder_checks_nfc_across_the_prefix_suffix_boundary() {
+        let combining_ring = "\u{30a}";
+        let mut input = MAGIC.to_vec();
+        input.extend_from_slice(&2_u32.to_le_bytes());
+        write_varint(&mut input, 0);
+        write_varint(&mut input, 1);
+        input.extend_from_slice(b"A");
+        input.push(DataFinePos::Nng.code());
+        write_varint(&mut input, 1);
+        write_varint(&mut input, combining_ring.len() as u32);
+        input.extend_from_slice(combining_ring.as_bytes());
         input.push(DataFinePos::Nng.code());
 
         let error = decode_pos_lexicon(&input).unwrap_err();

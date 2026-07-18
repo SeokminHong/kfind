@@ -281,6 +281,10 @@ impl StringLayout {
         usize::try_from(self.count).expect("validated string count fits usize")
     }
 
+    const fn contains(&self, id: u32) -> bool {
+        id < self.count
+    }
+
     fn offset(&self, input: &[u8], index: usize) -> Option<u32> {
         read_u32_at(
             input,
@@ -374,8 +378,8 @@ impl PayloadLayout {
             component_records_start,
         };
         layout.validate_offsets(source, input)?;
-        let expected = layout.pos_counts(source, input, pos_count, string_bytes, strings)?;
-        let actual = layout.validate_records(source, input, string_bytes, strings)?;
+        let expected = layout.pos_counts(source, input, pos_count, strings)?;
+        let actual = layout.validate_records(source, input, strings)?;
         if actual != expected {
             return Err(resource_error(
                 source,
@@ -452,7 +456,6 @@ impl PayloadLayout {
         &self,
         source: &str,
         input: &[u8],
-        string_bytes: &[u8],
         strings: &StringLayout,
     ) -> Result<Vec<u32>, DataError> {
         let mut actual = vec![0_u32; strings.len()];
@@ -478,9 +481,9 @@ impl PayloadLayout {
                     .ok_or_else(|| resource_error(source, "invalid analysis record"))?;
                 let pos_id = read_u32_at(record, 0)
                     .ok_or_else(|| resource_error(source, "truncated analysis POS"))?;
-                strings
-                    .get(string_bytes, pos_id)
-                    .ok_or_else(|| resource_error(source, "invalid analysis POS ID"))?;
+                if !strings.contains(pos_id) {
+                    return Err(resource_error(source, "invalid analysis POS ID"));
+                }
                 let count = actual
                     .get_mut(
                         usize::try_from(pos_id)
@@ -506,7 +509,6 @@ impl PayloadLayout {
                     input,
                     component_start..expected_component_start,
                     surface_len,
-                    string_bytes,
                     strings,
                 )?;
             }
@@ -523,7 +525,6 @@ impl PayloadLayout {
         input: &[u8],
         range: Range<u32>,
         surface_len: u32,
-        string_bytes: &[u8],
         strings: &StringLayout,
     ) -> Result<(), DataError> {
         let has_components = !range.is_empty();
@@ -542,9 +543,9 @@ impl PayloadLayout {
             }
             let pos_id = read_u32_at(record, 8)
                 .ok_or_else(|| resource_error(source, "truncated component POS"))?;
-            strings
-                .get(string_bytes, pos_id)
-                .ok_or_else(|| resource_error(source, "invalid component POS ID"))?;
+            if !strings.contains(pos_id) {
+                return Err(resource_error(source, "invalid component POS ID"));
+            }
             previous_end = end;
         }
         if has_components && previous_end != surface_len {
@@ -612,7 +613,6 @@ impl PayloadLayout {
         source: &str,
         input: &[u8],
         count: u32,
-        string_bytes: &[u8],
         strings: &StringLayout,
     ) -> Result<Vec<u32>, DataError> {
         let mut by_id = vec![0_u32; strings.len()];
@@ -631,9 +631,9 @@ impl PayloadLayout {
             let value = read_u32_at(input, offset + 4)
                 .filter(|value| *value > 0)
                 .ok_or_else(|| resource_error(source, "invalid POS count"))?;
-            strings
-                .get(string_bytes, id)
-                .ok_or_else(|| resource_error(source, "invalid POS string ID"))?;
+            if !strings.contains(id) {
+                return Err(resource_error(source, "invalid POS string ID"));
+            }
             let slot = by_id
                 .get_mut(
                     usize::try_from(id)

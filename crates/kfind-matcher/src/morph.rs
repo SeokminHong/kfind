@@ -26,7 +26,9 @@ mod context;
 mod phrase;
 
 pub use candidates::LocalAnalysisCandidate;
-use context::{PreparedStructuralContextAnalysis, StructuralRequest};
+use context::{
+    PreparedStructuralContextAnalysis, PreparedStructuralContextCache, StructuralRequest,
+};
 use phrase::{PhraseMatchLimit, PhraseSelection, select_phrase_matches};
 
 const MAX_CONSUMPTION_BYTES: usize = 256;
@@ -36,7 +38,17 @@ const ADNOMINAL_RULE_IDS: [&str; 4] = [
     "ending.future-adnominal",
     "ending.retrospective-adnominal",
 ];
-type StructuralCache = HashMap<(usize, usize, bool), Option<PreparedStructuralContextAnalysis>>;
+#[derive(Default)]
+struct StructuralCache {
+    windows: HashMap<(usize, usize, bool), Option<PreparedStructuralContextAnalysis>>,
+    prepared_contexts: PreparedStructuralContextCache,
+}
+
+impl StructuralCache {
+    fn clear_windows(&mut self) {
+        self.windows.clear();
+    }
+}
 /// A query-plan matcher backed by one shared set of unique anchors.
 #[derive(Debug)]
 pub struct MorphMatcher {
@@ -192,7 +204,18 @@ impl MorphMatcher {
         }
         let mut matches = Vec::new();
         let mut at = 0;
-        while let Some(matched) = self.find_at_with_meta(haystack, at) {
+        let mut structural_cache = StructuralCache::default();
+        loop {
+            structural_cache.clear_windows();
+            let Some(matched) = self.find_single_atom_best_with_cache(
+                haystack,
+                at,
+                MatchMetadata::Provenance,
+                &mut structural_cache,
+            ) else {
+                break;
+            };
+            let matched = single_atom_phrase(matched);
             at = matched.span.end;
             matches.push(matched);
         }
@@ -217,7 +240,18 @@ impl MorphMatcher {
         }
         let mut matches = Vec::new();
         let mut at = 0;
-        while let Some(matched) = self.find_at_with_meta(haystack, at) {
+        let mut structural_cache = StructuralCache::default();
+        loop {
+            structural_cache.clear_windows();
+            let Some(matched) = self.find_single_atom_best_with_cache(
+                haystack,
+                at,
+                MatchMetadata::Provenance,
+                &mut structural_cache,
+            ) else {
+                break;
+            };
+            let matched = single_atom_phrase(matched);
             if matches.len() == limit {
                 return Err(MatchLimitExceeded { limit });
             }
@@ -237,7 +271,7 @@ impl MorphMatcher {
     pub fn verification_counters(&self, haystack: &[u8]) -> VerificationCounters {
         let mut counters = VerificationCounters::default();
         let mut structural_windows = HashSet::new();
-        let mut structural_cache = StructuralCache::new();
+        let mut structural_cache = StructuralCache::default();
         for hit in self.anchor_engine.hits(haystack, 0) {
             counters.raw_anchor_hits += 1;
             for branch_ref in &self.anchor_programs[hit.anchor_index] {
@@ -269,10 +303,7 @@ impl MorphMatcher {
 
     fn find_single_atom_at(&self, haystack: &[u8], at: usize) -> Option<PhraseMatch> {
         self.find_single_atom_best(haystack, at, MatchMetadata::Provenance)
-            .map(|span| PhraseMatch {
-                span: span.token.clone(),
-                atoms: vec![span],
-            })
+            .map(single_atom_phrase)
     }
 
     fn find_single_atom_best(
@@ -281,8 +312,18 @@ impl MorphMatcher {
         at: usize,
         metadata: MatchMetadata,
     ) -> Option<VerifiedSpan> {
+        let mut structural_cache = StructuralCache::default();
+        self.find_single_atom_best_with_cache(haystack, at, metadata, &mut structural_cache)
+    }
+
+    fn find_single_atom_best_with_cache(
+        &self,
+        haystack: &[u8],
+        at: usize,
+        metadata: MatchMetadata,
+        structural_cache: &mut StructuralCache,
+    ) -> Option<VerifiedSpan> {
         let mut best = None;
-        let mut structural_cache = StructuralCache::new();
         for hit in self.anchor_engine.hits(haystack, at) {
             if best.as_ref().is_some_and(|matched: &VerifiedSpan| {
                 hit.span.end > matched.token.start.saturating_add(self.max_anchor_bytes)
@@ -299,7 +340,7 @@ impl MorphMatcher {
                     &hit,
                     branch,
                     metadata,
-                    &mut structural_cache,
+                    structural_cache,
                 ) else {
                     continue;
                 };
@@ -339,7 +380,7 @@ impl MorphMatcher {
         metadata: MatchMetadata,
     ) -> Vec<Vec<VerifiedSpan>> {
         let mut atom_spans = vec![Vec::new(); self.plan.atoms.len()];
-        let mut structural_cache = StructuralCache::new();
+        let mut structural_cache = StructuralCache::default();
         for hit in self.anchor_engine.hits(haystack, at) {
             for branch_ref in &self.anchor_programs[hit.anchor_index] {
                 let atom = &self.plan.atoms[branch_ref.atom_index];
@@ -678,6 +719,7 @@ impl MorphMatcher {
         }
         let window = whole.clone();
         let context = structural_cache
+            .windows
             .entry((window.start, window.end, include_nominal_copula))
             .or_insert_with(|| {
                 PreparedStructuralContextAnalysis::extract(
@@ -686,6 +728,7 @@ impl MorphMatcher {
                     resolver,
                     DEFAULT_LATTICE_NODE_LIMIT,
                     include_nominal_copula,
+                    &mut structural_cache.prepared_contexts,
                 )
             });
         let Some(context) = context.as_ref() else {
@@ -1445,6 +1488,13 @@ impl Matcher for MorphMatcher {
 enum MatchMetadata {
     SpanOnly,
     Provenance,
+}
+
+fn single_atom_phrase(span: VerifiedSpan) -> PhraseMatch {
+    PhraseMatch {
+        span: span.token.clone(),
+        atoms: vec![span],
+    }
 }
 
 struct ExecutedCandidate {
