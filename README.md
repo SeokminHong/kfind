@@ -405,6 +405,11 @@ has a complete source `N+ + XSN+ + XSV/XSA + E+` path. The query core must end
 exactly at the derivational noun-suffix boundary, so `잠식당` matches
 `잠식당하기` without exposing an internal substring or an incomplete predicate.
 
+`smart` also preserves a copula whose surface span disappears in a declared
+host-ending contraction. For example, `이다` matches the whole `걸까` span only
+when the source proves a complete nominal host, `VCP`, and final `EC/EF` path;
+ordinary tokens are not enumerated as copula candidates.
+
 ## Benchmarks
 
 kfind measures morphology quality, end-to-end CLI throughput, resource startup,

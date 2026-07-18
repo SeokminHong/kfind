@@ -21,9 +21,9 @@ gold 또는 negative 선택을 바꾸지 않는다.
 미구현 표준 문법과 구조 설계 비용은 FNᶜ로 유지한다. 결과 표의 TPᶜ·FPᶜ·TNᶜ·FNᶜ는 각각
 `contract_tp`·`contract_fp`·`contract_tn`·`contract_fn`이며 strict 지표를 대체하지 않는다.
 
-현재 query matrix full-POS는 raw `FP 4 / FN 6 / recall 99.54%`, contract
-`FPᶜ 0 / FNᶜ 2 / recallᶜ 99.85%`다. 상세 결과는
-[파생 용언 앞 명사 파생 경로 recall](2026-07-18-nominal-derivational-predicate.md)에 둔다.
+현재 query matrix full-POS는 raw `FP 4 / FN 5 / recall 99.61%`, contract
+`FPᶜ 0 / FNᶜ 1 / recallᶜ 99.92%`다. 상세 결과는
+[소실 지정사 축약 recall](2026-07-18-copula-lost-span.md)에 둔다.
 
 현재 제품 기준선:
 
@@ -35,7 +35,7 @@ gold 또는 negative 선택을 바꾸지 않는다.
 | test full-POS smart | 498 / 2 / 2 | 99.60% | 99.6% | 99.60% |
 
 세부 품사, strict/contract-adjusted hard-negative와 성능 결과는
-[파생 용언 앞 명사 파생 경로 recall](2026-07-18-nominal-derivational-predicate.md)에 둔다.
+[소실 지정사 축약 recall](2026-07-18-copula-lost-span.md)에 둔다.
 
 비표준 활용, 오타와 불안정한 띄어쓰기는 이 canonical 기준선에 합치지 않는다. 별도 fixture와
 robust-only precision, over-acceptance, canonical retention, raw-span 지표는
