@@ -7,8 +7,10 @@ from pathlib import Path
 
 try:
     from .quality import contract_expected
+    from .query_matrix_contract import contract_case_summary
 except ImportError:
     from quality import contract_expected
+    from query_matrix_contract import contract_case_summary
 
 
 HARD_NEGATIVE_SLICES = {
@@ -201,6 +203,17 @@ def validate_query_matrix_dataset(
         raise ValueError("query matrix positive count differs from metadata")
     if metadata.get("negative_cases") != len(negatives):
         raise ValueError("query matrix negative count differs from metadata")
+    review_metadata = metadata.get("contract_review")
+    if not isinstance(review_metadata, dict):
+        raise ValueError("query matrix has no contract review metadata")
+    expected_review = contract_case_summary(cases)
+    if any(
+        review_metadata.get(key) != value
+        for key, value in expected_review.items()
+    ):
+        raise ValueError("query matrix contract review metadata differs from cases")
+    if not isinstance(review_metadata.get("registry_sha256"), str):
+        raise ValueError("query matrix has no contract review registry SHA-256")
 
     groups: dict[str, list[dict[str, object]]] = defaultdict(list)
     for case in cases:

@@ -6,6 +6,7 @@ WORKDIR /build
 COPY tools/morph-compare/sources.json ./sources.json
 COPY tools/morph-compare/sentence-reviews.json ./sentence-reviews.json
 COPY tools/morph-compare/robustness-reviews.json ./robustness-reviews.json
+COPY tools/morph-compare/query-matrix-contract-reviews.tsv ./query-matrix-contract-reviews.tsv
 COPY tools/morph-compare/python ./python
 RUN python -m unittest discover --start-directory python --pattern 'test_*.py'
 RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
@@ -51,6 +52,7 @@ RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
         --canonical-cases /benchmark/cases.jsonl \
         --output /benchmark/query-matrix-cases.jsonl \
         --metadata /benchmark/query-matrix-metadata.json \
+        --contract-reviews query-matrix-contract-reviews.tsv \
         --split test \
         --query-mode explicit-pos \
     && python python/query_matrix.py \
@@ -59,6 +61,7 @@ RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
         --canonical-cases /benchmark/dev-cases.jsonl \
         --output /benchmark/query-matrix-dev-cases.jsonl \
         --metadata /benchmark/query-matrix-dev-metadata.json \
+        --contract-reviews query-matrix-contract-reviews.tsv \
         --split dev \
         --query-mode explicit-pos \
     && python python/query_matrix.py \
@@ -67,6 +70,7 @@ RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
         --canonical-cases /benchmark/cases.jsonl \
         --output /benchmark/query-matrix-untagged-cases.jsonl \
         --metadata /benchmark/query-matrix-untagged-metadata.json \
+        --contract-reviews query-matrix-contract-reviews.tsv \
         --split test \
         --query-mode untagged
 
