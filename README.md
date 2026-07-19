@@ -1,14 +1,11 @@
 # kfind
 
-[English](README.md) | [한국어](README.ko.md) |
-[Documentation & playground](https://kfind.pages.dev)
+[기술 문서와 플레이그라운드](https://kfind.pages.dev)
 
-Fast Korean lemma and inflection search for code and documents.
-
-`kfind` analyzes the query once, compiles bounded candidate programs,
-and scans files without running a morphology analyzer over the corpus. It finds
-inflected forms while retaining grep-like path filtering, context, and output
-modes.
+`kfind`는 한국어 표제어와 활용형을 파일과 메모리 문자열에서 찾는 검색
+엔진입니다. 검색 질의를 한 번 형태 분석해 개수가 제한된 후보 프로그램으로
+컴파일하고, corpus에서는 고정 byte 문자열을 먼저 찾은 뒤 후보 주변만
+검증합니다. corpus 전체에 형태소 분석기를 실행하지 않습니다.
 
 ```console
 $ kfind -n 걷다 src docs
@@ -16,307 +13,165 @@ docs/guide.md:12: 길을 걸어 갔다.
 src/example.txt:8: 손님이 오래 걸었습니다.
 ```
 
-## Purpose
+## 제품 범위
 
-`kfind` is a query-directed text matcher for agents and interactive search. It
-turns a short Korean lemma or phrase into a bounded search plan, then returns
-candidate spans and morphology provenance from files or in-memory text. Agents
-can retrieve a broad candidate set quickly and use surrounding context for the
-final judgment; people can choose the more selective default workflow.
+kfind는 코드와 문서에서 한국어 형태 후보를 수집하는 query-directed text
+matcher입니다. 형태 분석은 검색 계획과 일치 후보 검증에 사용하며, 결과에는 원문
+span과 생성 근거를 보존합니다.
 
-Morphology is a means of planning and verifying a search, not the product's
-output. `kfind` does not analyze every sentence in the input corpus.
+지원 범위는 다음과 같습니다.
 
-## Goals and non-goals
+- 명사·대명사·수사와 조사 결합
+- 동사·형용사의 어미, 선어말어미와 불규칙 활용
+- 지정사, 보조 용언과 제한된 복합 구조
+- 등록된 생산적 파생형
+- 품사 태그와 최대 간격을 갖는 순서형 구 검색
+- `smart`, `token`, `any` 경계 정책
+- 파일 ignore 규칙, glob, 파일 유형, stdin과 명시적 입력 인코딩
+- 일반 text, 문맥, 집계, JSON Lines와 provenance 출력
 
-Goals:
+일반 목적 문장 형태소 분석, 의미 검색, 동의어·바꿔쓰기 확장, 의미 기반
+동형이의어 판별은 제품 범위가 아닙니다. `v:검증하다`는 `검증을 수행했다`를
+찾지 않으므로 필요한 경우 `n:검증`을 별도로 검색해야 합니다.
 
-- Compile short queries into bounded plans and scan large text collections with
-  low overhead.
-- Provide tested recall and precision for the supported Korean morphology while
-  preserving matched spans, lemmas, POS, and rule provenance.
-- Offer reproducible offline behavior through the CLI, Rust library, and
-  JavaScript/WebAssembly package.
+## 설치
 
-Non-goals:
-
-- A general-purpose sentence tokenizer or morphology analyzer, or a backend
-  optimized to lead morphology-analyzer throughput rankings.
-- Semantic search, synonym or paraphrase expansion, and semantic homonym
-  disambiguation.
-- Complete reverse analysis of arbitrary surface forms or unrestricted coverage
-  of every Korean construction.
-
-## Features
-
-- Finds noun-particle combinations, predicate endings, irregular inflections,
-  and selected productive derivations from a lemma.
-- Searches ordered, same-line phrases with per-atom part-of-speech tags.
-- Offers `smart` boundaries for interactive precision and `any` boundaries for
-  recall-oriented automation.
-- Walks files in parallel with ignore rules, globs, named file types, hidden-file
-  control, stdin, and explicit encodings.
-- Produces terminal text, context, counts, file lists, JSON Lines, and query or
-  match provenance.
-- Runs offline. Core rules are embedded; Homebrew installs the optional full POS
-  and morphology-component resources plus the agent skill.
-- Exposes the query compiler and matcher through Rust and WebAssembly libraries.
-
-## Install
-
-Homebrew releases are published through the personal tap:
+macOS와 Linux에서는 Homebrew로 CLI와 같은 버전의 형태 리소스를 설치합니다.
 
 ```sh
 brew install seokminhong/brew/kfind
+kfind --check-data
 ```
 
-`brew install` and `brew upgrade` install the component resource built for the
-same kfind version and run an integrity check after installation. Run
-`kfind --check-data` to repeat that check manually.
-
-To build the current checkout with Rust 1.97 or newer:
+Rust 1.97 이상에서는 현재 source를 설치할 수 있습니다.
 
 ```sh
 cargo install --locked --path crates/kfind-cli
 ```
 
-## Agent skill setup
-
-Run `kfind --init` in a project directory. In a terminal it opens a checkbox
-selector for Claude Code, Codex, Gemini CLI, and custom stdout output. The
-project destinations are `.claude/skills/kfind`, `.agents/skills/kfind`, and
-`.gemini/skills/kfind`.
+JavaScript와 TypeScript에서는 WebAssembly 패키지를 설치합니다.
 
 ```sh
-# Interactive checkbox selection.
-kfind --init
-
-# Reproducible one-liner.
-kfind --init --agent codex --agent claude-code
-
-# Non-interactive stdin selection.
-printf 'codex\ngemini\n' | kfind --init
-
-# Write only SKILL.md content to stdout for another agent.
-kfind --init --agent custom > path/to/kfind/SKILL.md
+npm install kfind@1.0.0-rc.1
 ```
 
-Homebrew installs the canonical skill under `share/kfind` with the binary, but it
-cannot choose a project or agent on the user's behalf. Run `kfind --init` once in
-each project. That initialization links to Homebrew's stable `opt/kfind` path, so
-later `brew upgrade kfind` runs update those project skills automatically. A source
-or Cargo installation writes a managed copy; rerun `kfind --init` to update it.
-Existing skills without the kfind management marker are never overwritten.
+```js
+import { Kfind } from "kfind";
 
-## Quick start
+const engine = new Kfind();
+const matcher = engine.compile("걷다", { pos: "verb" });
+const text = "길을 걸어 갔다.";
+const matches = matcher.findAll(text);
+
+console.log(text.slice(matches[0].start, matches[0].end));
+```
+
+npm match offset은 UTF-16 code unit 기준입니다. 패키지는 full POS와 component
+asset의 경로나 URL을 추정하지 않으며, 호출자가 읽은 bytes를 명시적으로
+전달합니다.
+
+## 기본 검색
 
 ```sh
-# Infer the part of speech and find inflections.
+# 자동 품사와 smart 경계
 kfind 걷다 src docs
 
-# Search a lemma as a noun and consume valid particles.
+# 명시적 품사
 kfind --pos noun 사용자 src
 
-# Search an ordered phrase. Each atom can have its own part of speech.
+# 순서형 구 검색
 kfind 'n:권한 v:검증하다' src --max-gap 24
 
-# Search bytes as a literal without morphology expansion.
+# 형태 확장 없는 문자열 검색
 kfind --literal '걸어' data.txt
 
-# Restrict files and print two lines of context.
-kfind 걷다 . --type-add 'docs:*.{md,mdx,txt}' --type docs -C 2
-
-# Emit stable machine-readable records for automation.
+# 기계 판독용 출력
 kfind --embedded --boundary any --pos verb --json 걷다 src docs
 ```
 
-With no `PATH`, `kfind` reads piped stdin or searches `.` when stdin is a
-terminal. `-` selects stdin explicitly.
+경로를 생략하면 pipe로 받은 stdin을 검색합니다. stdin이 대화형 터미널이면 현재
+디렉터리를 검색합니다. `-`는 stdin을 명시합니다.
 
-## Search model
+## 검색 질의
 
-### Morphology expansion
+atom은 공백으로 구분합니다. 따옴표 안의 문자열은 하나의 literal atom이며,
+백슬래시는 다음 문자를 escape합니다.
 
-The default `inflection` mode includes noun plurals and particle chains,
-predicate endings, copula forms, and the irregular classes covered by the
-versioned rules and lexicon, plus cross-checked dictionary conjugations.
-`derivation` adds registered productive forms such as `-적`, `-하다`, `-되다`,
-and `-시키다`, along with dictionary-linked derived forms. `literal` disables
-morphology expansion.
-
-The query is expanded; the corpus is not fully tokenized or analyzed. This keeps
-file scanning fast, but it is not semantic search. For example,
-`v:검증하다` does not match a paraphrase such as `검증을 수행했다`; search
-`n:검증` separately when that wording matters. A surface form such as `걸어`
-also is not reverse-analyzed into every possible lemma unless the lemma or POS is
-given explicitly.
-
-### Query language
-
-Atoms are separated by whitespace. Quotes keep a phrase inside one literal
-atom, and backslashes escape the next character. The supported POS tags are:
-
-| Tag | Part of speech |
+| 태그 | 품사 |
 | --- | --- |
-| `n:` | noun |
-| `pro:` | pronoun |
-| `num:` | numeral |
-| `v:` | verb |
-| `adj:` | adjective |
-| `det:` | determiner |
-| `adv:` | adverb |
-| `j:` | particle |
-| `intj:` | interjection |
+| `n:` | 명사 |
+| `pro:` | 대명사 |
+| `num:` | 수사 |
+| `v:` | 동사 |
+| `adj:` | 형용사 |
+| `det:` | 관형사 |
+| `adv:` | 부사 |
+| `j:` | 조사 |
+| `intj:` | 감탄사 |
 | `lit:` | literal |
 
-```sh
-kfind 'n:권한 "접근 제어" v:검증하다' src
-kfind 'det:새 n:기능' docs
-kfind 'lit:걸어' data.txt
-```
+구 atom은 같은 줄에서 순서대로 나타나야 합니다. `--max-gap`은 앞 token 끝과
+다음 token 시작 사이에 허용할 Unicode scalar 수이며 기본값은 24입니다. 전역
+`--pos`와 atom 태그를 함께 사용하면 두 품사가 같아야 합니다.
 
-Phrase atoms must appear in order on the same line. `--max-gap` measures the
-Unicode scalar distance from the end of one verified token to the start of the
-next. A global `--pos` may be combined with atom tags only when they name the
-same POS.
+## 형태 확장
 
-### Boundary policies
+| 값 | 동작 |
+| --- | --- |
+| `inflection` | 조사, 어미, 이형태와 불규칙 활용을 생성합니다. |
+| `derivation` | 활용과 등록된 생산적 파생 표제어를 생성합니다. |
+| `literal` | 입력 문자열만 검색합니다. |
 
-| Policy | Behavior | Typical use |
+`--literal`은 `--expand literal --pos literal`의 단축 옵션입니다. 형태 확장은
+검색 질의에만 적용합니다. 표면형을 임의의 모든 표제어로 역분석하지 않습니다.
+
+## 경계 정책
+
+| 값 | 판정 | 용도 |
 | --- | --- | --- |
-| `smart` | Applies POS-aware verification and checks the completed token span. It can use the optional structural resource to prove exact POS/component spans and adjacent-token arrangements. | Interactive search; default |
-| `token` | Requires token boundaries around every core and completed token span. | Strict standalone tokens |
-| `any` | Does not require left or right token boundaries. | Recall-oriented automation with downstream context review |
+| `smart` | 조사·어미 소비와 세부 품사 구성 요소를 국소 검증합니다. | 사람의 기본 검색 |
+| `token` | core 시작과 완성된 token 끝의 Unicode 경계를 요구합니다. | 독립 token 검색 |
+| `any` | 좌우 경계 없이 형태 후보의 부분 span을 보존합니다. | 재현율 중심 자동화 |
 
-A one-syllable query remains conservative under `smart`. Explicit particle POS
-can expand registered allomorphs such as `은/는`, `이/가`, and `으로/로`; an
-untagged query searches only the particle surface that was written.
+의미 모호성은 유지합니다. 문법 구조로 구분 가능한 후보는 `smart`의 component
+판정으로 제한하지만, 구조도 모호하면 지원 가능한 분석을 함께 반환합니다.
 
-Semantic ambiguity is deliberately retained: both `걷다` and `걸다` may match
-`걸었고`. This differs from structural POS evidence. Under `smart`, adjacent
-token arrangement selects `매일/MAG` in `매일 보고 싶어` and rejects `n:매`;
-the copular structure in `독수리가 아니라 매일 수도 있어` selects
-`매/NNG + 이/VCP + ㄹ/ETM` and rejects `adv:매일`. If structure remains
-ambiguous, kfind keeps supported candidates for recall.
+## 에이전트 자동화
 
-### Human and agent workflows
-
-For interactive use, omit the POS. The default `auto` POS and `smart` boundary
-favor precision and use the installed full POS lexicon when available:
-
-```sh
-kfind 걷다 src
-kfind 사용자 src docs
-```
-
-For agent automation, specify every morphology atom, use `any`, the embedded
-lexicon, and JSON Lines:
+자동화에서는 각 형태 atom의 품사를 지정하고 embedded lexicon, `any` 경계와
+JSON Lines를 함께 사용하는 구성이 기본입니다.
 
 ```sh
 kfind --embedded --boundary any --pos verb --json 걷다 src docs
 kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
 ```
 
-The agent workflow returns a broader candidate set. Inspect the surrounding
-text, narrow paths or globs, or retry with `smart` if the set is too large.
+`any`는 후보를 넓게 보존하므로 호출자는 span 주변의 원문을 확인해야 합니다.
+후보가 많으면 path와 glob을 좁히거나 `smart`로 다시 검색합니다.
 
-## CLI reference
+프로젝트에 코딩 에이전트용 skill을 설치하려면 다음 명령을 사용합니다.
 
-```text
-kfind [OPTIONS] <QUERY> [PATH]...
-kfind --init [--agent <AGENT>]...
+```sh
+kfind --init
+kfind --init --agent codex --agent claude-code
+printf 'codex\ngemini\n' | kfind --init
 ```
 
-### Query and compilation
+Codex는 `.agents/skills/kfind/SKILL.md`, Claude Code는
+`.claude/skills/kfind/SKILL.md`, Gemini CLI는
+`.gemini/skills/kfind/SKILL.md`를 사용합니다. kfind 관리 표식이 없는 파일은
+덮어쓰지 않습니다.
 
-| Option | Values and default | Description |
-| --- | --- | --- |
-| `--pos <POS>` | `auto` (default), `noun`, `pronoun`, `numeral`, `verb`, `adjective`, `determiner`, `adverb`, `particle`, `interjection`, `literal` | Forces one POS for the entire query. |
-| `--expand <LEVEL>` | `inflection` (default), `literal`, `derivation` | Chooses the morphology expansion level. `derivation` includes inflection. |
-| `--boundary <POLICY>` | `smart` (default), `token`, `any` | Chooses match-boundary verification. |
-| `--literal` | off | Shortcut for `--expand literal --pos literal`; conflicting `--expand` or `--pos` values are errors. |
-| `--embedded` | off | Skips full POS discovery and decoding. A `smart` plan may still require the component resource. |
-| `--max-gap <NUM>` | `24` | Sets the maximum Unicode scalar gap between adjacent phrase atoms. |
-| `--unicode-normalization <MODE>` | `nfc` (default), `canonical`, `none` | Uses NFC only, generates NFC and NFD patterns, or matches input bytes without normalization. |
+## 데이터 리소스
 
-### Files and input
+CLI는 `--data-dir`, 설치 경로와 개발 경로에서 full POS lexicon, enriched 용언
+metadata와 component resource를 찾습니다. component 파일은 실행 파일과 같은 릴리즈
+버전, schema와 source digest를 가져야 합니다. `kfind --check-data`는 검색 없이 이
+계약을 검증합니다.
 
-| Option | Values and default | Description |
-| --- | --- | --- |
-| `--encoding <ENCODING>` | `auto` (default), `utf-8`, `utf-16le`, `utf-16be`, `euc-kr` | Selects input decoding. `auto` detects BOM-marked UTF-16 and otherwise uses UTF-8; it does not guess EUC-KR. |
-| `--glob <GLOB>` | repeatable | Adds an include glob or an exclude glob prefixed with `!`. |
-| `--type <TYPE>` | repeatable | Searches only files in a named type. |
-| `--type-add <NAME:GLOB>` | repeatable | Defines or extends a named file type. |
-| `--hidden` | off | Includes hidden files and directories. |
-| `--no-ignore` | off | Disables `.gitignore`, `.ignore`, global Git ignore, and parent ignore rules. |
-| `--threads <NUM>` | automatic | Sets the number of file-search worker threads. |
-
-Directory walks exclude hidden and ignored entries by default and do not follow
-symbolic links. An explicitly named file is searched even when an ignore rule
-would exclude it. Input stops at the first NUL byte and treats the file as
-binary.
-
-### Output and diagnostics
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `-n`, `--line-number` | off | Prints one-based line numbers. |
-| `-H`, `--with-filename` | automatic | Always prints file names; conflicts with `-h`. |
-| `-h`, `--no-filename` | automatic | Never prints file names; conflicts with `-H`. |
-| `-C`, `--context <NUM>` | `0` | Prints `NUM` lines before and after each match. |
-| `-B`, `--before-context <NUM>` | context value | Overrides the number of lines before each match. |
-| `-A`, `--after-context <NUM>` | context value | Overrides the number of lines after each match. |
-| `-l`, `--files-with-matches` | off | Prints each matching file once and stops that file after its first match; conflicts with `--count`, `--quiet`, and `--json`. |
-| `-c`, `--count` | off | Prints the number of lines with at least one verified match per file; conflicts with `--quiet` and `--json`. |
-| `-q`, `--quiet` | off | Prints no matches and stops globally after the first match; conflicts with `--json`. |
-| `--json` | off | Writes one JSON object per match or context record; conflicts with `--explain-query`. |
-| `--color <WHEN>` | `auto`; `auto`, `always`, `never` | Controls terminal highlighting. `auto` enables color only for standard output to a terminal. |
-| `--no-pager` | off | Bypasses the pager when writing standard text results to a terminal. |
-| `--column` | off | Prints a one-based Unicode scalar column and implies line-number output. |
-| `--explain-query` | off | Prints inferred analyses, candidate programs, consumption states, normalization, and lexicon status before results. |
-| `--explain-match` | off | Adds the lemma and rule path behind each text match. JSON already includes origin metadata. |
-| `--sort path` | unsorted parallel stream | Collects and sorts target paths, then emits bounded parallel file streams in path order. Path collection delays first output, uses memory proportional to file count, and can reduce throughput. |
-
-File names are printed automatically when searching a directory or multiple
-inputs. Match and context lines use `:` and `-` separators respectively. Standard
-text results with terminal stdin and stdout use a built-in TUI that opens when
-the search starts and adds completed result rows progressively. A long match line expands
-to one row per verified match, and each row truncates both sides so its target
-remains visible at a position balanced by the original before/after ratio. The
-layout is recomputed on terminal resize. Scrolling stops when the final row reaches
-the bottom of the content area. Navigation remains active while searching.
-Use `↑`/`↓` or `k`/`j` to move and `q` or `Esc` to exit and stop the remaining search.
-Redirects and pipes, JSON Lines, count, file summaries, quiet mode,
-and `--no-pager` retain the direct stdout stream. If the TUI cannot start, output
-falls back to standard text on stdout.
-
-Repeated navigation is frame-paced by the content viewport size without dropping
-movement. Larger viewports combine more held-key input in each frame to limit
-terminal scroll operations.
-
-The pager index scales with completed source lines and expanded match rows. Use
-`--no-pager` for a bounded stream when large interactive result sets are not
-needed.
-
-JSON Lines records contain `type`, path, line, optional column, text, spans,
-core and token byte ranges, matched surface, lemma/POS origins, rule paths, and
-an `offset_unit`. Non-UTF-8 paths and text use Base64 fields rather than lossy
-conversion.
-
-### Data and command information
-
-| Option | Default | Description |
-| --- | --- | --- |
-| `--data-dir <PATH>` | automatic discovery | Reads `lexicon.bin`, optional `predicates.enriched.tsv`, and `morphology-component-compact.kfc` from one explicit directory. |
-| `--check-data` | off | Validates the installed full POS and component resources, including the exact component package version, then exits. Supports `--json` and `--data-dir`. |
-| `--user-lexicon <PATH>` | XDG config path | Loads a TOML user lexicon instead of the default config lookup. |
-| `--init` | off | Initializes the kfind skill in the current directory without a query. |
-| `--agent <AGENT>` | TTY selection or stdin; repeatable | Selects `claude-code`, `codex`, `gemini`, or `custom`; requires `--init`. |
-| `--help` | — | Prints localized command help. `-h` is reserved for `--no-filename`. |
-| `-V`, `--version` | — | Prints the version. |
-
-The CLI checks `--user-lexicon`, `KFIND_USER_LEXICON`, and then
-`$XDG_CONFIG_HOME/kfind/lexicon.toml` or `$HOME/.config/kfind/lexicon.toml`:
+사용자 사전은 `--user-lexicon`, `KFIND_USER_LEXICON`,
+`$XDG_CONFIG_HOME/kfind/lexicon.toml`, `$HOME/.config/kfind/lexicon.toml` 순서로
+탐색합니다.
 
 ```toml
 [[predicate]]
@@ -328,217 +183,20 @@ alternation = "Ha"
 surface = "LLM"
 ```
 
-Entries extend the bundled data. Set `replace = true` on an entry to replace
-existing analyses in the same morphology category for that lemma.
-
-### Exit status and display language
-
-| Code | Meaning |
-| ---: | --- |
-| `0` | At least one match was found, or initialization/data validation succeeded. |
-| `1` | No match was found. |
-| `2` | Usage, query compilation, data, I/O, or search error. |
-
-Human-readable help, errors, diagnostics, and `--explain-*` output follow the
-first non-empty value of `LC_ALL`, `LC_MESSAGES`, and `LANG`. A `ko` locale
-selects Korean; all other values use English. Option names, accepted values,
-JSON fields, and exit codes do not change with the locale.
-
-## Lexicon data
-
-Core irregular predicates and rules are embedded in the binary. Homebrew also
-installs the pinned full POS lexicon, CC BY-SA enriched predicate metadata and
-surfaces, and compact morphology-component resource under `share/kfind`;
-runtime network access is never required.
-
-The component header records its kfind package version. A mismatched binary and
-component fail during decoding instead of falling back to a stale resource.
-Package upgrades replace both artifacts; kfind never updates them in the
-background.
-
-Without the full POS file, searches continue with the core lexicon and
-heuristics. `--explain-query` reports that preview state. `--data-dir` or
-`KFIND_DATA_DIR` selects an explicit resource directory. Outside `--embedded`,
-`predicates.enriched.tsv` is loaded when present. `--embedded` skips full POS and
-enriched predicate resolution. A compiled `smart` plan that requires component
-evidence still resolves and validates the component resource; plans that do not
-need it leave it unloaded.
-
-The external lexicon data are reproducible from pinned, checksum-verified
-`mecab-ko-dic` and NIKL dictionary snapshots:
-
-```sh
-scripts/build-full-pos.sh
-cargo run --locked -p kfind-testkit --bin verify-gold -- \
-  data/generated/full-pos/lexicon.bin
-scripts/build-enriched-predicates.sh
-```
-
-Of 12,888 conjugations supported by two NIKL dictionaries, the enriched
-generator stores only the 130 that productive rules cannot generate. It stores
-88 bounded adjective-to-adverb forms independently attested by both dictionaries;
-these are available in the default `inflection` mode. Of 153 bidirectional
-predicate-to-adverb relations from the Korean Basic Dictionary, 76 overlap with
-that stronger evidence and the other 77 require `derivation`. The resulting TSV
-contains the existing 295 surface-only rows plus 225 dictionary voice relations,
-for 520 rows and 42,910 bytes. A voice relation is available in the default
-`inflection` mode only when the Korean Basic Dictionary directly links the source
-and target verbs and the Standard Korean Language Dictionary independently lists
-both as general verbs. The target lemma then uses the regular predicate generator.
-Generation retains one reusable candidate; a separate validator checks UTF-8,
-schema, statistics, and the 64 KiB distribution limit.
-
-The `누구·무어·무엇 + 이 + -ㄴ가` contractions generate only the declared
-`누군가·무언가` surfaces. In `smart` mode the complete surface must have a
-source `NP + VCP + EC/EF` analysis, and existing nominal-particle transitions
-validate any following particles. Separately listed dictionary headwords are
-not merged into aliases of the source pronouns.
-
-In `smart` mode, a trailing predicate in a compound predicate remains searchable
-when the token has a complete source `predicate + EP* + EC + predicate + E* + J*`
-path from its left boundary. Attributive, nominalizing, and final endings cannot
-reopen that connective path; independent imperatives such as token-initial `가`
-remain searchable.
-
-A noun derivation remains searchable before a derived predicate when the token
-has a complete source `N+ + XSN+ + XSV/XSA + E+` path. The query core must end
-exactly at the derivational noun-suffix boundary, so `잠식당` matches
-`잠식당하기` without exposing an internal substring or an incomplete predicate.
-
-`smart` also preserves a copula whose surface span disappears in a declared
-host-ending contraction. For example, `이다` matches the whole `걸까` span only
-when the source proves a complete nominal host, `VCP`, and final `EC/EF` path;
-ordinary tokens are not enumerated as copula candidates.
-
-A one-syllable noun used as an attached nominal suffix remains searchable only
-when a reviewed NIKL catalog contains that suffix and the source proves complete
-nominal-prefix, suffix, and particle paths. The catalog participates in validation,
-not candidate generation; ordinary internal noun substrings remain rejected.
-
-## Benchmarks
-
-kfind measures morphology quality, end-to-end CLI throughput, resource startup,
-and literal scanning as separate workloads. The benchmark contract defines the
-reproducible commands, inputs, warm-up and run counts, and report requirements.
-Measurements and comparisons remain in their individual reports.
-
-- [Benchmark contract](docs/benchmarks/README.md)
-
-## Library
-
-### Rust
-
-The `kfind` crate exposes the same query compiler and morphology matcher for
-in-memory UTF-8 input:
-
-```rust
-use kfind::{CompileOptions, Engine};
-
-let engine = Engine::new()?;
-let matcher = engine
-    .compile("걷다", &CompileOptions::default())
-    .expect("query should compile");
-let text = "길을 걸어 갔다.";
-let matches = matcher.find_all(text.as_bytes());
-
-assert_eq!(&text[matches[0].span.clone()], "걸어");
-```
-
-Build the same dictionary-quality profile as the CLI with `ResourceBundle` and
-`Engine::with_resources`. The bundle accepts optional full POS binary, enriched
-predicate TSV, and component bytes. Existing individual constructors delegate
-to the same initialization path. Component bytes can also be installed later
-with `load_component_resource` before compiling a plan that needs them.
-
-The 1.x stable facade consists of engine construction, compile options and
-errors, matching, and match provenance at the crate root. Caller-assembled
-lexicons and query-plan inspection require an explicit `kfind::expert` import;
-workspace implementation crates are not published separately.
-
-The library and its core dependencies support Rust 1.97's
-`wasm32-unknown-unknown` target:
-
-```sh
-rustup target add wasm32-unknown-unknown --toolchain 1.97.0
-cargo +1.97.0 build --locked --package kfind-wasm --target wasm32-unknown-unknown
-```
-
-### JavaScript
-
-The unscoped `kfind` npm package provides ESM WebAssembly bindings and generated
-TypeScript declarations for browser bundlers:
-
-```js
-import { Kfind } from "kfind";
-
-const engine = new Kfind();
-const matcher = engine.compile("걷다");
-const text = "😀 길을 걸어 갔다.";
-const matches = matcher.findAll(text);
-
-console.log(text.slice(matches[0].start, matches[0].end)); // 걸어
-```
-
-JavaScript offsets use UTF-16 code units. `Kfind.withResources` accepts optional
-`fullPos`, `enrichedPredicates`, and `component` fields as one profile. The
-package publishes the enriched TSV as `kfind/assets/predicates.enriched.tsv`
-and the component resource as
-`kfind/assets/morphology-component-compact.kfc`, both separate from the WASM
-binary. Constructing `Kfind` without resources loads neither external asset.
-Component bytes can also be installed later with `loadComponentResource`.
-The package `prepack` check rebuilds the WASM and version-matched component,
-runs Node and TypeScript smoke tests, and verifies the packed asset list.
-
-The package has not been published to the registry yet. Its release artifact
-can be built and checked locally:
-
-```sh
-pnpm --dir packages/kfind run pack:check
-```
-
-## Development
+## 개발 검증
 
 ```sh
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets --locked -- -D warnings
-cargo test --workspace --locked
-scripts/benchmark-criterion.sh
-scripts/benchmark-morphology.sh
-pnpm --dir packages/kfind run benchmark:startup
-pnpm --dir packages/kfind run pack:check
+cargo clippy --workspace --all-targets --all-features -- -D warnings
+cargo test --workspace --all-targets --all-features
+python3 tools/readme-guard/check_readmes.py
 ```
 
-The morphology fixture contains 588 positive and negative regression cases. The
-Docker benchmark measures `kfind` on 1,000 manually reviewed cases sampled from
-UD Korean-Kaist, then compares it with pinned Kiwi, Lindera, MeCab-ko, and
-KOMORAN snapshots. Canonical scoring uses only sentences whose standard
-orthography was manually reviewed. A separate scored 500-case Robust set uses
-manually reviewed natural errors from UD Korean-KSL and reports product quality
-and performance with robustness mode off. Rejected Korean-Kaist sentences remain
-an unscored sentence registry. Fuzz targets and their fixed seed corpora live in
-`fuzz/`. CI runs every target for 15 seconds through `scripts/run-fuzz.sh`.
+형태 품질·성능 벤치마크의 실행과 보고 계약은
+[`docs/benchmarks/README.md`](docs/benchmarks/README.md)에 있습니다. 날짜, Git
+revision, 실험 조건과 변화량은 `docs/benchmarks`의 기록 문서에만 둡니다.
 
-The implementation contract and release acceptance criteria are in
-[`specs/kfind.md`](specs/kfind.md).
+## 라이선스
 
-## License
-
-kfind source code and project-authored data are available under the
-[MIT License](LICENSE). The Homebrew full POS and component resources preserve
-the Apache-2.0 notice from `mecab-ko-dic`, while enriched predicate data
-preserves its CC BY-SA 2.0 Korea notice under `share/doc/kfind/LICENSES`.
-The Formula uses `license :cannot_represent` because this combination cannot be
-expressed as an SPDX license expression. UD source and derived fixtures in the
-benchmark image remain under CC BY-SA 4.0, with a per-source notice included in
-the image.
-
-## Release
-
-Pushing a matching `vX.Y.Z` tag runs the release workflow. It rebuilds and
-verifies the full POS and component resources, publishes source/data/CLI assets
-and the npm package, and opens a Formula PR against `SeokminHong/homebrew-brew`.
-Prereleases use the npm `next` tag and stable releases use `latest`. The tap's
-`pr-pull` label is applied only after its Formula tests pass.
-
-The release workflow requires a `TAP_GITHUB_TOKEN` secret with write access to
-the tap. It validates the MIT Cargo package metadata before publishing.
+소스 코드는 MIT License입니다. 별도 배포 리소스의 출처와 라이선스는 각 data
+manifest와 npm 패키지의 `LICENSES.md`에 기록합니다.

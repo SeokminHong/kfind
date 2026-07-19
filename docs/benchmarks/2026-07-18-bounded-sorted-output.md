@@ -1,11 +1,11 @@
-# Bounded path-sorted output
+# 제한된 경로 정렬 출력
 
 `--sort path`가 전체 match record를 모아 정렬하던 구조를 경로 선수집·정렬과 bounded
 per-file stream으로 분리했다. 고매치 입력의 peak RSS가 98.8% 감소했고 wall time도
 9.7~10.7% 짧아져 채택했다. 정렬 대상 경로는 메모리에 남지만 결과 record는
 worker 수와 channel capacity에 따라 제한된다.
 
-## Revisions and environment
+## Revision과 환경
 
 - baseline: `a50c6bff5aab21369698f6870dded5efdd5175fc`
 - candidate product: `00b678353677913e00f3049f48c844e38445f7b9`
@@ -21,7 +21,7 @@ worker 수와 channel capacity에 따라 제한된다.
 mode는 fresh process warm-up 1회 후 5회 측정했고 sorted·unsorted 실행 순서를 교대했다.
 표는 `median [min, max]`다.
 
-## Inputs
+## 입력
 
 | workload | files | bytes | SHA-256 | purpose |
 | --- | ---: | ---: | --- | --- |
@@ -29,7 +29,7 @@ mode는 fresh process warm-up 1회 후 5회 측정했고 sorted·unsorted 실행
 | unique | 256 | 37,748,736 | `4efd5916786f668af6fc7c6aeb400bed7a1c55f49ec3e842d5b95334b194ba58` | 2,097,152개의 고유 high-hit 행 |
 | low-hit | 8,192 | 139,264 | `79d11b717879f824c288d578d76d6604b08be517023631a5167d472de7c9ea3a` | 경로 수집 비용과 no-match 제어군 |
 
-## Results
+## 결과
 
 | workload | mode | baseline wall (s) | candidate wall (s) | wall | baseline RSS (MiB) | candidate RSS (MiB) | RSS |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -44,7 +44,7 @@ Unsorted repeated wall은 0.94%, low-hit RSS는 1.06% 높았지만 양쪽 범위
 Low-hit wall은 0.01초 해상도이므로 증감률을 독립적인 개선으로 해석하지 않는다.
 정렬 경로에서는 세 workload 모두 wall·RSS 회귀가 없었다.
 
-## Sample bias and cache assessment
+## 표본 편중과 cache 평가
 
 제품 변경은 캐시를 추가하지 않았다. 모든 경로 queue, per-file channel과 matcher
 scratch는 search invocation과 worker에 귀속되며 후속 process에 재사용되는 전역 결과
@@ -55,7 +55,7 @@ Sorted RSS 감소는 98.78%와 98.84%, wall 감소는 10.74%와 9.73%로 같은 
 반복 내용의 비정상적인 cache hit로만 설명되지 않는다. Low-hit 8,192-file 제어군도
 경로 선수집 비용이 회귀를 만들지 않았다.
 
-## Correctness and fuzzing
+## 정확성·fuzzing
 
 - `cargo test --workspace --locked`
 - `cargo clippy --workspace --all-targets --locked -- -D warnings`
@@ -68,7 +68,7 @@ on/off에서 unsorted와 sorted executor의 event·summary 동등성과 span 범
 요약 mode seed를 회귀 corpus에 포함했다. 전체 fuzz 실행에서 crash, product panic, timeout,
 RSS 상한 초과가 없었고 `search_executor`는 90,897 units를 실행했다.
 
-## Decision
+## 채택 결정
 
 결과 전체를 소유하던 writer 후처리를 삭제하고 path ordering을 검색 scheduling의
 책임으로 옮긴다. 이로써 고매치 입력이 정상적인 출력 옵션만으로 수백 MiB의

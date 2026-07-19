@@ -1,165 +1,72 @@
 # 사전 확장 전략
 
-## 목표
+## 목적
 
-core 사전을 예외 metadata로 유지하면서 full POS coverage와 활용 정확도를 확장한다.
-런타임 문장 분석기와 네트워크 의존성은 추가하지 않는다.
+Core 사전은 실행에 필요한 예외와 기능어 metadata를 담당하고, 일반 표제어 품사와
+공개 사전 기반 활용 metadata는 별도 resource로 확장합니다. Runtime 문장 분석기와
+network 의존성은 추가하지 않습니다.
 
 ## 데이터 계층
 
 | 계층 | 책임 | 배포 |
 | --- | --- | --- |
-| 생산 규칙 | 접미 파생, 규칙 활용, 어미 continuation | 바이너리 |
-| core lexicon | 불규칙 활용, 중의성, 기능어, override | 바이너리 |
+| 생산 규칙 | 접사 파생, 규칙 활용, 조사·어미 continuation | binary |
+| core lexicon | 불규칙 활용, 중의성, 기능어, override | binary |
 | full POS | 일반 표제어와 품사 | 별도 resource |
-| enriched morphology | 공개 사전의 검증된 활용 metadata와 최소 표면형 | 별도 라이선스 데이터 |
+| enriched morphology | 공개 사전에서 교차 검증한 활용 metadata와 최소 표면형 | 별도 license data |
 | user lexicon | 프로젝트·조직 고유어 | 사용자 파일 |
 
-일반 명사는 미등록 한글 입력도 nominal 후보가 되므로 대규모 core 목록이 필요하지 않다.
-사전 coverage가 직접 필요한 영역은 auto 품사의 용언·대명사·수사·관형사·부사와 불규칙
-활용이다.
+일반 명사는 미등록 한글 입력도 nominal 후보가 될 수 있으므로 core에 전체 명사
+목록을 넣지 않습니다. 사전 coverage가 필요한 영역은 자동 품사 판정의 용언,
+대명사, 수사, 관형사, 부사와 불규칙 활용입니다.
 
 ## 공개 source
 
 ### mecab-ko-dic
 
-현재 bootstrap source다. Apache-2.0이고 고정 URL과 SHA-256로 재현할 수 있다. 표제어·품사
-coverage에는 적합하지만 활용 분류를 직접 제공하지 않으므로 full POS 후보로만 사용한다.
+Full POS 표제어·품사 source로 사용합니다. Apache-2.0이며 URL과 SHA-256을 고정해
+재현합니다. 활용 분류를 직접 제공하지 않으므로 불규칙 metadata로 사용하지
+않습니다.
 
 ### 국립국어원 사전
 
-- [한국어기초사전 전체 내려받기](https://krdict.korean.go.kr/kor/dicSearchDetail/searchDetailMorpheme)는 표제어, 품사, 활용을 선택해 JSON/XML 등으로 받을 수 있다.
-- [한국어기초사전 Open API](https://krdict.korean.go.kr/kor/openApi/openApiInfo)는 표제어와 품사를 제공하지만 인증키와 호출 제한이 있다.
-- [우리말샘 Open API](https://opendict.korean.go.kr/service/openApiInfo)는 표제어, 품사, 활용·준말 필드를 제공한다.
-- [표준국어대사전 Open API](https://stdict.korean.go.kr/openapi/openApiInfo.do)도 표제어, 품사, 활용 필드를 제공한다.
+- [한국어기초사전 전체 내려받기](https://krdict.korean.go.kr/kor/dicSearchDetail/searchDetailMorpheme)는 표제어, 품사와 활용을 선택해 받을 수 있습니다.
+- [한국어기초사전 Open API](https://krdict.korean.go.kr/kor/openApi/openApiInfo)는 표제어와 품사를 제공합니다.
+- [우리말샘 Open API](https://opendict.korean.go.kr/service/openApiInfo)는 표제어, 품사, 활용과 준말 field를 제공합니다.
+- [표준국어대사전 Open API](https://stdict.korean.go.kr/openapi/openApiInfo.do)는 표제어, 품사와 활용 field를 제공합니다.
 
-세 누리집의 일반 텍스트는 CC BY-SA 2.0 KR 정책이다. [한국어기초사전 저작권
-정책](https://krdict.korean.go.kr/kor/kboardPolicy/copyRightTermsInfo), [우리말샘 저작권
-정책](https://opendict.korean.go.kr/service/copyrightPolicy), [표준국어대사전 저작권
-정책](https://stdict.korean.go.kr/join/copyrightPolicy.do)을 snapshot별로 다시 확인한다.
-파생 artifact는 소스 코드와 분리하고 저작자 표시·동일조건변경허락 고지를 포함한다. 출전이
-있는 용례와 멀티미디어는 수집하지 않는다.
-
-## 현재 제품 기준선
-
-`mecab-ko-dic 2.1.1-20180720` 산출물은 다음 규모다.
-
-- 품사 entry 632,667개
-- 고유 표제어 614,794개
-- 용언 표제어 9,407개
-- 둘 이상의 품사를 가진 표제어 16,650개
-- 둘 이상의 용언 품사를 가진 표제어 383개
-
-component-aware `smart`를 사용하는 현재 1,000-case test와 dev 결과는 다음과 같다.
-
-| fixture/profile | TP / FP / FN | recall |
-| --- | ---: | ---: |
-| test embedded | 408 / 1 / 92 | 81.6% |
-| test full-POS | 413 / 1 / 87 | 82.6% |
-| dev embedded | 432 / 2 / 68 | 86.4% |
-| dev full-POS | 436 / 2 / 64 | 87.2% |
-
-명시적 품사 test에서 full-POS가 추가로 찾는 5건은 모두 명사다. 품사를 생략한 사람용
-fixture에서는 기대 품사 plan 포함률이 embedded 46.8%, full-POS 96.4%다. full-POS의 주된
-제품 가치는 auto 품사 coverage이며, 남은 명시적 품사 품질은 활용 metadata와 경계 규칙의
-영향이 더 크다.
+일반 text는 CC BY-SA 2.0 KR 정책을 따릅니다. 각 snapshot의 저작권 정책을 확인하고
+파생 artifact에 저작자 표시와 동일조건변경허락 고지를 포함합니다. 출전이 있는
+용례, 정의와 멀티미디어는 수집하지 않습니다.
 
 ## 표제어 위생
 
-MeCab CSV의 표면형을 모두 사전 표제어로 볼 수는 없다. `VCP.csv`에는 `이다`의 어간 `이`
-외에도 `보이`, `사이` 같은 문맥용 표면형이 있다. 이를 기계적으로 `-다`형으로 바꾸면
-`보이다`, `사이다`라는 잘못된 지정사 분석이 생긴다. extractor는 `VCP=이`, `VCN=아니`만
-받고 나머지 14개 문맥용 지정사 표면형을 제외한다. 형태 생성기도 `이다` 이외의 VCP stem을
-거부한다.
+MeCab CSV의 모든 표면형을 사전 표제어로 사용하지 않습니다. 지정사 CSV의 문맥용
+표면형을 기계적으로 `-다`형으로 바꾸면 잘못된 표제어가 생길 수 있습니다.
+Extractor는 `VCP=이`, `VCN=아니`만 허용하며 다른 지정사 문맥 표면형을
+제외합니다. 형태 generator도 `이다` 이외의 VCP stem을 거부합니다.
 
-VV·VA·VX 후보도 공개 사전 snapshot과 교차 검증하기 전에는 활용 metadata로 승격하지
-않는다. MeCab full POS는 품사 후보 계층이며 core의 불규칙 분류를 덮어쓰지 않는다.
+VV·VA·VX 후보는 공개 사전 snapshot과 교차 검증한 뒤에만 활용 metadata로
+승격합니다. Full POS는 품사 후보 계층이며 core의 불규칙 분류를 덮어쓰지
+않습니다.
 
-미등록 `-다` 입력을 모두 용언으로 간주하지 않는다. `가볍다`처럼 검증된 표제어는 core의
-`ㅂ` 불규칙 분석을 사용하지만 미등록·오입력 `-다`형은 literal과 진단만 생성한다. 사전에
-없는 신규 용언은 `--pos verb|adjective` 또는 user lexicon으로 명시할 수 있다.
+사전에 없는 `-다` 입력을 모양만 보고 용언으로 간주하지 않습니다. 검증된
+표제어는 core 또는 enriched 불규칙 분석을 사용하고, 미등록 입력은 literal과
+진단만 생성합니다. 신규 용언은 `--pos verb|adjective` 또는 user lexicon으로
+명시합니다.
 
-## 수집 계약
+## 생성과 배포
 
-1. 릴리스 입력은 전체 내려받기 snapshot만 허용한다.
-2. 원본 snapshot은 저장소에 넣지 않고 URL 또는 요청 절차, 생성 일자, SHA-256를 기록한다.
-3. extractor는 표제어, 품사, 활용·준말 중 필요한 필드만 읽는다.
-4. NFC 정규화, 지원 품사 mapping, 중복 제거, 제외 이유를 재현한다.
-5. 산출물에 source별 입력·출력·충돌 count와 라이선스를 포함한다.
-6. Open API는 갱신 후보와 소수 항목 검증에만 사용한다.
+```sh
+scripts/build-full-pos.sh
+scripts/build-enriched-predicates.sh
+scripts/build-component-resource.sh
+```
 
-활용형은 한국어기초사전과 표준국어대사전의 일반어 record가 같은 표제어·세부 품사·표면형을
-지지할 때만 후보로 삼는다. 기존 규칙으로 생성 가능한 표면형은 artifact에 복제하지 않는다.
-한국어기초사전의 용언-부사 파생 관계는 양쪽 entry ID와 표면형이 서로 일치할 때만 사용한다.
-예문과 정의에서는 표면형을 추출하지 않는다.
+생성 script는 source URL, checksum과 schema를 검증합니다. Release binary와
+component resource는 같은 version header를 가져야 하며 mismatch는 startup
+오류입니다. npm package와 Homebrew formula는 동일한 immutable binary-resource
+pair를 배포합니다.
 
-검증된 snapshot ZIP은 그대로 보존하고 XML만 XDG cache 아래 SHA-256별 정적 디렉터리에 한 번
-추출한다. 같은 snapshot을 다시 생성할 때는 이 cache를 재사용하고, SHA-256이 바뀌면 기존
-디렉터리를 덮어쓰지 않고 새 경로를 만든다.
-
-## 한국어기초사전 importer 계획
-
-구현 범위는 다음 작업으로 분리한다.
-
-1. 전체 내려받기에서 표제어·품사·활용을 선택한 JSON 또는 XML snapshot을 받는다.
-2. 원본은 저장소 밖 cache에 두고 생성 일자, 요청 옵션, SHA-256, 라이선스만 manifest에
-   고정한다.
-3. importer는 원본 schema를 내부 `lemma`, `pos`, `conjugations`, `source_id` 후보로 바꾸고
-   NFC 정규화·중복 제거·제외 이유를 기록한다.
-4. 작은 schema fixture로 parser를 테스트하되 실제 사전 본문은 test fixture에 복제하지
-   않는다.
-5. MeCab과 품사가 일치하는 표제어, 충돌하는 표제어, 한 source에만 있는 표제어를 각각
-   report한다.
-6. 활용형은 자동 반영하지 않고 현재 생성 규칙과 일치 여부를 비교한 `alternation candidate`
-   report로 낸다.
-7. 검토된 결과만 enriched morphology artifact로 만들고 core > enriched morphology > MeCab
-   POS 후보 순으로 우선한다.
-
-Open API adapter를 함께 만들더라도 기본 경로는 snapshot importer다. API adapter는
-source ID로 소수 충돌 항목을 재확인하고 새 snapshot 필요 여부를 판단하는 도구로 한정한다.
-
-## 활용 metadata 승격
-
-공개 활용형을 현재 규칙들의 출력과 비교한다. 특정 alternation에서만 생성되는 진단형이
-있고 다른 진단형과 충돌하지 않을 때만 자동 후보로 만든다. 후보는 독립 fixture로 검증한
-뒤 core 또는 enriched morphology resource에 승격한다. source 충돌과 미지원 활용은 review
-report에 남긴다.
-
-원시 레코드는 source ID와 동형어 번호를 보존한다. `(lemma, fine_pos)`는 source 간 집계에만
-사용한다. `이르다/VV`의 `이르러`와 `일러`처럼 서로 다른 동형어가 서로 다른 alternation을
-가질 수 있으므로, 검증된 분석은 하나로 덮어쓰지 않고 합집합으로 보존한다. core와 enriched에
-같은 분석이 있으면 core만 남기고, full POS 규칙형 fallback은 같은 세부 품사의 core 또는
-enriched 분석이 없을 때만 추가한다.
-
-승격 범위는 사전 판별이 필요한 `DToL`, `DropS`, `BToWa`, `BToWo`, `DropH`,
-`ReuDoubleL`, `Reo`, `UToEo`다. 한국어기초사전과 표준국어대사전이 같은 alternation을
-지지하는 항목을 자동 승격 후보로 삼고, 우리말샘은 중복 출처가 많으므로 독립 표결 대신
-충돌·누락 검토에 사용한다. 같은 종성의 규칙형과 규칙 `EU_DROP`은 대조군으로 유지한다.
-독립 source record가 같은 표제어·세부 품사의 규칙형과 불규칙형을 각각 지지하면 두 분석을
-함께 보존한다. core 및 생산 접미 규칙과 같은 분석은 artifact에서 제외하고 report에 남긴다.
-
-규칙으로 만들 수 없는 교차 검증 활용형은 `SurfaceOnly` 분석으로 저장한다. 이 분석은 기본형과
-기록된 표면형만 만들고 같은 품사의 일반 분석을 가리지 않는다. 두 기본 사전이 원형 형용사와
-결과 부사를 각각 독립 등재한 제한된 `-이` 부사형은 정확한 전체 `MAG` 구조가 있을 때
-`inflection`과 `derivation`에서 연다. 한국어기초사전의 양방향 파생 관계만 확인된 부사는
-`derivation`에서만 연다. 구조화된 용언 voice 관계 225개를 더한 배포 TSV는 520행,
-42,910바이트다. 생성기는 한도와 무관하게 candidate를 한 번 만들고 보존하며, 별도 validator가
-UTF-8·schema·통계 일치와 64 KiB 배포 한도를 검사한다.
-
-한국어기초사전 XML snapshot에 XML 1.0 비허용 바이트가 있으면 고정 manifest에 기록된 종류,
-개수와 위치만 제거한다. 원본 SHA-256과 정제 내역을 함께 기록하고 예상 값이 달라지면 importer를
-실패시킨다.
-
-## 우선순위
-
-1. 한국어기초사전 snapshot importer로 MeCab 품사와 표제어 기본형을 교차 검증한다.
-2. source별 일치·충돌·단독 표제어와 활용 후보를 재현 가능한 report로 만든다.
-3. 검증된 활용 metadata만 enriched morphology artifact로 승격한다.
-4. 새로운 unseen source에서 auto 품사 coverage와 hard-negative 정밀도를 확인한다.
-
-## blind 평가 게이트
-
-새 규칙과 사전 source가 확정된 뒤 기존 dev/test와 다른 한국어 treebank source를 고정한다.
-URL·라이선스·SHA-256·quota를 먼저 기록하고 결과를 한 번 확인한다. blind 결과를 확인한 뒤
-case별 core entry나 예외 branch를 추가하지 않는다. 실패 분석은 다음 개발 주기의 dev
-입력으로만 사용한다.
+사전·resource 변경의 측정 조건과 결과는 `docs/benchmarks`의 날짜별 보고서에
+기록합니다. 이 문서는 현재 데이터 책임과 배포 계약만 정의합니다.

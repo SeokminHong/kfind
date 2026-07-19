@@ -15,7 +15,7 @@ class ReadmeGuardTest(unittest.TestCase):
 
     def test_rejects_dated_benchmark_result(self) -> None:
         text = (
-            "# Benchmarks\n\n"
+            "# 벤치마크\n\n"
             "2026-07-15 고정 50 Hz PTY benchmark에서 300회 이동은 "
             "scroll frame 121회로 59.7% 줄었습니다.\n"
         )
@@ -28,7 +28,7 @@ class ReadmeGuardTest(unittest.TestCase):
         )
 
     def test_rejects_root_benchmark_snapshot_table(self) -> None:
-        text = "# kfind\n\n## Benchmarks\n\n| Result | Value |\n| --- | --- |\n"
+        text = "# kfind\n\n## 벤치마크\n\n| 결과 | 값 |\n| --- | --- |\n"
 
         violations = check_readme(Path("README.md"), text)
 
