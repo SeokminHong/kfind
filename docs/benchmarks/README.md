@@ -175,6 +175,9 @@ scripts/benchmark-criterion.sh structural_constraint
 새로 준비해 시작 위치별 edge 탐색의 최악 복잡도를 감시한다. Nominal prefix, ending suffix와
 predicate-connective 경계처럼 여러 구조 기능이 소비하는 도달성 사실은 token 준비당 한 번만
 계산한다.
+`structural_constraint/prepare_dense_unique_pos_token_graph`는 같은 edge 수의 모든 분석에 고유 POS
+문자열을 사용해 token 내부 POS sequence interning miss 비용을 분리한다. 반복 POS workload의 높은
+intern hit율만으로 typed POS sequence 변경을 채택하지 않는다.
 `structural_constraint/resolve_dense_preferred_paths`는 준비된 밀집 graph에서 서로 다른 component
 후보의 최소 unit 경로 판정을 순환한다.
 `structural_constraint/reject_ambiguous_particle_suffix_*`는 완성 경로가 없는 다분기 suffix의
