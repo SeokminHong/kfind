@@ -61,7 +61,7 @@ struct CandidateStream<'matcher, 'haystack> {
     pending: Vec<PendingCandidate>,
     group: Vec<PendingCandidate>,
     next_sequence: Vec<usize>,
-    structural_cache: StructuralCache,
+    structural_cache: StructuralCache<'haystack>,
     metadata: MatchMetadata,
 }
 

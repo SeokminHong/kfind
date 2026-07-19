@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::ops::Range;
@@ -24,9 +25,56 @@ pub struct AnalysisWindow {
     normalized_to_raw: Option<Vec<(usize, usize)>>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct AnalysisWindowRef<'a> {
+    raw_span: Range<usize>,
+    normalized: Cow<'a, str>,
+    normalized_to_raw: Option<Vec<(usize, usize)>>,
+}
+
 impl AnalysisWindow {
     pub fn extract(
         haystack: &[u8],
+        target: Range<usize>,
+        limits: AnalysisWindowLimits,
+    ) -> Result<Self, AnalysisWindowError> {
+        Ok(AnalysisWindowRef::extract(haystack, target, limits)?.into_owned())
+    }
+
+    #[must_use]
+    pub fn raw_span(&self) -> Range<usize> {
+        self.raw_span.clone()
+    }
+
+    #[must_use]
+    pub fn normalized(&self) -> &str {
+        &self.normalized
+    }
+
+    #[must_use]
+    pub fn original_span(&self, normalized: Range<usize>) -> Option<Range<usize>> {
+        original_span(
+            &self.raw_span,
+            &self.normalized,
+            self.normalized_to_raw.as_deref(),
+            normalized,
+        )
+    }
+
+    #[must_use]
+    pub fn normalized_span(&self, original: Range<usize>) -> Option<Range<usize>> {
+        normalized_span(
+            &self.raw_span,
+            &self.normalized,
+            self.normalized_to_raw.as_deref(),
+            original,
+        )
+    }
+}
+
+impl<'a> AnalysisWindowRef<'a> {
+    pub(crate) fn extract(
+        haystack: &'a [u8],
         target: Range<usize>,
         limits: AnalysisWindowLimits,
     ) -> Result<Self, AnalysisWindowError> {
@@ -44,9 +92,9 @@ impl AnalysisWindow {
             .map_err(|_| AnalysisWindowError::InvalidUtf8)?;
         let raw_is_nfc = is_nfc(raw);
         let normalized = if raw_is_nfc {
-            raw.to_owned()
+            Cow::Borrowed(raw)
         } else {
-            raw.nfc().collect::<String>()
+            Cow::Owned(raw.nfc().collect::<String>())
         };
         let scalar_count = normalized.chars().count();
         if scalar_count > limits.max_normalized_scalars {
@@ -67,67 +115,93 @@ impl AnalysisWindow {
         })
     }
 
-    #[must_use]
-    pub fn raw_span(&self) -> Range<usize> {
+    pub(crate) fn raw_span(&self) -> Range<usize> {
         self.raw_span.clone()
     }
 
-    #[must_use]
-    pub fn normalized(&self) -> &str {
+    pub(crate) fn normalized(&self) -> &str {
         &self.normalized
     }
 
-    #[must_use]
-    pub fn original_span(&self, normalized: Range<usize>) -> Option<Range<usize>> {
-        if normalized.start > normalized.end || normalized.end > self.normalized.len() {
-            return None;
-        }
-        let start = self.raw_boundary(normalized.start)?;
-        let end = self.raw_boundary(normalized.end)?;
-        Some(self.raw_span.start.checked_add(start)?..self.raw_span.start.checked_add(end)?)
+    pub(crate) fn normalized_span(&self, original: Range<usize>) -> Option<Range<usize>> {
+        normalized_span(
+            &self.raw_span,
+            &self.normalized,
+            self.normalized_to_raw.as_deref(),
+            original,
+        )
     }
 
-    #[must_use]
-    pub fn normalized_span(&self, original: Range<usize>) -> Option<Range<usize>> {
-        if original.start < self.raw_span.start
-            || original.start > original.end
-            || original.end > self.raw_span.end
-        {
-            return None;
+    fn into_owned(self) -> AnalysisWindow {
+        AnalysisWindow {
+            raw_span: self.raw_span,
+            normalized: self.normalized.into_owned(),
+            normalized_to_raw: self.normalized_to_raw,
         }
-        let relative_start = original.start.checked_sub(self.raw_span.start)?;
-        let relative_end = original.end.checked_sub(self.raw_span.start)?;
-        let start = self.normalized_boundary(relative_start)?;
-        let end = self.normalized_boundary(relative_end)?;
-        Some(start..end)
     }
+}
 
-    fn raw_boundary(&self, normalized: usize) -> Option<usize> {
-        let boundaries = self.normalized_to_raw.as_ref();
-        if boundaries.is_none() {
-            return self
-                .normalized
-                .is_char_boundary(normalized)
-                .then_some(normalized);
-        }
-        let boundaries = boundaries?;
-        boundaries
-            .binary_search_by_key(&normalized, |(offset, _)| *offset)
-            .ok()
-            .map(|index| boundaries[index].1)
+fn original_span(
+    raw_span: &Range<usize>,
+    normalized_text: &str,
+    boundaries: Option<&[(usize, usize)]>,
+    normalized: Range<usize>,
+) -> Option<Range<usize>> {
+    if normalized.start > normalized.end || normalized.end > normalized_text.len() {
+        return None;
     }
+    let start = raw_boundary(normalized_text, boundaries, normalized.start)?;
+    let end = raw_boundary(normalized_text, boundaries, normalized.end)?;
+    Some(raw_span.start.checked_add(start)?..raw_span.start.checked_add(end)?)
+}
 
-    fn normalized_boundary(&self, raw: usize) -> Option<usize> {
-        let boundaries = self.normalized_to_raw.as_ref();
-        if boundaries.is_none() {
-            return self.normalized.is_char_boundary(raw).then_some(raw);
-        }
-        let boundaries = boundaries?;
-        boundaries
-            .binary_search_by_key(&raw, |(_, offset)| *offset)
-            .ok()
-            .map(|index| boundaries[index].0)
+fn normalized_span(
+    raw_span: &Range<usize>,
+    normalized_text: &str,
+    boundaries: Option<&[(usize, usize)]>,
+    original: Range<usize>,
+) -> Option<Range<usize>> {
+    if original.start < raw_span.start
+        || original.start > original.end
+        || original.end > raw_span.end
+    {
+        return None;
     }
+    let relative_start = original.start.checked_sub(raw_span.start)?;
+    let relative_end = original.end.checked_sub(raw_span.start)?;
+    let start = normalized_boundary(normalized_text, boundaries, relative_start)?;
+    let end = normalized_boundary(normalized_text, boundaries, relative_end)?;
+    Some(start..end)
+}
+
+fn raw_boundary(
+    normalized_text: &str,
+    boundaries: Option<&[(usize, usize)]>,
+    normalized: usize,
+) -> Option<usize> {
+    let Some(boundaries) = boundaries else {
+        return normalized_text
+            .is_char_boundary(normalized)
+            .then_some(normalized);
+    };
+    boundaries
+        .binary_search_by_key(&normalized, |(offset, _)| *offset)
+        .ok()
+        .map(|index| boundaries[index].1)
+}
+
+fn normalized_boundary(
+    normalized_text: &str,
+    boundaries: Option<&[(usize, usize)]>,
+    raw: usize,
+) -> Option<usize> {
+    let Some(boundaries) = boundaries else {
+        return normalized_text.is_char_boundary(raw).then_some(raw);
+    };
+    boundaries
+        .binary_search_by_key(&raw, |(_, offset)| *offset)
+        .ok()
+        .map(|index| boundaries[index].0)
 }
 
 fn stable_normalized_boundaries(raw: &str, normalized: &str) -> Vec<(usize, usize)> {
@@ -182,6 +256,32 @@ impl Error for AnalysisWindowError {}
 mod tests {
     use super::*;
     use proptest::prelude::*;
+
+    #[test]
+    fn internal_window_borrows_nfc_and_owns_only_normalized_text() {
+        let nfc = "앞 매일 뒤";
+        let nfc_start = nfc.find('매').unwrap();
+        let nfc_window = AnalysisWindowRef::extract(
+            nfc.as_bytes(),
+            nfc_start..nfc_start + "매일".len(),
+            DEFAULT_ANALYSIS_WINDOW_LIMITS,
+        )
+        .unwrap();
+        assert!(matches!(nfc_window.normalized, Cow::Borrowed("매일")));
+        assert_eq!(nfc_window.normalized_to_raw, None);
+
+        let nfd = "앞 매일 뒤";
+        let nfd_start = nfd.find('ᄆ').unwrap();
+        let nfd_end = nfd.find(" 뒤").unwrap();
+        let nfd_window = AnalysisWindowRef::extract(
+            nfd.as_bytes(),
+            nfd_start..nfd_end,
+            DEFAULT_ANALYSIS_WINDOW_LIMITS,
+        )
+        .unwrap();
+        assert!(matches!(nfd_window.normalized, Cow::Owned(ref text) if text == "매일"));
+        assert!(nfd_window.normalized_to_raw.is_some());
+    }
 
     #[test]
     fn extracts_the_surrounding_eojeol_and_maps_nfc_offsets() {

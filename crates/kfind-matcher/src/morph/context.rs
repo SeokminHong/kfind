@@ -13,13 +13,14 @@ use kfind_query::VerifiedSpan;
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
 use super::PreparedExactTokenGraphs;
-use crate::{AnalysisWindow, DEFAULT_ANALYSIS_WINDOW_LIMITS, is_token_character};
+use crate::window::AnalysisWindowRef;
+use crate::{DEFAULT_ANALYSIS_WINDOW_LIMITS, is_token_character};
 
 const MAX_PREPARED_CONTEXT_CACHE_ENTRIES: usize = 256;
 
 #[derive(Debug)]
-pub(super) struct PreparedStructuralContextAnalysis {
-    current: AnalysisWindow,
+pub(super) struct PreparedStructuralContextAnalysis<'a> {
+    current: AnalysisWindowRef<'a>,
     prepared: Arc<PreparedStructuralContext>,
 }
 
@@ -54,9 +55,9 @@ pub(super) struct StructuralPreparation<'a> {
     pub(super) prepared_exact_tokens: &'a PreparedExactTokenGraphs,
 }
 
-impl PreparedStructuralContextAnalysis {
+impl<'a> PreparedStructuralContextAnalysis<'a> {
     pub(super) fn extract(
-        haystack: &[u8],
+        haystack: &'a [u8],
         candidate: Range<usize>,
         preparation: StructuralPreparation<'_>,
         prepared_cache: &mut PreparedStructuralContextCache,
@@ -69,7 +70,7 @@ impl PreparedStructuralContextAnalysis {
             prepared_exact_tokens,
         } = preparation;
         let current =
-            AnalysisWindow::extract(haystack, candidate, DEFAULT_ANALYSIS_WINDOW_LIMITS).ok()?;
+            AnalysisWindowRef::extract(haystack, candidate, DEFAULT_ANALYSIS_WINDOW_LIMITS).ok()?;
         let current_span = current.raw_span();
         let previous_span = adjacent_token_span(
             haystack,
