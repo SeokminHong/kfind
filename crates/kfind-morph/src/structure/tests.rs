@@ -42,7 +42,7 @@ fn nominal_path_facts_match_direct_resource_traversal() {
 
     for text in ["나나", "나나나", "맨나나"] {
         let graph = EdgeGraph::collect(resolver.resource(), text, 4_096).expect("bounded graph");
-        let facts = NominalPathFacts::collect(text, &graph);
+        let facts = CommonPathFacts::collect(text, &graph).nominal_paths(text);
 
         assert_eq!(
             facts.particle_hosts.as_ref(),
@@ -59,7 +59,8 @@ fn arbitrary_dense_nominal_resource() -> impl Strategy<Value = (String, Vec<(Str
 {
     (1_usize..=12).prop_flat_map(|text_len| {
         let positions = [
-            "NNG", "NNP", "JX", "JX+JC", "XPN", "XSN", "XR", "VV", "XPN+NNG",
+            "NNG", "NNP", "JX", "JX+JC", "XPN", "XSN", "XR", "VV", "VV+EC", "VA+EP+EC", "EP", "EC",
+            "EF", "ETM", "VX+EF", "XSV+ETM", "XPN+NNG",
         ];
         prop::collection::vec((1_usize..=text_len, 0_usize..positions.len()), 1..64).prop_map(
             move |entries| {
@@ -86,7 +87,8 @@ proptest! {
                 .map(|(surface, pos)| atomic(surface, pos)),
         );
         let graph = EdgeGraph::collect(resolver.resource(), &text, 4_096).expect("bounded graph");
-        let facts = NominalPathFacts::collect(&text, &graph);
+        let common = CommonPathFacts::collect(&text, &graph);
+        let facts = common.nominal_paths(&text);
         let direct_hosts = nominal_particle_hosts(resolver.resource(), &text);
 
         prop_assert_eq!(facts.particle_hosts.as_ref(), direct_hosts.as_slice());
@@ -94,7 +96,58 @@ proptest! {
             facts.complete_particle_host,
             complete_nominal_particle_host(resolver.resource(), &text)
         );
+        prop_assert_eq!(
+            common.predicate_connective_boundaries,
+            reference_predicate_connective_boundaries(text.len(), graph.edges()),
+        );
+        for start in text
+            .char_indices()
+            .map(|(offset, _)| offset)
+            .chain(std::iter::once(text.len()))
+        {
+            prop_assert_eq!(
+                common.ending_suffix[start],
+                complete_suffix(resolver.resource(), &text[start..], |pos| pos.starts_with('E')),
+            );
+            prop_assert_eq!(
+                common.particle_suffix[start],
+                complete_suffix(resolver.resource(), &text[start..], |pos| pos.starts_with('J')),
+            );
+            prop_assert_eq!(
+                common.nominal_prefix[start].iter().any(|&reachable| reachable),
+                complete_suffix(resolver.resource(), &text[..start], |pos| {
+                    DataFinePos::parse(pos).is_some_and(DataFinePos::is_nominal)
+                    || matches!(pos, "XPN" | "XSN" | "XR")
+                }),
+            );
+            prop_assert_eq!(
+                common.exact_nominal_end[start],
+                has_exact_fine_pos(resolver.resource(), &text[..start], DataFinePos::is_nominal),
+            );
+        }
     }
+}
+
+fn reference_predicate_connective_boundaries(text_len: usize, edges: &[Edge<'_>]) -> Vec<bool> {
+    let mut predicate_path = vec![false; text_len + 1];
+    let mut connective_boundary = vec![false; text_len + 1];
+    for edge in edges {
+        let ends_in_connective = if edge.span.start == 0 {
+            predicate_path_ends_in_connective(edge.pos)
+        } else if predicate_path[edge.span.start] {
+            ending_path_ends_in_connective(edge.pos)
+        } else {
+            None
+        };
+        if let Some(ends_in_connective) = ends_in_connective {
+            if ends_in_connective {
+                connective_boundary[edge.span.end] = true;
+            } else {
+                predicate_path[edge.span.end] = true;
+            }
+        }
+    }
+    connective_boundary
 }
 
 proptest! {
