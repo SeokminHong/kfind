@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 
 import type { GlossaryTerm } from './glossary';
 
-import { glossaryTerms } from './glossary';
 import { GlossaryTooltip } from './glossary-tooltip';
 
 interface GlossaryAlias {
@@ -18,16 +17,21 @@ interface GlossaryMatch {
 }
 
 const asciiWordCharacter = /\w/u;
-const glossaryAliases: readonly GlossaryAlias[] = glossaryTerms
-  .flatMap((term) =>
-    term.aliases.map((alias) => ({
-      alias,
-      normalized: alias.toLowerCase(),
-      requiresAsciiBoundary: /[A-Za-z]/u.test(alias),
-      term,
-    })),
-  )
-  .sort((left, right) => right.alias.length - left.alias.length);
+
+function buildAliases(
+  terms: readonly GlossaryTerm[],
+): readonly GlossaryAlias[] {
+  return terms
+    .flatMap((term) =>
+      term.aliases.map((alias) => ({
+        alias,
+        normalized: alias.toLowerCase(),
+        requiresAsciiBoundary: /[A-Za-z]/u.test(alias),
+        term,
+      })),
+    )
+    .sort((left, right) => right.alias.length - left.alias.length);
+}
 
 function hasAsciiWordCharacter(value: string | undefined): boolean {
   return value !== undefined && asciiWordCharacter.test(value);
@@ -62,11 +66,12 @@ function findNextMatch(
   text: string,
   normalizedText: string,
   seenTerms: ReadonlySet<string>,
+  aliases: readonly GlossaryAlias[],
   startIndex: number,
 ): GlossaryMatch | undefined {
   let nextMatch: GlossaryMatch | undefined;
 
-  for (const alias of glossaryAliases) {
+  for (const alias of aliases) {
     if (seenTerms.has(alias.term.id)) {
       continue;
     }
@@ -84,11 +89,19 @@ function findNextMatch(
 export function annotateGlossaryText(
   text: string,
   seenTerms: Set<string>,
+  terms: readonly GlossaryTerm[],
 ): ReactNode {
+  const aliases = buildAliases(terms);
   const normalizedText = text.toLowerCase();
   const nodes: ReactNode[] = [];
   let startIndex = 0;
-  let match = findNextMatch(text, normalizedText, seenTerms, startIndex);
+  let match = findNextMatch(
+    text,
+    normalizedText,
+    seenTerms,
+    aliases,
+    startIndex,
+  );
 
   while (match !== undefined) {
     const { alias, index } = match;
@@ -105,7 +118,7 @@ export function annotateGlossaryText(
     );
     seenTerms.add(alias.term.id);
     startIndex = endIndex;
-    match = findNextMatch(text, normalizedText, seenTerms, startIndex);
+    match = findNextMatch(text, normalizedText, seenTerms, aliases, startIndex);
   }
 
   if (nodes.length === 0) {

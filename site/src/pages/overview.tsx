@@ -1,170 +1,197 @@
-import { Link } from 'react-router';
+import type { DocumentContent } from '../components/localized-document';
 
+import { DocumentLocale } from '../app/i18n';
 import { createDocumentMeta } from '../app/metadata';
 import { RoutePath } from '../app/navigation';
-import {
-  DocumentPage,
-  DocumentSection,
-  PageIntro,
-} from '../components/document';
+import { LocalizedDocument } from '../components/localized-document';
 
 export const meta = createDocumentMeta(RoutePath.Overview);
 
+const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
+  [DocumentLocale.Korean]: {
+    eyebrow: '시작 · 제품 범위',
+    title: 'kfind 개요',
+    summary:
+      'kfind는 한국어 표제어와 짧은 구를 유한한 검색 계획으로 컴파일하고, 파일이나 메모리 text에서 형태 조건을 만족하는 span을 찾는 검색 엔진입니다.',
+    sections: [
+      {
+        title: '제품 목적',
+        body: (
+          <>
+            <p>
+              입력은 찾으려는 표제어, 선택적 품사와 검색 옵션입니다. 출력은 원문
+              span과 그 span을 생성한 표제어·품사·규칙 경로입니다. 예를 들어{' '}
+              <code>걷다</code>는 <code>걷고</code>, <code>걸어</code>,{' '}
+              <code>걸었다</code>의 후보를 만들고, 원문에서 실제 형태와 경계
+              판정을 통과한 위치만 반환합니다.
+            </p>
+            <p>
+              corpus 전체의 형태소열, 문장 구조나 단어 의미를 반환하는 제품은
+              아닙니다. 의미가 다른 <code>걸다</code>와 <code>걷다</code>가 같은
+              표면형을 만들 수 있으면 두 생성 근거를 보존합니다. 최종 의미
+              판별은 결과 주변 문맥을 아는 호출자가 수행합니다.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: '검색 중심 형태 처리',
+        body: (
+          <>
+            <p>
+              일반적인 형태소 분석기는 관찰한 문장을 입력으로 받아 각 token의
+              표제어와 품사를 추정합니다. kfind는 표제어와 품사를 먼저 받은 뒤,
+              검색 가능한 anchor와 허용되는 조사·어미·불규칙 교체를 계산합니다.
+              입력과 출력의 방향이 반대입니다.
+            </p>
+            <p>
+              이 모델에서는 형태 처리 비용이 큰 corpus가 아니라 짧은 query에
+              집중됩니다. Corpus에서는 고정 byte anchor를 먼저 찾고 그 주변만
+              Unicode 경계와 국소 형태 구조로 검증합니다. 전체 문장을 분석하지
+              않아도 활용형 recall, 파일 단위 streaming과 생성 근거를 한 검색
+              계약 안에서 제공할 수 있습니다.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: '한국어 문법 범위',
+        body: (
+          <>
+            <p>
+              체언은 복수 접미사와 조사 연쇄를 처리합니다. 조사는 받침 유무와
+              <code>ㄹ</code> 받침을 기준으로 <code>은/는</code>,{' '}
+              <code>이/가</code>, <code>으로/로</code> 같은 이형태를 고릅니다.
+              용언은 규칙 활용과 ㄷ·ㅂ·ㅅ·르·러·ㅎ 불규칙, 우·오 축약,
+              선어말어미와 종결·연결·관형·명사형 어미 연쇄를 지원합니다.
+            </p>
+            <p>
+              지정사, 보조용언, 파생 접미사와 합성용언 내부 성분은 compact
+              component resource가 token 안의 품사·span 연결을 증명할 때만
+              <code>smart</code> 후보로 유지합니다. 규칙 목록에 없는 임의 조합과
+              문맥 의미 추론은 생성하지 않습니다.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: '사용 경로',
+        body: (
+          <>
+            <p>
+              사람이 직접 검색할 때는 품사를 생략한 <code>auto</code>와{' '}
+              <code>smart</code> 경계가 기본입니다. Full POS 사전과 국소 구조
+              근거를 사용해 token 내부 오탐을 제한합니다.
+            </p>
+            <p>
+              에이전트는 각 atom의 품사를 명시하고 <code>--embedded</code>,{' '}
+              <code>--boundary any</code>, <code>--json</code>을 함께
+              사용합니다. 이 경로는 recall과 낮은 초기화 비용을 우선하며,
+              에이전트가 span 주변을 읽어 의미상 후보를 선택합니다. CLI, Rust와
+              npm WebAssembly API는 같은 query plan과 provenance 구조를
+              공유합니다.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+  [DocumentLocale.English]: {
+    eyebrow: 'START · PRODUCT SCOPE',
+    title: 'kfind overview',
+    summary:
+      'kfind compiles Korean lemmas and short phrases into finite search plans, then finds spans that satisfy those morphology constraints in files or in-memory text.',
+    sections: [
+      {
+        title: 'Product purpose',
+        body: (
+          <>
+            <p>
+              The input is a target lemma, an optional part of speech, and
+              search options. The output is a source span together with the
+              lemma, POS, and rule path that generated it. For example,{' '}
+              <code>걷다</code> produces candidates for <code>걷고</code>,{' '}
+              <code>걸어</code>, and <code>걸었다</code>, but returns only
+              source locations that pass morphology and boundary verification.
+            </p>
+            <p>
+              kfind does not return a complete morpheme sequence, sentence
+              parse, or word sense for the corpus. When semantically different
+              lemmas can produce the same surface, every valid origin is
+              retained. The caller resolves meaning from the surrounding source
+              context.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Search-directed morphology',
+        body: (
+          <>
+            <p>
+              A conventional morphological analyzer receives an observed
+              sentence and estimates the lemma and POS of each token. kfind
+              starts with the target lemma and POS, then derives searchable
+              anchors and permitted particles, endings, and irregular
+              substitutions. The input and output directions are reversed.
+            </p>
+            <p>
+              Morphology cost is therefore concentrated in the short query
+              rather than the large corpus. The corpus path scans fixed byte
+              anchors first and applies Unicode boundaries and local morphology
+              only around hits. This model combines inflection recall, streaming
+              file search, and rule provenance without analyzing every sentence.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Korean grammar scope',
+        body: (
+          <>
+            <p>
+              Nominals support plural suffixes and particle chains. Particle
+              allomorphs such as <code>은/는</code>, <code>이/가</code>, and{' '}
+              <code>으로/로</code> are selected from the final consonant
+              condition. Predicates support regular conjugation, ㄷ, ㅂ, ㅅ, 르,
+              러, and ㅎ irregulars, 우 and 오 contraction, prefinal endings,
+              and finite terminal, connective, adnominal, and nominalizing
+              chains.
+            </p>
+            <p>
+              Copulas, auxiliaries, derivational suffixes, and internal compound
+              components remain under <code>smart</code> only when the compact
+              component resource proves the POS and span path inside the token.
+              Arbitrary combinations and contextual word-sense inference are not
+              generated.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Usage profiles',
+        body: (
+          <>
+            <p>
+              Interactive search defaults to POS <code>auto</code> and the{' '}
+              <code>smart</code> boundary. The full-POS lexicon and local
+              structural evidence constrain internal-token false positives.
+            </p>
+            <p>
+              Agents tag each atom with a POS and combine{' '}
+              <code>--embedded</code>, <code>--boundary any</code>, and{' '}
+              <code>--json</code>. This profile prioritizes recall and low
+              initialization cost, while the agent reads surrounding spans to
+              choose semantically relevant candidates. The CLI, Rust API, and
+              npm WebAssembly API share the same plan and provenance model.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+};
+
 export default function OverviewPage(): React.JSX.Element {
-  return (
-    <DocumentPage>
-      <PageIntro
-        eyebrow="kfind 0.3.0-rc.3 · TECHNICAL DOCUMENTATION"
-        title="한국어 표제어를 검색 가능한 계획으로"
-        summary="kfind는 한국어 표제어와 짧은 구를 유한한 검색 계획으로 컴파일하고, 그 계획으로 파일과 메모리의 text를 탐색하는 matcher입니다. 형태 지식은 query를 확장하고 후보를 검증하는 데 사용하며, 검색 대상 전체를 형태소 분석하거나 문장의 의미를 판별하는 데 사용하지 않습니다."
-      >
-        <div className="document-links">
-          <Link to={RoutePath.Playground}>WebAssembly playground</Link>
-          <Link to={RoutePath.GettingStarted}>설치와 첫 검색</Link>
-          <a href="https://github.com/SeokminHong/kfind">소스 저장소</a>
-        </div>
-      </PageIntro>
-
-      <DocumentSection title="해결하려는 문제">
-        <p>
-          일반 문자열 검색은 사용자가 입력한 표면형과 같은 문자열을 찾습니다.
-          따라서 <code>걷다</code>로 검색하면 <code>걸어</code>,{' '}
-          <code>걸었다</code>, <code>걷는</code>처럼 실제 문장에 나타나는
-          활용형을 별도로 열거해야 합니다. kfind는 표제어의 품사와 활용 정보를
-          이용해 이 표면형들을 하나의 검색 계획으로 표현합니다. 사용자는
-          찾으려는 표제어를 입력하고, 엔진은 그 표제어에서 생성될 수 있는 후보를
-          찾아냅니다.
-        </p>
-        <pre>
-          <code>{`query lemma: 걷다
-matched surfaces: 걸어 · 걸었다 · 걷는 · 걸을 · 걷기에서도`}</code>
-        </pre>
-        <p>
-          이 기능의 범위는 검색 결과를 만드는 데 필요한 형태 관계까지입니다.
-          kfind는 짧은 query를 상한이 정해진 plan으로 컴파일하고, 대규모
-          text에서 anchor를 찾아 검증된 span과 품사·생성 규칙을 반환합니다. CLI,
-          Rust library와 JavaScript binding은 이 결과 계약을 공유합니다. 반면
-          문장 전체의 tokenization, 문맥에 따른 의미 판별, semantic search, 임의
-          표면형의 완전한 역분석은 수행하지 않습니다. 형태소 분석기 자체의
-          tokenizer 처리량을 높이는 것도 제품 목표가 아닙니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="검색 모델">
-        <p>
-          kfind는 형태 규칙을 짧은 query 쪽에 적용하고, 큰 corpus 쪽에서는
-          가능한 한 byte 검색을 유지합니다. 먼저 query를 정규화하고 사전에서
-          가능한 품사를 조회한 뒤 활용과 파생 candidate program을 만듭니다. 각
-          program은 변하지 않는 가장 긴 byte열을 anchor로 선택하고, 조사·어미를
-          소비하는 상태와 boundary 또는 구조 제약을 함께 보존합니다. 파일을
-          scan할 때는 anchor가 있는 위치만 후보로 삼고, 그 주변에서 program을
-          실행해 최종 span을 결정합니다.
-        </p>
-        <pre>
-          <code>{`query
-  → normalize and analyze
-  → compile candidate programs
-  → choose anchors
-
-corpus
-  → scan anchors
-  → verify local morphology and boundaries
-  → return spans and provenance`}</code>
-        </pre>
-        <p>
-          이 구조에서는 anchor가 없는 buffer에 형태 규칙을 적용할 필요가
-          없습니다. query 하나를 여러 파일에 적용하더라도 형태 분석은 컴파일
-          단계에서 한 번 이루어지고, corpus 크기에 비례하는 작업은 빠른 scan과
-          후보 주변의 제한된 검증으로 남습니다. 따라서 검색 범위를 넓히는 규칙과
-          scan 비용을 유발하는 조건을 query plan에서 직접 확인할 수 있습니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="사람과 에이전트의 사용 경로">
-        <p>
-          사람이 터미널에서 검색할 때와 에이전트가 자동화에서 검색할 때는 같은
-          엔진을 사용하지만 입력 정보와 오류 비용이 다릅니다. 사람에게는 품사를
-          생략할 수 있는 사용성이 중요하고, 관련 없는 결과를 직접 검토하는
-          비용이 큽니다. 기본 CLI는 설치된 full POS lexicon으로 품사를 추론하고{' '}
-          <code>smart</code> boundary로 precision을 우선합니다.
-        </p>
-        <p>
-          에이전트는 결과 주변의 문맥을 자동으로 확인할 수 있으므로 recall을
-          먼저 확보하는 편이 유리합니다. 모든 형태 atom에 품사를 명시하고{' '}
-          <code>--boundary any --embedded --json</code>을 사용하면 사전 초기화
-          비용을 줄이면서 넓은 후보와 provenance를 받을 수 있습니다. 이 경로는
-          false positive를 허용하므로, 호출자는 결과 문맥을 읽고 후보를 걸러
-          내는 단계를 함께 구현해야 합니다.
-        </p>
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">항목</th>
-                <th scope="col">사람 · precision 우선</th>
-                <th scope="col">에이전트 · recall 우선</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th scope="row">품사</th>
-                <td>생략하면 full POS로 자동 추론</td>
-                <td>각 atom에 명시</td>
-              </tr>
-              <tr>
-                <th scope="row">Boundary</th>
-                <td>
-                  <code>smart</code>
-                </td>
-                <td>
-                  <code>any</code>
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">사전</th>
-                <td>설치된 full POS를 자동으로 사용</td>
-                <td>
-                  <code>--embedded</code>
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">출력</th>
-                <td>터미널 text</td>
-                <td>JSON Lines와 provenance</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <pre>
-          <code>{`# 사람이 직접 검색
-kfind 걷다 src docs
-
-# 에이전트 자동화
-kfind --embedded --boundary any --pos verb --json 걷다 src docs`}</code>
-        </pre>
-      </DocumentSection>
-
-      <DocumentSection title="문서의 구성">
-        <p>
-          처음 사용하는 경우에는{' '}
-          <Link to={RoutePath.GettingStarted}>설치와 첫 검색</Link>
-          에서 CLI와 agent skill을 준비할 수 있습니다.{' '}
-          <Link to={RoutePath.Options}>쿼리와 옵션</Link>은 확장 수준, 품사,
-          boundary, Unicode 정규화와 phrase 거리가 서로 어떻게 결합되는지
-          정의합니다.
-        </p>
-        <p>
-          내부 원리를 이해하려면{' '}
-          <Link to={RoutePath.Analysis}>형태 분석 원리</Link>
-          에서 표제어가 candidate program으로 변환되는 과정을 먼저 읽은 뒤,{' '}
-          <Link to={RoutePath.Architecture}>아키텍처</Link>에서 query compile과
-          corpus scan의 접점을 확인하는 순서가 적합합니다.{' '}
-          <Link to={RoutePath.Optimization}>설계와 최적화</Link>는 program 상한,
-          anchor 선택, resource 지연 초기화와 streaming이 비용을 제한하는 방식을
-          설명합니다. 측정 결과와 해석 조건은{' '}
-          <Link to={RoutePath.Benchmarks}>벤치마크</Link>에 분리되어 있습니다.
-        </p>
-      </DocumentSection>
-    </DocumentPage>
-  );
+  return <LocalizedDocument content={content} />;
 }

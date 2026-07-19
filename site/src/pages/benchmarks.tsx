@@ -1,3 +1,6 @@
+import type { QualityChartRow } from '../components/quality-chart';
+
+import { DocumentLocale, useDocumentLocale } from '../app/i18n';
 import { createDocumentMeta } from '../app/metadata';
 import { RoutePath } from '../app/navigation';
 import {
@@ -5,641 +8,391 @@ import {
   DocumentSection,
   PageIntro,
 } from '../components/document';
+import { QualityChart } from '../components/quality-chart';
+import benchmarkSnapshotJson from '../generated-benchmark/site-morphology.json';
 
 export const meta = createDocumentMeta(RoutePath.Benchmarks);
 
+interface RawQuality {
+  readonly f1_percent: number;
+  readonly fn: number;
+  readonly fp: number;
+  readonly precision_percent: number;
+  readonly recall_percent: number;
+  readonly tn: number;
+  readonly tp: number;
+}
+
+interface ContractQuality {
+  readonly contract_f1_percent: number;
+  readonly contract_fn: number;
+  readonly contract_fp: number;
+  readonly contract_precision_percent: number;
+  readonly contract_recall_percent: number;
+  readonly contract_tn: number;
+  readonly contract_tp: number;
+  readonly excluded_cases: number;
+  readonly reclassified_cases: number;
+  readonly reviewed_cases: number;
+}
+
+interface QualityResult {
+  readonly contract_adjusted?: { readonly overall: ContractQuality };
+  readonly overall: RawQuality;
+}
+
+interface BenchmarkSnapshot {
+  readonly backends: readonly string[];
+  readonly performance: Readonly<Record<string, PerformanceResult>>;
+  readonly quality: Readonly<Record<string, QualityResult>>;
+  readonly query_matrix: {
+    readonly explicit_pos: {
+      readonly dataset: {
+        readonly cases: number;
+        readonly contract_review: {
+          readonly excluded_cases: number;
+          readonly reclassified_cases: number;
+          readonly registry_sha256: string;
+          readonly reviewed_cases: number;
+        };
+      };
+      readonly quality: Readonly<Record<string, QualityResult>>;
+    };
+  };
+  readonly robustness: {
+    readonly explicit_pos: {
+      readonly backends: readonly string[];
+      readonly quality: Readonly<Record<string, QualityResult>>;
+    };
+  };
+  readonly source_report: {
+    readonly revision: string;
+    readonly sha256: string;
+  };
+}
+
+interface PerformanceResult {
+  readonly cases_per_second: number;
+  readonly initialization_seconds: number;
+  readonly latency_p95_ms: number;
+  readonly peak_rss_kib: number;
+  readonly runs: number;
+  readonly warmup_runs: number;
+}
+
+const benchmarkSnapshot = benchmarkSnapshotJson as BenchmarkSnapshot;
+
+const backendLabels: Readonly<Record<string, string>> = {
+  'kfind-embedded': 'kfind embedded',
+  'kfind-full-pos': 'kfind full POS',
+  kiwi: 'Kiwi',
+  lindera: 'Lindera',
+  'mecab-ko': 'MeCab-ko',
+  komoran: 'KOMORAN',
+};
+
+const copy = {
+  [DocumentLocale.Korean]: {
+    eyebrow: '근거 · 품질과 성능',
+    title: '벤치마크',
+    summary:
+      '형태 검색 품질과 실행 비용을 서로 다른 workload로 측정합니다. 모든 품질 비교는 raw와 contract-adjusted 결과를 함께 표시하며, 성능은 초기화·처리량·지연 시간·메모리를 별도 단위로 유지합니다.',
+    scopeTitle: '평가 범위',
+    scopeParagraphs: [
+      'Canonical은 사람이 표준 맞춤법을 확인한 500개 양성·500개 음성 사례입니다. 제품과 Kiwi, Lindera, MeCab-ko, KOMORAN은 같은 표제어·품사·문장 과제를 수행합니다.',
+      'Robust는 실제 오류 문장 250개 양성·250개 음성 사례입니다. 표준문 결과와 합산하지 않으며 robustness 설정, 오류 위치와 입력 분모를 별도로 기록합니다.',
+      'Query matrix는 같은 문장에 여러 양성·음성 질의를 적용해 부분 회수와 문장 안 오탐을 측정합니다. 제품 계약 검토 registry가 strict corpus gold와 다른 기대값을 선언할 수 있는 평가군입니다.',
+    ],
+    metricTitle: 'Raw와 contract-adjusted 지표',
+    metricParagraphs: [
+      'Raw는 원본 corpus gold를 그대로 사용합니다. TP, FP, TN, FN과 여기서 계산한 precision, recall, F1을 수정하지 않습니다.',
+      'Contract-adjusted는 제품 실행 전에 고정한 registry를 같은 예측에 적용합니다. 의미로 구분할 수 없는 동형이의, source에 정렬된 내부 성분과 gold span 오류를 재분류하고, 제품 입력 계약에 속하지 않는 비표준 입력만 제외합니다. 구현이 어렵거나 아직 지원하지 않는 문법은 제외하지 않습니다.',
+      'Contract review가 없는 평가군은 raw 기대값을 그대로 사용합니다. 이때 두 결과가 같고 reviewed cases가 0이라는 사실도 결과에 포함합니다. 보정 결과만 남기거나 raw 결과를 숨기지 않습니다.',
+    ],
+    fnExample:
+      'Full-POS query matrix의 raw FN 4와 FNᶜ 0은 같은 실행 결과를 두 계약으로 읽은 값입니다. Raw FN 4는 strict gold span을 회수하지 못한 사례입니다. Registry는 그중 의미 구조로 구분할 수 없는 동형이의와 source에 정렬된 검색 성분을 제품 목표의 양성으로 선언합니다. 따라서 FNᶜ 0은 네 사례가 제품 목표 밖의 false negative라는 뜻이며, 제품이 네 오류를 수정했다는 뜻이 아닙니다.',
+    canonicalTitle: 'Canonical 품질',
+    canonicalCaption:
+      '같은 1,000개 explicit-POS 사례의 F1입니다. Review registry가 없는 행은 raw와 contract-adjusted 값이 같고 review 수가 0입니다.',
+    queryMatrixTitle: 'Query matrix 품질',
+    queryMatrixCaption:
+      '같은 query matrix 예측에 strict gold와 고정 contract review registry를 각각 적용한 F1입니다.',
+    robustTitle: 'Robust 품질',
+    robustCaption:
+      '같은 500개 실제 오류 문장의 F1입니다. Contract review가 없으므로 raw와 contract-adjusted 결과가 같습니다.',
+    chartDescription: '제품별 raw와 contract-adjusted F1 막대 비교',
+    rawLabel: 'Raw',
+    adjustedLabel: 'Contract-adjusted',
+    metricLabel: 'F1',
+    confusionTitle: 'Canonical confusion matrix',
+    backend: '제품',
+    rawCounts: 'Raw TP / FP / TN / FN',
+    adjustedCounts: 'TPᶜ / FPᶜ / TNᶜ / FNᶜ',
+    performanceTitle: '성능 측정 단위',
+    performanceParagraph:
+      '형태 품질 workload는 fresh process에서 warm-up 1회 뒤 5회 측정합니다. 다음 표의 값은 중앙값이며, 품질 지표와 하나의 점수로 합치지 않습니다.',
+    initialization: '초기화',
+    throughput: 'cases/s',
+    latency: 'p95',
+    memory: 'peak RSS',
+    sourcesTitle: '원본 자료',
+    sourceParagraph:
+      '승인 snapshot은 source report의 Git revision과 SHA-256을 보존합니다. 측정 환경, fixture checksum, 도구 버전과 개별 실패 사례는 원본 보고서에서 확인할 수 있습니다.',
+    reportLink: '벤치마크 계약과 보고서',
+  },
+  [DocumentLocale.English]: {
+    eyebrow: 'EVIDENCE · QUALITY AND PERFORMANCE',
+    title: 'Benchmarks',
+    summary:
+      'Morphology quality and execution cost are measured as separate workloads. Every quality comparison includes raw and contract-adjusted results, while initialization, throughput, latency, and memory retain their own units.',
+    scopeTitle: 'Evaluation scope',
+    scopeParagraphs: [
+      'Canonical contains 500 positive and 500 negative sentences manually reviewed for standard Korean. kfind, Kiwi, Lindera, MeCab-ko, and KOMORAN perform the same lemma, POS, and sentence task.',
+      'Robust contains 250 positive and 250 negative natural sentences with real errors. Its results are not combined with Canonical, and the robustness setting, error location, and denominator are recorded separately.',
+      'The query matrix applies multiple positive and negative queries to each sentence. It measures partial recovery and within-sentence false positives, and it is the dataset with a versioned product-contract review registry.',
+    ],
+    metricTitle: 'Raw and contract-adjusted metrics',
+    metricParagraphs: [
+      'Raw metrics preserve the source corpus gold. TP, FP, TN, FN, precision, recall, and F1 are reported without modification.',
+      'Contract-adjusted metrics apply a registry fixed before product execution to the same predictions. It may reclassify semantically indistinguishable homographs, source-aligned internal components, and gold-span errors. Only nonstandard input outside the product contract may be excluded. Unsupported or expensive grammar remains in the denominator.',
+      'A dataset without contract reviews uses its raw expectation unchanged. The report still includes the identical adjusted result and a reviewed-case count of zero. Raw evidence is never replaced by the adjusted view.',
+    ],
+    fnExample:
+      'The full-POS query matrix has four raw false negatives and zero contract-adjusted false negatives. The execution result is identical in both views. The four raw misses target strict gold spans, while the registry classifies their indistinguishable homographs and source-aligned components as positive under the product contract. FNᶜ = 0 therefore means that the four misses are outside the product false-negative objective; it does not mean that the implementation fixed four errors.',
+    canonicalTitle: 'Canonical quality',
+    canonicalCaption:
+      'F1 on the same 1,000 explicit-POS cases. Rows without contract reviews have identical raw and adjusted values and a review count of zero.',
+    queryMatrixTitle: 'Query-matrix quality',
+    queryMatrixCaption:
+      'F1 from the same predictions evaluated with strict gold and the fixed contract-review registry.',
+    robustTitle: 'Robust quality',
+    robustCaption:
+      'F1 on the same 500 natural noisy sentences. No contract review is applied, so raw and adjusted results are identical.',
+    chartDescription: 'Raw and contract-adjusted F1 bars for each product',
+    rawLabel: 'Raw',
+    adjustedLabel: 'Contract-adjusted',
+    metricLabel: 'F1',
+    confusionTitle: 'Canonical confusion matrix',
+    backend: 'Product',
+    rawCounts: 'Raw TP / FP / TN / FN',
+    adjustedCounts: 'TPᶜ / FPᶜ / TNᶜ / FNᶜ',
+    performanceTitle: 'Performance units',
+    performanceParagraph:
+      'Morphology workloads run in fresh processes with one warm-up followed by five measurements. The table contains medians and does not combine execution cost with quality.',
+    initialization: 'Initialization',
+    throughput: 'cases/s',
+    latency: 'p95',
+    memory: 'Peak RSS',
+    sourcesTitle: 'Source evidence',
+    sourceParagraph:
+      'The approved snapshot records the source report Git revision and SHA-256. The report contains the environment, fixture checksums, tool versions, and case-level failures.',
+    reportLink: 'Benchmark contract and reports',
+  },
+} as const;
+
+function adjusted(result: QualityResult): ContractQuality {
+  const metrics = result.contract_adjusted?.overall;
+
+  if (metrics !== undefined) {
+    return metrics;
+  }
+
+  return {
+    contract_f1_percent: result.overall.f1_percent,
+    contract_fn: result.overall.fn,
+    contract_fp: result.overall.fp,
+    contract_precision_percent: result.overall.precision_percent,
+    contract_recall_percent: result.overall.recall_percent,
+    contract_tn: result.overall.tn,
+    contract_tp: result.overall.tp,
+    excluded_cases: 0,
+    reclassified_cases: 0,
+    reviewed_cases: 0,
+  };
+}
+
+function requiredEntry<Value>(
+  values: Readonly<Record<string, Value>>,
+  key: string,
+  family: string,
+): Value {
+  const value = values[key];
+
+  if (value === undefined) {
+    throw new Error(`${family} result is unavailable for ${key}`);
+  }
+
+  return value;
+}
+
+function chartRows(
+  backends: readonly string[],
+  quality: Readonly<Record<string, QualityResult>>,
+): QualityChartRow[] {
+  return backends.map((backend) => {
+    const result = requiredEntry(quality, backend, 'quality');
+
+    return {
+      adjusted: adjusted(result).contract_f1_percent,
+      label: backendLabels[backend] ?? backend,
+      raw: result.overall.f1_percent,
+    };
+  });
+}
+
 export default function BenchmarksPage(): React.JSX.Element {
+  const locale = useDocumentLocale();
+  const text = copy[locale];
+  const queryMatrixQuality =
+    benchmarkSnapshot.query_matrix.explicit_pos.quality;
+  const queryMatrixBackends = Object.keys(queryMatrixQuality);
+
   return (
     <DocumentPage>
       <PageIntro
-        eyebrow="EVIDENCE · QUALITY & PERFORMANCE"
-        title="워크로드를 섞지 않는 벤치마크"
-        summary="형태 검색 품질, 오류 입력 Robust 품질, end-to-end CLI 비용과 초기화 비용은 서로 다른 경로를 측정합니다. Canonical은 사람이 표준 맞춤법을 검증한 문장만 사용하고, 비문·오타 문장은 별도 Robust set에서 평가합니다. 수치는 입력·환경·revision이 고정된 source report 안에서 해석해야 하며 서로 다른 workload를 하나의 점수로 합치지 않습니다."
+        eyebrow={text.eyebrow}
+        title={text.title}
+        summary={text.summary}
       />
 
-      <DocumentSection title="표준문과 오류문을 분리한 품질 평가">
-        <p>
-          Canonical 품질은 UD Korean-Kaist의 실제 샘플링 후보 문장을 사람이 모두
-          읽고 표준 맞춤법과 문장성을 검증한 뒤 통과한 문장만 사용합니다. Test
-          후보 813문장 중 57문장, development 후보 792문장 중 64문장의 비문,
-          오타, 띄어쓰기 오류와 source artifact를 제외했습니다. 최종 canonical은
-          500 positive와 500 negative이며 Robust 점수와 합산하지 않습니다.
-        </p>
-        <p>
-          Robust 품질은 오류가 많은 UD Korean-KSL test split에서 source signal
-          문장 441개와 quota 보충 문장 4개를 전부 수동 검토해 만들었습니다. 실제
-          오류 문장 439개만 남기고 정상문 5개와 source artifact 1개를 제외한 뒤,
-          query·품사·원문 byte span을 다시 검증해 250 positive와 250 negative를
-          고정했습니다. Synthetic 교정문이 아니라 원문 오류 문장 자체를
-          평가하며, 현재 비교는 모든 제품의 기본 설정과 kfind{' '}
-          <code>robustness=off</code> 기준입니다.
-        </p>
-        <p>
-          Positive 250건 중 100건은 오타가 찾으려는 형태소 span에 직접 걸린{' '}
-          <code>target-span</code>, 150건은 오류가 주변 문맥에만 있는{' '}
-          <code>context-only</code>입니다. 아래 표의 전체 precision·recall·F1은
-          같은 500건에서 계산하고, 두 recall을 함께 공개해 목표 오타 복구와 주변
-          오류 내성을 구분합니다.
-        </p>
+      <DocumentSection title={text.scopeTitle}>
+        {text.scopeParagraphs.map((paragraph) => (
+          <p key={paragraph}>{paragraph}</p>
+        ))}
+      </DocumentSection>
+
+      <DocumentSection title={text.metricTitle}>
+        {text.metricParagraphs.map((paragraph) => (
+          <p key={paragraph}>{paragraph}</p>
+        ))}
+        <p>{text.fnExample}</p>
+      </DocumentSection>
+
+      <DocumentSection title={text.canonicalTitle}>
+        <QualityChart
+          adjustedLabel={text.adjustedLabel}
+          caption={text.canonicalCaption}
+          description={text.chartDescription}
+          metricLabel={text.metricLabel}
+          rawLabel={text.rawLabel}
+          rows={chartRows(
+            benchmarkSnapshot.backends,
+            benchmarkSnapshot.quality,
+          )}
+          title={text.canonicalTitle}
+        />
+        <h3>{text.confusionTitle}</h3>
         <div className="table-scroll">
           <table>
             <thead>
               <tr>
-                <th scope="col">제품 기본 경로</th>
-                <th scope="col">Precision</th>
-                <th scope="col">Recall</th>
-                <th scope="col">F1</th>
-                <th scope="col">FP</th>
-                <th scope="col">Target recall</th>
-                <th scope="col">Context recall</th>
+                <th scope="col">{text.backend}</th>
+                <th scope="col">{text.rawCounts}</th>
+                <th scope="col">{text.adjustedCounts}</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>kfind Agent · embedded + any</td>
-                <td>97.89%</td>
-                <td>92.80%</td>
-                <td>95.28%</td>
-                <td>5</td>
-                <td>90.00%</td>
-                <td>94.67%</td>
-              </tr>
-              <tr>
-                <td>Kiwi 0.23.2</td>
-                <td>100.00%</td>
-                <td>85.20%</td>
-                <td>92.01%</td>
-                <td>0</td>
-                <td>85.00%</td>
-                <td>85.33%</td>
-              </tr>
-              <tr>
-                <td>Lindera 4.0.0</td>
-                <td>100.00%</td>
-                <td>83.20%</td>
-                <td>90.83%</td>
-                <td>0</td>
-                <td>83.00%</td>
-                <td>83.33%</td>
-              </tr>
-              <tr>
-                <td>MeCab-ko 1.0.2</td>
-                <td>100.00%</td>
-                <td>82.40%</td>
-                <td>90.35%</td>
-                <td>0</td>
-                <td>83.00%</td>
-                <td>82.00%</td>
-              </tr>
-              <tr>
-                <td>KOMORAN 3.3.9</td>
-                <td>100.00%</td>
-                <td>82.00%</td>
-                <td>90.11%</td>
-                <td>0</td>
-                <td>81.00%</td>
-                <td>82.67%</td>
-              </tr>
+              {benchmarkSnapshot.backends.map((backend) => {
+                const result = requiredEntry(
+                  benchmarkSnapshot.quality,
+                  backend,
+                  'canonical quality',
+                );
+                const contract = adjusted(result);
+
+                return (
+                  <tr key={backend}>
+                    <th scope="row">{backendLabels[backend] ?? backend}</th>
+                    <td>
+                      {result.overall.tp} / {result.overall.fp} /{' '}
+                      {result.overall.tn} / {result.overall.fn}
+                    </td>
+                    <td>
+                      {contract.contract_tp} / {contract.contract_fp} /{' '}
+                      {contract.contract_tn} / {contract.contract_fn}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
-        <p>
-          같은 explicit-POS gold에서 kfind Agent가 recall과 F1은 가장 높았지만
-          false positive 5건이 있었고, 외부 네 제품은 false positive 없이 더
-          낮은 recall을 기록했습니다. 품사를 생략한 kfind Human 경로는 별도
-          fixture에서 precision 99.52%, recall 83.60%, F1 90.87%, target recall
-          68.00%였습니다. 입력 계약이 다르므로 위 제품 순위에 합치지 않습니다.
-        </p>
-        <figure className="benchmark-figure">
-          <img
-            src="/benchmarks/robustness-quality.svg"
-            alt="실제 오류 문장 500건에서 kfind Agent, Kiwi, Lindera, MeCab-ko, KOMORAN의 precision, recall, F1과 오류 위치별 recall 비교"
-            loading="lazy"
-          />
-          <figcaption>
-            250 positive / 250 negative. Target 100건과 context 150건은 positive
-            분모이며, canonical 표준문 점수와 분리합니다.
-          </figcaption>
-        </figure>
-        <figure className="benchmark-figure">
-          <img
-            src="/benchmarks/robustness-performance.svg"
-            alt="동일한 Robust 오류 문장 500건에서 제품별 처리량, 초기화, p95 latency와 peak RSS 비교"
-            loading="lazy"
-          />
-          <figcaption>
-            Fresh process에서 warm-up 1회 후 5회 측정한 중앙값입니다. 품질과
-            실행 비용은 별도 축으로 해석합니다.
-          </figcaption>
-        </figure>
       </DocumentSection>
 
-      <DocumentSection title="Query matrix raw와 contract 품질">
-        <p>
-          Explicit-POS query matrix는 432개 표준문에서 2,592개 질의를
-          평가합니다. Raw 지표는 source corpus gold를 그대로 보존합니다.
-          Contract 지표는 제품 실행 전에 고정한 review registry를 적용해, 문법
-          구조로 구분할 수 없는 동형이의와 source 정렬 성분을 양성으로 보고 gold
-          정렬 오류를 교정합니다. 현재 비표준 띄어쓰기 3건만 분모에서
-          제외합니다.
-        </p>
+      <DocumentSection title={text.queryMatrixTitle}>
+        <QualityChart
+          adjustedLabel={text.adjustedLabel}
+          caption={text.queryMatrixCaption}
+          description={text.chartDescription}
+          metricLabel={text.metricLabel}
+          rawLabel={text.rawLabel}
+          rows={chartRows(queryMatrixBackends, queryMatrixQuality)}
+          title={text.queryMatrixTitle}
+        />
+      </DocumentSection>
+
+      <DocumentSection title={text.robustTitle}>
+        <QualityChart
+          adjustedLabel={text.adjustedLabel}
+          caption={text.robustCaption}
+          description={text.chartDescription}
+          metricLabel={text.metricLabel}
+          rawLabel={text.rawLabel}
+          rows={chartRows(
+            benchmarkSnapshot.robustness.explicit_pos.backends,
+            benchmarkSnapshot.robustness.explicit_pos.quality,
+          )}
+          title={text.robustTitle}
+        />
+      </DocumentSection>
+
+      <DocumentSection title={text.performanceTitle}>
+        <p>{text.performanceParagraph}</p>
         <div className="table-scroll">
           <table>
             <thead>
               <tr>
-                <th scope="col">kfind profile</th>
-                <th scope="col">Raw precision / recall</th>
-                <th scope="col">Precisionᶜ / recallᶜ</th>
-                <th scope="col">Raw FP / FN</th>
-                <th scope="col">FPᶜ / FNᶜ</th>
+                <th scope="col">{text.backend}</th>
+                <th scope="col">{text.initialization}</th>
+                <th scope="col">{text.throughput}</th>
+                <th scope="col">{text.latency}</th>
+                <th scope="col">{text.memory}</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>embedded + smart</td>
-                <td>99.67% / 92.28%</td>
-                <td>100.00% / 92.59%</td>
-                <td>4 / 100</td>
-                <td>0 / 96</td>
-              </tr>
-              <tr>
-                <td>full POS + smart</td>
-                <td>99.69% / 99.61%</td>
-                <td>100.00% / 99.92%</td>
-                <td>4 / 5</td>
-                <td>0 / 1</td>
-              </tr>
+              {Object.keys(benchmarkSnapshot.performance).map((backend) => {
+                const result = requiredEntry(
+                  benchmarkSnapshot.performance,
+                  backend,
+                  'performance',
+                );
+
+                return (
+                  <tr key={backend}>
+                    <th scope="row">{backendLabels[backend] ?? backend}</th>
+                    <td>{result.initialization_seconds.toFixed(4)} s</td>
+                    <td>{result.cases_per_second.toLocaleString(locale)}</td>
+                    <td>{result.latency_p95_ms.toFixed(4)} ms</td>
+                    <td>{(result.peak_rss_kib / 1024).toFixed(1)} MiB</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
-        <p>
-          Full-POS의 FNᶜ 1건은 한 음절 명사 성분으로 아직 구현하지 않은 제품
-          목표입니다. 비용이나 현재 profile을 이유로 계약 분모에서 빼지
-          않습니다.
-        </p>
-        <figure className="benchmark-figure">
-          <img
-            src="/benchmarks/query-matrix-quality.svg"
-            alt="kfind embedded와 full POS query matrix에서 raw와 contract precision, recall, confusion matrix 비교"
-            loading="lazy"
-          />
-          <figcaption>
-            FPᶜ, FNᶜ, precisionᶜ, recallᶜ는 version-controlled registry가 실제로
-            적용된 값이며 raw 지표의 별칭이 아닙니다. Review 22건의 판정은
-            유지되며, 확인한 구현 목표 14건 중 13건을 해소했습니다.
-          </figcaption>
-        </figure>
       </DocumentSection>
 
-      <DocumentSection title="제품 persona 결과">
+      <DocumentSection title={text.sourcesTitle}>
+        <p>{text.sourceParagraph}</p>
         <p>
-          Agent workflow와 User workflow는 실제 사용자가 제공하는 정보와 오류
-          비용을 반영합니다. Agent는 모든 형태 atom에 품사를 명시하고 embedded
-          lexicon과 <code>any</code> boundary를 사용해 recall과 낮은 초기화
-          비용을 우선합니다. User는 품사를 생략하고 full POS lexicon, enriched
-          용언 metadata와 <code>smart</code> boundary를 사용해 precision을
-          우선합니다. 따라서 두 행은 같은 backend의 설정 차이뿐 아니라 서로 다른
-          입력 계약을 나타냅니다.
+          <code>{benchmarkSnapshot.source_report.revision}</code> ·{' '}
+          <code>{benchmarkSnapshot.source_report.sha256}</code>
         </p>
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">Workflow</th>
-                <th scope="col">TP / FP / FN</th>
-                <th scope="col">Precision</th>
-                <th scope="col">Recall</th>
-                <th scope="col">F1</th>
-                <th scope="col">cases/s</th>
-                <th scope="col">RSS</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Agent · embedded + any + explicit POS</td>
-                <td>484 / 7 / 16</td>
-                <td>98.57%</td>
-                <td>96.80%</td>
-                <td>97.68%</td>
-                <td>53,317.6</td>
-                <td>5.4 MiB</td>
-              </tr>
-              <tr>
-                <td>User · full POS + smart + untagged</td>
-                <td>489 / 2 / 11</td>
-                <td>99.59%</td>
-                <td>97.80%</td>
-                <td>98.69%</td>
-                <td>19,994.1</td>
-                <td>57.4 MiB</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p>
-          표의 quality 값은 각 persona의 고정 fixture에서 계산합니다. 두
-          fixture는 negative query를 고르는 기준이 다르므로 F1의 차이를 backend
-          우열로 해석할 수 없습니다. 다음 차트는 품질과 함께 initialization,
-          cases/s, p95 latency와 RSS를 배치해 각 workflow가 선택한 trade-off를
-          보여 줍니다.
+        <p className="reference-link">
+          <a href="https://github.com/SeokminHong/kfind/tree/main/docs/benchmarks">
+            {text.reportLink}
+          </a>
         </p>
-        <figure className="benchmark-figure">
-          <img
-            src="/benchmarks/product-workflows.svg"
-            alt="Agent와 User workflow의 품질, 처리량, 초기화, p95 latency와 RSS 비교"
-            loading="lazy"
-          />
-          <figcaption>
-            Agent와 User fixture는 negative query를 고르는 기준이 다릅니다. 두
-            행의 품질 차이를 backend 간 우열로 해석할 수 없습니다.
-          </figcaption>
-        </figure>
-      </DocumentSection>
-
-      <DocumentSection title="외부 분석기와 제품 task 비교">
-        <p>
-          모든 분석기는 같은 1,000-case explicit-POS fixture와 gold로
-          평가합니다. Agent와 외부 분석기에는 품사를 명시합니다. User만 실제
-          대화형 입력 조건을 반영해 같은 query에서 품사를 제거합니다. 따라서
-          User 결과에는 품사 자동 계획의 중의성과 비용이 포함되고, 다른 행과
-          동일한 입력 조건이라고 볼 수 없습니다.
-        </p>
-        <p>
-          외부 분석기 결과는 고정 snapshot으로 보존하고 fixture, schema, version
-          또는 adapter 설정이 바뀔 때만 다시 측정합니다. 차트의 처리량은 각
-          backend가 제품 task를 수행하는 데 필요한 query 준비, 분석과 matching을
-          포함합니다. 동일한 문장을 tokenizer에 넣어 얻은 순수 분석 속도와는
-          측정 구간이 다릅니다.
-        </p>
-        <figure className="benchmark-figure">
-          <img
-            src="/benchmarks/product-external-comparison.svg"
-            alt="kfind Agent, User와 Kiwi, Lindera, MeCab-ko, KOMORAN의 품질 및 실행 비용 비교"
-            loading="lazy"
-          />
-          <figcaption>
-            외부 분석기 결과는 고정 snapshot으로 보존합니다. fixture, schema,
-            version 또는 adapter 설정이 바뀔 때만 다시 측정합니다.
-          </figcaption>
-        </figure>
-      </DocumentSection>
-
-      <DocumentSection title="형태 품질의 정의">
-        <p>
-          형태 품질 fixture는 문장마다 찾으려는 lemma, POS와 기대 span을
-          정의합니다. 검색 결과의 lemma와 POS가 gold와 같고 결과 span이 기대
-          span과 겹치면 true positive입니다. 같은 lemma와 POS를 찾았지만 위치가
-          기대 span과 겹치지 않으면 false positive이고, 기대 lemma·POS·span을
-          만족하는 결과가 없으면 false negative입니다.
-        </p>
-        <p>
-          이 정의는 문장 전체의 tokenization 정확도를 측정하지 않습니다. 제품이
-          반환해야 하는 검색 span을 찾았는지만 측정합니다. 별도 human fixture는
-          품사를 생략하고, query 표제어가 지원하는 어떤 품사로도 분석되지 않는
-          문장을 negative로 사용합니다. 이 fixture의 negative 정의는
-          explicit-POS fixture와 다르므로 두 결과를 하나의 F1 순위로 합치지
-          않습니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="성능 측정 계약">
-        <p>
-          각 workload는 실제로 바뀐 실행 경로를 분리해 측정합니다. Morphology
-          process는 query compile과 match를 포함한 case 처리 비용을, query
-          compile benchmark는 analyzer를 재사용할 때 plan 생성 비용을
-          측정합니다. Matcher benchmark는 다중 anchor matcher의 one-shot build와
-          짧은 검색, 재사용한 matcher의 큰 corpus scan을 분리합니다. 1 GiB
-          literal scan은 형태 resource를 사용하지 않는 low-hit 파일 scan을,
-          product CLI workload는 실제 persona 옵션으로 100 MiB corpus를 검색하는
-          end-to-end 비용을 측정합니다.
-        </p>
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">Workload</th>
-                <th scope="col">방법</th>
-                <th scope="col">대표값</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Morphology process</td>
-                <td>매번 fresh process 사용, warm-up 1회 후 5회 측정</td>
-                <td>initialization, cases/s, p95, RSS의 median/min/max</td>
-              </tr>
-              <tr>
-                <td>Query compile</td>
-                <td>Criterion 기본 sample, analyzer 재사용</td>
-                <td>sample당 1회 p95 nearest-rank</td>
-              </tr>
-              <tr>
-                <td>Matcher build / reused scan</td>
-                <td>
-                  짧은 문장 one-shot과 고정 corpus 재사용을 별도 Criterion 측정
-                </td>
-                <td>sample당 1회 p95 nearest-rank</td>
-              </tr>
-              <tr>
-                <td>1 GiB literal scan</td>
-                <td>warm-up 1회 후 warm-cache run 3회, run마다 10회 scan</td>
-                <td>1회 평균의 median</td>
-              </tr>
-              <tr>
-                <td>Product CLI</td>
-                <td>100 MiB·1,000파일, 독립 process</td>
-                <td>wall, throughput, peak RSS</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <p>
-          2026-07-12의 revision <code>a7b3c28</code>에서 1 GiB literal scan은
-          median 0.047초, 21,787 MiB/s와 peak RSS 7.23 MiB를 기록했습니다. 이
-          수치는 literal low-hit workload의 결과이며 morphology 품질이나 full
-          POS 초기화 비용을 설명하지 않습니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="상태 용언 현재 평서형 후속 형태 continuation">
-        <p>
-          형용사와 보조 형용사의 현재 평서형 <code>-다</code> 뒤에서{' '}
-          <code>고</code>, <code>는</code>, <code>던</code>, <code>면</code>,{' '}
-          <code>니</code>, <code>며</code>, <code>면서</code>, <code>는데</code>
-          {', '}
-          <code>지</code>를 소비합니다. <code>나쁘다면</code>,{' '}
-          <code>좋다는</code>, <code>어렵다면서</code>를 양성 회귀 fixture로
-          고정했습니다.
-        </p>
-        <p>
-          동작 용언의 사전형, 지정사와 부정 지정사 <code>아니다</code>에는 이
-          전이를 적용하지 않습니다. <code>가다면</code>, <code>나쁘다면도</code>
-          {', '}
-          <code>아니다면</code>은 거부합니다. <code>아니라면</code>은 별도
-          continuation이 필요한 남은 경계로 둡니다.
-        </p>
-        <p>
-          Main <code>809aa42</code> 대비 후보 <code>d6cefde</code>는
-          development, test와 Human의 FN을 각각 1건 줄였습니다. 신규 FP는 없고
-          Agent 품질은 바뀌지 않았습니다. Embedded·full-POS·Agent·User
-          morphology cases/s는 0.05~1.88% 낮았고, 가장 큰 p95 증가는
-          1.02%였습니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="접속 조사 이면/면의 명사류 결합">
-        <p>
-          명사류 뒤의 접속 조사 <code>이면/면</code>은 받침 유무에 맞는 이형태만
-          소비하고 token을 닫습니다. <code>백이면 백</code>,{' '}
-          <code>공부면 공부</code>를 찾으며 <code>백면</code>,{' '}
-          <code>공부이면</code>, <code>백이면도</code>는 거부합니다.
-        </p>
-        <p>
-          Main <code>3a673bd</code> 대비 후보 <code>8b846aa</code>는 development
-          embedded와 full-POS <code>smart</code>의 FN을 각각 1건 줄였습니다.
-          신규 FP는 없고 고정 test, Agent, Human과 hard-negative 품질은 바뀌지
-          않았습니다. Full-POS·Agent·User morphology cases/s는 1.23~2.08% 낮았고
-          가장 큰 p95 증가는 2.65%였습니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="현재 서술형 후속 형태 continuation">
-        <p>
-          현재 서술형 <code>-ㄴ다/-는다</code> 뒤에서 <code>고</code>,{' '}
-          <code>는</code>, <code>던</code>, <code>면</code>, <code>니</code>,{' '}
-          <code>며</code>, <code>면서</code>, <code>는데</code>, <code>지</code>
-          를 소비합니다. <code>받는다는</code>, <code>받든다는</code>,{' '}
-          <code>함께한다던</code>을 포함한 조합을 회귀 fixture로 고정했습니다.
-        </p>
-        <p>
-          Main <code>8fb22eb</code> 대비 후보 <code>ccc9525</code>는 development
-          embedded와 full-POS <code>smart</code>의 FN을 각각 1건 줄였습니다.
-          신규 FP는 없고 고정 test, Agent, Human과 hard-negative 품질은 바뀌지
-          않았습니다. Morphology cases/s는 2.88~4.04% 낮았고 초기화와 RSS는
-          유지됐습니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="선어말어미 뒤 -으되 continuation">
-        <p>
-          한국어기초사전의 결합 조건과 Korean-Kaist의 <code>치르+었+으되</code>
-          분석에 따라 <code>ending.past</code>와 <code>ending.future</code>{' '}
-          뒤에서만
-          <code>으되</code>를 소비합니다. bare stem이나 <code>으데</code>는
-          허용하지 않습니다.
-        </p>
-        <p>
-          Main <code>7e58474</code> 대비 후보 <code>0ceb458</code>은 development
-          embedded와 full-POS <code>smart</code>의 FN을 각각 1건 줄였습니다.
-          고정 test, Agent, Human과 hard-negative 품질은 바뀌지 않았고 성능 측정
-          범위는 기준선과 겹쳤습니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="대명사 계사·의문 어미 축약">
-        <p>
-          <code>누구·무어·무엇 + 이(VCP) + -ㄴ가(EC/EF)</code>의 선언된 축약
-          표면만 생성합니다. <code>smart</code>는 표면 전체에 같은 source
-          품사열이 있을 때만 승인하고 뒤의 조사는 기존 조사 전이로 검증합니다.
-          별도 표제어를 원 대명사의 alias로 합치지 않습니다.
-        </p>
-        <p>
-          Main <code>67b5606</code> 대비 후보 <code>a240de5</code>는 test matrix
-          full-POS FN을 2건 줄이고 FP를 유지했습니다. 성능 변화는 gate 안이고
-          측정 범위가 겹치며 RSS는 감소했습니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="source 정렬 합성용언 tail">
-        <p>
-          <code>smart</code>는 token 왼쪽부터{' '}
-          <code>용언 + EP* + EC + 용언 + E* + J*</code>가 끝까지 이어지고 두
-          번째 용언의 span과 세부 품사가 query core에 맞을 때 뒤쪽 용언을
-          유지합니다. 관형·명사형·종결 어미 뒤에서는 연결 경로를 다시 열지
-          않습니다.
-        </p>
-        <p>
-          이 구조로 <code>올라가</code>, <code>생겨나</code>,{' '}
-          <code>들어와서는</code>의 뒤쪽 용언을 회수합니다. <code>친구가</code>
-          의 조사 <code>가</code>는 거부하고, <code>그래 네가 가.</code>의 token
-          시작 명령형 <code>가</code>는 그대로 매칭합니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="제한된 사전 표면형 계층">
-        <p>
-          두 국립국어원 사전이 함께 지지하는 활용형 12,888개 중 12,758개는 기존
-          분석과 생산 규칙으로 생성합니다. 배포 데이터에는 생성되지 않는 활용형
-          130개, 두 사전이 독립 등재한 제한된 형용사 부사형 88개와 나머지 양방향
-          파생 관계 77개를 저장합니다. 여기에 구조화된 voice 파생 관계 225개를
-          더해 결과는 520행, 42,910바이트이며 정의와 예문은 포함하지 않습니다.
-        </p>
-        <p>
-          생성기는 한도와 무관하게 candidate를 한 번 만들고 보존합니다. 별도
-          validator가 UTF-8, schema, 통계 일치와 64 KiB 배포 한도를 검사합니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="사전 voice 파생 활용">
-        <p>
-          한국어기초사전이 source 동사와 target 동사를 직접 <code>파생어</code>
-          로 연결하고 표준국어대사전이 양쪽을 일반어 동사로 확인할 때만{' '}
-          <code>-이-/-히-/-리-/-기-</code> 관계를 기본 <code>inflection</code>에
-          엽니다. Target lemma의 일반 활용기를 재사용하므로 <code>밀다</code>가{' '}
-          <code>밀려</code>에 매칭됩니다.
-        </p>
-        <p>
-          <code>smart</code>는 target 표면 전체의 용언+어미 구조를 요구합니다.
-          모든 동사에 접미사를 추측하거나 target 표면을 단순 alias로 취급하지
-          않습니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="파생 용언 앞 명사 파생 경로">
-        <p>
-          <code>smart</code>는 token 왼쪽부터 <code>N+ + XSN+</code>로 끝나는
-          query core와 이어지는 <code>XSV/XSA + E+</code> 경로가 모두 완성될 때
-          파생 명사를 유지합니다. 이 구조로 <code>잠식당</code>이{' '}
-          <code>잠식당하기</code>에 매칭됩니다.
-        </p>
-        <p>
-          Query 경계가 source node와 정확히 일치해야 하므로 token 내부
-          substring, 접미사 경계를 가로지르는 core와 어미가 없는 파생 용언은
-          열지 않습니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="소실 지정사 축약">
-        <p>
-          <code>smart</code> 지정사 query는 선언된 <code>걸까</code> anchor가
-          맞은 뒤 exact source의 <code>체언+ + VCP + E+</code>와 종단{' '}
-          <code>EC/EF</code>를 검증합니다. 이 구조로 <code>이다</code>가{' '}
-          <code>걸까</code> 전체 span에 매칭됩니다.
-        </p>
-        <p>
-          정렬된 <code>VCP</code> span이 있는 일반 활용과 미완결 어미는
-          거부하며, 다른 어절을 지정사 후보로 열거하지 않습니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="원본 보고서">
-        <ul className="reference-list">
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-copula-lost-span.md">
-              소실 지정사 축약 recall
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-nominal-derivational-predicate.md">
-              파생 용언 앞 명사 파생 경로 recall
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-dictionary-voice-derivation.md">
-              사전 voice 파생 활용 recall
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-source-aligned-compound-predicate-tail.md">
-              source 정렬 합성용언 tail recall
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-pronoun-copula-ending.md">
-              대명사 계사·의문 어미 축약 recall
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-dictionary-adverbial-i.md">
-              사전 합의 -이 부사형 recall
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-18-query-matrix-contract-metrics.md">
-              Query matrix raw·계약 품질 교정
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-17-robustness-quality.md">
-              수동 검토 자연 오류 Robust 품질·성능
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-15-descriptive-declarative-continuation.md">
-              상태 용언 현재 평서형 후속 형태 continuation
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-15-connector-myeon-particle.md">
-              접속 조사 이면/면의 명사류 결합
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-15-present-declarative-continuation.md">
-              현재 서술형 후속 형태 continuation
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-15-eudoe-continuation.md">
-              선어말어미 뒤 -으되 continuation
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-15-dictionary-surface-lexicon.md">
-              제한된 사전 표면형 계층
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-consonant-irregular-enriched-lexicon.md">
-              ㄷ·ㅅ·ㅂ·ㅎ 불규칙 enriched 용언 lexicon
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-reu-reo-enriched-lexicon.md">
-              르·러 불규칙과 enriched 용언 lexicon
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-full-pos-coarse-noun-recall.md">
-              Full POS coarse noun 분석 합집합 recall
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-dependent-noun-recall.md">
-              의존명사 coarse-POS fallback의 recall
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-h-irregular-recall.md">
-              ㅎ 불규칙 core lexicon의 recall
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-connective-ji-position-evidence.md">
-              connective-ji 위치 근거
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-local-lattice-optimization.md">
-              국소 lattice를 사용하는 제품 경로 최적화
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-14-user-smart-precision.md">
-              User smart precision 품질·성능
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-13-product-workflows.md">
-              제품 workflow 측정 방법과 외부 snapshot
-            </a>
-          </li>
-          <li>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/README.md">
-              Benchmark contract와 보고서 전체 목록
-            </a>
-          </li>
-        </ul>
       </DocumentSection>
     </DocumentPage>
   );

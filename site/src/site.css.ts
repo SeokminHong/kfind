@@ -57,6 +57,35 @@ globalStyle('.header-links', {
   fontSize: '0.82rem',
 });
 
+globalStyle('.header-actions', {
+  display: 'flex',
+  alignItems: 'center',
+  gap: vars.space.large,
+});
+
+globalStyle('.language-control', {
+  display: 'inline-flex',
+  padding: '0.15rem',
+  border: `1px solid ${vars.color.border}`,
+  borderRadius: vars.radius.pill,
+  background: vars.color.surfaceMuted,
+});
+
+globalStyle('.language-control button', {
+  padding: `0.2rem ${vars.space.small}`,
+  border: 0,
+  borderRadius: vars.radius.pill,
+  background: 'transparent',
+  color: vars.color.muted,
+  fontSize: '0.7rem',
+});
+
+globalStyle('.language-control button[aria-pressed="true"]', {
+  background: vars.color.surface,
+  color: vars.color.heading,
+  fontWeight: 650,
+});
+
 globalStyle('.docs-shell', {
   display: 'grid',
   width: `min(100%, ${vars.content.shell})`,
@@ -150,6 +179,14 @@ globalStyle('.route-loading', {
 globalStyle('.docs-content', {
   minWidth: 0,
   padding: `3.5rem clamp(${vars.space.large}, 5vw, 5rem) ${vars.space.xlarge}`,
+});
+
+globalStyle('.header-links', {
+  '@media': {
+    '(max-width: 42rem)': {
+      display: 'none',
+    },
+  },
 });
 
 globalStyle('.docs-content > article, .docs-footer', {

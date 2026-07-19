@@ -1,7 +1,12 @@
 import { Collapsible } from '@base-ui/react/collapsible';
 import { NavLink, Outlet } from 'react-router';
 
-import { useDocumentTranslation } from './i18n';
+import {
+  changeDocumentLocale,
+  DocumentLocale,
+  useDocumentLocale,
+  useDocumentTranslation,
+} from './i18n';
 import { DocumentLocaleSync } from './i18n-provider';
 import { DocumentMetadataSync } from './metadata';
 import { navigationGroups, RoutePath } from './navigation';
@@ -31,6 +36,7 @@ function Navigation(): React.JSX.Element {
 
 export function Shell(): React.JSX.Element {
   const { t } = useDocumentTranslation();
+  const locale = useDocumentLocale();
 
   return (
     <>
@@ -54,15 +60,41 @@ export function Shell(): React.JSX.Element {
               {t('common.brand.document_suffix')}
             </span>
           </NavLink>
-          <nav
-            className="header-links"
-            aria-label={t('common.header.external_aria')}
-          >
-            <a href="https://github.com/SeokminHong/kfind">GitHub</a>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/README.ko.md">
-              README
-            </a>
-          </nav>
+          <div className="header-actions">
+            <div
+              aria-label={t('common.language.aria')}
+              className="language-control"
+              role="group"
+            >
+              <button
+                aria-pressed={locale === DocumentLocale.Korean}
+                onClick={() => {
+                  void changeDocumentLocale(DocumentLocale.Korean);
+                }}
+                type="button"
+              >
+                {t('common.language.korean')}
+              </button>
+              <button
+                aria-pressed={locale === DocumentLocale.English}
+                onClick={() => {
+                  void changeDocumentLocale(DocumentLocale.English);
+                }}
+                type="button"
+              >
+                {t('common.language.english')}
+              </button>
+            </div>
+            <nav
+              className="header-links"
+              aria-label={t('common.header.external_aria')}
+            >
+              <a href="https://github.com/SeokminHong/kfind">GitHub</a>
+              <a href="https://github.com/SeokminHong/kfind/blob/main/README.md">
+                README
+              </a>
+            </nav>
+          </div>
         </div>
       </header>
 
@@ -82,7 +114,7 @@ export function Shell(): React.JSX.Element {
         <main className="docs-content" id="content">
           <Outlet />
           <footer className="docs-footer">
-            <span>kfind 0.3.0-rc.3</span>
+            <span>kfind 1.0.0-rc.1</span>
             <a href="https://github.com/SeokminHong/kfind/blob/main/LICENSE">
               {t('common.footer.license')}
             </a>

@@ -3,31 +3,37 @@ import { Input } from '@base-ui/react/input';
 import { PreviewCard } from '@base-ui/react/preview-card';
 import { useLayoutEffect, useRef } from 'react';
 
+import { DocumentLocale } from '../../app/i18n';
+
 import * as styles from './query-field.css';
 
 interface QueryFieldProps {
+  readonly locale: DocumentLocale;
   readonly onValueChange: (value: string) => void;
   readonly value: string;
 }
 
-const atomTags = [
-  ['n:', '명사'],
-  ['pro:', '대명사'],
-  ['num:', '수사'],
-  ['v:', '동사'],
-  ['adj:', '형용사'],
-  ['det:', '관형사'],
-  ['adv:', '부사'],
-  ['j:', '조사'],
-  ['intj:', '감탄사'],
-  ['lit:', 'literal'],
-] as const;
 const atomTagTooltipId = 'playground-atom-tags';
 
 export function QueryField({
+  locale,
   onValueChange,
   value,
 }: QueryFieldProps): React.JSX.Element {
+  const isKorean = locale === DocumentLocale.Korean;
+  const atomTags = [
+    ['n:', isKorean ? '명사' : 'noun'],
+    ['pro:', isKorean ? '대명사' : 'pronoun'],
+    ['num:', isKorean ? '수사' : 'numeral'],
+    ['v:', isKorean ? '동사' : 'verb'],
+    ['adj:', isKorean ? '형용사' : 'adjective'],
+    ['det:', isKorean ? '관형사' : 'determiner'],
+    ['adv:', isKorean ? '부사' : 'adverb'],
+    ['j:', isKorean ? '조사' : 'particle'],
+    ['intj:', isKorean ? '감탄사' : 'interjection'],
+    ['lit:', 'literal'],
+  ] as const;
+  const tagHelpLabel = isKorean ? '지원하는 atom 태그' : 'Supported atom tags';
   const inputRef = useRef<HTMLInputElement>(null);
   const isComposingRef = useRef(false);
   const lastPublishedValueRef = useRef(value);
@@ -58,16 +64,14 @@ export function QueryField({
         <PreviewCard.Root>
           <PreviewCard.Trigger
             aria-describedby={atomTagTooltipId}
-            aria-label="지원하는 atom 태그 보기"
+            aria-label={tagHelpLabel}
             className={styles.tagTrigger}
             closeDelay={0}
             data-glossary-skip=""
             delay={0}
-            render={
-              <button aria-label="지원하는 atom 태그 보기" type="button" />
-            }
+            render={<button aria-label={tagHelpLabel} type="button" />}
           >
-            Atom 태그
+            {isKorean ? 'Atom 태그' : 'Atom tags'}
           </PreviewCard.Trigger>
           <PreviewCard.Portal>
             <PreviewCard.Positioner
@@ -80,7 +84,7 @@ export function QueryField({
                 id={atomTagTooltipId}
                 role="tooltip"
               >
-                <strong>지원 atom 태그</strong>
+                <strong>{tagHelpLabel}</strong>
                 <dl className={styles.tagList}>
                   {atomTags.map(([tag, label]) => (
                     <div key={tag}>
@@ -115,7 +119,9 @@ export function QueryField({
         }}
       />
       <Field.Description>
-        공백으로 atom을 나눕니다. 태그를 생략하면 품사를 자동 분석합니다.
+        {isKorean
+          ? '공백으로 atom을 나눕니다. 태그가 없으면 품사를 자동 분석합니다.'
+          : 'Spaces separate atoms. Without a tag, kfind infers the part of speech.'}
       </Field.Description>
     </Field.Root>
   );

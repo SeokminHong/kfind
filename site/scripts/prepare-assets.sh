@@ -5,12 +5,11 @@ set -euo pipefail
 site_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 repo_root="$(cd "$site_dir/.." && pwd)"
 wasm_dir="$site_dir/src/generated-wasm"
-benchmark_dir="$site_dir/public/benchmarks"
+benchmark_dir="$site_dir/src/generated-benchmark"
 benchmark_snapshot="$repo_root/docs/benchmarks/site-morphology.json"
-rendered_benchmark_dir="$repo_root/target/site-benchmark-charts"
 
-rm -rf "$wasm_dir" "$benchmark_dir" "$rendered_benchmark_dir"
-mkdir -p "$wasm_dir" "$benchmark_dir" "$rendered_benchmark_dir"
+rm -rf "$wasm_dir" "$benchmark_dir"
+mkdir -p "$wasm_dir" "$benchmark_dir"
 
 wasm-pack build "$repo_root/crates/kfind-wasm" \
   --target web \
@@ -23,25 +22,9 @@ rm -f \
   "$wasm_dir/package.json" \
   "$wasm_dir/README.md"
 
-python3 "$repo_root/tools/morph-compare/render_charts.py" \
+install -m 0644 \
   "$benchmark_snapshot" \
-  "$rendered_benchmark_dir"
-
-install -m 0644 \
-  "$rendered_benchmark_dir/product-workflows.svg" \
-  "$benchmark_dir/product-workflows.svg"
-install -m 0644 \
-  "$rendered_benchmark_dir/product-external-comparison.svg" \
-  "$benchmark_dir/product-external-comparison.svg"
-install -m 0644 \
-  "$rendered_benchmark_dir/robustness-quality.svg" \
-  "$benchmark_dir/robustness-quality.svg"
-install -m 0644 \
-  "$rendered_benchmark_dir/robustness-performance.svg" \
-  "$benchmark_dir/robustness-performance.svg"
-install -m 0644 \
-  "$rendered_benchmark_dir/query-matrix-quality.svg" \
-  "$benchmark_dir/query-matrix-quality.svg"
+  "$benchmark_dir/site-morphology.json"
 
 wasm_bytes="$(wc -c < "$wasm_dir/kfind_bg.wasm")"
 pages_file_limit=$((25 * 1024 * 1024))

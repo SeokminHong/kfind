@@ -3,6 +3,9 @@ import type { ReactElement, ReactNode, Ref } from 'react';
 import { Children, cloneElement, isValidElement } from 'react';
 import { Link } from 'react-router';
 
+import { useDocumentLocale } from '../app/i18n';
+
+import { getGlossaryContent } from './glossary';
 import { annotateGlossaryText } from './glossary-annotation';
 
 interface PageIntroProps {
@@ -45,18 +48,20 @@ const skippedElements = new Set([
 function annotateChildren(
   children: ReactNode,
   seenTerms: Set<string>,
+  terms: ReturnType<typeof getGlossaryContent>['terms'],
 ): ReactNode {
   return Children.map(children, (child): ReactNode =>
-    annotateDocumentNode(child, seenTerms),
+    annotateDocumentNode(child, seenTerms, terms),
   );
 }
 
 function annotateDocumentNode(
   node: ReactNode,
   seenTerms: Set<string>,
+  terms: ReturnType<typeof getGlossaryContent>['terms'],
 ): ReactNode {
   if (typeof node === 'string') {
-    return annotateGlossaryText(node, seenTerms);
+    return annotateGlossaryText(node, seenTerms, terms);
   }
 
   if (!isValidElement(node)) {
@@ -73,10 +78,10 @@ function annotateDocumentNode(
     return cloneElement(
       element,
       {
-        title: annotateDocumentNode(element.props.title, seenTerms),
-        summary: annotateDocumentNode(element.props.summary, seenTerms),
+        title: annotateDocumentNode(element.props.title, seenTerms, terms),
+        summary: annotateDocumentNode(element.props.summary, seenTerms, terms),
       },
-      annotateChildren(element.props.children, seenTerms),
+      annotateChildren(element.props.children, seenTerms, terms),
     );
   }
 
@@ -85,8 +90,8 @@ function annotateDocumentNode(
 
     return cloneElement(
       element,
-      { title: annotateDocumentNode(element.props.title, seenTerms) },
-      annotateChildren(element.props.children, seenTerms),
+      { title: annotateDocumentNode(element.props.title, seenTerms, terms) },
+      annotateChildren(element.props.children, seenTerms, terms),
     );
   }
 
@@ -106,7 +111,7 @@ function annotateDocumentNode(
   return cloneElement(
     element,
     undefined,
-    annotateChildren(element.props.children, seenTerms),
+    annotateChildren(element.props.children, seenTerms, terms),
   );
 }
 
@@ -114,10 +119,14 @@ export function DocumentPage({
   articleRef,
   children,
 }: DocumentPageProps): React.JSX.Element {
+  const locale = useDocumentLocale();
+  const { terms } = getGlossaryContent(locale);
   const seenTerms = new Set<string>();
 
   return (
-    <article ref={articleRef}>{annotateChildren(children, seenTerms)}</article>
+    <article ref={articleRef}>
+      {annotateChildren(children, seenTerms, terms)}
+    </article>
   );
 }
 
