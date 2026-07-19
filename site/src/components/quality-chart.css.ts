@@ -14,7 +14,6 @@ export const figure = style({
 export const chart = style({
   display: 'block',
   width: '100%',
-  minWidth: '42rem',
   height: 'auto',
 });
 
