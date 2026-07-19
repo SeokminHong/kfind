@@ -1036,7 +1036,7 @@ def append_contract_quality(lines: list[str], report: dict[str, object]) -> None
             "| --- | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
-    for backend in (name for name in KFIND_PROFILES if name in report["backends"]):
+    for backend in report["backends"]:
         raw = report["quality"][backend]["overall"]
         metrics = report["quality"][backend]["contract_adjusted"]["overall"]
         lines.append(

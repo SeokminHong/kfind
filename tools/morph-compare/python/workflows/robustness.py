@@ -4,7 +4,12 @@ from collections.abc import Callable
 from pathlib import Path
 
 from python.external_baselines import load_external_baselines
-from python.quality import grouped_quality, quality_metrics
+from python.quality import (
+    contract_quality_metrics,
+    grouped_contract_quality,
+    grouped_quality,
+    quality_metrics,
+)
 from python.validation import select_smoke_cases, smoke_metadata, write_cases
 
 
@@ -32,6 +37,16 @@ def robustness_quality(
         "by_noise_class": grouped_quality(cases, predictions, "noise_class"),
         "by_noise_scope": grouped_quality(cases, predictions, "noise_scope"),
         "by_pos": grouped_quality(cases, predictions, "pos"),
+        "contract_adjusted": {
+            "overall": contract_quality_metrics(cases, predictions),
+            "by_noise_class": grouped_contract_quality(
+                cases, predictions, "noise_class"
+            ),
+            "by_noise_scope": grouped_contract_quality(
+                cases, predictions, "noise_scope"
+            ),
+            "by_pos": grouped_contract_quality(cases, predictions, "pos"),
+        },
     }
     if matches is not None:
         true_positives = [
