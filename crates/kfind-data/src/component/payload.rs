@@ -445,6 +445,34 @@ impl PayloadLayout {
         strings: &StringLayout,
         positions: &'a ComponentPosLayout,
     ) -> Option<Vec<ComponentAnalysis<'a>>> {
+        self.group_range(input, group)?
+            .map(|record| self.analysis(input, record, string_bytes, strings, positions))
+            .collect()
+    }
+
+    pub fn for_each_positions<'a>(
+        &self,
+        input: &[u8],
+        group: u32,
+        positions: &'a ComponentPosLayout,
+        mut emit: impl FnMut(&'a [ComponentPos]),
+    ) {
+        let Some(range) = self.group_range(input, group) else {
+            return;
+        };
+        for index in range {
+            let Some(position) = self
+                .analysis_record(input, index)
+                .and_then(|record| read_u32_at(record, 0))
+                .and_then(|id| positions.get(id))
+            else {
+                return;
+            };
+            emit(position);
+        }
+    }
+
+    fn group_range(&self, input: &[u8], group: u32) -> Option<Range<u32>> {
         if group >= self.surface_count {
             return None;
         }
@@ -458,9 +486,7 @@ impl PayloadLayout {
             self.offsets_start
                 .checked_add(index.checked_add(1)?.checked_mul(4)?)?,
         )?;
-        (start..end)
-            .map(|record| self.analysis(input, record, string_bytes, strings, positions))
-            .collect()
+        Some(start..end)
     }
 
     fn analysis<'a>(

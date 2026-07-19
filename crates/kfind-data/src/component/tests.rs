@@ -38,6 +38,16 @@ fn resource_owns_bytes_and_preserves_only_aligned_structure() {
         "가".len().."가나".len()
     );
     assert_eq!(prefixes[1].1[0].components[1].pos, "JX");
+
+    let mut positions = Vec::new();
+    resource.common_prefix_positions("가나다".as_bytes(), |length, sequence| {
+        positions.push((length, sequence.to_vec()));
+    });
+    assert_eq!(positions.len(), 2);
+    assert_eq!(
+        positions[1],
+        ("가나".len(), vec![ComponentPos::NNG, ComponentPos::JX])
+    );
 }
 
 #[test]

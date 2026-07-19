@@ -214,6 +214,21 @@ impl ComponentResource {
             }
         }
     }
+
+    pub fn common_prefix_positions<'a>(
+        &'a self,
+        input: &[u8],
+        mut emit: impl FnMut(usize, &'a [ComponentPos]),
+    ) {
+        let index = DoubleArray::new(&self.bytes[self.sections.index.clone()]);
+        let payload = &self.bytes[self.sections.payload.clone()];
+        for (group, length) in index.common_prefix_search(input) {
+            self.payload
+                .for_each_positions(payload, group, &self.positions, |positions| {
+                    emit(length, positions);
+                });
+        }
+    }
 }
 
 pub fn encode_component_resource(

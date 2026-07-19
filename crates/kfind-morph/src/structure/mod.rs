@@ -119,14 +119,13 @@ impl ConstraintResolver {
     pub fn has_whole_modifier(&self, text: &str) -> bool {
         let mut matched = false;
         self.resource
-            .common_prefixes(text.as_bytes(), |length, analyses| {
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
                 if length == text.len() {
-                    matched |= analyses.iter().any(|analysis| {
-                        analysis
-                            .pos
-                            .split('+')
-                            .next()
-                            .is_some_and(|pos| matches!(pos, "MM" | "MAG" | "MAJ"))
+                    matched |= positions.first().is_some_and(|pos| {
+                        matches!(
+                            *pos,
+                            StructuralPos::MM | StructuralPos::MAG | StructuralPos::MAJ
+                        )
                     });
                 }
             });
@@ -150,18 +149,16 @@ impl ConstraintResolver {
     pub fn has_exact_predicate_ending_path(&self, text: &str, pos: PredicatePos) -> bool {
         let mut matched = false;
         self.resource
-            .common_prefixes(text.as_bytes(), |length, analyses| {
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
                 if length != text.len() {
                     return;
                 }
-                matched |= analyses.iter().any(|analysis| {
-                    let Some((first, endings)) = analysis.positions.split_first() else {
-                        return false;
-                    };
-                    structural_predicate_pos_matches(*first, pos)
-                        && !endings.is_empty()
-                        && endings.iter().all(|position| position.is_ending())
-                });
+                let Some((first, endings)) = positions.split_first() else {
+                    return;
+                };
+                matched |= structural_predicate_pos_matches(*first, pos)
+                    && !endings.is_empty()
+                    && endings.iter().all(|position| position.is_ending());
             });
         matched
     }
@@ -170,20 +167,17 @@ impl ConstraintResolver {
     pub fn has_exact_pronoun_copula_ending_path(&self, text: &str) -> bool {
         let mut matched = false;
         self.resource
-            .common_prefixes(text.as_bytes(), |length, analyses| {
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
                 if length != text.len() {
                     return;
                 }
-                matched |= analyses.iter().any(|analysis| {
-                    let positions = analysis.positions;
-                    positions.len() >= 3
-                        && positions[0] == StructuralPos::NP
-                        && positions[1] == StructuralPos::VCP
-                        && positions[2..].iter().all(|pos| pos.is_ending())
-                        && positions.last().is_some_and(|pos| {
-                            matches!(*pos, StructuralPos::EC | StructuralPos::EF)
-                        })
-                });
+                matched |= positions.len() >= 3
+                    && positions[0] == StructuralPos::NP
+                    && positions[1] == StructuralPos::VCP
+                    && positions[2..].iter().all(|pos| pos.is_ending())
+                    && positions
+                        .last()
+                        .is_some_and(|pos| matches!(*pos, StructuralPos::EC | StructuralPos::EF));
             });
         matched
     }
@@ -243,28 +237,25 @@ impl ConstraintResolver {
         let mut pending = Vec::new();
         let mut nodes = 0;
         self.resource
-            .common_prefixes(text.as_bytes(), |length, analyses| {
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
                 if length != anchor_len {
                     return;
                 }
-                for analysis in analyses {
-                    nodes += 1;
-                    let Some((first, endings)) = analysis.positions.split_first() else {
-                        continue;
-                    };
-                    if structural_predicate_pos_matches(*first, pos)
-                        && endings.iter().all(|ending| ending.is_ending())
-                    {
-                        let has_ending = !endings.is_empty();
-                        let terminal_matches = endings.last().is_some_and(|ending| {
-                            required_terminal.is_none_or(|tag| *ending == tag)
-                        });
-                        if !visited[length][usize::from(has_ending)][usize::from(terminal_matches)]
-                        {
-                            visited[length][usize::from(has_ending)]
-                                [usize::from(terminal_matches)] = true;
-                            pending.push((length, has_ending, terminal_matches));
-                        }
+                nodes += 1;
+                let Some((first, endings)) = positions.split_first() else {
+                    return;
+                };
+                if structural_predicate_pos_matches(*first, pos)
+                    && endings.iter().all(|ending| ending.is_ending())
+                {
+                    let has_ending = !endings.is_empty();
+                    let terminal_matches = endings
+                        .last()
+                        .is_some_and(|ending| required_terminal.is_none_or(|tag| *ending == tag));
+                    if !visited[length][usize::from(has_ending)][usize::from(terminal_matches)] {
+                        visited[length][usize::from(has_ending)][usize::from(terminal_matches)] =
+                            true;
+                        pending.push((length, has_ending, terminal_matches));
                     }
                 }
             });
@@ -279,22 +270,19 @@ impl ConstraintResolver {
                 return true;
             }
             self.resource
-                .common_prefixes(&text.as_bytes()[start..], |length, analyses| {
+                .common_prefix_positions(&text.as_bytes()[start..], |length, endings| {
                     if length == 0 || start + length > text.len() {
                         return;
                     }
-                    for analysis in analyses {
-                        nodes += 1;
-                        let endings = analysis.positions;
-                        if !endings.is_empty() && endings.iter().all(|ending| ending.is_ending()) {
-                            let end = start + length;
-                            let terminal_matches = endings.last().is_some_and(|ending| {
-                                required_terminal.is_none_or(|tag| *ending == tag)
-                            });
-                            if !visited[end][1][usize::from(terminal_matches)] {
-                                visited[end][1][usize::from(terminal_matches)] = true;
-                                pending.push((end, true, terminal_matches));
-                            }
+                    nodes += 1;
+                    if !endings.is_empty() && endings.iter().all(|ending| ending.is_ending()) {
+                        let end = start + length;
+                        let terminal_matches = endings.last().is_some_and(|ending| {
+                            required_terminal.is_none_or(|tag| *ending == tag)
+                        });
+                        if !visited[end][1][usize::from(terminal_matches)] {
+                            visited[end][1][usize::from(terminal_matches)] = true;
+                            pending.push((end, true, terminal_matches));
                         }
                     }
                 });
@@ -373,22 +361,22 @@ impl ConstraintResolver {
             if position == text.len() {
                 return true;
             }
-            self.resource
-                .common_prefixes(&text.as_bytes()[position..], |length, analyses| {
+            self.resource.common_prefix_positions(
+                &text.as_bytes()[position..],
+                |length, positions| {
                     if length == 0 || position + length > text.len() {
                         return;
                     }
-                    for analysis in analyses {
-                        nodes += 1;
-                        if analysis.positions.iter().all(|pos| pos.is_ending()) {
-                            let end = position + length;
-                            if !visited[end] {
-                                visited[end] = true;
-                                pending.push(end);
-                            }
+                    nodes += 1;
+                    if positions.iter().all(|pos| pos.is_ending()) {
+                        let end = position + length;
+                        if !visited[end] {
+                            visited[end] = true;
+                            pending.push(end);
                         }
                     }
-                });
+                },
+            );
         }
         false
     }
@@ -397,17 +385,15 @@ impl ConstraintResolver {
     pub fn auxiliary_splits(&self, text: &str) -> Vec<usize> {
         let mut splits = Vec::new();
         self.resource
-            .common_prefixes(text.as_bytes(), |length, analyses| {
-                for analysis in analyses {
-                    let Some((first, endings)) = analysis.positions.split_first() else {
-                        continue;
-                    };
-                    if *first != StructuralPos::VX || !endings.iter().all(|pos| pos.is_ending()) {
-                        continue;
-                    }
-                    if length == text.len() || endings.is_empty() {
-                        splits.push(length);
-                    }
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
+                let Some((first, endings)) = positions.split_first() else {
+                    return;
+                };
+                if *first != StructuralPos::VX || !endings.iter().all(|pos| pos.is_ending()) {
+                    return;
+                }
+                if length == text.len() || endings.is_empty() {
+                    splits.push(length);
                 }
             });
         splits.sort_unstable();
@@ -430,29 +416,28 @@ impl ConstraintResolver {
             if start == text.len() && start > 0 {
                 return true;
             }
-            self.resource
-                .common_prefixes(&text.as_bytes()[start..], |length, analyses| {
+            self.resource.common_prefix_positions(
+                &text.as_bytes()[start..],
+                |length, positions| {
                     if length == 0 || start + length > text.len() {
                         return;
                     }
-                    for analysis in analyses {
-                        nodes += 1;
-                        let positions = analysis.positions;
-                        let allowed = if start == 0 {
-                            positions.first() == Some(&StructuralPos::VX)
-                                && positions[1..].iter().all(|pos| pos.is_ending())
-                        } else {
-                            positions.iter().all(|pos| pos.is_ending())
-                        };
-                        if allowed {
-                            let end = start + length;
-                            if !visited[end] {
-                                visited[end] = true;
-                                pending.push(end);
-                            }
+                    nodes += 1;
+                    let allowed = if start == 0 {
+                        positions.first() == Some(&StructuralPos::VX)
+                            && positions[1..].iter().all(|pos| pos.is_ending())
+                    } else {
+                        positions.iter().all(|pos| pos.is_ending())
+                    };
+                    if allowed {
+                        let end = start + length;
+                        if !visited[end] {
+                            visited[end] = true;
+                            pending.push(end);
                         }
                     }
-                });
+                },
+            );
         }
         false
     }
@@ -542,11 +527,9 @@ impl ConstraintResolver {
     pub fn has_attached_auxiliary_whole_path(&self, text: &str) -> bool {
         let mut supported = false;
         self.resource
-            .common_prefixes(text.as_bytes(), |length, analyses| {
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
                 if length == text.len() {
-                    supported |= analyses
-                        .iter()
-                        .any(|analysis| is_attached_auxiliary_whole_path(analysis.positions));
+                    supported |= is_attached_auxiliary_whole_path(positions);
                 }
             });
         supported
@@ -3277,13 +3260,11 @@ fn numeric_unit_path(resource: &ComponentResource, text: &str) -> Option<Numeric
         return None;
     }
     let mut selected = None;
-    resource.common_prefixes(&text.as_bytes()[numeric_end..], |unit_length, analyses| {
-        if !analyses.iter().any(|analysis| {
-            matches!(
-                analysis.positions,
-                [StructuralPos::NNB | StructuralPos::NNBC | StructuralPos::NR]
-            )
-        }) {
+    resource.common_prefix_positions(&text.as_bytes()[numeric_end..], |unit_length, positions| {
+        if !matches!(
+            positions,
+            [StructuralPos::NNB | StructuralPos::NNBC | StructuralPos::NR]
+        ) {
             return;
         }
         let unit_end = numeric_end + unit_length;
@@ -3296,13 +3277,8 @@ fn numeric_unit_path(resource: &ComponentResource, text: &str) -> Option<Numeric
                 },
             );
         }
-        resource.common_prefixes(&text.as_bytes()[unit_end..], |tail_length, analyses| {
-            if !analyses.iter().any(|analysis| {
-                matches!(
-                    analysis.positions,
-                    [StructuralPos::NNB | StructuralPos::NNBC]
-                )
-            }) {
+        resource.common_prefix_positions(&text.as_bytes()[unit_end..], |tail_length, positions| {
+            if !matches!(positions, [StructuralPos::NNB | StructuralPos::NNBC]) {
                 return;
             }
             let tail_end = unit_end + tail_length;
@@ -3358,11 +3334,9 @@ fn exact_analysis_starts_with_pos(
     accepts: impl Fn(StructuralPos) -> bool,
 ) -> bool {
     let mut matched = false;
-    resource.common_prefixes(text.as_bytes(), |length, analyses| {
+    resource.common_prefix_positions(text.as_bytes(), |length, positions| {
         if length == text.len() {
-            matched |= analyses
-                .iter()
-                .any(|analysis| analysis.positions.first().copied().is_some_and(&accepts));
+            matched |= positions.first().copied().is_some_and(&accepts);
         }
     });
     matched
@@ -3465,29 +3439,27 @@ fn complete_nominal_host(resource: &ComponentResource, text: &str) -> bool {
             }
             continue;
         }
-        resource.common_prefixes(&text.as_bytes()[start..], |length, analyses| {
+        resource.common_prefix_positions(&text.as_bytes()[start..], |length, positions| {
             if length == 0 || start + length > text.len() {
                 return;
             }
-            for analysis in analyses {
-                let mut next_has_nominal = has_nominal;
-                let valid = analysis.positions.iter().all(|&pos| {
-                    if pos.is_nominal() {
-                        next_has_nominal = true;
-                        true
-                    } else {
-                        matches!(
-                            pos,
-                            StructuralPos::XPN | StructuralPos::XSN | StructuralPos::XR
-                        )
-                    }
-                });
-                let end = start + length;
-                let state = usize::from(next_has_nominal);
-                if valid && !visited[end][state] {
-                    visited[end][state] = true;
-                    pending.push((end, next_has_nominal));
+            let mut next_has_nominal = has_nominal;
+            let valid = positions.iter().all(|&pos| {
+                if pos.is_nominal() {
+                    next_has_nominal = true;
+                    true
+                } else {
+                    matches!(
+                        pos,
+                        StructuralPos::XPN | StructuralPos::XSN | StructuralPos::XR
+                    )
                 }
+            });
+            let end = start + length;
+            let state = usize::from(next_has_nominal);
+            if valid && !visited[end][state] {
+                visited[end][state] = true;
+                pending.push((end, next_has_nominal));
             }
         });
     }
@@ -3505,17 +3477,14 @@ fn complete_suffix(
         if !reachable[start] {
             continue;
         }
-        resource.common_prefixes(&suffix.as_bytes()[start..], |length, analyses| {
+        resource.common_prefix_positions(&suffix.as_bytes()[start..], |length, positions| {
             let Some(end) = start
                 .checked_add(length)
                 .filter(|&end| length > 0 && end <= suffix.len())
             else {
                 return;
             };
-            if analyses
-                .iter()
-                .any(|analysis| analysis.positions.iter().copied().all(accepts))
-            {
+            if positions.iter().copied().all(accepts) {
                 reachable[end] = true;
             }
         });
@@ -3541,33 +3510,27 @@ fn complete_dependent_noun_particle_suffix(
             }
             continue;
         }
-        resource.common_prefixes(&suffix.as_bytes()[start..], |length, analyses| {
+        resource.common_prefix_positions(&suffix.as_bytes()[start..], |length, positions| {
             if length == 0 || start + length > suffix.len() {
                 return;
             }
-            for analysis in analyses {
-                nodes += 1;
-                let mut next_state = state;
-                let valid = analysis
-                    .positions
-                    .iter()
-                    .copied()
-                    .all(|position| match next_state {
-                        0 if matches!(position, StructuralPos::NNB | StructuralPos::NNBC) => {
-                            next_state = 1;
-                            true
-                        }
-                        1 | 2 if position.is_particle() => {
-                            next_state = 2;
-                            true
-                        }
-                        _ => false,
-                    });
-                let end = start + length;
-                if valid && !visited[end][next_state] {
-                    visited[end][next_state] = true;
-                    pending.push((end, next_state));
+            nodes += 1;
+            let mut next_state = state;
+            let valid = positions.iter().copied().all(|position| match next_state {
+                0 if matches!(position, StructuralPos::NNB | StructuralPos::NNBC) => {
+                    next_state = 1;
+                    true
                 }
+                1 | 2 if position.is_particle() => {
+                    next_state = 2;
+                    true
+                }
+                _ => false,
+            });
+            let end = start + length;
+            if valid && !visited[end][next_state] {
+                visited[end][next_state] = true;
+                pending.push((end, next_state));
             }
         });
     }
@@ -3580,15 +3543,12 @@ fn has_exact_fine_pos(
     accepts: impl Fn(DataFinePos) -> bool,
 ) -> bool {
     let mut matched = false;
-    resource.common_prefixes(text.as_bytes(), |length, analyses| {
+    resource.common_prefix_positions(text.as_bytes(), |length, positions| {
         if length == text.len() {
-            matched |= analyses
-                .iter()
-                .filter_map(|analysis| match analysis.positions {
-                    [position] => position.fine_pos(),
-                    _ => None,
-                })
-                .any(&accepts);
+            matched |= match positions {
+                [position] => position.fine_pos().is_some_and(&accepts),
+                _ => false,
+            };
         }
     });
     matched
@@ -3600,11 +3560,9 @@ fn has_exact_sequence(
     expected: &[StructuralPos],
 ) -> bool {
     let mut matched = false;
-    resource.common_prefixes(text.as_bytes(), |length, analyses| {
+    resource.common_prefix_positions(text.as_bytes(), |length, positions| {
         if length == text.len() {
-            matched |= analyses
-                .iter()
-                .any(|analysis| analysis.positions == expected);
+            matched |= positions == expected;
         }
     });
     matched
@@ -3619,11 +3577,9 @@ fn complete_pos_sequence(
         return text.is_empty() && expected.is_empty();
     }
     let mut next = Vec::new();
-    resource.common_prefixes(text.as_bytes(), |length, analyses| {
-        for analysis in analyses {
-            if length > 0 && expected.starts_with(analysis.positions) {
-                next.push((length, analysis.positions.len()));
-            }
+    resource.common_prefix_positions(text.as_bytes(), |length, positions| {
+        if length > 0 && expected.starts_with(positions) {
+            next.push((length, positions.len()));
         }
     });
     next.into_iter().any(|(length, consumed)| {
@@ -3637,11 +3593,9 @@ fn exact_analysis_ends_with_pos(
     accepts: impl Copy + Fn(StructuralPos) -> bool,
 ) -> bool {
     let mut matched = false;
-    resource.common_prefixes(text.as_bytes(), |length, analyses| {
+    resource.common_prefix_positions(text.as_bytes(), |length, positions| {
         if length == text.len() {
-            matched |= analyses
-                .iter()
-                .any(|analysis| analysis.positions.last().copied().is_some_and(accepts));
+            matched |= positions.last().copied().is_some_and(accepts);
         }
     });
     matched
@@ -3653,10 +3607,8 @@ fn starts_with_pos(
     accepts: impl Fn(StructuralPos) -> bool,
 ) -> bool {
     let mut matched = false;
-    resource.common_prefixes(text.as_bytes(), |_, analyses| {
-        matched |= analyses
-            .iter()
-            .any(|analysis| analysis.positions.first().copied().is_some_and(&accepts));
+    resource.common_prefix_positions(text.as_bytes(), |_, positions| {
+        matched |= positions.first().copied().is_some_and(&accepts);
     });
     matched
 }
