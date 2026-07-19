@@ -29,7 +29,7 @@ fn edge_graph_start_index_matches_a_linear_scan_at_every_byte() {
 }
 
 #[test]
-fn edge_graph_interns_typed_pos_sequences_within_the_node_budget() {
+fn edge_graph_borrows_typed_pos_sequences_from_the_resource() {
     let resolver = resolver_from_entries(vec![
         atomic("가", "NNG"),
         atomic("가가", "NNG"),
@@ -37,25 +37,14 @@ fn edge_graph_interns_typed_pos_sequences_within_the_node_budget() {
     ]);
     let graph = EdgeGraph::collect(resolver.resource(), "가가가", 4_096).expect("bounded graph");
 
-    assert_eq!(graph.positions.len(), 3);
-    assert!(
-        graph
-            .edges()
-            .iter()
-            .filter(|edge| graph.positions(edge) == [StructuralPos::Fine(DataFinePos::Nng)])
-            .count()
-            > 1
-    );
-
-    let oversized = std::iter::repeat_n("EP", 33).collect::<Vec<_>>().join("+");
-    let resolver = resolver_from_entries(vec![atomic("가", &oversized)]);
-    assert_eq!(
-        EdgeGraph::collect(resolver.resource(), "가", 4).unwrap_err(),
-        ConstraintUnavailable::NodeLimit {
-            actual: 33,
-            limit: 32,
-        }
-    );
+    let positions = graph
+        .edges()
+        .iter()
+        .filter(|edge| graph.positions(edge) == [StructuralPos::NNG])
+        .map(|edge| graph.positions(edge).as_ptr())
+        .collect::<Vec<_>>();
+    assert!(positions.len() > 1);
+    assert!(positions.windows(2).all(|pair| pair[0] == pair[1]));
 }
 
 #[test]
@@ -230,11 +219,12 @@ proptest! {
             .filter(|start| *start < text_len)
             .collect::<Vec<_>>();
         starts.sort_unstable();
+        const NNG: &[StructuralPos] = &[StructuralPos::NNG];
         let edges = starts
             .into_iter()
-            .map(|start| (start..start + 1, "NNG"))
+            .map(|start| (start..start + 1, NNG))
             .collect::<Vec<_>>();
-        let graph = EdgeGraph::from_raw_edges(text_len, edges);
+        let graph = EdgeGraph::from_test_edges(text_len, edges);
 
         for start in 0..=text_len {
             let indexed = graph
@@ -2194,23 +2184,33 @@ fn attached_auxiliary_accepts_a_contracted_whole_source_analysis() {
 
 #[test]
 fn attached_auxiliary_path_composes_a_split_derivational_source_analysis() {
+    const ROOT: &[StructuralPos] = &[StructuralPos::XR];
+    const AUXILIARY: &[StructuralPos] = &[
+        StructuralPos::XSA,
+        StructuralPos::EC,
+        StructuralPos::VX,
+        StructuralPos::EP,
+    ];
+    const AUXILIARY_WITHOUT_CONNECTIVE: &[StructuralPos] =
+        &[StructuralPos::XSA, StructuralPos::VX, StructuralPos::EP];
+    const ENDING: &[StructuralPos] = &[StructuralPos::EF];
     let root_end = "뚜렷".len();
     let auxiliary_end = "뚜렷해졌".len();
     let token_end = "뚜렷해졌다".len();
     let edges = vec![
-        (0..root_end, "XR"),
-        (root_end..auxiliary_end, "XSA+EC+VX+EP"),
-        (auxiliary_end..token_end, "EF"),
+        (0..root_end, ROOT),
+        (root_end..auxiliary_end, AUXILIARY),
+        (auxiliary_end..token_end, ENDING),
     ];
-    let graph = EdgeGraph::from_raw_edges(token_end, edges);
+    let graph = EdgeGraph::from_test_edges(token_end, edges);
     assert!(has_complete_attached_auxiliary_path(token_end, &graph));
 
     let without_connective = vec![
-        (0..root_end, "XR"),
-        (root_end..auxiliary_end, "XSA+VX+EP"),
-        (auxiliary_end..token_end, "EF"),
+        (0..root_end, ROOT),
+        (root_end..auxiliary_end, AUXILIARY_WITHOUT_CONNECTIVE),
+        (auxiliary_end..token_end, ENDING),
     ];
-    let without_connective = EdgeGraph::from_raw_edges(token_end, without_connective);
+    let without_connective = EdgeGraph::from_test_edges(token_end, without_connective);
     assert!(!has_complete_attached_auxiliary_path(
         token_end,
         &without_connective,

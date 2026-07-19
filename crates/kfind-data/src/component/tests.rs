@@ -26,6 +26,10 @@ fn resource_owns_bytes_and_preserves_only_aligned_structure() {
     assert_eq!(prefixes.len(), 2);
     assert_eq!(prefixes[1].0, "가나".len());
     assert_eq!(prefixes[1].1[0].pos, "NNG+JX");
+    assert_eq!(
+        prefixes[1].1[0].positions,
+        [ComponentPos::NNG, ComponentPos::JX]
+    );
     assert_eq!(prefixes[1].1[0].components.len(), 2);
     assert_eq!(prefixes[1].1[0].components[0].span, 0.."가".len());
     assert_eq!(prefixes[1].1[0].components[0].pos, "NNG");

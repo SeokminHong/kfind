@@ -1,8 +1,7 @@
-use std::collections::HashMap;
 use std::ops::Range;
 use std::sync::{Arc, OnceLock};
 
-use kfind_data::{ComponentPart, ComponentResource, DataFinePos};
+use kfind_data::{ComponentPart, ComponentPos as StructuralPos, ComponentResource, DataFinePos};
 
 use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern, StructuralSignature};
 use crate::{PredicatePos, PredicatePosSet};
@@ -1118,7 +1117,7 @@ impl TokenEvidence {
             && graph
                 .starting_at(numeric_end)
                 .iter()
-                .any(|edge| graph.positions(edge) == [StructuralPos::Fine(DataFinePos::Nr)])
+                .any(|edge| graph.positions(edge) == [StructuralPos::NR])
         {
             numeral_sequence_spans(text.len(), numeric_end, &graph, true)
         } else {
@@ -1179,7 +1178,7 @@ impl TokenEvidence {
             }
             runtime_spans.push(edge.span.clone());
             let positions = graph.positions(edge);
-            if positions.last() == Some(&StructuralPos::Etm) {
+            if positions.last() == Some(&StructuralPos::ETM) {
                 adnominal_ends.push(edge.span.end);
             }
             let whole_edge = edge.span == (0..text.len());
@@ -1235,7 +1234,7 @@ impl TokenEvidence {
                 if !eligible {
                     continue;
                 }
-                if edge.span == *unit && graph.positions(edge).contains(&StructuralPos::Nnbc) {
+                if edge.span == *unit && graph.positions(edge).contains(&StructuralPos::NNBC) {
                     units.push(Unit {
                         span: unit.clone(),
                         pos: DataFinePos::Nnb,
@@ -1270,7 +1269,7 @@ impl TokenEvidence {
             && graph
                 .starting_at(0)
                 .iter()
-                .any(|edge| graph.positions(edge) == [StructuralPos::Fine(DataFinePos::Nr)])
+                .any(|edge| graph.positions(edge) == [StructuralPos::NR])
         {
             let spans = hangul_numeral_spans(text.len(), &graph);
             let has_numeral_sequence = !spans.is_empty();
@@ -1371,92 +1370,16 @@ impl TokenEvidence {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum StructuralPos {
-    Fine(DataFinePos),
-    Nnbc,
-    Ep,
-    Ef,
-    Ec,
-    Etn,
-    Etm,
-    Xpn,
-    Xsn,
-    Xsv,
-    Xsa,
-    Xr,
-    OtherEnding,
-    OtherParticle,
-    OtherPredicate,
-    Other,
-}
-
-impl StructuralPos {
-    fn parse(value: &str) -> Self {
-        if let Some(pos) = DataFinePos::parse(value) {
-            return Self::Fine(pos);
-        }
-        match value {
-            "NNBC" => Self::Nnbc,
-            "EP" => Self::Ep,
-            "EF" => Self::Ef,
-            "EC" => Self::Ec,
-            "ETN" => Self::Etn,
-            "ETM" => Self::Etm,
-            "XPN" => Self::Xpn,
-            "XSN" => Self::Xsn,
-            "XSV" => Self::Xsv,
-            "XSA" => Self::Xsa,
-            "XR" => Self::Xr,
-            _ if value.starts_with('E') => Self::OtherEnding,
-            _ if value.starts_with('J') => Self::OtherParticle,
-            _ if value.starts_with('V') => Self::OtherPredicate,
-            _ => Self::Other,
-        }
-    }
-
-    const fn fine_pos(self) -> Option<DataFinePos> {
-        match self {
-            Self::Fine(pos) => Some(pos),
-            _ => None,
-        }
-    }
-
-    const fn is_nominal(self) -> bool {
-        matches!(self, Self::Fine(pos) if pos.is_nominal())
-    }
-
-    const fn is_predicate(self) -> bool {
-        matches!(self, Self::Fine(pos) if pos.is_predicate())
-    }
-
-    const fn is_predicate_tag(self) -> bool {
-        self.is_predicate() || matches!(self, Self::OtherPredicate)
-    }
-
-    const fn is_ending(self) -> bool {
-        matches!(
-            self,
-            Self::Ep | Self::Ef | Self::Ec | Self::Etn | Self::Etm | Self::OtherEnding
-        )
-    }
-
-    const fn is_particle(self) -> bool {
-        matches!(self, Self::Fine(pos) if pos.is_particle()) || matches!(self, Self::OtherParticle)
-    }
-}
-
 #[derive(Debug)]
 struct Edge<'a> {
     span: Range<usize>,
-    positions: Range<usize>,
+    positions: &'a [StructuralPos],
     components: Vec<ComponentPart<'a>>,
 }
 
 #[derive(Debug)]
 struct EdgeGraph<'a> {
     edges: StartGraph<Edge<'a>>,
-    positions: Vec<StructuralPos>,
 }
 
 struct NominalPathFacts {
@@ -1493,8 +1416,8 @@ impl CommonPathFacts {
                             true
                         } else {
                             matches!(
-                                pos,
-                                StructuralPos::Xpn | StructuralPos::Xsn | StructuralPos::Xr
+                                *pos,
+                                StructuralPos::XPN | StructuralPos::XSN | StructuralPos::XR
                             )
                         }
                     });
@@ -1577,46 +1500,19 @@ impl<'a> EdgeGraph<'a> {
         node_limit: usize,
     ) -> Result<Self, ConstraintUnavailable> {
         let mut edges = Vec::new();
-        let mut positions = Vec::new();
-        let mut interned_positions = HashMap::<(usize, usize), Range<usize>>::new();
-        let position_limit = node_limit.saturating_mul(8);
-        let mut position_limit_exceeded = false;
         for start in text.char_indices().map(|(offset, _)| offset) {
             resource.common_prefix_groups(&text.as_bytes()[start..], |length, analyses| {
-                if position_limit_exceeded || length == 0 || start + length > text.len() {
+                if length == 0 || start + length > text.len() {
                     return;
                 }
                 for analysis in analyses {
-                    let key = (analysis.pos.as_ptr() as usize, analysis.pos.len());
-                    let position_range = if let Some(range) = interned_positions.get(&key) {
-                        range.clone()
-                    } else {
-                        let range_start = positions.len();
-                        for position in analysis.pos.split('+') {
-                            if positions.len() >= position_limit {
-                                position_limit_exceeded = true;
-                                positions.truncate(range_start);
-                                return;
-                            }
-                            positions.push(StructuralPos::parse(position));
-                        }
-                        let range = range_start..positions.len();
-                        interned_positions.insert(key, range.clone());
-                        range
-                    };
                     edges.push(Edge {
                         span: start..start + length,
-                        positions: position_range,
+                        positions: analysis.positions,
                         components: analysis.components,
                     });
                 }
             });
-            if position_limit_exceeded {
-                return Err(ConstraintUnavailable::NodeLimit {
-                    actual: position_limit.saturating_add(1),
-                    limit: position_limit,
-                });
-            }
             if edges.len() > node_limit {
                 return Err(ConstraintUnavailable::NodeLimit {
                     actual: edges.len(),
@@ -1625,32 +1521,26 @@ impl<'a> EdgeGraph<'a> {
             }
         }
 
-        Ok(Self::from_edges(text.len(), edges, positions))
+        Ok(Self::from_edges(text.len(), edges))
     }
 
-    fn from_edges(text_len: usize, edges: Vec<Edge<'a>>, positions: Vec<StructuralPos>) -> Self {
+    fn from_edges(text_len: usize, edges: Vec<Edge<'a>>) -> Self {
         Self {
             edges: StartGraph::from_sorted_by(text_len, edges, |edge| edge.span.start),
-            positions,
         }
     }
 
     #[cfg(test)]
-    fn from_raw_edges(text_len: usize, edges: Vec<(Range<usize>, &'a str)>) -> Self {
-        let mut positions = Vec::new();
+    fn from_test_edges(text_len: usize, edges: Vec<(Range<usize>, &'a [StructuralPos])>) -> Self {
         let edges = edges
             .into_iter()
-            .map(|(span, raw_positions)| {
-                let start = positions.len();
-                positions.extend(raw_positions.split('+').map(StructuralPos::parse));
-                Edge {
-                    span,
-                    positions: start..positions.len(),
-                    components: Vec::new(),
-                }
+            .map(|(span, positions)| Edge {
+                span,
+                positions,
+                components: Vec::new(),
             })
             .collect();
-        Self::from_edges(text_len, edges, positions)
+        Self::from_edges(text_len, edges)
     }
 
     fn edges(&self) -> &[Edge<'a>] {
@@ -1665,8 +1555,8 @@ impl<'a> EdgeGraph<'a> {
         self.edges.starting_range(start)
     }
 
-    fn positions(&self, edge: &Edge<'_>) -> &[StructuralPos] {
-        &self.positions[edge.positions.clone()]
+    fn positions<'b>(&self, edge: &Edge<'b>) -> &'b [StructuralPos] {
+        edge.positions
     }
 }
 
@@ -1775,7 +1665,7 @@ fn compound_tail_inside_analysis(
     let mut connective = false;
     for (index, &position) in positions.iter().enumerate() {
         if position.is_ending() {
-            connective = position == StructuralPos::Ec;
+            connective = position == StructuralPos::EC;
             continue;
         }
         let pos = position.fine_pos().filter(|pos| pos.is_predicate())?;
@@ -1837,7 +1727,7 @@ fn attached_auxiliary_spans(
         .filter(|edge| {
             let mut positions = graph.positions(edge).iter().copied();
             connective_boundary[edge.span.start]
-                && positions.next() == Some(StructuralPos::Fine(DataFinePos::Vx))
+                && positions.next() == Some(StructuralPos::VX)
                 && positions.all(StructuralPos::is_ending)
                 && ending_suffix[edge.span.end]
         })
@@ -1905,24 +1795,23 @@ fn advance_attached_auxiliary_path(
 ) -> Option<AttachedAuxiliaryState> {
     for &pos in positions {
         state = match (state, pos) {
-            (
-                AttachedAuxiliaryState::Start,
-                StructuralPos::Fine(DataFinePos::Vv | DataFinePos::Va),
-            ) => AttachedAuxiliaryState::Predicate,
-            (AttachedAuxiliaryState::Start, StructuralPos::Xr) => AttachedAuxiliaryState::Root,
-            (AttachedAuxiliaryState::Root, StructuralPos::Xsv | StructuralPos::Xsa) => {
+            (AttachedAuxiliaryState::Start, StructuralPos::VV | StructuralPos::VA) => {
+                AttachedAuxiliaryState::Predicate
+            }
+            (AttachedAuxiliaryState::Start, StructuralPos::XR) => AttachedAuxiliaryState::Root,
+            (AttachedAuxiliaryState::Root, StructuralPos::XSV | StructuralPos::XSA) => {
                 AttachedAuxiliaryState::Predicate
             }
             (AttachedAuxiliaryState::Predicate | AttachedAuxiliaryState::Connective, pos)
                 if pos.is_ending() =>
             {
-                if pos == StructuralPos::Ec {
+                if pos == StructuralPos::EC {
                     AttachedAuxiliaryState::Connective
                 } else {
                     AttachedAuxiliaryState::Predicate
                 }
             }
-            (AttachedAuxiliaryState::Connective, StructuralPos::Fine(DataFinePos::Vx)) => {
+            (AttachedAuxiliaryState::Connective, StructuralPos::VX) => {
                 AttachedAuxiliaryState::Auxiliary
             }
             (AttachedAuxiliaryState::Auxiliary, pos) if pos.is_ending() => {
@@ -1940,18 +1829,18 @@ fn advance_attached_auxiliary_path(
 fn is_attached_auxiliary_whole_path(positions: &[StructuralPos]) -> bool {
     let mut positions = positions.iter().copied();
     match positions.next() {
-        Some(StructuralPos::Fine(DataFinePos::Vv | DataFinePos::Va)) => {}
-        Some(StructuralPos::Xr)
+        Some(StructuralPos::VV | StructuralPos::VA) => {}
+        Some(StructuralPos::XR)
             if matches!(
                 positions.next(),
-                Some(StructuralPos::Xsv | StructuralPos::Xsa)
+                Some(StructuralPos::XSV | StructuralPos::XSA)
             ) => {}
         _ => return false,
     }
 
     let mut connective_before_auxiliary = false;
     for position in &mut positions {
-        if position == StructuralPos::Fine(DataFinePos::Vx) {
+        if position == StructuralPos::VX {
             return connective_before_auxiliary
                 && positions.next().is_some_and(StructuralPos::is_ending)
                 && positions.all(StructuralPos::is_ending);
@@ -1959,7 +1848,7 @@ fn is_attached_auxiliary_whole_path(positions: &[StructuralPos]) -> bool {
         if !position.is_ending() {
             return false;
         }
-        connective_before_auxiliary = position == StructuralPos::Ec;
+        connective_before_auxiliary = position == StructuralPos::EC;
     }
     false
 }
@@ -2024,7 +1913,7 @@ fn runtime_nominal_derivation_spans(
                     complete[next_index]
                         && graph.positions(next).first().is_some_and(|pos| {
                             pos.is_predicate_tag()
-                                || matches!(pos, StructuralPos::Xsv | StructuralPos::Xsa)
+                                || matches!(*pos, StructuralPos::XSV | StructuralPos::XSA)
                         })
                 })
         })
@@ -2067,7 +1956,7 @@ fn advance_nominal_derivation(
         }
         (
             NominalDerivationState::Nominal | NominalDerivationState::DerivedNominal,
-            StructuralPos::Xsn,
+            StructuralPos::XSN,
         ) => Some(NominalDerivationState::DerivedNominal),
         _ => None,
     }
@@ -2104,7 +1993,7 @@ fn nominal_derivation_predicate_prefixes(
                     let mut positions = graph.positions(edge).iter().copied();
                     matches!(
                         positions.next(),
-                        Some(StructuralPos::Xsv | StructuralPos::Xsa)
+                        Some(StructuralPos::XSV | StructuralPos::XSA)
                     ) && positions.clone().all(StructuralPos::is_ending)
                         && ending_suffix[edge.span.end]
                         && (positions.next().is_some() || edge.span.end < text_len)
@@ -2127,7 +2016,7 @@ fn derivational_suffix_starts(graph: &EdgeGraph<'_>, complete: &[bool]) -> Box<[
                 && graph
                     .positions(edge)
                     .first()
-                    .is_some_and(|pos| matches!(pos, StructuralPos::Xsv | StructuralPos::Xsa))
+                    .is_some_and(|pos| matches!(*pos, StructuralPos::XSV | StructuralPos::XSA))
         })
         .map(|(_, edge)| edge.span.start)
         .collect::<Vec<_>>();
@@ -2165,7 +2054,7 @@ fn adnominal_derivation_suffix_starts(
                 return None;
             }
             let (first, endings) = graph.positions(edge).split_first()?;
-            if !matches!(first, StructuralPos::Xsv | StructuralPos::Xsa) {
+            if !matches!(*first, StructuralPos::XSV | StructuralPos::XSA) {
                 return None;
             }
             let complete = ending_path_reaches_adnominal_boundary(
@@ -2194,11 +2083,11 @@ fn ending_path_reaches_adnominal_boundary(
         if !position.is_ending() {
             return false;
         }
-        saw_adnominal |= position == StructuralPos::Etm;
+        saw_adnominal |= position == StructuralPos::ETM;
         last = Some(position);
     }
     if saw_adnominal {
-        last == Some(StructuralPos::Etm) && end == text_len
+        last == Some(StructuralPos::ETM) && end == text_len
     } else {
         suffix[end]
     }
@@ -2276,9 +2165,7 @@ fn advance_copula_suffix(
 ) -> Option<CopulaSuffixState> {
     for &pos in positions {
         state = match (state, pos) {
-            (CopulaSuffixState::Start, StructuralPos::Fine(DataFinePos::Vcp)) => {
-                CopulaSuffixState::Copula
-            }
+            (CopulaSuffixState::Start, StructuralPos::VCP) => CopulaSuffixState::Copula,
             (CopulaSuffixState::Copula | CopulaSuffixState::Ending, pos) if pos.is_ending() => {
                 CopulaSuffixState::Ending
             }
@@ -2293,10 +2180,7 @@ fn advance_copula_suffix(
 
 fn predicate_path_ends_in_connective(positions: &[StructuralPos]) -> Option<bool> {
     let (first, positions) = positions.split_first()?;
-    if !matches!(
-        first,
-        StructuralPos::Fine(DataFinePos::Vv | DataFinePos::Va)
-    ) {
+    if !matches!(*first, StructuralPos::VV | StructuralPos::VA) {
         return None;
     }
     ending_positions_end_in_connective(positions)
@@ -2310,8 +2194,8 @@ fn ending_positions_end_in_connective(positions: &[StructuralPos]) -> Option<boo
     let mut connective = false;
     for &position in positions {
         match position {
-            StructuralPos::Ep if !connective => {}
-            StructuralPos::Ec if !connective => connective = true,
+            StructuralPos::EP if !connective => {}
+            StructuralPos::EC if !connective => connective = true,
             _ => return None,
         }
     }
@@ -2370,16 +2254,13 @@ fn numeral_path_transition(
 ) -> Option<NumeralPathState> {
     let particle = positions.iter().all(|pos| pos.is_particle());
     match (state, positions) {
-        (NumeralPathState::Start, [StructuralPos::Fine(DataFinePos::Nr)]) => {
-            Some(NumeralPathState::OneNumeral)
+        (NumeralPathState::Start, [StructuralPos::NR]) => Some(NumeralPathState::OneNumeral),
+        (NumeralPathState::OneNumeral | NumeralPathState::ManyNumerals, [StructuralPos::NR]) => {
+            Some(NumeralPathState::ManyNumerals)
         }
         (
             NumeralPathState::OneNumeral | NumeralPathState::ManyNumerals,
-            [StructuralPos::Fine(DataFinePos::Nr)],
-        ) => Some(NumeralPathState::ManyNumerals),
-        (
-            NumeralPathState::OneNumeral | NumeralPathState::ManyNumerals,
-            [StructuralPos::Fine(DataFinePos::Nnb) | StructuralPos::Nnbc],
+            [StructuralPos::NNB | StructuralPos::NNBC],
         ) => Some(NumeralPathState::Unit),
         (NumeralPathState::ManyNumerals, _) if particle => {
             Some(NumeralPathState::ManyNumeralParticles)
@@ -2469,7 +2350,7 @@ fn numeral_sequence_spans(
     for edge in graph
         .edges()
         .iter()
-        .filter(|edge| graph.positions(edge) == [StructuralPos::Fine(DataFinePos::Nr)])
+        .filter(|edge| graph.positions(edge) == [StructuralPos::NR])
     {
         let belongs_to_complete_path = (0..NUMERAL_PATH_STATE_COUNT).any(|state_index| {
             if !forward[edge.span.start][state_index] {

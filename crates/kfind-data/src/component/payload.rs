@@ -7,7 +7,8 @@ use crate::{
 };
 
 use super::{
-    ComponentAnalysis, ComponentPart, build_conversion_error, build_error, resource_error,
+    ComponentAnalysis, ComponentPart, ComponentPos, build_conversion_error, build_error,
+    resource_error,
 };
 
 const ANALYSIS_BYTES: usize = 12;
@@ -293,6 +294,41 @@ impl StringLayout {
     }
 }
 
+#[derive(Debug)]
+pub(super) struct ComponentPosLayout {
+    offsets: Box<[u32]>,
+    positions: Box<[ComponentPos]>,
+}
+
+impl ComponentPosLayout {
+    pub fn parse(source: &str, input: &[u8], strings: &StringLayout) -> Result<Self, DataError> {
+        let mut offsets = Vec::with_capacity(strings.len().saturating_add(1));
+        let mut positions = Vec::new();
+        offsets.push(0);
+        for id in 0..strings.count {
+            let value = strings
+                .get(input, id)
+                .ok_or_else(|| resource_error(source, "invalid POS string ID"))?;
+            positions.extend(value.split('+').map(ComponentPos::parse));
+            offsets.push(
+                u32::try_from(positions.len())
+                    .map_err(|error| resource_error(source, &error.to_string()))?,
+            );
+        }
+        Ok(Self {
+            offsets: offsets.into_boxed_slice(),
+            positions: positions.into_boxed_slice(),
+        })
+    }
+
+    fn get(&self, id: u32) -> Option<&[ComponentPos]> {
+        let index = usize::try_from(id).ok()?;
+        let start = usize::try_from(*self.offsets.get(index)?).ok()?;
+        let end = usize::try_from(*self.offsets.get(index.checked_add(1)?)?).ok()?;
+        self.positions.get(start..end)
+    }
+}
+
 #[derive(Clone, Debug)]
 pub(super) struct PayloadLayout {
     surface_count: u32,
@@ -407,6 +443,7 @@ impl PayloadLayout {
         group: u32,
         string_bytes: &'a [u8],
         strings: &StringLayout,
+        positions: &'a ComponentPosLayout,
     ) -> Option<Vec<ComponentAnalysis<'a>>> {
         if group >= self.surface_count {
             return None;
@@ -422,7 +459,7 @@ impl PayloadLayout {
                 .checked_add(index.checked_add(1)?.checked_mul(4)?)?,
         )?;
         (start..end)
-            .map(|record| self.analysis(input, record, string_bytes, strings))
+            .map(|record| self.analysis(input, record, string_bytes, strings, positions))
             .collect()
     }
 
@@ -432,8 +469,10 @@ impl PayloadLayout {
         index: u32,
         string_bytes: &'a [u8],
         strings: &StringLayout,
+        positions: &'a ComponentPosLayout,
     ) -> Option<ComponentAnalysis<'a>> {
         let record = self.analysis_record(input, index)?;
+        let pos_id = read_u32_at(record, 0)?;
         let component_start = read_u32_at(record, 4)?;
         let component_len = read_u32_at(record, 8)?;
         let components = (component_start..component_start.checked_add(component_len)?)
@@ -447,7 +486,8 @@ impl PayloadLayout {
             })
             .collect::<Option<Vec<_>>>()?;
         Some(ComponentAnalysis {
-            pos: strings.get(string_bytes, read_u32_at(record, 0)?)?,
+            pos: strings.get(string_bytes, pos_id)?,
+            positions: positions.get(pos_id)?,
             components,
         })
     }

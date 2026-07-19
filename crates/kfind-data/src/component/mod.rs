@@ -6,11 +6,11 @@ use unicode_normalization::UnicodeNormalization;
 use yada::DoubleArray;
 use yada::builder::DoubleArrayBuilder;
 
-use crate::{DataError, DataErrorKind, MecabSourceMorphologyEntry, SourceLocation};
+use crate::{DataError, DataErrorKind, DataFinePos, MecabSourceMorphologyEntry, SourceLocation};
 
 mod payload;
 
-use payload::{PayloadLayout, StringLayout};
+use payload::{ComponentPosLayout, PayloadLayout, StringLayout};
 
 const MAGIC: &[u8; 8] = b"KFCMPLT\0";
 const SCHEMA_VERSION: u32 = 5;
@@ -39,7 +39,109 @@ pub struct ComponentPart<'a> {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ComponentAnalysis<'a> {
     pub pos: &'a str,
+    pub positions: &'a [ComponentPos],
     pub components: Vec<ComponentPart<'a>>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[repr(transparent)]
+pub struct ComponentPos(u8);
+
+impl ComponentPos {
+    pub const NNG: Self = Self(DataFinePos::Nng.code());
+    pub const NNP: Self = Self(DataFinePos::Nnp.code());
+    pub const NNB: Self = Self(DataFinePos::Nnb.code());
+    pub const NR: Self = Self(DataFinePos::Nr.code());
+    pub const NP: Self = Self(DataFinePos::Np.code());
+    pub const VV: Self = Self(DataFinePos::Vv.code());
+    pub const VA: Self = Self(DataFinePos::Va.code());
+    pub const VX: Self = Self(DataFinePos::Vx.code());
+    pub const VCP: Self = Self(DataFinePos::Vcp.code());
+    pub const VCN: Self = Self(DataFinePos::Vcn.code());
+    pub const MM: Self = Self(DataFinePos::Mm.code());
+    pub const MAG: Self = Self(DataFinePos::Mag.code());
+    pub const MAJ: Self = Self(DataFinePos::Maj.code());
+    pub const IC: Self = Self(DataFinePos::Ic.code());
+    pub const JKS: Self = Self(DataFinePos::Jks.code());
+    pub const JKC: Self = Self(DataFinePos::Jkc.code());
+    pub const JKG: Self = Self(DataFinePos::Jkg.code());
+    pub const JKO: Self = Self(DataFinePos::Jko.code());
+    pub const JKB: Self = Self(DataFinePos::Jkb.code());
+    pub const JKV: Self = Self(DataFinePos::Jkv.code());
+    pub const JKQ: Self = Self(DataFinePos::Jkq.code());
+    pub const JX: Self = Self(DataFinePos::Jx.code());
+    pub const JC: Self = Self(DataFinePos::Jc.code());
+    pub const NNBC: Self = Self(23);
+    pub const EP: Self = Self(24);
+    pub const EF: Self = Self(25);
+    pub const EC: Self = Self(26);
+    pub const ETN: Self = Self(27);
+    pub const ETM: Self = Self(28);
+    pub const XPN: Self = Self(29);
+    pub const XSN: Self = Self(30);
+    pub const XSV: Self = Self(31);
+    pub const XSA: Self = Self(32);
+    pub const XR: Self = Self(33);
+    const OTHER_ENDING: Self = Self(34);
+    const OTHER_PARTICLE: Self = Self(35);
+    const OTHER_PREDICATE: Self = Self(36);
+    const OTHER: Self = Self(37);
+
+    fn parse(value: &str) -> Self {
+        if let Some(pos) = DataFinePos::parse(value) {
+            return Self(pos.code());
+        }
+        match value {
+            "NNBC" => Self::NNBC,
+            "EP" => Self::EP,
+            "EF" => Self::EF,
+            "EC" => Self::EC,
+            "ETN" => Self::ETN,
+            "ETM" => Self::ETM,
+            "XPN" => Self::XPN,
+            "XSN" => Self::XSN,
+            "XSV" => Self::XSV,
+            "XSA" => Self::XSA,
+            "XR" => Self::XR,
+            _ if value.starts_with('E') => Self::OTHER_ENDING,
+            _ if value.starts_with('J') => Self::OTHER_PARTICLE,
+            _ if value.starts_with('V') => Self::OTHER_PREDICATE,
+            _ => Self::OTHER,
+        }
+    }
+
+    #[must_use]
+    pub fn fine_pos(self) -> Option<DataFinePos> {
+        DataFinePos::from_code(self.0)
+    }
+
+    #[must_use]
+    pub fn is_nominal(self) -> bool {
+        self.fine_pos().is_some_and(DataFinePos::is_nominal)
+    }
+
+    #[must_use]
+    pub fn is_predicate(self) -> bool {
+        self.fine_pos().is_some_and(DataFinePos::is_predicate)
+    }
+
+    #[must_use]
+    pub fn is_predicate_tag(self) -> bool {
+        self.is_predicate() || self == Self::OTHER_PREDICATE
+    }
+
+    #[must_use]
+    pub fn is_ending(self) -> bool {
+        matches!(
+            self,
+            Self::EP | Self::EF | Self::EC | Self::ETN | Self::ETM | Self::OTHER_ENDING
+        )
+    }
+
+    #[must_use]
+    pub fn is_particle(self) -> bool {
+        self.fine_pos().is_some_and(DataFinePos::is_particle) || self == Self::OTHER_PARTICLE
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -66,6 +168,7 @@ pub struct ComponentResource {
     sections: Sections,
     payload: PayloadLayout,
     strings: StringLayout,
+    positions: ComponentPosLayout,
 }
 
 impl ComponentResource {
@@ -96,7 +199,10 @@ impl ComponentResource {
         let payload = &self.bytes[self.sections.payload.clone()];
         let strings = &self.bytes[self.sections.strings.clone()];
         for (group, length) in index.common_prefix_search(input) {
-            if let Some(analyses) = self.payload.group(payload, group, strings, &self.strings) {
+            if let Some(analyses) =
+                self.payload
+                    .group(payload, group, strings, &self.strings, &self.positions)
+            {
                 emit(length, analyses);
             }
         }
@@ -261,6 +367,7 @@ pub fn decode_component_resource(
         analysis_count,
         component_count,
     )?;
+    let positions = ComponentPosLayout::parse(source, &bytes[sections.strings.clone()], &strings)?;
     Ok(ComponentResource {
         bytes,
         stats: ComponentResourceStats {
@@ -274,6 +381,7 @@ pub fn decode_component_resource(
         sections,
         payload,
         strings,
+        positions,
     })
 }
 
