@@ -281,9 +281,14 @@ impl ComponentResource {
         input: &[u8],
         mut emit: impl FnMut(usize, &'a [ComponentPos]),
     ) {
-        self.common_prefix_analysis_refs(input, |length, analysis| {
-            emit(length, analysis.positions());
-        });
+        let index = DoubleArray::new(&self.bytes[self.sections.index.clone()]);
+        let payload = &self.bytes[self.sections.payload.clone()];
+        for (group, length) in index.common_prefix_search(input) {
+            self.payload
+                .for_each_positions(payload, group, &self.positions, |positions| {
+                    emit(length, positions);
+                });
+        }
     }
 
     fn analysis_pos(&self, record: u32) -> Option<&str> {

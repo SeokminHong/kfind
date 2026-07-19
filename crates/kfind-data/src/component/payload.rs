@@ -508,6 +508,28 @@ impl PayloadLayout {
         positions.get(pos_id)
     }
 
+    pub fn for_each_positions<'a>(
+        &self,
+        input: &[u8],
+        group: u32,
+        positions: &'a ComponentPosLayout,
+        mut emit: impl FnMut(&'a [ComponentPos]),
+    ) {
+        let Some(range) = self.group_range(input, group) else {
+            return;
+        };
+        for record in range {
+            let Some(sequence) = self
+                .analysis_record(input, record)
+                .and_then(|record| read_u32_at(record, 0))
+                .and_then(|id| positions.get(id))
+            else {
+                return;
+            };
+            emit(sequence);
+        }
+    }
+
     pub fn analysis_components<'a>(
         &'a self,
         input: &'a [u8],
