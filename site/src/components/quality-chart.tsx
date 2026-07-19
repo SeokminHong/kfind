@@ -1,4 +1,4 @@
-import { scaleBand, scaleLinear } from 'd3';
+import { scaleBand, scaleLinear } from 'd3-scale';
 import { useId } from 'react';
 
 import * as styles from './quality-chart.css';
