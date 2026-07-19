@@ -3,7 +3,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::ops::Range;
 
-use unicode_normalization::{UnicodeNormalization, is_nfc};
+use unicode_normalization::{IsNormalized, UnicodeNormalization, is_nfc, is_nfc_quick};
 
 use crate::boundary::bounded_surrounding_token_span;
 
@@ -78,35 +78,52 @@ impl<'a> AnalysisWindowRef<'a> {
         target: Range<usize>,
         limits: AnalysisWindowLimits,
     ) -> Result<Self, AnalysisWindowError> {
+        let raw_span = Self::extract_raw_span(haystack, target, limits.max_raw_bytes)?;
+        let raw = std::str::from_utf8(&haystack[raw_span.clone()])
+            .map_err(|_| AnalysisWindowError::InvalidUtf8)?;
+        Self::from_raw(raw_span, raw, limits.max_normalized_scalars)
+    }
+
+    pub(crate) fn extract_raw_span(
+        haystack: &[u8],
+        target: Range<usize>,
+        max_raw_bytes: usize,
+    ) -> Result<Range<usize>, AnalysisWindowError> {
         if target.start >= target.end || target.end > haystack.len() {
             return Err(AnalysisWindowError::InvalidTarget);
         }
         std::str::from_utf8(&haystack[target.clone()])
             .map_err(|_| AnalysisWindowError::InvalidUtf8)?;
-        let raw_span = bounded_surrounding_token_span(haystack, target, limits.max_raw_bytes)
-            .map_err(|minimum| AnalysisWindowError::RawBytes {
+        bounded_surrounding_token_span(haystack, target, max_raw_bytes).map_err(|minimum| {
+            AnalysisWindowError::RawBytes {
                 minimum,
-                limit: limits.max_raw_bytes,
-            })?;
-        let raw = std::str::from_utf8(&haystack[raw_span.clone()])
-            .map_err(|_| AnalysisWindowError::InvalidUtf8)?;
-        let raw_is_nfc = is_nfc(raw);
-        let normalized = if raw_is_nfc {
-            Cow::Borrowed(raw)
-        } else {
-            Cow::Owned(raw.nfc().collect::<String>())
+                limit: max_raw_bytes,
+            }
+        })
+    }
+
+    pub(crate) fn from_raw(
+        raw_span: Range<usize>,
+        raw: &'a str,
+        max_normalized_scalars: usize,
+    ) -> Result<Self, AnalysisWindowError> {
+        let (normalized, scalar_count) = match nfc_status(raw) {
+            NfcStatus::Normalized { scalar_count } => (Cow::Borrowed(raw), scalar_count),
+            NfcStatus::NeedsNormalization => {
+                let mut scalar_count = 0;
+                let normalized = raw.nfc().inspect(|_| scalar_count += 1).collect::<String>();
+                (Cow::Owned(normalized), scalar_count)
+            }
         };
-        let scalar_count = normalized.chars().count();
-        if scalar_count > limits.max_normalized_scalars {
+        if scalar_count > max_normalized_scalars {
             return Err(AnalysisWindowError::NormalizedScalars {
                 actual: scalar_count,
-                limit: limits.max_normalized_scalars,
+                limit: max_normalized_scalars,
             });
         }
-        let normalized_to_raw = if raw_is_nfc {
-            None
-        } else {
-            Some(stable_normalized_boundaries(raw, &normalized))
+        let normalized_to_raw = match &normalized {
+            Cow::Borrowed(_) => None,
+            Cow::Owned(normalized) => Some(stable_normalized_boundaries(raw, normalized)),
         };
         Ok(Self {
             raw_span,
@@ -115,8 +132,13 @@ impl<'a> AnalysisWindowRef<'a> {
         })
     }
 
-    pub(crate) fn raw_span(&self) -> Range<usize> {
-        self.raw_span.clone()
+    pub(crate) fn from_nfc(raw_span: Range<usize>, raw: &'a str) -> Self {
+        debug_assert!(is_nfc(raw));
+        Self {
+            raw_span,
+            normalized: Cow::Borrowed(raw),
+            normalized_to_raw: None,
+        }
     }
 
     pub(crate) fn normalized(&self) -> &str {
@@ -138,6 +160,34 @@ impl<'a> AnalysisWindowRef<'a> {
             normalized: self.normalized.into_owned(),
             normalized_to_raw: self.normalized_to_raw,
         }
+    }
+}
+
+#[derive(Clone, Copy)]
+enum NfcStatus {
+    Normalized { scalar_count: usize },
+    NeedsNormalization,
+}
+
+fn nfc_status(text: &str) -> NfcStatus {
+    let mut scalar_count = 0;
+    match is_nfc_quick(text.chars().inspect(|_| scalar_count += 1)) {
+        IsNormalized::Yes => NfcStatus::Normalized { scalar_count },
+        IsNormalized::No => NfcStatus::NeedsNormalization,
+        IsNormalized::Maybe => {
+            if text.chars().eq(text.chars().nfc()) {
+                NfcStatus::Normalized { scalar_count }
+            } else {
+                NfcStatus::NeedsNormalization
+            }
+        }
+    }
+}
+
+pub(crate) fn nfc_status_and_scalar_count(text: &str) -> (bool, usize) {
+    match nfc_status(text) {
+        NfcStatus::Normalized { scalar_count } => (true, scalar_count),
+        NfcStatus::NeedsNormalization => (false, text.nfc().count()),
     }
 }
 
@@ -373,6 +423,16 @@ mod tests {
     }
 
     proptest! {
+        #[test]
+        fn nfc_status_and_scalar_count_match_the_normalized_reference(
+            characters in prop::collection::vec(any::<char>(), 0..64)
+        ) {
+            let raw = characters.into_iter().collect::<String>();
+            let (normalized, scalar_count) = nfc_status_and_scalar_count(&raw);
+            prop_assert_eq!(normalized, is_nfc(&raw));
+            prop_assert_eq!(scalar_count, raw.nfc().count());
+        }
+
         #[test]
         fn stable_nfc_boundaries_round_trip(
             characters in prop::collection::vec(any::<char>(), 0..64)

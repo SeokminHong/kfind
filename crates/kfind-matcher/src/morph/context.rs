@@ -13,7 +13,7 @@ use kfind_query::VerifiedSpan;
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
 use super::PreparedExactTokenGraphs;
-use crate::window::AnalysisWindowRef;
+use crate::window::{AnalysisWindowRef, nfc_status_and_scalar_count};
 use crate::{DEFAULT_ANALYSIS_WINDOW_LIMITS, is_token_character};
 
 const MAX_PREPARED_CONTEXT_CACHE_ENTRIES: usize = 256;
@@ -69,9 +69,12 @@ impl<'a> PreparedStructuralContextAnalysis<'a> {
             include_nominal_derivation_predicate,
             prepared_exact_tokens,
         } = preparation;
-        let current =
-            AnalysisWindowRef::extract(haystack, candidate, DEFAULT_ANALYSIS_WINDOW_LIMITS).ok()?;
-        let current_span = current.raw_span();
+        let current_span = AnalysisWindowRef::extract_raw_span(
+            haystack,
+            candidate,
+            DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes,
+        )
+        .ok()?;
         let previous_span = adjacent_token_span(
             haystack,
             current_span.start,
@@ -94,6 +97,7 @@ impl<'a> PreparedStructuralContextAnalysis<'a> {
             return None;
         }
         let raw_context = haystack.get(context_span.clone())?;
+        let current_text = std::str::from_utf8(haystack.get(current_span.clone())?).ok()?;
         let relative_current = current_span.start.checked_sub(context_span.start)?
             ..current_span.end.checked_sub(context_span.start)?;
         if let Some(prepared) = prepared_cache.get(
@@ -103,14 +107,47 @@ impl<'a> PreparedStructuralContextAnalysis<'a> {
             include_nominal_copula,
             include_nominal_derivation_predicate,
         ) {
+            let current = AnalysisWindowRef::from_raw(
+                current_span,
+                current_text,
+                DEFAULT_ANALYSIS_WINDOW_LIMITS.max_normalized_scalars,
+            )
+            .ok()?;
             return prepared.map(|prepared| Self { current, prepared });
         }
         let context_text = std::str::from_utf8(raw_context).ok()?;
-        if context_text.nfc().count() > DEFAULT_ANALYSIS_WINDOW_LIMITS.max_normalized_scalars {
+        let (context_is_nfc, scalar_count) = nfc_status_and_scalar_count(context_text);
+        if scalar_count > DEFAULT_ANALYSIS_WINDOW_LIMITS.max_normalized_scalars {
             return None;
         }
-        let previous = previous_span.and_then(|span| normalized_token(haystack, span));
-        let next = next_span.and_then(|span| normalized_token(haystack, span));
+        let (current, previous, next) = if context_is_nfc {
+            let previous = previous_span
+                .as_ref()
+                .and_then(|span| haystack.get(span.clone()))
+                .and_then(|bytes| std::str::from_utf8(bytes).ok())
+                .map(Cow::Borrowed);
+            let next = next_span
+                .as_ref()
+                .and_then(|span| haystack.get(span.clone()))
+                .and_then(|bytes| std::str::from_utf8(bytes).ok())
+                .map(Cow::Borrowed);
+            (
+                AnalysisWindowRef::from_nfc(current_span, current_text),
+                previous,
+                next,
+            )
+        } else {
+            (
+                AnalysisWindowRef::from_raw(
+                    current_span,
+                    current_text,
+                    DEFAULT_ANALYSIS_WINDOW_LIMITS.max_normalized_scalars,
+                )
+                .ok()?,
+                previous_span.and_then(|span| normalized_token(haystack, span)),
+                next_span.and_then(|span| normalized_token(haystack, span)),
+            )
+        };
         let context = BoundedTokenContext {
             previous: previous.as_deref(),
             current: current.normalized(),
