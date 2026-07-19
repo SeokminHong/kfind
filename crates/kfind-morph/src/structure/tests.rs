@@ -126,17 +126,21 @@ proptest! {
         {
             prop_assert_eq!(
                 common.ending_suffix[start],
-                complete_suffix(resolver.resource(), &text[start..], |pos| pos.starts_with('E')),
+                complete_suffix_raw(resolver.resource(), &text[start..], |pos| {
+                    pos.starts_with('E')
+                }),
             );
             prop_assert_eq!(
                 common.particle_suffix[start],
-                complete_suffix(resolver.resource(), &text[start..], |pos| pos.starts_with('J')),
+                complete_suffix_raw(resolver.resource(), &text[start..], |pos| {
+                    pos.starts_with('J')
+                }),
             );
             prop_assert_eq!(
                 common.nominal_prefix[start].iter().any(|&reachable| reachable),
-                complete_suffix(resolver.resource(), &text[..start], |pos| {
+                complete_suffix_raw(resolver.resource(), &text[..start], |pos| {
                     DataFinePos::parse(pos).is_some_and(DataFinePos::is_nominal)
-                    || matches!(pos, "XPN" | "XSN" | "XR")
+                        || matches!(pos, "XPN" | "XSN" | "XR")
                 }),
             );
             prop_assert_eq!(
@@ -145,6 +149,35 @@ proptest! {
             );
         }
     }
+}
+
+fn complete_suffix_raw(
+    resource: &ComponentResource,
+    suffix: &str,
+    accepts: impl Copy + Fn(&str) -> bool,
+) -> bool {
+    let mut reachable = vec![false; suffix.len() + 1];
+    reachable[0] = true;
+    for start in 0..suffix.len() {
+        if !reachable[start] {
+            continue;
+        }
+        resource.common_prefixes(&suffix.as_bytes()[start..], |length, analyses| {
+            let Some(end) = start
+                .checked_add(length)
+                .filter(|&end| length > 0 && end <= suffix.len())
+            else {
+                return;
+            };
+            if analyses
+                .iter()
+                .any(|analysis| analysis.pos.split('+').all(accepts))
+            {
+                reachable[end] = true;
+            }
+        });
+    }
+    reachable[suffix.len()]
 }
 
 fn reference_predicate_connective_boundaries(

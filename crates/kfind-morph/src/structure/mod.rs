@@ -155,17 +155,12 @@ impl ConstraintResolver {
                     return;
                 }
                 matched |= analyses.iter().any(|analysis| {
-                    let mut positions = analysis.pos.split('+');
-                    let Some(first) = positions.next() else {
+                    let Some((first, endings)) = analysis.positions.split_first() else {
                         return false;
                     };
-                    let mut has_ending = false;
-                    predicate_pos_matches(first, pos)
-                        && positions.all(|position| {
-                            has_ending = true;
-                            position.starts_with('E')
-                        })
-                        && has_ending
+                    structural_predicate_pos_matches(*first, pos)
+                        && !endings.is_empty()
+                        && endings.iter().all(|position| position.is_ending())
                 });
             });
         matched
@@ -180,14 +175,14 @@ impl ConstraintResolver {
                     return;
                 }
                 matched |= analyses.iter().any(|analysis| {
-                    let positions = analysis.pos.split('+').collect::<Vec<_>>();
+                    let positions = analysis.positions;
                     positions.len() >= 3
-                        && positions[0] == "NP"
-                        && positions[1] == "VCP"
-                        && positions[2..].iter().all(|pos| pos.starts_with('E'))
-                        && positions
-                            .last()
-                            .is_some_and(|pos| matches!(*pos, "EC" | "EF"))
+                        && positions[0] == StructuralPos::NP
+                        && positions[1] == StructuralPos::VCP
+                        && positions[2..].iter().all(|pos| pos.is_ending())
+                        && positions.last().is_some_and(|pos| {
+                            matches!(*pos, StructuralPos::EC | StructuralPos::EF)
+                        })
                 });
             });
         matched
@@ -202,20 +197,20 @@ impl ConstraintResolver {
                     return;
                 }
                 matched |= analyses.iter().any(|analysis| {
-                    let positions = analysis.pos.split('+').collect::<Vec<_>>();
-                    let Some(copula_index) = positions.iter().position(|pos| *pos == "VCP") else {
+                    let positions = analysis.positions;
+                    let Some(copula_index) =
+                        positions.iter().position(|pos| *pos == StructuralPos::VCP)
+                    else {
                         return false;
                     };
                     copula_index > 0
-                        && positions[..copula_index]
-                            .iter()
-                            .all(|pos| DataFinePos::parse(pos).is_some_and(DataFinePos::is_nominal))
+                        && positions[..copula_index].iter().all(|pos| pos.is_nominal())
                         && positions[copula_index + 1..]
                             .iter()
-                            .all(|pos| pos.starts_with('E'))
-                        && positions
-                            .last()
-                            .is_some_and(|pos| matches!(*pos, "EC" | "EF"))
+                            .all(|pos| pos.is_ending())
+                        && positions.last().is_some_and(|pos| {
+                            matches!(*pos, StructuralPos::EC | StructuralPos::EF)
+                        })
                         && !analysis
                             .components
                             .iter()
@@ -231,7 +226,7 @@ impl ConstraintResolver {
         anchor_len: usize,
         pos: PredicatePos,
         node_limit: usize,
-        required_terminal: Option<&str>,
+        required_terminal: Option<StructuralPos>,
         allow_complete_anchor: bool,
     ) -> bool {
         if anchor_len == 0
@@ -254,13 +249,11 @@ impl ConstraintResolver {
                 }
                 for analysis in analyses {
                     nodes += 1;
-                    let mut positions = analysis.pos.split('+');
-                    let Some(first) = positions.next() else {
+                    let Some((first, endings)) = analysis.positions.split_first() else {
                         continue;
                     };
-                    let endings = positions.collect::<Vec<_>>();
-                    if predicate_pos_matches(first, pos)
-                        && endings.iter().all(|ending| ending.starts_with('E'))
+                    if structural_predicate_pos_matches(*first, pos)
+                        && endings.iter().all(|ending| ending.is_ending())
                     {
                         let has_ending = !endings.is_empty();
                         let terminal_matches = endings.last().is_some_and(|ending| {
@@ -292,10 +285,8 @@ impl ConstraintResolver {
                     }
                     for analysis in analyses {
                         nodes += 1;
-                        let endings = analysis.pos.split('+').collect::<Vec<_>>();
-                        if !endings.is_empty()
-                            && endings.iter().all(|ending| ending.starts_with('E'))
-                        {
+                        let endings = analysis.positions;
+                        if !endings.is_empty() && endings.iter().all(|ending| ending.is_ending()) {
                             let end = start + length;
                             let terminal_matches = endings.last().is_some_and(|ending| {
                                 required_terminal.is_none_or(|tag| *ending == tag)
@@ -333,7 +324,7 @@ impl ConstraintResolver {
             anchor_len,
             pos,
             node_limit,
-            Some("ETM"),
+            Some(StructuralPos::ETM),
             true,
         ) && complete_dependent_noun_particle_suffix(
             &self.resource,
@@ -360,9 +351,11 @@ impl ConstraintResolver {
             return false;
         }
         self.supports_predicate_ending_path(&text[..ending_len], anchor_len, pos, node_limit)
-            && complete_suffix(&self.resource, &text[ending_len..], |position| {
-                position.starts_with('J')
-            })
+            && complete_suffix(
+                &self.resource,
+                &text[ending_len..],
+                StructuralPos::is_particle,
+            )
     }
 
     #[must_use]
@@ -387,7 +380,7 @@ impl ConstraintResolver {
                     }
                     for analysis in analyses {
                         nodes += 1;
-                        if analysis.pos.split('+').all(|pos| pos.starts_with('E')) {
+                        if analysis.positions.iter().all(|pos| pos.is_ending()) {
                             let end = position + length;
                             if !visited[end] {
                                 visited[end] = true;
@@ -406,14 +399,13 @@ impl ConstraintResolver {
         self.resource
             .common_prefixes(text.as_bytes(), |length, analyses| {
                 for analysis in analyses {
-                    let positions = analysis.pos.split('+').collect::<Vec<_>>();
-                    let Some(first) = positions.first() else {
+                    let Some((first, endings)) = analysis.positions.split_first() else {
                         continue;
                     };
-                    if *first != "VX" || !positions[1..].iter().all(|pos| pos.starts_with('E')) {
+                    if *first != StructuralPos::VX || !endings.iter().all(|pos| pos.is_ending()) {
                         continue;
                     }
-                    if length == text.len() || positions.len() == 1 {
+                    if length == text.len() || endings.is_empty() {
                         splits.push(length);
                     }
                 }
@@ -445,12 +437,12 @@ impl ConstraintResolver {
                     }
                     for analysis in analyses {
                         nodes += 1;
-                        let positions = analysis.pos.split('+').collect::<Vec<_>>();
+                        let positions = analysis.positions;
                         let allowed = if start == 0 {
-                            positions.first() == Some(&"VX")
-                                && positions[1..].iter().all(|pos| pos.starts_with('E'))
+                            positions.first() == Some(&StructuralPos::VX)
+                                && positions[1..].iter().all(|pos| pos.is_ending())
                         } else {
-                            positions.iter().all(|pos| pos.starts_with('E'))
+                            positions.iter().all(|pos| pos.is_ending())
                         };
                         if allowed {
                             let end = start + length;
@@ -497,10 +489,10 @@ impl ConstraintResolver {
                     return;
                 }
                 for analysis in analyses {
-                    let Some(first) = analysis.pos.split('+').next() else {
+                    let Some(first) = analysis.positions.first() else {
                         continue;
                     };
-                    if !DataFinePos::parse(first).is_some_and(DataFinePos::is_predicate) {
+                    if !first.is_predicate() {
                         continue;
                     }
                     whole_predicate = true;
@@ -554,7 +546,7 @@ impl ConstraintResolver {
                 if length == text.len() {
                     supported |= analyses
                         .iter()
-                        .any(|analysis| is_attached_auxiliary_whole_path_raw(analysis.pos));
+                        .any(|analysis| is_attached_auxiliary_whole_path(analysis.positions));
                 }
             });
         supported
@@ -797,6 +789,17 @@ fn predicate_pos_matches(actual: &str, expected: PredicatePos) -> bool {
         PredicatePos::Adjective => matches!(actual, "VA" | "VCN"),
         PredicatePos::AuxiliaryVerb | PredicatePos::AuxiliaryAdjective => actual == "VX",
         PredicatePos::Copula => actual == "VCP",
+    }
+}
+
+fn structural_predicate_pos_matches(actual: StructuralPos, expected: PredicatePos) -> bool {
+    match expected {
+        PredicatePos::Verb => actual == StructuralPos::VV,
+        PredicatePos::Adjective => matches!(actual, StructuralPos::VA | StructuralPos::VCN),
+        PredicatePos::AuxiliaryVerb | PredicatePos::AuxiliaryAdjective => {
+            actual == StructuralPos::VX
+        }
+        PredicatePos::Copula => actual == StructuralPos::VCP,
     }
 }
 
@@ -1849,31 +1852,6 @@ fn is_attached_auxiliary_whole_path(positions: &[StructuralPos]) -> bool {
             return false;
         }
         connective_before_auxiliary = position == StructuralPos::EC;
-    }
-    false
-}
-
-fn is_attached_auxiliary_whole_path_raw(pos: &str) -> bool {
-    let mut positions = pos.split('+');
-    match positions.next() {
-        Some("VV" | "VA") => {}
-        Some("XR") if matches!(positions.next(), Some("XSV" | "XSA")) => {}
-        _ => return false,
-    }
-
-    let mut connective_before_auxiliary = false;
-    for position in &mut positions {
-        if position == "VX" {
-            return connective_before_auxiliary
-                && positions
-                    .next()
-                    .is_some_and(|ending| ending.starts_with('E'))
-                && positions.all(|ending| ending.starts_with('E'));
-        }
-        if !position.starts_with('E') {
-            return false;
-        }
-        connective_before_auxiliary = position == "EC";
     }
     false
 }
@@ -3214,9 +3192,9 @@ fn select_structure(
     }
     let next_starts_nominal = context.next.is_some_and(|next| {
         let exact_nominal =
-            exact_analysis_starts_with_pos(resource, next, |pos| pos.starts_with('N'));
+            exact_analysis_starts_with_pos(resource, next, StructuralPos::is_nominal_tag);
         let exact_competitor =
-            exact_analysis_starts_with_pos(resource, next, |pos| !pos.starts_with('N'));
+            exact_analysis_starts_with_pos(resource, next, |pos| !pos.is_nominal_tag());
         let complete_nominal = complete_nominal_host(resource, next)
             || complete_nominal_particle_host(resource, next).is_some();
         !nominal_particle_hosts(resource, next).is_empty()
@@ -3235,14 +3213,14 @@ fn select_structure(
     if evidence.has_whole(DataFinePos::Mag)
         && particle_host.is_none()
         && context.next.is_some_and(|next| {
-            exact_analysis_starts_with_pos(resource, next, |pos| pos.starts_with('V'))
+            exact_analysis_starts_with_pos(resource, next, StructuralPos::is_predicate_tag)
         })
         && has_copular_adnominal_split(resource, context.current)
     {
         return StructureSelection::Whole;
     }
     if context.previous.is_some_and(|previous| {
-        exact_analysis_ends_with_pos(resource, previous, |pos| pos == "ETM")
+        exact_analysis_ends_with_pos(resource, previous, |pos| pos == StructuralPos::ETM)
             || adnominal_suffix_is_supported(resource, previous)
     }) && has_exact_fine_pos(resource, context.current, |pos| pos == DataFinePos::Nnb)
     {
@@ -3300,14 +3278,16 @@ fn numeric_unit_path(resource: &ComponentResource, text: &str) -> Option<Numeric
     }
     let mut selected = None;
     resource.common_prefixes(&text.as_bytes()[numeric_end..], |unit_length, analyses| {
-        if !analyses
-            .iter()
-            .any(|analysis| matches!(analysis.pos, "NNB" | "NNBC" | "NR"))
-        {
+        if !analyses.iter().any(|analysis| {
+            matches!(
+                analysis.positions,
+                [StructuralPos::NNB | StructuralPos::NNBC | StructuralPos::NR]
+            )
+        }) {
             return;
         }
         let unit_end = numeric_end + unit_length;
-        if complete_suffix(resource, &text[unit_end..], |pos| pos.starts_with('J')) {
+        if complete_suffix(resource, &text[unit_end..], StructuralPos::is_particle) {
             select_numeric_unit_path(
                 &mut selected,
                 NumericUnitPath {
@@ -3317,14 +3297,16 @@ fn numeric_unit_path(resource: &ComponentResource, text: &str) -> Option<Numeric
             );
         }
         resource.common_prefixes(&text.as_bytes()[unit_end..], |tail_length, analyses| {
-            if !analyses
-                .iter()
-                .any(|analysis| matches!(analysis.pos, "NNB" | "NNBC"))
-            {
+            if !analyses.iter().any(|analysis| {
+                matches!(
+                    analysis.positions,
+                    [StructuralPos::NNB | StructuralPos::NNBC]
+                )
+            }) {
                 return;
             }
             let tail_end = unit_end + tail_length;
-            if !complete_suffix(resource, &text[tail_end..], |pos| pos.starts_with('J')) {
+            if !complete_suffix(resource, &text[tail_end..], StructuralPos::is_particle) {
                 return;
             }
             select_numeric_unit_path(
@@ -3361,22 +3343,26 @@ fn adnominal_suffix_is_supported(resource: &ComponentResource, text: &str) -> bo
     let surface_shape = text.ends_with("는") || text.ends_with("던");
     surface_shape
         && text.char_indices().map(|(offset, _)| offset).any(|start| {
-            has_exact_sequence(resource, &text[start..], &["ETM"])
-                || has_exact_sequence(resource, &text[start..], &["EP", "ETM"])
+            has_exact_sequence(resource, &text[start..], &[StructuralPos::ETM])
+                || has_exact_sequence(
+                    resource,
+                    &text[start..],
+                    &[StructuralPos::EP, StructuralPos::ETM],
+                )
         })
 }
 
 fn exact_analysis_starts_with_pos(
     resource: &ComponentResource,
     text: &str,
-    accepts: impl Fn(&str) -> bool,
+    accepts: impl Fn(StructuralPos) -> bool,
 ) -> bool {
     let mut matched = false;
     resource.common_prefixes(text.as_bytes(), |length, analyses| {
         if length == text.len() {
             matched |= analyses
                 .iter()
-                .any(|analysis| analysis.pos.split('+').next().is_some_and(&accepts));
+                .any(|analysis| analysis.positions.first().copied().is_some_and(&accepts));
         }
     });
     matched
@@ -3385,8 +3371,8 @@ fn exact_analysis_starts_with_pos(
 fn complete_ha_predicate_path(resource: &ComponentResource, text: &str) -> bool {
     ["하", "해", "했"].into_iter().any(|surface| {
         text.starts_with(surface)
-            && exact_analysis_starts_with_pos(resource, surface, |pos| pos == "VV")
-            && complete_suffix(resource, &text[surface.len()..], |pos| pos.starts_with('E'))
+            && exact_analysis_starts_with_pos(resource, surface, |pos| pos == StructuralPos::VV)
+            && complete_suffix(resource, &text[surface.len()..], StructuralPos::is_ending)
     })
 }
 
@@ -3397,7 +3383,11 @@ fn has_copular_adnominal_split(resource: &ComponentResource, current: &str) -> b
         .skip(1)
         .any(|split| {
             has_exact_fine_pos(resource, &current[..split], DataFinePos::is_nominal)
-                && has_exact_sequence(resource, &current[split..], &["VCP", "ETM"])
+                && has_exact_sequence(
+                    resource,
+                    &current[split..],
+                    &[StructuralPos::VCP, StructuralPos::ETM],
+                )
         })
 }
 
@@ -3407,8 +3397,10 @@ fn copular_frame(
 ) -> Option<(Range<usize>, Range<usize>)> {
     let previous = context.previous?;
     let next = context.next?;
-    if !complete_pos_sequence(resource, previous, &["VCN", "EC"])
-        || !starts_with_pos(resource, next, |pos| matches!(pos, "NNB" | "NNBC"))
+    if !complete_pos_sequence(resource, previous, &[StructuralPos::VCN, StructuralPos::EC])
+        || !starts_with_pos(resource, next, |pos| {
+            matches!(pos, StructuralPos::NNB | StructuralPos::NNBC)
+        })
     {
         return None;
     }
@@ -3423,8 +3415,12 @@ fn unique_copular_split(resource: &ComponentResource, current: &str) -> Option<u
         .skip(1)
         .filter(|&split| {
             has_exact_fine_pos(resource, &current[..split], DataFinePos::is_nominal)
-                && (has_exact_sequence(resource, &current[split..], &["VCP"])
-                    || has_exact_sequence(resource, &current[split..], &["VCP", "ETM"]))
+                && (has_exact_sequence(resource, &current[split..], &[StructuralPos::VCP])
+                    || has_exact_sequence(
+                        resource,
+                        &current[split..],
+                        &[StructuralPos::VCP, StructuralPos::ETM],
+                    ))
         });
     let split = matches.next()?;
     matches.next().is_none().then_some(split)
@@ -3437,7 +3433,7 @@ fn nominal_particle_hosts(resource: &ComponentResource, current: &str) -> Vec<Ra
         .skip(1)
         .filter(|&split| {
             has_exact_fine_pos(resource, &current[..split], DataFinePos::is_nominal)
-                && complete_suffix(resource, &current[split..], |pos| pos.starts_with('J'))
+                && complete_suffix(resource, &current[split..], StructuralPos::is_particle)
         })
         .map(|end| 0..end)
         .collect()
@@ -3453,7 +3449,7 @@ fn complete_nominal_particle_host(
         .skip(1)
         .filter(|&split| {
             complete_nominal_host(resource, &current[..split])
-                && complete_suffix(resource, &current[split..], |pos| pos.starts_with('J'))
+                && complete_suffix(resource, &current[split..], StructuralPos::is_particle)
         })
         .max()
         .map(|end| 0..end)
@@ -3475,12 +3471,15 @@ fn complete_nominal_host(resource: &ComponentResource, text: &str) -> bool {
             }
             for analysis in analyses {
                 let mut next_has_nominal = has_nominal;
-                let valid = analysis.pos.split('+').all(|pos| {
-                    if DataFinePos::parse(pos).is_some_and(DataFinePos::is_nominal) {
+                let valid = analysis.positions.iter().all(|&pos| {
+                    if pos.is_nominal() {
                         next_has_nominal = true;
                         true
                     } else {
-                        matches!(pos, "XPN" | "XSN" | "XR")
+                        matches!(
+                            pos,
+                            StructuralPos::XPN | StructuralPos::XSN | StructuralPos::XR
+                        )
                     }
                 });
                 let end = start + length;
@@ -3498,7 +3497,7 @@ fn complete_nominal_host(resource: &ComponentResource, text: &str) -> bool {
 fn complete_suffix(
     resource: &ComponentResource,
     suffix: &str,
-    accepts: impl Copy + Fn(&str) -> bool,
+    accepts: impl Copy + Fn(StructuralPos) -> bool,
 ) -> bool {
     let mut reachable = vec![false; suffix.len() + 1];
     reachable[0] = true;
@@ -3515,7 +3514,7 @@ fn complete_suffix(
             };
             if analyses
                 .iter()
-                .any(|analysis| analysis.pos.split('+').all(accepts))
+                .any(|analysis| analysis.positions.iter().copied().all(accepts))
             {
                 reachable[end] = true;
             }
@@ -3549,17 +3548,21 @@ fn complete_dependent_noun_particle_suffix(
             for analysis in analyses {
                 nodes += 1;
                 let mut next_state = state;
-                let valid = analysis.pos.split('+').all(|position| match next_state {
-                    0 if matches!(position, "NNB" | "NNBC") => {
-                        next_state = 1;
-                        true
-                    }
-                    1 | 2 if position.starts_with('J') => {
-                        next_state = 2;
-                        true
-                    }
-                    _ => false,
-                });
+                let valid = analysis
+                    .positions
+                    .iter()
+                    .copied()
+                    .all(|position| match next_state {
+                        0 if matches!(position, StructuralPos::NNB | StructuralPos::NNBC) => {
+                            next_state = 1;
+                            true
+                        }
+                        1 | 2 if position.is_particle() => {
+                            next_state = 2;
+                            true
+                        }
+                        _ => false,
+                    });
                 let end = start + length;
                 if valid && !visited[end][next_state] {
                     visited[end][next_state] = true;
@@ -3581,35 +3584,45 @@ fn has_exact_fine_pos(
         if length == text.len() {
             matched |= analyses
                 .iter()
-                .filter_map(|analysis| DataFinePos::parse(analysis.pos))
+                .filter_map(|analysis| match analysis.positions {
+                    [position] => position.fine_pos(),
+                    _ => None,
+                })
                 .any(&accepts);
         }
     });
     matched
 }
 
-fn has_exact_sequence(resource: &ComponentResource, text: &str, expected: &[&str]) -> bool {
+fn has_exact_sequence(
+    resource: &ComponentResource,
+    text: &str,
+    expected: &[StructuralPos],
+) -> bool {
     let mut matched = false;
     resource.common_prefixes(text.as_bytes(), |length, analyses| {
         if length == text.len() {
             matched |= analyses
                 .iter()
-                .any(|analysis| analysis.pos.split('+').eq(expected.iter().copied()));
+                .any(|analysis| analysis.positions == expected);
         }
     });
     matched
 }
 
-fn complete_pos_sequence(resource: &ComponentResource, text: &str, expected: &[&str]) -> bool {
+fn complete_pos_sequence(
+    resource: &ComponentResource,
+    text: &str,
+    expected: &[StructuralPos],
+) -> bool {
     if text.is_empty() || expected.is_empty() {
         return text.is_empty() && expected.is_empty();
     }
     let mut next = Vec::new();
     resource.common_prefixes(text.as_bytes(), |length, analyses| {
         for analysis in analyses {
-            let actual = analysis.pos.split('+').collect::<Vec<_>>();
-            if length > 0 && expected.starts_with(&actual) {
-                next.push((length, actual.len()));
+            if length > 0 && expected.starts_with(analysis.positions) {
+                next.push((length, analysis.positions.len()));
             }
         }
     });
@@ -3621,14 +3634,14 @@ fn complete_pos_sequence(resource: &ComponentResource, text: &str, expected: &[&
 fn exact_analysis_ends_with_pos(
     resource: &ComponentResource,
     text: &str,
-    accepts: impl Copy + Fn(&str) -> bool,
+    accepts: impl Copy + Fn(StructuralPos) -> bool,
 ) -> bool {
     let mut matched = false;
     resource.common_prefixes(text.as_bytes(), |length, analyses| {
         if length == text.len() {
             matched |= analyses
                 .iter()
-                .any(|analysis| analysis.pos.split('+').next_back().is_some_and(accepts));
+                .any(|analysis| analysis.positions.last().copied().is_some_and(accepts));
         }
     });
     matched
@@ -3637,13 +3650,13 @@ fn exact_analysis_ends_with_pos(
 fn starts_with_pos(
     resource: &ComponentResource,
     text: &str,
-    accepts: impl Fn(&str) -> bool,
+    accepts: impl Fn(StructuralPos) -> bool,
 ) -> bool {
     let mut matched = false;
     resource.common_prefixes(text.as_bytes(), |_, analyses| {
         matched |= analyses
             .iter()
-            .any(|analysis| analysis.pos.split('+').next().is_some_and(&accepts));
+            .any(|analysis| analysis.positions.first().copied().is_some_and(&accepts));
     });
     matched
 }

@@ -86,6 +86,7 @@ impl ComponentPos {
     const OTHER_PARTICLE: Self = Self(35);
     const OTHER_PREDICATE: Self = Self(36);
     const OTHER: Self = Self(37);
+    const OTHER_NOMINAL: Self = Self(38);
 
     fn parse(value: &str) -> Self {
         if let Some(pos) = DataFinePos::parse(value) {
@@ -106,6 +107,7 @@ impl ComponentPos {
             _ if value.starts_with('E') => Self::OTHER_ENDING,
             _ if value.starts_with('J') => Self::OTHER_PARTICLE,
             _ if value.starts_with('V') => Self::OTHER_PREDICATE,
+            _ if value.starts_with('N') => Self::OTHER_NOMINAL,
             _ => Self::OTHER,
         }
     }
@@ -118,6 +120,11 @@ impl ComponentPos {
     #[must_use]
     pub const fn is_nominal(self) -> bool {
         self.0 <= Self::NP.0
+    }
+
+    #[must_use]
+    pub const fn is_nominal_tag(self) -> bool {
+        self.is_nominal() || self.0 == Self::OTHER_NOMINAL.0
     }
 
     #[must_use]
