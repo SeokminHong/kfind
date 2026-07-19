@@ -22,7 +22,7 @@ network 의존성은 추가하지 않습니다.
 
 ## 공개 source
 
-### mecab-ko-dic
+### mecab-ko-dic 사전
 
 Full POS 표제어·품사 source로 사용합니다. Apache-2.0이며 URL과 SHA-256을 고정해
 재현합니다. 활용 분류를 직접 제공하지 않으므로 불규칙 metadata로 사용하지

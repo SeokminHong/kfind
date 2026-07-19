@@ -1,4 +1,4 @@
-# Phrase candidate-line prefilter benchmark
+# 구문 후보 행 사전 필터 벤치마크
 
 ## 대상
 
@@ -11,7 +11,7 @@ Line-local phrase 검색의 candidate 단계가 같은 줄에 모든 atom의 raw
 확인하도록 변경했다. Raw coverage는 형태·경계 의미를 확정하지 않으며, 가능한 줄만 기존 verifier로
 전달한다. 제품 cache는 추가하거나 변경하지 않았다.
 
-## Criterion
+## Criterion 측정
 
 공식 wrapper를 사용했다. 각 revision에서 Criterion 기본 warm-up 3초와 100 sample을 사용했고,
 `sample.json`의 `times[i] / iters[i]`를 정렬한 nearest-rank p50과 p95를 기록했다.
@@ -39,7 +39,7 @@ Sample checksum:
 | metadata | `e722508232627cf331694766ec90125ded38a5c8985653ebe48dff7c2a9cf80c` | `fa2f5106d1d2511a20d8d9e9291eeb77363814f47155ee829e169e0708a3b091` |
 | summary | `e6c3e7b9d7cee793f0ba697cc1daa1b3ac284956f056e8d3f7fb4b83434c8cbf` | `1bf756888832fb53392a7b6932c86224cdd7a880ef5118e9fbe4623ec873c5cd` |
 
-## RSS
+## RSS 측정
 
 4 MiB 입력은 `가 `를 1,048,576번 반복했고 SHA-256은
 `2860b8ef339d3c14cd284011a32a47ee70165f160fc225f8808b34c71de0ee12`다. 각 revision의

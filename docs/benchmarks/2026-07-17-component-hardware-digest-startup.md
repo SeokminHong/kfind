@@ -1,4 +1,4 @@
-# component SHA-256 hardware backend
+# Component SHA-256 하드웨어 backend
 
 - 측정일: 2026-07-17
 - 최신 `origin/main` 및 기준 revision:

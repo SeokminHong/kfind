@@ -133,7 +133,7 @@ python3 tools/tui-scroll-benchmark/benchmark.py \
 
 측정 결과는 실행 환경과 입력 checksum을 포함한 개별 보고서에 기록한다.
 
-## TUI pager index memory
+## TUI pager index 메모리
 
 내장 pager가 임시 파일과 별도로 유지하는 source-line index와 layout-row index의 메모리·시간을
 plain 결과와 match별 전개 결과에서 측정한다.

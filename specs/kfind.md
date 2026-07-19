@@ -817,7 +817,7 @@
 - 기본 CI는 Linux와 Apple Silicon macOS에서 네이티브 테스트를 실행하고, Linux에서
   MSRV의 `kfind-wasm` build를 검사한다.
 
-### 0.8 npm package
+### 0.8 npm 패키지
 
 - npm package 이름은 unscoped `kfind`다. `wasm-pack`의 `bundler` target으로 ESM
   JavaScript glue, WASM binary와 TypeScript declaration을 생성한다.
@@ -1226,7 +1226,7 @@ kfind 'n:권한 "접근 제어" v:검증하다' src
 
 `"접근 제어"`는 하나의 literal atom으로 처리한다.
 
-### 6.2 AST
+### 6.2 AST 구조
 
 ```rust
 pub struct QueryAst {
@@ -2186,7 +2186,7 @@ sample.txt:3: 길을 걸었습니다.
     - ending.polite-declarative
 ```
 
-### 15.4 JSON Lines
+### 15.4 JSON Lines 출력
 
 ```json
 {"type":"match","path":"sample.txt","line":3,"text":"길을 걸었습니다.","spans":[{"core":{"start":7,"end":10},"token":{"start":7,"end":22},"surface":"걸었습니다","origins":[{"lemma":"걷다","pos":"verb","rules":["lexical.d-to-l","ending.past","ending.polite-declarative"]}]}]}
@@ -2550,7 +2550,7 @@ expected: no match
 - 동일 span의 origin 병합은 순서와 무관
 - phrase join 결과는 atom 순서를 항상 보존
 
-### 19.4 fuzz
+### 19.4 퍼징
 
 target과 경계:
 
@@ -2575,7 +2575,7 @@ version-controlled seed만 임시 corpus로 복사해 이전 실행에서 생성
 최소 유효 full POS resource, 유효한 소형 component entry와 구조 준비 경계 문맥을 고정 seed로 시작한다.
 crash·panic·timeout·RSS 초과는 CI 실패다.
 
-### 19.5 gold corpus
+### 19.5 정답 corpus
 
 공식 어문 규정의 활용 예와 프로젝트가 직접 작성한 문장을 기반으로 fixture를 만든다.
 실제 사용 양상은 재배포 조건이 명확한 공개 코퍼스의 짧은 문장으로 함께 검증한다.
@@ -2914,7 +2914,7 @@ corpus 크기에 비례하는 결과 버퍼링 없음
 
 `rg -F`와 기능이 동일하지 않으므로 절대 우열이 아니라 I/O 경로의 성능 회귀 감시 기준으로 사용한다.
 
-### 20.2 corpus
+### 20.2 검색 corpus
 
 ```text
 100 MiB source corpus
@@ -3097,7 +3097,7 @@ share/doc/kfind/LICENSES/
 
 내장 규칙과 프로젝트 자체 사전은 실행 파일에 포함한다. 선택형 대규모 사전만 `share/kfind` 아래에 둘 수 있다.
 
-### 21.3 bottle
+### 21.3 Homebrew bottle 배포
 
 검증 대상:
 
