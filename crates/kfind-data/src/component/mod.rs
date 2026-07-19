@@ -124,7 +124,7 @@ impl ComponentPos {
 
     #[must_use]
     pub const fn is_nominal_tag(self) -> bool {
-        self.is_nominal() || self.0 == Self::OTHER_NOMINAL.0
+        self.is_nominal() || self.0 == Self::NNBC.0 || self.0 == Self::OTHER_NOMINAL.0
     }
 
     #[must_use]

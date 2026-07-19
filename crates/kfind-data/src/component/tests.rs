@@ -9,6 +9,16 @@ fn resource_size_limit_is_checked_without_allocating_the_input() {
 }
 
 #[test]
+fn component_positions_keep_prefix_categories_in_one_byte() {
+    assert_eq!(std::mem::size_of::<ComponentPos>(), 1);
+    assert!(ComponentPos::parse("NNBC").is_nominal_tag());
+    assert!(ComponentPos::parse("NNQ").is_nominal_tag());
+    assert!(ComponentPos::parse("VQ").is_predicate_tag());
+    assert!(ComponentPos::parse("EQ").is_ending());
+    assert!(ComponentPos::parse("JQ").is_particle());
+}
+
+#[test]
 fn resource_owns_bytes_and_preserves_only_aligned_structure() {
     let resource = decode_component_resource("fixture", fixture_resource(), &[7; 32]).unwrap();
     let mut prefixes = Vec::new();
