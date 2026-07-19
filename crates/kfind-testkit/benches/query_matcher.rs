@@ -462,6 +462,25 @@ fn structural_constraint(criterion: &mut Criterion) {
         });
     });
 
+    let dense_component_resource = Arc::new(dense_component_span_resource());
+    let dense_component_resolver = ConstraintResolver::new(dense_component_resource);
+    dense_component_resolver
+        .prepare_token_graph_for_candidate(&dense_token, DEFAULT_LATTICE_NODE_LIMIT, true, true)
+        .expect("dense component token graph must stay inside the node limit");
+    group.throughput(Throughput::Elements(4_032));
+    group.bench_function("prepare_dense_component_token_graph", |bencher| {
+        bencher.iter(|| {
+            black_box(&dense_component_resolver)
+                .prepare_token_graph_for_candidate(
+                    black_box(&dense_token),
+                    DEFAULT_LATTICE_NODE_LIMIT,
+                    true,
+                    true,
+                )
+                .expect("dense component token graph must stay inside the node limit")
+        });
+    });
+
     let dense_path_resource = Arc::new(dense_unit_path_component_resource());
     let dense_path_resolver = ConstraintResolver::new(dense_path_resource);
     let dense_path_token = "가".repeat(63);
@@ -693,6 +712,56 @@ fn dense_unique_pos_component_resource() -> (kfind_data::ComponentResource, Stri
     )
     .expect("dense unique POS benchmark component resource must decode");
     (resource, token)
+}
+
+fn dense_component_span_resource() -> kfind_data::ComponentResource {
+    let mut entries = Vec::with_capacity(126);
+    let mut surface = String::new();
+    for _ in 0..63 {
+        surface.push('가');
+        if surface.len() == "가".len() {
+            entries.push(component_entry(&surface, "NNG", 0));
+            entries.push(component_entry(&surface, "NNP", 0));
+            continue;
+        }
+        entries.push(component_span_entry(&surface, "NNG+JX", "NNG"));
+        entries.push(component_span_entry(&surface, "NNP+JX", "NNP"));
+    }
+    let bytes = encode_component_resource(COMPONENT_RESOURCE_SOURCE_DIGEST, &entries)
+        .expect("dense component benchmark resource must encode");
+    decode_component_resource(
+        "dense component benchmark",
+        bytes,
+        &COMPONENT_RESOURCE_SOURCE_DIGEST,
+    )
+    .expect("dense component benchmark resource must decode")
+}
+
+fn component_span_entry(
+    surface: &str,
+    pos: &'static str,
+    first_component_pos: &'static str,
+) -> MecabSourceMorphologyEntry {
+    let first_end = surface
+        .char_indices()
+        .nth(1)
+        .map_or(surface.len(), |(offset, _)| offset);
+    let expression = format!(
+        "{}/{first_component_pos}/*+{}/JX/*",
+        &surface[..first_end],
+        &surface[first_end..]
+    );
+    MecabSourceMorphologyEntry {
+        surface: surface.to_owned(),
+        pos: pos.to_owned(),
+        left_id: 1,
+        right_id: 1,
+        word_cost: 0,
+        analysis_type: "Compound".to_owned(),
+        start_pos: first_component_pos.to_owned(),
+        end_pos: "JX".to_owned(),
+        expression,
+    }
 }
 
 fn dense_unit_path_component_resource() -> kfind_data::ComponentResource {
