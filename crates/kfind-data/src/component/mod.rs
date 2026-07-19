@@ -116,22 +116,22 @@ impl ComponentPos {
     }
 
     #[must_use]
-    pub fn is_nominal(self) -> bool {
-        self.fine_pos().is_some_and(DataFinePos::is_nominal)
+    pub const fn is_nominal(self) -> bool {
+        self.0 <= Self::NP.0
     }
 
     #[must_use]
-    pub fn is_predicate(self) -> bool {
-        self.fine_pos().is_some_and(DataFinePos::is_predicate)
+    pub const fn is_predicate(self) -> bool {
+        self.0 >= Self::VV.0 && self.0 <= Self::VCN.0
     }
 
     #[must_use]
-    pub fn is_predicate_tag(self) -> bool {
-        self.is_predicate() || self == Self::OTHER_PREDICATE
+    pub const fn is_predicate_tag(self) -> bool {
+        self.is_predicate() || self.0 == Self::OTHER_PREDICATE.0
     }
 
     #[must_use]
-    pub fn is_ending(self) -> bool {
+    pub const fn is_ending(self) -> bool {
         matches!(
             self,
             Self::EP | Self::EF | Self::EC | Self::ETN | Self::ETM | Self::OTHER_ENDING
@@ -139,8 +139,8 @@ impl ComponentPos {
     }
 
     #[must_use]
-    pub fn is_particle(self) -> bool {
-        self.fine_pos().is_some_and(DataFinePos::is_particle) || self == Self::OTHER_PARTICLE
+    pub const fn is_particle(self) -> bool {
+        (self.0 >= Self::JKS.0 && self.0 <= Self::JC.0) || self.0 == Self::OTHER_PARTICLE.0
     }
 }
 
