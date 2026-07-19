@@ -1,7 +1,7 @@
 use std::ops::Range;
 use std::sync::{Arc, OnceLock};
 
-use kfind_data::{ComponentPart, ComponentResource, DataFinePos};
+use kfind_data::{ComponentPart, ComponentPos as StructuralPos, ComponentResource, DataFinePos};
 
 use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern, StructuralSignature};
 use crate::{PredicatePos, PredicatePosSet};
@@ -119,14 +119,13 @@ impl ConstraintResolver {
     pub fn has_whole_modifier(&self, text: &str) -> bool {
         let mut matched = false;
         self.resource
-            .common_prefixes(text.as_bytes(), |length, analyses| {
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
                 if length == text.len() {
-                    matched |= analyses.iter().any(|analysis| {
-                        analysis
-                            .pos
-                            .split('+')
-                            .next()
-                            .is_some_and(|pos| matches!(pos, "MM" | "MAG" | "MAJ"))
+                    matched |= positions.first().is_some_and(|pos| {
+                        matches!(
+                            *pos,
+                            StructuralPos::MM | StructuralPos::MAG | StructuralPos::MAJ
+                        )
                     });
                 }
             });
@@ -150,23 +149,16 @@ impl ConstraintResolver {
     pub fn has_exact_predicate_ending_path(&self, text: &str, pos: PredicatePos) -> bool {
         let mut matched = false;
         self.resource
-            .common_prefixes(text.as_bytes(), |length, analyses| {
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
                 if length != text.len() {
                     return;
                 }
-                matched |= analyses.iter().any(|analysis| {
-                    let mut positions = analysis.pos.split('+');
-                    let Some(first) = positions.next() else {
-                        return false;
-                    };
-                    let mut has_ending = false;
-                    predicate_pos_matches(first, pos)
-                        && positions.all(|position| {
-                            has_ending = true;
-                            position.starts_with('E')
-                        })
-                        && has_ending
-                });
+                let Some((first, endings)) = positions.split_first() else {
+                    return;
+                };
+                matched |= structural_predicate_pos_matches(*first, pos)
+                    && !endings.is_empty()
+                    && endings.iter().all(|position| position.is_ending());
             });
         matched
     }
@@ -175,20 +167,17 @@ impl ConstraintResolver {
     pub fn has_exact_pronoun_copula_ending_path(&self, text: &str) -> bool {
         let mut matched = false;
         self.resource
-            .common_prefixes(text.as_bytes(), |length, analyses| {
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
                 if length != text.len() {
                     return;
                 }
-                matched |= analyses.iter().any(|analysis| {
-                    let positions = analysis.pos.split('+').collect::<Vec<_>>();
-                    positions.len() >= 3
-                        && positions[0] == "NP"
-                        && positions[1] == "VCP"
-                        && positions[2..].iter().all(|pos| pos.starts_with('E'))
-                        && positions
-                            .last()
-                            .is_some_and(|pos| matches!(*pos, "EC" | "EF"))
-                });
+                matched |= positions.len() >= 3
+                    && positions[0] == StructuralPos::NP
+                    && positions[1] == StructuralPos::VCP
+                    && positions[2..].iter().all(|pos| pos.is_ending())
+                    && positions
+                        .last()
+                        .is_some_and(|pos| matches!(*pos, StructuralPos::EC | StructuralPos::EF));
             });
         matched
     }
@@ -202,20 +191,20 @@ impl ConstraintResolver {
                     return;
                 }
                 matched |= analyses.iter().any(|analysis| {
-                    let positions = analysis.pos.split('+').collect::<Vec<_>>();
-                    let Some(copula_index) = positions.iter().position(|pos| *pos == "VCP") else {
+                    let positions = analysis.positions;
+                    let Some(copula_index) =
+                        positions.iter().position(|pos| *pos == StructuralPos::VCP)
+                    else {
                         return false;
                     };
                     copula_index > 0
-                        && positions[..copula_index]
-                            .iter()
-                            .all(|pos| DataFinePos::parse(pos).is_some_and(DataFinePos::is_nominal))
+                        && positions[..copula_index].iter().all(|pos| pos.is_nominal())
                         && positions[copula_index + 1..]
                             .iter()
-                            .all(|pos| pos.starts_with('E'))
-                        && positions
-                            .last()
-                            .is_some_and(|pos| matches!(*pos, "EC" | "EF"))
+                            .all(|pos| pos.is_ending())
+                        && positions.last().is_some_and(|pos| {
+                            matches!(*pos, StructuralPos::EC | StructuralPos::EF)
+                        })
                         && !analysis
                             .components
                             .iter()
@@ -231,7 +220,7 @@ impl ConstraintResolver {
         anchor_len: usize,
         pos: PredicatePos,
         node_limit: usize,
-        required_terminal: Option<&str>,
+        required_terminal: Option<StructuralPos>,
         allow_complete_anchor: bool,
     ) -> bool {
         if anchor_len == 0
@@ -248,30 +237,25 @@ impl ConstraintResolver {
         let mut pending = Vec::new();
         let mut nodes = 0;
         self.resource
-            .common_prefixes(text.as_bytes(), |length, analyses| {
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
                 if length != anchor_len {
                     return;
                 }
-                for analysis in analyses {
-                    nodes += 1;
-                    let mut positions = analysis.pos.split('+');
-                    let Some(first) = positions.next() else {
-                        continue;
-                    };
-                    let endings = positions.collect::<Vec<_>>();
-                    if predicate_pos_matches(first, pos)
-                        && endings.iter().all(|ending| ending.starts_with('E'))
-                    {
-                        let has_ending = !endings.is_empty();
-                        let terminal_matches = endings.last().is_some_and(|ending| {
-                            required_terminal.is_none_or(|tag| *ending == tag)
-                        });
-                        if !visited[length][usize::from(has_ending)][usize::from(terminal_matches)]
-                        {
-                            visited[length][usize::from(has_ending)]
-                                [usize::from(terminal_matches)] = true;
-                            pending.push((length, has_ending, terminal_matches));
-                        }
+                nodes += 1;
+                let Some((first, endings)) = positions.split_first() else {
+                    return;
+                };
+                if structural_predicate_pos_matches(*first, pos)
+                    && endings.iter().all(|ending| ending.is_ending())
+                {
+                    let has_ending = !endings.is_empty();
+                    let terminal_matches = endings
+                        .last()
+                        .is_some_and(|ending| required_terminal.is_none_or(|tag| *ending == tag));
+                    if !visited[length][usize::from(has_ending)][usize::from(terminal_matches)] {
+                        visited[length][usize::from(has_ending)][usize::from(terminal_matches)] =
+                            true;
+                        pending.push((length, has_ending, terminal_matches));
                     }
                 }
             });
@@ -286,24 +270,19 @@ impl ConstraintResolver {
                 return true;
             }
             self.resource
-                .common_prefixes(&text.as_bytes()[start..], |length, analyses| {
+                .common_prefix_positions(&text.as_bytes()[start..], |length, endings| {
                     if length == 0 || start + length > text.len() {
                         return;
                     }
-                    for analysis in analyses {
-                        nodes += 1;
-                        let endings = analysis.pos.split('+').collect::<Vec<_>>();
-                        if !endings.is_empty()
-                            && endings.iter().all(|ending| ending.starts_with('E'))
-                        {
-                            let end = start + length;
-                            let terminal_matches = endings.last().is_some_and(|ending| {
-                                required_terminal.is_none_or(|tag| *ending == tag)
-                            });
-                            if !visited[end][1][usize::from(terminal_matches)] {
-                                visited[end][1][usize::from(terminal_matches)] = true;
-                                pending.push((end, true, terminal_matches));
-                            }
+                    nodes += 1;
+                    if !endings.is_empty() && endings.iter().all(|ending| ending.is_ending()) {
+                        let end = start + length;
+                        let terminal_matches = endings.last().is_some_and(|ending| {
+                            required_terminal.is_none_or(|tag| *ending == tag)
+                        });
+                        if !visited[end][1][usize::from(terminal_matches)] {
+                            visited[end][1][usize::from(terminal_matches)] = true;
+                            pending.push((end, true, terminal_matches));
                         }
                     }
                 });
@@ -333,7 +312,7 @@ impl ConstraintResolver {
             anchor_len,
             pos,
             node_limit,
-            Some("ETM"),
+            Some(StructuralPos::ETM),
             true,
         ) && complete_dependent_noun_particle_suffix(
             &self.resource,
@@ -360,9 +339,11 @@ impl ConstraintResolver {
             return false;
         }
         self.supports_predicate_ending_path(&text[..ending_len], anchor_len, pos, node_limit)
-            && complete_suffix(&self.resource, &text[ending_len..], |position| {
-                position.starts_with('J')
-            })
+            && complete_suffix(
+                &self.resource,
+                &text[ending_len..],
+                StructuralPos::is_particle,
+            )
     }
 
     #[must_use]
@@ -380,22 +361,22 @@ impl ConstraintResolver {
             if position == text.len() {
                 return true;
             }
-            self.resource
-                .common_prefixes(&text.as_bytes()[position..], |length, analyses| {
+            self.resource.common_prefix_positions(
+                &text.as_bytes()[position..],
+                |length, positions| {
                     if length == 0 || position + length > text.len() {
                         return;
                     }
-                    for analysis in analyses {
-                        nodes += 1;
-                        if analysis.pos.split('+').all(|pos| pos.starts_with('E')) {
-                            let end = position + length;
-                            if !visited[end] {
-                                visited[end] = true;
-                                pending.push(end);
-                            }
+                    nodes += 1;
+                    if positions.iter().all(|pos| pos.is_ending()) {
+                        let end = position + length;
+                        if !visited[end] {
+                            visited[end] = true;
+                            pending.push(end);
                         }
                     }
-                });
+                },
+            );
         }
         false
     }
@@ -404,18 +385,15 @@ impl ConstraintResolver {
     pub fn auxiliary_splits(&self, text: &str) -> Vec<usize> {
         let mut splits = Vec::new();
         self.resource
-            .common_prefixes(text.as_bytes(), |length, analyses| {
-                for analysis in analyses {
-                    let positions = analysis.pos.split('+').collect::<Vec<_>>();
-                    let Some(first) = positions.first() else {
-                        continue;
-                    };
-                    if *first != "VX" || !positions[1..].iter().all(|pos| pos.starts_with('E')) {
-                        continue;
-                    }
-                    if length == text.len() || positions.len() == 1 {
-                        splits.push(length);
-                    }
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
+                let Some((first, endings)) = positions.split_first() else {
+                    return;
+                };
+                if *first != StructuralPos::VX || !endings.iter().all(|pos| pos.is_ending()) {
+                    return;
+                }
+                if length == text.len() || endings.is_empty() {
+                    splits.push(length);
                 }
             });
         splits.sort_unstable();
@@ -438,29 +416,28 @@ impl ConstraintResolver {
             if start == text.len() && start > 0 {
                 return true;
             }
-            self.resource
-                .common_prefixes(&text.as_bytes()[start..], |length, analyses| {
+            self.resource.common_prefix_positions(
+                &text.as_bytes()[start..],
+                |length, positions| {
                     if length == 0 || start + length > text.len() {
                         return;
                     }
-                    for analysis in analyses {
-                        nodes += 1;
-                        let positions = analysis.pos.split('+').collect::<Vec<_>>();
-                        let allowed = if start == 0 {
-                            positions.first() == Some(&"VX")
-                                && positions[1..].iter().all(|pos| pos.starts_with('E'))
-                        } else {
-                            positions.iter().all(|pos| pos.starts_with('E'))
-                        };
-                        if allowed {
-                            let end = start + length;
-                            if !visited[end] {
-                                visited[end] = true;
-                                pending.push(end);
-                            }
+                    nodes += 1;
+                    let allowed = if start == 0 {
+                        positions.first() == Some(&StructuralPos::VX)
+                            && positions[1..].iter().all(|pos| pos.is_ending())
+                    } else {
+                        positions.iter().all(|pos| pos.is_ending())
+                    };
+                    if allowed {
+                        let end = start + length;
+                        if !visited[end] {
+                            visited[end] = true;
+                            pending.push(end);
                         }
                     }
-                });
+                },
+            );
         }
         false
     }
@@ -497,10 +474,10 @@ impl ConstraintResolver {
                     return;
                 }
                 for analysis in analyses {
-                    let Some(first) = analysis.pos.split('+').next() else {
+                    let Some(first) = analysis.positions.first() else {
                         continue;
                     };
-                    if !DataFinePos::parse(first).is_some_and(DataFinePos::is_predicate) {
+                    if !first.is_predicate() {
                         continue;
                     }
                     whole_predicate = true;
@@ -550,11 +527,9 @@ impl ConstraintResolver {
     pub fn has_attached_auxiliary_whole_path(&self, text: &str) -> bool {
         let mut supported = false;
         self.resource
-            .common_prefixes(text.as_bytes(), |length, analyses| {
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
                 if length == text.len() {
-                    supported |= analyses
-                        .iter()
-                        .any(|analysis| is_attached_auxiliary_whole_path(analysis.pos));
+                    supported |= is_attached_auxiliary_whole_path(positions);
                 }
             });
         supported
@@ -797,6 +772,17 @@ fn predicate_pos_matches(actual: &str, expected: PredicatePos) -> bool {
         PredicatePos::Adjective => matches!(actual, "VA" | "VCN"),
         PredicatePos::AuxiliaryVerb | PredicatePos::AuxiliaryAdjective => actual == "VX",
         PredicatePos::Copula => actual == "VCP",
+    }
+}
+
+fn structural_predicate_pos_matches(actual: StructuralPos, expected: PredicatePos) -> bool {
+    match expected {
+        PredicatePos::Verb => actual == StructuralPos::VV,
+        PredicatePos::Adjective => matches!(actual, StructuralPos::VA | StructuralPos::VCN),
+        PredicatePos::AuxiliaryVerb | PredicatePos::AuxiliaryAdjective => {
+            actual == StructuralPos::VX
+        }
+        PredicatePos::Copula => actual == StructuralPos::VCP,
     }
 }
 
@@ -1117,7 +1103,7 @@ impl TokenEvidence {
             && graph
                 .starting_at(numeric_end)
                 .iter()
-                .any(|edge| edge.pos == "NR")
+                .any(|edge| graph.positions(edge) == [StructuralPos::NR])
         {
             numeral_sequence_spans(text.len(), numeric_end, &graph, true)
         } else {
@@ -1133,7 +1119,7 @@ impl TokenEvidence {
         );
         let complete = complete_edges(text.len(), &graph, &forward);
         let has_complete_path = forward[text.len()];
-        let leading_predicate_spans = leading_predicate_spans(edges, &path_facts.ending_suffix);
+        let leading_predicate_spans = leading_predicate_spans(&graph, &path_facts.ending_suffix);
         let compound_predicate_components = compound_predicate_components(
             text.len(),
             &graph,
@@ -1145,7 +1131,7 @@ impl TokenEvidence {
         } else {
             Box::default()
         };
-        let derivational_suffix_starts = derivational_suffix_starts(edges, &complete);
+        let derivational_suffix_starts = derivational_suffix_starts(&graph, &complete);
         let adnominal_derivation_suffix_starts =
             adnominal_derivation_suffix_starts(text.len(), &graph, &path_facts.nominal_prefix);
         let attached_auxiliary_spans = if include_attached_auxiliary {
@@ -1177,19 +1163,23 @@ impl TokenEvidence {
                 continue;
             }
             runtime_spans.push(edge.span.clone());
-            if edge.pos.split('+').next_back() == Some("ETM") {
+            let positions = graph.positions(edge);
+            if positions.last() == Some(&StructuralPos::ETM) {
                 adnominal_ends.push(edge.span.end);
             }
             let whole_edge = edge.span == (0..text.len());
-            let has_one_position = edge.pos.split('+').filter_map(DataFinePos::parse).count() == 1;
+            let has_one_position = positions
+                .iter()
+                .filter_map(|position| position.fine_pos())
+                .count()
+                == 1;
             let whole_nominal_analysis = whole_edge
                 && has_one_position
-                && edge
-                    .pos
-                    .split('+')
-                    .filter_map(DataFinePos::parse)
+                && positions
+                    .iter()
+                    .filter_map(|position| position.fine_pos())
                     .all(DataFinePos::is_nominal);
-            for pos in edge.pos.split('+').filter_map(DataFinePos::parse) {
+            for pos in positions.iter().filter_map(|position| position.fine_pos()) {
                 units.push(Unit {
                     span: edge.span.clone(),
                     pos,
@@ -1230,7 +1220,7 @@ impl TokenEvidence {
                 if !eligible {
                     continue;
                 }
-                if edge.span == *unit && edge.pos.split('+').any(|pos| pos == "NNBC") {
+                if edge.span == *unit && graph.positions(edge).contains(&StructuralPos::NNBC) {
                     units.push(Unit {
                         span: unit.clone(),
                         pos: DataFinePos::Nnb,
@@ -1261,7 +1251,12 @@ impl TokenEvidence {
             (vec![unit].into_boxed_slice(), false)
         } else if !mixed_numeral_spans.is_empty() {
             (mixed_numeral_spans.into_boxed_slice(), true)
-        } else if !NUMERIC && graph.starting_at(0).iter().any(|edge| edge.pos == "NR") {
+        } else if !NUMERIC
+            && graph
+                .starting_at(0)
+                .iter()
+                .any(|edge| graph.positions(edge) == [StructuralPos::NR])
+        {
             let spans = hangul_numeral_spans(text.len(), &graph);
             let has_numeral_sequence = !spans.is_empty();
             (spans.into_boxed_slice(), has_numeral_sequence)
@@ -1364,11 +1359,14 @@ impl TokenEvidence {
 #[derive(Debug)]
 struct Edge<'a> {
     span: Range<usize>,
-    pos: &'a str,
+    positions: &'a [StructuralPos],
     components: Vec<ComponentPart<'a>>,
 }
 
-type EdgeGraph<'a> = StartGraph<Edge<'a>>;
+#[derive(Debug)]
+struct EdgeGraph<'a> {
+    edges: StartGraph<Edge<'a>>,
+}
 
 struct NominalPathFacts {
     particle_hosts: Box<[Range<usize>]>,
@@ -1392,17 +1390,21 @@ impl CommonPathFacts {
         let mut exact_nominal_end = vec![false; text.len() + 1];
         for start in 0..text.len() {
             for edge in graph.starting_at(start) {
+                let positions = graph.positions(edge);
                 for has_nominal in [false, true] {
                     if !nominal_prefix[start][usize::from(has_nominal)] {
                         continue;
                     }
                     let mut next_has_nominal = has_nominal;
-                    let valid = edge.pos.split('+').all(|pos| {
-                        if DataFinePos::parse(pos).is_some_and(DataFinePos::is_nominal) {
+                    let valid = positions.iter().all(|pos| {
+                        if pos.is_nominal() {
                             next_has_nominal = true;
                             true
                         } else {
-                            matches!(pos, "XPN" | "XSN" | "XR")
+                            matches!(
+                                *pos,
+                                StructuralPos::XPN | StructuralPos::XSN | StructuralPos::XR
+                            )
                         }
                     });
                     if valid {
@@ -1412,12 +1414,12 @@ impl CommonPathFacts {
 
                 if start == 0 {
                     exact_nominal_end[edge.span.end] |=
-                        DataFinePos::parse(edge.pos).is_some_and(DataFinePos::is_nominal);
+                        matches!(positions, [pos] if pos.is_nominal());
                 }
                 let ends_in_connective = if start == 0 {
-                    predicate_path_ends_in_connective(edge.pos)
+                    predicate_path_ends_in_connective(positions)
                 } else if predicate_path[start] {
-                    ending_path_ends_in_connective(edge.pos)
+                    ending_path_ends_in_connective(positions)
                 } else {
                     None
                 };
@@ -1438,12 +1440,12 @@ impl CommonPathFacts {
         for start in (0..text.len()).rev() {
             for edge in graph.starting_at(start) {
                 if ending_suffix[edge.span.end]
-                    && edge.pos.split('+').all(|pos| pos.starts_with('E'))
+                    && graph.positions(edge).iter().all(|pos| pos.is_ending())
                 {
                     ending_suffix[start] = true;
                 }
                 if particle_suffix[edge.span.end]
-                    && edge.pos.split('+').all(|pos| pos.starts_with('J'))
+                    && graph.positions(edge).iter().all(|pos| pos.is_particle())
                 {
                     particle_suffix[start] = true;
                 }
@@ -1477,7 +1479,7 @@ impl CommonPathFacts {
     }
 }
 
-impl<'a> StartGraph<Edge<'a>> {
+impl<'a> EdgeGraph<'a> {
     fn collect(
         resource: &'a ComponentResource,
         text: &str,
@@ -1492,7 +1494,7 @@ impl<'a> StartGraph<Edge<'a>> {
                 for analysis in analyses {
                     edges.push(Edge {
                         span: start..start + length,
-                        pos: analysis.pos,
+                        positions: analysis.positions,
                         components: analysis.components,
                     });
                 }
@@ -1509,11 +1511,38 @@ impl<'a> StartGraph<Edge<'a>> {
     }
 
     fn from_edges(text_len: usize, edges: Vec<Edge<'a>>) -> Self {
-        Self::from_sorted_by(text_len, edges, |edge| edge.span.start)
+        Self {
+            edges: StartGraph::from_sorted_by(text_len, edges, |edge| edge.span.start),
+        }
+    }
+
+    #[cfg(test)]
+    fn from_test_edges(text_len: usize, edges: Vec<(Range<usize>, &'a [StructuralPos])>) -> Self {
+        let edges = edges
+            .into_iter()
+            .map(|(span, positions)| Edge {
+                span,
+                positions,
+                components: Vec::new(),
+            })
+            .collect();
+        Self::from_edges(text_len, edges)
     }
 
     fn edges(&self) -> &[Edge<'a>] {
-        self.all()
+        self.edges.all()
+    }
+
+    fn starting_at(&self, start: usize) -> &[Edge<'a>] {
+        self.edges.starting_at(start)
+    }
+
+    fn starting_range(&self, start: usize) -> Range<usize> {
+        self.edges.starting_range(start)
+    }
+
+    fn positions<'b>(&self, edge: &Edge<'b>) -> &'b [StructuralPos] {
+        edge.positions
     }
 }
 
@@ -1548,7 +1577,7 @@ fn compound_predicate_components(
     for start in (0..text_len).rev() {
         for edge in graph.starting_at(start) {
             for state in compound_tail_states() {
-                let Some(next) = advance_compound_tail_suffix(state, edge.pos) else {
+                let Some(next) = advance_compound_tail_suffix(state, graph.positions(edge)) else {
                     continue;
                 };
                 suffix[start][state as usize] |= suffix[edge.span.end][next as usize];
@@ -1558,7 +1587,7 @@ fn compound_predicate_components(
 
     let mut components = Vec::new();
     for edge in graph.starting_at(0) {
-        let Some((pos, state)) = compound_tail_inside_analysis(edge.pos) else {
+        let Some((pos, state)) = compound_tail_inside_analysis(graph.positions(edge)) else {
             continue;
         };
         if !suffix[edge.span.end][state as usize] {
@@ -1579,8 +1608,10 @@ fn compound_predicate_components(
         .iter()
         .filter(|edge| connective_boundary[edge.span.start])
     {
-        let (first, suffix_positions) = edge.pos.split_once('+').unwrap_or((edge.pos, ""));
-        let Some(pos) = DataFinePos::parse(first).filter(|pos| pos.is_predicate()) else {
+        let Some((&first, suffix_positions)) = graph.positions(edge).split_first() else {
+            continue;
+        };
+        let Some(pos) = first.fine_pos().filter(|pos| pos.is_predicate()) else {
             continue;
         };
         let Some(state) =
@@ -1612,24 +1643,23 @@ fn compound_predicate_components(
     components.into_boxed_slice()
 }
 
-fn compound_tail_inside_analysis(positions: &str) -> Option<(DataFinePos, CompoundTailState)> {
-    let mut positions = positions.split('+');
-    positions
-        .next()
-        .and_then(DataFinePos::parse)
-        .filter(|pos| pos.is_predicate())?;
+fn compound_tail_inside_analysis(
+    positions: &[StructuralPos],
+) -> Option<(DataFinePos, CompoundTailState)> {
+    let (first, positions) = positions.split_first()?;
+    first.fine_pos().filter(|pos| pos.is_predicate())?;
     let mut connective = false;
-    for position in &mut positions {
-        if position.starts_with('E') {
-            connective = position == "EC";
+    for (index, &position) in positions.iter().enumerate() {
+        if position.is_ending() {
+            connective = position == StructuralPos::EC;
             continue;
         }
-        let pos = DataFinePos::parse(position).filter(|pos| pos.is_predicate())?;
+        let pos = position.fine_pos().filter(|pos| pos.is_predicate())?;
         if !connective {
             return None;
         }
         let mut state = CompoundTailState::Predicate;
-        for suffix in positions {
+        for &suffix in &positions[index + 1..] {
             state = advance_compound_tail_position(state, suffix)?;
         }
         return Some((pos, state));
@@ -1647,9 +1677,9 @@ const fn compound_tail_states() -> [CompoundTailState; COMPOUND_TAIL_STATE_COUNT
 
 fn advance_compound_tail_suffix(
     mut state: CompoundTailState,
-    positions: &str,
+    positions: &[StructuralPos],
 ) -> Option<CompoundTailState> {
-    for pos in positions.split('+').filter(|pos| !pos.is_empty()) {
+    for &pos in positions {
         state = advance_compound_tail_position(state, pos)?;
     }
     Some(state)
@@ -1657,13 +1687,13 @@ fn advance_compound_tail_suffix(
 
 fn advance_compound_tail_position(
     state: CompoundTailState,
-    pos: &str,
+    pos: StructuralPos,
 ) -> Option<CompoundTailState> {
     match (state, pos) {
-        (CompoundTailState::Predicate | CompoundTailState::Ending, pos) if pos.starts_with('E') => {
+        (CompoundTailState::Predicate | CompoundTailState::Ending, pos) if pos.is_ending() => {
             Some(CompoundTailState::Ending)
         }
-        (CompoundTailState::Ending | CompoundTailState::Particle, pos) if pos.starts_with('J') => {
+        (CompoundTailState::Ending | CompoundTailState::Particle, pos) if pos.is_particle() => {
             Some(CompoundTailState::Particle)
         }
         _ => None,
@@ -1681,10 +1711,10 @@ fn attached_auxiliary_spans(
     let mut spans = edges
         .iter()
         .filter(|edge| {
-            let mut positions = edge.pos.split('+');
+            let mut positions = graph.positions(edge).iter().copied();
             connective_boundary[edge.span.start]
-                && positions.next() == Some("VX")
-                && positions.all(|pos| pos.starts_with('E'))
+                && positions.next() == Some(StructuralPos::VX)
+                && positions.all(StructuralPos::is_ending)
                 && ending_suffix[edge.span.end]
         })
         .map(|edge| edge.span.clone())
@@ -1692,7 +1722,10 @@ fn attached_auxiliary_spans(
     spans.extend(
         edges
             .iter()
-            .filter(|edge| edge.span == (0..text_len) && is_attached_auxiliary_whole_path(edge.pos))
+            .filter(|edge| {
+                edge.span == (0..text_len)
+                    && is_attached_auxiliary_whole_path(graph.positions(edge))
+            })
             .map(|edge| edge.span.clone()),
     );
     if has_complete_attached_auxiliary_path(text_len, graph) {
@@ -1733,7 +1766,7 @@ fn has_complete_attached_auxiliary_path(text_len: usize, graph: &EdgeGraph<'_>) 
                 if !reachable[start][state as usize] {
                     continue;
                 }
-                if let Some(next) = advance_attached_auxiliary_path(state, edge.pos) {
+                if let Some(next) = advance_attached_auxiliary_path(state, graph.positions(edge)) {
                     reachable[edge.span.end][next as usize] = true;
                 }
             }
@@ -1744,27 +1777,33 @@ fn has_complete_attached_auxiliary_path(text_len: usize, graph: &EdgeGraph<'_>) 
 
 fn advance_attached_auxiliary_path(
     mut state: AttachedAuxiliaryState,
-    positions: &str,
+    positions: &[StructuralPos],
 ) -> Option<AttachedAuxiliaryState> {
-    for pos in positions.split('+') {
+    for &pos in positions {
         state = match (state, pos) {
-            (AttachedAuxiliaryState::Start, "VV" | "VA") => AttachedAuxiliaryState::Predicate,
-            (AttachedAuxiliaryState::Start, "XR") => AttachedAuxiliaryState::Root,
-            (AttachedAuxiliaryState::Root, "XSV" | "XSA") => AttachedAuxiliaryState::Predicate,
+            (AttachedAuxiliaryState::Start, StructuralPos::VV | StructuralPos::VA) => {
+                AttachedAuxiliaryState::Predicate
+            }
+            (AttachedAuxiliaryState::Start, StructuralPos::XR) => AttachedAuxiliaryState::Root,
+            (AttachedAuxiliaryState::Root, StructuralPos::XSV | StructuralPos::XSA) => {
+                AttachedAuxiliaryState::Predicate
+            }
             (AttachedAuxiliaryState::Predicate | AttachedAuxiliaryState::Connective, pos)
-                if pos.starts_with('E') =>
+                if pos.is_ending() =>
             {
-                if pos == "EC" {
+                if pos == StructuralPos::EC {
                     AttachedAuxiliaryState::Connective
                 } else {
                     AttachedAuxiliaryState::Predicate
                 }
             }
-            (AttachedAuxiliaryState::Connective, "VX") => AttachedAuxiliaryState::Auxiliary,
-            (AttachedAuxiliaryState::Auxiliary, pos) if pos.starts_with('E') => {
+            (AttachedAuxiliaryState::Connective, StructuralPos::VX) => {
+                AttachedAuxiliaryState::Auxiliary
+            }
+            (AttachedAuxiliaryState::Auxiliary, pos) if pos.is_ending() => {
                 AttachedAuxiliaryState::AuxiliaryEnding
             }
-            (AttachedAuxiliaryState::AuxiliaryEnding, pos) if pos.starts_with('E') => {
+            (AttachedAuxiliaryState::AuxiliaryEnding, pos) if pos.is_ending() => {
                 AttachedAuxiliaryState::AuxiliaryEnding
             }
             _ => return None,
@@ -1773,42 +1812,42 @@ fn advance_attached_auxiliary_path(
     Some(state)
 }
 
-fn is_attached_auxiliary_whole_path(pos: &str) -> bool {
-    let mut positions = pos.split('+');
+fn is_attached_auxiliary_whole_path(positions: &[StructuralPos]) -> bool {
+    let mut positions = positions.iter().copied();
     match positions.next() {
-        Some("VV" | "VA") => {}
-        Some("XR") if matches!(positions.next(), Some("XSV" | "XSA")) => {}
+        Some(StructuralPos::VV | StructuralPos::VA) => {}
+        Some(StructuralPos::XR)
+            if matches!(
+                positions.next(),
+                Some(StructuralPos::XSV | StructuralPos::XSA)
+            ) => {}
         _ => return false,
     }
 
     let mut connective_before_auxiliary = false;
     for position in &mut positions {
-        if position == "VX" {
+        if position == StructuralPos::VX {
             return connective_before_auxiliary
-                && positions
-                    .next()
-                    .is_some_and(|ending| ending.starts_with('E'))
-                && positions.all(|ending| ending.starts_with('E'));
+                && positions.next().is_some_and(StructuralPos::is_ending)
+                && positions.all(StructuralPos::is_ending);
         }
-        if !position.starts_with('E') {
+        if !position.is_ending() {
             return false;
         }
-        connective_before_auxiliary = position == "EC";
+        connective_before_auxiliary = position == StructuralPos::EC;
     }
     false
 }
 
-fn leading_predicate_spans(edges: &[Edge<'_>], ending_suffix: &[bool]) -> Box<[Range<usize>]> {
-    let mut spans = edges
+fn leading_predicate_spans(graph: &EdgeGraph<'_>, ending_suffix: &[bool]) -> Box<[Range<usize>]> {
+    let mut spans = graph
+        .edges()
         .iter()
         .filter_map(|edge| {
-            let mut positions = edge.pos.split('+');
+            let mut positions = graph.positions(edge).iter().copied();
             (edge.span.start == 0
-                && positions
-                    .next()
-                    .and_then(DataFinePos::parse)
-                    .is_some_and(DataFinePos::is_predicate)
-                && positions.all(|pos| pos.starts_with('E'))
+                && positions.next().is_some_and(StructuralPos::is_predicate)
+                && positions.all(StructuralPos::is_ending)
                 && ending_suffix[edge.span.end])
                 .then(|| edge.span.clone())
         })
@@ -1823,28 +1862,24 @@ fn runtime_nominal_derivation_spans(
     complete: &[bool],
 ) -> Box<[Range<usize>]> {
     let edges = graph.edges();
-    let mut spans =
-        graph
-            .starting_range(0)
-            .filter(|&index| {
-                let edge = &edges[index];
-                complete[index]
-                    && edge
-                        .pos
-                        .split('+')
-                        .next_back()
-                        .and_then(DataFinePos::parse)
-                        .is_some_and(DataFinePos::is_nominal)
-                    && graph.starting_range(edge.span.end).any(|next_index| {
-                        let next = &edges[next_index];
-                        complete[next_index]
-                            && next.pos.split('+').next().is_some_and(|pos| {
-                                pos.starts_with('V') || matches!(pos, "XSV" | "XSA")
-                            })
-                    })
-            })
-            .map(|index| edges[index].span.clone())
-            .collect::<Vec<_>>();
+    let mut spans = graph
+        .starting_range(0)
+        .filter(|&index| {
+            let edge = &edges[index];
+            let positions = graph.positions(edge);
+            complete[index]
+                && positions.last().is_some_and(|pos| pos.is_nominal())
+                && graph.starting_range(edge.span.end).any(|next_index| {
+                    let next = &edges[next_index];
+                    complete[next_index]
+                        && graph.positions(next).first().is_some_and(|pos| {
+                            pos.is_predicate_tag()
+                                || matches!(*pos, StructuralPos::XSV | StructuralPos::XSA)
+                        })
+                })
+        })
+        .map(|index| edges[index].span.clone())
+        .collect::<Vec<_>>();
     spans.sort_unstable_by_key(|span| (span.start, span.end));
     spans.dedup();
     spans.into_boxed_slice()
@@ -1871,22 +1906,19 @@ fn nominal_derivation_state(index: usize) -> NominalDerivationState {
 
 fn advance_nominal_derivation(
     state: NominalDerivationState,
-    pos: &str,
+    pos: StructuralPos,
 ) -> Option<NominalDerivationState> {
     match (state, pos) {
-        (NominalDerivationState::Start, pos)
-            if DataFinePos::parse(pos).is_some_and(DataFinePos::is_nominal) =>
-        {
+        (NominalDerivationState::Start, pos) if pos.is_nominal() => {
             Some(NominalDerivationState::Nominal)
         }
-        (NominalDerivationState::Nominal, pos)
-            if DataFinePos::parse(pos).is_some_and(DataFinePos::is_nominal) =>
-        {
+        (NominalDerivationState::Nominal, pos) if pos.is_nominal() => {
             Some(NominalDerivationState::Nominal)
         }
-        (NominalDerivationState::Nominal | NominalDerivationState::DerivedNominal, "XSN") => {
-            Some(NominalDerivationState::DerivedNominal)
-        }
+        (
+            NominalDerivationState::Nominal | NominalDerivationState::DerivedNominal,
+            StructuralPos::XSN,
+        ) => Some(NominalDerivationState::DerivedNominal),
         _ => None,
     }
 }
@@ -1904,7 +1936,7 @@ fn nominal_derivation_predicate_prefixes(
                 if !nominal_prefix[start][state_index] {
                     continue;
                 }
-                let Some(next) = edge.pos.split('+').try_fold(
+                let Some(next) = graph.positions(edge).iter().copied().try_fold(
                     nominal_derivation_state(state_index),
                     advance_nominal_derivation,
                 ) else {
@@ -1919,9 +1951,11 @@ fn nominal_derivation_predicate_prefixes(
         .filter(|&end| {
             nominal_prefix[end][NominalDerivationState::DerivedNominal as usize]
                 && graph.starting_at(end).iter().any(|edge| {
-                    let mut positions = edge.pos.split('+');
-                    matches!(positions.next(), Some("XSV" | "XSA"))
-                        && positions.clone().all(|pos| pos.starts_with('E'))
+                    let mut positions = graph.positions(edge).iter().copied();
+                    matches!(
+                        positions.next(),
+                        Some(StructuralPos::XSV | StructuralPos::XSA)
+                    ) && positions.clone().all(StructuralPos::is_ending)
                         && ending_suffix[edge.span.end]
                         && (positions.next().is_some() || edge.span.end < text_len)
                 })
@@ -1933,17 +1967,17 @@ fn nominal_derivation_predicate_prefixes(
     prefixes.into_boxed_slice()
 }
 
-fn derivational_suffix_starts(edges: &[Edge<'_>], complete: &[bool]) -> Box<[usize]> {
-    let mut starts = edges
+fn derivational_suffix_starts(graph: &EdgeGraph<'_>, complete: &[bool]) -> Box<[usize]> {
+    let mut starts = graph
+        .edges()
         .iter()
         .enumerate()
         .filter(|(index, edge)| {
             complete[*index]
-                && edge
-                    .pos
-                    .split('+')
-                    .next()
-                    .is_some_and(|pos| matches!(pos, "XSV" | "XSA"))
+                && graph
+                    .positions(edge)
+                    .first()
+                    .is_some_and(|pos| matches!(*pos, StructuralPos::XSV | StructuralPos::XSA))
         })
         .map(|(_, edge)| edge.span.start)
         .collect::<Vec<_>>();
@@ -1963,7 +1997,7 @@ fn adnominal_derivation_suffix_starts(
     for start in (0..text_len).rev() {
         adnominal_ending_suffix[start] = graph.starting_at(start).iter().any(|edge| {
             ending_path_reaches_adnominal_boundary(
-                edge.pos,
+                graph.positions(edge),
                 edge.span.end,
                 text_len,
                 &adnominal_ending_suffix,
@@ -1980,8 +2014,8 @@ fn adnominal_derivation_suffix_starts(
             {
                 return None;
             }
-            let (first, endings) = edge.pos.split_once('+').unwrap_or((edge.pos, ""));
-            if !matches!(first, "XSV" | "XSA") {
+            let (first, endings) = graph.positions(edge).split_first()?;
+            if !matches!(*first, StructuralPos::XSV | StructuralPos::XSA) {
                 return None;
             }
             let complete = ending_path_reaches_adnominal_boundary(
@@ -1999,22 +2033,22 @@ fn adnominal_derivation_suffix_starts(
 }
 
 fn ending_path_reaches_adnominal_boundary(
-    positions: &str,
+    positions: &[StructuralPos],
     end: usize,
     text_len: usize,
     suffix: &[bool],
 ) -> bool {
     let mut saw_adnominal = false;
     let mut last = None;
-    for position in positions.split('+').filter(|position| !position.is_empty()) {
-        if !position.starts_with('E') {
+    for &position in positions {
+        if !position.is_ending() {
             return false;
         }
-        saw_adnominal |= position == "ETM";
+        saw_adnominal |= position == StructuralPos::ETM;
         last = Some(position);
     }
     if saw_adnominal {
-        last == Some("ETM") && end == text_len
+        last == Some(StructuralPos::ETM) && end == text_len
     } else {
         suffix[end]
     }
@@ -2050,7 +2084,7 @@ fn nominal_copula_hosts(
     for start in (0..text_len).rev() {
         for edge in graph.starting_at(start) {
             for state in copula_suffix_states() {
-                let Some(next) = advance_copula_suffix(state, edge.pos) else {
+                let Some(next) = advance_copula_suffix(state, graph.positions(edge)) else {
                     continue;
                 };
                 suffix[start][state as usize] |= suffix[edge.span.end][next as usize];
@@ -2088,19 +2122,15 @@ const fn copula_suffix_states() -> [CopulaSuffixState; COPULA_SUFFIX_STATE_COUNT
 
 fn advance_copula_suffix(
     mut state: CopulaSuffixState,
-    positions: &str,
+    positions: &[StructuralPos],
 ) -> Option<CopulaSuffixState> {
-    for pos in positions.split('+') {
+    for &pos in positions {
         state = match (state, pos) {
-            (CopulaSuffixState::Start, "VCP") => CopulaSuffixState::Copula,
-            (CopulaSuffixState::Copula | CopulaSuffixState::Ending, pos)
-                if pos.starts_with('E') =>
-            {
+            (CopulaSuffixState::Start, StructuralPos::VCP) => CopulaSuffixState::Copula,
+            (CopulaSuffixState::Copula | CopulaSuffixState::Ending, pos) if pos.is_ending() => {
                 CopulaSuffixState::Ending
             }
-            (CopulaSuffixState::Ending | CopulaSuffixState::Particle, pos)
-                if pos.starts_with('J') =>
-            {
+            (CopulaSuffixState::Ending | CopulaSuffixState::Particle, pos) if pos.is_particle() => {
                 CopulaSuffixState::Particle
             }
             _ => return None,
@@ -2109,26 +2139,24 @@ fn advance_copula_suffix(
     Some(state)
 }
 
-fn predicate_path_ends_in_connective(pos: &str) -> Option<bool> {
-    let mut positions = pos.split('+');
-    if !matches!(positions.next(), Some("VV" | "VA")) {
+fn predicate_path_ends_in_connective(positions: &[StructuralPos]) -> Option<bool> {
+    let (first, positions) = positions.split_first()?;
+    if !matches!(*first, StructuralPos::VV | StructuralPos::VA) {
         return None;
     }
     ending_positions_end_in_connective(positions)
 }
 
-fn ending_path_ends_in_connective(pos: &str) -> Option<bool> {
-    ending_positions_end_in_connective(pos.split('+'))
+fn ending_path_ends_in_connective(positions: &[StructuralPos]) -> Option<bool> {
+    ending_positions_end_in_connective(positions)
 }
 
-fn ending_positions_end_in_connective<'a>(
-    positions: impl IntoIterator<Item = &'a str>,
-) -> Option<bool> {
+fn ending_positions_end_in_connective(positions: &[StructuralPos]) -> Option<bool> {
     let mut connective = false;
-    for position in positions {
+    for &position in positions {
         match position {
-            "EP" if !connective => {}
-            "EC" if !connective => connective = true,
+            StructuralPos::EP if !connective => {}
+            StructuralPos::EC if !connective => connective = true,
             _ => return None,
         }
     }
@@ -2181,15 +2209,20 @@ enum NumeralPathState {
 
 const NUMERAL_PATH_STATE_COUNT: usize = 6;
 
-fn numeral_path_transition(state: NumeralPathState, pos: &str) -> Option<NumeralPathState> {
-    let particle = pos.split('+').all(|part| part.starts_with('J'));
-    match (state, pos) {
-        (NumeralPathState::Start, "NR") => Some(NumeralPathState::OneNumeral),
-        (NumeralPathState::OneNumeral, "NR") | (NumeralPathState::ManyNumerals, "NR") => {
+fn numeral_path_transition(
+    state: NumeralPathState,
+    positions: &[StructuralPos],
+) -> Option<NumeralPathState> {
+    let particle = positions.iter().all(|pos| pos.is_particle());
+    match (state, positions) {
+        (NumeralPathState::Start, [StructuralPos::NR]) => Some(NumeralPathState::OneNumeral),
+        (NumeralPathState::OneNumeral | NumeralPathState::ManyNumerals, [StructuralPos::NR]) => {
             Some(NumeralPathState::ManyNumerals)
         }
-        (NumeralPathState::OneNumeral, "NNB" | "NNBC")
-        | (NumeralPathState::ManyNumerals, "NNB" | "NNBC") => Some(NumeralPathState::Unit),
+        (
+            NumeralPathState::OneNumeral | NumeralPathState::ManyNumerals,
+            [StructuralPos::NNB | StructuralPos::NNBC],
+        ) => Some(NumeralPathState::Unit),
         (NumeralPathState::ManyNumerals, _) if particle => {
             Some(NumeralPathState::ManyNumeralParticles)
         }
@@ -2251,7 +2284,7 @@ fn numeral_sequence_spans(
                     continue;
                 }
                 let state = numeral_path_state(state_index);
-                if let Some(next) = numeral_path_transition(state, edge.pos) {
+                if let Some(next) = numeral_path_transition(state, graph.positions(edge)) {
                     forward[edge.span.end][next as usize] = true;
                 }
             }
@@ -2266,7 +2299,7 @@ fn numeral_sequence_spans(
         for edge in graph.starting_at(start) {
             for state_index in 0..NUMERAL_PATH_STATE_COUNT {
                 let state = numeral_path_state(state_index);
-                let Some(next) = numeral_path_transition(state, edge.pos) else {
+                let Some(next) = numeral_path_transition(state, graph.positions(edge)) else {
                     continue;
                 };
                 backward[start][state_index] |= backward[edge.span.end][next as usize];
@@ -2275,13 +2308,17 @@ fn numeral_sequence_spans(
     }
 
     let mut spans = Vec::new();
-    for edge in graph.edges().iter().filter(|edge| edge.pos == "NR") {
+    for edge in graph
+        .edges()
+        .iter()
+        .filter(|edge| graph.positions(edge) == [StructuralPos::NR])
+    {
         let belongs_to_complete_path = (0..NUMERAL_PATH_STATE_COUNT).any(|state_index| {
             if !forward[edge.span.start][state_index] {
                 return false;
             }
             let state = numeral_path_state(state_index);
-            numeral_path_transition(state, edge.pos)
+            numeral_path_transition(state, graph.positions(edge))
                 .is_some_and(|next| backward[edge.span.end][next as usize])
         });
         if belongs_to_complete_path {
@@ -3138,9 +3175,9 @@ fn select_structure(
     }
     let next_starts_nominal = context.next.is_some_and(|next| {
         let exact_nominal =
-            exact_analysis_starts_with_pos(resource, next, |pos| pos.starts_with('N'));
+            exact_analysis_starts_with_pos(resource, next, StructuralPos::is_nominal_tag);
         let exact_competitor =
-            exact_analysis_starts_with_pos(resource, next, |pos| !pos.starts_with('N'));
+            exact_analysis_starts_with_pos(resource, next, |pos| !pos.is_nominal_tag());
         let complete_nominal = complete_nominal_host(resource, next)
             || complete_nominal_particle_host(resource, next).is_some();
         !nominal_particle_hosts(resource, next).is_empty()
@@ -3159,14 +3196,14 @@ fn select_structure(
     if evidence.has_whole(DataFinePos::Mag)
         && particle_host.is_none()
         && context.next.is_some_and(|next| {
-            exact_analysis_starts_with_pos(resource, next, |pos| pos.starts_with('V'))
+            exact_analysis_starts_with_pos(resource, next, StructuralPos::is_predicate_tag)
         })
         && has_copular_adnominal_split(resource, context.current)
     {
         return StructureSelection::Whole;
     }
     if context.previous.is_some_and(|previous| {
-        exact_analysis_ends_with_pos(resource, previous, |pos| pos == "ETM")
+        exact_analysis_ends_with_pos(resource, previous, |pos| pos == StructuralPos::ETM)
             || adnominal_suffix_is_supported(resource, previous)
     }) && has_exact_fine_pos(resource, context.current, |pos| pos == DataFinePos::Nnb)
     {
@@ -3223,15 +3260,15 @@ fn numeric_unit_path(resource: &ComponentResource, text: &str) -> Option<Numeric
         return None;
     }
     let mut selected = None;
-    resource.common_prefixes(&text.as_bytes()[numeric_end..], |unit_length, analyses| {
-        if !analyses
-            .iter()
-            .any(|analysis| matches!(analysis.pos, "NNB" | "NNBC" | "NR"))
-        {
+    resource.common_prefix_positions(&text.as_bytes()[numeric_end..], |unit_length, positions| {
+        if !matches!(
+            positions,
+            [StructuralPos::NNB | StructuralPos::NNBC | StructuralPos::NR]
+        ) {
             return;
         }
         let unit_end = numeric_end + unit_length;
-        if complete_suffix(resource, &text[unit_end..], |pos| pos.starts_with('J')) {
+        if complete_suffix(resource, &text[unit_end..], StructuralPos::is_particle) {
             select_numeric_unit_path(
                 &mut selected,
                 NumericUnitPath {
@@ -3240,15 +3277,12 @@ fn numeric_unit_path(resource: &ComponentResource, text: &str) -> Option<Numeric
                 },
             );
         }
-        resource.common_prefixes(&text.as_bytes()[unit_end..], |tail_length, analyses| {
-            if !analyses
-                .iter()
-                .any(|analysis| matches!(analysis.pos, "NNB" | "NNBC"))
-            {
+        resource.common_prefix_positions(&text.as_bytes()[unit_end..], |tail_length, positions| {
+            if !matches!(positions, [StructuralPos::NNB | StructuralPos::NNBC]) {
                 return;
             }
             let tail_end = unit_end + tail_length;
-            if !complete_suffix(resource, &text[tail_end..], |pos| pos.starts_with('J')) {
+            if !complete_suffix(resource, &text[tail_end..], StructuralPos::is_particle) {
                 return;
             }
             select_numeric_unit_path(
@@ -3285,22 +3319,24 @@ fn adnominal_suffix_is_supported(resource: &ComponentResource, text: &str) -> bo
     let surface_shape = text.ends_with("는") || text.ends_with("던");
     surface_shape
         && text.char_indices().map(|(offset, _)| offset).any(|start| {
-            has_exact_sequence(resource, &text[start..], &["ETM"])
-                || has_exact_sequence(resource, &text[start..], &["EP", "ETM"])
+            has_exact_sequence(resource, &text[start..], &[StructuralPos::ETM])
+                || has_exact_sequence(
+                    resource,
+                    &text[start..],
+                    &[StructuralPos::EP, StructuralPos::ETM],
+                )
         })
 }
 
 fn exact_analysis_starts_with_pos(
     resource: &ComponentResource,
     text: &str,
-    accepts: impl Fn(&str) -> bool,
+    accepts: impl Fn(StructuralPos) -> bool,
 ) -> bool {
     let mut matched = false;
-    resource.common_prefixes(text.as_bytes(), |length, analyses| {
+    resource.common_prefix_positions(text.as_bytes(), |length, positions| {
         if length == text.len() {
-            matched |= analyses
-                .iter()
-                .any(|analysis| analysis.pos.split('+').next().is_some_and(&accepts));
+            matched |= positions.first().copied().is_some_and(&accepts);
         }
     });
     matched
@@ -3309,8 +3345,8 @@ fn exact_analysis_starts_with_pos(
 fn complete_ha_predicate_path(resource: &ComponentResource, text: &str) -> bool {
     ["하", "해", "했"].into_iter().any(|surface| {
         text.starts_with(surface)
-            && exact_analysis_starts_with_pos(resource, surface, |pos| pos == "VV")
-            && complete_suffix(resource, &text[surface.len()..], |pos| pos.starts_with('E'))
+            && exact_analysis_starts_with_pos(resource, surface, |pos| pos == StructuralPos::VV)
+            && complete_suffix(resource, &text[surface.len()..], StructuralPos::is_ending)
     })
 }
 
@@ -3321,7 +3357,11 @@ fn has_copular_adnominal_split(resource: &ComponentResource, current: &str) -> b
         .skip(1)
         .any(|split| {
             has_exact_fine_pos(resource, &current[..split], DataFinePos::is_nominal)
-                && has_exact_sequence(resource, &current[split..], &["VCP", "ETM"])
+                && has_exact_sequence(
+                    resource,
+                    &current[split..],
+                    &[StructuralPos::VCP, StructuralPos::ETM],
+                )
         })
 }
 
@@ -3331,8 +3371,10 @@ fn copular_frame(
 ) -> Option<(Range<usize>, Range<usize>)> {
     let previous = context.previous?;
     let next = context.next?;
-    if !complete_pos_sequence(resource, previous, &["VCN", "EC"])
-        || !starts_with_pos(resource, next, |pos| matches!(pos, "NNB" | "NNBC"))
+    if !complete_pos_sequence(resource, previous, &[StructuralPos::VCN, StructuralPos::EC])
+        || !starts_with_pos(resource, next, |pos| {
+            matches!(pos, StructuralPos::NNB | StructuralPos::NNBC)
+        })
     {
         return None;
     }
@@ -3347,8 +3389,12 @@ fn unique_copular_split(resource: &ComponentResource, current: &str) -> Option<u
         .skip(1)
         .filter(|&split| {
             has_exact_fine_pos(resource, &current[..split], DataFinePos::is_nominal)
-                && (has_exact_sequence(resource, &current[split..], &["VCP"])
-                    || has_exact_sequence(resource, &current[split..], &["VCP", "ETM"]))
+                && (has_exact_sequence(resource, &current[split..], &[StructuralPos::VCP])
+                    || has_exact_sequence(
+                        resource,
+                        &current[split..],
+                        &[StructuralPos::VCP, StructuralPos::ETM],
+                    ))
         });
     let split = matches.next()?;
     matches.next().is_none().then_some(split)
@@ -3361,7 +3407,7 @@ fn nominal_particle_hosts(resource: &ComponentResource, current: &str) -> Vec<Ra
         .skip(1)
         .filter(|&split| {
             has_exact_fine_pos(resource, &current[..split], DataFinePos::is_nominal)
-                && complete_suffix(resource, &current[split..], |pos| pos.starts_with('J'))
+                && complete_suffix(resource, &current[split..], StructuralPos::is_particle)
         })
         .map(|end| 0..end)
         .collect()
@@ -3377,7 +3423,7 @@ fn complete_nominal_particle_host(
         .skip(1)
         .filter(|&split| {
             complete_nominal_host(resource, &current[..split])
-                && complete_suffix(resource, &current[split..], |pos| pos.starts_with('J'))
+                && complete_suffix(resource, &current[split..], StructuralPos::is_particle)
         })
         .max()
         .map(|end| 0..end)
@@ -3393,26 +3439,27 @@ fn complete_nominal_host(resource: &ComponentResource, text: &str) -> bool {
             }
             continue;
         }
-        resource.common_prefixes(&text.as_bytes()[start..], |length, analyses| {
+        resource.common_prefix_positions(&text.as_bytes()[start..], |length, positions| {
             if length == 0 || start + length > text.len() {
                 return;
             }
-            for analysis in analyses {
-                let mut next_has_nominal = has_nominal;
-                let valid = analysis.pos.split('+').all(|pos| {
-                    if DataFinePos::parse(pos).is_some_and(DataFinePos::is_nominal) {
-                        next_has_nominal = true;
-                        true
-                    } else {
-                        matches!(pos, "XPN" | "XSN" | "XR")
-                    }
-                });
-                let end = start + length;
-                let state = usize::from(next_has_nominal);
-                if valid && !visited[end][state] {
-                    visited[end][state] = true;
-                    pending.push((end, next_has_nominal));
+            let mut next_has_nominal = has_nominal;
+            let valid = positions.iter().all(|&pos| {
+                if pos.is_nominal() {
+                    next_has_nominal = true;
+                    true
+                } else {
+                    matches!(
+                        pos,
+                        StructuralPos::XPN | StructuralPos::XSN | StructuralPos::XR
+                    )
                 }
+            });
+            let end = start + length;
+            let state = usize::from(next_has_nominal);
+            if valid && !visited[end][state] {
+                visited[end][state] = true;
+                pending.push((end, next_has_nominal));
             }
         });
     }
@@ -3422,7 +3469,7 @@ fn complete_nominal_host(resource: &ComponentResource, text: &str) -> bool {
 fn complete_suffix(
     resource: &ComponentResource,
     suffix: &str,
-    accepts: impl Copy + Fn(&str) -> bool,
+    accepts: impl Copy + Fn(StructuralPos) -> bool,
 ) -> bool {
     let mut reachable = vec![false; suffix.len() + 1];
     reachable[0] = true;
@@ -3430,17 +3477,14 @@ fn complete_suffix(
         if !reachable[start] {
             continue;
         }
-        resource.common_prefixes(&suffix.as_bytes()[start..], |length, analyses| {
+        resource.common_prefix_positions(&suffix.as_bytes()[start..], |length, positions| {
             let Some(end) = start
                 .checked_add(length)
                 .filter(|&end| length > 0 && end <= suffix.len())
             else {
                 return;
             };
-            if analyses
-                .iter()
-                .any(|analysis| analysis.pos.split('+').all(accepts))
-            {
+            if positions.iter().copied().all(accepts) {
                 reachable[end] = true;
             }
         });
@@ -3466,29 +3510,27 @@ fn complete_dependent_noun_particle_suffix(
             }
             continue;
         }
-        resource.common_prefixes(&suffix.as_bytes()[start..], |length, analyses| {
+        resource.common_prefix_positions(&suffix.as_bytes()[start..], |length, positions| {
             if length == 0 || start + length > suffix.len() {
                 return;
             }
-            for analysis in analyses {
-                nodes += 1;
-                let mut next_state = state;
-                let valid = analysis.pos.split('+').all(|position| match next_state {
-                    0 if matches!(position, "NNB" | "NNBC") => {
-                        next_state = 1;
-                        true
-                    }
-                    1 | 2 if position.starts_with('J') => {
-                        next_state = 2;
-                        true
-                    }
-                    _ => false,
-                });
-                let end = start + length;
-                if valid && !visited[end][next_state] {
-                    visited[end][next_state] = true;
-                    pending.push((end, next_state));
+            nodes += 1;
+            let mut next_state = state;
+            let valid = positions.iter().copied().all(|position| match next_state {
+                0 if matches!(position, StructuralPos::NNB | StructuralPos::NNBC) => {
+                    next_state = 1;
+                    true
                 }
+                1 | 2 if position.is_particle() => {
+                    next_state = 2;
+                    true
+                }
+                _ => false,
+            });
+            let end = start + length;
+            if valid && !visited[end][next_state] {
+                visited[end][next_state] = true;
+                pending.push((end, next_state));
             }
         });
     }
@@ -3501,40 +3543,43 @@ fn has_exact_fine_pos(
     accepts: impl Fn(DataFinePos) -> bool,
 ) -> bool {
     let mut matched = false;
-    resource.common_prefixes(text.as_bytes(), |length, analyses| {
+    resource.common_prefix_positions(text.as_bytes(), |length, positions| {
         if length == text.len() {
-            matched |= analyses
-                .iter()
-                .filter_map(|analysis| DataFinePos::parse(analysis.pos))
-                .any(&accepts);
+            matched |= match positions {
+                [position] => position.fine_pos().is_some_and(&accepts),
+                _ => false,
+            };
         }
     });
     matched
 }
 
-fn has_exact_sequence(resource: &ComponentResource, text: &str, expected: &[&str]) -> bool {
+fn has_exact_sequence(
+    resource: &ComponentResource,
+    text: &str,
+    expected: &[StructuralPos],
+) -> bool {
     let mut matched = false;
-    resource.common_prefixes(text.as_bytes(), |length, analyses| {
+    resource.common_prefix_positions(text.as_bytes(), |length, positions| {
         if length == text.len() {
-            matched |= analyses
-                .iter()
-                .any(|analysis| analysis.pos.split('+').eq(expected.iter().copied()));
+            matched |= positions == expected;
         }
     });
     matched
 }
 
-fn complete_pos_sequence(resource: &ComponentResource, text: &str, expected: &[&str]) -> bool {
+fn complete_pos_sequence(
+    resource: &ComponentResource,
+    text: &str,
+    expected: &[StructuralPos],
+) -> bool {
     if text.is_empty() || expected.is_empty() {
         return text.is_empty() && expected.is_empty();
     }
     let mut next = Vec::new();
-    resource.common_prefixes(text.as_bytes(), |length, analyses| {
-        for analysis in analyses {
-            let actual = analysis.pos.split('+').collect::<Vec<_>>();
-            if length > 0 && expected.starts_with(&actual) {
-                next.push((length, actual.len()));
-            }
+    resource.common_prefix_positions(text.as_bytes(), |length, positions| {
+        if length > 0 && expected.starts_with(positions) {
+            next.push((length, positions.len()));
         }
     });
     next.into_iter().any(|(length, consumed)| {
@@ -3545,14 +3590,12 @@ fn complete_pos_sequence(resource: &ComponentResource, text: &str, expected: &[&
 fn exact_analysis_ends_with_pos(
     resource: &ComponentResource,
     text: &str,
-    accepts: impl Copy + Fn(&str) -> bool,
+    accepts: impl Copy + Fn(StructuralPos) -> bool,
 ) -> bool {
     let mut matched = false;
-    resource.common_prefixes(text.as_bytes(), |length, analyses| {
+    resource.common_prefix_positions(text.as_bytes(), |length, positions| {
         if length == text.len() {
-            matched |= analyses
-                .iter()
-                .any(|analysis| analysis.pos.split('+').next_back().is_some_and(accepts));
+            matched |= positions.last().copied().is_some_and(accepts);
         }
     });
     matched
@@ -3561,13 +3604,11 @@ fn exact_analysis_ends_with_pos(
 fn starts_with_pos(
     resource: &ComponentResource,
     text: &str,
-    accepts: impl Fn(&str) -> bool,
+    accepts: impl Fn(StructuralPos) -> bool,
 ) -> bool {
     let mut matched = false;
-    resource.common_prefixes(text.as_bytes(), |_, analyses| {
-        matched |= analyses
-            .iter()
-            .any(|analysis| analysis.pos.split('+').next().is_some_and(&accepts));
+    resource.common_prefix_positions(text.as_bytes(), |_, positions| {
+        matched |= positions.first().copied().is_some_and(&accepts);
     });
     matched
 }

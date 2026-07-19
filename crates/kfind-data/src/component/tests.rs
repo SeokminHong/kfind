@@ -9,6 +9,16 @@ fn resource_size_limit_is_checked_without_allocating_the_input() {
 }
 
 #[test]
+fn component_positions_keep_prefix_categories_in_one_byte() {
+    assert_eq!(std::mem::size_of::<ComponentPos>(), 1);
+    assert!(ComponentPos::parse("NNBC").is_nominal_tag());
+    assert!(ComponentPos::parse("NNQ").is_nominal_tag());
+    assert!(ComponentPos::parse("VQ").is_predicate_tag());
+    assert!(ComponentPos::parse("EQ").is_ending());
+    assert!(ComponentPos::parse("JQ").is_particle());
+}
+
+#[test]
 fn resource_owns_bytes_and_preserves_only_aligned_structure() {
     let resource = decode_component_resource("fixture", fixture_resource(), &[7; 32]).unwrap();
     let mut prefixes = Vec::new();
@@ -26,6 +36,10 @@ fn resource_owns_bytes_and_preserves_only_aligned_structure() {
     assert_eq!(prefixes.len(), 2);
     assert_eq!(prefixes[1].0, "가나".len());
     assert_eq!(prefixes[1].1[0].pos, "NNG+JX");
+    assert_eq!(
+        prefixes[1].1[0].positions,
+        [ComponentPos::NNG, ComponentPos::JX]
+    );
     assert_eq!(prefixes[1].1[0].components.len(), 2);
     assert_eq!(prefixes[1].1[0].components[0].span, 0.."가".len());
     assert_eq!(prefixes[1].1[0].components[0].pos, "NNG");
@@ -34,6 +48,16 @@ fn resource_owns_bytes_and_preserves_only_aligned_structure() {
         "가".len().."가나".len()
     );
     assert_eq!(prefixes[1].1[0].components[1].pos, "JX");
+
+    let mut positions = Vec::new();
+    resource.common_prefix_positions("가나다".as_bytes(), |length, sequence| {
+        positions.push((length, sequence.to_vec()));
+    });
+    assert_eq!(positions.len(), 2);
+    assert_eq!(
+        positions[1],
+        ("가나".len(), vec![ComponentPos::NNG, ComponentPos::JX])
+    );
 }
 
 #[test]

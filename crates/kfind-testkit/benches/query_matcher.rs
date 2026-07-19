@@ -437,6 +437,31 @@ fn structural_constraint(criterion: &mut Criterion) {
         });
     });
 
+    let (dense_unique_pos_resource, dense_unique_pos_token) = dense_unique_pos_component_resource();
+    let dense_unique_pos_resource = Arc::new(dense_unique_pos_resource);
+    let dense_unique_pos_resolver = ConstraintResolver::new(dense_unique_pos_resource);
+    dense_unique_pos_resolver
+        .prepare_token_graph_for_candidate(
+            &dense_unique_pos_token,
+            DEFAULT_LATTICE_NODE_LIMIT,
+            true,
+            true,
+        )
+        .expect("dense unique POS token graph must stay inside the node limit");
+    group.throughput(Throughput::Elements(4_032));
+    group.bench_function("prepare_dense_unique_pos_token_graph", |bencher| {
+        bencher.iter(|| {
+            black_box(&dense_unique_pos_resolver)
+                .prepare_token_graph_for_candidate(
+                    black_box(&dense_unique_pos_token),
+                    DEFAULT_LATTICE_NODE_LIMIT,
+                    true,
+                    true,
+                )
+                .expect("dense unique POS token graph must stay inside the node limit")
+        });
+    });
+
     let dense_path_resource = Arc::new(dense_unit_path_component_resource());
     let dense_path_resolver = ConstraintResolver::new(dense_path_resource);
     let dense_path_token = "가".repeat(63);
@@ -635,6 +660,39 @@ fn dense_component_resource() -> kfind_data::ComponentResource {
         .expect("dense benchmark component resource must encode");
     decode_component_resource("dense benchmark", bytes, &COMPONENT_RESOURCE_SOURCE_DIGEST)
         .expect("dense benchmark component resource must decode")
+}
+
+fn dense_unique_pos_component_resource() -> (kfind_data::ComponentResource, String) {
+    let token = (0..63)
+        .map(|offset| char::from_u32('가' as u32 + offset).expect("benchmark scalar must be valid"))
+        .collect::<String>();
+    let mut boundaries = token
+        .char_indices()
+        .map(|(index, _)| index)
+        .collect::<Vec<_>>();
+    boundaries.push(token.len());
+    let mut entries = Vec::with_capacity(4_032);
+    let mut pos_index = 0_u16;
+    for start in 0..63 {
+        for end in start + 1..=63 {
+            let surface = &token[boundaries[start]..boundaries[end]];
+            for _ in 0..2 {
+                let pos = format!("U{pos_index:04X}");
+                pos_index += 1;
+                entries.push(component_entry(surface, &pos, 0));
+            }
+        }
+    }
+    assert_eq!(entries.len(), 4_032);
+    let bytes = encode_component_resource(COMPONENT_RESOURCE_SOURCE_DIGEST, &entries)
+        .expect("dense unique POS benchmark component resource must encode");
+    let resource = decode_component_resource(
+        "dense unique POS benchmark",
+        bytes,
+        &COMPONENT_RESOURCE_SOURCE_DIGEST,
+    )
+    .expect("dense unique POS benchmark component resource must decode");
+    (resource, token)
 }
 
 fn dense_unit_path_component_resource() -> kfind_data::ComponentResource {
