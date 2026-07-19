@@ -1,5 +1,6 @@
 **/target
 **/__pycache__/
+/.env
 /data/generated/*.bin
 /data/generated/full-pos/
 /dist/

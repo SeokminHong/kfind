@@ -1,4 +1,5 @@
 .git
+.env
 **/target
 fuzz/target
 data/generated/full-pos
