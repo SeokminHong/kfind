@@ -72,7 +72,7 @@ fn edge_graph_iterates_source_components_from_resource_records() {
             },
         ]
     );
-    assert!(std::mem::size_of::<Edge<'_>>() <= std::mem::size_of::<usize>() * 5);
+    assert!(std::mem::size_of::<Edge<'_>>() <= std::mem::size_of::<usize>() * 6);
 }
 
 #[test]

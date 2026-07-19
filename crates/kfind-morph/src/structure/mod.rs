@@ -1357,32 +1357,8 @@ impl TokenEvidence {
 #[derive(Debug)]
 struct Edge<'a> {
     span: Range<usize>,
-    analysis: EdgeAnalysis<'a>,
-}
-
-#[derive(Clone, Copy, Debug)]
-enum EdgeAnalysis<'a> {
-    Resource(ComponentAnalysisRef<'a>),
-    #[cfg(test)]
-    Test(&'a [StructuralPos]),
-}
-
-impl<'a> EdgeAnalysis<'a> {
-    fn positions(&self) -> &'a [StructuralPos] {
-        match self {
-            Self::Resource(analysis) => analysis.positions(),
-            #[cfg(test)]
-            Self::Test(positions) => positions,
-        }
-    }
-
-    const fn resource(&self) -> Option<ComponentAnalysisRef<'a>> {
-        match self {
-            Self::Resource(analysis) => Some(*analysis),
-            #[cfg(test)]
-            Self::Test(_) => None,
-        }
-    }
+    positions: &'a [StructuralPos],
+    analysis: Option<ComponentAnalysisRef<'a>>,
 }
 
 #[derive(Debug)]
@@ -1518,7 +1494,8 @@ impl<'a> EdgeGraph<'a> {
                 if actual <= node_limit {
                     edges.push(Edge {
                         span: start..start + length,
-                        analysis: EdgeAnalysis::Resource(analysis),
+                        positions: analysis.positions(),
+                        analysis: Some(analysis),
                     });
                 }
             });
@@ -1545,7 +1522,8 @@ impl<'a> EdgeGraph<'a> {
             .into_iter()
             .map(|(span, positions)| Edge {
                 span,
-                analysis: EdgeAnalysis::Test(positions),
+                positions,
+                analysis: None,
             })
             .collect();
         Self::from_edges(text_len, edges)
@@ -1564,7 +1542,7 @@ impl<'a> EdgeGraph<'a> {
     }
 
     fn positions<'b>(&self, edge: &Edge<'b>) -> &'b [StructuralPos] {
-        edge.analysis.positions()
+        edge.positions
     }
 
     fn components<'b>(
@@ -1572,7 +1550,6 @@ impl<'a> EdgeGraph<'a> {
         edge: &Edge<'b>,
     ) -> impl Iterator<Item = ComponentPart<'b>> + Clone + 'b {
         edge.analysis
-            .resource()
             .into_iter()
             .flat_map(ComponentAnalysisRef::components)
     }
