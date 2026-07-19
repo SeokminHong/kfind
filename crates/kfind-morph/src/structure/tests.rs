@@ -16,16 +16,46 @@ fn edge_graph_start_index_matches_a_linear_scan_at_every_byte() {
         let indexed = graph
             .starting_at(start)
             .iter()
-            .map(|edge| (edge.span.clone(), edge.pos))
+            .map(|edge| edge.span.clone())
             .collect::<Vec<_>>();
         let linear = graph
             .edges()
             .iter()
             .filter(|edge| edge.span.start == start)
-            .map(|edge| (edge.span.clone(), edge.pos))
+            .map(|edge| edge.span.clone())
             .collect::<Vec<_>>();
         assert_eq!(indexed, linear, "start={start}");
     }
+}
+
+#[test]
+fn edge_graph_interns_typed_pos_sequences_within_the_node_budget() {
+    let resolver = resolver_from_entries(vec![
+        atomic("가", "NNG"),
+        atomic("가가", "NNG"),
+        atomic("가가가", "VV+EC"),
+    ]);
+    let graph = EdgeGraph::collect(resolver.resource(), "가가가", 4_096).expect("bounded graph");
+
+    assert_eq!(graph.positions.len(), 3);
+    assert!(
+        graph
+            .edges()
+            .iter()
+            .filter(|edge| graph.positions(edge) == [StructuralPos::Fine(DataFinePos::Nng)])
+            .count()
+            > 1
+    );
+
+    let oversized = std::iter::repeat_n("EP", 33).collect::<Vec<_>>().join("+");
+    let resolver = resolver_from_entries(vec![atomic("가", &oversized)]);
+    assert_eq!(
+        EdgeGraph::collect(resolver.resource(), "가", 4).unwrap_err(),
+        ConstraintUnavailable::NodeLimit {
+            actual: 33,
+            limit: 32,
+        }
+    );
 }
 
 #[test]
@@ -98,7 +128,7 @@ proptest! {
         );
         prop_assert_eq!(
             common.predicate_connective_boundaries,
-            reference_predicate_connective_boundaries(text.len(), graph.edges()),
+            reference_predicate_connective_boundaries(resolver.resource(), &text),
         );
         for start in text
             .char_indices()
@@ -128,26 +158,65 @@ proptest! {
     }
 }
 
-fn reference_predicate_connective_boundaries(text_len: usize, edges: &[Edge<'_>]) -> Vec<bool> {
-    let mut predicate_path = vec![false; text_len + 1];
-    let mut connective_boundary = vec![false; text_len + 1];
-    for edge in edges {
-        let ends_in_connective = if edge.span.start == 0 {
-            predicate_path_ends_in_connective(edge.pos)
-        } else if predicate_path[edge.span.start] {
-            ending_path_ends_in_connective(edge.pos)
+fn reference_predicate_connective_boundaries(
+    resource: &ComponentResource,
+    text: &str,
+) -> Vec<bool> {
+    let mut predicate_path = vec![false; text.len() + 1];
+    let mut connective_boundary = vec![false; text.len() + 1];
+    let mut edges = Vec::new();
+    for start in text.char_indices().map(|(offset, _)| offset) {
+        resource.common_prefix_groups(&text.as_bytes()[start..], |length, analyses| {
+            edges.extend(
+                analyses
+                    .into_iter()
+                    .map(|analysis| (start..start + length, analysis.pos)),
+            );
+        });
+    }
+    for (span, positions) in edges {
+        let ends_in_connective = if span.start == 0 {
+            raw_predicate_path_ends_in_connective(positions)
+        } else if predicate_path[span.start] {
+            raw_ending_path_ends_in_connective(positions)
         } else {
             None
         };
         if let Some(ends_in_connective) = ends_in_connective {
             if ends_in_connective {
-                connective_boundary[edge.span.end] = true;
+                connective_boundary[span.end] = true;
             } else {
-                predicate_path[edge.span.end] = true;
+                predicate_path[span.end] = true;
             }
         }
     }
     connective_boundary
+}
+
+fn raw_predicate_path_ends_in_connective(positions: &str) -> Option<bool> {
+    let mut positions = positions.split('+');
+    if !matches!(positions.next(), Some("VV" | "VA")) {
+        return None;
+    }
+    raw_ending_positions_end_in_connective(positions)
+}
+
+fn raw_ending_path_ends_in_connective(positions: &str) -> Option<bool> {
+    raw_ending_positions_end_in_connective(positions.split('+'))
+}
+
+fn raw_ending_positions_end_in_connective<'a>(
+    positions: impl IntoIterator<Item = &'a str>,
+) -> Option<bool> {
+    let mut connective = false;
+    for position in positions {
+        match position {
+            "EP" if !connective => {}
+            "EC" if !connective => connective = true,
+            _ => return None,
+        }
+    }
+    Some(connective)
 }
 
 proptest! {
@@ -163,13 +232,9 @@ proptest! {
         starts.sort_unstable();
         let edges = starts
             .into_iter()
-            .map(|start| Edge {
-                span: start..start + 1,
-                pos: "NNG",
-                components: Vec::new(),
-            })
+            .map(|start| (start..start + 1, "NNG"))
             .collect::<Vec<_>>();
-        let graph = EdgeGraph::from_edges(text_len, edges);
+        let graph = EdgeGraph::from_raw_edges(text_len, edges);
 
         for start in 0..=text_len {
             let indexed = graph
@@ -2132,44 +2197,20 @@ fn attached_auxiliary_path_composes_a_split_derivational_source_analysis() {
     let root_end = "뚜렷".len();
     let auxiliary_end = "뚜렷해졌".len();
     let token_end = "뚜렷해졌다".len();
-    let edges = [
-        Edge {
-            span: 0..root_end,
-            pos: "XR",
-            components: Vec::new(),
-        },
-        Edge {
-            span: root_end..auxiliary_end,
-            pos: "XSA+EC+VX+EP",
-            components: Vec::new(),
-        },
-        Edge {
-            span: auxiliary_end..token_end,
-            pos: "EF",
-            components: Vec::new(),
-        },
+    let edges = vec![
+        (0..root_end, "XR"),
+        (root_end..auxiliary_end, "XSA+EC+VX+EP"),
+        (auxiliary_end..token_end, "EF"),
     ];
-    let graph = EdgeGraph::from_edges(token_end, edges.into());
+    let graph = EdgeGraph::from_raw_edges(token_end, edges);
     assert!(has_complete_attached_auxiliary_path(token_end, &graph));
 
-    let without_connective = [
-        Edge {
-            span: 0..root_end,
-            pos: "XR",
-            components: Vec::new(),
-        },
-        Edge {
-            span: root_end..auxiliary_end,
-            pos: "XSA+VX+EP",
-            components: Vec::new(),
-        },
-        Edge {
-            span: auxiliary_end..token_end,
-            pos: "EF",
-            components: Vec::new(),
-        },
+    let without_connective = vec![
+        (0..root_end, "XR"),
+        (root_end..auxiliary_end, "XSA+VX+EP"),
+        (auxiliary_end..token_end, "EF"),
     ];
-    let without_connective = EdgeGraph::from_edges(token_end, without_connective.into());
+    let without_connective = EdgeGraph::from_raw_edges(token_end, without_connective);
     assert!(!has_complete_attached_auxiliary_path(
         token_end,
         &without_connective,
