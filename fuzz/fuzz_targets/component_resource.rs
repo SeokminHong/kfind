@@ -57,6 +57,21 @@ fn exercise_valid_resource(data: &[u8]) {
         .expect("encoded component resource must decode");
     assert!(resource.stats().surface_count > 0);
     for entry in entries.iter().take(16) {
+        let mut referenced = 0_usize;
+        resource.common_prefix_analysis_refs(entry.surface.as_bytes(), |length, analysis| {
+            assert!(length <= entry.surface.len());
+            assert!(!analysis.pos().is_empty());
+            assert!(!analysis.positions().is_empty());
+            let components = analysis.components();
+            assert_eq!(components.clone().count(), components.len());
+            for component in components {
+                assert!(component.span.start < component.span.end);
+                assert!(component.span.end <= length);
+                assert!(!component.pos.is_empty());
+            }
+            referenced += 1;
+        });
+        assert!(referenced > 0);
         resource.common_prefixes(entry.surface.as_bytes(), |length, analyses| {
             assert!(length <= entry.surface.len());
             assert!(!analyses.is_empty());
