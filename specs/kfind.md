@@ -445,7 +445,8 @@
 - Resource loader는 검증된 POS string table을 compact typed sequence table로 한 번 변환한다.
   Token graph edge는 resource가 소유한 sequence slice를 빌려 쓰고 구조 상태기계는 raw 문자열을
   기능마다 다시 분리하거나 세부 품사를 반복 해석하지 않는다. Token 준비 경로에는 POS interning
-  cache나 별도 sequence arena를 두지 않는다.
+  cache나 별도 sequence arena를 두지 않는다. Component span이 필요 없는 구조 판정은 POS-only
+  resource view를 순회하며 analysis·component `Vec`를 만들지 않는다.
 - resolver는 먼저 query와 독립적인 whole/component·세부 품사·continuation·인접 token
   근거로 corpus의 구조적 후보를 고른다. 어휘 의미만 다르고 span topology, 품사,
   continuation과 문맥 제약이 같은 후보는 하나의 `StructuralSignature`로 합친다.
@@ -694,7 +695,8 @@
   context ID, word cost, 연결 비용 행렬, unknown model과 원본 expression 문자열은 싣지 않는다.
   loader는 검증된 string ID마다 구조 판정용 typed POS sequence를 compact code로 보유한다.
   국소 graph를 준비할 때는 resource의 POS 문자열, typed sequence와 component를 빌려 쓰며 token마다
-  이를 다시 소유하거나 변환하지 않는다.
+  이를 다시 소유하거나 변환하지 않는다. POS-only prefix 순회와 component materialization 경로는
+  분리해 suffix·인접 token 판정이 쓰지 않는 component를 decode하거나 할당하지 않는다.
   loader는 schema, source SHA-256, section length·digest, UTF-8, group·analysis·component
   offset과 span 범위를 모두 검증한 뒤 내용을 노출한다.
 - token 선두의 ASCII 숫자 연속은 바로 뒤의 완전한 source 분석이 `NNB`, `NNBC` 또는 `NR`이고
