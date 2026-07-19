@@ -688,8 +688,10 @@
   제거 후 4,096 node로 제한한다. NFC 안정 경계는 원문 byte offset으로
   역매핑하고 안정되지 않은 경계는 candidate로 만들지 않는다. 원문 window가 이미
   NFC이면 normalized byte offset과 원문 상대 offset의 identity mapping을 사용하고,
-  NFC가 아닌 window만 prefix 안정 경계를 계산한다. 인접 token도 NFC이면 원문 slice를
-  직접 빌려 구조를 준비하고, 비 NFC token만 bounded normalized 문자열을 소유한다.
+  제품 matcher는 현재 token의 원문 slice를 직접 빌려 구조를 준비한다. Public 진단 API가
+  독립 수명을 요구할 때만 소유 `AnalysisWindow`로 변환한다. NFC가 아닌 window만 bounded
+  normalized 문자열과 prefix 안정 경계를 소유한다. 인접 token도 같은 borrowed-or-owned
+  정규화 view를 사용한다.
 - compact morphology resource는 schema 5 container다. NFC surface index, source node의
   POS, NFC 안정 경계에 정렬된 component span과 source identity만 보존한다. left/right
   context ID, word cost, 연결 비용 행렬, unknown model과 원본 expression 문자열은 싣지 않는다.

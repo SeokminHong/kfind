@@ -1,8 +1,9 @@
+use std::borrow::Cow;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::ops::Range;
 
-use unicode_normalization::{UnicodeNormalization, is_nfc};
+use unicode_normalization::{IsNormalized, UnicodeNormalization, is_nfc, is_nfc_quick};
 
 use crate::boundary::bounded_surrounding_token_span;
 
@@ -24,47 +25,20 @@ pub struct AnalysisWindow {
     normalized_to_raw: Option<Vec<(usize, usize)>>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct AnalysisWindowRef<'a> {
+    raw_span: Range<usize>,
+    normalized: Cow<'a, str>,
+    normalized_to_raw: Option<Vec<(usize, usize)>>,
+}
+
 impl AnalysisWindow {
     pub fn extract(
         haystack: &[u8],
         target: Range<usize>,
         limits: AnalysisWindowLimits,
     ) -> Result<Self, AnalysisWindowError> {
-        if target.start >= target.end || target.end > haystack.len() {
-            return Err(AnalysisWindowError::InvalidTarget);
-        }
-        std::str::from_utf8(&haystack[target.clone()])
-            .map_err(|_| AnalysisWindowError::InvalidUtf8)?;
-        let raw_span = bounded_surrounding_token_span(haystack, target, limits.max_raw_bytes)
-            .map_err(|minimum| AnalysisWindowError::RawBytes {
-                minimum,
-                limit: limits.max_raw_bytes,
-            })?;
-        let raw = std::str::from_utf8(&haystack[raw_span.clone()])
-            .map_err(|_| AnalysisWindowError::InvalidUtf8)?;
-        let raw_is_nfc = is_nfc(raw);
-        let normalized = if raw_is_nfc {
-            raw.to_owned()
-        } else {
-            raw.nfc().collect::<String>()
-        };
-        let scalar_count = normalized.chars().count();
-        if scalar_count > limits.max_normalized_scalars {
-            return Err(AnalysisWindowError::NormalizedScalars {
-                actual: scalar_count,
-                limit: limits.max_normalized_scalars,
-            });
-        }
-        let normalized_to_raw = if raw_is_nfc {
-            None
-        } else {
-            Some(stable_normalized_boundaries(raw, &normalized))
-        };
-        Ok(Self {
-            raw_span,
-            normalized,
-            normalized_to_raw,
-        })
+        Ok(AnalysisWindowRef::extract(haystack, target, limits)?.into_owned())
     }
 
     #[must_use]
@@ -79,55 +53,205 @@ impl AnalysisWindow {
 
     #[must_use]
     pub fn original_span(&self, normalized: Range<usize>) -> Option<Range<usize>> {
-        if normalized.start > normalized.end || normalized.end > self.normalized.len() {
-            return None;
-        }
-        let start = self.raw_boundary(normalized.start)?;
-        let end = self.raw_boundary(normalized.end)?;
-        Some(self.raw_span.start.checked_add(start)?..self.raw_span.start.checked_add(end)?)
+        original_span(
+            &self.raw_span,
+            &self.normalized,
+            self.normalized_to_raw.as_deref(),
+            normalized,
+        )
     }
 
     #[must_use]
     pub fn normalized_span(&self, original: Range<usize>) -> Option<Range<usize>> {
-        if original.start < self.raw_span.start
-            || original.start > original.end
-            || original.end > self.raw_span.end
-        {
-            return None;
-        }
-        let relative_start = original.start.checked_sub(self.raw_span.start)?;
-        let relative_end = original.end.checked_sub(self.raw_span.start)?;
-        let start = self.normalized_boundary(relative_start)?;
-        let end = self.normalized_boundary(relative_end)?;
-        Some(start..end)
+        normalized_span(
+            &self.raw_span,
+            &self.normalized,
+            self.normalized_to_raw.as_deref(),
+            original,
+        )
+    }
+}
+
+impl<'a> AnalysisWindowRef<'a> {
+    pub(crate) fn extract(
+        haystack: &'a [u8],
+        target: Range<usize>,
+        limits: AnalysisWindowLimits,
+    ) -> Result<Self, AnalysisWindowError> {
+        let raw_span = Self::extract_raw_span(haystack, target, limits.max_raw_bytes)?;
+        let raw = std::str::from_utf8(&haystack[raw_span.clone()])
+            .map_err(|_| AnalysisWindowError::InvalidUtf8)?;
+        Self::from_raw(raw_span, raw, limits.max_normalized_scalars)
     }
 
-    fn raw_boundary(&self, normalized: usize) -> Option<usize> {
-        let boundaries = self.normalized_to_raw.as_ref();
-        if boundaries.is_none() {
-            return self
-                .normalized
-                .is_char_boundary(normalized)
-                .then_some(normalized);
+    pub(crate) fn extract_raw_span(
+        haystack: &[u8],
+        target: Range<usize>,
+        max_raw_bytes: usize,
+    ) -> Result<Range<usize>, AnalysisWindowError> {
+        if target.start >= target.end || target.end > haystack.len() {
+            return Err(AnalysisWindowError::InvalidTarget);
         }
-        let boundaries = boundaries?;
-        boundaries
-            .binary_search_by_key(&normalized, |(offset, _)| *offset)
-            .ok()
-            .map(|index| boundaries[index].1)
+        std::str::from_utf8(&haystack[target.clone()])
+            .map_err(|_| AnalysisWindowError::InvalidUtf8)?;
+        bounded_surrounding_token_span(haystack, target, max_raw_bytes).map_err(|minimum| {
+            AnalysisWindowError::RawBytes {
+                minimum,
+                limit: max_raw_bytes,
+            }
+        })
     }
 
-    fn normalized_boundary(&self, raw: usize) -> Option<usize> {
-        let boundaries = self.normalized_to_raw.as_ref();
-        if boundaries.is_none() {
-            return self.normalized.is_char_boundary(raw).then_some(raw);
+    pub(crate) fn from_raw(
+        raw_span: Range<usize>,
+        raw: &'a str,
+        max_normalized_scalars: usize,
+    ) -> Result<Self, AnalysisWindowError> {
+        let (normalized, scalar_count) = match nfc_status(raw) {
+            NfcStatus::Normalized { scalar_count } => (Cow::Borrowed(raw), scalar_count),
+            NfcStatus::NeedsNormalization => {
+                let mut scalar_count = 0;
+                let normalized = raw.nfc().inspect(|_| scalar_count += 1).collect::<String>();
+                (Cow::Owned(normalized), scalar_count)
+            }
+        };
+        if scalar_count > max_normalized_scalars {
+            return Err(AnalysisWindowError::NormalizedScalars {
+                actual: scalar_count,
+                limit: max_normalized_scalars,
+            });
         }
-        let boundaries = boundaries?;
-        boundaries
-            .binary_search_by_key(&raw, |(_, offset)| *offset)
-            .ok()
-            .map(|index| boundaries[index].0)
+        let normalized_to_raw = match &normalized {
+            Cow::Borrowed(_) => None,
+            Cow::Owned(normalized) => Some(stable_normalized_boundaries(raw, normalized)),
+        };
+        Ok(Self {
+            raw_span,
+            normalized,
+            normalized_to_raw,
+        })
     }
+
+    pub(crate) fn from_nfc(raw_span: Range<usize>, raw: &'a str) -> Self {
+        debug_assert!(is_nfc(raw));
+        Self {
+            raw_span,
+            normalized: Cow::Borrowed(raw),
+            normalized_to_raw: None,
+        }
+    }
+
+    pub(crate) fn normalized(&self) -> &str {
+        &self.normalized
+    }
+
+    pub(crate) fn normalized_span(&self, original: Range<usize>) -> Option<Range<usize>> {
+        normalized_span(
+            &self.raw_span,
+            &self.normalized,
+            self.normalized_to_raw.as_deref(),
+            original,
+        )
+    }
+
+    fn into_owned(self) -> AnalysisWindow {
+        AnalysisWindow {
+            raw_span: self.raw_span,
+            normalized: self.normalized.into_owned(),
+            normalized_to_raw: self.normalized_to_raw,
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+enum NfcStatus {
+    Normalized { scalar_count: usize },
+    NeedsNormalization,
+}
+
+fn nfc_status(text: &str) -> NfcStatus {
+    let mut scalar_count = 0;
+    match is_nfc_quick(text.chars().inspect(|_| scalar_count += 1)) {
+        IsNormalized::Yes => NfcStatus::Normalized { scalar_count },
+        IsNormalized::No => NfcStatus::NeedsNormalization,
+        IsNormalized::Maybe => {
+            if text.chars().eq(text.chars().nfc()) {
+                NfcStatus::Normalized { scalar_count }
+            } else {
+                NfcStatus::NeedsNormalization
+            }
+        }
+    }
+}
+
+pub(crate) fn nfc_status_and_scalar_count(text: &str) -> (bool, usize) {
+    match nfc_status(text) {
+        NfcStatus::Normalized { scalar_count } => (true, scalar_count),
+        NfcStatus::NeedsNormalization => (false, text.nfc().count()),
+    }
+}
+
+fn original_span(
+    raw_span: &Range<usize>,
+    normalized_text: &str,
+    boundaries: Option<&[(usize, usize)]>,
+    normalized: Range<usize>,
+) -> Option<Range<usize>> {
+    if normalized.start > normalized.end || normalized.end > normalized_text.len() {
+        return None;
+    }
+    let start = raw_boundary(normalized_text, boundaries, normalized.start)?;
+    let end = raw_boundary(normalized_text, boundaries, normalized.end)?;
+    Some(raw_span.start.checked_add(start)?..raw_span.start.checked_add(end)?)
+}
+
+fn normalized_span(
+    raw_span: &Range<usize>,
+    normalized_text: &str,
+    boundaries: Option<&[(usize, usize)]>,
+    original: Range<usize>,
+) -> Option<Range<usize>> {
+    if original.start < raw_span.start
+        || original.start > original.end
+        || original.end > raw_span.end
+    {
+        return None;
+    }
+    let relative_start = original.start.checked_sub(raw_span.start)?;
+    let relative_end = original.end.checked_sub(raw_span.start)?;
+    let start = normalized_boundary(normalized_text, boundaries, relative_start)?;
+    let end = normalized_boundary(normalized_text, boundaries, relative_end)?;
+    Some(start..end)
+}
+
+fn raw_boundary(
+    normalized_text: &str,
+    boundaries: Option<&[(usize, usize)]>,
+    normalized: usize,
+) -> Option<usize> {
+    let Some(boundaries) = boundaries else {
+        return normalized_text
+            .is_char_boundary(normalized)
+            .then_some(normalized);
+    };
+    boundaries
+        .binary_search_by_key(&normalized, |(offset, _)| *offset)
+        .ok()
+        .map(|index| boundaries[index].1)
+}
+
+fn normalized_boundary(
+    normalized_text: &str,
+    boundaries: Option<&[(usize, usize)]>,
+    raw: usize,
+) -> Option<usize> {
+    let Some(boundaries) = boundaries else {
+        return normalized_text.is_char_boundary(raw).then_some(raw);
+    };
+    boundaries
+        .binary_search_by_key(&raw, |(_, offset)| *offset)
+        .ok()
+        .map(|index| boundaries[index].0)
 }
 
 fn stable_normalized_boundaries(raw: &str, normalized: &str) -> Vec<(usize, usize)> {
@@ -182,6 +306,32 @@ impl Error for AnalysisWindowError {}
 mod tests {
     use super::*;
     use proptest::prelude::*;
+
+    #[test]
+    fn internal_window_borrows_nfc_and_owns_only_normalized_text() {
+        let nfc = "앞 매일 뒤";
+        let nfc_start = nfc.find('매').unwrap();
+        let nfc_window = AnalysisWindowRef::extract(
+            nfc.as_bytes(),
+            nfc_start..nfc_start + "매일".len(),
+            DEFAULT_ANALYSIS_WINDOW_LIMITS,
+        )
+        .unwrap();
+        assert!(matches!(nfc_window.normalized, Cow::Borrowed("매일")));
+        assert_eq!(nfc_window.normalized_to_raw, None);
+
+        let nfd = "앞 매일 뒤";
+        let nfd_start = nfd.find('ᄆ').unwrap();
+        let nfd_end = nfd.find(" 뒤").unwrap();
+        let nfd_window = AnalysisWindowRef::extract(
+            nfd.as_bytes(),
+            nfd_start..nfd_end,
+            DEFAULT_ANALYSIS_WINDOW_LIMITS,
+        )
+        .unwrap();
+        assert!(matches!(nfd_window.normalized, Cow::Owned(ref text) if text == "매일"));
+        assert!(nfd_window.normalized_to_raw.is_some());
+    }
 
     #[test]
     fn extracts_the_surrounding_eojeol_and_maps_nfc_offsets() {
@@ -273,6 +423,16 @@ mod tests {
     }
 
     proptest! {
+        #[test]
+        fn nfc_status_and_scalar_count_match_the_normalized_reference(
+            characters in prop::collection::vec(any::<char>(), 0..64)
+        ) {
+            let raw = characters.into_iter().collect::<String>();
+            let (normalized, scalar_count) = nfc_status_and_scalar_count(&raw);
+            prop_assert_eq!(normalized, is_nfc(&raw));
+            prop_assert_eq!(scalar_count, raw.nfc().count());
+        }
+
         #[test]
         fn stable_nfc_boundaries_round_trip(
             characters in prop::collection::vec(any::<char>(), 0..64)

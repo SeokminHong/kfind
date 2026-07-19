@@ -46,12 +46,12 @@ const ADNOMINAL_RULE_IDS: [&str; 4] = [
     "ending.retrospective-adnominal",
 ];
 #[derive(Default)]
-struct StructuralCache {
-    windows: HashMap<(usize, usize, bool, bool), Option<PreparedStructuralContextAnalysis>>,
+struct StructuralCache<'a> {
+    windows: HashMap<(usize, usize, bool, bool), Option<PreparedStructuralContextAnalysis<'a>>>,
     prepared_contexts: PreparedStructuralContextCache,
 }
 
-impl StructuralCache {
+impl StructuralCache<'_> {
     fn clear_windows(&mut self) {
         self.windows.clear();
     }
@@ -485,12 +485,12 @@ impl MorphMatcher {
         self.find_single_atom_best_with_cache(haystack, at, metadata, &mut structural_cache)
     }
 
-    fn find_single_atom_best_with_cache(
+    fn find_single_atom_best_with_cache<'a>(
         &self,
-        haystack: &[u8],
+        haystack: &'a [u8],
         at: usize,
         metadata: MatchMetadata,
-        structural_cache: &mut StructuralCache,
+        structural_cache: &mut StructuralCache<'a>,
     ) -> Option<VerifiedSpan> {
         let mut best = None;
         for hit in self.anchor_engine.hits(haystack, at) {
@@ -535,13 +535,13 @@ impl MorphMatcher {
             .next()
     }
 
-    fn execute_program_with_metadata(
+    fn execute_program_with_metadata<'a>(
         &self,
-        haystack: &[u8],
+        haystack: &'a [u8],
         hit: &AnchorHit,
         branch: &CandidateProgram,
         metadata: MatchMetadata,
-        structural_cache: &mut StructuralCache,
+        structural_cache: &mut StructuralCache<'a>,
     ) -> Option<VerifiedSpan> {
         let candidate = self.execute_program_without_decision(haystack, hit, branch, metadata)?;
         self.accepts_program(haystack, &candidate, branch, structural_cache)
@@ -726,12 +726,12 @@ impl MorphMatcher {
         })
     }
 
-    fn accepts_program(
+    fn accepts_program<'a>(
         &self,
-        haystack: &[u8],
+        haystack: &'a [u8],
         candidate: &ExecutedCandidate,
         branch: &CandidateProgram,
-        structural_cache: &mut StructuralCache,
+        structural_cache: &mut StructuralCache<'a>,
     ) -> bool {
         match &branch.decision {
             CandidateDecision::Boundary(_) => {
@@ -787,12 +787,12 @@ impl MorphMatcher {
         )
     }
 
-    fn accepts_structural(
+    fn accepts_structural<'a>(
         &self,
-        haystack: &[u8],
+        haystack: &'a [u8],
         candidate: &ExecutedCandidate,
         branch: &CandidateProgram,
-        structural_cache: &mut StructuralCache,
+        structural_cache: &mut StructuralCache<'a>,
     ) -> bool {
         let Some(resolver) = self.constraint_resolver.as_ref() else {
             return false;
