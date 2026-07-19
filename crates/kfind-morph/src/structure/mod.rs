@@ -1,7 +1,10 @@
 use std::ops::Range;
 use std::sync::{Arc, OnceLock};
 
-use kfind_data::{ComponentPart, ComponentPos as StructuralPos, ComponentResource, DataFinePos};
+use kfind_data::{
+    ComponentAnalysisRef, ComponentPart, ComponentPos as StructuralPos, ComponentResource,
+    DataFinePos,
+};
 
 use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern, StructuralSignature};
 use crate::{PredicatePos, PredicatePosSet};
@@ -186,30 +189,27 @@ impl ConstraintResolver {
     pub fn has_exact_lost_span_copula_ending_path(&self, text: &str) -> bool {
         let mut matched = false;
         self.resource
-            .common_prefixes(text.as_bytes(), |length, analyses| {
+            .common_prefix_analysis_refs(text.as_bytes(), |length, analysis| {
                 if length != text.len() {
                     return;
                 }
-                matched |= analyses.iter().any(|analysis| {
-                    let positions = analysis.positions;
-                    let Some(copula_index) =
-                        positions.iter().position(|pos| *pos == StructuralPos::VCP)
-                    else {
-                        return false;
-                    };
-                    copula_index > 0
-                        && positions[..copula_index].iter().all(|pos| pos.is_nominal())
-                        && positions[copula_index + 1..]
-                            .iter()
-                            .all(|pos| pos.is_ending())
-                        && positions.last().is_some_and(|pos| {
-                            matches!(*pos, StructuralPos::EC | StructuralPos::EF)
-                        })
-                        && !analysis
-                            .components
-                            .iter()
-                            .any(|component| component.pos == "VCP")
-                });
+                let positions = analysis.positions();
+                let Some(copula_index) =
+                    positions.iter().position(|pos| *pos == StructuralPos::VCP)
+                else {
+                    return;
+                };
+                matched |= copula_index > 0
+                    && positions[..copula_index].iter().all(|pos| pos.is_nominal())
+                    && positions[copula_index + 1..]
+                        .iter()
+                        .all(|pos| pos.is_ending())
+                    && positions
+                        .last()
+                        .is_some_and(|pos| matches!(*pos, StructuralPos::EC | StructuralPos::EF))
+                    && !analysis
+                        .components()
+                        .any(|component| component.pos == "VCP");
             });
         matched
     }
@@ -469,22 +469,20 @@ impl ConstraintResolver {
         let mut whole_predicate = false;
         let mut aligned_query_stem = false;
         self.resource
-            .common_prefixes(text.as_bytes(), |length, analyses| {
+            .common_prefix_analysis_refs(text.as_bytes(), |length, analysis| {
                 if length != text.len() {
                     return;
                 }
-                for analysis in analyses {
-                    let Some(first) = analysis.positions.first() else {
-                        continue;
-                    };
-                    if !first.is_predicate() {
-                        continue;
-                    }
-                    whole_predicate = true;
-                    aligned_query_stem |= analysis.components.iter().any(|component| {
-                        component.span == anchor && predicate_pos_matches(component.pos, pos)
-                    });
+                let Some(first) = analysis.positions().first() else {
+                    return;
+                };
+                if !first.is_predicate() {
+                    return;
                 }
+                whole_predicate = true;
+                aligned_query_stem |= analysis.components().any(|component| {
+                    component.span == anchor && predicate_pos_matches(component.pos, pos)
+                });
             });
         whole_predicate && !aligned_query_stem
     }
@@ -1191,7 +1189,7 @@ impl TokenEvidence {
                     from_whole_nominal: false,
                 });
             }
-            for component in &edge.components {
+            for component in graph.components(edge) {
                 if component.pos == "ETM" {
                     adnominal_ends.push(edge.span.start + component.span.end);
                 }
@@ -1232,7 +1230,7 @@ impl TokenEvidence {
                         from_whole_nominal: false,
                     });
                 }
-                for component in edge.components.iter().filter(|part| {
+                for component in graph.components(edge).filter(|part| {
                     part.pos == "NNBC"
                         && edge.span.start + part.span.start == unit.start
                         && edge.span.start + part.span.end == unit.end
@@ -1359,8 +1357,32 @@ impl TokenEvidence {
 #[derive(Debug)]
 struct Edge<'a> {
     span: Range<usize>,
-    positions: &'a [StructuralPos],
-    components: Vec<ComponentPart<'a>>,
+    analysis: EdgeAnalysis<'a>,
+}
+
+#[derive(Clone, Copy, Debug)]
+enum EdgeAnalysis<'a> {
+    Resource(ComponentAnalysisRef<'a>),
+    #[cfg(test)]
+    Test(&'a [StructuralPos]),
+}
+
+impl<'a> EdgeAnalysis<'a> {
+    fn positions(&self) -> &'a [StructuralPos] {
+        match self {
+            Self::Resource(analysis) => analysis.positions(),
+            #[cfg(test)]
+            Self::Test(positions) => positions,
+        }
+    }
+
+    const fn resource(&self) -> Option<ComponentAnalysisRef<'a>> {
+        match self {
+            Self::Resource(analysis) => Some(*analysis),
+            #[cfg(test)]
+            Self::Test(_) => None,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -1487,21 +1509,22 @@ impl<'a> EdgeGraph<'a> {
     ) -> Result<Self, ConstraintUnavailable> {
         let mut edges = Vec::new();
         for start in text.char_indices().map(|(offset, _)| offset) {
-            resource.common_prefix_groups(&text.as_bytes()[start..], |length, analyses| {
+            let mut actual = edges.len();
+            resource.common_prefix_analysis_refs(&text.as_bytes()[start..], |length, analysis| {
                 if length == 0 || start + length > text.len() {
                     return;
                 }
-                for analysis in analyses {
+                actual += 1;
+                if actual <= node_limit {
                     edges.push(Edge {
                         span: start..start + length,
-                        positions: analysis.positions,
-                        components: analysis.components,
+                        analysis: EdgeAnalysis::Resource(analysis),
                     });
                 }
             });
-            if edges.len() > node_limit {
+            if actual > node_limit {
                 return Err(ConstraintUnavailable::NodeLimit {
-                    actual: edges.len(),
+                    actual,
                     limit: node_limit,
                 });
             }
@@ -1522,8 +1545,7 @@ impl<'a> EdgeGraph<'a> {
             .into_iter()
             .map(|(span, positions)| Edge {
                 span,
-                positions,
-                components: Vec::new(),
+                analysis: EdgeAnalysis::Test(positions),
             })
             .collect();
         Self::from_edges(text_len, edges)
@@ -1542,7 +1564,17 @@ impl<'a> EdgeGraph<'a> {
     }
 
     fn positions<'b>(&self, edge: &Edge<'b>) -> &'b [StructuralPos] {
-        edge.positions
+        edge.analysis.positions()
+    }
+
+    fn components<'b>(
+        &self,
+        edge: &Edge<'b>,
+    ) -> impl Iterator<Item = ComponentPart<'b>> + Clone + 'b {
+        edge.analysis
+            .resource()
+            .into_iter()
+            .flat_map(ComponentAnalysisRef::components)
     }
 }
 
@@ -1594,8 +1626,8 @@ fn compound_predicate_components(
             continue;
         }
         components.extend(
-            edge.components
-                .iter()
+            graph
+                .components(edge)
                 .filter(|component| DataFinePos::parse(component.pos) == Some(pos))
                 .map(|component| PredicateComponent {
                     start: edge.span.start + component.span.start,
@@ -1628,8 +1660,8 @@ fn compound_predicate_components(
             pos,
         });
         components.extend(
-            edge.components
-                .iter()
+            graph
+                .components(edge)
                 .filter(|component| DataFinePos::parse(component.pos) == Some(pos))
                 .map(|component| PredicateComponent {
                     start: edge.span.start + component.span.start,

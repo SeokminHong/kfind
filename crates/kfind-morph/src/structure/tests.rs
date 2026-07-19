@@ -48,6 +48,47 @@ fn edge_graph_borrows_typed_pos_sequences_from_the_resource() {
 }
 
 #[test]
+fn edge_graph_iterates_source_components_from_resource_records() {
+    let resolver = resolver_from_entries([expression("가나", "NNG+JX", "가/NNG/*+나/JX/*")]);
+    let graph = EdgeGraph::collect(resolver.resource(), "가나", 4_096).expect("bounded graph");
+    let edge = graph
+        .edges()
+        .iter()
+        .find(|edge| edge.span == (0.."가나".len()))
+        .expect("whole analysis");
+    let components = graph.components(edge);
+
+    assert_eq!(components.clone().count(), 2);
+    assert_eq!(
+        components.clone().collect::<Vec<_>>(),
+        vec![
+            ComponentPart {
+                span: 0.."가".len(),
+                pos: "NNG",
+            },
+            ComponentPart {
+                span: "가".len().."가나".len(),
+                pos: "JX",
+            },
+        ]
+    );
+    assert!(std::mem::size_of::<Edge<'_>>() <= std::mem::size_of::<usize>() * 5);
+}
+
+#[test]
+fn edge_graph_stops_allocating_after_the_node_limit() {
+    let resolver = resolver_from_entries([atomic("가", "NNG"), atomic("가", "NNP")]);
+
+    assert_eq!(
+        EdgeGraph::collect(resolver.resource(), "가", 1).unwrap_err(),
+        ConstraintUnavailable::NodeLimit {
+            actual: 2,
+            limit: 1,
+        }
+    );
+}
+
+#[test]
 fn nominal_path_facts_match_direct_resource_traversal() {
     let resolver = resolver_from_entries(vec![
         atomic("나", "NNG"),

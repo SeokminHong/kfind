@@ -340,6 +340,43 @@ pub(super) struct PayloadLayout {
     component_records_start: usize,
 }
 
+#[derive(Clone)]
+pub(super) struct ComponentPartIter<'a> {
+    layout: &'a PayloadLayout,
+    input: &'a [u8],
+    string_bytes: &'a [u8],
+    strings: &'a StringLayout,
+    next: u32,
+    end: u32,
+}
+
+impl<'a> Iterator for ComponentPartIter<'a> {
+    type Item = ComponentPart<'a>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.next >= self.end {
+            return None;
+        }
+        let record = self.layout.component_record(self.input, self.next)?;
+        self.next += 1;
+        Some(ComponentPart {
+            span: usize::try_from(read_u32_at(record, 0)?).ok()?
+                ..usize::try_from(read_u32_at(record, 4)?).ok()?,
+            pos: self
+                .strings
+                .get(self.string_bytes, read_u32_at(record, 8)?)?,
+        })
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let remaining =
+            usize::try_from(self.end - self.next).expect("validated component count fits usize");
+        (remaining, Some(remaining))
+    }
+}
+
+impl ExactSizeIterator for ComponentPartIter<'_> {}
+
 impl PayloadLayout {
     pub fn parse(
         source: &str,
@@ -438,11 +475,11 @@ impl PayloadLayout {
     }
 
     pub fn group<'a>(
-        &self,
-        input: &[u8],
+        &'a self,
+        input: &'a [u8],
         group: u32,
         string_bytes: &'a [u8],
-        strings: &StringLayout,
+        strings: &'a StringLayout,
         positions: &'a ComponentPosLayout,
     ) -> Option<Vec<ComponentAnalysis<'a>>> {
         self.group_range(input, group)?
@@ -450,29 +487,51 @@ impl PayloadLayout {
             .collect()
     }
 
-    pub fn for_each_positions<'a>(
+    pub fn analysis_pos<'a>(
         &self,
         input: &[u8],
-        group: u32,
-        positions: &'a ComponentPosLayout,
-        mut emit: impl FnMut(&'a [ComponentPos]),
-    ) {
-        let Some(range) = self.group_range(input, group) else {
-            return;
-        };
-        for index in range {
-            let Some(position) = self
-                .analysis_record(input, index)
-                .and_then(|record| read_u32_at(record, 0))
-                .and_then(|id| positions.get(id))
-            else {
-                return;
-            };
-            emit(position);
-        }
+        record: u32,
+        string_bytes: &'a [u8],
+        strings: &StringLayout,
+    ) -> Option<&'a str> {
+        let pos_id = read_u32_at(self.analysis_record(input, record)?, 0)?;
+        strings.get(string_bytes, pos_id)
     }
 
-    fn group_range(&self, input: &[u8], group: u32) -> Option<Range<u32>> {
+    pub fn analysis_positions<'a>(
+        &self,
+        input: &[u8],
+        record: u32,
+        positions: &'a ComponentPosLayout,
+    ) -> Option<&'a [ComponentPos]> {
+        let pos_id = read_u32_at(self.analysis_record(input, record)?, 0)?;
+        positions.get(pos_id)
+    }
+
+    pub fn analysis_components<'a>(
+        &'a self,
+        input: &'a [u8],
+        record: u32,
+        string_bytes: &'a [u8],
+        strings: &'a StringLayout,
+    ) -> Option<ComponentPartIter<'a>> {
+        let record = self.analysis_record(input, record)?;
+        let start = read_u32_at(record, 4)?;
+        let end = start.checked_add(read_u32_at(record, 8)?)?;
+        if end > self.component_count {
+            return None;
+        }
+        Some(ComponentPartIter {
+            layout: self,
+            input,
+            string_bytes,
+            strings,
+            next: start,
+            end,
+        })
+    }
+
+    pub fn group_range(&self, input: &[u8], group: u32) -> Option<Range<u32>> {
         if group >= self.surface_count {
             return None;
         }
@@ -490,30 +549,21 @@ impl PayloadLayout {
     }
 
     fn analysis<'a>(
-        &self,
-        input: &[u8],
+        &'a self,
+        input: &'a [u8],
         index: u32,
         string_bytes: &'a [u8],
-        strings: &StringLayout,
+        strings: &'a StringLayout,
         positions: &'a ComponentPosLayout,
     ) -> Option<ComponentAnalysis<'a>> {
-        let record = self.analysis_record(input, index)?;
-        let pos_id = read_u32_at(record, 0)?;
-        let component_start = read_u32_at(record, 4)?;
-        let component_len = read_u32_at(record, 8)?;
-        let components = (component_start..component_start.checked_add(component_len)?)
-            .map(|index| {
-                let record = self.component_record(input, index)?;
-                Some(ComponentPart {
-                    span: usize::try_from(read_u32_at(record, 0)?).ok()?
-                        ..usize::try_from(read_u32_at(record, 4)?).ok()?,
-                    pos: strings.get(string_bytes, read_u32_at(record, 8)?)?,
-                })
-            })
-            .collect::<Option<Vec<_>>>()?;
+        let pos = self.analysis_pos(input, index, string_bytes, strings)?;
+        let positions = self.analysis_positions(input, index, positions)?;
+        let components = self
+            .analysis_components(input, index, string_bytes, strings)?
+            .collect();
         Some(ComponentAnalysis {
-            pos: strings.get(string_bytes, pos_id)?,
-            positions: positions.get(pos_id)?,
+            pos,
+            positions,
             components,
         })
     }

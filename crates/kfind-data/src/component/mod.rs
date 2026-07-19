@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::fmt;
 use std::ops::Range;
 
 use sha2::{Digest, Sha256};
@@ -41,6 +42,43 @@ pub struct ComponentAnalysis<'a> {
     pub pos: &'a str,
     pub positions: &'a [ComponentPos],
     pub components: Vec<ComponentPart<'a>>,
+}
+
+#[derive(Clone, Copy)]
+pub struct ComponentAnalysisRef<'a> {
+    resource: &'a ComponentResource,
+    record: u32,
+}
+
+impl fmt::Debug for ComponentAnalysisRef<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("ComponentAnalysisRef")
+            .field("record", &self.record)
+            .finish_non_exhaustive()
+    }
+}
+
+impl<'a> ComponentAnalysisRef<'a> {
+    #[must_use]
+    pub fn pos(self) -> &'a str {
+        self.resource
+            .analysis_pos(self.record)
+            .expect("validated component analysis has a POS")
+    }
+
+    #[must_use]
+    pub fn positions(self) -> &'a [ComponentPos] {
+        self.resource
+            .analysis_positions(self.record)
+            .expect("validated component analysis has typed POS positions")
+    }
+
+    pub fn components(self) -> impl ExactSizeIterator<Item = ComponentPart<'a>> + Clone + 'a {
+        self.resource
+            .analysis_components(self.record)
+            .expect("validated component analysis has a component range")
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -215,19 +253,66 @@ impl ComponentResource {
         }
     }
 
+    pub fn common_prefix_analysis_refs<'a>(
+        &'a self,
+        input: &[u8],
+        mut emit: impl FnMut(usize, ComponentAnalysisRef<'a>),
+    ) {
+        let index = DoubleArray::new(&self.bytes[self.sections.index.clone()]);
+        let payload = &self.bytes[self.sections.payload.clone()];
+        for (group, length) in index.common_prefix_search(input) {
+            let Some(records) = self.payload.group_range(payload, group) else {
+                continue;
+            };
+            for record in records {
+                emit(
+                    length,
+                    ComponentAnalysisRef {
+                        resource: self,
+                        record,
+                    },
+                );
+            }
+        }
+    }
+
     pub fn common_prefix_positions<'a>(
         &'a self,
         input: &[u8],
         mut emit: impl FnMut(usize, &'a [ComponentPos]),
     ) {
-        let index = DoubleArray::new(&self.bytes[self.sections.index.clone()]);
-        let payload = &self.bytes[self.sections.payload.clone()];
-        for (group, length) in index.common_prefix_search(input) {
-            self.payload
-                .for_each_positions(payload, group, &self.positions, |positions| {
-                    emit(length, positions);
-                });
-        }
+        self.common_prefix_analysis_refs(input, |length, analysis| {
+            emit(length, analysis.positions());
+        });
+    }
+
+    fn analysis_pos(&self, record: u32) -> Option<&str> {
+        self.payload.analysis_pos(
+            &self.bytes[self.sections.payload.clone()],
+            record,
+            &self.bytes[self.sections.strings.clone()],
+            &self.strings,
+        )
+    }
+
+    fn analysis_positions(&self, record: u32) -> Option<&[ComponentPos]> {
+        self.payload.analysis_positions(
+            &self.bytes[self.sections.payload.clone()],
+            record,
+            &self.positions,
+        )
+    }
+
+    fn analysis_components(
+        &self,
+        record: u32,
+    ) -> Option<impl ExactSizeIterator<Item = ComponentPart<'_>> + Clone + '_> {
+        self.payload.analysis_components(
+            &self.bytes[self.sections.payload.clone()],
+            record,
+            &self.bytes[self.sections.strings.clone()],
+            &self.strings,
+        )
     }
 }
 

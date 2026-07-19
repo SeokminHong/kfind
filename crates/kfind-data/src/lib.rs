@@ -16,9 +16,9 @@ pub use binary::{
     collect_pos_entries, decode_pos_lexicon, encode_pos_lexicon,
 };
 pub use component::{
-    COMPONENT_RESOURCE_SOURCE_DIGEST, COMPONENT_RESOURCE_VERSION, ComponentAnalysis, ComponentPart,
-    ComponentPos, ComponentResource, ComponentResourceStats, MAX_COMPONENT_RESOURCE_BYTES,
-    decode_component_resource, encode_component_resource,
+    COMPONENT_RESOURCE_SOURCE_DIGEST, COMPONENT_RESOURCE_VERSION, ComponentAnalysis,
+    ComponentAnalysisRef, ComponentPart, ComponentPos, ComponentResource, ComponentResourceStats,
+    MAX_COMPONENT_RESOURCE_BYTES, decode_component_resource, encode_component_resource,
 };
 pub use error::{DataError, DataErrorKind, DataWarning, SourceLocation};
 pub use fixture::{ExpectedMatch, FixturePos, MorphologyCase, parse_morphology_cases_tsv};

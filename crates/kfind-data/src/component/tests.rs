@@ -49,6 +49,23 @@ fn resource_owns_bytes_and_preserves_only_aligned_structure() {
     );
     assert_eq!(prefixes[1].1[0].components[1].pos, "JX");
 
+    let mut analysis_refs = Vec::new();
+    resource.common_prefix_analysis_refs("가나다".as_bytes(), |length, analysis| {
+        analysis_refs.push((length, analysis));
+    });
+    assert_eq!(analysis_refs.len(), 2);
+    assert_eq!(analysis_refs[1].0, "가나".len());
+    assert_eq!(analysis_refs[1].1.pos(), "NNG+JX");
+    assert_eq!(
+        analysis_refs[1].1.positions(),
+        [ComponentPos::NNG, ComponentPos::JX]
+    );
+    assert_eq!(
+        analysis_refs[1].1.components().collect::<Vec<_>>(),
+        prefixes[1].1[0].components
+    );
+    assert!(std::mem::size_of::<ComponentAnalysisRef<'_>>() <= std::mem::size_of::<usize>() * 2);
+
     let mut positions = Vec::new();
     resource.common_prefix_positions("가나다".as_bytes(), |length, sequence| {
         positions.push((length, sequence.to_vec()));
