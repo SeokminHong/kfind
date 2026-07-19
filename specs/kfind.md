@@ -697,6 +697,9 @@
   국소 graph를 준비할 때는 resource의 POS 문자열, typed sequence와 component를 빌려 쓰며 token마다
   이를 다시 소유하거나 변환하지 않는다. POS-only prefix 순회와 component materialization 경로는
   분리해 suffix·인접 token 판정이 쓰지 않는 component를 decode하거나 할당하지 않는다.
+  Token graph는 검증된 analysis record handle을 보존하고 component span을 resource iterator로
+  순회한다. 공개 호환 API가 소유 `Vec`를 요구할 때만 component를 materialize하며 graph edge마다
+  같은 record의 component 배열을 다시 할당하지 않는다.
   loader는 schema, source SHA-256, section length·digest, UTF-8, group·analysis·component
   offset과 span 범위를 모두 검증한 뒤 내용을 노출한다.
 - token 선두의 ASCII 숫자 연속은 바로 뒤의 완전한 source 분석이 `NNB`, `NNBC` 또는 `NR`이고

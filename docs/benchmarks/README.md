@@ -179,6 +179,9 @@ predicate-connective 경계처럼 여러 구조 기능이 소비하는 도달성
 문자열을 사용한다. Resource decode는 측정 밖에 두고 반복 POS workload와 함께 비교해 token 준비
 개선이 문자열 반복이나 높은 cache·intern hit율에 의존하지 않는지 확인한다. Resource decode 비용과
 상주 메모리는 morphology startup 측정으로 분리한다.
+`structural_constraint/prepare_dense_component_token_graph`는 같은 4,032개 edge에 정렬된 source
+component를 포함한다. POS만 있는 workload와 함께 측정해 graph가 component record마다 중첩
+allocation을 다시 만드는 회귀와 component 순회 비용을 분리한다.
 `structural_constraint/resolve_dense_preferred_paths`는 준비된 밀집 graph에서 서로 다른 component
 후보의 최소 unit 경로 판정을 순환한다.
 `structural_constraint/reject_ambiguous_particle_suffix_*`는 완성 경로가 없는 다분기 suffix의
