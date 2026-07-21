@@ -3,7 +3,10 @@ use kfind_data::{
     ComponentResource, MecabSourceMorphologyEntry, decode_component_resource,
     encode_component_resource,
 };
-use kfind_morph::{CoarsePos, ContinuationState, FinePos, ParticleTransition, RuleId};
+use kfind_morph::{
+    CoarsePos, ContinuationState, FinePos, LexicalAlternation, ParticleTransition, PredicateEntry,
+    PredicatePos, RuleId,
+};
 use kfind_query::{
     Analysis, AnalysisSource, AtomPlan, BoundaryPolicy, BoundaryProof, CandidateConsumption,
     CandidateDecision, CandidateLeftContext, CandidateProgram, CoreMapping, Morphology,
@@ -136,6 +139,83 @@ fn nominal_particle_verifier_consumes_chain_and_checks_allomorphs() {
             .find_at_with_meta("길으로".as_bytes(), 0)
             .is_none()
     );
+}
+
+#[test]
+fn source_attached_auxiliary_requires_visible_or_unambiguous_connective_evidence() {
+    let entries = [
+        component_entry("가", "VV+EC", 0),
+        component_entry("다", "VX", 0),
+        component_entry("면", "EC", 0),
+        component_entry("해", "VV+EC", 0),
+        component_entry("해", "NNG", 0),
+        component_entry("가", "VX+EC", 0),
+        component_entry("며", "EC", 0),
+        component_entry("걸어", "VV+EC", 0),
+        component_entry("가", "VX", 0),
+        component_entry("십니까", "EP+EF", 0),
+        component_entry("빼", "VV", 0),
+        component_entry("놓", "VX", 0),
+        component_entry("을", "ETM", 0),
+    ];
+    let bytes = encode_component_resource([8; 32], &entries).unwrap();
+    let resource = Arc::new(decode_component_resource("fixture", bytes, &[8; 32]).unwrap());
+
+    let go = structural_predicate_matcher(
+        "가",
+        "가".len(),
+        ContinuationState::AOrEo,
+        vec![origin(0, &["ending.aoeo"])],
+        predicate_analysis("가다", LexicalAlternation::Regular),
+        Arc::clone(&resource),
+    );
+    let do_it = structural_predicate_matcher(
+        "해",
+        "해".len(),
+        ContinuationState::AOrEo,
+        vec![origin(
+            0,
+            &["lexical.ha", "contraction.ha-yeo", "ending.aoeo"],
+        )],
+        predicate_analysis("하다", LexicalAlternation::Ha),
+        Arc::clone(&resource),
+    );
+    let walk = structural_predicate_matcher(
+        "걸어",
+        "걸".len(),
+        ContinuationState::AOrEo,
+        vec![origin(0, &["lexical.d-to-l", "ending.aoeo"])],
+        predicate_analysis("걷다", LexicalAlternation::DToL),
+        Arc::clone(&resource),
+    );
+    let remove = structural_predicate_matcher(
+        "빼",
+        "빼".len(),
+        ContinuationState::AOrEo,
+        vec![origin(0, &["ending.aoeo"])],
+        predicate_analysis("빼다", LexicalAlternation::Regular),
+        resource,
+    );
+
+    assert!(go.find_at_with_meta("가다면".as_bytes(), 0).is_none());
+    assert!(do_it.find_at_with_meta("해가며".as_bytes(), 0).is_none());
+    assert!(remove.find_at_with_meta("빼놓을".as_bytes(), 0).is_some());
+    assert!(
+        walk.find_at_with_meta("걸어가십니까".as_bytes(), 0)
+            .is_some()
+    );
+}
+
+#[test]
+fn source_ending_surface_requires_a_licensed_eu_allomorph() {
+    for surface in ["으니까", "으나", "으며", "으되", "음을"] {
+        assert!(
+            licensed_source_ending_surface(surface),
+            "rejected {surface}"
+        );
+    }
+    assert!(!licensed_source_ending_surface("으데"));
+    assert!(licensed_source_ending_surface("었다"));
 }
 
 #[test]
@@ -960,6 +1040,35 @@ fn contextual_matcher(
     MorphMatcher::with_component_resource(Arc::new(plan), resource).unwrap()
 }
 
+fn structural_predicate_matcher(
+    anchor: &str,
+    core_len: usize,
+    continuation: ContinuationState,
+    origins: Vec<Origin>,
+    analysis: Analysis,
+    resource: Arc<ComponentResource>,
+) -> MorphMatcher {
+    let mut branch = predicate_branch(anchor, core_len, continuation, Arc::from([]), origins);
+    mark_structural(&mut branch);
+    let mut query_atom = atom(BoundaryPolicy::Smart, vec![branch]);
+    query_atom.analyses.push(analysis);
+    materialize_structural_programs(&mut query_atom);
+    let plan = QueryPlan {
+        raw_query: "test".into(),
+        atoms: vec![query_atom],
+        phrase_policy: PhrasePolicy { max_gap: 24 },
+        normalization: kfind_query::NormalizationMode::Nfc,
+        limits: PlanLimits::default(),
+        diagnostics: Vec::new(),
+        particle_allomorphs: Arc::from([]),
+        particle_transitions: Arc::from([]),
+        auxiliary_particle_rules: Arc::from([]),
+        predicate_ending_initial_particle_rules: Arc::from([]),
+        estimated_matcher_bytes: 0,
+    };
+    MorphMatcher::with_component_resource(Arc::new(plan), resource).unwrap()
+}
+
 fn nominal_analysis(lemma: &str) -> Analysis {
     Analysis {
         lemma: lemma.into(),
@@ -980,6 +1089,20 @@ fn non_predicate_analysis(lemma: &str, coarse_pos: CoarsePos, fine_pos: FinePos)
         } else {
             Morphology::Exact
         },
+        source: AnalysisSource::Forced,
+    }
+}
+
+fn predicate_analysis(lemma: &str, alternation: LexicalAlternation) -> Analysis {
+    Analysis {
+        lemma: lemma.into(),
+        coarse_pos: CoarsePos::Verb,
+        fine_pos: FinePos::Verb,
+        morphology: Morphology::Predicate(PredicateEntry::new(
+            lemma,
+            PredicatePos::Verb,
+            alternation,
+        )),
         source: AnalysisSource::Forced,
     }
 }

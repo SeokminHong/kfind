@@ -148,6 +148,15 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
               어미가 token 왼쪽부터 이어져야 하지만, <code>친구가</code>의 조사{' '}
               <code>가</code>는 동사 후보가 될 수 없습니다.
             </p>
+            <p>
+              생성 program이 남긴 보조용언 연쇄를 resource로 보완할 때는 연결
+              어미 바깥의 <code>VX + E*</code> 경로가 완성되어야 합니다. 연결
+              어미가 core 바깥에 있거나, 축약된 core가 해당 용언 품사로만
+              분석되거나, token 전체의 정확한 분석이{' '}
+              <code>용언 + EC + VX + E+</code>일 때 source 경로를 사용합니다.{' '}
+              <code>빼놓을</code>과 <code>비춰볼</code>은 유지하지만, 중의적인{' '}
+              <code>해</code>만으로 <code>해가며</code>를 확장하지 않습니다.
+            </p>
           </>
         ),
       },
@@ -167,6 +176,12 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
               파일의 scan 경로는 byte 검색으로 유지됩니다. 동시에 source가
               증명한 내부 성분과 조사·어미 경계를 사용해 단순 substring 검색보다
               정밀한 후보를 반환합니다.
+            </p>
+            <p>
+              조사로 끝나는 체언에서는 정확한 전체 체언 경로를 먼저 선택합니다.{' '}
+              <code>산길을</code>의 대안 분해에만 있는 <code>길</code>은
+              거부하지만, 전체 분석 자체가 선언한 <code>자본주의</code>의{' '}
+              <code>주의</code> component는 유지합니다.
             </p>
           </>
         ),
@@ -304,6 +319,17 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
               <code>가</code> in <code>친구가</code> cannot become a verb
               candidate.
             </p>
+            <p>
+              When the resource completes an auxiliary chain left by a generated
+              program, the <code>VX + E*</code> path after the connective must
+              be complete. The source path is used when the connective lies
+              outside the core, the contracted core has only
+              predicate-compatible exact analyses, or the complete token has an
+              exact <code>predicate + EC + VX + E+</code> analysis. This retains{' '}
+              <code>빼놓을</code> and <code>비춰볼</code> without expanding{' '}
+              <code>해가며</code> from the ambiguous <code>해</code> surface
+              alone.
+            </p>
           </>
         ),
       },
@@ -324,6 +350,13 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
               stays on the byte-search path. Source-proven internal components
               and particle-ending boundaries still make the result more precise
               than a plain substring search.
+            </p>
+            <p>
+              For a nominal followed by particles, the exact whole-nominal path
+              is selected first. <code>길</code> found only in an alternative
+              decomposition of <code>산길을</code> is rejected, while the{' '}
+              <code>주의</code> component declared by the whole analysis of{' '}
+              <code>자본주의</code> is retained.
             </p>
           </>
         ),

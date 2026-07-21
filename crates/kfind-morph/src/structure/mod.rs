@@ -382,6 +382,21 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_exact_ending_surface(&self, text: &str) -> bool {
+        let mut supported = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
+                if length == text.len()
+                    && !positions.is_empty()
+                    && positions.iter().all(|pos| pos.is_ending())
+                {
+                    supported = true;
+                }
+            });
+        supported
+    }
+
+    #[must_use]
     pub fn auxiliary_splits(&self, text: &str) -> Vec<usize> {
         let mut splits = Vec::new();
         self.resource
@@ -531,6 +546,47 @@ impl ConstraintResolver {
                 }
             });
         supported
+    }
+
+    #[must_use]
+    pub fn has_unambiguous_predicate_surface(
+        &self,
+        text: &str,
+        source_positions: PredicatePosSet,
+    ) -> bool {
+        let mut found = false;
+        let mut conflicting = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
+                if length != text.len() {
+                    return;
+                }
+                let compatible = positions.split_first().is_some_and(|(first, endings)| {
+                    source_positions
+                        .iter()
+                        .any(|pos| structural_predicate_pos_matches(*first, pos))
+                        && endings.iter().all(|pos| pos.is_ending())
+                });
+                found |= compatible;
+                conflicting |= !compatible;
+            });
+        found && !conflicting
+    }
+
+    #[must_use]
+    pub fn has_unambiguous_attached_auxiliary_whole_path(&self, text: &str) -> bool {
+        let mut found = false;
+        let mut conflicting = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
+                if length != text.len() {
+                    return;
+                }
+                let compatible = is_attached_auxiliary_whole_path(positions);
+                found |= compatible;
+                conflicting |= !compatible;
+            });
+        found && !conflicting
     }
 
     #[must_use]
@@ -2718,12 +2774,19 @@ fn nominal_component_is_supported(
     evidence: &TokenEvidence,
     lexical_form: &str,
 ) -> bool {
-    if allow_components || support == StructuralEvidence::SourceComponent {
+    if allow_components {
         return true;
     }
-    support == StructuralEvidence::RuntimeComponent
-        && lexical_form.chars().count() > 1
-        && nominal_component_is_on_preferred_path(core, selected, evidence)
+    match support {
+        StructuralEvidence::SourceComponent => {
+            nominal_source_component_is_on_preferred_path(core, selected, evidence)
+        }
+        StructuralEvidence::RuntimeComponent => {
+            lexical_form.chars().count() > 1
+                && nominal_component_is_on_preferred_path(core, selected, evidence)
+        }
+        StructuralEvidence::Whole => false,
+    }
 }
 
 fn nominal_component_is_on_preferred_path(
@@ -2734,6 +2797,14 @@ fn nominal_component_is_on_preferred_path(
     component_is_on_preferred_path(core, selected, evidence, |unit| {
         unit.pos.is_nominal() && unit.span != *selected
     })
+}
+
+fn nominal_source_component_is_on_preferred_path(
+    core: &Range<usize>,
+    selected: &Range<usize>,
+    evidence: &TokenEvidence,
+) -> bool {
+    component_is_on_preferred_path(core, selected, evidence, |unit| unit.pos.is_nominal())
 }
 
 fn modifier_led_nominal_component_is_on_preferred_path(
