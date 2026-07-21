@@ -264,6 +264,7 @@
   /                         개요와 제품 범위
   /guide/getting-started    설치와 첫 검색
   /reference/options        query 문법과 compile·search 옵션
+  /agents                   Codex·Claude Code·Gemini CLI 통합
   /reference/glossary       문서에서 반복하는 핵심 용어와 정의
   /concepts/analysis        query-directed 형태 분석 원리
   /concepts/architecture    compile·scan·verify 실행 구조
@@ -271,6 +272,14 @@
   /benchmarks               workload별 품질·성능 근거
   /playground               WebAssembly 플레이그라운드
   ```
+
+- 전역 navigation은 `Home`, `Get Started`, `CLI`, `Agents`, `Internals`, `Benchmarks`,
+  `Reference`의 한 단계 GNB로 구성한다. `Playground`와 GitHub는 GNB 오른쪽의 독립 action으로
+  둔다. 문법 항목, 구현 단계와 개별 지표를 GNB에 직접 나열하지 않는다.
+- 문서 route의 좌측 sidebar는 현재 GNB 영역에 속한 문서와 현재 문서의 절을 함께 표시한다.
+  현재 route와 절은 접근 가능한 navigation 상태로 구분한다. 데스크톱에서는 sticky sidebar로,
+  좁은 화면에서는 같은 계층을 보존하는 collapsible 문서 메뉴로 제공한다. 본문 순서와 sidebar
+  순서는 일치해야 하며, 언어를 전환해도 route와 절 fragment는 유지한다.
 
 - 문서 site의 popup, select, collapsible과 form control은 `@base-ui/react`의 unstyled primitive로
   구성한다. 링크, label, keyboard와 pointer 동작은 해당 primitive의 접근성 의미를 유지하고,
@@ -582,6 +591,12 @@
   분석이 없으며 generator continuation state가 terminal이 아닐 때만 사용한다. 남은 suffix가
   조사 allomorph로도 시작하거나 조사·체언이 남는 path는 predicate ending path로 확장하지
   않는다.
+- 구조 판정은 candidate가 token 끝까지 직접 소비했거나, 아래에서 정의한 source ending,
+  보조사, 의존명사, 지정사 또는 합성 용언 경로가 남은 suffix 전체를 소비한 경우에만 결과를
+  유지한다. Candidate 앞부분과 같은 품사의 source node가 있다는 사실이나 token 일부를 덮는
+  graph path는 남은 suffix의 허가 근거가 아니다. 체언 candidate도 완성된 체언 host와 조사·지정사
+  경로가 token 끝까지 이어져야 하며, 내부 component가 선택된 선호 경로에 정확히 정렬되지 않으면
+  유지하지 않는다.
 - declarative candidate가 `다`까지 소비한 뒤 정확히 `는`만 남기고, 같은 품사의 source
   graph가 query core부터 token 끝까지 완성된 어미 path를 증명하면 구조 검증 범위를 `-다는`
   전체로 확장한다.
@@ -3175,6 +3190,8 @@ end
     pager에서 긴 match 줄을 match별 행으로 펼치고 target 앞뒤 비율에 맞춰 생략하며,
     `--no-pager`, non-TTY와 agent JSON 출력은 기존
     stdout stream을 유지한다.
+26. 배포용 full POS와 compact component resource로 전체 morphology gold를 실행했을 때 자동 품사
+    coverage를 포함한 모든 positive와 negative case가 기대값과 일치한다.
 
 ## 24. 공개 코드 인터페이스
 
