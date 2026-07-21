@@ -16,6 +16,7 @@ globalStyle('.header-inner', {
   width: `min(100%, ${vars.content.shell})`,
   height: '100%',
   alignItems: 'center',
+  gap: vars.space.large,
   justifyContent: 'space-between',
   marginInline: 'auto',
   paddingInline: vars.space.large,
@@ -53,8 +54,80 @@ globalStyle('.brand-suffix', {
 
 globalStyle('.header-links', {
   display: 'flex',
-  gap: vars.space.large,
+  alignItems: 'center',
+  gap: vars.space.medium,
   fontSize: '0.82rem',
+});
+
+globalStyle('.header-links a', {
+  color: vars.color.muted,
+  fontWeight: 600,
+  textDecoration: 'none',
+});
+
+globalStyle('.header-cta', {
+  padding: `${vars.space.xsmall} ${vars.space.medium}`,
+  border: `1px solid ${vars.color.borderStrong}`,
+  borderRadius: vars.radius.small,
+  background: vars.color.surface,
+});
+
+globalStyle('.header-actions', {
+  display: 'flex',
+  flexShrink: 0,
+  alignItems: 'center',
+  gap: vars.space.medium,
+});
+
+globalStyle('.primary-navigation', {
+  display: 'flex',
+  minWidth: 0,
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: vars.space.xsmall,
+});
+
+globalStyle('.primary-navigation a', {
+  padding: `${vars.space.small} ${vars.space.medium}`,
+  borderRadius: vars.radius.small,
+  color: vars.color.muted,
+  fontSize: '0.78rem',
+  fontWeight: 600,
+  textDecoration: 'none',
+  whiteSpace: 'nowrap',
+});
+
+globalStyle('.primary-navigation a:hover', {
+  background: vars.color.surfaceMuted,
+  color: vars.color.heading,
+});
+
+globalStyle('.primary-navigation a[aria-current="page"]', {
+  background: vars.color.linkWash,
+  color: vars.color.link,
+});
+
+globalStyle('.language-control', {
+  display: 'inline-flex',
+  padding: '0.15rem',
+  border: `1px solid ${vars.color.border}`,
+  borderRadius: vars.radius.pill,
+  background: vars.color.surfaceMuted,
+});
+
+globalStyle('.language-control button', {
+  padding: `0.2rem ${vars.space.small}`,
+  border: 0,
+  borderRadius: vars.radius.pill,
+  background: 'transparent',
+  color: vars.color.muted,
+  fontSize: '0.7rem',
+});
+
+globalStyle('.language-control button[aria-pressed="true"]', {
+  background: vars.color.surface,
+  color: vars.color.heading,
+  fontWeight: 650,
 });
 
 globalStyle('.docs-shell', {
@@ -75,18 +148,14 @@ globalStyle('.docs-sidebar', {
   background: vars.color.sidebar,
 });
 
-globalStyle('.docs-sidebar nav', {
+globalStyle('.document-navigation', {
   display: 'grid',
-  gap: vars.space.large,
+  alignContent: 'start',
+  gap: vars.space.small,
 });
 
-globalStyle('.navigation-group', {
-  display: 'grid',
-  gap: '0.15rem',
-});
-
-globalStyle('.navigation-group p', {
-  margin: `0 0 ${vars.space.xsmall}`,
+globalStyle('.document-navigation-title', {
+  margin: `0 0 ${vars.space.small}`,
   color: vars.color.subtle,
   fontSize: '0.7rem',
   fontWeight: 700,
@@ -94,7 +163,12 @@ globalStyle('.navigation-group p', {
   textTransform: 'uppercase',
 });
 
-globalStyle('.navigation-group a', {
+globalStyle('.document-navigation-page', {
+  display: 'grid',
+  gap: vars.space.xsmall,
+});
+
+globalStyle('.document-navigation-page-link', {
   padding: '0.38rem 0.5rem',
   borderRadius: vars.radius.small,
   color: vars.color.muted,
@@ -102,12 +176,41 @@ globalStyle('.navigation-group a', {
   textDecoration: 'none',
 });
 
-globalStyle('.navigation-group a:hover', {
+globalStyle('.document-navigation-page-link:hover', {
   background: vars.color.linkWash,
   color: vars.color.link,
 });
 
-globalStyle('.navigation-group a[aria-current="page"]', {
+globalStyle('.document-navigation-page-link[aria-current="page"]', {
+  background: vars.color.linkWash,
+  color: vars.color.link,
+  fontWeight: 650,
+});
+
+globalStyle('.document-section-links', {
+  display: 'grid',
+  gap: '0.1rem',
+  margin: 0,
+  padding: `${vars.space.xsmall} 0 ${vars.space.small} ${vars.space.medium}`,
+  borderInlineStart: `1px solid ${vars.color.border}`,
+  listStyle: 'none',
+});
+
+globalStyle('.document-section-links a', {
+  display: 'block',
+  padding: `${vars.space.xsmall} ${vars.space.small}`,
+  borderRadius: vars.radius.small,
+  color: vars.color.subtle,
+  fontSize: '0.76rem',
+  lineHeight: 1.4,
+  textDecoration: 'none',
+});
+
+globalStyle('.document-section-links a:hover', {
+  color: vars.color.link,
+});
+
+globalStyle('.document-section-links a[aria-current="location"]', {
   background: vars.color.linkWash,
   color: vars.color.link,
   fontWeight: 650,
@@ -131,12 +234,33 @@ globalStyle('.mobile-navigation > button', {
   textAlign: 'start',
 });
 
-globalStyle('.mobile-navigation nav', {
+globalStyle('.mobile-navigation-panel', {
   display: 'grid',
-  alignItems: 'start',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  gap: vars.space.large,
+  gap: vars.space.xlarge,
   padding: `0 ${vars.space.large} ${vars.space.large}`,
+});
+
+globalStyle('.mobile-navigation .primary-navigation', {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  alignItems: 'stretch',
+});
+
+globalStyle('.mobile-navigation .primary-navigation a', {
+  whiteSpace: 'normal',
+});
+
+globalStyle('.mobile-navigation .document-navigation', {
+  paddingBlockStart: vars.space.large,
+  borderBlockStart: `1px solid ${vars.color.border}`,
+});
+
+globalStyle('.mobile-utilities', {
+  display: 'flex',
+  gap: vars.space.large,
+  paddingBlockStart: vars.space.large,
+  borderBlockStart: `1px solid ${vars.color.border}`,
+  fontSize: '0.8rem',
 });
 
 globalStyle('.route-loading', {
@@ -150,6 +274,14 @@ globalStyle('.route-loading', {
 globalStyle('.docs-content', {
   minWidth: 0,
   padding: `3.5rem clamp(${vars.space.large}, 5vw, 5rem) ${vars.space.xlarge}`,
+});
+
+globalStyle('.header-links', {
+  '@media': {
+    '(max-width: 42rem)': {
+      display: 'none',
+    },
+  },
 });
 
 globalStyle('.docs-content > article, .docs-footer', {
@@ -321,6 +453,11 @@ globalStyle('.reference-link', {
   fontSize: '0.86rem',
 });
 
+globalStyle('.source-identifiers code', {
+  overflowWrap: 'anywhere',
+  wordBreak: 'break-all',
+});
+
 globalStyle('.reference-list', {
   display: 'grid',
   gap: vars.space.xsmall,
@@ -331,7 +468,8 @@ globalStyle('.reference-list', {
 
 globalStyle('.docs-footer', {
   display: 'flex',
-  justifyContent: 'space-between',
+  flexWrap: 'wrap',
+  gap: vars.space.large,
   paddingBlock: vars.space.xlarge,
   borderBlockStart: `1px solid ${vars.color.border}`,
   color: vars.color.subtle,
@@ -344,7 +482,7 @@ globalStyle('.docs-footer a', {
 
 globalStyle('.docs-content', {
   '@media': {
-    '(max-width: 52rem)': {
+    '(max-width: 70rem)': {
       padding: `${vars.space.xlarge} ${vars.space.large}`,
     },
   },
@@ -352,7 +490,7 @@ globalStyle('.docs-content', {
 
 globalStyle('.docs-shell', {
   '@media': {
-    '(max-width: 52rem)': {
+    '(max-width: 70rem)': {
       display: 'block',
     },
   },
@@ -360,7 +498,7 @@ globalStyle('.docs-shell', {
 
 globalStyle('.docs-sidebar', {
   '@media': {
-    '(max-width: 52rem)': {
+    '(max-width: 70rem)': {
       display: 'none',
     },
   },
@@ -368,8 +506,16 @@ globalStyle('.docs-sidebar', {
 
 globalStyle('.mobile-navigation', {
   '@media': {
-    '(max-width: 52rem)': {
+    '(max-width: 70rem)': {
       display: 'block',
+    },
+  },
+});
+
+globalStyle('.header-inner > .primary-navigation', {
+  '@media': {
+    '(max-width: 70rem)': {
+      display: 'none',
     },
   },
 });

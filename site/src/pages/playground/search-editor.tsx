@@ -22,11 +22,13 @@ import {
   useRef,
 } from 'react';
 
+import { DocumentLocale } from '../../app/i18n';
 import { mergeMatchSpans } from '../../playground';
 
 import * as styles from './search-editor.css';
 
 interface SearchEditorProps {
+  readonly locale: DocumentLocale;
   readonly matches: readonly Match[];
   readonly onValueChange: (value: string) => void;
   readonly value: string;
@@ -65,7 +67,12 @@ const searchHighlightField = StateField.define<DecorationSet>({
 });
 
 export const SearchEditor = forwardRef<SearchEditorHandle, SearchEditorProps>(
-  ({ matches, onValueChange, value }, forwardedRef): React.JSX.Element => {
+  (
+    { locale, matches, onValueChange, value },
+    forwardedRef,
+  ): React.JSX.Element => {
+    const isKorean = locale === DocumentLocale.Korean;
+    const numberLocale = isKorean ? 'ko-KR' : 'en';
     const editorHostRef = useRef<HTMLDivElement>(null);
     const editorViewRef = useRef<EditorView>(null);
     const initialValueRef = useRef(value);
@@ -235,11 +242,12 @@ export const SearchEditor = forwardRef<SearchEditorHandle, SearchEditorProps>(
       <Field.Root className={styles.field} name="text">
         <div className={styles.labelRow}>
           <Field.Label data-glossary-skip="" id="text-editor-label">
-            검색할 텍스트
+            {isKorean ? '검색할 원문' : 'Source text'}
           </Field.Label>
           <span>
-            {value.length.toLocaleString('ko-KR')}자 ·{' '}
-            {byteLength.toLocaleString('ko-KR')} bytes
+            {value.length.toLocaleString(numberLocale)}{' '}
+            {isKorean ? '자' : 'characters'} ·{' '}
+            {byteLength.toLocaleString(numberLocale)} bytes
           </span>
         </div>
         <div ref={editorHostRef} className={styles.editor} />
@@ -247,7 +255,9 @@ export const SearchEditor = forwardRef<SearchEditorHandle, SearchEditorProps>(
           className={styles.description}
           id="text-editor-description"
         >
-          일치한 span은 입력 위치에 바로 표시됩니다.
+          {isKorean
+            ? '일치한 span은 원문 위치에 표시됩니다.'
+            : 'Matching spans are highlighted at their source positions.'}
         </Field.Description>
       </Field.Root>
     );

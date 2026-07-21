@@ -117,6 +117,18 @@ class RobustnessWorkflowTests(unittest.TestCase):
         )
         self.assertEqual(
             100.0,
+            result["explicit_pos"]["quality"]["kfind-embedded"][
+                "contract_adjusted"
+            ]["overall"]["contract_f1_percent"],
+        )
+        self.assertEqual(
+            0,
+            result["explicit_pos"]["quality"]["kfind-embedded"][
+                "contract_adjusted"
+            ]["overall"]["reviewed_cases"],
+        )
+        self.assertEqual(
+            100.0,
             result["explicit_pos"]["quality"]["kfind-embedded"]["raw_span"][
                 "exact_rate_percent"
             ],

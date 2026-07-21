@@ -69,7 +69,7 @@ annotation과 gate는 수정하지 않았고 reclassified case도 0이다.
 | matrix Human `smart` | 1,401 | 1,327 / 4 / 74 | 94.72% | 0 |
 | matrix Agent `any` | 1,401 | 1,363 / 21 / 38 | 97.29% | 0 |
 
-## matcher microbenchmark
+## Matcher 미세 벤치마크
 
 | workload | 기준 p95 | 후보 p95 | 증감 |
 | --- | ---: | ---: | ---: |
@@ -79,7 +79,7 @@ annotation과 gate는 수정하지 않았고 reclassified case도 0이다.
 Criterion의 reused scan point estimate 변화는 +0.11%이고 `p=0.75`로 유의한 차이가
 없었다. 즉 짧은 검색의 생성 비용을 없애면서 automaton 승격 뒤 scan 처리량은 유지했다.
 
-## end-to-end morphology
+## 종단 간 형태 처리
 
 각 값은 `중앙값 [최솟값, 최댓값]`이다. 처리량 증감은 기준 대비 후보다.
 
@@ -108,7 +108,7 @@ cases/s보다 27.79% 빠르다. recallᶜ는 96.8% 대 78.6%, peak RSS는 5.2 Mi
 
 ![제품 workflow별 품질과 CLI 비용](assets/2026-07-17-lazy-anchor-automaton-performance-product-workflows.svg)
 
-## 100 MiB CLI
+## 100 MiB CLI 측정
 
 | workflow | 기준 throughput [min, max] | 후보 throughput [min, max] | 증감 | 기준 RSS [min, max] | 후보 RSS [min, max] |
 | --- | ---: | ---: | ---: | ---: | ---: |

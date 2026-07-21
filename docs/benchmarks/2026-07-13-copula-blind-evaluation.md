@@ -66,7 +66,7 @@ raw report에는 255개 case의 candidate hit 319개가 있다. occurrence별 po
 | non-gold target reject | 96.04% |
 | target-level F1 | 93.04% |
 
-## cost margin
+## 비용 margin
 
 | target | N | min | p25 | median | p75 | p95 | max |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |

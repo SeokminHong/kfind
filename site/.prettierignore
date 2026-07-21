@@ -3,5 +3,6 @@ build
 node_modules
 .wrangler
 public/benchmarks
+src/generated-benchmark
 src/generated-wasm
 worker-configuration.d.ts

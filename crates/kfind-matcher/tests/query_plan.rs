@@ -370,6 +370,113 @@ fn generated_predicate_branch_consumes_a_complete_source_ending_path() {
 }
 
 #[test]
+fn source_ending_path_composes_split_prefinal_and_nominalizer_particle_edges() {
+    let split_prefinal = compile_with_full_pos_and_resource(
+        "오다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("왔", "VV+EP"),
+            component_entry("었", "EP"),
+            component_entry("다", "EF"),
+        ]),
+    );
+    assert!(
+        split_prefinal
+            .find_at_with_meta("왔었다".as_bytes(), 0)
+            .is_some()
+    );
+
+    let nominalized = compile_with_full_pos_and_resource(
+        "바꾸다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("바꾸", "VV"),
+            component_entry("었", "EP"),
+            component_entry("음", "ETN"),
+            component_entry("을", "JKO"),
+        ]),
+    );
+    assert!(
+        nominalized
+            .find_at_with_meta("바꾸었음을".as_bytes(), 0)
+            .is_some()
+    );
+}
+
+#[test]
+fn contracted_and_visible_auxiliary_paths_keep_complete_resultative_sources() {
+    let visible = compile_with_full_pos_and_resource(
+        "생기다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("생겨", "VV+EC"),
+            component_entry("생겨났", "VV+EC+VX+EP"),
+            component_entry("던", "ETM"),
+        ]),
+    );
+    assert!(
+        visible
+            .find_at_with_meta("생겨났던".as_bytes(), 0)
+            .is_some()
+    );
+
+    let resultative = compile_with_full_pos_and_resource(
+        "극심하다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("극심해", "VV+EC"),
+            component_entry("지", "VX"),
+            component_entry("겠지만", "EP+EC"),
+        ]),
+    );
+    assert!(
+        resultative
+            .find_at_with_meta("극심해지겠지만".as_bytes(), 0)
+            .is_some()
+    );
+}
+
+#[test]
+fn prospective_quotative_accepts_only_a_topic_particle_source_tail() {
+    let matcher = compile_with_full_pos_and_resource(
+        "이기다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("이기", "VV"),
+            component_entry("리라고", "EC"),
+            component_entry("는", "JX"),
+            component_entry("도", "JX"),
+        ]),
+    );
+
+    assert!(
+        matcher
+            .find_at_with_meta("이기리라고는".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        matcher
+            .find_at_with_meta("이기리라고도".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn declarative_adnominal_uses_a_complete_source_ending_path() {
     for (query, text) in [
         ("오다", "그가 왔다는 말이다."),
@@ -1018,6 +1125,29 @@ fn whole_nominal_source_component_survives_a_shorter_particle_split() {
         crossing
             .find_at_with_meta("자본주의".as_bytes(), 0)
             .is_none()
+    );
+}
+
+#[test]
+fn unambiguous_source_compound_keeps_a_leading_component_before_particles() {
+    let resource = component_resource_from_entries([
+        component_entry("물", "NNG"),
+        component_expression_entry("물줄기", "NNG", "물/NNG/*+줄기/NNG/*"),
+        component_entry("는", "JX"),
+    ]);
+    let matcher = compile_embedded_with_resource(
+        "물",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    assert!(
+        matcher
+            .find_at_with_meta("물줄기는".as_bytes(), 0)
+            .is_some()
     );
 }
 

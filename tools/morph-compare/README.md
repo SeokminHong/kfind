@@ -1,115 +1,103 @@
-# Independent morphology benchmark
+# 독립 형태 품질·성능 벤치마크
 
-[한국어](README.ko.md)
+동일한 held-out 사례에서 kfind의 embedded/full-POS profile과 Kiwi, Lindera,
+MeCab-ko, KOMORAN의 고정 adapter 결과를 비교합니다. 외부 분석기와 corpus는 제품
+binary와 기본 검색 경로에 포함되지 않습니다.
 
-This development tool runs the `kfind` embedded/full-POS profiles on the same
-held-out cases and compares them with pinned quality and performance snapshots
-from Kiwi, Lindera, MeCab-ko, and KOMORAN. External analyzers and corpora are not part of
-the product binary or default search path.
+## 평가 fixture
 
-Fixtures are generated from the Universal Dependencies 2.18 Korean-Kaist and
-Korean-KSL test and development splits. Their URLs, SHA-256 digests, and CC
-BY-SA 4.0 licenses are pinned in `sources.json`. The scored 1,000-case fixture
-uses only manually reviewed Korean-Kaist sentences and keeps 500 POS-stratified
-positives paired with 500 deterministic negatives. `sentence-reviews.json`
-pins every reviewed dev/test sentence pool and records rejected sentences as an
-unscored robustness-candidate registry. Korean-KSL uses a separate manually
-reviewed sentence registry, and its confirmed noisy sentences form a separate
-scored 500-case Robust fixture. Development uses the development fixture; the
-test fixture remains the regression baseline.
-The image also builds a separate 1,000-case human-usage fixture. Its queries omit
-POS, and each negative excludes the query lemma under every supported POS.
+fixture는 Universal Dependencies 2.18의 Korean-Kaist와 Korean-KSL test/dev
+split에서 생성합니다. URL, SHA-256과 CC BY-SA 4.0 라이선스는 `sources.json`에
+고정합니다.
 
-The same image derives a query matrix from the canonical positive sentences. It
-selects up to three aligned present queries per sentence and pairs every positive
-with an absent query of the same coarse POS in that sentence. The explicit-POS
-matrix evaluates kfind and all four external analyzers, while a separate untagged
-matrix evaluates the human kfind profiles. The `query_matrix` report section keeps
-query-level quality separate from all-present-query sentence coverage. It reports
-strict and contract-adjusted confusion matrices, sentence coverage, and
-sentence-cluster bootstrap 95% intervals in parallel. The fixed-size 1,000-case
-regression baseline remains separate.
+- Canonical은 검토한 표준 맞춤법 문장으로 구성한 positive 500개와 negative 500개입니다.
+- Human untagged는 같은 규모에서 품사를 생략한 사람용 검색 질의를 평가합니다.
+- Query matrix는 canonical positive 문장마다 정렬된 존재 질의와 같은 품사의 부재 질의를 함께 적용합니다.
+- Robust는 검토한 Korean-KSL 실제 오류 문장의 positive 250개와 negative 250개입니다.
+- Real corpus는 고정 revision의 한국어 README, source comment와 기술 문서 excerpt를 사용합니다.
 
-The report also measures Korean-KSL as a separate scored 500-case Robust
-workload with 250 positives and 250 negatives. Every source-signal and supplement
-sentence in the pre-review pool is manually inspected, and every selected query,
-POS, expected result, and raw byte span is reviewed. The explicit-POS fixture
-compares precision, recall, F1, error-scope recall, and performance for kfind and
-the pinned external defaults. The untagged fixture measures the kfind human
-workflow separately. Both keep robustness mode off, run in fresh processes after
-one warm-up, and remain separate from the manually verified standard-orthography
-canonical score.
+Canonical, Query matrix, Robust와 Human untagged는 기대값과 입력 계약이 다르므로
+점수를 합치지 않습니다.
+
+## Raw와 contract-adjusted
+
+모든 품질 backend에는 raw와 contract-adjusted confusion matrix, precision,
+recall과 F1을 함께 기록합니다. 이 계약은 kfind뿐 아니라 Kiwi, Lindera, MeCab-ko와
+KOMORAN에도 동일하게 적용합니다.
+
+Raw의 TP, TN, FP, FN은 원본 corpus gold를 그대로 사용합니다. Contract-adjusted의
+TPc, TNc, FPc, FNc는 실행 전에 고정한 review registry를 같은 예측에 적용합니다.
+Registry는 의미로 구분할 수 없는 동형이의, source에 정렬된 내부 성분과 gold span
+오류를 재분류하며 제품 입력 계약 밖의 비표준 사례를 제외할 수 있습니다. 구현이
+어렵거나 지원하지 않는 표준 문법은 제외하지 않습니다.
+
+Review registry가 없는 fixture도 두 지표를 모두 기록합니다. 이 경우 raw confusion
+matrix를 contract-adjusted 값으로 사용하고 `reviewed_cases=0`을 명시합니다.
+Contract-adjusted 값만 표시하거나 raw 오류를 숨기지 않습니다.
+
+예를 들어 raw FN이 4이고 FNc가 0이면 네 누락이 관측되었지만 review 결과 모두 제품
+목표 밖이라는 뜻입니다. 실행 결과에서 네 오류가 사라졌다는 뜻이 아니며, 계약 안의
+false negative가 0이라는 뜻입니다.
+
+## 공식 실행
+
+저장소 root에서 wrapper를 실행합니다.
 
 ```sh
 scripts/benchmark-morphology.sh
 ```
 
-The default run performs one warm-up and five measured runs per kfind profile.
-It does not execute external analyzers; it reads only the version-controlled
-snapshot bound to the test fixture SHA-256. Results are written to
-`target/morph-benchmark/report.json` and `report.md`.
-By default, stdout contains only phase progress and the final report paths;
-failures and tool diagnostics use stderr. Set `KFIND_MORPH_VERBOSE=1` to show
-the Docker build output and generated Markdown report in the terminal.
-After the image is built, the container runs with `--network none`.
-`scripts/compare-morphology.sh` is an alias for the same benchmark.
-The image build creates the pinned full-POS artifact and fails if its checksum
-cannot be verified. Benchmark execution never falls back to the embedded
-profile when that artifact is unavailable.
-
-The deterministic CI smoke set selects the first development case for every
-source/POS/expected combination:
+기본 실행은 각 kfind profile을 fresh process에서 warm-up 1회 뒤 5회 측정합니다.
+외부 분석기는 실행하지 않고 test fixture SHA-256에 묶인 version-controlled
+snapshot을 읽습니다. 결과는 `target/morph-benchmark/report.json`과 `report.md`에
+생성됩니다. stdout은 phase와 결과 경로만 사용하고 실패·진단은 stderr에
+출력합니다. 상세 로그에는 `KFIND_MORPH_VERBOSE=1`을 사용합니다.
 
 ```sh
 KFIND_MORPH_SMOKE=1 KFIND_MORPH_RUNS=1 scripts/benchmark-morphology.sh
 ```
 
-## Real technical-corpus blind evaluation
+Smoke set은 dev fixture의 source/POS/expected 조합마다 첫 사례를 선택합니다.
+Docker image를 만든 뒤 benchmark container는 `--network none`으로 실행합니다.
+full-POS artifact의 checksum이 맞지 않으면 embedded profile로 대체하지 않고
+실패합니다.
 
-The `real_corpus` fixture evaluates 25 Korean README, source-code comment, and
-technical-document excerpts from pinned revisions with the Agent and User
-product profiles. Its source manifest preserves licenses and original-file
-SHA-256 digests. The evaluator checks canonical text uniqueness, gold byte
-spans, and all required slices.
-
-```sh
-python3 tools/morph-compare/real_corpus/verify_sources.py
-```
-
-This command downloads the pinned URLs and verifies each file digest and
-excerpt line range.
+로컬 Python test는 이 디렉터리에서 실행합니다.
 
 ```sh
-KFIND_BENCH_REVISION=$(git rev-parse HEAD) \
-  tools/morph-compare/real_corpus/run.sh
+cd tools/morph-compare
+python3 -m unittest discover --start-directory python --pattern 'test_*.py'
 ```
 
-Results are written to `target/real-corpus-blind` by default. This fixture does
-not replace the UD regression fixture and is not used to select product rules.
+## 외부 snapshot
 
-Refresh the external snapshot explicitly only when the test fixture,
-performance schema, or pinned external tool and adapter configuration changes.
-The default benchmark fails with this command when the fixture or snapshot
-schema does not match. The default image builds only the `kfind` runner; external
-analyzers and their dedicated runners are built only in the separate refresh image:
+fixture, 평가 schema 또는 고정 외부 도구·adapter 설정이 바뀐 경우에만 외부
+snapshot을 갱신합니다.
 
 ```sh
 scripts/refresh-morph-baselines.sh
 ```
 
-Render the committed report charts from the same JSON:
+일반 benchmark는 외부 analyzer를 빌드하지 않습니다. fixture 또는 schema가
+snapshot과 맞지 않으면 갱신 명령을 안내하고 실패합니다.
 
-```sh
-python3 tools/morph-compare/render_charts.py \
-  target/morph-benchmark/report.json docs/benchmarks/assets \
-  --prefix smart-component-
-```
+## 보고서 계약
 
-A query-matrix raw-FN disposition ledger must match the report's fixture hash,
-backend, case ID, query, POS, gold byte span, and failure cause. This command
-checks that every current raw FN is classified exactly once. The separate
-contract registry records confirmed implementation targets, reviewed expectation
-changes, and nonstandard-input exclusions:
+품질 보고서는 backend와 평가군마다 다음 항목을 기록합니다.
+
+- raw TP, TN, FP, FN, precision, recall, F1
+- contract-adjusted TPc, TNc, FPc, FNc, precision, recall, F1
+- reviewed, reclassified, excluded case 수와 registry SHA-256
+- source/POS/noise scope별 결과와 case-level failure cause
+- kfind resource version과 artifact SHA-256
+
+성능 보고서는 fresh process의 initialization, cases/s, p95 latency와 peak RSS를
+기록합니다. warm-up 수, 측정 수, median/min/max를 함께 남깁니다. 품질과 성능을
+하나의 점수로 합치지 않습니다. Agent, User와 외부 adapter의 입력 조건도 각 행에
+명시합니다.
+
+Query matrix raw FN disposition은 report의 fixture hash, backend, case ID, 질의,
+품사, gold byte span과 failure cause가 모두 맞아야 합니다.
 
 ```sh
 python3 tools/morph-compare/validate_fnc_dispositions.py \
@@ -117,84 +105,31 @@ python3 tools/morph-compare/validate_fnc_dispositions.py \
   docs/benchmarks/query-matrix-fnc-dispositions.tsv
 ```
 
-See the [benchmark contract](../../docs/benchmarks/README.md) for the current
-measurement and reporting requirements.
-
-To run the image directly:
+사이트 snapshot은 승인한 JSON report에서 생성합니다.
 
 ```sh
-docker build -f tools/morph-compare/Dockerfile -t kfind-morph-benchmark:local .
-mkdir -p target/morph-benchmark
-docker run --rm --network none \
-  --user "$(id -u):$(id -g)" \
-  -v "$PWD/target/morph-benchmark:/output" \
-  kfind-morph-benchmark:local
+python3 tools/morph-compare/export_site_snapshot.py \
+  target/morph-benchmark/report.json \
+  docs/benchmarks/site-morphology.json \
+  --revision "$(git rev-parse HEAD)"
 ```
 
-Every backend predicts whether the gold lemma and POS exist in the sentence. A
-positive prediction must overlap the gold eojeol span; returning the same
-lemma/POS anywhere in a negative sentence is a false positive. Reports include
-accuracy, precision, recall, F1, source/POS breakdowns, failure spans, and
-initialization, throughput, latency, and peak RSS measurements. The test report
-also embeds development results and a version-controlled hard-negative fixture
-with six slices. Strict corpus-gold TP/FP/TN/FN always remain visible. Reviewed
-`contract_expected` annotations additionally produce contract-adjusted TPᶜ,
-FPᶜ, TNᶜ, FNᶜ, precision, recall, and F1 without replacing the strict metrics.
-Kfind tables and charts show raw and contract values side by side. Contract
-exclusions are limited to nonstandard input; unimplemented standard grammar
-remains FNᶜ.
-Each kfind false negative records an automatic `primary_cause` and its evidence.
-The report also records each `kfind` profile and artifact SHA-256, plus separate
-lists of recovered, still-missed, and newly regressed false negatives.
-Shadow verification records raw anchor hits, verified program hits, structural
-candidates, and unique structural windows per case outside the timed evaluation.
-The product decision uses the compact structural resource. A separate full-lattice
-diagnostic can record historical cost paths, but its availability or conclusion
-does not gate the product decision.
-The Agent precision shadow separately records query POS, provenance,
-core/token/whole-token spans, exact analyses, and bounded-lattice include/exclude
-path presence for `embedded + any` matches. Cost ordering is not used for its
-projections.
+사이트는 snapshot의 raw와 contract-adjusted 값을 D3로 렌더링합니다. 정적 SVG를
+별도 생성하지 않습니다.
 
-Current performance covers kfind's end-to-end query-to-decision workload and
-reports the median and min/max across measured runs. The product-persona
-comparison uses the same explicit-POS fixture and gold for Agent, User, and all
-four external analyzers. Agent and the external adapters keep explicit POS;
-User removes POS from the same query and runs full-POS + smart. It is a
-persona-adjusted product comparison, not an identical-input backend ranking.
-The full test report also compares smart, token, and any for both kfind lexicon
-profiles; only smart loads the component resource. A
-separate startup table compares resource-less embedded and full-POS engines with
-the same engines after explicit component loading.
-Each startup profile runs in a fresh process after one warm-up and records at
-least three initialization-time and peak-RSS samples.
+## 실제 기술 corpus
 
-The `Human untagged search` section separately compares embedded/full-POS with
-smart/any. It reports binary quality and performance plus intended-POS plan
-coverage, multi-POS plan rate, and literal fallback rate. Its F1 is not combined
-with the explicit-POS task because the negative definition differs.
+원본 파일과 excerpt를 검증합니다.
 
-The `Product workflows` section first presents recall, throughput, and false-
-positive candidate count for agent use with `embedded + any + explicit POS`,
-then precision, recall, and plan coverage for human use with
-`full-POS + smart + untagged`. The library keeps a resource-less embedded engine
-as its default and exposes full-POS and component resources as explicit costs.
-The workflows are not combined into one score.
+```sh
+python3 tools/morph-compare/real_corpus/verify_sources.py
 
-The `Product CLI use cases` section runs both workflows as independent CLI
-processes over a fixed 100 MiB, 1,000-file corpus. Wall time includes startup,
-query compilation, filesystem walking, scanning, verification, and output
-serialization. It reports throughput and peak RSS alongside wall time, while
-library resource initialization remains a separate cost. The generated
-`product-use-cases.svg` preserves that separation.
-The generated `product-workflows.svg` places profile precision, recall, F1, and
-false-positive candidates beside actual CLI wall time, throughput, and peak RSS
-while labeling their separate fixture and corpus units.
-The generated `product-external-comparison.svg` compares Agent, User, Kiwi,
-Lindera, MeCab-ko, and KOMORAN on precision, recall, F1, initialization,
-throughput, p95, and peak RSS. Its row labels contain only persona or backend
-names; the input conditions are documented alongside the chart.
-The generated `robustness-quality.svg` compares the product defaults on the same
-natural noisy fixture, including target-span and context-only recall.
-`robustness-performance.svg` shows the corresponding initialization, throughput,
-p95, and peak RSS medians from one warm-up and five measured fresh processes.
+KFIND_BENCH_REVISION=$(git rev-parse HEAD) \
+  tools/morph-compare/real_corpus/run.sh
+```
+
+결과는 기본적으로 `target/real-corpus-blind`에 생성합니다. 이 fixture는 Canonical
+회귀 fixture를 대체하거나 제품 규칙 선택에 사용하지 않습니다.
+
+세부 측정·보고 규칙은 [`docs/benchmarks/README.md`](../../docs/benchmarks/README.md)를
+따릅니다.

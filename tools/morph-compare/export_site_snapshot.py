@@ -35,7 +35,7 @@ def export_snapshot(report_path: Path, revision: str) -> dict[str, object]:
         raise ValueError(f"report is missing site chart fields: {', '.join(missing)}")
 
     return {
-        "site_snapshot_schema_version": 3,
+        "site_snapshot_schema_version": 4,
         "source_report": {
             "revision": revision,
             "sha256": hashlib.sha256(report_bytes).hexdigest(),
@@ -48,7 +48,7 @@ def export_snapshot(report_path: Path, revision: str) -> dict[str, object]:
 
 def query_matrix_summary(query_matrix: dict[str, object]) -> dict[str, object]:
     explicit = query_matrix["explicit_pos"]
-    profiles = ("kfind-embedded", "kfind-full-pos")
+    profiles = tuple(explicit["backends"])
     return {
         "explicit_pos": {
             "dataset": {

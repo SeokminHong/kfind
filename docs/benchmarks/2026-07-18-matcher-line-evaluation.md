@@ -46,7 +46,7 @@ One-shot 상태는 재진입 가능한 cache가 아니다. 줄 길이와 pending
 `RefCell` panic 대신 관측 가능한 I/O 오류를 반환한다. Multi-line query는 줄 단위 handoff를 쓰지
 않고 기존 buffer 안전 경로를 유지한다. 줄당 metadata 결과는 기존 65,536개 상한을 그대로 적용한다.
 
-## Criterion
+## Criterion 측정
 
 양쪽 revision을 같은 기기와 기본 Criterion 설정으로 실행했다. 각 workload는 3초 warm-up 뒤
 100 sample을 측정했다. 표는 sample별 1회 시간을 정렬한 nearest-rank p50/p95다.

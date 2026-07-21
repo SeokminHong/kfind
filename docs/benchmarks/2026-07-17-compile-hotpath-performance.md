@@ -51,7 +51,7 @@ resource의 POS·component를 빌려 반복 할당을 없앴다. source POS에 `
 | Human full-POS `smart` | 467 / 1 / 33 | 467 / 1 / 33 |
 | Agent embedded `any` | 483 / 11 / 17 | 483 / 11 / 17 |
 
-## query compile
+## Query 컴파일
 
 | workload | 기준 p95 | 후보 p95 | 증감 |
 | --- | ---: | ---: | ---: |
@@ -67,7 +67,7 @@ resource의 POS·component를 빌려 반복 할당을 없앴다. source POS에 `
 | `context_repeated_long_line` | sample p50 | 34.972 ms | 25.196 ms | -27.95% |
 | `context_repeated_long_line` | sample p95 | 38.168 ms | 25.486 ms | -33.23% |
 
-## end-to-end morphology
+## 종단 간 형태 처리
 
 각 값은 5회 중앙값이다. 증감은 기준 대비 후보이며 처리량은 높을수록, 나머지는 낮을수록
 좋다.

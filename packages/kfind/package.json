@@ -1,6 +1,6 @@
 {
   "name": "kfind",
-  "version": "0.3.0-rc.3",
+  "version": "1.0.0-rc.1",
   "description": "Korean lemma and inflection matching for JavaScript",
   "license": "SEE LICENSE IN LICENSES.md",
   "type": "module",
@@ -23,7 +23,7 @@
     "assets",
     "LICENSE",
     "LICENSES.md",
-    "README.ko.md"
+    "README.md"
   ],
   "module": "./generated/kfind.js",
   "types": "./generated/kfind.d.ts",

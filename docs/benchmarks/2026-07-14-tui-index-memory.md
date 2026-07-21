@@ -1,4 +1,4 @@
-# TUI index memory benchmark
+# TUI index 메모리 벤치마크
 
 ## 결론
 

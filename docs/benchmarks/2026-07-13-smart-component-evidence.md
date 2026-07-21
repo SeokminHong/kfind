@@ -23,7 +23,7 @@ component span과 일치할 때도 검색 결과로 인정한다. 이 증명은 
 품사와 일치하는 component 근거가 없는 substring은 계속 거부한다. `산길을`의 `길`도
 `산길+을` 경로 비용 1111이 `산+길+을` 경로 비용 2770보다 낮으므로 거부한다.
 
-## dev evidence
+## 개발 근거
 
 현재 dev의 명사 FN 70개 중 64개가 `boundary-rejected`다. gold 어절 안 query 위치는 다음과
 같다.

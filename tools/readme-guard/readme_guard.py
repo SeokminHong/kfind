@@ -26,7 +26,7 @@ WORK_LOG_PHRASE = re.compile(
     re.IGNORECASE,
 )
 
-ROOT_READMES = {Path("README.md"), Path("README.ko.md")}
+ROOT_READMES = {Path("README.md")}
 CURRENT_INFORMATION_READMES = ROOT_READMES | {Path("docs/benchmarks/README.md")}
 
 
@@ -74,7 +74,7 @@ def check_readme(path: Path, text: str) -> list[Violation]:
             violations.append(Violation(path, line_number, "work-log wording", line))
 
     if path in ROOT_READMES:
-        heading = "Benchmarks" if path.name == "README.md" else "벤치마크"
+        heading = "벤치마크"
         section = benchmark_section(text, heading)
         for marker, reason in (
             ("\n### ", "benchmark result subsection"),
@@ -90,6 +90,9 @@ def check_readme(path: Path, text: str) -> list[Violation]:
 def check_repository(repository: Path) -> list[Violation]:
     violations: list[Violation] = []
     for path in tracked_readmes(repository):
-        text = (repository / path).read_text(encoding="utf-8")
+        readme = repository / path
+        if not readme.is_file():
+            continue
+        text = readme.read_text(encoding="utf-8")
         violations.extend(check_readme(path, text))
     return violations

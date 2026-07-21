@@ -1,5 +1,6 @@
 **/target
 **/__pycache__/
+/.env
 /data/generated/*.bin
 /data/generated/full-pos/
 /dist/
@@ -11,6 +12,7 @@
 /site/build/
 /site/.react-router/
 /site/public/benchmarks/
+/site/src/generated-benchmark/
 /site/src/generated-wasm/
 /site/.wrangler/
 /.wrangler/

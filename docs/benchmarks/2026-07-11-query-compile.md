@@ -1,6 +1,6 @@
-# kfind query compile benchmark
+# kfind 검색 질의 compile benchmark
 
-## Environment
+## 환경
 
 ```text
 revision: 026ff8104c867eaf1a7a8239eac5e589a26aa11f
@@ -11,7 +11,7 @@ OS: macOS 26.4.1 (25E253)
 rustc: 1.94.1 (e408947bf 2026-03-25)
 ```
 
-## Command
+## 실행 명령
 
 ```console
 cargo bench -p kfind-testkit --bench query_matcher -- query_compile

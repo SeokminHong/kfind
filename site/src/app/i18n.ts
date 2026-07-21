@@ -4,9 +4,11 @@ import { createInstance } from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import { initReactI18next, useTranslation } from 'react-i18next';
 
+import { englishTranslation } from './translations.en';
 import { koreanTranslation } from './translations.ko';
 
 export enum DocumentLocale {
+  English = 'en',
   Korean = 'ko',
 }
 
@@ -32,6 +34,7 @@ const documentI18n: i18n = createInstance();
 documentI18n.use(initReactI18next).use(languageDetector);
 void documentI18n.init({
   resources: {
+    [DocumentLocale.English]: { translation: englishTranslation },
     [DocumentLocale.Korean]: { translation: koreanTranslation },
   },
   lng: defaultDocumentLocale,
@@ -61,6 +64,13 @@ export function getDocumentI18n(): typeof documentI18n {
 
 export function useDocumentTranslation(): ReturnType<typeof useTranslation> {
   return useTranslation();
+}
+
+export function useDocumentLocale(): DocumentLocale {
+  const { i18n } = useDocumentTranslation();
+  const locale = i18n.resolvedLanguage;
+
+  return isDocumentLocale(locale) ? locale : defaultDocumentLocale;
 }
 
 export function getDocumentTranslation(

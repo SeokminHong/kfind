@@ -89,6 +89,21 @@ def validate_fixture_identity(
         contract_expected(case)
 
 
+def validate_contract_review_metadata(
+    cases: list[dict[str, object]], metadata: dict[str, object]
+) -> None:
+    expected = contract_case_summary(cases)
+    review_metadata = metadata.get("contract_review")
+    if expected["reviewed_cases"] == 0 and review_metadata is None:
+        return
+    if not isinstance(review_metadata, dict):
+        raise ValueError("fixture has no contract review metadata")
+    if any(review_metadata.get(key) != value for key, value in expected.items()):
+        raise ValueError("fixture contract review metadata differs from cases")
+    if not isinstance(review_metadata.get("registry_sha256"), str):
+        raise ValueError("fixture has no contract review registry SHA-256")
+
+
 def validate_dataset(
     cases_path: Path, cases: list[dict[str, object]], metadata: dict[str, object]
 ) -> None:
@@ -99,6 +114,7 @@ def validate_dataset(
     if len(cases) != 1_000 or metadata["cases"] != 1_000:
         raise ValueError("benchmark requires exactly 1,000 cases")
     validate_fixture_identity(cases_path, cases, metadata)
+    validate_contract_review_metadata(cases, metadata)
     positives = sum(bool(case["expected"]) for case in cases)
     if positives != 500:
         raise ValueError(f"benchmark requires 500 positive cases, got {positives}")

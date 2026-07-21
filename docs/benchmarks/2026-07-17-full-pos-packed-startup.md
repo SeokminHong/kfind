@@ -1,4 +1,4 @@
-# full POS packed lookup index
+# Full POS 압축 lookup index
 
 - 측정일: 2026-07-17
 - 최신 `origin/main` 및 기준 revision:

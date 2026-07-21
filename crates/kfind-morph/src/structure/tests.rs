@@ -1282,6 +1282,54 @@ fn exact_nominal_particle_host_outranks_a_longer_runtime_decomposition() {
 }
 
 #[test]
+fn exact_nominal_particle_host_rejects_an_alternate_source_component() {
+    let resolver = resolver_from_entries([
+        atomic("산길", "NNG"),
+        expression("산길", "NNG+NNG", "산/NNG/*+길/NNG/*"),
+        atomic("을", "JKO"),
+    ]);
+    let core = "산".len().."산길".len();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("산길을"),
+        CandidateSpans {
+            core: core.clone(),
+            anchor: core.clone(),
+            consumed: core.start.."산길을".len(),
+            token: 0.."산길을".len(),
+        },
+        &[nominal_pattern(DataFinePos::Nng, "길")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
+fn preferred_leading_source_component_accepts_a_particle_tail() {
+    let resolver = resolver_from_entries([
+        atomic("물", "NNG"),
+        expression("물줄기", "NNG", "물/NNG/*+줄기/NNG/*"),
+        atomic("는", "JX"),
+    ]);
+    let core = 0.."물".len();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("물줄기는"),
+        CandidateSpans {
+            core: core.clone(),
+            anchor: core.clone(),
+            consumed: 0.."물줄기는".len(),
+            token: 0.."물줄기는".len(),
+        },
+        &[nominal_pattern(DataFinePos::Nng, "물")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
 fn whole_nominal_source_component_outranks_a_shorter_particle_host() {
     let resolver = resolver();
     let core = "자본".len().."자본주의".len();

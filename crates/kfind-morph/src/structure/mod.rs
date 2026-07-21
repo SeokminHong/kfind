@@ -382,6 +382,37 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_exact_ending_surface(&self, text: &str) -> bool {
+        let mut supported = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
+                if length == text.len()
+                    && !positions.is_empty()
+                    && positions.iter().all(|pos| pos.is_ending())
+                {
+                    supported = true;
+                }
+            });
+        supported
+    }
+
+    #[must_use]
+    pub fn has_exact_nominalizing_ending_surface(&self, text: &str) -> bool {
+        let mut supported = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
+                if length == text.len()
+                    && !positions.is_empty()
+                    && positions.iter().all(|pos| pos.is_ending())
+                    && positions.last() == Some(&StructuralPos::ETN)
+                {
+                    supported = true;
+                }
+            });
+        supported
+    }
+
+    #[must_use]
     pub fn auxiliary_splits(&self, text: &str) -> Vec<usize> {
         let mut splits = Vec::new();
         self.resource
@@ -531,6 +562,87 @@ impl ConstraintResolver {
                 }
             });
         supported
+    }
+
+    #[must_use]
+    pub fn has_unambiguous_predicate_surface(
+        &self,
+        text: &str,
+        source_positions: PredicatePosSet,
+    ) -> bool {
+        let mut found = false;
+        let mut conflicting = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
+                if length != text.len() {
+                    return;
+                }
+                let compatible = positions.split_first().is_some_and(|(first, endings)| {
+                    source_positions
+                        .iter()
+                        .any(|pos| structural_predicate_pos_matches(*first, pos))
+                        && endings.iter().all(|pos| pos.is_ending())
+                });
+                let predicate_only = positions.split_first().is_some_and(|(first, endings)| {
+                    first.is_predicate() && endings.iter().all(|pos| pos.is_ending())
+                });
+                found |= compatible;
+                conflicting |= !predicate_only;
+            });
+        found && !conflicting
+    }
+
+    #[must_use]
+    pub fn has_extended_predicate_prefix_path(
+        &self,
+        text: &str,
+        core_len: usize,
+        source_positions: PredicatePosSet,
+        node_limit: usize,
+    ) -> bool {
+        if core_len >= text.len() || !text.is_char_boundary(core_len) {
+            return false;
+        }
+        let mut prefix_ends = Vec::new();
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
+                if length > core_len
+                    && length < text.len()
+                    && positions.first().is_some_and(|actual| {
+                        positions.len() == 1
+                            && source_positions
+                                .iter()
+                                .any(|pos| structural_predicate_pos_matches(*actual, pos))
+                    })
+                {
+                    prefix_ends.push(length);
+                }
+            });
+        prefix_ends
+            .into_iter()
+            .any(|end| self.supports_ending_suffix_path(text, end, node_limit))
+    }
+
+    #[must_use]
+    pub fn has_unambiguous_attached_auxiliary_whole_path(&self, text: &str) -> bool {
+        let mut found = false;
+        let mut conflicting = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
+                if length != text.len() {
+                    return;
+                }
+                let compatible = is_attached_auxiliary_whole_path(positions);
+                found |= compatible;
+                conflicting |= !compatible;
+            });
+        found && !conflicting
+    }
+
+    #[must_use]
+    pub fn has_complete_attached_auxiliary_path(&self, text: &str, node_limit: usize) -> bool {
+        EdgeGraph::collect(&self.resource, text, node_limit)
+            .is_ok_and(|graph| has_complete_attached_auxiliary_path(text.len(), &graph))
     }
 
     #[must_use]
@@ -792,6 +904,15 @@ struct Unit {
     from_whole_nominal: bool,
 }
 
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+struct NominalSourceComponent {
+    host_start: usize,
+    host_end: usize,
+    component_start: usize,
+    component_end: usize,
+    pos: DataFinePos,
+}
+
 #[derive(Debug)]
 struct StartGraph<T> {
     items: Vec<T>,
@@ -1008,6 +1129,7 @@ struct NumericUnitPath {
 #[derive(Debug, Default)]
 struct TokenEvidence {
     units: UnitGraph,
+    unambiguous_nominal_source_components: Box<[NominalSourceComponent]>,
     nominal_particle_hosts: Box<[Range<usize>]>,
     complete_nominal_particle_host: Option<Range<usize>>,
     has_whole_nominal_source_components: bool,
@@ -1030,6 +1152,8 @@ struct TokenEvidence {
 impl TokenEvidence {
     fn memory_usage(&self) -> usize {
         self.units.memory_usage()
+            + self.unambiguous_nominal_source_components.len()
+                * std::mem::size_of::<NominalSourceComponent>()
             + self.nominal_particle_hosts.len() * std::mem::size_of::<Range<usize>>()
             + self.runtime_spans.capacity() * std::mem::size_of::<Range<usize>>()
             + self.compound_predicate_components.len() * std::mem::size_of::<PredicateComponent>()
@@ -1148,6 +1272,8 @@ impl TokenEvidence {
             Box::default()
         };
         let mut units = Vec::new();
+        let mut atomic_nominal_analyses = Vec::new();
+        let mut nominal_source_component_candidates = Vec::new();
         let mut has_whole_nominal_source_components = false;
         let mut runtime_spans = Vec::new();
         let mut adnominal_ends = Vec::new();
@@ -1171,12 +1297,17 @@ impl TokenEvidence {
                 .filter_map(|position| position.fine_pos())
                 .count()
                 == 1;
-            let whole_nominal_analysis = whole_edge
-                && has_one_position
-                && positions
-                    .iter()
-                    .filter_map(|position| position.fine_pos())
-                    .all(DataFinePos::is_nominal);
+            let nominal_analysis_pos = has_one_position
+                .then(|| positions.iter().find_map(|position| position.fine_pos()))
+                .flatten()
+                .filter(|pos| pos.is_nominal());
+            let whole_nominal_analysis = whole_edge && nominal_analysis_pos.is_some();
+            let components = graph.components(edge);
+            if let Some(pos) = nominal_analysis_pos
+                && components.clone().next().is_none()
+            {
+                atomic_nominal_analyses.push((edge.span.start, edge.span.end, pos));
+            }
             for pos in positions.iter().filter_map(|position| position.fine_pos()) {
                 units.push(Unit {
                     span: edge.span.clone(),
@@ -1189,7 +1320,7 @@ impl TokenEvidence {
                     from_whole_nominal: false,
                 });
             }
-            for component in graph.components(edge) {
+            for component in components {
                 if component.pos == "ETM" {
                     adnominal_ends.push(edge.span.start + component.span.end);
                 }
@@ -1200,6 +1331,21 @@ impl TokenEvidence {
                     edge.span.start + component.span.start..edge.span.start + component.span.end;
                 let from_whole_nominal = whole_nominal_analysis && pos.is_nominal();
                 has_whole_nominal_source_components |= from_whole_nominal;
+                if pos.is_nominal()
+                    && span.start == edge.span.start
+                    && let Some(host_pos) = nominal_analysis_pos
+                {
+                    nominal_source_component_candidates.push((
+                        NominalSourceComponent {
+                            host_start: edge.span.start,
+                            host_end: edge.span.end,
+                            component_start: span.start,
+                            component_end: span.end,
+                            pos,
+                        },
+                        host_pos,
+                    ));
+                }
                 units.push(Unit {
                     span,
                     pos,
@@ -1285,8 +1431,23 @@ impl TokenEvidence {
         runtime_spans.dedup();
         adnominal_ends.sort_unstable();
         adnominal_ends.dedup();
+        atomic_nominal_analyses.sort_unstable();
+        atomic_nominal_analyses.dedup();
+        let mut unambiguous_nominal_source_components = nominal_source_component_candidates
+            .into_iter()
+            .filter_map(|(component, host_pos)| {
+                atomic_nominal_analyses
+                    .binary_search(&(component.host_start, component.host_end, host_pos))
+                    .is_err()
+                    .then_some(component)
+            })
+            .collect::<Vec<_>>();
+        unambiguous_nominal_source_components.sort_unstable();
+        unambiguous_nominal_source_components.dedup();
         Ok(Self {
             units: UnitGraph::from_sorted_by(text.len(), units, |unit| unit.span.start),
+            unambiguous_nominal_source_components: unambiguous_nominal_source_components
+                .into_boxed_slice(),
             nominal_particle_hosts: nominal_paths.particle_hosts,
             complete_nominal_particle_host: nominal_paths.complete_particle_host,
             has_whole_nominal_source_components,
@@ -1334,6 +1495,23 @@ impl TokenEvidence {
                 && unit.pos == pos
                 && unit.evidence == StructuralEvidence::SourceComponent
         })
+    }
+
+    fn has_unambiguous_nominal_source_component(
+        &self,
+        host: &Range<usize>,
+        component: &Range<usize>,
+        pos: DataFinePos,
+    ) -> bool {
+        self.unambiguous_nominal_source_components
+            .binary_search(&NominalSourceComponent {
+                host_start: host.start,
+                host_end: host.end,
+                component_start: component.start,
+                component_end: component.end,
+                pos,
+            })
+            .is_ok()
     }
 
     fn has_predicate_ending_at(&self, end: usize) -> bool {
@@ -2574,6 +2752,7 @@ impl StructureSelection {
                                 &spans.core,
                                 selected,
                                 evidence,
+                                pattern.fine_pos,
                                 &pattern.lexical_form,
                             ) || proper_noun_dependent_noun_frame(
                                 pattern, spans, selected, evidence,
@@ -2716,14 +2895,23 @@ fn nominal_component_is_supported(
     core: &Range<usize>,
     selected: &Range<usize>,
     evidence: &TokenEvidence,
+    pos: DataFinePos,
     lexical_form: &str,
 ) -> bool {
-    if allow_components || support == StructuralEvidence::SourceComponent {
+    if allow_components {
         return true;
     }
-    support == StructuralEvidence::RuntimeComponent
-        && lexical_form.chars().count() > 1
-        && nominal_component_is_on_preferred_path(core, selected, evidence)
+    match support {
+        StructuralEvidence::SourceComponent => {
+            evidence.has_unambiguous_nominal_source_component(selected, core, pos)
+                || nominal_source_component_is_on_preferred_path(core, selected, evidence)
+        }
+        StructuralEvidence::RuntimeComponent => {
+            lexical_form.chars().count() > 1
+                && nominal_component_is_on_preferred_path(core, selected, evidence)
+        }
+        StructuralEvidence::Whole => false,
+    }
 }
 
 fn nominal_component_is_on_preferred_path(
@@ -2734,6 +2922,14 @@ fn nominal_component_is_on_preferred_path(
     component_is_on_preferred_path(core, selected, evidence, |unit| {
         unit.pos.is_nominal() && unit.span != *selected
     })
+}
+
+fn nominal_source_component_is_on_preferred_path(
+    core: &Range<usize>,
+    selected: &Range<usize>,
+    evidence: &TokenEvidence,
+) -> bool {
+    component_is_on_preferred_path(core, selected, evidence, |unit| unit.pos.is_nominal())
 }
 
 fn modifier_led_nominal_component_is_on_preferred_path(

@@ -1,5 +1,6 @@
 import type { CompileOptions, KfindEngine, Match } from './kfind-wasm';
 
+import { DocumentLocale } from './app/i18n';
 import {
   BoundaryPolicy,
   componentResourceVersion,
@@ -89,6 +90,21 @@ interface PresetDefinition {
   readonly text: string | (() => string);
 }
 
+interface PlaygroundMessages {
+  readonly directMatch: string;
+  readonly emptyQuery: string;
+  readonly initialResource: string;
+  readonly initialStatus: string;
+  readonly matchCount: (count: number) => string;
+  readonly noMatches: string;
+  readonly resourceIdle: string;
+  readonly resourceLoading: string;
+  readonly resourceNeeded: string;
+  readonly resourceRestored: (byteLength: number, migrated: boolean) => string;
+  readonly resourceStored: (byteLength: number, stored: boolean) => string;
+  readonly resourceVerificationFailed: (error: string) => string;
+}
+
 const SEARCH_DEBOUNCE_MILLISECONDS = 250;
 const LARGE_INPUT_BYTE_LENGTH = 1024 * 1024;
 const LARGE_INPUT_HEADER =
@@ -156,20 +172,66 @@ export const initialPlaygroundInput = createPresetInput(
   PlaygroundPresetName.Predicate,
 );
 
-export const initialPlaygroundStatus: PlaygroundStatus = {
-  state: PlaygroundState.Loading,
-  message: 'WASM engine을 불러오는 중…',
-};
+const playgroundMessages: Readonly<Record<DocumentLocale, PlaygroundMessages>> =
+  {
+    [DocumentLocale.Korean]: {
+      directMatch: '직접 일치 검증 완료',
+      emptyQuery: '검색 질의를 입력해 주세요.',
+      initialResource: `저장된 리소스 확인 중 · ${formatResourceVersion()}`,
+      initialStatus: 'WASM 엔진을 불러오는 중…',
+      matchCount: (count) => `일치하는 span ${count}개를 찾았습니다.`,
+      noMatches: '일치하는 span이 없습니다.',
+      resourceIdle: `필요한 경우 R2에서 35.4 MiB를 받습니다 · ${formatResourceVersion()}`,
+      resourceLoading: 'R2에서 구성 요소 리소스를 불러오는 중…',
+      resourceNeeded: '이 검색 질의에는 구성 요소 리소스가 필요합니다.',
+      resourceRestored: (byteLength, migrated) =>
+        `${formatMebibytes(byteLength)} MiB ${migrated ? '저장소 복원 및 이전 완료' : '저장소 복원 완료'} · ${formatResourceVersion()}`,
+      resourceStored: (byteLength, stored) =>
+        stored
+          ? `${formatMebibytes(byteLength)} MiB 로드·검증·저장 완료 · ${formatResourceVersion()}`
+          : `${formatMebibytes(byteLength)} MiB 로드·검증 완료 · 저장소 미지원`,
+      resourceVerificationFailed: (error) =>
+        `저장된 리소스 검증 실패 · ${error}`,
+    },
+    [DocumentLocale.English]: {
+      directMatch: 'Direct match verified',
+      emptyQuery: 'Enter a query.',
+      initialResource: `Checking stored resource · ${formatResourceVersion()}`,
+      initialStatus: 'Loading the WASM engine…',
+      matchCount: (count) =>
+        `Found ${count.toLocaleString('en')} matching spans.`,
+      noMatches: 'No matching spans.',
+      resourceIdle: `Downloads 35.4 MiB from R2 when required · ${formatResourceVersion()}`,
+      resourceLoading: 'Loading the component resource from R2…',
+      resourceNeeded: 'This query requires the component resource.',
+      resourceRestored: (byteLength, migrated) =>
+        `${formatMebibytes(byteLength)} MiB ${migrated ? 'restored and migrated' : 'restored'} · ${formatResourceVersion()}`,
+      resourceStored: (byteLength, stored) =>
+        stored
+          ? `${formatMebibytes(byteLength)} MiB loaded, verified, and stored · ${formatResourceVersion()}`
+          : `${formatMebibytes(byteLength)} MiB loaded and verified · storage unavailable`,
+      resourceVerificationFailed: (error) =>
+        `Stored resource validation failed · ${error}`,
+    },
+  };
 
-export const initialComponentResourceStatus: ComponentResourceStatus = {
-  state: ComponentResourceState.Checking,
-  message: `저장된 resource 확인 중 · ${formatResourceVersion()}`,
-};
+export function createInitialPlaygroundStatus(
+  locale: DocumentLocale,
+): PlaygroundStatus {
+  return {
+    state: PlaygroundState.Loading,
+    message: playgroundMessages[locale].initialStatus,
+  };
+}
 
-const idleComponentResourceStatus: ComponentResourceStatus = {
-  state: ComponentResourceState.Idle,
-  message: `필요한 경우 R2에서 35.4 MiB를 받습니다 · ${formatResourceVersion()}`,
-};
+export function createInitialComponentResourceStatus(
+  locale: DocumentLocale,
+): ComponentResourceStatus {
+  return {
+    state: ComponentResourceState.Checking,
+    message: playgroundMessages[locale].initialResource,
+  };
+}
 
 export function applyPlaygroundPreset(
   presetName: PlaygroundPresetName,
@@ -180,13 +242,21 @@ export function applyPlaygroundPreset(
 export function initializePlayground(
   initialInput: PlaygroundInput,
   callbacks: PlaygroundCallbacks,
+  locale: DocumentLocale = DocumentLocale.Korean,
 ): PlaygroundController {
+  const messages = playgroundMessages[locale];
+  const initialStatus = createInitialPlaygroundStatus(locale);
+  const initialResourceStatus = createInitialComponentResourceStatus(locale);
+  const idleResourceStatus: ComponentResourceStatus = {
+    state: ComponentResourceState.Idle,
+    message: messages.resourceIdle,
+  };
   const abortController = new AbortController();
   const { signal } = abortController;
   let engine: KfindEngine | undefined;
   let latestInput = initialInput;
   let pendingRun: ReturnType<typeof globalThis.setTimeout> | undefined;
-  let resourceState = initialComponentResourceStatus.state;
+  let resourceState = initialResourceStatus.state;
   let resourceCheckComplete = false;
 
   const setResourceStatus = (status: ComponentResourceStatus): void => {
@@ -199,7 +269,7 @@ export function initializePlayground(
       return;
     }
 
-    const result = executeSearch(engine, latestInput);
+    const result = executeSearch(engine, latestInput, messages);
 
     if (
       result.state === PlaygroundResultState.Error &&
@@ -208,10 +278,10 @@ export function initializePlayground(
     ) {
       setResourceStatus({
         state: ComponentResourceState.Needed,
-        message: '이 query를 실행하려면 component asset이 필요합니다.',
+        message: messages.resourceNeeded,
       });
     } else if (resourceState === ComponentResourceState.Needed) {
-      setResourceStatus(idleComponentResourceStatus);
+      setResourceStatus(idleResourceStatus);
     }
 
     callbacks.onResult(result);
@@ -228,8 +298,8 @@ export function initializePlayground(
     pendingRun = globalThis.setTimeout(execute, SEARCH_DEBOUNCE_MILLISECONDS);
   };
 
-  callbacks.onStatusChange(initialPlaygroundStatus);
-  callbacks.onResourceStatusChange(initialComponentResourceStatus);
+  callbacks.onStatusChange(initialStatus);
+  callbacks.onResourceStatusChange(initialResourceStatus);
 
   void loadKfind()
     .then(async (loaded) => {
@@ -256,10 +326,13 @@ export function initializePlayground(
 
         setResourceStatus(
           restoredResource === null
-            ? idleComponentResourceStatus
+            ? idleResourceStatus
             : {
                 state: ComponentResourceState.Ready,
-                message: `${formatMebibytes(restoredResource.byteLength)} MiB ${restoredResource.migrated ? '기존 저장소에서 복원·이전 완료' : '저장소에서 복원 완료'} · ${formatResourceVersion()}`,
+                message: messages.resourceRestored(
+                  restoredResource.byteLength,
+                  restoredResource.migrated,
+                ),
               },
         );
       } catch (error) {
@@ -269,7 +342,7 @@ export function initializePlayground(
 
         setResourceStatus({
           state: ComponentResourceState.Error,
-          message: `저장된 resource 검증 실패: ${readableError(error)}`,
+          message: messages.resourceVerificationFailed(readableError(error)),
         });
       }
 
@@ -299,6 +372,7 @@ export function initializePlayground(
           setResourceStatus,
           execute,
           signal,
+          messages,
         );
       }
     },
@@ -335,7 +409,10 @@ export function mergeMatchSpans(
   return merged;
 }
 
-export function formatProvenance(match: Match): string {
+export function formatProvenance(
+  match: Match,
+  locale: DocumentLocale = DocumentLocale.Korean,
+): string {
   const paths = new Set<string>();
 
   for (const atom of match.atoms) {
@@ -346,7 +423,9 @@ export function formatProvenance(match: Match): string {
     }
   }
 
-  return paths.size === 0 ? 'direct match 검증 완료' : [...paths].join(' · ');
+  return paths.size === 0
+    ? playgroundMessages[locale].directMatch
+    : [...paths].join(' · ');
 }
 
 async function enableComponentResource(
@@ -354,6 +433,7 @@ async function enableComponentResource(
   setResourceStatus: (status: ComponentResourceStatus) => void,
   rerun: () => void,
   signal: AbortSignal,
+  messages: PlaygroundMessages,
 ): Promise<void> {
   if (engine.componentResourceLoaded) {
     rerun();
@@ -362,7 +442,7 @@ async function enableComponentResource(
 
   setResourceStatus({
     state: ComponentResourceState.Loading,
-    message: 'R2에서 component asset을 불러오는 중…',
+    message: messages.resourceLoading,
   });
 
   try {
@@ -373,9 +453,7 @@ async function enableComponentResource(
 
     setResourceStatus({
       state: ComponentResourceState.Ready,
-      message: loaded.stored
-        ? `${formatMebibytes(loaded.byteLength)} MiB 불러오기·검증·저장 완료 · ${formatResourceVersion()}`
-        : `${formatMebibytes(loaded.byteLength)} MiB 불러오기·검증 완료 · 저장소 미지원`,
+      message: messages.resourceStored(loaded.byteLength, loaded.stored),
     });
     rerun();
   } catch (error) {
@@ -393,6 +471,7 @@ async function enableComponentResource(
 function executeSearch(
   engine: KfindEngine,
   input: PlaygroundInput,
+  messages: PlaygroundMessages,
 ): PlaygroundResult {
   const query = input.query.trim();
 
@@ -402,7 +481,7 @@ function executeSearch(
       input,
       matches: [],
       elapsedMilliseconds: null,
-      message: '쿼리를 입력해 주세요.',
+      message: messages.emptyQuery,
     };
   }
 
@@ -419,8 +498,8 @@ function executeSearch(
       elapsedMilliseconds,
       message:
         matches.length === 0
-          ? '일치하는 span이 없습니다.'
-          : `일치하는 span ${matches.length}개를 찾았습니다.`,
+          ? messages.noMatches
+          : messages.matchCount(matches.length),
     };
   } catch (error) {
     const message = readableError(error);

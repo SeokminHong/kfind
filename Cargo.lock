@@ -629,7 +629,7 @@ dependencies = [
 
 [[package]]
 name = "kfind"
-version = "0.3.0-rc.3"
+version = "1.0.0-rc.1"
 dependencies = [
  "kfind-data",
  "kfind-matcher",
@@ -639,7 +639,7 @@ dependencies = [
 
 [[package]]
 name = "kfind-cli"
-version = "0.3.0-rc.3"
+version = "1.0.0-rc.1"
 dependencies = [
  "base64",
  "clap",
@@ -660,7 +660,7 @@ dependencies = [
 
 [[package]]
 name = "kfind-data"
-version = "0.3.0-rc.3"
+version = "1.0.0-rc.1"
 dependencies = [
  "serde",
  "sha2",
@@ -671,7 +671,7 @@ dependencies = [
 
 [[package]]
 name = "kfind-matcher"
-version = "0.3.0-rc.3"
+version = "1.0.0-rc.1"
 dependencies = [
  "aho-corasick",
  "grep-matcher",
@@ -686,7 +686,7 @@ dependencies = [
 
 [[package]]
 name = "kfind-morph"
-version = "0.3.0-rc.3"
+version = "1.0.0-rc.1"
 dependencies = [
  "kfind-data",
  "proptest",
@@ -694,7 +694,7 @@ dependencies = [
 
 [[package]]
 name = "kfind-query"
-version = "0.3.0-rc.3"
+version = "1.0.0-rc.1"
 dependencies = [
  "kfind-data",
  "kfind-morph",
@@ -703,7 +703,7 @@ dependencies = [
 
 [[package]]
 name = "kfind-search"
-version = "0.3.0-rc.3"
+version = "1.0.0-rc.1"
 dependencies = [
  "crossbeam-channel",
  "grep-matcher",
@@ -715,7 +715,7 @@ dependencies = [
 
 [[package]]
 name = "kfind-testkit"
-version = "0.3.0-rc.3"
+version = "1.0.0-rc.1"
 dependencies = [
  "criterion",
  "kfind-data",
@@ -729,7 +729,7 @@ dependencies = [
 
 [[package]]
 name = "kfind-wasm"
-version = "0.3.0-rc.3"
+version = "1.0.0-rc.1"
 dependencies = [
  "js-sys",
  "kfind",

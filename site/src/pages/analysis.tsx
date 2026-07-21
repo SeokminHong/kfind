@@ -1,235 +1,391 @@
+import type { DocumentContent } from '../components/localized-document';
+
+import { DocumentLocale } from '../app/i18n';
 import { createDocumentMeta } from '../app/metadata';
 import { RoutePath } from '../app/navigation';
-import {
-  DocumentPage,
-  DocumentSection,
-  PageIntro,
-} from '../components/document';
+import { LocalizedDocument } from '../components/localized-document';
 
 export const meta = createDocumentMeta(RoutePath.Analysis);
 
+const sectionIds = [
+  'analysis-direction',
+  'lexicon-layers',
+  'particles-and-allomorphs',
+  'endings',
+  'irregulars-and-contractions',
+  'derivation-and-compounds',
+  'structural-verification',
+] as const;
+
+const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
+  [DocumentLocale.Korean]: {
+    eyebrow: '내부 원리 · 형태',
+    title: '형태 분석',
+    summary:
+      'kfind의 형태 처리는 표제어에서 검색 조건을 만드는 정방향 생성과 원문 후보를 검증하는 국소 판정으로 구성됩니다.',
+    sections: [
+      {
+        title: '분석 방향',
+        body: (
+          <>
+            <p>
+              Query atom 하나는 표제어와 선택적 품사를 가집니다. 사전 조회는 이
+              입력을 설명할 수 있는 분석을 만들고, 각 분석은 anchor, core span,
+              조사·어미 소비 상태, 경계 조건과 생성 근거를 가진{' '}
+              <code>CandidateProgram</code>으로 컴파일됩니다.
+            </p>
+            <p>
+              Corpus에서는 anchor가 있는 위치만 program으로 검증합니다. 이
+              방향은 관찰한 모든 token을 분석하는 작업과 다릅니다. kfind가
+              반환하는 정보는 전체 문장의 형태소열이 아니라 query에서 도달
+              가능한 표면형의 span과 provenance입니다.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: '사전 계층',
+        body: (
+          <>
+            <p>
+              Core lexicon은 핵심 불규칙, 품사 중의성, 기능어와 표면형 예외를
+              담습니다. Enriched 계층은 고정된 국립국어원 사전 snapshot이 함께
+              지지하는 활용·파생 관계만 보존합니다. Full POS lexicon은 자동 품사
+              후보와 세부 품사를 제공하고, user lexicon은 프로젝트 용어와 교체
+              규칙을 추가합니다.
+            </p>
+            <p>
+              같은 표제어에 여러 분석이 있으면 하나를 임의로 선택하지 않습니다.
+              실행 조건이 같으면 program을 합치되 모든 품사와 규칙 provenance를
+              유지합니다. 사용자가 coarse POS를 명시하면 noun, verb 같은 범주가
+              포함하는 세부 품사의 누락도 fallback 분석으로 채웁니다.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: '조사와 이형태',
+        body: (
+          <>
+            <p>
+              체언은 표면형마다 모든 조사 조합을 열거하지 않습니다. Core를 찾은
+              뒤 verifier가 남은 suffix를 조사 전이로 읽습니다. 받침이 없으면{' '}
+              <code>는·가·를·로</code>, 받침이 있으면 <code>은·이·을·으로</code>
+              를 선택합니다. <code>ㄹ</code> 받침 뒤의 <code>로</code>처럼 별도
+              음운 조건도 포함합니다.
+            </p>
+            <pre>
+              <code>{`학교 + 에서 + 는  → 학교에서는\n길 + 으로       → 길로\n집 + 로         → 거부`}</code>
+            </pre>
+            <p>
+              조사 연쇄는 등록된 전이만 허용합니다. 완성된 조사 뒤에 임의
+              문자열을 이어 붙이지 않으며 <code>smart</code>와{' '}
+              <code>token</code>은 소비가 끝난 token 경계를 확인합니다.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: '어미와 선어말어미',
+        body: (
+          <>
+            <p>
+              용언 program은 어간 교체와 어미 연쇄를 분리합니다. 선어말어미는
+              종결·연결 어미 앞에서 시제, 높임과 추측을 나타냅니다. 예를 들어{' '}
+              <code>먹었겠지만</code>은{' '}
+              <code>먹/VV + 었/EP + 겠/EP + 지만/EC</code>
+              으로 분석됩니다. kfind는 <code>었</code>과 <code>겠</code>을 typed
+              consumption 상태로 보존한 뒤 허용된 <code>지만</code>으로 token을
+              닫습니다.
+            </p>
+            <p>
+              현재 평서형 <code>-ㄴ다/-는다</code>, 관형형{' '}
+              <code>-는/-ㄴ/-을</code>, 명사형 <code>-기/-ㅁ</code>, 연결형{' '}
+              <code>-고/-면/-니/-려고</code>와 지정된 후속 어미를 지원합니다.
+              문법적으로 가능해 보이더라도 규칙 데이터에 없는 연쇄는 만들지
+              않습니다.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: '불규칙 활용과 축약',
+        body: (
+          <>
+            <p>
+              사전 entry는 적용할 교체 분류를 제공하고 generator가 어미의 음운
+              환경과 결합합니다. <code>걷다</code>의 ㄷ 불규칙은 모음 시작 어미
+              앞에서 <code>걷 + 어 → 걸어</code>를 만들고, <code>돕다</code>의
+              ㅂ 불규칙은 <code>돕 + 아 → 도와</code>를 만듭니다.{' '}
+              <code>모르다 → 몰라</code>, <code>낫다 → 나아</code>,{' '}
+              <code>파랗다 → 파란</code>도 같은 방식으로 어휘 분류와 공통 어미
+              규칙을 합성합니다.
+            </p>
+            <p>
+              <code>보아 → 봐</code>, <code>주어 → 줘</code> 같은 축약은 한글
+              음절의 초성·중성·종성을 분해한 뒤 허용된 결합으로 다시 조합합니다.
+              규칙형과 불규칙형 분석이 모두 가능한 표제어는 두 program을 보존해
+              recall을 유지합니다.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: '파생과 복합 구조',
+        body: (
+          <>
+            <p>
+              <code>inflection</code>은 품사를 유지하는 활용을,{' '}
+              <code>derivation</code>은 등록된 접미사로 새 품사를 만드는
+              표면까지 포함합니다. <code>안정 + 하 + 다</code>,{' '}
+              <code>잠식 + 당하 + 기</code>처럼 명사·어근과 파생 접미사가
+              이어지는 경로는 source component의 품사와 span이 완성될 때만
+              승인합니다.
+            </p>
+            <p>
+              보조용언과 합성용언 내부 검색도 같은 제약을 사용합니다.{' '}
+              <code>들어가다</code>의 <code>가다</code>는 선행 용언과 연결
+              어미가 token 왼쪽부터 이어져야 하지만, <code>친구가</code>의 조사{' '}
+              <code>가</code>는 동사 후보가 될 수 없습니다.
+            </p>
+            <p>
+              합성명사 source가 조사 host 전체의 component를 선언하고 같은
+              span의 독립 분석이 없으면 그 분해를 사용합니다.{' '}
+              <code>물/NNG + 줄기/NNG + 는/JX</code>의 <code>물</code>은
+              검색하지만, 독립 <code>산길/NNG</code> 분석과 경쟁하는 별도 분해의{' '}
+              <code>길</code>은 검색하지 않습니다.
+            </p>
+            <p>
+              생성 program이 남긴 보조용언 연쇄를 resource로 보완할 때는 연결
+              어미 바깥의 <code>VX + E*</code> 경로가 완성되어야 합니다. 연결
+              어미가 core 바깥에 있거나, 축약된 core가 용언으로만 분석되거나,
+              core보다 긴 query 품사의 단일 용언 source edge 뒤로 어미가
+              완결되거나, token 전체의 정확한 분석이{' '}
+              <code>용언 + EC + VX + E+</code>이거나, 결과 변화를 나타내는{' '}
+              <code>-아/어지다</code> 계열일 때 source 경로를 사용합니다.{' '}
+              <code>빼놓을</code>, <code>생겨났던</code>,{' '}
+              <code>극심해지겠지만</code>은 유지하지만, 중의적인 <code>해</code>
+              만으로 <code>해가며</code>를 확장하지 않습니다.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: '국소 구조 판정',
+        body: (
+          <>
+            <p>
+              <code>smart</code>는 anchor 주변의 제한된 token만 compact
+              component resource로 해독합니다. Query가 요구하는 품사열,
+              component span, continuation과 인접 token 조건을{' '}
+              <code>StructuralConstraint</code>로 비교합니다. 의미가 아니라 관찰
+              가능한 형태 구조만 사용합니다.
+            </p>
+            <p>
+              일반 분석기처럼 corpus 전체 tokenization을 만들지 않으므로 큰
+              파일의 scan 경로는 byte 검색으로 유지됩니다. 동시에 source가
+              증명한 내부 성분과 조사·어미 경계를 사용해 단순 substring 검색보다
+              정밀한 후보를 반환합니다.
+            </p>
+            <p>
+              조사로 끝나는 체언에서는 정확한 전체 체언 경로를 먼저 선택합니다.{' '}
+              <code>산길을</code>의 대안 분해에만 있는 <code>길</code>은
+              거부하지만, 전체 분석 자체가 선언한 <code>자본주의</code>의{' '}
+              <code>주의</code> component는 유지합니다.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+  [DocumentLocale.English]: {
+    eyebrow: 'INTERNALS · MORPHOLOGY',
+    title: 'Morphology',
+    summary:
+      'kfind combines forward generation from a target lemma with local structural verification of source candidates.',
+    sections: [
+      {
+        title: 'Analysis direction',
+        body: (
+          <>
+            <p>
+              A query atom contains a lemma and an optional part of speech.
+              Lexicon lookup produces compatible analyses. Each analysis
+              compiles into a <code>CandidateProgram</code> containing an
+              anchor, core span, particle and ending consumption, boundary
+              conditions, and provenance.
+            </p>
+            <p>
+              Only source positions containing an anchor are verified against
+              the program. This differs from analyzing every observed token. The
+              result is a span reachable from the query plus its origin, not a
+              complete morpheme sequence for the sentence.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Lexicon layers',
+        body: (
+          <>
+            <p>
+              The core lexicon stores essential irregulars, POS ambiguity,
+              function words, and surface exceptions. The enriched layer
+              contains inflection and derivation relations supported by pinned
+              Korean dictionary snapshots. The full-POS lexicon supplies
+              automatic and fine-grained POS candidates, while the user lexicon
+              adds project terms and replacement rules.
+            </p>
+            <p>
+              Multiple analyses for one lemma are preserved. Programs with
+              identical execution conditions may be merged, but every POS and
+              rule origin remains in provenance. An explicit coarse POS also
+              receives fallback analyses for missing fine-grained categories.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Particles and allomorphs',
+        body: (
+          <>
+            <p>
+              Nominals do not enumerate every particle chain as a complete
+              surface. After a core hit, a verifier reads the remaining suffix
+              through a particle transition table. Vowel-final hosts select{' '}
+              <code>는·가·를·로</code>, consonant-final hosts select{' '}
+              <code>은·이·을·으로</code>, with a dedicated condition for{' '}
+              <code>로</code> after final ㄹ.
+            </p>
+            <pre>
+              <code>{`학교 + 에서 + 는  → 학교에서는\n길 + 으로       → 길로\n집 + 로         → rejected`}</code>
+            </pre>
+            <p>
+              Only registered particle transitions are accepted.{' '}
+              <code>smart</code> and <code>token</code> verify the token
+              boundary after consumption.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Endings and prefinal endings',
+        body: (
+          <>
+            <p>
+              Predicate programs separate stem substitution from ending chains.
+              Prefinal endings express tense, honorific meaning, and modality
+              before connective or terminal endings. <code>먹었겠지만</code>,
+              for example, is <code>먹/VV + 었/EP + 겠/EP + 지만/EC</code>.
+              kfind represents <code>었</code> and <code>겠</code> as typed
+              consumption states and closes the token with the permitted{' '}
+              <code>지만</code> transition.
+            </p>
+            <p>
+              The rule catalog includes present declaratives, adnominal and
+              nominalizing endings, connectives, and bounded continuations. A
+              chain that is absent from the versioned rule data is not inferred
+              merely because it appears grammatically plausible.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Irregular conjugation and contraction',
+        body: (
+          <>
+            <p>
+              A lexicon entry selects a substitution class, and the generator
+              combines it with the phonological environment of an ending. ㄷ
+              irregular <code>걷다</code> yields <code>걷 + 어 → 걸어</code>; ㅂ
+              irregular <code>돕다</code> yields <code>돕 + 아 → 도와</code>.
+              The same composition handles <code>모르다 → 몰라</code>,{' '}
+              <code>낫다 → 나아</code>, and <code>파랗다 → 파란</code>.
+            </p>
+            <p>
+              Contractions such as <code>보아 → 봐</code> and{' '}
+              <code>주어 → 줘</code> decompose and recombine Hangul syllable
+              components under explicit rules. When both regular and irregular
+              analyses are valid, both programs are retained for recall.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Derivation and compound structure',
+        body: (
+          <>
+            <p>
+              <code>inflection</code> preserves POS, while{' '}
+              <code>derivation</code> includes registered suffixes that create a
+              new POS. Paths such as <code>안정 + 하 + 다</code> and{' '}
+              <code>잠식 + 당하 + 기</code> are accepted only when source
+              components prove a complete POS and span sequence.
+            </p>
+            <p>
+              Auxiliary and compound-internal search uses the same constraint.
+              Internal <code>가다</code> in <code>들어가다</code> requires a
+              preceding predicate and connective ending, while particle{' '}
+              <code>가</code> in <code>친구가</code> cannot become a verb
+              candidate.
+            </p>
+            <p>
+              A compound-noun decomposition is used when the source declares
+              components for the complete particle host and no independent
+              analysis competes on the same span. This finds <code>물</code> in{' '}
+              <code>물/NNG + 줄기/NNG + 는/JX</code> but rejects <code>길</code>{' '}
+              from an alternate decomposition that competes with an independent{' '}
+              <code>산길/NNG</code> analysis.
+            </p>
+            <p>
+              When the resource completes an auxiliary chain left by a generated
+              program, the <code>VX + E*</code> path after the connective must
+              be complete. The source path is used when the connective lies
+              outside the core, every exact analysis of the contracted core is a
+              predicate, a query-compatible single predicate source edge extends
+              beyond the core and is followed by a complete ending path, the
+              complete token has an exact <code>predicate + EC + VX + E+</code>{' '}
+              analysis, or the suffix is the resultative <code>-아/어지다</code>{' '}
+              family. This retains <code>빼놓을</code>, <code>생겨났던</code>,
+              and <code>극심해지겠지만</code> without expanding{' '}
+              <code>해가며</code> from the ambiguous <code>해</code> surface
+              alone.
+            </p>
+          </>
+        ),
+      },
+      {
+        title: 'Local structural verification',
+        body: (
+          <>
+            <p>
+              <code>smart</code> decodes only bounded tokens around an anchor
+              from the compact component resource. A{' '}
+              <code>StructuralConstraint</code> compares the POS sequence,
+              component spans, continuations, and neighboring-token conditions
+              required by the query. It uses observable morphology, not semantic
+              interpretation.
+            </p>
+            <p>
+              Because no corpus-wide tokenization is built, large-file scanning
+              stays on the byte-search path. Source-proven internal components
+              and particle-ending boundaries still make the result more precise
+              than a plain substring search.
+            </p>
+            <p>
+              For a nominal followed by particles, the exact whole-nominal path
+              is selected first. <code>길</code> found only in an alternative
+              decomposition of <code>산길을</code> is rejected, while the{' '}
+              <code>주의</code> component declared by the whole analysis of{' '}
+              <code>자본주의</code> is retained.
+            </p>
+          </>
+        ),
+      },
+    ],
+  },
+};
+
 export default function AnalysisPage(): React.JSX.Element {
-  return (
-    <DocumentPage>
-      <PageIntro
-        eyebrow="CONCEPT · MORPHOLOGY"
-        title="검색 쿼리에서 시작하는 형태 분석"
-        summary="kfind는 corpus의 문장을 형태소열로 변환하지 않습니다. 사용자가 입력한 표제어와 품사를 유한한 query plan으로 컴파일한 뒤, 원문에서 찾은 후보가 그 계획을 만족하는지만 검증합니다. 따라서 형태 분석은 독립된 결과물이 아니라 검색 조건을 구성하는 수단입니다."
-      />
-
-      <DocumentSection title="분석의 방향과 범위">
-        <p>
-          일반적인 형태소 분석은 관찰된 문장을 입력으로 받아 각 표면형의
-          표제어와 품사를 추정합니다. kfind가 해결하는 문제는 다릅니다. kfind는
-          찾으려는 표제어와 품사를 먼저 알고 있으며, 여기에서 검색 가능한
-          표면형과 그 표면형이 성립할 조건을 도출합니다. 이후 corpus를 훑으면서
-          이 조건을 만족하는 위치만 결과로 선택합니다. 문장에서 표제어를
-          복원하는 과정과 표제어에서 검색 조건을 만드는 과정은 입력과 출력이
-          다르므로 구분해야 합니다.
-        </p>
-        <p>
-          이 설계는 형태 처리 비용을 corpus의 크기가 아니라 query의 크기에
-          결부합니다. 보통 query는 짧고 corpus는 크기 때문에, query를 한 번
-          분석해 검색 계획을 만들고 원문에서는 고정 문자열을 먼저 찾는 편이 전체
-          문장을 반복해서 분석하는 것보다 비용을 통제하기 쉽습니다. 다만 이
-          방식은 문장의 모든 형태소나 문맥상 의미를 알려 주지 않습니다. 반환값은
-          주어진 표제어에서 생성될 수 있는 후보 span과 그 생성 근거이며,
-          최종적인 의미 판별은 호출자의 몫입니다.
-        </p>
-        <p>
-          이하에서 <code>atom</code>은 하나의 표제어와 선택적 품사로 이루어진
-          query 단위를 뜻합니다. 하나의 atom은 사전에서 얻은 하나 이상의{' '}
-          <code>analysis</code>로 해석되고, 각 analysis는 검색 가능한 형태를
-          나타내는 <code>CandidateProgram</code>을 만듭니다. Program은 원문에서
-          먼저 찾을 <code>anchor</code>, core 투영, 후보 범위, 조사·어미 소비
-          상태, boundary 또는 구조 제약과 provenance를 함께 보존합니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="입력에서 검색 계획까지">
-        <p>
-          컴파일은 정규화, 어휘 분석, 형태 생성, 실행 계획 구성의 순서로
-          진행됩니다. 각 단계는 앞 단계의 결과를 좁히거나 확장하지만, 이전
-          단계에서 선택한 품사와 생성 근거를 버리지 않습니다.
-        </p>
-        <pre>
-          <code>{`query atom
-  → parse and normalize
-  → lexical analyses
-  → candidate programs
-  → anchor, consumption and decision
-  → executable query plan`}</code>
-        </pre>
-        <h3>입력 정규화와 어휘 분석</h3>
-        <p>
-          먼저 따옴표와 품사 태그를 해석하고, 선택한 Unicode 모드에 따라 입력을
-          정규화합니다. 그다음 core lexicon, enriched 용언 metadata, user
-          lexicon, 생산적인 접미 패턴과 full POS lexicon을 정해진 우선순위로
-          조회합니다. 이 단계의 목적은 한 품사를 성급히 고르는 것이 아니라, 현재
-          입력을 설명할 수 있는 분석 집합을 구성하는 것입니다. 하나의 표제어에
-          규칙형과 불규칙형 분석이 함께 있으면 두 분석을 모두 보존합니다.
-        </p>
-        <p>
-          사용자가 coarse POS를 명시했는데 사전 분석만으로 그 품사의 세부 범위를
-          모두 채우지 못하면, 지원되는 세부 품사에 대해 fallback analysis를
-          추가합니다. 예를 들어 <code>noun</code>은 보통명사·고유명사·의존명사를
-          포함합니다. 여러 analysis가 결과적으로 같은 실행 program을 만들면
-          program은 합칠 수 있지만, 각 세부 품사에서 유래했다는 provenance는
-          합친 program에 그대로 남깁니다.
-        </p>
-
-        <h3>후보 program 생성</h3>
-        <p>
-          각 analysis에는 품사에 맞는 조사, 어미, 불규칙 교체와 선택적 파생
-          규칙을 적용합니다. 이때 생성 가능한 모든 한국어 표현을 추측하지
-          않습니다. 어미와 조사 연쇄, 파생 접미사의 허용 범위는{' '}
-          <code>data/rules</code>에 기록된 목록과 전이로 제한됩니다. 문법적으로
-          가능해 보이는 조합이라도 규칙 데이터에 없으면 program을 만들지
-          않습니다. 따라서 지원 범위는 구현의 우연한 분기가 아니라 버전으로
-          관리되는 데이터에서 결정됩니다.
-        </p>
-
-        <h3>Anchor와 consumption 구성</h3>
-        <p>
-          생성된 표면형을 모두 완성 문자열로 열거하면 program 수와 matcher
-          메모리가 빠르게 증가합니다. kfind는 각 program에서 충분히 긴 고정
-          prefix를 anchor로 선택하고, 뒤따르는 조사나 어미는 typed consumption
-          상태로 표현합니다. 예를 들어 <code>걸었</code>을 anchor로 찾은 뒤 같은
-          continuation 상태가 <code>습니다</code>, <code>지만</code>,{' '}
-          <code>는데</code>와 같은 continuation을 검사할 수 있습니다. 이 분리는
-          빠른 byte scan과 형태 규칙 검증이 각각 맡을 일을 명확하게 합니다.
-        </p>
-        <p>
-          컴파일 과정에는 query 길이, atom 수, analysis 수, 전체 program 수와
-          예상 matcher 메모리에 대한 상한이 있습니다. 상한을 넘었을 때 일부
-          program을 임의로 제거하면 검색 결과가 입력이나 실행 환경에 따라
-          불완전해질 수 있습니다. kfind는 이런 축소를 하지 않고 컴파일 오류를
-          반환하므로, 호출자는 계획이 완전하게 만들어지지 않았다는 사실을 알 수
-          있습니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="어휘 정보와 형태 규칙의 합성">
-        <p>
-          활용을 계산하려면 표제어에 고유한 정보와 여러 표제어가 공유하는 규칙을
-          분리해야 합니다. 사전 entry는 어떤 불규칙 교체를 적용할지 결정하고,
-          generator는 사전에서 선택한 교체와 실제 어간·어미 환경을 결합해
-          표면형을 계산합니다. 두 사전이 함께 지지하지만 규칙으로 만들 수 없는
-          소수 표면형만 별도 surface 계층에 저장합니다. 예를 들어
-          <code>걷다</code>의 entry는 <code>DToL</code>이라는 어휘적 분류를
-          제공하고, generator는 모음으로 시작하는 어미 앞에서{' '}
-          <code>걷 + ㄷ→ㄹ + 어</code>를 적용해 <code>걸어</code>를 만듭니다.
-        </p>
-        <pre>
-          <code>{`lexicon:  걷다 / VV / DToL
-rule:     걷 + ㄷ→ㄹ + 어
-surface:  걸어, 걸었다`}</code>
-        </pre>
-        <p>
-          전체 규칙계는 세 층으로 합성됩니다. 첫째, 어휘 층은 표제어별 불규칙
-          class, 복수 analysis와 개별 surface override를 제공합니다. 둘째,
-          이형태 선택 층은 받침 유무, <code>ㄹ</code> 받침, 모음 시작 여부와
-          품사 feature에 따라 <code>은/는</code>이나 <code>으로/로</code>처럼
-          알맞은 조사·어미를 고릅니다. 셋째, 표면 조합 층은 한글 음절을 분해하고
-          다시 조합해 <code>보아 → 봐</code>와 같은 축약을 계산합니다. 세 층을
-          분리하면 새 어미를 추가할 때 표제어별 분기를 복제하지 않아도 되고, 새
-          불규칙 표제어를 추가할 때도 기존 어미 체계를 그대로 재사용할 수
-          있습니다.
-        </p>
-        <p>
-          철자만으로 규칙형과 구별할 수 없는 ㄷ·ㅂ·ㅅ·ㅎ·르·러 불규칙과 보충법은
-          사전에 명시합니다. 반면 받침 유무, <code>ㄹ</code> 탈락,{' '}
-          <code>ㅡ</code> 탈락, 모음 축약과 자음 어미 결합은 환경 규칙으로
-          계산합니다. 이 경계는 사전이 담당할 예외와 generator가 담당할 일반화를
-          분명하게 유지합니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="활용과 파생의 구분">
-        <p>
-          활용과 파생은 모두 하나의 analysis에서 시작할 수 있지만 결과의 품사
-          관계가 다릅니다. 활용은 표제어의 품사를 유지한 채 조사나 어미를
-          결합합니다. <code>검증</code>을 명사로 분석했다면 <code>검증을</code>
-          과 <code>검증에서도</code>가 이 경로에 속합니다. 반면 파생은 접미사를
-          결합해 새로운 품사의 표제어를 만듭니다. 같은 명사에서{' '}
-          <code>검증하다</code>나 <code>검증되다</code>를 만들었다면, 그 결과는
-          용언의 새 analysis가 되며 이후에는 용언 활용 규칙을 적용해{' '}
-          <code>검증했다</code>나 <code>검증되었다</code>를 생성합니다.
-        </p>
-        <pre>
-          <code>{`검증 / NNG
-  ├─ inflection → 검증을, 검증에서도
-  └─ derivation → 검증하다, 검증되다
-                         └─ predicate inflection → 검증했다, 검증되었다`}</code>
-        </pre>
-        <p>
-          이 구분은 파생 접미사를 단순한 문자열 suffix로 취급하지 않게 합니다.
-          파생으로 품사가 바뀌면 이후에 허용되는 어미와 경계 조건도 함께
-          바뀌어야 하기 때문입니다. 파생과 후속 활용 역시{' '}
-          <code>data/rules</code>에 정의된 경로만 사용하므로, 지원 범위 밖의
-          연쇄를 임의로 확장하지 않습니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="필요한 후보만 국소적으로 분석">
-        <p>
-          대부분의 program은 anchor 주변의 조사·어미와 token 경계만 검사하면
-          판정할 수 있습니다. 그러나 <code>smart</code> boundary에서
-          명사·대명사·수사·관형사와 full-POS 일반 용언의 정확한 component 경계를
-          확인하거나, token 전체의 어휘 분석과 부분 span의 지정사 해석이
-          충돌하는 경우에는 경계 검사만으로 충분하지 않습니다. kfind는 이런
-          program이 직접 소유한 <code>StructuralConstraint</code>를 compact
-          component resource의 POS와 정렬 span에 대조합니다. 분석 범위도 corpus
-          전체가 아니라 candidate token과 바로 인접한 token으로 제한합니다.
-        </p>
-        <p>
-          국소 분석은 candidate의 POS와 span이 완전한 구조 경로의 node에 정확히
-          일치하는지 확인합니다. 인접 token 배치가 부사, 체언·지정사, 조사 host
-          중 하나를 유일하게 증명하면 그 구조를 선택합니다. 구조적으로 다른
-          가능성이 남으면 recall을 우선해 지원 가능한 query 후보를 유지합니다.
-          word cost, 연결 행렬과 unknown model은 제품 resource와 판정에 참여하지
-          않으며 별도 full-lattice 진단에서만 관찰할 수 있습니다.
-        </p>
-        <pre>
-          <code>{`매일 보고 싶어
-└─ 매일 / MAG → adv:매일 supported, n:매 contradicted
-
-독수리가 아니라 매일 수도 있어
-└─ 매 / NNG + 이 / VCP + ㄹ / ETM → n:매 supported, adv:매일 contradicted
-
-걸었고
-└─ 걷다와 걸다의 의미 차이는 구조가 아니므로 두 provenance를 유지`}</code>
-        </pre>
-        <p>
-          이 과정은 원문 256 bytes, NFC 64 Unicode scalar, node 4,096개라는 상한
-          안에서만 실행됩니다. 입력이나 구조 graph가 상한을 넘거나 resource
-          검증에 실패하면 결과를 추측하지 않고 오류를 반환합니다. 그러므로 국소
-          분석은 일반 목적의 문장 분석기로 확장되지 않으며, 검색 후보 하나를
-          판정하는 데 필요한 계산으로만 남습니다.
-        </p>
-      </DocumentSection>
-
-      <DocumentSection title="결과에 보존되는 생성 근거">
-        <p>
-          서로 다른 analysis와 rule path가 같은 surface를 만들 수 있습니다.
-          kfind는 같은 위치의 span을 중복 출력하지 않지만, 그 span을 설명하는
-          근거까지 하나로 축소하지는 않습니다. 결과에는 atom의{' '}
-          <code>analysisIndex</code>와 각 <code>rulePath</code>를 모두
-          보존합니다. 따라서 <code>--explain-match</code>와 JSON 출력에서 어떤
-          표제어 분석과 규칙 연쇄가 해당 일치를 만들었는지 확인할 수 있습니다.
-        </p>
-        <pre>
-          <code>{`surface: 걸었다
-analysis: 걷다 / verb / DToL
-rule path: lexical.d-to-l → ending.past → ending.final-da`}</code>
-        </pre>
-        <p>
-          이 provenance는 검색 결과의 의미를 자동으로 확정하지 않습니다. 같은
-          표면형이 여러 표제어에서 생성될 수 있으면 가능한 근거를 함께 보여 줄
-          뿐입니다. 호출자는 원문 문맥과 자신의 작업 목적에 따라 후보를 최종
-          선택할 수 있습니다.
-        </p>
-      </DocumentSection>
-    </DocumentPage>
-  );
+  return <LocalizedDocument content={content} sectionIds={sectionIds} />;
 }

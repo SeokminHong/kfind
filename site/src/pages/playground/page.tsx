@@ -1,5 +1,6 @@
 import type { Match } from '../../kfind-wasm';
 import type {
+  ComponentResourceStatus,
   PlaygroundController,
   PlaygroundInput,
   PlaygroundResult,
@@ -13,6 +14,7 @@ import { Input } from '@base-ui/react/input';
 import { Tabs } from '@base-ui/react/tabs';
 import { useEffect, useRef, useState } from 'react';
 
+import { DocumentLocale, useDocumentLocale } from '../../app/i18n';
 import { createDocumentMeta } from '../../app/metadata';
 import { RoutePath } from '../../app/navigation';
 import {
@@ -25,11 +27,11 @@ import { BoundaryPolicy, ExpandMode, PartOfSpeech } from '../../kfind-wasm';
 import {
   applyPlaygroundPreset,
   ComponentResourceState,
+  createInitialComponentResourceStatus,
+  createInitialPlaygroundStatus,
   formatProvenance,
-  initialComponentResourceStatus,
   initializePlayground,
   initialPlaygroundInput,
-  initialPlaygroundStatus,
   playgroundPresetOptions,
   PlaygroundResultState,
   PlaygroundState,
@@ -41,55 +43,198 @@ import { SelectField } from './select-field';
 
 export const meta = createDocumentMeta(RoutePath.Playground);
 
-const partOfSpeechOptions = [
-  { label: '자동', value: PartOfSpeech.Auto },
-  { label: '명사', value: PartOfSpeech.Noun },
-  { label: '대명사', value: PartOfSpeech.Pronoun },
-  { label: '수사', value: PartOfSpeech.Numeral },
-  { label: '동사', value: PartOfSpeech.Verb },
-  { label: '형용사', value: PartOfSpeech.Adjective },
-  { label: '관형사', value: PartOfSpeech.Determiner },
-  { label: '부사', value: PartOfSpeech.Adverb },
-  { label: '조사', value: PartOfSpeech.Particle },
-  { label: '감탄사', value: PartOfSpeech.Interjection },
-  { label: 'Literal', value: PartOfSpeech.Literal },
-];
+const playgroundCopy = {
+  [DocumentLocale.Korean]: {
+    close: '닫기',
+    compact: {
+      checking: '저장소 확인 중',
+      error: '리소스 오류',
+      loading: '불러오는 중',
+      needed: '리소스 필요',
+      ready: '리소스 사용 가능',
+    },
+    empty: '옵션을 바꾸거나 다른 검색 질의를 사용해 보세요.',
+    errorSummary: '검색 질의 컴파일 또는 검색 실행에 실패했습니다.',
+    eyebrow: '실행 · WEBASSEMBLY',
+    gapDescription: '구 atom 사이에 허용할 최대 Unicode 문자 수입니다.',
+    gapLabel: '구 최대 간격',
+    intro:
+      '현재 source에서 빌드한 kfind-wasm을 사용합니다. 검색 질의와 원문은 브라우저 안에서만 처리합니다.',
+    loadingResult: '검색을 실행하고 있습니다.',
+    matchLabel: (surface: string) => `${surface} 일치를 편집기에서 보기`,
+    options: '검색 옵션',
+    optionsDescription: '변경한 설정은 검색에 바로 반영됩니다.',
+    output: '결과 · compile + scan',
+    pending: '검색 결과를 갱신하고 있습니다.',
+    playground: '플레이그라운드',
+    presetDescription: '검색 질의·원문·검색 설정 전체 적용',
+    presetHeading: '예시',
+    resourceDescription:
+      '기본 WASM은 embedded lexicon을 포함합니다. smart 판정에 세부 품사 구성 요소가 필요하면 사용자가 고급 리소스를 불러옵니다. 같은 origin의 Pages Function이 R2 객체를 streaming하고, 엔진은 schema와 checksum을 검증한 뒤 resource revision별로 브라우저 저장소에 보관합니다. 리소스가 필요 없는 검색 질의는 network 요청을 하지 않습니다.',
+    resourceHeading: '고급 smart 리소스',
+    resourceReady: '사용 가능',
+    sectionDescription:
+      '검색 질의, 원문이나 옵션을 바꾸면 embedded lexicon으로 검색 계획을 다시 컴파일합니다. 일치한 span과 각 branch의 provenance를 함께 확인할 수 있습니다.',
+    settingsDescription: '변경 후 250ms 뒤 자동 적용',
+    settingsHeading: '검색 설정',
+    title: '브라우저 검색 계획',
+  },
+  [DocumentLocale.English]: {
+    close: 'Close',
+    compact: {
+      checking: 'Checking storage',
+      error: 'Resource error',
+      loading: 'Loading',
+      needed: 'Resource required',
+      ready: 'Resource available',
+    },
+    empty: 'Change the options or try another query.',
+    errorSummary: 'Query compilation or search execution failed.',
+    eyebrow: 'LIVE · WEBASSEMBLY',
+    gapDescription: 'Maximum Unicode characters allowed between phrase atoms.',
+    gapLabel: 'Maximum phrase gap',
+    intro:
+      'This page runs kfind-wasm built from the current source. The query and source text remain inside the browser.',
+    loadingResult: 'Running the search.',
+    matchLabel: (surface: string) =>
+      `Reveal the ${surface} match in the editor`,
+    options: 'Search options',
+    optionsDescription: 'Changes apply to the search immediately.',
+    output: 'Result · compile + scan',
+    pending: 'Refreshing search results.',
+    playground: 'Playground',
+    presetDescription: 'Apply query, text, and search settings',
+    presetHeading: 'Examples',
+    resourceDescription:
+      'The base WASM includes the embedded lexicon. When a smart decision requires fine-POS components, the user loads the advanced resource. A same-origin Pages Function streams the R2 object; the engine validates its schema and checksum and stores it by resource revision. Queries that do not need the resource make no network request.',
+    resourceHeading: 'Advanced smart resource',
+    resourceReady: 'Available',
+    sectionDescription:
+      'Changing the query, source text, or options recompiles the query plan with the embedded lexicon. Matching spans and branch provenance are shown together.',
+    settingsDescription: 'Applies automatically after 250 ms',
+    settingsHeading: 'Search settings',
+    title: 'Browser query plan',
+  },
+} as const;
 
-const boundaryOptions = [
-  {
-    label: 'smart',
-    value: BoundaryPolicy.Smart,
-    description: '품사별 형태 검증 후 완성된 token 경계를 확인합니다.',
-  },
-  {
-    label: 'token',
-    value: BoundaryPolicy.Token,
-    description: 'core 시작과 완성된 token 양쪽 경계를 엄격히 확인합니다.',
-  },
-  {
-    label: 'any',
-    value: BoundaryPolicy.Any,
-    description: '좌우 경계 없이 부분 문자열 후보까지 보존합니다.',
-  },
-];
+function partOfSpeechOptions(locale: DocumentLocale) {
+  const labels =
+    locale === DocumentLocale.Korean
+      ? [
+          '자동',
+          '명사',
+          '대명사',
+          '수사',
+          '동사',
+          '형용사',
+          '관형사',
+          '부사',
+          '조사',
+          '감탄사',
+          'Literal',
+        ]
+      : [
+          'Auto',
+          'Noun',
+          'Pronoun',
+          'Numeral',
+          'Verb',
+          'Adjective',
+          'Determiner',
+          'Adverb',
+          'Particle',
+          'Interjection',
+          'Literal',
+        ];
+  const values = [
+    PartOfSpeech.Auto,
+    PartOfSpeech.Noun,
+    PartOfSpeech.Pronoun,
+    PartOfSpeech.Numeral,
+    PartOfSpeech.Verb,
+    PartOfSpeech.Adjective,
+    PartOfSpeech.Determiner,
+    PartOfSpeech.Adverb,
+    PartOfSpeech.Particle,
+    PartOfSpeech.Interjection,
+    PartOfSpeech.Literal,
+  ] as const;
 
-const expandOptions = [
-  {
-    label: 'inflection',
-    value: ExpandMode.Inflection,
-    description: '품사를 유지하며 조사·어미 결합과 불규칙 활용을 찾습니다.',
-  },
-  {
-    label: 'derivation',
-    value: ExpandMode.Derivation,
-    description: '활용에 더해 새 품사를 만드는 생산적 파생형까지 찾습니다.',
-  },
-  {
-    label: 'literal',
-    value: ExpandMode.Literal,
-    description: '형태 분석 없이 입력 문자열만 그대로 찾습니다.',
-  },
-];
+  return values.map((value, index) => ({
+    label: labels[index] ?? value,
+    value,
+  }));
+}
+
+function boundaryOptions(locale: DocumentLocale) {
+  const descriptions =
+    locale === DocumentLocale.Korean
+      ? [
+          '품사별 형태 검증 후 완성된 token 경계를 확인합니다.',
+          'core 시작과 완성된 token 양쪽 경계를 확인합니다.',
+          '좌우 경계 없이 부분 문자열 후보까지 보존합니다.',
+        ]
+      : [
+          'Verifies POS-specific morphology and the completed token boundary.',
+          'Requires boundaries at the core start and completed token end.',
+          'Preserves substring candidates without left or right boundaries.',
+        ];
+
+  return [BoundaryPolicy.Smart, BoundaryPolicy.Token, BoundaryPolicy.Any].map(
+    (value, index) => ({
+      label: value,
+      value,
+      description: descriptions[index] ?? '',
+    }),
+  );
+}
+
+function expandOptions(locale: DocumentLocale) {
+  const descriptions =
+    locale === DocumentLocale.Korean
+      ? [
+          '품사를 유지하며 조사·어미 결합과 불규칙 활용을 찾습니다.',
+          '활용과 생산적 파생형을 함께 찾습니다.',
+          '형태 분석 없이 입력 문자열만 찾습니다.',
+        ]
+      : [
+          'Finds particles, endings, and irregular conjugation without changing POS.',
+          'Finds inflections and productive derived forms.',
+          'Finds only the input string without morphology.',
+        ];
+
+  return [ExpandMode.Inflection, ExpandMode.Derivation, ExpandMode.Literal].map(
+    (value, index) => ({
+      label: value,
+      value,
+      description: descriptions[index] ?? '',
+    }),
+  );
+}
+
+function presetOptions(locale: DocumentLocale) {
+  const labels =
+    locale === DocumentLocale.Korean
+      ? [
+          '용언 활용 · smart',
+          '구 검색 · any',
+          '형태 구성 요소 · smart',
+          'Literal 검색',
+          '대용량 1 MiB · literal',
+        ]
+      : [
+          'Predicate inflection · smart',
+          'Phrase search · any',
+          'Morphological component · smart',
+          'Literal search',
+          'Large input 1 MiB · literal',
+        ];
+
+  return playgroundPresetOptions.map((preset, index) => ({
+    label: labels[index] ?? preset.label,
+    value: preset.value,
+  }));
+}
 
 enum PlaygroundOutputTab {
   Matches = 'matches',
@@ -97,29 +242,37 @@ enum PlaygroundOutputTab {
 }
 
 export default function PlaygroundPage(): React.JSX.Element {
+  const locale = useDocumentLocale();
+  const copy = playgroundCopy[locale];
   const controllerRef = useRef<PlaygroundController>(null);
   const searchEditorRef = useRef<SearchEditorHandle>(null);
   const [input, setInput] = useState(initialPlaygroundInput);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
-  const [status, setStatus] = useState(initialPlaygroundStatus);
-  const [resourceStatus, setResourceStatus] = useState(
-    initialComponentResourceStatus,
+  const [status, setStatus] = useState(() =>
+    createInitialPlaygroundStatus(locale),
+  );
+  const [resourceStatus, setResourceStatus] = useState(() =>
+    createInitialComponentResourceStatus(locale),
   );
   const [result, setResult] = useState<PlaygroundResult>();
 
   useEffect(() => {
-    const controller = initializePlayground(initialPlaygroundInput, {
-      onResourceStatusChange: setResourceStatus,
-      onResult: setResult,
-      onStatusChange: setStatus,
-    });
+    const controller = initializePlayground(
+      initialPlaygroundInput,
+      {
+        onResourceStatusChange: setResourceStatus,
+        onResult: setResult,
+        onStatusChange: setStatus,
+      },
+      locale,
+    );
     controllerRef.current = controller;
 
     return () => {
       controllerRef.current = null;
       controller.dispose();
     };
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     controllerRef.current?.scheduleRun(input);
@@ -145,23 +298,20 @@ export default function PlaygroundPage(): React.JSX.Element {
     resourceStatus.state === ComponentResourceState.Ready;
   const compactResourceStatus = componentResourceCompactStatus(
     resourceStatus.state,
+    locale,
   );
 
   return (
     <DocumentPage>
       <PageIntro
-        eyebrow="PLAYGROUND · WEBASSEMBLY"
-        title="브라우저에서 검색 계획 실행하기"
-        summary="현재 source에서 빌드한 kfind-wasm을 사용합니다. 입력한 query와 text는 브라우저 안에서만 처리하며 외부 분석 API로 전송하지 않습니다."
+        eyebrow={copy.eyebrow}
+        title={copy.title}
+        summary={copy.intro}
       />
 
-      <DocumentSection title="플레이그라운드">
+      <DocumentSection title={copy.playground}>
         <div className="section-title-row">
-          <p>
-            Query, text나 옵션을 바꾸면 잠시 뒤 embedded lexicon으로 query
-            plan을 다시 컴파일합니다. 일치한 span은 editor에서 바로 확인하고
-            아래에서 각 branch의 provenance를 볼 수 있습니다.
-          </p>
+          <p>{copy.sectionDescription}</p>
           <div
             className="wasm-state"
             data-state={status.state}
@@ -177,6 +327,7 @@ export default function PlaygroundPage(): React.JSX.Element {
           <div className="playground-workspace">
             <div className="playground-main-inputs">
               <QueryField
+                locale={locale}
                 onValueChange={(value) => {
                   updateInput('query', value);
                 }}
@@ -184,6 +335,7 @@ export default function PlaygroundPage(): React.JSX.Element {
               />
 
               <SearchEditor
+                locale={locale}
                 ref={searchEditorRef}
                 matches={currentMatches}
                 onValueChange={(value) => {
@@ -193,11 +345,12 @@ export default function PlaygroundPage(): React.JSX.Element {
               />
             </div>
 
-            <aside className="desktop-settings" aria-label="검색 옵션">
+            <aside className="desktop-settings" aria-label={copy.options}>
               <PlaygroundSettings
                 idPrefix="desktop"
                 input={input}
                 isResourceButtonDisabled={isResourceButtonDisabled}
+                locale={locale}
                 onInputChange={updateInput}
                 onLoadResource={() => {
                   controllerRef.current?.loadComponentResource();
@@ -217,7 +370,7 @@ export default function PlaygroundPage(): React.JSX.Element {
             >
               <Modal.Trigger data-glossary-skip="">
                 <span className="mobile-settings-heading">
-                  <span>검색 옵션</span>
+                  <span>{copy.options}</span>
                   {compactResourceStatus === undefined ? null : (
                     <small
                       className="mobile-resource-state"
@@ -228,19 +381,21 @@ export default function PlaygroundPage(): React.JSX.Element {
                   )}
                 </span>
                 <small className="mobile-settings-summary">
-                  {formatSettingsSummary(input)}
+                  {formatSettingsSummary(input, locale)}
                 </small>
               </Modal.Trigger>
               <Modal.Content>
                 <Modal.Section>
                   <div className="options-modal-heading">
                     <div>
-                      <Modal.Title>검색 옵션</Modal.Title>
+                      <Modal.Title>{copy.options}</Modal.Title>
                       <Modal.Description>
-                        변경한 설정은 검색에 바로 반영됩니다.
+                        {copy.optionsDescription}
                       </Modal.Description>
                     </div>
-                    <Modal.Close data-glossary-skip="">닫기</Modal.Close>
+                    <Modal.Close data-glossary-skip="">
+                      {copy.close}
+                    </Modal.Close>
                   </div>
                 </Modal.Section>
                 <Modal.Section>
@@ -248,6 +403,7 @@ export default function PlaygroundPage(): React.JSX.Element {
                     idPrefix="mobile"
                     input={input}
                     isResourceButtonDisabled={isResourceButtonDisabled}
+                    locale={locale}
                     onInputChange={updateInput}
                     onLoadResource={() => {
                       controllerRef.current?.loadComponentResource();
@@ -264,6 +420,7 @@ export default function PlaygroundPage(): React.JSX.Element {
 
           <PlaygroundOutput
             input={input}
+            locale={locale}
             onMatchActivate={(match) => {
               searchEditorRef.current?.revealMatch(match);
             }}
@@ -271,16 +428,7 @@ export default function PlaygroundPage(): React.JSX.Element {
           />
         </div>
 
-        <p>
-          기본 WASM에는 embedded lexicon만 포함되어 있습니다. <code>smart</code>{' '}
-          검색이 명사·대명사·수사·관형사 또는 full-POS 일반 용언의 component
-          근거를 요구하면 사용자가 고급 resource를 명시적으로 불러와야 합니다.
-          이때 같은 origin의 Pages Function이 R2 객체를 streaming하고, engine은
-          schema와 checksum 검증을 마친 뒤 resource revision별로 브라우저
-          저장소에 보관합니다. UI만 바뀐 build에서도 호환되는 resource를
-          자동으로 복원합니다. Resource가 필요 없는 query는 최초 network 요청을
-          하지 않습니다.
-        </p>
+        <p>{copy.resourceDescription}</p>
       </DocumentSection>
     </DocumentPage>
   );
@@ -290,6 +438,7 @@ interface PlaygroundSettingsProps {
   readonly idPrefix: string;
   readonly input: PlaygroundInput;
   readonly isResourceButtonDisabled: boolean;
+  readonly locale: DocumentLocale;
   readonly onInputChange: <Key extends keyof PlaygroundInput>(
     key: Key,
     value: PlaygroundInput[Key],
@@ -298,27 +447,33 @@ interface PlaygroundSettingsProps {
   readonly onPresetApply: (
     preset: (typeof playgroundPresetOptions)[number]['value'],
   ) => void;
-  readonly resourceStatus: typeof initialComponentResourceStatus;
+  readonly resourceStatus: ComponentResourceStatus;
 }
 
 function PlaygroundSettings({
   idPrefix,
   input,
   isResourceButtonDisabled,
+  locale,
   onInputChange,
   onLoadResource,
   onPresetApply,
   resourceStatus,
 }: PlaygroundSettingsProps): React.JSX.Element {
+  const copy = playgroundCopy[locale];
+  const localizedPartOfSpeechOptions = partOfSpeechOptions(locale);
+  const localizedBoundaryOptions = boundaryOptions(locale);
+  const localizedExpandOptions = expandOptions(locale);
+
   return (
     <div className="playground-settings">
       <div className="preset-picker">
         <div className="control-heading">
-          <strong>예시</strong>
-          <span>Query·text·검색 설정 전체 적용</span>
+          <strong>{copy.presetHeading}</strong>
+          <span>{copy.presetDescription}</span>
         </div>
         <div className="preset-actions">
-          {playgroundPresetOptions.map((preset) => (
+          {presetOptions(locale).map((preset) => (
             <Button
               data-glossary-skip=""
               key={preset.value}
@@ -335,48 +490,55 @@ function PlaygroundSettings({
 
       <div className="option-panel">
         <div className="control-heading">
-          <strong>검색 설정</strong>
-          <span>변경하면 250ms 뒤 자동 적용</span>
+          <strong>{copy.settingsHeading}</strong>
+          <span>{copy.settingsDescription}</span>
         </div>
         <div className="option-grid">
           <SelectField<PartOfSpeech>
-            description="Atom 태그와 전역 POS는 함께 적용됩니다. auto가 아닐 때 서로 다르면 compile 오류입니다."
+            description={
+              locale === DocumentLocale.Korean
+                ? 'Atom 태그와 전역 POS가 다르면 compile 오류입니다.'
+                : 'A conflicting atom tag and global POS is a compile error.'
+            }
             id={`${idPrefix}-pos-select`}
-            label="품사"
+            label={locale === DocumentLocale.Korean ? '품사' : 'Part of speech'}
             name={`${idPrefix}-pos`}
             onValueChange={(value) => {
               onInputChange('pos', value);
             }}
-            options={partOfSpeechOptions}
+            options={localizedPartOfSpeechOptions}
             value={input.pos}
           />
           <SelectField<BoundaryPolicy>
             description={selectedOptionDescription(
-              boundaryOptions,
+              localizedBoundaryOptions,
               input.boundary,
             )}
             id={`${idPrefix}-boundary-select`}
-            label="경계"
+            label={locale === DocumentLocale.Korean ? '경계' : 'Boundary'}
             name={`${idPrefix}-boundary`}
             onValueChange={(value) => {
               onInputChange('boundary', value);
             }}
-            options={boundaryOptions}
+            options={localizedBoundaryOptions}
             value={input.boundary}
           />
           <SelectField<ExpandMode>
-            description={selectedOptionDescription(expandOptions, input.expand)}
+            description={selectedOptionDescription(
+              localizedExpandOptions,
+              input.expand,
+            )}
             id={`${idPrefix}-expand-select`}
-            label="확장"
+            label={locale === DocumentLocale.Korean ? '확장' : 'Expansion'}
             name={`${idPrefix}-expand`}
             onValueChange={(value) => {
               onInputChange('expand', value);
             }}
-            options={expandOptions}
+            options={localizedExpandOptions}
             value={input.expand}
           />
           <Field.Root className="field" name={`${idPrefix}-max-gap`}>
-            <Field.Label data-glossary-skip="">구(句) 최대 간격</Field.Label>
+            <Field.Label data-glossary-skip="">{copy.gapLabel}</Field.Label>
             <Input
               className="text-control"
               min="0"
@@ -386,9 +548,7 @@ function PlaygroundSettings({
               type="number"
               value={input.maxGap}
             />
-            <Field.Description>
-              Phrase atom 사이에 허용할 최대 Unicode 문자 수입니다.
-            </Field.Description>
+            <Field.Description>{copy.gapDescription}</Field.Description>
           </Field.Root>
         </div>
       </div>
@@ -402,12 +562,12 @@ function PlaygroundSettings({
         <div>
           <span className="resource-dot" aria-hidden="true" />
           <div>
-            <strong>고급 smart 리소스</strong>
+            <strong>{copy.resourceHeading}</strong>
             <span>{resourceStatus.message}</span>
           </div>
         </div>
         {resourceStatus.state === ComponentResourceState.Ready ? (
-          <span className="resource-ready-label">사용 가능</span>
+          <span className="resource-ready-label">{copy.resourceReady}</span>
         ) : (
           <Button
             data-glossary-skip=""
@@ -415,7 +575,7 @@ function PlaygroundSettings({
             onClick={onLoadResource}
             type="button"
           >
-            {componentResourceButtonLabel(resourceStatus.state)}
+            {componentResourceButtonLabel(resourceStatus.state, locale)}
           </Button>
         )}
       </div>
@@ -425,16 +585,19 @@ function PlaygroundSettings({
 
 function PlaygroundOutput({
   input,
+  locale,
   onMatchActivate,
   result,
 }: {
   readonly input: PlaygroundInput;
+  readonly locale: DocumentLocale;
   readonly onMatchActivate: (match: Match) => void;
   readonly result: PlaygroundResult | undefined;
 }): React.JSX.Element {
+  const copy = playgroundCopy[locale];
   const [activeTab, setActiveTab] = useState(PlaygroundOutputTab.Matches);
   const isPending = result === undefined;
-  const summary = resultSummary(result);
+  const summary = resultSummary(result, locale);
   const executionTime =
     result?.elapsedMilliseconds === null ||
     result?.elapsedMilliseconds === undefined
@@ -449,7 +612,7 @@ function PlaygroundOutput({
     <div className="playground-output" aria-busy={isPending} aria-live="polite">
       <div className="output-head">
         <div>
-          <p className="output-label">결과 · compile + scan</p>
+          <p className="output-label">{copy.output}</p>
           <p id="result-summary">{summary}</p>
         </div>
         <span className="execution-time">{executionTime}</span>
@@ -481,6 +644,7 @@ function PlaygroundOutput({
         >
           <MatchList
             input={input}
+            locale={locale}
             onMatchActivate={onMatchActivate}
             result={result}
           />
@@ -500,32 +664,39 @@ function PlaygroundOutput({
   );
 }
 
-function resultSummary(result: PlaygroundResult | undefined): string {
+function resultSummary(
+  result: PlaygroundResult | undefined,
+  locale: DocumentLocale,
+): string {
+  const copy = playgroundCopy[locale];
+
   if (result === undefined) {
-    return '검색 결과를 갱신하고 있습니다.';
+    return copy.pending;
   }
 
   return result.state === PlaygroundResultState.Error
-    ? 'Query compile 또는 검색 실행에 실패했습니다.'
+    ? copy.errorSummary
     : result.message;
 }
 
 function MatchList({
   input,
+  locale,
   onMatchActivate,
   result,
 }: {
   readonly input: PlaygroundInput;
+  readonly locale: DocumentLocale;
   readonly onMatchActivate: (match: Match) => void;
   readonly result: PlaygroundResult | undefined;
 }): React.JSX.Element {
+  const copy = playgroundCopy[locale];
+
   if (result?.state !== PlaygroundResultState.Success) {
     return (
       <ol className="match-list">
         <li className="match-empty">
-          {result === undefined
-            ? '검색을 실행하고 있습니다.'
-            : '옵션을 바꾸거나 다른 query로 검색해 보세요.'}
+          {result === undefined ? copy.loadingResult : copy.empty}
         </li>
       </ol>
     );
@@ -534,9 +705,7 @@ function MatchList({
   if (result.matches.length === 0) {
     return (
       <ol className="match-list">
-        <li className="match-empty">
-          옵션을 바꾸거나 다른 query로 검색해 보세요.
-        </li>
+        <li className="match-empty">{copy.empty}</li>
       </ol>
     );
   }
@@ -547,6 +716,7 @@ function MatchList({
         <MatchItem
           index={index}
           key={matchKey(match, index)}
+          locale={locale}
           match={match}
           onActivate={() => {
             onMatchActivate(match);
@@ -560,21 +730,24 @@ function MatchList({
 
 function MatchItem({
   index,
+  locale,
   match,
   onActivate,
   text,
 }: {
   readonly index: number;
+  readonly locale: DocumentLocale;
   readonly match: Match;
   readonly onActivate: () => void;
   readonly text: string;
 }): React.JSX.Element {
+  const copy = playgroundCopy[locale];
   const surface = text.slice(match.start, match.end);
 
   return (
     <li>
       <button
-        aria-label={`${surface} match를 editor에서 보기`}
+        aria-label={copy.matchLabel(surface)}
         className="match-item"
         data-glossary-skip=""
         onClick={onActivate}
@@ -587,7 +760,9 @@ function MatchItem({
         <code>
           [{match.start}, {match.end})
         </code>
-        <span className="match-provenance">{formatProvenance(match)}</span>
+        <span className="match-provenance">
+          {formatProvenance(match, locale)}
+        </span>
       </button>
     </li>
   );
@@ -607,48 +782,67 @@ function selectedOptionDescription<Value extends string>(
   return options.find((option) => option.value === value)?.description ?? '';
 }
 
-function formatSettingsSummary(input: PlaygroundInput): string {
+function formatSettingsSummary(
+  input: PlaygroundInput,
+  locale: DocumentLocale,
+): string {
   const partOfSpeech =
-    partOfSpeechOptions.find((option) => option.value === input.pos)?.label ??
-    input.pos;
+    partOfSpeechOptions(locale).find((option) => option.value === input.pos)
+      ?.label ?? input.pos;
 
   return `${partOfSpeech} · ${input.boundary} · ${input.expand}`;
 }
 
-function componentResourceButtonLabel(state: ComponentResourceState): string {
+function componentResourceButtonLabel(
+  state: ComponentResourceState,
+  locale: DocumentLocale,
+): string {
   if (state === ComponentResourceState.Checking) {
-    return '브라우저 저장소 확인 중';
+    return locale === DocumentLocale.Korean
+      ? '브라우저 저장소 확인 중'
+      : 'Checking browser storage';
   }
 
   if (state === ComponentResourceState.Loading) {
-    return 'Component asset 불러오는 중';
+    return locale === DocumentLocale.Korean
+      ? '구성 요소 asset 로드 중'
+      : 'Loading component asset';
   }
 
-  return state === ComponentResourceState.Ready
-    ? 'Component asset 준비됨'
-    : 'Component asset 불러오기';
+  if (state === ComponentResourceState.Ready) {
+    return locale === DocumentLocale.Korean
+      ? '구성 요소 asset 준비됨'
+      : 'Component asset ready';
+  }
+
+  return locale === DocumentLocale.Korean
+    ? '구성 요소 asset 불러오기'
+    : 'Load component asset';
 }
 
 function componentResourceCompactStatus(
   state: ComponentResourceState,
+  locale: DocumentLocale,
 ): string | undefined {
+  const compact = playgroundCopy[locale].compact;
+
   if (state === ComponentResourceState.Checking) {
-    return '저장소 확인 중';
+    return compact.checking;
   }
 
   if (state === ComponentResourceState.Needed) {
-    return '리소스 필요';
+    return compact.needed;
   }
 
   if (state === ComponentResourceState.Loading) {
-    return '불러오는 중';
+    return compact.loading;
   }
 
   if (state === ComponentResourceState.Ready) {
-    return '리소스 사용 가능';
+    return compact.ready;
   }
 
-  return state === ComponentResourceState.Error ? '리소스 오류' : undefined;
+  return state === ComponentResourceState.Error ? compact.error : undefined;
 }
 
 function isPlaygroundOutputTab(value: unknown): value is PlaygroundOutputTab {

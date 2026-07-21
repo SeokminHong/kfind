@@ -116,7 +116,7 @@ quota를 30에서 26으로 낮추고 명사에 4개를 옮겼다.
 
 Dataset 자체가 바뀌었으므로 이 수치는 이전 fixture와 행 단위 회귀 비교하지 않는다.
 
-## Query matrix
+## Query matrix 결과
 
 Canonical positive 500개가 속한 432개 문장에서 정렬된 존재 질의를 문장마다 3개씩 선택하고,
 각 positive와 같은 품사의 부재 질의를 대응시켰다. 총 1,296 positive와 1,296 negative다.

@@ -114,6 +114,7 @@ jobs:
       - name: Publish the npm package
         env:
           KFIND_COMPONENT_RESOURCE_DIR: ${{ github.workspace }}/dist/component
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           VERSION: ${{ steps.metadata.outputs.version }}
         run: |
           npm_tag=latest

@@ -1,5 +1,5 @@
-# License summary
+# 라이선스 요약
 
-- The JavaScript and WebAssembly package code is available under the MIT License in `LICENSE`.
-- `assets/morphology-component-compact.kfc` is derived from `mecab-ko-dic` under Apache-2.0. Its notice is in `assets/LICENSES/mecab-ko-dic-COPYING`.
-- `assets/predicates.enriched.tsv` is distributed under CC BY-SA 2.0 Korea. Its attribution and source notice is in `assets/LICENSES/enriched-predicates-NOTICE.md`.
+- JavaScript와 WebAssembly package code는 `LICENSE`의 MIT License로 배포합니다.
+- `assets/morphology-component-compact.kfc`는 Apache-2.0인 `mecab-ko-dic`에서 파생했습니다. 고지는 `assets/LICENSES/mecab-ko-dic-COPYING`에 있습니다.
+- `assets/predicates.enriched.tsv`는 CC BY-SA 2.0 대한민국 라이선스로 배포합니다. 출처와 저작자 표시는 `assets/LICENSES/enriched-predicates-NOTICE.md`에 있습니다.

@@ -8,6 +8,7 @@ export default [
   index('pages/overview.tsx'),
   route(RoutePath.GettingStarted, 'pages/getting-started.tsx'),
   route(RoutePath.Options, 'pages/options.tsx'),
+  route(RoutePath.Agents, 'pages/agents.tsx'),
   route(RoutePath.Glossary, 'pages/glossary.tsx'),
   route(RoutePath.Analysis, 'pages/analysis.tsx'),
   route(RoutePath.Architecture, 'pages/architecture.tsx'),

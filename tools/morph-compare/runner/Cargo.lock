@@ -126,7 +126,7 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
 name = "kfind"
-version = "0.3.0-rc.3"
+version = "1.0.0-rc.1"
 dependencies = [
  "kfind-data",
  "kfind-matcher",
@@ -136,7 +136,7 @@ dependencies = [
 
 [[package]]
 name = "kfind-data"
-version = "0.3.0-rc.3"
+version = "1.0.0-rc.1"
 dependencies = [
  "serde",
  "sha2",
@@ -147,7 +147,7 @@ dependencies = [
 
 [[package]]
 name = "kfind-matcher"
-version = "0.3.0-rc.3"
+version = "1.0.0-rc.1"
 dependencies = [
  "aho-corasick",
  "grep-matcher",
@@ -161,14 +161,14 @@ dependencies = [
 
 [[package]]
 name = "kfind-morph"
-version = "0.3.0-rc.3"
+version = "1.0.0-rc.1"
 dependencies = [
  "kfind-data",
 ]
 
 [[package]]
 name = "kfind-query"
-version = "0.3.0-rc.3"
+version = "1.0.0-rc.1"
 dependencies = [
  "kfind-data",
  "kfind-morph",
@@ -189,7 +189,7 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 
 [[package]]
 name = "morph-benchmark-runner"
-version = "0.1.1"
+version = "1.0.0-rc.1"
 dependencies = [
  "anyhow",
  "kfind",
