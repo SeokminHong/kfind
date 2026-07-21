@@ -7,6 +7,7 @@ COPY tools/morph-compare/sources.json ./sources.json
 COPY tools/morph-compare/sentence-reviews.json ./sentence-reviews.json
 COPY tools/morph-compare/robustness-reviews.json ./robustness-reviews.json
 COPY tools/morph-compare/query-matrix-contract-reviews.tsv ./query-matrix-contract-reviews.tsv
+COPY tools/morph-compare/quality-contract-reviews.tsv ./quality-contract-reviews.tsv
 COPY tools/morph-compare/python ./python
 RUN python -m unittest discover --start-directory python --pattern 'test_*.py'
 RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
@@ -22,6 +23,10 @@ RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
         --output /benchmark/dev-cases.jsonl \
         --metadata /benchmark/dev-metadata.json \
         --split dev \
+    && python python/apply_fixture_contract.py \
+        --cases /benchmark/dev-cases.jsonl \
+        --metadata /benchmark/dev-metadata.json \
+        --reviews quality-contract-reviews.tsv \
     && python python/dataset.py \
         --manifest sources.json \
         --sources /corpora \

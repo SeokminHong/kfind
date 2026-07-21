@@ -219,8 +219,10 @@ gold 또는 negative 선택을 바꾸지 않는다.
 strict와 contract-adjusted 기대값을 각각 적용한 confusion matrix와 문장 회수율을 병렬로
 보존한다. 두 recall의 95% 구간은 문장 group 단위 cluster bootstrap으로 계산한다. 이 결과는
 canonical 회귀선과 합치거나 대체하지 않는다.
-명시적 품사 `smart` 변경은 고정 development에서 FN을 우선 줄이고 precision 99.00% 하한과
-hard-negative 신규 contract FP 0을 지킨다. FN이 같은 후보끼리만 FP를 비교한다.
+명시적 품사 `smart` 변경은 고정 development에서 FNᶜ를 우선 줄이고 contract-adjusted precision
+99.00% 하한과 hard-negative 신규 FPᶜ 0을 지킨다. FNᶜ가 같은 후보끼리만 FPᶜ를 비교한다.
+Development의 비표준 붙여쓰기와 잘못 정렬된 표제어는 수동 registry로만 계약 모수에서 제외한다.
+해당 case의 raw FN은 그대로 보존하고 제외 근거와 raw·contract-adjusted 차이를 함께 보고한다.
 보고서는 corpus-gold TP·FP·TN·FN과 precision·recall·F1을 raw 지표로 보존한다.
 `contract_expected`가 있는 fixture에는 TPᶜ·FPᶜ·TNᶜ·FNᶜ와 contract-adjusted
 precision·recall·F1을 추가한다. Contract registry는 문법 구조로 구분할 수 없는 동형이의와
