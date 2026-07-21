@@ -121,7 +121,7 @@ jobs:
           if [[ "$VERSION" == *-* ]]; then
             npm_tag=next
           fi
-          npm publish packages/kfind --access public --provenance --tag "$npm_tag"
+          npm publish ./packages/kfind --access public --provenance --tag "$npm_tag"
 
       - name: Open the Homebrew tap pull request
         env:
