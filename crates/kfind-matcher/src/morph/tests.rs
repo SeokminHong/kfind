@@ -145,6 +145,7 @@ fn nominal_particle_verifier_consumes_chain_and_checks_allomorphs() {
 fn source_attached_auxiliary_requires_visible_or_unambiguous_connective_evidence() {
     let entries = [
         component_entry("가", "VV+EC", 0),
+        component_entry("가", "NNG", 0),
         component_entry("다", "VX", 0),
         component_entry("면", "EC", 0),
         component_entry("해", "VV+EC", 0),

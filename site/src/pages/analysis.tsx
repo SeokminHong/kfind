@@ -151,11 +151,12 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
             <p>
               생성 program이 남긴 보조용언 연쇄를 resource로 보완할 때는 연결
               어미 바깥의 <code>VX + E*</code> 경로가 완성되어야 합니다. 연결
-              어미가 core 바깥에 있거나, 축약된 core가 해당 용언 품사로만
-              분석되거나, token 전체의 정확한 분석이{' '}
-              <code>용언 + EC + VX + E+</code>일 때 source 경로를 사용합니다.{' '}
-              <code>빼놓을</code>과 <code>비춰볼</code>은 유지하지만, 중의적인{' '}
-              <code>해</code>만으로 <code>해가며</code>를 확장하지 않습니다.
+              어미가 core 바깥에 있거나, 축약된 core가 용언으로만 분석되거나,
+              token 전체의 정확한 분석이 <code>용언 + EC + VX + E+</code>이거나,
+              결과 변화를 나타내는 <code>-아/어지다</code> 계열일 때 source
+              경로를 사용합니다. <code>빼놓을</code>, <code>생겨났던</code>,{' '}
+              <code>극심해지겠지만</code>은 유지하지만, 중의적인 <code>해</code>
+              만으로 <code>해가며</code>를 확장하지 않습니다.
             </p>
           </>
         ),
@@ -323,12 +324,13 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
               When the resource completes an auxiliary chain left by a generated
               program, the <code>VX + E*</code> path after the connective must
               be complete. The source path is used when the connective lies
-              outside the core, the contracted core has only
-              predicate-compatible exact analyses, or the complete token has an
-              exact <code>predicate + EC + VX + E+</code> analysis. This retains{' '}
-              <code>빼놓을</code> and <code>비춰볼</code> without expanding{' '}
-              <code>해가며</code> from the ambiguous <code>해</code> surface
-              alone.
+              outside the core, every exact analysis of the contracted core is a
+              predicate, the complete token has an exact{' '}
+              <code>predicate + EC + VX + E+</code> analysis, or the suffix is
+              the resultative <code>-아/어지다</code> family. This retains{' '}
+              <code>빼놓을</code>, <code>생겨났던</code>, and{' '}
+              <code>극심해지겠지만</code> without expanding <code>해가며</code>{' '}
+              from the ambiguous <code>해</code> surface alone.
             </p>
           </>
         ),

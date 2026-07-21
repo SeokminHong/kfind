@@ -397,6 +397,22 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_exact_nominalizing_ending_surface(&self, text: &str) -> bool {
+        let mut supported = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
+                if length == text.len()
+                    && !positions.is_empty()
+                    && positions.iter().all(|pos| pos.is_ending())
+                    && positions.last() == Some(&StructuralPos::ETN)
+                {
+                    supported = true;
+                }
+            });
+        supported
+    }
+
+    #[must_use]
     pub fn auxiliary_splits(&self, text: &str) -> Vec<usize> {
         let mut splits = Vec::new();
         self.resource
@@ -567,8 +583,11 @@ impl ConstraintResolver {
                         .any(|pos| structural_predicate_pos_matches(*first, pos))
                         && endings.iter().all(|pos| pos.is_ending())
                 });
+                let predicate_only = positions.split_first().is_some_and(|(first, endings)| {
+                    first.is_predicate() && endings.iter().all(|pos| pos.is_ending())
+                });
                 found |= compatible;
-                conflicting |= !compatible;
+                conflicting |= !predicate_only;
             });
         found && !conflicting
     }
@@ -587,6 +606,12 @@ impl ConstraintResolver {
                 conflicting |= !compatible;
             });
         found && !conflicting
+    }
+
+    #[must_use]
+    pub fn has_complete_attached_auxiliary_path(&self, text: &str, node_limit: usize) -> bool {
+        EdgeGraph::collect(&self.resource, text, node_limit)
+            .is_ok_and(|graph| has_complete_attached_auxiliary_path(text.len(), &graph))
     }
 
     #[must_use]

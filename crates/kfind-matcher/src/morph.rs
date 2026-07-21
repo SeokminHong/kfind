@@ -943,25 +943,38 @@ impl MorphMatcher {
         );
         let source_attached_auxiliary = candidate.suffix_rules.is_empty()
             && has_rule("ending.aoeo")
-            && resolver.supports_auxiliary_sequence(trailing, DEFAULT_LATTICE_NODE_LIMIT)
             && match branch.consumption {
                 CandidateConsumption::PredicateContinuation {
                     source_positions, ..
                 } => {
                     let visible_connective = candidate.consumed.end > candidate.verified.core.end;
+                    let token = haystack
+                        .get(whole.clone())
+                        .and_then(|token| std::str::from_utf8(token).ok());
+                    let complete_attached_path = token.is_some_and(|token| {
+                        resolver
+                            .has_complete_attached_auxiliary_path(token, DEFAULT_LATTICE_NODE_LIMIT)
+                    });
+                    let source_auxiliary_suffix =
+                        resolver.supports_auxiliary_sequence(trailing, DEFAULT_LATTICE_NODE_LIMIT);
                     let unambiguous_contraction = haystack
                         .get(candidate.verified.core.start..candidate.consumed.end)
                         .and_then(|surface| std::str::from_utf8(surface).ok())
                         .is_some_and(|surface| {
                             resolver.has_unambiguous_predicate_surface(surface, source_positions)
                         });
-                    let unambiguous_whole_path = haystack
-                        .get(whole.clone())
-                        .and_then(|token| std::str::from_utf8(token).ok())
-                        .is_some_and(|token| {
-                            resolver.has_unambiguous_attached_auxiliary_whole_path(token)
-                        });
-                    visible_connective || unambiguous_contraction || unambiguous_whole_path
+                    let unambiguous_whole_path = token.is_some_and(|token| {
+                        resolver.has_unambiguous_attached_auxiliary_whole_path(token)
+                    });
+                    let resultative_contraction = starts_with_resultative_auxiliary(trailing);
+                    (complete_attached_path
+                        && (visible_connective
+                            || unambiguous_contraction
+                            || resultative_contraction))
+                        || (source_auxiliary_suffix
+                            && (unambiguous_contraction
+                                || unambiguous_whole_path
+                                || resultative_contraction))
                 }
                 _ => false,
             };
@@ -1224,10 +1237,10 @@ impl MorphMatcher {
             "ending.connective-ni",
             "ending.conditional",
             "ending.prospective-final",
-            "ending.prospective-quotative",
         ]
         .iter()
         .any(|rule| has_rule(rule));
+        let prospective_quotative_topic = has_rule("ending.prospective-quotative");
         let ending_auxiliary_particles = !declarative_adnominal
             && !forbids_ending_auxiliary_particles
             && haystack
@@ -1239,28 +1252,52 @@ impl MorphMatcher {
                     self.particle_verifier
                         .verify_exact(&ending, &trailing)
                         .is_some_and(|matched| {
-                            matched.rule_path.first().is_some_and(|rule| {
-                                contains_rule(
-                                    &self.plan.predicate_ending_initial_particle_rules,
-                                    rule,
-                                )
-                            }) && matched.rule_path.iter().all(|rule| {
-                                contains_rule(&self.plan.auxiliary_particle_rules, rule)
-                            })
+                            (!prospective_quotative_topic
+                                || matched
+                                    .rule_path
+                                    .first()
+                                    .is_some_and(|rule| rule.as_str() == "particle.topic"))
+                                && matched.rule_path.first().is_some_and(|rule| {
+                                    contains_rule(
+                                        &self.plan.predicate_ending_initial_particle_rules,
+                                        rule,
+                                    )
+                                })
+                                && matched.rule_path.iter().all(|rule| {
+                                    contains_rule(&self.plan.auxiliary_particle_rules, rule)
+                                })
                         })
                 });
         let has_adnominal_rule = ADNOMINAL_RULE_IDS.iter().any(|rule| has_rule(rule));
         let adnominal_dependent_noun_particle =
             trailing.nfc().next() == Some('지') && has_adnominal_rule;
         let adnominal_interrogative = trailing.nfc().eq("가".chars()) && has_adnominal_rule;
-        let source_ending_trailing = matches!(
+        let source_continuation = matches!(
             continuation,
             kfind_morph::ContinuationState::Past
                 | kfind_morph::ContinuationState::Future
                 | kfind_morph::ContinuationState::Eu
         ) && !has_adnominal_rule
-            && licensed_source_ending_surface(trailing)
-            && resolver.has_exact_ending_surface(&trailing.nfc().collect::<String>());
+            && licensed_source_ending_surface(trailing);
+        let normalized_trailing = trailing.nfc().collect::<String>();
+        let source_ending_trailing = source_continuation
+            && resolver.supports_ending_suffix_path(
+                &normalized_trailing,
+                0,
+                DEFAULT_LATTICE_NODE_LIMIT,
+            );
+        let source_nominalizer_particle_split = source_continuation.then_some(()).and_then(|()| {
+            trailing.char_indices().skip(1).find_map(|(split, _)| {
+                let ending = trailing.get(..split)?;
+                let particles = trailing.get(split..)?;
+                (resolver.has_exact_nominalizing_ending_surface(ending)
+                    && self
+                        .particle_verifier
+                        .verify_exact(ending, particles)
+                        .is_some())
+                .then_some(split)
+            })
+        });
         let licensed_non_ending_trailing = declarative_adnominal
             || ending_auxiliary_particles
             || adnominal_dependent_noun_particle
@@ -1272,7 +1309,11 @@ impl MorphMatcher {
             source_positions,
             resolver,
         );
-        if !licensed_non_ending_trailing && !source_ending_trailing && !source_aligned_compound {
+        if !licensed_non_ending_trailing
+            && !source_ending_trailing
+            && source_nominalizer_particle_split.is_none()
+            && !source_aligned_compound
+        {
             return false;
         }
         let valid_position = if pos == kfind_morph::PredicatePos::Copula {
@@ -1280,7 +1321,8 @@ impl MorphMatcher {
         } else {
             (continuation != kfind_morph::ContinuationState::Terminal
                 || licensed_non_ending_trailing
-                || source_ending_trailing)
+                || source_ending_trailing
+                || source_nominalizer_particle_split.is_some())
                 && (candidate.verified.core.start == whole.start || source_aligned_compound)
         };
         if !valid_position
@@ -1323,6 +1365,16 @@ impl MorphMatcher {
                                 DEFAULT_LATTICE_NODE_LIMIT,
                             )
                         })
+                    } else if let Some(split) = source_nominalizer_particle_split {
+                        source_positions.iter().any(|source_pos| {
+                            resolver.supports_predicate_ending_particle_path(
+                                token,
+                                core.len(),
+                                ending.len() + split,
+                                source_pos,
+                                DEFAULT_LATTICE_NODE_LIMIT,
+                            )
+                        })
                     } else if adnominal_dependent_noun_particle {
                         source_positions.iter().any(|source_pos| {
                             resolver.supports_adnominal_dependent_noun_particle_path(
@@ -1356,6 +1408,20 @@ impl MorphMatcher {
                             &normalized,
                             core_len,
                             ending_len,
+                            source_pos,
+                            DEFAULT_LATTICE_NODE_LIMIT,
+                        )
+                    })
+                } else if let Some(split) = source_nominalizer_particle_split {
+                    let nominalizer_len = trailing
+                        .get(..split)
+                        .map(|surface| surface.nfc().map(char::len_utf8).sum::<usize>())
+                        .unwrap_or_default();
+                    source_positions.iter().any(|source_pos| {
+                        resolver.supports_predicate_ending_particle_path(
+                            &normalized,
+                            core_len,
+                            ending_len + nominalizer_len,
                             source_pos,
                             DEFAULT_LATTICE_NODE_LIMIT,
                         )
@@ -2064,6 +2130,13 @@ fn licensed_source_ending_surface(surface: &str) -> bool {
         || EU_INITIAL_ENDINGS
             .iter()
             .any(|ending| surface.starts_with(ending))
+}
+
+fn starts_with_resultative_auxiliary(surface: &str) -> bool {
+    surface
+        .chars()
+        .next()
+        .is_some_and(|first| matches!(first, '지' | '졌' | '진' | '질'))
 }
 
 fn merge_origins(origins: &mut Vec<Origin>, additional: Vec<Origin>) {

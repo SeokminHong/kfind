@@ -126,15 +126,17 @@
 - 용언의 `ending.past`와 `ending.future` consumption state는 `ending.connective-eudoe`의 `으되`를
   소비한다. `치렀으되`, `하겠으되`처럼 선어말어미 뒤의 완성된 token만 복구하며, bare stem에
   `으되`를 붙이는 별도 경로는 이 규칙으로 추측하지 않는다. Compact resource가 선어말어미 뒤의
-  source 어미 경로를 보완할 때도 `Past`, `Future`, `Eu` continuation에서만 완성된 어미 분석을
+  source 어미 경로를 보완할 때도 `Past`, `Future`, `Eu` continuation에서만 완성된 어미 경로를
   사용한다. `으`로 시작하는 표면은 구현된 `으` 이형태 집합과 일치해야 하므로 `으데`처럼
-  source 품사만 어미로 분류된 표면은 거부한다.
+  source 품사만 어미로 분류된 표면은 거부한다. `바꾸었음을`처럼 명사형 전성 어미 뒤에 조사가
+  오는 표면은 `용언 + E+ + ETN + J+` 경로와 조사 이형태를 모두 검증한다.
 - `-아/어` program이 직접 소비하지 않은 보조용언 연쇄를 compact resource로 보완할 때는 연결
   어미 바깥의 `VX + E*`가 완성되어야 한다. 연결 어미 표면이 query core 바깥에 있거나, 같은
-  음절로 축약된 core의 정확한 source 분석이 해당 용언 품사로만 해석되거나, token 전체의 정확한
-  분석이 `용언 + EC + VX + E+`인 경우에만 source 연쇄를 사용한다. 따라서 `빼놓을`, `비춰볼`,
-  생성 program이 직접 소비하는 `해가고`는 유지하지만, `해`의 중의적인 source 분석만으로
-  `해가며`를 확장하지 않는다.
+  음절로 축약된 core의 정확한 source 분석이 용언으로만 해석되거나, token 전체의 정확한 분석이
+  `용언 + EC + VX + E+`이거나, 후행 경로가 결과 변화를 나타내는 `-아/어지다` 계열인 경우에만
+  source 연쇄를 사용한다. 따라서 `빼놓을`, `비춰볼`, `생겨났던`, `극심해지겠지만`과 생성
+  program이 직접 소비하는 `해가고`는 유지하지만, `해`의 중의적인 source 분석만으로 `해가며`를
+  확장하지 않는다.
 - full-POS `smart`의 `VX` query는 compact resource가 token 왼쪽 경계부터 일반 용언과
   `EC`로 candidate core 직전까지 이어지고, core에 정렬된 `VX`와 선택적 어미가 token 끝까지
   이어지는 완전한 path를 증명할 때 token 내부 보조용언을 유지한다. 용언 시작은 `VV/VA`
@@ -146,6 +148,8 @@
   소비한다. 받침 없는 어간과 `ㄹ` 받침 어간은 `으`가 없는 이형태, 그 밖의 받침
   어간은 `으`가 있는 이형태를 쓴다. `살으니까`, `먹니까`, `먹니깐`처럼 잘못된
   이형태와 `부니깐은`처럼 완성된 어미 뒤의 추가 연쇄는 생성하지 않는다.
+- `ending.prospective-quotative` 뒤의 source 조사는 topic `는`만 허용한다. `이기리라고는`은
+  `용언 + EC + JX` 경로로 유지하지만 additive `도`를 붙인 `먹으리라고도`는 확장하지 않는다.
 - 동작 용언의 `-ㄴ다/는다`와 상태 용언의 `-다` 현재 평서형 program은
   `ending.declarative` consumption state에서 제한된 continuation만 소비한다. 상태 용언은 형용사와
   보조 형용사이며 지정사와 부정 지정사 `아니다`는 포함하지 않는다. 허용 목록은
