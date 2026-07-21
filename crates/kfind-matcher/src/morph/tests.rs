@@ -156,6 +156,10 @@ fn source_attached_auxiliary_requires_visible_or_unambiguous_connective_evidence
         component_entry("가", "VX", 0),
         component_entry("십니까", "EP+EF", 0),
         component_entry("빼", "VV", 0),
+        component_entry("빼", "VV+EC", 0),
+        component_entry("빼", "VV+EF", 0),
+        component_entry("빼", "MAG", 0),
+        component_entry("빼놓", "VV", 0),
         component_entry("놓", "VX", 0),
         component_entry("을", "ETM", 0),
     ];

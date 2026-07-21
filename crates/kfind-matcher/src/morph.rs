@@ -963,6 +963,14 @@ impl MorphMatcher {
                         .is_some_and(|surface| {
                             resolver.has_unambiguous_predicate_surface(surface, source_positions)
                         });
+                    let extended_predicate_prefix = token.is_some_and(|token| {
+                        resolver.has_extended_predicate_prefix_path(
+                            token,
+                            candidate.verified.core.len(),
+                            source_positions,
+                            DEFAULT_LATTICE_NODE_LIMIT,
+                        )
+                    });
                     let unambiguous_whole_path = token.is_some_and(|token| {
                         resolver.has_unambiguous_attached_auxiliary_whole_path(token)
                     });
@@ -970,9 +978,11 @@ impl MorphMatcher {
                     (complete_attached_path
                         && (visible_connective
                             || unambiguous_contraction
+                            || extended_predicate_prefix
                             || resultative_contraction))
                         || (source_auxiliary_suffix
                             && (unambiguous_contraction
+                                || extended_predicate_prefix
                                 || unambiguous_whole_path
                                 || resultative_contraction))
                 }

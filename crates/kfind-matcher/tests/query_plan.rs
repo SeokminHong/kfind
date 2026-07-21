@@ -1129,6 +1129,29 @@ fn whole_nominal_source_component_survives_a_shorter_particle_split() {
 }
 
 #[test]
+fn unambiguous_source_compound_keeps_a_leading_component_before_particles() {
+    let resource = component_resource_from_entries([
+        component_entry("물", "NNG"),
+        component_expression_entry("물줄기", "NNG", "물/NNG/*+줄기/NNG/*"),
+        component_entry("는", "JX"),
+    ]);
+    let matcher = compile_embedded_with_resource(
+        "물",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        resource,
+    );
+
+    assert!(
+        matcher
+            .find_at_with_meta("물줄기는".as_bytes(), 0)
+            .is_some()
+    );
+}
+
+#[test]
 fn modifier_led_nominal_path_keeps_exact_tail_but_not_a_whole_adverb_component() {
     let resource = component_resource_from_entries([
         component_entry("어", "VV"),

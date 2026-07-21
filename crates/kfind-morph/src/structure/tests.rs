@@ -1306,6 +1306,30 @@ fn exact_nominal_particle_host_rejects_an_alternate_source_component() {
 }
 
 #[test]
+fn preferred_leading_source_component_accepts_a_particle_tail() {
+    let resolver = resolver_from_entries([
+        atomic("물", "NNG"),
+        expression("물줄기", "NNG", "물/NNG/*+줄기/NNG/*"),
+        atomic("는", "JX"),
+    ]);
+    let core = 0.."물".len();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("물줄기는"),
+        CandidateSpans {
+            core: core.clone(),
+            anchor: core.clone(),
+            consumed: 0.."물줄기는".len(),
+            token: 0.."물줄기는".len(),
+        },
+        &[nominal_pattern(DataFinePos::Nng, "물")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+    assert!(ProductPolicy::RecallFirst.accepts(&decision));
+}
+
+#[test]
 fn whole_nominal_source_component_outranks_a_shorter_particle_host() {
     let resolver = resolver();
     let core = "자본".len().."자본주의".len();

@@ -149,12 +149,21 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
               <code>가</code>는 동사 후보가 될 수 없습니다.
             </p>
             <p>
+              합성명사 source가 조사 host 전체의 component를 선언하고 같은
+              span의 독립 분석이 없으면 그 분해를 사용합니다.{' '}
+              <code>물/NNG + 줄기/NNG + 는/JX</code>의 <code>물</code>은
+              검색하지만, 독립 <code>산길/NNG</code> 분석과 경쟁하는 별도 분해의{' '}
+              <code>길</code>은 검색하지 않습니다.
+            </p>
+            <p>
               생성 program이 남긴 보조용언 연쇄를 resource로 보완할 때는 연결
               어미 바깥의 <code>VX + E*</code> 경로가 완성되어야 합니다. 연결
               어미가 core 바깥에 있거나, 축약된 core가 용언으로만 분석되거나,
-              token 전체의 정확한 분석이 <code>용언 + EC + VX + E+</code>이거나,
-              결과 변화를 나타내는 <code>-아/어지다</code> 계열일 때 source
-              경로를 사용합니다. <code>빼놓을</code>, <code>생겨났던</code>,{' '}
+              core보다 긴 query 품사의 단일 용언 source edge 뒤로 어미가
+              완결되거나, token 전체의 정확한 분석이{' '}
+              <code>용언 + EC + VX + E+</code>이거나, 결과 변화를 나타내는{' '}
+              <code>-아/어지다</code> 계열일 때 source 경로를 사용합니다.{' '}
+              <code>빼놓을</code>, <code>생겨났던</code>,{' '}
               <code>극심해지겠지만</code>은 유지하지만, 중의적인 <code>해</code>
               만으로 <code>해가며</code>를 확장하지 않습니다.
             </p>
@@ -321,16 +330,26 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
               candidate.
             </p>
             <p>
+              A compound-noun decomposition is used when the source declares
+              components for the complete particle host and no independent
+              analysis competes on the same span. This finds <code>물</code> in{' '}
+              <code>물/NNG + 줄기/NNG + 는/JX</code> but rejects <code>길</code>{' '}
+              from an alternate decomposition that competes with an independent{' '}
+              <code>산길/NNG</code> analysis.
+            </p>
+            <p>
               When the resource completes an auxiliary chain left by a generated
               program, the <code>VX + E*</code> path after the connective must
               be complete. The source path is used when the connective lies
               outside the core, every exact analysis of the contracted core is a
-              predicate, the complete token has an exact{' '}
-              <code>predicate + EC + VX + E+</code> analysis, or the suffix is
-              the resultative <code>-아/어지다</code> family. This retains{' '}
-              <code>빼놓을</code>, <code>생겨났던</code>, and{' '}
-              <code>극심해지겠지만</code> without expanding <code>해가며</code>{' '}
-              from the ambiguous <code>해</code> surface alone.
+              predicate, a query-compatible single predicate source edge extends
+              beyond the core and is followed by a complete ending path, the
+              complete token has an exact <code>predicate + EC + VX + E+</code>{' '}
+              analysis, or the suffix is the resultative <code>-아/어지다</code>{' '}
+              family. This retains <code>빼놓을</code>, <code>생겨났던</code>,
+              and <code>극심해지겠지만</code> without expanding{' '}
+              <code>해가며</code> from the ambiguous <code>해</code> surface
+              alone.
             </p>
           </>
         ),
