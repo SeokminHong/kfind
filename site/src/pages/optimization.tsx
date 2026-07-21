@@ -7,6 +7,15 @@ import { LocalizedDocument } from '../components/localized-document';
 
 export const meta = createDocumentMeta(RoutePath.Optimization);
 
+const sectionIds = [
+  'cost-separation',
+  'anchors-and-matchers',
+  'plan-limits',
+  'resource-initialization',
+  'scan-path',
+  'metric-boundaries',
+] as const;
+
 const limitsTable = (
   labels: readonly [string, string, string],
 ): React.JSX.Element => (
@@ -361,5 +370,5 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
 };
 
 export default function OptimizationPage(): React.JSX.Element {
-  return <LocalizedDocument content={content} />;
+  return <LocalizedDocument content={content} sectionIds={sectionIds} />;
 }

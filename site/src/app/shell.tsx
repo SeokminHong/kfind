@@ -1,5 +1,6 @@
 import { Collapsible } from '@base-ui/react/collapsible';
-import { NavLink, Outlet } from 'react-router';
+import { useEffect, useState, useSyncExternalStore } from 'react';
+import { Link, Outlet, useLocation } from 'react-router';
 
 import {
   changeDocumentLocale,
@@ -9,27 +10,186 @@ import {
 } from './i18n';
 import { DocumentLocaleSync } from './i18n-provider';
 import { DocumentMetadataSync } from './metadata';
-import { navigationGroups, RoutePath } from './navigation';
+import {
+  navigationGroupForPath,
+  primaryNavigationItems,
+  RoutePath,
+  routePathFromPathname,
+} from './navigation';
 
-function Navigation(): React.JSX.Element {
+interface NavigationLocation {
+  readonly hash: string;
+  readonly pathname: RoutePath;
+}
+
+const serverNavigationLocation: NavigationLocation = {
+  hash: '',
+  pathname: RoutePath.Overview,
+};
+const activeSectionTop = 160;
+
+function unsubscribeFromHydration(): void {
+  // Hydration readiness has no external event source.
+}
+
+function subscribeToHydration(): () => void {
+  return unsubscribeFromHydration;
+}
+
+function clientHydrated(): boolean {
+  return true;
+}
+
+function serverHydrated(): boolean {
+  return false;
+}
+
+function useNavigationLocation(): NavigationLocation {
+  const location = useLocation();
+  const hydrated = useSyncExternalStore(
+    subscribeToHydration,
+    clientHydrated,
+    serverHydrated,
+  );
+
+  return hydrated
+    ? {
+        hash: location.hash,
+        pathname: routePathFromPathname(location.pathname),
+      }
+    : serverNavigationLocation;
+}
+
+function useActiveSection(
+  pathname: RoutePath,
+  hash: string,
+): string | undefined {
+  const group = navigationGroupForPath(pathname);
+  const sections = group.items.find((item) => item.path === pathname)?.sections;
+  const firstSection = sections?.[0]?.id;
+  const [observedSection, setObservedSection] = useState<string>();
+  const hashSection = hash.slice(1);
+  const requestedSection = sections?.find(
+    (section) => section.id === hashSection,
+  )?.id;
+
+  useEffect(() => {
+    if (sections === undefined || sections.length === 0) {
+      return;
+    }
+
+    const updateFromScroll = (): void => {
+      let current = sections[0]?.id;
+      for (const section of sections) {
+        const element = document.querySelector<HTMLElement>(`#${section.id}`);
+        if (
+          element === null ||
+          element.getBoundingClientRect().top > activeSectionTop
+        ) {
+          break;
+        }
+        current = section.id;
+      }
+      setObservedSection(current);
+    };
+
+    const alignRequestedSection = (): void => {
+      if (requestedSection !== undefined) {
+        document
+          .querySelector<HTMLElement>(`#${requestedSection}`)
+          ?.scrollIntoView();
+      }
+      updateFromScroll();
+    };
+
+    const scrollFrame = globalThis.requestAnimationFrame(alignRequestedSection);
+    globalThis.addEventListener('scroll', updateFromScroll, { passive: true });
+    globalThis.addEventListener('resize', alignRequestedSection);
+    return () => {
+      globalThis.cancelAnimationFrame(scrollFrame);
+      globalThis.removeEventListener('scroll', updateFromScroll);
+      globalThis.removeEventListener('resize', alignRequestedSection);
+    };
+  }, [pathname, requestedSection, sections]);
+
+  const observedIsCurrent =
+    sections?.some((section) => section.id === observedSection) ?? false;
+  return observedIsCurrent
+    ? observedSection
+    : (requestedSection ?? firstSection);
+}
+
+function PrimaryNavigation(): React.JSX.Element {
   const { t } = useDocumentTranslation();
+  const location = useNavigationLocation();
+  const activeGroup = navigationGroupForPath(location.pathname);
 
   return (
-    <nav aria-label={t('common.navigation.toc_aria')}>
-      {navigationGroups.map((group) => (
-        <div className="navigation-group" key={group.labelKey}>
-          <p>{t(group.labelKey)}</p>
-          {group.items.map((item) => (
-            <NavLink
-              key={item.path}
+    <nav
+      aria-label={t('common.header.primary_aria')}
+      className="primary-navigation"
+    >
+      {primaryNavigationItems.map((item) => {
+        const group = navigationGroupForPath(item.path);
+        const current = group.labelKey === activeGroup.labelKey;
+
+        return (
+          <Link
+            aria-current={current ? 'page' : undefined}
+            key={item.path}
+            to={item.path}
+          >
+            {t(item.labelKey)}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+function DocumentNavigation(): React.JSX.Element {
+  const { t } = useDocumentTranslation();
+  const location = useNavigationLocation();
+  const activeSection = useActiveSection(location.pathname, location.hash);
+  const group = navigationGroupForPath(location.pathname);
+
+  return (
+    <nav
+      aria-label={t('common.navigation.toc_aria')}
+      className="document-navigation"
+    >
+      <p className="document-navigation-title">{t(group.labelKey)}</p>
+      {group.items.map((item) => {
+        const currentPage = item.path === location.pathname;
+
+        return (
+          <div className="document-navigation-page" key={item.path}>
+            <Link
+              aria-current={currentPage ? 'page' : undefined}
+              className="document-navigation-page-link"
               to={item.path}
-              end={item.path === RoutePath.Overview}
             >
               {t(item.labelKey)}
-            </NavLink>
-          ))}
-        </div>
-      ))}
+            </Link>
+            {currentPage ? (
+              <ul className="document-section-links">
+                {item.sections.map((section) => (
+                  <li key={section.id}>
+                    <Link
+                      aria-current={
+                        activeSection === section.id ? 'location' : undefined
+                      }
+                      to={`${item.path}#${section.id}`}
+                    >
+                      {t(section.labelKey)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        );
+      })}
     </nav>
   );
 }
@@ -47,7 +207,7 @@ export function Shell(): React.JSX.Element {
       </a>
       <header className="docs-header">
         <div className="header-inner">
-          <NavLink
+          <Link
             className="brand"
             to={RoutePath.Overview}
             aria-label={t('common.brand.home_aria')}
@@ -59,7 +219,8 @@ export function Shell(): React.JSX.Element {
             <span className="brand-suffix">
               {t('common.brand.document_suffix')}
             </span>
-          </NavLink>
+          </Link>
+          <PrimaryNavigation />
           <div className="header-actions">
             <div
               aria-label={t('common.language.aria')}
@@ -89,10 +250,10 @@ export function Shell(): React.JSX.Element {
               className="header-links"
               aria-label={t('common.header.external_aria')}
             >
+              <Link className="header-cta" to={RoutePath.Playground}>
+                {t('common.header.playground')}
+              </Link>
               <a href="https://github.com/SeokminHong/kfind">GitHub</a>
-              <a href="https://github.com/SeokminHong/kfind/blob/main/README.md">
-                README
-              </a>
             </nav>
           </div>
         </div>
@@ -102,19 +263,32 @@ export function Shell(): React.JSX.Element {
         <Collapsible.Trigger>
           {t('common.mobile_navigation.trigger')}
         </Collapsible.Trigger>
-        <Collapsible.Panel>
-          <Navigation />
+        <Collapsible.Panel className="mobile-navigation-panel">
+          <PrimaryNavigation />
+          <DocumentNavigation />
+          <nav
+            aria-label={t('common.header.external_aria')}
+            className="mobile-utilities"
+          >
+            <Link to={RoutePath.Playground}>
+              {t('common.header.playground')}
+            </Link>
+            <a href="https://github.com/SeokminHong/kfind">GitHub</a>
+          </nav>
         </Collapsible.Panel>
       </Collapsible.Root>
 
       <div className="docs-shell">
         <aside className="docs-sidebar">
-          <Navigation />
+          <DocumentNavigation />
         </aside>
         <main className="docs-content" id="content">
           <Outlet />
           <footer className="docs-footer">
             <span>kfind 1.0.0-rc.1</span>
+            <a href="https://github.com/SeokminHong/kfind/blob/main/README.md">
+              README
+            </a>
             <a href="https://github.com/SeokminHong/kfind/blob/main/LICENSE">
               {t('common.footer.license')}
             </a>

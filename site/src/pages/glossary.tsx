@@ -22,6 +22,7 @@ export default function GlossaryPage(): React.JSX.Element {
 
       {Object.values(GlossaryCategory).map((category) => (
         <DocumentSection
+          id={category}
           key={category}
           title={content.categoryLabels[category]}
         >

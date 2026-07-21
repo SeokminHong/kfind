@@ -37,6 +37,10 @@ const routeMetadataKeys: Readonly<Record<RoutePath, DocumentMetadataKeys>> = {
     titleKey: 'metadata.analysis.title',
     descriptionKey: 'metadata.analysis.description',
   },
+  [RoutePath.Agents]: {
+    titleKey: 'metadata.agents.title',
+    descriptionKey: 'metadata.agents.description',
+  },
   [RoutePath.Architecture]: {
     titleKey: 'metadata.architecture.title',
     descriptionKey: 'metadata.architecture.description',

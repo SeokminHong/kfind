@@ -7,6 +7,13 @@ import { LocalizedDocument } from '../components/localized-document';
 
 export const meta = createDocumentMeta(RoutePath.Overview);
 
+const sectionIds = [
+  'product-purpose',
+  'search-directed-morphology',
+  'grammar-scope',
+  'usage-profiles',
+] as const;
+
 const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
   [DocumentLocale.Korean]: {
     eyebrow: '시작 · 제품 범위',
@@ -193,5 +200,5 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
 };
 
 export default function OverviewPage(): React.JSX.Element {
-  return <LocalizedDocument content={content} />;
+  return <LocalizedDocument content={content} sectionIds={sectionIds} />;
 }

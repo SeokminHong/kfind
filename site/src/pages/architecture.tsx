@@ -7,6 +7,15 @@ import { LocalizedDocument } from '../components/localized-document';
 
 export const meta = createDocumentMeta(RoutePath.Architecture);
 
+const sectionIds = [
+  'query-and-corpus-lanes',
+  'candidate-programs',
+  'local-verification',
+  'phrase-spans',
+  'parallel-output',
+  'execution-surfaces',
+] as const;
+
 const executionDiagram = `query lane
   parse → normalize → analyze → compile programs
                                          │
@@ -312,5 +321,5 @@ atom 2 spans ─┘`}</code>
 };
 
 export default function ArchitecturePage(): React.JSX.Element {
-  return <LocalizedDocument content={content} />;
+  return <LocalizedDocument content={content} sectionIds={sectionIds} />;
 }

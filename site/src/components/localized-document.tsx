@@ -16,16 +16,23 @@ export interface DocumentContent {
 
 interface LocalizedDocumentProps {
   readonly content: Readonly<Record<string, DocumentContent>>;
+  readonly sectionIds: readonly string[];
 }
 
 export function LocalizedDocument({
   content,
+  sectionIds,
 }: LocalizedDocumentProps): React.JSX.Element {
   const locale = useDocumentLocale();
   const document = content[locale];
 
   if (document === undefined) {
     throw new Error(`document content is unavailable for locale ${locale}`);
+  }
+  if (document.sections.length !== sectionIds.length) {
+    throw new Error(
+      `document section identifiers do not match locale ${locale}`,
+    );
   }
 
   return (
@@ -35,11 +42,18 @@ export function LocalizedDocument({
         title={document.title}
         summary={document.summary}
       />
-      {document.sections.map((section, index) => (
-        <DocumentSection key={index} title={section.title}>
-          {section.body}
-        </DocumentSection>
-      ))}
+      {document.sections.map((section, index) => {
+        const sectionId = sectionIds[index];
+        if (sectionId === undefined) {
+          throw new Error(`document section ${index} has no identifier`);
+        }
+
+        return (
+          <DocumentSection id={sectionId} key={sectionId} title={section.title}>
+            {section.body}
+          </DocumentSection>
+        );
+      })}
     </DocumentPage>
   );
 }

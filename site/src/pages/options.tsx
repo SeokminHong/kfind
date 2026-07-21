@@ -7,6 +7,15 @@ import { LocalizedDocument } from '../components/localized-document';
 
 export const meta = createDocumentMeta(RoutePath.Options);
 
+const sectionIds = [
+  'query-plan',
+  'expansion',
+  'boundary',
+  'pos',
+  'normalization-and-phrase',
+  'input-and-output',
+] as const;
+
 const defaultPlan = `expand=inflection
 pos=auto
 boundary=smart
@@ -427,5 +436,5 @@ kfind --explain-query --pos verb 걷다`}</code>
 };
 
 export default function OptionsPage(): React.JSX.Element {
-  return <LocalizedDocument content={content} />;
+  return <LocalizedDocument content={content} sectionIds={sectionIds} />;
 }

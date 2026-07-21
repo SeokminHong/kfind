@@ -255,20 +255,20 @@ export default function BenchmarksPage(): React.JSX.Element {
         summary={text.summary}
       />
 
-      <DocumentSection title={text.scopeTitle}>
+      <DocumentSection id="evaluation-scope" title={text.scopeTitle}>
         {text.scopeParagraphs.map((paragraph) => (
           <p key={paragraph}>{paragraph}</p>
         ))}
       </DocumentSection>
 
-      <DocumentSection title={text.metricTitle}>
+      <DocumentSection id="quality-contract" title={text.metricTitle}>
         {text.metricParagraphs.map((paragraph) => (
           <p key={paragraph}>{paragraph}</p>
         ))}
         <p>{text.fnExample}</p>
       </DocumentSection>
 
-      <DocumentSection title={text.canonicalTitle}>
+      <DocumentSection id="canonical-quality" title={text.canonicalTitle}>
         <QualityChart
           adjustedLabel={text.adjustedLabel}
           caption={text.canonicalCaption}
@@ -319,7 +319,7 @@ export default function BenchmarksPage(): React.JSX.Element {
         </div>
       </DocumentSection>
 
-      <DocumentSection title={text.queryMatrixTitle}>
+      <DocumentSection id="query-matrix-quality" title={text.queryMatrixTitle}>
         <QualityChart
           adjustedLabel={text.adjustedLabel}
           caption={text.queryMatrixCaption}
@@ -331,7 +331,7 @@ export default function BenchmarksPage(): React.JSX.Element {
         />
       </DocumentSection>
 
-      <DocumentSection title={text.robustTitle}>
+      <DocumentSection id="robust-quality" title={text.robustTitle}>
         <QualityChart
           adjustedLabel={text.adjustedLabel}
           caption={text.robustCaption}
@@ -346,7 +346,7 @@ export default function BenchmarksPage(): React.JSX.Element {
         />
       </DocumentSection>
 
-      <DocumentSection title={text.performanceTitle}>
+      <DocumentSection id="performance-units" title={text.performanceTitle}>
         <p>{text.performanceParagraph}</p>
         <div className="table-scroll">
           <table>
@@ -382,9 +382,9 @@ export default function BenchmarksPage(): React.JSX.Element {
         </div>
       </DocumentSection>
 
-      <DocumentSection title={text.sourcesTitle}>
+      <DocumentSection id="source-evidence" title={text.sourcesTitle}>
         <p>{text.sourceParagraph}</p>
-        <p>
+        <p className="source-identifiers">
           <code>{benchmarkSnapshot.source_report.revision}</code> ·{' '}
           <code>{benchmarkSnapshot.source_report.sha256}</code>
         </p>

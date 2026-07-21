@@ -7,6 +7,15 @@ import { LocalizedDocument } from '../components/localized-document';
 
 export const meta = createDocumentMeta(RoutePath.GettingStarted);
 
+const sectionIds = [
+  'cli-installation',
+  'npm-installation',
+  'first-search',
+  'pos-and-phrase',
+  'automation-output',
+  'agent-skill',
+] as const;
+
 const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
   [DocumentLocale.Korean]: {
     eyebrow: '안내 · 시작',
@@ -314,5 +323,5 @@ printf 'codex\ngemini\n' | kfind --init`}</code>
 };
 
 export default function GettingStartedPage(): React.JSX.Element {
-  return <LocalizedDocument content={content} />;
+  return <LocalizedDocument content={content} sectionIds={sectionIds} />;
 }

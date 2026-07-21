@@ -18,6 +18,7 @@ interface PageIntroProps {
 interface DocumentSectionProps {
   readonly title: ReactNode;
   readonly children: ReactNode;
+  readonly id?: string;
 }
 
 interface DocumentPageProps {
@@ -149,9 +150,10 @@ export function PageIntro({
 export function DocumentSection({
   title,
   children,
+  id,
 }: DocumentSectionProps): React.JSX.Element {
   return (
-    <section className="doc-section">
+    <section className="doc-section" id={id}>
       <h2>{title}</h2>
       {children}
     </section>

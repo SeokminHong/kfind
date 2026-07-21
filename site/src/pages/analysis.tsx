@@ -7,6 +7,16 @@ import { LocalizedDocument } from '../components/localized-document';
 
 export const meta = createDocumentMeta(RoutePath.Analysis);
 
+const sectionIds = [
+  'analysis-direction',
+  'lexicon-layers',
+  'particles-and-allomorphs',
+  'endings',
+  'irregulars-and-contractions',
+  'derivation-and-compounds',
+  'structural-verification',
+] as const;
+
 const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
   [DocumentLocale.Korean]: {
     eyebrow: '내부 원리 · 형태',
@@ -323,5 +333,5 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
 };
 
 export default function AnalysisPage(): React.JSX.Element {
-  return <LocalizedDocument content={content} />;
+  return <LocalizedDocument content={content} sectionIds={sectionIds} />;
 }
