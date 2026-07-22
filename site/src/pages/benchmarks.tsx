@@ -1,8 +1,6 @@
 import type { QualityChartRow } from '../components/quality-chart';
 
 import { DocumentLocale, useDocumentLocale } from '../app/i18n';
-import { createDocumentMeta } from '../app/metadata';
-import { RoutePath } from '../app/navigation';
 import {
   DocumentPage,
   DocumentSection,
@@ -11,7 +9,7 @@ import {
 import { QualityChart } from '../components/quality-chart';
 import benchmarkSnapshotJson from '../generated-benchmark/site-morphology.json';
 
-export const meta = createDocumentMeta(RoutePath.Benchmarks);
+export { createLocationDocumentMeta as meta } from '../app/metadata';
 
 interface RawQuality {
   readonly f1_percent: number;

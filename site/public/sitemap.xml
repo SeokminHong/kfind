@@ -2,12 +2,69 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://kfind.pages.dev/</loc></url>
   <url><loc>https://kfind.pages.dev/guide/getting-started</loc></url>
-  <url><loc>https://kfind.pages.dev/reference/options</loc></url>
+  <url><loc>https://kfind.pages.dev/guide/installation</loc></url>
+  <url><loc>https://kfind.pages.dev/guide/workflows</loc></url>
+  <url><loc>https://kfind.pages.dev/guide/goals</loc></url>
+  <url><loc>https://kfind.pages.dev/cli</loc></url>
+  <url><loc>https://kfind.pages.dev/cli/query-syntax</loc></url>
+  <url><loc>https://kfind.pages.dev/cli/parts-of-speech</loc></url>
+  <url><loc>https://kfind.pages.dev/cli/expansion</loc></url>
+  <url><loc>https://kfind.pages.dev/cli/boundaries</loc></url>
+  <url><loc>https://kfind.pages.dev/cli/phrases</loc></url>
+  <url><loc>https://kfind.pages.dev/cli/input-output</loc></url>
+  <url><loc>https://kfind.pages.dev/cli/diagnostics</loc></url>
+  <url><loc>https://kfind.pages.dev/cli/resources</loc></url>
+  <url><loc>https://kfind.pages.dev/cli/recipes</loc></url>
   <url><loc>https://kfind.pages.dev/agents</loc></url>
-  <url><loc>https://kfind.pages.dev/reference/glossary</loc></url>
-  <url><loc>https://kfind.pages.dev/concepts/analysis</loc></url>
-  <url><loc>https://kfind.pages.dev/concepts/architecture</loc></url>
-  <url><loc>https://kfind.pages.dev/concepts/optimization</loc></url>
+  <url><loc>https://kfind.pages.dev/agents/workflow</loc></url>
+  <url><loc>https://kfind.pages.dev/agents/skills</loc></url>
+  <url><loc>https://kfind.pages.dev/agents/integrations</loc></url>
+  <url><loc>https://kfind.pages.dev/agents/automation</loc></url>
+  <url><loc>https://kfind.pages.dev/agents/contract</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/architecture</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/pipeline</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/query-compiler</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/matcher</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/structural-verification</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/resources</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/unicode-spans</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/performance</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/morphology</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/morphology/parts-of-speech</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/morphology/nominals</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/morphology/particles</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/morphology/predicates</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/morphology/endings</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/morphology/irregulars</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/morphology/derivation</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/morphology/compounds</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/morphology/contractions</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/morphology/ambiguity</loc></url>
+  <url><loc>https://kfind.pages.dev/internals/morphology/coverage</loc></url>
   <url><loc>https://kfind.pages.dev/benchmarks</loc></url>
+  <url><loc>https://kfind.pages.dev/benchmarks/current</loc></url>
+  <url><loc>https://kfind.pages.dev/benchmarks/methodology</loc></url>
+  <url><loc>https://kfind.pages.dev/benchmarks/contract</loc></url>
+  <url><loc>https://kfind.pages.dev/benchmarks/canonical</loc></url>
+  <url><loc>https://kfind.pages.dev/benchmarks/query-matrix</loc></url>
+  <url><loc>https://kfind.pages.dev/benchmarks/robustness</loc></url>
+  <url><loc>https://kfind.pages.dev/benchmarks/performance</loc></url>
+  <url><loc>https://kfind.pages.dev/benchmarks/comparisons</loc></url>
+  <url><loc>https://kfind.pages.dev/benchmarks/reproducibility</loc></url>
+  <url><loc>https://kfind.pages.dev/benchmarks/reports</loc></url>
+  <url><loc>https://kfind.pages.dev/reference/cli</loc></url>
+  <url><loc>https://kfind.pages.dev/reference/query-language</loc></url>
+  <url><loc>https://kfind.pages.dev/reference/pos-tags</loc></url>
+  <url><loc>https://kfind.pages.dev/reference/configuration</loc></url>
+  <url><loc>https://kfind.pages.dev/reference/user-lexicon</loc></url>
+  <url><loc>https://kfind.pages.dev/reference/jsonl</loc></url>
+  <url><loc>https://kfind.pages.dev/reference/exit-codes</loc></url>
+  <url><loc>https://kfind.pages.dev/reference/errors</loc></url>
+  <url><loc>https://kfind.pages.dev/reference/rust</loc></url>
+  <url><loc>https://kfind.pages.dev/reference/javascript</loc></url>
+  <url><loc>https://kfind.pages.dev/reference/resources</loc></url>
+  <url><loc>https://kfind.pages.dev/reference/rule-ids</loc></url>
+  <url><loc>https://kfind.pages.dev/reference/glossary</loc></url>
+  <url><loc>https://kfind.pages.dev/reference/licenses</loc></url>
   <url><loc>https://kfind.pages.dev/playground</loc></url>
 </urlset>

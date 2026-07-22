@@ -31,8 +31,13 @@ bytes를 전달합니다.
 
 ```sh
 npx @kfind/kfind 걷다 README.md
+pnpm dlx @kfind/kfind 걷다 README.md
+yarn dlx @kfind/kfind 걷다 README.md
 npx @kfind/kfind --pos verb --json 걷다 src
 ```
+
+`yarn dlx`는 Yarn 2 이상에서 사용할 수 있습니다. 세 일회 실행 명령은 모두
+패키지의 `kfind` bin을 실행합니다.
 
 경로가 없으면 TTY에서는 현재 디렉터리를, pipe에서는 표준 입력을 검색합니다.
 `--expand`, `--boundary`, `--pos`, `--normalization`, `--max-gap`,

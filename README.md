@@ -66,6 +66,15 @@ const matches = matcher.findAll(text);
 console.log(text.slice(matches[0].start, matches[0].end));
 ```
 
+패키지의 CLI는 설치 없이도 실행할 수 있습니다. `yarn dlx`는 Yarn 2 이상을
+사용합니다.
+
+```sh
+npx @kfind/kfind 걷다 README.md
+pnpm dlx @kfind/kfind 걷다 README.md
+yarn dlx @kfind/kfind 걷다 README.md
+```
+
 npm match offset은 UTF-16 code unit 기준입니다. 패키지는 full POS와 component
 asset의 경로나 URL을 추정하지 않으며, 호출자가 읽은 bytes를 명시적으로
 전달합니다.
