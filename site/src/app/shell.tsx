@@ -65,7 +65,9 @@ function useActiveSection(
   hash: string,
 ): string | undefined {
   const group = navigationGroupForPath(pathname);
-  const sections = group.items.find((item) => item.path === pathname)?.sections;
+  const sections = group.categories
+    .flatMap((category) => category.pages)
+    .find((item) => item.path === pathname)?.sections;
   const firstSection = sections?.[0]?.id;
   const [observedSection, setObservedSection] = useState<string>();
   const hashSection = hash.slice(1);
@@ -149,6 +151,7 @@ function PrimaryNavigation(): React.JSX.Element {
 
 function DocumentNavigation(): React.JSX.Element {
   const { t } = useDocumentTranslation();
+  const locale = useDocumentLocale();
   const location = useNavigationLocation();
   const activeSection = useActiveSection(location.pathname, location.hash);
   const group = navigationGroupForPath(location.pathname);
@@ -159,34 +162,49 @@ function DocumentNavigation(): React.JSX.Element {
       className="document-navigation"
     >
       <p className="document-navigation-title">{t(group.labelKey)}</p>
-      {group.items.map((item) => {
-        const currentPage = item.path === location.pathname;
+      {group.categories.map((category) => {
+        const categoryKey = category.pages[0]?.path ?? category.label?.ko;
 
         return (
-          <div className="document-navigation-page" key={item.path}>
-            <Link
-              aria-current={currentPage ? 'page' : undefined}
-              className="document-navigation-page-link"
-              to={item.path}
-            >
-              {t(item.labelKey)}
-            </Link>
-            {currentPage ? (
-              <ul className="document-section-links">
-                {item.sections.map((section) => (
-                  <li key={section.id}>
-                    <Link
-                      aria-current={
-                        activeSection === section.id ? 'location' : undefined
-                      }
-                      to={`${item.path}#${section.id}`}
-                    >
-                      {t(section.labelKey)}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+          <div className="document-navigation-category" key={categoryKey}>
+            {category.label === undefined ? null : (
+              <p className="document-navigation-category-title">
+                {category.label[locale]}
+              </p>
+            )}
+            {category.pages.map((item) => {
+              const currentPage = item.path === location.pathname;
+
+              return (
+                <div className="document-navigation-page" key={item.path}>
+                  <Link
+                    aria-current={currentPage ? 'page' : undefined}
+                    className="document-navigation-page-link"
+                    to={item.path}
+                  >
+                    {item.label[locale]}
+                  </Link>
+                  {currentPage ? (
+                    <ul className="document-section-links">
+                      {item.sections.map((section) => (
+                        <li key={section.id}>
+                          <Link
+                            aria-current={
+                              activeSection === section.id
+                                ? 'location'
+                                : undefined
+                            }
+                            to={`${item.path}#${section.id}`}
+                          >
+                            {section.label[locale]}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
         );
       })}

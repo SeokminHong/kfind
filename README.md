@@ -52,11 +52,11 @@ cargo install --locked --path crates/kfind-cli
 JavaScript와 TypeScript에서는 WebAssembly 패키지를 설치합니다.
 
 ```sh
-npm install kfind@1.0.0-rc.1
+npm install @kfind/kfind@1.0.0-rc.1
 ```
 
 ```js
-import { Kfind } from "kfind";
+import { Kfind } from "@kfind/kfind";
 
 const engine = new Kfind();
 const matcher = engine.compile("걷다", { pos: "verb" });
@@ -64,6 +64,15 @@ const text = "길을 걸어 갔다.";
 const matches = matcher.findAll(text);
 
 console.log(text.slice(matches[0].start, matches[0].end));
+```
+
+패키지의 CLI는 설치 없이도 실행할 수 있습니다. `yarn dlx`는 Yarn 2 이상을
+사용합니다.
+
+```sh
+npx @kfind/kfind 걷다 README.md
+pnpm dlx @kfind/kfind 걷다 README.md
+yarn dlx @kfind/kfind 걷다 README.md
 ```
 
 npm match offset은 UTF-16 code unit 기준입니다. 패키지는 full POS와 component
@@ -97,18 +106,18 @@ kfind --embedded --boundary any --pos verb --json 걷다 src docs
 atom은 공백으로 구분합니다. 따옴표 안의 문자열은 하나의 literal atom이며,
 백슬래시는 다음 문자를 escape합니다.
 
-| 태그 | 품사 |
-| --- | --- |
-| `n:` | 명사 |
-| `pro:` | 대명사 |
-| `num:` | 수사 |
-| `v:` | 동사 |
-| `adj:` | 형용사 |
-| `det:` | 관형사 |
-| `adv:` | 부사 |
-| `j:` | 조사 |
-| `intj:` | 감탄사 |
-| `lit:` | literal |
+| 태그    | 품사    |
+| ------- | ------- |
+| `n:`    | 명사    |
+| `pro:`  | 대명사  |
+| `num:`  | 수사    |
+| `v:`    | 동사    |
+| `adj:`  | 형용사  |
+| `det:`  | 관형사  |
+| `adv:`  | 부사    |
+| `j:`    | 조사    |
+| `intj:` | 감탄사  |
+| `lit:`  | literal |
 
 구 atom은 같은 줄에서 순서대로 나타나야 합니다. `--max-gap`은 앞 token 끝과
 다음 token 시작 사이에 허용할 Unicode scalar 수이며 기본값은 24입니다. 전역
@@ -116,22 +125,22 @@ atom은 공백으로 구분합니다. 따옴표 안의 문자열은 하나의 li
 
 ## 형태 확장
 
-| 값 | 동작 |
-| --- | --- |
+| 값           | 동작                                           |
+| ------------ | ---------------------------------------------- |
 | `inflection` | 조사, 어미, 이형태와 불규칙 활용을 생성합니다. |
 | `derivation` | 활용과 등록된 생산적 파생 표제어를 생성합니다. |
-| `literal` | 입력 문자열만 검색합니다. |
+| `literal`    | 입력 문자열만 검색합니다.                      |
 
 `--literal`은 `--expand literal --pos literal`의 단축 옵션입니다. 형태 확장은
 검색 질의에만 적용합니다. 표면형을 임의의 모든 표제어로 역분석하지 않습니다.
 
 ## 경계 정책
 
-| 값 | 판정 | 용도 |
-| --- | --- | --- |
-| `smart` | 조사·어미 소비와 세부 품사 구성 요소를 국소 검증합니다. | 사람의 기본 검색 |
-| `token` | core 시작과 완성된 token 끝의 Unicode 경계를 요구합니다. | 독립 token 검색 |
-| `any` | 좌우 경계 없이 형태 후보의 부분 span을 보존합니다. | 재현율 중심 자동화 |
+| 값      | 판정                                                     | 용도               |
+| ------- | -------------------------------------------------------- | ------------------ |
+| `smart` | 조사·어미 소비와 세부 품사 구성 요소를 국소 검증합니다.  | 사람의 기본 검색   |
+| `token` | core 시작과 완성된 token 끝의 Unicode 경계를 요구합니다. | 독립 token 검색    |
+| `any`   | 좌우 경계 없이 형태 후보의 부분 span을 보존합니다.       | 재현율 중심 자동화 |
 
 의미 모호성은 유지합니다. 문법 구조로 구분 가능한 후보는 `smart`의 component
 판정으로 제한하지만, 구조도 모호하면 지원 가능한 분석을 함께 반환합니다.

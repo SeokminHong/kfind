@@ -6,8 +6,16 @@ import type { DocumentTranslationKey } from './translations.ko';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router';
 
-import { getDocumentTranslation, useDocumentTranslation } from './i18n';
-import { RoutePath } from './navigation';
+import {
+  getDocumentTranslation,
+  useDocumentLocale,
+  useDocumentTranslation,
+} from './i18n';
+import {
+  knownRoutePathFromPathname,
+  navigationPageForPath,
+  RoutePath,
+} from './navigation';
 
 const siteOrigin = 'https://kfind.pages.dev';
 
@@ -16,7 +24,9 @@ interface DocumentMetadataKeys {
   readonly descriptionKey: DocumentTranslationKey;
 }
 
-const routeMetadataKeys: Readonly<Record<RoutePath, DocumentMetadataKeys>> = {
+const routeMetadataKeys: Readonly<
+  Partial<Record<RoutePath, DocumentMetadataKeys>>
+> = {
   [RoutePath.Overview]: {
     titleKey: 'metadata.overview.title',
     descriptionKey: 'metadata.overview.description',
@@ -65,9 +75,21 @@ interface DocumentMetadata {
 }
 
 function translateMetadata(
-  keys: DocumentMetadataKeys,
+  path: RoutePath,
   t: TFunction,
+  locale: 'ko' | 'en',
 ): DocumentMetadata {
+  const keys = routeMetadataKeys[path];
+  if (keys === undefined) {
+    const page = navigationPageForPath(path);
+    if (page === undefined) {
+      throw new Error(`metadata is unavailable for ${path}`);
+    }
+    return {
+      title: page.label[locale],
+      description: page.description[locale],
+    };
+  }
   return {
     title: t(keys.titleKey),
     description: t(keys.descriptionKey),
@@ -96,9 +118,20 @@ export function createDocumentMeta(path: RoutePath): MetaFunction {
   return () =>
     createDescriptors(
       path,
-      translateMetadata(routeMetadataKeys[path], getDocumentTranslation()),
+      translateMetadata(path, getDocumentTranslation(), 'ko'),
     );
 }
+
+export const createLocationDocumentMeta: MetaFunction = ({ location }) => {
+  const path = knownRoutePathFromPathname(location.pathname);
+  if (path === undefined) {
+    return [];
+  }
+  return createDescriptors(
+    path,
+    translateMetadata(path, getDocumentTranslation(), 'ko'),
+  );
+};
 
 export const notFoundMeta: MetaFunction = () => {
   const t = getDocumentTranslation();
@@ -113,31 +146,29 @@ export const notFoundMeta: MetaFunction = () => {
   ];
 };
 
-function isRoutePath(pathname: string): pathname is RoutePath {
-  return Object.values(RoutePath).includes(pathname as RoutePath);
-}
-
 function setMetaContent(selector: string, content: string): void {
   document.querySelector(selector)?.setAttribute('content', content);
 }
 
 export function DocumentMetadataSync(): null {
   const { t } = useDocumentTranslation();
+  const locale = useDocumentLocale();
   const location = useLocation();
 
   useEffect(() => {
-    if (!isRoutePath(location.pathname)) {
+    const path = knownRoutePathFromPathname(location.pathname);
+    if (path === undefined) {
       return;
     }
 
-    const metadata = translateMetadata(routeMetadataKeys[location.pathname], t);
+    const metadata = translateMetadata(path, t, locale);
     const title = `${metadata.title} · kfind`;
 
     document.title = title;
     setMetaContent('meta[name="description"]', metadata.description);
     setMetaContent('meta[property="og:title"]', title);
     setMetaContent('meta[property="og:description"]', metadata.description);
-  }, [location.pathname, t]);
+  }, [locale, location.pathname, t]);
 
   return null;
 }

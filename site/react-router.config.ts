@@ -1,6 +1,6 @@
 import type { Config } from '@react-router/dev/config';
 
-import { copyFile, rm } from 'node:fs/promises';
+import { access, copyFile, rm, rmdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { documentRoutePaths, RoutePath } from './src/app/navigation';
@@ -12,10 +12,22 @@ const config: Config = {
   async buildEnd({ reactRouterConfig }) {
     const clientDirectory = join(reactRouterConfig.buildDirectory, 'client');
 
+    const nestedPaths = [...documentRoutePaths]
+      .filter((path) => path !== RoutePath.Overview)
+      .sort((left, right) => right.length - left.length);
     await Promise.all(
-      documentRoutePaths
-        .filter((path) => path !== RoutePath.Overview)
-        .map(async (path) => flattenPrerenderedPath(clientDirectory, path)),
+      nestedPaths.map(async (path) =>
+        flattenPrerenderedPath(clientDirectory, path),
+      ),
+    );
+    await Promise.all(
+      documentRoutePaths.map(async (path) => {
+        const documentFile =
+          path === RoutePath.Overview
+            ? join(clientDirectory, 'index.html')
+            : join(clientDirectory, `${path.slice(1)}.html`);
+        await access(documentFile);
+      }),
     );
 
     await copyFile(
@@ -39,5 +51,16 @@ async function flattenPrerenderedPath(
     join(clientDirectory, relativePath, 'index.html'),
     join(clientDirectory, `${relativePath}.html`),
   );
-  await rm(join(clientDirectory, relativePath), { recursive: true });
+  await rm(join(clientDirectory, relativePath, 'index.html'));
+  try {
+    await rmdir(join(clientDirectory, relativePath));
+  } catch (error: unknown) {
+    if (
+      !(error instanceof Error) ||
+      !('code' in error) ||
+      error.code !== 'ENOTEMPTY'
+    ) {
+      throw error;
+    }
+  }
 }

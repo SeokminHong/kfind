@@ -54,19 +54,29 @@ kfind --version`}</code>
         body: (
           <>
             <p>
-              JavaScript와 TypeScript에서는 <code>kfind</code> 패키지를
+              JavaScript와 TypeScript에서는 <code>@kfind/kfind</code> 패키지를
               설치합니다. 패키지는 WebAssembly 엔진과 기본 lexicon을 포함하며,
               파일 시스템이나 URL을 임의로 읽지 않습니다.
             </p>
             <pre>
-              <code>npm install kfind@1.0.0-rc.1</code>
+              <code>npm install @kfind/kfind@1.0.0-rc.1</code>
             </pre>
             <pre>
-              <code>{`import { Kfind } from 'kfind';
+              <code>{`import { Kfind } from '@kfind/kfind';
 
 const engine = new Kfind();
 const plan = engine.compile('걷다', { pos: 'verb' });
 const matches = plan.findAll('나는 길을 걸었다.');`}</code>
+            </pre>
+            <p>
+              Node.js 20 이상에서는 설치 없이 같은 패키지의 <code>kfind</code>{' '}
+              bin을 실행할 수 있습니다. <code>yarn dlx</code>는 Yarn 2 이상에서
+              사용합니다.
+            </p>
+            <pre>
+              <code>{`npx @kfind/kfind 걷다 README.md
+pnpm dlx @kfind/kfind 걷다 README.md
+yarn dlx @kfind/kfind 걷다 README.md`}</code>
             </pre>
             <p>
               브라우저와 Node.js는 동일한 query compile과 memory-text match
@@ -207,19 +217,30 @@ kfind --version`}</code>
         body: (
           <>
             <p>
-              JavaScript and TypeScript applications install the unscoped{' '}
-              <code>kfind</code> package. It includes the WebAssembly engine and
-              embedded lexicon and never guesses a filesystem path or URL.
+              JavaScript and TypeScript applications install the scoped{' '}
+              <code>@kfind/kfind</code> package. It includes the WebAssembly
+              engine and embedded lexicon and never guesses a filesystem path or
+              URL.
             </p>
             <pre>
-              <code>npm install kfind@1.0.0-rc.1</code>
+              <code>npm install @kfind/kfind@1.0.0-rc.1</code>
             </pre>
             <pre>
-              <code>{`import { Kfind } from 'kfind';
+              <code>{`import { Kfind } from '@kfind/kfind';
 
 const engine = new Kfind();
 const plan = engine.compile('걷다', { pos: 'verb' });
 const matches = plan.findAll('나는 길을 걸었다.');`}</code>
+            </pre>
+            <p>
+              On Node.js 20 or later, the package also exposes the{' '}
+              <code>kfind</code> bin for one-shot execution.{' '}
+              <code>yarn dlx</code> requires Yarn 2 or later.
+            </p>
+            <pre>
+              <code>{`npx @kfind/kfind 걷다 README.md
+pnpm dlx @kfind/kfind 걷다 README.md
+yarn dlx @kfind/kfind 걷다 README.md`}</code>
             </pre>
           </>
         ),

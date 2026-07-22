@@ -163,6 +163,21 @@ globalStyle('.document-navigation-title', {
   textTransform: 'uppercase',
 });
 
+globalStyle('.document-navigation-category', {
+  display: 'grid',
+  gap: vars.space.xsmall,
+  paddingBlockEnd: vars.space.medium,
+});
+
+globalStyle('.document-navigation-category-title', {
+  margin: `${vars.space.small} ${vars.space.small} ${vars.space.xsmall}`,
+  color: vars.color.subtle,
+  fontSize: '0.65rem',
+  fontWeight: 700,
+  letterSpacing: '0.05em',
+  textTransform: 'uppercase',
+});
+
 globalStyle('.document-navigation-page', {
   display: 'grid',
   gap: vars.space.xsmall,
