@@ -272,16 +272,80 @@
   다음 경로를 제공한다.
 
   ```text
-  /                         개요와 제품 범위
-  /guide/getting-started    설치와 첫 검색
-  /reference/options        query 문법과 compile·search 옵션
-  /agents                   Codex·Claude Code·Gemini CLI 통합
-  /reference/glossary       문서에서 반복하는 핵심 용어와 정의
-  /concepts/analysis        query-directed 형태 분석 원리
-  /concepts/architecture    compile·scan·verify 실행 구조
-  /concepts/optimization    program·anchor·resource·streaming 최적화
-  /benchmarks               workload별 품질·성능 근거
-  /playground               WebAssembly 플레이그라운드
+  /                                      개요와 제품 범위
+  /guide/getting-started                 설치와 첫 검색
+  /guide/installation                    배포 방식과 실행 환경
+  /guide/workflows                       사람·에이전트 검색 절차
+  /guide/goals                           목표와 비목표
+
+  /cli                                   CLI 개요
+  /cli/query-syntax                      query atom과 태그 문법
+  /cli/parts-of-speech                   품사 지정과 자동 판정
+  /cli/expansion                         literal·inflection·derivation
+  /cli/boundaries                        smart·token·any 경계
+  /cli/phrases                           구 검색과 max gap
+  /cli/input-output                      파일·인코딩·출력 형식
+  /cli/diagnostics                       오류·종료 상태·진단
+  /cli/resources                         사전·resource·사용자 설정
+  /cli/recipes                           반복 가능한 검색 예시
+
+  /agents                                에이전트 통합 개요
+  /agents/workflow                       권장 검색 절차
+  /agents/skills                         skill 설치와 사용
+  /agents/integrations                   Codex·Claude Code·Gemini CLI
+  /agents/automation                     자동화 패턴
+  /agents/contract                       JSON Lines와 통합 계약
+
+  /internals/architecture                구성 요소와 책임 경계
+  /internals/pipeline                    compile·scan·verify pipeline
+  /internals/query-compiler              분석과 검색 program 생성
+  /internals/matcher                     anchor scan과 후보 검증
+  /internals/structural-verification     compact resource 기반 판정
+  /internals/resources                   resource format과 초기화
+  /internals/unicode-spans               정규화와 span 좌표계
+  /internals/performance                 비용 모델과 병렬 실행
+
+  /internals/morphology                  한국어 형태 처리 개요
+  /internals/morphology/parts-of-speech  세부 품사와 coarse POS
+  /internals/morphology/nominals         체언과 명사 계열
+  /internals/morphology/particles        조사와 이형태
+  /internals/morphology/predicates       용언과 어간
+  /internals/morphology/endings          선어말어미·어말어미
+  /internals/morphology/irregulars       불규칙 활용
+  /internals/morphology/derivation       파생과 품사 전환
+  /internals/morphology/compounds        합성어와 보조용언
+  /internals/morphology/contractions     축약과 영형태
+  /internals/morphology/ambiguity        중의성과 경계 판정
+  /internals/morphology/coverage         규칙 범위와 비목표
+
+  /benchmarks                            평가 개요
+  /benchmarks/current                    최신 품질·성능 결과
+  /benchmarks/methodology                fixture와 측정 절차
+  /benchmarks/contract                   raw·contract-adjusted 계약
+  /benchmarks/canonical                  표준 맞춤법 품질
+  /benchmarks/query-matrix               문법 조합 품질
+  /benchmarks/robustness                 오류 문장 품질
+  /benchmarks/performance                workload별 성능
+  /benchmarks/comparisons                외부 분석기 비교
+  /benchmarks/reproducibility            revision·입력·실행 명령
+  /benchmarks/reports                    날짜별 source report
+
+  /reference/cli                         native·npm CLI 옵션
+  /reference/query-language              query 언어 문법
+  /reference/pos-tags                    품사 태그
+  /reference/configuration               환경 변수와 설정 파일
+  /reference/user-lexicon                사용자 사전 형식
+  /reference/jsonl                       JSON Lines schema
+  /reference/exit-codes                  종료 코드
+  /reference/errors                      오류 분류
+  /reference/rust                        Rust facade API
+  /reference/javascript                  JavaScript·TypeScript API
+  /reference/resources                   resource 파일과 schema
+  /reference/rule-ids                    provenance rule ID
+  /reference/glossary                    문법·실행·평가 용어
+  /reference/licenses                    코드·데이터 라이선스
+
+  /playground                            WebAssembly 플레이그라운드
   ```
 
 - 전역 navigation은 `Home`, `Get Started`, `CLI`, `Agents`, `Internals`, `Benchmarks`,
@@ -290,7 +354,9 @@
 - 문서 route의 좌측 sidebar는 현재 GNB 영역에 속한 문서와 현재 문서의 절을 함께 표시한다.
   현재 route와 절은 접근 가능한 navigation 상태로 구분한다. 데스크톱에서는 sticky sidebar로,
   좁은 화면에서는 같은 계층을 보존하는 collapsible 문서 메뉴로 제공한다. 본문 순서와 sidebar
-  순서는 일치해야 하며, 언어를 전환해도 route와 절 fragment는 유지한다.
+  순서는 일치해야 하며, 언어를 전환해도 route와 절 fragment는 유지한다. `Internals`의 한국어
+  형태 처리는 별도 sidebar 하위 범주로 묶고, benchmark의 최신 결과·방법론·역사 보고서는 서로
+  다른 route로 분리한다. GNB에는 이 하위 범주를 펼치지 않는다.
 
 - 문서 site의 popup, select, collapsible과 form control은 `@base-ui/react`의 unstyled primitive로
   구성한다. 링크, label, keyboard와 pointer 동작은 해당 primitive의 접근성 의미를 유지하고,
@@ -776,7 +842,7 @@
 
 ### 0.7 Rust 라이브러리와 WASM 대상
 
-- CLI의 자동 resource 해석과 달리 Rust 라이브러리와 npm binding은 filesystem, URL 또는 package
+- native CLI와 npm CLI의 입력·resource 해석과 달리 Rust 라이브러리와 npm binding API는 filesystem, URL 또는 package
   asset 위치를 추정하지 않는다. caller가 component 기능을 사용할 때만 bytes를 명시적으로 전달한다.
 - `kfind` 파사드 crate는 `ResourceBundle { full_pos, enriched_predicates, component }`와
   `Engine::with_resources(resources)`를 전체 사전 profile의 기본 생성 API로 제공한다. full POS binary와
@@ -848,8 +914,28 @@
 
 ### 0.8 npm 패키지
 
-- npm package 이름은 unscoped `kfind`다. `wasm-pack`의 `bundler` target으로 ESM
-  JavaScript glue, WASM binary와 TypeScript declaration을 생성한다.
+- npm package 이름은 public organization-scoped `@kfind/kfind`다. prerelease는
+  `npm install @kfind/kfind@next`, 고정 버전은 `npm install @kfind/kfind@1.0.0-rc.1`로
+  설치한다. `wasm-pack`의 `bundler` target으로 browser bundler용 ESM JavaScript glue,
+  WASM binary와 TypeScript declaration을 생성한다.
+- package의 `bin`은 `kfind` 이름으로 Node.js CLI를 제공한다. Node.js 20 이상에서
+  `npx @kfind/kfind QUERY [PATH ...]`와 로컬 설치 뒤 `kfind QUERY [PATH ...]`를 지원한다.
+  이를 위해 게시 산출물에는 `wasm-pack`의 `nodejs` target도 별도 디렉터리에 포함한다.
+  package export는 Node.js에서 이 target을, browser bundler에서 bundler target을 선택하며
+  두 target은 같은 Rust source와 공개 JavaScript API에서 생성한다.
+- npm CLI는 query, path와 `--expand`, `--boundary`, `--pos`, `--normalization`, `--max-gap`,
+  `--literal`, `--json`을 받는다. path가 없고 stdin이 TTY면 현재 디렉터리를, stdin이 pipe면
+  stdin을 검색한다. 디렉터리는 결정적인 경로 순서로 재귀 순회하며 `.git`, `node_modules`,
+  `target`과 site build 산출물은 기본 제외한다. symlink는 따라가지 않는다. UTF-8 text만
+  검색하고 NUL이 있거나 UTF-8 decode에 실패한 파일은 진단 뒤 건너뛴다.
+- npm CLI는 package의 enriched predicate를 초기화하고, compiled query가 component 구조를
+  요구할 때 package의 compact component asset을 읽어 같은 query를 다시 compile한다. full POS는
+  package에 포함하지 않으므로 native CLI의 full 사전 profile이 필요한 검색은 Homebrew 또는
+  source build로 설치한 native CLI를 사용한다. npm binding API 자체는 resource 위치를 추정하지
+  않는 계약을 유지한다.
+- 기본 text 출력은 `path:line:column:surface`이며 line과 column은 1부터 시작하는 UTF-16 좌표다.
+  `--json`은 match마다 path, line, column, start, end, surface와 provenance를 담은 JSON object 한
+  줄을 출력한다. match가 있으면 0, 없으면 1, 사용법·초기화·I/O 오류면 2로 종료한다.
 - compact component artifact는 `assets/morphology-component-compact.kfc`, enriched predicate TSV는
   `assets/predicates.enriched.tsv` 정적 파일로 WASM 산출물과 분리해 게시한다. 각 외부 데이터의
   license notice도 package에 포함한다. 사용자는 필요한 파일을 배포물에 복사하거나 별도 호스트에
@@ -864,9 +950,9 @@
   version은 `latest` dist-tag를 사용한다.
 - Tag release workflow는 repository secret `NPM_TOKEN`을 npm 인증용 `NODE_AUTH_TOKEN`으로
   전달한다. Token 값은 로그, 산출물과 저장소 파일에 기록하지 않는다.
-- npm 산출물은 브라우저 bundler용 release package로 생성한다. 별도의 Node target
-  산출물로 같은 공개 API를 smoke test하고 `npm pack --dry-run`으로 게시 파일과 metadata를
-  검증한다.
+- npm 산출물은 browser bundler와 Node.js용 release package로 생성한다. Node target은 같은 공개
+  API와 실제 `bin` 실행을 smoke test하고 `npm pack --dry-run`으로 게시 파일, executable mode와
+  metadata를 검증한다.
 - npm package 검증은 package version과 Cargo version의 일치, 두 정적 asset과 license notice,
   TypeScript declaration의 optional resource bundle, enriched 분석 활성화 여부, resource 없는
   non-component compile, resource 없는 component smart 오류, JavaScript 초기화 오류, component
@@ -1206,14 +1292,14 @@ false positive를 제거해야 한다. 후보가 너무 많으면 검색 path·g
 
 지원하는 큰 품사 범주는 다음과 같다.
 
-| 범주 | 세부 범주 | 기본 동작 |
-|---|---|---|
-| 체언 | 명사, 대명사, 수사, 의존명사 | 기본형, 복수 표지, 조사 연쇄 검증 |
-| 용언 | 동사, 형용사, 지정사, 일부 보조용언 | 어간 교체, 어미 결합, 축약 검증 |
-| 수식언 | 관형사, 부사 | literal과 품사별 경계, 선택적 보조사 |
-| 관계언 | 조사 | 이형태 묶음과 경계 검증 |
-| 독립언 | 감탄사 | literal과 토큰 경계 |
-| 기타 | 코드 식별자, 외국어, 숫자 | literal |
+| 범주   | 세부 범주                           | 기본 동작                            |
+| ------ | ----------------------------------- | ------------------------------------ |
+| 체언   | 명사, 대명사, 수사, 의존명사        | 기본형, 복수 표지, 조사 연쇄 검증    |
+| 용언   | 동사, 형용사, 지정사, 일부 보조용언 | 어간 교체, 어미 결합, 축약 검증      |
+| 수식언 | 관형사, 부사                        | literal과 품사별 경계, 선택적 보조사 |
+| 관계언 | 조사                                | 이형태 묶음과 경계 검증              |
+| 독립언 | 감탄사                              | literal과 토큰 경계                  |
+| 기타   | 코드 식별자, 외국어, 숫자           | literal                              |
 
 ### 5.2 비범위
 
@@ -1656,29 +1742,29 @@ Suppletive`의 `lexical.suppletive` override이며, 이 분석은 생산적인 e
 
 ### 9.5 필수 활용 범위
 
-| 분류 | 예 | 기대 표면형 |
-|---|---|---|
-| 규칙 자음 어간 | 먹다 | 먹어, 먹었다, 먹는, 먹은, 먹을 |
-| 규칙 모음 어간 | 가다 | 가, 갔다, 가는, 간, 갈 |
-| ㅏ/ㅓ 축약 | 보다 | 보아, 봐, 보았다, 봤다 |
-| ㅚ/ㅣ 계열 축약 | 되다 | 되어, 돼, 되었다, 됐다 |
-| ㄷ 불규칙 | 걷다, 듣다, 싣다 | 걸어, 들어, 실어, 걸음, 들음, 실음 |
-| ㅅ 불규칙 | 짓다, 낫다, 잇다 | 지어, 나아, 이어, 지음, 나음, 이음 |
-| ㅂ 불규칙 | 돕다, 눕다, 아름답다 | 도와, 누워, 아름다워, 도움, 누움, 아름다움 |
-| ㅎ 불규칙 | 파랗다, 그렇다, 어떻다, 이렇다, 커다랗다 | 파래, 파란, 그래, 그런, 어떤, 이런, 커다란, 파람, 그럼 |
-| 르 불규칙 | 빠르다, 부르다, 모르다 | 빨라, 불러, 몰라, 빠름, 부름, 모름 |
-| 러 불규칙 | 푸르다, 이르다 일부 | 푸르러, 푸름, 이름 |
-| ㅡ 탈락 | 쓰다, 크다, 예쁘다 | 써, 커, 예뻐 |
-| 우 불규칙 | 푸다 | 퍼, 품 |
-| 하다 | 하다, 검증하다 | 하여, 해, 하였다, 했다, 함, 검증하여, 검증해, 검증하였다, 검증했다, 검증함 |
-| ㄹ 탈락 | 살다, 알다, 만들다 | 사는, 압니다, 만듭니다, 삶, 앎, 만듦 |
-| 진행 방향 보조 용언 | 망하다, 만들다 | 망해가고, 만들어가야 |
-| 개별 보조 용언 명령형 | 말다, 달다 | 마라, 다오 |
-| 아주낮춤 명령형 | 가다, 먹다, 걷다, 오다, 들어오다 | 가거라, 먹거라, 걷거라, 오거라, 오너라, 들어오너라 |
-| 회상·청유·의도·존대 | 걷다 | 걷던, 걷더니, 걷자, 걷자고, 걷곤, 걷느냐, 걷도록, 걸으려는, 걸으셨고, 걸으셨던, 걸으세요, 걸읍시다 |
-| 과거 의문 종결 | 하다, 먹다 | 했느냐는, 먹었느냐 |
-| 지정사 | 이다 | 이고, 이어, 여서, 인, 일, 임, 입니다, 이라고, 이라는, 이지, 이며 |
-| 부정 지정사 | 아니다 | 아니고, 아니어서, 아니라, 아닌, 아닐 |
+| 분류                  | 예                                       | 기대 표면형                                                                                        |
+| --------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| 규칙 자음 어간        | 먹다                                     | 먹어, 먹었다, 먹는, 먹은, 먹을                                                                     |
+| 규칙 모음 어간        | 가다                                     | 가, 갔다, 가는, 간, 갈                                                                             |
+| ㅏ/ㅓ 축약            | 보다                                     | 보아, 봐, 보았다, 봤다                                                                             |
+| ㅚ/ㅣ 계열 축약       | 되다                                     | 되어, 돼, 되었다, 됐다                                                                             |
+| ㄷ 불규칙             | 걷다, 듣다, 싣다                         | 걸어, 들어, 실어, 걸음, 들음, 실음                                                                 |
+| ㅅ 불규칙             | 짓다, 낫다, 잇다                         | 지어, 나아, 이어, 지음, 나음, 이음                                                                 |
+| ㅂ 불규칙             | 돕다, 눕다, 아름답다                     | 도와, 누워, 아름다워, 도움, 누움, 아름다움                                                         |
+| ㅎ 불규칙             | 파랗다, 그렇다, 어떻다, 이렇다, 커다랗다 | 파래, 파란, 그래, 그런, 어떤, 이런, 커다란, 파람, 그럼                                             |
+| 르 불규칙             | 빠르다, 부르다, 모르다                   | 빨라, 불러, 몰라, 빠름, 부름, 모름                                                                 |
+| 러 불규칙             | 푸르다, 이르다 일부                      | 푸르러, 푸름, 이름                                                                                 |
+| ㅡ 탈락               | 쓰다, 크다, 예쁘다                       | 써, 커, 예뻐                                                                                       |
+| 우 불규칙             | 푸다                                     | 퍼, 품                                                                                             |
+| 하다                  | 하다, 검증하다                           | 하여, 해, 하였다, 했다, 함, 검증하여, 검증해, 검증하였다, 검증했다, 검증함                         |
+| ㄹ 탈락               | 살다, 알다, 만들다                       | 사는, 압니다, 만듭니다, 삶, 앎, 만듦                                                               |
+| 진행 방향 보조 용언   | 망하다, 만들다                           | 망해가고, 만들어가야                                                                               |
+| 개별 보조 용언 명령형 | 말다, 달다                               | 마라, 다오                                                                                         |
+| 아주낮춤 명령형       | 가다, 먹다, 걷다, 오다, 들어오다         | 가거라, 먹거라, 걷거라, 오거라, 오너라, 들어오너라                                                 |
+| 회상·청유·의도·존대   | 걷다                                     | 걷던, 걷더니, 걷자, 걷자고, 걷곤, 걷느냐, 걷도록, 걸으려는, 걸으셨고, 걸으셨던, 걸으세요, 걸읍시다 |
+| 과거 의문 종결        | 하다, 먹다                               | 했느냐는, 먹었느냐                                                                                 |
+| 지정사                | 이다                                     | 이고, 이어, 여서, 인, 일, 임, 입니다, 이라고, 이라는, 이지, 이며                                   |
+| 부정 지정사           | 아니다                                   | 아니고, 아니어서, 아니라, 아닌, 아닐                                                               |
 
 ## 10. 품사별 컴파일 규칙
 
@@ -2021,7 +2107,7 @@ broken pipe는 정상 종료로 처리한다.
 JSON Lines 출력에서 원문 줄을 UTF-8로 표현할 수 없으면 다음 중 하나를 사용한다.
 
 ```json
-{"text":null,"text_base64":"...","encoding":"bytes"}
+{ "text": null, "text_base64": "...", "encoding": "bytes" }
 ```
 
 ## 14. CLI 사양
@@ -2038,32 +2124,32 @@ pipe이면 기본 검색 대상을 stdin으로 전환한다. `-`는 stdin을 명
 
 ### 14.2 주요 옵션
 
-| 옵션 | 값 | 기본값 | 설명 |
-|---|---|---:|---|
-| `--pos` | 품사 | `auto` | 쿼리 전체 품사 강제 |
-| `--expand` | `literal`, `inflection`, `derivation` | `inflection` | 확장 수준 |
-| `--boundary` | `smart`, `token`, `any` | `smart` | 경계 정책 |
-| `--embedded` | flag | false | full POS lexicon을 로드하지 않음 |
-| `--max-gap` | 정수 | `24` | phrase atom 사이 최대 거리 |
-| `--unicode-normalization` | `nfc`, `canonical`, `none` | `nfc` | Unicode 검색 모드 |
-| `--encoding` | 인코딩 | `auto` | 원문 인코딩 |
-| `--glob` | glob | 없음 | 파일 포함·제외 규칙 |
-| `--type`, `--type-add` | 파일 유형 | 없음 | 파일 유형 필터 |
-| `--hidden` | flag | false | hidden 파일 포함 |
-| `--no-ignore` | flag | false | ignore 규칙 무시 |
-| `--threads` | 정수 | 자동 | worker 수 |
-| `--count` | flag | false | 파일별 match 수 |
-| `--files-with-matches` | flag | false | 파일명만 출력 |
-| `--json` | flag | false | JSON Lines 출력 |
-| `--color` | `auto`, `always`, `never` | `auto` | 터미널 색상 |
-| `--no-pager` | flag | false | TTY에서도 pager를 사용하지 않음 |
-| `--explain-query` | flag | false | 쿼리 계획 출력 |
-| `--explain-match` | flag | false | 생성 근거 출력 |
-| `--sort` | `path` | 없음 | 결과 정렬 |
-| `--data-dir` | 경로 | 자동 | 외부 데이터 디렉터리 |
-| `--user-lexicon` | 경로 | 자동 | 사용자 사전 |
-| `--init` | flag | false | 현재 디렉터리에 agent skill 초기화 |
-| `--agent` | `claude-code`, `codex`, `gemini`, `custom` | TTY 선택 또는 stdin | 초기화 대상, 반복 가능 |
+| 옵션                      | 값                                         |              기본값 | 설명                               |
+| ------------------------- | ------------------------------------------ | ------------------: | ---------------------------------- |
+| `--pos`                   | 품사                                       |              `auto` | 쿼리 전체 품사 강제                |
+| `--expand`                | `literal`, `inflection`, `derivation`      |        `inflection` | 확장 수준                          |
+| `--boundary`              | `smart`, `token`, `any`                    |             `smart` | 경계 정책                          |
+| `--embedded`              | flag                                       |               false | full POS lexicon을 로드하지 않음   |
+| `--max-gap`               | 정수                                       |                `24` | phrase atom 사이 최대 거리         |
+| `--unicode-normalization` | `nfc`, `canonical`, `none`                 |               `nfc` | Unicode 검색 모드                  |
+| `--encoding`              | 인코딩                                     |              `auto` | 원문 인코딩                        |
+| `--glob`                  | glob                                       |                없음 | 파일 포함·제외 규칙                |
+| `--type`, `--type-add`    | 파일 유형                                  |                없음 | 파일 유형 필터                     |
+| `--hidden`                | flag                                       |               false | hidden 파일 포함                   |
+| `--no-ignore`             | flag                                       |               false | ignore 규칙 무시                   |
+| `--threads`               | 정수                                       |                자동 | worker 수                          |
+| `--count`                 | flag                                       |               false | 파일별 match 수                    |
+| `--files-with-matches`    | flag                                       |               false | 파일명만 출력                      |
+| `--json`                  | flag                                       |               false | JSON Lines 출력                    |
+| `--color`                 | `auto`, `always`, `never`                  |              `auto` | 터미널 색상                        |
+| `--no-pager`              | flag                                       |               false | TTY에서도 pager를 사용하지 않음    |
+| `--explain-query`         | flag                                       |               false | 쿼리 계획 출력                     |
+| `--explain-match`         | flag                                       |               false | 생성 근거 출력                     |
+| `--sort`                  | `path`                                     |                없음 | 결과 정렬                          |
+| `--data-dir`              | 경로                                       |                자동 | 외부 데이터 디렉터리               |
+| `--user-lexicon`          | 경로                                       |                자동 | 사용자 사전                        |
+| `--init`                  | flag                                       |               false | 현재 디렉터리에 agent skill 초기화 |
+| `--agent`                 | `claude-code`, `codex`, `gemini`, `custom` | TTY 선택 또는 stdin | 초기화 대상, 반복 가능             |
 
 ### 14.3 context와 출력 호환 옵션
 
@@ -2218,7 +2304,30 @@ sample.txt:3: 길을 걸었습니다.
 ### 15.4 JSON Lines 출력
 
 ```json
-{"type":"match","path":"sample.txt","line":3,"text":"길을 걸었습니다.","spans":[{"core":{"start":7,"end":10},"token":{"start":7,"end":22},"surface":"걸었습니다","origins":[{"lemma":"걷다","pos":"verb","rules":["lexical.d-to-l","ending.past","ending.polite-declarative"]}]}]}
+{
+  "type": "match",
+  "path": "sample.txt",
+  "line": 3,
+  "text": "길을 걸었습니다.",
+  "spans": [
+    {
+      "core": { "start": 7, "end": 10 },
+      "token": { "start": 7, "end": 22 },
+      "surface": "걸었습니다",
+      "origins": [
+        {
+          "lemma": "걷다",
+          "pos": "verb",
+          "rules": [
+            "lexical.d-to-l",
+            "ending.past",
+            "ending.polite-declarative"
+          ]
+        }
+      ]
+    }
+  ]
+}
 ```
 
 유효한 UTF-8 text의 offset은 `utf8-bytes`, raw byte text의 offset은 `bytes`로 명시한다. 선택적으로 scalar column도 제공한다.
@@ -2254,25 +2363,24 @@ data/
 
 ```tsv
 lemma	pos	alternation	flags
-걷다	VV	DToL	
-걷다	VV	Regular	
-듣다	VV	DToL	
-묻다	VV	DToL	
-묻다	VV	Regular	
-믿다	VV	Regular	
-돕다	VV	BToWa	
-눕다	VV	BToWo	
-짓다	VV	DropS	
-벗다	VV	Regular	
-파랗다	VA	DropH	
-좋다	VA	Regular	
-빠르다	VA	ReuDoubleL	
-푸르다	VA	Reo	
+걷다	VV	DToL
+걷다	VV	Regular
+듣다	VV	DToL
+묻다	VV	DToL
+묻다	VV	Regular
+믿다	VV	Regular
+돕다	VV	BToWa
+눕다	VV	BToWo
+짓다	VV	DropS
+벗다	VV	Regular
+파랗다	VA	DropH
+좋다	VA	Regular
+빠르다	VA	ReuDoubleL
+푸르다	VA	Reo
 쓰다	VV	Regular	EU_DROP
-하다	VV	Ha	
-이다	VCP	Copula	
+하다	VV	Ha
+이다	VCP	Copula
 ```
-
 
 ### 16.3 빌드 산출물
 
@@ -2443,23 +2551,23 @@ SHA-256이 달라지면 별도 디렉터리에 다시 추출한다.
 
 ## 17. Rust 기술 스택
 
-| 목적 | crate |
-|---|---|
-| CLI | `clap`, `clap_complete`, `clap_mangen` |
-| 파일 순회 | `ignore` |
-| 검색 I/O | `grep-searcher`, `grep-matcher` |
-| 단일 앵커 | `memchr::memmem` |
-| 다중 앵커 | `aho-corasick` |
-| 바이트 문자열 | `bstr` |
-| Unicode 정규화 | `unicode-normalization` |
-| 인코딩 | `encoding_rs` 또는 `grep-searcher` 연동 계층 |
-| 출력 | `grep-printer`, `serde`, `serde_json` |
-| 오류 | `thiserror` |
-| 병렬 결과 채널 | `crossbeam-channel` |
-| 작은 벡터 | `smallvec` 선택 |
-| 벤치마크 | `criterion` |
-| 속성 테스트 | `proptest` |
-| fuzz | `cargo-fuzz` |
+| 목적           | crate                                        |
+| -------------- | -------------------------------------------- |
+| CLI            | `clap`, `clap_complete`, `clap_mangen`       |
+| 파일 순회      | `ignore`                                     |
+| 검색 I/O       | `grep-searcher`, `grep-matcher`              |
+| 단일 앵커      | `memchr::memmem`                             |
+| 다중 앵커      | `aho-corasick`                               |
+| 바이트 문자열  | `bstr`                                       |
+| Unicode 정규화 | `unicode-normalization`                      |
+| 인코딩         | `encoding_rs` 또는 `grep-searcher` 연동 계층 |
+| 출력           | `grep-printer`, `serde`, `serde_json`        |
+| 오류           | `thiserror`                                  |
+| 병렬 결과 채널 | `crossbeam-channel`                          |
+| 작은 벡터      | `smallvec` 선택                              |
+| 벤치마크       | `criterion`                                  |
+| 속성 테스트    | `proptest`                                   |
+| fuzz           | `cargo-fuzz`                                 |
 
 `ignore::WalkParallel`이 파일 단위 병렬 처리를 담당하므로 별도 `rayon` 의존성은 기본 구조에 필요하지 않다.
 
@@ -2583,18 +2691,18 @@ expected: no match
 
 target과 경계:
 
-| target | 경계 |
-| --- | --- |
-| `query_lexer` | 잘못된 UTF-8을 포함한 임의 query, 매우 긴 combining sequence, lexer와 compile limit |
-| `matcher_bytes` | 임의 byte 입력의 anchor 탐색, suffix consumption, match span 범위 |
-| `matcher_plan` | 임의 query와 큰 phrase gap의 compile·matcher build, component resource 누락 오류 |
-| `user_lexicon` | malformed 사용자 사전 TOML의 구문·의미 검증 |
-| `json_output` | 임의 byte line과 검증된 match metadata의 JSON Lines 직렬화 |
-| `binary_detection` | 임의 위치의 최초 NUL과 NUL이 없는 입력의 binary 판별 경계 |
-| `pos_resource` | 임의 byte full POS resource의 크기·header·varint·UTF-8·NFC·정렬·누적 decode 상한 |
-| `component_resource` | 임의 byte component resource와 임의의 유효한 소형 resource의 header·digest·payload·prefix lookup |
-| `search_executor` | 임의 byte record와 작은 channel에서 병렬 검색 결과의 bounded 수집·정렬·summary 경로 |
-| `structural_preparation` | 현재 token graph와 인접 token 선택을 분리한 경로가 일괄 준비 경로와 같은 판정을 내리는지 비교 |
+| target                   | 경계                                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------------------ |
+| `query_lexer`            | 잘못된 UTF-8을 포함한 임의 query, 매우 긴 combining sequence, lexer와 compile limit              |
+| `matcher_bytes`          | 임의 byte 입력의 anchor 탐색, suffix consumption, match span 범위                                |
+| `matcher_plan`           | 임의 query와 큰 phrase gap의 compile·matcher build, component resource 누락 오류                 |
+| `user_lexicon`           | malformed 사용자 사전 TOML의 구문·의미 검증                                                      |
+| `json_output`            | 임의 byte line과 검증된 match metadata의 JSON Lines 직렬화                                       |
+| `binary_detection`       | 임의 위치의 최초 NUL과 NUL이 없는 입력의 binary 판별 경계                                        |
+| `pos_resource`           | 임의 byte full POS resource의 크기·header·varint·UTF-8·NFC·정렬·누적 decode 상한                 |
+| `component_resource`     | 임의 byte component resource와 임의의 유효한 소형 resource의 header·digest·payload·prefix lookup |
+| `search_executor`        | 임의 byte record와 작은 channel에서 병렬 검색 결과의 bounded 수집·정렬·summary 경로              |
+| `structural_preparation` | 현재 token graph와 인접 token 선택을 분리한 경로가 일괄 준비 경로와 같은 판정을 내리는지 비교    |
 
 CI는 `nightly-2026-07-11`과 `cargo-fuzz 0.13.2`로 모든 target을 실제 실행한다. target당
 `max_total_time=15`, 개별 입력 `timeout=5`, `rss_limit_mb=2048`을 적용하며 전체 job timeout은
