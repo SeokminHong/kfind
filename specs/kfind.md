@@ -3069,6 +3069,7 @@ policy로 분리한다.
 ```text
 단일 atom query compile p95: 0.25 ms 이하
 8 atom phrase compile p95: 0.75 ms 이하
+8 atom disjunction compile p95: 0.75 ms 이하
 낮은 hit 비율의 scan: rg -F wall time의 1.25배 이내
 낮은 hit 비율의 처리량: rg -F의 80% 이상
 기본 RSS: 16 MiB 이하
