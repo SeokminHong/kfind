@@ -14,9 +14,11 @@ cargo_version="$(
 npm_version="$(node -p "require('$package_dir/package.json').version")"
 npm_name="$(node -p "require('$package_dir/package.json').name")"
 npm_license="$(node -p "require('$package_dir/package.json').license")"
+npm_bin="$(node -p "require('$package_dir/package.json').bin.kfind")"
 test "$cargo_version" = "$npm_version"
 test "$npm_name" = "@kfind/kfind"
 test "$npm_license" = "SEE LICENSE IN LICENSES.md"
+test "$npm_bin" = "bin/kfind.js"
 
 npm pack --ignore-scripts --dry-run --json "$package_dir" | node -e '
   const fs = require("node:fs");

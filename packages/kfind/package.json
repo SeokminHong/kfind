@@ -28,7 +28,7 @@
     "README.md"
   ],
   "bin": {
-    "kfind": "./bin/kfind.js"
+    "kfind": "bin/kfind.js"
   },
   "main": "./node/kfind.js",
   "module": "./generated/kfind.js",
