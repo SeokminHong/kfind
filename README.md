@@ -88,6 +88,9 @@ kfind 걷다 src docs
 # 명시적 품사
 kfind --pos noun 사용자 src
 
+# 여러 단어 중 하나 검색
+kfind '걷다 | 사용자 | 검증하다' src
+
 # 순서형 구 검색
 kfind 'n:권한 v:검증하다' src --max-gap 24
 
@@ -104,7 +107,16 @@ kfind --embedded --boundary any --pos verb --json 걷다 src docs
 ## 검색 질의
 
 atom은 공백으로 구분합니다. 따옴표 안의 문자열은 하나의 literal atom이며,
-백슬래시는 다음 문자를 escape합니다.
+백슬래시는 다음 문자를 escape합니다. 따옴표와 escape 밖의 `|`는 양쪽 atom 중
+하나를 찾습니다. 공백은 선택 사항이지만 shell의 pipe 해석을 막기 위해 전체
+query를 따옴표로 묶습니다.
+
+```sh
+kfind 'v:걷다 | n:사용자 | n:검증' src
+```
+
+`|` alternative는 각각 하나의 atom이어야 하며 공백 phrase와 한 query에서 섞을
+수 없습니다. Literal `|`는 `\|` 또는 `"|"`로 작성합니다.
 
 | 태그    | 품사    |
 | ------- | ------- |
@@ -120,8 +132,9 @@ atom은 공백으로 구분합니다. 따옴표 안의 문자열은 하나의 li
 | `lit:`  | literal |
 
 구 atom은 같은 줄에서 순서대로 나타나야 합니다. `--max-gap`은 앞 token 끝과
-다음 token 시작 사이에 허용할 Unicode scalar 수이며 기본값은 24입니다. 전역
-`--pos`와 atom 태그를 함께 사용하면 두 품사가 같아야 합니다.
+다음 token 시작 사이에 허용할 Unicode scalar 수이며 기본값은 24입니다. 이
+옵션은 phrase에만 적용됩니다. 전역 `--pos`와 atom 태그를 함께 사용하면 두
+품사가 같아야 합니다.
 
 ## 형태 확장
 

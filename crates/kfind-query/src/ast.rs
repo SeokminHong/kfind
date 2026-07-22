@@ -7,14 +7,22 @@ pub const DEFAULT_MAX_GAP: usize = 24;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct QueryAst {
     pub atoms: Vec<QueryAtom>,
+    pub composition: QueryComposition,
     pub phrase: PhrasePolicy,
 }
 
 impl QueryAst {
     #[must_use]
     pub fn is_phrase(&self) -> bool {
-        self.atoms.len() > 1
+        self.composition == QueryComposition::Phrase && self.atoms.len() > 1
     }
+}
+
+/// How independently parsed query atoms are combined.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum QueryComposition {
+    Phrase,
+    Disjunction,
 }
 
 /// One ordered query atom.

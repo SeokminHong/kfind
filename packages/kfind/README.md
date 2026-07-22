@@ -18,6 +18,16 @@ const matches = matcher.findAll(text);
 console.log(text.slice(matches[0].start, matches[0].end));
 ```
 
+여러 atom 중 하나를 찾으려면 `|`를 사용합니다.
+
+```js
+const matcher = engine.compile("v:걷다|n:사용자|n:검증");
+```
+
+각 alternative는 하나의 atom이어야 하며 공백 구와 한 query에서 섞을 수
+없습니다. Literal `|`는 `engine.compile("\\|")` 또는
+`engine.compile('"|"')`로 작성합니다.
+
 `compile`은 `expand`, `boundary`, `pos`, `normalization`, `maxGap`,
 `literal` 옵션을 받습니다. 허용 값과 match provenance 구조는 패키지의
 TypeScript 선언에 포함됩니다.

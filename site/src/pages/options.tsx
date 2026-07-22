@@ -178,7 +178,7 @@ literal (lit:)`}</code>
         ),
       },
       {
-        title: '정규화와 구 거리',
+        title: '정규화, 구 거리와 대안',
         body: (
           <>
             <p>
@@ -192,6 +192,15 @@ literal (lit:)`}</code>
               시작 사이에 허용할 Unicode scalar 수이며, 기본값은 24입니다. 한
               atom의 전역 <code>--pos</code>는 허용하지만 여러 atom에서는 각
               atom 태그를 사용해야 합니다.
+            </p>
+            <p>
+              따옴표와 escape 밖의 <code>|</code>는 여러 atom 중 하나를
+              찾습니다. 연산자 앞뒤 공백은 선택 사항이지만 CLI에서는 shell pipe
+              해석을 막기 위해 query 전체를 따옴표로 묶습니다. 각 alternative는
+              하나의 atom이어야 하며 공백 구와 섞을 수 없습니다. Literal{' '}
+              <code>|</code>는 <code>\|</code> 또는 <code>&quot;|&quot;</code>로
+              작성합니다. <code>--max-gap</code>은 disjunction에 적용되지
+              않습니다.
             </p>
           </>
         ),
@@ -388,7 +397,7 @@ literal (lit:)`}</code>
         ),
       },
       {
-        title: 'Normalization and phrase distance',
+        title: 'Normalization, phrase distance, and alternatives',
         body: (
           <>
             <p>
@@ -401,6 +410,15 @@ literal (lit:)`}</code>
               <code>--max-gap</code> limits the Unicode scalars between adjacent
               token spans and defaults to 24. Multi-atom queries use per-atom
               POS tags.
+            </p>
+            <p>
+              An unquoted, unescaped <code>|</code> finds any one of multiple
+              atoms. Whitespace around it is optional, but CLI queries should be
+              quoted so the shell does not interpret the operator as a pipe.
+              Each alternative is one atom and cannot be mixed with phrase
+              atoms. Write a literal pipe as <code>\|</code> or{' '}
+              <code>&quot;|&quot;</code>. <code>--max-gap</code> does not apply
+              to a disjunction.
             </p>
           </>
         ),

@@ -30,6 +30,19 @@ assert.deepEqual(matches[0].atoms[0].origins[0].rulePath, [
 const literal = engine.compile("걸어", { literal: true });
 assert.equal(literal.findAll("다시 걸어 보자.").length, 1);
 
+const disjunction = engine.compile("lit:alpha|lit:beta");
+assert.deepEqual(
+  disjunction.findAll("beta then alpha").map(({ start, end }) => [start, end]),
+  [
+    [0, 4],
+    [10, 15],
+  ],
+);
+assert.throws(
+  () => engine.compile("alpha | beta gamma"),
+  /phrase atoms and `\|` alternatives cannot be mixed/,
+);
+
 assert.throws(() => engine.compile("", {}), /failed to compile query/);
 assert.throws(
   () => engine.compile("걷다", { expand: "inflection", literal: true }),

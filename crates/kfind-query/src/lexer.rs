@@ -1,6 +1,6 @@
 use kfind_morph::CoarsePos;
 
-use crate::ast::{QueryAst, QueryAtom};
+use crate::ast::{QueryAst, QueryAtom, QueryComposition};
 use crate::error::{QueryError, QueryErrorKind, SourceSpan};
 use crate::options::CompileOptions;
 
@@ -8,7 +8,8 @@ use crate::options::CompileOptions;
 pub fn parse_query(source: &str, options: &CompileOptions) -> Result<QueryAst, QueryError> {
     validate_query_length(source, options)?;
 
-    let mut atoms = Vec::new();
+    let mut tokens = Vec::new();
+    let mut atom_count = 0;
     let mut current: Option<AtomBuilder> = None;
     let mut quote: Option<(char, usize)> = None;
     let mut characters = source.char_indices();
@@ -35,7 +36,14 @@ pub fn parse_query(source: &str, options: &CompileOptions) -> Result<QueryAst, Q
                 quote = Some((character, offset));
             }
             value if value.is_whitespace() => {
-                finish_atom(&mut current, offset, options, &mut atoms)?;
+                finish_atom(&mut current, offset, options, &mut tokens, &mut atom_count)?;
+            }
+            '|' => {
+                finish_atom(&mut current, offset, options, &mut tokens, &mut atom_count)?;
+                tokens.push(LexedToken::Disjunction(SourceSpan::new(
+                    offset,
+                    offset + character.len_utf8(),
+                )));
             }
             ':' => {
                 let atom = ensure_atom(&mut current, offset);
@@ -54,17 +62,26 @@ pub fn parse_query(source: &str, options: &CompileOptions) -> Result<QueryAst, Q
         ));
     }
 
-    finish_atom(&mut current, source.len(), options, &mut atoms)?;
+    finish_atom(
+        &mut current,
+        source.len(),
+        options,
+        &mut tokens,
+        &mut atom_count,
+    )?;
 
-    if atoms.is_empty() {
+    if tokens.is_empty() {
         return Err(QueryError::new(
             QueryErrorKind::EmptyQuery,
             SourceSpan::new(0, source.len()),
         ));
     }
 
+    let (atoms, composition) = compose(tokens)?;
+
     Ok(QueryAst {
         atoms,
+        composition,
         phrase: options.phrase,
     })
 }
@@ -110,7 +127,8 @@ fn finish_atom(
     current: &mut Option<AtomBuilder>,
     end: usize,
     options: &CompileOptions,
-    atoms: &mut Vec<QueryAtom>,
+    tokens: &mut Vec<LexedToken>,
+    atom_count: &mut usize,
 ) -> Result<(), QueryError> {
     let Some(atom) = current.take() else {
         return Ok(());
@@ -132,7 +150,7 @@ fn finish_atom(
         ));
     }
 
-    let actual = atoms.len() + 1;
+    let actual = *atom_count + 1;
     let limit = options.limits.max_atoms;
     if actual > limit {
         return Err(QueryError::new(
@@ -141,12 +159,73 @@ fn finish_atom(
         ));
     }
 
-    atoms.push(QueryAtom {
-        raw: atom.value.into_boxed_str(),
-        forced_pos: atom.forced_pos,
-        quoted_literal: atom.saw_quote,
+    tokens.push(LexedToken::Atom {
+        value: QueryAtom {
+            raw: atom.value.into_boxed_str(),
+            forced_pos: atom.forced_pos,
+            quoted_literal: atom.saw_quote,
+        },
+        span: SourceSpan::new(atom.start, end),
     });
+    *atom_count = actual;
     Ok(())
+}
+
+fn compose(tokens: Vec<LexedToken>) -> Result<(Vec<QueryAtom>, QueryComposition), QueryError> {
+    let has_disjunction = tokens
+        .iter()
+        .any(|token| matches!(token, LexedToken::Disjunction(_)));
+    if !has_disjunction {
+        let atoms = tokens
+            .into_iter()
+            .map(|token| match token {
+                LexedToken::Atom { value, .. } => value,
+                LexedToken::Disjunction(_) => unreachable!("operator presence was checked"),
+            })
+            .collect();
+        return Ok((atoms, QueryComposition::Phrase));
+    }
+
+    let mut atoms = Vec::new();
+    let mut expect_atom = true;
+    let mut last_operator = None;
+    for token in tokens {
+        match (expect_atom, token) {
+            (true, LexedToken::Atom { value, .. }) => {
+                atoms.push(value);
+                expect_atom = false;
+            }
+            (true, LexedToken::Disjunction(span)) => {
+                return Err(QueryError::new(
+                    QueryErrorKind::MissingDisjunctionOperand,
+                    span,
+                ));
+            }
+            (false, LexedToken::Disjunction(span)) => {
+                last_operator = Some(span);
+                expect_atom = true;
+            }
+            (false, LexedToken::Atom { span, .. }) => {
+                return Err(QueryError::new(
+                    QueryErrorKind::MixedPhraseAndDisjunction,
+                    span,
+                ));
+            }
+        }
+    }
+    if expect_atom {
+        return Err(QueryError::new(
+            QueryErrorKind::MissingDisjunctionOperand,
+            last_operator.expect("a parsed disjunction has an operator span"),
+        ));
+    }
+    Ok((atoms, QueryComposition::Disjunction))
+}
+
+#[derive(Debug)]
+enum LexedToken {
+    Atom { value: QueryAtom, span: SourceSpan },
+    Disjunction(SourceSpan),
 }
 
 #[derive(Debug)]
@@ -251,6 +330,45 @@ mod tests {
         assert_eq!(&*query.atoms[3].raw, "plain value");
         assert_eq!(&*query.atoms[4].raw, "n:권한");
         assert_eq!(query.atoms[4].forced_pos, None);
+    }
+
+    #[test]
+    fn parses_spaced_and_compact_disjunctions() {
+        for source in ["n:권한 | v:검증하다", "n:권한|v:검증하다"] {
+            let query = parse_query(source, &CompileOptions::default()).unwrap();
+
+            assert_eq!(query.composition, QueryComposition::Disjunction);
+            assert_eq!(query.atoms.len(), 2);
+            assert_eq!(&*query.atoms[0].raw, "권한");
+            assert_eq!(query.atoms[0].forced_pos, Some(CoarsePos::Noun));
+            assert_eq!(&*query.atoms[1].raw, "검증하다");
+            assert_eq!(query.atoms[1].forced_pos, Some(CoarsePos::Verb));
+        }
+    }
+
+    #[test]
+    fn preserves_quoted_and_escaped_pipes_as_literal_atoms() {
+        let query = parse_query(r#""|" \| a\|b"#, &CompileOptions::default()).unwrap();
+
+        assert_eq!(query.composition, QueryComposition::Phrase);
+        assert_eq!(query.atoms.len(), 3);
+        assert_eq!(&*query.atoms[0].raw, "|");
+        assert!(query.atoms[0].quoted_literal);
+        assert_eq!(&*query.atoms[1].raw, "|");
+        assert_eq!(&*query.atoms[2].raw, "a|b");
+    }
+
+    #[test]
+    fn rejects_missing_operands_and_mixed_phrase_disjunctions() {
+        for source in ["| 권한", "권한 |", "권한 || 검증", "권한 | | 검증"] {
+            let error = parse_query(source, &CompileOptions::default()).unwrap_err();
+            assert_eq!(error.kind, QueryErrorKind::MissingDisjunctionOperand);
+        }
+
+        for source in ["권한 검증 | 사용자", "권한 | 사용자 검증"] {
+            let error = parse_query(source, &CompileOptions::default()).unwrap_err();
+            assert_eq!(error.kind, QueryErrorKind::MixedPhraseAndDisjunction);
+        }
     }
 
     #[test]

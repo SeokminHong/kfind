@@ -71,7 +71,7 @@ revision, 도구 버전은 `target/benchmark/sorted-output/<revision>`에 저장
 
 ## 검색 질의 컴파일
 
-단일 atom과 8 atom phrase compile benchmark는 다음 명령으로 실행한다.
+단일 atom, 8 atom phrase와 8 atom disjunction compile benchmark는 다음 명령으로 실행한다.
 
 ```console
 scripts/benchmark-criterion.sh query_compile
@@ -97,6 +97,14 @@ cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_constant_n
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_unique_neighbors_long_line
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/context_unique_current_long_line
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/build_and_find_structural_exact
+```
+
+## Disjunction matcher
+
+두 literal alternative가 전체 고정 corpus를 하나의 anchor engine으로 검색하는 경로를 측정한다.
+
+```console
+scripts/benchmark-criterion.sh matcher/disjunction_find_all
 ```
 
 앞의 phrase benchmark는 입력의 anchor·atom span 수집과 leftmost-longest non-overlapping 결과 선택을

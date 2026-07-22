@@ -8,7 +8,7 @@ use kfind_data::DataError;
 
 use crate::{Engine, Matcher};
 
-pub use kfind_query::{Lexicons, QueryPlan};
+pub use kfind_query::{Lexicons, QueryComposition, QueryPlan};
 
 /// Opt-in constructors for caller-assembled lexicons.
 pub trait EngineExt: Sized {

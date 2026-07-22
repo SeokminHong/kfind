@@ -9,7 +9,10 @@ use kfind_morph::{
 };
 
 use super::*;
-use crate::{BoundaryPolicy, CompileOptionOverrides, Lexicons, NormalizationMode, PlanLimits};
+use crate::{
+    BoundaryPolicy, CompileOptionOverrides, Lexicons, NormalizationMode, PlanLimits,
+    QueryComposition,
+};
 
 fn analyzer() -> LexiconQueryAnalyzer {
     LexiconQueryAnalyzer::new(Arc::new(Lexicons::embedded().unwrap()))
@@ -33,6 +36,28 @@ fn plans_share_the_analyzers_particle_graph() {
         &first.auxiliary_particle_rules,
         &second.auxiliary_particle_rules
     ));
+}
+
+#[test]
+fn disjunction_compiles_to_one_logical_atom_with_remapped_origins() {
+    let plan = compile_query(
+        "lit:alpha | lit:beta",
+        &CompileOptions::default(),
+        &analyzer(),
+    )
+    .unwrap();
+
+    assert_eq!(plan.composition, QueryComposition::Disjunction);
+    assert_eq!(plan.atoms.len(), 1);
+    assert_eq!(plan.atoms[0].analyses.len(), 2);
+    let beta = plan.atoms[0]
+        .programs
+        .iter()
+        .find(|program| program.anchor.as_ref() == b"beta")
+        .expect("second alternative anchor");
+    assert_eq!(beta.origins.len(), 1);
+    assert_eq!(beta.origins[0].analysis_index, 1);
+    assert_eq!(&*plan.atoms[0].analyses[1].lemma, "beta");
 }
 
 fn full_pos_analyzer() -> LexiconQueryAnalyzer {

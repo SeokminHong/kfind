@@ -235,6 +235,7 @@ fn explain_outputs_show_the_plan_and_match_provenance() {
     query.write_query_plan(&plan).unwrap();
     let query = String::from_utf8(query.into_inner()).unwrap();
     assert!(query.contains("query: 걷다"));
+    assert!(query.contains("composition: phrase"));
     assert!(query.contains("alternation: d-to-l"));
     assert!(query.contains("  programs:"));
     assert!(query.contains("  consumption_states:"));
@@ -253,6 +254,20 @@ fn explain_outputs_show_the_plan_and_match_provenance() {
     let matched = String::from_utf8(matched.into_inner()).unwrap();
     assert!(matched.contains("generated_from: 걷다"));
     assert!(matched.contains("- lexical.d-to-l"));
+}
+
+#[test]
+fn explain_disjunction_reports_composition_without_phrase_gap() {
+    let lexicons = Arc::new(Lexicons::embedded().unwrap());
+    let analyzer = LexiconQueryAnalyzer::new(lexicons);
+    let plan = compile_query("lit:alpha|lit:beta", &CompileOptions::default(), &analyzer).unwrap();
+    let mut output = OutputWriter::new(Vec::new(), OutputOptions::default());
+
+    output.write_query_plan(&plan).unwrap();
+
+    let output = String::from_utf8(output.into_inner()).unwrap();
+    assert!(output.contains("composition: disjunction"));
+    assert!(!output.contains("max_gap:"));
 }
 
 #[test]
