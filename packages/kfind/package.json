@@ -1,5 +1,5 @@
 {
-  "name": "kfind",
+  "name": "@kfind/kfind",
   "version": "1.0.0-rc.1",
   "description": "Korean lemma and inflection matching for JavaScript",
   "license": "SEE LICENSE IN LICENSES.md",
@@ -19,21 +19,33 @@
     "webassembly"
   ],
   "files": [
+    "bin",
     "generated",
+    "node",
     "assets",
     "LICENSE",
     "LICENSES.md",
     "README.md"
   ],
+  "bin": {
+    "kfind": "./bin/kfind.js"
+  },
+  "main": "./node/kfind.js",
   "module": "./generated/kfind.js",
   "types": "./generated/kfind.d.ts",
   "exports": {
     ".": {
       "types": "./generated/kfind.d.ts",
-      "import": "./generated/kfind.js"
+      "browser": "./generated/kfind.js",
+      "node": "./node/kfind.js",
+      "import": "./generated/kfind.js",
+      "default": "./generated/kfind.js"
     },
     "./assets/morphology-component-compact.kfc": "./assets/morphology-component-compact.kfc",
     "./assets/predicates.enriched.tsv": "./assets/predicates.enriched.tsv"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "scripts": {
     "benchmark:startup": "../../scripts/benchmark-npm-startup.sh",
