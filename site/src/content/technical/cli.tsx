@@ -11,18 +11,20 @@ export const cliDocuments: TechnicalDocuments = {
       eyebrow: 'CLI · 질의',
       title: '질의 문법',
       summary:
-        '질의는 공백으로 나뉜 atom과 선택적 품사 태그로 구성되며 compile 전에 완전한 문법 검증을 거칩니다.',
+        '질의는 atom을 순서 구 또는 대안으로 결합하며 compile 전에 완전한 문법 검증을 거칩니다.',
       sections: [
         section(
           '형식 문법',
           [
-            '공백은 atom 경계입니다. Atom은 태그가 붙은 bare text 또는 따옴표로 감싼 literal입니다. Backslash는 다음 Unicode scalar를 escape합니다.',
-            '빈 atom, 닫히지 않은 따옴표, 값이 없는 태그와 알 수 없는 태그는 compile 오류입니다.',
+            '공백은 phrase atom 경계이고 따옴표와 escape 밖의 `|`는 disjunction 경계입니다. Atom은 태그가 붙은 bare text 또는 따옴표로 감싼 literal입니다.',
+            '빈 atom, 닫히지 않은 따옴표, 값이 없는 태그, 알 수 없는 태그와 피연산자가 없는 `|`는 compile 오류입니다.',
           ],
           {
-            code: `query   = atom *(SP atom)
-atom    = [pos-tag] (bare / quoted)
-pos-tag = "n:" / "v:" / "adj:" / "lit:" / ...`,
+            code: `query       = atom / phrase / disjunction
+phrase      = atom 1*(WS atom)
+disjunction = atom 1*(OWS "|" OWS atom)
+atom        = [pos-tag] (bare / quoted)
+pos-tag     = "n:" / "v:" / "adj:" / "lit:" / ...`,
           },
         ),
         section('atom과 태그', [
@@ -40,24 +42,39 @@ pos-tag = "n:" / "v:" / "adj:" / "lit:" / ...`,
 kfind --literal 'key\:value' config`,
           },
         ),
+        section(
+          '대안 검색',
+          [
+            '`걷다|사용자`와 `걷다 | 사용자`는 각 atom 중 하나를 찾는 같은 query입니다. Alternative마다 품사 태그를 독립적으로 지정할 수 있습니다.',
+            '각 alternative는 하나의 atom이어야 하며 phrase와 섞지 않습니다. `--max-gap`은 적용되지 않습니다. Literal `|`는 `\\|` 또는 `"|"`로 작성합니다.',
+            'CLI에서는 shell이 `|`를 pipe로 해석하지 않도록 query 전체를 따옴표로 묶습니다.',
+          ],
+          {
+            code: String.raw`kfind 'v:걷다|n:사용자|n:검증' src
+kfind '\|' syntax.txt
+kfind '"|"' syntax.txt`,
+          },
+        ),
       ],
     },
     [DocumentLocale.English]: {
       eyebrow: 'CLI · QUERY',
       title: 'Query syntax',
       summary:
-        'A query consists of whitespace-delimited atoms with optional POS tags and is fully validated before compilation.',
+        'A query combines atoms as an ordered phrase or alternatives and is fully validated before compilation.',
       sections: [
         section(
           'Grammar',
           [
-            'Whitespace separates atoms. An atom is bare or quoted text with an optional tag. A backslash escapes the following Unicode scalar.',
-            'Empty atoms, unclosed quotes, missing tag values, and unknown tags are compile errors.',
+            'Whitespace separates phrase atoms, while `|` outside quoting and escaping separates alternatives. An atom is bare or quoted text with an optional tag.',
+            'Empty atoms, unclosed quotes, missing tag values, unknown tags, and `|` without an operand are compile errors.',
           ],
           {
-            code: `query   = atom *(SP atom)
-atom    = [pos-tag] (bare / quoted)
-pos-tag = "n:" / "v:" / "adj:" / "lit:" / ...`,
+            code: `query       = atom / phrase / disjunction
+phrase      = atom 1*(WS atom)
+disjunction = atom 1*(OWS "|" OWS atom)
+atom        = [pos-tag] (bare / quoted)
+pos-tag     = "n:" / "v:" / "adj:" / "lit:" / ...`,
           },
         ),
         section('Atoms and tags', [
@@ -73,6 +90,19 @@ pos-tag = "n:" / "v:" / "adj:" / "lit:" / ...`,
           {
             code: String.raw`kfind 'v:걷다 "로그 인"' src
 kfind --literal 'key\:value' config`,
+          },
+        ),
+        section(
+          'Alternative search',
+          [
+            '`걷다|사용자` and `걷다 | 사용자` are equivalent queries that match either atom. Each alternative may carry its own POS tag.',
+            'Every alternative is one atom and cannot be mixed with a phrase. `--max-gap` does not apply. Write a literal `|` as `\\|` or `"|"`.',
+            'Quote the whole query in a CLI shell so that the shell does not interpret `|` as a pipe.',
+          ],
+          {
+            code: String.raw`kfind 'v:걷다|n:사용자|n:검증' src
+kfind '\|' syntax.txt
+kfind '"|"' syntax.txt`,
           },
         ),
       ],

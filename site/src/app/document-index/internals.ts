@@ -46,6 +46,7 @@ const executionPages = [
     [
       ['analysis', '분석 후보', 'Analysis candidates'],
       ['program-ir', 'program IR', 'Program IR'],
+      ['composition', 'query 결합', 'Query composition'],
       ['deduplication', '정렬과 중복 제거', 'Ordering and deduplication'],
     ],
   ),

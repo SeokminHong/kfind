@@ -71,6 +71,10 @@ export const internalDocuments: TechnicalDocuments = {
           '`CandidateProgram`은 anchor bytes, core 조립, suffix automaton, boundary와 `StructuralConstraint`를 담습니다. Provenance는 lexical·derivation·ending rule ID의 순서 있는 경로입니다.',
           'Resource가 필요한 constraint는 compile 결과에 capability로 남습니다. Matcher 생성 시 resource가 없으면 fail-fast 오류입니다.',
         ]),
+        section('query 결합', [
+          'Phrase는 atom별 plan을 순서대로 유지하고 matcher에서 `--max-gap`으로 결합합니다. Disjunction은 alternative의 분석과 program을 하나의 logical atom으로 합칩니다.',
+          'Disjunction origin의 analysis index는 합쳐진 분석 배열에 맞춰 다시 매핑합니다. 같은 span을 만드는 alternative는 결과를 중복하지 않고 모든 origin을 보존합니다.',
+        ]),
         section('정렬과 중복 제거', [
           'Program은 anchor, 실행 조건과 span projection의 결정적 key로 정렬합니다. 실행 조건이 같은 분석은 program을 합치고 origin 집합만 union합니다.',
           'Plan 상한은 program·anchor와 structural state 폭을 제한합니다. 상한 초과는 일부 후보를 버리는 대신 compile 오류를 반환합니다.',
@@ -90,6 +94,10 @@ export const internalDocuments: TechnicalDocuments = {
         section('Program IR', [
           'A `CandidateProgram` contains anchor bytes, core assembly, a suffix automaton, boundary policy, and `StructuralConstraint`. Provenance is an ordered path of lexical, derivation, and ending rule IDs.',
           'A resource-dependent constraint remains an explicit capability in the compiled plan. Matcher construction fails fast when that resource is absent.',
+        ]),
+        section('Query composition', [
+          'A phrase keeps one plan per atom and joins them under `--max-gap` in the matcher. A disjunction merges alternative analyses and programs into one logical atom.',
+          'Disjunction origin analysis indices are remapped into the merged analysis array. Alternatives producing the same span emit one result while preserving every origin.',
         ]),
         section('Ordering and deduplication', [
           'Programs are sorted by deterministic keys over anchors, execution conditions, and span projection. Analyses with identical execution merge programs while unioning origins.',
@@ -116,6 +124,7 @@ export const internalDocuments: TechnicalDocuments = {
         section('match 선택', [
           '같은 start에서 여러 program이 승인되면 더 긴 완성 token과 결정적 program key를 사용해 non-overlap 결과를 만듭니다. Origin은 손실 없이 합칩니다.',
           'Phrase mode에서는 atom 후보를 먼저 보존한 뒤 순서와 gap을 적용하므로 단일 atom의 최장 match가 다음 atom을 숨기지 않습니다.',
+          'Disjunction은 하나의 atom matcher에 alternative anchor를 함께 넣으므로 source를 alternative 수만큼 반복 scan하지 않습니다.',
         ]),
       ],
     },
@@ -136,6 +145,7 @@ export const internalDocuments: TechnicalDocuments = {
         section('Match selection', [
           'When several programs succeed at one start, completed-token length and deterministic program keys produce non-overlapping results while preserving all origins.',
           'Phrase mode retains atom candidates before applying order and gap, preventing a single-atom longest match from hiding the next atom.',
+          'A disjunction places all alternative anchors in one atom matcher, avoiding one source scan per alternative.',
         ]),
       ],
     },

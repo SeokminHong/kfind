@@ -33,12 +33,13 @@ export const cliGroup: DocumentGroupIndex = {
           RoutePath.QuerySyntax,
           '질의 문법',
           'Query syntax',
-          'atom, 품사 태그, literal 인용과 escape 규칙을 형식 문법과 예제로 정의합니다.',
-          'Define atoms, POS tags, literal quoting, and escaping with a grammar and examples.',
+          'atom, 품사 태그, phrase·disjunction, 인용과 escape 규칙을 정의합니다.',
+          'Define atoms, POS tags, phrases, disjunctions, quoting, and escaping.',
           [
             ['grammar', '형식 문법', 'Grammar'],
             ['atoms', 'atom과 태그', 'Atoms and tags'],
             ['quoting', '인용과 escape', 'Quoting and escaping'],
+            ['disjunction', '대안 검색', 'Alternative search'],
           ],
         ),
         page(
