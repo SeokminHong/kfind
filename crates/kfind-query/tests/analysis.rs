@@ -75,6 +75,20 @@ fn full_pos_adds_homonymous_pos_without_replacing_core_entries() {
 }
 
 #[test]
+fn embedded_lexicon_includes_the_exact_common_determiner() {
+    let lexicons = Arc::new(Lexicons::embedded().unwrap());
+    let analyzer = LexiconQueryAnalyzer::new(lexicons);
+    let analyses = analyzer.analyze(&atom("몇")).unwrap();
+
+    assert!(analyses.iter().any(|analysis| {
+        analysis.coarse_pos == CoarsePos::Determiner
+            && analysis.fine_pos == FinePos::Determiner
+            && analysis.source == AnalysisSource::BuiltinLexicon
+            && analysis.morphology == Morphology::Exact
+    }));
+}
+
+#[test]
 fn full_pos_adds_regular_analysis_for_non_core_predicates() {
     let full_data = LexiconData {
         predicates: vec![PredicateRecord {
