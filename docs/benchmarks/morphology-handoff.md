@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [연결 어미 `-지`와 동형 명사 판정](2026-07-23-connective-ji-nominal-frame.md)
 - [표준 띄어쓰기와 component 버전 계약](2026-07-17-standard-spacing-component-version.md)
 - [전망 종결형 `-(으)리라` recall](2026-07-17-prospective-final-recall.md)
 - [exact `지` predicate 어미 경로 recall](2026-07-17-exact-predicate-ji-recall.md)
@@ -622,3 +623,10 @@ full-POS raw FN은 5→4, FNᶜ는 1→0이 됐고 FP 4·FPᶜ 0과 hard-negativ
 잔여 raw FN 4건은 `gold-alignment-error 1`, `nonstandard-input 3`, 미분류 0건이다.
 표준 문법 구현 목표였던 FNᶜ는 모두 해소됐으며, 이후 recall 작업은 canonical·development 또는
 별도 Robust fixture에서 새 구조 근거가 확인될 때 독립적으로 시작한다.
+
+[연결 어미 `-지`와 동형 명사 판정](2026-07-23-connective-ji-nominal-frame.md)에서
+`주/VV + 지/EC`와 `주지/NNG`가 경쟁하고 다음 token에 경쟁 없는 완성 체언 경로가 이어질 때
+충돌하는 용언 후보만 제외했다. `주지 말자`, 다른 연결 어미, 다른 품사와 내부 component는
+기존 판정을 유지한다. Hard-negative full-POS는 raw `FP 6 / TN 34`에서 `FP 5 / TN 35`,
+contract-adjusted `FPᶜ 1 / TNᶜ 34`에서 `FPᶜ 0 / TNᶜ 35`가 됐다. Canonical,
+development와 두 query matrix의 raw·contract 행렬은 변하지 않았다.
