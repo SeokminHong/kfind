@@ -11,8 +11,12 @@ content를 사용합니다.
 
 품질 차트는 `docs/benchmarks/site-morphology.json`의 승인 snapshot을 D3로
 렌더링합니다. raw와 contract-adjusted 값은 같은 scale에서 함께 표시합니다.
-snapshot에 contract review가 없는 평가군도 동일한 두 값을 유지하고 reviewed
-case 수를 0으로 기록합니다.
+Canonical, query matrix와 Robust는 각각 kfind `embedded/full POS × any/smart`
+4개 profile과 외부 분석기 고정 설정을 나열하고, 같은 fixture에서 측정한 초기화,
+처리량, p95와 peak RSS를 함께 표시합니다. Snapshot에 contract review가 없는
+평가군도 동일한 두 품질 값을 유지하고 reviewed case 수를 0으로 기록합니다.
+형태 질의와 정규식 기준선도 full-POS any와 smart를 품질·batch 시간에서 별도 행으로
+유지합니다.
 
 플레이그라운드는 현재 `kfind-wasm` crate를 browser용으로 빌드합니다. 선택적 smart
 component resource는 `kfind-assets` R2 bucket에 저장하며, 사용자가 요청한 경우에만
