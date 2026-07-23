@@ -381,11 +381,14 @@
   정의한다. 한국어 표기와 코드·영문 표기는 같은 항목에서 대응시키고, 다른 문서의 설명은
   이 정의와 모순되지 않아야 한다.
 - 각 문서 route는 단어장 용어가 본문에서 처음 등장하는 한 곳에만 tooltip과 해당 정의 link를
-  제공한다. 같은 항목의 한국어·영문 별칭은 한 용어로 센다. Tooltip은 hover와 keyboard focus로
-  열 수 있어야 한다. 실제 mouse pointer activation과 keyboard Enter activation은 기존 link 동작을
-  유지한다. Touch·pen pointer activation과 선행 input event가 없는 link activation은 첫 번째에
-  tooltip을 열고, 같은 용어의 다음 activation에 단어장으로 이동한다. 이 구분에 media query나 click
-  metadata를 사용하지 않는다. Code·기존 link·form control과 단어장 자체에는 중첩해서 적용하지
+  제공한다. 같은 항목의 한국어·영문 별칭은 한 용어로 센다. 단, `TP`, `FP`, `TN`, `FN`, `POS`,
+  `F1`처럼 독립해서 읽는 영문 acronym alias는 같은 용어의 일반 별칭이 먼저 나왔어도 acronym별
+  첫 등장에 별도 tooltip을 제공한다. Tooltip은 단어장에 notation이 있는 용어의 notation과 정의를
+  함께 표시하며 acronym의 notation에는 원문 영문 표현을 포함한다. Tooltip은 hover와 keyboard
+  focus로 열 수 있어야 한다. 실제 mouse pointer activation과 keyboard Enter activation은 기존 link
+  동작을 유지한다. Touch·pen pointer activation과 선행 input event가 없는 link activation은 첫
+  번째에 tooltip을 열고, 같은 용어의 다음 activation에 단어장으로 이동한다. 이 구분에 media query나
+  click metadata를 사용하지 않는다. Code·기존 link·form control과 단어장 자체에는 중첩해서 적용하지
   않는다.
 - 일반 UI text는 Pretendard 기반 sans-serif stack을 사용한다. 코드, 명령, query·output label과
   기술 도해의 코드 표기는 기존 monospace stack을 유지한다.
@@ -485,6 +488,10 @@
   source report의 revision과 SHA-256을
   기록하며, 승인된 benchmark가 바뀌면 같은 변경에서 갱신한다. 형태 품질은 수동 검토를 통과한
   표준 맞춤법 canonical과 실제 오류 문장만 남긴 Robust를 별도 section과 chart로 표시한다.
+  Query matrix chart의 인접 본문은 한 source 문장에서 여러 positive query와 같은 품사의 paired
+  negative query를 만드는 fixture 구성, 질의 단위 집계와 canonical 회귀선과 분리된 진단 범위를
+  설명한다. Contract-adjusted confusion matrix는 raw 약어 오른쪽 위에 `c`를 붙인
+  `TPᶜ`·`FPᶜ`·`TNᶜ`·`FNᶜ`로 표기한다.
   Robust chart는 동일한 gold fixture에서 backend별 precision·recall·F1과 실행 비용을 비교하고,
   오류 class, positive/negative 분모, robustness 설정과 표준문 품질에 합산하지 않는다는 점을
   chart subtitle과 인접 본문에 명시한다. 모든 품질 chart는 제품과 외부 분석기의 raw와

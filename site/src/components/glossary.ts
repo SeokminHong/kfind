@@ -326,15 +326,19 @@ const koreanTerms: readonly GlossaryTerm[] = [
     id: 'contract-adjusted-metric',
     category: GlossaryCategory.Quality,
     name: '계약 조정 지표',
-    notation: 'contract-adjusted metric · TPc/TNc/FPc/FNc',
+    notation: 'contract-adjusted metric · TPᶜ/TNᶜ/FPᶜ/FNᶜ',
     definition:
-      '사람이 검토해 제품 계약 안으로 판정한 사례만 TPc, TNc, FPc, FNc에 반영한 품질 지표입니다. 검토되지 않은 fixture에서는 원시 지표와 같은 confusion matrix를 사용하며 reviewed 수는 0입니다.',
+      '사람이 검토해 제품 계약 안으로 판정한 사례만 TPᶜ, TNᶜ, FPᶜ, FNᶜ에 반영한 품질 지표입니다. 검토되지 않은 fixture에서는 원시 지표와 같은 confusion matrix를 사용하며 reviewed 수는 0입니다.',
     example:
-      'raw FN 4, FNc 0이면 네 누락은 관측되었지만 모두 제품 목표 밖이며 계약 안의 누락은 없습니다.',
+      'raw FN 4, FNᶜ 0이면 네 누락은 관측되었지만 모두 제품 목표 밖이며 계약 안의 누락은 없습니다.',
     aliases: [
       'contract-adjusted metric',
       '계약 조정 지표',
       'contract-adjusted',
+      'TPᶜ',
+      'TNᶜ',
+      'FPᶜ',
+      'FNᶜ',
       'TPc',
       'TNc',
       'FPc',
@@ -522,9 +526,9 @@ const englishOverrides: Readonly<Record<string, Partial<GlossaryTerm>>> = {
   'contract-adjusted-metric': {
     name: 'Contract-adjusted metric',
     definition:
-      'A quality metric that counts only human-reviewed in-contract cases in TPc, TNc, FPc, and FNc. A fixture without review uses the raw confusion matrix and reports reviewed as zero.',
+      'A quality metric that counts only human-reviewed in-contract cases in TPᶜ, TNᶜ, FPᶜ, and FNᶜ. A fixture without review uses the raw confusion matrix and reports reviewed as zero.',
     example:
-      'Raw FN 4 with FNc 0 means four misses were observed, all outside the contract, and no in-contract item was missed.',
+      'Raw FN 4 with FNᶜ 0 means four misses were observed, all outside the contract, and no in-contract item was missed.',
   },
   latency: {
     name: 'Latency',

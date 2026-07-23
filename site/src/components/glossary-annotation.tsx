@@ -8,6 +8,7 @@ interface GlossaryAlias {
   readonly alias: string;
   readonly normalized: string;
   readonly requiresAsciiBoundary: boolean;
+  readonly seenKey: string;
   readonly term: GlossaryTerm;
 }
 
@@ -17,6 +18,7 @@ interface GlossaryMatch {
 }
 
 const asciiWordCharacter = /\w/u;
+const acronymAlias = /^(?:[A-Z]{2,}|[A-Z]\d)(?:ᶜ)?$/u;
 
 function buildAliases(
   terms: readonly GlossaryTerm[],
@@ -27,6 +29,7 @@ function buildAliases(
         alias,
         normalized: alias.toLowerCase(),
         requiresAsciiBoundary: /[A-Za-z]/u.test(alias),
+        seenKey: acronymAlias.test(alias) ? `${term.id}:${alias}` : term.id,
         term,
       })),
     )
@@ -72,7 +75,7 @@ function findNextMatch(
   let nextMatch: GlossaryMatch | undefined;
 
   for (const alias of aliases) {
-    if (seenTerms.has(alias.term.id)) {
+    if (seenTerms.has(alias.seenKey)) {
       continue;
     }
 
@@ -112,11 +115,11 @@ export function annotateGlossaryText(
     }
 
     nodes.push(
-      <GlossaryTooltip key={alias.term.id} term={alias.term}>
+      <GlossaryTooltip key={alias.seenKey} term={alias.term}>
         {text.slice(index, endIndex)}
       </GlossaryTooltip>,
     );
-    seenTerms.add(alias.term.id);
+    seenTerms.add(alias.seenKey);
     startIndex = endIndex;
     match = findNextMatch(text, normalizedText, seenTerms, aliases, startIndex);
   }
