@@ -44,6 +44,7 @@ npx @kfind/kfind 걷다 README.md
 pnpm dlx @kfind/kfind 걷다 README.md
 yarn dlx @kfind/kfind 걷다 README.md
 npx @kfind/kfind --pos verb --json 걷다 src
+npx @kfind/kfind 'v:걷다|n:사용자' src
 ```
 
 `yarn dlx`는 Yarn 2 이상에서 사용할 수 있습니다. 세 일회 실행 명령은 모두

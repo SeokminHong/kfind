@@ -55,6 +55,16 @@ try {
   assert.equal(component.status, 0, component.stderr);
   assert.equal(JSON.parse(component.stdout.trim()).surface, "권한을");
 
+  const disjunction = execute([
+    "lit:걸어|lit:권한을",
+    path.join(fixtureDirectory, "input.txt"),
+  ]);
+  assert.equal(disjunction.status, 0, disjunction.stderr);
+  assert.match(
+    disjunction.stdout,
+    /input\.txt:1:7:걸어\n.*input\.txt:2:1:권한을\n$/s,
+  );
+
   const stdin = execute(["--literal", "걸어"], {
     input: "다시 걸어 보자.\n",
   });
@@ -76,6 +86,7 @@ try {
   const help = execute(["--help"]);
   assert.equal(help.status, 0, help.stderr);
   assert.match(help.stdout, /kfind \[옵션\]/);
+  assert.match(help.stdout, /kfind '걷다\|사용자' src/);
 
   const version = execute(["--version"]);
   assert.equal(version.status, 0, version.stderr);

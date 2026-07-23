@@ -928,6 +928,9 @@
   stdin을 검색한다. 디렉터리는 결정적인 경로 순서로 재귀 순회하며 `.git`, `node_modules`,
   `target`과 site build 산출물은 기본 제외한다. symlink는 따라가지 않는다. UTF-8 text만
   검색하고 NUL이 있거나 UTF-8 decode에 실패한 파일은 진단 뒤 건너뛴다.
+- npm CLI query는 native CLI와 같은 6절 문법을 사용한다. 도움말은 공백 phrase와 `|`
+  disjunction을 구분하고, shell이 `|`를 pipe로 해석하지 않도록 query 전체를 따옴표로 묶는
+  예시를 제공한다.
 - npm CLI는 package의 enriched predicate를 초기화하고, compiled query가 component 구조를
   요구할 때 package의 compact component asset을 읽어 같은 query를 다시 compile한다. full POS는
   package에 포함하지 않으므로 native CLI의 full 사전 profile이 필요한 검색은 Homebrew 또는
@@ -1332,6 +1335,15 @@ false positive를 제거해야 한다. 후보가 너무 많으면 검색 path·g
 품사 태그 접두사
 literal 강제
 `|` disjunction
+```
+
+Query 결합 문법은 다음과 같다. `WS`는 따옴표와 escape 밖의 하나 이상 공백이고 `OWS`는
+같은 위치의 선택적 공백이다.
+
+```text
+query       = atom / phrase / disjunction
+phrase      = atom 1*(WS atom)
+disjunction = atom 1*(OWS "|" OWS atom)
 ```
 
 예:
