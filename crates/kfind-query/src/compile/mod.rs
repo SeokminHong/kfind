@@ -5,8 +5,8 @@ use crate::lexicons::{data_fine_pos, predicate_from_derivation};
 use crate::{
     Analysis, AnalysisSource, AtomPlan, CandidateConsumption, CandidateLeftContext,
     CandidateProgram, CompileError, CompileErrorKind, CompileOptions, CoreMapping, ExpandMode,
-    LexiconQueryAnalyzer, Morphology, Origin, QueryAnalyzer, QueryAtom, QueryDiagnostic, QueryPlan,
-    parse_query,
+    LexiconQueryAnalyzer, Morphology, Origin, QueryAnalyzer, QueryAtom, QueryComposition,
+    QueryDiagnostic, QueryPlan, parse_query,
 };
 use kfind_data::{
     DICTIONARY_ADVERBIAL_I_RULE_ID, DICTIONARY_CONJUGATION_RULE_ID,
@@ -276,9 +276,21 @@ pub fn compile_query(
             excluded_rule_ids: excluded_rules.into_boxed_slice(),
         });
     }
+    let atom_plans = match ast.composition {
+        QueryComposition::Phrase => atom_plans,
+        QueryComposition::Disjunction => vec![merge_disjunction_atoms(atom_plans)?],
+    };
+    if ast.composition == QueryComposition::Disjunction {
+        for diagnostic in &mut diagnostics {
+            if let QueryDiagnostic::UnregisteredDaLiteralOnly { atom_index, .. } = diagnostic {
+                *atom_index = 0;
+            }
+        }
+    }
     Ok(QueryPlan {
         raw_query: source.into(),
         atoms: atom_plans,
+        composition: ast.composition,
         phrase_policy: ast.phrase,
         normalization: options.normalization,
         limits: options.limits,
@@ -288,6 +300,47 @@ pub fn compile_query(
         auxiliary_particle_rules: allowed_auxiliary_particle_rules,
         predicate_ending_initial_particle_rules: allowed_predicate_ending_initial_particle_rules,
         estimated_matcher_bytes,
+    })
+}
+
+fn merge_disjunction_atoms(atoms: Vec<AtomPlan>) -> Result<AtomPlan, CompileError> {
+    let boundary = atoms
+        .first()
+        .expect("a parsed disjunction has at least two atoms")
+        .boundary;
+    let analysis_count = atoms.iter().map(|atom| atom.analyses.len()).sum::<usize>();
+    if analysis_count > usize::from(u16::MAX) {
+        return Err(CompileError::new(
+            None,
+            CompileErrorKind::TooManyAnalyses {
+                actual: analysis_count,
+                limit: usize::from(u16::MAX),
+            },
+        ));
+    }
+
+    let program_count = atoms.iter().map(|atom| atom.programs.len()).sum();
+    let mut analyses = Vec::with_capacity(analysis_count);
+    let mut programs = Vec::with_capacity(program_count);
+    for atom in atoms {
+        let analysis_offset =
+            u16::try_from(analyses.len()).expect("disjunction analysis count was bounded to u16");
+        for mut program in atom.programs {
+            for origin in &mut program.origins {
+                origin.analysis_index = origin
+                    .analysis_index
+                    .checked_add(analysis_offset)
+                    .expect("disjunction analysis count was bounded to u16");
+            }
+            programs.push(program);
+        }
+        analyses.extend(atom.analyses);
+    }
+
+    Ok(AtomPlan {
+        analyses,
+        programs,
+        boundary,
     })
 }
 

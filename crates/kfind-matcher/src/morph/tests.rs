@@ -10,7 +10,8 @@ use kfind_morph::{
 use kfind_query::{
     Analysis, AnalysisSource, AtomPlan, BoundaryPolicy, BoundaryProof, CandidateConsumption,
     CandidateDecision, CandidateLeftContext, CandidateProgram, CoreMapping, Morphology,
-    NominalMorphology, Origin, PhrasePolicy, PlanLimits, QueryPlan, StructuralConstraint,
+    NominalMorphology, Origin, PhrasePolicy, PlanLimits, QueryComposition, QueryPlan,
+    StructuralConstraint,
 };
 use unicode_normalization::UnicodeNormalization;
 
@@ -418,6 +419,7 @@ fn component_context_without_a_resource_is_a_build_error() {
     let plan = Arc::new(QueryPlan {
         raw_query: "test".into(),
         atoms: vec![atom(BoundaryPolicy::Smart, vec![branch])],
+        composition: QueryComposition::Phrase,
         phrase_policy: PhrasePolicy { max_gap: 24 },
         normalization: kfind_query::NormalizationMode::Nfc,
         limits: PlanLimits::default(),
@@ -587,6 +589,7 @@ fn verification_counters_treat_accepted_components_as_verified_programs() {
     let plan = QueryPlan {
         raw_query: "학교".into(),
         atoms: vec![atom],
+        composition: QueryComposition::Phrase,
         phrase_policy: PhrasePolicy { max_gap: 24 },
         normalization: kfind_query::NormalizationMode::Nfc,
         limits: PlanLimits::default(),
@@ -944,6 +947,7 @@ fn matcher(atoms: Vec<AtomPlan>, max_gap: usize) -> MorphMatcher {
     MorphMatcher::new(Arc::new(QueryPlan {
         raw_query: "test".into(),
         atoms,
+        composition: QueryComposition::Phrase,
         phrase_policy: PhrasePolicy { max_gap },
         normalization: kfind_query::NormalizationMode::Nfc,
         limits: PlanLimits::default(),
@@ -1000,6 +1004,7 @@ fn component_matcher_with_analysis_and_particle_rules(
     let plan = QueryPlan {
         raw_query: anchor.into(),
         atoms: vec![atom],
+        composition: QueryComposition::Phrase,
         phrase_policy: PhrasePolicy { max_gap: 24 },
         normalization: kfind_query::NormalizationMode::Nfc,
         limits: PlanLimits::default(),
@@ -1032,6 +1037,7 @@ fn contextual_matcher(
     let plan = QueryPlan {
         raw_query: "test".into(),
         atoms: vec![query_atom],
+        composition: QueryComposition::Phrase,
         phrase_policy: PhrasePolicy { max_gap: 24 },
         normalization: kfind_query::NormalizationMode::Nfc,
         limits: PlanLimits::default(),
@@ -1061,6 +1067,7 @@ fn structural_predicate_matcher(
     let plan = QueryPlan {
         raw_query: "test".into(),
         atoms: vec![query_atom],
+        composition: QueryComposition::Phrase,
         phrase_policy: PhrasePolicy { max_gap: 24 },
         normalization: kfind_query::NormalizationMode::Nfc,
         limits: PlanLimits::default(),

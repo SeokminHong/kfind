@@ -8,12 +8,16 @@ use kfind_morph::{
     PredicateStemClass, QueryMorphPattern, RuleId,
 };
 
-use crate::{Analysis, BoundaryPolicy, Morphology, NormalizationMode, PhrasePolicy, PlanLimits};
+use crate::{
+    Analysis, BoundaryPolicy, Morphology, NormalizationMode, PhrasePolicy, PlanLimits,
+    QueryComposition,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct QueryPlan {
     pub raw_query: Box<str>,
     pub atoms: Vec<AtomPlan>,
+    pub composition: QueryComposition,
     pub phrase_policy: PhrasePolicy,
     pub normalization: NormalizationMode,
     pub limits: PlanLimits,

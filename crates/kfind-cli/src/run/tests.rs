@@ -69,6 +69,17 @@ fn piped_stdin_is_the_default_and_sets_match_exit_status() {
 }
 
 #[test]
+fn disjunction_reports_lines_matching_either_alternative() {
+    let args = Args::try_parse_from(["kfind", "--embedded", "lit:alpha | lit:beta"]).unwrap();
+
+    let (status, stdout, stderr) = run(args, b"alpha\nnone\nbeta\n", false);
+
+    assert_eq!(status, ExitStatus::Match);
+    assert_eq!(stdout, b"alpha\nbeta\n");
+    assert!(stderr.is_empty());
+}
+
+#[test]
 fn a_file_without_matches_returns_one() {
     let temp = TempDir::new();
     let path = temp.write("sample.txt", "멈췄다.\n");

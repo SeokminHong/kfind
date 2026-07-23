@@ -110,17 +110,19 @@ printf '길을 걸었다.\n' | kfind 걷다`}</code>
         ),
       },
       {
-        title: '품사와 구 검색',
+        title: '품사, 구와 대안 검색',
         body: (
           <>
             <p>
               사전 분석이 중의적이거나 입력의 문법 역할을 알고 있다면
               <code>--pos</code>를 지정합니다. 구 검색은 각 atom 앞에 품사
               태그를 붙입니다. 따옴표로 묶은 atom은 공백과 문장부호를 포함한
-              literal로 처리됩니다.
+              literal로 처리됩니다. 여러 atom 중 하나를 찾으려면 <code>|</code>
+              를 사용합니다.
             </p>
             <pre>
               <code>{`kfind --pos verb 걷다 src
+kfind 'v:걷다 | n:사용자 | n:검증' src
 kfind 'n:사용자 v:검증하다' src
 kfind 'det:새 n:기능' docs
 kfind '"Hello, world!"' README.md`}</code>
@@ -130,7 +132,11 @@ kfind '"Hello, world!"' README.md`}</code>
               <code>v:</code>, <code>adj:</code>, <code>det:</code>,{' '}
               <code>adv:</code>, <code>j:</code>, <code>intj:</code>,{' '}
               <code>lit:</code>을 지원합니다. 전역 품사와 atom 품사가 다르면
-              query compile 오류가 발생합니다.
+              query compile 오류가 발생합니다. <code>|</code>가 있는 query는
+              shell pipe 해석을 막기 위해 전체를 따옴표로 묶습니다. 각
+              alternative는 하나의 atom이며 공백 구와 섞을 수 없습니다. Literal{' '}
+              <code>|</code>는 <code>\|</code> 또는 <code>&quot;|&quot;</code>로
+              작성합니다.
             </p>
           </>
         ),
@@ -270,17 +276,19 @@ printf '길을 걸었다.\n' | kfind 걷다`}</code>
         ),
       },
       {
-        title: 'POS and phrase queries',
+        title: 'POS, phrase, and alternative queries',
         body: (
           <>
             <p>
               Use <code>--pos</code> when the lexicon analysis is ambiguous or
               the grammatical role is known. Phrase queries attach a POS tag to
               each atom. A quoted atom is treated as a literal containing spaces
-              or punctuation.
+              or punctuation. Use <code>|</code> to find any one of multiple
+              atoms.
             </p>
             <pre>
               <code>{`kfind --pos verb 걷다 src
+kfind 'v:걷다 | n:사용자 | n:검증' src
 kfind 'n:사용자 v:검증하다' src
 kfind 'det:새 n:기능' docs
 kfind '"Hello, world!"' README.md`}</code>
@@ -290,7 +298,11 @@ kfind '"Hello, world!"' README.md`}</code>
               <code>num:</code>, <code>v:</code>, <code>adj:</code>,{' '}
               <code>det:</code>, <code>adv:</code>, <code>j:</code>,{' '}
               <code>intj:</code>, and <code>lit:</code>. Conflicting global and
-              atom POS values are compile errors.
+              atom POS values are compile errors. Quote a query containing{' '}
+              <code>|</code> so the shell does not treat it as a pipe. Each
+              alternative is one atom and cannot be mixed with phrase atoms.
+              Escape or quote a literal pipe as <code>\|</code> or{' '}
+              <code>&quot;|&quot;</code>.
             </p>
           </>
         ),

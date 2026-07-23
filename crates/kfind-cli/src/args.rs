@@ -85,7 +85,7 @@ pub enum AgentArg {
     args_conflicts_with_subcommands = true
 )]
 pub struct Args {
-    /// Korean lemma, short phrase, or tagged query.
+    /// Korean lemma, `|` alternatives, short phrase, or tagged query.
     #[arg(required_unless_present_any = ["init", "check_data"])]
     pub query: Option<String>,
 

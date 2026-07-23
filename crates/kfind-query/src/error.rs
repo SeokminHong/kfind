@@ -60,6 +60,8 @@ pub enum QueryErrorKind {
         actual: usize,
         limit: usize,
     },
+    MissingDisjunctionOperand,
+    MixedPhraseAndDisjunction,
     ConflictingPos {
         global: CoarsePos,
         tagged: CoarsePos,
@@ -83,6 +85,12 @@ impl fmt::Display for QueryErrorKind {
             }
             Self::TooManyAtoms { actual, limit } => {
                 write!(formatter, "query has {actual} atoms; limit is {limit}")
+            }
+            Self::MissingDisjunctionOperand => {
+                formatter.write_str("`|` requires an atom on both sides")
+            }
+            Self::MixedPhraseAndDisjunction => {
+                formatter.write_str("phrase atoms and `|` alternatives cannot be mixed")
             }
             Self::ConflictingPos { global, tagged } => write!(
                 formatter,

@@ -115,6 +115,11 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
 atom 1 spans ─┼─ ordered join ─ max-gap ─ phrase span
 atom 2 spans ─┘`}</code>
             </pre>
+            <p>
+              <code>|</code> alternative는 하나의 논리 atom으로 컴파일합니다. 각
+              alternative의 고유 anchor를 한 matcher가 함께 scan하고, 같은
+              span을 만든 alternative의 provenance는 origin으로 합칩니다.
+            </p>
           </>
         ),
       },
@@ -261,6 +266,11 @@ atom 2 spans ─┘`}</code>
 atom 1 spans ─┼─ ordered join ─ max-gap ─ phrase span
 atom 2 spans ─┘`}</code>
             </pre>
+            <p>
+              <code>|</code> alternatives compile into one logical atom. One
+              matcher scans their unique anchors together and merges provenance
+              when alternatives produce the same span.
+            </p>
           </>
         ),
       },

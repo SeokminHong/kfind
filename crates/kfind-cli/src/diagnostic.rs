@@ -208,6 +208,14 @@ fn write_query_error(
             language.select("query atom count", "쿼리 atom 수"),
             language.select("limit is", "제한은")
         )?,
+        QueryErrorKind::MissingDisjunctionOperand => formatter.write_str(language.select(
+            "`|` requires an atom on both sides",
+            "`|` 양쪽에는 atom이 있어야 합니다",
+        ))?,
+        QueryErrorKind::MixedPhraseAndDisjunction => formatter.write_str(language.select(
+            "phrase atoms and `|` alternatives cannot be mixed",
+            "phrase atom과 `|` alternative를 섞을 수 없습니다",
+        ))?,
         QueryErrorKind::ConflictingPos { global, tagged } => write!(
             formatter,
             "{} {} / {}",

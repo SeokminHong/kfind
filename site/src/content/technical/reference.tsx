@@ -33,7 +33,8 @@ kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src`,
           {
             code: `npx @kfind/kfind 걷다 README.md
 pnpm dlx @kfind/kfind --pos verb 걷다 src
-yarn dlx @kfind/kfind --json 권한 docs`,
+yarn dlx @kfind/kfind --json 권한 docs
+npx @kfind/kfind 'v:걷다|n:사용자' src`,
           },
         ),
         section('기능 차이', [
@@ -68,7 +69,8 @@ kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src`,
           {
             code: `npx @kfind/kfind 걷다 README.md
 pnpm dlx @kfind/kfind --pos verb 걷다 src
-yarn dlx @kfind/kfind --json 권한 docs`,
+yarn dlx @kfind/kfind --json 권한 docs
+npx @kfind/kfind 'v:걷다|n:사용자' src`,
           },
         ),
         section('Feature differences', [
@@ -83,18 +85,30 @@ yarn dlx @kfind/kfind --json 권한 docs`,
       eyebrow: '참조 · 질의',
       title: 'query 언어',
       summary:
-        'Query parser는 공백 atom, 품사 prefix, 따옴표와 escape를 결정적으로 해석합니다.',
+        'Query parser는 atom, phrase, disjunction, 품사 prefix, 따옴표와 escape를 결정적으로 해석합니다.',
       sections: [
-        section('문법', [
-          'Query는 하나 이상의 atom입니다. Bare atom의 공백은 구 경계이고 quoted atom 안의 공백은 문자열 일부입니다.',
-          'Unicode normalization과 형태 expansion은 lexer 이후 compile option으로 적용합니다.',
-        ]),
+        section(
+          '문법',
+          [
+            'Query는 단일 atom, 공백으로 연결한 phrase 또는 `|`로 연결한 disjunction입니다. Quoted atom 안의 공백과 `|`는 문자열 일부입니다.',
+            'Unicode normalization과 형태 expansion은 lexer 이후 compile option으로 적용합니다.',
+          ],
+          {
+            code: `query       = atom / phrase / disjunction
+phrase      = atom 1*(WS atom)
+disjunction = atom 1*(OWS "|" OWS atom)`,
+          },
+        ),
         section('atom 태그', [
           '`n`, `pro`, `num`, `v`, `adj`, `det`, `adv`, `j`, `intj`, `lit` 뒤의 colon이 품사 태그입니다. 태그는 해당 atom에만 적용됩니다.',
           '전역 POS와 구체 atom 태그가 다르면 compile 오류입니다.',
         ]),
+        section('대안', [
+          '`|` 앞뒤 공백은 선택 사항이고 각 alternative는 정확히 하나의 atom입니다. Phrase와 disjunction은 한 query에서 섞지 않습니다.',
+          'Literal `|`는 `\\|` 또는 `"|"`로 작성합니다. CLI shell에서는 query 전체를 따옴표로 묶습니다.',
+        ]),
         section('구문 오류', [
-          '빈 query, 닫히지 않은 quote, 마지막 backslash, 알 수 없는 tag와 빈 tag body를 거부합니다.',
+          '빈 query, 닫히지 않은 quote, 마지막 backslash, 알 수 없는 tag, 빈 tag body, 피연산자 없는 `|`와 phrase 혼합을 거부합니다.',
           '오류는 byte 위치와 원인을 포함하며 부분 plan을 실행하지 않습니다.',
         ]),
       ],
@@ -103,18 +117,30 @@ yarn dlx @kfind/kfind --json 권한 docs`,
       eyebrow: 'REFERENCE · QUERY',
       title: 'Query language',
       summary:
-        'The parser deterministically interprets whitespace atoms, POS prefixes, quotes, and escapes.',
+        'The parser deterministically interprets atoms, phrases, disjunctions, POS prefixes, quotes, and escapes.',
       sections: [
-        section('Syntax', [
-          'A query contains one or more atoms. Whitespace in bare text creates phrase boundaries; whitespace in quotes belongs to one atom.',
-          'Unicode normalization and morphology expansion apply as compile options after lexing.',
-        ]),
+        section(
+          'Syntax',
+          [
+            'A query is one atom, a whitespace-connected phrase, or a `|`-connected disjunction. Whitespace and `|` inside a quoted atom belong to its text.',
+            'Unicode normalization and morphology expansion apply as compile options after lexing.',
+          ],
+          {
+            code: `query       = atom / phrase / disjunction
+phrase      = atom 1*(WS atom)
+disjunction = atom 1*(OWS "|" OWS atom)`,
+          },
+        ),
         section('Atom tags', [
           'A colon after `n`, `pro`, `num`, `v`, `adj`, `det`, `adv`, `j`, `intj`, or `lit` marks POS. It applies only to that atom.',
           'A concrete global POS conflicting with an atom tag is a compile error.',
         ]),
+        section('Alternatives', [
+          'Whitespace around `|` is optional, and every alternative is exactly one atom. A query cannot mix phrase and disjunction composition.',
+          'Write a literal `|` as `\\|` or `"|"`. Quote the whole query in a CLI shell.',
+        ]),
         section('Syntax errors', [
-          'Empty queries, unclosed quotes, trailing backslashes, unknown tags, and empty tagged bodies are rejected.',
+          'Empty queries, unclosed quotes, trailing backslashes, unknown tags, empty tagged bodies, operand-free `|`, and phrase mixing are rejected.',
           'Errors include byte location and cause, and no partial plan executes.',
         ]),
       ],

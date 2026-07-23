@@ -3,7 +3,8 @@ use std::io::{self, Write};
 
 use kfind_morph::{CoarsePos, FinePos, LexicalAlternation};
 use kfind_query::{
-    AnalysisSource, Morphology, NormalizationMode, QueryDiagnostic, QueryPlan, VerifiedSpan,
+    AnalysisSource, Morphology, NormalizationMode, QueryComposition, QueryDiagnostic, QueryPlan,
+    VerifiedSpan,
 };
 use kfind_search::SearchLine;
 
@@ -21,6 +22,15 @@ pub(super) fn write_query_plan(
     write_label(writer, language, "query", "쿼리", 0)?;
     write_safe_bytes(writer, plan.raw_query.as_bytes())?;
     writer.write_all(b"\n")?;
+    write_label(writer, language, "composition", "결합", 0)?;
+    writeln!(
+        writer,
+        "{}",
+        match plan.composition {
+            QueryComposition::Phrase => "phrase",
+            QueryComposition::Disjunction => "disjunction",
+        }
+    )?;
     if let Some(full_pos) = full_pos {
         write_full_pos_status(writer, full_pos, language)?;
     }
@@ -70,8 +80,10 @@ pub(super) fn write_query_plan(
         write_label(writer, language, "consumption_states", "소비_상태_수", 2)?;
         writeln!(writer, "{consumption_states}")?;
     }
-    write_label(writer, language, "max_gap", "최대_거리", 0)?;
-    writeln!(writer, "{}", plan.phrase_policy.max_gap)?;
+    if plan.composition == QueryComposition::Phrase {
+        write_label(writer, language, "max_gap", "최대_거리", 0)?;
+        writeln!(writer, "{}", plan.phrase_policy.max_gap)?;
+    }
     write_label(writer, language, "normalization", "정규화", 0)?;
     writeln!(writer, "{}", normalization_label(plan.normalization))?;
     write_label(

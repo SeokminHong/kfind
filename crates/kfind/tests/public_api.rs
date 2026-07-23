@@ -17,6 +17,37 @@ fn stable_facade_exposes_named_match_provenance() {
 }
 
 #[test]
+fn disjunction_finds_each_alternative_in_source_order() {
+    let engine = Engine::new().unwrap();
+    let matcher = engine
+        .compile("lit:alpha|lit:beta", &CompileOptions::default())
+        .unwrap();
+
+    let matches = matcher.find_all(b"beta then alpha");
+
+    assert_eq!(matches.len(), 2);
+    assert_eq!(matches[0].span, 0.."beta".len());
+    assert_eq!(matches[1].span, "beta then ".len().."beta then alpha".len());
+}
+
+#[test]
+fn disjunction_merges_provenance_for_the_same_span() {
+    let engine = Engine::new().unwrap();
+    let matcher = engine
+        .compile("lit:alpha|lit:alpha", &CompileOptions::default())
+        .unwrap();
+
+    let matches = matcher.find_all(b"alpha");
+    let analysis_indices = matches[0].atoms[0]
+        .origins
+        .iter()
+        .map(|origin| origin.analysis_index)
+        .collect::<Vec<_>>();
+
+    assert_eq!(analysis_indices, vec![0, 1]);
+}
+
+#[test]
 fn stable_facade_names_option_and_error_field_types() {
     let options = CompileOptions {
         phrase: PhrasePolicy::default(),

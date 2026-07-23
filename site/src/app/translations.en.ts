@@ -97,7 +97,8 @@ export const englishTranslation: Readonly<
   'navigation.section.getting_started.cli_installation': 'CLI installation',
   'navigation.section.getting_started.first_search': 'Lemma search',
   'navigation.section.getting_started.npm_installation': 'npm installation',
-  'navigation.section.getting_started.pos_phrase': 'POS and phrase search',
+  'navigation.section.getting_started.pos_phrase':
+    'POS, phrase, and alternative search',
   'navigation.section.glossary.execution': 'Execution',
   'navigation.section.glossary.grammar': 'Korean grammar',
   'navigation.section.glossary.quality': 'Quality metrics',
@@ -113,7 +114,7 @@ export const englishTranslation: Readonly<
   'navigation.section.options.expansion': 'Morphological expansion',
   'navigation.section.options.input_output': 'Input and output',
   'navigation.section.options.normalization_phrase':
-    'Normalization and phrase distance',
+    'Normalization, phrase distance, and alternatives',
   'navigation.section.options.pos': 'Part-of-speech system',
   'navigation.section.options.query_plan': 'Default query plan',
   'navigation.section.overview.grammar_scope': 'Korean grammar scope',

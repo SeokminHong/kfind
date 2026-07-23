@@ -20,7 +20,10 @@ POS lexicon when available.
 .EX
 kfind 걷다 src
 kfind 사용자 src docs
+kfind '걷다 | 사용자 | 검증하다' src docs
 .EE
+Quote a query containing | so the shell does not interpret it as a pipe. Each
+alternative is one atom; phrase atoms and alternatives cannot be mixed.
 Standard text results with terminal stdin and stdout open in a built-in TUI when
 the search starts and add completed rows progressively. Long match lines expand
 to one row per verified match, with both sides truncated to keep the target
@@ -178,6 +181,7 @@ mod tests {
         assert!(first_contents[0].contains("Fast Korean lemma"));
         assert!(first_contents[0].contains(".SH WORKFLOWS"));
         assert!(first_contents[0].contains(".SS Interactive use"));
+        assert!(first_contents[0].contains("걷다 | 사용자 | 검증하다"));
         assert!(first_contents[0].contains("Use --no-pager for direct"));
         assert!(first_contents[0].contains(".SS Agent automation"));
         assert!(first_contents[0].contains(".SS Agent skill setup"));
@@ -192,6 +196,7 @@ mod tests {
             "--pos verb",
             "--literal",
             "--max-gap",
+            "v:걷다 | n:사용자",
             "--glob",
             "type: \"match\"",
             "offset_unit",

@@ -35,6 +35,9 @@ const CONTEXT_REPETITIONS: usize = 16_384;
 const UNIQUE_CONTEXT_REPETITIONS: usize = CONTEXT_REPETITIONS;
 const PHRASE_8_ATOMS_QUERY: &str =
     "n:사용자 n:권한 v:검증하다 adj:예쁘다 det:새 adv:빨리 n:기술 v:걷다";
+const DISJUNCTION_8_ATOMS_QUERY: &str =
+    "n:사용자|n:권한|v:검증하다|adj:예쁘다|det:새|adv:빨리|n:기술|v:걷다";
+const DISJUNCTION_SCAN_QUERY: &str = "lit:걸어|lit:사용자는";
 const SHORT_MATCHING_TEXT: &[u8] = "길을 걸었다.".as_bytes();
 
 fn query_compile(criterion: &mut Criterion) {
@@ -47,6 +50,9 @@ fn query_compile(criterion: &mut Criterion) {
     let phrase = compile_query(PHRASE_8_ATOMS_QUERY, &options, &analyzer)
         .expect("phrase benchmark query must compile");
     assert_eq!(phrase.atoms.len(), 8);
+    let disjunction = compile_query(DISJUNCTION_8_ATOMS_QUERY, &options, &analyzer)
+        .expect("disjunction benchmark query must compile");
+    assert_eq!(disjunction.atoms.len(), 1);
 
     let mut group = criterion.benchmark_group("query_compile");
     group.bench_function("single_atom", |bencher| {
@@ -67,6 +73,16 @@ fn query_compile(criterion: &mut Criterion) {
                 black_box(&analyzer),
             )
             .expect("phrase benchmark query must compile")
+        });
+    });
+    group.bench_function("disjunction_8_atoms", |bencher| {
+        bencher.iter(|| {
+            compile_query(
+                black_box(DISJUNCTION_8_ATOMS_QUERY),
+                black_box(&options),
+                black_box(&analyzer),
+            )
+            .expect("disjunction benchmark query must compile")
         });
     });
     group.finish();
@@ -96,6 +112,23 @@ fn matcher_scan(criterion: &mut Criterion) {
     group.throughput(Throughput::Bytes(corpus.len() as u64));
     group.bench_function("scan_deterministic_corpus", |bencher| {
         bencher.iter(|| matcher.find_all_with_meta(black_box(&corpus)));
+    });
+
+    let disjunction_plan = compile_query(
+        DISJUNCTION_SCAN_QUERY,
+        &CompileOptions::default(),
+        &analyzer,
+    )
+    .expect("disjunction scan benchmark query must compile");
+    let disjunction_matcher = MorphMatcher::new(Arc::new(disjunction_plan))
+        .expect("disjunction scan benchmark matcher must build");
+    assert_eq!(
+        disjunction_matcher.find_all_with_meta(&corpus).len(),
+        CORPUS_LINES
+    );
+    group.throughput(Throughput::Bytes(corpus.len() as u64));
+    group.bench_function("disjunction_find_all", |bencher| {
+        bencher.iter(|| disjunction_matcher.find_all_with_meta(black_box(&corpus)));
     });
 
     let phrase_plan = compile_query(PHRASE_QUERY, &CompileOptions::default(), &analyzer)

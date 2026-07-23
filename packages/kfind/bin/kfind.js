@@ -36,6 +36,11 @@ function usage() {
 사용법:
   kfind [옵션] <질의> [경로 ...]
 
+질의:
+  공백은 순서 구, |는 대안 검색입니다.
+  shell에서 |를 사용할 때는 전체 질의를 따옴표로 묶습니다:
+  kfind '걷다|사용자' src
+
 옵션:
   --expand <literal|inflection|derivation>
   --boundary <smart|token|any>

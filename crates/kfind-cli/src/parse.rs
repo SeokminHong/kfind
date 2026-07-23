@@ -14,8 +14,8 @@ const HELP_TEMPLATE_KOREAN: &str =
 const HELP_TEXT: &[(&str, &str, &str)] = &[
     (
         "query",
-        "Korean lemma, short phrase, or tagged query.",
-        "한국어 표제어, 짧은 구 또는 품사 태그 쿼리.",
+        "Korean lemma, `|` alternatives, short phrase, or tagged query.",
+        "한국어 표제어, `|` 대안, 짧은 구 또는 품사 태그 쿼리.",
     ),
     (
         "paths",
