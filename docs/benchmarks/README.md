@@ -50,6 +50,36 @@ KFIND_BENCH_KEEP_CORPUS=1 KFIND_BENCH_REUSE_CORPUS=1 scripts/benchmark-1gib.sh
 
 이미 빌드한 release binary를 측정할 때는 `KFIND_BENCH_SKIP_BUILD=1`, `KFIND_BENCH_KFIND_BIN`, `KFIND_BENCH_GENERATOR_BIN`, `KFIND_BENCH_REVISION`을 함께 지정한다. 보고서의 revision과 실제 binary가 일치하도록 호출자가 보장해야 한다.
 
+## 형태 질의와 정규식 검색 기준선
+
+동일한 7개 명시적 품사 질의를 full-POS smart 형태 검색, 활용형 열거 정규식과 짧은 어간
+정규식으로 실행한다.
+
+```console
+scripts/benchmark-search-baseline.sh
+```
+
+고정 fixture는 질의마다 positive 8개와 negative 8개를 두며 held-out 품질 fixture가 아닌
+검색 전략 진단용 constructed fixture다. 품질은 raw와 contract-adjusted TP·TN·FP·FN,
+precision·recall·F1을 모두 기록한다. 같은 정규식을 실행한 `rg`와 `grep`의 matching line
+집합이 다르면 측정을 실패시키며, 품질은 정규식 전략별로 합치고 실행시간은 도구별로 분리한다.
+
+성능은 112개 문장을 반복한 단일 파일에서 7개 질의를 각각 fresh process로 실행한다.
+방법 순서를 순환하며 warm-up 2회 뒤 10회 측정하고 batch wall time의 median·min·max·p95와
+effective MiB/s를 기록한다. 기본 보고서는
+`target/benchmark/search-baseline/<revision>/report.json`과 `report.md`다.
+`KFIND_SEARCH_BASELINE_RUNS`, `KFIND_SEARCH_BASELINE_WARMUP`,
+`KFIND_SEARCH_BASELINE_REPETITIONS`로 smoke 설정을 지정할 수 있지만 승인 보고서는 기본값을
+사용한다.
+
+사이트 snapshot은 승인한 JSON 보고서에서 다음 명령으로 생성한다.
+
+```console
+python3 tools/search-baseline/export_site_snapshot.py \
+  target/benchmark/search-baseline/REVISION/report.json \
+  docs/benchmarks/site-search-baseline.json
+```
+
 ## 경로 정렬 출력
 
 `--sort path`의 결과 메모리, 정렬 조정 비용과 입력 편중을 분리해 측정한다.

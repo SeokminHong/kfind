@@ -1,4 +1,7 @@
-import type { QualityChartRow } from '../components/quality-chart';
+import type {
+  DurationChartRow,
+  QualityChartRow,
+} from '../components/quality-chart';
 
 import { DocumentLocale, useDocumentLocale } from '../app/i18n';
 import {
@@ -6,8 +9,9 @@ import {
   DocumentSection,
   PageIntro,
 } from '../components/document';
-import { QualityChart } from '../components/quality-chart';
+import { DurationChart, QualityChart } from '../components/quality-chart';
 import benchmarkSnapshotJson from '../generated-benchmark/site-morphology.json';
+import searchBaselineSnapshotJson from '../generated-benchmark/site-search-baseline.json';
 
 export { createLocationDocumentMeta as meta } from '../app/metadata';
 
@@ -78,7 +82,59 @@ interface PerformanceResult {
   readonly warmup_runs: number;
 }
 
+interface SearchBaselineMetric {
+  readonly f1_percent: number;
+  readonly fn: number;
+  readonly fp: number;
+  readonly precision_percent: number;
+  readonly recall_percent: number;
+  readonly tn: number;
+  readonly tp: number;
+}
+
+interface SearchBaselineQuality {
+  readonly contract_adjusted: SearchBaselineMetric;
+  readonly id: string;
+  readonly raw: SearchBaselineMetric;
+}
+
+interface SearchBaselinePerformance {
+  readonly effective_mib_per_second: number;
+  readonly id: string;
+  readonly max_ms: number;
+  readonly median_ms: number;
+  readonly min_ms: number;
+  readonly p95_ms: number;
+}
+
+interface SearchBaselineSnapshot {
+  readonly fixture: {
+    readonly cases: number;
+    readonly contract_negative: number;
+    readonly contract_positive: number;
+    readonly kind: string;
+    readonly queries: number;
+    readonly reviewed_cases: number;
+    readonly strict_negative: number;
+    readonly strict_positive: number;
+  };
+  readonly performance: {
+    readonly bytes: number;
+    readonly lines: number;
+    readonly methods: readonly SearchBaselinePerformance[];
+    readonly runs: number;
+    readonly warmup: number;
+  };
+  readonly quality: readonly SearchBaselineQuality[];
+  readonly source_report: {
+    readonly revision: string;
+    readonly sha256: string;
+  };
+}
+
 const benchmarkSnapshot = benchmarkSnapshotJson as BenchmarkSnapshot;
+const searchBaselineSnapshot =
+  searchBaselineSnapshotJson as SearchBaselineSnapshot;
 
 const backendLabels: Readonly<Record<string, string>> = {
   'kfind-embedded': 'kfind embedded',
@@ -87,6 +143,29 @@ const backendLabels: Readonly<Record<string, string>> = {
   lindera: 'Lindera',
   'mecab-ko': 'MeCab-ko',
   komoran: 'KOMORAN',
+};
+
+const searchStrategyLabels: Readonly<
+  Record<DocumentLocale, Readonly<Record<string, string>>>
+> = {
+  [DocumentLocale.Korean]: {
+    kfind: 'kfind full POS smart',
+    regex_enumerated: '활용형 열거 정규식',
+    regex_stem: '짧은 어간 정규식',
+    rg_enumerated: 'rg · 활용형 열거',
+    grep_enumerated: 'grep · 활용형 열거',
+    rg_stem: 'rg · 짧은 어간',
+    grep_stem: 'grep · 짧은 어간',
+  },
+  [DocumentLocale.English]: {
+    kfind: 'kfind full POS smart',
+    regex_enumerated: 'Enumerated-surface regex',
+    regex_stem: 'Short-stem regex',
+    rg_enumerated: 'rg · enumerated surfaces',
+    grep_enumerated: 'grep · enumerated surfaces',
+    rg_stem: 'rg · short stems',
+    grep_stem: 'grep · short stems',
+  },
 };
 
 const copy = {
@@ -121,14 +200,40 @@ const copy = {
     robustTitle: 'Robust 품질',
     robustCaption:
       '같은 500개 실제 오류 문장의 F1입니다. Contract review가 없으므로 raw와 contract-adjusted 결과가 같습니다.',
+    searchTitle: '형태 질의와 정규식 검색 기준선',
+    searchParagraphs: [
+      '명시적 품사를 붙인 full-POS smart 형태 질의 7개를 사람이 활용형을 열거한 정규식, 짧은 어간만 열거한 정규식과 비교합니다. 각 질의는 positive 8개와 negative 8개를 가지며 전체 112개 case입니다.',
+      '이 constructed fixture는 같은 질의에서 coverage와 경계 trade-off를 보여 주는 진단입니다. Held-out 품질 benchmark나 일반적인 한국어 검색 품질의 순위가 아닙니다.',
+      'Contract-adjusted는 같은 예측에 사전 고정한 contract expectation을 적용한 값입니다. Kfind의 raw FP 6건은 같은 품사 동형 활용과 source에 정렬된 내부 성분이며, contract-adjusted에서는 TPᶜ로 분류됩니다.',
+    ],
+    searchQualityCaption:
+      '같은 112개 case에 strict gold와 고정 contract expectation을 적용한 F1입니다.',
+    searchChartDescription:
+      'kfind, 활용형 열거 정규식과 짧은 어간 정규식의 raw 및 contract-adjusted F1 비교',
+    searchConfusionTitle: '검색 전략 confusion matrix',
+    strategy: '검색 전략',
+    searchRawCounts: 'Raw TP / TN / FP / FN',
+    searchAdjustedCounts: 'TPᶜ / TNᶜ / FPᶜ / FNᶜ',
+    searchPerformanceTitle: '7-query batch 시간',
+    searchPerformanceParagraph:
+      '13.54 MiB 단일 파일을 각 질의가 fresh process로 한 번씩, 전체 7회 스캔한 wall time입니다. 방법 순서를 순환하며 warm-up 2회 뒤 10회 측정했습니다. 품질과 시간은 하나의 점수로 합치지 않습니다.',
+    searchDurationDescription:
+      'kfind와 rg, grep 정규식 조합별 7-query fresh-process batch 중앙값',
+    searchDurationCaption:
+      '막대는 batch wall time 중앙값이며 낮을수록 짧습니다. 정확한 min, max와 p95는 아래 표에 표시합니다.',
+    median: '중앙값',
+    minimum: '최솟값',
+    maximum: '최댓값',
+    effectiveThroughput: '유효 처리량',
+    searchSource: '검색 기준선 source',
     chartDescription: '제품별 raw와 contract-adjusted F1 막대 비교',
     rawLabel: 'Raw',
     adjustedLabel: 'Contract-adjusted',
     metricLabel: 'F1',
     confusionTitle: 'Canonical confusion matrix',
     backend: '제품',
-    rawCounts: 'Raw TP / FP / TN / FN',
-    adjustedCounts: 'TPᶜ / FPᶜ / TNᶜ / FNᶜ',
+    rawCounts: 'Raw TP / TN / FP / FN',
+    adjustedCounts: 'TPᶜ / TNᶜ / FPᶜ / FNᶜ',
     performanceTitle: '성능 측정 단위',
     performanceParagraph:
       '형태 품질 workload는 fresh process에서 warm-up 1회 뒤 5회 측정합니다. 다음 표의 값은 중앙값이며, 품질 지표와 하나의 점수로 합치지 않습니다.',
@@ -172,14 +277,40 @@ const copy = {
     robustTitle: 'Robust quality',
     robustCaption:
       'F1 on the same 500 natural noisy sentences. No contract review is applied, so raw and adjusted results are identical.',
+    searchTitle: 'Morphology queries and regex baselines',
+    searchParagraphs: [
+      'Seven full-POS smart morphology queries with explicit POS are compared with a regex that manually enumerates inflected surfaces and a regex that lists only short stems. Each query has eight positives and eight negatives, for 112 cases.',
+      'This constructed fixture diagnoses coverage and boundary trade-offs for the same queries. It is neither a held-out quality benchmark nor a general ranking of Korean search quality.',
+      'Contract-adjusted values apply expectations fixed before execution to the same predictions. The six raw kfind false positives are same-POS homographs and source-aligned internal components; the adjusted contract classifies them as TPᶜ.',
+    ],
+    searchQualityCaption:
+      'F1 from strict gold and fixed contract expectations on the same 112 cases.',
+    searchChartDescription:
+      'Raw and contract-adjusted F1 for kfind, an enumerated-surface regex, and a short-stem regex',
+    searchConfusionTitle: 'Search-strategy confusion matrix',
+    strategy: 'Search strategy',
+    searchRawCounts: 'Raw TP / TN / FP / FN',
+    searchAdjustedCounts: 'TPᶜ / TNᶜ / FPᶜ / FNᶜ',
+    searchPerformanceTitle: 'Seven-query batch time',
+    searchPerformanceParagraph:
+      'Each query scans the same 13.54 MiB file once in a fresh process, for seven scans per batch. Methods rotate order; two warm-ups precede ten measurements. Quality and time are not combined into one score.',
+    searchDurationDescription:
+      'Median seven-query fresh-process batch time for kfind and each rg or grep regex combination',
+    searchDurationCaption:
+      'Bars show median batch wall time; lower is shorter. The table gives exact minimum, maximum, and p95 values.',
+    median: 'Median',
+    minimum: 'Minimum',
+    maximum: 'Maximum',
+    effectiveThroughput: 'Effective throughput',
+    searchSource: 'Search-baseline source',
     chartDescription: 'Raw and contract-adjusted F1 bars for each product',
     rawLabel: 'Raw',
     adjustedLabel: 'Contract-adjusted',
     metricLabel: 'F1',
     confusionTitle: 'Canonical confusion matrix',
     backend: 'Product',
-    rawCounts: 'Raw TP / FP / TN / FN',
-    adjustedCounts: 'TPᶜ / FPᶜ / TNᶜ / FNᶜ',
+    rawCounts: 'Raw TP / TN / FP / FN',
+    adjustedCounts: 'TPᶜ / TNᶜ / FPᶜ / FNᶜ',
     performanceTitle: 'Performance units',
     performanceParagraph:
       'Morphology workloads run in fresh processes with one warm-up followed by five measurements. The table contains medians and does not combine execution cost with quality.',
@@ -242,6 +373,21 @@ function chartRows(
       raw: result.overall.f1_percent,
     };
   });
+}
+
+function searchQualityRows(locale: DocumentLocale): readonly QualityChartRow[] {
+  return searchBaselineSnapshot.quality.map((result) => ({
+    adjusted: result.contract_adjusted.f1_percent,
+    label: searchStrategyLabels[locale][result.id] ?? result.id,
+    raw: result.raw.f1_percent,
+  }));
+}
+
+function durationRows(locale: DocumentLocale): readonly DurationChartRow[] {
+  return searchBaselineSnapshot.performance.methods.map((result) => ({
+    label: searchStrategyLabels[locale][result.id] ?? result.id,
+    milliseconds: result.median_ms,
+  }));
 }
 
 export default function BenchmarksPage(): React.JSX.Element {
@@ -308,12 +454,12 @@ export default function BenchmarksPage(): React.JSX.Element {
                   <tr key={backend}>
                     <th scope="row">{backendLabels[backend] ?? backend}</th>
                     <td>
-                      {result.overall.tp} / {result.overall.fp} /{' '}
-                      {result.overall.tn} / {result.overall.fn}
+                      {result.overall.tp} / {result.overall.tn} /{' '}
+                      {result.overall.fp} / {result.overall.fn}
                     </td>
                     <td>
-                      {contract.contract_tp} / {contract.contract_fp} /{' '}
-                      {contract.contract_tn} / {contract.contract_fn}
+                      {contract.contract_tp} / {contract.contract_tn} /{' '}
+                      {contract.contract_fp} / {contract.contract_fn}
                     </td>
                   </tr>
                 );
@@ -349,6 +495,103 @@ export default function BenchmarksPage(): React.JSX.Element {
           )}
           title={text.robustTitle}
         />
+      </DocumentSection>
+
+      <DocumentSection id="search-strategy-baseline" title={text.searchTitle}>
+        {text.searchParagraphs.map((paragraph) => (
+          <p key={paragraph}>{paragraph}</p>
+        ))}
+        <QualityChart
+          adjustedLabel={text.adjustedLabel}
+          caption={text.searchQualityCaption}
+          description={text.searchChartDescription}
+          metricLabel={text.metricLabel}
+          rawLabel={text.rawLabel}
+          rows={searchQualityRows(locale)}
+          title={text.searchTitle}
+        />
+
+        <h3>{text.searchConfusionTitle}</h3>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">{text.strategy}</th>
+                <th scope="col">{text.searchRawCounts}</th>
+                <th scope="col">{text.searchAdjustedCounts}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {searchBaselineSnapshot.quality.map((result) => (
+                <tr key={result.id}>
+                  <th scope="row">
+                    {searchStrategyLabels[locale][result.id] ?? result.id}
+                  </th>
+                  <td>
+                    {result.raw.tp} / {result.raw.tn} / {result.raw.fp} /{' '}
+                    {result.raw.fn}
+                  </td>
+                  <td>
+                    {result.contract_adjusted.tp} /{' '}
+                    {result.contract_adjusted.tn} /{' '}
+                    {result.contract_adjusted.fp} /{' '}
+                    {result.contract_adjusted.fn}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <h3>{text.searchPerformanceTitle}</h3>
+        <p>{text.searchPerformanceParagraph}</p>
+        <DurationChart
+          caption={text.searchDurationCaption}
+          description={text.searchDurationDescription}
+          rows={durationRows(locale)}
+          title={text.searchPerformanceTitle}
+        />
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">{text.strategy}</th>
+                <th scope="col">{text.median}</th>
+                <th scope="col">{text.minimum}</th>
+                <th scope="col">{text.maximum}</th>
+                <th scope="col">{text.latency}</th>
+                <th scope="col">{text.effectiveThroughput}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {searchBaselineSnapshot.performance.methods.map((result) => (
+                <tr key={result.id}>
+                  <th scope="row">
+                    {searchStrategyLabels[locale][result.id] ?? result.id}
+                  </th>
+                  <td>{result.median_ms.toFixed(2)} ms</td>
+                  <td>{result.min_ms.toFixed(2)} ms</td>
+                  <td>{result.max_ms.toFixed(2)} ms</td>
+                  <td>{result.p95_ms.toFixed(2)} ms</td>
+                  <td>
+                    {result.effective_mib_per_second.toLocaleString(locale)}{' '}
+                    MiB/s
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="source-identifiers">
+          {text.searchSource}:{' '}
+          <code>{searchBaselineSnapshot.source_report.revision}</code> ·{' '}
+          <code>{searchBaselineSnapshot.source_report.sha256}</code>
+        </p>
+        <p className="reference-link">
+          <a href="https://github.com/SeokminHong/kfind/blob/main/docs/benchmarks/2026-07-24-search-strategy-baseline.md">
+            {text.reportLink}
+          </a>
+        </p>
       </DocumentSection>
 
       <DocumentSection id="performance-units" title={text.performanceTitle}>

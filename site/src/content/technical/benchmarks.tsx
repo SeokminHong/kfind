@@ -16,6 +16,7 @@ export const benchmarkDocuments: TechnicalDocuments = {
         section('fixture', [
           'Canonical은 사람이 표준 맞춤법을 확인한 양성 500·음성 500 사례입니다. Robust는 실제 오류 문장의 양성 250·음성 250 사례이며 표준문 결과에 합산하지 않습니다.',
           'Query matrix는 한 문장에 여러 positive·negative query를 적용해 문법 조합별 후보를 측정합니다.',
+          '형태 질의와 정규식 기준선은 7개 질의마다 positive 8개·negative 8개를 둔 constructed 진단입니다. Held-out 품질이나 일반적인 검색 품질의 순위로 사용하지 않습니다.',
         ]),
         section('gold 판정', [
           'Positive는 표제어·품사와 목표 span을 함께 선언합니다. Negative는 같은 문장 안의 형태 또는 경계 경쟁자를 포함해 false positive를 관찰합니다.',
@@ -36,6 +37,7 @@ export const benchmarkDocuments: TechnicalDocuments = {
         section('Fixtures', [
           'Canonical has 500 positive and 500 negative cases manually checked for standard spelling. Robust has 250 positive and 250 negative natural noisy cases and is not merged with canonical results.',
           'The query matrix applies several positive and negative queries to each sentence to measure grammar combinations.',
+          'The morphology-query and regex baseline is a constructed diagnostic with eight positives and eight negatives for each of seven queries. It is not a held-out or general search-quality ranking.',
         ]),
         section('Gold labels', [
           'A positive declares lemma, POS, and target span. Negatives include morphology and boundary competitors in the same sentence to expose false positives.',
@@ -273,10 +275,11 @@ export const benchmarkDocuments: TechnicalDocuments = {
       sections: [
         section('workload', [
           'Morphology는 fresh process initialization, cases/s, p95와 RSS를 측정합니다. Query compile, matcher scan, 1 GiB file scan, npm startup과 TUI index는 별도 entrypoint를 사용합니다.',
+          '정규식 기준선은 같은 단일 파일을 7개 질의가 각각 fresh process로 스캔한 batch wall time을 kfind, rg와 grep 조합별로 분리합니다.',
           'Lock 대기와 build 시간은 workload 시간에서 제외하지만 실행 환경과 binary revision에는 포함해 기록합니다.',
         ]),
         section('통계', [
-          'Warm-up 1회 뒤 5회 측정하고 median, min, max를 보고합니다. 단발 실행이나 smoke success는 성능 근거가 아닙니다.',
+          '형태 backend는 warm-up 1회 뒤 5회, 정규식 기준선은 warm-up 2회 뒤 10회 측정하고 median, min, max와 p95를 보고합니다. 단발 실행이나 smoke success는 성능 근거가 아닙니다.',
           'Throughput, latency, seconds와 bytes를 같은 percent score로 합치지 않습니다.',
         ]),
         section('회귀 판정', [
@@ -293,10 +296,11 @@ export const benchmarkDocuments: TechnicalDocuments = {
       sections: [
         section('Workloads', [
           'Morphology measures fresh-process initialization, cases per second, p95, and RSS. Query compile, matcher scan, 1 GiB file scan, npm startup, and TUI indexing have separate entrypoints.',
+          'The regex baseline separates batch wall time for kfind and each rg or grep combination while seven fresh processes scan the same single file.',
           'Lock wait and build time are excluded from workload time but remain part of recorded environment and revision.',
         ]),
         section('Statistics', [
-          'One warm-up precedes five measurements; reports include median, minimum, and maximum. A single run or successful smoke test is not performance evidence.',
+          'Morphology backends use one warm-up and five measurements; the regex baseline uses two warm-ups and ten measurements. Reports include median, minimum, maximum, and p95. A single run or successful smoke test is not performance evidence.',
           'Throughput, latency, seconds, and bytes are not collapsed into one percentage score.',
         ]),
         section('Regression decision', [
@@ -319,6 +323,7 @@ export const benchmarkDocuments: TechnicalDocuments = {
         ]),
         section('실행 명령', [
           '공식 wrapper와 모든 environment override를 그대로 기록합니다. Morphology Python test는 `tools/morph-compare`에서 두 import root를 포함하는 discovery 명령을 사용합니다.',
+          '형태 질의와 정규식 비교는 `scripts/benchmark-search-baseline.sh`로 실행해 resource checksum, fixture와 process model을 함께 고정합니다.',
           '직접 Docker나 cargo command로 lock·fixture 계약을 우회한 결과는 승인 report가 아닙니다.',
         ]),
         section('산출물 검증', [
@@ -339,6 +344,7 @@ export const benchmarkDocuments: TechnicalDocuments = {
         ]),
         section('Commands', [
           'Preserve official wrappers and every environment override. Morphology Python tests run from `tools/morph-compare` with discovery that includes both import roots.',
+          'Run morphology-query and regex comparisons with `scripts/benchmark-search-baseline.sh` so resource checksums, fixtures, and the process model remain fixed.',
           'Results from direct Docker or cargo commands that bypass lock and fixture contracts are not approved reports.',
         ]),
         section('Artifact verification', [
@@ -360,7 +366,7 @@ export const benchmarkDocuments: TechnicalDocuments = {
           '품질 report는 case-level disposition과 미분류 수를 포함합니다.',
         ]),
         section('site snapshot', [
-          'Site는 승인된 source report에서 chart에 필요한 field만 JSON snapshot으로 export합니다. Snapshot은 source revision과 report SHA-256을 보존합니다.',
+          'Site는 승인된 source report에서 chart에 필요한 field만 `site-morphology.json`과 `site-search-baseline.json` snapshot으로 export합니다. Snapshot은 source revision과 report SHA-256을 보존합니다.',
           '현재 결과 route는 snapshot을 읽고 날짜별 report 목록을 본문으로 복사하지 않습니다.',
         ]),
         section('보존 계약', [
@@ -380,7 +386,7 @@ export const benchmarkDocuments: TechnicalDocuments = {
           'Quality reports include case-level dispositions and unclassified counts.',
         ]),
         section('Site snapshot', [
-          'The site exports only chart-consumed fields from an approved source report. The snapshot retains source revision and report SHA-256.',
+          'The site exports only chart-consumed fields into `site-morphology.json` and `site-search-baseline.json`. Each snapshot retains its source revision and report SHA-256.',
           'The current-results route reads that snapshot and does not copy dated report lists into the main narrative.',
         ]),
         section('Retention contract', [
