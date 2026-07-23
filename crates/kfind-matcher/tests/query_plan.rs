@@ -927,6 +927,28 @@ fn adjacent_layout_limits_disambiguation_to_supported_pos_competitions() {
             ..CompileOptions::default()
         },
     );
+    let hammer = compile_with_full_pos(
+        "박다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+    );
+    let hammer_any = compile_with_full_pos(
+        "박다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            boundary: BoundaryPolicy::Any,
+            ..CompileOptions::default()
+        },
+    );
+    let beat = compile_with_full_pos(
+        "박자",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+    );
 
     assert!(noun.find_at_with_meta("새 기능".as_bytes(), 0).is_none());
     assert!(
@@ -956,6 +978,25 @@ fn adjacent_layout_limits_disambiguation_to_supported_pos_competitions() {
     );
     assert!(pronoun.find_at_with_meta("제 나라".as_bytes(), 0).is_some());
     assert!(numeral.find_at_with_meta("한 사람".as_bytes(), 0).is_some());
+    assert!(
+        hammer
+            .find_at_with_meta("값이 한 박자 늦게 저장된다.".as_bytes(), 0)
+            .is_none()
+    );
+    assert!(
+        hammer
+            .find_at_with_meta("못을 박자 바로 고정됐다.".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        hammer_any
+            .find_at_with_meta("값이 한 박자 늦게 저장된다.".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        beat.find_at_with_meta("값이 한 박자 늦게 저장된다.".as_bytes(), 0)
+            .is_some()
+    );
 }
 
 #[test]
@@ -2497,6 +2538,7 @@ fn component_resource() -> Arc<ComponentResource> {
             component_entry("나라", "NNG"),
             component_entry("한", "MM"),
             component_entry("한", "NR"),
+            component_entry("박자", "NNG"),
             component_entry("주", "VV"),
             component_entry("지", "EC"),
             component_entry("주지", "NNG"),

@@ -1018,8 +1018,8 @@
 
 기본 실행 경로에는 Kiwi, Lindera, MeCab 계열 분석기를 포함하지 않는다. 런타임 모델 다운로드도 하지 않는다.
 
-형태 구조가 같은 동음이의어와 동형이의어는 문맥 의미로 구분하지 않는다. 한
-표제어에서 생성 가능한 표면형이면 모두 검색 결과로 인정한다. 다만 whole/component
+같은 품사에서 형태 구조가 같은 동음이의어와 동형이의어는 문맥 의미로 구분하지 않는다.
+한 표제어에서 생성 가능한 표면형이면 모두 검색 결과로 인정한다. 다만 whole/component
 분해, 품사 또는 인접 문장 성분 배치가 다른 경우에는 bounded 구조 근거로 구분한다.
 
 예:
@@ -1032,6 +1032,16 @@
 ```
 
 두 번째 결과는 의미상 `걸다`지만, 문맥 판별은 이 제품의 범위가 아니다.
+
+```text
+검색어: v:박다
+
+값이 한 박자 늦게 저장된다.   full-POS smart: no match
+못을 박자 바로 고정됐다.      full-POS smart: match
+```
+
+첫 번째 `박자`는 앞 관형사와 whole 명사 분석이 만드는 체언 frame을 선택한다.
+`boundary=any`는 두 표면을 모두 후보로 반환하고 caller가 문맥을 판별한다.
 
 ## 3. 핵심 구현 계약
 
@@ -2803,7 +2813,10 @@ query	pos	text	expected	feature
 예쁘다	adjective	예쁘어 보인다.	no-match	eu-drop
 ```
 
-문맥상 다른 표제어인 결과는 현재 정책상 false positive로 계산하지 않는다. 형태 규칙이 만들 수 없는 문자열만 false positive다.
+Strict 지표는 gold와 다른 표제어·품사 결과를 false positive로 보존한다.
+Contract-adjusted 지표는 같은 품사의 동형 활용처럼 bounded 구조가 같은 결과만
+contract positive로 재분류한다. 품사 또는 인접 성분 배치로 구분 가능한 결과는
+현재 구현이 제거하지 못해도 FPᶜ로 유지한다.
 
 #### 19.5.1 현실 기술 코퍼스 blind fixture
 

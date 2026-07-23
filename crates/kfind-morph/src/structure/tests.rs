@@ -1992,6 +1992,70 @@ fn adnominal_frame_selects_a_dependent_noun_over_a_homographic_predicate() {
 }
 
 #[test]
+fn determiner_frame_prefers_whole_tokens_over_generated_homographs() {
+    let resolver = resolver_from_entries([
+        atomic("한", "MM"),
+        atomic("박자", "NNG"),
+        atomic("못을", "NNG+JKO"),
+        atomic("놀자던", "VV+ETM"),
+        atomic("젊은", "NNG"),
+        expression("젊은", "VA+ETM", "젊/VA/*+은/ETM/*"),
+        atomic("대원", "NNG"),
+    ]);
+    let noun = resolver.resolve_candidate(
+        BoundedTokenContext {
+            previous: Some("한"),
+            current: "박자",
+            next: Some("늦게"),
+        },
+        spans(0.."박자".len(), 0.."박자".len()),
+        &[whole_pattern(DataFinePos::Nng, "박자")],
+        128,
+    );
+    let predicate_spans = CandidateSpans {
+        core: 0.."박".len(),
+        anchor: 0.."박자".len(),
+        consumed: 0.."박자".len(),
+        token: 0.."박자".len(),
+    };
+    let predicate = resolver.resolve_candidate(
+        BoundedTokenContext {
+            previous: Some("한"),
+            current: "박자",
+            next: Some("늦게"),
+        },
+        predicate_spans.clone(),
+        &[predicate_pattern(DataFinePos::Vv, "박")],
+        128,
+    );
+    let predicate_after_object = resolver.resolve_candidate(
+        BoundedTokenContext {
+            previous: Some("못을"),
+            current: "박자",
+            next: Some("바로"),
+        },
+        predicate_spans,
+        &[predicate_pattern(DataFinePos::Vv, "박")],
+        128,
+    );
+    let stacked_adnominal = resolver.resolve_candidate(
+        BoundedTokenContext {
+            previous: Some("놀자던"),
+            current: "젊은",
+            next: Some("대원"),
+        },
+        spans(0.."젊".len(), 0.."젊은".len()),
+        &[predicate_pattern(DataFinePos::Va, "젊")],
+        128,
+    );
+
+    assert_eq!(noun.outcome, ConstraintOutcome::Supported);
+    assert_eq!(predicate.outcome, ConstraintOutcome::Contradicted);
+    assert_eq!(predicate_after_object.outcome, ConstraintOutcome::Supported);
+    assert_eq!(stacked_adnominal.outcome, ConstraintOutcome::Supported);
+}
+
+#[test]
 fn predicate_nominalization_aligns_with_whole_and_source_nominal_spans() {
     let resolver = resolver();
     let pattern = QueryMorphPattern::new(DataFinePos::Vv, "걷").with_candidate_contract(
