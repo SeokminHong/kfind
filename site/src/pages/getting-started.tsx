@@ -163,12 +163,12 @@ kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src`}</code>
         ),
       },
       {
-        title: '에이전트 skill',
+        title: '에이전트 통합',
         body: (
           <>
             <p>
-              <code>--init</code>은 지원하는 코딩 에이전트에 kfind 사용법을 담은
-              skill을 설치합니다. 검색 질의나 경로와 함께 사용할 수 없습니다.
+              <code>--init</code>은 지원하는 코딩 에이전트에 kfind skill과 shell
+              hook을 설치합니다. 검색 질의나 경로와 함께 사용할 수 없습니다.
             </p>
             <pre>
               <code>{`kfind --init
@@ -179,7 +179,9 @@ printf 'codex\ngemini\n' | kfind --init`}</code>
               Codex는 <code>.agents/skills/kfind/SKILL.md</code>, Claude Code는{' '}
               <code>.claude/skills/kfind/SKILL.md</code>, Gemini CLI는{' '}
               <code>.gemini/skills/kfind/SKILL.md</code>를 사용합니다. kfind
-              관리 표식이 없는 파일은 덮어쓰지 않습니다.
+              관리 표식이 없는 skill과 기존 agent 설정은 보존합니다. Project
+              hook을 신뢰하면 한글 pattern을 포함한 <code>rg</code>·
+              <code>grep</code> shell 검색을 차단하고 kfind 사용을 안내합니다.
             </p>
           </>
         ),
@@ -330,12 +332,13 @@ kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src`}</code>
         ),
       },
       {
-        title: 'Agent skill',
+        title: 'Agent integration',
         body: (
           <>
             <p>
-              <code>--init</code> installs kfind guidance for supported coding
-              agents and cannot be combined with a search query or path.
+              <code>--init</code> installs the kfind skill and shell hook for
+              supported coding agents. It cannot be combined with a search query
+              or path.
             </p>
             <pre>
               <code>{`kfind --init
@@ -345,8 +348,11 @@ printf 'codex\ngemini\n' | kfind --init`}</code>
             <p>
               Codex uses <code>.agents/skills/kfind/SKILL.md</code>, Claude Code
               uses <code>.claude/skills/kfind/SKILL.md</code>, and Gemini CLI
-              uses <code>.gemini/skills/kfind/SKILL.md</code>. Files without the
-              kfind management marker are not overwritten.
+              uses <code>.gemini/skills/kfind/SKILL.md</code>. Unmanaged skills
+              and existing agent settings are preserved. Once trusted, the
+              project hook blocks shell searches that pass Korean patterns to{' '}
+              <code>rg</code> or <code>grep</code> and directs the agent to
+              kfind.
             </p>
           </>
         ),

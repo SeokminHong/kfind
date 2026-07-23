@@ -60,6 +60,17 @@ fn explicit_agents_install_the_same_managed_skill() {
     assert!(stderr.contains("Installed Claude Code skill"));
     assert!(stderr.contains("Installed Codex skill"));
     assert!(stderr.contains("Installed Gemini CLI skill"));
+    for relative in [
+        ".claude/settings.json",
+        ".codex/hooks.json",
+        ".gemini/settings.json",
+    ] {
+        let contents = fs::read_to_string(root.path().join(relative)).unwrap();
+        assert!(contents.contains("kfind --agent-hook"));
+    }
+    assert!(stderr.contains("Installed Claude Code hook"));
+    assert!(stderr.contains("Installed Codex hook"));
+    assert!(stderr.contains("Installed Gemini CLI hook"));
 }
 
 #[test]
@@ -135,6 +146,59 @@ fn rerun_updates_managed_skill_and_preserves_unmanaged_skill() {
     let error = run_at(&args, &[], root.path(), SkillSource::Embedded).unwrap_err();
     assert!(matches!(error, InitError::UnmanagedDestination(conflict) if conflict == path));
     assert_eq!(fs::read_to_string(&path).unwrap(), "user-authored\n");
+}
+
+#[test]
+fn rerun_preserves_existing_agent_settings_and_does_not_duplicate_the_hook() {
+    let root = tempdir().unwrap();
+    let args = Args::try_parse_from(["kfind", "--init", "--agent", "codex"]).unwrap();
+    let config = root.path().join(".codex/hooks.json");
+    fs::create_dir_all(config.parent().unwrap()).unwrap();
+    fs::write(
+        &config,
+        r#"{
+  "theme": "dark",
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Read",
+      "hooks": [{"type": "command", "command": "existing-hook"}]
+    }]
+  }
+}
+"#,
+    )
+    .unwrap();
+
+    run_at(&args, &[], root.path(), SkillSource::Embedded).unwrap();
+    let (_, stderr) = run_at(&args, &[], root.path(), SkillSource::Embedded).unwrap();
+
+    let contents = fs::read_to_string(config).unwrap();
+    let document: serde_json::Value = serde_json::from_str(&contents).unwrap();
+    assert_eq!(document["theme"], "dark");
+    assert_eq!(contents.matches("existing-hook").count(), 1);
+    assert_eq!(contents.matches("kfind --agent-hook").count(), 1);
+    assert!(stderr.contains("Unchanged Codex hook"));
+}
+
+#[test]
+fn invalid_agent_settings_prevent_all_selected_installations() {
+    let root = tempdir().unwrap();
+    let args =
+        Args::try_parse_from(["kfind", "--init", "--agent", "codex", "--agent", "gemini"]).unwrap();
+    let invalid = root.path().join(".gemini/settings.json");
+    fs::create_dir_all(invalid.parent().unwrap()).unwrap();
+    fs::write(&invalid, "{").unwrap();
+
+    let error = run_at(&args, &[], root.path(), SkillSource::Embedded).unwrap_err();
+
+    assert!(matches!(
+        error,
+        InitError::ParseAgentConfig { path, .. } if path == invalid
+    ));
+    assert!(!root.path().join(".agents").exists());
+    assert!(!root.path().join(".codex").exists());
+    assert!(!root.path().join(".gemini/skills").exists());
+    assert_eq!(fs::read_to_string(invalid).unwrap(), "{");
 }
 
 #[cfg(unix)]

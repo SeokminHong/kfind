@@ -40,9 +40,13 @@ kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
 .EE
 The agent must inspect context and discard false positives. Narrow the path or
 glob, or retry with smart boundaries when the candidate set is too large.
-.SS Agent skill setup
+.SS Agent integration setup
 Run the interactive checkbox selector in a project directory, or name targets
-explicitly for automation.
+explicitly for automation. Supported targets install both the kfind skill and a
+project shell hook. The hook blocks explicit Korean search patterns passed to
+rg, grep, or git grep and directs the agent to kfind. Existing agent settings
+and unrelated hooks are preserved. Project hooks run only after the agent's
+trust review.
 .PP
 .EX
 kfind --init
@@ -184,7 +188,7 @@ mod tests {
         assert!(first_contents[0].contains("걷다 | 사용자 | 검증하다"));
         assert!(first_contents[0].contains("Use --no-pager for direct"));
         assert!(first_contents[0].contains(".SS Agent automation"));
-        assert!(first_contents[0].contains(".SS Agent skill setup"));
+        assert!(first_contents[0].contains(".SS Agent integration setup"));
         assert!(first_contents[0].contains("--embedded --boundary any --pos verb --json"));
         assert!(first_contents[0].contains("--init --agent codex --agent claude-code"));
         assert!(first_contents[1].contains("_kfind"));

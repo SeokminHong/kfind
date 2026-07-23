@@ -189,8 +189,8 @@ const HELP_TEXT: &[(&str, &str, &str)] = &[
     ),
     (
         "init",
-        "Initialize the kfind skill for coding agents in the current directory.",
-        "현재 디렉터리에 coding agent용 kfind skill을 초기화합니다.",
+        "Initialize the kfind integration for coding agents in the current directory.",
+        "현재 디렉터리에 coding agent용 kfind 통합을 초기화합니다.",
     ),
     (
         "agent",
