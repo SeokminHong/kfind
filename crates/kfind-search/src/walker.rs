@@ -112,9 +112,9 @@ fn is_hidden(entry: &ignore::DirEntry) -> bool {
         use std::os::windows::fs::MetadataExt as _;
 
         const FILE_ATTRIBUTE_HIDDEN: u32 = 0x2;
-        return entry
+        entry
             .metadata()
-            .is_ok_and(|metadata| metadata.file_attributes() & FILE_ATTRIBUTE_HIDDEN != 0);
+            .is_ok_and(|metadata| metadata.file_attributes() & FILE_ATTRIBUTE_HIDDEN != 0)
     }
 
     #[cfg(not(windows))]

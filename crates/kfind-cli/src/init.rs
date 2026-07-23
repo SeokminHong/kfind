@@ -402,6 +402,8 @@ impl AgentArg {
 
 impl SkillSource {
     fn matches_link(&self, target: &Path) -> bool {
+        #[cfg(not(unix))]
+        let _ = target;
         match self {
             Self::Embedded => false,
             #[cfg(unix)]

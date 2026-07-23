@@ -946,8 +946,9 @@
 - match와 atom의 `start`, `end` offset은 JavaScript `String.prototype.slice`에 바로
   사용할 수 있는 UTF-16 code unit 기준이다. 각 atom은 core·token span과 모든
   `analysisIndex`, `rulePath` provenance를 보존한다.
-- 기본 CI는 Linux와 Apple Silicon macOS에서 네이티브 테스트를 실행하고, Linux에서
-  MSRV의 `kfind-wasm` build를 검사한다.
+- 기본 CI는 Linux, Apple Silicon macOS와 x64 Windows에서 네이티브 Rust 테스트를 실행한다.
+  POSIX process·file-lock 계약을 사용하는 benchmark guard와 `getrusage` 기반 morph index
+  benchmark test는 Linux와 macOS에서 실행하고, Linux에서 MSRV의 `kfind-wasm` build를 검사한다.
 
 ### 0.8 npm 패키지
 

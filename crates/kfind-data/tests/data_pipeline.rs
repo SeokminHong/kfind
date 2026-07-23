@@ -18,7 +18,9 @@ fn data_root() -> PathBuf {
 }
 
 fn read(relative: &str) -> String {
-    std::fs::read_to_string(data_root().join(relative)).expect("repository data must be readable")
+    std::fs::read_to_string(data_root().join(relative))
+        .expect("repository data must be readable")
+        .replace("\r\n", "\n")
 }
 
 #[test]
