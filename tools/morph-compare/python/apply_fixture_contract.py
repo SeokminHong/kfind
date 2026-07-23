@@ -21,6 +21,9 @@ def apply_fixture_contract(
 ) -> dict[str, object]:
     cases = load_cases(cases_path)
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    external_baseline_fixture_sha256 = metadata.get(
+        "external_baseline_fixture_sha256", metadata["fixture_sha256"]
+    )
     query_mode = str(metadata["query_mode"])
     split = str(metadata["split"])
     summary = apply_contract_reviews(
@@ -31,6 +34,9 @@ def apply_fixture_contract(
     )
     write_cases(cases_path, cases)
     metadata["fixture_sha256"] = sha256(cases_path)
+    metadata["external_baseline_fixture_sha256"] = (
+        external_baseline_fixture_sha256
+    )
     metadata["contract_review"] = {
         "registry_sha256": sha256(reviews_path),
         **summary,

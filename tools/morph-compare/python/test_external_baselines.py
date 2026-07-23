@@ -64,12 +64,16 @@ class ExternalBaselineTests(unittest.TestCase):
             "run_max": metrics,
         }
 
-    def load(self) -> dict[str, object]:
+    def load(
+        self, metadata: dict[str, object] | None = None
+    ) -> dict[str, object]:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "baselines.json"
             path.write_text(json.dumps(self.snapshot), encoding="utf-8")
             return load_external_baselines(
-                path, self.cases, {"fixture_sha256": "fixture"}
+                path,
+                self.cases,
+                metadata or {"fixture_sha256": "fixture"},
             )
 
     def test_loads_predictions_from_matching_spans(self) -> None:
@@ -96,6 +100,16 @@ class ExternalBaselineTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "refresh-morph-baselines"):
             self.load()
+
+    def test_uses_pre_contract_fixture_identity_for_external_results(self) -> None:
+        baselines = self.load(
+            {
+                "fixture_sha256": "contract-adjusted-fixture",
+                "external_baseline_fixture_sha256": "fixture",
+            }
+        )
+
+        self.assertTrue(baselines["predictions"]["kiwi"]["positive"])
 
     def test_rejects_missing_performance(self) -> None:
         del self.snapshot["backends"]["kiwi"]["performance"]

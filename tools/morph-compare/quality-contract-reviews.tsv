@@ -1,3 +1,5 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
 explicit-pos	dev	pos:ud-korean-kaist:MH2_0169-s386:2:0	안나다	verb	true	4613c5ce35a128e512e6406c3f37cc5e5382ffb19cef736ec3ccea96efea8001	excluded	nonstandard-input	안 나오면을 붙여 쓰고 source가 안나다로 정렬한 입력이라 표준문 계약에서 제외한다.
 explicit-pos	dev	pos:ud-korean-kaist:M2TA_069-s25:2:0	착하다	adjective	true	0dde57a6768c66bb638c1d8b459cffe258d971d829f6f886e3a753bebb6d6210	excluded	nonstandard-input	착하다 보니를 붙여 쓴 입력이라 표준문 계약에서 제외한다.
+explicit-pos	test	pos:ud-korean-kaist:MH2_0190-s366:2:0	권위있다	adjective	true	52921104d2daa5fb136f33706f63c4a12be7746e9759fcc3009a9c658045ec06	excluded	nonstandard-input	권위 있는을 붙여 쓴 입력이라 표준문 계약에서 제외한다.
+explicit-pos	test	pos:ud-korean-kaist:MH2_0190-s422:1:0	국경없다	adjective	true	3eb9ff24f69e15137dc4aedda0df93dd113b803cd11a1bb157d777f564534366	excluded	nonstandard-input	국경 없는을 붙여 쓴 입력이라 표준문 계약에서 제외한다.

@@ -43,30 +43,22 @@ interface QualityResult {
   readonly overall: RawQuality;
 }
 
-interface BenchmarkSnapshot {
-  readonly backends: readonly string[];
+enum MorphologyWorkload {
+  Canonical = 'canonical',
+  QueryMatrix = 'query_matrix',
+  Robustness = 'robustness',
+}
+
+interface ProfileComparison {
   readonly performance: Readonly<Record<string, PerformanceResult>>;
+  readonly profiles: readonly string[];
   readonly quality: Readonly<Record<string, QualityResult>>;
-  readonly query_matrix: {
-    readonly explicit_pos: {
-      readonly dataset: {
-        readonly cases: number;
-        readonly contract_review: {
-          readonly excluded_cases: number;
-          readonly reclassified_cases: number;
-          readonly registry_sha256: string;
-          readonly reviewed_cases: number;
-        };
-      };
-      readonly quality: Readonly<Record<string, QualityResult>>;
-    };
-  };
-  readonly robustness: {
-    readonly explicit_pos: {
-      readonly backends: readonly string[];
-      readonly quality: Readonly<Record<string, QualityResult>>;
-    };
-  };
+}
+
+interface BenchmarkSnapshot {
+  readonly profile_comparisons: Readonly<
+    Record<MorphologyWorkload, ProfileComparison>
+  >;
   readonly source_report: {
     readonly revision: string;
     readonly sha256: string;
@@ -137,8 +129,10 @@ const searchBaselineSnapshot =
   searchBaselineSnapshotJson as SearchBaselineSnapshot;
 
 const backendLabels: Readonly<Record<string, string>> = {
-  'kfind-embedded': 'kfind embedded',
-  'kfind-full-pos': 'kfind full POS',
+  'kfind-embedded-any': 'kfind embedded · any',
+  'kfind-embedded-smart': 'kfind embedded · smart',
+  'kfind-full-pos-any': 'kfind full POS · any',
+  'kfind-full-pos-smart': 'kfind full POS · smart',
   kiwi: 'Kiwi',
   lindera: 'Lindera',
   'mecab-ko': 'MeCab-ko',
@@ -149,7 +143,8 @@ const searchStrategyLabels: Readonly<
   Record<DocumentLocale, Readonly<Record<string, string>>>
 > = {
   [DocumentLocale.Korean]: {
-    kfind: 'kfind full POS smart',
+    kfind_any: 'kfind full POS · any',
+    kfind_smart: 'kfind full POS · smart',
     regex_enumerated: '활용형 열거 정규식',
     regex_stem: '짧은 어간 정규식',
     rg_enumerated: 'rg · 활용형 열거',
@@ -158,7 +153,8 @@ const searchStrategyLabels: Readonly<
     grep_stem: 'grep · 짧은 어간',
   },
   [DocumentLocale.English]: {
-    kfind: 'kfind full POS smart',
+    kfind_any: 'kfind full POS · any',
+    kfind_smart: 'kfind full POS · smart',
     regex_enumerated: 'Enumerated-surface regex',
     regex_stem: 'Short-stem regex',
     rg_enumerated: 'rg · enumerated surfaces',
@@ -189,27 +185,27 @@ const copy = {
     ],
     fnExample:
       'Full-POS query matrix의 raw FN 4와 FNᶜ 0은 같은 실행 결과를 두 계약으로 읽은 값입니다. Raw FN 4는 strict gold span을 회수하지 못한 사례입니다. Registry는 그중 의미 구조로 구분할 수 없는 동형이의와 source에 정렬된 검색 성분을 제품 목표의 양성으로 선언합니다. 따라서 FNᶜ 0은 네 사례가 제품 목표 밖의 false negative라는 뜻이며, 제품이 네 오류를 수정했다는 뜻이 아닙니다.',
-    canonicalTitle: 'Canonical 품질',
+    canonicalTitle: 'Canonical 품질·성능',
     canonicalCaption:
-      '같은 1,000개 explicit-POS 사례의 F1입니다. Review registry가 없는 행은 raw와 contract-adjusted 값이 같고 review 수가 0입니다.',
-    queryMatrixTitle: 'Query matrix 품질',
+      '같은 1,000개 explicit-POS 사례에서 kfind의 embedded/full POS와 any/smart 조합 4종, 외부 분석기 고정 설정의 F1입니다.',
+    queryMatrixTitle: 'Query matrix 품질·성능',
     queryMatrixDescription:
       'Query matrix는 한 source 문장에서 최대 세 개의 “있어야 하는” 표제어·품사·span 질의를 고르고, 각 질의마다 같은 품사의 “없어야 하는” 질의를 짝지은 진단 fixture입니다. 아래 값은 개별 질의 단위로 집계하며 Canonical 회귀선과 합치거나 대체하지 않습니다.',
     queryMatrixCaption:
-      '같은 query matrix 예측에 strict gold와 고정 contract review registry를 각각 적용한 F1입니다.',
-    robustTitle: 'Robust 품질',
+      '같은 query matrix에서 kfind profile 4종과 외부 분석기 고정 설정의 예측에 strict gold와 고정 contract review registry를 각각 적용한 F1입니다.',
+    robustTitle: 'Robust 품질·성능',
     robustCaption:
-      '같은 500개 실제 오류 문장의 F1입니다. Contract review가 없으므로 raw와 contract-adjusted 결과가 같습니다.',
+      '같은 500개 실제 오류 문장에서 kfind profile 4종과 외부 분석기 고정 설정의 F1입니다. Contract review가 없으므로 raw와 contract-adjusted 결과가 같습니다.',
     searchTitle: '형태 질의와 정규식 검색 기준선',
     searchParagraphs: [
-      '명시적 품사를 붙인 full-POS smart 형태 질의 7개를 사람이 활용형을 열거한 정규식, 짧은 어간만 열거한 정규식과 비교합니다. 각 질의는 positive 8개와 negative 8개를 가지며 전체 112개 case입니다.',
+      '명시적 품사를 붙인 full-POS 형태 질의 7개를 any와 smart로 각각 실행하고, 사람이 활용형을 열거한 정규식 및 짧은 어간만 열거한 정규식과 비교합니다. 각 질의는 positive 8개와 negative 8개를 가지며 전체 112개 case입니다.',
       '이 constructed fixture는 같은 질의에서 coverage와 경계 trade-off를 보여 주는 진단입니다. Held-out 품질 benchmark나 일반적인 한국어 검색 품질의 순위가 아닙니다.',
-      'Contract-adjusted는 같은 예측에 사전 고정한 contract expectation을 적용한 값입니다. Kfind의 raw FP 6건은 같은 품사 동형 활용과 source에 정렬된 내부 성분이며, contract-adjusted에서는 TPᶜ로 분류됩니다.',
+      'Contract-adjusted는 각 방법의 같은 예측에 사전 고정한 contract expectation을 적용한 값입니다. Any와 smart의 오탐 차이는 그대로 유지하며 보정 결과만으로 raw 오류를 숨기지 않습니다.',
     ],
     searchQualityCaption:
       '같은 112개 case에 strict gold와 고정 contract expectation을 적용한 F1입니다.',
     searchChartDescription:
-      'kfind, 활용형 열거 정규식과 짧은 어간 정규식의 raw 및 contract-adjusted F1 비교',
+      'kfind full POS any/smart, 활용형 열거 정규식과 짧은 어간 정규식의 raw 및 contract-adjusted F1 비교',
     searchConfusionTitle: '검색 전략 confusion matrix',
     strategy: '검색 전략',
     searchRawCounts: 'Raw TP / TN / FP / FN',
@@ -226,17 +222,17 @@ const copy = {
     maximum: '최댓값',
     effectiveThroughput: '유효 처리량',
     searchSource: '검색 기준선 source',
-    chartDescription: '제품별 raw와 contract-adjusted F1 막대 비교',
+    chartDescription: '프로필별 raw와 contract-adjusted F1 막대 비교',
     rawLabel: 'Raw',
     adjustedLabel: 'Contract-adjusted',
     metricLabel: 'F1',
-    confusionTitle: 'Canonical confusion matrix',
-    backend: '제품',
+    confusionTitle: 'Confusion matrix',
+    backend: '프로필·제품',
     rawCounts: 'Raw TP / TN / FP / FN',
     adjustedCounts: 'TPᶜ / TNᶜ / FPᶜ / FNᶜ',
-    performanceTitle: '성능 측정 단위',
+    performanceTitle: '동일 workload 성능',
     performanceParagraph:
-      '형태 품질 workload는 fresh process에서 warm-up 1회 뒤 5회 측정합니다. 다음 표의 값은 중앙값이며, 품질 지표와 하나의 점수로 합치지 않습니다.',
+      '위 품질 fixture를 fresh process에서 warm-up 1회 뒤 5회 측정한 중앙값입니다. kfind profile 4종과 외부 분석기의 고정 설정을 같은 workload 안에서 비교하며 품질과 하나의 점수로 합치지 않습니다.',
     initialization: '초기화',
     throughput: 'cases/s',
     latency: 'p95',
@@ -266,27 +262,27 @@ const copy = {
     ],
     fnExample:
       'The full-POS query matrix has four raw false negatives and zero contract-adjusted false negatives. The execution result is identical in both views. The four raw misses target strict gold spans, while the registry classifies their indistinguishable homographs and source-aligned components as positive under the product contract. FNᶜ = 0 therefore means that the four misses are outside the product false-negative objective; it does not mean that the implementation fixed four errors.',
-    canonicalTitle: 'Canonical quality',
+    canonicalTitle: 'Canonical quality and performance',
     canonicalCaption:
-      'F1 on the same 1,000 explicit-POS cases. Rows without contract reviews have identical raw and adjusted values and a review count of zero.',
-    queryMatrixTitle: 'Query-matrix quality',
+      'F1 on the same 1,000 explicit-POS cases for four kfind embedded/full-POS and any/smart combinations plus fixed external-analyzer settings.',
+    queryMatrixTitle: 'Query-matrix quality and performance',
     queryMatrixDescription:
       'The query matrix selects up to three lemma-POS-span queries that should match in one source sentence and pairs each with a same-POS query that should not match. The values below are aggregated per query and remain separate from the Canonical regression baseline.',
     queryMatrixCaption:
-      'F1 from the same predictions evaluated with strict gold and the fixed contract-review registry.',
-    robustTitle: 'Robust quality',
+      'F1 for four kfind profiles and fixed external-analyzer settings, evaluated against strict gold and the fixed contract-review registry.',
+    robustTitle: 'Robust quality and performance',
     robustCaption:
-      'F1 on the same 500 natural noisy sentences. No contract review is applied, so raw and adjusted results are identical.',
+      'F1 for four kfind profiles and fixed external-analyzer settings on the same 500 natural noisy sentences. No contract review is applied, so raw and adjusted results are identical.',
     searchTitle: 'Morphology queries and regex baselines',
     searchParagraphs: [
-      'Seven full-POS smart morphology queries with explicit POS are compared with a regex that manually enumerates inflected surfaces and a regex that lists only short stems. Each query has eight positives and eight negatives, for 112 cases.',
+      'Seven full-POS morphology queries with explicit POS run once with any and once with smart. Both are compared with a regex that manually enumerates inflected surfaces and a regex that lists only short stems. Each query has eight positives and eight negatives, for 112 cases.',
       'This constructed fixture diagnoses coverage and boundary trade-offs for the same queries. It is neither a held-out quality benchmark nor a general ranking of Korean search quality.',
-      'Contract-adjusted values apply expectations fixed before execution to the same predictions. The six raw kfind false positives are same-POS homographs and source-aligned internal components; the adjusted contract classifies them as TPᶜ.',
+      'Contract-adjusted values apply expectations fixed before execution to each method’s same predictions. The false-positive difference between any and smart remains visible; adjusted results never replace raw errors.',
     ],
     searchQualityCaption:
       'F1 from strict gold and fixed contract expectations on the same 112 cases.',
     searchChartDescription:
-      'Raw and contract-adjusted F1 for kfind, an enumerated-surface regex, and a short-stem regex',
+      'Raw and contract-adjusted F1 for kfind full POS any/smart, an enumerated-surface regex, and a short-stem regex',
     searchConfusionTitle: 'Search-strategy confusion matrix',
     strategy: 'Search strategy',
     searchRawCounts: 'Raw TP / TN / FP / FN',
@@ -303,17 +299,17 @@ const copy = {
     maximum: 'Maximum',
     effectiveThroughput: 'Effective throughput',
     searchSource: 'Search-baseline source',
-    chartDescription: 'Raw and contract-adjusted F1 bars for each product',
+    chartDescription: 'Raw and contract-adjusted F1 bars for each profile',
     rawLabel: 'Raw',
     adjustedLabel: 'Contract-adjusted',
     metricLabel: 'F1',
-    confusionTitle: 'Canonical confusion matrix',
-    backend: 'Product',
+    confusionTitle: 'Confusion matrix',
+    backend: 'Profile or product',
     rawCounts: 'Raw TP / TN / FP / FN',
     adjustedCounts: 'TPᶜ / TNᶜ / FPᶜ / FNᶜ',
-    performanceTitle: 'Performance units',
+    performanceTitle: 'Same-workload performance',
     performanceParagraph:
-      'Morphology workloads run in fresh processes with one warm-up followed by five measurements. The table contains medians and does not combine execution cost with quality.',
+      'The quality fixture above runs in fresh processes with one warm-up followed by five measurements. The table compares four kfind profiles with fixed external-analyzer settings in the same workload and does not combine cost with quality.',
     initialization: 'Initialization',
     throughput: 'cases/s',
     latency: 'p95',
@@ -375,6 +371,134 @@ function chartRows(
   });
 }
 
+interface MorphologyComparisonProps {
+  readonly adjustedCounts: string;
+  readonly adjustedLabel: string;
+  readonly backend: string;
+  readonly caption: string;
+  readonly chartDescription: string;
+  readonly comparison: ProfileComparison;
+  readonly confusionTitle: string;
+  readonly initialization: string;
+  readonly latency: string;
+  readonly locale: DocumentLocale;
+  readonly memory: string;
+  readonly metricLabel: string;
+  readonly performanceParagraph: string;
+  readonly performanceTitle: string;
+  readonly rawCounts: string;
+  readonly rawLabel: string;
+  readonly throughput: string;
+  readonly title: string;
+}
+
+function MorphologyComparison({
+  adjustedCounts,
+  adjustedLabel,
+  backend,
+  caption,
+  chartDescription,
+  comparison,
+  confusionTitle,
+  initialization,
+  latency,
+  locale,
+  memory,
+  metricLabel,
+  performanceParagraph,
+  performanceTitle,
+  rawCounts,
+  rawLabel,
+  throughput,
+  title,
+}: MorphologyComparisonProps): React.JSX.Element {
+  return (
+    <>
+      <QualityChart
+        adjustedLabel={adjustedLabel}
+        caption={caption}
+        description={chartDescription}
+        metricLabel={metricLabel}
+        rawLabel={rawLabel}
+        rows={chartRows(comparison.profiles, comparison.quality)}
+        title={title}
+      />
+
+      <h3>{confusionTitle}</h3>
+      <div className="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">{backend}</th>
+              <th scope="col">{rawCounts}</th>
+              <th scope="col">{adjustedCounts}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {comparison.profiles.map((profile) => {
+              const result = requiredEntry(
+                comparison.quality,
+                profile,
+                'quality',
+              );
+              const contract = adjusted(result);
+
+              return (
+                <tr key={profile}>
+                  <th scope="row">{backendLabels[profile] ?? profile}</th>
+                  <td>
+                    {result.overall.tp} / {result.overall.tn} /{' '}
+                    {result.overall.fp} / {result.overall.fn}
+                  </td>
+                  <td>
+                    {contract.contract_tp} / {contract.contract_tn} /{' '}
+                    {contract.contract_fp} / {contract.contract_fn}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <h3>{performanceTitle}</h3>
+      <p>{performanceParagraph}</p>
+      <div className="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">{backend}</th>
+              <th scope="col">{initialization}</th>
+              <th scope="col">{throughput}</th>
+              <th scope="col">{latency}</th>
+              <th scope="col">{memory}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {comparison.profiles.map((profile) => {
+              const result = requiredEntry(
+                comparison.performance,
+                profile,
+                'performance',
+              );
+
+              return (
+                <tr key={profile}>
+                  <th scope="row">{backendLabels[profile] ?? profile}</th>
+                  <td>{result.initialization_seconds.toFixed(4)} s</td>
+                  <td>{result.cases_per_second.toLocaleString(locale)}</td>
+                  <td>{result.latency_p95_ms.toFixed(4)} ms</td>
+                  <td>{(result.peak_rss_kib / 1024).toFixed(1)} MiB</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
 function searchQualityRows(locale: DocumentLocale): readonly QualityChartRow[] {
   return searchBaselineSnapshot.quality.map((result) => ({
     adjusted: result.contract_adjusted.f1_percent,
@@ -393,9 +517,6 @@ function durationRows(locale: DocumentLocale): readonly DurationChartRow[] {
 export default function BenchmarksPage(): React.JSX.Element {
   const locale = useDocumentLocale();
   const text = copy[locale];
-  const queryMatrixQuality =
-    benchmarkSnapshot.query_matrix.explicit_pos.quality;
-  const queryMatrixBackends = Object.keys(queryMatrixQuality);
 
   return (
     <DocumentPage>
@@ -419,80 +540,79 @@ export default function BenchmarksPage(): React.JSX.Element {
       </DocumentSection>
 
       <DocumentSection id="canonical-quality" title={text.canonicalTitle}>
-        <QualityChart
+        <MorphologyComparison
+          adjustedCounts={text.adjustedCounts}
           adjustedLabel={text.adjustedLabel}
+          backend={text.backend}
           caption={text.canonicalCaption}
-          description={text.chartDescription}
+          chartDescription={text.chartDescription}
+          comparison={
+            benchmarkSnapshot.profile_comparisons[MorphologyWorkload.Canonical]
+          }
+          confusionTitle={text.confusionTitle}
+          initialization={text.initialization}
+          latency={text.latency}
+          locale={locale}
+          memory={text.memory}
           metricLabel={text.metricLabel}
+          performanceParagraph={text.performanceParagraph}
+          performanceTitle={text.performanceTitle}
+          rawCounts={text.rawCounts}
           rawLabel={text.rawLabel}
-          rows={chartRows(
-            benchmarkSnapshot.backends,
-            benchmarkSnapshot.quality,
-          )}
+          throughput={text.throughput}
           title={text.canonicalTitle}
         />
-        <h3>{text.confusionTitle}</h3>
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">{text.backend}</th>
-                <th scope="col">{text.rawCounts}</th>
-                <th scope="col">{text.adjustedCounts}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {benchmarkSnapshot.backends.map((backend) => {
-                const result = requiredEntry(
-                  benchmarkSnapshot.quality,
-                  backend,
-                  'canonical quality',
-                );
-                const contract = adjusted(result);
-
-                return (
-                  <tr key={backend}>
-                    <th scope="row">{backendLabels[backend] ?? backend}</th>
-                    <td>
-                      {result.overall.tp} / {result.overall.tn} /{' '}
-                      {result.overall.fp} / {result.overall.fn}
-                    </td>
-                    <td>
-                      {contract.contract_tp} / {contract.contract_tn} /{' '}
-                      {contract.contract_fp} / {contract.contract_fn}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
       </DocumentSection>
 
       <DocumentSection id="query-matrix-quality" title={text.queryMatrixTitle}>
         <p>{text.queryMatrixDescription}</p>
-        <QualityChart
+        <MorphologyComparison
+          adjustedCounts={text.adjustedCounts}
           adjustedLabel={text.adjustedLabel}
+          backend={text.backend}
           caption={text.queryMatrixCaption}
-          description={text.chartDescription}
+          chartDescription={text.chartDescription}
+          comparison={
+            benchmarkSnapshot.profile_comparisons[
+              MorphologyWorkload.QueryMatrix
+            ]
+          }
+          confusionTitle={text.confusionTitle}
+          initialization={text.initialization}
+          latency={text.latency}
+          locale={locale}
+          memory={text.memory}
           metricLabel={text.metricLabel}
+          performanceParagraph={text.performanceParagraph}
+          performanceTitle={text.performanceTitle}
+          rawCounts={text.rawCounts}
           rawLabel={text.rawLabel}
-          rows={chartRows(queryMatrixBackends, queryMatrixQuality)}
+          throughput={text.throughput}
           title={text.queryMatrixTitle}
         />
       </DocumentSection>
 
       <DocumentSection id="robust-quality" title={text.robustTitle}>
-        <QualityChart
+        <MorphologyComparison
+          adjustedCounts={text.adjustedCounts}
           adjustedLabel={text.adjustedLabel}
+          backend={text.backend}
           caption={text.robustCaption}
-          description={text.chartDescription}
+          chartDescription={text.chartDescription}
+          comparison={
+            benchmarkSnapshot.profile_comparisons[MorphologyWorkload.Robustness]
+          }
+          confusionTitle={text.confusionTitle}
+          initialization={text.initialization}
+          latency={text.latency}
+          locale={locale}
+          memory={text.memory}
           metricLabel={text.metricLabel}
+          performanceParagraph={text.performanceParagraph}
+          performanceTitle={text.performanceTitle}
+          rawCounts={text.rawCounts}
           rawLabel={text.rawLabel}
-          rows={chartRows(
-            benchmarkSnapshot.robustness.explicit_pos.backends,
-            benchmarkSnapshot.robustness.explicit_pos.quality,
-          )}
+          throughput={text.throughput}
           title={text.robustTitle}
         />
       </DocumentSection>
@@ -592,42 +712,6 @@ export default function BenchmarksPage(): React.JSX.Element {
             {text.reportLink}
           </a>
         </p>
-      </DocumentSection>
-
-      <DocumentSection id="performance-units" title={text.performanceTitle}>
-        <p>{text.performanceParagraph}</p>
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col">{text.backend}</th>
-                <th scope="col">{text.initialization}</th>
-                <th scope="col">{text.throughput}</th>
-                <th scope="col">{text.latency}</th>
-                <th scope="col">{text.memory}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(benchmarkSnapshot.performance).map((backend) => {
-                const result = requiredEntry(
-                  benchmarkSnapshot.performance,
-                  backend,
-                  'performance',
-                );
-
-                return (
-                  <tr key={backend}>
-                    <th scope="row">{backendLabels[backend] ?? backend}</th>
-                    <td>{result.initialization_seconds.toFixed(4)} s</td>
-                    <td>{result.cases_per_second.toLocaleString(locale)}</td>
-                    <td>{result.latency_p95_ms.toFixed(4)} ms</td>
-                    <td>{(result.peak_rss_kib / 1024).toFixed(1)} MiB</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
       </DocumentSection>
 
       <DocumentSection id="source-evidence" title={text.sourcesTitle}>

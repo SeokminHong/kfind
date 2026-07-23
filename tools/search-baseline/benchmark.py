@@ -17,9 +17,15 @@ from pathlib import Path
 from typing import Any
 
 
-QUALITY_METHODS = ("kfind", "regex_enumerated", "regex_stem")
+QUALITY_METHODS = (
+    "kfind_any",
+    "kfind_smart",
+    "regex_enumerated",
+    "regex_stem",
+)
 TIMING_METHODS = (
-    "kfind",
+    "kfind_any",
+    "kfind_smart",
     "rg_enumerated",
     "grep_enumerated",
     "rg_stem",
@@ -173,7 +179,7 @@ def command_for(
     grep: str,
     count: bool,
 ) -> list[str]:
-    if method == "kfind":
+    if method in {"kfind_any", "kfind_smart"}:
         return [
             str(kfind),
             "--no-pager",
@@ -182,6 +188,8 @@ def command_for(
             "--no-filename",
             "--data-dir",
             str(data_dir),
+            "--boundary",
+            method.removeprefix("kfind_"),
             "--count" if count else "--line-number",
             query["query"],
             str(corpus),
@@ -261,7 +269,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         "## 범위",
         "",
-        "이 보고서는 동일한 7개 형태 질의를 kfind와 두 종류의 수동 정규식으로 실행한 "
+        "이 보고서는 동일한 7개 형태 질의를 kfind full-POS any/smart와 두 종류의 수동 "
+        "정규식으로 실행한 "
         "constructed 진단입니다. Held-out 품질 benchmark나 일반적인 한국어 검색 품질의 "
         "순위로 해석하지 않습니다.",
         "",
@@ -331,15 +340,16 @@ def render_markdown(report: dict[str, Any]) -> str:
             "",
             "## Query별 raw F1",
             "",
-            "| query | kfind | enumerated regex | stem regex |",
-            "| --- | ---: | ---: | ---: |",
+        "| query | kfind any | kfind smart | enumerated regex | stem regex |",
+        "| --- | ---: | ---: | ---: | ---: |",
         ]
     )
     for query in report["patterns"]:
         query_id = query["id"]
         lines.append(
             f"| `{query['query']}` | "
-            f"{report['quality']['kfind']['by_query'][query_id]['raw']['f1_percent']:.2f}% | "
+            f"{report['quality']['kfind_any']['by_query'][query_id]['raw']['f1_percent']:.2f}% | "
+            f"{report['quality']['kfind_smart']['by_query'][query_id]['raw']['f1_percent']:.2f}% | "
             f"{report['quality']['regex_enumerated']['by_query'][query_id]['raw']['f1_percent']:.2f}% | "
             f"{report['quality']['regex_stem']['by_query'][query_id]['raw']['f1_percent']:.2f}% |"
         )
@@ -353,6 +363,8 @@ def render_markdown(report: dict[str, Any]) -> str:
             "짧은 어간 후보만 열거합니다. 두 정규식에는 품사 판정이나 token boundary가 없습니다.",
             "- `rg`와 `grep`의 matching line 집합이 같은지 실행 중 검증합니다. 품질은 정규식 "
             "전략별로 합치고 실행시간은 도구별로 분리합니다.",
+            "- Kfind는 같은 full-POS resource에서 `boundary=any`와 `boundary=smart`를 "
+            "각각 실행하고 품질과 시간을 독립된 행으로 보존합니다.",
             "- Contract-adjusted는 같은 예측을 fixture에 미리 선언한 기대값으로 다시 평가합니다. "
             "다른 검색 모드나 후처리가 아닙니다.",
             "- 각 시간 batch는 7개 질의를 별도 fresh process로 실행해 같은 단일 파일을 7회 "
@@ -384,7 +396,8 @@ def quality_results(
     environment: dict[str, str],
 ) -> dict[str, Any]:
     prediction_commands = {
-        "kfind": "kfind",
+        "kfind_any": "kfind_any",
+        "kfind_smart": "kfind_smart",
         "regex_enumerated": "rg_enumerated",
         "regex_stem": "rg_stem",
     }
@@ -649,7 +662,7 @@ def main() -> None:
         for method in TIMING_METHODS
     }
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "revision": args.revision,
         "environment": {
             "platform": platform.platform(),

@@ -2656,6 +2656,35 @@ fn exact_modifier_inside_an_unknown_token_is_not_a_component() {
     assert!(!ProductPolicy::RecallFirst.accepts(&decision));
 }
 
+#[test]
+fn modifier_component_inside_a_derived_nominal_predicate_is_rejected() {
+    let resolver = resolver_from_entries([
+        atomic("전", "MM"),
+        atomic("망", "NNG"),
+        atomic("전망", "NNG"),
+        atomic("해야", "XSV+EC"),
+        expression(
+            "전망해야",
+            "MM+NNG+XSV+EC",
+            "전/MM/*+망/NNG/*+해야/XSV+EC/*",
+        ),
+    ]);
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current("전망해야"),
+        CandidateSpans {
+            core: 0.."전".len(),
+            anchor: 0.."전".len(),
+            consumed: 0.."전".len(),
+            token: 0.."전망해야".len(),
+        },
+        &[component_pattern(DataFinePos::Mm, "전")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+    assert!(!ProductPolicy::RecallFirst.accepts(&decision));
+}
+
 fn resolver() -> ConstraintResolver {
     let entries = [
         atomic("매", "NNG"),

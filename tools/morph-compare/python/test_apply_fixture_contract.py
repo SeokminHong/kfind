@@ -79,6 +79,12 @@ class ApplyFixtureContractTests(unittest.TestCase):
             reviewed = load_cases(cases_path)[0]
             self.assertIsNone(reviewed["contract_expected"])
             self.assertEqual("nonstandard-input", reviewed["contract_reason"])
+            self.assertEqual(
+                hashlib.sha256(
+                    (json.dumps(case, ensure_ascii=False) + "\n").encode()
+                ).hexdigest(),
+                metadata["external_baseline_fixture_sha256"],
+            )
             self.assertEqual(1, metadata["contract_review"]["excluded_cases"])
             self.assertEqual(sha256(cases_path), metadata["fixture_sha256"])
             validate_contract_review_metadata([reviewed], metadata)

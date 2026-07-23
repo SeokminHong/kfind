@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [Boundary profile 품질·성능 비교](2026-07-24-boundary-profile-site-comparison.md)
 - [관형사와 단위명사 문맥 recall](2026-07-23-determiner-counter-noun-recall.md)
 - [연결 어미 `-지`와 동형 명사 판정](2026-07-23-connective-ji-nominal-frame.md)
 - [표준 띄어쓰기와 component 버전 계약](2026-07-17-standard-spacing-component-version.md)
@@ -133,6 +134,12 @@ bytes에서 version field 32 bytes가 추가된 37,103,813 bytes다. full morpho
   `smart` query는 resource 없는 library/WASM engine에서 compile 오류다.
 
 ## 다음 작업
+
+[Boundary profile 품질·성능 비교](2026-07-24-boundary-profile-site-comparison.md)에서 Canonical,
+query matrix와 Robust의 `embedded/full POS × any/smart` 품질·성능을 외부 분석기 고정
+snapshot과 함께 측정했다. Canonical `full POS + smart`는 `FPᶜ=0`, `FNᶜ=0`이며 raw FN
+2건은 비표준 붙여쓰기로만 남는다. Site snapshot도 세 workload의 동일한 8개 행과 검색
+기준선의 full POS any/smart를 보존한다.
 
 Korean-KSL source-signal 441문장과 quota 보충 4문장을 모두 검토해 실제 오류 439문장을
 확정하고, query·품사·expected·raw span을 검토한 explicit-POS와 무태그 500-case를 고정했다.

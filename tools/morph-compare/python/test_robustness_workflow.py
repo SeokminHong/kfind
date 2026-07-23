@@ -73,11 +73,16 @@ class RobustnessWorkflowTests(unittest.TestCase):
                 },
             }
 
-        def evaluate_boundary(*_args):
+        def evaluate_boundary(_cases, _runner, profile, _boundary, _path, _runs):
+            value = 3.0 if profile == "embedded" else 3.5
             return (
                 {"positive": True, "negative": False},
-                measured(3.0),
-                {"backend": "kfind", "version": "test"},
+                measured(value),
+                {
+                    "backend": "kfind",
+                    "version": "test",
+                    "component_artifact_sha256": None,
+                },
             )
 
         def evaluate_untagged(*_args):
@@ -138,6 +143,28 @@ class RobustnessWorkflowTests(unittest.TestCase):
             result["workflows"]["human-full-pos-smart-untagged"]["quality"][
                 "overall"
             ]["f1_percent"],
+        )
+        comparison = result["explicit_pos"]["boundary_comparison"]
+        self.assertEqual(["smart", "any"], comparison["boundaries"])
+        self.assertEqual(
+            {"embedded", "full-pos"}, set(comparison["profiles"])
+        )
+        self.assertEqual(
+            3.5,
+            comparison["profiles"]["full-pos"]["any"]["performance"][
+                "cases_per_second"
+            ],
+        )
+        self.assertFalse(
+            comparison["profiles"]["full-pos"]["any"][
+                "component_resource_loaded"
+            ]
+        )
+        self.assertEqual(
+            2.0,
+            comparison["profiles"]["full-pos"]["smart"]["performance"][
+                "cases_per_second"
+            ],
         )
 
 

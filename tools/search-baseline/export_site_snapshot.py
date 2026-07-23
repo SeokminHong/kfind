@@ -9,9 +9,15 @@ from pathlib import Path
 from typing import Any
 
 
-QUALITY_METHODS = ("kfind", "regex_enumerated", "regex_stem")
+QUALITY_METHODS = (
+    "kfind_any",
+    "kfind_smart",
+    "regex_enumerated",
+    "regex_stem",
+)
 PERFORMANCE_METHODS = (
-    "kfind",
+    "kfind_any",
+    "kfind_smart",
     "rg_enumerated",
     "grep_enumerated",
     "rg_stem",
@@ -40,14 +46,14 @@ def select_metrics(metrics: dict[str, Any]) -> dict[str, int | float]:
 
 def export(report_path: Path) -> dict[str, Any]:
     report = json.loads(report_path.read_text(encoding="utf-8"))
-    if report.get("schema_version") != 1:
-        raise ValueError("search baseline report schema_version must be 1")
+    if report.get("schema_version") != 2:
+        raise ValueError("search baseline report schema_version must be 2")
     fixture = report["fixture"]
     if fixture["kind"] != "constructed-diagnostic":
         raise ValueError("search baseline fixture kind must be constructed-diagnostic")
 
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "source_report": {
             "revision": report["revision"],
             "sha256": sha256(report_path),

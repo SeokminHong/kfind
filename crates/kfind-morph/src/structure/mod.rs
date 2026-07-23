@@ -2884,6 +2884,15 @@ fn component_is_shadowed_by_predicate(
     spans: &CandidateSpans,
     evidence: &TokenEvidence,
 ) -> bool {
+    let modifier_inside_derived_nominal = pattern.fine_pos == DataFinePos::Mm
+        && evidence
+            .runtime_nominal_derivation_spans
+            .iter()
+            .any(|nominal| nominal.start == spans.core.start && nominal.end > spans.core.end);
+    if modifier_inside_derived_nominal {
+        return true;
+    }
+
     let unsupported_runtime_component = support == StructuralEvidence::RuntimeComponent
         && (((pattern.fine_pos.is_nominal() && pattern.lexical_form.as_ref() == "못")
             || (matches!(pattern.fine_pos, DataFinePos::Nng | DataFinePos::Nnp)
