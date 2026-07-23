@@ -6,6 +6,7 @@
 관련 문서:
 
 - [기술 사양서](../../specs/kfind.md)
+- [관형사와 단위명사 문맥 recall](2026-07-23-determiner-counter-noun-recall.md)
 - [연결 어미 `-지`와 동형 명사 판정](2026-07-23-connective-ji-nominal-frame.md)
 - [표준 띄어쓰기와 component 버전 계약](2026-07-17-standard-spacing-component-version.md)
 - [전망 종결형 `-(으)리라` recall](2026-07-17-prospective-final-recall.md)
@@ -630,3 +631,10 @@ full-POS raw FN은 5→4, FNᶜ는 1→0이 됐고 FP 4·FPᶜ 0과 hard-negativ
 기존 판정을 유지한다. Hard-negative full-POS는 raw `FP 6 / TN 34`에서 `FP 5 / TN 35`,
 contract-adjusted `FPᶜ 1 / TNᶜ 34`에서 `FPᶜ 0 / TNᶜ 35`가 됐다. Canonical,
 development와 두 query matrix의 raw·contract 행렬은 변하지 않았다.
+
+[관형사와 단위명사 문맥 recall](2026-07-23-determiner-counter-noun-recall.md)에서
+다음 token 전체의 `NNB/NNBC`와 동형 `XSN/XR`이 경쟁하는 배치를 관형사 구조로 판정했다.
+`몇/MM + 년/NNB|NNBC`를 회수해 test matrix full-POS raw FN은 5→4, FNᶜ는
+1→0이 됐으며 FP 4·FPᶜ 0과 hard-negative `FP 5 / TN 35`를 유지했다. Embedded도
+같은 건을 회수했고 `몇몇` 내부 prefix는 계속 거부한다. 잔여 raw FN 4건은
+`gold-alignment-error 1`, `nonstandard-input 3`, 미분류 0건이다.
