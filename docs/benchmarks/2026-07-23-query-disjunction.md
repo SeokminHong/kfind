@@ -2,8 +2,8 @@
 
 ## 대상
 
-- baseline: `cc996439aa5eca9fbc71386440ae707b05527817`
-- candidate: `6b27f13273e1c53374e3a7b212871ced94f3a5a3`
+- baseline: `fdef85be6c5c06aa9dc80f191ecb88e4c865b050`
+- candidate: `9d9a871f26b396fd378824b423b93396e73be1d9`
 - macOS 26.4.1 (25E253), Apple M1 Max, 32 GiB, arm64
 - rustc 1.97.0, cargo 1.97.0, release profile
 
@@ -41,16 +41,16 @@ Query compile 단위는 1회당 마이크로초다.
 
 | workload | baseline p50 / p95 | candidate p50 / p95 | 변화 |
 | --- | ---: | ---: | ---: |
-| `single_atom` | 46.709 / 47.370 us | 45.652 / 46.974 us | -2.26% / -0.84% |
-| `phrase_8_atoms` | 118.801 / 123.592 us | 114.798 / 118.648 us | -3.37% / -4.00% |
-| `disjunction_8_atoms` | - | 116.061 / 120.138 us | 신규 workload, p95 목표 750 us 이하 |
+| `single_atom` | 46.314 / 47.770 us | 45.354 / 46.189 us | -2.07% / -3.31% |
+| `phrase_8_atoms` | 115.660 / 123.095 us | 116.070 / 122.618 us | +0.35% / -0.39% |
+| `disjunction_8_atoms` | - | 116.922 / 123.445 us | 신규 workload, p95 목표 750 us 이하 |
 
 Matcher 단위는 corpus 1회당 마이크로초다.
 
 | workload | baseline p50 / p95 | candidate p50 / p95 | 변화 |
 | --- | ---: | ---: | ---: |
-| `scan_deterministic_corpus` | 233.847 / 240.589 us | 234.042 / 245.300 us | +0.08% / +1.96% |
-| `disjunction_find_all` | - | 258.514 / 265.781 us | 신규 workload, p50 267.09 MiB/s |
+| `scan_deterministic_corpus` | 233.627 / 251.294 us | 239.401 / 248.147 us | +2.47% / -1.25% |
+| `disjunction_find_all` | - | 261.816 / 270.111 us | 신규 workload, p50 263.72 MiB/s |
 
 `disjunction_find_all`은 모든 줄에서 하나의 alternative가 일치하고 기존 scan은 64줄마다 한 번
 일치하므로 두 수치를 의미상 동등한 baseline/candidate로 비교하지 않는다.
@@ -59,19 +59,19 @@ Sample JSON checksum은 다음과 같다.
 
 | workload | baseline | candidate |
 | --- | --- | --- |
-| `single_atom` | `a90e767ce2742301854ad0eb3bde25c155d0dabab49faa6179b9a985ce1c2844` | `c78e25fea96ae4a3579cc84f16db5a2c084952aa02eeb7b461e288fe67c75dd2` |
-| `phrase_8_atoms` | `f91116c53b8b405671f204e75c236079e6a11d6351937e10da664040981c314a` | `ebf2f1abf64d81205ae7234b0323716c5cc3b5a1c9992f367a629b3896245715` |
-| `disjunction_8_atoms` | - | `3f75568107f61364565cd31a691cc52a478a6b5f60538e795b39b56c001446ad` |
-| `scan_deterministic_corpus` | `73775e85c8c91cd100eef97a65300c1dfe0cb6a5f0483e0a3e33edde3c00f71e` | `a0f8f60d1dc8d2515b5f6cee901cb17e4779b6b007a758ca57884ec2c17177b3` |
-| `disjunction_find_all` | - | `5bb3c569382ce7985d588c42f71a5763663eb0e4281ef15dae6b47eedab051d7` |
+| `single_atom` | `2aed6a092ab10d2620a880fb57a2e152da74ccd810889b0a550a6e28136e11ea` | `a0221ebf71ac740eff277271fd7368ecfb3948dff97c57c4fbd0808f0c69b776` |
+| `phrase_8_atoms` | `7329667331a3606a328dfe2624319d4574a0f99807459b0a5711370df5eefa53` | `6fd757fbb7963e05cfbc1c37debbfa6c0aabaa72d62edb55fc942c0830025045` |
+| `disjunction_8_atoms` | - | `d160c269d37df7b48a406cd981cb37afe52455f884a564e0082da99d7c8aa18b` |
+| `scan_deterministic_corpus` | `cf2d934b3daa4f2af28184661fdc120f0e903348eac781ad720852018e93aa66` | `ea0416c1c4dd7a89cfb61add1280457c038f12f9d2017d54a7ecd83230dedf83` |
+| `disjunction_find_all` | - | `b8460285249fd23b7728bcd4979c6b64f6e9fdbec451e5c1c853255216cc8ac9` |
 
 ## 판정
 
-8 atom disjunction compile p95는 0.120138 ms로 0.75 ms 목표를 충족한다. 기존 query compile
-workload는 p95가 0.84%와 4.00% 줄었다. 기존 corpus scan은 p50 +0.08%, p95 +1.96%로 불리하게
-움직였으나 절대 차이는 p95 4.711 us이고 구현은 해당 scan 경로를 바꾸지 않았다. 새 disjunction
-matcher는 p50 267.09 MiB/s로 전체 corpus를 한 번 순회한다. 기능 이득에 비해 기존 경로의 변동이
-작으므로 변경을 채택한다.
+8 atom disjunction compile p95는 0.123445 ms로 0.75 ms 목표를 충족한다. 기존 query compile
+workload p95는 3.31%와 0.39% 줄었다. 기존 corpus scan은 p50이 2.47%, 5.774 us 느려졌고 p95는
+1.25%, 3.147 us 줄었다. 구현은 해당 scan 경로를 바꾸지 않았지만 불리한 p50 변화도 결과에
+포함한다. 새 disjunction matcher는 p50 263.72 MiB/s로 전체 corpus를 한 번 순회한다. 기능 이득에
+비해 기존 경로의 변동이 작으므로 변경을 채택한다.
 
 정확성은 lexer·compile plan·matcher public API·CLI·WASM package test로 확인했다. 동일 span을
 만드는 alternative의 provenance 병합, 공백 유무, literal `|`, 피연산자 누락과 phrase 혼합 오류를
