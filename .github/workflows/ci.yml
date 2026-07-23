@@ -74,22 +74,26 @@ jobs:
         runner:
           - ubuntu-24.04
           - macos-15
+          - windows-2025
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v6
       - name: Test benchmark guard
+        if: runner.os != 'Windows'
         run: >-
           python3 -m unittest discover
           --start-directory tools/benchmark-guard
           --pattern 'test_*.py'
       - name: Install Rust
         run: rustup toolchain install stable --profile minimal
-      - name: Run workspace tests
+      - name: Run native tests
         run: |
           cargo +stable test --workspace --locked
           cargo +stable test --manifest-path tools/nikl-lexicon/classifier/Cargo.toml --locked
           cargo +stable test --manifest-path tools/morph-compare/runner/Cargo.toml --locked
-          cargo +stable test --manifest-path tools/morph-index-benchmark/Cargo.toml --locked
+      - name: Test the morph index benchmark
+        if: runner.os != 'Windows'
+        run: cargo +stable test --manifest-path tools/morph-index-benchmark/Cargo.toml --locked
 
   fuzz:
     name: Fuzz targets

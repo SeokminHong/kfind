@@ -9,10 +9,15 @@ publish = false
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-sha2 = { version = "0.10.9", features = ["asm"] }
 toml = "0.8"
 unicode-normalization.workspace = true
 yada.workspace = true
+
+[target.'cfg(target_env = "msvc")'.dependencies]
+sha2 = "0.10.9"
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+sha2 = { version = "0.10.9", features = ["asm"] }
 
 [lints]
 workspace = true

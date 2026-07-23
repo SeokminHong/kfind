@@ -93,7 +93,9 @@ fn agent_init_uses_localized_errors_and_clean_custom_output() {
     assert!(custom.status.success());
     assert!(custom.stderr.is_empty());
     let stdout = String::from_utf8(custom.stdout).unwrap();
-    assert!(stdout.starts_with("---\nname: kfind\n"));
+    let mut lines = stdout.lines();
+    assert_eq!(lines.next(), Some("---"));
+    assert_eq!(lines.next(), Some("name: kfind"));
     assert!(stdout.contains("managed by kfind init"));
 }
 

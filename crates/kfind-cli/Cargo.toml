@@ -30,7 +30,7 @@ base64 = "0.22.1"
 clap.workspace = true
 clap_complete.workspace = true
 clap_mangen.workspace = true
-crossterm = { version = "0.29.0", default-features = false, features = ["events"] }
+crossterm = { version = "0.29.0", default-features = false, features = ["events", "windows"] }
 dialoguer = { version = "0.12.0", default-features = false }
 kfind-data.workspace = true
 kfind-matcher.workspace = true
