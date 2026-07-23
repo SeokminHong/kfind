@@ -1,5 +1,6 @@
 //! Command-line contract for the `kfind` binary.
 
+mod agent_hook;
 mod args;
 mod assets;
 mod diagnostic;
@@ -9,6 +10,7 @@ mod output;
 mod parse;
 mod run;
 
+pub use agent_hook::{AgentHookError, run_agent_hook_with_io};
 pub use args::{
     AgentArg, Args, BoundaryArg, ColorArg, EncodingArg, ExpandArg, NormalizationArg, PosArg,
     SortArg,

@@ -1,6 +1,7 @@
 use kfind_cli::{
-    CliError, ExitStatus, Language, OutputError, TerminalPager, parse_args_from, run_init_with_io,
-    run_with_io, run_with_terminal_pager, write_cli_error,
+    CliError, ExitStatus, Language, OutputError, TerminalPager, parse_args_from,
+    run_agent_hook_with_io, run_init_with_io, run_with_io, run_with_terminal_pager,
+    write_cli_error,
 };
 use std::env;
 use std::io::{self, BufWriter, IsTerminal, Write};
@@ -27,7 +28,12 @@ fn main() -> ExitCode {
     let stderr_is_terminal = stderr.is_terminal();
     let mut stderr = BufWriter::new(stderr);
 
-    let result = if args.init {
+    let result = if args.agent_hook {
+        let mut stdout = BufWriter::new(stdout);
+        run_agent_hook_with_io(&mut stdin.lock(), &mut stdout)
+            .map(|()| ExitStatus::Match)
+            .map_err(CliError::AgentHook)
+    } else if args.init {
         let mut stdout = BufWriter::new(stdout);
         run_init_with_io(
             &args,

@@ -23,7 +23,8 @@ use serde::Serialize;
 
 use crate::output::{FullPosNotRequiredReason, FullPosStatus, write_safe_path, write_safe_text};
 use crate::{
-    Args, EncodingArg, InitError, Language, OutputError, OutputOptions, OutputWriter, SortArg,
+    AgentHookError, Args, EncodingArg, InitError, Language, OutputError, OutputOptions,
+    OutputWriter, SortArg,
 };
 
 const FULL_POS_FILE: &str = "lexicon.bin";
@@ -673,6 +674,7 @@ const fn status_from_summary(summary: SearchSummary) -> ExitStatus {
 
 #[derive(Debug)]
 pub enum CliError {
+    AgentHook(AgentHookError),
     Init(InitError),
     MissingQuery,
     Options(CompileOptionError),
@@ -691,6 +693,7 @@ pub enum CliError {
 impl Display for CliError {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         match self {
+            Self::AgentHook(error) => Display::fmt(error, formatter),
             Self::Init(error) => Display::fmt(error, formatter),
             Self::MissingQuery => formatter.write_str("a search query is required"),
             Self::Options(error) => Display::fmt(error, formatter),
@@ -725,6 +728,7 @@ impl Display for CliError {
 impl Error for CliError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
+            Self::AgentHook(error) => Some(error),
             Self::Init(error) => Some(error),
             Self::MissingQuery => None,
             Self::Options(error) => Some(error),

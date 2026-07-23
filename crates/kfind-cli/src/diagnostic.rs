@@ -27,6 +27,7 @@ impl<'a> LocalizedCliError<'a> {
 impl Display for LocalizedCliError<'_> {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         match self.error {
+            CliError::AgentHook(error) => Display::fmt(error, formatter),
             CliError::Init(error) => formatter.write_str(&error.localized(self.language)),
             CliError::MissingQuery => formatter.write_str(
                 self.language

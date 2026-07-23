@@ -86,7 +86,7 @@ pub enum AgentArg {
 )]
 pub struct Args {
     /// Korean lemma, `|` alternatives, short phrase, or tagged query.
-    #[arg(required_unless_present_any = ["init", "check_data"])]
+    #[arg(required_unless_present_any = ["init", "check_data", "agent_hook"])]
     pub query: Option<String>,
 
     /// Files and directories to search. Defaults to stdin when piped, otherwise '.'.
@@ -238,7 +238,7 @@ pub struct Args {
     )]
     pub check_data: bool,
 
-    /// Initialize the kfind skill for coding agents in the current directory.
+    /// Initialize the kfind integration for coding agents in the current directory.
     #[arg(
         long,
         conflicts_with_all = [
@@ -290,6 +290,10 @@ pub struct Args {
         conflicts_with = "query"
     )]
     pub agent: Vec<AgentArg>,
+
+    /// Run as a coding-agent shell hook.
+    #[arg(long, hide = true, exclusive = true)]
+    pub agent_hook: bool,
 
     #[arg(long, action = ArgAction::Help)]
     pub help: Option<bool>,
@@ -397,6 +401,16 @@ mod tests {
         assert!(args.init);
         assert_eq!(args.query(), None);
         assert_eq!(args.agent, [AgentArg::Codex, AgentArg::ClaudeCode]);
+    }
+
+    #[test]
+    fn agent_hook_is_a_hidden_exclusive_mode() {
+        let args = Args::try_parse_from(["kfind", "--agent-hook"]).unwrap();
+
+        assert!(args.agent_hook);
+        assert_eq!(args.query(), None);
+        let conflict = Args::try_parse_from(["kfind", "--agent-hook", "걷다"]).unwrap_err();
+        assert_eq!(conflict.kind(), clap::error::ErrorKind::ArgumentConflict);
     }
 
     #[test]
