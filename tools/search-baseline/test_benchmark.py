@@ -62,7 +62,7 @@ class SearchBaselineBenchmarkTest(unittest.TestCase):
         data_dir = Path("/tmp/data")
 
         kfind_command = benchmark.command_for(
-            "kfind",
+            "kfind_any",
             query,
             corpus,
             kfind,
@@ -84,6 +84,9 @@ class SearchBaselineBenchmarkTest(unittest.TestCase):
 
         self.assertIn("v:걷다", kfind_command)
         self.assertIn(str(data_dir), kfind_command)
+        self.assertEqual(
+            "any", kfind_command[kfind_command.index("--boundary") + 1]
+        )
         self.assertIn(query["enumerated"], rg_command)
         self.assertNotIn(query["stem"], rg_command)
 

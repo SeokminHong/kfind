@@ -152,16 +152,53 @@ def evaluate_robustness(
         )
         for backend, predictions in explicit["predictions"].items()
     }
-    agent_predictions, agent_performance, agent_summary = (
-        evaluate_boundary_profile(
+    boundary_profiles = {}
+    any_results = {}
+    for profile in ("embedded", "full-pos"):
+        backend = f"kfind-{profile}"
+        any_predictions, any_performance, any_summary = evaluate_boundary_profile(
             explicit_cases,
             runner,
-            "embedded",
+            profile,
             "any",
             explicit_path,
             runs,
         )
-    )
+        any_results[profile] = (
+            any_predictions,
+            any_performance,
+            any_summary,
+        )
+        boundary_profiles[profile] = {
+            "smart": {
+                "quality": quality_metrics(
+                    explicit_cases, explicit["predictions"][backend]
+                ),
+                "contract_adjusted_quality": contract_quality_metrics(
+                    explicit_cases, explicit["predictions"][backend]
+                ),
+                "performance": explicit["performance"][backend],
+                "component_resource_loaded": (
+                    explicit["versions"][backend].get(
+                        "component_artifact_sha256"
+                    )
+                    is not None
+                ),
+            },
+            "any": {
+                "quality": quality_metrics(
+                    explicit_cases, any_predictions
+                ),
+                "contract_adjusted_quality": contract_quality_metrics(
+                    explicit_cases, any_predictions
+                ),
+                "performance": any_performance,
+                "component_resource_loaded": (
+                    any_summary.get("component_artifact_sha256") is not None
+                ),
+            },
+        }
+    agent_predictions, agent_performance, agent_summary = any_results["embedded"]
     human, _ = evaluate_untagged_profile(
         untagged_cases,
         untagged_path,
@@ -198,6 +235,10 @@ def evaluate_robustness(
             "quality": explicit_quality,
             "performance": performance,
             "external_baselines": external_report,
+            "boundary_comparison": {
+                "boundaries": ["smart", "any"],
+                "profiles": boundary_profiles,
+            },
         },
         "workflows": {
             "agent-embedded-any-explicit-pos": {

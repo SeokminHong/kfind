@@ -8,18 +8,8 @@ import json
 import re
 from pathlib import Path
 
+from python.site_snapshot import site_profile_comparisons
 
-SNAPSHOT_FIELDS = (
-    "backends",
-    "quality",
-    "performance",
-    "component_startup",
-    "product_workflows",
-    "product_use_cases",
-    "product_persona_comparison",
-    "external_baselines",
-    "robustness",
-)
 REVISION_PATTERN = re.compile(r"[0-9a-f]{7,40}")
 
 
@@ -29,44 +19,26 @@ def export_snapshot(report_path: Path, revision: str) -> dict[str, object]:
 
     report_bytes = report_path.read_bytes()
     report = json.loads(report_bytes)
-    required_fields = (*SNAPSHOT_FIELDS, "query_matrix")
+    required_fields = (
+        "backends",
+        "boundary_comparison",
+        "external_baselines",
+        "quality",
+        "query_matrix",
+        "robustness",
+    )
     missing = [field for field in required_fields if field not in report]
     if missing:
         raise ValueError(f"report is missing site chart fields: {', '.join(missing)}")
 
     return {
-        "site_snapshot_schema_version": 4,
+        "site_snapshot_schema_version": 5,
         "source_report": {
             "revision": revision,
             "sha256": hashlib.sha256(report_bytes).hexdigest(),
             "schema_version": report.get("schema_version"),
         },
-        **{field: report[field] for field in SNAPSHOT_FIELDS},
-        "query_matrix": query_matrix_summary(report["query_matrix"]),
-    }
-
-
-def query_matrix_summary(query_matrix: dict[str, object]) -> dict[str, object]:
-    explicit = query_matrix["explicit_pos"]
-    profiles = tuple(explicit["backends"])
-    return {
-        "explicit_pos": {
-            "dataset": {
-                "cases": explicit["dataset"]["cases"],
-                "contract_review": explicit["dataset"]["contract_review"],
-            },
-            "quality": {
-                profile: {
-                    "overall": explicit["quality"][profile]["overall"],
-                    "contract_adjusted": {
-                        "overall": explicit["quality"][profile][
-                            "contract_adjusted"
-                        ]["overall"]
-                    },
-                }
-                for profile in profiles
-            },
-        }
+        "profile_comparisons": site_profile_comparisons(report),
     }
 
 
