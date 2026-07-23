@@ -92,7 +92,7 @@ export const englishTranslation: Readonly<
   'navigation.section.benchmarks.robust': 'Robust quality',
   'navigation.section.benchmarks.scope': 'Evaluation scope',
   'navigation.section.benchmarks.sources': 'Source evidence',
-  'navigation.section.getting_started.agent_skill': 'Agent skill',
+  'navigation.section.getting_started.agent_skill': 'Agent integration',
   'navigation.section.getting_started.automation_output': 'Automation output',
   'navigation.section.getting_started.cli_installation': 'CLI installation',
   'navigation.section.getting_started.first_search': 'Lemma search',

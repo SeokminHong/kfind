@@ -85,15 +85,15 @@ kfind --embedded --boundary any --pos verb --json 걷다 crates`}</code>
         ),
       },
       {
-        title: 'Skill 설치',
+        title: '통합 설치',
         body: (
           <>
             <p>
               <code>kfind --init</code>은 현재 프로젝트에 에이전트별{' '}
-              <code>SKILL.md</code>를 설치합니다. TTY에서는 대상을 선택하고,
-              자동화에서는 <code>--agent</code>를 반복하거나 stdin으로 대상
-              이름을 전달합니다. kfind 관리 표식이 없는 기존 파일은 덮어쓰지
-              않습니다.
+              <code>SKILL.md</code>와 shell hook을 설치합니다. TTY에서는 대상을
+              선택하고, 자동화에서는 <code>--agent</code>를 반복하거나 stdin으로
+              대상 이름을 전달합니다. kfind 관리 표식이 없는 skill과 기존 agent
+              설정은 보존합니다.
             </p>
             <pre>
               <code>{`kfind --init
@@ -106,6 +106,13 @@ printf 'codex\ngemini\n' | kfind --init`}</code>
               뒤에는 프로젝트 link를 다시 만들지 않아도 새 릴리즈의 지침을
               사용합니다.
             </p>
+            <p>
+              Project hook은 각 에이전트의 신뢰 절차를 통과한 뒤 동작합니다.
+              Codex에서는 <code>/hooks</code>로 검토하고 신뢰합니다. Hook은 한글
+              검색 pattern을 받은 <code>rg</code>·<code>grep</code> 계열과{' '}
+              <code>git grep</code>을 차단하고 kfind로 다시 검색하도록
+              안내합니다.
+            </p>
           </>
         ),
       },
@@ -114,9 +121,9 @@ printf 'codex\ngemini\n' | kfind --init`}</code>
         body: (
           <>
             <p>
-              세 통합은 같은 검색 계약을 사용하고 설치 경로만 다릅니다.
-              에이전트는 저장소 안의 skill을 읽은 뒤 kfind를 별도 shell 명령으로
-              실행합니다.
+              세 통합은 같은 검색 계약을 사용합니다. 에이전트는 저장소 안의
+              skill을 읽고, project hook은 literal shell 검색을 실행 전에
+              검사합니다.
             </p>
             <div className="table-scroll">
               <table>
@@ -124,7 +131,8 @@ printf 'codex\ngemini\n' | kfind --init`}</code>
                   <tr>
                     <th scope="col">대상</th>
                     <th scope="col">설치 값</th>
-                    <th scope="col">프로젝트 경로</th>
+                    <th scope="col">Skill 경로</th>
+                    <th scope="col">Hook 설정</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -136,6 +144,9 @@ printf 'codex\ngemini\n' | kfind --init`}</code>
                     <td>
                       <code>.agents/skills/kfind/SKILL.md</code>
                     </td>
+                    <td>
+                      <code>.codex/hooks.json</code>
+                    </td>
                   </tr>
                   <tr>
                     <th scope="row">Claude Code</th>
@@ -145,6 +156,9 @@ printf 'codex\ngemini\n' | kfind --init`}</code>
                     <td>
                       <code>.claude/skills/kfind/SKILL.md</code>
                     </td>
+                    <td>
+                      <code>.claude/settings.json</code>
+                    </td>
                   </tr>
                   <tr>
                     <th scope="row">Gemini CLI</th>
@@ -153,6 +167,9 @@ printf 'codex\ngemini\n' | kfind --init`}</code>
                     </td>
                     <td>
                       <code>.gemini/skills/kfind/SKILL.md</code>
+                    </td>
+                    <td>
+                      <code>.gemini/settings.json</code>
                     </td>
                   </tr>
                 </tbody>
@@ -272,15 +289,15 @@ kfind --embedded --boundary any --pos verb --json 걷다 crates`}</code>
         ),
       },
       {
-        title: 'Skill installation',
+        title: 'Integration installation',
         body: (
           <>
             <p>
               <code>kfind --init</code> installs an agent-specific{' '}
-              <code>SKILL.md</code> in the current project. Interactive
-              terminals offer a target picker. Automation repeats{' '}
-              <code>--agent</code> or supplies target names on stdin. Files
-              without the kfind management marker are never overwritten.
+              <code>SKILL.md</code> and shell hook in the current project.
+              Interactive terminals offer a target picker. Automation repeats{' '}
+              <code>--agent</code> or supplies target names on stdin. Unmanaged
+              skills and existing agent settings are preserved.
             </p>
             <pre>
               <code>{`kfind --init
@@ -292,6 +309,13 @@ printf 'codex\ngemini\n' | kfind --init`}</code>
               path instead of a versioned Cellar. Existing project links
               therefore use the new guidance after <code>brew upgrade</code>.
             </p>
+            <p>
+              Project hooks run after each agent&apos;s trust review. In Codex,
+              inspect and trust them with <code>/hooks</code>. The hook blocks{' '}
+              <code>rg</code>, <code>grep</code> variants, and{' '}
+              <code>git grep</code> when their search pattern contains Korean
+              text, then directs the agent to kfind.
+            </p>
           </>
         ),
       },
@@ -300,9 +324,9 @@ printf 'codex\ngemini\n' | kfind --init`}</code>
         body: (
           <>
             <p>
-              All three integrations use the same search contract and differ
-              only in their project path. Each agent reads the repository-local
-              skill and invokes kfind as a separate shell command.
+              All three integrations use the same search contract. Each agent
+              reads the repository-local skill, while the project hook checks
+              literal shell searches before execution.
             </p>
             <div className="table-scroll">
               <table>
@@ -310,7 +334,8 @@ printf 'codex\ngemini\n' | kfind --init`}</code>
                   <tr>
                     <th scope="col">Target</th>
                     <th scope="col">Install value</th>
-                    <th scope="col">Project path</th>
+                    <th scope="col">Skill path</th>
+                    <th scope="col">Hook configuration</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -322,6 +347,9 @@ printf 'codex\ngemini\n' | kfind --init`}</code>
                     <td>
                       <code>.agents/skills/kfind/SKILL.md</code>
                     </td>
+                    <td>
+                      <code>.codex/hooks.json</code>
+                    </td>
                   </tr>
                   <tr>
                     <th scope="row">Claude Code</th>
@@ -331,6 +359,9 @@ printf 'codex\ngemini\n' | kfind --init`}</code>
                     <td>
                       <code>.claude/skills/kfind/SKILL.md</code>
                     </td>
+                    <td>
+                      <code>.claude/settings.json</code>
+                    </td>
                   </tr>
                   <tr>
                     <th scope="row">Gemini CLI</th>
@@ -339,6 +370,9 @@ printf 'codex\ngemini\n' | kfind --init`}</code>
                     </td>
                     <td>
                       <code>.gemini/skills/kfind/SKILL.md</code>
+                    </td>
+                    <td>
+                      <code>.gemini/settings.json</code>
                     </td>
                   </tr>
                 </tbody>

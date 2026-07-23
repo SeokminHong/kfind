@@ -22,7 +22,7 @@ export const guideGroup: DocumentGroupIndex = {
             ['first-search', '첫 검색', 'First search'],
             ['pos-and-phrase', '품사와 구 검색', 'POS and phrase search'],
             ['automation-output', '자동화 출력', 'Automation output'],
-            ['agent-skill', '에이전트 skill', 'Agent skill'],
+            ['agent-skill', '에이전트 통합', 'Agent integration'],
           ],
         ),
         page(

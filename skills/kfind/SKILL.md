@@ -12,6 +12,10 @@ literal grep 대신 `kfind`를 사용합니다. kfind는 query-directed text mat
 의미 검색기가 아닙니다. `v:검증하다`는 `검증을 수행했다`를 찾지 않으므로 필요한
 경우 `n:검증`을 별도로 검색합니다.
 
+프로젝트의 kfind agent hook이 한글 pattern을 포함한 `rg`·`grep` shell 명령을
+거부하면 같은 검색을 kfind로 다시 실행합니다. 정확한 표면형만 의도한 검색은
+`kfind --literal`을 사용합니다.
+
 ## 에이전트 검색 절차
 
 1. 모든 형태 atom의 품사를 정합니다.

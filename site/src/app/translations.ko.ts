@@ -87,7 +87,7 @@ export const koreanTranslation = {
   'navigation.section.benchmarks.robust': 'Robust 품질',
   'navigation.section.benchmarks.scope': '평가 범위',
   'navigation.section.benchmarks.sources': '원본 자료',
-  'navigation.section.getting_started.agent_skill': '에이전트 skill',
+  'navigation.section.getting_started.agent_skill': '에이전트 통합',
   'navigation.section.getting_started.automation_output': '자동화 출력',
   'navigation.section.getting_started.cli_installation': 'CLI 설치',
   'navigation.section.getting_started.first_search': '표제어 검색',
