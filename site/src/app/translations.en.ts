@@ -14,6 +14,9 @@ export const englishTranslation: Readonly<
   'common.language.korean': '한국어',
   'common.loading.document': 'Loading documentation…',
   'common.mobile_navigation.trigger': 'Documentation menu',
+  'common.navigation.next_page': 'Next page',
+  'common.navigation.page_aria': 'Document page navigation',
+  'common.navigation.previous_page': 'Previous page',
   'common.navigation.toc_aria': 'Documentation table of contents',
   'common.skip_to_content': 'Skip to content',
   'metadata.analysis.description':

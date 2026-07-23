@@ -7,6 +7,7 @@ import { useDocumentLocale } from '../app/i18n';
 
 import { getGlossaryContent } from './glossary';
 import { annotateGlossaryText } from './glossary-annotation';
+import { DocumentPageNavigation } from './page-navigation';
 
 interface PageIntroProps {
   readonly eyebrow: string;
@@ -127,6 +128,7 @@ export function DocumentPage({
   return (
     <article ref={articleRef}>
       {annotateChildren(children, seenTerms, terms)}
+      <DocumentPageNavigation />
     </article>
   );
 }
