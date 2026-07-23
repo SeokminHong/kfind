@@ -1,7 +1,5 @@
 use std::collections::HashSet;
 use std::env;
-use std::error::Error;
-use std::fmt::{self, Display, Formatter};
 use std::fs::{self, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
@@ -12,6 +10,10 @@ use dialoguer::MultiSelect;
 use crate::output::write_safe_text;
 use crate::{AgentArg, Args, Language};
 
+mod error;
+mod hook_config;
+
+pub use error::InitError;
 pub(crate) const SKILL_CONTENT: &str = include_str!("../../../skills/kfind/SKILL.md");
 const MANAGED_MARKER: &str = "<!-- managed by kfind init -->";
 const MAX_STDIN_BYTES: u64 = 4 * 1024;
@@ -84,10 +86,14 @@ where
     }
 
     let mut installations = Vec::new();
+    let mut hook_installations = Vec::new();
     for agent in agents.iter().copied().filter(|agent| agent.installs_file()) {
         let path = agent.skill_path(root);
         let action = inspect_destination(&path, &source)?;
         installations.push((agent, path, action));
+        if let Some(installation) = hook_config::prepare_hook_installation(root, agent)? {
+            hook_installations.push(installation);
+        }
     }
 
     for (agent, path, action) in &installations {
@@ -95,6 +101,16 @@ where
             install_skill(path, &source)?;
         }
         write_install_status(stderr, language, *agent, path, *action)?;
+    }
+    for installation in &hook_installations {
+        installation.write()?;
+        write_hook_install_status(
+            stderr,
+            language,
+            installation.agent,
+            &installation.path,
+            installation.action,
+        )?;
     }
 
     if agents.contains(&AgentArg::Custom) {
@@ -127,8 +143,8 @@ fn select_interactively(language: Language) -> Result<Vec<AgentArg>, InitError> 
     let labels = agents.map(AgentArg::display_name);
     let selected = MultiSelect::new()
         .with_prompt(language.select(
-            "Select kfind skill targets",
-            "kfind skill을 설치할 agent를 선택하세요",
+            "Select kfind integration targets",
+            "kfind 통합을 설치할 agent를 선택하세요",
         ))
         .items(labels)
         .interact_opt()
@@ -323,6 +339,25 @@ fn write_install_status(
     write_status(writer, &message)
 }
 
+fn write_hook_install_status(
+    writer: &mut impl Write,
+    language: Language,
+    agent: AgentArg,
+    path: &Path,
+    action: InstallAction,
+) -> Result<(), InitError> {
+    let verb = match action {
+        InstallAction::Install => language.select("Installed", "설치했습니다"),
+        InstallAction::Update => language.select("Updated", "갱신했습니다"),
+        InstallAction::Unchanged => language.select("Unchanged", "변경 없음"),
+    };
+    let message = match language {
+        Language::English => format!("{verb} {} hook: {}", agent.display_name(), path.display()),
+        Language::Korean => format!("{} hook {verb}: {}", agent.display_name(), path.display()),
+    };
+    write_status(writer, &message)
+}
+
 fn write_status(writer: &mut impl Write, message: &str) -> Result<(), InitError> {
     write_safe_text(writer, message).map_err(InitError::WriteDiagnostics)?;
     writer.write_all(b"\n").map_err(InitError::WriteDiagnostics)
@@ -371,144 +406,6 @@ impl SkillSource {
             Self::Embedded => false,
             #[cfg(unix)]
             Self::Homebrew(expected) => target == expected,
-        }
-    }
-}
-
-#[derive(Debug)]
-pub enum InitError {
-    CurrentDirectory(io::Error),
-    ReadInput(io::Error),
-    InputTooLarge,
-    InvalidInputUtf8,
-    EmptyInput,
-    UnknownAgent { value: String },
-    Prompt(dialoguer::Error),
-    Inspect { path: PathBuf, source: io::Error },
-    UnmanagedDestination(PathBuf),
-    InvalidDestination { path: PathBuf },
-    CreateDirectory { path: PathBuf, source: io::Error },
-    Write { path: PathBuf, source: io::Error },
-    PackagedSkillMismatch(PathBuf),
-    WriteOutput(io::Error),
-    WriteDiagnostics(io::Error),
-}
-
-impl InitError {
-    pub(crate) fn localized(&self, language: Language) -> String {
-        match self {
-            Self::CurrentDirectory(error) => format!(
-                "{}: {error}",
-                language.select(
-                    "failed to read current directory",
-                    "현재 디렉터리를 읽을 수 없습니다"
-                )
-            ),
-            Self::ReadInput(error) => format!(
-                "{}: {error}",
-                language.select("failed to read agent input", "agent 입력을 읽을 수 없습니다")
-            ),
-            Self::InputTooLarge => language
-                .select(
-                    "agent input exceeds 4096 bytes",
-                    "agent 입력이 4096 byte를 초과했습니다",
-                )
-                .to_owned(),
-            Self::InvalidInputUtf8 => language
-                .select(
-                    "agent input is not valid UTF-8",
-                    "agent 입력이 올바른 UTF-8이 아닙니다",
-                )
-                .to_owned(),
-            Self::EmptyInput => language
-                .select(
-                    "no agents were provided; use --agent or pipe agent names",
-                    "agent가 입력되지 않았습니다. --agent를 사용하거나 agent 이름을 pipe로 전달하세요",
-                )
-                .to_owned(),
-            Self::UnknownAgent { value } => format!(
-                "{} `{value}`",
-                language.select("unknown agent", "알 수 없는 agent")
-            ),
-            Self::Prompt(error) => format!(
-                "{}: {error}",
-                language.select("agent selection failed", "agent 선택에 실패했습니다")
-            ),
-            Self::Inspect { path, source } => format!(
-                "{} {}: {source}",
-                language.select(
-                    "failed to inspect skill destination",
-                    "skill 설치 경로를 확인할 수 없습니다:"
-                ),
-                path.display()
-            ),
-            Self::UnmanagedDestination(path) => format!(
-                "{}: {}",
-                language.select(
-                    "existing skill is not managed by kfind",
-                    "기존 skill이 kfind 관리 대상이 아닙니다"
-                ),
-                path.display()
-            ),
-            Self::InvalidDestination { path } => format!(
-                "{}: {}",
-                language.select("invalid skill destination", "skill 설치 경로가 올바르지 않습니다"),
-                path.display()
-            ),
-            Self::CreateDirectory { path, source } => format!(
-                "{} {}: {source}",
-                language.select("failed to create skill directory", "skill 디렉터리 생성 실패:"),
-                path.display()
-            ),
-            Self::Write { path, source } => format!(
-                "{} {}: {source}",
-                language.select("failed to install skill", "skill 설치 실패:"),
-                path.display()
-            ),
-            Self::PackagedSkillMismatch(path) => format!(
-                "{}: {}",
-                language.select(
-                    "installed skill does not match the kfind binary",
-                    "설치된 skill이 kfind binary와 일치하지 않습니다"
-                ),
-                path.display()
-            ),
-            Self::WriteOutput(error) => format!(
-                "{}: {error}",
-                language.select("failed to write skill output", "skill 출력 실패")
-            ),
-            Self::WriteDiagnostics(error) => format!(
-                "{}: {error}",
-                language.select("failed to write diagnostics", "진단 메시지 출력 실패")
-            ),
-        }
-    }
-}
-
-impl Display for InitError {
-    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
-        formatter.write_str(&self.localized(Language::English))
-    }
-}
-
-impl Error for InitError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::CurrentDirectory(error)
-            | Self::ReadInput(error)
-            | Self::WriteOutput(error)
-            | Self::WriteDiagnostics(error) => Some(error),
-            Self::Prompt(error) => Some(error),
-            Self::Inspect { source, .. }
-            | Self::CreateDirectory { source, .. }
-            | Self::Write { source, .. } => Some(source),
-            Self::InputTooLarge
-            | Self::InvalidInputUtf8
-            | Self::EmptyInput
-            | Self::UnknownAgent { .. }
-            | Self::UnmanagedDestination(_)
-            | Self::InvalidDestination { .. }
-            | Self::PackagedSkillMismatch(_) => None,
         }
     }
 }
