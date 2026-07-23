@@ -7,6 +7,7 @@ repo_root="$(cd "$site_dir/.." && pwd)"
 wasm_dir="$site_dir/src/generated-wasm"
 benchmark_dir="$site_dir/src/generated-benchmark"
 benchmark_snapshot="$repo_root/docs/benchmarks/site-morphology.json"
+search_baseline_snapshot="$repo_root/docs/benchmarks/site-search-baseline.json"
 
 rm -rf "$wasm_dir" "$benchmark_dir"
 mkdir -p "$wasm_dir" "$benchmark_dir"
@@ -25,6 +26,9 @@ rm -f \
 install -m 0644 \
   "$benchmark_snapshot" \
   "$benchmark_dir/site-morphology.json"
+install -m 0644 \
+  "$search_baseline_snapshot" \
+  "$benchmark_dir/site-search-baseline.json"
 
 wasm_bytes="$(wc -c < "$wasm_dir/kfind_bg.wasm")"
 pages_file_limit=$((25 * 1024 * 1024))

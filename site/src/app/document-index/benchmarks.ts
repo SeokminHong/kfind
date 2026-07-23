@@ -26,6 +26,11 @@ export const benchmarksGroup: DocumentGroupIndex = {
               'Query-matrix quality',
             ],
             ['robust-quality', '오류 문장 품질', 'Robust quality'],
+            [
+              'search-strategy-baseline',
+              '형태 질의와 정규식',
+              'Morphology queries and regex',
+            ],
             ['performance-units', '성능 단위', 'Performance units'],
             ['source-evidence', 'source 근거', 'Source evidence'],
           ],
@@ -46,6 +51,11 @@ export const benchmarksGroup: DocumentGroupIndex = {
               'Query-matrix quality',
             ],
             ['robust-quality', '오류 문장 품질', 'Robust quality'],
+            [
+              'search-strategy-baseline',
+              '형태 질의와 정규식',
+              'Morphology queries and regex',
+            ],
             ['performance-units', '성능 단위', 'Performance units'],
             ['source-evidence', 'source 근거', 'Source evidence'],
           ],

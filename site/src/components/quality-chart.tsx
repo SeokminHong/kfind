@@ -9,6 +9,11 @@ export interface QualityChartRow {
   readonly raw: number;
 }
 
+export interface DurationChartRow {
+  readonly label: string;
+  readonly milliseconds: number;
+}
+
 interface QualityChartProps {
   readonly adjustedLabel: string;
   readonly caption: string;
@@ -156,6 +161,111 @@ export function QualityChart({
         >
           {metricLabel}
         </text>
+      </svg>
+      <figcaption className={styles.caption}>{caption}</figcaption>
+    </figure>
+  );
+}
+
+interface DurationChartProps {
+  readonly caption: string;
+  readonly description: string;
+  readonly rows: readonly DurationChartRow[];
+  readonly title: string;
+}
+
+const durationMargin = {
+  top: 24,
+  right: 100,
+  bottom: 38,
+  left: 184,
+} as const;
+
+export function DurationChart({
+  caption,
+  description,
+  rows,
+  title,
+}: DurationChartProps): React.JSX.Element {
+  const titleId = useId();
+  const descriptionId = useId();
+  const rowHeight = 42;
+  const height =
+    durationMargin.top + durationMargin.bottom + rows.length * rowHeight;
+  const maximum = Math.max(...rows.map((row) => row.milliseconds));
+  const x = scaleLinear()
+    .domain([0, maximum])
+    .nice()
+    .range([durationMargin.left, width - durationMargin.right]);
+  const y = scaleBand()
+    .domain(rows.map((row) => row.label))
+    .range([durationMargin.top, height - durationMargin.bottom])
+    .paddingInner(0.34);
+  const ticks = x.ticks(5);
+
+  return (
+    <figure className={styles.figure}>
+      <svg
+        aria-labelledby={`${titleId} ${descriptionId}`}
+        className={styles.chart}
+        role="img"
+        viewBox={`0 0 ${width} ${height}`}
+      >
+        <title id={titleId}>{title}</title>
+        <desc id={descriptionId}>{description}</desc>
+
+        {ticks.map((tick) => (
+          <g aria-hidden="true" key={tick}>
+            <line
+              className={styles.grid}
+              x1={x(tick)}
+              x2={x(tick)}
+              y1={durationMargin.top}
+              y2={height - durationMargin.bottom}
+            />
+            <text
+              className={styles.axis}
+              textAnchor="middle"
+              x={x(tick)}
+              y={height - 14}
+            >
+              {tick.toLocaleString()} ms
+            </text>
+          </g>
+        ))}
+
+        {rows.map((row) => {
+          const top = y(row.label) ?? 0;
+          const barHeight = y.bandwidth();
+
+          return (
+            <g key={row.label}>
+              <text
+                className={styles.label}
+                textAnchor="end"
+                x={durationMargin.left - 10}
+                y={top + barHeight / 2 + 4}
+              >
+                {row.label}
+              </text>
+              <rect
+                aria-label={`${row.label} ${row.milliseconds.toFixed(2)} ms`}
+                className={styles.durationBar}
+                height={barHeight}
+                width={x(row.milliseconds) - x(0)}
+                x={x(0)}
+                y={top}
+              />
+              <text
+                className={styles.value}
+                x={x(row.milliseconds) + 5}
+                y={top + barHeight / 2 + 4}
+              >
+                {row.milliseconds.toFixed(2)}
+              </text>
+            </g>
+          );
+        })}
       </svg>
       <figcaption className={styles.caption}>{caption}</figcaption>
     </figure>

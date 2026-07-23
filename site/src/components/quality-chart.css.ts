@@ -14,6 +14,7 @@ export const figure = style({
 export const chart = style({
   display: 'block',
   width: '100%',
+  minWidth: '680px',
   height: 'auto',
 });
 
@@ -34,6 +35,7 @@ export const label = style({
 
 export const rawBar = style({ fill: vars.color.link });
 export const adjustedBar = style({ fill: vars.color.success });
+export const durationBar = style({ fill: vars.color.link });
 
 export const value = style({
   fill: vars.color.heading,
