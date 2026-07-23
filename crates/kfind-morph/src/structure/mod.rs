@@ -2619,6 +2619,7 @@ enum StructureSelection {
     Whole,
     Adverb,
     AdjacentDeterminer,
+    DeterminerWhole,
     NominalSpan {
         selected: Range<usize>,
         allow_components: bool,
@@ -2693,6 +2694,9 @@ impl StructureSelection {
                         pattern.fine_pos,
                         DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
                     )
+            }
+            Self::DeterminerWhole => {
+                support.evidence == StructuralEvidence::Whole && pattern.fine_pos.is_nominal()
             }
             Self::NominalSpan {
                 selected,
@@ -3397,6 +3401,18 @@ fn select_structure(
     }
     if let Some((nominal, copula)) = copular_frame(resource, context) {
         return StructureSelection::CopularFrame { nominal, copula };
+    }
+    let previous_is_determiner = context.previous.is_some_and(|previous| {
+        has_exact_fine_pos(resource, previous, |pos| pos == DataFinePos::Mm)
+    });
+    let has_whole_nominal = evidence
+        .units
+        .all()
+        .iter()
+        .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal());
+    let current_modifies_next_nominal = next_starts_nominal && !evidence.adnominal_ends.is_empty();
+    if previous_is_determiner && has_whole_nominal && !current_modifies_next_nominal {
+        return StructureSelection::DeterminerWhole;
     }
     if evidence.has_whole(DataFinePos::Mag)
         && particle_host.is_none()
