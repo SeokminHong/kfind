@@ -1,0 +1,112 @@
+{"id": "walk-01", "query_id": "walk", "query": "v:걷다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "길을 걷는다.", "line": 1}
+{"id": "walk-02", "query_id": "walk", "query": "v:걷다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "어제 골목길을 걸었다.", "line": 2}
+{"id": "walk-03", "query_id": "walk", "query": "v:걷다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "아침마다 공원을 걷고 돌아온다.", "line": 3}
+{"id": "walk-04", "query_id": "walk", "query": "v:걷다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "내일 걸을 길을 미리 살폈다.", "line": 4}
+{"id": "walk-05", "query_id": "walk", "query": "v:걷다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "천천히 걷거라.", "line": 5}
+{"id": "walk-06", "query_id": "walk", "query": "v:걷다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "함께 걸읍시다.", "line": 6}
+{"id": "walk-07", "query_id": "walk", "query": "v:걷다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "매일 걷기가 즐겁다.", "line": 7}
+{"id": "walk-08", "query_id": "walk", "query": "v:걷다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "커튼을 걷어 햇빛을 들였다.", "line": 8}
+{"id": "walk-09", "query_id": "walk", "query": "v:걷다", "expected": false, "contract_expected": true, "contract_reason": "same-pos-homograph", "text": "전화를 걸어 봤다.", "line": 9}
+{"id": "walk-10", "query_id": "walk", "query": "v:걷다", "expected": false, "contract_expected": true, "contract_reason": "same-pos-homograph", "text": "경기에 돈을 걸었다.", "line": 10}
+{"id": "walk-11", "query_id": "walk", "query": "v:걷다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "목걸이를 새로 샀다.", "line": 11}
+{"id": "walk-12", "query_id": "walk", "query": "v:걷다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "막걸리를 한 잔 마셨다.", "line": 12}
+{"id": "walk-13", "query_id": "walk", "query": "v:걷다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "걸작을 전시했다.", "line": 13}
+{"id": "walk-14", "query_id": "walk", "query": "v:걷다", "expected": false, "contract_expected": true, "contract_reason": "aligned-source-component", "text": "걸음걸이가 독특하다.", "line": 14}
+{"id": "walk-15", "query_id": "walk", "query": "v:걷다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "문에 자물쇠를 걸고 나왔다.", "line": 15}
+{"id": "walk-16", "query_id": "walk", "query": "v:걷다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "걸인이 길가에 앉아 있었다.", "line": 16}
+{"id": "listen-01", "query_id": "listen", "query": "v:듣다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "노래를 들어 봤다.", "line": 17}
+{"id": "listen-02", "query_id": "listen", "query": "v:듣다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "설명을 들었다.", "line": 18}
+{"id": "listen-03", "query_id": "listen", "query": "v:듣다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "잘 들으면 이해된다.", "line": 19}
+{"id": "listen-04", "query_id": "listen", "query": "v:듣다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "안내를 듣고 출발했다.", "line": 20}
+{"id": "listen-05", "query_id": "listen", "query": "v:듣다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "음악을 듣는 시간이 좋다.", "line": 21}
+{"id": "listen-06", "query_id": "listen", "query": "v:듣다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "방금 들은 소식을 전했다.", "line": 22}
+{"id": "listen-07", "query_id": "listen", "query": "v:듣다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "내일 들을 강의를 골랐다.", "line": 23}
+{"id": "listen-08", "query_id": "listen", "query": "v:듣다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "설명을 들으시면 이해됩니다.", "line": 24}
+{"id": "listen-09", "query_id": "listen", "query": "v:듣다", "expected": false, "contract_expected": true, "contract_reason": "same-pos-homograph", "text": "무거운 짐을 들었다.", "line": 25}
+{"id": "listen-10", "query_id": "listen", "query": "v:듣다", "expected": false, "contract_expected": true, "contract_reason": "same-pos-homograph", "text": "손을 들어 신호했다.", "line": 26}
+{"id": "listen-11", "query_id": "listen", "query": "v:듣다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "가방을 들고 나왔다.", "line": 27}
+{"id": "listen-12", "query_id": "listen", "query": "v:듣다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "들판에 꽃이 피었다.", "line": 28}
+{"id": "listen-13", "query_id": "listen", "query": "v:듣다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "들깨를 볶았다.", "line": 29}
+{"id": "listen-14", "query_id": "listen", "query": "v:듣다", "expected": false, "contract_expected": true, "contract_reason": "structurally-indistinguishable-homograph", "text": "사람들이 방으로 들어갔다.", "line": 30}
+{"id": "listen-15", "query_id": "listen", "query": "v:듣다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "들쭉날쭉한 선을 그었다.", "line": 31}
+{"id": "listen-16", "query_id": "listen", "query": "v:듣다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "전화를 걸고 기다렸다.", "line": 32}
+{"id": "help-01", "query_id": "help", "query": "v:돕다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "서로 도와 해결했다.", "line": 33}
+{"id": "help-02", "query_id": "help", "query": "v:돕다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "이웃을 도와 짐을 옮겼다.", "line": 34}
+{"id": "help-03", "query_id": "help", "query": "v:돕다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "서로 도우면 일이 빨리 끝난다.", "line": 35}
+{"id": "help-04", "query_id": "help", "query": "v:돕다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "나를 도운 친구에게 감사했다.", "line": 36}
+{"id": "help-05", "query_id": "help", "query": "v:돕다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "앞으로 도울 사람을 찾았다.", "line": 37}
+{"id": "help-06", "query_id": "help", "query": "v:돕다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "모두가 돕고 나섰다.", "line": 38}
+{"id": "help-07", "query_id": "help", "query": "v:돕다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "어려운 이웃을 돕습니다.", "line": 39}
+{"id": "help-08", "query_id": "help", "query": "v:돕다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "서로 도우며 문제를 해결했다.", "line": 40}
+{"id": "help-09", "query_id": "help", "query": "v:돕다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "도우미가 길을 안내했다.", "line": 41}
+{"id": "help-10", "query_id": "help", "query": "v:돕다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "도화지에 그림을 그렸다.", "line": 42}
+{"id": "help-11", "query_id": "help", "query": "v:돕다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "도로가 심하게 막혔다.", "line": 43}
+{"id": "help-12", "query_id": "help", "query": "v:돕다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "도자기를 정리했다.", "line": 44}
+{"id": "help-13", "query_id": "help", "query": "v:돕다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "도둑이 달아났다.", "line": 45}
+{"id": "help-14", "query_id": "help", "query": "v:돕다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "도착 시간이 늦었다.", "line": 46}
+{"id": "help-15", "query_id": "help", "query": "v:돕다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "돛을 올리고 출항했다.", "line": 47}
+{"id": "help-16", "query_id": "help", "query": "v:돕다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "작업을 보조했다.", "line": 48}
+{"id": "build-01", "query_id": "build", "query": "v:짓다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "집을 지어 올렸다.", "line": 49}
+{"id": "build-02", "query_id": "build", "query": "v:짓다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "새 집을 짓고 있다.", "line": 50}
+{"id": "build-03", "query_id": "build", "query": "v:짓다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "건물을 짓는 인부가 바쁘다.", "line": 51}
+{"id": "build-04", "query_id": "build", "query": "v:짓다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "지난해 지은 집이 완성됐다.", "line": 52}
+{"id": "build-05", "query_id": "build", "query": "v:짓다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "앞으로 지을 학교를 설계했다.", "line": 53}
+{"id": "build-06", "query_id": "build", "query": "v:짓다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "집을 지으면 마당도 만들겠다.", "line": 54}
+{"id": "build-07", "query_id": "build", "query": "v:짓다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "창고를 지으셨다.", "line": 55}
+{"id": "build-08", "query_id": "build", "query": "v:짓다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "미소를 짓지 않았다.", "line": 56}
+{"id": "build-09", "query_id": "build", "query": "v:짓다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "지하철을 타고 출근했다.", "line": 57}
+{"id": "build-10", "query_id": "build", "query": "v:짓다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "지도에 위치를 표시했다.", "line": 58}
+{"id": "build-11", "query_id": "build", "query": "v:짓다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "지우개를 새로 샀다.", "line": 59}
+{"id": "build-12", "query_id": "build", "query": "v:짓다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "지금 바로 출발한다.", "line": 60}
+{"id": "build-13", "query_id": "build", "query": "v:짓다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "지원서를 제출했다.", "line": 61}
+{"id": "build-14", "query_id": "build", "query": "v:짓다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "지붕을 고쳤다.", "line": 62}
+{"id": "build-15", "query_id": "build", "query": "v:짓다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "지각하지 않도록 서둘렀다.", "line": 63}
+{"id": "build-16", "query_id": "build", "query": "v:짓다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "지름길을 찾아갔다.", "line": 64}
+{"id": "call-01", "query_id": "call", "query": "v:부르다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "이름을 불러 보았다.", "line": 65}
+{"id": "call-02", "query_id": "call", "query": "v:부르다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "친구를 불러 함께 갔다.", "line": 66}
+{"id": "call-03", "query_id": "call", "query": "v:부르다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "노래를 부르는 아이가 있다.", "line": 67}
+{"id": "call-04", "query_id": "call", "query": "v:부르다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "어제 부른 노래를 기억한다.", "line": 68}
+{"id": "call-05", "query_id": "call", "query": "v:부르다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "내일 부를 곡을 연습했다.", "line": 69}
+{"id": "call-06", "query_id": "call", "query": "v:부르다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "이름을 부르면 대답한다.", "line": 70}
+{"id": "call-07", "query_id": "call", "query": "v:부르다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "노래를 불렀을 때 감동했다.", "line": 71}
+{"id": "call-08", "query_id": "call", "query": "v:부르다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "큰 소리로 부르고 있다.", "line": 72}
+{"id": "call-09", "query_id": "call", "query": "v:부르다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "부르봉 왕가의 역사를 읽었다.", "line": 73}
+{"id": "call-10", "query_id": "call", "query": "v:부르다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "자동차가 부르릉 소리를 냈다.", "line": 74}
+{"id": "call-11", "query_id": "call", "query": "v:부르다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "부르키나파소를 방문했다.", "line": 75}
+{"id": "call-12", "query_id": "call", "query": "v:부르다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "부르주아 계층을 분석했다.", "line": 76}
+{"id": "call-13", "query_id": "call", "query": "v:부르다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "배부르다고 그만 먹었다.", "line": 77}
+{"id": "call-14", "query_id": "call", "query": "v:부르다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "불량품을 반품했다.", "line": 78}
+{"id": "call-15", "query_id": "call", "query": "v:부르다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "불꽃이 밤하늘에 피었다.", "line": 79}
+{"id": "call-16", "query_id": "call", "query": "v:부르다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "종이 크게 울렸다.", "line": 80}
+{"id": "pretty-01", "query_id": "pretty", "query": "adj:예쁘다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "꽃이 예뻐 사진을 찍었다.", "line": 81}
+{"id": "pretty-02", "query_id": "pretty", "query": "adj:예쁘다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "예뻤던 장면이다.", "line": 82}
+{"id": "pretty-03", "query_id": "pretty", "query": "adj:예쁘다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "예쁜 그릇을 선물했다.", "line": 83}
+{"id": "pretty-04", "query_id": "pretty", "query": "adj:예쁘다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "더 예쁠 색을 골랐다.", "line": 84}
+{"id": "pretty-05", "query_id": "pretty", "query": "adj:예쁘다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "옷이 예쁘면 사고 싶다.", "line": 85}
+{"id": "pretty-06", "query_id": "pretty", "query": "adj:예쁘다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "글씨가 예쁘고 단정하다.", "line": 86}
+{"id": "pretty-07", "query_id": "pretty", "query": "adj:예쁘다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "방을 예쁘게 꾸몄다.", "line": 87}
+{"id": "pretty-08", "query_id": "pretty", "query": "adj:예쁘다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "꽃이 예쁘지 않다.", "line": 88}
+{"id": "pretty-09", "query_id": "pretty", "query": "adj:예쁘다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "예산이 부족하다.", "line": 89}
+{"id": "pretty-10", "query_id": "pretty", "query": "adj:예쁘다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "예약 시간을 바꿨다.", "line": 90}
+{"id": "pretty-11", "query_id": "pretty", "query": "adj:예쁘다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "예측이 빗나갔다.", "line": 91}
+{"id": "pretty-12", "query_id": "pretty", "query": "adj:예쁘다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "예보를 확인했다.", "line": 92}
+{"id": "pretty-13", "query_id": "pretty", "query": "adj:예쁘다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "예절을 잘 지켰다.", "line": 93}
+{"id": "pretty-14", "query_id": "pretty", "query": "adj:예쁘다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "옆집에 다녀왔다.", "line": 94}
+{"id": "pretty-15", "query_id": "pretty", "query": "adj:예쁘다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "예쁘장한 인형을 샀다.", "line": 95}
+{"id": "pretty-16", "query_id": "pretty", "query": "adj:예쁘다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "아름다운 풍경을 보았다.", "line": 96}
+{"id": "become-01", "query_id": "become", "query": "v:되다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "준비가 되어 있다.", "line": 97}
+{"id": "become-02", "query_id": "become", "query": "v:되다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "준비가 돼 있다.", "line": 98}
+{"id": "become-03", "query_id": "become", "query": "v:되다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "계획대로 되고 있다.", "line": 99}
+{"id": "become-04", "query_id": "become", "query": "v:되다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "도움이 되는 자료를 모았다.", "line": 100}
+{"id": "become-05", "query_id": "become", "query": "v:되다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "이미 된 일을 정리했다.", "line": 101}
+{"id": "become-06", "query_id": "become", "query": "v:되다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "앞으로 될 일을 준비했다.", "line": 102}
+{"id": "become-07", "query_id": "become", "query": "v:되다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "준비가 되면 연락해 주세요.", "line": 103}
+{"id": "become-08", "query_id": "become", "query": "v:되다", "expected": true, "contract_expected": true, "contract_reason": null, "text": "곧 준비가 됩니다.", "line": 104}
+{"id": "become-09", "query_id": "become", "query": "v:되다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "돼지고기를 구웠다.", "line": 105}
+{"id": "become-10", "query_id": "become", "query": "v:되다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "된장찌개를 끓였다.", "line": 106}
+{"id": "become-11", "query_id": "become", "query": "v:되다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "되새김질하며 생각했다.", "line": 107}
+{"id": "become-12", "query_id": "become", "query": "v:되다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "되레 화를 내고 나갔다.", "line": 108}
+{"id": "become-13", "query_id": "become", "query": "v:되다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "같은 말을 되풀이했다.", "line": 109}
+{"id": "become-14", "query_id": "become", "query": "v:되다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "도착 시간을 확인했다.", "line": 110}
+{"id": "become-15", "query_id": "become", "query": "v:되다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "완성품을 포장했다.", "line": 111}
+{"id": "become-16", "query_id": "become", "query": "v:되다", "expected": false, "contract_expected": false, "contract_reason": null, "text": "가능성을 검토했다.", "line": 112}
