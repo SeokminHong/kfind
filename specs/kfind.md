@@ -372,6 +372,9 @@
   순서는 일치해야 하며, 언어를 전환해도 route와 절 fragment는 유지한다. `Internals`의 한국어
   형태 처리는 별도 sidebar 하위 범주로 묶고, benchmark의 최신 결과·방법론·역사 보고서는 서로
   다른 route로 분리한다. GNB에는 이 하위 범주를 펼치지 않는다.
+- 각 문서 route의 본문 하단에는 GNB와 sidebar의 전체 문서 순서를 기준으로 이전·다음 문서
+  link를 제공한다. 첫 문서에는 다음 link만, 마지막 문서에는 이전 link만 표시하며 link label은
+  현재 locale을 따른다. Playground와 정의되지 않은 경로는 이 순서에 포함하지 않는다.
 
 - 문서 site의 popup, select, collapsible과 form control은 `@base-ui/react`의 unstyled primitive로
   구성한다. 링크, label, keyboard와 pointer 동작은 해당 primitive의 접근성 의미를 유지하고,
@@ -2233,7 +2236,7 @@ pipe이면 기본 검색 대상을 stdin으로 전환한다. `-`는 stdin을 명
 | `--data-dir`              | 경로                                       |                자동 | 외부 데이터 디렉터리               |
 | `--user-lexicon`          | 경로                                       |                자동 | 사용자 사전                        |
 | `--init`                  | flag                                       |               false | 현재 디렉터리에 agent 통합 초기화 |
-| `--agent`                 | `claude-code`, `codex`, `gemini`, `custom` | TTY 선택 또는 stdin | 초기화 대상, 반복 가능             |
+| `--agent`                 | `claude-code`, `codex`, `gemini`, `custom` | TTY 선택 또는 stdin | 초기화 대상, 반복 가능            |
 
 ### 14.3 context와 출력 호환 옵션
 
