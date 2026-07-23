@@ -3391,25 +3391,43 @@ fn select_structure(
     {
         return StructureSelection::Adverb;
     }
-    let (next_starts_nominal, next_is_unambiguous_nominal) =
-        context.next.map_or((false, false), |next| {
-            let exact_nominal =
-                exact_analysis_starts_with_pos(resource, next, StructuralPos::is_nominal_tag);
-            let exact_competitor =
-                exact_analysis_starts_with_pos(resource, next, |pos| !pos.is_nominal_tag());
+    let (next_starts_nominal, next_is_unambiguous_nominal, next_starts_determiner_nominal) =
+        context.next.map_or((false, false, false), |next| {
+            let mut exact_nominal = false;
+            let mut exact_dependent_or_counter_nominal = false;
+            let mut exact_competitor = false;
+            let mut exact_lexical_competitor = false;
+            resource.common_prefix_positions(next.as_bytes(), |length, positions| {
+                if length != next.len() {
+                    return;
+                }
+                let Some(pos) = positions.first().copied() else {
+                    return;
+                };
+                exact_nominal |= pos.is_nominal_tag();
+                exact_dependent_or_counter_nominal |=
+                    matches!(pos, StructuralPos::NNB | StructuralPos::NNBC);
+                exact_competitor |= !pos.is_nominal_tag();
+                exact_lexical_competitor |=
+                    !pos.is_nominal_tag() && !matches!(pos, StructuralPos::XSN | StructuralPos::XR);
+            });
             let complete_nominal = complete_nominal_host(resource, next)
                 || complete_nominal_particle_host(resource, next).is_some();
             let unambiguous_nominal = (exact_nominal || complete_nominal)
                 && !exact_competitor
                 && !complete_predicate_ending_path(resource, next);
+            let starts_nominal = !nominal_particle_hosts(resource, next).is_empty()
+                || (!exact_competitor && (exact_nominal || complete_nominal));
+            let starts_determiner_nominal =
+                starts_nominal || (exact_dependent_or_counter_nominal && !exact_lexical_competitor);
             (
-                !nominal_particle_hosts(resource, next).is_empty()
-                    || (!exact_competitor && (exact_nominal || complete_nominal)),
+                starts_nominal,
                 unambiguous_nominal,
+                starts_determiner_nominal,
             )
         });
     let particle_host = evidence.nominal_particle_hosts.last().cloned();
-    if next_starts_nominal
+    if next_starts_determiner_nominal
         && context.current.chars().count() == 1
         && evidence.has_whole(DataFinePos::Mm)
     {

@@ -553,6 +553,30 @@ fn ordinary_adverb_context_rejects_a_runtime_nominal_prefix() {
 }
 
 #[test]
+fn determiner_accepts_a_dependent_counter_before_derivational_homographs() {
+    let resolver = resolver_from_entries([
+        atomic("몇", "MM"),
+        atomic("몇", "NR"),
+        atomic("년", "NNB"),
+        atomic("년", "NNBC"),
+        atomic("년", "XSN"),
+        atomic("년", "XR"),
+    ]);
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext {
+            previous: Some("지난"),
+            current: "몇",
+            next: Some("년"),
+        },
+        spans(0.."몇".len(), 0.."몇".len()),
+        &[whole_pattern(DataFinePos::Mm, "몇")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+}
+
+#[test]
 fn runtime_path_does_not_join_an_adverb_to_an_attached_predicate() {
     let resolver = resolver_from_entries([
         atomic("못", "MAG"),

@@ -1080,6 +1080,41 @@ fn determiner_accepts_a_complete_derived_nominal_phrase_in_the_next_token() {
 }
 
 #[test]
+fn determiner_accepts_a_dependent_counter_in_embedded_and_full_pos_profiles() {
+    let resource = component_resource_from_entries([
+        component_entry("몇", "MM"),
+        component_entry("몇", "NR"),
+        component_entry("몇몇", "MM"),
+        component_entry("년", "NNB"),
+        component_entry("년", "NNBC"),
+        component_entry("년", "XSN"),
+        component_entry("년", "XR"),
+        component_entry("사람", "NNG"),
+    ]);
+    let options = CompileOptions {
+        global_pos: Some(CoarsePos::Determiner),
+        ..CompileOptions::default()
+    };
+    let matchers = [
+        compile_embedded_with_resource("몇", options.clone(), Arc::clone(&resource)),
+        compile_with_full_pos_and_resource("몇", options, resource),
+    ];
+
+    for matcher in matchers {
+        assert!(
+            matcher
+                .find_at_with_meta("그러나 지난 몇 년 동안 기다렸다.".as_bytes(), 0)
+                .is_some()
+        );
+        assert!(
+            matcher
+                .find_at_with_meta("몇몇 사람이 왔다.".as_bytes(), 0)
+                .is_none()
+        );
+    }
+}
+
+#[test]
 fn runtime_nominal_component_remains_available_without_a_source_decomposition() {
     let matcher = compile_with_full_pos(
         "명사",

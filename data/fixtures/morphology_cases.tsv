@@ -460,6 +460,8 @@ query	pos	text	expected	feature
 둘	numeral	아들둘레를 걸었다.	no-match	exact-component
 두	determiner	두사람이 왔다.	match	exact-component
 두	determiner	모두사람을 뜻하지 않는다.	no-match	exact-component
+몇	determiner	지난 몇 년 동안 기다렸다.	match	exact-component
+몇	determiner	몇몇 사람이 왔다.	no-match	exact-component
 권한	noun	사용자의 권한을 확인했다.	match	particle-final-pair
 길	noun	길잡이가 앞장섰다.	no-match	particle-final-pair
 길	noun	산길을 천천히 걸었다.	no-match	particle-final-pair

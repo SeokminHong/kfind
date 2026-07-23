@@ -797,7 +797,13 @@
   우연히 체언으로도 등록된 짧은 prefix나 predicate·modifier whole 경쟁이 있는 token만으로
   판정하지 않는다. 한 음절 관형사 구조는 경쟁 NNG/NNP/NNB만 제거하고 다른 품사의
   독립 후보는 유지한다. `V+EC N`처럼 절 연결과 명사 연속 구조가 모두 가능한 배치는
-  이 규칙으로 predicate 후보를 제거하지 않는다.
+  이 규칙으로 predicate 후보를 제거하지 않는다. 다음 token 전체에 `NNB/NNBC` 분석이
+  있으면 같은 표면의 `XSN/XR` 분석은 독립 어절 경쟁으로 보지 않는다. 따라서
+  `몇/MM + 년/NNB|NNBC` 구조는 `년/XSN|XR` 동형 분석이 함께 있어도 관형사 구조로
+  판정한다.
+- core modifier lexicon의 exact `MM` 분석은 embedded와 full POS profile에서 같은 관형사
+  whole 근거로 사용한다. 따라서 `몇`은 `지난 몇 년 동안`에서 관형사로 검색하되,
+  `몇몇`의 일부인 `몇`은 token whole 근거가 아니므로 검색하지 않는다.
 - `smart` 무품사 direct-particle program은 입력과 같은 표면형만 만든다. 품사를
   명시한 조사 query는 이형태 묶음을 만들 수 있지만 host 소리 조건과 완성된
   조사 연쇄를 graph 제약으로 증명해야 한다.
