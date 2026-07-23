@@ -24,6 +24,11 @@ export interface PrimaryNavigationItem {
   readonly path: RoutePathValue;
 }
 
+export interface DocumentPageNeighbors {
+  readonly next?: DocumentPageIndex;
+  readonly previous?: DocumentPageIndex;
+}
+
 export const navigationGroups: readonly DocumentGroupIndex[] = [
   homeGroup,
   guideGroup,
@@ -37,6 +42,8 @@ export const navigationGroups: readonly DocumentGroupIndex[] = [
 function pages(group: DocumentGroupIndex): readonly DocumentPageIndex[] {
   return group.categories.flatMap((category) => category.pages);
 }
+
+const navigationPages = navigationGroups.flatMap((group) => pages(group));
 
 function firstNavigationItem(group: DocumentGroupIndex): DocumentPageIndex {
   const item = pages(group)[0];
@@ -87,7 +94,19 @@ export function navigationGroupForPath(
 export function navigationPageForPath(
   pathname: RoutePathValue,
 ): DocumentPageIndex | undefined {
-  return navigationGroups
-    .flatMap((group) => pages(group))
-    .find((item) => item.path === pathname);
+  return navigationPages.find((item) => item.path === pathname);
+}
+
+export function documentPageNeighborsForPath(
+  pathname: RoutePathValue,
+): DocumentPageNeighbors | undefined {
+  const pageIndex = navigationPages.findIndex((item) => item.path === pathname);
+  if (pageIndex === -1) {
+    return undefined;
+  }
+
+  return {
+    next: navigationPages[pageIndex + 1],
+    previous: navigationPages[pageIndex - 1],
+  };
 }
