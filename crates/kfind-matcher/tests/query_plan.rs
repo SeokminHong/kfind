@@ -1080,6 +1080,43 @@ fn determiner_accepts_a_complete_derived_nominal_phrase_in_the_next_token() {
 }
 
 #[test]
+fn determiner_rejects_a_component_inside_a_derived_nominal_predicate() {
+    let resource = component_resource_from_entries([
+        component_entry("전", "MM"),
+        component_entry("망", "NNG"),
+        component_entry("전망", "NNG"),
+        component_entry("해야", "XSV+EC"),
+        component_expression_entry(
+            "전망해야",
+            "MM+NNG+XSV+EC",
+            "전/MM/*+망/NNG/*+해야/XSV+EC/*",
+        ),
+        component_entry("가구", "NNG"),
+        component_entry("별", "XSN"),
+        component_entry("로", "JKB"),
+    ]);
+    let options = CompileOptions {
+        global_pos: Some(CoarsePos::Determiner),
+        ..CompileOptions::default()
+    };
+    let full_pos = compile_with_full_pos_and_resource("전", options.clone(), Arc::clone(&resource));
+    let embedded = compile_embedded_with_resource("전", options, resource);
+
+    for matcher in [&full_pos, &embedded] {
+        assert!(
+            matcher
+                .find_at_with_meta("시대를 전망해야 한다.".as_bytes(), 0)
+                .is_none()
+        );
+        assert!(
+            matcher
+                .find_at_with_meta("전 가구별로 조사했다.".as_bytes(), 0)
+                .is_some()
+        );
+    }
+}
+
+#[test]
 fn determiner_accepts_a_dependent_counter_in_embedded_and_full_pos_profiles() {
     let resource = component_resource_from_entries([
         component_entry("몇", "MM"),

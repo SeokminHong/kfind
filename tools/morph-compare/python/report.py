@@ -291,7 +291,7 @@ def build_report(
             }
         )
     return {
-        "schema_version": 20,
+        "schema_version": 21,
         "task": "sentence lemma/POS presence with positive gold-span overlap",
         "dataset": metadata,
         "backends": list(backends),

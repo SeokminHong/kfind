@@ -17,6 +17,10 @@ RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
         --output /benchmark/cases.jsonl \
         --metadata /benchmark/metadata.json \
         --split test \
+    && python python/apply_fixture_contract.py \
+        --cases /benchmark/cases.jsonl \
+        --metadata /benchmark/metadata.json \
+        --reviews quality-contract-reviews.tsv \
     && python python/dataset.py \
         --manifest sources.json \
         --sources /corpora \

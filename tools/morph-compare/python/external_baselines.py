@@ -32,7 +32,9 @@ def load_external_baselines(
             f"external baseline schema mismatch: expected {SCHEMA_VERSION}, "
             f"got {snapshot.get('schema_version')}"
         )
-    fixture_sha256 = metadata["fixture_sha256"]
+    fixture_sha256 = metadata.get(
+        "external_baseline_fixture_sha256", metadata["fixture_sha256"]
+    )
     if snapshot.get("fixture_sha256") != fixture_sha256:
         raise ValueError(
             "external baseline fixture mismatch; run "
