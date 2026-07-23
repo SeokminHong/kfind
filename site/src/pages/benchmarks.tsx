@@ -105,6 +105,7 @@ const copy = {
     metricParagraphs: [
       'Raw는 원본 corpus gold를 그대로 사용합니다. TP, FP, TN, FN과 여기서 계산한 precision, recall, F1을 수정하지 않습니다.',
       'Contract-adjusted는 제품 실행 전에 고정한 registry를 같은 예측에 적용합니다. 의미로 구분할 수 없는 동형이의, source에 정렬된 내부 성분과 gold span 오류를 재분류하고, 제품 입력 계약에 속하지 않는 비표준 입력만 제외합니다. 구현이 어렵거나 아직 지원하지 않는 문법은 제외하지 않습니다.',
+      'Contract-adjusted confusion matrix는 raw 약어 오른쪽 위에 c를 붙여 TPᶜ, FPᶜ, TNᶜ, FNᶜ로 표기합니다. 예를 들어 FNᶜ는 제품 계약 안의 false negative입니다.',
       'Contract review가 없는 평가군은 raw 기대값을 그대로 사용합니다. 이때 두 결과가 같고 reviewed cases가 0이라는 사실도 결과에 포함합니다. 보정 결과만 남기거나 raw 결과를 숨기지 않습니다.',
     ],
     fnExample:
@@ -113,6 +114,8 @@ const copy = {
     canonicalCaption:
       '같은 1,000개 explicit-POS 사례의 F1입니다. Review registry가 없는 행은 raw와 contract-adjusted 값이 같고 review 수가 0입니다.',
     queryMatrixTitle: 'Query matrix 품질',
+    queryMatrixDescription:
+      'Query matrix는 한 source 문장에서 최대 세 개의 “있어야 하는” 표제어·품사·span 질의를 고르고, 각 질의마다 같은 품사의 “없어야 하는” 질의를 짝지은 진단 fixture입니다. 아래 값은 개별 질의 단위로 집계하며 Canonical 회귀선과 합치거나 대체하지 않습니다.',
     queryMatrixCaption:
       '같은 query matrix 예측에 strict gold와 고정 contract review registry를 각각 적용한 F1입니다.',
     robustTitle: 'Robust 품질',
@@ -153,6 +156,7 @@ const copy = {
     metricParagraphs: [
       'Raw metrics preserve the source corpus gold. TP, FP, TN, FN, precision, recall, and F1 are reported without modification.',
       'Contract-adjusted metrics apply a registry fixed before product execution to the same predictions. It may reclassify semantically indistinguishable homographs, source-aligned internal components, and gold-span errors. Only nonstandard input outside the product contract may be excluded. Unsupported or expensive grammar remains in the denominator.',
+      'A contract-adjusted confusion matrix adds a superscript c to each raw abbreviation: TPᶜ, FPᶜ, TNᶜ, and FNᶜ. For example, FNᶜ means an in-contract false negative.',
       'A dataset without contract reviews uses its raw expectation unchanged. The report still includes the identical adjusted result and a reviewed-case count of zero. Raw evidence is never replaced by the adjusted view.',
     ],
     fnExample:
@@ -161,6 +165,8 @@ const copy = {
     canonicalCaption:
       'F1 on the same 1,000 explicit-POS cases. Rows without contract reviews have identical raw and adjusted values and a review count of zero.',
     queryMatrixTitle: 'Query-matrix quality',
+    queryMatrixDescription:
+      'The query matrix selects up to three lemma-POS-span queries that should match in one source sentence and pairs each with a same-POS query that should not match. The values below are aggregated per query and remain separate from the Canonical regression baseline.',
     queryMatrixCaption:
       'F1 from the same predictions evaluated with strict gold and the fixed contract-review registry.',
     robustTitle: 'Robust quality',
@@ -318,6 +324,7 @@ export default function BenchmarksPage(): React.JSX.Element {
       </DocumentSection>
 
       <DocumentSection id="query-matrix-quality" title={text.queryMatrixTitle}>
+        <p>{text.queryMatrixDescription}</p>
         <QualityChart
           adjustedLabel={text.adjustedLabel}
           caption={text.queryMatrixCaption}

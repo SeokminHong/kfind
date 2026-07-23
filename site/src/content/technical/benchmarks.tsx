@@ -61,6 +61,7 @@ export const benchmarkDocuments: TechnicalDocuments = {
         ]),
         section('contract-adjusted matrix', [
           'Contract-adjusted는 실행 전에 고정한 disposition을 같은 예측에 적용합니다. 의미로 구분할 수 없는 동형이의, source가 지지하는 내부 성분과 gold span 오류는 재분류할 수 있습니다.',
+          'Contract-adjusted confusion matrix는 raw 약어 오른쪽 위에 c를 붙인 TPᶜ·FPᶜ·TNᶜ·FNᶜ로 표기합니다. FNᶜ는 제품 계약 안의 false negative입니다.',
           '비표준 입력이 명시된 제품 입력 계약 밖이면 제외할 수 있습니다. 구현이 어렵거나 아직 지원하지 않는 문법은 제외 사유가 아닙니다.',
         ]),
         section('disposition', [
@@ -81,6 +82,7 @@ export const benchmarkDocuments: TechnicalDocuments = {
         ]),
         section('Contract-adjusted matrix', [
           'Contract-adjusted applies dispositions fixed before execution to the same predictions. Indistinguishable homographs, source-supported components, and gold-span errors may be reclassified.',
+          'The contract-adjusted confusion matrix adds a superscript c to each raw abbreviation: TPᶜ, FPᶜ, TNᶜ, and FNᶜ. FNᶜ means an in-contract false negative.',
           'A nonstandard input may be excluded only when it is explicitly outside the product input contract. Difficult or unsupported grammar remains in the denominator.',
         ]),
         section('Dispositions', [
@@ -137,15 +139,17 @@ export const benchmarkDocuments: TechnicalDocuments = {
       eyebrow: '벤치마크 · 품질',
       title: 'query matrix',
       summary:
-        'Query matrix는 문법 요소, 품사, 경계와 positive·negative query 조합을 case 단위로 추적합니다.',
+        'Query matrix는 한 source 문장의 여러 positive query와 같은 품사의 paired negative query를 case 단위로 추적하는 진단 fixture입니다.',
       sections: [
         section('조합 차원', [
-          '체언·용언 class, 조사·어미, 불규칙, compound, explicit POS와 smart boundary를 교차합니다. 한 source sentence가 여러 query case를 만들 수 있습니다.',
+          '한 source sentence에서 최대 세 개의 “있어야 하는” 표제어·품사·span 질의를 고르고, 각 질의마다 같은 품사의 “없어야 하는” 질의를 짝지어 여러 query case를 만듭니다.',
+          '체언·용언 class, 조사·어미, 불규칙, compound, explicit POS와 boundary policy를 교차합니다.',
           '각 case는 expected match, expected no-match와 선택적 contract disposition을 가집니다.',
         ]),
         section('coverage', [
           'Evaluator는 backend가 반환한 candidate를 case에 정렬하고 partial span, crossing match와 extra match를 구분합니다. Candidate coverage가 100%가 아니면 matrix를 승인하지 않습니다.',
           'Aggregate F1과 함께 문법 차원별 TP·FP·FN을 남겨 특정 규칙의 누락을 찾습니다.',
+          'Query matrix는 진단 workload이며 Canonical 회귀선과 합치거나 대체하지 않습니다.',
         ]),
         section('disposition ledger', [
           'Raw와 adjusted matrix는 같은 prediction set에서 계산합니다. Registry는 case ID별 confirmed, reclassified, excluded 이유를 version control에 보존합니다.',
@@ -157,15 +161,17 @@ export const benchmarkDocuments: TechnicalDocuments = {
       eyebrow: 'BENCHMARKS · QUALITY',
       title: 'Query matrix',
       summary:
-        'The query matrix tracks grammar, POS, boundary, and positive-negative combinations at case level.',
+        'The query matrix is a diagnostic fixture that tracks multiple positive queries and same-POS paired negatives in one source sentence.',
       sections: [
         section('Dimensions', [
-          'Nominal and predicate classes, particles, endings, irregulars, compounds, explicit POS, and smart boundary are crossed. One source sentence can produce several query cases.',
+          'Up to three lemma-POS-span queries that should match are selected from one source sentence, and each is paired with a same-POS query that should not match.',
+          'Nominal and predicate classes, particles, endings, irregulars, compounds, explicit POS, and boundary policies are crossed.',
           'Each case declares expected match, expected no match, and an optional contract disposition.',
         ]),
         section('Coverage', [
           'The evaluator aligns backend candidates to cases and distinguishes partial spans, crossings, and extra matches. Candidate coverage below 100% blocks approval.',
           'Aggregate F1 is accompanied by per-dimension TP, FP, and FN so a missing rule remains identifiable.',
+          'The query matrix is a diagnostic workload and neither replaces nor merges with the Canonical regression baseline.',
         ]),
         section('Disposition ledger', [
           'Raw and adjusted matrices use the same predictions. The registry stores confirmed, reclassified, and excluded reasons by case ID in version control.',

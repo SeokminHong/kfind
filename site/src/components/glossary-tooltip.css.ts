@@ -27,6 +27,9 @@ export const positioner = style({
 });
 
 export const tooltip = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: vars.space.xsmall,
   width: 'max-content',
   maxWidth: 'min(20rem, 100%)',
   padding: `${vars.space.small} ${vars.space.medium}`,
@@ -42,4 +45,8 @@ export const tooltip = style({
       opacity: 0,
     },
   },
+});
+
+export const notation = style({
+  fontWeight: 700,
 });

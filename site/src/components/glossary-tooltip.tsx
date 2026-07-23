@@ -7,7 +7,7 @@ import type {
 import type { GlossaryTerm } from './glossary';
 
 import { PreviewCard } from '@base-ui/react/preview-card';
-import { useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { Link } from 'react-router';
 
 import { RoutePath } from '../app/navigation';
@@ -28,7 +28,7 @@ export function GlossaryTooltip({
   const hasPendingDirectActivation = useRef(false);
   const isTooltipArmed = useRef(false);
   const [isOpen, setIsOpen] = useState(false);
-  const tooltipId = `glossary-tooltip-${term.id}`;
+  const tooltipId = useId();
 
   function beginKeyboardActivation(
     event: ReactKeyboardEvent<HTMLAnchorElement>,
@@ -110,7 +110,10 @@ export function GlossaryTooltip({
             id={tooltipId}
             role="tooltip"
           >
-            {term.definition}
+            {term.notation === undefined ? null : (
+              <span className={styles.notation}>{term.notation}</span>
+            )}
+            <span>{term.definition}</span>
           </PreviewCard.Popup>
         </PreviewCard.Positioner>
       </PreviewCard.Portal>
