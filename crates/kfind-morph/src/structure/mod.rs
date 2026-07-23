@@ -2620,6 +2620,9 @@ enum StructureSelection {
     Adverb,
     AdjacentDeterminer,
     DeterminerWhole,
+    ConnectiveJiNominalFrame {
+        fallback: Box<StructureSelection>,
+    },
     NominalSpan {
         selected: Range<usize>,
         allow_components: bool,
@@ -2654,6 +2657,7 @@ impl StructureSelection {
             Self::RuntimeCompatible { graph_nominal_host } => graph_nominal_host.as_ref(),
             Self::NumeralSequence { fallback } => fallback.graph_nominal_host(),
             Self::AdnominalDerivation { fallback } => fallback.graph_nominal_host(),
+            Self::ConnectiveJiNominalFrame { fallback } => fallback.graph_nominal_host(),
             _ => None,
         }
     }
@@ -2669,6 +2673,10 @@ impl StructureSelection {
         let Some(pattern) = patterns.get(support.pattern_index) else {
             return false;
         };
+        if let Self::ConnectiveJiNominalFrame { fallback } = self {
+            return !pattern.fine_pos.is_predicate()
+                && fallback.accepts(support, spans, patterns, text, evidence);
+        }
         if query_nominal_particle_path(pattern, spans) {
             return true;
         }
@@ -2698,6 +2706,7 @@ impl StructureSelection {
             Self::DeterminerWhole => {
                 support.evidence == StructuralEvidence::Whole && pattern.fine_pos.is_nominal()
             }
+            Self::ConnectiveJiNominalFrame { .. } => unreachable!("handled before shared rules"),
             Self::NominalSpan {
                 selected,
                 allow_components,
@@ -3382,16 +3391,23 @@ fn select_structure(
     {
         return StructureSelection::Adverb;
     }
-    let next_starts_nominal = context.next.is_some_and(|next| {
-        let exact_nominal =
-            exact_analysis_starts_with_pos(resource, next, StructuralPos::is_nominal_tag);
-        let exact_competitor =
-            exact_analysis_starts_with_pos(resource, next, |pos| !pos.is_nominal_tag());
-        let complete_nominal = complete_nominal_host(resource, next)
-            || complete_nominal_particle_host(resource, next).is_some();
-        !nominal_particle_hosts(resource, next).is_empty()
-            || (!exact_competitor && (exact_nominal || complete_nominal))
-    });
+    let (next_starts_nominal, next_is_unambiguous_nominal) =
+        context.next.map_or((false, false), |next| {
+            let exact_nominal =
+                exact_analysis_starts_with_pos(resource, next, StructuralPos::is_nominal_tag);
+            let exact_competitor =
+                exact_analysis_starts_with_pos(resource, next, |pos| !pos.is_nominal_tag());
+            let complete_nominal = complete_nominal_host(resource, next)
+                || complete_nominal_particle_host(resource, next).is_some();
+            let unambiguous_nominal = (exact_nominal || complete_nominal)
+                && !exact_competitor
+                && !complete_predicate_ending_path(resource, next);
+            (
+                !nominal_particle_hosts(resource, next).is_empty()
+                    || (!exact_competitor && (exact_nominal || complete_nominal)),
+                unambiguous_nominal,
+            )
+        });
     let particle_host = evidence.nominal_particle_hosts.last().cloned();
     if next_starts_nominal
         && context.current.chars().count() == 1
@@ -3410,7 +3426,14 @@ fn select_structure(
         .all()
         .iter()
         .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal());
+    let has_exact_whole_nominal =
+        has_exact_fine_pos(resource, context.current, DataFinePos::is_nominal);
     let current_modifies_next_nominal = next_starts_nominal && !evidence.adnominal_ends.is_empty();
+    let connective_ji_before_nominal = next_is_unambiguous_nominal
+        && context.current.ends_with('지')
+        && (exact_analysis_ends_with_pos(resource, context.current, |pos| {
+            pos == StructuralPos::EC
+        }) || complete_predicate_connective_ji_path(resource, context.current));
     if previous_is_determiner && has_whole_nominal && !current_modifies_next_nominal {
         return StructureSelection::DeterminerWhole;
     }
@@ -3466,8 +3489,15 @@ fn select_structure(
     } else {
         fallback
     };
-    if evidence.has_numeral_sequence {
+    let fallback = if evidence.has_numeral_sequence {
         StructureSelection::NumeralSequence {
+            fallback: Box::new(fallback),
+        }
+    } else {
+        fallback
+    };
+    if connective_ji_before_nominal && (has_whole_nominal || has_exact_whole_nominal) {
+        StructureSelection::ConnectiveJiNominalFrame {
             fallback: Box::new(fallback),
         }
     } else {
@@ -3569,6 +3599,25 @@ fn complete_ha_predicate_path(resource: &ComponentResource, text: &str) -> bool 
             && exact_analysis_starts_with_pos(resource, surface, |pos| pos == StructuralPos::VV)
             && complete_suffix(resource, &text[surface.len()..], StructuralPos::is_ending)
     })
+}
+
+fn complete_predicate_ending_path(resource: &ComponentResource, text: &str) -> bool {
+    text.char_indices()
+        .map(|(offset, _)| offset)
+        .skip(1)
+        .any(|split| {
+            exact_analysis_starts_with_pos(resource, &text[..split], |pos| pos.is_predicate_tag())
+                && complete_suffix(resource, &text[split..], StructuralPos::is_ending)
+        })
+}
+
+fn complete_predicate_connective_ji_path(resource: &ComponentResource, text: &str) -> bool {
+    let Some(predicate) = text.strip_suffix('지') else {
+        return false;
+    };
+    !predicate.is_empty()
+        && exact_analysis_starts_with_pos(resource, predicate, StructuralPos::is_predicate_tag)
+        && has_exact_sequence(resource, "지", &[StructuralPos::EC])
 }
 
 fn has_copular_adnominal_split(resource: &ComponentResource, current: &str) -> bool {

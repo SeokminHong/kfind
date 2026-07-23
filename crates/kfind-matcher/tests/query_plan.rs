@@ -892,6 +892,28 @@ fn adjacent_layout_limits_disambiguation_to_supported_pos_competitions() {
             ..CompileOptions::default()
         },
     );
+    let connective_any = compile_with_full_pos(
+        "주다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            boundary: BoundaryPolicy::Any,
+            ..CompileOptions::default()
+        },
+    );
+    let abbot = compile_with_full_pos(
+        "주지",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+    );
+    let emerge = compile_with_full_pos(
+        "나다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Verb),
+            ..CompileOptions::default()
+        },
+    );
     let adnominal = compile_with_full_pos(
         "걸다",
         CompileOptions {
@@ -908,6 +930,13 @@ fn adjacent_layout_limits_disambiguation_to_supported_pos_competitions() {
     );
     let adverb = compile_with_full_pos(
         "너무",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Adverb),
+            ..CompileOptions::default()
+        },
+    );
+    let only = compile_with_full_pos(
+        "단지",
         CompileOptions {
             global_pos: Some(CoarsePos::Adverb),
             ..CompileOptions::default()
@@ -959,6 +988,22 @@ fn adjacent_layout_limits_disambiguation_to_supported_pos_competitions() {
     assert!(
         connective
             .find_at_with_meta("주지 스님".as_bytes(), 0)
+            .is_none()
+    );
+    assert!(
+        connective_any
+            .find_at_with_meta("주지 스님".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        connective
+            .find_at_with_meta("사탕을 주지 말자".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(abbot.find_at_with_meta("주지 스님".as_bytes(), 0).is_some());
+    assert!(
+        emerge
+            .find_at_with_meta("나서 흥화문".as_bytes(), 0)
             .is_some()
     );
     assert!(
@@ -976,8 +1021,10 @@ fn adjacent_layout_limits_disambiguation_to_supported_pos_competitions() {
             .find_at_with_meta("너무 빨라도".as_bytes(), 0)
             .is_some()
     );
+    assert!(only.find_at_with_meta("단지 바람".as_bytes(), 0).is_some());
     assert!(pronoun.find_at_with_meta("제 나라".as_bytes(), 0).is_some());
     assert!(numeral.find_at_with_meta("한 사람".as_bytes(), 0).is_some());
+    assert!(numeral.find_at_with_meta("한 군데".as_bytes(), 0).is_some());
     assert!(
         hammer
             .find_at_with_meta("값이 한 박자 늦게 저장된다.".as_bytes(), 0)
