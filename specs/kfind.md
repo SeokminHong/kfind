@@ -193,7 +193,7 @@
   component resource의 로드 여부는 `CandidateProgram`이 선언한 resource capability로
   결정한다. `--explain-query`는
   full POS 상태를 `not required (embedded mode)`로 출력한다.
-- `--init`은 검색과 분리된 agent skill 초기화 mode다. 이 mode에서는 query가 필요 없고 검색
+- `--init`은 검색과 분리된 agent 통합 초기화 mode다. 이 mode에서는 query가 필요 없고 검색
   옵션·경로를 함께 받을 수 없다. `--agent`는 `claude-code`, `codex`, `gemini`, `custom`을
   반복해서 받을 수 있으며 `--init` 없이 사용할 수 없다.
 - `kfind --init`에 `--agent`가 없고 stdin과 진단 출력이 TTY이면 checkbox multi-select를
@@ -203,6 +203,21 @@
   `.claude/skills/kfind/SKILL.md`, Codex `.agents/skills/kfind/SKILL.md`, Gemini CLI
   `.gemini/skills/kfind/SKILL.md`다. `custom`은 파일을 만들지 않고 같은 `SKILL.md` 원문만
   stdout에 출력한다. 진행 메시지와 오류는 stderr에만 출력한다.
+- Claude Code, Codex와 Gemini CLI 대상은 각각 `.claude/settings.json`의
+  `PreToolUse/Bash`, `.codex/hooks.json`의 `PreToolUse/Bash`,
+  `.gemini/settings.json`의 `BeforeTool/run_shell_command`에 kfind agent hook을 함께
+  설치한다. 기존 JSON 설정과 다른 hook은 보존하며, JSON이 올바르지 않거나 병합할 필드의
+  자료형이 agent 계약과 다르면 어떤 파일도 변경하지 않고 충돌 경로를 포함한 오류와 exit
+  code 2를 반환한다. 같은 kfind hook은 다시 실행해도 중복하지 않는다.
+- Agent hook은 shell tool의 명령행에서 직접 실행되는 `rg`, `grep`, `egrep`, `fgrep`과
+  `git grep`의 명시적 command-line 검색 패턴을 식별한다. 검색 패턴에 현대·옛한글 음절 또는
+  자모가 있으면 tool 실행을 거부하고 kfind 사용법을 agent에 반환한다. 경로, glob, option
+  값과 pattern file의 내용은 검색 패턴으로 간주하지 않는다. kfind 명령과 한글이 없는
+  literal 검색은 허용한다.
+- Agent hook은 각 agent가 신뢰한 project hook과 관측 가능한 shell tool call에만 적용된다.
+  사용자가 hook을 신뢰하지 않거나 비활성화한 환경, agent hook을 거치지 않는 hosted tool과
+  사용자가 별도 terminal에서 직접 실행한 명령은 차단하지 않는다. `custom`은 agent별 hook
+  계약을 알 수 없으므로 hook 설정을 만들지 않는다.
 - init이 만든 파일·link는 다시 실행할 때 같은 배포본으로 갱신할 수 있다. 관리 표식이 없는
   기존 skill을 덮어쓰지 않으며 충돌 경로를 포함한 오류와 exit code 2를 반환한다.
 - 사람이 대화형으로 사용하는 기본 경로는 `--pos auto --boundary smart`를 유지한다. 설치된
@@ -2182,7 +2197,7 @@ pipe이면 기본 검색 대상을 stdin으로 전환한다. `-`는 stdin을 명
 | `--sort`                  | `path`                                     |                없음 | 결과 정렬                          |
 | `--data-dir`              | 경로                                       |                자동 | 외부 데이터 디렉터리               |
 | `--user-lexicon`          | 경로                                       |                자동 | 사용자 사전                        |
-| `--init`                  | flag                                       |               false | 현재 디렉터리에 agent skill 초기화 |
+| `--init`                  | flag                                       |               false | 현재 디렉터리에 agent 통합 초기화 |
 | `--agent`                 | `claude-code`, `codex`, `gemini`, `custom` | TTY 선택 또는 stdin | 초기화 대상, 반복 가능             |
 
 ### 14.3 context와 출력 호환 옵션
@@ -2234,7 +2249,7 @@ LANG
 생성한 현지화된 오류 문맥 뒤에 원문으로 붙일 수 있다. man page와 shell completion은
 빌드 환경의 locale에 영향받지 않도록 영어 명령 정의에서 재현 가능하게 생성한다.
 
-### 14.6 Agent skill 초기화
+### 14.6 Agent 통합 초기화
 
 명시적 대상은 대화형 여부와 관계없이 같은 결과를 만든다.
 
@@ -2257,6 +2272,26 @@ kfind --init --agent custom > path/to/kfind/SKILL.md
 
 TTY에서 선택을 취소하거나 아무 항목도 선택하지 않으면 파일을 변경하지 않고 성공한다. 같은
 agent를 여러 번 입력해도 한 번만 처리한다. 설치가 하나라도 실패하면 성공으로 보고하지 않는다.
+
+지원 agent를 선택하면 skill과 project hook 설정을 함께 설치한다. 기존 설정 파일에는 kfind
+hook만 병합하며 다른 key와 hook 순서를 보존한다. Codex의 project hook은 프로젝트를 신뢰한 뒤
+`/hooks`에서 별도로 신뢰해야 실행된다. Claude Code와 Gemini CLI도 각 제품의 project hook
+신뢰 절차를 따른다.
+
+Agent가 다음 shell tool call을 만들면 실행 전에 거부하고 `kfind`로 다시 검색하도록 안내한다.
+
+```sh
+rg '사용자' crates
+grep -R --regexp='검증하다' docs
+git grep '권한'
+```
+
+검색 pattern과 구분되는 한글 경로·glob은 거부하지 않는다.
+
+```sh
+rg 'TODO' '한국어 문서'
+rg --glob '*한글*' 'TODO' .
+```
 
 ## 15. 출력 사양
 
@@ -3348,8 +3383,9 @@ end
 20. 품사를 생략한 held-out 검색의 품질·성능 benchmark가 별도 fixture와 보고서 절로 존재한다.
 21. `kfind --init`은 TTY checkbox, 반복 `--agent`, 비TTY stdin에서 같은 agent 대상 집합을
     설치한다.
-22. Claude Code, Codex와 Gemini CLI의 project skill 경로에 같은 원본의 `SKILL.md`를 설치하며
-    `custom`은 skill 원문 외의 내용을 stdout에 섞지 않는다.
+22. Claude Code, Codex와 Gemini CLI의 project skill 경로에 같은 원본의 `SKILL.md`와
+    shell tool용 kfind hook을 설치하며, 기존 agent 설정과 다른 hook을 보존하고 `custom`은
+    skill 원문 외의 내용을 stdout에 섞지 않는다.
 23. 관리하지 않는 기존 skill은 보존하고 init 실패를 exit code 2와 escape된 진단으로 보고한다.
 24. Homebrew formula는 agent skill 원본을 설치하고 project link가 stable `opt` 경로를 사용해
     upgrade 뒤 새 원본을 가리킨다.
@@ -3359,6 +3395,8 @@ end
     stdout stream을 유지한다.
 26. 배포용 full POS와 compact component resource로 전체 morphology gold를 실행했을 때 자동 품사
     coverage를 포함한 모든 positive와 negative case가 기대값과 일치한다.
+27. 설치된 agent hook은 명시적 command-line 검색 pattern에 한글이 있는 `rg`·`grep` 계열
+    shell tool call을 실행 전에 거부하고 한글 path·glob, pattern file과 kfind 호출은 허용한다.
 
 ## 24. 공개 코드 인터페이스
 
