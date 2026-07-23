@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "source_report": {
+    "revision": "f5fb19d0bd8213b6fc7e6575cc5ad3054dea8cdf",
+    "sha256": "9fd133df01b5ee2dfbe29300d40ba193c94d1737c36ba613600ed4d514da1524"
+  },
+  "fixture": {
+    "kind": "constructed-diagnostic",
+    "queries": 7,
+    "cases": 112,
+    "strict_positive": 56,
+    "strict_negative": 56,
+    "contract_positive": 62,
+    "contract_negative": 50,
+    "reviewed_cases": 6,
+    "sha256": "0a99bd90ce34169f1fc6e294525ee2d4ec782240570fd0c023acdfe609bbd914"
+  },
+  "quality": [
+    {
+      "id": "kfind",
+      "raw": {
+        "tp": 56,
+        "tn": 50,
+        "fp": 6,
+        "fn": 0,
+        "precision_percent": 90.32,
+        "recall_percent": 100.0,
+        "f1_percent": 94.92
+      },
+      "contract_adjusted": {
+        "tp": 62,
+        "tn": 50,
+        "fp": 0,
+        "fn": 0,
+        "precision_percent": 100.0,
+        "recall_percent": 100.0,
+        "f1_percent": 100.0
+      }
+    },
+    {
+      "id": "regex_enumerated",
+      "raw": {
+        "tp": 50,
+        "tn": 48,
+        "fp": 8,
+        "fn": 6,
+        "precision_percent": 86.21,
+        "recall_percent": 89.29,
+        "f1_percent": 87.72
+      },
+      "contract_adjusted": {
+        "tp": 55,
+        "tn": 47,
+        "fp": 3,
+        "fn": 7,
+        "precision_percent": 94.83,
+        "recall_percent": 88.71,
+        "f1_percent": 91.67
+      }
+    },
+    {
+      "id": "regex_stem",
+      "raw": {
+        "tp": 46,
+        "tn": 22,
+        "fp": 34,
+        "fn": 10,
+        "precision_percent": 57.5,
+        "recall_percent": 82.14,
+        "f1_percent": 67.65
+      },
+      "contract_adjusted": {
+        "tp": 52,
+        "tn": 22,
+        "fp": 28,
+        "fn": 10,
+        "precision_percent": 65.0,
+        "recall_percent": 83.87,
+        "f1_percent": 73.24
+      }
+    }
+  ],
+  "performance": {
+    "bytes": 14192640,
+    "lines": 458752,
+    "warmup": 2,
+    "runs": 10,
+    "workload": "7 independent fresh-process queries per batch",
+    "methods": [
+      {
+        "id": "kfind",
+        "median_ms": 2311.369,
+        "min_ms": 2300.241,
+        "max_ms": 2464.534,
+        "p95_ms": 2464.534,
+        "effective_mib_per_second": 41.0
+      },
+      {
+        "id": "rg_enumerated",
+        "median_ms": 64.104,
+        "min_ms": 63.648,
+        "max_ms": 67.941,
+        "p95_ms": 67.941,
+        "effective_mib_per_second": 1478.0
+      },
+      {
+        "id": "grep_enumerated",
+        "median_ms": 5264.307,
+        "min_ms": 5236.438,
+        "max_ms": 5372.814,
+        "p95_ms": 5372.814,
+        "effective_mib_per_second": 18.0
+      },
+      {
+        "id": "rg_stem",
+        "median_ms": 66.431,
+        "min_ms": 63.873,
+        "max_ms": 74.428,
+        "p95_ms": 74.428,
+        "effective_mib_per_second": 1426.2
+      },
+      {
+        "id": "grep_stem",
+        "median_ms": 1789.176,
+        "min_ms": 1779.27,
+        "max_ms": 1902.564,
+        "p95_ms": 1902.564,
+        "effective_mib_per_second": 53.0
+      }
+    ]
+  },
+  "tools": {
+    "kfind": "kfind 1.0.0-rc.1",
+    "rg": "ripgrep 15.1.0",
+    "grep": "grep (BSD grep, GNU compatible) 2.6.0-FreeBSD"
+  }
+}
