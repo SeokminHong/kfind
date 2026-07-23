@@ -1992,11 +1992,27 @@ fn adnominal_frame_selects_a_dependent_noun_over_a_homographic_predicate() {
 }
 
 #[test]
-fn determiner_frame_prefers_whole_tokens_over_generated_homographs() {
+fn nominal_frames_prefer_whole_tokens_over_generated_homographs() {
     let resolver = resolver_from_entries([
         atomic("한", "MM"),
         atomic("박자", "NNG"),
         atomic("못을", "NNG+JKO"),
+        atomic("주", "MM"),
+        atomic("주", "VV"),
+        atomic("지", "EC"),
+        atomic("주지", "NNG"),
+        atomic("스님이", "NNG+JKS"),
+        atomic("말", "NNG"),
+        atomic("말", "VX"),
+        atomic("자", "JX"),
+        atomic("자", "EF"),
+        atomic("나서", "NNG"),
+        expression("나서", "VV+EC", "나/VV/*+서/EC/*"),
+        atomic("흥화문", "NNP"),
+        atomic("단지", "MAG"),
+        atomic("단지", "NNG"),
+        expression("단지", "VV+EC", "단/VV/*+지/EC/*"),
+        atomic("바람", "NNG"),
         atomic("놀자던", "VV+ETM"),
         atomic("젊은", "NNG"),
         expression("젊은", "VA+ETM", "젊/VA/*+은/ETM/*"),
@@ -2038,6 +2054,67 @@ fn determiner_frame_prefers_whole_tokens_over_generated_homographs() {
         &[predicate_pattern(DataFinePos::Vv, "박")],
         128,
     );
+    let connective_spans = CandidateSpans {
+        core: 0.."주".len(),
+        anchor: 0.."주지".len(),
+        consumed: 0.."주지".len(),
+        token: 0.."주지".len(),
+    };
+    let abbot = resolver.resolve_candidate(
+        BoundedTokenContext {
+            previous: None,
+            current: "주지",
+            next: Some("스님이"),
+        },
+        spans(0.."주지".len(), 0.."주지".len()),
+        &[whole_pattern(DataFinePos::Nng, "주지")],
+        128,
+    );
+    let connective_before_noun = resolver.resolve_candidate(
+        BoundedTokenContext {
+            previous: None,
+            current: "주지",
+            next: Some("스님이"),
+        },
+        connective_spans.clone(),
+        &[predicate_pattern(DataFinePos::Vv, "주")],
+        128,
+    );
+    let connective_before_auxiliary = resolver.resolve_candidate(
+        BoundedTokenContext {
+            previous: None,
+            current: "주지",
+            next: Some("말자"),
+        },
+        connective_spans,
+        &[predicate_pattern(DataFinePos::Vv, "주")],
+        128,
+    );
+    let other_connective_before_noun = resolver.resolve_candidate(
+        BoundedTokenContext {
+            previous: None,
+            current: "나서",
+            next: Some("흥화문"),
+        },
+        CandidateSpans {
+            core: 0.."나".len(),
+            anchor: 0.."나서".len(),
+            consumed: 0.."나서".len(),
+            token: 0.."나서".len(),
+        },
+        &[predicate_pattern(DataFinePos::Vv, "나")],
+        128,
+    );
+    let adverb_before_noun = resolver.resolve_candidate(
+        BoundedTokenContext {
+            previous: None,
+            current: "단지",
+            next: Some("바람"),
+        },
+        spans(0.."단지".len(), 0.."단지".len()),
+        &[whole_pattern(DataFinePos::Mag, "단지")],
+        128,
+    );
     let stacked_adnominal = resolver.resolve_candidate(
         BoundedTokenContext {
             previous: Some("놀자던"),
@@ -2052,6 +2129,20 @@ fn determiner_frame_prefers_whole_tokens_over_generated_homographs() {
     assert_eq!(noun.outcome, ConstraintOutcome::Supported);
     assert_eq!(predicate.outcome, ConstraintOutcome::Contradicted);
     assert_eq!(predicate_after_object.outcome, ConstraintOutcome::Supported);
+    assert_eq!(abbot.outcome, ConstraintOutcome::Supported);
+    assert_eq!(
+        connective_before_noun.outcome,
+        ConstraintOutcome::Contradicted
+    );
+    assert_eq!(
+        connective_before_auxiliary.outcome,
+        ConstraintOutcome::Supported
+    );
+    assert_eq!(
+        other_connective_before_noun.outcome,
+        ConstraintOutcome::Supported
+    );
+    assert_eq!(adverb_before_noun.outcome, ConstraintOutcome::Supported);
     assert_eq!(stacked_adnominal.outcome, ConstraintOutcome::Supported);
 }
 
