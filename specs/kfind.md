@@ -811,6 +811,12 @@
   있으면 같은 표면의 `XSN/XR` 분석은 독립 어절 경쟁으로 보지 않는다. 따라서
   `몇/MM + 년/NNB|NNBC` 구조는 `년/XSN|XR` 동형 분석이 함께 있어도 관형사 구조로
   판정한다.
+- 관형사 component와 같은 token 왼쪽 경계에서 시작하는 더 긴 체언 node가 있고, 그 체언
+  뒤의 `XSV/XSA + E*`가 token 끝까지 이어지는 완전한 파생 용언 path를 만들면 내부 관형사
+  component를 거부한다. 따라서 `전망해야`의 `전/MM + 망/NNG + 해야/XSV+EC` 경쟁 분석은
+  `전망/NNG + 해야/XSV+EC`를 선택해 `전`을 관형사로 판정하지 않는다. 이 규칙은 독립 token
+  전체의 관형사 whole 근거나 다음 token의 체언 host를 소비하는 관형사 구조에는 적용하지
+  않는다.
 - core modifier lexicon의 exact `MM` 분석은 embedded와 full POS profile에서 같은 관형사
   whole 근거로 사용한다. 따라서 `몇`은 `지난 몇 년 동안`에서 관형사로 검색하되,
   `몇몇`의 일부인 `몇`은 token whole 근거가 아니므로 검색하지 않는다.
@@ -2943,11 +2949,12 @@ explicit-POS·untagged 또는 서로 다른 오류 class를 합쳐 단일 제품
 candidate budget과 원문 span 역매핑 계약을 고정한 뒤 별도 표로 추가하며 default 행과 합치지
 않는다.
 
-같은 Robust fixture의 성능도 fresh process warm-up 1회 뒤 5회 측정한다. Embedded/full-POS
-`smart`, Agent의 `embedded + any + explicit POS`, Human의 `full-POS + smart + untagged`와 고정
-외부 backend에 대해 initialization, cases/s, p50·p95 latency와 peak RSS의 median/min/max를
-기록한다. 품질과 성능은 같은 보고서에서 별도 표와 chart로 제시하고 canonical 합계와 섞지
-않는다.
+같은 Robust fixture의 성능도 fresh process warm-up 1회 뒤 5회 측정한다. Explicit-POS
+비교는 embedded/full-POS 각각의 `any`와 `smart`, 고정 외부 backend에 대해 initialization,
+cases/s, p50·p95 latency와 peak RSS의 median/min/max를 기록한다. Agent의
+`embedded + any + explicit POS`와 Human의 `full-POS + smart + untagged`는 제품 workflow
+비교로 별도 보존한다. 품질과 성능은 같은 보고서에서 별도 표와 chart로 제시하고 canonical
+합계와 섞지 않는다.
 
 gold 후보는 CoNLL-U의 정렬된 lemma/XPOS 형태소 쌍에서 추출하고, lemma가 축약된 KAIST
 어절은 `OrigLemma`를 우선 사용한다. 지원 품사에 속하고 표제어가 한글 음절로만 구성된
@@ -2961,6 +2968,14 @@ gold 어절의 UTF-8 byte span과 겹쳐야 true positive이고, negative는 문
 표제어·품사를 반환하면 false positive다. 도구마다 accuracy, precision, recall, F1과
 TP·FP·TN·FN을 계산하고 corpus별·품사별 결과 및 실패 case를 함께 보존한다. 외부 분석기가
 원문에 정렬할 수 없는 길이 0 형태소를 반환하면 검색 가능한 span 후보에서 제외한다.
+
+Site의 Canonical, query matrix와 Robust explicit-POS 비교는 각각 kfind를
+`embedded + any`, `embedded + smart`, `full-POS + any`, `full-POS + smart`의 네 profile로
+나눈다. 각 workload의 품질은 raw와 contract-adjusted confusion matrix를 각각 보존하고,
+성능은 initialization, cases/s, p50·p95 latency와 peak RSS를 함께 보존한다. 외부 분석기 행은
+같은 workload의 기존 고정 품질·성능 설정으로 함께 표시하되 kfind profile을 resource
+종류만으로 합치지 않는다. 서로 다른 workload의 품질 또는 성능을 하나의 순위나 합계로
+합치지 않는다. `full-POS + smart`의 고정 canonical gate는 `FPᶜ = 0`, `FNᶜ = 0`이다.
 
 고정 1,000-case 회귀 fixture와 별도로, 같은 core held-out source의 수동 검토 통과 문장에서
 문장 안 검색 질의를 늘린 `query matrix` fixture를 생성한다. canonical positive가 하나 이상
@@ -3153,13 +3168,14 @@ policy로 분리한다.
 case를 유지한다. 이 fixture는 동일 질의의 전략 차이를 설명하는 예시이며 held-out corpus,
 Canonical 회귀선이나 일반적인 한국어 검색 품질을 대표하지 않는다.
 
-각 질의는 `kfind`의 명시적 품사 질의, 사람이 자주 쓰는 두 정규식 전략을 비교한다.
-`enumerated`는 알려진 활용 표면형을 `|`로 열거하고, `stem`은 짧은 어간 후보만 열거한다.
-정규식에는 자동 활용 생성, 품사 판정과 token boundary를 추가하지 않는다. `rg`와 `grep`은
-동일 정규식을 실행하고 matching line 집합이 같은지 검증한다. 따라서 품질은 정규식 전략별
-한 행으로 집계하고, 도구별 실행 비용은 별도 성능 행으로 보고한다.
+각 질의는 `kfind full POS`의 명시적 품사 질의를 `boundary=any`와 `boundary=smart`로 각각
+실행하고, 사람이 자주 쓰는 두 정규식 전략과 비교한다. `enumerated`는 알려진 활용 표면형을
+`|`로 열거하고, `stem`은 짧은 어간 후보만 열거한다. 정규식에는 자동 활용 생성, 품사 판정과
+token boundary를 추가하지 않는다. `rg`와 `grep`은 동일 정규식을 실행하고 matching line
+집합이 같은지 검증한다. 따라서 품질은 두 kfind boundary와 정규식 전략별 한 행으로 집계하고,
+도구별 실행 비용은 별도 성능 행으로 보고한다.
 
-품질에는 세 전략 모두 raw TP·TN·FP·FN, precision·recall·F1과
+품질에는 네 전략 모두 raw TP·TN·FP·FN, precision·recall·F1과
 TPᶜ·TNᶜ·FPᶜ·FNᶜ, precisionᶜ·recallᶜ·F1ᶜ를 기록한다. Contract review는 제품 실행 전에
 fixture에 선언하며 `same-pos-homograph`, `structurally-indistinguishable-homograph`,
 `aligned-source-component`만 허용한다. 같은 예측을 두 기대값으로 다시 평가하므로
