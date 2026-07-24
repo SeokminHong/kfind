@@ -1030,12 +1030,14 @@
   `assets/predicates.enriched.tsv` 정적 파일로 WASM 산출물과 분리해 게시한다. 각 외부 데이터의
   license notice도 package에 포함한다. 사용자는 필요한 파일을 배포물에 복사하거나 별도 호스트에
   올릴 수 있으며 npm binding은 특정 호스팅 URL을 고정하지 않는다. `@kfind/kfind/assets` export는
-  설치된 package와 정확히 같은 버전의 두 asset을 Node.js 서버가 읽거나 stream할 수 있도록
-  `file:` URL을 제공한다. 이 resolver module은 browser에서 자동 fetch하거나 서버 URL을 정하지
-  않으며, browser binding에는 caller가 서빙한 URL에서 읽은 bytes를 명시적으로 전달한다. 실제로
-  pack한 tarball을 임시 소비자 project에 설치하고 이 URL로 component asset 전체를 HTTP
-  streaming하는 검증을 `pack:check`에 포함한다. full POS binary는 크기와 배포 profile이 다르므로
-  npm package에 포함하지 않지만 같은 `withResources` 입력으로 전달할 수 있다.
+  설치된 package와 정확히 같은 버전의 두 asset을 `new URL(relative, import.meta.url)`로 가리킨다.
+  Node.js에서는 설치 package의 `file:` URL을 제공하고, 이 구문을 지원하는 browser bundler에서는
+  content hash가 붙은 same-origin 정적 asset URL로 변환된다. 이 resolver module은 browser에서
+  자동 fetch하거나 서버 route를 정하지 않으며, browser binding에는 caller가 해당 URL에서 읽은
+  bytes를 명시적으로 전달한다. 실제로 pack한 tarball을 임시 소비자 project에 설치하고 Node.js
+  서버에서 component asset 전체를 HTTP streaming하며, Vite SPA에서 두 asset을 정적 파일로
+  bundling한 뒤 HTTP streaming하는 검증을 `pack:check`에 포함한다. full POS binary는 크기와 배포
+  profile이 다르므로 npm package에 포함하지 않지만 같은 `withResources` 입력으로 전달할 수 있다.
 - package build는 고정 source와 checksum으로 정적 asset을 생성한다. `npm pack --dry-run`은
   asset 포함과 SHA-256을 검증하고 WASM binary에 compact container magic 또는 artifact bytes가
   포함되지 않았음을 확인한다.
@@ -1049,10 +1051,10 @@
   API와 실제 `bin` 실행을 smoke test하고 `npm pack --dry-run`으로 게시 파일, executable mode와
   metadata를 검증한다.
 - npm package 검증은 package version과 Cargo version의 일치, 두 정적 asset과 license notice,
-  `@kfind/kfind/assets`의 설치 package file URL과 HTTP streaming, TypeScript declaration의 optional
-  resource bundle, enriched 분석 활성화 여부, resource 없는 non-component compile, resource 없는
-  component smart 오류, JavaScript 초기화 오류, component positive/crossing negative와 UTF-16
-  offset 계약을 확인한다.
+  `@kfind/kfind/assets`의 설치 package file URL과 HTTP streaming, Vite SPA의 content-hashed asset
+  bundling과 HTTP streaming, TypeScript declaration의 optional resource bundle, enriched 분석
+  활성화 여부, resource 없는 non-component compile, resource 없는 component smart 오류,
+  JavaScript 초기화 오류, component positive/crossing negative와 UTF-16 offset 계약을 확인한다.
 - 기본 CI는 npm package build, Node smoke test와 pack 검사를 실행한다.
 
 ## 1. 문서 목적

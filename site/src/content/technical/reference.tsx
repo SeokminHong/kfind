@@ -435,19 +435,23 @@ surface = "LLM"`,
       sections: [
         section('package export', [
           'Browser condition은 bundler ESM WASM을, Node condition은 CommonJS WASM target을 선택합니다. TypeScript declaration은 두 target이 공유합니다.',
-          'Static asset은 raw subpath와 설치 package의 `file:` URL을 반환하는 `@kfind/kfind/assets` module로 export합니다.',
+          'Static asset은 raw subpath와 `new URL(relative, import.meta.url)` 기반의 `@kfind/kfind/assets` module로 export합니다. Node.js에서는 설치 package의 `file:` URL이 되고, 이를 지원하는 browser bundler에서는 content hash가 붙은 정적 asset URL이 됩니다.',
         ]),
         section(
           'asset 직접 서빙',
           [
-            '`componentResourceFileUrl`은 설치된 package와 정확히 같은 버전의 35.4 MiB 형태 구성 요소 판정 asset을 가리킵니다. Node.js 서버는 이 URL을 `createReadStream`에 전달해 asset을 직접 서빙할 수 있습니다.',
-            '이 asset은 `smart` plan이 원문 token 내부의 같은 품사 component span과 인접 token 구조를 검증하는 compact index입니다. 전체 문장 분석기나 query 확장용 full POS 사전이 아닙니다. Resolver는 browser fetch나 서버 URL을 정하지 않습니다.',
+            '`componentResourceFileUrl`은 설치된 package와 정확히 같은 버전의 35.4 MiB 형태 구성 요소 판정 asset을 가리킵니다. Vite 같은 browser bundler는 이 파일을 SPA 배포물의 same-origin 정적 asset으로 출력합니다. Node.js 서버는 같은 export의 `file:` URL을 `createReadStream`에 전달할 수 있습니다.',
+            '이 asset은 `smart` plan이 원문 token 내부의 같은 품사 component span과 인접 token 구조를 검증하는 compact index입니다. 전체 문장 분석기나 query 확장용 full POS 사전이 아닙니다. Resolver는 browser fetch나 서버 route를 정하지 않습니다.',
           ],
           {
-            code: `import { createReadStream } from 'node:fs';
+            code: `import { Kfind } from '@kfind/kfind';
 import { componentResourceFileUrl } from '@kfind/kfind/assets';
 
-createReadStream(componentResourceFileUrl).pipe(response);`,
+const response = await fetch(componentResourceFileUrl);
+if (!response.ok) throw new Error(\`component resource: \${response.status}\`);
+const engine = Kfind.withResources({
+  component: new Uint8Array(await response.arrayBuffer()),
+});`,
           },
         ),
         section(
@@ -476,19 +480,23 @@ const matches = matcher.findAll('길을 걸어 갔다.');`,
       sections: [
         section('Package exports', [
           'The browser condition selects bundler ESM WASM; the Node condition selects the CommonJS WASM target. Both share TypeScript declarations.',
-          'Static assets are exported through raw subpaths and the `@kfind/kfind/assets` module, which returns `file:` URLs inside the installed package.',
+          'Static assets are exported through raw subpaths and the `@kfind/kfind/assets` module based on `new URL(relative, import.meta.url)`. It resolves to an installed-package `file:` URL in Node.js and a content-hashed static asset URL in browser bundlers that support this pattern.',
         ]),
         section(
           'Asset self-hosting',
           [
-            '`componentResourceFileUrl` points to the 35.4 MiB morphological-component verification asset from the exact installed package version. A Node.js server can pass this URL to `createReadStream` and serve the asset directly.',
-            'This compact index lets a `smart` plan verify same-POS component spans inside a source token and adjacent-token structure. It is not a whole-sentence analyzer or a full-POS dictionary for query expansion. The resolver does not choose a browser fetch or server URL.',
+            '`componentResourceFileUrl` points to the 35.4 MiB morphological-component verification asset from the exact installed package version. A browser bundler such as Vite emits it as a same-origin static asset in the SPA deployment. A Node.js server can pass the same export as a `file:` URL to `createReadStream`.',
+            'This compact index lets a `smart` plan verify same-POS component spans inside a source token and adjacent-token structure. It is not a whole-sentence analyzer or a full-POS dictionary for query expansion. The resolver does not choose a browser fetch or server route.',
           ],
           {
-            code: `import { createReadStream } from 'node:fs';
+            code: `import { Kfind } from '@kfind/kfind';
 import { componentResourceFileUrl } from '@kfind/kfind/assets';
 
-createReadStream(componentResourceFileUrl).pipe(response);`,
+const response = await fetch(componentResourceFileUrl);
+if (!response.ok) throw new Error(\`component resource: \${response.status}\`);
+const engine = Kfind.withResources({
+  component: new Uint8Array(await response.arrayBuffer()),
+});`,
           },
         ),
         section(

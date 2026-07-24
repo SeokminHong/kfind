@@ -61,8 +61,27 @@ npx @kfind/kfind 'v:걷다|n:사용자' src
 - `@kfind/kfind/assets/predicates.enriched.tsv`
 - `@kfind/kfind/assets/morphology-component-compact.kfc`
 
-Node.js 서버는 resolver export가 제공하는 설치 package의 `file:` URL로 같은
-버전의 asset을 직접 정적 서빙할 수 있습니다.
+Vite처럼 `new URL(relative, import.meta.url)`을 처리하는 browser bundler는
+resolver export를 import하면 같은 package 버전의 asset을 content hash가 붙은 정적
+파일로 출력합니다. SPA는 bundler가 만든 same-origin URL을 fetch해 resource bytes를
+초기화할 수 있습니다.
+
+```js
+import { Kfind } from "@kfind/kfind";
+import { componentResourceFileUrl } from "@kfind/kfind/assets";
+
+const response = await fetch(componentResourceFileUrl);
+if (!response.ok) {
+  throw new Error(`component resource: ${response.status}`);
+}
+
+const engine = Kfind.withResources({
+  component: new Uint8Array(await response.arrayBuffer()),
+});
+```
+
+Node.js에서는 같은 export가 설치 package 내부의 `file:` URL을 반환합니다. 서버는
+이 URL로 같은 버전의 asset을 직접 정적 서빙할 수 있습니다.
 
 ```js
 import { createReadStream } from "node:fs";
@@ -87,10 +106,10 @@ createServer((request, response) => {
 component span과 인접 token 구조를 검증하는 compact index입니다. 전체 문장을
 분석하거나 query를 확장하는 full POS 사전이 아닙니다.
 
-Resolver는 browser fetch나 서버 URL을 정하지 않습니다. Browser에서는 애플리케이션이
-서빙한 URL에서 bytes를 읽어 binding에 전달합니다. 두 asset은 WASM binary에 포함되지
-않습니다. 기본 constructor, `Kfind.withFullPos`와 `loadComponentResource`도 사용할 수
-있습니다.
+Resolver 자체는 browser fetch나 서버 route를 정하지 않습니다. Browser에서는
+애플리케이션이 bundler가 출력한 URL에서 bytes를 읽어 binding에 전달합니다. 두 asset은
+WASM binary에 포함되지 않습니다. 기본 constructor, `Kfind.withFullPos`와
+`loadComponentResource`도 사용할 수 있습니다.
 
 각 패키지 버전의 component resource header에는 같은 버전이 들어 있습니다. 다른
 버전의 asset을 읽으면 명시적인 오류가 발생합니다. npm `prepack`은 게시 전에

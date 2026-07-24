@@ -90,3 +90,12 @@ npm install \
 cp "$repo_root/scripts/test-npm-assets.mjs" \
   "$packed_consumer_dir/consumer/test-npm-assets.mjs"
 node "$packed_consumer_dir/consumer/test-npm-assets.mjs"
+
+cp -R "$repo_root/scripts/fixtures/npm-spa/." \
+  "$packed_consumer_dir/consumer"
+(
+  cd "$packed_consumer_dir/consumer"
+  pnpm --silent dlx vite@8.1.4 build
+)
+node "$repo_root/scripts/test-npm-spa-assets.mjs" \
+  "$packed_consumer_dir/consumer/dist"
