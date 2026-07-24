@@ -86,11 +86,12 @@ jobs:
           --pattern 'test_*.py'
       - name: Install Rust
         run: rustup toolchain install stable --profile minimal
-      - name: Run native tests
-        run: |
-          cargo +stable test --workspace --locked
-          cargo +stable test --manifest-path tools/nikl-lexicon/classifier/Cargo.toml --locked
-          cargo +stable test --manifest-path tools/morph-compare/runner/Cargo.toml --locked
+      - name: Test the workspace
+        run: cargo +stable test --workspace --locked
+      - name: Test the NIKL classifier
+        run: cargo +stable test --manifest-path tools/nikl-lexicon/classifier/Cargo.toml --locked
+      - name: Test the morphology runner
+        run: cargo +stable test --manifest-path tools/morph-compare/runner/Cargo.toml --locked
       - name: Build the Windows CLI
         if: runner.os == 'Windows'
         run: cargo +stable build --package kfind-cli --bin kfind --locked
