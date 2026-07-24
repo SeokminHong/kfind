@@ -472,10 +472,10 @@
 - Query와 입력 text는 검색 작업의 주 입력으로서 playground 상단의 한 input stack에 이 순서로
   인접 배치한다. 넓은 화면은 짧은 Query와 장문 text editor를 왼쪽 main pane에 두고 예시 action,
   compile option을 오른쪽 보조 panel에 둔다. 형태 구성 요소 판정 resource는 주 입력 아래, 검색
-  결과 앞의 전체 너비 capability card에 둔다. Query control은 일반적인 짧은 입력에 맞춰 너비를
+  결과 앞의 compact한 전체 너비 capability card에 둔다. Query control은 일반적인 짧은 입력에 맞춰 너비를
   제한하되 text editor는 main pane을 채운다.
 - 좁은 화면은 Query → text → 형태 구성 요소 판정 resource → 검색 옵션 → 결과의 인지 순서를
-  우선한다. Resource card는 설정 modal 안에 숨기지 않고 역할, 크기, 배포 경로와 현재 상태를
+  우선한다. Resource card는 설정 modal 안에 숨기지 않고 역할, 크기와 현재 상태를
   항상 표시한다. 예시 action과 compile option은 현재 주요 option 요약을 표시하는 `검색 옵션`
   button으로 여는 modal 안에 두며 결과보다 앞에서 긴 설정 목록을 펼치지 않는다. Modal은 keyboard
   focus trap, touch scroll lock, 명시적인 닫기 control을 제공한다. 닫기 control은 접근 가능한 label을
