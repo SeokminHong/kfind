@@ -208,102 +208,6 @@ globalStyle('.option-grid .field > p', {
   lineHeight: 1.45,
 });
 
-globalStyle('.resource-loader', {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: vars.space.medium,
-  padding: `${vars.space.small} ${vars.space.medium}`,
-  border: `1px solid ${vars.color.border}`,
-  borderRadius: vars.radius.small,
-  background: vars.color.surface,
-});
-
-globalStyle('.resource-loader > div', {
-  display: 'flex',
-  minWidth: 0,
-  alignItems: 'center',
-  gap: vars.space.small,
-});
-
-globalStyle('.resource-loader > div > div', {
-  display: 'grid',
-  gap: '0.15rem',
-});
-
-globalStyle('.resource-dot', {
-  width: '0.5rem',
-  height: '0.5rem',
-  flex: '0 0 auto',
-  borderRadius: '50%',
-  background: vars.color.warning,
-});
-
-globalStyle('.resource-loader[data-state="ready"]', {
-  borderColor: vars.color.success,
-  background: vars.color.successWash,
-});
-
-globalStyle('.resource-loader[data-state="ready"] .resource-dot', {
-  background: vars.color.success,
-});
-
-globalStyle('.resource-loader[data-state="error"]', {
-  borderColor: vars.color.danger,
-  background: vars.color.dangerWash,
-});
-
-globalStyle('.resource-loader[data-state="error"] .resource-dot', {
-  background: vars.color.danger,
-});
-
-globalStyle('.resource-loader strong', {
-  color: vars.color.heading,
-  fontSize: '0.72rem',
-});
-
-globalStyle('.resource-loader span', {
-  color: vars.color.muted,
-  fontSize: '0.66rem',
-});
-
-globalStyle('.resource-loader[data-state="needed"] span', {
-  color: vars.color.warning,
-});
-
-globalStyle('.resource-loader button', {
-  minHeight: '2rem',
-  flex: '0 0 auto',
-  paddingInline: vars.space.small,
-  border: `1px solid ${vars.color.borderStrong}`,
-  borderRadius: vars.radius.small,
-  background: vars.color.surface,
-  color: vars.color.link,
-  fontSize: '0.7rem',
-});
-
-globalStyle('.resource-loader button:disabled', {
-  color: vars.color.subtle,
-});
-
-globalStyle('.desktop-settings .resource-loader', {
-  alignItems: 'stretch',
-  flexDirection: 'column',
-});
-
-globalStyle('.desktop-settings .resource-loader button', {
-  width: '100%',
-});
-
-globalStyle('.resource-ready-label', {
-  flex: '0 0 auto',
-  padding: `${vars.space.xsmall} ${vars.space.small}`,
-  borderRadius: vars.radius.pill,
-  background: vars.color.surface,
-  color: `${vars.color.success} !important`,
-  fontWeight: 650,
-});
-
 globalStyle('.playground-output', {
   minWidth: 0,
   padding: vars.space.large,
@@ -526,26 +430,6 @@ globalStyle('.mobile-settings-heading', {
   gap: vars.space.xsmall,
 });
 
-globalStyle('.mobile-resource-state', {
-  padding: '0.15rem 0.35rem',
-  borderRadius: vars.radius.pill,
-  background: vars.color.warningWash,
-  color: vars.color.warning,
-  fontSize: '0.6rem',
-  fontWeight: 650,
-  whiteSpace: 'nowrap',
-});
-
-globalStyle('.mobile-resource-state[data-state="ready"]', {
-  background: vars.color.successWash,
-  color: vars.color.success,
-});
-
-globalStyle('.mobile-resource-state[data-state="error"]', {
-  background: vars.color.dangerWash,
-  color: vars.color.danger,
-});
-
 globalStyle('.playground-workspace', {
   '@media': {
     '(max-width: 64rem)': {
@@ -596,23 +480,6 @@ globalStyle('.option-grid', {
   '@media': {
     '(max-width: 34rem)': {
       gridTemplateColumns: '1fr',
-    },
-  },
-});
-
-globalStyle('.resource-loader', {
-  '@media': {
-    '(max-width: 34rem)': {
-      alignItems: 'stretch',
-      flexDirection: 'column',
-    },
-  },
-});
-
-globalStyle('.resource-loader button', {
-  '@media': {
-    '(max-width: 34rem)': {
-      width: '100%',
     },
   },
 });
