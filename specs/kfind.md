@@ -392,14 +392,16 @@
   이 정의와 모순되지 않아야 한다. 형태소 label은 별도 범주에서 NNG·VV·EP처럼 문서에
   노출되는 세부 label을 각각 정의한다.
 - 각 문서 route는 단어장 용어가 본문에서 처음 등장하는 한 곳에만 tooltip과 해당 정의 link를
-  제공한다. 같은 항목의 한국어·영문 별칭은 한 용어로 센다. 단, `TP`, `FP`, `TN`, `FN`, `POS`,
-  `F1`과 형태소 label처럼 독립해서 읽는 영문 acronym alias는 같은 용어의 일반 별칭이 먼저
-  나왔어도 acronym별 첫 등장에 별도 tooltip을 제공한다. 형태소 분석 표기 안의 label도 code
-  전체를 제외하지 않고 label 자체에 tooltip을 제공한다. Tooltip은 단어장에 notation이 있는 용어의
-  notation과 정의를 함께 표시하며 acronym의 notation에는 원문 영문 표현을 포함한다. Tooltip은
-  hover와 keyboard focus로 열 수 있어야 한다. 실제 mouse pointer activation과 keyboard Enter
-  activation은 기존 link 동작을 유지한다. Touch·pen pointer activation과 선행 input event가 없는
-  link activation은 첫 번째에 tooltip을 열고, 같은 용어의 다음 activation에 단어장으로 이동한다.
+  제공한다. 같은 항목의 한국어·영문 별칭은 한 용어로 센다. 단, `TP`, `FP`, `TN`, `FN`, `TPᶜ`,
+  `TNᶜ`, `FPᶜ`, `FNᶜ`, `POS`, `F1`과 형태소 label처럼 독립해서 읽는 영문 acronym alias는 같은
+  용어의 일반 별칭이 먼저 나왔어도 acronym별 첫 등장에 별도 tooltip을 제공한다. 형태소 분석 표기
+  안의 label도 code 전체를 제외하지 않고 label 자체에 tooltip을 제공한다. Tooltip은 단어장에
+  notation이 있는 용어의 notation, 현재 언어의 이름과 정의를 함께 표시한다. 형태소 label과 acronym은
+  `VV · 동사`, `TP · 참양성 · true positive`, `TPᶜ · 계약 조정 참양성 · contract-adjusted true
+  positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하되 같은 이름을 중복하지 않는다.
+  Tooltip은 hover와 keyboard focus로 열 수 있어야 한다. 실제 mouse pointer activation과 keyboard
+  Enter activation은 기존 link 동작을 유지한다. Touch·pen pointer activation과 선행 input event가
+  없는 link activation은 첫 번째에 tooltip을 열고, 같은 용어의 다음 activation에 단어장으로 이동한다.
   이 구분에 media query나 click metadata를 사용하지 않는다. 기존 link와 form control에는 중첩해서
   적용하지 않는다.
 - 일반 UI text는 Pretendard 기반 sans-serif stack을 사용한다. 코드, 명령, query·output label과
