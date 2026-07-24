@@ -163,6 +163,15 @@ jobs:
       - name: Build and validate the package
         run: pnpm --dir packages/kfind run pack:check
 
+  chocolatey-package:
+    name: Chocolatey package
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v6
+      - name: Render and pack the Chocolatey package
+        shell: pwsh
+        run: ./scripts/test-chocolatey-package.ps1
+
   site-quality:
     name: Site ${{ matrix.check.name }}
     strategy:
