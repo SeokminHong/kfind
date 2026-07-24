@@ -28,7 +28,7 @@ class Kfind < Formula
     system "rustup", "default", "@RUST_TOOLCHAIN@"
     system "cargo", "install", *std_cargo_args(path: "crates/kfind-cli")
     pkgshare.install "data/enriched/predicates.tsv" => "predicates.enriched.tsv"
-    (share/"doc/kfind/LICENSES").install "data/enriched/NOTICE.md" => "NIKL-enriched-predicates.md"
+    (share/"doc/kfind/LICENSES").install "data/enriched/NOTICE.md" => "NIKL-derived-data.md"
 
     resource("full-pos-lexicon").stage do
       pkgshare.install "lexicon.bin", "MANIFEST.toml"
@@ -80,6 +80,7 @@ class Kfind < Formula
 
     assert_predicate pkgshare/"skills/kfind/SKILL.md", :file?
     assert_predicate pkgshare/"predicates.enriched.tsv", :file?
+    assert_predicate opt_share/"doc/kfind/LICENSES/NIKL-derived-data.md", :file?
     assert_match "name: kfind", shell_output("#{bin}/kfind --init --agent custom")
     system bin/"kfind", "--init", "--agent", "codex"
     installed_skill = testpath/".agents/skills/kfind/SKILL.md"

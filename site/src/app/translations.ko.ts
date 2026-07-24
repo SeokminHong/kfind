@@ -1,7 +1,7 @@
 export const koreanTranslation = {
   'common.brand.document_suffix': '문서',
   'common.brand.home_aria': 'kfind 문서 처음으로',
-  'common.footer.license': 'MIT License',
+  'common.footer.license': '라이선스',
   'common.header.external_aria': '외부 문서',
   'common.header.primary_aria': '주요 문서',
   'common.header.playground': '플레이그라운드',

@@ -14,3 +14,68 @@ artifact_sha256 = "012a2ecfc9ee049cb48f655eb240fa2ed6fc739dfde01526078a976549246
 artifact_stats_path = "STATS.toml"
 artifact_license_path = "LICENSES/mecab-ko-dic-COPYING"
 distribution_policy = "The artifact contains normalized headwords and POS only. Runtime analysis tables are excluded; core morphology metadata takes precedence."
+
+[[source]]
+name = "krdict"
+title = "한국어기초사전"
+provider = "국립국어원"
+snapshot = "전체 내려받기_한국어기초사전_xml_20260619.zip"
+sha256 = "a8ab7d044d4f6341e0f217db63f38f4d18beed3e1f153130f6cb4e9494fea1d6"
+license = "CC-BY-SA-2.0-KR"
+license_url = "https://krdict.korean.go.kr/kor/kboardPolicy/copyRightTermsInfo"
+license_notice_path = "enriched/NOTICE.md"
+
+[[source]]
+name = "stdict"
+title = "표준국어대사전"
+provider = "국립국어원"
+snapshot = "전체 내려받기_표준국어대사전_xml_20260705.zip"
+sha256 = "880b31447146df5879c076012b21d4cc3c0c24e70fd91be7fc73f7ff7da34d52"
+license = "CC-BY-SA-2.0-KR"
+license_url = "https://stdict.korean.go.kr/join/copyrightPolicy.do"
+license_notice_path = "enriched/NOTICE.md"
+
+[[source]]
+name = "opendict"
+title = "우리말샘"
+provider = "국립국어원"
+snapshot = "전체 내려받기_우리말샘_xml_20260702.zip"
+sha256 = "9e8807e5fade8c7b59431d1ab527fe93aafd15395001bcdde88511e8c9293b42"
+license = "CC-BY-SA-2.0-KR"
+license_url = "https://opendict.korean.go.kr/service/copyrightPolicy"
+license_notice_path = "enriched/NOTICE.md"
+
+[[artifact]]
+path = "enriched/predicates.tsv"
+artifact_sha256 = "8c2f1f22a0e898c4afc9f1c5498778802d27fe8c47ba4df09bc955c06d532a5f"
+sources = ["krdict", "stdict", "opendict"]
+license = "CC-BY-SA-2.0-KR"
+generator_command = "scripts/build-enriched-predicates.sh"
+
+[[artifact]]
+path = "enriched/REPORT.tsv"
+artifact_sha256 = "313fc4d0777c4352c2ad86296f174fafe7b9b957a1d7c783a9f96c2e31b99538"
+sources = ["krdict", "stdict", "opendict"]
+license = "CC-BY-SA-2.0-KR"
+generator_command = "scripts/build-enriched-predicates.sh"
+
+[[artifact]]
+path = "rules/nikl-modern-endings.tsv"
+artifact_sha256 = "fc0767b227f9df78dc6d9b920ee13c5fb371ef5cac6b6ff07fae9c1136cb134d"
+sources = ["krdict", "stdict", "opendict"]
+license = "CC-BY-SA-2.0-KR"
+generator_command = "scripts/audit-nikl-endings.sh"
+
+[[artifact]]
+path = "rules/nikl-modern-particles.tsv"
+artifact_sha256 = "10df73fab3120746e071798663d12bacb8759d8a7e207b5ced12d7233353547f"
+sources = ["krdict", "stdict", "opendict"]
+license = "CC-BY-SA-2.0-KR"
+generator_command = "scripts/audit-nikl-particles.sh"
+
+[[artifact]]
+path = "rules/nikl-attached-nominal-suffixes.tsv"
+artifact_sha256 = "e18aa638a1f88d2e51f663ce0be621d486fd135968e9d6c104b8cd123dc653f6"
+sources = ["krdict", "stdict", "opendict"]
+license = "CC-BY-SA-2.0-KR"
+generator_command = "scripts/audit-nikl-attached-nominal-suffixes.sh"

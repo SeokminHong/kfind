@@ -12,6 +12,7 @@ use kfind_data::{
     parse_mecab_connection_matrix, parse_predicates_tsv, parse_rule_set, parse_user_lexicon_toml,
     validate_data, validate_predicates,
 };
+use sha2::{Digest, Sha256};
 
 fn data_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../../data")
@@ -21,6 +22,12 @@ fn read(relative: &str) -> String {
     std::fs::read_to_string(data_root().join(relative))
         .expect("repository data must be readable")
         .replace("\r\n", "\n")
+}
+
+fn sha256(relative: &str) -> String {
+    let bytes = std::fs::read(data_root().join(relative))
+        .expect("repository data artifact must be readable");
+    format!("{:x}", Sha256::digest(bytes))
 }
 
 #[test]
@@ -200,6 +207,55 @@ fn repository_data_is_complete_and_valid() {
     assert!(metadata.contains("Apache-2.0"));
     assert!(metadata.contains("--bin kfind-data-extract-mecab"));
     assert!(metadata.contains("normalized headwords and POS only"));
+    assert!(metadata.contains("CC-BY-SA-2.0-KR"));
+
+    for (artifact, expected_sha256) in [
+        (
+            "enriched/predicates.tsv",
+            "8c2f1f22a0e898c4afc9f1c5498778802d27fe8c47ba4df09bc955c06d532a5f",
+        ),
+        (
+            "enriched/REPORT.tsv",
+            "313fc4d0777c4352c2ad86296f174fafe7b9b957a1d7c783a9f96c2e31b99538",
+        ),
+        (
+            "rules/nikl-modern-endings.tsv",
+            "fc0767b227f9df78dc6d9b920ee13c5fb371ef5cac6b6ff07fae9c1136cb134d",
+        ),
+        (
+            "rules/nikl-modern-particles.tsv",
+            "10df73fab3120746e071798663d12bacb8759d8a7e207b5ced12d7233353547f",
+        ),
+        (
+            "rules/nikl-attached-nominal-suffixes.tsv",
+            "e18aa638a1f88d2e51f663ce0be621d486fd135968e9d6c104b8cd123dc653f6",
+        ),
+    ] {
+        assert!(
+            metadata.contains(artifact),
+            "missing metadata for {artifact}"
+        );
+        assert!(
+            metadata.contains(expected_sha256),
+            "missing checksum for {artifact}"
+        );
+        assert_eq!(sha256(artifact), expected_sha256);
+    }
+
+    let nikl_notice = read("enriched/NOTICE.md");
+    for required in [
+        "원자료 저작자·제공자는 국립국어원입니다.",
+        "한국어기초사전",
+        "표준국어대사전",
+        "우리말샘",
+        "CC BY-SA 2.0 KR",
+        "nikl-modern-endings.tsv",
+        "nikl-modern-particles.tsv",
+        "nikl-attached-nominal-suffixes.tsv",
+        "국립국어원은 kfind를 보증하거나 후원하지 않습니다.",
+    ] {
+        assert!(nikl_notice.contains(required), "missing notice: {required}");
+    }
 }
 
 #[test]

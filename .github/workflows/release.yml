@@ -35,8 +35,11 @@ jobs:
           test "$project_license" = "MIT"
           [[ "$RUST_TOOLCHAIN" == "$package_rust_version" || "$RUST_TOOLCHAIN" == "$package_rust_version".* ]]
           test -f LICENSE
+          test -f LICENSES.md
           test -f data/enriched/predicates.tsv
           test -f data/enriched/NOTICE.md
+          grep -Fq "원자료 저작자·제공자는 국립국어원입니다." data/enriched/NOTICE.md
+          grep -Fq "CC BY-SA 2.0 KR" data/enriched/NOTICE.md
           printf 'version=%s\n' "$version" >>"$GITHUB_OUTPUT"
           printf 'license=%s\n' "$project_license" >>"$GITHUB_OUTPUT"
           printf 'rust_toolchain=%s\n' "$RUST_TOOLCHAIN" >>"$GITHUB_OUTPUT"

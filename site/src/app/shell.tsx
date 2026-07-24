@@ -314,9 +314,7 @@ export function Shell(): React.JSX.Element {
             <a href="https://github.com/SeokminHong/kfind/blob/main/README.md">
               README
             </a>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/LICENSE">
-              {t('common.footer.license')}
-            </a>
+            <Link to={RoutePath.Licenses}>{t('common.footer.license')}</Link>
           </footer>
         </main>
       </div>

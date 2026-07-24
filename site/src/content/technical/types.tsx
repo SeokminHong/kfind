@@ -15,9 +15,15 @@ import {
   PageIntro,
 } from '../../components/document';
 
+export interface TechnicalLink {
+  readonly href: string;
+  readonly label: string;
+}
+
 export interface TechnicalSectionContent {
   readonly code?: string;
   readonly items?: readonly string[];
+  readonly links?: readonly TechnicalLink[];
   readonly paragraphs: readonly string[];
   readonly title: string;
 }
@@ -93,6 +99,15 @@ export function TechnicalDocument({
               <ul>
                 {entry.items.map((item) => (
                   <li key={item}>{renderInline(item)}</li>
+                ))}
+              </ul>
+            )}
+            {entry.links === undefined ? null : (
+              <ul>
+                {entry.links.map((link) => (
+                  <li key={link.href}>
+                    <a href={link.href}>{link.label}</a>
+                  </li>
                 ))}
               </ul>
             )}
