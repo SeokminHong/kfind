@@ -40,7 +40,7 @@ npm pack --ignore-scripts --dry-run --json "$package_dir" | node -e '
     "assets/MANIFEST.toml",
     "assets/LICENSES/mecab-ko-dic-COPYING",
     "assets/predicates.enriched.MANIFEST.toml",
-    "assets/LICENSES/enriched-predicates-NOTICE.md",
+    "assets/LICENSES/NIKL-derived-data-NOTICE.md",
     "LICENSES.md",
   ]) {
     if (!files.has(required)) {
@@ -52,3 +52,8 @@ npm pack --ignore-scripts --dry-run --json "$package_dir" | node -e '
     throw new Error("bin/kfind.js is not executable");
   }
 '
+
+grep -Fq "원자료 저작자·제공자는 국립국어원입니다." \
+  "$package_dir/assets/LICENSES/NIKL-derived-data-NOTICE.md"
+grep -Fq "CC BY-SA 2.0 KR" \
+  "$package_dir/assets/LICENSES/NIKL-derived-data-NOTICE.md"

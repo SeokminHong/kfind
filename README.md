@@ -227,5 +227,7 @@ revision, 실험 조건과 변화량은 `docs/benchmarks`의 기록 문서에만
 
 ## 라이선스
 
-소스 코드는 MIT License입니다. 별도 배포 리소스의 출처와 라이선스는 각 data
-manifest와 npm 패키지의 `LICENSES.md`에 기록합니다.
+독립적으로 작성한 소스 코드는 MIT License입니다. 국립국어원 사전에서 가공한
+데이터는 CC BY-SA 2.0 대한민국 라이선스, mecab-ko-dic 유래 데이터는
+Apache-2.0을 적용합니다. 적용 범위와 고지는 [`LICENSES.md`](LICENSES.md)에
+있습니다.

@@ -46,5 +46,5 @@ install -m 0644 \
   "$assets_dir/predicates.enriched.MANIFEST.toml"
 install -m 0644 \
   "$repo_root/data/enriched/NOTICE.md" \
-  "$assets_dir/LICENSES/enriched-predicates-NOTICE.md"
+  "$assets_dir/LICENSES/NIKL-derived-data-NOTICE.md"
 cp "$repo_root/LICENSE" "$package_dir/LICENSE"
