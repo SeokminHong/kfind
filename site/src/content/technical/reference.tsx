@@ -571,14 +571,56 @@ const matches = matcher.findAll('길을 걸어 갔다.');`,
           'kfind source code는 저장소 `LICENSE`의 MIT License를 적용합니다. Rust crate, site source와 npm wrapper가 대상입니다.',
           'Dependency license는 각 upstream package의 조건을 따릅니다.',
         ]),
-        section('데이터 라이선스', [
-          'mecab-ko-dic에서 생성한 full POS와 compact component는 원본 COPYING을 artifact에 포함합니다. Enriched predicate는 source manifest와 NOTICE를 포함합니다.',
-          '원본 snapshot과 checksum은 build manifest에 고정합니다.',
-        ]),
-        section('배포 notice', [
-          'npm package의 `LICENSES.md`와 `assets/LICENSES`, GitHub release resource tarball, Homebrew 설치 resource에 필요한 notice를 함께 둡니다.',
-          'Resource를 별도 host에 복사할 때도 해당 notice를 같이 배포합니다.',
-        ]),
+        section(
+          '데이터 라이선스',
+          [
+            '국립국어원은 원자료 저작자·제공자입니다. kfind는 한국어기초사전, 표준국어대사전과 우리말샘의 고정 snapshot에서 용언, 현대 어미·조사와 명사 결합 접사 metadata를 추출·정규화·선별합니다.',
+            '가공 데이터는 필요한 표제어·품사·활용형·관련 형태와 source ID만 보존합니다. 사전 용례, 정의, 멀티미디어와 발음 자료는 재배포하지 않습니다.',
+            '이 데이터와 native binary·WebAssembly에 내장된 해당 부분은 CC BY-SA 2.0 대한민국 라이선스로 배포합니다. 독립적으로 작성한 kfind source code에는 MIT License를 적용합니다.',
+            '국립국어원은 kfind를 보증하거나 후원하지 않습니다.',
+            'mecab-ko-dic에서 생성한 full POS와 compact component는 Apache-2.0이며 원본 COPYING을 artifact에 포함합니다.',
+          ],
+          {
+            links: [
+              {
+                href: 'https://krdict.korean.go.kr/kor/kboardPolicy/copyRightTermsInfo',
+                label: '한국어기초사전 저작권 정책',
+              },
+              {
+                href: 'https://stdict.korean.go.kr/join/copyrightPolicy.do',
+                label: '표준국어대사전 저작권 정책',
+              },
+              {
+                href: 'https://opendict.korean.go.kr/service/copyrightPolicy',
+                label: '우리말샘 저작권 정책',
+              },
+              {
+                href: 'https://creativecommons.org/licenses/by-sa/2.0/kr/',
+                label: 'CC BY-SA 2.0 대한민국',
+              },
+            ],
+          },
+        ),
+        section(
+          '배포 notice',
+          [
+            '저장소와 GitHub release source는 `LICENSES.md`와 국립국어원 유래 데이터 고지를 포함합니다. npm package는 `LICENSES.md`와 `assets/LICENSES`, Homebrew는 설치 문서에 같은 고지를 둡니다.',
+            'Site는 국립국어원 유래 어미·접사 catalog가 내장된 WebAssembly와 이 라이선스 페이지를 함께 배포합니다.',
+            'Resource를 별도 host에 복사할 때도 해당 notice를 같이 배포합니다.',
+          ],
+          {
+            links: [
+              {
+                href: 'https://github.com/SeokminHong/kfind/blob/main/LICENSES.md',
+                label: 'kfind 라이선스 요약',
+              },
+              {
+                href: 'https://github.com/SeokminHong/kfind/blob/main/data/enriched/NOTICE.md',
+                label: '국립국어원 유래 데이터 고지',
+              },
+            ],
+          },
+        ),
       ],
     },
     [DocumentLocale.English]: {
@@ -589,14 +631,56 @@ const matches = matcher.findAll('길을 걸어 갔다.');`,
           'kfind source code uses the MIT License in repository `LICENSE`, covering Rust crates, site source, and the npm wrapper.',
           'Dependencies remain under their upstream licenses.',
         ]),
-        section('Data licenses', [
-          'Full-POS and compact-component artifacts derived from mecab-ko-dic include its COPYING. Enriched predicates include their source manifest and NOTICE.',
-          'Build manifests pin original snapshots and checksums.',
-        ]),
-        section('Distribution notices', [
-          'The npm package includes `LICENSES.md` and `assets/LICENSES`; GitHub resource tarballs and Homebrew-installed resources include required notices.',
-          'A separately hosted resource must be distributed with the same notice.',
-        ]),
+        section(
+          'Data licenses',
+          [
+            'The National Institute of Korean Language is the creator and provider of the source material. kfind extracts, normalizes, and selects predicate, modern-ending, particle, and attached-nominal-suffix metadata from pinned snapshots of the Basic Korean Dictionary, Standard Korean Language Dictionary, and Open Korean Knowledge Dictionary.',
+            'The processed data retains only required headwords, parts of speech, conjugations, related forms, and source IDs. Dictionary examples, definitions, multimedia, and pronunciation data are not redistributed.',
+            'This data and the corresponding portions embedded in native binaries and WebAssembly are distributed under CC BY-SA 2.0 KR. Independently authored kfind source code remains under the MIT License.',
+            'The National Institute of Korean Language does not endorse or sponsor kfind.',
+            'Full-POS and compact-component artifacts derived from Apache-2.0 mecab-ko-dic include its original COPYING.',
+          ],
+          {
+            links: [
+              {
+                href: 'https://krdict.korean.go.kr/eng/kboardPolicy/copyRightTermsInfo',
+                label: 'Basic Korean Dictionary copyright policy',
+              },
+              {
+                href: 'https://stdict.korean.go.kr/join/copyrightPolicy.do',
+                label: 'Standard Korean Language Dictionary copyright policy',
+              },
+              {
+                href: 'https://opendict.korean.go.kr/service/copyrightPolicy',
+                label: 'Open Korean Knowledge Dictionary copyright policy',
+              },
+              {
+                href: 'https://creativecommons.org/licenses/by-sa/2.0/kr/deed.en',
+                label: 'CC BY-SA 2.0 KR',
+              },
+            ],
+          },
+        ),
+        section(
+          'Distribution notices',
+          [
+            'The repository and GitHub release source include `LICENSES.md` and the NIKL-derived-data notice. The npm package carries the same notice in `LICENSES.md` and `assets/LICENSES`, and Homebrew installs it with the package documentation.',
+            'The site distributes this license page with WebAssembly that embeds NIKL-derived ending and suffix catalogs.',
+            'A separately hosted resource must be distributed with the same notice.',
+          ],
+          {
+            links: [
+              {
+                href: 'https://github.com/SeokminHong/kfind/blob/main/LICENSES.md',
+                label: 'kfind license summary',
+              },
+              {
+                href: 'https://github.com/SeokminHong/kfind/blob/main/data/enriched/NOTICE.md',
+                label: 'NIKL-derived-data notice',
+              },
+            ],
+          },
+        ),
       ],
     },
   },

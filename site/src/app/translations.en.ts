@@ -5,7 +5,7 @@ export const englishTranslation: Readonly<
 > = {
   'common.brand.document_suffix': 'Docs',
   'common.brand.home_aria': 'kfind documentation home',
-  'common.footer.license': 'MIT License',
+  'common.footer.license': 'Licenses',
   'common.header.external_aria': 'External documentation',
   'common.header.primary_aria': 'Primary documentation',
   'common.header.playground': 'Playground',
