@@ -1,6 +1,6 @@
 # kfind 기술 사양서
 
-워크스페이스 버전: 1.0.0-rc.2
+워크스페이스 버전: 1.0.0-rc.3
 문서 역할: 현재 구현과 호환성 계약
 
 이 문서는 현재 제품 계약만 유지한다. 완료한 작업 순서, 폐기한 대안과 배포 운영 상태는
@@ -1008,7 +1008,7 @@
 ### 0.8 npm 패키지
 
 - npm package 이름은 public organization-scoped `@kfind/kfind`다. prerelease는
-  `npm install @kfind/kfind@next`, 고정 버전은 `npm install @kfind/kfind@1.0.0-rc.2`로
+  `npm install @kfind/kfind@next`, 고정 버전은 `npm install @kfind/kfind@1.0.0-rc.3`로
   설치한다. `wasm-pack`의 `bundler` target으로 browser bundler용 ESM JavaScript glue,
   WASM binary와 TypeScript declaration을 생성한다.
 - package의 `bin`은 `kfind` 이름으로 Node.js CLI를 제공한다. Node.js 20 이상에서

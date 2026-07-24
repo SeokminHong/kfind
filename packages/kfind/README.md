@@ -4,7 +4,7 @@ WebAssembly로 실행되는 JavaScript·TypeScript용 한국어 표제어 검색
 패키지입니다.
 
 ```sh
-npm install @kfind/kfind@1.0.0-rc.2
+npm install @kfind/kfind@1.0.0-rc.3
 ```
 
 ```js
