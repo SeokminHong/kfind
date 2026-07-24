@@ -18,8 +18,6 @@ const componentResourceCopy = {
   [DocumentLocale.Korean]: {
     action: '판정 리소스 불러오기 · 35.4 MiB',
     checking: '브라우저 저장소 확인 중',
-    delivery:
-      '이 playground는 같은 origin의 R2 endpoint에서 받습니다. npm 패키지는 같은 버전의 asset을 @kfind/kfind/assets로 노출하므로 설치한 애플리케이션이 직접 정적 서빙할 수 있습니다.',
     eyebrow: 'SMART 구조 판정 · 35.4 MiB',
     heading: '형태 구성 요소 판정 리소스',
     loading: '판정 리소스 불러오는 중',
@@ -29,8 +27,6 @@ const componentResourceCopy = {
   [DocumentLocale.English]: {
     action: 'Load verification resource · 35.4 MiB',
     checking: 'Checking browser storage',
-    delivery:
-      'This playground downloads it from a same-origin R2 endpoint. The npm package exposes the same-version asset through @kfind/kfind/assets, so an installed application can serve it directly.',
     eyebrow: 'SMART STRUCTURAL VERIFICATION · 35.4 MiB',
     heading: 'Morphological component verification resource',
     loading: 'Loading verification resource',
@@ -61,7 +57,6 @@ export function ComponentResourceCard({
           {copy.heading}
         </h2>
         <p className={styles.role}>{copy.role}</p>
-        <p className={styles.delivery}>{copy.delivery}</p>
       </div>
 
       <div className={styles.control}>
