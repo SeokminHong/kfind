@@ -96,7 +96,7 @@ dependencies = [
 
 [[package]]
 name = "kfind-data"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.2"
 dependencies = [
  "serde",
  "sha2",
@@ -107,7 +107,7 @@ dependencies = [
 
 [[package]]
 name = "kfind-morph"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.2"
 dependencies = [
  "kfind-data",
 ]

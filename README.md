@@ -52,7 +52,7 @@ cargo install --locked --path crates/kfind-cli
 JavaScript와 TypeScript에서는 WebAssembly 패키지를 설치합니다.
 
 ```sh
-npm install @kfind/kfind@1.0.0-rc.1
+npm install @kfind/kfind@1.0.0-rc.2
 ```
 
 ```js

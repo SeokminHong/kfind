@@ -90,7 +90,7 @@ try {
 
   const version = execute(["--version"]);
   assert.equal(version.status, 0, version.stderr);
-  assert.equal(version.stdout, "1.0.0-rc.1\n");
+  assert.equal(version.stdout, "1.0.0-rc.2\n");
 } finally {
   fs.rmSync(fixtureDirectory, { force: true, recursive: true });
 }
