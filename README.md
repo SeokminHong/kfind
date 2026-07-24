@@ -104,6 +104,10 @@ kfind --embedded --boundary any --pos verb --json 걷다 src docs
 경로를 생략하면 pipe로 받은 stdin을 검색합니다. stdin이 대화형 터미널이면 현재
 디렉터리를 검색합니다. `-`는 stdin을 명시합니다.
 
+일반 text 결과가 화면을 넘으면 POSIX TTY와 Windows Terminal의 PowerShell에서 내장
+TUI를 사용합니다. 화살표 또는 `j`/`k`로 이동하고 `q` 또는 `Esc`로 종료합니다.
+`--no-pager`는 결과를 stdout stream으로 직접 출력합니다.
+
 ## 검색 질의
 
 atom은 공백으로 구분합니다. 따옴표 안의 문자열은 하나의 literal atom이며,

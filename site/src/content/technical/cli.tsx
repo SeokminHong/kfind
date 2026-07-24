@@ -270,7 +270,7 @@ kfind '"|"' syntax.txt`,
           'npm CLI는 UTF-8 전용입니다. NUL이 있거나 strict UTF-8 decode가 실패한 파일은 stderr 진단 뒤 건너뜁니다.',
         ]),
         section('출력 형식', [
-          '사람용 text는 path, line, column과 surface를 표시합니다. Native TTY에서는 조건에 따라 pager를 사용하고 `--no-pager`로 bounded stdout stream을 강제할 수 있습니다.',
+          '사람용 text는 path, line, column과 surface를 표시합니다. Native CLI는 POSIX TTY와 Windows Terminal의 PowerShell에서 조건에 따라 TUI pager를 사용하며, `--no-pager`로 bounded stdout stream을 강제할 수 있습니다.',
           '자동화는 JSON Lines를 사용합니다. Match, atom span과 모든 `rulePath`를 record마다 보존합니다.',
         ]),
         section('npm CLI', [
@@ -292,7 +292,7 @@ kfind '"|"' syntax.txt`,
           'The npm CLI accepts UTF-8 only. It reports and skips files containing NUL or failing strict UTF-8 decoding.',
         ]),
         section('Output formats', [
-          'Human-readable text contains path, line, column, and surface. The native CLI may use a pager on a TTY; `--no-pager` forces the bounded stdout stream.',
+          'Human-readable text contains path, line, column, and surface. The native CLI may use its TUI pager on POSIX TTYs and in PowerShell hosted by Windows Terminal; `--no-pager` forces the bounded stdout stream.',
           'Automation uses JSON Lines. Each record preserves the match, atom spans, and every `rulePath`.',
         ]),
         section('npm CLI', [

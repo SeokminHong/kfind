@@ -1,0 +1,99 @@
+name: Publish Chocolatey
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: GitHub Release tag containing the Chocolatey package
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Verify and publish
+    runs-on: windows-2025
+    env:
+      CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - name: Download the release package
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ($env:RELEASE_TAG -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?$') {
+            throw "Invalid release tag: $env:RELEASE_TAG"
+          }
+          $version = $env:RELEASE_TAG.Substring(1)
+          New-Item -ItemType Directory -Path dist -Force | Out-Null
+          gh release download $env:RELEASE_TAG `
+            --repo $env:GITHUB_REPOSITORY `
+            --pattern "kfind.$version.nupkg" `
+            --dir dist
+          $package = [System.IO.Path]::GetFullPath("dist/kfind.$version.nupkg")
+          if (-not (Test-Path -LiteralPath $package -PathType Leaf)) {
+            throw "Chocolatey package was not downloaded: $package"
+          }
+          Add-Content -Path $env:GITHUB_ENV -Value "VERSION=$version"
+          Add-Content -Path $env:GITHUB_ENV -Value "PACKAGE_PATH=$package"
+
+      - name: Test the released package
+        shell: pwsh
+        run: |
+          $installArguments = @(
+            'install',
+            'kfind',
+            '--version',
+            $env:VERSION,
+            '--source',
+            ([System.IO.Path]::GetDirectoryName($env:PACKAGE_PATH)),
+            '--yes',
+            '--no-progress',
+            '--limit-output'
+          )
+          if ($env:VERSION.Contains('-')) {
+            $installArguments += '--pre'
+          }
+          & choco @installArguments
+          if ($LASTEXITCODE -ne 0) {
+            throw "Local Chocolatey install failed with exit code $LASTEXITCODE."
+          }
+
+          $versionOutput = (& kfind --version | Out-String).Trim()
+          if ($LASTEXITCODE -ne 0 -or $versionOutput -ne "kfind $env:VERSION") {
+            throw "Unexpected installed kfind version: $versionOutput"
+          }
+          $dataCheck = (& kfind --check-data --json | Out-String) | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $dataCheck.status -ne 'ok') {
+            throw 'Installed Chocolatey package failed the data check.'
+          }
+          if ($dataCheck.component.resource_version -ne $env:VERSION) {
+            throw 'Installed Chocolatey resource version does not match the package.'
+          }
+
+      - name: Publish to the Chocolatey Community Repository
+        if: env.CHOCOLATEY_API_KEY != ''
+        shell: pwsh
+        run: |
+          choco push $env:PACKAGE_PATH `
+            --source https://push.chocolatey.org/ `
+            --api-key $env:CHOCOLATEY_API_KEY `
+            --limit-output
+          if ($LASTEXITCODE -ne 0) {
+            throw "Chocolatey publish failed with exit code $LASTEXITCODE."
+          }
+
+      - name: Report missing Chocolatey credentials
+        if: env.CHOCOLATEY_API_KEY == ''
+        shell: pwsh
+        run: >-
+          Write-Output
+          'CHOCOLATEY_API_KEY is not configured; verified the package without publishing it.'
+
+      - name: Uninstall the smoke-test package
+        if: always()
+        shell: pwsh
+        run: choco uninstall kfind --yes --no-progress --limit-output

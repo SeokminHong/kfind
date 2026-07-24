@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>kfind</id>
+    <version>@VERSION@</version>
+    <title>kfind</title>
+    <authors>Seokmin Hong</authors>
+    <owners>Seokmin Hong</owners>
+    <projectUrl>https://kfind.pages.dev/</projectUrl>
+    <packageSourceUrl>https://github.com/SeokminHong/kfind/tree/v@VERSION@/packaging/chocolatey</packageSourceUrl>
+    <projectSourceUrl>https://github.com/SeokminHong/kfind</projectSourceUrl>
+    <docsUrl>https://kfind.pages.dev/guide/installation</docsUrl>
+    <bugTrackerUrl>https://github.com/SeokminHong/kfind/issues</bugTrackerUrl>
+    <iconUrl>https://kfind.pages.dev/favicon.svg</iconUrl>
+    <licenseUrl>https://github.com/SeokminHong/kfind/blob/v@VERSION@/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <summary>Fast Korean lemma and inflection search for code and documents</summary>
+    <description>kfind is a command-line search tool for Korean lemmas and inflected forms. This 64-bit portable package includes the native Windows executable and its version-matched morphology resources.</description>
+    <releaseNotes>https://github.com/SeokminHong/kfind/releases/tag/v@VERSION@</releaseNotes>
+    <tags>korean search grep cli rust morphology</tags>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
