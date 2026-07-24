@@ -425,10 +425,25 @@ globalStyle('.match-list code', {
 globalStyle('.match-provenance', {
   margin: 0,
   overflow: 'hidden',
-  color: vars.color.muted,
+  color: vars.color.subtle,
   fontFamily: '"SFMono-Regular", Consolas, monospace',
   fontSize: '0.62rem',
   lineHeight: 1.5,
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+
+globalStyle('.match-description', {
+  display: 'grid',
+  minWidth: 0,
+  gap: '0.1rem',
+});
+
+globalStyle('.match-analysis', {
+  overflow: 'hidden',
+  color: vars.color.muted,
+  fontSize: '0.7rem',
+  lineHeight: 1.45,
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
 });
@@ -569,7 +584,7 @@ globalStyle('.match-item', {
   },
 });
 
-globalStyle('.match-provenance', {
+globalStyle('.match-description', {
   '@media': {
     '(max-width: 46rem)': {
       gridColumn: '2 / -1',

@@ -428,6 +428,107 @@ export function formatProvenance(
     : [...paths].join(' · ');
 }
 
+const morphologyRuleNotations: Readonly<Record<string, string>> = {
+  'contraction.ha-past': '하+였→했',
+  'contraction.ha-yeo': '하여→해',
+  'contraction.i-eo': '이+어→여',
+  'contraction.o-a': '오+아→와',
+  'contraction.oe-eo': '되+어→돼',
+  'contraction.u-eo': '우+어→워',
+  'contraction.yeo-eo': '여+어→여',
+  'ending.adverbial-ge': '-게',
+  'ending.aoeo': '-아/어',
+  'ending.conditional': '-(으)면',
+  'ending.connective-go': '-고',
+  'ending.connective-ji': '-지',
+  'ending.connective-jiman': '-지만',
+  'ending.final-da': '-다',
+  'ending.future-adnominal': '-(으)ㄹ',
+  'ending.honorific': '-(으)시-',
+  'ending.nominalizer': '-(으)ㅁ',
+  'ending.nominalizer-gi': '-기',
+  'ending.past': '-았/었-',
+  'ending.past-adnominal': '-(으)ㄴ',
+  'ending.polite-yo': '-요',
+  'ending.present-adnominal': '-는',
+  'lexical.b-to-wa': 'ㅂ→와',
+  'lexical.b-to-wo': 'ㅂ→워',
+  'lexical.copula': '이다',
+  'lexical.d-to-l': 'ㄷ→ㄹ',
+  'lexical.drop-h': 'ㅎ 탈락',
+  'lexical.drop-s': 'ㅅ 탈락',
+  'lexical.ha': '하→해',
+  'lexical.reo': '러 불규칙',
+  'lexical.reu-double-l': '르→ㄹㄹ',
+  'lexical.suppletive': '보충형',
+  'lexical.u-to-eo': '우→워',
+};
+
+export function formatMorphologyAnalysis(
+  match: Match,
+  text: string,
+  locale: DocumentLocale = DocumentLocale.Korean,
+): string {
+  const matchSurface = text.slice(match.start, match.end);
+  const analyses = match.atoms.map((atom) => {
+    const start = Math.max(0, Math.min(text.length, atom.token.start));
+    const end = Math.max(start, Math.min(text.length, atom.token.end));
+    const tokenSurface = text.slice(start, end);
+    const surface = tokenSurface.length === 0 ? matchSurface : tokenSurface;
+    const rulePath = atom.origins.find(
+      (origin) => origin.rulePath.length > 0,
+    )?.rulePath;
+    const notations = [
+      ...new Set(
+        rulePath
+          ?.map((ruleId) => morphologyRuleNotation(ruleId, locale))
+          .filter((notation) => notation !== undefined),
+      ),
+    ];
+
+    return notations.length === 0
+      ? surface
+      : `${surface} · ${notations.join(' + ')}`;
+  });
+
+  const formatted = [...new Set(analyses)].join(' / ');
+  return formatted.length === 0 ? matchSurface : formatted;
+}
+
+function morphologyRuleNotation(
+  ruleId: string,
+  locale: DocumentLocale,
+): string | undefined {
+  if (ruleId === 'lexical.regular' || ruleId === 'lexical.surface-only') {
+    return undefined;
+  }
+
+  const notation = morphologyRuleNotations[ruleId];
+  if (notation !== undefined) {
+    return notation;
+  }
+
+  const category = ruleId.split('.', 1)[0];
+  const categoryLabels =
+    locale === DocumentLocale.Korean
+      ? {
+          contraction: '축약',
+          derivation: '파생',
+          ending: '어미',
+          lexical: '어간 변이',
+          particle: '조사',
+        }
+      : {
+          contraction: 'contraction',
+          derivation: 'derivation',
+          ending: 'ending',
+          lexical: 'stem alternation',
+          particle: 'particle',
+        };
+
+  return categoryLabels[category as keyof typeof categoryLabels];
+}
+
 async function enableComponentResource(
   engine: KfindEngine,
   setResourceStatus: (status: ComponentResourceStatus) => void,

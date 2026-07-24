@@ -446,7 +446,8 @@
 - playground는 현재 source의 `kfind-wasm`을 browser용 WebAssembly로 빌드해 embedded lexicon으로
   실행한다. Query, 입력 text, expand·boundary·POS·max gap을 바꿀 수 있고, UTF-16 span에 맞춰
   match를 강조하며 surface와 provenance를 표시한다. Browser 사용자가 Unicode normalization을
-  선택하지 않도록 canonical NFC+NFD 검색을 고정 적용한다.
+  선택하지 않도록 canonical NFC+NFD 검색을 고정 적용한다. 문서 제목은 현재 locale의
+  `플레이그라운드` 또는 `Playground`이며, 같은 이름의 하위 heading을 반복하지 않는다.
 - Query와 입력 text는 검색 작업의 주 입력으로서 playground 상단의 한 input stack에 이 순서로
   인접 배치한다. 넓은 화면은 짧은 Query와 장문 text editor를 왼쪽 main pane에 두고 예시 action,
   compile option과 component resource를 오른쪽 보조 panel에 둔다. 검색 결과는 두 pane 아래의 전체
@@ -455,7 +456,10 @@
 - 좁은 화면은 Query → text → 결과의 인지 순서를 우선한다. 예시 action, compile option과 component
   resource는 현재 주요 option 요약을 표시하는 `검색 옵션` button으로 여는 modal 안에 두며 결과보다
   앞에서 긴 설정 목록을 펼치지 않는다. Modal은 keyboard focus trap, touch scroll lock, 명시적인 닫기
-  control을 제공한다. 모든 화면에서 가로 scroll을 만들지 않는다.
+  control을 제공한다. 닫기 control은 접근 가능한 label을 가진 borderless X icon button으로
+  표시하고, modal 안 select의 option popup은 modal 위에서 현재 viewport 안에 보여야 한다. Trigger
+  아래에 여는 select popup의 x축 시작점은 trigger의 시작점에 맞춘다. 모든 화면에서 가로 scroll을
+  만들지 않는다.
 - 검색 예시는 query, text와 관련 compile option을 하나의 설정으로 불러오는 action button으로
   제공한다. 예시 action과 개별 option control은 같은 input state를 갱신하고, 별도의 preset 선택
   상태를 유지하지 않는다. 1 MiB의 결정적인 입력을 만드는 대용량 예시를 제공하며 editor에는
@@ -477,10 +481,12 @@
   Rich-text document model과 collaboration 기능은 추가하지 않는다.
 - 결과 panel은 `Matches`와 `Raw JSON` tab을 제공하고 한 번에 선택한 detail만 표시한다. 기본 tab은
   사람이 읽는 surface·span·provenance 목록이며 Raw JSON은 같은 match의 전체 구조를 표시한다.
-  Match 목록은 surface, span과 provenance를 빠르게 훑을 수 있는 compact row로 표시하고 각 항목을
-  독립된 큰 card로 확장하지 않는다. 좁은 화면에서는 provenance만 다음 줄로 내려 row의 정보 순서를
-  보존한다. Match row를 활성화하면 해당 UTF-16 span을 editor에서 선택하고 editor 내부 scroll과
-  문서 viewport를 그 위치로 이동한다.
+  Match 목록은 surface, span과 설명을 빠르게 훑을 수 있는 compact row로 표시하고 각 항목을 독립된
+  큰 card로 확장하지 않는다. 설명 첫 줄은 surface와 생성 규칙을 한국어 사전의 형태 분석처럼 읽을 수
+  있게 표시하고, 둘째 줄은 기존 provenance rule path를 그대로 표시한다. 좁은 화면에서는 두 줄 설명만
+  다음 행으로 내려 정보 순서를 보존한다. Match row를 활성화하면 해당 UTF-16 span을 editor에서
+  선택하고 editor 내부 scroll과 문서 viewport를 그 위치로 이동한다. 반대로 editor의 match highlight를
+  pointer로 활성화하면 `Matches` tab을 열고 해당 row를 결과 목록과 문서 viewport에 표시한다.
 - Playground 입력은 browser 밖으로 보내지 않는다. Full POS와 약 36 MiB의 compact component
   resource는 기본 demo에 포함하지 않는다. 사용자가 고급 `smart` 지원을 요청할 때만 같은 origin의
   Pages Function에서 component resource를 한 번 내려받아 기존 WASM engine에 load한다. 검증된

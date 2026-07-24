@@ -27,7 +27,7 @@ export const trigger = style({
 });
 
 export const positioner = style({
-  zIndex: 60,
+  zIndex: 80,
   minWidth: 'var(--anchor-width)',
   maxWidth: 'var(--available-width)',
 });
