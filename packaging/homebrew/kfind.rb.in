@@ -73,7 +73,7 @@ class Kfind < Formula
     component = testpath/"component.txt"
     component.write("사용자권한을 확인했다.\n대학교를 방문했다.\n")
     assert_match "사용자권한", shell_output("#{bin}/kfind 권한 #{component}")
-    assert_empty shell_output("#{bin}/kfind 학교 #{component}", 1)
+    assert_match "대학교를 방문했다.", shell_output("#{bin}/kfind 학교 #{component}")
     data_check = shell_output("#{bin}/kfind --check-data --json --data-dir #{pkgshare}")
     assert_match '"status":"ok"', data_check
     assert_match '"resource_version":"@VERSION@"', data_check
