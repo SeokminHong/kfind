@@ -132,6 +132,7 @@ export const referenceGroup: DocumentGroupIndex = {
           'Document Kfind, Matcher, resources, and UTF-16 spans in @kfind/kfind.',
           [
             ['exports', 'package export', 'Package exports'],
+            ['asset-self-hosting', 'asset 직접 서빙', 'Asset self-hosting'],
             ['engine', 'Kfind와 Matcher', 'Kfind and Matcher'],
             ['spans', 'UTF-16 span', 'UTF-16 spans'],
           ],

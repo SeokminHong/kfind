@@ -435,8 +435,21 @@ surface = "LLM"`,
       sections: [
         section('package export', [
           'Browser condition은 bundler ESM WASM을, Node condition은 CommonJS WASM target을 선택합니다. TypeScript declaration은 두 target이 공유합니다.',
-          'Static asset은 `@kfind/kfind/assets/predicates.enriched.tsv`와 compact component subpath로 export합니다.',
+          'Static asset은 raw subpath와 설치 package의 `file:` URL을 반환하는 `@kfind/kfind/assets` module로 export합니다.',
         ]),
+        section(
+          'asset 직접 서빙',
+          [
+            '`componentResourceFileUrl`은 설치된 package와 정확히 같은 버전의 35.4 MiB 형태 구성 요소 판정 asset을 가리킵니다. Node.js 서버는 이 URL을 `createReadStream`에 전달해 asset을 직접 서빙할 수 있습니다.',
+            '이 asset은 `smart` plan이 원문 token 내부의 같은 품사 component span과 인접 token 구조를 검증하는 compact index입니다. 전체 문장 분석기나 query 확장용 full POS 사전이 아닙니다. Resolver는 browser fetch나 서버 URL을 정하지 않습니다.',
+          ],
+          {
+            code: `import { createReadStream } from 'node:fs';
+import { componentResourceFileUrl } from '@kfind/kfind/assets';
+
+createReadStream(componentResourceFileUrl).pipe(response);`,
+          },
+        ),
         section(
           'Kfind와 Matcher',
           [
@@ -463,8 +476,21 @@ const matches = matcher.findAll('길을 걸어 갔다.');`,
       sections: [
         section('Package exports', [
           'The browser condition selects bundler ESM WASM; the Node condition selects the CommonJS WASM target. Both share TypeScript declarations.',
-          'Static assets are exported at the enriched-predicate and compact-component subpaths under `@kfind/kfind/assets`.',
+          'Static assets are exported through raw subpaths and the `@kfind/kfind/assets` module, which returns `file:` URLs inside the installed package.',
         ]),
+        section(
+          'Asset self-hosting',
+          [
+            '`componentResourceFileUrl` points to the 35.4 MiB morphological-component verification asset from the exact installed package version. A Node.js server can pass this URL to `createReadStream` and serve the asset directly.',
+            'This compact index lets a `smart` plan verify same-POS component spans inside a source token and adjacent-token structure. It is not a whole-sentence analyzer or a full-POS dictionary for query expansion. The resolver does not choose a browser fetch or server URL.',
+          ],
+          {
+            code: `import { createReadStream } from 'node:fs';
+import { componentResourceFileUrl } from '@kfind/kfind/assets';
+
+createReadStream(componentResourceFileUrl).pipe(response);`,
+          },
+        ),
         section(
           'Kfind and Matcher',
           [
@@ -492,7 +518,7 @@ const matches = matcher.findAll('길을 걸어 갔다.');`,
       title: 'resource 참조',
       sections: [
         section('resource profile', [
-          'Full POS `lexicon.bin`은 넓은 표제어·세부 품사를, enriched TSV는 검증된 용언 alternation·derivation을, compact KFC는 source component 분석을 제공합니다.',
+          'Full POS `lexicon.bin`은 넓은 표제어·세부 품사를, enriched TSV는 검증된 용언 alternation·derivation을 제공합니다. Compact KFC는 `smart` plan이 원문 token 내부의 같은 품사 component span과 인접 token 구조를 검증하는 index입니다.',
           'npm package는 enriched와 compact를 포함하고 full POS를 포함하지 않습니다.',
         ]),
         section('schema', [
@@ -510,7 +536,7 @@ const matches = matcher.findAll('길을 걸어 갔다.');`,
       title: 'Resource reference',
       sections: [
         section('Resource profiles', [
-          'Full-POS `lexicon.bin` supplies broad lemmas and detailed POS; enriched TSV supplies verified predicate alternation and derivation; compact KFC supplies source components.',
+          'Full-POS `lexicon.bin` supplies broad lemmas and detailed POS; enriched TSV supplies verified predicate alternation and derivation. Compact KFC lets a `smart` plan verify same-POS component spans inside source tokens and adjacent-token structure.',
           'The npm package includes enriched and compact resources but not full POS.',
         ]),
         section('Schemas', [

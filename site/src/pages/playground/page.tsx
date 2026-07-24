@@ -1,6 +1,5 @@
 import type { Match } from '../../kfind-wasm';
 import type {
-  ComponentResourceStatus,
   PlaygroundController,
   PlaygroundInput,
   PlaygroundResult,
@@ -20,7 +19,7 @@ import { createDocumentMeta } from '../../app/metadata';
 import { RoutePath } from '../../app/navigation';
 import { DocumentPage, PageIntro } from '../../components/document';
 import { Modal } from '../../components/modal';
-import { BoundaryPolicy, ExpandMode, PartOfSpeech } from '../../kfind-wasm';
+import { BoundaryPolicy, ExpandMode } from '../../kfind-wasm';
 import {
   applyPlaygroundPreset,
   ComponentResourceState,
@@ -33,6 +32,7 @@ import {
   PlaygroundState,
 } from '../../playground';
 
+import { ComponentResourceCard } from './component-resource-card';
 import { MatchList } from './match-list';
 import { QueryField } from './query-field';
 import { SearchEditor } from './search-editor';
@@ -43,13 +43,6 @@ export const meta = createDocumentMeta(RoutePath.Playground);
 const playgroundCopy = {
   [DocumentLocale.Korean]: {
     close: '닫기',
-    compact: {
-      checking: '저장소 확인 중',
-      error: '리소스 오류',
-      loading: '불러오는 중',
-      needed: '리소스 필요',
-      ready: '리소스 사용 가능',
-    },
     empty: '옵션을 바꾸거나 다른 검색 질의를 사용해 보세요.',
     errorSummary: '검색 질의 컴파일 또는 검색 실행에 실패했습니다.',
     eyebrow: '실행 · WEBASSEMBLY',
@@ -70,10 +63,6 @@ const playgroundCopy = {
     presetManifest: '추출 정보',
     presetSource: '대용량 본문',
     presetSourceName: '한국어 위키백과 2023-11-01',
-    resourceDescription:
-      '기본 WASM은 embedded lexicon을 포함합니다. smart 판정에 세부 품사 구성 요소가 필요하면 사용자가 고급 리소스를 불러옵니다. 같은 origin의 Pages Function이 R2 객체를 streaming하고, 엔진은 schema와 checksum을 검증한 뒤 resource revision별로 브라우저 저장소에 보관합니다. 리소스가 필요 없는 검색 질의는 network 요청을 하지 않습니다.',
-    resourceHeading: '고급 smart 리소스',
-    resourceReady: '사용 가능',
     sectionDescription:
       '검색 질의, 원문이나 옵션을 바꾸면 embedded lexicon으로 검색 계획을 다시 컴파일합니다. 일치한 span과 각 branch의 provenance를 함께 확인할 수 있습니다.',
     settingsDescription: '변경 후 250ms 뒤 자동 적용',
@@ -83,13 +72,6 @@ const playgroundCopy = {
   },
   [DocumentLocale.English]: {
     close: 'Close',
-    compact: {
-      checking: 'Checking storage',
-      error: 'Resource error',
-      loading: 'Loading',
-      needed: 'Resource required',
-      ready: 'Resource available',
-    },
     empty: 'Change the options or try another query.',
     errorSummary: 'Query compilation or search execution failed.',
     eyebrow: 'LIVE · WEBASSEMBLY',
@@ -111,10 +93,6 @@ const playgroundCopy = {
     presetManifest: 'Extraction manifest',
     presetSource: 'Large input source',
     presetSourceName: 'Korean Wikipedia · 2023-11-01',
-    resourceDescription:
-      'The base WASM includes the embedded lexicon. When a smart decision requires fine-POS components, the user loads the advanced resource. A same-origin Pages Function streams the R2 object; the engine validates its schema and checksum and stores it by resource revision. Queries that do not need the resource make no network request.',
-    resourceHeading: 'Advanced smart resource',
-    resourceReady: 'Available',
     sectionDescription:
       'Changing the query, source text, or options recompiles the query plan with the embedded lexicon. Matching spans and branch provenance are shown together.',
     settingsDescription: 'Applies automatically after 250 ms',
@@ -123,55 +101,6 @@ const playgroundCopy = {
     workspace: 'Search workspace',
   },
 } as const;
-
-function partOfSpeechOptions(locale: DocumentLocale) {
-  const labels =
-    locale === DocumentLocale.Korean
-      ? [
-          '자동',
-          '명사',
-          '대명사',
-          '수사',
-          '동사',
-          '형용사',
-          '관형사',
-          '부사',
-          '조사',
-          '감탄사',
-          'Literal',
-        ]
-      : [
-          'Auto',
-          'Noun',
-          'Pronoun',
-          'Numeral',
-          'Verb',
-          'Adjective',
-          'Determiner',
-          'Adverb',
-          'Particle',
-          'Interjection',
-          'Literal',
-        ];
-  const values = [
-    PartOfSpeech.Auto,
-    PartOfSpeech.Noun,
-    PartOfSpeech.Pronoun,
-    PartOfSpeech.Numeral,
-    PartOfSpeech.Verb,
-    PartOfSpeech.Adjective,
-    PartOfSpeech.Determiner,
-    PartOfSpeech.Adverb,
-    PartOfSpeech.Particle,
-    PartOfSpeech.Interjection,
-    PartOfSpeech.Literal,
-  ] as const;
-
-  return values.map((value, index) => ({
-    label: labels[index] ?? value,
-    value,
-  }));
-}
 
 function boundaryOptions(locale: DocumentLocale) {
   const descriptions =
@@ -341,10 +270,6 @@ export default function PlaygroundPage(): React.JSX.Element {
     resourceStatus.state === ComponentResourceState.Checking ||
     resourceStatus.state === ComponentResourceState.Loading ||
     resourceStatus.state === ComponentResourceState.Ready;
-  const compactResourceStatus = componentResourceCompactStatus(
-    resourceStatus.state,
-    locale,
-  );
 
   return (
     <DocumentPage>
@@ -401,18 +326,22 @@ export default function PlaygroundPage(): React.JSX.Element {
                 idPrefix="desktop"
                 input={input}
                 isPresetLoading={isPresetLoading}
-                isResourceButtonDisabled={isResourceButtonDisabled}
                 locale={locale}
                 onInputChange={updateInput}
-                onLoadResource={() => {
-                  controllerRef.current?.loadComponentResource();
-                }}
                 onPresetApply={applyPreset}
                 presetError={presetError}
-                resourceStatus={resourceStatus}
               />
             </aside>
           </div>
+
+          <ComponentResourceCard
+            disabled={isResourceButtonDisabled}
+            locale={locale}
+            onLoad={() => {
+              controllerRef.current?.loadComponentResource();
+            }}
+            status={resourceStatus}
+          />
 
           <div className="mobile-settings">
             <Modal
@@ -422,17 +351,9 @@ export default function PlaygroundPage(): React.JSX.Element {
               <Modal.Trigger data-glossary-skip="">
                 <span className="mobile-settings-heading">
                   <span>{copy.options}</span>
-                  {compactResourceStatus === undefined ? null : (
-                    <small
-                      className="mobile-resource-state"
-                      data-state={resourceStatus.state}
-                    >
-                      {compactResourceStatus}
-                    </small>
-                  )}
                 </span>
                 <small className="mobile-settings-summary">
-                  {formatSettingsSummary(input, locale)}
+                  {formatSettingsSummary(input)}
                 </small>
               </Modal.Trigger>
               <Modal.Content>
@@ -456,15 +377,10 @@ export default function PlaygroundPage(): React.JSX.Element {
                     idPrefix="mobile"
                     input={input}
                     isPresetLoading={isPresetLoading}
-                    isResourceButtonDisabled={isResourceButtonDisabled}
                     locale={locale}
                     onInputChange={updateInput}
-                    onLoadResource={() => {
-                      controllerRef.current?.loadComponentResource();
-                    }}
                     onPresetApply={applyPreset}
                     presetError={presetError}
-                    resourceStatus={resourceStatus}
                   />
                 </Modal.Section>
               </Modal.Content>
@@ -483,8 +399,6 @@ export default function PlaygroundPage(): React.JSX.Element {
             result={currentResult}
           />
         </div>
-
-        <p>{copy.resourceDescription}</p>
       </section>
     </DocumentPage>
   );
@@ -494,34 +408,27 @@ interface PlaygroundSettingsProps {
   readonly idPrefix: string;
   readonly input: PlaygroundInput;
   readonly isPresetLoading: boolean;
-  readonly isResourceButtonDisabled: boolean;
   readonly locale: DocumentLocale;
   readonly onInputChange: <Key extends keyof PlaygroundInput>(
     key: Key,
     value: PlaygroundInput[Key],
   ) => void;
-  readonly onLoadResource: () => void;
   readonly onPresetApply: (
     preset: (typeof playgroundPresetOptions)[number]['value'],
   ) => Promise<void>;
   readonly presetError: string | undefined;
-  readonly resourceStatus: ComponentResourceStatus;
 }
 
 function PlaygroundSettings({
   idPrefix,
   input,
   isPresetLoading,
-  isResourceButtonDisabled,
   locale,
   onInputChange,
-  onLoadResource,
   onPresetApply,
   presetError,
-  resourceStatus,
 }: PlaygroundSettingsProps): React.JSX.Element {
   const copy = playgroundCopy[locale];
-  const localizedPartOfSpeechOptions = partOfSpeechOptions(locale);
   const localizedBoundaryOptions = boundaryOptions(locale);
   const localizedExpandOptions = expandOptions(locale);
 
@@ -577,21 +484,6 @@ function PlaygroundSettings({
           <span>{copy.settingsDescription}</span>
         </div>
         <div className="option-grid">
-          <SelectField<PartOfSpeech>
-            description={
-              locale === DocumentLocale.Korean
-                ? 'Atom 태그와 전역 POS가 다르면 compile 오류입니다.'
-                : 'A conflicting atom tag and global POS is a compile error.'
-            }
-            id={`${idPrefix}-pos-select`}
-            label={locale === DocumentLocale.Korean ? '품사' : 'Part of speech'}
-            name={`${idPrefix}-pos`}
-            onValueChange={(value) => {
-              onInputChange('pos', value);
-            }}
-            options={localizedPartOfSpeechOptions}
-            value={input.pos}
-          />
           <SelectField<BoundaryPolicy>
             description={selectedOptionDescription(
               localizedBoundaryOptions,
@@ -634,33 +526,6 @@ function PlaygroundSettings({
             <Field.Description>{copy.gapDescription}</Field.Description>
           </Field.Root>
         </div>
-      </div>
-
-      <div
-        className="resource-loader"
-        data-state={resourceStatus.state}
-        role="status"
-        aria-live="polite"
-      >
-        <div>
-          <span className="resource-dot" aria-hidden="true" />
-          <div>
-            <strong>{copy.resourceHeading}</strong>
-            <span>{resourceStatus.message}</span>
-          </div>
-        </div>
-        {resourceStatus.state === ComponentResourceState.Ready ? (
-          <span className="resource-ready-label">{copy.resourceReady}</span>
-        ) : (
-          <Button
-            data-glossary-skip=""
-            disabled={isResourceButtonDisabled}
-            onClick={onLoadResource}
-            type="button"
-          >
-            {componentResourceButtonLabel(resourceStatus.state, locale)}
-          </Button>
-        )}
       </div>
     </div>
   );
@@ -784,67 +649,8 @@ function selectedOptionDescription<Value extends string>(
   return options.find((option) => option.value === value)?.description ?? '';
 }
 
-function formatSettingsSummary(
-  input: PlaygroundInput,
-  locale: DocumentLocale,
-): string {
-  const partOfSpeech =
-    partOfSpeechOptions(locale).find((option) => option.value === input.pos)
-      ?.label ?? input.pos;
-
-  return `${partOfSpeech} · ${input.boundary} · ${input.expand}`;
-}
-
-function componentResourceButtonLabel(
-  state: ComponentResourceState,
-  locale: DocumentLocale,
-): string {
-  if (state === ComponentResourceState.Checking) {
-    return locale === DocumentLocale.Korean
-      ? '브라우저 저장소 확인 중'
-      : 'Checking browser storage';
-  }
-
-  if (state === ComponentResourceState.Loading) {
-    return locale === DocumentLocale.Korean
-      ? '구성 요소 asset 로드 중'
-      : 'Loading component asset';
-  }
-
-  if (state === ComponentResourceState.Ready) {
-    return locale === DocumentLocale.Korean
-      ? '구성 요소 asset 준비됨'
-      : 'Component asset ready';
-  }
-
-  return locale === DocumentLocale.Korean
-    ? '구성 요소 asset 불러오기'
-    : 'Load component asset';
-}
-
-function componentResourceCompactStatus(
-  state: ComponentResourceState,
-  locale: DocumentLocale,
-): string | undefined {
-  const compact = playgroundCopy[locale].compact;
-
-  if (state === ComponentResourceState.Checking) {
-    return compact.checking;
-  }
-
-  if (state === ComponentResourceState.Needed) {
-    return compact.needed;
-  }
-
-  if (state === ComponentResourceState.Loading) {
-    return compact.loading;
-  }
-
-  if (state === ComponentResourceState.Ready) {
-    return compact.ready;
-  }
-
-  return state === ComponentResourceState.Error ? compact.error : undefined;
+function formatSettingsSummary(input: PlaygroundInput): string {
+  return `${input.boundary} · ${input.expand}`;
 }
 
 function isPlaygroundOutputTab(value: unknown): value is PlaygroundOutputTab {

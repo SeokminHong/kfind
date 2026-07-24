@@ -1,6 +1,6 @@
 import walkHangStressText from '../../data/fixtures/walk_hang_stress.txt?raw';
 
-import { BoundaryPolicy, ExpandMode, PartOfSpeech } from './kfind-wasm';
+import { BoundaryPolicy, ExpandMode } from './kfind-wasm';
 
 export enum PlaygroundPresetName {
   Predicate = 'predicate',
@@ -14,7 +14,6 @@ export interface PlaygroundInput {
   readonly boundary: BoundaryPolicy;
   readonly expand: ExpandMode;
   readonly maxGap: string;
-  readonly pos: PartOfSpeech;
   readonly query: string;
   readonly text: string;
 }
@@ -23,7 +22,6 @@ interface PresetDefinition {
   readonly boundary: BoundaryPolicy;
   readonly expand: ExpandMode;
   readonly maxGap: string;
-  readonly pos: PartOfSpeech;
   readonly query: string;
   readonly text: string | (() => Promise<string>);
 }
@@ -37,9 +35,8 @@ let cachedLargeInput: Promise<string> | undefined;
 
 const presets: Readonly<Record<PlaygroundPresetName, PresetDefinition>> = {
   [PlaygroundPresetName.Predicate]: {
-    query: '걷다',
+    query: 'v:걷다',
     text: walkHangStressText.trimEnd(),
-    pos: PartOfSpeech.Verb,
     boundary: BoundaryPolicy.Smart,
     expand: ExpandMode.Inflection,
     maxGap: '24',
@@ -47,7 +44,6 @@ const presets: Readonly<Record<PlaygroundPresetName, PresetDefinition>> = {
   [PlaygroundPresetName.Phrase]: {
     query: 'n:사용자 v:검증하다',
     text: '에이전트가 결과를 만들면 사용자가 문맥을 다시 검증했습니다.\n사용자 권한만 확인했습니다.',
-    pos: PartOfSpeech.Auto,
     boundary: BoundaryPolicy.Any,
     expand: ExpandMode.Inflection,
     maxGap: '24',
@@ -55,23 +51,20 @@ const presets: Readonly<Record<PlaygroundPresetName, PresetDefinition>> = {
   [PlaygroundPresetName.Component]: {
     query: 'n:요리',
     text: '중국요리를 만드는 법을 정리했다.\n요리 도구도 함께 준비했다.\n요리사라는 직업도 있다.',
-    pos: PartOfSpeech.Auto,
     boundary: BoundaryPolicy.Smart,
     expand: ExpandMode.Inflection,
     maxGap: '24',
   },
   [PlaygroundPresetName.Literal]: {
-    query: '걸어',
+    query: 'lit:걸어',
     text: '길을 걸어 갔다.\n그는 걷다가 멈췄다.\n걸어라는 문자열만 그대로 찾는다.',
-    pos: PartOfSpeech.Literal,
     boundary: BoundaryPolicy.Smart,
     expand: ExpandMode.Literal,
     maxGap: '24',
   },
   [PlaygroundPresetName.LargeInput]: {
-    query: '말하다',
+    query: 'v:말하다',
     text: loadLargeInput,
-    pos: PartOfSpeech.Verb,
     boundary: BoundaryPolicy.Smart,
     expand: ExpandMode.Inflection,
     maxGap: '24',
@@ -117,7 +110,6 @@ function createPresetInput(
     boundary: preset.boundary,
     expand: preset.expand,
     maxGap: preset.maxGap,
-    pos: preset.pos,
     query: preset.query,
     text,
   };

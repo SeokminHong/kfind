@@ -23,6 +23,8 @@
     "generated",
     "node",
     "assets",
+    "assets.d.ts",
+    "assets.js",
     "LICENSE",
     "LICENSES.md",
     "README.md"
@@ -40,6 +42,11 @@
       "node": "./node/kfind.js",
       "import": "./generated/kfind.js",
       "default": "./generated/kfind.js"
+    },
+    "./assets": {
+      "types": "./assets.d.ts",
+      "import": "./assets.js",
+      "default": "./assets.js"
     },
     "./assets/morphology-component-compact.kfc": "./assets/morphology-component-compact.kfc",
     "./assets/predicates.enriched.tsv": "./assets/predicates.enriched.tsv"

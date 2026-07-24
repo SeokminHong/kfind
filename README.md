@@ -75,9 +75,10 @@ pnpm dlx @kfind/kfind 걷다 README.md
 yarn dlx @kfind/kfind 걷다 README.md
 ```
 
-npm match offset은 UTF-16 code unit 기준입니다. 패키지는 full POS와 component
-asset의 경로나 URL을 추정하지 않으며, 호출자가 읽은 bytes를 명시적으로
-전달합니다.
+npm match offset은 UTF-16 code unit 기준입니다. JavaScript binding은 full POS와
+component asset의 경로나 URL을 추정하지 않으며, 호출자가 읽은 bytes를 명시적으로
+전달합니다. Node.js 서버는 `@kfind/kfind/assets`가 제공하는 설치 package의
+`componentResourceFileUrl`로 같은 버전의 component asset을 직접 서빙할 수 있습니다.
 
 ## 기본 검색
 

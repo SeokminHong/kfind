@@ -130,8 +130,8 @@ export function QueryField({
       />
       <Field.Description>
         {isKorean
-          ? '공백으로 atom을 나눕니다. 태그가 없으면 품사를 자동 분석합니다.'
-          : 'Spaces separate atoms. Without a tag, kfind infers the part of speech.'}
+          ? '각 atom에 n:, v:, adj: 같은 태그로 품사를 지정합니다. 태그를 생략하면 자동 분석합니다.'
+          : 'Use tags such as n:, v:, and adj: to set each atom’s part of speech. Untagged atoms are inferred automatically.'}
       </Field.Description>
     </Field.Root>
   );

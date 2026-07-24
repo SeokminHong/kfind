@@ -457,22 +457,25 @@
   분석·아키텍처·최적화 문서는 query compile부터 anchor scan, 국소 구조 판정, span·provenance
   반환까지의 흐름과 corpus 전체를 분석하지 않는 이유를 텍스트와 접근 가능한 도해로 설명한다.
 - playground는 현재 source의 `kfind-wasm`을 browser용 WebAssembly로 빌드해 embedded lexicon으로
-  실행한다. Query, 입력 text, expand·boundary·POS·max gap을 바꿀 수 있고, UTF-16 span에 맞춰
-  match를 강조하며 surface와 provenance를 표시한다. Browser 사용자가 Unicode normalization을
-  선택하지 않도록 canonical NFC+NFD 검색을 고정 적용한다. 문서 제목은 현재 locale의
+  실행한다. Query, 입력 text, expand·boundary·max gap을 바꿀 수 있고, UTF-16 span에 맞춰
+  match를 강조하며 surface와 provenance를 표시한다. 명시적 품사는 별도 전역 control이 아니라
+  query atom의 `n:`·`v:`·`adj:`·`lit:` 태그로만 입력하며 태그가 없는 atom은 자동 판정한다.
+  Browser 사용자가 Unicode normalization을 선택하지 않도록 canonical NFC+NFD 검색을 고정
+  적용한다. 문서 제목은 현재 locale의
   `플레이그라운드` 또는 `Playground`이며, 같은 이름의 하위 heading을 반복하지 않는다.
 - Query와 입력 text는 검색 작업의 주 입력으로서 playground 상단의 한 input stack에 이 순서로
   인접 배치한다. 넓은 화면은 짧은 Query와 장문 text editor를 왼쪽 main pane에 두고 예시 action,
-  compile option과 component resource를 오른쪽 보조 panel에 둔다. 검색 결과는 두 pane 아래의 전체
-  너비 하단 panel에 표시한다. Query control은 일반적인 짧은 입력에 맞춰 너비를 제한하되 text
-  editor는 main pane을 채운다.
-- 좁은 화면은 Query → text → 결과의 인지 순서를 우선한다. 예시 action, compile option과 component
-  resource는 현재 주요 option 요약을 표시하는 `검색 옵션` button으로 여는 modal 안에 두며 결과보다
-  앞에서 긴 설정 목록을 펼치지 않는다. Modal은 keyboard focus trap, touch scroll lock, 명시적인 닫기
-  control을 제공한다. 닫기 control은 접근 가능한 label을 가진 borderless X icon button으로
-  표시하고, modal 안 select의 option popup은 modal 위에서 현재 viewport 안에 보여야 한다. Trigger
-  아래에 여는 select popup의 x축 시작점은 trigger의 시작점에 맞춘다. 모든 화면에서 가로 scroll을
-  만들지 않는다.
+  compile option을 오른쪽 보조 panel에 둔다. 형태 구성 요소 판정 resource는 주 입력 아래, 검색
+  결과 앞의 전체 너비 capability card에 둔다. Query control은 일반적인 짧은 입력에 맞춰 너비를
+  제한하되 text editor는 main pane을 채운다.
+- 좁은 화면은 Query → text → 형태 구성 요소 판정 resource → 검색 옵션 → 결과의 인지 순서를
+  우선한다. Resource card는 설정 modal 안에 숨기지 않고 역할, 크기, 배포 경로와 현재 상태를
+  항상 표시한다. 예시 action과 compile option은 현재 주요 option 요약을 표시하는 `검색 옵션`
+  button으로 여는 modal 안에 두며 결과보다 앞에서 긴 설정 목록을 펼치지 않는다. Modal은 keyboard
+  focus trap, touch scroll lock, 명시적인 닫기 control을 제공한다. 닫기 control은 접근 가능한 label을
+  가진 borderless X icon button으로 표시하고, modal 안 select의 option popup은 modal 위에서 현재
+  viewport 안에 보여야 한다. Trigger 아래에 여는 select popup의 x축 시작점은 trigger의 시작점에
+  맞춘다. 모든 화면에서 가로 scroll을 만들지 않는다.
 - 검색 예시는 query, text와 관련 compile option을 하나의 설정으로 불러오는 action button으로
   제공한다. 예시 action과 개별 option control은 같은 input state를 갱신하고, 별도의 preset 선택
   상태를 유지하지 않는다. 기본 용언 활용 예시는 `data/fixtures/walk_hang_stress.txt`의 `걷다`와
@@ -487,10 +490,10 @@
   시각적으로 앞서지 않는 compact control grid로 배치한다.
 - Playground는 query·text·option 변경을 debounce한 뒤 자동으로 검색하며 별도의 검색 실행
   button을 두지 않는다. Query label에서 지원 atom 태그와 품사를 확인할 수 있어야 하며 atom 태그
-  도움말은 hover·keyboard focus와 pointer activation으로 열 수 있어야 한다. POS control은 atom
-  태그와 전역 POS 중 어느 쪽도 우선하지 않고, `auto`가 아니면 같은 품사일 때만 허용하며 다르면
-  compile 오류라는 규칙을 항상 설명한다. Expand control은 각 값의 생성 범위를 현재 선택값과
-  option list에서 설명한다.
+  도움말은 hover·keyboard focus와 pointer activation으로 열 수 있어야 한다. Playground가
+  compile할 때 전역 POS는 항상 `auto`이며 명시적 품사는 atom 태그로만 전달한다. 검색 예시도
+  명시적 품사가 필요하면 `v:걷다`, `lit:걸어`, `v:말하다`처럼 query에 태그를 포함한다. Expand
+  control은 각 값의 생성 범위를 현재 선택값과 option list에서 설명한다.
 - 입력 text는 CodeMirror 기반 plain-text editor에서 수정한다. 검색 span은 UTF-16 document offset을
   사용하는 decoration으로 실제 편집 text에 표시하며 별도의 highlight layer나 결과 preview를 중복해
   두지 않는다. IME composition 상태가 아닐 때 물리·소프트 키보드의 Enter와 Shift+Enter는 editor
@@ -512,9 +515,11 @@
   editor 내부 scroll과 문서 viewport를 그 위치로 이동한다. 반대로 editor의 match highlight를 pointer로
   활성화하면 `Matches` tab을 열고 아직 rendering되지 않은 row도 해당 index로 scroll하되 match row로
   keyboard focus를 옮기지 않는다.
-- Playground 입력은 browser 밖으로 보내지 않는다. Full POS와 약 36 MiB의 compact component
-  resource는 기본 demo에 포함하지 않는다. 사용자가 고급 `smart` 지원을 요청할 때만 같은 origin의
-  Pages Function에서 component resource를 한 번 내려받아 기존 WASM engine에 load한다. 검증된
+- Playground 입력은 browser 밖으로 보내지 않는다. Full POS와 35.4 MiB의 형태 구성 요소 판정
+  resource는 기본 demo에 포함하지 않는다. 이 resource는 `smart` plan이 원문 token 내부의 같은
+  품사 component span과 인접 token 구조를 검증하는 compact index다. 전체 문장을 분석하거나
+  검색어를 확장하는 full POS 사전이 아니다. 사용자가 해당 `smart` 구조 판정을 요청할 때만 같은
+  origin의 Pages Function에서 resource를 한 번 내려받아 기존 WASM engine에 load한다. 검증된
   resource response는 browser Cache Storage에 보관하고 호환되는 resource revision으로 playground에
   다시 들어오면 network 요청 없이 자동으로 복원한다. Cache key는 version tag를 정확히 checkout한
   release build에서는 tag를 사용하고, 그 외 개발 build에서는 component artifact checksum을 마지막으로
@@ -528,7 +533,8 @@
 - Component resource는 25 MiB 단일 값 제한이 있는 Workers KV가 아니라 `kfind-assets` R2 bucket에
   둔다. Pages Function은 `KFIND_ASSETS` binding으로 고정 object를 읽어 body를 buffering하지 않고
   stream하며 content type, ETag와 cache header를 보존한다. R2 object가 없거나 손상되면 embedded
-  preview로 조용히 fallback하지 않고 playground에 오류를 표시한다.
+  preview로 조용히 fallback하지 않고 playground에 오류를 표시한다. 이 R2 경로는 kfind site의
+  배포 방식이며 npm 소비자의 필수 호스팅 경로가 아니다.
 - `site` package는 현재 source의 WASM과 version control에 보존한 승인 benchmark snapshot에서
   D3 기반 chart를 렌더링해 prerender HTML과 정적 asset이 있는 `build/client`를 만든다. Snapshot은
   source report의 revision과 SHA-256을
@@ -1023,8 +1029,13 @@
 - compact component artifact는 `assets/morphology-component-compact.kfc`, enriched predicate TSV는
   `assets/predicates.enriched.tsv` 정적 파일로 WASM 산출물과 분리해 게시한다. 각 외부 데이터의
   license notice도 package에 포함한다. 사용자는 필요한 파일을 배포물에 복사하거나 별도 호스트에
-  올릴 수 있으며 npm binding은 특정 호스팅 URL을 고정하지 않는다. full POS binary는 크기와 배포
-  profile이 다르므로 npm package에 포함하지 않지만 같은 `withResources` 입력으로 전달할 수 있다.
+  올릴 수 있으며 npm binding은 특정 호스팅 URL을 고정하지 않는다. `@kfind/kfind/assets` export는
+  설치된 package와 정확히 같은 버전의 두 asset을 Node.js 서버가 읽거나 stream할 수 있도록
+  `file:` URL을 제공한다. 이 resolver module은 browser에서 자동 fetch하거나 서버 URL을 정하지
+  않으며, browser binding에는 caller가 서빙한 URL에서 읽은 bytes를 명시적으로 전달한다. 실제로
+  pack한 tarball을 임시 소비자 project에 설치하고 이 URL로 component asset 전체를 HTTP
+  streaming하는 검증을 `pack:check`에 포함한다. full POS binary는 크기와 배포 profile이 다르므로
+  npm package에 포함하지 않지만 같은 `withResources` 입력으로 전달할 수 있다.
 - package build는 고정 source와 checksum으로 정적 asset을 생성한다. `npm pack --dry-run`은
   asset 포함과 SHA-256을 검증하고 WASM binary에 compact container magic 또는 artifact bytes가
   포함되지 않았음을 확인한다.
@@ -1038,9 +1049,10 @@
   API와 실제 `bin` 실행을 smoke test하고 `npm pack --dry-run`으로 게시 파일, executable mode와
   metadata를 검증한다.
 - npm package 검증은 package version과 Cargo version의 일치, 두 정적 asset과 license notice,
-  TypeScript declaration의 optional resource bundle, enriched 분석 활성화 여부, resource 없는
-  non-component compile, resource 없는 component smart 오류, JavaScript 초기화 오류, component
-  positive/crossing negative와 UTF-16 offset 계약을 확인한다.
+  `@kfind/kfind/assets`의 설치 package file URL과 HTTP streaming, TypeScript declaration의 optional
+  resource bundle, enriched 분석 활성화 여부, resource 없는 non-component compile, resource 없는
+  component smart 오류, JavaScript 초기화 오류, component positive/crossing negative와 UTF-16
+  offset 계약을 확인한다.
 - 기본 CI는 npm package build, Node smoke test와 pack 검사를 실행한다.
 
 ## 1. 문서 목적

@@ -8,6 +8,7 @@ import {
   loadComponentResource,
   loadKfind,
   NormalizationMode,
+  PartOfSpeech,
   restoreComponentResource,
 } from './kfind-wasm';
 
@@ -96,9 +97,10 @@ const playgroundMessages: Readonly<Record<DocumentLocale, PlaygroundMessages>> =
       initialStatus: 'WASM 엔진을 불러오는 중…',
       matchCount: (count) => `일치하는 span ${count}개를 찾았습니다.`,
       noMatches: '일치하는 span이 없습니다.',
-      resourceIdle: `필요한 경우 R2에서 35.4 MiB를 받습니다 · ${formatResourceVersion()}`,
-      resourceLoading: 'R2에서 구성 요소 리소스를 불러오는 중…',
-      resourceNeeded: '이 검색 질의에는 구성 요소 리소스가 필요합니다.',
+      resourceIdle: `필요할 때 R2에서 35.4 MiB를 받습니다 · ${formatResourceVersion()}`,
+      resourceLoading: 'R2에서 형태 구성 요소 판정 리소스를 불러오는 중…',
+      resourceNeeded:
+        '이 검색 질의의 smart 구조 판정에는 형태 구성 요소 판정 리소스가 필요합니다.',
       resourceRestored: (byteLength, migrated) =>
         `${formatMebibytes(byteLength)} MiB ${migrated ? '저장소 복원 및 이전 완료' : '저장소 복원 완료'} · ${formatResourceVersion()}`,
       resourceStored: (byteLength, stored) =>
@@ -117,8 +119,10 @@ const playgroundMessages: Readonly<Record<DocumentLocale, PlaygroundMessages>> =
         `Found ${count.toLocaleString('en')} matching spans.`,
       noMatches: 'No matching spans.',
       resourceIdle: `Downloads 35.4 MiB from R2 when required · ${formatResourceVersion()}`,
-      resourceLoading: 'Loading the component resource from R2…',
-      resourceNeeded: 'This query requires the component resource.',
+      resourceLoading:
+        'Loading the morphological component verification resource from R2…',
+      resourceNeeded:
+        'This query needs the morphological component verification resource for its smart structural decision.',
       resourceRestored: (byteLength, migrated) =>
         `${formatMebibytes(byteLength)} MiB ${migrated ? 'restored and migrated' : 'restored'} · ${formatResourceVersion()}`,
       resourceStored: (byteLength, stored) =>
@@ -532,7 +536,7 @@ function readOptions(input: PlaygroundInput): CompileOptions {
   const parsedMaxGap = Number.parseInt(input.maxGap, 10);
 
   return {
-    pos: input.pos,
+    pos: PartOfSpeech.Auto,
     boundary: input.boundary,
     expand: input.expand,
     normalization: NormalizationMode.Canonical,

@@ -57,12 +57,40 @@ npx @kfind/kfind 'v:걷다|n:사용자' src
 
 패키지는 다음 asset을 export합니다.
 
+- `@kfind/kfind/assets`
 - `@kfind/kfind/assets/predicates.enriched.tsv`
 - `@kfind/kfind/assets/morphology-component-compact.kfc`
 
-패키지는 asset의 filesystem 경로나 URL을 추정하거나 자동으로 내려받지 않습니다.
-두 asset은 WASM binary에 포함되지 않습니다. 기본 constructor,
-`Kfind.withFullPos`와 `loadComponentResource`도 사용할 수 있습니다.
+Node.js 서버는 resolver export가 제공하는 설치 package의 `file:` URL로 같은
+버전의 asset을 직접 정적 서빙할 수 있습니다.
+
+```js
+import { createReadStream } from "node:fs";
+import { createServer } from "node:http";
+import { componentResourceFileUrl } from "@kfind/kfind/assets";
+
+createServer((request, response) => {
+  if (request.url !== "/morphology-component-compact.kfc") {
+    response.writeHead(404).end();
+    return;
+  }
+
+  response.writeHead(200, {
+    "Content-Type": "application/octet-stream",
+    "X-Content-Type-Options": "nosniff",
+  });
+  createReadStream(componentResourceFileUrl).pipe(response);
+}).listen(3000);
+```
+
+형태 구성 요소 판정 asset은 `smart` 검색이 원문 token 내부의 같은 품사
+component span과 인접 token 구조를 검증하는 compact index입니다. 전체 문장을
+분석하거나 query를 확장하는 full POS 사전이 아닙니다.
+
+Resolver는 browser fetch나 서버 URL을 정하지 않습니다. Browser에서는 애플리케이션이
+서빙한 URL에서 bytes를 읽어 binding에 전달합니다. 두 asset은 WASM binary에 포함되지
+않습니다. 기본 constructor, `Kfind.withFullPos`와 `loadComponentResource`도 사용할 수
+있습니다.
 
 각 패키지 버전의 component resource header에는 같은 버전이 들어 있습니다. 다른
 버전의 asset을 읽으면 명시적인 오류가 발생합니다. npm `prepack`은 게시 전에

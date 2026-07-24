@@ -33,6 +33,8 @@ npm pack --ignore-scripts --dry-run --json "$package_dir" | node -e '
     throw new Error("missing or invalid " + enriched);
   }
   for (const required of [
+    "assets.d.ts",
+    "assets.js",
     "bin/kfind.js",
     "node/kfind.js",
     "node/kfind_bg.wasm",
@@ -57,3 +59,34 @@ grep -Fq "원자료 저작자·제공자는 국립국어원입니다." \
   "$package_dir/assets/LICENSES/NIKL-derived-data-NOTICE.md"
 grep -Fq "CC BY-SA 2.0 KR" \
   "$package_dir/assets/LICENSES/NIKL-derived-data-NOTICE.md"
+
+packed_consumer_dir="$(
+  mktemp -d "${TMPDIR:-/tmp}/kfind-packed-consumer.XXXXXX"
+)"
+
+cleanup_packed_consumer() {
+  if [[ -d "$packed_consumer_dir" ]]; then
+    rm -rf -- "$packed_consumer_dir"
+  fi
+}
+trap cleanup_packed_consumer EXIT
+
+npm pack \
+  --ignore-scripts \
+  --pack-destination "$packed_consumer_dir" \
+  "$package_dir" >/dev/null
+
+shopt -s nullglob
+packed_tarballs=("$packed_consumer_dir"/*.tgz)
+test "${#packed_tarballs[@]}" -eq 1
+
+mkdir "$packed_consumer_dir/consumer"
+npm install \
+  --ignore-scripts \
+  --no-audit \
+  --no-fund \
+  --prefix "$packed_consumer_dir/consumer" \
+  "${packed_tarballs[0]}" >/dev/null
+cp "$repo_root/scripts/test-npm-assets.mjs" \
+  "$packed_consumer_dir/consumer/test-npm-assets.mjs"
+node "$packed_consumer_dir/consumer/test-npm-assets.mjs"
