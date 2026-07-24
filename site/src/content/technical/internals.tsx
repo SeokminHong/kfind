@@ -10,8 +10,6 @@ export const internalDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '내부 구조 · 실행',
       title: '실행 pipeline',
-      summary:
-        'Query 경로는 분석과 program 생성을 담당하고 corpus 경로는 anchor scan과 국소 검증만 수행합니다.',
       sections: [
         section('compile 단계', [
           'Lexer가 query atom과 태그를 만들고 normalization이 canonical variant를 준비합니다. Lexicon은 atom별 품사 분석과 교체 class를 반환합니다.',
@@ -34,8 +32,6 @@ export const internalDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'INTERNALS · EXECUTION',
       title: 'Execution pipeline',
-      summary:
-        'The query lane analyzes and builds programs; the corpus lane only scans anchors and verifies local candidates.',
       sections: [
         section('Compilation', [
           'The lexer creates query atoms and tags; normalization prepares canonical variants. Lexicons return POS analyses and substitution classes per atom.',
@@ -60,8 +56,6 @@ export const internalDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '내부 구조 · compile',
       title: 'query compiler',
-      summary:
-        'Compiler는 열린 형태 분석을 실행 비용이 제한된 검색 IR로 변환합니다.',
       sections: [
         section('분석 후보', [
           'Lexicon lookup은 표제어, coarse POS와 user entry를 조합해 가능한 분석을 모두 반환합니다. Explicit POS는 포함되는 세부 품사를 제한하지만 같은 범주 안의 중의성은 유지합니다.',
@@ -84,8 +78,6 @@ export const internalDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'INTERNALS · COMPILATION',
       title: 'Query compiler',
-      summary:
-        'The compiler turns open-ended morphology analyses into a bounded search IR.',
       sections: [
         section('Analysis candidates', [
           'Lexicon lookup combines the lemma, coarse POS, and user entries while preserving every compatible analysis. Explicit POS narrows detailed tags but does not remove ambiguity inside the category.',
@@ -110,8 +102,6 @@ export const internalDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '내부 구조 · scan',
       title: 'matcher',
-      summary:
-        'Matcher는 byte anchor를 넓게 찾고 program verifier로 형태 조건을 좁힙니다.',
       sections: [
         section('anchor index', [
           '여러 program이 같은 anchor를 공유하면 automaton state와 hit list를 공유합니다. Anchor는 candidate coverage를 보존하는 범위에서 길고 희소한 surface를 우선합니다.',
@@ -131,8 +121,6 @@ export const internalDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'INTERNALS · SCANNING',
       title: 'Matcher',
-      summary:
-        'The matcher finds byte anchors broadly and narrows them through program verifiers.',
       sections: [
         section('Anchor index', [
           'Programs sharing an anchor also share automaton state and hit lists. Anchor selection favors long, rare surfaces without reducing candidate coverage.',
@@ -154,8 +142,6 @@ export const internalDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '내부 구조 · source',
       title: '구조 판정',
-      summary:
-        '구조 판정은 의미 추론 없이 source 분석 graph가 query constraint를 증명하는지만 확인합니다.',
       sections: [
         section('구조 제약', [
           'Constraint는 query core에 대응하는 component span, 필요한 POS, token 전체 경로와 선행·후행 component 조건을 선언합니다. 직접 surface 예외 목록은 사용하지 않습니다.',
@@ -174,8 +160,6 @@ export const internalDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'INTERNALS · SOURCE',
       title: 'Structural verification',
-      summary:
-        'Structural verification asks only whether source analysis graphs prove query constraints, without semantic inference.',
       sections: [
         section('Structural constraints', [
           'A constraint declares the component span corresponding to the query core, required POS, whole-token path, and neighboring components. It uses no registry of exceptional source strings.',
@@ -196,8 +180,6 @@ export const internalDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '내부 구조 · 데이터',
       title: 'resource 구조',
-      summary:
-        '각 resource는 query lexicon 또는 source 구조라는 한 책임과 독립 호환성 계약을 가집니다.',
       sections: [
         section('resource 계층', [
           'Core·enriched·full POS는 query 분석용 lexicon 계층입니다. Compact component는 source surface에서 분석과 component를 조회하는 구조 index입니다.',
@@ -216,8 +198,6 @@ export const internalDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'INTERNALS · DATA',
       title: 'Resource architecture',
-      summary:
-        'Each resource has one query-lexicon or source-structure responsibility and an independent compatibility contract.',
       sections: [
         section('Resource layers', [
           'Core, enriched, and full POS form query-analysis lexicon layers. The compact component artifact indexes analyses and components for source surfaces.',
@@ -238,8 +218,6 @@ export const internalDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '내부 구조 · text',
       title: 'Unicode와 span',
-      summary:
-        '검색 variant를 정규화해도 결과 좌표와 surface는 원문 표현을 가리킵니다.',
       sections: [
         section('정규화', [
           '`nfc`는 query와 source 비교를 NFC 기준으로 준비합니다. `canonical`은 NFC와 NFD를 모두 검색하며 `none`은 입력 code point sequence를 그대로 사용합니다.',
@@ -258,8 +236,6 @@ export const internalDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'INTERNALS · TEXT',
       title: 'Unicode and spans',
-      summary:
-        'Even when search variants are normalized, result coordinates and surfaces point to the original representation.',
       sections: [
         section('Normalization', [
           '`nfc` prepares query and source comparisons in NFC. `canonical` searches NFC and NFD; `none` preserves the input code-point sequence.',

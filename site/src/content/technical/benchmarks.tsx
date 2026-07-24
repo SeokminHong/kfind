@@ -10,8 +10,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '벤치마크 · 품질',
       title: '평가 방법',
-      summary:
-        '품질 평가는 고정 fixture, gold label과 동일 backend task에서 confusion matrix를 계산합니다.',
       sections: [
         section('fixture', [
           'Canonical은 사람이 표준 맞춤법을 확인한 양성 500·음성 500 사례입니다. Robust는 실제 오류 문장의 양성 250·음성 250 사례이며 표준문 결과에 합산하지 않습니다.',
@@ -31,8 +29,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'BENCHMARKS · QUALITY',
       title: 'Methodology',
-      summary:
-        'Quality evaluation computes confusion matrices from fixed fixtures, gold labels, and identical backend tasks.',
       sections: [
         section('Fixtures', [
           'Canonical has 500 positive and 500 negative cases manually checked for standard spelling. Robust has 250 positive and 250 negative natural noisy cases and is not merged with canonical results.',
@@ -54,8 +50,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '벤치마크 · 계약',
       title: '품질 계약',
-      summary:
-        'Raw는 corpus gold를 보존하고 contract-adjusted는 같은 예측을 제품 목표의 고정 registry로 다시 판정합니다.',
       sections: [
         section('raw matrix', [
           'Raw TP·FP·TN·FN은 원본 fixture의 strict gold와 backend 예측을 그대로 비교합니다. 데이터 품질이나 제품 범위에 대한 사후 해석을 섞지 않습니다.',
@@ -75,8 +69,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'BENCHMARKS · CONTRACT',
       title: 'Quality contract',
-      summary:
-        'Raw preserves corpus gold; contract-adjusted reevaluates the same predictions through a fixed product registry.',
       sections: [
         section('Raw matrix', [
           'Raw TP, FP, TN, and FN compare backend predictions directly with strict fixture gold. They contain no post-hoc interpretation of data quality or product scope.',
@@ -98,8 +90,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '벤치마크 · 품질',
       title: '표준문 품질',
-      summary:
-        'Canonical은 표준 맞춤법과 explicit POS에서 기본 형태 coverage와 hard negative precision을 측정합니다.',
       sections: [
         section('dataset', [
           '양성 500개는 명사, 대명사, 수사, 동사, 형용사, 관형사와 부사의 목표 span을 가집니다. 음성 500개는 같은 표면이 다른 형태 기능으로 쓰이는 hard negative를 포함합니다.',
@@ -118,8 +108,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'BENCHMARKS · QUALITY',
       title: 'Canonical quality',
-      summary:
-        'Canonical measures core morphology coverage and hard-negative precision on standard spelling with explicit POS.',
       sections: [
         section('Dataset', [
           'Five hundred positives cover noun, pronoun, numeral, verb, adjective, determiner, and adverb target spans. Five hundred negatives include identical surfaces serving other morphological functions.',
@@ -140,8 +128,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '벤치마크 · 품질',
       title: 'query matrix',
-      summary:
-        'Query matrix는 한 source 문장의 여러 positive query와 같은 품사의 paired negative query를 case 단위로 추적하는 진단 fixture입니다.',
       sections: [
         section('조합 차원', [
           '한 source sentence에서 최대 세 개의 “있어야 하는” 표제어·품사·span 질의를 고르고, 각 질의마다 같은 품사의 “없어야 하는” 질의를 짝지어 여러 query case를 만듭니다.',
@@ -162,8 +148,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'BENCHMARKS · QUALITY',
       title: 'Query matrix',
-      summary:
-        'The query matrix is a diagnostic fixture that tracks multiple positive queries and same-POS paired negatives in one source sentence.',
       sections: [
         section('Dimensions', [
           'Up to three lemma-POS-span queries that should match are selected from one source sentence, and each is paired with a same-POS query that should not match.',
@@ -186,8 +170,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '벤치마크 · 품질',
       title: '오류 문장 품질',
-      summary:
-        'Robust는 오류 위치가 목표 span인지 주변 문맥인지 분리해 비표준 입력에서의 검색 품질을 측정합니다.',
       sections: [
         section('오류 dataset', [
           '전체 500 case는 positive 250·negative 250입니다. 한글 typo, 띄어쓰기 분리, 비표준 통사와 외국어 text typo를 원문 그대로 보존합니다.',
@@ -206,8 +188,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'BENCHMARKS · QUALITY',
       title: 'Robustness quality',
-      summary:
-        'Robust separates errors on target spans from errors in surrounding context.',
       sections: [
         section('Noisy dataset', [
           'The 500 cases contain 250 positives and 250 negatives, preserving Hangul typos, spacing splits, nonstandard syntax, and foreign-text typos.',
@@ -228,8 +208,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '벤치마크 · 비교',
       title: '외부 제품 비교',
-      summary:
-        '외부 분석기는 형태소열을 kfind의 lemma-span task에 projection한 뒤 동일 matrix로 비교합니다.',
       sections: [
         section('출력 정렬', [
           'Kiwi, Lindera, MeCab-ko와 KOMORAN의 token·morpheme output을 source span과 lemma·POS 조건으로 정렬합니다. Offset 좌표계와 normalization 차이를 backend adapter에서 변환합니다.',
@@ -248,8 +226,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'BENCHMARKS · COMPARISON',
       title: 'External comparisons',
-      summary:
-        'External morphology output is projected into the same lemma-span task before comparison.',
       sections: [
         section('Output alignment', [
           'Token and morpheme output from Kiwi, Lindera, MeCab-ko, and KOMORAN is aligned by source span, lemma, and POS. Backend adapters convert offset systems and normalization.',
@@ -270,8 +246,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '벤치마크 · 성능',
       title: '성능 측정',
-      summary:
-        '서로 다른 단위의 workload를 분리하고 baseline과 candidate를 같은 환경에서 비교합니다.',
       sections: [
         section('workload', [
           'Morphology는 fresh process initialization, cases/s, p95와 RSS를 측정합니다. Query compile, matcher scan, 1 GiB file scan, npm startup과 TUI index는 별도 entrypoint를 사용합니다.',
@@ -291,8 +265,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'BENCHMARKS · PERFORMANCE',
       title: 'Performance measurement',
-      summary:
-        'Separate workloads with different units and compare baseline and candidate in one environment.',
       sections: [
         section('Workloads', [
           'Morphology measures fresh-process initialization, cases per second, p95, and RSS. Query compile, matcher scan, 1 GiB file scan, npm startup, and TUI indexing have separate entrypoints.',
@@ -314,8 +286,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '벤치마크 · 근거',
       title: '재현 방법',
-      summary:
-        'Source report는 같은 결과를 다시 만들 수 있는 revision, 입력과 실행 환경을 완결된 단위로 기록합니다.',
       sections: [
         section('provenance', [
           'Baseline·candidate 전체 Git revision, dirty state, OS·architecture, CPU, memory, Rust·Node·Python과 backend version을 기록합니다.',
@@ -335,8 +305,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'BENCHMARKS · EVIDENCE',
       title: 'Reproducibility',
-      summary:
-        'A source report records revisions, inputs, and environment as a complete recipe for recreating results.',
       sections: [
         section('Provenance', [
           'Record full baseline and candidate revisions, dirty state, OS, architecture, CPU, memory, and Rust, Node, Python, and backend versions.',
@@ -358,8 +326,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '벤치마크 · 기록',
       title: '역사 보고서',
-      summary:
-        '날짜별 report는 실험과 변화량을 보존하고 현재 제품 문서는 승인된 결론만 가리킵니다.',
       sections: [
         section('보고서 구조', [
           '`docs/benchmarks`의 날짜별 Markdown은 목적, revision, 환경, 입력, 명령, raw result와 해석을 담습니다. Baseline·candidate 증감은 이 위치에만 기록합니다.',
@@ -378,8 +344,6 @@ export const benchmarkDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'BENCHMARKS · RECORDS',
       title: 'Historical reports',
-      summary:
-        'Dated reports preserve experiments and deltas; current product documentation points only to approved conclusions.',
       sections: [
         section('Report structure', [
           'Dated Markdown under `docs/benchmarks` contains purpose, revisions, environment, inputs, commands, raw results, and interpretation. Baseline-candidate deltas live only there.',

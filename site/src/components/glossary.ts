@@ -1,8 +1,11 @@
 import { DocumentLocale } from '../app/i18n';
 
+import { getMorphemeGlossaryEntries } from './glossary-morphemes';
+
 export enum GlossaryCategory {
   Search = 'search',
   Grammar = 'grammar',
+  Morpheme = 'morpheme',
   Execution = 'execution',
   Resource = 'resource',
   Quality = 'quality',
@@ -21,7 +24,7 @@ export interface GlossaryTerm {
 interface GlossaryContent {
   readonly categoryLabels: Readonly<Record<GlossaryCategory, string>>;
   readonly eyebrow: string;
-  readonly summary: string;
+  readonly overview: string;
   readonly title: string;
   readonly terms: readonly GlossaryTerm[];
 }
@@ -127,7 +130,7 @@ const koreanTerms: readonly GlossaryTerm[] = [
     definition:
       '어간과 종결·연결·전성 어미 사이에 놓여 높임, 시제, 추측 같은 문법 의미를 더하는 어미입니다. 둘 이상 이어질 수 있습니다.',
     example: '먹었겠지만 = 먹/VV + 었/EP + 겠/EP + 지만/EC',
-    aliases: ['prefinal ending', '선어말어미', 'EP'],
+    aliases: ['prefinal ending', '선어말어미'],
   },
   {
     id: 'final-ending',
@@ -137,7 +140,7 @@ const koreanTerms: readonly GlossaryTerm[] = [
     definition:
       '문장을 끝내면서 서술, 질문, 명령 같은 문장 유형을 나타내는 어미입니다.',
     example: '먹습니다의 습니다/EF, 먹니의 니/EF',
-    aliases: ['final ending', '종결어미', 'EF'],
+    aliases: ['final ending', '종결어미'],
   },
   {
     id: 'connective-ending',
@@ -147,7 +150,7 @@ const koreanTerms: readonly GlossaryTerm[] = [
     definition:
       '용언과 뒤 절을 연결해 나열, 원인, 대조, 조건 같은 관계를 나타내는 어미입니다.',
     example: '먹고의 고/EC, 먹지만의 지만/EC, 먹으면의 으면/EC',
-    aliases: ['connective ending', '연결어미', 'EC'],
+    aliases: ['connective ending', '연결어미'],
   },
   {
     id: 'adnominal-ending',
@@ -156,7 +159,7 @@ const koreanTerms: readonly GlossaryTerm[] = [
     notation: 'ETM · adnominal ending',
     definition: '용언이 뒤의 체언을 꾸미도록 관형어 기능을 만드는 어미입니다.',
     example: '먹는 사람의 는/ETM, 먹을 음식의 을/ETM',
-    aliases: ['adnominal ending', '관형사형 전성어미', 'ETM'],
+    aliases: ['adnominal ending', '관형사형 전성어미'],
   },
   {
     id: 'nominal-ending',
@@ -165,7 +168,7 @@ const koreanTerms: readonly GlossaryTerm[] = [
     notation: 'ETN · nominal ending',
     definition: '용언이 문장에서 명사처럼 쓰이도록 명사형을 만드는 어미입니다.',
     example: '먹기의 기/ETN, 믿음의 음/ETN',
-    aliases: ['nominal ending', '명사형 전성어미', 'ETN'],
+    aliases: ['nominal ending', '명사형 전성어미'],
   },
   {
     id: 'allomorph',
@@ -280,7 +283,7 @@ const koreanTerms: readonly GlossaryTerm[] = [
     name: '거짓음성',
     notation: 'FN · false negative',
     definition: '정답인 항목을 검색 결과에서 누락한 수입니다.',
-    aliases: ['false negative', '거짓음성', '누락', 'FN'],
+    aliases: ['false negative', '거짓음성', 'FN'],
   },
   {
     id: 'precision',
@@ -320,7 +323,7 @@ const koreanTerms: readonly GlossaryTerm[] = [
     definition:
       'fixture가 선언한 모든 기대값을 제품 계약과 관계없이 그대로 TP, TN, FP, FN에 반영한 품질 지표입니다.',
     example: 'FN 4에는 제품 목표 밖 사례도 포함될 수 있습니다.',
-    aliases: ['raw metric', '원시 지표', 'raw'],
+    aliases: ['raw metric', '원시 지표'],
   },
   {
     id: 'contract-adjusted-metric',
@@ -365,7 +368,21 @@ const koreanTerms: readonly GlossaryTerm[] = [
   },
 ];
 
-const englishTerms: readonly GlossaryTerm[] = koreanTerms.map((term) => term);
+const localizedKoreanTerms: readonly GlossaryTerm[] = [
+  ...koreanTerms,
+  ...getMorphemeGlossaryEntries(DocumentLocale.Korean).map((term) => ({
+    ...term,
+    category: GlossaryCategory.Morpheme,
+  })),
+];
+
+const englishTerms: readonly GlossaryTerm[] = [
+  ...koreanTerms,
+  ...getMorphemeGlossaryEntries(DocumentLocale.English).map((term) => ({
+    ...term,
+    category: GlossaryCategory.Morpheme,
+  })),
+];
 
 const englishOverrides: Readonly<Record<string, Partial<GlossaryTerm>>> = {
   lemma: {
@@ -553,25 +570,27 @@ export const glossaryContent: Readonly<
   [DocumentLocale.Korean]: {
     eyebrow: '참조 · 단어장',
     title: '검색·문법·측정 용어',
-    summary:
+    overview:
       'kfind 문서와 벤치마크에서 사용하는 검색 구조, 한국어 문법, 품질 지표와 성능 단위를 정의합니다.',
     categoryLabels: {
       [GlossaryCategory.Search]: '검색 입력',
       [GlossaryCategory.Grammar]: '한국어 문법',
+      [GlossaryCategory.Morpheme]: '형태소 레이블',
       [GlossaryCategory.Execution]: '컴파일과 실행',
       [GlossaryCategory.Resource]: '데이터와 리소스',
       [GlossaryCategory.Quality]: '품질과 성능',
     },
-    terms: koreanTerms,
+    terms: localizedKoreanTerms,
   },
   [DocumentLocale.English]: {
     eyebrow: 'REFERENCE · GLOSSARY',
     title: 'Search, grammar, and measurement terms',
-    summary:
+    overview:
       'Definitions for the search structures, Korean grammar, quality metrics, and performance units used throughout the kfind documentation.',
     categoryLabels: {
       [GlossaryCategory.Search]: 'Search input',
       [GlossaryCategory.Grammar]: 'Korean grammar',
+      [GlossaryCategory.Morpheme]: 'Morpheme labels',
       [GlossaryCategory.Execution]: 'Compilation and execution',
       [GlossaryCategory.Resource]: 'Data and resources',
       [GlossaryCategory.Quality]: 'Quality and performance',

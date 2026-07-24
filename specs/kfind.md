@@ -280,6 +280,12 @@
   논증한다. 핵심 설명은 본문만 읽어도 완결되어야 하며, callout·card·도해와 단편적인 label의
   나열로 본문을 대신하지 않는다. 표, 도해와 코드 예시는 정확한 대응 관계나 실행 흐름을
   보충할 때만 사용하고 앞뒤 문단에서 해석한다.
+- 문서 제목 아래에는 모든 route에 동일한 형식의 subtext를 강제하지 않는다. 본문을 읽기 전에
+  필요한 전제나 범위가 있으면 별도 헤딩 없이 하나 이상의 개요 문단으로 두고, 제목과 첫 절이
+  내용을 충분히 설명하면 개요를 생략한다.
+- 지원·거부 범위를 설명하는 절은 규칙 이름이나 존재하지 않는 표를 가리키는 데 그치지 않는다.
+  사용자가 실행할 query와 source 예시를 들어 match되는 경우와 match되지 않는 경우를 함께
+  설명한다. 예시는 본문이 선언한 boundary, POS, resource와 문법 조건을 그대로 재현해야 한다.
 - 문서 site는 React Router Framework Mode로 구성한다. Runtime SSR은 사용하지 않고 고정된 모든
   문서 route를 build 시점에 HTML로 prerender한다. 각 clean URL의 최초 response에는 해당 route의
   본문, 고유 title·description·canonical URL과 Open Graph metadata가 들어 있어야 한다. Browser는
@@ -382,17 +388,19 @@
 
 - 단어장은 검색 입력, 실행 구조, resource와 품질 지표에 쓰는 핵심 용어를 한곳에서
   정의한다. 한국어 표기와 코드·영문 표기는 같은 항목에서 대응시키고, 다른 문서의 설명은
-  이 정의와 모순되지 않아야 한다.
+  이 정의와 모순되지 않아야 한다. 형태소 label은 별도 범주에서 NNG·VV·EP처럼 문서에
+  노출되는 세부 label을 각각 정의한다.
 - 각 문서 route는 단어장 용어가 본문에서 처음 등장하는 한 곳에만 tooltip과 해당 정의 link를
   제공한다. 같은 항목의 한국어·영문 별칭은 한 용어로 센다. 단, `TP`, `FP`, `TN`, `FN`, `POS`,
-  `F1`처럼 독립해서 읽는 영문 acronym alias는 같은 용어의 일반 별칭이 먼저 나왔어도 acronym별
-  첫 등장에 별도 tooltip을 제공한다. Tooltip은 단어장에 notation이 있는 용어의 notation과 정의를
-  함께 표시하며 acronym의 notation에는 원문 영문 표현을 포함한다. Tooltip은 hover와 keyboard
-  focus로 열 수 있어야 한다. 실제 mouse pointer activation과 keyboard Enter activation은 기존 link
-  동작을 유지한다. Touch·pen pointer activation과 선행 input event가 없는 link activation은 첫
-  번째에 tooltip을 열고, 같은 용어의 다음 activation에 단어장으로 이동한다. 이 구분에 media query나
-  click metadata를 사용하지 않는다. Code·기존 link·form control과 단어장 자체에는 중첩해서 적용하지
-  않는다.
+  `F1`과 형태소 label처럼 독립해서 읽는 영문 acronym alias는 같은 용어의 일반 별칭이 먼저
+  나왔어도 acronym별 첫 등장에 별도 tooltip을 제공한다. 형태소 분석 표기 안의 label도 code
+  전체를 제외하지 않고 label 자체에 tooltip을 제공한다. Tooltip은 단어장에 notation이 있는 용어의
+  notation과 정의를 함께 표시하며 acronym의 notation에는 원문 영문 표현을 포함한다. Tooltip은
+  hover와 keyboard focus로 열 수 있어야 한다. 실제 mouse pointer activation과 keyboard Enter
+  activation은 기존 link 동작을 유지한다. Touch·pen pointer activation과 선행 input event가 없는
+  link activation은 첫 번째에 tooltip을 열고, 같은 용어의 다음 activation에 단어장으로 이동한다.
+  이 구분에 media query나 click metadata를 사용하지 않는다. 기존 link와 form control에는 중첩해서
+  적용하지 않는다.
 - 일반 UI text는 Pretendard 기반 sans-serif stack을 사용한다. 코드, 명령, query·output label과
   기술 도해의 코드 표기는 기존 monospace stack을 유지한다.
 - 공통 spacing scale은 `0.25rem`, `0.5rem`, `0.75rem`, `1rem`, `1.5rem`과 section 간격

@@ -20,7 +20,7 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
   [DocumentLocale.Korean]: {
     eyebrow: '안내 · 에이전트',
     title: '코딩 에이전트 통합',
-    summary:
+    overview:
       '형태 검색을 반복 추론에서 분리하고, 명시적 품사와 JSON Lines를 사용해 Codex, Claude Code와 Gemini CLI에 결정적인 검색 결과를 제공합니다.',
     sections: [
       {
@@ -227,7 +227,7 @@ kfind --embedded --boundary any --json 'n:권한 v:검증하다' src \
   [DocumentLocale.English]: {
     eyebrow: 'GUIDE · AGENTS',
     title: 'Coding-agent integration',
-    summary:
+    overview:
       'Move morphology search out of repeated model reasoning and give Codex, Claude Code, and Gemini CLI deterministic results through explicit POS queries and JSON Lines.',
     sections: [
       {

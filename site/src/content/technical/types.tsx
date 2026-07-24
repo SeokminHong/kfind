@@ -24,8 +24,8 @@ export interface TechnicalSectionContent {
 
 export interface TechnicalDocumentContent {
   readonly eyebrow: string;
+  readonly overview?: string;
   readonly sections: readonly TechnicalSectionContent[];
-  readonly summary: string;
   readonly title: string;
 }
 
@@ -70,11 +70,11 @@ export function TechnicalDocument({
 
   return (
     <DocumentPage>
-      <PageIntro
-        eyebrow={content.eyebrow}
-        title={content.title}
-        summary={content.summary}
-      />
+      <PageIntro eyebrow={content.eyebrow} title={content.title}>
+        {content.overview === undefined ? null : (
+          <p>{renderInline(content.overview)}</p>
+        )}
+      </PageIntro>
       {content.sections.map((entry, position) => {
         const indexedSection = index.sections[position];
         if (indexedSection === undefined) {

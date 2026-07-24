@@ -29,7 +29,7 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
   [DocumentLocale.Korean]: {
     eyebrow: '기술 · 구조',
     title: '검색 엔진 구조',
-    summary:
+    overview:
       'kfind는 형태 분석을 검색 질의와 실제 후보 주변에 한정하고, corpus 전체는 byte anchor와 bounded output 경로로 처리합니다.',
     sections: [
       {
@@ -180,7 +180,7 @@ atom 2 spans ─┘`}</code>
   [DocumentLocale.English]: {
     eyebrow: 'TECHNICAL · ARCHITECTURE',
     title: 'Search engine architecture',
-    summary:
+    overview:
       'kfind confines morphology to query compilation and local candidate verification while corpus-scale work remains byte-anchor scanning and bounded output.',
     sections: [
       {

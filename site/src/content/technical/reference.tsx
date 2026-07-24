@@ -10,8 +10,6 @@ export const referenceDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '참조 · CLI',
       title: 'CLI 참조',
-      summary:
-        'Native CLI는 전체 파일 검색 surface를, npm CLI는 Node.js에서 바로 실행하는 UTF-8 profile을 제공합니다.',
       sections: [
         section(
           'native CLI',
@@ -46,8 +44,6 @@ npx @kfind/kfind 'v:걷다|n:사용자' src`,
     [DocumentLocale.English]: {
       eyebrow: 'REFERENCE · CLI',
       title: 'CLI reference',
-      summary:
-        'The native CLI exposes the complete file-search surface; the npm CLI is a directly executable UTF-8 Node.js profile.',
       sections: [
         section(
           'Native CLI',
@@ -84,8 +80,6 @@ npx @kfind/kfind 'v:걷다|n:사용자' src`,
     [DocumentLocale.Korean]: {
       eyebrow: '참조 · 질의',
       title: 'query 언어',
-      summary:
-        'Query parser는 atom, phrase, disjunction, 품사 prefix, 따옴표와 escape를 결정적으로 해석합니다.',
       sections: [
         section(
           '문법',
@@ -116,8 +110,6 @@ disjunction = atom 1*(OWS "|" OWS atom)`,
     [DocumentLocale.English]: {
       eyebrow: 'REFERENCE · QUERY',
       title: 'Query language',
-      summary:
-        'The parser deterministically interprets atoms, phrases, disjunctions, POS prefixes, quotes, and escapes.',
       sections: [
         section(
           'Syntax',
@@ -150,8 +142,6 @@ disjunction = atom 1*(OWS "|" OWS atom)`,
     [DocumentLocale.Korean]: {
       eyebrow: '참조 · 문법',
       title: '품사 태그',
-      summary:
-        '공개 태그는 사용자 입력을 위한 coarse POS이며 세부 resource 태그로 확장됩니다.',
       sections: [
         section('coarse POS', [
           '`noun`, `pronoun`, `numeral`, `verb`, `adjective`, `determiner`, `adverb`, `particle`, `interjection`, `literal`과 `auto`를 제공합니다.',
@@ -170,8 +160,6 @@ disjunction = atom 1*(OWS "|" OWS atom)`,
     [DocumentLocale.English]: {
       eyebrow: 'REFERENCE · GRAMMAR',
       title: 'POS tags',
-      summary:
-        'Public tags are coarse user-input categories expanded into detailed resource tags.',
       sections: [
         section('Coarse POS', [
           'Values are `noun`, `pronoun`, `numeral`, `verb`, `adjective`, `determiner`, `adverb`, `particle`, `interjection`, `literal`, and `auto`.',
@@ -192,8 +180,6 @@ disjunction = atom 1*(OWS "|" OWS atom)`,
     [DocumentLocale.Korean]: {
       eyebrow: '참조 · 환경',
       title: '설정',
-      summary:
-        'CLI option, 환경 변수와 기본 경로는 명시성이 높은 순서로 resource와 사용자 사전을 결정합니다.',
       sections: [
         section('설정 파일', [
           '사용자 사전 기본 경로는 `$XDG_CONFIG_HOME/kfind/lexicon.toml`, 다음으로 `$HOME/.config/kfind/lexicon.toml`입니다.',
@@ -212,8 +198,6 @@ disjunction = atom 1*(OWS "|" OWS atom)`,
     [DocumentLocale.English]: {
       eyebrow: 'REFERENCE · ENVIRONMENT',
       title: 'Configuration',
-      summary:
-        'CLI options, environment, and defaults resolve resources and user lexicons from most to least explicit.',
       sections: [
         section('Configuration files', [
           'The default user lexicon is `$XDG_CONFIG_HOME/kfind/lexicon.toml`, then `$HOME/.config/kfind/lexicon.toml`.',
@@ -234,8 +218,6 @@ disjunction = atom 1*(OWS "|" OWS atom)`,
     [DocumentLocale.Korean]: {
       eyebrow: '참조 · 데이터',
       title: '사용자 사전',
-      summary:
-        'TOML 사용자 사전은 프로젝트 표제어 분석을 내장·full POS 사전에 추가하거나 명시적으로 교체합니다.',
       sections: [
         section(
           '파일 형식',
@@ -266,8 +248,6 @@ surface = "LLM"`,
     [DocumentLocale.English]: {
       eyebrow: 'REFERENCE · DATA',
       title: 'User lexicon',
-      summary:
-        'A TOML user lexicon appends project analyses to embedded and full-POS lexicons or explicitly replaces them.',
       sections: [
         section(
           'File format',
@@ -300,8 +280,6 @@ surface = "LLM"`,
     [DocumentLocale.Korean]: {
       eyebrow: '참조 · 출력',
       title: 'JSON Lines',
-      summary:
-        '각 줄은 source와 match provenance를 독립적으로 해석할 수 있는 UTF-8 JSON object입니다.',
       sections: [
         section('record', [
           'Native record는 `type`, `path`, `line`, `text`, `spans`를 포함합니다. npm record는 `path`, `line`, `column`, `start`, `end`, `surface`, `atoms`를 포함합니다.',
@@ -320,8 +298,6 @@ surface = "LLM"`,
     [DocumentLocale.English]: {
       eyebrow: 'REFERENCE · OUTPUT',
       title: 'JSON Lines',
-      summary:
-        'Each line is a UTF-8 JSON object independently carrying source and match provenance.',
       sections: [
         section('Record', [
           'Native records contain `type`, `path`, `line`, `text`, and `spans`. npm records contain `path`, `line`, `column`, `start`, `end`, `surface`, and `atoms`.',
@@ -342,8 +318,6 @@ surface = "LLM"`,
     [DocumentLocale.Korean]: {
       eyebrow: '참조 · 실행',
       title: '종료 코드',
-      summary:
-        '검색 결과 유무와 실행 실패는 shell automation에서 구분 가능한 안정 상태입니다.',
       sections: [
         section('native CLI', [
           '0은 하나 이상의 match, 1은 정상 no-match, 2는 사용법·I/O·resource·compile 오류입니다.',
@@ -362,8 +336,6 @@ surface = "LLM"`,
     [DocumentLocale.English]: {
       eyebrow: 'REFERENCE · EXECUTION',
       title: 'Exit codes',
-      summary:
-        'Match presence and execution failure are stable, distinguishable states for shell automation.',
       sections: [
         section('Native CLI', [
           '0 means one or more matches, 1 is a normal no-match result, and 2 covers usage, I/O, resource, and compile errors.',
@@ -384,7 +356,6 @@ surface = "LLM"`,
     [DocumentLocale.Korean]: {
       eyebrow: '참조 · 실행',
       title: '오류 참조',
-      summary: '오류 class는 실패 단계와 복구 가능한 사용자 입력을 드러냅니다.',
       sections: [
         section('compile 오류', [
           'Query syntax, POS·literal 충돌, 잘못된 option, 빈 analysis와 plan limit이 대상입니다. Query나 option을 수정해야 합니다.',
@@ -403,8 +374,6 @@ surface = "LLM"`,
     [DocumentLocale.English]: {
       eyebrow: 'REFERENCE · EXECUTION',
       title: 'Error reference',
-      summary:
-        'Error classes expose the failing stage and whether user input can recover it.',
       sections: [
         section('Compile errors', [
           'Query syntax, POS-literal conflicts, invalid options, empty analyses, and plan limits require changing the query or options.',
@@ -425,8 +394,6 @@ surface = "LLM"`,
     [DocumentLocale.Korean]: {
       eyebrow: '참조 · API',
       title: 'Rust API',
-      summary:
-        '`kfind` facade는 안정 engine·matcher·resource 계약을 제공하고 내부 계획 실험은 expert module로 분리합니다.',
       sections: [
         section('안정 facade', [
           'Crate root는 `Engine`, `Matcher`, `ResourceBundle`, compile option, error와 match provenance type을 노출합니다. 이 surface가 1.x 호환 계약입니다.',
@@ -445,8 +412,6 @@ surface = "LLM"`,
     [DocumentLocale.English]: {
       eyebrow: 'REFERENCE · API',
       title: 'Rust API',
-      summary:
-        'The `kfind` facade provides stable engine, matcher, and resource contracts while plan experiments remain under expert.',
       sections: [
         section('Stable facade', [
           'The crate root exports `Engine`, `Matcher`, `ResourceBundle`, compile options, errors, and match-provenance types. This surface is the 1.x compatibility contract.',
@@ -467,8 +432,6 @@ surface = "LLM"`,
     [DocumentLocale.Korean]: {
       eyebrow: '참조 · API',
       title: 'JavaScript API',
-      summary:
-        '`@kfind/kfind`는 browser bundler와 Node.js에서 같은 Kfind·Matcher API를 제공합니다.',
       sections: [
         section('package export', [
           'Browser condition은 bundler ESM WASM을, Node condition은 CommonJS WASM target을 선택합니다. TypeScript declaration은 두 target이 공유합니다.',
@@ -497,8 +460,6 @@ const matches = matcher.findAll('길을 걸어 갔다.');`,
     [DocumentLocale.English]: {
       eyebrow: 'REFERENCE · API',
       title: 'JavaScript API',
-      summary:
-        '`@kfind/kfind` exposes the same Kfind and Matcher API in browser bundlers and Node.js.',
       sections: [
         section('Package exports', [
           'The browser condition selects bundler ESM WASM; the Node condition selects the CommonJS WASM target. Both share TypeScript declarations.',
@@ -529,8 +490,6 @@ const matches = matcher.findAll('길을 걸어 갔다.');`,
     [DocumentLocale.Korean]: {
       eyebrow: '참조 · 데이터',
       title: 'resource 참조',
-      summary:
-        '세 resource profile은 query coverage, 용언 정보와 source 구조라는 독립 기능을 제공합니다.',
       sections: [
         section('resource profile', [
           'Full POS `lexicon.bin`은 넓은 표제어·세부 품사를, enriched TSV는 검증된 용언 alternation·derivation을, compact KFC는 source component 분석을 제공합니다.',
@@ -549,8 +508,6 @@ const matches = matcher.findAll('길을 걸어 갔다.');`,
     [DocumentLocale.English]: {
       eyebrow: 'REFERENCE · DATA',
       title: 'Resource reference',
-      summary:
-        'Three resource profiles independently provide query coverage, predicate metadata, and source structure.',
       sections: [
         section('Resource profiles', [
           'Full-POS `lexicon.bin` supplies broad lemmas and detailed POS; enriched TSV supplies verified predicate alternation and derivation; compact KFC supplies source components.',
@@ -571,8 +528,6 @@ const matches = matcher.findAll('길을 걸어 갔다.');`,
     [DocumentLocale.Korean]: {
       eyebrow: '참조 · provenance',
       title: '규칙 ID',
-      summary:
-        'Rule ID는 표면 후보가 생성·검증된 문법 단계를 namespace와 순서로 나타냅니다.',
       sections: [
         section('namespace', [
           '`lexical.*`은 어휘 교체, `ending.*`은 어미, `particle.*`은 조사, `derivation.*`은 파생, `structural.*`은 source constraint를 나타냅니다.',
@@ -591,8 +546,6 @@ const matches = matcher.findAll('길을 걸어 갔다.');`,
     [DocumentLocale.English]: {
       eyebrow: 'REFERENCE · PROVENANCE',
       title: 'Rule IDs',
-      summary:
-        'Rule IDs encode grammar stages used to generate and verify a surface, preserving namespaces and order.',
       sections: [
         section('Namespaces', [
           '`lexical.*` identifies substitutions, `ending.*` endings, `particle.*` particles, `derivation.*` derivation, and `structural.*` source constraints.',
@@ -613,8 +566,6 @@ const matches = matcher.findAll('길을 걸어 갔다.');`,
     [DocumentLocale.Korean]: {
       eyebrow: '참조 · 배포',
       title: '라이선스',
-      summary:
-        '소스 code와 재배포 data는 각 license와 notice를 package 및 release에 함께 포함합니다.',
       sections: [
         section('코드 라이선스', [
           'kfind source code는 저장소 `LICENSE`의 MIT License를 적용합니다. Rust crate, site source와 npm wrapper가 대상입니다.',
@@ -633,8 +584,6 @@ const matches = matcher.findAll('길을 걸어 갔다.');`,
     [DocumentLocale.English]: {
       eyebrow: 'REFERENCE · DISTRIBUTION',
       title: 'Licenses',
-      summary:
-        'Source code and redistributed data carry their licenses and notices in packages and releases.',
       sections: [
         section('Code license', [
           'kfind source code uses the MIT License in repository `LICENSE`, covering Rust crates, site source, and the npm wrapper.',

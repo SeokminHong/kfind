@@ -10,8 +10,6 @@ export const agentDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '에이전트 · 절차',
       title: '에이전트 검색 절차',
-      summary:
-        '후보 수집, 조건 강화와 문맥 확인을 분리해 누락과 과잉 검색을 추적합니다.',
       sections: [
         section('후보 수집', [
           '요구사항에서 핵심 표제어를 추출하고 `--boundary any --json`으로 넓은 후보를 모읍니다. 파일 범위는 작업 대상 directory 안으로 제한합니다.',
@@ -30,8 +28,6 @@ export const agentDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'AGENTS · WORKFLOW',
       title: 'Agent search workflow',
-      summary:
-        'Separate candidate collection, constraint refinement, and context review so omissions and excess results remain observable.',
       sections: [
         section('Candidate search', [
           'Extract the central lemma from the requirement and collect broad candidates with `--boundary any --json`. Limit paths to the directories in scope.',
@@ -52,8 +48,6 @@ export const agentDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '에이전트 · skill',
       title: 'skill 설치',
-      summary:
-        '저장소의 skill 문서는 검색 명령, 결과 해석과 fallback을 하나의 반복 가능한 계약으로 묶습니다.',
       sections: [
         section('설치 위치', [
           '`skills/kfind-search/SKILL.md`와 함께 참조하는 script를 에이전트가 읽을 수 있는 skill directory에 설치합니다. 원본의 상대 경로 관계를 보존합니다.',
@@ -71,8 +65,6 @@ export const agentDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'AGENTS · SKILL',
       title: 'Skill installation',
-      summary:
-        'The repository skill combines commands, result interpretation, and fallback behavior into a repeatable contract.',
       sections: [
         section('Installation location', [
           'Install `skills/kfind-search/SKILL.md` and its referenced scripts in a skill directory visible to the agent. Preserve relative paths from the source.',
@@ -92,8 +84,6 @@ export const agentDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '에이전트 · 환경',
       title: '에이전트별 통합',
-      summary:
-        '에이전트 제품이 달라도 shell 입력, JSON Lines와 오류 계약은 동일합니다.',
       sections: [
         section('Codex', [
           'Codex 작업에서는 repository `AGENTS.md`와 관련 spec을 읽은 뒤 kfind query를 실행합니다. 출력 path는 현재 workspace 안으로 제한하고, match를 수정 권한으로 해석하지 않습니다.',
@@ -109,8 +99,6 @@ export const agentDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'AGENTS · ENVIRONMENTS',
       title: 'Agent integrations',
-      summary:
-        'Shell input, JSON Lines, and failure contracts stay the same across agent products.',
       sections: [
         section('Codex', [
           'In Codex, read repository `AGENTS.md` and the relevant specification before running a kfind query. Keep output paths inside the current workspace and do not interpret a match as authorization to edit.',
@@ -128,8 +116,6 @@ export const agentDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '에이전트 · 자동화',
       title: '자동화 패턴',
-      summary:
-        '기계 소비 출력은 bounded search, JSON Lines와 명시적 실패 처리를 함께 사용합니다.',
       sections: [
         section('JSON Lines pipeline', [
           '각 record는 source path, span, surface와 atom provenance를 독립적으로 포함합니다. 줄 단위 parser는 전체 출력 buffering 없이 record를 처리할 수 있습니다.',
@@ -148,8 +134,6 @@ export const agentDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'AGENTS · AUTOMATION',
       title: 'Automation patterns',
-      summary:
-        'Machine-readable output combines bounded search, JSON Lines, and explicit failure handling.',
       sections: [
         section('JSON Lines pipeline', [
           'Each record independently contains source path, span, surface, and atom provenance. A line-oriented parser can process it without buffering the full output.',
@@ -170,8 +154,6 @@ export const agentDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '에이전트 · 계약',
       title: '통합 계약',
-      summary:
-        '에이전트는 query 입력, match schema와 실패 분류에만 의존하고 사람용 표현에는 의존하지 않습니다.',
       sections: [
         section('입력 계약', [
           'Query는 하나 이상의 atom과 선택적 품사 태그로 구성합니다. Path, encoding, boundary와 expansion은 query text 밖의 실행 옵션입니다.',
@@ -190,8 +172,6 @@ export const agentDocuments: TechnicalDocuments = {
     [DocumentLocale.English]: {
       eyebrow: 'AGENTS · CONTRACT',
       title: 'Integration contract',
-      summary:
-        'Agents depend on query input, match schema, and failure classes rather than human-facing presentation.',
       sections: [
         section('Input contract', [
           'A query contains one or more atoms with optional POS tags. Paths, encoding, boundary, and expansion are execution options outside the query text.',

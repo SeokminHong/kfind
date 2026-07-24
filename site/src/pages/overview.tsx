@@ -18,7 +18,7 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
   [DocumentLocale.Korean]: {
     eyebrow: '시작 · 제품 범위',
     title: 'kfind 개요',
-    summary:
+    overview:
       'kfind는 한국어 표제어와 짧은 구를 유한한 검색 계획으로 컴파일하고, 파일이나 메모리 text에서 형태 조건을 만족하는 span을 찾는 검색 엔진입니다.',
     sections: [
       {
@@ -106,7 +106,7 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
   [DocumentLocale.English]: {
     eyebrow: 'START · PRODUCT SCOPE',
     title: 'kfind overview',
-    summary:
+    overview:
       'kfind compiles Korean lemmas and short phrases into finite search plans, then finds spans that satisfy those morphology constraints in files or in-memory text.',
     sections: [
       {

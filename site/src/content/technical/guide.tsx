@@ -10,8 +10,6 @@ export const guideDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: '시작 · 배포',
       title: '설치',
-      summary:
-        '배포 방식마다 실행 surface와 포함 resource가 다릅니다. 검색 대상과 통합 환경에 맞는 profile을 선택합니다.',
       sections: [
         section('배포 profile', [
           'Homebrew 배포물은 native CLI, full POS, enriched predicate와 compact component resource를 함께 설치합니다. Cargo 설치는 source에서 native CLI를 만들며 배포 resource 경로를 사용자가 준비합니다.',
@@ -51,8 +49,6 @@ yarn dlx @kfind/kfind 걷다 README.md`,
     [DocumentLocale.English]: {
       eyebrow: 'GET STARTED · DISTRIBUTION',
       title: 'Installation',
-      summary:
-        'Each distribution exposes a different runtime and resource profile. Select one for the search target and integration environment.',
       sections: [
         section('Distribution profiles', [
           'The Homebrew distribution installs the native CLI together with full-POS, enriched-predicate, and compact-component resources. A Cargo installation builds the native CLI from source and leaves resource placement to the caller.',
@@ -94,8 +90,6 @@ yarn dlx @kfind/kfind 걷다 README.md`,
     [DocumentLocale.Korean]: {
       eyebrow: '시작 · 절차',
       title: '검색 절차',
-      summary:
-        '탐색과 정밀 검색은 서로 다른 경계와 출력 계약을 사용합니다. 결과를 좁힐 때는 한 조건씩 추가합니다.',
       sections: [
         section('탐색 검색', [
           '첫 검색은 표제어와 기본 `inflection`, `smart` 경계를 사용합니다. 결과가 없으면 `--boundary any`로 구조 경계를 풀고, 품사 중의성이 예상되면 `--pos`를 명시합니다.',
@@ -120,8 +114,6 @@ yarn dlx @kfind/kfind 걷다 README.md`,
     [DocumentLocale.English]: {
       eyebrow: 'GET STARTED · WORKFLOW',
       title: 'Search workflows',
-      summary:
-        'Exploratory and precise searches use different boundary and output contracts. Add one constraint at a time.',
       sections: [
         section('Exploration', [
           'Start with a lemma and the default `inflection` and `smart` settings. If no result appears, relax structural boundaries with `--boundary any`; specify `--pos` when the lemma is POS-ambiguous.',
@@ -148,8 +140,6 @@ yarn dlx @kfind/kfind 걷다 README.md`,
     [DocumentLocale.Korean]: {
       eyebrow: '시작 · 제품 범위',
       title: '목표와 비목표',
-      summary:
-        'kfind는 한국어 표제어를 빠른 text 검색 계획으로 바꾸는 도구입니다. 문장 전체 분석과 의미 판정은 제품 범위에 포함하지 않습니다.',
       sections: [
         section('제품 목표', [
           '사용자가 아는 표제어와 짧은 구를 조사, 어미, 불규칙 활용과 제한된 파생을 포함하는 검색 후보로 컴파일합니다. Source에서는 anchor가 있는 국소 범위만 검증합니다.',
@@ -168,8 +158,6 @@ yarn dlx @kfind/kfind 걷다 README.md`,
     [DocumentLocale.English]: {
       eyebrow: 'GET STARTED · PRODUCT SCOPE',
       title: 'Goals and non-goals',
-      summary:
-        'kfind turns Korean lemmas into fast text-search plans. Whole-sentence analysis and semantic decisions are outside its product scope.',
       sections: [
         section('Product goals', [
           'Compile a known lemma or short phrase into candidates covering particles, endings, irregular inflection, and bounded derivation. Verify only local source regions containing an anchor.',

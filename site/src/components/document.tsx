@@ -5,14 +5,13 @@ import { Link } from 'react-router';
 
 import { useDocumentLocale } from '../app/i18n';
 
-import { getGlossaryContent } from './glossary';
+import { getGlossaryContent, GlossaryCategory } from './glossary';
 import { annotateGlossaryText } from './glossary-annotation';
 import { DocumentPageNavigation } from './page-navigation';
 
 interface PageIntroProps {
   readonly eyebrow: string;
   readonly title: ReactNode;
-  readonly summary: ReactNode;
   readonly children?: ReactNode;
 }
 
@@ -35,7 +34,6 @@ interface ElementWithChildren {
 const skippedElements = new Set([
   'a',
   'button',
-  'code',
   'input',
   'label',
   'option',
@@ -81,7 +79,6 @@ function annotateDocumentNode(
       element,
       {
         title: annotateDocumentNode(element.props.title, seenTerms, terms),
-        summary: annotateDocumentNode(element.props.summary, seenTerms, terms),
       },
       annotateChildren(element.props.children, seenTerms, terms),
     );
@@ -98,6 +95,18 @@ function annotateDocumentNode(
   }
 
   const element = node as ReactElement<ElementWithChildren>;
+
+  if (node.type === 'code' && element.props.children !== undefined) {
+    return cloneElement(
+      element,
+      undefined,
+      annotateChildren(
+        element.props.children,
+        seenTerms,
+        terms.filter((term) => term.category === GlossaryCategory.Morpheme),
+      ),
+    );
+  }
 
   if (
     element.props['data-glossary-skip'] !== undefined ||
@@ -136,15 +145,15 @@ export function DocumentPage({
 export function PageIntro({
   eyebrow,
   title,
-  summary,
   children,
 }: PageIntroProps): React.JSX.Element {
   return (
     <header className="document-intro">
       <p className="document-kind">{eyebrow}</p>
       <h1>{title}</h1>
-      <p className="lead">{summary}</p>
-      {children}
+      {children === undefined ? null : (
+        <div className="document-overview">{children}</div>
+      )}
     </header>
   );
 }
