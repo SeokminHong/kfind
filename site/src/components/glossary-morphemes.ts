@@ -294,7 +294,7 @@ export function getMorphemeGlossaryEntries(
 ): readonly MorphemeGlossaryEntry[] {
   return morphemeLabels.map((entry) => ({
     id: `morpheme-${entry.label.toLowerCase()}`,
-    name: `${entry.label} · ${entry.name[locale]}`,
+    name: entry.name[locale],
     notation: entry.label,
     definition: entry.definition[locale],
     example: entry.example,

@@ -19,6 +19,7 @@ export interface GlossaryTerm {
   readonly definition: string;
   readonly example?: string;
   readonly aliases: readonly string[];
+  readonly tooltipLabelsByAlias?: Readonly<Record<string, string>>;
 }
 
 interface GlossaryContent {
@@ -309,7 +310,7 @@ const koreanTerms: readonly GlossaryTerm[] = [
     id: 'f1-score',
     category: GlossaryCategory.Quality,
     name: 'F1 점수',
-    notation: 'F1 = 2PR / (P + R)',
+    notation: 'F1 · F1 score · 2PR / (P + R)',
     definition:
       '정밀도와 재현율의 조화 평균입니다. 한쪽이 낮으면 함께 낮아지므로 두 지표의 균형을 확인하는 데 사용합니다. 두 값의 합이 0이면 0으로 기록합니다.',
     example: '정밀도 0.8, 재현율 0.8이면 F1은 0.8입니다.',
@@ -334,6 +335,16 @@ const koreanTerms: readonly GlossaryTerm[] = [
       '사람이 검토해 제품 계약 안으로 판정한 사례만 TPᶜ, TNᶜ, FPᶜ, FNᶜ에 반영한 품질 지표입니다. 검토되지 않은 fixture에서는 원시 지표와 같은 confusion matrix를 사용하며 reviewed 수는 0입니다.',
     example:
       'raw FN 4, FNᶜ 0이면 네 누락은 관측되었지만 모두 제품 목표 밖이며 계약 안의 누락은 없습니다.',
+    tooltipLabelsByAlias: {
+      TPᶜ: 'TPᶜ · 계약 조정 참양성 · contract-adjusted true positive',
+      TNᶜ: 'TNᶜ · 계약 조정 참음성 · contract-adjusted true negative',
+      FPᶜ: 'FPᶜ · 계약 조정 거짓양성 · contract-adjusted false positive',
+      FNᶜ: 'FNᶜ · 계약 조정 거짓음성 · contract-adjusted false negative',
+      TPc: 'TPc · 계약 조정 참양성 · contract-adjusted true positive',
+      TNc: 'TNc · 계약 조정 참음성 · contract-adjusted true negative',
+      FPc: 'FPc · 계약 조정 거짓양성 · contract-adjusted false positive',
+      FNc: 'FNc · 계약 조정 거짓음성 · contract-adjusted false negative',
+    },
     aliases: [
       'contract-adjusted metric',
       '계약 조정 지표',
@@ -546,6 +557,16 @@ const englishOverrides: Readonly<Record<string, Partial<GlossaryTerm>>> = {
       'A quality metric that counts only human-reviewed in-contract cases in TPᶜ, TNᶜ, FPᶜ, and FNᶜ. A fixture without review uses the raw confusion matrix and reports reviewed as zero.',
     example:
       'Raw FN 4 with FNᶜ 0 means four misses were observed, all outside the contract, and no in-contract item was missed.',
+    tooltipLabelsByAlias: {
+      TPᶜ: 'TPᶜ · contract-adjusted true positive',
+      TNᶜ: 'TNᶜ · contract-adjusted true negative',
+      FPᶜ: 'FPᶜ · contract-adjusted false positive',
+      FNᶜ: 'FNᶜ · contract-adjusted false negative',
+      TPc: 'TPc · contract-adjusted true positive',
+      TNc: 'TNc · contract-adjusted true negative',
+      FPc: 'FPc · contract-adjusted false positive',
+      FNc: 'FNc · contract-adjusted false negative',
+    },
   },
   latency: {
     name: 'Latency',

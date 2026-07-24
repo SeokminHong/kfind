@@ -20,6 +20,38 @@ interface GlossaryTooltipProps {
 }
 
 const tooltipGap = 8;
+const tooltipLabelSeparator = ' · ';
+const technicalIdentifierPattern = /^[A-Z][A-Z0-9*ᶜ]*$/u;
+
+function formatTooltipLabel(
+  term: GlossaryTerm,
+  triggerLabel: string,
+): string | undefined {
+  const labelForAlias = term.tooltipLabelsByAlias?.[triggerLabel];
+
+  if (labelForAlias !== undefined) {
+    return labelForAlias;
+  }
+
+  const notation = term.notation;
+
+  if (notation === undefined) {
+    return undefined;
+  }
+
+  if (notation.toLocaleLowerCase().includes(term.name.toLocaleLowerCase())) {
+    return notation;
+  }
+
+  const notationParts = notation.split(tooltipLabelSeparator);
+  const [identifier, ...expansion] = notationParts;
+
+  if (identifier !== undefined && technicalIdentifierPattern.test(identifier)) {
+    return [identifier, term.name, ...expansion].join(tooltipLabelSeparator);
+  }
+
+  return [notation, term.name].join(tooltipLabelSeparator);
+}
 
 export function GlossaryTooltip({
   children,
@@ -29,6 +61,7 @@ export function GlossaryTooltip({
   const isTooltipArmed = useRef(false);
   const [isOpen, setIsOpen] = useState(false);
   const tooltipId = useId();
+  const tooltipLabel = formatTooltipLabel(term, children);
 
   function beginKeyboardActivation(
     event: ReactKeyboardEvent<HTMLAnchorElement>,
@@ -110,8 +143,8 @@ export function GlossaryTooltip({
             id={tooltipId}
             role="tooltip"
           >
-            {term.notation === undefined ? null : (
-              <span className={styles.notation}>{term.notation}</span>
+            {tooltipLabel === undefined ? null : (
+              <span className={styles.notation}>{tooltipLabel}</span>
             )}
             <span>{term.definition}</span>
           </PreviewCard.Popup>
