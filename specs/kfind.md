@@ -3404,7 +3404,7 @@ RSS 20% 이상 증가
 candidate program 수 2배 이상 증가
 ```
 
-## 21. Homebrew 배포
+## 21. Native package 배포
 
 ### 21.1 배포 형태
 
@@ -3461,6 +3461,36 @@ test do
   assert_match "걸어", output
 end
 ```
+
+### 21.4 Chocolatey 배포
+
+Chocolatey package ID는 `kfind`다. x64 Windows용 portable ZIP을 tagged GitHub Release에
+`kfind-windows-x86_64-VERSION.zip` 이름으로 게시한다.
+
+```text
+bin/kfind.exe
+share/kfind/lexicon.bin
+share/kfind/morphology-component-compact.kfc
+share/kfind/predicates.enriched.tsv
+share/kfind/*MANIFEST.toml
+share/doc/kfind/LICENSES/
+```
+
+실행 파일은 `bin`의 부모를 prefix로 보고 `share/kfind`의 full POS lexicon, enriched
+predicate와 compact component resource를 자동 탐색한다. Archive 생성 시
+`kfind.exe --check-data --json --data-dir share/kfind`를 실행해 binary와 resource version,
+schema와 source digest를 검증한다.
+
+Chocolatey package는 version tag의 immutable archive URL과 SHA-256을
+`Install-ChocolateyZipPackage`에 전달한다. 압축을 package의 `tools` 아래에 풀고
+`bin/kfind.exe`의 자동 shim을 사용한다. 별도 system directory, registry와 환경 변수는
+수정하지 않으며 uninstall은 package directory와 shim 제거만으로 끝난다.
+
+Tag release는 같은 archive checksum으로 `kfind.VERSION.nupkg`를 만들고 GitHub Release에
+첨부한다. Chocolatey Community Repository 게시는 별도 workflow에서 이 release asset을
+내려받아 `https://push.chocolatey.org/`로 전송한다. Repository secret
+`CHOCOLATEY_API_KEY`가 없는 release-trigger 실행은 게시를 건너뛰며, secret을 등록한 뒤 같은
+tag를 수동 실행해 게시할 수 있다.
 
 ## 22. 보안과 견고성
 
@@ -3525,6 +3555,8 @@ end
     coverage를 포함한 모든 positive와 negative case가 기대값과 일치한다.
 27. 설치된 agent hook은 명시적 command-line 검색 pattern에 한글이 있는 `rg`·`grep` 계열
     shell tool call을 실행 전에 거부하고 한글 path·glob, pattern file과 kfind 호출은 허용한다.
+28. Tagged release의 Windows x64 archive와 Chocolatey package가 같은 checksum 계약을 사용하며,
+    archive의 `kfind.exe --check-data`와 local Chocolatey install smoke test가 통과한다.
 
 ## 24. 공개 코드 인터페이스
 
