@@ -6,6 +6,7 @@ import type {
   PlaygroundResult,
 } from '../../playground';
 
+import type { MatchRevealRequest } from './match-list';
 import type { SearchEditorHandle } from './search-editor';
 
 import { Button } from '@base-ui/react/button';
@@ -25,8 +26,6 @@ import {
   ComponentResourceState,
   createInitialComponentResourceStatus,
   createInitialPlaygroundStatus,
-  formatMorphologyAnalysis,
-  formatProvenance,
   initializePlayground,
   initialPlaygroundInput,
   playgroundPresetOptions,
@@ -34,6 +33,7 @@ import {
   PlaygroundState,
 } from '../../playground';
 
+import { MatchList } from './match-list';
 import { QueryField } from './query-field';
 import { SearchEditor } from './search-editor';
 import { SelectField } from './select-field';
@@ -607,11 +607,6 @@ interface PlaygroundOutputProps {
   readonly result: PlaygroundResult | undefined;
 }
 
-interface MatchRevealRequest {
-  readonly index: number;
-  readonly sequence: number;
-}
-
 function PlaygroundOutput({
   activeTab,
   input,
@@ -622,7 +617,6 @@ function PlaygroundOutput({
   result,
 }: PlaygroundOutputProps): React.JSX.Element {
   const copy = playgroundCopy[locale];
-  const matchItemRefs = useRef<Array<HTMLLIElement | null>>([]);
   const isPending = result === undefined;
   const summary = resultSummary(result, locale);
   const executionTime =
@@ -634,27 +628,6 @@ function PlaygroundOutput({
     result?.state === PlaygroundResultState.Error
       ? { error: result.message }
       : (result?.matches ?? []);
-
-  useEffect(() => {
-    if (
-      activeTab !== PlaygroundOutputTab.Matches ||
-      revealRequest === undefined ||
-      result?.state !== PlaygroundResultState.Success
-    ) {
-      return;
-    }
-
-    const frame = globalThis.requestAnimationFrame(() => {
-      const item = matchItemRefs.current[revealRequest.index];
-
-      item?.scrollIntoView({ block: 'center' });
-      item?.querySelector('button')?.focus({ preventScroll: true });
-    });
-
-    return () => {
-      globalThis.cancelAnimationFrame(frame);
-    };
-  }, [activeTab, result, revealRequest]);
 
   return (
     <div className="playground-output" aria-busy={isPending} aria-live="polite">
@@ -691,12 +664,14 @@ function PlaygroundOutput({
           value={PlaygroundOutputTab.Matches}
         >
           <MatchList
+            active={activeTab === PlaygroundOutputTab.Matches}
+            emptyLabel={copy.empty}
             input={input}
+            loadingLabel={copy.loadingResult}
             locale={locale}
-            onItemRef={(index, element) => {
-              matchItemRefs.current[index] = element;
-            }}
+            matchLabel={copy.matchLabel}
             onMatchActivate={onMatchActivate}
+            revealRequest={revealRequest}
             result={result}
           />
         </Tabs.Panel>
@@ -728,111 +703,6 @@ function resultSummary(
   return result.state === PlaygroundResultState.Error
     ? copy.errorSummary
     : result.message;
-}
-
-function MatchList({
-  input,
-  locale,
-  onItemRef,
-  onMatchActivate,
-  result,
-}: {
-  readonly input: PlaygroundInput;
-  readonly locale: DocumentLocale;
-  readonly onItemRef: (index: number, element: HTMLLIElement | null) => void;
-  readonly onMatchActivate: (match: Match) => void;
-  readonly result: PlaygroundResult | undefined;
-}): React.JSX.Element {
-  const copy = playgroundCopy[locale];
-
-  if (result?.state !== PlaygroundResultState.Success) {
-    return (
-      <ol className="match-list">
-        <li className="match-empty">
-          {result === undefined ? copy.loadingResult : copy.empty}
-        </li>
-      </ol>
-    );
-  }
-
-  if (result.matches.length === 0) {
-    return (
-      <ol className="match-list">
-        <li className="match-empty">{copy.empty}</li>
-      </ol>
-    );
-  }
-
-  return (
-    <ol className="match-list">
-      {result.matches.map((match, index) => (
-        <MatchItem
-          index={index}
-          key={matchKey(match, index)}
-          locale={locale}
-          match={match}
-          itemRef={(element) => {
-            onItemRef(index, element);
-          }}
-          onActivate={() => {
-            onMatchActivate(match);
-          }}
-          text={input.text}
-        />
-      ))}
-    </ol>
-  );
-}
-
-function MatchItem({
-  index,
-  itemRef,
-  locale,
-  match,
-  onActivate,
-  text,
-}: {
-  readonly index: number;
-  readonly itemRef: (element: HTMLLIElement | null) => void;
-  readonly locale: DocumentLocale;
-  readonly match: Match;
-  readonly onActivate: () => void;
-  readonly text: string;
-}): React.JSX.Element {
-  const copy = playgroundCopy[locale];
-  const surface = text.slice(match.start, match.end);
-
-  return (
-    <li ref={itemRef}>
-      <button
-        aria-label={copy.matchLabel(surface)}
-        className="match-item"
-        data-glossary-skip=""
-        onClick={onActivate}
-        type="button"
-      >
-        <span className="match-index">
-          {String(index + 1).padStart(2, '0')}
-        </span>
-        <strong>{surface}</strong>
-        <code>
-          [{match.start}, {match.end})
-        </code>
-        <span className="match-description">
-          <span className="match-analysis">
-            {formatMorphologyAnalysis(match, text, locale)}
-          </span>
-          <span className="match-provenance">
-            {formatProvenance(match, locale)}
-          </span>
-        </span>
-      </button>
-    </li>
-  );
-}
-
-function matchKey(match: Match, index: number): string {
-  return `${match.start}-${match.end}-${index}`;
 }
 
 function selectedOptionDescription<Value extends string>(

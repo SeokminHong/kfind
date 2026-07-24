@@ -4,6 +4,7 @@ mod options;
 mod output;
 mod resources;
 
+use kfind::expert::MatcherExt;
 use kfind::{Engine, Matcher as RustMatcher};
 use wasm_bindgen::prelude::*;
 
@@ -50,6 +51,7 @@ export interface Span {
 
 export interface MatchOrigin {
   readonly analysisIndex: number;
+  readonly lemma?: string;
   readonly rulePath: readonly string[];
 }
 
@@ -158,6 +160,10 @@ pub struct Matcher {
 impl Matcher {
     #[wasm_bindgen(js_name = findAll, unchecked_return_type = "readonly Match[]")]
     pub fn find_all(&self, text: &str) -> Result<JsValue, JsError> {
-        serialize_matches(text, &self.inner.find_all(text.as_bytes()))
+        serialize_matches(
+            text,
+            &self.inner.find_all(text.as_bytes()),
+            self.inner.plan(),
+        )
     }
 }

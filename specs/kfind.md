@@ -492,11 +492,17 @@
 - 결과 panel은 `Matches`와 `Raw JSON` tab을 제공하고 한 번에 선택한 detail만 표시한다. 기본 tab은
   사람이 읽는 surface·span·provenance 목록이며 Raw JSON은 같은 match의 전체 구조를 표시한다.
   Match 목록은 surface, span과 설명을 빠르게 훑을 수 있는 compact row로 표시하고 각 항목을 독립된
-  큰 card로 확장하지 않는다. 설명 첫 줄은 surface와 생성 규칙을 한국어 사전의 형태 분석처럼 읽을 수
-  있게 표시하고, 둘째 줄은 기존 provenance rule path를 그대로 표시한다. 좁은 화면에서는 두 줄 설명만
-  다음 행으로 내려 정보 순서를 보존한다. Match row를 활성화하면 해당 UTF-16 span을 editor에서
-  선택하고 editor 내부 scroll과 문서 viewport를 그 위치로 이동한다. 반대로 editor의 match highlight를
-  pointer로 활성화하면 `Matches` tab을 열고 해당 row를 결과 목록과 문서 viewport에 표시한다.
+  큰 card로 확장하지 않는다. Match row의 keyboard focus ring은 scroll container에 잘리지 않도록 row
+  안쪽에 표시하고, ring이 내용을 가리지 않도록 내부 여백과 둥근 모서리를 적용한다. 설명 첫 줄은
+  이미 별도 표시한 match surface를 반복하지 않고 각 생성 origin의
+  표제어와 생성 규칙을 `걷다 + ㄷ→ㄹ + -았/었- + -다`처럼 한국어 사전의 형태 분석 순서로 표시한다.
+  생성 규칙이 없는 literal origin은 surface 대신 직접 일치임을 표시한다. 둘째 줄은 기존 provenance
+  rule path를 그대로 표시한다. 좁은 화면에서는 두 줄 설명만 다음 행으로 내려 정보 순서를 보존한다.
+  Match 목록은 현재 scroll viewport와 인접한 소수의 row만 DOM에 rendering하고 실제 row 높이를
+  측정해 전체 scroll range를 보존한다. Match row를 활성화하면 해당 UTF-16 span을 editor에서 선택하고
+  editor 내부 scroll과 문서 viewport를 그 위치로 이동한다. 반대로 editor의 match highlight를 pointer로
+  활성화하면 `Matches` tab을 열고 아직 rendering되지 않은 row도 해당 index로 scroll한 뒤 focus하여
+  결과 목록과 문서 viewport에 표시한다.
 - Playground 입력은 browser 밖으로 보내지 않는다. Full POS와 약 36 MiB의 compact component
   resource는 기본 demo에 포함하지 않는다. 사용자가 고급 `smart` 지원을 요청할 때만 같은 origin의
   Pages Function에서 component resource를 한 번 내려받아 기존 WASM engine에 load한다. 검증된
