@@ -374,10 +374,11 @@
   둔다. 문법 항목, 구현 단계와 개별 지표를 GNB에 직접 나열하지 않는다.
 - 문서 route의 좌측 sidebar는 현재 GNB 영역에 속한 문서와 현재 문서의 절을 함께 표시한다.
   현재 route와 절은 접근 가능한 navigation 상태로 구분한다. 데스크톱에서는 sticky sidebar로,
-  좁은 화면에서는 같은 계층을 보존하는 collapsible 문서 메뉴로 제공한다. 본문 순서와 sidebar
-  순서는 일치해야 하며, 언어를 전환해도 route와 절 fragment는 유지한다. `Internals`의 한국어
-  형태 처리는 별도 sidebar 하위 범주로 묶고, benchmark의 최신 결과·방법론·역사 보고서는 서로
-  다른 route로 분리한다. GNB에는 이 하위 범주를 펼치지 않는다.
+  좁은 화면에서는 같은 계층을 보존하는 collapsible 문서 메뉴로 제공한다. 메뉴 trigger에는
+  펼침 상태를 나타내는 chevron과 접근 가능한 expanded 상태를 함께 제공한다. 본문 순서와
+  sidebar 순서는 일치해야 하며, 언어를 전환해도 route와 절 fragment는 유지한다. `Internals`의
+  한국어 형태 처리는 별도 sidebar 하위 범주로 묶고, benchmark의 최신 결과·방법론·역사
+  보고서는 서로 다른 route로 분리한다. GNB에는 이 하위 범주를 펼치지 않는다.
 - 각 문서 route의 본문 하단에는 GNB와 sidebar의 전체 문서 순서를 기준으로 이전·다음 문서
   link를 제공한다. 첫 문서에는 다음 link만, 마지막 문서에는 이전 link만 표시하며 link label은
   현재 locale을 따른다. Playground와 정의되지 않은 경로는 이 순서에 포함하지 않는다.
@@ -402,7 +403,10 @@
   이 구분에 media query나 click metadata를 사용하지 않는다. 기존 link와 form control에는 중첩해서
   적용하지 않는다.
 - 일반 UI text는 Pretendard 기반 sans-serif stack을 사용한다. 코드, 명령, query·output label과
-  기술 도해의 코드 표기는 기존 monospace stack을 유지한다.
+  기술 도해의 코드 표기는 기존 monospace stack을 유지한다. 본문 인라인 code에는 배경, border,
+  radius와 최소 padding을 적용해 문장과 구분하고, code block 안에서는 이 장식을 중첩하지 않는다.
+- 문서 table은 열 내부의 짧은 label·수치·단위를 줄바꿈하지 않는다. 화면보다 넓은 table은
+  cell을 접는 대신 table container에서 가로로 scroll한다.
 - 공통 spacing scale은 `0.25rem`, `0.5rem`, `0.75rem`, `1rem`, `1.5rem`과 section 간격
   `2.5rem`을 사용한다. 문서 카드와 playground panel은 이 scale로 padding과 gap을 제한하며,
   상태 badge와 짧은 token은 좁은 화면에서도 내용 너비만 차지한다.
