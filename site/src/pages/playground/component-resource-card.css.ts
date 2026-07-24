@@ -6,8 +6,8 @@ export const card = style({
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1fr) minmax(15rem, auto)',
   alignItems: 'center',
-  gap: vars.space.xlarge,
-  padding: vars.space.large,
+  gap: vars.space.medium,
+  padding: vars.space.medium,
   borderBlockEnd: `1px solid ${vars.color.border}`,
   background: vars.color.linkWash,
   selectors: {
@@ -22,9 +22,6 @@ export const card = style({
     '(max-width: 64rem)': {
       gridTemplateColumns: 'minmax(0, 1fr)',
       gap: vars.space.medium,
-    },
-    '(max-width: 34rem)': {
-      padding: vars.space.medium,
     },
   },
 });
@@ -54,14 +51,6 @@ export const role = style({
   color: vars.color.text,
   fontSize: '0.76rem',
   lineHeight: 1.6,
-});
-
-export const delivery = style({
-  maxWidth: '68rem',
-  margin: `${vars.space.xsmall} 0 0`,
-  color: vars.color.muted,
-  fontSize: '0.7rem',
-  lineHeight: 1.55,
 });
 
 export const control = style({
