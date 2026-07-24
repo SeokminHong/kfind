@@ -458,7 +458,7 @@ query	pos	text	expected	feature
 자기	pronoun	전자기견해를 검토했다.	no-match	exact-component
 둘	numeral	둘다 필요하다.	match	exact-component
 둘	numeral	아들둘레를 걸었다.	no-match	exact-component
-두	determiner	두사람이 왔다.	match	exact-component
+두	determiner	두 사람이 왔다.	match	regular
 두	determiner	모두사람을 뜻하지 않는다.	no-match	exact-component
 몇	determiner	지난 몇 년 동안 기다렸다.	match	exact-component
 몇	determiner	몇몇 사람이 왔다.	no-match	exact-component
