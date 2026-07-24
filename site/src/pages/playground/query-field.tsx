@@ -1,7 +1,7 @@
 import { Field } from '@base-ui/react/field';
 import { Input } from '@base-ui/react/input';
 import { PreviewCard } from '@base-ui/react/preview-card';
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 import { DocumentLocale } from '../../app/i18n';
 
@@ -14,6 +14,7 @@ interface QueryFieldProps {
 }
 
 const atomTagTooltipId = 'playground-atom-tags';
+const atomTagTooltipTriggerId = 'playground-atom-tags-trigger';
 
 export function QueryField({
   locale,
@@ -34,6 +35,7 @@ export function QueryField({
     ['lit:', 'literal'],
   ] as const;
   const tagHelpLabel = isKorean ? '지원하는 atom 태그' : 'Supported atom tags';
+  const [isAtomTagTooltipOpen, setIsAtomTagTooltipOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const isComposingRef = useRef(false);
   const lastPublishedValueRef = useRef(value);
@@ -61,7 +63,11 @@ export function QueryField({
     <Field.Root className="field field-query" name="query">
       <div className={styles.labelRow}>
         <Field.Label data-glossary-skip="">Query</Field.Label>
-        <PreviewCard.Root>
+        <PreviewCard.Root
+          onOpenChange={setIsAtomTagTooltipOpen}
+          open={isAtomTagTooltipOpen}
+          triggerId={atomTagTooltipTriggerId}
+        >
           <PreviewCard.Trigger
             aria-describedby={atomTagTooltipId}
             aria-label={tagHelpLabel}
@@ -69,6 +75,10 @@ export function QueryField({
             closeDelay={0}
             data-glossary-skip=""
             delay={0}
+            id={atomTagTooltipTriggerId}
+            onClick={() => {
+              setIsAtomTagTooltipOpen(true);
+            }}
             render={<button aria-label={tagHelpLabel} type="button" />}
           >
             {isKorean ? 'Atom 태그' : 'Atom tags'}

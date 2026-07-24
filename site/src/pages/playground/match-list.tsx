@@ -43,7 +43,6 @@ export function MatchList({
   result,
 }: MatchListProps): React.JSX.Element {
   const scrollElementRef = useRef<HTMLDivElement>(null);
-  const handledRevealSequenceRef = useRef<number | undefined>(undefined);
   const scheduledRevealSequenceRef = useRef<number | undefined>(undefined);
   const matches =
     result?.state === PlaygroundResultState.Success ? result.matches : [];
@@ -72,30 +71,8 @@ export function MatchList({
     }
 
     scheduledRevealSequenceRef.current = revealRequest.sequence;
-    handledRevealSequenceRef.current = undefined;
     virtualizer.scrollToIndex(revealRequest.index, { align: 'center' });
   }, [active, result, revealRequest, virtualizer]);
-
-  useEffect(() => {
-    if (
-      !active ||
-      revealRequest === undefined ||
-      handledRevealSequenceRef.current === revealRequest.sequence
-    ) {
-      return;
-    }
-
-    const button = scrollElementRef.current?.querySelector<HTMLButtonElement>(
-      `[data-index="${revealRequest.index}"] button`,
-    );
-
-    if (button === null || button === undefined) {
-      return;
-    }
-
-    button.focus({ preventScroll: true });
-    handledRevealSequenceRef.current = revealRequest.sequence;
-  }, [active, revealRequest, virtualItems]);
 
   if (result?.state !== PlaygroundResultState.Success) {
     return (
