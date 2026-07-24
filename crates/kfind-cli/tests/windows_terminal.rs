@@ -22,6 +22,8 @@ mod windows {
     };
     const TEST_TIMEOUT: Duration = Duration::from_secs(20);
     const READ_INTERVAL: Duration = Duration::from_millis(50);
+    const CURSOR_POSITION_REQUEST: &[u8] = b"\x1b[6n";
+    const CURSOR_POSITION_REPORT: &[u8] = b"\x1b[1;1R";
     const ENTER_ALTERNATE_SCREEN: &[u8] = b"\x1b[?1049h";
     const LEAVE_ALTERNATE_SCREEN: &[u8] = b"\x1b[?1049l";
     const DOWN_ARROW: &[u8] = b"\x1b[B";
@@ -50,12 +52,20 @@ mod windows {
 
         let deadline = Instant::now() + TEST_TIMEOUT;
         let mut output = Vec::new();
+        let mut cursor_report_sent = false;
         let mut resize_sent = false;
         let mut navigation_sent = false;
         let mut quit_sent = false;
         let status = loop {
             receive_output(&output_receiver, &mut output);
 
+            if contains(&output, CURSOR_POSITION_REQUEST) && !cursor_report_sent {
+                writer
+                    .write_all(CURSOR_POSITION_REPORT)
+                    .and_then(|()| writer.flush())
+                    .expect("report the inherited cursor position");
+                cursor_report_sent = true;
+            }
             if contains(&output, ENTER_ALTERNATE_SCREEN) && !resize_sent {
                 pair.master
                     .resize(RESIZED_SIZE)
