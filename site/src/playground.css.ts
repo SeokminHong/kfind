@@ -169,6 +169,25 @@ globalStyle('.preset-actions button:hover', {
   background: vars.color.linkWash,
 });
 
+globalStyle('.preset-actions button:disabled', {
+  cursor: 'wait',
+  opacity: 0.55,
+});
+
+globalStyle('.preset-source, .preset-error', {
+  margin: 0,
+  fontSize: '0.66rem',
+  lineHeight: 1.45,
+});
+
+globalStyle('.preset-source', {
+  color: vars.color.subtle,
+});
+
+globalStyle('.preset-error', {
+  color: vars.color.danger,
+});
+
 globalStyle('.option-panel', {
   display: 'grid',
   gap: vars.space.small,

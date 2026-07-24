@@ -472,11 +472,16 @@
   만들지 않는다.
 - 검색 예시는 query, text와 관련 compile option을 하나의 설정으로 불러오는 action button으로
   제공한다. 예시 action과 개별 option control은 같은 input state를 갱신하고, 별도의 preset 선택
-  상태를 유지하지 않는다. 1 MiB의 결정적인 입력을 만드는 대용량 예시를 제공하며 editor에는
-  문자 수와 UTF-8 byte 수를, 검색 결과에는 query compile과 전체 text scan을 합친 실행 시간을
-  표시한다. 예시 action은 짧은 button row로 줄바꿈하며 단순 목록을 별도 card grid처럼 크게
-  그리지 않는다. Compile option은 현재 값과 설명을 확인할 수 있되 주 입력보다 시각적으로 앞서지
-  않는 compact control grid로 배치한다.
+  상태를 유지하지 않는다. 기본 용언 활용 예시는 `data/fixtures/walk_hang_stress.txt`의 `걷다`와
+  `걸다` 동형 활용, 합성어와 동음이의어가 섞인 회귀 문단을 `걷다`로 검색한다. 대용량 예시는
+  `wikimedia/wikipedia`의 고정 `20231101.ko` snapshot에서 문서 순서대로 추출한 한국어 위키백과
+  본문을 정확히 1 MiB로 제공한다. 원문 asset은 대용량 예시를 선택할 때만 불러오며 각 문서의 제목과
+  URL, corpus revision, 추출 방법, checksum과 `CC BY-SA 3.0` 출처를 보존한다. 서로 다른 문서에
+  분산된 `말하다` 활용형을 `verb + smart + inflection`으로 검색해 복수의 실제 corpus 결과를
+  제공한다. Editor에는 문자 수와 UTF-8 byte 수를, 검색 결과에는 query compile과 전체 text scan을
+  합친 실행 시간을 표시한다. 예시 action은 짧은 button row로 줄바꿈하며 단순 목록을 별도 card
+  grid처럼 크게 그리지 않는다. Compile option은 현재 값과 설명을 확인할 수 있되 주 입력보다
+  시각적으로 앞서지 않는 compact control grid로 배치한다.
 - Playground는 query·text·option 변경을 debounce한 뒤 자동으로 검색하며 별도의 검색 실행
   button을 두지 않는다. Query label에서 지원 atom 태그와 품사를 확인할 수 있어야 한다. POS
   control은 atom 태그와 전역 POS 중 어느 쪽도 우선하지 않고, `auto`가 아니면 같은 품사일 때만

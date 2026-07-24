@@ -64,7 +64,12 @@ const playgroundCopy = {
     output: '결과 · compile + scan',
     pending: '검색 결과를 갱신하고 있습니다.',
     presetDescription: '검색 질의·원문·검색 설정 전체 적용',
+    presetError: '공개 corpus를 불러오지 못했습니다.',
     presetHeading: '예시',
+    presetLoading: '한국어 위키백과 corpus를 불러오는 중…',
+    presetManifest: '추출 정보',
+    presetSource: '대용량 본문',
+    presetSourceName: '한국어 위키백과 2023-11-01',
     resourceDescription:
       '기본 WASM은 embedded lexicon을 포함합니다. smart 판정에 세부 품사 구성 요소가 필요하면 사용자가 고급 리소스를 불러옵니다. 같은 origin의 Pages Function이 R2 객체를 streaming하고, 엔진은 schema와 checksum을 검증한 뒤 resource revision별로 브라우저 저장소에 보관합니다. 리소스가 필요 없는 검색 질의는 network 요청을 하지 않습니다.',
     resourceHeading: '고급 smart 리소스',
@@ -100,7 +105,12 @@ const playgroundCopy = {
     output: 'Result · compile + scan',
     pending: 'Refreshing search results.',
     presetDescription: 'Apply query, text, and search settings',
+    presetError: 'Could not load the public corpus.',
     presetHeading: 'Examples',
+    presetLoading: 'Loading the Korean Wikipedia corpus…',
+    presetManifest: 'Extraction manifest',
+    presetSource: 'Large input source',
+    presetSourceName: 'Korean Wikipedia · 2023-11-01',
     resourceDescription:
       'The base WASM includes the embedded lexicon. When a smart decision requires fine-POS components, the user loads the advanced resource. A same-origin Pages Function streams the R2 object; the engine validates its schema and checksum and stores it by resource revision. Queries that do not need the resource make no network request.',
     resourceHeading: 'Advanced smart resource',
@@ -217,14 +227,14 @@ function presetOptions(locale: DocumentLocale) {
           '구 검색 · any',
           '형태 구성 요소 · smart',
           'Literal 검색',
-          '대용량 1 MiB · literal',
+          '한국어 위키백과 1 MiB · smart',
         ]
       : [
           'Predicate inflection · smart',
           'Phrase search · any',
           'Morphological component · smart',
           'Literal search',
-          'Large input 1 MiB · literal',
+          'Korean Wikipedia 1 MiB · smart',
         ];
 
   return playgroundPresetOptions.map((preset, index) => ({
@@ -244,11 +254,13 @@ export default function PlaygroundPage(): React.JSX.Element {
   const controllerRef = useRef<PlaygroundController>(null);
   const searchEditorRef = useRef<SearchEditorHandle>(null);
   const matchRevealSequenceRef = useRef(0);
+  const presetRequestSequenceRef = useRef(0);
   const [activeOutputTab, setActiveOutputTab] = useState(
     PlaygroundOutputTab.Matches,
   );
   const [input, setInput] = useState(initialPlaygroundInput);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
+  const [isPresetLoading, setIsPresetLoading] = useState(false);
   const [matchRevealRequest, setMatchRevealRequest] =
     useState<MatchRevealRequest>();
   const [status, setStatus] = useState(() =>
@@ -257,6 +269,7 @@ export default function PlaygroundPage(): React.JSX.Element {
   const [resourceStatus, setResourceStatus] = useState(() =>
     createInitialComponentResourceStatus(locale),
   );
+  const [presetError, setPresetError] = useState<string>();
   const [result, setResult] = useState<PlaygroundResult>();
 
   useEffect(() => {
@@ -286,6 +299,33 @@ export default function PlaygroundPage(): React.JSX.Element {
     value: PlaygroundInput[Key],
   ): void {
     setInput((current) => ({ ...current, [key]: value }));
+  }
+
+  async function applyPreset(
+    preset: (typeof playgroundPresetOptions)[number]['value'],
+  ): Promise<void> {
+    presetRequestSequenceRef.current += 1;
+    const requestSequence = presetRequestSequenceRef.current;
+    setIsPresetLoading(true);
+    setPresetError(undefined);
+
+    try {
+      const nextInput = await applyPlaygroundPreset(preset);
+
+      if (presetRequestSequenceRef.current === requestSequence) {
+        setInput(nextInput);
+      }
+    } catch (error) {
+      if (presetRequestSequenceRef.current === requestSequence) {
+        setPresetError(
+          `${copy.presetError} ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    } finally {
+      if (presetRequestSequenceRef.current === requestSequence) {
+        setIsPresetLoading(false);
+      }
+    }
   }
 
   const currentResult = result?.input === input ? result : undefined;
@@ -358,15 +398,15 @@ export default function PlaygroundPage(): React.JSX.Element {
               <PlaygroundSettings
                 idPrefix="desktop"
                 input={input}
+                isPresetLoading={isPresetLoading}
                 isResourceButtonDisabled={isResourceButtonDisabled}
                 locale={locale}
                 onInputChange={updateInput}
                 onLoadResource={() => {
                   controllerRef.current?.loadComponentResource();
                 }}
-                onPresetApply={(preset) => {
-                  setInput(applyPlaygroundPreset(preset));
-                }}
+                onPresetApply={applyPreset}
+                presetError={presetError}
                 resourceStatus={resourceStatus}
               />
             </aside>
@@ -413,15 +453,15 @@ export default function PlaygroundPage(): React.JSX.Element {
                   <PlaygroundSettings
                     idPrefix="mobile"
                     input={input}
+                    isPresetLoading={isPresetLoading}
                     isResourceButtonDisabled={isResourceButtonDisabled}
                     locale={locale}
                     onInputChange={updateInput}
                     onLoadResource={() => {
                       controllerRef.current?.loadComponentResource();
                     }}
-                    onPresetApply={(preset) => {
-                      setInput(applyPlaygroundPreset(preset));
-                    }}
+                    onPresetApply={applyPreset}
+                    presetError={presetError}
                     resourceStatus={resourceStatus}
                   />
                 </Modal.Section>
@@ -451,6 +491,7 @@ export default function PlaygroundPage(): React.JSX.Element {
 interface PlaygroundSettingsProps {
   readonly idPrefix: string;
   readonly input: PlaygroundInput;
+  readonly isPresetLoading: boolean;
   readonly isResourceButtonDisabled: boolean;
   readonly locale: DocumentLocale;
   readonly onInputChange: <Key extends keyof PlaygroundInput>(
@@ -460,18 +501,21 @@ interface PlaygroundSettingsProps {
   readonly onLoadResource: () => void;
   readonly onPresetApply: (
     preset: (typeof playgroundPresetOptions)[number]['value'],
-  ) => void;
+  ) => Promise<void>;
+  readonly presetError: string | undefined;
   readonly resourceStatus: ComponentResourceStatus;
 }
 
 function PlaygroundSettings({
   idPrefix,
   input,
+  isPresetLoading,
   isResourceButtonDisabled,
   locale,
   onInputChange,
   onLoadResource,
   onPresetApply,
+  presetError,
   resourceStatus,
 }: PlaygroundSettingsProps): React.JSX.Element {
   const copy = playgroundCopy[locale];
@@ -490,9 +534,10 @@ function PlaygroundSettings({
           {presetOptions(locale).map((preset) => (
             <Button
               data-glossary-skip=""
+              disabled={isPresetLoading}
               key={preset.value}
               onClick={() => {
-                onPresetApply(preset.value);
+                void onPresetApply(preset.value);
               }}
               type="button"
             >
@@ -500,6 +545,28 @@ function PlaygroundSettings({
             </Button>
           ))}
         </div>
+        <p className="preset-source">
+          <span>
+            {isPresetLoading ? copy.presetLoading : copy.presetSource}
+          </span>
+          {' · '}
+          <a href="https://huggingface.co/datasets/wikimedia/wikipedia">
+            {copy.presetSourceName}
+          </a>
+          {' · '}
+          <a href="https://creativecommons.org/licenses/by-sa/3.0/">
+            CC BY-SA 3.0
+          </a>
+          {' · '}
+          <a href="/playground/korean-wikipedia-20231101-ko-1mib.sources.json">
+            {copy.presetManifest}
+          </a>
+        </p>
+        {presetError === undefined ? null : (
+          <p className="preset-error" role="alert">
+            {presetError}
+          </p>
+        )}
       </div>
 
       <div className="option-panel">
