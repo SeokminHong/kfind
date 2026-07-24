@@ -474,7 +474,7 @@ dependencies = [
 
 [[package]]
 name = "kfind-cli"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.2"
 dependencies = [
  "base64",
  "clap",
@@ -495,7 +495,7 @@ dependencies = [
 
 [[package]]
 name = "kfind-data"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.2"
 dependencies = [
  "serde",
  "sha2",
@@ -520,7 +520,7 @@ dependencies = [
 
 [[package]]
 name = "kfind-matcher"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.2"
 dependencies = [
  "aho-corasick",
  "grep-matcher",
@@ -534,14 +534,14 @@ dependencies = [
 
 [[package]]
 name = "kfind-morph"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.2"
 dependencies = [
  "kfind-data",
 ]
 
 [[package]]
 name = "kfind-query"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.2"
 dependencies = [
  "kfind-data",
  "kfind-morph",
@@ -550,7 +550,7 @@ dependencies = [
 
 [[package]]
 name = "kfind-search"
-version = "1.0.0-rc.1"
+version = "1.0.0-rc.2"
 dependencies = [
  "crossbeam-channel",
  "grep-matcher",

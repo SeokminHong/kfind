@@ -59,7 +59,7 @@ kfind --version`}</code>
               파일 시스템이나 URL을 임의로 읽지 않습니다.
             </p>
             <pre>
-              <code>npm install @kfind/kfind@1.0.0-rc.1</code>
+              <code>npm install @kfind/kfind@1.0.0-rc.2</code>
             </pre>
             <pre>
               <code>{`import { Kfind } from '@kfind/kfind';
@@ -231,7 +231,7 @@ kfind --version`}</code>
               URL.
             </p>
             <pre>
-              <code>npm install @kfind/kfind@1.0.0-rc.1</code>
+              <code>npm install @kfind/kfind@1.0.0-rc.2</code>
             </pre>
             <pre>
               <code>{`import { Kfind } from '@kfind/kfind';

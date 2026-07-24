@@ -310,7 +310,7 @@ export function Shell(): React.JSX.Element {
         <main className="docs-content" id="content">
           <Outlet />
           <footer className="docs-footer">
-            <span>kfind 1.0.0-rc.1</span>
+            <span>kfind 1.0.0-rc.2</span>
             <a href="https://github.com/SeokminHong/kfind/blob/main/README.md">
               README
             </a>
