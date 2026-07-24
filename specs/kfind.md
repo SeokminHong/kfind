@@ -254,8 +254,9 @@
   `docs/benchmarks`에 보존한다. 그 밖의 개발 결정 기록은 `docs/decisions`에 보존한다.
 - `--column`은 v0.1 정식 옵션이며 1부터 시작하는 Unicode scalar 열을 출력한다.
 - `--count`는 파일별로 검증된 span이 하나 이상 있는 줄의 수를 출력한다.
-- 일반 text 결과를 TTY stdin/stdout에서 쓰면 내장 TUI pager를 자동으로 사용한다. 검색 시작과 함께
-  TUI를 열고 완성된 결과 행을 점진적으로 반영한다. 화면 너비를 넘는 match
+- 일반 text 결과를 interactive terminal의 stdin/stdout에서 쓰면 내장 TUI pager를 자동으로
+  사용한다. Interactive terminal은 POSIX TTY와 Windows console/ConPTY를 포함한다. 검색 시작과
+  함께 TUI를 열고 완성된 결과 행을 점진적으로 반영한다. 화면 너비를 넘는 match
   줄은 검증된 match마다 별도 행으로 펼치고 각 행의 target이 보이도록 앞뒤를 생략한다. target의
   화면 위치는 원문에서 target 앞뒤가 차지하는 비율을 따르되, 양쪽 원문이 모두 남아 있으면 가용
   문맥의 20–80% 안으로 제한한다. terminal resize 때 너비, 생략 위치와 행 분할을 다시 계산하며
@@ -264,9 +265,10 @@
   합치되 입력된 이동량은 보존하고, 새로 노출된 행만 갱신한다. `--no-pager`,
   non-TTY stdin/stdout, JSON Lines, count, 파일명
   요약과 quiet mode는 pager를 사용하지 않고 기존 bounded stdout stream을 유지한다. TUI를 시작할
-  수 없을 때는 일반 text를 직접 stdout에 쓴다. 에이전트 권장 경로의 JSON Lines는 stdout이 TTY여도
-  비대화형 출력을 유지한다. Windows CI는 pseudo-console 안의 PowerShell에서 TUI를 실행해
-  alternate screen 진입, `q` 종료와 exit code 0을 검증한다.
+  수 없을 때는 일반 text를 직접 stdout에 쓴다. 에이전트 권장 경로의 JSON Lines는 stdout이
+  interactive terminal이어도 비대화형 출력을 유지한다. Windows CI는 ConPTY 안의 PowerShell에서
+  TUI를 실행해 alternate screen 진입, resize 반영, 아래 화살표 이동, `q` 종료, alternate screen
+  복구와 exit code 0을 검증한다.
 - TUI는 완성된 source line마다 임시 파일 offset·length를, 현재 너비에서 전개된 화면 row마다
   source·target key를 메모리에 보존한다. 따라서 임시 파일과 별도로 source line 수와 전개된 row
   수에 비례한 index 메모리를 사용한다. 현재 자동 결과 상한이나 대용량 fallback은 없으며 대규모
@@ -2388,17 +2390,19 @@ src/walk.rs:42: 길을 걸어 갔다.
 
 열 번호는 기본적으로 생략할 수 있다. `--column`에서만 match 줄의 앞부분을 Unicode scalar로 세어 계산한다.
 
-일반 text 결과를 TTY stdin/stdout에서 쓰면 검색 시작과 동시에 내장 TUI pager를 열고, 완성된
-결과 행을 점진적으로 반영한다. 검색 중에도 이동과 resize를 처리하며 상태 행에 검색 중임을
-표시한다. 검색 완료 뒤 너비와 높이가 모두 한 화면에 들어가면 바로 종료하고 terminal 내용을
-남긴다. 한 줄이라도 잘리거나 결과가 화면 높이를 넘으면 TUI를 유지하며 `↑`/`↓` 또는 `k`/`j`로
-한 행씩 이동하고 `q` 또는 `Esc`로 종료한다. 이동 offset은 content viewport의 첫 행이며 최대값은
-`전체 행 수 - viewport 높이`다. 따라서 마지막 행만 화면 위에 남기고 아래를 비우는 위치까지는
-이동하지 않는다. 키 반복 중 한 frame에 쌓인 이동은 한 번에 반영하고, 연속 행 이동은 기존 화면을
-유지한 채 새로 노출된 행과 상태 행만 갱신한다. Frame 간격은 content viewport 8,192 cells마다
-16 ms씩 늘리되 48 ms를 넘지 않는다. 따라서 73×316 terminal의 72×316 content viewport는
-48 ms 간격을 사용하며, 반복 입력을 합쳐도 최종 이동 offset은 같다. 검색 중 종료하면 결과 출력과
-남은 검색을 중단한다.
+일반 text 결과를 interactive terminal의 stdin/stdout에서 쓰면 검색 시작과 동시에 내장 TUI
+pager를 열고, 완성된 결과 행을 점진적으로 반영한다. POSIX TTY와 Windows console/ConPTY는 같은
+계약을 사용한다. PowerShell에서 실행한 native Windows binary도 Windows Terminal의 ConPTY 안에서
+terminal 크기와 key event를 읽고 alternate screen과 raw mode를 종료 시 복구한다. 검색 중에도
+이동과 resize를 처리하며 상태 행에 검색 중임을 표시한다. 검색 완료 뒤 너비와 높이가 모두 한
+화면에 들어가면 바로 종료하고 terminal 내용을 남긴다. 한 줄이라도 잘리거나 결과가 화면 높이를
+넘으면 TUI를 유지하며 `↑`/`↓` 또는 `k`/`j`로 한 행씩 이동하고 `q` 또는 `Esc`로 종료한다. 이동
+offset은 content viewport의 첫 행이며 최대값은 `전체 행 수 - viewport 높이`다. 따라서 마지막
+행만 화면 위에 남기고 아래를 비우는 위치까지는 이동하지 않는다. 키 반복 중 한 frame에 쌓인
+이동은 한 번에 반영하고, 연속 행 이동은 기존 화면을 유지한 채 새로 노출된 행과 상태 행만
+갱신한다. Frame 간격은 content viewport 8,192 cells마다 16 ms씩 늘리되 48 ms를 넘지 않는다.
+따라서 73×316 terminal의 72×316 content viewport는 48 ms 간격을 사용하며, 반복 입력을 합쳐도
+최종 이동 offset은 같다. 검색 중 종료하면 결과 출력과 남은 검색을 중단한다.
 
 화면 너비를 넘지 않는 match 줄은 source line 하나를 한 행으로 유지하고 모든 match를 강조한다.
 화면 너비를 넘는 match 줄은 source 순서대로 `PhraseMatch` 하나당 한 행을 만든다. 각 행은 target
@@ -3548,9 +3552,9 @@ tag를 수동 실행해 게시할 수 있다.
 23. 관리하지 않는 기존 skill은 보존하고 init 실패를 exit code 2와 escape된 진단으로 보고한다.
 24. Homebrew formula는 agent skill 원본을 설치하고 project link가 stable `opt` 경로를 사용해
     upgrade 뒤 새 원본을 가리킨다.
-25. 일반 text 검색의 TTY stdin/stdout은 검색 중 결과를 점진적으로 표시하는 resize 가능한 내장
-    pager에서 긴 match 줄을 match별 행으로 펼치고 target 앞뒤 비율에 맞춰 생략하며,
-    `--no-pager`, non-TTY와 agent JSON 출력은 기존
+25. 일반 text 검색의 POSIX TTY와 Windows console/ConPTY stdin/stdout은 검색 중 결과를
+    점진적으로 표시하는 resize 가능한 내장 pager에서 긴 match 줄을 match별 행으로 펼치고
+    target 앞뒤 비율에 맞춰 생략하며, `--no-pager`, non-terminal과 agent JSON 출력은 기존
     stdout stream을 유지한다.
 26. 배포용 full POS와 compact component resource로 전체 morphology gold를 실행했을 때 자동 품사
     coverage를 포함한 모든 positive와 negative case가 기대값과 일치한다.
@@ -3558,8 +3562,9 @@ tag를 수동 실행해 게시할 수 있다.
     shell tool call을 실행 전에 거부하고 한글 path·glob, pattern file과 kfind 호출은 허용한다.
 28. Tagged release의 Windows x64 archive와 Chocolatey package가 같은 checksum 계약을 사용하며,
     archive의 `kfind.exe --check-data`와 local Chocolatey install smoke test가 통과한다.
-29. Windows PowerShell에서 일반 text 검색을 pseudo-console로 실행하면 내장 TUI가 열리고,
-    `q` 입력으로 정상 종료한다.
+29. Windows Terminal과 같은 ConPTY 안의 PowerShell에서 일반 text 검색을 실행하면 내장 TUI가
+    열리고, resize와 아래 화살표 이동을 반영한 뒤 `q` 입력으로 alternate screen과 raw mode를
+    복구하며 정상 종료한다.
 
 ## 24. 공개 코드 인터페이스
 
