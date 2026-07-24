@@ -321,11 +321,17 @@ globalStyle('.document-intro h1', {
   lineHeight: 1.15,
 });
 
-globalStyle('.lead', {
+globalStyle('.document-overview', {
+  display: 'grid',
+  gap: vars.space.small,
   maxWidth: '48rem',
   marginBlockEnd: vars.space.large,
+});
+
+globalStyle('.document-overview p', {
+  margin: 0,
   color: vars.color.muted,
-  fontSize: '1.02rem',
+  lineHeight: 1.78,
 });
 
 globalStyle('.document-links', {

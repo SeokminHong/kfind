@@ -6,11 +6,11 @@ import { DocumentPage, DocumentSection, PageIntro } from './document';
 
 export interface DocumentContent {
   readonly eyebrow: string;
+  readonly overview?: string;
   readonly sections: ReadonlyArray<{
     readonly body: ReactNode;
     readonly title: ReactNode;
   }>;
-  readonly summary: ReactNode;
   readonly title: ReactNode;
 }
 
@@ -37,11 +37,9 @@ export function LocalizedDocument({
 
   return (
     <DocumentPage>
-      <PageIntro
-        eyebrow={document.eyebrow}
-        title={document.title}
-        summary={document.summary}
-      />
+      <PageIntro eyebrow={document.eyebrow} title={document.title}>
+        {document.overview === undefined ? null : <p>{document.overview}</p>}
+      </PageIntro>
       {document.sections.map((section, index) => {
         const sectionId = sectionIds[index];
         if (sectionId === undefined) {

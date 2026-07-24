@@ -168,7 +168,7 @@ const copy = {
   [DocumentLocale.Korean]: {
     eyebrow: '근거 · 품질과 성능',
     title: '벤치마크',
-    summary:
+    overview:
       '형태 검색 품질과 실행 비용을 서로 다른 workload로 측정합니다. 모든 품질 비교는 raw와 contract-adjusted 결과를 함께 표시하며, 성능은 초기화·처리량·지연 시간·메모리를 별도 단위로 유지합니다.',
     scopeTitle: '평가 범위',
     scopeParagraphs: [
@@ -245,7 +245,7 @@ const copy = {
   [DocumentLocale.English]: {
     eyebrow: 'EVIDENCE · QUALITY AND PERFORMANCE',
     title: 'Benchmarks',
-    summary:
+    overview:
       'Morphology quality and execution cost are measured as separate workloads. Every quality comparison includes raw and contract-adjusted results, while initialization, throughput, latency, and memory retain their own units.',
     scopeTitle: 'Evaluation scope',
     scopeParagraphs: [
@@ -520,11 +520,9 @@ export default function BenchmarksPage(): React.JSX.Element {
 
   return (
     <DocumentPage>
-      <PageIntro
-        eyebrow={text.eyebrow}
-        title={text.title}
-        summary={text.summary}
-      />
+      <PageIntro eyebrow={text.eyebrow} title={text.title}>
+        <p>{text.overview}</p>
+      </PageIntro>
 
       <DocumentSection id="evaluation-scope" title={text.scopeTitle}>
         {text.scopeParagraphs.map((paragraph) => (

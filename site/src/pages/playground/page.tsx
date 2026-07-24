@@ -303,11 +303,9 @@ export default function PlaygroundPage(): React.JSX.Element {
 
   return (
     <DocumentPage>
-      <PageIntro
-        eyebrow={copy.eyebrow}
-        title={copy.title}
-        summary={copy.intro}
-      />
+      <PageIntro eyebrow={copy.eyebrow} title={copy.title}>
+        <p>{copy.intro}</p>
+      </PageIntro>
 
       <DocumentSection title={copy.playground}>
         <div className="section-title-row">

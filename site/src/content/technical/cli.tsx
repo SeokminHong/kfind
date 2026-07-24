@@ -10,8 +10,6 @@ export const cliDocuments: TechnicalDocuments = {
     [DocumentLocale.Korean]: {
       eyebrow: 'CLI · 질의',
       title: '질의 문법',
-      summary:
-        '질의는 atom을 순서 구 또는 대안으로 결합하며 compile 전에 완전한 문법 검증을 거칩니다.',
       sections: [
         section(
           '형식 문법',
@@ -60,8 +58,6 @@ kfind '"|"' syntax.txt`,
     [DocumentLocale.English]: {
       eyebrow: 'CLI · QUERY',
       title: 'Query syntax',
-      summary:
-        'A query combines atoms as an ordered phrase or alternatives and is fully validated before compilation.',
       sections: [
         section(
           'Grammar',
@@ -112,8 +108,6 @@ kfind '"|"' syntax.txt`,
     [DocumentLocale.Korean]: {
       eyebrow: 'CLI · 질의',
       title: '품사 지정',
-      summary:
-        '공개 품사는 검색 규칙 선택을 위한 coarse category이며 source의 세부 품사 판정과 구분됩니다.',
       sections: [
         section('coarse POS', [
           '공개 값은 `noun`, `pronoun`, `numeral`, `verb`, `adjective`, `determiner`, `adverb`, `particle`, `interjection`, `literal`입니다. 내부 사전의 NNG·NNP는 noun에, VV는 verb에 포함됩니다.',
@@ -132,8 +126,6 @@ kfind '"|"' syntax.txt`,
     [DocumentLocale.English]: {
       eyebrow: 'CLI · QUERY',
       title: 'Part-of-speech selection',
-      summary:
-        'Public POS values are coarse rule-selection categories and remain distinct from detailed source POS.',
       sections: [
         section('Coarse POS', [
           'Public values are `noun`, `pronoun`, `numeral`, `verb`, `adjective`, `determiner`, `adverb`, `particle`, `interjection`, and `literal`. Internal NNG and NNP map to noun, while VV maps to verb.',
@@ -154,8 +146,6 @@ kfind '"|"' syntax.txt`,
     [DocumentLocale.Korean]: {
       eyebrow: 'CLI · 질의',
       title: '형태 확장',
-      summary:
-        'Expansion mode는 표제어에서 생성할 형태의 상한을 정하고 source 경계 정책과 독립적으로 동작합니다.',
       sections: [
         section('literal', [
           '`literal`은 입력 Unicode 문자열만 검색합니다. 조사·어미 소비, 불규칙 교체와 파생 program을 만들지 않습니다.',
@@ -174,8 +164,6 @@ kfind '"|"' syntax.txt`,
     [DocumentLocale.English]: {
       eyebrow: 'CLI · QUERY',
       title: 'Expansion modes',
-      summary:
-        'Expansion sets the upper bound of surfaces generated from a lemma independently of source boundary policy.',
       sections: [
         section('Literal', [
           '`literal` searches only the input Unicode string. It creates no particle, ending, irregular, or derivational programs.',
@@ -196,8 +184,6 @@ kfind '"|"' syntax.txt`,
     [DocumentLocale.Korean]: {
       eyebrow: 'CLI · 검색 조건',
       title: '경계 정책',
-      summary:
-        '경계는 생성된 core가 source에서 어느 구조까지 소비해야 match인지 결정합니다.',
       sections: [
         section('smart 경계', [
           '`smart`는 core 뒤의 조사·어미 전이를 소비하고 필요한 경우 source component 품사열을 검증합니다. Query program이 구조 capability를 선언하면 compact resource가 필수입니다.',
@@ -216,8 +202,6 @@ kfind '"|"' syntax.txt`,
     [DocumentLocale.English]: {
       eyebrow: 'CLI · MATCHING',
       title: 'Boundary policies',
-      summary:
-        'Boundary policy determines how much source structure a generated core must consume to become a match.',
       sections: [
         section('Smart boundary', [
           '`smart` consumes particle and ending transitions after the core and verifies source component POS when required. The compact resource is mandatory when a program declares structural capability.',
@@ -238,8 +222,6 @@ kfind '"|"' syntax.txt`,
     [DocumentLocale.Korean]: {
       eyebrow: 'CLI · 검색 조건',
       title: '구 검색',
-      summary:
-        '구 query는 atom별 형태 match를 같은 line에서 순서대로 결합합니다.',
       sections: [
         section('atom 순서', [
           '각 atom은 독립 matcher로 source 후보를 만듭니다. Phrase matcher는 이전 atom의 token 끝보다 뒤에 시작하는 다음 후보만 연결합니다.',
@@ -258,8 +240,6 @@ kfind '"|"' syntax.txt`,
     [DocumentLocale.English]: {
       eyebrow: 'CLI · MATCHING',
       title: 'Phrase search',
-      summary:
-        'A phrase query combines per-atom morphology matches in source order on the same line.',
       sections: [
         section('Atom order', [
           'Each atom produces source candidates through an independent matcher. The phrase matcher connects only a following candidate that begins after the previous token end.',
@@ -280,8 +260,6 @@ kfind '"|"' syntax.txt`,
     [DocumentLocale.Korean]: {
       eyebrow: 'CLI · 실행',
       title: '입력과 출력',
-      summary:
-        'Native CLI와 npm CLI는 matcher를 공유하지만 파일 순회, 인코딩과 표시 기능의 범위가 다릅니다.',
       sections: [
         section('입력 source', [
           'Native CLI는 path, directory와 stdin을 받고 ignore 규칙 및 병렬 file scan을 적용합니다. `-`는 stdin을 명시합니다.',
@@ -304,8 +282,6 @@ kfind '"|"' syntax.txt`,
     [DocumentLocale.English]: {
       eyebrow: 'CLI · EXECUTION',
       title: 'Input and output',
-      summary:
-        'Native and npm CLIs share the matcher but expose different file traversal, encoding, and presentation surfaces.',
       sections: [
         section('Input sources', [
           'The native CLI accepts paths, directories, and stdin with ignore rules and parallel file scanning. `-` explicitly selects stdin.',
@@ -330,8 +306,6 @@ kfind '"|"' syntax.txt`,
     [DocumentLocale.Korean]: {
       eyebrow: 'CLI · 실행',
       title: '진단과 오류',
-      summary:
-        '오류는 query compile, resource 초기화와 source I/O 단계별로 구분됩니다.',
       sections: [
         section('진단 형식', [
           '사람이 읽는 진단은 stderr에만 기록하고 match output은 stdout에 유지합니다. 오류 message에는 실패한 option, path 또는 resource 조건을 포함합니다.',
@@ -350,8 +324,6 @@ kfind '"|"' syntax.txt`,
     [DocumentLocale.English]: {
       eyebrow: 'CLI · EXECUTION',
       title: 'Diagnostics and errors',
-      summary:
-        'Failures are classified by query compilation, resource initialization, and source I/O stage.',
       sections: [
         section('Diagnostic format', [
           'Human-readable diagnostics go only to stderr, leaving match output on stdout. Messages identify the failing option, path, or resource condition.',
@@ -372,8 +344,6 @@ kfind '"|"' syntax.txt`,
     [DocumentLocale.Korean]: {
       eyebrow: 'CLI · 실행',
       title: '사전과 resource',
-      summary:
-        '사전 계층은 query 분석과 source 구조 판정의 책임 및 비용을 분리합니다.',
       sections: [
         section('사전 profile', [
           'Embedded 사전은 핵심 품사, 기능어와 불규칙을 제공합니다. Enriched predicate는 고정 사전 snapshot이 지지하는 용언 정보를 더하고 full POS는 세부 품사 후보를 확장합니다.',
@@ -392,8 +362,6 @@ kfind '"|"' syntax.txt`,
     [DocumentLocale.English]: {
       eyebrow: 'CLI · EXECUTION',
       title: 'Lexicons and resources',
-      summary:
-        'Lexicon layers separate the responsibility and cost of query analysis from source structural verification.',
       sections: [
         section('Lexicon profiles', [
           'The embedded lexicon provides core POS, function words, and irregulars. Enriched predicates add entries supported by pinned dictionary snapshots; full POS expands detailed POS candidates.',
@@ -414,7 +382,6 @@ kfind '"|"' syntax.txt`,
     [DocumentLocale.Korean]: {
       eyebrow: 'CLI · 예시',
       title: '검색 예시',
-      summary: '예시는 query 의도, 경계와 출력 소비자를 함께 고정합니다.',
       sections: [
         section(
           '코드 검색',
@@ -452,8 +419,6 @@ kfind --literal contract-adjust docs site/src`,
     [DocumentLocale.English]: {
       eyebrow: 'CLI · RECIPES',
       title: 'Search recipes',
-      summary:
-        'Each recipe fixes query intent, boundary policy, and output consumer together.',
       sections: [
         section(
           'Code search',

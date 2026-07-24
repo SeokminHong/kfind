@@ -20,7 +20,7 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
   [DocumentLocale.Korean]: {
     eyebrow: '안내 · 시작',
     title: '설치와 첫 검색',
-    summary:
+    overview:
       'CLI, Rust와 npm 환경에서 kfind를 설치하고 표제어 검색, 품사 지정, 자동화 출력을 실행하는 최소 절차입니다.',
     sections: [
       {
@@ -191,7 +191,7 @@ printf 'codex\ngemini\n' | kfind --init`}</code>
   [DocumentLocale.English]: {
     eyebrow: 'GUIDE · GETTING STARTED',
     title: 'Installation and first search',
-    summary:
+    overview:
       'The minimum setup for lemma search, explicit POS queries, and machine-readable output from the CLI, Rust, and npm surfaces.',
     sections: [
       {

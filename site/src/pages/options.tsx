@@ -26,7 +26,7 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
   [DocumentLocale.Korean]: {
     eyebrow: '참조 · 검색 질의',
     title: '검색 질의와 실행 옵션',
-    summary:
+    overview:
       '확장 수준은 생성할 형태를, 품사는 적용할 문법 규칙을, 경계 정책은 원문 후보의 허용 조건을 정합니다.',
     sections: [
       {
@@ -237,7 +237,7 @@ kfind --explain-query --pos verb 걷다`}</code>
   [DocumentLocale.English]: {
     eyebrow: 'REFERENCE · QUERY',
     title: 'Query and execution options',
-    summary:
+    overview:
       'Expansion selects generated forms, POS selects grammatical rules, and the boundary policy selects admissible source candidates.',
     sections: [
       {

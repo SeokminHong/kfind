@@ -68,7 +68,7 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
   [DocumentLocale.Korean]: {
     eyebrow: '기술 · 비용 모델',
     title: '형태 검색의 비용 제어',
-    summary:
+    overview:
       '형태 지식은 검색 계획과 anchor 주변의 제한된 판정에 사용하고, corpus 크기에 비례하는 경로는 byte scan과 streaming output으로 유지합니다.',
     sections: [
       {
@@ -221,7 +221,7 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
   [DocumentLocale.English]: {
     eyebrow: 'TECHNICAL · COST MODEL',
     title: 'Cost control for morphological search',
-    summary:
+    overview:
       'Morphological knowledge is confined to query plans and bounded decisions around anchors, while corpus-scale work remains byte scanning and streaming output.',
     sections: [
       {

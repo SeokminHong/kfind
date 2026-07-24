@@ -280,6 +280,12 @@
   논증한다. 핵심 설명은 본문만 읽어도 완결되어야 하며, callout·card·도해와 단편적인 label의
   나열로 본문을 대신하지 않는다. 표, 도해와 코드 예시는 정확한 대응 관계나 실행 흐름을
   보충할 때만 사용하고 앞뒤 문단에서 해석한다.
+- 문서 제목 아래에는 모든 route에 동일한 형식의 subtext를 강제하지 않는다. 본문을 읽기 전에
+  필요한 전제나 범위가 있으면 별도 헤딩 없이 하나 이상의 개요 문단으로 두고, 제목과 첫 절이
+  내용을 충분히 설명하면 개요를 생략한다.
+- 지원·거부 범위를 설명하는 절은 규칙 이름이나 존재하지 않는 표를 가리키는 데 그치지 않는다.
+  사용자가 실행할 query와 source 예시를 들어 match되는 경우와 match되지 않는 경우를 함께
+  설명한다. 예시는 본문이 선언한 boundary, POS, resource와 문법 조건을 그대로 재현해야 한다.
 - 문서 site는 React Router Framework Mode로 구성한다. Runtime SSR은 사용하지 않고 고정된 모든
   문서 route를 build 시점에 HTML로 prerender한다. 각 clean URL의 최초 response에는 해당 route의
   본문, 고유 title·description·canonical URL과 Open Graph metadata가 들어 있어야 한다. Browser는

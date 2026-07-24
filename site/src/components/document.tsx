@@ -12,7 +12,6 @@ import { DocumentPageNavigation } from './page-navigation';
 interface PageIntroProps {
   readonly eyebrow: string;
   readonly title: ReactNode;
-  readonly summary: ReactNode;
   readonly children?: ReactNode;
 }
 
@@ -81,7 +80,6 @@ function annotateDocumentNode(
       element,
       {
         title: annotateDocumentNode(element.props.title, seenTerms, terms),
-        summary: annotateDocumentNode(element.props.summary, seenTerms, terms),
       },
       annotateChildren(element.props.children, seenTerms, terms),
     );
@@ -136,15 +134,15 @@ export function DocumentPage({
 export function PageIntro({
   eyebrow,
   title,
-  summary,
   children,
 }: PageIntroProps): React.JSX.Element {
   return (
     <header className="document-intro">
       <p className="document-kind">{eyebrow}</p>
       <h1>{title}</h1>
-      <p className="lead">{summary}</p>
-      {children}
+      {children === undefined ? null : (
+        <div className="document-overview">{children}</div>
+      )}
     </header>
   );
 }

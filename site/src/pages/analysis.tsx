@@ -21,7 +21,7 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
   [DocumentLocale.Korean]: {
     eyebrow: '내부 원리 · 형태',
     title: '형태 분석',
-    summary:
+    overview:
       'kfind의 형태 처리는 표제어에서 검색 조건을 만드는 정방향 생성과 원문 후보를 검증하는 국소 판정으로 구성됩니다.',
     sections: [
       {
@@ -201,7 +201,7 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
   [DocumentLocale.English]: {
     eyebrow: 'INTERNALS · MORPHOLOGY',
     title: 'Morphology',
-    summary:
+    overview:
       'kfind combines forward generation from a target lemma with local structural verification of source candidates.',
     sections: [
       {
