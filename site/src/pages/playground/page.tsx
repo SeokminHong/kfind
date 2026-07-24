@@ -17,11 +17,7 @@ import { useEffect, useRef, useState } from 'react';
 import { DocumentLocale, useDocumentLocale } from '../../app/i18n';
 import { createDocumentMeta } from '../../app/metadata';
 import { RoutePath } from '../../app/navigation';
-import {
-  DocumentPage,
-  DocumentSection,
-  PageIntro,
-} from '../../components/document';
+import { DocumentPage, PageIntro } from '../../components/document';
 import { Modal } from '../../components/modal';
 import { BoundaryPolicy, ExpandMode, PartOfSpeech } from '../../kfind-wasm';
 import {
@@ -29,6 +25,7 @@ import {
   ComponentResourceState,
   createInitialComponentResourceStatus,
   createInitialPlaygroundStatus,
+  formatMorphologyAnalysis,
   formatProvenance,
   initializePlayground,
   initialPlaygroundInput,
@@ -66,7 +63,6 @@ const playgroundCopy = {
     optionsDescription: '변경한 설정은 검색에 바로 반영됩니다.',
     output: '결과 · compile + scan',
     pending: '검색 결과를 갱신하고 있습니다.',
-    playground: '플레이그라운드',
     presetDescription: '검색 질의·원문·검색 설정 전체 적용',
     presetHeading: '예시',
     resourceDescription:
@@ -77,7 +73,8 @@ const playgroundCopy = {
       '검색 질의, 원문이나 옵션을 바꾸면 embedded lexicon으로 검색 계획을 다시 컴파일합니다. 일치한 span과 각 branch의 provenance를 함께 확인할 수 있습니다.',
     settingsDescription: '변경 후 250ms 뒤 자동 적용',
     settingsHeading: '검색 설정',
-    title: '브라우저 검색 계획',
+    title: '플레이그라운드',
+    workspace: '검색 작업',
   },
   [DocumentLocale.English]: {
     close: 'Close',
@@ -102,7 +99,6 @@ const playgroundCopy = {
     optionsDescription: 'Changes apply to the search immediately.',
     output: 'Result · compile + scan',
     pending: 'Refreshing search results.',
-    playground: 'Playground',
     presetDescription: 'Apply query, text, and search settings',
     presetHeading: 'Examples',
     resourceDescription:
@@ -113,7 +109,8 @@ const playgroundCopy = {
       'Changing the query, source text, or options recompiles the query plan with the embedded lexicon. Matching spans and branch provenance are shown together.',
     settingsDescription: 'Applies automatically after 250 ms',
     settingsHeading: 'Search settings',
-    title: 'Browser query plan',
+    title: 'Playground',
+    workspace: 'Search workspace',
   },
 } as const;
 
@@ -246,8 +243,14 @@ export default function PlaygroundPage(): React.JSX.Element {
   const copy = playgroundCopy[locale];
   const controllerRef = useRef<PlaygroundController>(null);
   const searchEditorRef = useRef<SearchEditorHandle>(null);
+  const matchRevealSequenceRef = useRef(0);
+  const [activeOutputTab, setActiveOutputTab] = useState(
+    PlaygroundOutputTab.Matches,
+  );
   const [input, setInput] = useState(initialPlaygroundInput);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
+  const [matchRevealRequest, setMatchRevealRequest] =
+    useState<MatchRevealRequest>();
   const [status, setStatus] = useState(() =>
     createInitialPlaygroundStatus(locale),
   );
@@ -307,7 +310,7 @@ export default function PlaygroundPage(): React.JSX.Element {
         <p>{copy.intro}</p>
       </PageIntro>
 
-      <DocumentSection title={copy.playground}>
+      <section aria-label={copy.workspace} className="doc-section">
         <div className="section-title-row">
           <p>{copy.sectionDescription}</p>
           <div
@@ -336,6 +339,14 @@ export default function PlaygroundPage(): React.JSX.Element {
                 locale={locale}
                 ref={searchEditorRef}
                 matches={currentMatches}
+                onMatchActivate={(_match, index) => {
+                  matchRevealSequenceRef.current += 1;
+                  setActiveOutputTab(PlaygroundOutputTab.Matches);
+                  setMatchRevealRequest({
+                    index,
+                    sequence: matchRevealSequenceRef.current,
+                  });
+                }}
                 onValueChange={(value) => {
                   updateInput('text', value);
                 }}
@@ -391,8 +402,10 @@ export default function PlaygroundPage(): React.JSX.Element {
                         {copy.optionsDescription}
                       </Modal.Description>
                     </div>
-                    <Modal.Close data-glossary-skip="">
-                      {copy.close}
+                    <Modal.Close aria-label={copy.close} data-glossary-skip="">
+                      <svg aria-hidden="true" viewBox="0 0 16 16">
+                        <path d="m3.5 3.5 9 9m0-9-9 9" />
+                      </svg>
                     </Modal.Close>
                   </div>
                 </Modal.Section>
@@ -417,17 +430,20 @@ export default function PlaygroundPage(): React.JSX.Element {
           </div>
 
           <PlaygroundOutput
+            activeTab={activeOutputTab}
             input={input}
             locale={locale}
+            onActiveTabChange={setActiveOutputTab}
             onMatchActivate={(match) => {
               searchEditorRef.current?.revealMatch(match);
             }}
+            revealRequest={matchRevealRequest}
             result={currentResult}
           />
         </div>
 
         <p>{copy.resourceDescription}</p>
-      </DocumentSection>
+      </section>
     </DocumentPage>
   );
 }
@@ -581,19 +597,32 @@ function PlaygroundSettings({
   );
 }
 
-function PlaygroundOutput({
-  input,
-  locale,
-  onMatchActivate,
-  result,
-}: {
+interface PlaygroundOutputProps {
+  readonly activeTab: PlaygroundOutputTab;
   readonly input: PlaygroundInput;
   readonly locale: DocumentLocale;
+  readonly onActiveTabChange: (tab: PlaygroundOutputTab) => void;
   readonly onMatchActivate: (match: Match) => void;
+  readonly revealRequest: MatchRevealRequest | undefined;
   readonly result: PlaygroundResult | undefined;
-}): React.JSX.Element {
+}
+
+interface MatchRevealRequest {
+  readonly index: number;
+  readonly sequence: number;
+}
+
+function PlaygroundOutput({
+  activeTab,
+  input,
+  locale,
+  onActiveTabChange,
+  onMatchActivate,
+  revealRequest,
+  result,
+}: PlaygroundOutputProps): React.JSX.Element {
   const copy = playgroundCopy[locale];
-  const [activeTab, setActiveTab] = useState(PlaygroundOutputTab.Matches);
+  const matchItemRefs = useRef<Array<HTMLLIElement | null>>([]);
   const isPending = result === undefined;
   const summary = resultSummary(result, locale);
   const executionTime =
@@ -605,6 +634,27 @@ function PlaygroundOutput({
     result?.state === PlaygroundResultState.Error
       ? { error: result.message }
       : (result?.matches ?? []);
+
+  useEffect(() => {
+    if (
+      activeTab !== PlaygroundOutputTab.Matches ||
+      revealRequest === undefined ||
+      result?.state !== PlaygroundResultState.Success
+    ) {
+      return;
+    }
+
+    const frame = globalThis.requestAnimationFrame(() => {
+      const item = matchItemRefs.current[revealRequest.index];
+
+      item?.scrollIntoView({ block: 'center' });
+      item?.querySelector('button')?.focus({ preventScroll: true });
+    });
+
+    return () => {
+      globalThis.cancelAnimationFrame(frame);
+    };
+  }, [activeTab, result, revealRequest]);
 
   return (
     <div className="playground-output" aria-busy={isPending} aria-live="polite">
@@ -624,7 +674,7 @@ function PlaygroundOutput({
         className="result-tabs"
         onValueChange={(value) => {
           if (isPlaygroundOutputTab(value)) {
-            setActiveTab(value);
+            onActiveTabChange(value);
           }
         }}
         value={activeTab}
@@ -643,6 +693,9 @@ function PlaygroundOutput({
           <MatchList
             input={input}
             locale={locale}
+            onItemRef={(index, element) => {
+              matchItemRefs.current[index] = element;
+            }}
             onMatchActivate={onMatchActivate}
             result={result}
           />
@@ -680,11 +733,13 @@ function resultSummary(
 function MatchList({
   input,
   locale,
+  onItemRef,
   onMatchActivate,
   result,
 }: {
   readonly input: PlaygroundInput;
   readonly locale: DocumentLocale;
+  readonly onItemRef: (index: number, element: HTMLLIElement | null) => void;
   readonly onMatchActivate: (match: Match) => void;
   readonly result: PlaygroundResult | undefined;
 }): React.JSX.Element {
@@ -716,6 +771,9 @@ function MatchList({
           key={matchKey(match, index)}
           locale={locale}
           match={match}
+          itemRef={(element) => {
+            onItemRef(index, element);
+          }}
           onActivate={() => {
             onMatchActivate(match);
           }}
@@ -728,12 +786,14 @@ function MatchList({
 
 function MatchItem({
   index,
+  itemRef,
   locale,
   match,
   onActivate,
   text,
 }: {
   readonly index: number;
+  readonly itemRef: (element: HTMLLIElement | null) => void;
   readonly locale: DocumentLocale;
   readonly match: Match;
   readonly onActivate: () => void;
@@ -743,7 +803,7 @@ function MatchItem({
   const surface = text.slice(match.start, match.end);
 
   return (
-    <li>
+    <li ref={itemRef}>
       <button
         aria-label={copy.matchLabel(surface)}
         className="match-item"
@@ -758,8 +818,13 @@ function MatchItem({
         <code>
           [{match.start}, {match.end})
         </code>
-        <span className="match-provenance">
-          {formatProvenance(match, locale)}
+        <span className="match-description">
+          <span className="match-analysis">
+            {formatMorphologyAnalysis(match, text, locale)}
+          </span>
+          <span className="match-provenance">
+            {formatProvenance(match, locale)}
+          </span>
         </span>
       </button>
     </li>

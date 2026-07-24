@@ -30,6 +30,7 @@ import * as styles from './search-editor.css';
 interface SearchEditorProps {
   readonly locale: DocumentLocale;
   readonly matches: readonly Match[];
+  readonly onMatchActivate: (match: Match, index: number) => void;
   readonly onValueChange: (value: string) => void;
   readonly value: string;
 }
@@ -68,7 +69,7 @@ const searchHighlightField = StateField.define<DecorationSet>({
 
 export const SearchEditor = forwardRef<SearchEditorHandle, SearchEditorProps>(
   (
-    { locale, matches, onValueChange, value },
+    { locale, matches, onMatchActivate, onValueChange, value },
     forwardedRef,
   ): React.JSX.Element => {
     const isKorean = locale === DocumentLocale.Korean;
@@ -77,6 +78,8 @@ export const SearchEditor = forwardRef<SearchEditorHandle, SearchEditorProps>(
     const editorViewRef = useRef<EditorView>(null);
     const initialValueRef = useRef(value);
     const lastPublishedValueRef = useRef(value);
+    const matchesRef = useRef(matches);
+    const onMatchActivateRef = useRef(onMatchActivate);
     const onValueChangeRef = useRef(onValueChange);
     const pendingHighlightsRef = useRef<readonly SearchHighlight[]>([]);
     const byteLength = useMemo(
@@ -112,8 +115,10 @@ export const SearchEditor = forwardRef<SearchEditorHandle, SearchEditorProps>(
     }));
 
     useLayoutEffect(() => {
+      matchesRef.current = matches;
+      onMatchActivateRef.current = onMatchActivate;
       onValueChangeRef.current = onValueChange;
-    }, [onValueChange]);
+    }, [matches, onMatchActivate, onValueChange]);
 
     const publishEditorValue = useCallback((editorView: EditorView): void => {
       const nextValue = editorView.state.doc.toString();
@@ -170,6 +175,36 @@ export const SearchEditor = forwardRef<SearchEditorHandle, SearchEditorProps>(
           ]),
           searchHighlightField,
           EditorView.domEventHandlers({
+            click: (event, editorView) => {
+              const target = event.target;
+
+              if (
+                !(target instanceof globalThis.Element) ||
+                target.closest('.cm-kfind-match') === null
+              ) {
+                return false;
+              }
+
+              const position = editorView.posAtCoords({
+                x: event.clientX,
+                y: event.clientY,
+              });
+              const matchIndex =
+                position === null
+                  ? -1
+                  : matchesRef.current.findIndex(
+                      (match) =>
+                        position >= match.start && position <= match.end,
+                    );
+              const match = matchesRef.current[matchIndex];
+
+              if (match === undefined) {
+                return false;
+              }
+
+              onMatchActivateRef.current(match, matchIndex);
+              return true;
+            },
             compositionend: (_event, editorView) => {
               globalThis.queueMicrotask(() => {
                 publishEditorValue(editorView);

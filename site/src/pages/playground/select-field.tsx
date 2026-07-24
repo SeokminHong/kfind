@@ -55,6 +55,7 @@ export function SelectField<Value extends string>({
         </Select.Trigger>
         <Select.Portal>
           <Select.Positioner
+            align="start"
             alignItemWithTrigger={false}
             className={styles.positioner}
             sideOffset={4}

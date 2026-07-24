@@ -70,11 +70,33 @@ export const description = style({
 });
 
 export const close = style({
-  minHeight: '2rem',
-  paddingInline: vars.space.small,
-  border: `1px solid ${vars.color.borderStrong}`,
+  display: 'grid',
+  width: '2rem',
+  height: '2rem',
+  flex: '0 0 auto',
+  padding: 0,
+  placeItems: 'center',
+  border: 0,
   borderRadius: vars.radius.small,
-  background: vars.color.surface,
-  color: vars.color.link,
-  fontSize: '0.7rem',
+  background: 'transparent',
+  color: vars.color.muted,
+  selectors: {
+    '&:hover': {
+      background: vars.color.surfaceMuted,
+      color: vars.color.heading,
+    },
+    '&:focus-visible': {
+      outline: `2px solid ${vars.color.linkWash}`,
+      outlineOffset: 0,
+    },
+  },
+});
+
+globalStyle(`${close} svg`, {
+  width: '1rem',
+  height: '1rem',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeLinecap: 'round',
+  strokeWidth: 1.5,
 });

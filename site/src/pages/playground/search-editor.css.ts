@@ -99,6 +99,7 @@ globalStyle(`${editor} .cm-kfind-match`, {
   background: vars.color.mark,
   boxShadow: `inset 0 -1px ${vars.color.markBorder}`,
   color: vars.color.heading,
+  cursor: 'pointer',
 });
 
 export const description = style({
