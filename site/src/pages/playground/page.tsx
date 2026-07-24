@@ -252,6 +252,7 @@ export default function PlaygroundPage(): React.JSX.Element {
   const locale = useDocumentLocale();
   const copy = playgroundCopy[locale];
   const controllerRef = useRef<PlaygroundController>(null);
+  const latestInputRef = useRef(initialPlaygroundInput);
   const searchEditorRef = useRef<SearchEditorHandle>(null);
   const matchRevealSequenceRef = useRef(0);
   const presetRequestSequenceRef = useRef(0);
@@ -274,7 +275,7 @@ export default function PlaygroundPage(): React.JSX.Element {
 
   useEffect(() => {
     const controller = initializePlayground(
-      initialPlaygroundInput,
+      latestInputRef.current,
       {
         onResourceStatusChange: setResourceStatus,
         onResult: setResult,
@@ -291,6 +292,7 @@ export default function PlaygroundPage(): React.JSX.Element {
   }, [locale]);
 
   useEffect(() => {
+    latestInputRef.current = input;
     controllerRef.current?.scheduleRun(input);
   }, [input]);
 
