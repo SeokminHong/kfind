@@ -265,7 +265,8 @@
   non-TTY stdin/stdout, JSON Lines, count, 파일명
   요약과 quiet mode는 pager를 사용하지 않고 기존 bounded stdout stream을 유지한다. TUI를 시작할
   수 없을 때는 일반 text를 직접 stdout에 쓴다. 에이전트 권장 경로의 JSON Lines는 stdout이 TTY여도
-  비대화형 출력을 유지한다.
+  비대화형 출력을 유지한다. Windows CI는 pseudo-console 안의 PowerShell에서 TUI를 실행해
+  alternate screen 진입, `q` 종료와 exit code 0을 검증한다.
 - TUI는 완성된 source line마다 임시 파일 offset·length를, 현재 너비에서 전개된 화면 row마다
   source·target key를 메모리에 보존한다. 따라서 임시 파일과 별도로 source line 수와 전개된 row
   수에 비례한 index 메모리를 사용한다. 현재 자동 결과 상한이나 대용량 fallback은 없으며 대규모
@@ -3557,6 +3558,8 @@ tag를 수동 실행해 게시할 수 있다.
     shell tool call을 실행 전에 거부하고 한글 path·glob, pattern file과 kfind 호출은 허용한다.
 28. Tagged release의 Windows x64 archive와 Chocolatey package가 같은 checksum 계약을 사용하며,
     archive의 `kfind.exe --check-data`와 local Chocolatey install smoke test가 통과한다.
+29. Windows PowerShell에서 일반 text 검색을 pseudo-console로 실행하면 내장 TUI가 열리고,
+    `q` 입력으로 정상 종료한다.
 
 ## 24. 공개 코드 인터페이스
 

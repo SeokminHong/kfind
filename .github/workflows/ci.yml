@@ -91,6 +91,32 @@ jobs:
           cargo +stable test --workspace --locked
           cargo +stable test --manifest-path tools/nikl-lexicon/classifier/Cargo.toml --locked
           cargo +stable test --manifest-path tools/morph-compare/runner/Cargo.toml --locked
+      - name: Build the Windows CLI
+        if: runner.os == 'Windows'
+        run: cargo +stable build --package kfind-cli --bin kfind --locked
+      - name: Test the PowerShell TUI
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v winpty
+          output=target/powershell-tui-smoke.out
+          script_path=$(cygpath -w "$PWD/scripts/test-windows-powershell-tui.ps1")
+          binary_path=$(cygpath -w "$PWD/target/debug/kfind.exe")
+          printf 'q' |
+            winpty -Xallow-non-tty pwsh.exe \
+              -NoLogo -NoProfile -File "$script_path" \
+              -KfindPath "$binary_path" > "$output"
+          python3 - "$output" <<'PY'
+          import pathlib
+          import sys
+
+          output = pathlib.Path(sys.argv[1]).read_bytes()
+          if b"\x1b[?1049h" not in output:
+              raise SystemExit("kfind did not enter the alternate screen")
+          if b"PowerShell TUI smoke: ok" not in output:
+              raise SystemExit("PowerShell TUI did not exit successfully")
+          PY
       - name: Test the morph index benchmark
         if: runner.os != 'Windows'
         run: cargo +stable test --manifest-path tools/morph-index-benchmark/Cargo.toml --locked
