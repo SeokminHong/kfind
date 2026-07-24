@@ -150,6 +150,10 @@ export const referenceGroup: DocumentGroupIndex = {
           'Reference formats and compatibility for full-POS, enriched-predicate, and compact-component files.',
           [
             ['profiles', 'resource profile', 'Resource profiles'],
+            ['npm-assets', 'npm asset export', 'npm asset exports'],
+            ['spa-bundling', 'SPA bundling', 'SPA bundling'],
+            ['node-server', 'Node.js server', 'Node.js server'],
+            ['http-delivery', 'HTTP 전달', 'HTTP delivery'],
             ['schemas', 'schema', 'Schemas'],
             ['compatibility', '호환성', 'Compatibility'],
           ],

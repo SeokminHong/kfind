@@ -1,6 +1,6 @@
 {
   "name": "@kfind/kfind",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "description": "Korean lemma and inflection matching for JavaScript",
   "license": "SEE LICENSE IN LICENSES.md",
   "type": "module",

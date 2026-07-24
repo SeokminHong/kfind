@@ -34,7 +34,7 @@ cargo install --locked --path crates/kfind-cli`,
             'Prerelease channel을 추적하려면 `@next`를, 재현 가능한 설치에는 정확한 version을 사용합니다.',
           ],
           {
-            code: `npm install @kfind/kfind@1.0.0-rc.2
+            code: `npm install @kfind/kfind@1.0.0-rc.3
 npx @kfind/kfind 걷다 README.md
 pnpm dlx @kfind/kfind 걷다 README.md
 yarn dlx @kfind/kfind 걷다 README.md`,
@@ -73,7 +73,7 @@ cargo install --locked --path crates/kfind-cli`,
             'Use the `next` channel to follow prereleases and an exact version for reproducible installation.',
           ],
           {
-            code: `npm install @kfind/kfind@1.0.0-rc.2
+            code: `npm install @kfind/kfind@1.0.0-rc.3
 npx @kfind/kfind 걷다 README.md
 pnpm dlx @kfind/kfind 걷다 README.md
 yarn dlx @kfind/kfind 걷다 README.md`,
