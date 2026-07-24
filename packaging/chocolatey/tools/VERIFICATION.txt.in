@@ -1,0 +1,18 @@
+VERIFICATION
+
+The kfind Windows archive is downloaded from the official GitHub Release:
+
+https://github.com/SeokminHong/kfind/releases/download/v@VERSION@/kfind-windows-x86_64-@VERSION@.zip
+
+The archive is verified by Chocolatey with SHA-256:
+
+@ARCHIVE_SHA256@
+
+To verify it manually:
+
+1. Download the archive from the URL above.
+2. Run:
+
+   Get-FileHash .\kfind-windows-x86_64-@VERSION@.zip -Algorithm SHA256
+
+3. Confirm that the result matches the checksum in this file.

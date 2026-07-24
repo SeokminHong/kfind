@@ -1,0 +1,23 @@
+$ErrorActionPreference = 'Stop'
+
+if ((Get-ProcessorBits) -ne 64) {
+    throw 'kfind requires 64-bit Windows.'
+}
+
+$toolsDirectory = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$packageArguments = @{
+    packageName = 'kfind'
+    url64bit = 'https://github.com/SeokminHong/kfind/releases/download/v@VERSION@/kfind-windows-x86_64-@VERSION@.zip'
+    unzipLocation = $toolsDirectory
+    checksum64 = '@ARCHIVE_SHA256@'
+    checksumType64 = 'sha256'
+}
+
+Install-ChocolateyZipPackage @packageArguments
+
+$binary = Join-Path $toolsDirectory 'bin\kfind.exe'
+$dataDirectory = Join-Path $toolsDirectory 'share\kfind'
+& $binary --check-data --json --data-dir $dataDirectory
+if ($LASTEXITCODE -ne 0) {
+    throw "kfind data validation failed with exit code $LASTEXITCODE."
+}
