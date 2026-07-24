@@ -40,6 +40,7 @@ export interface CompileOptions {
 
 export interface MatchOrigin {
   readonly analysisIndex: number;
+  readonly lemma?: string;
   readonly rulePath: readonly string[];
 }
 

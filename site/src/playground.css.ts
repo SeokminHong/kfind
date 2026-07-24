@@ -376,16 +376,33 @@ globalStyle('.result-tab-panel:focus-visible', {
 });
 
 globalStyle('.match-list', {
-  display: 'grid',
   maxHeight: '20rem',
+  overflowY: 'auto',
+});
+
+globalStyle('.match-list-static', {
   margin: 0,
   padding: 0,
-  overflowY: 'auto',
   listStyle: 'none',
 });
 
 globalStyle('.match-list li', {
   borderBlockEnd: `1px solid ${vars.color.border}`,
+});
+
+globalStyle('.match-list-items', {
+  position: 'relative',
+  width: '100%',
+  margin: 0,
+  padding: 0,
+  listStyle: 'none',
+});
+
+globalStyle('.match-list-items > li', {
+  position: 'absolute',
+  insetBlockStart: 0,
+  insetInlineStart: 0,
+  width: '100%',
 });
 
 globalStyle('.match-item', {
@@ -394,8 +411,9 @@ globalStyle('.match-item', {
   gridTemplateColumns: '1.7rem minmax(6rem, 0.35fr) auto minmax(0, 1fr)',
   alignItems: 'center',
   gap: vars.space.small,
-  padding: `${vars.space.small} 0`,
+  padding: vars.space.small,
   border: 0,
+  borderRadius: vars.radius.small,
   background: 'transparent',
   color: vars.color.text,
   cursor: 'pointer',
@@ -404,6 +422,10 @@ globalStyle('.match-item', {
 
 globalStyle('.match-item:hover', {
   background: vars.color.surfaceMuted,
+});
+
+globalStyle('.match-item:focus-visible', {
+  outlineOffset: `calc(-1 * ${vars.space.xsmall})`,
 });
 
 globalStyle('.match-index', {

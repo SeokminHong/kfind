@@ -1,4 +1,5 @@
 use kfind::PhraseMatch;
+use kfind::expert::QueryPlan;
 use serde::Serialize;
 use wasm_bindgen::{JsError, JsValue};
 
@@ -27,16 +28,26 @@ struct SpanOutput {
 #[serde(rename_all = "camelCase")]
 struct OriginOutput {
     analysis_index: u16,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    lemma: Option<String>,
     rule_path: Vec<String>,
 }
 
-pub fn serialize_matches(text: &str, matches: &[PhraseMatch]) -> Result<JsValue, JsError> {
-    let output = convert_matches(text, matches).map_err(|message| JsError::new(&message))?;
+pub fn serialize_matches(
+    text: &str,
+    matches: &[PhraseMatch],
+    plan: &QueryPlan,
+) -> Result<JsValue, JsError> {
+    let output = convert_matches(text, matches, plan).map_err(|message| JsError::new(&message))?;
     serde_wasm_bindgen::to_value(&output)
         .map_err(|error| JsError::new(&format!("failed to serialize matches: {error}")))
 }
 
-fn convert_matches(text: &str, matches: &[PhraseMatch]) -> Result<Vec<MatchOutput>, String> {
+fn convert_matches(
+    text: &str,
+    matches: &[PhraseMatch],
+    plan: &QueryPlan,
+) -> Result<Vec<MatchOutput>, String> {
     let offsets = Utf16Offsets::new(text, matches)?;
     matches
         .iter()
@@ -47,7 +58,8 @@ fn convert_matches(text: &str, matches: &[PhraseMatch]) -> Result<Vec<MatchOutpu
                 atoms: matched
                     .atoms
                     .iter()
-                    .map(|atom| {
+                    .enumerate()
+                    .map(|(atom_index, atom)| {
                         Ok(AtomOutput {
                             core: SpanOutput {
                                 start: offsets.get(atom.core.start)?,
@@ -60,15 +72,36 @@ fn convert_matches(text: &str, matches: &[PhraseMatch]) -> Result<Vec<MatchOutpu
                             origins: atom
                                 .origins
                                 .iter()
-                                .map(|origin| OriginOutput {
-                                    analysis_index: origin.analysis_index,
-                                    rule_path: origin
-                                        .rule_path
-                                        .iter()
-                                        .map(|rule| rule.as_str().to_owned())
-                                        .collect(),
+                                .map(|origin| {
+                                    let lemma = if origin.rule_path.is_empty() {
+                                        None
+                                    } else {
+                                        let analysis = plan
+                                            .atoms
+                                            .get(atom_index)
+                                            .and_then(|atom| {
+                                                atom.analyses
+                                                    .get(usize::from(origin.analysis_index))
+                                            })
+                                            .ok_or_else(|| {
+                                                format!(
+                                                    "match origin references missing analysis {} for atom {atom_index}",
+                                                    origin.analysis_index
+                                                )
+                                            })?;
+                                        Some(analysis.lemma.to_string())
+                                    };
+                                    Ok(OriginOutput {
+                                        analysis_index: origin.analysis_index,
+                                        lemma,
+                                        rule_path: origin
+                                            .rule_path
+                                            .iter()
+                                            .map(|rule| rule.as_str().to_owned())
+                                            .collect(),
+                                    })
                                 })
-                                .collect(),
+                                .collect::<Result<_, String>>()?,
                         })
                     })
                     .collect::<Result<_, String>>()?,
@@ -126,22 +159,72 @@ impl Utf16Offsets {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use kfind::expert::MatcherExt;
 
     #[test]
     fn converts_utf8_byte_offsets_to_utf16_code_units() {
         let text = "😀 길을 걸어 갔다.";
         let start = "😀 길을 ".len();
         let end = start + "걸어".len();
+        let engine = kfind::Engine::new().unwrap();
+        let matcher = engine
+            .compile("걷다", &kfind::CompileOptions::default())
+            .unwrap();
         let output = convert_matches(
             text,
             &[PhraseMatch {
                 span: start..end,
                 atoms: Vec::new(),
             }],
+            matcher.plan(),
         )
         .unwrap();
 
         assert_eq!(output[0].start, "😀 길을 ".encode_utf16().count());
         assert_eq!(output[0].end, "😀 길을 걸어".encode_utf16().count());
+    }
+
+    #[test]
+    fn includes_the_generated_lemma_in_each_match_origin() {
+        let text = "길을 걸었다.";
+        let engine = kfind::Engine::new().unwrap();
+        let matcher = engine
+            .compile("걷다", &kfind::CompileOptions::default())
+            .unwrap();
+        let matched = matcher.find_all(text.as_bytes());
+        let output = convert_matches(text, &matched, matcher.plan()).unwrap();
+
+        assert!(
+            output[0].atoms[0]
+                .origins
+                .iter()
+                .all(|origin| origin.lemma.as_deref() == Some("걷다"))
+        );
+    }
+
+    #[test]
+    fn omits_the_lemma_for_direct_match_origins() {
+        let text = "기준표식";
+        let engine = kfind::Engine::new().unwrap();
+        let matcher = engine
+            .compile(
+                "기준표식",
+                &kfind::CompileOptions {
+                    boundary: kfind::BoundaryPolicy::Any,
+                    expand: kfind::ExpandMode::Literal,
+                    global_pos: Some(kfind::CoarsePos::Literal),
+                    ..kfind::CompileOptions::default()
+                },
+            )
+            .unwrap();
+        let matched = matcher.find_all(text.as_bytes());
+        let output = convert_matches(text, &matched, matcher.plan()).unwrap();
+
+        assert!(
+            output[0].atoms[0]
+                .origins
+                .iter()
+                .all(|origin| origin.lemma.is_none())
+        );
     }
 }

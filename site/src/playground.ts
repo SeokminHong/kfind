@@ -466,33 +466,30 @@ const morphologyRuleNotations: Readonly<Record<string, string>> = {
 
 export function formatMorphologyAnalysis(
   match: Match,
-  text: string,
   locale: DocumentLocale = DocumentLocale.Korean,
 ): string {
-  const matchSurface = text.slice(match.start, match.end);
-  const analyses = match.atoms.map((atom) => {
-    const start = Math.max(0, Math.min(text.length, atom.token.start));
-    const end = Math.max(start, Math.min(text.length, atom.token.end));
-    const tokenSurface = text.slice(start, end);
-    const surface = tokenSurface.length === 0 ? matchSurface : tokenSurface;
-    const rulePath = atom.origins.find(
-      (origin) => origin.rulePath.length > 0,
-    )?.rulePath;
-    const notations = [
-      ...new Set(
-        rulePath
-          ?.map((ruleId) => morphologyRuleNotation(ruleId, locale))
-          .filter((notation) => notation !== undefined),
-      ),
-    ];
+  const analyses = match.atoms.flatMap((atom) =>
+    atom.origins.map((origin) => {
+      const notations = [
+        ...new Set(
+          origin.rulePath
+            .map((ruleId) => morphologyRuleNotation(ruleId, locale))
+            .filter((notation) => notation !== undefined),
+        ),
+      ];
 
-    return notations.length === 0
-      ? surface
-      : `${surface} · ${notations.join(' + ')}`;
-  });
+      return origin.lemma === undefined || notations.length === 0
+        ? undefined
+        : [origin.lemma, ...notations].join(' + ');
+    }),
+  );
 
-  const formatted = [...new Set(analyses)].join(' / ');
-  return formatted.length === 0 ? matchSurface : formatted;
+  const formatted = [
+    ...new Set(analyses.filter((analysis) => analysis !== undefined)),
+  ].join(' / ');
+  return formatted.length === 0
+    ? playgroundMessages[locale].directMatch
+    : formatted;
 }
 
 function morphologyRuleNotation(
