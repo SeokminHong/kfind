@@ -102,7 +102,10 @@ globalStyle('code, pre', {
 });
 
 globalStyle('code', {
+  padding: '0.08rem 0.3rem',
+  border: `1px solid ${vars.color.border}`,
   borderRadius: '0.2rem',
+  background: vars.color.codeBackground,
   color: vars.color.codeText,
   fontSize: '0.9em',
 });
@@ -117,6 +120,14 @@ globalStyle('pre', {
   color: vars.color.codeText,
   fontSize: '0.82rem',
   lineHeight: 1.65,
+});
+
+globalStyle('pre code', {
+  padding: 0,
+  border: 0,
+  borderRadius: 0,
+  background: 'transparent',
+  fontSize: 'inherit',
 });
 
 globalStyle('img', {

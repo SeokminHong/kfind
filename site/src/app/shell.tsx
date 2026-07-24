@@ -279,7 +279,14 @@ export function Shell(): React.JSX.Element {
 
       <Collapsible.Root className="mobile-navigation">
         <Collapsible.Trigger>
-          {t('common.mobile_navigation.trigger')}
+          <span>{t('common.mobile_navigation.trigger')}</span>
+          <svg
+            aria-hidden="true"
+            className="mobile-navigation-chevron"
+            viewBox="0 0 16 16"
+          >
+            <path d="m3.5 6 4.5 4 4.5-4" />
+          </svg>
         </Collapsible.Trigger>
         <Collapsible.Panel className="mobile-navigation-panel">
           <PrimaryNavigation />

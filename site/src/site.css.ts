@@ -238,8 +238,12 @@ globalStyle('.mobile-navigation', {
 });
 
 globalStyle('.mobile-navigation > button', {
+  display: 'flex',
   width: '100%',
   padding: `${vars.space.small} ${vars.space.large}`,
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: vars.space.small,
   border: 0,
   background: 'transparent',
   color: vars.color.heading,
@@ -248,6 +252,25 @@ globalStyle('.mobile-navigation > button', {
   fontWeight: 650,
   textAlign: 'start',
 });
+
+globalStyle('.mobile-navigation-chevron', {
+  width: '1rem',
+  height: '1rem',
+  flex: '0 0 auto',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+  strokeWidth: 1.5,
+  transition: 'transform 160ms ease',
+});
+
+globalStyle(
+  '.mobile-navigation > button[aria-expanded="true"] .mobile-navigation-chevron',
+  {
+    transform: 'rotate(180deg)',
+  },
+);
 
 globalStyle('.mobile-navigation-panel', {
   display: 'grid',
@@ -371,8 +394,14 @@ globalStyle('.doc-section > p', {
 globalStyle('.table-scroll', {
   marginBlockStart: vars.space.large,
   overflowX: 'auto',
+  WebkitOverflowScrolling: 'touch',
   border: `1px solid ${vars.color.border}`,
   borderRadius: vars.radius.small,
+});
+
+globalStyle('.table-scroll table', {
+  width: 'max-content',
+  minWidth: '100%',
 });
 
 globalStyle('table', {
@@ -387,6 +416,7 @@ globalStyle('th, td', {
   borderBlockEnd: `1px solid ${vars.color.border}`,
   textAlign: 'start',
   verticalAlign: 'top',
+  whiteSpace: 'nowrap',
 });
 
 globalStyle('thead th', {
