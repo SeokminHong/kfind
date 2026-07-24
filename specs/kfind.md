@@ -434,6 +434,12 @@
   최신 문서를 확인한다. Content hash가 filename에 포함된 `/assets/*`만 `immutable` 장기 cache를
   적용하며, HTML과 Pages Function을 포함하는 broad Cache Rule은 두지 않는다. Playground의
   component resource Cache Storage는 이 문서 cache와 분리하고 아래 resource revision 계약을 따른다.
+- JavaScript와 resource 참조 문서는 npm asset의 역할, `@kfind/kfind/assets` resolver, browser
+  bundler와 Node.js 서버의 자체 서빙 절차를 함께 설명한다. 예제는 resource bytes를
+  `Kfind.withResources`에 전달하는 초기화, HTTP content type과 `nosniff`, same-origin 또는 명시적
+  CORS, cache key의 package version·content hash 포함을 보여 준다. 고정 URL은 revalidation 없이
+  `immutable`로 캐시하지 않으며 package upgrade에서 JavaScript·WASM·resource를 원자적으로
+  교체해야 한다.
 - 문서 locale은 URL path나 query를 바꾸지 않고 같은 route와 UI 구조에서 전환한다. 지원 locale은
   한국어 `ko`와 영어 `en`이며 SSG HTML의 기본 locale은 한국어다. Locale별 공통 UI 문구, navigation과 SEO
   metadata는 typed catalog로 분리하고 장문 route 본문도 같은 locale model을 사용해 확장할 수 있어야
@@ -1038,6 +1044,11 @@
   서버에서 component asset 전체를 HTTP streaming하며, Vite SPA에서 두 asset을 정적 파일로
   bundling한 뒤 HTTP streaming하는 검증을 `pack:check`에 포함한다. full POS binary는 크기와 배포
   profile이 다르므로 npm package에 포함하지 않지만 같은 `withResources` 입력으로 전달할 수 있다.
+- 자체 서빙 문서는 compact KFC와 enriched predicate TSV의 서로 다른 역할, resolver export와 raw
+  asset subpath, SPA·Node.js 예제, HTTP header와 cache 정책, exact package version 호환성 실패를
+  설명한다. Content hash 또는 package version이 URL에 포함된 asset만 장기 `immutable`로 캐시하고,
+  고정 URL은 revalidation을 사용한다. 별도 origin에서 서빙하면 application origin을 명시한 CORS를
+  제공한다.
 - package build는 고정 source와 checksum으로 정적 asset을 생성한다. `npm pack --dry-run`은
   asset 포함과 SHA-256을 검증하고 WASM binary에 compact container magic 또는 artifact bytes가
   포함되지 않았음을 확인한다.

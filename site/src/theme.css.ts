@@ -103,6 +103,7 @@ globalStyle('code, pre', {
 
 globalStyle('code', {
   padding: '0.08rem 0.3rem',
+  overflowWrap: 'anywhere',
   border: `1px solid ${vars.color.border}`,
   borderRadius: '0.2rem',
   background: vars.color.codeBackground,

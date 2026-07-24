@@ -80,7 +80,8 @@ component asset의 경로나 URL을 추정하지 않으며, 호출자가 읽은 
 전달합니다. `@kfind/kfind/assets`의 `componentResourceFileUrl`은 Vite 같은 browser
 bundler에서 content hash가 붙은 same-origin 정적 asset URL로 변환되고, Node.js에서는
 설치 package의 `file:` URL이 됩니다. SPA와 Node.js 서버 모두 같은 package 버전의
-component asset을 직접 서빙할 수 있습니다.
+component asset을 직접 서빙할 수 있습니다. MIME, cache, CORS와 버전 교체 절차는
+[resource 참조](https://kfind.pages.dev/reference/resources#npm-assets)에 정리되어 있습니다.
 
 ## 기본 검색
 

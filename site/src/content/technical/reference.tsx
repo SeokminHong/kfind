@@ -452,6 +452,12 @@ if (!response.ok) throw new Error(\`component resource: \${response.status}\`);
 const engine = Kfind.withResources({
   component: new Uint8Array(await response.arrayBuffer()),
 });`,
+            links: [
+              {
+                href: '/reference/resources#npm-assets',
+                label: 'asset 자체 서빙 운영 절차',
+              },
+            ],
           },
         ),
         section(
@@ -497,6 +503,12 @@ if (!response.ok) throw new Error(\`component resource: \${response.status}\`);
 const engine = Kfind.withResources({
   component: new Uint8Array(await response.arrayBuffer()),
 });`,
+            links: [
+              {
+                href: '/reference/resources#npm-assets',
+                label: 'Asset self-hosting operations',
+              },
+            ],
           },
         ),
         section(
@@ -529,13 +541,77 @@ const matches = matcher.findAll('길을 걸어 갔다.');`,
           'Full POS `lexicon.bin`은 넓은 표제어·세부 품사를, enriched TSV는 검증된 용언 alternation·derivation을 제공합니다. Compact KFC는 `smart` plan이 원문 token 내부의 같은 품사 component span과 인접 token 구조를 검증하는 index입니다.',
           'npm package는 enriched와 compact를 포함하고 full POS를 포함하지 않습니다.',
         ]),
+        section('npm asset export', [
+          '`@kfind/kfind/assets`는 `componentResourceFileUrl`과 `enrichedPredicatesFileUrl`을 같은 package 안의 `URL`로 제공합니다. Raw subpath `@kfind/kfind/assets/morphology-component-compact.kfc`와 `@kfind/kfind/assets/predicates.enriched.tsv`도 복사 기반 배포 도구에서 사용할 수 있습니다.',
+          'Resolver는 다운로드나 route를 만들지 않습니다. 애플리케이션이 필요한 resource만 서빙하고, 읽은 KFC bytes와 TSV text를 `Kfind.withResources`에 전달합니다.',
+        ]),
+        section(
+          'SPA bundling',
+          [
+            'Vite처럼 `new URL(relative, import.meta.url)`을 지원하는 bundler는 resolver가 가리키는 파일을 SPA 배포물에 content-hashed asset으로 출력합니다. 기본 설정에서는 JavaScript와 같은 origin의 URL이므로 별도 CORS가 필요하지 않습니다.',
+            'Component KFC는 35.4 MiB이므로 `smart` 구조 판정이 필요한 화면에서 지연 fetch할 수 있습니다. 한 번 만든 engine은 여러 matcher에서 resource를 재사용합니다.',
+          ],
+          {
+            code: `import { Kfind } from '@kfind/kfind';
+import {
+  componentResourceFileUrl,
+  enrichedPredicatesFileUrl,
+} from '@kfind/kfind/assets';
+
+const [componentResponse, enrichedResponse] = await Promise.all([
+  fetch(componentResourceFileUrl),
+  fetch(enrichedPredicatesFileUrl),
+]);
+if (!componentResponse.ok || !enrichedResponse.ok) {
+  throw new Error('failed to load kfind resources');
+}
+
+const engine = Kfind.withResources({
+  component: new Uint8Array(await componentResponse.arrayBuffer()),
+  enrichedPredicates: await enrichedResponse.text(),
+});`,
+          },
+        ),
+        section(
+          'Node.js server',
+          [
+            'Node.js에서 resolver는 설치 package 내부의 `file:` URL을 반환합니다. 서버는 package를 별도 asset directory에 복사하지 않고 이 URL을 `createReadStream`에 전달할 수 있습니다.',
+            '고정 route 예제는 매 배포에서 revalidation하도록 `no-cache`를 사용합니다. Route에 package version이나 content hash를 포함한 경우에만 장기 `immutable` cache로 바꿉니다.',
+          ],
+          {
+            code: `import { createReadStream } from 'node:fs';
+import { createServer } from 'node:http';
+import { componentResourceFileUrl } from '@kfind/kfind/assets';
+
+createServer((request, response) => {
+  if (request.method !== 'GET' ||
+      request.url !== '/assets/morphology-component-compact.kfc') {
+    response.writeHead(404).end();
+    return;
+  }
+
+  response.writeHead(200, {
+    'Cache-Control': 'no-cache',
+    'Content-Type': 'application/octet-stream',
+    'X-Content-Type-Options': 'nosniff',
+  });
+  const stream = createReadStream(componentResourceFileUrl);
+  stream.on('error', (error) => response.destroy(error));
+  stream.pipe(response);
+}).listen(3000);`,
+          },
+        ),
+        section('HTTP 전달', [
+          'KFC는 `application/octet-stream`, TSV는 `text/tab-separated-values; charset=utf-8`로 응답하고 `X-Content-Type-Options: nosniff`를 설정합니다. 별도 origin이면 모든 origin을 여는 대신 실제 application origin을 `Access-Control-Allow-Origin`에 명시합니다.',
+          'Content hash 또는 package version이 URL에 들어간 파일은 `public, max-age=31536000, immutable`로 캐시할 수 있습니다. 고정 URL은 `no-cache` 또는 짧은 수명과 revalidation을 사용하고, application cache key에도 resource revision을 포함합니다.',
+        ]),
         section('schema', [
           'Manifest는 source URL·checksum, 생성 도구와 output digest를 기록합니다. Binary header는 schema, package version과 source identity를 포함합니다.',
           'TSV와 TOML은 build 단계에서 NFC, tag, rule ID와 중복 충돌을 검증합니다.',
         ]),
         section('호환성', [
           'Component package version은 engine version과 정확히 같아야 합니다. Schema와 source digest가 다르면 load를 거부합니다.',
-          'Full과 compact projection은 구조 cost를 제외한 exact·common-prefix hit, POS와 span이 일치해야 합니다.',
+          'Package upgrade에서는 JavaScript·WASM·resource를 한 배포에서 교체합니다. 이전 cache의 KFC를 새 engine에 전달해 실패하면 boundary를 낮춰 계속하지 않습니다. Full과 compact projection은 구조 cost를 제외한 exact·common-prefix hit, POS와 span이 일치해야 합니다.',
         ]),
       ],
     },
@@ -547,13 +623,77 @@ const matches = matcher.findAll('길을 걸어 갔다.');`,
           'Full-POS `lexicon.bin` supplies broad lemmas and detailed POS; enriched TSV supplies verified predicate alternation and derivation. Compact KFC lets a `smart` plan verify same-POS component spans inside source tokens and adjacent-token structure.',
           'The npm package includes enriched and compact resources but not full POS.',
         ]),
+        section('npm asset exports', [
+          '`@kfind/kfind/assets` exposes `componentResourceFileUrl` and `enrichedPredicatesFileUrl` as `URL` values inside the same package. Copy-based deployment tools can also use the raw subpaths `@kfind/kfind/assets/morphology-component-compact.kfc` and `@kfind/kfind/assets/predicates.enriched.tsv`.',
+          'The resolver performs no download and creates no route. The application serves only the resources it needs and passes the KFC bytes and TSV text to `Kfind.withResources`.',
+        ]),
+        section(
+          'SPA bundling',
+          [
+            'A bundler such as Vite that supports `new URL(relative, import.meta.url)` emits the files referenced by the resolver as content-hashed assets in the SPA deployment. The default URL shares the JavaScript origin, so it requires no separate CORS policy.',
+            'The component KFC is 35.4 MiB and can be fetched lazily when a view needs `smart` structural verification. One initialized engine reuses the resource across matchers.',
+          ],
+          {
+            code: `import { Kfind } from '@kfind/kfind';
+import {
+  componentResourceFileUrl,
+  enrichedPredicatesFileUrl,
+} from '@kfind/kfind/assets';
+
+const [componentResponse, enrichedResponse] = await Promise.all([
+  fetch(componentResourceFileUrl),
+  fetch(enrichedPredicatesFileUrl),
+]);
+if (!componentResponse.ok || !enrichedResponse.ok) {
+  throw new Error('failed to load kfind resources');
+}
+
+const engine = Kfind.withResources({
+  component: new Uint8Array(await componentResponse.arrayBuffer()),
+  enrichedPredicates: await enrichedResponse.text(),
+});`,
+          },
+        ),
+        section(
+          'Node.js server',
+          [
+            'In Node.js, the resolver returns `file:` URLs inside the installed package. A server can pass such a URL to `createReadStream` without copying the package into a separate asset directory.',
+            'This fixed-route example uses `no-cache` so every deployment revalidates the file. Switch to long-lived `immutable` caching only when the route contains a package version or content hash.',
+          ],
+          {
+            code: `import { createReadStream } from 'node:fs';
+import { createServer } from 'node:http';
+import { componentResourceFileUrl } from '@kfind/kfind/assets';
+
+createServer((request, response) => {
+  if (request.method !== 'GET' ||
+      request.url !== '/assets/morphology-component-compact.kfc') {
+    response.writeHead(404).end();
+    return;
+  }
+
+  response.writeHead(200, {
+    'Cache-Control': 'no-cache',
+    'Content-Type': 'application/octet-stream',
+    'X-Content-Type-Options': 'nosniff',
+  });
+  const stream = createReadStream(componentResourceFileUrl);
+  stream.on('error', (error) => response.destroy(error));
+  stream.pipe(response);
+}).listen(3000);`,
+          },
+        ),
+        section('HTTP delivery', [
+          'Serve KFC as `application/octet-stream` and TSV as `text/tab-separated-values; charset=utf-8`, with `X-Content-Type-Options: nosniff`. On a separate origin, set `Access-Control-Allow-Origin` to the application origin instead of opening every origin.',
+          'A URL containing a content hash or package version can use `public, max-age=31536000, immutable`. A fixed URL needs `no-cache` or a short lifetime with revalidation, and application cache keys must include the resource revision.',
+        ]),
         section('Schemas', [
           'Manifests record source URLs and checksums, generation tools, and output digests. Binary headers contain schema, package version, and source identity.',
           'TSV and TOML builds validate NFC, tags, rule IDs, duplicates, and conflicts.',
         ]),
         section('Compatibility', [
           'The component package version must exactly match the engine. Schema or source-digest mismatch rejects loading.',
-          'Full and compact projections agree on cost-free exact and common-prefix hits, POS, and spans.',
+          'A package upgrade replaces JavaScript, WASM, and resources in one deployment. A stale cached KFC passed to a new engine must fail rather than weakening the boundary. Full and compact projections agree on cost-free exact and common-prefix hits, POS, and spans.',
         ]),
       ],
     },
