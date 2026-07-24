@@ -22,7 +22,7 @@ const componentResourceCopy = {
     heading: '형태 구성 요소 판정 리소스',
     loading: '판정 리소스 불러오는 중',
     ready: '사용 가능',
-    role: 'smart 경계가 중국요리 안의 요리처럼 원문 token 내부의 같은 품사 형태 구성 요소인지, 또는 인접 token 구조가 성립하는지 검증할 때 쓰는 compact index입니다. 전체 문장을 분석하거나 검색어를 확장하는 full POS 사전은 아닙니다.',
+    role: 'smart 경계가 원문 token 내부의 같은 품사 형태 구성 요소인지, 또는 인접 token 구조가 성립하는지 검증할 때 쓰는 compact index입니다. 전체 문장을 분석하거나 검색어를 확장하는 full POS 사전은 아닙니다.',
   },
   [DocumentLocale.English]: {
     action: 'Load verification resource · 35.4 MiB',
@@ -31,7 +31,7 @@ const componentResourceCopy = {
     heading: 'Morphological component verification resource',
     loading: 'Loading verification resource',
     ready: 'Available',
-    role: 'This compact index lets a smart boundary verify that a span is a same-POS component inside a source token, such as 요리 in 중국요리, or that an adjacent-token structure is valid. It is not a full-POS dictionary that analyzes whole sentences or expands queries.',
+    role: 'This compact index lets a smart boundary verify that a span is a same-POS component inside a source token or that an adjacent-token structure is valid. It is not a full-POS dictionary that analyzes whole sentences or expands queries.',
   },
 } as const;
 
