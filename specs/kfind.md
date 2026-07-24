@@ -486,10 +486,11 @@
   grid처럼 크게 그리지 않는다. Compile option은 현재 값과 설명을 확인할 수 있되 주 입력보다
   시각적으로 앞서지 않는 compact control grid로 배치한다.
 - Playground는 query·text·option 변경을 debounce한 뒤 자동으로 검색하며 별도의 검색 실행
-  button을 두지 않는다. Query label에서 지원 atom 태그와 품사를 확인할 수 있어야 한다. POS
-  control은 atom 태그와 전역 POS 중 어느 쪽도 우선하지 않고, `auto`가 아니면 같은 품사일 때만
-  허용하며 다르면 compile 오류라는 규칙을 항상 설명한다. Expand control은 각 값의 생성 범위를
-  현재 선택값과 option list에서 설명한다.
+  button을 두지 않는다. Query label에서 지원 atom 태그와 품사를 확인할 수 있어야 하며 atom 태그
+  도움말은 hover·keyboard focus와 pointer activation으로 열 수 있어야 한다. POS control은 atom
+  태그와 전역 POS 중 어느 쪽도 우선하지 않고, `auto`가 아니면 같은 품사일 때만 허용하며 다르면
+  compile 오류라는 규칙을 항상 설명한다. Expand control은 각 값의 생성 범위를 현재 선택값과
+  option list에서 설명한다.
 - 입력 text는 CodeMirror 기반 plain-text editor에서 수정한다. 검색 span은 UTF-16 document offset을
   사용하는 decoration으로 실제 편집 text에 표시하며 별도의 highlight layer나 결과 preview를 중복해
   두지 않는다. IME composition 상태가 아닐 때 물리·소프트 키보드의 Enter와 Shift+Enter는 editor
@@ -509,8 +510,8 @@
   Match 목록은 현재 scroll viewport와 인접한 소수의 row만 DOM에 rendering하고 실제 row 높이를
   측정해 전체 scroll range를 보존한다. Match row를 활성화하면 해당 UTF-16 span을 editor에서 선택하고
   editor 내부 scroll과 문서 viewport를 그 위치로 이동한다. 반대로 editor의 match highlight를 pointer로
-  활성화하면 `Matches` tab을 열고 아직 rendering되지 않은 row도 해당 index로 scroll한 뒤 focus하여
-  결과 목록과 문서 viewport에 표시한다.
+  활성화하면 `Matches` tab을 열고 아직 rendering되지 않은 row도 해당 index로 scroll하되 match row로
+  keyboard focus를 옮기지 않는다.
 - Playground 입력은 browser 밖으로 보내지 않는다. Full POS와 약 36 MiB의 compact component
   resource는 기본 demo에 포함하지 않는다. 사용자가 고급 `smart` 지원을 요청할 때만 같은 origin의
   Pages Function에서 component resource를 한 번 내려받아 기존 WASM engine에 load한다. 검증된
