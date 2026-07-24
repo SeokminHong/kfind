@@ -4,6 +4,7 @@
   "version": "1.0.0-rc.1",
   "type": "module",
   "scripts": {
+    "generate:playground-corpus": "node scripts/generate-playground-corpus.mjs",
     "generate:sitemap": "node scripts/generate-sitemap.mjs",
     "prepare:assets": "./scripts/prepare-assets.sh",
     "upload:component": "./scripts/upload-component-resource.sh",

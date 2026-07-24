@@ -1,17 +1,23 @@
 import type { CompileOptions, KfindEngine, Match } from './kfind-wasm';
+import type { PlaygroundInput } from './playground-presets';
 
 import { DocumentLocale } from './app/i18n';
 import {
-  BoundaryPolicy,
   componentResourceVersion,
-  ExpandMode,
   findMatches,
   loadComponentResource,
   loadKfind,
   NormalizationMode,
-  PartOfSpeech,
   restoreComponentResource,
 } from './kfind-wasm';
+
+export {
+  applyPlaygroundPreset,
+  initialPlaygroundInput,
+  playgroundPresetOptions,
+  PlaygroundPresetName,
+} from './playground-presets';
+export type { PlaygroundInput } from './playground-presets';
 
 export enum PlaygroundState {
   Loading = 'loading',
@@ -32,23 +38,6 @@ export enum ComponentResourceState {
   Loading = 'loading',
   Ready = 'ready',
   Error = 'error',
-}
-
-export enum PlaygroundPresetName {
-  Predicate = 'predicate',
-  Phrase = 'phrase',
-  Component = 'component',
-  Literal = 'literal',
-  LargeInput = 'large-input',
-}
-
-export interface PlaygroundInput {
-  readonly boundary: BoundaryPolicy;
-  readonly expand: ExpandMode;
-  readonly maxGap: string;
-  readonly pos: PartOfSpeech;
-  readonly query: string;
-  readonly text: string;
 }
 
 export interface PlaygroundStatus {
@@ -81,15 +70,6 @@ interface PlaygroundCallbacks {
   readonly onStatusChange: (status: PlaygroundStatus) => void;
 }
 
-interface PresetDefinition {
-  readonly boundary: BoundaryPolicy;
-  readonly expand: ExpandMode;
-  readonly maxGap: string;
-  readonly pos: PartOfSpeech;
-  readonly query: string;
-  readonly text: string | (() => string);
-}
-
 interface PlaygroundMessages {
   readonly directMatch: string;
   readonly emptyQuery: string;
@@ -106,71 +86,6 @@ interface PlaygroundMessages {
 }
 
 const SEARCH_DEBOUNCE_MILLISECONDS = 250;
-const LARGE_INPUT_BYTE_LENGTH = 1024 * 1024;
-const LARGE_INPUT_HEADER =
-  '기준표식은 대용량 입력의 전체 scan 시간을 확인하기 위해 한 번만 등장합니다.\n';
-const LARGE_INPUT_FILLER =
-  '2000-01-01T00:00:00Z level=info request=00000000 status=ok latency=12ms\n';
-
-let cachedLargeInput: string | undefined;
-
-const presets: Readonly<Record<PlaygroundPresetName, PresetDefinition>> = {
-  [PlaygroundPresetName.Predicate]: {
-    query: '걷다',
-    text: '오늘은 공원을 걸었다.\n내일도 천천히 걷고 싶다.\n산책길을 걷는 사람을 만났다.',
-    pos: PartOfSpeech.Verb,
-    boundary: BoundaryPolicy.Smart,
-    expand: ExpandMode.Inflection,
-    maxGap: '24',
-  },
-  [PlaygroundPresetName.Phrase]: {
-    query: 'n:사용자 v:검증하다',
-    text: '에이전트가 결과를 만들면 사용자가 문맥을 다시 검증했습니다.\n사용자 권한만 확인했습니다.',
-    pos: PartOfSpeech.Auto,
-    boundary: BoundaryPolicy.Any,
-    expand: ExpandMode.Inflection,
-    maxGap: '24',
-  },
-  [PlaygroundPresetName.Component]: {
-    query: 'n:요리',
-    text: '중국요리를 만드는 법을 정리했다.\n요리 도구도 함께 준비했다.\n요리사라는 직업도 있다.',
-    pos: PartOfSpeech.Auto,
-    boundary: BoundaryPolicy.Smart,
-    expand: ExpandMode.Inflection,
-    maxGap: '24',
-  },
-  [PlaygroundPresetName.Literal]: {
-    query: '걸어',
-    text: '길을 걸어 갔다.\n그는 걷다가 멈췄다.\n걸어라는 문자열만 그대로 찾는다.',
-    pos: PartOfSpeech.Literal,
-    boundary: BoundaryPolicy.Smart,
-    expand: ExpandMode.Literal,
-    maxGap: '24',
-  },
-  [PlaygroundPresetName.LargeInput]: {
-    query: '기준표식',
-    text: createLargeInput,
-    pos: PartOfSpeech.Literal,
-    boundary: BoundaryPolicy.Any,
-    expand: ExpandMode.Literal,
-    maxGap: '24',
-  },
-};
-
-export const playgroundPresetOptions = [
-  { label: '용언 활용 · smart', value: PlaygroundPresetName.Predicate },
-  { label: '구(句) 검색 · any', value: PlaygroundPresetName.Phrase },
-  {
-    label: '형태 component · smart',
-    value: PlaygroundPresetName.Component,
-  },
-  { label: 'Literal 검색', value: PlaygroundPresetName.Literal },
-  { label: '대용량 1 MiB · literal', value: PlaygroundPresetName.LargeInput },
-] as const;
-
-export const initialPlaygroundInput = createPresetInput(
-  PlaygroundPresetName.Predicate,
-);
 
 const playgroundMessages: Readonly<Record<DocumentLocale, PlaygroundMessages>> =
   {
@@ -231,12 +146,6 @@ export function createInitialComponentResourceStatus(
     state: ComponentResourceState.Checking,
     message: playgroundMessages[locale].initialResource,
   };
-}
-
-export function applyPlaygroundPreset(
-  presetName: PlaygroundPresetName,
-): PlaygroundInput {
-  return createPresetInput(presetName);
 }
 
 export function initializePlayground(
@@ -617,40 +526,6 @@ function createErrorResult(
     elapsedMilliseconds: null,
     message,
   };
-}
-
-function createPresetInput(presetName: PlaygroundPresetName): PlaygroundInput {
-  const preset = presets[presetName];
-
-  return {
-    boundary: preset.boundary,
-    expand: preset.expand,
-    maxGap: preset.maxGap,
-    pos: preset.pos,
-    query: preset.query,
-    text: typeof preset.text === 'function' ? preset.text() : preset.text,
-  };
-}
-
-function createLargeInput(): string {
-  if (cachedLargeInput !== undefined) {
-    return cachedLargeInput;
-  }
-
-  const encoder = new TextEncoder();
-  const headerByteLength = encoder.encode(LARGE_INPUT_HEADER).byteLength;
-  const fillerByteLength = encoder.encode(LARGE_INPUT_FILLER).byteLength;
-  const fillerCount = Math.floor(
-    (LARGE_INPUT_BYTE_LENGTH - headerByteLength) / fillerByteLength,
-  );
-  const paddingLength =
-    LARGE_INPUT_BYTE_LENGTH - headerByteLength - fillerByteLength * fillerCount;
-
-  cachedLargeInput =
-    LARGE_INPUT_HEADER +
-    LARGE_INPUT_FILLER.repeat(fillerCount) +
-    ' '.repeat(paddingLength);
-  return cachedLargeInput;
 }
 
 function readOptions(input: PlaygroundInput): CompileOptions {
