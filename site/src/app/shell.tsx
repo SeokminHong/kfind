@@ -70,9 +70,9 @@ function useActiveSection(
     .find((item) => item.path === pathname)?.sections;
   const firstSection = sections?.[0]?.id;
   const [observedSection, setObservedSection] = useState<string>();
-  const hashSection = hash.slice(1);
+  const requestedTarget = hash.slice(1);
   const requestedSection = sections?.find(
-    (section) => section.id === hashSection,
+    (section) => section.id === requestedTarget,
   )?.id;
 
   useEffect(() => {
@@ -96,9 +96,9 @@ function useActiveSection(
     };
 
     const alignRequestedSection = (): void => {
-      if (requestedSection !== undefined) {
+      if (requestedTarget.length > 0) {
         document
-          .querySelector<HTMLElement>(`#${requestedSection}`)
+          .querySelector<HTMLElement>(`#${CSS.escape(requestedTarget)}`)
           ?.scrollIntoView();
       }
       updateFromScroll();
@@ -112,7 +112,7 @@ function useActiveSection(
       globalThis.removeEventListener('scroll', updateFromScroll);
       globalThis.removeEventListener('resize', alignRequestedSection);
     };
-  }, [pathname, requestedSection, sections]);
+  }, [pathname, requestedSection, requestedTarget, sections]);
 
   const observedIsCurrent =
     sections?.some((section) => section.id === observedSection) ?? false;

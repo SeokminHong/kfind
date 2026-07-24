@@ -5,7 +5,7 @@ import { Link } from 'react-router';
 
 import { useDocumentLocale } from '../app/i18n';
 
-import { getGlossaryContent } from './glossary';
+import { getGlossaryContent, GlossaryCategory } from './glossary';
 import { annotateGlossaryText } from './glossary-annotation';
 import { DocumentPageNavigation } from './page-navigation';
 
@@ -34,7 +34,6 @@ interface ElementWithChildren {
 const skippedElements = new Set([
   'a',
   'button',
-  'code',
   'input',
   'label',
   'option',
@@ -96,6 +95,18 @@ function annotateDocumentNode(
   }
 
   const element = node as ReactElement<ElementWithChildren>;
+
+  if (node.type === 'code' && element.props.children !== undefined) {
+    return cloneElement(
+      element,
+      undefined,
+      annotateChildren(
+        element.props.children,
+        seenTerms,
+        terms.filter((term) => term.category === GlossaryCategory.Morpheme),
+      ),
+    );
+  }
 
   if (
     element.props['data-glossary-skip'] !== undefined ||

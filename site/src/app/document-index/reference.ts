@@ -174,6 +174,7 @@ export const referenceGroup: DocumentGroupIndex = {
           [
             ['search', '검색 용어', 'Search terms'],
             ['grammar', '문법 용어', 'Grammar terms'],
+            ['morpheme', '형태소 레이블', 'Morpheme labels'],
             ['execution', '실행 용어', 'Execution terms'],
             ['resource', 'resource 용어', 'Resource terms'],
             ['quality', '품질 지표', 'Quality metrics'],

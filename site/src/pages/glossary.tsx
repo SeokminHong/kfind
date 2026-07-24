@@ -15,7 +15,7 @@ export default function GlossaryPage(): React.JSX.Element {
   return (
     <article>
       <PageIntro eyebrow={content.eyebrow} title={content.title}>
-        <p>{content.summary}</p>
+        <p>{content.overview}</p>
       </PageIntro>
 
       {Object.values(GlossaryCategory).map((category) => (
