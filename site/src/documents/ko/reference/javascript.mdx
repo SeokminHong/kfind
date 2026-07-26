@@ -16,7 +16,7 @@ Static asset은 raw subpath와 `new URL(relative, import.meta.url)` 기반의 `@
 
 - [asset 자체 서빙 운영 절차](/reference/resources#npm-assets)
 
-```text
+```javascript
 import { Kfind } from '@kfind/kfind';
 import { componentResourceFileUrl } from '@kfind/kfind/assets';
 
@@ -33,7 +33,7 @@ const engine = Kfind.withResources({
 
 API는 filesystem과 URL을 추정하지 않습니다. Caller가 resource string 또는 `Uint8Array`를 전달합니다.
 
-```text
+```javascript
 import { Kfind } from '@kfind/kfind';
 
 const engine = new Kfind();

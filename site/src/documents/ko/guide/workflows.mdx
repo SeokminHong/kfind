@@ -18,6 +18,6 @@
 
 에이전트와 script는 `--json` 또는 native CLI의 JSON Lines 출력을 사용합니다. Match가 없는 정상 결과와 실행 오류를 종료 코드로 구분하고 stdout만 parser에 전달합니다.
 
-```text
+```bash
 kfind --pos verb --boundary any --json 걷다 src   | jq -c 'select(.surface != null)'
 ```

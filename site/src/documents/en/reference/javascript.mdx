@@ -16,7 +16,7 @@ This compact index lets a `smart` plan verify same-POS component spans inside a 
 
 - [Asset self-hosting operations](/reference/resources#npm-assets)
 
-```text
+```javascript
 import { Kfind } from '@kfind/kfind';
 import { componentResourceFileUrl } from '@kfind/kfind/assets';
 
@@ -33,7 +33,7 @@ const engine = Kfind.withResources({
 
 The API never guesses filesystem paths or URLs. Callers pass resource strings or `Uint8Array` values.
 
-```text
+```javascript
 import { Kfind } from '@kfind/kfind';
 
 const engine = new Kfind();

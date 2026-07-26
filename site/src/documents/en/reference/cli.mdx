@@ -8,7 +8,7 @@ Syntax is `kfind [OPTIONS] QUERY [PATH]...`. Core compile options are `--pos`, `
 
 File options control encoding, globs, types, ignore rules, threads, and context. Output supports `--json`, `--explain-query`, `--explain-match`, and `--sort path`.
 
-```text
+```bash
 kfind --pos verb --boundary smart 걷다 src
 kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
 ```
@@ -19,7 +19,7 @@ On Node.js 20 or later, `@kfind/kfind` installs the bin named `kfind`. It suppor
 
 `npx`, `pnpm dlx`, and Yarn 2+ `yarn dlx` run the same bin without a local installation.
 
-```text
+```bash
 npx @kfind/kfind 걷다 README.md
 pnpm dlx @kfind/kfind --pos verb 걷다 src
 yarn dlx @kfind/kfind --json 권한 docs

@@ -10,7 +10,7 @@ kfind interprets the lemma and POS in the query, then compiles only licensed par
 
 - [Korean morphology query syntax](/reference/query-language)
 
-```text
+```bash
 rg '걷다|걷고|걸어|걸었다' docs src
 kfind --pos verb 걷다 docs src
 ```
@@ -24,7 +24,7 @@ Start with bounded paths and inspect provenance. Add the `smart` boundary and fu
 - [Installation and first lemma search](/guide/getting-started)
 - [WebAssembly playground](/playground)
 
-```text
+```bash
 kfind --pos verb --boundary smart 걷다 docs src
 kfind --pos verb --boundary any --json 걷다 docs src
 ```
@@ -42,7 +42,7 @@ The Rust implementation therefore separates query compilation, matchers, and loc
 
 For Korean comments and documentation near symbols, collect with broad `any` and verify again with `smart`. Use literal mode for exact identifiers.
 
-```text
+```bash
 kfind --pos verb --boundary any 변경하다 src
 kfind --pos verb --boundary smart 변경하다 src
 kfind --literal parse_query crates
@@ -52,7 +52,7 @@ kfind --literal parse_query crates
 
 Use the default inflection mode when documents contain lemmas and inflected surfaces. Run separate literal queries for exact terminology checks.
 
-```text
+```bash
 kfind --pos noun 계약 docs README.md
 kfind --literal contract-adjust docs site/src
 ```
@@ -61,6 +61,6 @@ kfind --literal contract-adjust docs site/src
 
 Feed agents JSON Lines from bounded paths. Do not remove source surfaces or collapse provenance in `jq`.
 
-```text
+```bash
 kfind --pos verb --boundary any --json 검증하다 crates/kfind-query   | jq -c '{path, line, column, surface, atoms}'
 ```
