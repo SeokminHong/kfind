@@ -2,17 +2,17 @@
 
 # JavaScript API
 
-## package export [#exports]
+## 패키지 export [#exports]
 
-Browser condition은 bundler ESM WASM을, Node condition은 CommonJS WASM target을 선택합니다. TypeScript declaration은 두 target이 공유합니다.
+Browser condition은 bundler ESM WASM을, Node condition은 CommonJS WASM target을 선택합니다. 두 target은 같은 TypeScript declaration을 공유합니다.
 
-Static asset은 raw subpath와 `new URL(relative, import.meta.url)` 기반의 `@kfind/kfind/assets` module로 export합니다. Node.js에서는 설치 package의 `file:` URL이 되고, 이를 지원하는 browser bundler에서는 content hash가 붙은 정적 asset URL이 됩니다.
+정적 asset은 raw subpath와 `new URL(relative, import.meta.url)` 기반의 `@kfind/kfind/assets` module로 export합니다. Node.js에서는 설치된 패키지의 `file:` URL을, 이를 지원하는 브라우저 bundler에서는 content hash가 붙은 정적 asset URL을 반환합니다.
 
 ## asset 직접 서빙 [#asset-self-hosting]
 
-`componentResourceFileUrl`은 설치된 package와 정확히 같은 버전의 35.4 MiB 형태 구성 요소 판정 asset을 가리킵니다. Vite 같은 browser bundler는 이 파일을 SPA 배포물의 same-origin 정적 asset으로 출력합니다. Node.js 서버는 같은 export의 `file:` URL을 `createReadStream`에 전달할 수 있습니다.
+`componentResourceFileUrl`은 설치된 패키지와 정확히 같은 버전의 35.4 MiB 형태 구성 요소 판정 asset을 가리킵니다. Vite 같은 브라우저 bundler는 이 파일을 SPA 배포물의 same-origin 정적 asset으로 출력합니다. Node.js 서버는 같은 export의 `file:` URL을 `createReadStream`에 전달할 수 있습니다.
 
-이 asset은 `smart` plan이 원문 token 내부의 같은 품사 component span과 인접 token 구조를 검증하는 compact index입니다. 전체 문장 분석기나 query 확장용 full POS 사전이 아닙니다. Resolver는 browser fetch나 서버 route를 정하지 않습니다.
+이 asset은 `smart` plan이 원문 token 내부의 같은 품사 구성 요소 span과 인접 token 구조를 검증하는 compact index입니다. 전체 문장 분석이나 질의 확장용 full POS 사전에는 사용하지 않습니다. Resolver는 브라우저 fetch나 서버 route를 정하지 않습니다.
 
 - [asset 자체 서빙 운영 절차](/reference/resources#npm-assets)
 
@@ -29,9 +29,9 @@ const engine = Kfind.withResources({
 
 ## Kfind와 Matcher [#engine]
 
-`Kfind.withResources(&#123; fullPos?, enrichedPredicates?, component? })`가 전체 profile 생성 API입니다. `compile(query, options)`은 재사용 가능한 `Matcher`를 반환합니다.
+`Kfind.withResources(&#123; fullPos?, enrichedPredicates?, component? })`는 전체 profile을 생성합니다. `compile(query, options)`은 재사용 가능한 `Matcher`를 반환합니다.
 
-API는 filesystem과 URL을 추정하지 않습니다. Caller가 resource string 또는 `Uint8Array`를 전달합니다.
+API는 filesystem과 URL을 추정하지 않습니다. 호출자가 리소스 문자열이나 `Uint8Array`를 전달합니다.
 
 ```javascript
 import { Kfind } from '@kfind/kfind';
@@ -43,6 +43,6 @@ const matches = matcher.findAll('길을 걸어 갔다.');
 
 ## UTF-16 span [#spans]
 
-Match와 atom의 start·end는 UTF-16 code unit이며 JavaScript `slice`에 바로 사용할 수 있습니다. Emoji 앞의 offset도 code point 수가 아니라 code unit 수입니다.
+일치와 atom의 start·end는 UTF-16 code unit이며 JavaScript `slice`에 바로 사용할 수 있습니다. Emoji 앞의 offset도 code point 수가 아닌 code unit 수입니다.
 
-각 atom은 core, token과 모든 `analysisIndex`, `rulePath` origin을 보존합니다.
+각 atom에는 core, token과 모든 `analysisIndex`, `rulePath` origin을 보존합니다.

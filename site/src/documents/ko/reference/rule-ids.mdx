@@ -4,18 +4,18 @@
 
 ## namespace [#namespaces]
 
-`lexical.*`은 어휘 교체, `ending.*`은 어미, `particle.*`은 조사, `derivation.*`은 파생, `structural.*`은 source constraint를 나타냅니다.
+`lexical.*`은 어휘 교체, `ending.*`은 어미, `particle.*`은 조사, `derivation.*`은 파생, `structural.*`은 원문 constraint를 나타냅니다.
 
-ID는 사람이 읽을 수 있는 stable token이며 localized label로 바뀌지 않습니다.
+ID는 사람이 읽을 수 있는 stable token이며, locale에 따라 바뀌지 않습니다.
 
 ## 규칙 경로 [#composition]
 
-`걷다→걸어` origin은 `lexical.d-to-l`, `ending.aoeo` 순서입니다. Path 순서는 조립 순서를 보존합니다.
+`걷다→걸어` origin은 `lexical.d-to-l`, `ending.aoeo` 순서입니다. 경로의 순서는 조립 순서를 보존합니다.
 
-여러 분석이 같은 match를 만들면 atom에 여러 path가 남습니다.
+여러 분석이 같은 일치를 만들면 atom에 여러 경로가 남습니다.
 
 ## 안정성 [#stability]
 
 1.x에서 기존 ID의 의미를 다른 규칙으로 재사용하지 않습니다. 세분화가 필요하면 새 ID를 추가하고 fixture를 갱신합니다.
 
-Rule ID만으로 source 의미를 추론하지 않습니다. Analysis index와 span을 함께 사용합니다.
+Rule ID만으로 원문의 의미를 추론하지 않습니다. Analysis index와 span을 함께 사용합니다.

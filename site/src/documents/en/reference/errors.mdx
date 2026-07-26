@@ -4,13 +4,13 @@
 
 ## Compile errors [#compile]
 
-Query syntax, POS-literal conflicts, invalid options, empty analyses, and plan limits require changing the query or options.
+Query syntax errors, POS-literal conflicts, invalid options, empty analyses, and exceeded plan limits require changing the query or options.
 
 A required resource capability can surface during compile, but boundary policy is not silently weakened.
 
 ## Resource errors [#resource]
 
-Missing files, the 128 MiB limit, magic, schema, version, source identity, section digest, and payload graph failures remain distinct.
+Missing files, the 128 MiB limit, and failures in magic, schema, version, source identity, section digest, or payload graphs remain distinct.
 
 `kfind --check-data` validates installed resources without searching.
 

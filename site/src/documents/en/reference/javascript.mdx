@@ -4,9 +4,9 @@
 
 ## Package exports [#exports]
 
-The browser condition selects bundler ESM WASM; the Node condition selects the CommonJS WASM target. Both share TypeScript declarations.
+The browser condition selects bundler ESM WASM. The Node condition selects the CommonJS WASM target. Both share the same TypeScript declarations.
 
-Static assets are exported through raw subpaths and the `@kfind/kfind/assets` module based on `new URL(relative, import.meta.url)`. It resolves to an installed-package `file:` URL in Node.js and a content-hashed static asset URL in browser bundlers that support this pattern.
+Static assets are exported through raw subpaths and the `@kfind/kfind/assets` module based on `new URL(relative, import.meta.url)`. The module resolves to an installed-package `file:` URL in Node.js and a content-hashed static asset URL in browser bundlers that support this pattern.
 
 ## Asset self-hosting [#asset-self-hosting]
 
@@ -43,6 +43,6 @@ const matches = matcher.findAll('길을 걸어 갔다.');
 
 ## UTF-16 spans [#spans]
 
-Match and atom start and end use UTF-16 code units and can be passed directly to JavaScript `slice`. An offset after emoji is not a code-point count.
+Match and atom start and end positions use UTF-16 code units and can be passed directly to JavaScript `slice`. An offset after an emoji is not a code-point count.
 
 Every atom preserves core, token, and all `analysisIndex` and `rulePath` origins.

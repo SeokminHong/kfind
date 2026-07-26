@@ -4,13 +4,13 @@
 
 ## Namespaces [#namespaces]
 
-`lexical.*` identifies substitutions, `ending.*` endings, `particle.*` particles, `derivation.*` derivation, and `structural.*` source constraints.
+`lexical.*` identifies substitutions, `ending.*` identifies endings, `particle.*` identifies particles, `derivation.*` identifies derivation, and `structural.*` identifies source constraints.
 
 IDs are stable machine-readable tokens and are never localized.
 
 ## Rule paths [#composition]
 
-The origin for `걷다→걸어` contains `lexical.d-to-l` then `ending.aoeo`, preserving assembly order.
+The origin for `걷다→걸어` contains `lexical.d-to-l` followed by `ending.aoeo`, preserving assembly order.
 
 Several paths remain on an atom when different analyses yield one match.
 
@@ -18,4 +18,4 @@ Several paths remain on an atom when different analyses yield one match.
 
 Within 1.x, an existing ID is not reused for another meaning. A refined rule adds an ID and updates fixtures.
 
-A rule ID alone is not source semantics. Use it with analysis index and spans.
+A rule ID alone does not establish source semantics. Use it with the analysis index and spans.
