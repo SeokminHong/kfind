@@ -284,6 +284,10 @@
 - 공개 문서와 playground는 `https://kfind.pages.dev`의 정적 Cloudflare Pages site로 배포한다.
   문서는 제품 목적과 goal/non-goal, 검색 model, query 문법, 사람·에이전트 workflow, 주요 옵션,
   최신 제품·외부 benchmark를 설명하고 전체 README와 source report로 연결한다.
+- site header, browser favicon, touch icon과 social card는 둥근 사각형 안의 `k/` brand mark를
+  공유한다. Header에서는 mark 옆에 `kfind` 이름을 유지하고, 작은 크기의 icon은 같은 벡터
+  형상을 사용해 흐려지거나 찌그러지지 않아야 한다. Icon metadata를 제공하는 배포 채널은
+  128px 이상의 PNG 자산을 사용한다.
 - 한국어 문장은 기술 개념의 관계와 동작이 바로 드러나도록 쓴다. 제품·도메인의 표준 용어와
   코드 식별자는 원문 표기를 유지하되, 영어 문장 구조를 직역하거나 일반 용어를 기계적으로
   음역하지 않는다. 조건과 결과가 한 문장에 몰리면 문장을 나눠 설명한다.

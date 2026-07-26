@@ -17,7 +17,18 @@ import { DocumentI18nProvider } from './app/i18n-provider';
 import { DocumentLoading, Shell } from './app/shell';
 
 export const links: LinksFunction = () => [
-  { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
+  { rel: 'icon', href: '/favicon.ico', type: 'image/x-icon' },
+  {
+    rel: 'icon',
+    href: '/favicon.svg',
+    sizes: 'any',
+    type: 'image/svg+xml',
+  },
+  {
+    rel: 'apple-touch-icon',
+    href: '/apple-touch-icon.png',
+    sizes: '180x180',
+  },
   {
     rel: 'stylesheet',
     href: 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css',

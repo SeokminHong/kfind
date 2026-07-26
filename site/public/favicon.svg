@@ -1,4 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="16" fill="#0b0e13"/>
-  <path d="M18 14v36M18 34l16-16M26 26l21 24" fill="none" stroke="#79f99a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="256"
+  height="256"
+  viewBox="0 0 256 256"
+>
+  <title>kfind</title>
+  <rect
+    x="26"
+    y="22"
+    width="204"
+    height="212"
+    rx="48"
+    fill="#fff"
+    stroke="#b8c1cc"
+    stroke-width="6"
+  />
+  <g
+    transform="translate(34 36) scale(0.72)"
+    fill="none"
+    stroke="#1d63c7"
+    stroke-linecap="square"
+    stroke-linejoin="round"
+  >
+    <path d="M68 59v137M49 59h19M49 196h35" stroke-width="20" />
+    <path d="m68 143 49-38m-6 0h27m-51 34 41 56m-8 0h25" stroke-width="20" />
+    <path d="m174 203 41-150" stroke-width="18" />
+  </g>
 </svg>
