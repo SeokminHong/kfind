@@ -8,7 +8,7 @@ Canonical has 500 positive and 500 negative cases manually checked for standard 
 
 The query matrix applies several positive and negative queries to each sentence to measure grammar combinations.
 
-The morphology-query and regex baseline is a constructed diagnostic with eight positives and eight negatives for each of seven queries. It is not a held-out or general search-quality ranking.
+The morphology-query and regex baseline is a constructed diagnostic with eight positives and eight negatives for each of seven queries. It is neither held-out evidence nor a general search-quality ranking.
 
 ## Gold labels [#gold]
 
@@ -18,6 +18,6 @@ A versioned contract registry is fixed before product execution. Gold is never c
 
 ## Aggregation [#aggregation]
 
-Every backend runs the same fixture and query; TP, FP, TN, and FN are counted per case. Precision, recall, and F1 derive directly from the matrix.
+Every backend runs the same fixture and query. TP, FP, TN, and FN are counted per case, and precision, recall, and F1 derive directly from the matrix.
 
 External products also report raw and adjusted matrices. A dataset without review explicitly records identical results and zero reviewed cases.

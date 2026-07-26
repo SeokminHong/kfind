@@ -2,22 +2,22 @@
 
 # 평가 방법
 
-## fixture [#fixtures]
+## Fixture [#fixtures]
 
-Canonical은 사람이 표준 맞춤법을 확인한 양성 500·음성 500 사례입니다. Robust는 실제 오류 문장의 양성 250·음성 250 사례이며 표준문 결과에 합산하지 않습니다.
+Canonical은 사람이 표준 맞춤법을 확인한 양성 500·음성 500 사례입니다. Robust는 실제 오류 문장의 양성 250·음성 250 사례이며, 표준문 결과에 합산하지 않습니다.
 
-Query matrix는 한 문장에 여러 positive·negative query를 적용해 문법 조합별 후보를 측정합니다.
+Query matrix는 한 문장에 여러 positive·negative 질의를 적용해 문법 조합별 후보를 측정합니다.
 
 형태 질의와 정규식 기준선은 7개 질의마다 positive 8개·negative 8개를 둔 constructed 진단입니다. Held-out 품질이나 일반적인 검색 품질의 순위로 사용하지 않습니다.
 
 ## gold 판정 [#gold]
 
-Positive는 표제어·품사와 목표 span을 함께 선언합니다. Negative는 같은 문장 안의 형태 또는 경계 경쟁자를 포함해 false positive를 관찰합니다.
+Positive는 표제어·품사와 목표 span을 함께 선언합니다. Negative에는 같은 문장 안의 형태나 경계 경쟁자를 넣어 false positive를 관찰합니다.
 
 제품 실행 전 versioned contract registry를 고정합니다. 실행 결과를 본 뒤 편의상 gold를 바꾸지 않습니다.
 
 ## 집계 [#aggregation]
 
-모든 backend는 같은 fixture와 query를 실행하고 TP, FP, TN, FN을 case 단위로 계산합니다. Precision, recall과 F1은 confusion matrix에서 직접 산출합니다.
+모든 backend는 같은 fixture와 질의를 실행하고 TP, FP, TN, FN을 case 단위로 계산합니다. Precision, recall과 F1은 confusion matrix에서 직접 산출합니다.
 
-외부 제품도 raw와 contract-adjusted matrix를 모두 기록합니다. Review가 없는 dataset은 두 결과가 같고 review 0건임을 명시합니다.
+외부 제품도 raw와 contract-adjusted matrix를 모두 기록합니다. Review가 없는 데이터셋은 두 결과가 같으며 review가 0건임을 명시합니다.

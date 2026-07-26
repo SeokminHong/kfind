@@ -4,7 +4,7 @@
 
 ## Raw matrix [#raw]
 
-Raw TP, FP, TN, and FN compare backend predictions directly with strict fixture gold. They contain no post-hoc interpretation of data quality or product scope.
+Raw TP, FP, TN, and FN compare backend predictions directly with strict fixture gold. They do not include post-hoc interpretations of data quality or product scope.
 
 Raw metrics show the corpus task and remain visible even when an adjusted view exists.
 
@@ -18,6 +18,6 @@ A nonstandard input may be excluded only when it is explicitly outside the produ
 
 ## Dispositions [#dispositions]
 
-Four raw FNs and FNᶜ = 0 do not indicate a changed execution result. The four remain strict-gold failures, while the registry places them outside the product objective or recognizes them as positive under the product contract.
+Four raw FNs and FNᶜ = 0 evaluate the same execution result under two contracts. The four remain strict-gold failures, while the registry places them outside the product objective or recognizes them as positive under the product contract.
 
 Every adjustment records case ID, reason, and review status in a ledger. Unclassified cases retain raw labels so adjusted metrics cannot hide omissions.

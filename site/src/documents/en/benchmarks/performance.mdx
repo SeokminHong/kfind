@@ -6,13 +6,13 @@
 
 Morphology measures fresh-process initialization, cases per second, p95, and RSS. Query compile, matcher scan, 1 GiB file scan, npm startup, and TUI indexing have separate entrypoints.
 
-The regex baseline separates batch wall time for kfind and each rg or grep combination while seven fresh processes scan the same single file.
+The regex baseline runs each of seven queries against the same single file in a fresh process. It reports batch wall time separately for kfind and each rg or grep combination.
 
-Lock wait and build time are excluded from workload time but remain part of recorded environment and revision.
+Lock wait and build time are excluded from workload time. They remain part of the recorded environment and revision.
 
 ## Statistics [#statistics]
 
-Morphology backends use one warm-up and five measurements; the regex baseline uses two warm-ups and ten measurements. Reports include median, minimum, maximum, and p95. A single run or successful smoke test is not performance evidence.
+Morphology backends use one warm-up and five measurements. The regex baseline uses two warm-ups and ten measurements. Reports include the median, minimum, maximum, and p95. A single run or successful smoke test is not performance evidence.
 
 Throughput, latency, seconds, and bytes are not collapsed into one percentage score.
 

@@ -4,18 +4,18 @@
 
 ## Output alignment [#alignment]
 
-Token and morpheme output from Kiwi, Lindera, MeCab-ko, and KOMORAN is aligned by source span, lemma, and POS. Backend adapters convert offset systems and normalization.
+Token and morpheme output from Kiwi, Lindera, MeCab-ko, and KOMORAN is aligned by source span, lemma, and POS. Backend adapters convert offset systems and normalization differences.
 
 Alignment failure and backend errors remain execution errors instead of becoming no-match predictions.
 
 ## Quality comparison [#quality]
 
-Every product row includes raw and adjusted TP, FP, TN, FN, precision, recall, and F1. The contract registry is not customized per product.
+Every product row includes raw and adjusted TP, FP, TN, FN, precision, recall, and F1. The same contract registry applies to every product.
 
 Reports explain that external products target sentence analysis and disclose projection limits without omitting unfavorable results.
 
 ## Cost comparison [#cost]
 
-Initialization, cases per second, p95, and peak RSS use the same process model. Python and JVM runtime startup remains part of workflow cost.
+Initialization, cases per second, p95, and peak RSS use the same process model. Python and JVM runtime startup remains part of the workflow cost.
 
 Quality and performance are never combined into one composite score.
