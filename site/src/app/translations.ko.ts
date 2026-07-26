@@ -9,6 +9,7 @@ export const koreanTranslation = {
   'common.language.english': 'English',
   'common.language.korean': '한국어',
   'common.loading.document': '문서를 불러오는 중…',
+  'common.mobile_navigation.site_trigger': '사이트 메뉴',
   'common.mobile_navigation.trigger': '문서 메뉴',
   'common.navigation.next_page': '다음 페이지',
   'common.navigation.page_aria': '문서 페이지 이동',

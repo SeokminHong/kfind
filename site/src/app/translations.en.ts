@@ -13,6 +13,7 @@ export const englishTranslation: Readonly<
   'common.language.english': 'English',
   'common.language.korean': '한국어',
   'common.loading.document': 'Loading documentation…',
+  'common.mobile_navigation.site_trigger': 'Site menu',
   'common.mobile_navigation.trigger': 'Documentation menu',
   'common.navigation.next_page': 'Next page',
   'common.navigation.page_aria': 'Document page navigation',
