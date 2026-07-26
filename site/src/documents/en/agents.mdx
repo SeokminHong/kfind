@@ -4,15 +4,15 @@
 
 <Lead>
 
-Move morphology search out of repeated model reasoning and give Codex, Claude Code, and Gemini CLI deterministic results through explicit [POS](/reference/glossary#part-of-speech) queries and JSON Lines.
+Move morphology search out of repeated model reasoning. Explicit [POS](/reference/glossary#part-of-speech) queries and JSON Lines give Codex, Claude Code, and Gemini CLI reproducible results.
 
 </Lead>
 
 ## Search primitive [#search-primitive]
 
-Literal search makes an agent enumerate inflections for every task. A [query](/reference/glossary#query) for `걷다` may need `걷고`, `걸어`, and `걸었다`. kfind compiles the [lemma](/reference/glossary#lemma) and POS into one plan, so identical input produces the same candidates and rule [provenance](/reference/glossary#provenance).
+Literal search requires an agent to enumerate inflections for every task. A [query](/reference/glossary#query) for `걷다` may need `걷고`, `걸어`, and `걸었다`. kfind compiles the [lemma](/reference/glossary#lemma) and POS into one plan, so identical input produces the same candidates and rule [provenance](/reference/glossary#provenance).
 
-kfind does not select a word sense. The agent reads the code around each broadly recalled span and keeps the candidates relevant to the task. This [boundary](/reference/glossary#boundary) makes morphology reproducible without removing contextual judgment from the agent.
+kfind does not select a word sense. The agent reads the code around each broadly collected span and keeps the candidates relevant to the task. Separating morphology from context makes the search reproducible without removing contextual judgment from the agent.
 
 ## Recommended workflow [#recommended-workflow]
 
@@ -20,9 +20,9 @@ kfind does not select a word sense. The agent reads the code around each broadly
 
     Narrow the file paths and tag each [atom](/reference/glossary#atom) with `n:`, `v:`, or another explicit POS.
 
-2.  **[Recall](/reference/glossary#recall)\-first boundary**
+2.  **[Recall](/reference/glossary#recall)-first boundary**
 
-    Use `--embedded --boundary any` to avoid resource startup and structural rejection.
+    Use `--embedded --boundary any` to skip additional resource startup and structural decisions.
 
 3.  **Structured output**
 
@@ -39,7 +39,7 @@ kfind --embedded --boundary any --pos verb --json 걷다 crates
 
 ## Integration installation and removal [#skill-installation]
 
-`kfind --init` installs an agent-specific `SKILL.md` and shell hook in the current project. Interactive terminals offer a target picker. Automation repeats `--agent` or supplies target names on stdin. Unmanaged skills and existing agent settings are preserved.
+`kfind --init` installs an agent-specific `SKILL.md` and shell hook in the current project. Interactive terminals offer a target picker. Automation can repeat `--agent` or supply target names on stdin. Existing unmanaged skills and agent settings are preserved.
 
 ```bash
 kfind --init
@@ -60,7 +60,7 @@ gemini
 
 Removal deletes only kfind-managed skills and `kfind --agent-hook` handlers. Other agent settings and hooks are preserved, and an already absent integration is a successful no-op.
 
-A Homebrew-managed skill points to the stable `opt` path instead of a versioned Cellar. Existing project links therefore use the new guidance after `brew upgrade`.
+A Homebrew-managed skill points to the stable `opt` path instead of a versioned Cellar path. Existing project links therefore use the new guidance after `brew upgrade`.
 
 Project hooks run after each agent's trust review. In Codex, inspect and trust them with `/hooks`. The hook blocks `rg`, `grep` variants, and `git grep` when their search pattern contains Korean text, then directs the agent to kfind.
 
@@ -80,13 +80,13 @@ A forbidden-expression check can use the `--quiet` exit status. Refactoring disc
 
 ```bash
 kfind --pos verb --quiet 사용하다 docs && exit 1
-kfind --embedded --boundary any --json 'n:권한 v:검증하다' src   | jq -c 'select(.type == "match")'
+kfind --embedded --boundary any --json 'n:권한 v:검증하다' src | jq -c 'select(.type == "match")'
 ```
 
 Reduce the path and glob before changing the search policy when output is large. A separate full-POS `smart` search is available when a human workflow needs structural [precision](/reference/glossary#precision).
 
 ## Integration contract [#integration-contract]
 
-Results go to stdout; diagnostics and errors go to stderr. Exit status 0 means at least one match, 1 means no match, and 2 reports usage, input, or resource errors. Every JSON Lines match record contains the path, line, source text, UTF-8 byte spans, and provenance.
+Results go to stdout. Diagnostics and errors go to stderr. Exit status 0 means at least one match, 1 means no match, and 2 reports usage, input, or resource errors. Every JSON Lines match record contains the path, line, source text, UTF-8 byte spans, and provenance.
 
 Bound large output by path and glob first. Unlike the interactive TTY pager, `--json`, `--count`, and `--quiet` remain non-interactive streams. Agents parse JSON fields and exit statuses, never localized human-readable output.

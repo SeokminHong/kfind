@@ -4,15 +4,15 @@
 
 ## Installation location [#installation]
 
-Install `skills/kfind-search/SKILL.md` and its referenced scripts in a skill directory visible to the agent. Preserve relative paths from the source.
+Install `skills/kfind-search/SKILL.md` and its referenced scripts in a skill directory visible to the agent. Preserve their relative paths.
 
 Pin the repository revision for a project-local installation. Before a global installation, verify that its projects accept the same binary version.
 
 ## Invocation [#invocation]
 
-The skill accepts a lemma, expected POS, search paths, and output form. It defaults to JSON Lines for automation and switches to text or TUI only for human review.
+The skill accepts a lemma, expected POS, search paths, and output format. It defaults to JSON Lines for automation and switches to text or TUI only for human review.
 
-It separates execution failure from no match and never silently relaxes a component-resource failure to `any`.
+It distinguishes execution failure from no match and never silently relaxes a component-resource failure to `any`.
 
 ## Maintenance [#maintenance]
 
