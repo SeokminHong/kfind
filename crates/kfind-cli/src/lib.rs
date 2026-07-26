@@ -17,7 +17,7 @@ pub use args::{
 };
 pub use assets::{AssetGenerationError, DistributionAssets, generate_distribution_assets};
 pub use diagnostic::{LocalizedCliError, write_cli_error};
-pub use init::{InitError, run_init_with_io};
+pub use init::{InitError, run_init_with_io, run_uninstall_with_io};
 pub use locale::Language;
 pub use output::{
     FilenameMode, OutputError, OutputMode, OutputOptions, OutputWriter, ResolvedColor,

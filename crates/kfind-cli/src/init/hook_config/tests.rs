@@ -76,3 +76,65 @@ fn rejects_invalid_shapes_in_the_modified_path() {
         assert!(merge_hook(&mut document, contract(AgentArg::Codex)).is_err());
     }
 }
+
+#[test]
+fn removes_managed_handlers_and_preserves_other_hooks() {
+    let mut document = json!({
+        "theme": "dark",
+        "hooks": {
+            "PreToolUse": [
+                {
+                    "matcher": "Read",
+                    "hooks": [{
+                        "type": "command",
+                        "command": "existing-hook"
+                    }]
+                },
+                contract(AgentArg::Codex).group()
+            ]
+        }
+    });
+
+    assert!(remove_hook(&mut document, contract(AgentArg::Codex)).unwrap());
+    assert_eq!(document["theme"], "dark");
+    let groups = document["hooks"]["PreToolUse"].as_array().unwrap();
+    assert_eq!(groups.len(), 1);
+    assert_eq!(groups[0]["hooks"][0]["command"], "existing-hook");
+}
+
+#[test]
+fn removal_is_unchanged_when_the_managed_handler_is_absent() {
+    let mut document = json!({
+        "hooks": {
+            "PreToolUse": [{
+                "matcher": "Bash",
+                "hooks": [{
+                    "type": "command",
+                    "command": "existing-hook"
+                }]
+            }]
+        }
+    });
+
+    assert!(!remove_hook(&mut document, contract(AgentArg::Codex)).unwrap());
+}
+
+#[test]
+fn removal_rejects_invalid_shapes_in_the_modified_path() {
+    for mut document in [
+        json!([]),
+        json!({ "hooks": [] }),
+        json!({ "hooks": { "PreToolUse": {} } }),
+        json!({ "hooks": { "PreToolUse": [[]] } }),
+        json!({
+            "hooks": {
+                "PreToolUse": [{
+                    "matcher": "Bash",
+                    "hooks": {}
+                }]
+            }
+        }),
+    ] {
+        assert!(remove_hook(&mut document, contract(AgentArg::Codex)).is_err());
+    }
+}

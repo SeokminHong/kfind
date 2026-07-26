@@ -16,6 +16,21 @@ pub(super) struct HookInstallation {
     permissions: Option<fs::Permissions>,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(super) enum HookRemovalAction {
+    Remove,
+    Update,
+    Unchanged,
+}
+
+pub(super) struct HookRemoval {
+    pub(super) agent: AgentArg,
+    pub(super) path: PathBuf,
+    pub(super) action: HookRemovalAction,
+    contents: Option<String>,
+    permissions: Option<fs::Permissions>,
+}
+
 impl HookInstallation {
     pub(super) fn write(&self) -> Result<(), InitError> {
         let Some(contents) = &self.contents else {
@@ -50,6 +65,54 @@ impl HookInstallation {
             });
         }
         Ok(())
+    }
+}
+
+impl HookRemoval {
+    pub(super) fn apply(&self) -> Result<(), InitError> {
+        match self.action {
+            HookRemovalAction::Remove => {
+                fs::remove_file(&self.path).map_err(|source| InitError::RemoveAgentConfig {
+                    path: self.path.clone(),
+                    source,
+                })
+            }
+            HookRemovalAction::Update => {
+                let contents = self
+                    .contents
+                    .as_ref()
+                    .expect("updated hook configuration must have contents");
+                let parent = self
+                    .path
+                    .parent()
+                    .ok_or_else(|| InitError::InvalidAgentConfig {
+                        path: self.path.clone(),
+                        reason: "configuration path has no parent directory",
+                    })?;
+                let temporary = temporary_path(parent, &self.path);
+                let result = write_temporary_config(
+                    &temporary,
+                    contents.as_bytes(),
+                    self.permissions.as_ref(),
+                );
+                if let Err(source) = result {
+                    let _ = fs::remove_file(&temporary);
+                    return Err(InitError::RemoveAgentConfig {
+                        path: temporary,
+                        source,
+                    });
+                }
+                if let Err(source) = fs::rename(&temporary, &self.path) {
+                    let _ = fs::remove_file(&temporary);
+                    return Err(InitError::RemoveAgentConfig {
+                        path: self.path.clone(),
+                        source,
+                    });
+                }
+                Ok(())
+            }
+            HookRemovalAction::Unchanged => Ok(()),
+        }
     }
 }
 
@@ -119,6 +182,74 @@ pub(super) fn prepare_hook_installation(
     }))
 }
 
+pub(super) fn prepare_hook_removal(
+    root: &Path,
+    agent: AgentArg,
+) -> Result<Option<HookRemoval>, InitError> {
+    let Some(contract) = HookContract::for_agent(agent) else {
+        return Ok(None);
+    };
+    let path = root.join(contract.path);
+    let (contents, permissions) = match fs::symlink_metadata(&path) {
+        Ok(metadata) if metadata.is_file() && !metadata.file_type().is_symlink() => {
+            let contents =
+                fs::read_to_string(&path).map_err(|source| InitError::InspectAgentConfig {
+                    path: path.clone(),
+                    source,
+                })?;
+            (contents, metadata.permissions())
+        }
+        Ok(_) => return Err(InitError::UnmanagedAgentConfig(path)),
+        Err(error) if error.kind() == io::ErrorKind::NotFound => {
+            return Ok(Some(HookRemoval {
+                agent,
+                path,
+                action: HookRemovalAction::Unchanged,
+                contents: None,
+                permissions: None,
+            }));
+        }
+        Err(source) => {
+            return Err(InitError::InspectAgentConfig { path, source });
+        }
+    };
+
+    let mut document =
+        serde_json::from_str(&contents).map_err(|source| InitError::ParseAgentConfig {
+            path: path.clone(),
+            source,
+        })?;
+    let remove_file = document == contract.document();
+    let changed =
+        remove_hook(&mut document, contract).map_err(|reason| InitError::InvalidAgentConfig {
+            path: path.clone(),
+            reason,
+        })?;
+    let (action, contents) = if !changed {
+        (HookRemovalAction::Unchanged, None)
+    } else if remove_file {
+        (HookRemovalAction::Remove, None)
+    } else {
+        let mut contents = serde_json::to_string_pretty(&document).map_err(|source| {
+            InitError::EncodeAgentConfig {
+                path: path.clone(),
+                source,
+            }
+        })?;
+        contents.push('\n');
+        (HookRemovalAction::Update, Some(contents))
+    };
+
+    Ok(Some(HookRemoval {
+        agent,
+        path,
+        action,
+        contents,
+        permissions: Some(permissions),
+    }))
+}
+
+#[derive(Clone, Copy)]
 struct HookContract {
     path: &'static str,
     event: &'static str,
@@ -169,6 +300,14 @@ impl HookContract {
         json!({
             "matcher": self.matcher,
             "hooks": [self.handler()],
+        })
+    }
+
+    fn document(&self) -> Value {
+        json!({
+            "hooks": {
+                self.event: [self.group()]
+            }
         })
     }
 }
@@ -251,6 +390,68 @@ fn merge_hook(document: &mut Value, contract: HookContract) -> Result<bool, &'st
     });
     groups.push(contract.group());
     Ok(true)
+}
+
+fn remove_hook(document: &mut Value, contract: HookContract) -> Result<bool, &'static str> {
+    let root = document
+        .as_object_mut()
+        .ok_or("configuration root must be a JSON object")?;
+    let Some(hooks) = root.get_mut("hooks") else {
+        return Ok(false);
+    };
+    let hooks = hooks
+        .as_object_mut()
+        .ok_or("`hooks` must be a JSON object")?;
+    let Some(groups) = hooks.get_mut(contract.event) else {
+        return Ok(false);
+    };
+    let groups = groups
+        .as_array_mut()
+        .ok_or("hook event must be a JSON array")?;
+    let mut changed = false;
+
+    for group in groups.iter_mut() {
+        let group = group
+            .as_object_mut()
+            .ok_or("hook event entries must be JSON objects")?;
+        let handlers = group
+            .get_mut("hooks")
+            .and_then(Value::as_array_mut)
+            .ok_or("hook group `hooks` must be a JSON array")?;
+        let previous_len = handlers.len();
+        for handler in handlers.iter() {
+            if !handler.is_object() {
+                return Err("hook handlers must be JSON objects");
+            }
+        }
+        handlers.retain(|handler| {
+            handler
+                .get("command")
+                .and_then(Value::as_str)
+                .is_none_or(|command| command != HOOK_COMMAND)
+        });
+        changed |= handlers.len() != previous_len;
+    }
+
+    if changed {
+        groups.retain(|group| !is_empty_managed_group(group, contract));
+    }
+    Ok(changed)
+}
+
+fn is_empty_managed_group(group: &Value, contract: HookContract) -> bool {
+    let Some(group) = group.as_object() else {
+        return false;
+    };
+    group.len() == 2
+        && group
+            .get("matcher")
+            .and_then(Value::as_str)
+            .is_some_and(|matcher| matcher == contract.matcher)
+        && group
+            .get("hooks")
+            .and_then(Value::as_array)
+            .is_some_and(Vec::is_empty)
 }
 
 fn write_temporary_config(

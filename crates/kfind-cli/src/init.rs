@@ -12,8 +12,10 @@ use crate::{AgentArg, Args, Language};
 
 mod error;
 mod hook_config;
+mod uninstall;
 
 pub use error::InitError;
+pub use uninstall::run_uninstall_with_io;
 pub(crate) const SKILL_CONTENT: &str = include_str!("../../../skills/kfind/SKILL.md");
 const MANAGED_MARKER: &str = "<!-- managed by kfind init -->";
 const MAX_STDIN_BYTES: u64 = 4 * 1024;
@@ -31,6 +33,12 @@ enum InstallAction {
     Install,
     Update,
     Unchanged,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum IntegrationOperation {
+    Install,
+    Uninstall,
 }
 
 pub fn run_init_with_io<R, W, E>(
@@ -76,7 +84,13 @@ where
     W: Write,
     E: Write,
 {
-    let agents = selected_agents(args, stdin, language, interactive_terminal)?;
+    let agents = selected_agents(
+        args,
+        stdin,
+        language,
+        interactive_terminal,
+        IntegrationOperation::Install,
+    )?;
     if agents.is_empty() {
         write_status(
             stderr,
@@ -128,24 +142,46 @@ fn selected_agents<R: Read>(
     stdin: &mut R,
     language: Language,
     interactive_terminal: bool,
+    operation: IntegrationOperation,
 ) -> Result<Vec<AgentArg>, InitError> {
-    if !args.agent.is_empty() {
-        return Ok(deduplicate(&args.agent));
+    let agents = if !args.agent.is_empty() {
+        deduplicate(&args.agent)
+    } else if interactive_terminal {
+        select_interactively(language, operation)?
+    } else {
+        read_agents(stdin)?
+    };
+    if operation == IntegrationOperation::Uninstall && agents.contains(&AgentArg::Custom) {
+        return Err(InitError::CustomCannotBeUninstalled);
     }
-    if interactive_terminal {
-        return select_interactively(language);
-    }
-    read_agents(stdin)
+    Ok(agents)
 }
 
-fn select_interactively(language: Language) -> Result<Vec<AgentArg>, InitError> {
-    let agents = AgentArg::ALL;
-    let labels = agents.map(AgentArg::display_name);
-    let selected = MultiSelect::new()
-        .with_prompt(language.select(
+fn select_interactively(
+    language: Language,
+    operation: IntegrationOperation,
+) -> Result<Vec<AgentArg>, InitError> {
+    let agents = match operation {
+        IntegrationOperation::Install => AgentArg::ALL.as_slice(),
+        IntegrationOperation::Uninstall => AgentArg::INSTALLED.as_slice(),
+    };
+    let labels = agents
+        .iter()
+        .copied()
+        .map(AgentArg::display_name)
+        .collect::<Vec<_>>();
+    let prompt = match operation {
+        IntegrationOperation::Install => language.select(
             "Select kfind integration targets",
             "kfind 통합을 설치할 agent를 선택하세요",
-        ))
+        ),
+        IntegrationOperation::Uninstall => language.select(
+            "Select kfind integration targets to remove",
+            "kfind 통합을 제거할 agent를 선택하세요",
+        ),
+    };
+    let selected = MultiSelect::new()
+        .with_prompt(prompt)
         .items(labels)
         .interact_opt()
         .map_err(InitError::Prompt)?
@@ -365,6 +401,7 @@ fn write_status(writer: &mut impl Write, message: &str) -> Result<(), InitError>
 
 impl AgentArg {
     const ALL: [Self; 4] = [Self::ClaudeCode, Self::Codex, Self::Gemini, Self::Custom];
+    const INSTALLED: [Self; 3] = [Self::ClaudeCode, Self::Codex, Self::Gemini];
 
     const fn display_name(self) -> &'static str {
         match self {

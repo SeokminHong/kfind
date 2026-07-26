@@ -54,6 +54,13 @@ kfind --init --agent codex --agent claude-code
 printf 'codex\ngemini\n' | kfind --init
 kfind --init --agent custom > path/to/kfind/SKILL.md
 .EE
+Use --uninstall with the same target selection to remove kfind-managed skills
+and hook handlers. Unrelated agent settings and hooks are preserved.
+.PP
+.EX
+kfind --uninstall --agent codex --agent claude-code
+printf 'codex\ngemini\n' | kfind --uninstall
+.EE
 "#;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -191,6 +198,7 @@ mod tests {
         assert!(first_contents[0].contains(".SS Agent integration setup"));
         assert!(first_contents[0].contains("--embedded --boundary any --pos verb --json"));
         assert!(first_contents[0].contains("--init --agent codex --agent claude-code"));
+        assert!(first_contents[0].contains("--uninstall --agent codex --agent claude-code"));
         assert!(first_contents[1].contains("_kfind"));
         assert!(first_contents[2].contains("#compdef kfind"));
         assert!(first_contents[3].contains("complete -c kfind"));
