@@ -1,0 +1,23 @@
+<Eyebrow>GET STARTED · WORKFLOW</Eyebrow>
+
+# Search workflows
+
+## Exploration [#exploration]
+
+Start with a lemma and the default `inflection` and `smart` settings. If no result appears, relax structural boundaries with `--boundary any`; specify `--pos` when the lemma is POS-ambiguous.
+
+Constrain directories before filtering extensions. Inspect each surface and its nearby context before changing the query.
+
+## Precision search [#precision]
+
+Fix atom-level POS tags, phrase order, and `--max-gap` for a precise search. Use `--literal` when only the exact input string is relevant.
+
+The matcher does not remove semantic ambiguity that morphology cannot distinguish. Resolve those candidates from surrounding code or sentence context.
+
+## Automation [#automation]
+
+Agents and scripts use `--json` or the native JSON Lines output. Distinguish a normal no-match result from execution failure by exit status, and feed only stdout into the parser.
+
+```text
+kfind --pos verb --boundary any --json 걷다 src   | jq -c 'select(.surface != null)'
+```

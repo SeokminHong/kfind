@@ -1,0 +1,19 @@
+<Eyebrow>AGENTS · SKILL</Eyebrow>
+
+# Skill installation
+
+## Installation location [#installation]
+
+Install `skills/kfind-search/SKILL.md` and its referenced scripts in a skill directory visible to the agent. Preserve relative paths from the source.
+
+Pin the repository revision for a project-local installation. Before a global installation, verify that its projects accept the same binary version.
+
+## Invocation [#invocation]
+
+The skill accepts a lemma, expected POS, search paths, and output form. It defaults to JSON Lines for automation and switches to text or TUI only for human review.
+
+It separates execution failure from no match and never silently relaxes a component-resource failure to `any`.
+
+## Maintenance [#maintenance]
+
+Update the skill with the same release whenever CLI options, JSON schema, or rule-provenance contracts change. Keep only current commands in the skill; retain revision history in releases and decision records.

@@ -1,0 +1,63 @@
+<Eyebrow>INTERNALS · MORPHOLOGY</Eyebrow>
+
+# Morphology
+
+<Lead>
+
+kfind combines forward generation from a target [lemma](/reference/glossary#lemma) with local structural verification of source candidates.
+
+</Lead>
+
+## Analysis direction [#analysis-direction]
+
+A [query](/reference/glossary#query) [atom](/reference/glossary#atom) contains a lemma and an optional [part of speech](/reference/glossary#part-of-speech). [Lexicon](/reference/glossary#lexicon) lookup produces compatible analyses. Each analysis compiles into a `CandidateProgram` containing an [anchor](/reference/glossary#anchor), core span, [particle](/reference/glossary#particle) and [ending](/reference/glossary#ending) consumption, [boundary](/reference/glossary#boundary) conditions, and [provenance](/reference/glossary#provenance).
+
+Only source positions containing an anchor are verified against the program. This differs from analyzing every observed token. The result is a span reachable from the query plus its origin, not a complete morpheme sequence for the sentence.
+
+## Lexicon layers [#lexicon-layers]
+
+The core lexicon stores essential irregulars, [POS](/reference/glossary#part-of-speech) ambiguity, function words, and surface exceptions. The enriched layer contains [inflection](/reference/glossary#inflection) and [derivation](/reference/glossary#derivation) relations supported by pinned Korean dictionary snapshots. The full-POS lexicon supplies automatic and fine-grained POS candidates, while the user lexicon adds project terms and replacement rules.
+
+Multiple analyses for one lemma are preserved. Programs with identical execution conditions may be merged, but every POS and rule origin remains in provenance. An explicit coarse POS also receives fallback analyses for missing fine-grained categories.
+
+## Particles and allomorphs [#particles-and-allomorphs]
+
+Nominals do not enumerate every particle chain as a complete surface. After a core hit, a verifier reads the remaining suffix through a particle transition table. Vowel-final hosts select `는·가·를·로`, consonant-final hosts select `은·이·을·으로`, with a dedicated condition for `로` after final ㄹ.
+
+```
+학교 + 에서 + 는  → 학교에서는
+길 + 으로       → 길로
+집 + 로         → rejected
+```
+
+Only registered particle transitions are accepted. `smart` and `token` verify the token boundary after consumption.
+
+## Endings and prefinal endings [#endings]
+
+Predicate programs separate stem substitution from ending chains. Prefinal endings express tense, honorific meaning, and modality before connective or terminal endings. `먹었겠지만`, for example, is `먹/VV + 었/EP + 겠/EP + 지만/EC`. kfind represents `었` and `겠` as typed consumption states and closes the token with the permitted `지만` transition.
+
+The rule catalog includes present declaratives, adnominal and nominalizing endings, connectives, and bounded continuations. A chain that is absent from the versioned rule data is not inferred merely because it appears grammatically plausible.
+
+## [Irregular conjugation](/reference/glossary#irregular-conjugation) and contraction [#irregulars-and-contractions]
+
+A lexicon entry selects a substitution class, and the generator combines it with the phonological environment of an ending. ㄷ irregular `걷다` yields `걷 + 어 → 걸어`; ㅂ irregular `돕다` yields `돕 + 아 → 도와`. The same composition handles `모르다 → 몰라`, `낫다 → 나아`, and `파랗다 → 파란`.
+
+Contractions such as `보아 → 봐` and `주어 → 줘` decompose and recombine Hangul syllable components under explicit rules. When both regular and irregular analyses are valid, both programs are retained for [recall](/reference/glossary#recall).
+
+## Derivation and compound structure [#derivation-and-compounds]
+
+`inflection` preserves POS, while `derivation` includes registered suffixes that create a new POS. Paths such as `안정 + 하 + 다` and `잠식 + 당하 + 기` are accepted only when source components prove a complete POS and span sequence.
+
+Auxiliary and compound-internal search uses the same constraint. Internal `가다` in `들어가다` requires a preceding predicate and [connective ending](/reference/glossary#connective-ending), while particle `가` in `친구가` cannot become a verb candidate.
+
+A compound-noun decomposition is used when the source declares components for the complete particle host and no independent analysis competes on the same span. This finds `물` in `물/NNG + 줄기/NNG + 는/JX` but rejects `길` from an alternate decomposition that competes with an independent `산길/NNG` analysis.
+
+When the resource completes an auxiliary chain left by a generated program, the `VX + E*` path after the connective must be complete. The source path is used when the connective lies outside the core, every exact analysis of the contracted core is a predicate, a query-compatible single predicate source edge extends beyond the core and is followed by a complete ending path, the complete token has an exact `predicate + EC + VX + E+` analysis, or the suffix is the resultative `-아/어지다` family. This retains `빼놓을`, `생겨났던`, and `극심해지겠지만` without expanding `해가며` from the ambiguous `해` surface alone.
+
+## Local structural verification [#structural-verification]
+
+`smart` decodes only bounded tokens around an anchor from the compact [component resource](/reference/glossary#component-resource). A `StructuralConstraint` compares the POS sequence, component spans, continuations, and neighboring-token conditions required by the query. It uses observable morphology, not semantic interpretation.
+
+Because no corpus-wide tokenization is built, large-file scanning stays on the byte-search path. Source-proven internal components and particle-ending boundaries still make the result more precise than a plain substring search.
+
+For a nominal followed by particles, the exact whole-nominal path is selected first. `길` found only in an alternative decomposition of `산길을` is rejected, while the `주의` component declared by the whole analysis of `자본주의` is retained.

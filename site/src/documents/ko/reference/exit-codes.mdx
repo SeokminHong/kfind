@@ -1,0 +1,21 @@
+<Eyebrow>명세 · 실행</Eyebrow>
+
+# 종료 코드
+
+## native CLI [#native]
+
+0은 하나 이상의 match, 1은 정상 no-match, 2는 사용법·I/O·resource·compile 오류입니다.
+
+Broken pipe는 consumer가 출력을 닫은 정상 상황으로 처리합니다.
+
+## npm CLI [#npm]
+
+0, 1, 2의 의미는 native 검색과 같습니다. Invalid UTF-8·binary 파일은 진단 뒤 skip하지만 explicit path read 실패는 2입니다.
+
+`--help`와 `--version`은 성공 0입니다.
+
+## pipeline 사용 [#pipelines]
+
+`set -e`에서는 no-match 1이 script를 중단할 수 있습니다. 허용하려면 상태를 명시적으로 분기하고 2를 성공으로 바꾸지 않습니다.
+
+부분 stdout 뒤 2로 끝나면 결과를 폐기하거나 incomplete로 표시합니다.

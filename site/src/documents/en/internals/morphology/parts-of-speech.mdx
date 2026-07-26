@@ -1,0 +1,23 @@
+<Eyebrow>KOREAN MORPHOLOGY · GRAMMAR</Eyebrow>
+
+# Part-of-speech system
+
+## Detailed tags [#tag-system]
+
+Nominals include NNG, NNP, NNB, NNBC, NP, and NR; predicates include VV, VA, VX, VCP, and VCN. J tags separate particles, while EP, EF, EC, ETN, and ETM distinguish ending functions.
+
+XPN, XSN, XSV, XSA, and XR represent derivation. Tags belong to nodes and edges in source analyses, not merely to surface strings.
+
+## Coarse mapping [#coarse-mapping]
+
+`noun` includes NNG, NNP, NNB, and NNBC; `verb` includes VV; `adjective` includes VA. Copulas VCP and VCN follow copular rules and project into the category required by query analysis.
+
+Coarse POS does not erase detailed tags. Match origins retain actual query analyses and source analysis indices.
+
+## Ambiguous analyses [#ambiguity]
+
+`나는` may be `나/NP+는/JX` or `날다/VV+는/ETM`. A pronoun query builds the first path; a verb query builds the second.
+
+A source candidate remains when multiple analyses satisfy structure. No semantic context is used to choose one.
+
+Accordingly, both `pro:나` and `v:날다` match `나는` in `나는 새를 본다` through their respective analyses. `n:나` does not reclassify pronoun NP as common-noun NNG and does not match this analysis.

@@ -1,0 +1,63 @@
+<Eyebrow>내부 원리 · 형태</Eyebrow>
+
+# 형태 분석
+
+<Lead>
+
+kfind의 형태 처리는 [표제어](/reference/glossary#lemma)에서 검색 조건을 만드는 정방향 생성과 원문 후보를 검증하는 국소 판정으로 구성됩니다.
+
+</Lead>
+
+## 분석 방향 [#analysis-direction]
+
+[Query](/reference/glossary#query) [atom](/reference/glossary#atom) 하나는 표제어와 선택적 [품사](/reference/glossary#part-of-speech)를 가집니다. 사전 조회는 이 입력을 설명할 수 있는 분석을 만들고, 각 분석은 [anchor](/reference/glossary#anchor), core span, [조사](/reference/glossary#particle)·[어미](/reference/glossary#ending) 소비 상태, 경계 조건과 [생성 근거](/reference/glossary#provenance)를 가진 `CandidateProgram`으로 컴파일됩니다.
+
+Corpus에서는 anchor가 있는 위치만 program으로 검증합니다. 이 방향은 관찰한 모든 token을 분석하는 작업과 다릅니다. kfind가 반환하는 정보는 전체 문장의 형태소열이 아니라 query에서 도달 가능한 표면형의 span과 provenance입니다.
+
+## 사전 계층 [#lexicon-layers]
+
+Core [lexicon](/reference/glossary#lexicon)은 핵심 불규칙, 품사 중의성, 기능어와 표면형 예외를 담습니다. Enriched 계층은 고정된 국립국어원 사전 snapshot이 함께 지지하는 [활용](/reference/glossary#inflection)·[파생](/reference/glossary#derivation) 관계만 보존합니다. Full [POS](/reference/glossary#part-of-speech) lexicon은 자동 품사 후보와 세부 품사를 제공하고, user lexicon은 프로젝트 용어와 교체 규칙을 추가합니다.
+
+같은 표제어에 여러 분석이 있으면 하나를 임의로 선택하지 않습니다. 실행 조건이 같으면 program을 합치되 모든 품사와 규칙 provenance를 유지합니다. 사용자가 coarse POS를 명시하면 noun, verb 같은 범주가 포함하는 세부 품사의 누락도 fallback 분석으로 채웁니다.
+
+## 조사와 [이형태](/reference/glossary#allomorph) [#particles-and-allomorphs]
+
+체언은 표면형마다 모든 조사 조합을 열거하지 않습니다. Core를 찾은 뒤 verifier가 남은 suffix를 조사 전이로 읽습니다. 받침이 없으면 `는·가·를·로`, 받침이 있으면 `은·이·을·으로`를 선택합니다. `ㄹ` 받침 뒤의 `로`처럼 별도 음운 조건도 포함합니다.
+
+```
+학교 + 에서 + 는  → 학교에서는
+길 + 으로       → 길로
+집 + 로         → 거부
+```
+
+조사 연쇄는 등록된 전이만 허용합니다. 완성된 조사 뒤에 임의 문자열을 이어 붙이지 않으며 `smart`와 `token`은 소비가 끝난 token 경계를 확인합니다.
+
+## 어미와 [선어말어미](/reference/glossary#prefinal-ending) [#endings]
+
+용언 program은 어간 교체와 어미 연쇄를 분리합니다. 선어말어미는 종결·연결 어미 앞에서 시제, 높임과 추측을 나타냅니다. 예를 들어 `먹었겠지만`은 `먹/VV + 었/EP + 겠/EP + 지만/EC`로 분석됩니다. kfind는 `었`과 `겠`을 typed consumption 상태로 보존한 뒤 허용된 `지만`으로 token을 닫습니다.
+
+현재 평서형 `-ㄴ다/-는다`, 관형형 `-는/-ㄴ/-을`, 명사형 `-기/-ㅁ`, 연결형 `-고/-면/-니/-려고`와 지정된 후속 어미를 지원합니다. 문법적으로 가능해 보이더라도 규칙 데이터에 없는 연쇄는 만들지 않습니다.
+
+## [불규칙 활용](/reference/glossary#irregular-conjugation)과 축약 [#irregulars-and-contractions]
+
+사전 entry는 적용할 교체 분류를 제공하고 generator가 어미의 음운 환경과 결합합니다. `걷다`의 ㄷ 불규칙은 모음 시작 어미 앞에서 `걷 + 어 → 걸어`를 만들고, `돕다`의 ㅂ 불규칙은 `돕 + 아 → 도와`를 만듭니다. `모르다 → 몰라`, `낫다 → 나아`, `파랗다 → 파란`도 같은 방식으로 어휘 분류와 공통 어미 규칙을 합성합니다.
+
+`보아 → 봐`, `주어 → 줘` 같은 축약은 한글 음절의 초성·중성·종성을 분해한 뒤 허용된 결합으로 다시 조합합니다. 규칙형과 불규칙형 분석이 모두 가능한 표제어는 두 program을 보존해 [recall](/reference/glossary#recall)을 유지합니다.
+
+## 파생과 복합 구조 [#derivation-and-compounds]
+
+`inflection`은 품사를 유지하는 활용을, `derivation`은 등록된 접미사로 새 품사를 만드는 표면까지 포함합니다. `안정 + 하 + 다`, `잠식 + 당하 + 기`처럼 명사·어근과 파생 접미사가 이어지는 경로는 source component의 품사와 span이 완성될 때만 승인합니다.
+
+보조용언과 합성용언 내부 검색도 같은 제약을 사용합니다. `들어가다`의 `가다`는 선행 용언과 연결 어미가 token 왼쪽부터 이어져야 하지만, `친구가`의 조사 `가`는 동사 후보가 될 수 없습니다.
+
+합성명사 source가 조사 host 전체의 component를 선언하고 같은 span의 독립 분석이 없으면 그 분해를 사용합니다. `물/NNG + 줄기/NNG + 는/JX`의 `물`은 검색하지만, 독립 `산길/NNG` 분석과 경쟁하는 별도 분해의 `길`은 검색하지 않습니다.
+
+생성 program이 남긴 보조용언 연쇄를 resource로 보완할 때는 연결 어미 바깥의 `VX + E*` 경로가 완성되어야 합니다. 연결 어미가 core 바깥에 있거나, 축약된 core가 용언으로만 분석되거나, core보다 긴 query 품사의 단일 용언 source edge 뒤로 어미가 완결되거나, token 전체의 정확한 분석이 `용언 + EC + VX + E+`이거나, 결과 변화를 나타내는 `-아/어지다` 계열일 때 source 경로를 사용합니다. `빼놓을`, `생겨났던`, `극심해지겠지만`은 유지하지만, 중의적인 `해`만으로 `해가며`를 확장하지 않습니다.
+
+## 국소 구조 판정 [#structural-verification]
+
+`smart`는 anchor 주변의 제한된 token만 compact [component resource](/reference/glossary#component-resource)로 해독합니다. Query가 요구하는 품사열, component span, continuation과 인접 token 조건을 `StructuralConstraint`로 비교합니다. 의미가 아니라 관찰 가능한 형태 구조만 사용합니다.
+
+일반 분석기처럼 corpus 전체 tokenization을 만들지 않으므로 큰 파일의 scan 경로는 byte 검색으로 유지됩니다. 동시에 source가 증명한 내부 성분과 조사·어미 경계를 사용해 단순 substring 검색보다 정밀한 후보를 반환합니다.
+
+조사로 끝나는 체언에서는 정확한 전체 체언 경로를 먼저 선택합니다. `산길을`의 대안 분해에만 있는 `길`은 거부하지만, 전체 분석 자체가 선언한 `자본주의`의 `주의` component는 유지합니다.

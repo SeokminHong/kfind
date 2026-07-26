@@ -1,0 +1,23 @@
+<Eyebrow>BENCHMARKS · PERFORMANCE</Eyebrow>
+
+# Performance measurement
+
+## Workloads [#workloads]
+
+Morphology measures fresh-process initialization, cases per second, p95, and RSS. Query compile, matcher scan, 1 GiB file scan, npm startup, and TUI indexing have separate entrypoints.
+
+The regex baseline separates batch wall time for kfind and each rg or grep combination while seven fresh processes scan the same single file.
+
+Lock wait and build time are excluded from workload time but remain part of recorded environment and revision.
+
+## Statistics [#statistics]
+
+Morphology backends use one warm-up and five measurements; the regex baseline uses two warm-ups and ten measurements. Reports include median, minimum, maximum, and p95. A single run or successful smoke test is not performance evidence.
+
+Throughput, latency, seconds, and bytes are not collapsed into one percentage score.
+
+## Regression decision [#regression]
+
+Baseline and candidate use identical toolchains, resources, input checksums, and options. A quality projection prevents adoption of a faster but incorrect candidate.
+
+Unfavorable changes and noise ranges remain visible, and unknown causes are labeled as inference.

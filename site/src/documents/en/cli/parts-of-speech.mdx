@@ -1,0 +1,21 @@
+<Eyebrow>CLI · QUERY</Eyebrow>
+
+# Part-of-speech selection
+
+## Coarse POS [#coarse-pos]
+
+Public values are `noun`, `pronoun`, `numeral`, `verb`, `adjective`, `determiner`, `adverb`, `particle`, `interjection`, and `literal`. Internal NNG and NNP map to noun, while VV maps to verb.
+
+`auto` preserves every compatible lexicon analysis. It does not choose one preferred interpretation, so a homographic lemma can produce several programs.
+
+## Selection rules [#selection-order]
+
+When an atom tag and global `--pos` are both concrete, they must agree. A mismatch is a compile error because both user constraints cannot hold.
+
+`--literal` abbreviates `expand=literal` and `pos=literal`. It conflicts with another expansion or a non-literal POS.
+
+## POS ambiguity [#ambiguity]
+
+Query-side POS ambiguity remains a set of candidate programs. Under `smart`, source-side detailed analyses from the compact resource are compared with structural constraints.
+
+Ambiguity that morphology cannot resolve remains in the results. kfind does not invent a frequency or language-model ranking.

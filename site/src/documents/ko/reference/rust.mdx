@@ -1,0 +1,21 @@
+<Eyebrow>명세 · API</Eyebrow>
+
+# Rust API
+
+## 안정 facade [#facade]
+
+Crate root는 `Engine`, `Matcher`, `ResourceBundle`, compile option, error와 match provenance type을 노출합니다. 이 surface가 1.x 호환 계약입니다.
+
+Matcher는 UTF-8 byte slice를 검색하고 파일 순회·인코딩·출력을 수행하지 않습니다.
+
+## resource 초기화 [#resources]
+
+`Engine::with_resources`는 선택적 full POS, enriched predicate와 component를 한 profile로 검증합니다. `Engine::new`는 embedded profile입니다.
+
+Component 교체는 `load_component_resource`가 전체 검증 뒤 적용하며 실패하면 기존 resource를 유지합니다.
+
+## expert API [#expert]
+
+`kfind::expert`는 caller-configured `Lexicons`, `QueryPlan`과 matcher plan 접근을 제공합니다.
+
+Expert type은 root facade 인자나 반환값에 나타나지 않으며 1.x 안정 계약에 포함되지 않습니다.

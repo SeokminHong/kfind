@@ -6,6 +6,7 @@
   "scripts": {
     "generate:playground-corpus": "node scripts/generate-playground-corpus.mjs",
     "generate:sitemap": "node scripts/generate-sitemap.mjs",
+    "check:documents": "node scripts/check-documents.mjs",
     "check:seo": "node scripts/check-seo.mjs",
     "prepare:assets": "./scripts/prepare-assets.sh",
     "upload:component": "./scripts/upload-component-resource.sh",
@@ -14,7 +15,7 @@
     "typegen": "react-router typegen",
     "dev": "pnpm run generate:sitemap && pnpm run prepare:assets && react-router dev",
     "dev:pages": "pnpm run build && wrangler pages dev build/client",
-    "build": "pnpm run generate:sitemap && pnpm run prepare:assets && react-router typegen && tsc --noEmit && tsc --noEmit --project functions/tsconfig.json && node scripts/build-site.mjs && pnpm run check:seo",
+    "build": "pnpm run generate:sitemap && pnpm run prepare:assets && pnpm run check:documents && react-router typegen && tsc --noEmit && tsc --noEmit --project functions/tsconfig.json && node scripts/build-site.mjs && pnpm run check:seo",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -24,8 +25,10 @@
   "devDependencies": {
     "@cloudflare/workers-types": "5.20260713.1",
     "@ianvs/prettier-plugin-sort-imports": "4.7.1",
+    "@mdx-js/rollup": "3.1.1",
     "@react-router/dev": "8.2.0",
     "@seokminhong/configs": "3.1.0",
+    "@shikijs/rehype": "4.3.1",
     "@types/d3-scale": "4.0.9",
     "@types/react": "19.2.17",
     "@types/react-dom": "19.2.3",
@@ -33,6 +36,7 @@
     "@vanilla-extract/vite-plugin": "5.2.4",
     "eslint": "9.39.5",
     "prettier": "3.9.5",
+    "remark-gfm": "4.0.1",
     "typescript": "6.0.3",
     "vite": "8.1.4",
     "wrangler": "4.110.0"

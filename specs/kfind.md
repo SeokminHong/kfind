@@ -392,7 +392,7 @@
   ```
 
 - 전역 navigation은 영어에서 `Home`, `Get Started`, `CLI`, `Agents`, `Internals`, `Benchmarks`,
-  `Reference`, 한국어에서 `홈`, `시작하기`, `CLI`, `에이전트`, `내부 구조`, `성능 평가`, `명세`의
+  `Reference`, 한국어에서 `홈`, `시작하기`, `CLI`, `에이전트`, `내부 구조`, `벤치마크`, `명세`의
   한 단계 GNB로 구성한다. 한국어 navigation category, 문서 제목과 eyebrow에서 영어
   `Reference`를 `참조`로 직역하지 않는다. `Playground`와 GitHub는 GNB 오른쪽의 독립 action으로
   둔다. 문법 항목, 구현 단계와 개별 지표를 GNB에 직접 나열하지 않는다.

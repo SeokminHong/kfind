@@ -1,7 +1,12 @@
 import { execFileSync } from 'node:child_process';
+import mdx from '@mdx-js/rollup';
 import { reactRouter } from '@react-router/dev/vite';
+import rehypeShiki from '@shikijs/rehype';
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
+import remarkGfm from 'remark-gfm';
 import { defineConfig } from 'vite';
+
+import { remarkHeadingIds } from './remark/heading-ids';
 
 const prerenderLocale = process.env.KFIND_PRERENDER_LOCALE ?? 'ko';
 if (prerenderLocale !== 'ko' && prerenderLocale !== 'en') {
@@ -9,7 +14,22 @@ if (prerenderLocale !== 'ko' && prerenderLocale !== 'en') {
 }
 
 export default defineConfig({
-  plugins: [reactRouter(), vanillaExtractPlugin()],
+  plugins: [
+    mdx({
+      rehypePlugins: [
+        [
+          rehypeShiki,
+          {
+            defaultLanguage: 'text',
+            theme: 'github-light',
+          },
+        ],
+      ],
+      remarkPlugins: [remarkGfm, remarkHeadingIds],
+    }),
+    reactRouter(),
+    vanillaExtractPlugin(),
+  ],
   define: {
     __KFIND_COMPONENT_RESOURCE_VERSION__: JSON.stringify(
       readComponentResourceVersion(),

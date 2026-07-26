@@ -1,0 +1,21 @@
+<Eyebrow>CLI · MATCHING</Eyebrow>
+
+# Boundary policies
+
+## Smart boundary [#smart]
+
+`smart` consumes particle and ending transitions after the core and verifies source component POS when required. The compact resource is mandatory when a program declares structural capability.
+
+It preserves completed tokens and permitted internal components while rejecting accidental substrings of another POS. It does not resolve semantics.
+
+## Token boundary [#token]
+
+`token` requires Unicode word boundaries at the core start and the end of all consumed material. It excludes component-internal matches and suits independent-token checks.
+
+The matcher checks the boundary after consuming permitted particles or endings, not immediately after the lemma string.
+
+## Any boundary [#any]
+
+`any` imposes no left or right token boundary and returns spans verified by generated programs. Use it for broad collection and recall-oriented automation.
+
+Relaxing boundaries does not relax morphology. Combine `--literal --boundary any` for literal substring search.

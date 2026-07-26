@@ -1,0 +1,48 @@
+<Eyebrow>CLI · 질의</Eyebrow>
+
+# 질의 문법
+
+## 형식 문법 [#grammar]
+
+공백은 phrase atom 경계이고 따옴표와 escape 밖의 `|`는 disjunction 경계입니다. Atom은 태그가 붙은 bare text 또는 따옴표로 감싼 literal입니다.
+
+빈 atom, 닫히지 않은 따옴표, 값이 없는 태그, 알 수 없는 태그와 피연산자가 없는 `|`는 compile 오류입니다.
+
+```text
+query       = atom / phrase / disjunction
+phrase      = atom 1*(WS atom)
+disjunction = atom 1*(OWS "|" OWS atom)
+atom        = [pos-tag] (bare / quoted)
+pos-tag     = "n:" / "v:" / "adj:" / "lit:" / ...
+```
+
+## atom과 태그 [#atoms]
+
+`v:걷다`는 동사 분석만, `n:걷기`는 명사 분석만 허용합니다. 태그가 없으면 전역 `--pos` 또는 `auto`가 적용됩니다.
+
+구 query의 각 atom은 독립 분석과 program 집합을 가집니다. 같은 tag를 전체 구에 암묵적으로 전파하지 않습니다.
+
+## 인용과 escape [#quoting]
+
+`"로그 인"`은 공백을 포함한 하나의 literal atom입니다. `"`와 `\`는 따옴표와 backslash를 문자로 보존합니다.
+
+형태 확장이 필요한 표제어를 따옴표로 감싸는 것은 literal mode와 같지 않습니다. 인용은 atom 경계만 바꾸고 expansion은 option이 결정합니다.
+
+```text
+kfind 'v:걷다 "로그 인"' src
+kfind --literal 'key\:value' config
+```
+
+## 대안 검색 [#disjunction]
+
+`걷다|사용자`와 `걷다 | 사용자`는 각 atom 중 하나를 찾는 같은 query입니다. Alternative마다 품사 태그를 독립적으로 지정할 수 있습니다.
+
+각 alternative는 하나의 atom이어야 하며 phrase와 섞지 않습니다. `--max-gap`은 적용되지 않습니다. Literal `|`는 `\|` 또는 `"|"`로 작성합니다.
+
+CLI에서는 shell이 `|`를 pipe로 해석하지 않도록 query 전체를 따옴표로 묶습니다.
+
+```text
+kfind 'v:걷다|n:사용자|n:검증' src
+kfind '\|' syntax.txt
+kfind '"|"' syntax.txt
+```

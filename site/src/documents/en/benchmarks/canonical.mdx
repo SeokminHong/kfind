@@ -1,0 +1,21 @@
+<Eyebrow>BENCHMARKS · QUALITY</Eyebrow>
+
+# Canonical quality
+
+## Dataset [#dataset]
+
+Five hundred positives cover noun, pronoun, numeral, verb, adjective, determiner, and adverb target spans. Five hundred negatives include identical surfaces serving other morphological functions.
+
+Only manually reviewed standard sentences are included; noisy sentences remain in Robust.
+
+## Metrics [#metrics]
+
+Each backend reports a raw confusion matrix plus precision, recall, and F1. No contract review applies, so adjusted matrices equal raw and reviewed cases equal zero.
+
+The D3 chart renders both series rather than hiding their equality.
+
+## Interpretation limits [#limits]
+
+Canonical F1 measures lemma search on standard sentences. It includes neither file-scan throughput nor noisy-sentence robustness.
+
+POS strata have different denominators, so their percentages are not averaged directly into the overall result.

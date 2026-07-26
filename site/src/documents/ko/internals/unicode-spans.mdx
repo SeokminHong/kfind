@@ -1,0 +1,21 @@
+<Eyebrow>내부 구조 · text</Eyebrow>
+
+# Unicode와 span
+
+## 정규화 [#normalization]
+
+`nfc`는 query와 source 비교를 NFC 기준으로 준비합니다. `canonical`은 NFC와 NFD를 모두 검색하며 `none`은 입력 code point sequence를 그대로 사용합니다.
+
+정규화된 buffer는 matching 전용입니다. 출력 surface를 정규화된 문자열로 바꾸지 않습니다.
+
+## 좌표계 [#coordinates]
+
+Rust matcher의 기본 span은 UTF-8 byte offset입니다. JavaScript binding은 변환 map을 사용해 `String.prototype.slice`와 호환되는 UTF-16 code unit offset을 반환합니다.
+
+CLI line·column은 frontend contract에 맞는 좌표계를 따르며 npm CLI는 UTF-16, native source report는 byte·decoded scalar mapping을 보존합니다.
+
+## 원문 span [#source-spans]
+
+Normalization map은 각 normalized scalar가 온 원문 byte 또는 UTF-16 range를 추적합니다. 결합 문자와 emoji 안쪽으로 span을 자르지 않습니다.
+
+Phrase span도 첫 atom과 마지막 atom의 원문 range를 합칩니다. Provenance의 core·token span은 같은 좌표계를 사용합니다.

@@ -1,0 +1,23 @@
+<Eyebrow>BENCHMARKS · CONTRACT</Eyebrow>
+
+# Quality contract
+
+## Raw matrix [#raw]
+
+Raw TP, FP, TN, and FN compare backend predictions directly with strict fixture gold. They contain no post-hoc interpretation of data quality or product scope.
+
+Raw metrics show the corpus task and remain visible even when an adjusted view exists.
+
+## Contract-adjusted matrix [#contract-adjusted]
+
+Contract-adjusted applies dispositions fixed before execution to the same predictions. Indistinguishable homographs, source-supported components, and gold-span errors may be reclassified.
+
+The contract-adjusted confusion matrix adds a superscript c to each raw abbreviation: TPᶜ, FPᶜ, TNᶜ, and FNᶜ. FNᶜ means an in-contract false negative.
+
+A nonstandard input may be excluded only when it is explicitly outside the product input contract. Difficult or unsupported grammar remains in the denominator.
+
+## Dispositions [#dispositions]
+
+Four raw FNs and FNᶜ = 0 do not indicate a changed execution result. The four remain strict-gold failures, while the registry places them outside the product objective or recognizes them as positive under the product contract.
+
+Every adjustment records case ID, reason, and review status in a ledger. Unclassified cases retain raw labels so adjusted metrics cannot hide omissions.

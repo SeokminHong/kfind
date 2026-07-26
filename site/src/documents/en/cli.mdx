@@ -1,0 +1,77 @@
+<Eyebrow>REFERENCE · QUERY</Eyebrow>
+
+# [Query](/reference/glossary#query) and execution options
+
+<Lead>
+
+Expansion selects generated forms, [POS](/reference/glossary#part-of-speech) selects grammatical rules, and the [boundary](/reference/glossary#boundary) policy selects admissible source candidates.
+
+</Lead>
+
+## Default [query plan](/reference/glossary#query-plan) [#query-plan]
+
+With no options, kfind expands inflections, infers POS from its lexicons, applies the POS-specific `smart` boundary, normalizes to NFC, and permits 24 Unicode scalars between [phrase](/reference/glossary#phrase) atoms.
+
+```
+expand=inflection
+pos=auto
+boundary=smart
+unicode-normalization=nfc
+max-gap=24
+```
+
+Automatic analysis preserves the union of valid POS analyses for an ambiguous [lemma](/reference/glossary#lemma). An explicit POS narrows that set; surface spelling alone never forces an unknown input into verb or adjective rules.
+
+## Morphological expansion [#expansion]
+
+| Value        | Coverage                                                                                               | Example                       |
+| ------------ | ------------------------------------------------------------------------------------------------------ | ----------------------------- |
+| `literal`    | Input string only                                                                                      | `걸어 → 걸어`                 |
+| `inflection` | Particles, endings, allomorphs, and [irregular conjugation](/reference/glossary#irregular-conjugation) | `걷다 → 걷고 · 걸어 · 걸었다` |
+| `derivation` | [Inflection](/reference/glossary#inflection) plus productive derived lemmas                            | `검증 → 검증하다 · 검증했다`  |
+
+`--literal` is shorthand for `--expand literal --pos literal`. [Derivation](/reference/glossary#derivation) covers the productive suffixes `-적`, `-하다`, `-되다`, `-시키다`, `-스럽다`, `-답다`, `-롭다`, and `-화`. Predicate results are inflected in turn.
+
+## Boundary policy [#boundary]
+
+| Value   | Decision                                                                                                                              | Use                                                          |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| `smart` | Locally verifies [particle](/reference/glossary#particle) or [ending](/reference/glossary#ending) consumption and fine-POS components | [Precision](/reference/glossary#precision)\-oriented default |
+| `token` | Requires Unicode boundaries around the completed token                                                                                | Independent tokens                                           |
+| `any`   | Preserves morphological substring spans without side boundaries                                                                       | [Recall](/reference/glossary#recall)\-oriented automation    |
+
+For `n:요리` in `중국요리`, smart mode can admit `요리` as a verified noun component while rejecting `국요`, which crosses component boundaries.
+
+## Part-of-speech system [#pos]
+
+`--pos auto` collects analyses from the core [lexicon](/reference/glossary#lexicon), enriched predicate metadata, user lexicon, productive suffix patterns, and full-POS lexicon. Explicit coarse POS values are:
+
+```
+noun (n:)          pronoun (pro:)     numeral (num:)
+verb (v:)          adjective (adj:)   determiner (det:)
+adverb (adv:)      particle (j:)      interjection (intj:)
+literal (lit:)
+```
+
+Verbs and adjectives use different final, connective, and [adnominal ending](/reference/glossary#adnominal-ending) sets. Particles select allomorphs by the final sound of the preceding nominal.
+
+## Normalization, phrase distance, and alternatives [#normalization-and-phrase]
+
+`--unicode-normalization nfc` compares normalized query and candidate forms. `none` preserves the input representation. Returned spans always address the original text.
+
+Phrase atoms are matched independently and joined in source order. `--max-gap` limits the Unicode scalars between adjacent token spans and defaults to 24. Multi-[atom](/reference/glossary#atom) queries use per-atom POS tags.
+
+An unquoted, unescaped `|` finds any one of multiple atoms. Whitespace around it is optional, but CLI queries should be quoted so the shell does not interpret the operator as a pipe. Each alternative is one atom and cannot be mixed with phrase atoms. Write a literal pipe as `\|` or `"|"`. `--max-gap` does not apply to a disjunction.
+
+## Input and output [#input-and-output]
+
+Filesystem traversal respects ignore rules. Use `--hidden`, `--no-ignore`, `--glob`, and `--type` to select files, and`--encoding` for non-UTF-8 input.
+
+```
+kfind --glob '*.md' --hidden 검증 .
+kfind --encoding euc-kr 걷다 legacy.txt
+kfind --json --sort path 걷다 src
+kfind --explain-query --pos verb 걷다
+```
+
+Default output is a bounded stream. `--sort path` buffers file results for deterministic ordering. `--json` emits JSON Lines with source spans and [provenance](/reference/glossary#provenance), while `--explain-query` prints the compiled plan without scanning a corpus.

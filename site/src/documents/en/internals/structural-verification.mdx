@@ -1,0 +1,21 @@
+<Eyebrow>INTERNALS · SOURCE</Eyebrow>
+
+# Structural verification
+
+## Structural constraints [#constraints]
+
+A constraint declares the component span corresponding to the query core, required POS, whole-token path, and neighboring components. It uses no registry of exceptional source strings.
+
+Exact and common-prefix paths require both component order and spans declared by the source analysis.
+
+## Graph preparation [#graph-preparation]
+
+The decoder reads analyses and component edges for a surface and materializes only nodes required by final context preparation. Shared facts and immutable slices reduce per-query copying.
+
+Limits on nodes, context depth, and payload size bound memory even for malformed resources.
+
+## Verification failure [#failure]
+
+A missing path rejects the candidate. A missing resource or graph limit is constraint unavailable, preventing silent degradation to a lower-precision path.
+
+If any source analysis satisfies the constraint, the candidate remains and its analysis index enters provenance.

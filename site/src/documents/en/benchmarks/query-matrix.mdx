@@ -1,0 +1,25 @@
+<Eyebrow>BENCHMARKS · QUALITY</Eyebrow>
+
+# Query matrix
+
+## Dimensions [#dimensions]
+
+Up to three lemma-POS-span queries that should match are selected from one source sentence, and each is paired with a same-POS query that should not match.
+
+Nominal and predicate classes, particles, endings, irregulars, compounds, explicit POS, and boundary policies are crossed.
+
+Each case declares expected match, expected no match, and an optional contract disposition.
+
+## Coverage [#coverage]
+
+The evaluator aligns backend candidates to cases and distinguishes partial spans, crossings, and extra matches. Candidate coverage below 100% blocks approval.
+
+Aggregate F1 is accompanied by per-dimension TP, FP, and FN so a missing rule remains identifiable.
+
+The query matrix is a diagnostic workload and neither replaces nor merges with the Canonical regression baseline.
+
+## Disposition ledger [#disposition-ledger]
+
+Raw and adjusted matrices use the same predictions. The registry stores confirmed, reclassified, and excluded reasons by case ID in version control.
+
+FNᶜ = 0 means no classified in-contract false negative. Raw FN and unclassified counts remain visible.

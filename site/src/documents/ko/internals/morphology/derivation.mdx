@@ -1,0 +1,23 @@
+<Eyebrow>한국어 형태 · 파생</Eyebrow>
+
+# 파생
+
+## 파생 mode [#modes]
+
+`inflection`은 원래 품사를 유지하고 `derivation`은 등록된 새 표제어와 그 활용을 포함합니다. Query가 literal이면 파생은 비활성화됩니다.
+
+파생 결과도 일반 program으로 compile되어 같은 anchor·boundary와 provenance 계약을 따릅니다.
+
+`n:안정`은 `--expand derivation --boundary smart`에서 `안정되었다`의 명사 component에 match합니다. `--expand inflection`에서는 noun을 파생 용언 내부로 확장하지 않으므로 같은 source에 match하지 않습니다.
+
+## 파생 접미사 [#suffixes]
+
+명사+`하다`, `되다`, `시키다`와 지정된 XSV·XSA·XSN 경로를 지원합니다. `안정하다`, `안정되었다`는 명사 component와 파생 용언 어간을 각각 증명해야 합니다.
+
+접두사 XPN과 어근 XR은 lexicon이 선언한 결합에서만 사용합니다.
+
+## 생성 제약 [#constraints]
+
+Source component span, 품사 순서와 후속 어미가 완성돼야 내부 query core를 승인합니다. 표면 substring만 맞는 파생은 거부합니다.
+
+파생을 추가할 때 canonical positive, hard negative와 query-matrix disposition을 함께 갱신합니다.

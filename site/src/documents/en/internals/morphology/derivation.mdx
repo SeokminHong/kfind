@@ -1,0 +1,23 @@
+<Eyebrow>KOREAN MORPHOLOGY · DERIVATION</Eyebrow>
+
+# Derivation
+
+## Derivation mode [#modes]
+
+`inflection` preserves the original POS; `derivation` includes registered derived lemmas and their inflection. Literal queries disable derivation.
+
+A derived result compiles into the same program, anchor, boundary, and provenance contract.
+
+`n:안정` with `--expand derivation --boundary smart` matches the nominal component in `안정되었다`. With `--expand inflection`, the noun is not expanded into a derived predicate and does not match that source.
+
+## Derivational suffixes [#suffixes]
+
+Supported paths include noun plus `하다`, `되다`, `시키다`, and selected XSV, XSA, and XSN sequences. `안정하다` and `안정되었다` must prove both nominal components and derived predicate stems.
+
+XPN prefixes and XR roots are used only in lexicon-declared combinations.
+
+## Generation constraints [#constraints]
+
+Source component spans, POS order, and following endings must complete before an internal query core is accepted. A matching substring alone is insufficient.
+
+A new derivation updates canonical positives, hard negatives, and query-matrix dispositions together.

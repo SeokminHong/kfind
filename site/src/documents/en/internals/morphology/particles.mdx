@@ -1,0 +1,21 @@
+<Eyebrow>KOREAN MORPHOLOGY · NOMINALS</Eyebrow>
+
+# Particles
+
+## Particle classes [#classes]
+
+Case particles JKS, JKC, JKG, JKO, JKB, JKV, and JKQ, auxiliary JX, and conjunctive JC form functional transitions. A particle query uses particle POS; a nominal query consumes them after the host.
+
+`학교에서는` completes `학교/NNG+에서/JKB+는/JX`.
+
+## Allomorphs [#allomorphs]
+
+Subject `이/가`, object `을/를`, and topic `은/는` inspect the host coda. Directional `으로/로` selects `로` after a vowel or final ㄹ and `으로` after other consonants.
+
+`길로` is valid, while `집로` is rejected on the same path. Coda checks decompose normalized Hangul syllables.
+
+## Particle chains [#chains]
+
+A plural marker may continue to a case or auxiliary particle. A case particle may continue only to auxiliaries declared by its `next` field, such as topic, additive, exclusive, limit, or even. `만` may continue to topic or additive, while `까지` has its own topic, additive, exclusive, and even continuations. Rules with an empty `next`, including `도`, `이면/면`, and `이나/나`, terminate the chain.
+
+For example, `n:학교` under `--boundary smart` matches `학교에서는` through `에서/JKB+는/JX`. It does not match `학교에서가`: no transition permits subject `가/JKS` after `에서`, so the remaining suffix prevents token closure.

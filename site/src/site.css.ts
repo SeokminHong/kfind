@@ -310,7 +310,11 @@ globalStyle('.route-loading', {
 });
 
 globalStyle('.docs-content', {
+  display: 'grid',
   minWidth: 0,
+  gridTemplateColumns: `minmax(0, ${vars.content.article})`,
+  alignContent: 'start',
+  justifyContent: 'center',
   padding: `3.5rem clamp(${vars.space.large}, 5vw, 5rem) ${vars.space.xlarge}`,
 });
 
@@ -323,7 +327,8 @@ globalStyle('.header-links', {
 });
 
 globalStyle('.docs-content > article, .docs-footer', {
-  width: `min(100%, ${vars.content.article})`,
+  width: '100%',
+  minWidth: 0,
 });
 
 globalStyle('.document-intro', {
@@ -337,6 +342,14 @@ globalStyle('.document-kind', {
 });
 
 globalStyle('.document-intro h1', {
+  marginBlockEnd: vars.space.medium,
+  color: vars.color.heading,
+  fontSize: '2.35rem',
+  letterSpacing: '-0.035em',
+  lineHeight: 1.15,
+});
+
+globalStyle('.docs-content > article > h1', {
   marginBlockEnd: vars.space.medium,
   color: vars.color.heading,
   fontSize: '2.35rem',
@@ -379,7 +392,24 @@ globalStyle('.doc-section h2', {
   lineHeight: 1.3,
 });
 
+globalStyle('.docs-content > article > h2', {
+  margin: `${vars.space.section} 0 ${vars.space.medium}`,
+  paddingBlockStart: vars.space.section,
+  borderBlockStart: `1px solid ${vars.color.border}`,
+  color: vars.color.heading,
+  fontSize: '1.5rem',
+  letterSpacing: '-0.02em',
+  lineHeight: 1.3,
+  scrollMarginTop: '4.5rem',
+});
+
 globalStyle('.doc-section h3', {
+  margin: `${vars.space.xlarge} 0 ${vars.space.small}`,
+  color: vars.color.heading,
+  fontSize: '1rem',
+});
+
+globalStyle('.docs-content > article > h3', {
   margin: `${vars.space.xlarge} 0 ${vars.space.small}`,
   color: vars.color.heading,
   fontSize: '1rem',
@@ -390,6 +420,15 @@ globalStyle('.doc-section > p', {
   color: vars.color.muted,
   lineHeight: 1.78,
 });
+
+globalStyle(
+  '.docs-content > article > p, .docs-content > article > ul, .docs-content > article > ol',
+  {
+    maxWidth: '48rem',
+    color: vars.color.muted,
+    lineHeight: 1.78,
+  },
+);
 
 globalStyle('.table-scroll', {
   marginBlockStart: vars.space.large,

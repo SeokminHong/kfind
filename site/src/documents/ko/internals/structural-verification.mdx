@@ -1,0 +1,21 @@
+<Eyebrow>내부 구조 · source</Eyebrow>
+
+# 구조 판정
+
+## 구조 제약 [#constraints]
+
+Constraint는 query core에 대응하는 component span, 필요한 POS, token 전체 경로와 선행·후행 component 조건을 선언합니다. 직접 surface 예외 목록은 사용하지 않습니다.
+
+Exact path와 common-prefix path는 source 분석이 선언한 component 순서와 span이 모두 맞아야 승인됩니다.
+
+## graph 준비 [#graph-preparation]
+
+Decoder는 surface에 연결된 분석과 component edge를 읽고 final context preparation에 필요한 node만 materialize합니다. 공통 fact와 immutable slice를 공유해 query별 복사를 줄입니다.
+
+Node 수, context 깊이와 payload 크기 상한은 malformed resource에서도 메모리 사용을 제한합니다.
+
+## 판정 실패 [#failure]
+
+필요한 path가 없으면 후보는 false입니다. Resource가 없거나 graph limit을 넘으면 constraint unavailable로 구분해 제품이 precision이 낮은 경로로 바뀌지 않게 합니다.
+
+여러 source 분석 중 하나가 constraint를 만족하면 후보를 유지하고 해당 analysis index를 provenance에 기록합니다.
