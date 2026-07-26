@@ -37,7 +37,7 @@ kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
 kfind --embedded --boundary any --pos verb --json 걷다 crates
 ```
 
-## Integration installation [#skill-installation]
+## Integration installation and removal [#skill-installation]
 
 `kfind --init` installs an agent-specific `SKILL.md` and shell hook in the current project. Interactive terminals offer a target picker. Automation repeats `--agent` or supplies target names on stdin. Unmanaged skills and existing agent settings are preserved.
 
@@ -48,6 +48,17 @@ printf 'codex
 gemini
 ' | kfind --init
 ```
+
+Remove the same integrations with `--uninstall`.
+
+```bash
+kfind --uninstall --agent codex --agent claude-code
+printf 'codex
+gemini
+' | kfind --uninstall
+```
+
+Removal deletes only kfind-managed skills and `kfind --agent-hook` handlers. Other agent settings and hooks are preserved, and an already absent integration is a successful no-op.
 
 A Homebrew-managed skill points to the stable `opt` path instead of a versioned Cellar. Existing project links therefore use the new guidance after `brew upgrade`.
 

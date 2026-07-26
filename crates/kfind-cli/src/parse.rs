@@ -193,9 +193,14 @@ const HELP_TEXT: &[(&str, &str, &str)] = &[
         "현재 디렉터리에 coding agent용 kfind 통합을 초기화합니다.",
     ),
     (
+        "uninstall",
+        "Remove the kfind integration for coding agents from the current directory.",
+        "현재 디렉터리에서 coding agent용 kfind 통합을 제거합니다.",
+    ),
+    (
         "agent",
-        "Select an initialization target (repeatable; values: claude-code, codex, gemini, custom).",
-        "초기화 대상을 선택합니다(반복 가능; 값: claude-code, codex, gemini, custom).",
+        "Select an integration target (repeatable; values: claude-code, codex, gemini, custom; custom is init-only).",
+        "통합 관리 대상을 선택합니다(반복 가능; 값: claude-code, codex, gemini, custom; custom은 init 전용).",
     ),
     ("help", "Print help.", "도움말을 출력합니다."),
     ("version", "Print version.", "버전을 출력합니다."),

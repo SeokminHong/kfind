@@ -15,6 +15,7 @@ pub enum InitError {
     UnknownAgent {
         value: String,
     },
+    CustomCannotBeUninstalled,
     Prompt(dialoguer::Error),
     Inspect {
         path: PathBuf,
@@ -29,6 +30,10 @@ pub enum InitError {
         source: io::Error,
     },
     Write {
+        path: PathBuf,
+        source: io::Error,
+    },
+    Remove {
         path: PathBuf,
         source: io::Error,
     },
@@ -50,6 +55,10 @@ pub enum InitError {
         source: io::Error,
     },
     WriteAgentConfig {
+        path: PathBuf,
+        source: io::Error,
+    },
+    RemoveAgentConfig {
         path: PathBuf,
         source: io::Error,
     },
@@ -98,6 +107,12 @@ impl InitError {
                 "{} `{value}`",
                 language.select("unknown agent", "알 수 없는 agent")
             ),
+            Self::CustomCannotBeUninstalled => language
+                .select(
+                    "custom output does not install an integration and cannot be uninstalled",
+                    "custom output은 통합을 설치하지 않으므로 제거할 수 없습니다",
+                )
+                .to_owned(),
             Self::Prompt(error) => format!(
                 "{}: {error}",
                 language.select("agent selection failed", "agent 선택에 실패했습니다")
@@ -131,6 +146,11 @@ impl InitError {
             Self::Write { path, source } => format!(
                 "{} {}: {source}",
                 language.select("failed to install skill", "skill 설치 실패:"),
+                path.display()
+            ),
+            Self::Remove { path, source } => format!(
+                "{} {}: {source}",
+                language.select("failed to remove skill", "skill 제거 실패:"),
                 path.display()
             ),
             Self::InspectAgentConfig { path, source } => format!(
@@ -178,6 +198,11 @@ impl InitError {
                 language.select("failed to install agent hook", "agent hook 설치 실패:"),
                 path.display()
             ),
+            Self::RemoveAgentConfig { path, source } => format!(
+                "{} {}: {source}",
+                language.select("failed to remove agent hook", "agent hook 제거 실패:"),
+                path.display()
+            ),
             Self::EncodeAgentConfig { path, source } => format!(
                 "{} {}: {source}",
                 language.select(
@@ -223,9 +248,11 @@ impl Error for InitError {
             Self::Inspect { source, .. }
             | Self::CreateDirectory { source, .. }
             | Self::Write { source, .. }
+            | Self::Remove { source, .. }
             | Self::InspectAgentConfig { source, .. }
             | Self::CreateAgentConfigDirectory { source, .. }
-            | Self::WriteAgentConfig { source, .. } => Some(source),
+            | Self::WriteAgentConfig { source, .. }
+            | Self::RemoveAgentConfig { source, .. } => Some(source),
             Self::ParseAgentConfig { source, .. } | Self::EncodeAgentConfig { source, .. } => {
                 Some(source)
             }
@@ -233,6 +260,7 @@ impl Error for InitError {
             | Self::InvalidInputUtf8
             | Self::EmptyInput
             | Self::UnknownAgent { .. }
+            | Self::CustomCannotBeUninstalled
             | Self::UnmanagedDestination(_)
             | Self::InvalidDestination { .. }
             | Self::InvalidAgentConfig { .. }

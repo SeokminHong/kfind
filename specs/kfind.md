@@ -201,12 +201,14 @@
   component resource의 로드 여부는 `CandidateProgram`이 선언한 resource capability로
   결정한다. `--explain-query`는
   full POS 상태를 `not required (embedded mode)`로 출력한다.
-- `--init`은 검색과 분리된 agent 통합 초기화 mode다. 이 mode에서는 query가 필요 없고 검색
-  옵션·경로를 함께 받을 수 없다. `--agent`는 `claude-code`, `codex`, `gemini`, `custom`을
-  반복해서 받을 수 있으며 `--init` 없이 사용할 수 없다.
-- `kfind --init`에 `--agent`가 없고 stdin과 진단 출력이 TTY이면 checkbox multi-select를
-  표시한다. stdin이 TTY가 아니면 공백 또는 줄바꿈으로 구분된 agent 이름을 읽는다. 비대화형
-  입력이 비었거나 알 수 없는 이름이 있으면 설치하지 않고 exit code 2로 종료한다.
+- `--init`과 `--uninstall`은 검색과 분리된 agent 통합 관리 mode다. 이 mode에서는 query가
+  필요 없고 검색 옵션·경로를 함께 받을 수 없다. 두 mode는 함께 사용할 수 없다. `--agent`는
+  `claude-code`, `codex`, `gemini`, `custom`을 반복해서 받을 수 있으며 통합 관리 mode 없이
+  사용할 수 없다. `custom`은 `--init`에서만 유효하다.
+- 통합 관리 mode에 `--agent`가 없고 stdin과 진단 출력이 TTY이면 checkbox multi-select를
+  표시한다. 제거 선택에는 파일을 설치하는 세 agent만 표시한다. stdin이 TTY가 아니면 공백
+  또는 줄바꿈으로 구분된 agent 이름을 읽는다. 비대화형 입력이 비었거나 알 수 없는 이름이
+  있으면 변경하지 않고 exit code 2로 종료한다.
 - 프로젝트 skill 경로는 실행한 현재 디렉터리를 기준으로 Claude Code
   `.claude/skills/kfind/SKILL.md`, Codex `.agents/skills/kfind/SKILL.md`, Gemini CLI
   `.gemini/skills/kfind/SKILL.md`다. `custom`은 파일을 만들지 않고 같은 `SKILL.md` 원문만
@@ -228,6 +230,12 @@
   계약을 알 수 없으므로 hook 설정을 만들지 않는다.
 - init이 만든 파일·link는 다시 실행할 때 같은 배포본으로 갱신할 수 있다. 관리 표식이 없는
   기존 skill을 덮어쓰지 않으며 충돌 경로를 포함한 오류와 exit code 2를 반환한다.
+- `--uninstall`은 선택한 agent의 kfind 관리 skill과 `kfind --agent-hook` handler만 제거한다.
+  다른 skill 파일, agent 설정 key와 hook handler는 보존한다. 설정 파일이 kfind hook만 담고
+  있으면 파일도 제거하며, 다른 설정이 있으면 남은 JSON을 같은 권한으로 다시 쓴다. 관리
+  skill이나 hook이 없으면 변경 없음으로 성공한다. 관리 표식이 없는 skill, 올바르지 않은 JSON
+  또는 제거 경로의 잘못된 자료형을 만나면 선택한 어떤 파일도 변경하지 않고 충돌 경로를
+  포함한 오류와 exit code 2를 반환한다.
 - 사람이 대화형으로 사용하는 기본 경로는 `--pos auto --boundary smart`를 유지한다. 설치된
   full POS lexicon을 자동으로 사용하고, 없으면 core lexicon preview 상태로 계속 실행한다.
 - 에이전트 자동화는 모든 형태 atom에 품사를 명시하고 `--boundary any --embedded --json`을
@@ -2327,10 +2335,11 @@ JSON Lines 출력에서 원문 줄을 UTF-8로 표현할 수 없으면 다음 �
 ```text
 kfind [OPTIONS] <QUERY> [PATH]...
 kfind --init [--agent <AGENT>]...
+kfind --uninstall [--agent <AGENT>]...
 ```
 
-`--init`을 사용하지 않으면 query가 필수다. PATH를 생략하면 현재 디렉터리를 검색한다. stdin이
-pipe이면 기본 검색 대상을 stdin으로 전환한다. `-`는 stdin을 명시한다.
+통합 관리 mode를 사용하지 않으면 query가 필수다. PATH를 생략하면 현재 디렉터리를 검색한다.
+stdin이 pipe이면 기본 검색 대상을 stdin으로 전환한다. `-`는 stdin을 명시한다.
 
 ### 14.2 주요 옵션
 
@@ -2359,7 +2368,8 @@ pipe이면 기본 검색 대상을 stdin으로 전환한다. `-`는 stdin을 명
 | `--data-dir`              | 경로                                       |                자동 | 외부 데이터 디렉터리              |
 | `--user-lexicon`          | 경로                                       |                자동 | 사용자 사전                       |
 | `--init`                  | flag                                       |               false | 현재 디렉터리에 agent 통합 초기화 |
-| `--agent`                 | `claude-code`, `codex`, `gemini`, `custom` | TTY 선택 또는 stdin | 초기화 대상, 반복 가능            |
+| `--uninstall`             | flag                                       |               false | 현재 디렉터리의 agent 통합 제거   |
+| `--agent`                 | `claude-code`, `codex`, `gemini`, `custom` | TTY 선택 또는 stdin | 통합 관리 대상, 반복 가능         |
 
 ### 14.3 context와 출력 호환 옵션
 
@@ -2410,7 +2420,7 @@ LANG
 생성한 현지화된 오류 문맥 뒤에 원문으로 붙일 수 있다. man page와 shell completion은
 빌드 환경의 locale에 영향받지 않도록 영어 명령 정의에서 재현 가능하게 생성한다.
 
-### 14.6 Agent 통합 초기화
+### 14.6 Agent 통합 관리
 
 명시적 대상은 대화형 여부와 관계없이 같은 결과를 만든다.
 
@@ -2438,6 +2448,18 @@ agent를 여러 번 입력해도 한 번만 처리한다. 설치가 하나라도
 hook만 병합하며 다른 key와 hook 순서를 보존한다. Codex의 project hook은 프로젝트를 신뢰한 뒤
 `/hooks`에서 별도로 신뢰해야 실행된다. Claude Code와 Gemini CLI도 각 제품의 project hook
 신뢰 절차를 따른다.
+
+통합을 제거할 때도 같은 대상 선택 방식을 사용한다.
+
+```sh
+kfind --uninstall --agent codex --agent claude-code
+printf 'codex\ngemini\n' | kfind --uninstall
+```
+
+제거는 kfind 관리 표식이 있는 skill 또는 kfind가 만든 Homebrew link와
+`kfind --agent-hook` handler만 대상으로 한다. 다른 설정이 없는 kfind 전용 JSON 파일은
+제거하고, 설정이 함께 있으면 kfind handler만 뺀 JSON을 보존한다. 이미 제거된 대상을 다시
+지정해도 성공한다. `custom`은 파일을 설치하지 않으므로 제거 대상이 아니다.
 
 Agent가 다음 shell tool call을 만들면 실행 전에 거부하고 `kfind`로 다시 검색하도록 안내한다.
 

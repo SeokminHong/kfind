@@ -94,9 +94,10 @@ recall 우선 결과에는 의미상 맞지 않는 후보가 포함될 수 있�
 ```bash
 kfind --init
 kfind --init --agent codex --agent claude-code
+kfind --uninstall --agent codex --agent claude-code
 printf 'codex
 gemini
 ' | kfind --init
 ```
 
-Codex는 `.agents/skills/kfind/SKILL.md`, Claude Code는 `.claude/skills/kfind/SKILL.md`, Gemini CLI는 `.gemini/skills/kfind/SKILL.md`를 사용합니다. kfind 관리 표식이 없는 skill과 기존 agent 설정은 보존합니다. Project hook을 신뢰하면 한글 pattern을 포함한 `rg`·`grep` shell 검색을 차단하고 kfind 사용을 안내합니다.
+Codex는 `.agents/skills/kfind/SKILL.md`, Claude Code는 `.claude/skills/kfind/SKILL.md`, Gemini CLI는 `.gemini/skills/kfind/SKILL.md`를 사용합니다. `--uninstall`은 kfind가 관리하는 skill과 hook만 제거합니다. kfind 관리 표식이 없는 skill과 기존 agent 설정은 보존합니다. Project hook을 신뢰하면 한글 pattern을 포함한 `rg`·`grep` shell 검색을 차단하고 kfind 사용을 안내합니다.

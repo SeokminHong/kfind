@@ -20,6 +20,7 @@ fn help_uses_the_locale_and_success_stream() {
     let korean = String::from_utf8(korean.stdout).unwrap();
     assert!(korean.contains("한국어 표제어와 활용형"));
     assert!(korean.contains("사용법:"));
+    assert!(korean.contains("--uninstall"));
 
     let english = run(&[("LANG", "C")], &["--help"]);
     assert!(english.status.success());
@@ -97,6 +98,18 @@ fn agent_init_uses_localized_errors_and_clean_custom_output() {
     assert_eq!(lines.next(), Some("---"));
     assert_eq!(lines.next(), Some("name: kfind"));
     assert!(stdout.contains("managed by kfind init"));
+
+    let custom_uninstall = run(
+        &[("LC_ALL", "ko_KR.UTF-8")],
+        &["--uninstall", "--agent", "custom"],
+    );
+    assert_eq!(custom_uninstall.status.code(), Some(2));
+    assert!(custom_uninstall.stdout.is_empty());
+    assert!(
+        String::from_utf8(custom_uninstall.stderr)
+            .unwrap()
+            .contains("통합을 설치하지 않으므로 제거할 수 없습니다")
+    );
 }
 
 #[test]
