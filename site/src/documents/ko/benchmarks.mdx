@@ -24,9 +24,9 @@ Contract-adjusted는 제품 실행 전에 고정한 registry를 같은 예측에
 
 Contract-adjusted confusion matrix는 raw 약어 오른쪽 위에 c를 붙여 TPᶜ, FPᶜ, TNᶜ, FNᶜ로 표기합니다. Contract review가 없는 평가군은 raw 기대값을 그대로 사용하며 reviewed cases가 0이라는 사실도 결과에 포함합니다.
 
-<Callout title="FN과 FNᶜ">
+<Callout title="FNᶜ 0의 의미">
 
-Full-POS query matrix의 raw FN 4와 FNᶜ 0은 같은 실행 결과를 두 계약으로 읽은 값입니다. Registry는 의미 구조로 구분할 수 없는 동형이의와 source에 정렬된 검색 성분을 제품 목표의 양성으로 선언합니다. FNᶜ 0은 제품이 네 오류를 수정했다는 뜻이 아닙니다.
+Full-POS query matrix의 raw FN 4와 FNᶜ 0은 같은 실행에 서로 다른 계약을 적용한 결과입니다. FNᶜ 0은 구현이 오류 네 건을 수정했다는 뜻이 아닙니다.
 
 </Callout>
 
