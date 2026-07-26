@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { readDocumentRoutePaths } from './document-routes.mjs';
 
 const locales = ['ko', 'en'];
+const acronymLabelPattern = /^(?:[A-Z]{2,}|[A-Z]\d)(?:ᶜ)?$/u;
 const documentRoutePaths = await readDocumentRoutePaths();
 const routes = documentRoutePaths.filter((route) => route !== '/playground');
 const routeFailures = await Promise.all(
@@ -38,6 +39,29 @@ async function checkRoute(route) {
       }
       if (!/^<Eyebrow>.+<\/Eyebrow>$/mu.test(source)) {
         routeErrors.push(`${locale}:${route} eyebrow가 없습니다.`);
+      }
+
+      const glossaryLinkKeys = [
+        ...structuralSource.matchAll(
+          /\[(?<label>[^\]]+)\]\(\/reference\/glossary#(?<termId>[^)]+)\)/gu,
+        ),
+      ].map((match) => {
+        const label = match.groups?.label;
+        const termId = match.groups?.termId;
+
+        return label !== undefined &&
+          termId !== undefined &&
+          acronymLabelPattern.test(label)
+          ? `${termId}:${label}`
+          : termId;
+      });
+      if (
+        glossaryLinkKeys.some((key) => key === undefined) ||
+        new Set(glossaryLinkKeys).size !== glossaryLinkKeys.length
+      ) {
+        routeErrors.push(
+          `${locale}:${route} 단어장 link가 첫 등장 규칙을 중복합니다.`,
+        );
       }
 
       if (locale === 'ko') {

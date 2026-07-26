@@ -438,7 +438,9 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
   Enter activation은 기존 link 동작을 유지한다. Touch·pen pointer activation과 선행 input event가
   없는 link activation은 첫 번째에 tooltip을 열고, 같은 용어의 다음 activation에 단어장으로 이동한다.
   이 구분에 media query나 click metadata를 사용하지 않는다. 기존 link와 form control에는 중첩해서
-  적용하지 않는다.
+  적용하지 않는다. MDX source의 `/reference/glossary#*` link는 일반 본문 link로 그대로 출력하지 않고
+  이 page-local 첫 등장 규칙을 적용하는 tooltip trigger로 해석한다. MDX source는 acronym 예외를
+  제외하고 같은 용어의 단어장 link를 한 route에 중복해서 작성하지 않는다.
 - 일반 UI text는 Pretendard 기반 sans-serif stack을 사용한다. 코드, 명령, query·output label과
   기술 도해의 코드 표기는 기존 monospace stack을 유지한다. 본문 인라인 code에는 배경, border,
   radius와 최소 padding을 적용해 문장과 구분하고, code block 안에서는 이 장식을 중첩하지 않는다.
