@@ -537,16 +537,19 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
 - Query와 입력 text는 검색 작업의 주 입력으로서 playground 상단의 한 input stack에 이 순서로
   인접 배치한다. 넓은 화면은 짧은 Query와 장문 text editor를 왼쪽 main pane에 두고 예시 action,
   compile option을 오른쪽 보조 panel에 둔다. 형태 구성 요소 판정 resource는 주 입력 아래, 검색
-  결과 앞의 compact한 전체 너비 capability card에 둔다. Query control은 일반적인 짧은 입력에 맞춰 너비를
-  제한하되 text editor는 main pane을 채운다.
+  결과 앞의 compact한 전체 너비 capability card에 둔다. Query control과 text editor는 모두
+  main pane의 전체 너비를 채운다.
 - 좁은 화면은 Query → text → 형태 구성 요소 판정 resource → 검색 옵션 → 결과의 인지 순서를
   우선한다. Resource card는 설정 modal 안에 숨기지 않고 역할, 크기와 현재 상태를
-  항상 표시한다. 예시 action과 compile option은 현재 주요 option 요약을 표시하는 `검색 옵션`
-  button으로 여는 modal 안에 두며 결과보다 앞에서 긴 설정 목록을 펼치지 않는다. Modal은 keyboard
-  focus trap, touch scroll lock, 명시적인 닫기 control을 제공한다. 닫기 control은 접근 가능한 label을
-  가진 borderless X icon button으로 표시하고, modal 안 select의 option popup은 modal 위에서 현재
-  viewport 안에 보여야 한다. Trigger 아래에 여는 select popup의 x축 시작점은 trigger의 시작점에
-  맞춘다. 모든 화면에서 가로 scroll을 만들지 않는다.
+  항상 표시한다. Resource 사용 여부는 켜짐·꺼짐 switch로 제어한다. Switch를 켜면 resource를
+  복원하거나 내려받아 기존 WASM engine에 load하고, browser 저장소에 호환되는 resource가 있으면
+  playground 진입 시 복원한 뒤 켜짐을 기본값으로 표시한다. Switch를 끄면 이후 검색은 resource가
+  없는 engine으로 실행한다. 예시 action과 compile option은 현재 주요 option 요약을 표시하는
+  `검색 옵션` button으로 여는 modal 안에 두며 결과보다 앞에서 긴 설정 목록을 펼치지 않는다.
+  Modal은 keyboard focus trap, touch scroll lock, 명시적인 닫기 control을 제공한다. 닫기 control은
+  접근 가능한 label을 가진 borderless X icon button으로 표시하고, modal 안 select의 option
+  popup은 modal 위에서 현재 viewport 안에 보여야 한다. Trigger 아래에 여는 select popup의 x축
+  시작점은 trigger의 시작점에 맞춘다. 모든 화면에서 가로 scroll을 만들지 않는다.
 - 검색 예시는 query, text와 관련 compile option을 하나의 설정으로 불러오는 action button으로
   제공한다. 예시 action과 개별 option control은 같은 input state를 갱신하고, 별도의 preset 선택
   상태를 유지하지 않는다. 기본 용언 활용 예시는 `data/fixtures/walk_hang_stress.txt`의 `걷다`와
@@ -586,16 +589,17 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
   측정해 전체 scroll range를 보존한다. Match row를 활성화하면 해당 UTF-16 span을 editor에서 선택하고
   editor 내부 scroll과 문서 viewport를 그 위치로 이동한다. 반대로 editor의 match highlight를 pointer로
   활성화하면 `Matches` tab을 열고 아직 rendering되지 않은 row도 해당 index로 scroll하되 match row로
-  keyboard focus를 옮기지 않는다.
+  keyboard focus를 옮기지 않는다. 입력 text가 바뀌면 새 검색 결과를 표시할 때 Match 목록의
+  scroll을 처음으로 되돌린다.
 - Playground 입력은 browser 밖으로 보내지 않는다. Full POS와 35.4 MiB의 형태 구성 요소 판정
-  resource는 기본 demo에 포함하지 않는다. 이 resource는 `smart` plan이 원문 token 내부의 같은
-  품사 component span과 인접 token 구조를 검증하는 compact index다. 전체 문장을 분석하거나
-  검색어를 확장하는 full POS 사전이 아니다. 사용자가 해당 `smart` 구조 판정을 요청할 때만 같은
-  origin의 Pages Function에서 resource를 한 번 내려받아 기존 WASM engine에 load한다. 검증된
-  resource response는 browser Cache Storage에 보관하고 호환되는 resource revision으로 playground에
-  다시 들어오면 network 요청 없이 자동으로 복원한다. Cache key는 version tag를 정확히 checkout한
-  release build에서는 tag를 사용하고, 그 외 개발 build에서는 component artifact checksum을 마지막으로
-  고정한 전체 Git commit을 사용한다. Site UI만 바뀐 commit은 동일한 resource를 무효화하지 않는다.
+  resource는 기본 demo에 포함하지 않는다. 이 compact index는 `smart` 경계 판정에서 원문 token
+  내부의 같은 품사 component span과 인접 token 구조만 확인하며, full POS 사전처럼 문장 전체를
+  분석하거나 검색어를 확장하지 않는다. 사용자가 switch를 켤 때 같은 origin의 Pages Function에서
+  resource를 한 번 내려받아 기존 WASM engine에 load한다. 검증된 resource response는 browser
+  Cache Storage에 보관하고 호환되는 resource revision으로 playground에 다시 들어오면 network 요청
+  없이 자동으로 복원해 사용을 켠다. Cache key는 version tag를 정확히 checkout한 release build에서는
+  tag를 사용하고, 그 외 개발 build에서는 component artifact checksum을 마지막으로 고정한 전체 Git
+  commit을 사용한다. Site UI만 바뀐 commit은 동일한 resource를 무효화하지 않는다.
   이 Git commit을 산출하는 site build는 전체 history를 요구하며 shallow checkout에서는 잘못된 현재
   HEAD를 version으로 사용하지 않고 실패한다. CI의 site build와 Pages deploy는 전체 history를 checkout한다.
   Playground 진입 시 현재 key를 먼저 확인하고, 기존 site build key로 저장한 같은-origin entry도 engine의

@@ -92,19 +92,30 @@ declare const __KFIND_COMPONENT_RESOURCE_VERSION__: string;
 
 const COMPONENT_RESOURCE_CACHE = 'kfind-component-resource-v1';
 const COMPONENT_RESOURCE_URL = '/api/component-resource';
+let kfindModulePromise: Promise<KfindModule> | undefined;
 
 export const componentResourceVersion = __KFIND_COMPONENT_RESOURCE_VERSION__;
 
 export async function loadKfind(): Promise<LoadedKfind> {
   const startedAt = performance.now();
-  const module = (await import('./generated-wasm/kfind.js')) as KfindModule;
-
-  await module.default();
 
   return {
-    engine: new module.Kfind(),
+    engine: await createKfindEngine(),
     loadMilliseconds: performance.now() - startedAt,
   };
+}
+
+export async function createKfindEngine(): Promise<KfindEngine> {
+  kfindModulePromise ??= import('./generated-wasm/kfind.js').then(
+    async (module) => {
+      const kfindModule = module as KfindModule;
+      await kfindModule.default();
+      return kfindModule;
+    },
+  );
+
+  const module = await kfindModulePromise;
+  return new module.Kfind();
 }
 
 export function findMatches(
