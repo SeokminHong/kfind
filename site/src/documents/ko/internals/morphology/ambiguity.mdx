@@ -4,20 +4,20 @@
 
 ## 분석 집합 [#analysis-sets]
 
-같은 표제어·surface에 여러 품사와 규칙 경로가 있으면 각각 origin으로 보존합니다. 실행 조건이 같을 때만 program body를 공유합니다.
+같은 표제어·표면형에 여러 품사와 규칙 경로가 있으면 각각 origin으로 보존합니다. 실행 조건이 같을 때만 프로그램 본문을 공유합니다.
 
-Auto POS는 빈도 순 하나를 고르지 않습니다. Explicit POS가 사용자의 의도 범위를 정합니다.
+Auto POS는 빈도가 높은 분석 하나를 선택하지 않습니다. 명시적 POS가 사용자의 의도 범위를 정합니다.
 
 ## 구조 거부 [#structural-rejection]
 
-Source 전체 token의 component span과 POS path가 query constraint와 맞지 않으면 substring 후보를 거부합니다. 조사 `가`를 동사 `가다`로 보지 않는 판정이 예입니다.
+원문 전체 token의 구성 요소 span과 POS 경로가 질의 constraint와 맞지 않으면 부분 문자열 후보를 거부합니다. 조사 `가`를 동사 `가다`로 보지 않는 판정이 그 예입니다.
 
 독립 분석과 compound 분석이 경쟁하면 exact whole-token path와 query가 요구한 component 조건을 함께 비교합니다.
 
-`v:가다`는 `--boundary smart`에서 `집에 간다`의 `간다`에 match하지만, `친구가 왔다`의 조사 `가/JKS`에는 match하지 않습니다.
+`v:가다`는 `--boundary smart`에서 `집에 간다`의 `간다`와 일치하지만, `친구가 왔다`의 조사 `가/JKS`와는 일치하지 않습니다.
 
 ## 의미 한계 [#semantic-limits]
 
-형태 구조가 동일한 동음이의어는 결과에 남습니다. 주제, 감정, 행위자 같은 의미 feature를 추정하지 않습니다.
+형태 구조가 동일한 동음이의어는 결과에 남습니다. 주제, 감정, 행위자 같은 의미 특성은 추정하지 않습니다.
 
-사용자는 phrase atom, path와 주변 문맥으로 후보를 좁힙니다. 의미 판정은 contract-adjusted benchmark의 제품 범위 밖 disposition이 될 수 있습니다.
+사용자는 phrase atom, 경로와 주변 문맥으로 후보를 좁힙니다. 의미 판정은 contract-adjusted benchmark에서 제품 범위 밖 disposition으로 분류될 수 있습니다.

@@ -10,13 +10,13 @@ A nominal program starts the particle automaton after its core and never uses th
 
 ## Nominal suffixes [#suffixes]
 
-Elements such as `들`, `적`, and `성` before particles do not share one rule. They are consumed as typed suffixes only when lexicon entries declare plural or nominal derivation.
+Elements such as `들`, `적`, and `성` before particles do not share one rule. They are consumed as typed suffixes only when lexicon entries declare a plural marker or nominal derivation.
 
 A supported nominal suffix such as `하` in `책임하에서` forms a noun path only when its span and following particle complete.
 
 ## Numerals and units [#numbers]
 
-A numeric structure requires ASCII digits followed by one or more NR nodes and an aligned NNB or NNBC unit span. `2026년에는` follows digit, unit, and particle nodes.
+A numeric structure requires ASCII digits followed by one or more NR nodes and an aligned NNB or NNBC unit span. `2026년에는` follows a digit, unit, and particle path.
 
 Units without NR, trailing common nouns, unknown nodes, and incomplete particle chains are rejected.
 

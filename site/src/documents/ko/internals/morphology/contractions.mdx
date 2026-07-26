@@ -4,20 +4,20 @@
 
 ## 축약 [#contractions]
 
-`보아→봐`, `주어→줘`, `되어→돼`는 어간 끝 모음과 아/어 계열을 결합합니다. Surface는 짧아져도 stem과 ending rule provenance를 유지합니다.
+`보아→봐`, `주어→줘`, `되어→돼`는 어간 끝 모음과 아/어 계열을 결합합니다. 표면형이 짧아져도 stem과 ending rule provenance는 유지합니다.
 
 허용된 모음 결합표 밖의 음절을 유사 발음만으로 만들지 않습니다.
 
-`v:보다`는 기본 inflection에서 `봐`에 match합니다. `lit:보다`는 형태 조립을 하지 않으므로 같은 source `봐`에 match하지 않습니다.
+`v:보다`는 기본 inflection에서 `봐`와 일치합니다. `lit:보다`는 형태를 조립하지 않으므로 같은 원문의 `봐`와 일치하지 않습니다.
 
 ## 영형태 [#zero-surfaces]
 
-일부 source 분석은 문법 기능을 나타내지만 독립 surface span이 없는 node를 가질 수 있습니다. 영형태는 인접 component 관계를 설명하며 검색 span을 새로 만들지 않습니다.
+일부 원문 분석에는 문법 기능을 나타내지만 독립된 표면형 span이 없는 node가 있을 수 있습니다. 영형태는 인접 구성 요소의 관계를 설명하며 검색 span을 새로 만들지 않습니다.
 
-Query core가 영형태만으로 충족되지는 않습니다. 관찰 가능한 anchor와 non-empty core span이 필요합니다.
+질의 core를 영형태만으로 충족할 수는 없습니다. 관찰 가능한 anchor와 비어 있지 않은 core span이 필요합니다.
 
 ## span 보존 [#spans]
 
-축약 surface의 core span은 실제 원문 음절을 가리키고 origin은 조립 전 morpheme 경로를 가리킵니다. Atom token span은 뒤에 소비한 어미까지 포함할 수 있습니다.
+축약 표면형의 core span은 실제 원문 음절을 가리키고, origin은 조립 전 morpheme 경로를 가리킵니다. Atom token span은 뒤에서 소비한 어미까지 포함할 수 있습니다.
 
-NFD source에서도 normalized match를 원래 code unit 범위로 되돌립니다.
+NFD 원문에서도 정규화된 일치를 원래 code unit 범위로 되돌립니다.
