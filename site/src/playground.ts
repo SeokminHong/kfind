@@ -1,9 +1,13 @@
 import type { CompileOptions, KfindEngine, Match } from './kfind-wasm';
+import type {
+  ComponentResourceMessages,
+  ComponentResourceStatus,
+} from './playground-component-resource';
 import type { PlaygroundInput } from './playground-presets';
 
 import { DocumentLocale } from './app/i18n';
 import {
-  componentResourceVersion,
+  createKfindEngine,
   findMatches,
   loadComponentResource,
   loadKfind,
@@ -11,6 +15,11 @@ import {
   PartOfSpeech,
   restoreComponentResource,
 } from './kfind-wasm';
+import {
+  componentResourceMessages,
+  ComponentResourceState,
+  createInitialComponentResourceStatus,
+} from './playground-component-resource';
 
 export {
   applyPlaygroundPreset,
@@ -19,6 +28,11 @@ export {
   PlaygroundPresetName,
 } from './playground-presets';
 export type { PlaygroundInput } from './playground-presets';
+export {
+  ComponentResourceState,
+  createInitialComponentResourceStatus,
+} from './playground-component-resource';
+export type { ComponentResourceStatus } from './playground-component-resource';
 
 export enum PlaygroundState {
   Loading = 'loading',
@@ -32,23 +46,9 @@ export enum PlaygroundResultState {
   Error = 'error',
 }
 
-export enum ComponentResourceState {
-  Checking = 'checking',
-  Idle = 'idle',
-  Needed = 'needed',
-  Loading = 'loading',
-  Ready = 'ready',
-  Error = 'error',
-}
-
 export interface PlaygroundStatus {
   readonly message: string;
   readonly state: PlaygroundState;
-}
-
-export interface ComponentResourceStatus {
-  readonly message: string;
-  readonly state: ComponentResourceState;
 }
 
 export interface PlaygroundResult {
@@ -61,8 +61,8 @@ export interface PlaygroundResult {
 
 export interface PlaygroundController {
   readonly dispose: () => void;
-  readonly loadComponentResource: () => void;
   readonly scheduleRun: (input: PlaygroundInput) => void;
+  readonly setComponentResourceEnabled: (enabled: boolean) => void;
 }
 
 interface PlaygroundCallbacks {
@@ -71,19 +71,12 @@ interface PlaygroundCallbacks {
   readonly onStatusChange: (status: PlaygroundStatus) => void;
 }
 
-interface PlaygroundMessages {
+interface PlaygroundMessages extends ComponentResourceMessages {
   readonly directMatch: string;
   readonly emptyQuery: string;
-  readonly initialResource: string;
   readonly initialStatus: string;
   readonly matchCount: (count: number) => string;
   readonly noMatches: string;
-  readonly resourceIdle: string;
-  readonly resourceLoading: string;
-  readonly resourceNeeded: string;
-  readonly resourceRestored: (byteLength: number, migrated: boolean) => string;
-  readonly resourceStored: (byteLength: number, stored: boolean) => string;
-  readonly resourceVerificationFailed: (error: string) => string;
 }
 
 const SEARCH_DEBOUNCE_MILLISECONDS = 250;
@@ -91,46 +84,21 @@ const SEARCH_DEBOUNCE_MILLISECONDS = 250;
 const playgroundMessages: Readonly<Record<DocumentLocale, PlaygroundMessages>> =
   {
     [DocumentLocale.Korean]: {
+      ...componentResourceMessages[DocumentLocale.Korean],
       directMatch: '직접 일치 검증 완료',
       emptyQuery: '검색 질의를 입력해 주세요.',
-      initialResource: `저장된 리소스 확인 중 · ${formatResourceVersion()}`,
       initialStatus: 'WASM 엔진을 불러오는 중…',
       matchCount: (count) => `일치하는 span ${count}개를 찾았습니다.`,
       noMatches: '일치하는 span이 없습니다.',
-      resourceIdle: `필요할 때 R2에서 35.4 MiB를 받습니다 · ${formatResourceVersion()}`,
-      resourceLoading: 'R2에서 형태 구성 요소 판정 리소스를 불러오는 중…',
-      resourceNeeded:
-        '이 검색 질의의 smart 구조 판정에는 형태 구성 요소 판정 리소스가 필요합니다.',
-      resourceRestored: (byteLength, migrated) =>
-        `${formatMebibytes(byteLength)} MiB ${migrated ? '저장소 복원 및 이전 완료' : '저장소 복원 완료'} · ${formatResourceVersion()}`,
-      resourceStored: (byteLength, stored) =>
-        stored
-          ? `${formatMebibytes(byteLength)} MiB 로드·검증·저장 완료 · ${formatResourceVersion()}`
-          : `${formatMebibytes(byteLength)} MiB 로드·검증 완료 · 저장소 미지원`,
-      resourceVerificationFailed: (error) =>
-        `저장된 리소스 검증 실패 · ${error}`,
     },
     [DocumentLocale.English]: {
+      ...componentResourceMessages[DocumentLocale.English],
       directMatch: 'Direct match verified',
       emptyQuery: 'Enter a query.',
-      initialResource: `Checking stored resource · ${formatResourceVersion()}`,
       initialStatus: 'Loading the WASM engine…',
       matchCount: (count) =>
         `Found ${count.toLocaleString('en')} matching spans.`,
       noMatches: 'No matching spans.',
-      resourceIdle: `Downloads 35.4 MiB from R2 when required · ${formatResourceVersion()}`,
-      resourceLoading:
-        'Loading the morphological component verification resource from R2…',
-      resourceNeeded:
-        'This query needs the morphological component verification resource for its smart structural decision.',
-      resourceRestored: (byteLength, migrated) =>
-        `${formatMebibytes(byteLength)} MiB ${migrated ? 'restored and migrated' : 'restored'} · ${formatResourceVersion()}`,
-      resourceStored: (byteLength, stored) =>
-        stored
-          ? `${formatMebibytes(byteLength)} MiB loaded, verified, and stored · ${formatResourceVersion()}`
-          : `${formatMebibytes(byteLength)} MiB loaded and verified · storage unavailable`,
-      resourceVerificationFailed: (error) =>
-        `Stored resource validation failed · ${error}`,
     },
   };
 
@@ -143,15 +111,6 @@ export function createInitialPlaygroundStatus(
   };
 }
 
-export function createInitialComponentResourceStatus(
-  locale: DocumentLocale,
-): ComponentResourceStatus {
-  return {
-    state: ComponentResourceState.Checking,
-    message: playgroundMessages[locale].initialResource,
-  };
-}
-
 export function initializePlayground(
   initialInput: PlaygroundInput,
   callbacks: PlaygroundCallbacks,
@@ -160,22 +119,37 @@ export function initializePlayground(
   const messages = playgroundMessages[locale];
   const initialStatus = createInitialPlaygroundStatus(locale);
   const initialResourceStatus = createInitialComponentResourceStatus(locale);
-  const idleResourceStatus: ComponentResourceStatus = {
-    state: ComponentResourceState.Idle,
-    message: messages.resourceIdle,
-  };
   const abortController = new AbortController();
   const { signal } = abortController;
   let engine: KfindEngine | undefined;
   let latestInput = initialInput;
   let pendingRun: ReturnType<typeof globalThis.setTimeout> | undefined;
-  let resourceState = initialResourceStatus.state;
+  let resourceStatus = initialResourceStatus;
   let resourceCheckComplete = false;
 
+  const replaceEngine = (replacement: KfindEngine): void => {
+    engine = replacement;
+  };
+
   const setResourceStatus = (status: ComponentResourceStatus): void => {
-    resourceState = status.state;
+    resourceStatus = status;
     callbacks.onResourceStatusChange(status);
   };
+
+  const inactiveResourceStatus = (): ComponentResourceStatus =>
+    resourceStatus.cached
+      ? {
+          cached: true,
+          enabled: false,
+          state: ComponentResourceState.Disabled,
+          message: messages.resourceDisabled,
+        }
+      : {
+          cached: false,
+          enabled: false,
+          state: ComponentResourceState.Idle,
+          message: messages.resourceIdle,
+        };
 
   const execute = (): void => {
     if (engine === undefined || signal.aborted || !resourceCheckComplete) {
@@ -187,14 +161,17 @@ export function initializePlayground(
     if (
       result.state === PlaygroundResultState.Error &&
       result.message.toLowerCase().includes('component') &&
-      resourceState === ComponentResourceState.Idle
+      (resourceStatus.state === ComponentResourceState.Idle ||
+        resourceStatus.state === ComponentResourceState.Disabled)
     ) {
       setResourceStatus({
+        cached: resourceStatus.cached,
+        enabled: false,
         state: ComponentResourceState.Needed,
         message: messages.resourceNeeded,
       });
-    } else if (resourceState === ComponentResourceState.Needed) {
-      setResourceStatus(idleResourceStatus);
+    } else if (resourceStatus.state === ComponentResourceState.Needed) {
+      setResourceStatus(inactiveResourceStatus());
     }
 
     callbacks.onResult(result);
@@ -239,8 +216,10 @@ export function initializePlayground(
 
         setResourceStatus(
           restoredResource === null
-            ? idleResourceStatus
+            ? inactiveResourceStatus()
             : {
+                cached: true,
+                enabled: true,
                 state: ComponentResourceState.Ready,
                 message: messages.resourceRestored(
                   restoredResource.byteLength,
@@ -254,6 +233,8 @@ export function initializePlayground(
         }
 
         setResourceStatus({
+          cached: false,
+          enabled: false,
           state: ComponentResourceState.Error,
           message: messages.resourceVerificationFailed(readableError(error)),
         });
@@ -272,22 +253,139 @@ export function initializePlayground(
       callbacks.onResult(createErrorResult(latestInput, message));
     });
 
+  const enableComponentResource = async (): Promise<void> => {
+    const currentEngine = engine;
+
+    if (currentEngine === undefined || currentEngine.componentResourceLoaded) {
+      execute();
+      return;
+    }
+
+    setResourceStatus({
+      cached: resourceStatus.cached,
+      enabled: true,
+      state: ComponentResourceState.Loading,
+      message: messages.resourceLoading,
+    });
+    let resourceCached = resourceStatus.cached;
+
+    try {
+      if (resourceCached) {
+        const restoredResource = await restoreComponentResource(
+          currentEngine,
+          signal,
+        );
+
+        if (isAborted(signal)) {
+          return;
+        }
+
+        if (restoredResource !== null) {
+          setResourceStatus({
+            cached: true,
+            enabled: true,
+            state: ComponentResourceState.Ready,
+            message: messages.resourceRestored(
+              restoredResource.byteLength,
+              restoredResource.migrated,
+            ),
+          });
+          execute();
+          return;
+        }
+
+        resourceCached = false;
+      }
+
+      const loaded = await loadComponentResource(currentEngine, signal);
+
+      if (isAborted(signal)) {
+        return;
+      }
+
+      setResourceStatus({
+        cached: loaded.stored,
+        enabled: true,
+        state: ComponentResourceState.Ready,
+        message: messages.resourceStored(loaded.byteLength, loaded.stored),
+      });
+      execute();
+    } catch (error) {
+      if (isAborted(signal)) {
+        return;
+      }
+
+      setResourceStatus({
+        cached: resourceCached,
+        enabled: false,
+        state: ComponentResourceState.Error,
+        message: readableError(error),
+      });
+    }
+  };
+
+  const disableComponentResource = async (): Promise<void> => {
+    const currentEngine = engine;
+
+    if (currentEngine?.componentResourceLoaded !== true) {
+      setResourceStatus(inactiveResourceStatus());
+      execute();
+      return;
+    }
+
+    globalThis.clearTimeout(pendingRun);
+    resourceCheckComplete = false;
+    setResourceStatus({
+      cached: resourceStatus.cached,
+      enabled: false,
+      state: ComponentResourceState.Disabling,
+      message: messages.resourceDisabling,
+    });
+
+    try {
+      const replacementEngine = await createKfindEngine();
+
+      if (isAborted(signal)) {
+        replacementEngine.free();
+        return;
+      }
+
+      replaceEngine(replacementEngine);
+      currentEngine.free();
+      setResourceStatus(inactiveResourceStatus());
+    } catch (error) {
+      if (isAborted(signal)) {
+        return;
+      }
+
+      setResourceStatus({
+        cached: resourceStatus.cached,
+        enabled: true,
+        state: ComponentResourceState.Error,
+        message: messages.resourceDisableFailed(readableError(error)),
+      });
+    }
+
+    resourceCheckComplete = true;
+    execute();
+  };
+
   return {
     dispose() {
       abortController.abort();
       globalThis.clearTimeout(pendingRun);
       engine?.free();
     },
-    loadComponentResource() {
-      if (engine !== undefined) {
-        void enableComponentResource(
-          engine,
-          setResourceStatus,
-          execute,
-          signal,
-          messages,
-        );
+    setComponentResourceEnabled(enabled) {
+      if (
+        engine === undefined ||
+        !resourceCheckComplete ||
+        resourceStatus.enabled === enabled
+      ) {
+        return;
       }
+
+      void (enabled ? enableComponentResource() : disableComponentResource());
     },
     scheduleRun,
   };
@@ -439,46 +537,6 @@ function morphologyRuleNotation(
   return categoryLabels[category as keyof typeof categoryLabels];
 }
 
-async function enableComponentResource(
-  engine: KfindEngine,
-  setResourceStatus: (status: ComponentResourceStatus) => void,
-  rerun: () => void,
-  signal: AbortSignal,
-  messages: PlaygroundMessages,
-): Promise<void> {
-  if (engine.componentResourceLoaded) {
-    rerun();
-    return;
-  }
-
-  setResourceStatus({
-    state: ComponentResourceState.Loading,
-    message: messages.resourceLoading,
-  });
-
-  try {
-    const loaded = await loadComponentResource(engine, signal);
-    if (signal.aborted) {
-      return;
-    }
-
-    setResourceStatus({
-      state: ComponentResourceState.Ready,
-      message: messages.resourceStored(loaded.byteLength, loaded.stored),
-    });
-    rerun();
-  } catch (error) {
-    if (signal.aborted) {
-      return;
-    }
-
-    setResourceStatus({
-      state: ComponentResourceState.Error,
-      message: readableError(error),
-    });
-  }
-}
-
 function executeSearch(
   engine: KfindEngine,
   input: PlaygroundInput,
@@ -546,16 +604,6 @@ function readOptions(input: PlaygroundInput): CompileOptions {
 
 function readableError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
-}
-
-function formatMebibytes(byteLength: number): string {
-  return (byteLength / (1024 * 1024)).toFixed(1);
-}
-
-function formatResourceVersion(): string {
-  return componentResourceVersion.startsWith('v')
-    ? componentResourceVersion
-    : componentResourceVersion.slice(0, 12);
 }
 
 function isAborted(signal: AbortSignal): boolean {

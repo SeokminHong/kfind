@@ -2,7 +2,7 @@ import type { Match } from '../../kfind-wasm';
 import type { PlaygroundInput, PlaygroundResult } from '../../playground';
 
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 
 import { DocumentLocale } from '../../app/i18n';
 import {
@@ -43,6 +43,7 @@ export function MatchList({
   result,
 }: MatchListProps): React.JSX.Element {
   const scrollElementRef = useRef<HTMLDivElement>(null);
+  const renderedTextRef = useRef(input.text);
   const scheduledRevealSequenceRef = useRef<number | undefined>(undefined);
   const matches =
     result?.state === PlaygroundResultState.Success ? result.matches : [];
@@ -58,6 +59,18 @@ export function MatchList({
     overscan: matchRowOverscan,
   });
   const virtualItems = virtualizer.getVirtualItems();
+
+  useLayoutEffect(() => {
+    if (
+      scrollElementRef.current === null ||
+      renderedTextRef.current === input.text
+    ) {
+      return;
+    }
+
+    renderedTextRef.current = input.text;
+    virtualizer.scrollToOffset(0);
+  }, [input.text, result, virtualizer]);
 
   useEffect(() => {
     if (

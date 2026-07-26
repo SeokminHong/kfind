@@ -63,7 +63,7 @@ globalStyle('.playground-main-inputs', {
 });
 
 globalStyle('.playground-main-inputs .field-query', {
-  width: 'min(24rem, 100%)',
+  width: '100%',
 });
 
 globalStyle('.desktop-settings', {

@@ -60,6 +60,66 @@ export const control = style({
   gap: vars.space.small,
 });
 
+export const switchRow = style({
+  display: 'flex',
+  minWidth: 0,
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: vars.space.medium,
+});
+
+export const switchCopy = style({
+  display: 'grid',
+  minWidth: 0,
+  gap: '0.1rem',
+  color: vars.color.heading,
+  fontSize: '0.72rem',
+  lineHeight: 1.35,
+});
+
+export const switchRoot = style({
+  position: 'relative',
+  width: '2.6rem',
+  height: '1.45rem',
+  flex: '0 0 auto',
+  padding: '0.15rem',
+  border: `1px solid ${vars.color.borderStrong}`,
+  borderRadius: vars.radius.pill,
+  background: vars.color.surfaceMuted,
+  cursor: 'pointer',
+  transition: 'background 120ms ease, border-color 120ms ease',
+  selectors: {
+    '&[data-checked]': {
+      borderColor: vars.color.link,
+      background: vars.color.link,
+    },
+    '&[data-disabled]': {
+      cursor: 'wait',
+      opacity: 0.55,
+    },
+    '&[data-focused]': {
+      outline: `2px solid ${vars.color.linkWash}`,
+      outlineOffset: vars.space.xsmall,
+    },
+  },
+});
+
+export const switchThumb = style({
+  display: 'block',
+  width: '1rem',
+  height: '1rem',
+  borderRadius: '50%',
+  background: vars.color.surface,
+  boxShadow: `0 0 0 1px ${vars.color.border}`,
+  transform: 'translateX(0)',
+  transition: 'transform 120ms ease',
+  selectors: {
+    [`${switchRoot}[data-checked] &`]: {
+      transform: 'translateX(1.15rem)',
+    },
+  },
+});
+
 export const status = style({
   display: 'flex',
   minWidth: 0,
@@ -90,42 +150,6 @@ export const statusDot = style({
     },
     [`${status}[data-state="error"] &`]: {
       background: vars.color.danger,
-    },
-  },
-});
-
-export const button = style({
-  minHeight: '2.5rem',
-  paddingInline: vars.space.medium,
-  border: `1px solid ${vars.color.link}`,
-  borderRadius: vars.radius.small,
-  background: vars.color.surface,
-  color: vars.color.link,
-  fontSize: '0.72rem',
-  fontWeight: 650,
-  selectors: {
-    '&:hover:not(:disabled)': {
-      background: vars.color.linkWash,
-    },
-    '&:disabled': {
-      borderColor: vars.color.borderStrong,
-      color: vars.color.subtle,
-    },
-  },
-});
-
-export const ready = style({
-  width: 'fit-content',
-  justifySelf: 'end',
-  padding: `${vars.space.xsmall} ${vars.space.small}`,
-  borderRadius: vars.radius.pill,
-  background: vars.color.surface,
-  color: vars.color.success,
-  fontSize: '0.7rem',
-  fontWeight: 650,
-  '@media': {
-    '(max-width: 64rem)': {
-      justifySelf: 'start',
     },
   },
 });

@@ -265,11 +265,11 @@ export default function PlaygroundPage(): React.JSX.Element {
       ? currentResult.matches
       : [];
   const isEngineReady = status.state === PlaygroundState.Ready;
-  const isResourceButtonDisabled =
+  const isResourceSwitchDisabled =
     !isEngineReady ||
     resourceStatus.state === ComponentResourceState.Checking ||
     resourceStatus.state === ComponentResourceState.Loading ||
-    resourceStatus.state === ComponentResourceState.Ready;
+    resourceStatus.state === ComponentResourceState.Disabling;
 
   return (
     <DocumentPage>
@@ -335,10 +335,10 @@ export default function PlaygroundPage(): React.JSX.Element {
           </div>
 
           <ComponentResourceCard
-            disabled={isResourceButtonDisabled}
+            disabled={isResourceSwitchDisabled}
             locale={locale}
-            onLoad={() => {
-              controllerRef.current?.loadComponentResource();
+            onEnabledChange={(enabled) => {
+              controllerRef.current?.setComponentResourceEnabled(enabled);
             }}
             status={resourceStatus}
           />

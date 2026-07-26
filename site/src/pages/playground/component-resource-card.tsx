@@ -1,46 +1,44 @@
 import type { ComponentResourceStatus } from '../../playground';
 
-import { Button } from '@base-ui/react/button';
+import { Switch } from '@base-ui/react/switch';
 
 import { DocumentLocale } from '../../app/i18n';
-import { ComponentResourceState } from '../../playground';
 
 import * as styles from './component-resource-card.css';
 
 interface ComponentResourceCardProps {
   readonly disabled: boolean;
   readonly locale: DocumentLocale;
-  readonly onLoad: () => void;
+  readonly onEnabledChange: (enabled: boolean) => void;
   readonly status: ComponentResourceStatus;
 }
 
 const componentResourceCopy = {
   [DocumentLocale.Korean]: {
-    action: '판정 리소스 불러오기 · 35.4 MiB',
-    checking: '브라우저 저장소 확인 중',
+    control: '형태 구성 요소 판정',
     eyebrow: 'SMART 구조 판정 · 35.4 MiB',
     heading: '형태 구성 요소 판정 리소스',
-    loading: '판정 리소스 불러오는 중',
-    ready: '사용 가능',
-    role: 'smart 경계가 원문 token 내부의 같은 품사 형태 구성 요소인지, 또는 인접 token 구조가 성립하는지 검증할 때 쓰는 compact index입니다. 전체 문장을 분석하거나 검색어를 확장하는 full POS 사전은 아닙니다.',
+    off: '꺼짐',
+    on: '켜짐',
+    role: '이 compact index는 smart 경계 판정에서 원문 token 내부의 같은 품사 구성 요소와 인접 token 구조를 확인합니다. 문장 전체를 분석하거나 검색어를 확장하지 않습니다.',
   },
   [DocumentLocale.English]: {
-    action: 'Load verification resource · 35.4 MiB',
-    checking: 'Checking browser storage',
+    control: 'Morphological component verification',
     eyebrow: 'SMART STRUCTURAL VERIFICATION · 35.4 MiB',
     heading: 'Morphological component verification resource',
-    loading: 'Loading verification resource',
-    ready: 'Available',
-    role: 'This compact index lets a smart boundary verify that a span is a same-POS component inside a source token or that an adjacent-token structure is valid. It is not a full-POS dictionary that analyzes whole sentences or expands queries.',
+    off: 'Off',
+    on: 'On',
+    role: 'This compact index checks same-POS components inside source tokens and adjacent-token structures for smart boundary decisions. It does not analyze entire sentences or expand queries.',
   },
 } as const;
 
 const headingId = 'playground-component-resource-heading';
+const switchLabelId = 'playground-component-resource-switch-label';
 
 export function ComponentResourceCard({
   disabled,
   locale,
-  onLoad,
+  onEnabledChange,
   status,
 }: ComponentResourceCardProps): React.JSX.Element {
   const copy = componentResourceCopy[locale];
@@ -60,6 +58,21 @@ export function ComponentResourceCard({
       </div>
 
       <div className={styles.control}>
+        <div className={styles.switchRow} data-glossary-skip="">
+          <span className={styles.switchCopy}>
+            <strong id={switchLabelId}>{copy.control}</strong>
+            <span>{status.enabled ? copy.on : copy.off}</span>
+          </span>
+          <Switch.Root
+            aria-labelledby={switchLabelId}
+            checked={status.enabled}
+            className={styles.switchRoot}
+            disabled={disabled}
+            onCheckedChange={onEnabledChange}
+          >
+            <Switch.Thumb className={styles.switchThumb} />
+          </Switch.Root>
+        </div>
         <div
           aria-live="polite"
           className={styles.status}
@@ -69,35 +82,7 @@ export function ComponentResourceCard({
           <span className={styles.statusDot} aria-hidden="true" />
           <span>{status.message}</span>
         </div>
-        {status.state === ComponentResourceState.Ready ? (
-          <span className={styles.ready}>{copy.ready}</span>
-        ) : (
-          <Button
-            className={styles.button}
-            data-glossary-skip=""
-            disabled={disabled}
-            onClick={onLoad}
-            type="button"
-          >
-            {buttonLabel(status.state, copy)}
-          </Button>
-        )}
       </div>
     </section>
   );
-}
-
-function buttonLabel(
-  state: ComponentResourceState,
-  copy: (typeof componentResourceCopy)[DocumentLocale],
-): string {
-  if (state === ComponentResourceState.Checking) {
-    return copy.checking;
-  }
-
-  if (state === ComponentResourceState.Loading) {
-    return copy.loading;
-  }
-
-  return copy.action;
 }
