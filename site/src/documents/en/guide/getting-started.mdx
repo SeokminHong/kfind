@@ -92,9 +92,10 @@ Recall-oriented output can include semantically irrelevant candidates. Read the 
 ```bash
 kfind --init
 kfind --init --agent codex --agent claude-code
+kfind --uninstall --agent codex --agent claude-code
 printf 'codex
 gemini
 ' | kfind --init
 ```
 
-Codex uses `.agents/skills/kfind/SKILL.md`, Claude Code uses `.claude/skills/kfind/SKILL.md`, and Gemini CLI uses `.gemini/skills/kfind/SKILL.md`. Unmanaged skills and existing agent settings are preserved. Once trusted, the project hook blocks shell searches that pass Korean patterns to `rg` or `grep` and directs the agent to kfind.
+Codex uses `.agents/skills/kfind/SKILL.md`, Claude Code uses `.claude/skills/kfind/SKILL.md`, and Gemini CLI uses `.gemini/skills/kfind/SKILL.md`. `--uninstall` removes only kfind-managed skills and hooks. Unmanaged skills and existing agent settings are preserved. Once trusted, the project hook blocks shell searches that pass Korean patterns to `rg` or `grep` and directs the agent to kfind.

@@ -194,6 +194,16 @@ Codex는 `.agents/skills/kfind/SKILL.md`, Claude Code는
 `.codex/hooks.json`, `.claude/settings.json`, `.gemini/settings.json`에 병합합니다.
 다른 설정과 hook은 보존하고 kfind 관리 표식이 없는 skill은 덮어쓰지 않습니다.
 
+설치한 통합은 같은 대상 선택 방식으로 제거합니다.
+
+```sh
+kfind --uninstall --agent codex --agent claude-code
+printf 'codex\ngemini\n' | kfind --uninstall
+```
+
+`--uninstall`은 kfind 관리 skill과 `kfind --agent-hook` handler만 제거합니다. 다른 설정과
+hook은 보존하며, 이미 제거된 대상은 오류로 처리하지 않습니다.
+
 설치된 hook은 shell tool이 명시적인 한글 검색 pattern으로 `rg`, `grep` 계열이나
 `git grep`을 실행하려 하면 차단하고 kfind 사용을 안내합니다. 한글 경로와 glob,
 pattern file은 차단하지 않습니다. Project hook은 각 에이전트에서 신뢰한 뒤
