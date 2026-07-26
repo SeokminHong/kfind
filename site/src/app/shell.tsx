@@ -248,9 +248,14 @@ export function Shell(): React.JSX.Element {
             to={localizedDocumentHref(RoutePath.Overview, locale)}
             aria-label={t('common.brand.home_aria')}
           >
-            <span className="brand-mark" aria-hidden="true">
-              k/
-            </span>
+            <img
+              alt=""
+              aria-hidden="true"
+              className="brand-mark"
+              height="29"
+              src="/favicon.svg"
+              width="29"
+            />
             <span>kfind</span>
             <span className="brand-suffix">
               {t('common.brand.document_suffix')}

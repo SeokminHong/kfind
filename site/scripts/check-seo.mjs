@@ -73,6 +73,10 @@ function linkHref(html, relation) {
   return attributeFromTag(html, 'link', 'rel', relation, 'href');
 }
 
+function typedLinkHref(html, type) {
+  return attributeFromTag(html, 'link', 'type', type, 'href');
+}
+
 function alternateHref(html, language) {
   return attributeFromTag(html, 'link', 'hrefLang', language, 'href');
 }
@@ -171,6 +175,22 @@ function assertIndexableDocument(
   const englishUrl = localizedUrl(path, 'en');
   const title = titleFromHtml(html);
   const description = metaContent(html, 'name', 'description');
+
+  assertEqual(
+    typedLinkHref(html, 'image/svg+xml'),
+    '/favicon.svg',
+    `${path} SVG favicon`,
+  );
+  assertEqual(
+    typedLinkHref(html, 'image/x-icon'),
+    '/favicon.ico',
+    `${path} ICO favicon`,
+  );
+  assertEqual(
+    linkHref(html, 'apple-touch-icon'),
+    '/apple-touch-icon.png',
+    `${path} touch icon`,
+  );
 
   if (
     !html.startsWith(
@@ -387,15 +407,39 @@ function assertIndexableDocument(
   }
 }
 
-async function assertSocialImage() {
-  const image = await readFile(join(clientDirectory, 'social-card.png'));
+async function assertPngImage(filename, width, height, label) {
+  const image = await readFile(join(clientDirectory, filename));
   const pngSignature = '89504e470d0a1a0a';
 
   if (image.subarray(0, 8).toString('hex') !== pngSignature) {
-    fail('social card가 PNG 형식이 아닙니다.');
+    fail(`${label}가 PNG 형식이 아닙니다.`);
   }
-  assertEqual(image.readUInt32BE(16), 1200, 'social card 너비');
-  assertEqual(image.readUInt32BE(20), 630, 'social card 높이');
+  assertEqual(image.readUInt32BE(16), width, `${label} 너비`);
+  assertEqual(image.readUInt32BE(20), height, `${label} 높이`);
+}
+
+async function assertBrandAssets() {
+  const faviconSvg = await readFile(
+    join(clientDirectory, 'favicon.svg'),
+    'utf8',
+  );
+  if (
+    !faviconSvg.includes('viewBox="0 0 256 256"') ||
+    !faviconSvg.includes('stroke="#1d63c7"')
+  ) {
+    fail('favicon.svg가 kfind brand mark를 포함하지 않습니다.');
+  }
+
+  const faviconIco = await readFile(join(clientDirectory, 'favicon.ico'));
+  if (faviconIco.subarray(0, 6).toString('hex') !== '000001000100') {
+    fail('favicon.ico가 단일 Windows icon 형식이 아닙니다.');
+  }
+
+  await Promise.all([
+    assertPngImage('apple-touch-icon.png', 180, 180, 'touch icon'),
+    assertPngImage('icon-256.png', 256, 256, 'package icon'),
+    assertPngImage('social-card.png', 1200, 630, 'social card'),
+  ]);
 }
 
 async function main() {
@@ -496,7 +540,7 @@ async function main() {
     'prerender HTML 집합',
   );
 
-  await assertSocialImage();
+  await assertBrandAssets();
   process.stdout.write(
     `SEO 검사 완료: ${paths.length}개 route × ${Object.keys(localeSettings).length}개 locale\n`,
   );

@@ -57,6 +57,9 @@ try {
     [xml] $nuspec = [System.IO.File]::ReadAllText($nuspecPath)
     Assert-True ($nuspec.package.metadata.id -eq 'kfind') 'Unexpected Chocolatey package ID.'
     Assert-True ($nuspec.package.metadata.version -eq $version) 'Unexpected Chocolatey package version.'
+    Assert-True (
+        $nuspec.package.metadata.iconUrl -eq 'https://kfind.pages.dev/icon-256.png'
+    ) 'Unexpected Chocolatey package icon URL.'
 
     $tokens = $null
     $parseErrors = $null

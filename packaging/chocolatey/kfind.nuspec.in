@@ -11,7 +11,7 @@
     <projectSourceUrl>https://github.com/SeokminHong/kfind</projectSourceUrl>
     <docsUrl>https://kfind.pages.dev/guide/installation</docsUrl>
     <bugTrackerUrl>https://github.com/SeokminHong/kfind/issues</bugTrackerUrl>
-    <iconUrl>https://kfind.pages.dev/favicon.svg</iconUrl>
+    <iconUrl>https://kfind.pages.dev/icon-256.png</iconUrl>
     <licenseUrl>https://github.com/SeokminHong/kfind/blob/v@VERSION@/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <summary>Fast Korean lemma and inflection search for code and documents</summary>

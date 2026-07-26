@@ -33,16 +33,10 @@ globalStyle('.brand', {
 });
 
 globalStyle('.brand-mark', {
-  display: 'grid',
+  display: 'block',
+  flexShrink: 0,
   width: '1.8rem',
   height: '1.8rem',
-  placeItems: 'center',
-  border: `1px solid ${vars.color.borderStrong}`,
-  borderRadius: vars.radius.small,
-  background: vars.color.codeBackground,
-  color: vars.color.link,
-  fontFamily: '"SFMono-Regular", Consolas, monospace',
-  fontSize: '0.72rem',
 });
 
 globalStyle('.brand-suffix', {

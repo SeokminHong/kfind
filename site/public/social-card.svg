@@ -15,16 +15,28 @@
     stroke="#2a3442"
     stroke-width="2"
   />
-  <g transform="translate(128 135)">
-    <rect width="164" height="164" rx="42" fill="#0b0e13" />
-    <path
-      d="M46 35v94M46 87l42-42M67 66l55 63"
-      fill="none"
-      stroke="#79f99a"
-      stroke-width="18"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+  <g transform="translate(128 135) scale(0.640625)">
+    <rect
+      x="26"
+      y="22"
+      width="204"
+      height="212"
+      rx="48"
+      fill="#fff"
+      stroke="#b8c1cc"
+      stroke-width="6"
     />
+    <g
+      transform="translate(34 36) scale(0.72)"
+      fill="none"
+      stroke="#1d63c7"
+      stroke-linecap="square"
+      stroke-linejoin="round"
+    >
+      <path d="M68 59v137M49 59h19M49 196h35" stroke-width="20" />
+      <path d="m68 143 49-38m-6 0h27m-51 34 41 56m-8 0h25" stroke-width="20" />
+      <path d="m174 203 41-150" stroke-width="18" />
+    </g>
   </g>
   <text
     x="336"
