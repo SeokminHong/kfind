@@ -409,6 +409,10 @@
   한 단계 GNB로 구성한다. 한국어 navigation category, 문서 제목과 eyebrow에서 영어
   `Reference`를 `참조`로 직역하지 않는다. `Playground`와 GitHub는 GNB 오른쪽의 독립 action으로
   둔다. 문법 항목, 구현 단계와 개별 지표를 GNB에 직접 나열하지 않는다.
+- Playground는 전역 header와 footer만 문서 route와 공유하는 별도 layout을 사용한다. 문서 GNB에는
+  활성 항목을 두지 않고 `Playground` action을 현재 page로 표시하며, 문서 sidebar와 좁은 화면의
+  문서 메뉴를 렌더링하지 않는다. Playground의 좁은 화면 site 메뉴는 문서 GNB와 외부 link만
+  제공하고 문서 목차는 포함하지 않는다.
 - 문서 route의 좌측 sidebar는 현재 GNB 영역에 속한 문서와 현재 문서의 절을 함께 표시한다.
   현재 route와 절은 접근 가능한 navigation 상태로 구분한다. 데스크톱에서는 sticky sidebar로,
   좁은 화면에서는 같은 계층을 보존하는 collapsible 문서 메뉴로 제공한다. 메뉴 trigger에는
