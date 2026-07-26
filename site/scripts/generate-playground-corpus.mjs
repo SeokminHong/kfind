@@ -9,6 +9,9 @@ const CONFIG = '20231101.ko';
 const SPLIT = 'train';
 const TARGET_BYTE_LENGTH = 1024 * 1024;
 const PAGE_LENGTH = 100;
+const SOURCE_ROW_LIMIT = 500;
+const SAMPLE_MODULUS = 4;
+const SAMPLE_BUCKET = 0;
 const OUTPUT_URL = new URL(
   '../public/playground/korean-wikipedia-20231101-ko-1mib.txt',
   import.meta.url,
@@ -29,11 +32,17 @@ let byteLength = 0;
 let paddingBytes = 0;
 
 const rowPages = await Promise.all(
-  [0, PAGE_LENGTH].map((rowOffset) => fetchRows(rowOffset)),
+  Array.from({ length: SOURCE_ROW_LIMIT / PAGE_LENGTH }, (_, pageIndex) =>
+    fetchRows(pageIndex * PAGE_LENGTH),
+  ),
 );
 const rows = rowPages.flat();
 
 for (const { row, row_idx: rowIndex } of rows) {
+  if (!isSampledArticle(row.id)) {
+    continue;
+  }
+
   const article = Buffer.from(formatArticle(row));
   const remainingBytes = TARGET_BYTE_LENGTH - byteLength;
   const complete = article.byteLength <= remainingBytes;
@@ -57,10 +66,16 @@ for (const { row, row_idx: rowIndex } of rows) {
     byteLength += paddingBytes;
     break;
   }
+
+  if (byteLength === TARGET_BYTE_LENGTH) {
+    break;
+  }
 }
 
 if (byteLength !== TARGET_BYTE_LENGTH) {
-  throw new Error(`200행 안에서 1 MiB를 채우지 못했습니다: ${byteLength}`);
+  throw new Error(
+    `${SOURCE_ROW_LIMIT}행 안에서 1 MiB를 채우지 못했습니다: ${byteLength}`,
+  );
 }
 
 const corpus = Buffer.concat(chunks);
@@ -75,7 +90,14 @@ const manifest = {
   license: 'CC BY-SA 3.0',
   license_url: 'https://creativecommons.org/licenses/by-sa/3.0/',
   extraction: {
-    order: 'Dataset Viewer row index ascending from 0',
+    order: 'Dataset Viewer row index ascending after deterministic sampling',
+    sampling: {
+      algorithm: 'SHA-256',
+      key: '<dataset revision>:<source id>',
+      source_row_limit: SOURCE_ROW_LIMIT,
+      modulus: SAMPLE_MODULUS,
+      bucket: SAMPLE_BUCKET,
+    },
     article_format: String.raw`<title>\n<url>\n\n<text>\n\n`,
     line_trailing_whitespace_removed: true,
     target_utf8_bytes: TARGET_BYTE_LENGTH,
@@ -147,6 +169,13 @@ async function fetchRows(rowOffset) {
 function formatArticle(row) {
   const text = row.text.trim().replace(/[\t ]+$/gmu, '');
   return `${row.title}\n${row.url}\n\n${text}\n\n`;
+}
+
+function isSampledArticle(sourceId) {
+  const digest = createHash('sha256')
+    .update(`${DATASET_REVISION}:${sourceId}`)
+    .digest();
+  return digest.readUInt32BE(0) % SAMPLE_MODULUS === SAMPLE_BUCKET;
 }
 
 function truncateUtf8(buffer, maximumByteLength) {
