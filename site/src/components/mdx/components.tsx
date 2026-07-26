@@ -6,13 +6,9 @@ import type {
 } from 'react';
 
 import { Children, isValidElement } from 'react';
-import { Link, useLocation } from 'react-router';
+import { useLocation } from 'react-router';
 
-import {
-  DocumentLocale,
-  localizedDocumentHref,
-  useDocumentLocale,
-} from '../../app/i18n';
+import { DocumentLocale, useDocumentLocale } from '../../app/i18n';
 import {
   navigationPageForPath,
   routePathFromPathname,
@@ -20,6 +16,8 @@ import {
 import { DocumentPage } from '../document';
 
 import * as styles from './mdx.css';
+
+export { MdxLink } from './link';
 
 type CalloutKind = 'danger' | 'note' | 'tip' | 'warning';
 
@@ -134,28 +132,6 @@ function validateDocumentStructure(
       `MDX heading order does not match navigation for ${pathname}`,
     );
   }
-}
-
-export function MdxLink({
-  children,
-  href = '',
-  ...props
-}: ComponentPropsWithoutRef<'a'>): React.JSX.Element {
-  const locale = useDocumentLocale();
-
-  if (href.startsWith('/')) {
-    return (
-      <Link {...props} to={localizedDocumentHref(href, locale)}>
-        {children}
-      </Link>
-    );
-  }
-
-  return (
-    <a {...props} href={href}>
-      {children}
-    </a>
-  );
 }
 
 export function MdxTable({

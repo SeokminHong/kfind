@@ -92,6 +92,19 @@ function headingFromHtml(html) {
     : decodeHtml(heading.replaceAll(/<!--.*?-->|<[^>]+>/gsu, ''));
 }
 
+function glossaryLinkCount(source) {
+  return [...source.matchAll(/\[[^\]]+\]\(\/reference\/glossary#[^)]+\)/gu)]
+    .length;
+}
+
+function glossaryTooltipCount(html) {
+  return [
+    ...html.matchAll(
+      /<a(?=[^>]*\baria-describedby=")(?=[^>]*\bhref="\/reference\/glossary(?:\?hl=en)?#[^"]+")[^>]*>/gu,
+    ),
+  ].length;
+}
+
 function structuredDataFromHtml(html) {
   const scripts = [
     ...html.matchAll(
@@ -132,13 +145,26 @@ function routeHtmlFile(path, locale) {
     : join(directory, `${path.slice(1)}.html`);
 }
 
+function routeDocumentSourceFile(path, locale) {
+  const relativePath = path === '/' ? 'index.mdx' : `${path.slice(1)}.mdx`;
+
+  return join(siteDirectory, 'src', 'documents', locale, relativePath);
+}
+
 function assertEqual(actual, expected, context) {
   if (actual !== expected) {
     fail(`${context}: "${expected}" 대신 "${actual ?? '없음'}"`);
   }
 }
 
-function assertIndexableDocument(path, html, locale, titles, descriptions) {
+function assertIndexableDocument(
+  path,
+  html,
+  source,
+  locale,
+  titles,
+  descriptions,
+) {
   const settings = localeSettings[locale];
   const canonicalUrl = localizedUrl(path, locale);
   const koreanUrl = localizedUrl(path, 'ko');
@@ -155,6 +181,16 @@ function assertIndexableDocument(path, html, locale, titles, descriptions) {
   }
   if ((html.match(/<h1(?:\s|>)/gu) ?? []).length !== 1) {
     fail(`${path}에 단일 h1이 없습니다.`);
+  }
+  if (/<a(?:\s|>)[^>]*>(?:(?!<\/a>).)*<a(?:\s|>)/su.test(html)) {
+    fail(`${path} ${locale}에 중첩 link가 있습니다.`);
+  }
+  if (source !== undefined) {
+    assertEqual(
+      glossaryTooltipCount(html),
+      glossaryLinkCount(source),
+      `${path} ${locale} MDX 단어장 tooltip 수`,
+    );
   }
   if (title === undefined || title.length === 0) {
     fail(`${path}의 title이 없습니다.`);
@@ -369,15 +405,23 @@ async function main() {
 
   const documents = await Promise.all(
     Object.keys(localeSettings).flatMap((locale) =>
-      paths.map(async (path) => ({
-        html: await readFile(routeHtmlFile(path, locale), 'utf8'),
-        locale,
-        path,
-      })),
+      paths.map(async (path) => {
+        const source =
+          path === '/playground'
+            ? undefined
+            : await readFile(routeDocumentSourceFile(path, locale), 'utf8');
+
+        return {
+          html: await readFile(routeHtmlFile(path, locale), 'utf8'),
+          locale,
+          path,
+          source,
+        };
+      }),
     ),
   );
-  for (const { html, locale, path } of documents) {
-    assertIndexableDocument(path, html, locale, titles, descriptions);
+  for (const { html, locale, path, source } of documents) {
+    assertIndexableDocument(path, html, source, locale, titles, descriptions);
   }
 
   const sitemap = await readFile(join(clientDirectory, 'sitemap.xml'), 'utf8');
