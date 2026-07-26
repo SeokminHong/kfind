@@ -3,7 +3,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 
 import {
-  changeDocumentLocale,
+  cacheDocumentLocale,
   DocumentLocale,
   localizedDocumentHref,
   useDocumentLocale,
@@ -224,14 +224,16 @@ export function Shell(): React.JSX.Element {
   const navigate = useNavigate();
 
   const selectLocale = (nextLocale: DocumentLocale): void => {
-    void changeDocumentLocale(i18n, nextLocale);
-    void navigate(
-      localizedDocumentHref(
-        `${location.pathname}${location.search}${location.hash}`,
-        nextLocale,
-      ),
-      { replace: true },
-    );
+    const currentHref = `${location.pathname}${location.search}${location.hash}`;
+    const nextHref = localizedDocumentHref(currentHref, nextLocale);
+
+    cacheDocumentLocale(nextLocale);
+    if (nextHref === currentHref) {
+      void i18n.changeLanguage(nextLocale);
+      return;
+    }
+
+    void navigate(nextHref, { replace: true });
   };
 
   return (

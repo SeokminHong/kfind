@@ -492,7 +492,8 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
   cookie가 지원 값이면 같은 URL에서 해당 locale을 적용한다. Cookie가 없거나 지원하지 않는 값이면
   한국어를 유지하며 `Accept-Language`에 따른 자동 redirect는 하지 않는다. Cookie 감지와 보존은
   i18next language detector에 위임한다. Locale cookie는 UI preference일 뿐 인증·권한 판단에
-  사용하지 않는다.
+  사용하지 않는다. 사용자가 locale을 선택하면 cookie를 먼저 갱신한 뒤 현재 문서와 fragment를
+  유지한 채 UI와 URL을 전환하며, locale 동기화가 이전 cookie 값으로 선택을 되돌리지 않아야 한다.
 - 한국어와 영어 public URL은 각각 self-canonical을 사용하고 양방향 `hreflang="ko"`,
   `hreflang="en"`과 query 없는 한국어 URL을 가리키는 `hreflang="x-default"`를 제공한다. Pages
   Function은 일반 browser와 crawler를 구분하지 않고 `?hl=en` 요청에 영어 prerender HTML을 `200`으로
