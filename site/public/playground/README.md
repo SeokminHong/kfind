@@ -2,8 +2,9 @@
 
 `korean-wikipedia-20231101-ko-1mib.txt`는
 [`wikimedia/wikipedia`](https://huggingface.co/datasets/wikimedia/wikipedia)의
-`20231101.ko` snapshot에서 Dataset Viewer 행 순서대로 추출한 1 MiB 한국어 본문이다.
-각 문서의 줄 끝 공백을 제거하고, 마지막 문서는 UTF-8 문자 경계에서 잘랐다.
+`20231101.ko` snapshot 앞 500행에서 corpus revision과 source ID의 SHA-256 hash를 기준으로 4개
+bucket 중 0번에 속한 문서를 원본 행 순서대로 추출한 1 MiB 한국어 본문이다. 각 문서의 줄 끝 공백을
+제거하고, 마지막 문서는 UTF-8 문자 경계에서 잘랐다.
 
 원문은 [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)에 따라
 재배포한다. 각 문서의 제목과 한국어 위키백과 URL은 corpus 본문에 포함하고, 사용한 행과

@@ -522,7 +522,8 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
   제공한다. 예시 action과 개별 option control은 같은 input state를 갱신하고, 별도의 preset 선택
   상태를 유지하지 않는다. 기본 용언 활용 예시는 `data/fixtures/walk_hang_stress.txt`의 `걷다`와
   `걸다` 동형 활용, 합성어와 동음이의어가 섞인 회귀 문단을 `걷다`로 검색한다. 대용량 예시는
-  `wikimedia/wikipedia`의 고정 `20231101.ko` snapshot에서 문서 순서대로 추출한 한국어 위키백과
+  `wikimedia/wikipedia`의 고정 `20231101.ko` snapshot 앞 500행에서 corpus revision과 source ID의
+  SHA-256 hash를 기준으로 4개 bucket 중 0번에 속한 문서를 원본 순서대로 추출해 한국어 위키백과
   본문을 정확히 1 MiB로 제공한다. 원문 asset은 대용량 예시를 선택할 때만 불러오며 각 문서의 제목과
   URL, corpus revision, 추출 방법, checksum과 `CC BY-SA 3.0` 출처를 보존한다. 서로 다른 문서에
   분산된 `말하다` 활용형을 `verb + smart + inflection`으로 검색해 복수의 실제 corpus 결과를

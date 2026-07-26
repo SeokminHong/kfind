@@ -8,132 +8,27 @@
   "license": "CC BY-SA 3.0",
   "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
   "extraction": {
-    "order": "Dataset Viewer row index ascending from 0",
+    "order": "Dataset Viewer row index ascending after deterministic sampling",
+    "sampling": {
+      "algorithm": "SHA-256",
+      "key": "<dataset revision>:<source id>",
+      "source_row_limit": 500,
+      "modulus": 4,
+      "bucket": 0
+    },
     "article_format": "<title>\\n<url>\\n\\n<text>\\n\\n",
     "line_trailing_whitespace_removed": true,
     "target_utf8_bytes": 1048576,
     "final_article_truncated_at_utf8_boundary": true,
     "padding_byte": "ASCII FULL STOP",
-    "padding_bytes": 2
+    "padding_bytes": 1
   },
   "output": {
     "path": "site/public/playground/korean-wikipedia-20231101-ko-1mib.txt",
     "utf8_bytes": 1048576,
-    "sha256": "2bf73e793f1c43383bb2794d485ca8e81ae99879816feaaf4a00eab51f250d81"
+    "sha256": "ff9b0a1698e624f0a1ac4cf3cfddd527942bbd6c8029c6dacb7a7cfce2437b98"
   },
   "sources": [
-    {
-      "row_index": 0,
-      "id": "5",
-      "title": "지미 카터",
-      "url": "https://ko.wikipedia.org/wiki/%EC%A7%80%EB%AF%B8%20%EC%B9%B4%ED%84%B0",
-      "complete": true,
-      "included_bytes": 8572
-    },
-    {
-      "row_index": 1,
-      "id": "9",
-      "title": "수학",
-      "url": "https://ko.wikipedia.org/wiki/%EC%88%98%ED%95%99",
-      "complete": true,
-      "included_bytes": 11724
-    },
-    {
-      "row_index": 2,
-      "id": "10",
-      "title": "수학 상수",
-      "url": "https://ko.wikipedia.org/wiki/%EC%88%98%ED%95%99%20%EC%83%81%EC%88%98",
-      "complete": true,
-      "included_bytes": 1949
-    },
-    {
-      "row_index": 3,
-      "id": "19",
-      "title": "문학",
-      "url": "https://ko.wikipedia.org/wiki/%EB%AC%B8%ED%95%99",
-      "complete": true,
-      "included_bytes": 7788
-    },
-    {
-      "row_index": 4,
-      "id": "20",
-      "title": "나라 목록",
-      "url": "https://ko.wikipedia.org/wiki/%EB%82%98%EB%9D%BC%20%EB%AA%A9%EB%A1%9D",
-      "complete": true,
-      "included_bytes": 6460
-    },
-    {
-      "row_index": 5,
-      "id": "21",
-      "title": "화학",
-      "url": "https://ko.wikipedia.org/wiki/%ED%99%94%ED%95%99",
-      "complete": true,
-      "included_bytes": 18947
-    },
-    {
-      "row_index": 6,
-      "id": "22",
-      "title": "체첸 공화국",
-      "url": "https://ko.wikipedia.org/wiki/%EC%B2%B4%EC%B2%B8%20%EA%B3%B5%ED%99%94%EA%B5%AD",
-      "complete": true,
-      "included_bytes": 8490
-    },
-    {
-      "row_index": 7,
-      "id": "24",
-      "title": "맥스웰 방정식",
-      "url": "https://ko.wikipedia.org/wiki/%EB%A7%A5%EC%8A%A4%EC%9B%B0%20%EB%B0%A9%EC%A0%95%EC%8B%9D",
-      "complete": true,
-      "included_bytes": 16751
-    },
-    {
-      "row_index": 8,
-      "id": "26",
-      "title": "초월수",
-      "url": "https://ko.wikipedia.org/wiki/%EC%B4%88%EC%9B%94%EC%88%98",
-      "complete": true,
-      "included_bytes": 11019
-    },
-    {
-      "row_index": 9,
-      "id": "31",
-      "title": "음계",
-      "url": "https://ko.wikipedia.org/wiki/%EC%9D%8C%EA%B3%84",
-      "complete": true,
-      "included_bytes": 2363
-    },
-    {
-      "row_index": 10,
-      "id": "34",
-      "title": "대한민국 제16대 대통령 선거",
-      "url": "https://ko.wikipedia.org/wiki/%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD%20%EC%A0%9C16%EB%8C%80%20%EB%8C%80%ED%86%B5%EB%A0%B9%20%EC%84%A0%EA%B1%B0",
-      "complete": true,
-      "included_bytes": 17528
-    },
-    {
-      "row_index": 11,
-      "id": "36",
-      "title": "함석헌",
-      "url": "https://ko.wikipedia.org/wiki/%ED%95%A8%EC%84%9D%ED%97%8C",
-      "complete": true,
-      "included_bytes": 19996
-    },
-    {
-      "row_index": 12,
-      "id": "38",
-      "title": "백남준",
-      "url": "https://ko.wikipedia.org/wiki/%EB%B0%B1%EB%82%A8%EC%A4%80",
-      "complete": true,
-      "included_bytes": 25791
-    },
-    {
-      "row_index": 13,
-      "id": "39",
-      "title": "2002년",
-      "url": "https://ko.wikipedia.org/wiki/2002%EB%85%84",
-      "complete": true,
-      "included_bytes": 28465
-    },
     {
       "row_index": 14,
       "id": "40",
@@ -151,100 +46,12 @@
       "included_bytes": 5136
     },
     {
-      "row_index": 16,
-      "id": "42",
-      "title": "6월 30일",
-      "url": "https://ko.wikipedia.org/wiki/6%EC%9B%94%2030%EC%9D%BC",
-      "complete": true,
-      "included_bytes": 7326
-    },
-    {
-      "row_index": 17,
-      "id": "44",
-      "title": "우크라이나",
-      "url": "https://ko.wikipedia.org/wiki/%EC%9A%B0%ED%81%AC%EB%9D%BC%EC%9D%B4%EB%82%98",
-      "complete": true,
-      "included_bytes": 24151
-    },
-    {
-      "row_index": 18,
-      "id": "48",
-      "title": "가위",
-      "url": "https://ko.wikipedia.org/wiki/%EA%B0%80%EC%9C%84",
-      "complete": true,
-      "included_bytes": 3140
-    },
-    {
       "row_index": 19,
       "id": "49",
       "title": "위키",
       "url": "https://ko.wikipedia.org/wiki/%EC%9C%84%ED%82%A4",
       "complete": true,
       "included_bytes": 8546
-    },
-    {
-      "row_index": 20,
-      "id": "57",
-      "title": "지구과학",
-      "url": "https://ko.wikipedia.org/wiki/%EC%A7%80%EA%B5%AC%EA%B3%BC%ED%95%99",
-      "complete": true,
-      "included_bytes": 2393
-    },
-    {
-      "row_index": 21,
-      "id": "62",
-      "title": "아오조라 문고",
-      "url": "https://ko.wikipedia.org/wiki/%EC%95%84%EC%98%A4%EC%A1%B0%EB%9D%BC%20%EB%AC%B8%EA%B3%A0",
-      "complete": true,
-      "included_bytes": 6786
-    },
-    {
-      "row_index": 22,
-      "id": "63",
-      "title": "프로젝트 구텐베르크",
-      "url": "https://ko.wikipedia.org/wiki/%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%20%EA%B5%AC%ED%85%90%EB%B2%A0%EB%A5%B4%ED%81%AC",
-      "complete": true,
-      "included_bytes": 3698
-    },
-    {
-      "row_index": 23,
-      "id": "65",
-      "title": "겐지모노가타리",
-      "url": "https://ko.wikipedia.org/wiki/%EA%B2%90%EC%A7%80%EB%AA%A8%EB%85%B8%EA%B0%80%ED%83%80%EB%A6%AC",
-      "complete": true,
-      "included_bytes": 12842
-    },
-    {
-      "row_index": 24,
-      "id": "66",
-      "title": "귄터 그라스",
-      "url": "https://ko.wikipedia.org/wiki/%EA%B7%84%ED%84%B0%20%EA%B7%B8%EB%9D%BC%EC%8A%A4",
-      "complete": true,
-      "included_bytes": 3734
-    },
-    {
-      "row_index": 25,
-      "id": "70",
-      "title": "일반 상대성이론",
-      "url": "https://ko.wikipedia.org/wiki/%EC%9D%BC%EB%B0%98%20%EC%83%81%EB%8C%80%EC%84%B1%EC%9D%B4%EB%A1%A0",
-      "complete": true,
-      "included_bytes": 8695
-    },
-    {
-      "row_index": 26,
-      "id": "73",
-      "title": "데니스 리치",
-      "url": "https://ko.wikipedia.org/wiki/%EB%8D%B0%EB%8B%88%EC%8A%A4%20%EB%A6%AC%EC%B9%98",
-      "complete": true,
-      "included_bytes": 2347
-    },
-    {
-      "row_index": 27,
-      "id": "76",
-      "title": "주기율표",
-      "url": "https://ko.wikipedia.org/wiki/%EC%A3%BC%EA%B8%B0%EC%9C%A8%ED%91%9C",
-      "complete": true,
-      "included_bytes": 10051
     },
     {
       "row_index": 28,
@@ -255,44 +62,12 @@
       "included_bytes": 41091
     },
     {
-      "row_index": 29,
-      "id": "78",
-      "title": "히라가나",
-      "url": "https://ko.wikipedia.org/wiki/%ED%9E%88%EB%9D%BC%EA%B0%80%EB%82%98",
-      "complete": true,
-      "included_bytes": 2325
-    },
-    {
-      "row_index": 30,
-      "id": "79",
-      "title": "나라 이름순 수도 목록",
-      "url": "https://ko.wikipedia.org/wiki/%EB%82%98%EB%9D%BC%20%EC%9D%B4%EB%A6%84%EC%88%9C%20%EC%88%98%EB%8F%84%20%EB%AA%A9%EB%A1%9D",
-      "complete": true,
-      "included_bytes": 6970
-    },
-    {
-      "row_index": 31,
-      "id": "80",
-      "title": "토마스 만",
-      "url": "https://ko.wikipedia.org/wiki/%ED%86%A0%EB%A7%88%EC%8A%A4%20%EB%A7%8C",
-      "complete": true,
-      "included_bytes": 8208
-    },
-    {
       "row_index": 32,
       "id": "82",
       "title": "하인리히 뵐",
       "url": "https://ko.wikipedia.org/wiki/%ED%95%98%EC%9D%B8%EB%A6%AC%ED%9E%88%20%EB%B5%90",
       "complete": true,
       "included_bytes": 4953
-    },
-    {
-      "row_index": 33,
-      "id": "83",
-      "title": "방정식",
-      "url": "https://ko.wikipedia.org/wiki/%EB%B0%A9%EC%A0%95%EC%8B%9D",
-      "complete": true,
-      "included_bytes": 4522
     },
     {
       "row_index": 34,
@@ -303,76 +78,12 @@
       "included_bytes": 5190
     },
     {
-      "row_index": 35,
-      "id": "85",
-      "title": "노무현",
-      "url": "https://ko.wikipedia.org/wiki/%EB%85%B8%EB%AC%B4%ED%98%84",
-      "complete": true,
-      "included_bytes": 169941
-    },
-    {
       "row_index": 36,
       "id": "86",
       "title": "곱셈적 함수",
       "url": "https://ko.wikipedia.org/wiki/%EA%B3%B1%EC%85%88%EC%A0%81%20%ED%95%A8%EC%88%98",
       "complete": true,
       "included_bytes": 3319
-    },
-    {
-      "row_index": 37,
-      "id": "87",
-      "title": "체비쇼프 다항식",
-      "url": "https://ko.wikipedia.org/wiki/%EC%B2%B4%EB%B9%84%EC%87%BC%ED%94%84%20%EB%8B%A4%ED%95%AD%EC%8B%9D",
-      "complete": true,
-      "included_bytes": 2445
-    },
-    {
-      "row_index": 38,
-      "id": "88",
-      "title": "파이의 날",
-      "url": "https://ko.wikipedia.org/wiki/%ED%8C%8C%EC%9D%B4%EC%9D%98%20%EB%82%A0",
-      "complete": true,
-      "included_bytes": 1457
-    },
-    {
-      "row_index": 39,
-      "id": "89",
-      "title": "코사인 법칙",
-      "url": "https://ko.wikipedia.org/wiki/%EC%BD%94%EC%82%AC%EC%9D%B8%20%EB%B2%95%EC%B9%99",
-      "complete": true,
-      "included_bytes": 7995
-    },
-    {
-      "row_index": 40,
-      "id": "90",
-      "title": "사인 법칙",
-      "url": "https://ko.wikipedia.org/wiki/%EC%82%AC%EC%9D%B8%20%EB%B2%95%EC%B9%99",
-      "complete": true,
-      "included_bytes": 3385
-    },
-    {
-      "row_index": 41,
-      "id": "91",
-      "title": "벡터 공간",
-      "url": "https://ko.wikipedia.org/wiki/%EB%B2%A1%ED%84%B0%20%EA%B3%B5%EA%B0%84",
-      "complete": true,
-      "included_bytes": 9454
-    },
-    {
-      "row_index": 42,
-      "id": "92",
-      "title": "펜로즈 삼각형",
-      "url": "https://ko.wikipedia.org/wiki/%ED%8E%9C%EB%A1%9C%EC%A6%88%20%EC%82%BC%EA%B0%81%ED%98%95",
-      "complete": true,
-      "included_bytes": 1399
-    },
-    {
-      "row_index": 43,
-      "id": "94",
-      "title": "수론적 함수",
-      "url": "https://ko.wikipedia.org/wiki/%EC%88%98%EB%A1%A0%EC%A0%81%20%ED%95%A8%EC%88%98",
-      "complete": true,
-      "included_bytes": 1609
     },
     {
       "row_index": 44,
@@ -383,68 +94,12 @@
       "included_bytes": 1116
     },
     {
-      "row_index": 45,
-      "id": "96",
-      "title": "대수학의 기본 정리",
-      "url": "https://ko.wikipedia.org/wiki/%EB%8C%80%EC%88%98%ED%95%99%EC%9D%98%20%EA%B8%B0%EB%B3%B8%20%EC%A0%95%EB%A6%AC",
-      "complete": true,
-      "included_bytes": 6179
-    },
-    {
-      "row_index": 46,
-      "id": "97",
-      "title": "정규 분포",
-      "url": "https://ko.wikipedia.org/wiki/%EC%A0%95%EA%B7%9C%20%EB%B6%84%ED%8F%AC",
-      "complete": true,
-      "included_bytes": 3526
-    },
-    {
-      "row_index": 47,
-      "id": "99",
-      "title": "공각기동대",
-      "url": "https://ko.wikipedia.org/wiki/%EA%B3%B5%EA%B0%81%EA%B8%B0%EB%8F%99%EB%8C%80",
-      "complete": true,
-      "included_bytes": 1324
-    },
-    {
-      "row_index": 48,
-      "id": "100",
-      "title": "뫼비우스 반전 공식",
-      "url": "https://ko.wikipedia.org/wiki/%EB%AB%BC%EB%B9%84%EC%9A%B0%EC%8A%A4%20%EB%B0%98%EC%A0%84%20%EA%B3%B5%EC%8B%9D",
-      "complete": true,
-      "included_bytes": 1901
-    },
-    {
       "row_index": 49,
       "id": "101",
       "title": "푸리에 급수",
       "url": "https://ko.wikipedia.org/wiki/%ED%91%B8%EB%A6%AC%EC%97%90%20%EA%B8%89%EC%88%98",
       "complete": true,
       "included_bytes": 2160
-    },
-    {
-      "row_index": 50,
-      "id": "104",
-      "title": "가수",
-      "url": "https://ko.wikipedia.org/wiki/%EA%B0%80%EC%88%98",
-      "complete": true,
-      "included_bytes": 302
-    },
-    {
-      "row_index": 51,
-      "id": "111",
-      "title": "감마 함수",
-      "url": "https://ko.wikipedia.org/wiki/%EA%B0%90%EB%A7%88%20%ED%95%A8%EC%88%98",
-      "complete": true,
-      "included_bytes": 3748
-    },
-    {
-      "row_index": 52,
-      "id": "139",
-      "title": "아쿠타가와 류노스케",
-      "url": "https://ko.wikipedia.org/wiki/%EC%95%84%EC%BF%A0%ED%83%80%EA%B0%80%EC%99%80%20%EB%A5%98%EB%85%B8%EC%8A%A4%EC%BC%80",
-      "complete": true,
-      "included_bytes": 17433
     },
     {
       "row_index": 53,
@@ -455,156 +110,12 @@
       "included_bytes": 10628
     },
     {
-      "row_index": 54,
-      "id": "141",
-      "title": "통계학",
-      "url": "https://ko.wikipedia.org/wiki/%ED%86%B5%EA%B3%84%ED%95%99",
-      "complete": true,
-      "included_bytes": 24911
-    },
-    {
-      "row_index": 55,
-      "id": "143",
-      "title": "컴퓨터 과학",
-      "url": "https://ko.wikipedia.org/wiki/%EC%BB%B4%ED%93%A8%ED%84%B0%20%EA%B3%BC%ED%95%99",
-      "complete": true,
-      "included_bytes": 23160
-    },
-    {
-      "row_index": 56,
-      "id": "145",
-      "title": "위키백과",
-      "url": "https://ko.wikipedia.org/wiki/%EC%9C%84%ED%82%A4%EB%B0%B1%EA%B3%BC",
-      "complete": true,
-      "included_bytes": 26934
-    },
-    {
       "row_index": 57,
       "id": "149",
       "title": "그리스 신들의 가계도",
       "url": "https://ko.wikipedia.org/wiki/%EA%B7%B8%EB%A6%AC%EC%8A%A4%20%EC%8B%A0%EB%93%A4%EC%9D%98%20%EA%B0%80%EA%B3%84%EB%8F%84",
       "complete": true,
       "included_bytes": 510
-    },
-    {
-      "row_index": 58,
-      "id": "150",
-      "title": "광자",
-      "url": "https://ko.wikipedia.org/wiki/%EA%B4%91%EC%9E%90",
-      "complete": true,
-      "included_bytes": 2830
-    },
-    {
-      "row_index": 59,
-      "id": "151",
-      "title": "보손",
-      "url": "https://ko.wikipedia.org/wiki/%EB%B3%B4%EC%86%90",
-      "complete": true,
-      "included_bytes": 3354
-    },
-    {
-      "row_index": 60,
-      "id": "152",
-      "title": "디리클레 합성곱",
-      "url": "https://ko.wikipedia.org/wiki/%EB%94%94%EB%A6%AC%ED%81%B4%EB%A0%88%20%ED%95%A9%EC%84%B1%EA%B3%B1",
-      "complete": true,
-      "included_bytes": 3289
-    },
-    {
-      "row_index": 61,
-      "id": "154",
-      "title": "동치관계",
-      "url": "https://ko.wikipedia.org/wiki/%EB%8F%99%EC%B9%98%EA%B4%80%EA%B3%84",
-      "complete": true,
-      "included_bytes": 2074
-    },
-    {
-      "row_index": 62,
-      "id": "155",
-      "title": "자연철학의 수학적 원리",
-      "url": "https://ko.wikipedia.org/wiki/%EC%9E%90%EC%97%B0%EC%B2%A0%ED%95%99%EC%9D%98%20%EC%88%98%ED%95%99%EC%A0%81%20%EC%9B%90%EB%A6%AC",
-      "complete": true,
-      "included_bytes": 11585
-    },
-    {
-      "row_index": 63,
-      "id": "156",
-      "title": "슈뢰딩거 방정식",
-      "url": "https://ko.wikipedia.org/wiki/%EC%8A%88%EB%A2%B0%EB%94%A9%EA%B1%B0%20%EB%B0%A9%EC%A0%95%EC%8B%9D",
-      "complete": true,
-      "included_bytes": 4206
-    },
-    {
-      "row_index": 64,
-      "id": "158",
-      "title": "엔트로피",
-      "url": "https://ko.wikipedia.org/wiki/%EC%97%94%ED%8A%B8%EB%A1%9C%ED%94%BC",
-      "complete": true,
-      "included_bytes": 8928
-    },
-    {
-      "row_index": 65,
-      "id": "159",
-      "title": "라플라스 방정식",
-      "url": "https://ko.wikipedia.org/wiki/%EB%9D%BC%ED%94%8C%EB%9D%BC%EC%8A%A4%20%EB%B0%A9%EC%A0%95%EC%8B%9D",
-      "complete": true,
-      "included_bytes": 3892
-    },
-    {
-      "row_index": 66,
-      "id": "160",
-      "title": "적분표",
-      "url": "https://ko.wikipedia.org/wiki/%EC%A0%81%EB%B6%84%ED%91%9C",
-      "complete": true,
-      "included_bytes": 1324
-    },
-    {
-      "row_index": 67,
-      "id": "161",
-      "title": "삼각함수",
-      "url": "https://ko.wikipedia.org/wiki/%EC%82%BC%EA%B0%81%ED%95%A8%EC%88%98",
-      "complete": true,
-      "included_bytes": 7310
-    },
-    {
-      "row_index": 68,
-      "id": "164",
-      "title": "르장드르 다항식",
-      "url": "https://ko.wikipedia.org/wiki/%EB%A5%B4%EC%9E%A5%EB%93%9C%EB%A5%B4%20%EB%8B%A4%ED%95%AD%EC%8B%9D",
-      "complete": true,
-      "included_bytes": 2887
-    },
-    {
-      "row_index": 69,
-      "id": "169",
-      "title": "소수",
-      "url": "https://ko.wikipedia.org/wiki/%EC%86%8C%EC%88%98",
-      "complete": true,
-      "included_bytes": 706
-    },
-    {
-      "row_index": 70,
-      "id": "171",
-      "title": "로봇",
-      "url": "https://ko.wikipedia.org/wiki/%EB%A1%9C%EB%B4%87",
-      "complete": true,
-      "included_bytes": 12250
-    },
-    {
-      "row_index": 71,
-      "id": "172",
-      "title": "깊은 생각",
-      "url": "https://ko.wikipedia.org/wiki/%EA%B9%8A%EC%9D%80%20%EC%83%9D%EA%B0%81",
-      "complete": true,
-      "included_bytes": 1528
-    },
-    {
-      "row_index": 72,
-      "id": "174",
-      "title": "표준 모형",
-      "url": "https://ko.wikipedia.org/wiki/%ED%91%9C%EC%A4%80%20%EB%AA%A8%ED%98%95",
-      "complete": true,
-      "included_bytes": 13525
     },
     {
       "row_index": 73,
@@ -615,156 +126,12 @@
       "included_bytes": 3790
     },
     {
-      "row_index": 74,
-      "id": "176",
-      "title": "중력 상수",
-      "url": "https://ko.wikipedia.org/wiki/%EC%A4%91%EB%A0%A5%20%EC%83%81%EC%88%98",
-      "complete": true,
-      "included_bytes": 4469
-    },
-    {
-      "row_index": 75,
-      "id": "179",
-      "title": "변형력",
-      "url": "https://ko.wikipedia.org/wiki/%EB%B3%80%ED%98%95%EB%A0%A5",
-      "complete": true,
-      "included_bytes": 2250
-    },
-    {
-      "row_index": 76,
-      "id": "181",
-      "title": "대수학",
-      "url": "https://ko.wikipedia.org/wiki/%EB%8C%80%EC%88%98%ED%95%99",
-      "complete": true,
-      "included_bytes": 3071
-    },
-    {
-      "row_index": 77,
-      "id": "182",
-      "title": "군론",
-      "url": "https://ko.wikipedia.org/wiki/%EA%B5%B0%EB%A1%A0",
-      "complete": true,
-      "included_bytes": 1408
-    },
-    {
-      "row_index": 78,
-      "id": "183",
-      "title": "선형 결합",
-      "url": "https://ko.wikipedia.org/wiki/%EC%84%A0%ED%98%95%20%EA%B2%B0%ED%95%A9",
-      "complete": true,
-      "included_bytes": 7463
-    },
-    {
-      "row_index": 79,
-      "id": "184",
-      "title": "파동 방정식",
-      "url": "https://ko.wikipedia.org/wiki/%ED%8C%8C%EB%8F%99%20%EB%B0%A9%EC%A0%95%EC%8B%9D",
-      "complete": true,
-      "included_bytes": 2085
-    },
-    {
-      "row_index": 80,
-      "id": "185",
-      "title": "비오-사바르 법칙",
-      "url": "https://ko.wikipedia.org/wiki/%EB%B9%84%EC%98%A4-%EC%82%AC%EB%B0%94%EB%A5%B4%20%EB%B2%95%EC%B9%99",
-      "complete": true,
-      "included_bytes": 2062
-    },
-    {
-      "row_index": 81,
-      "id": "186",
-      "title": "구골",
-      "url": "https://ko.wikipedia.org/wiki/%EA%B5%AC%EA%B3%A8",
-      "complete": true,
-      "included_bytes": 2448
-    },
-    {
-      "row_index": 82,
-      "id": "187",
-      "title": "구글",
-      "url": "https://ko.wikipedia.org/wiki/%EA%B5%AC%EA%B8%80",
-      "complete": true,
-      "included_bytes": 19172
-    },
-    {
-      "row_index": 83,
-      "id": "189",
-      "title": "코리올리 효과",
-      "url": "https://ko.wikipedia.org/wiki/%EC%BD%94%EB%A6%AC%EC%98%AC%EB%A6%AC%20%ED%9A%A8%EA%B3%BC",
-      "complete": true,
-      "included_bytes": 7206
-    },
-    {
-      "row_index": 84,
-      "id": "192",
-      "title": "벡터곱",
-      "url": "https://ko.wikipedia.org/wiki/%EB%B2%A1%ED%84%B0%EA%B3%B1",
-      "complete": true,
-      "included_bytes": 4693
-    },
-    {
-      "row_index": 85,
-      "id": "195",
-      "title": "빅토르 초이",
-      "url": "https://ko.wikipedia.org/wiki/%EB%B9%85%ED%86%A0%EB%A5%B4%20%EC%B4%88%EC%9D%B4",
-      "complete": true,
-      "included_bytes": 11056
-    },
-    {
-      "row_index": 86,
-      "id": "196",
-      "title": "무리수",
-      "url": "https://ko.wikipedia.org/wiki/%EB%AC%B4%EB%A6%AC%EC%88%98",
-      "complete": true,
-      "included_bytes": 4380
-    },
-    {
       "row_index": 87,
       "id": "227",
       "title": "플랑크 상수",
       "url": "https://ko.wikipedia.org/wiki/%ED%94%8C%EB%9E%91%ED%81%AC%20%EC%83%81%EC%88%98",
       "complete": true,
       "included_bytes": 4089
-    },
-    {
-      "row_index": 88,
-      "id": "228",
-      "title": "막스 플랑크",
-      "url": "https://ko.wikipedia.org/wiki/%EB%A7%89%EC%8A%A4%20%ED%94%8C%EB%9E%91%ED%81%AC",
-      "complete": true,
-      "included_bytes": 31763
-    },
-    {
-      "row_index": 89,
-      "id": "229",
-      "title": "포인팅 벡터",
-      "url": "https://ko.wikipedia.org/wiki/%ED%8F%AC%EC%9D%B8%ED%8C%85%20%EB%B2%A1%ED%84%B0",
-      "complete": true,
-      "included_bytes": 1761
-    },
-    {
-      "row_index": 90,
-      "id": "230",
-      "title": "미세 구조 상수",
-      "url": "https://ko.wikipedia.org/wiki/%EB%AF%B8%EC%84%B8%20%EA%B5%AC%EC%A1%B0%20%EC%83%81%EC%88%98",
-      "complete": true,
-      "included_bytes": 1952
-    },
-    {
-      "row_index": 91,
-      "id": "232",
-      "title": "크라메르 법칙",
-      "url": "https://ko.wikipedia.org/wiki/%ED%81%AC%EB%9D%BC%EB%A9%94%EB%A5%B4%20%EB%B2%95%EC%B9%99",
-      "complete": true,
-      "included_bytes": 2395
-    },
-    {
-      "row_index": 92,
-      "id": "233",
-      "title": "행렬식",
-      "url": "https://ko.wikipedia.org/wiki/%ED%96%89%EB%A0%AC%EC%8B%9D",
-      "complete": true,
-      "included_bytes": 7635
     },
     {
       "row_index": 93,
@@ -775,52 +142,12 @@
       "included_bytes": 5195
     },
     {
-      "row_index": 94,
-      "id": "236",
-      "title": "좌표계",
-      "url": "https://ko.wikipedia.org/wiki/%EC%A2%8C%ED%91%9C%EA%B3%84",
-      "complete": true,
-      "included_bytes": 2429
-    },
-    {
-      "row_index": 95,
-      "id": "238",
-      "title": "힐베르트 공간",
-      "url": "https://ko.wikipedia.org/wiki/%ED%9E%90%EB%B2%A0%EB%A5%B4%ED%8A%B8%20%EA%B3%B5%EA%B0%84",
-      "complete": true,
-      "included_bytes": 4066
-    },
-    {
       "row_index": 96,
       "id": "239",
       "title": "양자역학",
       "url": "https://ko.wikipedia.org/wiki/%EC%96%91%EC%9E%90%EC%97%AD%ED%95%99",
       "complete": true,
       "included_bytes": 18288
-    },
-    {
-      "row_index": 97,
-      "id": "244",
-      "title": "양자역학의 수학 공식화",
-      "url": "https://ko.wikipedia.org/wiki/%EC%96%91%EC%9E%90%EC%97%AD%ED%95%99%EC%9D%98%20%EC%88%98%ED%95%99%20%EA%B3%B5%EC%8B%9D%ED%99%94",
-      "complete": true,
-      "included_bytes": 2343
-    },
-    {
-      "row_index": 98,
-      "id": "245",
-      "title": "베르너 하이젠베르크",
-      "url": "https://ko.wikipedia.org/wiki/%EB%B2%A0%EB%A5%B4%EB%84%88%20%ED%95%98%EC%9D%B4%EC%A0%A0%EB%B2%A0%EB%A5%B4%ED%81%AC",
-      "complete": true,
-      "included_bytes": 68060
-    },
-    {
-      "row_index": 99,
-      "id": "246",
-      "title": "중국의 역사",
-      "url": "https://ko.wikipedia.org/wiki/%EC%A4%91%EA%B5%AD%EC%9D%98%20%EC%97%AD%EC%82%AC",
-      "complete": true,
-      "included_bytes": 22493
     },
     {
       "row_index": 100,
@@ -831,12 +158,716 @@
       "included_bytes": 23481
     },
     {
-      "row_index": 101,
-      "id": "249",
-      "title": "대한민국",
-      "url": "https://ko.wikipedia.org/wiki/%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD",
+      "row_index": 106,
+      "id": "271",
+      "title": "앙카라",
+      "url": "https://ko.wikipedia.org/wiki/%EC%95%99%EC%B9%B4%EB%9D%BC",
+      "complete": true,
+      "included_bytes": 21088
+    },
+    {
+      "row_index": 110,
+      "id": "276",
+      "title": "도모나가 신이치로",
+      "url": "https://ko.wikipedia.org/wiki/%EB%8F%84%EB%AA%A8%EB%82%98%EA%B0%80%20%EC%8B%A0%EC%9D%B4%EC%B9%98%EB%A1%9C",
+      "complete": true,
+      "included_bytes": 1819
+    },
+    {
+      "row_index": 111,
+      "id": "277",
+      "title": "유카와 히데키",
+      "url": "https://ko.wikipedia.org/wiki/%EC%9C%A0%EC%B9%B4%EC%99%80%20%ED%9E%88%EB%8D%B0%ED%82%A4",
+      "complete": true,
+      "included_bytes": 23064
+    },
+    {
+      "row_index": 119,
+      "id": "290",
+      "title": "운동 에너지",
+      "url": "https://ko.wikipedia.org/wiki/%EC%9A%B4%EB%8F%99%20%EC%97%90%EB%84%88%EC%A7%80",
+      "complete": true,
+      "included_bytes": 17828
+    },
+    {
+      "row_index": 123,
+      "id": "296",
+      "title": "마틴 가드너",
+      "url": "https://ko.wikipedia.org/wiki/%EB%A7%88%ED%8B%B4%20%EA%B0%80%EB%93%9C%EB%84%88",
+      "complete": true,
+      "included_bytes": 4106
+    },
+    {
+      "row_index": 126,
+      "id": "299",
+      "title": "린 마굴리스",
+      "url": "https://ko.wikipedia.org/wiki/%EB%A6%B0%20%EB%A7%88%EA%B5%B4%EB%A6%AC%EC%8A%A4",
+      "complete": true,
+      "included_bytes": 2032
+    },
+    {
+      "row_index": 130,
+      "id": "312",
+      "title": "GNU",
+      "url": "https://ko.wikipedia.org/wiki/GNU",
+      "complete": true,
+      "included_bytes": 3429
+    },
+    {
+      "row_index": 139,
+      "id": "327",
+      "title": "채팅",
+      "url": "https://ko.wikipedia.org/wiki/%EC%B1%84%ED%8C%85",
+      "complete": true,
+      "included_bytes": 1777
+    },
+    {
+      "row_index": 140,
+      "id": "328",
+      "title": "캠",
+      "url": "https://ko.wikipedia.org/wiki/%EC%BA%A0",
+      "complete": true,
+      "included_bytes": 4730
+    },
+    {
+      "row_index": 143,
+      "id": "331",
+      "title": "네트워크",
+      "url": "https://ko.wikipedia.org/wiki/%EB%84%A4%ED%8A%B8%EC%9B%8C%ED%81%AC",
+      "complete": true,
+      "included_bytes": 876
+    },
+    {
+      "row_index": 145,
+      "id": "334",
+      "title": "놀이",
+      "url": "https://ko.wikipedia.org/wiki/%EB%86%80%EC%9D%B4",
+      "complete": true,
+      "included_bytes": 7996
+    },
+    {
+      "row_index": 148,
+      "id": "340",
+      "title": "막스 델브뤼크",
+      "url": "https://ko.wikipedia.org/wiki/%EB%A7%89%EC%8A%A4%20%EB%8D%B8%EB%B8%8C%EB%A4%BC%ED%81%AC",
+      "complete": true,
+      "included_bytes": 2465
+    },
+    {
+      "row_index": 152,
+      "id": "349",
+      "title": "자연로그의 밑",
+      "url": "https://ko.wikipedia.org/wiki/%EC%9E%90%EC%97%B0%EB%A1%9C%EA%B7%B8%EC%9D%98%20%EB%B0%91",
+      "complete": true,
+      "included_bytes": 10687
+    },
+    {
+      "row_index": 153,
+      "id": "350",
+      "title": "방일영",
+      "url": "https://ko.wikipedia.org/wiki/%EB%B0%A9%EC%9D%BC%EC%98%81",
+      "complete": true,
+      "included_bytes": 10764
+    },
+    {
+      "row_index": 159,
+      "id": "361",
+      "title": "선형대수학",
+      "url": "https://ko.wikipedia.org/wiki/%EC%84%A0%ED%98%95%EB%8C%80%EC%88%98%ED%95%99",
+      "complete": true,
+      "included_bytes": 15393
+    },
+    {
+      "row_index": 161,
+      "id": "364",
+      "title": "도스",
+      "url": "https://ko.wikipedia.org/wiki/%EB%8F%84%EC%8A%A4",
+      "complete": true,
+      "included_bytes": 17353
+    },
+    {
+      "row_index": 165,
+      "id": "372",
+      "title": "초파리과",
+      "url": "https://ko.wikipedia.org/wiki/%EC%B4%88%ED%8C%8C%EB%A6%AC%EA%B3%BC",
+      "complete": true,
+      "included_bytes": 3933
+    },
+    {
+      "row_index": 172,
+      "id": "382",
+      "title": "한국대학총학생회연합",
+      "url": "https://ko.wikipedia.org/wiki/%ED%95%9C%EA%B5%AD%EB%8C%80%ED%95%99%EC%B4%9D%ED%95%99%EC%83%9D%ED%9A%8C%EC%97%B0%ED%95%A9",
+      "complete": true,
+      "included_bytes": 18315
+    },
+    {
+      "row_index": 176,
+      "id": "389",
+      "title": "스타크래프트",
+      "url": "https://ko.wikipedia.org/wiki/%EC%8A%A4%ED%83%80%ED%81%AC%EB%9E%98%ED%94%84%ED%8A%B8",
+      "complete": true,
+      "included_bytes": 33113
+    },
+    {
+      "row_index": 178,
+      "id": "396",
+      "title": "시삽",
+      "url": "https://ko.wikipedia.org/wiki/%EC%8B%9C%EC%82%BD",
+      "complete": true,
+      "included_bytes": 1871
+    },
+    {
+      "row_index": 181,
+      "id": "399",
+      "title": "칸토어 집합",
+      "url": "https://ko.wikipedia.org/wiki/%EC%B9%B8%ED%86%A0%EC%96%B4%20%EC%A7%91%ED%95%A9",
+      "complete": true,
+      "included_bytes": 2253
+    },
+    {
+      "row_index": 183,
+      "id": "403",
+      "title": "부등식",
+      "url": "https://ko.wikipedia.org/wiki/%EB%B6%80%EB%93%B1%EC%8B%9D",
+      "complete": true,
+      "included_bytes": 1799
+    },
+    {
+      "row_index": 184,
+      "id": "405",
+      "title": "8월 13일",
+      "url": "https://ko.wikipedia.org/wiki/8%EC%9B%94%2013%EC%9D%BC",
+      "complete": true,
+      "included_bytes": 6166
+    },
+    {
+      "row_index": 185,
+      "id": "406",
+      "title": "마거릿 미첼",
+      "url": "https://ko.wikipedia.org/wiki/%EB%A7%88%EA%B1%B0%EB%A6%BF%20%EB%AF%B8%EC%B2%BC",
+      "complete": true,
+      "included_bytes": 2600
+    },
+    {
+      "row_index": 186,
+      "id": "408",
+      "title": "5월",
+      "url": "https://ko.wikipedia.org/wiki/5%EC%9B%94",
+      "complete": true,
+      "included_bytes": 4009
+    },
+    {
+      "row_index": 188,
+      "id": "412",
+      "title": "이디 아민",
+      "url": "https://ko.wikipedia.org/wiki/%EC%9D%B4%EB%94%94%20%EC%95%84%EB%AF%BC",
+      "complete": true,
+      "included_bytes": 4172
+    },
+    {
+      "row_index": 216,
+      "id": "472",
+      "title": "10월",
+      "url": "https://ko.wikipedia.org/wiki/10%EC%9B%94",
+      "complete": true,
+      "included_bytes": 6071
+    },
+    {
+      "row_index": 219,
+      "id": "475",
+      "title": "3월",
+      "url": "https://ko.wikipedia.org/wiki/3%EC%9B%94",
+      "complete": true,
+      "included_bytes": 4699
+    },
+    {
+      "row_index": 227,
+      "id": "483",
+      "title": "원통좌표계",
+      "url": "https://ko.wikipedia.org/wiki/%EC%9B%90%ED%86%B5%EC%A2%8C%ED%91%9C%EA%B3%84",
+      "complete": true,
+      "included_bytes": 1469
+    },
+    {
+      "row_index": 230,
+      "id": "489",
+      "title": "잭슨 5",
+      "url": "https://ko.wikipedia.org/wiki/%EC%9E%AD%EC%8A%A8%205",
+      "complete": true,
+      "included_bytes": 15788
+    },
+    {
+      "row_index": 231,
+      "id": "491",
+      "title": "야세르 아라파트",
+      "url": "https://ko.wikipedia.org/wiki/%EC%95%BC%EC%84%B8%EB%A5%B4%20%EC%95%84%EB%9D%BC%ED%8C%8C%ED%8A%B8",
+      "complete": true,
+      "included_bytes": 36615
+    },
+    {
+      "row_index": 236,
+      "id": "502",
+      "title": "오픈 소스",
+      "url": "https://ko.wikipedia.org/wiki/%EC%98%A4%ED%94%88%20%EC%86%8C%EC%8A%A4",
+      "complete": true,
+      "included_bytes": 19639
+    },
+    {
+      "row_index": 250,
+      "id": "530",
+      "title": "2000년",
+      "url": "https://ko.wikipedia.org/wiki/2000%EB%85%84",
+      "complete": true,
+      "included_bytes": 27922
+    },
+    {
+      "row_index": 251,
+      "id": "532",
+      "title": "마이크로소프트",
+      "url": "https://ko.wikipedia.org/wiki/%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EC%86%8C%ED%94%84%ED%8A%B8",
+      "complete": true,
+      "included_bytes": 15554
+    },
+    {
+      "row_index": 255,
+      "id": "537",
+      "title": "서버",
+      "url": "https://ko.wikipedia.org/wiki/%EC%84%9C%EB%B2%84",
+      "complete": true,
+      "included_bytes": 4784
+    },
+    {
+      "row_index": 260,
+      "id": "543",
+      "title": "역사",
+      "url": "https://ko.wikipedia.org/wiki/%EC%97%AD%EC%82%AC",
+      "complete": true,
+      "included_bytes": 12657
+    },
+    {
+      "row_index": 261,
+      "id": "545",
+      "title": "인터넷 프로토콜 스위트",
+      "url": "https://ko.wikipedia.org/wiki/%EC%9D%B8%ED%84%B0%EB%84%B7%20%ED%94%84%EB%A1%9C%ED%86%A0%EC%BD%9C%20%EC%8A%A4%EC%9C%84%ED%8A%B8",
+      "complete": true,
+      "included_bytes": 2109
+    },
+    {
+      "row_index": 270,
+      "id": "559",
+      "title": "일본의 애니메이션",
+      "url": "https://ko.wikipedia.org/wiki/%EC%9D%BC%EB%B3%B8%EC%9D%98%20%EC%95%A0%EB%8B%88%EB%A9%94%EC%9D%B4%EC%85%98",
+      "complete": true,
+      "included_bytes": 29076
+    },
+    {
+      "row_index": 271,
+      "id": "561",
+      "title": "백로 (절기)",
+      "url": "https://ko.wikipedia.org/wiki/%EB%B0%B1%EB%A1%9C%20%28%EC%A0%88%EA%B8%B0%29",
+      "complete": true,
+      "included_bytes": 1187
+    },
+    {
+      "row_index": 275,
+      "id": "569",
+      "title": "에드워드 텔러",
+      "url": "https://ko.wikipedia.org/wiki/%EC%97%90%EB%93%9C%EC%9B%8C%EB%93%9C%20%ED%85%94%EB%9F%AC",
+      "complete": true,
+      "included_bytes": 5475
+    },
+    {
+      "row_index": 276,
+      "id": "571",
+      "title": "브라이언 메이",
+      "url": "https://ko.wikipedia.org/wiki/%EB%B8%8C%EB%9D%BC%EC%9D%B4%EC%96%B8%20%EB%A9%94%EC%9D%B4",
+      "complete": true,
+      "included_bytes": 5676
+    },
+    {
+      "row_index": 277,
+      "id": "572",
+      "title": "팜",
+      "url": "https://ko.wikipedia.org/wiki/%ED%8C%9C",
+      "complete": true,
+      "included_bytes": 35135
+    },
+    {
+      "row_index": 278,
+      "id": "574",
+      "title": "화소",
+      "url": "https://ko.wikipedia.org/wiki/%ED%99%94%EC%86%8C",
+      "complete": true,
+      "included_bytes": 2000
+    },
+    {
+      "row_index": 291,
+      "id": "598",
+      "title": "블랙데이",
+      "url": "https://ko.wikipedia.org/wiki/%EB%B8%94%EB%9E%99%EB%8D%B0%EC%9D%B4",
+      "complete": true,
+      "included_bytes": 2127
+    },
+    {
+      "row_index": 292,
+      "id": "599",
+      "title": "성당과 시장",
+      "url": "https://ko.wikipedia.org/wiki/%EC%84%B1%EB%8B%B9%EA%B3%BC%20%EC%8B%9C%EC%9E%A5",
+      "complete": true,
+      "included_bytes": 3006
+    },
+    {
+      "row_index": 295,
+      "id": "603",
+      "title": "송두율",
+      "url": "https://ko.wikipedia.org/wiki/%EC%86%A1%EB%91%90%EC%9C%A8",
+      "complete": true,
+      "included_bytes": 10711
+    },
+    {
+      "row_index": 307,
+      "id": "621",
+      "title": "국민학교",
+      "url": "https://ko.wikipedia.org/wiki/%EA%B5%AD%EB%AF%BC%ED%95%99%EA%B5%90",
+      "complete": true,
+      "included_bytes": 2849
+    },
+    {
+      "row_index": 308,
+      "id": "623",
+      "title": "언어학",
+      "url": "https://ko.wikipedia.org/wiki/%EC%96%B8%EC%96%B4%ED%95%99",
+      "complete": true,
+      "included_bytes": 7409
+    },
+    {
+      "row_index": 311,
+      "id": "626",
+      "title": "인터프리터",
+      "url": "https://ko.wikipedia.org/wiki/%EC%9D%B8%ED%84%B0%ED%94%84%EB%A6%AC%ED%84%B0",
+      "complete": true,
+      "included_bytes": 3697
+    },
+    {
+      "row_index": 318,
+      "id": "659",
+      "title": "특별시",
+      "url": "https://ko.wikipedia.org/wiki/%ED%8A%B9%EB%B3%84%EC%8B%9C",
+      "complete": true,
+      "included_bytes": 23720
+    },
+    {
+      "row_index": 322,
+      "id": "664",
+      "title": "가와바타 야스나리",
+      "url": "https://ko.wikipedia.org/wiki/%EA%B0%80%EC%99%80%EB%B0%94%ED%83%80%20%EC%95%BC%EC%8A%A4%EB%82%98%EB%A6%AC",
+      "complete": true,
+      "included_bytes": 16199
+    },
+    {
+      "row_index": 328,
+      "id": "671",
+      "title": "블로그",
+      "url": "https://ko.wikipedia.org/wiki/%EB%B8%94%EB%A1%9C%EA%B7%B8",
+      "complete": true,
+      "included_bytes": 8459
+    },
+    {
+      "row_index": 331,
+      "id": "674",
+      "title": "유니코드",
+      "url": "https://ko.wikipedia.org/wiki/%EC%9C%A0%EB%8B%88%EC%BD%94%EB%93%9C",
+      "complete": true,
+      "included_bytes": 2258
+    },
+    {
+      "row_index": 334,
+      "id": "682",
+      "title": "잠",
+      "url": "https://ko.wikipedia.org/wiki/%EC%9E%A0",
+      "complete": true,
+      "included_bytes": 3794
+    },
+    {
+      "row_index": 337,
+      "id": "686",
+      "title": "학습",
+      "url": "https://ko.wikipedia.org/wiki/%ED%95%99%EC%8A%B5",
+      "complete": true,
+      "included_bytes": 2890
+    },
+    {
+      "row_index": 342,
+      "id": "698",
+      "title": "유전자",
+      "url": "https://ko.wikipedia.org/wiki/%EC%9C%A0%EC%A0%84%EC%9E%90",
+      "complete": true,
+      "included_bytes": 7596
+    },
+    {
+      "row_index": 343,
+      "id": "699",
+      "title": "DNA",
+      "url": "https://ko.wikipedia.org/wiki/DNA",
+      "complete": true,
+      "included_bytes": 43776
+    },
+    {
+      "row_index": 346,
+      "id": "702",
+      "title": "바이러스",
+      "url": "https://ko.wikipedia.org/wiki/%EB%B0%94%EC%9D%B4%EB%9F%AC%EC%8A%A4",
+      "complete": true,
+      "included_bytes": 12132
+    },
+    {
+      "row_index": 351,
+      "id": "714",
+      "title": "선저우 5호",
+      "url": "https://ko.wikipedia.org/wiki/%EC%84%A0%EC%A0%80%EC%9A%B0%205%ED%98%B8",
+      "complete": true,
+      "included_bytes": 1060
+    },
+    {
+      "row_index": 353,
+      "id": "717",
+      "title": "미터",
+      "url": "https://ko.wikipedia.org/wiki/%EB%AF%B8%ED%84%B0",
+      "complete": true,
+      "included_bytes": 3337
+    },
+    {
+      "row_index": 358,
+      "id": "732",
+      "title": "MySQL",
+      "url": "https://ko.wikipedia.org/wiki/MySQL",
+      "complete": true,
+      "included_bytes": 8432
+    },
+    {
+      "row_index": 361,
+      "id": "737",
+      "title": "춘천시",
+      "url": "https://ko.wikipedia.org/wiki/%EC%B6%98%EC%B2%9C%EC%8B%9C",
+      "complete": true,
+      "included_bytes": 16799
+    },
+    {
+      "row_index": 366,
+      "id": "746",
+      "title": "쑹메이링",
+      "url": "https://ko.wikipedia.org/wiki/%EC%91%B9%EB%A9%94%EC%9D%B4%EB%A7%81",
+      "complete": true,
+      "included_bytes": 14082
+    },
+    {
+      "row_index": 367,
+      "id": "747",
+      "title": "찰스 디킨스",
+      "url": "https://ko.wikipedia.org/wiki/%EC%B0%B0%EC%8A%A4%20%EB%94%94%ED%82%A8%EC%8A%A4",
+      "complete": true,
+      "included_bytes": 13748
+    },
+    {
+      "row_index": 368,
+      "id": "750",
+      "title": "오픈오피스",
+      "url": "https://ko.wikipedia.org/wiki/%EC%98%A4%ED%94%88%EC%98%A4%ED%94%BC%EC%8A%A4",
+      "complete": true,
+      "included_bytes": 23937
+    },
+    {
+      "row_index": 373,
+      "id": "759",
+      "title": "마이클 크라이튼",
+      "url": "https://ko.wikipedia.org/wiki/%EB%A7%88%EC%9D%B4%ED%81%B4%20%ED%81%AC%EB%9D%BC%EC%9D%B4%ED%8A%BC",
+      "complete": true,
+      "included_bytes": 1570
+    },
+    {
+      "row_index": 376,
+      "id": "767",
+      "title": "리처드 스톨먼",
+      "url": "https://ko.wikipedia.org/wiki/%EB%A6%AC%EC%B2%98%EB%93%9C%20%EC%8A%A4%ED%86%A8%EB%A8%BC",
+      "complete": true,
+      "included_bytes": 5300
+    },
+    {
+      "row_index": 379,
+      "id": "776",
+      "title": "사전",
+      "url": "https://ko.wikipedia.org/wiki/%EC%82%AC%EC%A0%84",
+      "complete": true,
+      "included_bytes": 6801
+    },
+    {
+      "row_index": 380,
+      "id": "777",
+      "title": "자료",
+      "url": "https://ko.wikipedia.org/wiki/%EC%9E%90%EB%A3%8C",
+      "complete": true,
+      "included_bytes": 4441
+    },
+    {
+      "row_index": 386,
+      "id": "789",
+      "title": "중국공산당",
+      "url": "https://ko.wikipedia.org/wiki/%EC%A4%91%EA%B5%AD%EA%B3%B5%EC%82%B0%EB%8B%B9",
+      "complete": true,
+      "included_bytes": 43101
+    },
+    {
+      "row_index": 388,
+      "id": "795",
+      "title": "문희준",
+      "url": "https://ko.wikipedia.org/wiki/%EB%AC%B8%ED%9D%AC%EC%A4%80",
+      "complete": true,
+      "included_bytes": 12587
+    },
+    {
+      "row_index": 390,
+      "id": "798",
+      "title": "스칼라곱",
+      "url": "https://ko.wikipedia.org/wiki/%EC%8A%A4%EC%B9%BC%EB%9D%BC%EA%B3%B1",
+      "complete": true,
+      "included_bytes": 8766
+    },
+    {
+      "row_index": 392,
+      "id": "806",
+      "title": "한식",
+      "url": "https://ko.wikipedia.org/wiki/%ED%95%9C%EC%8B%9D",
+      "complete": true,
+      "included_bytes": 281
+    },
+    {
+      "row_index": 398,
+      "id": "816",
+      "title": "가우스 법칙",
+      "url": "https://ko.wikipedia.org/wiki/%EA%B0%80%EC%9A%B0%EC%8A%A4%20%EB%B2%95%EC%B9%99",
+      "complete": true,
+      "included_bytes": 1878
+    },
+    {
+      "row_index": 403,
+      "id": "821",
+      "title": "전력",
+      "url": "https://ko.wikipedia.org/wiki/%EC%A0%84%EB%A0%A5",
+      "complete": true,
+      "included_bytes": 9126
+    },
+    {
+      "row_index": 410,
+      "id": "834",
+      "title": "물리학자",
+      "url": "https://ko.wikipedia.org/wiki/%EB%AC%BC%EB%A6%AC%ED%95%99%EC%9E%90",
+      "complete": true,
+      "included_bytes": 1715
+    },
+    {
+      "row_index": 414,
+      "id": "1393",
+      "title": "투아타라",
+      "url": "https://ko.wikipedia.org/wiki/%ED%88%AC%EC%95%84%ED%83%80%EB%9D%BC",
+      "complete": true,
+      "included_bytes": 1479
+    },
+    {
+      "row_index": 416,
+      "id": "1397",
+      "title": "악어",
+      "url": "https://ko.wikipedia.org/wiki/%EC%95%85%EC%96%B4",
+      "complete": true,
+      "included_bytes": 3024
+    },
+    {
+      "row_index": 419,
+      "id": "1403",
+      "title": "식물학",
+      "url": "https://ko.wikipedia.org/wiki/%EC%8B%9D%EB%AC%BC%ED%95%99",
+      "complete": true,
+      "included_bytes": 1057
+    },
+    {
+      "row_index": 422,
+      "id": "1409",
+      "title": "단백질",
+      "url": "https://ko.wikipedia.org/wiki/%EB%8B%A8%EB%B0%B1%EC%A7%88",
+      "complete": true,
+      "included_bytes": 7909
+    },
+    {
+      "row_index": 423,
+      "id": "1410",
+      "title": "식물분류학",
+      "url": "https://ko.wikipedia.org/wiki/%EC%8B%9D%EB%AC%BC%EB%B6%84%EB%A5%98%ED%95%99",
+      "complete": true,
+      "included_bytes": 2221
+    },
+    {
+      "row_index": 425,
+      "id": "1412",
+      "title": "우미인초",
+      "url": "https://ko.wikipedia.org/wiki/%EC%9A%B0%EB%AF%B8%EC%9D%B8%EC%B4%88",
+      "complete": true,
+      "included_bytes": 300
+    },
+    {
+      "row_index": 428,
+      "id": "1417",
+      "title": "카탄의 개척자",
+      "url": "https://ko.wikipedia.org/wiki/%EC%B9%B4%ED%83%84%EC%9D%98%20%EA%B0%9C%EC%B2%99%EC%9E%90",
+      "complete": true,
+      "included_bytes": 2661
+    },
+    {
+      "row_index": 433,
+      "id": "1432",
+      "title": "에스페란토",
+      "url": "https://ko.wikipedia.org/wiki/%EC%97%90%EC%8A%A4%ED%8E%98%EB%9E%80%ED%86%A0",
+      "complete": true,
+      "included_bytes": 17681
+    },
+    {
+      "row_index": 447,
+      "id": "1455",
+      "title": "축구",
+      "url": "https://ko.wikipedia.org/wiki/%EC%B6%95%EA%B5%AC",
+      "complete": true,
+      "included_bytes": 56594
+    },
+    {
+      "row_index": 450,
+      "id": "1463",
+      "title": "카보베르데",
+      "url": "https://ko.wikipedia.org/wiki/%EC%B9%B4%EB%B3%B4%EB%B2%A0%EB%A5%B4%EB%8D%B0",
+      "complete": true,
+      "included_bytes": 4190
+    },
+    {
+      "row_index": 455,
+      "id": "1476",
+      "title": "12월 31일",
+      "url": "https://ko.wikipedia.org/wiki/12%EC%9B%94%2031%EC%9D%BC",
+      "complete": true,
+      "included_bytes": 7875
+    },
+    {
+      "row_index": 457,
+      "id": "1478",
+      "title": "1월 1일",
+      "url": "https://ko.wikipedia.org/wiki/1%EC%9B%94%201%EC%9D%BC",
+      "complete": true,
+      "included_bytes": 19729
+    },
+    {
+      "row_index": 458,
+      "id": "1479",
+      "title": "1월 2일",
+      "url": "https://ko.wikipedia.org/wiki/1%EC%9B%94%202%EC%9D%BC",
       "complete": false,
-      "included_bytes": 9784
+      "included_bytes": 4469
     }
   ]
 }
