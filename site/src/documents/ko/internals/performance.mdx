@@ -4,19 +4,19 @@
 
 <Lead>
 
-형태 지식은 [검색 계획](/reference/glossary#query-plan)과 [anchor](/reference/glossary#anchor) 주변의 제한된 판정에 사용하고, corpus 크기에 비례하는 경로는 byte scan과 streaming output으로 유지합니다.
+형태 지식은 [검색 계획](/reference/glossary#query-plan)과 [anchor](/reference/glossary#anchor) 주변의 제한된 판정에 사용합니다. 말뭉치 크기에 비례하는 경로는 byte 검색과 스트리밍 출력으로 유지합니다.
 
 </Lead>
 
 ## 비용의 분리 [#cost-separation]
 
-검색 비용은 검색 계획을 만드는 고정 비용과 corpus를 읽는 가변 비용으로 나뉩니다. 계획 단계는 사전 분석과 [후보 프로그램](/reference/glossary#candidate-program) 수를 제한합니다. scan 단계는 긴 고정 anchor로 형태 판정이 필요한 위치를 줄입니다.
+검색 비용은 검색 계획을 만드는 고정 비용과 말뭉치를 읽는 가변 비용으로 나뉩니다. 계획 단계는 사전 분석과 [후보 프로그램](/reference/glossary#candidate-program) 수를 제한합니다. 검색 단계는 긴 고정 anchor로 형태 판정이 필요한 위치를 줄입니다.
 
-여러 프로그램은 [조사](/reference/glossary#particle)·[어미](/reference/glossary#ending) continuation을 공유합니다. component 근거가 필요한 계획만 해당 리소스를 초기화하며, 결과는 capacity가 제한된 channel로 출력합니다. 따라서 형태 규칙의 수, corpus 크기와 결과 수가 각각 별도의 경계에서 통제됩니다.
+여러 프로그램은 [조사](/reference/glossary#particle)·[어미](/reference/glossary#ending) continuation을 공유합니다. 구성 요소 근거가 필요한 계획만 해당 리소스를 초기화하며, 결과는 용량이 제한된 channel로 출력합니다. 형태 규칙 수, 말뭉치 크기와 결과 수는 서로 다른 지점에서 제한합니다.
 
 ## Anchor와 matcher [#anchors-and-matchers]
 
-각 후보 프로그램은 판정 비용을 줄일 수 있는 가장 긴 고정 byte열을 anchor로 선택합니다. 어간 교체 뒤의 고정 부분과 다음 고정 요소를 함께 검토하며, 한 음절 anchor에는 반드시 [boundary](/reference/glossary#boundary) 또는 structural decision이 붙습니다.
+각 후보 프로그램은 판정 비용을 줄일 수 있는 가장 긴 고정 byte열을 anchor로 선택합니다. 어간 교체 뒤의 고정 부분과 다음 고정 요소를 함께 검토합니다. 한 음절 anchor에는 반드시 [경계](/reference/glossary#boundary) 또는 structural decision이 붙습니다.
 
 ```text
 걷다
@@ -25,11 +25,11 @@
 └─ 걸으 · 걸은 · 걸을
 ```
 
-고유 anchor가 하나면 `memmem::Finder`를 사용합니다. 여러 anchor의 누적 검색량이 작으면 finder hit를 직접 병합하고, 검색량이 커지면 Aho-Corasick automaton을 한 번 만들어 재사용합니다. 두 경로는 같은 overlapping 후보 순서를 제공합니다.
+고유 anchor가 하나면 `memmem::Finder`를 사용합니다. 여러 anchor의 누적 검색량이 작으면 finder 일치를 직접 병합합니다. 검색량이 커지면 Aho-Corasick automaton을 한 번 만들어 재사용합니다. 두 경로는 겹치는 후보를 같은 순서로 제공합니다.
 
 ## 계획 상한 [#plan-limits]
 
-한 [검색 질의](/reference/glossary#query)가 compile [latency](/reference/glossary#latency)와 matcher 메모리를 무제한으로 사용하지 않도록 입력과 중간 표현에 상한을 둡니다.
+한 [검색 질의](/reference/glossary#query)가 컴파일 [지연 시간](/reference/glossary#latency)과 matcher 메모리를 무제한으로 사용하지 않도록 입력과 중간 표현에 상한을 둡니다.
 
 | 대상                     | 상한   | 단위                                 |
 | ------------------------ | ------ | ------------------------------------ |
@@ -40,13 +40,13 @@
 | Estimated matcher memory | 64 MiB | per plan                             |
 | Continuation depth       | 4      | state transitions                    |
 
-상한을 넘으면 일부 후보를 버리고 실행하지 않습니다. query compile 오류가 어떤 제한에 도달했는지 알리고, 호출자가 질의를 나누거나 확장 수준을 좁히게 합니다. 이 동작은 누락된 [활용](/reference/glossary#inflection)형을 성공 결과로 숨기지 않습니다.
+상한을 넘으면 일부 후보를 버린 채 실행하지 않고 컴파일 오류를 반환합니다. 오류에는 어떤 제한에 도달했는지 포함합니다. 호출자는 질의를 나누거나 확장 수준을 좁힐 수 있습니다. 따라서 누락된 [활용](/reference/glossary#inflection)형을 성공 결과로 숨기지 않습니다.
 
 ## 리소스 초기화 [#resource-initialization]
 
-후보 프로그램의 판정은 `Boundary` 또는 `Structural`입니다. compile된 계획에 structural program이 있을 때만 [component resource](/reference/glossary#component-resource)를 읽습니다. literal, `token`, `any` 계획은 이 리소스를 사용하지 않습니다.
+후보 프로그램의 판정은 `Boundary` 또는 `Structural`입니다. 컴파일된 계획에 structural 프로그램이 있을 때만 [구성 요소 리소스](/reference/glossary#component-resource)를 읽습니다. literal, `token`, `any` 계획은 이 리소스를 사용하지 않습니다.
 
-resource bytes는 schema, 릴리즈 버전, source SHA-256, section digest, offset과 component span 검증을 모두 통과한 뒤 engine에 설치됩니다. 검증된 리소스는 engine 수명 동안 공유합니다. 수동 교체가 실패하면 사용 중인 리소스를 유지합니다.
+리소스 byte 배열은 schema, 릴리스 버전, source SHA-256, section digest, offset과 구성 요소 span 검증을 모두 통과한 뒤 engine에 설치됩니다. 검증된 리소스는 engine 수명 동안 공유합니다. 수동 교체가 실패하면 사용 중인 리소스를 유지합니다.
 
 ## Scan 경로 [#scan-path]
 
@@ -58,8 +58,8 @@ resource bytes는 schema, 릴리즈 버전, source SHA-256, section digest, offs
 | Normalization                                | NFC anchor 직접 검색   | canonical mapping 또는 suffix 소비 |
 | [Phrase](/reference/glossary#phrase)         | atom span을 한 번 수집 | 모든 atom에 후보가 있음            |
 
-겹치는 검증 후보는 core와 token span을 기준으로 leftmost-longest, non-overlapping 순서로 정리합니다. 설명 정보가 필요 없는 기본 출력은 provenance 객체를 만들지 않습니다.
+겹치는 검증 후보는 core와 token span을 기준으로 leftmost-longest, non-overlapping 순서로 정리합니다. 기본 출력은 설명 정보가 필요하지 않으므로 provenance 객체를 만들지 않습니다.
 
 ## 성능 지표의 경계 [#metric-boundaries]
 
-startup, [lexicon](/reference/glossary#lexicon) load, query compile, filesystem walk, scan, verification과 output은 별도의 workload로 측정합니다. fixture의 [cases/s](/reference/glossary#throughput)는 corpus 처리량이 아니며, 1 GiB literal scan은 형태 품질이나 component 초기화 비용을 설명하지 않습니다. 지연 시간, 처리량, RSS와 후보 프로그램 수는 단위가 다르므로 하나의 종합 점수로 합치지 않습니다.
+startup, [형태 사전](/reference/glossary#lexicon) load, 질의 컴파일, filesystem walk, 검색, 검증과 출력은 별도의 workload로 측정합니다. fixture의 [cases/s](/reference/glossary#throughput)는 말뭉치 처리량이 아닙니다. 1 GiB literal 검색도 형태 품질이나 구성 요소 초기화 비용을 설명하지 않습니다. 지연 시간, 처리량, RSS와 후보 프로그램 수는 단위가 다르므로 하나의 종합 점수로 합치지 않습니다.

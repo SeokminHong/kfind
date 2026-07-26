@@ -4,18 +4,18 @@
 
 ## 구조 제약 [#constraints]
 
-Constraint는 query core에 대응하는 component span, 필요한 POS, token 전체 경로와 선행·후행 component 조건을 선언합니다. 직접 surface 예외 목록은 사용하지 않습니다.
+Constraint는 질의 core에 대응하는 구성 요소 span, 필요한 POS, token 전체 경로와 앞뒤 구성 요소 조건을 선언합니다. 표면형 예외 목록을 직접 두지는 않습니다.
 
-Exact path와 common-prefix path는 source 분석이 선언한 component 순서와 span이 모두 맞아야 승인됩니다.
+Exact path와 common-prefix path는 원문 분석이 선언한 구성 요소 순서와 span이 모두 맞아야 승인됩니다.
 
 ## graph 준비 [#graph-preparation]
 
-Decoder는 surface에 연결된 분석과 component edge를 읽고 final context preparation에 필요한 node만 materialize합니다. 공통 fact와 immutable slice를 공유해 query별 복사를 줄입니다.
+Decoder는 표면형에 연결된 분석과 구성 요소 edge를 읽고 final context preparation에 필요한 node만 materialize합니다. 공통 fact와 immutable slice를 공유해 질의별 복사를 줄입니다.
 
-Node 수, context 깊이와 payload 크기 상한은 malformed resource에서도 메모리 사용을 제한합니다.
+Node 수, context 깊이와 payload 크기의 상한은 잘못된 리소스에서도 메모리 사용을 제한합니다.
 
 ## 판정 실패 [#failure]
 
-필요한 path가 없으면 후보는 false입니다. Resource가 없거나 graph limit을 넘으면 constraint unavailable로 구분해 제품이 precision이 낮은 경로로 바뀌지 않게 합니다.
+필요한 경로가 없으면 후보를 거부합니다. 리소스가 없거나 graph 상한을 넘으면 constraint unavailable로 구분합니다. 정밀도가 낮은 경로로 자동 전환하지 않습니다.
 
-여러 source 분석 중 하나가 constraint를 만족하면 후보를 유지하고 해당 analysis index를 provenance에 기록합니다.
+여러 원문 분석 중 하나가 constraint를 만족하면 후보를 유지하고 해당 analysis index를 provenance에 기록합니다.

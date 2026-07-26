@@ -4,13 +4,13 @@
 
 ## Atom order [#atom-order]
 
-Each atom produces source candidates through an independent matcher. The phrase matcher connects only a following candidate that begins after the previous token end.
+Each atom produces source candidates through an independent matcher. The phrase matcher connects a following candidate only when it begins after the previous token ends.
 
-The default contract stays within one logical line. It does not connect across a newline, preserving source-line location.
+By default, a phrase stays within one logical line. It never connects across a newline, so source-line locations remain intact.
 
 ## Gap [#gap]
 
-`--max-gap` limits Unicode scalars between the previous token end and next token start. The default 24 includes whitespace and punctuation.
+`--max-gap` limits the number of Unicode scalars between the previous token end and the next token start. The default of 24 includes whitespace and punctuation.
 
 It is neither a UTF-8 byte count nor a UTF-16 code-unit count. Emoji and combining characters follow the same scalar rule.
 
@@ -18,4 +18,4 @@ It is neither a UTF-8 byte count nor a UTF-16 code-unit count. Emoji and combini
 
 The result spans from the first atom core start through the last consumed token end. Every atom retains separate core and token spans plus provenance.
 
-Overlapping combinations are deterministically sorted and deduplicated. Analyses sharing a surface merge their origin sets rather than discarding provenance.
+Overlapping combinations are sorted deterministically and deduplicated. Analyses that share a surface form merge their origin sets rather than discarding provenance.

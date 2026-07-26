@@ -15,9 +15,9 @@ kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
 
 ## npm CLI [#npm]
 
-On Node.js 20 or later, `@kfind/kfind` installs the bin named `kfind`. It supports `--expand`, `--boundary`, `--pos`, `--normalization`, `--max-gap`, `--literal`, and `--json`.
+On Node.js 20 or later, `@kfind/kfind` installs the `kfind` command. It supports `--expand`, `--boundary`, `--pos`, `--normalization`, `--max-gap`, `--literal`, and `--json`.
 
-`npx`, `pnpm dlx`, and Yarn 2+ `yarn dlx` run the same bin without a local installation.
+`npx`, `pnpm dlx`, and Yarn 2+ `yarn dlx` run the same command without a local installation.
 
 ```bash
 npx @kfind/kfind 걷다 README.md
@@ -28,6 +28,6 @@ npx @kfind/kfind 'v:걷다|n:사용자' src
 
 ## Feature differences [#differences]
 
-The npm CLI focuses on recursive UTF-8 traversal, stdin, text, and JSON Lines. It loads packaged enriched predicates and lazily loads compact components for queries that need them.
+The npm CLI supports recursive UTF-8 traversal, stdin, text, and JSON Lines. It loads the packaged enriched predicates and lazily loads compact components for queries that need them.
 
 Use the native CLI for full POS, Git ignore, EUC-KR, context, TUI, explain output, and agent integration installation or removal.

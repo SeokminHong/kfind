@@ -4,18 +4,18 @@
 
 ## 입력 계약 [#input-contract]
 
-Query는 하나 이상의 atom과 선택적 품사 태그로 구성합니다. Path, encoding, boundary와 expansion은 query text 밖의 실행 옵션입니다.
+질의는 하나 이상의 atom과 선택적 품사 태그로 구성합니다. 경로, encoding, boundary와 expansion은 질의 문자열 밖에서 지정하는 실행 옵션입니다.
 
-에이전트는 shell quoting이 끝난 실제 argument를 기록합니다. 자연어 설명만 남기면 같은 query를 재현할 수 없습니다.
+에이전트는 셸 quoting을 적용한 뒤 프로그램에 전달된 실제 인자를 기록합니다. 자연어 설명만으로는 같은 질의를 재현할 수 없습니다.
 
 ## 출력 계약 [#output-contract]
 
-Match span은 원문 좌표이며 atom은 core, token과 모든 origin을 보존합니다. `rulePath`는 후보가 생성된 규칙 경로지만 의미 판정 label은 아닙니다.
+일치 span은 원문 좌표를 사용하며, atom은 core, token과 모든 origin을 보존합니다. `rulePath`는 후보를 생성한 규칙 경로이며 의미 판정 label로 사용하지 않습니다.
 
-JSON Lines record의 순서보다 path와 span을 identity로 사용합니다. 병렬 실행 설정에 따라 서로 다른 파일의 완료 순서는 달라질 수 있습니다.
+JSON Lines record의 순서 대신 경로와 span으로 결과를 식별합니다. 병렬 실행 설정에 따라 파일별 완료 순서는 달라질 수 있습니다.
 
 ## 실패 계약 [#failure-contract]
 
-Compile 오류, 필수 resource 누락, 입력 decode와 I/O 실패는 stderr와 실패 종료 상태로 나타납니다. 정상 no-match와 섞지 않습니다.
+컴파일 오류, 필수 리소스 누락, 입력 decode와 I/O 실패는 stderr와 실패 종료 상태로 나타납니다. 검색 결과가 없는 정상 종료와 구분해야 합니다.
 
-부분 결과 뒤에 I/O 실패가 발생할 수 있으므로 호출자는 종료 상태를 확인한 뒤에만 stdout을 완결된 결과로 채택합니다.
+부분 결과를 출력한 뒤 I/O 오류가 발생할 수 있습니다. 호출자는 종료 상태를 확인한 뒤에만 stdout을 완결된 결과로 사용해야 합니다.

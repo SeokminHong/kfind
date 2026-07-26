@@ -4,9 +4,9 @@
 
 ## Input sources [#input]
 
-The native CLI accepts paths, directories, and stdin with ignore rules and parallel file scanning. `-` explicitly selects stdin.
+The native CLI accepts paths, directories, and stdin. It applies ignore rules and scans files in parallel. `-` explicitly selects stdin.
 
-The npm CLI recursively visits UTF-8 paths in deterministic order and does not follow symlinks. With no path it selects the current directory on a TTY and stdin on a pipe.
+The npm CLI recursively visits UTF-8 paths in deterministic order and does not follow symlinks. With no path, it selects the current directory on a TTY and stdin on a pipe.
 
 ## Encoding [#encoding]
 
@@ -16,7 +16,7 @@ The npm CLI accepts UTF-8 only. It reports and skips files containing NUL or fai
 
 ## Output formats [#output]
 
-Human-readable text contains path, line, column, and surface. The native CLI may use its TUI pager on POSIX TTYs and in PowerShell hosted by Windows Terminal; `--no-pager` forces the bounded stdout stream.
+Human-readable text contains the path, line, column, and surface form. The native CLI may use its TUI pager on POSIX TTYs and in PowerShell hosted by Windows Terminal; `--no-pager` forces the bounded stdout stream.
 
 Automation uses JSON Lines. Each record preserves the match, atom spans, and every `rulePath`.
 

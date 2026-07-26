@@ -4,7 +4,7 @@
 
 ## Literal and lemma search [#literal-and-lemma-search]
 
-`grep` and `ripgrep` find surface strings present in the source. Finding `걷고`, `걸어`, and `걸었다` from the single lemma `걷다` therefore requires a manually enumerated regular expression.
+`grep` and `ripgrep` find strings that appear in the source. Finding `걷고`, `걸어`, and `걸었다` from the single lemma `걷다` therefore requires a manually enumerated regular expression.
 
 kfind interprets the lemma and POS in the query, then compiles only licensed particles, endings, and irregular inflections. Use `--literal` for surface-string matching and the default inflection mode for lemma search.
 
@@ -17,9 +17,9 @@ kfind --pos verb 걷다 docs src
 
 ## Korean verb inflections [#verb-inflections]
 
-To search every supported conjugation of a Korean verb in files, provide its verb POS and lemma. A `걷다` query derives `걷고`, `걸어`, and `걸었다` from the lexicon’s ㄷ-irregular class and ending rules instead of hard-coding a surface list.
+To search every supported conjugation of a Korean verb in files, provide its verb POS and lemma. A `걷다` query derives `걷고`, `걸어`, and `걸었다` from the lexicon’s ㄷ-irregular class and ending rules instead of requiring a hard-coded surface list.
 
-Start with bounded paths and inspect provenance. Add the `smart` boundary and full-POS resources when internal-token candidates need structural verification.
+Start with bounded paths and inspect the results and provenance. Add the `smart` boundary and full-POS resources when internal-token candidates need structural verification.
 
 - [Installation and first lemma search](/guide/getting-started)
 - [WebAssembly playground](/playground)
@@ -31,16 +31,16 @@ kfind --pos verb --boundary any --json 걷다 docs src
 
 ## Analyzer and search engine [#analyzer-and-search-engine]
 
-A morphological analyzer maps an observed sentence into tokens and lemmas. kfind runs in the opposite direction: it expands a target lemma into bounded surfaces, scans file anchors, and verifies only the surrounding candidate.
+A morphological analyzer maps a sentence into tokens and lemmas. kfind starts from a target lemma, expands it into bounded surface forms, scans for file anchors, and verifies only the surrounding candidate.
 
-The Rust implementation therefore separates query compilation, matchers, and local verifiers instead of analyzing the entire corpus. Quality and cost are reported independently on matched gold and workloads.
+The Rust implementation separates query compilation, matchers, and local verifiers instead of analyzing the entire corpus. Quality and cost are measured independently against the same gold cases and workloads.
 
 - [Korean morphology search internals](/internals/morphology)
 - [Morphological analyzer quality and performance](/benchmarks/comparisons)
 
 ## Code search [#code-search]
 
-For Korean comments and documentation near symbols, collect with broad `any` and verify again with `smart`. Use literal mode for exact identifiers.
+For Korean comments and documentation near symbols, collect candidates with broad `any` and verify them again with `smart`. Use literal mode for exact identifiers.
 
 ```bash
 kfind --pos verb --boundary any 변경하다 src
@@ -59,8 +59,8 @@ kfind --literal contract-adjust docs site/src
 
 ## Agent input [#agent-input]
 
-Feed agents JSON Lines from bounded paths. Do not remove source surfaces or collapse provenance in `jq`.
+Feed agents JSON Lines from bounded paths. Do not remove source surface forms or collapse provenance in `jq`.
 
 ```bash
-kfind --pos verb --boundary any --json 검증하다 crates/kfind-query   | jq -c '{path, line, column, surface, atoms}'
+kfind --pos verb --boundary any --json 검증하다 crates/kfind-query | jq -c '{path, line, column, surface, atoms}'
 ```

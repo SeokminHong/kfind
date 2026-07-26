@@ -4,7 +4,7 @@
 
 ## Syntax [#syntax]
 
-A query is one atom, a whitespace-connected phrase, or a `|`-connected disjunction. Whitespace and `|` inside a quoted atom belong to its text.
+A query is one atom, a phrase connected by whitespace, or a disjunction connected by `|`. Whitespace and `|` inside a quoted atom belong to its text.
 
 Unicode normalization and morphology expansion apply as compile options after lexing.
 
@@ -22,7 +22,7 @@ A concrete global POS conflicting with an atom tag is a compile error.
 
 ## Alternatives [#alternatives]
 
-Whitespace around `|` is optional, and every alternative is exactly one atom. A query cannot mix phrase and disjunction composition.
+Whitespace around `|` is optional. Every alternative must be exactly one atom, and a query cannot mix phrase and disjunction composition.
 
 Write a literal `|` as `\|` or `"|"`. Quote the whole query in a CLI shell.
 
@@ -30,4 +30,4 @@ Write a literal `|` as `\|` or `"|"`. Quote the whole query in a CLI shell.
 
 Empty queries, unclosed quotes, trailing backslashes, unknown tags, empty tagged bodies, operand-free `|`, and phrase mixing are rejected.
 
-Errors include byte location and cause, and no partial plan executes.
+Errors include the byte location and cause. No partial plan executes.

@@ -4,7 +4,7 @@
 
 ## Anchor index [#anchors]
 
-Programs sharing an anchor also share automaton state and hit lists. Anchor selection favors long, rare surfaces without reducing candidate coverage.
+Programs sharing an anchor also share automaton state and hit lists. Anchor selection favors long, rare surface forms without reducing candidate coverage.
 
 NFC and NFD variants are separate byte patterns linked to the same logical program and source-span projection.
 
@@ -16,8 +16,8 @@ The structural verifier consults the compact index only when a whole-token analy
 
 ## Match selection [#match-selection]
 
-When several programs succeed at one start, completed-token length and deterministic program keys produce non-overlapping results while preserving all origins.
+When several programs succeed at one start, the completed-token length and deterministic program keys produce non-overlapping results while preserving all origins.
 
-Phrase mode retains atom candidates before applying order and gap, preventing a single-atom longest match from hiding the next atom.
+Phrase mode retains atom candidates before applying order and gap. This prevents the longest single-atom match from hiding the next atom.
 
-A disjunction places all alternative anchors in one atom matcher, avoiding one source scan per alternative.
+A disjunction places all alternative anchors in one atom matcher, so the source is not rescanned for each alternative.

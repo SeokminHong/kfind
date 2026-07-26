@@ -4,18 +4,18 @@
 
 ## Noisy dataset [#dataset]
 
-The 500 cases contain 250 positives and 250 negatives, preserving Hangul typos, spacing splits, nonstandard syntax, and foreign-text typos.
+The 500 cases contain 250 positives and 250 negatives. They preserve Hangul typos, spacing splits, nonstandard syntax, and foreign-text typos.
 
 It is a separate fixture and never contributes to Canonical scores.
 
 ## Error classes [#classes]
 
-Among positives, 100 target-span cases place the error on the gold token and 150 context-only cases place it elsewhere. The 250 negatives join the context-only denominator.
+Among the positives, 100 target-span cases place the error on the gold token. The other 150 context-only cases place it elsewhere. The 250 negatives join the context-only denominator.
 
 Separate recall reveals damage to the morphology core versus tolerance of surrounding noise.
 
 ## Separate reporting [#reporting]
 
-Every backend reports raw and adjusted matrices. With no contract review, the two are equal and review count is zero.
+Every backend reports raw and adjusted matrices. With no contract review, the two are equal and the review count is zero.
 
 Robust settings are not full error correction. Source reports preserve exact input and options for every backend.

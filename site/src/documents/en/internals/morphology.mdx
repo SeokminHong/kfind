@@ -12,13 +12,13 @@ kfind combines forward generation from a target [lemma](/reference/glossary#lemm
 
 A [query](/reference/glossary#query) [atom](/reference/glossary#atom) contains a lemma and an optional [part of speech](/reference/glossary#part-of-speech). [Lexicon](/reference/glossary#lexicon) lookup produces compatible analyses. Each analysis compiles into a `CandidateProgram` containing an [anchor](/reference/glossary#anchor), core span, [particle](/reference/glossary#particle) and [ending](/reference/glossary#ending) consumption, [boundary](/reference/glossary#boundary) conditions, and [provenance](/reference/glossary#provenance).
 
-Only source positions containing an anchor are verified against the program. This differs from analyzing every observed token. The result is a span reachable from the query plus its origin, not a complete morpheme sequence for the sentence.
+Only source positions containing an anchor are verified against the program. This differs from analyzing every observed token. kfind returns spans reachable from the query and their origins, not a complete morpheme sequence for the sentence.
 
 ## Lexicon layers [#lexicon-layers]
 
 The core lexicon stores essential irregulars, [POS](/reference/glossary#part-of-speech) ambiguity, function words, and surface exceptions. The enriched layer contains [inflection](/reference/glossary#inflection) and [derivation](/reference/glossary#derivation) relations supported by pinned Korean dictionary snapshots. The full-POS lexicon supplies automatic and fine-grained POS candidates, while the user lexicon adds project terms and replacement rules.
 
-Multiple analyses for one lemma are preserved. Programs with identical execution conditions may be merged, but every POS and rule origin remains in provenance. An explicit coarse POS also receives fallback analyses for missing fine-grained categories.
+Multiple analyses for one lemma are preserved. Programs with identical execution conditions may be merged, but every POS and rule origin remains in provenance. An explicit coarse POS also receives supplemental analyses for missing fine-grained categories.
 
 ## Particles and allomorphs [#particles-and-allomorphs]
 
@@ -46,17 +46,25 @@ Contractions such as `보아 → 봐` and `주어 → 줘` decompose and recombi
 
 ## Derivation and compound structure [#derivation-and-compounds]
 
-`inflection` preserves POS, while `derivation` includes registered suffixes that create a new POS. Paths such as `안정 + 하 + 다` and `잠식 + 당하 + 기` are accepted only when source components prove a complete POS and span sequence.
+`inflection` preserves POS. `derivation` also includes registered suffixes that create a new POS. Paths such as `안정 + 하 + 다` and `잠식 + 당하 + 기` are accepted only when source components prove a complete POS and span sequence.
 
 Auxiliary and compound-internal search uses the same constraint. Internal `가다` in `들어가다` requires a preceding predicate and [connective ending](/reference/glossary#connective-ending), while particle `가` in `친구가` cannot become a verb candidate.
 
 A compound-noun decomposition is used when the source declares components for the complete particle host and no independent analysis competes on the same span. This finds `물` in `물/NNG + 줄기/NNG + 는/JX` but rejects `길` from an alternate decomposition that competes with an independent `산길/NNG` analysis.
 
-When the resource completes an auxiliary chain left by a generated program, the `VX + E*` path after the connective must be complete. The source path is used when the connective lies outside the core, every exact analysis of the contracted core is a predicate, a query-compatible single predicate source edge extends beyond the core and is followed by a complete ending path, the complete token has an exact `predicate + EC + VX + E+` analysis, or the suffix is the resultative `-아/어지다` family. This retains `빼놓을`, `생겨났던`, and `극심해지겠지만` without expanding `해가며` from the ambiguous `해` surface alone.
+When the resource completes an auxiliary chain left by a generated program, the `VX + E*` path after the connective must be complete. A source path is used under any of these conditions.
+
+- The connective lies outside the core.
+- Every exact analysis of the contracted core is a predicate.
+- A query-compatible single-predicate source edge extends beyond the core and is followed by a complete ending path.
+- The complete token has an exact `predicate + EC + VX + E+` analysis.
+- The suffix belongs to the resultative `-아/어지다` family.
+
+These conditions retain `빼놓을`, `생겨났던`, and `극심해지겠지만` without expanding `해가며` from the ambiguous `해` surface alone.
 
 ## Local structural verification [#structural-verification]
 
-`smart` decodes only bounded tokens around an anchor from the compact [component resource](/reference/glossary#component-resource). A `StructuralConstraint` compares the POS sequence, component spans, continuations, and neighboring-token conditions required by the query. It uses observable morphology, not semantic interpretation.
+`smart` decodes only bounded tokens around an anchor from the compact [component resource](/reference/glossary#component-resource). A `StructuralConstraint` compares the POS sequence, component spans, continuations, and neighboring-token conditions required by the query. It uses only observable morphology and does not interpret meaning.
 
 Because no corpus-wide tokenization is built, large-file scanning stays on the byte-search path. Source-proven internal components and particle-ending boundaries still make the result more precise than a plain substring search.
 

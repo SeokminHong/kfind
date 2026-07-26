@@ -4,11 +4,11 @@
 
 ## Dimensions [#dimensions]
 
-Up to three lemma-POS-span queries that should match are selected from one source sentence, and each is paired with a same-POS query that should not match.
+Up to three lemma-POS-span queries that should match are selected from one source sentence. Each is paired with a same-POS query that should not match.
 
 Nominal and predicate classes, particles, endings, irregulars, compounds, explicit POS, and boundary policies are crossed.
 
-Each case declares expected match, expected no match, and an optional contract disposition.
+Each case declares an expected match, expected no match, and optional contract disposition.
 
 ## Coverage [#coverage]
 
@@ -22,4 +22,4 @@ The query matrix is a diagnostic workload and neither replaces nor merges with t
 
 Raw and adjusted matrices use the same predictions. The registry stores confirmed, reclassified, and excluded reasons by case ID in version control.
 
-FNᶜ = 0 means no classified in-contract false negative. Raw FN and unclassified counts remain visible.
+FNᶜ = 0 means there is no classified in-contract false negative. Raw FN and unclassified counts remain visible.

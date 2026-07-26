@@ -2,20 +2,20 @@
 
 # 표준문 품질
 
-## dataset [#dataset]
+## 데이터셋 [#dataset]
 
-양성 500개는 명사, 대명사, 수사, 동사, 형용사, 관형사와 부사의 목표 span을 가집니다. 음성 500개는 같은 표면이 다른 형태 기능으로 쓰이는 hard negative를 포함합니다.
+양성 500개에는 명사, 대명사, 수사, 동사, 형용사, 관형사와 부사의 목표 span이 있습니다. 음성 500개에는 같은 표면형이 다른 형태 기능으로 쓰이는 hard negative가 포함됩니다.
 
 문장은 수동 검토한 표준문만 사용하고 오류 문장은 Robust로 분리합니다.
 
 ## 지표 [#metrics]
 
-Backend별 raw confusion matrix와 precision, recall, F1을 기록합니다. Contract review가 없으므로 adjusted matrix는 raw와 같고 reviewed cases는 0입니다.
+Backend별 raw confusion matrix와 precision, recall, F1을 기록합니다. Contract review가 없으므로 adjusted matrix는 raw와 같으며 reviewed cases는 0입니다.
 
-D3 차트는 두 series를 모두 표시해 동일함을 숨기지 않습니다.
+D3 차트에는 두 series를 모두 표시해 값이 같다는 사실을 드러냅니다.
 
 ## 해석 한계 [#limits]
 
-Canonical F1은 표준문 lemma search 품질이며 파일 scan 처리량이나 오류 문장 robustness를 포함하지 않습니다.
+Canonical F1은 표준문의 표제어 검색 품질을 나타냅니다. 파일 검색 처리량이나 오류 문장 robustness는 포함하지 않습니다.
 
-품사별 분모가 다르므로 작은 범주의 percent를 전체 결과와 단순 평균하지 않습니다.
+품사별 분모가 다르므로 작은 범주의 백분율을 전체 결과와 단순 평균하지 않습니다.

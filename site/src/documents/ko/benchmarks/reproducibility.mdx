@@ -4,20 +4,20 @@
 
 ## provenance [#provenance]
 
-Baseline·candidate 전체 Git revision, dirty state, OS·architecture, CPU, memory, Rust·Node·Python과 backend version을 기록합니다.
+Baseline·candidate의 전체 Git revision, dirty state, OS·architecture, CPU, memory, Rust·Node·Python과 backend 버전을 기록합니다.
 
-Resource와 fixture는 path뿐 아니라 SHA-256과 logical case count를 포함합니다.
+리소스와 fixture에는 경로뿐 아니라 SHA-256과 logical case count를 포함합니다.
 
 ## 실행 명령 [#commands]
 
-공식 wrapper와 모든 environment override를 그대로 기록합니다. Morphology Python test는 `tools/morph-compare`에서 두 import root를 포함하는 discovery 명령을 사용합니다.
+공식 wrapper와 모든 환경 변수 override를 그대로 기록합니다. Morphology Python test는 `tools/morph-compare`에서 두 import root를 포함하는 discovery 명령을 사용합니다.
 
-형태 질의와 정규식 비교는 `scripts/benchmark-search-baseline.sh`로 실행해 resource checksum, fixture와 process model을 함께 고정합니다.
+형태 질의와 정규식 비교는 `scripts/benchmark-search-baseline.sh`로 실행해 리소스 checksum, fixture와 process model을 함께 고정합니다.
 
-직접 Docker나 cargo command로 lock·fixture 계약을 우회한 결과는 승인 report가 아닙니다.
+직접 실행한 Docker나 cargo 명령으로 lock·fixture 계약을 우회한 결과는 승인 보고서로 사용하지 않습니다.
 
 ## 산출물 검증 [#verification]
 
-JSON report, Markdown table과 site snapshot의 수치가 일치하는지 schema validator로 검사합니다. Chart는 snapshot field만 소비합니다.
+JSON 보고서, Markdown 표와 site snapshot의 수치가 일치하는지 schema validator로 검사합니다. 차트는 snapshot 필드만 사용합니다.
 
-Source report revision과 SHA-256이 바뀌면 snapshot을 같은 변경에서 다시 생성합니다.
+원본 보고서의 revision이나 SHA-256이 바뀌면 같은 변경에서 snapshot을 다시 생성합니다.

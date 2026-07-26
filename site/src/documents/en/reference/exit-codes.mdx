@@ -4,13 +4,13 @@
 
 ## Native CLI [#native]
 
-0 means one or more matches, 1 is a normal no-match result, and 2 covers usage, I/O, resource, and compile errors.
+0 means one or more matches, 1 means a normal no-match result, and 2 covers usage, I/O, resource, and compile errors.
 
 A broken pipe is a normal consumer-closed output condition.
 
 ## npm CLI [#npm]
 
-The npm search uses the same meanings for 0, 1, and 2. Invalid UTF-8 and binary files are reported then skipped; an explicit path read failure is 2.
+The npm search uses the same meanings for 0, 1, and 2. Invalid UTF-8 and binary files are reported and skipped; an explicit path read failure returns 2.
 
 `--help` and `--version` succeed with 0.
 

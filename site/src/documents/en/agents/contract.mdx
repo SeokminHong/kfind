@@ -4,18 +4,18 @@
 
 ## Input contract [#input-contract]
 
-A query contains one or more atoms with optional POS tags. Paths, encoding, boundary, and expansion are execution options outside the query text.
+A query contains one or more atoms with optional POS tags. Paths, encoding, boundary, and expansion remain execution options outside the query text.
 
 Record the actual arguments after shell quoting. A natural-language description alone cannot reproduce the query.
 
 ## Output contract [#output-contract]
 
-A match span uses source coordinates, and each atom preserves core, token, and every origin. `rulePath` identifies candidate-generation rules, not semantic labels.
+A match span uses source coordinates, and each atom preserves its core, token, and every origin. `rulePath` identifies candidate-generation rules, not semantic labels.
 
-Use path and span as identity instead of JSON Lines order. Completion order across files can vary with parallel execution settings.
+Identify a result by its path and span, not its JSON Lines order. Completion order across files can vary with parallel execution settings.
 
 ## Failure contract [#failure-contract]
 
 Compile errors, missing required resources, decode failures, and I/O failures appear on stderr with a failure status. Keep them distinct from a normal no-match result.
 
-An I/O failure can follow partial output, so accept stdout as complete only after checking the final exit status.
+An I/O failure can occur after partial output. Accept stdout as complete only after checking the final exit status.

@@ -6,7 +6,7 @@
 
 The default user lexicon is `$XDG_CONFIG_HOME/kfind/lexicon.toml`, then `$HOME/.config/kfind/lexicon.toml`.
 
-There is no general file storing all search options. Reproducible scripts and agent skills spell options out.
+There is no general file that stores all search options. Reproducible scripts and agent skills specify them explicitly.
 
 ## Environment variables [#environment]
 
@@ -16,6 +16,6 @@ There is no general file storing all search options. Reproducible scripts and ag
 
 ## Precedence [#precedence]
 
-Explicit `--data-dir` and `--user-lexicon` override environment. Installation and default config paths follow.
+Explicit `--data-dir` and `--user-lexicon` override the environment variables. Installation and default config paths follow.
 
 An invalid explicit path raises an error instead of falling through to another candidate.

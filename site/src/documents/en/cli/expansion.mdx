@@ -4,7 +4,7 @@
 
 ## Literal [#literal]
 
-`literal` searches only the input Unicode string. It creates no particle, ending, irregular, or derivational programs.
+`literal` searches only for the input Unicode string. It creates no particle, ending, irregular, or derivational programs.
 
 Normalization still applies. With `canonical`, NFC and NFD forms are searched as canonical variants of the same string.
 
@@ -16,6 +16,6 @@ POS-changing paths such as noun-to-predicate `하다` derivation are excluded.
 
 ## Derivation [#derivation]
 
-`derivation` adds productive paths from versioned rule data, including noun plus `하다`, selected affixes, and subsequent inflection.
+`derivation` adds productive paths from versioned rule data. These paths include noun plus `하다`, selected affixes, and subsequent inflection.
 
-It does not combine every plausible affix. A program requires complete lexicon POS, source components, and rule-specific structural constraints.
+It does not combine every plausible affix. A path becomes a program only when its lexicon POS, source components, and rule-specific structural constraints are complete.

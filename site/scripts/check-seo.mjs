@@ -24,7 +24,7 @@ const homeSeo = {
   en: {
     description:
       'Search 걷다 and find 걷고, 걸어, and 걸었다. kfind is a fast Korean lemma and inflection search engine for files, source code, and documentation through its CLI, Rust, and WebAssembly interfaces.',
-    heading: 'Korean lemma and inflection search with kfind',
+    heading: 'Search Korean lemmas and inflections with kfind',
     title: 'kfind | Korean Lemma & Inflection Search Engine',
   },
   ko: {

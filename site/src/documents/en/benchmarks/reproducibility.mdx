@@ -4,13 +4,13 @@
 
 ## Provenance [#provenance]
 
-Record full baseline and candidate revisions, dirty state, OS, architecture, CPU, memory, and Rust, Node, Python, and backend versions.
+Record the full baseline and candidate revisions, dirty state, OS, architecture, CPU, memory, and Rust, Node, Python, and backend versions.
 
 Resources and fixtures include SHA-256 and logical case counts, not just paths.
 
 ## Commands [#commands]
 
-Preserve official wrappers and every environment override. Morphology Python tests run from `tools/morph-compare` with discovery that includes both import roots.
+Preserve the official wrappers and every environment override. Morphology Python tests run from `tools/morph-compare` with discovery that includes both import roots.
 
 Run morphology-query and regex comparisons with `scripts/benchmark-search-baseline.sh` so resource checksums, fixtures, and the process model remain fixed.
 
@@ -18,6 +18,6 @@ Results from direct Docker or cargo commands that bypass lock and fixture contra
 
 ## Artifact verification [#verification]
 
-Schema validation checks that JSON reports, Markdown tables, and site snapshots contain identical values. Charts consume only snapshot fields.
+Schema validation checks that JSON reports, Markdown tables, and site snapshots contain the same values. Charts consume only snapshot fields.
 
 A changed source-report revision or SHA-256 requires regenerating the snapshot in the same change.

@@ -2,11 +2,11 @@
 
 # CLI 명세
 
-## native CLI [#native]
+## Native CLI [#native]
 
-구문은 `kfind [OPTIONS] QUERY [PATH]...`입니다. 주요 compile option은 `--pos`, `--expand`, `--boundary`, `--literal`, `--max-gap`, `--unicode-normalization`입니다.
+구문은 `kfind [OPTIONS] QUERY [PATH]...`입니다. 주요 컴파일 옵션으로 `--pos`, `--expand`, `--boundary`, `--literal`, `--max-gap`, `--unicode-normalization`을 제공합니다.
 
-파일 option은 encoding, glob, type, ignore, thread와 context 출력을 제어합니다. `--json`, `--explain-query`, `--explain-match`와 `--sort path`를 지원합니다.
+파일 옵션은 encoding, glob, type, ignore, thread와 context 출력을 제어합니다. 출력에는 `--json`, `--explain-query`, `--explain-match`와 `--sort path`를 사용할 수 있습니다.
 
 ```bash
 kfind --pos verb --boundary smart 걷다 src
@@ -15,9 +15,9 @@ kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
 
 ## npm CLI [#npm]
 
-Node.js 20 이상에서 `@kfind/kfind`의 bin 이름 `kfind`를 사용합니다. `--expand`, `--boundary`, `--pos`, `--normalization`, `--max-gap`, `--literal`, `--json`을 지원합니다.
+Node.js 20 이상에서 `@kfind/kfind`의 `kfind` 명령을 사용합니다. `--expand`, `--boundary`, `--pos`, `--normalization`, `--max-gap`, `--literal`, `--json`을 지원합니다.
 
-`npx`, `pnpm dlx`, Yarn 2 이상의 `yarn dlx`는 설치 없이 같은 bin을 실행합니다.
+`npx`, `pnpm dlx`, Yarn 2 이상의 `yarn dlx`는 설치 없이 같은 명령을 실행합니다.
 
 ```bash
 npx @kfind/kfind 걷다 README.md
@@ -28,6 +28,6 @@ npx @kfind/kfind 'v:걷다|n:사용자' src
 
 ## 기능 차이 [#differences]
 
-npm CLI는 UTF-8 재귀 순회, stdin, text와 JSON Lines에 집중합니다. Package의 enriched predicate를 사용하고 필요한 query에서 compact component를 lazy load합니다.
+npm CLI는 UTF-8 재귀 순회, stdin, 텍스트와 JSON Lines를 지원합니다. 패키지의 enriched predicate를 사용하고, 필요한 질의에서 compact component를 지연 로드합니다.
 
-Full POS, Git ignore, EUC-KR, context, TUI, explain과 agent 통합 설치·제거는 native CLI를 사용합니다.
+Full POS, Git ignore, EUC-KR, context, TUI, explain, 에이전트 통합 설치·제거에는 native CLI를 사용합니다.

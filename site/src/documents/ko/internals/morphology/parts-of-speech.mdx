@@ -6,18 +6,18 @@
 
 체언에는 NNG·NNP·NNB·NNBC·NP·NR, 용언에는 VV·VA·VX·VCP·VCN이 있습니다. J 계열은 조사, EP·EF·EC·ETN·ETM은 어미 기능을 구분합니다.
 
-XPN·XSN·XSV·XSA와 XR은 파생 구조를 표현합니다. Tag는 surface 문자열이 아니라 source analysis의 node와 edge에 붙습니다.
+XPN·XSN·XSV·XSA와 XR은 파생 구조를 표현합니다. 태그는 표면형 문자열이 아니라 원문 분석의 node와 edge에 붙습니다.
 
 ## coarse mapping [#coarse-mapping]
 
-`noun`은 NNG·NNP·NNB·NNBC를, `verb`는 VV를, `adjective`는 VA를 포함합니다. VCP·VCN은 지정사 규칙에서 별도 처리하고 query 분석이 요구하는 범주로 projection합니다.
+`noun`은 NNG·NNP·NNB·NNBC를, `verb`는 VV를, `adjective`는 VA를 포함합니다. VCP·VCN은 지정사 규칙에서 별도로 처리하고 질의 분석이 요구하는 범주로 projection합니다.
 
-Coarse POS가 세부 태그를 지우지는 않습니다. Match origin에는 실제 query analysis와 source analysis index가 남습니다.
+Coarse POS가 세부 태그를 지우지는 않습니다. 일치 origin에는 실제 질의 분석과 원문 analysis index가 남습니다.
 
 ## 중의 분석 [#ambiguity]
 
-`나는`은 `나/NP+는/JX`와 `날다/VV+는/ETM` 같은 여러 분석을 가질 수 있습니다. Query POS가 pronoun이면 첫 경로만, verb이면 둘째 경로만 program이 됩니다.
+`나는`은 `나/NP+는/JX`와 `날다/VV+는/ETM` 같은 여러 분석을 가질 수 있습니다. 질의 POS가 pronoun이면 첫 경로만, verb이면 둘째 경로만 프로그램이 됩니다.
 
-Source에서도 여러 분석이 구조를 만족하면 후보를 유지합니다. 의미 문맥으로 하나를 선택하지 않습니다.
+원문에서도 여러 분석이 구조를 만족하면 후보를 유지합니다. 문맥의 의미를 추정해 하나를 선택하지 않습니다.
 
-따라서 `pro:나`와 `v:날다`는 source `나는 새를 본다`의 `나는`에 각각 match합니다. 반면 `n:나`는 대명사 NP를 일반명사 NNG로 바꾸지 않으므로 이 분석에 match하지 않습니다.
+따라서 `pro:나`와 `v:날다`는 원문 `나는 새를 본다`의 `나는`과 각자의 분석으로 일치합니다. 반면 `n:나`는 대명사 NP를 일반명사 NNG로 바꾸지 않으므로 이 분석과 일치하지 않습니다.

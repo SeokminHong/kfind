@@ -4,16 +4,16 @@
 
 ## 설치 위치 [#installation]
 
-`skills/kfind-search/SKILL.md`와 함께 참조하는 script를 에이전트가 읽을 수 있는 skill directory에 설치합니다. 원본의 상대 경로 관계를 보존합니다.
+`skills/kfind-search/SKILL.md`와 이 파일이 참조하는 script를 에이전트가 읽을 수 있는 skill 디렉터리에 설치합니다. 원본의 상대 경로를 그대로 유지합니다.
 
-프로젝트 전용 설치에서는 저장소 revision을 고정합니다. 전역 설치에서는 여러 프로젝트가 같은 binary version을 요구하는지 먼저 확인합니다.
+프로젝트 전용 설치에서는 저장소 revision을 고정합니다. 전역에 설치하기 전에는 여러 프로젝트가 같은 binary 버전을 사용할 수 있는지 확인합니다.
 
 ## 호출 방식 [#invocation]
 
-Skill은 표제어, 예상 품사, 검색 path와 결과 형식을 입력으로 받습니다. 자동화에서는 JSON Lines를 기본으로 사용하고 사람이 확인할 때만 text나 TUI로 전환합니다.
+Skill은 표제어, 예상 품사, 검색 경로와 결과 형식을 입력으로 받습니다. 자동화에서는 JSON Lines를 기본으로 사용하고, 사람이 확인할 때만 텍스트나 TUI로 전환합니다.
 
-검색 실패와 no-match를 분리하고, component resource 오류가 발생하면 `any`로 조용히 완화하지 않습니다.
+실행 실패와 검색 결과 없음을 구분합니다. 구성 요소 리소스 오류가 발생해도 `any`로 자동 전환하지 않습니다.
 
 ## 갱신 [#maintenance]
 
-CLI option, JSON schema 또는 rule provenance 계약이 바뀌면 같은 release의 skill을 함께 갱신합니다. Skill 본문은 현재 명령만 설명하고 revision별 변경 이력은 release와 결정 기록에 둡니다.
+CLI 옵션, JSON schema 또는 rule provenance 계약이 바뀌면 같은 릴리스의 skill도 갱신합니다. Skill 본문은 현재 명령만 설명하고 revision별 변경 이력은 릴리스와 결정 기록에 둡니다.

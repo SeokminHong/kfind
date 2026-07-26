@@ -4,13 +4,13 @@
 
 <Lead>
 
-Expansion selects generated forms, [POS](/reference/glossary#part-of-speech) selects grammatical rules, and the [boundary](/reference/glossary#boundary) policy selects admissible source candidates.
+Expansion selects the generated forms. [POS](/reference/glossary#part-of-speech) selects the grammatical rules, and the [boundary](/reference/glossary#boundary) policy selects admissible source candidates.
 
 </Lead>
 
 ## Default [query plan](/reference/glossary#query-plan) [#query-plan]
 
-With no options, kfind expands inflections, infers POS from its lexicons, applies the POS-specific `smart` boundary, normalizes to NFC, and permits 24 Unicode scalars between [phrase](/reference/glossary#phrase) atoms.
+With no options, kfind expands inflections, infers POS from its lexicons, and applies the POS-specific `smart` boundary. It normalizes the query to NFC and permits 24 Unicode scalars between [phrase](/reference/glossary#phrase) atoms.
 
 ```text
 expand=inflection
@@ -34,11 +34,11 @@ Automatic analysis preserves the union of valid POS analyses for an ambiguous [l
 
 ## Boundary policy [#boundary]
 
-| Value   | Decision                                                                                                                              | Use                                                          |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `smart` | Locally verifies [particle](/reference/glossary#particle) or [ending](/reference/glossary#ending) consumption and fine-POS components | [Precision](/reference/glossary#precision)\-oriented default |
-| `token` | Requires Unicode boundaries around the completed token                                                                                | Independent tokens                                           |
-| `any`   | Preserves morphological substring spans without side boundaries                                                                       | [Recall](/reference/glossary#recall)\-oriented automation    |
+| Value   | Decision                                                                                                                              | Use                                                         |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `smart` | Locally verifies [particle](/reference/glossary#particle) or [ending](/reference/glossary#ending) consumption and fine-POS components | [Precision](/reference/glossary#precision)-oriented default |
+| `token` | Requires Unicode boundaries around the completed token                                                                                | Independent tokens                                          |
+| `any`   | Preserves morphological substring spans without side boundaries                                                                       | [Recall](/reference/glossary#recall)-oriented automation    |
 
 For `n:요리` in `중국요리`, smart mode can admit `요리` as a verified noun component while rejecting `국요`, which crosses component boundaries.
 
@@ -59,13 +59,13 @@ Verbs and adjectives use different final, connective, and [adnominal ending](/re
 
 `--unicode-normalization nfc` compares normalized query and candidate forms. `none` preserves the input representation. Returned spans always address the original text.
 
-Phrase atoms are matched independently and joined in source order. `--max-gap` limits the Unicode scalars between adjacent token spans and defaults to 24. Multi-[atom](/reference/glossary#atom) queries use per-atom POS tags.
+Phrase atoms are matched independently and joined in source order. `--max-gap` limits the Unicode scalars between adjacent token spans and defaults to 24. A single-[atom](/reference/glossary#atom) query can use global `--pos`; multi-atom queries require per-atom POS tags.
 
 An unquoted, unescaped `|` finds any one of multiple atoms. Whitespace around it is optional, but CLI queries should be quoted so the shell does not interpret the operator as a pipe. Each alternative is one atom and cannot be mixed with phrase atoms. Write a literal pipe as `\|` or `"|"`. `--max-gap` does not apply to a disjunction.
 
 ## Input and output [#input-and-output]
 
-Filesystem traversal respects ignore rules. Use `--hidden`, `--no-ignore`, `--glob`, and `--type` to select files, and`--encoding` for non-UTF-8 input.
+Filesystem traversal respects ignore rules. Use `--hidden`, `--no-ignore`, `--glob`, and `--type` to select files, and `--encoding` for non-UTF-8 input.
 
 ```bash
 kfind --glob '*.md' --hidden 검증 .
@@ -74,4 +74,4 @@ kfind --json --sort path 걷다 src
 kfind --explain-query --pos verb 걷다
 ```
 
-Default output is a bounded stream. `--sort path` buffers file results for deterministic ordering. `--json` emits JSON Lines with source spans and [provenance](/reference/glossary#provenance), while `--explain-query` prints the compiled plan without scanning a corpus.
+Default output is a bounded stream. `--sort path` buffers all file results for deterministic path ordering. `--json` emits JSON Lines with source spans and [provenance](/reference/glossary#provenance). `--explain-query` prints the compiled plan without scanning a corpus.

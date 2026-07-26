@@ -4,13 +4,13 @@
 
 ## Report structure [#reports]
 
-Dated Markdown under `docs/benchmarks` contains purpose, revisions, environment, inputs, commands, raw results, and interpretation. Baseline-candidate deltas live only there.
+Dated Markdown under `docs/benchmarks` preserves the purpose, revisions, environment, inputs, commands, raw results, and interpretation. Baseline-candidate deltas appear only there.
 
 Quality reports include case-level dispositions and unclassified counts.
 
 ## Site snapshot [#snapshots]
 
-The site exports only chart-consumed fields into `site-morphology.json` and `site-search-baseline.json`. Each snapshot retains its source revision and report SHA-256.
+The site exports only the fields consumed by charts into `site-morphology.json` and `site-search-baseline.json`. Each snapshot retains its source revision and report SHA-256.
 
 The current-results route reads that snapshot and does not copy dated report lists into the main narrative.
 
@@ -18,4 +18,4 @@ The current-results route reads that snapshot and does not copy dated report lis
 
 Unfavorable results, rejected experiments, and measurement noise remain in reports. Experimental instrumentation need not stay in product code.
 
-Current README and technical documentation describe only the present contract, without prior-state or improvement narratives.
+The current README and technical documentation describe only the present contract, without prior-state or improvement narratives.

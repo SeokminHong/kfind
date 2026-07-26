@@ -4,18 +4,18 @@
 
 ## Product goals [#product-goals]
 
-Compile a known lemma or short phrase into candidates covering particles, endings, irregular inflection, and bounded derivation. Verify only local source regions containing an anchor.
+Compile a known lemma or short phrase into candidates that cover particles, endings, irregular inflection, and bounded derivation. Verify only the source regions around an anchor.
 
-Return source spans and rule provenance so a person or agent can perform the next context decision without losing surface evidence.
+Return source spans and rule provenance so a person or agent can judge the surrounding context without losing surface-form evidence.
 
 ## Non-goals [#non-goals]
 
-kfind does not produce a whole-sentence morpheme sequence, syntactic dependencies, or semantic roles. It is also not an index that reverse-analyzes every observed token.
+kfind does not produce whole-sentence morpheme sequences, syntactic dependencies, or semantic roles. It does not index and reverse-analyze every observed token.
 
 Arbitrary derivation, unbounded particle or ending chains, and semantic homonym removal are not supported.
 
 ## Selection guide [#selection-guide]
 
-Use kfind to locate inflected surfaces reachable from a lemma across large code and documentation sets. Use a general morphological analyzer when whole-sentence annotation is the desired output.
+Use kfind to locate inflected surface forms reachable from a lemma across large codebases and documentation sets. Use a general morphological analyzer when you need whole-sentence annotation.
 
 When combining both tools, first narrow files and spans with kfind, then analyze only the selected context.

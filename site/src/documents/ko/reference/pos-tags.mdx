@@ -4,7 +4,7 @@
 
 ## coarse POS [#coarse]
 
-`noun`, `pronoun`, `numeral`, `verb`, `adjective`, `determiner`, `adverb`, `particle`, `interjection`, `literal`과 `auto`를 제공합니다.
+`noun`, `pronoun`, `numeral`, `verb`, `adjective`, `determiner`, `adverb`, `particle`, `interjection`, `literal`, `auto`를 제공합니다.
 
 CLI prefix는 각각 `n:`, `pro:`, `num:`, `v:`, `adj:`, `det:`, `adv:`, `j:`, `intj:`, `lit:`입니다.
 
@@ -12,10 +12,10 @@ CLI prefix는 각각 `n:`, `pro:`, `num:`, `v:`, `adj:`, `det:`, `adv:`, `j:`, `
 
 명사 NNG·NNP·NNB·NNBC, 대명사 NP, 수사 NR, 용언 VV·VA·VX·VCP·VCN, 조사 J*, 어미 E*와 파생 X\*를 사용합니다.
 
-세부 태그는 공개 option 값이 아니라 lexicon과 component resource의 분석 정보입니다.
+세부 태그는 공개 옵션 값이 아니라 lexicon과 구성 요소 리소스의 분석 정보입니다.
 
 ## 포함 관계 [#mapping]
 
-Coarse POS는 여러 세부 태그를 포함하지만 무관한 기능 tag를 흡수하지 않습니다. `noun` query가 조사 JX를 core로 만들지 않습니다.
+Coarse POS는 여러 세부 태그를 포함하지만 무관한 기능 태그까지 포함하지는 않습니다. `noun` 질의는 조사 JX를 core로 만들지 않습니다.
 
-Full POS fallback도 query coarse POS 안의 세부 후보만 보완합니다.
+Full POS 보완 분석도 질의의 coarse POS에 속한 세부 후보만 추가합니다.

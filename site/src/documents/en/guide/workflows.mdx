@@ -10,14 +10,14 @@ Constrain directories before filtering extensions. Inspect each surface and its 
 
 ## Precision search [#precision]
 
-Fix atom-level POS tags, phrase order, and `--max-gap` for a precise search. Use `--literal` when only the exact input string is relevant.
+For a precise search, fix the atom-level POS tags, phrase order, and `--max-gap`. Use `--literal` when only the exact input string is relevant.
 
 The matcher does not remove semantic ambiguity that morphology cannot distinguish. Resolve those candidates from surrounding code or sentence context.
 
 ## Automation [#automation]
 
-Agents and scripts use `--json` or the native JSON Lines output. Distinguish a normal no-match result from execution failure by exit status, and feed only stdout into the parser.
+Agents and scripts use `--json` or the native JSON Lines output. Use the exit status to distinguish a normal no-match result from an execution failure, and feed only stdout into the parser.
 
 ```bash
-kfind --pos verb --boundary any --json 걷다 src   | jq -c 'select(.surface != null)'
+kfind --pos verb --boundary any --json 걷다 src | jq -c 'select(.surface != null)'
 ```

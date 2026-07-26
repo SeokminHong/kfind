@@ -4,13 +4,13 @@
 
 <Lead>
 
-The minimum setup for [lemma](/reference/glossary#lemma) search, explicit [POS](/reference/glossary#part-of-speech) queries, and machine-readable output from the CLI, Rust, and npm surfaces.
+Install kfind for the CLI, Rust, or npm, then run a [lemma](/reference/glossary#lemma) search, specify a [POS](/reference/glossary#part-of-speech), and produce machine-readable output.
 
 </Lead>
 
 ## CLI installation [#cli-installation]
 
-On macOS and Linux, the Homebrew formula installs the CLI and the morphology resources paired with the same release. A source checkout can be installed through Cargo.
+On macOS and Linux, the Homebrew formula installs the CLI and the matching morphology resources. A source checkout can be installed with Cargo.
 
 ```bash
 brew install seokminhong/brew/kfind
@@ -39,7 +39,7 @@ const plan = engine.compile('걷다', { pos: 'verb' });
 const matches = plan.findAll('나는 길을 걸었다.');
 ```
 
-On Node.js 20 or later, the package also exposes the `kfind` bin for one-shot execution. `yarn dlx` requires Yarn 2 or later.
+On Node.js 20 or later, the package also exposes the `kfind` command for one-shot execution. `yarn dlx` requires Yarn 2 or later.
 
 ```bash
 npx @kfind/kfind 걷다 README.md
@@ -49,7 +49,7 @@ yarn dlx @kfind/kfind 걷다 README.md
 
 ## Lemma search [#first-search]
 
-The first positional argument is the [query](/reference/glossary#query). Remaining arguments are files or directories. With no path, kfind reads piped stdin; with neither a path nor piped input, it searches the current directory.
+The first positional argument is the [query](/reference/glossary#query). The remaining arguments select files or directories. With no path, kfind reads piped stdin; with neither a path nor piped input, it searches the current directory.
 
 ```bash
 kfind 걷다 src docs
@@ -58,7 +58,7 @@ printf '길을 걸었다.
 ' | kfind 걷다
 ```
 
-The lemma `걷다` is analyzed as a verb with ㄷ-[irregular conjugation](/reference/glossary#irregular-conjugation). Its [query plan](/reference/glossary#query-plan) contains fixed anchors and suffix decisions for surfaces such as `걷고`, `걷는`, and `걸어`.
+The lemma `걷다` is analyzed as a ㄷ-[irregular verb](/reference/glossary#irregular-conjugation). Its [query plan](/reference/glossary#query-plan) contains fixed anchors and suffix decisions for surface forms such as `걷고`, `걷는`, and `걸어`.
 
 ## POS, [phrase](/reference/glossary#phrase), and alternative queries [#pos-and-phrase]
 
@@ -83,7 +83,7 @@ kfind --embedded --boundary any --pos verb --json 걷다 src
 kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
 ```
 
-Recall-oriented output can include semantically irrelevant candidates. Read the surrounding source text before acting on a match.
+Recall-oriented output can include semantically irrelevant candidates. Read the surrounding text before acting on a match.
 
 ## Agent integration [#agent-skill]
 
@@ -98,4 +98,4 @@ gemini
 ' | kfind --init
 ```
 
-Codex uses `.agents/skills/kfind/SKILL.md`, Claude Code uses `.claude/skills/kfind/SKILL.md`, and Gemini CLI uses `.gemini/skills/kfind/SKILL.md`. `--uninstall` removes only kfind-managed skills and hooks. Unmanaged skills and existing agent settings are preserved. Once trusted, the project hook blocks shell searches that pass Korean patterns to `rg` or `grep` and directs the agent to kfind.
+Codex uses `.agents/skills/kfind/SKILL.md`, Claude Code uses `.claude/skills/kfind/SKILL.md`, and Gemini CLI uses `.gemini/skills/kfind/SKILL.md`. `--uninstall` removes only kfind-managed skills and hooks. It preserves existing skills without a kfind management marker and all existing agent settings. Once trusted, the project hook blocks shell commands that pass Korean search patterns to `rg` or `grep` and directs the agent to kfind.

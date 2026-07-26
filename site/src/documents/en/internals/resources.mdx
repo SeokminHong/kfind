@@ -4,13 +4,13 @@
 
 ## Resource layers [#resource-layers]
 
-Core, enriched, and full POS form query-analysis lexicon layers. The compact component artifact indexes analyses and components for source surfaces.
+Core, enriched, and full POS form the query-analysis lexicon layers. The compact component artifact indexes analyses and components for source surface forms.
 
-Generation sources and checksums are pinned in manifests. Runtime network fetching and background updates do not exist.
+Generation sources and checksums are pinned in manifests. The runtime never fetches resources over the network or updates them in the background.
 
 ## Container format [#container]
 
-A binary container includes magic, schema, package version, source identity, section directory, and SHA-256. Large index and payload sections can be verified independently.
+A binary container includes the magic value, schema, package version, source identity, section directory, and SHA-256. Large index and payload sections can be verified independently.
 
 The 128 MiB encoded-resource limit is checked first. Lengths and offsets are validated before digest or payload graphs are read.
 
@@ -18,4 +18,4 @@ The 128 MiB encoded-resource limit is checked first. Lengths and offsets are val
 
 A native engine owns validated resources and reuses them across matchers. JavaScript callers pass bytes explicitly through `withResources` or `loadComponentResource`.
 
-Replacement applies atomically only after all validation completes. Failure preserves existing state.
+A replacement is applied atomically only after all validation completes. A failure preserves the existing state.

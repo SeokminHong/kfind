@@ -12,13 +12,13 @@ The npm package includes enriched and compact resources but not full POS.
 
 `@kfind/kfind/assets` exposes `componentResourceFileUrl` and `enrichedPredicatesFileUrl` as `URL` values inside the same package. Copy-based deployment tools can also use the raw subpaths `@kfind/kfind/assets/morphology-component-compact.kfc` and `@kfind/kfind/assets/predicates.enriched.tsv`.
 
-The resolver performs no download and creates no route. The application serves only the resources it needs and passes the KFC bytes and TSV text to `Kfind.withResources`.
+The resolver neither downloads files nor creates routes. The application serves only the resources it needs and passes the KFC bytes and TSV text to `Kfind.withResources`.
 
 ## SPA bundling [#spa-bundling]
 
 A bundler such as Vite that supports `new URL(relative, import.meta.url)` emits the files referenced by the resolver as content-hashed assets in the SPA deployment. The default URL shares the JavaScript origin, so it requires no separate CORS policy.
 
-The component KFC is 35.4 MiB and can be fetched lazily when a view needs `smart` structural verification. One initialized engine reuses the resource across matchers.
+The component KFC is 35.4 MiB and can be fetched lazily when a view needs `smart` structural verification. An initialized engine reuses the resource across matchers.
 
 ```javascript
 import { Kfind } from '@kfind/kfind';
@@ -88,4 +88,4 @@ TSV and TOML builds validate NFC, tags, rule IDs, duplicates, and conflicts.
 
 The component package version must exactly match the engine. Schema or source-digest mismatch rejects loading.
 
-A package upgrade replaces JavaScript, WASM, and resources in one deployment. A stale cached KFC passed to a new engine must fail rather than weakening the boundary. Full and compact projections agree on cost-free exact and common-prefix hits, POS, and spans.
+A package upgrade replaces JavaScript, WASM, and resources in one deployment. A stale cached KFC passed to a new engine must fail rather than weaken the boundary. Full and compact projections agree on cost-free exact and common-prefix hits, POS, and spans.

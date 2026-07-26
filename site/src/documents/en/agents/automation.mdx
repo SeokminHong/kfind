@@ -4,18 +4,18 @@
 
 ## JSON Lines pipeline [#jsonl-pipeline]
 
-Each record independently contains source path, span, surface, and atom provenance. A line-oriented parser can process it without buffering the full output.
+Each record independently contains the source path, span, surface form, and atom provenance. A line-oriented parser can process it without buffering the full output.
 
 A parser may ignore unknown fields but must reject invalid types for fields it requires.
 
 ## Result bounds [#result-bounds]
 
-Constrain directories, file types, or query atoms before automation. Do not replace the current result set with semantic sampling.
+Constrain the directories, file types, or query atoms before automation. Do not replace the complete result set with semantic sampling.
 
 Bounded native output and deterministic npm path ordering make repeated runs on identical input comparable.
 
 ## Fallback [#fallback]
 
-Resource and compile errors are execution failures. Retrying `smart` as `any` requires explicit approval of the precision loss and separate labeling of the result.
+Resource and compile errors are execution failures. Retrying `smart` as `any` requires explicit approval of the precision loss, and the result must be labeled separately.
 
 No match is a normal search result. A follow-up query may run, but the original successful no-match outcome remains part of the record.

@@ -2,20 +2,20 @@
 
 # 자동화 패턴
 
-## JSON Lines pipeline [#jsonl-pipeline]
+## JSON Lines 파이프라인 [#jsonl-pipeline]
 
-각 record는 source path, span, surface와 atom provenance를 독립적으로 포함합니다. 줄 단위 parser는 전체 출력 buffering 없이 record를 처리할 수 있습니다.
+각 record에는 원문 경로, span, 표면형과 atom provenance가 독립적으로 들어 있습니다. 줄 단위 파서는 전체 출력을 버퍼링하지 않고 record를 처리할 수 있습니다.
 
-Parser는 모르는 field를 무시할 수 있지만 필요한 field의 type 오류를 허용하면 안 됩니다.
+파서는 모르는 필드를 무시할 수 있지만, 필요한 필드의 type 오류는 허용하면 안 됩니다.
 
 ## 결과 상한 [#result-bounds]
 
-자동화 전에 directory, file type 또는 query atom을 제한합니다. 현재 CLI의 결과 상한을 의미적 sampling으로 대체하지 않습니다.
+자동화 전에 디렉터리, 파일 type 또는 질의 atom을 제한합니다. 현재 CLI의 결과 상한을 의미 기반 sampling으로 대체하지 않습니다.
 
-Native CLI의 bounded stdout과 npm CLI의 결정적 path 순서는 같은 입력의 반복 실행을 비교할 수 있게 합니다.
+Native CLI의 제한된 stdout과 npm CLI의 일정한 경로 순서는 같은 입력의 반복 실행을 비교할 수 있게 합니다.
 
-## fallback [#fallback]
+## 오류 후 재실행 [#fallback]
 
-Resource나 compile 오류는 실행 실패입니다. `smart`가 실패했을 때 `any`로 재실행하려면 호출자가 precision 손실을 승인하고 별도 결과로 표시해야 합니다.
+리소스나 컴파일 오류는 실행 실패입니다. `smart`가 실패했을 때 `any`로 다시 실행하려면 호출자가 정밀도 손실을 승인하고 별도 결과로 표시해야 합니다.
 
-No-match는 정상적인 검색 결과입니다. 후속 query를 실행할 수 있지만 원래 query가 성공했다는 사실을 보존합니다.
+검색 결과 없음은 정상적인 결과입니다. 후속 질의를 실행하더라도 원래 질의가 오류 없이 끝났다는 사실을 보존합니다.
