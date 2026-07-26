@@ -4,18 +4,18 @@
 
 ## smart 경계 [#smart]
 
-`smart`는 core 뒤의 조사·어미 전이를 소비하고 필요한 경우 source component 품사열을 검증합니다. Query program이 구조 capability를 선언하면 compact resource가 필수입니다.
+`smart`는 core 뒤의 조사·어미 전이를 소비하고, 필요한 경우 원문 구성 요소의 품사열을 검증합니다. 질의 프로그램이 구조 capability를 선언하면 compact 리소스가 필요합니다.
 
-완성된 token과 허용된 내부 성분은 보존하지만 다른 품사의 우연한 substring은 거부합니다. 의미 중의성은 판정하지 않습니다.
+완성된 token과 허용된 내부 성분은 보존하고, 다른 품사에 우연히 포함된 부분 문자열은 거부합니다. 의미 중의성은 판정하지 않습니다.
 
 ## token 경계 [#token]
 
-`token`은 core 시작과 소비가 끝난 token 끝에서 Unicode word 경계를 요구합니다. Component 내부 검색을 허용하지 않으므로 독립 token 확인에 적합합니다.
+`token`은 core 시작과 소비가 끝난 token 끝에서 Unicode word 경계를 요구합니다. 구성 요소 내부 검색을 허용하지 않아 독립 token 확인에 적합합니다.
 
-조사와 어미는 program이 소비한 뒤 경계를 확인합니다. 표제어 문자열 바로 뒤에서 단순히 잘라 판정하지 않습니다.
+프로그램이 조사와 어미를 소비한 뒤 경계를 확인합니다. 표제어 문자열 바로 뒤를 기준으로 단순 판정하지 않습니다.
 
 ## any 경계 [#any]
 
-`any`는 좌우 token 경계를 요구하지 않고 생성 program이 확인한 span을 반환합니다. 후보 수집과 recall 중심 자동화에 사용합니다.
+`any`는 좌우 token 경계를 요구하지 않고 생성 프로그램이 확인한 span을 반환합니다. 후보 수집과 재현율 중심 자동화에 사용합니다.
 
-경계 제약을 풀어도 형태 생성 규칙 자체가 풀리지는 않습니다. Literal substring 검색이 필요하면 `--literal --boundary any`를 함께 사용합니다.
+경계 제약을 완화해도 형태 생성 규칙은 그대로 적용됩니다. 리터럴 부분 문자열 검색에는 `--literal --boundary any`를 함께 사용합니다.

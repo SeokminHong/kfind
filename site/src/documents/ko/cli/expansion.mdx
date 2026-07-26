@@ -4,9 +4,9 @@
 
 ## literal [#literal]
 
-`literal`은 입력 Unicode 문자열만 검색합니다. 조사·어미 소비, 불규칙 교체와 파생 program을 만들지 않습니다.
+`literal`은 입력한 Unicode 문자열만 검색합니다. 조사·어미 소비, 불규칙 교체와 파생 프로그램을 만들지 않습니다.
 
-정규화 option은 계속 적용됩니다. 따라서 `canonical`이면 NFC와 NFD 표현을 같은 문자열의 canonical variant로 찾습니다.
+정규화 옵션은 계속 적용됩니다. `canonical`을 선택하면 NFC와 NFD 표현을 같은 문자열의 canonical variant로 찾습니다.
 
 ## inflection [#inflection]
 
@@ -16,6 +16,6 @@
 
 ## derivation [#derivation]
 
-`derivation`은 inflection에 더해 versioned rule data의 생산적 파생을 허용합니다. 명사+`하다`, 지정된 접두·접미사와 파생 뒤 활용이 대상입니다.
+`derivation`은 inflection과 함께 versioned rule data의 생산적 파생을 허용합니다. 명사+`하다`, 지정된 접두·접미사와 파생 뒤 활용이 대상입니다.
 
-가능해 보이는 모든 접사를 조합하지 않습니다. 사전 품사, source component와 rule별 구조 제약이 완성된 경로만 program이 됩니다.
+가능한 모든 접사를 조합하지는 않습니다. 사전 품사, 원문 구성 요소와 rule별 구조 제약을 모두 충족한 경로만 프로그램으로 만듭니다.

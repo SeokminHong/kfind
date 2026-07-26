@@ -20,11 +20,11 @@ pos-tag     = "n:" / "v:" / "adj:" / "lit:" / ...
 
 `v:걷다` permits only verb analyses, while `n:걷기` permits only noun analyses. An untagged atom receives global `--pos` or `auto`.
 
-Each phrase atom owns an independent analysis and program set. A tag is never propagated implicitly across the phrase.
+Each phrase atom has its own analysis and program set. A tag is never applied implicitly to the rest of the phrase.
 
 ## Quoting and escaping [#quoting]
 
-`"로그 인"` is one literal atom containing a space. `"` and `\` preserve a quote and backslash as characters.
+`"로그 인"` is one literal atom containing a space. `"` and `\` preserve a quote and a backslash as characters.
 
 Quoting an inflected lemma does not enable literal mode. Quoting changes atom boundaries; the expansion option determines morphology.
 
@@ -37,7 +37,7 @@ kfind --literal 'key\:value' config
 
 `걷다|사용자` and `걷다 | 사용자` are equivalent queries that match either atom. Each alternative may carry its own POS tag.
 
-Every alternative is one atom and cannot be mixed with a phrase. `--max-gap` does not apply. Write a literal `|` as `\|` or `"|"`.
+Each alternative must be one atom and cannot be mixed with a phrase. `--max-gap` does not apply. Write a literal `|` as `\|` or `"|"`.
 
 Quote the whole query in a CLI shell so that the shell does not interpret `|` as a pipe.
 

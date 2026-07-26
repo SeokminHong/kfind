@@ -1,22 +1,22 @@
 <Eyebrow>START · PRODUCT SCOPE</Eyebrow>
 
-# Korean [lemma](/reference/glossary#lemma) and [inflection](/reference/glossary#inflection) search with kfind
+# Search Korean [lemmas](/reference/glossary#lemma) and [inflections](/reference/glossary#inflection) with kfind
 
 <Lead>
 
-Search 걷다 and find 걷고, 걸어, and 걸었다. kfind accounts for Korean particles, endings, and irregular inflection to find target lemmas and phrases across files and source code.
+Search for 걷다 and find 걷고, 걸어, and 걸었다. kfind accounts for Korean particles, endings, and irregular inflection to find target lemmas and phrases in files and source code.
 
 </Lead>
 
 ## Product purpose [#product-purpose]
 
-The input is a target lemma, an optional [part of speech](/reference/glossary#part-of-speech), and search options. The output is a source span together with the lemma, [POS](/reference/glossary#part-of-speech), and rule path that generated it. For example, `걷다` produces candidates for `걷고`, `걸어`, and `걸었다`, but returns only source locations that pass morphology and [boundary](/reference/glossary#boundary) verification.
+Given a target lemma, an optional [part of speech](/reference/glossary#part-of-speech), and search options, kfind returns each source span with the lemma, [POS](/reference/glossary#part-of-speech), and rule path that generated it. For example, `걷다` produces candidates for `걷고`, `걸어`, and `걸었다`, then returns only the locations that pass morphology and [boundary](/reference/glossary#boundary) verification.
 
-kfind does not return a complete morpheme sequence, sentence parse, or word sense for the corpus. When semantically different lemmas can produce the same surface, every valid origin is retained. The caller resolves meaning from the surrounding source context.
+kfind does not analyze the corpus into complete morpheme sequences, sentence parses, or word senses. When semantically different lemmas produce the same surface form, it retains every valid origin. The caller resolves meaning from the surrounding context.
 
 ## Search-directed morphology [#search-directed-morphology]
 
-A conventional morphological analyzer receives an observed sentence and estimates the lemma and POS of each token. kfind starts with the target lemma and POS, then derives searchable anchors and permitted particles, endings, and irregular substitutions. The input and output directions are reversed.
+A conventional morphological analyzer receives a sentence and estimates the lemma and POS of each token. kfind starts with the target lemma and POS, then derives searchable anchors and permitted particles, endings, and irregular substitutions. It works in the opposite direction.
 
 Morphology cost is therefore concentrated in the short [query](/reference/glossary#query) rather than the large corpus. The corpus path scans fixed byte anchors first and applies Unicode boundaries and local morphology only around hits. This model combines inflection [recall](/reference/glossary#recall), streaming file search, and rule [provenance](/reference/glossary#provenance) without analyzing every sentence.
 
@@ -24,10 +24,10 @@ Morphology cost is therefore concentrated in the short [query](/reference/glossa
 
 Nominals support plural suffixes and [particle](/reference/glossary#particle) chains. Particle allomorphs such as `은/는`, `이/가`, and `으로/로` are selected from the final consonant condition. Predicates support regular conjugation, ㄷ, ㅂ, ㅅ, 르, 러, and ㅎ irregulars, 우 and 오 contraction, prefinal endings, and finite terminal, connective, adnominal, and nominalizing chains.
 
-Copulas, auxiliaries, derivational suffixes, and internal compound components remain under `smart` only when the compact [component resource](/reference/glossary#component-resource) proves the POS and span path inside the token. Arbitrary combinations and contextual word-sense inference are not generated.
+`smart` accepts copulas, auxiliaries, derivational suffixes, and internal compound components only when the compact [component resource](/reference/glossary#component-resource) proves the POS and span path inside the token. It does not generate arbitrary combinations or infer word senses from context.
 
 ## Usage profiles [#usage-profiles]
 
 Interactive search defaults to POS `auto` and the `smart` boundary. The full-POS [lexicon](/reference/glossary#lexicon) and local structural evidence constrain internal-token false positives.
 
-Agents tag each [atom](/reference/glossary#atom) with a POS and combine `--embedded`, `--boundary any`, and `--json`. This profile prioritizes recall and low initialization cost, while the agent reads surrounding spans to choose semantically relevant candidates. The CLI, Rust API, and npm WebAssembly API share the same plan and provenance model.
+Agents tag each [atom](/reference/glossary#atom) with a POS and combine `--embedded`, `--boundary any`, and `--json`. This profile prioritizes recall and low initialization cost. The agent reads the surrounding text to choose semantically relevant candidates. The CLI, Rust API, and npm WebAssembly API share the same query-plan and provenance model.
