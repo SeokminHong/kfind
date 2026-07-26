@@ -1,5 +1,5 @@
 import { DocumentLocale } from './app/i18n';
-import { componentResourceVersion } from './kfind-wasm';
+import { componentResourceRevision } from './kfind-wasm';
 
 export enum ComponentResourceState {
   Checking = 'checking',
@@ -36,9 +36,9 @@ export const componentResourceMessages: Readonly<
   Record<DocumentLocale, ComponentResourceMessages>
 > = {
   [DocumentLocale.Korean]: {
-    initialResource: `저장된 리소스 확인 중 · ${formatResourceVersion()}`,
-    resourceIdle: `꺼짐 · 켜면 R2에서 35.4 MiB를 받습니다 · ${formatResourceVersion()}`,
-    resourceDisabled: `설치됨 · 꺼짐 · ${formatResourceVersion()}`,
+    initialResource: `저장된 리소스 확인 중 · ${formatResourceRevision()}`,
+    resourceIdle: `꺼짐 · 켜면 R2에서 35.4 MiB를 받습니다 · ${formatResourceRevision()}`,
+    resourceDisabled: `설치됨 · 꺼짐 · ${formatResourceRevision()}`,
     resourceDisableFailed: (error) =>
       `형태 구성 요소 판정을 끄지 못했습니다 · ${error}`,
     resourceDisabling: '형태 구성 요소 판정을 끄는 중…',
@@ -46,17 +46,17 @@ export const componentResourceMessages: Readonly<
     resourceNeeded:
       '이 검색 질의의 smart 구조 판정에는 형태 구성 요소 판정이 필요합니다. 스위치를 켜 주세요.',
     resourceRestored: (byteLength, migrated) =>
-      `${formatMebibytes(byteLength)} MiB ${migrated ? '저장소 복원 및 이전 완료' : '저장소 복원 완료'} · ${formatResourceVersion()}`,
+      `${formatMebibytes(byteLength)} MiB ${migrated ? '저장소 복원 및 이전 완료' : '저장소 복원 완료'} · ${formatResourceRevision()}`,
     resourceStored: (byteLength, stored) =>
       stored
-        ? `${formatMebibytes(byteLength)} MiB 로드·검증·저장 완료 · ${formatResourceVersion()}`
+        ? `${formatMebibytes(byteLength)} MiB 로드·검증·저장 완료 · ${formatResourceRevision()}`
         : `${formatMebibytes(byteLength)} MiB 로드·검증 완료 · 저장소 미지원`,
     resourceVerificationFailed: (error) => `저장된 리소스 검증 실패 · ${error}`,
   },
   [DocumentLocale.English]: {
-    initialResource: `Checking stored resource · ${formatResourceVersion()}`,
-    resourceIdle: `Off · downloads 35.4 MiB from R2 when enabled · ${formatResourceVersion()}`,
-    resourceDisabled: `Installed · off · ${formatResourceVersion()}`,
+    initialResource: `Checking stored resource · ${formatResourceRevision()}`,
+    resourceIdle: `Off · downloads 35.4 MiB from R2 when enabled · ${formatResourceRevision()}`,
+    resourceDisabled: `Installed · off · ${formatResourceRevision()}`,
     resourceDisableFailed: (error) =>
       `Could not turn off morphological component verification · ${error}`,
     resourceDisabling: 'Turning off morphological component verification…',
@@ -65,10 +65,10 @@ export const componentResourceMessages: Readonly<
     resourceNeeded:
       'This query needs morphological component verification for its smart structural decision. Turn on the switch.',
     resourceRestored: (byteLength, migrated) =>
-      `${formatMebibytes(byteLength)} MiB ${migrated ? 'restored and migrated' : 'restored'} · ${formatResourceVersion()}`,
+      `${formatMebibytes(byteLength)} MiB ${migrated ? 'restored and migrated' : 'restored'} · ${formatResourceRevision()}`,
     resourceStored: (byteLength, stored) =>
       stored
-        ? `${formatMebibytes(byteLength)} MiB loaded, verified, and stored · ${formatResourceVersion()}`
+        ? `${formatMebibytes(byteLength)} MiB loaded, verified, and stored · ${formatResourceRevision()}`
         : `${formatMebibytes(byteLength)} MiB loaded and verified · storage unavailable`,
     resourceVerificationFailed: (error) =>
       `Stored resource validation failed · ${error}`,
@@ -90,8 +90,6 @@ function formatMebibytes(byteLength: number): string {
   return (byteLength / (1024 * 1024)).toFixed(1);
 }
 
-function formatResourceVersion(): string {
-  return componentResourceVersion.startsWith('v')
-    ? componentResourceVersion
-    : componentResourceVersion.slice(0, 12);
+function formatResourceRevision(): string {
+  return componentResourceRevision.slice(0, 12);
 }

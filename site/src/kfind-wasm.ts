@@ -88,13 +88,13 @@ export interface RestoredComponentResource {
   readonly migrated: boolean;
 }
 
-declare const __KFIND_COMPONENT_RESOURCE_VERSION__: string;
+declare const __KFIND_COMPONENT_RESOURCE_REVISION__: string;
 
 const COMPONENT_RESOURCE_CACHE = 'kfind-component-resource-v1';
 const COMPONENT_RESOURCE_URL = '/api/component-resource';
 let kfindModulePromise: Promise<KfindModule> | undefined;
 
-export const componentResourceVersion = __KFIND_COMPONENT_RESOURCE_VERSION__;
+export const componentResourceRevision = __KFIND_COMPONENT_RESOURCE_REVISION__;
 
 export async function loadKfind(): Promise<LoadedKfind> {
   const startedAt = performance.now();
@@ -249,7 +249,7 @@ async function restoreComponentResourceCandidate({
 
 function componentResourceRequest(): Request {
   const url = new URL(COMPONENT_RESOURCE_URL, globalThis.location.origin);
-  url.searchParams.set('resource', componentResourceVersion);
+  url.searchParams.set('resource', componentResourceRevision);
   return new Request(url, { method: 'GET' });
 }
 
