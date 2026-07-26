@@ -4,15 +4,15 @@
 
 <Lead>
 
-Morphological knowledge is confined to [query](/reference/glossary#query) plans and bounded decisions around anchors, while corpus-scale work remains byte scanning and streaming output.
+Morphological knowledge is confined to [query](/reference/glossary#query) plans and bounded decisions around anchors. Corpus-scale work remains byte scanning and streaming output.
 
 </Lead>
 
 ## Cost separation [#cost-separation]
 
-Search cost splits into fixed query-plan construction and corpus-dependent scanning. Planning bounds [lexicon](/reference/glossary#lexicon) analyses and candidate programs. Scanning uses long fixed anchors to minimize positions requiring morphology.
+Search cost splits into fixed query-plan construction and corpus-dependent scanning. Planning bounds the [lexicon](/reference/glossary#lexicon) analyses and candidate programs. Scanning uses long fixed anchors to minimize the positions that require morphology.
 
-Programs share [particle](/reference/glossary#particle) and [ending](/reference/glossary#ending) continuations. Only plans with component decisions initialize that resource, and output flows through a capacity-bounded channel. Rule count, corpus size, and result count are controlled at separate boundaries.
+Programs share [particle](/reference/glossary#particle) and [ending](/reference/glossary#ending) continuations. Only plans with component decisions initialize that resource. Output flows through a capacity-bounded channel. Rule count, corpus size, and result count are controlled at separate boundaries.
 
 ## Anchors and matchers [#anchors-and-matchers]
 
@@ -25,7 +25,7 @@ Each candidate program selects the longest fixed byte sequence that reduces veri
 └─ 걸으 · 걸은 · 걸을
 ```
 
-One unique anchor uses `memmem::Finder`. Small multi-anchor inputs merge finder hits directly; larger cumulative scans build one reusable Aho-Corasick automaton. Both paths expose the same overlapping candidate order.
+One unique anchor uses `memmem::Finder`. Small multi-anchor inputs merge finder hits directly. Larger cumulative scans build one reusable Aho-Corasick automaton. Both paths expose overlapping candidates in the same order.
 
 ## Plan limits [#plan-limits]
 
@@ -40,7 +40,7 @@ Public limits prevent one query from consuming unbounded compile [latency](/refe
 | Estimated matcher memory | 64 MiB | per plan                             |
 | Continuation depth       | 4      | state transitions                    |
 
-Exceeding a limit is a compile error. kfind does not silently truncate programs, because a successful partial plan would hide missing inflections.
+Exceeding a limit causes a compile error. kfind does not silently truncate programs, because a successful partial plan would hide missing inflections.
 
 ## Resource initialization [#resource-initialization]
 
@@ -62,4 +62,4 @@ Verified overlaps use leftmost-longest, non-overlapping resolution over core and
 
 ## Performance-metric boundaries [#metric-boundaries]
 
-Startup, lexicon load, query compile, filesystem walk, scan, verification, and output are separate workloads. Fixture [cases/s](/reference/glossary#throughput) is not corpus throughput, and a 1 GiB literal scan does not measure morphology quality or component initialization. Latency, throughput, RSS, and program count retain their own units.
+Startup, lexicon load, query compile, filesystem walk, scan, verification, and output are separate workloads. Fixture [cases/s](/reference/glossary#throughput) is not corpus throughput. A 1 GiB literal scan does not measure morphology quality or component initialization. Latency, throughput, RSS, and program count retain their own units.

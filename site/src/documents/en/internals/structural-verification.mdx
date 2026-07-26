@@ -4,7 +4,7 @@
 
 ## Structural constraints [#constraints]
 
-A constraint declares the component span corresponding to the query core, required POS, whole-token path, and neighboring components. It uses no registry of exceptional source strings.
+A constraint declares the component span that corresponds to the query core, the required POS, the whole-token path, and neighboring components. It does not use a registry of exceptional source strings.
 
 Exact and common-prefix paths require both component order and spans declared by the source analysis.
 
@@ -16,6 +16,6 @@ Limits on nodes, context depth, and payload size bound memory even for malformed
 
 ## Verification failure [#failure]
 
-A missing path rejects the candidate. A missing resource or graph limit is constraint unavailable, preventing silent degradation to a lower-precision path.
+A missing path rejects the candidate. A missing resource or exceeded graph limit makes the constraint unavailable. The engine never silently degrades to a lower-precision path.
 
 If any source analysis satisfies the constraint, the candidate remains and its analysis index enters provenance.

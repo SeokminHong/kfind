@@ -4,15 +4,15 @@
 
 <Lead>
 
-kfind는 형태 분석을 [검색 질의](/reference/glossary#query)와 실제 후보 주변에 한정하고, corpus 전체는 byte [anchor](/reference/glossary#anchor)와 bounded output 경로로 처리합니다.
+kfind는 형태 분석을 [검색 질의](/reference/glossary#query)와 실제 후보 주변에 한정합니다. 말뭉치 전체는 byte [anchor](/reference/glossary#anchor) 검색과 크기가 제한된 출력 경로로 처리합니다.
 
 </Lead>
 
-## 검색 질의 경로와 corpus 경로 [#query-and-corpus-lanes]
+## 검색 질의 경로와 말뭉치 경로 [#query-and-corpus-lanes]
 
-검색 질의 경로는 입력을 parse하고 정규화한 뒤 사전 분석과 형태 규칙으로 [후보 프로그램](/reference/glossary#candidate-program)을 만듭니다. 각 프로그램은 고정 anchor, 원문 core mapping, suffix consumption과 판정 제약을 가집니다. 같은 계획으로 여러 파일을 검색하는 동안 이 과정은 반복되지 않습니다.
+검색 질의 경로는 입력을 parse하고 정규화한 뒤 사전 분석과 형태 규칙으로 [후보 프로그램](/reference/glossary#candidate-program)을 만듭니다. 각 프로그램은 고정 anchor, 원문 core mapping, suffix consumption과 판정 제약을 가집니다. 여러 파일에 같은 계획을 실행할 때 이 과정을 반복하지 않습니다.
 
-corpus 경로는 파일을 병렬 순회하고 byte anchor를 찾습니다. anchor가 없는 구간에서는 형태소 분석이나 Unicode scalar 순회를 하지 않습니다. hit가 발생한 위치에서만 UTF-8 경계, [조사](/reference/glossary#particle)·[어미](/reference/glossary#ending), token [boundary](/reference/glossary#boundary)와 선택적 component 조건을 확인합니다.
+말뭉치 경로는 파일을 병렬 순회하며 byte anchor를 찾습니다. anchor가 없는 구간에서는 형태소 분석이나 Unicode scalar 순회를 하지 않습니다. 일치 후보가 있는 위치에서만 UTF-8 경계, [조사](/reference/glossary#particle)·[어미](/reference/glossary#ending), token [경계](/reference/glossary#boundary)와 선택적 구성 요소 조건을 확인합니다.
 
 ```text
 query lane
@@ -27,7 +27,7 @@ corpus lane                              ▼
 
 ## 후보 프로그램 [#candidate-programs]
 
-모든 [활용](/reference/glossary#inflection)형을 완성 문자열로 열거하면 어미 연쇄에 따라 matcher 메모리가 증가합니다. `CandidateProgram`은 고정 부분과 가변 부분을 분리합니다. anchor는 byte 검색에 사용하고, consumption은 anchor 뒤의 조사·어미 상태를 소비합니다.
+모든 [활용](/reference/glossary#inflection)형을 완성된 문자열로 열거하면 어미 연쇄에 따라 matcher 메모리가 증가합니다. `CandidateProgram`은 고정 부분과 가변 부분을 분리합니다. anchor는 byte 검색에 사용하고, consumption은 anchor 뒤의 조사·어미 상태를 소비합니다.
 
 ```text
 CandidateProgram
@@ -38,17 +38,17 @@ CandidateProgram
 └─ origins: [ㄷ 불규칙, 과거 선어말어미]
 ```
 
-조사와 어미 continuation은 전역 DFA 또는 trie로 공유합니다. 같은 surface가 여러 [품사](/reference/glossary#part-of-speech) 분석이나 규칙에서 만들어지면 실행 span은 한 번만 반환하고 [provenance](/reference/glossary#provenance)는 합쳐서 보존합니다.
+조사와 어미 continuation은 전역 DFA 또는 trie로 공유합니다. 같은 표면형이 여러 [품사](/reference/glossary#part-of-speech) 분석이나 규칙에서 만들어지면 실행 span은 한 번만 반환하고 [생성 근거](/reference/glossary#provenance)는 합쳐서 보존합니다.
 
 ## 국소 검증 [#local-verification]
 
-anchor hit는 일치가 아니라 검증 후보입니다. 엔진은 byte 위치의 UTF-8 경계, core 왼쪽 경계, suffix 상태 전이, 완성된 token의 오른쪽 경계와 구조 제약을 순서대로 검사합니다. 필요한 조건을 모두 통과한 후보만 원문 span이 됩니다.
+anchor 일치는 최종 결과가 아닌 검증 후보입니다. 엔진은 byte 위치의 UTF-8 경계, core 왼쪽 경계, suffix 상태 전이, 완성된 token의 오른쪽 경계와 구조 제약을 순서대로 검사합니다. 필요한 조건을 모두 통과한 후보만 원문 span으로 반환합니다.
 
-`smart` 경계의 구조 제약은 token 전체를 다시 분석하지 않습니다. [component resource](/reference/glossary#component-resource)에서 후보 token의 세부 품사와 정렬된 형태소 span을 읽고, 검색 질의가 요구한 lexical identity와 인접 component 관계만 판정합니다. 일반 형태소 분석기처럼 corpus의 모든 token에 전체 분석 그래프를 만드는 비용이 없습니다.
+`smart` 경계의 구조 제약은 token 전체를 다시 분석하지 않습니다. [구성 요소 리소스](/reference/glossary#component-resource)에서 후보 token의 세부 품사와 정렬된 형태소 span을 읽고, 검색 질의가 요구한 lexical identity와 인접 구성 요소 관계만 판정합니다. 말뭉치의 모든 token에 전체 분석 그래프를 만드는 일반 형태소 분석기의 비용을 피할 수 있습니다.
 
 ## 구 span 결합 [#phrase-spans]
 
-[구 검색](/reference/glossary#phrase)은 [atom](/reference/glossary#atom)의 모든 표면형을 곱해 거대한 정규식으로 만들지 않습니다. 각 atom을 독립적으로 검증한 뒤, span 목록을 검색 질의 순서와 `max-gap` 조건으로 결합합니다. 후보가 없는 atom이 있으면 결합을 중단합니다.
+[구 검색](/reference/glossary#phrase)은 [atom](/reference/glossary#atom)의 모든 표면형을 조합한 거대한 정규식을 만들지 않습니다. 각 atom을 독립적으로 검증한 뒤 span 목록을 검색 질의 순서와 `max-gap` 조건으로 결합합니다. 후보가 없는 atom이 있으면 결합을 중단합니다.
 
 ```text
 atom 0 spans ─┐
@@ -56,18 +56,18 @@ atom 1 spans ─┼─ ordered join ─ max-gap ─ phrase span
 atom 2 spans ─┘
 ```
 
-`|` alternative는 하나의 논리 atom으로 컴파일합니다. 각 alternative의 고유 anchor를 한 matcher가 함께 scan하고, 같은 span을 만든 alternative의 provenance는 origin으로 합칩니다.
+`|` 대안은 하나의 논리 atom으로 컴파일합니다. 각 대안의 고유 anchor를 한 matcher가 함께 검색하고, 같은 span을 만든 대안의 provenance는 origin으로 합칩니다.
 
 ## 병렬 순회와 출력 [#parallel-output]
 
-ignore 규칙을 이해하는 parallel walker가 파일을 worker에 분배합니다. 각 worker는 자신의 searcher와 scratch buffer를 사용하고, 파일 단위 결과를 capacity가 제한된 channel로 단일 writer에 전달합니다. writer가 느리면 backpressure가 worker를 멈추므로 결과 수에 비례해 메모리가 계속 늘지 않습니다.
+ignore 규칙을 처리하는 병렬 walker가 파일을 worker에 분배합니다. 각 worker는 별도의 searcher와 scratch buffer를 사용하고, 파일 단위 결과를 용량이 제한된 channel로 단일 writer에 전달합니다. writer가 느리면 backpressure가 worker를 멈추므로 결과 수에 따라 메모리가 계속 늘어나지 않습니다.
 
-기본 출력은 파일 결과를 모으지 않습니다. `--sort path`만 결정적인 경로 순서를 위해 전체 file stream을 버퍼링합니다. 소비자가 pipe를 닫아 발생한 broken pipe는 정상 종료로 처리합니다.
+기본 출력은 파일 결과를 한곳에 모으지 않습니다. `--sort path`를 지정한 경우에만 일정한 경로 순서를 위해 전체 파일 스트림을 버퍼링합니다. 소비자가 pipe를 닫아 발생한 broken pipe는 정상 종료로 처리합니다.
 
 ## 실행 표면의 책임 [#execution-surfaces]
 
-| 표면         | 담당 범위                                 | 리소스 정책                             |
-| ------------ | ----------------------------------------- | --------------------------------------- |
-| CLI          | 파일 순회, 입력 인코딩, locale, 출력      | 설치 경로에서 버전이 맞는 리소스를 탐색 |
-| Rust library | UTF-8 memory text의 query compile과 match | 호출자가 resource bytes를 전달          |
-| npm / WASM   | JavaScript 문자열과 UTF-16 offset         | 호출자가 asset bytes를 전달             |
+| 표면         | 담당 범위                                | 리소스 정책                             |
+| ------------ | ---------------------------------------- | --------------------------------------- |
+| CLI          | 파일 순회, 입력 인코딩, locale, 출력     | 설치 경로에서 버전이 맞는 리소스를 탐색 |
+| Rust library | UTF-8 메모리 텍스트의 질의 컴파일과 검색 | 호출자가 리소스 byte 배열을 전달        |
+| npm / WASM   | JavaScript 문자열과 UTF-16 offset        | 호출자가 asset byte 배열을 전달         |

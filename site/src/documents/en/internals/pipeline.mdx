@@ -4,13 +4,13 @@
 
 ## Compilation [#compile]
 
-The lexer creates query atoms and tags; normalization prepares canonical variants. Lexicons return POS analyses and substitution classes per atom.
+The lexer creates query atoms and tags. Normalization prepares canonical variants, and lexicons return POS analyses and substitution classes for each atom.
 
-The generator does not retain every surface as a long string. It lowers analyses into `CandidateProgram` values containing anchors, cores, suffix transitions, and structural requirements.
+The generator does not retain every surface form as a long string. It lowers analyses into `CandidateProgram` values containing anchors, cores, suffix transitions, and structural requirements.
 
 ## Scanning [#scan]
 
-Program anchors enter an Aho-Corasick automaton that scans each source chunk once. Source offsets without an anchor receive no morphology analysis or structural graph.
+Program anchors enter an Aho-Corasick automaton that scans each source chunk once. Source offsets without an anchor require no morphology analysis or structural graph.
 
 Chunk overlap covers the longest anchor and phrase requirement before offsets are mapped back to the original source.
 
@@ -18,10 +18,10 @@ Chunk overlap covers the longest anchor and phrase requirement before offsets ar
 
 An anchor hit executes only its linked programs. The verifier checks core, particle or ending states, boundaries, and optional structural constraints in order.
 
-The compact graph is prepared only for the token and nearby context. Exceeding node or context limits is a constraint-unavailable error, never a fallback to simpler boundaries.
+The compact graph is prepared only for the token and nearby context. Exceeding node or context limits causes a constraint-unavailable error. It never falls back to simpler boundaries.
 
 ## Emission [#emit]
 
-The phrase matcher connects approved atom spans and applies overlap and deduplication policy. Final matches preserve source coordinates and every analysis origin.
+The phrase matcher connects approved atom spans and applies the overlap and deduplication policies. Final matches preserve source coordinates and every analysis origin.
 
 The CLI layer converts matches to source lines, columns, and output schemas. The library matcher knows nothing about files or encodings.
