@@ -518,8 +518,9 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
   `hreflang="en"`과 query 없는 한국어 URL을 가리키는 `hreflang="x-default"`를 제공한다. Pages
   Function은 일반 browser와 crawler를 구분하지 않고 `?hl=en` 요청에 영어 prerender HTML을 `200`으로
   제공한다. Browser를 다른 URL로 redirect하거나 user agent에 따라 다른 문서를 제공하지 않는다.
-- 모든 문서 헤딩은 설명 대상을 나타내는 명사구로 작성한다. 완결된 문장, 홍보 문구와 행동을
-  권하는 문장을 헤딩으로 사용하지 않는다.
+- 한국어 문서의 헤딩은 설명 대상을 나타내는 명사구로 작성한다. 완결된 문장, 홍보 문구와
+  행동을 권하는 문장을 헤딩으로 사용하지 않는다. 영어 문서의 헤딩은 영어 독자에게 자연스러운
+  문형을 사용하며 명사구로 제한하지 않는다.
 - 좁은 화면의 문서 navigation은 두 열 grid로 배치한다. 각 navigation group은 링크 수와 관계없이
   내용 높이를 유지하며, 같은 grid 행의 다른 group 높이에 맞춰 내부 link를 늘리지 않는다.
 - 옵션 문서는 `inflection`, `derivation`, `literal`의 생성 범위와 차이, `--literal` 단축 옵션의

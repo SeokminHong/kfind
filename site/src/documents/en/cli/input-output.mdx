@@ -10,13 +10,13 @@ The npm CLI recursively visits UTF-8 paths in deterministic order and does not f
 
 ## Encoding [#encoding]
 
-Native `auto` detects UTF-8 and BOM-marked UTF-16. It also supports explicit `euc-kr`. Matches in decoded text are mapped back to source positions.
+Native `auto` detects UTF-8 and BOM-marked UTF-16; explicit `euc-kr` is also supported. Matches in decoded text are mapped back to source positions.
 
 The npm CLI accepts UTF-8 only. It reports and skips files containing NUL or failing strict UTF-8 decoding.
 
 ## Output formats [#output]
 
-Human-readable text contains the path, line, column, and surface form. The native CLI may use its TUI pager on POSIX TTYs and in PowerShell hosted by Windows Terminal. `--no-pager` forces the bounded stdout stream.
+Human-readable text contains the path, line, column, and surface form. The native CLI may use its TUI pager on POSIX TTYs and in PowerShell hosted by Windows Terminal; `--no-pager` forces the bounded stdout stream.
 
 Automation uses JSON Lines. Each record preserves the match, atom spans, and every `rulePath`.
 

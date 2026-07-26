@@ -10,12 +10,12 @@ A broken pipe is a normal consumer-closed output condition.
 
 ## npm CLI [#npm]
 
-The npm search uses the same meanings for 0, 1, and 2. Invalid UTF-8 and binary files are reported and skipped. An explicit path read failure returns 2.
+The npm search uses the same meanings for 0, 1, and 2. Invalid UTF-8 and binary files are reported and skipped; an explicit path read failure returns 2.
 
 `--help` and `--version` succeed with 0.
 
 ## Pipeline use [#pipelines]
 
-Under `set -e`, no-match status 1 can stop a script. Handle it explicitly when allowed, without converting status 2 to success.
+Under `set -e`, no-match status 1 can stop a script. Branch explicitly when it is allowed, without converting status 2 to success.
 
 If partial stdout is followed by status 2, discard it or mark it incomplete.

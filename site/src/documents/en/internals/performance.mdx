@@ -25,7 +25,7 @@ Each candidate program selects the longest fixed byte sequence that reduces veri
 └─ 걸으 · 걸은 · 걸을
 ```
 
-One unique anchor uses `memmem::Finder`. Small multi-anchor inputs merge finder hits directly. Larger cumulative scans build one reusable Aho-Corasick automaton. Both paths expose overlapping candidates in the same order.
+One unique anchor uses `memmem::Finder`. Small multi-anchor inputs merge finder hits directly; larger cumulative scans build one reusable Aho-Corasick automaton. Both paths expose overlapping candidates in the same order.
 
 ## Plan limits [#plan-limits]
 

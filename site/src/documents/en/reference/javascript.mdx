@@ -4,7 +4,7 @@
 
 ## Package exports [#exports]
 
-The browser condition selects bundler ESM WASM. The Node condition selects the CommonJS WASM target. Both share the same TypeScript declarations.
+The browser condition selects bundler ESM WASM; the Node condition selects the CommonJS WASM target. Both share the same TypeScript declarations.
 
 Static assets are exported through raw subpaths and the `@kfind/kfind/assets` module based on `new URL(relative, import.meta.url)`. The module resolves to an installed-package `file:` URL in Node.js and a content-hashed static asset URL in browser bundlers that support this pattern.
 

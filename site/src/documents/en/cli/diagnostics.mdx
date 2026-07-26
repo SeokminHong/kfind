@@ -16,6 +16,6 @@ Input errors cover path lookup, decode, and reads. Output errors cover stdout wr
 
 ## Exit status [#exit-status]
 
-The native CLI follows command-specific status rules. The npm CLI returns 0 for matches, 1 for no match, and 2 for errors. A `set -e` shell must explicitly allow the no-match status when appropriate.
+The native CLI follows command-specific status rules; the npm CLI returns 0 for matches, 1 for no match, and 2 for errors. A `set -e` shell must explicitly allow the no-match status when appropriate.
 
 Partial stdout is not a complete result when the final status reports an error.
