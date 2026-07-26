@@ -505,18 +505,6 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks" />
   </url>
   <url>
-    <loc>https://kfind.pages.dev/benchmarks/current</loc>
-    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/current" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/current?hl=en" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/current" />
-  </url>
-  <url>
-    <loc>https://kfind.pages.dev/benchmarks/current?hl=en</loc>
-    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/current" />
-    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/current?hl=en" />
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/current" />
-  </url>
-  <url>
     <loc>https://kfind.pages.dev/benchmarks/methodology</loc>
     <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/methodology" />
     <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/methodology?hl=en" />

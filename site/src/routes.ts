@@ -49,9 +49,6 @@ export default [
   route(RoutePath.Benchmarks, 'pages/document.tsx', {
     id: 'benchmarks-overview',
   }),
-  route(RoutePath.BenchmarkCurrent, 'pages/document.tsx', {
-    id: 'benchmarks-current',
-  }),
   ...technicalRoutes(guideGroup, new Set([RoutePath.GettingStarted])),
   ...technicalRoutes(cliGroup, new Set([RoutePath.Options])),
   ...technicalRoutes(agentsGroup, new Set([RoutePath.Agents])),
@@ -63,10 +60,7 @@ export default [
       RoutePath.Optimization,
     ]),
   ),
-  ...technicalRoutes(
-    benchmarksGroup,
-    new Set([RoutePath.Benchmarks, RoutePath.BenchmarkCurrent]),
-  ),
+  ...technicalRoutes(benchmarksGroup, new Set([RoutePath.Benchmarks])),
   ...technicalRoutes(referenceGroup, new Set([RoutePath.Glossary])),
   route(RoutePath.Playground, 'pages/playground/page.tsx'),
   route('*', 'pages/not-found.tsx'),

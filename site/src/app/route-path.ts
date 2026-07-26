@@ -41,7 +41,6 @@ export const RoutePath = {
   Ambiguity: '/internals/morphology/ambiguity',
   Coverage: '/internals/morphology/coverage',
   Benchmarks: '/benchmarks',
-  BenchmarkCurrent: '/benchmarks/current',
   BenchmarkMethodology: '/benchmarks/methodology',
   BenchmarkContract: '/benchmarks/contract',
   BenchmarkCanonical: '/benchmarks/canonical',

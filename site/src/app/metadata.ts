@@ -72,15 +72,13 @@ const routeMetadataKeys: Readonly<
     descriptionKey: 'metadata.optimization.description',
   },
   [RoutePath.Benchmarks]: {
+    browserTitleKey: 'metadata.benchmarks.browser_title',
     titleKey: 'metadata.benchmarks.title',
     descriptionKey: 'metadata.benchmarks.description',
   },
   [RoutePath.Playground]: {
     titleKey: 'metadata.playground.title',
     descriptionKey: 'metadata.playground.description',
-  },
-  [RoutePath.BenchmarkCurrent]: {
-    browserTitleKey: 'metadata.benchmark_current.browser_title',
   },
   [RoutePath.BenchmarkPerformance]: {
     browserTitleKey: 'metadata.benchmark_performance.browser_title',

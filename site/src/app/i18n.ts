@@ -116,11 +116,3 @@ export function getDocumentTranslation(
 ): TFunction {
   return translationI18n.getFixedT(locale);
 }
-
-export async function changeDocumentLocale(
-  i18n: i18n,
-  locale: DocumentLocale,
-): Promise<void> {
-  await i18n.changeLanguage(locale);
-  cacheDocumentLocale(locale);
-}
