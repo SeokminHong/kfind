@@ -391,8 +391,10 @@
   /playground                            WebAssembly 플레이그라운드
   ```
 
-- 전역 navigation은 `Home`, `Get Started`, `CLI`, `Agents`, `Internals`, `Benchmarks`,
-  `Reference`의 한 단계 GNB로 구성한다. `Playground`와 GitHub는 GNB 오른쪽의 독립 action으로
+- 전역 navigation은 영어에서 `Home`, `Get Started`, `CLI`, `Agents`, `Internals`, `Benchmarks`,
+  `Reference`, 한국어에서 `홈`, `시작하기`, `CLI`, `에이전트`, `내부 구조`, `성능 평가`, `명세`의
+  한 단계 GNB로 구성한다. 한국어 navigation category, 문서 제목과 eyebrow에서 영어
+  `Reference`를 `참조`로 직역하지 않는다. `Playground`와 GitHub는 GNB 오른쪽의 독립 action으로
   둔다. 문법 항목, 구현 단계와 개별 지표를 GNB에 직접 나열하지 않는다.
 - 문서 route의 좌측 sidebar는 현재 GNB 영역에 속한 문서와 현재 문서의 절을 함께 표시한다.
   현재 route와 절은 접근 가능한 navigation 상태로 구분한다. 데스크톱에서는 sticky sidebar로,
@@ -404,6 +406,17 @@
 - 각 문서 route의 본문 하단에는 GNB와 sidebar의 전체 문서 순서를 기준으로 이전·다음 문서
   link를 제공한다. 첫 문서에는 다음 link만, 마지막 문서에는 이전 link만 표시하며 link label은
   현재 locale을 따른다. Playground와 정의되지 않은 경로는 이 순서에 포함하지 않는다.
+- 사람이 읽는 문서 본문은 route와 locale별 MDX source로 관리한다. Route metadata, navigation과
+  SEO catalog는 typed index에서 관리하되 제목 아래의 개요, 절, 문단, 목록, 표와 code 예시는
+  TypeScript object에 장문 문자열로 넣지 않는다. 한국어와 영어 MDX는 같은 절 계층과 stable heading
+  ID를 유지하며 build에서 route index와의 일치 여부를 검사한다.
+- MDX에서 쓰는 callout, lead, step, code title과 표 wrapper는 공통 문서 component library로
+  제공한다. 공통 component는 locale에 종속된 본문을 내부에 복제하지 않고 MDX children을
+  접근 가능한 HTML 구조로 표현한다. Route별로 같은 시각 요소를 다시 구현하지 않는다.
+- Fenced code block은 build 시점에 문법 highlighting을 완료한다. 배포된 문서가 색상을 입히기
+  위해 browser에서 highlighter runtime이나 grammar를 내려받지 않게 하며, 언어가 지정되지 않은
+  block도 읽을 수 있는 기본 표현을 제공한다. Highlighting 결과는 본문 code block의 복사,
+  가로 scroll과 접근 가능한 text 선택을 방해하지 않는다.
 
 - 문서 site의 popup, select, collapsible과 form control은 `@base-ui/react`의 unstyled primitive로
   구성한다. 링크, label, keyboard와 pointer 동작은 해당 primitive의 접근성 의미를 유지하고,
@@ -420,7 +433,7 @@
   안의 label도 code 전체를 제외하지 않고 label 자체에 tooltip을 제공한다. Tooltip은 단어장에
   notation이 있는 용어의 notation, 현재 언어의 이름과 정의를 함께 표시한다. 형태소 label과 acronym은
   `VV · 동사`, `TP · 참양성 · true positive`, `TPᶜ · 계약 조정 참양성 · contract-adjusted true
-  positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하되 같은 이름을 중복하지 않는다.
+positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하되 같은 이름을 중복하지 않는다.
   Tooltip은 hover와 keyboard focus로 열 수 있어야 한다. 실제 mouse pointer activation과 keyboard
   Enter activation은 기존 link 동작을 유지한다. Touch·pen pointer activation과 선행 input event가
   없는 link activation은 첫 번째에 tooltip을 열고, 같은 용어의 다음 activation에 단어장으로 이동한다.
@@ -429,6 +442,10 @@
 - 일반 UI text는 Pretendard 기반 sans-serif stack을 사용한다. 코드, 명령, query·output label과
   기술 도해의 코드 표기는 기존 monospace stack을 유지한다. 본문 인라인 code에는 배경, border,
   radius와 최소 padding을 적용해 문장과 구분하고, code block 안에서는 이 장식을 중첩하지 않는다.
+- 데스크톱 문서 본문과 하단 이전·다음 navigation은 route의 문서 길이, 표와 code block 너비에
+  관계없이 같은 content column을 사용한다. 세로 scrollbar 유무로 shell과 본문 중심축이 움직이지
+  않게 viewport scrollbar 영역을 안정적으로 확보한다. 표와 code block의 overflow는 content
+  column을 넓히지 않고 해당 container 안에서 처리한다.
 - 문서 table은 열 내부의 짧은 label·수치·단위를 줄바꿈하지 않는다. 화면보다 넓은 table은
   cell을 접는 대신 table container에서 가로로 scroll한다.
 - 공통 spacing scale은 `0.25rem`, `0.5rem`, `0.75rem`, `1rem`, `1.5rem`과 section 간격
@@ -2305,30 +2322,30 @@ pipe이면 기본 검색 대상을 stdin으로 전환한다. `-`는 stdin을 명
 
 ### 14.2 주요 옵션
 
-| 옵션                      | 값                                         |              기본값 | 설명                               |
-| ------------------------- | ------------------------------------------ | ------------------: | ---------------------------------- |
-| `--pos`                   | 품사                                       |              `auto` | 쿼리 전체 품사 강제                |
-| `--expand`                | `literal`, `inflection`, `derivation`      |        `inflection` | 확장 수준                          |
-| `--boundary`              | `smart`, `token`, `any`                    |             `smart` | 경계 정책                          |
-| `--embedded`              | flag                                       |               false | full POS lexicon을 로드하지 않음   |
-| `--max-gap`               | 정수                                       |                `24` | phrase atom 사이 최대 거리         |
-| `--unicode-normalization` | `nfc`, `canonical`, `none`                 |               `nfc` | Unicode 검색 모드                  |
-| `--encoding`              | 인코딩                                     |              `auto` | 원문 인코딩                        |
-| `--glob`                  | glob                                       |                없음 | 파일 포함·제외 규칙                |
-| `--type`, `--type-add`    | 파일 유형                                  |                없음 | 파일 유형 필터                     |
-| `--hidden`                | flag                                       |               false | hidden 파일 포함                   |
-| `--no-ignore`             | flag                                       |               false | ignore 규칙 무시                   |
-| `--threads`               | 정수                                       |                자동 | worker 수                          |
-| `--count`                 | flag                                       |               false | 파일별 match 수                    |
-| `--files-with-matches`    | flag                                       |               false | 파일명만 출력                      |
-| `--json`                  | flag                                       |               false | JSON Lines 출력                    |
-| `--color`                 | `auto`, `always`, `never`                  |              `auto` | 터미널 색상                        |
-| `--no-pager`              | flag                                       |               false | TTY에서도 pager를 사용하지 않음    |
-| `--explain-query`         | flag                                       |               false | 쿼리 계획 출력                     |
-| `--explain-match`         | flag                                       |               false | 생성 근거 출력                     |
-| `--sort`                  | `path`                                     |                없음 | 결과 정렬                          |
-| `--data-dir`              | 경로                                       |                자동 | 외부 데이터 디렉터리               |
-| `--user-lexicon`          | 경로                                       |                자동 | 사용자 사전                        |
+| 옵션                      | 값                                         |              기본값 | 설명                              |
+| ------------------------- | ------------------------------------------ | ------------------: | --------------------------------- |
+| `--pos`                   | 품사                                       |              `auto` | 쿼리 전체 품사 강제               |
+| `--expand`                | `literal`, `inflection`, `derivation`      |        `inflection` | 확장 수준                         |
+| `--boundary`              | `smart`, `token`, `any`                    |             `smart` | 경계 정책                         |
+| `--embedded`              | flag                                       |               false | full POS lexicon을 로드하지 않음  |
+| `--max-gap`               | 정수                                       |                `24` | phrase atom 사이 최대 거리        |
+| `--unicode-normalization` | `nfc`, `canonical`, `none`                 |               `nfc` | Unicode 검색 모드                 |
+| `--encoding`              | 인코딩                                     |              `auto` | 원문 인코딩                       |
+| `--glob`                  | glob                                       |                없음 | 파일 포함·제외 규칙               |
+| `--type`, `--type-add`    | 파일 유형                                  |                없음 | 파일 유형 필터                    |
+| `--hidden`                | flag                                       |               false | hidden 파일 포함                  |
+| `--no-ignore`             | flag                                       |               false | ignore 규칙 무시                  |
+| `--threads`               | 정수                                       |                자동 | worker 수                         |
+| `--count`                 | flag                                       |               false | 파일별 match 수                   |
+| `--files-with-matches`    | flag                                       |               false | 파일명만 출력                     |
+| `--json`                  | flag                                       |               false | JSON Lines 출력                   |
+| `--color`                 | `auto`, `always`, `never`                  |              `auto` | 터미널 색상                       |
+| `--no-pager`              | flag                                       |               false | TTY에서도 pager를 사용하지 않음   |
+| `--explain-query`         | flag                                       |               false | 쿼리 계획 출력                    |
+| `--explain-match`         | flag                                       |               false | 생성 근거 출력                    |
+| `--sort`                  | `path`                                     |                없음 | 결과 정렬                         |
+| `--data-dir`              | 경로                                       |                자동 | 외부 데이터 디렉터리              |
+| `--user-lexicon`          | 경로                                       |                자동 | 사용자 사전                       |
 | `--init`                  | flag                                       |               false | 현재 디렉터리에 agent 통합 초기화 |
 | `--agent`                 | `claude-code`, `codex`, `gemini`, `custom` | TTY 선택 또는 stdin | 초기화 대상, 반복 가능            |
 
