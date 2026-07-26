@@ -30,10 +30,10 @@ export const englishTranslation: Readonly<
   'metadata.architecture.title': 'Architecture',
   'metadata.benchmark_comparisons.browser_title':
     'kfind vs. Korean Morphological Analyzers: Quality and Performance',
-  'metadata.benchmark_current.browser_title':
-    'Latest Korean Morphology Search Benchmarks | kfind',
   'metadata.benchmark_performance.browser_title':
     'kfind Performance Measurement: Throughput, Startup, and Memory',
+  'metadata.benchmarks.browser_title':
+    'Latest Korean Morphology Search Benchmarks | kfind',
   'metadata.benchmarks.description':
     'Quality and performance contracts with raw and contract-adjusted metrics.',
   'metadata.benchmarks.title': 'Benchmarks',

@@ -6,10 +6,11 @@ const locales = ['ko', 'en'];
 const acronymLabelPattern = /^(?:[A-Z]{2,}|[A-Z]\d)(?:ᶜ)?$/u;
 const documentRoutePaths = await readDocumentRoutePaths();
 const routes = documentRoutePaths.filter((route) => route !== '/playground');
-const routeFailures = await Promise.all(
+const routeResults = await Promise.all(
   routes.map((route) => checkRoute(route)),
 );
-const failures = routeFailures.flat();
+const failures = routeResults.flatMap((result) => result.errors);
+failures.push(...duplicateDocumentFailures(routeResults));
 
 async function checkRoute(route) {
   const routeErrors = [];
@@ -88,7 +89,34 @@ async function checkRoute(route) {
     }
   }
 
-  return routeErrors;
+  return { errors: routeErrors, route, sources };
+}
+
+function duplicateDocumentFailures(results) {
+  const duplicateFailures = [];
+
+  for (const locale of locales) {
+    const routeBySource = new Map();
+
+    for (const { route, sources } of results) {
+      const source = sources.get(locale);
+      if (source === undefined) {
+        continue;
+      }
+
+      const existingRoute = routeBySource.get(source);
+      if (existingRoute !== undefined) {
+        duplicateFailures.push(
+          `${locale}:${route} MDX source가 ${existingRoute}와 중복됩니다.`,
+        );
+        continue;
+      }
+
+      routeBySource.set(source, route);
+    }
+  }
+
+  return duplicateFailures;
 }
 
 const koreanCatalog = await readFile(

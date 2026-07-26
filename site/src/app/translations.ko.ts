@@ -26,10 +26,9 @@ export const koreanTranslation = {
   'metadata.architecture.title': '아키텍처',
   'metadata.benchmark_comparisons.browser_title':
     'kfind와 한국어 형태 분석기 품질·성능 비교',
-  'metadata.benchmark_current.browser_title':
-    '한국어 형태 검색 최신 벤치마크 | kfind',
   'metadata.benchmark_performance.browser_title':
     'kfind 성능 측정 방법: 처리량·시작 비용·메모리',
+  'metadata.benchmarks.browser_title': '한국어 형태 검색 최신 벤치마크 | kfind',
   'metadata.benchmarks.description':
     'kfind의 품질과 성능 측정 계약을 설명합니다.',
   'metadata.benchmarks.title': '벤치마크',

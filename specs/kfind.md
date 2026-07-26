@@ -365,8 +365,7 @@
   /internals/morphology/ambiguity        중의성과 경계 판정
   /internals/morphology/coverage         규칙 범위와 비목표
 
-  /benchmarks                            평가 개요
-  /benchmarks/current                    최신 품질·성능 결과
+  /benchmarks                            평가 개요와 최신 품질·성능 결과
   /benchmarks/methodology                fixture와 측정 절차
   /benchmarks/contract                   raw·contract-adjusted 계약
   /benchmarks/canonical                  표준 맞춤법 품질
@@ -405,15 +404,17 @@
   좁은 화면에서는 같은 계층을 보존하는 collapsible 문서 메뉴로 제공한다. 메뉴 trigger에는
   펼침 상태를 나타내는 chevron과 접근 가능한 expanded 상태를 함께 제공한다. 본문 순서와
   sidebar 순서는 일치해야 하며, 언어를 전환해도 route와 절 fragment는 유지한다. `Internals`의
-  한국어 형태 처리는 별도 sidebar 하위 범주로 묶고, benchmark의 최신 결과·방법론·역사
-  보고서는 서로 다른 route로 분리한다. GNB에는 이 하위 범주를 펼치지 않는다.
+  한국어 형태 처리는 별도 sidebar 하위 범주로 묶는다. Benchmark의 평가 개요와 최신 결과는
+  `/benchmarks`에 함께 표시하고, 방법론과 역사 보고서는 별도 route로 분리한다. GNB에는 이 하위
+  범주를 펼치지 않는다.
 - 각 문서 route의 본문 하단에는 GNB와 sidebar의 전체 문서 순서를 기준으로 이전·다음 문서
   link를 제공한다. 첫 문서에는 다음 link만, 마지막 문서에는 이전 link만 표시하며 link label은
   현재 locale을 따른다. Playground와 정의되지 않은 경로는 이 순서에 포함하지 않는다.
 - 사람이 읽는 문서 본문은 route와 locale별 MDX source로 관리한다. Route metadata, navigation과
   SEO catalog는 typed index에서 관리하되 제목 아래의 개요, 절, 문단, 목록, 표와 code 예시는
   TypeScript object에 장문 문자열로 넣지 않는다. 한국어와 영어 MDX는 같은 절 계층과 stable heading
-  ID를 유지하며 build에서 route index와의 일치 여부를 검사한다.
+  ID를 유지하며 build에서 route index와의 일치 여부를 검사한다. 서로 다른 canonical route가 같은
+  locale의 MDX 본문을 복제하지 않는다.
 - MDX에서 쓰는 callout, lead, step, code title과 표 wrapper는 공통 문서 component library로
   제공한다. 공통 component는 locale에 종속된 본문을 내부에 복제하지 않고 MDX children을
   접근 가능한 HTML 구조로 표현한다. Route별로 같은 시각 요소를 다시 구현하지 않는다.

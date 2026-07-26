@@ -12,42 +12,10 @@ export const benchmarksGroup: DocumentGroupIndex = {
       pages: [
         page(
           RoutePath.Benchmarks,
-          '평가 개요',
-          'Evaluation overview',
-          '품질 계약, workload별 품질·성능과 source report의 관계를 설명합니다.',
-          'Connect the quality contract, workload quality and performance, and source reports.',
-          [
-            ['evaluation-scope', '평가 범위', 'Evaluation scope'],
-            ['quality-contract', '품질 계약', 'Quality contract'],
-            [
-              'canonical-quality',
-              '표준문 품질·성능',
-              'Canonical quality and performance',
-            ],
-            [
-              'query-matrix-quality',
-              'query matrix 품질·성능',
-              'Query-matrix quality and performance',
-            ],
-            [
-              'robust-quality',
-              '오류 문장 품질·성능',
-              'Robust quality and performance',
-            ],
-            [
-              'search-strategy-baseline',
-              '형태 질의와 정규식',
-              'Morphology queries and regex',
-            ],
-            ['source-evidence', 'source 근거', 'Source evidence'],
-          ],
-        ),
-        page(
-          RoutePath.BenchmarkCurrent,
-          '최신 결과',
-          'Current results',
-          '승인 snapshot의 품질·성능 결과와 적용 범위를 한곳에 표시합니다.',
-          'Present the approved quality and performance snapshot with its scope.',
+          '평가와 최신 결과',
+          'Overview and current results',
+          '평가 계약과 승인 snapshot의 최신 품질·성능 결과를 한곳에 표시합니다.',
+          'Present the evaluation contract and current approved quality and performance snapshot.',
           [
             ['evaluation-scope', '평가 범위', 'Evaluation scope'],
             ['quality-contract', '품질 계약', 'Quality contract'],
