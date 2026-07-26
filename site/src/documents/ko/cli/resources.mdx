@@ -1,0 +1,21 @@
+<Eyebrow>CLI · 실행</Eyebrow>
+
+# 사전과 resource
+
+## 사전 profile [#profiles]
+
+Embedded 사전은 핵심 품사, 기능어와 불규칙을 제공합니다. Enriched predicate는 고정 사전 snapshot이 지지하는 용언 정보를 더하고 full POS는 세부 품사 후보를 확장합니다.
+
+Compact component는 source surface의 품사열과 component span을 제공하며 query lexicon을 확장하지 않습니다.
+
+## resource 해석 [#resolution]
+
+Native CLI는 설치 prefix, 환경 변수와 명시적 option의 우선순위로 resource를 찾습니다. 필요한 capability가 없으면 초기화 또는 compile 오류입니다.
+
+JavaScript API는 경로를 추정하지 않습니다. npm CLI만 package 내부 asset을 알고 component가 필요한 query에서 lazy load합니다.
+
+## 호환성 검증 [#validation]
+
+Binary resource header의 package version, schema, source identity, section length와 SHA-256을 모두 검증합니다. 검증이 끝나기 전 bytes를 engine state에 설치하지 않습니다.
+
+새 resource load가 실패하면 이미 검증된 component state는 유지됩니다. 다른 package version의 asset으로 fallback하지 않습니다.

@@ -1,0 +1,21 @@
+<Eyebrow>CLI · EXECUTION</Eyebrow>
+
+# Lexicons and resources
+
+## Lexicon profiles [#profiles]
+
+The embedded lexicon provides core POS, function words, and irregulars. Enriched predicates add entries supported by pinned dictionary snapshots; full POS expands detailed POS candidates.
+
+The compact component resource supplies POS sequences and component spans for source surfaces. It does not expand the query lexicon.
+
+## Resource resolution [#resolution]
+
+The native CLI resolves resources by explicit options, environment, and installation prefix. Missing required capability is an initialization or compile error.
+
+The JavaScript API never guesses paths. Only the npm CLI knows package assets and lazily loads the component resource for a query that needs it.
+
+## Compatibility validation [#validation]
+
+Binary headers, package version, schema, source identity, section lengths, and SHA-256 are validated before bytes enter engine state.
+
+A failed replacement preserves the previously validated component. No asset from another package version is used as fallback.

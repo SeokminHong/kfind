@@ -1,0 +1,21 @@
+<Eyebrow>CLI · QUERY</Eyebrow>
+
+# Expansion modes
+
+## Literal [#literal]
+
+`literal` searches only the input Unicode string. It creates no particle, ending, irregular, or derivational programs.
+
+Normalization still applies. With `canonical`, NFC and NFD forms are searched as canonical variants of the same string.
+
+## Inflection [#inflection]
+
+The default `inflection` mode generates POS-preserving particle attachment and predicate inflection. It includes coda-conditioned allomorphs, ending chains, irregulars, and registered contractions.
+
+POS-changing paths such as noun-to-predicate `하다` derivation are excluded.
+
+## Derivation [#derivation]
+
+`derivation` adds productive paths from versioned rule data, including noun plus `하다`, selected affixes, and subsequent inflection.
+
+It does not combine every plausible affix. A program requires complete lexicon POS, source components, and rule-specific structural constraints.

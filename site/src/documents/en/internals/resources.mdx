@@ -1,0 +1,21 @@
+<Eyebrow>INTERNALS · DATA</Eyebrow>
+
+# Resource architecture
+
+## Resource layers [#resource-layers]
+
+Core, enriched, and full POS form query-analysis lexicon layers. The compact component artifact indexes analyses and components for source surfaces.
+
+Generation sources and checksums are pinned in manifests. Runtime network fetching and background updates do not exist.
+
+## Container format [#container]
+
+A binary container includes magic, schema, package version, source identity, section directory, and SHA-256. Large index and payload sections can be verified independently.
+
+The 128 MiB encoded-resource limit is checked first. Lengths and offsets are validated before digest or payload graphs are read.
+
+## Initialization lifecycle [#lifecycle]
+
+A native engine owns validated resources and reuses them across matchers. JavaScript callers pass bytes explicitly through `withResources` or `loadComponentResource`.
+
+Replacement applies atomically only after all validation completes. Failure preserves existing state.

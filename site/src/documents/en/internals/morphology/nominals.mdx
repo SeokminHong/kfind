@@ -1,0 +1,23 @@
+<Eyebrow>KOREAN MORPHOLOGY · NOMINALS</Eyebrow>
+
+# Nominals
+
+## Nominal classes [#classes]
+
+Common NNG and proper NNP map to noun, NP to pronoun, and NR to numeral queries. Bound NNB and unit-like NNBC may require preceding-component conditions.
+
+A nominal program starts the particle automaton after its core and never uses the ending automaton.
+
+## Nominal suffixes [#suffixes]
+
+Elements such as `들`, `적`, and `성` before particles do not share one rule. They are consumed as typed suffixes only when lexicon entries declare plural or nominal derivation.
+
+A supported nominal suffix such as `하` in `책임하에서` forms a noun path only when its span and following particle complete.
+
+## Numerals and units [#numbers]
+
+A numeric structure requires ASCII digits followed by one or more NR nodes and an aligned NNB or NNBC unit span. `2026년에는` follows digit, unit, and particle nodes.
+
+Units without NR, trailing common nouns, unknown nodes, and incomplete particle chains are rejected.
+
+`num:2026` matches `2026년에는` when its numeral and unit analyses align, but not `2026학교에는`, which has no NR-to-unit path.

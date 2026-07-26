@@ -1,0 +1,21 @@
+<Eyebrow>명세 · 출력</Eyebrow>
+
+# JSON Lines
+
+## record [#record]
+
+Native record는 `type`, `path`, `line`, `text`, `spans`를 포함합니다. npm record는 `path`, `line`, `column`, `start`, `end`, `surface`, `atoms`를 포함합니다.
+
+각 object 뒤에 LF가 오며 diagnostic은 stderr에만 기록합니다.
+
+## span [#spans]
+
+Native UTF-8 text offset은 `utf8-bytes`, raw bytes는 `bytes` encoding을 표시합니다. npm offset과 column은 UTF-16 code unit입니다.
+
+Core는 query 표제어에 대응하는 범위, token은 조사·어미 소비까지 포함한 범위입니다.
+
+## provenance [#provenance]
+
+Origin은 lemma, POS와 ordered `rules` 또는 `analysisIndex`, `rulePath`를 보존합니다. 하나의 atom에 여러 origin이 있을 수 있습니다.
+
+Consumer는 모르는 field를 무시할 수 있지만 좌표 encoding을 확인하지 않고 slice하면 안 됩니다.

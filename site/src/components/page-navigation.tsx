@@ -1,6 +1,10 @@
 import { Link, useLocation } from 'react-router';
 
-import { useDocumentLocale, useDocumentTranslation } from '../app/i18n';
+import {
+  localizedDocumentHref,
+  useDocumentLocale,
+  useDocumentTranslation,
+} from '../app/i18n';
 import {
   documentPageNeighborsForPath,
   knownRoutePathFromPathname,
@@ -32,7 +36,7 @@ export function DocumentPageNavigation(): React.JSX.Element | null {
         <Link
           className={styles.previousLink}
           rel="prev"
-          to={neighbors.previous.path}
+          to={localizedDocumentHref(neighbors.previous.path, locale)}
         >
           <span className={styles.direction}>
             {t('common.navigation.previous_page')}
@@ -43,7 +47,11 @@ export function DocumentPageNavigation(): React.JSX.Element | null {
         </Link>
       )}
       {neighbors.next === undefined ? null : (
-        <Link className={styles.nextLink} rel="next" to={neighbors.next.path}>
+        <Link
+          className={styles.nextLink}
+          rel="next"
+          to={localizedDocumentHref(neighbors.next.path, locale)}
+        >
           <span className={styles.direction}>
             {t('common.navigation.next_page')}
           </span>

@@ -1,5 +1,19 @@
 {
   "version": 1,
-  "include": ["/api/*"],
+  "include": [
+    "/",
+    "/_i18n/*",
+    "/agents",
+    "/agents/*",
+    "/api/*",
+    "/benchmarks",
+    "/benchmarks/*",
+    "/cli",
+    "/cli/*",
+    "/guide/*",
+    "/internals/*",
+    "/playground",
+    "/reference/*"
+  ],
   "exclude": []
 }

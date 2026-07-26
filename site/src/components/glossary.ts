@@ -24,9 +24,6 @@ export interface GlossaryTerm {
 
 interface GlossaryContent {
   readonly categoryLabels: Readonly<Record<GlossaryCategory, string>>;
-  readonly eyebrow: string;
-  readonly overview: string;
-  readonly title: string;
   readonly terms: readonly GlossaryTerm[];
 }
 
@@ -589,10 +586,6 @@ export const glossaryContent: Readonly<
   Record<DocumentLocale, GlossaryContent>
 > = {
   [DocumentLocale.Korean]: {
-    eyebrow: '참조 · 단어장',
-    title: '검색·문법·측정 용어',
-    overview:
-      'kfind 문서와 벤치마크에서 사용하는 검색 구조, 한국어 문법, 품질 지표와 성능 단위를 정의합니다.',
     categoryLabels: {
       [GlossaryCategory.Search]: '검색 입력',
       [GlossaryCategory.Grammar]: '한국어 문법',
@@ -604,10 +597,6 @@ export const glossaryContent: Readonly<
     terms: localizedKoreanTerms,
   },
   [DocumentLocale.English]: {
-    eyebrow: 'REFERENCE · GLOSSARY',
-    title: 'Search, grammar, and measurement terms',
-    overview:
-      'Definitions for the search structures, Korean grammar, quality metrics, and performance units used throughout the kfind documentation.',
     categoryLabels: {
       [GlossaryCategory.Search]: 'Search input',
       [GlossaryCategory.Grammar]: 'Korean grammar',

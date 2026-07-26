@@ -1,0 +1,23 @@
+<Eyebrow>한국어 형태 · 범위</Eyebrow>
+
+# 문법 범위
+
+## 지원 범위 [#supported]
+
+체언의 주요 조사·이형태, 용언의 대표 종결·연결·관형·명사형 어미, 선어말어미, 주요 불규칙과 등록 파생을 지원합니다.
+
+각 규칙은 stable rule ID와 canonical positive, crossing·hard negative를 가집니다.
+
+## 제한 규칙 [#bounded-rules]
+
+조사·어미 연쇄, 파생 접사와 compound continuation은 닫힌 전이표입니다. 사전에 없는 표제어나 observed source component가 없는 경로는 자동 일반화하지 않습니다.
+
+Full POS와 enriched resource는 coverage를 넓히지만 core 문법 engine의 전이 의미를 바꾸지 않습니다.
+
+`v:걷다`는 등록된 표준 활용 `걸어`에 match합니다. 철자 오류 `거러`나 규칙표에 없는 임의 활용은 기본 `robustness=off` 검색에서 match하지 않습니다.
+
+## 비목표 [#non-goals]
+
+모든 신조어 추론, 띄어쓰기 교정, 의미 disambiguation과 문장 전체 형태 분석은 범위 밖입니다.
+
+Raw FN이 있어도 review가 제품 목표 밖으로 분류한 case는 contract FNᶜ에서 제외합니다. 해당 disposition은 case ledger에 근거가 있어야 하며 미분류 FN을 숨기지 않습니다.

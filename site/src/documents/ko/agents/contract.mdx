@@ -1,0 +1,21 @@
+<Eyebrow>에이전트 · 계약</Eyebrow>
+
+# 통합 계약
+
+## 입력 계약 [#input-contract]
+
+Query는 하나 이상의 atom과 선택적 품사 태그로 구성합니다. Path, encoding, boundary와 expansion은 query text 밖의 실행 옵션입니다.
+
+에이전트는 shell quoting이 끝난 실제 argument를 기록합니다. 자연어 설명만 남기면 같은 query를 재현할 수 없습니다.
+
+## 출력 계약 [#output-contract]
+
+Match span은 원문 좌표이며 atom은 core, token과 모든 origin을 보존합니다. `rulePath`는 후보가 생성된 규칙 경로지만 의미 판정 label은 아닙니다.
+
+JSON Lines record의 순서보다 path와 span을 identity로 사용합니다. 병렬 실행 설정에 따라 서로 다른 파일의 완료 순서는 달라질 수 있습니다.
+
+## 실패 계약 [#failure-contract]
+
+Compile 오류, 필수 resource 누락, 입력 decode와 I/O 실패는 stderr와 실패 종료 상태로 나타납니다. 정상 no-match와 섞지 않습니다.
+
+부분 결과 뒤에 I/O 실패가 발생할 수 있으므로 호출자는 종료 상태를 확인한 뒤에만 stdout을 완결된 결과로 채택합니다.

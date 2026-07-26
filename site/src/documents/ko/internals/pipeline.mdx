@@ -1,0 +1,27 @@
+<Eyebrow>내부 구조 · 실행</Eyebrow>
+
+# 실행 pipeline
+
+## compile 단계 [#compile]
+
+Lexer가 query atom과 태그를 만들고 normalization이 canonical variant를 준비합니다. Lexicon은 atom별 품사 분석과 교체 class를 반환합니다.
+
+Generator는 활용·파생 surface를 전부 긴 문자열로 보관하지 않고 anchor, core, suffix 전이와 구조 조건을 가진 `CandidateProgram`으로 낮춥니다.
+
+## scan 단계 [#scan]
+
+Program의 anchor를 Aho-Corasick automaton에 넣고 각 source chunk를 한 번 scan합니다. Anchor가 없는 byte 위치에는 형태 분석이나 구조 graph를 만들지 않습니다.
+
+Chunk 경계의 overlap은 가장 긴 anchor와 phrase 조건을 수용하고 원문 offset으로 환산됩니다.
+
+## verify 단계 [#verify]
+
+Anchor hit는 연결된 program만 실행합니다. Verifier가 core, 조사·어미 상태, boundary와 선택적 structural constraint를 순서대로 확인합니다.
+
+Compact graph는 해당 token과 인접 context만 준비합니다. Node·context limit을 넘으면 constraint unavailable 오류이며 단순 경계로 fallback하지 않습니다.
+
+## 출력 단계 [#emit]
+
+승인된 atom span을 phrase matcher가 연결하고 중복·겹침 정책을 적용합니다. 최종 match는 원문 좌표와 모든 analysis origin을 유지합니다.
+
+CLI 계층은 match를 source line·column과 출력 schema로 변환합니다. Library matcher는 파일과 인코딩을 알지 못합니다.

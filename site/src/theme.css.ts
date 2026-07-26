@@ -61,6 +61,7 @@ globalStyle('*', {
 globalStyle('html', {
   scrollBehavior: 'smooth',
   scrollPaddingTop: '5rem',
+  scrollbarGutter: 'stable',
 });
 
 globalStyle('body', {

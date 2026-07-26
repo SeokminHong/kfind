@@ -1,0 +1,21 @@
+<Eyebrow>INTERNALS · TEXT</Eyebrow>
+
+# Unicode and spans
+
+## Normalization [#normalization]
+
+`nfc` prepares query and source comparisons in NFC. `canonical` searches NFC and NFD; `none` preserves the input code-point sequence.
+
+Normalized buffers exist only for matching. Output surfaces are never replaced with normalized strings.
+
+## Coordinate systems [#coordinates]
+
+The Rust matcher uses UTF-8 byte offsets. The JavaScript binding maps them to UTF-16 code-unit offsets compatible with `String.prototype.slice`.
+
+CLI line and column values follow each frontend contract. The npm CLI uses UTF-16, while native source reporting preserves byte-to-decoded-scalar mappings.
+
+## Source spans [#source-spans]
+
+Normalization maps track the original byte or UTF-16 range of every normalized scalar. Spans never split a combining sequence or emoji encoding.
+
+Phrase spans combine the original ranges of the first and last atoms. Provenance core and token spans use the same coordinate system.

@@ -12,7 +12,7 @@ export const referenceGroup: DocumentGroupIndex = {
       pages: [
         page(
           RoutePath.ReferenceCli,
-          'CLI 참조',
+          'CLI 명세',
           'CLI reference',
           'native CLI와 npm CLI의 명령 형식과 지원 옵션을 나란히 정리합니다.',
           'List command forms and supported options for native and npm CLIs.',
@@ -97,7 +97,7 @@ export const referenceGroup: DocumentGroupIndex = {
         ),
         page(
           RoutePath.Errors,
-          '오류 참조',
+          '오류 목록',
           'Error reference',
           'query, resource, 입력과 출력 오류의 분류 및 복구 조건을 설명합니다.',
           'Classify query, resource, input, and output errors and their recovery conditions.',
@@ -144,7 +144,7 @@ export const referenceGroup: DocumentGroupIndex = {
       pages: [
         page(
           RoutePath.ReferenceResources,
-          'resource 참조',
+          '리소스 형식',
           'Resource reference',
           'full POS, enriched predicate와 compact component 파일의 형식과 호환성을 정리합니다.',
           'Reference formats and compatibility for full-POS, enriched-predicate, and compact-component files.',

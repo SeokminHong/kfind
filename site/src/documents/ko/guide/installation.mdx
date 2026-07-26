@@ -1,0 +1,39 @@
+<Eyebrow>시작 · 배포</Eyebrow>
+
+# 설치
+
+## 배포 profile [#distribution-profiles]
+
+Homebrew 배포물은 native CLI, full POS, enriched predicate와 compact component resource를 함께 설치합니다. Cargo 설치는 source에서 native CLI를 만들며 배포 resource 경로를 사용자가 준비합니다.
+
+npm 패키지 `@kfind/kfind`는 browser API와 Node.js CLI를 제공합니다. Enriched predicate와 compact component는 포함하지만 full POS는 포함하지 않습니다.
+
+## native 설치 [#native-installation]
+
+macOS의 기본 배포 경로는 개인 tap의 Homebrew formula입니다. 빌드 도구가 이미 있는 환경에서는 Cargo로 같은 version의 CLI를 설치할 수 있습니다.
+
+```text
+brew install seokminhong/brew/kfind
+kfind --version
+
+cargo install --locked --path crates/kfind-cli
+```
+
+## npm 설치 [#npm-installation]
+
+Node.js 20 이상에서는 scoped package를 설치합니다. Package의 `bin` 이름은 `kfind`이므로 local script, `npx`, `pnpm dlx`, Yarn 2 이상의 `yarn dlx`와 `node_modules/.bin`에서 같은 명령을 사용합니다.
+
+Prerelease channel을 추적하려면 `@next`를, 재현 가능한 설치에는 정확한 version을 사용합니다.
+
+```text
+npm install @kfind/kfind@1.0.0-rc.3
+npx @kfind/kfind 걷다 README.md
+pnpm dlx @kfind/kfind 걷다 README.md
+yarn dlx @kfind/kfind 걷다 README.md
+```
+
+## 설치 확인 [#installation-check]
+
+`kfind --version`은 실행 파일 version을 출력합니다. `kfind --literal 한국어 README.md`가 path, line, column과 surface를 출력하면 기본 파일 입력과 matcher가 동작합니다.
+
+Full POS 자동 판정, EUC-KR, Git ignore, TUI가 필요하면 native CLI를 사용합니다. npm CLI는 UTF-8 파일과 표준 입력을 대상으로 하는 portable profile입니다.

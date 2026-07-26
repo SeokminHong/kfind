@@ -1,0 +1,21 @@
+<Eyebrow>REFERENCE · OUTPUT</Eyebrow>
+
+# JSON Lines
+
+## Record [#record]
+
+Native records contain `type`, `path`, `line`, `text`, and `spans`. npm records contain `path`, `line`, `column`, `start`, `end`, `surface`, and `atoms`.
+
+Every object ends with LF; diagnostics remain on stderr.
+
+## Spans [#spans]
+
+Native UTF-8 text uses `utf8-bytes`; raw byte text uses `bytes`. npm offsets and columns use UTF-16 code units.
+
+Core covers the query lemma; token may extend through consumed particles and endings.
+
+## Provenance [#provenance]
+
+An origin preserves lemma, POS, and ordered `rules`, or `analysisIndex` and `rulePath`. One atom may have several origins.
+
+Consumers may ignore unknown fields but must inspect coordinate encoding before slicing source.

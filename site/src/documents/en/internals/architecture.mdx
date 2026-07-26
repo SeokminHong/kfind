@@ -1,0 +1,73 @@
+<Eyebrow>TECHNICAL · ARCHITECTURE</Eyebrow>
+
+# Search engine architecture
+
+<Lead>
+
+kfind confines morphology to [query](/reference/glossary#query) compilation and local candidate verification while corpus-scale work remains byte-[anchor](/reference/glossary#anchor) scanning and bounded output.
+
+</Lead>
+
+## Query lane and corpus lane [#query-and-corpus-lanes]
+
+The query lane parses and normalizes the input, resolves [lexicon](/reference/glossary#lexicon) analyses, and compiles candidate programs. Each program carries a fixed anchor, source-core mapping, suffix consumption, and a decision constraint. The plan is reused across files.
+
+The corpus lane walks files in parallel and scans byte anchors. Regions without an anchor do not run morphological analysis or Unicode-scalar iteration. UTF-8 boundaries, particles, endings, token boundaries, and optional component conditions are checked only at an anchor hit.
+
+```
+query lane
+  parse → normalize → analyze → compile programs
+                                         │
+corpus lane                              ▼
+  walk files → byte scan → anchor hit → local verify
+                                         │
+                                         ▼
+                              source span + provenance
+```
+
+## Candidate programs [#candidate-programs]
+
+Enumerating every completed [inflection](/reference/glossary#inflection) would make matcher memory grow with [ending](/reference/glossary#ending) chains. `CandidateProgram` separates a fixed anchor from variable suffix consumption.
+
+```
+CandidateProgram
+├─ anchor: "걸었"
+├─ core_mapping: source projection for 걷다
+├─ consumption: ending-continuation state
+├─ decision: boundary or structural constraint
+└─ origins: [ㄷ irregular, past prefinal ending]
+```
+
+[Particle](/reference/glossary#particle) and ending continuations share a global DFA or trie. When multiple analyses produce one surface span, execution deduplicates the span and merges [provenance](/reference/glossary#provenance).
+
+## Local verification [#local-verification]
+
+An anchor hit is only a candidate. The engine checks its UTF-8 [boundary](/reference/glossary#boundary), the core’s left boundary, suffix-state transitions, the completed token’s right boundary, and structural constraints in that order.
+
+A `smart` structural decision reads aligned fine-[POS](/reference/glossary#part-of-speech) components for the candidate token and verifies only the lexical identity and adjacency required by the query. Unlike a general morphological analyzer, kfind does not build a full analysis graph for every corpus token.
+
+## [Phrase](/reference/glossary#phrase)\-span join [#phrase-spans]
+
+A phrase does not multiply every [atom](/reference/glossary#atom) surface into a large regular expression. kfind verifies atoms independently, then joins their span lists by query order and `max-gap`. A missing atom stops the join.
+
+```
+atom 0 spans ─┐
+atom 1 spans ─┼─ ordered join ─ max-gap ─ phrase span
+atom 2 spans ─┘
+```
+
+`|` alternatives compile into one logical atom. One matcher scans their unique anchors together and merges provenance when alternatives produce the same span.
+
+## Parallel traversal and output [#parallel-output]
+
+An ignore-aware parallel walker distributes files. Each worker owns a searcher and scratch buffer and sends file-scoped records through a capacity-bounded channel to one writer. Backpressure stops workers when output is slower than scanning.
+
+Default output never collects the entire corpus result. Only `--sort path` buffers file streams for deterministic path order. A broken pipe caused by the consumer closing is a normal exit.
+
+## Execution-surface responsibilities [#execution-surfaces]
+
+| Surface      | Responsibility                                 | Resource policy                              |
+| ------------ | ---------------------------------------------- | -------------------------------------------- |
+| CLI          | Filesystem, input encoding, locale, and output | Discovers version-paired installed resources |
+| Rust library | Query compile and match over UTF-8 memory text | Caller supplies resource bytes               |
+| npm / WASM   | JavaScript strings and UTF-16 offsets          | Caller supplies asset bytes                  |

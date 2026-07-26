@@ -1,0 +1,21 @@
+<Eyebrow>CLI · 실행</Eyebrow>
+
+# 진단과 오류
+
+## 진단 형식 [#diagnostics]
+
+사람이 읽는 진단은 stderr에만 기록하고 match output은 stdout에 유지합니다. 오류 message에는 실패한 option, path 또는 resource 조건을 포함합니다.
+
+JSON Lines mode에서도 진단을 JSON record로 섞지 않습니다. 호출자는 두 stream과 종료 상태를 함께 보존합니다.
+
+## 오류 분류 [#error-classes]
+
+Compile 오류에는 빈 query, tag·전역 POS 충돌, 잘못된 option 값과 plan 상한 초과가 포함됩니다. Resource 오류에는 누락, version·schema·source mismatch와 digest 실패가 포함됩니다.
+
+입력 오류는 path 조회, decode와 read 실패입니다. 출력 오류는 broken pipe를 제외한 stdout write 실패입니다.
+
+## 종료 상태 [#exit-status]
+
+Native CLI는 명령별 종료 계약을 따르며 npm CLI는 match 0, no-match 1, 오류 2를 사용합니다. Shell에서 `set -e`를 사용할 때 no-match를 허용할지 명시합니다.
+
+부분 stdout이 있어도 최종 상태가 오류면 완결된 결과가 아닙니다.

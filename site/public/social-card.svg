@@ -1,0 +1,60 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="1200"
+  height="630"
+  viewBox="0 0 1200 630"
+>
+  <rect width="1200" height="630" fill="#0b0e13" />
+  <rect
+    x="64"
+    y="64"
+    width="1072"
+    height="502"
+    rx="36"
+    fill="#121821"
+    stroke="#2a3442"
+    stroke-width="2"
+  />
+  <g transform="translate(128 135)">
+    <rect width="164" height="164" rx="42" fill="#0b0e13" />
+    <path
+      d="M46 35v94M46 87l42-42M67 66l55 63"
+      fill="none"
+      stroke="#79f99a"
+      stroke-width="18"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </g>
+  <text
+    x="336"
+    y="253"
+    fill="#f7f9fb"
+    font-family="Arial, sans-serif"
+    font-size="128"
+    font-weight="700"
+    letter-spacing="-4"
+  >
+    kfind
+  </text>
+  <text
+    x="128"
+    y="405"
+    fill="#f7f9fb"
+    font-family="Arial, sans-serif"
+    font-size="56"
+    font-weight="700"
+    letter-spacing="-1"
+  >
+    한국어 형태 검색
+  </text>
+  <text
+    x="128"
+    y="482"
+    fill="#aeb9c8"
+    font-family="Arial, sans-serif"
+    font-size="30"
+  >
+    Documentation · CLI · WebAssembly
+  </text>
+</svg>

@@ -1,0 +1,21 @@
+<Eyebrow>벤치마크 · 품질</Eyebrow>
+
+# 오류 문장 품질
+
+## 오류 dataset [#dataset]
+
+전체 500 case는 positive 250·negative 250입니다. 한글 typo, 띄어쓰기 분리, 비표준 통사와 외국어 text typo를 원문 그대로 보존합니다.
+
+표준문 gold와 별도 fixture이며 Canonical 점수에 합산하지 않습니다.
+
+## 오류 class [#classes]
+
+Positive 가운데 100건은 오류 표식이 gold token에 직접 걸린 target-span이고 150건은 다른 token에만 있는 context-only입니다. Negative 250건은 context-only 분모에 포함합니다.
+
+두 scope의 recall을 따로 보면 형태 core 손상과 주변 noise 내성을 구분할 수 있습니다.
+
+## 분리 보고 [#reporting]
+
+모든 backend에 raw와 adjusted confusion matrix를 기록합니다. Contract review가 없으므로 두 값은 같고 review 0건입니다.
+
+Robust 설정은 full error correction이 아닙니다. 각 backend가 실제로 받은 입력과 option을 source report에 보존합니다.

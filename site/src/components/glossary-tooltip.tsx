@@ -10,6 +10,7 @@ import { PreviewCard } from '@base-ui/react/preview-card';
 import { useId, useRef, useState } from 'react';
 import { Link } from 'react-router';
 
+import { localizedDocumentHref, useDocumentLocale } from '../app/i18n';
 import { RoutePath } from '../app/navigation';
 
 import * as styles from './glossary-tooltip.css';
@@ -57,6 +58,7 @@ export function GlossaryTooltip({
   children,
   term,
 }: GlossaryTooltipProps): React.JSX.Element {
+  const locale = useDocumentLocale();
   const hasPendingDirectActivation = useRef(false);
   const isTooltipArmed = useRef(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -128,7 +130,14 @@ export function GlossaryTooltip({
         onPointerCancel={clearPendingActivation}
         onPointerDown={beginPointerActivation}
         onTouchStart={beginTouchActivation}
-        render={<Link to={`${RoutePath.Glossary}#${term.id}`} />}
+        render={
+          <Link
+            to={localizedDocumentHref(
+              `${RoutePath.Glossary}#${term.id}`,
+              locale,
+            )}
+          />
+        }
       >
         {children}
       </PreviewCard.Trigger>

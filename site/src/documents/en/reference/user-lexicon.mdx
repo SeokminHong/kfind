@@ -1,0 +1,31 @@
+<Eyebrow>REFERENCE · DATA</Eyebrow>
+
+# User lexicon
+
+## File format [#format]
+
+`[[predicate]]` declares lemma, coarse `pos`, alternation, and optional flags; `[[nominal]]` declares a surface and nominal properties.
+
+Files are UTF-8 TOML up to 16 MiB. Unknown fields and invalid POS or alternations fail before installation.
+
+```text
+[[predicate]]
+lemma = "플러그인하다"
+pos = "verb"
+alternation = "Ha"
+
+[[nominal]]
+surface = "LLM"
+```
+
+## Entry semantics [#entries]
+
+Entries append by default. Analyses for the same lemma remain distinct when alternation or detail differs.
+
+`replace = true` gives that user entry priority over corresponding embedded and full-POS analyses without affecting unrelated lemmas.
+
+## Validation [#validation]
+
+Validation covers NFC, dictionary form, POS-required fields, duplicates, and override conflicts. One failure prevents installing the whole file.
+
+An analysis source of `user-lexicon` in `--explain-query` confirms application.

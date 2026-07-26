@@ -1,0 +1,21 @@
+<Eyebrow>CLI · MATCHING</Eyebrow>
+
+# Phrase search
+
+## Atom order [#atom-order]
+
+Each atom produces source candidates through an independent matcher. The phrase matcher connects only a following candidate that begins after the previous token end.
+
+The default contract stays within one logical line. It does not connect across a newline, preserving source-line location.
+
+## Gap [#gap]
+
+`--max-gap` limits Unicode scalars between the previous token end and next token start. The default 24 includes whitespace and punctuation.
+
+It is neither a UTF-8 byte count nor a UTF-16 code-unit count. Emoji and combining characters follow the same scalar rule.
+
+## Phrase span [#phrase-span]
+
+The result spans from the first atom core start through the last consumed token end. Every atom retains separate core and token spans plus provenance.
+
+Overlapping combinations are deterministically sorted and deduplicated. Analyses sharing a surface merge their origin sets rather than discarding provenance.

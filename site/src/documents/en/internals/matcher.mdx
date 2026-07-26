@@ -1,0 +1,23 @@
+<Eyebrow>INTERNALS · SCANNING</Eyebrow>
+
+# Matcher
+
+## Anchor index [#anchors]
+
+Programs sharing an anchor also share automaton state and hit lists. Anchor selection favors long, rare surfaces without reducing candidate coverage.
+
+NFC and NFD variants are separate byte patterns linked to the same logical program and source-span projection.
+
+## Candidate window [#candidate-window]
+
+Only a bounded window in which the core can begin and end is inspected around a hit. Particle and ending automata transition over suffix scalars and reject incomplete consumption.
+
+The structural verifier consults the compact index only when a whole-token analysis is required.
+
+## Match selection [#match-selection]
+
+When several programs succeed at one start, completed-token length and deterministic program keys produce non-overlapping results while preserving all origins.
+
+Phrase mode retains atom candidates before applying order and gap, preventing a single-atom longest match from hiding the next atom.
+
+A disjunction places all alternative anchors in one atom matcher, avoiding one source scan per alternative.

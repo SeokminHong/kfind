@@ -4,10 +4,19 @@ React Router Framework Mode로 문서, 벤치마크와 WebAssembly 플레이그�
 제공합니다. build는 모든 문서 route를 `build/client`에 prerender하며,
 Cloudflare Pages가 각 clean URL을 정적 HTML로 제공합니다.
 
-한국어가 prerender 기본 언어입니다. 영어 번역은 같은 URL에서 선택하며, 선택한
-언어는 hydration 뒤 `kfind-document-locale` cookie에 저장합니다. 공통 interface와
-metadata는 i18next catalog를 사용하고, 기술 문서 본문과 단어장은 locale별
-content를 사용합니다.
+각 indexable route는 한국어 clean URL과 같은 path의 영어 `?hl=en` URL을
+제공합니다. 두 URL은 locale별 본문, 고유 title·description·self-canonical,
+상호 `hreflang`, Open Graph와 social card metadata를 가집니다. 홈의 `WebSite`와
+나머지 route의 `BreadcrumbList`는 JSON-LD로 prerender합니다. Build는 이
+metadata, 단일 `h1`, 두 locale의 sitemap과 route 집합, `404.html`의 `noindex`를
+검사합니다.
+
+한국어와 영어를 별도 정적 HTML로 prerender합니다. Pages Function은 `?hl=en`
+요청을 영어 산출물로 연결하며 browser와 crawler를 구분하지 않습니다. 언어
+control은 query를 바꾸고 선택한 언어를 `kfind-document-locale` cookie에도
+저장합니다. Query가 없는 URL에서는 cookie가 hydration 뒤 사용자 언어를 복원합니다.
+공통 interface와 metadata는 i18next catalog를 사용하고, 기술 문서 본문과 단어장은
+locale별 content를 사용합니다.
 
 품질 차트는 `docs/benchmarks/site-morphology.json`의 승인 snapshot을 D3로
 렌더링합니다. raw와 contract-adjusted 값은 같은 scale에서 함께 표시합니다.

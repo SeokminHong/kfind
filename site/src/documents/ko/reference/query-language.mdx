@@ -1,0 +1,33 @@
+<Eyebrow>명세 · 질의</Eyebrow>
+
+# query 언어
+
+## 문법 [#syntax]
+
+Query는 단일 atom, 공백으로 연결한 phrase 또는 `|`로 연결한 disjunction입니다. Quoted atom 안의 공백과 `|`는 문자열 일부입니다.
+
+Unicode normalization과 형태 expansion은 lexer 이후 compile option으로 적용합니다.
+
+```text
+query       = atom / phrase / disjunction
+phrase      = atom 1*(WS atom)
+disjunction = atom 1*(OWS "|" OWS atom)
+```
+
+## atom 태그 [#tags]
+
+`n`, `pro`, `num`, `v`, `adj`, `det`, `adv`, `j`, `intj`, `lit` 뒤의 colon이 품사 태그입니다. 태그는 해당 atom에만 적용됩니다.
+
+전역 POS와 구체 atom 태그가 다르면 compile 오류입니다.
+
+## 대안 [#alternatives]
+
+`|` 앞뒤 공백은 선택 사항이고 각 alternative는 정확히 하나의 atom입니다. Phrase와 disjunction은 한 query에서 섞지 않습니다.
+
+Literal `|`는 `\|` 또는 `"|"`로 작성합니다. CLI shell에서는 query 전체를 따옴표로 묶습니다.
+
+## 구문 오류 [#errors]
+
+빈 query, 닫히지 않은 quote, 마지막 backslash, 알 수 없는 tag, 빈 tag body, 피연산자 없는 `|`와 phrase 혼합을 거부합니다.
+
+오류는 byte 위치와 원인을 포함하며 부분 plan을 실행하지 않습니다.

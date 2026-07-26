@@ -1,10 +1,11 @@
 import { Collapsible } from '@base-ui/react/collapsible';
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { Link, Outlet, useLocation } from 'react-router';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 
 import {
   changeDocumentLocale,
   DocumentLocale,
+  localizedDocumentHref,
   useDocumentLocale,
   useDocumentTranslation,
 } from './i18n';
@@ -123,6 +124,7 @@ function useActiveSection(
 
 function PrimaryNavigation(): React.JSX.Element {
   const { t } = useDocumentTranslation();
+  const locale = useDocumentLocale();
   const location = useNavigationLocation();
   const activeGroup = navigationGroupForPath(location.pathname);
 
@@ -139,7 +141,7 @@ function PrimaryNavigation(): React.JSX.Element {
           <Link
             aria-current={current ? 'page' : undefined}
             key={item.path}
-            to={item.path}
+            to={localizedDocumentHref(item.path, locale)}
           >
             {t(item.labelKey)}
           </Link>
@@ -180,7 +182,7 @@ function DocumentNavigation(): React.JSX.Element {
                   <Link
                     aria-current={currentPage ? 'page' : undefined}
                     className="document-navigation-page-link"
-                    to={item.path}
+                    to={localizedDocumentHref(item.path, locale)}
                   >
                     {item.label[locale]}
                   </Link>
@@ -194,7 +196,10 @@ function DocumentNavigation(): React.JSX.Element {
                                 ? 'location'
                                 : undefined
                             }
-                            to={`${item.path}#${section.id}`}
+                            to={localizedDocumentHref(
+                              `${item.path}#${section.id}`,
+                              locale,
+                            )}
                           >
                             {section.label[locale]}
                           </Link>
@@ -213,8 +218,21 @@ function DocumentNavigation(): React.JSX.Element {
 }
 
 export function Shell(): React.JSX.Element {
-  const { t } = useDocumentTranslation();
+  const { i18n, t } = useDocumentTranslation();
   const locale = useDocumentLocale();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const selectLocale = (nextLocale: DocumentLocale): void => {
+    void changeDocumentLocale(i18n, nextLocale);
+    void navigate(
+      localizedDocumentHref(
+        `${location.pathname}${location.search}${location.hash}`,
+        nextLocale,
+      ),
+      { replace: true },
+    );
+  };
 
   return (
     <>
@@ -227,7 +245,7 @@ export function Shell(): React.JSX.Element {
         <div className="header-inner">
           <Link
             className="brand"
-            to={RoutePath.Overview}
+            to={localizedDocumentHref(RoutePath.Overview, locale)}
             aria-label={t('common.brand.home_aria')}
           >
             <span className="brand-mark" aria-hidden="true">
@@ -248,7 +266,7 @@ export function Shell(): React.JSX.Element {
               <button
                 aria-pressed={locale === DocumentLocale.Korean}
                 onClick={() => {
-                  void changeDocumentLocale(DocumentLocale.Korean);
+                  selectLocale(DocumentLocale.Korean);
                 }}
                 type="button"
               >
@@ -257,7 +275,7 @@ export function Shell(): React.JSX.Element {
               <button
                 aria-pressed={locale === DocumentLocale.English}
                 onClick={() => {
-                  void changeDocumentLocale(DocumentLocale.English);
+                  selectLocale(DocumentLocale.English);
                 }}
                 type="button"
               >
@@ -268,7 +286,10 @@ export function Shell(): React.JSX.Element {
               className="header-links"
               aria-label={t('common.header.external_aria')}
             >
-              <Link className="header-cta" to={RoutePath.Playground}>
+              <Link
+                className="header-cta"
+                to={localizedDocumentHref(RoutePath.Playground, locale)}
+              >
                 {t('common.header.playground')}
               </Link>
               <a href="https://github.com/SeokminHong/kfind">GitHub</a>
@@ -295,7 +316,7 @@ export function Shell(): React.JSX.Element {
             aria-label={t('common.header.external_aria')}
             className="mobile-utilities"
           >
-            <Link to={RoutePath.Playground}>
+            <Link to={localizedDocumentHref(RoutePath.Playground, locale)}>
               {t('common.header.playground')}
             </Link>
             <a href="https://github.com/SeokminHong/kfind">GitHub</a>
@@ -314,7 +335,9 @@ export function Shell(): React.JSX.Element {
             <a href="https://github.com/SeokminHong/kfind/blob/main/README.md">
               README
             </a>
-            <Link to={RoutePath.Licenses}>{t('common.footer.license')}</Link>
+            <Link to={localizedDocumentHref(RoutePath.Licenses, locale)}>
+              {t('common.footer.license')}
+            </Link>
           </footer>
         </main>
       </div>

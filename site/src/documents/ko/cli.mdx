@@ -1,0 +1,77 @@
+<Eyebrow>명세 · 검색 질의</Eyebrow>
+
+# [검색 질의](/reference/glossary#query)와 실행 옵션
+
+<Lead>
+
+확장 수준은 생성할 형태를, [품사](/reference/glossary#part-of-speech)는 적용할 문법 규칙을, [경계 정책](/reference/glossary#boundary)은 원문 후보의 허용 조건을 정합니다.
+
+</Lead>
+
+## 기본 [검색 계획](/reference/glossary#query-plan) [#query-plan]
+
+옵션이 없으면 [활용](/reference/glossary#inflection)형을 확장하고, 사전에서 품사를 자동 분석하며, 품사별 `smart` 경계를 적용합니다. 검색 질의는 NFC로 정규화하며 구를 이루는 [atom](/reference/glossary#atom) 사이는 Unicode scalar 24개까지 허용합니다.
+
+```
+expand=inflection
+pos=auto
+boundary=smart
+unicode-normalization=nfc
+max-gap=24
+```
+
+자동 분석은 같은 [표제어](/reference/glossary#lemma)에서 가능한 품사를 합집합으로 보존합니다. 명시한 품사는 이 집합을 제한하며, 문자열 모양만 보고 동사나 형용사를 임의로 선택하지 않습니다.
+
+## 형태 확장 [#expansion]
+
+| 값           | 검색 범위                                                                                                                                                                           | 예시                          |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| `literal`    | 입력 문자열만 사용하며 형태 분석을 하지 않음                                                                                                                                        | `걸어 → 걸어`                 |
+| `inflection` | [조사](/reference/glossary#particle), [어미](/reference/glossary#ending), [이형태](/reference/glossary#allomorph)와 [불규칙 활용](/reference/glossary#irregular-conjugation)을 포함 | `걷다 → 걷고 · 걸어 · 걸었다` |
+| `derivation` | 활용과 생산적 접사에 따른 [파생](/reference/glossary#derivation) 표제어를 포함                                                                                                      | `검증 → 검증하다 · 검증했다`  |
+
+`--literal`은 `--expand literal --pos literal`의 단축 옵션입니다. 파생은 `-적`, `-하다`, `-되다`, `-시키다`, `-스럽다`, `-답다`, `-롭다`, `-화` 규칙을 적용합니다. 파생 결과가 용언이면 그 표제어에 활용 규칙도 적용합니다.
+
+## 경계 정책 [#boundary]
+
+| 값      | 판정                                              | 용도                                                     |
+| ------- | ------------------------------------------------- | -------------------------------------------------------- |
+| `smart` | 조사·어미 소비와 세부 품사 구성 요소를 국소 검증  | [정밀도](/reference/glossary#precision) 중심의 기본 검색 |
+| `token` | core 시작과 완성된 token 끝의 Unicode 경계를 요구 | 독립 token 검색                                          |
+| `any`   | 좌우 경계 없이 형태 프로그램의 부분 span을 보존   | [재현율](/reference/glossary#recall) 중심 자동화         |
+
+`n:요리`를 `중국요리`에서 찾을 때 `smart`는 명사 구성 요소인 `요리`를 허용하지만, 구성 요소 경계를 가로지르는 `국요`는 거부합니다. `any`는 구조 경계를 요구하지 않습니다.
+
+## 품사 체계 [#pos]
+
+`--pos auto`는 core [lexicon](/reference/glossary#lexicon), enriched 용언 metadata, user lexicon, 생산적 접미 패턴과 full [POS](/reference/glossary#part-of-speech) lexicon의 분석을 정해진 우선순위로 모읍니다. 명시적 품사는 다음 coarse POS 중 하나입니다.
+
+```
+noun (n:)          pronoun (pro:)     numeral (num:)
+verb (v:)          adjective (adj:)   determiner (det:)
+adverb (adv:)      particle (j:)      interjection (intj:)
+literal (lit:)
+```
+
+동사와 형용사는 서로 다른 종결·연결·관형사형 어미 허용 집합을 사용합니다. 조사는 앞말의 받침 조건에 따른 이형태를 적용합니다. 사전에 없는 입력을 형태만 보고 용언으로 추정하지 않으며, 필요한 경우 품사를 명시해야 합니다.
+
+## 정규화, 구 거리와 대안 [#normalization-and-phrase]
+
+`--unicode-normalization nfc`는 검색 질의와 후보를 NFC로 비교합니다. `none`은 입력 byte 표현을 보존합니다. 검색 결과의 span은 항상 원문 offset을 가리킵니다.
+
+[구 검색](/reference/glossary#phrase)은 각 atom을 독립적으로 찾은 뒤 원문 순서로 결합합니다. `--max-gap`은 앞 atom의 token 끝과 다음 atom의 token 시작 사이에 허용할 Unicode scalar 수이며, 기본값은 24입니다. 한 atom의 전역 `--pos`는 허용하지만 여러 atom에서는 각 atom 태그를 사용해야 합니다.
+
+따옴표와 escape 밖의 `|`는 여러 atom 중 하나를 찾습니다. 연산자 앞뒤 공백은 선택 사항이지만 CLI에서는 shell pipe 해석을 막기 위해 query 전체를 따옴표로 묶습니다. 각 alternative는 하나의 atom이어야 하며 공백 구와 섞을 수 없습니다. Literal `|`는 `\|` 또는 `"|"`로 작성합니다. `--max-gap`은 disjunction에 적용되지 않습니다.
+
+## 입력과 출력 [#input-and-output]
+
+파일 순회는 ignore 규칙을 따릅니다. `--hidden`, `--no-ignore`, `--glob`, `--type`으로 대상 파일을 조정하고, `--encoding`으로 UTF-8 이외의 입력을 지정합니다.
+
+```
+kfind --glob '*.md' --hidden 검증 .
+kfind --encoding euc-kr 걷다 legacy.txt
+kfind --json --sort path 걷다 src
+kfind --explain-query --pos verb 걷다
+```
+
+기본 출력은 bounded stream으로 기록합니다. `--sort path`는 결정적인 경로 순서를 위해 전체 파일 결과를 버퍼링합니다. `--json`은 UTF-8 원문 span과 [provenance](/reference/glossary#provenance)를 JSON Lines로 출력하며, `--explain-query`는 corpus를 검색하지 않고 컴파일된 분석과 [후보 프로그램](/reference/glossary#candidate-program)을 설명합니다.

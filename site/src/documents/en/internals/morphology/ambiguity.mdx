@@ -1,0 +1,23 @@
+<Eyebrow>KOREAN MORPHOLOGY · DECISIONS</Eyebrow>
+
+# Ambiguity and boundaries
+
+## Analysis sets [#analysis-sets]
+
+Several POS or rule paths for one lemma and surface remain as separate origins. Only analyses with identical execution conditions share a program body.
+
+Auto POS does not select one frequency-ranked answer. Explicit POS defines user intent.
+
+## Structural rejection [#structural-rejection]
+
+A substring candidate is rejected when whole-token component spans and POS paths do not satisfy the query constraint. This prevents particle `가` from matching verb `가다`.
+
+Competing independent and compound analyses are compared by exact whole-token paths and query-required component conditions.
+
+`v:가다` under `--boundary smart` matches `간다` in `집에 간다`, but not the particle `가/JKS` in `친구가 왔다`.
+
+## Semantic limits [#semantic-limits]
+
+Homonyms with identical morphology remain in the result. No topic, sentiment, or agent role is inferred.
+
+Users narrow candidates with phrase atoms, paths, and surrounding context. Semantic decisions can be out-of-contract dispositions in adjusted benchmarks.

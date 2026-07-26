@@ -1,70 +1,807 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://kfind.pages.dev/</loc></url>
-  <url><loc>https://kfind.pages.dev/guide/getting-started</loc></url>
-  <url><loc>https://kfind.pages.dev/guide/installation</loc></url>
-  <url><loc>https://kfind.pages.dev/guide/workflows</loc></url>
-  <url><loc>https://kfind.pages.dev/guide/goals</loc></url>
-  <url><loc>https://kfind.pages.dev/cli</loc></url>
-  <url><loc>https://kfind.pages.dev/cli/query-syntax</loc></url>
-  <url><loc>https://kfind.pages.dev/cli/parts-of-speech</loc></url>
-  <url><loc>https://kfind.pages.dev/cli/expansion</loc></url>
-  <url><loc>https://kfind.pages.dev/cli/boundaries</loc></url>
-  <url><loc>https://kfind.pages.dev/cli/phrases</loc></url>
-  <url><loc>https://kfind.pages.dev/cli/input-output</loc></url>
-  <url><loc>https://kfind.pages.dev/cli/diagnostics</loc></url>
-  <url><loc>https://kfind.pages.dev/cli/resources</loc></url>
-  <url><loc>https://kfind.pages.dev/cli/recipes</loc></url>
-  <url><loc>https://kfind.pages.dev/agents</loc></url>
-  <url><loc>https://kfind.pages.dev/agents/workflow</loc></url>
-  <url><loc>https://kfind.pages.dev/agents/skills</loc></url>
-  <url><loc>https://kfind.pages.dev/agents/integrations</loc></url>
-  <url><loc>https://kfind.pages.dev/agents/automation</loc></url>
-  <url><loc>https://kfind.pages.dev/agents/contract</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/architecture</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/pipeline</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/query-compiler</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/matcher</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/structural-verification</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/resources</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/unicode-spans</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/performance</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/morphology</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/morphology/parts-of-speech</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/morphology/nominals</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/morphology/particles</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/morphology/predicates</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/morphology/endings</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/morphology/irregulars</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/morphology/derivation</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/morphology/compounds</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/morphology/contractions</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/morphology/ambiguity</loc></url>
-  <url><loc>https://kfind.pages.dev/internals/morphology/coverage</loc></url>
-  <url><loc>https://kfind.pages.dev/benchmarks</loc></url>
-  <url><loc>https://kfind.pages.dev/benchmarks/current</loc></url>
-  <url><loc>https://kfind.pages.dev/benchmarks/methodology</loc></url>
-  <url><loc>https://kfind.pages.dev/benchmarks/contract</loc></url>
-  <url><loc>https://kfind.pages.dev/benchmarks/canonical</loc></url>
-  <url><loc>https://kfind.pages.dev/benchmarks/query-matrix</loc></url>
-  <url><loc>https://kfind.pages.dev/benchmarks/robustness</loc></url>
-  <url><loc>https://kfind.pages.dev/benchmarks/performance</loc></url>
-  <url><loc>https://kfind.pages.dev/benchmarks/comparisons</loc></url>
-  <url><loc>https://kfind.pages.dev/benchmarks/reproducibility</loc></url>
-  <url><loc>https://kfind.pages.dev/benchmarks/reports</loc></url>
-  <url><loc>https://kfind.pages.dev/reference/cli</loc></url>
-  <url><loc>https://kfind.pages.dev/reference/query-language</loc></url>
-  <url><loc>https://kfind.pages.dev/reference/pos-tags</loc></url>
-  <url><loc>https://kfind.pages.dev/reference/configuration</loc></url>
-  <url><loc>https://kfind.pages.dev/reference/user-lexicon</loc></url>
-  <url><loc>https://kfind.pages.dev/reference/jsonl</loc></url>
-  <url><loc>https://kfind.pages.dev/reference/exit-codes</loc></url>
-  <url><loc>https://kfind.pages.dev/reference/errors</loc></url>
-  <url><loc>https://kfind.pages.dev/reference/rust</loc></url>
-  <url><loc>https://kfind.pages.dev/reference/javascript</loc></url>
-  <url><loc>https://kfind.pages.dev/reference/resources</loc></url>
-  <url><loc>https://kfind.pages.dev/reference/rule-ids</loc></url>
-  <url><loc>https://kfind.pages.dev/reference/glossary</loc></url>
-  <url><loc>https://kfind.pages.dev/reference/licenses</loc></url>
-  <url><loc>https://kfind.pages.dev/playground</loc></url>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://kfind.pages.dev/</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/guide/getting-started</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/guide/getting-started" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/guide/getting-started?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/guide/getting-started" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/guide/getting-started?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/guide/getting-started" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/guide/getting-started?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/guide/getting-started" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/guide/installation</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/guide/installation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/guide/installation?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/guide/installation" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/guide/installation?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/guide/installation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/guide/installation?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/guide/installation" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/guide/workflows</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/guide/workflows" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/guide/workflows?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/guide/workflows" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/guide/workflows?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/guide/workflows" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/guide/workflows?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/guide/workflows" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/guide/goals</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/guide/goals" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/guide/goals?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/guide/goals" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/guide/goals?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/guide/goals" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/guide/goals?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/guide/goals" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/query-syntax</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/query-syntax" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/query-syntax?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/query-syntax" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/query-syntax?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/query-syntax" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/query-syntax?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/query-syntax" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/parts-of-speech</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/parts-of-speech" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/parts-of-speech?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/parts-of-speech" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/parts-of-speech?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/parts-of-speech" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/parts-of-speech?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/parts-of-speech" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/expansion</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/expansion" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/expansion?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/expansion" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/expansion?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/expansion" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/expansion?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/expansion" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/boundaries</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/boundaries" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/boundaries?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/boundaries" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/boundaries?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/boundaries" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/boundaries?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/boundaries" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/phrases</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/phrases" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/phrases?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/phrases" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/phrases?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/phrases" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/phrases?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/phrases" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/input-output</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/input-output" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/input-output?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/input-output" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/input-output?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/input-output" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/input-output?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/input-output" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/diagnostics</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/diagnostics" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/diagnostics?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/diagnostics" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/diagnostics?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/diagnostics" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/diagnostics?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/diagnostics" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/resources</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/resources" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/resources?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/resources" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/resources?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/resources" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/resources?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/resources" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/recipes</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/recipes" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/recipes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/recipes" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/cli/recipes?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/cli/recipes" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/cli/recipes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/cli/recipes" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/agents</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/agents" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/agents?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/agents" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/agents?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/agents" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/agents?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/agents" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/agents/workflow</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/agents/workflow" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/agents/workflow?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/agents/workflow" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/agents/workflow?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/agents/workflow" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/agents/workflow?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/agents/workflow" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/agents/skills</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/agents/skills" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/agents/skills?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/agents/skills" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/agents/skills?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/agents/skills" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/agents/skills?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/agents/skills" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/agents/integrations</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/agents/integrations" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/agents/integrations?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/agents/integrations" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/agents/integrations?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/agents/integrations" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/agents/integrations?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/agents/integrations" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/agents/automation</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/agents/automation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/agents/automation?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/agents/automation" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/agents/automation?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/agents/automation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/agents/automation?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/agents/automation" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/agents/contract</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/agents/contract" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/agents/contract?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/agents/contract" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/agents/contract?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/agents/contract" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/agents/contract?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/agents/contract" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/architecture</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/architecture" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/architecture?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/architecture" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/architecture?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/architecture" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/architecture?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/architecture" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/pipeline</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/pipeline" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/pipeline?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/pipeline" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/pipeline?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/pipeline" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/pipeline?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/pipeline" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/query-compiler</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/query-compiler" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/query-compiler?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/query-compiler" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/query-compiler?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/query-compiler" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/query-compiler?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/query-compiler" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/matcher</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/matcher" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/matcher?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/matcher" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/matcher?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/matcher" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/matcher?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/matcher" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/structural-verification</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/structural-verification" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/structural-verification?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/structural-verification" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/structural-verification?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/structural-verification" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/structural-verification?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/structural-verification" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/resources</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/resources" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/resources?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/resources" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/resources?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/resources" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/resources?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/resources" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/unicode-spans</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/unicode-spans" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/unicode-spans?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/unicode-spans" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/unicode-spans?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/unicode-spans" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/unicode-spans?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/unicode-spans" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/performance</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/performance" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/performance?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/performance" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/performance?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/performance" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/performance?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/performance" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/parts-of-speech</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/parts-of-speech" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/parts-of-speech?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/parts-of-speech" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/parts-of-speech?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/parts-of-speech" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/parts-of-speech?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/parts-of-speech" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/nominals</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/nominals" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/nominals?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/nominals" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/nominals?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/nominals" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/nominals?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/nominals" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/particles</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/particles" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/particles?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/particles" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/particles?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/particles" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/particles?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/particles" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/predicates</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/predicates" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/predicates?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/predicates" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/predicates?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/predicates" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/predicates?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/predicates" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/endings</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/endings" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/endings?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/endings" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/endings?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/endings" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/endings?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/endings" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/irregulars</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/irregulars" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/irregulars?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/irregulars" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/irregulars?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/irregulars" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/irregulars?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/irregulars" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/derivation</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/derivation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/derivation?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/derivation" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/derivation?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/derivation" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/derivation?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/derivation" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/compounds</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/compounds" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/compounds?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/compounds" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/compounds?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/compounds" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/compounds?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/compounds" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/contractions</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/contractions" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/contractions?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/contractions" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/contractions?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/contractions" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/contractions?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/contractions" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/ambiguity</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/ambiguity" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/ambiguity?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/ambiguity" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/ambiguity?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/ambiguity" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/ambiguity?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/ambiguity" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/coverage</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/coverage" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/coverage?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/coverage" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/internals/morphology/coverage?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/internals/morphology/coverage" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/internals/morphology/coverage?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/internals/morphology/coverage" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/current</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/current" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/current?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/current" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/current?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/current" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/current?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/current" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/methodology</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/methodology" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/methodology?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/methodology" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/methodology?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/methodology" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/methodology?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/methodology" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/contract</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/contract" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/contract?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/contract" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/contract?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/contract" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/contract?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/contract" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/canonical</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/canonical" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/canonical?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/canonical" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/canonical?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/canonical" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/canonical?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/canonical" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/query-matrix</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/query-matrix" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/query-matrix?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/query-matrix" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/query-matrix?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/query-matrix" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/query-matrix?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/query-matrix" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/robustness</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/robustness" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/robustness?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/robustness" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/robustness?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/robustness" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/robustness?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/robustness" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/performance</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/performance" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/performance?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/performance" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/performance?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/performance" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/performance?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/performance" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/comparisons</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/comparisons" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/comparisons?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/comparisons" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/comparisons?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/comparisons" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/comparisons?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/comparisons" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/reproducibility</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/reproducibility" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/reproducibility?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/reproducibility" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/reproducibility?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/reproducibility" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/reproducibility?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/reproducibility" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/reports</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/reports" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/reports?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/reports" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/benchmarks/reports?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/benchmarks/reports" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/benchmarks/reports?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/benchmarks/reports" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/cli</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/cli" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/cli?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/cli" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/cli?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/cli" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/cli?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/cli" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/query-language</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/query-language" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/query-language?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/query-language" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/query-language?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/query-language" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/query-language?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/query-language" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/pos-tags</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/pos-tags" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/pos-tags?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/pos-tags" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/pos-tags?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/pos-tags" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/pos-tags?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/pos-tags" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/configuration</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/configuration" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/configuration?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/configuration" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/configuration?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/configuration" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/configuration?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/configuration" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/user-lexicon</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/user-lexicon" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/user-lexicon?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/user-lexicon" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/user-lexicon?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/user-lexicon" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/user-lexicon?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/user-lexicon" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/jsonl</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/jsonl" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/jsonl?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/jsonl" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/jsonl?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/jsonl" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/jsonl?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/jsonl" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/exit-codes</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/exit-codes" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/exit-codes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/exit-codes" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/exit-codes?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/exit-codes" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/exit-codes?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/exit-codes" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/errors</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/errors" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/errors?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/errors" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/errors?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/errors" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/errors?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/errors" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/rust</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/rust" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/rust?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/rust" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/rust?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/rust" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/rust?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/rust" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/javascript</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/javascript" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/javascript?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/javascript" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/javascript?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/javascript" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/javascript?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/javascript" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/resources</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/resources" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/resources?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/resources" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/resources?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/resources" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/resources?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/resources" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/rule-ids</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/rule-ids" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/rule-ids?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/rule-ids" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/rule-ids?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/rule-ids" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/rule-ids?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/rule-ids" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/glossary</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/glossary" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/glossary?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/glossary" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/glossary?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/glossary" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/glossary?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/glossary" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/licenses</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/licenses" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/licenses?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/licenses" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/reference/licenses?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/reference/licenses" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/reference/licenses?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/reference/licenses" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/playground</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/playground" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/playground?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/playground" />
+  </url>
+  <url>
+    <loc>https://kfind.pages.dev/playground?hl=en</loc>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://kfind.pages.dev/playground" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://kfind.pages.dev/playground?hl=en" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://kfind.pages.dev/playground" />
+  </url>
 </urlset>

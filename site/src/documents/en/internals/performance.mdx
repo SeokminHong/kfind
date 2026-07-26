@@ -1,0 +1,65 @@
+<Eyebrow>TECHNICAL · COST MODEL</Eyebrow>
+
+# Cost control for morphological search
+
+<Lead>
+
+Morphological knowledge is confined to [query](/reference/glossary#query) plans and bounded decisions around anchors, while corpus-scale work remains byte scanning and streaming output.
+
+</Lead>
+
+## Cost separation [#cost-separation]
+
+Search cost splits into fixed query-plan construction and corpus-dependent scanning. Planning bounds [lexicon](/reference/glossary#lexicon) analyses and candidate programs. Scanning uses long fixed anchors to minimize positions requiring morphology.
+
+Programs share [particle](/reference/glossary#particle) and [ending](/reference/glossary#ending) continuations. Only plans with component decisions initialize that resource, and output flows through a capacity-bounded channel. Rule count, corpus size, and result count are controlled at separate boundaries.
+
+## Anchors and matchers [#anchors-and-matchers]
+
+Each candidate program selects the longest fixed byte sequence that reduces verification work. A one-syllable [anchor](/reference/glossary#anchor) always carries a [boundary](/reference/glossary#boundary) or structural decision.
+
+```
+걷다
+├─ 걷고 · 걷는 · 걷지 · 걷겠
+├─ 걸어 · 걸었
+└─ 걸으 · 걸은 · 걸을
+```
+
+One unique anchor uses `memmem::Finder`. Small multi-anchor inputs merge finder hits directly; larger cumulative scans build one reusable Aho-Corasick automaton. Both paths expose the same overlapping candidate order.
+
+## Plan limits [#plan-limits]
+
+Public limits prevent one query from consuming unbounded compile [latency](/reference/glossary#latency) or matcher memory.
+
+| Target                   | Limit  | Unit                                 |
+| ------------------------ | ------ | ------------------------------------ |
+| Query length             | 256    | Unicode scalars                      |
+| Atoms                    | 32     | per query                            |
+| Analyses                 | 32     | per [atom](/reference/glossary#atom) |
+| Candidate programs       | 4,096  | per plan                             |
+| Estimated matcher memory | 64 MiB | per plan                             |
+| Continuation depth       | 4      | state transitions                    |
+
+Exceeding a limit is a compile error. kfind does not silently truncate programs, because a successful partial plan would hide missing inflections.
+
+## Resource initialization [#resource-initialization]
+
+A candidate decision is either `Boundary` or `Structural`. The [component resource](/reference/glossary#component-resource) is read only when the compiled plan contains a structural program. Literal, `token`, and `any` plans do not use it.
+
+Resource bytes must pass schema, release version, source SHA-256, section digest, offset, and component-span validation before installation. A failed manual replacement leaves the active resource intact.
+
+## Scan path [#scan-path]
+
+| Path                                         | Default                    | Additional-cost condition               |
+| -------------------------------------------- | -------------------------- | --------------------------------------- |
+| Anchor scan                                  | Byte search                | Anchor hit                              |
+| Span match                                   | Source byte range only     | Explanation requested                   |
+| [Provenance](/reference/glossary#provenance) | Computed on matching lines | JSON or explain output                  |
+| Normalization                                | Direct NFC anchor search   | Canonical mapping or suffix consumption |
+| [Phrase](/reference/glossary#phrase)         | Collect atom spans once    | Every atom has candidates               |
+
+Verified overlaps use leftmost-longest, non-overlapping resolution over core and token spans. Default output does not allocate provenance objects.
+
+## Performance-metric boundaries [#metric-boundaries]
+
+Startup, lexicon load, query compile, filesystem walk, scan, verification, and output are separate workloads. Fixture [cases/s](/reference/glossary#throughput) is not corpus throughput, and a 1 GiB literal scan does not measure morphology quality or component initialization. Latency, throughput, RSS, and program count retain their own units.

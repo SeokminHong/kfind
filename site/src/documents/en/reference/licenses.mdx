@@ -1,0 +1,37 @@
+<Eyebrow>REFERENCE · DISTRIBUTION</Eyebrow>
+
+# Licenses
+
+## Code license [#code]
+
+kfind source code uses the MIT License in repository `LICENSE`, covering Rust crates, site source, and the npm wrapper.
+
+Dependencies remain under their upstream licenses.
+
+## Data licenses [#data]
+
+The National Institute of Korean Language is the creator and provider of the source material. kfind extracts, normalizes, and selects predicate, modern-ending, particle, and attached-nominal-suffix metadata from pinned snapshots of the Basic Korean Dictionary, Standard Korean Language Dictionary, and Open Korean Knowledge Dictionary.
+
+The processed data retains only required headwords, parts of speech, conjugations, related forms, and source IDs. Dictionary examples, definitions, multimedia, and pronunciation data are not redistributed.
+
+This data and the corresponding portions embedded in native binaries and WebAssembly are distributed under CC BY-SA 2.0 KR. Independently authored kfind source code remains under the MIT License.
+
+The National Institute of Korean Language does not endorse or sponsor kfind.
+
+Full-POS and compact-component artifacts derived from Apache-2.0 mecab-ko-dic include its original COPYING.
+
+- [Basic Korean Dictionary copyright policy](https://krdict.korean.go.kr/eng/kboardPolicy/copyRightTermsInfo)
+- [Standard Korean Language Dictionary copyright policy](https://stdict.korean.go.kr/join/copyrightPolicy.do)
+- [Open Korean Knowledge Dictionary copyright policy](https://opendict.korean.go.kr/service/copyrightPolicy)
+- [CC BY-SA 2.0 KR](https://creativecommons.org/licenses/by-sa/2.0/kr/deed.en)
+
+## Distribution notices [#distribution]
+
+The repository and GitHub release source include `LICENSES.md` and the NIKL-derived-data notice. The npm package carries the same notice in `LICENSES.md` and `assets/LICENSES`, and Homebrew installs it with the package documentation.
+
+The site distributes this license page with WebAssembly that embeds NIKL-derived ending and suffix catalogs.
+
+A separately hosted resource must be distributed with the same notice.
+
+- [kfind license summary](https://github.com/SeokminHong/kfind/blob/main/LICENSES.md)
+- [NIKL-derived-data notice](https://github.com/SeokminHong/kfind/blob/main/data/enriched/NOTICE.md)
