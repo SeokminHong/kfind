@@ -425,9 +425,23 @@ async function assertBrandAssets() {
   );
   if (
     !faviconSvg.includes('viewBox="0 0 256 256"') ||
-    !faviconSvg.includes('stroke="#1d63c7"')
+    !faviconSvg.includes('fill="#1d63c7"') ||
+    !faviconSvg.includes('id="brand-k"') ||
+    faviconSvg.includes('stroke-linecap=')
   ) {
     fail('favicon.svg가 kfind brand mark를 포함하지 않습니다.');
+  }
+
+  const socialCardSvg = await readFile(
+    join(clientDirectory, 'social-card.svg'),
+    'utf8',
+  );
+  if (
+    !socialCardSvg.includes('fill="#1d63c7"') ||
+    !socialCardSvg.includes('id="brand-k"') ||
+    socialCardSvg.includes('stroke-linecap=')
+  ) {
+    fail('social-card.svg의 brand mark path가 유효하지 않습니다.');
   }
 
   const faviconIco = await readFile(join(clientDirectory, 'favicon.ico'));
