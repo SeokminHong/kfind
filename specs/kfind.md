@@ -417,7 +417,10 @@
   locale의 MDX 본문을 복제하지 않는다.
 - MDX에서 쓰는 callout, lead, step, code title과 표 wrapper는 공통 문서 component library로
   제공한다. 공통 component는 locale에 종속된 본문을 내부에 복제하지 않고 MDX children을
-  접근 가능한 HTML 구조로 표현한다. Route별로 같은 시각 요소를 다시 구현하지 않는다.
+  접근 가능한 HTML 구조로 표현한다. Callout은 본문과 같은 읽기 폭 안에서 제목과 내용을
+  한 열로 배치하고, 종류별 inline-start 강조선과 절제된 배경으로 본문을 보충한다. 좁은
+  화면에서도 별도 제목 열로 본문 폭을 줄이지 않으며, 내부 첫·마지막 block의 바깥 여백은
+  component가 정규화한다. Route별로 같은 시각 요소를 다시 구현하지 않는다.
 - Fenced code block은 build 시점에 문법 highlighting을 완료한다. 배포된 문서가 색상을 입히기
   위해 browser에서 highlighter runtime이나 grammar를 내려받지 않게 하며, 언어가 지정되지 않은
   block도 읽을 수 있는 기본 표현을 제공한다. Highlighting 결과는 본문 code block의 복사,

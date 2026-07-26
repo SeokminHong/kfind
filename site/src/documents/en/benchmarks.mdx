@@ -24,9 +24,9 @@ Contract-adjusted metrics apply a registry fixed before product execution to the
 
 A contract-adjusted confusion matrix adds a superscript c to each raw abbreviation: TPᶜ, FPᶜ, TNᶜ, and FNᶜ. A dataset without contract reviews uses its raw expectation unchanged and records a reviewed-case count of zero.
 
-<Callout title="FN and FNᶜ">
+<Callout title="What FNᶜ = 0 means">
 
-The full-POS query matrix has four raw false negatives and zero contract-adjusted false negatives. The execution result is identical in both views. The registry classifies indistinguishable homographs and source-aligned components as positive under the product contract; FNᶜ = 0 does not mean that the implementation fixed four errors.
+The full-POS query matrix reports four raw false negatives and zero contract-adjusted false negatives from the same execution under different contracts. FNᶜ = 0 does not mean that the implementation fixed four errors.
 
 </Callout>
 
