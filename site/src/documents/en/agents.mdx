@@ -32,7 +32,7 @@ kfind does not select a word sense. The agent reads the code around each broadly
 
     Inspect adjacent code and discard irrelevant homographs.
 
-```
+```bash
 kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
 kfind --embedded --boundary any --pos verb --json 걷다 crates
 ```
@@ -41,7 +41,7 @@ kfind --embedded --boundary any --pos verb --json 걷다 crates
 
 `kfind --init` installs an agent-specific `SKILL.md` and shell hook in the current project. Interactive terminals offer a target picker. Automation repeats `--agent` or supplies target names on stdin. Unmanaged skills and existing agent settings are preserved.
 
-```
+```bash
 kfind --init
 kfind --init --agent codex --agent claude-code
 printf 'codex
@@ -67,7 +67,7 @@ All three integrations use the same search contract. Each agent reads the reposi
 
 A forbidden-expression check can use the `--quiet` exit status. Refactoring discovery retains JSON Lines and deduplicates by path and span. When lemma order matters, use a [phrase](/reference/glossary#phrase) query and `--max-gap` instead of merging separate commands.
 
-```
+```bash
 kfind --pos verb --quiet 사용하다 docs && exit 1
 kfind --embedded --boundary any --json 'n:권한 v:검증하다' src   | jq -c 'select(.type == "match")'
 ```

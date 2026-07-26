@@ -20,7 +20,7 @@ A bundler such as Vite that supports `new URL(relative, import.meta.url)` emits 
 
 The component KFC is 35.4 MiB and can be fetched lazily when a view needs `smart` structural verification. One initialized engine reuses the resource across matchers.
 
-```text
+```javascript
 import { Kfind } from '@kfind/kfind';
 import {
   componentResourceFileUrl,
@@ -47,14 +47,16 @@ In Node.js, the resolver returns `file:` URLs inside the installed package. A se
 
 This fixed-route example uses `no-cache` so every deployment revalidates the file. Switch to long-lived `immutable` caching only when the route contains a package version or content hash.
 
-```text
+```javascript
 import { createReadStream } from 'node:fs';
 import { createServer } from 'node:http';
 import { componentResourceFileUrl } from '@kfind/kfind/assets';
 
 createServer((request, response) => {
-  if (request.method !== 'GET' ||
-      request.url !== '/assets/morphology-component-compact.kfc') {
+  if (
+    request.method !== 'GET' ||
+    request.url !== '/assets/morphology-component-compact.kfc'
+  ) {
     response.writeHead(404).end();
     return;
   }

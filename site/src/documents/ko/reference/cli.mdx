@@ -8,7 +8,7 @@
 
 파일 option은 encoding, glob, type, ignore, thread와 context 출력을 제어합니다. `--json`, `--explain-query`, `--explain-match`와 `--sort path`를 지원합니다.
 
-```text
+```bash
 kfind --pos verb --boundary smart 걷다 src
 kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
 ```
@@ -19,7 +19,7 @@ Node.js 20 이상에서 `@kfind/kfind`의 bin 이름 `kfind`를 사용합니다.
 
 `npx`, `pnpm dlx`, Yarn 2 이상의 `yarn dlx`는 설치 없이 같은 bin을 실행합니다.
 
-```text
+```bash
 npx @kfind/kfind 걷다 README.md
 pnpm dlx @kfind/kfind --pos verb 걷다 src
 yarn dlx @kfind/kfind --json 권한 docs

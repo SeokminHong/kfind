@@ -28,7 +28,7 @@ Each phrase atom owns an independent analysis and program set. A tag is never pr
 
 Quoting an inflected lemma does not enable literal mode. Quoting changes atom boundaries; the expansion option determines morphology.
 
-```text
+```bash
 kfind 'v:걷다 "로그 인"' src
 kfind --literal 'key\:value' config
 ```
@@ -41,7 +41,7 @@ Every alternative is one atom and cannot be mixed with a phrase. `--max-gap` doe
 
 Quote the whole query in a CLI shell so that the shell does not interpret `|` as a pipe.
 
-```text
+```bash
 kfind 'v:걷다|n:사용자|n:검증' src
 kfind '\|' syntax.txt
 kfind '"|"' syntax.txt

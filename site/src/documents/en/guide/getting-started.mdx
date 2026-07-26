@@ -12,7 +12,7 @@ The minimum setup for [lemma](/reference/glossary#lemma) search, explicit [POS](
 
 On macOS and Linux, the Homebrew formula installs the CLI and the morphology resources paired with the same release. A source checkout can be installed through Cargo.
 
-```
+```bash
 brew install seokminhong/brew/kfind
 
 # source checkout
@@ -27,11 +27,11 @@ Search performs no network access. The Homebrew build discovers its full-POS [le
 
 JavaScript and TypeScript applications install the scoped `@kfind/kfind` package. It includes the WebAssembly engine and embedded lexicon and never guesses a filesystem path or URL.
 
-```
+```bash
 npm install @kfind/kfind@1.0.0-rc.3
 ```
 
-```
+```javascript
 import { Kfind } from '@kfind/kfind';
 
 const engine = new Kfind();
@@ -41,7 +41,7 @@ const matches = plan.findAll('나는 길을 걸었다.');
 
 On Node.js 20 or later, the package also exposes the `kfind` bin for one-shot execution. `yarn dlx` requires Yarn 2 or later.
 
-```
+```bash
 npx @kfind/kfind 걷다 README.md
 pnpm dlx @kfind/kfind 걷다 README.md
 yarn dlx @kfind/kfind 걷다 README.md
@@ -51,7 +51,7 @@ yarn dlx @kfind/kfind 걷다 README.md
 
 The first positional argument is the [query](/reference/glossary#query). Remaining arguments are files or directories. With no path, kfind reads piped stdin; with neither a path nor piped input, it searches the current directory.
 
-```
+```bash
 kfind 걷다 src docs
 kfind 사용자 .
 printf '길을 걸었다.
@@ -64,7 +64,7 @@ The lemma `걷다` is analyzed as a verb with ㄷ-[irregular conjugation](/refer
 
 Use `--pos` when the lexicon analysis is ambiguous or the grammatical role is known. Phrase queries attach a POS tag to each [atom](/reference/glossary#atom). A quoted atom is treated as a literal containing spaces or punctuation. Use `|` to find any one of multiple atoms.
 
-```
+```bash
 kfind --pos verb 걷다 src
 kfind 'v:걷다 | n:사용자 | n:검증' src
 kfind 'n:사용자 v:검증하다' src
@@ -78,7 +78,7 @@ Supported tags are `n:`, `pro:`, `num:`, `v:`, `adj:`, `det:`, `adv:`, `j:`, `in
 
 Automation should specify POS, [boundary](/reference/glossary#boundary), resource mode, and output format. The `any` boundary preserves substring candidates for [recall](/reference/glossary#recall), while JSON Lines exposes stable source spans and [provenance](/reference/glossary#provenance).
 
-```
+```bash
 kfind --embedded --boundary any --pos verb --json 걷다 src
 kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
 ```
@@ -89,7 +89,7 @@ Recall-oriented output can include semantically irrelevant candidates. Read the 
 
 `--init` installs the kfind skill and shell hook for supported coding agents. It cannot be combined with a search query or path.
 
-```
+```bash
 kfind --init
 kfind --init --agent codex --agent claude-code
 printf 'codex

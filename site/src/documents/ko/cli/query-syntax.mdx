@@ -28,7 +28,7 @@ pos-tag     = "n:" / "v:" / "adj:" / "lit:" / ...
 
 형태 확장이 필요한 표제어를 따옴표로 감싸는 것은 literal mode와 같지 않습니다. 인용은 atom 경계만 바꾸고 expansion은 option이 결정합니다.
 
-```text
+```bash
 kfind 'v:걷다 "로그 인"' src
 kfind --literal 'key\:value' config
 ```
@@ -41,7 +41,7 @@ kfind --literal 'key\:value' config
 
 CLI에서는 shell이 `|`를 pipe로 해석하지 않도록 query 전체를 따옴표로 묶습니다.
 
-```text
+```bash
 kfind 'v:걷다|n:사용자|n:검증' src
 kfind '\|' syntax.txt
 kfind '"|"' syntax.txt

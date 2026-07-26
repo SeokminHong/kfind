@@ -18,6 +18,6 @@ The matcher does not remove semantic ambiguity that morphology cannot distinguis
 
 Agents and scripts use `--json` or the native JSON Lines output. Distinguish a normal no-match result from execution failure by exit status, and feed only stdout into the parser.
 
-```text
+```bash
 kfind --pos verb --boundary any --json 걷다 src   | jq -c 'select(.surface != null)'
 ```

@@ -10,7 +10,7 @@ kfind는 표제어와 품사를 query에서 해석하고 허용된 조사·어�
 
 - [한국어 형태 검색 query 문법](/reference/query-language)
 
-```text
+```bash
 rg '걷다|걷고|걸어|걸었다' docs src
 kfind --pos verb 걷다 docs src
 ```
@@ -24,7 +24,7 @@ kfind --pos verb 걷다 docs src
 - [설치와 첫 표제어 검색](/guide/getting-started)
 - [WebAssembly 플레이그라운드](/playground)
 
-```text
+```bash
 kfind --pos verb --boundary smart 걷다 docs src
 kfind --pos verb --boundary any --json 걷다 docs src
 ```
@@ -42,7 +42,7 @@ kfind --pos verb --boundary any --json 걷다 docs src
 
 함수명 주변의 한국어 주석과 문서를 탐색할 때는 넓은 `any`로 후보를 모은 뒤 `smart`로 재검증합니다. 정확한 identifier는 literal mode를 사용합니다.
 
-```text
+```bash
 kfind --pos verb --boundary any 변경하다 src
 kfind --pos verb --boundary smart 변경하다 src
 kfind --literal parse_query crates
@@ -52,7 +52,7 @@ kfind --literal parse_query crates
 
 표제어와 활용형이 혼재한 문서에서는 기본 inflection을 사용합니다. 특정 용어 표기만 검사할 때는 literal query를 각각 실행합니다.
 
-```text
+```bash
 kfind --pos noun 계약 docs README.md
 kfind --literal contract-adjust docs site/src
 ```
@@ -61,6 +61,6 @@ kfind --literal contract-adjust docs site/src
 
 에이전트에는 JSON Lines와 제한된 path를 전달합니다. `jq`에서 source surface를 제거하거나 provenance를 축약하지 않습니다.
 
-```text
+```bash
 kfind --pos verb --boundary any --json 검증하다 crates/kfind-query   | jq -c '{path, line, column, surface, atoms}'
 ```

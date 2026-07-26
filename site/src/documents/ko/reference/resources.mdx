@@ -20,7 +20,7 @@ Vite처럼 `new URL(relative, import.meta.url)`을 지원하는 bundler는 resol
 
 Component KFC는 35.4 MiB이므로 `smart` 구조 판정이 필요한 화면에서 지연 fetch할 수 있습니다. 한 번 만든 engine은 여러 matcher에서 resource를 재사용합니다.
 
-```text
+```javascript
 import { Kfind } from '@kfind/kfind';
 import {
   componentResourceFileUrl,
@@ -47,14 +47,16 @@ Node.js에서 resolver는 설치 package 내부의 `file:` URL을 반환합니�
 
 고정 route 예제는 매 배포에서 revalidation하도록 `no-cache`를 사용합니다. Route에 package version이나 content hash를 포함한 경우에만 장기 `immutable` cache로 바꿉니다.
 
-```text
+```javascript
 import { createReadStream } from 'node:fs';
 import { createServer } from 'node:http';
 import { componentResourceFileUrl } from '@kfind/kfind/assets';
 
 createServer((request, response) => {
-  if (request.method !== 'GET' ||
-      request.url !== '/assets/morphology-component-compact.kfc') {
+  if (
+    request.method !== 'GET' ||
+    request.url !== '/assets/morphology-component-compact.kfc'
+  ) {
     response.writeHead(404).end();
     return;
   }

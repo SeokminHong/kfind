@@ -14,7 +14,7 @@ The query lane parses and normalizes the input, resolves [lexicon](/reference/gl
 
 The corpus lane walks files in parallel and scans byte anchors. Regions without an anchor do not run morphological analysis or Unicode-scalar iteration. UTF-8 boundaries, particles, endings, token boundaries, and optional component conditions are checked only at an anchor hit.
 
-```
+```text
 query lane
   parse → normalize → analyze → compile programs
                                          │
@@ -29,7 +29,7 @@ corpus lane                              ▼
 
 Enumerating every completed [inflection](/reference/glossary#inflection) would make matcher memory grow with [ending](/reference/glossary#ending) chains. `CandidateProgram` separates a fixed anchor from variable suffix consumption.
 
-```
+```text
 CandidateProgram
 ├─ anchor: "걸었"
 ├─ core_mapping: source projection for 걷다
@@ -50,7 +50,7 @@ A `smart` structural decision reads aligned fine-[POS](/reference/glossary#part-
 
 A phrase does not multiply every [atom](/reference/glossary#atom) surface into a large regular expression. kfind verifies atoms independently, then joins their span lists by query order and `max-gap`. A missing atom stops the join.
 
-```
+```text
 atom 0 spans ─┐
 atom 1 spans ─┼─ ordered join ─ max-gap ─ phrase span
 atom 2 spans ─┘
