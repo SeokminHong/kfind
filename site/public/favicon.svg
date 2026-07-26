@@ -17,13 +17,12 @@
   />
   <g
     transform="translate(34 36) scale(0.72)"
-    fill="none"
-    stroke="#1d63c7"
-    stroke-linecap="square"
-    stroke-linejoin="round"
+    fill="#1d63c7"
   >
-    <path d="M68 59v137M49 59h19M49 196h35" stroke-width="20" />
-    <path d="m68 143 49-38m-6 0h27m-51 34 41 56m-8 0h25" stroke-width="20" />
-    <path d="m174 203 41-150" stroke-width="18" />
+    <path
+      id="brand-k"
+      d="M39 49h39v137h16v20H39v-20h19V69H39ZM74.13 150.9l-12.26-15.8 49-38 12.26 15.8Zm-12.68-.34 13.1-15.12 60 52-13.1 15.12ZM101 95h47v20h-47Zm9 90h45v20h-45Z"
+    />
+    <path d="m180.31 214.05 45.74-167.36-17.36-4.74-45.74 167.36Z" />
   </g>
 </svg>
