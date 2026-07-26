@@ -1,0 +1,15 @@
+<Eyebrow>에이전트 · 환경</Eyebrow>
+
+# 에이전트별 통합
+
+## Codex [#codex]
+
+Codex 작업에서는 repository `AGENTS.md`와 관련 spec을 읽은 뒤 kfind query를 실행합니다. 출력 path는 현재 workspace 안으로 제한하고, match를 수정 권한으로 해석하지 않습니다.
+
+## Claude Code [#claude-code]
+
+Claude Code에서는 project command 또는 skill로 exact command를 보존합니다. Hook에서 실행할 때 no-match 종료 상태를 hook 실패와 구분합니다.
+
+## Gemini CLI [#gemini-cli]
+
+Gemini CLI에서는 JSON Lines를 구조화된 입력으로 전달하고 stdout과 stderr를 분리합니다. 긴 결과는 shell에서 임의 요약하지 않고 path 범위나 query를 좁혀 다시 실행합니다.

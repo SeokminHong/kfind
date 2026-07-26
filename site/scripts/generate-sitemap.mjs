@@ -1,33 +1,42 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-const siteDirectory = fileURLToPath(new URL('..', import.meta.url));
-const routePathSource = await readFile(
-  new URL('../src/app/route-path.ts', import.meta.url),
-  'utf8',
-);
-const paths = [
-  ...routePathSource.matchAll(/^\s+\w+: '(?<path>[^']+)',$/gmu),
-].map((match) => match.groups?.path);
+import { readDocumentRoutePaths } from './document-routes.mjs';
 
-if (
-  paths.length === 0 ||
-  paths.some((path) => path === undefined) ||
-  new Set(paths).size !== paths.length
-) {
-  throw new Error('문서 경로가 없거나 중복되었습니다.');
+const siteDirectory = fileURLToPath(new URL('..', import.meta.url));
+const paths = await readDocumentRoutePaths();
+const baseUrl = 'https://kfind.pages.dev';
+
+function localizedUrl(path, locale) {
+  const url = new URL(path, baseUrl);
+
+  if (locale === 'en') {
+    url.searchParams.set('hl', 'en');
+  }
+  return url.href.replaceAll('&', '&amp;');
 }
 
-const baseUrl = 'https://kfind.pages.dev';
-const urls = paths.map((path) => {
-  if (path === undefined) {
-    throw new Error('문서 경로를 읽지 못했습니다.');
-  }
-  return `  <url><loc>${baseUrl}${path}</loc></url>`;
-});
+function sitemapEntry(path, locale) {
+  const koreanUrl = localizedUrl(path, 'ko');
+  const englishUrl = localizedUrl(path, 'en');
+
+  return [
+    '  <url>',
+    `    <loc>${locale === 'en' ? englishUrl : koreanUrl}</loc>`,
+    `    <xhtml:link rel="alternate" hreflang="ko" href="${koreanUrl}" />`,
+    `    <xhtml:link rel="alternate" hreflang="en" href="${englishUrl}" />`,
+    `    <xhtml:link rel="alternate" hreflang="x-default" href="${koreanUrl}" />`,
+    '  </url>',
+  ].join('\n');
+}
+
+const urls = paths.flatMap((path) => [
+  sitemapEntry(path, 'ko'),
+  sitemapEntry(path, 'en'),
+]);
 const sitemap = [
   '<?xml version="1.0" encoding="UTF-8"?>',
-  '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+  '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
   ...urls,
   '</urlset>',
   '',

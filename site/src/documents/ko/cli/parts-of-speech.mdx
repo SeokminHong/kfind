@@ -1,0 +1,21 @@
+<Eyebrow>CLI · 질의</Eyebrow>
+
+# 품사 지정
+
+## coarse POS [#coarse-pos]
+
+공개 값은 `noun`, `pronoun`, `numeral`, `verb`, `adjective`, `determiner`, `adverb`, `particle`, `interjection`, `literal`입니다. 내부 사전의 NNG·NNP는 noun에, VV는 verb에 포함됩니다.
+
+`auto`는 사전에 등록된 모든 호환 분석을 보존합니다. 하나를 우선 선택하지 않으므로 동형 표제어는 여러 program을 만들 수 있습니다.
+
+## 선택 규칙 [#selection-order]
+
+Atom tag와 전역 `--pos`가 모두 구체 값이면 같아야 합니다. 다르면 사용자의 두 제약을 동시에 만족할 수 없으므로 compile 오류입니다.
+
+`--literal`은 `expand=literal`, `pos=literal`의 단축입니다. 다른 `--expand`나 non-literal POS와 함께 쓰면 충돌합니다.
+
+## 품사 중의성 [#ambiguity]
+
+Query 품사 중의성은 후보 program 집합으로 보존합니다. Source 품사는 `smart` 구조 판정에서 compact resource가 제공하는 세부 분석과 비교합니다.
+
+형태 구조로도 구분되지 않는 명사·용언 중의성은 결과에 남습니다. 의미 빈도나 language model score로 임의 순위를 매기지 않습니다.

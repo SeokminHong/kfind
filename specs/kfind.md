@@ -298,10 +298,21 @@
   사용자가 실행할 query와 source 예시를 들어 match되는 경우와 match되지 않는 경우를 함께
   설명한다. 예시는 본문이 선언한 boundary, POS, resource와 문법 조건을 그대로 재현해야 한다.
 - 문서 site는 React Router Framework Mode로 구성한다. Runtime SSR은 사용하지 않고 고정된 모든
-  문서 route를 build 시점에 HTML로 prerender한다. 각 clean URL의 최초 response에는 해당 route의
-  본문, 고유 title·description·canonical URL과 Open Graph metadata가 들어 있어야 한다. Browser는
+  문서 route를 build 시점에 한국어와 영어 HTML로 각각 prerender한다. 한국어는 query가 없는 clean
+  URL에서, 영어는 같은 path의 `?hl=en` URL에서 제공한다. 각 URL의 최초 response에는 해당 locale의
+  본문, 고유 title·description·self-canonical URL과 Open Graph metadata가 들어 있어야 한다. Browser는
   이 HTML을 hydrate하며 이후 route 전환은 전체 페이지를 다시 요청하지 않는다. 공통 shell 안에서
   다음 경로를 제공한다.
+- 검색 엔진이 site 이름과 문서 계층을 해석할 수 있도록 prerender metadata에 JSON-LD를 포함한다.
+  `/`와 `/?hl=en`에는 현재 locale의 canonical URL을 가리키는 `WebSite`와 한국어·영어 alternate
+  name을, 나머지 indexable route에는 Home, 해당 GNB 영역과 현재 문서를 잇는 `BreadcrumbList`를
+  둔다. GNB 영역의 첫 문서가 현재 문서이면 같은 항목을 반복하지 않는다. Open Graph metadata는
+  site 이름, 현재 locale과 다른 locale을 명시하고, 같은 title·description을 social card
+  metadata에서도 사용한다.
+- 홈의 title, description, `h1`과 첫 문단은 `kfind`라는 이름만 제시하지 않고 한국어 표제어와
+  활용형을 찾는 검색 엔진이라는 제품 범위와 `걷다` 검색 예시를 직접 설명한다. 하위 route의
+  browser title은 검색 결과만 읽어도 제품과 문서 주제를 구분할 수 있게 작성한다. 문서 안의
+  navigation label과 breadcrumb 이름은 browser title보다 짧은 현재 정보 구조의 이름을 유지한다.
 
   ```text
   /                                      개요와 제품 범위
@@ -380,8 +391,10 @@
   /playground                            WebAssembly 플레이그라운드
   ```
 
-- 전역 navigation은 `Home`, `Get Started`, `CLI`, `Agents`, `Internals`, `Benchmarks`,
-  `Reference`의 한 단계 GNB로 구성한다. `Playground`와 GitHub는 GNB 오른쪽의 독립 action으로
+- 전역 navigation은 영어에서 `Home`, `Get Started`, `CLI`, `Agents`, `Internals`, `Benchmarks`,
+  `Reference`, 한국어에서 `홈`, `시작하기`, `CLI`, `에이전트`, `내부 구조`, `벤치마크`, `명세`의
+  한 단계 GNB로 구성한다. 한국어 navigation category, 문서 제목과 eyebrow에서 영어
+  `Reference`를 `참조`로 직역하지 않는다. `Playground`와 GitHub는 GNB 오른쪽의 독립 action으로
   둔다. 문법 항목, 구현 단계와 개별 지표를 GNB에 직접 나열하지 않는다.
 - 문서 route의 좌측 sidebar는 현재 GNB 영역에 속한 문서와 현재 문서의 절을 함께 표시한다.
   현재 route와 절은 접근 가능한 navigation 상태로 구분한다. 데스크톱에서는 sticky sidebar로,
@@ -393,6 +406,17 @@
 - 각 문서 route의 본문 하단에는 GNB와 sidebar의 전체 문서 순서를 기준으로 이전·다음 문서
   link를 제공한다. 첫 문서에는 다음 link만, 마지막 문서에는 이전 link만 표시하며 link label은
   현재 locale을 따른다. Playground와 정의되지 않은 경로는 이 순서에 포함하지 않는다.
+- 사람이 읽는 문서 본문은 route와 locale별 MDX source로 관리한다. Route metadata, navigation과
+  SEO catalog는 typed index에서 관리하되 제목 아래의 개요, 절, 문단, 목록, 표와 code 예시는
+  TypeScript object에 장문 문자열로 넣지 않는다. 한국어와 영어 MDX는 같은 절 계층과 stable heading
+  ID를 유지하며 build에서 route index와의 일치 여부를 검사한다.
+- MDX에서 쓰는 callout, lead, step, code title과 표 wrapper는 공통 문서 component library로
+  제공한다. 공통 component는 locale에 종속된 본문을 내부에 복제하지 않고 MDX children을
+  접근 가능한 HTML 구조로 표현한다. Route별로 같은 시각 요소를 다시 구현하지 않는다.
+- Fenced code block은 build 시점에 문법 highlighting을 완료한다. 배포된 문서가 색상을 입히기
+  위해 browser에서 highlighter runtime이나 grammar를 내려받지 않게 하며, 언어가 지정되지 않은
+  block도 읽을 수 있는 기본 표현을 제공한다. Highlighting 결과는 본문 code block의 복사,
+  가로 scroll과 접근 가능한 text 선택을 방해하지 않는다.
 
 - 문서 site의 popup, select, collapsible과 form control은 `@base-ui/react`의 unstyled primitive로
   구성한다. 링크, label, keyboard와 pointer 동작은 해당 primitive의 접근성 의미를 유지하고,
@@ -409,7 +433,7 @@
   안의 label도 code 전체를 제외하지 않고 label 자체에 tooltip을 제공한다. Tooltip은 단어장에
   notation이 있는 용어의 notation, 현재 언어의 이름과 정의를 함께 표시한다. 형태소 label과 acronym은
   `VV · 동사`, `TP · 참양성 · true positive`, `TPᶜ · 계약 조정 참양성 · contract-adjusted true
-  positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하되 같은 이름을 중복하지 않는다.
+positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하되 같은 이름을 중복하지 않는다.
   Tooltip은 hover와 keyboard focus로 열 수 있어야 한다. 실제 mouse pointer activation과 keyboard
   Enter activation은 기존 link 동작을 유지한다. Touch·pen pointer activation과 선행 input event가
   없는 link activation은 첫 번째에 tooltip을 열고, 같은 용어의 다음 activation에 단어장으로 이동한다.
@@ -418,6 +442,10 @@
 - 일반 UI text는 Pretendard 기반 sans-serif stack을 사용한다. 코드, 명령, query·output label과
   기술 도해의 코드 표기는 기존 monospace stack을 유지한다. 본문 인라인 code에는 배경, border,
   radius와 최소 padding을 적용해 문장과 구분하고, code block 안에서는 이 장식을 중첩하지 않는다.
+- 데스크톱 문서 본문과 하단 이전·다음 navigation은 route의 문서 길이, 표와 code block 너비에
+  관계없이 같은 content column을 사용한다. 세로 scrollbar 유무로 shell과 본문 중심축이 움직이지
+  않게 viewport scrollbar 영역을 안정적으로 확보한다. 표와 code block의 overflow는 content
+  column을 넓히지 않고 해당 container 안에서 처리한다.
 - 문서 table은 열 내부의 짧은 label·수치·단위를 줄바꿈하지 않는다. 화면보다 넓은 table은
   cell을 접는 대신 table container에서 가로로 scroll한다.
 - 공통 spacing scale은 `0.25rem`, `0.5rem`, `0.75rem`, `1rem`, `1.5rem`과 section 간격
@@ -427,8 +455,13 @@
   Playground의 WASM module과 선택적 component resource는 `/playground`에 들어가기 전에는
   불러오지 않는다. 문서 route 전환은 전체 페이지를 다시 요청하지 않고, 현재 경로와 제목을
   접근 가능한 navigation 상태로 표시한다.
-- Build는 실제 `robots.txt`와 전체 문서 route를 열거한 `sitemap.xml`을 배포한다. 정의되지 않은
-  경로는 SPA fallback으로 `200`을 반환하지 않고 prerender한 `404.html`과 HTTP 404를 반환한다.
+- Build는 실제 `robots.txt`와 전체 문서 route의 한국어·영어 URL을 열거한 `sitemap.xml`을 배포한다.
+  각 sitemap 항목은 `ko`, `en`, `x-default` alternate URL을 포함한다. 정의되지 않은 경로는 SPA
+  fallback으로 `200`을 반환하지 않고 prerender한 `404.html`과 HTTP 404를 반환한다. Build는 모든
+  indexable route의 locale별 HTML에 올바른 document language, 단일 `h1`, 고유 title·description,
+  self-canonical URL, 상호 `hreflang`, social metadata와 유효한 route별 JSON-LD가 있는지 검사한다.
+  Sitemap URL 집합은 두 locale의 public URL 집합과 정확히 일치해야 하며 `404.html`은 `noindex`를
+  유지한다.
 - 문서 HTML, metadata, `robots.txt`, `sitemap.xml`과 `404.html`에는 장기 browser cache를 적용하지
   않는다. Cloudflare Pages의 deployment invalidation, ETag와 revalidation을 사용해 `main` 배포마다
   최신 문서를 확인한다. Content hash가 filename에 포함된 `/assets/*`만 `immutable` 장기 cache를
@@ -440,20 +473,23 @@
   CORS, cache key의 package version·content hash 포함을 보여 준다. 고정 URL은 revalidation 없이
   `immutable`로 캐시하지 않으며 package upgrade에서 JavaScript·WASM·resource를 원자적으로
   교체해야 한다.
-- 문서 locale은 URL path나 query를 바꾸지 않고 같은 route와 UI 구조에서 전환한다. 지원 locale은
-  한국어 `ko`와 영어 `en`이며 SSG HTML의 기본 locale은 한국어다. Locale별 공통 UI 문구, navigation과 SEO
-  metadata는 typed catalog로 분리하고 장문 route 본문도 같은 locale model을 사용해 확장할 수 있어야
-  한다. Catalog 조회, interpolation과 plural 처리는 `i18next`와 `react-i18next`에 위임하고 직접 문자열을
-  치환하거나 번역 key를 동적으로 조립하지 않는다. 공통 shell의 언어 control은 한국어와 영어를
-  같은 URL에서 전환한다.
-- 선택한 locale은 `kfind-document-locale` cookie에 site 전체 path로 보존한다. Hydration은 SSG의 기본
-  locale로 시작한 뒤 browser cookie가 지원 값이면 같은 URL에서 해당 locale을 적용한다. Cookie가 없거나
-  지원하지 않는 값이면 기본 locale을 유지하며 `Accept-Language`에 따른 자동 redirect는 하지 않는다.
-  Cookie 감지와 보존은 i18next language detector에 위임한다. Locale cookie는 UI preference일 뿐
-  인증·권한 판단에 사용하지 않는다.
-- 같은 canonical URL에서 cookie로 locale을 구분하므로 locale별 alternate URL이나 `hreflang`은 만들지
-  않는다. 검색 engine에는 SSG가 만든 기본 한국어 문서를 제공하고 영어는 동일 URL의 사용자
-  preference로 취급한다.
+- 문서 locale은 같은 path와 UI 구조를 유지하면서 query로 전환한다. 지원 locale은 한국어 `ko`와
+  영어 `en`이며 query가 없는 URL은 한국어, `?hl=en`은 영어다. 다른 query parameter와 fragment는
+  언어를 전환해도 보존한다. 영어 문서의 내부 link는 `hl=en`을 이어서 검색 engine과 사용자가 같은
+  영어 문서 계층을 탐색하게 한다. Locale별 공통 UI 문구, navigation과 SEO metadata는 typed
+  catalog로 분리하고 장문 route 본문도 같은 locale model을 사용해 확장할 수 있어야 한다. Catalog
+  조회, interpolation과 plural 처리는 `i18next`와 `react-i18next`에 위임하고 직접 문자열을 치환하거나
+  번역 key를 동적으로 조립하지 않는다.
+- 선택한 locale은 `kfind-document-locale` cookie에 site 전체 path로 보존한다. 명시적인 `hl=en`
+  query는 cookie보다 우선한다. Query가 없는 URL의 hydration은 한국어 SSG HTML로 시작한 뒤 browser
+  cookie가 지원 값이면 같은 URL에서 해당 locale을 적용한다. Cookie가 없거나 지원하지 않는 값이면
+  한국어를 유지하며 `Accept-Language`에 따른 자동 redirect는 하지 않는다. Cookie 감지와 보존은
+  i18next language detector에 위임한다. Locale cookie는 UI preference일 뿐 인증·권한 판단에
+  사용하지 않는다.
+- 한국어와 영어 public URL은 각각 self-canonical을 사용하고 양방향 `hreflang="ko"`,
+  `hreflang="en"`과 query 없는 한국어 URL을 가리키는 `hreflang="x-default"`를 제공한다. Pages
+  Function은 일반 browser와 crawler를 구분하지 않고 `?hl=en` 요청에 영어 prerender HTML을 `200`으로
+  제공한다. Browser를 다른 URL로 redirect하거나 user agent에 따라 다른 문서를 제공하지 않는다.
 - 모든 문서 헤딩은 설명 대상을 나타내는 명사구로 작성한다. 완결된 문장, 홍보 문구와 행동을
   권하는 문장을 헤딩으로 사용하지 않는다.
 - 좁은 화면의 문서 navigation은 두 열 grid로 배치한다. 각 navigation group은 링크 수와 관계없이
@@ -1084,7 +1120,7 @@
 > 한국어 표제어와 활용형을 빠르게 찾는 코드·문서 검색 CLI
 
 저장소 Markdown 문서는 한국어 정본 하나만 유지한다. 웹사이트는 한국어 원문과
-영어 번역을 같은 URL에서 제공하고 사용자가 언어를 전환할 수 있어야 한다.
+영어 번역을 같은 path의 query별 URL에서 제공하고 사용자가 언어를 전환할 수 있어야 한다.
 
 ## 2. 아키텍처
 
@@ -2286,30 +2322,30 @@ pipe이면 기본 검색 대상을 stdin으로 전환한다. `-`는 stdin을 명
 
 ### 14.2 주요 옵션
 
-| 옵션                      | 값                                         |              기본값 | 설명                               |
-| ------------------------- | ------------------------------------------ | ------------------: | ---------------------------------- |
-| `--pos`                   | 품사                                       |              `auto` | 쿼리 전체 품사 강제                |
-| `--expand`                | `literal`, `inflection`, `derivation`      |        `inflection` | 확장 수준                          |
-| `--boundary`              | `smart`, `token`, `any`                    |             `smart` | 경계 정책                          |
-| `--embedded`              | flag                                       |               false | full POS lexicon을 로드하지 않음   |
-| `--max-gap`               | 정수                                       |                `24` | phrase atom 사이 최대 거리         |
-| `--unicode-normalization` | `nfc`, `canonical`, `none`                 |               `nfc` | Unicode 검색 모드                  |
-| `--encoding`              | 인코딩                                     |              `auto` | 원문 인코딩                        |
-| `--glob`                  | glob                                       |                없음 | 파일 포함·제외 규칙                |
-| `--type`, `--type-add`    | 파일 유형                                  |                없음 | 파일 유형 필터                     |
-| `--hidden`                | flag                                       |               false | hidden 파일 포함                   |
-| `--no-ignore`             | flag                                       |               false | ignore 규칙 무시                   |
-| `--threads`               | 정수                                       |                자동 | worker 수                          |
-| `--count`                 | flag                                       |               false | 파일별 match 수                    |
-| `--files-with-matches`    | flag                                       |               false | 파일명만 출력                      |
-| `--json`                  | flag                                       |               false | JSON Lines 출력                    |
-| `--color`                 | `auto`, `always`, `never`                  |              `auto` | 터미널 색상                        |
-| `--no-pager`              | flag                                       |               false | TTY에서도 pager를 사용하지 않음    |
-| `--explain-query`         | flag                                       |               false | 쿼리 계획 출력                     |
-| `--explain-match`         | flag                                       |               false | 생성 근거 출력                     |
-| `--sort`                  | `path`                                     |                없음 | 결과 정렬                          |
-| `--data-dir`              | 경로                                       |                자동 | 외부 데이터 디렉터리               |
-| `--user-lexicon`          | 경로                                       |                자동 | 사용자 사전                        |
+| 옵션                      | 값                                         |              기본값 | 설명                              |
+| ------------------------- | ------------------------------------------ | ------------------: | --------------------------------- |
+| `--pos`                   | 품사                                       |              `auto` | 쿼리 전체 품사 강제               |
+| `--expand`                | `literal`, `inflection`, `derivation`      |        `inflection` | 확장 수준                         |
+| `--boundary`              | `smart`, `token`, `any`                    |             `smart` | 경계 정책                         |
+| `--embedded`              | flag                                       |               false | full POS lexicon을 로드하지 않음  |
+| `--max-gap`               | 정수                                       |                `24` | phrase atom 사이 최대 거리        |
+| `--unicode-normalization` | `nfc`, `canonical`, `none`                 |               `nfc` | Unicode 검색 모드                 |
+| `--encoding`              | 인코딩                                     |              `auto` | 원문 인코딩                       |
+| `--glob`                  | glob                                       |                없음 | 파일 포함·제외 규칙               |
+| `--type`, `--type-add`    | 파일 유형                                  |                없음 | 파일 유형 필터                    |
+| `--hidden`                | flag                                       |               false | hidden 파일 포함                  |
+| `--no-ignore`             | flag                                       |               false | ignore 규칙 무시                  |
+| `--threads`               | 정수                                       |                자동 | worker 수                         |
+| `--count`                 | flag                                       |               false | 파일별 match 수                   |
+| `--files-with-matches`    | flag                                       |               false | 파일명만 출력                     |
+| `--json`                  | flag                                       |               false | JSON Lines 출력                   |
+| `--color`                 | `auto`, `always`, `never`                  |              `auto` | 터미널 색상                       |
+| `--no-pager`              | flag                                       |               false | TTY에서도 pager를 사용하지 않음   |
+| `--explain-query`         | flag                                       |               false | 쿼리 계획 출력                    |
+| `--explain-match`         | flag                                       |               false | 생성 근거 출력                    |
+| `--sort`                  | `path`                                     |                없음 | 결과 정렬                         |
+| `--data-dir`              | 경로                                       |                자동 | 외부 데이터 디렉터리              |
+| `--user-lexicon`          | 경로                                       |                자동 | 사용자 사전                       |
 | `--init`                  | flag                                       |               false | 현재 디렉터리에 agent 통합 초기화 |
 | `--agent`                 | `claude-code`, `codex`, `gemini`, `custom` | TTY 선택 또는 stdin | 초기화 대상, 반복 가능            |
 

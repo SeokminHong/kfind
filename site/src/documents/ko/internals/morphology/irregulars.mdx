@@ -1,0 +1,23 @@
+<Eyebrow>한국어 형태 · 용언</Eyebrow>
+
+# 불규칙 활용
+
+## 어휘 class [#lexical-classes]
+
+ㄷ `걷다→걸어`, ㅂ `돕다→도와`, 르 `모르다→몰라`, ㅅ `낫다→나아`, ㅎ `파랗다→파란`, 우 `푸다→퍼`를 별도 class로 둡니다.
+
+같은 받침을 가진 모든 용언에 규칙을 일반화하지 않습니다. Lexicon이 class를 선언해야 합니다.
+
+## 음운 조건 [#phonology]
+
+교체는 모음 시작 어미, 아/어 계열, 관형형 등 rule별 환경에서만 실행됩니다. `걷고`는 ㄷ을 유지하고 `걸어`는 ㄹ 교체를 사용합니다.
+
+한글 초성·중성·종성을 분해해 받침 탈락과 모음 결합을 계산한 뒤 완성 음절로 재조합합니다.
+
+`v:걷다`는 `걸어`와 `걷고`에 모두 match하지만, 자음 시작 어미 앞에서도 ㄹ로 바꾼 `걸고`에는 match하지 않습니다.
+
+## 규칙 근거 [#provenance]
+
+Match origin의 `lexical.d-to-l`, `ending.aoeo`처럼 lexical 교체와 ending rule을 순서대로 보존합니다.
+
+Suppletive entry와 생산 규칙이 같은 surface를 만들면 두 analysis origin을 합치며 임의의 대표 하나만 남기지 않습니다.

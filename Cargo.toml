@@ -17,6 +17,7 @@ version = "1.0.0-rc.3"
 edition = "2024"
 rust-version = "1.97"
 repository = "https://github.com/SeokminHong/kfind"
+homepage = "https://kfind.pages.dev/"
 license = "MIT"
 
 [workspace.dependencies]

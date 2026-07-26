@@ -1,0 +1,21 @@
+<Eyebrow>벤치마크 · 비교</Eyebrow>
+
+# 외부 제품 비교
+
+## 출력 정렬 [#alignment]
+
+Kiwi, Lindera, MeCab-ko와 KOMORAN의 token·morpheme output을 source span과 lemma·POS 조건으로 정렬합니다. Offset 좌표계와 normalization 차이를 backend adapter에서 변환합니다.
+
+정렬 실패나 backend 오류를 no-match로 숨기지 않고 별도 실행 오류로 기록합니다.
+
+## 품질 비교 [#quality]
+
+모든 제품 행은 raw와 contract-adjusted TP·FP·TN·FN, precision, recall과 F1을 포함합니다. Contract registry는 제품별로 다르게 적용하지 않습니다.
+
+외부 제품의 목적이 문장 분석이라는 점과 projection의 한계를 설명하되 불리한 결과를 생략하지 않습니다.
+
+## 비용 비교 [#cost]
+
+초기화, case 처리량, p95와 peak RSS를 같은 process model에서 측정합니다. Python·JVM backend의 runtime 시작 비용도 실제 workflow 비용에 포함합니다.
+
+품질과 성능을 하나의 종합 점수로 합치지 않습니다.

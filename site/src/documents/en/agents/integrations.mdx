@@ -1,0 +1,15 @@
+<Eyebrow>AGENTS · ENVIRONMENTS</Eyebrow>
+
+# Agent integrations
+
+## Codex [#codex]
+
+In Codex, read repository `AGENTS.md` and the relevant specification before running a kfind query. Keep output paths inside the current workspace and do not interpret a match as authorization to edit.
+
+## Claude Code [#claude-code]
+
+In Claude Code, preserve the exact command in a project command or skill. A hook must distinguish the no-match exit status from hook execution failure.
+
+## Gemini CLI [#gemini-cli]
+
+In Gemini CLI, pass JSON Lines as structured input and keep stdout separate from stderr. Narrow paths or the query instead of arbitrarily summarizing a long result in the shell.

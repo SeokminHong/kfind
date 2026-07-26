@@ -1,0 +1,81 @@
+<Eyebrow>GUIDE · AGENTS</Eyebrow>
+
+# Coding-agent integration
+
+<Lead>
+
+Move morphology search out of repeated model reasoning and give Codex, Claude Code, and Gemini CLI deterministic results through explicit [POS](/reference/glossary#part-of-speech) queries and JSON Lines.
+
+</Lead>
+
+## Search primitive [#search-primitive]
+
+Literal search makes an agent enumerate inflections for every task. A [query](/reference/glossary#query) for `걷다` may need `걷고`, `걸어`, and `걸었다`. kfind compiles the [lemma](/reference/glossary#lemma) and POS into one plan, so identical input produces the same candidates and rule [provenance](/reference/glossary#provenance).
+
+kfind does not select a word sense. The agent reads the code around each broadly recalled span and keeps the candidates relevant to the task. This [boundary](/reference/glossary#boundary) makes morphology reproducible without removing contextual judgment from the agent.
+
+## Recommended workflow [#recommended-workflow]
+
+1.  **Scope and POS**
+
+    Narrow the file paths and tag each [atom](/reference/glossary#atom) with `n:`, `v:`, or another explicit POS.
+
+2.  **[Recall](/reference/glossary#recall)\-first boundary**
+
+    Use `--embedded --boundary any` to avoid resource startup and structural rejection.
+
+3.  **Structured output**
+
+    Read UTF-8 spans, POS, and rule provenance from `--json` output.
+
+4.  **Context review**
+
+    Inspect adjacent code and discard irrelevant homographs.
+
+```
+kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
+kfind --embedded --boundary any --pos verb --json 걷다 crates
+```
+
+## Integration installation [#skill-installation]
+
+`kfind --init` installs an agent-specific `SKILL.md` and shell hook in the current project. Interactive terminals offer a target picker. Automation repeats `--agent` or supplies target names on stdin. Unmanaged skills and existing agent settings are preserved.
+
+```
+kfind --init
+kfind --init --agent codex --agent claude-code
+printf 'codex
+gemini
+' | kfind --init
+```
+
+A Homebrew-managed skill points to the stable `opt` path instead of a versioned Cellar. Existing project links therefore use the new guidance after `brew upgrade`.
+
+Project hooks run after each agent's trust review. In Codex, inspect and trust them with `/hooks`. The hook blocks `rg`, `grep` variants, and `git grep` when their search pattern contains Korean text, then directs the agent to kfind.
+
+## Supported agents [#supported-agents]
+
+All three integrations use the same search contract. Each agent reads the repository-local skill, while the project hook checks literal shell searches before execution.
+
+| Target      | Install value | Skill path                      | Hook configuration      |
+| ----------- | ------------- | ------------------------------- | ----------------------- |
+| Codex       | `codex`       | `.agents/skills/kfind/SKILL.md` | `.codex/hooks.json`     |
+| Claude Code | `claude-code` | `.claude/skills/kfind/SKILL.md` | `.claude/settings.json` |
+| Gemini CLI  | `gemini`      | `.gemini/skills/kfind/SKILL.md` | `.gemini/settings.json` |
+
+## Automation patterns [#automation-patterns]
+
+A forbidden-expression check can use the `--quiet` exit status. Refactoring discovery retains JSON Lines and deduplicates by path and span. When lemma order matters, use a [phrase](/reference/glossary#phrase) query and `--max-gap` instead of merging separate commands.
+
+```
+kfind --pos verb --quiet 사용하다 docs && exit 1
+kfind --embedded --boundary any --json 'n:권한 v:검증하다' src   | jq -c 'select(.type == "match")'
+```
+
+Reduce the path and glob before changing the search policy when output is large. A separate full-POS `smart` search is available when a human workflow needs structural [precision](/reference/glossary#precision).
+
+## Integration contract [#integration-contract]
+
+Results go to stdout; diagnostics and errors go to stderr. Exit status 0 means at least one match, 1 means no match, and 2 reports usage, input, or resource errors. Every JSON Lines match record contains the path, line, source text, UTF-8 byte spans, and provenance.
+
+Bound large output by path and glob first. Unlike the interactive TTY pager, `--json`, `--count`, and `--quiet` remain non-interactive streams. Agents parse JSON fields and exit statuses, never localized human-readable output.

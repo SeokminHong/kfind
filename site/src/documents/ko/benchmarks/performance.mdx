@@ -1,0 +1,23 @@
+<Eyebrow>벤치마크 · 성능</Eyebrow>
+
+# 성능 측정
+
+## workload [#workloads]
+
+Morphology는 fresh process initialization, cases/s, p95와 RSS를 측정합니다. Query compile, matcher scan, 1 GiB file scan, npm startup과 TUI index는 별도 entrypoint를 사용합니다.
+
+정규식 기준선은 같은 단일 파일을 7개 질의가 각각 fresh process로 스캔한 batch wall time을 kfind, rg와 grep 조합별로 분리합니다.
+
+Lock 대기와 build 시간은 workload 시간에서 제외하지만 실행 환경과 binary revision에는 포함해 기록합니다.
+
+## 통계 [#statistics]
+
+형태 backend는 warm-up 1회 뒤 5회, 정규식 기준선은 warm-up 2회 뒤 10회 측정하고 median, min, max와 p95를 보고합니다. 단발 실행이나 smoke success는 성능 근거가 아닙니다.
+
+Throughput, latency, seconds와 bytes를 같은 percent score로 합치지 않습니다.
+
+## 회귀 판정 [#regression]
+
+Baseline과 candidate는 같은 toolchain, resource, input checksum과 option을 사용합니다. 품질 projection을 함께 실행해 빠르지만 잘못된 candidate를 채택하지 않습니다.
+
+불리한 증감과 noise 범위를 모두 보고하고 원인을 모르면 추정이라고 표시합니다.

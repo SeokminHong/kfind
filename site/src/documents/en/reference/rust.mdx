@@ -1,0 +1,21 @@
+<Eyebrow>REFERENCE · API</Eyebrow>
+
+# Rust API
+
+## Stable facade [#facade]
+
+The crate root exports `Engine`, `Matcher`, `ResourceBundle`, compile options, errors, and match-provenance types. This surface is the 1.x compatibility contract.
+
+A matcher searches UTF-8 bytes and performs no file traversal, encoding detection, or output.
+
+## Resource initialization [#resources]
+
+`Engine::with_resources` validates optional full-POS, enriched-predicate, and component data as one profile. `Engine::new` creates the embedded profile.
+
+`load_component_resource` applies a replacement only after full validation and preserves the old resource on failure.
+
+## Expert API [#expert]
+
+`kfind::expert` exposes caller-configured `Lexicons`, `QueryPlan`, and matcher-plan access.
+
+Expert types never appear in root facade parameters or returns and are outside the 1.x stable contract.

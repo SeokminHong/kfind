@@ -1,0 +1,21 @@
+<Eyebrow>명세 · 실행</Eyebrow>
+
+# 오류 목록
+
+## compile 오류 [#compile]
+
+Query syntax, POS·literal 충돌, 잘못된 option, 빈 analysis와 plan limit이 대상입니다. Query나 option을 수정해야 합니다.
+
+Resource capability required도 compile 단계에 나타날 수 있지만 boundary를 낮춰 자동 복구하지 않습니다.
+
+## resource 오류 [#resource]
+
+파일 누락, 128 MiB 상한, magic·schema·version·source mismatch, section digest와 payload graph 오류를 구분합니다.
+
+`kfind --check-data`로 설치 resource를 검색 없이 검증할 수 있습니다.
+
+## I/O 오류 [#io]
+
+Path metadata, open, read, decode와 output write 실패를 source path와 함께 보고합니다. Permission 오류를 no-match로 바꾸지 않습니다.
+
+Locale은 설명 문장만 바꾸며 error class, path와 option token은 유지합니다.

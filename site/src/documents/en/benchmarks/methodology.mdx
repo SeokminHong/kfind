@@ -1,0 +1,23 @@
+<Eyebrow>BENCHMARKS · QUALITY</Eyebrow>
+
+# Methodology
+
+## Fixtures [#fixtures]
+
+Canonical has 500 positive and 500 negative cases manually checked for standard spelling. Robust has 250 positive and 250 negative natural noisy cases and is not merged with canonical results.
+
+The query matrix applies several positive and negative queries to each sentence to measure grammar combinations.
+
+The morphology-query and regex baseline is a constructed diagnostic with eight positives and eight negatives for each of seven queries. It is not a held-out or general search-quality ranking.
+
+## Gold labels [#gold]
+
+A positive declares lemma, POS, and target span. Negatives include morphology and boundary competitors in the same sentence to expose false positives.
+
+A versioned contract registry is fixed before product execution. Gold is never changed for convenience after seeing predictions.
+
+## Aggregation [#aggregation]
+
+Every backend runs the same fixture and query; TP, FP, TN, and FN are counted per case. Precision, recall, and F1 derive directly from the matrix.
+
+External products also report raw and adjusted matrices. A dataset without review explicitly records identical results and zero reviewed cases.

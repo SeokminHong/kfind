@@ -1,0 +1,39 @@
+<Eyebrow>GET STARTED · DISTRIBUTION</Eyebrow>
+
+# Installation
+
+## Distribution profiles [#distribution-profiles]
+
+The Homebrew distribution installs the native CLI together with full-POS, enriched-predicate, and compact-component resources. A Cargo installation builds the native CLI from source and leaves resource placement to the caller.
+
+The `@kfind/kfind` package exposes the browser API and a Node.js CLI. It includes enriched predicates and the compact component resource, but not the full-POS resource.
+
+## Native installation [#native-installation]
+
+The personal Homebrew tap is the standard macOS distribution. Environments with the build toolchain can install the same CLI through Cargo.
+
+```text
+brew install seokminhong/brew/kfind
+kfind --version
+
+cargo install --locked --path crates/kfind-cli
+```
+
+## npm installation [#npm-installation]
+
+Install the scoped package on Node.js 20 or later. Its bin name is `kfind`, so local scripts, `npx`, `pnpm dlx`, Yarn 2+ `yarn dlx`, and `node_modules/.bin` use the same command.
+
+Use the `next` channel to follow prereleases and an exact version for reproducible installation.
+
+```text
+npm install @kfind/kfind@1.0.0-rc.3
+npx @kfind/kfind 걷다 README.md
+pnpm dlx @kfind/kfind 걷다 README.md
+yarn dlx @kfind/kfind 걷다 README.md
+```
+
+## Installation check [#installation-check]
+
+`kfind --version` prints the executable version. `kfind --literal 한국어 README.md` verifies basic file input and matching by emitting a path, line, column, and surface.
+
+Use the native CLI when full-POS auto-detection, EUC-KR, Git ignore rules, or the TUI is required. The npm CLI is the portable profile for UTF-8 files and standard input.

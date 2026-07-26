@@ -1,0 +1,27 @@
+<Eyebrow>CLI · EXECUTION</Eyebrow>
+
+# Input and output
+
+## Input sources [#input]
+
+The native CLI accepts paths, directories, and stdin with ignore rules and parallel file scanning. `-` explicitly selects stdin.
+
+The npm CLI recursively visits UTF-8 paths in deterministic order and does not follow symlinks. With no path it selects the current directory on a TTY and stdin on a pipe.
+
+## Encoding [#encoding]
+
+Native `auto` detects UTF-8 and BOM-marked UTF-16; explicit `euc-kr` is also supported. Matches in decoded text are mapped back to source positions.
+
+The npm CLI accepts UTF-8 only. It reports and skips files containing NUL or failing strict UTF-8 decoding.
+
+## Output formats [#output]
+
+Human-readable text contains path, line, column, and surface. The native CLI may use its TUI pager on POSIX TTYs and in PowerShell hosted by Windows Terminal; `--no-pager` forces the bounded stdout stream.
+
+Automation uses JSON Lines. Each record preserves the match, atom spans, and every `rulePath`.
+
+## npm CLI [#npm-cli]
+
+npm text coordinates are one-based UTF-16 line and column values. A `--json` record contains path, line, column, start, end, surface, and atoms.
+
+Exit status is 0 with a match, 1 without a match, and 2 for usage, initialization, or I/O failure.

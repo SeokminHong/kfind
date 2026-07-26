@@ -1,0 +1,27 @@
+<Eyebrow>INTERNALS · COMPILATION</Eyebrow>
+
+# Query compiler
+
+## Analysis candidates [#analysis]
+
+Lexicon lookup combines the lemma, coarse POS, and user entries while preserving every compatible analysis. Explicit POS narrows detailed tags but does not remove ambiguity inside the category.
+
+An analysis carries stem alternation, particle or ending start state, derivation path, and source-capability requirements.
+
+## Program IR [#program-ir]
+
+A `CandidateProgram` contains anchor bytes, core assembly, a suffix automaton, boundary policy, and `StructuralConstraint`. Provenance is an ordered path of lexical, derivation, and ending rule IDs.
+
+A resource-dependent constraint remains an explicit capability in the compiled plan. Matcher construction fails fast when that resource is absent.
+
+## Query composition [#composition]
+
+A phrase keeps one plan per atom and joins them under `--max-gap` in the matcher. A disjunction merges alternative analyses and programs into one logical atom.
+
+Disjunction origin analysis indices are remapped into the merged analysis array. Alternatives producing the same span emit one result while preserving every origin.
+
+## Ordering and deduplication [#deduplication]
+
+Programs are sorted by deterministic keys over anchors, execution conditions, and span projection. Analyses with identical execution merge programs while unioning origins.
+
+Plan limits bound program, anchor, and structural-state width. Exceeding a limit raises a compile error instead of dropping candidates.

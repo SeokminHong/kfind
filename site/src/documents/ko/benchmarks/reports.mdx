@@ -1,0 +1,21 @@
+<Eyebrow>벤치마크 · 기록</Eyebrow>
+
+# 역사 보고서
+
+## 보고서 구조 [#reports]
+
+`docs/benchmarks`의 날짜별 Markdown은 목적, revision, 환경, 입력, 명령, raw result와 해석을 담습니다. Baseline·candidate 증감은 이 위치에만 기록합니다.
+
+품질 report는 case-level disposition과 미분류 수를 포함합니다.
+
+## site snapshot [#snapshots]
+
+Site는 승인된 source report에서 chart에 필요한 field만 `site-morphology.json`과 `site-search-baseline.json` snapshot으로 export합니다. Snapshot은 source revision과 report SHA-256을 보존합니다.
+
+현재 결과 route는 snapshot을 읽고 날짜별 report 목록을 본문으로 복사하지 않습니다.
+
+## 보존 계약 [#retention]
+
+불리한 결과, 채택하지 않은 실험과 측정 noise도 report에 남깁니다. 제품 code에 실험 장치를 남길 필요는 없습니다.
+
+현재 README와 기술 문서는 이전 상태나 개선 서사를 포함하지 않고 현재 contract만 설명합니다.

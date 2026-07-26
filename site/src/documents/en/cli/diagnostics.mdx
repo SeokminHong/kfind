@@ -1,0 +1,21 @@
+<Eyebrow>CLI · EXECUTION</Eyebrow>
+
+# Diagnostics and errors
+
+## Diagnostic format [#diagnostics]
+
+Human-readable diagnostics go only to stderr, leaving match output on stdout. Messages identify the failing option, path, or resource condition.
+
+JSON Lines mode does not mix diagnostics into JSON records. A caller preserves both streams and the final status.
+
+## Error classes [#error-classes]
+
+Compile errors include empty queries, tag/global POS conflicts, invalid options, and plan-limit failures. Resource errors include missing data, version, schema, source-identity, and digest failures.
+
+Input errors cover path lookup, decode, and reads. Output errors cover stdout writes other than a normal broken pipe.
+
+## Exit status [#exit-status]
+
+The native CLI follows command-specific status rules; the npm CLI uses 0 for matches, 1 for no match, and 2 for errors. A `set -e` shell must explicitly decide whether no match is allowed.
+
+Partial stdout is not a complete result when the final status reports an error.

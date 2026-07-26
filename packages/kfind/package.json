@@ -1,7 +1,7 @@
 {
   "name": "@kfind/kfind",
   "version": "1.0.0-rc.3",
-  "description": "Korean lemma and inflection matching for JavaScript",
+  "description": "Fast Korean lemma and inflection search for files, CLI, Rust, and WebAssembly",
   "license": "SEE LICENSE IN LICENSES.md",
   "type": "module",
   "sideEffects": false,
@@ -10,13 +10,17 @@
     "url": "git+https://github.com/SeokminHong/kfind.git",
     "directory": "packages/kfind"
   },
-  "homepage": "https://github.com/SeokminHong/kfind#readme",
+  "homepage": "https://kfind.pages.dev/",
   "keywords": [
     "korean",
-    "morphology",
     "search",
+    "morphology",
+    "grep",
+    "cli",
+    "rust",
     "wasm",
-    "webassembly"
+    "webassembly",
+    "nlp"
   ],
   "files": [
     "bin",

@@ -1,0 +1,89 @@
+<Eyebrow>REFERENCE · DATA</Eyebrow>
+
+# Resource reference
+
+## Resource profiles [#profiles]
+
+Full-POS `lexicon.bin` supplies broad lemmas and detailed POS; enriched TSV supplies verified predicate alternation and derivation. Compact KFC lets a `smart` plan verify same-POS component spans inside source tokens and adjacent-token structure.
+
+The npm package includes enriched and compact resources but not full POS.
+
+## npm asset exports [#npm-assets]
+
+`@kfind/kfind/assets` exposes `componentResourceFileUrl` and `enrichedPredicatesFileUrl` as `URL` values inside the same package. Copy-based deployment tools can also use the raw subpaths `@kfind/kfind/assets/morphology-component-compact.kfc` and `@kfind/kfind/assets/predicates.enriched.tsv`.
+
+The resolver performs no download and creates no route. The application serves only the resources it needs and passes the KFC bytes and TSV text to `Kfind.withResources`.
+
+## SPA bundling [#spa-bundling]
+
+A bundler such as Vite that supports `new URL(relative, import.meta.url)` emits the files referenced by the resolver as content-hashed assets in the SPA deployment. The default URL shares the JavaScript origin, so it requires no separate CORS policy.
+
+The component KFC is 35.4 MiB and can be fetched lazily when a view needs `smart` structural verification. One initialized engine reuses the resource across matchers.
+
+```text
+import { Kfind } from '@kfind/kfind';
+import {
+  componentResourceFileUrl,
+  enrichedPredicatesFileUrl,
+} from '@kfind/kfind/assets';
+
+const [componentResponse, enrichedResponse] = await Promise.all([
+  fetch(componentResourceFileUrl),
+  fetch(enrichedPredicatesFileUrl),
+]);
+if (!componentResponse.ok || !enrichedResponse.ok) {
+  throw new Error('failed to load kfind resources');
+}
+
+const engine = Kfind.withResources({
+  component: new Uint8Array(await componentResponse.arrayBuffer()),
+  enrichedPredicates: await enrichedResponse.text(),
+});
+```
+
+## Node.js server [#node-server]
+
+In Node.js, the resolver returns `file:` URLs inside the installed package. A server can pass such a URL to `createReadStream` without copying the package into a separate asset directory.
+
+This fixed-route example uses `no-cache` so every deployment revalidates the file. Switch to long-lived `immutable` caching only when the route contains a package version or content hash.
+
+```text
+import { createReadStream } from 'node:fs';
+import { createServer } from 'node:http';
+import { componentResourceFileUrl } from '@kfind/kfind/assets';
+
+createServer((request, response) => {
+  if (request.method !== 'GET' ||
+      request.url !== '/assets/morphology-component-compact.kfc') {
+    response.writeHead(404).end();
+    return;
+  }
+
+  response.writeHead(200, {
+    'Cache-Control': 'no-cache',
+    'Content-Type': 'application/octet-stream',
+    'X-Content-Type-Options': 'nosniff',
+  });
+  const stream = createReadStream(componentResourceFileUrl);
+  stream.on('error', (error) => response.destroy(error));
+  stream.pipe(response);
+}).listen(3000);
+```
+
+## HTTP delivery [#http-delivery]
+
+Serve KFC as `application/octet-stream` and TSV as `text/tab-separated-values; charset=utf-8`, with `X-Content-Type-Options: nosniff`. On a separate origin, set `Access-Control-Allow-Origin` to the application origin instead of opening every origin.
+
+A URL containing a content hash or package version can use `public, max-age=31536000, immutable`. A fixed URL needs `no-cache` or a short lifetime with revalidation, and application cache keys must include the resource revision.
+
+## Schemas [#schemas]
+
+Manifests record source URLs and checksums, generation tools, and output digests. Binary headers contain schema, package version, and source identity.
+
+TSV and TOML builds validate NFC, tags, rule IDs, duplicates, and conflicts.
+
+## Compatibility [#compatibility]
+
+The component package version must exactly match the engine. Schema or source-digest mismatch rejects loading.
+
+A package upgrade replaces JavaScript, WASM, and resources in one deployment. A stale cached KFC passed to a new engine must fail rather than weakening the boundary. Full and compact projections agree on cost-free exact and common-prefix hits, POS, and spans.

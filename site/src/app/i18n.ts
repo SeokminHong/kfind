@@ -12,6 +12,8 @@ export enum DocumentLocale {
   Korean = 'ko',
 }
 
+declare const __KFIND_PRERENDER_LOCALE__: DocumentLocale;
+
 export const defaultDocumentLocale = DocumentLocale.Korean;
 export const supportedDocumentLocales: readonly DocumentLocale[] =
   Object.values(DocumentLocale);
@@ -29,23 +31,30 @@ const languageDetector = new LanguageDetector(undefined, {
   },
 });
 
-const documentI18n: i18n = createInstance();
+const resources = {
+  [DocumentLocale.English]: { translation: englishTranslation },
+  [DocumentLocale.Korean]: { translation: koreanTranslation },
+} as const;
 
-documentI18n.use(initReactI18next).use(languageDetector);
-void documentI18n.init({
-  resources: {
-    [DocumentLocale.English]: { translation: englishTranslation },
-    [DocumentLocale.Korean]: { translation: koreanTranslation },
-  },
-  lng: defaultDocumentLocale,
-  fallbackLng: defaultDocumentLocale,
-  supportedLngs: supportedDocumentLocales,
-  load: 'languageOnly',
-  keySeparator: false,
-  returnNull: false,
-  initAsync: false,
-  interpolation: { escapeValue: false },
-});
+const translationI18n = createDocumentI18n(defaultDocumentLocale);
+
+export function createDocumentI18n(locale: DocumentLocale): i18n {
+  const instance = createInstance();
+
+  instance.use(initReactI18next);
+  void instance.init({
+    resources,
+    lng: locale,
+    fallbackLng: defaultDocumentLocale,
+    supportedLngs: supportedDocumentLocales,
+    load: 'languageOnly',
+    keySeparator: false,
+    returnNull: false,
+    initAsync: false,
+    interpolation: { escapeValue: false },
+  });
+  return instance;
+}
 
 function isDocumentLocale(value: string | undefined): value is DocumentLocale {
   return supportedDocumentLocales.some((locale) => locale === value);
@@ -58,8 +67,37 @@ export function detectCookieLocale(): DocumentLocale | undefined {
   return isDocumentLocale(locale) ? locale : undefined;
 }
 
-export function getDocumentI18n(): typeof documentI18n {
-  return documentI18n;
+export function cacheDocumentLocale(locale: DocumentLocale): void {
+  languageDetector.cacheUserLanguage(locale, ['cookie']);
+}
+
+export function documentLocaleFromSearch(
+  search: string,
+): DocumentLocale | undefined {
+  return new URLSearchParams(search).get('hl') === DocumentLocale.English
+    ? DocumentLocale.English
+    : undefined;
+}
+
+export function initialDocumentLocale(search: string): DocumentLocale {
+  return (
+    documentLocaleFromSearch(search) ??
+    (import.meta.env.SSR ? __KFIND_PRERENDER_LOCALE__ : defaultDocumentLocale)
+  );
+}
+
+export function localizedDocumentHref(
+  href: string,
+  locale: DocumentLocale,
+): string {
+  const url = new URL(href, 'https://kfind.pages.dev');
+
+  if (locale === DocumentLocale.English) {
+    url.searchParams.set('hl', DocumentLocale.English);
+  } else {
+    url.searchParams.delete('hl');
+  }
+  return `${url.pathname}${url.search}${url.hash}`;
 }
 
 export function useDocumentTranslation(): ReturnType<typeof useTranslation> {
@@ -76,12 +114,13 @@ export function useDocumentLocale(): DocumentLocale {
 export function getDocumentTranslation(
   locale: DocumentLocale = defaultDocumentLocale,
 ): TFunction {
-  return documentI18n.getFixedT(locale);
+  return translationI18n.getFixedT(locale);
 }
 
 export async function changeDocumentLocale(
+  i18n: i18n,
   locale: DocumentLocale,
 ): Promise<void> {
-  await documentI18n.changeLanguage(locale);
-  languageDetector.cacheUserLanguage(locale, ['cookie']);
+  await i18n.changeLanguage(locale);
+  cacheDocumentLocale(locale);
 }

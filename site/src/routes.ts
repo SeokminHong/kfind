@@ -17,52 +17,46 @@ import { RoutePath } from './app/navigation';
 
 function technicalRoutes(
   group: DocumentGroupIndex,
-  file: string,
   excludedPaths: ReadonlySet<RoutePathValue>,
 ) {
   return group.categories
     .flatMap((category) => category.pages)
     .filter((page) => !excludedPaths.has(page.path))
     .map((page) =>
-      route(page.path, file, {
+      route(page.path, 'pages/document.tsx', {
         id: `technical-${page.path.split('/').join('-')}`,
       }),
     );
 }
 
 export default [
-  index('pages/overview.tsx'),
-  route(RoutePath.GettingStarted, 'pages/getting-started.tsx'),
-  route(RoutePath.Options, 'pages/options.tsx'),
-  route(RoutePath.Agents, 'pages/agents.tsx'),
-  route(RoutePath.Glossary, 'pages/glossary.tsx'),
-  route(RoutePath.Analysis, 'pages/analysis.tsx'),
-  route(RoutePath.Architecture, 'pages/architecture.tsx'),
-  route(RoutePath.Optimization, 'pages/optimization.tsx'),
-  route(RoutePath.Benchmarks, 'pages/benchmarks.tsx', {
+  index('pages/document.tsx'),
+  route(RoutePath.GettingStarted, 'pages/document.tsx', {
+    id: 'getting-started',
+  }),
+  route(RoutePath.Options, 'pages/document.tsx', { id: 'cli-overview' }),
+  route(RoutePath.Agents, 'pages/document.tsx', { id: 'agents-overview' }),
+  route(RoutePath.Glossary, 'pages/document.tsx', { id: 'glossary' }),
+  route(RoutePath.Analysis, 'pages/document.tsx', {
+    id: 'morphology-overview',
+  }),
+  route(RoutePath.Architecture, 'pages/document.tsx', {
+    id: 'architecture-overview',
+  }),
+  route(RoutePath.Optimization, 'pages/document.tsx', {
+    id: 'performance-overview',
+  }),
+  route(RoutePath.Benchmarks, 'pages/document.tsx', {
     id: 'benchmarks-overview',
   }),
-  route(RoutePath.BenchmarkCurrent, 'pages/benchmarks.tsx', {
+  route(RoutePath.BenchmarkCurrent, 'pages/document.tsx', {
     id: 'benchmarks-current',
   }),
-  ...technicalRoutes(
-    guideGroup,
-    'pages/technical/guide.tsx',
-    new Set([RoutePath.GettingStarted]),
-  ),
-  ...technicalRoutes(
-    cliGroup,
-    'pages/technical/cli.tsx',
-    new Set([RoutePath.Options]),
-  ),
-  ...technicalRoutes(
-    agentsGroup,
-    'pages/technical/agents.tsx',
-    new Set([RoutePath.Agents]),
-  ),
+  ...technicalRoutes(guideGroup, new Set([RoutePath.GettingStarted])),
+  ...technicalRoutes(cliGroup, new Set([RoutePath.Options])),
+  ...technicalRoutes(agentsGroup, new Set([RoutePath.Agents])),
   ...technicalRoutes(
     internalsGroup,
-    'pages/technical/internals.tsx',
     new Set([
       RoutePath.Analysis,
       RoutePath.Architecture,
@@ -71,14 +65,9 @@ export default [
   ),
   ...technicalRoutes(
     benchmarksGroup,
-    'pages/technical/benchmarks.tsx',
     new Set([RoutePath.Benchmarks, RoutePath.BenchmarkCurrent]),
   ),
-  ...technicalRoutes(
-    referenceGroup,
-    'pages/technical/reference.tsx',
-    new Set([RoutePath.Glossary]),
-  ),
+  ...technicalRoutes(referenceGroup, new Set([RoutePath.Glossary])),
   route(RoutePath.Playground, 'pages/playground/page.tsx'),
   route('*', 'pages/not-found.tsx'),
 ] satisfies RouteConfig;

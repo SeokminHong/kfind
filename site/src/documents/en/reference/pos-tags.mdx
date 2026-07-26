@@ -1,0 +1,21 @@
+<Eyebrow>REFERENCE · GRAMMAR</Eyebrow>
+
+# POS tags
+
+## Coarse POS [#coarse]
+
+Values are `noun`, `pronoun`, `numeral`, `verb`, `adjective`, `determiner`, `adverb`, `particle`, `interjection`, `literal`, and `auto`.
+
+CLI prefixes are `n:`, `pro:`, `num:`, `v:`, `adj:`, `det:`, `adv:`, `j:`, `intj:`, and `lit:`.
+
+## Detailed tags [#detailed]
+
+Detailed tags include NNG, NNP, NNB, NNBC, NP, NR, VV, VA, VX, VCP, VCN, J*, E*, and X\* derivation tags.
+
+They are analysis data in lexicons and component resources, not public option values.
+
+## Mapping [#mapping]
+
+A coarse POS contains several detailed tags but never absorbs unrelated functional tags. A `noun` query does not use JX as its core.
+
+Full-POS fallback adds only detailed candidates inside the query coarse category.
