@@ -9,10 +9,9 @@ import {
   useDocumentLocale,
   useDocumentTranslation,
 } from './i18n';
-import { DocumentLocaleSync } from './i18n-provider';
-import { DocumentMetadataSync } from './metadata';
 import {
   navigationGroupForPath,
+  navigationPageForPath,
   primaryNavigationItems,
   RoutePath,
   routePathFromPathname,
@@ -122,11 +121,17 @@ function useActiveSection(
     : (requestedSection ?? firstSection);
 }
 
-function PrimaryNavigation(): React.JSX.Element {
+function PrimaryNavigation({
+  currentPath,
+}: {
+  readonly currentPath: RoutePath;
+}): React.JSX.Element {
   const { t } = useDocumentTranslation();
   const locale = useDocumentLocale();
-  const location = useNavigationLocation();
-  const activeGroup = navigationGroupForPath(location.pathname);
+  const activeGroup =
+    navigationPageForPath(currentPath) === undefined
+      ? undefined
+      : navigationGroupForPath(currentPath);
 
   return (
     <nav
@@ -135,7 +140,7 @@ function PrimaryNavigation(): React.JSX.Element {
     >
       {primaryNavigationItems.map((item) => {
         const group = navigationGroupForPath(item.path);
-        const current = group.labelKey === activeGroup.labelKey;
+        const current = group.labelKey === activeGroup?.labelKey;
 
         return (
           <Link
@@ -217,11 +222,16 @@ function DocumentNavigation(): React.JSX.Element {
   );
 }
 
-export function Shell(): React.JSX.Element {
+function SiteHeader({
+  currentPath,
+}: {
+  readonly currentPath: RoutePath;
+}): React.JSX.Element {
   const { i18n, t } = useDocumentTranslation();
   const locale = useDocumentLocale();
   const location = useLocation();
   const navigate = useNavigate();
+  const isPlayground = currentPath === RoutePath.Playground;
 
   const selectLocale = (nextLocale: DocumentLocale): void => {
     const currentHref = `${location.pathname}${location.search}${location.hash}`;
@@ -237,115 +247,191 @@ export function Shell(): React.JSX.Element {
   };
 
   return (
-    <>
-      <DocumentLocaleSync />
-      <DocumentMetadataSync />
-      <a className="skip-link" href="#content">
-        {t('common.skip_to_content')}
-      </a>
-      <header className="docs-header">
-        <div className="header-inner">
-          <Link
-            className="brand"
-            to={localizedDocumentHref(RoutePath.Overview, locale)}
-            aria-label={t('common.brand.home_aria')}
-          >
-            <img
-              alt=""
-              aria-hidden="true"
-              className="brand-mark"
-              height="29"
-              src="/favicon.svg"
-              width="29"
-            />
-            <span>kfind</span>
-            <span className="brand-suffix">
-              {t('common.brand.document_suffix')}
-            </span>
-          </Link>
-          <PrimaryNavigation />
-          <div className="header-actions">
-            <div
-              aria-label={t('common.language.aria')}
-              className="language-control"
-              role="group"
-            >
-              <button
-                aria-pressed={locale === DocumentLocale.Korean}
-                onClick={() => {
-                  selectLocale(DocumentLocale.Korean);
-                }}
-                type="button"
-              >
-                {t('common.language.korean')}
-              </button>
-              <button
-                aria-pressed={locale === DocumentLocale.English}
-                onClick={() => {
-                  selectLocale(DocumentLocale.English);
-                }}
-                type="button"
-              >
-                {t('common.language.english')}
-              </button>
-            </div>
-            <nav
-              className="header-links"
-              aria-label={t('common.header.external_aria')}
-            >
-              <Link
-                className="header-cta"
-                to={localizedDocumentHref(RoutePath.Playground, locale)}
-              >
-                {t('common.header.playground')}
-              </Link>
-              <a href="https://github.com/SeokminHong/kfind">GitHub</a>
-            </nav>
-          </div>
-        </div>
-      </header>
-
-      <Collapsible.Root className="mobile-navigation">
-        <Collapsible.Trigger>
-          <span>{t('common.mobile_navigation.trigger')}</span>
-          <svg
+    <header className="docs-header">
+      <div className="header-inner">
+        <Link
+          className="brand"
+          to={localizedDocumentHref(RoutePath.Overview, locale)}
+          aria-label={t('common.brand.home_aria')}
+        >
+          <img
+            alt=""
             aria-hidden="true"
-            className="mobile-navigation-chevron"
-            viewBox="0 0 16 16"
+            className="brand-mark"
+            height="29"
+            src="/favicon.svg"
+            width="29"
+          />
+          <span>kfind</span>
+          <span className="brand-suffix">
+            {isPlayground
+              ? t('common.header.playground')
+              : t('common.brand.document_suffix')}
+          </span>
+        </Link>
+        <PrimaryNavigation currentPath={currentPath} />
+        <div className="header-actions">
+          <div
+            aria-label={t('common.language.aria')}
+            className="language-control"
+            role="group"
           >
-            <path d="m3.5 6 4.5 4 4.5-4" />
-          </svg>
-        </Collapsible.Trigger>
-        <Collapsible.Panel className="mobile-navigation-panel">
-          <PrimaryNavigation />
-          <DocumentNavigation />
+            <button
+              aria-pressed={locale === DocumentLocale.Korean}
+              onClick={() => {
+                selectLocale(DocumentLocale.Korean);
+              }}
+              type="button"
+            >
+              {t('common.language.korean')}
+            </button>
+            <button
+              aria-pressed={locale === DocumentLocale.English}
+              onClick={() => {
+                selectLocale(DocumentLocale.English);
+              }}
+              type="button"
+            >
+              {t('common.language.english')}
+            </button>
+          </div>
           <nav
+            className="header-links"
             aria-label={t('common.header.external_aria')}
-            className="mobile-utilities"
           >
-            <Link to={localizedDocumentHref(RoutePath.Playground, locale)}>
+            <Link
+              aria-current={isPlayground ? 'page' : undefined}
+              className="header-cta"
+              to={localizedDocumentHref(RoutePath.Playground, locale)}
+            >
               {t('common.header.playground')}
             </Link>
             <a href="https://github.com/SeokminHong/kfind">GitHub</a>
           </nav>
-        </Collapsible.Panel>
-      </Collapsible.Root>
+        </div>
+      </div>
+    </header>
+  );
+}
 
+function DocumentMobileNavigation({
+  currentPath,
+}: {
+  readonly currentPath: RoutePath;
+}): React.JSX.Element {
+  const { t } = useDocumentTranslation();
+  const locale = useDocumentLocale();
+
+  return (
+    <Collapsible.Root className="mobile-navigation">
+      <Collapsible.Trigger>
+        <span>{t('common.mobile_navigation.trigger')}</span>
+        <svg
+          aria-hidden="true"
+          className="mobile-navigation-chevron"
+          viewBox="0 0 16 16"
+        >
+          <path d="m3.5 6 4.5 4 4.5-4" />
+        </svg>
+      </Collapsible.Trigger>
+      <Collapsible.Panel className="mobile-navigation-panel">
+        <PrimaryNavigation currentPath={currentPath} />
+        <DocumentNavigation />
+        <nav
+          aria-label={t('common.header.external_aria')}
+          className="mobile-utilities"
+        >
+          <Link to={localizedDocumentHref(RoutePath.Playground, locale)}>
+            {t('common.header.playground')}
+          </Link>
+          <a href="https://github.com/SeokminHong/kfind">GitHub</a>
+        </nav>
+      </Collapsible.Panel>
+    </Collapsible.Root>
+  );
+}
+
+function PlaygroundMobileNavigation(): React.JSX.Element {
+  const { t } = useDocumentTranslation();
+  const locale = useDocumentLocale();
+
+  return (
+    <Collapsible.Root className="mobile-navigation">
+      <Collapsible.Trigger>
+        <span>{t('common.mobile_navigation.site_trigger')}</span>
+        <svg
+          aria-hidden="true"
+          className="mobile-navigation-chevron"
+          viewBox="0 0 16 16"
+        >
+          <path d="m3.5 6 4.5 4 4.5-4" />
+        </svg>
+      </Collapsible.Trigger>
+      <Collapsible.Panel className="mobile-navigation-panel">
+        <PrimaryNavigation currentPath={RoutePath.Playground} />
+        <nav
+          aria-label={t('common.header.external_aria')}
+          className="mobile-utilities"
+        >
+          <Link
+            aria-current="page"
+            to={localizedDocumentHref(RoutePath.Playground, locale)}
+          >
+            {t('common.header.playground')}
+          </Link>
+          <a href="https://github.com/SeokminHong/kfind">GitHub</a>
+        </nav>
+      </Collapsible.Panel>
+    </Collapsible.Root>
+  );
+}
+
+function SiteFooter(): React.JSX.Element {
+  const { t } = useDocumentTranslation();
+  const locale = useDocumentLocale();
+
+  return (
+    <footer className="docs-footer">
+      <span>kfind 1.0.0-rc.3</span>
+      <a href="https://github.com/SeokminHong/kfind/blob/main/README.md">
+        README
+      </a>
+      <Link to={localizedDocumentHref(RoutePath.Licenses, locale)}>
+        {t('common.footer.license')}
+      </Link>
+    </footer>
+  );
+}
+
+export function DocumentShell(): React.JSX.Element {
+  const location = useNavigationLocation();
+
+  return (
+    <>
+      <SiteHeader currentPath={location.pathname} />
+      <DocumentMobileNavigation currentPath={location.pathname} />
       <div className="docs-shell">
         <aside className="docs-sidebar">
           <DocumentNavigation />
         </aside>
         <main className="docs-content" id="content">
           <Outlet />
-          <footer className="docs-footer">
-            <span>kfind 1.0.0-rc.3</span>
-            <a href="https://github.com/SeokminHong/kfind/blob/main/README.md">
-              README
-            </a>
-            <Link to={localizedDocumentHref(RoutePath.Licenses, locale)}>
-              {t('common.footer.license')}
-            </Link>
-          </footer>
+          <SiteFooter />
+        </main>
+      </div>
+    </>
+  );
+}
+
+export function PlaygroundShell(): React.JSX.Element {
+  return (
+    <>
+      <SiteHeader currentPath={RoutePath.Playground} />
+      <PlaygroundMobileNavigation />
+      <div className="playground-shell">
+        <main className="playground-content" id="content">
+          <Outlet />
+          <SiteFooter />
         </main>
       </div>
     </>

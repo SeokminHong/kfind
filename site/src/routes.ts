@@ -3,7 +3,7 @@ import type { RouteConfig } from '@react-router/dev/routes';
 import type { DocumentGroupIndex } from './app/document-index';
 import type { RoutePath as RoutePathValue } from './app/navigation';
 
-import { index, route } from '@react-router/dev/routes';
+import { index, layout, route } from '@react-router/dev/routes';
 
 import {
   agentsGroup,
@@ -29,7 +29,7 @@ function technicalRoutes(
     );
 }
 
-export default [
+const documentRoutes = [
   index('pages/document.tsx'),
   route(RoutePath.GettingStarted, 'pages/document.tsx', {
     id: 'getting-started',
@@ -62,6 +62,16 @@ export default [
   ),
   ...technicalRoutes(benchmarksGroup, new Set([RoutePath.Benchmarks])),
   ...technicalRoutes(referenceGroup, new Set([RoutePath.Glossary])),
-  route(RoutePath.Playground, 'pages/playground/page.tsx'),
   route('*', 'pages/not-found.tsx'),
+] satisfies RouteConfig;
+
+export default [
+  layout('pages/layouts/playground.tsx', { id: 'playground-layout' }, [
+    route(RoutePath.Playground, 'pages/playground/page.tsx'),
+  ]),
+  layout(
+    'pages/layouts/document.tsx',
+    { id: 'document-layout' },
+    documentRoutes,
+  ),
 ] satisfies RouteConfig;

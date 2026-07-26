@@ -7,14 +7,16 @@ import './playground.css';
 import {
   Links,
   Meta,
+  Outlet,
   Scripts,
   ScrollRestoration,
   useLocation,
 } from 'react-router';
 
-import { initialDocumentLocale } from './app/i18n';
-import { DocumentI18nProvider } from './app/i18n-provider';
-import { DocumentLoading, Shell } from './app/shell';
+import { initialDocumentLocale, useDocumentTranslation } from './app/i18n';
+import { DocumentI18nProvider, DocumentLocaleSync } from './app/i18n-provider';
+import { DocumentMetadataSync } from './app/metadata';
+import { DocumentLoading } from './app/shell';
 
 export const links: LinksFunction = () => [
   { rel: 'icon', href: '/favicon.ico', type: 'image/x-icon' },
@@ -69,13 +71,28 @@ export function HydrateFallback(): React.JSX.Element {
   );
 }
 
+function SiteRoutes(): React.JSX.Element {
+  const { t } = useDocumentTranslation();
+
+  return (
+    <>
+      <DocumentLocaleSync />
+      <DocumentMetadataSync />
+      <a className="skip-link" href="#content">
+        {t('common.skip_to_content')}
+      </a>
+      <Outlet />
+    </>
+  );
+}
+
 export default function App(): React.JSX.Element {
   const location = useLocation();
   const locale = initialDocumentLocale(location.search);
 
   return (
     <DocumentI18nProvider initialLocale={locale}>
-      <Shell />
+      <SiteRoutes />
     </DocumentI18nProvider>
   );
 }
