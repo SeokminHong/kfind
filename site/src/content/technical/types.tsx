@@ -2,9 +2,13 @@ import type { ReactNode } from 'react';
 
 import type { RoutePath } from '../../app/navigation';
 
-import { useLocation } from 'react-router';
+import { Link, useLocation } from 'react-router';
 
-import { DocumentLocale, useDocumentLocale } from '../../app/i18n';
+import {
+  DocumentLocale,
+  localizedDocumentHref,
+  useDocumentLocale,
+} from '../../app/i18n';
 import {
   navigationPageForPath,
   routePathFromPathname,
@@ -106,7 +110,13 @@ export function TechnicalDocument({
               <ul>
                 {entry.links.map((link) => (
                   <li key={link.href}>
-                    <a href={link.href}>{link.label}</a>
+                    {link.href.startsWith('/') ? (
+                      <Link to={localizedDocumentHref(link.href, locale)}>
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <a href={link.href}>{link.label}</a>
+                    )}
                   </li>
                 ))}
               </ul>

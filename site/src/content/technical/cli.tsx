@@ -384,6 +384,63 @@ kfind '"|"' syntax.txt`,
       title: '검색 예시',
       sections: [
         section(
+          '문자열 검색과 표제어 검색',
+          [
+            '`grep`과 `ripgrep`은 입력한 문자열이 원문에 나타나는 표면형을 찾습니다. 따라서 `걷다` 한 번으로 `걷고`, `걸어`, `걸었다`를 모두 찾으려면 활용형을 직접 열거한 정규식이 필요합니다.',
+            'kfind는 표제어와 품사를 query에서 해석하고 허용된 조사·어미·불규칙 활용만 검색 계획으로 만듭니다. Literal 문자열 검색은 `--literal`, 표제어 검색은 기본 inflection mode로 명시적으로 구분합니다.',
+          ],
+          {
+            code: `rg '걷다|걷고|걸어|걸었다' docs src
+kfind --pos verb 걷다 docs src`,
+            links: [
+              {
+                href: '/reference/query-language',
+                label: '한국어 형태 검색 query 문법',
+              },
+            ],
+          },
+        ),
+        section(
+          '동사 활용형 일괄 검색',
+          [
+            '파일에서 한국어 동사의 모든 지원 활용형을 찾을 때는 동사 품사와 표제어를 지정합니다. `걷다` 검색은 규칙형을 임의로 나열하지 않고 사전의 ㄷ 불규칙 정보와 어미 결합 규칙으로 `걷고`, `걸어`, `걸었다`를 생성합니다.',
+            '먼저 제한된 path에서 결과와 provenance를 확인하고, 필요하면 `smart` 경계와 full POS resource로 token 내부 후보를 재검증합니다.',
+          ],
+          {
+            code: `kfind --pos verb --boundary smart 걷다 docs src
+kfind --pos verb --boundary any --json 걷다 docs src`,
+            links: [
+              {
+                href: '/guide/getting-started',
+                label: '설치와 첫 표제어 검색',
+              },
+              {
+                href: '/playground',
+                label: 'WebAssembly 플레이그라운드',
+              },
+            ],
+          },
+        ),
+        section(
+          '형태소 분석기와 형태 검색 엔진',
+          [
+            '형태소 분석기는 관찰한 문장을 token과 표제어로 분석합니다. kfind는 반대로 찾을 표제어를 입력받아 제한된 surface 후보를 만들고, 파일에서 빠른 anchor scan 뒤 후보 주변만 검증합니다.',
+            '따라서 Rust 구현도 corpus 전체를 형태소 분석하는 pipeline이 아니라 query compile, matcher와 국소 verifier를 분리합니다. 품질과 비용은 같은 gold와 workload에서 각각 측정합니다.',
+          ],
+          {
+            links: [
+              {
+                href: '/internals/morphology',
+                label: '한국어 형태 검색 구현 원리',
+              },
+              {
+                href: '/benchmarks/comparisons',
+                label: '형태 분석기 품질·성능 비교',
+              },
+            ],
+          },
+        ),
+        section(
           '코드 검색',
           [
             '함수명 주변의 한국어 주석과 문서를 탐색할 때는 넓은 `any`로 후보를 모은 뒤 `smart`로 재검증합니다. 정확한 identifier는 literal mode를 사용합니다.',
@@ -420,6 +477,63 @@ kfind --literal contract-adjust docs site/src`,
       eyebrow: 'CLI · RECIPES',
       title: 'Search recipes',
       sections: [
+        section(
+          'Literal and lemma search',
+          [
+            '`grep` and `ripgrep` find surface strings present in the source. Finding `걷고`, `걸어`, and `걸었다` from the single lemma `걷다` therefore requires a manually enumerated regular expression.',
+            'kfind interprets the lemma and POS in the query, then compiles only licensed particles, endings, and irregular inflections. Use `--literal` for surface-string matching and the default inflection mode for lemma search.',
+          ],
+          {
+            code: `rg '걷다|걷고|걸어|걸었다' docs src
+kfind --pos verb 걷다 docs src`,
+            links: [
+              {
+                href: '/reference/query-language',
+                label: 'Korean morphology query syntax',
+              },
+            ],
+          },
+        ),
+        section(
+          'Korean verb inflections',
+          [
+            'To search every supported conjugation of a Korean verb in files, provide its verb POS and lemma. A `걷다` query derives `걷고`, `걸어`, and `걸었다` from the lexicon’s ㄷ-irregular class and ending rules instead of hard-coding a surface list.',
+            'Start with bounded paths and inspect provenance. Add the `smart` boundary and full-POS resources when internal-token candidates need structural verification.',
+          ],
+          {
+            code: `kfind --pos verb --boundary smart 걷다 docs src
+kfind --pos verb --boundary any --json 걷다 docs src`,
+            links: [
+              {
+                href: '/guide/getting-started',
+                label: 'Installation and first lemma search',
+              },
+              {
+                href: '/playground',
+                label: 'WebAssembly playground',
+              },
+            ],
+          },
+        ),
+        section(
+          'Analyzer and search engine',
+          [
+            'A morphological analyzer maps an observed sentence into tokens and lemmas. kfind runs in the opposite direction: it expands a target lemma into bounded surfaces, scans file anchors, and verifies only the surrounding candidate.',
+            'The Rust implementation therefore separates query compilation, matchers, and local verifiers instead of analyzing the entire corpus. Quality and cost are reported independently on matched gold and workloads.',
+          ],
+          {
+            links: [
+              {
+                href: '/internals/morphology',
+                label: 'Korean morphology search internals',
+              },
+              {
+                href: '/benchmarks/comparisons',
+                label: 'Morphological analyzer quality and performance',
+              },
+            ],
+          },
+        ),
         section(
           'Code search',
           [

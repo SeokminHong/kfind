@@ -3,12 +3,18 @@ import { reactRouter } from '@react-router/dev/vite';
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
 import { defineConfig } from 'vite';
 
+const prerenderLocale = process.env.KFIND_PRERENDER_LOCALE ?? 'ko';
+if (prerenderLocale !== 'ko' && prerenderLocale !== 'en') {
+  throw new Error('KFIND_PRERENDER_LOCALE must be ko or en');
+}
+
 export default defineConfig({
   plugins: [reactRouter(), vanillaExtractPlugin()],
   define: {
     __KFIND_COMPONENT_RESOURCE_VERSION__: JSON.stringify(
       readComponentResourceVersion(),
     ),
+    __KFIND_PRERENDER_LOCALE__: JSON.stringify(prerenderLocale),
   },
   build: {
     target: 'es2022',

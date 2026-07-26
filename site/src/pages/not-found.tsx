@@ -1,6 +1,10 @@
 import { Link } from 'react-router';
 
-import { DocumentLocale, useDocumentLocale } from '../app/i18n';
+import {
+  DocumentLocale,
+  localizedDocumentHref,
+  useDocumentLocale,
+} from '../app/i18n';
 import { RoutePath } from '../app/navigation';
 import { PageIntro } from '../components/document';
 
@@ -29,7 +33,9 @@ export default function NotFoundPage(): React.JSX.Element {
       <PageIntro eyebrow="404" title={content.title}>
         <p>{content.overview}</p>
         <div className="document-links">
-          <Link to={RoutePath.Overview}>{content.link}</Link>
+          <Link to={localizedDocumentHref(RoutePath.Overview, locale)}>
+            {content.link}
+          </Link>
         </div>
       </PageIntro>
     </article>

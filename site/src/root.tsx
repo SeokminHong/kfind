@@ -4,9 +4,15 @@ import './theme.css';
 import './site.css';
 import './playground.css';
 
-import { Links, Meta, Scripts, ScrollRestoration } from 'react-router';
+import {
+  Links,
+  Meta,
+  Scripts,
+  ScrollRestoration,
+  useLocation,
+} from 'react-router';
 
-import { defaultDocumentLocale } from './app/i18n';
+import { initialDocumentLocale } from './app/i18n';
 import { DocumentI18nProvider } from './app/i18n-provider';
 import { DocumentLoading, Shell } from './app/shell';
 
@@ -20,8 +26,11 @@ export const links: LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  const locale = initialDocumentLocale(location.search);
+
   return (
-    <html lang={defaultDocumentLocale} dir="ltr">
+    <html lang={locale} dir="ltr">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -39,16 +48,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export function HydrateFallback(): React.JSX.Element {
+  const location = useLocation();
+  const locale = initialDocumentLocale(location.search);
+
   return (
-    <DocumentI18nProvider>
+    <DocumentI18nProvider initialLocale={locale}>
       <DocumentLoading />
     </DocumentI18nProvider>
   );
 }
 
 export default function App(): React.JSX.Element {
+  const location = useLocation();
+  const locale = initialDocumentLocale(location.search);
+
   return (
-    <DocumentI18nProvider>
+    <DocumentI18nProvider initialLocale={locale}>
       <Shell />
     </DocumentI18nProvider>
   );

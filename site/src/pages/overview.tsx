@@ -17,9 +17,9 @@ const sectionIds = [
 const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
   [DocumentLocale.Korean]: {
     eyebrow: '시작 · 제품 범위',
-    title: 'kfind 개요',
+    title: '한국어 활용형까지 찾는 검색 엔진, kfind',
     overview:
-      'kfind는 한국어 표제어와 짧은 구를 유한한 검색 계획으로 컴파일하고, 파일이나 메모리 text에서 형태 조건을 만족하는 span을 찾는 검색 엔진입니다.',
+      '‘걷다’를 검색하면 ‘걷고’, ‘걸어’, ‘걸었다’까지 찾습니다. kfind는 한국어의 조사, 어미, 불규칙 활용을 고려해 파일과 코드에서 원하는 표제어와 구를 검색하는 고성능 검색 엔진입니다.',
     sections: [
       {
         title: '제품 목적',
@@ -105,9 +105,9 @@ const content: Readonly<Record<DocumentLocale, DocumentContent>> = {
   },
   [DocumentLocale.English]: {
     eyebrow: 'START · PRODUCT SCOPE',
-    title: 'kfind overview',
+    title: 'Korean lemma and inflection search with kfind',
     overview:
-      'kfind compiles Korean lemmas and short phrases into finite search plans, then finds spans that satisfy those morphology constraints in files or in-memory text.',
+      'Search 걷다 and find 걷고, 걸어, and 걸었다. kfind accounts for Korean particles, endings, and irregular inflection to find target lemmas and phrases across files and source code.',
     sections: [
       {
         title: 'Product purpose',

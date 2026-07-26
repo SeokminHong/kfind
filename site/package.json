@@ -6,6 +6,7 @@
   "scripts": {
     "generate:playground-corpus": "node scripts/generate-playground-corpus.mjs",
     "generate:sitemap": "node scripts/generate-sitemap.mjs",
+    "check:seo": "node scripts/check-seo.mjs",
     "prepare:assets": "./scripts/prepare-assets.sh",
     "upload:component": "./scripts/upload-component-resource.sh",
     "types": "wrangler types worker-configuration.d.ts --env-interface CloudflareBindings --include-runtime=false",
@@ -13,7 +14,7 @@
     "typegen": "react-router typegen",
     "dev": "pnpm run generate:sitemap && pnpm run prepare:assets && react-router dev",
     "dev:pages": "pnpm run build && wrangler pages dev build/client",
-    "build": "pnpm run generate:sitemap && pnpm run prepare:assets && react-router typegen && tsc --noEmit && tsc --noEmit --project functions/tsconfig.json && react-router build",
+    "build": "pnpm run generate:sitemap && pnpm run prepare:assets && react-router typegen && tsc --noEmit && tsc --noEmit --project functions/tsconfig.json && node scripts/build-site.mjs && pnpm run check:seo",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

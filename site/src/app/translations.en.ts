@@ -28,6 +28,12 @@ export const englishTranslation: Readonly<
   'metadata.architecture.description':
     'The compile, anchor scan, local verification, and output architecture.',
   'metadata.architecture.title': 'Architecture',
+  'metadata.benchmark_comparisons.browser_title':
+    'kfind vs. Korean Morphological Analyzers: Quality and Performance',
+  'metadata.benchmark_current.browser_title':
+    'Latest Korean Morphology Search Benchmarks | kfind',
+  'metadata.benchmark_performance.browser_title':
+    'kfind Performance Measurement: Throughput, Startup, and Memory',
   'metadata.benchmarks.description':
     'Quality and performance contracts with raw and contract-adjusted metrics.',
   'metadata.benchmarks.title': 'Benchmarks',
@@ -46,12 +52,21 @@ export const englishTranslation: Readonly<
   'metadata.options.description':
     'Query grammar, expansion, boundary, POS, normalization, and phrase options.',
   'metadata.options.title': 'Query and options',
+  'metadata.irregulars.browser_title':
+    'Korean Irregular Inflection Search | kfind',
+  'metadata.overview.browser_title':
+    'kfind | Korean Lemma & Inflection Search Engine',
   'metadata.overview.description':
-    'The purpose, scope, and execution model of kfind.',
-  'metadata.overview.title': 'Overview',
+    'Search 걷다 and find 걷고, 걸어, and 걸었다. kfind is a fast Korean lemma and inflection search engine for files, source code, and documentation through its CLI, Rust, and WebAssembly interfaces.',
+  'metadata.overview.title': 'Korean morphology search',
   'metadata.playground.description':
     'Run the kfind WebAssembly search engine in the browser.',
   'metadata.playground.title': 'Playground',
+  'metadata.query_language.browser_title':
+    'kfind Korean Morphology Query Syntax',
+  'metadata.recipes.browser_title':
+    'Search Korean Verb Conjugations in Files | kfind',
+  'metadata.social_image_alt': 'kfind · Korean morphology search',
   'navigation.primary.agents': 'Agents',
   'navigation.primary.benchmarks': 'Benchmarks',
   'navigation.primary.cli': 'CLI',

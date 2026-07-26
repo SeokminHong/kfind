@@ -4,8 +4,9 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 repository.workspace = true
+homepage.workspace = true
 license.workspace = true
-description = "JavaScript and TypeScript bindings for kfind"
+description = "Fast Korean lemma and inflection search for files, CLI, Rust, and WebAssembly"
 publish = false
 
 [lib]

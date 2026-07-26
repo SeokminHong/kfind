@@ -144,6 +144,21 @@ export const cliGroup: DocumentGroupIndex = {
           '코드 탐색, 문서 감사와 에이전트 입력에 맞는 명령 조합을 제공합니다.',
           'Apply command combinations for code exploration, documentation audits, and agent input.',
           [
+            [
+              'literal-and-lemma-search',
+              '문자열 검색과 표제어 검색',
+              'Literal and lemma search',
+            ],
+            [
+              'verb-inflections',
+              '동사 활용형 일괄 검색',
+              'Korean verb inflections',
+            ],
+            [
+              'analyzer-and-search-engine',
+              '형태소 분석기와 형태 검색 엔진',
+              'Analyzer and search engine',
+            ],
             ['code-search', '코드 검색', 'Code search'],
             ['document-audit', '문서 감사', 'Documentation audit'],
             ['agent-input', '에이전트 입력', 'Agent input'],

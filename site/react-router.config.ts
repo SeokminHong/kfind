@@ -5,8 +5,14 @@ import { join } from 'node:path';
 
 import { documentRoutePaths, RoutePath } from './src/app/navigation';
 
+const prerenderLocale = process.env.KFIND_PRERENDER_LOCALE ?? 'ko';
+if (prerenderLocale !== 'ko' && prerenderLocale !== 'en') {
+  throw new Error('KFIND_PRERENDER_LOCALE must be ko or en');
+}
+
 const config: Config = {
   appDirectory: 'src',
+  buildDirectory: `build/${prerenderLocale}`,
   ssr: false,
   prerender: [...documentRoutePaths, '/404'],
   async buildEnd({ reactRouterConfig }) {

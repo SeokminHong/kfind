@@ -24,6 +24,12 @@ export const koreanTranslation = {
   'metadata.architecture.description':
     'Query compile부터 anchor scan, verifier와 출력까지의 구조를 설명합니다.',
   'metadata.architecture.title': '아키텍처',
+  'metadata.benchmark_comparisons.browser_title':
+    'kfind와 한국어 형태 분석기 품질·성능 비교',
+  'metadata.benchmark_current.browser_title':
+    '한국어 형태 검색 최신 벤치마크 | kfind',
+  'metadata.benchmark_performance.browser_title':
+    'kfind 성능 측정 방법: 처리량·시작 비용·메모리',
   'metadata.benchmarks.description':
     'kfind의 품질과 성능 측정 계약을 설명합니다.',
   'metadata.benchmarks.title': '벤치마크',
@@ -41,12 +47,18 @@ export const koreanTranslation = {
   'metadata.options.description':
     '확장, 경계, 품사, 정규화와 구 검색 옵션을 설명합니다.',
   'metadata.options.title': '쿼리와 옵션',
+  'metadata.irregulars.browser_title': '한국어 불규칙 활용 검색 원리 | kfind',
+  'metadata.overview.browser_title': 'kfind | 한국어 활용형·표제어 검색 엔진',
   'metadata.overview.description':
-    'kfind의 목적, 검색 모델과 사용 경로를 설명합니다.',
-  'metadata.overview.title': '개요',
+    'kfind는 ‘걷다’로 ‘걷고’, ‘걸어’, ‘걸었다’까지 찾는 한국어 활용형 검색 엔진입니다. CLI, Rust, WebAssembly로 파일·코드·문서를 빠르게 검색합니다.',
+  'metadata.overview.title': '한국어 형태 검색',
   'metadata.playground.description':
     '브라우저에서 kfind WebAssembly 검색을 실행합니다.',
   'metadata.playground.title': '플레이그라운드',
+  'metadata.query_language.browser_title': 'kfind 한국어 형태 검색 쿼리 문법',
+  'metadata.recipes.browser_title':
+    '파일에서 한국어 활용형을 찾는 방법 | kfind',
+  'metadata.social_image_alt': 'kfind · 한국어 형태 검색',
   'navigation.primary.agents': '에이전트',
   'navigation.primary.benchmarks': '벤치마크',
   'navigation.primary.cli': 'CLI',
