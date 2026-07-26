@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import mdx from '@mdx-js/rollup';
 import { reactRouter } from '@react-router/dev/vite';
 import rehypeShiki from '@shikijs/rehype';
@@ -31,8 +31,11 @@ export default defineConfig({
     vanillaExtractPlugin(),
   ],
   define: {
-    __KFIND_COMPONENT_RESOURCE_VERSION__: JSON.stringify(
-      readComponentResourceVersion(),
+    __KFIND_COMPONENT_RESOURCE_REVISION__: JSON.stringify(
+      readComponentResourceRevision(),
+    ),
+    __KFIND_PLAYGROUND_CORPUS_METADATA__: JSON.stringify(
+      readPlaygroundCorpusMetadata(),
     ),
     __KFIND_PRERENDER_LOCALE__: JSON.stringify(prerenderLocale),
   },
@@ -41,41 +44,56 @@ export default defineConfig({
   },
 });
 
-function readComponentResourceVersion(): string {
-  const hasWorkingTreeChanges = readGitValue(['status', '--porcelain']) !== '';
+function readComponentResourceRevision(): string {
+  const checksum = readFileSync(
+    new URL(
+      '../data/generated/morphology-component-compact.sha256',
+      import.meta.url,
+    ),
+    'utf8',
+  ).trim();
 
-  if (!hasWorkingTreeChanges) {
-    try {
-      return readGitValue([
-        'describe',
-        '--tags',
-        '--exact-match',
-        '--match',
-        'v[0-9]*',
-      ]);
-    } catch {
-      // This is a clean development build when HEAD has no version tag.
-    }
+  if (!/^[0-9a-f]{64}$/u.test(checksum)) {
+    throw new Error('component resource checksum must be 64 lowercase hex');
   }
 
-  if (readGitValue(['rev-parse', '--is-shallow-repository']) === 'true') {
-    throw new Error(
-      'component resource version requires full Git history; checkout with fetch-depth: 0',
-    );
-  }
-
-  return readGitValue([
-    'log',
-    '-1',
-    '--format=%H',
-    '--',
-    ':(top)scripts/build-component-resource.sh',
-  ]);
+  return checksum;
 }
 
-function readGitValue(arguments_: readonly string[]): string {
-  return execFileSync('git', [...arguments_], {
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'ignore'],
-  }).trim();
+function readPlaygroundCorpusMetadata(): {
+  readonly byteLength: number;
+  readonly sha256: string;
+} {
+  const manifest: unknown = JSON.parse(
+    readFileSync(
+      new URL(
+        './public/playground/korean-wikipedia-20231101-ko-1mib.sources.json',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+  );
+
+  if (!isRecord(manifest) || !isRecord(manifest.output)) {
+    throw new Error('playground corpus manifest is invalid');
+  }
+
+  const byteLength = manifest.output.utf8_bytes;
+  const sha256 = manifest.output.sha256;
+
+  if (
+    typeof byteLength !== 'number' ||
+    !Number.isSafeInteger(byteLength) ||
+    byteLength <= 0 ||
+    typeof sha256 !== 'string' ||
+    !/^[0-9a-f]{64}$/u.test(sha256)
+  ) {
+    throw new Error('playground corpus manifest is invalid');
+  }
+
+  return { byteLength, sha256 };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
 }

@@ -8,3 +8,7 @@
 생성합니다. 출력에는 생성 manifest와 upstream Apache-2.0 라이선스가 포함됩니다.
 `STATS.toml`은 전체 entry, 고유 표제어, 품사별 entry와 품사 충돌 표제어 수를
 기록합니다.
+
+`morphology-component-compact.sha256`은 component resource 생성물의 고정
+SHA-256입니다. Resource build와 site build가 같은 값을 읽으며 실제 생성물이
+달라질 때만 갱신합니다.

@@ -26,12 +26,16 @@ interface PresetDefinition {
   readonly text: string | (() => Promise<string>);
 }
 
-const LARGE_INPUT_BYTE_LENGTH = 1024 * 1024;
-const LARGE_INPUT_SHA256 =
-  '2bf73e793f1c43383bb2794d485ca8e81ae99879816feaaf4a00eab51f250d81';
 const LARGE_INPUT_URL = '/playground/korean-wikipedia-20231101-ko-1mib.txt';
 
 let cachedLargeInput: Promise<string> | undefined;
+
+interface PlaygroundCorpusMetadata {
+  readonly byteLength: number;
+  readonly sha256: string;
+}
+
+declare const __KFIND_PLAYGROUND_CORPUS_METADATA__: PlaygroundCorpusMetadata;
 
 const presets: Readonly<Record<PlaygroundPresetName, PresetDefinition>> = {
   [PlaygroundPresetName.Predicate]: {
@@ -129,8 +133,9 @@ async function loadLargeInput(): Promise<string> {
       }
 
       const bytes = new Uint8Array(await response.arrayBuffer());
+      const metadata = __KFIND_PLAYGROUND_CORPUS_METADATA__;
 
-      if (bytes.byteLength !== LARGE_INPUT_BYTE_LENGTH) {
+      if (bytes.byteLength !== metadata.byteLength) {
         throw new Error(
           `Wikipedia corpus size mismatch: ${bytes.byteLength} bytes`,
         );
@@ -141,7 +146,7 @@ async function loadLargeInput(): Promise<string> {
         byte.toString(16).padStart(2, '0'),
       ).join('');
 
-      if (sha256 !== LARGE_INPUT_SHA256) {
+      if (sha256 !== metadata.sha256) {
         throw new Error(`Wikipedia corpus checksum mismatch: ${sha256}`);
       }
 

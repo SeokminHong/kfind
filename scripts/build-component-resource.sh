@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly COMPONENT_SHA256="02b877a79518e7c5662583d9cda531409114a932ec9cf186dec8a23863c839d0"
-
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+component_checksum_file="${repo_root}/data/generated/morphology-component-compact.sha256"
+COMPONENT_SHA256=$(<"${component_checksum_file}")
+readonly COMPONENT_SHA256
+
+if [[ ! "${COMPONENT_SHA256}" =~ ^[0-9a-f]{64}$ ]]; then
+  echo "invalid component checksum: ${component_checksum_file}" >&2
+  exit 1
+fi
+
 source "${repo_root}/scripts/lib/full-pos-source.sh"
 component_version=$(cargo pkgid -p kfind-data | sed -E 's/.*[#@]//')
 output_directory=${1:-"${repo_root}/target/component-resource"}

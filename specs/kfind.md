@@ -562,7 +562,8 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
   제공한다. Editor에는 문자 수와 UTF-8 byte 수를, 검색 결과에는 query compile과 전체 text scan을
   합친 실행 시간을 표시한다. 예시 action은 짧은 button row로 줄바꿈하며 단순 목록을 별도 card
   grid처럼 크게 그리지 않는다. Compile option은 현재 값과 설명을 확인할 수 있되 주 입력보다
-  시각적으로 앞서지 않는 compact control grid로 배치한다.
+  시각적으로 앞서지 않는 compact control grid로 배치한다. Site build는 추출 manifest의 byte
+  수와 SHA-256으로 원문 asset을 검증한 뒤 같은 검증값을 browser loader에 주입한다.
 - Playground는 query·text·option 변경을 debounce한 뒤 자동으로 검색하며 별도의 검색 실행
   button을 두지 않는다. Query label에서 지원 atom 태그와 품사를 확인할 수 있어야 하며 atom 태그
   도움말은 hover·keyboard focus와 pointer activation으로 열 수 있어야 한다. Playground가
@@ -597,11 +598,9 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
   분석하거나 검색어를 확장하지 않는다. 사용자가 switch를 켤 때 같은 origin의 Pages Function에서
   resource를 한 번 내려받아 기존 WASM engine에 load한다. 검증된 resource response는 browser
   Cache Storage에 보관하고 호환되는 resource revision으로 playground에 다시 들어오면 network 요청
-  없이 자동으로 복원해 사용을 켠다. Cache key는 version tag를 정확히 checkout한 release build에서는
-  tag를 사용하고, 그 외 개발 build에서는 component artifact checksum을 마지막으로 고정한 전체 Git
-  commit을 사용한다. Site UI만 바뀐 commit은 동일한 resource를 무효화하지 않는다.
-  이 Git commit을 산출하는 site build는 전체 history를 요구하며 shallow checkout에서는 잘못된 현재
-  HEAD를 version으로 사용하지 않고 실패한다. CI의 site build와 Pages deploy는 전체 history를 checkout한다.
+  없이 자동으로 복원해 사용을 켠다. Cache key는 생성한 component artifact의 고정 SHA-256을
+  사용한다. Resource byte가 같으면 release tag, Git commit과 working tree 상태가 달라도 key를
+  바꾸지 않고, resource byte가 바뀌면 build script와 site build가 함께 읽는 checksum을 갱신한다.
   Playground 진입 시 현재 key를 먼저 확인하고, 기존 site build key로 저장한 같은-origin entry도 engine의
   schema·version·digest 검증을 통과하면 현재 key로 옮긴다. 호환되지 않는 entry는 삭제한다. 검색은 이
   확인이 끝난 뒤 시작하며 resource row는 확인 중 상태와 저장소 복원 완료 상태를 구분해 처음부터
