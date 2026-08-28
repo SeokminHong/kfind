@@ -213,13 +213,18 @@
   `.claude/skills/kfind/SKILL.md`, Codex `.agents/skills/kfind/SKILL.md`, Gemini CLI
   `.gemini/skills/kfind/SKILL.md`다. `custom`은 파일을 만들지 않고 같은 `SKILL.md` 원문만
   stdout에 출력한다. 진행 메시지와 오류는 stderr에만 출력한다.
-- Claude Code, Codex와 Gemini CLI 대상은 각각 `.claude/settings.json`의
-  `PreToolUse/Bash`, `.codex/hooks.json`의 `PreToolUse/Bash`,
-  `.gemini/settings.json`의 `BeforeTool/run_shell_command`에 kfind agent hook을 함께
-  설치한다. 기존 JSON 설정과 다른 hook은 보존하며, JSON이 올바르지 않거나 병합할 필드의
-  자료형이 agent 계약과 다르면 어떤 파일도 변경하지 않고 충돌 경로를 포함한 오류와 exit
-  code 2를 반환한다. 같은 kfind hook은 다시 실행해도 중복하지 않는다.
-- Agent hook은 shell tool의 명령행에서 직접 실행되는 `rg`, `grep`, `egrep`, `fgrep`과
+- Claude Code, Codex와 Gemini CLI 대상은 각각 `.claude/settings.json`,
+  `.codex/hooks.json`, `.gemini/settings.json`에 kfind agent hook을 함께 설치한다. 세 agent의
+  `SessionStart`에는 모든 한국어 코드·문서 검색에서 설치된 kfind skill과 `kfind`를 사용하고,
+  exact surface 검색도 `kfind --literal`로 실행하며, 한국어 pattern을 일반 text search tool에
+  전달하지 말라는 지침을 주입한다. agent가 지원하는 시작·재개·초기화 시점마다 같은 지침을
+  다시 주입한다.
+- 실행 전 hook은 `.claude/settings.json`의 `PreToolUse/Bash`, `.codex/hooks.json`의
+  `PreToolUse/Bash`, `.gemini/settings.json`의 `BeforeTool/run_shell_command`에 설치한다.
+  기존 JSON 설정과 다른 hook은 보존하며, JSON이 올바르지 않거나 병합할 필드의 자료형이
+  agent 계약과 다르면 어떤 파일도 변경하지 않고 충돌 경로를 포함한 오류와 exit code 2를
+  반환한다. 같은 kfind hook은 다시 실행해도 중복하지 않는다.
+- 실행 전 agent hook은 shell tool의 명령행에서 직접 실행되는 `rg`, `grep`, `egrep`, `fgrep`과
   `git grep`의 명시적 command-line 검색 패턴을 식별한다. 검색 패턴에 현대·옛한글 음절 또는
   자모가 있으면 tool 실행을 거부하고 kfind 사용법을 agent에 반환한다. 경로, glob, option
   값과 pattern file의 내용은 검색 패턴으로 간주하지 않는다. kfind 명령과 한글이 없는
@@ -230,7 +235,7 @@
   계약을 알 수 없으므로 hook 설정을 만들지 않는다.
 - init이 만든 파일·link는 다시 실행할 때 같은 배포본으로 갱신할 수 있다. 관리 표식이 없는
   기존 skill을 덮어쓰지 않으며 충돌 경로를 포함한 오류와 exit code 2를 반환한다.
-- `--uninstall`은 선택한 agent의 kfind 관리 skill과 `kfind --agent-hook` handler만 제거한다.
+- `--uninstall`은 선택한 agent의 kfind 관리 skill과 `kfind --agent-hook` handler들만 제거한다.
   다른 skill 파일, agent 설정 key와 hook handler는 보존한다. 설정 파일이 kfind hook만 담고
   있으면 파일도 제거하며, 다른 설정이 있으면 남은 JSON을 같은 권한으로 다시 쓴다. 관리
   skill이나 hook이 없으면 변경 없음으로 성공한다. 관리 표식이 없는 skill, 올바르지 않은 JSON
@@ -242,10 +247,11 @@
   사용한다. 단일 품사 query는 `--pos`, 혼합 phrase는 atom 태그로 품사를 지정한다. CLI는
   사람의 무품사 입력을 위해 `--pos` 생략을 허용하지만, 에이전트 통합 계약에서는 이를
   잘못된 호출로 취급한다.
-- 배포용 agent skill은 README나 `--help`를 별도로 읽지 않아도 에이전트가 검색을 실행할 수
-  있어야 한다. 단일·혼합 품사 query와 literal 검색, 전체 `--pos` 값과 atom 태그, phrase의
-  순서·거리, `embedded + any + JSON Lines` 권장 경로, path·glob 축소, JSON span·provenance와
-  종료 코드를 간결한 예시와 함께 설명한다.
+- 배포용 agent skill의 description은 exact surface 검색을 포함한 모든 한국어 코드·문서 검색을
+  선택 조건으로 선언한다. 본문은 README나 `--help`를 별도로 읽지 않아도 에이전트가 검색을
+  실행할 수 있어야 한다. 단일·혼합 품사 query와 literal 검색, 전체 `--pos` 값과 atom 태그,
+  phrase의 순서·거리, `embedded + any + JSON Lines` 권장 경로, path·glob 축소, JSON
+  span·provenance와 종료 코드를 간결한 예시와 함께 설명한다.
 - man page와 한국어 README는 사람용 기본 경로와 에이전트 자동화 경로를 구분해 안내한다.
   README는 `--help`를 별도로 읽지 않아도 검색 기능, 쿼리 문법, 옵션의 값·기본값·주요 충돌,
   출력 형식과 종료 코드를 이해할 수 있어야 한다. README에는 현재 제품 동작과 안정적인 사용
@@ -2457,10 +2463,12 @@ kfind --init --agent custom > path/to/kfind/SKILL.md
 TTY에서 선택을 취소하거나 아무 항목도 선택하지 않으면 파일을 변경하지 않고 성공한다. 같은
 agent를 여러 번 입력해도 한 번만 처리한다. 설치가 하나라도 실패하면 성공으로 보고하지 않는다.
 
-지원 agent를 선택하면 skill과 project hook 설정을 함께 설치한다. 기존 설정 파일에는 kfind
-hook만 병합하며 다른 key와 hook 순서를 보존한다. Codex의 project hook은 프로젝트를 신뢰한 뒤
-`/hooks`에서 별도로 신뢰해야 실행된다. Claude Code와 Gemini CLI도 각 제품의 project hook
-신뢰 절차를 따른다.
+지원 agent를 선택하면 skill과 두 종류의 project hook을 함께 설치한다. `SessionStart` hook은
+skill이 자동 선택되지 않아도 모든 한국어 코드·문서 검색에 kfind를 사용하라는 지침을 agent
+context에 추가한다. shell tool 실행 전 hook은 한국어 pattern을 받은 일반 text search 명령을
+차단한다. 기존 설정 파일에는 kfind hook만 병합하며 다른 key와 hook 순서를 보존한다. Codex의
+project hook은 프로젝트를 신뢰한 뒤 `/hooks`에서 별도로 신뢰해야 실행된다. Claude Code와
+Gemini CLI도 각 제품의 project hook 신뢰 절차를 따른다.
 
 통합을 제거할 때도 같은 대상 선택 방식을 사용한다.
 
@@ -2470,11 +2478,13 @@ printf 'codex\ngemini\n' | kfind --uninstall
 ```
 
 제거는 kfind 관리 표식이 있는 skill 또는 kfind가 만든 Homebrew link와
-`kfind --agent-hook` handler만 대상으로 한다. 다른 설정이 없는 kfind 전용 JSON 파일은
+`kfind --agent-hook` handler들만 대상으로 한다. 다른 설정이 없는 kfind 전용 JSON 파일은
 제거하고, 설정이 함께 있으면 kfind handler만 뺀 JSON을 보존한다. 이미 제거된 대상을 다시
 지정해도 성공한다. `custom`은 파일을 설치하지 않으므로 제거 대상이 아니다.
 
-Agent가 다음 shell tool call을 만들면 실행 전에 거부하고 `kfind`로 다시 검색하도록 안내한다.
+Agent는 session을 시작할 때 exact surface 검색을 포함한 모든 한국어 검색에 설치된 skill과
+`kfind`를 사용하라는 지침을 받는다. 그래도 다음 shell tool call을 만들면 실행 전에 거부하고
+`kfind`로 다시 검색하도록 안내한다.
 
 ```sh
 rg '사용자' crates
@@ -3655,9 +3665,9 @@ tag를 수동 실행해 게시할 수 있다.
 20. 품사를 생략한 held-out 검색의 품질·성능 benchmark가 별도 fixture와 보고서 절로 존재한다.
 21. `kfind --init`은 TTY checkbox, 반복 `--agent`, 비TTY stdin에서 같은 agent 대상 집합을
     설치한다.
-22. Claude Code, Codex와 Gemini CLI의 project skill 경로에 같은 원본의 `SKILL.md`와
-    shell tool용 kfind hook을 설치하며, 기존 agent 설정과 다른 hook을 보존하고 `custom`은
-    skill 원문 외의 내용을 stdout에 섞지 않는다.
+22. Claude Code, Codex와 Gemini CLI의 project skill 경로에 같은 원본의 `SKILL.md`,
+    `SessionStart` 지침 hook과 shell tool 실행 전 kfind hook을 설치하며, 기존 agent 설정과
+    다른 hook을 보존하고 `custom`은 skill 원문 외의 내용을 stdout에 섞지 않는다.
 23. 관리하지 않는 기존 skill은 보존하고 init 실패를 exit code 2와 escape된 진단으로 보고한다.
 24. Homebrew formula는 agent skill 원본을 설치하고 project link가 stable `opt` 경로를 사용해
     upgrade 뒤 새 원본을 가리킨다.
@@ -3667,8 +3677,9 @@ tag를 수동 실행해 게시할 수 있다.
     stdout stream을 유지한다.
 26. 배포용 full POS와 compact component resource로 전체 morphology gold를 실행했을 때 자동 품사
     coverage를 포함한 모든 positive와 negative case가 기대값과 일치한다.
-27. 설치된 agent hook은 명시적 command-line 검색 pattern에 한글이 있는 `rg`·`grep` 계열
-    shell tool call을 실행 전에 거부하고 한글 path·glob, pattern file과 kfind 호출은 허용한다.
+27. 설치된 agent hook은 session마다 모든 한국어 코드·문서 검색에 kfind를 사용하라는 지침을
+    주입하고, 명시적 command-line 검색 pattern에 한글이 있는 `rg`·`grep` 계열 shell tool
+    call을 실행 전에 거부하며 한글 path·glob, pattern file과 kfind 호출은 허용한다.
 28. Tagged release의 Windows x64 archive와 Chocolatey package가 같은 checksum 계약을 사용하며,
     archive의 `kfind.exe --check-data`와 local Chocolatey install smoke test가 통과한다.
 29. Windows Terminal과 같은 ConPTY 안의 PowerShell에서 일반 text 검색을 실행하면 내장 TUI가
