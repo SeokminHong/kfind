@@ -120,10 +120,10 @@ pub(super) fn prepare_hook_installation(
     root: &Path,
     agent: AgentArg,
 ) -> Result<Option<HookInstallation>, InitError> {
-    let Some(contract) = HookContract::for_agent(agent) else {
+    let Some(contracts) = AgentHookContracts::for_agent(agent) else {
         return Ok(None);
     };
-    let path = root.join(contract.path);
+    let path = root.join(contracts.path);
     let (existing, permissions, initial_action) = match fs::symlink_metadata(&path) {
         Ok(metadata) if metadata.is_file() && !metadata.file_type().is_symlink() => {
             let contents =
@@ -155,11 +155,15 @@ pub(super) fn prepare_hook_installation(
         }
         None => json!({}),
     };
-    let changed =
-        merge_hook(&mut document, contract).map_err(|reason| InitError::InvalidAgentConfig {
-            path: path.clone(),
-            reason,
+    let mut changed = false;
+    for contract in contracts.hooks {
+        changed |= merge_hook(&mut document, *contract).map_err(|reason| {
+            InitError::InvalidAgentConfig {
+                path: path.clone(),
+                reason,
+            }
         })?;
+    }
     let (action, contents) = if changed {
         let mut contents = serde_json::to_string_pretty(&document).map_err(|source| {
             InitError::EncodeAgentConfig {
@@ -186,10 +190,10 @@ pub(super) fn prepare_hook_removal(
     root: &Path,
     agent: AgentArg,
 ) -> Result<Option<HookRemoval>, InitError> {
-    let Some(contract) = HookContract::for_agent(agent) else {
+    let Some(contracts) = AgentHookContracts::for_agent(agent) else {
         return Ok(None);
     };
-    let path = root.join(contract.path);
+    let path = root.join(contracts.path);
     let (contents, permissions) = match fs::symlink_metadata(&path) {
         Ok(metadata) if metadata.is_file() && !metadata.file_type().is_symlink() => {
             let contents =
@@ -219,12 +223,16 @@ pub(super) fn prepare_hook_removal(
             path: path.clone(),
             source,
         })?;
-    let remove_file = document == contract.document();
-    let changed =
-        remove_hook(&mut document, contract).map_err(|reason| InitError::InvalidAgentConfig {
-            path: path.clone(),
-            reason,
+    let mut changed = false;
+    for contract in contracts.hooks {
+        changed |= remove_hook(&mut document, *contract).map_err(|reason| {
+            InitError::InvalidAgentConfig {
+                path: path.clone(),
+                reason,
+            }
         })?;
+    }
+    let remove_file = document.as_object().is_some_and(serde_json::Map::is_empty);
     let (action, contents) = if !changed {
         (HookRemovalAction::Unchanged, None)
     } else if remove_file {
@@ -251,37 +259,64 @@ pub(super) fn prepare_hook_removal(
 
 #[derive(Clone, Copy)]
 struct HookContract {
-    path: &'static str,
     event: &'static str,
-    matcher: &'static str,
+    matcher: Option<&'static str>,
     handler_name: Option<&'static str>,
 }
 
-impl HookContract {
+#[derive(Clone, Copy)]
+struct AgentHookContracts {
+    path: &'static str,
+    hooks: &'static [HookContract],
+}
+
+const CLAUDE_HOOKS: [HookContract; 2] = [
+    HookContract {
+        event: "SessionStart",
+        matcher: None,
+        handler_name: None,
+    },
+    HookContract {
+        event: "PreToolUse",
+        matcher: Some("Bash"),
+        handler_name: None,
+    },
+];
+const CODEX_HOOKS: [HookContract; 2] = CLAUDE_HOOKS;
+const GEMINI_HOOKS: [HookContract; 2] = [
+    HookContract {
+        event: "SessionStart",
+        matcher: None,
+        handler_name: Some("kfind-agent-instructions"),
+    },
+    HookContract {
+        event: "BeforeTool",
+        matcher: Some("run_shell_command"),
+        handler_name: Some("kfind-korean-search"),
+    },
+];
+
+impl AgentHookContracts {
     const fn for_agent(agent: AgentArg) -> Option<Self> {
         match agent {
             AgentArg::ClaudeCode => Some(Self {
                 path: ".claude/settings.json",
-                event: "PreToolUse",
-                matcher: "Bash",
-                handler_name: None,
+                hooks: &CLAUDE_HOOKS,
             }),
             AgentArg::Codex => Some(Self {
                 path: ".codex/hooks.json",
-                event: "PreToolUse",
-                matcher: "Bash",
-                handler_name: None,
+                hooks: &CODEX_HOOKS,
             }),
             AgentArg::Gemini => Some(Self {
                 path: ".gemini/settings.json",
-                event: "BeforeTool",
-                matcher: "run_shell_command",
-                handler_name: Some("kfind-korean-search"),
+                hooks: &GEMINI_HOOKS,
             }),
             AgentArg::Custom => None,
         }
     }
+}
 
+impl HookContract {
     fn handler(&self) -> Value {
         match self.handler_name {
             Some(name) => json!({
@@ -297,18 +332,12 @@ impl HookContract {
     }
 
     fn group(&self) -> Value {
-        json!({
-            "matcher": self.matcher,
-            "hooks": [self.handler()],
-        })
-    }
-
-    fn document(&self) -> Value {
-        json!({
-            "hooks": {
-                self.event: [self.group()]
-            }
-        })
+        let mut group = serde_json::Map::new();
+        if let Some(matcher) = self.matcher {
+            group.insert("matcher".to_owned(), json!(matcher));
+        }
+        group.insert("hooks".to_owned(), json!([self.handler()]));
+        Value::Object(group)
     }
 }
 
@@ -352,10 +381,7 @@ fn merge_hook(document: &mut Value, contract: HookContract) -> Result<bool, &'st
                 .is_some_and(|command| command == HOOK_COMMAND)
             {
                 managed_count += 1;
-                if group
-                    .get("matcher")
-                    .and_then(Value::as_str)
-                    .is_some_and(|matcher| matcher == contract.matcher)
+                if group_matches_contract(group, contract)
                     && Value::Object(handler.clone()) == canonical
                 {
                     canonical_count += 1;
@@ -436,6 +462,12 @@ fn remove_hook(document: &mut Value, contract: HookContract) -> Result<bool, &'s
     if changed {
         groups.retain(|group| !is_empty_managed_group(group, contract));
     }
+    if changed && groups.is_empty() {
+        hooks.remove(contract.event);
+    }
+    if changed && hooks.is_empty() {
+        root.remove("hooks");
+    }
     Ok(changed)
 }
 
@@ -443,15 +475,23 @@ fn is_empty_managed_group(group: &Value, contract: HookContract) -> bool {
     let Some(group) = group.as_object() else {
         return false;
     };
-    group.len() == 2
-        && group
-            .get("matcher")
-            .and_then(Value::as_str)
-            .is_some_and(|matcher| matcher == contract.matcher)
+    let expected_len = if contract.matcher.is_some() { 2 } else { 1 };
+    group.len() == expected_len
+        && group_matches_contract(group, contract)
         && group
             .get("hooks")
             .and_then(Value::as_array)
             .is_some_and(Vec::is_empty)
+}
+
+fn group_matches_contract(group: &serde_json::Map<String, Value>, contract: HookContract) -> bool {
+    match contract.matcher {
+        Some(matcher) => group
+            .get("matcher")
+            .and_then(Value::as_str)
+            .is_some_and(|value| value == matcher),
+        None => !group.contains_key("matcher"),
+    }
 }
 
 fn write_temporary_config(

@@ -53,6 +53,10 @@ def payload(event: str, tool: str, command: str) -> bytes:
 CODEX_ALLOW = payload("PreToolUse", "Bash", "rg TODO crates")
 CODEX_DENY = payload("PreToolUse", "Bash", "rg 사용자 crates")
 GEMINI_DENY = payload("BeforeTool", "run_shell_command", "grep 검색 docs")
+SESSION_START = json.dumps(
+    {"hook_event_name": "SessionStart", "source": "startup"},
+    separators=(",", ":"),
+).encode()
 
 
 def verify_version(completed: subprocess.CompletedProcess[bytes]) -> None:
@@ -93,6 +97,16 @@ def verify_gemini_deny(completed: subprocess.CompletedProcess[bytes]) -> None:
     document = decoded_output(completed)
     if document.get("decision") != "deny":
         raise RuntimeError(f"unexpected Gemini denial: {document!r}")
+
+
+def verify_session_start(completed: subprocess.CompletedProcess[bytes]) -> None:
+    document = decoded_output(completed)
+    output = document.get("hookSpecificOutput", {})
+    if output.get("hookEventName") != "SessionStart":
+        raise RuntimeError(f"unexpected session hook event: {document!r}")
+    context = output.get("additionalContext", "")
+    if "installed kfind skill" not in context or "kfind --literal" not in context:
+        raise RuntimeError(f"unexpected session instructions: {document!r}")
 
 
 class Workload:
@@ -171,6 +185,13 @@ def main() -> None:
             GEMINI_DENY,
             verify_gemini_deny,
         ),
+        Workload(
+            "candidate_session_start",
+            candidate,
+            ["--agent-hook"],
+            SESSION_START,
+            verify_session_start,
+        ),
     ]
 
     for round_index in range(args.warmups):
@@ -211,6 +232,7 @@ def main() -> None:
             "codex_allow_sha256": hashlib.sha256(CODEX_ALLOW).hexdigest(),
             "codex_deny_sha256": hashlib.sha256(CODEX_DENY).hexdigest(),
             "gemini_deny_sha256": hashlib.sha256(GEMINI_DENY).hexdigest(),
+            "session_start_sha256": hashlib.sha256(SESSION_START).hexdigest(),
         },
         "workloads": {workload.name: workload.summary() for workload in workloads},
     }

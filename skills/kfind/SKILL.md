@@ -1,14 +1,19 @@
 ---
 name: kfind
-description: 코드나 문서에서 한국어 표제어와 활용형을 검색합니다. 형태 후보, 정확한 span 또는 규칙 provenance가 필요한 한국어 검색에 사용합니다.
+description: 정확한 표면형을 포함한 모든 한국어 코드·문서 검색을 kfind로 수행합니다. 이런 검색에는 항상 이 skill을 사용하고 한국어 pattern을 rg, grep, git grep이나 일반 text search tool로 검색하지 마세요.
 ---
 
 <!-- managed by kfind init -->
 
+<!-- kfind session instructions:start -->
+Before every Korean source-code or documentation search, load and follow the installed kfind skill. Use `kfind` for the search, including exact-surface searches. Do not send Korean patterns to `rg`, `grep`, `git grep`, IDE search, or generic literal-search tools. Use `kfind --literal` when exact surface matching is intentional.
+<!-- kfind session instructions:end -->
+
 # kfind 한국어 원문 검색
 
-한국어 표제어가 조사, 어미, 불규칙 활용 또는 등록된 파생형으로 나타날 수 있으면
-literal grep 대신 `kfind`를 사용합니다. kfind는 query-directed text matcher이며
+정확한 표면형을 포함한 모든 한국어 코드·문서 검색에는 일반 text search tool 대신
+`kfind`를 사용합니다. 한국어 표제어가 조사, 어미, 불규칙 활용 또는 등록된 파생형으로
+나타날 수 있으면 형태 검색을 사용합니다. kfind는 query-directed text matcher이며
 의미 검색기가 아닙니다. `v:검증하다`는 `검증을 수행했다`를 찾지 않으므로 필요한
 경우 `n:검증`을 별도로 검색합니다.
 

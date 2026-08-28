@@ -87,7 +87,7 @@ Recall-oriented output can include semantically irrelevant candidates. Read the 
 
 ## Agent integration [#agent-skill]
 
-`--init` installs the kfind skill and shell hook for supported coding agents. It cannot be combined with a search query or path.
+`--init` installs the kfind skill and project hooks for supported coding agents. It cannot be combined with a search query or path.
 
 ```bash
 kfind --init
@@ -98,4 +98,4 @@ gemini
 ' | kfind --init
 ```
 
-Codex uses `.agents/skills/kfind/SKILL.md`, Claude Code uses `.claude/skills/kfind/SKILL.md`, and Gemini CLI uses `.gemini/skills/kfind/SKILL.md`. `--uninstall` removes only kfind-managed skills and hooks. It preserves existing skills without a kfind management marker and all existing agent settings. Once trusted, the project hook blocks shell commands that pass Korean search patterns to `rg` or `grep` and directs the agent to kfind.
+Codex uses `.agents/skills/kfind/SKILL.md`, Claude Code uses `.claude/skills/kfind/SKILL.md`, and Gemini CLI uses `.gemini/skills/kfind/SKILL.md`. `--uninstall` removes only kfind-managed skills and hooks. It preserves existing skills without a kfind management marker and all existing agent settings. Once trusted, the project hooks instruct every session to use kfind for Korean source-code and documentation searches and block shell commands that pass Korean search patterns to `rg` or `grep`.

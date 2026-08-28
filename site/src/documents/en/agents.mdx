@@ -39,7 +39,7 @@ kfind --embedded --boundary any --pos verb --json 걷다 crates
 
 ## Integration installation and removal [#skill-installation]
 
-`kfind --init` installs an agent-specific `SKILL.md` and shell hook in the current project. Interactive terminals offer a target picker. Automation can repeat `--agent` or supply target names on stdin. Existing unmanaged skills and agent settings are preserved.
+`kfind --init` installs an agent-specific `SKILL.md` and project hooks in the current project. Interactive terminals offer a target picker. Automation can repeat `--agent` or supply target names on stdin. Existing unmanaged skills and agent settings are preserved.
 
 ```bash
 kfind --init
@@ -62,11 +62,11 @@ Removal deletes only kfind-managed skills and `kfind --agent-hook` handlers. Oth
 
 A Homebrew-managed skill points to the stable `opt` path instead of a versioned Cellar path. Existing project links therefore use the new guidance after `brew upgrade`.
 
-Project hooks run after each agent's trust review. In Codex, inspect and trust them with `/hooks`. The hook blocks `rg`, `grep` variants, and `git grep` when their search pattern contains Korean text, then directs the agent to kfind.
+Project hooks run after each agent's trust review. In Codex, inspect and trust them with `/hooks`. The `SessionStart` hook adds an instruction to use kfind for every Korean source-code and documentation search, even when the skill is not selected automatically. The pre-tool hook blocks `rg`, `grep` variants, and `git grep` when their search pattern contains Korean text, then directs the agent to kfind.
 
 ## Supported agents [#supported-agents]
 
-All three integrations use the same search contract. Each agent reads the repository-local skill, while the project hook checks literal shell searches before execution.
+All three integrations use the same search contract. Each agent reads the repository-local skill, the `SessionStart` hook always injects its selection rule, and the pre-tool hook checks literal shell searches.
 
 | Target      | Install value | Skill path                      | Hook configuration      |
 | ----------- | ------------- | ------------------------------- | ----------------------- |

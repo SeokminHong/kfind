@@ -66,7 +66,8 @@ fn explicit_agents_install_the_same_managed_skill() {
         ".gemini/settings.json",
     ] {
         let contents = fs::read_to_string(root.path().join(relative)).unwrap();
-        assert!(contents.contains("kfind --agent-hook"));
+        assert_eq!(contents.matches("kfind --agent-hook").count(), 2);
+        assert!(contents.contains("SessionStart"));
     }
     assert!(stderr.contains("Installed Claude Code hook"));
     assert!(stderr.contains("Installed Codex hook"));
@@ -176,8 +177,37 @@ fn rerun_preserves_existing_agent_settings_and_does_not_duplicate_the_hook() {
     let document: serde_json::Value = serde_json::from_str(&contents).unwrap();
     assert_eq!(document["theme"], "dark");
     assert_eq!(contents.matches("existing-hook").count(), 1);
-    assert_eq!(contents.matches("kfind --agent-hook").count(), 1);
+    assert_eq!(contents.matches("kfind --agent-hook").count(), 2);
+    assert_eq!(contents.matches("SessionStart").count(), 1);
     assert!(stderr.contains("Unchanged Codex hook"));
+}
+
+#[test]
+fn rerun_adds_session_instructions_to_a_legacy_pre_tool_hook() {
+    let root = tempdir().unwrap();
+    let args = Args::try_parse_from(["kfind", "--init", "--agent", "codex"]).unwrap();
+    let config = root.path().join(".codex/hooks.json");
+    fs::create_dir_all(config.parent().unwrap()).unwrap();
+    fs::write(
+        &config,
+        r#"{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Bash",
+      "hooks": [{"type": "command", "command": "kfind --agent-hook"}]
+    }]
+  }
+}
+"#,
+    )
+    .unwrap();
+
+    let (_, stderr) = run_at(&args, &[], root.path(), SkillSource::Embedded).unwrap();
+
+    let contents = fs::read_to_string(config).unwrap();
+    assert_eq!(contents.matches("kfind --agent-hook").count(), 2);
+    assert_eq!(contents.matches("SessionStart").count(), 1);
+    assert!(stderr.contains("Updated Codex hook"));
 }
 
 #[test]

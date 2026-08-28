@@ -27,6 +27,27 @@ fn run_hook(input: &str) -> Result<String, AgentHookError> {
 }
 
 #[test]
+fn session_start_injects_the_skill_search_contract_without_tool_fields() {
+    let input = serde_json::json!({
+        "hook_event_name": "SessionStart",
+        "source": "startup",
+    })
+    .to_string();
+    let output: serde_json::Value = serde_json::from_str(&run_hook(&input).unwrap()).unwrap();
+    let context = output["hookSpecificOutput"]["additionalContext"]
+        .as_str()
+        .unwrap();
+
+    assert_eq!(
+        output["hookSpecificOutput"]["hookEventName"],
+        "SessionStart"
+    );
+    assert!(context.contains("load and follow the installed kfind skill"));
+    assert!(context.contains("kfind --literal"));
+    assert_eq!(context, session_instructions());
+}
+
+#[test]
 fn blocks_korean_patterns_for_supported_search_commands() {
     for command in [
         "rg '사용자' crates",

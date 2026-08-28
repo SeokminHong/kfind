@@ -5,14 +5,18 @@ use std::io::{self, Read, Write};
 use serde::Deserialize;
 use serde_json::json;
 
+use crate::init::SKILL_CONTENT;
+
 const MAX_HOOK_INPUT_BYTES: u64 = 1024 * 1024;
 const DENIAL_REASON: &str = "Korean search patterns must use kfind instead of literal rg/grep. Retry with kfind, or use kfind --literal when exact surface matching is intentional.";
+const SESSION_INSTRUCTIONS_START: &str = "<!-- kfind session instructions:start -->";
+const SESSION_INSTRUCTIONS_END: &str = "<!-- kfind session instructions:end -->";
 
 #[derive(Debug, Deserialize)]
 struct HookInput {
     hook_event_name: String,
-    tool_name: String,
-    tool_input: ToolInput,
+    tool_name: Option<String>,
+    tool_input: Option<ToolInput>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -25,12 +29,32 @@ pub fn run_agent_hook_with_io(
     writer: &mut impl Write,
 ) -> Result<(), AgentHookError> {
     let input = read_hook_input(reader)?;
-    if !matches!(input.tool_name.as_str(), "Bash" | "run_shell_command") {
+
+    match input.hook_event_name.as_str() {
+        "SessionStart" => write_json(
+            writer,
+            &json!({
+                "hookSpecificOutput": {
+                    "hookEventName": "SessionStart",
+                    "additionalContext": session_instructions(),
+                }
+            }),
+        ),
+        "PreToolUse" | "BeforeTool" => run_pre_tool_hook(input, writer),
+        event => Err(AgentHookError::UnsupportedEvent(event.to_owned())),
+    }
+}
+
+fn run_pre_tool_hook(input: HookInput, writer: &mut impl Write) -> Result<(), AgentHookError> {
+    let Some(tool_name) = input.tool_name.as_deref() else {
+        return Ok(());
+    };
+    if !matches!(tool_name, "Bash" | "run_shell_command") {
         return Ok(());
     }
     let command = input
         .tool_input
-        .command
+        .and_then(|tool_input| tool_input.command)
         .ok_or(AgentHookError::MissingCommand)?;
     let blocked = contains_korean_literal_search(&command);
 
@@ -54,8 +78,18 @@ pub fn run_agent_hook_with_io(
             }),
         ),
         "BeforeTool" => write_json(writer, &json!({ "decision": "allow" })),
-        event => Err(AgentHookError::UnsupportedEvent(event.to_owned())),
+        _ => unreachable!("pre-tool hook only accepts pre-tool events"),
     }
+}
+
+fn session_instructions() -> &'static str {
+    let (_, after_start) = SKILL_CONTENT
+        .split_once(SESSION_INSTRUCTIONS_START)
+        .expect("kfind skill must contain the session instruction start marker");
+    let (instructions, _) = after_start
+        .split_once(SESSION_INSTRUCTIONS_END)
+        .expect("kfind skill must contain the session instruction end marker");
+    instructions.trim()
 }
 
 fn read_hook_input(reader: &mut impl Read) -> Result<HookInput, AgentHookError> {

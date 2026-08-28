@@ -89,7 +89,7 @@ kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
 
 ## 에이전트 통합 [#agent-skill]
 
-`--init`은 지원하는 코딩 에이전트에 kfind skill과 shell hook을 설치합니다. 검색 질의나 경로와 함께 사용할 수 없습니다.
+`--init`은 지원하는 코딩 에이전트에 kfind skill과 project hook을 설치합니다. 검색 질의나 경로와 함께 사용할 수 없습니다.
 
 ```bash
 kfind --init
@@ -100,4 +100,4 @@ gemini
 ' | kfind --init
 ```
 
-Codex는 `.agents/skills/kfind/SKILL.md`, Claude Code는 `.claude/skills/kfind/SKILL.md`, Gemini CLI는 `.gemini/skills/kfind/SKILL.md`를 사용합니다. `--uninstall`은 kfind가 관리하는 skill과 hook만 제거합니다. 관리 표식이 없는 기존 skill과 에이전트 설정은 보존합니다. 프로젝트 hook을 신뢰하면 한글 검색 패턴을 `rg`·`grep`에 전달하는 셸 명령을 차단하고 kfind 사용을 안내합니다.
+Codex는 `.agents/skills/kfind/SKILL.md`, Claude Code는 `.claude/skills/kfind/SKILL.md`, Gemini CLI는 `.gemini/skills/kfind/SKILL.md`를 사용합니다. `--uninstall`은 kfind가 관리하는 skill과 hook만 제거합니다. 관리 표식이 없는 기존 skill과 에이전트 설정은 보존합니다. 프로젝트 hook을 신뢰하면 세션마다 모든 한국어 코드·문서 검색에 kfind를 사용하라는 지침을 받고, 한글 검색 패턴을 `rg`·`grep`에 전달하는 셸 명령은 실행 전에 차단됩니다.

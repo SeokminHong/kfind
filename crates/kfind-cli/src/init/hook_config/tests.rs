@@ -2,12 +2,20 @@ use serde_json::json;
 
 use super::*;
 
-fn contract(agent: AgentArg) -> HookContract {
-    HookContract::for_agent(agent).unwrap()
+fn contracts(agent: AgentArg) -> AgentHookContracts {
+    AgentHookContracts::for_agent(agent).unwrap()
+}
+
+fn contract(agent: AgentArg, event: &str) -> HookContract {
+    *contracts(agent)
+        .hooks
+        .iter()
+        .find(|contract| contract.event == event)
+        .unwrap()
 }
 
 #[test]
-fn adds_each_agent_hook_without_removing_existing_settings() {
+fn adds_each_agent_hooks_without_removing_existing_settings() {
     for (agent, event, matcher) in [
         (AgentArg::ClaudeCode, "PreToolUse", "Bash"),
         (AgentArg::Codex, "PreToolUse", "Bash"),
@@ -26,27 +34,34 @@ fn adds_each_agent_hook_without_removing_existing_settings() {
             }
         });
 
-        assert!(merge_hook(&mut document, contract(agent)).unwrap());
+        for contract in contracts(agent).hooks {
+            assert!(merge_hook(&mut document, *contract).unwrap());
+        }
         assert_eq!(document["theme"], "dark");
         let groups = document["hooks"][event].as_array().unwrap();
         assert_eq!(groups[0]["hooks"][0]["command"], "existing-hook");
         assert_eq!(groups[1]["matcher"], matcher);
         assert_eq!(groups[1]["hooks"][0]["command"], HOOK_COMMAND);
+        let session_group = &document["hooks"]["SessionStart"][0];
+        assert!(session_group.get("matcher").is_none());
+        assert_eq!(session_group["hooks"][0]["command"], HOOK_COMMAND);
     }
 }
 
 #[test]
 fn repeated_merge_is_unchanged_and_deduplicates_managed_handlers() {
     let mut document = json!({});
-    assert!(merge_hook(&mut document, contract(AgentArg::Codex)).unwrap());
-    assert!(!merge_hook(&mut document, contract(AgentArg::Codex)).unwrap());
+    for contract in contracts(AgentArg::Codex).hooks {
+        assert!(merge_hook(&mut document, *contract).unwrap());
+        assert!(!merge_hook(&mut document, *contract).unwrap());
+    }
 
     let duplicate = document["hooks"]["PreToolUse"][0].clone();
     document["hooks"]["PreToolUse"]
         .as_array_mut()
         .unwrap()
         .push(duplicate);
-    assert!(merge_hook(&mut document, contract(AgentArg::Codex)).unwrap());
+    assert!(merge_hook(&mut document, contract(AgentArg::Codex, "PreToolUse")).unwrap());
     let handlers = document["hooks"]["PreToolUse"]
         .as_array()
         .unwrap()
@@ -73,7 +88,7 @@ fn rejects_invalid_shapes_in_the_modified_path() {
             }
         }),
     ] {
-        assert!(merge_hook(&mut document, contract(AgentArg::Codex)).is_err());
+        assert!(merge_hook(&mut document, contract(AgentArg::Codex, "PreToolUse")).is_err());
     }
 }
 
@@ -90,16 +105,20 @@ fn removes_managed_handlers_and_preserves_other_hooks() {
                         "command": "existing-hook"
                     }]
                 },
-                contract(AgentArg::Codex).group()
-            ]
+                contract(AgentArg::Codex, "PreToolUse").group()
+            ],
+            "SessionStart": [contract(AgentArg::Codex, "SessionStart").group()]
         }
     });
 
-    assert!(remove_hook(&mut document, contract(AgentArg::Codex)).unwrap());
+    for contract in contracts(AgentArg::Codex).hooks {
+        assert!(remove_hook(&mut document, *contract).unwrap());
+    }
     assert_eq!(document["theme"], "dark");
     let groups = document["hooks"]["PreToolUse"].as_array().unwrap();
     assert_eq!(groups.len(), 1);
     assert_eq!(groups[0]["hooks"][0]["command"], "existing-hook");
+    assert!(document["hooks"].get("SessionStart").is_none());
 }
 
 #[test]
@@ -116,7 +135,7 @@ fn removal_is_unchanged_when_the_managed_handler_is_absent() {
         }
     });
 
-    assert!(!remove_hook(&mut document, contract(AgentArg::Codex)).unwrap());
+    assert!(!remove_hook(&mut document, contract(AgentArg::Codex, "PreToolUse")).unwrap());
 }
 
 #[test]
@@ -135,6 +154,6 @@ fn removal_rejects_invalid_shapes_in_the_modified_path() {
             }
         }),
     ] {
-        assert!(remove_hook(&mut document, contract(AgentArg::Codex)).is_err());
+        assert!(remove_hook(&mut document, contract(AgentArg::Codex, "PreToolUse")).is_err());
     }
 }

@@ -290,7 +290,10 @@ pub fn parse_sha256(value: &str) -> Result<[u8; 32], DataError> {
         ));
     }
     let mut digest = [0_u8; 32];
-    for (byte, pair) in digest.iter_mut().zip(value.as_bytes().chunks_exact(2)) {
+    let (pairs, []) = value.as_bytes().as_chunks::<2>() else {
+        unreachable!("the SHA-256 length was checked above");
+    };
+    for (byte, pair) in digest.iter_mut().zip(pairs) {
         let high = hex_digit(pair[0])
             .ok_or_else(|| binary_error("SHA-256 contains a non-hexadecimal character"))?;
         let low = hex_digit(pair[1])

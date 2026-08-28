@@ -179,7 +179,7 @@ kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
 `any`는 후보를 넓게 보존하므로 호출자는 span 주변의 원문을 확인해야 합니다.
 후보가 많으면 path와 glob을 좁히거나 `smart`로 다시 검색합니다.
 
-프로젝트에 코딩 에이전트용 skill과 shell hook을 설치하려면 다음 명령을
+프로젝트에 코딩 에이전트용 skill과 project hook을 설치하려면 다음 명령을
 사용합니다.
 
 ```sh
@@ -193,6 +193,8 @@ Codex는 `.agents/skills/kfind/SKILL.md`, Claude Code는
 `.gemini/skills/kfind/SKILL.md`를 사용합니다. Hook 설정은 각각
 `.codex/hooks.json`, `.claude/settings.json`, `.gemini/settings.json`에 병합합니다.
 다른 설정과 hook은 보존하고 kfind 관리 표식이 없는 skill은 덮어쓰지 않습니다.
+`SessionStart` hook은 모든 한국어 코드·문서 검색에 kfind를 사용하라는 지침을 세션
+context에 추가합니다. Skill이 자동으로 선택되지 않아도 적용됩니다.
 
 설치한 통합은 같은 대상 선택 방식으로 제거합니다.
 
@@ -204,7 +206,7 @@ printf 'codex\ngemini\n' | kfind --uninstall
 `--uninstall`은 kfind 관리 skill과 `kfind --agent-hook` handler만 제거합니다. 다른 설정과
 hook은 보존하며, 이미 제거된 대상은 오류로 처리하지 않습니다.
 
-설치된 hook은 shell tool이 명시적인 한글 검색 pattern으로 `rg`, `grep` 계열이나
+실행 전 hook은 shell tool이 명시적인 한글 검색 pattern으로 `rg`, `grep` 계열이나
 `git grep`을 실행하려 하면 차단하고 kfind 사용을 안내합니다. 한글 경로와 glob,
 pattern file은 차단하지 않습니다. Project hook은 각 에이전트에서 신뢰한 뒤
 동작하며, Codex에서는 `/hooks`로 검토하고 신뢰합니다.
