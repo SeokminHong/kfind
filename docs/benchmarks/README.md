@@ -115,7 +115,7 @@ scripts/benchmark-criterion.sh query_compile
 
 Agent hook의 fresh-process 비용은 같은 release 설정으로 빌드한 기준·후보 binary의
 `--version` 시작 비용을 교대 측정하고, 후보의 Codex 허용·차단과 Gemini 차단 workload를
-분리해 측정한다.
+분리해 측정한다. `SessionStart` 지침을 제공하는 변경은 session workload를 함께 측정한다.
 
 ```console
 python3 tools/agent-hook-benchmark/benchmark.py \
@@ -127,7 +127,8 @@ python3 tools/agent-hook-benchmark/benchmark.py \
 ```
 
 각 workload는 기본적으로 10회 warm-up 뒤 200회 fresh process로 실행한다. runner는
-hook protocol 응답을 매회 검증하고 latency median/min/max/p95, binary·입력 checksum,
+실행 전 결정과 session context를 포함한 hook protocol 응답을 매회 검증하고 latency
+median/min/max/p95, binary·입력 checksum,
 실행 환경을 JSON에 기록한다. 기준에는 hook 경로가 없으므로 기준·후보 비교는 공통
 `--version` workload에만 적용하며, hook 허용·차단 비용은 후보 절대값으로 보고한다.
 
