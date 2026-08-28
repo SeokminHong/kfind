@@ -336,7 +336,7 @@ pub struct Args {
     )]
     pub agent: Vec<AgentArg>,
 
-    /// Run as a coding-agent shell hook.
+    /// Run as a coding-agent project hook.
     #[arg(long, hide = true, exclusive = true)]
     pub agent_hook: bool,
 

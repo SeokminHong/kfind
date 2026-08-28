@@ -43,10 +43,12 @@ glob, or retry with smart boundaries when the candidate set is too large.
 .SS Agent integration setup
 Run the interactive checkbox selector in a project directory, or name targets
 explicitly for automation. Supported targets install both the kfind skill and a
-project shell hook. The hook blocks explicit Korean search patterns passed to
-rg, grep, or git grep and directs the agent to kfind. Existing agent settings
-and unrelated hooks are preserved. Project hooks run only after the agent's
-trust review.
+pair of project hooks. A SessionStart hook instructs every session to use kfind
+for Korean source-code and documentation searches, even when the skill is not
+selected automatically. A pre-tool hook blocks explicit Korean search patterns
+passed to rg, grep, or git grep and directs the agent to kfind. Existing agent
+settings and unrelated hooks are preserved. Project hooks run only after the
+agent's trust review.
 .PP
 .EX
 kfind --init
