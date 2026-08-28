@@ -103,6 +103,31 @@ fn removes_only_the_managed_hook_from_existing_settings() {
 }
 
 #[test]
+fn removes_a_legacy_pre_tool_only_configuration_file() {
+    let root = tempdir().unwrap();
+    let config = root.path().join(".codex/hooks.json");
+    fs::create_dir_all(config.parent().unwrap()).unwrap();
+    fs::write(
+        &config,
+        r#"{
+  "hooks": {
+    "PreToolUse": [{
+      "matcher": "Bash",
+      "hooks": [{"type": "command", "command": "kfind --agent-hook"}]
+    }]
+  }
+}
+"#,
+    )
+    .unwrap();
+    let args = Args::try_parse_from(["kfind", "--uninstall", "--agent", "codex"]).unwrap();
+
+    run_uninstall_at(&args, root.path()).unwrap();
+
+    assert!(!config.exists());
+}
+
+#[test]
 fn unmanaged_skill_prevents_all_selected_removals() {
     let root = tempdir().unwrap();
     let init_args =
