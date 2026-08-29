@@ -295,7 +295,8 @@
 
 ### 0.4 Web 문서와 playground
 
-- 공개 문서와 playground는 `https://kfind.pages.dev`의 정적 Cloudflare Pages site로 배포한다.
+- 공개 문서와 playground의 현재 버전은 `https://kfind.pages.dev`의 정적 Cloudflare Pages site로
+  배포한다. 게시한 과거 버전은 같은 origin의 `/versions/VERSION/*`에서 제공한다.
   문서는 제품 목적과 goal/non-goal, 검색 model, query 문법, 사람·에이전트 workflow, 주요 옵션,
   최신 제품·외부 benchmark를 설명하고 전체 README와 source report로 연결한다.
 - site header, browser favicon, touch icon과 social card는 둥근 사각형 안의 `k/` brand mark를
@@ -495,11 +496,32 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
   self-canonical URL, 상호 `hreflang`, social metadata와 유효한 route별 JSON-LD가 있는지 검사한다.
   Sitemap URL 집합은 두 locale의 public URL 집합과 정확히 일치해야 하며 `404.html`은 `noindex`를
   유지한다.
-- 문서 HTML, metadata, `robots.txt`, `sitemap.xml`과 `404.html`에는 장기 browser cache를 적용하지
-  않는다. Cloudflare Pages의 deployment invalidation, ETag와 revalidation을 사용해 `main` 배포마다
-  최신 문서를 확인한다. Content hash가 filename에 포함된 `/assets/*`만 `immutable` 장기 cache를
-  적용하며, HTML과 Pages Function을 포함하는 broad Cache Rule은 두지 않는다. Playground의
+- 현재 clean path의 문서 HTML, metadata, `robots.txt`, `sitemap.xml`과 `404.html`에는 장기 browser
+  cache를 적용하지 않는다. Cloudflare Pages의 deployment invalidation, ETag와 revalidation을 사용해
+  `main` 배포마다 최신 문서를 확인한다. Content hash가 filename에 포함된 `/assets/*`와 불변
+  versioned archive의 파일만 `immutable` 장기 cache를 적용하며, HTML과 Pages Function을 포함하는
+  broad Cache Rule은 두지 않는다. Playground의
   component resource Cache Storage는 이 문서 cache와 분리하고 아래 resource revision 계약을 따른다.
+- Publish workflow는 선택한 GitHub Release tag의 source로 한국어·영어 문서, playground와 해당
+  버전의 component resource를 빌드한다. 산출물은 GitHub Release의
+  `kfind-site-VERSION.tar.gz`와 R2의 불변 `site/versions/VERSION` archive·index로 함께 보존한다.
+  Archive index는 각 파일의 byte offset, 길이, media type과 cache policy를 기록한다. 같은 버전의
+  기존 index와 archive checksum이 다르면 덮어쓰지 않고 게시를 실패한다.
+- `site/versions/manifest.json`은 게시가 끝난 버전, prerelease 여부와 SemVer상 최신 버전을
+  보존한다. 새 archive와 index를 모두 올린 뒤 manifest를 마지막에 교체한다. 따라서 version
+  selector에는 부분 업로드된 버전이 노출되지 않는다. Stable과 RC를 모두 나열하되 RC를 stable
+  또는 latest npm channel로 취급하지 않는다.
+- Pages Functions Worker는 `/versions/VERSION/*`의 version과 상대 경로를 검증하고 manifest에 있는
+  버전만 R2에서 제공한다. Index JSON은 명시적 크기 상한 안에서 schema를 검증한 뒤 읽고, archive
+  body는 해당 파일의 byte range만 R2에서 읽어 buffering 없이 응답한다. Versioned response에는
+  `X-Robots-Tag: noindex`를 넣고 HTML은 현재 locale의 `Content-Language`를 유지한다. 존재하지 않는
+  버전·파일은 404, GET·HEAD 이외 method는 405로 응답하며 임의의 current asset으로 fallback하지
+  않는다.
+- Header의 version selector는 R2 manifest와 현재 build version을 표시한다. 최신 게시 버전은 기존
+  clean path로, 다른 버전은 현재 route·locale query·fragment를 보존한
+  `/versions/VERSION/*` path로 이동한다. Manifest를 불러오지 못하면 현재 build version만 표시하고
+  문서 탐색을 막지 않는다. 좁은 화면에서도 언어 선택과 함께 접근 가능한 label과 select keyboard
+  동작을 제공한다.
 - JavaScript와 resource 참조 문서는 npm asset의 역할, `@kfind/kfind/assets` resolver, browser
   bundler와 Node.js 서버의 자체 서빙 절차를 함께 설명한다. 예제는 resource bytes를
   `Kfind.withResources`에 전달하는 초기화, HTTP content type과 `nosniff`, same-origin 또는 명시적
@@ -646,9 +668,10 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
 - formula 변경은 tap `main`에 직접 push하지 않는다. 브랜치 PR의 CI가 모두 통과한 뒤 `pr-pull`을 적용한다.
 - formula의 source build는 release workflow와 같은 고정 Rust toolchain을 `rustup`으로 준비한다.
   Homebrew core의 `rust` 갱신 시점에 빌드 가능 여부가 달라지지 않아야 한다.
-- SemVer tag workflow는 고정 checksum으로 full POS lexicon을 재생성하고 source, full POS,
-  man/completion 산출물을 GitHub release에 올린 뒤 `TAP_GITHUB_TOKEN`으로 tap formula PR을 연다.
-  prerelease tag는 GitHub prerelease로 게시한다. `pr-pull` label은 CI 확인 뒤 사람이 적용한다.
+- Publish workflow는 선택한 GitHub Release의 고정 checksum formula를 `TAP_GITHUB_TOKEN`으로 tap
+  branch와 PR에 반영한다. Tap CI가 모두 통과하고 macOS arm64 bottle artifact가 생성됐음을 확인한
+  뒤에만 `pr-pull` label을 적용한다. `brew pr-pull` 성공과 tap `main`의 해당 version·bottle 반영을
+  확인해야 Homebrew 게시를 완료한 것으로 본다.
 - full POS resource에는 `lexicon.bin`, 생성 manifest, `mecab-ko-dic`의 `COPYING`을 함께 넣는다. formula는 이를 `share/kfind`와 `share/doc/kfind/LICENSES`에 설치한다.
 - compact component resource와 manifest도 formula resource로 고정 checksum을 검증해
   `share/kfind/morphology-component-compact.kfc`에 설치한다. formula `test do`는 설치 경로의
@@ -1128,10 +1151,11 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
   asset 포함과 SHA-256을 검증하고 WASM binary에 compact container magic 또는 artifact bytes가
   포함되지 않았음을 확인한다.
 - npm `prepack`은 같은 checkout의 Cargo/package version을 확인하고 component를 다시 생성한 뒤
-  Node smoke·TypeScript·asset 검증을 통과해야만 pack/publish를 허용한다. Tag release workflow는
-  이 검증이 끝난 동일 산출물을 npm registry에 게시한다. Prerelease version은 `next`, stable
-  version은 `latest` dist-tag를 사용한다.
-- Tag release workflow는 repository secret `NPM_TOKEN`을 npm 인증용 `NODE_AUTH_TOKEN`으로
+  Node smoke·TypeScript·asset 검증을 통과해야만 pack/publish를 허용한다. Publish workflow는 선택한
+  GitHub Release tag를 checkout하고 이 검증이 끝난 동일 산출물을 npm registry에 게시한다.
+  Prerelease version은 `next`, stable version은 `latest` dist-tag를 사용하며 prerelease를
+  `latest`에 연결하지 않는다.
+- Publish workflow는 repository secret `NPM_TOKEN`을 npm 인증용 `NODE_AUTH_TOKEN`으로
   전달한다. Token 값은 로그, 산출물과 저장소 파일에 기록하지 않는다.
 - npm 산출물은 browser bundler와 Node.js용 release package로 생성한다. Node target은 같은 공개
   API와 실제 `bin` 실행을 smoke test하고 `npm pack --dry-run`으로 게시 파일, executable mode와
@@ -3610,11 +3634,41 @@ Chocolatey package는 version tag의 immutable archive URL과 SHA-256을
 `bin/kfind.exe`의 자동 shim을 사용한다. 별도 system directory, registry와 환경 변수는
 수정하지 않으며 uninstall은 package directory와 shim 제거만으로 끝난다.
 
-Tag release는 같은 archive checksum으로 `kfind.VERSION.nupkg`를 만들고 GitHub Release에
-첨부한다. Chocolatey Community Repository 게시는 별도 workflow에서 이 release asset을
-내려받아 `https://push.chocolatey.org/`로 전송한다. Repository secret
-`CHOCOLATEY_API_KEY`가 없는 release-trigger 실행은 게시를 건너뛰며, secret을 등록한 뒤 같은
-tag를 수동 실행해 게시할 수 있다.
+Release workflow는 같은 archive checksum으로 `kfind.VERSION.nupkg`를 만들고 GitHub Release에
+첨부한다. Publish workflow의 Chocolatey job은 이 release asset을 내려받아 local install,
+`--version`과 `--check-data --json`을 검증한 뒤 `https://push.chocolatey.org/`로 전송한다.
+Repository secret `CHOCOLATEY_API_KEY`가 없으면 게시 성공으로 처리하지 않고 실패한다.
+
+### 21.5 릴리스 자동화
+
+Release와 Publish는 GitHub Actions의 수동 workflow로 분리한다.
+
+Release workflow는 `main`에서만 실행하며 `major`, `minor`, `patch` 중 bump 종류와 prerelease 여부를
+입력받는다. Bump 기준은 저장소의 최신 stable `vMAJOR.MINOR.PATCH` tag다. Stable 입력은 선택한
+SemVer component를 올린 version을 만들고, prerelease 입력은 같은 core version의 기존
+`vVERSION-rc.N` tag에서 가장 큰 N 다음 번호를 붙이며 없으면 `rc.1`부터 시작한다. 예를 들어 최신
+stable이 `0.2.1`이고 `v1.0.0-rc.3`이 있으면 `major + stable`은 `1.0.0`,
+`major + prerelease`는 `1.0.0-rc.4`다.
+
+Release workflow는 계산한 version을 workspace package, lockfile, npm·site metadata, 현재 버전을
+보여 주는 문서와 component resource header·checksum에 동기화한다. 고정 Rust toolchain의 source,
+resource, npm과 site 검증을 통과한 변경만 release commit으로 `main`에 반영한다. Windows archive와
+Chocolatey package, source, full POS, component, CLI asset과 Homebrew formula를 모두 만든 뒤 해당
+commit에 annotated tag를 붙이고 GitHub Release를 생성한다. RC는 GitHub prerelease로 표시한다.
+이 workflow는 npm, Homebrew와 Chocolatey registry에는 게시하지 않는다. 동일 workflow의 동시
+실행을 직렬화하고, tag나 GitHub Release 생성 전 실패한 같은 version은 다음 실행에서 이어서
+검증할 수 있어야 한다.
+
+Publish workflow는 `v` prefix 유무와 관계없이 특정 version을 입력받고, 해당 annotated tag와
+draft가 아닌 GitHub Release가 존재하며 prerelease 표시가 version suffix와 일치하는지 먼저
+검증한다. 검증된 exact tag source와 release asset만 npm, Homebrew, Chocolatey와 versioned 문서
+게시에 사용한다. Channel job은 서로 독립적으로 실행하되 동일 version의 이미 게시한 immutable
+artifact가 같으면 재사용하고, 내용이 다르면 덮어쓰지 않고 실패한다.
+
+Stable npm package는 `latest`, RC package는 `next` dist-tag로 게시한다. RC 게시 후 `latest`가 RC를
+가리키면 workflow를 실패시킨다. Homebrew는 formula PR의 전체 test-bot과 bottle artifact를 확인한
+뒤 `pr-pull`을 실행하고 tap 반영까지 기다린다. Chocolatey는 공개 push까지 성공해야 한다.
+Versioned 문서는 같은 Publish 실행에서 GitHub Release asset과 R2에 올리고 manifest를 갱신한다.
 
 ## 22. 보안과 견고성
 
