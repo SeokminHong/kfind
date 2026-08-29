@@ -3670,10 +3670,10 @@ draft가 아닌 GitHub Release가 존재하며 prerelease 표시가 version suff
 게시에 사용한다. Channel job은 서로 독립적으로 실행하되 동일 version의 이미 게시한 immutable
 artifact가 같으면 재사용하고, 내용이 다르면 덮어쓰지 않고 실패한다.
 
-Stable npm package는 `latest`, RC package는 `next` dist-tag로 게시한다. RC 게시 시 기존 stable
-`latest`는 유지하고, `latest`가 prerelease를 가리키면 제거한다. 게시 후 `latest`는 없거나 stable만
-가리켜야 한다. Homebrew는 formula PR의 전체 test-bot과 bottle artifact를 확인한 뒤 `pr-pull`을
-실행하고 tap 반영까지 기다린다. Chocolatey는 공개 push까지 성공해야 한다.
+Stable npm package는 `latest`, RC package는 `next` dist-tag로 게시한다. RC 게시 시 기존
+`latest`는 변경하지 않으며, 게시한 RC version이 `latest`를 가리키지 않는지 확인한다. Homebrew는
+formula PR의 전체 test-bot과 bottle artifact를 확인한 뒤 `pr-pull`을 실행하고 tap 반영까지
+기다린다. Chocolatey는 공개 push까지 성공해야 한다.
 Versioned 문서는 같은 Publish 실행에서 GitHub Release asset과 R2에 올리고 manifest를 갱신한다.
 
 ## 22. 보안과 견고성
