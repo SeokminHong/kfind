@@ -31,10 +31,18 @@ Canonical, query matrix와 Robust는 각각 kfind `embedded/full POS × any/smar
 component resource는 `kfind-assets` R2 bucket에 저장하며, 사용자가 요청한 경우에만
 same-origin Pages Function을 통해 streaming합니다.
 
+Publish workflow는 선택한 GitHub Release의 문서와 component resource를
+`/versions/VERSION` base path로 다시 빌드합니다. 결정적 tar archive와 byte-range index는
+R2의 `site/versions/VERSION`에 불변 객체로 저장하고, gzip archive와 index는 같은 GitHub
+Release에도 첨부합니다. Pages Function은 공개 manifest에 있는 버전만 archive에서
+range-read하여 응답합니다. Header의 버전 선택기는 현재 route, query와 fragment를 유지한 채
+현재 문서와 게시된 버전 사이를 이동합니다.
+
 ```sh
 pnpm --dir site install
 pnpm --dir site run dev
 pnpm --dir site run build
+KFIND_SITE_BASE_PATH=/versions/1.0.0 pnpm --dir site run build:versioned
 pnpm --dir site run dev:pages
 ```
 
