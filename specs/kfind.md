@@ -3637,6 +3637,8 @@ Chocolatey package는 version tag의 immutable archive URL과 SHA-256을
 Release workflow는 같은 archive checksum으로 `kfind.VERSION.nupkg`를 만들고 GitHub Release에
 첨부한다. Publish workflow의 Chocolatey job은 이 release asset을 내려받아 local install,
 `--version`과 `--check-data --json`을 검증한 뒤 `https://push.chocolatey.org/`로 전송한다.
+Push가 일시적으로 실패하면 exact version의 공개 package를 다시 확인하고 release asset과
+checksum이 같으면 성공으로 처리하며, 아직 게시되지 않았으면 제한된 횟수로 재시도한다.
 Repository secret `CHOCOLATEY_API_KEY`가 없으면 게시 성공으로 처리하지 않고 실패한다.
 
 ### 21.5 릴리스 자동화
@@ -3671,9 +3673,10 @@ draft가 아닌 GitHub Release가 존재하며 prerelease 표시가 version suff
 artifact가 같으면 재사용하고, 내용이 다르면 덮어쓰지 않고 실패한다.
 
 Stable npm package는 `latest`, RC package는 `next` dist-tag로 게시한다. RC 게시 시 기존
-`latest`는 변경하지 않으며, 게시한 RC version이 `latest`를 가리키지 않는지 확인한다. Homebrew는
-formula PR의 전체 test-bot과 bottle artifact를 확인한 뒤 `pr-pull`을 실행하고 tap 반영까지
-기다린다. Chocolatey는 공개 push까지 성공해야 한다.
+`latest`는 변경하지 않으며, 게시한 RC version이 `latest`를 가리키지 않는지 확인한다. 게시한
+package는 격리된 임시 directory에서 `npx`, `pnpm dlx`와 고정 Yarn version의 `dlx`로 실행해
+검증한다. Homebrew는 formula PR의 전체 test-bot과 bottle artifact를 확인한 뒤 `pr-pull`을
+실행하고 tap 반영까지 기다린다. Chocolatey는 공개 push까지 성공해야 한다.
 Versioned 문서는 같은 Publish 실행에서 GitHub Release asset과 R2에 올리고 manifest를 갱신한다.
 
 ## 22. 보안과 견고성
