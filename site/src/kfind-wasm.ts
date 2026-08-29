@@ -1,3 +1,6 @@
+import { siteAssetHref } from './app/site-build';
+import kfindWasmUrl from './generated-wasm/kfind_bg.wasm?url';
+
 export enum ExpandMode {
   Literal = 'literal',
   Inflection = 'inflection',
@@ -69,7 +72,7 @@ export interface KfindEngine {
 }
 
 interface KfindModule {
-  default: () => Promise<unknown>;
+  default: (input: { readonly module_or_path: string }) => Promise<unknown>;
   Kfind: new () => KfindEngine;
 }
 
@@ -91,7 +94,7 @@ export interface RestoredComponentResource {
 declare const __KFIND_COMPONENT_RESOURCE_REVISION__: string;
 
 const COMPONENT_RESOURCE_CACHE = 'kfind-component-resource-v1';
-const COMPONENT_RESOURCE_URL = '/api/component-resource';
+const COMPONENT_RESOURCE_URL = siteAssetHref('/api/component-resource');
 let kfindModulePromise: Promise<KfindModule> | undefined;
 
 export const componentResourceRevision = __KFIND_COMPONENT_RESOURCE_REVISION__;
@@ -109,7 +112,9 @@ export async function createKfindEngine(): Promise<KfindEngine> {
   kfindModulePromise ??= import('./generated-wasm/kfind.js').then(
     async (module) => {
       const kfindModule = module as KfindModule;
-      await kfindModule.default();
+      await kfindModule.default({
+        module_or_path: siteAssetHref(kfindWasmUrl),
+      });
       return kfindModule;
     },
   );

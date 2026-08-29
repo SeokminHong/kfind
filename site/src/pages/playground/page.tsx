@@ -17,6 +17,7 @@ import { useEffect, useRef, useState } from 'react';
 import { DocumentLocale, useDocumentLocale } from '../../app/i18n';
 import { createDocumentMeta } from '../../app/metadata';
 import { RoutePath } from '../../app/navigation';
+import { siteAssetHref } from '../../app/site-build';
 import { DocumentPage, PageIntro } from '../../components/document';
 import { Modal } from '../../components/modal';
 import { BoundaryPolicy, ExpandMode } from '../../kfind-wasm';
@@ -467,7 +468,11 @@ function PlaygroundSettings({
             CC BY-SA 3.0
           </a>
           {' · '}
-          <a href="/playground/korean-wikipedia-20231101-ko-1mib.sources.json">
+          <a
+            href={siteAssetHref(
+              '/playground/korean-wikipedia-20231101-ko-1mib.sources.json',
+            )}
+          >
             {copy.presetManifest}
           </a>
         </p>

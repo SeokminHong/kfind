@@ -1,10 +1,18 @@
 name: Publish Chocolatey
 
 on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+    secrets:
+      CHOCOLATEY_API_KEY:
+        required: true
   workflow_dispatch:
     inputs:
-      tag:
-        description: GitHub Release tag containing the Chocolatey package
+      version:
+        description: Exact GitHub Release version, with or without the v prefix
         required: true
         type: string
 
@@ -15,53 +23,51 @@ jobs:
   publish:
     name: Verify and publish
     runs-on: windows-2025
+    timeout-minutes: 30
     env:
       CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-      RELEASE_TAG: ${{ inputs.tag }}
+      VERSION: ${{ inputs.version }}
     steps:
-      - name: Download the release package
+      - name: Validate credentials and download the release package
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if ($env:RELEASE_TAG -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?$') {
-            throw "Invalid release tag: $env:RELEASE_TAG"
+          if ([string]::IsNullOrWhiteSpace($env:CHOCOLATEY_API_KEY)) {
+            throw 'CHOCOLATEY_API_KEY is required.'
           }
-          $version = $env:RELEASE_TAG.Substring(1)
+          if ($env:VERSION.StartsWith('v')) {
+            $env:VERSION = $env:VERSION.Substring(1)
+            Add-Content -Path $env:GITHUB_ENV -Value "VERSION=$env:VERSION"
+          }
+          if ($env:VERSION -notmatch '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.[1-9][0-9]*)?$') {
+            throw "Invalid release version: $env:VERSION"
+          }
           New-Item -ItemType Directory -Path dist -Force | Out-Null
-          gh release download $env:RELEASE_TAG `
+          gh release download "v$env:VERSION" `
             --repo $env:GITHUB_REPOSITORY `
-            --pattern "kfind.$version.nupkg" `
+            --pattern "kfind.$env:VERSION.nupkg" `
             --dir dist
-          $package = [System.IO.Path]::GetFullPath("dist/kfind.$version.nupkg")
+          $package = [System.IO.Path]::GetFullPath("dist/kfind.$env:VERSION.nupkg")
           if (-not (Test-Path -LiteralPath $package -PathType Leaf)) {
             throw "Chocolatey package was not downloaded: $package"
           }
-          Add-Content -Path $env:GITHUB_ENV -Value "VERSION=$version"
           Add-Content -Path $env:GITHUB_ENV -Value "PACKAGE_PATH=$package"
-
       - name: Test the released package
         shell: pwsh
         run: |
-          $installArguments = @(
-            'install',
-            'kfind',
-            '--version',
-            $env:VERSION,
-            '--source',
-            ([System.IO.Path]::GetDirectoryName($env:PACKAGE_PATH)),
-            '--yes',
-            '--no-progress',
-            '--limit-output'
+          $arguments = @(
+            'install', 'kfind', '--version', $env:VERSION,
+            '--source', ([System.IO.Path]::GetDirectoryName($env:PACKAGE_PATH)),
+            '--yes', '--no-progress', '--limit-output'
           )
           if ($env:VERSION.Contains('-')) {
-            $installArguments += '--pre'
+            $arguments += '--pre'
           }
-          & choco @installArguments
+          & choco @arguments
           if ($LASTEXITCODE -ne 0) {
             throw "Local Chocolatey install failed with exit code $LASTEXITCODE."
           }
-
           $versionOutput = (& kfind --version | Out-String).Trim()
           if ($LASTEXITCODE -ne 0 -or $versionOutput -ne "kfind $env:VERSION") {
             throw "Unexpected installed kfind version: $versionOutput"
@@ -73,9 +79,33 @@ jobs:
           if ($dataCheck.component.resource_version -ne $env:VERSION) {
             throw 'Installed Chocolatey resource version does not match the package.'
           }
-
+      - name: Detect an existing registry version
+        id: registry
+        shell: pwsh
+        run: |
+          $uri = "https://community.chocolatey.org/api/v2/package/kfind/$env:VERSION"
+          $registryPackage = [System.IO.Path]::GetFullPath("dist/registry-kfind.$env:VERSION.nupkg")
+          try {
+            Invoke-WebRequest -Uri $uri -OutFile $registryPackage
+            $exists = $true
+          } catch {
+            $status = $_.Exception.Response.StatusCode.value__
+            if ($status -eq 404) {
+              $exists = $false
+            } else {
+              throw
+            }
+          }
+          if ($exists) {
+            $releaseHash = (Get-FileHash $env:PACKAGE_PATH -Algorithm SHA256).Hash
+            $registryHash = (Get-FileHash $registryPackage -Algorithm SHA256).Hash
+            if ($releaseHash -ne $registryHash) {
+              throw 'Chocolatey registry package differs from the GitHub Release asset.'
+            }
+          }
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "exists=$($exists.ToString().ToLowerInvariant())"
       - name: Publish to the Chocolatey Community Repository
-        if: env.CHOCOLATEY_API_KEY != ''
+        if: steps.registry.outputs.exists != 'true'
         shell: pwsh
         run: |
           choco push $env:PACKAGE_PATH `
@@ -85,14 +115,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) {
             throw "Chocolatey publish failed with exit code $LASTEXITCODE."
           }
-
-      - name: Report missing Chocolatey credentials
-        if: env.CHOCOLATEY_API_KEY == ''
-        shell: pwsh
-        run: >-
-          Write-Output
-          'CHOCOLATEY_API_KEY is not configured; verified the package without publishing it.'
-
       - name: Uninstall the smoke-test package
         if: always()
         shell: pwsh

@@ -16,6 +16,8 @@ import {
   RoutePath,
   routePathFromPathname,
 } from './navigation';
+import { currentDocumentVersion, siteAssetHref } from './site-build';
+import { VersionSelector } from './version-selector/version-selector';
 
 interface NavigationLocation {
   readonly hash: string;
@@ -259,7 +261,7 @@ function SiteHeader({
             aria-hidden="true"
             className="brand-mark"
             height="29"
-            src="/favicon.svg"
+            src={siteAssetHref('/favicon.svg')}
             width="29"
           />
           <span>kfind</span>
@@ -271,6 +273,7 @@ function SiteHeader({
         </Link>
         <PrimaryNavigation currentPath={currentPath} />
         <div className="header-actions">
+          <VersionSelector />
           <div
             aria-label={t('common.language.aria')}
             className="language-control"
@@ -392,7 +395,7 @@ function SiteFooter(): React.JSX.Element {
 
   return (
     <footer className="docs-footer">
-      <span>kfind 1.0.0-rc.3</span>
+      <span>kfind {currentDocumentVersion}</span>
       <a href="https://github.com/SeokminHong/kfind/blob/main/README.md">
         README
       </a>

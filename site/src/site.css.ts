@@ -615,7 +615,7 @@ globalStyle('.header-inner', {
 globalStyle('.header-links', {
   '@media': {
     '(max-width: 34rem)': {
-      gap: vars.space.medium,
+      display: 'none',
     },
   },
 });

@@ -531,6 +531,18 @@ async function main() {
   if (metaContent(notFound, 'name', 'robots') !== 'noindex') {
     fail('404.html에 noindex가 없습니다.');
   }
+  const englishNotFound = await readFile(
+    join(clientDirectory, '_i18n', 'en', '404.html'),
+    'utf8',
+  );
+  if (metaContent(englishNotFound, 'name', 'robots') !== 'noindex') {
+    fail('영어 404.html에 noindex가 없습니다.');
+  }
+  if (
+    !englishNotFound.startsWith('<!DOCTYPE html><html lang="en" dir="ltr">')
+  ) {
+    fail('영어 404.html의 document language가 올바르지 않습니다.');
+  }
 
   const clientPaths = await readdir(clientDirectory, { recursive: true });
   const htmlFiles = clientPaths
@@ -539,6 +551,7 @@ async function main() {
     .sort();
   const expectedHtmlFiles = [
     '404.html',
+    join('_i18n', 'en', '404.html'),
     ...paths.map((path) =>
       path === '/' ? 'index.html' : `${path.slice(1)}.html`,
     ),

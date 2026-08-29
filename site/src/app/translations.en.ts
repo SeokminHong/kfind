@@ -20,6 +20,8 @@ export const englishTranslation: Readonly<
   'common.navigation.previous_page': 'Previous page',
   'common.navigation.toc_aria': 'Documentation table of contents',
   'common.skip_to_content': 'Skip to content',
+  'common.version.aria': 'Documentation version',
+  'common.version.latest': '{{version}} (latest)',
   'metadata.analysis.description':
     'The morphology model that compiles query lemmas into searchable plans.',
   'metadata.analysis.title': 'Morphology',

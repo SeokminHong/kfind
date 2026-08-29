@@ -1,51 +1,157 @@
-name: release
+name: Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version component to bump from the latest stable tag
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      prerelease:
+        description: Create the next -rc.x prerelease
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   actions: write
   contents: write
-  id-token: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  RUST_TOOLCHAIN: 1.97.0
 
 jobs:
+  prepare:
+    name: Bump and validate version
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    outputs:
+      prerelease: ${{ steps.version.outputs.prerelease }}
+      sha: ${{ steps.commit.outputs.sha }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Require the main branch
+        run: test "$GITHUB_REF" = refs/heads/main
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: main
+      - name: Install the pinned Rust toolchain
+        run: |
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal --component clippy
+          rustup target add wasm32-unknown-unknown --toolchain "$RUST_TOOLCHAIN"
+          rustup default "$RUST_TOOLCHAIN"
+      - name: Install wasm-pack
+        run: cargo install wasm-pack --version 0.15.0 --locked
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: site/pnpm-lock.yaml
+      - name: Install the pinned npm release tool
+        run: npm install --global npm@11.5.1
+      - name: Select the version
+        id: version
+        env:
+          BUMP: ${{ inputs.bump }}
+          PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          arguments=(--bump "$BUMP")
+          if [[ "$PRERELEASE" == true ]]; then
+            arguments+=(--prerelease)
+          fi
+          version=$(tools/release/release.py next-version "${arguments[@]}")
+          {
+            printf 'version=%s\n' "$version"
+            printf 'prerelease=%s\n' "$PRERELEASE"
+          } >>"$GITHUB_OUTPUT"
+          tools/release/release.py set-version "$version"
+      - name: Refresh the versioned component resource
+        run: scripts/build-component-resource.sh --refresh-checksum dist/component
+      - name: Validate the release source
+        env:
+          KFIND_COMPONENT_RESOURCE_DIR: ${{ github.workspace }}/dist/component
+        run: |
+          metadata=$(cargo metadata --no-deps --format-version 1)
+          package=$(jq -c '.packages[] | select(.name == "kfind-cli")' <<<"$metadata")
+          test "$(jq -r .version <<<"$package")" = "${{ steps.version.outputs.version }}"
+          test "$(jq -r .license <<<"$package")" = MIT
+          package_rust_version=$(jq -r .rust_version <<<"$package")
+          [[ "$RUST_TOOLCHAIN" == "$package_rust_version" || \
+            "$RUST_TOOLCHAIN" == "$package_rust_version".* ]]
+          test -f LICENSE
+          test -f LICENSES.md
+          test -f data/enriched/predicates.tsv
+          test -f data/enriched/NOTICE.md
+          grep -Fq "원자료 저작자·제공자는 국립국어원입니다." \
+            data/enriched/NOTICE.md
+          grep -Fq "CC BY-SA 2.0 KR" data/enriched/NOTICE.md
+          python3 -m unittest discover \
+            --start-directory tools/release \
+            --pattern 'test_*.py'
+          cargo test --workspace --locked
+          cargo clippy --workspace --all-targets --locked -- -D warnings
+          pnpm --dir packages/kfind run pack:check
+          pnpm --dir site install --frozen-lockfile
+          pnpm --dir site run build
+      - name: Commit the version bump
+        id: commit
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          base_sha=$(git rev-parse HEAD)
+          if ! git diff --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add --all
+            git commit -m "chore(release): ${VERSION}"
+            git fetch origin main
+            test "$(git rev-parse origin/main)" = "$base_sha"
+            git push origin HEAD:main
+          else
+            git fetch origin main
+            test "$(git rev-parse origin/main)" = "$base_sha"
+          fi
+          printf 'sha=%s\n' "$(git rev-parse HEAD)" >>"$GITHUB_OUTPUT"
+
   windows-package:
     name: Windows and Chocolatey package
+    needs: prepare
     runs-on: windows-2025
-    env:
-      RUST_TOOLCHAIN: 1.97.0
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
+          ref: ${{ needs.prepare.outputs.sha }}
       - name: Install the pinned Rust toolchain
         shell: pwsh
         run: |
           rustup toolchain install $env:RUST_TOOLCHAIN --profile minimal
           rustup default $env:RUST_TOOLCHAIN
-
       - name: Validate release metadata
-        id: metadata
         shell: pwsh
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
         run: |
-          $version = $env:GITHUB_REF_NAME.Substring(1)
-          $metadata = cargo metadata --no-deps --format-version 1 | ConvertFrom-Json
-          $packageVersion = (
-            $metadata.packages | Where-Object { $_.name -eq 'kfind-cli' }
-          ).version
-          if ($version -ne $packageVersion) {
-            throw "Tag version $version does not match package version $packageVersion."
+          $current = (& tools/release/release.py current-version | Out-String).Trim()
+          if ($current -ne $env:VERSION) {
+            throw "Expected version $env:VERSION, got $current."
           }
-          Add-Content -Path $env:GITHUB_ENV -Value "VERSION=$version"
-          Add-Content -Path $env:GITHUB_OUTPUT -Value "version=$version"
-
-      - name: Build the Windows binary
+      - name: Build the Windows binary and resources
         shell: pwsh
         run: cargo build --release --locked --package kfind-cli
-
       - name: Build and verify morphology resources
         shell: bash
         run: |
@@ -54,9 +160,10 @@ jobs:
           cargo run --locked --package kfind-testkit --bin verify-gold -- \
             dist/full-pos/lexicon.bin \
             dist/component/morphology-component-compact.kfc
-
       - name: Build the Windows archive and Chocolatey package
         shell: pwsh
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
         run: |
           $archive = "dist/chocolatey/kfind-windows-x86_64-$env:VERSION.zip"
           ./scripts/build-windows-distribution.ps1 `
@@ -74,80 +181,31 @@ jobs:
           choco pack "$packageDirectory/kfind.nuspec" `
             --output-directory dist/chocolatey `
             --limit-output
-
       - uses: actions/upload-artifact@v7
         with:
-          name: chocolatey-release
+          name: windows-release
           path: |
-            dist/chocolatey/kfind-windows-x86_64-${{ steps.metadata.outputs.version }}.zip
-            dist/chocolatey/kfind.${{ steps.metadata.outputs.version }}.nupkg
+            dist/chocolatey/kfind-windows-x86_64-${{ needs.prepare.outputs.version }}.zip
+            dist/chocolatey/kfind.${{ needs.prepare.outputs.version }}.nupkg
           if-no-files-found: error
 
-  release:
-    needs: windows-package
+  release-assets:
+    name: Source and resource assets
+    needs: prepare
     runs-on: ubuntu-24.04
-    env:
-      RUST_TOOLCHAIN: 1.97.0
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
-      - uses: actions/download-artifact@v8
-        with:
-          name: chocolatey-release
-          path: dist/chocolatey
-
+          ref: ${{ needs.prepare.outputs.sha }}
       - name: Install the pinned Rust toolchain
         run: |
-          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal --component clippy
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
           rustup default "$RUST_TOOLCHAIN"
-
-      - name: Validate release metadata
-        id: metadata
-        run: |
-          version="${GITHUB_REF_NAME#v}"
-          package_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "kfind-cli") | .version')
-          project_license=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "kfind-cli") | .license')
-          package_rust_version=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.name == "kfind-cli") | .rust_version')
-          test "$version" = "$package_version"
-          test "$project_license" = "MIT"
-          [[ "$RUST_TOOLCHAIN" == "$package_rust_version" || "$RUST_TOOLCHAIN" == "$package_rust_version".* ]]
-          test -f LICENSE
-          test -f LICENSES.md
-          test -f data/enriched/predicates.tsv
-          test -f data/enriched/NOTICE.md
-          grep -Fq "원자료 저작자·제공자는 국립국어원입니다." data/enriched/NOTICE.md
-          grep -Fq "CC BY-SA 2.0 KR" data/enriched/NOTICE.md
-          {
-            printf 'version=%s\n' "$version"
-            printf 'license=%s\n' "$project_license"
-            printf 'rust_toolchain=%s\n' "$RUST_TOOLCHAIN"
-          } >>"$GITHUB_OUTPUT"
-
-      - name: Test the release source
-        run: |
-          cargo test --workspace --locked
-          cargo clippy --workspace --all-targets --locked -- -D warnings
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: "24"
-          registry-url: "https://registry.npmjs.org"
-          package-manager-cache: false
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.0
-
-      - name: Install npm and wasm-pack
-        run: |
-          npm install --global npm@11.5.1
-          cargo install wasm-pack --version 0.15.0 --locked
-
-      - name: Build release artifacts
+      - name: Build release assets
         env:
-          VERSION: ${{ steps.metadata.outputs.version }}
+          VERSION: ${{ needs.prepare.outputs.version }}
         run: |
           mkdir -p dist/assets
           scripts/build-full-pos.sh dist/full-pos
@@ -155,91 +213,105 @@ jobs:
           cargo run --locked --package kfind-testkit --bin verify-gold -- \
             dist/full-pos/lexicon.bin \
             dist/component/morphology-component-compact.kfc
-          cargo run --locked --package kfind-cli --features distribution-assets --bin kfind-generate-assets -- dist/assets
-          KFIND_COMPONENT_RESOURCE_DIR="$PWD/dist/component" pnpm --dir packages/kfind run test
-          pnpm --dir packages/kfind run pack:check
-          git archive --format=tar.gz --prefix="kfind-${VERSION}/" --output="dist/kfind-${VERSION}.tar.gz" "$GITHUB_SHA"
-          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -czf "dist/kfind-full-pos-${VERSION}.tar.gz" -C dist/full-pos .
-          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -czf "dist/kfind-component-${VERSION}.tar.gz" -C dist/component .
-          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -czf "dist/kfind-assets-${VERSION}.tar.gz" -C dist/assets .
-
+          cargo run --locked --package kfind-cli \
+            --features distribution-assets \
+            --bin kfind-generate-assets -- dist/assets
+          git archive \
+            --format=tar.gz \
+            --prefix="kfind-${VERSION}/" \
+            --output="dist/kfind-${VERSION}.tar.gz" \
+            "${{ needs.prepare.outputs.sha }}"
+          tar --sort=name --mtime='UTC 1970-01-01' \
+            --owner=0 --group=0 --numeric-owner \
+            -czf "dist/kfind-full-pos-${VERSION}.tar.gz" -C dist/full-pos .
+          tar --sort=name --mtime='UTC 1970-01-01' \
+            --owner=0 --group=0 --numeric-owner \
+            -czf "dist/kfind-component-${VERSION}.tar.gz" -C dist/component .
+          tar --sort=name --mtime='UTC 1970-01-01' \
+            --owner=0 --group=0 --numeric-owner \
+            -czf "dist/kfind-assets-${VERSION}.tar.gz" -C dist/assets .
       - name: Render the tap formula
         env:
-          VERSION: ${{ steps.metadata.outputs.version }}
-          PROJECT_LICENSE: ${{ steps.metadata.outputs.license }}
-          FORMULA_RUST_TOOLCHAIN: ${{ steps.metadata.outputs.rust_toolchain }}
+          VERSION: ${{ needs.prepare.outputs.version }}
         run: |
           source_sha=$(sha256sum "dist/kfind-${VERSION}.tar.gz" | awk '{print $1}')
           full_pos_sha=$(sha256sum "dist/kfind-full-pos-${VERSION}.tar.gz" | awk '{print $1}')
           component_sha=$(sha256sum "dist/kfind-component-${VERSION}.tar.gz" | awk '{print $1}')
           assets_sha=$(sha256sum "dist/kfind-assets-${VERSION}.tar.gz" | awk '{print $1}')
-          scripts/render-homebrew-formula.sh "$VERSION" "$FORMULA_RUST_TOOLCHAIN" "$source_sha" "$full_pos_sha" "$component_sha" "$assets_sha" "$PROJECT_LICENSE" dist/kfind.rb
-          grep -Fqx '  license :cannot_represent' dist/kfind.rb
+          scripts/render-homebrew-formula.sh \
+            "$VERSION" "$RUST_TOOLCHAIN" \
+            "$source_sha" "$full_pos_sha" "$component_sha" "$assets_sha" \
+            MIT "dist/kfind-${VERSION}.rb"
+          grep -Fqx '  license :cannot_represent' "dist/kfind-${VERSION}.rb"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: portable-release
+          path: |
+            dist/kfind-${{ needs.prepare.outputs.version }}.tar.gz
+            dist/kfind-full-pos-${{ needs.prepare.outputs.version }}.tar.gz
+            dist/kfind-component-${{ needs.prepare.outputs.version }}.tar.gz
+            dist/kfind-assets-${{ needs.prepare.outputs.version }}.tar.gz
+            dist/kfind-${{ needs.prepare.outputs.version }}.rb
+          if-no-files-found: error
 
-      - name: Publish the GitHub release
+  github-release:
+    name: GitHub Release
+    needs:
+      - prepare
+      - release-assets
+      - windows-package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.prepare.outputs.sha }}
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist/release
+          merge-multiple: true
+      - name: Create the annotated tag
+        env:
+          SHA: ${{ needs.prepare.outputs.sha }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          tag="v${VERSION}"
+          if git rev-parse --verify --quiet "refs/tags/${tag}"; then
+            test "$(git rev-list -n 1 "$tag")" = "$SHA"
+            test "$(git cat-file -t "refs/tags/${tag}")" = tag
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag --annotate "$tag" "$SHA" --message "kfind ${VERSION}"
+            git push origin "refs/tags/${tag}"
+          fi
+      - name: Create the GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.metadata.outputs.version }}
+          PRERELEASE: ${{ needs.prepare.outputs.prerelease }}
+          VERSION: ${{ needs.prepare.outputs.version }}
         run: |
-          release_flags=()
-          if [[ "$VERSION" == *-* ]]; then
-            release_flags+=(--prerelease)
+          tag="v${VERSION}"
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            flags=()
+            if [[ "$PRERELEASE" == true ]]; then
+              flags+=(--prerelease)
+            fi
+            gh release create "$tag" \
+              --verify-tag \
+              --generate-notes \
+              --title "kfind ${VERSION}" \
+              "${flags[@]}"
           fi
-          gh release create "$GITHUB_REF_NAME" \
-            "dist/kfind-${VERSION}.tar.gz" \
-            "dist/kfind-full-pos-${VERSION}.tar.gz" \
-            "dist/kfind-component-${VERSION}.tar.gz" \
-            "dist/kfind-assets-${VERSION}.tar.gz" \
-            "dist/chocolatey/kfind-windows-x86_64-${VERSION}.zip" \
-            "dist/chocolatey/kfind.${VERSION}.nupkg" \
-            --verify-tag \
-            --generate-notes \
-            --title "kfind ${VERSION}" \
-            "${release_flags[@]}"
-
-      - name: Publish the npm package
-        env:
-          KFIND_COMPONENT_RESOURCE_DIR: ${{ github.workspace }}/dist/component
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          VERSION: ${{ steps.metadata.outputs.version }}
-        run: |
-          npm_tag=latest
-          if [[ "$VERSION" == *-* ]]; then
-            npm_tag=next
-          fi
-          npm publish ./packages/kfind --access public --provenance --tag "$npm_tag"
-
-      - name: Open the Homebrew tap pull request
-        env:
-          GH_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
-          VERSION: ${{ steps.metadata.outputs.version }}
-        run: |
-          gh auth setup-git
-          gh repo clone SeokminHong/homebrew-brew dist/tap
-          cd dist/tap
-          git switch -c "kfind-v${VERSION}"
-          install -m 0644 ../kfind.rb Formula/kfind.rb
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add Formula/kfind.rb
-          git commit -m "kfind ${VERSION}"
-          git push --set-upstream origin "kfind-v${VERSION}"
-          {
-            printf '## Summary\n\n- publish kfind %s\n' "$VERSION"
-            printf '%s\n\n## Test\n\n' '- install morphology resources and generated CLI assets'
-            printf '%s\n' "- \`brew test-bot --only-formulae\`"
-          } >../tap-pr.md
-          gh pr create \
-            --repo SeokminHong/homebrew-brew \
-            --base main \
-            --head "kfind-v${VERSION}" \
-            --title "kfind ${VERSION}" \
-            --body-file ../tap-pr.md
-
-      - name: Verify and publish the Chocolatey package
+          release=$(gh release view "$tag" --json isDraft,isPrerelease)
+          test "$(jq -r .isDraft <<<"$release")" = false
+          actual_prerelease=$(jq -r .isPrerelease <<<"$release")
+          test "$actual_prerelease" = "$PRERELEASE"
+          for asset in dist/release/*; do
+            scripts/upload-release-asset.sh "$tag" "$asset"
+          done
+      - name: Deploy the current documentation site
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >-
-          gh workflow run publish-chocolatey.yml
-          --ref main
-          --field tag="$GITHUB_REF_NAME"
+        run: gh workflow run pages.yml --ref main

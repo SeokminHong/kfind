@@ -4,7 +4,12 @@ set -euo pipefail
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 component_checksum_file="${repo_root}/data/generated/morphology-component-compact.sha256"
 COMPONENT_SHA256=$(<"${component_checksum_file}")
-readonly COMPONENT_SHA256
+refresh_checksum=0
+
+if [[ "${1:-}" == "--refresh-checksum" ]]; then
+  refresh_checksum=1
+  shift
+fi
 
 if [[ ! "${COMPONENT_SHA256}" =~ ^[0-9a-f]{64}$ ]]; then
   echo "invalid component checksum: ${component_checksum_file}" >&2
@@ -29,6 +34,10 @@ cargo run --release --locked --package kfind-data --bin kfind-data-build-compone
   "${source_directory}"/*.csv
 
 resource_sha=$(sha256_file "${resource}")
+if [[ "${refresh_checksum}" == 1 ]]; then
+  printf '%s\n' "${resource_sha}" >"${component_checksum_file}"
+  COMPONENT_SHA256=${resource_sha}
+fi
 if [[ "${resource_sha}" != "${COMPONENT_SHA256}" ]]; then
   echo "component checksum mismatch: expected ${COMPONENT_SHA256}, got ${resource_sha}" >&2
   exit 1
