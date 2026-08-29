@@ -16,6 +16,8 @@ export const koreanTranslation = {
   'common.navigation.previous_page': '이전 페이지',
   'common.navigation.toc_aria': '문서 목차',
   'common.skip_to_content': '본문으로 건너뛰기',
+  'common.version.aria': '문서 버전',
+  'common.version.latest': '{{version}} (최신)',
   'metadata.analysis.description':
     'Query에서 표면형과 verifier를 만드는 형태 분석 원리를 설명합니다.',
   'metadata.analysis.title': '형태 분석',
