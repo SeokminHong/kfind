@@ -1,5 +1,6 @@
 import walkHangStressText from '../../data/fixtures/walk_hang_stress.txt?raw';
 
+import { siteAssetHref } from './app/site-build';
 import { BoundaryPolicy, ExpandMode } from './kfind-wasm';
 
 export enum PlaygroundPresetName {
@@ -26,7 +27,9 @@ interface PresetDefinition {
   readonly text: string | (() => Promise<string>);
 }
 
-const LARGE_INPUT_URL = '/playground/korean-wikipedia-20231101-ko-1mib.txt';
+const LARGE_INPUT_URL = siteAssetHref(
+  '/playground/korean-wikipedia-20231101-ko-1mib.txt',
+);
 
 let cachedLargeInput: Promise<string> | undefined;
 

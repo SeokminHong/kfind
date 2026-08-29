@@ -17,18 +17,19 @@ import { initialDocumentLocale, useDocumentTranslation } from './app/i18n';
 import { DocumentI18nProvider, DocumentLocaleSync } from './app/i18n-provider';
 import { DocumentMetadataSync } from './app/metadata';
 import { DocumentLoading } from './app/shell';
+import { siteAssetHref } from './app/site-build';
 
 export const links: LinksFunction = () => [
-  { rel: 'icon', href: '/favicon.ico', type: 'image/x-icon' },
+  { rel: 'icon', href: siteAssetHref('/favicon.ico'), type: 'image/x-icon' },
   {
     rel: 'icon',
-    href: '/favicon.svg',
+    href: siteAssetHref('/favicon.svg'),
     sizes: 'any',
     type: 'image/svg+xml',
   },
   {
     rel: 'apple-touch-icon',
-    href: '/apple-touch-icon.png',
+    href: siteAssetHref('/apple-touch-icon.png'),
     sizes: '180x180',
   },
   {

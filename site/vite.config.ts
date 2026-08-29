@@ -12,8 +12,16 @@ const prerenderLocale = process.env.KFIND_PRERENDER_LOCALE ?? 'ko';
 if (prerenderLocale !== 'ko' && prerenderLocale !== 'en') {
   throw new Error('KFIND_PRERENDER_LOCALE must be ko or en');
 }
+const siteBasePath = readSiteBasePath();
+const sitePackage: unknown = JSON.parse(
+  readFileSync(new URL('./package.json', import.meta.url), 'utf8'),
+);
+if (!isRecord(sitePackage) || typeof sitePackage.version !== 'string') {
+  throw new Error('site package version is invalid');
+}
 
 export default defineConfig({
+  base: '/',
   plugins: [
     mdx({
       rehypePlugins: [
@@ -38,11 +46,26 @@ export default defineConfig({
       readPlaygroundCorpusMetadata(),
     ),
     __KFIND_PRERENDER_LOCALE__: JSON.stringify(prerenderLocale),
+    __KFIND_SITE_BASE_PATH__: JSON.stringify(siteBasePath),
+    __KFIND_SITE_VERSION__: JSON.stringify(sitePackage.version),
   },
   build: {
     target: 'es2022',
   },
 });
+
+function readSiteBasePath(): string {
+  const value = process.env.KFIND_SITE_BASE_PATH ?? '/';
+  if (
+    value !== '/' &&
+    !/^\/versions\/(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-rc\.[1-9][0-9]*)?$/u.test(
+      value,
+    )
+  ) {
+    throw new Error('KFIND_SITE_BASE_PATH must be / or /versions/VERSION');
+  }
+  return value;
+}
 
 function readComponentResourceRevision(): string {
   const checksum = readFileSync(

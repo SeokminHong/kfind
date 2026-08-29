@@ -17,14 +17,16 @@
     "dev": "pnpm run generate:sitemap && pnpm run prepare:assets && react-router dev",
     "dev:pages": "pnpm run build && wrangler pages dev build/client",
     "build": "pnpm run generate:sitemap && pnpm run check:playground-assets && pnpm run prepare:assets && pnpm run check:documents && react-router typegen && tsc --noEmit && tsc --noEmit --project functions/tsconfig.json && node scripts/build-site.mjs && pnpm run check:seo",
+    "build:versioned": "pnpm run generate:sitemap && pnpm run check:playground-assets && pnpm run prepare:assets && pnpm run check:documents && react-router typegen && tsc --noEmit && tsc --noEmit --project functions/tsconfig.json && node scripts/build-site.mjs && node scripts/check-versioned-build.mjs",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "wrangler pages dev build/client",
+    "publish:versioned": "./scripts/publish-versioned-site.sh",
     "deploy": "pnpm run upload:component && pnpm run build && wrangler pages deploy build/client --project-name kfind --branch main"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "5.20260713.1",
+    "@cloudflare/workers-types": "5.20260829.1",
     "@ianvs/prettier-plugin-sort-imports": "4.7.1",
     "@mdx-js/rollup": "3.1.1",
     "@react-router/dev": "8.2.0",
@@ -40,7 +42,7 @@
     "remark-gfm": "4.0.1",
     "typescript": "6.0.3",
     "vite": "8.1.4",
-    "wrangler": "4.110.0"
+    "wrangler": "4.127.1"
   },
   "packageManager": "pnpm@10.33.0",
   "prettier": "@seokminhong/configs/prettier",
