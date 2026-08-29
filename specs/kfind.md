@@ -3655,6 +3655,8 @@ Release workflow는 계산한 version을 workspace package, lockfile, npm·site 
 resource, npm과 site 검증을 통과한 변경만 release commit으로 `main`에 반영한다. Windows archive와
 Chocolatey package, source, full POS, component, CLI asset과 Homebrew formula를 모두 만든 뒤 해당
 commit에 annotated tag를 붙이고 GitHub Release를 생성한다. RC는 GitHub prerelease로 표시한다.
+Workspace와 도구 lockfile 동기화는 component resource 생성을 포함한 모든 `--locked` 검증보다
+먼저 완료하며, 기존 외부 dependency version은 갱신하지 않는다.
 이 workflow는 npm, Homebrew와 Chocolatey registry에는 게시하지 않는다. 동일 workflow의 동시
 실행을 직렬화하고, tag나 GitHub Release 생성 전 실패한 같은 version은 다음 실행에서 이어서
 검증할 수 있어야 한다.

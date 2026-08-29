@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import importlib.util
+import subprocess
 import unittest
 from pathlib import Path
+from unittest.mock import call, patch
 
 
 MODULE_PATH = Path(__file__).with_name("release.py")
@@ -36,6 +38,32 @@ class ReleaseVersionTest(unittest.TestCase):
         for version in ("v1.0.0", "1.0", "1.0.0-rc.0", "01.0.0"):
             with self.subTest(version=version), self.assertRaises(ValueError):
                 release.parse_version(version)
+
+    @patch.object(release.subprocess, "run")
+    def test_lockfiles_update_only_workspace_packages(self, run) -> None:
+        repository_root = Path("/repository")
+
+        release.refresh_lockfiles(repository_root)
+
+        self.assertEqual(
+            run.call_args_list,
+            [
+                call(
+                    [
+                        "cargo",
+                        "update",
+                        "--workspace",
+                        "--quiet",
+                        "--manifest-path",
+                        str(repository_root / manifest),
+                    ],
+                    cwd=repository_root,
+                    check=True,
+                    stdout=subprocess.DEVNULL,
+                )
+                for manifest in release.LOCKFILE_MANIFESTS
+            ],
+        )
 
 
 if __name__ == "__main__":
