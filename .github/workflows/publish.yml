@@ -136,9 +136,7 @@ jobs:
           cd "$consumer_directory"
           test "$(npx --yes "@kfind/kfind@${VERSION}" --version)" = "$VERSION"
           test "$(pnpm dlx "@kfind/kfind@${VERSION}" --version)" = "$VERSION"
-          corepack enable
-          corepack prepare yarn@4.9.2 --activate
-          test "$(yarn dlx "@kfind/kfind@${VERSION}" --version)" = "$VERSION"
+          test "$(corepack yarn@4.9.2 dlx "@kfind/kfind@${VERSION}" --version)" = "$VERSION"
 
   documentation:
     name: Versioned documentation
