@@ -4,6 +4,8 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
+const packageVersion = require("../packages/kfind/package.json").version;
+
 const [cliPath] = process.argv.slice(2);
 if (!cliPath) {
   throw new Error("usage: test-npm-cli.cjs CLI_PATH");
@@ -90,7 +92,7 @@ try {
 
   const version = execute(["--version"]);
   assert.equal(version.status, 0, version.stderr);
-  assert.equal(version.stdout, "1.0.0-rc.3\n");
+  assert.equal(version.stdout, `${packageVersion}\n`);
 } finally {
   fs.rmSync(fixtureDirectory, { force: true, recursive: true });
 }

@@ -21,7 +21,7 @@ FULL_POS_DIR=${KFIND_SEARCH_BASELINE_FULL_POS_DIR:-"$ROOT/target/full-pos"}
 COMPONENT_DIR=${KFIND_SEARCH_BASELINE_COMPONENT_DIR:-"$ROOT/target/component-resource"}
 DATA_DIR="$OUTPUT_DIR/resources"
 FULL_POS_SHA256=012a2ecfc9ee049cb48f655eb240fa2ed6fc739dfde01526078a976549246e88
-COMPONENT_SHA256=02b877a79518e7c5662583d9cda531409114a932ec9cf186dec8a23863c839d0
+COMPONENT_SHA256=$(<"$ROOT/data/generated/morphology-component-compact.sha256")
 
 fail() {
     printf 'benchmark-search-baseline: %s\n' "$*" >&2
