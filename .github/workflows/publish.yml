@@ -134,9 +134,14 @@ jobs:
         run: |
           consumer_directory=$(mktemp -d)
           cd "$consumer_directory"
-          test "$(npx --yes "@kfind/kfind@${VERSION}" --version)" = "$VERSION"
-          test "$(pnpm dlx "@kfind/kfind@${VERSION}" --version)" = "$VERSION"
-          test "$(corepack yarn@4.9.2 dlx "@kfind/kfind@${VERSION}" --version)" = "$VERSION"
+          verify_consumer() {
+            output=$("$@")
+            printf '%s\n' "$output"
+            test "$(printf '%s\n' "$output" | tail -n 1)" = "$VERSION"
+          }
+          verify_consumer npx --yes "@kfind/kfind@${VERSION}" --version
+          verify_consumer pnpm dlx "@kfind/kfind@${VERSION}" --version
+          verify_consumer corepack yarn@4.9.2 dlx "@kfind/kfind@${VERSION}" --version
 
   documentation:
     name: Versioned documentation
