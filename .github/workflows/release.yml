@@ -214,7 +214,7 @@ jobs:
         env:
           VERSION: ${{ needs.prepare.outputs.version }}
         run: |
-          $current = (& tools/release/release.py current-version | Out-String).Trim()
+          $current = (& python tools/release/release.py current-version | Out-String).Trim()
           if ($current -ne $env:VERSION) {
             throw "Expected version $env:VERSION, got $current."
           }
