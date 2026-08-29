@@ -49,6 +49,11 @@ jobs:
           python3 -m unittest discover
           --start-directory tools/morph-compare/real_corpus
           --pattern 'test_*.py'
+      - name: Test the release tooling
+        run: >-
+          python3 -m unittest discover
+          --start-directory tools/release
+          --pattern 'test_*.py'
       - name: Check README current-information policy
         run: |
           python3 tools/readme-guard/check_readmes.py
@@ -239,6 +244,9 @@ jobs:
         run: |
           pnpm --dir site run types:check
           pnpm --dir site run build
+          version=$(tools/release/release.py current-version)
+          KFIND_SITE_BASE_PATH="/versions/${version}" \
+            pnpm --dir site run build:versioned
 
   morphology-smoke:
     name: Morphology smoke
