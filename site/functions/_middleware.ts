@@ -1,3 +1,5 @@
+import { serveVersionedSite } from '../server/versioned-site';
+
 const englishLocaleQuery = 'en';
 const englishAssetPrefix = '/_i18n/en';
 
@@ -18,6 +20,30 @@ function withContentLanguage(
 export const onRequest: PagesFunction<CloudflareBindings> = async (context) => {
   const url = new URL(context.request.url);
 
+  if (url.pathname.startsWith('/versions/')) {
+    try {
+      return await serveVersionedSite(
+        context.request,
+        context.env.KFIND_ASSETS,
+      );
+    } catch (error: unknown) {
+      // eslint-disable-next-line no-console -- Cloudflare captures structured Worker logs.
+      console.error(
+        JSON.stringify({
+          error: error instanceof Error ? error.message : String(error),
+          message: 'versioned site request failed',
+          path: url.pathname,
+        }),
+      );
+      return new Response('Versioned documentation is unavailable', {
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'X-Robots-Tag': 'noindex',
+        },
+        status: 502,
+      });
+    }
+  }
   if (url.pathname.startsWith('/_i18n/')) {
     return new Response('Not Found', {
       headers: {

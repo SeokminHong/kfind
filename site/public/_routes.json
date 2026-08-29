@@ -13,7 +13,8 @@
     "/guide/*",
     "/internals/*",
     "/playground",
-    "/reference/*"
+    "/reference/*",
+    "/versions/*"
   ],
   "exclude": []
 }
