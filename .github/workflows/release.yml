@@ -124,6 +124,17 @@ jobs:
             git switch -c "$release_branch"
             git push origin "HEAD:refs/heads/${release_branch}"
 
+            body_file=$(mktemp)
+            printf '검증된 %s release source를 main에 반영합니다.\n' \
+              "$VERSION" >"$body_file"
+            pr_url=$(gh pr create \
+              --repo "$GITHUB_REPOSITORY" \
+              --base main \
+              --head "$release_branch" \
+              --title "chore(release): ${VERSION}" \
+              --body-file "$body_file")
+            pr_number=${pr_url##*/}
+
             head_sha=$(git rev-parse HEAD)
             gh workflow run ci.yml --repo "$GITHUB_REPOSITORY" --ref "$release_branch"
             ci_run_id=
@@ -149,18 +160,8 @@ jobs:
 
             git fetch origin main
             test "$(git rev-parse origin/main)" = "$base_sha"
-            body_file=$(mktemp)
-            printf '검증된 %s release source를 main에 반영합니다.\n' \
-              "$VERSION" >"$body_file"
-            pr_url=$(gh pr create \
-              --repo "$GITHUB_REPOSITORY" \
-              --base main \
-              --head "$release_branch" \
-              --title "chore(release): ${VERSION}" \
-              --body-file "$body_file")
-            pr_number=${pr_url##*/}
             merge_state=
-            for _ in {1..30}; do
+            for _ in {1..60}; do
               merge_state=$(gh pr view "$pr_number" \
                 --repo "$GITHUB_REPOSITORY" \
                 --json mergeStateStatus \
