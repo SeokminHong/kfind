@@ -134,11 +134,11 @@ jobs:
         run: |
           consumer_directory=$(mktemp -d)
           cd "$consumer_directory"
-          test "$(npx --yes "@kfind/kfind@${VERSION}" --version)" = "kfind ${VERSION}"
-          test "$(pnpm dlx "@kfind/kfind@${VERSION}" --version)" = "kfind ${VERSION}"
+          test "$(npx --yes "@kfind/kfind@${VERSION}" --version)" = "$VERSION"
+          test "$(pnpm dlx "@kfind/kfind@${VERSION}" --version)" = "$VERSION"
           corepack enable
           corepack prepare yarn@4.9.2 --activate
-          test "$(yarn dlx "@kfind/kfind@${VERSION}" --version)" = "kfind ${VERSION}"
+          test "$(yarn dlx "@kfind/kfind@${VERSION}" --version)" = "$VERSION"
 
   documentation:
     name: Versioned documentation
