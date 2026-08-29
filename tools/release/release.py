@@ -116,10 +116,9 @@ def refresh_lockfiles(repository_root: Path) -> None:
         subprocess.run(
             [
                 "cargo",
-                "metadata",
-                "--format-version",
-                "1",
-                "--no-deps",
+                "update",
+                "--workspace",
+                "--quiet",
                 "--manifest-path",
                 str(repository_root / relative_manifest),
             ],
