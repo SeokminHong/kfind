@@ -122,8 +122,12 @@ jobs:
           fi
           if [[ "$PRERELEASE" == true ]]; then
             npm dist-tag add "@kfind/kfind@${VERSION}" next
-            latest=$(npm view @kfind/kfind dist-tags.latest)
-            [[ "$latest" != *-* ]]
+            latest=$(npm view @kfind/kfind dist-tags.latest || true)
+            if [[ "$latest" == *-* ]]; then
+              npm dist-tag rm @kfind/kfind latest
+            fi
+            latest=$(npm view @kfind/kfind dist-tags.latest || true)
+            [[ -z "$latest" || "$latest" != *-* ]]
           else
             npm dist-tag add "@kfind/kfind@${VERSION}" latest
           fi
