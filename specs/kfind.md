@@ -3637,6 +3637,8 @@ Chocolatey package는 version tag의 immutable archive URL과 SHA-256을
 Release workflow는 같은 archive checksum으로 `kfind.VERSION.nupkg`를 만들고 GitHub Release에
 첨부한다. Publish workflow의 Chocolatey job은 이 release asset을 내려받아 local install,
 `--version`과 `--check-data --json`을 검증한 뒤 `https://push.chocolatey.org/`로 전송한다.
+Push가 일시적으로 실패하면 exact version의 공개 package를 다시 확인하고 release asset과
+checksum이 같으면 성공으로 처리하며, 아직 게시되지 않았으면 제한된 횟수로 재시도한다.
 Repository secret `CHOCOLATEY_API_KEY`가 없으면 게시 성공으로 처리하지 않고 실패한다.
 
 ### 21.5 릴리스 자동화

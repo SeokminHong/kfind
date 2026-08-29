@@ -108,13 +108,51 @@ jobs:
         if: steps.registry.outputs.exists != 'true'
         shell: pwsh
         run: |
-          choco push $env:PACKAGE_PATH `
-            --source https://push.chocolatey.org/ `
-            --api-key $env:CHOCOLATEY_API_KEY `
-            --limit-output
-          if ($LASTEXITCODE -ne 0) {
-            throw "Chocolatey publish failed with exit code $LASTEXITCODE."
+          $registryUri = "https://community.chocolatey.org/api/v2/package/kfind/$env:VERSION"
+          $registryPackage = [System.IO.Path]::GetFullPath("dist/registry-kfind.$env:VERSION.nupkg")
+          $releaseHash = (Get-FileHash $env:PACKAGE_PATH -Algorithm SHA256).Hash
+
+          function Test-PublishedPackage {
+            Remove-Item -LiteralPath $registryPackage -Force -ErrorAction SilentlyContinue
+            try {
+              Invoke-WebRequest -Uri $registryUri -OutFile $registryPackage
+            } catch {
+              $status = $_.Exception.Response.StatusCode.value__
+              if ($status -ne 404) {
+                Write-Warning "Chocolatey registry check failed: $($_.Exception.Message)"
+              }
+              return $false
+            }
+
+            $registryHash = (Get-FileHash $registryPackage -Algorithm SHA256).Hash
+            if ($releaseHash -ne $registryHash) {
+              throw 'Chocolatey registry package differs from the GitHub Release asset.'
+            }
+            return $true
           }
+
+          $lastExitCode = 0
+          for ($pushAttempt = 1; $pushAttempt -le 3; $pushAttempt++) {
+            & choco push $env:PACKAGE_PATH `
+              --source https://push.chocolatey.org/ `
+              --api-key $env:CHOCOLATEY_API_KEY `
+              --limit-output
+            $lastExitCode = $LASTEXITCODE
+            if ($lastExitCode -eq 0) {
+              exit 0
+            }
+
+            Write-Warning "Chocolatey push attempt $pushAttempt failed with exit code $lastExitCode."
+            for ($registryAttempt = 1; $registryAttempt -le 3; $registryAttempt++) {
+              Start-Sleep -Seconds 20
+              if (Test-PublishedPackage) {
+                Write-Host 'Chocolatey published the package despite the failed push response.'
+                exit 0
+              }
+            }
+          }
+
+          throw "Chocolatey publish failed after 3 attempts; last exit code: $lastExitCode."
       - name: Uninstall the smoke-test package
         if: always()
         shell: pwsh
