@@ -242,20 +242,25 @@ jobs:
             -ComponentDirectory dist/component `
             -OutputArchive $archive
           $archiveSha256 = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          $packageVersion = (& python tools/release/release.py chocolatey-version $env:VERSION | Out-String).Trim()
           $packageDirectory = 'dist/chocolatey/package'
           ./scripts/render-chocolatey-package.ps1 `
-            -Version $env:VERSION `
+            -ReleaseVersion $env:VERSION `
+            -PackageVersion $packageVersion `
             -ArchiveSha256 $archiveSha256 `
             -OutputDirectory $packageDirectory
           choco pack "$packageDirectory/kfind.nuspec" `
             --output-directory dist/chocolatey `
             --limit-output
+          if (-not (Test-Path -LiteralPath "dist/chocolatey/kfind.$packageVersion.nupkg" -PathType Leaf)) {
+            throw "Chocolatey package was not created for version $packageVersion."
+          }
       - uses: actions/upload-artifact@v7
         with:
           name: windows-release
           path: |
             dist/chocolatey/kfind-windows-x86_64-${{ needs.prepare.outputs.version }}.zip
-            dist/chocolatey/kfind.${{ needs.prepare.outputs.version }}.nupkg
+            dist/chocolatey/*.nupkg
           if-no-files-found: error
 
   release-assets:

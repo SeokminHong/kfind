@@ -1,8 +1,9 @@
 # Chocolatey 배포
 
-Tagged release는 Windows x64 portable archive와 같은 checksum을 가리키는
-`kfind.VERSION.nupkg`를 GitHub Release에 첨부한다. Chocolatey package는 archive를 package
-directory에 풀고 `bin/kfind.exe`의 자동 shim을 사용한다.
+Tagged release는 Windows x64 portable archive와 같은 checksum을 가리키는 Chocolatey package를
+GitHub Release에 첨부한다. Stable은 release version을 그대로 사용하고 `VERSION-rc.N`은 Community
+Repository 호환을 위해 `VERSION-rcNNNN` package version으로 매핑한다. Chocolatey package는
+archive를 package directory에 풀고 `bin/kfind.exe`의 자동 shim을 사용한다.
 
 템플릿만 검증하려면 PowerShell 7에서 다음 명령을 실행한다.
 

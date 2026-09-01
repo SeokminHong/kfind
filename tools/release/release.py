@@ -21,6 +21,7 @@ STABLE_TAG_PATTERN = re.compile(
     r"(?P<minor>0|[1-9][0-9]*)\."
     r"(?P<patch>0|[1-9][0-9]*)$"
 )
+CHOCOLATEY_RC_WIDTH = 4
 CURRENT_VERSION_FILES = (
     Path("README.md"),
     Path("packages/kfind/README.md"),
@@ -52,6 +53,13 @@ def parse_version(value: str) -> tuple[int, int, int, int | None]:
         int(match.group("patch")),
         None if rc is None else int(rc),
     )
+
+
+def chocolatey_version(value: str) -> str:
+    major, minor, patch, rc = parse_version(value)
+    if rc is None:
+        return value
+    return f"{major}.{minor}.{patch}-rc{rc:0{CHOCOLATEY_RC_WIDTH}d}"
 
 
 def workspace_version(repository_root: Path = REPOSITORY_ROOT) -> str:
@@ -166,6 +174,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     set_parser = subparsers.add_parser("set-version")
     set_parser.add_argument("version")
+
+    chocolatey_parser = subparsers.add_parser("chocolatey-version")
+    chocolatey_parser.add_argument("version")
     return parser
 
 
@@ -180,6 +191,9 @@ def main() -> None:
     if arguments.command == "set-version":
         set_version(arguments.version)
         print(arguments.version)
+        return
+    if arguments.command == "chocolatey-version":
+        print(chocolatey_version(arguments.version))
         return
     raise RuntimeError(f"unsupported command: {arguments.command}")
 

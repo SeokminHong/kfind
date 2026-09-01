@@ -12,7 +12,8 @@ $temporaryDirectory = Join-Path ([System.IO.Path]::GetTempPath()) (
 )
 $packageDirectory = Join-Path $temporaryDirectory 'package'
 $nupkgDirectory = Join-Path $temporaryDirectory 'nupkg'
-$version = '1.2.3-rc.4'
+$releaseVersion = '1.2.3-rc.4'
+$packageVersion = '1.2.3-rc0004'
 $checksum = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
 
 function Assert-True {
@@ -32,7 +33,8 @@ function Assert-True {
 try {
     New-Item -ItemType Directory -Path $temporaryDirectory -Force | Out-Null
     & (Join-Path (Join-Path $repositoryRoot 'scripts') 'render-chocolatey-package.ps1') `
-        -Version $version `
+        -ReleaseVersion $releaseVersion `
+        -PackageVersion $packageVersion `
         -ArchiveSha256 $checksum `
         -OutputDirectory $packageDirectory | Out-Null
 
@@ -51,12 +53,14 @@ try {
     )
     Assert-True (-not $rendered.Contains('@VERSION@')) 'Version placeholder was not replaced.'
     Assert-True (-not $rendered.Contains('@ARCHIVE_SHA256@')) 'Checksum placeholder was not replaced.'
-    Assert-True ($rendered.Contains("v$version")) 'Rendered package does not use the release tag.'
+    Assert-True ($rendered.Contains("v$releaseVersion")) 'Rendered package does not use the release tag.'
     Assert-True ($rendered.Contains($checksum)) 'Rendered package does not use the archive checksum.'
 
     [xml] $nuspec = [System.IO.File]::ReadAllText($nuspecPath)
     Assert-True ($nuspec.package.metadata.id -eq 'kfind') 'Unexpected Chocolatey package ID.'
-    Assert-True ($nuspec.package.metadata.version -eq $version) 'Unexpected Chocolatey package version.'
+    Assert-True (
+        $nuspec.package.metadata.version -eq $packageVersion
+    ) 'Unexpected Chocolatey package version.'
     Assert-True (
         $nuspec.package.metadata.iconUrl -eq 'https://kfind.pages.dev/icon-256.png'
     ) 'Unexpected Chocolatey package icon URL.'
@@ -87,7 +91,9 @@ try {
         }
         $packages = @(Get-ChildItem -LiteralPath $nupkgDirectory -Filter '*.nupkg')
         Assert-True ($packages.Count -eq 1) 'choco pack did not create exactly one package.'
-        Assert-True ($packages[0].Name -eq "kfind.$version.nupkg") 'Unexpected Chocolatey package filename.'
+        Assert-True (
+            $packages[0].Name -eq "kfind.$packageVersion.nupkg"
+        ) 'Unexpected Chocolatey package filename.'
     }
 } finally {
     if (Test-Path -LiteralPath $temporaryDirectory) {
