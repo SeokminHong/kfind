@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>kfind</id>
-    <version>@VERSION@</version>
+    <version>@PACKAGE_VERSION@</version>
     <title>kfind</title>
     <authors>Seokmin Hong</authors>
     <owners>Seokmin Hong</owners>

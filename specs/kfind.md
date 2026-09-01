@@ -3634,9 +3634,18 @@ Chocolatey package는 version tag의 immutable archive URL과 SHA-256을
 `bin/kfind.exe`의 자동 shim을 사용한다. 별도 system directory, registry와 환경 변수는
 수정하지 않으며 uninstall은 package directory와 shim 제거만으로 끝난다.
 
-Release workflow는 같은 archive checksum으로 `kfind.VERSION.nupkg`를 만들고 GitHub Release에
-첨부한다. Publish workflow의 Chocolatey job은 이 release asset을 내려받아 local install,
-`--version`과 `--check-data --json`을 검증한 뒤 `https://push.chocolatey.org/`로 전송한다.
+Chocolatey Community Repository가 SemVer 2 prerelease를 지원하지 않으므로 stable release는
+release version을 그대로 package version으로 쓰고, `MAJOR.MINOR.PATCH-rc.N` release는 N을 최소
+네 자리로 zero-padding한 `MAJOR.MINOR.PATCH-rcNNNN` package version으로 매핑한다. 예를 들어
+`1.0.0-rc.4`의 Chocolatey package version은 `1.0.0-rc0004`다. Package filename과 registry
+조회에는 package version을 사용하지만 archive URL, 실행 파일과 resource version 검증에는 release
+version을 사용한다.
+
+Release workflow는 같은 archive checksum으로 `kfind.PACKAGE_VERSION.nupkg`를 만들고 GitHub
+Release에 첨부한다. Publish workflow의 Chocolatey job은 mapped package asset을 재사용하며, 과거
+release에 asset이 없으면 immutable Windows archive와 현재 packaging template으로 만들고 release에
+첨부한다. 이후 local install, `--version`과 `--check-data --json`을 검증한 뒤
+`https://push.chocolatey.org/`로 전송한다.
 Push가 일시적으로 실패하면 exact version의 공개 package를 다시 확인하고 release asset과
 checksum이 같으면 성공으로 처리하며, 아직 게시되지 않았으면 제한된 횟수로 재시도한다.
 Repository secret `CHOCOLATEY_API_KEY`가 없으면 게시 성공으로 처리하지 않고 실패한다.

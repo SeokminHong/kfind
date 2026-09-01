@@ -39,6 +39,19 @@ class ReleaseVersionTest(unittest.TestCase):
             with self.subTest(version=version), self.assertRaises(ValueError):
                 release.parse_version(version)
 
+    def test_chocolatey_version_preserves_stable_release(self) -> None:
+        self.assertEqual(release.chocolatey_version("1.2.3"), "1.2.3")
+
+    def test_chocolatey_version_maps_release_candidate(self) -> None:
+        self.assertEqual(
+            release.chocolatey_version("1.2.3-rc.4"),
+            "1.2.3-rc0004",
+        )
+        self.assertEqual(
+            release.chocolatey_version("1.2.3-rc.10000"),
+            "1.2.3-rc10000",
+        )
+
     @patch.object(release.subprocess, "run")
     def test_lockfiles_update_only_workspace_packages(self, run) -> None:
         repository_root = Path("/repository")

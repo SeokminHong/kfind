@@ -1,7 +1,10 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [string] $Version,
+    [string] $ReleaseVersion,
+
+    [Parameter(Mandatory = $true)]
+    [string] $PackageVersion,
 
     [Parameter(Mandatory = $true)]
     [string] $ArchiveSha256,
@@ -13,8 +16,11 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-if ($Version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?$') {
-    throw "Invalid release version: $Version"
+if ($ReleaseVersion -notmatch '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.[1-9][0-9]*)?$') {
+    throw "Invalid release version: $ReleaseVersion"
+}
+if ($PackageVersion -notmatch '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc[0-9]{4,})?$') {
+    throw "Invalid Chocolatey package version: $PackageVersion"
 }
 if ($ArchiveSha256 -notmatch '^[0-9a-fA-F]{64}$') {
     throw "Invalid SHA-256: $ArchiveSha256"
@@ -27,7 +33,8 @@ $outputPath = [System.IO.Path]::GetFullPath($OutputDirectory)
 $toolsPath = Join-Path $outputPath 'tools'
 $utf8WithoutBom = New-Object System.Text.UTF8Encoding($false)
 $replacements = @{
-    '@VERSION@' = $Version
+    '@VERSION@' = $ReleaseVersion
+    '@PACKAGE_VERSION@' = $PackageVersion
     '@ARCHIVE_SHA256@' = $ArchiveSha256.ToLowerInvariant()
 }
 

@@ -267,7 +267,7 @@ jobs:
     name: Chocolatey
     needs: metadata
     permissions:
-      contents: read
+      contents: write
     uses: ./.github/workflows/publish-chocolatey.yml
     with:
       version: ${{ needs.metadata.outputs.version }}

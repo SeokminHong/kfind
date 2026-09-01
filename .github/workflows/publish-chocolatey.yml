@@ -17,7 +17,7 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   publish:
@@ -26,9 +26,10 @@ jobs:
     timeout-minutes: 30
     env:
       CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-      VERSION: ${{ inputs.version }}
+      RELEASE_VERSION: ${{ inputs.version }}
     steps:
-      - name: Validate credentials and download the release package
+      - uses: actions/checkout@v6
+      - name: Validate credentials and prepare the release package
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -36,19 +37,68 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($env:CHOCOLATEY_API_KEY)) {
             throw 'CHOCOLATEY_API_KEY is required.'
           }
-          if ($env:VERSION.StartsWith('v')) {
-            $env:VERSION = $env:VERSION.Substring(1)
-            Add-Content -Path $env:GITHUB_ENV -Value "VERSION=$env:VERSION"
+          if ($env:RELEASE_VERSION.StartsWith('v')) {
+            $env:RELEASE_VERSION = $env:RELEASE_VERSION.Substring(1)
+            Add-Content -Path $env:GITHUB_ENV -Value "RELEASE_VERSION=$env:RELEASE_VERSION"
           }
-          if ($env:VERSION -notmatch '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-rc\.[1-9][0-9]*)?$') {
-            throw "Invalid release version: $env:VERSION"
+          $packageVersion = (
+            & python tools/release/release.py chocolatey-version $env:RELEASE_VERSION | Out-String
+          ).Trim()
+          if ($LASTEXITCODE -ne 0) {
+            throw "Invalid release version: $env:RELEASE_VERSION"
           }
+          Add-Content -Path $env:GITHUB_ENV -Value "PACKAGE_VERSION=$packageVersion"
+
           New-Item -ItemType Directory -Path dist -Force | Out-Null
-          gh release download "v$env:VERSION" `
-            --repo $env:GITHUB_REPOSITORY `
-            --pattern "kfind.$env:VERSION.nupkg" `
-            --dir dist
-          $package = [System.IO.Path]::GetFullPath("dist/kfind.$env:VERSION.nupkg")
+          $tag = "v$env:RELEASE_VERSION"
+          $packageName = "kfind.$packageVersion.nupkg"
+          $package = [System.IO.Path]::GetFullPath("dist/$packageName")
+          $releaseAssets = @(
+            gh release view $tag `
+              --repo $env:GITHUB_REPOSITORY `
+              --json assets `
+              --jq '.assets[].name'
+          )
+          if ($LASTEXITCODE -ne 0) {
+            throw "GitHub Release was not found: $tag"
+          }
+          if ($releaseAssets -contains $packageName) {
+            gh release download $tag `
+              --repo $env:GITHUB_REPOSITORY `
+              --pattern $packageName `
+              --dir dist
+            if ($LASTEXITCODE -ne 0) {
+              throw "Chocolatey package was not downloaded: $packageName"
+            }
+          } else {
+            $archiveName = "kfind-windows-x86_64-$env:RELEASE_VERSION.zip"
+            gh release download $tag `
+              --repo $env:GITHUB_REPOSITORY `
+              --pattern $archiveName `
+              --dir dist
+            if ($LASTEXITCODE -ne 0) {
+              throw "Windows release archive was not downloaded: $archiveName"
+            }
+            $archive = [System.IO.Path]::GetFullPath("dist/$archiveName")
+            $archiveSha256 = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+            $packageDirectory = [System.IO.Path]::GetFullPath('dist/chocolatey/package')
+            ./scripts/render-chocolatey-package.ps1 `
+              -ReleaseVersion $env:RELEASE_VERSION `
+              -PackageVersion $packageVersion `
+              -ArchiveSha256 $archiveSha256 `
+              -OutputDirectory $packageDirectory | Out-Null
+            choco pack "$packageDirectory/kfind.nuspec" `
+              --output-directory dist `
+              --limit-output
+            if ($LASTEXITCODE -ne 0) {
+              throw "Chocolatey package creation failed with exit code $LASTEXITCODE."
+            }
+            gh release upload $tag $package `
+              --repo $env:GITHUB_REPOSITORY
+            if ($LASTEXITCODE -ne 0) {
+              throw "Chocolatey package was not attached to release $tag."
+            }
+          }
           if (-not (Test-Path -LiteralPath $package -PathType Leaf)) {
             throw "Chocolatey package was not downloaded: $package"
           }
@@ -57,11 +107,11 @@ jobs:
         shell: pwsh
         run: |
           $arguments = @(
-            'install', 'kfind', '--version', $env:VERSION,
+            'install', 'kfind', '--version', $env:PACKAGE_VERSION,
             '--source', ([System.IO.Path]::GetDirectoryName($env:PACKAGE_PATH)),
             '--yes', '--no-progress', '--limit-output'
           )
-          if ($env:VERSION.Contains('-')) {
+          if ($env:PACKAGE_VERSION.Contains('-')) {
             $arguments += '--pre'
           }
           & choco @arguments
@@ -69,22 +119,22 @@ jobs:
             throw "Local Chocolatey install failed with exit code $LASTEXITCODE."
           }
           $versionOutput = (& kfind --version | Out-String).Trim()
-          if ($LASTEXITCODE -ne 0 -or $versionOutput -ne "kfind $env:VERSION") {
+          if ($LASTEXITCODE -ne 0 -or $versionOutput -ne "kfind $env:RELEASE_VERSION") {
             throw "Unexpected installed kfind version: $versionOutput"
           }
           $dataCheck = (& kfind --check-data --json | Out-String) | ConvertFrom-Json
           if ($LASTEXITCODE -ne 0 -or $dataCheck.status -ne 'ok') {
             throw 'Installed Chocolatey package failed the data check.'
           }
-          if ($dataCheck.component.resource_version -ne $env:VERSION) {
+          if ($dataCheck.component.resource_version -ne $env:RELEASE_VERSION) {
             throw 'Installed Chocolatey resource version does not match the package.'
           }
       - name: Detect an existing registry version
         id: registry
         shell: pwsh
         run: |
-          $uri = "https://community.chocolatey.org/api/v2/package/kfind/$env:VERSION"
-          $registryPackage = [System.IO.Path]::GetFullPath("dist/registry-kfind.$env:VERSION.nupkg")
+          $uri = "https://community.chocolatey.org/api/v2/package/kfind/$env:PACKAGE_VERSION"
+          $registryPackage = [System.IO.Path]::GetFullPath("dist/registry-kfind.$env:PACKAGE_VERSION.nupkg")
           try {
             Invoke-WebRequest -Uri $uri -OutFile $registryPackage
             $exists = $true
@@ -108,8 +158,8 @@ jobs:
         if: steps.registry.outputs.exists != 'true'
         shell: pwsh
         run: |
-          $registryUri = "https://community.chocolatey.org/api/v2/package/kfind/$env:VERSION"
-          $registryPackage = [System.IO.Path]::GetFullPath("dist/registry-kfind.$env:VERSION.nupkg")
+          $registryUri = "https://community.chocolatey.org/api/v2/package/kfind/$env:PACKAGE_VERSION"
+          $registryPackage = [System.IO.Path]::GetFullPath("dist/registry-kfind.$env:PACKAGE_VERSION.nupkg")
           $releaseHash = (Get-FileHash $env:PACKAGE_PATH -Algorithm SHA256).Hash
 
           function Test-PublishedPackage {
