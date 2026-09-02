@@ -108,6 +108,22 @@ jobs:
           pnpm --dir packages/kfind run pack:check
           package_file=$(npm pack ./packages/kfind --json | jq -r '.[0].filename')
           local_shasum=$(sha1sum "$package_file" | awk '{print $1}')
+          wait_for_registry_package() {
+            for attempt in $(seq 1 18); do
+              if registry_version=$(npm view "@kfind/kfind@${VERSION}" version 2>/dev/null) &&
+                registry_shasum=$(npm view "@kfind/kfind@${VERSION}" dist.shasum 2>/dev/null); then
+                test "$registry_version" = "$VERSION"
+                test "$registry_shasum" = "$local_shasum"
+                return 0
+              fi
+              if [[ "$attempt" -lt 18 ]]; then
+                echo "Waiting for @kfind/kfind@${VERSION} to become visible (${attempt}/18)"
+                sleep 10
+              fi
+            done
+            echo "@kfind/kfind@${VERSION} did not become visible in the npm registry" >&2
+            return 1
+          }
           if remote_shasum=$(npm view "@kfind/kfind@${VERSION}" dist.shasum); then
             test "$local_shasum" = "$remote_shasum"
           else
@@ -120,6 +136,7 @@ jobs:
               --provenance \
               --tag "$npm_tag"
           fi
+          wait_for_registry_package
           if [[ "$PRERELEASE" == true ]]; then
             npm dist-tag add "@kfind/kfind@${VERSION}" next
             latest=$(npm view @kfind/kfind dist-tags.latest || true)
@@ -127,7 +144,6 @@ jobs:
           else
             npm dist-tag add "@kfind/kfind@${VERSION}" latest
           fi
-          test "$(npm view "@kfind/kfind@${VERSION}" version)" = "$VERSION"
       - name: Verify npm registry consumers
         env:
           VERSION: ${{ needs.metadata.outputs.version }}
