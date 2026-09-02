@@ -996,6 +996,32 @@ fn source_aligned_compound_predicate_tails_survive_competing_whole_paths() {
 }
 
 #[test]
+fn selected_nominal_particle_path_rejects_a_competing_predicate_tail() {
+    let resolver = resolver_from_entries([
+        atomic("문서", "NNG"),
+        atomic("가", "JKS"),
+        atomic("문", "VV"),
+        atomic("서", "EC"),
+        atomic("가", "VV"),
+    ]);
+    let text = "문서가";
+    let core = "문서".len()..text.len();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        CandidateSpans {
+            anchor: core.clone(),
+            core: core.clone(),
+            consumed: core,
+            token: 0..text.len(),
+        },
+        &[predicate_pattern(DataFinePos::Vv, "가")],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
+}
+
+#[test]
 fn compound_predicate_tail_requires_a_complete_typed_path() {
     let pattern = predicate_pattern(DataFinePos::Vv, "가");
     for entries in [
@@ -2236,6 +2262,34 @@ fn predicate_nominalization_keeps_same_syllable_stem_composition() {
     );
 
     assert_eq!(decision.outcome, ConstraintOutcome::Supported);
+}
+
+#[test]
+fn predicate_nominalization_does_not_relax_an_internal_left_boundary() {
+    let resolver = resolver_from_entries([atomic("민감", "NNG"), atomic("감", "VV")]);
+    let pattern = QueryMorphPattern::new(DataFinePos::Vv, "가").with_candidate_contract(
+        CandidateTokenRelation::PrefixWithContinuation,
+        MorphContinuation::Predicate {
+            state: crate::ContinuationState::Terminal,
+            nominal_particles: true,
+        },
+        ComponentCapability::SourceAndRuntime,
+    );
+    let text = "민감";
+    let core = "민".len()..text.len();
+    let decision = resolver.resolve_candidate(
+        BoundedTokenContext::current(text),
+        CandidateSpans {
+            anchor: core.clone(),
+            core: core.clone(),
+            consumed: core,
+            token: 0..text.len(),
+        },
+        &[pattern],
+        128,
+    );
+
+    assert_eq!(decision.outcome, ConstraintOutcome::Contradicted);
 }
 
 #[test]
