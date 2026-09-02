@@ -1,6 +1,6 @@
 # kfind 기술 사양서
 
-워크스페이스 버전: 1.0.0
+워크스페이스 버전: 1.0.1
 문서 역할: 현재 구현과 호환성 계약
 
 이 문서는 현재 제품 계약만 유지한다. 완료한 작업 순서, 폐기한 대안과 배포 운영 상태는
@@ -1113,7 +1113,7 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
 ### 0.8 npm 패키지
 
 - npm package 이름은 public organization-scoped `@kfind/kfind`다. prerelease는
-  `npm install @kfind/kfind@next`, 고정 버전은 `npm install @kfind/kfind@1.0.0`로
+  `npm install @kfind/kfind@next`, 고정 버전은 `npm install @kfind/kfind@1.0.1`로
   설치한다. `wasm-pack`의 `bundler` target으로 browser bundler용 ESM JavaScript glue,
   WASM binary와 TypeScript declaration을 생성한다.
 - package의 `bin`은 `kfind` 이름으로 Node.js CLI를 제공한다. Node.js 20 이상에서
@@ -3646,7 +3646,7 @@ Chocolatey package는 version tag의 immutable archive URL과 SHA-256을
 Chocolatey Community Repository가 SemVer 2 prerelease를 지원하지 않으므로 stable release는
 release version을 그대로 package version으로 쓰고, `MAJOR.MINOR.PATCH-rc.N` release는 N을 최소
 네 자리로 zero-padding한 `MAJOR.MINOR.PATCH-rcNNNN` package version으로 매핑한다. 예를 들어
-`1.0.0`의 Chocolatey package version은 `1.0.0-rc0004`다. Package filename과 registry
+`1.0.1`의 Chocolatey package version은 `1.0.1-rc0004`다. Package filename과 registry
 조회에는 package version을 사용하지만 archive URL, 실행 파일과 resource version 검증에는 release
 version을 사용한다.
 
@@ -3667,8 +3667,8 @@ Release workflow는 `main`에서만 실행하며 `major`, `minor`, `patch` 중 b
 입력받는다. Bump 기준은 저장소의 최신 stable `vMAJOR.MINOR.PATCH` tag다. Stable 입력은 선택한
 SemVer component를 올린 version을 만들고, prerelease 입력은 같은 core version의 기존
 `vVERSION-rc.N` tag에서 가장 큰 N 다음 번호를 붙이며 없으면 `rc.1`부터 시작한다. 예를 들어 최신
-stable이 `0.2.1`이고 `v1.0.0`이 있으면 `major + stable`은 `1.0.0`,
-`major + prerelease`는 `1.0.0`다.
+stable이 `0.2.1`이고 `v1.0.1`이 있으면 `major + stable`은 `1.0.1`,
+`major + prerelease`는 `1.0.1`다.
 
 Release workflow는 계산한 version을 workspace package, lockfile, npm·site metadata, 현재 버전을
 보여 주는 문서와 component resource header·checksum에 동기화한다. 고정 Rust toolchain의 source,

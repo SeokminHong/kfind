@@ -1,6 +1,6 @@
 {
   "name": "@kfind/kfind",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Fast Korean lemma and inflection search for files, CLI, Rust, and WebAssembly",
   "license": "SEE LICENSE IN LICENSES.md",
   "type": "module",
