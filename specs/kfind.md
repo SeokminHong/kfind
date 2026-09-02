@@ -3614,6 +3614,8 @@ end
 
 Chocolatey package ID는 `kfind`다. x64 Windows용 portable ZIP을 tagged GitHub Release에
 `kfind-windows-x86_64-VERSION.zip` 이름으로 게시한다.
+`kfind.exe`는 MSVC C runtime을 정적 링크해 별도 Visual C++ Redistributable 설치 없이
+실행되어야 한다. CI와 archive 생성은 PE import table에 동적 MSVC·UCRT 의존성이 없는지 검사한다.
 
 ```text
 bin/kfind.exe
@@ -3754,7 +3756,8 @@ Versioned 문서는 같은 Publish 실행에서 GitHub Release asset과 R2에 �
     주입하고, 명시적 command-line 검색 pattern에 한글이 있는 `rg`·`grep` 계열 shell tool
     call을 실행 전에 거부하며 한글 path·glob, pattern file과 kfind 호출은 허용한다.
 28. Tagged release의 Windows x64 archive와 Chocolatey package가 같은 checksum 계약을 사용하며,
-    archive의 `kfind.exe --check-data`와 local Chocolatey install smoke test가 통과한다.
+    archive의 `kfind.exe`는 동적 MSVC·UCRT 의존성이 없고 `--check-data`와 local Chocolatey
+    install smoke test가 통과한다.
 29. Windows Terminal과 같은 ConPTY 안의 PowerShell에서 일반 text 검색을 실행하면 내장 TUI가
     열리고, resize와 아래 화살표 이동을 반영한 뒤 `q` 입력으로 alternate screen과 raw mode를
     복구하며 정상 종료한다.

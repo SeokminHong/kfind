@@ -4,6 +4,12 @@ Tagged release는 Windows x64 portable archive와 같은 checksum을 가리키�
 GitHub Release에 첨부한다. Stable은 release version을 그대로 사용하고 `VERSION-rc.N`은 Community
 Repository 호환을 위해 `VERSION-rcNNNN` package version으로 매핑한다. Chocolatey package는
 archive를 package directory에 풀고 `bin/kfind.exe`의 자동 shim을 사용한다.
+Windows 실행 파일은 MSVC C runtime을 정적 링크하며 별도 Visual C++ Redistributable을 요구하지
+않는다. CI와 archive 생성은 다음 명령으로 동적 runtime DLL 의존성이 없는지 검사한다.
+
+```powershell
+pwsh scripts/test-windows-portable-binary.ps1 -Binary target/release/kfind.exe
+```
 
 템플릿만 검증하려면 PowerShell 7에서 다음 명령을 실행한다.
 
