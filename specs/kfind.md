@@ -119,7 +119,10 @@
   compact component resource에 같은 whole 분석이 없어도 완성된 체언 token으로 인정한다.
   이 경로는 token 내부에서 시작한 core, 조사나 다른 문자를 소비한 candidate와 component
   경계를 가로지르는 substring에는 적용하지 않는다.
-- 일반 용언의 `smart` token span은 core에서 시작한다. 따라서 `가다` 검색은 `친구가`의 붙은 조사 `가`를 활용형으로 인정하지 않는다. 지정사처럼 앞 host에 붙는 분석만 별도 왼쪽 환경 검증을 사용한다.
+- 일반 용언의 `smart` token span은 core에서 시작한다. 구조 판정도 선택된 체언+조사 path보다
+  임의의 용언 graph path를 우선하거나 명사형 활용의 왼쪽 경계를 완화하지 않는다. 따라서 `가다`
+  검색은 `친구가`·`문서가`의 조사 `가`, `되감기`·`민감`의 내부 `감`을 활용형으로 인정하지
+  않는다. 지정사처럼 앞 host에 붙는 분석만 별도 왼쪽 환경 검증을 사용한다.
 - 지정사 `smart` candidate는 token 전체가 부사로 분석되지 않고, token 왼쪽 경계부터 VCP core
   직전까지 완성된 체언 host 또는 `체언 + 검증된 조사 연쇄`가 있을 때 host에 붙은 VCP runtime
   component를 유지한다. 생성 branch가 token 끝까지 직접 소비하지 못해도 같은 VCP source node가
@@ -140,12 +143,15 @@
   오는 표면은 `용언 + E+ + ETN + J+` 경로와 조사 이형태를 모두 검증한다.
 - `-아/어` program이 직접 소비하지 않은 보조용언 연쇄를 compact resource로 보완할 때는 연결
   어미 바깥의 `VX + E*`가 완성되어야 한다. 연결 어미 표면이 query core 바깥에 있거나, 같은
-  음절로 축약된 core의 정확한 source 분석이 용언으로만 해석되거나, core보다 긴 query 품사의
-  단일 용언 source edge 뒤로 어미 경로가 완결되거나, token 전체의 정확한 분석이
+  음절로 축약된 core의 정확한 source 분석이 용언으로만 해석되거나, core 직후의 `VX + E*`와
+  core보다 긴 query 품사의 단일 용언 source edge 뒤 어미 경로가 함께 완결되거나, token 전체의 정확한 분석이
   `용언 + EC + VX + E+`이거나, 후행 경로가 결과 변화를 나타내는 `-아/어지다` 계열인 경우에만
   source 연쇄를 사용한다. 따라서 `빼놓을`, `비춰볼`, `생겨났던`, `극심해지겠지만`과 생성
-  program이 직접 소비하는 `해가고`는 유지하지만, `해`의 중의적인 source 분석만으로 `해가며`를
-  확장하지 않는다.
+  program이 직접 소비하는 `해가고`는 유지하지만, query core와 무관한 더 긴 용언으로 시작하는
+  `가리키는지`와 `해`의 중의적인 source 분석만 있는 `해가며`는 확장하지 않는다. 생성 program이
+  token 전체를 소비해도 정확한 source 분석의 용언 component가 query core보다 길면 서로 다른
+  구조로 판정한다. 따라서 `가지/VV + ㄴ/ETM`인 `가진`은 `가다`의 결과 변화 활용으로 인정하지
+  않는다.
 - full-POS `smart`의 `VX` query는 compact resource가 token 왼쪽 경계부터 일반 용언과
   `EC`로 candidate core 직전까지 이어지고, core에 정렬된 `VX`와 선택적 어미가 token 끝까지
   이어지는 완전한 path를 증명할 때 token 내부 보조용언을 유지한다. 용언 시작은 `VV/VA`
@@ -919,7 +925,8 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
 - 일반 용언 query의 runtime component는 token 왼쪽 경계에서 시작한 용언+어미 path 또는
   `용언 + EC + VX + 선택적 어미`의 보조용언 path에 속해야 한다. token 내부에서 우연히 같은
   세부 품사의 edge가 query core부터 token 끝까지 있다는 사실만으로 독립 용언 stem을 만들지
-  않는다. 보조용언 path와 token 전체의 `MAG/MAJ` 분석이 경쟁하면 통째 부사 분석을 선택한다.
+  않는다. 완성된 체언+조사 path와 경쟁하는 임의의 compound predicate path도 내부 용언 근거로
+  사용하지 않는다. 보조용언 path와 token 전체의 `MAG/MAJ` 분석이 경쟁하면 통째 부사 분석을 선택한다.
   체언 뒤 `XSV/XSA + E*`가 완성된 파생 용언 path에서는 파생 접미사 시작 span의 runtime
   체언 후보도 source가 체언 component를 정렬해 선언하지 않은 한 거부한다.
 - token 왼쪽 경계부터 `용언 + EP* + EC + 용언 + E* + J*` 순서로 끝까지 이어지는 source path가

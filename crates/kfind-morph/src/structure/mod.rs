@@ -1481,6 +1481,13 @@ impl TokenEvidence {
             .any(|pos| self.has_whole(pos))
     }
 
+    fn has_whole_predicate(&self) -> bool {
+        self.units
+            .all()
+            .iter()
+            .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_predicate())
+    }
+
     fn has_whole_analysis(&self, span: &Range<usize>) -> bool {
         self.units
             .all()
@@ -2686,7 +2693,13 @@ impl StructureSelection {
         if nominal_derivation_before_predicate(pattern, spans, evidence) {
             return true;
         }
-        if compound_predicate_component_is_supported(pattern, spans, evidence) {
+        let selected_nominal_particle_tail = matches!(
+            self,
+            Self::NominalSpan { selected, .. } if selected.end == spans.core.start
+        ) && !evidence.has_whole_predicate();
+        if !selected_nominal_particle_tail
+            && compound_predicate_component_is_supported(pattern, spans, evidence)
+        {
             return true;
         }
         match self {
@@ -3154,8 +3167,7 @@ fn runtime_position_is_supported(
         && (pattern.fine_pos != DataFinePos::Vcp || evidence.has_whole(DataFinePos::Mag))
         && spans.core.start != spans.token.start
         && spans.consumed == spans.core
-        && !attached_auxiliary
-        && !is_predicate_nominalization(pattern);
+        && !attached_auxiliary;
     let modifier_before_predicate = predicate
         && !copula_nominal_host
         && !attached_auxiliary

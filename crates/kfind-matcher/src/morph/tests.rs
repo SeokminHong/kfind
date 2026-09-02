@@ -163,6 +163,10 @@ fn source_attached_auxiliary_requires_visible_or_unambiguous_connective_evidence
         component_entry("빼놓", "VV", 0),
         component_entry("놓", "VX", 0),
         component_entry("을", "ETM", 0),
+        component_entry("가리키", "VV", 0),
+        component_entry("는", "EC", 0),
+        component_entry("지", "VX+EF", 0),
+        component_entry("지", "EF", 0),
     ];
     let bytes = encode_component_resource([8; 32], &entries).unwrap();
     let resource = Arc::new(decode_component_resource("fixture", bytes, &[8; 32]).unwrap());
@@ -204,12 +208,34 @@ fn source_attached_auxiliary_requires_visible_or_unambiguous_connective_evidence
     );
 
     assert!(go.find_at_with_meta("가다면".as_bytes(), 0).is_none());
+    assert!(go.find_at_with_meta("가리키는지".as_bytes(), 0).is_none());
     assert!(do_it.find_at_with_meta("해가며".as_bytes(), 0).is_none());
     assert!(remove.find_at_with_meta("빼놓을".as_bytes(), 0).is_some());
     assert!(
         walk.find_at_with_meta("걸어가십니까".as_bytes(), 0)
             .is_some()
     );
+}
+
+#[test]
+fn generated_auxiliary_does_not_reclassify_a_different_whole_predicate() {
+    let entries = [
+        component_entry("가", "VV", 0),
+        component_entry("가진", "VV+ETM", 0),
+    ];
+    let bytes = encode_component_resource([9; 32], &entries).unwrap();
+    let resource = Arc::new(decode_component_resource("fixture", bytes, &[9; 32]).unwrap());
+    let matcher = structural_predicate_matcher_with_rules(
+        "가",
+        "가".len(),
+        ContinuationState::AOrEo,
+        rules(&["ending.auxiliary-jida", "ending.past-adnominal"]),
+        vec![origin(0, &["ending.aoeo"])],
+        predicate_analysis("가다", LexicalAlternation::Regular),
+        resource,
+    );
+
+    assert!(matcher.find_at_with_meta("가진".as_bytes(), 0).is_none());
 }
 
 #[test]
@@ -1059,7 +1085,27 @@ fn structural_predicate_matcher(
     analysis: Analysis,
     resource: Arc<ComponentResource>,
 ) -> MorphMatcher {
-    let mut branch = predicate_branch(anchor, core_len, continuation, Arc::from([]), origins);
+    structural_predicate_matcher_with_rules(
+        anchor,
+        core_len,
+        continuation,
+        Arc::from([]),
+        origins,
+        analysis,
+        resource,
+    )
+}
+
+fn structural_predicate_matcher_with_rules(
+    anchor: &str,
+    core_len: usize,
+    continuation: ContinuationState,
+    allowed_rule_ids: Arc<[RuleId]>,
+    origins: Vec<Origin>,
+    analysis: Analysis,
+    resource: Arc<ComponentResource>,
+) -> MorphMatcher {
+    let mut branch = predicate_branch(anchor, core_len, continuation, allowed_rule_ids, origins);
     mark_structural(&mut branch);
     let mut query_atom = atom(BoundaryPolicy::Smart, vec![branch]);
     query_atom.analyses.push(analysis);

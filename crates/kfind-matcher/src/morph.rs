@@ -978,7 +978,6 @@ impl MorphMatcher {
                     (complete_attached_path
                         && (visible_connective
                             || unambiguous_contraction
-                            || extended_predicate_prefix
                             || resultative_contraction))
                         || (source_auxiliary_suffix
                             && (unambiguous_contraction
@@ -1681,10 +1680,16 @@ fn has_conflicting_whole_predicate(
         return false;
     }
     let internal_core = whole.start < candidate.verified.core.start;
-    if !internal_core
+    let generated_auxiliary = candidate.suffix_rules.iter().any(|rule| {
+        matches!(
+            rule.as_str(),
+            "ending.auxiliary-gada" | "ending.auxiliary-jida"
+        )
+    });
+    let extends_non_internal_core = !internal_core
         && (candidate.anchor != candidate.verified.core
-            || candidate.consumed != candidate.verified.core)
-    {
+            || candidate.consumed != candidate.verified.core);
+    if extends_non_internal_core && !generated_auxiliary {
         return false;
     }
     let Some(token) = haystack
@@ -1700,6 +1705,9 @@ fn has_conflicting_whole_predicate(
         return false;
     };
     let normalized_token = token.nfc().collect::<String>();
+    if extends_non_internal_core && resolver.has_attached_auxiliary_whole_path(&normalized_token) {
+        return false;
+    }
     let Some(prefix) = haystack
         .get(whole.start..candidate.verified.core.start)
         .and_then(|bytes| std::str::from_utf8(bytes).ok())
