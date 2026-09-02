@@ -87,6 +87,9 @@ try {
         -Source (Join-Path $repositoryRoot 'data\enriched\NOTICE.md') `
         -Destination (Join-Path $licenseDirectory 'enriched-predicates-NOTICE.md')
 
+    & (Join-Path $PSScriptRoot 'test-windows-portable-binary.ps1') `
+        -Binary $stagedBinary | Out-Null
+
     $versionOutput = (& $stagedBinary --version | Out-String).Trim()
     if ($LASTEXITCODE -ne 0 -or $versionOutput -ne "kfind $Version") {
         throw "Unexpected Windows binary version: $versionOutput"

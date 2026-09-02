@@ -98,9 +98,12 @@ jobs:
         run: cargo +stable test --manifest-path tools/nikl-lexicon/classifier/Cargo.toml --locked
       - name: Test the morphology runner
         run: cargo +stable test --manifest-path tools/morph-compare/runner/Cargo.toml --locked
-      - name: Build the Windows CLI
+      - name: Build and verify the Windows portable CLI
         if: runner.os == 'Windows'
-        run: cargo +stable build --package kfind-cli --bin kfind --locked
+        shell: pwsh
+        run: |
+          cargo +stable build --release --package kfind-cli --bin kfind --locked
+          ./scripts/test-windows-portable-binary.ps1 -Binary target/release/kfind.exe
       - name: Test the PowerShell TUI
         if: runner.os == 'Windows'
         run: >-
