@@ -1,6 +1,36 @@
 <Eyebrow>CLI · EXECUTION</Eyebrow>
 
-# Diagnostics and errors
+# Results and diagnostics
+
+Results are morphological candidates verified under the chosen query, POS, boundary, and resources. No matches does not prove that the source contains no relevant content. Diagnostic commands on this page use the native CLI.
+
+## No-match checks [#no-results]
+
+Check the exit status and stderr first. For ordinary searches, 1 means no match and 2 means an error. If there is no error, compare one condition at a time on the same file.
+
+```bash
+# Inspect query analysis and resources
+kfind --explain-query --pos verb 걷다
+
+# Compare only the boundary condition on the same file
+kfind --pos verb --boundary smart 걷다 sample.txt
+kfind --pos verb --boundary any 걷다 sample.txt
+
+# Search a known surface form from the source
+kfind --literal 걸었다 sample.txt
+```
+
+If only `any` finds a match, boundary or structural constraints may have filtered the candidate. Inspect its context because `any` also includes unwanted word-internal candidates. If neither boundary finds it, check the lemma, POS, spelling, and resource coverage. `걷다` does not correct typos or expand synonyms such as `보행했다`.
+
+Also verify that the file was searched. Native ignore, glob, and encoding settings differ from [npm traversal rules](/guide/installation). `--explain-query` describes query analysis and the search plan; it does not enumerate every rejected source candidate.
+
+## Structural limits [#structural-limits]
+
+Candidates that require structural verification use a bounded source window. The defaults are 256 raw bytes and 64 Unicode scalars after normalization, applied to the current token and required adjacent context. These are not limits on the entire input file.
+
+If window extraction or structural graph preparation fails, the ordinary matcher excludes that candidate. Current text output, JSON Lines, and exit codes do not distinguish it from a verified non-match. They also expose no indeterminate-candidate count or search-completeness field. Internal diagnostic states in [structural verification](/internals/structural-verification) are not always reported by the CLI.
+
+When omissions matter, compare `any` with literal searches for known source forms. This does not guarantee recovery of unsupported inflections, typos, or semantic matches.
 
 ## Diagnostic format [#diagnostics]
 

@@ -16,6 +16,6 @@ Node 수, context 깊이와 payload 크기의 상한은 잘못된 리소스에�
 
 ## 판정 실패 [#failure]
 
-필요한 경로가 없으면 후보를 거부합니다. 리소스가 없거나 graph 상한을 넘으면 constraint unavailable로 구분합니다. 정밀도가 낮은 경로로 자동 전환하지 않습니다.
+Resolver는 필요한 경로가 없으면 후보를 거부하고, graph 상한 초과 같은 판정 불가 상태는 `Unavailable`로 구분합니다. 일반 matcher의 window 추출·context 준비 실패는 후보 거부로 처리되며 text·JSON Lines에 별도 사유나 집계가 나오지 않습니다. 리소스 로드 실패로 검색 자체가 중단되는 오류와도 구분해야 합니다. 일반 검색의 해석은 [결과 해석과 진단](/cli/diagnostics#structural-limits)에 설명합니다. 정밀도가 낮은 경로로 자동 전환하지 않습니다.
 
 여러 원문 분석 중 하나가 constraint를 만족하면 후보를 유지하고 해당 analysis index를 provenance에 기록합니다.

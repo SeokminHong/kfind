@@ -16,6 +16,6 @@ Limits on nodes, context depth, and payload size bound memory even for malformed
 
 ## Verification failure [#failure]
 
-A missing path rejects the candidate. A missing resource or exceeded graph limit makes the constraint unavailable. The engine never silently degrades to a lower-precision path.
+The resolver rejects candidates with no required path and distinguishes indeterminate states, such as graph-limit failures, as `Unavailable`. Ordinary matcher failures during window extraction or context preparation reject the candidate without a separate reason or count in text or JSON Lines. These are also distinct from resource-loading errors that stop the search. See [results and diagnostics](/cli/diagnostics#structural-limits) for the ordinary search contract. No lower-precision fallback is applied.
 
 If any source analysis satisfies the constraint, the candidate remains and its analysis index enters provenance.

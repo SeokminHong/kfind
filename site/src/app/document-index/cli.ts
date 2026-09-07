@@ -115,11 +115,13 @@ export const cliGroup: DocumentGroupIndex = {
         ),
         page(
           RoutePath.Diagnostics,
-          '진단과 오류',
-          'Diagnostics and errors',
+          '결과 해석과 진단',
+          'Results and diagnostics',
           'compile, resource, I/O 오류와 종료 코드를 자동화 관점에서 설명합니다.',
           'Interpret compile, resource, and I/O failures through stable exit behavior.',
           [
+            ['no-results', '결과 없음 점검', 'No-match checks'],
+            ['structural-limits', '구조 판정의 한계', 'Structural limits'],
             ['diagnostics', '진단 형식', 'Diagnostic format'],
             ['error-classes', '오류 분류', 'Error classes'],
             ['exit-status', '종료 상태', 'Exit status'],
