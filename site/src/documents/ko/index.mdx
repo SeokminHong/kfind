@@ -1,33 +1,46 @@
-<Eyebrow>시작 · 제품 범위</Eyebrow>
+<Eyebrow>시작 · 개요</Eyebrow>
 
-# 한국어 [활용](/reference/glossary#inflection)형까지 찾는 검색 엔진, kfind
+# 한국어 활용형 검색 엔진, kfind
 
 <Lead>
 
-‘걷다’를 검색하면 ‘걷고’, ‘걸어’, ‘걸었다’까지 찾습니다. kfind는 한국어의 [조사](/reference/glossary#particle), [어미](/reference/glossary#ending), [불규칙 활용](/reference/glossary#irregular-conjugation)을 고려해 파일과 소스 코드에서 원하는 [표제어](/reference/glossary#lemma)와 구를 찾는 고성능 검색 엔진입니다.
+`걷다`를 검색해 `걷고`, `걸어`, `걸었다`까지 찾습니다. 파일과 소스 코드에서 한국어 [표제어](/reference/glossary#lemma)의 활용형을 모으고, 원문 위치와 생성 근거를 확인하는 도구입니다.
 
 </Lead>
 
-## 제품 목적 [#product-purpose]
+```bash
+printf '길을 걸었다.\n' | kfind --pos verb 걷다
+```
 
-표제어와 선택적 [품사](/reference/glossary#part-of-speech), 검색 옵션을 입력하면 원문 span과 생성에 사용된 표제어·품사·규칙 경로를 반환합니다. 예를 들어 `걷다`에서 `걷고`, `걸어`, `걸었다` 후보를 만들고, 원문 형태와 경계 판정을 통과한 위치만 결과에 포함합니다.
+설치 없이 입력과 결과를 비교하려면 [플레이그라운드](/playground)를 사용합니다.
 
-말뭉치 전체의 형태소열이나 문장 구조, 단어 의미는 분석하지 않습니다. 의미가 다른 `걸다`와 `걷다`가 같은 표면형을 만들 수 있으면 두 [생성 근거](/reference/glossary#provenance)를 모두 보존합니다. 호출자는 결과 주변의 문맥을 바탕으로 의미를 판별합니다.
+## 첫 검색과 문서 안내 [#product-purpose]
 
-## 검색 중심 형태 처리 [#search-directed-morphology]
+처음 사용한다면 실행 환경을 고른 뒤 첫 검색을 따라갑니다. 필요한 옵션은 사용법에서, 정확한 필드와 값은 명세에서 확인할 수 있습니다.
 
-일반적인 형태소 분석기는 문장을 입력받아 각 token의 표제어와 품사를 추정합니다. kfind는 표제어와 품사에서 검색 가능한 [anchor](/reference/glossary#anchor)와 허용되는 조사·어미·불규칙 교체를 계산합니다. 일반 분석기와 처리 방향이 반대입니다.
+- [설치와 CLI 선택](/guide/installation)에서 네이티브 CLI와 npm 경량 CLI의 차이를 확인합니다.
+- [설치와 첫 검색](/guide/getting-started)에서 명령을 실행하고 결과를 읽습니다.
+- [검색 예시](/cli/recipes)에서 코드 탐색과 문서 검색에 맞는 질의를 고릅니다.
+- [결과 해석과 진단](/cli/diagnostics)에서 결과 없음, 오류와 검색 한계를 점검합니다.
 
-이 모델은 짧은 [검색 질의](/reference/glossary#query)에 형태 처리 비용을 집중합니다. 큰 말뭉치에서는 고정 byte anchor를 먼저 찾고 그 주변만 Unicode 경계와 국소 형태 구조로 검증합니다. 전체 문장을 분석하지 않고도 활용형 [재현율](/reference/glossary#recall), 파일 단위 스트리밍과 생성 근거를 하나의 검색 계약으로 제공합니다.
+## 사용 환경 [#usage-profiles]
 
-## 한국어 문법 범위 [#grammar-scope]
+파일·저장소 검색에는 ignore 규칙, 문맥 출력과 스트리밍 입력을 지원하는 네이티브 CLI를 사용합니다. Node.js의 npm 경량 CLI는 UTF-8 텍스트를 검색하며 탐색 규칙과 JSON 형식이 다릅니다. 두 설치 방식의 출력은 그대로 교환할 수 없습니다.
 
-체언은 복수 접미사와 조사 연쇄를 처리합니다. 조사는 받침 유무와 `ㄹ` 받침을 기준으로 `은/는`, `이/가`, `으로/로` 같은 [이형태](/reference/glossary#allomorph)를 고릅니다. 용언은 규칙 활용과 ㄷ·ㅂ·ㅅ·르·러·ㅎ 불규칙, 우·오 축약, [선어말어미](/reference/glossary#prefinal-ending)와 종결·연결·관형·명사형 어미 연쇄를 지원합니다.
+코딩 에이전트는 [검색 절차](/agents/workflow)를 따라 넓게 수집한 후보의 문맥을 확인합니다. 자동으로 지침과 hook을 등록하려면 [통합 설치의 동작과 해제](/agents/skills)를 먼저 확인합니다.
 
-지정사, 보조용언, [파생](/reference/glossary#derivation) 접미사와 합성용언 내부 성분은 compact [구성 요소 리소스](/reference/glossary#component-resource)가 token 안의 품사·span 연결을 증명할 때만 `smart` 후보로 유지합니다. 규칙에 없는 조합과 문맥 기반 의미 추론은 생성하지 않습니다.
+애플리케이션에서 문자열을 검색하려면 [JavaScript API](/reference/javascript) 또는 [Rust API](/reference/rust)를 사용합니다. [JSON Lines](/reference/jsonl)는 CLI 출력과 좌표계를 설명합니다.
 
-## 사용 경로 [#usage-profiles]
+## 검색 범위와 한계 [#grammar-scope]
 
-사람이 직접 검색할 때는 품사를 생략한 `auto`와 `smart` 경계가 기본입니다. Full [POS](/reference/glossary#part-of-speech) 사전과 국소 구조 근거로 token 내부 [오탐](/reference/glossary#false-positive)을 제한합니다.
+명사와 조사 결합, 동사·형용사의 어미와 불규칙 활용, 품사를 지정한 순서형 구를 찾습니다. 예를 들어 `걷다`의 활용형 `걸어`는 후보지만 `보행했다` 같은 동의어는 확장하지 않습니다. `v:검증하다`도 `검증을 수행했다`를 찾는 의미 검색은 아닙니다.
 
-에이전트는 각 [atom](/reference/glossary#atom)의 품사를 명시하고 `--embedded`, `--boundary any`, `--json`을 함께 사용합니다. 이 구성은 재현율과 낮은 초기화 비용을 우선합니다. 에이전트가 span 주변을 읽고 의미에 맞는 후보를 선택합니다. CLI, Rust와 npm WebAssembly API는 같은 [검색 계획](/reference/glossary#query-plan)과 생성 근거 구조를 공유합니다.
+같은 표면형에 여러 뜻이 있으면 문맥을 읽어 판단해야 합니다. 기본 `smart` 경계는 구조 근거로 불필요한 후보를 줄이고, `any`는 단어 내부 후보를 더 넓게 모읍니다. [경계 정책](/cli/boundaries)은 정밀도와 재현율의 선택이며, 오타 교정이나 완전한 회수 보장은 아닙니다.
+
+지원하지 않는 형태와 구조 판정 한계 때문에 누락될 수 있습니다. [벤치마크](/benchmarks)의 표준문·오류 문장 결과를 따로 읽고, 실제로 검색할 문서에서도 확인해야 합니다.
+
+## 검색 엔진 구조 [#search-directed-morphology]
+
+kfind는 짧은 질의를 분석해 검색 계획을 만들고, 본문에서 고정 문자열을 찾은 다음 후보 주변만 검증합니다. 본문 전체를 형태소 분석하지 않습니다. [검색 파이프라인](/internals/pipeline)에서 컴파일·탐색·검증의 관계를 설명합니다.
+
+전체 실행 비용에는 질의 분석, 사전 초기화와 구조 검증이 포함됩니다. [성능 측정](/benchmarks/performance)은 입력·설정·품질 조건별로 해석해야 하며, 고정 문자열 검색 속도만으로 전체 형태 검색 시간을 예측할 수는 없습니다.

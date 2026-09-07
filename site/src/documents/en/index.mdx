@@ -1,33 +1,46 @@
-<Eyebrow>START · PRODUCT SCOPE</Eyebrow>
+<Eyebrow>GET STARTED · OVERVIEW</Eyebrow>
 
-# Search Korean [lemmas](/reference/glossary#lemma) and [inflections](/reference/glossary#inflection) with kfind
+# kfind, a Korean inflection search engine
 
 <Lead>
 
-Search for 걷다 and find 걷고, 걸어, and 걸었다. kfind accounts for Korean particles, endings, and irregular inflection to find target lemmas and phrases in files and source code.
+Search for `걷다` to find `걷고`, `걸어`, and `걸었다`. kfind collects inflected forms of Korean [lemmas](/reference/glossary#lemma) in files and source code, preserving their source positions and derivation evidence.
 
 </Lead>
 
-## Product purpose [#product-purpose]
+```bash
+printf '길을 걸었다.\n' | kfind --pos verb 걷다
+```
 
-Given a target lemma, an optional [part of speech](/reference/glossary#part-of-speech), and search options, kfind returns each source span with the lemma, [POS](/reference/glossary#part-of-speech), and rule path that generated it. For example, `걷다` produces candidates for `걷고`, `걸어`, and `걸었다`, then returns only the locations that pass morphology and [boundary](/reference/glossary#boundary) verification.
+Use the [playground](/playground) to compare inputs and results without installing anything.
 
-kfind does not analyze the corpus into complete morpheme sequences, sentence parses, or word senses. When semantically different lemmas produce the same surface form, it retains every valid origin. The caller resolves meaning from the surrounding context.
+## First search and documentation [#product-purpose]
 
-## Search-directed morphology [#search-directed-morphology]
+Choose your runtime, then follow the first-search guide. Usage pages explain how to search; reference pages specify exact fields and values.
 
-A conventional morphological analyzer receives a sentence and estimates the lemma and POS of each token. kfind starts with the target lemma and POS, then derives searchable anchors and permitted particles, endings, and irregular substitutions. It works in the opposite direction.
+- [Installation and CLI selection](/guide/installation) compares the native CLI with the lightweight npm CLI.
+- [Installation and first search](/guide/getting-started) walks through a command and its results.
+- [Recipes](/cli/recipes) provide queries for code exploration and documentation searches.
+- [Results and diagnostics](/cli/diagnostics) explain no matches, errors, and search limits.
 
-Morphology cost is therefore concentrated in the short [query](/reference/glossary#query) rather than the large corpus. The corpus path scans fixed byte anchors first and applies Unicode boundaries and local morphology only around hits. This model combines inflection [recall](/reference/glossary#recall), streaming file search, and rule [provenance](/reference/glossary#provenance) without analyzing every sentence.
+## Usage environments [#usage-profiles]
 
-## Korean grammar scope [#grammar-scope]
+Use the native CLI for file and repository searches with ignore rules, context output, and streaming input. The lightweight npm CLI searches UTF-8 text in Node.js with different traversal rules and JSON output. Their outputs are not interchangeable.
 
-Nominals support plural suffixes and [particle](/reference/glossary#particle) chains. Particle allomorphs such as `은/는`, `이/가`, and `으로/로` are selected from the final consonant condition. Predicates support regular conjugation, ㄷ, ㅂ, ㅅ, 르, 러, and ㅎ irregulars, 우 and 오 contraction, prefinal endings, and finite terminal, connective, adnominal, and nominalizing chains.
+Coding agents follow the [search workflow](/agents/workflow) to inspect the context of broadly collected candidates. Before registering instructions and hooks automatically, read about [integration behavior and removal](/agents/skills).
 
-`smart` accepts copulas, auxiliaries, derivational suffixes, and internal compound components only when the compact [component resource](/reference/glossary#component-resource) proves the POS and span path inside the token. It does not generate arbitrary combinations or infer word senses from context.
+Use the [JavaScript API](/reference/javascript) or [Rust API](/reference/rust) to search strings in an application. [JSON Lines](/reference/jsonl) specifies CLI output and its coordinate systems.
 
-## Usage profiles [#usage-profiles]
+## Search scope and limits [#grammar-scope]
 
-Interactive search defaults to POS `auto` and the `smart` boundary. The full-POS [lexicon](/reference/glossary#lexicon) and local structural evidence constrain internal-token false positives.
+kfind finds nouns with particles, verb and adjective endings, irregular inflections, and ordered phrases with explicit parts of speech. For example, `걸어` is a candidate for `걷다`, but synonyms such as `보행했다` are not expanded. Likewise, `v:검증하다` is not a semantic search for `검증을 수행했다`.
 
-Agents tag each [atom](/reference/glossary#atom) with a POS and combine `--embedded`, `--boundary any`, and `--json`. This profile prioritizes recall and low initialization cost. The agent reads the surrounding text to choose semantically relevant candidates. The CLI, Rust API, and npm WebAssembly API share the same query-plan and provenance model.
+When a surface form has several meanings, read its context. The default `smart` boundary uses structural evidence to reduce unwanted candidates; `any` collects more word-internal candidates. [Boundary policies](/cli/boundaries) offer a precision–recall choice, not typo correction or guaranteed complete recall.
+
+Unsupported forms and structural limits can cause omissions. Read standard-text and error-containing results separately in the [benchmarks](/benchmarks), and verify queries on the documents you intend to search.
+
+## Search engine structure [#search-directed-morphology]
+
+kfind analyzes a short query into a search plan, locates fixed strings in the source, and verifies only nearby candidates. It does not morphologically analyze the entire source. The [search pipeline](/internals/pipeline) explains compilation, scanning, and verification.
+
+Total execution cost includes query analysis, resource initialization, and structural verification. Interpret [performance measurements](/benchmarks/performance) for their inputs, settings, and quality constraints. Fixed-string scanning speed alone cannot predict total morphological search time.
