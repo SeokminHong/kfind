@@ -1,101 +1,68 @@
-<Eyebrow>GUIDE · GETTING STARTED</Eyebrow>
+<Eyebrow>GET STARTED · FIRST SEARCH</Eyebrow>
 
 # Installation and first search
 
-<Lead>
+Follow this minimal path to find inflections and read results with the native CLI. For Node.js, use the [lightweight npm CLI](#npm-installation) below. [Installation and CLI selection](/guide/installation) explains differences in file traversal and output.
 
-Install kfind for the CLI, Rust, or npm, then run a [lemma](/reference/glossary#lemma) search, specify a [POS](/reference/glossary#part-of-speech), and produce machine-readable output.
+## Native CLI installation [#cli-installation]
 
-</Lead>
-
-## CLI installation [#cli-installation]
-
-On macOS and Linux, the Homebrew formula installs the CLI and the matching morphology resources. A source checkout can be installed with Cargo.
+On macOS and Linux, Homebrew installs the executable and matching morphology resources. See the [installation guide](/guide/installation#native-installation) for other distributions and source builds.
 
 ```bash
 brew install seokminhong/brew/kfind
-
-# source checkout
-cargo install --locked --path crates/kfind-cli
-
-kfind --version
+kfind --check-data
 ```
 
-Search performs no network access. The Homebrew build discovers its full-POS [lexicon](/reference/glossary#lexicon), predicate metadata, and [component resource](/reference/glossary#component-resource) under the formula prefix. A schema or source-digest mismatch is a startup error.
+## First search [#first-search]
 
-## npm installation [#npm-installation]
-
-JavaScript and TypeScript applications install the scoped `@kfind/kfind` package. It includes the WebAssembly engine and embedded lexicon and never guesses a filesystem path or URL.
+`걷다` is the lemma to find, and `--pos verb` specifies a verb. Standard input lets you try it without creating a file.
 
 ```bash
-npm install @kfind/kfind@1.0.1
+printf '길을 걸었다.\n' | kfind --pos verb 걷다
 ```
 
-```javascript
-import { Kfind } from '@kfind/kfind';
+The result displays the source line `길을 걸었다.`. It finds the inflected form `걸었다` even though its spelling differs from the query. A match returns exit code 0; no match returns 1; an error returns 2.
 
-const engine = new Kfind();
-const plan = engine.compile('걷다', { pos: 'verb' });
-const matches = plan.findAll('나는 길을 걸었다.');
-```
-
-On Node.js 20 or later, the package also exposes the `kfind` command for one-shot execution. `yarn dlx` requires Yarn 2 or later.
+To search files, add paths after the query. `-n` is the native CLI option for line numbers.
 
 ```bash
-npx @kfind/kfind 걷다 README.md
-pnpm dlx @kfind/kfind 걷다 README.md
-yarn dlx @kfind/kfind 걷다 README.md
+kfind -n 걷다 src docs
 ```
 
-## Lemma search [#first-search]
+Open the source at the reported path and line to check its meaning. With no paths, kfind searches piped input, or the current directory in an interactive terminal. Follow [no-match checks](/cli/diagnostics#no-results) when results differ from your expectations.
 
-The first positional argument is the [query](/reference/glossary#query). The remaining arguments select files or directories. With no path, kfind reads piped stdin; with neither a path nor piped input, it searches the current directory.
+## Lightweight npm CLI [#npm-installation]
+
+On Node.js 20 or later, this command searches for the same lemma. The npm CLI outputs the matched substring, unlike native line output.
 
 ```bash
-kfind 걷다 src docs
-kfind 사용자 .
-printf '길을 걸었다.
-' | kfind 걷다
+printf '길을 걸었다.\n' | npx @kfind/kfind@1.0.1 --pos verb 걷다
 ```
 
-The lemma `걷다` is analyzed as a ㄷ-[irregular verb](/reference/glossary#irregular-conjugation). Its [query plan](/reference/glossary#query-plan) contains fixed anchors and suffix decisions for surface forms such as `걷고`, `걷는`, and `걸어`.
+Use the [JavaScript API](/reference/javascript) to search strings in an application. The package does not include the full-POS lexicon; callers supply any additional resources required by the API as bytes.
 
-## POS, [phrase](/reference/glossary#phrase), and alternative queries [#pos-and-phrase]
+## POS, phrases, and alternatives [#pos-and-phrase]
 
-Use `--pos` when the lexicon analysis is ambiguous or the grammatical role is known. Phrase queries attach a POS tag to each [atom](/reference/glossary#atom). A quoted atom is treated as a literal containing spaces or punctuation. Use `|` to find any one of multiple atoms.
+Use `n:` for nouns and `v:` for verbs. Spaces form an ordered phrase on the same line; `|` searches for any one of its single-atom alternatives.
 
 ```bash
-kfind --pos verb 걷다 src
-kfind 'v:걷다 | n:사용자 | n:검증' src
 kfind 'n:사용자 v:검증하다' src
-kfind 'det:새 n:기능' docs
-kfind '"Hello, world!"' README.md
+kfind 'v:걷다 | n:사용자 | n:검증' src
+kfind --literal 걸었다 docs
 ```
 
-Supported tags are `n:`, `pro:`, `num:`, `v:`, `adj:`, `det:`, `adv:`, `j:`, `intj:`, and `lit:`. Conflicting global and atom POS values are compile errors. Quote a query containing `|` so the shell does not treat it as a pipe. Each alternative is one atom and cannot be mixed with phrase atoms. Escape or quote a literal pipe as `\|` or `"|"`.
+`--literal` searches the exact input form. Read [query syntax](/cli/query-syntax) for quoting and tags, and [phrase search](/cli/phrases) for gap limits.
 
 ## Automation output [#automation-output]
 
-Automation should specify POS, [boundary](/reference/glossary#boundary), resource mode, and output format. The `any` boundary preserves substring candidates for [recall](/reference/glossary#recall), while JSON Lines exposes stable source spans and [provenance](/reference/glossary#provenance).
+With the native CLI, specify resources, POS, boundary, and output explicitly. `any` returns broader candidates, so inspect their source context and exclude irrelevant results.
 
 ```bash
 kfind --embedded --boundary any --pos verb --json 걷다 src
-kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
 ```
 
-Recall-oriented output can include semantically irrelevant candidates. Read the surrounding text before acting on a match.
+[JSON Lines](/reference/jsonl) distinguishes native byte coordinates from npm UTF-16 coordinates. No matches does not guarantee that no relevant content exists.
 
 ## Agent integration [#agent-skill]
 
-`--init` installs the kfind skill and project hooks for supported coding agents. It cannot be combined with a search query or path.
-
-```bash
-kfind --init
-kfind --init --agent codex --agent claude-code
-kfind --uninstall --agent codex --agent claude-code
-printf 'codex
-gemini
-' | kfind --init
-```
-
-Codex uses `.agents/skills/kfind/SKILL.md`, Claude Code uses `.claude/skills/kfind/SKILL.md`, and Gemini CLI uses `.gemini/skills/kfind/SKILL.md`. `--uninstall` removes only kfind-managed skills and hooks. It preserves existing skills without a kfind management marker and all existing agent settings. Once trusted, the project hooks instruct every session to use kfind for Korean source-code and documentation searches and block shell commands that pass Korean search patterns to `rg` or `grep`.
+Agents can run the commands above directly. To install session instructions and pre-execution hooks, read [skill installation](/agents/skills). Integration hooks block Korean patterns in `rg`, `grep`, and `git grep`, including exact-string searches, so review their scope before installing.
