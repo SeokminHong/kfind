@@ -2,6 +2,8 @@
 
 # 성능 측정
 
+앵커 검색이 빠르다는 사실은 형태 검색 전체가 ripgrep과 같은 속도라는 뜻은 아닙니다. kfind는 질의 컴파일·리소스 초기화·후보 구조 검증 비용을 추가로 부담합니다. [검색 전략 비교](/benchmarks#search-strategy-baseline)에서는 실행 시간과 검색 품질을 함께 읽어야 합니다.
+
 ## Workload [#workloads]
 
 Morphology는 fresh process initialization, cases/s, p95와 RSS를 측정합니다. 질의 컴파일, matcher 검색, 1 GiB 파일 검색, npm startup과 TUI index는 별도 entrypoint를 사용합니다.
