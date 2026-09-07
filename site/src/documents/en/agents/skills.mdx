@@ -2,18 +2,37 @@
 
 # Skill installation
 
+You can invoke the native CLI without installing an integration. Use `--init` to add session instructions and a pre-execution hook to a project. The npm CLI does not support this option.
+
 ## Installation location [#installation]
 
-Install `skills/kfind-search/SKILL.md` and its referenced scripts in a skill directory visible to the agent. Preserve their relative paths.
+Select the agent from the project root. Repeat `--agent` for multiple agents, or omit it to select agents in an interactive terminal.
 
-Pin the repository revision for a project-local installation. Before a global installation, verify that its projects accept the same binary version.
+```bash
+kfind --init --agent codex
+```
+
+| Agent       | Project skill path              |
+| ----------- | ------------------------------- |
+| Codex       | `.agents/skills/kfind/SKILL.md` |
+| Claude Code | `.claude/skills/kfind/SKILL.md` |
+| Gemini CLI  | `.gemini/skills/kfind/SKILL.md` |
+
+The installer also registers project hooks for each selected agent. It preserves existing settings and does not overwrite skills without kfind ownership markers.
 
 ## Invocation [#invocation]
 
-The skill accepts a lemma, expected POS, search paths, and output format. It defaults to JSON Lines for automation and switches to text or TUI only for human review.
+When the project trusts the integration hooks, session startup instructs the agent to use kfind for Korean searches. The pre-execution hook blocks commands that pass Korean search patterns to `rg`, `grep`, or `git grep`. This includes exact-string searches; no warning-only mode is available.
 
-It distinguishes execution failure from no match and never silently relaxes a component-resource failure to `any`.
+`kfind --literal` disables morphological expansion but does not replace regular expressions or searches across Git revisions. To retain those tool choices, invoke kfind without installing the integration, or uninstall it for that agent.
+
+```bash
+kfind --embedded --boundary any --pos verb --json 걷다 src
+kfind --uninstall --agent codex
+```
+
+Read the source around each span to check its meaning. Follow [results and diagnostics](/cli/diagnostics) to distinguish execution failures from no matches. Do not hide a resource error by automatically switching to `any`.
 
 ## Maintenance [#maintenance]
 
-Update the skill with the same release whenever CLI options, JSON schema, or rule-provenance contracts change. Keep only current commands in the skill; retain revision history in releases and decision records.
+After upgrading the CLI, run `--init` again for the same agents to update managed skills and hooks. `--uninstall` removes only kfind-managed entries for those agents and preserves other skills and settings.

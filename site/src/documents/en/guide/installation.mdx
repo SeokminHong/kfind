@@ -1,6 +1,8 @@
 <Eyebrow>GET STARTED · DISTRIBUTION</Eyebrow>
 
-# Installation
+# Installation and CLI selection
+
+Use the native CLI for file and repository searches. The lightweight npm CLI searches UTF-8 text in Node.js. Both commands are named `kfind`, but the npm CLI does not wrap a native executable.
 
 ## Distribution profiles [#distribution-profiles]
 
@@ -8,9 +10,23 @@ The Homebrew distribution installs the native CLI together with the full-POS, en
 
 The `@kfind/kfind` package exposes the browser API and a Node.js CLI. It includes enriched predicates and the compact component resource, but not the full-POS resource.
 
+| Feature             | Native CLI                          | Lightweight npm CLI                                             |
+| ------------------- | ----------------------------------- | --------------------------------------------------------------- |
+| File traversal      | Git ignore, globs, file types       | Fixed directory exclusions, no ignore files                     |
+| Input               | Streaming, explicit encoding        | Entire UTF-8 file or stdin loaded into memory                   |
+| Lexicons            | Full POS available                  | Enriched predicates and compact component included; no full POS |
+| Text output         | Matching lines and optional context | `path:line:column:surface`                                      |
+| JSON                | Line and event records              | One record per match                                            |
+| Offsets             | Bytes; check the encoding field     | UTF-16 code units                                               |
+| Additional features | TUI, counts, agent installation     | Search options only                                             |
+
+The npm CLI excludes `.git`, `node_modules`, `target`, and `site/build` relative to the traversal root, and does not follow symlinks. Other hidden directories and files listed in ignore files may be searched. Use the native CLI for large files because npm loads each input entirely into memory.
+
+The same query can return different results when lexicons or traversal scope differ. When switching installations, check the [JSON format and coordinates](/reference/jsonl) consumed by your scripts. `--check-data`, `--embedded`, and `--init` below are native-only options.
+
 ## Native installation [#native-installation]
 
-The personal Homebrew tap is the standard macOS distribution. Environments with the build toolchain can install the same CLI with Cargo.
+The personal Homebrew tap supports macOS and Linux. Environments with the build toolchain can install the same CLI with Cargo.
 
 ```bash
 brew install seokminhong/brew/kfind
@@ -34,6 +50,10 @@ yarn dlx @kfind/kfind 걷다 README.md
 
 ## Installation check [#installation-check]
 
-`kfind --version` prints the executable version. `kfind --literal 한국어 README.md` verifies basic file input and matching by printing the path, line, column, and surface form.
+Check `kfind --version` and `kfind --help` for the active CLI version and supported options. For a native installation, check resources with `kfind --check-data`. The following input returns the match status 0 in both CLIs.
+
+```bash
+printf '길을 걸었다.\n' | kfind --literal 걸었다
+```
 
 Use the native CLI when full-POS auto-detection, EUC-KR, Git ignore rules, or the TUI is required. The npm CLI is the portable profile for UTF-8 files and standard input.

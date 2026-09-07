@@ -18,8 +18,8 @@ export const guideGroup: DocumentGroupIndex = {
           'Install kfind, run a first search, and produce automation output.',
           [
             ['cli-installation', 'native CLI 설치', 'Native CLI installation'],
-            ['npm-installation', 'npm 설치', 'npm installation'],
             ['first-search', '첫 검색', 'First search'],
+            ['npm-installation', 'npm 경량 CLI', 'Lightweight npm CLI'],
             ['pos-and-phrase', '품사와 구 검색', 'POS and phrase search'],
             ['automation-output', '자동화 출력', 'Automation output'],
             ['agent-skill', '에이전트 통합', 'Agent integration'],
@@ -27,8 +27,8 @@ export const guideGroup: DocumentGroupIndex = {
         ),
         page(
           RoutePath.Installation,
-          '설치',
-          'Installation',
+          '설치와 CLI 선택',
+          'Installation and CLI selection',
           'Homebrew, Cargo와 npm 배포물의 실행 환경과 포함 resource를 구분합니다.',
           'Compare the runtime and resource profiles of Homebrew, Cargo, and npm distributions.',
           [

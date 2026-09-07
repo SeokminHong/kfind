@@ -301,6 +301,17 @@
 
 ### 0.4 Web 문서와 playground
 
+- 문서 홈은 짧은 검색 예시 뒤에 설치·첫 검색, 결과 해석, 에이전트와 API의 읽기 경로를
+  제공한다. 내부 구현 설명은 사용 경로 뒤에 두며 상세 문서로 연결한다. 기존 route와
+  fragment는 유지하고 한국어·영어에서 같은 순서와 목적의 문서를 제공한다.
+- 설치 안내는 native CLI와 npm 경량 CLI를 별도 실행 계약으로 구분한다. 파일 순회,
+  리소스, 입력 적재, 출력 단위와 offset 비교를 설치 명령보다 먼저 제시한다. Native 전용
+  명령 예시는 npm CLI에서 실행할 수 있는 것으로 설명하지 않는다.
+- 결과 해석 안내는 검색 결과 없음과 실행 오류를 구분하고, 구조 검증 상한으로 제외된
+  후보가 일반 검색의 불일치와 구별되지 않는 한계를 명시한다. 품사·경계·입력 경로를
+  점검하는 절차를 제공하되 `any`가 모든 누락을 복구하거나 의미를 판별한다고 설명하지 않는다.
+- 문서의 일반 본문은 제한된 행 길이와 본문 색상을 사용한다. 제목과 절 사이 간격은
+  읽기 흐름을 유지하고, 작은 화면의 큰 제목이 첫 사용 예시를 과도하게 밀어내지 않아야 한다.
 - 공개 문서와 playground의 현재 버전은 `https://kfind.pages.dev`의 정적 Cloudflare Pages site로
   배포한다. 게시한 과거 버전은 같은 origin의 `/versions/VERSION/*`에서 제공한다.
   문서는 제품 목적과 goal/non-goal, 검색 model, query 문법, 사람·에이전트 workflow, 주요 옵션,
@@ -741,6 +752,12 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
 - `ConstraintResolver`는 query pattern의 structural signature가 선택된 corpus 구조와
   일치하면 `Supported`, 다른 구조가 유일하게 선택되면 `Contradicted`, resource 오류나
   상한 초과는 `Unavailable`로 반환한다.
+- 위 판정 상태는 resolver와 진단 경로의 계약이다. 일반 matcher의 구조 context 준비는
+  window 추출이나 graph 준비 실패를 후보 거부로 처리한다. 일반 검색의 text·JSON Lines와
+  종료 코드는 이 후보를 검증 후 불일치한 후보와 구분하지 않으며, 판정 불가 후보 수나
+  검색 완전성을 보고하지 않는다. Window의 기본 제한은 원문 256 byte와 정규화 후
+  64 Unicode scalar이며 현재 token과 필요한 인접 문맥에 적용한다. 입력 파일 전체의
+  길이 제한이 아니다.
 - 구조 준비는 현재 token 자체에서 얻는 형태 graph와 앞뒤 token에 따른 구조 선택을 별도
   단계로 유지한다. Matcher는 전체 program이 8개 이하인 작은 plan에서 structural program의
   정규화된 anchor를 현재 token 후보로 최대 64개까지 matcher memory 상한 안에서 등록한다.

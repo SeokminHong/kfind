@@ -2,6 +2,8 @@
 
 # Performance measurement
 
+Fast anchor scanning does not imply that complete morphological searches run as fast as ripgrep. kfind also pays for query compilation, resource initialization, and candidate verification. Read execution time together with search quality in the [search-strategy comparison](/benchmarks#search-strategy-baseline).
+
 ## Workloads [#workloads]
 
 Morphology measures fresh-process initialization, cases per second, p95, and RSS. Query compile, matcher scan, 1 GiB file scan, npm startup, and TUI indexing have separate entrypoints.

@@ -1,0 +1,119 @@
+{
+  "browser": "152.0.7977.76",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "runs": [
+    {
+      "profile": "baseline",
+      "iteration": 0,
+      "domContentLoadedMs": 157.70000004768372,
+      "loadMs": 391.7999999523163,
+      "resourceBytes": 863649,
+      "htmlBytes": 15688
+    },
+    {
+      "profile": "candidate",
+      "iteration": 0,
+      "domContentLoadedMs": 91.19999980926514,
+      "loadMs": 132.19999980926514,
+      "resourceBytes": 864763,
+      "htmlBytes": 14751
+    },
+    {
+      "profile": "baseline",
+      "iteration": 1,
+      "domContentLoadedMs": 93.39999985694885,
+      "loadMs": 135.29999995231628,
+      "resourceBytes": 863649,
+      "htmlBytes": 15688
+    },
+    {
+      "profile": "candidate",
+      "iteration": 1,
+      "domContentLoadedMs": 90.40000009536743,
+      "loadMs": 133.5,
+      "resourceBytes": 864763,
+      "htmlBytes": 14751
+    },
+    {
+      "profile": "baseline",
+      "iteration": 2,
+      "domContentLoadedMs": 94.20000004768372,
+      "loadMs": 146.20000004768372,
+      "resourceBytes": 863649,
+      "htmlBytes": 15688
+    },
+    {
+      "profile": "candidate",
+      "iteration": 2,
+      "domContentLoadedMs": 93.59999990463257,
+      "loadMs": 133.29999995231628,
+      "resourceBytes": 864763,
+      "htmlBytes": 14751
+    },
+    {
+      "profile": "baseline",
+      "iteration": 3,
+      "domContentLoadedMs": 94,
+      "loadMs": 146.5,
+      "resourceBytes": 863649,
+      "htmlBytes": 15688
+    },
+    {
+      "profile": "candidate",
+      "iteration": 3,
+      "domContentLoadedMs": 94,
+      "loadMs": 135.40000009536743,
+      "resourceBytes": 864763,
+      "htmlBytes": 14751
+    },
+    {
+      "profile": "baseline",
+      "iteration": 4,
+      "domContentLoadedMs": 89.70000004768372,
+      "loadMs": 146.09999990463257,
+      "resourceBytes": 863649,
+      "htmlBytes": 15688
+    },
+    {
+      "profile": "candidate",
+      "iteration": 4,
+      "domContentLoadedMs": 90.40000009536743,
+      "loadMs": 152.70000004768372,
+      "resourceBytes": 864763,
+      "htmlBytes": 14751
+    },
+    {
+      "profile": "baseline",
+      "iteration": 5,
+      "domContentLoadedMs": 93.5,
+      "loadMs": 147.90000009536743,
+      "resourceBytes": 863649,
+      "htmlBytes": 15688
+    },
+    {
+      "profile": "candidate",
+      "iteration": 5,
+      "domContentLoadedMs": 97.09999990463257,
+      "loadMs": 158.70000004768372,
+      "resourceBytes": 864763,
+      "htmlBytes": 14751
+    }
+  ],
+  "baselineRevision": "bb44a8db6495781b23dff454a3574df102ac7ec8",
+  "candidateRevision": "b4fe7b38550d4da59abc2ba4ab5bd6371f1e7566",
+  "html": {
+    "baseline": {
+      "bytes": 15688,
+      "gzipBytes": 5520,
+      "sha256": "d278f9eefa01a64c42b2f7bab547e0bb08f64b7c22fadc846259cfd7aa165144"
+    },
+    "candidate": {
+      "bytes": 14751,
+      "gzipBytes": 5566,
+      "sha256": "2495c8933746d90c648296b75175c3ebf8c801701085632e21ca8d063419c46f"
+    }
+  }
+}
