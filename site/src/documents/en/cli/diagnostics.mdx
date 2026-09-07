@@ -20,9 +20,11 @@ kfind --pos verb --boundary any 걷다 sample.txt
 kfind --literal 걸었다 sample.txt
 ```
 
-If only `any` finds a match, boundary or structural constraints may have filtered the candidate. Inspect its context because `any` also includes unwanted word-internal candidates. If neither boundary finds it, check the lemma, POS, spelling, and resource coverage. `걷다` does not correct typos or expand synonyms such as `보행했다`.
+If only `any` finds a match, boundary or structural constraints may have filtered the candidate. Inspect its context because `any` also includes unwanted word-internal candidates. If neither boundary finds it, check the lemma, POS, spelling, and resource coverage. Typo correction and synonym expansion are not supported.
 
 Also verify that the file was searched. Native ignore, glob, and encoding settings differ from [npm traversal rules](/guide/installation). `--explain-query` describes query analysis and the search plan; it does not enumerate every rejected source candidate.
+
+`걷다` and `걸다` share the form `걸어`, so searching for `걷다` can return both `길을 걸어` (walk along the road) and `전화를 걸어` (make a phone call). Even `smart` does not distinguish their meanings in context. A valid morphological candidate is not necessarily a match for the intended meaning.
 
 ## Structural limits [#structural-limits]
 

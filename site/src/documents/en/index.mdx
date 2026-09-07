@@ -33,9 +33,11 @@ Use the [JavaScript API](/reference/javascript) or [Rust API](/reference/rust) t
 
 ## Search scope and limits [#grammar-scope]
 
-kfind finds nouns with particles, verb and adjective endings, irregular inflections, and ordered phrases with explicit parts of speech. For example, `걸어` is a candidate for `걷다`, but synonyms such as `보행했다` are not expanded. Likewise, `v:검증하다` is not a semantic search for `검증을 수행했다`.
+kfind finds nouns with particles, verb and adjective endings, irregular inflections, and ordered phrases with explicit parts of speech.
 
-When a surface form has several meanings, read its context. The default `smart` boundary uses structural evidence to reduce unwanted candidates; `any` collects more word-internal candidates. [Boundary policies](/cli/boundaries) offer a precision–recall choice, not typo correction or guaranteed complete recall.
+**`걷다` and `걸다` share the inflected form `걸어`.** A search for `걷다` therefore returns both `길을 걸어` (walk along the road) and `전화를 걸어` (make a phone call) as candidates. kfind does not determine which lemma’s meaning the shared form expresses in context. Read the surrounding text to decide which results have the intended meaning.
+
+The default `smart` boundary uses structural evidence to reduce unwanted candidates, but it does not disambiguate the meaning of morphologically valid candidates such as `전화를 걸어`. The `any` boundary collects more word-internal candidates. [Boundary policies](/cli/boundaries) offer a precision–recall choice, not typo correction or guaranteed complete recall.
 
 Unsupported forms and structural limits can cause omissions. Read standard-text and error-containing results separately in the [benchmarks](/benchmarks), and verify queries on the documents you intend to search.
 
