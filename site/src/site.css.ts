@@ -349,6 +349,15 @@ globalStyle('.docs-content > article > h1', {
   fontSize: '2.35rem',
   letterSpacing: '-0.035em',
   lineHeight: 1.15,
+  textWrap: 'balance',
+  wordBreak: 'keep-all',
+  overflowWrap: 'anywhere',
+  '@media': {
+    '(max-width: 42rem)': {
+      fontSize: '1.8rem',
+      lineHeight: 1.3,
+    },
+  },
 });
 
 globalStyle('.document-overview', {
@@ -388,7 +397,7 @@ globalStyle('.doc-section h2', {
 
 globalStyle('.docs-content > article > h2', {
   margin: `${vars.space.section} 0 ${vars.space.medium}`,
-  paddingBlockStart: vars.space.section,
+  paddingBlockStart: vars.space.xlarge,
   borderBlockStart: `1px solid ${vars.color.border}`,
   color: vars.color.heading,
   fontSize: '1.5rem',
@@ -418,8 +427,8 @@ globalStyle('.doc-section > p', {
 globalStyle(
   '.docs-content > article > p, .docs-content > article > ul, .docs-content > article > ol',
   {
-    maxWidth: '48rem',
-    color: vars.color.muted,
+    maxWidth: vars.content.prose,
+    color: vars.color.text,
     lineHeight: 1.78,
   },
 );

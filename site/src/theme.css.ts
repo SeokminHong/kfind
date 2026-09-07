@@ -42,6 +42,7 @@ export const vars = createGlobalTheme(':root', {
   content: {
     shell: '88rem',
     article: '68rem',
+    prose: '44rem',
   },
   font: {
     sans: '"Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", "Noto Sans KR", sans-serif',
