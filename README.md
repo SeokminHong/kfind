@@ -36,6 +36,21 @@ span과 생성 근거를 보존합니다.
 
 ## 설치
 
+파일·저장소 검색에는 네이티브 CLI를 사용합니다. npm 패키지는 JavaScript API와
+WASM 기반 경량 CLI를 제공하며, 네이티브 실행 파일을 내려받는 래퍼가 아닙니다.
+
+| 항목      | 네이티브 CLI                 | npm 경량 CLI                     |
+| --------- | ---------------------------- | -------------------------------- |
+| 파일 탐색 | ignore 규칙, glob, 파일 유형 | 정해진 디렉터리 제외, UTF-8 파일 |
+| 사전      | full POS 사용 가능           | full POS 미포함                  |
+| 입력 처리 | 스트리밍                     | 파일·stdin 전체 적재             |
+| 일반 출력 | 일치한 줄, 선택적 문맥       | 일치한 부분 문자열               |
+| JSON      | 줄·이벤트 단위               | 개별 일치 단위                   |
+| offset    | byte                         | UTF-16 code unit                 |
+
+설치 방식을 바꾸면 검색 대상과 출력 소비 코드도 점검해야 합니다.
+[설치와 호환성](https://kfind.pages.dev/guide/installation)에 상세 범위를 설명합니다.
+
 macOS와 Linux에서는 Homebrew로 CLI와 같은 버전의 형태 리소스를 설치합니다.
 
 ```sh
@@ -66,7 +81,7 @@ const matches = matcher.findAll(text);
 console.log(text.slice(matches[0].start, matches[0].end));
 ```
 
-패키지의 CLI는 설치 없이도 실행할 수 있습니다. `yarn dlx`는 Yarn 2 이상을
+npm 경량 CLI는 설치 없이도 실행할 수 있습니다. `yarn dlx`는 Yarn 2 이상을
 사용합니다.
 
 ```sh
