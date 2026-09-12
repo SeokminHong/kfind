@@ -65,4 +65,4 @@ kfind --embedded --boundary any --pos verb --json 걷다 src
 
 ## Agent integration [#agent-skill]
 
-Agents can run the commands above directly. To install session instructions and pre-execution hooks, read [skill installation](/agents/skills). Integration hooks block Korean patterns in `rg`, `grep`, and `git grep`, including exact-string searches, so review their scope before installing.
+Agents can run the commands above directly. To install session instructions and pre-execution hooks, read [skill installation](/agents/skills). Integration hooks block Korean patterns in `rg`, `grep`, and `git grep` unless fixed-string mode is explicit. Exact searches with `-F`, `--fixed-strings`, or `fgrep` are allowed.

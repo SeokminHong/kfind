@@ -208,7 +208,7 @@ Codex는 `.agents/skills/kfind/SKILL.md`, Claude Code는
 `.gemini/skills/kfind/SKILL.md`를 사용합니다. Hook 설정은 각각
 `.codex/hooks.json`, `.claude/settings.json`, `.gemini/settings.json`에 병합합니다.
 다른 설정과 hook은 보존하고 kfind 관리 표식이 없는 skill은 덮어쓰지 않습니다.
-`SessionStart` hook은 모든 한국어 코드·문서 검색에 kfind를 사용하라는 지침을 세션
+`SessionStart` hook은 한국어 표제어·활용형 검색에 kfind를 사용하라는 지침을 세션
 context에 추가합니다. Skill이 자동으로 선택되지 않아도 적용됩니다.
 
 설치한 통합은 같은 대상 선택 방식으로 제거합니다.
@@ -222,7 +222,8 @@ printf 'codex\ngemini\n' | kfind --uninstall
 hook은 보존하며, 이미 제거된 대상은 오류로 처리하지 않습니다.
 
 실행 전 hook은 shell tool이 명시적인 한글 검색 pattern으로 `rg`, `grep` 계열이나
-`git grep`을 실행하려 하면 차단하고 kfind 사용을 안내합니다. 한글 경로와 glob,
+`git grep`을 고정 문자열 모드 없이 실행하려 하면 차단하고 kfind 사용을 안내합니다.
+정확한 표기 검색의 `-F`, `--fixed-strings`와 `fgrep`은 허용합니다. 한글 경로와 glob,
 pattern file은 차단하지 않습니다. Project hook은 각 에이전트에서 신뢰한 뒤
 동작하며, Codex에서는 `/hooks`로 검토하고 신뢰합니다.
 

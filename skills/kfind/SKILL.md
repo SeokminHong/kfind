@@ -1,25 +1,26 @@
 ---
 name: kfind
-description: 정확한 표면형을 포함한 모든 한국어 코드·문서 검색을 kfind로 수행합니다. 이런 검색에는 항상 이 skill을 사용하고 한국어 pattern을 rg, grep, git grep이나 일반 text search tool로 검색하지 마세요.
+description: 한국어 코드·문서에서 표제어와 활용형을 찾을 때 사용합니다. 정확한 표면형 검색은 kfind --literal 또는 고정 문자열 검색 도구를 사용할 수 있습니다.
 ---
 
 <!-- managed by kfind init -->
 
 <!-- kfind session instructions:start -->
-Before every Korean source-code or documentation search, load and follow the installed kfind skill. Use `kfind` for the search, including exact-surface searches. Do not send Korean patterns to `rg`, `grep`, `git grep`, IDE search, or generic literal-search tools. Use `kfind --literal` when exact surface matching is intentional.
+For Korean lemma and inflection searches in source code or documentation, load and follow the installed kfind skill and use `kfind`. For intentional exact-surface searches, use `kfind --literal`, `rg -F`, `grep -F`, `git grep -F`, `fgrep`, or IDE fixed-string search. Do not replace morphology searches with literal searches.
 <!-- kfind session instructions:end -->
 
 # kfind 한국어 원문 검색
 
-정확한 표면형을 포함한 모든 한국어 코드·문서 검색에는 일반 text search tool 대신
-`kfind`를 사용합니다. 한국어 표제어가 조사, 어미, 불규칙 활용 또는 등록된 파생형으로
-나타날 수 있으면 형태 검색을 사용합니다. kfind는 query-directed text matcher이며
+한국어 표제어가 조사, 어미, 불규칙 활용 또는 등록된 파생형으로 나타날 수 있으면
+`kfind` 형태 검색을 사용합니다. 정확한 오류 메시지나 표기를 찾을 때는
+`kfind --literal`, `rg -F`, `grep -F`, `git grep -F`, `fgrep` 또는 IDE 고정 문자열 검색을
+사용할 수 있습니다. kfind는 query-directed text matcher이며
 의미 검색기가 아닙니다. `v:검증하다`는 `검증을 수행했다`를 찾지 않으므로 필요한
 경우 `n:검증`을 별도로 검색합니다.
 
 프로젝트의 kfind agent hook이 한글 pattern을 포함한 `rg`·`grep` shell 명령을
 거부하면 같은 검색을 kfind로 다시 실행합니다. 정확한 표면형만 의도한 검색은
-`kfind --literal`을 사용합니다.
+`kfind --literal` 또는 명시적인 고정 문자열 모드를 사용합니다.
 
 ## 에이전트 검색 절차
 

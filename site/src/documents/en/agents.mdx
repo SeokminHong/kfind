@@ -62,7 +62,7 @@ Removal deletes only kfind-managed skills and `kfind --agent-hook` handlers. Oth
 
 A Homebrew-managed skill points to the stable `opt` path instead of a versioned Cellar path. Existing project links therefore use the new guidance after `brew upgrade`.
 
-Project hooks run after each agent's trust review. In Codex, inspect and trust them with `/hooks`. The `SessionStart` hook adds an instruction to use kfind for every Korean source-code and documentation search, even when the skill is not selected automatically. The pre-tool hook blocks `rg`, `grep` variants, and `git grep` when their search pattern contains Korean text, then directs the agent to kfind.
+Project hooks run after each agent's trust review. In Codex, inspect and trust them with `/hooks`. The `SessionStart` hook adds an instruction to use kfind for Korean lemma and inflection searches in source code and documentation, even when the skill is not selected automatically. The pre-tool hook blocks `rg`, `grep` variants, and `git grep` when their search pattern contains Korean text without explicit fixed-string mode, then directs the agent to kfind. Exact searches with `-F`, `--fixed-strings`, or `fgrep` are allowed.
 
 ## Supported agents [#supported-agents]
 

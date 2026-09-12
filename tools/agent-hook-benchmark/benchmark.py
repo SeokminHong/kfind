@@ -52,6 +52,7 @@ def payload(event: str, tool: str, command: str) -> bytes:
 
 CODEX_ALLOW = payload("PreToolUse", "Bash", "rg TODO crates")
 CODEX_DENY = payload("PreToolUse", "Bash", "rg 사용자 crates")
+CODEX_FIXED = payload("PreToolUse", "Bash", "rg -F 사용자 crates")
 GEMINI_DENY = payload("BeforeTool", "run_shell_command", "grep 검색 docs")
 SESSION_START = json.dumps(
     {"hook_event_name": "SessionStart", "source": "startup"},
@@ -161,38 +162,18 @@ def main() -> None:
     args = parse_args()
     baseline = validate_binary(args.baseline, "baseline")
     candidate = validate_binary(args.candidate, "candidate")
-    workloads = [
-        Workload("baseline_version", baseline, ["--version"], None, verify_version),
-        Workload("candidate_version", candidate, ["--version"], None, verify_version),
-        Workload(
-            "candidate_codex_allow",
-            candidate,
-            ["--agent-hook"],
-            CODEX_ALLOW,
-            verify_codex_allow,
-        ),
-        Workload(
-            "candidate_codex_deny",
-            candidate,
-            ["--agent-hook"],
-            CODEX_DENY,
-            verify_codex_deny,
-        ),
-        Workload(
-            "candidate_gemini_deny",
-            candidate,
-            ["--agent-hook"],
-            GEMINI_DENY,
-            verify_gemini_deny,
-        ),
-        Workload(
-            "candidate_session_start",
-            candidate,
-            ["--agent-hook"],
-            SESSION_START,
-            verify_session_start,
-        ),
-    ]
+    workloads = []
+    for label, binary in [("baseline", baseline), ("candidate", candidate)]:
+        workloads.append(Workload(f"{label}_version", binary, ["--version"], None, verify_version))
+        for name, stdin, verify in [
+            ("codex_allow", CODEX_ALLOW, verify_codex_allow),
+            ("codex_deny", CODEX_DENY, verify_codex_deny),
+            ("gemini_deny", GEMINI_DENY, verify_gemini_deny),
+            ("session_start", SESSION_START, verify_session_start),
+            ("codex_fixed", CODEX_FIXED,
+             verify_codex_deny if label == "baseline" else verify_codex_allow),
+        ]:
+            workloads.append(Workload(f"{label}_{name}", binary, ["--agent-hook"], stdin, verify))
 
     for round_index in range(args.warmups):
         for offset in range(len(workloads)):
@@ -229,6 +210,7 @@ def main() -> None:
             },
         },
         "inputs": {
+            "codex_fixed_sha256": hashlib.sha256(CODEX_FIXED).hexdigest(),
             "codex_allow_sha256": hashlib.sha256(CODEX_ALLOW).hexdigest(),
             "codex_deny_sha256": hashlib.sha256(CODEX_DENY).hexdigest(),
             "gemini_deny_sha256": hashlib.sha256(GEMINI_DENY).hexdigest(),
