@@ -221,9 +221,9 @@
   stdout에 출력한다. 진행 메시지와 오류는 stderr에만 출력한다.
 - Claude Code, Codex와 Gemini CLI 대상은 각각 `.claude/settings.json`,
   `.codex/hooks.json`, `.gemini/settings.json`에 kfind agent hook을 함께 설치한다. 세 agent의
-  `SessionStart`에는 모든 한국어 코드·문서 검색에서 설치된 kfind skill과 `kfind`를 사용하고,
-  exact surface 검색도 `kfind --literal`로 실행하며, 한국어 pattern을 일반 text search tool에
-  전달하지 말라는 지침을 주입한다. agent가 지원하는 시작·재개·초기화 시점마다 같은 지침을
+  `SessionStart`에는 한국어 형태 검색에서 설치된 kfind skill과 `kfind`를 사용하라는
+  지침을 주입한다. 정확한 표면형 검색은 `kfind --literal` 또는 `rg -F`, `grep -F`,
+  `git grep -F`, `fgrep`과 IDE의 고정 문자열 검색을 허용한다. agent가 지원하는 시작·재개·초기화 시점마다 같은 지침을
   다시 주입한다.
 - 실행 전 hook은 `.claude/settings.json`의 `PreToolUse/Bash`, `.codex/hooks.json`의
   `PreToolUse/Bash`, `.gemini/settings.json`의 `BeforeTool/run_shell_command`에 설치한다.
@@ -232,7 +232,9 @@
   반환한다. 같은 kfind hook은 다시 실행해도 중복하지 않는다.
 - 실행 전 agent hook은 shell tool의 명령행에서 직접 실행되는 `rg`, `grep`, `egrep`, `fgrep`과
   `git grep`의 명시적 command-line 검색 패턴을 식별한다. 검색 패턴에 현대·옛한글 음절 또는
-  자모가 있으면 tool 실행을 거부하고 kfind 사용법을 agent에 반환한다. 경로, glob, option
+  자모가 있고 고정 문자열 모드를 명시하지 않았으면 tool 실행을 거부하고 kfind 사용법을
+  agent에 반환한다. `-F`, `--fixed-strings`와 `fgrep`은 허용하며 옵션 값·패턴·`--` 뒤의
+  경로에 들어 있는 `-F`는 모드 지정으로 해석하지 않는다. 고정 모드를 해제한 검색은 차단한다. 경로, glob, option
   값과 pattern file의 내용은 검색 패턴으로 간주하지 않는다. kfind 명령과 한글이 없는
   literal 검색은 허용한다.
 - Agent hook은 각 agent가 신뢰한 project hook과 관측 가능한 shell tool call에만 적용된다.
@@ -253,8 +255,8 @@
   사용한다. 단일 품사 query는 `--pos`, 혼합 phrase는 atom 태그로 품사를 지정한다. CLI는
   사람의 무품사 입력을 위해 `--pos` 생략을 허용하지만, 에이전트 통합 계약에서는 이를
   잘못된 호출로 취급한다.
-- 배포용 agent skill의 description은 exact surface 검색을 포함한 모든 한국어 코드·문서 검색을
-  선택 조건으로 선언한다. 본문은 README나 `--help`를 별도로 읽지 않아도 에이전트가 검색을
+- 배포용 agent skill의 description은 한국어 표제어·활용형 검색을 선택 조건으로 선언하고
+  정확한 표면형 검색은 고정 문자열 도구로 실행할 수 있음을 명시한다. 본문은 README나 `--help`를 별도로 읽지 않아도 에이전트가 검색을
   실행할 수 있어야 한다. 단일·혼합 품사 query와 literal 검색, 전체 `--pos` 값과 atom 태그,
   phrase의 순서·거리, `embedded + any + JSON Lines` 권장 경로, path·glob 축소, JSON
   span·provenance와 종료 코드를 간결한 예시와 함께 설명한다.
@@ -741,6 +743,9 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
   기능마다 다시 분리하거나 세부 품사를 반복 해석하지 않는다. Token 준비 경로에는 POS interning
   cache나 별도 sequence arena를 두지 않는다. Component span이 필요 없는 구조 판정은 POS-only
   resource view를 순회하며 analysis·component `Vec`를 만들지 않는다.
+- 구조 근거 수집은 corpus graph 구성·경로 선택과 분리된 모듈에서 수행한다. Source 근거,
+  명사형 활용 anchor 근거, runtime 복합 구조와 완결 span 근거의 우선순위를 보존하며
+  같은 candidate의 지원 근거와 pattern index를 유지한다.
 - resolver는 먼저 query와 독립적인 whole/component·세부 품사·continuation·인접 token
   근거로 corpus의 구조적 후보를 고른다. 어휘 의미만 다르고 span topology, 품사,
   continuation과 문맥 제약이 같은 후보는 하나의 `StructuralSignature`로 합친다.
@@ -755,12 +760,21 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
 - `ConstraintResolver`는 query pattern의 structural signature가 선택된 corpus 구조와
   일치하면 `Supported`, 다른 구조가 유일하게 선택되면 `Contradicted`, resource 오류나
   상한 초과는 `Unavailable`로 반환한다.
-- 위 판정 상태는 resolver와 진단 경로의 계약이다. 일반 matcher의 구조 context 준비는
-  window 추출이나 graph 준비 실패를 후보 거부로 처리한다. 일반 검색의 text·JSON Lines와
-  종료 코드는 이 후보를 검증 후 불일치한 후보와 구분하지 않으며, 판정 불가 후보 수나
-  검색 완전성을 보고하지 않는다. Window의 기본 제한은 원문 256 byte와 정규화 후
-  64 Unicode scalar이며 현재 token과 필요한 인접 문맥에 적용한다. 입력 파일 전체의
-  길이 제한이 아니다.
+- 구조 context의 window 추출·graph 준비·좌표 정렬 실패 또는 `Unavailable` 판정은
+  후보를 제외하면서 `SearchDiagnostics`의 `structural_verification_incomplete`를 설정한다.
+  이 진단은 호출자가 소유하는 검색 단위 상태이며 다른 입력·worker와 암묵적으로 공유하거나
+  초기화하지 않는다. 같은 상태에 여러 검색을 누적하면 하나라도 판정 불가일 때 참을 유지한다.
+  기존 matcher API는 결과 계약을 유지하고 진단을 받는 API를 추가한다.
+- 네이티브 파일 검색은 파일마다 별도 진단을 사용하고 `FileSearchResult`에 위 상태를 보존한다.
+  `SearchSummary`는 판정 불가가 발생한 파일 수를 집계한다. 결과가 없는 파일과 문맥·집계
+  출력에서도 진단은 유지한다. 이 값이 거짓이어도 지원하지 않는 활용·의미 검색, 조기 종료나
+  검색 대상 밖의 파일까지 포함한 완전성을 보장하지 않는다. 판정 불가 후보 수는 제공하지 않는다.
+- 네이티브 CLI는 구조 판정 불가가 관측된 파일 경로와 `structural_verification_incomplete`
+  진단을 stderr에 출력하고 종료 코드 2를 반환한다. 이미 찾은 stdout 결과는 보존한다.
+  JSON Lines에 진단 record를 섞지 않으며, `--count`, `--files-with-matches`, `--quiet`에도
+  같은 종료 계약을 적용한다. 조기 종료 뒤의 미검색 구간에 대한 판정은 추측하지 않는다.
+- Window의 기본 제한은 원문 256 byte와 정규화 후 64 Unicode scalar이며 현재 token과
+  필요한 인접 문맥에 적용한다. 입력 파일 전체의 길이 제한이 아니다.
 - 구조 준비는 현재 token 자체에서 얻는 형태 graph와 앞뒤 token에 따른 구조 선택을 별도
   단계로 유지한다. Matcher는 전체 program이 8개 이하인 작은 plan에서 structural program의
   정규화된 anchor를 현재 token 후보로 최대 64개까지 matcher memory 상한 안에서 등록한다.
@@ -2515,9 +2529,9 @@ TTY에서 선택을 취소하거나 아무 항목도 선택하지 않으면 파�
 agent를 여러 번 입력해도 한 번만 처리한다. 설치가 하나라도 실패하면 성공으로 보고하지 않는다.
 
 지원 agent를 선택하면 skill과 두 종류의 project hook을 함께 설치한다. `SessionStart` hook은
-skill이 자동 선택되지 않아도 모든 한국어 코드·문서 검색에 kfind를 사용하라는 지침을 agent
-context에 추가한다. shell tool 실행 전 hook은 한국어 pattern을 받은 일반 text search 명령을
-차단한다. 기존 설정 파일에는 kfind hook만 병합하며 다른 key와 hook 순서를 보존한다. Codex의
+skill이 자동 선택되지 않아도 한국어 형태 검색에 kfind를 사용하라는 지침을 agent
+context에 추가한다. shell tool 실행 전 hook은 고정 문자열 모드를 명시하지 않은 한국어
+pattern의 일반 text search 명령을 차단한다. 기존 설정 파일에는 kfind hook만 병합하며 다른 key와 hook 순서를 보존한다. Codex의
 project hook은 프로젝트를 신뢰한 뒤 `/hooks`에서 별도로 신뢰해야 실행된다. Claude Code와
 Gemini CLI도 각 제품의 project hook 신뢰 절차를 따른다.
 
@@ -2533,8 +2547,8 @@ printf 'codex\ngemini\n' | kfind --uninstall
 제거하고, 설정이 함께 있으면 kfind handler만 뺀 JSON을 보존한다. 이미 제거된 대상을 다시
 지정해도 성공한다. `custom`은 파일을 설치하지 않으므로 제거 대상이 아니다.
 
-Agent는 session을 시작할 때 exact surface 검색을 포함한 모든 한국어 검색에 설치된 skill과
-`kfind`를 사용하라는 지침을 받는다. 그래도 다음 shell tool call을 만들면 실행 전에 거부하고
+Agent는 session을 시작할 때 한국어 형태 검색에 설치된 skill과 `kfind`를 사용하라는
+지침을 받는다. 정확한 표면형 검색은 `rg -F`, `grep -F`, `git grep -F`, `fgrep`도 허용한다. 그래도 다음 shell tool call을 만들면 실행 전에 거부하고
 `kfind`로 다시 검색하도록 안내한다.
 
 ```sh
@@ -3780,9 +3794,9 @@ Versioned 문서는 같은 Publish 실행에서 GitHub Release asset과 R2에 �
     stdout stream을 유지한다.
 26. 배포용 full POS와 compact component resource로 전체 morphology gold를 실행했을 때 자동 품사
     coverage를 포함한 모든 positive와 negative case가 기대값과 일치한다.
-27. 설치된 agent hook은 session마다 모든 한국어 코드·문서 검색에 kfind를 사용하라는 지침을
-    주입하고, 명시적 command-line 검색 pattern에 한글이 있는 `rg`·`grep` 계열 shell tool
-    call을 실행 전에 거부하며 한글 path·glob, pattern file과 kfind 호출은 허용한다.
+27. 설치된 agent hook은 session마다 한국어 형태 검색에 kfind를 사용하라는 지침을 주입한다.
+    한글 pattern의 `rg`·`grep` 계열 shell tool call은 고정 문자열 모드를 명시했을 때 허용하고
+    그 밖에는 거부한다. 한글 path·glob, pattern file과 kfind 호출은 허용한다.
 28. Tagged release의 Windows x64 archive와 Chocolatey package가 같은 checksum 계약을 사용하며,
     archive의 `kfind.exe`는 동적 MSVC·UCRT 의존성이 없고 `--check-data`와 local Chocolatey
     install smoke test가 통과한다.

@@ -56,6 +56,7 @@ fn result(records: Vec<SearchRecord>, matching_lines: u64) -> FileSearchResult {
         matching_lines,
         matched_spans: Some(matching_lines),
         binary_byte_offset: None,
+        structural_verification_incomplete: false,
     }
 }
 

@@ -54,7 +54,6 @@ fn blocks_korean_patterns_for_supported_search_commands() {
         "/usr/local/bin/rg --regexp=검증하다 docs",
         "grep -Rn -e '권한' .",
         "egrep '검증' docs",
-        "fgrep --regexp '한글' README.md",
         "git grep '검색'",
         "git -C repository grep -e사용자 -- '*.rs'",
         "env LC_ALL=C rg -n 사용자 crates",
@@ -143,4 +142,36 @@ fn rejects_invalid_hook_payloads() {
         run_hook(&missing).unwrap_err(),
         AgentHookError::MissingCommand
     ));
+}
+
+#[test]
+fn explicit_fixed_string_searches_are_allowed_without_disabling_other_commands() {
+    for command in [
+        "rg -F 사용자 crates",
+        "rg --fixed-strings -e 사용자 crates",
+        "rg -nF 사용자 crates",
+        "rg 사용자 -F crates",
+        "grep -RF 사용자 crates",
+        "git -C repo grep -F 사용자 HEAD -- docs",
+        "fgrep --regexp 한글 README.md",
+        "rg -g '*.F' -F -- 사용자",
+        "rg -F 사용자; grep -F 권한",
+    ] {
+        assert!(!contains_korean_literal_search(command), "{command}");
+        assert_eq!(run_hook(&codex_input(command)).unwrap(), "");
+        let output: serde_json::Value =
+            serde_json::from_str(&run_hook(&gemini_input(command)).unwrap()).unwrap();
+        assert_eq!(output["decision"], "allow");
+    }
+    for command in [
+        "rg -F 사용자; rg 권한",
+        "rg -e 사용자 -g -F docs",
+        "rg -g-F 사용자 docs",
+        "rg -e사용자F docs",
+        "rg -- 사용자 -F",
+        "rg -F --no-fixed-strings 사용자",
+        "grep -FE 사용자",
+    ] {
+        assert!(contains_korean_literal_search(command), "{command}");
+    }
 }

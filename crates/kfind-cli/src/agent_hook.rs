@@ -8,7 +8,7 @@ use serde_json::json;
 use crate::init::SKILL_CONTENT;
 
 const MAX_HOOK_INPUT_BYTES: u64 = 1024 * 1024;
-const DENIAL_REASON: &str = "Korean search patterns must use kfind instead of literal rg/grep. Retry with kfind, or use kfind --literal when exact surface matching is intentional.";
+const DENIAL_REASON: &str = "Use kfind for Korean morphology searches. For intentional exact-surface searches, use kfind --literal or an explicit fixed-string mode such as rg -F, grep -F, or git grep -F.";
 const SESSION_INSTRUCTIONS_START: &str = "<!-- kfind session instructions:start -->";
 const SESSION_INSTRUCTIONS_END: &str = "<!-- kfind session instructions:end -->";
 
@@ -136,8 +136,10 @@ fn segment_contains_korean_literal_search(words: &[String]) -> bool {
     let command = executable_name(&words[command_index]);
     let arguments = &words[command_index + 1..];
     match command {
-        "rg" => arguments_have_korean_pattern(arguments, SearchTool::Ripgrep),
-        "grep" | "egrep" | "fgrep" => arguments_have_korean_pattern(arguments, SearchTool::Grep),
+        "rg" => arguments_have_korean_pattern(arguments, SearchTool::Ripgrep, false),
+        "grep" | "egrep" | "fgrep" => {
+            arguments_have_korean_pattern(arguments, SearchTool::Grep, command == "fgrep")
+        }
         "git" => git_grep_has_korean_pattern(arguments),
         _ => false,
     }
@@ -224,7 +226,7 @@ fn git_grep_has_korean_pattern(arguments: &[String]) -> bool {
     let mut index = 0;
     while let Some(argument) = arguments.get(index) {
         if argument == "grep" {
-            return arguments_have_korean_pattern(&arguments[index + 1..], SearchTool::Grep);
+            return arguments_have_korean_pattern(&arguments[index + 1..], SearchTool::Grep, false);
         }
         if argument == "--" || !argument.starts_with('-') {
             return false;
@@ -247,7 +249,11 @@ enum SearchTool {
     Grep,
 }
 
-fn arguments_have_korean_pattern(arguments: &[String], tool: SearchTool) -> bool {
+fn arguments_have_korean_pattern(
+    arguments: &[String],
+    tool: SearchTool,
+    mut fixed_strings: bool,
+) -> bool {
     if arguments.iter().any(|argument| {
         matches!(
             argument.as_str(),
@@ -271,6 +277,7 @@ fn arguments_have_korean_pattern(arguments: &[String], tool: SearchTool) -> bool
         if !options_ended && argument.starts_with("--") {
             let option = long_option(argument, tool);
             match option {
+                LongOption::FixedStrings(enabled) => fixed_strings = enabled,
                 LongOption::Pattern(Some(pattern)) => explicit_patterns.push(pattern),
                 LongOption::Pattern(None) => {
                     if let Some(pattern) = arguments.get(index + 1) {
@@ -291,6 +298,9 @@ fn arguments_have_korean_pattern(arguments: &[String], tool: SearchTool) -> bool
         }
         if !options_ended && argument.starts_with('-') && argument != "-" {
             let outcome = short_options(argument, arguments.get(index + 1), tool);
+            if let Some(enabled) = outcome.fixed_strings {
+                fixed_strings = enabled;
+            }
             explicit_patterns.extend(outcome.patterns);
             uses_pattern_file |= outcome.uses_pattern_file;
             if outcome.consumes_next {
@@ -299,19 +309,21 @@ fn arguments_have_korean_pattern(arguments: &[String], tool: SearchTool) -> bool
             index += 1;
             continue;
         }
-        if explicit_patterns.is_empty() && !uses_pattern_file {
+        if positional_pattern.is_none() && explicit_patterns.is_empty() && !uses_pattern_file {
             positional_pattern = Some(argument);
         }
-        break;
+        index += 1;
     }
 
-    explicit_patterns
-        .iter()
-        .any(|pattern| contains_hangul(pattern))
-        || positional_pattern.is_some_and(|pattern| contains_hangul(pattern))
+    !fixed_strings
+        && (explicit_patterns
+            .iter()
+            .any(|pattern| contains_hangul(pattern))
+            || positional_pattern.is_some_and(|pattern| contains_hangul(pattern)))
 }
 
 enum LongOption<'a> {
+    FixedStrings(bool),
     Pattern(Option<&'a str>),
     PatternFile { inline: bool },
     Value { inline: bool },
@@ -323,6 +335,10 @@ fn long_option<'a>(argument: &'a str, tool: SearchTool) -> LongOption<'a> {
         .split_once('=')
         .map_or((argument, None), |(name, value)| (name, Some(value)));
     match name {
+        "--fixed-strings" => LongOption::FixedStrings(true),
+        "--no-fixed-strings" | "--basic-regexp" | "--extended-regexp" | "--perl-regexp" => {
+            LongOption::FixedStrings(false)
+        }
         "--regexp" => LongOption::Pattern(inline_value),
         "--file" => LongOption::PatternFile {
             inline: inline_value.is_some(),
@@ -388,6 +404,7 @@ fn long_option_takes_value(name: &str, tool: SearchTool) -> bool {
 }
 
 struct ShortOptionOutcome<'a> {
+    fixed_strings: Option<bool>,
     patterns: Vec<&'a str>,
     uses_pattern_file: bool,
     consumes_next: bool,
@@ -399,12 +416,18 @@ fn short_options<'a>(
     tool: SearchTool,
 ) -> ShortOptionOutcome<'a> {
     let body = argument.trim_start_matches('-');
+    let mut fixed_strings = None;
     let mut patterns = Vec::new();
     let mut uses_pattern_file = false;
     let mut consumes_next = false;
 
     for (offset, option) in body.char_indices() {
         let value_start = offset + option.len_utf8();
+        if option == 'F' {
+            fixed_strings = Some(true);
+        } else if matches!(tool, SearchTool::Grep) && matches!(option, 'E' | 'G' | 'P') {
+            fixed_strings = Some(false);
+        }
         if option == 'e' {
             if value_start < body.len() {
                 patterns.push(&body[value_start..]);
@@ -426,6 +449,7 @@ fn short_options<'a>(
     }
 
     ShortOptionOutcome {
+        fixed_strings,
         patterns,
         uses_pattern_file,
         consumes_next,

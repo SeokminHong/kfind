@@ -22,9 +22,9 @@ kfind --init --agent codex
 
 ## 호출 방식 [#invocation]
 
-통합 hook을 신뢰한 프로젝트에서는 세션 시작 시 한국어 검색에 kfind를 사용하라는 지침을 전달합니다. 실행 전 hook은 한글 검색 패턴을 `rg`, `grep`, `git grep`에 전달하는 명령을 차단합니다. 정확한 문자열 검색도 대상이며, 경고만 하는 모드는 제공하지 않습니다.
+통합 hook을 신뢰한 프로젝트에서는 한국어 표제어·활용형 검색에 kfind를 사용하라는 세션 지침을 전달합니다. 실행 전 hook은 고정 문자열 모드를 명시하지 않은 한글 패턴의 `rg`, `grep`, `git grep` 명령을 차단합니다.
 
-`kfind --literal`은 형태 확장을 끄지만 정규식 검색이나 Git revision 검색을 대신하지는 않습니다. 이런 도구 선택을 유지하려면 통합 설치 없이 kfind를 직접 호출하거나 해당 에이전트의 통합을 해제합니다.
+정확한 오류 메시지나 표기를 찾는 `rg -F`, `grep -F`, `git grep -F`, `--fixed-strings`와 `fgrep`은 허용합니다. `kfind --literal`과 IDE 고정 문자열 검색도 사용할 수 있습니다. 정규식 검색은 이 예외에 포함되지 않습니다.
 
 ```bash
 kfind --embedded --boundary any --pos verb --json 걷다 src

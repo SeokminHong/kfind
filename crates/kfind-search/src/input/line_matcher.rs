@@ -3,7 +3,7 @@ use std::fmt::{self, Display, Formatter};
 use std::io;
 
 use grep_matcher::{LineMatchKind, LineTerminator, Match, Matcher, NoCaptures};
-use kfind_matcher::MorphMatcher;
+use kfind_matcher::{MorphMatcher, SearchDiagnostics};
 use kfind_query::PhraseMatch;
 
 use super::InputSearchError;
@@ -11,6 +11,7 @@ use super::InputSearchError;
 const MAX_MATCHES_PER_LINE: usize = 65_536;
 
 pub(super) struct LineMatcher<'a> {
+    diagnostics: SearchDiagnostics,
     matcher: &'a MorphMatcher,
     handoff_metadata: bool,
     pending: RefCell<Option<LineEvaluation>>,
@@ -31,6 +32,7 @@ pub(super) enum LineMatchError {
 impl<'a> LineMatcher<'a> {
     pub(super) fn new(matcher: &'a MorphMatcher, capture_records: bool) -> Self {
         Self {
+            diagnostics: SearchDiagnostics::default(),
             matcher,
             handoff_metadata: capture_records
                 && Matcher::line_terminator(matcher) == Some(LineTerminator::byte(b'\n')),
@@ -38,12 +40,25 @@ impl<'a> LineMatcher<'a> {
         }
     }
 
+    pub(super) fn structural_verification_incomplete(&self) -> bool {
+        self.diagnostics.structural_verification_incomplete()
+    }
+
     pub(super) fn take_line_matches(
         &self,
         bytes: &[u8],
     ) -> Result<Vec<PhraseMatch>, InputSearchError> {
         if !self.handoff_metadata {
-            return collect_line_matches(self.matcher, bytes, MAX_MATCHES_PER_LINE);
+            return self
+                .matcher
+                .find_all_with_meta_limit_and_diagnostics(
+                    bytes,
+                    MAX_MATCHES_PER_LINE,
+                    &self.diagnostics,
+                )
+                .map_err(|error| InputSearchError::MatchLimitExceeded {
+                    limit: error.limit(),
+                });
         }
         let mut pending = self
             .pending
@@ -75,12 +90,16 @@ impl Matcher for LineMatcher<'_> {
             self.replace_pending(None)?;
             return Ok(self
                 .matcher
-                .find_span_at(haystack, at)
+                .find_span_at_with_diagnostics(haystack, at, &self.diagnostics)
                 .map(|span| Match::new(span.start, span.end)));
         }
         let matches = self
             .matcher
-            .find_all_with_meta_limit(haystack, MAX_MATCHES_PER_LINE)
+            .find_all_with_meta_limit_and_diagnostics(
+                haystack,
+                MAX_MATCHES_PER_LINE,
+                &self.diagnostics,
+            )
             .map_err(|error| LineMatchError::MatchLimitExceeded {
                 limit: error.limit(),
             })?;
@@ -120,6 +139,7 @@ impl Display for LineMatchError {
     }
 }
 
+#[cfg(test)]
 pub(super) fn collect_line_matches(
     matcher: &MorphMatcher,
     bytes: &[u8],

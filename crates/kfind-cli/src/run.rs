@@ -170,6 +170,15 @@ where
             .write_record(path, record, &plan)
             .map_err(output_error_as_io),
         SearchEvent::FileEnd(result) => {
+            if result.structural_verification_incomplete {
+                stderr.write_all(b"kfind: ")?;
+                write_safe_path(stderr, &result.path)?;
+                stderr.write_all(b": structural_verification_incomplete: ")?;
+                stderr.write_all(language.select(
+                    "some candidates could not be structurally verified; results may be incomplete\n",
+                    "일부 후보의 구조를 판정하지 못했습니다. 검색 결과가 불완전할 수 있습니다\n",
+                ).as_bytes())?;
+            }
             output.write_file(result, &plan).map_err(output_error_as_io)
         }
         SearchEvent::Issue(issue) => write_issue(stderr, issue, language),
@@ -663,7 +672,7 @@ fn output_error_as_io(error: OutputError) -> io::Error {
 }
 
 const fn status_from_summary(summary: SearchSummary) -> ExitStatus {
-    if summary.errors > 0 {
+    if summary.errors > 0 || summary.structurally_incomplete_files > 0 {
         ExitStatus::Error
     } else if summary.has_match || summary.output_closed {
         ExitStatus::Match

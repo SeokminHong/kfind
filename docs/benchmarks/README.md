@@ -357,3 +357,21 @@ Double-Array trie와 FST의 크기, 초기화, exact lookup, common-prefix 열�
 ```console
 scripts/benchmark-morph-index.sh
 ```
+
+## 실제 기술 문서 검색 작업
+
+`tools/morph-compare/real_corpus/task_search.py`는 고정 source manifest의 전체 파일을
+검증한 뒤 기존 blind query를 실행한다. 한 source의 명시적 파일 집합을 같은 입력으로
+검색하며 Agent embedded/any, User full-POS/smart와 표제어 그대로의 고정 문자열 검색을
+비교한다. 정규식 수작업 확장이나 LLM 호출은 포함하지 않는다.
+
+양성 사례의 정답 파일·주석 위치 발견률, 후보 파일·줄·UTF-8 byte 수와 검색 명령의
+wall time을 기록한다. 같은 입력에서 비교하는 기준·후보 kfind의 검색 stdout이 같은지도
+검증한다. 종료 코드 2는 불완전 검색으로 별도 집계하고 성공 실행으로 합산하지 않는다.
+전체 파일의 모든 출현을 gold로 간주하지 않으며, 품질 confusion matrix는 기존에 검토된
+excerpt와 span에서만 raw와 contract-adjusted를 함께 보고한다. 별도 contract review가
+없으면 두 값을 같게 두고 review 0건을 명시한다.
+
+Fresh process warm-up 1회 후 5회 이상 측정하며 binary·source·fixture checksum과
+정확한 argv를 JSON에 보존한다. 이는 검색 단계의 재현 가능한 작업 평가이며 사람의
+문맥 판단 시간, 토큰 비용이나 최종 코드 수정 성공률을 측정한 것으로 해석하지 않는다.

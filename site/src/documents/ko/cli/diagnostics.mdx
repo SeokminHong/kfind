@@ -30,7 +30,9 @@ kfind --literal 걸었다 sample.txt
 
 구조 검증이 필요한 후보에는 제한된 원문 window를 사용합니다. 기본 제한은 원문 256 byte와 정규화 후 64 Unicode scalar이며 현재 token과 필요한 인접 문맥에 적용됩니다. 입력 파일 전체의 크기 제한은 아닙니다.
 
-Window 추출이나 구조 graph 준비에 실패하면 일반 matcher는 그 후보를 결과에서 제외합니다. 현재 일반 text·JSON Lines와 종료 코드는 이를 검증 후 불일치한 후보와 구분하지 않습니다. 판정 불가 후보 수와 검색 완전성 필드도 제공하지 않습니다. [구조 판정](/internals/structural-verification)의 내부 진단 상태를 일반 CLI가 항상 보고하는 것으로 해석해서는 안 됩니다.
+Window 추출, 구조 graph 준비나 좌표 정렬에 실패하면 해당 후보를 제외하고 네이티브 CLI는 파일 경로와 `structural_verification_incomplete` 진단을 stderr에 출력합니다. 이미 찾은 결과는 stdout에 유지하지만 종료 코드는 2입니다. 일반 text, JSON Lines, 집계와 quiet 출력에 같은 계약을 적용합니다.
+
+이 진단은 구조 context를 판정하지 못한 사실을 뜻하며 후보 수는 제공하지 않습니다. 진단이 없다는 사실도 지원하지 않는 활용이나 조기 종료 뒤의 구간까지 검색했다는 보장은 아닙니다. Rust 호출자는 `find_all_with_diagnostics`와 `SearchDiagnostics`로 같은 상태를 확인할 수 있습니다. npm CLI에는 이 진단 계약을 적용하지 않습니다.
 
 누락 확인이 중요하면 `any`와 알려진 원문 표기의 literal 검색을 함께 검토합니다. 이 방법도 지원하지 않는 활용, 오타나 의미 검색까지 복구한다는 보장은 없습니다.
 

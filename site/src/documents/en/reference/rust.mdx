@@ -8,6 +8,8 @@ The crate root exports `Engine`, `Matcher`, `ResourceBundle`, compile options, e
 
 A matcher searches UTF-8 bytes and performs no file traversal, encoding detection, or output.
 
+`Matcher::find_all_with_diagnostics(input, &diagnostics)` records unavailable structural verification in `SearchDiagnostics::structural_verification_incomplete()`. Create diagnostics per search scope. Reusing a scope accumulates its state; do not share it between workers.
+
 ## Resource initialization [#resources]
 
 `Engine::with_resources` validates optional full-POS, enriched-predicate, and component data as one profile. `Engine::new` creates an embedded profile.

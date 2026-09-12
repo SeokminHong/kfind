@@ -1,0 +1,205 @@
+{
+  "binaries": {
+    "baseline": {
+      "path": "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+      "revision": "bae0a005",
+      "sha256": "e6c494c684bacfcedf0338894b0202cea5cd105ae57a8c5e19d469108088a2ef",
+      "size_bytes": 6782992
+    },
+    "candidate": {
+      "path": "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+      "revision": "e324ecd04698fbdab4b5531ac88218dadb6bc0bc",
+      "sha256": "4f1644a6709e4bb626da78a8a4627e19868b71144daace0119ee6597da38c6cb",
+      "size_bytes": 6782672
+    }
+  },
+  "environment": {
+    "machine": "arm64",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "python": "3.14.7"
+  },
+  "inputs": {
+    "codex_allow_sha256": "fd55227298ccb427949b8c12e9a52b188396cee05aa9b2f57bcc23ccfadfa2f8",
+    "codex_deny_sha256": "7bf3655f755a870052c29eabe9ec6e78ea0db7429c55ba2b768ee40f7af5e724",
+    "codex_fixed_sha256": "35a50f308324808e707f54047a9154257d8cee803ff1839447c349053a77cb5a",
+    "gemini_deny_sha256": "60f6bba91de545b322f66cc61bd45454f992b356265451c81a296ac1408c7d88",
+    "session_start_sha256": "9f93751a7a648627789067d2c9ffa0aa4f936750631ae13109196da75cbe7f46"
+  },
+  "measurement": {
+    "clock": "time.perf_counter_ns",
+    "measured_runs_per_workload": 200,
+    "ordering": "round-robin rotation",
+    "warmup_runs_per_workload": 10
+  },
+  "schema": 1,
+  "workloads": {
+    "baseline_codex_allow": {
+      "command": [
+        "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+        "--agent-hook"
+      ],
+      "fresh_process": true,
+      "latency_ms": {
+        "max": 10.266458,
+        "median": 3.770334,
+        "min": 3.110417,
+        "p95": 4.773625
+      },
+      "runs": 200
+    },
+    "baseline_codex_deny": {
+      "command": [
+        "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+        "--agent-hook"
+      ],
+      "fresh_process": true,
+      "latency_ms": {
+        "max": 6.936125,
+        "median": 3.750563,
+        "min": 3.10425,
+        "p95": 4.776666
+      },
+      "runs": 200
+    },
+    "baseline_codex_fixed": {
+      "command": [
+        "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+        "--agent-hook"
+      ],
+      "fresh_process": true,
+      "latency_ms": {
+        "max": 10.498834,
+        "median": 3.729042,
+        "min": 3.100875,
+        "p95": 4.660666
+      },
+      "runs": 200
+    },
+    "baseline_gemini_deny": {
+      "command": [
+        "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+        "--agent-hook"
+      ],
+      "fresh_process": true,
+      "latency_ms": {
+        "max": 6.885292,
+        "median": 3.770354,
+        "min": 3.120083,
+        "p95": 4.748958
+      },
+      "runs": 200
+    },
+    "baseline_session_start": {
+      "command": [
+        "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+        "--agent-hook"
+      ],
+      "fresh_process": true,
+      "latency_ms": {
+        "max": 7.324667,
+        "median": 3.743958,
+        "min": 3.129125,
+        "p95": 4.776167
+      },
+      "runs": 200
+    },
+    "baseline_version": {
+      "command": [
+        "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+        "--version"
+      ],
+      "fresh_process": true,
+      "latency_ms": {
+        "max": 9.69075,
+        "median": 3.744917,
+        "min": 3.102291,
+        "p95": 4.660042
+      },
+      "runs": 200
+    },
+    "candidate_codex_allow": {
+      "command": [
+        "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+        "--agent-hook"
+      ],
+      "fresh_process": true,
+      "latency_ms": {
+        "max": 5.954125,
+        "median": 3.797021,
+        "min": 3.12475,
+        "p95": 4.685125
+      },
+      "runs": 200
+    },
+    "candidate_codex_deny": {
+      "command": [
+        "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+        "--agent-hook"
+      ],
+      "fresh_process": true,
+      "latency_ms": {
+        "max": 6.594542,
+        "median": 3.738875,
+        "min": 3.112083,
+        "p95": 4.859542
+      },
+      "runs": 200
+    },
+    "candidate_codex_fixed": {
+      "command": [
+        "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+        "--agent-hook"
+      ],
+      "fresh_process": true,
+      "latency_ms": {
+        "max": 7.540084,
+        "median": 3.783729,
+        "min": 3.111209,
+        "p95": 4.7415
+      },
+      "runs": 200
+    },
+    "candidate_gemini_deny": {
+      "command": [
+        "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+        "--agent-hook"
+      ],
+      "fresh_process": true,
+      "latency_ms": {
+        "max": 6.393791,
+        "median": 3.753166,
+        "min": 3.1295,
+        "p95": 4.769125
+      },
+      "runs": 200
+    },
+    "candidate_session_start": {
+      "command": [
+        "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+        "--agent-hook"
+      ],
+      "fresh_process": true,
+      "latency_ms": {
+        "max": 7.908584,
+        "median": 3.744438,
+        "min": 3.123917,
+        "p95": 4.714416
+      },
+      "runs": 200
+    },
+    "candidate_version": {
+      "command": [
+        "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+        "--version"
+      ],
+      "fresh_process": true,
+      "latency_ms": {
+        "max": 8.423875,
+        "median": 3.741313,
+        "min": 3.102583,
+        "p95": 4.6945
+      },
+      "runs": 200
+    }
+  }
+}

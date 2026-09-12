@@ -62,7 +62,7 @@ gemini
 
 Homebrew 설치본의 skill은 버전별 Cellar 경로 대신 안정적인 `opt` 경로를 가리킵니다. `brew upgrade` 뒤에도 프로젝트 link를 다시 만들지 않고 새 릴리스의 지침을 사용합니다.
 
-프로젝트 hook은 각 에이전트의 신뢰 절차를 통과한 뒤 동작합니다. Codex에서는 `/hooks`로 검토하고 신뢰합니다. `SessionStart` hook은 skill의 자동 선택 여부와 관계없이 모든 한국어 코드·문서 검색에 kfind를 사용하라는 지침을 세션 context에 추가합니다. 실행 전 hook은 한글 검색 패턴을 받은 `rg`·`grep` 계열과 `git grep`을 차단하고 kfind로 다시 검색하도록 안내합니다.
+프로젝트 hook은 각 에이전트의 신뢰 절차를 통과한 뒤 동작합니다. Codex에서는 `/hooks`로 검토하고 신뢰합니다. `SessionStart` hook은 skill의 자동 선택 여부와 관계없이 한국어 표제어·활용형 검색에 kfind를 사용하라는 지침을 세션 context에 추가합니다. 실행 전 hook은 고정 문자열 모드 없이 한글 검색 패턴을 받은 `rg`·`grep` 계열과 `git grep`을 차단하고 kfind로 다시 검색하도록 안내합니다. 정확한 표기 검색의 `-F`, `--fixed-strings`와 `fgrep`은 허용합니다.
 
 ## 지원 에이전트 [#supported-agents]
 

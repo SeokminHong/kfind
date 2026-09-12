@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use kfind_query::{PhraseMatch, PhrasePolicy, VerifiedSpan};
 
-use crate::{AnchorHit, AnchorHits};
+use crate::{AnchorHit, AnchorHits, SearchDiagnostics};
 
 use super::phrase::{PhraseMatchLimit, PhraseSelection};
 use super::{
@@ -18,8 +18,19 @@ pub(super) fn select(
     metadata: MatchMetadata,
     limit: PhraseMatchLimit,
 ) -> PhraseSelection {
+    select_with_diagnostics(matcher, haystack, at, metadata, limit, None)
+}
+
+pub(super) fn select_with_diagnostics<'a>(
+    matcher: &MorphMatcher,
+    haystack: &'a [u8],
+    at: usize,
+    metadata: MatchMetadata,
+    limit: PhraseMatchLimit,
+    diagnostics: Option<&'a SearchDiagnostics>,
+) -> PhraseSelection {
     let text = phrase_join_text(haystack);
-    let mut candidates = CandidateStream::new(matcher, haystack, at, metadata);
+    let mut candidates = CandidateStream::new(matcher, haystack, at, metadata, diagnostics);
     let mut group = Vec::new();
     let mut metrics = MetricCursor::new(&text);
     let mut selector = StreamingSelector::new(
@@ -71,6 +82,7 @@ impl<'matcher, 'haystack> CandidateStream<'matcher, 'haystack> {
         haystack: &'haystack [u8],
         at: usize,
         metadata: MatchMetadata,
+        diagnostics: Option<&'haystack SearchDiagnostics>,
     ) -> Self {
         let mut hits = matcher.anchor_engine.hits(haystack, at);
         let next_hit = hits.next();
@@ -82,7 +94,10 @@ impl<'matcher, 'haystack> CandidateStream<'matcher, 'haystack> {
             pending: Vec::new(),
             group: Vec::new(),
             next_sequence: vec![0; matcher.plan.atoms.len()],
-            structural_cache: StructuralCache::default(),
+            structural_cache: StructuralCache {
+                diagnostics,
+                ..Default::default()
+            },
             metadata,
         }
     }

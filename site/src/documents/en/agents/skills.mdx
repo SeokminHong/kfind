@@ -22,9 +22,9 @@ The installer also registers project hooks for each selected agent. It preserves
 
 ## Invocation [#invocation]
 
-When the project trusts the integration hooks, session startup instructs the agent to use kfind for Korean searches. The pre-execution hook blocks commands that pass Korean search patterns to `rg`, `grep`, or `git grep`. This includes exact-string searches; no warning-only mode is available.
+Trusted integration hooks instruct the agent to use kfind for Korean lemma and inflection searches. The pre-execution hook blocks Korean patterns in `rg`, `grep`, and `git grep` unless fixed-string mode is explicit.
 
-`kfind --literal` disables morphological expansion but does not replace regular expressions or searches across Git revisions. To retain those tool choices, invoke kfind without installing the integration, or uninstall it for that agent.
+For exact error messages or surface forms, `rg -F`, `grep -F`, `git grep -F`, `--fixed-strings`, and `fgrep` are allowed. You can also use `kfind --literal` or IDE fixed-string search. Regular expressions are outside this exception.
 
 ```bash
 kfind --embedded --boundary any --pos verb --json 걷다 src

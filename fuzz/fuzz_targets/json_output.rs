@@ -30,6 +30,7 @@ fuzz_target!(|data: &[u8]| {
         matching_lines: 1,
         matched_spans: Some(matched_spans),
         binary_byte_offset: None,
+        structural_verification_incomplete: false,
     };
     let options = OutputOptions {
         mode: OutputMode::JsonLines,

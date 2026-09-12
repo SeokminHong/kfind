@@ -8,6 +8,8 @@ Crate root는 `Engine`, `Matcher`, `ResourceBundle`, 컴파일 옵션, 오류와
 
 Matcher는 UTF-8 byte slice를 검색하며 파일 순회·인코딩·출력은 처리하지 않습니다.
 
+`Matcher::find_all_with_diagnostics(input, &diagnostics)`는 일치 결과와 함께 `SearchDiagnostics::structural_verification_incomplete()`로 판정 불가 여부를 확인하게 합니다. 진단은 검색 단위로 생성합니다. 같은 진단을 재사용하면 판정 불가 상태를 누적하며, 다른 worker와 공유하지 않습니다.
+
 ## resource 초기화 [#resources]
 
 `Engine::with_resources`는 선택적 full POS, enriched predicate와 구성 요소를 하나의 profile로 검증합니다. `Engine::new`는 embedded profile을 만듭니다.
