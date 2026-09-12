@@ -123,6 +123,7 @@ impl SearchEvent {
 pub struct SearchSummary {
     pub has_match: bool,
     pub searched_files: u64,
+    pub structurally_incomplete_files: u64,
     pub files_with_matches: u64,
     pub matching_lines: u64,
     pub errors: u64,
@@ -134,6 +135,8 @@ impl SearchSummary {
         match event {
             SearchEvent::FileEnd(result) => {
                 self.searched_files += 1;
+                self.structurally_incomplete_files +=
+                    u64::from(result.structural_verification_incomplete);
                 self.matching_lines += result.matching_lines;
                 if result.has_match() {
                     self.has_match = true;

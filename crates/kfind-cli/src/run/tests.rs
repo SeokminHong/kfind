@@ -615,3 +615,58 @@ fn component_expression_entry(
         expression: expression.to_owned(),
     }
 }
+
+#[test]
+fn incomplete_structural_verification_is_reported_in_every_output_mode() {
+    let temp = TempDir::new();
+    temp.write_bytes(COMPONENT_RESOURCE_FILE, &component_resource());
+    for mode in ["text", "json", "count", "files", "quiet"] {
+        for suffix in ["", "\n학교"] {
+            let mut args = component_args(&temp, "학교");
+            args.json = mode == "json";
+            args.count = mode == "count";
+            args.files_with_matches = mode == "files";
+            args.quiet = mode == "quiet";
+            let input = format!("{} 대학교{suffix}\n", "가".repeat(70));
+            let (status, stdout, stderr) = run(args, input.as_bytes(), false);
+            assert_eq!(status, ExitStatus::Error, "{mode}");
+            assert!(
+                String::from_utf8(stderr)
+                    .unwrap()
+                    .contains("structural_verification_incomplete")
+            );
+            if suffix.is_empty() {
+                assert!(stdout.is_empty() || mode == "count", "{mode}");
+            } else if mode == "json" {
+                let record: serde_json::Value = serde_json::from_slice(&stdout).unwrap();
+                assert_eq!(record["type"], "match");
+                assert_eq!(record["line"], 2);
+            }
+        }
+    }
+    let (_, _, stderr) = run(component_args(&temp, "학교"), "학교\n".as_bytes(), false);
+    assert!(stderr.is_empty());
+}
+
+#[test]
+fn structural_diagnostics_do_not_leak_between_files_or_workers() {
+    let temp = TempDir::new();
+    temp.write_bytes(COMPONENT_RESOURCE_FILE, &component_resource());
+    temp.write("bad.txt", &format!("{} 대학교\n", "가".repeat(70)));
+    temp.write("good.txt", "대학교\n");
+    for threads in [1, 2] {
+        let mut args = component_args(&temp, "학교");
+        args.paths = vec![temp.0.join("bad.txt"), temp.0.join("good.txt")];
+        args.threads = Some(threads);
+        let (status, stdout, stderr) = run(args, b"", false);
+        assert_eq!(status, ExitStatus::Error);
+        let stderr = String::from_utf8(stderr).unwrap();
+        assert_eq!(
+            stderr.matches("structural_verification_incomplete").count(),
+            1
+        );
+        assert!(stderr.contains("bad.txt"));
+        assert!(!stderr.contains("good.txt"));
+        assert!(String::from_utf8(stdout).unwrap().contains("대학교"));
+    }
+}

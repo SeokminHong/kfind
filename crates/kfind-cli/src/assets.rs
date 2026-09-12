@@ -30,6 +30,10 @@ to one row per verified match, with both sides truncated to keep the target
 visible. Navigation and resize remain active while searching. Use the up/down
 arrows or k/j to move, and q or Esc to exit. Use --no-pager for direct output.
 Redirected, piped, JSON, and summary output remains a direct stdout stream.
+.PP
+If structural context verification is unavailable, the native CLI preserves
+existing matches, reports structural_verification_incomplete on stderr, and exits
+with status 2. The diagnostic also applies to JSON, count, file-list, and quiet output.
 .SS Agent automation
 Agents should specify the part of speech for every morphology atom and use
 unrestricted boundaries, the embedded lexicon, and JSON Lines output.
@@ -198,6 +202,7 @@ mod tests {
         assert!(first_contents[0].contains("걷다 | 사용자 | 검증하다"));
         assert!(first_contents[0].contains("Use --no-pager for direct"));
         assert!(first_contents[0].contains(".SS Agent automation"));
+        assert!(first_contents[0].contains("structural_verification_incomplete"));
         assert!(first_contents[0].contains(".SS Agent integration setup"));
         assert!(first_contents[0].contains("--embedded --boundary any --pos verb --json"));
         assert!(first_contents[0].contains("--init --agent codex --agent claude-code"));

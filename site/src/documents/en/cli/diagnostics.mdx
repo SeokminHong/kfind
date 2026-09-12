@@ -30,7 +30,9 @@ Also verify that the file was searched. Native ignore, glob, and encoding settin
 
 Candidates that require structural verification use a bounded source window. The defaults are 256 raw bytes and 64 Unicode scalars after normalization, applied to the current token and required adjacent context. These are not limits on the entire input file.
 
-If window extraction or structural graph preparation fails, the ordinary matcher excludes that candidate. Current text output, JSON Lines, and exit codes do not distinguish it from a verified non-match. They also expose no indeterminate-candidate count or search-completeness field. Internal diagnostic states in [structural verification](/internals/structural-verification) are not always reported by the CLI.
+If window extraction, structural graph preparation, or coordinate alignment fails, the candidate is excluded. The native CLI writes the path and `structural_verification_incomplete` to stderr and exits with status 2 while preserving matches already written to stdout. This applies to text, JSON Lines, count, file-list, and quiet modes.
+
+The diagnostic identifies unavailable structural context verification, without counting candidates. Its absence does not guarantee coverage of unsupported morphology or input after an early exit. Rust callers can inspect the same state with `find_all_with_diagnostics` and `SearchDiagnostics`. This diagnostic contract does not apply to the npm CLI.
 
 When omissions matter, compare `any` with literal searches for known source forms. This does not guarantee recovery of unsupported inflections, typos, or semantic matches.
 

@@ -757,12 +757,21 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
 - `ConstraintResolver`는 query pattern의 structural signature가 선택된 corpus 구조와
   일치하면 `Supported`, 다른 구조가 유일하게 선택되면 `Contradicted`, resource 오류나
   상한 초과는 `Unavailable`로 반환한다.
-- 위 판정 상태는 resolver와 진단 경로의 계약이다. 일반 matcher의 구조 context 준비는
-  window 추출이나 graph 준비 실패를 후보 거부로 처리한다. 일반 검색의 text·JSON Lines와
-  종료 코드는 이 후보를 검증 후 불일치한 후보와 구분하지 않으며, 판정 불가 후보 수나
-  검색 완전성을 보고하지 않는다. Window의 기본 제한은 원문 256 byte와 정규화 후
-  64 Unicode scalar이며 현재 token과 필요한 인접 문맥에 적용한다. 입력 파일 전체의
-  길이 제한이 아니다.
+- 구조 context의 window 추출·graph 준비·좌표 정렬 실패 또는 `Unavailable` 판정은
+  후보를 제외하면서 `SearchDiagnostics`의 `structural_verification_incomplete`를 설정한다.
+  이 진단은 호출자가 소유하는 검색 단위 상태이며 다른 입력·worker와 암묵적으로 공유하거나
+  초기화하지 않는다. 같은 상태에 여러 검색을 누적하면 하나라도 판정 불가일 때 참을 유지한다.
+  기존 matcher API는 결과 계약을 유지하고 진단을 받는 API를 추가한다.
+- 네이티브 파일 검색은 파일마다 별도 진단을 사용하고 `FileSearchResult`에 위 상태를 보존한다.
+  `SearchSummary`는 판정 불가가 발생한 파일 수를 집계한다. 결과가 없는 파일과 문맥·집계
+  출력에서도 진단은 유지한다. 이 값이 거짓이어도 지원하지 않는 활용·의미 검색, 조기 종료나
+  검색 대상 밖의 파일까지 포함한 완전성을 보장하지 않는다. 판정 불가 후보 수는 제공하지 않는다.
+- 네이티브 CLI는 구조 판정 불가가 관측된 파일 경로와 `structural_verification_incomplete`
+  진단을 stderr에 출력하고 종료 코드 2를 반환한다. 이미 찾은 stdout 결과는 보존한다.
+  JSON Lines에 진단 record를 섞지 않으며, `--count`, `--files-with-matches`, `--quiet`에도
+  같은 종료 계약을 적용한다. 조기 종료 뒤의 미검색 구간에 대한 판정은 추측하지 않는다.
+- Window의 기본 제한은 원문 256 byte와 정규화 후 64 Unicode scalar이며 현재 token과
+  필요한 인접 문맥에 적용한다. 입력 파일 전체의 길이 제한이 아니다.
 - 구조 준비는 현재 token 자체에서 얻는 형태 graph와 앞뒤 token에 따른 구조 선택을 별도
   단계로 유지한다. Matcher는 전체 program이 8개 이하인 작은 plan에서 structural program의
   정규화된 anchor를 현재 token 후보로 최대 64개까지 matcher memory 상한 안에서 등록한다.

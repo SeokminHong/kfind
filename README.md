@@ -267,3 +267,7 @@ revision, 실험 조건과 변화량은 `docs/benchmarks`의 기록 문서에만
 데이터는 CC BY-SA 2.0 대한민국 라이선스, mecab-ko-dic 유래 데이터는
 Apache-2.0을 적용합니다. 적용 범위와 고지는 [`LICENSES.md`](LICENSES.md)에
 있습니다.
+
+네이티브 CLI에서 구조 context의 window·graph·좌표 판정에 실패한 후보가 있으면
+`structural_verification_incomplete` 진단을 stderr에 표시하고 종료 코드 2를 반환합니다.
+이미 찾은 결과는 유지하지만 불완전한 결과로 처리해야 합니다.

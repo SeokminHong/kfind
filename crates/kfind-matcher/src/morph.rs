@@ -20,6 +20,7 @@ use kfind_query::{
 };
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
+use crate::SearchDiagnostics;
 use crate::boundary::{accepts_requirements, surrounding_token_span};
 use crate::{AnchorBuildError, AnchorBuildLimits, AnchorEngine, AnchorHit};
 
@@ -47,6 +48,7 @@ const ADNOMINAL_RULE_IDS: [&str; 4] = [
 ];
 #[derive(Default)]
 struct StructuralCache<'a> {
+    diagnostics: Option<&'a SearchDiagnostics>,
     windows: HashMap<(usize, usize, bool, bool), Option<PreparedStructuralContextAnalysis<'a>>>,
     prepared_contexts: PreparedStructuralContextCache,
 }
@@ -339,16 +341,41 @@ impl MorphMatcher {
     /// Finds the next non-overlapping query match without morphology provenance.
     #[must_use]
     pub fn find_span_at(&self, haystack: &[u8], at: usize) -> Option<Range<usize>> {
+        self.find_span_at_with_diagnostics(haystack, at, &SearchDiagnostics::default())
+    }
+
+    /// Finds a span and records unavailable structural verification in the caller's scope.
+    #[must_use]
+    pub fn find_span_at_with_diagnostics(
+        &self,
+        haystack: &[u8],
+        at: usize,
+        diagnostics: &SearchDiagnostics,
+    ) -> Option<Range<usize>> {
         if at > haystack.len() {
             return None;
         }
         if self.plan.atoms.len() == 1 {
+            let mut cache = StructuralCache {
+                diagnostics: Some(diagnostics),
+                ..Default::default()
+            };
             return self
-                .find_single_atom_best(haystack, at, MatchMetadata::SpanOnly)
+                .find_single_atom_best_with_cache(haystack, at, MatchMetadata::SpanOnly, &mut cache)
                 .map(|span| span.token);
         }
-        self.find_phrase_at_with_metadata(haystack, at, MatchMetadata::SpanOnly)
-            .map(|matched| matched.span)
+        streaming_phrase::select_with_diagnostics(
+            self,
+            haystack,
+            at,
+            MatchMetadata::SpanOnly,
+            PhraseMatchLimit::First,
+            Some(diagnostics),
+        )
+        .matches
+        .into_iter()
+        .next()
+        .map(|matched| matched.span)
     }
 
     /// Finds the next non-overlapping query match with its atom metadata.
@@ -401,8 +428,29 @@ impl MorphMatcher {
         haystack: &[u8],
         limit: usize,
     ) -> Result<Vec<PhraseMatch>, MatchLimitExceeded> {
+        self.find_all_with_meta_limit_and_diagnostics(
+            haystack,
+            limit,
+            &SearchDiagnostics::default(),
+        )
+    }
+
+    /// Collects matches while accumulating structural verification diagnostics.
+    pub fn find_all_with_meta_limit_and_diagnostics(
+        &self,
+        haystack: &[u8],
+        limit: usize,
+        diagnostics: &SearchDiagnostics,
+    ) -> Result<Vec<PhraseMatch>, MatchLimitExceeded> {
         if self.plan.atoms.len() > 1 {
-            let selection = self.find_phrases_with_meta(haystack, PhraseMatchLimit::Bounded(limit));
+            let selection = streaming_phrase::select_with_diagnostics(
+                self,
+                haystack,
+                0,
+                MatchMetadata::Provenance,
+                PhraseMatchLimit::Bounded(limit),
+                Some(diagnostics),
+            );
             return if selection.limit_exceeded {
                 Err(MatchLimitExceeded { limit })
             } else {
@@ -411,7 +459,10 @@ impl MorphMatcher {
         }
         let mut matches = Vec::new();
         let mut at = 0;
-        let mut structural_cache = StructuralCache::default();
+        let mut structural_cache = StructuralCache {
+            diagnostics: Some(diagnostics),
+            ..Default::default()
+        };
         loop {
             structural_cache.clear_windows();
             let Some(matched) = self.find_single_atom_best_with_cache(
@@ -890,19 +941,30 @@ impl MorphMatcher {
                 )
             });
         let Some(context) = context.as_ref() else {
+            if let Some(diagnostics) = structural_cache.diagnostics {
+                diagnostics.record_unavailable();
+            }
             return false;
         };
         if rejected_suffix && !context.has_nominal_copula_host(candidate.verified.core.clone()) {
             return false;
         }
-        context
-            .resolve(StructuralRequest {
-                candidate: &candidate.verified,
-                anchor: candidate.anchor.clone(),
-                consumed,
-                patterns,
-            })
-            .is_some_and(|decision| ProductPolicy::RecallFirst.accepts(&decision))
+        let decision = context.resolve(StructuralRequest {
+            candidate: &candidate.verified,
+            anchor: candidate.anchor.clone(),
+            consumed,
+            patterns,
+        });
+        if decision.as_ref().is_none_or(|decision| {
+            matches!(
+                decision.outcome,
+                kfind_morph::ConstraintOutcome::Unavailable(_)
+            )
+        }) && let Some(diagnostics) = structural_cache.diagnostics
+        {
+            diagnostics.record_unavailable();
+        }
+        decision.is_some_and(|decision| ProductPolicy::RecallFirst.accepts(&decision))
     }
 
     fn licensed_structural_trailing(

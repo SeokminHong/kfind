@@ -87,6 +87,7 @@ pub struct FileSearchResult {
     pub matching_lines: u64,
     pub matched_spans: Option<u64>,
     pub binary_byte_offset: Option<u64>,
+    pub structural_verification_incomplete: bool,
 }
 
 impl FileSearchResult {
@@ -241,6 +242,7 @@ where
                 matching_lines: 0,
                 matched_spans: capture_records.then_some(0),
                 binary_byte_offset: None,
+                structural_verification_incomplete: false,
             },
             matcher,
             capture_records,
@@ -248,7 +250,9 @@ where
         }
     }
 
-    fn finish(self) -> FileSearchResult {
+    fn finish(mut self) -> FileSearchResult {
+        self.result.structural_verification_incomplete =
+            self.matcher.structural_verification_incomplete();
         self.result
     }
 

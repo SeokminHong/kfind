@@ -2717,3 +2717,39 @@ fn component_expression_entry(
         expression: expression.to_owned(),
     }
 }
+
+#[test]
+fn structural_diagnostics_are_scoped_and_preserve_matches() {
+    use kfind_matcher::SearchDiagnostics;
+    for query in ["n:명사", "n:명사 n:사용자"] {
+        let matcher = compile(query, CompileOptions::default());
+        let text = format!("{} 복합명사 사용자", "가".repeat(70));
+        let diagnostics = SearchDiagnostics::default();
+        let matches = matcher
+            .find_all_with_meta_limit_and_diagnostics(text.as_bytes(), 10, &diagnostics)
+            .unwrap();
+        assert_eq!(matches, matcher.find_all_with_meta(text.as_bytes()));
+        assert!(diagnostics.structural_verification_incomplete(), "{query}");
+        let clean = SearchDiagnostics::default();
+        let result = matcher.find_span_at_with_diagnostics("복합명사 사용자".as_bytes(), 0, &clean);
+        assert!(result.is_some(), "{query}");
+        assert!(!clean.structural_verification_incomplete());
+        assert!(diagnostics.structural_verification_incomplete());
+    }
+    for boundary in [BoundaryPolicy::Any, BoundaryPolicy::Token] {
+        let matcher = compile(
+            "n:명사",
+            CompileOptions {
+                boundary,
+                ..Default::default()
+            },
+        );
+        let diagnostics = SearchDiagnostics::default();
+        assert!(
+            matcher
+                .find_span_at_with_diagnostics("명사".as_bytes(), 0, &diagnostics)
+                .is_some()
+        );
+        assert!(!diagnostics.structural_verification_incomplete());
+    }
+}
