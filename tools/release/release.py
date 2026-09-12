@@ -119,6 +119,22 @@ def replace_current_version(path: Path, current: str, target: str) -> None:
     path.write_text(text.replace(current, target), encoding="utf-8")
 
 
+def replace_manifest_version(
+    path: Path, section: str, current: str, target: str
+) -> None:
+    text = path.read_text(encoding="utf-8")
+    pattern = re.compile(
+        rf"(?m)(^\[{re.escape(section)}\]\n"
+        rf'(?:(?!\[)[^\n]*\n)*?version = "){re.escape(current)}("$)'
+    )
+    updated, count = pattern.subn(
+        lambda match: f"{match.group(1)}{target}{match.group(2)}", text
+    )
+    if count != 1:
+        raise RuntimeError(f"expected one {section}.version = {current} in {path}")
+    path.write_text(updated, encoding="utf-8")
+
+
 def refresh_lockfiles(repository_root: Path) -> None:
     for relative_manifest in LOCKFILE_MANIFESTS:
         subprocess.run(
@@ -140,9 +156,12 @@ def set_version(target: str, repository_root: Path = REPOSITORY_ROOT) -> None:
     parse_version(target)
     current = workspace_version(repository_root)
     if current != target:
-        replace_current_version(repository_root / "Cargo.toml", current, target)
-        replace_current_version(
+        replace_manifest_version(
+            repository_root / "Cargo.toml", "workspace.package", current, target
+        )
+        replace_manifest_version(
             repository_root / "tools/morph-compare/runner/Cargo.toml",
+            "package",
             current,
             target,
         )
@@ -169,7 +188,9 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("current-version")
 
     next_parser = subparsers.add_parser("next-version")
-    next_parser.add_argument("--bump", choices=("major", "minor", "patch"), required=True)
+    next_parser.add_argument(
+        "--bump", choices=("major", "minor", "patch"), required=True
+    )
     next_parser.add_argument("--prerelease", action="store_true")
 
     set_parser = subparsers.add_parser("set-version")

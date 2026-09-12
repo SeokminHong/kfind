@@ -3715,6 +3715,8 @@ Chocolatey package, source, full POS, component, CLI asset과 Homebrew formula�
 commit에 annotated tag를 붙이고 GitHub Release를 생성한다. RC는 GitHub prerelease로 표시한다.
 Workspace와 도구 lockfile 동기화는 component resource 생성을 포함한 모든 `--locked` 검증보다
 먼저 완료하며, 기존 외부 dependency version은 갱신하지 않는다.
+Cargo manifest의 버전 변경은 `[workspace.package].version`과 독립 benchmark runner의
+`[package].version`에 한정한다. 같은 값이나 접두부를 가진 dependency requirement는 보존한다.
 `main`의 pull request 보호 규칙을 우회하지 않는다. Version bump는 실행별 release branch에
 commit하고 release PR을 만든 뒤 같은 commit의 필수 CI를 명시적으로 실행하여 squash merge한다.
 이후 asset과 tag는 merge commit만 참조한다.
