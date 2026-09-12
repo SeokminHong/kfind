@@ -1,0 +1,1361 @@
+{
+  "schema_version": 1,
+  "date": "2026-09-12",
+  "revision": "209427e27229ef7d95e6a52e70c62fd21626e0a5",
+  "protocol": {
+    "schema_version": 1,
+    "source_manifest": "tools/morph-compare/real_corpus/sources.json",
+    "solver": "same Codex assistant, sequential non-blind pilot",
+    "prior_exposure": "All four source files were read before trials. Previous search benchmark used these sources. Solutions are simple educational exercises; no independent model samples.",
+    "tasks": [
+      {
+        "id": "strings",
+        "prompt": "문자열의 양쪽 공백 제거, world 덧붙이기, cars를 balloons로 바꾸기를 구현하고 원본 테스트를 통과시키세요.",
+        "order": [
+          "rg",
+          "kfind"
+        ],
+        "verification": "rustc --edition=2021 --test strings3.rs, then run test binary"
+      },
+      {
+        "id": "basket",
+        "prompt": "과일 바구니에 없는 종류만 추가해 다섯 종류를 모두 포함하고 기존 수량을 보존하도록 완성하세요. 원본 테스트를 통과시키세요.",
+        "order": [
+          "kfind",
+          "rg"
+        ],
+        "verification": "rustc --edition=2021 --test hashmaps2.rs, then run test binary"
+      },
+      {
+        "id": "positive",
+        "prompt": "양의 정수 생성자가 음수와 0에 알맞은 오류를 반환하도록 고치고 원본 테스트를 통과시키세요.",
+        "order": [
+          "rg",
+          "kfind"
+        ],
+        "verification": "rustc --edition=2021 --test errors4.rs, then run test binary"
+      },
+      {
+        "id": "threads",
+        "prompt": "생성한 모든 스레드가 끝날 때까지 기다려 반환값을 모으도록 완성하세요. 원본 main의 결과 10개 검증을 통과시키세요.",
+        "order": [
+          "kfind",
+          "rg"
+        ],
+        "verification": "rustc --edition=2021 threads1.rs, run main; exit 0 and 10 distinct done plus 10 took lines, each took >=250ms"
+      }
+    ],
+    "constraints": [
+      "Do not alter tests or main validation",
+      "Same nine input files for all trials",
+      "No model-token or total human-time estimate",
+      "Record actual tool output and elapsed subprocess time; no success-rate inference from repeated trials"
+    ]
+  },
+  "source_manifest": {
+    "schema_version": 1,
+    "sources": [
+      {
+        "id": "rustlings-kr",
+        "repository": "https://github.com/eoncheole/rustlings-kr",
+        "revision": "5afb3e613b306d0803d8f2f6ab6d1c3e26c12c35",
+        "license": "MIT",
+        "license_url": "https://github.com/eoncheole/rustlings-kr/blob/5afb3e613b306d0803d8f2f6ab6d1c3e26c12c35/LICENSE",
+        "files": [
+          {
+            "path": "README.md",
+            "sha256": "19dd4e9c9ff6e187a00f0e329102d52502b222e92f1715341b912190f538c680",
+            "url": "https://github.com/eoncheole/rustlings-kr/blob/5afb3e613b306d0803d8f2f6ab6d1c3e26c12c35/README.md"
+          },
+          {
+            "path": "exercises/06_move_semantics/move_semantics2.rs",
+            "sha256": "af0077a04de1df899ef7bdcc334c3540dd5d48e52d71afb3cfbc0ea6d7bca7d4",
+            "url": "https://github.com/eoncheole/rustlings-kr/blob/5afb3e613b306d0803d8f2f6ab6d1c3e26c12c35/exercises/06_move_semantics/move_semantics2.rs"
+          },
+          {
+            "path": "exercises/09_strings/strings3.rs",
+            "sha256": "f7cc39a9a69e4a7ff8e31e3af28121578426a0aac58a928c93b1b2f71500dbd0",
+            "url": "https://github.com/eoncheole/rustlings-kr/blob/5afb3e613b306d0803d8f2f6ab6d1c3e26c12c35/exercises/09_strings/strings3.rs"
+          },
+          {
+            "path": "exercises/11_hashmaps/hashmaps2.rs",
+            "sha256": "284583c26977895d49f926771c7aaff962cd8255fdd6d5126be4a67ee13c09e7",
+            "url": "https://github.com/eoncheole/rustlings-kr/blob/5afb3e613b306d0803d8f2f6ab6d1c3e26c12c35/exercises/11_hashmaps/hashmaps2.rs"
+          },
+          {
+            "path": "exercises/13_error_handling/errors4.rs",
+            "sha256": "472bb5dc8c8529f5161259e7be75eb9d2053aabc1e0e08b54ec2b9da4b6bdc79",
+            "url": "https://github.com/eoncheole/rustlings-kr/blob/5afb3e613b306d0803d8f2f6ab6d1c3e26c12c35/exercises/13_error_handling/errors4.rs"
+          },
+          {
+            "path": "exercises/20_threads/threads1.rs",
+            "sha256": "c79670c8edfbf1cc112dd5d8d6d73885e791e0b2ddbfe0d251d562b2c5b3a677",
+            "url": "https://github.com/eoncheole/rustlings-kr/blob/5afb3e613b306d0803d8f2f6ab6d1c3e26c12c35/exercises/20_threads/threads1.rs"
+          }
+        ]
+      },
+      {
+        "id": "kubernetes-website",
+        "repository": "https://github.com/kubernetes/website",
+        "revision": "11ed97b8bc76e86d4b5ed330ad27df67ec2b2b8b",
+        "license": "CC-BY-4.0",
+        "license_url": "https://github.com/kubernetes/website/blob/11ed97b8bc76e86d4b5ed330ad27df67ec2b2b8b/LICENSE",
+        "files": [
+          {
+            "path": "content/ko/docs/concepts/containers/cri.md",
+            "sha256": "b816fd4177b17392f8cfa81f01da7833f791c4afd475d256cc964649998420dc",
+            "url": "https://github.com/kubernetes/website/blob/11ed97b8bc76e86d4b5ed330ad27df67ec2b2b8b/content/ko/docs/concepts/containers/cri.md"
+          },
+          {
+            "path": "content/ko/docs/concepts/policy/limit-range.md",
+            "sha256": "14ba30ebf9d02198cd6701bbf2f8438f3410cdf72399a8bea07820d0ada5ffdf",
+            "url": "https://github.com/kubernetes/website/blob/11ed97b8bc76e86d4b5ed330ad27df67ec2b2b8b/content/ko/docs/concepts/policy/limit-range.md"
+          },
+          {
+            "path": "content/ko/docs/tasks/debug/debug-cluster/crictl.md",
+            "sha256": "39f7af7ec28492cd7cf62f53368c45306adf806289759cb8e3b74de17fee7617",
+            "url": "https://github.com/kubernetes/website/blob/11ed97b8bc76e86d4b5ed330ad27df67ec2b2b8b/content/ko/docs/tasks/debug/debug-cluster/crictl.md"
+          }
+        ]
+      }
+    ]
+  },
+  "environment": {
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+    "ripgrep": "ripgrep 15.2.0",
+    "kfind_sha256": "5b356a091df77f09ff784f7f39e37077bafe150e03c4f7879707872d11148f75",
+    "model_tokens": null,
+    "model_cost": null,
+    "reason": "모델별 token·비용과 독립적인 판단 시간은 측정하지 않았다.",
+    "resource_sha256": {
+      "lexicon.bin": "012a2ecfc9ee049cb48f655eb240fa2ed6fc739dfde01526078a976549246e88",
+      "morphology-component-compact.kfc": "c786cb82ce0cdab3b9cf2b09b252e6068e0a63f2aebe8e8358002cd0a4be77d1",
+      "predicates.tsv": "8c2f1f22a0e898c4afc9f1c5498778802d27fe8c47ba4df09bc955c06d532a5f"
+    },
+    "empty_user_lexicon_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "trials": [
+    {
+      "trial": "strings-rg",
+      "started_at": "2026-09-12T07:55:36.834337+00:00",
+      "inputs": [
+        {
+          "path": "rustlings-kr/README.md",
+          "sha256": "19dd4e9c9ff6e187a00f0e329102d52502b222e92f1715341b912190f538c680"
+        },
+        {
+          "path": "rustlings-kr/exercises/06_move_semantics/move_semantics2.rs",
+          "sha256": "af0077a04de1df899ef7bdcc334c3540dd5d48e52d71afb3cfbc0ea6d7bca7d4"
+        },
+        {
+          "path": "rustlings-kr/exercises/09_strings/strings3.rs",
+          "sha256": "f7cc39a9a69e4a7ff8e31e3af28121578426a0aac58a928c93b1b2f71500dbd0"
+        },
+        {
+          "path": "rustlings-kr/exercises/11_hashmaps/hashmaps2.rs",
+          "sha256": "284583c26977895d49f926771c7aaff962cd8255fdd6d5126be4a67ee13c09e7"
+        },
+        {
+          "path": "rustlings-kr/exercises/13_error_handling/errors4.rs",
+          "sha256": "472bb5dc8c8529f5161259e7be75eb9d2053aabc1e0e08b54ec2b9da4b6bdc79"
+        },
+        {
+          "path": "rustlings-kr/exercises/20_threads/threads1.rs",
+          "sha256": "c79670c8edfbf1cc112dd5d8d6d73885e791e0b2ddbfe0d251d562b2c5b3a677"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/concepts/containers/cri.md",
+          "sha256": "b816fd4177b17392f8cfa81f01da7833f791c4afd475d256cc964649998420dc"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/concepts/policy/limit-range.md",
+          "sha256": "14ba30ebf9d02198cd6701bbf2f8438f3410cdf72399a8bea07820d0ada5ffdf"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/tasks/debug/debug-cluster/crictl.md",
+          "sha256": "39f7af7ec28492cd7cf62f53368c45306adf806289759cb8e3b74de17fee7617"
+        }
+      ],
+      "events": [
+        {
+          "kind": "search",
+          "argv": [
+            "rg",
+            "--no-config",
+            "--json",
+            "-n",
+            "-F",
+            "-e",
+            "공백",
+            "-e",
+            "붙여",
+            "-e",
+            "바꿔",
+            "."
+          ],
+          "at": "2026-09-12T07:55:36.887499+00:00",
+          "elapsed_ms": 10.302583,
+          "exit_code": 0,
+          "stdout": "{\"type\":\"begin\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/09_strings/strings3.rs\"}}}\n{\"type\":\"match\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/09_strings/strings3.rs\"},\"lines\":{\"text\":\"    // TODO: 문자열 양쪽 끝의 공백(whitespace)을 제거해봐!\\n\"},\"line_number\":2,\"absolute_offset\":34,\"submatches\":[{\"match\":{\"text\":\"공백\"},\"start\":37,\"end\":43}]}}\n{\"type\":\"match\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/09_strings/strings3.rs\"},\"lines\":{\"text\":\"    // TODO: 문자열에 \\\" world!\\\"를 붙여봐! 여러 가지 방법이 있어.\\n\"},\"line_number\":6,\"absolute_offset\":149,\"submatches\":[{\"match\":{\"text\":\"붙여\"},\"start\":39,\"end\":45}]}}\n{\"type\":\"match\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/09_strings/strings3.rs\"},\"lines\":{\"text\":\"    // TODO: 문자열에서 \\\"cars\\\"를 \\\"balloons\\\"로 바꿔봐!\\n\"},\"line_number\":10,\"absolute_offset\":273,\"submatches\":[{\"match\":{\"text\":\"바꿔\"},\"start\":53,\"end\":59}]}}\n{\"type\":\"end\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/09_strings/strings3.rs\"},\"binary_offset\":null,\"stats\":{\"elapsed\":{\"secs\":0,\"nanos\":542750,\"human\":\"0.000543s\"},\"searches\":1,\"searches_with_match\":1,\"bytes_searched\":1152,\"bytes_printed\":959,\"matched_lines\":3,\"matches\":3}}}\n{\"data\":{\"elapsed_total\":{\"human\":\"0.004509s\",\"nanos\":4509375,\"secs\":0},\"stats\":{\"bytes_printed\":959,\"bytes_searched\":30868,\"elapsed\":{\"human\":\"0.000688s\",\"nanos\":688332,\"secs\":0},\"matched_lines\":3,\"matches\":3,\"searches\":9,\"searches_with_match\":1}},\"type\":\"summary\"}\n",
+          "stderr": "",
+          "stdout_bytes": 1512,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "read",
+          "argv": [
+            "cat",
+            "rustlings-kr/exercises/09_strings/strings3.rs"
+          ],
+          "at": "2026-09-12T07:55:42.936359+00:00",
+          "elapsed_ms": 4.609792,
+          "exit_code": 0,
+          "stdout": "fn trim_me(input: &str) -> &str {\n    // TODO: 문자열 양쪽 끝의 공백(whitespace)을 제거해봐!\n}\n\nfn compose_me(input: &str) -> String {\n    // TODO: 문자열에 \" world!\"를 붙여봐! 여러 가지 방법이 있어.\n}\n\nfn replace_me(input: &str) -> String {\n    // TODO: 문자열에서 \"cars\"를 \"balloons\"로 바꿔봐!\n}\n\nfn main() {\n    // 여기서 자유롭게 실험해봐.\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn trim_a_string() {\n        assert_eq!(trim_me(\"Hello!     \"), \"Hello!\");\n        assert_eq!(trim_me(\"  What's up!\"), \"What's up!\");\n        assert_eq!(trim_me(\"   Hola!  \"), \"Hola!\");\n        assert_eq!(trim_me(\"Hi!\"), \"Hi!\");\n    }\n\n    #[test]\n    fn compose_a_string() {\n        assert_eq!(compose_me(\"Hello\"), \"Hello world!\");\n        assert_eq!(compose_me(\"Goodbye\"), \"Goodbye world!\");\n    }\n\n    #[test]\n    fn replace_a_string() {\n        assert_eq!(\n            replace_me(\"I think cars are cool\"),\n            \"I think balloons are cool\",\n        );\n        assert_eq!(\n            replace_me(\"I love to look at cars\"),\n            \"I love to look at balloons\",\n        );\n    }\n}\n",
+          "stderr": "",
+          "stdout_bytes": 1152,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "baseline-compile",
+          "argv": [
+            "rustc",
+            "--edition=2021",
+            "--test",
+            "rustlings-kr/exercises/09_strings/strings3.rs",
+            "-o",
+            "../check"
+          ],
+          "at": "2026-09-12T07:55:43.180537+00:00",
+          "elapsed_ms": 199.349625,
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "error[E0308]: mismatched types\n --> rustlings-kr/exercises/09_strings/strings3.rs:1:28\n  |\n1 | fn trim_me(input: &str) -> &str {\n  |    -------                 ^^^^ expected `&str`, found `()`\n  |    |\n  |    implicitly returns `()` as its body has no tail or `return` expression\n  |\nhelp: consider returning the local binding `input`\n  |\n1 | fn trim_me(input: &str) -> &str {\n2 ~     input\n  |\n\nerror[E0308]: mismatched types\n --> rustlings-kr/exercises/09_strings/strings3.rs:5:31\n  |\n5 | fn compose_me(input: &str) -> String {\n  |    ----------                 ^^^^^^ expected `String`, found `()`\n  |    |\n  |    implicitly returns `()` as its body has no tail or `return` expression\n\nerror[E0308]: mismatched types\n --> rustlings-kr/exercises/09_strings/strings3.rs:9:31\n  |\n9 | fn replace_me(input: &str) -> String {\n  |    ----------                 ^^^^^^ expected `String`, found `()`\n  |    |\n  |    implicitly returns `()` as its body has no tail or `return` expression\n\nerror: aborting due to 3 previous errors\n\nFor more information about this error, try `rustc --explain E0308`.\n",
+          "stdout_bytes": 0,
+          "stderr_bytes": 1092
+        },
+        {
+          "kind": "compile",
+          "argv": [
+            "rustc",
+            "--edition=2021",
+            "--test",
+            "rustlings-kr/exercises/09_strings/strings3.rs",
+            "-o",
+            "../check"
+          ],
+          "at": "2026-09-12T07:55:58.075160+00:00",
+          "elapsed_ms": 177.426459,
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "verify",
+          "argv": [
+            "../check"
+          ],
+          "at": "2026-09-12T07:55:58.601378+00:00",
+          "elapsed_ms": 479.699875,
+          "exit_code": 0,
+          "stdout": "\nrunning 3 tests\ntest tests::compose_a_string ... ok\ntest tests::replace_a_string ... ok\ntest tests::trim_a_string ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+          "stderr": "",
+          "stdout_bytes": 218,
+          "stderr_bytes": 0
+        }
+      ],
+      "patches": [
+        {
+          "path": "rustlings-kr/exercises/09_strings/strings3.rs",
+          "sha256": "2a7d143e7f59ba4aad2b4d41e5f545d6fdc9e803e101d702bb519f92ebeb2237",
+          "diff": "--- a/rustlings-kr/exercises/09_strings/strings3.rs\n+++ b/rustlings-kr/exercises/09_strings/strings3.rs\n@@ -1,13 +1,13 @@\n fn trim_me(input: &str) -> &str {\n-    // TODO: 문자열 양쪽 끝의 공백(whitespace)을 제거해봐!\n+    input.trim()\n }\n \n fn compose_me(input: &str) -> String {\n-    // TODO: 문자열에 \" world!\"를 붙여봐! 여러 가지 방법이 있어.\n+    format!(\"{input} world!\")\n }\n \n fn replace_me(input: &str) -> String {\n-    // TODO: 문자열에서 \"cars\"를 \"balloons\"로 바꿔봐!\n+    input.replace(\"cars\", \"balloons\")\n }\n \n fn main() {\n"
+        }
+      ],
+      "finished_at": "2026-09-12T07:55:58.662606+00:00"
+    },
+    {
+      "trial": "strings-kfind",
+      "started_at": "2026-09-12T07:55:58.708394+00:00",
+      "inputs": [
+        {
+          "path": "rustlings-kr/README.md",
+          "sha256": "19dd4e9c9ff6e187a00f0e329102d52502b222e92f1715341b912190f538c680"
+        },
+        {
+          "path": "rustlings-kr/exercises/06_move_semantics/move_semantics2.rs",
+          "sha256": "af0077a04de1df899ef7bdcc334c3540dd5d48e52d71afb3cfbc0ea6d7bca7d4"
+        },
+        {
+          "path": "rustlings-kr/exercises/09_strings/strings3.rs",
+          "sha256": "f7cc39a9a69e4a7ff8e31e3af28121578426a0aac58a928c93b1b2f71500dbd0"
+        },
+        {
+          "path": "rustlings-kr/exercises/11_hashmaps/hashmaps2.rs",
+          "sha256": "284583c26977895d49f926771c7aaff962cd8255fdd6d5126be4a67ee13c09e7"
+        },
+        {
+          "path": "rustlings-kr/exercises/13_error_handling/errors4.rs",
+          "sha256": "472bb5dc8c8529f5161259e7be75eb9d2053aabc1e0e08b54ec2b9da4b6bdc79"
+        },
+        {
+          "path": "rustlings-kr/exercises/20_threads/threads1.rs",
+          "sha256": "c79670c8edfbf1cc112dd5d8d6d73885e791e0b2ddbfe0d251d562b2c5b3a677"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/concepts/containers/cri.md",
+          "sha256": "b816fd4177b17392f8cfa81f01da7833f791c4afd475d256cc964649998420dc"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/concepts/policy/limit-range.md",
+          "sha256": "14ba30ebf9d02198cd6701bbf2f8438f3410cdf72399a8bea07820d0ada5ffdf"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/tasks/debug/debug-cluster/crictl.md",
+          "sha256": "39f7af7ec28492cd7cf62f53368c45306adf806289759cb8e3b74de17fee7617"
+        }
+      ],
+      "events": [
+        {
+          "kind": "search",
+          "argv": [
+            "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+            "--embedded",
+            "--boundary",
+            "any",
+            "--json",
+            "--no-pager",
+            "--threads",
+            "1",
+            "--user-lexicon",
+            "/Users/seokmin/.codex/worktrees/a087/kfind/target/task-search/empty-user-lexicon.toml",
+            "--data-dir",
+            "/Users/seokmin/.codex/worktrees/a087/kfind/target/task-search/resources",
+            "v:제거하다|v:붙이다|v:바꾸다",
+            "."
+          ],
+          "at": "2026-09-12T07:55:58.763821+00:00",
+          "elapsed_ms": 11.25825,
+          "exit_code": 0,
+          "stdout": "{\"type\":\"match\",\"path\":\"./rustlings-kr/exercises/09_strings/strings3.rs\",\"line\":2,\"text\":\"    // TODO: 문자열 양쪽 끝의 공백(whitespace)을 제거해봐!\",\"spans\":[{\"atom\":0,\"core\":{\"start\":59,\"end\":68},\"token\":{\"start\":59,\"end\":68},\"surface\":\"제거해\",\"origins\":[{\"analysis_index\":0,\"lemma\":\"제거하다\",\"pos\":\"verb\",\"rules\":[\"lexical.ha\",\"contraction.ha-yeo\",\"ending.aoeo\"]},{\"analysis_index\":1,\"lemma\":\"제거하다\",\"pos\":\"verb\",\"rules\":[\"lexical.ha\",\"contraction.ha-yeo\",\"ending.aoeo\"]}]}],\"offset_unit\":\"utf8-bytes\"}\n{\"type\":\"match\",\"path\":\"./rustlings-kr/exercises/09_strings/strings3.rs\",\"line\":6,\"text\":\"    // TODO: 문자열에 \\\" world!\\\"를 붙여봐! 여러 가지 방법이 있어.\",\"spans\":[{\"atom\":0,\"core\":{\"start\":39,\"end\":45},\"token\":{\"start\":39,\"end\":45},\"surface\":\"붙여\",\"origins\":[{\"analysis_index\":2,\"lemma\":\"붙이다\",\"pos\":\"verb\",\"rules\":[\"contraction.i-eo\",\"ending.aoeo\"]},{\"analysis_index\":3,\"lemma\":\"붙이다\",\"pos\":\"verb\",\"rules\":[\"contraction.i-eo\",\"ending.aoeo\"]}]}],\"offset_unit\":\"utf8-bytes\"}\n{\"type\":\"match\",\"path\":\"./rustlings-kr/exercises/09_strings/strings3.rs\",\"line\":10,\"text\":\"    // TODO: 문자열에서 \\\"cars\\\"를 \\\"balloons\\\"로 바꿔봐!\",\"spans\":[{\"atom\":0,\"core\":{\"start\":53,\"end\":59},\"token\":{\"start\":53,\"end\":59},\"surface\":\"바꿔\",\"origins\":[{\"analysis_index\":4,\"lemma\":\"바꾸다\",\"pos\":\"verb\",\"rules\":[\"contraction.u-eo\",\"ending.aoeo\"]},{\"analysis_index\":5,\"lemma\":\"바꾸다\",\"pos\":\"verb\",\"rules\":[\"contraction.u-eo\",\"ending.aoeo\"]}]}],\"offset_unit\":\"utf8-bytes\"}\n",
+          "stderr": "",
+          "stdout_bytes": 1537,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "read",
+          "argv": [
+            "cat",
+            "rustlings-kr/exercises/09_strings/strings3.rs"
+          ],
+          "at": "2026-09-12T07:56:16.190572+00:00",
+          "elapsed_ms": 4.637583,
+          "exit_code": 0,
+          "stdout": "fn trim_me(input: &str) -> &str {\n    // TODO: 문자열 양쪽 끝의 공백(whitespace)을 제거해봐!\n}\n\nfn compose_me(input: &str) -> String {\n    // TODO: 문자열에 \" world!\"를 붙여봐! 여러 가지 방법이 있어.\n}\n\nfn replace_me(input: &str) -> String {\n    // TODO: 문자열에서 \"cars\"를 \"balloons\"로 바꿔봐!\n}\n\nfn main() {\n    // 여기서 자유롭게 실험해봐.\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn trim_a_string() {\n        assert_eq!(trim_me(\"Hello!     \"), \"Hello!\");\n        assert_eq!(trim_me(\"  What's up!\"), \"What's up!\");\n        assert_eq!(trim_me(\"   Hola!  \"), \"Hola!\");\n        assert_eq!(trim_me(\"Hi!\"), \"Hi!\");\n    }\n\n    #[test]\n    fn compose_a_string() {\n        assert_eq!(compose_me(\"Hello\"), \"Hello world!\");\n        assert_eq!(compose_me(\"Goodbye\"), \"Goodbye world!\");\n    }\n\n    #[test]\n    fn replace_a_string() {\n        assert_eq!(\n            replace_me(\"I think cars are cool\"),\n            \"I think balloons are cool\",\n        );\n        assert_eq!(\n            replace_me(\"I love to look at cars\"),\n            \"I love to look at balloons\",\n        );\n    }\n}\n",
+          "stderr": "",
+          "stdout_bytes": 1152,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "baseline-compile",
+          "argv": [
+            "rustc",
+            "--edition=2021",
+            "--test",
+            "rustlings-kr/exercises/09_strings/strings3.rs",
+            "-o",
+            "../check"
+          ],
+          "at": "2026-09-12T07:56:16.286180+00:00",
+          "elapsed_ms": 49.205208,
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "error[E0308]: mismatched types\n --> rustlings-kr/exercises/09_strings/strings3.rs:1:28\n  |\n1 | fn trim_me(input: &str) -> &str {\n  |    -------                 ^^^^ expected `&str`, found `()`\n  |    |\n  |    implicitly returns `()` as its body has no tail or `return` expression\n  |\nhelp: consider returning the local binding `input`\n  |\n1 | fn trim_me(input: &str) -> &str {\n2 ~     input\n  |\n\nerror[E0308]: mismatched types\n --> rustlings-kr/exercises/09_strings/strings3.rs:5:31\n  |\n5 | fn compose_me(input: &str) -> String {\n  |    ----------                 ^^^^^^ expected `String`, found `()`\n  |    |\n  |    implicitly returns `()` as its body has no tail or `return` expression\n\nerror[E0308]: mismatched types\n --> rustlings-kr/exercises/09_strings/strings3.rs:9:31\n  |\n9 | fn replace_me(input: &str) -> String {\n  |    ----------                 ^^^^^^ expected `String`, found `()`\n  |    |\n  |    implicitly returns `()` as its body has no tail or `return` expression\n\nerror: aborting due to 3 previous errors\n\nFor more information about this error, try `rustc --explain E0308`.\n",
+          "stdout_bytes": 0,
+          "stderr_bytes": 1092
+        },
+        {
+          "kind": "compile",
+          "argv": [
+            "rustc",
+            "--edition=2021",
+            "--test",
+            "rustlings-kr/exercises/09_strings/strings3.rs",
+            "-o",
+            "../check"
+          ],
+          "at": "2026-09-12T07:56:16.515093+00:00",
+          "elapsed_ms": 139.694208,
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "verify",
+          "argv": [
+            "../check"
+          ],
+          "at": "2026-09-12T07:56:16.757328+00:00",
+          "elapsed_ms": 194.26575,
+          "exit_code": 0,
+          "stdout": "\nrunning 3 tests\ntest tests::compose_a_string ... ok\ntest tests::replace_a_string ... ok\ntest tests::trim_a_string ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+          "stderr": "",
+          "stdout_bytes": 218,
+          "stderr_bytes": 0
+        }
+      ],
+      "patches": [
+        {
+          "path": "rustlings-kr/exercises/09_strings/strings3.rs",
+          "sha256": "2a7d143e7f59ba4aad2b4d41e5f545d6fdc9e803e101d702bb519f92ebeb2237",
+          "diff": "--- a/rustlings-kr/exercises/09_strings/strings3.rs\n+++ b/rustlings-kr/exercises/09_strings/strings3.rs\n@@ -1,13 +1,13 @@\n fn trim_me(input: &str) -> &str {\n-    // TODO: 문자열 양쪽 끝의 공백(whitespace)을 제거해봐!\n+    input.trim()\n }\n \n fn compose_me(input: &str) -> String {\n-    // TODO: 문자열에 \" world!\"를 붙여봐! 여러 가지 방법이 있어.\n+    format!(\"{input} world!\")\n }\n \n fn replace_me(input: &str) -> String {\n-    // TODO: 문자열에서 \"cars\"를 \"balloons\"로 바꿔봐!\n+    input.replace(\"cars\", \"balloons\")\n }\n \n fn main() {\n"
+        }
+      ],
+      "finished_at": "2026-09-12T07:56:16.806204+00:00"
+    },
+    {
+      "trial": "basket-kfind",
+      "started_at": "2026-09-12T07:56:16.854493+00:00",
+      "inputs": [
+        {
+          "path": "rustlings-kr/README.md",
+          "sha256": "19dd4e9c9ff6e187a00f0e329102d52502b222e92f1715341b912190f538c680"
+        },
+        {
+          "path": "rustlings-kr/exercises/06_move_semantics/move_semantics2.rs",
+          "sha256": "af0077a04de1df899ef7bdcc334c3540dd5d48e52d71afb3cfbc0ea6d7bca7d4"
+        },
+        {
+          "path": "rustlings-kr/exercises/09_strings/strings3.rs",
+          "sha256": "f7cc39a9a69e4a7ff8e31e3af28121578426a0aac58a928c93b1b2f71500dbd0"
+        },
+        {
+          "path": "rustlings-kr/exercises/11_hashmaps/hashmaps2.rs",
+          "sha256": "284583c26977895d49f926771c7aaff962cd8255fdd6d5126be4a67ee13c09e7"
+        },
+        {
+          "path": "rustlings-kr/exercises/13_error_handling/errors4.rs",
+          "sha256": "472bb5dc8c8529f5161259e7be75eb9d2053aabc1e0e08b54ec2b9da4b6bdc79"
+        },
+        {
+          "path": "rustlings-kr/exercises/20_threads/threads1.rs",
+          "sha256": "c79670c8edfbf1cc112dd5d8d6d73885e791e0b2ddbfe0d251d562b2c5b3a677"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/concepts/containers/cri.md",
+          "sha256": "b816fd4177b17392f8cfa81f01da7833f791c4afd475d256cc964649998420dc"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/concepts/policy/limit-range.md",
+          "sha256": "14ba30ebf9d02198cd6701bbf2f8438f3410cdf72399a8bea07820d0ada5ffdf"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/tasks/debug/debug-cluster/crictl.md",
+          "sha256": "39f7af7ec28492cd7cf62f53368c45306adf806289759cb8e3b74de17fee7617"
+        }
+      ],
+      "events": [
+        {
+          "kind": "search",
+          "argv": [
+            "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+            "--embedded",
+            "--boundary",
+            "any",
+            "--json",
+            "--no-pager",
+            "--threads",
+            "1",
+            "--user-lexicon",
+            "/Users/seokmin/.codex/worktrees/a087/kfind/target/task-search/empty-user-lexicon.toml",
+            "--data-dir",
+            "/Users/seokmin/.codex/worktrees/a087/kfind/target/task-search/resources",
+            "v:추가하다",
+            "."
+          ],
+          "at": "2026-09-12T07:56:16.911492+00:00",
+          "elapsed_ms": 8.82925,
+          "exit_code": 0,
+          "stdout": "{\"type\":\"match\",\"path\":\"./rustlings-kr/exercises/11_hashmaps/hashmaps2.rs\",\"line\":5,\"text\":\"// 바구니에 과일을 추가해서 각 종류마다 최소 1개 이상, 전체 합이 11개를 초과\",\"spans\":[{\"atom\":0,\"core\":{\"start\":26,\"end\":35},\"token\":{\"start\":26,\"end\":38},\"surface\":\"추가해서\",\"origins\":[{\"analysis_index\":0,\"lemma\":\"추가하다\",\"pos\":\"verb\",\"rules\":[\"lexical.ha\",\"contraction.ha-yeo\",\"ending.aoeo\",\"ending.aoeo-seo\"]},{\"analysis_index\":1,\"lemma\":\"추가하다\",\"pos\":\"verb\",\"rules\":[\"lexical.ha\",\"contraction.ha-yeo\",\"ending.aoeo\",\"ending.aoeo-seo\"]}]}],\"offset_unit\":\"utf8-bytes\"}\n{\"type\":\"match\",\"path\":\"./rustlings-kr/exercises/11_hashmaps/hashmaps2.rs\",\"line\":30,\"text\":\"        // TODO: 바구니에 아직 없는 새로운 과일을 추가해봐. 이미 들어있는\",\"spans\":[{\"atom\":0,\"core\":{\"start\":64,\"end\":73},\"token\":{\"start\":64,\"end\":73},\"surface\":\"추가해\",\"origins\":[{\"analysis_index\":0,\"lemma\":\"추가하다\",\"pos\":\"verb\",\"rules\":[\"lexical.ha\",\"contraction.ha-yeo\",\"ending.aoeo\"]},{\"analysis_index\":1,\"lemma\":\"추가하다\",\"pos\":\"verb\",\"rules\":[\"lexical.ha\",\"contraction.ha-yeo\",\"ending.aoeo\"]}]}],\"offset_unit\":\"utf8-bytes\"}\n{\"type\":\"match\",\"path\":\"./kubernetes-website/content/ko/docs/concepts/policy/limit-range.md\",\"line\":57,\"text\":\"  리밋레인지를 추가한 경우 사용자는 해당 값에\",\"spans\":[{\"atom\":0,\"core\":{\"start\":21,\"end\":30},\"token\":{\"start\":21,\"end\":30},\"surface\":\"추가한\",\"origins\":[{\"analysis_index\":0,\"lemma\":\"추가하다\",\"pos\":\"verb\",\"rules\":[\"ending.past-adnominal\"]},{\"analysis_index\":1,\"lemma\":\"추가하다\",\"pos\":\"verb\",\"rules\":[\"ending.past-adnominal\"]}]}],\"offset_unit\":\"utf8-bytes\"}\n",
+          "stderr": "",
+          "stdout_bytes": 1675,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "read",
+          "argv": [
+            "cat",
+            "rustlings-kr/exercises/11_hashmaps/hashmaps2.rs"
+          ],
+          "at": "2026-09-12T07:56:32.670009+00:00",
+          "elapsed_ms": 4.059167,
+          "exit_code": 0,
+          "stdout": "// 맛있는 과일 케이크를 만들기 위해 다양한 과일을 모으고 있어. 이를 위해\n// 해시맵(HashMap) 형태의 바구니가 있어. 키(key)는 수집한 각 과일의 이름을\n// 나타내고, 값(value)은 해당 과일을 몇 개 모았는지를 나타내. 이미 바구니\n// 해시맵에는 Apple(4개), Mango(2개), Lychee(5개) 세 종류의 과일이 들어있어.\n// 바구니에 과일을 추가해서 각 종류마다 최소 1개 이상, 전체 합이 11개를 초과\n// 하도록 만들어야 해 - 먹여야 할 입이 많거든. 이미 바구니에 있는 과일(Apple,\n// Mango, Lychee)은 더 넣으면 안 돼.\n\nuse std::collections::HashMap;\n\n#[derive(Hash, PartialEq, Eq, Debug)]\nenum Fruit {\n    Apple,\n    Banana,\n    Mango,\n    Lychee,\n    Pineapple,\n}\n\nfn fruit_basket(basket: &mut HashMap<Fruit, u32>) {\n    let fruit_kinds = [\n        Fruit::Apple,\n        Fruit::Banana,\n        Fruit::Mango,\n        Fruit::Lychee,\n        Fruit::Pineapple,\n    ];\n\n    for fruit in fruit_kinds {\n        // TODO: 바구니에 아직 없는 새로운 과일을 추가해봐. 이미 들어있는\n        // 종류의 과일은 넣으면 안 된다는 걸 기억해!\n    }\n}\n\nfn main() {\n    // 여기서 자유롭게 실험해봐.\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    // 이 함수는 수정하지 마!\n    fn get_fruit_basket() -> HashMap<Fruit, u32> {\n        let content = [(Fruit::Apple, 4), (Fruit::Mango, 2), (Fruit::Lychee, 5)];\n        HashMap::from_iter(content)\n    }\n\n    #[test]\n    fn test_given_fruits_are_not_modified() {\n        let mut basket = get_fruit_basket();\n        fruit_basket(&mut basket);\n        assert_eq!(*basket.get(&Fruit::Apple).unwrap(), 4);\n        assert_eq!(*basket.get(&Fruit::Mango).unwrap(), 2);\n        assert_eq!(*basket.get(&Fruit::Lychee).unwrap(), 5);\n    }\n\n    #[test]\n    fn at_least_five_types_of_fruits() {\n        let mut basket = get_fruit_basket();\n        fruit_basket(&mut basket);\n        let count_fruit_kinds = basket.len();\n        assert!(count_fruit_kinds >= 5);\n    }\n\n    #[test]\n    fn greater_than_eleven_fruits() {\n        let mut basket = get_fruit_basket();\n        fruit_basket(&mut basket);\n        let count = basket.values().sum::<u32>();\n        assert!(count > 11);\n    }\n\n    #[test]\n    fn all_fruit_types_in_basket() {\n        let fruit_kinds = [\n            Fruit::Apple,\n            Fruit::Banana,\n            Fruit::Mango,\n            Fruit::Lychee,\n            Fruit::Pineapple,\n        ];\n\n        let mut basket = get_fruit_basket();\n        fruit_basket(&mut basket);\n\n        for fruit_kind in fruit_kinds {\n            let Some(amount) = basket.get(&fruit_kind) else {\n                panic!(\"Fruit kind {fruit_kind:?} was not found in basket\");\n            };\n            assert!(*amount > 0);\n        }\n    }\n}\n",
+          "stderr": "",
+          "stdout_bytes": 2847,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "baseline-compile",
+          "argv": [
+            "rustc",
+            "--edition=2021",
+            "--test",
+            "rustlings-kr/exercises/11_hashmaps/hashmaps2.rs",
+            "-o",
+            "../check"
+          ],
+          "at": "2026-09-12T07:56:33.224780+00:00",
+          "elapsed_ms": 510.285375,
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "warning: unused variable: `basket`\n  --> rustlings-kr/exercises/11_hashmaps/hashmaps2.rs:20:17\n   |\n20 | fn fruit_basket(basket: &mut HashMap<Fruit, u32>) {\n   |                 ^^^^^^ help: if this is intentional, prefix it with an underscore: `_basket`\n   |\n   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused variable: `fruit`\n  --> rustlings-kr/exercises/11_hashmaps/hashmaps2.rs:29:9\n   |\n29 |     for fruit in fruit_kinds {\n   |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_fruit`\n\nwarning: 2 warnings emitted\n\n",
+          "stdout_bytes": 0,
+          "stderr_bytes": 594
+        },
+        {
+          "kind": "baseline-verify",
+          "argv": [
+            "../check"
+          ],
+          "at": "2026-09-12T07:56:33.617123+00:00",
+          "elapsed_ms": 348.503708,
+          "exit_code": 101,
+          "stdout": "\nrunning 4 tests\ntest tests::test_given_fruits_are_not_modified ... ok\ntest tests::at_least_five_types_of_fruits ... FAILED\ntest tests::all_fruit_types_in_basket ... FAILED\ntest tests::greater_than_eleven_fruits ... FAILED\n\nfailures:\n\n---- tests::at_least_five_types_of_fruits stdout ----\n\nthread 'tests::at_least_five_types_of_fruits' (885100) panicked at rustlings-kr/exercises/11_hashmaps/hashmaps2.rs:63:9:\nassertion failed: count_fruit_kinds >= 5\n\n---- tests::all_fruit_types_in_basket stdout ----\n\nthread 'tests::all_fruit_types_in_basket' (885099) panicked at rustlings-kr/exercises/11_hashmaps/hashmaps2.rs:89:17:\nFruit kind Banana was not found in basket\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- tests::greater_than_eleven_fruits stdout ----\n\nthread 'tests::greater_than_eleven_fruits' (885101) panicked at rustlings-kr/exercises/11_hashmaps/hashmaps2.rs:71:9:\nassertion failed: count > 11\n\n\nfailures:\n    tests::all_fruit_types_in_basket\n    tests::at_least_five_types_of_fruits\n    tests::greater_than_eleven_fruits\n\ntest result: FAILED. 1 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+          "stderr": "",
+          "stdout_bytes": 1170,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "compile",
+          "argv": [
+            "rustc",
+            "--edition=2021",
+            "--test",
+            "rustlings-kr/exercises/11_hashmaps/hashmaps2.rs",
+            "-o",
+            "../check"
+          ],
+          "at": "2026-09-12T07:56:33.913760+00:00",
+          "elapsed_ms": 212.337208,
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "verify",
+          "argv": [
+            "../check"
+          ],
+          "at": "2026-09-12T07:56:34.303508+00:00",
+          "elapsed_ms": 345.635542,
+          "exit_code": 0,
+          "stdout": "\nrunning 4 tests\ntest tests::all_fruit_types_in_basket ... ok\ntest tests::greater_than_eleven_fruits ... ok\ntest tests::at_least_five_types_of_fruits ... ok\ntest tests::test_given_fruits_are_not_modified ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+          "stderr": "",
+          "stdout_bytes": 307,
+          "stderr_bytes": 0
+        }
+      ],
+      "patches": [
+        {
+          "path": "rustlings-kr/exercises/11_hashmaps/hashmaps2.rs",
+          "sha256": "5b9e4ac0ad890e730af86ebb151a59874275f9f62ba0bfae9a8fe85f68636231",
+          "diff": "--- a/rustlings-kr/exercises/11_hashmaps/hashmaps2.rs\n+++ b/rustlings-kr/exercises/11_hashmaps/hashmaps2.rs\n@@ -27,8 +27,7 @@\n     ];\n \n     for fruit in fruit_kinds {\n-        // TODO: 바구니에 아직 없는 새로운 과일을 추가해봐. 이미 들어있는\n-        // 종류의 과일은 넣으면 안 된다는 걸 기억해!\n+        basket.entry(fruit).or_insert(1);\n     }\n }\n \n"
+        }
+      ],
+      "finished_at": "2026-09-12T07:56:34.352839+00:00"
+    },
+    {
+      "trial": "basket-rg",
+      "started_at": "2026-09-12T07:56:34.400766+00:00",
+      "inputs": [
+        {
+          "path": "rustlings-kr/README.md",
+          "sha256": "19dd4e9c9ff6e187a00f0e329102d52502b222e92f1715341b912190f538c680"
+        },
+        {
+          "path": "rustlings-kr/exercises/06_move_semantics/move_semantics2.rs",
+          "sha256": "af0077a04de1df899ef7bdcc334c3540dd5d48e52d71afb3cfbc0ea6d7bca7d4"
+        },
+        {
+          "path": "rustlings-kr/exercises/09_strings/strings3.rs",
+          "sha256": "f7cc39a9a69e4a7ff8e31e3af28121578426a0aac58a928c93b1b2f71500dbd0"
+        },
+        {
+          "path": "rustlings-kr/exercises/11_hashmaps/hashmaps2.rs",
+          "sha256": "284583c26977895d49f926771c7aaff962cd8255fdd6d5126be4a67ee13c09e7"
+        },
+        {
+          "path": "rustlings-kr/exercises/13_error_handling/errors4.rs",
+          "sha256": "472bb5dc8c8529f5161259e7be75eb9d2053aabc1e0e08b54ec2b9da4b6bdc79"
+        },
+        {
+          "path": "rustlings-kr/exercises/20_threads/threads1.rs",
+          "sha256": "c79670c8edfbf1cc112dd5d8d6d73885e791e0b2ddbfe0d251d562b2c5b3a677"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/concepts/containers/cri.md",
+          "sha256": "b816fd4177b17392f8cfa81f01da7833f791c4afd475d256cc964649998420dc"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/concepts/policy/limit-range.md",
+          "sha256": "14ba30ebf9d02198cd6701bbf2f8438f3410cdf72399a8bea07820d0ada5ffdf"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/tasks/debug/debug-cluster/crictl.md",
+          "sha256": "39f7af7ec28492cd7cf62f53368c45306adf806289759cb8e3b74de17fee7617"
+        }
+      ],
+      "events": [
+        {
+          "kind": "search",
+          "argv": [
+            "rg",
+            "--no-config",
+            "--json",
+            "-n",
+            "-F",
+            "추가",
+            "."
+          ],
+          "at": "2026-09-12T07:56:34.460636+00:00",
+          "elapsed_ms": 17.938083,
+          "exit_code": 0,
+          "stdout": "{\"type\":\"begin\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/11_hashmaps/hashmaps2.rs\"}}}\n{\"type\":\"match\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/11_hashmaps/hashmaps2.rs\"},\"lines\":{\"text\":\"// 바구니에 과일을 추가해서 각 종류마다 최소 1개 이상, 전체 합이 11개를 초과\\n\"},\"line_number\":5,\"absolute_offset\":397,\"submatches\":[{\"match\":{\"text\":\"추가\"},\"start\":26,\"end\":32}]}}\n{\"type\":\"match\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/11_hashmaps/hashmaps2.rs\"},\"lines\":{\"text\":\"        // TODO: 바구니에 아직 없는 새로운 과일을 추가해봐. 이미 들어있는\\n\"},\"line_number\":30,\"absolute_offset\":1031,\"submatches\":[{\"match\":{\"text\":\"추가\"},\"start\":64,\"end\":70}]}}\n{\"type\":\"end\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/11_hashmaps/hashmaps2.rs\"},\"binary_offset\":null,\"stats\":{\"elapsed\":{\"secs\":0,\"nanos\":327958,\"human\":\"0.000328s\"},\"searches\":1,\"searches_with_match\":1,\"bytes_searched\":2847,\"bytes_printed\":732,\"matched_lines\":2,\"matches\":2}}}\n{\"type\":\"begin\",\"data\":{\"path\":{\"text\":\"./kubernetes-website/content/ko/docs/concepts/policy/limit-range.md\"}}}\n{\"type\":\"match\",\"data\":{\"path\":{\"text\":\"./kubernetes-website/content/ko/docs/concepts/policy/limit-range.md\"},\"lines\":{\"text\":\"  리밋레인지를 추가한 경우 사용자는 해당 값에\\n\"},\"line_number\":57,\"absolute_offset\":3564,\"submatches\":[{\"match\":{\"text\":\"추가\"},\"start\":21,\"end\":27}]}}\n{\"type\":\"match\",\"data\":{\"path\":{\"text\":\"./kubernetes-website/content/ko/docs/concepts/policy/limit-range.md\"},\"lines\":{\"text\":\"  리밋레인지가 추가되거나 수정되면, 해당 \\n\"},\"line_number\":60,\"absolute_offset\":3874,\"submatches\":[{\"match\":{\"text\":\"추가\"},\"start\":21,\"end\":27}]}}\n{\"type\":\"end\",\"data\":{\"path\":{\"text\":\"./kubernetes-website/content/ko/docs/concepts/policy/limit-range.md\"},\"binary_offset\":null,\"stats\":{\"elapsed\":{\"secs\":0,\"nanos\":327708,\"human\":\"0.000328s\"},\"searches\":1,\"searches_with_match\":1,\"bytes_searched\":8124,\"bytes_printed\":708,\"matched_lines\":2,\"matches\":2}}}\n{\"data\":{\"elapsed_total\":{\"human\":\"0.008120s\",\"nanos\":8120500,\"secs\":0},\"stats\":{\"bytes_printed\":1440,\"bytes_searched\":30868,\"elapsed\":{\"human\":\"0.001702s\",\"nanos\":1701876,\"secs\":0},\"matched_lines\":4,\"matches\":4,\"searches\":9,\"searches_with_match\":2}},\"type\":\"summary\"}\n",
+          "stderr": "",
+          "stdout_bytes": 2303,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "read",
+          "argv": [
+            "cat",
+            "rustlings-kr/exercises/11_hashmaps/hashmaps2.rs"
+          ],
+          "at": "2026-09-12T07:56:48.111712+00:00",
+          "elapsed_ms": 3.489125,
+          "exit_code": 0,
+          "stdout": "// 맛있는 과일 케이크를 만들기 위해 다양한 과일을 모으고 있어. 이를 위해\n// 해시맵(HashMap) 형태의 바구니가 있어. 키(key)는 수집한 각 과일의 이름을\n// 나타내고, 값(value)은 해당 과일을 몇 개 모았는지를 나타내. 이미 바구니\n// 해시맵에는 Apple(4개), Mango(2개), Lychee(5개) 세 종류의 과일이 들어있어.\n// 바구니에 과일을 추가해서 각 종류마다 최소 1개 이상, 전체 합이 11개를 초과\n// 하도록 만들어야 해 - 먹여야 할 입이 많거든. 이미 바구니에 있는 과일(Apple,\n// Mango, Lychee)은 더 넣으면 안 돼.\n\nuse std::collections::HashMap;\n\n#[derive(Hash, PartialEq, Eq, Debug)]\nenum Fruit {\n    Apple,\n    Banana,\n    Mango,\n    Lychee,\n    Pineapple,\n}\n\nfn fruit_basket(basket: &mut HashMap<Fruit, u32>) {\n    let fruit_kinds = [\n        Fruit::Apple,\n        Fruit::Banana,\n        Fruit::Mango,\n        Fruit::Lychee,\n        Fruit::Pineapple,\n    ];\n\n    for fruit in fruit_kinds {\n        // TODO: 바구니에 아직 없는 새로운 과일을 추가해봐. 이미 들어있는\n        // 종류의 과일은 넣으면 안 된다는 걸 기억해!\n    }\n}\n\nfn main() {\n    // 여기서 자유롭게 실험해봐.\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    // 이 함수는 수정하지 마!\n    fn get_fruit_basket() -> HashMap<Fruit, u32> {\n        let content = [(Fruit::Apple, 4), (Fruit::Mango, 2), (Fruit::Lychee, 5)];\n        HashMap::from_iter(content)\n    }\n\n    #[test]\n    fn test_given_fruits_are_not_modified() {\n        let mut basket = get_fruit_basket();\n        fruit_basket(&mut basket);\n        assert_eq!(*basket.get(&Fruit::Apple).unwrap(), 4);\n        assert_eq!(*basket.get(&Fruit::Mango).unwrap(), 2);\n        assert_eq!(*basket.get(&Fruit::Lychee).unwrap(), 5);\n    }\n\n    #[test]\n    fn at_least_five_types_of_fruits() {\n        let mut basket = get_fruit_basket();\n        fruit_basket(&mut basket);\n        let count_fruit_kinds = basket.len();\n        assert!(count_fruit_kinds >= 5);\n    }\n\n    #[test]\n    fn greater_than_eleven_fruits() {\n        let mut basket = get_fruit_basket();\n        fruit_basket(&mut basket);\n        let count = basket.values().sum::<u32>();\n        assert!(count > 11);\n    }\n\n    #[test]\n    fn all_fruit_types_in_basket() {\n        let fruit_kinds = [\n            Fruit::Apple,\n            Fruit::Banana,\n            Fruit::Mango,\n            Fruit::Lychee,\n            Fruit::Pineapple,\n        ];\n\n        let mut basket = get_fruit_basket();\n        fruit_basket(&mut basket);\n\n        for fruit_kind in fruit_kinds {\n            let Some(amount) = basket.get(&fruit_kind) else {\n                panic!(\"Fruit kind {fruit_kind:?} was not found in basket\");\n            };\n            assert!(*amount > 0);\n        }\n    }\n}\n",
+          "stderr": "",
+          "stdout_bytes": 2847,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "baseline-compile",
+          "argv": [
+            "rustc",
+            "--edition=2021",
+            "--test",
+            "rustlings-kr/exercises/11_hashmaps/hashmaps2.rs",
+            "-o",
+            "../check"
+          ],
+          "at": "2026-09-12T07:56:48.293587+00:00",
+          "elapsed_ms": 137.881583,
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "warning: unused variable: `basket`\n  --> rustlings-kr/exercises/11_hashmaps/hashmaps2.rs:20:17\n   |\n20 | fn fruit_basket(basket: &mut HashMap<Fruit, u32>) {\n   |                 ^^^^^^ help: if this is intentional, prefix it with an underscore: `_basket`\n   |\n   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused variable: `fruit`\n  --> rustlings-kr/exercises/11_hashmaps/hashmaps2.rs:29:9\n   |\n29 |     for fruit in fruit_kinds {\n   |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_fruit`\n\nwarning: 2 warnings emitted\n\n",
+          "stdout_bytes": 0,
+          "stderr_bytes": 594
+        },
+        {
+          "kind": "baseline-verify",
+          "argv": [
+            "../check"
+          ],
+          "at": "2026-09-12T07:56:48.551017+00:00",
+          "elapsed_ms": 214.127375,
+          "exit_code": 101,
+          "stdout": "\nrunning 4 tests\ntest tests::test_given_fruits_are_not_modified ... ok\ntest tests::at_least_five_types_of_fruits ... FAILED\ntest tests::all_fruit_types_in_basket ... FAILED\ntest tests::greater_than_eleven_fruits ... FAILED\n\nfailures:\n\n---- tests::at_least_five_types_of_fruits stdout ----\n\nthread 'tests::at_least_five_types_of_fruits' (885911) panicked at rustlings-kr/exercises/11_hashmaps/hashmaps2.rs:63:9:\nassertion failed: count_fruit_kinds >= 5\n\n---- tests::all_fruit_types_in_basket stdout ----\n\nthread 'tests::all_fruit_types_in_basket' (885910) panicked at rustlings-kr/exercises/11_hashmaps/hashmaps2.rs:89:17:\nFruit kind Banana was not found in basket\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- tests::greater_than_eleven_fruits stdout ----\n\nthread 'tests::greater_than_eleven_fruits' (885912) panicked at rustlings-kr/exercises/11_hashmaps/hashmaps2.rs:71:9:\nassertion failed: count > 11\n\n\nfailures:\n    tests::all_fruit_types_in_basket\n    tests::at_least_five_types_of_fruits\n    tests::greater_than_eleven_fruits\n\ntest result: FAILED. 1 passed; 3 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+          "stderr": "",
+          "stdout_bytes": 1170,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "compile",
+          "argv": [
+            "rustc",
+            "--edition=2021",
+            "--test",
+            "rustlings-kr/exercises/11_hashmaps/hashmaps2.rs",
+            "-o",
+            "../check"
+          ],
+          "at": "2026-09-12T07:56:48.783405+00:00",
+          "elapsed_ms": 143.058875,
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "verify",
+          "argv": [
+            "../check"
+          ],
+          "at": "2026-09-12T07:56:49.041780+00:00",
+          "elapsed_ms": 215.6035,
+          "exit_code": 0,
+          "stdout": "\nrunning 4 tests\ntest tests::all_fruit_types_in_basket ... ok\ntest tests::at_least_five_types_of_fruits ... ok\ntest tests::greater_than_eleven_fruits ... ok\ntest tests::test_given_fruits_are_not_modified ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+          "stderr": "",
+          "stdout_bytes": 307,
+          "stderr_bytes": 0
+        }
+      ],
+      "patches": [
+        {
+          "path": "rustlings-kr/exercises/11_hashmaps/hashmaps2.rs",
+          "sha256": "5b9e4ac0ad890e730af86ebb151a59874275f9f62ba0bfae9a8fe85f68636231",
+          "diff": "--- a/rustlings-kr/exercises/11_hashmaps/hashmaps2.rs\n+++ b/rustlings-kr/exercises/11_hashmaps/hashmaps2.rs\n@@ -27,8 +27,7 @@\n     ];\n \n     for fruit in fruit_kinds {\n-        // TODO: 바구니에 아직 없는 새로운 과일을 추가해봐. 이미 들어있는\n-        // 종류의 과일은 넣으면 안 된다는 걸 기억해!\n+        basket.entry(fruit).or_insert(1);\n     }\n }\n \n"
+        }
+      ],
+      "finished_at": "2026-09-12T07:56:49.099249+00:00"
+    },
+    {
+      "trial": "positive-rg",
+      "started_at": "2026-09-12T07:56:49.145063+00:00",
+      "inputs": [
+        {
+          "path": "rustlings-kr/README.md",
+          "sha256": "19dd4e9c9ff6e187a00f0e329102d52502b222e92f1715341b912190f538c680"
+        },
+        {
+          "path": "rustlings-kr/exercises/06_move_semantics/move_semantics2.rs",
+          "sha256": "af0077a04de1df899ef7bdcc334c3540dd5d48e52d71afb3cfbc0ea6d7bca7d4"
+        },
+        {
+          "path": "rustlings-kr/exercises/09_strings/strings3.rs",
+          "sha256": "f7cc39a9a69e4a7ff8e31e3af28121578426a0aac58a928c93b1b2f71500dbd0"
+        },
+        {
+          "path": "rustlings-kr/exercises/11_hashmaps/hashmaps2.rs",
+          "sha256": "284583c26977895d49f926771c7aaff962cd8255fdd6d5126be4a67ee13c09e7"
+        },
+        {
+          "path": "rustlings-kr/exercises/13_error_handling/errors4.rs",
+          "sha256": "472bb5dc8c8529f5161259e7be75eb9d2053aabc1e0e08b54ec2b9da4b6bdc79"
+        },
+        {
+          "path": "rustlings-kr/exercises/20_threads/threads1.rs",
+          "sha256": "c79670c8edfbf1cc112dd5d8d6d73885e791e0b2ddbfe0d251d562b2c5b3a677"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/concepts/containers/cri.md",
+          "sha256": "b816fd4177b17392f8cfa81f01da7833f791c4afd475d256cc964649998420dc"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/concepts/policy/limit-range.md",
+          "sha256": "14ba30ebf9d02198cd6701bbf2f8438f3410cdf72399a8bea07820d0ada5ffdf"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/tasks/debug/debug-cluster/crictl.md",
+          "sha256": "39f7af7ec28492cd7cf62f53368c45306adf806289759cb8e3b74de17fee7617"
+        }
+      ],
+      "events": [
+        {
+          "kind": "search",
+          "argv": [
+            "rg",
+            "--no-config",
+            "--json",
+            "-n",
+            "-F",
+            "반환",
+            "."
+          ],
+          "at": "2026-09-12T07:56:49.196404+00:00",
+          "elapsed_ms": 8.031,
+          "exit_code": 0,
+          "stdout": "{\"type\":\"begin\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/13_error_handling/errors4.rs\"}}}\n{\"type\":\"match\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/13_error_handling/errors4.rs\"},\"lines\":{\"text\":\"        // TODO: 이 함수가 항상 `Ok`를 반환하면 안 돼.\\n\"},\"line_number\":12,\"absolute_offset\":227,\"submatches\":[{\"match\":{\"text\":\"반환\"},\"start\":46,\"end\":52}]}}\n{\"type\":\"match\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/13_error_handling/errors4.rs\"},\"lines\":{\"text\":\"        // 아래 테스트를 읽고 뭘 반환해야 하는지 파악해봐.\\n\"},\"line_number\":13,\"absolute_offset\":295,\"submatches\":[{\"match\":{\"text\":\"반환\"},\"start\":42,\"end\":48}]}}\n{\"type\":\"end\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/13_error_handling/errors4.rs\"},\"binary_offset\":null,\"stats\":{\"elapsed\":{\"secs\":0,\"nanos\":24167,\"human\":\"0.000024s\"},\"searches\":1,\"searches_with_match\":1,\"bytes_searched\":879,\"bytes_printed\":687,\"matched_lines\":2,\"matches\":2}}}\n{\"type\":\"begin\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/20_threads/threads1.rs\"}}}\n{\"type\":\"match\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/20_threads/threads1.rs\"},\"lines\":{\"text\":\"// 각 스레드는 완료하는 데 걸린 시간을 반환해. 프로그램은 생성된 모든 스레드가\\n\"},\"line_number\":2,\"absolute_offset\":105,\"submatches\":[{\"match\":{\"text\":\"반환\"},\"start\":54,\"end\":60}]}}\n{\"type\":\"match\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/20_threads/threads1.rs\"},\"lines\":{\"text\":\"// 끝날 때까지 기다리고, 반환값들을 벡터(Vec)에 모아야 해.\\n\"},\"line_number\":3,\"absolute_offset\":216,\"submatches\":[{\"match\":{\"text\":\"반환\"},\"start\":34,\"end\":40}]}}\n{\"type\":\"match\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/20_threads/threads1.rs\"},\"lines\":{\"text\":\"        // `thread::spawn`이 반환하는 `JoinHandle` 구조체를 사용해봐.\\n\"},\"line_number\":25,\"absolute_offset\":832,\"submatches\":[{\"match\":{\"text\":\"반환\"},\"start\":30,\"end\":36}]}}\n{\"type\":\"end\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/20_threads/threads1.rs\"},\"binary_offset\":null,\"stats\":{\"elapsed\":{\"secs\":0,\"nanos\":6792,\"human\":\"0.000007s\"},\"searches\":1,\"searches_with_match\":1,\"bytes_searched\":1141,\"bytes_printed\":1009,\"matched_lines\":3,\"matches\":3}}}\n{\"type\":\"begin\",\"data\":{\"path\":{\"text\":\"./kubernetes-website/content/ko/docs/tasks/debug/debug-cluster/crictl.md\"}}}\n{\"type\":\"match\",\"data\":{\"path\":{\"text\":\"./kubernetes-website/content/ko/docs/tasks/debug/debug-cluster/crictl.md\"},\"lines\":{\"text\":\"   결과로 샌드박스의 ID가 반환될 것이다.\\n\"},\"line_number\":272,\"absolute_offset\":9380,\"submatches\":[{\"match\":{\"text\":\"반환\"},\"start\":35,\"end\":41}]}}\n{\"type\":\"match\",\"data\":{\"path\":{\"text\":\"./kubernetes-website/content/ko/docs/tasks/debug/debug-cluster/crictl.md\"},\"lines\":{\"text\":\"결과로 컨테이너의 ID가 반환될 것이다.\\n\"},\"line_number\":328,\"absolute_offset\":10621,\"submatches\":[{\"match\":{\"text\":\"반환\"},\"start\":32,\"end\":38}]}}\n{\"type\":\"end\",\"data\":{\"path\":{\"text\":\"./kubernetes-website/content/ko/docs/tasks/debug/debug-cluster/crictl.md\"},\"binary_offset\":null,\"stats\":{\"elapsed\":{\"secs\":0,\"nanos\":8250,\"human\":\"0.000008s\"},\"searches\":1,\"searches_with_match\":1,\"bytes_searched\":11955,\"bytes_printed\":711,\"matched_lines\":2,\"matches\":2}}}\n{\"data\":{\"elapsed_total\":{\"human\":\"0.003228s\",\"nanos\":3228417,\"secs\":0},\"stats\":{\"bytes_printed\":2407,\"bytes_searched\":30868,\"elapsed\":{\"human\":\"0.000070s\",\"nanos\":70166,\"secs\":0},\"matched_lines\":7,\"matches\":7,\"searches\":9,\"searches_with_match\":3}},\"type\":\"summary\"}\n",
+          "stderr": "",
+          "stdout_bytes": 3559,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "read",
+          "argv": [
+            "cat",
+            "rustlings-kr/exercises/13_error_handling/errors4.rs"
+          ],
+          "at": "2026-09-12T07:57:10.037760+00:00",
+          "elapsed_ms": 3.851209,
+          "exit_code": 0,
+          "stdout": "#[derive(PartialEq, Debug)]\nenum CreationError {\n    Negative,\n    Zero,\n}\n\n#[derive(PartialEq, Debug)]\nstruct PositiveNonzeroInteger(u64);\n\nimpl PositiveNonzeroInteger {\n    fn new(value: i64) -> Result<Self, CreationError> {\n        // TODO: 이 함수가 항상 `Ok`를 반환하면 안 돼.\n        // 아래 테스트를 읽고 뭘 반환해야 하는지 파악해봐.\n        Ok(Self(value as u64))\n    }\n}\n\nfn main() {\n    // 여기서 자유롭게 실험해봐.\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn test_creation() {\n        assert_eq!(\n            PositiveNonzeroInteger::new(10),\n            Ok(PositiveNonzeroInteger(10)),\n        );\n        assert_eq!(\n            PositiveNonzeroInteger::new(-10),\n            Err(CreationError::Negative),\n        );\n        assert_eq!(PositiveNonzeroInteger::new(0), Err(CreationError::Zero));\n    }\n}\n",
+          "stderr": "",
+          "stdout_bytes": 879,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "baseline-compile",
+          "argv": [
+            "rustc",
+            "--edition=2021",
+            "--test",
+            "rustlings-kr/exercises/13_error_handling/errors4.rs",
+            "-o",
+            "../check"
+          ],
+          "at": "2026-09-12T07:57:10.200049+00:00",
+          "elapsed_ms": 118.818417,
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "baseline-verify",
+          "argv": [
+            "../check"
+          ],
+          "at": "2026-09-12T07:57:10.640392+00:00",
+          "elapsed_ms": 395.168333,
+          "exit_code": 101,
+          "stdout": "\nrunning 1 test\ntest tests::test_creation ... FAILED\n\nfailures:\n\n---- tests::test_creation stdout ----\n\nthread 'tests::test_creation' (886384) panicked at rustlings-kr/exercises/13_error_handling/errors4.rs:32:9:\nassertion `left == right` failed\n  left: Ok(PositiveNonzeroInteger(18446744073709551606))\n right: Err(Negative)\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::test_creation\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+          "stderr": "",
+          "stdout_bytes": 540,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "compile",
+          "argv": [
+            "rustc",
+            "--edition=2021",
+            "--test",
+            "rustlings-kr/exercises/13_error_handling/errors4.rs",
+            "-o",
+            "../check"
+          ],
+          "at": "2026-09-12T07:57:10.901679+00:00",
+          "elapsed_ms": 113.431875,
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "verify",
+          "argv": [
+            "../check"
+          ],
+          "at": "2026-09-12T07:57:11.323673+00:00",
+          "elapsed_ms": 375.601833,
+          "exit_code": 0,
+          "stdout": "\nrunning 1 test\ntest tests::test_creation ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+          "stderr": "",
+          "stdout_bytes": 145,
+          "stderr_bytes": 0
+        }
+      ],
+      "patches": [
+        {
+          "path": "rustlings-kr/exercises/13_error_handling/errors4.rs",
+          "sha256": "1c22703f4e498eb5aeeeef32042575ebfc14a15f6aec8f9ec93b581cbee80dd4",
+          "diff": "--- a/rustlings-kr/exercises/13_error_handling/errors4.rs\n+++ b/rustlings-kr/exercises/13_error_handling/errors4.rs\n@@ -9,9 +9,11 @@\n \n impl PositiveNonzeroInteger {\n     fn new(value: i64) -> Result<Self, CreationError> {\n-        // TODO: 이 함수가 항상 `Ok`를 반환하면 안 돼.\n-        // 아래 테스트를 읽고 뭘 반환해야 하는지 파악해봐.\n-        Ok(Self(value as u64))\n+        match value {\n+            ..0 => Err(CreationError::Negative),\n+            0 => Err(CreationError::Zero),\n+            _ => Ok(Self(value as u64)),\n+        }\n     }\n }\n \n"
+        }
+      ],
+      "finished_at": "2026-09-12T07:57:11.371856+00:00"
+    },
+    {
+      "trial": "positive-kfind",
+      "started_at": "2026-09-12T07:57:11.418993+00:00",
+      "inputs": [
+        {
+          "path": "rustlings-kr/README.md",
+          "sha256": "19dd4e9c9ff6e187a00f0e329102d52502b222e92f1715341b912190f538c680"
+        },
+        {
+          "path": "rustlings-kr/exercises/06_move_semantics/move_semantics2.rs",
+          "sha256": "af0077a04de1df899ef7bdcc334c3540dd5d48e52d71afb3cfbc0ea6d7bca7d4"
+        },
+        {
+          "path": "rustlings-kr/exercises/09_strings/strings3.rs",
+          "sha256": "f7cc39a9a69e4a7ff8e31e3af28121578426a0aac58a928c93b1b2f71500dbd0"
+        },
+        {
+          "path": "rustlings-kr/exercises/11_hashmaps/hashmaps2.rs",
+          "sha256": "284583c26977895d49f926771c7aaff962cd8255fdd6d5126be4a67ee13c09e7"
+        },
+        {
+          "path": "rustlings-kr/exercises/13_error_handling/errors4.rs",
+          "sha256": "472bb5dc8c8529f5161259e7be75eb9d2053aabc1e0e08b54ec2b9da4b6bdc79"
+        },
+        {
+          "path": "rustlings-kr/exercises/20_threads/threads1.rs",
+          "sha256": "c79670c8edfbf1cc112dd5d8d6d73885e791e0b2ddbfe0d251d562b2c5b3a677"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/concepts/containers/cri.md",
+          "sha256": "b816fd4177b17392f8cfa81f01da7833f791c4afd475d256cc964649998420dc"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/concepts/policy/limit-range.md",
+          "sha256": "14ba30ebf9d02198cd6701bbf2f8438f3410cdf72399a8bea07820d0ada5ffdf"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/tasks/debug/debug-cluster/crictl.md",
+          "sha256": "39f7af7ec28492cd7cf62f53368c45306adf806289759cb8e3b74de17fee7617"
+        }
+      ],
+      "events": [
+        {
+          "kind": "search",
+          "argv": [
+            "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+            "--embedded",
+            "--boundary",
+            "any",
+            "--json",
+            "--no-pager",
+            "--threads",
+            "1",
+            "--user-lexicon",
+            "/Users/seokmin/.codex/worktrees/a087/kfind/target/task-search/empty-user-lexicon.toml",
+            "--data-dir",
+            "/Users/seokmin/.codex/worktrees/a087/kfind/target/task-search/resources",
+            "v:반환하다",
+            "."
+          ],
+          "at": "2026-09-12T07:57:11.477547+00:00",
+          "elapsed_ms": 16.40075,
+          "exit_code": 0,
+          "stdout": "{\"type\":\"match\",\"path\":\"./rustlings-kr/exercises/13_error_handling/errors4.rs\",\"line\":12,\"text\":\"        // TODO: 이 함수가 항상 `Ok`를 반환하면 안 돼.\",\"spans\":[{\"atom\":0,\"core\":{\"start\":46,\"end\":55},\"token\":{\"start\":46,\"end\":58},\"surface\":\"반환하면\",\"origins\":[{\"analysis_index\":0,\"lemma\":\"반환하다\",\"pos\":\"verb\",\"rules\":[\"ending.conditional\"]},{\"analysis_index\":1,\"lemma\":\"반환하다\",\"pos\":\"verb\",\"rules\":[\"ending.conditional\"]}]}],\"offset_unit\":\"utf8-bytes\"}\n{\"type\":\"match\",\"path\":\"./rustlings-kr/exercises/13_error_handling/errors4.rs\",\"line\":13,\"text\":\"        // 아래 테스트를 읽고 뭘 반환해야 하는지 파악해봐.\",\"spans\":[{\"atom\":0,\"core\":{\"start\":42,\"end\":51},\"token\":{\"start\":42,\"end\":54},\"surface\":\"반환해야\",\"origins\":[{\"analysis_index\":0,\"lemma\":\"반환하다\",\"pos\":\"verb\",\"rules\":[\"lexical.ha\",\"contraction.ha-yeo\",\"ending.aoeo\",\"ending.connective-ya\"]},{\"analysis_index\":1,\"lemma\":\"반환하다\",\"pos\":\"verb\",\"rules\":[\"lexical.ha\",\"contraction.ha-yeo\",\"ending.aoeo\",\"ending.connective-ya\"]}]}],\"offset_unit\":\"utf8-bytes\"}\n{\"type\":\"match\",\"path\":\"./rustlings-kr/exercises/20_threads/threads1.rs\",\"line\":2,\"text\":\"// 각 스레드는 완료하는 데 걸린 시간을 반환해. 프로그램은 생성된 모든 스레드가\",\"spans\":[{\"atom\":0,\"core\":{\"start\":54,\"end\":63},\"token\":{\"start\":54,\"end\":63},\"surface\":\"반환해\",\"origins\":[{\"analysis_index\":0,\"lemma\":\"반환하다\",\"pos\":\"verb\",\"rules\":[\"lexical.ha\",\"contraction.ha-yeo\",\"ending.aoeo\"]},{\"analysis_index\":1,\"lemma\":\"반환하다\",\"pos\":\"verb\",\"rules\":[\"lexical.ha\",\"contraction.ha-yeo\",\"ending.aoeo\"]}]}],\"offset_unit\":\"utf8-bytes\"}\n{\"type\":\"match\",\"path\":\"./rustlings-kr/exercises/20_threads/threads1.rs\",\"line\":25,\"text\":\"        // `thread::spawn`이 반환하는 `JoinHandle` 구조체를 사용해봐.\",\"spans\":[{\"atom\":0,\"core\":{\"start\":30,\"end\":39},\"token\":{\"start\":30,\"end\":42},\"surface\":\"반환하는\",\"origins\":[{\"analysis_index\":0,\"lemma\":\"반환하다\",\"pos\":\"verb\",\"rules\":[\"ending.present-adnominal\"]},{\"analysis_index\":1,\"lemma\":\"반환하다\",\"pos\":\"verb\",\"rules\":[\"ending.present-adnominal\"]}]}],\"offset_unit\":\"utf8-bytes\"}\n",
+          "stderr": "",
+          "stdout_bytes": 2167,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "read",
+          "argv": [
+            "cat",
+            "rustlings-kr/exercises/13_error_handling/errors4.rs"
+          ],
+          "at": "2026-09-12T07:57:28.535319+00:00",
+          "elapsed_ms": 3.962333,
+          "exit_code": 0,
+          "stdout": "#[derive(PartialEq, Debug)]\nenum CreationError {\n    Negative,\n    Zero,\n}\n\n#[derive(PartialEq, Debug)]\nstruct PositiveNonzeroInteger(u64);\n\nimpl PositiveNonzeroInteger {\n    fn new(value: i64) -> Result<Self, CreationError> {\n        // TODO: 이 함수가 항상 `Ok`를 반환하면 안 돼.\n        // 아래 테스트를 읽고 뭘 반환해야 하는지 파악해봐.\n        Ok(Self(value as u64))\n    }\n}\n\nfn main() {\n    // 여기서 자유롭게 실험해봐.\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn test_creation() {\n        assert_eq!(\n            PositiveNonzeroInteger::new(10),\n            Ok(PositiveNonzeroInteger(10)),\n        );\n        assert_eq!(\n            PositiveNonzeroInteger::new(-10),\n            Err(CreationError::Negative),\n        );\n        assert_eq!(PositiveNonzeroInteger::new(0), Err(CreationError::Zero));\n    }\n}\n",
+          "stderr": "",
+          "stdout_bytes": 879,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "baseline-compile",
+          "argv": [
+            "rustc",
+            "--edition=2021",
+            "--test",
+            "rustlings-kr/exercises/13_error_handling/errors4.rs",
+            "-o",
+            "../check"
+          ],
+          "at": "2026-09-12T07:57:28.702986+00:00",
+          "elapsed_ms": 122.207291,
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "baseline-verify",
+          "argv": [
+            "../check"
+          ],
+          "at": "2026-09-12T07:57:28.945366+00:00",
+          "elapsed_ms": 195.977041,
+          "exit_code": 101,
+          "stdout": "\nrunning 1 test\ntest tests::test_creation ... FAILED\n\nfailures:\n\n---- tests::test_creation stdout ----\n\nthread 'tests::test_creation' (887131) panicked at rustlings-kr/exercises/13_error_handling/errors4.rs:32:9:\nassertion `left == right` failed\n  left: Ok(PositiveNonzeroInteger(18446744073709551606))\n right: Err(Negative)\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::test_creation\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+          "stderr": "",
+          "stdout_bytes": 540,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "compile",
+          "argv": [
+            "rustc",
+            "--edition=2021",
+            "--test",
+            "rustlings-kr/exercises/13_error_handling/errors4.rs",
+            "-o",
+            "../check"
+          ],
+          "at": "2026-09-12T07:57:29.138476+00:00",
+          "elapsed_ms": 112.4265,
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "verify",
+          "argv": [
+            "../check"
+          ],
+          "at": "2026-09-12T07:57:29.379650+00:00",
+          "elapsed_ms": 194.117125,
+          "exit_code": 0,
+          "stdout": "\nrunning 1 test\ntest tests::test_creation ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+          "stderr": "",
+          "stdout_bytes": 145,
+          "stderr_bytes": 0
+        }
+      ],
+      "patches": [
+        {
+          "path": "rustlings-kr/exercises/13_error_handling/errors4.rs",
+          "sha256": "1c22703f4e498eb5aeeeef32042575ebfc14a15f6aec8f9ec93b581cbee80dd4",
+          "diff": "--- a/rustlings-kr/exercises/13_error_handling/errors4.rs\n+++ b/rustlings-kr/exercises/13_error_handling/errors4.rs\n@@ -9,9 +9,11 @@\n \n impl PositiveNonzeroInteger {\n     fn new(value: i64) -> Result<Self, CreationError> {\n-        // TODO: 이 함수가 항상 `Ok`를 반환하면 안 돼.\n-        // 아래 테스트를 읽고 뭘 반환해야 하는지 파악해봐.\n-        Ok(Self(value as u64))\n+        match value {\n+            ..0 => Err(CreationError::Negative),\n+            0 => Err(CreationError::Zero),\n+            _ => Ok(Self(value as u64)),\n+        }\n     }\n }\n \n"
+        }
+      ],
+      "finished_at": "2026-09-12T07:57:29.425564+00:00"
+    },
+    {
+      "trial": "threads-kfind",
+      "started_at": "2026-09-12T07:57:29.473672+00:00",
+      "inputs": [
+        {
+          "path": "rustlings-kr/README.md",
+          "sha256": "19dd4e9c9ff6e187a00f0e329102d52502b222e92f1715341b912190f538c680"
+        },
+        {
+          "path": "rustlings-kr/exercises/06_move_semantics/move_semantics2.rs",
+          "sha256": "af0077a04de1df899ef7bdcc334c3540dd5d48e52d71afb3cfbc0ea6d7bca7d4"
+        },
+        {
+          "path": "rustlings-kr/exercises/09_strings/strings3.rs",
+          "sha256": "f7cc39a9a69e4a7ff8e31e3af28121578426a0aac58a928c93b1b2f71500dbd0"
+        },
+        {
+          "path": "rustlings-kr/exercises/11_hashmaps/hashmaps2.rs",
+          "sha256": "284583c26977895d49f926771c7aaff962cd8255fdd6d5126be4a67ee13c09e7"
+        },
+        {
+          "path": "rustlings-kr/exercises/13_error_handling/errors4.rs",
+          "sha256": "472bb5dc8c8529f5161259e7be75eb9d2053aabc1e0e08b54ec2b9da4b6bdc79"
+        },
+        {
+          "path": "rustlings-kr/exercises/20_threads/threads1.rs",
+          "sha256": "c79670c8edfbf1cc112dd5d8d6d73885e791e0b2ddbfe0d251d562b2c5b3a677"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/concepts/containers/cri.md",
+          "sha256": "b816fd4177b17392f8cfa81f01da7833f791c4afd475d256cc964649998420dc"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/concepts/policy/limit-range.md",
+          "sha256": "14ba30ebf9d02198cd6701bbf2f8438f3410cdf72399a8bea07820d0ada5ffdf"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/tasks/debug/debug-cluster/crictl.md",
+          "sha256": "39f7af7ec28492cd7cf62f53368c45306adf806289759cb8e3b74de17fee7617"
+        }
+      ],
+      "events": [
+        {
+          "kind": "search",
+          "argv": [
+            "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+            "--embedded",
+            "--boundary",
+            "any",
+            "--json",
+            "--no-pager",
+            "--threads",
+            "1",
+            "--user-lexicon",
+            "/Users/seokmin/.codex/worktrees/a087/kfind/target/task-search/empty-user-lexicon.toml",
+            "--data-dir",
+            "/Users/seokmin/.codex/worktrees/a087/kfind/target/task-search/resources",
+            "v:기다리다",
+            "."
+          ],
+          "at": "2026-09-12T07:57:29.526165+00:00",
+          "elapsed_ms": 7.790416,
+          "exit_code": 0,
+          "stdout": "{\"type\":\"match\",\"path\":\"./rustlings-kr/exercises/20_threads/threads1.rs\",\"line\":3,\"text\":\"// 끝날 때까지 기다리고, 반환값들을 벡터(Vec)에 모아야 해.\",\"spans\":[{\"atom\":0,\"core\":{\"start\":20,\"end\":29},\"token\":{\"start\":20,\"end\":32},\"surface\":\"기다리고\",\"origins\":[{\"analysis_index\":0,\"lemma\":\"기다리다\",\"pos\":\"verb\",\"rules\":[\"ending.connective-go\"]},{\"analysis_index\":1,\"lemma\":\"기다리다\",\"pos\":\"verb\",\"rules\":[\"ending.connective-go\"]}]}],\"offset_unit\":\"utf8-bytes\"}\n",
+          "stderr": "",
+          "stdout_bytes": 496,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "read",
+          "argv": [
+            "cat",
+            "rustlings-kr/exercises/20_threads/threads1.rs"
+          ],
+          "at": "2026-09-12T07:57:40.867881+00:00",
+          "elapsed_ms": 3.968834,
+          "exit_code": 0,
+          "stdout": "// 이 프로그램은 각각 최소 250ms 동안 실행되는 여러 스레드(Thread)를 생성하고,\n// 각 스레드는 완료하는 데 걸린 시간을 반환해. 프로그램은 생성된 모든 스레드가\n// 끝날 때까지 기다리고, 반환값들을 벡터(Vec)에 모아야 해.\n\nuse std::{\n    thread,\n    time::{Duration, Instant},\n};\n\nfn main() {\n    let mut handles = Vec::new();\n    for i in 0..10 {\n        let handle = thread::spawn(move || {\n            let start = Instant::now();\n            thread::sleep(Duration::from_millis(250));\n            println!(\"Thread {i} done\");\n            start.elapsed().as_millis()\n        });\n        handles.push(handle);\n    }\n\n    let mut results = Vec::new();\n    for handle in handles {\n        // TODO: 모든 스레드의 결과를 `results` 벡터에 모아봐.\n        // `thread::spawn`이 반환하는 `JoinHandle` 구조체를 사용해봐.\n    }\n\n    if results.len() != 10 {\n        panic!(\"Oh no! Some thread isn't done yet!\");\n    }\n\n    println!();\n    for (i, result) in results.into_iter().enumerate() {\n        println!(\"Thread {i} took {result}ms\");\n    }\n}\n",
+          "stderr": "",
+          "stdout_bytes": 1141,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "baseline-compile",
+          "argv": [
+            "rustc",
+            "--edition=2021",
+            "rustlings-kr/exercises/20_threads/threads1.rs",
+            "-o",
+            "../check"
+          ],
+          "at": "2026-09-12T07:57:40.991461+00:00",
+          "elapsed_ms": 79.129334,
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "error[E0282]: type annotations needed for `Vec<_>`\n  --> rustlings-kr/exercises/20_threads/threads1.rs:22:9\n   |\n22 |     let mut results = Vec::new();\n   |         ^^^^^^^^^^^   ---------- type must be known at this point\n   |\nhelp: consider giving `results` an explicit type, where the type for type parameter `T` is specified\n   |\n22 |     let mut results: Vec<T> = Vec::new();\n   |                    ++++++++\n\nerror: aborting due to 1 previous error\n\nFor more information about this error, try `rustc --explain E0282`.\n",
+          "stdout_bytes": 0,
+          "stderr_bytes": 524
+        },
+        {
+          "kind": "compile",
+          "argv": [
+            "rustc",
+            "--edition=2021",
+            "rustlings-kr/exercises/20_threads/threads1.rs",
+            "-o",
+            "../check"
+          ],
+          "at": "2026-09-12T07:57:41.223198+00:00",
+          "elapsed_ms": 150.244708,
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "verify",
+          "argv": [
+            "../check"
+          ],
+          "at": "2026-09-12T07:57:41.874737+00:00",
+          "elapsed_ms": 606.307958,
+          "exit_code": 0,
+          "stdout": "Thread 5 done\nThread 2 done\nThread 1 done\nThread 4 done\nThread 8 done\nThread 0 done\nThread 9 done\nThread 3 done\nThread 6 done\nThread 7 done\n\nThread 0 took 255ms\nThread 1 took 252ms\nThread 2 took 251ms\nThread 3 took 255ms\nThread 4 took 252ms\nThread 5 took 251ms\nThread 6 took 255ms\nThread 7 took 255ms\nThread 8 took 254ms\nThread 9 took 255ms\n",
+          "stderr": "",
+          "stdout_bytes": 341,
+          "stderr_bytes": 0
+        }
+      ],
+      "patches": [
+        {
+          "path": "rustlings-kr/exercises/20_threads/threads1.rs",
+          "sha256": "aa339e4c8590f88f1ddc56965a540dbab2211779ca0969e3673cecd4eea584f2",
+          "diff": "--- a/rustlings-kr/exercises/20_threads/threads1.rs\n+++ b/rustlings-kr/exercises/20_threads/threads1.rs\n@@ -21,8 +21,7 @@\n \n     let mut results = Vec::new();\n     for handle in handles {\n-        // TODO: 모든 스레드의 결과를 `results` 벡터에 모아봐.\n-        // `thread::spawn`이 반환하는 `JoinHandle` 구조체를 사용해봐.\n+        results.push(handle.join().expect(\"worker thread failed\"));\n     }\n \n     if results.len() != 10 {\n"
+        }
+      ],
+      "finished_at": "2026-09-12T07:57:41.920783+00:00"
+    },
+    {
+      "trial": "threads-rg",
+      "started_at": "2026-09-12T07:57:41.967114+00:00",
+      "inputs": [
+        {
+          "path": "rustlings-kr/README.md",
+          "sha256": "19dd4e9c9ff6e187a00f0e329102d52502b222e92f1715341b912190f538c680"
+        },
+        {
+          "path": "rustlings-kr/exercises/06_move_semantics/move_semantics2.rs",
+          "sha256": "af0077a04de1df899ef7bdcc334c3540dd5d48e52d71afb3cfbc0ea6d7bca7d4"
+        },
+        {
+          "path": "rustlings-kr/exercises/09_strings/strings3.rs",
+          "sha256": "f7cc39a9a69e4a7ff8e31e3af28121578426a0aac58a928c93b1b2f71500dbd0"
+        },
+        {
+          "path": "rustlings-kr/exercises/11_hashmaps/hashmaps2.rs",
+          "sha256": "284583c26977895d49f926771c7aaff962cd8255fdd6d5126be4a67ee13c09e7"
+        },
+        {
+          "path": "rustlings-kr/exercises/13_error_handling/errors4.rs",
+          "sha256": "472bb5dc8c8529f5161259e7be75eb9d2053aabc1e0e08b54ec2b9da4b6bdc79"
+        },
+        {
+          "path": "rustlings-kr/exercises/20_threads/threads1.rs",
+          "sha256": "c79670c8edfbf1cc112dd5d8d6d73885e791e0b2ddbfe0d251d562b2c5b3a677"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/concepts/containers/cri.md",
+          "sha256": "b816fd4177b17392f8cfa81f01da7833f791c4afd475d256cc964649998420dc"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/concepts/policy/limit-range.md",
+          "sha256": "14ba30ebf9d02198cd6701bbf2f8438f3410cdf72399a8bea07820d0ada5ffdf"
+        },
+        {
+          "path": "kubernetes-website/content/ko/docs/tasks/debug/debug-cluster/crictl.md",
+          "sha256": "39f7af7ec28492cd7cf62f53368c45306adf806289759cb8e3b74de17fee7617"
+        }
+      ],
+      "events": [
+        {
+          "kind": "search",
+          "argv": [
+            "rg",
+            "--no-config",
+            "--json",
+            "-n",
+            "-F",
+            "기다",
+            "."
+          ],
+          "at": "2026-09-12T07:57:42.020514+00:00",
+          "elapsed_ms": 7.152917,
+          "exit_code": 0,
+          "stdout": "{\"type\":\"begin\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/20_threads/threads1.rs\"}}}\n{\"type\":\"match\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/20_threads/threads1.rs\"},\"lines\":{\"text\":\"// 끝날 때까지 기다리고, 반환값들을 벡터(Vec)에 모아야 해.\\n\"},\"line_number\":3,\"absolute_offset\":216,\"submatches\":[{\"match\":{\"text\":\"기다\"},\"start\":20,\"end\":26}]}}\n{\"type\":\"end\",\"data\":{\"path\":{\"text\":\"./rustlings-kr/exercises/20_threads/threads1.rs\"},\"binary_offset\":null,\"stats\":{\"elapsed\":{\"secs\":0,\"nanos\":17083,\"human\":\"0.000017s\"},\"searches\":1,\"searches_with_match\":1,\"bytes_searched\":1141,\"bytes_printed\":386,\"matched_lines\":1,\"matches\":1}}}\n{\"data\":{\"elapsed_total\":{\"human\":\"0.001970s\",\"nanos\":1969625,\"secs\":0},\"stats\":{\"bytes_printed\":386,\"bytes_searched\":30868,\"elapsed\":{\"human\":\"0.000054s\",\"nanos\":54000,\"secs\":0},\"matched_lines\":1,\"matches\":1,\"searches\":9,\"searches_with_match\":1}},\"type\":\"summary\"}\n",
+          "stderr": "",
+          "stdout_bytes": 937,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "read",
+          "argv": [
+            "cat",
+            "rustlings-kr/exercises/20_threads/threads1.rs"
+          ],
+          "at": "2026-09-12T07:57:42.072273+00:00",
+          "elapsed_ms": 3.572375,
+          "exit_code": 0,
+          "stdout": "// 이 프로그램은 각각 최소 250ms 동안 실행되는 여러 스레드(Thread)를 생성하고,\n// 각 스레드는 완료하는 데 걸린 시간을 반환해. 프로그램은 생성된 모든 스레드가\n// 끝날 때까지 기다리고, 반환값들을 벡터(Vec)에 모아야 해.\n\nuse std::{\n    thread,\n    time::{Duration, Instant},\n};\n\nfn main() {\n    let mut handles = Vec::new();\n    for i in 0..10 {\n        let handle = thread::spawn(move || {\n            let start = Instant::now();\n            thread::sleep(Duration::from_millis(250));\n            println!(\"Thread {i} done\");\n            start.elapsed().as_millis()\n        });\n        handles.push(handle);\n    }\n\n    let mut results = Vec::new();\n    for handle in handles {\n        // TODO: 모든 스레드의 결과를 `results` 벡터에 모아봐.\n        // `thread::spawn`이 반환하는 `JoinHandle` 구조체를 사용해봐.\n    }\n\n    if results.len() != 10 {\n        panic!(\"Oh no! Some thread isn't done yet!\");\n    }\n\n    println!();\n    for (i, result) in results.into_iter().enumerate() {\n        println!(\"Thread {i} took {result}ms\");\n    }\n}\n",
+          "stderr": "",
+          "stdout_bytes": 1141,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "baseline-compile",
+          "argv": [
+            "rustc",
+            "--edition=2021",
+            "rustlings-kr/exercises/20_threads/threads1.rs",
+            "-o",
+            "../check"
+          ],
+          "at": "2026-09-12T07:57:42.162834+00:00",
+          "elapsed_ms": 44.262833,
+          "exit_code": 1,
+          "stdout": "",
+          "stderr": "error[E0282]: type annotations needed for `Vec<_>`\n  --> rustlings-kr/exercises/20_threads/threads1.rs:22:9\n   |\n22 |     let mut results = Vec::new();\n   |         ^^^^^^^^^^^   ---------- type must be known at this point\n   |\nhelp: consider giving `results` an explicit type, where the type for type parameter `T` is specified\n   |\n22 |     let mut results: Vec<T> = Vec::new();\n   |                    ++++++++\n\nerror: aborting due to 1 previous error\n\nFor more information about this error, try `rustc --explain E0282`.\n",
+          "stdout_bytes": 0,
+          "stderr_bytes": 524
+        },
+        {
+          "kind": "compile",
+          "argv": [
+            "rustc",
+            "--edition=2021",
+            "rustlings-kr/exercises/20_threads/threads1.rs",
+            "-o",
+            "../check"
+          ],
+          "at": "2026-09-12T07:57:52.517120+00:00",
+          "elapsed_ms": 137.270291,
+          "exit_code": 0,
+          "stdout": "",
+          "stderr": "",
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        },
+        {
+          "kind": "verify",
+          "argv": [
+            "../check"
+          ],
+          "at": "2026-09-12T07:57:53.033225+00:00",
+          "elapsed_ms": 469.6055,
+          "exit_code": 0,
+          "stdout": "Thread 1 done\nThread 7 done\nThread 8 done\nThread 6 done\nThread 5 done\nThread 9 done\nThread 4 done\nThread 0 done\nThread 2 done\nThread 3 done\n\nThread 0 took 253ms\nThread 1 took 252ms\nThread 2 took 253ms\nThread 3 took 255ms\nThread 4 took 253ms\nThread 5 took 253ms\nThread 6 took 253ms\nThread 7 took 252ms\nThread 8 took 252ms\nThread 9 took 253ms\n",
+          "stderr": "",
+          "stdout_bytes": 341,
+          "stderr_bytes": 0
+        }
+      ],
+      "patches": [
+        {
+          "path": "rustlings-kr/exercises/20_threads/threads1.rs",
+          "sha256": "aa339e4c8590f88f1ddc56965a540dbab2211779ca0969e3673cecd4eea584f2",
+          "diff": "--- a/rustlings-kr/exercises/20_threads/threads1.rs\n+++ b/rustlings-kr/exercises/20_threads/threads1.rs\n@@ -21,8 +21,7 @@\n \n     let mut results = Vec::new();\n     for handle in handles {\n-        // TODO: 모든 스레드의 결과를 `results` 벡터에 모아봐.\n-        // `thread::spawn`이 반환하는 `JoinHandle` 구조체를 사용해봐.\n+        results.push(handle.join().expect(\"worker thread failed\"));\n     }\n \n     if results.len() != 10 {\n"
+        }
+      ],
+      "finished_at": "2026-09-12T07:57:53.098576+00:00"
+    }
+  ],
+  "summary": {
+    "rg": {
+      "completed": 4,
+      "search_calls": 4,
+      "read_calls": 4,
+      "candidate_files": 7,
+      "candidate_lines": 15,
+      "search_stdout_bytes": 8311,
+      "read_stdout_bytes": 6019,
+      "search_tool_ms": 43.424583,
+      "raw_file_relevance": {
+        "tp": 4,
+        "fp": 3,
+        "tn": 29,
+        "fn": 0,
+        "precision": 0.5714285714285714,
+        "recall": 1.0,
+        "f1": 0.7272727272727273
+      },
+      "contract_adjusted_file_relevance": {
+        "tp": 4,
+        "fp": 3,
+        "tn": 29,
+        "fn": 0,
+        "precision": 0.5714285714285714,
+        "recall": 1.0,
+        "f1": 0.7272727272727273
+      },
+      "contract_reviews": 0,
+      "recorded_process_calls": 22,
+      "recorded_process_ms": 3280.253458,
+      "edit_operations": 4
+    },
+    "kfind": {
+      "completed": 4,
+      "search_calls": 4,
+      "read_calls": 4,
+      "candidate_files": 6,
+      "candidate_lines": 11,
+      "search_stdout_bytes": 5875,
+      "read_stdout_bytes": 6019,
+      "search_tool_ms": 44.278666,
+      "raw_file_relevance": {
+        "tp": 4,
+        "fp": 2,
+        "tn": 30,
+        "fn": 0,
+        "precision": 0.6666666666666666,
+        "recall": 1.0,
+        "f1": 0.8
+      },
+      "contract_adjusted_file_relevance": {
+        "tp": 4,
+        "fp": 2,
+        "tn": 30,
+        "fn": 0,
+        "precision": 0.6666666666666666,
+        "recall": 1.0,
+        "f1": 0.8
+      },
+      "contract_reviews": 0,
+      "recorded_process_calls": 22,
+      "recorded_process_ms": 3321.243539,
+      "edit_operations": 4
+    }
+  },
+  "recorder_source": "import datetime\nimport difflib\nimport hashlib\nimport json\nimport shutil\nimport subprocess\nimport sys\nimport time\nfrom pathlib import Path\n\nROOT = Path(__file__).resolve().parents[2]\nBASE = ROOT / 'target/structure-review/tasks'\nSOURCE = ROOT / 'target/task-search/sources'\ndef sha(data):\n    return hashlib.sha256(data).hexdigest()\ndef save(path, value):\n    path.write_text(json.dumps(value, ensure_ascii=False, indent=2)+'\\n')\ndef stamp():\n    return datetime.datetime.now(datetime.timezone.utc).isoformat()\n\ncommand, trial = sys.argv[1:3]\ndirectory = BASE / trial\nrecord_path = directory / 'record.json'\nif command == 'init':\n    if directory.exists(): raise RuntimeError('trial already exists')\n    manifest = json.loads((ROOT/'tools/morph-compare/real_corpus/sources.json').read_text())\n    files = []\n    for source in manifest['sources']:\n        for file in source['files']:\n            rel = Path(source['id']) / file['path']\n            data = (SOURCE/rel).read_bytes()\n            assert sha(data) == file['sha256']\n            dest = directory/'input'/rel\n            dest.parent.mkdir(parents=True,exist_ok=True)\n            dest.write_bytes(data)\n            files.append({'path':str(rel),'sha256':sha(data)})\n    save(record_path, {'trial':trial,'started_at':stamp(),'inputs':files,'events':[]})\nelif command == 'run':\n    kind = sys.argv[3]\n    argv = sys.argv[4:]\n    record = json.loads(record_path.read_text())\n    started = time.perf_counter_ns()\n    process = subprocess.run(argv,cwd=directory/'input',capture_output=True,timeout=120)\n    event = {'kind':kind,'argv':argv,'at':stamp(),'elapsed_ms':(time.perf_counter_ns()-started)/1e6,'exit_code':process.returncode,'stdout':process.stdout.decode(),'stderr':process.stderr.decode(),'stdout_bytes':len(process.stdout),'stderr_bytes':len(process.stderr)}\n    record['events'].append(event)\n    save(record_path,record)\n    print(json.dumps(event,ensure_ascii=False))\nelif command == 'finish':\n    record=json.loads(record_path.read_text())\n    patches=[]\n    for file in record['inputs']:\n        rel=file['path']\n        old=(SOURCE/rel).read_text()\n        new=(directory/'input'/rel).read_text()\n        if old==new: continue\n        assert old.split('#[cfg(test)]')[-1]==new.split('#[cfg(test)]')[-1] if '#[cfg(test)]' in old else True\n        patches.append({'path':rel,'sha256':sha(new.encode()),'diff':''.join(difflib.unified_diff(old.splitlines(keepends=True),new.splitlines(keepends=True),fromfile='a/'+rel,tofile='b/'+rel))})\n    record['patches']=patches\n    record['finished_at']=stamp()\n    assert patches\n    save(record_path,record)\n    print(json.dumps({'trial':trial,'patches':patches},ensure_ascii=False))\n",
+  "protocol_sha256": "4fc24676d524edd4c1d0b334b5b2e7f4814803a422e85845aa23984dee350976"
+}
