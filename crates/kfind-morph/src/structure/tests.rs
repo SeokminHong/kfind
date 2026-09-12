@@ -1,10 +1,26 @@
+use crate::structure::graph::{Edge, EdgeGraph, Unit, UnitGraph, UnitPathCost};
+use crate::structure::lexical::{
+    complete_ha_predicate_path, complete_nominal_particle_host, has_exact_fine_pos,
+    nominal_particle_hosts, numeric_unit_path,
+};
+use crate::structure::paths::CommonPathFacts;
+use crate::structure::paths::numeral::{hangul_numeral_spans, numeral_sequence_spans};
+use crate::structure::paths::predicate::has_complete_attached_auxiliary_path;
+use crate::structure::{
+    BoundedTokenContext, ConstraintOutcome, ConstraintResolver, ConstraintUnavailable,
+    ProductPolicy, StructuralEvidence,
+};
+use crate::{
+    CandidateSpans, QueryMorphPattern,
+    {CandidateTokenRelation, ComponentCapability, MorphContinuation},
+};
+use kfind_data::{ComponentPart, ComponentPos as StructuralPos, ComponentResource, DataFinePos};
 use kfind_data::{
     MecabSourceMorphologyEntry, decode_component_resource, encode_component_resource,
 };
 use proptest::prelude::*;
-
-use super::*;
-use crate::{CandidateTokenRelation, ComponentCapability, MorphContinuation};
+use std::ops::Range;
+use std::sync::Arc;
 
 #[test]
 fn edge_graph_start_index_matches_a_linear_scan_at_every_byte() {

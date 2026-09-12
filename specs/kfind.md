@@ -746,6 +746,10 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
 - 구조 근거 수집은 corpus graph 구성·경로 선택과 분리된 모듈에서 수행한다. Source 근거,
   명사형 활용 anchor 근거, runtime 복합 구조와 완결 span 근거의 우선순위를 보존하며
   같은 candidate의 지원 근거와 pattern index를 유지한다.
+- 구조 판정의 내부 경계는 resource 조회, graph 인덱스, token 근거 준비, 구조별 경로 사실,
+  문맥의 구조 선택과 candidate 수용으로 나눈다. Graph 계층은 query pattern이나 수용 정책에
+  의존하지 않으며, 경로 사실은 준비 단계에서 계산해 선택·수용에 전달한다. 공개 resolver API,
+  근거 우선순위, node 상한과 판정 결과는 이 내부 분리와 무관하게 유지한다.
 - resolver는 먼저 query와 독립적인 whole/component·세부 품사·continuation·인접 token
   근거로 corpus의 구조적 후보를 고른다. 어휘 의미만 다르고 span topology, 품사,
   continuation과 문맥 제약이 같은 후보는 하나의 `StructuralSignature`로 합친다.
