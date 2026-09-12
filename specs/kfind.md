@@ -743,6 +743,9 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
   기능마다 다시 분리하거나 세부 품사를 반복 해석하지 않는다. Token 준비 경로에는 POS interning
   cache나 별도 sequence arena를 두지 않는다. Component span이 필요 없는 구조 판정은 POS-only
   resource view를 순회하며 analysis·component `Vec`를 만들지 않는다.
+- 구조 근거 수집은 corpus graph 구성·경로 선택과 분리된 모듈에서 수행한다. Source 근거,
+  명사형 활용 anchor 근거, runtime 복합 구조와 완결 span 근거의 우선순위를 보존하며
+  같은 candidate의 지원 근거와 pattern index를 유지한다.
 - resolver는 먼저 query와 독립적인 whole/component·세부 품사·continuation·인접 token
   근거로 corpus의 구조적 후보를 고른다. 어휘 의미만 다르고 span topology, 품사,
   continuation과 문맥 제약이 같은 후보는 하나의 `StructuralSignature`로 합친다.
