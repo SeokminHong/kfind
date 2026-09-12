@@ -36,7 +36,7 @@ Open the source at the reported path and line to check its meaning. With no path
 On Node.js 20 or later, this command searches for the same lemma. The npm CLI outputs the matched substring, unlike native line output.
 
 ```bash
-printf '길을 걸었다.\n' | npx @kfind/kfind@1.0.1 --pos verb 걷다
+printf '길을 걸었다.\n' | npx @kfind/kfind@1.1.0 --pos verb 걷다
 ```
 
 Use the [JavaScript API](/reference/javascript) to search strings in an application. The package does not include the full-POS lexicon; callers supply any additional resources required by the API as bytes.
