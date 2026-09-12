@@ -1,0 +1,4738 @@
+{
+  "baseline": {
+    "schema_version": 2,
+    "revision": "bae0a005",
+    "environment": {
+      "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+      "machine": "arm64",
+      "cpu": "Apple M1 Max",
+      "cpu_count": 10,
+      "memory_bytes": 34359738368,
+      "python": "3.14.7",
+      "kfind": "kfind 1.0.1",
+      "kfind_sha256": "e6c494c684bacfcedf0338894b0202cea5cd105ae57a8c5e19d469108088a2ef",
+      "full_pos_sha256": "012a2ecfc9ee049cb48f655eb240fa2ed6fc739dfde01526078a976549246e88",
+      "component_sha256": "c786cb82ce0cdab3b9cf2b09b252e6068e0a63f2aebe8e8358002cd0a4be77d1",
+      "kfind_resources": {
+        "type": "data-check",
+        "status": "ok",
+        "kfind_version": "1.0.1",
+        "full_pos": {
+          "path": "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/resources/lexicon.bin",
+          "schema_version": 1,
+          "entry_count": 632667
+        },
+        "component": {
+          "path": "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/resources/morphology-component-compact.kfc",
+          "schema_version": 5,
+          "resource_version": "1.0.1",
+          "surface_count": 773105,
+          "analysis_count": 806568
+        }
+      },
+      "rg": "ripgrep 15.2.0",
+      "grep": "grep (BSD grep, GNU compatible) 2.6.0-FreeBSD"
+    },
+    "fixture": {
+      "kind": "constructed-diagnostic",
+      "queries": 7,
+      "cases": 112,
+      "strict_positive": 56,
+      "strict_negative": 56,
+      "contract_positive": 62,
+      "contract_negative": 50,
+      "reviewed_cases": 6,
+      "review_reasons": {
+        "aligned-source-component": 1,
+        "same-pos-homograph": 4,
+        "structurally-indistinguishable-homograph": 1
+      },
+      "sha256": "0a99bd90ce34169f1fc6e294525ee2d4ec782240570fd0c023acdfe609bbd914",
+      "patterns_sha256": "8963aaecf00fe14f1e0323f35ae5048c44b03bb8d871f5bbf454bd98aa561fff",
+      "corpus_sha256": "7aacf72882be9bce2f5d0213ad88994ad3e638f23495d317f4cb1a4bdb8c0ec8"
+    },
+    "patterns": [
+      {
+        "enumerated": "걷다|걷는|걷고|걷기|걷어|걸어|걸었|걸으면|걸을",
+        "query": "v:걷다",
+        "id": "walk",
+        "stem": "걷|걸"
+      },
+      {
+        "enumerated": "듣다|듣는|듣고|듣지|들어|들었|들으면|들은|들을",
+        "query": "v:듣다",
+        "id": "listen",
+        "stem": "듣|들"
+      },
+      {
+        "enumerated": "돕다|돕는|돕고|돕지|도와|도왔|도우면|도운|도울",
+        "query": "v:돕다",
+        "id": "help",
+        "stem": "돕|도우|도와"
+      },
+      {
+        "enumerated": "짓다|짓는|짓고|짓지|지어|지었|지으면|지은|지을",
+        "query": "v:짓다",
+        "id": "build",
+        "stem": "짓|지"
+      },
+      {
+        "enumerated": "부르다|부르는|부르고|부르지|부르면|부른|부를|불러|불렀",
+        "query": "v:부르다",
+        "id": "call",
+        "stem": "부르|불러"
+      },
+      {
+        "enumerated": "예쁘다|예쁜|예쁘고|예쁘지|예쁘면|예쁘게|예뻐|예뻤|예쁠",
+        "query": "adj:예쁘다",
+        "id": "pretty",
+        "stem": "예쁘|예뻐|예쁠"
+      },
+      {
+        "enumerated": "되다|되는|되고|되지|되면|되어|되었|된|될|돼|됐|됩니다",
+        "query": "v:되다",
+        "id": "become",
+        "stem": "되|돼|됐"
+      }
+    ],
+    "quality": {
+      "kfind_any": {
+        "raw": {
+          "cases": 112,
+          "tp": 56,
+          "tn": 47,
+          "fp": 9,
+          "fn": 0,
+          "accuracy_percent": 91.96,
+          "precision_percent": 86.15,
+          "recall_percent": 100.0,
+          "f1_percent": 92.56
+        },
+        "contract_adjusted": {
+          "cases": 112,
+          "tp": 62,
+          "tn": 47,
+          "fp": 3,
+          "fn": 0,
+          "accuracy_percent": 97.32,
+          "precision_percent": 95.38,
+          "recall_percent": 100.0,
+          "f1_percent": 97.64
+        },
+        "failures": {
+          "raw": [
+            {
+              "id": "walk-09",
+              "query": "v:걷다",
+              "text": "전화를 걸어 봤다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-10",
+              "query": "v:걷다",
+              "text": "경기에 돈을 걸었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-14",
+              "query": "v:걷다",
+              "text": "걸음걸이가 독특하다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-09",
+              "query": "v:듣다",
+              "text": "무거운 짐을 들었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-10",
+              "query": "v:듣다",
+              "text": "손을 들어 신호했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-14",
+              "query": "v:듣다",
+              "text": "사람들이 방으로 들어갔다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "call-13",
+              "query": "v:부르다",
+              "text": "배부르다고 그만 먹었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "become-09",
+              "query": "v:되다",
+              "text": "돼지고기를 구웠다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "become-10",
+              "query": "v:되다",
+              "text": "된장찌개를 끓였다.",
+              "predicted": true,
+              "expected": false
+            }
+          ],
+          "contract_adjusted": [
+            {
+              "id": "call-13",
+              "query": "v:부르다",
+              "text": "배부르다고 그만 먹었다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "become-09",
+              "query": "v:되다",
+              "text": "돼지고기를 구웠다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "become-10",
+              "query": "v:되다",
+              "text": "된장찌개를 끓였다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            }
+          ]
+        },
+        "by_query": {
+          "walk": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 5,
+              "fp": 3,
+              "fn": 0,
+              "accuracy_percent": 81.25,
+              "precision_percent": 72.73,
+              "recall_percent": 100.0,
+              "f1_percent": 84.21
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 11,
+              "tn": 5,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "listen": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 5,
+              "fp": 3,
+              "fn": 0,
+              "accuracy_percent": 81.25,
+              "precision_percent": 72.73,
+              "recall_percent": 100.0,
+              "f1_percent": 84.21
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 11,
+              "tn": 5,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "help": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "build": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "call": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 7,
+              "fp": 1,
+              "fn": 0,
+              "accuracy_percent": 93.75,
+              "precision_percent": 88.89,
+              "recall_percent": 100.0,
+              "f1_percent": 94.12
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 7,
+              "fp": 1,
+              "fn": 0,
+              "accuracy_percent": 93.75,
+              "precision_percent": 88.89,
+              "recall_percent": 100.0,
+              "f1_percent": 94.12
+            }
+          },
+          "pretty": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "become": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 6,
+              "fp": 2,
+              "fn": 0,
+              "accuracy_percent": 87.5,
+              "precision_percent": 80.0,
+              "recall_percent": 100.0,
+              "f1_percent": 88.89
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 6,
+              "fp": 2,
+              "fn": 0,
+              "accuracy_percent": 87.5,
+              "precision_percent": 80.0,
+              "recall_percent": 100.0,
+              "f1_percent": 88.89
+            }
+          }
+        }
+      },
+      "kfind_smart": {
+        "raw": {
+          "cases": 112,
+          "tp": 56,
+          "tn": 50,
+          "fp": 6,
+          "fn": 0,
+          "accuracy_percent": 94.64,
+          "precision_percent": 90.32,
+          "recall_percent": 100.0,
+          "f1_percent": 94.92
+        },
+        "contract_adjusted": {
+          "cases": 112,
+          "tp": 62,
+          "tn": 50,
+          "fp": 0,
+          "fn": 0,
+          "accuracy_percent": 100.0,
+          "precision_percent": 100.0,
+          "recall_percent": 100.0,
+          "f1_percent": 100.0
+        },
+        "failures": {
+          "raw": [
+            {
+              "id": "walk-09",
+              "query": "v:걷다",
+              "text": "전화를 걸어 봤다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-10",
+              "query": "v:걷다",
+              "text": "경기에 돈을 걸었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-14",
+              "query": "v:걷다",
+              "text": "걸음걸이가 독특하다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-09",
+              "query": "v:듣다",
+              "text": "무거운 짐을 들었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-10",
+              "query": "v:듣다",
+              "text": "손을 들어 신호했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-14",
+              "query": "v:듣다",
+              "text": "사람들이 방으로 들어갔다.",
+              "predicted": true,
+              "expected": false
+            }
+          ],
+          "contract_adjusted": []
+        },
+        "by_query": {
+          "walk": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 5,
+              "fp": 3,
+              "fn": 0,
+              "accuracy_percent": 81.25,
+              "precision_percent": 72.73,
+              "recall_percent": 100.0,
+              "f1_percent": 84.21
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 11,
+              "tn": 5,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "listen": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 5,
+              "fp": 3,
+              "fn": 0,
+              "accuracy_percent": 81.25,
+              "precision_percent": 72.73,
+              "recall_percent": 100.0,
+              "f1_percent": 84.21
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 11,
+              "tn": 5,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "help": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "build": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "call": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "pretty": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "become": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          }
+        }
+      },
+      "regex_enumerated": {
+        "raw": {
+          "cases": 112,
+          "tp": 50,
+          "tn": 48,
+          "fp": 8,
+          "fn": 6,
+          "accuracy_percent": 87.5,
+          "precision_percent": 86.21,
+          "recall_percent": 89.29,
+          "f1_percent": 87.72
+        },
+        "contract_adjusted": {
+          "cases": 112,
+          "tp": 55,
+          "tn": 47,
+          "fp": 3,
+          "fn": 7,
+          "accuracy_percent": 91.07,
+          "precision_percent": 94.83,
+          "recall_percent": 88.71,
+          "f1_percent": 91.67
+        },
+        "failures": {
+          "raw": [
+            {
+              "id": "walk-05",
+              "query": "v:걷다",
+              "text": "천천히 걷거라.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "walk-06",
+              "query": "v:걷다",
+              "text": "함께 걸읍시다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "walk-09",
+              "query": "v:걷다",
+              "text": "전화를 걸어 봤다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-10",
+              "query": "v:걷다",
+              "text": "경기에 돈을 걸었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-08",
+              "query": "v:듣다",
+              "text": "설명을 들으시면 이해됩니다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "listen-09",
+              "query": "v:듣다",
+              "text": "무거운 짐을 들었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-10",
+              "query": "v:듣다",
+              "text": "손을 들어 신호했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-14",
+              "query": "v:듣다",
+              "text": "사람들이 방으로 들어갔다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "help-07",
+              "query": "v:돕다",
+              "text": "어려운 이웃을 돕습니다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "help-08",
+              "query": "v:돕다",
+              "text": "서로 도우며 문제를 해결했다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "build-07",
+              "query": "v:짓다",
+              "text": "창고를 지으셨다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "call-13",
+              "query": "v:부르다",
+              "text": "배부르다고 그만 먹었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "become-09",
+              "query": "v:되다",
+              "text": "돼지고기를 구웠다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "become-10",
+              "query": "v:되다",
+              "text": "된장찌개를 끓였다.",
+              "predicted": true,
+              "expected": false
+            }
+          ],
+          "contract_adjusted": [
+            {
+              "id": "walk-05",
+              "query": "v:걷다",
+              "text": "천천히 걷거라.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "walk-06",
+              "query": "v:걷다",
+              "text": "함께 걸읍시다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "walk-14",
+              "query": "v:걷다",
+              "text": "걸음걸이가 독특하다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": "aligned-source-component"
+            },
+            {
+              "id": "listen-08",
+              "query": "v:듣다",
+              "text": "설명을 들으시면 이해됩니다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "help-07",
+              "query": "v:돕다",
+              "text": "어려운 이웃을 돕습니다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "help-08",
+              "query": "v:돕다",
+              "text": "서로 도우며 문제를 해결했다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "build-07",
+              "query": "v:짓다",
+              "text": "창고를 지으셨다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "call-13",
+              "query": "v:부르다",
+              "text": "배부르다고 그만 먹었다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "become-09",
+              "query": "v:되다",
+              "text": "돼지고기를 구웠다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "become-10",
+              "query": "v:되다",
+              "text": "된장찌개를 끓였다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            }
+          ]
+        },
+        "by_query": {
+          "walk": {
+            "raw": {
+              "cases": 16,
+              "tp": 6,
+              "tn": 6,
+              "fp": 2,
+              "fn": 2,
+              "accuracy_percent": 75.0,
+              "precision_percent": 75.0,
+              "recall_percent": 75.0,
+              "f1_percent": 75.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 5,
+              "fp": 0,
+              "fn": 3,
+              "accuracy_percent": 81.25,
+              "precision_percent": 100.0,
+              "recall_percent": 72.73,
+              "f1_percent": 84.21
+            }
+          },
+          "listen": {
+            "raw": {
+              "cases": 16,
+              "tp": 7,
+              "tn": 5,
+              "fp": 3,
+              "fn": 1,
+              "accuracy_percent": 75.0,
+              "precision_percent": 70.0,
+              "recall_percent": 87.5,
+              "f1_percent": 77.78
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 10,
+              "tn": 5,
+              "fp": 0,
+              "fn": 1,
+              "accuracy_percent": 93.75,
+              "precision_percent": 100.0,
+              "recall_percent": 90.91,
+              "f1_percent": 95.24
+            }
+          },
+          "help": {
+            "raw": {
+              "cases": 16,
+              "tp": 6,
+              "tn": 8,
+              "fp": 0,
+              "fn": 2,
+              "accuracy_percent": 87.5,
+              "precision_percent": 100.0,
+              "recall_percent": 75.0,
+              "f1_percent": 85.71
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 6,
+              "tn": 8,
+              "fp": 0,
+              "fn": 2,
+              "accuracy_percent": 87.5,
+              "precision_percent": 100.0,
+              "recall_percent": 75.0,
+              "f1_percent": 85.71
+            }
+          },
+          "build": {
+            "raw": {
+              "cases": 16,
+              "tp": 7,
+              "tn": 8,
+              "fp": 0,
+              "fn": 1,
+              "accuracy_percent": 93.75,
+              "precision_percent": 100.0,
+              "recall_percent": 87.5,
+              "f1_percent": 93.33
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 7,
+              "tn": 8,
+              "fp": 0,
+              "fn": 1,
+              "accuracy_percent": 93.75,
+              "precision_percent": 100.0,
+              "recall_percent": 87.5,
+              "f1_percent": 93.33
+            }
+          },
+          "call": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 7,
+              "fp": 1,
+              "fn": 0,
+              "accuracy_percent": 93.75,
+              "precision_percent": 88.89,
+              "recall_percent": 100.0,
+              "f1_percent": 94.12
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 7,
+              "fp": 1,
+              "fn": 0,
+              "accuracy_percent": 93.75,
+              "precision_percent": 88.89,
+              "recall_percent": 100.0,
+              "f1_percent": 94.12
+            }
+          },
+          "pretty": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "become": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 6,
+              "fp": 2,
+              "fn": 0,
+              "accuracy_percent": 87.5,
+              "precision_percent": 80.0,
+              "recall_percent": 100.0,
+              "f1_percent": 88.89
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 6,
+              "fp": 2,
+              "fn": 0,
+              "accuracy_percent": 87.5,
+              "precision_percent": 80.0,
+              "recall_percent": 100.0,
+              "f1_percent": 88.89
+            }
+          }
+        }
+      },
+      "regex_stem": {
+        "raw": {
+          "cases": 112,
+          "tp": 46,
+          "tn": 22,
+          "fp": 34,
+          "fn": 10,
+          "accuracy_percent": 60.71,
+          "precision_percent": 57.5,
+          "recall_percent": 82.14,
+          "f1_percent": 67.65
+        },
+        "contract_adjusted": {
+          "cases": 112,
+          "tp": 52,
+          "tn": 22,
+          "fp": 28,
+          "fn": 10,
+          "accuracy_percent": 66.07,
+          "precision_percent": 65.0,
+          "recall_percent": 83.87,
+          "f1_percent": 73.24
+        },
+        "failures": {
+          "raw": [
+            {
+              "id": "walk-09",
+              "query": "v:걷다",
+              "text": "전화를 걸어 봤다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-10",
+              "query": "v:걷다",
+              "text": "경기에 돈을 걸었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-11",
+              "query": "v:걷다",
+              "text": "목걸이를 새로 샀다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-12",
+              "query": "v:걷다",
+              "text": "막걸리를 한 잔 마셨다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-13",
+              "query": "v:걷다",
+              "text": "걸작을 전시했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-14",
+              "query": "v:걷다",
+              "text": "걸음걸이가 독특하다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-15",
+              "query": "v:걷다",
+              "text": "문에 자물쇠를 걸고 나왔다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-16",
+              "query": "v:걷다",
+              "text": "걸인이 길가에 앉아 있었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-09",
+              "query": "v:듣다",
+              "text": "무거운 짐을 들었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-10",
+              "query": "v:듣다",
+              "text": "손을 들어 신호했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-11",
+              "query": "v:듣다",
+              "text": "가방을 들고 나왔다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-12",
+              "query": "v:듣다",
+              "text": "들판에 꽃이 피었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-13",
+              "query": "v:듣다",
+              "text": "들깨를 볶았다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-14",
+              "query": "v:듣다",
+              "text": "사람들이 방으로 들어갔다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-15",
+              "query": "v:듣다",
+              "text": "들쭉날쭉한 선을 그었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "help-04",
+              "query": "v:돕다",
+              "text": "나를 도운 친구에게 감사했다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "help-05",
+              "query": "v:돕다",
+              "text": "앞으로 도울 사람을 찾았다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "help-09",
+              "query": "v:돕다",
+              "text": "도우미가 길을 안내했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "build-09",
+              "query": "v:짓다",
+              "text": "지하철을 타고 출근했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "build-10",
+              "query": "v:짓다",
+              "text": "지도에 위치를 표시했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "build-11",
+              "query": "v:짓다",
+              "text": "지우개를 새로 샀다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "build-12",
+              "query": "v:짓다",
+              "text": "지금 바로 출발한다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "build-13",
+              "query": "v:짓다",
+              "text": "지원서를 제출했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "build-14",
+              "query": "v:짓다",
+              "text": "지붕을 고쳤다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "build-15",
+              "query": "v:짓다",
+              "text": "지각하지 않도록 서둘렀다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "build-16",
+              "query": "v:짓다",
+              "text": "지름길을 찾아갔다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "call-04",
+              "query": "v:부르다",
+              "text": "어제 부른 노래를 기억한다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "call-05",
+              "query": "v:부르다",
+              "text": "내일 부를 곡을 연습했다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "call-07",
+              "query": "v:부르다",
+              "text": "노래를 불렀을 때 감동했다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "call-09",
+              "query": "v:부르다",
+              "text": "부르봉 왕가의 역사를 읽었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "call-10",
+              "query": "v:부르다",
+              "text": "자동차가 부르릉 소리를 냈다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "call-11",
+              "query": "v:부르다",
+              "text": "부르키나파소를 방문했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "call-12",
+              "query": "v:부르다",
+              "text": "부르주아 계층을 분석했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "call-13",
+              "query": "v:부르다",
+              "text": "배부르다고 그만 먹었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "pretty-02",
+              "query": "adj:예쁘다",
+              "text": "예뻤던 장면이다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "pretty-03",
+              "query": "adj:예쁘다",
+              "text": "예쁜 그릇을 선물했다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "pretty-15",
+              "query": "adj:예쁘다",
+              "text": "예쁘장한 인형을 샀다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "become-05",
+              "query": "v:되다",
+              "text": "이미 된 일을 정리했다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "become-06",
+              "query": "v:되다",
+              "text": "앞으로 될 일을 준비했다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "become-08",
+              "query": "v:되다",
+              "text": "곧 준비가 됩니다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "become-09",
+              "query": "v:되다",
+              "text": "돼지고기를 구웠다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "become-11",
+              "query": "v:되다",
+              "text": "되새김질하며 생각했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "become-12",
+              "query": "v:되다",
+              "text": "되레 화를 내고 나갔다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "become-13",
+              "query": "v:되다",
+              "text": "같은 말을 되풀이했다.",
+              "predicted": true,
+              "expected": false
+            }
+          ],
+          "contract_adjusted": [
+            {
+              "id": "walk-11",
+              "query": "v:걷다",
+              "text": "목걸이를 새로 샀다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "walk-12",
+              "query": "v:걷다",
+              "text": "막걸리를 한 잔 마셨다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "walk-13",
+              "query": "v:걷다",
+              "text": "걸작을 전시했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "walk-15",
+              "query": "v:걷다",
+              "text": "문에 자물쇠를 걸고 나왔다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "walk-16",
+              "query": "v:걷다",
+              "text": "걸인이 길가에 앉아 있었다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "listen-11",
+              "query": "v:듣다",
+              "text": "가방을 들고 나왔다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "listen-12",
+              "query": "v:듣다",
+              "text": "들판에 꽃이 피었다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "listen-13",
+              "query": "v:듣다",
+              "text": "들깨를 볶았다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "listen-15",
+              "query": "v:듣다",
+              "text": "들쭉날쭉한 선을 그었다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "help-04",
+              "query": "v:돕다",
+              "text": "나를 도운 친구에게 감사했다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "help-05",
+              "query": "v:돕다",
+              "text": "앞으로 도울 사람을 찾았다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "help-09",
+              "query": "v:돕다",
+              "text": "도우미가 길을 안내했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "build-09",
+              "query": "v:짓다",
+              "text": "지하철을 타고 출근했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "build-10",
+              "query": "v:짓다",
+              "text": "지도에 위치를 표시했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "build-11",
+              "query": "v:짓다",
+              "text": "지우개를 새로 샀다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "build-12",
+              "query": "v:짓다",
+              "text": "지금 바로 출발한다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "build-13",
+              "query": "v:짓다",
+              "text": "지원서를 제출했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "build-14",
+              "query": "v:짓다",
+              "text": "지붕을 고쳤다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "build-15",
+              "query": "v:짓다",
+              "text": "지각하지 않도록 서둘렀다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "build-16",
+              "query": "v:짓다",
+              "text": "지름길을 찾아갔다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "call-04",
+              "query": "v:부르다",
+              "text": "어제 부른 노래를 기억한다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "call-05",
+              "query": "v:부르다",
+              "text": "내일 부를 곡을 연습했다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "call-07",
+              "query": "v:부르다",
+              "text": "노래를 불렀을 때 감동했다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "call-09",
+              "query": "v:부르다",
+              "text": "부르봉 왕가의 역사를 읽었다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "call-10",
+              "query": "v:부르다",
+              "text": "자동차가 부르릉 소리를 냈다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "call-11",
+              "query": "v:부르다",
+              "text": "부르키나파소를 방문했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "call-12",
+              "query": "v:부르다",
+              "text": "부르주아 계층을 분석했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "call-13",
+              "query": "v:부르다",
+              "text": "배부르다고 그만 먹었다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "pretty-02",
+              "query": "adj:예쁘다",
+              "text": "예뻤던 장면이다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "pretty-03",
+              "query": "adj:예쁘다",
+              "text": "예쁜 그릇을 선물했다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "pretty-15",
+              "query": "adj:예쁘다",
+              "text": "예쁘장한 인형을 샀다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "become-05",
+              "query": "v:되다",
+              "text": "이미 된 일을 정리했다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "become-06",
+              "query": "v:되다",
+              "text": "앞으로 될 일을 준비했다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "become-08",
+              "query": "v:되다",
+              "text": "곧 준비가 됩니다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "become-09",
+              "query": "v:되다",
+              "text": "돼지고기를 구웠다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "become-11",
+              "query": "v:되다",
+              "text": "되새김질하며 생각했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "become-12",
+              "query": "v:되다",
+              "text": "되레 화를 내고 나갔다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "become-13",
+              "query": "v:되다",
+              "text": "같은 말을 되풀이했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            }
+          ]
+        },
+        "by_query": {
+          "walk": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 0,
+              "fp": 8,
+              "fn": 0,
+              "accuracy_percent": 50.0,
+              "precision_percent": 50.0,
+              "recall_percent": 100.0,
+              "f1_percent": 66.67
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 11,
+              "tn": 0,
+              "fp": 5,
+              "fn": 0,
+              "accuracy_percent": 68.75,
+              "precision_percent": 68.75,
+              "recall_percent": 100.0,
+              "f1_percent": 81.48
+            }
+          },
+          "listen": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 1,
+              "fp": 7,
+              "fn": 0,
+              "accuracy_percent": 56.25,
+              "precision_percent": 53.33,
+              "recall_percent": 100.0,
+              "f1_percent": 69.57
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 11,
+              "tn": 1,
+              "fp": 4,
+              "fn": 0,
+              "accuracy_percent": 75.0,
+              "precision_percent": 73.33,
+              "recall_percent": 100.0,
+              "f1_percent": 84.62
+            }
+          },
+          "help": {
+            "raw": {
+              "cases": 16,
+              "tp": 6,
+              "tn": 7,
+              "fp": 1,
+              "fn": 2,
+              "accuracy_percent": 81.25,
+              "precision_percent": 85.71,
+              "recall_percent": 75.0,
+              "f1_percent": 80.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 6,
+              "tn": 7,
+              "fp": 1,
+              "fn": 2,
+              "accuracy_percent": 81.25,
+              "precision_percent": 85.71,
+              "recall_percent": 75.0,
+              "f1_percent": 80.0
+            }
+          },
+          "build": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 0,
+              "fp": 8,
+              "fn": 0,
+              "accuracy_percent": 50.0,
+              "precision_percent": 50.0,
+              "recall_percent": 100.0,
+              "f1_percent": 66.67
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 0,
+              "fp": 8,
+              "fn": 0,
+              "accuracy_percent": 50.0,
+              "precision_percent": 50.0,
+              "recall_percent": 100.0,
+              "f1_percent": 66.67
+            }
+          },
+          "call": {
+            "raw": {
+              "cases": 16,
+              "tp": 5,
+              "tn": 3,
+              "fp": 5,
+              "fn": 3,
+              "accuracy_percent": 50.0,
+              "precision_percent": 50.0,
+              "recall_percent": 62.5,
+              "f1_percent": 55.56
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 5,
+              "tn": 3,
+              "fp": 5,
+              "fn": 3,
+              "accuracy_percent": 50.0,
+              "precision_percent": 50.0,
+              "recall_percent": 62.5,
+              "f1_percent": 55.56
+            }
+          },
+          "pretty": {
+            "raw": {
+              "cases": 16,
+              "tp": 6,
+              "tn": 7,
+              "fp": 1,
+              "fn": 2,
+              "accuracy_percent": 81.25,
+              "precision_percent": 85.71,
+              "recall_percent": 75.0,
+              "f1_percent": 80.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 6,
+              "tn": 7,
+              "fp": 1,
+              "fn": 2,
+              "accuracy_percent": 81.25,
+              "precision_percent": 85.71,
+              "recall_percent": 75.0,
+              "f1_percent": 80.0
+            }
+          },
+          "become": {
+            "raw": {
+              "cases": 16,
+              "tp": 5,
+              "tn": 4,
+              "fp": 4,
+              "fn": 3,
+              "accuracy_percent": 56.25,
+              "precision_percent": 55.56,
+              "recall_percent": 62.5,
+              "f1_percent": 58.82
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 5,
+              "tn": 4,
+              "fp": 4,
+              "fn": 3,
+              "accuracy_percent": 56.25,
+              "precision_percent": 55.56,
+              "recall_percent": 62.5,
+              "f1_percent": 58.82
+            }
+          }
+        }
+      }
+    },
+    "performance": {
+      "corpus_sha256": "cfd252958729588624625d58e942781f2d1326b36d1690d7c17488fb60862d40",
+      "bytes": 14192640,
+      "lines": 458752,
+      "repetitions": 4096,
+      "warmup": 2,
+      "runs": 10,
+      "workload": "7 independent fresh-process queries per batch",
+      "methods": {
+        "kfind_any": {
+          "runs_seconds": [
+            0.5054565410027863, 0.5013230830008979, 0.5035104589987895,
+            0.5086546669990639, 0.5071652500046184, 0.5067571659965324,
+            0.5102539590006927, 0.508893000005628, 0.5028899169992656,
+            0.5129429579974385
+          ],
+          "median_ms": 506.961,
+          "min_ms": 501.323,
+          "max_ms": 512.943,
+          "p95_ms": 512.943,
+          "effective_mib_per_second": 186.9
+        },
+        "kfind_smart": {
+          "runs_seconds": [
+            2.410879417002434, 2.376145500005805, 2.3802144170040265,
+            2.410933417006163, 2.3776897080024355, 2.383919749998313,
+            2.4518712919962127, 2.40146287499374, 2.392867541006126,
+            2.4014857090005535
+          ],
+          "median_ms": 2397.165,
+          "min_ms": 2376.146,
+          "max_ms": 2451.871,
+          "p95_ms": 2451.871,
+          "effective_mib_per_second": 39.5
+        },
+        "rg_enumerated": {
+          "runs_seconds": [
+            0.07393029199738521, 0.07425195800169604, 0.07348062500386732,
+            0.07507429199904436, 0.0748919580000802, 0.07436025000060908,
+            0.07448262500111014, 0.07511954099754803, 0.0746947919978993,
+            0.07390004099579528
+          ],
+          "median_ms": 74.421,
+          "min_ms": 73.481,
+          "max_ms": 75.12,
+          "p95_ms": 75.12,
+          "effective_mib_per_second": 1273.1
+        },
+        "grep_enumerated": {
+          "runs_seconds": [
+            5.847700334001274, 5.754630250004993, 5.774147832999006,
+            5.779703749998589, 5.77688366700022, 5.736559958000726,
+            5.778783875000954, 5.756998167002166, 5.771626207999361,
+            5.766068375000032
+          ],
+          "median_ms": 5772.887,
+          "min_ms": 5736.56,
+          "max_ms": 5847.7,
+          "p95_ms": 5847.7,
+          "effective_mib_per_second": 16.4
+        },
+        "rg_stem": {
+          "runs_seconds": [
+            0.0759547499983455, 0.07538008400297258, 0.07432200000039302,
+            0.07513300000573508, 0.07630962500115857, 0.07457420800346881,
+            0.0748101669960306, 0.07501608399616089, 0.07517999999981839,
+            0.07590287499624537
+          ],
+          "median_ms": 75.157,
+          "min_ms": 74.322,
+          "max_ms": 76.31,
+          "p95_ms": 76.31,
+          "effective_mib_per_second": 1260.7
+        },
+        "grep_stem": {
+          "runs_seconds": [
+            1.9234242089951294, 1.926948000000266, 1.952533666997624,
+            1.9235537499989732, 1.9290870420009014, 1.947783083000104,
+            1.9370843750002678, 1.9601300829963293, 1.9499542919947999,
+            1.9419428339970182
+          ],
+          "median_ms": 1939.514,
+          "min_ms": 1923.424,
+          "max_ms": 1960.13,
+          "p95_ms": 1960.13,
+          "effective_mib_per_second": 48.9
+        }
+      }
+    },
+    "commands": {
+      "kfind_any": [
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/resources",
+          "--boundary",
+          "any",
+          "--count",
+          "v:걷다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/resources",
+          "--boundary",
+          "any",
+          "--count",
+          "v:듣다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/resources",
+          "--boundary",
+          "any",
+          "--count",
+          "v:돕다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/resources",
+          "--boundary",
+          "any",
+          "--count",
+          "v:짓다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/resources",
+          "--boundary",
+          "any",
+          "--count",
+          "v:부르다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/resources",
+          "--boundary",
+          "any",
+          "--count",
+          "adj:예쁘다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/resources",
+          "--boundary",
+          "any",
+          "--count",
+          "v:되다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ]
+      ],
+      "kfind_smart": [
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/resources",
+          "--boundary",
+          "smart",
+          "--count",
+          "v:걷다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/resources",
+          "--boundary",
+          "smart",
+          "--count",
+          "v:듣다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/resources",
+          "--boundary",
+          "smart",
+          "--count",
+          "v:돕다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/resources",
+          "--boundary",
+          "smart",
+          "--count",
+          "v:짓다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/resources",
+          "--boundary",
+          "smart",
+          "--count",
+          "v:부르다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/resources",
+          "--boundary",
+          "smart",
+          "--count",
+          "adj:예쁘다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/review-baseline/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/resources",
+          "--boundary",
+          "smart",
+          "--count",
+          "v:되다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ]
+      ],
+      "rg_enumerated": [
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "걷다|걷는|걷고|걷기|걷어|걸어|걸었|걸으면|걸을",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "듣다|듣는|듣고|듣지|들어|들었|들으면|들은|들을",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "돕다|돕는|돕고|돕지|도와|도왔|도우면|도운|도울",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "짓다|짓는|짓고|짓지|지어|지었|지으면|지은|지을",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "부르다|부르는|부르고|부르지|부르면|부른|부를|불러|불렀",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "예쁘다|예쁜|예쁘고|예쁘지|예쁘면|예쁘게|예뻐|예뻤|예쁠",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "되다|되는|되고|되지|되면|되어|되었|된|될|돼|됐|됩니다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ]
+      ],
+      "grep_enumerated": [
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "걷다|걷는|걷고|걷기|걷어|걸어|걸었|걸으면|걸을",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "듣다|듣는|듣고|듣지|들어|들었|들으면|들은|들을",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "돕다|돕는|돕고|돕지|도와|도왔|도우면|도운|도울",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "짓다|짓는|짓고|짓지|지어|지었|지으면|지은|지을",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "부르다|부르는|부르고|부르지|부르면|부른|부를|불러|불렀",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "예쁘다|예쁜|예쁘고|예쁘지|예쁘면|예쁘게|예뻐|예뻤|예쁠",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "되다|되는|되고|되지|되면|되어|되었|된|될|돼|됐|됩니다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ]
+      ],
+      "rg_stem": [
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "걷|걸",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "듣|들",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "돕|도우|도와",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "짓|지",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "부르|불러",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "예쁘|예뻐|예쁠",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "되|돼|됐",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ]
+      ],
+      "grep_stem": [
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "걷|걸",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "듣|들",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "돕|도우|도와",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "짓|지",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "부르|불러",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "예쁘|예뻐|예쁠",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "되|돼|됐",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/baseline/performance-corpus.txt"
+        ]
+      ]
+    }
+  },
+  "candidate": {
+    "schema_version": 2,
+    "revision": "0768f87",
+    "environment": {
+      "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+      "machine": "arm64",
+      "cpu": "Apple M1 Max",
+      "cpu_count": 10,
+      "memory_bytes": 34359738368,
+      "python": "3.14.7",
+      "kfind": "kfind 1.0.1",
+      "kfind_sha256": "2ce6ca7c64b374350a3ef208e49f120b7d16b53f330742296bd4d498c13fb25f",
+      "full_pos_sha256": "012a2ecfc9ee049cb48f655eb240fa2ed6fc739dfde01526078a976549246e88",
+      "component_sha256": "c786cb82ce0cdab3b9cf2b09b252e6068e0a63f2aebe8e8358002cd0a4be77d1",
+      "kfind_resources": {
+        "type": "data-check",
+        "status": "ok",
+        "kfind_version": "1.0.1",
+        "full_pos": {
+          "path": "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/resources/lexicon.bin",
+          "schema_version": 1,
+          "entry_count": 632667
+        },
+        "component": {
+          "path": "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/resources/morphology-component-compact.kfc",
+          "schema_version": 5,
+          "resource_version": "1.0.1",
+          "surface_count": 773105,
+          "analysis_count": 806568
+        }
+      },
+      "rg": "ripgrep 15.2.0",
+      "grep": "grep (BSD grep, GNU compatible) 2.6.0-FreeBSD"
+    },
+    "fixture": {
+      "kind": "constructed-diagnostic",
+      "queries": 7,
+      "cases": 112,
+      "strict_positive": 56,
+      "strict_negative": 56,
+      "contract_positive": 62,
+      "contract_negative": 50,
+      "reviewed_cases": 6,
+      "review_reasons": {
+        "aligned-source-component": 1,
+        "same-pos-homograph": 4,
+        "structurally-indistinguishable-homograph": 1
+      },
+      "sha256": "0a99bd90ce34169f1fc6e294525ee2d4ec782240570fd0c023acdfe609bbd914",
+      "patterns_sha256": "8963aaecf00fe14f1e0323f35ae5048c44b03bb8d871f5bbf454bd98aa561fff",
+      "corpus_sha256": "7aacf72882be9bce2f5d0213ad88994ad3e638f23495d317f4cb1a4bdb8c0ec8"
+    },
+    "patterns": [
+      {
+        "enumerated": "걷다|걷는|걷고|걷기|걷어|걸어|걸었|걸으면|걸을",
+        "id": "walk",
+        "query": "v:걷다",
+        "stem": "걷|걸"
+      },
+      {
+        "enumerated": "듣다|듣는|듣고|듣지|들어|들었|들으면|들은|들을",
+        "id": "listen",
+        "query": "v:듣다",
+        "stem": "듣|들"
+      },
+      {
+        "enumerated": "돕다|돕는|돕고|돕지|도와|도왔|도우면|도운|도울",
+        "id": "help",
+        "query": "v:돕다",
+        "stem": "돕|도우|도와"
+      },
+      {
+        "enumerated": "짓다|짓는|짓고|짓지|지어|지었|지으면|지은|지을",
+        "id": "build",
+        "query": "v:짓다",
+        "stem": "짓|지"
+      },
+      {
+        "enumerated": "부르다|부르는|부르고|부르지|부르면|부른|부를|불러|불렀",
+        "id": "call",
+        "query": "v:부르다",
+        "stem": "부르|불러"
+      },
+      {
+        "enumerated": "예쁘다|예쁜|예쁘고|예쁘지|예쁘면|예쁘게|예뻐|예뻤|예쁠",
+        "id": "pretty",
+        "query": "adj:예쁘다",
+        "stem": "예쁘|예뻐|예쁠"
+      },
+      {
+        "enumerated": "되다|되는|되고|되지|되면|되어|되었|된|될|돼|됐|됩니다",
+        "id": "become",
+        "query": "v:되다",
+        "stem": "되|돼|됐"
+      }
+    ],
+    "quality": {
+      "kfind_any": {
+        "raw": {
+          "cases": 112,
+          "tp": 56,
+          "tn": 47,
+          "fp": 9,
+          "fn": 0,
+          "accuracy_percent": 91.96,
+          "precision_percent": 86.15,
+          "recall_percent": 100.0,
+          "f1_percent": 92.56
+        },
+        "contract_adjusted": {
+          "cases": 112,
+          "tp": 62,
+          "tn": 47,
+          "fp": 3,
+          "fn": 0,
+          "accuracy_percent": 97.32,
+          "precision_percent": 95.38,
+          "recall_percent": 100.0,
+          "f1_percent": 97.64
+        },
+        "failures": {
+          "raw": [
+            {
+              "id": "walk-09",
+              "query": "v:걷다",
+              "text": "전화를 걸어 봤다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-10",
+              "query": "v:걷다",
+              "text": "경기에 돈을 걸었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-14",
+              "query": "v:걷다",
+              "text": "걸음걸이가 독특하다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-09",
+              "query": "v:듣다",
+              "text": "무거운 짐을 들었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-10",
+              "query": "v:듣다",
+              "text": "손을 들어 신호했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-14",
+              "query": "v:듣다",
+              "text": "사람들이 방으로 들어갔다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "call-13",
+              "query": "v:부르다",
+              "text": "배부르다고 그만 먹었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "become-09",
+              "query": "v:되다",
+              "text": "돼지고기를 구웠다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "become-10",
+              "query": "v:되다",
+              "text": "된장찌개를 끓였다.",
+              "predicted": true,
+              "expected": false
+            }
+          ],
+          "contract_adjusted": [
+            {
+              "id": "call-13",
+              "query": "v:부르다",
+              "text": "배부르다고 그만 먹었다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "become-09",
+              "query": "v:되다",
+              "text": "돼지고기를 구웠다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "become-10",
+              "query": "v:되다",
+              "text": "된장찌개를 끓였다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            }
+          ]
+        },
+        "by_query": {
+          "walk": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 5,
+              "fp": 3,
+              "fn": 0,
+              "accuracy_percent": 81.25,
+              "precision_percent": 72.73,
+              "recall_percent": 100.0,
+              "f1_percent": 84.21
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 11,
+              "tn": 5,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "listen": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 5,
+              "fp": 3,
+              "fn": 0,
+              "accuracy_percent": 81.25,
+              "precision_percent": 72.73,
+              "recall_percent": 100.0,
+              "f1_percent": 84.21
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 11,
+              "tn": 5,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "help": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "build": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "call": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 7,
+              "fp": 1,
+              "fn": 0,
+              "accuracy_percent": 93.75,
+              "precision_percent": 88.89,
+              "recall_percent": 100.0,
+              "f1_percent": 94.12
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 7,
+              "fp": 1,
+              "fn": 0,
+              "accuracy_percent": 93.75,
+              "precision_percent": 88.89,
+              "recall_percent": 100.0,
+              "f1_percent": 94.12
+            }
+          },
+          "pretty": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "become": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 6,
+              "fp": 2,
+              "fn": 0,
+              "accuracy_percent": 87.5,
+              "precision_percent": 80.0,
+              "recall_percent": 100.0,
+              "f1_percent": 88.89
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 6,
+              "fp": 2,
+              "fn": 0,
+              "accuracy_percent": 87.5,
+              "precision_percent": 80.0,
+              "recall_percent": 100.0,
+              "f1_percent": 88.89
+            }
+          }
+        }
+      },
+      "kfind_smart": {
+        "raw": {
+          "cases": 112,
+          "tp": 56,
+          "tn": 50,
+          "fp": 6,
+          "fn": 0,
+          "accuracy_percent": 94.64,
+          "precision_percent": 90.32,
+          "recall_percent": 100.0,
+          "f1_percent": 94.92
+        },
+        "contract_adjusted": {
+          "cases": 112,
+          "tp": 62,
+          "tn": 50,
+          "fp": 0,
+          "fn": 0,
+          "accuracy_percent": 100.0,
+          "precision_percent": 100.0,
+          "recall_percent": 100.0,
+          "f1_percent": 100.0
+        },
+        "failures": {
+          "raw": [
+            {
+              "id": "walk-09",
+              "query": "v:걷다",
+              "text": "전화를 걸어 봤다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-10",
+              "query": "v:걷다",
+              "text": "경기에 돈을 걸었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-14",
+              "query": "v:걷다",
+              "text": "걸음걸이가 독특하다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-09",
+              "query": "v:듣다",
+              "text": "무거운 짐을 들었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-10",
+              "query": "v:듣다",
+              "text": "손을 들어 신호했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-14",
+              "query": "v:듣다",
+              "text": "사람들이 방으로 들어갔다.",
+              "predicted": true,
+              "expected": false
+            }
+          ],
+          "contract_adjusted": []
+        },
+        "by_query": {
+          "walk": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 5,
+              "fp": 3,
+              "fn": 0,
+              "accuracy_percent": 81.25,
+              "precision_percent": 72.73,
+              "recall_percent": 100.0,
+              "f1_percent": 84.21
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 11,
+              "tn": 5,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "listen": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 5,
+              "fp": 3,
+              "fn": 0,
+              "accuracy_percent": 81.25,
+              "precision_percent": 72.73,
+              "recall_percent": 100.0,
+              "f1_percent": 84.21
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 11,
+              "tn": 5,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "help": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "build": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "call": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "pretty": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "become": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          }
+        }
+      },
+      "regex_enumerated": {
+        "raw": {
+          "cases": 112,
+          "tp": 50,
+          "tn": 48,
+          "fp": 8,
+          "fn": 6,
+          "accuracy_percent": 87.5,
+          "precision_percent": 86.21,
+          "recall_percent": 89.29,
+          "f1_percent": 87.72
+        },
+        "contract_adjusted": {
+          "cases": 112,
+          "tp": 55,
+          "tn": 47,
+          "fp": 3,
+          "fn": 7,
+          "accuracy_percent": 91.07,
+          "precision_percent": 94.83,
+          "recall_percent": 88.71,
+          "f1_percent": 91.67
+        },
+        "failures": {
+          "raw": [
+            {
+              "id": "walk-05",
+              "query": "v:걷다",
+              "text": "천천히 걷거라.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "walk-06",
+              "query": "v:걷다",
+              "text": "함께 걸읍시다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "walk-09",
+              "query": "v:걷다",
+              "text": "전화를 걸어 봤다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-10",
+              "query": "v:걷다",
+              "text": "경기에 돈을 걸었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-08",
+              "query": "v:듣다",
+              "text": "설명을 들으시면 이해됩니다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "listen-09",
+              "query": "v:듣다",
+              "text": "무거운 짐을 들었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-10",
+              "query": "v:듣다",
+              "text": "손을 들어 신호했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-14",
+              "query": "v:듣다",
+              "text": "사람들이 방으로 들어갔다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "help-07",
+              "query": "v:돕다",
+              "text": "어려운 이웃을 돕습니다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "help-08",
+              "query": "v:돕다",
+              "text": "서로 도우며 문제를 해결했다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "build-07",
+              "query": "v:짓다",
+              "text": "창고를 지으셨다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "call-13",
+              "query": "v:부르다",
+              "text": "배부르다고 그만 먹었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "become-09",
+              "query": "v:되다",
+              "text": "돼지고기를 구웠다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "become-10",
+              "query": "v:되다",
+              "text": "된장찌개를 끓였다.",
+              "predicted": true,
+              "expected": false
+            }
+          ],
+          "contract_adjusted": [
+            {
+              "id": "walk-05",
+              "query": "v:걷다",
+              "text": "천천히 걷거라.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "walk-06",
+              "query": "v:걷다",
+              "text": "함께 걸읍시다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "walk-14",
+              "query": "v:걷다",
+              "text": "걸음걸이가 독특하다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": "aligned-source-component"
+            },
+            {
+              "id": "listen-08",
+              "query": "v:듣다",
+              "text": "설명을 들으시면 이해됩니다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "help-07",
+              "query": "v:돕다",
+              "text": "어려운 이웃을 돕습니다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "help-08",
+              "query": "v:돕다",
+              "text": "서로 도우며 문제를 해결했다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "build-07",
+              "query": "v:짓다",
+              "text": "창고를 지으셨다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "call-13",
+              "query": "v:부르다",
+              "text": "배부르다고 그만 먹었다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "become-09",
+              "query": "v:되다",
+              "text": "돼지고기를 구웠다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "become-10",
+              "query": "v:되다",
+              "text": "된장찌개를 끓였다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            }
+          ]
+        },
+        "by_query": {
+          "walk": {
+            "raw": {
+              "cases": 16,
+              "tp": 6,
+              "tn": 6,
+              "fp": 2,
+              "fn": 2,
+              "accuracy_percent": 75.0,
+              "precision_percent": 75.0,
+              "recall_percent": 75.0,
+              "f1_percent": 75.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 5,
+              "fp": 0,
+              "fn": 3,
+              "accuracy_percent": 81.25,
+              "precision_percent": 100.0,
+              "recall_percent": 72.73,
+              "f1_percent": 84.21
+            }
+          },
+          "listen": {
+            "raw": {
+              "cases": 16,
+              "tp": 7,
+              "tn": 5,
+              "fp": 3,
+              "fn": 1,
+              "accuracy_percent": 75.0,
+              "precision_percent": 70.0,
+              "recall_percent": 87.5,
+              "f1_percent": 77.78
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 10,
+              "tn": 5,
+              "fp": 0,
+              "fn": 1,
+              "accuracy_percent": 93.75,
+              "precision_percent": 100.0,
+              "recall_percent": 90.91,
+              "f1_percent": 95.24
+            }
+          },
+          "help": {
+            "raw": {
+              "cases": 16,
+              "tp": 6,
+              "tn": 8,
+              "fp": 0,
+              "fn": 2,
+              "accuracy_percent": 87.5,
+              "precision_percent": 100.0,
+              "recall_percent": 75.0,
+              "f1_percent": 85.71
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 6,
+              "tn": 8,
+              "fp": 0,
+              "fn": 2,
+              "accuracy_percent": 87.5,
+              "precision_percent": 100.0,
+              "recall_percent": 75.0,
+              "f1_percent": 85.71
+            }
+          },
+          "build": {
+            "raw": {
+              "cases": 16,
+              "tp": 7,
+              "tn": 8,
+              "fp": 0,
+              "fn": 1,
+              "accuracy_percent": 93.75,
+              "precision_percent": 100.0,
+              "recall_percent": 87.5,
+              "f1_percent": 93.33
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 7,
+              "tn": 8,
+              "fp": 0,
+              "fn": 1,
+              "accuracy_percent": 93.75,
+              "precision_percent": 100.0,
+              "recall_percent": 87.5,
+              "f1_percent": 93.33
+            }
+          },
+          "call": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 7,
+              "fp": 1,
+              "fn": 0,
+              "accuracy_percent": 93.75,
+              "precision_percent": 88.89,
+              "recall_percent": 100.0,
+              "f1_percent": 94.12
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 7,
+              "fp": 1,
+              "fn": 0,
+              "accuracy_percent": 93.75,
+              "precision_percent": 88.89,
+              "recall_percent": 100.0,
+              "f1_percent": 94.12
+            }
+          },
+          "pretty": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 8,
+              "fp": 0,
+              "fn": 0,
+              "accuracy_percent": 100.0,
+              "precision_percent": 100.0,
+              "recall_percent": 100.0,
+              "f1_percent": 100.0
+            }
+          },
+          "become": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 6,
+              "fp": 2,
+              "fn": 0,
+              "accuracy_percent": 87.5,
+              "precision_percent": 80.0,
+              "recall_percent": 100.0,
+              "f1_percent": 88.89
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 6,
+              "fp": 2,
+              "fn": 0,
+              "accuracy_percent": 87.5,
+              "precision_percent": 80.0,
+              "recall_percent": 100.0,
+              "f1_percent": 88.89
+            }
+          }
+        }
+      },
+      "regex_stem": {
+        "raw": {
+          "cases": 112,
+          "tp": 46,
+          "tn": 22,
+          "fp": 34,
+          "fn": 10,
+          "accuracy_percent": 60.71,
+          "precision_percent": 57.5,
+          "recall_percent": 82.14,
+          "f1_percent": 67.65
+        },
+        "contract_adjusted": {
+          "cases": 112,
+          "tp": 52,
+          "tn": 22,
+          "fp": 28,
+          "fn": 10,
+          "accuracy_percent": 66.07,
+          "precision_percent": 65.0,
+          "recall_percent": 83.87,
+          "f1_percent": 73.24
+        },
+        "failures": {
+          "raw": [
+            {
+              "id": "walk-09",
+              "query": "v:걷다",
+              "text": "전화를 걸어 봤다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-10",
+              "query": "v:걷다",
+              "text": "경기에 돈을 걸었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-11",
+              "query": "v:걷다",
+              "text": "목걸이를 새로 샀다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-12",
+              "query": "v:걷다",
+              "text": "막걸리를 한 잔 마셨다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-13",
+              "query": "v:걷다",
+              "text": "걸작을 전시했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-14",
+              "query": "v:걷다",
+              "text": "걸음걸이가 독특하다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-15",
+              "query": "v:걷다",
+              "text": "문에 자물쇠를 걸고 나왔다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "walk-16",
+              "query": "v:걷다",
+              "text": "걸인이 길가에 앉아 있었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-09",
+              "query": "v:듣다",
+              "text": "무거운 짐을 들었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-10",
+              "query": "v:듣다",
+              "text": "손을 들어 신호했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-11",
+              "query": "v:듣다",
+              "text": "가방을 들고 나왔다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-12",
+              "query": "v:듣다",
+              "text": "들판에 꽃이 피었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-13",
+              "query": "v:듣다",
+              "text": "들깨를 볶았다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-14",
+              "query": "v:듣다",
+              "text": "사람들이 방으로 들어갔다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "listen-15",
+              "query": "v:듣다",
+              "text": "들쭉날쭉한 선을 그었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "help-04",
+              "query": "v:돕다",
+              "text": "나를 도운 친구에게 감사했다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "help-05",
+              "query": "v:돕다",
+              "text": "앞으로 도울 사람을 찾았다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "help-09",
+              "query": "v:돕다",
+              "text": "도우미가 길을 안내했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "build-09",
+              "query": "v:짓다",
+              "text": "지하철을 타고 출근했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "build-10",
+              "query": "v:짓다",
+              "text": "지도에 위치를 표시했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "build-11",
+              "query": "v:짓다",
+              "text": "지우개를 새로 샀다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "build-12",
+              "query": "v:짓다",
+              "text": "지금 바로 출발한다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "build-13",
+              "query": "v:짓다",
+              "text": "지원서를 제출했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "build-14",
+              "query": "v:짓다",
+              "text": "지붕을 고쳤다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "build-15",
+              "query": "v:짓다",
+              "text": "지각하지 않도록 서둘렀다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "build-16",
+              "query": "v:짓다",
+              "text": "지름길을 찾아갔다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "call-04",
+              "query": "v:부르다",
+              "text": "어제 부른 노래를 기억한다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "call-05",
+              "query": "v:부르다",
+              "text": "내일 부를 곡을 연습했다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "call-07",
+              "query": "v:부르다",
+              "text": "노래를 불렀을 때 감동했다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "call-09",
+              "query": "v:부르다",
+              "text": "부르봉 왕가의 역사를 읽었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "call-10",
+              "query": "v:부르다",
+              "text": "자동차가 부르릉 소리를 냈다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "call-11",
+              "query": "v:부르다",
+              "text": "부르키나파소를 방문했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "call-12",
+              "query": "v:부르다",
+              "text": "부르주아 계층을 분석했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "call-13",
+              "query": "v:부르다",
+              "text": "배부르다고 그만 먹었다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "pretty-02",
+              "query": "adj:예쁘다",
+              "text": "예뻤던 장면이다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "pretty-03",
+              "query": "adj:예쁘다",
+              "text": "예쁜 그릇을 선물했다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "pretty-15",
+              "query": "adj:예쁘다",
+              "text": "예쁘장한 인형을 샀다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "become-05",
+              "query": "v:되다",
+              "text": "이미 된 일을 정리했다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "become-06",
+              "query": "v:되다",
+              "text": "앞으로 될 일을 준비했다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "become-08",
+              "query": "v:되다",
+              "text": "곧 준비가 됩니다.",
+              "predicted": false,
+              "expected": true
+            },
+            {
+              "id": "become-09",
+              "query": "v:되다",
+              "text": "돼지고기를 구웠다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "become-11",
+              "query": "v:되다",
+              "text": "되새김질하며 생각했다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "become-12",
+              "query": "v:되다",
+              "text": "되레 화를 내고 나갔다.",
+              "predicted": true,
+              "expected": false
+            },
+            {
+              "id": "become-13",
+              "query": "v:되다",
+              "text": "같은 말을 되풀이했다.",
+              "predicted": true,
+              "expected": false
+            }
+          ],
+          "contract_adjusted": [
+            {
+              "id": "walk-11",
+              "query": "v:걷다",
+              "text": "목걸이를 새로 샀다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "walk-12",
+              "query": "v:걷다",
+              "text": "막걸리를 한 잔 마셨다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "walk-13",
+              "query": "v:걷다",
+              "text": "걸작을 전시했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "walk-15",
+              "query": "v:걷다",
+              "text": "문에 자물쇠를 걸고 나왔다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "walk-16",
+              "query": "v:걷다",
+              "text": "걸인이 길가에 앉아 있었다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "listen-11",
+              "query": "v:듣다",
+              "text": "가방을 들고 나왔다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "listen-12",
+              "query": "v:듣다",
+              "text": "들판에 꽃이 피었다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "listen-13",
+              "query": "v:듣다",
+              "text": "들깨를 볶았다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "listen-15",
+              "query": "v:듣다",
+              "text": "들쭉날쭉한 선을 그었다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "help-04",
+              "query": "v:돕다",
+              "text": "나를 도운 친구에게 감사했다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "help-05",
+              "query": "v:돕다",
+              "text": "앞으로 도울 사람을 찾았다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "help-09",
+              "query": "v:돕다",
+              "text": "도우미가 길을 안내했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "build-09",
+              "query": "v:짓다",
+              "text": "지하철을 타고 출근했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "build-10",
+              "query": "v:짓다",
+              "text": "지도에 위치를 표시했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "build-11",
+              "query": "v:짓다",
+              "text": "지우개를 새로 샀다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "build-12",
+              "query": "v:짓다",
+              "text": "지금 바로 출발한다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "build-13",
+              "query": "v:짓다",
+              "text": "지원서를 제출했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "build-14",
+              "query": "v:짓다",
+              "text": "지붕을 고쳤다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "build-15",
+              "query": "v:짓다",
+              "text": "지각하지 않도록 서둘렀다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "build-16",
+              "query": "v:짓다",
+              "text": "지름길을 찾아갔다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "call-04",
+              "query": "v:부르다",
+              "text": "어제 부른 노래를 기억한다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "call-05",
+              "query": "v:부르다",
+              "text": "내일 부를 곡을 연습했다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "call-07",
+              "query": "v:부르다",
+              "text": "노래를 불렀을 때 감동했다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "call-09",
+              "query": "v:부르다",
+              "text": "부르봉 왕가의 역사를 읽었다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "call-10",
+              "query": "v:부르다",
+              "text": "자동차가 부르릉 소리를 냈다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "call-11",
+              "query": "v:부르다",
+              "text": "부르키나파소를 방문했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "call-12",
+              "query": "v:부르다",
+              "text": "부르주아 계층을 분석했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "call-13",
+              "query": "v:부르다",
+              "text": "배부르다고 그만 먹었다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "pretty-02",
+              "query": "adj:예쁘다",
+              "text": "예뻤던 장면이다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "pretty-03",
+              "query": "adj:예쁘다",
+              "text": "예쁜 그릇을 선물했다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "pretty-15",
+              "query": "adj:예쁘다",
+              "text": "예쁘장한 인형을 샀다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "become-05",
+              "query": "v:되다",
+              "text": "이미 된 일을 정리했다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "become-06",
+              "query": "v:되다",
+              "text": "앞으로 될 일을 준비했다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "become-08",
+              "query": "v:되다",
+              "text": "곧 준비가 됩니다.",
+              "predicted": false,
+              "expected": true,
+              "contract_reason": null
+            },
+            {
+              "id": "become-09",
+              "query": "v:되다",
+              "text": "돼지고기를 구웠다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "become-11",
+              "query": "v:되다",
+              "text": "되새김질하며 생각했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "become-12",
+              "query": "v:되다",
+              "text": "되레 화를 내고 나갔다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            },
+            {
+              "id": "become-13",
+              "query": "v:되다",
+              "text": "같은 말을 되풀이했다.",
+              "predicted": true,
+              "expected": false,
+              "contract_reason": null
+            }
+          ]
+        },
+        "by_query": {
+          "walk": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 0,
+              "fp": 8,
+              "fn": 0,
+              "accuracy_percent": 50.0,
+              "precision_percent": 50.0,
+              "recall_percent": 100.0,
+              "f1_percent": 66.67
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 11,
+              "tn": 0,
+              "fp": 5,
+              "fn": 0,
+              "accuracy_percent": 68.75,
+              "precision_percent": 68.75,
+              "recall_percent": 100.0,
+              "f1_percent": 81.48
+            }
+          },
+          "listen": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 1,
+              "fp": 7,
+              "fn": 0,
+              "accuracy_percent": 56.25,
+              "precision_percent": 53.33,
+              "recall_percent": 100.0,
+              "f1_percent": 69.57
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 11,
+              "tn": 1,
+              "fp": 4,
+              "fn": 0,
+              "accuracy_percent": 75.0,
+              "precision_percent": 73.33,
+              "recall_percent": 100.0,
+              "f1_percent": 84.62
+            }
+          },
+          "help": {
+            "raw": {
+              "cases": 16,
+              "tp": 6,
+              "tn": 7,
+              "fp": 1,
+              "fn": 2,
+              "accuracy_percent": 81.25,
+              "precision_percent": 85.71,
+              "recall_percent": 75.0,
+              "f1_percent": 80.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 6,
+              "tn": 7,
+              "fp": 1,
+              "fn": 2,
+              "accuracy_percent": 81.25,
+              "precision_percent": 85.71,
+              "recall_percent": 75.0,
+              "f1_percent": 80.0
+            }
+          },
+          "build": {
+            "raw": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 0,
+              "fp": 8,
+              "fn": 0,
+              "accuracy_percent": 50.0,
+              "precision_percent": 50.0,
+              "recall_percent": 100.0,
+              "f1_percent": 66.67
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 8,
+              "tn": 0,
+              "fp": 8,
+              "fn": 0,
+              "accuracy_percent": 50.0,
+              "precision_percent": 50.0,
+              "recall_percent": 100.0,
+              "f1_percent": 66.67
+            }
+          },
+          "call": {
+            "raw": {
+              "cases": 16,
+              "tp": 5,
+              "tn": 3,
+              "fp": 5,
+              "fn": 3,
+              "accuracy_percent": 50.0,
+              "precision_percent": 50.0,
+              "recall_percent": 62.5,
+              "f1_percent": 55.56
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 5,
+              "tn": 3,
+              "fp": 5,
+              "fn": 3,
+              "accuracy_percent": 50.0,
+              "precision_percent": 50.0,
+              "recall_percent": 62.5,
+              "f1_percent": 55.56
+            }
+          },
+          "pretty": {
+            "raw": {
+              "cases": 16,
+              "tp": 6,
+              "tn": 7,
+              "fp": 1,
+              "fn": 2,
+              "accuracy_percent": 81.25,
+              "precision_percent": 85.71,
+              "recall_percent": 75.0,
+              "f1_percent": 80.0
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 6,
+              "tn": 7,
+              "fp": 1,
+              "fn": 2,
+              "accuracy_percent": 81.25,
+              "precision_percent": 85.71,
+              "recall_percent": 75.0,
+              "f1_percent": 80.0
+            }
+          },
+          "become": {
+            "raw": {
+              "cases": 16,
+              "tp": 5,
+              "tn": 4,
+              "fp": 4,
+              "fn": 3,
+              "accuracy_percent": 56.25,
+              "precision_percent": 55.56,
+              "recall_percent": 62.5,
+              "f1_percent": 58.82
+            },
+            "contract_adjusted": {
+              "cases": 16,
+              "tp": 5,
+              "tn": 4,
+              "fp": 4,
+              "fn": 3,
+              "accuracy_percent": 56.25,
+              "precision_percent": 55.56,
+              "recall_percent": 62.5,
+              "f1_percent": 58.82
+            }
+          }
+        }
+      }
+    },
+    "performance": {
+      "corpus_sha256": "cfd252958729588624625d58e942781f2d1326b36d1690d7c17488fb60862d40",
+      "bytes": 14192640,
+      "lines": 458752,
+      "repetitions": 4096,
+      "warmup": 2,
+      "runs": 10,
+      "workload": "7 independent fresh-process queries per batch",
+      "methods": {
+        "kfind_any": {
+          "runs_seconds": [
+            0.5079275840034825, 0.5030552090029232, 0.506619125000725,
+            0.5451403330007452, 0.5044336249993648, 0.5049514589991304,
+            0.5115853329989477, 0.5105214590003015, 0.5046866249977029,
+            0.5049449169964646
+          ],
+          "median_ms": 505.785,
+          "min_ms": 503.055,
+          "max_ms": 545.14,
+          "p95_ms": 545.14,
+          "effective_mib_per_second": 187.3
+        },
+        "kfind_smart": {
+          "runs_seconds": [
+            2.3673957909995806, 2.381824083000538, 2.39770908299397,
+            2.3776964580029016, 2.3761292499984847, 2.415857166997739,
+            2.437428999997792, 2.48242554099852, 2.37098129199876,
+            2.3788423750011134
+          ],
+          "median_ms": 2380.333,
+          "min_ms": 2367.396,
+          "max_ms": 2482.426,
+          "p95_ms": 2482.426,
+          "effective_mib_per_second": 39.8
+        },
+        "rg_enumerated": {
+          "runs_seconds": [
+            0.07535941599780926, 0.07374304100085283, 0.06672208300005877,
+            0.0736397090004175, 0.07424408299993956, 0.07358387500426034,
+            0.07376058299996657, 0.07550370800163364, 0.07430224999552593,
+            0.07523916699574329
+          ],
+          "median_ms": 74.002,
+          "min_ms": 66.722,
+          "max_ms": 75.504,
+          "p95_ms": 75.504,
+          "effective_mib_per_second": 1280.3
+        },
+        "grep_enumerated": {
+          "runs_seconds": [
+            5.78162283400161, 5.831237749996944, 5.890568166003504,
+            5.817523666999477, 5.830283374998544, 5.772834832998342,
+            5.78254216699861, 5.761882999999216, 5.797771958001249,
+            5.802343499999552
+          ],
+          "median_ms": 5800.058,
+          "min_ms": 5761.883,
+          "max_ms": 5890.568,
+          "p95_ms": 5890.568,
+          "effective_mib_per_second": 16.3
+        },
+        "rg_stem": {
+          "runs_seconds": [
+            0.07508499999676133, 0.07458245800080476, 0.07448437499988358,
+            0.07488933399872622, 0.0768282079952769, 0.0770126249990426,
+            0.07443816700106254, 0.07452041700162226, 0.07637720799539238,
+            0.0763434580003377
+          ],
+          "median_ms": 74.987,
+          "min_ms": 74.438,
+          "max_ms": 77.013,
+          "p95_ms": 77.013,
+          "effective_mib_per_second": 1263.5
+        },
+        "grep_stem": {
+          "runs_seconds": [
+            2.0014132920041448, 1.9347354999990785, 1.9321007079997798,
+            1.9361527079963707, 1.9323135420054314, 1.9348198329971638,
+            1.9289177500031656, 1.9404124169959687, 1.9472078749968205,
+            1.9528399170012563
+          ],
+          "median_ms": 1935.486,
+          "min_ms": 1928.918,
+          "max_ms": 2001.413,
+          "p95_ms": 2001.413,
+          "effective_mib_per_second": 49.0
+        }
+      }
+    },
+    "commands": {
+      "kfind_any": [
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/resources",
+          "--boundary",
+          "any",
+          "--count",
+          "v:걷다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/resources",
+          "--boundary",
+          "any",
+          "--count",
+          "v:듣다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/resources",
+          "--boundary",
+          "any",
+          "--count",
+          "v:돕다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/resources",
+          "--boundary",
+          "any",
+          "--count",
+          "v:짓다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/resources",
+          "--boundary",
+          "any",
+          "--count",
+          "v:부르다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/resources",
+          "--boundary",
+          "any",
+          "--count",
+          "adj:예쁘다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/resources",
+          "--boundary",
+          "any",
+          "--count",
+          "v:되다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ]
+      ],
+      "kfind_smart": [
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/resources",
+          "--boundary",
+          "smart",
+          "--count",
+          "v:걷다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/resources",
+          "--boundary",
+          "smart",
+          "--count",
+          "v:듣다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/resources",
+          "--boundary",
+          "smart",
+          "--count",
+          "v:돕다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/resources",
+          "--boundary",
+          "smart",
+          "--count",
+          "v:짓다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/resources",
+          "--boundary",
+          "smart",
+          "--count",
+          "v:부르다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/resources",
+          "--boundary",
+          "smart",
+          "--count",
+          "adj:예쁘다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/release/kfind",
+          "--no-pager",
+          "--color",
+          "never",
+          "--no-filename",
+          "--data-dir",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/resources",
+          "--boundary",
+          "smart",
+          "--count",
+          "v:되다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ]
+      ],
+      "rg_enumerated": [
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "걷다|걷는|걷고|걷기|걷어|걸어|걸었|걸으면|걸을",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "듣다|듣는|듣고|듣지|들어|들었|들으면|들은|들을",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "돕다|돕는|돕고|돕지|도와|도왔|도우면|도운|도울",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "짓다|짓는|짓고|짓지|지어|지었|지으면|지은|지을",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "부르다|부르는|부르고|부르지|부르면|부른|부를|불러|불렀",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "예쁘다|예쁜|예쁘고|예쁘지|예쁘면|예쁘게|예뻐|예뻤|예쁠",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "되다|되는|되고|되지|되면|되어|되었|된|될|돼|됐|됩니다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ]
+      ],
+      "grep_enumerated": [
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "걷다|걷는|걷고|걷기|걷어|걸어|걸었|걸으면|걸을",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "듣다|듣는|듣고|듣지|들어|들었|들으면|들은|들을",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "돕다|돕는|돕고|돕지|도와|도왔|도우면|도운|도울",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "짓다|짓는|짓고|짓지|지어|지었|지으면|지은|지을",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "부르다|부르는|부르고|부르지|부르면|부른|부를|불러|불렀",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "예쁘다|예쁜|예쁘고|예쁘지|예쁘면|예쁘게|예뻐|예뻤|예쁠",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "되다|되는|되고|되지|되면|되어|되었|된|될|돼|됐|됩니다",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ]
+      ],
+      "rg_stem": [
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "걷|걸",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "듣|들",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "돕|도우|도와",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "짓|지",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "부르|불러",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "예쁘|예뻐|예쁠",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/opt/homebrew/bin/rg",
+          "--no-config",
+          "--color",
+          "never",
+          "--no-filename",
+          "--count",
+          "-e",
+          "되|돼|됐",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ]
+      ],
+      "grep_stem": [
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "걷|걸",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "듣|들",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "돕|도우|도와",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "짓|지",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "부르|불러",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "예쁘|예뻐|예쁠",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ],
+        [
+          "/usr/bin/grep",
+          "-E",
+          "-c",
+          "되|돼|됐",
+          "/Users/seokmin/.codex/worktrees/a087/kfind/target/benchmark/search-trust/candidate/performance-corpus.txt"
+        ]
+      ]
+    }
+  }
+}
