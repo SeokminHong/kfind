@@ -36,7 +36,7 @@ kfind -n 걷다 src docs
 Node.js 20 이상에서는 다음 명령으로 같은 표제어를 검색할 수 있습니다. npm CLI는 일치한 부분 문자열을 출력하며 네이티브의 줄 출력과 다릅니다.
 
 ```bash
-printf '길을 걸었다.\n' | npx @kfind/kfind@1.0.1 --pos verb 걷다
+printf '길을 걸었다.\n' | npx @kfind/kfind@1.1.0 --pos verb 걷다
 ```
 
 애플리케이션에서 문자열을 검색하려면 [JavaScript API](/reference/javascript)를 사용합니다. 패키지에는 full POS 사전이 없으며, API에 필요한 추가 리소스는 호출자가 bytes로 전달합니다.
