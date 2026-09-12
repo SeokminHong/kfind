@@ -1,14 +1,12 @@
-use std::ops::Range;
-
-use kfind_data::DataFinePos;
-
-use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern};
-
-use super::{
-    ConstraintSupport, StructuralEvidence, TokenEvidence, attached_auxiliary_is_supported,
-    composed_nominal_subpath, is_predicate_nominalization, nominal_derivation_before_predicate,
-    query_nominal_particle_path,
+use crate::structure::evidence::TokenEvidence;
+use crate::structure::selection::runtime::{
+    attached_auxiliary_is_supported, composed_nominal_subpath, is_predicate_nominalization,
+    nominal_derivation_before_predicate, query_nominal_particle_path,
 };
+use crate::structure::{ConstraintSupport, StructuralEvidence};
+use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern};
+use kfind_data::DataFinePos;
+use std::ops::Range;
 
 pub(super) fn collect_pattern_supports(
     evidence: &TokenEvidence,
