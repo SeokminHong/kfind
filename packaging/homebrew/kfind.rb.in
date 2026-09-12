@@ -51,8 +51,8 @@ class Kfind < Formula
     (share/"doc/kfind/LICENSES").install Dir["LICENSE*"]
   end
 
-  def post_install
-    system bin/"kfind", "--check-data", "--data-dir", pkgshare
+  post_install_steps do
+    run "kfind", args: ["--check-data", "--data-dir", "{{pkgshare}}"], base: :bin
   end
 
   test do

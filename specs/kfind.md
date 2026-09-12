@@ -3634,6 +3634,8 @@ share/doc/kfind/LICENSES/
 ```
 
 내장 규칙과 프로젝트 자체 사전은 실행 파일에 포함한다. 선택형 대규모 사전만 `share/kfind` 아래에 둘 수 있다.
+설치 후 `post_install_steps`에서 `kfind --check-data --data-dir {{pkgshare}}`를 실행한다.
+실행 파일과 사전 리소스 검증에 실패하면 설치 후 검증도 실패로 처리한다.
 
 ### 21.3 Homebrew bottle 배포
 
