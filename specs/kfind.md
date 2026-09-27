@@ -2467,6 +2467,7 @@ stdin이 pipe이면 기본 검색 대상을 stdin으로 전환한다. `-`는 std
 | `--no-pager`              | flag                                       |               false | TTY에서도 pager를 사용하지 않음   |
 | `--explain-query`         | flag                                       |               false | 쿼리 계획 출력                    |
 | `--explain-match`         | flag                                       |               false | 생성 근거 출력                    |
+| `--explain-no-match`      | flag                                       |               false | 0건일 때 재검색 후보 출력         |
 | `--sort`                  | `path`                                     |                없음 | 결과 정렬                         |
 | `--data-dir`              | 경로                                       |                자동 | 외부 데이터 디렉터리              |
 | `--user-lexicon`          | 경로                                       |                자동 | 사용자 사전                       |
@@ -2499,6 +2500,15 @@ stdin이 pipe이면 기본 검색 대상을 stdin으로 전환한다. `-`는 std
 1: match 없음
 2: 사용법, I/O, 데이터, 컴파일 오류
 ```
+
+`--explain-no-match`는 사람이 읽는 출력에서 검색이 정상 완료되고, 파일을 하나 이상 검색했으며
+match가 0건일 때만 stderr에 재검색 후보를 출력한다. 기본 결과와 종료 코드는 바꾸지 않고
+다른 경계·품사 설정으로 자동 재검색하지 않는다. 현재 경계가 `any`가 아니면
+`--boundary any`를, 품사를 지정하지 않았으면 명시적 품사 지정 검토를 제안한다.
+`--embedded`를 사용 중이면 그 옵션을 제거한 재검색을, 필요한 full POS 사전이 없으면
+`--check-data`로 상태를 확인하도록 안내한다. 제안은 성공 여부를 검증한 결과가 아님을
+분명히 표시한다. 검색 오류, 구조 검증 미완료, 검색한 파일 0개, 닫힌 stdout에서는 출력하지
+않는다. `--json`과 `--quiet`에는 사용할 수 없다.
 
 ### 14.5 표시 언어
 

@@ -13,7 +13,8 @@ use kfind_data::{
 };
 use kfind_matcher::{MorphMatcher, MorphMatcherBuildError};
 use kfind_query::{
-    CompileError, CompileOptionError, LexiconQueryAnalyzer, Lexicons, compile_query,
+    CompileError, CompileOptionError, ExpandMode, LexiconQueryAnalyzer, Lexicons, compile_query,
+    parse_query,
 };
 use kfind_search::{
     ExecutionOptions, InputEncoding, InputOptions, ResultOrder, SearchConfig, SearchEvent,
@@ -23,8 +24,8 @@ use serde::Serialize;
 
 use crate::output::{FullPosNotRequiredReason, FullPosStatus, write_safe_path, write_safe_text};
 use crate::{
-    AgentHookError, Args, EncodingArg, InitError, Language, OutputError, OutputOptions,
-    OutputWriter, SortArg,
+    AgentHookError, Args, BoundaryArg, EncodingArg, InitError, Language, OutputError,
+    OutputOptions, OutputWriter, SortArg,
 };
 
 const FULL_POS_FILE: &str = "lexicon.bin";
@@ -191,9 +192,80 @@ where
         {
             return Err(CliError::Output(error));
         }
+        if args.explain_no_match
+            && summary.searched_files > 0
+            && status_from_summary(summary) == ExitStatus::NoMatch
+        {
+            let suggest_pos = args.pos.is_none()
+                && options.expand != ExpandMode::Literal
+                && parse_query(query, &options)
+                    .is_ok_and(|ast| ast.atoms.iter().all(|atom| atom.forced_pos.is_none()));
+            write_no_match_hints(stderr, args, &full_pos_status, suggest_pos, language)?;
+        }
         stderr.flush().map_err(CliError::Stderr)?;
     }
     Ok(status_from_summary(summary))
+}
+
+fn write_no_match_hints(
+    writer: &mut impl Write,
+    args: &Args,
+    full_pos: &FullPosStatus,
+    suggest_pos: bool,
+    language: Language,
+) -> Result<(), CliError> {
+    writer
+        .write_all(
+            language
+                .select(
+                    "No matches. These retry options have not been tested:\n",
+                    "검색 결과가 없습니다. 다음 재검색 방법은 결과를 확인한 것이 아닙니다:\n",
+                )
+                .as_bytes(),
+        )
+        .map_err(CliError::Stderr)?;
+    if args.boundary != Some(BoundaryArg::Any) {
+        writer
+            .write_all(
+                language
+                    .select(
+                        "  - Try --boundary any to include matches inside larger tokens.\n",
+                        "  - 더 큰 token 내부도 검색하려면 --boundary any를 사용해 보세요.\n",
+                    )
+                    .as_bytes(),
+            )
+            .map_err(CliError::Stderr)?;
+    }
+    if suggest_pos {
+        writer.write_all(language.select(
+            "  - Specify the intended part of speech with --pos or a query tag such as n: or v:.\n",
+            "  - 의도한 품사를 --pos나 n:, v: 같은 쿼리 태그로 지정해 보세요.\n",
+        ).as_bytes()).map_err(CliError::Stderr)?;
+    }
+    if args.embedded {
+        writer
+            .write_all(
+                language
+                    .select(
+                        "  - Retry without --embedded to use an available full POS lexicon.\n",
+                        "  - full POS 사전을 사용하려면 --embedded 없이 다시 검색해 보세요.\n",
+                    )
+                    .as_bytes(),
+            )
+            .map_err(CliError::Stderr)?;
+    } else if matches!(full_pos, FullPosStatus::Preview { .. }) {
+        writer
+            .write_all(
+                language
+                    .select(
+                        "  - Run kfind --check-data to inspect the unavailable full POS lexicon.\n",
+                        "  - 사용할 수 없는 full POS 사전은 kfind --check-data로 확인하세요.\n",
+                    )
+                    .as_bytes(),
+            )
+            .map_err(CliError::Stderr)?;
+    }
+    Ok(())
 }
 
 #[derive(Serialize)]

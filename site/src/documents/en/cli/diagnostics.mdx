@@ -8,9 +8,12 @@ Results are morphological candidates verified under the chosen query, POS, bound
 
 Check the exit status and stderr first. For ordinary searches, 1 means no match and 2 means an error. If there is no error, compare one condition at a time on the same file.
 
+`--explain-no-match` suggests retries involving boundaries, POS, or the full POS lexicon on stderr after a completed search with zero matches. It does not rerun the search, and the suggestions have not been verified against the input. It cannot be used with JSON or quiet mode.
+
 ```bash
 # Inspect query analysis and resources
 kfind --explain-query --pos verb 걷다
+kfind --explain-no-match 걷다 sample.txt
 
 # Compare only the boundary condition on the same file
 kfind --pos verb --boundary smart 걷다 sample.txt

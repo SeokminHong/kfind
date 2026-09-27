@@ -126,6 +126,7 @@ kfind --embedded --boundary any --pos verb --json 걷다 src docs
 일반 text 결과가 화면을 넘으면 POSIX TTY와 Windows Terminal의 PowerShell에서 내장
 TUI를 사용합니다. 화살표 또는 `j`/`k`로 이동하고 `q` 또는 `Esc`로 종료합니다.
 `--no-pager`는 결과를 stdout stream으로 직접 출력합니다.
+검색 결과가 0건일 때 `--explain-no-match`를 지정하면 경계·품사·사전 설정을 확인할 재검색 방법을 stderr에 제안합니다. 제안은 실제 재검색 결과가 아닙니다.
 
 ## 검색 질의
 
