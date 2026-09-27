@@ -3841,6 +3841,7 @@ let matches = matcher.find_all("사용자권한을 확인한다.".as_bytes());
 - root의 `PhraseMatch`, `VerifiedSpan`, `Origin`, `RuleId`와 compile option·오류는 1.x 안정
   계약이다. `QueryPlan`, candidate program·structural constraint 표현, `Lexicons`와 plan inspection은 `kfind::expert`의
   변경 가능한 저수준 API다.
+- CI는 `kfind` crate의 공개 Rust API를 최신 1.x 정식 release tag와 비교해 1.x 호환성 파괴를 거절한다.
 - workspace 내부 crate는 게시하지 않으며 `kfind::expert` 외의 경로를 공개 API로 간주하지 않는다.
 - JavaScript API는 같은 profile을 `Kfind.withResources`, 같은 수명 주기를
   `loadComponentResource`, `compile`, `Matcher.findAll`, `Matcher.findAllLimit`,
