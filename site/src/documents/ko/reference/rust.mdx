@@ -8,6 +8,8 @@ Crate root는 `Engine`, `Matcher`, `ResourceBundle`, 컴파일 옵션, 오류와
 
 Matcher는 UTF-8 byte slice를 검색하며 파일 순회·인코딩·출력은 처리하지 않습니다.
 
+`Matcher::find_all_limit(input, max_matches)`는 일치를 상한까지만 수집하고 추가 일치가 있으면 `MatchLimitExceeded`를 반환합니다. `max_matches = 0`은 일치가 없는 입력에서만 빈 결과를 반환합니다.
+
 `Matcher::find_all_with_diagnostics(input, &diagnostics)`는 일치 결과와 함께 `SearchDiagnostics::structural_verification_incomplete()`로 판정 불가 여부를 확인하게 합니다. 진단은 검색 단위로 생성합니다. 같은 진단을 재사용하면 판정 불가 상태를 누적하며, 다른 worker와 공유하지 않습니다.
 
 ## resource 초기화 [#resources]

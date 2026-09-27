@@ -248,6 +248,14 @@ impl MatchLimitExceeded {
     }
 }
 
+impl Display for MatchLimitExceeded {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        write!(formatter, "match count exceeds limit {}", self.limit)
+    }
+}
+
+impl Error for MatchLimitExceeded {}
+
 impl MorphMatcher {
     pub fn new(plan: Arc<QueryPlan>) -> Result<Self, MorphMatcherBuildError> {
         Self::build(plan, None)

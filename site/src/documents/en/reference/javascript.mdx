@@ -41,8 +41,13 @@ const matcher = engine.compile('걷다', { pos: 'verb' });
 const matches = matcher.findAll('길을 걸어 갔다.');
 ```
 
+`findAllLimit(text, maxMatches)` throws if more matches exist than the limit.
+`findAt(text, offset)` returns the first match at or after a UTF-16 offset, or `null`.
+`findAllWithDiagnostics(text)` returns the matches and `structuralVerificationIncomplete`.
+
 ## UTF-16 spans [#spans]
 
 Match and atom start and end positions use UTF-16 code units and can be passed directly to JavaScript `slice`. An offset after an emoji is not a code-point count.
+`findAt` rejects an offset inside a surrogate pair.
 
 Every atom preserves core, token, and all `analysisIndex` and `rulePath` origins.
