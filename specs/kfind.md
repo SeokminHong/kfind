@@ -1,10 +1,20 @@
 # kfind 기술 사양서
 
 워크스페이스 버전: 1.1.0
-문서 역할: 현재 구현과 호환성 계약
+문서 역할: 현재 구현과 호환성 계약의 색인
 
 이 문서는 현재 제품 계약만 유지한다. 완료한 작업 순서, 폐기한 대안과 배포 운영 상태는
 누적하지 않는다. 재현 가능한 시점별 측정값은 `docs/benchmarks`의 보고서에 둔다.
+
+이 문서는 각 분야의 현행 사양을 가리키는 규범적 색인이다.
+
+- [쿼리 언어와 검색 계획](query-language.md)
+- [형태 규칙과 검색 실행](matching.md)
+- [규칙 데이터와 사전](resources.md)
+- [사용법과 CLI 계약](cli.md)
+- [Rust와 JavaScript API](bindings.md)
+- [웹과 패키지 배포](distribution.md)
+- [검증과 성능](verification.md)
 
 ## 0. 제품 계약
 
@@ -39,1181 +49,35 @@
 
 ### 0.1 규칙 데이터와 품질 기준
 
-- v0.1의 필수 형태 범위는 9.5절의 활용표, 19.2절의 필수 테스트, 23절의 인수 기준을 모두 포함한다.
-- gold corpus에 포함된 현재 평서형 `-ㄴ다/는다`와 상태 용언의 `-다`, 회상 관형형 `-던`, 양보 연결형 `-더라도`, 과거 관형 연쇄 `-았/었을`, 과거 의문 종결 연쇄 `-았/었느냐`, `-았/었느냐는`, 이유 연결형 `-(으)니`, 인용 연결형 `-다고`, 현재 서술형 인용·회상·조건 연쇄, 전망 종결형 `-(으)리라`와 인용 연쇄 `-(으)리라고`, 의도 연결형 `-(으)려고`, 상태 변화 보조 용언 `-아/어지다`, 진행 방향 보조 용언 `-아/어가고`, `-아/어가야`도 v0.1의 제한된 continuation vocabulary에 포함한다.
-- 실제 코퍼스에서 확인된 해요체 과거형 `-았어요/-었어요`, 지정사 `이다`의 높임 평서형
-  `입니다`와 인용·관형·대조·나열형 `이라고`·`이라는`·`이지`·`이며`, 부정 지정사 `아니다`의
-  연결형 `아니라`도 v0.1의 제한된 continuation vocabulary에 포함한다. 지정사 확장은 이 네
-  완성형만 직접 생성하며 무표면 축약 `겁니다`와 비표준 `이예요`를 합치지 않는다.
-- 어미, 조사 연쇄, 파생 규칙은 저장소에서 버전을 관리하는 `data/rules` 파일의 목록과 전이를
-  기준으로 삼는다. 목록 밖 조합은 생성하지 않는다.
-- full POS lexicon은 `mecab-ko-dic 2.1.1-20180720`의 Apache-2.0 데이터를 bootstrap 원본으로 사용한다. 빌드 시 표제어와 품사만 추출하고, 런타임 문장 분석 데이터와 알고리즘은 포함하지 않는다. `Inflect`와 `Preanalysis` 행은 제외하며, 문맥용 지정사 표면형은 표제어로 승격하지 않고 `VCP=이`, `VCN=아니`만 기본형으로 정규화한다.
-- full POS lexicon의 용언 품사 후보도 POS 전용 산출물에 보존한다. 동일 표제어와 coarse 품사에
-  core 또는 enriched 용언 분석이 하나라도 있으면 그 coarse 품사의 full POS 규칙형 분석은
-  추가하지 않는다. 다른 coarse 품사는 보존한다. 그 밖의 용언은 해당 품사와 일치하는 생산적
-  접미 규칙을 먼저 적용하고, 일치하는 규칙이 없을 때만 제한된 규칙형 분석을 사용한다.
-- full POS runtime resource는 검증된 정렬 lookup index로 보존한다. CLI, Rust library와 WASM
-  binding은 초기화할 때 전체 entry를 일반 분석 map이나 entry별 소유 문자열로 전개하지 않는다.
-  Front-compressed 표제어는 하나의 재사용 문자열 scratch에서 복원·검증한 뒤 packed lemma
-  bytes와 offset·품사 index로 보존하고, query atom의 표제어를 조회할 때 일치하는 품사
-  후보만 `Analysis`로 만든다. 진단 API가 전체 entry를 명시적으로 요청할 때만 소유 entry
-  view를 지연 생성한다. 새 suffix의 UTF-8을 검증한 뒤 이미 검증된 prefix에 붙여 전체
-  표제어의 UTF-8을 보장한다. ASCII와 완성형 한글 음절만 있는 표제어는 그 구성으로 NFC를
-  증명하고 그 밖의 표제어는 일반 NFC 검사를 수행한다. 엄격한 정렬 순서, entry 수와 누적
-  decoded byte 상한 검증도 유지한다. Encoded full POS resource는 128 MiB를 초과할 수 없으며,
-  decoder는 entry 저장 공간을 예약하기 전에 이 상한을 검사한다.
-- 지연 조회에서도 기존 우선순위를 보존한다. core와 enriched 용언은 같은 표제어·coarse 품사의
-  full POS 용언을 억제하고, 동일한 분석은 중복하지 않는다. user lexicon의 append는 full POS
-  후보를 보존하며 `replace = true`는 해당 morphology category의 core, enriched와 full POS
-  후보를 모두 대체한다.
-- 명시한 coarse 품사와 일치하는 사전 분석이 없으면 해당 coarse 품사가 지원하는 세부 품사를
-  모두 fallback 분석으로 만든다. `noun`은 보통명사·고유명사·의존명사를 보존하며 하나의
-  보통명사 분석으로 축소하지 않는다. 같은 anchor·verifier를 만드는 분석은 branch를 합치되
-  세부 품사 provenance는 모두 유지한다.
-- 명시한 coarse `noun`에 full POS 사전 분석이 있으면 그 분석과 누락된 보통명사·고유명사·
-  의존명사 fallback을 합집합으로 보존한다. full POS의 단일 세부 품사가 명시적 coarse 품사의
-  다른 component 근거를 억제하지 않으며, user lexicon의 `replace = true`는 이 합집합보다
-  우선한다.
-- 명시한 coarse `verb`의 주동사 분석이 있으면 같은 표제어의 보조동사 후보도 보존한다. 이
-  후보는 임의의 내부 동사 substring을 허용하지 않고 compact component resource가
-  `용언 + 연결 어미 + VX + 선택적 어미`의 완성 경로를 증명할 때만 매치된다. full POS의
-  주동사 분석 하나가 coarse `verb`에 포함되는 보조동사 구조를 억제하지 않는다.
-- core lexicon은 전체 표제어 목록이 아니라 불규칙 활용, 품사 중의성, 기능어, 표면형 override를 담는 예외 계층이다. embedded workflow의 검증된 주요 불규칙은 core에 유지한다. 자동 승격 기준을
-  충족하지 못한 review 항목은 표준국어대사전과 우리말샘의 고정 snapshot이 같은 진단형을
-  지지하고 충돌하는 규칙형 record가 없으며 독립 fixture가 활용과 오활용을 함께 검증한 경우에만
-  수동 core 예외로 둘 수 있다. 공개 사전에서 일괄 승격한 활용 metadata는 별도 enriched 계층으로
-  관리하며, core entry 수를 corpus recall에 맞춰 무제한 늘리지 않는다.
-- core lexicon의 `DropH` 형용사는 검증된 ㅎ 불규칙 표제어를 명시한다. `어떻다`, `이렇다`,
-  `커다랗다`는 각각 `어떤`, `이런`, `커다란` 관형형을 만들고 규칙형 `어떻은`, `이렇은`,
-  `커다랗은`은 만들지 않는다.
-- full POS 산출물은 전체 entry 수, 고유 표제어 수, 품사별 entry 수를 기계 판독 가능한 통계 파일로 포함한다. source를 추가하거나 갱신할 때는 이 통계와 충돌·제외 건수의 변화를 검토한다.
-- 공개 사전은 고정된 전체 내려받기 snapshot만 릴리스 입력으로 사용한다. 원본 URL·버전 또는 생성 일자·SHA-256·라이선스·추출 필드·추출기 버전을 기록하며, 인증키가 필요한 live API 응답은 릴리스 빌드 입력이나 런타임 의존성으로 사용하지 않는다.
-- 여러 source의 표제어·품사 후보는 합집합으로 보존하되, 같은 표제어에 core 용언 분석이 있으면 core의 활용 metadata를 우선한다. source 간 품사 충돌과 활용 분류 미확정 항목은 산출물 통계로 보고하고 임의로 한쪽을 삭제하지 않는다.
-- 배포 데이터에는 원본 버전, 출처, 라이선스, 추출 명령과 체크섬을 기록한다.
-- 국립국어원 사전에서 추출·정규화·선별한 enriched 용언, 현대 어미·조사와 명사 결합 접사
-  catalog는 CC BY-SA 2.0 대한민국 라이선스를 적용한다. 이 데이터가 source, native
-  binary 또는 WebAssembly에 포함돼 배포되는 경우 국립국어원과 한국어기초사전·
-  표준국어대사전·우리말샘을 표시하고, 라이선스 링크·가공 내용·적용 파일을 함께 고지한다.
-  독립적으로 작성한 source code의 MIT License와 데이터 라이선스의 적용 범위를 구분한다.
-- 저장소, npm package, GitHub release source, Homebrew 설치 문서와 site의 라이선스
-  페이지는 같은 국립국어원 유래 데이터 고지를 제공한다. Site footer는 코드 전용 MIT
-  문서가 아니라 코드와 데이터의 통합 라이선스 페이지를 가리킨다.
-- auto 품사 coverage 기준은 300개 이상의 프로젝트 gold case마다 명시된 기대 품사 분석을 포함하는 것이다. 품사별 형태 match와 no-match는 fixture 품사를 강제해 해당 분석의 허용·금지 형태를 검증하고, 품사를 생략한 제품 동작은 0.6절의 사람용 fixture와 persona profile로 분리한다. 핵심 불규칙 fixture는 core lexicon만으로도 100% 통과해야 한다.
-- full POS lexicon이 없으면 core lexicon으로 계속 실행하되, `--explain-query`와 명시적 사전 진단 요청에서 `preview (core lexicon only)` 상태와 자동 탐색한 모든 후보 경로를 우선순위대로 출력한다. 로드했을 때는 `loaded`와 선택된 경로를 출력한다.
-- `--explain-query`는 계획 전체의 Unicode 정규화 모드와 atom별 program 수, structural
-  program 수와 consumption state 수를 출력한다. consumption state 수는 해당 atom의
-  program들이 참조하는 서로 다른 조사·어미 소비 구성의 수다.
+[규칙 데이터와 사전](resources.md)
 
 ### 0.2 토큰 경계와 phrase 거리
 
-- 토큰 문자는 Unicode 문자·숫자·결합 문자와 `_`다. 한글 완성형과 자모도 토큰 문자에 포함한다.
-  분류기는 ASCII 영숫자와 전체가 문자로 할당된 한글 완성형 음절 범위를 먼저 판정할 수 있지만,
-  나머지는 Unicode 영숫자·일반 범주 판정으로 fallback해 같은 집합을 유지한다. 인접 scalar 해독은
-  선두 byte의 UTF-8 폭을 확인한 뒤 정확히 한 scalar인지 검증하며 잘못된 byte는 토큰 경계로 취급한다.
-- `smart`는 program의 consumption이 허용된 조사·어미를 소비한 token span의 바깥 경계를
-  검사한다. 체언, literal, 한 음절 atom은 core 시작도 토큰 경계여야 한다. 단, 조사를 직접
-  검색할 때는 붙은 조사를 찾을 수 있도록 core 왼쪽 경계 대신 바로 앞 host와 조사 이형태
-  조건을 검증한다. 무품사 입력은 사용자가 쓴 조사 표면형만 찾고, 조사 이형태 묶음 확장은
-  명시적 조사 품사 입력에서만 사용한다.
-- 명시적 체언 품사의 `smart` program에서 query core가 조사 없는 token 전체와 정확히 같으면,
-  compact component resource에 같은 whole 분석이 없어도 완성된 체언 token으로 인정한다.
-  이 경로는 token 내부에서 시작한 core, 조사나 다른 문자를 소비한 candidate와 component
-  경계를 가로지르는 substring에는 적용하지 않는다.
-- 일반 용언의 `smart` token span은 core에서 시작한다. 구조 판정도 선택된 체언+조사 path보다
-  임의의 용언 graph path를 우선하거나 명사형 활용의 왼쪽 경계를 완화하지 않는다. 따라서 `가다`
-  검색은 `친구가`·`문서가`의 조사 `가`, `되감기`·`민감`의 내부 `감`을 활용형으로 인정하지
-  않는다. 지정사처럼 앞 host에 붙는 분석만 별도 왼쪽 환경 검증을 사용한다.
-- 지정사 `smart` candidate는 token 전체가 부사로 분석되지 않고, token 왼쪽 경계부터 VCP core
-  직전까지 완성된 체언 host 또는 `체언 + 검증된 조사 연쇄`가 있을 때 host에 붙은 VCP runtime
-  component를 유지한다. 생성 branch가 token 끝까지 직접 소비하지 못해도 같은 VCP source node가
-  core 시작부터 token 끝까지 이어지면 완성된 continuation으로 인정한다. 모음으로 끝나는 host 뒤의
-  `다`, `였-`, `여-` branch는 지정사 탈락·축약의 왼쪽 음운 조건과 완결된 활용을 함께 검증한다.
-  따라서 `상표다`, `구경거리였다`, `대학뿐이다`의 지정사를 지원하지만, 체언 host가 없거나
-  whole-token 부사인 `매일`, 받침 뒤에서 축약한 `대학다`는 이 경로로 열지 않는다.
-- 명시적 동사·형용사 품사의 `ending.connective-ji` program은 `smart`에서도 core 왼쪽 token 경계를
-  요구하지 않고 완성된 token span의 오른쪽 경계는 유지한다. 이는 gold 어절의 오른쪽 끝과
-  일치하는 suffix candidate만 복구한다. 무품사 `smart`, `token`, `any`와 `ending.connective-ji`
-  뒤에 문자가 더 남는 left-edge candidate는 바꾸지 않는다.
-- 용언의 `ending.past`와 `ending.future` consumption state는 `ending.connective-eudoe`의 `으되`를
-  소비한다. `치렀으되`, `하겠으되`처럼 선어말어미 뒤의 완성된 token만 복구하며, bare stem에
-  `으되`를 붙이는 별도 경로는 이 규칙으로 추측하지 않는다. Compact resource가 선어말어미 뒤의
-  source 어미 경로를 보완할 때도 `Past`, `Future`, `Eu` continuation에서만 완성된 어미 경로를
-  사용한다. `으`로 시작하는 표면은 구현된 `으` 이형태 집합과 일치해야 하므로 `으데`처럼
-  source 품사만 어미로 분류된 표면은 거부한다. `바꾸었음을`처럼 명사형 전성 어미 뒤에 조사가
-  오는 표면은 `용언 + E+ + ETN + J+` 경로와 조사 이형태를 모두 검증한다.
-- `-아/어` program이 직접 소비하지 않은 보조용언 연쇄를 compact resource로 보완할 때는 연결
-  어미 바깥의 `VX + E*`가 완성되어야 한다. 연결 어미 표면이 query core 바깥에 있거나, 같은
-  음절로 축약된 core의 정확한 source 분석이 용언으로만 해석되거나, core 직후의 `VX + E*`와
-  core보다 긴 query 품사의 단일 용언 source edge 뒤 어미 경로가 함께 완결되거나, token 전체의 정확한 분석이
-  `용언 + EC + VX + E+`이거나, 후행 경로가 결과 변화를 나타내는 `-아/어지다` 계열인 경우에만
-  source 연쇄를 사용한다. 따라서 `빼놓을`, `비춰볼`, `생겨났던`, `극심해지겠지만`과 생성
-  program이 직접 소비하는 `해가고`는 유지하지만, query core와 무관한 더 긴 용언으로 시작하는
-  `가리키는지`와 `해`의 중의적인 source 분석만 있는 `해가며`는 확장하지 않는다. 생성 program이
-  token 전체를 소비해도 정확한 source 분석의 용언 component가 query core보다 길면 서로 다른
-  구조로 판정한다. 따라서 `가지/VV + ㄴ/ETM`인 `가진`은 `가다`의 결과 변화 활용으로 인정하지
-  않는다.
-- full-POS `smart`의 `VX` query는 compact resource가 token 왼쪽 경계부터 일반 용언과
-  `EC`로 candidate core 직전까지 이어지고, core에 정렬된 `VX`와 선택적 어미가 token 끝까지
-  이어지는 완전한 path를 증명할 때 token 내부 보조용언을 유지한다. 용언 시작은 `VV/VA`
-  또는 `XR + XSV/XSA`이며, `EC + VX + E+`가 한 source edge에 묶이거나 여러 edge로 나뉜
-  경우를 같은 경로로 조립한다. 선행 일반 용언이나 core 직전 `EC`가 없는 내부 substring은
-  이 경로로 열지 않는다.
-- 이유·근거·전제를 나타내는 `ending.connective-ni`는 `-니/-으니`, `-니까/-으니까`,
-  `-니까는/-으니까는`과 그 준말 `-니깐/-으니깐`을 완성된 predicate token으로
-  소비한다. 받침 없는 어간과 `ㄹ` 받침 어간은 `으`가 없는 이형태, 그 밖의 받침
-  어간은 `으`가 있는 이형태를 쓴다. `살으니까`, `먹니까`, `먹니깐`처럼 잘못된
-  이형태와 `부니깐은`처럼 완성된 어미 뒤의 추가 연쇄는 생성하지 않는다.
-- `ending.prospective-quotative` 뒤의 source 조사는 topic `는`만 허용한다. `이기리라고는`은
-  `용언 + EC + JX` 경로로 유지하지만 additive `도`를 붙인 `먹으리라고도`는 확장하지 않는다.
-- 동작 용언의 `-ㄴ다/는다`와 상태 용언의 `-다` 현재 평서형 program은
-  `ending.declarative` consumption state에서 제한된 continuation만 소비한다. 상태 용언은 형용사와
-  보조 형용사이며 지정사와 부정 지정사 `아니다`는 포함하지 않는다. 허용 목록은
-  `고`(`ending.quotative-go`),
-  `는`(`ending.quotative-adnominal`),
-  `던`(`ending.quotative-retrospective`), `면`(`ending.conditional`),
-  `니`(`ending.quotative-ni`), `며`(`ending.quotative-myeo`),
-  `면서`(`ending.quotative-myeonseo`), `는데`(`ending.quotative-neunde`),
-  `지`(`ending.quotative-ji`)다. `쓴다고`, `먹는다는`, `받든다는`, `함께한다던`, `좋다는`,
-  `나쁘다면`, `어렵다면서`처럼 이 목록으로 끝나는 token과 bare `쓴다`, `먹는다`, `좋다`는
-  허용한다. 동작 용언의 사전형 `가다`에는 이 상태를 부여하지 않으므로 `가다면`은 거부한다.
-  종결형 뒤의 `거나/든가/든지` 조사와 `니요/던데` 같은 추가 연쇄는 이 상태에서 추측하지 않는다.
-- 체언의 접속 조사 `이면/면`은 받침 있는 host 뒤에서 `이면`, 받침 없는 host 뒤에서 `면`을
-  소비한다. `백이면 백`, `공부면 공부`처럼 같은 자격의 대상을 잇는 terminal 조사만 허용하고
-  `백면`, `공부이면`과 이 조사 뒤의 추가 조사 연쇄는 거부한다.
-- `token`은 모든 품사에서 core 시작과 완성된 token span 끝의 토큰 경계를 검사한다.
-- `any`는 좌우 경계를 검사하지 않는다.
-- phrase의 `max-gap`은 앞 atom의 `token.end`와 다음 atom의 `token.start` 사이에 있는 Unicode scalar 수다. 음수이거나 순서가 뒤집힌 span은 결합하지 않는다.
+[쿼리 언어와 검색 계획](query-language.md)
 
 ### 0.3 CLI 세부 정책
 
-- `smart` query plan에 source component 또는 인접 token 구조 근거가 필요한
-  `CandidateProgram`이 하나라도 있으면 matcher 초기화 전에
-  `morphology-component-compact.kfc`를 resolve하고 검증한다. resource 누락·손상·schema 또는
-  source mismatch는 기존 경계 판정으로 fallback하지 않고 초기화 오류와 exit code 2를 반환한다.
-  resource-required program이 없는 계획은 이 resource를 열지 않는다.
-- 명시적 `--data-dir`과 `KFIND_DATA_DIR`은 full POS lexicon과 compact component resource가
-  함께 있는 디렉터리를 뜻한다. component resource가 필요한 계획에서 해당 파일이 없으면 다른
-  후보 경로를 탐색하지 않는다. 자동 탐색은 executable prefix, XDG data, 개발 경로와 Homebrew
-  `share/kfind` 순서를 기존 full POS 정책과 공유한다.
-- `--embedded`가 아니면 `predicates.enriched.tsv`를 같은 data 경로에서 선택적으로 탐색한다.
-  파일이 없으면 core와 full POS만으로 계속 실행하고, 파일이 있으면 전체를 검증한 뒤 query를
-  컴파일한다. 명시적 `--data-dir`에도 enriched 파일은 선택 사항이다.
-- component 초기화가 실패하면 `--explain-query`와 JSON match 출력도 생성하지 않는다. locale이
-  적용된 오류를 stderr에 쓰되 파일 경로와 decoder 오류의 control character escape 정책을
-  유지한다.
-- 전역 `--pos`와 atom 태그를 함께 사용하면 같은 품사일 때만 허용하고, 다르면 컴파일 오류를 낸다.
-- `--literal`은 `--expand literal --pos literal`의 단축 옵션이며 상충하는 `--expand` 또는 `--pos`와 함께 사용할 수 없다.
-- `--embedded`는 full POS lexicon과 enriched 용언 데이터를 resolve하거나 읽지 않는다. compact
-  component resource의 로드 여부는 `CandidateProgram`이 선언한 resource capability로
-  결정한다. `--explain-query`는
-  full POS 상태를 `not required (embedded mode)`로 출력한다.
-- `--init`과 `--uninstall`은 검색과 분리된 agent 통합 관리 mode다. 이 mode에서는 query가
-  필요 없고 검색 옵션·경로를 함께 받을 수 없다. 두 mode는 함께 사용할 수 없다. `--agent`는
-  `claude-code`, `codex`, `gemini`, `custom`을 반복해서 받을 수 있으며 통합 관리 mode 없이
-  사용할 수 없다. `custom`은 `--init`에서만 유효하다.
-- 통합 관리 mode에 `--agent`가 없고 stdin과 진단 출력이 TTY이면 checkbox multi-select를
-  표시한다. 제거 선택에는 파일을 설치하는 세 agent만 표시한다. stdin이 TTY가 아니면 공백
-  또는 줄바꿈으로 구분된 agent 이름을 읽는다. 비대화형 입력이 비었거나 알 수 없는 이름이
-  있으면 변경하지 않고 exit code 2로 종료한다.
-- 프로젝트 skill 경로는 실행한 현재 디렉터리를 기준으로 Claude Code
-  `.claude/skills/kfind/SKILL.md`, Codex `.agents/skills/kfind/SKILL.md`, Gemini CLI
-  `.gemini/skills/kfind/SKILL.md`다. `custom`은 파일을 만들지 않고 같은 `SKILL.md` 원문만
-  stdout에 출력한다. 진행 메시지와 오류는 stderr에만 출력한다.
-- Claude Code, Codex와 Gemini CLI 대상은 각각 `.claude/settings.json`,
-  `.codex/hooks.json`, `.gemini/settings.json`에 kfind agent hook을 함께 설치한다. 세 agent의
-  `SessionStart`에는 한국어 형태 검색에서 설치된 kfind skill과 `kfind`를 사용하라는
-  지침을 주입한다. 정확한 표면형 검색은 `kfind --literal` 또는 `rg -F`, `grep -F`,
-  `git grep -F`, `fgrep`과 IDE의 고정 문자열 검색을 허용한다. agent가 지원하는 시작·재개·초기화 시점마다 같은 지침을
-  다시 주입한다.
-- 실행 전 hook은 `.claude/settings.json`의 `PreToolUse/Bash`, `.codex/hooks.json`의
-  `PreToolUse/Bash`, `.gemini/settings.json`의 `BeforeTool/run_shell_command`에 설치한다.
-  기존 JSON 설정과 다른 hook은 보존하며, JSON이 올바르지 않거나 병합할 필드의 자료형이
-  agent 계약과 다르면 어떤 파일도 변경하지 않고 충돌 경로를 포함한 오류와 exit code 2를
-  반환한다. 같은 kfind hook은 다시 실행해도 중복하지 않는다.
-- 실행 전 agent hook은 shell tool의 명령행에서 직접 실행되는 `rg`, `grep`, `egrep`, `fgrep`과
-  `git grep`의 명시적 command-line 검색 패턴을 식별한다. 검색 패턴에 현대·옛한글 음절 또는
-  자모가 있고 고정 문자열 모드를 명시하지 않았으면 tool 실행을 거부하고 kfind 사용법을
-  agent에 반환한다. `-F`, `--fixed-strings`와 `fgrep`은 허용하며 옵션 값·패턴·`--` 뒤의
-  경로에 들어 있는 `-F`는 모드 지정으로 해석하지 않는다. 고정 모드를 해제한 검색은 차단한다. 경로, glob, option
-  값과 pattern file의 내용은 검색 패턴으로 간주하지 않는다. kfind 명령과 한글이 없는
-  literal 검색은 허용한다.
-- Agent hook은 각 agent가 신뢰한 project hook과 관측 가능한 shell tool call에만 적용된다.
-  사용자가 hook을 신뢰하지 않거나 비활성화한 환경, agent hook을 거치지 않는 hosted tool과
-  사용자가 별도 terminal에서 직접 실행한 명령은 차단하지 않는다. `custom`은 agent별 hook
-  계약을 알 수 없으므로 hook 설정을 만들지 않는다.
-- init이 만든 파일·link는 다시 실행할 때 같은 배포본으로 갱신할 수 있다. 관리 표식이 없는
-  기존 skill을 덮어쓰지 않으며 충돌 경로를 포함한 오류와 exit code 2를 반환한다.
-- `--uninstall`은 선택한 agent의 kfind 관리 skill과 `kfind --agent-hook` handler들만 제거한다.
-  다른 skill 파일, agent 설정 key와 hook handler는 보존한다. 설정 파일이 kfind hook만 담고
-  있으면 파일도 제거하며, 다른 설정이 있으면 남은 JSON을 같은 권한으로 다시 쓴다. 관리
-  skill이나 hook이 없으면 변경 없음으로 성공한다. 관리 표식이 없는 skill, 올바르지 않은 JSON
-  또는 제거 경로의 잘못된 자료형을 만나면 선택한 어떤 파일도 변경하지 않고 충돌 경로를
-  포함한 오류와 exit code 2를 반환한다.
-- 사람이 대화형으로 사용하는 기본 경로는 `--pos auto --boundary smart`를 유지한다. 설치된
-  full POS lexicon을 자동으로 사용하고, 없으면 core lexicon preview 상태로 계속 실행한다.
-- 에이전트 자동화는 모든 형태 atom에 품사를 명시하고 `--boundary any --embedded --json`을
-  사용한다. 단일 품사 query는 `--pos`, 혼합 phrase는 atom 태그로 품사를 지정한다. CLI는
-  사람의 무품사 입력을 위해 `--pos` 생략을 허용하지만, 에이전트 통합 계약에서는 이를
-  잘못된 호출로 취급한다.
-- 배포용 agent skill의 description은 한국어 표제어·활용형 검색을 선택 조건으로 선언하고
-  정확한 표면형 검색은 고정 문자열 도구로 실행할 수 있음을 명시한다. 본문은 README나 `--help`를 별도로 읽지 않아도 에이전트가 검색을
-  실행할 수 있어야 한다. 단일·혼합 품사 query와 literal 검색, 전체 `--pos` 값과 atom 태그,
-  phrase의 순서·거리, `embedded + any + JSON Lines` 권장 경로, path·glob 축소, JSON
-  span·provenance와 종료 코드를 간결한 예시와 함께 설명한다.
-- man page와 한국어 README는 사람용 기본 경로와 에이전트 자동화 경로를 구분해 안내한다.
-  README는 `--help`를 별도로 읽지 않아도 검색 기능, 쿼리 문법, 옵션의 값·기본값·주요 충돌,
-  출력 형식과 종료 코드를 이해할 수 있어야 한다. README에는 현재 제품 동작과 안정적인 사용
-  지침만 둔다. 측정일·Git revision, baseline/candidate 증감, 날짜별 보고서·작업 목록, 완료
-  이력과 측정 snapshot 표·차트는 넣지 않는다. 재현 명령과 측정 결과는 날짜별 benchmark
-  보고서에 보존하고 README는 benchmark 계약 문서만 안내한다. 승인된 보고서나 생성 차트가
-  바뀌어도 측정 수치를 README로 복사하지 않으며, 사용자에게 설명할 현재 기능·제약이 달라진
-  경우에만 README의 동작 설명을 갱신한다.
-- 저장소의 README, 사양서, 도구 안내와 배포 문서는 한국어로 작성한다. 코드 식별자, 명령,
-  API 이름과 고유 명칭은 원문 표기를 허용한다. 웹 문서는 한국어 원문과 영어 번역을 같은
-  정보 구조로 제공한다.
-- 현재 문서는 변경 전 상태, 개선 서사, 날짜·커밋별 증감과 완료 이력을 포함하지 않는다.
-  날짜·Git revision·baseline/candidate 비교, 실험 결과와 측정에 근거한 개발 결정은
-  `docs/benchmarks`에 보존한다. 그 밖의 개발 결정 기록은 `docs/decisions`에 보존한다.
-- `--column`은 v0.1 정식 옵션이며 1부터 시작하는 Unicode scalar 열을 출력한다.
-- `--count`는 파일별로 검증된 span이 하나 이상 있는 줄의 수를 출력한다.
-- 일반 text 결과를 interactive terminal의 stdin/stdout에서 쓰면 내장 TUI pager를 자동으로
-  사용한다. Interactive terminal은 POSIX TTY와 Windows console/ConPTY를 포함한다. 검색 시작과
-  함께 TUI를 열고 완성된 결과 행을 점진적으로 반영한다. 화면 너비를 넘는 match
-  줄은 검증된 match마다 별도 행으로 펼치고 각 행의 target이 보이도록 앞뒤를 생략한다. target의
-  화면 위치는 원문에서 target 앞뒤가 차지하는 비율을 따르되, 양쪽 원문이 모두 남아 있으면 가용
-  문맥의 20–80% 안으로 제한한다. terminal resize 때 너비, 생략 위치와 행 분할을 다시 계산하며
-  위·아래 화살표는 이 행 단위를 이동한다. 마지막 행은 content viewport의 마지막 행에 놓이는
-  지점까지만 이동한다. 키 반복 입력은 content viewport의 cell 수에 따라 16–48 ms 간격의 frame으로
-  합치되 입력된 이동량은 보존하고, 새로 노출된 행만 갱신한다. `--no-pager`,
-  non-TTY stdin/stdout, JSON Lines, count, 파일명
-  요약과 quiet mode는 pager를 사용하지 않고 기존 bounded stdout stream을 유지한다. TUI를 시작할
-  수 없을 때는 일반 text를 직접 stdout에 쓴다. 에이전트 권장 경로의 JSON Lines는 stdout이
-  interactive terminal이어도 비대화형 출력을 유지한다. Windows CI는 ConPTY 안의 PowerShell에서
-  TUI를 실행해 alternate screen 진입, resize 반영, 아래 화살표 이동, `q` 종료, alternate screen
-  복구와 exit code 0을 검증한다.
-- TUI는 완성된 source line마다 임시 파일 offset·length를, 현재 너비에서 전개된 화면 row마다
-  source·target key를 메모리에 보존한다. 따라서 임시 파일과 별도로 source line 수와 전개된 row
-  수에 비례한 index 메모리를 사용한다. 현재 자동 결과 상한이나 대용량 fallback은 없으며 대규모
-  결과를 stream으로만 처리하려면 `--no-pager`를 사용한다.
-- TUI index benchmark는 plain source line과 한 source line이 여러 match row로 전개되는 입력을
-  각각 측정한다. 입력 bytes, source·row 논리 개수, 각 `Vec`의 length·capacity와 entry 크기,
-  length·capacity 기준 index bytes, 생성·index·layout 시간과 fresh process peak RSS를 함께 보고한다.
-  benchmark용 binary는 release 설치물에 포함하지 않는다.
-- EUC-KR은 명시적 `--encoding euc-kr`에서 지원한다. `auto`는 BOM 기반 UTF-16과 UTF-8만 판별한다.
+[사용법과 CLI 계약](cli.md)
 
 ### 0.4 Web 문서와 playground
 
-- 문서 홈은 짧은 검색 예시 뒤에 설치·첫 검색, 결과 해석, 에이전트와 API의 읽기 경로를
-  제공한다. 내부 구현 설명은 사용 경로 뒤에 두며 상세 문서로 연결한다. 기존 route와
-  fragment는 유지하고 한국어·영어에서 같은 순서와 목적의 문서를 제공한다.
-- 설치 안내는 native CLI와 npm 경량 CLI를 별도 실행 계약으로 구분한다. 파일 순회,
-  리소스, 입력 적재, 출력 단위와 offset 비교를 설치 명령보다 먼저 제시한다. Native 전용
-  명령 예시는 npm CLI에서 실행할 수 있는 것으로 설명하지 않는다.
-- 결과 해석 안내는 검색 결과 없음과 실행 오류를 구분하고, 구조 검증 상한으로 제외된
-  후보가 일반 검색의 불일치와 구별되지 않는 한계를 명시한다. 품사·경계·입력 경로를
-  점검하는 절차를 제공하되 `any`가 모든 누락을 복구하거나 의미를 판별한다고 설명하지 않는다.
-- 의미 판별의 한계는 `걷다`와 `걸다`의 활용형이 `걸어`로 겹치는 예시로 설명한다.
-  `걷다` 검색에서 `길을 걸어`와 `전화를 걸어`가 모두 후보가 될 수 있으며, 두 문맥의
-  의미를 구분하지 않는다는 점을 명시한다. 동의어 확장의 비범위와 이 한계를 혼동하지 않는다.
-- 문서의 일반 본문은 제한된 행 길이와 본문 색상을 사용한다. 제목과 절 사이 간격은
-  읽기 흐름을 유지하고, 작은 화면의 큰 제목이 첫 사용 예시를 과도하게 밀어내지 않아야 한다.
-- 공개 문서와 playground의 현재 버전은 `https://kfind.pages.dev`의 정적 Cloudflare Pages site로
-  배포한다. 게시한 과거 버전은 같은 origin의 `/versions/VERSION/*`에서 제공한다.
-  문서는 제품 목적과 goal/non-goal, 검색 model, query 문법, 사람·에이전트 workflow, 주요 옵션,
-  최신 제품·외부 benchmark를 설명하고 전체 README와 source report로 연결한다.
-- site header, browser favicon, touch icon과 social card는 둥근 사각형 안의 `k/` brand mark를
-  공유한다. Header에서는 mark 옆에 `kfind` 이름을 유지하고, 작은 크기의 icon은 같은 벡터
-  형상을 사용해 흐려지거나 찌그러지지 않아야 한다. `k`의 기둥과 두 팔은 같은 굵기의 단일
-  폐합 path로 이어져 내부 경계가 드러나지 않아야 한다. `k/`의 획 끝은 둥글지 않은 평면이고
-  경로 끝점 바깥으로 돌출되지 않아야 한다. Icon metadata를 제공하는 배포 채널은 128px 이상의
-  PNG 자산을 사용한다.
-- 한국어 문장은 기술 개념의 관계와 동작이 바로 드러나도록 쓴다. 제품·도메인의 표준 용어와
-  코드 식별자는 원문 표기를 유지하되, 영어 문장 구조를 직역하거나 일반 용어를 기계적으로
-  음역하지 않는다. 조건과 결과가 한 문장에 몰리면 문장을 나눠 설명한다. 문장 뒤의 콜론으로
-  목록을 도입하거나 em dash로 부연하지 않는다. 영어 번역은 한국어 어순과 문형을 기계적으로
-  옮기지 않고 같은 의미를 자연스러운 영어로 서술한다. 두 언어 모두 현재 제품을 설명하는 데
-  필요한 사실만 남기고 같은 내용을 헤딩, 개요, 목록에 반복하지 않는다.
-- 각 문서 route는 전제와 용어를 먼저 정의하고, 원인·동작·결과와 적용 범위를 연속된 문단으로
-  논증한다. 핵심 설명은 본문만 읽어도 완결되어야 하며, callout·card·도해와 단편적인 label의
-  나열로 본문을 대신하지 않는다. 표, 도해와 코드 예시는 정확한 대응 관계나 실행 흐름을
-  보충할 때만 사용하고 앞뒤 문단에서 해석한다.
-- 문서 제목 아래에는 모든 route에 동일한 형식의 subtext를 강제하지 않는다. 본문을 읽기 전에
-  필요한 전제나 범위가 있으면 별도 헤딩 없이 하나 이상의 개요 문단으로 두고, 제목과 첫 절이
-  내용을 충분히 설명하면 개요를 생략한다.
-- 지원·거부 범위를 설명하는 절은 규칙 이름이나 존재하지 않는 표를 가리키는 데 그치지 않는다.
-  사용자가 실행할 query와 source 예시를 들어 match되는 경우와 match되지 않는 경우를 함께
-  설명한다. 예시는 본문이 선언한 boundary, POS, resource와 문법 조건을 그대로 재현해야 한다.
-- 문서 site는 React Router Framework Mode로 구성한다. Runtime SSR은 사용하지 않고 고정된 모든
-  문서 route를 build 시점에 한국어와 영어 HTML로 각각 prerender한다. 한국어는 query가 없는 clean
-  URL에서, 영어는 같은 path의 `?hl=en` URL에서 제공한다. 각 URL의 최초 response에는 해당 locale의
-  본문, 고유 title·description·self-canonical URL과 Open Graph metadata가 들어 있어야 한다. Browser는
-  이 HTML을 hydrate하며 이후 route 전환은 전체 페이지를 다시 요청하지 않는다. 공통 shell 안에서
-  다음 경로를 제공한다.
-- 검색 엔진이 site 이름과 문서 계층을 해석할 수 있도록 prerender metadata에 JSON-LD를 포함한다.
-  `/`와 `/?hl=en`에는 현재 locale의 canonical URL을 가리키는 `WebSite`와 한국어·영어 alternate
-  name을, 나머지 indexable route에는 Home, 해당 GNB 영역과 현재 문서를 잇는 `BreadcrumbList`를
-  둔다. GNB 영역의 첫 문서가 현재 문서이면 같은 항목을 반복하지 않는다. Open Graph metadata는
-  site 이름, 현재 locale과 다른 locale을 명시하고, 같은 title·description을 social card
-  metadata에서도 사용한다.
-- 홈의 title, description, `h1`과 첫 문단은 `kfind`라는 이름만 제시하지 않고 한국어 표제어와
-  활용형을 찾는 검색 엔진이라는 제품 범위와 `걷다` 검색 예시를 직접 설명한다. 하위 route의
-  browser title은 검색 결과만 읽어도 제품과 문서 주제를 구분할 수 있게 작성한다. 문서 안의
-  navigation label과 breadcrumb 이름은 browser title보다 짧은 현재 정보 구조의 이름을 유지한다.
-
-  ```text
-  /                                      개요와 제품 범위
-  /guide/getting-started                 설치와 첫 검색
-  /guide/installation                    배포 방식과 실행 환경
-  /guide/workflows                       사람·에이전트 검색 절차
-  /guide/goals                           목표와 비목표
-
-  /cli                                   CLI 개요
-  /cli/query-syntax                      query atom과 태그 문법
-  /cli/parts-of-speech                   품사 지정과 자동 판정
-  /cli/expansion                         literal·inflection·derivation
-  /cli/boundaries                        smart·token·any 경계
-  /cli/phrases                           구 검색과 max gap
-  /cli/input-output                      파일·인코딩·출력 형식
-  /cli/diagnostics                       오류·종료 상태·진단
-  /cli/resources                         사전·resource·사용자 설정
-  /cli/recipes                           반복 가능한 검색 예시
-
-  /agents                                에이전트 통합 개요
-  /agents/workflow                       권장 검색 절차
-  /agents/skills                         skill 설치와 사용
-  /agents/integrations                   Codex·Claude Code·Gemini CLI
-  /agents/automation                     자동화 패턴
-  /agents/contract                       JSON Lines와 통합 계약
-
-  /internals/architecture                구성 요소와 책임 경계
-  /internals/pipeline                    compile·scan·verify pipeline
-  /internals/query-compiler              분석과 검색 program 생성
-  /internals/matcher                     anchor scan과 후보 검증
-  /internals/structural-verification     compact resource 기반 판정
-  /internals/resources                   resource format과 초기화
-  /internals/unicode-spans               정규화와 span 좌표계
-  /internals/performance                 비용 모델과 병렬 실행
-
-  /internals/morphology                  한국어 형태 처리 개요
-  /internals/morphology/parts-of-speech  세부 품사와 coarse POS
-  /internals/morphology/nominals         체언과 명사 계열
-  /internals/morphology/particles        조사와 이형태
-  /internals/morphology/predicates       용언과 어간
-  /internals/morphology/endings          선어말어미·어말어미
-  /internals/morphology/irregulars       불규칙 활용
-  /internals/morphology/derivation       파생과 품사 전환
-  /internals/morphology/compounds        합성어와 보조용언
-  /internals/morphology/contractions     축약과 영형태
-  /internals/morphology/ambiguity        중의성과 경계 판정
-  /internals/morphology/coverage         규칙 범위와 비목표
-
-  /benchmarks                            평가 개요와 최신 품질·성능 결과
-  /benchmarks/methodology                fixture와 측정 절차
-  /benchmarks/contract                   raw·contract-adjusted 계약
-  /benchmarks/canonical                  표준 맞춤법 품질
-  /benchmarks/query-matrix               문법 조합 품질
-  /benchmarks/robustness                 오류 문장 품질
-  /benchmarks/performance                workload별 성능
-  /benchmarks/comparisons                외부 분석기 비교
-  /benchmarks/reproducibility            revision·입력·실행 명령
-  /benchmarks/reports                    날짜별 source report
-
-  /reference/cli                         native·npm CLI 옵션
-  /reference/query-language              query 언어 문법
-  /reference/pos-tags                    품사 태그
-  /reference/configuration               환경 변수와 설정 파일
-  /reference/user-lexicon                사용자 사전 형식
-  /reference/jsonl                       JSON Lines schema
-  /reference/exit-codes                  종료 코드
-  /reference/errors                      오류 분류
-  /reference/rust                        Rust facade API
-  /reference/javascript                  JavaScript·TypeScript API
-  /reference/resources                   resource 파일과 schema
-  /reference/rule-ids                    provenance rule ID
-  /reference/glossary                    문법·실행·평가 용어
-  /reference/licenses                    코드·데이터 라이선스
-
-  /playground                            WebAssembly 플레이그라운드
-  ```
-
-- 전역 navigation은 영어에서 `Home`, `Get Started`, `CLI`, `Agents`, `Internals`, `Benchmarks`,
-  `Reference`, 한국어에서 `홈`, `시작하기`, `CLI`, `에이전트`, `내부 구조`, `벤치마크`, `명세`의
-  한 단계 GNB로 구성한다. 한국어 navigation category, 문서 제목과 eyebrow에서 영어
-  `Reference`를 `참조`로 직역하지 않는다. `Playground`와 GitHub는 GNB 오른쪽의 독립 action으로
-  둔다. 문법 항목, 구현 단계와 개별 지표를 GNB에 직접 나열하지 않는다.
-- Playground는 전역 header와 footer만 문서 route와 공유하는 별도 layout을 사용한다. 문서 GNB에는
-  활성 항목을 두지 않고 `Playground` action을 현재 page로 표시하며, 문서 sidebar와 좁은 화면의
-  문서 메뉴를 렌더링하지 않는다. Playground의 좁은 화면 site 메뉴는 문서 GNB와 외부 link만
-  제공하고 문서 목차는 포함하지 않는다.
-- 문서 route의 좌측 sidebar는 현재 GNB 영역에 속한 문서와 현재 문서의 절을 함께 표시한다.
-  현재 route와 절은 접근 가능한 navigation 상태로 구분한다. 데스크톱에서는 sticky sidebar로,
-  좁은 화면에서는 같은 계층을 보존하는 collapsible 문서 메뉴로 제공한다. 메뉴 trigger에는
-  펼침 상태를 나타내는 chevron과 접근 가능한 expanded 상태를 함께 제공한다. 본문 순서와
-  sidebar 순서는 일치해야 하며, 언어를 전환해도 route와 절 fragment는 유지한다. `Internals`의
-  한국어 형태 처리는 별도 sidebar 하위 범주로 묶는다. Benchmark의 평가 개요와 최신 결과는
-  `/benchmarks`에 함께 표시하고, 방법론과 역사 보고서는 별도 route로 분리한다. GNB에는 이 하위
-  범주를 펼치지 않는다.
-- 각 문서 route의 본문 하단에는 GNB와 sidebar의 전체 문서 순서를 기준으로 이전·다음 문서
-  link를 제공한다. 첫 문서에는 다음 link만, 마지막 문서에는 이전 link만 표시하며 link label은
-  현재 locale을 따른다. Playground와 정의되지 않은 경로는 이 순서에 포함하지 않는다.
-- 사람이 읽는 문서 본문은 route와 locale별 MDX source로 관리한다. Route metadata, navigation과
-  SEO catalog는 typed index에서 관리하되 제목 아래의 개요, 절, 문단, 목록, 표와 code 예시는
-  TypeScript object에 장문 문자열로 넣지 않는다. 한국어와 영어 MDX는 같은 절 계층과 stable heading
-  ID를 유지하며 build에서 route index와의 일치 여부를 검사한다. 서로 다른 canonical route가 같은
-  locale의 MDX 본문을 복제하지 않는다.
-- MDX에서 쓰는 callout, lead, step, code title과 표 wrapper는 공통 문서 component library로
-  제공한다. 공통 component는 locale에 종속된 본문을 내부에 복제하지 않고 MDX children을
-  접근 가능한 HTML 구조로 표현한다. Callout은 본문과 같은 읽기 폭 안에서 제목과 내용을
-  한 열로 배치하고, 종류별 inline-start 강조선과 절제된 배경으로 본문을 보충한다. 좁은
-  화면에서도 별도 제목 열로 본문 폭을 줄이지 않으며, 내부 첫·마지막 block의 바깥 여백은
-  component가 정규화한다. Route별로 같은 시각 요소를 다시 구현하지 않는다.
-- Fenced code block은 build 시점에 문법 highlighting을 완료한다. 배포된 문서가 색상을 입히기
-  위해 browser에서 highlighter runtime이나 grammar를 내려받지 않게 하며, 언어가 지정되지 않은
-  block도 읽을 수 있는 기본 표현을 제공한다. Highlighting 결과는 본문 code block의 복사,
-  가로 scroll과 접근 가능한 text 선택을 방해하지 않는다.
-
-- 문서 site의 popup, select, collapsible과 form control은 `@base-ui/react`의 unstyled primitive로
-  구성한다. 링크, label, keyboard와 pointer 동작은 해당 primitive의 접근성 의미를 유지하고,
-  제품 고유 동작만 route component에서 추가한다.
-
-- 단어장은 검색 입력, 실행 구조, resource와 품질 지표에 쓰는 핵심 용어를 한곳에서
-  정의한다. 한국어 표기와 코드·영문 표기는 같은 항목에서 대응시키고, 다른 문서의 설명은
-  이 정의와 모순되지 않아야 한다. 형태소 label은 별도 범주에서 NNG·VV·EP처럼 문서에
-  노출되는 세부 label을 각각 정의한다.
-- 각 문서 route는 단어장 용어가 본문에서 처음 등장하는 한 곳에만 tooltip과 해당 정의 link를
-  제공한다. 같은 항목의 한국어·영문 별칭은 한 용어로 센다. 단, `TP`, `FP`, `TN`, `FN`, `TPᶜ`,
-  `TNᶜ`, `FPᶜ`, `FNᶜ`, `POS`, `F1`과 형태소 label처럼 독립해서 읽는 영문 acronym alias는 같은
-  용어의 일반 별칭이 먼저 나왔어도 acronym별 첫 등장에 별도 tooltip을 제공한다. 형태소 분석 표기
-  안의 label도 code 전체를 제외하지 않고 label 자체에 tooltip을 제공한다. Tooltip은 단어장에
-  notation이 있는 용어의 notation, 현재 언어의 이름과 정의를 함께 표시한다. 형태소 label과 acronym은
-  `VV · 동사`, `TP · 참양성 · true positive`, `TPᶜ · 계약 조정 참양성 · contract-adjusted true
-positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하되 같은 이름을 중복하지 않는다.
-  Tooltip은 hover와 keyboard focus로 열 수 있어야 한다. 실제 mouse pointer activation과 keyboard
-  Enter activation은 기존 link 동작을 유지한다. Touch·pen pointer activation과 선행 input event가
-  없는 link activation은 첫 번째에 tooltip을 열고, 같은 용어의 다음 activation에 단어장으로 이동한다.
-  이 구분에 media query나 click metadata를 사용하지 않는다. 기존 link와 form control에는 중첩해서
-  적용하지 않는다. MDX source의 `/reference/glossary#*` link는 일반 본문 link로 그대로 출력하지 않고
-  이 page-local 첫 등장 규칙을 적용하는 tooltip trigger로 해석한다. MDX source는 acronym 예외를
-  제외하고 같은 용어의 단어장 link를 한 route에 중복해서 작성하지 않는다.
-- 일반 UI text는 Pretendard 기반 sans-serif stack을 사용한다. 코드, 명령, query·output label과
-  기술 도해의 코드 표기는 기존 monospace stack을 유지한다. 본문 인라인 code에는 배경, border,
-  radius와 최소 padding을 적용해 문장과 구분하고, code block 안에서는 이 장식을 중첩하지 않는다.
-- 데스크톱 문서 본문과 하단 이전·다음 navigation은 route의 문서 길이, 표와 code block 너비에
-  관계없이 같은 content column을 사용한다. 세로 scrollbar 유무로 shell과 본문 중심축이 움직이지
-  않게 viewport scrollbar 영역을 안정적으로 확보한다. 표와 code block의 overflow는 content
-  column을 넓히지 않고 해당 container 안에서 처리한다.
-- 문서 table은 열 내부의 짧은 label·수치·단위를 줄바꿈하지 않는다. 화면보다 넓은 table은
-  cell을 접는 대신 table container에서 가로로 scroll한다.
-- 공통 spacing scale은 `0.25rem`, `0.5rem`, `0.75rem`, `1rem`, `1.5rem`과 section 간격
-  `2.5rem`을 사용한다. 문서 카드와 playground panel은 이 scale로 padding과 gap을 제한하며,
-  상태 badge와 짧은 token은 좁은 화면에서도 내용 너비만 차지한다.
-- Framework Mode의 route code splitting으로 첫 문서 화면에 불필요한 페이지 코드가 포함되지 않게 한다.
-  Playground의 WASM module과 선택적 component resource는 `/playground`에 들어가기 전에는
-  불러오지 않는다. 문서 route 전환은 전체 페이지를 다시 요청하지 않고, 현재 경로와 제목을
-  접근 가능한 navigation 상태로 표시한다.
-- Build는 실제 `robots.txt`와 전체 문서 route의 한국어·영어 URL을 열거한 `sitemap.xml`을 배포한다.
-  각 sitemap 항목은 `ko`, `en`, `x-default` alternate URL을 포함한다. 정의되지 않은 경로는 SPA
-  fallback으로 `200`을 반환하지 않고 prerender한 `404.html`과 HTTP 404를 반환한다. Build는 모든
-  indexable route의 locale별 HTML에 올바른 document language, 단일 `h1`, 고유 title·description,
-  self-canonical URL, 상호 `hreflang`, social metadata와 유효한 route별 JSON-LD가 있는지 검사한다.
-  Sitemap URL 집합은 두 locale의 public URL 집합과 정확히 일치해야 하며 `404.html`은 `noindex`를
-  유지한다.
-- 현재 clean path의 문서 HTML, metadata, `robots.txt`, `sitemap.xml`과 `404.html`에는 장기 browser
-  cache를 적용하지 않는다. Cloudflare Pages의 deployment invalidation, ETag와 revalidation을 사용해
-  `main` 배포마다 최신 문서를 확인한다. Content hash가 filename에 포함된 `/assets/*`와 불변
-  versioned archive의 파일만 `immutable` 장기 cache를 적용하며, HTML과 Pages Function을 포함하는
-  broad Cache Rule은 두지 않는다. Playground의
-  component resource Cache Storage는 이 문서 cache와 분리하고 아래 resource revision 계약을 따른다.
-- Publish workflow는 선택한 GitHub Release tag의 source로 한국어·영어 문서, playground와 해당
-  버전의 component resource를 빌드한다. 산출물은 GitHub Release의
-  `kfind-site-VERSION.tar.gz`와 R2의 불변 `site/versions/VERSION` archive·index로 함께 보존한다.
-  Archive index는 각 파일의 byte offset, 길이, media type과 cache policy를 기록한다. 같은 버전의
-  기존 index와 archive checksum이 다르면 덮어쓰지 않고 게시를 실패한다.
-- `site/versions/manifest.json`은 게시가 끝난 버전, prerelease 여부와 SemVer상 최신 버전을
-  보존한다. 새 archive와 index를 모두 올린 뒤 manifest를 마지막에 교체한다. 따라서 version
-  selector에는 부분 업로드된 버전이 노출되지 않는다. Stable과 RC를 모두 나열하되 RC를 stable
-  또는 latest npm channel로 취급하지 않는다.
-- Pages Functions Worker는 `/versions/VERSION/*`의 version과 상대 경로를 검증하고 manifest에 있는
-  버전만 R2에서 제공한다. Index JSON은 명시적 크기 상한 안에서 schema를 검증한 뒤 읽고, archive
-  body는 해당 파일의 byte range만 R2에서 읽어 buffering 없이 응답한다. Versioned response에는
-  `X-Robots-Tag: noindex`를 넣고 HTML은 현재 locale의 `Content-Language`를 유지한다. 존재하지 않는
-  버전·파일은 404, GET·HEAD 이외 method는 405로 응답하며 임의의 current asset으로 fallback하지
-  않는다.
-- Header의 version selector는 R2 manifest와 현재 build version을 표시한다. 최신 게시 버전은 기존
-  clean path로, 다른 버전은 현재 route·locale query·fragment를 보존한
-  `/versions/VERSION/*` path로 이동한다. Manifest를 불러오지 못하면 현재 build version만 표시하고
-  문서 탐색을 막지 않는다. 좁은 화면에서도 언어 선택과 함께 접근 가능한 label과 select keyboard
-  동작을 제공한다.
-- JavaScript와 resource 참조 문서는 npm asset의 역할, `@kfind/kfind/assets` resolver, browser
-  bundler와 Node.js 서버의 자체 서빙 절차를 함께 설명한다. 예제는 resource bytes를
-  `Kfind.withResources`에 전달하는 초기화, HTTP content type과 `nosniff`, same-origin 또는 명시적
-  CORS, cache key의 package version·content hash 포함을 보여 준다. 고정 URL은 revalidation 없이
-  `immutable`로 캐시하지 않으며 package upgrade에서 JavaScript·WASM·resource를 원자적으로
-  교체해야 한다.
-- 문서 locale은 같은 path와 UI 구조를 유지하면서 query로 전환한다. 지원 locale은 한국어 `ko`와
-  영어 `en`이며 query가 없는 URL은 한국어, `?hl=en`은 영어다. 다른 query parameter와 fragment는
-  언어를 전환해도 보존한다. 영어 문서의 내부 link는 `hl=en`을 이어서 검색 engine과 사용자가 같은
-  영어 문서 계층을 탐색하게 한다. Locale별 공통 UI 문구, navigation과 SEO metadata는 typed
-  catalog로 분리하고 장문 route 본문도 같은 locale model을 사용해 확장할 수 있어야 한다. Catalog
-  조회, interpolation과 plural 처리는 `i18next`와 `react-i18next`에 위임하고 직접 문자열을 치환하거나
-  번역 key를 동적으로 조립하지 않는다.
-- 선택한 locale은 `kfind-document-locale` cookie에 site 전체 path로 보존한다. 명시적인 `hl=en`
-  query는 cookie보다 우선한다. Query가 없는 URL의 hydration은 한국어 SSG HTML로 시작한 뒤 browser
-  cookie가 지원 값이면 같은 URL에서 해당 locale을 적용한다. Cookie가 없거나 지원하지 않는 값이면
-  한국어를 유지하며 `Accept-Language`에 따른 자동 redirect는 하지 않는다. Cookie 감지와 보존은
-  i18next language detector에 위임한다. Locale cookie는 UI preference일 뿐 인증·권한 판단에
-  사용하지 않는다. 사용자가 locale을 선택하면 cookie를 먼저 갱신한 뒤 현재 문서와 fragment를
-  유지한 채 UI와 URL을 전환하며, locale 동기화가 이전 cookie 값으로 선택을 되돌리지 않아야 한다.
-- 한국어와 영어 public URL은 각각 self-canonical을 사용하고 양방향 `hreflang="ko"`,
-  `hreflang="en"`과 query 없는 한국어 URL을 가리키는 `hreflang="x-default"`를 제공한다. Pages
-  Function은 일반 browser와 crawler를 구분하지 않고 `?hl=en` 요청에 영어 prerender HTML을 `200`으로
-  제공한다. Browser를 다른 URL로 redirect하거나 user agent에 따라 다른 문서를 제공하지 않는다.
-- 한국어 문서의 헤딩은 설명 대상을 나타내는 명사구로 작성한다. 완결된 문장, 홍보 문구와
-  행동을 권하는 문장을 헤딩으로 사용하지 않는다. 영어 문서의 헤딩은 영어 독자에게 자연스러운
-  문형을 사용하며 명사구로 제한하지 않는다.
-- 좁은 화면의 문서 navigation은 두 열 grid로 배치한다. 각 navigation group은 링크 수와 관계없이
-  내용 높이를 유지하며, 같은 grid 행의 다른 group 높이에 맞춰 내부 link를 늘리지 않는다.
-- 옵션 문서는 `inflection`, `derivation`, `literal`의 생성 범위와 차이, `--literal` 단축 옵션의
-  충돌 규칙, boundary·POS·Unicode normalization·phrase gap의 결합을 예제와 함께 설명한다.
-  분석·아키텍처·최적화 문서는 query compile부터 anchor scan, 국소 구조 판정, span·provenance
-  반환까지의 흐름과 corpus 전체를 분석하지 않는 이유를 텍스트와 접근 가능한 도해로 설명한다.
-- playground는 현재 source의 `kfind-wasm`을 browser용 WebAssembly로 빌드해 embedded lexicon으로
-  실행한다. Query, 입력 text, expand·boundary·max gap을 바꿀 수 있고, UTF-16 span에 맞춰
-  match를 강조하며 surface와 provenance를 표시한다. 명시적 품사는 별도 전역 control이 아니라
-  query atom의 `n:`·`v:`·`adj:`·`lit:` 태그로만 입력하며 태그가 없는 atom은 자동 판정한다.
-  Browser 사용자가 Unicode normalization을 선택하지 않도록 canonical NFC+NFD 검색을 고정
-  적용한다. 문서 제목은 현재 locale의
-  `플레이그라운드` 또는 `Playground`이며, 같은 이름의 하위 heading을 반복하지 않는다.
-- Query와 입력 text는 검색 작업의 주 입력으로서 playground 상단의 한 input stack에 이 순서로
-  인접 배치한다. 넓은 화면은 짧은 Query와 장문 text editor를 왼쪽 main pane에 두고 예시 action,
-  compile option을 오른쪽 보조 panel에 둔다. 형태 구성 요소 판정 resource는 주 입력 아래, 검색
-  결과 앞의 compact한 전체 너비 capability card에 둔다. Query control과 text editor는 모두
-  main pane의 전체 너비를 채운다.
-- 좁은 화면은 Query → text → 형태 구성 요소 판정 resource → 검색 옵션 → 결과의 인지 순서를
-  우선한다. Resource card는 설정 modal 안에 숨기지 않고 역할, 크기와 현재 상태를
-  항상 표시한다. Resource 사용 여부는 켜짐·꺼짐 switch로 제어한다. Switch를 켜면 resource를
-  복원하거나 내려받아 기존 WASM engine에 load하고, browser 저장소에 호환되는 resource가 있으면
-  playground 진입 시 복원한 뒤 켜짐을 기본값으로 표시한다. Switch를 끄면 이후 검색은 resource가
-  없는 engine으로 실행한다. 예시 action과 compile option은 현재 주요 option 요약을 표시하는
-  `검색 옵션` button으로 여는 modal 안에 두며 결과보다 앞에서 긴 설정 목록을 펼치지 않는다.
-  Modal은 keyboard focus trap, touch scroll lock, 명시적인 닫기 control을 제공한다. 닫기 control은
-  접근 가능한 label을 가진 borderless X icon button으로 표시하고, modal 안 select의 option
-  popup은 modal 위에서 현재 viewport 안에 보여야 한다. Trigger 아래에 여는 select popup의 x축
-  시작점은 trigger의 시작점에 맞춘다. 모든 화면에서 가로 scroll을 만들지 않는다.
-- 검색 예시는 query, text와 관련 compile option을 하나의 설정으로 불러오는 action button으로
-  제공한다. 예시 action과 개별 option control은 같은 input state를 갱신하고, 별도의 preset 선택
-  상태를 유지하지 않는다. 기본 용언 활용 예시는 `data/fixtures/walk_hang_stress.txt`의 `걷다`와
-  `걸다` 동형 활용, 합성어와 동음이의어가 섞인 회귀 문단을 `걷다`로 검색한다. 대용량 예시는
-  `wikimedia/wikipedia`의 고정 `20231101.ko` snapshot 앞 500행에서 corpus revision과 source ID의
-  SHA-256 hash를 기준으로 4개 bucket 중 0번에 속한 문서를 원본 순서대로 추출해 한국어 위키백과
-  본문을 정확히 1 MiB로 제공한다. 원문 asset은 대용량 예시를 선택할 때만 불러오며 각 문서의 제목과
-  URL, corpus revision, 추출 방법, checksum과 `CC BY-SA 3.0` 출처를 보존한다. 서로 다른 문서에
-  분산된 `말하다` 활용형을 `verb + smart + inflection`으로 검색해 복수의 실제 corpus 결과를
-  제공한다. Editor에는 문자 수와 UTF-8 byte 수를, 검색 결과에는 query compile과 전체 text scan을
-  합친 실행 시간을 표시한다. 예시 action은 짧은 button row로 줄바꿈하며 단순 목록을 별도 card
-  grid처럼 크게 그리지 않는다. Compile option은 현재 값과 설명을 확인할 수 있되 주 입력보다
-  시각적으로 앞서지 않는 compact control grid로 배치한다. Site build는 추출 manifest의 byte
-  수와 SHA-256으로 원문 asset을 검증한 뒤 같은 검증값을 browser loader에 주입한다.
-- Playground는 query·text·option 변경을 debounce한 뒤 자동으로 검색하며 별도의 검색 실행
-  button을 두지 않는다. Query label에서 지원 atom 태그와 품사를 확인할 수 있어야 하며 atom 태그
-  도움말은 hover·keyboard focus와 pointer activation으로 열 수 있어야 한다. Playground가
-  compile할 때 전역 POS는 항상 `auto`이며 명시적 품사는 atom 태그로만 전달한다. 검색 예시도
-  명시적 품사가 필요하면 `v:걷다`, `lit:걸어`, `v:말하다`처럼 query에 태그를 포함한다. Expand
-  control은 각 값의 생성 범위를 현재 선택값과 option list에서 설명한다.
-- 입력 text는 CodeMirror 기반 plain-text editor에서 수정한다. 검색 span은 UTF-16 document offset을
-  사용하는 decoration으로 실제 편집 text에 표시하며 별도의 highlight layer나 결과 preview를 중복해
-  두지 않는다. IME composition 상태가 아닐 때 물리·소프트 키보드의 Enter와 Shift+Enter는 editor
-  document에 줄바꿈을 삽입한다. Editor와 query control은 IME composition 중 search state를 갱신하지
-  않고 composition이 끝난 값만 반영한다. 외부 preset 적용 외에는 editor document를 다시 쓰지 않아
-  selection, caret과 undo history를 보존하고, 대용량 입력은 현재 viewport 중심으로 렌더링한다.
-  Rich-text document model과 collaboration 기능은 추가하지 않는다.
-- 결과 panel은 `Matches`와 `Raw JSON` tab을 제공하고 한 번에 선택한 detail만 표시한다. 기본 tab은
-  사람이 읽는 surface·span·provenance 목록이며 Raw JSON은 같은 match의 전체 구조를 표시한다.
-  Match 목록은 surface, span과 설명을 빠르게 훑을 수 있는 compact row로 표시하고 각 항목을 독립된
-  큰 card로 확장하지 않는다. Match row의 keyboard focus ring은 scroll container에 잘리지 않도록 row
-  안쪽에 표시하고, ring이 내용을 가리지 않도록 내부 여백과 둥근 모서리를 적용한다. 설명 첫 줄은
-  이미 별도 표시한 match surface를 반복하지 않고 각 생성 origin의
-  표제어와 생성 규칙을 `걷다 + ㄷ→ㄹ + -았/었- + -다`처럼 한국어 사전의 형태 분석 순서로 표시한다.
-  생성 규칙이 없는 literal origin은 surface 대신 직접 일치임을 표시한다. 둘째 줄은 기존 provenance
-  rule path를 그대로 표시한다. 좁은 화면에서는 두 줄 설명만 다음 행으로 내려 정보 순서를 보존한다.
-  Match 목록은 현재 scroll viewport와 인접한 소수의 row만 DOM에 rendering하고 실제 row 높이를
-  측정해 전체 scroll range를 보존한다. Match row를 활성화하면 해당 UTF-16 span을 editor에서 선택하고
-  editor 내부 scroll과 문서 viewport를 그 위치로 이동한다. 반대로 editor의 match highlight를 pointer로
-  활성화하면 `Matches` tab을 열고 아직 rendering되지 않은 row도 해당 index로 scroll하되 match row로
-  keyboard focus를 옮기지 않는다. 입력 text가 바뀌면 새 검색 결과를 표시할 때 Match 목록의
-  scroll을 처음으로 되돌린다.
-- Playground 입력은 browser 밖으로 보내지 않는다. Full POS와 35.4 MiB의 형태 구성 요소 판정
-  resource는 기본 demo에 포함하지 않는다. 이 compact index는 `smart` 경계 판정에서 원문 token
-  내부의 같은 품사 component span과 인접 token 구조만 확인하며, full POS 사전처럼 문장 전체를
-  분석하거나 검색어를 확장하지 않는다. 사용자가 switch를 켤 때 같은 origin의 Pages Function에서
-  resource를 한 번 내려받아 기존 WASM engine에 load한다. 검증된 resource response는 browser
-  Cache Storage에 보관하고 호환되는 resource revision으로 playground에 다시 들어오면 network 요청
-  없이 자동으로 복원해 사용을 켠다. Cache key는 생성한 component artifact의 고정 SHA-256을
-  사용한다. Resource byte가 같으면 release tag, Git commit과 working tree 상태가 달라도 key를
-  바꾸지 않고, resource byte가 바뀌면 build script와 site build가 함께 읽는 checksum을 갱신한다.
-  Playground 진입 시 현재 key를 먼저 확인하고, 기존 site build key로 저장한 같은-origin entry도 engine의
-  schema·version·digest 검증을 통과하면 현재 key로 옮긴다. 호환되지 않는 entry는 삭제한다. 검색은 이
-  확인이 끝난 뒤 시작하며 resource row는 확인 중 상태와 저장소 복원 완료 상태를 구분해 처음부터
-  표시한다.
-- Component resource는 25 MiB 단일 값 제한이 있는 Workers KV가 아니라 `kfind-assets` R2 bucket에
-  둔다. Pages Function은 `KFIND_ASSETS` binding으로 고정 object를 읽어 body를 buffering하지 않고
-  stream하며 content type, ETag와 cache header를 보존한다. R2 object가 없거나 손상되면 embedded
-  preview로 조용히 fallback하지 않고 playground에 오류를 표시한다. 이 R2 경로는 kfind site의
-  배포 방식이며 npm 소비자의 필수 호스팅 경로가 아니다.
-- `site` package는 현재 source의 WASM과 version control에 보존한 승인 benchmark snapshot에서
-  D3 기반 chart를 렌더링해 prerender HTML과 정적 asset이 있는 `build/client`를 만든다. Snapshot은
-  source report의 revision과 SHA-256을
-  기록하며, 승인된 benchmark가 바뀌면 같은 변경에서 갱신한다. 형태 품질은 수동 검토를 통과한
-  표준 맞춤법 canonical과 실제 오류 문장만 남긴 Robust를 별도 section과 chart로 표시한다.
-  Query matrix chart의 인접 본문은 한 source 문장에서 여러 positive query와 같은 품사의 paired
-  negative query를 만드는 fixture 구성, 질의 단위 집계와 canonical 회귀선과 분리된 진단 범위를
-  설명한다. Contract-adjusted confusion matrix는 raw 약어 오른쪽 위에 `c`를 붙인
-  `TPᶜ`·`FPᶜ`·`TNᶜ`·`FNᶜ`로 표기한다.
-  Robust chart는 동일한 gold fixture에서 backend별 precision·recall·F1과 실행 비용을 비교하고,
-  오류 class, positive/negative 분모, robustness 설정과 표준문 품질에 합산하지 않는다는 점을
-  chart subtitle과 인접 본문에 명시한다. 모든 품질 chart는 제품과 외부 분석기의 raw와
-  contract-adjusted precision·recall·F1을 함께 표시한다. Contract review가 없는 fixture는 두 값이
-  같으며 review 0건임을 표시한다. Robust 500-case는 positive 250, negative 250으로
-  고정하고 positive 중 오류 표식이 gold token에 직접 걸린 `target-span` 100건과 오류가 다른
-  token에 있는 `context-only` 150건을 분리해 보고한다.
-- 기존 `kfind` Pages project는 direct upload 방식을 유지한다. GitHub Actions는 pull request에서
-  site format, lint, type check와 build를 검증한다. Format과 lint는 각각 `Site format`,
-  `Site lint` 독립 status check이며 `main` branch protection의 required check다. `main` push에서는
-  component resource를 생성해 R2에 먼저 upload한 뒤 production site를 배포한다. 배포 인증은
-  repository의 `CLOUDFLARE_ACCOUNT_ID`와 `CLOUDFLARE_API_TOKEN` secret을 사용한다. Production
-  branch는 `main`, Pages project 이름은 `kfind`로 고정한다.
+[웹과 패키지 배포](distribution.md)
 
 ### 0.5 Homebrew 대상
 
-- tap은 `SeokminHong/homebrew-brew`, formula는 `Formula/kfind.rb`를 사용한다.
-- 사용자 설치 명령은 `brew install seokminhong/brew/kfind`다.
-- formula 변경은 tap `main`에 직접 push하지 않는다. 브랜치 PR의 CI가 모두 통과한 뒤 `pr-pull`을 적용한다.
-- formula의 source build는 release workflow와 같은 고정 Rust toolchain을 `rustup`으로 준비한다.
-  Homebrew core의 `rust` 갱신 시점에 빌드 가능 여부가 달라지지 않아야 한다.
-- Publish workflow는 선택한 GitHub Release의 고정 checksum formula를 `TAP_GITHUB_TOKEN`으로 tap
-  branch와 PR에 반영한다. Tap CI가 모두 통과하고 macOS arm64 bottle artifact가 생성됐음을 확인한
-  뒤에만 `pr-pull` label을 적용한다. `brew pr-pull` 성공과 tap `main`의 해당 version·bottle 반영을
-  확인해야 Homebrew 게시를 완료한 것으로 본다.
-- full POS resource에는 `lexicon.bin`, 생성 manifest, `mecab-ko-dic`의 `COPYING`을 함께 넣는다. formula는 이를 `share/kfind`와 `share/doc/kfind/LICENSES`에 설치한다.
-- compact component resource와 manifest도 formula resource로 고정 checksum을 검증해
-  `share/kfind/morphology-component-compact.kfc`에 설치한다. formula `test do`는 설치 경로의
-  resource로 component positive와 crossing-substring negative를 모두 실행한다. component
-  header는 kfind package version을 보존하고 binary는 exact version mismatch를 초기화 오류로
-  보고한다. Formula는 설치·upgrade 뒤 `kfind --check-data --data-dir <pkgshare>`를 실행해 full
-  POS와 component의 무결성·호환성을 함께 확인한다. 실패 시 임의 다운로드나 백그라운드
-  갱신을 하지 않고 `brew reinstall kfind`를 안내한다. Stable resource와 main source가 섞이는
-  `head` build는 제공하지 않는다.
-- distribution asset의 `skills/kfind/SKILL.md`를 formula의 `share/kfind/skills/kfind`에
-  설치한다. Homebrew binary의 `--init`은 project skill을 versioned Cellar가 아니라
-  `opt/kfind/share/kfind/skills/kfind`에 연결한다. 최초 `brew install`은 skill 원본을 함께
-  설치한다. 사용자가 project에서 `kfind --init`을 한 번 실행해 Homebrew 관리 link를 만든
-  뒤에는 `brew upgrade`가 그 link의 안정 경로가 가리키는 원본을 자동으로 갱신한다.
-  Homebrew hook은 대상 project와 agent를 알 수 없으므로 임의의 project skill 경로를 직접
-  만들거나 수정하지 않는다.
-- kfind 소스 코드와 프로젝트가 직접 작성한 내장 데이터는 MIT 라이선스로 배포한다. 외부 full
-  POS와 component resource의 Apache-2.0 고지, enriched predicate data의 CC BY-SA 2.0 Korea
-  고지는 별도 `LICENSES` 디렉터리에 보존한다.
-- formula가 설치하는 전체 묶음은 MIT, Apache-2.0, CC BY-SA 2.0 Korea 조건을 함께 따른다.
-  CC BY-SA 2.0 Korea는 SPDX License List에 없으므로 Homebrew metadata는 존재하지 않는 SPDX
-  식별자를 만들거나 Generic license로 대체하지 않고 `license :cannot_represent`를 사용한다.
-  renderer와 release workflow는 이 metadata를 검증한다.
+[웹과 패키지 배포](distribution.md)
 
 ### 0.6 구조 기반 국소 형태 판정
 
-- query compiler는 각 anchor를 `CandidateProgram`으로 만든다. program은 core 투영,
-  consumption, boundary 또는 구조 제약, 모든 생성 `Origin`을 한번만 보존한다.
-- matcher는 program을 실행해 얻은 실제 core·anchor·consumed span과 bounded 주변 token
-  span을 resolver에 직접 전달한다. 별도 후보 범위 정책이나 corpus 분석 결과로 같은
-  span을 다시 추론하지 않는다.
-- 구조 판정이 필요한 `smart` program은 어휘, 세부 품사, continuation DFA, component
-  capability와 인접 token 제약으로 이루어진 `QueryMorphPattern` 합집을 소유한다.
-  전체 token 표면형 registry나 corpus 단어 denylist를 query 제약으로 사용하지 않는다.
-- component capability는 `WholeOnly`, `Source`, `SourceAndRuntime`을 구분한다. plan은
-  각 program의 capability를 합성해 compact morphology resource 필요 여부를 결정한다.
-  literal, `token`, `any` 및 구조 근거가 필요 없는 `smart` program은 resource를 열지 않는다.
-- corpus 쪽은 candidate를 포함한 bounded Unicode token과 바로 인접한 token만
-  `BoundedTokenGraph`로 만든다. source whole/component와 runtime node를 구분하고
-  원문 byte span과 source provenance를 보존한다.
-- 현재 token graph의 여러 구조 기능이 함께 사용하는 nominal prefix, ending suffix와
-  predicate-connective 경계는 token 준비 단계에서 한 번 계산한다. Attached auxiliary,
-  compound predicate, nominal derivation과 copula 판정은 같은 도달성 사실을 공유하며 기능마다
-  전체 edge graph를 다시 순회해 같은 상태 배열을 만들지 않는다.
-- Resource loader는 검증된 POS string table을 compact typed sequence table로 한 번 변환한다.
-  Token graph edge는 resource가 소유한 sequence slice를 빌려 쓰고 구조 상태기계는 raw 문자열을
-  기능마다 다시 분리하거나 세부 품사를 반복 해석하지 않는다. Token 준비 경로에는 POS interning
-  cache나 별도 sequence arena를 두지 않는다. Component span이 필요 없는 구조 판정은 POS-only
-  resource view를 순회하며 analysis·component `Vec`를 만들지 않는다.
-- 구조 근거 수집은 corpus graph 구성·경로 선택과 분리된 모듈에서 수행한다. Source 근거,
-  명사형 활용 anchor 근거, runtime 복합 구조와 완결 span 근거의 우선순위를 보존하며
-  같은 candidate의 지원 근거와 pattern index를 유지한다.
-- 구조 판정의 내부 경계는 resource 조회, graph 인덱스, token 근거 준비, 구조별 경로 사실,
-  문맥의 구조 선택과 candidate 수용으로 나눈다. Graph 계층은 query pattern이나 수용 정책에
-  의존하지 않으며, 경로 사실은 준비 단계에서 계산해 선택·수용에 전달한다. 공개 resolver API,
-  근거 우선순위, node 상한과 판정 결과는 이 내부 분리와 무관하게 유지한다.
-- resolver는 먼저 query와 독립적인 whole/component·세부 품사·continuation·인접 token
-  근거로 corpus의 구조적 후보를 고른다. 어휘 의미만 다르고 span topology, 품사,
-  continuation과 문맥 제약이 같은 후보는 하나의 `StructuralSignature`로 합친다.
-- 체언 core가 조사 없는 token 전체와 정확히 같은 경우에는 token 경계 자체를 완성된 체언
-  구조 근거로 사용한다. Source whole 분석이 없다는 이유만으로 이 경로를 거부하지 않으며,
-  core와 token 경계가 다르거나 조사·다른 문자를 소비했으면 이 근거를 사용하지 않는다.
-- 체언 core가 token 왼쪽 경계부터 graph로 조합한 완성 체언 host 전체와 정확히 같고,
-  이어지는 조사 연쇄를 token 끝까지 소비하면 source whole 분석이나 host 전체를 덮는 단일
-  edge가 없어도 체언 core를 유지한다. `대영제국의`, `캠브리지는`처럼 host 내부가 여러 명사
-  edge로만 구성된 경우를 복구하며, host의 내부 substring이나 crossing span은 이 근거로
-  열지 않는다.
-- `ConstraintResolver`는 query pattern의 structural signature가 선택된 corpus 구조와
-  일치하면 `Supported`, 다른 구조가 유일하게 선택되면 `Contradicted`, resource 오류나
-  상한 초과는 `Unavailable`로 반환한다.
-- 구조 context의 window 추출·graph 준비·좌표 정렬 실패 또는 `Unavailable` 판정은
-  후보를 제외하면서 `SearchDiagnostics`의 `structural_verification_incomplete`를 설정한다.
-  이 진단은 호출자가 소유하는 검색 단위 상태이며 다른 입력·worker와 암묵적으로 공유하거나
-  초기화하지 않는다. 같은 상태에 여러 검색을 누적하면 하나라도 판정 불가일 때 참을 유지한다.
-  기존 matcher API는 결과 계약을 유지하고 진단을 받는 API를 추가한다.
-- 네이티브 파일 검색은 파일마다 별도 진단을 사용하고 `FileSearchResult`에 위 상태를 보존한다.
-  `SearchSummary`는 판정 불가가 발생한 파일 수를 집계한다. 결과가 없는 파일과 문맥·집계
-  출력에서도 진단은 유지한다. 이 값이 거짓이어도 지원하지 않는 활용·의미 검색, 조기 종료나
-  검색 대상 밖의 파일까지 포함한 완전성을 보장하지 않는다. 판정 불가 후보 수는 제공하지 않는다.
-- 네이티브 CLI는 구조 판정 불가가 관측된 파일 경로와 `structural_verification_incomplete`
-  진단을 stderr에 출력하고 종료 코드 2를 반환한다. 이미 찾은 stdout 결과는 보존한다.
-  JSON Lines에 진단 record를 섞지 않으며, `--count`, `--files-with-matches`, `--quiet`에도
-  같은 종료 계약을 적용한다. 조기 종료 뒤의 미검색 구간에 대한 판정은 추측하지 않는다.
-- Window의 기본 제한은 원문 256 byte와 정규화 후 64 Unicode scalar이며 현재 token과
-  필요한 인접 문맥에 적용한다. 입력 파일 전체의 길이 제한이 아니다.
-- 구조 준비는 현재 token 자체에서 얻는 형태 graph와 앞뒤 token에 따른 구조 선택을 별도
-  단계로 유지한다. Matcher는 전체 program이 8개 이하인 작은 plan에서 structural program의
-  정규화된 anchor를 현재 token 후보로 최대 64개까지 matcher memory 상한 안에서 등록한다.
-  Corpus candidate의 정규화된 현재 token이
-  등록 anchor와 정확히 같을 때 graph를 최초 1회 생성해 matcher 수명 동안 재사용하며, 검색되지
-  않은 anchor의 graph는 만들지 않는다. 동시 최초 접근도 하나의 graph만 게시하고 실제 graph
-  메모리를 matcher 상한에서 원자적으로 예약한다. 앞뒤 token에 따른 선택과 원문·NFC span
-  역매핑은 candidate마다 실행한다. 큰 plan, 다른 현재 token, 등록 개수·메모리 상한 초과와
-  graph 생성 실패는 기존 bounded candidate 준비 경로를 사용하며 결과 판정은 바꾸지 않는다.
-- 구조적으로 다른 경쟁 path는 인접 성분 배치로 하나를 선택할 수 있는지 판정할
-  때까지 평가한다. 이때 분해·품사·인접 제약이 같은 어휘 의미 후보는 추가로
-  열거하지 않는다.
-- query program이 `ending.aoeo`를 거쳐 만든 축약형 뒤의 문자열은 compact resource가
-  `VX` 보조용언+어미의 완전한 연쇄로 증명할 때만 같은 predicate token으로 확장한다. 한 음절 안의
-  축약은 anchor와 core의 byte 끝이 같을 수 있으므로 span 길이 차이를 별도 증명 조건으로
-  요구하지 않는다.
-- `nominal-copula-ending-compose` program은 규칙에 선언된 축약 표면을 anchor로 사용하고
-  선택적 조사 연쇄를 token 끝까지 소비한다. `smart`는 anchor 전체와 정확히 일치하는 source
-  분석이 `NP + VCP + E+` 순서이며 `EC` 또는 `EF`로 끝날 때만 후보를 유지한다. 융합 때문에
-  component byte span을 만들 수 없는 source expression은 이 전체 품사열로 검증하고, query
-  표제어나 결과 표면을 source component span으로 추정하지 않는다.
-- `copula-host-ending-compose` program은 규칙에 선언된 체언 host·어미 축약 결과를 `smart`
-  지정사 query의 anchor로 사용한다. Anchor가 맞은 뒤 exact source 분석이 하나 이상의 체언 품사,
-  `VCP`, 하나 이상의 `E+` 순서이고 `EC` 또는 `EF`로 끝나며 정렬된 `VCP` component span은
-  없을 때만 후보를 유지한다. 반환 span은 source에 없는 VCP 부분 span을 추정하지 않고 `걸까`처럼
-  양의 span을 보존하는 축약 anchor 전체로 한다. `token`과 `any`, 미완결 어미, VCP 뒤의 비어미
-  성분은 이 program을 만들지 않는다.
-- 체언+조사와 용언+어미 path는 host span이 같을 때만 구조적으로 해결되지 않은
-  경쟁으로 본다. host가 다르면 더 긴 조사 host 또는 완성된 용언 host를 선택하고,
-  다른 위치에서 우연히 성립한 분할을 후보 근거로 쓰지 않는다. 조사 host는 exact
-  whole 명사 host를 먼저 선택한다. exact host가 없을 때 whole-token 단일 품사 또는
-  완성된 용언 분석이 있으면 이를 graph로 조합한 명사 host보다 우선한다.
-- whole-token 단일 체언 분석과 더 짧은 `체언+조사` 분할이 경쟁해도 whole 분석이 정렬해
-  선언한 체언 source component를 조사 host 선택으로 가리지 않는다. 이 추가 근거는 source
-  component와 정확히 일치하는 체언 query에만 적용한다. 따라서 `자본주의`의 선언된 `주의`
-  component는 유지하지만, 비체언 분석이나 큰 component의 substring, 여러 component 경계를
-  가로지르는 span은 열지 않는다.
-- host span이 같은 체언+조사와 용언+어미 path가 경쟁해도 candidate program이 실제로
-  소비한 continuation과 맞지 않는 path까지 허용하지 않는다. 예를 들어 `걸을`에서
-  `걷다`의 `걸으-+-ㄹ` program은 유지하지만, `걸다`의 bare `걸` program은 `-을`을
-  소비하지 않았으므로 제외한다.
-- source가 정렬해 선언한 component는 같은 span의 runtime 분할보다 우선한다. 조사로
-  완결되는 체언 host가 없는 token에서, 왼쪽 경계부터 시작한 더 긴 source 용언 분석과
-  `E+` suffix가 token 끝까지 완성되면 그 안의 runtime 체언·부사 prefix는 component로
-  추측하지 않는다. 따라서 부사와 용언 사이에 어절 경계가 필요한 `안 팔아서`, `못 했다`를
-  `안팔아서`, `못했다` 안의 component로 열지 않고, source 파생 근거가 없는 `못하다` 안의
-  명사 `못`도 열지 않는다. `공부하다`처럼 같은 source 분석이 정렬된 명사 component와 파생
-  접미사를 선언한 경우에는 source component를 유지한다. 한 source 분석에 component가
-  정렬되지 않았더라도, 두 음절 이상인 체언 뒤에 `XSV`, `XSA` 또는 용언 source edge가 붙어
-  완전한 별도 path를 이루고 더 긴 whole 용언 분석도 있으면 보수적 runtime 파생 근거로
-  인정한다. 따라서 `시작했습니다`, `진정한`, `재미있어요`의 체언은 유지하되, 한 음절 체언은
-  정렬된 source component 없이는 이 fallback을 사용하지 않는다. 이 판정은 runtime path
-  전체의 품사 전이를 제한하지 않으므로 `MAG + JX`인 `드디어는`, `많이들`과 검증된
-  `NNG + XSV` 파생을 보존한다. `안팔아서`, `안좋습니다`, `안나와요` 같은
-  nonstandard-spacing 입력은 향후 별도 robust 지원에서 다루며 현재 표준형 `smart` 계약에서는
-  FP 또는 FN을 허용한다. continuation을 하나도 소비하지 않은 bare predicate가 더 큰 token의
-  일부이거나, predicate component 직후의 체언+조사 후보이면 구조적으로 반증한다.
-- `smart` 체언 query core가 token 왼쪽 경계부터 `N+ + XSN+`의 완성된 명사 파생 경로와
-  정확히 일치하고, 그 직후부터 token 끝까지 `XSV/XSA + E+`의 완성된 용언 파생·어미 경로가
-  이어지면 그 체언 core를 유지한다. 명사와 `XSN`은 각각 하나 이상이어야 하며 query core의
-  양쪽 끝은 source node 경계와 일치해야 한다. 따라서 `잠식/NNG + 당/XSN + 하/XSV + 기/ETN`의
-  `잠식당`을 회수하지만, token 내부에서 시작하거나 `XSN` component를 가로지르거나 용언
-  파생 뒤 어미가 없는 후보는 열지 않는다. 더 낮은 비용의 `잠식/NNG + 당하/XSV + 기/ETN`
-  경로가 경쟁해도 비용으로 정렬된 명사 파생 경로를 제거하지 않는다.
-- 현재 token에 whole `MAG`와 whole 체언이 경쟁하고 다음 token의 완전한 component path가
-  `하다` 활용의 `하/VV` 또는 교체형 `해-/했-/VV`로 시작하면 부사 구조를 선택한다. 따라서
-  `못 하겠어요`, `못 했다`의
-  `못`은 `MAG`로만 인정한다. 다음 token이 다른 용언인 `못 박았다`에는 이 frame을 적용하지
-  않아 source가 선언한 동형 품사를 그대로 유지한다.
-- `smart` 체언 query의 core가 token 왼쪽 경계부터 완성된 체언 host와 정확히
-  일치하고, `이`·`입`으로 시작하는 source graph가 그 직후부터 token 끝까지
-  `VCP + E+`와 선택적 조사 연쇄를 완성하면 체언 core를 유지한다. 조사는 어미를 하나 이상
-  지난 뒤에만 허용한다. 이 경로는
-  `결과이다`, `왕친입니다`, `고체이긴`, `것이었다`, `바튼반도이다`의 체언 host를
-  복구하지만, core와 지정사 사이에 다른 체언이 남는 `홍씨이다`, 지정사가 아닌 용언이
-  이어지는 `맛있다`, 지정사 자체와 겹치는 `이다` 안의 체언 `이`는 열지 않는다.
-- 체언 host의 마지막 음절에 받침이 없으면 지정사 `이-`가 탈락한 `다`와 `였-` 활용,
-  `이어-`가 줄어든 `여-` 활용도 같은 지정사 구조로 검증한다. 탈락·축약 표면을 완전한
-  `이다` 활용으로 복원했을 때 predicate generator가 token 끝까지 정확히 소비해야 한다.
-  따라서 `상표다`, `구경거리였다`, `학교여서`는 유지하지만 받침 뒤에서 같은 축약을 쓴
-  `대학다`, `대학였다`, `대학여서`는 열지 않는다.
-- `smart` 체언 query가 token 왼쪽 경계부터 시작하고 query program이 하나 이상의 조사를
-  소비한 경우에도, 조사 verifier가 허용한 연쇄의 끝에서 시작하는 나머지 표면 전체가
-  predicate generator의 지정사 활용과 정확히 일치하면 체언 core를 유지한다. 조사 연쇄는
-  candidate program이, 지정사와 어미는 기존 생산 문법이 각각 증명하며 compact source
-  graph에 같은 `J+VCP+E+` 분할을 중복 요구하지 않는다. 지정사 탈락·축약의 음운 조건은
-  체언 core가 아니라 조사 연쇄가 끝난 마지막 음절을 기준으로 판정한다. 따라서
-  `대학뿐이다`, `대학뿐만이다`, `학교까지다`처럼 조사구 뒤 지정사를 일반적으로 지원하되,
-  허용되지 않은 조사 연쇄나 지정사·어미가 완결되지 않은 표면은 열지 않는다.
-- predicate program이 `-기` 또는 `-ㅁ/음`을 실제로 소비했고 그 nominalized span이
-  whole nominal 또는 source nominal component와 일치하면 predicate query를 유지한다.
-  이 규칙은 `걷기`, `걸음`, `발걸음`, `걸음걸이`처럼 명사형 자체와 compound 내부의
-  정렬된 component에 적용한다.
-- 앞 token이 관형형 어미로 끝나고 현재 token에 의존명사 whole 분석이 있으면 현재
-  token의 동형 predicate 분석보다 의존명사 구조를 선택한다. 따라서 `걷곤 하는 걸`의
-  `걸`은 `v:걸다`에 매칭하지 않는다.
-- full-POS `smart` predicate plan은 고정 anchor 목록만으로 어미 coverage를 제한하지
-  않는다. generator가 만든 사전 어간과 어휘 교체형을 fallback anchor로 공유하고,
-  compact resource에서 해당 predicate 품사 뒤로 `EP/EC/EF/ETM/ETN` path가 token 끝까지
-  이어질 때 전체 token을 소비한다. fallback은 token 시작에서만 동작하고 ending이 하나
-  이상 있어야 하며, 모음·자음·ㄹ 어간의 `으` 삽입 조건을 만족해야 한다. 따라서 새로운
-  현대 표준어 어미는 query별 anchor 열거 없이 resource와 문법 환경으로 수용하지만,
-  `걸다 + -을 → 걸을` 같은 잘못된 결합은 만들지 않는다.
-- generator branch가 어휘 교체형과 일부 어미만 소비한 뒤 token 내부에 멈춰도, query core와
-  같은 predicate 품사로 정렬된 source prefix에서 시작해 `EP/EC/EF/ETM/ETN`만으로 token
-  끝까지 이어지는 path가 있으면 전체 token을 소비한다.
-  지정사는 왼쪽 체언 host가 있는 경우에만 이 경로를
-  사용한다. 일반 용언은 query core가 token 왼쪽 경계에서 시작하고 token 전체의 관형사·부사
-  분석이 없으며 generator continuation state가 terminal이 아닐 때만 사용한다. 남은 suffix가
-  조사 allomorph로도 시작하거나 조사·체언이 남는 path는 predicate ending path로 확장하지
-  않는다.
-- 구조 판정은 candidate가 token 끝까지 직접 소비했거나, 아래에서 정의한 source ending,
-  보조사, 의존명사, 지정사 또는 합성 용언 경로가 남은 suffix 전체를 소비한 경우에만 결과를
-  유지한다. Candidate 앞부분과 같은 품사의 source node가 있다는 사실이나 token 일부를 덮는
-  graph path는 남은 suffix의 허가 근거가 아니다. 체언 candidate도 완성된 체언 host와 조사·지정사
-  경로가 token 끝까지 이어져야 하며, 내부 component가 선택된 선호 경로에 정확히 정렬되지 않으면
-  유지하지 않는다.
-- declarative candidate가 `다`까지 소비한 뒤 정확히 `는`만 남기고, 같은 품사의 source
-  graph가 query core부터 token 끝까지 완성된 어미 path를 증명하면 구조 검증 범위를 `-다는`
-  전체로 확장한다.
-  따라서 `왔다는`, `있다는`, `않다는`을 회수하지만, source 어미 근거가 없거나 `왔다를`처럼
-  다른 조사 모양 suffix가 남는 후보는 열지 않는다.
-- predicate candidate가 어미를 하나 이상 소비한 뒤 보조사열을 남기면, product 조사 전이
-  graph가 남은 표면 전체를 `ParticleRole::Auxiliary` 연쇄로 검증하고 같은 품사의 source
-  graph가 query core부터 token 끝까지 `predicate + E+ + J+` 순서의 완성된 path를 증명하는
-  경우에만 구조 검증 범위를 전체 token으로 확장한다. 따라서 `위해서는`, `대해서는`,
-  `없지는`, `이렇게도`, `이기리라고는`을 같은 규칙으로 회수한다. 격조사, 허용되지 않은
-  조사 전이, 어미나 조사 중 한쪽의 source path가 없는 표면은 열지 않는다.
-- 관형형 candidate 뒤에 의존명사 `지`와 조사가 붙으면, 같은 품사의 source graph가
-  candidate가 소비한 경계까지 `predicate + E* + ETM`, 그 뒤 token 끝까지
-  `NNB + J+` 순서의 완성된 path를 증명하는 경우에만 구조 검증 범위를 전체 token으로
-  확장한다. 따라서 `오다`는 `온지를`에서 회수하지만, source 관형형·의존명사·조사 중 하나가
-  없거나 순서가 다른 path는 열지 않는다.
-- 관형형 candidate 뒤에 조사 없는 `지`가 남아도 token 전체와 정확히 일치하는 source
-  분석이 같은 품사의 `predicate + E+`를 선언하면 의존명사가 아닌 어미 경로로 전체 token을
-  소비한다. 따라서 `들리다`는 exact `VV+EC` 근거가 있는 `들릴지`에서 회수하지만, 분리된
-  `ETM`과 `지/NNB` 또는 일반 suffix 조합만 있는 `온지`는 열지 않는다.
-- 관형형 candidate 뒤에 정확히 `가`만 남으면, 같은 품사의 source graph가 query core부터
-  token 끝까지 `predicate + E+` 순서의 완성된 path를 증명하는 경우에만 구조 검증 범위를
-  전체 token으로 확장한다. `MM + E` 경쟁 path는 단독 근거로 사용하지 않으며, predicate
-  path와 함께 있으면 recall-first 정책에 따라 용언 후보를 유지한다. 따라서 `어떻다`는
-  `어떤가`에서 회수하지만, predicate path가 없거나 조사까지 더 남는 후보는 열지 않는다.
-  그 밖의 runtime compound와 해결되지 않은 complete path 경쟁은 순위를 매기지 않는다.
-- 구조적 경쟁이 여전히 모호하면 `ProductPolicy`는 recall을 우선해 지원 가능한
-  query 후보를 유지한다. `Ambiguous`와 경쟁 proof 전체는 진단 evaluator에서만 물질화한다.
-- program이 보존한 모든 query `Origin`은 결과 provenance에 남기되, corpus 의미 분석을
-  추가하지 않는다.
-- exact component 근거는 완전한 graph path에서 query와 같은 세부 품사 node의 span이
-  query core와 정확히 일치할 때만 성립한다. 더 큰 node의 substring이나 여러 component
-  경계를 가로지르는 span은 근거가 아니다. nominal component path는 source가 선언한
-  성분 수가 가장 적은 완전 경로를 선택하고, 성분 수가 같으면 source가 선언한 성분을
-  더 많이 포함한 경로를 우선한다. 내부 component query는 이 선호 경로의 한 node와 span이
-  일치할 때만 유지한다. graph로 조합한 명사+조사 host는 내부 nominal component를
-  검증할 때만 사용하고 token 전체의 품사 구조를 선택하는 근거로 쓰지 않는다. host 왼쪽
-  경계에 정렬된 두 음절 이상의 nominal prefix는 유지하고, 한 음절 prefix와 host 내부
-  양쪽 경계를 가로지르는 후보에는 선호 경로 검증을 적용한다. 조사 host 전체를 덮는 source
-  명사 분석이 내부 component를 선언하고 같은 span·품사의 독립 atomic 분석이 없으면 그 선언을
-  선호 경로와 같은 근거로 사용한다. 따라서 `물/NNG + 줄기/NNG + 는/JX`의 `물`은 유지하지만,
-  독립 `산길/NNG` 분석과 경쟁하는 별도 분해의 내부 `길`은 유지하지 않는다.
-- 국립국어원 고정 사전에서 검토한 명사 결합 접미사 어휘는 후보를 다시 생성하지 않고 체언
-  구조 검증에만 사용한다. 사전 generator는 고정 snapshot을 한 번 읽어 재사용 가능한 catalog
-  candidate를 만들고, 별도 validator가 기본 사전 합의와 schema를 검사한 뒤 설치한다. 검증
-  정책만 바뀌면 catalog를 다시 생성하지 않는다. 한 음절 보통명사 query가 이 어휘에 속하고 조사 host의
-  마지막 source node와 정확히 일치하며, 그 앞의 체언 node부터 뒤의 조사 연쇄까지 token
-  전체를 완성하고 host 전체를 덮는 단일 source edge가 없으면 선호 nominal path의
-  component로 유지한다. 따라서 `책임/NNG + 하/NNG + 에서/JKB`의 `하`를 회수하지만,
-  `빙원/NNG + 옆/NNG + 에/JKB`의 독립 명사, 완성 어휘의 내부 음절, 조사 node, particle을
-  소비하지 않고 whole 체언 분석도 없는 내부 한 음절 후보는 열지 않는다. Whole 체언이 같은
-  span을 source component로 함께 선언한 기존 exact component는 보존한다. 이 체언 검증은 용언
-  program을 바꾸지 않으므로 `가다`는 `그래 네가 가.`에서 token 전체 명령형 `가`를 계속
-  회수한다.
-- token을 임의 품사의 edge로 끝까지 덮을 수 있다는 사실만으로 token보다 짧은 query 품사의
-  runtime component를 합성하지 않는다. 특히 `NP`·`MM`·`MAG/MAJ` 내부 component는 query
-  core와 같은 span의 같은 세부 품사 node가 완전한 typed path에 있어야 한다. 이 조건은 query가
-  명시한 품사를 다른 체언·용언 edge의 span으로 대신 증명하지 못하게 하며, query 표면과 token
-  전체가 같은 독립 후보에는 적용하지 않는다.
-- whole 체언 분석과 더 짧은 runtime 체언+조사 분할이 경쟁할 때, 한 node짜리 내부 체언
-  prefix는 whole 분석이 정렬해 선언한 source component이거나 실제 조사 host 전체인 경우에만
-  유지한다. 두 node 이상의 복합명사 subpath와 `MM + 체언` 선호 경로는 각각 별도 typed
-  규칙으로 검증한다. 독립 whole 체언의 첫 음절을 임의의 대명사·명사 component로 만들지
-  않는다.
-- 일반 용언 query의 runtime component는 token 왼쪽 경계에서 시작한 용언+어미 path 또는
-  `용언 + EC + VX + 선택적 어미`의 보조용언 path에 속해야 한다. token 내부에서 우연히 같은
-  세부 품사의 edge가 query core부터 token 끝까지 있다는 사실만으로 독립 용언 stem을 만들지
-  않는다. 완성된 체언+조사 path와 경쟁하는 임의의 compound predicate path도 내부 용언 근거로
-  사용하지 않는다. 보조용언 path와 token 전체의 `MAG/MAJ` 분석이 경쟁하면 통째 부사 분석을 선택한다.
-  체언 뒤 `XSV/XSA + E*`가 완성된 파생 용언 path에서는 파생 접미사 시작 span의 runtime
-  체언 후보도 source가 체언 component를 정렬해 선언하지 않은 한 거부한다.
-- token 왼쪽 경계부터 `용언 + EP* + EC + 용언 + E* + J*` 순서로 끝까지 이어지는 source path가
-  있고, 두 번째 용언 edge 또는 source component가 query core와 같은 span·세부 품사이며 query
-  program도 그 위치부터 token 끝까지 continuation을 소비하면 내부 용언 component를 유지한다.
-  첫 용언의 connective 경로는 `EP` 뒤의 단일 `EC`로만 끝나며 `ETM`·`ETN`·`EF` 뒤에 다른
-  `EC`를 이어 붙이지 않는다. 따라서 완성 체언+주격 조사 `친구/NNG + 가/JKS`를
-  `친/VV+ETM + 구/EC + 가/VV`로 다시 조합하지 않는다.
-  token 전체의 독립 용언 분석이 경쟁해도 이 완전 경로를 가리지 않는다. 이 규칙은
-  `올라가`의 `가다`, `생겨나`의 `나다`, `들어와서는`의 `오다`처럼 source가 정렬한 합성·보조
-  용언 tail에 적용하며, 더 큰 node의 substring이나 token 앞뒤가 불완전한 runtime 분할은
-  근거로 사용하지 않는다.
-- token 또는 조사 host의 왼쪽 경계에서 정확한 `MM` node 하나로 시작하고 나머지 host가
-  `NNG`·`NNP`·`NNB/NNBC` node만으로 완성되는 선호 경로에서는 그 경로의 exact 명사
-  component를 유지한다. 단, 한 음절 `MM`과 명사 component 하나만으로 완성되는 경로는
-  같은 선두 span의 `NR` node도 있을 때만 유지한다.
-  따라서 `어느/MM + 날/NNG`, `세/MM + 시/NNBC + 반/NNG + 에/JKB`의 `날`, `반`을
-  유지하고, `칠/MM|NR + 월/NNBC`의 `월`도 유지한다. token 전체의 단일 품사 분석이
-  경쟁하거나 `MM` 뒤의 체언 경로가 불완전하면 이 근거를 사용하지 않는다. `MM`보다 짧은
-  predicate prefix node만 함께 존재하는 경우에는 완성된 `MM + 명사` 경로를 폐기하지 않는다.
-  `매일/MAG` 안의 `일`, `아무/MM + 나/NP`의 대명사 `나`, `소/MM + 년/NNB`로도
-  분해되는 `소년` 안의 `년`과 component 경계를 가로지르는 span은 계속 거부한다.
-- 두 음절 이상의 `NNP`가 host 왼쪽 경계부터 query core 직전까지 이어지고, 한 음절 `NNB`
-  core가 host 오른쪽 경계에서 끝난 뒤 유효한 조사 continuation을 소비하면 인명+의존명사
-  구조로 유지한다. 이 예외는 문자열 substring이나 표제어 의미가 아니라 complete path의
-  품사 경계로만 판정한다.
-- 제품 graph는 source 분석 비용을 읽거나 보존하지 않는다. 비용·연결 행렬·미등록어
-  모델은 별도 full morphology 진단 artifact에서 과거 판정과 결과를 비교할 때만 사용한다.
-  include/exclude 비용 마진, query별 threshold와 결과별 fallback을 제품 판정에 사용하지 않는다.
-- 부사의 인접 동일 token 반복, 체언·지정사·의존명사 연속 구조와 조사 host
-  이형태는 typed `AdjacentTokenConstraint`로 표현한다. query 표제어나 query 품사를
-  corpus 구조 선택 힌트로 주입하지 않는다.
-- 현재 token에 관형사 whole 분석이 있고 다음 token이 체언으로 시작하면 관형사 구조를
-  선택한다. 따라서 `새 기능`의 `새`는 관형사로 판정한다. 여기서 다음 token의 체언
-  시작은 token 전체를 덮는 완전한 체언 host 또는 그 host와 조사 suffix로 증명해야 한다.
-  체언 host는 여러 체언 edge와 `XPN/XSN/XR`의 조합도 허용하므로 `전 가구별로`의
-  `가구 + 별 + 로`도 같은 관형사 구조에 포함한다. 다만
-  우연히 체언으로도 등록된 짧은 prefix나 predicate·modifier whole 경쟁이 있는 token만으로
-  판정하지 않는다. 한 음절 관형사 구조는 경쟁 NNG/NNP/NNB만 제거하고 다른 품사의
-  독립 후보는 유지한다. `V+EC N`처럼 절 연결과 명사 연속 구조가 모두 가능한 배치는
-  이 규칙으로 predicate 후보를 제거하지 않는다. 다음 token 전체에 `NNB/NNBC` 분석이
-  있으면 같은 표면의 `XSN/XR` 분석은 독립 어절 경쟁으로 보지 않는다. 따라서
-  `몇/MM + 년/NNB|NNBC` 구조는 `년/XSN|XR` 동형 분석이 함께 있어도 관형사 구조로
-  판정한다.
-- 관형사 component와 같은 token 왼쪽 경계에서 시작하는 더 긴 체언 node가 있고, 그 체언
-  뒤의 `XSV/XSA + E*`가 token 끝까지 이어지는 완전한 파생 용언 path를 만들면 내부 관형사
-  component를 거부한다. 따라서 `전망해야`의 `전/MM + 망/NNG + 해야/XSV+EC` 경쟁 분석은
-  `전망/NNG + 해야/XSV+EC`를 선택해 `전`을 관형사로 판정하지 않는다. 이 규칙은 독립 token
-  전체의 관형사 whole 근거나 다음 token의 체언 host를 소비하는 관형사 구조에는 적용하지
-  않는다.
-- core modifier lexicon의 exact `MM` 분석은 embedded와 full POS profile에서 같은 관형사
-  whole 근거로 사용한다. 따라서 `몇`은 `지난 몇 년 동안`에서 관형사로 검색하되,
-  `몇몇`의 일부인 `몇`은 token whole 근거가 아니므로 검색하지 않는다.
-- `smart` 무품사 direct-particle program은 입력과 같은 표면형만 만든다. 품사를
-  명시한 조사 query는 이형태 묶음을 만들 수 있지만 host 소리 조건과 완성된
-  조사 연쇄를 graph 제약으로 증명해야 한다.
-- `독수리가 아니라 매일 수도 있어`의 `매`·`이다`, `매일 매일 보고 싶어`의
-  반복 부사, `그는 집념으로 매일을 보내고 있었다.`의 체언·조사 결합은
-  각각 copular-frame, repeated-token, component path 근거로 구분한다.
-- 한 window의 원문은 256 bytes, NFC 문자열은 64 Unicode scalar, graph는 중복
-  제거 후 4,096 node로 제한한다. NFC 안정 경계는 원문 byte offset으로
-  역매핑하고 안정되지 않은 경계는 candidate로 만들지 않는다. 원문 window가 이미
-  NFC이면 normalized byte offset과 원문 상대 offset의 identity mapping을 사용하고,
-  제품 matcher는 현재 token의 원문 slice를 직접 빌려 구조를 준비한다. Public 진단 API가
-  독립 수명을 요구할 때만 소유 `AnalysisWindow`로 변환한다. NFC가 아닌 window만 bounded
-  normalized 문자열과 prefix 안정 경계를 소유한다. 인접 token도 같은 borrowed-or-owned
-  정규화 view를 사용한다.
-- compact morphology resource는 schema 5 container다. NFC surface index, source node의
-  POS, NFC 안정 경계에 정렬된 component span과 source identity만 보존한다. left/right
-  context ID, word cost, 연결 비용 행렬, unknown model과 원본 expression 문자열은 싣지 않는다.
-  loader는 검증된 string ID마다 구조 판정용 typed POS sequence를 compact code로 보유한다.
-  국소 graph를 준비할 때는 resource의 POS 문자열, typed sequence와 component를 빌려 쓰며 token마다
-  이를 다시 소유하거나 변환하지 않는다. POS-only prefix 순회와 component materialization 경로는
-  분리해 suffix·인접 token 판정이 쓰지 않는 component를 decode하거나 할당하지 않는다.
-  Token graph는 검증된 analysis record handle을 보존하고 component span을 resource iterator로
-  순회한다. 공개 호환 API가 소유 `Vec`를 요구할 때만 component를 materialize하며 graph edge마다
-  같은 record의 component 배열을 다시 할당하지 않는다.
-  loader는 schema, source SHA-256, section length·digest, UTF-8, group·analysis·component
-  offset과 span 범위를 모두 검증한 뒤 내용을 노출한다.
-- token 선두의 ASCII 숫자 연속은 바로 뒤의 완전한 source 분석이 `NNB`, `NNBC` 또는 `NR`이고
-  나머지가 없거나 완성된 조사 연쇄일 때만 수량·단위 graph prefix로 사용한다. 이 경로는
-  정렬된 단위 span과 같은 의존명사·수사 pattern만 지원하며 일반 unknown node나 임의의 숫자+명사
-  결합을 열지 않는다.
-- ASCII 숫자와 `NNB/NNBC/NR` 단위 뒤에 정확한 `NNB/NNBC` 의존명사 node 하나와 선택적
-  조사 연쇄가 이어지면 단위와 의존명사 tail을 같은 완성 경로로 유지한다. 따라서
-  `1년간/1년간의`의 `년`과 `간`을 지원한다. Tail이 일반 `NNG/NNP`에만 해당하거나 두 node
-  사이를 가로지르면 이 경로를 사용하지 않으므로 `197명사`의 `명`과 `사`는 계속 거부한다.
-  같은 범위를 더 긴 단일 단위와 짧은 단위+의존명사 tail이 모두 완성하면 더 긴 단일 단위를
-  선택한다. 따라서 `10시간`을 `10시+간`으로 바꾸지 않고 `시간` 단위로 유지한다.
-- 한글 수사 연쇄는 token 왼쪽부터 완성된 source 분석이 `NR` 둘 이상 뒤 선택적 `NNB/NNBC`와
-  조사 연쇄로 끝나거나, `NR` 하나 이상 뒤 `NNB/NNBC`와 선택적 조사 연쇄로 끝날 때만 별도
-  typed 구조로 사용한다. 이 경로는 정렬된 `NR` span과 같은 수사 pattern만 지원하며 중간이나
-  끝의 일반 명사, unknown node와 불완전한 나머지를 허용하지 않는다.
-- ASCII 숫자 뒤의 한글 수사 연쇄는 `NR` 하나 이상과 `NNB/NNBC` 단위가 차례로 이어지고
-  나머지가 없거나 완성된 조사 연쇄일 때만 별도 typed 구조로 사용한다. 이 경로는 정렬된
-  `NR` span과 같은 수사 pattern만 지원한다. `NR` 없이 시작하는 단위, 끝의 일반 명사·고유
-  명사, unknown node와 불완전한 나머지는 허용하지 않는다.
-- CLI의 기본 boundary는 `smart`다. resource를 필요로 선언한 program이 있으면
-  compact artifact를 한 번 검증하고, 누락·손상·schema·source mismatch를 초기화
-  오류로 보고한다. 기존 boundary 판정으로 fallback하지 않는다.
-- compact와 full morphology resource는 source identity와 비용을 제거한 structural projection의
-  exact/common-prefix hit, POS와 정렬 component span이 일치해야 한다. full artifact의 비용 경로는
-  별도 진단으로 기록하되 compact 판정과의 일치 여부를 제품 gate로 사용하지 않는다.
-- 제품 matcher와 benchmark evaluator의 candidate coverage는 100%여야 한다. 고정 test의
-  TP를 줄이거나 FP를 늘리지 않고, dev precision 99.00% 이상·revised hard-negative
-  신규 FP 0·FN 비증가를 전환 게이트로 삼는다.
-- `SurfaceBranch`, `BranchVerifier`, `ContextRequirement`, 수동 lexical-context surface registry,
-  exact-component 1,500 비용 마진과 기존 verifier fallback은 제품 query·matcher 경로에
-  존재하지 않는다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 0.7 Rust 라이브러리와 WASM 대상
 
-- native CLI와 npm CLI의 입력·resource 해석과 달리 Rust 라이브러리와 npm binding API는 filesystem, URL 또는 package
-  asset 위치를 추정하지 않는다. caller가 component 기능을 사용할 때만 bytes를 명시적으로 전달한다.
-- `kfind` 파사드 crate는 `ResourceBundle { full_pos, enriched_predicates, component }`와
-  `Engine::with_resources(resources)`를 전체 사전 profile의 기본 생성 API로 제공한다. full POS binary와
-  enriched predicate UTF-8 TSV는 생성 중 lexicon에 병합하고, component bytes는 compact resource로
-  검증해 engine이 소유한다. 각 필드는 선택 사항이며 빈 bundle은 `Engine::new()`와 같은 profile이다.
-- 기존 `with_full_pos`, `with_component_resource`, `with_full_pos_and_component` 생성자는 1.x 호환
-  API로 유지하되 같은 bundle 생성 경로에 위임한다.
-- 1.0의 안정 Rust facade는 `Engine`, `Matcher`, `ResourceBundle`, compile option·오류와 match
-  provenance 타입을 crate root에 둔다. 이 타입의 공개 method, enum variant와 field는 1.x 호환
-  계약이다.
-- caller-configured `Lexicons`, `QueryPlan`과 matcher의 plan 접근은 `kfind::expert` 아래에만 둔다.
-  expert API는 계획 IR과 사전 조립 실험을 위한 것으로 1.x 안정 facade 계약에 포함하지 않는다.
-  root의 engine 생성·검색 경로는 expert 타입을 인자나 반환값으로 노출하지 않는다.
-- `kfind-data`, `kfind-morph`, `kfind-query`, `kfind-matcher`, `kfind-search`, `kfind-testkit`은 workspace
-  내부 crate이며 crates.io 배포 대상이 아니다. 공개 Rust 소비자는 `kfind` facade만 사용한다.
-- component resource는 생성 이후 first-use에 자동 fetch·load하지 않는다. 검증된 resource는 engine이
-  소유하고 여러 matcher에서 재사용하며 query compile마다 다시 decode하지 않는다. resource가 없는
-  engine에서 source 또는 runtime component capability가 필요한 smart plan을
-  compile하면 명시적 `ComponentResourceRequired` 오류를 반환하고 기존 경계 판정으로
-  fallback하지 않는다.
-- component resource decoder는 resource를 공개하기 전에 모든 section digest와 payload 구조를
-  검증하고 header의 package version이 현재 binary/library version과 정확히 같은지 확인한다.
-  Encoded component resource는 128 MiB를 초과할 수 없으며, decoder는 section digest 계산이나
-  payload 구조 검증을 시작하기 전에 이 상한을 검사한다.
-  Native에서는 큰 index와 payload section의 digest를 서로 다른 thread에서 검증할 수 있고,
-  같은 큰 resource의 payload 구조 검증을 section digest 검증과 겹쳐 수행할 수 있다. Thread를
-  만들 수 없으면 순차 검증으로 돌아가고 WASM은 순차 검증한다. 어느 경로도 digest나 payload
-  구조 검증을 생략하거나 두 검증이 모두 끝나기 전 resource를 engine 상태에 설치하지 않는다.
-  병렬 경로에서 두 검증이 모두 실패하면 section digest 오류를 먼저 반환한다.
-- section SHA-256은 지원 CPU에서 runtime detection으로 hardware backend를 사용하고, 사용할 수
-  없으면 target-compatible backend로 돌아간다. Backend와 무관하게 같은 digest를 계산하며 검증
-  범위와 오류 계약을 바꾸지 않는다.
-- 같은 fail-fast 계약은 저수준 `MorphMatcher` 생성자에도 적용한다. resource가 필요한 plan을
-  `MorphMatcher::new`로 만들면 `MorphMatcherBuildError::ComponentResourceRequired`를 반환하며,
-  resource 또는 evaluator를 받는 생성자만 해당 plan을 초기화할 수 있다.
-- 생성 후 `Engine::load_component_resource(component_resource)`와 JavaScript
-  `loadComponentResource(componentResource)`로 resource를 명시적으로 초기화하거나 교체할 수 있다.
-  새 bytes를 모두 검증한 뒤에만 상태를 교체하며 실패하면 기존에 검증된 resource를 유지한다.
-- engine은 full POS, enriched predicate와 component resource의 초기화 여부를 각각 getter로 노출한다.
-  resource가 필요 없는 literal, `token`, `any`와 boundary-only plan은 component가 없는
-  engine에서 그대로 compile한다.
-- 라이브러리 matcher는 UTF-8 byte slice에서 겹치지 않는 match와 형태 분석 provenance를
-  반환한다. 파일 순회, 인코딩 판별, 출력 형식과 CLI locale 처리는 라이브러리 API에
-  포함하지 않는다.
-- `kfind`, `kfind-wasm`, `kfind-data`, `kfind-morph`, `kfind-query`, `kfind-matcher`는
-  Rust 1.97에서 `wasm32-unknown-unknown` 대상으로 빌드되어야 한다.
-- `kfind-wasm`은 `wasm-bindgen` JavaScript glue와 TypeScript declaration을 생성한다.
-  npm package metadata와 게시 계약은 0.8절을 따른다.
-- JavaScript API는 `Kfind.withResources({ fullPos?, enrichedPredicates?, component? })`를 전체 사전
-  profile의 기본 생성 API로 제공한다. binary resource는 `Uint8Array`, enriched predicate TSV는
-  JavaScript string이다. `new Kfind(componentResource?)`와
-  `Kfind.withFullPos(fullPos, componentResource?)`는 같은 bundle 경로에 위임하는 호환 API다.
-  재사용 가능한 `Matcher`를 만드는 `compile`, 수동 `loadComponentResource`, UTF-16 JavaScript
-  문자열을 검색하는 `findAll`을 제공한다.
-  component bytes를 명시했을 때 빈 bytes, 손상, schema·source mismatch는
-  `failed to initialize kfind` JavaScript `Error`다. component가 없는 인스턴스의 component smart
-  compile은 `failed to compile query` JavaScript `Error`이며 자동 load나 fallback을 수행하지 않는다.
-- WASM binary에는 compact component resource bytes를 `include_bytes!` 또는 동등한 방식으로
-  포함하지 않는다. binding은 URL fetch, filesystem과 bundler asset resolution을 수행하지 않으며
-  호출자가 외부 호스팅 URL 또는 별도 정적 asset에서 bytes를 읽어 생성자에 전달한다.
-- `compile`은 선택적 camelCase 객체로 `expand`, `boundary`, `pos`, `normalization`,
-  `maxGap`, `literal`을 받는다. 값 집합과 충돌 규칙은 CLI compile option과 동일하며
-  알 수 없는 필드, 잘못된 값과 컴파일 실패는 JavaScript `Error`로 드러낸다.
-- match와 atom의 `start`, `end` offset은 JavaScript `String.prototype.slice`에 바로
-  사용할 수 있는 UTF-16 code unit 기준이다. 각 atom은 core·token span과 모든
-  `analysisIndex`, `rulePath` provenance를 보존한다.
-- 기본 CI는 Linux, Apple Silicon macOS와 x64 Windows에서 네이티브 Rust 테스트를 실행한다.
-  POSIX process·file-lock 계약을 사용하는 benchmark guard와 `getrusage` 기반 morph index
-  benchmark test는 Linux와 macOS에서 실행하고, Linux에서 MSRV의 `kfind-wasm` build를 검사한다.
+[Rust와 JavaScript API](bindings.md)
 
 ### 0.8 npm 패키지
 
-- npm package 이름은 public organization-scoped `@kfind/kfind`다. prerelease는
-  `npm install @kfind/kfind@next`, 고정 버전은 `npm install @kfind/kfind@1.1.0`로
-  설치한다. `wasm-pack`의 `bundler` target으로 browser bundler용 ESM JavaScript glue,
-  WASM binary와 TypeScript declaration을 생성한다.
-- package의 `bin`은 `kfind` 이름으로 Node.js CLI를 제공한다. Node.js 20 이상에서
-  `npx @kfind/kfind QUERY [PATH ...]`와 로컬 설치 뒤 `kfind QUERY [PATH ...]`를 지원한다.
-  이를 위해 게시 산출물에는 `wasm-pack`의 `nodejs` target도 별도 디렉터리에 포함한다.
-  package export는 Node.js에서 이 target을, browser bundler에서 bundler target을 선택하며
-  두 target은 같은 Rust source와 공개 JavaScript API에서 생성한다.
-- npm CLI는 query, path와 `--expand`, `--boundary`, `--pos`, `--normalization`, `--max-gap`,
-  `--literal`, `--json`을 받는다. path가 없고 stdin이 TTY면 현재 디렉터리를, stdin이 pipe면
-  stdin을 검색한다. 디렉터리는 결정적인 경로 순서로 재귀 순회하며 `.git`, `node_modules`,
-  `target`과 site build 산출물은 기본 제외한다. symlink는 따라가지 않는다. UTF-8 text만
-  검색하고 NUL이 있거나 UTF-8 decode에 실패한 파일은 진단 뒤 건너뛴다.
-- npm CLI query는 native CLI와 같은 6절 문법을 사용한다. 도움말은 공백 phrase와 `|`
-  disjunction을 구분하고, shell이 `|`를 pipe로 해석하지 않도록 query 전체를 따옴표로 묶는
-  예시를 제공한다.
-- npm CLI는 package의 enriched predicate를 초기화하고, compiled query가 component 구조를
-  요구할 때 package의 compact component asset을 읽어 같은 query를 다시 compile한다. full POS는
-  package에 포함하지 않으므로 native CLI의 full 사전 profile이 필요한 검색은 Homebrew 또는
-  source build로 설치한 native CLI를 사용한다. npm binding API 자체는 resource 위치를 추정하지
-  않는 계약을 유지한다.
-- 기본 text 출력은 `path:line:column:surface`이며 line과 column은 1부터 시작하는 UTF-16 좌표다.
-  `--json`은 match마다 path, line, column, start, end, surface와 provenance를 담은 JSON object 한
-  줄을 출력한다. match가 있으면 0, 없으면 1, 사용법·초기화·I/O 오류면 2로 종료한다.
-- compact component artifact는 `assets/morphology-component-compact.kfc`, enriched predicate TSV는
-  `assets/predicates.enriched.tsv` 정적 파일로 WASM 산출물과 분리해 게시한다. 각 외부 데이터의
-  license notice도 package에 포함한다. 사용자는 필요한 파일을 배포물에 복사하거나 별도 호스트에
-  올릴 수 있으며 npm binding은 특정 호스팅 URL을 고정하지 않는다. `@kfind/kfind/assets` export는
-  설치된 package와 정확히 같은 버전의 두 asset을 `new URL(relative, import.meta.url)`로 가리킨다.
-  Node.js에서는 설치 package의 `file:` URL을 제공하고, 이 구문을 지원하는 browser bundler에서는
-  content hash가 붙은 same-origin 정적 asset URL로 변환된다. 이 resolver module은 browser에서
-  자동 fetch하거나 서버 route를 정하지 않으며, browser binding에는 caller가 해당 URL에서 읽은
-  bytes를 명시적으로 전달한다. 실제로 pack한 tarball을 임시 소비자 project에 설치하고 Node.js
-  서버에서 component asset 전체를 HTTP streaming하며, Vite SPA에서 두 asset을 정적 파일로
-  bundling한 뒤 HTTP streaming하는 검증을 `pack:check`에 포함한다. full POS binary는 크기와 배포
-  profile이 다르므로 npm package에 포함하지 않지만 같은 `withResources` 입력으로 전달할 수 있다.
-- 자체 서빙 문서는 compact KFC와 enriched predicate TSV의 서로 다른 역할, resolver export와 raw
-  asset subpath, SPA·Node.js 예제, HTTP header와 cache 정책, exact package version 호환성 실패를
-  설명한다. Content hash 또는 package version이 URL에 포함된 asset만 장기 `immutable`로 캐시하고,
-  고정 URL은 revalidation을 사용한다. 별도 origin에서 서빙하면 application origin을 명시한 CORS를
-  제공한다.
-- package build는 고정 source와 checksum으로 정적 asset을 생성한다. `npm pack --dry-run`은
-  asset 포함과 SHA-256을 검증하고 WASM binary에 compact container magic 또는 artifact bytes가
-  포함되지 않았음을 확인한다.
-- npm `prepack`은 같은 checkout의 Cargo/package version을 확인하고 component를 다시 생성한 뒤
-  Node smoke·TypeScript·asset 검증을 통과해야만 pack/publish를 허용한다. Publish workflow는 선택한
-  GitHub Release tag를 checkout하고 이 검증이 끝난 동일 산출물을 npm registry에 게시한다.
-  Prerelease version은 `next`, stable version은 `latest` dist-tag를 사용하며 prerelease를
-  `latest`에 연결하지 않는다.
-- Publish workflow는 npm package의 GitHub Actions trusted publisher에 등록된 `publish.yml`과
-  GitHub OIDC로 게시한다. `@kfind/kfind` package 설정에는 owner `SeokminHong`, repository
-  `kfind`, workflow `publish.yml`, `npm publish` 허용을 등록한다. Workflow는 장기 npm publish
-  token을 사용하지 않는다. 새 version의 `npm publish --tag`로 dist-tag를 설정하고, 이미 게시된
-  version의 재실행에서는 package checksum과 기대 dist-tag를 읽기 전용으로 검증한다.
-- npm 산출물은 browser bundler와 Node.js용 release package로 생성한다. Node target은 같은 공개
-  API와 실제 `bin` 실행을 smoke test하고 `npm pack --dry-run`으로 게시 파일, executable mode와
-  metadata를 검증한다.
-- npm package 검증은 package version과 Cargo version의 일치, 두 정적 asset과 license notice,
-  `@kfind/kfind/assets`의 설치 package file URL과 HTTP streaming, Vite SPA의 content-hashed asset
-  bundling과 HTTP streaming, TypeScript declaration의 optional resource bundle, enriched 분석
-  활성화 여부, resource 없는 non-component compile, resource 없는 component smart 오류,
-  JavaScript 초기화 오류, component positive/crossing negative와 UTF-16 offset 계약을 확인한다.
-- 기본 CI는 npm package build, Node smoke test와 pack 검사를 실행한다.
+[웹과 패키지 배포](distribution.md)
 
 ## 1. 문서 목적
 
@@ -1295,274 +159,59 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
 
 ## 3. 핵심 구현 계약
 
+[형태 규칙과 검색 실행](matching.md)
+
 ### 3.1 검색 앵커와 후보 판정을 분리한다
 
-완성된 표면형 문자열을 전부 나열한 구조를 유일한 중간 표현으로 쓰지 않는다. 표면형 수가 늘어날수록 메모리와 matcher 구성 시간이 증가하고, `걸었습니다`, `걸었지만`, `걸으셨다` 같은 연쇄 어미를 모두 전개하기 어렵다.
-
-대신 query compiler가 검색 앵커와 후보 열거·판정 제약을 하나의 실행 IR로 만든다.
-
-```rust
-pub struct CandidateProgram {
-    pub anchor: Box<[u8]>,
-    pub core_mapping: CoreMapping,
-    pub consumption: CandidateConsumption,
-    pub decision: CandidateDecision,
-    pub origins: SmallVec<[Origin; 2]>,
-}
-```
-
-`걸었`을 앵커로 찾은 뒤 program의 continuation 제약이 `습니다`, `지만`, `는데`
-등을 포함한 token graph path를 확인한다.
-
-어미와 조사 continuation은 쿼리마다 복제하지 않는다. 빌드 시 생성한 전역 suffix DFA
-또는 trie를 공유하고, 각 pattern은 시작 상태만 참조한다. Aho-Corasick에는 완성
-활용형 전체가 아니라 고유 앵커만 등록한다.
-lexicon rule에서 투영한 전체 rule vocabulary와 조사 allomorph·전이·host별 rule 집합은
-analyzer를 만들 때 한 번 물질화하고 immutable `Arc`로 plan과 matcher가 공유한다. query
-compile과 matcher build는 이 전역 rule 집합과 조사 graph를 다시 순회하거나 allomorph
-문자열을 깊은 복제하지 않는다.
-본용언과 보조용언처럼 활용 실행 class가 같은 분석은 anchor·continuation program을 공유하되,
-각 program은 허용하는 source predicate 품사 집합을 별도로 보존한다. 따라서 `VV/VX`와
-`VA/VX`의 중복 활용 program은 합칠 수 있지만 고정 형태소 자원의 exact path와 whole-token
-충돌은 합쳐진 집합의 모든 source 품사를 검사해야 하며 `VV`, `VA`, `VX`를 서로 바꾸지 않는다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 3.2 용언 분류와 활용 생성을 분리한다
 
-`pred_class("걷다") -> "d_irregular"` 같은 함수는 사전 조회에만 해당한다. 활용형은 특정 단어 결과를 하드코딩하지 않고 입력 어간으로 계산해야 한다.
-
-잘못된 구조:
-
-```rust
-"d_irregular" => ["걸어", "걸었", "걸은"]
-```
-
-올바른 구조:
-
-```text
-걷 + ㄷ→ㄹ + 어 → 걸어
-듣 + ㄷ→ㄹ + 어 → 들어
-싣 + ㄷ→ㄹ + 어 → 실어
-```
+[형태 규칙과 검색 실행](matching.md)
 
 ### 3.3 합성 가능한 어휘 특성을 사용한다
 
-한국어 활용은 한 개의 문자열 class로 모두 설명하기 어렵다. 다음과 같이 어휘적 교체와 환경 의존 규칙을 분리한다.
-
-```rust
-pub struct PredicateEntry {
-    pub lemma: Box<str>,
-    pub pos: PredicatePos,
-    pub alternation: LexicalAlternation,
-    pub flags: PredicateFlags,
-    pub overrides: Box<[SurfaceOverride]>,
-}
-
-pub enum LexicalAlternation {
-    Regular,
-    DToL,
-    DropS,
-    BToWa,
-    BToWo,
-    DropH,
-    ReuDoubleL,
-    Reo,
-    Ha,
-    UToEo,
-    Copula,
-    Suppletive,
-}
-```
-
-`ㄹ 탈락`, `ㅡ 탈락`, 모음 축약, 자음 어미 결합은 가능한 한 어간과 어미 환경에서 계산한다. `ㄷ`, `ㅂ`, `ㅅ`, `ㅎ`처럼 같은 철자 끝에서도 규칙형과 불규칙형이 갈리는 경우는 사전으로 판별한다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 3.4 한 표제어의 복수 분석을 보존한다
 
-사전은 하나의 표제어에 여러 항목을 허용한다.
-
-```text
-묻다  VV  DToL
-묻다  VV  Regular
-```
-
-검색 결과는 두 분석의 합집합이다.
-
-```text
-물어, 물었다, 물으면
-묻어, 묻었다, 묻으면
-묻고, 묻는, 묻지
-```
-
-같은 표면형이 여러 규칙에서 생성되면 결과 span은 한 번만 출력하되, `--explain-match`와 JSON에는 모든 생성 근거를 보존한다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 3.5 사전과 명시적 품사로 용언을 판별한다
 
-`바다`, `마다`, `솟대` 등과 같은 입력을 고려하면 `ends_with('다')`는 품사 판별 규칙으로 사용할 수 없다.
-
-`auto` 해석 우선순위는 다음과 같다.
-
-1. 내장 사전의 정확한 표제어 조회
-2. 사용자 사전 조회
-3. 생산성이 높은 접미 패턴 조회: `하다`, `되다`, `시키다`, `스럽다`, `답다`, `롭다`
-4. 알려진 조사·수식언 조회
-5. 미등록 한글 입력은 체언 후보와 literal 후보
-6. 사용자가 `--pos` 또는 쿼리 태그를 지정하면 그 해석만 사용
-
-미등록 `다` 종결어를 자동으로 용언 처리하지 않는다. 사용자가 `v:커스텀하다` 또는 `--pos verb`로 지정할 수 있다.
-
-자동 품사 판별의 범위는 알고리즘보다 사전 데이터의 범위에 좌우된다. 이를 휴리스틱으로 숨기지 않는다. 배포 데이터는 두 계층으로 나눈다.
-
-```text
-core lexicon: 불규칙 용언, 고빈도 중의어, 조사와 수식언
-full POS lexicon: 폭넓은 표제어와 품사, Homebrew 기본 설치에 포함
-```
-
-full POS lexicon을 찾지 못한 경우에도 검색은 가능하지만, 미등록 `다` 종결어는 literal로만
-처리하고 `--explain-query`에 진단을 남긴다. 배포 full POS lexicon은 고정 source, checksum,
-라이선스와 gold 품사 검증 결과를 함께 보존한다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 3.6 확장, 경계와 품사를 분리한다
 
-검색 정책은 다음 세 축으로 분리한다.
-
-```text
---expand literal|inflection|derivation
---boundary smart|token|any
---pos auto|noun|pronoun|numeral|verb|adjective|determiner|adverb|particle|interjection|literal
-```
-
-기본값:
-
-```text
---expand inflection
---boundary smart
---pos auto
-```
-
-경계 정책은 다음과 같이 정의한다.
-
-```text
-smart: 품사별 verifier가 조사·어미를 소비한 뒤 바깥 토큰 경계를 검사
-token: 입력 core 자체가 독립 토큰에서 시작하도록 더 엄격하게 검사
-any: 왼쪽과 오른쪽 경계를 검사하지 않는 부분 문자열 검색
-```
-
-`smart`는 임의의 한글 연속 문자열을 형태 변화로 보지 않는다. compact component resource가
-완전한 형태 분석 component로 증명한 `사용자권한`의 `권한`은 허용하지만, component 경계를
-가로지르는 substring은 거부한다. 형태 분석 근거 없이 부분 문자열을 검색하려면
-`--boundary any`를 사용한다. 한 음절 쿼리는 `smart`에서도 `token`에 가까운 경계를 적용한다.
-
-`derivation`은 `inflection`을 포함하며 `-적`, `-하다`, `-되다`, `-시키다` 같은 생산적 파생을 추가한다.
-두 기본 사전이 독립적으로 확인한 형용사 `-이` 부사형은 생산 규칙이 아니라 사전 표면형으로
-취급하므로 기본 `inflection`에도 포함한다. 사전에 없는 `-이` 후보를 생산적으로 확장하지 않는다.
-두 기본 사전이 원형·파생 동사를 모두 일반어로 등재하고 한국어기초사전의 구조화 관계가
-`-이-/-히-/-리-/-기-` 피·사동 파생을 직접 가리키는 경우도 기본 `inflection`에 포함한다. 이는
-모든 동사에 접미사를 생산적으로 붙이거나 피동·사동의 의미 역할을 추측하는 규칙이 아니라
-사전이 확인한 voice lemma 관계다.
+[형태 규칙과 검색 실행](matching.md)
 
 ## 4. 사용자 사용법
 
+[사용법과 CLI 계약](cli.md)
+
 ### 4.1 기본 검색
 
-```bash
-kfind 걷다 .
-kfind 사용자 src docs
-kfind 예쁘다 README.md
-```
-
-활용 확장을 끄는 단축 옵션도 제공한다.
-
-```bash
-kfind --literal 걸어 .
-```
-
-`걷다`는 표제어 검색으로 해석하고 활용형을 확장한다.
+[사용법과 CLI 계약](cli.md)
 
 ### 4.2 품사 강제
 
-```bash
-kfind --pos verb 걷다 .
-kfind --pos noun 새 .
-kfind --pos determiner 새 .
-kfind --pos literal 걸어 .
-```
-
-짧은 태그 문법도 지원한다.
-
-```bash
-kfind 'v:걷다' .
-kfind 'n:권한 v:검증하다' src
-kfind 'det:새 n:기능' docs
-kfind 'lit:걸어' .
-```
-
-지원 태그:
-
-```text
-n:    noun
-pro:  pronoun
-num:  numeral
-v:    verb
-adj:  adjective
-det:  determiner
-adv:  adverb
-j:    particle
-intj: interjection
-lit:  literal
-```
+[사용법과 CLI 계약](cli.md)
 
 ### 4.3 구(句) 검색
 
-```bash
-kfind 'n:권한 v:검증하다' src --max-gap 24
-```
-
-다음과 같은 문장을 찾는다.
-
-```text
-권한을 검증했다.
-권한 검증하는 코드를 확인한다.
-권한을 먼저 확인한 뒤 검증한다.
-```
-
-원자 순서는 유지한다. 기본적으로 줄을 넘지 않으며, atom 사이 최대 거리는 Unicode scalar 기준으로 계산한다. `v:검증하다`는 `검증을 수행했다` 같은 의미적 바꿔쓰기를 검색하지 않는다. 그 경우 `n:검증`을 별도 atom으로 지정해야 한다.
+[사용법과 CLI 계약](cli.md)
 
 ### 4.4 검색 범위 제어
 
-```bash
-kfind 걷다 src --glob '*.rs' --glob '*.md'
-kfind 걷다 . --hidden
-kfind 걷다 . --no-ignore
-kfind 걷다 . --type-add 'docs:*.{md,mdx,txt}' --type docs
-```
+[사용법과 CLI 계약](cli.md)
 
 ### 4.5 해석 확인
 
-```bash
-kfind 걷다 --explain-query
-kfind 걷다 src --explain-match
-kfind 걷다 src --json
-```
+[사용법과 CLI 계약](cli.md)
 
 ### 4.6 사람과 에이전트의 권장 경로
 
-사람은 품사를 생략한 기본 검색을 사용할 수 있다. 이 경로는 auto 품사와 `smart` 경계를 사용하고,
-설치된 full POS lexicon이 있으면 자동으로 조회한다.
-
-```bash
-kfind 걷다 src
-kfind 사용자 src docs
-```
-
-에이전트는 검색어의 품사를 명시하고 `any`, embedded, JSON 출력을 함께 사용한다.
-
-```bash
-kfind --embedded --boundary any --pos verb --json 걷다 src docs
-kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
-```
-
-이 경로는 query-side 형태 확장과 부분 문자열 후보를 빠르게 반환한다. 에이전트는 결과 문맥을 읽고
-false positive를 제거해야 한다. 후보가 너무 많으면 검색 path·glob을 좁히거나 `smart`로 다시
-검색한다.
+[사용법과 CLI 계약](cli.md)
 
 ## 5. 범위와 비범위
 
@@ -1599,1353 +248,231 @@ false positive를 제거해야 한다. 후보가 너무 많으면 검색 path·g
 
 ## 6. 쿼리 언어와 파싱
 
+[쿼리 언어와 검색 계획](query-language.md)
+
 ### 6.1 토큰화
 
-단순 `split_whitespace()`를 사용하지 않는다. 다음을 지원하는 작은 lexer를 둔다.
-
-```text
-공백 구분
-작은따옴표와 큰따옴표
-백슬래시 이스케이프
-품사 태그 접두사
-literal 강제
-`|` disjunction
-`(`·`)` 그룹
-```
-
-Query 결합 문법은 다음과 같다. `OWS`는 따옴표와 escape 밖의 선택적 공백이다.
-
-```text
-query       = alternative
-alternative = sequence *(OWS "|" OWS sequence)
-sequence    = primary *(OWS primary)
-primary     = atom / "(" OWS alternative OWS ")"
-```
-
-예:
-
-```bash
-kfind 'n:권한 "접근 제어" v:검증하다' src
-```
-
-`"접근 제어"`는 하나의 literal atom으로 처리한다.
-
-따옴표와 escape 밖의 `|`는 양쪽 구 중 하나를 찾는다. 공백 구가 `|`보다 먼저 결합하므로
-`A B | C D`는 두 구의 대안이다. 괄호는 결합 순서를 바꾼다. `(A | B) C`와
-`A (B | C)`는 중첩 그룹에도 같은 규칙을 적용한다. 연산자 앞뒤 공백은 선택 사항이다.
-선행·후행 `|`, 연속 `|`, 빈 그룹과 닫히지 않은 괄호는 원문 byte span이 포함된 문법 오류다.
-`|`와 괄호 자체를 검색하려면 escape하거나 인용한다.
-괄호 안 대안을 연속해서 결합할 때 가능한 완성 경로는 최대 32개다. 초과하면 해당
-연산자 또는 그룹의 원문 byte span을 포함한 오류를 반환하며 경로를 전개하지 않는다.
+[쿼리 언어와 검색 계획](query-language.md)
 
 ### 6.2 AST 구조
 
-```rust
-pub struct QueryAst {
-    pub atoms: Vec<QueryAtom>,
-    pub composition: QueryComposition,
-    pub graph: Option<QueryGraph>,
-    pub phrase: PhrasePolicy,
-}
-
-pub enum QueryComposition {
-    Phrase,
-    Disjunction,
-    Grouped,
-}
-
-pub struct QueryGraph {
-    pub starts: Vec<bool>,
-    pub ends: Vec<bool>,
-    pub predecessors: Vec<Vec<usize>>,
-}
-
-pub struct QueryAtom {
-    pub raw: Box<str>,
-    pub forced_pos: Option<CoarsePos>,
-    pub quoted_literal: bool,
-}
-```
+[쿼리 언어와 검색 계획](query-language.md)
 
 ### 6.3 분석 결과
 
-```rust
-pub struct Analysis {
-    pub lemma: Box<str>,
-    pub coarse_pos: CoarsePos,
-    pub fine_pos: FinePos,
-    pub morphology: Morphology,
-    pub source: AnalysisSource,
-}
-
-pub enum AnalysisSource {
-    BuiltinLexicon,
-    UserLexicon,
-    ProductiveSuffix,
-    Heuristic,
-    Forced,
-}
-```
-
-`auto` 모드에서 복수 분석이 가능하다. 예를 들어 `새`는 관형사와 명사 분석을 함께 가질 수 있다.
+[쿼리 언어와 검색 계획](query-language.md)
 
 ### 6.4 query analyzer 인터페이스
 
-품사 판별과 검색 계획 생성을 결합하지 않는다.
-
-```rust
-pub trait QueryAnalyzer: Send + Sync {
-    fn analyze(&self, atom: &QueryAtom) -> Result<Vec<Analysis>, AnalyzeError>;
-}
-
-pub struct LexiconQueryAnalyzer {
-    builtin: Arc<Lexicons>,
-    user: Arc<UserLexicon>,
-}
-```
-
-제품 query analyzer는 `LexiconQueryAnalyzer`다. 다른 analyzer adapter도 쿼리 atom만 분석하고
-결과를 공통 `Analysis`로 변환해야 한다. surface matcher와 파일 검색 계층은 analyzer 종류를
-알지 못한다.
+[쿼리 언어와 검색 계획](query-language.md)
 
 ## 7. 중간 표현과 검색 계획
 
+[쿼리 언어와 검색 계획](query-language.md)
+
 ### 7.1 상위 구조
 
-```rust
-pub struct QueryPlan {
-    pub raw_query: Box<str>,
-    pub atoms: Vec<AtomPlan>,
-    pub composition: QueryComposition,
-    pub graph: Option<QueryGraph>,
-    pub phrase_policy: PhrasePolicy,
-    pub limits: PlanLimits,
-}
-
-pub struct AtomPlan {
-    pub analyses: Vec<Analysis>,
-    pub programs: Vec<CandidateProgram>,
-    pub boundary: BoundaryPolicy,
-}
-
-pub struct CandidateProgram {
-    pub anchor: Vec<u8>,
-    pub core_mapping: CoreMapping,
-    pub consumption: CandidateConsumption,
-    pub decision: CandidateDecision,
-    pub origins: Vec<Origin>,
-}
-
-pub enum CandidateConsumption {
-    Anchor,
-    PredicateContinuation { /* DFA state, POS, rule vocabulary, left context */ },
-    NominalParticleChain { /* allowed and blocked rule vocabulary */ },
-    DirectParticleHost { /* particle rule */ },
-}
-
-pub enum CandidateDecision {
-    Boundary(BoundaryProof),
-    Structural(StructuralConstraint),
-}
-
-pub struct StructuralConstraint {
-    pub patterns: Vec<QueryMorphPattern>,
-    pub boundary: BoundaryProof,
-}
-
-pub struct QueryMorphPattern {
-    pub lexical_form: Box<str>,
-    pub fine_pos: DataFinePos,
-    pub continuation: MorphContinuation,
-    pub component_capability: ComponentCapability,
-    pub adjacent: Vec<AdjacentTokenConstraint>,
-}
-
-pub struct Origin {
-    pub analysis_index: u16,
-    pub rule_path: Vec<RuleId>,
-}
-```
-
-phrase plan은 source atom마다 하나의 `AtomPlan`을 유지한다. Grouped plan은 atom별 시작·끝
-표시와 선행 atom 간선으로 순서 경로를 표현한다. 괄호가 만든 조합을 나열하지 않고 최대 32개
-atom과 32개 완성 경로, 그 사이 간선만 허용하며, 모든 후보를 한 번의 anchor scan에서 검증한다. 같은 시작점의
-일치는 끝이 가장 긴 경로를 선택하고 같은 span의 경로는 쿼리 순서로 결정한다.
-Disjunction plan은 alternative의
-분석과 program을 하나의 논리 atom으로 합쳐 모든 anchor를 한 번의 scan으로 찾는다. 합칠 때
-`Origin.analysis_index`를 최종 분석 배열에 맞게 다시 매겨 어느 alternative가 match했는지
-provenance로 보존한다. 같은 span을 만드는 alternative는 span을 중복 반환하지 않고 origin을
-합친다. `phrase_policy`와 `--max-gap`은 순서대로 결합되는 atom 사이에 적용한다.
-
-- `CandidateProgram`은 anchor 탐색·core 투영·후보 범위 열거·anchor 이후 소비·판정 제약을
-  한번만 표현하는 query-owned 실행 IR이다. `CandidateConsumption`은 실제 token span을 만드는
-  continuation과 rule vocabulary만 선언한다. matcher와 품질 검증기는 같은 program을 실행하며,
-  별도 branch를 재구성하거나 consumption 종류에서 `extent`를 추론하지 않는다.
-- exact 후보는 `Anchor`, 용언 연속 후보는 `SurroundingToken`, 조사가 없을 수도 있는
-  체언은 `AnchorAndSurroundingToken`을 사용한다. 모든 후보는
-  `core ⊆ anchor ⊆ consumed ⊆ token` 불변식을 만족한다.
-- `QueryMorphPattern`은 표면형 예외 목록이 아니라 어휘·세부 품사·continuation DFA·component
-  capability·인접 token 제약을 선언한다. 여러 분석이 같은 anchor를 공유하면 pattern
-  합집과 모든 `Origin`을 보존한다.
-- `Boundary`는 literal, `token`, `any` 및 구조 판정이 필요 없는 경로에만 사용한다.
-  `Structural`은 bounded token graph에서 구조적으로 다른 경쟁 경로를 평가하되,
-  같은 structural signature 안의 어휘 의미 차이는 추가로 열거하지 않는다.
-- `BranchVerifier`, `ContextRequirement`, 수동 lexical-context surface registry,
-  exact-component 비용 마진과 예외 fallback은 query·matcher 실행 경로에 존재하지 않는다.
+[쿼리 언어와 검색 계획](query-language.md)
 
 ### 7.2 핵심 span과 토큰 span
 
-검색 결과는 두 범위를 구분한다.
-
-```rust
-pub struct VerifiedSpan {
-    pub core: Range<usize>,
-    pub token: Range<usize>,
-    pub origins: SmallVec<[Origin; 2]>,
-}
-```
-
-예:
-
-```text
-사용자들에게
-^^^^^^         core: 사용자
-^^^^^^^^       token: 사용자들에게
-```
-
-기본 터미널 강조는 token span을 사용한다. JSON에는 core와 token을 모두 제공한다.
+[쿼리 언어와 검색 계획](query-language.md)
 
 ### 7.3 표면형 provenance
 
-표면 문자열 하나만 `BTreeSet`으로 중복 제거하지 않는다. 다음과 같이 검색 키와 생성 근거를 분리한다.
-
-동일 branch가 여러 분석에서 생성되면 origins를 합친다. compiler는 정규화된 anchor로
-branch 후보를 먼저 묶고 같은 anchor 안에서 core 투영, consumption, boundary와 decision이
-같은지 비교한다. 여러 branch가 공유하는 rule vocabulary 전체를 branch마다 다시 hash하지
-않으며, 최초 생성 순서와 origin 정렬은 기존 plan 계약대로 보존한다.
+[쿼리 언어와 검색 계획](query-language.md)
 
 ## 8. 한국어 음절 처리
 
+[형태 규칙과 검색 실행](matching.md)
+
 ### 8.1 내부 정규화
 
-쿼리, 사전 표제어, 규칙 파일은 NFC로 정규화한다.
-
-코퍼스 전체를 매번 복사해 정규화하지 않는다. 기본값은 NFC 바이트 검색이다.
-
-```text
---unicode-normalization nfc        기본값
---unicode-normalization canonical NFC와 NFD 패턴을 모두 생성
---unicode-normalization none       입력 바이트를 그대로 사용
-```
-
-`canonical`은 완전한 임의 혼합 정규화 비교가 아니라, 쿼리 branch의 NFC·NFD 두 형태를 검색하는 모드다. Exact branch는 선택된 형태의 anchor bytes 자체가 검증 결과이므로 anchor 뒤 입력을 NFC로 변환하지 않는다. 형태 continuation을 소비하는 branch만 bounded suffix를 NFC로 변환하고 원문 byte offset으로 다시 매핑한다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 8.2 필요한 음절 연산
 
-```rust
-pub struct Syllable {
-    pub choseong: u8,
-    pub jungseong: u8,
-    pub jongseong: u8,
-}
-
-pub fn decompose_syllable(c: char) -> Option<Syllable>;
-pub fn compose_syllable(s: Syllable) -> Option<char>;
-pub fn replace_final(c: char, jong: u8) -> Option<char>;
-pub fn drop_final(c: char) -> Option<char>;
-pub fn replace_last_final(s: &str, jong: u8) -> Option<String>;
-pub fn drop_last_final(s: &str) -> Option<String>;
-pub fn add_final(s: &str, jong: u8) -> Option<String>;
-pub fn replace_last_vowel(s: &str, jung: u8) -> Option<String>;
-pub fn has_final(c: char) -> bool;
-pub fn has_rieul_final(c: char) -> bool;
-```
-
-한글 완성형 음절은 Unicode 산술 분해와 조합으로 처리한다. 별도의 대형 테이블은 필요하지 않다.
+[형태 규칙과 검색 실행](matching.md)
 
 ## 9. 형태 규칙 엔진
 
+[형태 규칙과 검색 실행](matching.md)
+
 ### 9.1 세 계층
 
-형태 규칙은 다음 세 계층으로 분리한다.
-
-1. 어휘적 교체: 표제어별 예외 사전
-2. 어미 이형태 선택: 받침, ㄹ 받침, 모음 시작 여부 등
-3. 표면 조합과 축약: `보아 → 봐`, `되어 → 돼`, `하여 → 해`
-
-이 구분을 유지해야 규칙형과 불규칙형을 같은 generator에서 안정적으로 다룰 수 있다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 9.2 어미 모델
 
-```rust
-pub struct EndingSpec {
-    pub id: EndingId,
-    pub category: EndingCategory,
-    pub initial: EndingInitial,
-    pub surface: Box<str>,
-    pub required: MorphFeatureMask,
-    pub forbidden: MorphFeatureMask,
-    pub continuation: ContinuationState,
-    pub terminal: bool,
-}
-
-pub enum EndingInitial {
-    Consonant,
-    AOrEo,
-    Eu,
-    AttachNieun,
-    AttachRieul,
-    AttachBieup,
-    Other,
-}
-```
-
-예시 범주:
-
-```text
--고, -고는/-곤, -지, -게, -다, -도록
--는, -(으)ㄴ, -(으)ㄹ
--아/-어, -아서/-어서
--았/-었, -았을/-었을, -았/었느냐(는), -겠, -시. 존대 선어말어미는 받침 어간뿐 아니라 모음·ㄹ·불규칙 어간의 올바른 교체형에도 결합한다.
--아요/-어요와 -았어요/-었어요
--면/으면, -며/으며, -니/으니, -니까/으니까, -니까는/으니까는, -니깐/으니깐,
-  -던, -더니, -더라도, -자, -자고, -느냐, -려고/으려고, -려는/으려는,
-  -리라/으리라, -리라고/으리라고
--아/어가고, -아/어가야
--ㅂ니다/습니다, -(으)세요, -(으)ㅂ시다, -(으)셨고, -(으)셨던
--기, -음/ㅁ
-```
-
-선어말어미와 종결·연결어미는 작은 유한 상태 그래프로 표현한다. verifier는 `next`, `required`, `forbidden`을 모두 만족하는 경로만 소비하고, 허용 깊이를 제한해 무제한 조합을 방지한다.
-
-어미 결합 가능성은 용언별 문자열 분기로 작성하지 않고 feature bitset으로 판정한다. 최소 feature는 다음을 포함한다.
-
-```text
-action verb
-descriptive verb
-copula
-vowel-final
-consonant-final
-rieul-final
-light-vowel
-dark-vowel
-special-ha, special-i, special-ani, special-o, special-itda
-```
-
-이 구조를 사용하면 어미 목록이 늘어나도 `match lemma` 코드가 증가하지 않고, 규칙 데이터와 테스트 fixture만 확장할 수 있다.
-
-현대 표준어 어미 coverage는 고정 예문만으로 선언하지 않는다. pinned 한국어기초사전,
-표준국어대사전과 우리말샘 snapshot의 `어미` 표제어를 source ID와 함께 정규화한 audit를
-유지한다. 제품 필수 집합은 한국어기초사전과 표준국어대사전의 현대 일반어이며, 방언·옛말·
-북한어는 catalog에 남기되 기본 generator의 필수 집합에서는 분리한다. snapshot은 배포물에
-포함하지 않고 audit 결과와 재현 절차만 version control에 둔다.
-
-현대 표준어 조사 coverage도 같은 pinned snapshot의 `조사` 표제어를 source ID와 함께
-정규화한 audit로 관리한다. 이 catalog는 원자 조사 어휘의 존재와 현재 runtime rule의 표면형
-coverage를 검증하는 근거다. 조사 표제어가 있다고 해서 임의의 앞말이나 다른 조사 뒤에 붙일
-수 있는 것은 아니며, 사전 정의·예문에서 결합 문자열을 추출해 runtime 규칙으로 승격하지 않는다.
-`까지도`처럼 여러 조사가 결합한 특정 표면형을 원자 조사로 추가하지 않는다.
-한국어기초사전의 구조화된 문법 주석과 표준국어대사전의 `grammar_info`가 같은 조사 표면의
-앞말 품사를 함께 지지하면 조사 host coverage의 audit 근거로 사용할 수 있다. 자유 서술 정의와
-용례는 이 판정에 사용하지 않는다. Runtime 승격에는 두 사전의 일치와 별도 문법 검토가 모두
-필요하다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 9.3 공통 규칙
 
-다음은 사전 class가 아니라 환경 규칙으로 처리한다.
-
-- 받침 유무에 따른 `은/는`, `이/가`, `을/를`, `과/와`
-- 접속 조사 `이면/면`은 `이/가`와 같은 받침 조건을 사용하되 조사 연쇄의 terminal로 처리한다.
-- `로/으로`, `로서/으로서`, `로써/으로써`의 ㄹ 받침 예외
-- 조사 연쇄는 optional `들`을 포함해 최대 네 규칙을 순회하며,
-  schema 2 `data/rules/particles.toml`의 `role`, `hosts`, `next`를 따른다. 첫 규칙은 실제
-  앞말 종류가 `hosts`에 있고 해당 결합이 허용하는 role이어야 한다. 이후 규칙은 앞말 host를
-  다시 검사하지 않고 직전 규칙의 `next` 전이와 허용 role을 검사한다. 따라서
-  `까지 → 도/만/은·는` 전이는 `까지도`·`까지만`·`까지는` 계열을 함께 설명하고,
-  `는 → 커녕`은 `는커녕`을 설명한다. 목록에 없는 첫 결합·역순과 최대 길이를 넘는 연쇄는
-  거부한다.
-- particle graph는 순환이 없어야 한다. graph 자체에 네 단계보다 긴 경로가 있어도 runtime의
-  네 규칙 상한으로 제한하며, 가능한 모든 조사 연쇄 문자열을 build 시 전개하지 않는다.
-- pinned 국립국어원 조사 catalog에서 한국어기초사전과 표준국어대사전이 함께 지지하는
-  체언 부착 조사 중 `께서`, `같이`, `대로`, `더러`, `마다`, `만큼`, `밖에`, `보고`, `보다`,
-  `뿐`, `처럼`, `커녕`, `으로서/로서`, `으로써/로써`는 독립 원자 규칙으로 유지한다.
-  `이나/나`, `이나마/나마`,
-  `이라도/라도`, `이랑/랑`은 받침 조건을 가진 이형태 규칙으로 유지한다. `은커녕`·`는커녕`은
-  topic 뒤 `커녕` 전이로 만들며 결합 표면형을 별도 원자로 복제하지 않는다. 앞 체언의 마지막
-  음절을 바꾸는 축약형 `ㄴ커녕`은 suffix verifier가 아니라 별도 contraction 후보로 남긴다.
-  이 원자들 뒤의 추가 조사는 각 규칙의 `next`로만 허용한다. `으로서/로서`와
-  `으로써/로써`는 `으로/로 + 서/써`로 분해하지 않고 각각 하나의 격조사로 소비하며,
-  주제·첨가·한정 보조사는 graph 전이로만 뒤따른다.
-- 조사 verifier는 체언 부착 형태와 받침 조건을 검증한다. `께서`·`더러`·`보고`의 유정성,
-  `밖에` 뒤 부정 표현처럼 어휘 의미나 문장 오른쪽 문맥이 필요한 선택 제약은 판정하지 않는다.
-  이 한계 때문에 원자 조사를 누락시키거나 임의의 품사 추측으로 대체하지 않는다.
-- 한 어절이 둘 이상의 `체언 + 조사 연쇄` 완성 경로를 가지면 가장 긴 체언 host만 남기지 않는다.
-  질의 체언과 같은 span에서 시작해 token 끝까지 조사만으로 이어지는 각 완성 경로를 모두 구조
-  후보로 유지한다. `후+에+도`와 `후에+도`처럼 의미 문맥 없이는 고를 수 없는 동형 경로는
-  의미 중의성 non-goal에 따라 함께 허용하되, `매+일+을`처럼 질의 체언 뒤가 조사만으로
-  완성되지 않는 내부 substring은 허용하지 않는다.
-- 명시적 체언 질의의 표면이 token 왼쪽 경계에 있고, 그 뒤의 비어 있지 않은 suffix를 조사
-  graph가 token 끝까지 완전히 소비하면 질의의 품사 지정과 조사 경로 자체를 bounded 구조
-  증거로 인정한다. 이 경로는 component resource에 없는 새 고유명사·복합명사에도 적용하지만,
-  품사를 지정하지 않은 literal fallback, token 내부 substring, 조사 외 suffix에는 적용하지
-  않는다.
-- 전체 token이 하나 이상의 명사 node와 선택적 조사 node로 완성되고, 체언 질의 span 자체도
-  그 명사 경로의 연속된 두 node 이상으로 완성되면 복합명사 subpath로 인정한다. 질의는 token
-  처음이나 내부에서 시작할 수 있지만 node 경계를 정확히 따라야 한다. 이 규칙은
-  `경영+전략+시스템`의 `경영전략`, `선박+회사+측+에서는`의 `회사측`을 포함하며,
-  한 node뿐인 내부 span이나 뒤가 용언 파생·어미 경로인 token은 포함하지 않는다.
-- `-(으)면`, `-(으)며`, `-(으)ㄴ`, `-(으)ㄹ`
-- 일반 용언의 이유 연결형 `-(으)니`는 자음 어간에 `으`를 삽입하고 ㄹ 받침 어간의 ㄹ을 탈락시킨다.
-- 일반 용언의 양보 연결형 `-더라도`는 어휘적 교체 없이 사전 어간에 직접 결합하고 token 경계에서 끝난다.
-- 일반 용언의 전망 종결형 `-(으)리라`와 인용 연쇄 `-(으)리라고`는 기존 불규칙 교체를
-  적용한 어간 뒤에서만 완료된 token으로 허용한다. `리라`는 그 경계에서 끝나며 뒤따르는
-  임의 suffix를 소비하지 않는다.
-- 의도 연결형 `-(으)려고`는 동작 용언에만 결합하고, 기존 불규칙 교체 뒤의 모음형 어간을 사용한다.
-- 의도 관형형 `-(으)려는`, 회상 관형형 `-던`, 회상 연결형 `-더니`, 목적·결과 연결형
-  `-도록`, 의문 종결형 `-느냐`, 청유형 `-자`와 인용형 `-자고`는 동작 용언의 bounded
-  terminal 또는 한 단계 continuation으로 생성한다. `-고는`의 준말 `-곤`도 같은
-  connective provenance를 유지한다.
-- 존대 경로는 `-(으)세요`, `-(으)셨고`, `-(으)셨던`을 소비한다. 청유형
-  `-(으)ㅂ시다`는 모음 어간에 `-ㅂ시다`, 자음 어간과 불규칙 교체형에 `-읍시다`,
-  ㄹ 받침 어간에는 ㄹ 탈락 뒤 `-ㅂ시다`를 결합한다.
-- 진행 방향 보조 용언 `-아/어가다`는 `-아/어` program 뒤의 `가고`, `가야`만 continuation으로 소비한다. `가` 자체나 목록 밖 후속 어미는 허용하지 않는다.
-- 과거 `-았/었` program은 의문 종결형 `-느냐`와 이 종결형에 직접 붙는 주제 보조사 `는`까지 소비한다. 다른 조사나 추가 어미는 허용하지 않는다.
-- 상태 용언의 `-다` 현재 평서형은 동작 용언의 `-ㄴ다/는다`와 같은 제한된 인용·회상·조건
-  continuation을 소비한다. 동작 용언의 사전형, 지정사와 부정 지정사 `아니다`에는 이 전이를
-  적용하지 않는다.
-- `-기` 명사형은 어휘적 교체 없이 사전 어간에 직접 결합하고, 이 규칙이 만든 terminal
-  predicate program만 nominal particle consumption으로 전이한다. consumption은 `기`를 모음 끝 host로
-  판정해 `가`, `를`, `는`, `와`, `로` 등의 올바른 이형태와 `data/rules/particles.toml`의
-  bounded 조사 연쇄만 소비한다.
-- `-ㅁ/음` 명사형은 모음 또는 ㄹ 받침 어간에 `-ㅁ`, 그 밖의 자음 어간에 `-음`을 결합한다.
-  ㄷ·ㅅ·ㅂ·ㅎ 불규칙은 사전 alternation을 적용해 `걸음`, `지음`, `도움`, `빨감`을 만들고,
-  르·러·하·우 불규칙과 지정사는 자음 앞의 사전 어간에 `-ㅁ`을 결합한다. `-기`와
-  `-ㅁ/음`이 만든 terminal predicate program만 nominal particle consumption으로 전이한다.
-  다른 종결형·연결형 program은 이 전이를 사용하지 않는다. `보 + ㅁ → 봄`,
-  `이르 + ㅁ → 이름`처럼 명사형 종성이 어간 마지막 음절에 합성되어 anchor와 core의 byte span이
-  같아져도, 생성 provenance가 `-ㅁ/음` 명사형이면 같은 명사형·조사 구조로 판정한다.
-- ㄹ 받침 뒤 특정 자음 어미에서의 ㄹ 탈락
-- 어간 말음 `ㅡ`와 `-아/-어` 결합
-- 모음 축약과 준말. `ㅕ` 말음 규칙 어간은 `-어`의 축약형도 보존한다 (`켜어`, `켜`).
-- 자음 어미의 종성 결합
-
-명사형 뒤의 유효한 조사 연쇄는 predicate token의 일부로 소비한다. 따라서 `걷다`는 `걷기`,
-`걷기 운동`, `걷기가`, `걷기를`, `걷기에서도`, `걸음`, `걸음이`, `걸음을`, `걸음으로`를
-찾는다. `걷기이`, `걷기을`, `걷기으로`, `걸음가`, `걸음를`, `걸음로`와 case 조사 두 개를
-잇는 `걷기가를`, `걸음이를`은 `smart`와 `token`에서 거부한다. `any`는 기존 부분 문자열
-candidate를 제거하지 않지만 유효한 조사 연쇄가 있으면 그 끝까지 token span을 확장한다.
-query provenance에는 `ending.nominalizer-gi` 또는 `ending.nominalizer` 뒤에 소비한 조사 rule
-path를 순서대로 남긴다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 9.4 어휘 사전이 필요한 교체
 
-다음은 철자만으로 안정적으로 판별하지 않는다.
-
-- ㄷ 불규칙과 ㄷ 규칙
-- ㅂ 불규칙과 ㅂ 규칙
-- ㅅ 불규칙과 ㅅ 규칙
-- ㅎ 불규칙과 규칙형
-- 르 불규칙과 러 불규칙
-- 기타 보충법과 개별 예외
-- `아니다`처럼 일반적인 `-이어 → -여` 축약을 허용하지 않는 개별 어휘 제약
-
-보조 동사 `말다`의 금지 명령형 `마라`와 보조 동사 `달다`의 요청 명령형 `다오`는
-`VX` 표면형 override로만 생성한다. 두 override는 추가 어미를 소비하지 않는 terminal
-branch다. 같은 표제어의 일반 동사 `말다`, `달다`는 별도의 `VV Regular + RIEUL_DROP`
-분석으로 보존해 규칙 활용과 보조 동사 예외의 합집합을 만든다. `마라`는 `말다 VX
-Regular + RIEUL_DROP`의 `ending.imperative-ra` override다. `다오`는 `달다 VX
-Suppletive`의 `lexical.suppletive` override이며, 이 분석은 생산적인 ending을 갖지 않는다.
-
-아주낮춤 명령형 `-거라`는 동작 동사의 사전형 어간에 직접 붙이는
-`ending.imperative-geora` terminal branch다. 모음 어미 앞 불규칙 교체를 적용하지 않아
-`가거라`, `먹거라`, `걷거라`를 생성하며 형용사에는 적용하지 않는다. `-너라`는 `오다`와
-`오다`로 끝나는 동작 동사에만 붙이는 `ending.imperative-neora` terminal branch다. 어간이
-`오`로 끝나는지 확인해 `오너라`, `들어오너라`를 생성하고 `가너라`는 만들지 않는다.
-`오다`에는 일반 `-거라`도 적용하므로 `오거라`와 `오너라`를 모두 보존한다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 9.5 필수 활용 범위
 
-| 분류                  | 예                                       | 기대 표면형                                                                                        |
-| --------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| 규칙 자음 어간        | 먹다                                     | 먹어, 먹었다, 먹는, 먹은, 먹을                                                                     |
-| 규칙 모음 어간        | 가다                                     | 가, 갔다, 가는, 간, 갈                                                                             |
-| ㅏ/ㅓ 축약            | 보다                                     | 보아, 봐, 보았다, 봤다                                                                             |
-| ㅚ/ㅣ 계열 축약       | 되다                                     | 되어, 돼, 되었다, 됐다                                                                             |
-| ㄷ 불규칙             | 걷다, 듣다, 싣다                         | 걸어, 들어, 실어, 걸음, 들음, 실음                                                                 |
-| ㅅ 불규칙             | 짓다, 낫다, 잇다                         | 지어, 나아, 이어, 지음, 나음, 이음                                                                 |
-| ㅂ 불규칙             | 돕다, 눕다, 아름답다                     | 도와, 누워, 아름다워, 도움, 누움, 아름다움                                                         |
-| ㅎ 불규칙             | 파랗다, 그렇다, 어떻다, 이렇다, 커다랗다 | 파래, 파란, 그래, 그런, 어떤, 이런, 커다란, 파람, 그럼                                             |
-| 르 불규칙             | 빠르다, 부르다, 모르다                   | 빨라, 불러, 몰라, 빠름, 부름, 모름                                                                 |
-| 러 불규칙             | 푸르다, 이르다 일부                      | 푸르러, 푸름, 이름                                                                                 |
-| ㅡ 탈락               | 쓰다, 크다, 예쁘다                       | 써, 커, 예뻐                                                                                       |
-| 우 불규칙             | 푸다                                     | 퍼, 품                                                                                             |
-| 하다                  | 하다, 검증하다                           | 하여, 해, 하였다, 했다, 함, 검증하여, 검증해, 검증하였다, 검증했다, 검증함                         |
-| ㄹ 탈락               | 살다, 알다, 만들다                       | 사는, 압니다, 만듭니다, 삶, 앎, 만듦                                                               |
-| 진행 방향 보조 용언   | 망하다, 만들다                           | 망해가고, 만들어가야                                                                               |
-| 개별 보조 용언 명령형 | 말다, 달다                               | 마라, 다오                                                                                         |
-| 아주낮춤 명령형       | 가다, 먹다, 걷다, 오다, 들어오다         | 가거라, 먹거라, 걷거라, 오거라, 오너라, 들어오너라                                                 |
-| 회상·청유·의도·존대   | 걷다                                     | 걷던, 걷더니, 걷자, 걷자고, 걷곤, 걷느냐, 걷도록, 걸으려는, 걸으셨고, 걸으셨던, 걸으세요, 걸읍시다 |
-| 과거 의문 종결        | 하다, 먹다                               | 했느냐는, 먹었느냐                                                                                 |
-| 지정사                | 이다                                     | 이고, 이어, 여서, 인, 일, 임, 입니다, 이라고, 이라는, 이지, 이며                                   |
-| 부정 지정사           | 아니다                                   | 아니고, 아니어서, 아니라, 아닌, 아닐                                                               |
+[형태 규칙과 검색 실행](matching.md)
 
 ## 10. 품사별 컴파일 규칙
 
+[형태 규칙과 검색 실행](matching.md)
+
 ### 10.1 체언
 
-체언은 모든 완성형을 미리 생성하지 않는다.
-
-```text
-anchor: 사용자
-right consumption:
-  plural: 들?
-  particle chain: 조사와 보조사 제한 조합
-  optional VCP predicate: 이다 계열, 설정 시
-```
-
-예:
-
-```text
-사용자
-사용자는
-사용자들에게
-사용자들로부터
-백이면
-공부면
-```
-
-`--expand derivation`에서는 다음을 추가할 수 있다.
-
-```text
-기술 → 기술적
-검증 → 검증하다, 검증되다
-단순 → 단순화
-```
-
-생산적 파생 규칙은 별도 목록으로 관리하며 기본 `inflection`에는 포함하지 않는다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 10.2 대명사와 수사
 
-대명사와 수사는 체언 verifier를 공유하되, 사전에 표면 교체를 둘 수 있다.
-
-```text
-나 + 가 → 내가
-너 + 가 → 네가
-저 + 가 → 제가
-누구 + 가 → 누가
-저 + 의 → 저의, 제
-이거/그거/저거 + 는 → 이건/그건/저건
-```
-
-표제어별 축약은 override로 명시한다. 주격 override는 기본 조사 결합을 교체하지만, 속격 override는
-완전형과 축약형이 모두 표준이므로 기본 결합을 보존하는 alias로 추가한다.
-대명사 표제어가 `거`로 끝날 때의 주제 보조사 축약은
-`kind=nominal-particle-compose` contraction 하나로 합성한다. 완전형 `그거는`을 보존하고 축약형
-`그건`을 alias로 추가하며, 품사가 대명사가 아니거나 `거`로 끝나지 않는 표제어에는 적용하지
-않는다.
-`누구·무어·무엇 + 이(VCP) + -ㄴ가(EC/EF)`의 축약은
-`kind=nominal-copula-ending-compose`의 표제어별 표면 대응으로 제한한다. `token`과 `any`는
-선언된 표면과 선택적 조사 연쇄만 소비한다. `smart`는 축약 표면 전체에 `NP + VCP + E+`가
-있고 마지막 품사가 `EC` 또는 `EF`인 source 분석을 추가로 요구한다. 별도 등재된 `누군가`와
-`무언가`를 원 표제어의 사전 alias로 간주하거나, 같은 음운 모양을 임의의 대명사에 생산적으로
-적용하지 않는다.
-`것일까 → 걸까`처럼 `이다`의 어간 자체가 표면에서 소실된 축약은
-`kind=copula-host-ending-compose`의 문법 대응으로 제한한다. `smart`는 선언된 축약 anchor가
-맞은 뒤 exact source의 `체언 + VCP + EC/EF` 구조와 VCP component span 소실을 검증하며,
-결과는 축약 anchor 전체다. 어절 전체를 무조건 지정사 candidate로 열거하지 않는다.
-미지원 항목은 사양의 known limitation에 기록한다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 10.3 동사와 형용사
 
-공통 predicate generator를 사용하되 종결형과 관형형 가능 범위를 품사별로 구분한다.
-
-```rust
-pub enum PredicatePos {
-    Verb,
-    Adjective,
-    AuxiliaryVerb,
-    AuxiliaryAdjective,
-    Copula,
-}
-```
-
-검색 도구이므로 실제 문법에서 드문 형태를 일부 허용할 수 있다. 다만 규칙으로 생성한 비표준형을 기본 결과에 포함해서는 안 된다. 확장 여부는 gold corpus로 결정한다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 10.4 관형사
 
-관형사는 활용하지 않는다.
-
-```text
-left boundary: 토큰 시작
-surface: literal
-right condition: 토큰 경계 또는 다음 한국어 토큰 시작
-```
-
-`새`의 명사와 관형사 분석이 모두 사전에 있으면 auto 모드에서 두 분석을 합친다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 10.5 부사
 
-기본 `inflection`은 사전에 부사로 분석된 표면 뒤에 규칙 데이터가 허용한 보조사 연쇄를
-소비한다. 이 결합은 새 품사를 만드는 파생이 아니므로 `derivation`에 한정하지 않는다.
-`literal`은 입력 표면만 검색하며, 부사 뒤 격조사는 허용하지 않는다.
-첫 조사는 `role=auxiliary`이면서 `hosts`에 `adverb`가 있어야 한다. 두 번째 이후 조사는
-보조사 role과 `next` 전이만 검사하므로 특정 결합 표면을 별도 목록으로 만들지 않는다.
-부사 표면 전체가 `체언 + 격조사`로도 분석되더라도 쿼리의 부사 분석과 허용 보조사 연쇄가
-완전하면 부사 구조를 보존한다. 이 동형 구조의 문맥 의미 판별은 비범위다.
-반복 token 구조를 사용하는 `smart` 부사 program은 surface registry 대신
-`AdjacentTokenConstraint::RepeatedToken`과 세부 품사 pattern을 선언한다.
-
-```text
-빨리
-빨리도
-잘만
-실제로는
-혹시나
-실제로는커녕
-```
+[형태 규칙과 검색 실행](matching.md)
 
 ### 10.6 조사
 
-조사를 직접 검색할 때 품사를 명시하면 이형태 묶음을 사용할 수 있다.
-
-```text
-으로 ↔ 로
-은 ↔ 는
-이 ↔ 가
-을 ↔ 를
-과 ↔ 와
-```
-
-한 음절 조사 검색은 hit가 많으므로 `smart`에서 바로 앞 host의 받침 조건과 조사 뒤 토큰 경계를 검증한다. `token`은 독립 토큰 경계를 요구하고, `--boundary any`에서만 host 검증 없는 임의 부분 문자열을 허용한다.
-품사를 생략한 `smart` 검색은 입력한 조사 표면형만 사용한다. 예를 들어 `이`는 붙은 `이`를
-찾되 `가`까지 확장하지 않으며, `--pos particle 이`는 `이 ↔ 가` 묶음을 모두 찾는다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 10.7 감탄사
 
-literal과 토큰 경계만 적용한다.
+[형태 규칙과 검색 실행](matching.md)
 
 ## 11. 앵커 계획
 
+[형태 규칙과 검색 실행](matching.md)
+
 ### 11.1 앵커 선택 원칙
 
-각 program에서 가능한 가장 긴 고정 바이트열을 앵커로 선택한다.
-
-우선순위:
-
-1. 어간 교체 이후 첫 어미까지 포함한 문자열
-2. 어간 전체
-3. 짧은 어간이면 다음 고정 요소와 결합
-4. 한 음절 앵커는 boundary decision 없이는 허용하지 않음
-
-예:
-
-```text
-걷다
-  걷고
-  걷는
-  걷지
-  걷겠
-  걸어
-  걸었
-  걸으
-  걸은
-  걸을
-```
-
-이 문자열은 특정 단어 목록이 아니라 규칙 계산 결과다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 11.2 적응형 matcher
 
-```text
-고유 anchor 1개: Box에 보관한 memchr::memmem::Finder의 owned variant
-고유 anchor 2개 이상, 짧은 1회성 입력: owned Finder 집합의 build-free overlapping search
-고유 anchor 2개 이상, 누적 검색량이 큰 입력: Aho-Corasick standard match kind의 overlapping search
-```
-
-단일 앵커 Finder는 `Finder::new(needle).into_owned()`로 구성하고 platform별 Finder 내부 크기가
-`AnchorEngine` 전체 크기를 키우지 않도록 Box에 보관한다. 다중 앵커도 처음에는 owned Finder를
-재사용해 각 pattern의 다음 hit를 병합한다. Hit 순서는 Aho-Corasick standard overlapping과 같은
-`(end, start)` 순서를 보존한다.
-
-다중 앵커 엔진은 검색한 input bytes와 anchor 수의 곱으로 직접 검색량을 누적한다. 정해진
-work threshold를 넘을 때만 Aho-Corasick을 한 번 구성하고 이후 입력에서 재사용한다. Automaton
-구성이 실패하거나 Finder 집합과 automaton의 합산 예상 메모리가 matcher 제한을 넘으면 Finder
-경로를 계속 사용한다. 따라서 짧은 문장 한 번을 검색하기 전에 automaton을 선구축하지 않으며,
-대규모 text의 선형 다중 문자열 scan은 유지한다. 후보가 겹칠 수 있으므로 두 경로 모두 모든
-overlapping hit를 내고, 검증 후 가장 왼쪽의 가장 긴 token span을 선택한다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 11.3 program 제한
 
-기본 제한:
-
-```text
-쿼리 길이: 최대 256 Unicode scalar
-atom 수: 최대 32
-atom당 분석 수: 최대 32
-전체 candidate program 수: 최대 4096
-matcher 예상 메모리: 최대 64 MiB
-어미 continuation 깊이: 최대 4
-```
-
-초과 시 조용히 잘라내지 않고 오류를 낸다. `--explain-query`에는 제한에 가까운 항목과 제외된 규칙을 표시한다.
+[형태 규칙과 검색 실행](matching.md)
 
 ## 12. 검색 실행 엔진
 
+[형태 규칙과 검색 실행](matching.md)
+
 ### 12.1 파일 순회
 
-`ignore::WalkParallel`을 사용한다.
-
-기본 정책:
-
-- `.gitignore`, `.ignore`, 전역 ignore 반영
-- hidden 파일 제외
-- 바이너리 파일 제외
-- symlink는 기본적으로 따라가지 않음
-- 명시된 파일은 ignore 여부와 관계없이 검색
+[형태 규칙과 검색 실행](matching.md)
 
 ### 12.2 파일 읽기와 줄 검색
 
-`grep-searcher`를 파일 읽기 계층으로 사용한다.
-
-담당 범위:
-
-- buffered search
-- 줄 종결 처리
-- 바이너리 감지
-- mmap 사용 여부
-- context 출력 지원
-- 인코딩 변환 설정
-
-형태 matcher는 `grep_matcher::Matcher`를 구현한다. 기본 터미널 출력과 요약 출력은 `grep-printer`를 우선 재사용하고, 형태 생성 근거가 필요한 JSON과 explain 출력만 확장한다.
-
-검색 계획의 anchor가 LF를 포함하지 않으면 matcher는 LF line terminator를 선언한다. `grep-searcher`는 multi-line 기능을 켠 상태에서도 이 선언을 보고 전체 buffer에서 raw anchor가 있는 줄만 후보로 고르고, 후보 줄을 분리한 뒤 형태·경계 검증을 수행한다. LF를 포함하는 literal 계획은 line terminator를 선언하지 않아 multi-line 경로에서 검색한다.
-
-```rust
-pub struct MorphMatcher {
-    pub plan: Arc<QueryPlan>,
-    pub anchor_engine: AnchorEngine,
-}
-```
-
-metadata가 필요 없는 검색에서 `grep_matcher::Matcher::find_at`은 다음 검증된 token span의 바이트
-범위만 반환하며 origin과 rule path를 복제하거나 병합하지 않는다. metadata가 필요한 line-local
-검색은 후보 줄의 일괄 평가 결과에서 첫 span을 `grep-searcher`에 반환하고, 같은 결과를 sink에 한 번
-전달한다. 같은 줄의 anchor 탐색, atom span 수집과 phrase 선택을 sink에서 다시 실행하지 않는다.
-LF를 포함하는 multi-line 계획은 줄 단위 전달을 사용할 수 없으므로 buffer match 뒤 metadata를
-재계산한다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 12.3 검증 단계
 
-```text
-anchor hit
-  → UTF-8 경계 확인
-  → 왼쪽 경계 검사
-  → program consumption으로 조사·어미 소비
-  → 오른쪽 경계 검사
-  → 필요하면 structural decision 실행
-  → core/token span 계산
-  → origins 병합
-```
-
-후보 없는 buffer 구간에는 줄별 matcher 호출, Unicode scalar 순회, 형태 규칙 실행을 하지 않는다.
-Line-local phrase plan은 같은 물리적 줄에 모든 atom index의 raw anchor가 하나 이상 있을 때만
-그 줄을 검증 후보로 전달한다. 이 단계는 형태·경계 의미를 확정하지 않는 false-positive 허용
-prefilter이며, atom 하나라도 raw anchor가 없는 줄에서는 검증된 span 목록을 만들지 않는다.
-Disjunction plan은 alternative anchor가 하나라도 있는 줄을 후보로 전달한다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 12.4 phrase 결합
 
-검증된 span을 위치순 candidate stream으로 만들면서 순서 결합한다.
-
-```text
-anchor hits
-  → token.start 순 candidate group
-  → atom별 active prefix state
-  → 순서 유지
-  → max-gap 검사
-  → settled leftmost-longest match
-```
-
-표면형 후보들의 데카르트 곱을 정규식으로 만들지 않는다.
-
-제품 matcher는 가능한 atom 조합이나 줄 전체의 검증 span을 미리 만들지 않는다. Anchor hit의
-끝 위치와 plan의 최대 anchor 길이를 이용해 더 이른 `token.start`가 나올 수 없는 candidate group만
-순서대로 확정하고, 같은 atom의 동일 core·token span은 이 단계에서 병합한다. 각 atom layer는
-다음 atom과 연결될 수 있는 max-gap 범위의 prefix state만 유지하며, 현재 non-overlap cursor
-구간의 동일한 token end에서는 leftmost-longest tie-break상 우선하는 prefix 하나만 남긴다.
-범위를 벗어나거나 줄을 건넌 state는 즉시 제거한다. 가장 이른 시작점의 연장 가능한 state가
-없어졌을 때만 완성 match를 확정한다. 완성 match 때문에 cursor가 전진하면 이미 지나간 후보 중
-새 cursor 이후에 시작하는 제한된 구간만 재생해, 이전 match와 겹쳐 우선순위에서 밀렸던 다음
-prefix를 복구한다. 재생 구간의 시작은 대기 중인 가장 이른 완성 match의 최종 end를 따라
-전진하며, 완성 match가 없으면 별도 후보 이력을 유지하지 않는다.
-
-Active DP와 재생 이력 메모리는 줄 전체 candidate 수가 아니라 query atom 수, max-gap 안의 서로
-다른 candidate endpoint 수, 대기 중인 match 이후의 제한된 phrase 도달 범위에 비례해야 한다.
-사용자가 지정한 max-gap은 이 runtime 작업 범위에도 직접 반영된다.
-`find_span_at`은 가장 이른 leftmost-longest 결과 하나만 복원하고, `find_all_with_meta`는 선택된
-non-overlapping 결과의 atom metadata만 복원한다. match 하나를 반환할 때마다 남은 전체 입력의
-anchor를 다시 검색하지 않는다. `InputSearcher`가 한 줄의 metadata를 수집하는 경로도 같은 stream을
-사용하며, 65,536개 상한은 결과를 모두 만든 뒤가 아니라 선택 중에 적용한다.
-
-reference·expert API의 전체 조합용 `join_phrase_spans`는 중간 partial을 65,536개까지만
-허용하고 초과하면 `PhraseJoinError::CandidateLimitExceeded`를 반환한다.
+[형태 규칙과 검색 실행](matching.md)
 
 ### 12.5 병렬 출력
 
-각 worker는 독립된 `Searcher`, scratch buffer, matcher cursor를 가진다.
-
-```text
-WalkParallel workers
-  → bounded per-file record stream
-  → bounded file-stream channel
-  → single writer thread
-  → BufWriter<StdoutLock>
-```
-
-기본 출력은 match와 context record를 검색 중에 bounded stream으로 전달한다. record callback은 파일 EOF와 검색 완료 이전에 시작할 수 있어야 하며, 출력 종료를 관찰하면 남은 입력을 더 읽지 않고 취소한다. 전체 record를 `Vec`에 모은 뒤 callback으로 재생하는 구현은 기본 경로에서 허용하지 않는다. writer는 stream이 소유한 line bytes와 match metadata를 다시 복제하지 않고 borrowed record로 직렬화한다. writer는 선택한 file stream을 끝까지 비운 뒤 다음 stream을 처리하므로 한 파일의 결과는 연속 블록으로 출력한다. 대기 중인 worker는 bounded stream에 backpressure를 받으며, 기본 경로의 결과 메모리는 corpus 또는 전체 match 수가 아니라 worker 수와 channel capacity에 의해 제한된다. 한 줄의 형태 분석 metadata는 최대 65,536개까지만 수집하고 초과하면 해당 입력을 오류로 보고하여 비정상 종료나 무제한 메모리 증가를 막는다. 기본 출력 순서는 파일 시스템 순회 순서를 보장하지 않는다.
-
-```text
---sort path
-```
-
-정렬 옵션은 검색 전에 대상 경로와 탐색 오류만 수집해 path 순서를 확정한다. 정렬된 경로는 제한된 work queue로 worker에 분배하고, writer에는 각 경로의 bounded record stream을 path 순서로 먼저 전달한다. writer가 현재 경로를 비우는 동안 뒷 경로 worker는 per-file channel의 backpressure를 받는다. 따라서 결과 record 메모리는 전체 match 수가 아니라 worker 수와 channel capacity에 의해 제한되어야 하며, 경로 수집 메모리만 검색 대상 수에 비례할 수 있다. 전체 결과를 `Vec`에 모은 뒤 정렬하는 구현은 허용하지 않는다. 정렬 순서와 파일별 연속 block은 기존 계약과 같아야 하며, worker panic과 검색 오류도 해당 path 위치의 event로 변환한다. 경로 탐색을 끝내기 전에는 첫 결과를 출력하지 않으며, 경로 정렬과 병렬 worker 조정 비용으로 기본 unsorted stream보다 처리량이 낮아질 수 있음을 도움말에 명시한다.
-
-broken pipe는 정상 종료로 처리한다.
+[형태 규칙과 검색 실행](matching.md)
 
 ## 13. 인코딩과 바이너리 정책
 
-기본 인코딩은 UTF-8이다.
-
-```text
---encoding auto
---encoding utf-8
---encoding utf-16le
---encoding utf-16be
---encoding euc-kr   선택 지원
-```
-
-`auto`는 BOM이 있는 UTF-16을 감지한다. EUC-KR 자동 추정은 하지 않는다.
-
-잘못된 UTF-8이 섞인 파일은 바이트 검색 자체는 가능하지만, 한국어 program 판정은 유효 UTF-8 구간에서만 수행한다.
-
-JSON Lines 출력에서 원문 줄을 UTF-8로 표현할 수 없으면 다음 중 하나를 사용한다.
-
-```json
-{ "text": null, "text_base64": "...", "encoding": "bytes" }
-```
+[사용법과 CLI 계약](cli.md)
 
 ## 14. CLI 사양
 
+[사용법과 CLI 계약](cli.md)
+
 ### 14.1 기본 구문
 
-```text
-kfind [OPTIONS] <QUERY> [PATH]...
-kfind --init [--agent <AGENT>]...
-kfind --uninstall [--agent <AGENT>]...
-```
-
-통합 관리 mode를 사용하지 않으면 query가 필수다. PATH를 생략하면 현재 디렉터리를 검색한다.
-stdin이 pipe이면 기본 검색 대상을 stdin으로 전환한다. `-`는 stdin을 명시한다.
+[사용법과 CLI 계약](cli.md)
 
 ### 14.2 주요 옵션
 
-| 옵션                      | 값                                         |              기본값 | 설명                              |
-| ------------------------- | ------------------------------------------ | ------------------: | --------------------------------- |
-| `--pos`                   | 품사                                       |              `auto` | 쿼리 전체 품사 강제               |
-| `--expand`                | `literal`, `inflection`, `derivation`      |        `inflection` | 확장 수준                         |
-| `--boundary`              | `smart`, `token`, `any`                    |             `smart` | 경계 정책                         |
-| `--embedded`              | flag                                       |               false | full POS lexicon을 로드하지 않음  |
-| `--max-gap`               | 정수                                       |                `24` | phrase atom 사이 최대 거리        |
-| `--unicode-normalization` | `nfc`, `canonical`, `none`                 |               `nfc` | Unicode 검색 모드                 |
-| `--encoding`              | 인코딩                                     |              `auto` | 원문 인코딩                       |
-| `--glob`                  | glob                                       |                없음 | 파일 포함·제외 규칙               |
-| `--type`, `--type-add`    | 파일 유형                                  |                없음 | 파일 유형 필터                    |
-| `--hidden`                | flag                                       |               false | hidden 파일 포함                  |
-| `--no-ignore`             | flag                                       |               false | ignore 규칙 무시                  |
-| `--threads`               | 정수                                       |                자동 | worker 수                         |
-| `--count`                 | flag                                       |               false | 파일별 match 수                   |
-| `--files-with-matches`    | flag                                       |               false | 파일명만 출력                     |
-| `--json`                  | flag                                       |               false | JSON Lines 출력                   |
-| `--color`                 | `auto`, `always`, `never`                  |              `auto` | 터미널 색상                       |
-| `--no-pager`              | flag                                       |               false | TTY에서도 pager를 사용하지 않음   |
-| `--explain-query`         | flag                                       |               false | 쿼리 계획 출력                    |
-| `--explain-match`         | flag                                       |               false | 생성 근거 출력                    |
-| `--explain-no-match`      | flag                                       |               false | 0건일 때 재검색 후보 출력         |
-| `--sort`                  | `path`                                     |                없음 | 결과 정렬                         |
-| `--data-dir`              | 경로                                       |                자동 | 외부 데이터 디렉터리              |
-| `--user-lexicon`          | 경로                                       |                자동 | 사용자 사전                       |
-| `--init`                  | flag                                       |               false | 현재 디렉터리에 agent 통합 초기화 |
-| `--uninstall`             | flag                                       |               false | 현재 디렉터리의 agent 통합 제거   |
-| `--agent`                 | `claude-code`, `codex`, `gemini`, `custom` | TTY 선택 또는 stdin | 통합 관리 대상, 반복 가능         |
+[사용법과 CLI 계약](cli.md)
 
 ### 14.3 context와 출력 호환 옵션
 
-다음은 익숙한 CLI 사용성을 위해 지원한다.
-
-```text
--n, --line-number
--H, --with-filename
--h, --no-filename
--C, --context
--B, --before-context
--A, --after-context
--l, --files-with-matches
--c, --count
--q, --quiet
-```
-
-정규식 호환을 의미하지 않으며, 출력과 파일 검색 UX만 비슷하게 제공한다.
+[사용법과 CLI 계약](cli.md)
 
 ### 14.4 종료 코드
 
-```text
-0: 하나 이상의 match
-1: match 없음
-2: 사용법, I/O, 데이터, 컴파일 오류
-```
-
-`--explain-no-match`는 사람이 읽는 출력에서 검색이 정상 완료되고, 파일을 하나 이상 검색했으며
-match가 0건일 때만 stderr에 재검색 후보를 출력한다. 기본 결과와 종료 코드는 바꾸지 않고
-다른 경계·품사 설정으로 자동 재검색하지 않는다. 현재 경계가 `any`가 아니면
-`--boundary any`를, 품사를 지정하지 않았으면 명시적 품사 지정 검토를 제안한다.
-`--embedded`를 사용 중이면 그 옵션을 제거한 재검색을, 필요한 full POS 사전이 없으면
-`--check-data`로 상태를 확인하도록 안내한다. 제안은 성공 여부를 검증한 결과가 아님을
-분명히 표시한다. 검색 오류, 구조 검증 미완료, 검색한 파일 0개, 닫힌 stdout에서는 출력하지
-않는다. `--json`과 `--quiet`에는 사용할 수 없다.
+[사용법과 CLI 계약](cli.md)
 
 ### 14.5 표시 언어
 
-사람이 읽는 도움말, 인수 파싱 오류, 런타임 오류, 검색 진단과
-`--explain-query`·`--explain-match`의 설명 레이블은 영어와 한국어를 지원한다.
-표시 언어는 비어 있지 않은 첫 환경 변수를 다음 순서로 선택한다.
-
-```text
-LC_ALL
-LC_MESSAGES
-LANG
-```
-
-선택한 locale의 언어 구성 요소가 대소문자 구분 없이 `ko`이면 한국어를 사용한다.
-`ko`, `ko_KR`, `ko-KR`, `ko_KR.UTF-8`, `ko_KR.UTF-8@modifier`를 같은 언어로
-처리한다. `C`, `POSIX`, 미설정 값, 지원하지 않거나 해석할 수 없는 locale은 영어로
-대체한다. 우선순위가 높은 값이 비어 있지 않으면 지원하지 않는 locale이더라도 낮은
-우선순위 변수로 내려가지 않는다.
-
-옵션명, 옵션 값, 파일 경로, 규칙 ID, JSON Lines의 필드명과 값, 종료 코드는 locale과
-무관하게 유지한다. 운영체제와 외부 라이브러리가 제공하는 상세 오류 문구는 kfind가
-생성한 현지화된 오류 문맥 뒤에 원문으로 붙일 수 있다. man page와 shell completion은
-빌드 환경의 locale에 영향받지 않도록 영어 명령 정의에서 재현 가능하게 생성한다.
+[사용법과 CLI 계약](cli.md)
 
 ### 14.6 Agent 통합 관리
 
-명시적 대상은 대화형 여부와 관계없이 같은 결과를 만든다.
-
-```sh
-kfind --init --agent codex --agent claude-code
-```
-
-비대화형 stdin은 `--agent` 반복 옵션과 같은 agent 이름 집합을 받는다.
-
-```sh
-printf 'codex\nclaude-code\n' | kfind --init
-```
-
-`custom`은 다른 대상과 함께 선택할 수 있다. stdout에는 조합용 skill 원문만 쓰므로 다음처럼
-임의 경로로 보낼 수 있다.
-
-```sh
-kfind --init --agent custom > path/to/kfind/SKILL.md
-```
-
-TTY에서 선택을 취소하거나 아무 항목도 선택하지 않으면 파일을 변경하지 않고 성공한다. 같은
-agent를 여러 번 입력해도 한 번만 처리한다. 설치가 하나라도 실패하면 성공으로 보고하지 않는다.
-
-지원 agent를 선택하면 skill과 두 종류의 project hook을 함께 설치한다. `SessionStart` hook은
-skill이 자동 선택되지 않아도 한국어 형태 검색에 kfind를 사용하라는 지침을 agent
-context에 추가한다. shell tool 실행 전 hook은 고정 문자열 모드를 명시하지 않은 한국어
-pattern의 일반 text search 명령을 차단한다. 기존 설정 파일에는 kfind hook만 병합하며 다른 key와 hook 순서를 보존한다. Codex의
-project hook은 프로젝트를 신뢰한 뒤 `/hooks`에서 별도로 신뢰해야 실행된다. Claude Code와
-Gemini CLI도 각 제품의 project hook 신뢰 절차를 따른다.
-
-통합을 제거할 때도 같은 대상 선택 방식을 사용한다.
-
-```sh
-kfind --uninstall --agent codex --agent claude-code
-printf 'codex\ngemini\n' | kfind --uninstall
-```
-
-제거는 kfind 관리 표식이 있는 skill 또는 kfind가 만든 Homebrew link와
-`kfind --agent-hook` handler들만 대상으로 한다. 다른 설정이 없는 kfind 전용 JSON 파일은
-제거하고, 설정이 함께 있으면 kfind handler만 뺀 JSON을 보존한다. 이미 제거된 대상을 다시
-지정해도 성공한다. `custom`은 파일을 설치하지 않으므로 제거 대상이 아니다.
-
-Agent는 session을 시작할 때 한국어 형태 검색에 설치된 skill과 `kfind`를 사용하라는
-지침을 받는다. 정확한 표면형 검색은 `rg -F`, `grep -F`, `git grep -F`, `fgrep`도 허용한다. 그래도 다음 shell tool call을 만들면 실행 전에 거부하고
-`kfind`로 다시 검색하도록 안내한다.
-
-```sh
-rg '사용자' crates
-grep -R --regexp='검증하다' docs
-git grep '권한'
-```
-
-검색 pattern과 구분되는 한글 경로·glob은 거부하지 않는다.
-
-```sh
-rg 'TODO' '한국어 문서'
-rg --glob '*한글*' 'TODO' .
-```
+[사용법과 CLI 계약](cli.md)
 
 ## 15. 출력 사양
 
+[사용법과 CLI 계약](cli.md)
+
 ### 15.1 기본 출력
 
-```text
-src/walk.rs:42: 길을 걸어 갔다.
-```
-
-열 번호는 기본적으로 생략할 수 있다. `--column`에서만 match 줄의 앞부분을 Unicode scalar로 세어 계산한다.
-
-일반 text 결과를 interactive terminal의 stdin/stdout에서 쓰면 검색 시작과 동시에 내장 TUI
-pager를 열고, 완성된 결과 행을 점진적으로 반영한다. POSIX TTY와 Windows console/ConPTY는 같은
-계약을 사용한다. PowerShell에서 실행한 native Windows binary도 Windows Terminal의 ConPTY 안에서
-terminal 크기와 key event를 읽고 alternate screen과 raw mode를 종료 시 복구한다. 검색 중에도
-이동과 resize를 처리하며 상태 행에 검색 중임을 표시한다. 검색 완료 뒤 너비와 높이가 모두 한
-화면에 들어가면 바로 종료하고 terminal 내용을 남긴다. 한 줄이라도 잘리거나 결과가 화면 높이를
-넘으면 TUI를 유지하며 `↑`/`↓` 또는 `k`/`j`로 한 행씩 이동하고 `q` 또는 `Esc`로 종료한다. 이동
-offset은 content viewport의 첫 행이며 최대값은 `전체 행 수 - viewport 높이`다. 따라서 마지막
-행만 화면 위에 남기고 아래를 비우는 위치까지는 이동하지 않는다. 키 반복 중 한 frame에 쌓인
-이동은 한 번에 반영하고, 연속 행 이동은 기존 화면을 유지한 채 새로 노출된 행과 상태 행만
-갱신한다. Frame 간격은 content viewport 8,192 cells마다 16 ms씩 늘리되 48 ms를 넘지 않는다.
-따라서 73×316 terminal의 72×316 content viewport는 48 ms 간격을 사용하며, 반복 입력을 합쳐도
-최종 이동 offset은 같다. 검색 중 종료하면 결과 출력과 남은 검색을 중단한다.
-
-화면 너비를 넘지 않는 match 줄은 source line 하나를 한 행으로 유지하고 모든 match를 강조한다.
-화면 너비를 넘는 match 줄은 source 순서대로 `PhraseMatch` 하나당 한 행을 만든다. 각 행은 target
-match의 전체 span이 content 너비 이하면 모두 보이도록 앞뒤 원문을 `…`로 생략하고 target에 속한
-token만 강조한다. target span 자체가 content 너비보다 길면 span 중앙을 기준으로 보이는 구간을
-잡는다. target 앞뒤의 가용 문맥은 전체 원문에서 target 앞뒤가 차지하는 비율로 나누되 양쪽에 원문이 남아 있으면
-각각 최소 20%를 보장한다. 파일 경로 prefix가 content 영역을 잠식하면 prefix의 왼쪽을 먼저
-생략하며 prefix는 화면 너비의 40%를 넘지 않는다. `--column`은 분리된 각 행의 target column을
-표시한다. match가 없는 긴 context·설명 행은 앞부분을 유지하고 끝을 생략한다.
-
-terminal resize는 현재 보고 있는 source line과 target match를 기준점으로 유지하면서 행 분할,
-prefix와 content window를 다시 계산한다. 축소되어 source line이 잘리면 match별 행으로 펼치고,
-확대되어 전체 line이 들어오면 다시 한 행으로 합친다. `--no-pager`, 명시적 stdin path `-`, non-TTY
-stdin/stdout과 구조화·요약 출력은 pager를 거치지 않으며 원문 line을 생략하거나 match별로 복제하지 않는다.
-
-pager의 임시 파일은 출력 bytes를 보존하고, 메모리에는 완성된 source line의 파일 위치와 현재
-layout row key를 각각 연속 벡터로 보존한다. index 메모리는 두 벡터의 capacity에 비례하며 terminal
-resize 때 layout 벡터를 다시 만든다. 자동 상한은 두지 않고 `--no-pager`가 bounded stdout stream
-경로를 제공한다. 대규모 측정은 0.3절의 TUI index benchmark 계약을 따른다.
+[사용법과 CLI 계약](cli.md)
 
 ### 15.2 쿼리 설명
 
-```text
-query: 걷다
-atom[0]:
-  analyses:
-    - lemma: 걷다
-      pos: verb
-      alternation: DToL
-      source: builtin-lexicon
-  programs: 12
-  anchors:
-    - 걷고
-    - 걷는
-    - 걷지
-    - 걸어
-    - 걸었
-    - 걸으
-  consumption_states: 8
-  normalization: nfc
-  estimated_matcher_bytes: 4288
-```
+[사용법과 CLI 계약](cli.md)
 
 ### 15.3 match 설명
 
-```text
-sample.txt:3: 길을 걸었습니다.
-  token: 걸었습니다
-  core: 걸
-  generated_from: 걷다
-  rules:
-    - lexical.d-to-l
-    - ending.past
-    - ending.polite-declarative
-```
+[사용법과 CLI 계약](cli.md)
 
 ### 15.4 JSON Lines 출력
 
-```json
-{
-  "type": "match",
-  "path": "sample.txt",
-  "line": 3,
-  "text": "길을 걸었습니다.",
-  "spans": [
-    {
-      "core": { "start": 7, "end": 10 },
-      "token": { "start": 7, "end": 22 },
-      "surface": "걸었습니다",
-      "origins": [
-        {
-          "lemma": "걷다",
-          "pos": "verb",
-          "rules": [
-            "lexical.d-to-l",
-            "ending.past",
-            "ending.polite-declarative"
-          ]
-        }
-      ]
-    }
-  ]
-}
-```
-
-유효한 UTF-8 text의 offset은 `utf8-bytes`, raw byte text의 offset은 `bytes`로 명시한다. 선택적으로 scalar column도 제공한다.
+[사용법과 CLI 계약](cli.md)
 
 ## 16. 데이터 사양
 
+[규칙 데이터와 사전](resources.md)
+
 ### 16.1 저장소 구조
 
-```text
-data/
-  lexicon/
-    predicates.tsv
-    nominals.tsv
-    modifiers.tsv
-    particles.tsv
-  enriched/
-    predicates.tsv
-    MANIFEST.toml
-    NOTICE.md
-  rules/
-    endings.toml
-    alternations.toml
-    contractions.toml
-    derivations.toml
-  fixtures/
-    morphology_cases.tsv
-  generated/
-    lexicon.bin
-    rules.bin
-```
+[규칙 데이터와 사전](resources.md)
 
 ### 16.2 용언 사전
 
-```tsv
-lemma	pos	alternation	flags
-걷다	VV	DToL
-걷다	VV	Regular
-듣다	VV	DToL
-묻다	VV	DToL
-묻다	VV	Regular
-믿다	VV	Regular
-돕다	VV	BToWa
-눕다	VV	BToWo
-짓다	VV	DropS
-벗다	VV	Regular
-파랗다	VA	DropH
-좋다	VA	Regular
-빠르다	VA	ReuDoubleL
-푸르다	VA	Reo
-쓰다	VV	Regular	EU_DROP
-하다	VV	Ha
-이다	VCP	Copula
-```
+[규칙 데이터와 사전](resources.md)
 
 ### 16.3 빌드 산출물
 
-개발용 TSV·TOML을 빌드 스크립트에서 검증하고 compact binary로 변환한다.
-
-검증 항목:
-
-- 중복 항목은 허용하되 완전히 같은 행은 경고
-- 존재하지 않는 rule id 거부
-- NFC가 아닌 표제어 거부 또는 자동 정규화 후 경고
-- 용언 표제어의 기본형 형식 검증
-- override 충돌 검증
-- fixture에서 모든 사전 class가 최소 한 번 사용되는지 확인
-
-enriched 용언 데이터는 core 용언 schema에 선택적 `derivations` 열을 더해 별도 파일과 라이선스로
-관리한다. 각 항목은 `rule.id=target-lemma` 형식이며 core 용언 데이터에는 이 열을 요구하지 않는다.
-동일한 `lemma`, `pos`, `alternation`, `flags`, `overrides`, `derivations`가 core에 있으면 core만 보존하고,
-alternation이 다르면 같은 세부 품사라도 모두 보존한다. full POS의 규칙형 fallback은 core와
-enriched를 합친 결과에 같은 coarse 품사가 없을 때만 추가한다.
-
-내장 데이터는 `include_bytes!`로 실행 파일에 포함해도 된다. 이 데이터는 프로젝트가 직접 관리하고 라이선스를 명확히 할 수 있어야 한다. 사용자가 교체할 사전은 외부 파일로 추가 로딩한다.
-Agent skill은 source tree의 `skills/kfind/SKILL.md`를 유일한 원본으로 삼는다. CLI fallback
-문자열과 distribution asset은 이 파일에서 생성하며 내용이 서로 달라지지 않아야 한다.
+[규칙 데이터와 사전](resources.md)
 
 ### 16.4 사용자 사전
 
-기본 위치:
-
-```text
-$XDG_CONFIG_HOME/kfind/lexicon.toml
-$HOME/.config/kfind/lexicon.toml
-```
-
-예:
-
-```toml
-[[predicate]]
-lemma = "플러그인하다"
-pos = "verb"
-alternation = "Ha"
-
-[[nominal]]
-surface = "LLM"
-```
-
-사용자 사전은 내장 사전에 추가된다. 동일 lemma의 분석을 덮어쓰려면 `replace = true`를 명시한다.
+[규칙 데이터와 사전](resources.md)
 
 ### 16.5 사전 bootstrap 전략
 
-런타임 분석기를 쓰지 않더라도 `auto` 품사 판별에는 폭넓은 표제어 데이터가 필요하다. 다음 자료는 런타임 엔진이 아니라 릴리스 데이터 생성 단계에서만 평가한다.
-
-- `mecab-ko-dic`: 표제어·품사 후보의 bootstrap 자료. MeCab이나 Lindera의 문장 분석 알고리즘은 사용하지 않는다. 독립 어휘 행의 headword와 품사만 추출·정규화·중복 제거하며, `Inflect`·`Preanalysis`와 문맥용 지정사 표면형은 제외한다. 상세 활용 정보는 core 사전과 gold corpus로 관리한다.
-- KoParadigm: 용언·어미 분류와 활용 결과의 오프라인 참조 자료. Python 런타임 의존성으로 두지 않고, 규칙 설계와 differential fixture 생성에만 사용한다.
-- 국립국어원 사전 자료: 라이선스와 재배포 조건을 충족하는 범위에서 품사와 활용 검증 자료로 사용한다. 전체 내려받기 snapshot은 릴리스 후보 데이터고, Open API는 snapshot 갱신 후보를 조사하는 개발 도구로만 사용한다.
-
-정적 표제어 lookup과 corpus-side component 판정은 별도 resource와 품질 지표로 평가한다.
-full POS 경로와 제품 compact component 경로는 Viterbi 분석, 비용 행렬과 미등록어 처리를
-사용하지 않는다. 비용 기반 비교가 필요한 진단 도구만 별도 full morphology artifact를 읽는다.
+[규칙 데이터와 사전](resources.md)
 
 ### 16.6 외부 사전 데이터 정책
 
-Homebrew 패키지는 프로젝트가 작성한 core 예외 사전과 검증된 full POS lexicon을 함께 설치한다.
-full POS를 로드하지 않은 `auto` 품사 판별은 preview 상태로 표시하고 명시적 품사 태그 사용을
-안내한다.
-
-우리말샘 등 외부 데이터를 활용할 경우 다음을 분리한다.
-
-- 원본 라이선스와 출처 표시
-- 예문 등 제3자 권리 가능성이 있는 필드 제외
-- 소스 코드와 사전 데이터의 라이선스 구분
-- 파생 데이터가 기본 바이너리에 포함되는지 별도 검토
-- API 키나 네트워크 접속을 런타임 요구사항으로 만들지 않음
-
-대규모 외부 사전은 코드와 분리된 데이터 산출물로 만든다. full POS lexicon은 최소 배포에서
-제외하고 `--pos` 중심으로 동작할 수 있지만, component 판정을 제공하는 `smart` 배포는 compact
-component resource를 바이너리 밖의 필수 정적 asset으로 함께 제공해야 한다.
-
-활용 정보가 있는 source는 표제어·품사와 분리해 다음 절차로 처리한다.
-
-1. 공개된 활용형 중 현재 alternation을 구분하는 진단형만 추출한다.
-2. 하나의 alternation으로 설명되는 항목만 enriched 후보로 만든다.
-3. 여러 규칙이 가능하거나 source가 충돌하면 자동 승격하지 않고 review 목록에 남긴다.
-4. core fixture 또는 독립 dev case로 확인된 후보만 활용 metadata 계층에 반영한다.
-
-자동 분류 대상은 사전 판별이 필요한 `DToL`, `DropS`, `BToWa`, `BToWo`, `DropH`,
-`ReuDoubleL`, `Reo`, `UToEo`다. 같은 종성의 규칙형과 `RegularEuDrop`은 자동 승격하지 않고
-분류기의 대조군으로 기록한다. 단, 같은 `(lemma, fine_pos)`에서 독립 사전 합의가 있는 불규칙형과
-규칙형 source record가 각각 확인되면 불규칙형이 full POS fallback을 가리지 않도록 규칙형도
-companion 분석으로 함께 보존한다. 진단형은 런타임 `generate_predicate_branches`가 해당 lexical
-rule id로 생성한 anchor를 사용하며, importer에서 별도의 한글 교체 규칙을 복제하지 않는다.
-
-자동 승격은 한국어기초사전과 표준국어대사전의 독립된 source record가 같은 `(lemma, fine_pos,
-alternation, flags)`를 지지할 때만 허용한다. 우리말샘은 추가 근거와 review 자료로만 사용한다.
-서로 다른 source record가 같은 `(lemma, fine_pos)`에 규칙형과 불규칙형을 각각 지지하면 두 분석을
-보존한다. 하나의 source record가 둘 이상의 분류 진단형을 동시에 포함하면 자동 집계에서 제외한다.
-수동 core 예외는 이 자동 승격 조건을 바꾸지 않는다. 해당 항목은 고정 snapshot의 source record id,
-선택 이유와 fixture 결과를 benchmark 보고서에 남기며, core 중복으로 바뀐 상태를 생성 report와
-통계에 반영한다.
-
-core와 완전히 같은 분석 및 `derivations.toml`의 생산 접미 규칙으로 이미 생성되는 분석은 enriched
-출력에서 제외하고 report에 중복 상태로 남긴다. `UToEo`처럼 독립 사전 합의가 있어도 이미 core에
-있는 유형은 신규 행을 만들지 않는다. 승격 건수와 분류별 대조군·중복·review 건수는 생성 통계에
-기록한다.
-
-importer의 원시 레코드 grain은 `(source, source_id, raw_homonym, lemma, fine_pos)`다. 동형어
-식별자를 제거한 `(lemma, fine_pos)`는 집계 키로만 사용하며, 서로 다른 source record에서
-확인된 복수 alternation은 충돌로 간주하지 않고 합집합으로 보존한다. redirect, 비표준어,
-방언과 옛말은 자동 승격하지 않는다.
-
-구조화된 사전 표면형은 기존 enriched predicate TSV 안의 `SurfaceOnly` 분석으로 저장한다.
-별도 전체 활용형 사전이나 런타임 문장 분석기는 추가하지 않는다. `SurfaceOnly`는 같은 품사의
-core·enriched 분석이나 full POS fallback을 가리지 않으며, 기본형과 사전에 기록된 정확한
-표면형만 만든다. provenance-only rule id `lexical.dictionary-conjugation`,
-`lexical.dictionary-adverbial-i`, `lexical.dictionary-related-adverb`는 rule registry의 생산
-규칙이 아니며 이 분석에서만 허용한다.
-
-사전 피·사동 파생 관계도 같은 enriched TSV의 `SurfaceOnly` 분석에
-`lexical.dictionary-voice=target-lemma`로 저장한다. 이 행은 base의 full POS 분석을 가리지 않고
-target lemma의 일반 활용기를 재사용한다. 한국어기초사전의 일반어 동사 source가 일반어 동사
-target을 `파생어`로 직접 가리키고, target이 source 어간에 `이·히·리·기`와 `다`를 붙인 형태이며,
-표준국어대사전에도 source와 target이 모두 일반어 동사로 있을 때만 자동 승격한다. Source record와
-target record ID를 report에 보존하고 정의·예문 문자열은 사용하지 않는다. `smart`는 생성된 target
-활용 표면 전체가 source의 완성된 용언+어미 구조와 일치할 때만 승인한다. 관계가 없는 동사에
-voice 접미사를 추측하거나 target 표면을 base의 단순 alias로 취급하지 않는다. 구조화 필드가
-피동과 사동 의미 역할을 구분하지 않으므로 정의·예문을 읽어 둘 중 하나로 임의 분류하지 않는다.
-
-사전 활용형은 한국어기초사전과 표준국어대사전의 `일반어` record가 같은
-`(lemma, fine_pos, surface)`를 지지할 때만 후보로 삼는다. core, 자동 승격된 alternation과
-품사가 확인된 `하다`, `스럽다`, `답다`, `롭다`의 생산 규칙으로 이미 생성되는 surface는
-저장하지 않는다. 남은 surface만 `lexical.dictionary-conjugation`으로 기록하며
-`inflection`과 `derivation`에서 사용할 수 있다.
-
-형용사 `-이` 부사형은 importer가 `-없다`, `-같다` 계열의 `어간 + 이`와 `르 → ㄹ리` 후보만
-계산한다. 일반 정규 어간 전체에는 적용하지 않는다.
-한국어기초사전과 표준국어대사전의 `일반어` record가 각각 원형을 형용사로, 같은 후보 표면을
-부사로 독립 등재한 경우에만 `lexical.dictionary-adverbial-i`로 승격한다. 이 표면형은
-`inflection`과 `derivation`에서 사용할 수 있다. 원형·결과 표제어의 source record ID를 함께
-보존하며, 사전에서 확인되지 않은 후보와 자유 텍스트에서 추출한 형태는 저장하지 않는다.
-`smart`는 이 표면형의 양쪽 token 경계와 전체 `MAG` 구조 근거를 요구하며 다른 어휘나 조사에
-붙은 내부 span으로 확장하지 않는다.
-같은 `(lemma, fine_pos, surface)`가 아래의 양방향 관계에도 포함되면 두 사전 합의를 우선해
-`lexical.dictionary-adverbial-i` 하나로 기록한다.
-
-한국어기초사전 `RelatedForm`은 source가 동사·형용사이고 target이 부사이며, 양쪽 entry가 서로의
-ID를 가리키고 각 `writtenForm`이 참조한 entry의 표제어와 일치하는 `파생어` 관계만 사용한다.
-이 surface는 `lexical.dictionary-related-adverb`로 기록하고 `--expand derivation`에서만 연다.
-예문과 정의에서 문자열을 추출하지 않는다.
-
-분류 생성기는 한도와 무관하게 candidate, report와 통계를 한 번 생성한다. 별도 validator가
-surface-only 행 수를 보고하고 배포 `predicates.tsv`의 64 KiB 한도를 판정한다. 행 수는 UTF-8 길이가
-다른 활용형·관계형의 실제 parse·배포 비용을 대표하지 않으므로 hard limit으로 쓰지 않는다.
-검증에 실패하면 candidate 디렉터리를 보존해 생성 없이 validator를 다시 실행할 수 있어야 한다.
-Source snapshot 갱신으로 byte 한도를 넘으면 중복 생성 규칙과 분류 누락을 먼저 해소하고, 한도 변경은
-별도 성능·배포 크기 검토로 결정한다. report에는 생략된 생성형, 배포 surface-only 활용형·파생형,
-source record ID와 artifact byte 수를 구분해 기록한다.
-
-한국어기초사전 snapshot을 XML로 읽기 전에 XML 1.0에서 허용하지 않는 바이트를 검사한다.
-고정 snapshot에서 사전에 기록한 값과 위치만 제거할 수 있으며, 종류·개수·위치가 달라지면
-생성을 실패시킨다. manifest에는 원본 파일명·생성일·SHA-256, 정제 내역, source별 입력·후보·
-충돌·제외 건수와 생성기 version을 기록한다.
-검증된 ZIP의 XML은 `${XDG_CACHE_HOME:-~/.cache}/kfind/nikl/<source>/<sha256>`에 한 번만
-추출하고 이후 생성에서 재사용한다. `KFIND_NIKL_CACHE`로 cache root를 바꿀 수 있으며,
-SHA-256이 달라지면 별도 디렉터리에 다시 추출한다.
-
-사전 의존도는 품사 추측을 넓혀 낮추지 않는다. `하다`, `되다`, `시키다`, `스럽다`,
-`답다`, `롭다`처럼 경계가 명확한 생산 접미 규칙과 어미 continuation을 우선 보강한다.
-미등록 `다` 종결어 전체를 용언으로 추측하는 fallback은 추가하지 않는다.
+[규칙 데이터와 사전](resources.md)
 
 ## 17. Rust 기술 스택
 
-| 목적           | crate                                        |
-| -------------- | -------------------------------------------- |
-| CLI            | `clap`, `clap_complete`, `clap_mangen`       |
-| 파일 순회      | `ignore`                                     |
-| 검색 I/O       | `grep-searcher`, `grep-matcher`              |
-| 단일 앵커      | `memchr::memmem`                             |
-| 다중 앵커      | `aho-corasick`                               |
-| 바이트 문자열  | `bstr`                                       |
-| Unicode 정규화 | `unicode-normalization`                      |
-| 인코딩         | `encoding_rs` 또는 `grep-searcher` 연동 계층 |
-| 출력           | `grep-printer`, `serde`, `serde_json`        |
-| 오류           | `thiserror`                                  |
-| 병렬 결과 채널 | `crossbeam-channel`                          |
-| 작은 벡터      | `smallvec` 선택                              |
-| 벤치마크       | `criterion`                                  |
-| 속성 테스트    | `proptest`                                   |
-| fuzz           | `cargo-fuzz`                                 |
-
-`ignore::WalkParallel`이 파일 단위 병렬 처리를 담당하므로 별도 `rayon` 의존성은 기본 구조에 필요하지 않다.
-
-`memmap2`를 직접 다루기보다 `grep-searcher`의 mmap 정책을 우선 사용한다.
+[웹과 패키지 배포](distribution.md)
 
 ## 18. crate 구조
 
@@ -2981,794 +508,87 @@ crates/
 
 ## 19. 참조 구현과 검증 전략
 
-reference backend는 production anchor 계획과 결과 타입만 공유한다. 서술어 continuation과 조사 연쇄 판정은 production consumption을 호출하지 않고 별도 순회 구현으로 계산해 동일 결함을 공유하지 않게 한다.
+[검증과 성능](verification.md)
 
 ### 19.1 최적화 엔진과 참조 엔진을 분리한다
 
-프로덕션 엔진은 candidate program의 앵커, consumption과 decision을 사용한다.
-
-테스트용 참조 엔진은 동일 규칙 AST를 작은 정규 언어 또는 후보 문자열 집합으로 변환해 `regex-automata`로 실행할 수 있다.
-
-두 엔진의 결과를 작은 corpus에서 비교한다.
-
-```text
-optimized(query, corpus) == reference(query, corpus)
-```
-
-정규식은 사용자 기능이 아니라 구현 검증 도구로만 사용한다.
+[검증과 성능](verification.md)
 
 ### 19.2 단위 테스트
 
-필수 테스트:
-
-```text
-걷다 → 걸어, 걸었, 걸으면, 걸으셨다
-듣다 → 들어, 들었, 들으면
-듣다 → 걸어 아님
-묻다 → 물어와 묻어 모두
-예쁘다 → 예뻐, 예뻤다, 예쁜, 예쁠
-예쁘다 → 예쁘어 아님
-좋다 → 좋아요, 좋았어요
-아니다 → 아니고, 아니라, 아닌, 아닐
-부르다 → 불러
-푸르다 → 푸르러
-보다 → 보아와 봐
-되다 → 되어와 돼
-살다 → 사는, 삽니다, 살고
-사용자 → 사용자들에게
-길 → 길로, 길으로 아님
-걷다 | 사용자 → 걷거나 사용자가 있는 span을 각각 match
-걷다|사용자 → 공백을 둔 disjunction과 같은 결과
-"|", \| → literal `|` match
-걷다 | 사용자 검증하다 → phrase와 disjunction 혼합 오류
-```
-
-동음이의어 정책 테스트:
-
-```text
-query: 걷다
-text: 전화를 걸어 봤다.
-expected: match
-
-query: 걷다, 걸다
-text: 그는 걸었고 계속 말했다.
-expected: 두 query 모두 match
-
-query: n:매
-text: 매일 보고 싶어.
-expected: no match
-
-query: adv:매일
-text: 독수리가 아니라 매일 수도 있어.
-expected: no match
-```
-
-`걷다`/`걸다` constructed stress fixture는 다음 계약을 한 문단에서 함께 검증한다.
-
-- `걸었다며`, `걸어온`, `걸어가십니까`, `걸어서`, `걸었잖소`, `걸었고`,
-  `걸었는데도`, `걸어오다가`, `걸어왔던`, `걸어갔다`처럼 두 표제어가 만드는 동형
-  활용 17개 span은 두 query에 모두 매칭한다.
-- `걷던`, `걷자고`, `걷곤`, `걷더니`, `걷자`, `걷느냐`, `걷도록`, `걸으려는`,
-  `걸으셨고`, `걸으셨던`, `걸으세요`, `걸읍시다`와 `-기/-음` 명사형 및 정렬된
-  compound component는 `v:걷다`에만 매칭한다.
-- `걸고` 3개와 `건` 1개는 `v:걸다`에만 매칭한다.
-- `걸인`, `걸걸한`, `막걸리`, 의존명사 `걸`, `걷히자`, `걸려`, `걸터앉았다`처럼
-  다른 품사 또는 별도 표제어인 token은 어느 query에도 매칭하지 않는다.
-- fixture의 논리적 결과는 `v:걷다` 97개, `v:걸다` 21개 span이다. 출력 surface가
-  보조용언이나 후속 어미 전부를 소비하지 않아도 같은 시작 위치의 한 match로 센다.
+[검증과 성능](verification.md)
 
 ### 19.3 속성 테스트
 
-- 음절 분해 후 조합하면 원래 음절과 같음
-- 유효한 종성 교체 결과는 다시 분해 가능
-- program consumption은 bounded 후보 범위 밖을 읽지 않음
-- 동일 span의 origin 병합은 순서와 무관
-- phrase join 결과는 atom 순서를 항상 보존
+[검증과 성능](verification.md)
 
 ### 19.4 퍼징
 
-target과 경계:
-
-| target                   | 경계                                                                                             |
-| ------------------------ | ------------------------------------------------------------------------------------------------ |
-| `query_lexer`            | 잘못된 UTF-8을 포함한 임의 query, 매우 긴 combining sequence, lexer와 compile limit              |
-| `matcher_bytes`          | 임의 byte 입력의 anchor 탐색, suffix consumption, match span 범위                                |
-| `matcher_plan`           | 임의 query와 큰 phrase gap의 compile·matcher build, component resource 누락 오류                 |
-| `user_lexicon`           | malformed 사용자 사전 TOML의 구문·의미 검증                                                      |
-| `json_output`            | 임의 byte line과 검증된 match metadata의 JSON Lines 직렬화                                       |
-| `binary_detection`       | 임의 위치의 최초 NUL과 NUL이 없는 입력의 binary 판별 경계                                        |
-| `pos_resource`           | 임의 byte full POS resource의 크기·header·varint·UTF-8·NFC·정렬·누적 decode 상한                 |
-| `component_resource`     | 임의 byte component resource와 임의의 유효한 소형 resource의 header·digest·payload·prefix lookup |
-| `search_executor`        | 임의 byte record와 작은 channel에서 병렬 검색 결과의 bounded 수집·정렬·summary 경로              |
-| `structural_preparation` | 현재 token graph와 인접 token 선택을 분리한 경로가 일괄 준비 경로와 같은 판정을 내리는지 비교    |
-
-CI는 `nightly-2026-07-11`과 `cargo-fuzz 0.13.2`로 모든 target을 실제 실행한다. target당
-`max_total_time=15`, 개별 입력 `timeout=5`, `rss_limit_mb=2048`을 적용하며 전체 job timeout은
-10분이다. `scripts/run-fuzz.sh`가 target 목록과 이 예산을 단일 진입점으로 유지한다. 각 실행은
-version-controlled seed만 임시 corpus로 복사해 이전 실행에서 생성된 입력과 격리한다. 반복 span과
-큰 gap의 phrase, 손상 UTF-8, component resource가 필요한 plan, malformed TOML, 출력 제어 문자,
-최소 유효 full POS resource, 유효한 소형 component entry와 구조 준비 경계 문맥을 고정 seed로 시작한다.
-crash·panic·timeout·RSS 초과는 CI 실패다.
+[검증과 성능](verification.md)
 
 ### 19.5 정답 corpus
 
-공식 어문 규정의 활용 예와 프로젝트가 직접 작성한 문장을 기반으로 fixture를 만든다.
-실제 사용 양상은 재배포 조건이 명확한 공개 코퍼스의 짧은 문장으로 함께 검증한다.
-실제 코퍼스 항목의 `feature`는 `corpus.<source>.<split>.<id>` 형식으로 원문을 식별하고,
-fixture 디렉터리의 README에 원본 revision, 라이선스, 추출 경로를 기록한다.
-뉴스·대화·리뷰에서 나타나는 합성 용언, 띄어쓰기 생략, 비표준 철자는 v0.1 범위와
-경계 정책에 따라 기대 결과를 정하며 형태 규칙이 지원하는 것처럼 완화하지 않는다.
-
-각 항목:
-
-```tsv
-query	pos	text	expected	feature
-걷다	verb	길을 걸어 갔다.	match	d-irregular
-걷다	verb	전화를 걸어 봤다.	match	homonym-union
-예쁘다	adjective	예쁘어 보인다.	no-match	eu-drop
-```
-
-Strict 지표는 gold와 다른 표제어·품사 결과를 false positive로 보존한다.
-Contract-adjusted 지표는 같은 품사의 동형 활용처럼 bounded 구조가 같은 결과만
-contract positive로 재분류한다. 품사 또는 인접 성분 배치로 구분 가능한 결과는
-현재 구현이 제거하지 못해도 FPᶜ로 유지한다.
+[검증과 성능](verification.md)
 
 #### 19.5.1 현실 기술 코퍼스 blind fixture
 
-UD 기반 품질 fixture와 별도로, 재배포 조건이 명확한 공개 저장소의 한국어 README, 소스 코드
-주석과 기술 문서에서 짧은 원문을 고정한다. source manifest는 저장소, commit, 라이선스와
-라이선스 URL, 원본 경로, 원본 파일 SHA-256을 기록한다. case는 source path와 line 범위,
-artifact type, query, 기대 품사, 원문, 기대 여부와 positive의 UTF-8 byte gold span을 보존한다.
-
-fixture는 다음 slice를 모두 포함한다.
-
-- 식별자 주변 한글
-- 띄어쓰기 오류
-- 한글·영문·숫자 혼합
-- 동형이의어
-- 복합명사 substring
-
-원문은 NFC 정규화 후 연속 공백을 하나로 줄인 canonical text가 case 사이에서 중복되지 않아야
-한다. query와 기대 span은 첫 제품 실행 전에 고정하고, 최초 보고서가 커밋된 뒤에는 제품 결과를
-개선하기 위해 바꾸지 않는다. source 전사 오류나 gold 오류는 독립된 근거와 revision을 남겨
-수정한다.
-
-평가는 Agent의 `embedded + any + explicit POS`와 User의 `full-POS + smart + untagged`를 같은
-fixture 순서로 실행한다. positive는 예측 span이 gold span과 겹쳐야 TP이고, negative는 문장
-어디에서든 결과가 있으면 FP다. 전체와 artifact type·slice별 TP·FP·TN·FN, precision, recall,
-F1과 실패 case를 version-controlled JSON과 Markdown으로 보존한다. source hash, 필수 metadata,
-canonical uniqueness, gold span, 필수 artifact type·slice가 유효하지 않으면 평가를 실패시킨다.
-이 fixture와 결과는 기존 UD 회귀 fixture를 대체하거나 규칙 선택에 사용하지 않는다.
+[검증과 성능](verification.md)
 
 ### 19.6 외부 분석기 비교
 
-Kiwi, Lindera, MeCab-ko와 KOMORAN 비교는 저장소의 개발 전용 검증으로 실행하며 제품 바이너리, Homebrew
-의존성, 기본 검색 경로에 포함하지 않는다. 제품 fixture는 `kfind` 자체 회귀 검증에만
-사용하고 외부 분석기와의 우열 점수에는 사용하지 않는다. adapter 오류와 실행 실패는
-성공 결과로 대체하지 않는다.
+[검증과 성능](verification.md)
 
 ### 19.7 독립 형태소 벤치마크
 
-기성 분석기와의 품질 비교는 제품 fixture와 분리한 held-out corpus로 수행한다. 기본
-데이터는 Universal Dependencies 2.18의 Korean-Kaist와 Korean-KSL test split이며, 원문과
-라이선스 파일의 URL·SHA-256·라이선스를 manifest에 고정한다. 다운로드와 fixture 생성은
-이미지 빌드 단계에서 끝내고 실제 벤치마크는 네트워크 없이 실행한다.
-
-canonical fixture는 도구 출력과 무관한 고정 seed로 생성한다. Core dev/test에는 수동 검토를
-통과한 문장만 사용하며 source 이름만으로 정문임을 가정하지 않는다. 현재 후보 source는
-UD Korean-Kaist다. 먼저 명사 180, 동사 120, 형용사 80, 부사 50, 대명사 30, 관형사 20,
-수사 20개의 positive와 같은 source의 deterministic paired negative를 뽑아 split별 사전 검토
-pool을 만든다. 검토자는 positive와 negative에 쓰인 고유 문장을 모두 확인한다. Pool은
-`(source, sent_id, text)`의 정렬된 JSON line SHA-256과 문장 수로 고정하고, 제외한 문장은
-sentence ID, 사유 class와 짧은 annotation으로 보존한다.
-
-최종 fixture는 검토 pool에서 제외되지 않은 문장만 대상으로 다시 샘플링한다. 사전 검토
-pool을 만든 quota도 review manifest에 보존해 pool을 재구성할 때 최종 quota 변경의 영향을
-받지 않게 한다. 재샘플링은 명사 184, 동사 120, 형용사 80, 부사 50, 대명사 26, 관형사 20,
-수사 20개의 positive와
-negative 500개를 유지해 총 1,000개와 positive/negative 1:1 균형을 만족해야 한다. 검토 pool
-밖의 새 문장으로 quota를 자동 보충하지 않는다. 검토된 문장만으로 quota를 채울 수 없으면
-새 후보를 별도로 검토하고 pool digest를 갱신한 뒤 생성한다. 정렬과 샘플링은 원본 파일
-순서가 아니라 case 식별자의 SHA-256 순서를 사용한다. 최종 positive는 한 문장에 최대 3개만
-선택하며 상한에 도달한 문장의 다음 후보는 건너뛴다.
-
-비문·오타가 포함된 UD Korean-KSL은 core에서 제외하고 별도 `robustness` source set으로
-보존한다. Source 이름만으로 모든 문장을 오류 사례로 간주하지 않는다. Korean-KSL test split의
-`Typo=Yes`·`goeswith` source signal 문장과 품사 quota를 채우는 deterministic 보충 후보로
-pre-review pool을 먼저 고정하고, pool에 들어온 고유 문장을 모두 수동 검토한다. Review
-manifest는 정렬된 `(source, sent_id, text)` 전체의 SHA-256과 각 문장의
-`clean`·`noisy`·`source-artifact` 판정, 하나 이상의 오류 class와 짧은 annotation을 보존한다.
-Source signal은 후보 수집에만 사용하며 수동 판정을 대신하지 않는다. `clean`과
-`source-artifact` 문장은 Robust 품질 fixture에서 제외한다.
-
-오류 class는 최소한 `hangul-typo`, `foreign-text-typo`, `spacing-merge`, `spacing-split`,
-`nonstandard-morphology`, `nonstandard-syntax`, `repetition`을 구분한다. 여러 오류가 있는 문장은
-모든 class를 기록하되 chart 집계용 primary class를 하나 고정한다. 의미 선택만 잘못되어
-lemma·품사·span gold를 객관적으로 확정할 수 없는 문장은 `noisy` 판정을 보존하고 case 후보에서는
-제외한다.
-
-수동 검토에서 `noisy`로 판정한 문장만 대상으로 명사 90, 동사 60, 형용사 40, 부사 25,
-대명사 15, 관형사 10, 수사 10개의 positive와 paired negative 250개씩을 같은 seed로 생성한다.
-최종 500개 case는 제품이나 외부 분석기 결과를 보기 전에 query, coarse/fine POS, expected와
-positive의 원문 UTF-8 byte span을 다시 수동 검토한다. Negative는 해당 lemma·품사가 문장에
-없음을, 무품사 negative는 지원 품사 전체에 lemma가 없음을 확인한다. 각 case에는 오류가 gold
-span에 직접 있는 `target-span`과 주변 문맥에만 있는 `context-only`를 구분한 `noise_scope`,
-primary `noise_class`와 검토 annotation을 보존한다. Ambiguous gold나 annotation이 빠진 case로
-quota를 자동 보충하지 않고 다음 검토 후보를 사용한다.
-
-Core 검토에서 제외한 KAIST 문장도 별도 sentence-level robustness candidate registry에 원문,
-split, sentence ID, 사유 class와 annotation을 보존한다. 이 registry의 사유 class는 corpus 정제
-근거이며 query-level 제품 `noise_class` gold를 대신하지 않는다. Query, POS, expected, raw span과
-noise scope를 확정하기 전에는 Robust 품질 합계에 넣지 않는다.
-
-Robust 품질은 canonical과 분리한 같은 500-case explicit-POS fixture에서 모든 backend를
-비교한다. 전체와 오류 class·scope·품사별 TP·FP·TN·FN, precision, recall, F1과 실패 case를
-기록한다. Micro 전체는 동일한 자연 오류 fixture 안에서만 비교하며 natural·synthetic,
-explicit-POS·untagged 또는 서로 다른 오류 class를 합쳐 단일 제품 점수나 순위를 만들지 않는다.
-현재 제품 robustness가 구현되기 전의 첫 기준선은 kfind `off`와 각 외부 분석기의 고정 default
-설정을 비교한다. Native robustness 기능이 있는 backend의 feature-matched 행은 같은 class,
-candidate budget과 원문 span 역매핑 계약을 고정한 뒤 별도 표로 추가하며 default 행과 합치지
-않는다.
-
-같은 Robust fixture의 성능도 fresh process warm-up 1회 뒤 5회 측정한다. Explicit-POS
-비교는 embedded/full-POS 각각의 `any`와 `smart`, 고정 외부 backend에 대해 initialization,
-cases/s, p50·p95 latency와 peak RSS의 median/min/max를 기록한다. Agent의
-`embedded + any + explicit POS`와 Human의 `full-POS + smart + untagged`는 제품 workflow
-비교로 별도 보존한다. 품질과 성능은 같은 보고서에서 별도 표와 chart로 제시하고 canonical
-합계와 섞지 않는다.
-
-gold 후보는 CoNLL-U의 정렬된 lemma/XPOS 형태소 쌍에서 추출하고, lemma가 축약된 KAIST
-어절은 `OrigLemma`를 우선 사용한다. 지원 품사에 속하고 표제어가 한글 음절로만 구성된
-형태소만 포함한다. VV·VA·VX·VCP·VCN과 이에 대응하는 KAIST 용언 태그는 어간에 `다`를
-붙여 사전형으로 정규화한다. 형태소 수와 XPOS 수가 끝까지 다른 어절, 접사·조사·어미,
-외국어·숫자·기호는 제외한다. negative는 모든 어절의 lemma/XPOS가 정렬된 문장에서만
-선택한다. 이 필터와 제외 건수는 metadata에 기록한다.
-
-모든 도구는 동일한 `(문장, 표제어, 품사)` 존재 여부를 예측한다. positive는 예측 span이
-gold 어절의 UTF-8 byte span과 겹쳐야 true positive이고, negative는 문장 어디에서든 같은
-표제어·품사를 반환하면 false positive다. 도구마다 accuracy, precision, recall, F1과
-TP·FP·TN·FN을 계산하고 corpus별·품사별 결과 및 실패 case를 함께 보존한다. 외부 분석기가
-원문에 정렬할 수 없는 길이 0 형태소를 반환하면 검색 가능한 span 후보에서 제외한다.
-
-Site의 Canonical, query matrix와 Robust explicit-POS 비교는 각각 kfind를
-`embedded + any`, `embedded + smart`, `full-POS + any`, `full-POS + smart`의 네 profile로
-나눈다. 각 workload의 품질은 raw와 contract-adjusted confusion matrix를 각각 보존하고,
-성능은 initialization, cases/s, p50·p95 latency와 peak RSS를 함께 보존한다. 외부 분석기 행은
-같은 workload의 기존 고정 품질·성능 설정으로 함께 표시하되 kfind profile을 resource
-종류만으로 합치지 않는다. 서로 다른 workload의 품질 또는 성능을 하나의 순위나 합계로
-합치지 않는다. `full-POS + smart`의 고정 canonical gate는 `FPᶜ = 0`, `FNᶜ = 0`이다.
-
-고정 1,000-case 회귀 fixture와 별도로, 같은 core held-out source의 수동 검토 통과 문장에서
-문장 안 검색 질의를 늘린 `query matrix` fixture를 생성한다. canonical positive가 하나 이상
-있는 고유 문장을 matrix의
-문장 집합으로 고정하고, 그 문장에 속한 canonical positive를 모두 보존한 뒤 정렬된 gold
-후보를 문장당 최대 3개까지 추가한다. 추가 후보는 아직 선택하지 않은 coarse POS를 먼저
-고르고, 같은 조건에서는 고정 seed와 source·sentence·token·morpheme·query의 SHA-256 순서로
-결정한다. 같은 `(표제어, 품사)`가 문장에 두 번 이상 나타나 gold span이 하나로 정해지지 않는
-후보는 추가 대상에서 제외한다. canonical positive가 문장당 3개를 넘거나 fixture의 모든
-canonical positive가 matrix에 정확히 한 번 포함되지 않으면 생성을 실패한다.
-
-각 matrix positive에는 같은 source의 gold 후보 중 대상 문장에 없는 표제어를 하나 대응시켜
-동일 문장 negative를 만든다. 명시적 품사 fixture는 positive와 같은 coarse POS를 유지하고
-같은 `(표제어, 품사)`가 문장에 없음을 요구한다. 무품사 fixture는 표제어가 지원 품사 전체에
-걸쳐 문장에 없음을 요구한다. 한 문장 안의 negative query는 서로 달라야 하며, positive와
-negative를 1:1로 유지한다. fixture에는 문장 group, `present-N`/`absent-N` slot, canonical
-positive ID와 paired positive ID를 보존하고, metadata에는 문장 수, 문장당 질의 수 분포,
-품사 분포, canonical coverage와 source별 case 수를 기록한다.
-
-query matrix는 질의별 strict·계약 보정 품질과 성능을 병렬로 보고한다. 두 품질 축에는 각각
-confusion matrix, precision·recall·F1과 문장별 모든 positive 회수율을 포함한다. 회수한 질의 수
-분포와 slot별 품질도 strict·계약 보정 기대값을 구분해 보존한다. 질의가 문장 안에서
-독립이라는 가정을 하지 않으며 두 recall의 불확실성은 각각 문장 group을 재표집하는 고정 seed
-10,000회 cluster bootstrap 95% 구간으로 기록한다. 고정 test matrix는 kfind의
-embedded/full-POS와 smart/token/any, 사람용 무품사 profile,
-Kiwi·Lindera·MeCab-ko·KOMORAN을 모두 측정한다. 외부 결과는 matrix fixture SHA-256에 묶인
-별도 version-controlled snapshot으로 보존한다. development matrix는 kfind 진단에만 사용한다.
-
-query matrix는 기존 1,000-case 회귀선과 지표를 대체하거나 합치지 않는다. canonical 지표는
-장기 회귀 판정, matrix 지표는 같은 문장 안의 질의 다양성·부분 회수·동일 문장 false positive
-진단에 사용한다. 제품 규칙 선택과 unseen 검증 gate는 기존 dev/test/blind 계약을 그대로
-따른다.
-
-이 strict corpus-gold 지표는 제품의 의미 중의성 non-goal과 분리해 항상 보존한다. 버전 관리
-fixture가 `contract_expected`와 `contract_reason`을 함께 선언한 경우에는 같은 예측을 제품 계약
-기대값으로 다시 계산한 `contract_adjusted` 지표도 병렬로 기록한다. query matrix 생성기는
-version-controlled contract review registry를 적용하고 그 hash와 적용·제외 건수를 metadata에
-기록한다. registry와 맞지 않는 case identity가 있으면 생성에 실패하며 제품 또는 외부 분석기
-출력으로 annotation을 만들지 않는다. 이 지표의 confusion matrix는
-`contract_tp`·`contract_fp`·`contract_tn`·`contract_fn`, 파생 지표는
-`contract_precision_percent`·`contract_recall_percent`·`contract_f1_percent`로 명명한다.
-표에서는 각각 TPᶜ·FPᶜ·TNᶜ·FNᶜ로 줄여 쓸 수 있다.
-canonical·hard-negative의 contract-positive 분모는 `PNᶜ = TPᶜ + FNᶜ`로 표기하며,
-recall 개선 보고서는 `PNᶜ`, `FNᶜ`와 `recallᶜ = TPᶜ / PNᶜ`를 함께 기록한다.
-
-`contract_expected`가 없으면 strict `expected`를 그대로 사용한다. boolean 값이 strict와 다르면
-양방향 reclassification을 허용한다. `expected=false`, `contract_expected=true`는 같은 품사의
-동형 활용을 의미로 구분하지 않는 `same-pos-homograph`, 품사가 달라도 bounded 문장 구조가 같은
-`structurally-indistinguishable-homograph`, source에 정렬된 내부 성분을 검색하는
-`aligned-source-component`에만 사용한다. `expected=true`, `contract_expected=false`는 gold가
-완성 어휘 내부의 다른 품사 span에 잘못 정렬된 `gold-alignment-error`에만 사용한다. strict
-기대값을 검토 후 유지한 case는 `implementation-target`으로 기록한다.
-
-`contract_expected=null`은 계약 평가 제외다. 현재 비문·비표준 띄어쓰기처럼 표준문 형태 검색의
-입력 계약을 어긴 `nonstandard-input`만 제외 사유로 허용한다. 현재 구현 profile이 지원하지 않는
-파생, 반환 span 설계가 필요한 축약, 범용 구조 판정 비용이 큰 case와 미구현 문법은 제품 목표에서
-제외하지 않고 FNᶜ로 유지한다. 모든 확인·변경·제외에는 제품 결과를 보기 전에 고정한
-`contract_reason`이 필요하다.
-
-계약 confusion matrix의 `cases`는 제외하지 않은 case 수다. `reviewed_cases`,
-`confirmed_cases`, `reclassified_cases`, `excluded_cases`와 사유별 건수를 함께 기록한다. 계약 문장 회수율은 제외한
-질의를 분모에서 빼고 contract-positive 질의만 센다. strict 지표와 계약 보정 지표를 합치거나,
-계약 보정 지표만으로 정밀도 회귀가 없다고 주장하지 않는다. 모든 제품과 외부 분석기의 품질 표와 차트는 같은 profile의
-raw TP·FP·TN·FN·precision·recall과 TPᶜ·FPᶜ·TNᶜ·FNᶜ·precisionᶜ·recallᶜ를 나란히 표시한다.
-FPᶜ·FNᶜ·recallᶜ는 annotation과 제외가 실제 적용된 제품 계약 값이어야 한다. Review registry가
-없는 fixture에서는 raw 기대값을 그대로 사용하고 review 0건을 함께 표시한다. 외부 분석기에도
-동일한 contract expectation을 적용하며 raw와 contract-adjusted 결과를 모두 비교한다.
-
-query matrix의 raw FN을 닫는 작업은 contract review registry와 별도의 disposition 장부로
-관리한다. 장부는 fixture SHA-256과 case ID, query·품사·gold surface, 현재 failure cause,
-disposition, 근거, 사전 증거를 보존한다. disposition은 raw FN의 원인을 설명할 뿐 지표를 직접
-재분류하지 않는다. 계약 기대값 또는 제외 여부는 같은 근거를 사람이 검토해 제품 실행 전에
-contract review registry에 선언한다. 완료 상태는 raw FN 0, 미분류 raw FN 0과 FNᶜ 0을 각각
-구분해 보고한다.
-
-disposition은 다음 중 하나다.
-
-1. `product-fix`: 기존 계약과 정밀도 gate를 지키는 제한된 규칙으로 회수할 수 있다.
-2. `dictionary-required`: 일반화 가능한 표제어·품사·활용·관계 증거가 있어야 안전하게
-   회수할 수 있다.
-3. `structural-redesign`: 검색할 byte span 복원, source 내부 성분 대응이나 bounded 구조 판정의
-   추가 설계가 필요하지만 제품 목표에는 포함된다.
-4. `gold-alignment-error`: gold lemma·품사·정렬이 완성 어휘의 실제 구조와 맞지 않아 기대값을
-   바로잡아야 한다.
-5. `nonstandard-input`: 현재 비문·비표준 띄어쓰기라 표준문 형태 검색의 계약 모수에서 제외한다.
-
-사전 증거는 고정한 snapshot의 구조화된 표제어·품사·활용·어휘 관계·문법 주석 필드만
-사용한다. 문법 주석은 조사 host처럼 앞말 종류를 직접 선언한 경우에만 사용하며, 자유 서술
-정의와 용례 문장의 단어 출현은 형태 관계의 증거로 사용하지 않는다. 자동 제품 반영에는
-한국어기초사전과 표준국어대사전의 일치가 필요하고, 우리말샘 단독 기록은 audit 후보로만 남긴다.
-다운로드 snapshot의 hash와 importer revision이 다르면 장부를 갱신하지 않는다. 사전으로도
-표면 span, 문맥 의미, source 정렬 문제를 해결할 수 없는 case는 `dictionary-required`로
-분류하지 않는다.
-
-외부 분석기의 정규화된 결과와 성능은 test fixture SHA-256, adapter·성능 schema,
-도구·사전·모델 버전과 설정에 묶인 version-controlled snapshot으로 보존한다. 기본 benchmark는 snapshot을 읽고
-`kfind`만 다시 실행한다. fixture SHA-256 또는 adapter schema가 다르면 자동으로 외부 분석기를
-실행하거나 오래된 결과를 사용하지 않고 refresh 명령과 함께 실패한다. 도구·사전·모델 버전과
-설정은 snapshot을 명시적으로 갱신할 때만 바꾼다.
-
-기본 benchmark 이미지는 `kfind` 측정 runner와 외부 snapshot 검증 코드만 포함한다. 외부 분석기와
-전용 runner의 빌드·실행 의존성은 별도 snapshot refresh 이미지에만 포함한다. 기본 CI smoke는 기본
-이미지만 빌드하며 외부 분석기 의존성을 컴파일하거나 설치하지 않는다.
-
-`scripts/benchmark-morphology.sh`의 기본 stdout은 현재 측정 단계와 최종 JSON·Markdown 보고서
-경로만 출력한다. 실행 실패와 외부 도구 진단은 stderr에 출력한다. Docker 빌드 과정과 생성한
-Markdown 보고서 전문은 `KFIND_MORPH_VERBOSE=1`을 지정한 경우에만 터미널에 출력한다.
-
-성능 측정은 데이터 준비를 제외하고 backend별 warm-up 1회를 버린 뒤 동일한 case
-순서로 최소 5회 반복한다. 각 run은 초기화를 한 번만 수행하고 해당 프로세스에서
-전체 case를 처리한다. 초기화 시간, 전체 처리 시간, case/s, p50·p95 latency,
-peak RSS의 median과 run 간 min/max를 보고한다. `kfind`는 질의 컴파일과 검색, 외부 분석기는
-문장 분석과 표제어·품사 조회를 포함한 end-to-end 검색 경로를 측정한다.
-이 수치는 서로 다른 검색 전략의 제품 작업량 비교이며 순수 형태소 tokenizer
-처리량으로 표현하지 않는다. snapshot에 저장한 외부 성능은 refresh 환경의 참고값으로
-분리하며 현재 `kfind` 측정과 같은 표에서 직접 순위를 매기지 않는다.
-
-최종 보고서는 fixture SHA-256, seed, source별 case 수, 도구와 데이터 버전, 전체·source별·
-품사별 품질 지표, 성능 지표, adapter 오류를 JSON과 Markdown으로 기록한다. 같은 JSON에서
-전체 품질과 성능 trade-off SVG를 재현하고 분석 문서에 포함한다. 1,000개 미만,
-class/source/POS quota 불충족, source hash 불일치, adapter 오류가 있으면 실행을 실패시킨다.
-
-품사를 생략하는 사람용 검색은 별도 fixture에서 측정한다. positive는 같은 held-out gold span을
-사용하고, negative는 query 표제어가 지원하는 모든 품사에 걸쳐 존재하지 않는 완전히 정렬된
-문장으로 대응시킨다. runner는 전역 품사와 atom 태그 없이 query를 compile한다. 보고서의
-`human_untagged` 절에는 embedded/full-POS와 `smart`/`any` 조합별 품질·성능, positive plan의
-기대 품사 포함률, multi-coarse-POS plan 비율과 literal fallback 비율을 기록한다. fixture와
-metadata hash도 명시적 품사 fixture와 분리해 기록한다. 측정 결과를 개선하기 위한 fixture,
-gold, negative 선택 변경은 금지하며 생성 계약 자체의 오류를 고칠 때만 독립된 근거와 revision을
-남겨 갱신한다.
-
-`kfind` 결과는 `embedded`와 `full-pos` 프로필을 같은 fixture·case 순서로
-각각 측정한다. 보고서의 버전 메타데이터에 profile과 full POS lexicon artifact
-SHA-256을 기록하고, `embedded`는 artifact가 없음을 명시한다. `full-pos` 실행에서
-artifact가 없거나 디코딩하지 못하면 `embedded`로 대체하지 않고 실패시킨다.
-프로필별 품질·초기화·처리량·지연·peak RSS를 병렬로 보고하고, `embedded`의
-false negative 중 `full-pos`에서 회복된 case와 계속 실패한 case를 별도 목록으로
-저장한다.
-
-failure 원인 분류는 성능 측정 구간 밖에서 수집한 질의 계획·anchor·경계 증거를
-사용한다. 각 kfind 프로필의 false negative는 다음 우선순위로 하나의 원인을 갖는다.
-호환용 `primary_cause`는 embedded 원인을 유지하고, `profile_causes`와
-`profile_cause_evidence`에 embedded/full-POS 결과를 모두 기록한다.
-
-1. snapshot의 외부 분석기 중 둘 이상이 있고 모두 같은 gold를 놓치면 `gold-or-adapter`
-2. auto 질의 계획에 기대 품사 분석이 없으면 `lexicon-missing`
-3. smart 결과는 있지만 gold span과 겹치지 않으면 `span-mismatch`
-4. `boundary=any`만 gold span을 찾으면 `boundary-rejected`
-5. gold 어절 내부에 core anchor가 있지만 검증 span이 없으면 `continuation-rejected`
-6. 그 밖은 `surface-missing`
-
-분류 증거와 profile별 primary cause는 JSON failure record에 저장한다. `boundary-rejected`
-진단은 `boundary=any`에서 gold span과 겹친 match의 core·token span과 origin별 analysis index·
-rule path도 보존한다. development 보고서는 full-POS positive false negative를 primary cause와
-품사로 집계하고, verb·adjective `boundary-rejected` case의 query·품사·rule path를 모두 표시한다.
-`ending.connective-ji` case의 any token이 gold의 strict subspan이면 두 span의 시작과 끝을 비교해
-`left-edge`, `right-edge`, `internal`로 분류하고 candidate 표면형과 함께 표시한다. 같은 위치
-유형을 제품 후보로 열려면 development positive와 동일한 candidate 표면형의 version-controlled
-hard-negative가 있어야 한다. 이 대조가 없는 위치 유형은 계측만 유지한다.
-명사 component frame을 새로 여는 경우에도 development positive와 같은 candidate 표면형이
-일반 합성어 내부에서 우연히 나타나는 hard-negative를 먼저 고정한다.
-분류를 위한 추가 컴파일·검색 비용은 backend 성능에 포함하지 않는다.
-
-규칙 개발은 Korean-Kaist·KSL dev split을 test split과 독립된 seed·fixture
-SHA-256로 생성해 사용한다. test 1,000개 baseline은 변경하지 않는다. hard-negative는
-도구 출력과 무관한 버전 관리 fixture로 두고 slice별 precision을 전체 품질과 분리해
-보고한다. 의미 중의성 또는 정렬 source component 때문에 strict negative를 제품이 의도적으로
-허용하는 hard-negative는 `contract_expected`와 사유를 명시하고 strict·계약 보정 결과에 모두
-남긴다. CI smoke set은 dev fixture에서 source·품사·class별 고정 case를
-deterministic하게 추출하고, 수동 벤치마크는 dev·test·hard-negative 전체를 사용한다.
-
-명시적 품사 `smart` 형태 품질 변경은 dev strict precision 99.00% 이상과 version-controlled
-hard-negative 신규 contract FP 0을 지키면서 표준 띄어쓰기 case의 FN을 늘리지 않아야 한다.
-부사와 용언 사이에 필요한 공백이 빠진 `안팔아서`, `안좋습니다`, `안나와요`, `못해요` 같은
-`nonstandard-spacing` case는 strict 지표와 row-level delta에 그대로 남기되 이 gate에서 제외한다.
-해당 입력의 FP/FN은 별도 robust 지원을 도입할 때 해소한다. 신규 strict FP는 구현과
-독립적으로 미리 고정한 `contract_expected=true` case에서만 허용한다. FN이 줄어든 후보를 우선하고,
-FN이 같을 때만 FP가 줄어든 후보를 선택한다. 고정 test fixture는 규칙 선택에
-사용하지 않고 FN 비증가, precision 99.00% 하한과 전체 품질 회귀만 확인한다. 무품사 fixture의
-결과도 같은 변경에서 다시 측정해 불리한 변화까지 기록하되 규칙 선택이나 fixture 변경 근거로
-사용하지 않는다. 최종 품질 주장은 구현 전에 source·fixture를 고정하고 기존 corpus와 문장 hash
-중복이 없는 unseen 평가에서도 같은 기준을 통과해야 한다. 기본 `smart`를 변경하는 구현은 기존
-hard-negative에 새 contract FP를 추가하지 않아야 하며, 이 조건을 만족하지 못하면 별도 boundary
-policy로 분리한다.
+[검증과 성능](verification.md)
 
 ### 19.8 형태 질의와 정규식 검색 기준선
 
-형태 질의와 수동 정규식의 차이는 version-controlled constructed fixture로 진단한다. Fixture는
-용언·형용사 7개 질의마다 positive 8개와 형태·경계 경쟁자 negative 8개를 두어 총 112개
-case를 유지한다. 이 fixture는 동일 질의의 전략 차이를 설명하는 예시이며 held-out corpus,
-Canonical 회귀선이나 일반적인 한국어 검색 품질을 대표하지 않는다.
-
-각 질의는 `kfind full POS`의 명시적 품사 질의를 `boundary=any`와 `boundary=smart`로 각각
-실행하고, 사람이 자주 쓰는 두 정규식 전략과 비교한다. `enumerated`는 알려진 활용 표면형을
-`|`로 열거하고, `stem`은 짧은 어간 후보만 열거한다. 정규식에는 자동 활용 생성, 품사 판정과
-token boundary를 추가하지 않는다. `rg`와 `grep`은 동일 정규식을 실행하고 matching line
-집합이 같은지 검증한다. 따라서 품질은 두 kfind boundary와 정규식 전략별 한 행으로 집계하고,
-도구별 실행 비용은 별도 성능 행으로 보고한다.
-
-품질에는 네 전략 모두 raw TP·TN·FP·FN, precision·recall·F1과
-TPᶜ·TNᶜ·FPᶜ·FNᶜ, precisionᶜ·recallᶜ·F1ᶜ를 기록한다. Contract review는 제품 실행 전에
-fixture에 선언하며 `same-pos-homograph`, `structurally-indistinguishable-homograph`,
-`aligned-source-component`만 허용한다. 같은 예측을 두 기대값으로 다시 평가하므로
-contract-adjusted는 별도 검색 모드나 후처리가 아니다.
-
-성능 fixture는 112개 문장을 순서대로 반복한 단일 파일이다. 한 batch에서 7개 질의를 각각
-fresh process로 실행해 같은 파일을 7회 스캔하고 matching-line count만 계산한다. 데이터 준비와
-품질 failure 분류는 측정 구간에서 제외한다. 같은 장비·입력·환경에서 방법 순서를 순환하며
-warm-up 2회 뒤 10회 측정하고 batch wall time의 median·min·max·p95와 전체 scan byte 기준
-effective MiB/s를 기록한다. 품질과 실행시간은 하나의 점수나 순위로 합치지 않는다.
-
-보고서는 revision, fixture와 corpus SHA-256, resource와 binary SHA-256, 정확한 명령, OS·CPU,
-도구 버전, 측정 횟수와 case-level failure를 JSON과 Markdown에 보존한다. 사이트 snapshot은
-승인 보고서에서 chart와 표가 소비하는 요약 필드만 export한다. 사이트는 raw·contract-adjusted
-F1 차트와 TP·TN·FP·FN 원수치 표, 도구·정규식 전략별 batch 시간 차트와 정확한 통계 표를
-분리해 표시하고 constructed fixture의 해석 한계를 함께 밝힌다.
+[검증과 성능](verification.md)
 
 ## 20. 성능 사양
 
+[검증과 성능](verification.md)
+
 ### 20.1 목표
 
-기준 장비와 corpus는 벤치마크 보고서에 고정한다. 예시는 Apple Silicon의 최근 세대 장비로 두되, 결과에는 CPU, 메모리, 저장장치, OS를 반드시 기록한다.
-
-제품 목표:
-
-```text
-단일 atom query compile p95: 0.25 ms 이하
-8 atom phrase compile p95: 0.75 ms 이하
-8 atom disjunction compile p95: 0.75 ms 이하
-낮은 hit 비율의 scan: rg -F wall time의 1.25배 이내
-낮은 hit 비율의 처리량: rg -F의 80% 이상
-기본 RSS: 16 MiB 이하
-corpus 크기에 비례하는 결과 버퍼링 없음
-```
-
-`rg -F`와 기능이 동일하지 않으므로 절대 우열이 아니라 I/O 경로의 성능 회귀 감시 기준으로 사용한다.
+[검증과 성능](verification.md)
 
 ### 20.2 검색 corpus
 
-```text
-100 MiB source corpus
-1 GiB mixed corpus
-한글 비율 5%, 20%, 80%
-작은 파일 다수 corpus
-큰 파일 소수 corpus
-NFC corpus
-NFD corpus
-UTF-16 fixture
-```
-
-corpus 생성기는 전체 bytes, 파일 수, 작은 파일 수와 크기, 한글 line 선택 비율, 한글 line의 NFD 선택 비율, seed를 명시적으로 받는다. 같은 설정과 seed는 byte 단위로 동일한 파일 tree를 생성해야 한다. NFC/NFD와 한글 비율은 완전한 line을 선택하는 비율이며, 파일 끝의 exact-size padding은 ASCII로 채운다.
+[검증과 성능](verification.md)
 
 ### 20.3 측정 구간
 
-다음 시간을 분리한다.
-
-```text
-startup
-lexicon load
-query compile
-filesystem walk
-scan
-verification
-output
-```
-
-query compile 목표는 lexicon을 미리 로드한 같은 analyzer를 재사용하고 다음 세 입력을 각각
-`query_compile/single_atom`, `query_compile/phrase_8_atoms`와
-`query_compile/disjunction_8_atoms` Criterion benchmark로 측정한다.
-
-```text
-single_atom: 걷다
-phrase_8_atoms: n:사용자 n:권한 v:검증하다 adj:예쁘다 det:새 adv:빨리 n:기술 v:걷다
-disjunction_8_atoms: n:사용자|n:권한|v:검증하다|adj:예쁘다|det:새|adv:빨리|n:기술|v:걷다
-```
-
-`matcher/build_and_find_short`는 미리 compile한 다중 앵커 단일 atom plan으로 짧은 문장 하나를
-검색한다. 각 iteration에서 matcher를 새로 만들어 one-shot build와 첫 검색을 함께 측정한다.
-`matcher/scan_deterministic_corpus`는 같은 matcher를 충분히 큰 corpus에 재사용해 adaptive
-automaton 승격 이후의 scan 회귀를 감시한다. 두 workload를 함께 비교해 짧은 입력의 build 비용을
-줄이면서 대규모 scan을 희생하지 않았는지 판정한다.
-
-`matcher/disjunction_find_all`은 같은 고정 corpus를 `lit:걸어|lit:사용자는`로 검색해 모든
-line에서 두 alternative 중 하나를 반환한다. Alternative별 matcher나 반복 scan으로 분리하지 않고
-하나의 logical atom과 anchor engine으로 전체 corpus를 한 번 순회하는지 감시한다.
-
-`matcher/phrase_find_all`은 1,024개 line 중 4개마다 `n:길 v:걷다`가 일치하는 고정 corpus를 메모리 입력으로 사용한다. smart boundary의 component 검증에 필요한 고정 resource를 matcher 생성 시 제공한다. 전체 phrase match를 반환하는 한 번의 호출을 측정해 match 수에 따른 반복 anchor scan과 span 결합 회귀를 감시한다.
-
-`matcher/phrase_find_all_repeated`는 같은 한 음절 literal atom 8개와 한 줄의 반복 span 128개,
-큰 `max-gap`을 사용한다. 가능한 조합 수와 무관하게 bounded DP로 leftmost-longest 결과를 찾는
-병적 입력 경로를 측정한다. Phrase 선택은 candidate endpoint의 byte offset, Unicode scalar 수와
-line-break 수를 한 번 인덱싱하고, successor 비교마다 원문이나 endpoint index를 다시 탐색하지
-않는다.
-
-`matcher/phrase_input_searcher_repeated_line`은 줄바꿈 없는 한 줄에서 인접한 두 literal atom
-phrase가 4,096번 반복되는 입력을 `InputSearcher`의 metadata 출력 경로로 검색한다. 한 줄의
-anchor와 atom span을 한 번만 수집하는지와 match 수에 따른 반복 suffix scan 회귀를 감시한다.
-같은 입력의 `matcher/phrase_input_searcher_repeated_line_exists`는 metadata를 수집하지 않는
-summary 경로를 측정해 line 평가 전달 비용이 존재 판정 경로를 악화시키지 않는지 감시한다.
-`matcher/phrase_input_searcher_missing_atom_long_line`은 `lit:가 lit:나` 중 첫 atom만 반복되는
-1 MiB 단일 줄을 summary 경로로 검색한다. 결과가 불가능한 줄에서 모든 atom의 raw anchor coverage를
-먼저 판정해 verifier와 atom span 적재를 건너뛰는지 감시한다. 이 workload의 wall time과 maximum
-RSS를 함께 비교하며, 모든 atom이 존재하는 줄의 phrase 선택 메모리 상한을 증명하는 근거로는
-사용하지 않는다.
-`matcher/phrase_input_searcher_sparse_tail_long_line`은 1 MiB 단일 줄의 끝에 둘째 atom을 한 번 넣어
-raw coverage prefilter를 통과시키고 실제 match 하나를 만든다. Max-gap 밖의 첫 atom candidate를
-active state에서 제거해 줄 전체 검증 span을 적재하지 않는지 wall time과 maximum RSS로 확인한다.
-
-`matcher/context_repeated_long_line`은 `매일`이 16,384번 반복되는 줄바꿈 없는 UTF-8 입력을
-`RepeatedToken + MAG` 구조 pattern을 가진 `smart` 부사 matcher로 검색한다. 각 candidate의
-인접 token만 해독하는지와 candidate마다 전체 입력의 UTF-8을 다시 검증하는 회귀를 감시한다.
-`matcher/context_alternating_spacing_long_line`은 같은 token 사이의 공백을 1바이트와 2바이트로
-교대해 문맥 형태가 둘인 경로의 비용을 감시한다. 이 두 workload는 준비 context cache가 warm
-hit인 반복 표본이므로 cache miss 비용의 근거로 사용하지 않는다.
-`matcher/context_constant_neighbors_long_line`과
-`matcher/context_unique_neighbors_long_line`은 byte 수와 match 수가 같은 `가 매일 나` 형태의
-입력을 사용한다. 전자는 같은 앞뒤 token을 반복하고 후자는 매 candidate의 앞뒤 한글 token 쌍을
-바꿔 raw context를 모두 고유하게 만든다. 두 결과를 함께 비교해 cache hit 편중과 miss 비용을
-보고한다.
-`matcher/context_unique_current_long_line`은 anchor 뒤에 서로 다른 한글 token suffix를 붙여
-현재 token 자체를 모두 다르게 만들고 구조 후보를 모두 거부한다. Query에서 확정한 exact
-whole-token graph의 이득을 고유 인접 token과 함께 확인하되, 이 miss 대조군의 비용이나 matcher
-생성·첫 검색 비용을 악화시키지 않는지 별도로 판정한다.
-단일 atom `find_all` 구조 검색은 같은 호출 안에서 동일한 bounded raw context의 준비된 구조 분석을
-재사용할 수 있다. Cache key는 raw context bytes, 해당 context 안의 current token 상대 span,
-node limit과 nominal-copula 포함 여부를 모두 구분하고 hash collision은 원본 값 비교로 확인한다.
-각 일치의 raw·NFC span mapping은 다시 계산하며, 준비 context cache는 256개로 제한한다. 반복
-context와 고유 context benchmark를 함께 사용해 내용 반복에 편중된 결과를 제품 성능으로
-일반화하지 않는다.
-
-`local_lattice/component_decision`은 고정 component fixture를 한 번 초기화한 뒤 accept, reject와
-ambiguous 입력을 순환하며 제품용 component 판정만 측정한다. `local_lattice/component_report`는
-같은 입력에서 진단 경로 생성 비용을 별도로 측정한다. 구현 변경 전후를 같은 build profile과
-Criterion 설정으로 비교하고, 제품 판정 p95가 10% 이상 악화되면 회귀로 본다. 이 microbenchmark는
-1,000-case morphology 품질·성능 보고서를 대체하지 않는다.
-
-`structural_constraint/prepare_dense_token_graph`는 63개 음절 token의 모든 접두 surface에 두
-분석을 등록해 node 상한 바로 아래인 4,032개 edge를 만든다. 매 iteration에서 token graph를 새로
-준비해 matcher나 context cache가 개입하지 않게 하고, 구조 상태기계가 시작 위치별 edge index를
-공유해 `token byte 수 × 전체 edge 수` 반복 scan으로 돌아가지 않는지 감시한다. 공통 nominal
-prefix, ending suffix와 predicate-connective 경계도 token 준비당 한 번만 계산한다. 일반적인 짧은
-구조 판정과 morphology 제품 workload를 함께 측정해 최악 입력 개선을 일반 입력 회귀와 바꾸지
-않는다.
-
-`structural_constraint/prepare_dense_unique_pos_token_graph`는 같은 edge 수를 유지하되 모든 분석의
-POS 문자열을 고유하게 만든 대조군을 측정한다. Resource decode는 측정 밖에 두고 반복 POS workload와
-함께 비교해 token 준비 비용 개선이 문자열 반복이나 비정상적으로 높은 cache·intern hit율에 의존하지
-않는지 확인한다. Resource decode 비용과 상주 메모리는 morphology startup 측정으로 따로 검증한다.
-
-`structural_constraint/resolve_dense_preferred_paths`는 같은 63개 음절에 단일 음절 particle 분석을
-더해 node 상한 바로 아래인 4,095개 edge와 다수의 동일 비용 명사 경로를 만든다. 준비된 token
-graph에서 서로 다른 16개 component 후보를 매 iteration 순환해 최소 unit 경로 판정만 측정한다.
-후보별 임시 graph나 unit 전체 재검색을 줄이는 변경은 이 workload와 graph 준비 비용을 함께
-보고해, 준비 비용이나 보존 메모리를 후보 판정 개선과 맞바꾸지 않는다.
-
-`structural_constraint/reject_ambiguous_particle_suffix_*`는 모든 접두 surface가 particle인 반복
-suffix 뒤에 미등록 문자를 붙여, 완성 경로가 없는 입력의 탐색 비용을 측정한다. 12개와 20개 반복
-입력을 분리해 크기 증가에 따른 비용도 비교한다. 같은 suffix 위치를 재귀적으로 다시 탐색하거나
-호출 stack을 입력 분기 수만큼 늘리지 않아야 하며, 결과 cache 없이 매 iteration 실제 거부 판정을
-수행한다.
-
-`structural_constraint/select_dense_nominal_particle_facts`는 모든 접두 surface가 nominal과
-particle 분석을 함께 갖는 token에서 준비된 token graph를 공유하고 구조 선택만 다시 수행한다.
-`structural_constraint/prepare_dense_nominal_particle_context`는 같은 입력의 graph 생성과 구조 선택을
-모두 수행한다. 두 workload를 함께 비교해 선택 자료구조의 반복 사용 이득과 생성 비용을 분리하며,
-공유 graph 표본만으로 전체 준비 성능을 일반화하지 않는다.
-
-p95는 Criterion `new/sample.json`의 각 sample에 대해 `times[i] / iters[i]`로 계산한
-1회당 nanoseconds를 오름차순으로 정렬하고 nearest-rank 방식으로 선택한다. 정식 목표 판정은
-기본 sample 설정으로 수행한다. `--quick` 결과는 benchmark가 실행되는지만 확인하는 smoke
-측정이며 목표 판정에 사용하지 않는다.
-
-`--count`, `--quiet`, 기본 출력, JSON을 별도로 측정한다. cold cache와 warm cache 결과를 구분한다.
-
-인수 기준 9의 `rg -F` 비교 runner는 동일 corpus와 no-match literal을 대상으로 `--quiet` warm-cache scan을 측정한다. 처리량은 정확한 corpus bytes를 wall time으로 나눈 값이고, maximum RSS의 단위와 수집 도구를 보고서에 함께 쓴다.
-각 scan은 새 프로세스의 startup을 포함하되, literal 쿼리에 필요하지 않은 full POS lexicon 로드는 수행하지 않는다.
+[검증과 성능](verification.md)
 
 ### 20.4 회귀 정책
 
-동일 CI runner에서 main 기준 다음 중 하나면 경고한다.
-
-```text
-query compile 20% 이상 악화
-scan throughput 10% 이상 악화
-RSS 20% 이상 증가
-candidate program 수 2배 이상 증가
-```
+[검증과 성능](verification.md)
 
 ## 21. Native package 배포
 
+[웹과 패키지 배포](distribution.md)
+
 ### 21.1 배포 형태
 
-Homebrew는 custom tap으로 배포한다.
-
-```bash
-brew install seokminhong/brew/kfind
-```
-
-릴리스 구성:
-
-```text
-kfind source tarball
-Cargo.lock
-내장 규칙과 사전 소스
-생성된 man page
-shell completions
-agent skill
-checksums
-```
-
-런타임 모델 다운로드는 없다. full POS lexicon을 별도 파일로 배포하면 formula의 resource 또는 별도 release artifact로 함께 설치하고, 코드와 데이터의 라이선스를 각각 표시한다.
+[웹과 패키지 배포](distribution.md)
 
 ### 21.2 formula 설치 항목
 
-```text
-bin/kfind
-share/man/man1/kfind.1
-share/zsh/site-functions/_kfind
-share/fish/vendor_completions.d/kfind.fish
-etc/bash_completion.d/kfind
-share/kfind/skills/kfind/SKILL.md
-share/doc/kfind/LICENSES/
-```
-
-내장 규칙과 프로젝트 자체 사전은 실행 파일에 포함한다. 선택형 대규모 사전만 `share/kfind` 아래에 둘 수 있다.
-설치 후 `post_install_steps`에서 `kfind --check-data --data-dir {{pkgshare}}`를 실행한다.
-실행 파일과 사전 리소스 검증에 실패하면 설치 후 검증도 실패로 처리한다.
+[웹과 패키지 배포](distribution.md)
 
 ### 21.3 Homebrew bottle 배포
 
-검증 대상:
-
-```text
-macOS arm64
-```
-
-CI에서 tagged release의 bottle을 생성한다. formula test는 임시 파일을 만들고 실제 형태 검색을 확인한다.
-JSON 검증은 JSON Lines record의 종단 LF와 `text` 필드를 구분하며, `text`에는 원문 줄의 종단 LF를
-포함하지 않는다.
-
-```ruby
-test do
-  (testpath/"sample.txt").write("길을 걸어 갔다.\n")
-  output = shell_output("#{bin}/kfind 걷다 #{testpath}/sample.txt")
-  assert_match "걸어", output
-end
-```
+[웹과 패키지 배포](distribution.md)
 
 ### 21.4 Chocolatey 배포
 
-Chocolatey package ID는 `kfind`다. x64 Windows용 portable ZIP을 tagged GitHub Release에
-`kfind-windows-x86_64-VERSION.zip` 이름으로 게시한다.
-`kfind.exe`는 MSVC C runtime을 정적 링크해 별도 Visual C++ Redistributable 설치 없이
-실행되어야 한다. CI와 archive 생성은 PE import table에 동적 MSVC·UCRT 의존성이 없는지 검사한다.
-
-```text
-bin/kfind.exe
-share/kfind/lexicon.bin
-share/kfind/morphology-component-compact.kfc
-share/kfind/predicates.enriched.tsv
-share/kfind/*MANIFEST.toml
-share/doc/kfind/LICENSES/
-```
-
-실행 파일은 `bin`의 부모를 prefix로 보고 `share/kfind`의 full POS lexicon, enriched
-predicate와 compact component resource를 자동 탐색한다. Archive 생성 시
-`kfind.exe --check-data --json --data-dir share/kfind`를 실행해 binary와 resource version,
-schema와 source digest를 검증한다.
-
-Chocolatey package는 version tag의 immutable archive URL과 SHA-256을
-`Install-ChocolateyZipPackage`에 전달한다. 압축을 package의 `tools` 아래에 풀고
-`bin/kfind.exe`의 자동 shim을 사용한다. 별도 system directory, registry와 환경 변수는
-수정하지 않으며 uninstall은 package directory와 shim 제거만으로 끝난다.
-
-Chocolatey Community Repository가 SemVer 2 prerelease를 지원하지 않으므로 stable release는
-release version을 그대로 package version으로 쓰고, `MAJOR.MINOR.PATCH-rc.N` release는 N을 최소
-네 자리로 zero-padding한 `MAJOR.MINOR.PATCH-rcNNNN` package version으로 매핑한다. 예를 들어
-`1.1.0`의 Chocolatey package version은 `1.1.0-rc0004`다. Package filename과 registry
-조회에는 package version을 사용하지만 archive URL, 실행 파일과 resource version 검증에는 release
-version을 사용한다.
-
-Release workflow는 같은 archive checksum으로 `kfind.PACKAGE_VERSION.nupkg`를 만들고 GitHub
-Release에 첨부한다. Publish workflow의 Chocolatey job은 mapped package asset을 재사용하며, 과거
-release에 asset이 없으면 immutable Windows archive와 현재 packaging template으로 만들고 release에
-첨부한다. 이후 local install, `--version`과 `--check-data --json`을 검증한 뒤
-`https://push.chocolatey.org/`로 전송한다.
-Push가 일시적으로 실패하면 exact version의 공개 package를 다시 확인하고 release asset과
-checksum이 같으면 성공으로 처리하며, 아직 게시되지 않았으면 제한된 횟수로 재시도한다.
-Repository secret `CHOCOLATEY_API_KEY`가 없으면 게시 성공으로 처리하지 않고 실패한다.
+[웹과 패키지 배포](distribution.md)
 
 ### 21.5 릴리스 자동화
 
-Release와 Publish는 GitHub Actions의 수동 workflow로 분리한다.
-모든 외부 GitHub Action은 전체 commit SHA에 고정하며 CI가 workflow의 action ref를 검사한다.
-
-Release workflow는 `main`에서만 실행하며 `major`, `minor`, `patch` 중 bump 종류와 prerelease 여부를
-입력받는다. Bump 기준은 저장소의 최신 stable `vMAJOR.MINOR.PATCH` tag다. Stable 입력은 선택한
-SemVer component를 올린 version을 만들고, prerelease 입력은 같은 core version의 기존
-`vVERSION-rc.N` tag에서 가장 큰 N 다음 번호를 붙이며 없으면 `rc.1`부터 시작한다. 예를 들어 최신
-stable이 `0.2.1`이고 `v1.1.0`이 있으면 `major + stable`은 `1.1.0`,
-`major + prerelease`는 `1.1.0`다.
-
-Release workflow는 계산한 version을 workspace package, lockfile, npm·site metadata, 현재 버전을
-보여 주는 문서와 component resource header·checksum에 동기화한다. 고정 Rust toolchain의 source,
-resource, npm과 site 검증을 통과한 변경만 release commit으로 `main`에 반영한다. Windows archive와
-Chocolatey package, source, full POS, component, CLI asset과 Homebrew formula를 모두 만든 뒤 해당
-commit에 annotated tag를 붙이고 GitHub Release를 생성한다. RC는 GitHub prerelease로 표시한다.
-Workspace와 도구 lockfile 동기화는 component resource 생성을 포함한 모든 `--locked` 검증보다
-먼저 완료하며, 기존 외부 dependency version은 갱신하지 않는다.
-Cargo manifest의 버전 변경은 `[workspace.package].version`과 독립 benchmark runner의
-`[package].version`에 한정한다. 같은 값이나 접두부를 가진 dependency requirement는 보존한다.
-`main`의 pull request 보호 규칙을 우회하지 않는다. Version bump는 실행별 release branch에
-commit하고 release PR을 만든 뒤 같은 commit의 필수 CI를 명시적으로 실행하여 squash merge한다.
-이후 asset과 tag는 merge commit만 참조한다.
-이 workflow는 npm, Homebrew와 Chocolatey registry에는 게시하지 않는다. 동일 workflow의 동시
-실행을 직렬화하고, tag나 GitHub Release 생성 전 실패한 같은 version은 다음 실행에서 이어서
-검증할 수 있어야 한다.
-
-Publish workflow는 `v` prefix 유무와 관계없이 특정 version을 입력받고, 해당 annotated tag와
-draft가 아닌 GitHub Release가 존재하며 prerelease 표시가 version suffix와 일치하는지 먼저
-검증한다. 검증된 exact tag source와 release asset만 npm, Homebrew, Chocolatey와 versioned 문서
-게시에 사용한다. Channel job은 서로 독립적으로 실행하되 동일 version의 이미 게시한 immutable
-artifact가 같으면 재사용하고, 내용이 다르면 덮어쓰지 않고 실패한다.
-
-Stable npm package는 `latest`, RC package는 `next` dist-tag로 게시한다. RC 게시 시 기존
-`latest`는 변경하지 않으며, 게시한 RC version이 `latest`를 가리키지 않는지 확인한다. 게시한
-package가 public registry에 나타날 때까지 제한된 횟수로 재조회하고 local tarball과 registry의
-`dist.shasum`이 같은지 확인한다. 이후 격리된 임시 directory에서 `npx`, `pnpm dlx`와 고정 Yarn
-version의 `dlx`로 실행해 각 command의 성공 종료와 마지막 version output을 검증한다. Homebrew는
-formula PR의 전체 test-bot과 bottle artifact를 확인한 뒤 `pr-pull`을 실행하고 tap 반영까지 기다린다.
-Chocolatey는 공개 push까지 성공해야 한다.
-Versioned 문서는 같은 Publish 실행에서 GitHub Release asset과 R2에 올리고 manifest를 갱신한다.
+[웹과 패키지 배포](distribution.md)
 
 ## 22. 보안과 견고성
 
@@ -3843,46 +663,7 @@ Versioned 문서는 같은 Publish 실행에서 GitHub Release asset과 R2에 �
 
 ## 24. 공개 코드 인터페이스
 
-Rust 공개 API는 재사용 가능한 `Engine`과 컴파일된 `Matcher`를 중심으로 한다.
-
-```rust
-let engine = Engine::with_resources(ResourceBundle {
-    full_pos: Some(full_pos_bytes),
-    enriched_predicates: Some(enriched_predicates),
-    component: Some(component_bytes),
-})?;
-
-let matcher = engine.compile("권한", &CompileOptions::default())?;
-let matches = matcher.find_all("사용자권한을 확인한다.".as_bytes());
-```
-
-- `Engine::new`는 embedded lexicon만 초기화한다.
-- `ResourceBundle`과 `Engine::with_resources`는 full POS, enriched predicate와 component resource를
-  한 profile로 검증한다. 기존 개별 생성자는 이 경로에 위임한다.
-- `load_component_resource`는 새 bytes를 모두 검증한 뒤 상태를 교체하며 실패하면 기존
-  resource를 보존한다.
-- `compile`은 query plan과 anchor matcher를 만들고 component resource가 필요한 plan의 누락을
-  `ComponentResourceRequired`로 보고한다.
-- `Matcher::find_at`과 `find_all`은 UTF-8 byte offset과 형태 provenance가 포함된
-  `PhraseMatch`를 반환한다. `find_all_limit(input, max_matches)`는 같은 결과를 최대
-  `max_matches`개까지 수집하고 추가 일치가 있으면 `MatchLimitExceeded`를 반환한다.
-  `max_matches = 0`은 일치가 없을 때만 빈 결과를 반환한다.
-- `find_at_with_route`, `find_all_with_routes`, `find_all_with_routes_limit`과
-  `find_all_with_routes_with_diagnostics`는 기존 `PhraseMatch` 구조를 유지하면서 선택된
-  쿼리 atom 번호를 `RoutedMatch.query_atom_indices`에 함께 반환한다.
-- root의 `PhraseMatch`, `VerifiedSpan`, `Origin`, `RuleId`와 compile option·오류는 1.x 안정
-  계약이다. `QueryPlan`, candidate program·structural constraint 표현, `Lexicons`와 plan inspection은 `kfind::expert`의
-  변경 가능한 저수준 API다.
-- CI는 `kfind` crate의 공개 Rust API를 최신 1.x 정식 release tag와 비교해 1.x 호환성 파괴를 거절한다.
-- workspace 내부 crate는 게시하지 않으며 `kfind::expert` 외의 경로를 공개 API로 간주하지 않는다.
-- JavaScript API는 같은 profile을 `Kfind.withResources`, 같은 수명 주기를
-  `loadComponentResource`, `compile`, `Matcher.findAll`, `Matcher.findAllLimit`,
-  `Matcher.findAt`, `Matcher.findAllWithDiagnostics`로 노출한다. 일치 span과 `findAt`의
-  시작 위치는 UTF-16 code unit이다. `findAllLimit`은 결과가 상한을 초과하면 오류를 던지고,
-  `findAt`은 일치가 없으면 `null`을 반환하며 surrogate pair 중간 위치는 거절한다.
-  `findAllWithDiagnostics`는 일치 목록과 구조 검증 불완전 여부를 반환한다.
-  괄호 또는 phrase와 대안을 함께 사용하는 쿼리의 match에는 선택된 원본 atom 번호를
-  `queryAtomIndices`로 포함한다.
+[Rust와 JavaScript API](bindings.md)
 
 ## 25. 제품 원칙
 
