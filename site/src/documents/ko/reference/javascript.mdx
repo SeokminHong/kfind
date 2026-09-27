@@ -41,8 +41,13 @@ const matcher = engine.compile('걷다', { pos: 'verb' });
 const matches = matcher.findAll('길을 걸어 갔다.');
 ```
 
+`findAllLimit(text, maxMatches)`는 결과 수가 상한을 초과하면 오류를 던집니다.
+`findAt(text, offset)`은 지정한 UTF-16 위치 이후 첫 일치 또는 `null`을 반환합니다.
+`findAllWithDiagnostics(text)`는 일치 목록과 `structuralVerificationIncomplete`를 반환합니다.
+
 ## UTF-16 span [#spans]
 
 일치와 atom의 start·end는 UTF-16 code unit이며 JavaScript `slice`에 바로 사용할 수 있습니다. Emoji 앞의 offset도 code point 수가 아닌 code unit 수입니다.
+`findAt`은 surrogate pair의 중간 위치를 거절합니다.
 
 각 atom에는 core, token과 모든 `analysisIndex`, `rulePath` origin을 보존합니다.

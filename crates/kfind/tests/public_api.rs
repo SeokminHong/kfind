@@ -1,7 +1,8 @@
 use kfind::{
     AnalyzeError, AnchorBuildError, CompileErrorKind, CompileOptions, DataErrorKind, Engine,
-    GenerateError, LexicalAlternation, MorphMatcherBuildError, Origin, PhraseMatch, PhrasePolicy,
-    PlanLimits, QueryError, QueryErrorKind, RuleId, SourceLocation, SourceSpan, VerifiedSpan,
+    GenerateError, LexicalAlternation, MatchLimitExceeded, MorphMatcherBuildError, Origin,
+    PhraseMatch, PhrasePolicy, PlanLimits, QueryError, QueryErrorKind, RuleId, SourceLocation,
+    SourceSpan, VerifiedSpan,
 };
 
 #[test]
@@ -45,6 +46,23 @@ fn disjunction_merges_provenance_for_the_same_span() {
         .collect::<Vec<_>>();
 
     assert_eq!(analysis_indices, vec![0, 1]);
+}
+
+#[test]
+fn bounded_search_preserves_matches_and_reports_overflow() {
+    let engine = Engine::new().unwrap();
+    for query in ["lit:alpha", "lit:alpha lit:beta"] {
+        let matcher = engine.compile(query, &CompileOptions::default()).unwrap();
+        let input = b"alpha beta\nalpha beta";
+        let all = matcher.find_all(input);
+
+        assert_eq!(matcher.find_all_limit(input, all.len()).unwrap(), all);
+        assert_eq!(matcher.find_all_limit(input, 1).unwrap_err().limit(), 1);
+        assert_eq!(matcher.find_all_limit(input, 0).unwrap_err().limit(), 0);
+        assert!(matcher.find_all_limit(b"no match", 0).unwrap().is_empty());
+    }
+
+    assert_named::<MatchLimitExceeded>();
 }
 
 #[test]

@@ -3835,14 +3835,19 @@ let matches = matcher.find_all("사용자권한을 확인한다.".as_bytes());
 - `compile`은 query plan과 anchor matcher를 만들고 component resource가 필요한 plan의 누락을
   `ComponentResourceRequired`로 보고한다.
 - `Matcher::find_at`과 `find_all`은 UTF-8 byte offset과 형태 provenance가 포함된
-  `PhraseMatch`를 반환한다.
+  `PhraseMatch`를 반환한다. `find_all_limit(input, max_matches)`는 같은 결과를 최대
+  `max_matches`개까지 수집하고 추가 일치가 있으면 `MatchLimitExceeded`를 반환한다.
+  `max_matches = 0`은 일치가 없을 때만 빈 결과를 반환한다.
 - root의 `PhraseMatch`, `VerifiedSpan`, `Origin`, `RuleId`와 compile option·오류는 1.x 안정
   계약이다. `QueryPlan`, candidate program·structural constraint 표현, `Lexicons`와 plan inspection은 `kfind::expert`의
   변경 가능한 저수준 API다.
 - workspace 내부 crate는 게시하지 않으며 `kfind::expert` 외의 경로를 공개 API로 간주하지 않는다.
 - JavaScript API는 같은 profile을 `Kfind.withResources`, 같은 수명 주기를
-  `loadComponentResource`, `compile`, `Matcher.findAll`로 노출하고 offset을 UTF-16 code unit으로
-  변환한다.
+  `loadComponentResource`, `compile`, `Matcher.findAll`, `Matcher.findAllLimit`,
+  `Matcher.findAt`, `Matcher.findAllWithDiagnostics`로 노출한다. 일치 span과 `findAt`의
+  시작 위치는 UTF-16 code unit이다. `findAllLimit`은 결과가 상한을 초과하면 오류를 던지고,
+  `findAt`은 일치가 없으면 `null`을 반환하며 surrogate pair 중간 위치는 거절한다.
+  `findAllWithDiagnostics`는 일치 목록과 구조 검증 불완전 여부를 반환한다.
 
 ## 25. 제품 원칙
 
