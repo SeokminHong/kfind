@@ -13,7 +13,8 @@ use kfind_data::{
 };
 use kfind_matcher::{MorphMatcher, MorphMatcherBuildError};
 use kfind_query::{
-    CompileError, CompileOptionError, LexiconQueryAnalyzer, Lexicons, compile_query, parse_query,
+    CompileError, CompileOptionError, ExpandMode, LexiconQueryAnalyzer, Lexicons, compile_query,
+    parse_query,
 };
 use kfind_search::{
     ExecutionOptions, InputEncoding, InputOptions, ResultOrder, SearchConfig, SearchEvent,
@@ -196,6 +197,7 @@ where
             && status_from_summary(summary) == ExitStatus::NoMatch
         {
             let suggest_pos = args.pos.is_none()
+                && options.expand != ExpandMode::Literal
                 && parse_query(query, &options)
                     .is_ok_and(|ast| ast.atoms.iter().all(|atom| atom.forced_pos.is_none()));
             write_no_match_hints(stderr, args, &full_pos_status, suggest_pos, language)?;

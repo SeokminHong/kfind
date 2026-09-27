@@ -95,6 +95,18 @@ fn no_match_hints_skip_explicit_pos_and_unsearched_inputs() {
     assert_eq!(status, ExitStatus::NoMatch);
     assert!(!String::from_utf8(stderr).unwrap().contains("--pos"));
 
+    let args = Args::try_parse_from([
+        "kfind",
+        "--embedded",
+        "--literal",
+        "--explain-no-match",
+        "걷다",
+    ])
+    .unwrap();
+    let (status, _, stderr) = run(args, "대상이 없습니다.\n".as_bytes(), false);
+    assert_eq!(status, ExitStatus::NoMatch);
+    assert!(!String::from_utf8(stderr).unwrap().contains("--pos"));
+
     let temp = TempDir::new();
     let args = Args::try_parse_from([
         "kfind",

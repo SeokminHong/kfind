@@ -60,6 +60,10 @@ pub enum QueryErrorKind {
         actual: usize,
         limit: usize,
     },
+    TooManyGroupedPaths {
+        actual: usize,
+        limit: usize,
+    },
     MissingDisjunctionOperand,
     MixedPhraseAndDisjunction,
     ConflictingPos {
@@ -85,6 +89,12 @@ impl fmt::Display for QueryErrorKind {
             }
             Self::TooManyAtoms { actual, limit } => {
                 write!(formatter, "query has {actual} atoms; limit is {limit}")
+            }
+            Self::TooManyGroupedPaths { actual, limit } => {
+                write!(
+                    formatter,
+                    "query has {actual} grouped paths; limit is {limit}"
+                )
             }
             Self::MissingDisjunctionOperand => {
                 formatter.write_str("invalid `|` operand or parenthesis")

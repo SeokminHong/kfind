@@ -23,7 +23,7 @@ A concrete global POS conflicting with an atom tag is a compile error.
 
 ## Alternatives [#alternatives]
 
-Whitespace around `|` is optional. `A B | C D` chooses between two phrases; `(A | B) C` joins a grouped choice to the following atom. Groups may be nested.
+Whitespace around `|` is optional. `A B | C D` chooses between two phrases; `(A | B) C` joins a grouped choice to the following atom. Groups may be nested, with at most 32 complete paths.
 
 Escape or quote literal `|`, `(`, and `)`. Quote the whole query in a CLI shell.
 
