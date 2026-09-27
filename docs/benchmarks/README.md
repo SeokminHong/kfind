@@ -160,6 +160,22 @@ cargo bench -p kfind-testkit --bench query_matcher -- matcher/build_and_find_str
 scripts/benchmark-criterion.sh matcher/disjunction_find_all
 ```
 
+## 괄호 질의 CLI
+
+네이티브 CLI의 기존 구 검색과 괄호 대안 검색을 같은 입력에서 fresh process로 측정한다.
+기준·후보 release binary를 각각 빌드한 뒤 다음 runner에 절대 경로와 Git revision을 전달한다.
+기본값은 각 workload의 warm-up 2회와 측정 20회이며, 기존 구는 기준·후보 실행 순서를
+교대한다. runner는 JSON 결과 수와 기존 구의 양쪽 출력을 확인하고 입력·binary checksum,
+median/min/max/p95를 JSON 보고서에 기록한다.
+
+```console
+python3 tools/query-cli-benchmark/benchmark.py \
+  --baseline /path/to/baseline/kfind \
+  --candidate /path/to/candidate/kfind \
+  --baseline-revision BASELINE_SHA --candidate-revision CANDIDATE_SHA \
+  --output target/benchmark/query-cli/report.json
+```
+
 앞의 phrase benchmark는 입력의 anchor·atom span 수집과 leftmost-longest non-overlapping 결과 선택을
 포함한다. `grouped_find_all`은 괄호로 묶은 대안 뒤에 이어지는 atom을 한 번의 scan에서 찾는다.
 `phrase_find_all_repeated`는 가능한 atom 조합을 모두 만들어 메모리에 쌓지 않는지 감시한다.
