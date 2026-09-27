@@ -5,11 +5,13 @@ mod output;
 mod resources;
 
 use kfind::expert::MatcherExt;
-use kfind::{Engine, Matcher as RustMatcher};
+use kfind::{Engine, Matcher as RustMatcher, SearchDiagnostics};
 use wasm_bindgen::prelude::*;
 
 use crate::options::parse_compile_options;
-use crate::output::serialize_matches;
+use crate::output::{
+    serialize_match, serialize_matches, serialize_matches_with_diagnostics, utf16_offset_to_byte,
+};
 
 #[wasm_bindgen(typescript_custom_section)]
 const TYPESCRIPT_TYPES: &str = r#"
@@ -65,6 +67,11 @@ export interface Match {
   readonly start: number;
   readonly end: number;
   readonly atoms: readonly MatchAtom[];
+}
+
+export interface SearchResult {
+  readonly matches: readonly Match[];
+  readonly structuralVerificationIncomplete: boolean;
 }
 
 export interface Kfind {
@@ -166,4 +173,49 @@ impl Matcher {
             self.inner.plan(),
         )
     }
+
+    #[wasm_bindgen(js_name = findAllLimit, unchecked_return_type = "readonly Match[]")]
+    pub fn find_all_limit(&self, text: &str, max_matches: f64) -> Result<JsValue, JsError> {
+        let max_matches = nonnegative_u32(max_matches, "maxMatches")?;
+        let matches = self
+            .inner
+            .find_all_limit(text.as_bytes(), max_matches)
+            .map_err(|error| JsError::new(&error.to_string()))?;
+        serialize_matches(text, &matches, self.inner.plan())
+    }
+
+    #[wasm_bindgen(js_name = findAt, unchecked_return_type = "Match | null")]
+    pub fn find_at(&self, text: &str, offset: f64) -> Result<JsValue, JsError> {
+        let offset = nonnegative_u32(offset, "offset")?;
+        let Some(byte_offset) = utf16_offset_to_byte(text, offset)? else {
+            return Ok(JsValue::NULL);
+        };
+        match self.inner.find_at(text.as_bytes(), byte_offset) {
+            Some(matched) => serialize_match(text, &matched, self.inner.plan()),
+            None => Ok(JsValue::NULL),
+        }
+    }
+
+    #[wasm_bindgen(js_name = findAllWithDiagnostics, unchecked_return_type = "SearchResult")]
+    pub fn find_all_with_diagnostics(&self, text: &str) -> Result<JsValue, JsError> {
+        let diagnostics = SearchDiagnostics::default();
+        let matches = self
+            .inner
+            .find_all_with_diagnostics(text.as_bytes(), &diagnostics);
+        serialize_matches_with_diagnostics(
+            text,
+            &matches,
+            self.inner.plan(),
+            diagnostics.structural_verification_incomplete(),
+        )
+    }
+}
+
+fn nonnegative_u32(value: f64, name: &str) -> Result<usize, JsError> {
+    if !value.is_finite() || value.fract() != 0.0 || !(0.0..=f64::from(u32::MAX)).contains(&value) {
+        return Err(JsError::new(&format!(
+            "{name} must be a non-negative 32-bit integer"
+        )));
+    }
+    Ok(value as usize)
 }

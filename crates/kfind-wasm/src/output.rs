@@ -43,6 +43,52 @@ pub fn serialize_matches(
         .map_err(|error| JsError::new(&format!("failed to serialize matches: {error}")))
 }
 
+pub fn serialize_match(
+    text: &str,
+    matched: &PhraseMatch,
+    plan: &QueryPlan,
+) -> Result<JsValue, JsError> {
+    let mut output = convert_matches(text, std::slice::from_ref(matched), plan)
+        .map_err(|message| JsError::new(&message))?;
+    serde_wasm_bindgen::to_value(&output.pop().expect("one match was converted"))
+        .map_err(|error| JsError::new(&format!("failed to serialize match: {error}")))
+}
+
+pub fn serialize_matches_with_diagnostics(
+    text: &str,
+    matches: &[PhraseMatch],
+    plan: &QueryPlan,
+    structural_verification_incomplete: bool,
+) -> Result<JsValue, JsError> {
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    struct SearchOutput {
+        matches: Vec<MatchOutput>,
+        structural_verification_incomplete: bool,
+    }
+
+    let output = SearchOutput {
+        matches: convert_matches(text, matches, plan).map_err(|message| JsError::new(&message))?,
+        structural_verification_incomplete,
+    };
+    serde_wasm_bindgen::to_value(&output)
+        .map_err(|error| JsError::new(&format!("failed to serialize matches: {error}")))
+}
+
+pub fn utf16_offset_to_byte(text: &str, offset: usize) -> Result<Option<usize>, JsError> {
+    let mut utf16_offset = 0;
+    for (byte_offset, character) in text.char_indices() {
+        if utf16_offset == offset {
+            return Ok(Some(byte_offset));
+        }
+        utf16_offset += character.len_utf16();
+        if utf16_offset > offset {
+            return Err(JsError::new("findAt offset splits a UTF-16 surrogate pair"));
+        }
+    }
+    Ok((utf16_offset == offset).then_some(text.len()))
+}
+
 fn convert_matches(
     text: &str,
     matches: &[PhraseMatch],

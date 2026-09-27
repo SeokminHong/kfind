@@ -14,7 +14,9 @@ use kfind_matcher::MorphMatcher;
 use kfind_query::{LexiconQueryAnalyzer, compile_query};
 
 pub use kfind_data::{DataError, DataErrorKind, SourceLocation};
-pub use kfind_matcher::{AnchorBuildError, MorphMatcherBuildError, SearchDiagnostics};
+pub use kfind_matcher::{
+    AnchorBuildError, MatchLimitExceeded, MorphMatcherBuildError, SearchDiagnostics,
+};
 pub use kfind_morph::{CoarsePos, GenerateError, LexicalAlternation, RuleId};
 use kfind_query::Lexicons;
 pub use kfind_query::{
@@ -175,6 +177,17 @@ impl Matcher {
     #[must_use]
     pub fn find_all(&self, input: &[u8]) -> Vec<PhraseMatch> {
         self.inner.find_all_with_meta(input)
+    }
+
+    /// Collects up to `max_matches` non-overlapping matches.
+    ///
+    /// Returns an error if another match exists beyond the limit.
+    pub fn find_all_limit(
+        &self,
+        input: &[u8],
+        max_matches: usize,
+    ) -> Result<Vec<PhraseMatch>, MatchLimitExceeded> {
+        self.inner.find_all_with_meta_limit(input, max_matches)
     }
 
     /// Finds all matches and accumulates unavailable structural verification in this scope.

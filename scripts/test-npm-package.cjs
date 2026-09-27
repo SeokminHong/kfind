@@ -26,6 +26,20 @@ assert.deepEqual(matches[0].atoms[0].origins[0].rulePath, [
   "lexical.d-to-l",
   "ending.aoeo",
 ]);
+assert.deepEqual(matcher.findAllLimit(text, 1), matches);
+assert.throws(
+  () => matcher.findAllLimit(text, 0),
+  /match count exceeds limit 0/,
+);
+assert.throws(() => matcher.findAllLimit(text, -1), /maxMatches must be/);
+assert.deepEqual(matcher.findAt(text, 0), matches[0]);
+assert.deepEqual(matcher.findAt(text, 3), matches[0]);
+assert.throws(() => matcher.findAt(text, 1), /surrogate pair/);
+assert.equal(matcher.findAt(text, text.length), null);
+assert.deepEqual(matcher.findAllWithDiagnostics(text), {
+  matches,
+  structuralVerificationIncomplete: false,
+});
 
 const literal = engine.compile("걸어", { literal: true });
 assert.equal(literal.findAll("다시 걸어 보자.").length, 1);
@@ -87,7 +101,8 @@ assert.throws(
   /failed to initialize/,
 );
 assert.throws(
-  () => Kfind.withResources({ enrichedPredicates: "lemma\tpos\ninvalid\tVV\n" }),
+  () =>
+    Kfind.withResources({ enrichedPredicates: "lemma\tpos\ninvalid\tVV\n" }),
   /failed to initialize/,
 );
 
@@ -137,8 +152,23 @@ assert.match(
 );
 assert.match(declarations, /readonly componentResourceLoaded: boolean/);
 assert.match(declarations, /readonly enrichedPredicatesLoaded: boolean/);
-assert.match(declarations, /compile\(query: string, options\?: CompileOptions\): Matcher/);
+assert.match(
+  declarations,
+  /compile\(query: string, options\?: CompileOptions\): Matcher/,
+);
 assert.match(declarations, /findAll\(text: string\): readonly Match\[\]/);
+assert.match(
+  declarations,
+  /findAllLimit\(text: string, max_matches: number\): readonly Match\[\]/,
+);
+assert.match(
+  declarations,
+  /findAt\(text: string, offset: number\): Match \| null/,
+);
+assert.match(
+  declarations,
+  /findAllWithDiagnostics\(text: string\): SearchResult/,
+);
 
 literal.free();
 matcher.free();

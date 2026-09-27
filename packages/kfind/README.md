@@ -18,6 +18,10 @@ const matches = matcher.findAll(text);
 console.log(text.slice(matches[0].start, matches[0].end));
 ```
 
+`findAllLimit(text, maxMatches)`는 일치가 상한을 넘으면 오류를 던져 결과 메모리를
+제한합니다. `findAt(text, offset)`은 UTF-16 위치 이후 첫 일치 또는 `null`을 반환합니다.
+`findAllWithDiagnostics(text)`는 결과와 구조 검증 불완전 여부를 반환합니다.
+
 여러 atom 중 하나를 찾으려면 `|`를 사용합니다.
 
 ```js
