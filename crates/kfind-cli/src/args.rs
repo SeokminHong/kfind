@@ -189,6 +189,9 @@ pub struct Args {
     #[arg(long)]
     pub explain_match: bool,
 
+    #[arg(long, conflicts_with_all = ["json", "quiet"])]
+    pub explain_no_match: bool,
+
     #[arg(long, value_enum)]
     pub sort: Option<SortArg>,
 
@@ -231,6 +234,7 @@ pub struct Args {
             "column",
             "explain_query",
             "explain_match",
+            "explain_no_match",
             "sort",
             "user_lexicon",
             "init",
@@ -275,6 +279,7 @@ pub struct Args {
             "column",
             "explain_query",
             "explain_match",
+            "explain_no_match",
             "sort",
             "data_dir",
             "user_lexicon",
@@ -318,6 +323,7 @@ pub struct Args {
             "column",
             "explain_query",
             "explain_match",
+            "explain_no_match",
             "sort",
             "data_dir",
             "user_lexicon",

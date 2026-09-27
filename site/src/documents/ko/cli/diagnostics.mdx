@@ -8,9 +8,12 @@
 
 먼저 종료 코드와 stderr를 확인합니다. 일반 검색에서 1은 일치 없음, 2는 오류입니다. 오류가 없다면 같은 파일에서 조건을 하나씩 비교합니다.
 
+`--explain-no-match`는 검색이 정상 완료됐지만 0건일 때 경계·품사·full POS 사전 관련 재검색 방법을 stderr에 제안합니다. 다른 조건으로 자동 검색하지 않으며, 제안이 실제로 결과를 찾는지는 확인하지 않습니다. JSON과 quiet mode에는 사용할 수 없습니다.
+
 ```bash
 # 검색어와 사전 분석 확인
 kfind --explain-query --pos verb 걷다
+kfind --explain-no-match 걷다 sample.txt
 
 # 같은 파일에서 경계 조건만 비교
 kfind --pos verb --boundary smart 걷다 sample.txt

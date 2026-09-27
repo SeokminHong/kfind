@@ -69,6 +69,73 @@ fn piped_stdin_is_the_default_and_sets_match_exit_status() {
 }
 
 #[test]
+fn no_match_hints_preserve_results_and_exit_status() {
+    let args = Args::try_parse_from(["kfind", "--embedded", "--explain-no-match", "걷다"]).unwrap();
+    let (status, stdout, stderr) = run(args, "대상이 없습니다.\n".as_bytes(), false);
+    assert_eq!(status, ExitStatus::NoMatch);
+    assert!(stdout.is_empty());
+    let explanation = String::from_utf8(stderr).unwrap();
+    assert!(explanation.contains("not been tested"));
+    assert!(explanation.contains("--boundary any"));
+    assert!(explanation.contains("--pos"));
+    assert!(explanation.contains("without --embedded"));
+
+    let args = Args::try_parse_from(["kfind", "--embedded", "--explain-no-match", "걷다"]).unwrap();
+    let (status, stdout, stderr) = run(args, "길을 걸어 갔다.\n".as_bytes(), false);
+    assert_eq!(status, ExitStatus::Match);
+    assert!(!stdout.is_empty());
+    assert!(stderr.is_empty());
+}
+
+#[test]
+fn no_match_hints_skip_explicit_pos_and_unsearched_inputs() {
+    let args =
+        Args::try_parse_from(["kfind", "--embedded", "--explain-no-match", "v:걷다"]).unwrap();
+    let (status, _, stderr) = run(args, "대상이 없습니다.\n".as_bytes(), false);
+    assert_eq!(status, ExitStatus::NoMatch);
+    assert!(!String::from_utf8(stderr).unwrap().contains("--pos"));
+
+    let temp = TempDir::new();
+    let args = Args::try_parse_from([
+        "kfind",
+        "--embedded",
+        "--explain-no-match",
+        "걷다",
+        temp.0.to_str().unwrap(),
+    ])
+    .unwrap();
+    let (status, _, stderr) = run(args, &[], true);
+    assert_eq!(status, ExitStatus::NoMatch);
+    assert!(stderr.is_empty());
+
+    let missing = temp.0.join("missing.txt");
+    let args = Args::try_parse_from([
+        "kfind",
+        "--embedded",
+        "--explain-no-match",
+        "걷다",
+        missing.to_str().unwrap(),
+    ])
+    .unwrap();
+    let (status, _, stderr) = run(args, &[], true);
+    assert_eq!(status, ExitStatus::Error);
+    assert!(
+        !String::from_utf8(stderr)
+            .unwrap()
+            .contains("not been tested")
+    );
+}
+
+#[test]
+fn no_match_hints_reject_machine_or_quiet_output() {
+    for output_mode in ["--json", "--quiet"] {
+        assert!(
+            Args::try_parse_from(["kfind", "--explain-no-match", output_mode, "걷다"]).is_err()
+        );
+    }
+}
+
+#[test]
 fn disjunction_reports_lines_matching_either_alternative() {
     let args = Args::try_parse_from(["kfind", "--embedded", "lit:alpha | lit:beta"]).unwrap();
 

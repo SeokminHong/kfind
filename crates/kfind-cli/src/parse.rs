@@ -168,6 +168,11 @@ const HELP_TEXT: &[(&str, &str, &str)] = &[
         "각 match를 생성한 표제어와 규칙을 출력합니다.",
     ),
     (
+        "explain_no_match",
+        "Suggest ways to retry when a search finds no matches.",
+        "검색 결과가 0건일 때 재검색 방법을 제안합니다.",
+    ),
+    (
         "sort",
         "Choose result ordering (values: path).",
         "결과 정렬 방식을 선택합니다(값: path).",
