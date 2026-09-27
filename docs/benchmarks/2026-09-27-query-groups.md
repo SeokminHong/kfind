@@ -4,8 +4,23 @@
 - 기준 revision: `8049fd25a9862f9d704241b8f8571e189b28e32d`; 후보 코드 revision: `3494916fe9a0794a5ccfe2f58db918a6588e44ec`
 - 환경: macOS 26.6.2 / Darwin 25.6.0, Apple M1 Max, 32 GiB, Rust/Cargo 1.97.0, Criterion 0.7.0, Python 3.14.7. 두 revision을 별도 worktree에서 같은 호스트와 release 빌드 설정으로 순차 측정했다.
 - Matcher 명령: 각 worktree에서 `scripts/benchmark-criterion.sh 'matcher/(phrase_find_all$|disjunction_find_all$|grouped_find_all$)'`. Criterion 기본 warm-up 3초 뒤 workload별 100개 sample을 수집했다. 기준에는 새 `grouped_find_all` workload가 없다.
+- Query compile 명령: 각 worktree에서 `scripts/benchmark-criterion.sh 'query_compile/'`. 두 revision에서 동일한 `single_atom` (`걷다`), `phrase_8_atoms`, `disjunction_8_atoms` 질의와 기본 `CompileOptions`, 같은 analyzer를 사용했다. Criterion 기본 warm-up 3초 뒤 workload별 100개 sample을 수집했다. 기준→후보와 후보→기준 순서로 각 1회 측정해 순서 영향을 확인했다. 이 측정은 matcher 실행을 포함하지 않는다.
 - Matcher 입력: 기존 `disjunction_find_all`은 1,024줄 72,400 bytes, SHA-256 `179344011414c9c439eea3700b3f33e844eb21b6f241e97615696eeba25de450`; 기존 `phrase_find_all`과 새 `grouped_find_all`은 1,024줄 67,840 bytes, SHA-256 `3a4a988768c1ced64293e3cf3c6a850e761ba99ebdd06c17931ead0da4f82375`다. 공통 workload의 질의·입력·설정은 같다. Benchmark source checksum은 기준 `eaba65648df691bc73898d716d31c56a88828c68153753bf7edf855c6f2d21be`, 후보 `4d61ec3ab0436dafd2ee4dcbcc2378c6f0da57aa7d2411becea2d316235f1014`이며 후보의 차이는 새 grouped workload 추가다.
 - 대표값: Criterion `sample.json`의 각 `times[i] / iters[i]`를 µs로 환산한 median과 nearest-rank p95. 작을수록 빠르다.
+
+| Query compile workload, 기준→후보 | 기준 median / p95 (µs) | 후보 median / p95 (µs) | median 변화 | p95 변화 |
+| --- | ---: | ---: | ---: | ---: |
+| `single_atom` | 45.32 / 46.70 | 47.89 / 49.45 | +5.67% | +5.89% |
+| `phrase_8_atoms` | 113.93 / 117.90 | 120.05 / 123.28 | +5.37% | +4.56% |
+| `disjunction_8_atoms` | 115.21 / 119.40 | 120.87 / 123.64 | +4.91% | +3.56% |
+
+| Query compile workload, 후보→기준 | 기준 median / p95 (µs) | 후보 median / p95 (µs) | median 변화 | p95 변화 |
+| --- | ---: | ---: | ---: | ---: |
+| `single_atom` | 45.26 / 46.14 | 46.42 / 47.87 | +2.56% | +3.74% |
+| `phrase_8_atoms` | 113.54 / 117.05 | 117.62 / 119.13 | +3.59% | +1.78% |
+| `disjunction_8_atoms` | 115.03 / 120.15 | 118.93 / 121.76 | +3.40% | +1.34% |
+
+기존 query compile workload는 두 순서 모두 median이 느려졌고, 변화 폭은 +2.56–5.67%였다. 순서에 따른 측정 변동도 있어 단일 수치를 고정 회귀율로 해석하지 않는다.
 
 | Matcher workload | 기준 median / p95 (µs) | 후보 median / p95 (µs) | median 변화 | p95 변화 |
 | --- | ---: | ---: | ---: | ---: |
