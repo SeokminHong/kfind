@@ -43,8 +43,13 @@ kfind --embedded --boundary any --pos verb --json '검증하다' src docs
 kfind --embedded --boundary any --json 'v:걷다 | n:사용자 | n:검증' src docs
 ```
 
-각 `|` alternative는 하나의 atom이어야 하며 공백 구와 섞지 않습니다. Literal
-`|`는 `\|` 또는 `"|"`로 작성합니다.
+`|`는 구 전체를 대안으로 선택할 수 있습니다. 괄호로 대안을 묶으면 뒤의 atom과
+결합할 수 있고, 괄호를 중첩할 수 있습니다. Literal `|`, `(`, `)`는 escape하거나
+인용합니다.
+
+```sh
+kfind --embedded --boundary any --json '(n:권한 | n:역할) v:검증하다' src
+```
 
 품사가 섞인 구는 atom마다 태그를 붙입니다.
 
@@ -87,7 +92,7 @@ kfind --embedded --boundary any --json 'n:권한 "접근 제어" v:검증하다'
 
 구 atom은 한 줄에서 순서대로 나타나야 합니다. `--max-gap N`은 인접한 검증
 token 사이의 최대 Unicode scalar 수를 지정하며 기본값은 24입니다. 이 옵션은
-구에만 적용됩니다. 등록된
+순서대로 결합한 atom 사이에 적용됩니다. 등록된
 파생형도 필요할 때만 `--expand derivation`을 사용합니다. 기본값인
 `inflection`은 조사와 활용 어미를 포함합니다.
 

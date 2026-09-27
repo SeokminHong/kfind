@@ -56,7 +56,7 @@ atom 1 spans ─┼─ ordered join ─ max-gap ─ phrase span
 atom 2 spans ─┘
 ```
 
-`|` 대안은 하나의 논리 atom으로 컴파일합니다. 각 대안의 고유 anchor를 한 matcher가 함께 검색하고, 같은 span을 만든 대안의 provenance는 origin으로 합칩니다.
+단일 atom의 `|` 대안은 하나의 논리 atom으로 컴파일합니다. 괄호와 구 대안은 atom 간 경로 그래프로 유지합니다. 한 matcher가 고유 anchor를 함께 검색하고, 같은 span의 대안은 중복 반환하지 않습니다.
 
 ## 병렬 순회와 출력 [#parallel-output]
 

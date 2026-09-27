@@ -16,7 +16,7 @@ Lexicon lookup은 표제어, coarse POS와 user entry를 조합해 가능한 분
 
 ## query 결합 [#composition]
 
-Phrase는 atom별 plan을 순서대로 유지하고 matcher에서 `--max-gap`으로 결합합니다. Disjunction은 각 대안의 분석과 프로그램을 하나의 logical atom으로 합칩니다.
+Phrase는 atom별 plan을 순서대로 유지하고 matcher에서 `--max-gap`으로 결합합니다. 괄호와 구 대안은 atom 간 간선을 공유하는 경로 그래프로 표현해 조합을 나열하지 않습니다. 단일 atom 대안은 분석과 프로그램을 하나의 logical atom으로 합칩니다.
 
 Disjunction origin의 analysis index는 합쳐진 분석 배열에 맞춰 다시 매핑합니다. 같은 span을 만드는 대안은 결과를 중복하지 않고 모든 origin을 보존합니다.
 

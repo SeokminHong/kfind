@@ -10,7 +10,7 @@ use kfind_morph::{
 
 use crate::{
     Analysis, BoundaryPolicy, Morphology, NormalizationMode, PhrasePolicy, PlanLimits,
-    QueryComposition,
+    QueryComposition, QueryGraph,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -18,6 +18,7 @@ pub struct QueryPlan {
     pub raw_query: Box<str>,
     pub atoms: Vec<AtomPlan>,
     pub composition: QueryComposition,
+    pub graph: Option<QueryGraph>,
     pub phrase_policy: PhrasePolicy,
     pub normalization: NormalizationMode,
     pub limits: PlanLimits,

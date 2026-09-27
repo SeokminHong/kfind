@@ -1,5 +1,5 @@
-use kfind::PhraseMatch;
 use kfind::expert::QueryPlan;
+use kfind::{PhraseMatch, RoutedMatch};
 use serde::Serialize;
 use wasm_bindgen::{JsError, JsValue};
 
@@ -9,28 +9,8 @@ struct MatchOutput {
     start: usize,
     end: usize,
     atoms: Vec<AtomOutput>,
-}
-
-#[derive(Debug, PartialEq, Eq, Serialize)]
-struct AtomOutput {
-    core: SpanOutput,
-    token: SpanOutput,
-    origins: Vec<OriginOutput>,
-}
-
-#[derive(Debug, PartialEq, Eq, Serialize)]
-struct SpanOutput {
-    start: usize,
-    end: usize,
-}
-
-#[derive(Debug, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "camelCase")]
-struct OriginOutput {
-    analysis_index: u16,
     #[serde(skip_serializing_if = "Option::is_none")]
-    lemma: Option<String>,
-    rule_path: Vec<String>,
+    query_atom_indices: Option<Vec<usize>>,
 }
 
 pub fn serialize_matches(
@@ -66,13 +46,93 @@ pub fn serialize_matches_with_diagnostics(
         matches: Vec<MatchOutput>,
         structural_verification_incomplete: bool,
     }
-
     let output = SearchOutput {
         matches: convert_matches(text, matches, plan).map_err(|message| JsError::new(&message))?,
         structural_verification_incomplete,
     };
     serde_wasm_bindgen::to_value(&output)
         .map_err(|error| JsError::new(&format!("failed to serialize matches: {error}")))
+}
+
+pub fn serialize_routed_matches(
+    text: &str,
+    routed: &[RoutedMatch],
+    plan: &QueryPlan,
+) -> Result<JsValue, JsError> {
+    let output =
+        convert_routed_matches(text, routed, plan).map_err(|message| JsError::new(&message))?;
+    serde_wasm_bindgen::to_value(&output)
+        .map_err(|error| JsError::new(&format!("failed to serialize matches: {error}")))
+}
+
+pub fn serialize_routed_match(
+    text: &str,
+    routed: &RoutedMatch,
+    plan: &QueryPlan,
+) -> Result<JsValue, JsError> {
+    let mut output = convert_routed_matches(text, std::slice::from_ref(routed), plan)
+        .map_err(|message| JsError::new(&message))?;
+    serde_wasm_bindgen::to_value(&output.pop().expect("one match was converted"))
+        .map_err(|error| JsError::new(&format!("failed to serialize match: {error}")))
+}
+
+pub fn serialize_routed_matches_with_diagnostics(
+    text: &str,
+    routed: &[RoutedMatch],
+    plan: &QueryPlan,
+    structural_verification_incomplete: bool,
+) -> Result<JsValue, JsError> {
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    struct SearchOutput {
+        matches: Vec<MatchOutput>,
+        structural_verification_incomplete: bool,
+    }
+    let output = SearchOutput {
+        matches: convert_routed_matches(text, routed, plan)
+            .map_err(|message| JsError::new(&message))?,
+        structural_verification_incomplete,
+    };
+    serde_wasm_bindgen::to_value(&output)
+        .map_err(|error| JsError::new(&format!("failed to serialize matches: {error}")))
+}
+
+fn convert_routed_matches(
+    text: &str,
+    routed: &[RoutedMatch],
+    plan: &QueryPlan,
+) -> Result<Vec<MatchOutput>, String> {
+    let matches = routed
+        .iter()
+        .map(|route| &route.matched)
+        .collect::<Vec<_>>();
+    let routes = routed
+        .iter()
+        .map(|route| route.query_atom_indices.as_slice())
+        .collect::<Vec<_>>();
+    convert_matches_with_routes(text, &matches, plan, Some(&routes))
+}
+
+#[derive(Debug, PartialEq, Eq, Serialize)]
+struct AtomOutput {
+    core: SpanOutput,
+    token: SpanOutput,
+    origins: Vec<OriginOutput>,
+}
+
+#[derive(Debug, PartialEq, Eq, Serialize)]
+struct SpanOutput {
+    start: usize,
+    end: usize,
+}
+
+#[derive(Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct OriginOutput {
+    analysis_index: u16,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    lemma: Option<String>,
+    rule_path: Vec<String>,
 }
 
 pub fn utf16_offset_to_byte(text: &str, offset: usize) -> Result<Option<usize>, JsError> {
@@ -94,18 +154,32 @@ fn convert_matches(
     matches: &[PhraseMatch],
     plan: &QueryPlan,
 ) -> Result<Vec<MatchOutput>, String> {
+    let matches = matches.iter().collect::<Vec<_>>();
+    convert_matches_with_routes(text, &matches, plan, None)
+}
+
+fn convert_matches_with_routes(
+    text: &str,
+    matches: &[&PhraseMatch],
+    plan: &QueryPlan,
+    routes: Option<&[&[usize]]>,
+) -> Result<Vec<MatchOutput>, String> {
     let offsets = Utf16Offsets::new(text, matches)?;
     matches
         .iter()
-        .map(|matched| {
+        .enumerate()
+        .map(|(match_index, matched)| {
             Ok(MatchOutput {
                 start: offsets.get(matched.span.start)?,
                 end: offsets.get(matched.span.end)?,
+                query_atom_indices: plan.graph.as_ref().and_then(|_| routes.and_then(|routes| routes.get(match_index)).map(|route| route.to_vec())),
                 atoms: matched
                     .atoms
                     .iter()
                     .enumerate()
-                    .map(|(atom_index, atom)| {
+                    .map(|(position, atom)| {
+                        let atom_index = routes.and_then(|routes| routes.get(match_index))
+                            .and_then(|route| route.get(position)).copied().unwrap_or(position);
                         Ok(AtomOutput {
                             core: SpanOutput {
                                 start: offsets.get(atom.core.start)?,
@@ -161,7 +235,7 @@ struct Utf16Offsets {
 }
 
 impl Utf16Offsets {
-    fn new(text: &str, matches: &[PhraseMatch]) -> Result<Self, String> {
+    fn new(text: &str, matches: &[&PhraseMatch]) -> Result<Self, String> {
         let mut byte_offsets = Vec::new();
         for matched in matches {
             byte_offsets.extend([matched.span.start, matched.span.end]);
@@ -206,6 +280,26 @@ impl Utf16Offsets {
 mod tests {
     use super::*;
     use kfind::expert::MatcherExt;
+
+    #[test]
+    fn grouped_matches_include_the_chosen_query_atom_indices() {
+        let engine = kfind::Engine::new().unwrap();
+        let matcher = engine
+            .compile(
+                "(사과 | 배) 가격",
+                &kfind::CompileOptions {
+                    expand: kfind::ExpandMode::Literal,
+                    boundary: kfind::BoundaryPolicy::Token,
+                    phrase: kfind::PhrasePolicy { max_gap: 1 },
+                    ..kfind::CompileOptions::default()
+                },
+            )
+            .unwrap();
+        let text = "배 가격";
+        let routed = matcher.find_all_with_routes(text.as_bytes());
+        let output = convert_routed_matches(text, &routed, matcher.plan()).unwrap();
+        assert_eq!(output[0].query_atom_indices, Some(vec![1, 2]));
+    }
 
     #[test]
     fn converts_utf8_byte_offsets_to_utf16_code_units() {

@@ -15,7 +15,8 @@ use kfind_morph::{
     PredicatePos, QueryMorphPattern,
 };
 use kfind_query::{
-    BoundaryPolicy, CompileOptions, LexiconQueryAnalyzer, Lexicons, PhrasePolicy, compile_query,
+    BoundaryPolicy, CompileOptions, ExpandMode, LexiconQueryAnalyzer, Lexicons, PhrasePolicy,
+    compile_query,
 };
 use kfind_search::{InputOptions, InputSearcher};
 
@@ -38,6 +39,7 @@ const PHRASE_8_ATOMS_QUERY: &str =
 const DISJUNCTION_8_ATOMS_QUERY: &str =
     "n:사용자|n:권한|v:검증하다|adj:예쁘다|det:새|adv:빨리|n:기술|v:걷다";
 const DISJUNCTION_SCAN_QUERY: &str = "lit:걸어|lit:사용자는";
+const GROUPED_SCAN_QUERY: &str = "(lit:길을 | lit:사용자는) lit:걸어";
 const SHORT_MATCHING_TEXT: &[u8] = "길을 걸었다.".as_bytes();
 
 fn query_compile(criterion: &mut Criterion) {
@@ -146,6 +148,25 @@ fn matcher_scan(criterion: &mut Criterion) {
     group.throughput(Throughput::Bytes(phrase_corpus.len() as u64));
     group.bench_function("phrase_find_all", |bencher| {
         bencher.iter(|| phrase_matcher.find_all_with_meta(black_box(&phrase_corpus)));
+    });
+
+    let grouped_options = CompileOptions {
+        expand: ExpandMode::Literal,
+        boundary: BoundaryPolicy::Token,
+        phrase: PhrasePolicy { max_gap: 1 },
+        ..CompileOptions::default()
+    };
+    let grouped_plan = compile_query(GROUPED_SCAN_QUERY, &grouped_options, &analyzer)
+        .expect("grouped benchmark query must compile");
+    let grouped_matcher =
+        MorphMatcher::new(Arc::new(grouped_plan)).expect("grouped benchmark matcher must build");
+    assert_eq!(
+        grouped_matcher.find_all_with_meta(&phrase_corpus).len(),
+        CORPUS_LINES / PHRASE_MATCH_EVERY_LINES
+    );
+    group.throughput(Throughput::Bytes(phrase_corpus.len() as u64));
+    group.bench_function("grouped_find_all", |bencher| {
+        bencher.iter(|| grouped_matcher.find_all_with_meta(black_box(&phrase_corpus)));
     });
 
     let repeated_options = CompileOptions {

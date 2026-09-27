@@ -22,8 +22,8 @@ kfind 걷다 src
 kfind 사용자 src docs
 kfind '걷다 | 사용자 | 검증하다' src docs
 .EE
-Quote a query containing | so the shell does not interpret it as a pipe. Each
-alternative is one atom; phrase atoms and alternatives cannot be mixed.
+Quote a query containing | so the shell does not interpret it as a pipe.
+Alternatives may be phrases or parenthesized groups, for example (A | B) C.
 Standard text results with terminal stdin and stdout open in a built-in TUI when
 the search starts and add completed rows progressively. Long match lines expand
 to one row per verified match, with both sides truncated to keep the target

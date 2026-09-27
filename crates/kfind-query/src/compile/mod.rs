@@ -279,6 +279,7 @@ pub fn compile_query(
     let atom_plans = match ast.composition {
         QueryComposition::Phrase => atom_plans,
         QueryComposition::Disjunction => vec![merge_disjunction_atoms(atom_plans)?],
+        QueryComposition::Grouped => atom_plans,
     };
     if ast.composition == QueryComposition::Disjunction {
         for diagnostic in &mut diagnostics {
@@ -291,6 +292,7 @@ pub fn compile_query(
         raw_query: source.into(),
         atoms: atom_plans,
         composition: ast.composition,
+        graph: ast.graph,
         phrase_policy: ast.phrase,
         normalization: options.normalization,
         limits: options.limits,

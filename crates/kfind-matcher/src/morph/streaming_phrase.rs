@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 use std::collections::{BTreeMap, BinaryHeap};
 use std::rc::Rc;
 
-use kfind_query::{PhraseMatch, PhrasePolicy, VerifiedSpan};
+use kfind_query::{PhraseMatch, PhrasePolicy, QueryGraph, VerifiedSpan};
 
 use crate::{AnchorHit, AnchorHits, SearchDiagnostics};
 
@@ -35,6 +35,7 @@ pub(super) fn select_with_diagnostics<'a>(
     let mut metrics = MetricCursor::new(&text);
     let mut selector = StreamingSelector::new(
         matcher.plan.atoms.len(),
+        matcher.plan.graph.as_ref(),
         matcher.plan.phrase_policy,
         limit,
         at,
@@ -233,11 +234,13 @@ impl<'text> MetricCursor<'text> {
 }
 
 struct StreamingSelector {
+    graph: Option<QueryGraph>,
     policy: PhrasePolicy,
     limit: PhraseMatchLimit,
     layers: Vec<ActiveLayer>,
     completed: BTreeMap<usize, PathState>,
     matches: Vec<PhraseMatch>,
+    routes: Vec<Vec<usize>>,
     // Candidates are harvested only after a group remains beyond a pending match end.
     // They let a cursor advance recover prefixes that lost to an overlapping match.
     history: Vec<HistoryCandidate>,
@@ -248,15 +251,27 @@ struct StreamingSelector {
 }
 
 impl StreamingSelector {
-    fn new(atom_count: usize, policy: PhrasePolicy, limit: PhraseMatchLimit, at: usize) -> Self {
+    fn new(
+        atom_count: usize,
+        graph: Option<&QueryGraph>,
+        policy: PhrasePolicy,
+        limit: PhraseMatchLimit,
+        at: usize,
+    ) -> Self {
         Self {
+            graph: graph.cloned(),
             policy,
             limit,
-            layers: (0..atom_count.saturating_sub(1))
+            layers: (0..if graph.is_some() {
+                atom_count
+            } else {
+                atom_count.saturating_sub(1)
+            })
                 .map(|_| ActiveLayer::default())
                 .collect(),
             completed: BTreeMap::new(),
             matches: Vec::new(),
+            routes: Vec::new(),
             history: Vec::new(),
             history_floor: None,
             position: Position::default(),
@@ -270,6 +285,31 @@ impl StreamingSelector {
     }
 
     fn push_state(&mut self, candidate: IndexedCandidate, end: Position) {
+        if let Some(graph) = &self.graph {
+            let index = candidate.atom_index;
+            let is_start = graph.starts[index];
+            let is_end = graph.ends[index];
+            let predecessors = graph.predecessors[index].clone();
+            if is_start && candidate.span.token.start >= self.cursor {
+                let path = PathState::one(candidate.clone());
+                if is_end {
+                    self.record_complete(path);
+                } else {
+                    self.layers[index].insert(end, path);
+                }
+            }
+            for predecessor in predecessors {
+                if let Some(path) = self.layers[predecessor].best() {
+                    let extended = path.extend(candidate.clone(), is_end);
+                    if is_end {
+                        self.record_complete(extended);
+                    } else {
+                        self.layers[index].insert(end, extended);
+                    }
+                }
+            }
+            return;
+        }
         if candidate.atom_index == 0 {
             if candidate.span.token.start < self.cursor {
                 return;
@@ -376,6 +416,9 @@ impl StreamingSelector {
                 self.limit_exceeded = true;
                 return true;
             }
+            if self.graph.is_some() {
+                self.routes.push(path.atom_indices());
+            }
             let matched = path.into_match();
             self.cursor = matched.span.end;
             self.matches.push(matched);
@@ -395,6 +438,7 @@ impl StreamingSelector {
     fn finish(self) -> PhraseSelection {
         PhraseSelection {
             matches: self.matches,
+            routes: self.routes,
             limit_exceeded: self.limit_exceeded,
         }
     }
@@ -572,6 +616,7 @@ impl Ord for ActivePath {
 
 struct PathStep {
     span: VerifiedSpan,
+    atom_index: usize,
     sequence: usize,
 }
 
@@ -599,6 +644,7 @@ impl PathState {
     fn one(candidate: IndexedCandidate) -> Self {
         Self::One(PathStep {
             span: candidate.span,
+            atom_index: candidate.atom_index,
             sequence: candidate.sequence,
         })
     }
@@ -606,12 +652,14 @@ impl PathState {
     fn extend(&self, candidate: IndexedCandidate, final_step: bool) -> Self {
         let step = PathStep {
             span: candidate.span,
+            atom_index: candidate.atom_index,
             sequence: candidate.sequence,
         };
         match self {
             Self::One(first) if final_step => Self::Pair(
                 PathStep {
                     span: first.span.clone(),
+                    atom_index: first.atom_index,
                     sequence: first.sequence,
                 },
                 step,
@@ -623,6 +671,7 @@ impl PathState {
                 tail: Rc::new(PathNode::Pair(
                     PathStep {
                         span: first.span.clone(),
+                        atom_index: first.atom_index,
                         sequence: first.sequence,
                     },
                     step,
@@ -636,10 +685,12 @@ impl PathState {
                     previous: Rc::new(PathNode::Pair(
                         PathStep {
                             span: first.span.clone(),
+                            atom_index: first.atom_index,
                             sequence: first.sequence,
                         },
                         PathStep {
                             span: second.span.clone(),
+                            atom_index: second.atom_index,
                             sequence: second.sequence,
                         },
                     )),
@@ -704,6 +755,26 @@ impl PathState {
         }
     }
 
+    fn atom_index(&self, index: usize) -> usize {
+        match self {
+            Self::One(step) => step.atom_index,
+            Self::Pair(first, second) => {
+                if index == 0 {
+                    first.atom_index
+                } else {
+                    second.atom_index
+                }
+            }
+            Self::Many { tail, len, .. } => atom_index_at(tail, *len, index),
+        }
+    }
+
+    fn atom_indices(&self) -> Vec<usize> {
+        (0..self.len())
+            .map(|index| self.atom_index(index))
+            .collect()
+    }
+
     fn compare_precedence(&self, other: &Self) -> Ordering {
         let ordering = self.first_start().cmp(&other.first_start());
         if !ordering.is_eq() {
@@ -711,25 +782,26 @@ impl PathState {
         }
         if let (
             Self::Many {
-                tail: left_tail,
+                tail: left,
                 len: left_len,
                 ..
             },
             Self::Many {
-                tail: right_tail,
+                tail: right,
                 len: right_len,
                 ..
             },
         ) = (self, other)
             && left_len == right_len
         {
-            return compare_node_sequences(left_tail, right_tail);
+            return compare_node_steps(left, right);
         }
-
         let mut ordering = Ordering::Equal;
         let compared = self.len().min(other.len());
         for index in 0..compared {
-            ordering = ordering.then_with(|| self.sequence(index).cmp(&other.sequence(index)));
+            ordering = ordering
+                .then_with(|| self.atom_index(index).cmp(&other.atom_index(index)))
+                .then_with(|| self.sequence(index).cmp(&other.sequence(index)));
         }
         ordering.then_with(|| self.len().cmp(&other.len()))
     }
@@ -767,10 +839,10 @@ impl PathState {
 
     fn collect_group_candidates(&self, group_start: usize, output: &mut Vec<IndexedCandidate>) {
         match self {
-            Self::One(step) => collect_step_candidate(step, 0, group_start, output),
+            Self::One(step) => collect_step_candidate(step, group_start, output),
             Self::Pair(first, second) => {
-                collect_step_candidate(first, 0, group_start, output);
-                collect_step_candidate(second, 1, group_start, output);
+                collect_step_candidate(first, group_start, output);
+                collect_step_candidate(second, group_start, output);
             }
             Self::Many { tail, len, .. } => {
                 let mut reversed = Vec::with_capacity(*len);
@@ -788,36 +860,29 @@ impl PathState {
                         }
                     }
                 }
-                for (atom_index, step) in reversed.into_iter().rev().enumerate() {
-                    collect_step_candidate(step, atom_index, group_start, output);
+                for step in reversed.into_iter().rev() {
+                    collect_step_candidate(step, group_start, output);
                 }
             }
         }
     }
 }
 
-fn collect_step_candidate(
-    step: &PathStep,
-    atom_index: usize,
-    group_start: usize,
-    output: &mut Vec<IndexedCandidate>,
-) {
+fn collect_step_candidate(step: &PathStep, group_start: usize, output: &mut Vec<IndexedCandidate>) {
     if step.span.token.start == group_start {
         output.push(IndexedCandidate {
-            atom_index,
+            atom_index: step.atom_index,
             sequence: step.sequence,
             span: step.span.clone(),
         });
     }
 }
 
-fn compare_node_sequences(left: &PathNode, right: &PathNode) -> Ordering {
+fn compare_node_steps(left: &PathNode, right: &PathNode) -> Ordering {
     match (left, right) {
         (PathNode::Pair(left_first, left_second), PathNode::Pair(right_first, right_second)) => {
-            left_first
-                .sequence
-                .cmp(&right_first.sequence)
-                .then_with(|| left_second.sequence.cmp(&right_second.sequence))
+            compare_step(left_first, right_first)
+                .then_with(|| compare_step(left_second, right_second))
         }
         (
             PathNode::More {
@@ -828,10 +893,16 @@ fn compare_node_sequences(left: &PathNode, right: &PathNode) -> Ordering {
                 previous: right_previous,
                 step: right_step,
             },
-        ) => compare_node_sequences(left_previous, right_previous)
-            .then_with(|| left_step.sequence.cmp(&right_step.sequence)),
+        ) => compare_node_steps(left_previous, right_previous)
+            .then_with(|| compare_step(left_step, right_step)),
         _ => Ordering::Equal,
     }
+}
+
+fn compare_step(left: &PathStep, right: &PathStep) -> Ordering {
+    left.atom_index
+        .cmp(&right.atom_index)
+        .then_with(|| left.sequence.cmp(&right.sequence))
 }
 
 fn sequence_at(node: &PathNode, len: usize, index: usize) -> usize {
@@ -850,6 +921,26 @@ fn sequence_at(node: &PathNode, len: usize, index: usize) -> usize {
                 step.sequence
             } else {
                 sequence_at(previous, len - 1, index)
+            }
+        }
+    }
+}
+
+fn atom_index_at(node: &PathNode, len: usize, index: usize) -> usize {
+    debug_assert!(index < len);
+    match node {
+        PathNode::Pair(first, second) => {
+            if index == 0 {
+                first.atom_index
+            } else {
+                second.atom_index
+            }
+        }
+        PathNode::More { previous, step } => {
+            if index == len - 1 {
+                step.atom_index
+            } else {
+                atom_index_at(previous, len - 1, index)
             }
         }
     }
@@ -883,7 +974,7 @@ pub(super) fn select_verified_spans(
     });
     let mut next_sequence = vec![0; atom_spans.len()];
     let mut metrics = MetricCursor::new(text);
-    let mut selector = StreamingSelector::new(atom_spans.len(), policy, limit, 0);
+    let mut selector = StreamingSelector::new(atom_spans.len(), None, policy, limit, 0);
     let offset = 0;
     while offset < candidates.len() {
         let start_byte = candidates[offset].span.token.start;

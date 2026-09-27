@@ -1,6 +1,6 @@
 use kfind_morph::CoarsePos;
 
-use crate::ast::{QueryAst, QueryAtom, QueryComposition};
+use crate::ast::{QueryAst, QueryAtom, QueryComposition, QueryGraph};
 use crate::error::{QueryError, QueryErrorKind, SourceSpan};
 use crate::options::CompileOptions;
 
@@ -45,6 +45,15 @@ pub fn parse_query(source: &str, options: &CompileOptions) -> Result<QueryAst, Q
                     offset + character.len_utf8(),
                 )));
             }
+            '(' | ')' => {
+                finish_atom(&mut current, offset, options, &mut tokens, &mut atom_count)?;
+                let span = SourceSpan::new(offset, offset + character.len_utf8());
+                tokens.push(if character == '(' {
+                    LexedToken::Open(span)
+                } else {
+                    LexedToken::Close(span)
+                });
+            }
             ':' => {
                 let atom = ensure_atom(&mut current, offset);
                 if !atom.consume_tag(offset + character.len_utf8()) {
@@ -77,11 +86,12 @@ pub fn parse_query(source: &str, options: &CompileOptions) -> Result<QueryAst, Q
         ));
     }
 
-    let (atoms, composition) = compose(tokens)?;
+    let (atoms, composition, graph) = compose(tokens)?;
 
     Ok(QueryAst {
         atoms,
         composition,
+        graph,
         phrase: options.phrase,
     })
 }
@@ -171,19 +181,33 @@ fn finish_atom(
     Ok(())
 }
 
-fn compose(tokens: Vec<LexedToken>) -> Result<(Vec<QueryAtom>, QueryComposition), QueryError> {
+fn compose(
+    tokens: Vec<LexedToken>,
+) -> Result<(Vec<QueryAtom>, QueryComposition, Option<QueryGraph>), QueryError> {
     let has_disjunction = tokens
         .iter()
         .any(|token| matches!(token, LexedToken::Disjunction(_)));
+    let has_group = tokens
+        .iter()
+        .any(|token| matches!(token, LexedToken::Open(_) | LexedToken::Close(_)));
+    let has_phrase_and_alternative = has_disjunction
+        && tokens
+            .windows(2)
+            .any(|pair| matches!(pair, [LexedToken::Atom { .. }, LexedToken::Atom { .. }]));
+    if has_group || has_phrase_and_alternative {
+        return compose_grouped(tokens);
+    }
     if !has_disjunction {
         let atoms = tokens
             .into_iter()
             .map(|token| match token {
                 LexedToken::Atom { value, .. } => value,
-                LexedToken::Disjunction(_) => unreachable!("operator presence was checked"),
+                LexedToken::Disjunction(_) | LexedToken::Open(_) | LexedToken::Close(_) => {
+                    unreachable!("operator presence was checked")
+                }
             })
             .collect();
-        return Ok((atoms, QueryComposition::Phrase));
+        return Ok((atoms, QueryComposition::Phrase, None));
     }
 
     let mut atoms = Vec::new();
@@ -211,6 +235,9 @@ fn compose(tokens: Vec<LexedToken>) -> Result<(Vec<QueryAtom>, QueryComposition)
                     span,
                 ));
             }
+            (_, LexedToken::Open(_) | LexedToken::Close(_)) => {
+                unreachable!("grouped query was handled earlier")
+            }
         }
     }
     if expect_atom {
@@ -219,13 +246,167 @@ fn compose(tokens: Vec<LexedToken>) -> Result<(Vec<QueryAtom>, QueryComposition)
             last_operator.expect("a parsed disjunction has an operator span"),
         ));
     }
-    Ok((atoms, QueryComposition::Disjunction))
+    Ok((atoms, QueryComposition::Disjunction, None))
+}
+
+fn compose_grouped(
+    tokens: Vec<LexedToken>,
+) -> Result<(Vec<QueryAtom>, QueryComposition, Option<QueryGraph>), QueryError> {
+    let mut parser = GroupParser {
+        tokens,
+        cursor: 0,
+        atoms: Vec::new(),
+        graph: QueryGraph {
+            starts: Vec::new(),
+            ends: Vec::new(),
+            predecessors: Vec::new(),
+        },
+    };
+    let path = parser.alternative()?;
+    if let Some(token) = parser.tokens.get(parser.cursor) {
+        return Err(QueryError::new(
+            QueryErrorKind::MissingDisjunctionOperand,
+            token.span(),
+        ));
+    }
+    for index in path.first {
+        parser.graph.starts[index] = true;
+    }
+    for index in path.last {
+        parser.graph.ends[index] = true;
+    }
+    Ok((parser.atoms, QueryComposition::Grouped, Some(parser.graph)))
+}
+
+struct PathEnds {
+    first: Vec<usize>,
+    last: Vec<usize>,
+}
+
+struct GroupParser {
+    tokens: Vec<LexedToken>,
+    cursor: usize,
+    atoms: Vec<QueryAtom>,
+    graph: QueryGraph,
+}
+
+impl GroupParser {
+    fn alternative(&mut self) -> Result<PathEnds, QueryError> {
+        let mut result = self.sequence()?;
+        while let Some(LexedToken::Disjunction(span)) = self.tokens.get(self.cursor) {
+            let operator = *span;
+            self.cursor += 1;
+            if self.cursor == self.tokens.len()
+                || matches!(
+                    self.tokens[self.cursor],
+                    LexedToken::Close(_) | LexedToken::Disjunction(_)
+                )
+            {
+                return Err(QueryError::new(
+                    QueryErrorKind::MissingDisjunctionOperand,
+                    operator,
+                ));
+            }
+            let next = self.sequence()?;
+            result.first.extend(next.first);
+            result.last.extend(next.last);
+        }
+        Ok(result)
+    }
+
+    fn sequence(&mut self) -> Result<PathEnds, QueryError> {
+        let mut result = self.primary()?;
+        while self
+            .tokens
+            .get(self.cursor)
+            .is_some_and(|token| matches!(token, LexedToken::Atom { .. } | LexedToken::Open(_)))
+        {
+            let next = self.primary()?;
+            for &first in &next.first {
+                self.graph.predecessors[first].extend(result.last.iter().copied());
+            }
+            result.last = next.last;
+        }
+        Ok(result)
+    }
+
+    fn primary(&mut self) -> Result<PathEnds, QueryError> {
+        let token = self.tokens.get(self.cursor).ok_or_else(|| {
+            QueryError::new(
+                QueryErrorKind::MissingDisjunctionOperand,
+                SourceSpan::new(0, 0),
+            )
+        })?;
+        match token {
+            LexedToken::Atom { value, .. } => {
+                let index = self.atoms.len();
+                self.atoms.push(value.clone());
+                self.graph.starts.push(false);
+                self.graph.ends.push(false);
+                self.graph.predecessors.push(Vec::new());
+                self.cursor += 1;
+                Ok(PathEnds {
+                    first: vec![index],
+                    last: vec![index],
+                })
+            }
+            LexedToken::Open(open) => {
+                let open = *open;
+                self.cursor += 1;
+                if self.cursor == self.tokens.len() {
+                    return Err(QueryError::new(
+                        QueryErrorKind::MissingDisjunctionOperand,
+                        open,
+                    ));
+                }
+                if self
+                    .tokens
+                    .get(self.cursor)
+                    .is_some_and(|token| matches!(token, LexedToken::Close(_)))
+                {
+                    return Err(QueryError::new(QueryErrorKind::EmptyAtom, open));
+                }
+                let result = self.alternative()?;
+                match self.tokens.get(self.cursor) {
+                    Some(LexedToken::Close(_)) => {
+                        self.cursor += 1;
+                        Ok(result)
+                    }
+                    _ => Err(QueryError::new(
+                        QueryErrorKind::MissingDisjunctionOperand,
+                        open,
+                    )),
+                }
+            }
+            LexedToken::Close(span) => Err(QueryError::new(
+                QueryErrorKind::MissingDisjunctionOperand,
+                *span,
+            )),
+            LexedToken::Disjunction(span) => Err(QueryError::new(
+                QueryErrorKind::MissingDisjunctionOperand,
+                *span,
+            )),
+        }
+    }
 }
 
 #[derive(Debug)]
 enum LexedToken {
     Atom { value: QueryAtom, span: SourceSpan },
     Disjunction(SourceSpan),
+    Open(SourceSpan),
+    Close(SourceSpan),
+}
+
+impl LexedToken {
+    fn span(&self) -> SourceSpan {
+        match self {
+            Self::Atom { span, .. }
+            | Self::Disjunction(span)
+            | Self::Open(span)
+            | Self::Close(span) => *span,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -359,16 +540,60 @@ mod tests {
     }
 
     #[test]
-    fn rejects_missing_operands_and_mixed_phrase_disjunctions() {
+    fn rejects_missing_operands() {
         for source in ["| 권한", "권한 |", "권한 || 검증", "권한 | | 검증"] {
             let error = parse_query(source, &CompileOptions::default()).unwrap_err();
             assert_eq!(error.kind, QueryErrorKind::MissingDisjunctionOperand);
         }
+    }
 
-        for source in ["권한 검증 | 사용자", "권한 | 사용자 검증"] {
-            let error = parse_query(source, &CompileOptions::default()).unwrap_err();
-            assert_eq!(error.kind, QueryErrorKind::MixedPhraseAndDisjunction);
+    #[test]
+    fn parses_grouped_alternatives_without_expanding_paths() {
+        let query =
+            parse_query("(권한 | 사용자) (검증 | 확인)", &CompileOptions::default()).unwrap();
+        assert_eq!(query.composition, QueryComposition::Grouped);
+        assert_eq!(query.atoms.len(), 4);
+        let graph = query.graph.unwrap();
+        assert_eq!(graph.starts, [true, true, false, false]);
+        assert_eq!(graph.ends, [false, false, true, true]);
+        assert_eq!(graph.predecessors[2], [0, 1]);
+        assert_eq!(graph.predecessors[3], [0, 1]);
+
+        let nested = parse_query("((가 | 나) 다 | 라) 마", &CompileOptions::default()).unwrap();
+        assert_eq!(nested.atoms.len(), 5);
+        assert_eq!(nested.graph.unwrap().predecessors[4], [2, 3]);
+    }
+
+    #[test]
+    fn rejects_unbalanced_or_empty_groups() {
+        for (source, kind) in [
+            ("()", QueryErrorKind::EmptyAtom),
+            ("(", QueryErrorKind::MissingDisjunctionOperand),
+            ("(가 | 나", QueryErrorKind::MissingDisjunctionOperand),
+            ("가)", QueryErrorKind::MissingDisjunctionOperand),
+            ("(가 | )", QueryErrorKind::MissingDisjunctionOperand),
+        ] {
+            assert_eq!(
+                parse_query(source, &CompileOptions::default())
+                    .unwrap_err()
+                    .kind,
+                kind
+            );
         }
+    }
+
+    #[test]
+    fn quoted_and_escaped_parentheses_are_literal() {
+        let query = parse_query(r#""(" \) "a)b""#, &CompileOptions::default()).unwrap();
+        assert_eq!(query.composition, QueryComposition::Phrase);
+        assert_eq!(
+            query
+                .atoms
+                .iter()
+                .map(|atom| atom.raw.as_ref())
+                .collect::<Vec<_>>(),
+            ["(", ")", "a)b"]
+        );
     }
 
     #[test]

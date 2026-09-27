@@ -14,7 +14,7 @@ pub use analysis::{
     Analysis, AnalysisSource, AnalyzeError, LexiconQueryAnalyzer, Morphology, NominalMorphology,
     NominalOverride, ParticleMorphology, QueryAnalyzer,
 };
-pub use ast::{DEFAULT_MAX_GAP, PhrasePolicy, QueryAst, QueryAtom, QueryComposition};
+pub use ast::{DEFAULT_MAX_GAP, PhrasePolicy, QueryAst, QueryAtom, QueryComposition, QueryGraph};
 pub use compile::compile_query;
 pub use error::{
     CompileError, CompileErrorKind, PhraseJoinError, QueryError, QueryErrorKind, SourceSpan,
@@ -27,7 +27,7 @@ pub use options::{
     DEFAULT_MAX_MATCHER_BYTES, DEFAULT_MAX_PROGRAMS, DEFAULT_MAX_QUERY_SCALARS, ExpandMode,
     NormalizationMode, PlanLimits,
 };
-pub use phrase::{PhraseMatch, join_phrase_spans};
+pub use phrase::{PhraseMatch, RoutedMatch, join_phrase_spans};
 pub use plan::{
     AtomPlan, BoundaryProof, CandidateConsumption, CandidateDecision, CandidateLeftContext,
     CandidateProgram, CoreMapping, Origin, QueryDiagnostic, QueryPlan, StructuralConstraint,

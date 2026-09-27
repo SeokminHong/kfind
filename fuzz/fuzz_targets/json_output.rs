@@ -24,6 +24,7 @@ fuzz_target!(|data: &[u8]| {
                 absolute_byte_offset: 0,
                 bytes: data.to_vec(),
                 matches,
+                query_atom_indices: Vec::new(),
             }),
             SearchRecord::ContextBreak,
         ],

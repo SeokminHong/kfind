@@ -22,7 +22,7 @@ use kfind_query::Lexicons;
 pub use kfind_query::{
     AnalyzeError, BoundaryPolicy, CompileError, CompileErrorKind, CompileOptionError,
     CompileOptionOverrides, CompileOptions, ExpandMode, NormalizationMode, Origin, PhraseMatch,
-    PhrasePolicy, PlanLimits, QueryError, QueryErrorKind, SourceSpan, VerifiedSpan,
+    PhrasePolicy, PlanLimits, QueryError, QueryErrorKind, RoutedMatch, SourceSpan, VerifiedSpan,
 };
 
 /// Optional dictionary resources that define an engine's analysis profile.
@@ -173,10 +173,53 @@ impl Matcher {
         self.inner.find_at_with_meta(input, at)
     }
 
+    /// Finds the next match and its chosen query atoms.
+    #[must_use]
+    pub fn find_at_with_route(&self, input: &[u8], at: usize) -> Option<RoutedMatch> {
+        self.inner.find_at_with_route(input, at)
+    }
+
     /// Finds all non-overlapping matches with morphology provenance.
     #[must_use]
     pub fn find_all(&self, input: &[u8]) -> Vec<PhraseMatch> {
         self.inner.find_all_with_meta(input)
+    }
+
+    /// Finds all non-overlapping matches with the chosen query atoms.
+    #[must_use]
+    pub fn find_all_with_routes(&self, input: &[u8]) -> Vec<RoutedMatch> {
+        self.inner
+            .find_all_with_route_limit_and_diagnostics(
+                input,
+                usize::MAX,
+                &SearchDiagnostics::default(),
+            )
+            .expect("a match vector cannot exceed usize::MAX entries")
+    }
+
+    /// Collects bounded matches and their chosen query atoms.
+    pub fn find_all_with_routes_limit(
+        &self,
+        input: &[u8],
+        max_matches: usize,
+    ) -> Result<Vec<RoutedMatch>, MatchLimitExceeded> {
+        self.inner.find_all_with_route_limit_and_diagnostics(
+            input,
+            max_matches,
+            &SearchDiagnostics::default(),
+        )
+    }
+
+    /// Collects routed matches and structural verification diagnostics.
+    #[must_use]
+    pub fn find_all_with_routes_with_diagnostics(
+        &self,
+        input: &[u8],
+        diagnostics: &SearchDiagnostics,
+    ) -> Vec<RoutedMatch> {
+        self.inner
+            .find_all_with_route_limit_and_diagnostics(input, usize::MAX, diagnostics)
+            .expect("a match vector cannot exceed usize::MAX entries")
     }
 
     /// Collects up to `max_matches` non-overlapping matches.
@@ -300,6 +343,53 @@ mod tests {
 
         assert_eq!(matched.span.start, second_start);
         assert_eq!(&text[matched.span], "걸었다");
+    }
+
+    #[test]
+    fn grouped_alternatives_select_each_path_and_report_query_atoms() {
+        let engine = test_engine();
+        let options = CompileOptions {
+            expand: ExpandMode::Literal,
+            boundary: BoundaryPolicy::Token,
+            phrase: PhrasePolicy { max_gap: 1 },
+            ..CompileOptions::default()
+        };
+        let matcher = engine
+            .compile("(사과 | 배) (가격 | 품질)", &options)
+            .unwrap();
+        let text = "사과 가격 배 품질 사과 품질 배 가격";
+        let matches = matcher.find_all_with_routes(text.as_bytes());
+
+        assert_eq!(matches.len(), 4);
+        assert_eq!(
+            matches
+                .iter()
+                .map(|route| route.query_atom_indices.as_slice())
+                .collect::<Vec<_>>(),
+            [vec![0, 2], vec![1, 3], vec![0, 3], vec![1, 2]]
+        );
+        assert_eq!(&text[matches[1].matched.span.clone()], "배 품질");
+        assert_eq!(matcher.find_all(text.as_bytes()).len(), 4);
+    }
+
+    #[test]
+    fn phrase_alternatives_and_nested_groups_keep_one_result_per_span() {
+        let engine = test_engine();
+        let options = CompileOptions {
+            expand: ExpandMode::Literal,
+            boundary: BoundaryPolicy::Token,
+            phrase: PhrasePolicy { max_gap: 1 },
+            ..CompileOptions::default()
+        };
+        let matcher = engine
+            .compile("(사과 가격 | (배 | 배) 품질)", &options)
+            .unwrap();
+        let text = "사과 가격 배 품질";
+        let routed = matcher.find_all_with_routes(text.as_bytes());
+        assert_eq!(routed.len(), 2);
+        assert_eq!(routed[0].query_atom_indices, [0, 1]);
+        assert_eq!(routed[1].query_atom_indices, [2, 4]);
+        assert_eq!(&text[routed[1].matched.span.clone()], "배 품질");
     }
 
     #[test]

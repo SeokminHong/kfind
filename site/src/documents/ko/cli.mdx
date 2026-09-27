@@ -61,7 +61,7 @@ literal (lit:)
 
 [구 검색](/reference/glossary#phrase)은 각 atom을 독립적으로 찾은 뒤 원문 순서대로 결합합니다. `--max-gap`은 앞 atom의 token 끝과 다음 atom의 token 시작 사이에 허용할 Unicode scalar 수이며, 기본값은 24입니다. atom이 하나면 전역 `--pos`를 사용할 수 있습니다. 여러 atom에는 각각 품사 태그를 지정해야 합니다.
 
-따옴표와 escape 밖의 `|`는 여러 atom 중 하나를 찾습니다. 연산자 앞뒤 공백은 선택 사항입니다. CLI에서는 셸이 pipe로 해석하지 않도록 질의 전체를 따옴표로 묶습니다. 각 대안은 하나의 atom이어야 하며 공백 구와 섞을 수 없습니다. Literal `|`는 `\|` 또는 `"|"`로 작성합니다. `--max-gap`은 disjunction에 적용되지 않습니다.
+따옴표와 escape 밖의 `|`는 여러 atom 중 하나를 찾습니다. 연산자 앞뒤 공백은 선택 사항입니다. CLI에서는 셸이 pipe로 해석하지 않도록 질의 전체를 따옴표로 묶습니다. `A B | C D`처럼 구를 대안으로 쓰거나 `(A | B) C`처럼 괄호로 묶을 수 있습니다. Literal 연산자는 escape하거나 인용합니다. `--max-gap`은 이어지는 atom 사이에 적용됩니다.
 
 ## 입력과 출력 [#input-and-output]
 

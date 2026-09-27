@@ -16,7 +16,7 @@ use kfind_morph::{
 };
 use kfind_query::{
     CandidateConsumption, CandidateDecision, CandidateLeftContext, CandidateProgram, CoreMapping,
-    Origin, PhraseMatch, QueryPlan, VerifiedSpan,
+    Origin, PhraseMatch, QueryPlan, RoutedMatch, VerifiedSpan,
 };
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
@@ -363,7 +363,7 @@ impl MorphMatcher {
         if at > haystack.len() {
             return None;
         }
-        if self.plan.atoms.len() == 1 {
+        if self.plan.atoms.len() == 1 && self.plan.graph.is_none() {
             let mut cache = StructuralCache {
                 diagnostics: Some(diagnostics),
                 ..Default::default()
@@ -392,7 +392,7 @@ impl MorphMatcher {
         if at > haystack.len() {
             return None;
         }
-        if self.plan.atoms.len() == 1 {
+        if self.plan.atoms.len() == 1 && self.plan.graph.is_none() {
             return self.find_single_atom_at(haystack, at);
         }
         self.find_phrase_at(haystack, at)
@@ -403,7 +403,7 @@ impl MorphMatcher {
     /// This is intended for matched lines that need JSON or explain metadata.
     #[must_use]
     pub fn find_all_with_meta(&self, haystack: &[u8]) -> Vec<PhraseMatch> {
-        if self.plan.atoms.len() > 1 {
+        if self.plan.atoms.len() > 1 || self.plan.graph.is_some() {
             return self
                 .find_phrases_with_meta(haystack, PhraseMatchLimit::All)
                 .matches;
@@ -450,7 +450,7 @@ impl MorphMatcher {
         limit: usize,
         diagnostics: &SearchDiagnostics,
     ) -> Result<Vec<PhraseMatch>, MatchLimitExceeded> {
-        if self.plan.atoms.len() > 1 {
+        if self.plan.atoms.len() > 1 || self.plan.graph.is_some() {
             let selection = streaming_phrase::select_with_diagnostics(
                 self,
                 haystack,
@@ -489,6 +489,79 @@ impl MorphMatcher {
             matches.push(matched);
         }
         Ok(matches)
+    }
+
+    /// Finds bounded matches with their chosen query atom route.
+    pub fn find_all_with_route_limit_and_diagnostics(
+        &self,
+        haystack: &[u8],
+        limit: usize,
+        diagnostics: &SearchDiagnostics,
+    ) -> Result<Vec<RoutedMatch>, MatchLimitExceeded> {
+        if self.plan.graph.is_none() {
+            return self
+                .find_all_with_meta_limit_and_diagnostics(haystack, limit, diagnostics)
+                .map(|matches| {
+                    matches
+                        .into_iter()
+                        .map(|matched| RoutedMatch {
+                            query_atom_indices: (0..matched.atoms.len()).collect(),
+                            matched,
+                        })
+                        .collect()
+                });
+        }
+        let selection = streaming_phrase::select_with_diagnostics(
+            self,
+            haystack,
+            0,
+            MatchMetadata::Provenance,
+            PhraseMatchLimit::Bounded(limit),
+            Some(diagnostics),
+        );
+        if selection.limit_exceeded {
+            return Err(MatchLimitExceeded { limit });
+        }
+        Ok(selection
+            .matches
+            .into_iter()
+            .zip(selection.routes)
+            .map(|(matched, query_atom_indices)| RoutedMatch {
+                matched,
+                query_atom_indices,
+            })
+            .collect())
+    }
+
+    #[must_use]
+    pub fn find_at_with_route(&self, haystack: &[u8], at: usize) -> Option<RoutedMatch> {
+        if at > haystack.len() {
+            return None;
+        }
+        if self.plan.graph.is_none() {
+            return self
+                .find_at_with_meta(haystack, at)
+                .map(|matched| RoutedMatch {
+                    query_atom_indices: (0..matched.atoms.len()).collect(),
+                    matched,
+                });
+        }
+        let selection = streaming_phrase::select(
+            self,
+            haystack,
+            at,
+            MatchMetadata::Provenance,
+            PhraseMatchLimit::First,
+        );
+        selection
+            .matches
+            .into_iter()
+            .zip(selection.routes)
+            .next()
+            .map(|(matched, query_atom_indices)| RoutedMatch {
+                matched,
+                query_atom_indices,
+            })
     }
 
     fn find_phrases_with_meta(&self, haystack: &[u8], limit: PhraseMatchLimit) -> PhraseSelection {

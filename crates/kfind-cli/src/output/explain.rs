@@ -29,6 +29,7 @@ pub(super) fn write_query_plan(
         match plan.composition {
             QueryComposition::Phrase => "phrase",
             QueryComposition::Disjunction => "disjunction",
+            QueryComposition::Grouped => "grouped",
         }
     )?;
     if let Some(full_pos) = full_pos {
@@ -80,7 +81,7 @@ pub(super) fn write_query_plan(
         write_label(writer, language, "consumption_states", "소비_상태_수", 2)?;
         writeln!(writer, "{consumption_states}")?;
     }
-    if plan.composition == QueryComposition::Phrase {
+    if plan.composition != QueryComposition::Disjunction {
         write_label(writer, language, "max_gap", "최대_거리", 0)?;
         writeln!(writer, "{}", plan.phrase_policy.max_gap)?;
     }
@@ -164,7 +165,13 @@ pub(super) fn write_match_explanations(
             "  {}[{match_index}]:",
             language.select("match", "일치")
         )?;
-        for (atom_index, span) in matched.atoms.iter().enumerate() {
+        for (position, span) in matched.atoms.iter().enumerate() {
+            let atom_index = line
+                .query_atom_indices
+                .get(match_index)
+                .and_then(|route| route.get(position))
+                .copied()
+                .unwrap_or(position);
             writeln!(
                 writer,
                 "    {}[{atom_index}]:",

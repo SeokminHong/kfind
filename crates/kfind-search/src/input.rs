@@ -72,6 +72,7 @@ pub struct SearchLine {
     pub absolute_byte_offset: u64,
     pub bytes: Vec<u8>,
     pub matches: Vec<PhraseMatch>,
+    pub query_atom_indices: Vec<Vec<usize>>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -271,6 +272,7 @@ where
             absolute_byte_offset: context.absolute_byte_offset(),
             bytes: context.bytes().to_vec(),
             matches: Vec::new(),
+            query_atom_indices: Vec::new(),
         }))
     }
 }
@@ -287,10 +289,10 @@ where
         matched: &SinkMatch<'_>,
     ) -> Result<bool, Self::Error> {
         self.result.matching_lines += 1;
-        let matches = if self.capture_records {
+        let (matches, query_atom_indices) = if self.capture_records {
             self.matcher.take_line_matches(matched.bytes())?
         } else {
-            Vec::new()
+            (Vec::new(), Vec::new())
         };
         if let Some(count) = &mut self.result.matched_spans {
             *count += matches.len() as u64;
@@ -302,6 +304,7 @@ where
                 absolute_byte_offset: matched.absolute_byte_offset(),
                 bytes: matched.bytes().to_vec(),
                 matches,
+                query_atom_indices,
             })));
         }
         Ok(true)
@@ -555,7 +558,7 @@ mod tests {
         let matches = line_matcher
             .take_line_matches("권한\n".as_bytes())
             .expect("sink must consume the pending line evaluation");
-        assert_eq!(matches.len(), 1);
+        assert_eq!(matches.0.len(), 1);
 
         let error = line_matcher
             .take_line_matches("권한\n".as_bytes())

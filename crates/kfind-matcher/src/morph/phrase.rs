@@ -14,6 +14,7 @@ pub(super) enum PhraseMatchLimit {
 #[derive(Clone, Debug)]
 pub(super) struct PhraseSelection {
     pub matches: Vec<PhraseMatch>,
+    pub routes: Vec<Vec<usize>>,
     pub limit_exceeded: bool,
 }
 
@@ -26,6 +27,7 @@ pub(super) fn select_phrase_matches(
     if atom_spans.is_empty() || atom_spans.iter().any(Vec::is_empty) {
         return PhraseSelection {
             matches: Vec::new(),
+            routes: Vec::new(),
             limit_exceeded: false,
         };
     }
@@ -133,6 +135,7 @@ fn collect_matches(
         if matches!(limit, PhraseMatchLimit::Bounded(maximum) if matches.len() == maximum) {
             return PhraseSelection {
                 matches,
+                routes: Vec::new(),
                 limit_exceeded: true,
             };
         }
@@ -147,6 +150,7 @@ fn collect_matches(
 
     PhraseSelection {
         matches,
+        routes: Vec::new(),
         limit_exceeded: false,
     }
 }
@@ -438,6 +442,7 @@ mod tests {
             for maximum in 0..=3 {
                 let expected = PhraseSelection {
                     matches: exhaustive.iter().take(maximum).cloned().collect(),
+                    routes: Vec::new(),
                     limit_exceeded: exhaustive.len() > maximum,
                 };
                 let bulk = select_phrase_matches(
