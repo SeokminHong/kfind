@@ -21,7 +21,9 @@ jobs:
     name: Format and lint
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Check workflow action pins
+        run: python3 tools/workflow-pins/check.py
       - name: Install Rust
         run: rustup toolchain install stable --profile minimal --component rustfmt,clippy
       - name: Check formatting
@@ -83,7 +85,7 @@ jobs:
           - windows-2025
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Test benchmark guard
         if: runner.os != 'Windows'
         run: >-
@@ -128,7 +130,7 @@ jobs:
       KFIND_FUZZ_TIMEOUT_SECONDS: 5
       KFIND_FUZZ_RSS_LIMIT_MB: 2048
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Install fuzz toolchain
         run: |
           rustup toolchain install "$KFIND_FUZZ_TOOLCHAIN" --profile minimal
@@ -137,7 +139,7 @@ jobs:
         run: scripts/run-fuzz.sh
       - name: Upload crash artifacts
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: fuzz-artifacts
           path: fuzz/artifacts
@@ -147,7 +149,7 @@ jobs:
     name: Rust 1.97
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Install minimum Rust
         run: |
           rustup toolchain install 1.97.0 --profile minimal
@@ -169,17 +171,17 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Install Rust
         run: |
           rustup toolchain install stable --profile minimal
           rustup target add wasm32-unknown-unknown --toolchain stable
       - name: Install wasm-pack
         run: cargo install wasm-pack --version 0.15.0 --locked
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 10.33.0
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
       - name: Build and validate the package
@@ -189,7 +191,7 @@ jobs:
     name: Chocolatey package
     runs-on: windows-2025
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Render and pack the Chocolatey package
         shell: pwsh
         run: ./scripts/test-chocolatey-package.ps1
@@ -206,11 +208,11 @@ jobs:
             script: lint
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 10.33.0
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
           cache: pnpm
@@ -225,7 +227,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
       - name: Install Rust
@@ -234,10 +236,10 @@ jobs:
           rustup target add wasm32-unknown-unknown --toolchain stable
       - name: Install wasm-pack
         run: cargo install wasm-pack --version 0.15.0 --locked
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
         with:
           version: 10.33.0
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 24
           cache: pnpm
@@ -257,6 +259,6 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - name: Run deterministic smoke benchmark
         run: KFIND_MORPH_SMOKE=1 KFIND_MORPH_RUNS=1 scripts/benchmark-morphology.sh

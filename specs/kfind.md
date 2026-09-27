@@ -3702,6 +3702,7 @@ Repository secret `CHOCOLATEY_API_KEY`가 없으면 게시 성공으로 처리�
 ### 21.5 릴리스 자동화
 
 Release와 Publish는 GitHub Actions의 수동 workflow로 분리한다.
+모든 외부 GitHub Action은 전체 commit SHA에 고정하며 CI가 workflow의 action ref를 검사한다.
 
 Release workflow는 `main`에서만 실행하며 `major`, `minor`, `patch` 중 bump 종류와 prerelease 여부를
 입력받는다. Bump 기준은 저장소의 최신 stable `vMAJOR.MINOR.PATCH` tag다. Stable 입력은 선택한
