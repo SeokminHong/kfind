@@ -72,7 +72,7 @@ impl fmt::Display for QueryErrorKind {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::EmptyQuery => formatter.write_str("query must contain at least one atom"),
-            Self::EmptyAtom => formatter.write_str("query atom must not be empty"),
+            Self::EmptyAtom => formatter.write_str("query atom or group must not be empty"),
             Self::DanglingEscape => formatter.write_str("backslash must escape another character"),
             Self::UnterminatedQuote { quote } => {
                 write!(formatter, "unterminated {quote} quote")
@@ -87,7 +87,7 @@ impl fmt::Display for QueryErrorKind {
                 write!(formatter, "query has {actual} atoms; limit is {limit}")
             }
             Self::MissingDisjunctionOperand => {
-                formatter.write_str("`|` requires an atom on both sides")
+                formatter.write_str("invalid `|` operand or parenthesis")
             }
             Self::MixedPhraseAndDisjunction => {
                 formatter.write_str("phrase atoms and `|` alternatives cannot be mixed")

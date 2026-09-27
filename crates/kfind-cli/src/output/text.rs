@@ -424,6 +424,7 @@ mod tests {
             absolute_byte_offset: 0,
             bytes,
             matches,
+            query_atom_indices: Vec::new(),
         };
         let options = OutputOptions {
             filename: FilenameMode::Always,

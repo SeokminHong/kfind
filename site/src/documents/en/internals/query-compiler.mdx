@@ -16,7 +16,7 @@ A resource-dependent constraint remains an explicit capability in the compiled p
 
 ## Query composition [#composition]
 
-A phrase keeps one plan per atom and joins them under `--max-gap` in the matcher. A disjunction merges alternative analyses and programs into one logical atom.
+A phrase keeps one plan per atom and joins them under `--max-gap` in the matcher. Grouped and phrase alternatives share paths in an atom graph without listing combinations. Single-atom alternatives merge their analyses and programs into one logical atom.
 
 Disjunction origin analysis indices are remapped into the merged analysis array. Alternatives that produce the same span emit one result while preserving every origin.
 

@@ -20,4 +20,4 @@ When several programs succeed at one start, the completed-token length and deter
 
 Phrase mode retains atom candidates before applying order and gap. This prevents the longest single-atom match from hiding the next atom.
 
-A disjunction places all alternative anchors in one atom matcher, so the source is not rescanned for each alternative.
+The matcher scans all alternative anchors together. Grouped paths join verified atom candidates without rescanning the source or listing every combination.

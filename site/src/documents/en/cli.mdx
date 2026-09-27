@@ -61,7 +61,7 @@ Verbs and adjectives use different final, connective, and [adnominal ending](/re
 
 Phrase atoms are matched independently and joined in source order. `--max-gap` limits the Unicode scalars between adjacent token spans and defaults to 24. A single-[atom](/reference/glossary#atom) query can use global `--pos`; multi-atom queries require per-atom POS tags.
 
-An unquoted, unescaped `|` finds any one of multiple atoms. Whitespace around it is optional, but CLI queries should be quoted so the shell does not interpret the operator as a pipe. Each alternative is one atom and cannot be mixed with phrase atoms. Write a literal pipe as `\|` or `"|"`. `--max-gap` does not apply to a disjunction.
+An unquoted, unescaped `|` finds any one of multiple atoms. Whitespace around it is optional, but CLI queries should be quoted so the shell does not interpret the operator as a pipe. Alternatives may be phrases (`A B | C D`) or grouped (`(A | B) C`). Escape or quote literal operators. `--max-gap` applies between ordered atoms.
 
 ## Input and output [#input-and-output]
 

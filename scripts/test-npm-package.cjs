@@ -52,10 +52,16 @@ assert.deepEqual(
     [10, 15],
   ],
 );
-assert.throws(
-  () => engine.compile("alpha | beta gamma"),
-  /phrase atoms and `\|` alternatives cannot be mixed/,
-);
+const grouped = engine.compile("(lit:alpha | lit:beta) lit:gamma", {
+  maxGap: 1,
+});
+const groupedMatches = grouped.findAll("beta gamma");
+assert.equal(groupedMatches.length, 1);
+assert.deepEqual(groupedMatches[0].queryAtomIndices, [1, 2]);
+assert.deepEqual(grouped.findAllLimit("beta gamma", 1), groupedMatches);
+assert.deepEqual(grouped.findAt("beta gamma", 0), groupedMatches[0]);
+assert.deepEqual(grouped.findAllWithDiagnostics("beta gamma").matches, groupedMatches);
+assert.throws(() => engine.compile("(lit:alpha | )"), /invalid `\|` operand or parenthesis/);
 
 assert.throws(() => engine.compile("", {}), /failed to compile query/);
 assert.throws(

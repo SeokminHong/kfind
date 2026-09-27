@@ -56,7 +56,7 @@ atom 1 spans ─┼─ ordered join ─ max-gap ─ phrase span
 atom 2 spans ─┘
 ```
 
-`|` alternatives compile into one logical atom. One matcher scans their unique anchors together and merges provenance when alternatives produce the same span.
+Single-atom `|` alternatives compile into one logical atom; grouped and phrase alternatives remain paths in an atom graph. One matcher scans unique anchors together and returns each span once.
 
 ## Parallel traversal and output [#parallel-output]
 

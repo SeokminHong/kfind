@@ -185,8 +185,8 @@ fn write_query_error(
             "쿼리에는 하나 이상의 atom이 있어야 합니다",
         ))?,
         QueryErrorKind::EmptyAtom => formatter.write_str(language.select(
-            "query atom must not be empty",
-            "쿼리 atom은 비어 있을 수 없습니다",
+            "query atom or group must not be empty",
+            "쿼리 atom 또는 괄호 그룹은 비어 있을 수 없습니다",
         ))?,
         QueryErrorKind::DanglingEscape => formatter.write_str(language.select(
             "backslash must escape another character",
@@ -210,8 +210,8 @@ fn write_query_error(
             language.select("limit is", "제한은")
         )?,
         QueryErrorKind::MissingDisjunctionOperand => formatter.write_str(language.select(
-            "`|` requires an atom on both sides",
-            "`|` 양쪽에는 atom이 있어야 합니다",
+            "invalid `|` operand or parenthesis",
+            "`|` 피연산자 또는 괄호가 올바르지 않습니다",
         ))?,
         QueryErrorKind::MixedPhraseAndDisjunction => formatter.write_str(language.select(
             "phrase atoms and `|` alternatives cannot be mixed",

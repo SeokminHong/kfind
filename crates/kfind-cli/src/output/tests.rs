@@ -46,6 +46,7 @@ fn match_line(line_number: u64, bytes: &[u8]) -> SearchLine {
         absolute_byte_offset: 0,
         bytes: bytes.to_vec(),
         matches: vec![matched_span(start..start + "걸어".len())],
+        query_atom_indices: Vec::new(),
     }
 }
 
@@ -69,6 +70,7 @@ fn standard_output_supports_prefixes_columns_context_and_safe_text() {
             absolute_byte_offset: 0,
             bytes: b"before\x1b\t\n".to_vec(),
             matches: Vec::new(),
+            query_atom_indices: Vec::new(),
         }),
         SearchRecord::ContextBreak,
         SearchRecord::Line(match_line(3, "길을 걸어 갔다.\n".as_bytes())),
@@ -175,6 +177,7 @@ fn json_uses_base64_for_non_utf8_text() {
         absolute_byte_offset: 0,
         bytes: b"\xff\x1b\n".to_vec(),
         matches: Vec::new(),
+        query_atom_indices: Vec::new(),
     })];
     let options = OutputOptions {
         mode: OutputMode::JsonLines,

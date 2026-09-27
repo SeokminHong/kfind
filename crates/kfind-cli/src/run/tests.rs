@@ -80,6 +80,34 @@ fn disjunction_reports_lines_matching_either_alternative() {
 }
 
 #[test]
+fn grouped_alternatives_find_lines_with_different_atom_paths() {
+    let args = Args::try_parse_from([
+        "kfind",
+        "--embedded",
+        "--literal",
+        "--max-gap",
+        "1",
+        "--json",
+        "(사과 | 배) (가격 | 품질)",
+    ])
+    .unwrap();
+    let (status, stdout, stderr) = run(args, "사과 가격\n배 품질\n없음\n".as_bytes(), false);
+
+    assert_eq!(status, ExitStatus::Match);
+    assert!(stderr.is_empty());
+    let records = stdout
+        .split(|byte| *byte == b'\n')
+        .filter(|line| !line.is_empty())
+        .map(|line| serde_json::from_slice::<serde_json::Value>(line).unwrap())
+        .collect::<Vec<_>>();
+    assert_eq!(records.len(), 2);
+    assert_eq!(records[0]["spans"][0]["atom"], 0);
+    assert_eq!(records[0]["spans"][1]["atom"], 2);
+    assert_eq!(records[1]["spans"][0]["atom"], 1);
+    assert_eq!(records[1]["spans"][1]["atom"], 3);
+}
+
+#[test]
 fn a_file_without_matches_returns_one() {
     let temp = TempDir::new();
     let path = temp.write("sample.txt", "멈췄다.\n");

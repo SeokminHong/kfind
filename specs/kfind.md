@@ -1607,15 +1607,16 @@ false positive를 제거해야 한다. 후보가 너무 많으면 검색 path·g
 품사 태그 접두사
 literal 강제
 `|` disjunction
+`(`·`)` 그룹
 ```
 
-Query 결합 문법은 다음과 같다. `WS`는 따옴표와 escape 밖의 하나 이상 공백이고 `OWS`는
-같은 위치의 선택적 공백이다.
+Query 결합 문법은 다음과 같다. `OWS`는 따옴표와 escape 밖의 선택적 공백이다.
 
 ```text
-query       = atom / phrase / disjunction
-phrase      = atom 1*(WS atom)
-disjunction = atom 1*(OWS "|" OWS atom)
+query       = alternative
+alternative = sequence *(OWS "|" OWS sequence)
+sequence    = primary *(OWS primary)
+primary     = atom / "(" OWS alternative OWS ")"
 ```
 
 예:
@@ -1626,12 +1627,11 @@ kfind 'n:권한 "접근 제어" v:검증하다' src
 
 `"접근 제어"`는 하나의 literal atom으로 처리한다.
 
-따옴표와 escape 밖의 `|`는 앞뒤 atom 중 하나를 찾는 disjunction 연산자다. 연산자
-앞뒤 공백은 선택 사항이므로 `걷다 | 사용자`와 `걷다|사용자`는 같은 query다. 각
-alternative는 정확히 하나의 atom이며 세 개 이상은 `걷다|사용자|검증하다`처럼 연결한다.
-공백 phrase와 disjunction을 한 query에서 섞으면 우선순위를 추론하지 않고 오류를 낸다.
-선행·후행 `|`와 연속 `|`도 피연산자가 없는 문법 오류다. `|` 자체를 검색하려면 `\|`
-또는 `"|"`처럼 escape하거나 인용한다.
+따옴표와 escape 밖의 `|`는 양쪽 구 중 하나를 찾는다. 공백 구가 `|`보다 먼저 결합하므로
+`A B | C D`는 두 구의 대안이다. 괄호는 결합 순서를 바꾼다. `(A | B) C`와
+`A (B | C)`는 중첩 그룹에도 같은 규칙을 적용한다. 연산자 앞뒤 공백은 선택 사항이다.
+선행·후행 `|`, 연속 `|`, 빈 그룹과 닫히지 않은 괄호는 원문 byte span이 포함된 문법 오류다.
+`|`와 괄호 자체를 검색하려면 escape하거나 인용한다.
 
 ### 6.2 AST 구조
 
@@ -1639,12 +1639,20 @@ alternative는 정확히 하나의 atom이며 세 개 이상은 `걷다|사용�
 pub struct QueryAst {
     pub atoms: Vec<QueryAtom>,
     pub composition: QueryComposition,
+    pub graph: Option<QueryGraph>,
     pub phrase: PhrasePolicy,
 }
 
 pub enum QueryComposition {
     Phrase,
     Disjunction,
+    Grouped,
+}
+
+pub struct QueryGraph {
+    pub starts: Vec<bool>,
+    pub ends: Vec<bool>,
+    pub predecessors: Vec<Vec<usize>>,
 }
 
 pub struct QueryAtom {
@@ -1704,6 +1712,7 @@ pub struct QueryPlan {
     pub raw_query: Box<str>,
     pub atoms: Vec<AtomPlan>,
     pub composition: QueryComposition,
+    pub graph: Option<QueryGraph>,
     pub phrase_policy: PhrasePolicy,
     pub limits: PlanLimits,
 }
@@ -1753,11 +1762,15 @@ pub struct Origin {
 }
 ```
 
-phrase plan은 source atom마다 하나의 `AtomPlan`을 유지한다. Disjunction plan은 alternative의
+phrase plan은 source atom마다 하나의 `AtomPlan`을 유지한다. Grouped plan은 atom별 시작·끝
+표시와 선행 atom 간선으로 순서 경로를 표현한다. 괄호가 만든 조합을 나열하지 않고 최대 32개
+atom과 그 사이 간선만 저장하며, 모든 후보를 한 번의 anchor scan에서 검증한다. 같은 시작점의
+일치는 끝이 가장 긴 경로를 선택하고 같은 span의 경로는 쿼리 순서로 결정한다.
+Disjunction plan은 alternative의
 분석과 program을 하나의 논리 atom으로 합쳐 모든 anchor를 한 번의 scan으로 찾는다. 합칠 때
 `Origin.analysis_index`를 최종 분석 배열에 맞게 다시 매겨 어느 alternative가 match했는지
 provenance로 보존한다. 같은 span을 만드는 alternative는 span을 중복 반환하지 않고 origin을
-합친다. `phrase_policy`와 `--max-gap`은 phrase에만 적용한다.
+합친다. `phrase_policy`와 `--max-gap`은 순서대로 결합되는 atom 사이에 적용한다.
 
 - `CandidateProgram`은 anchor 탐색·core 투영·후보 범위 열거·anchor 이후 소비·판정 제약을
   한번만 표현하는 query-owned 실행 IR이다. `CandidateConsumption`은 실제 token span을 만드는
@@ -3838,6 +3851,9 @@ let matches = matcher.find_all("사용자권한을 확인한다.".as_bytes());
   `PhraseMatch`를 반환한다. `find_all_limit(input, max_matches)`는 같은 결과를 최대
   `max_matches`개까지 수집하고 추가 일치가 있으면 `MatchLimitExceeded`를 반환한다.
   `max_matches = 0`은 일치가 없을 때만 빈 결과를 반환한다.
+- `find_at_with_route`, `find_all_with_routes`, `find_all_with_routes_limit`과
+  `find_all_with_routes_with_diagnostics`는 기존 `PhraseMatch` 구조를 유지하면서 선택된
+  쿼리 atom 번호를 `RoutedMatch.query_atom_indices`에 함께 반환한다.
 - root의 `PhraseMatch`, `VerifiedSpan`, `Origin`, `RuleId`와 compile option·오류는 1.x 안정
   계약이다. `QueryPlan`, candidate program·structural constraint 표현, `Lexicons`와 plan inspection은 `kfind::expert`의
   변경 가능한 저수준 API다.
@@ -3849,6 +3865,8 @@ let matches = matcher.find_all("사용자권한을 확인한다.".as_bytes());
   시작 위치는 UTF-16 code unit이다. `findAllLimit`은 결과가 상한을 초과하면 오류를 던지고,
   `findAt`은 일치가 없으면 `null`을 반환하며 surrogate pair 중간 위치는 거절한다.
   `findAllWithDiagnostics`는 일치 목록과 구조 검증 불완전 여부를 반환한다.
+  괄호 또는 phrase와 대안을 함께 사용하는 쿼리의 match에는 선택된 원본 atom 번호를
+  `queryAtomIndices`로 포함한다.
 
 ## 25. 제품 원칙
 

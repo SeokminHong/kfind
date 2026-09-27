@@ -20,4 +20,4 @@ Structural verifier는 token 전체의 분석이 필요할 때만 compact 리소
 
 Phrase mode에서는 atom 후보를 먼저 보존한 뒤 순서와 gap을 적용합니다. 따라서 단일 atom의 가장 긴 일치가 다음 atom을 숨기지 않습니다.
 
-Disjunction은 하나의 atom matcher에 대안 anchor를 함께 넣으므로 원문을 대안 수만큼 반복 검색하지 않습니다.
+한 matcher가 모든 대안의 anchor를 함께 검색합니다. 괄호 그룹의 경로는 검증된 atom 후보를 이어 붙여 처리하며 원문을 반복 검색하거나 조합을 나열하지 않습니다.

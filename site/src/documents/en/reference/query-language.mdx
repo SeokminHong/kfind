@@ -4,14 +4,15 @@
 
 ## Syntax [#syntax]
 
-A query is one atom, a phrase connected by whitespace, or a disjunction connected by `|`. Whitespace and `|` inside a quoted atom belong to its text.
+A query combines atoms in order, alternatives with `|`, and parenthesized groups. Whitespace and `|` inside a quoted atom belong to its text.
 
 Unicode normalization and morphology expansion apply as compile options after lexing.
 
 ```text
-query       = atom / phrase / disjunction
-phrase      = atom 1*(WS atom)
-disjunction = atom 1*(OWS "|" OWS atom)
+query       = alternative
+alternative = sequence *(OWS "|" OWS sequence)
+sequence    = primary *(OWS primary)
+primary     = atom / "(" OWS alternative OWS ")"
 ```
 
 ## Atom tags [#tags]
@@ -22,12 +23,12 @@ A concrete global POS conflicting with an atom tag is a compile error.
 
 ## Alternatives [#alternatives]
 
-Whitespace around `|` is optional. Every alternative must be exactly one atom, and a query cannot mix phrase and disjunction composition.
+Whitespace around `|` is optional. `A B | C D` chooses between two phrases; `(A | B) C` joins a grouped choice to the following atom. Groups may be nested.
 
-Write a literal `|` as `\|` or `"|"`. Quote the whole query in a CLI shell.
+Escape or quote literal `|`, `(`, and `)`. Quote the whole query in a CLI shell.
 
 ## Syntax errors [#errors]
 
-Empty queries, unclosed quotes, trailing backslashes, unknown tags, empty tagged bodies, operand-free `|`, and phrase mixing are rejected.
+Empty queries, unclosed quotes, trailing backslashes, unknown tags, empty tagged bodies, operand-free `|`, empty groups, and unmatched parentheses are rejected.
 
 Errors include the byte location and cause. No partial plan executes.

@@ -8,6 +8,7 @@ pub const DEFAULT_MAX_GAP: usize = 24;
 pub struct QueryAst {
     pub atoms: Vec<QueryAtom>,
     pub composition: QueryComposition,
+    pub graph: Option<QueryGraph>,
     pub phrase: PhrasePolicy,
 }
 
@@ -23,6 +24,16 @@ impl QueryAst {
 pub enum QueryComposition {
     Phrase,
     Disjunction,
+    Grouped,
+}
+
+/// Ordered atom paths for a query containing grouped or mixed alternatives.
+/// Each atom occurs once in the syntax tree; edges share prefixes and suffixes.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QueryGraph {
+    pub starts: Vec<bool>,
+    pub ends: Vec<bool>,
+    pub predecessors: Vec<Vec<usize>>,
 }
 
 /// One ordered query atom.

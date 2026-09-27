@@ -138,6 +138,7 @@ median/min/max/p95, binary·입력 checksum,
 
 ```console
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/phrase_find_all
+cargo bench -p kfind-testkit --bench query_matcher -- matcher/grouped_find_all
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/phrase_find_all_repeated
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/phrase_input_searcher_repeated_line
 cargo bench -p kfind-testkit --bench query_matcher -- matcher/phrase_input_searcher_repeated_line_exists
@@ -160,7 +161,8 @@ scripts/benchmark-criterion.sh matcher/disjunction_find_all
 ```
 
 앞의 phrase benchmark는 입력의 anchor·atom span 수집과 leftmost-longest non-overlapping 결과 선택을
-포함한다. `phrase_find_all_repeated`는 가능한 atom 조합을 모두 만들어 메모리에 쌓지 않는지 감시한다.
+포함한다. `grouped_find_all`은 괄호로 묶은 대안 뒤에 이어지는 atom을 한 번의 scan에서 찾는다.
+`phrase_find_all_repeated`는 가능한 atom 조합을 모두 만들어 메모리에 쌓지 않는지 감시한다.
 `phrase_input_searcher_repeated_line`은 줄바꿈 없는 한 줄의 여러 결과를 실제 metadata 출력 경로로
 수집할 때 남은 입력을 반복해서 다시 스캔하지 않는지 감시한다.
 `phrase_input_searcher_repeated_line_exists`는 같은 입력의 metadata 없는 존재 판정 경로를 분리해

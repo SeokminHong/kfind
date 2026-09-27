@@ -28,13 +28,12 @@ console.log(text.slice(matches[0].start, matches[0].end));
 const matcher = engine.compile("v:걷다|n:사용자|n:검증");
 ```
 
-각 alternative는 하나의 atom이어야 하며 공백 구와 한 query에서 섞을 수
-없습니다. Literal `|`는 `engine.compile("\\|")` 또는
-`engine.compile('"|"')`로 작성합니다.
+대안에 공백 구를 넣거나 괄호로 묶을 수 있습니다. `engine.compile("(사과 | 배) 가격")`은 두 경로를 한 번의 검색으로 처리합니다. Literal 연산자는 escape하거나 인용합니다.
 
 `compile`은 `expand`, `boundary`, `pos`, `normalization`, `maxGap`,
 `literal` 옵션을 받습니다. 허용 값과 match provenance 구조는 패키지의
 TypeScript 선언에 포함됩니다.
+괄호 대안의 match에는 선택된 원본 쿼리 atom 번호가 `queryAtomIndices`에 들어갑니다.
 
 Match offset은 UTF-16 code unit 기준이므로 `String.prototype.slice`에 직접
 사용할 수 있습니다. CLI의 사전 profile이 필요하면

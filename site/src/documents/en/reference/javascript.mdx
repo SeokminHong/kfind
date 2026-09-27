@@ -51,3 +51,4 @@ Match and atom start and end positions use UTF-16 code units and can be passed d
 `findAt` rejects an offset inside a surrogate pair.
 
 Every atom preserves core, token, and all `analysisIndex` and `rulePath` origins.
+Matches from grouped or phrase alternatives include `queryAtomIndices`, identifying the original query atom chosen for each matched atom.

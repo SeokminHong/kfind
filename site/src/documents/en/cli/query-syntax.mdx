@@ -9,9 +9,10 @@ Whitespace separates phrase atoms, while `|` outside quoting and escaping separa
 Empty atoms, unclosed quotes, missing tag values, unknown tags, and `|` without an operand are compile errors.
 
 ```text
-query       = atom / phrase / disjunction
-phrase      = atom 1*(WS atom)
-disjunction = atom 1*(OWS "|" OWS atom)
+query       = alternative
+alternative = sequence *(OWS "|" OWS sequence)
+sequence    = primary *(OWS primary)
+primary     = atom / "(" OWS alternative OWS ")"
 atom        = [pos-tag] (bare / quoted)
 pos-tag     = "n:" / "v:" / "adj:" / "lit:" / ...
 ```
@@ -37,7 +38,7 @@ kfind --literal 'key\:value' config
 
 `걷다|사용자` and `걷다 | 사용자` are equivalent queries that match either atom. Each alternative may carry its own POS tag.
 
-Each alternative must be one atom and cannot be mixed with a phrase. `--max-gap` does not apply. Write a literal `|` as `\|` or `"|"`.
+`A B | C D` chooses between phrases. Parentheses group alternatives, as in `(A | B) C`; `--max-gap` applies between ordered atoms. Escape or quote literal operators.
 
 Quote the whole query in a CLI shell so that the shell does not interpret `|` as a pipe.
 

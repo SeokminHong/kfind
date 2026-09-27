@@ -3,7 +3,7 @@ use std::fmt::{self, Display, Formatter};
 use std::io;
 
 use grep_matcher::{LineMatchKind, LineTerminator, Match, Matcher, NoCaptures};
-use kfind_matcher::{MorphMatcher, SearchDiagnostics};
+use kfind_matcher::{MatchLimitExceeded, MorphMatcher, SearchDiagnostics};
 use kfind_query::PhraseMatch;
 
 use super::InputSearchError;
@@ -20,6 +20,7 @@ pub(super) struct LineMatcher<'a> {
 struct LineEvaluation {
     input_len: usize,
     matches: Vec<PhraseMatch>,
+    routes: Vec<Vec<usize>>,
 }
 
 #[derive(Debug)]
@@ -47,15 +48,11 @@ impl<'a> LineMatcher<'a> {
     pub(super) fn take_line_matches(
         &self,
         bytes: &[u8],
-    ) -> Result<Vec<PhraseMatch>, InputSearchError> {
+    ) -> Result<(Vec<PhraseMatch>, Vec<Vec<usize>>), InputSearchError> {
         if !self.handoff_metadata {
             return self
-                .matcher
-                .find_all_with_meta_limit_and_diagnostics(
-                    bytes,
-                    MAX_MATCHES_PER_LINE,
-                    &self.diagnostics,
-                )
+                .evaluate(bytes)
+                .map(|evaluation| (evaluation.matches, evaluation.routes))
                 .map_err(|error| InputSearchError::MatchLimitExceeded {
                     limit: error.limit(),
                 });
@@ -68,7 +65,36 @@ impl<'a> LineMatcher<'a> {
         if evaluation.input_len != line_without_terminator(bytes).len() {
             return Err(line_evaluation_state_error());
         }
-        Ok(evaluation.matches)
+        Ok((evaluation.matches, evaluation.routes))
+    }
+
+    fn evaluate(&self, bytes: &[u8]) -> Result<LineEvaluation, MatchLimitExceeded> {
+        if self.matcher.plan().graph.is_some() {
+            let routed = self.matcher.find_all_with_route_limit_and_diagnostics(
+                bytes,
+                MAX_MATCHES_PER_LINE,
+                &self.diagnostics,
+            )?;
+            let (matches, routes) = routed
+                .into_iter()
+                .map(|route| (route.matched, route.query_atom_indices))
+                .unzip();
+            return Ok(LineEvaluation {
+                input_len: bytes.len(),
+                matches,
+                routes,
+            });
+        }
+        let matches = self.matcher.find_all_with_meta_limit_and_diagnostics(
+            bytes,
+            MAX_MATCHES_PER_LINE,
+            &self.diagnostics,
+        )?;
+        Ok(LineEvaluation {
+            input_len: bytes.len(),
+            matches,
+            routes: Vec::new(),
+        })
     }
 
     fn replace_pending(&self, evaluation: Option<LineEvaluation>) -> Result<(), LineMatchError> {
@@ -93,23 +119,16 @@ impl Matcher for LineMatcher<'_> {
                 .find_span_at_with_diagnostics(haystack, at, &self.diagnostics)
                 .map(|span| Match::new(span.start, span.end)));
         }
-        let matches = self
-            .matcher
-            .find_all_with_meta_limit_and_diagnostics(
-                haystack,
-                MAX_MATCHES_PER_LINE,
-                &self.diagnostics,
-            )
-            .map_err(|error| LineMatchError::MatchLimitExceeded {
-                limit: error.limit(),
-            })?;
-        let first = matches
+        let evaluation =
+            self.evaluate(haystack)
+                .map_err(|error| LineMatchError::MatchLimitExceeded {
+                    limit: error.limit(),
+                })?;
+        let first = evaluation
+            .matches
             .first()
             .map(|matched| Match::new(matched.span.start, matched.span.end));
-        self.replace_pending(first.map(|_| LineEvaluation {
-            input_len: haystack.len(),
-            matches,
-        }))?;
+        self.replace_pending(first.map(|_| evaluation))?;
         Ok(first)
     }
 

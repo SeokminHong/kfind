@@ -212,7 +212,23 @@ impl JsonSpan {
 fn json_spans(line: &SearchLine, plan: &QueryPlan) -> Vec<JsonSpan> {
     line.matches
         .iter()
-        .flat_map(|matched| matched.atoms.iter().enumerate())
+        .enumerate()
+        .flat_map(|(match_index, matched)| {
+            matched
+                .atoms
+                .iter()
+                .enumerate()
+                .map(move |(position, span)| {
+                    (
+                        line.query_atom_indices
+                            .get(match_index)
+                            .and_then(|route| route.get(position))
+                            .copied()
+                            .unwrap_or(position),
+                        span,
+                    )
+                })
+        })
         .map(|(atom_index, span)| JsonSpan::new(atom_index, span, &line.bytes, plan))
         .collect()
 }

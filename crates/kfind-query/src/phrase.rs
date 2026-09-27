@@ -11,6 +11,13 @@ pub struct PhraseMatch {
     pub atoms: Vec<VerifiedSpan>,
 }
 
+/// A match together with the query atom chosen at each matched position.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RoutedMatch {
+    pub matched: PhraseMatch,
+    pub query_atom_indices: Vec<usize>,
+}
+
 pub fn join_phrase_spans(
     text: &str,
     atom_spans: &[Vec<VerifiedSpan>],

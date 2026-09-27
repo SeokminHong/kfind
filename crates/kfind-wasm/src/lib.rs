@@ -10,7 +10,8 @@ use wasm_bindgen::prelude::*;
 
 use crate::options::parse_compile_options;
 use crate::output::{
-    serialize_match, serialize_matches, serialize_matches_with_diagnostics, utf16_offset_to_byte,
+    serialize_match, serialize_matches, serialize_matches_with_diagnostics, serialize_routed_match,
+    serialize_routed_matches, serialize_routed_matches_with_diagnostics, utf16_offset_to_byte,
 };
 
 #[wasm_bindgen(typescript_custom_section)]
@@ -67,6 +68,7 @@ export interface Match {
   readonly start: number;
   readonly end: number;
   readonly atoms: readonly MatchAtom[];
+  readonly queryAtomIndices?: readonly number[];
 }
 
 export interface SearchResult {
@@ -167,9 +169,16 @@ pub struct Matcher {
 impl Matcher {
     #[wasm_bindgen(js_name = findAll, unchecked_return_type = "readonly Match[]")]
     pub fn find_all(&self, text: &str) -> Result<JsValue, JsError> {
-        serialize_matches(
+        if self.inner.plan().graph.is_none() {
+            return serialize_matches(
+                text,
+                &self.inner.find_all(text.as_bytes()),
+                self.inner.plan(),
+            );
+        }
+        serialize_routed_matches(
             text,
-            &self.inner.find_all(text.as_bytes()),
+            &self.inner.find_all_with_routes(text.as_bytes()),
             self.inner.plan(),
         )
     }
@@ -177,11 +186,18 @@ impl Matcher {
     #[wasm_bindgen(js_name = findAllLimit, unchecked_return_type = "readonly Match[]")]
     pub fn find_all_limit(&self, text: &str, max_matches: f64) -> Result<JsValue, JsError> {
         let max_matches = nonnegative_u32(max_matches, "maxMatches")?;
+        if self.inner.plan().graph.is_none() {
+            let matches = self
+                .inner
+                .find_all_limit(text.as_bytes(), max_matches)
+                .map_err(|error| JsError::new(&error.to_string()))?;
+            return serialize_matches(text, &matches, self.inner.plan());
+        }
         let matches = self
             .inner
-            .find_all_limit(text.as_bytes(), max_matches)
+            .find_all_with_routes_limit(text.as_bytes(), max_matches)
             .map_err(|error| JsError::new(&error.to_string()))?;
-        serialize_matches(text, &matches, self.inner.plan())
+        serialize_routed_matches(text, &matches, self.inner.plan())
     }
 
     #[wasm_bindgen(js_name = findAt, unchecked_return_type = "Match | null")]
@@ -190,8 +206,14 @@ impl Matcher {
         let Some(byte_offset) = utf16_offset_to_byte(text, offset)? else {
             return Ok(JsValue::NULL);
         };
-        match self.inner.find_at(text.as_bytes(), byte_offset) {
-            Some(matched) => serialize_match(text, &matched, self.inner.plan()),
+        if self.inner.plan().graph.is_none() {
+            return match self.inner.find_at(text.as_bytes(), byte_offset) {
+                Some(matched) => serialize_match(text, &matched, self.inner.plan()),
+                None => Ok(JsValue::NULL),
+            };
+        }
+        match self.inner.find_at_with_route(text.as_bytes(), byte_offset) {
+            Some(matched) => serialize_routed_match(text, &matched, self.inner.plan()),
             None => Ok(JsValue::NULL),
         }
     }
@@ -199,10 +221,21 @@ impl Matcher {
     #[wasm_bindgen(js_name = findAllWithDiagnostics, unchecked_return_type = "SearchResult")]
     pub fn find_all_with_diagnostics(&self, text: &str) -> Result<JsValue, JsError> {
         let diagnostics = SearchDiagnostics::default();
+        if self.inner.plan().graph.is_none() {
+            let matches = self
+                .inner
+                .find_all_with_diagnostics(text.as_bytes(), &diagnostics);
+            return serialize_matches_with_diagnostics(
+                text,
+                &matches,
+                self.inner.plan(),
+                diagnostics.structural_verification_incomplete(),
+            );
+        }
         let matches = self
             .inner
-            .find_all_with_diagnostics(text.as_bytes(), &diagnostics);
-        serialize_matches_with_diagnostics(
+            .find_all_with_routes_with_diagnostics(text.as_bytes(), &diagnostics);
+        serialize_routed_matches_with_diagnostics(
             text,
             &matches,
             self.inner.plan(),

@@ -4,7 +4,7 @@ use memchr::memchr;
 use super::{MorphMatcher, ProgramRef};
 
 pub(super) fn find(matcher: &MorphMatcher, haystack: &[u8]) -> Option<LineMatchKind> {
-    if !matcher.is_line_local || matcher.plan.atoms.len() == 1 {
+    if !matcher.is_line_local || matcher.plan.atoms.len() == 1 || matcher.plan.graph.is_some() {
         return first_anchor(matcher, haystack);
     }
 
