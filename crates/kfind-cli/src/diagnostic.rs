@@ -209,6 +209,12 @@ fn write_query_error(
             language.select("query atom count", "쿼리 atom 수"),
             language.select("limit is", "제한은")
         )?,
+        QueryErrorKind::TooManyGroupedPaths { actual, limit } => write!(
+            formatter,
+            "{} {actual}; {} {limit}",
+            language.select("query grouped path count", "쿼리 그룹 경로 수"),
+            language.select("limit is", "제한은")
+        )?,
         QueryErrorKind::MissingDisjunctionOperand => formatter.write_str(language.select(
             "invalid `|` operand or parenthesis",
             "`|` 피연산자 또는 괄호가 올바르지 않습니다",
