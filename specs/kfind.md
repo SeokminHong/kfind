@@ -1200,8 +1200,11 @@ positive`처럼 code, 현재 언어의 이름, 영문 원문 순서로 표시하
   GitHub Release tag를 checkout하고 이 검증이 끝난 동일 산출물을 npm registry에 게시한다.
   Prerelease version은 `next`, stable version은 `latest` dist-tag를 사용하며 prerelease를
   `latest`에 연결하지 않는다.
-- Publish workflow는 repository secret `NPM_TOKEN`을 npm 인증용 `NODE_AUTH_TOKEN`으로
-  전달한다. Token 값은 로그, 산출물과 저장소 파일에 기록하지 않는다.
+- Publish workflow는 npm package의 GitHub Actions trusted publisher에 등록된 `publish.yml`과
+  GitHub OIDC로 게시한다. `@kfind/kfind` package 설정에는 owner `SeokminHong`, repository
+  `kfind`, workflow `publish.yml`, `npm publish` 허용을 등록한다. Workflow는 장기 npm publish
+  token을 사용하지 않는다. 새 version의 `npm publish --tag`로 dist-tag를 설정하고, 이미 게시된
+  version의 재실행에서는 package checksum과 기대 dist-tag를 읽기 전용으로 검증한다.
 - npm 산출물은 browser bundler와 Node.js용 release package로 생성한다. Node target은 같은 공개
   API와 실제 `bin` 실행을 smoke test하고 `npm pack --dry-run`으로 게시 파일, executable mode와
   metadata를 검증한다.

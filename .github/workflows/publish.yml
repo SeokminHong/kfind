@@ -99,11 +99,9 @@ jobs:
       - name: Build and publish the npm package
         env:
           KFIND_COMPONENT_RESOURCE_DIR: ${{ github.workspace }}/dist/component
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           PRERELEASE: ${{ needs.metadata.outputs.prerelease }}
           VERSION: ${{ needs.metadata.outputs.version }}
         run: |
-          test -n "$NODE_AUTH_TOKEN"
           scripts/build-component-resource.sh dist/component
           pnpm --dir packages/kfind run pack:check
           package_file=$(npm pack ./packages/kfind --json | jq -r '.[0].filename')
@@ -124,6 +122,21 @@ jobs:
             echo "@kfind/kfind@${VERSION} did not become visible in the npm registry" >&2
             return 1
           }
+          wait_for_dist_tag() {
+            local tag=$1
+            for attempt in $(seq 1 18); do
+              if tagged_version=$(npm view @kfind/kfind "dist-tags.${tag}" 2>/dev/null) &&
+                [[ "$tagged_version" == "$VERSION" ]]; then
+                return 0
+              fi
+              if [[ "$attempt" -lt 18 ]]; then
+                echo "Waiting for @kfind/kfind ${tag} dist-tag (${attempt}/18)"
+                sleep 10
+              fi
+            done
+            echo "@kfind/kfind ${tag} dist-tag does not point to ${VERSION}" >&2
+            return 1
+          }
           if remote_shasum=$(npm view "@kfind/kfind@${VERSION}" dist.shasum); then
             test "$local_shasum" = "$remote_shasum"
           else
@@ -138,11 +151,11 @@ jobs:
           fi
           wait_for_registry_package
           if [[ "$PRERELEASE" == true ]]; then
-            npm dist-tag add "@kfind/kfind@${VERSION}" next
+            wait_for_dist_tag next
             latest=$(npm view @kfind/kfind dist-tags.latest || true)
             [[ "$latest" != "$VERSION" ]]
           else
-            npm dist-tag add "@kfind/kfind@${VERSION}" latest
+            wait_for_dist_tag latest
           fi
       - name: Verify npm registry consumers
         env:
