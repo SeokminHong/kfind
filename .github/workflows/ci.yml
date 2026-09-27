@@ -17,6 +17,26 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  semver:
+    name: Rust public API compatibility
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - name: Select the latest stable 1.x release
+        id: baseline
+        run: |
+          tag=$(git tag --list 'v1.*' | grep -Ev -- '-' | sort -V | tail -n 1)
+          test -n "$tag"
+          printf 'tag=%s\n' "$tag" >>"$GITHUB_OUTPUT"
+      - name: Check the stable Rust facade
+        uses: obi1kenobi/cargo-semver-checks-action@6b69fcf40e9b5fb17adeb57e4b6ecd020649a239 # v2
+        with:
+          package: kfind
+          baseline-rev: ${{ steps.baseline.outputs.tag }}
+          release-type: minor
+
   quality:
     name: Format and lint
     runs-on: ubuntu-24.04
