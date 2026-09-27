@@ -7,6 +7,8 @@ use crate::ast::PhrasePolicy;
 
 pub const DEFAULT_MAX_QUERY_SCALARS: usize = 256;
 pub const DEFAULT_MAX_ATOMS: usize = 32;
+/// Maximum number of complete grouped query paths, without materializing them.
+pub const MAX_GROUPED_PATHS: usize = 32;
 pub const DEFAULT_MAX_ANALYSES_PER_ATOM: usize = 32;
 pub const DEFAULT_MAX_PROGRAMS: usize = 4_096;
 pub const DEFAULT_MAX_MATCHER_BYTES: usize = 64 * 1024 * 1024;

@@ -2,7 +2,7 @@ use kfind_morph::CoarsePos;
 
 use crate::ast::{QueryAst, QueryAtom, QueryComposition, QueryGraph};
 use crate::error::{QueryError, QueryErrorKind, SourceSpan};
-use crate::options::CompileOptions;
+use crate::options::{CompileOptions, MAX_GROUPED_PATHS};
 
 /// Parses query text without performing morphological analysis.
 pub fn parse_query(source: &str, options: &CompileOptions) -> Result<QueryAst, QueryError> {
@@ -281,6 +281,20 @@ fn compose_grouped(
 struct PathEnds {
     first: Vec<usize>,
     last: Vec<usize>,
+    path_count: usize,
+}
+
+fn bounded_path_count(actual: usize, span: SourceSpan) -> Result<usize, QueryError> {
+    if actual > MAX_GROUPED_PATHS {
+        return Err(QueryError::new(
+            QueryErrorKind::TooManyGroupedPaths {
+                actual,
+                limit: MAX_GROUPED_PATHS,
+            },
+            span,
+        ));
+    }
+    Ok(actual)
 }
 
 struct GroupParser {
@@ -308,6 +322,8 @@ impl GroupParser {
                 ));
             }
             let next = self.sequence()?;
+            result.path_count =
+                bounded_path_count(result.path_count.saturating_add(next.path_count), operator)?;
             result.first.extend(next.first);
             result.last.extend(next.last);
         }
@@ -322,6 +338,10 @@ impl GroupParser {
             .is_some_and(|token| matches!(token, LexedToken::Atom { .. } | LexedToken::Open(_)))
         {
             let next = self.primary()?;
+            result.path_count = bounded_path_count(
+                result.path_count.saturating_mul(next.path_count),
+                self.tokens[self.cursor - 1].span(),
+            )?;
             for &first in &next.first {
                 self.graph.predecessors[first].extend(result.last.iter().copied());
             }
@@ -348,6 +368,7 @@ impl GroupParser {
                 Ok(PathEnds {
                     first: vec![index],
                     last: vec![index],
+                    path_count: 1,
                 })
             }
             LexedToken::Open(open) => {
@@ -562,6 +583,24 @@ mod tests {
         let nested = parse_query("((가 | 나) 다 | 라) 마", &CompileOptions::default()).unwrap();
         assert_eq!(nested.atoms.len(), 5);
         assert_eq!(nested.graph.unwrap().predecessors[4], [2, 3]);
+    }
+
+    #[test]
+    fn bounds_grouped_paths_without_expanding_them() {
+        let within_limit = "(a|b) ".repeat(5);
+        assert!(parse_query(&within_limit, &CompileOptions::default()).is_ok());
+
+        let over_limit = "(a|b) ".repeat(6);
+        let source = over_limit.trim_end();
+        let error = parse_query(source, &CompileOptions::default()).unwrap_err();
+        assert_eq!(
+            error.kind,
+            QueryErrorKind::TooManyGroupedPaths {
+                actual: 64,
+                limit: MAX_GROUPED_PATHS,
+            }
+        );
+        assert_eq!(error.span, SourceSpan::new(source.len() - 1, source.len()));
     }
 
     #[test]
