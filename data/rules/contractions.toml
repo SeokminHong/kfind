@@ -65,6 +65,14 @@ result = "셨"
 ending_ids = ["ending.past"]
 
 [[contraction]]
+id = "contraction.noh-a"
+kind = "stem-rewrite"
+left = "놓"
+right = "아"
+result = "놔"
+ending_ids = ["ending.aoeo", "ending.aoeo-seo", "ending.past"]
+
+[[contraction]]
 id = "contraction.nominal-topic-neun"
 kind = "nominal-particle-compose"
 left = "거"

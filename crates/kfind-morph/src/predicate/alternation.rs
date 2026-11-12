@@ -148,11 +148,24 @@ fn regular_aeo(
         } else {
             "어"
         };
-        return Ok(vec![DerivedSurface {
+        let contracted = if entry.pos.is_action() {
+            stem.strip_suffix('놓').map(|prefix| {
+                derived(
+                    format!("{prefix}놔"),
+                    stem.len(),
+                    with_rule(base_rules.clone(), "contraction.noh-a"),
+                )
+            })
+        } else {
+            None
+        };
+        let mut surfaces = vec![DerivedSurface {
             surface: format!("{stem}{suffix}"),
             core_len: stem.len(),
             rules: base_rules,
-        }]);
+        }];
+        surfaces.extend(contracted);
+        return Ok(surfaces);
     }
 
     let mut surfaces = Vec::new();
