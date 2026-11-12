@@ -3,9 +3,10 @@ use crate::structure::evidence::TokenEvidence;
 use crate::structure::graph::EdgeGraph;
 use crate::structure::lexical::{
     complete_dependent_noun_particle_suffix, complete_nominal_host, complete_nominal_particle_host,
-    complete_suffix, exact_analysis_starts_with_pos, has_adnominal_result_complement,
-    has_complete_object_phrase, has_exact_fine_pos, has_exact_sequence, numeric_unit_path_at,
-    predicate_pos_matches, structural_predicate_pos_matches,
+    complete_predicate_ending_path, complete_suffix, exact_analysis_starts_with_pos,
+    has_adnominal_result_complement, has_complete_object_phrase, has_exact_fine_pos,
+    has_exact_sequence, numeric_unit_path_at, predicate_pos_matches,
+    structural_predicate_pos_matches,
 };
 use crate::structure::paths::predicate::{
     has_complete_attached_auxiliary_path, is_attached_auxiliary_whole_path,
@@ -526,6 +527,37 @@ impl ConstraintResolver {
     #[must_use]
     pub fn supports_auxiliary_sequence(&self, text: &str, node_limit: usize) -> bool {
         self.supports_auxiliary_sequence_matching(text, node_limit, |_| true)
+    }
+
+    #[must_use]
+    pub fn has_adnominal_auxiliary_tail(
+        &self,
+        text: &str,
+        future: bool,
+        present_or_past: bool,
+    ) -> bool {
+        let Some(head) = text.chars().next() else {
+            return false;
+        };
+        let tail = &text[head.len_utf8()..];
+        let ha = tail.starts_with(['하', '해', '했', '한', '할', '합', '함']);
+        let predicate = match head {
+            '만' | '법' | '뻔' if future && ha => tail,
+            '척' | '체' | '양' if present_or_past && ha => tail,
+            '듯' | '성' if ha || tail.starts_with('싶') => tail,
+            '성' if ["부르", "부른", "부를", "부름", "부릅", "불러", "불렀"]
+                .iter()
+                .any(|form| tail.starts_with(form)) =>
+            {
+                text
+            }
+            _ => return false,
+        };
+        self.has_exact_predicate_ending_path_matching(
+            predicate,
+            StructuralPos::is_predicate_tag,
+            |_| true,
+        ) || complete_predicate_ending_path(&self.resource, predicate)
     }
 
     #[must_use]

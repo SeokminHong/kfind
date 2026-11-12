@@ -132,6 +132,23 @@ regression.causal-focus-particle.ha	부족하다	adjective	smart-exact	47	59	이
 regression.causal-focus-particle.verb	피하다	verb	smart-exact	27	36	일정이 겹치는 날을 피해서가 아니다.
 regression.causal-focus-particle.causal	없다	adjective	smart-exact	7	16	돈이 없어서 은행에서 빌렸다.
 regression.causal-focus-particle.question	없다	adjective	smart-exact	24	33	그건 자기 생각이 없어서가 아닐까?
+corpus.ud-gsd.test.test-s73.verb.가다	가다	verb	smart-exact	29	32	친구들 모임이었는데 갈만하네요
+regression.adnominal-auxiliary.man-spaced	가다	verb	smart-exact	29	32	친구들 모임이었는데 갈 만하네요
+regression.adnominal-auxiliary.man-consonant	읽다	verb	smart-exact	22	28	이 책은 한 번쯤 읽을만하다.
+regression.adnominal-auxiliary.beop	받다	verb	smart-exact	24	30	그 정도라면 상을 받을법하다.
+regression.adnominal-auxiliary.올듯	오다	verb	smart-exact	11	14	곧 비가 올듯하다.
+regression.adnominal-auxiliary.올듯싶	오다	verb	smart-exact	11	14	곧 비가 올듯싶다.
+regression.adnominal-auxiliary.올성싶	오다	verb	smart-exact	11	14	곧 비가 올성싶다.
+regression.adnominal-auxiliary.죽을뻔	죽다	verb	smart-exact	17	23	사고 때문에 죽을뻔했다.
+regression.adnominal-auxiliary.아는척	알다	verb	smart-exact	21	27	그는 내용을 다 아는척했다.
+regression.adnominal-auxiliary.본체	보다	verb	smart-exact	11	14	그는 못 본체했다.
+regression.adnominal-auxiliary.아는양	알다	verb	smart-exact	21	27	그는 내용을 다 아는양했다.
+regression.adnominal-auxiliary.seongha	아니다	adjective	smart-exact	21	27	그 말이 사실은 아닌성하다.
+regression.adnominal-auxiliary.seongbureu	있다	adjective	smart-exact	17	23	내가 가만히 있을성부르냐?
+regression.adnominal-auxiliary.ha-polite	가다	verb	smart-exact	16	19	친구들과도 갈만합니다.
+regression.adnominal-auxiliary.present-deus	오다	verb	smart-exact	14	20	지금 비가 오는듯싶다.
+regression.adnominal-auxiliary.past-deus	오다	verb	smart-exact	14	17	밤에 비가 온듯하다.
+regression.adnominal-auxiliary.other-nominal	읽다	verb	no-match	17	23	파일 이름은 읽을만화다.
 corpus.ud-kaist.test.MH2_0070-s138.adjective.다르다	다르다	adjective	match	10	16	이와는 달리 우리나라 신발수출은 91 년 11.3 % 감소한 이후 92년 8월 말까지 16.6 %나 줄었다.
 corpus.ud-kaist.test.MH2_0070-s73.adjective.같다	같다	adjective	match	110	116	또한 각국의 소비지출은 1 개월 평균, 자국통화로 된 금액을 이용하였으며, 미국과 같이 연간단위로 된 통계자료는 월평균으로 환산하여 사용하였다.
 corpus.ud-kaist.test.MH2_0180-s113.pronoun.무어	무어	pronoun	match	39	48	일반적으로는 사항에 관해서 무언가 새로운 것을 경험하려고 하여 주어의 토대를 뛰어넘고 있는 것이다.
