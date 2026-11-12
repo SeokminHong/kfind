@@ -53,6 +53,16 @@ corpus.ud-gsd.test.test-s952.verb.악화되다	악화되다	verb	smart-exact	34	
 corpus.ud-gsd.test.test-s664.adjective.있다	있다	adjective	smart-exact	36	45	그 옆에 돌 없이 평평한 곳 있어서 맨발로 재밌게 놀았어요
 corpus.ud-gsd.test.test-s671.verb.켜다	켜다	verb	smart-exact	30	36	남양주 진접에서 내비 켜고 찾아갔는데 진짜 잘 갔다 생각 들었어요.
 corpus.ud-gsd.test.test-s958.verb.가다	가다	verb	smart-exact	56	62	오후 10시까지만 영업을 하기 때문에 일찍 가야 합니다.
+corpus.ud-gsd.test.test-s104.verb.하다	하다	verb	smart-exact	14	26	여기 단골 하려고요.
+regression.intentive-polite.consonant	먹다	verb	smart-exact	10	25	이따가 먹으려고요.
+regression.intentive-polite.digeut	듣다	verb	smart-exact	20	35	처음부터 다시 들으려고요.
+regression.intentive-polite.rieul	만들다	verb	smart-exact	14	29	제가 직접 만들려고요.
+regression.intentive-polite.rieul-honorific	만들다	verb	smart-exact	20	38	할머니가 직접 만드시려고요?
+regression.intentive-polite.vowel-honorific	가다	verb	smart-exact	7	22	먼저 가시려고요?
+regression.intentive-polite.digeut-honorific	듣다	verb	smart-exact	10	28	설명을 들으시려고요?
+regression.intentive-polite.connective	먹다	verb	smart-exact	0	12	먹으려고 아껴 두었다.
+regression.intentive-polite.action	크다	verb	smart-exact	12	24	한 뼘 더 크려고요.
+regression.intentive-polite.state	크다	adjective	no-match	12	24	한 뼘 더 크려고요.
 corpus.ud-gsd.test.test-s570.verb.주무시다	주무시다	verb	match	37	49	겨울에는 무조건 내복 입고 주무세요.
 corpus.ud-gsd.test.test-s674.verb.느끼다	느끼다	verb	match	146	158	도 특사경 유흥수 팀장은 "행정적 위반 업소 단속이 많지만 가끔 검찰과 현장 합동단속을 벌일 때는 긴박감도 느껴진다"고 했다.
 corpus.ud-gsd.test.test-s723.verb.이루어지다	이루어지다	verb	match	86	98	이곳에서 문화재 발굴은 형촌마을 서쪽 구릉과 남쪽 저지대에서 이뤄지고 있었다.

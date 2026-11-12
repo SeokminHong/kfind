@@ -108,6 +108,7 @@ const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.coordinate-myeo",
     "ending.simultaneous-myeonseo",
     "ending.intentive-adnominal",
+    "ending.intentive-ryeogo",
     "ending.purpose-reo",
     "ending.connective-na",
     "ending.imperative-sio",
