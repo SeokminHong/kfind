@@ -236,6 +236,20 @@ impl Default for ParticleChainModel {
             allomorph(Topic, Auxiliary, "는", Vowel, "topic"),
             allomorph(Additive, Auxiliary, "도", Any, "additive"),
             allomorph(Restrictive, Auxiliary, "만", Any, "only"),
+            allomorph(
+                ParticleKind::Catalog,
+                Auxiliary,
+                "이야말로",
+                Consonant,
+                "emphasis.yamallo",
+            ),
+            allomorph(
+                ParticleKind::Catalog,
+                Auxiliary,
+                "야말로",
+                Vowel,
+                "emphasis.yamallo",
+            ),
             allomorph(Limit, Auxiliary, "까지", Any, "limit.ggaji"),
             allomorph(StartingPoint, Auxiliary, "부터", Any, "from"),
             allomorph(Even, Auxiliary, "조차", Any, "even.jocha"),
@@ -448,6 +462,7 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
                 "particle.alternative.ina-na",
                 "particle.concessive.inama-nama",
                 "particle.concessive.irado-rado",
+                "particle.emphasis.yamallo",
             ],
         ),
         transition("particle.subject", FOCUS),
@@ -479,6 +494,7 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
                 "particle.alternative.ina-na",
                 "particle.concessive.inama-nama",
                 "particle.concessive.irado-rado",
+                "particle.emphasis.yamallo",
             ],
         ),
         transition("particle.capacity.roseo", FOCUS),
@@ -497,6 +513,7 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
                 "particle.alternative.ina-na",
                 "particle.concessive.inama-nama",
                 "particle.concessive.irado-rado",
+                "particle.emphasis.yamallo",
             ],
         ),
         transition(
@@ -514,6 +531,7 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
                 "particle.alternative.ina-na",
                 "particle.concessive.inama-nama",
                 "particle.concessive.irado-rado",
+                "particle.emphasis.yamallo",
             ],
         ),
         transition(
@@ -530,6 +548,7 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
                 "particle.alternative.ina-na",
                 "particle.concessive.inama-nama",
                 "particle.concessive.irado-rado",
+                "particle.emphasis.yamallo",
             ],
         ),
         transition(
@@ -545,6 +564,7 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
                 "particle.alternative.ina-na",
                 "particle.concessive.inama-nama",
                 "particle.concessive.irado-rado",
+                "particle.emphasis.yamallo",
             ],
         ),
         transition(
@@ -560,6 +580,7 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
                 "particle.alternative.ina-na",
                 "particle.concessive.inama-nama",
                 "particle.concessive.irado-rado",
+                "particle.emphasis.yamallo",
             ],
         ),
         transition(
@@ -575,6 +596,7 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
                 "particle.alternative.ina-na",
                 "particle.concessive.inama-nama",
                 "particle.concessive.irado-rado",
+                "particle.emphasis.yamallo",
             ],
         ),
         transition(
@@ -647,6 +669,7 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
         transition("particle.alternative.ina-na", &[]),
         transition("particle.concessive.inama-nama", &[]),
         transition("particle.concessive.irado-rado", &[]),
+        transition("particle.emphasis.yamallo", &[]),
         transition("particle.comitative.irang-rang", FOCUS),
     ])
 }

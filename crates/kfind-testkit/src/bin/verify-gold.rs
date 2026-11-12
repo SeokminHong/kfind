@@ -28,6 +28,8 @@ const DEPENDENT_SUBJECT_CASES: &str =
     include_str!("../../../../data/fixtures/dependent_subject_cases.tsv");
 const ELAPSED_MEASURE_CASES: &str =
     include_str!("../../../../data/fixtures/elapsed_measure_cases.tsv");
+const EMPHATIC_PARTICLE_CASES: &str =
+    include_str!("../../../../data/fixtures/emphatic_particle_cases.tsv");
 const QUERY_MATRIX_POS_REVIEW_CASES: &str =
     include_str!("../../../../data/fixtures/query_matrix_pos_review_cases.tsv");
 const QUANTIFYING_ADVERB_CASES: &str =
@@ -94,6 +96,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         DEPENDENT_SUBJECT_CASES,
     )?;
     verify_span_cases(&enriched_harness, "elapsed measure", ELAPSED_MEASURE_CASES)?;
+    verify_span_cases(
+        &enriched_harness,
+        "emphatic particle",
+        EMPHATIC_PARTICLE_CASES,
+    )?;
     verify_span_cases(
         &enriched_harness,
         "query matrix POS review",

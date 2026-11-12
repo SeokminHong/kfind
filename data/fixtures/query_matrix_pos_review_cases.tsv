@@ -7,5 +7,5 @@ geuttae-no-pronoun	그	pronoun	no-match	0	12	그때부터 남아 있는 사람�
 geu-as-determiner	그	determiner	smart-exact	70	73	따라서 동북아 경제권의 형성은 아직 논의 단계이며 그 실현에는 상당한 기간이 소요될 것이다.
 geu-determiner-no-pronoun	그	pronoun	no-match	70	73	따라서 동북아 경제권의 형성은 아직 논의 단계이며 그 실현에는 상당한 기간이 소요될 것이다.
 geu-as-pronoun	그	pronoun	exact	0	6	그가 먼저 노래를 불렀다.
-geugeot-as-pronoun	그것	pronoun	match	0	6	그것이야말로 헤겔이 확실히 확정한 선험적 철학의 의미인 것이다.
+geugeot-as-pronoun	그것	pronoun	exact	0	18	그것이야말로 헤겔이 확실히 확정한 선험적 철학의 의미인 것이다.
 geugeot-no-internal-pronoun	그	pronoun	no-match	0	6	그것이야말로 헤겔이 확실히 확정한 선험적 철학의 의미인 것이다.

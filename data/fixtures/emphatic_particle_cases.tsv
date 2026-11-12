@@ -1,0 +1,14 @@
+id	query	pos	expected	byte_start	byte_end	text
+pronoun-closed	그것	pronoun	exact	0	18	그것이야말로 우리가 찾던 답이다.
+noun-open	바다	noun	exact	0	15	바다야말로 우리가 지켜야 할 곳이다.
+noun-rieul	길	noun	exact	4	19	이 길이야말로 우리가 찾던 길이다.
+plural	학생	noun	exact	0	21	학생들이야말로 이 학교의 주인이다.
+locative	이번	noun	exact	0	18	이번에야말로 끝까지 해내겠다.
+source	도서관	noun	exact	0	24	도서관에서야말로 조용히 읽을 수 있다.
+starting-point	지금	adverb	exact	0	21	지금부터야말로 연습이 중요하다.
+adverb	이제	adverb	exact	0	15	이제야말로 시작할 때다.
+adverb-closed	지금	adverb	exact	0	18	지금이야말로 시작할 때다.
+dative	아이	noun	exact	0	21	아이에게야말로 이런 돌봄이 필요하다.
+direction	대화	noun	exact	0	18	대화로야말로 이 갈등을 풀 수 있다.
+wrong-closed	길	noun	no-match	4	16	이 길야말로 우리가 찾던 통로다.
+wrong-open	바다	noun	no-match	0	18	바다이야말로 우리가 지켜야 할 곳이다.
