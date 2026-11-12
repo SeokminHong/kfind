@@ -7,6 +7,7 @@ explicit-pos	dev	pos:ud-korean-kaist:MH2_0159-s26:2:0	격식있다	adjective	tru
 explicit-pos	dev	pos:ud-korean-kaist:MH2_0069-s34:2:0	첫	numeral	true	e09880d06dff355c5c4bb9fe5a52700bf7688218386d05312028af12dc171478	contract-negative	gold-alignment-error	첫번째의 붙여쓰기는 허용되며 첫은 번째를 꾸미는 관형사다.
 explicit-pos	dev	pos:ud-korean-kaist:MH2_0069-s112:3:0	수천	numeral	true	5167ff15ad2206260d5db20f65974f035d3f404ff0a3d7a39fd4af4472b968ad	excluded	nonstandard-input	수천 가지에서 의존 명사 가지는 띄어 쓴다.
 explicit-pos	dev	pos:ud-korean-kaist:MH2_0159-s86:12:0	적다	verb	true	826d7c4ac65941f47e06f6a6990c903bddef8ce19cb408b53bcb63eac3b4d232	contract-negative	gold-alignment-error	영향을 꾸미는 적잖은은 형용사 적잖다의 관형형이다.
+explicit-pos	dev	pos:ud-korean-kaist:MH2_0169-s738:3:2	년	noun	true	ef52b51d2e3de1f9d4eb441bd52144d352a48a7848b4217fdc761f09cf1618b5	excluded	nonstandard-input	1,500여 년간에서 여와 년은 띄고 접미사 간은 년에 붙인다.
 explicit-pos	test	pos:ud-korean-kaist:MH2_0010-s407:1:0	그	pronoun	true	376190a50401f6a6f4bf343ca338aa010e107a515f94023130a213425fb6f521	contract-negative	gold-alignment-error	그때부터는 사전 표제어 그때에 보조사 부터가 붙은 말이다.
 explicit-pos	test	pos:ud-korean-kaist:MH2_0190-s366:2:0	권위있다	adjective	true	52921104d2daa5fb136f33706f63c4a12be7746e9759fcc3009a9c658045ec06	excluded	nonstandard-input	권위 있는을 붙여 쓴 입력이라 표준문 계약에서 제외한다.
 explicit-pos	test	pos:ud-korean-kaist:MH2_0190-s422:1:0	국경없다	adjective	true	3eb9ff24f69e15137dc4aedda0df93dd113b803cd11a1bb157d777f564534366	excluded	nonstandard-input	국경 없는을 붙여 쓴 입력이라 표준문 계약에서 제외한다.

@@ -102,3 +102,4 @@ corpus.ud-kaist.dev.MH2_0169-s328.pronoun.무어	무어	pronoun	exact	71	77	이�
 corpus.ud-kaist.dev.MH2_0069-s271.determiner.주	주	determiner	exact	10	13	상품의 주 가치로 하는 상품이기 때문에 다른 여타의 일반 상품과는 다른 특성을 지니기도 한다.
 corpus.ud-kaist.dev.MH2_0159-s86.adjective.적잖다	적잖다	adjective	exact	43	52	인간의 새로운 가치관 형성에도 적잖은 영향을 끼친다는 사실
 corpus.ud-kaist.dev.MH2_0159-s341.adjective.가볍다	가볍다	adjective	exact	66	75	이면을 바라보는 사회학적 콘텍스트 접근을 훨씬 가벼이 여겨 왔던 것이다.
+corpus.ud-kaist.dev.MH2_0169-s738.noun.년	년	noun	exact	45	48	봉건 시대가 우리나라에만 1,500여 년간 유지되었다.

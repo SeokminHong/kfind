@@ -1086,6 +1086,26 @@ impl MorphMatcher {
             return true;
         }
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        ) && candidate.verified.core.start == whole.start
+            && candidate.verified.core.end < whole.end
+            && patterns
+                .iter()
+                .any(|pattern| matches!(pattern.fine_pos, DataFinePos::Nnb | DataFinePos::Nr))
+            && context::previous_word(haystack, whole.start).is_some_and(|previous| {
+                let digits = previous.strip_suffix('여').unwrap_or(&previous);
+                !digits.is_empty() && digits.bytes().all(|byte| byte.is_ascii_digit())
+            })
+            && context::normalized_token(haystack, whole.clone()).is_some_and(|token| {
+                context::normalized_token(haystack, candidate.verified.core.clone()).is_some_and(
+                    |unit| resolver.has_numeric_unit_before_dependent_noun(&token, &unit),
+                )
+            })
+        {
+            return true;
+        }
         if self.has_lexicalized_time_modifier(haystack, candidate, branch, &whole, resolver) {
             return false;
         }
