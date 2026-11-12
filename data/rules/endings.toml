@@ -552,6 +552,146 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.interrogative-rieulkka"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ까", "을까"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.interrogative-rieulkko"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ꼬", "을꼬"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.interrogative-rieulreonga"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ런가", "을런가"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.concern-rieulra"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ라", "을라"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.concern-rieulsera"
+category = "connective"
+initial = "attach-rieul"
+forms = ["ㄹ세라", "을세라"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.connective-rieulsurok"
+category = "connective"
+initial = "attach-rieul"
+forms = ["ㄹ수록", "을수록"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.concessive-rieul"
+category = "connective"
+initial = "attach-rieul"
+forms = ["ㄹ망정", "을망정", "ㄹ지라도", "을지라도", "ㄹ지언정", "을지언정"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.final-rieulbakke"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ밖에", "을밖에"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.interrogative-rieulssonya"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ쏘냐", "을쏘냐"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.connective-rieuljini"
+category = "connective"
+initial = "attach-rieul"
+forms = ["ㄹ지니", "을지니"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.conditional-rieuljindae"
+category = "connective"
+initial = "attach-rieul"
+forms = ["ㄹ진대", "을진대"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.final-rieuljinjeo"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ진저", "을진저"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.intent-rieulrae"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ래", "을래"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.conditional-rieulrachimyeon"
+category = "connective"
+initial = "attach-rieul"
+forms = ["ㄹ라치면", "을라치면"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.doubt-rieulji"
 category = "final"
 initial = "attach-rieul"

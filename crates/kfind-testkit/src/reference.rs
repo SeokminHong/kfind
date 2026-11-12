@@ -911,79 +911,52 @@ fn reference_predicate_continuation(
         reference_suffix("건", &["ending.geodeun-short"]),
     ];
 
-    const RIEUL_FINAL: &[ReferenceSuffix] = &[
-        reference_suffix("세", &["ending.final-rieulse"]),
-        reference_suffix("지", &["ending.doubt-rieulji"]),
-        reference_suffix("지요", &["ending.doubt-rieulji"]),
-        reference_suffix("는지", &["ending.doubt-rieulneunji"]),
-        reference_suffix("는지요", &["ending.doubt-rieulneunji"]),
-        reference_suffix("걸", &["ending.conjecture-rieulgeol"]),
-        reference_suffix("걸요", &["ending.conjecture-rieulgeol"]),
-    ];
+    macro_rules! rieul_endings {
+        ($prefix:literal, [$($prior:literal),*] $(, $extension:expr)* $(,)?) => {
+            &[
+                $($extension,)*
+                reference_suffix(concat!($prefix, "지"), &[$($prior,)* "ending.doubt-rieulji"]),
+                reference_suffix(concat!($prefix, "지요"), &[$($prior,)* "ending.doubt-rieulji"]),
+                reference_suffix(concat!($prefix, "는지"), &[$($prior,)* "ending.doubt-rieulneunji"]),
+                reference_suffix(concat!($prefix, "는지요"), &[$($prior,)* "ending.doubt-rieulneunji"]),
+                reference_suffix(concat!($prefix, "걸"), &[$($prior,)* "ending.conjecture-rieulgeol"]),
+                reference_suffix(concat!($prefix, "걸요"), &[$($prior,)* "ending.conjecture-rieulgeol"]),
+                reference_suffix(concat!($prefix, "까"), &[$($prior,)* "ending.interrogative-rieulkka"]),
+                reference_suffix(concat!($prefix, "꼬"), &[$($prior,)* "ending.interrogative-rieulkko"]),
+                reference_suffix(concat!($prefix, "런가"), &[$($prior,)* "ending.interrogative-rieulreonga"]),
+                reference_suffix(concat!($prefix, "라"), &[$($prior,)* "ending.concern-rieulra"]),
+                reference_suffix(concat!($prefix, "세라"), &[$($prior,)* "ending.concern-rieulsera"]),
+                reference_suffix(concat!($prefix, "수록"), &[$($prior,)* "ending.connective-rieulsurok"]),
+                reference_suffix(concat!($prefix, "망정"), &[$($prior,)* "ending.concessive-rieul"]),
+                reference_suffix(concat!($prefix, "지라도"), &[$($prior,)* "ending.concessive-rieul"]),
+                reference_suffix(concat!($prefix, "지언정"), &[$($prior,)* "ending.concessive-rieul"]),
+                reference_suffix(concat!($prefix, "밖에"), &[$($prior,)* "ending.final-rieulbakke"]),
+                reference_suffix(concat!($prefix, "쏘냐"), &[$($prior,)* "ending.interrogative-rieulssonya"]),
+                reference_suffix(concat!($prefix, "지니"), &[$($prior,)* "ending.connective-rieuljini"]),
+                reference_suffix(concat!($prefix, "진대"), &[$($prior,)* "ending.conditional-rieuljindae"]),
+                reference_suffix(concat!($prefix, "진저"), &[$($prior,)* "ending.final-rieuljinjeo"]),
+                reference_suffix(concat!($prefix, "까요"), &[$($prior,)* "ending.interrogative-rieulkka", "ending.polite-yo"]),
+            ]
+        };
+    }
 
-    const PAST_RIEUL_FINAL: &[ReferenceSuffix] = &[
-        reference_suffix("을지", &["ending.doubt-rieulji"]),
-        reference_suffix("을지요", &["ending.doubt-rieulji"]),
-        reference_suffix("을는지", &["ending.doubt-rieulneunji"]),
-        reference_suffix("을는지요", &["ending.doubt-rieulneunji"]),
-        reference_suffix("을걸", &["ending.conjecture-rieulgeol"]),
-        reference_suffix("을걸요", &["ending.conjecture-rieulgeol"]),
-    ];
+    macro_rules! present_rieul_endings {
+        ($prefix:literal $(, $prior:literal)*) => {
+            rieul_endings!($prefix, [$($prior),*],
+                reference_suffix(concat!($prefix, "세"), &[$($prior,)* "ending.final-rieulse"]),
+                reference_suffix(concat!($prefix, "래"), &[$($prior,)* "ending.intent-rieulrae"]),
+                reference_suffix(concat!($prefix, "래요"), &[$($prior,)* "ending.intent-rieulrae", "ending.polite-yo"]),
+                reference_suffix(concat!($prefix, "라치면"), &[$($prior,)* "ending.conditional-rieulrachimyeon"]),
+            )
+        };
+    }
 
-    const EU_RIEUL_FINAL: &[ReferenceSuffix] = &[
-        reference_suffix("실지", &["ending.honorific", "ending.doubt-rieulji"]),
-        reference_suffix("실지요", &["ending.honorific", "ending.doubt-rieulji"]),
-        reference_suffix("실는지", &["ending.honorific", "ending.doubt-rieulneunji"]),
-        reference_suffix(
-            "실는지요",
-            &["ending.honorific", "ending.doubt-rieulneunji"],
-        ),
-        reference_suffix("실걸", &["ending.honorific", "ending.conjecture-rieulgeol"]),
-        reference_suffix(
-            "실걸요",
-            &["ending.honorific", "ending.conjecture-rieulgeol"],
-        ),
-        reference_suffix(
-            "셨을지",
-            &["ending.honorific", "ending.past", "ending.doubt-rieulji"],
-        ),
-        reference_suffix(
-            "셨을지요",
-            &["ending.honorific", "ending.past", "ending.doubt-rieulji"],
-        ),
-        reference_suffix(
-            "셨을는지",
-            &[
-                "ending.honorific",
-                "ending.past",
-                "ending.doubt-rieulneunji",
-            ],
-        ),
-        reference_suffix(
-            "셨을는지요",
-            &[
-                "ending.honorific",
-                "ending.past",
-                "ending.doubt-rieulneunji",
-            ],
-        ),
-        reference_suffix(
-            "셨을걸",
-            &[
-                "ending.honorific",
-                "ending.past",
-                "ending.conjecture-rieulgeol",
-            ],
-        ),
-        reference_suffix(
-            "셨을걸요",
-            &[
-                "ending.honorific",
-                "ending.past",
-                "ending.conjecture-rieulgeol",
-            ],
-        ),
-    ];
+    const RIEUL_FINAL: &[ReferenceSuffix] = present_rieul_endings!("");
+    const PAST_RIEUL_FINAL: &[ReferenceSuffix] = rieul_endings!("을", []);
+    const HONORIFIC_RIEUL_FINAL: &[ReferenceSuffix] =
+        present_rieul_endings!("실", "ending.honorific");
+    const HONORIFIC_PAST_RIEUL_FINAL: &[ReferenceSuffix] =
+        rieul_endings!("셨을", ["ending.honorific", "ending.past"]);
 
     const BIEUP_FINAL: &[ReferenceSuffix] = &[
         reference_suffix("니다", &["ending.polite-declarative"]),
@@ -1191,8 +1164,9 @@ fn reference_predicate_continuation(
         ContinuationState::Eu if following.starts_with('리') => PROSPECTIVE,
         ContinuationState::Eu if following.starts_with("시리") => HONORIFIC_PROSPECTIVE,
         ContinuationState::Eu if following.starts_with("셨으리") => HONORIFIC_PAST_PROSPECTIVE,
-        ContinuationState::Past => PAST_RIEUL_FINAL,
-        ContinuationState::Eu => EU_RIEUL_FINAL,
+        ContinuationState::Past if following.starts_with('을') => PAST_RIEUL_FINAL,
+        ContinuationState::Eu if following.starts_with('실') => HONORIFIC_RIEUL_FINAL,
+        ContinuationState::Eu if following.starts_with("셨을") => HONORIFIC_PAST_RIEUL_FINAL,
         _ => &[],
     };
     let matched = candidates
@@ -1201,18 +1175,20 @@ fn reference_predicate_continuation(
         .filter(|suffix| {
             following.starts_with(suffix.surface)
                 && (pos.is_action()
-                    || !matches!(
-                        suffix.surface,
-                        "라" | "시오"
-                            | "쇼"
-                            | "십시오"
-                            | "십쇼"
-                            | "십시다"
-                            | "려"
-                            | "려던"
-                            | "러"
-                            | "시는"
-                    ))
+                    || (!suffix.rules.contains(&"ending.intent-rieulrae")
+                        && !suffix.rules.contains(&"ending.conditional-rieulrachimyeon")
+                        && !matches!(
+                            suffix.surface,
+                            "라" | "시오"
+                                | "쇼"
+                                | "십시오"
+                                | "십쇼"
+                                | "십시다"
+                                | "려"
+                                | "려던"
+                                | "러"
+                                | "시는"
+                        )))
         })
         .max_by_key(|suffix| suffix.surface.len());
     if matched.is_none()

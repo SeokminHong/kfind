@@ -315,79 +315,51 @@ const EU_SUFFIXES: &[Suffix] = &[
     suffix("니", &["ending.connective-ni"]),
 ];
 
-const RIEUL_FINAL: &[Suffix] = &[
-    suffix("세", &["ending.final-rieulse"]),
-    suffix("지", &["ending.doubt-rieulji"]),
-    suffix("지요", &["ending.doubt-rieulji"]),
-    suffix("는지", &["ending.doubt-rieulneunji"]),
-    suffix("는지요", &["ending.doubt-rieulneunji"]),
-    suffix("걸", &["ending.conjecture-rieulgeol"]),
-    suffix("걸요", &["ending.conjecture-rieulgeol"]),
-];
+macro_rules! rieul_endings {
+    ($prefix:literal, [$($prior:literal),*] $(, $extension:expr)* $(,)?) => {
+        &[
+            $($extension,)*
+            suffix(concat!($prefix, "지"), &[$($prior,)* "ending.doubt-rieulji"]),
+            suffix(concat!($prefix, "지요"), &[$($prior,)* "ending.doubt-rieulji"]),
+            suffix(concat!($prefix, "는지"), &[$($prior,)* "ending.doubt-rieulneunji"]),
+            suffix(concat!($prefix, "는지요"), &[$($prior,)* "ending.doubt-rieulneunji"]),
+            suffix(concat!($prefix, "걸"), &[$($prior,)* "ending.conjecture-rieulgeol"]),
+            suffix(concat!($prefix, "걸요"), &[$($prior,)* "ending.conjecture-rieulgeol"]),
+            suffix(concat!($prefix, "까"), &[$($prior,)* "ending.interrogative-rieulkka"]),
+            suffix(concat!($prefix, "꼬"), &[$($prior,)* "ending.interrogative-rieulkko"]),
+            suffix(concat!($prefix, "런가"), &[$($prior,)* "ending.interrogative-rieulreonga"]),
+            suffix(concat!($prefix, "라"), &[$($prior,)* "ending.concern-rieulra"]),
+            suffix(concat!($prefix, "세라"), &[$($prior,)* "ending.concern-rieulsera"]),
+            suffix(concat!($prefix, "수록"), &[$($prior,)* "ending.connective-rieulsurok"]),
+            suffix(concat!($prefix, "망정"), &[$($prior,)* "ending.concessive-rieul"]),
+            suffix(concat!($prefix, "지라도"), &[$($prior,)* "ending.concessive-rieul"]),
+            suffix(concat!($prefix, "지언정"), &[$($prior,)* "ending.concessive-rieul"]),
+            suffix(concat!($prefix, "밖에"), &[$($prior,)* "ending.final-rieulbakke"]),
+            suffix(concat!($prefix, "쏘냐"), &[$($prior,)* "ending.interrogative-rieulssonya"]),
+            suffix(concat!($prefix, "지니"), &[$($prior,)* "ending.connective-rieuljini"]),
+            suffix(concat!($prefix, "진대"), &[$($prior,)* "ending.conditional-rieuljindae"]),
+            suffix(concat!($prefix, "진저"), &[$($prior,)* "ending.final-rieuljinjeo"]),
+            suffix(concat!($prefix, "까요"), &[$($prior,)* "ending.interrogative-rieulkka", "ending.polite-yo"]),
+        ]
+    };
+}
 
-const PAST_RIEUL_FINAL: &[Suffix] = &[
-    suffix("을지", &["ending.doubt-rieulji"]),
-    suffix("을지요", &["ending.doubt-rieulji"]),
-    suffix("을는지", &["ending.doubt-rieulneunji"]),
-    suffix("을는지요", &["ending.doubt-rieulneunji"]),
-    suffix("을걸", &["ending.conjecture-rieulgeol"]),
-    suffix("을걸요", &["ending.conjecture-rieulgeol"]),
-];
+macro_rules! present_rieul_endings {
+    ($prefix:literal $(, $prior:literal)*) => {
+        rieul_endings!($prefix, [$($prior),*],
+            suffix(concat!($prefix, "세"), &[$($prior,)* "ending.final-rieulse"]),
+            suffix(concat!($prefix, "래"), &[$($prior,)* "ending.intent-rieulrae"]),
+            suffix(concat!($prefix, "래요"), &[$($prior,)* "ending.intent-rieulrae", "ending.polite-yo"]),
+            suffix(concat!($prefix, "라치면"), &[$($prior,)* "ending.conditional-rieulrachimyeon"]),
+        )
+    };
+}
 
-const EU_RIEUL_FINAL: &[Suffix] = &[
-    suffix("실지", &["ending.honorific", "ending.doubt-rieulji"]),
-    suffix("실지요", &["ending.honorific", "ending.doubt-rieulji"]),
-    suffix("실는지", &["ending.honorific", "ending.doubt-rieulneunji"]),
-    suffix(
-        "실는지요",
-        &["ending.honorific", "ending.doubt-rieulneunji"],
-    ),
-    suffix("실걸", &["ending.honorific", "ending.conjecture-rieulgeol"]),
-    suffix(
-        "실걸요",
-        &["ending.honorific", "ending.conjecture-rieulgeol"],
-    ),
-    suffix(
-        "셨을지",
-        &["ending.honorific", "ending.past", "ending.doubt-rieulji"],
-    ),
-    suffix(
-        "셨을지요",
-        &["ending.honorific", "ending.past", "ending.doubt-rieulji"],
-    ),
-    suffix(
-        "셨을는지",
-        &[
-            "ending.honorific",
-            "ending.past",
-            "ending.doubt-rieulneunji",
-        ],
-    ),
-    suffix(
-        "셨을는지요",
-        &[
-            "ending.honorific",
-            "ending.past",
-            "ending.doubt-rieulneunji",
-        ],
-    ),
-    suffix(
-        "셨을걸",
-        &[
-            "ending.honorific",
-            "ending.past",
-            "ending.conjecture-rieulgeol",
-        ],
-    ),
-    suffix(
-        "셨을걸요",
-        &[
-            "ending.honorific",
-            "ending.past",
-            "ending.conjecture-rieulgeol",
-        ],
-    ),
-];
+const RIEUL_FINAL: &[Suffix] = present_rieul_endings!("");
+const PAST_RIEUL_FINAL: &[Suffix] = rieul_endings!("을", []);
+const HONORIFIC_RIEUL_FINAL: &[Suffix] = present_rieul_endings!("실", "ending.honorific");
+const HONORIFIC_PAST_RIEUL_FINAL: &[Suffix] =
+    rieul_endings!("셨을", ["ending.honorific", "ending.past"]);
 
 const BIEUP_FINAL: &[Suffix] = &[
     suffix("니다", &["ending.polite-declarative"]),
@@ -596,8 +568,9 @@ pub fn verify_predicate_continuation(
         ContinuationState::Eu if following.starts_with('리') => PROSPECTIVE,
         ContinuationState::Eu if following.starts_with("시리") => HONORIFIC_PROSPECTIVE,
         ContinuationState::Eu if following.starts_with("셨으리") => HONORIFIC_PAST_PROSPECTIVE,
-        ContinuationState::Past => PAST_RIEUL_FINAL,
-        ContinuationState::Eu => EU_RIEUL_FINAL,
+        ContinuationState::Past if following.starts_with('을') => PAST_RIEUL_FINAL,
+        ContinuationState::Eu if following.starts_with('실') => HONORIFIC_RIEUL_FINAL,
+        ContinuationState::Eu if following.starts_with("셨을") => HONORIFIC_PAST_RIEUL_FINAL,
         _ => &[],
     };
 
@@ -620,6 +593,8 @@ pub fn verify_predicate_continuation(
                                 | "ending.intentive-adnominal"
                                 | "ending.purpose-reo"
                                 | "ending.present-adnominal"
+                                | "ending.intent-rieulrae"
+                                | "ending.conditional-rieulrachimyeon"
                         )
                     }))
         })

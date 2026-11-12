@@ -706,5 +706,15 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 보다	verb	나도 어제 그 영화를 본걸.	match	explanatory-ngeol-completed
 듣다	verb	당사자의 말을 직접 들은바 이 사실은 틀림없을 것이다.	match	connective-nba-completed
 읽다	verb	어제 읽은 바를 적었다.	match	adnominal-before-dependent-noun
+가다	verb	내일 같이 갈까요?	match	rieul-interrogative
+먹다	verb	아침에 무엇을 먹을까?	match	rieul-interrogative-coda
+걷다	verb	천천히 걸을까요?	match	rieul-interrogative-irregular
+이다	copula	그 사람이 정말 범인일까?	match	rieul-interrogative-copula
+가다	verb	할머니는 벌써 가셨을꼬?	match	rieul-interrogative-honorific-past
+듣다	verb	누가 이야기를 들을세라 목소리를 낮췄다.	match	rieul-concern
+좋다	adjective	날씨가 좋을수록 사람이 많다.	match	rieul-proportional
+늦다	adjective	아무리 늦을지라도 끝까지 기다리겠다.	match	rieul-concessive
+살다	verb	여기에 살래요.	match	rieul-intent
+받다	verb	전화를 받을라치면 꼭 끊긴다.	match	rieul-conditional
 치다	verb	지구온난화는 여러 측면에 영향을 미친다.	no-match	structural-whole-predicate
 다	noun	저 친구는 왕친입니다.	no-match	structural-ending-component
