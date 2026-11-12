@@ -1,11 +1,12 @@
 use crate::structure::evidence::TokenEvidence;
 use crate::structure::lexical::{
     adnominal_suffix_is_supported, complete_ha_predicate_path, complete_nominal_host,
-    complete_nominal_particle_host, complete_predicate_connective_ji_path,
-    complete_predicate_ending_path, copular_frame, exact_analysis_ends_with_pos,
-    exact_analysis_starts_with_pos, has_auxiliary_adnominal_split, has_complete_object_phrase,
-    has_copular_adnominal_split, has_exact_fine_pos, has_exact_sequence,
-    has_unambiguous_proper_name, has_verb_nominalization, nominal_particle_hosts,
+    complete_nominal_particle_host, complete_predicate_adnominal_path,
+    complete_predicate_connective_ji_path, complete_predicate_ending_path, copular_frame,
+    exact_analysis_ends_with_pos, exact_analysis_starts_with_pos, has_auxiliary_adnominal_split,
+    has_complete_object_phrase, has_copular_adnominal_split, has_exact_fine_pos,
+    has_exact_sequence, has_unambiguous_proper_name, has_verb_nominalization,
+    nominal_particle_hosts,
 };
 use crate::structure::selection::components::{
     attached_nominal_suffix_is_supported, component_is_shadowed_by_predicate,
@@ -485,10 +486,13 @@ pub(in crate::structure) fn select_structure(
     {
         return StructureSelection::Whole;
     }
-    if context.previous.is_some_and(|previous| {
-        exact_analysis_ends_with_pos(resource, previous, |pos| pos == StructuralPos::ETM)
-            || adnominal_suffix_is_supported(resource, previous)
-    }) && has_exact_fine_pos(resource, context.current, |pos| pos == DataFinePos::Nnb)
+    if let Some(previous) = context.previous
+        && (exact_analysis_ends_with_pos(resource, previous, |pos| pos == StructuralPos::ETM)
+            || adnominal_suffix_is_supported(resource, previous))
+        && has_exact_fine_pos(resource, context.current, |pos| pos == DataFinePos::Nnb)
+        && (!evidence.has_whole(DataFinePos::Mag)
+            || (complete_predicate_adnominal_path(resource, previous)
+                && !has_exact_fine_pos(resource, previous, DataFinePos::is_nominal)))
     {
         return StructureSelection::DependentNoun;
     }

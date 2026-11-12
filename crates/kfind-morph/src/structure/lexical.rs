@@ -108,6 +108,28 @@ pub(super) fn adnominal_suffix_is_supported(resource: &ComponentResource, text: 
         })
 }
 
+pub(super) fn complete_predicate_adnominal_path(resource: &ComponentResource, text: &str) -> bool {
+    let mut matched = false;
+    resource.common_prefix_positions(text.as_bytes(), |length, positions| {
+        let Some((&predicate, endings)) = positions.split_first() else {
+            return;
+        };
+        if matched || !predicate.is_predicate_tag() {
+            return;
+        }
+        if length == text.len() {
+            matched = endings.split_last().is_some_and(|(last, prefinals)| {
+                *last == StructuralPos::ETM && prefinals.iter().all(|pos| *pos == StructuralPos::EP)
+            });
+        } else if endings.iter().all(|pos| *pos == StructuralPos::EP) {
+            let suffix = &text[length..];
+            matched = has_exact_sequence(resource, suffix, &[StructuralPos::ETM])
+                || has_exact_sequence(resource, suffix, &[StructuralPos::EP, StructuralPos::ETM]);
+        }
+    });
+    matched
+}
+
 pub(super) fn exact_analysis_starts_with_pos(
     resource: &ComponentResource,
     text: &str,

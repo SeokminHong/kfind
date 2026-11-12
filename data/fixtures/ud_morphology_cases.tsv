@@ -91,3 +91,6 @@ corpus.ud-kaist.test.MH2_0190-s23.noun.하	하	noun	match	20	35	기업도 자신
 corpus.ud-kaist.test.MH2_0190-s410.verb.밀다	밀다	verb	match	100	106	즉 정부가 자주성을 가지고 국내산업을 보호해야 하는데, 강대국의 압력에 밀려 시장개방을 서두르고 있다는 것이다.
 corpus.ud-kaist.test.MH2_0190-s433.verb.오다	오다	verb	match	14	29	1970년대에 들어와서는 두 차례의 석유파동으로 각국의 경제사정이 악화되어 경제통합에 별로 진척이 없었다.
 corpus.ud-kaist.test.MH2_0190-s434.noun.잠식당	잠식당	noun	match	175	190	1980년대에는 EC 경제가 장기침체를 겪으면서 미국과 일본에 비해 경쟁력이 크게 떨어졌고, 역내시장이 아시아 신흥공업국들에 의해 잠식당하기 시작하였다.
+corpus.ud-kaist.dev.M2TA_089-s29.adverb.내내	내내	adverb	exact	39	45	멋 내는 돈을 버느라고 한 달 내내 일한 셈이다.
+corpus.ud-kaist.dev.MH2_0149-s20.adverb.축	축	adverb	exact	47	50	모든 것을 말의 실수로 돌리고서는 축 늘어졌다.
+corpus.ud-gsd.test.test-s933.adverb.참	참	adverb	exact	10	13	태도는 참 가관이었습니다.
