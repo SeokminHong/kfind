@@ -157,7 +157,7 @@ impl PreparedExactTokenGraphs {
 
     fn reserve_graph_memory(&self, memory_usage: usize) -> bool {
         self.remaining_memory
-            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |remaining| {
+            .try_update(Ordering::Relaxed, Ordering::Relaxed, |remaining| {
                 remaining.checked_sub(memory_usage)
             })
             .is_ok()

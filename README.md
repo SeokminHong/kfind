@@ -117,7 +117,7 @@ kfind 'n:권한 v:검증하다' src --max-gap 24
 kfind --literal '걸어' data.txt
 
 # 기계 판독용 출력
-kfind --embedded --boundary any --pos verb --json 걷다 src docs
+kfind --boundary any --pos verb --json 걷다 src docs
 ```
 
 경로를 생략하면 pipe로 받은 stdin을 검색합니다. stdin이 대화형 터미널이면 현재
@@ -183,12 +183,12 @@ kfind 'v:걷다 | n:사용자 | n:검증' src
 
 ## 에이전트 자동화
 
-자동화에서는 각 형태 atom의 품사를 지정하고 embedded lexicon, `any` 경계와
-JSON Lines를 함께 사용하는 구성이 기본입니다.
+자동화에서는 각 형태 atom의 품사를 지정하고 `any` 경계와 JSON Lines를 사용합니다.
+설치된 full POS 사전은 자동으로 사용합니다.
 
 ```sh
-kfind --embedded --boundary any --pos verb --json 걷다 src docs
-kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
+kfind --boundary any --pos verb --json 걷다 src docs
+kfind --boundary any --json 'n:사용자 v:검증하다' src
 ```
 
 `any`는 후보를 넓게 보존하므로 호출자는 span 주변의 원문을 확인해야 합니다.

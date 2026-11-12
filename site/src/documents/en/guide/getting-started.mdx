@@ -56,10 +56,10 @@ kfind --literal 걸었다 docs
 
 ## Automation output [#automation-output]
 
-With the native CLI, specify resources, POS, boundary, and output explicitly. `any` returns broader candidates, so inspect their source context and exclude irrelevant results.
+With the native CLI, specify POS, boundary, and output explicitly. `any` returns broader candidates, so inspect their source context and exclude irrelevant results.
 
 ```bash
-kfind --embedded --boundary any --pos verb --json 걷다 src
+kfind --boundary any --pos verb --json 걷다 src
 ```
 
 [JSON Lines](/reference/jsonl) distinguishes native byte coordinates from npm UTF-16 coordinates. No matches does not guarantee that no relevant content exists.

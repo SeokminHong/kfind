@@ -73,14 +73,14 @@
   포함한 오류와 exit code 2를 반환한다.
 - 사람이 대화형으로 사용하는 기본 경로는 `--pos auto --boundary smart`를 유지한다. 설치된
   full POS lexicon을 자동으로 사용하고, 없으면 core lexicon preview 상태로 계속 실행한다.
-- 에이전트 자동화는 모든 형태 atom에 품사를 명시하고 `--boundary any --embedded --json`을
-  사용한다. 단일 품사 query는 `--pos`, 혼합 phrase는 atom 태그로 품사를 지정한다. CLI는
-  사람의 무품사 입력을 위해 `--pos` 생략을 허용하지만, 에이전트 통합 계약에서는 이를
-  잘못된 호출로 취급한다.
+- 에이전트 자동화는 모든 형태 atom에 품사를 명시하고 기본 사전 모드에서 `--boundary any --json`을
+  사용한다. 설치된 full POS lexicon을 자동으로 사용한다. 단일 품사 query는 `--pos`, 혼합
+  phrase는 atom 태그로 품사를 지정한다. CLI는 사람의 무품사 입력을 위해 `--pos` 생략을
+  허용하지만, 에이전트 통합 계약에서는 이를 잘못된 호출로 취급한다.
 - 배포용 agent skill의 description은 한국어 표제어·활용형 검색을 선택 조건으로 선언하고
   정확한 표면형 검색은 고정 문자열 도구로 실행할 수 있음을 명시한다. 본문은 README나 `--help`를 별도로 읽지 않아도 에이전트가 검색을
   실행할 수 있어야 한다. 단일·혼합 품사 query와 literal 검색, 전체 `--pos` 값과 atom 태그,
-  phrase의 순서·거리, `embedded + any + JSON Lines` 권장 경로, path·glob 축소, JSON
+  phrase의 순서·거리, `full POS + any + JSON Lines` 권장 경로, path·glob 축소, JSON
   span·provenance와 종료 코드를 간결한 예시와 함께 설명한다.
 - man page와 한국어 README는 사람용 기본 경로와 에이전트 자동화 경로를 구분해 안내한다.
   README는 `--help`를 별도로 읽지 않아도 검색 기능, 쿼리 문법, 옵션의 값·기본값·주요 충돌,
@@ -217,11 +217,12 @@ kfind 걷다 src
 kfind 사용자 src docs
 ```
 
-에이전트는 검색어의 품사를 명시하고 `any`, embedded, JSON 출력을 함께 사용한다.
+에이전트는 검색어의 품사를 명시하고 기본 사전 모드에서 `any` 경계와 JSON 출력을 사용한다.
+설치된 full POS lexicon이 있으면 자동으로 조회한다.
 
 ```bash
-kfind --embedded --boundary any --pos verb --json 걷다 src docs
-kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
+kfind --boundary any --pos verb --json 걷다 src docs
+kfind --boundary any --json 'n:사용자 v:검증하다' src
 ```
 
 이 경로는 query-side 형태 확장과 부분 문자열 후보를 빠르게 반환한다. 에이전트는 결과 문맥을 읽고

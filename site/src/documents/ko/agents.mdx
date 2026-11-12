@@ -22,7 +22,7 @@ kfind는 문장의 의미를 판정하지 않습니다. 에이전트는 넓게 �
 
 2.  **회수 우선 경계**
 
-    `--embedded --boundary any`로 추가 리소스 초기화와 구조 판정을 생략하고 형태 후보를 수집합니다.
+    `--boundary any`로 형태 후보를 넓게 수집합니다. 설치된 full POS 사전을 자동으로 사용합니다.
 
 3.  **구조화된 결과**
 
@@ -33,8 +33,8 @@ kfind는 문장의 의미를 판정하지 않습니다. 에이전트는 넓게 �
     결과 줄과 인접 코드를 읽고 의미가 다른 동형이의어를 제외합니다.
 
 ```bash
-kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
-kfind --embedded --boundary any --pos verb --json 걷다 crates
+kfind --boundary any --json 'n:사용자 v:검증하다' src
+kfind --boundary any --pos verb --json 걷다 crates
 ```
 
 ## 통합 설치와 제거 [#skill-installation]
@@ -80,10 +80,10 @@ Homebrew 설치본의 skill은 버전별 Cellar 경로 대신 안정적인 `opt`
 
 ```bash
 kfind --pos verb --quiet 사용하다 docs && exit 1
-kfind --embedded --boundary any --json 'n:권한 v:검증하다' src | jq -c 'select(.type == "match")'
+kfind --boundary any --json 'n:권한 v:검증하다' src | jq -c 'select(.type == "match")'
 ```
 
-결과가 너무 많으면 먼저 검색 경로와 glob을 줄입니다. 의미 판별을 기대해 [경계 정책](/reference/glossary#boundary)을 임의로 바꾸지 않으며, 구조 [정밀도](/reference/glossary#precision)가 필요한 사람용 검색에서는 full [POS](/reference/glossary#part-of-speech)와 `smart`를 별도 실행합니다.
+결과가 너무 많으면 먼저 검색 경로와 glob을 줄입니다. 구조 [정밀도](/reference/glossary#precision)가 필요하면 `--boundary smart`로 다시 검색합니다.
 
 ## 통합 계약 [#integration-contract]
 

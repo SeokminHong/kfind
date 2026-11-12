@@ -36,11 +36,12 @@ existing matches, reports structural_verification_incomplete on stderr, and exit
 with status 2. The diagnostic also applies to JSON, count, file-list, and quiet output.
 .SS Agent automation
 Agents should specify the part of speech for every morphology atom and use
-unrestricted boundaries, the embedded lexicon, and JSON Lines output.
+unrestricted boundaries and JSON Lines output. kfind uses the installed full
+POS lexicon when available.
 .PP
 .EX
-kfind --embedded --boundary any --pos verb --json 걷다 src docs
-kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
+kfind --boundary any --pos verb --json 걷다 src docs
+kfind --boundary any --json 'n:사용자 v:검증하다' src
 .EE
 The agent must inspect context and discard false positives. Narrow the path or
 glob, or retry with smart boundaries when the candidate set is too large.
@@ -204,7 +205,7 @@ mod tests {
         assert!(first_contents[0].contains(".SS Agent automation"));
         assert!(first_contents[0].contains("structural_verification_incomplete"));
         assert!(first_contents[0].contains(".SS Agent integration setup"));
-        assert!(first_contents[0].contains("--embedded --boundary any --pos verb --json"));
+        assert!(first_contents[0].contains("kfind --boundary any --pos verb --json"));
         assert!(first_contents[0].contains("--init --agent codex --agent claude-code"));
         assert!(first_contents[0].contains("--uninstall --agent codex --agent claude-code"));
         assert!(first_contents[1].contains("_kfind"));
@@ -212,7 +213,7 @@ mod tests {
         assert!(first_contents[3].contains("complete -c kfind"));
         assert_eq!(first_contents[4], SKILL_CONTENT);
         for required in [
-            "--embedded --boundary any --json",
+            "kfind --boundary any --json",
             "--pos verb",
             "--literal",
             "--max-gap",
