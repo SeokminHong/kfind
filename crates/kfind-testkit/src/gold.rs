@@ -273,6 +273,23 @@ mod tests {
     }
 
     #[test]
+    fn rieul_endings_match_the_complete_eojeol() {
+        let harness = GoldHarness::embedded().expect("embedded lexicons must be valid");
+        for (query, text, target) in [
+            ("v:가다", "내일 같이 갈까요?", "갈까요"),
+            ("adj:좋다", "날씨가 좋을수록 사람이 많다.", "좋을수록"),
+        ] {
+            let start = text.find(target).expect("target appears in the fixture");
+            assert_eq!(
+                harness
+                    .find_all(query, text)
+                    .expect("fixture query compiles"),
+                vec![start..start + target.len()],
+            );
+        }
+    }
+
+    #[test]
     fn fixture_pos_maps_copula_to_the_predicate_coarse_class() {
         assert_eq!(fixture_coarse_pos(FixturePos::Copula), CoarsePos::Adjective);
         assert_eq!(fixture_coarse_pos(FixturePos::Verb), CoarsePos::Verb);
