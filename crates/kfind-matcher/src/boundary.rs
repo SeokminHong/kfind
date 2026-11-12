@@ -58,7 +58,7 @@ fn valid_ranges(length: usize, core: &Range<usize>, token: &Range<usize>) -> boo
         && token.end <= length
 }
 
-fn is_boundary_before(haystack: &[u8], at: usize) -> bool {
+pub(crate) fn is_boundary_before(haystack: &[u8], at: usize) -> bool {
     previous_character(haystack, at).is_none_or(|character| !is_token_character(character))
 }
 
@@ -141,7 +141,7 @@ fn next_character(haystack: &[u8], at: usize) -> Option<char> {
     next_character_with_end(haystack, at).map(|(_, character)| character)
 }
 
-fn next_character_with_end(haystack: &[u8], at: usize) -> Option<(usize, char)> {
+pub(crate) fn next_character_with_end(haystack: &[u8], at: usize) -> Option<(usize, char)> {
     let width = utf8_width(*haystack.get(at)?)?;
     let end = at.checked_add(width).filter(|&end| end <= haystack.len())?;
     let text = std::str::from_utf8(haystack.get(at..end)?).ok()?;

@@ -15,7 +15,7 @@ pub use analysis::{
     NominalOverride, ParticleMorphology, QueryAnalyzer,
 };
 pub use ast::{DEFAULT_MAX_GAP, PhrasePolicy, QueryAst, QueryAtom, QueryComposition, QueryGraph};
-pub use compile::compile_query;
+pub use compile::{compile_query, is_coda_initial_ending};
 pub use error::{
     CompileError, CompileErrorKind, PhraseJoinError, QueryError, QueryErrorKind, SourceSpan,
 };

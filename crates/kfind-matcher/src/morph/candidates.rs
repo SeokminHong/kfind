@@ -22,7 +22,7 @@ impl MorphMatcher {
     pub fn local_analysis_candidates(&self, haystack: &[u8]) -> Vec<LocalAnalysisCandidate> {
         let mut candidates = Vec::new();
         let mut seen = HashSet::new();
-        for hit in self.anchor_engine.hits(haystack, 0) {
+        for hit in self.anchor_hits(haystack, 0) {
             for branch_ref in &self.anchor_programs[hit.anchor_index] {
                 let atom = &self.plan.atoms[branch_ref.atom_index];
                 let branch = &atom.programs[branch_ref.program_index];

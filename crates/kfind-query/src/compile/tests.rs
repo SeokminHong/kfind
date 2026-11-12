@@ -376,6 +376,7 @@ fn smart_and_token_keep_distinct_left_boundary_semantics() {
                 == matches!(
                     branch.consumption,
                     CandidateConsumption::CopulaHostEndingCompose
+                        | CandidateConsumption::FusedCopulaEnding
                 ))
     }));
 

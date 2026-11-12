@@ -34,6 +34,7 @@ const INTERNAL_PROVENANCE_IDS: &[&str] = &[
     DICTIONARY_VOICE_DERIVATION_RULE_ID,
     DICTIONARY_RELATED_ADVERB_RULE_ID,
     "structural.ending-path",
+    "structural.fused-copula-ending",
 ];
 const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.aoeo-seo",
@@ -609,6 +610,17 @@ fn compile_copula_host_ending_contractions(
             decision: DraftDecision::Structural(ComponentCapability::Source),
         });
     }
+    output.push(DraftBranch {
+        anchor: analysis.lemma.to_string(),
+        consumption: CandidateConsumption::FusedCopulaEnding,
+        core_mapping: CoreMapping::WholeAnchor,
+        origins: vec![Origin {
+            analysis_index,
+            rule_path: vec![RuleId::from("structural.fused-copula-ending")],
+        }],
+        smart_left: true,
+        decision: DraftDecision::Structural(ComponentCapability::Source),
+    });
 }
 
 fn exact_candidate_decision(analysis: &Analysis) -> DraftDecision {
@@ -846,7 +858,7 @@ fn compile_predicate_with_generated(
                     base_state,
                     validate_anchor,
                     stem_class,
-                    allowed_suffixes: modern_ending_surfaces(),
+                    allowed_suffixes: Arc::clone(modern_ending_surfaces()),
                 },
                 core_mapping: CoreMapping::PrefixBytes(stem.core_len),
                 origins: vec![Origin {
@@ -1010,9 +1022,9 @@ fn exact_branch_with_decision(
     }
 }
 
-fn modern_ending_surfaces() -> Arc<[Box<str>]> {
+fn modern_ending_surfaces() -> &'static Arc<[Box<str>]> {
     static SURFACES: OnceLock<Arc<[Box<str>]>> = OnceLock::new();
-    Arc::clone(SURFACES.get_or_init(|| {
+    SURFACES.get_or_init(|| {
         let mut surfaces = NIKL_ENDING_CATALOG
             .lines()
             .skip(1)
@@ -1023,7 +1035,16 @@ fn modern_ending_surfaces() -> Arc<[Box<str>]> {
         surfaces.sort();
         surfaces.dedup();
         surfaces.into()
-    }))
+    })
+}
+
+/// Checks a listed ending whose initial coda is realized on the preceding syllable.
+pub fn is_coda_initial_ending(coda: char, suffix: &str) -> bool {
+    let mut bytes = [0; 4];
+    let coda = coda.encode_utf8(&mut bytes);
+    modern_ending_surfaces()
+        .binary_search_by(|surface| surface.bytes().cmp(coda.bytes().chain(suffix.bytes())))
+        .is_ok()
 }
 
 fn missing_rules(ids: &[&str], known: &HashSet<Box<str>>) -> impl Iterator<Item = RuleId> {

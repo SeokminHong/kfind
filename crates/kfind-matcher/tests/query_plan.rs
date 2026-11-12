@@ -1,5 +1,6 @@
 use std::sync::{Arc, OnceLock};
 
+use grep_matcher::Matcher as _;
 use kfind_data::{
     COMPONENT_RESOURCE_SOURCE_DIGEST, ComponentResource, DataAlternation, DataFinePos, LexiconData,
     MecabSourceMorphologyEntry, NominalRecord, PredicateRecord, collect_pos_entries,
@@ -2453,6 +2454,59 @@ fn lost_span_copula_anchor_requires_the_complete_source_structure() {
             "accepted invalid source path {pos}"
         );
     }
+}
+
+#[test]
+fn fused_copula_endings_restore_the_whole_token_in_search_order() {
+    let resource = component_resource_from_entries([
+        component_entry("누굴까", "NP+VCP+EF"),
+        component_entry("얼만데", "NNG+VCP+EC"),
+        component_entry("갈까", "VV+EF"),
+        component_entry("게", "NNB+VCP+EC"),
+        component_entry("게", "NNB+JKS"),
+        component_entry("언젠가", "NP+VCP+EC"),
+        component_entry("언젠가", "MAG"),
+    ]);
+    let options = CompileOptions {
+        global_pos: Some(CoarsePos::Adjective),
+        normalization: NormalizationMode::Canonical,
+        ..CompileOptions::default()
+    };
+    let matcher = compile_embedded_with_resource("이다", options, resource.clone());
+    let text = "갈까? 든 게 누굴까? 언젠가 봤는데 얼만데?";
+    let nfd: String = text.nfd().collect();
+    for (text, expected) in [
+        (text, vec!["누굴까".to_owned(), "얼만데".to_owned()]),
+        (
+            &nfd,
+            vec!["누굴까".nfd().collect(), "얼만데".nfd().collect()],
+        ),
+    ] {
+        let matches = matcher.find_all_with_meta(text.as_bytes());
+        assert_eq!(
+            matches
+                .iter()
+                .map(|matched| &text[matched.span.clone()])
+                .collect::<Vec<_>>(),
+            expected,
+        );
+        let next = matcher
+            .find_at_with_meta(text.as_bytes(), matches[0].span.start + 1)
+            .unwrap();
+        assert_eq!(next.span, matches[1].span);
+    }
+
+    let phrase =
+        compile_embedded_with_resource("\"정답\" adj:이다", CompileOptions::default(), resource);
+    let text = "정답 누굴까?";
+    let matched = phrase.find_at_with_meta(text.as_bytes(), 0).unwrap();
+    assert_eq!(&text[matched.span], "정답 누굴까");
+    assert!(
+        phrase
+            .find_candidate_line(text.as_bytes())
+            .unwrap()
+            .is_some()
+    );
 }
 
 #[test]

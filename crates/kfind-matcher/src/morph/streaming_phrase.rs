@@ -4,8 +4,9 @@ use std::rc::Rc;
 
 use kfind_query::{PhraseMatch, PhrasePolicy, QueryGraph, VerifiedSpan};
 
-use crate::{AnchorHit, AnchorHits, SearchDiagnostics};
+use crate::{AnchorHit, SearchDiagnostics};
 
+use super::fused_copula::MorphAnchorHits;
 use super::phrase::{PhraseMatchLimit, PhraseSelection};
 use super::{
     MatchMetadata, MorphMatcher, StructuralCache, merge_origins, phrase_join_text, same_span,
@@ -68,7 +69,7 @@ pub(super) fn select_with_diagnostics<'a>(
 struct CandidateStream<'matcher, 'haystack> {
     matcher: &'matcher MorphMatcher,
     haystack: &'haystack [u8],
-    hits: AnchorHits<'matcher, 'haystack>,
+    hits: MorphAnchorHits<'matcher, 'haystack>,
     next_hit: Option<AnchorHit>,
     pending: Vec<PendingCandidate>,
     group: Vec<PendingCandidate>,
@@ -85,7 +86,7 @@ impl<'matcher, 'haystack> CandidateStream<'matcher, 'haystack> {
         metadata: MatchMetadata,
         diagnostics: Option<&'haystack SearchDiagnostics>,
     ) -> Self {
-        let mut hits = matcher.anchor_engine.hits(haystack, at);
+        let mut hits = matcher.anchor_hits(haystack, at);
         let next_hit = hits.next();
         Self {
             matcher,
@@ -107,14 +108,15 @@ impl<'matcher, 'haystack> CandidateStream<'matcher, 'haystack> {
         candidates.clear();
         loop {
             // Anchor hits are end-ordered. Once the next hit ends beyond this window,
-            // no longer anchor can produce an earlier token start.
+            // no later anchor can produce an earlier token start.
             if let Some(start) = self
                 .pending
                 .iter()
                 .map(|candidate| candidate.span.token.start)
                 .min()
                 && self.next_hit.as_ref().is_none_or(|hit| {
-                    hit.span.end > start.saturating_add(self.matcher.max_anchor_bytes)
+                    hit.span.end
+                        > start.saturating_add(self.matcher.max_anchor_end_from_token_start)
                 })
             {
                 self.take_group(start, candidates);

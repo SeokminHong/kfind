@@ -123,12 +123,14 @@ impl ConstraintResolver {
     #[must_use]
     pub fn has_exact_lost_span_copula_ending_path(&self, text: &str) -> bool {
         let mut matched = false;
+        let mut whole_adverb = false;
         self.resource
             .common_prefix_analysis_refs(text.as_bytes(), |length, analysis| {
                 if length != text.len() {
                     return;
                 }
                 let positions = analysis.positions();
+                whole_adverb |= matches!(positions, [StructuralPos::MAG | StructuralPos::MAJ]);
                 let Some(copula_index) =
                     positions.iter().position(|pos| *pos == StructuralPos::VCP)
                 else {
@@ -146,7 +148,7 @@ impl ConstraintResolver {
                         .components()
                         .any(|component| component.pos == "VCP");
             });
-        matched
+        matched && !whole_adverb
     }
 
     fn supports_predicate_ending_path_with_terminal(

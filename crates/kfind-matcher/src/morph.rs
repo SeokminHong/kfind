@@ -26,6 +26,7 @@ use crate::{AnchorBuildError, AnchorBuildLimits, AnchorEngine, AnchorHit};
 
 mod candidates;
 mod context;
+mod fused_copula;
 mod line_candidate;
 mod phrase;
 mod streaming_phrase;
@@ -207,7 +208,8 @@ pub struct MorphMatcher {
     plan: Arc<QueryPlan>,
     anchor_engine: AnchorEngine,
     anchor_programs: Vec<Box<[ProgramRef]>>,
-    max_anchor_bytes: usize,
+    fused_copula_anchor: Option<usize>,
+    max_anchor_end_from_token_start: usize,
     is_line_local: bool,
     particle_verifier: ParticleVerifier,
     constraint_resolver: Option<ConstraintResolver>,
@@ -299,8 +301,18 @@ impl MorphMatcher {
             return Err(MorphMatcherBuildError::ComponentResourceRequired);
         }
 
-        let (anchors, anchor_programs) = unique_anchors(&plan);
-        let max_anchor_bytes = anchors.iter().map(|anchor| anchor.len()).max().unwrap_or(0);
+        let (anchors, mut anchor_programs, fused_copula_programs) = unique_anchors(&plan);
+        let fused_copula_anchor = (!fused_copula_programs.is_empty()).then(|| {
+            let index = anchor_programs.len();
+            anchor_programs.push(fused_copula_programs.into_boxed_slice());
+            index
+        });
+        let mut max_anchor_end_from_token_start =
+            anchors.iter().map(|anchor| anchor.len()).max().unwrap_or(0);
+        if fused_copula_anchor.is_some() {
+            max_anchor_end_from_token_start =
+                max_anchor_end_from_token_start.max(MAX_CONSUMPTION_BYTES);
+        }
         let is_line_local = anchors.iter().all(|anchor| !anchor.contains(&b'\n'));
         let anchor_engine = AnchorEngine::from_unique_anchors(
             &anchors,
@@ -328,7 +340,8 @@ impl MorphMatcher {
             plan,
             anchor_engine,
             anchor_programs,
-            max_anchor_bytes,
+            fused_copula_anchor,
+            max_anchor_end_from_token_start,
             is_line_local,
             particle_verifier,
             constraint_resolver,
@@ -403,7 +416,10 @@ impl MorphMatcher {
     /// This is intended for matched lines that need JSON or explain metadata.
     #[must_use]
     pub fn find_all_with_meta(&self, haystack: &[u8]) -> Vec<PhraseMatch> {
-        if self.plan.atoms.len() > 1 || self.plan.graph.is_some() {
+        if self.plan.atoms.len() > 1
+            || self.plan.graph.is_some()
+            || self.fused_copula_anchor.is_some()
+        {
             return self
                 .find_phrases_with_meta(haystack, PhraseMatchLimit::All)
                 .matches;
@@ -450,7 +466,10 @@ impl MorphMatcher {
         limit: usize,
         diagnostics: &SearchDiagnostics,
     ) -> Result<Vec<PhraseMatch>, MatchLimitExceeded> {
-        if self.plan.atoms.len() > 1 || self.plan.graph.is_some() {
+        if self.plan.atoms.len() > 1
+            || self.plan.graph.is_some()
+            || self.fused_copula_anchor.is_some()
+        {
             let selection = streaming_phrase::select_with_diagnostics(
                 self,
                 haystack,
@@ -573,7 +592,7 @@ impl MorphMatcher {
         let mut counters = VerificationCounters::default();
         let mut structural_windows = HashSet::new();
         let mut structural_cache = StructuralCache::default();
-        for hit in self.anchor_engine.hits(haystack, 0) {
+        for hit in self.anchor_hits(haystack, 0) {
             counters.raw_anchor_hits += 1;
             for branch_ref in &self.anchor_programs[hit.anchor_index] {
                 let atom = &self.plan.atoms[branch_ref.atom_index];
@@ -631,9 +650,13 @@ impl MorphMatcher {
         structural_cache: &mut StructuralCache<'a>,
     ) -> Option<VerifiedSpan> {
         let mut best = None;
-        for hit in self.anchor_engine.hits(haystack, at) {
+        for hit in self.anchor_hits(haystack, at) {
             if best.as_ref().is_some_and(|matched: &VerifiedSpan| {
-                hit.span.end > matched.token.start.saturating_add(self.max_anchor_bytes)
+                hit.span.end
+                    > matched
+                        .token
+                        .start
+                        .saturating_add(self.max_anchor_end_from_token_start)
             }) {
                 break;
             }
@@ -698,9 +721,9 @@ impl MorphMatcher {
         let anchor = std::str::from_utf8(haystack.get(hit.span.clone())?).ok()?;
         let core = mapped_core(&hit.span, branch.core_mapping, anchor)?;
         let (consumed_bytes, suffix_rules) = match &branch.consumption {
-            CandidateConsumption::Anchor | CandidateConsumption::CopulaHostEndingCompose => {
-                (0, Vec::new())
-            }
+            CandidateConsumption::Anchor
+            | CandidateConsumption::CopulaHostEndingCompose
+            | CandidateConsumption::FusedCopulaEnding => (0, Vec::new()),
             CandidateConsumption::PredicateContinuation {
                 continuation,
                 pos,
@@ -960,8 +983,12 @@ impl MorphMatcher {
         if patterns.is_empty() {
             return false;
         }
-        if self.accepts_lost_span_copula_ending(haystack, candidate, branch, resolver, patterns) {
-            return true;
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::CopulaHostEndingCompose | CandidateConsumption::FusedCopulaEnding
+        ) {
+            return self
+                .accepts_lost_span_copula_ending(haystack, candidate, branch, resolver, patterns);
         }
         if self.accepts_pronoun_copula_ending(haystack, candidate, branch, resolver, patterns) {
             return true;
@@ -1325,29 +1352,23 @@ impl MorphMatcher {
         resolver: &ConstraintResolver,
         patterns: &[kfind_morph::QueryMorphPattern],
     ) -> bool {
-        if !matches!(
-            branch.consumption,
-            CandidateConsumption::CopulaHostEndingCompose
-        ) || !patterns
+        if !patterns
             .iter()
             .any(|pattern| pattern.fine_pos == DataFinePos::Vcp)
         {
             return false;
         }
-        let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
-        if candidate.anchor != candidate.verified.core
-            || candidate.consumed != whole
-            || candidate.verified.core != whole
-        {
-            return false;
-        }
-        let Some(anchor) = haystack
-            .get(candidate.anchor.clone())
+        let Some(token) = haystack
+            .get(candidate.verified.core.clone())
             .and_then(|bytes| std::str::from_utf8(bytes).ok())
         else {
             return false;
         };
-        let normalized = anchor.nfc().collect::<String>();
+        let normalized = if is_nfc(token) {
+            Cow::Borrowed(token)
+        } else {
+            Cow::Owned(token.nfc().collect::<String>())
+        };
         resolver.has_exact_lost_span_copula_ending_path(&normalized)
             && self.accepts_token_boundary(haystack, &candidate.verified, branch)
     }
@@ -2174,24 +2195,30 @@ struct ProgramRef {
     program_index: usize,
 }
 
-type AnchorsAndPrograms<'a> = (Vec<&'a [u8]>, Vec<Box<[ProgramRef]>>);
+type AnchorsAndPrograms<'a> = (Vec<&'a [u8]>, Vec<Box<[ProgramRef]>>, Vec<ProgramRef>);
 
 fn unique_anchors(plan: &QueryPlan) -> AnchorsAndPrograms<'_> {
     let mut anchor_indices = HashMap::<&[u8], usize>::new();
     let mut anchors = Vec::<&[u8]>::new();
     let mut program_lists = Vec::<Vec<ProgramRef>>::new();
+    let mut fused_copula = Vec::new();
     for (atom_index, atom) in plan.atoms.iter().enumerate() {
         for (program_index, branch) in atom.programs.iter().enumerate() {
+            let program = ProgramRef {
+                atom_index,
+                program_index,
+            };
+            if matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding) {
+                fused_copula.push(program);
+                continue;
+            }
             let anchor_index = *anchor_indices.entry(&branch.anchor).or_insert_with(|| {
                 let index = anchors.len();
                 anchors.push(&branch.anchor);
                 program_lists.push(Vec::new());
                 index
             });
-            program_lists[anchor_index].push(ProgramRef {
-                atom_index,
-                program_index,
-            });
+            program_lists[anchor_index].push(program);
         }
     }
     (
@@ -2200,6 +2227,7 @@ fn unique_anchors(plan: &QueryPlan) -> AnchorsAndPrograms<'_> {
             .into_iter()
             .map(Vec::into_boxed_slice)
             .collect(),
+        fused_copula,
     )
 }
 

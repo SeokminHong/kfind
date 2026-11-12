@@ -160,7 +160,8 @@ impl ReferenceMatcher {
                 }
                 (consumed, rules)
             }
-            CandidateConsumption::StructuralPredicateEnding { .. } => return None,
+            CandidateConsumption::StructuralPredicateEnding { .. }
+            | CandidateConsumption::FusedCopulaEnding => return None,
             CandidateConsumption::NominalParticleChain { .. }
             | CandidateConsumption::NominalCopulaEndingChain { .. } => {
                 let (consumed, rules) =

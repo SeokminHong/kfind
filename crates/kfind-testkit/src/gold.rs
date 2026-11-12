@@ -220,7 +220,7 @@ mod tests {
 
     use super::*;
 
-    const EXPECTED_CASES: usize = 719;
+    const EXPECTED_CASES: usize = 727;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {
@@ -239,7 +239,11 @@ mod tests {
         for case in &cases {
             let selected = if matches!(
                 case.feature.as_str(),
-                "nominal-component" | "exact-component" | "lexical-context" | "copula-structure"
+                "nominal-component"
+                    | "exact-component"
+                    | "lexical-context"
+                    | "copula-structure"
+                    | "fused-copula-ending"
             ) {
                 &component_harness
             } else {
@@ -355,6 +359,15 @@ mod tests {
             entry("사람", "NNG", -5_000),
             entry("모두", "MAG", -10_000),
             entry("그런데", "MAJ", 0),
+            entry("누굴까", "NP+VCP+EF", 0),
+            entry("얼만데", "NNG+VCP+EC", 0),
+            entry("날세", "NP+VCP+EF", 0),
+            entry("텐데", "NNB+VCP+EC", 0),
+            entry("겁니까", "NNB+VCP+EF", 0),
+            entry("갈까", "VV+EF", 0),
+            entry("게", "NNB+VCP+EC", 0),
+            entry("언젠가", "NP+VCP+EC", 0),
+            entry("언젠가", "MAG", 0),
         ];
         encode_component_resource(COMPONENT_RESOURCE_SOURCE_DIGEST, &entries).unwrap()
     }
