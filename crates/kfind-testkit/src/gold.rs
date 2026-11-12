@@ -337,6 +337,7 @@ mod tests {
             entry("두", "MM", -5_000),
             entry("사람", "NNG", -5_000),
             entry("모두", "MAG", -10_000),
+            entry("그런데", "MAJ", 0),
         ];
         encode_component_resource(COMPONENT_RESOURCE_SOURCE_DIGEST, &entries).unwrap()
     }

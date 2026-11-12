@@ -679,8 +679,8 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 살다	verb	그분은 이곳에 사시리라.	match	prospective-honorific-rieul
 먹다	verb	그 음식은 내가 먹리라.	no-match	prospective-consonant-allomorph
 좋다	adjective	날씨가 좋은데요.	match	background-adjective-coda
-그렇다	adjective	그런데, 문제가 생겼다.	no-match	background-conjunctive-adverb
-그렇다	adjective	상황이 그런데, 무엇을 더 할 수 있겠나?	match	background-adjective-context
+그렇다	adjective	그런데, 문제가 생겼다.	no-match	lexical-context
+그렇다	adjective	상황이 그런데, 무엇을 더 할 수 있겠나?	match	lexical-context
 예쁘다	adjective	이 옷은 예쁜데 얇다.	match	background-adjective-vowel
 멀다	adjective	거리가 먼데도 걸었다.	match	background-adjective-rieul
 춥다	adjective	날씨가 추운데도 창문을 열었다.	match	background-adjective-irregular

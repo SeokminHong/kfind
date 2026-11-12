@@ -124,12 +124,13 @@ impl<'matcher, 'haystack> CandidateStream<'matcher, 'haystack> {
             let hit = self.next_hit.take()?;
             self.next_hit = self.hits.next();
             for branch_ref in &self.matcher.anchor_programs[hit.anchor_index] {
-                let branch = &self.matcher.plan.atoms[branch_ref.atom_index].programs
-                    [branch_ref.program_index];
+                let atom = &self.matcher.plan.atoms[branch_ref.atom_index];
+                let branch = &atom.programs[branch_ref.program_index];
                 if let Some(span) = self.matcher.execute_program_with_metadata(
                     self.haystack,
                     &hit,
                     branch,
+                    atom.boundary,
                     self.metadata,
                     &mut self.structural_cache,
                 ) {

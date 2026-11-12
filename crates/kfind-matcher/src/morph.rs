@@ -15,8 +15,8 @@ use kfind_morph::{
     verify_copula_surface_after_nominal, verify_predicate_continuation,
 };
 use kfind_query::{
-    CandidateConsumption, CandidateDecision, CandidateLeftContext, CandidateProgram, CoreMapping,
-    Origin, PhraseMatch, QueryPlan, RoutedMatch, VerifiedSpan,
+    BoundaryPolicy, CandidateConsumption, CandidateDecision, CandidateLeftContext,
+    CandidateProgram, CoreMapping, Origin, PhraseMatch, QueryPlan, RoutedMatch, VerifiedSpan,
 };
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
@@ -576,8 +576,8 @@ impl MorphMatcher {
         for hit in self.anchor_engine.hits(haystack, 0) {
             counters.raw_anchor_hits += 1;
             for branch_ref in &self.anchor_programs[hit.anchor_index] {
-                let branch =
-                    &self.plan.atoms[branch_ref.atom_index].programs[branch_ref.program_index];
+                let atom = &self.plan.atoms[branch_ref.atom_index];
+                let branch = &atom.programs[branch_ref.program_index];
                 let Some(candidate) = self.execute_program_without_decision(
                     haystack,
                     &hit,
@@ -586,7 +586,13 @@ impl MorphMatcher {
                 ) else {
                     continue;
                 };
-                if !self.accepts_program(haystack, &candidate, branch, &mut structural_cache) {
+                if !self.accepts_program(
+                    haystack,
+                    &candidate,
+                    branch,
+                    atom.boundary,
+                    &mut structural_cache,
+                ) {
                     if matches!(&branch.decision, CandidateDecision::Structural(_)) {
                         counters.structural_candidate_hits += 1;
                         let window =
@@ -640,6 +646,7 @@ impl MorphMatcher {
                     haystack,
                     &hit,
                     branch,
+                    self.plan.atoms[0].boundary,
                     metadata,
                     structural_cache,
                 ) else {
@@ -672,11 +679,12 @@ impl MorphMatcher {
         haystack: &'a [u8],
         hit: &AnchorHit,
         branch: &CandidateProgram,
+        boundary: BoundaryPolicy,
         metadata: MatchMetadata,
         structural_cache: &mut StructuralCache<'a>,
     ) -> Option<VerifiedSpan> {
         let candidate = self.execute_program_without_decision(haystack, hit, branch, metadata)?;
-        self.accepts_program(haystack, &candidate, branch, structural_cache)
+        self.accepts_program(haystack, &candidate, branch, boundary, structural_cache)
             .then_some(candidate.verified)
     }
 
@@ -863,8 +871,23 @@ impl MorphMatcher {
         haystack: &'a [u8],
         candidate: &ExecutedCandidate,
         branch: &CandidateProgram,
+        boundary: BoundaryPolicy,
         structural_cache: &mut StructuralCache<'a>,
     ) -> bool {
+        if boundary == BoundaryPolicy::Smart
+            && matches!(
+                branch.consumption,
+                CandidateConsumption::PredicateContinuation {
+                    continuation: kfind_morph::ContinuationState::Background,
+                    ..
+                }
+            )
+            && self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                rejects_background_conjunction(haystack, candidate, resolver)
+            })
+        {
+            return false;
+        }
         match &branch.decision {
             CandidateDecision::Boundary(_) => {
                 self.accepts_token_boundary(haystack, &candidate.verified, branch)
@@ -953,20 +976,6 @@ impl MorphMatcher {
             return false;
         }
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
-        if matches!(
-            branch.consumption,
-            CandidateConsumption::PredicateContinuation {
-                continuation: kfind_morph::ContinuationState::Background,
-                ..
-            }
-        ) && candidate.consumed == whole
-            && starts_sentence_before_comma(haystack, &whole)
-            && std::str::from_utf8(&haystack[whole.clone()]).is_ok_and(|token| {
-                resolver.has_exact_conjunctive_adverb(&token.nfc().collect::<String>())
-            })
-        {
-            return false;
-        }
         if licensed_trailing.is_none()
             && matches!(
                 branch.consumption,
@@ -1814,14 +1823,22 @@ impl MorphMatcher {
     }
 }
 
-fn starts_sentence_before_comma(haystack: &[u8], token: &Range<usize>) -> bool {
-    haystack.get(token.end) == Some(&b',')
-        && haystack[..token.start]
+fn rejects_background_conjunction(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let consumed = &candidate.consumed;
+    haystack.get(consumed.end) == Some(&b',')
+        && haystack[..consumed.start]
             .iter()
             .rev()
             .copied()
             .find(|byte| !matches!(byte, b' ' | b'\t'))
             .is_none_or(|byte| matches!(byte, b'.' | b'!' | b'?' | b'\n' | b'\r'))
+        && std::str::from_utf8(&haystack[consumed.clone()]).is_ok_and(|token| {
+            resolver.has_exact_conjunctive_adverb(&token.nfc().collect::<String>())
+        })
 }
 
 fn nominal_copula_surface_at(haystack: &[u8], start: usize, end: usize) -> bool {
