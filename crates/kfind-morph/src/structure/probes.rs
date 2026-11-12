@@ -651,6 +651,81 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_elapsed_measure(&self, measure: &str, previous: Option<&str>) -> bool {
+        const UNITS: &[&str] = &[
+            "밀리초",
+            "주일",
+            "개월",
+            "시간",
+            "세기",
+            "년",
+            "해",
+            "달",
+            "주",
+            "일",
+            "날",
+            "분",
+            "초",
+            "번",
+            "차례",
+            "밀리미터",
+            "센티미터",
+            "킬로미터",
+            "미터",
+            "마일",
+            "해리",
+            "리",
+            "걸음",
+        ];
+        const STANDALONE: &[&str] = &[
+            "하루",
+            "이틀",
+            "사흘",
+            "나흘",
+            "닷새",
+            "엿새",
+            "이레",
+            "여드레",
+            "아흐레",
+            "열흘",
+            "보름",
+            "반달",
+            "반년",
+        ];
+        STANDALONE.contains(&measure)
+            || UNITS.iter().any(|unit| {
+                measure.strip_suffix(unit).is_some_and(|attached| {
+                    let count = if attached.is_empty() {
+                        previous.unwrap_or_default()
+                    } else {
+                        attached
+                    };
+                    self.has_measure_count(count)
+                })
+            })
+    }
+
+    fn has_measure_count(&self, text: &str) -> bool {
+        // A native counting modifier can combine a tens word with a shortened ones form.
+        const NATIVE_TENS: &[&str] = &[
+            "열", "스물", "서른", "마흔", "쉰", "예순", "일흔", "여든", "아흔",
+        ];
+        const NATIVE_ONES: &[&str] = &[
+            "한", "두", "세", "석", "서", "네", "넉", "너", "다섯", "여섯", "일곱", "여덟", "아홉",
+        ];
+        !text.is_empty()
+            && (text.bytes().all(|byte| byte.is_ascii_digit())
+                || text == "몇"
+                || text == "스무"
+                || NATIVE_ONES.contains(&text)
+                || NATIVE_TENS.iter().any(|tens| {
+                    text.strip_prefix(tens)
+                        .is_some_and(|ones| ones.is_empty() || NATIVE_ONES.contains(&ones))
+                })
+                || has_exact_fine_pos(&self.resource, text, |pos| pos == DataFinePos::Nr))
+    }
+
+    #[must_use]
     pub fn has_copula_conditional_adverbial_host(&self, text: &str) -> bool {
         has_exact_fine_pos(&self.resource, text, |pos| pos == DataFinePos::Mag)
             || complete_nominal_particle_host(&self.resource, text).is_some()

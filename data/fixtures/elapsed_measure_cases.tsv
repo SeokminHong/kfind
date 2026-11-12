@@ -1,0 +1,8 @@
+id	query	pos	expected	byte_start	byte_end	text
+kaist-elapsed-months	만	numeral	no-match	11	17	열석 달 만에 월급으로 받은 쌀이 분량도 제대로 채워지지 않았고 겨까지 섞여 있었다.
+elapsed-ascii-months	만	numeral	no-match	8	14	3개월 만에 답장이 왔다.
+elapsed-lexical-days	만	numeral	no-match	7	13	사흘 만의 외출이었다.
+elapsed-attempts	만	numeral	no-match	8	14	세 번 만에 성공했다.
+elapsed-distance	만	numeral	no-match	11	17	열 걸음 만에 멈췄다.
+independent-numeral	만	numeral	exact	28	34	그 값은 천이 아니라 만에 가깝습니다.
+independent-after-clause	만	numeral	exact	32	38	한 달 동안 모은 점수가 만에 달했다.
