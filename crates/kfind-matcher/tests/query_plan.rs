@@ -2965,6 +2965,31 @@ fn component_expression_entry(
 }
 
 #[test]
+fn adverb_topic_canonical_candidates_keep_the_whole_syllable() {
+    let matcher = compile_embedded_with_resource(
+        "adv:때로",
+        CompileOptions {
+            normalization: NormalizationMode::Canonical,
+            ..Default::default()
+        },
+        component_resource_from_entries([
+            component_entry("때로", "MAG"),
+            component_entry("때론", "MAG+JX"),
+        ]),
+    );
+    for (surface, expected) in [("때론", true), ("때롬", false)] {
+        let decomposed: String = surface.nfd().collect();
+        let diagnostics = kfind_matcher::SearchDiagnostics::default();
+        let matched = matcher.find_span_at_with_diagnostics(decomposed.as_bytes(), 0, &diagnostics);
+        assert_eq!(matched, expected.then_some(0..decomposed.len()));
+        assert!(
+            !diagnostics.structural_verification_incomplete(),
+            "{surface}"
+        );
+    }
+}
+
+#[test]
 fn structural_diagnostics_are_scoped_and_preserve_matches() {
     use kfind_matcher::SearchDiagnostics;
     for query in ["n:명사", "n:명사 n:사용자"] {
