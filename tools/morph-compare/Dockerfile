@@ -160,6 +160,8 @@ COPY --from=corpus-builder /build/jiyo-context-cases.jsonl \
     /build/jiyo-contract-reviews.tsv /opt/morph-benchmark/
 COPY --from=corpus-builder /build/humble-context-cases.jsonl \
     /build/humble-contract-reviews.tsv /opt/morph-benchmark/
+COPY --from=corpus-builder /build/casual-prefinal-context-cases.jsonl \
+    /build/casual-prefinal-contract-reviews.tsv /opt/morph-benchmark/
 COPY --from=runner-builder /benchmark/full-pos /opt/morph-benchmark/full-pos
 COPY --from=runner-builder /benchmark/morphology /opt/morph-benchmark/morphology
 COPY --from=runner-builder /benchmark/component /opt/morph-benchmark/component
