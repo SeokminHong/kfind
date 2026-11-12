@@ -306,8 +306,10 @@ canonical·hard-negative의 contract-positive 분모는 `PNᶜ = TPᶜ + FNᶜ`�
 recall 개선 보고서는 `PNᶜ`, `FNᶜ`와 `recallᶜ = TPᶜ / PNᶜ`를 함께 기록한다.
 
 `contract_expected`가 없으면 strict `expected`를 그대로 사용한다. boolean 값이 strict와 다르면
-양방향 reclassification을 허용한다. `expected=false`, `contract_expected=true`는 같은 품사의
-동형 활용을 의미로 구분하지 않는 `same-pos-homograph`, 품사가 달라도 bounded 문장 구조가 같은
+양방향 reclassification을 허용한다. 형태·통사 근거로 한 분석을 배제할 수 있으면 strict 기대값을
+유지한다. 격조사와 서술어의 문형이 그 근거에 포함된다.
+`expected=false`, `contract_expected=true`는 같은 품사의 동형 활용이 문법 구조상 모두
+가능한 `same-pos-homograph`, 품사가 달라도 bounded 문장 구조가 같은
 `structurally-indistinguishable-homograph`, source에 정렬된 내부 성분을 검색하는
 `aligned-source-component`에만 사용한다. `expected=true`, `contract_expected=false`는 gold가
 완성 어휘 내부의 다른 품사 span에 잘못 정렬된 `gold-alignment-error`에만 사용한다. strict

@@ -27,7 +27,7 @@ KOMORAN에도 동일하게 적용합니다.
 
 Raw의 TP, TN, FP, FN은 원본 corpus gold를 그대로 사용합니다. Contract-adjusted의
 TPc, TNc, FPc, FNc는 실행 전에 고정한 review registry를 같은 예측에 적용합니다.
-Registry는 형태만으로 구분할 수 없는 동형이의, source에 정렬된 내부 성분과 gold span
+Registry는 형태·통사 구조로 구분할 수 없는 동형이의, source에 정렬된 내부 성분과 gold span
 오류를 재분류하며 제품 입력 계약 밖의 비표준 사례를 제외할 수 있습니다. 구현이
 어렵거나 지원하지 않는 표준 문법은 제외하지 않습니다.
 
