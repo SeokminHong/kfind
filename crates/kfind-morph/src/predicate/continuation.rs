@@ -132,6 +132,7 @@ fn copula_common_omission(surface: &str) -> bool {
             | "니까"
             | "니까는"
             | "니깐"
+            | "냐"
             | "면"
             | "면서"
             | "죠"

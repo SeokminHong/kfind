@@ -292,3 +292,22 @@ corpus.ud-kaist.dev.MH2_0169-s704.verb.하다	하다	verb	smart-exact	34	43	그�
 corpus.ud-kaist.dev.MH2_0169-s704.not-copula	이다	adjective	no-match	34	43	그러나 보람도 없는 일을 하라고 요구할 권리는 그 누구에게도 없다.
 regression.quotative-adnominal.copula	이다	adjective	smart-exact	17	26	몸집이 작은 새라고 설명했다.
 regression.quotative-adnominal.not-verb	새다	verb	no-match	17	26	몸집이 작은 새라고 설명했다.
+regression.numeric-copula.kaist-s580	이다	adjective	smart-exact	62	65	중소기업 고유업종으로 지정된 업종이 2백 37개다.
+regression.numeric-copula.vowel-unit	이다	adjective	smart-exact	22	25	오늘 목표는 37개다.
+regression.numeric-copula.vowel-unit-noun	개	noun	smart-exact	19	22	오늘 목표는 37개다.
+regression.numeric-copula.vowel-unit-not-verb	개다	verb	no-match	19	25	오늘 목표는 37개다.
+regression.numeric-copula.consonant-unit	이다	adjective	smart-exact	22	28	오늘 목표는 37명이다.
+regression.numeric-copula.consonant-unit-noun	명	noun	smart-exact	12	15	학생은 37명이다.
+regression.numeric-copula.consonant-unit-no-omission	이다	adjective	no-match	22	25	오늘 목표는 37명다.
+regression.numeric-copula.other-unit	이다	adjective	smart-exact	14	17	정원은 4회다.
+regression.numeric-copula.ordinal-unit	이다	adjective	smart-exact	36	39	그 선수가 받은 등수는 37위다.
+regression.numeric-copula.past	이다	adjective	smart-exact	15	21	배낭은 37개였다.
+regression.numeric-copula.polite	이다	adjective	smart-exact	12	18	배낭은 37개죠.
+regression.numeric-copula.question	이다	adjective	smart-exact	12	18	배낭은 37개냐?
+regression.numeric-copula.grouped-question	이다	adjective	smart-exact	22	28	오늘 목표는 1,500개냐?
+regression.numeric-copula.bare-number	이다	adjective	smart-exact	12	18	정답은 37이다.
+regression.numeric-copula.spaced-count-question	이다	adjective	smart-exact	4	10	몇 개냐?
+regression.numeric-copula.nominal-question	이다	adjective	smart-exact	14	23	그 사람은 의사냐?
+regression.numeric-copula.coda-nominal-no-omission	이다	adjective	no-match	0	9	학생냐?
+regression.numeric-copula.action-question	개다	verb	smart-exact	27	33	언니는 이불을 벌써 개냐?
+regression.numeric-copula.action-question-not-copula	이다	adjective	no-match	27	33	언니는 이불을 벌써 개냐?

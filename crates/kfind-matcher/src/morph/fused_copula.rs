@@ -164,7 +164,10 @@ pub(super) fn accepts_omitted_copula(
 ) -> bool {
     let mut nominal_frame = false;
     let accepted = omitted_copula_hosts(token).any(|(host, suffix)| {
-        if matches!(suffix, "죠" | "지요") && supports_counted_unit(host) {
+        if (matches!(suffix, "죠" | "지요" | "냐") && supports_counted_unit(host))
+            || (resolver.has_numeric_unit_surface(host)
+                && (!matches!(suffix, "게" | "네" | "네요") || is_sentence_end()))
+        {
             nominal_frame = true;
             return true;
         }
