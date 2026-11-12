@@ -362,6 +362,66 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.retrospective-exclamatory"
+category = "final"
+initial = "other"
+forms = ["더구나","더구려","더구먼"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.retrospective-direct-question"
+category = "final"
+initial = "other"
+forms = ["더냐","더뇨","더니이까","더이까"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.retrospective-direct-final"
+category = "final"
+initial = "other"
+forms = ["더니라","더니이다","더이다","더람"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.retrospective-contrast"
+category = "connective"
+initial = "other"
+forms = ["더니마는","더니만"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.retrospective-deora-report"
+category = "final"
+initial = "other"
+forms = ["더라나","더라니","더라니까","더라며","더라면서","더라지"]
+required = []
+forbidden = []
+next = ["ending.polite-yo"]
+terminal = true
+
+[[ending]]
+id = "ending.retrospective-deora-condition"
+category = "connective"
+initial = "other"
+forms = ["더라면","더라손"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.retrospective-deora"
 category = "final"
 initial = "other"
