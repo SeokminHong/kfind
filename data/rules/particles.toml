@@ -163,6 +163,15 @@ next = ["particle.topic", "particle.additive"]
 terminal = true
 
 [[particle]]
+id = "particle.only.nominal-initial"
+role = "auxiliary"
+hosts = ["nominal"]
+forms = []
+selection = "literal"
+next = ["particle.topic", "particle.additive", "particle.subject", "particle.object", "particle.genitive", "particle.direction"]
+terminal = true
+
+[[particle]]
 id = "particle.limit.ggaji"
 role = "auxiliary"
 hosts = ["nominal", "adverb", "predicate-ending"]

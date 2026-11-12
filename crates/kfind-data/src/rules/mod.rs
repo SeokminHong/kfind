@@ -119,6 +119,10 @@ pub struct ParticleTransitionRule {
     pub terminal: bool,
 }
 
+impl ParticleTransitionRule {
+    pub const NOMINAL_INITIAL_SUFFIX: &str = ".nominal-initial";
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RuleSet {
     pub max_continuation_depth: u8,

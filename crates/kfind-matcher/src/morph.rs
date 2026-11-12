@@ -884,14 +884,22 @@ impl MorphMatcher {
                     vec![RuleId::from("structural.ending-path")],
                 )
             }
-            CandidateConsumption::NominalParticleChain { .. }
-            | CandidateConsumption::NominalCopulaEndingChain { .. } => {
+            CandidateConsumption::NominalParticleChain {
+                allowed_rule_ids, ..
+            }
+            | CandidateConsumption::NominalCopulaEndingChain {
+                allowed_rule_ids, ..
+            } => {
                 let following = valid_utf8_prefix(&haystack[hit.span.end..]);
                 let (consumption_anchor, consumption_following) =
                     normalized_consumption_text(anchor, following);
-                let matched = self
-                    .particle_verifier
-                    .verify_prefix(&consumption_anchor, &consumption_following);
+                let matched = if *allowed_rule_ids == self.plan.auxiliary_particle_rules {
+                    self.particle_verifier
+                        .verify_non_nominal_prefix(&consumption_anchor, &consumption_following)
+                } else {
+                    self.particle_verifier
+                        .verify_prefix(&consumption_anchor, &consumption_following)
+                };
                 if !branch.consumption.allows_rule_path(&matched.rule_path) {
                     return None;
                 }
@@ -1278,7 +1286,7 @@ impl MorphMatcher {
         resolver.has_whole_modifier(&modifier)
             && self
                 .particle_verifier
-                .verify_prefix(&modifier, particles)
+                .verify_non_nominal_prefix(&modifier, particles)
                 .consumed_bytes
                 == particles.len()
     }
@@ -1685,24 +1693,22 @@ impl MorphMatcher {
                 .is_some_and(|ending| {
                     let ending = ending.nfc().collect::<String>();
                     let trailing = trailing.nfc().collect::<String>();
-                    self.particle_verifier
-                        .verify_exact(&ending, &trailing)
-                        .is_some_and(|matched| {
-                            (!prospective_quotative_topic
-                                || matched
-                                    .rule_path
-                                    .first()
-                                    .is_some_and(|rule| rule.as_str() == "particle.topic"))
-                                && matched.rule_path.first().is_some_and(|rule| {
-                                    contains_rule(
-                                        &self.plan.predicate_ending_initial_particle_rules,
-                                        rule,
-                                    )
-                                })
-                                && matched.rule_path.iter().all(|rule| {
-                                    contains_rule(&self.plan.auxiliary_particle_rules, rule)
-                                })
+                    let matched = self
+                        .particle_verifier
+                        .verify_non_nominal_prefix(&ending, &trailing);
+                    matched.consumed_bytes == trailing.len()
+                        && (!prospective_quotative_topic
+                            || matched
+                                .rule_path
+                                .first()
+                                .is_some_and(|rule| rule.as_str() == "particle.topic"))
+                        && matched.rule_path.first().is_some_and(|rule| {
+                            contains_rule(&self.plan.predicate_ending_initial_particle_rules, rule)
                         })
+                        && matched
+                            .rule_path
+                            .iter()
+                            .all(|rule| contains_rule(&self.plan.auxiliary_particle_rules, rule))
                 });
         let has_adnominal_rule = ADNOMINAL_RULE_IDS.iter().any(|rule| has_rule(rule));
         let adnominal_dependent_noun_particle =
