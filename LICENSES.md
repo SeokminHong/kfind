@@ -16,3 +16,8 @@ kfind의 독립적으로 작성한 소스 코드는 [MIT License](LICENSE)로 �
 Full POS lexicon과 compact component resource는 Apache-2.0인 mecab-ko-dic에서
 생성합니다. 원본 정보와 artifact별 COPYING 위치는
 [`data/SOURCES.toml`](data/SOURCES.toml)에 기록합니다.
+
+## 공개 말뭉치 회귀 데이터
+
+말뭉치에서 발췌한 문장의 출처, 라이선스와 편집 범위는
+[회귀 fixture 안내](data/fixtures/README.md)에 기록합니다.

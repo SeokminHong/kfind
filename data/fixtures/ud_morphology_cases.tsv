@@ -1,48 +1,48 @@
 id	query	pos	expected	byte_start	byte_end	text
 corpus.ud-gsd.test.test-s39.adjective.좋다	좋다	adjective	match	90	99	괜찮은 인테리어는 아닌데 시장 횟집 분위기에 매운탕도 좋고 회가 좋네요
 corpus.ud-gsd.test.test-s154.verb.먹다	먹다	verb	match	105	114	푸짐한 음식과 맛도 좋고 양에 비해 가격 저렴하고 얼큰한 바르미 샤브 칼국수 먹으러 와 보세요
-corpus.ud-gsd.test.test-s200.verb.결제하다	결제하다	verb	match	87	105	오만 원 이상 카드결제를 하는데 부가세 별도라며 오천원을 추가 결제하더군요
-corpus.ud-gsd.test.test-s250.adjective.좋다	좋다	adjective	match	41	50	팬 앤 패드법의 경우는 효과는 좋으나 패드의 탈부착이 어렵고 겨울에 시설내광투과율이 떨어지는 문제가 있다.
+corpus.ud-gsd.test.test-s200.verb.결제하다	결제하다	verb	match	89	107	오만 원 이상 카드 결제를 하는데 부가세 별도라며 오천 원을 추가 결제하더군요
+corpus.ud-gsd.test.test-s250.adjective.좋다	좋다	adjective	match	41	50	팬 앤 패드법의 경우는 효과는 좋으나 패드의 탈부착이 어렵고 겨울에 시설 내 광 투과율이 떨어지는 문제가 있다.
 corpus.ud-gsd.test.test-s353.verb.않다	않다	verb	match	66	75	체인 빵집이 싫어 갔는데 특별히 더 좋은 것 같진 않네요
 corpus.ud-gsd.test.test-s365.verb.받다	받다	verb	match	7	19	전화 받으시는 목소리가 매우 친절합니다.
 corpus.ud-gsd.test.test-s468.adjective.무관하다	무관하다	adjective	match	355	364	삼성 관계자는 "이 회장의 신년사를 보면 '누구와도 손잡을 수 있어야 하고 모자라는 부분은 기꺼이 협력하는 용기와 결단이 필요하다'고 지적하면서 창의성과 스피드를 강하게 주문했다"며 "이 같은 당부가 제대로 이행되지 않고 있다는 생각을 하는 것도 정기 출근과 무관치 않을 수 있다"고 전했다.
 corpus.ud-gsd.test.test-s551.verb.찾다	찾다	verb	match	20	32	석양 이미지를 찾으시오
 corpus.ud-gsd.test.test-s570.verb.주무시다	주무시다	verb	match	37	49	겨울에는 무조건 내복 입고 주무세요.
 corpus.ud-gsd.test.test-s723.verb.이루어지다	이루어지다	verb	match	86	98	이곳에서 문화재 발굴은 형촌마을 서쪽 구릉과 남쪽 저지대에서 이뤄지고 있었다.
-corpus.ud-gsd.test.test-s782.verb.털어놓다	털어놓다	verb	match	123	135	조인성은 입대할 당시 심경과 군복무를 하며 생긴 배우로서의 공백기에 대해 솔직한 생각을 털어놨다.
-corpus.ud-gsd.test.test-s7.verb.구속되다	구속되다	verb	match	267	282	1989년 1월, 여의도 한강고수부지에서 대학생과 재수생 등이 경주용 모터사이클을 즐기던 중 이들이 우연히 만나게 되어 만들어진 모임이지만 1990년 6월에 여회사원과 여고생 등을 폭행한 혐의로 경찰에 구속되면서 해체되었다.
+corpus.ud-gsd.test.test-s782.verb.털어놓다	털어놓다	verb	match	124	136	조인성은 입대할 당시 심경과 군 복무를 하며 생긴 배우로서의 공백기에 대해 솔직한 생각을 털어놨다.
+corpus.ud-gsd.test.test-s7.verb.구속되다	구속되다	verb	match	268	283	1989년 1월, 여의도 한강 고수부지에서 대학생과 재수생 등이 경주용 모터사이클을 즐기던 중 이들이 우연히 만나게 되어 만들어진 모임이지만 1990년 6월에 여회사원과 여고생 등을 폭행한 혐의로 경찰에 구속되면서 해체되었다.
 corpus.ud-gsd.test.test-s54.noun.변광성	변광성	noun	match	59	77	허블이 계산한 안드로메다에 있는 세페이드 변광성까지의 거리는 대논쟁을 확실히 끝맺었다.
 corpus.ud-gsd.test.test-s118.noun.공항	공항	noun	match	104	119	노르웨이 의회에서 오슬로 공항을 짓기로 가결했을 때, 오슬로 센트랄 역부터 공항까지의 고속 철도도 같이 짓기로 하였다.
 corpus.ud-gsd.test.test-s84.verb.달성하다	달성하다	verb	match	134	149	한컴은 2009년에 487억 원의 매출과 512억 원의 영업이익, 144억 원의 순이익을 기록해 사상 최대 실적을 달성했으며, 7년 연속 흑자 실적의 기록을 이어갔다고 밝혔다.
-corpus.ud-gsd.test.test-s198.verb.참여하다	참여하다	verb	match	102	120	대한민국임시정부 등에서 활동하였고 1945년 광복 뒤에는 한국민주당 창당에 참여하였으며, 한민당의 대표 자격으로 좌우합작에 참여하였으나 당으로부터 버림받고, 민족자주연맹으로 당적을 옮겼다.
+corpus.ud-gsd.test.test-s198.verb.참여하다	참여하다	verb	match	103	121	대한민국 임시정부 등에서 활동하였고 1945년 광복 뒤에는 한국민주당 창당에 참여하였으며, 한민당의 대표 자격으로 좌우 합작에 참여하였으나 당으로부터 버림받고, 민족자주연맹으로 당적을 옮겼다.
 corpus.ud-gsd.test.test-s266.adjective.길다	길다	adjective	match	7	13	또한 길고 두꺼운 발톱도 위험한 무기가 된다.
-corpus.ud-gsd.test.test-s204.noun.바다	바다	noun	match	22	37	특히 김 청장은 "바다에서의 각종 사고는 예고가 없기 때문에 사고발생시 즉시 대응할 수 있도록 평소 인명구조장비 점검 등 관리에 만전을 다해 줄 것"도 각별히 주문했다.
-corpus.ud-gsd.test.test-s255.noun.야당	야당	noun	match	49	61	이날 회의에서는 비준안 처리시기와 야당과의 협상대책 등이 집중 논의될 것으로 알려졌다.
+corpus.ud-gsd.test.test-s204.noun.바다	바다	noun	match	22	37	특히 김 청장은 "바다에서의 각종 사고는 예고가 없기 때문에 사고 발생 시 즉시 대응할 수 있도록 평소 인명 구조 장비 점검 등 관리에 만전을 다해 줄 것"도 각별히 주문했다.
+corpus.ud-gsd.test.test-s255.noun.야당	야당	noun	match	50	62	이날 회의에서는 비준안 처리 시기와 야당과의 협상 대책 등이 집중 논의될 것으로 알려졌다.
 corpus.ud-gsd.test.test-s187.verb.활동하다	활동하다	verb	match	130	145	2001년 미국 프로 야구 LA 다저스에 입단하여 뉴욕 메츠, 텍사스 레인저스, 시애틀 매리너스 등에서 활동하다가, 2008년 12월 계약금 6만 달러와 연봉 24만 달러를 합친 총액 30만 달러(약 4억 3천만 원)의 조건으로 한화 이글스와 계약을 맺었다.
-corpus.ud-pud.test.w04002055.verb.타다	타다	verb	match	97	109	1976년 경마장이 문을 닫았으며, 1990년 화재로 인해목재로 된 큰 스탠드가 타버렸고 그 잔해는 축사와 함께 나중에 철거되었다.
-corpus.ud-pud.test.w01112098.verb.이루어지다	이루어지다	verb	match	144	156	디즈니는 아카데미 명예상을 또 수상했는데이 명예상은 100% 크기의 오스카 트로피 하나와 7개의 미니어처로 이뤄졌다.
-corpus.ud-pud.test.w01137087.verb.넘다	넘다	verb	match	120	132	5월, 체코 국경 수비대는 수비대의 정지 명령에도 아랑곳하지않고 체코슬로바키아 국경을 넘으려던 두 명의 주데텐 독일 농부를 총으로 쐈다.
-corpus.ud-pud.test.w01084102.verb.세워지다	세워지다	verb	match	72	87	16세기 서양과의 조우를 통해 노다지와 같은 교역로가 세워지면서 상당한경제 성장이 계속되는시기를 맞이하였다.
-corpus.ud-pud.test.w02009025.verb.알려지다	알려지다	verb	match	24	39	그 일이 파리에서 알려지면서 지속적으로 비싼 빵 가격과 생활 물자 부족으로 이미 팽배해있던 사회적동요가 더욱 가중되었다.
+corpus.ud-pud.test.w04002055.verb.타다	타다	verb	match	98	110	1976년 경마장이 문을 닫았으며, 1990년 화재로 인해 목재로 된 큰 스탠드가 타버렸고 그 잔해는 축사와 함께 나중에 철거되었다.
+corpus.ud-pud.test.w01112098.verb.이루어지다	이루어지다	verb	match	145	157	디즈니는 아카데미 명예상을 또 수상했는데 이 명예상은 100% 크기의 오스카 트로피 하나와 7개의 미니어처로 이뤄졌다.
+corpus.ud-pud.test.w01137087.verb.넘다	넘다	verb	match	121	133	5월, 체코 국경 수비대는 수비대의 정지 명령에도 아랑곳하지 않고 체코슬로바키아 국경을 넘으려던 두 명의 주데텐 독일 농부를 총으로 쐈다.
+corpus.ud-pud.test.w01084102.verb.세워지다	세워지다	verb	match	72	87	16세기 서양과의 조우를 통해 노다지와 같은 교역로가 세워지면서 상당한 경제 성장이 계속되는 시기를 맞이하였다.
+corpus.ud-pud.test.w02009025.verb.알려지다	알려지다	verb	match	24	39	그 일이 파리에서 알려지면서 지속적으로 비싼 빵 가격과 생활 물자 부족으로 이미 팽배해 있던 사회적 동요가 더욱 가중되었다.
 corpus.ud-gsd.test.test-s12.verb.사다	사다	verb	no-match	13	19	갤럭시 S3 사진 좀 보여줘
-corpus.ud-gsd.test.test-s40.verb.가다	가다	verb	no-match	37	43	고기집 치고는 반찬도 여러 가지 나와요.
+corpus.ud-gsd.test.test-s40.verb.가다	가다	verb	no-match	36	42	고깃집치고는 반찬도 여러 가지 나와요.
 corpus.ud-gsd.test.test-s218.adjective.길다	길다	adjective	no-match	13	16	맥도날드 길 찾기
-corpus.ud-gsd.test.test-s53.pronoun.그	그	pronoun	no-match	106	109	알레르기성 비염이랑 천식으로 고생했었든데 한 달 조금 넘게 꾸준히 다녔더니 그 후 일년 넘게 아무렇지도 않네요
-corpus.ud-gsd.test.test-s136.pronoun.저	저	pronoun	no-match	0	9	저자는 이 책에서 자신의 실제 매매와 소프트웨어 개발, 강의 경험 등 그간 연구, 발전시켜온 트레이딩 기법을 낱낱이 공개했다.
-corpus.ud-gsd.test.test-s228.determiner.새	새	determiner	no-match	45	57	사장님 내외분께서 돌아가시면서 새벽까지 하시구요
-corpus.ud-gsd.test.test-s243.determiner.두	두	determiner	no-match	10	25	박지원 두산중공업 사장이(오른쪽 네 번째) 13일 예비 신입사원 부모 초청 감사행사에서 이 날 생일을 맞은 한 신입사원의 가족들과 케이크 커팅을 하고 있다.
+corpus.ud-gsd.test.test-s53.pronoun.그	그	pronoun	no-match	106	109	알레르기성 비염이랑 천식으로 고생했었는데 한 달 조금 넘게 꾸준히 다녔더니 그 후 일 년 넘게 아무렇지도 않네요
+corpus.ud-gsd.test.test-s136.pronoun.저	저	pronoun	no-match	0	9	저자는 이 책에서 자신의 실제 매매와 소프트웨어 개발, 강의 경험 등 그간 연구, 발전시켜 온 트레이딩 기법을 낱낱이 공개했다.
+corpus.ud-gsd.test.test-s228.determiner.새	새	determiner	no-match	45	57	사장님 내외분께서 돌아가시면서 새벽까지 하시고요
+corpus.ud-gsd.test.test-s243.determiner.두	두	determiner	no-match	10	25	박지원 두산중공업 사장이(오른쪽 네 번째) 13일 예비 신입사원 부모 초청 감사 행사에서 이날 생일을 맞은 한 신입사원의 가족들과 케이크 커팅을 하고 있다.
 corpus.ud-gsd.test.test-s223.determiner.세	세	determiner	no-match	153	162	삼삼 자리에 적이 들어오면 귀의 실리를 다 내줘야 하기 때문에 귀의 실리를 확보하는 데에는 약점이 있으나, 대신 세력을 쌓기에 유리하다.
-corpus.ud-gsd.test.test-s18.adverb.다	다	adverb	no-match	106	118	폭포가 바로 보이는 아늑한 방에서 오리불고기를 먹었는데 양도 많고 밑반찬도 다양해서 좋았어요
+corpus.ud-gsd.test.test-s18.adverb.다	다	adverb	no-match	107	119	폭포가 바로 보이는 아늑한 방에서 오리 불고기를 먹었는데 양도 많고 밑반찬도 다양해서 좋았어요
 corpus.ud-gsd.test.test-s427.adverb.늘	늘	adverb	no-match	44	59	그러나 그만큼 글에 대한 안목이 늘었으리라 믿는다.
 corpus.ud-pud.test.n01003012.pronoun.그	그	pronoun	no-match	0	3	그 모임은 원래 몇 블록 떨어진 거리에 있는 워싱턴 회원제 사교 클럽인 H가의 메트로폴리탄 클럽(Metropolitan Club)에서 열릴 예정이었다.
 corpus.ud-pud.test.n01002032.determiner.그	그	determiner	no-match	0	6	그는 노스캐롤라이나 대학의 운동 경기장에 모인 군중에게 “부담 주기 싫지만 국가의 운명이 여러분의 어깨에 달려 있습니다”라고 말했다.
 corpus.ud-pud.test.n01002058.verb.사다	사다	verb	no-match	51	57	그녀가 하는 말과 그녀가 하는 행동은 사실, 믿을 수 없을 정도이다.
-corpus.ud-pud.test.n01015033.verb.잇다	잇다	verb	no-match	64	79	한 유명인사의 이름은 처음에는 매우 흔치 않은 이름이었을 것이 분명하다.
+corpus.ud-pud.test.n01015033.verb.잇다	잇다	verb	no-match	65	80	한 유명 인사의 이름은 처음에는 매우 흔치 않은 이름이었을 것이 분명하다.
 corpus.ud-pud.test.n01016019.verb.사다	사다	verb	no-match	23	32	몇몇 분석가들은 삼성의 사업 실패로 가장 큰 이득을 본 기업이 화웨이라고 주장했다.
 corpus.ud-pud.test.n01027030.verb.나다	나다	verb	no-match	58	67	올해 민주당 측 토론 주제는 대부분이 백인 남성의 정체성에 관한 것이었다.
 corpus.ud-pud.test.n01075028.adjective.세다	세다	adjective	no-match	35	38	마치 그가 뒤집어 놓은 컵 세 잔 밑으로 공을 앞뒤로 휙휙 치고 있는 것 같았다.
-corpus.ud-pud.test.n01089033.adjective.쓰다	쓰다	adjective	no-match	65	68	윈투어는 잠깐 등장했고인터뷰 전에 선글라스를 쓴 그녀의 모습이 필름에 담겼다.
-corpus.ud-pud.test.w01107124.adjective.비다	비다	adjective	no-match	13	16	히치콕은 빌 골드 및 사울 바스와 같은 영화 포스터 제작자 등 당시 최고의 인물들과 작업하기를 선호했으며이들은 히치콕의 영화를 사실적으로 표현했다.
-corpus.ud-pud.test.w01150047.adjective.달다	달다	adjective	no-match	169	181	오스만 제국이 마케도니아의 통치권을 잃고 알바니아와의 영토 관계가 단절된후 강대국들은 자신들의 결정을 번복해야한다고 깨달았다.
-corpus.ud-pud.test.n01082014.adverb.늘	늘	adverb	no-match	30	36	“신용 대출자가 점점 늘고 있는데 지금은 대출금을 관리할수 있는 수준일지 몰라도 상황이 급변하면빚더미에 올라앉을 수 있다."
+corpus.ud-pud.test.n01089033.adjective.쓰다	쓰다	adjective	no-match	66	69	윈투어는 잠깐 등장했고 인터뷰 전에 선글라스를 쓴 그녀의 모습이 필름에 담겼다.
+corpus.ud-pud.test.w01107124.adjective.비다	비다	adjective	no-match	13	16	히치콕은 빌 골드 및 사울 바스와 같은 영화 포스터 제작자 등 당시 최고의 인물들과 작업하기를 선호했으며 이들은 히치콕의 영화를 사실적으로 표현했다.
+corpus.ud-pud.test.w01150047.adjective.달다	달다	adjective	no-match	171	183	오스만 제국이 마케도니아의 통치권을 잃고 알바니아와의 영토 관계가 단절된 후 강대국들은 자신들의 결정을 번복해야 한다고 깨달았다.
+corpus.ud-pud.test.n01082014.adverb.늘	늘	adverb	no-match	30	36	“신용 대출자가 점점 늘고 있는데 지금은 대출금을 관리할 수 있는 수준일지 몰라도 상황이 급변하면 빚더미에 올라앉을 수 있다.”
 corpus.ud-pud.test.n01079015.determiner.두	두	determiner	no-match	47	56	구석에 있는 여자가 머리 스카프를 두르고 청바지를 입고 있어서 나는 그녀가 또 한 명의 보좌관일 거라는 생각은 미처 하지 못했다.
