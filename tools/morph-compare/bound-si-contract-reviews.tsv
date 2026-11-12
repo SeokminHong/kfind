@@ -1,0 +1,3 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	bound-si	ordinary-regard	시	noun	false	efb2608fb6adc7a4024a1f1657a1008e2bcef13ed2b4548335cdd384009e8f28	contract-positive	same-pos-homograph	通常視와 通常時가 같은 표면형의 체언으로 조사 에도와 결합한다.
+explicit-pos	bound-si	twilight-vision	시	noun	false	635c3fe1e65308b98551f567bea554df182c3cee0768ac9f0e7eaaab2f070a2a	contract-positive	same-pos-homograph	黃昏視와 黃昏時가 같은 표면형의 체언으로 보조사 도와 결합한다.

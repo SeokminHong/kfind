@@ -2,10 +2,10 @@ use crate::structure::ConstraintResolver;
 use crate::structure::evidence::TokenEvidence;
 use crate::structure::graph::EdgeGraph;
 use crate::structure::lexical::{
-    complete_dependent_noun_particle_suffix, complete_nominal_host, complete_nominal_particle_host,
-    complete_predicate_ending_path, complete_suffix, exact_analysis_starts_with_pos,
-    has_adnominal_result_complement, has_complete_object_phrase, has_exact_fine_pos,
-    has_exact_sequence, numeric_unit_path_at, predicate_pos_matches,
+    complete_dependent_noun_particle_suffix, complete_ha_predicate_path, complete_nominal_host,
+    complete_nominal_particle_host, complete_predicate_ending_path, complete_suffix,
+    exact_analysis_starts_with_pos, has_adnominal_result_complement, has_complete_object_phrase,
+    has_exact_fine_pos, has_exact_sequence, numeric_unit_path_at, predicate_pos_matches,
     structural_predicate_pos_matches,
 };
 use crate::structure::paths::predicate::{
@@ -126,8 +126,20 @@ const DICTIONARY_NUMERIC_UNITS: &[&str] = &[
 const SHORT_NOMINAL_DERIVATIONS: &str =
     include_str!("../../../../data/rules/stdict-short-nominal-derivations.tsv");
 include!("../../../../data/rules/stdict-attested-nominal-suffix-usages.rs");
+include!("../../../../data/rules/stdict-bound-si-hosts.rs");
 
 impl ConstraintResolver {
+    #[must_use]
+    pub fn has_bound_si_suffix(&self, host: &str, following: &str, nominal_end: bool) -> bool {
+        STDICT_BOUND_SI_HOSTS
+            .binary_search_by_key(&host, |&(word, _, _)| word)
+            .is_ok_and(|index| {
+                let (_, unambiguous, hada) = STDICT_BOUND_SI_HOSTS[index];
+                (unambiguous
+                    && (nominal_end || verify_copula_surface_after_nominal('시', following)))
+                    || (hada && complete_ha_predicate_path(&self.resource, following))
+            })
+    }
     #[must_use]
     pub fn has_attested_nominal_suffix(suffix: &str) -> bool {
         STDICT_ATTACHED_NOMINAL_USAGES
