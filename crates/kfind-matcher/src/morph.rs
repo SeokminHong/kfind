@@ -22,7 +22,8 @@ use unicode_normalization::{UnicodeNormalization, is_nfc};
 
 use crate::SearchDiagnostics;
 use crate::boundary::{
-    accepts_requirements, is_boundary_before, is_sentence_end_after, surrounding_token_span,
+    accepts_requirements, is_boundary_after, is_boundary_before, is_sentence_end_after,
+    surrounding_token_span,
 };
 use crate::{AnchorBuildError, AnchorBuildLimits, AnchorEngine, AnchorHit};
 
@@ -968,6 +969,7 @@ impl MorphMatcher {
                 has_competing_hao_connective(haystack, candidate, branch, resolver)
                     || has_nominal_quotative_frame(haystack, candidate, branch, resolver)
                     || has_counted_unit_copula(haystack, candidate, branch, resolver)
+                    || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
             })
         {
             return false;
@@ -2027,6 +2029,69 @@ fn has_counted_unit_copula(
         .is_some_and(|unit| {
             resolver.has_counted_unit_frame(&previous, &unit.nfc().collect::<String>())
         })
+}
+
+fn has_nominal_frame_for_volitional(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let anchor_rule = branch
+        .origins
+        .first()
+        .and_then(|origin| origin.rule_path.last());
+    let Some(rule) = candidate.suffix_rules.last().or(anchor_rule) else {
+        return false;
+    };
+    if !matches!(
+        rule.as_str(),
+        "ending.volitional-mse" | "ending.nominalizer"
+    ) {
+        return false;
+    }
+    let consumed = &candidate.consumed;
+    if !is_boundary_before(haystack, consumed.start) {
+        return false;
+    }
+    let whole = if rule.as_str() == "ending.volitional-mse" {
+        if !is_boundary_after(haystack, consumed.end) {
+            return false;
+        }
+        consumed.clone()
+    } else {
+        // The same surface may also be reached by consuming only the nominalizer.
+        if !haystack.get(consumed.end..).is_some_and(|suffix| {
+            suffix.starts_with("세".as_bytes()) || suffix.starts_with("ᄉ".as_bytes())
+        }) {
+            return false;
+        }
+        let whole = surrounding_token_span(haystack, consumed.clone());
+        if !haystack
+            .get(consumed.end..whole.end)
+            .and_then(|bytes| std::str::from_utf8(bytes).ok())
+            .is_some_and(|suffix| suffix.nfc().eq("세".chars()))
+        {
+            return false;
+        }
+        whole
+    };
+    (candidate.suffix_rules.last().is_some()
+        || branch
+            .origins
+            .iter()
+            .all(|origin| origin.rule_path.last() == Some(rule)))
+        && (context::next_word(haystack, whole.end).as_deref() == Some("때문에")
+            || context::previous_word(haystack, whole.start).is_some_and(|previous| {
+                resolver.has_predicate_adnominal_surface(&previous)
+                    || resolver.has_nominal_genitive_surface(&previous)
+            }))
+        && haystack
+            .get(whole)
+            .and_then(|bytes| std::str::from_utf8(bytes).ok())
+            .is_some_and(|token| {
+                resolver.has_exact_nominal_surface(&token.nfc().collect::<String>())
+            })
 }
 
 fn has_nominal_quotative_frame(

@@ -23,7 +23,7 @@ gamse-verb-context	가다	verb	exact	61	67	이번 세법 개정에서 가장 주
 gamse-noun-context	감세	noun	exact	48	54	자네는 천천히 준비하게. 나는 먼저 감세.
 gamse-noun	감세	noun	exact	61	67	이번 세법 개정에서 가장 주목할 대목은 역시 감세.
 samse-verb	사다	verb	exact	45	51	저녁값은 걱정 말게. 오늘은 내가 삼세.
-samse-verb-context	사다	verb	exact	23	29	불교에서 말하는 삼세 개념은 과거·현재·미래를 아우른다.
+samse-verb-context	사다	verb	no-match	23	29	불교에서 말하는 삼세 개념은 과거·현재·미래를 아우른다.
 samse-noun-context	삼세	noun	exact	45	51	저녁값은 걱정 말게. 오늘은 내가 삼세.
 samse-noun	삼세	noun	exact	23	29	불교에서 말하는 삼세 개념은 과거·현재·미래를 아우른다.
 rieul	만들다	verb	exact	35	44	그 선반은 자네 대신 내가 만듦세.
@@ -33,14 +33,14 @@ irregular-s	짓다	verb	exact	21	30	집은 내 손으로 지음세.
 trial-attached	읽다	verb	exact	30	42	자네가 추천한 책부터 읽어봄세.
 trial-spaced	보다	verb	exact	37	43	자네가 추천한 책부터 읽어 봄세.
 naerimse-verb	내리다	verb	exact	44	53	비가 그쳤으니 짐은 내가 차에서 내림세.
-naerimse-verb-context	내리다	verb	exact	36	45	전문가들은 하반기 집값의 내림세 지속을 예상했다.
+naerimse-verb-context	내리다	verb	no-match	36	45	전문가들은 하반기 집값의 내림세 지속을 예상했다.
 naerimse-noun-context	내림세	noun	exact	44	53	비가 그쳤으니 짐은 내가 차에서 내림세.
 naerimse-noun	내림세	noun	exact	36	45	전문가들은 하반기 집값의 내림세 지속을 예상했다.
 oreumse-verb	오르다	verb	exact	48	57	자네는 쉬게. 전망대에는 내가 먼저 오름세.
-oreumse-verb-context	오르다	verb	exact	17	26	최근의 금값 오름세 때문에 투자자들이 금으로 몰렸다.
 oreumse-noun-context	오름세	noun	exact	48	57	자네는 쉬게. 전망대에는 내가 먼저 오름세.
 oreumse-noun	오름세	noun	exact	17	26	최근의 금값 오름세 때문에 투자자들이 금으로 몰렸다.
+oreumse-verb-context	오르다	verb	no-match	17	26	최근의 금값 오름세 때문에 투자자들이 금으로 몰렸다.
 meomchumse-verb	멈추다	verb	exact	59	68	자네가 숨을 고를 수 있게 나도 여기서 잠시 멈춤세.
-meomchumse-verb-context	멈추다	verb	exact	33	42	증권가는 당분간 주가의 멈춤세 지속을 예상했다.
+meomchumse-verb-context	멈추다	verb	no-match	33	42	증권가는 당분간 주가의 멈춤세 지속을 예상했다.
 meomchumse-noun-context	멈춤세	noun	exact	59	68	자네가 숨을 고를 수 있게 나도 여기서 잠시 멈춤세.
 meomchumse-noun	멈춤세	noun	exact	33	42	증권가는 당분간 주가의 멈춤세 지속을 예상했다.

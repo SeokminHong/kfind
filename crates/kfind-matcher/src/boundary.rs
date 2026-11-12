@@ -71,7 +71,7 @@ pub(crate) fn is_sentence_end_after(haystack: &[u8], at: usize) -> bool {
     })
 }
 
-fn is_boundary_after(haystack: &[u8], at: usize) -> bool {
+pub(crate) fn is_boundary_after(haystack: &[u8], at: usize) -> bool {
     next_character(haystack, at).is_none_or(|character| !is_token_character(character))
 }
 

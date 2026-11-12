@@ -611,6 +611,13 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_nominal_genitive_surface(&self, text: &str) -> bool {
+        text.strip_suffix('의').is_some_and(|host| {
+            !self.has_exact_nominal_surface(text) && self.has_complete_nominal_surface(host)
+        })
+    }
+
+    #[must_use]
     pub fn has_counted_unit_frame(&self, previous: &str, unit: &str) -> bool {
         exact_analysis_starts_with_pos(&self.resource, unit, |pos| pos == StructuralPos::NNBC)
             && (has_exact_fine_pos(&self.resource, previous, |pos| pos == DataFinePos::Nr)
