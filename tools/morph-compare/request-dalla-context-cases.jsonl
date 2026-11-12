@@ -1,0 +1,4 @@
+{"id":"dalla-adjective-positive","query":"다르다","pos":"adjective","text":"두 책의 내용은 같은데 표지만 달라.","expected":true,"gold_byte_start":41,"gold_byte_end":47,"paired_case_id":"dalla-adjective-context"}
+{"id":"dalla-adjective-context","query":"다르다","pos":"adjective","text":"본문은 이미 받았으니 표지만 달라.","expected":false,"gold_byte_start":40,"gold_byte_end":46,"paired_case_id":"dalla-adjective-positive"}
+{"id":"dalla-verb-positive","query":"달다","pos":"verb","text":"본문은 이미 받았으니 표지만 달라.","expected":true,"gold_byte_start":40,"gold_byte_end":46,"paired_case_id":"dalla-verb-context"}
+{"id":"dalla-verb-context","query":"달다","pos":"verb","text":"두 책의 내용은 같은데 표지만 달라.","expected":false,"gold_byte_start":41,"gold_byte_end":47,"paired_case_id":"dalla-verb-positive"}

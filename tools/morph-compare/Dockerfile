@@ -6,21 +6,7 @@ WORKDIR /build
 COPY tools/morph-compare/sources.json ./sources.json
 COPY tools/morph-compare/sentence-reviews.json ./sentence-reviews.json
 COPY tools/morph-compare/robustness-reviews.json ./robustness-reviews.json
-COPY tools/morph-compare/query-matrix-contract-reviews.tsv ./query-matrix-contract-reviews.tsv
-COPY tools/morph-compare/quality-contract-reviews.tsv ./quality-contract-reviews.tsv
-COPY tools/morph-compare/resultative-context-cases.jsonl tools/morph-compare/resultative-contract-reviews.tsv ./
-COPY tools/morph-compare/query-matrix-context-cases.jsonl ./
-COPY tools/morph-compare/trial-context-cases.jsonl tools/morph-compare/trial-contract-reviews.tsv ./
-COPY tools/morph-compare/copula-conditional-context-cases.jsonl tools/morph-compare/copula-conditional-contract-reviews.tsv ./
-COPY tools/morph-compare/interrogative-context-cases.jsonl tools/morph-compare/interrogative-contract-reviews.tsv ./
-COPY tools/morph-compare/prospective-context-cases.jsonl tools/morph-compare/prospective-contract-reviews.tsv ./
-COPY tools/morph-compare/seoya-context-cases.jsonl tools/morph-compare/seoya-contract-reviews.tsv ./
-COPY tools/morph-compare/meuro-context-cases.jsonl tools/morph-compare/meuro-contract-reviews.tsv ./
-COPY tools/morph-compare/mse-context-cases.jsonl tools/morph-compare/mse-contract-reviews.tsv ./
-COPY tools/morph-compare/dao-context-cases.jsonl tools/morph-compare/dao-contract-reviews.tsv ./
-COPY tools/morph-compare/jiyo-context-cases.jsonl tools/morph-compare/jiyo-contract-reviews.tsv ./
-COPY tools/morph-compare/humble-context-cases.jsonl tools/morph-compare/humble-contract-reviews.tsv ./
-COPY tools/morph-compare/casual-prefinal-context-cases.jsonl tools/morph-compare/casual-prefinal-contract-reviews.tsv ./
+COPY tools/morph-compare/*-context-cases.jsonl tools/morph-compare/*-contract-reviews.tsv ./
 COPY tools/morph-compare/python ./python
 RUN python -m unittest discover --start-directory python --pattern 'test_*.py'
 RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
@@ -136,32 +122,8 @@ COPY --from=runner-builder \
     /usr/local/bin/generate-corpus
 COPY --from=corpus-builder /benchmark /opt/morph-benchmark/data
 COPY --from=corpus-builder /corpora/*LICENSE.txt /opt/morph-benchmark/licenses/
-COPY --from=corpus-builder /build/resultative-context-cases.jsonl \
-    /build/resultative-contract-reviews.tsv /opt/morph-benchmark/
-COPY --from=corpus-builder /build/query-matrix-context-cases.jsonl \
-    /build/query-matrix-contract-reviews.tsv /opt/morph-benchmark/
-COPY --from=corpus-builder /build/trial-context-cases.jsonl \
-    /build/trial-contract-reviews.tsv /opt/morph-benchmark/
-COPY --from=corpus-builder /build/copula-conditional-context-cases.jsonl \
-    /build/copula-conditional-contract-reviews.tsv /opt/morph-benchmark/
-COPY --from=corpus-builder /build/interrogative-context-cases.jsonl \
-    /build/interrogative-contract-reviews.tsv /opt/morph-benchmark/
-COPY --from=corpus-builder /build/prospective-context-cases.jsonl \
-    /build/prospective-contract-reviews.tsv /opt/morph-benchmark/
-COPY --from=corpus-builder /build/seoya-context-cases.jsonl \
-    /build/seoya-contract-reviews.tsv /opt/morph-benchmark/
-COPY --from=corpus-builder /build/meuro-context-cases.jsonl \
-    /build/meuro-contract-reviews.tsv /opt/morph-benchmark/
-COPY --from=corpus-builder /build/mse-context-cases.jsonl \
-    /build/mse-contract-reviews.tsv /opt/morph-benchmark/
-COPY --from=corpus-builder /build/dao-context-cases.jsonl \
-    /build/dao-contract-reviews.tsv /opt/morph-benchmark/
-COPY --from=corpus-builder /build/jiyo-context-cases.jsonl \
-    /build/jiyo-contract-reviews.tsv /opt/morph-benchmark/
-COPY --from=corpus-builder /build/humble-context-cases.jsonl \
-    /build/humble-contract-reviews.tsv /opt/morph-benchmark/
-COPY --from=corpus-builder /build/casual-prefinal-context-cases.jsonl \
-    /build/casual-prefinal-contract-reviews.tsv /opt/morph-benchmark/
+COPY --from=corpus-builder /build/*-context-cases.jsonl \
+    /build/*-contract-reviews.tsv /opt/morph-benchmark/
 COPY --from=runner-builder /benchmark/full-pos /opt/morph-benchmark/full-pos
 COPY --from=runner-builder /benchmark/morphology /opt/morph-benchmark/morphology
 COPY --from=runner-builder /benchmark/component /opt/morph-benchmark/component

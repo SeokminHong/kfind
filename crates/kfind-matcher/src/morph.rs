@@ -986,6 +986,12 @@ impl MorphMatcher {
     ) -> bool {
         let boundary = atom.boundary;
         if boundary == BoundaryPolicy::Smart
+            && let Some(resolver) = self.constraint_resolver.as_ref()
+            && let Some(accepts) = decide_request_dalla(haystack, candidate, branch, atom, resolver)
+        {
+            return accepts;
+        }
+        if boundary == BoundaryPolicy::Smart
             && matches!(
                 branch.consumption,
                 CandidateConsumption::PredicateContinuation {
@@ -2515,6 +2521,106 @@ fn has_transitive_jiyo_frame(
         .strip_suffix(['을', '를'])
         .is_some_and(|noun| objects.contains(&noun))
         && resolver.has_object_marked_nominal(&object)
+}
+
+fn decide_request_dalla(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> Option<bool> {
+    use kfind_morph::CoarsePos;
+
+    let start = candidate.verified.core.start;
+    let tail = haystack.get(start..)?;
+    if !(tail.starts_with("달라".as_bytes()) || tail.starts_with("달라".as_bytes())) {
+        return None;
+    }
+    let (first, rest) = branch.origins.split_first()?;
+    let analysis = atom.analyses.get(usize::from(first.analysis_index))?;
+    let is_request = match (analysis.lemma.as_ref(), analysis.coarse_pos) {
+        ("달다", CoarsePos::Verb) => true,
+        ("다르다", CoarsePos::Adjective) => false,
+        _ => return None,
+    };
+    if rest.iter().any(|origin| {
+        atom.analyses
+            .get(usize::from(origin.analysis_index))
+            .is_none_or(|other| {
+                other.lemma != analysis.lemma || other.coarse_pos != analysis.coarse_pos
+            })
+    }) {
+        return None;
+    }
+
+    let span = surrounding_token_span(haystack, candidate.verified.core.clone());
+    let token = context::normalized_token(haystack, start..span.end)?;
+    let request_quote = || {
+        token.strip_prefix('달').is_some_and(|ending| {
+            verifies_directive("달", ending, |rule| rule == "ending.directive-quotative")
+        })
+    };
+    if span.start < start {
+        return (!is_request
+            && (token == "달라" || request_quote())
+            && context::normalized_token(haystack, span.start..start)
+                .is_some_and(|host| resolver.has_request_auxiliary_host(&host)))
+        .then_some(false);
+    }
+    if token != "달라" {
+        return (!is_request && request_quote()).then_some(false);
+    }
+    let next = context::next_word(haystack, span.end);
+    if next
+        .as_deref()
+        .is_some_and(|word| resolver.has_boi_predicate(word))
+    {
+        return is_request.then_some(false);
+    }
+    if !is_request {
+        let mut before = start;
+        let context_start =
+            start.saturating_sub(crate::DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
+        while before > context_start {
+            let (word_start, word) = context::previous_word_with_start(haystack, before)?;
+            if word_start < context_start {
+                break;
+            }
+            if resolver.has_object_marked_nominal(&word) {
+                return Some(false);
+            }
+            if !resolver.has_exact_adverb_surface(&word) {
+                break;
+            }
+            before = word_start;
+        }
+        return None;
+    }
+    if candidate.consumed == span
+        && matches!(candidate.suffix_rules.as_slice(), [rule] if rule.as_str() == "ending.directive-ra")
+        && next
+            .as_deref()
+            .and_then(|word| word.strip_prefix('하'))
+            .is_some_and(|ending| {
+                verifies_directive("하", ending, |rule| {
+                    matches!(rule, "ending.directive-ra" | "ending.directive-quotative")
+                })
+            })
+    {
+        return Some(true);
+    }
+    None
+}
+
+fn verifies_directive(stem: &str, ending: &str, accepts_rule: impl FnOnce(&str) -> bool) -> bool {
+    use kfind_morph::{ContinuationState, PredicatePos};
+
+    verify_predicate_continuation(ContinuationState::Eu, PredicatePos::Verb, stem, ending)
+        .is_some_and(|matched| {
+            matched.consumed_bytes == ending.len()
+                && matches!(matched.rule_path.as_slice(), [rule] if accepts_rule(rule.as_str()))
+        })
 }
 
 fn has_prayer_object_frame(

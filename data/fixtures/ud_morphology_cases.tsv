@@ -149,6 +149,26 @@ regression.adnominal-auxiliary.ha-polite	가다	verb	smart-exact	16	19	친구들
 regression.adnominal-auxiliary.present-deus	오다	verb	smart-exact	14	20	지금 비가 오는듯싶다.
 regression.adnominal-auxiliary.past-deus	오다	verb	smart-exact	14	17	밤에 비가 온듯하다.
 regression.adnominal-auxiliary.other-nominal	읽다	verb	no-match	17	23	파일 이름은 읽을만화다.
+corpus.ud-gsd.test.test-s93.verb.달다-quote	달다	verb	smart-exact	69	78	사람 셋이 갔는데 정구지 겉절이 하나만 주고 좀 더 달라고 하니까 다 먹고 달라 하라며 동네 장사 너무 인심 없게 함
+corpus.ud-gsd.test.test-s93.adjective.다르다-quote	다르다	adjective	no-match	69	78	사람 셋이 갔는데 정구지 겉절이 하나만 주고 좀 더 달라고 하니까 다 먹고 달라 하라며 동네 장사 너무 인심 없게 함
+corpus.ud-gsd.test.test-s93.verb.달다	달다	verb	smart-exact	100	106	사람 셋이 갔는데 정구지 겉절이 하나만 주고 좀 더 달라고 하니까 다 먹고 달라 하라며 동네 장사 너무 인심 없게 함
+regression.request-dalla.adjective	다르다	adjective	smart-exact	21	27	두 결과가 서로 달라 보였다.
+regression.request-dalla.no-request	달다	verb	no-match	21	27	두 결과가 서로 달라 보였다.
+regression.request-dalla.adjective-object-of-causative	다르다	adjective	smart-exact	23	29	조명이 피부색을 달라 보이게 했다.
+regression.request-dalla.no-request-object-of-causative	달다	verb	no-match	23	29	조명이 피부색을 달라 보이게 했다.
+regression.request-dalla.direct	달다	verb	smart-exact	22	28	물을 제발 좀 더 달라.
+regression.request-dalla.direct-no-adjective	다르다	adjective	no-match	22	28	물을 제발 좀 더 달라.
+regression.request-dalla.reporting	달다	verb	smart-exact	18	27	그는 물을 더 달라며 잔을 내밀었다.
+regression.request-dalla.reporting-no-adjective	다르다	adjective	no-match	18	27	그는 물을 더 달라며 잔을 내밀었다.
+regression.request-dalla.attached	달다	verb	smart-exact	13	19	연필을 사달라.
+regression.request-dalla.attached-no-adjective	다르다	adjective	no-match	13	19	연필을 사달라.
+regression.request-dalla.attached-quote	달다	verb	smart-exact	13	22	연필을 사달라고 했다.
+regression.request-dalla.attached-quote-no-adjective	다르다	adjective	no-match	13	22	연필을 사달라고 했다.
+regression.dalla-homograph.different-adjective	다르다	adjective	smart-exact	41	47	두 책의 내용은 같은데 표지만 달라.
+regression.dalla-homograph.different-verb	달다	verb	smart-exact	41	47	두 책의 내용은 같은데 표지만 달라.
+regression.dalla-homograph.request-adjective	다르다	adjective	smart-exact	40	46	본문은 이미 받았으니 표지만 달라.
+regression.dalla-homograph.request-verb	달다	verb	smart-exact	40	46	본문은 이미 받았으니 표지만 달라.
+corpus.ud-gsd.test.test-s14.adjective.아쉽다	아쉽다	adjective	smart-exact	47	56	기본기에 충실하지 않고, 그때그때 아쉬운 대로 득점하기에만 급급하다면, 탁구 당구 같은 종목에서도 고수가 되기 어렵다.
 corpus.ud-kaist.test.MH2_0070-s138.adjective.다르다	다르다	adjective	match	10	16	이와는 달리 우리나라 신발수출은 91 년 11.3 % 감소한 이후 92년 8월 말까지 16.6 %나 줄었다.
 corpus.ud-kaist.test.MH2_0070-s73.adjective.같다	같다	adjective	match	110	116	또한 각국의 소비지출은 1 개월 평균, 자국통화로 된 금액을 이용하였으며, 미국과 같이 연간단위로 된 통계자료는 월평균으로 환산하여 사용하였다.
 corpus.ud-kaist.test.MH2_0180-s113.pronoun.무어	무어	pronoun	match	39	48	일반적으로는 사항에 관해서 무언가 새로운 것을 경험하려고 하여 주어의 토대를 뛰어넘고 있는 것이다.
