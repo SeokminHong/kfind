@@ -35,6 +35,9 @@ pub(in crate::structure) enum StructureSelection {
         excludes_predicate: bool,
     },
     NominalWhole,
+    ProperNameOrAdnominal {
+        only_adnominal: bool,
+    },
     VerbAdnominal,
     ConnectiveJiNominalFrame {
         fallback: Box<StructureSelection>,
@@ -150,6 +153,11 @@ impl StructureSelection {
             }
             Self::NominalWhole => {
                 support.evidence == StructuralEvidence::Whole && pattern.fine_pos.is_nominal()
+            }
+            Self::ProperNameOrAdnominal { only_adnominal } => {
+                support.evidence == StructuralEvidence::Whole
+                    && (pattern.fine_pos == DataFinePos::Vv
+                        || (!only_adnominal && pattern.fine_pos == DataFinePos::Nnp))
             }
             Self::VerbAdnominal => !matches!(pattern.fine_pos, DataFinePos::Va | DataFinePos::Vcn),
             Self::ConnectiveJiNominalFrame { .. } | Self::SourceAlignedConnective { .. } => {
@@ -422,6 +430,28 @@ pub(in crate::structure) fn select_structure(
             .next
             .is_some_and(|next| has_unambiguous_proper_name(resource, next))
     {
+        if context.previous.is_some_and(|previous| {
+            has_complete_object_phrase(resource, previous)
+                || previous.strip_suffix("까지").is_some_and(|host| {
+                    complete_nominal_host(resource, host)
+                        && has_exact_sequence(resource, "까지", &[StructuralPos::JX])
+                })
+        }) {
+            let mut adnominal = false;
+            resource.common_prefix_positions(context.current.as_bytes(), |length, positions| {
+                adnominal |= length == context.current.len()
+                    && matches!(
+                        positions,
+                        [StructuralPos::VV, prefinals @ .., StructuralPos::ETM]
+                            if prefinals.iter().all(|pos| *pos == StructuralPos::EP)
+                    );
+            });
+            if adnominal {
+                return StructureSelection::ProperNameOrAdnominal {
+                    only_adnominal: false,
+                };
+            }
+        }
         return StructureSelection::NominalWhole;
     }
     if evidence.adnominal_ends.contains(&context.current.len())

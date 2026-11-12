@@ -582,3 +582,11 @@ regression.familiar-direct-question.raw-gsd-future-go	가다	verb	smart-exact	44
 regression.familiar-direct-question.raw-gsd-future-become	되다	verb	smart-exact	44	53	서울 시내에 차를 가지고 나가도 되겠니?
 regression.familiar-direct-question.formal-copula	입다	verb	no-match	29	35	아빠는 이탈리아 사람입니다.
 regression.familiar-direct-question.wear-question	입다	verb	smart-exact	24	30	오늘은 어떤 옷을 입니?
+regression.adnominal-proper-name.object-relative-group.verb	알리다	verb	smart-exact	10	16	컴백을 알린 원더걸스는 신곡을 공개했다.
+regression.adnominal-proper-name.object-relative-group.noun	알린	noun	no-match	10	16	컴백을 알린 원더걸스는 신곡을 공개했다.
+regression.adnominal-proper-name.object-relative-person.verb	알리다	verb	smart-exact	14	20	그 소식을 알린 로페스가 자리를 떴다.
+regression.adnominal-proper-name.object-relative-person.noun	알린	noun	no-match	14	20	그 소식을 알린 로페스가 자리를 떴다.
+regression.adnominal-proper-name.compound-person-name.verb	알리다	verb	no-match	3	9	‘알린 로페스’라는 이름을 들었다.
+regression.adnominal-proper-name.compound-person-name.noun	알린	noun	smart-exact	3	9	‘알린 로페스’라는 이름을 들었다.
+regression.adnominal-proper-name.rank-relative.verb	오르다	verb	smart-exact	16	22	좌의정까지 오른 김안로는 권력을 휘둘렀다.
+regression.adnominal-proper-name.right-side.determiner	오른	determiner	smart-exact	0	6	오른 가장자리부터 선을 그었다.

@@ -1,0 +1,2 @@
+{"id":"relative-clause","query":"알리다","pos":"verb","text":"로페스가 그 사실을 처음 공개했다. 그 사실을 알린 로페스에게 물었다.","expected":true,"paired_case_id":"personal-name","gold_byte_start":62,"gold_byte_end":68}
+{"id":"personal-name","query":"알리다","pos":"verb","text":"새 기자의 이름은 ‘알린 로페스’였다. 그 사실을 알린 로페스에게 물었다.","expected":false,"paired_case_id":"relative-clause","gold_byte_start":68,"gold_byte_end":74}

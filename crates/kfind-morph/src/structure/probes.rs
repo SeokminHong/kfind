@@ -286,6 +286,22 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_subject_or_topic_marked_proper_name(&self, text: &str) -> bool {
+        let Some((host, position)) = text
+            .strip_suffix(['이', '가'])
+            .map(|host| (host, StructuralPos::JKS))
+            .or_else(|| {
+                text.strip_suffix(['은', '는'])
+                    .map(|host| (host, StructuralPos::JX))
+            })
+        else {
+            return false;
+        };
+        has_exact_sequence(&self.resource, host, &[StructuralPos::NNP])
+            && has_exact_sequence(&self.resource, &text[host.len()..], &[position])
+    }
+
+    #[must_use]
     pub fn has_adnominal_result_complement(&self, text: &str) -> bool {
         has_adnominal_result_complement(&self.resource, text)
     }
