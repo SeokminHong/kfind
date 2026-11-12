@@ -213,25 +213,35 @@ class BenchmarkGuardTest(unittest.TestCase):
         self.assertEqual(snapshot["state"], "idle")
 
     def test_status_reports_the_active_owner(self) -> None:
+        release = self.lock_directory / "release-status-owner"
         owner = self.start_guard(
             "status-owner",
-            [sys.executable, "-c", "import time; time.sleep(0.4)"],
+            [
+                sys.executable,
+                "-c",
+                "from pathlib import Path; import sys, time\n"
+                "while not Path(sys.argv[1]).exists(): time.sleep(0.01)",
+                str(release),
+            ],
         )
-        metadata = self.wait_for_metadata()
-        metadata_path = self.lock_directory / METADATA_FILE_NAME
-        metadata_modified_at = metadata_path.stat().st_mtime_ns
-        status_result, snapshot = self.status()
-        human_status_result = subprocess.run(
-            [sys.executable, str(CLI), "status"],
-            cwd=REPOSITORY,
-            env=self.environment,
-            check=False,
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        metadata_modified_after_status = metadata_path.stat().st_mtime_ns
-        owner.communicate(timeout=5)
+        try:
+            metadata = self.wait_for_metadata()
+            metadata_path = self.lock_directory / METADATA_FILE_NAME
+            metadata_modified_at = metadata_path.stat().st_mtime_ns
+            status_result, snapshot = self.status()
+            human_status_result = subprocess.run(
+                [sys.executable, str(CLI), "status"],
+                cwd=REPOSITORY,
+                env=self.environment,
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            metadata_modified_after_status = metadata_path.stat().st_mtime_ns
+        finally:
+            release.touch()
+            owner.communicate(timeout=5)
 
         self.assertEqual(status_result.returncode, 0, status_result.stderr)
         self.assertEqual(snapshot["state"], "running")
