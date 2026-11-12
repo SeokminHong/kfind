@@ -1179,6 +1179,23 @@ impl MorphMatcher {
         if patterns.is_empty() {
             return false;
         }
+        if patterns.iter().any(|pattern| {
+            pattern.fine_pos == DataFinePos::Mm && pattern.lexical_form.as_ref() == "모"
+        }) && self.accepts_token_boundary(haystack, &candidate.verified, branch)
+            && context::next_word_with_end(haystack, candidate.consumed.end).is_some_and(
+                |(end, title)| {
+                    title == "씨"
+                        && context::next_word(haystack, end).is_some_and(|next| {
+                            next == "등"
+                                || next.strip_prefix("등").is_some_and(|tail| {
+                                    self.particle_verifier.verify_exact("등", tail).is_some()
+                                })
+                        })
+                },
+            )
+        {
+            return true;
+        }
         if matches!(branch.consumption, CandidateConsumption::Anchor)
             && !branch.origins.is_empty()
             && branch.origins.iter().all(|origin| {
