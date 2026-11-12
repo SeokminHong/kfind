@@ -596,3 +596,21 @@ corpus.ud-gsd.test.test-s106.verb.causal-copula-past	되다	verb	smart-exact	69	
 regression.causal-copula.adjective	늦다	adjective	smart-exact	35	50	불이 꺼진 건 이미 시간이 늦어서이다.
 regression.causal-copula.vowel-harmony	좁다	adjective	smart-exact	10	25	골목이 좁아서인가 차가 못 들어왔다.
 regression.causal-copula.separate-words	늦다	adjective	smart-exact	10	19	시간이 늦어서 이 일은 내일 하자.
+regression.polite-honorific.rieul-reside	살다	verb	smart-exact	10	19	어디에 사세요?
+regression.polite-honorific.rieul-sell	팔다	verb	smart-exact	20	29	여기서 과일을 파세요?
+regression.polite-honorific.rieul-open	열다	verb	smart-exact	10	19	창문을 여세요.
+regression.polite-honorific.rieul-cry	울다	verb	smart-exact	4	13	왜 우세요?
+regression.polite-honorific.rieul-know	알다	verb	smart-exact	14	23	그 사실을 아세요?
+regression.polite-honorific.consonant	먹다	verb	smart-exact	7	19	어서 먹으세요.
+regression.polite-honorific.full	열다	verb	smart-exact	24	36	아버지, 현관문을 여시어요.
+regression.polite-honorific.contracted	열다	verb	smart-exact	24	33	아버지, 현관문을 여셔요.
+regression.polite-honorific.hao	말다	verb	smart-exact	14	23	열어 두지 마시오.
+regression.polite-honorific.short-hao	말다	verb	smart-exact	14	20	열어 두지 마쇼.
+regression.polite-honorific.internal	물다	verb	no-match	40	49	겨울에는 무조건 내복 입고 주무세요.
+regression.polite-honorific.auxiliary	줄다	verb	no-match	14	23	여기로 와 주세요.
+regression.polite-honorific.destination	갈다	verb	no-match	13	22	병원으로 가세요.
+regression.polite-honorific.instrument	갈다	verb	smart-exact	21	30	이 숫돌로 칼을 가세요.
+regression.polite-honorific.roll	말다	verb	smart-exact	56	65	김 위에 밥을 펴고 속을 올리세요. 이렇게 마셔요.
+regression.polite-honorific.drink	마시다	verb	smart-exact	45	54	물잔을 들어 입에 대세요. 이렇게 마셔요.
+corpus.ud-gsd.test.test-s140.verb.polite-honorific	말다	verb	smart-exact	60	69	처음 오시는 분은 후회하지 마시고 들어가지 마세요.
+corpus.ud-gsd.test.test-s680.verb.polite-honorific	말다	verb	smart-exact	33	42	그런데 거기서 포장하지 마세요.

@@ -1078,6 +1078,7 @@ impl MorphMatcher {
                     || has_quantifying_adverb_frame(haystack, candidate, branch, atom, resolver)
                     || has_whole_alternative_conjunction(haystack, candidate, branch, resolver)
                     || has_transitive_jiyo_frame(haystack, candidate, branch, resolver)
+                    || has_conflicting_polite_honorific(haystack, candidate, branch, atom, resolver)
                     || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
                     || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
                     || has_prayer_object_frame(haystack, candidate, branch, atom, resolver)
@@ -2976,6 +2977,48 @@ fn has_transitive_jiyo_frame(
         .strip_suffix(['을', '를'])
         .is_some_and(|noun| objects.contains(&noun))
         && resolver.has_object_marked_nominal(&object)
+}
+
+fn has_conflicting_polite_honorific(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    if branch.origins.is_empty()
+        || !branch.origins.iter().all(|origin| {
+            origin
+                .rule_path
+                .last()
+                .is_some_and(|rule| rule.as_str() == "ending.polite-imperative")
+        })
+    {
+        return false;
+    }
+    let token = surrounding_token_span(haystack, candidate.verified.core.clone());
+    let start = candidate.verified.core.start;
+    if token.start < start {
+        return context::normalized_token(haystack, token.clone()).is_some_and(|word| {
+            resolver.has_exact_non_copula_predicate_surface(&word)
+                && context::normalized_token(haystack, token.start..start)
+                    .is_some_and(|prefix| !resolver.has_vowel_connective_host(&prefix))
+        });
+    }
+    let Some(previous) = context::previous_word(haystack, start) else {
+        return false;
+    };
+    branch.origins.iter().all(|origin| {
+        atom.analyses
+            .get(usize::from(origin.analysis_index))
+            .is_some_and(|analysis| match analysis.lemma.as_ref() {
+                "줄다" => resolver.has_request_auxiliary_host(&previous),
+                "갈다" => {
+                    previous.ends_with("병원으로") && resolver.has_nominal_oblique(&previous)
+                }
+                _ => false,
+            })
+    })
 }
 
 fn decide_request_dalla(
