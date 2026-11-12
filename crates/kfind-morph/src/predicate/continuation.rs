@@ -1,4 +1,4 @@
-use crate::{ContinuationState, PredicatePos, RuleId};
+use crate::{ContinuationState, PredicatePos, RuleId, has_rieul_final};
 
 mod auxiliary;
 mod hao;
@@ -334,6 +334,10 @@ const RYEO_CONJECTURE: &[Suffix] = &[
     suffix("려니", &["ending.conjecture-ryeo"]),
     suffix("려니와", &["ending.concessive-ryeoniwa"]),
 ];
+
+pub(super) const FAMILIAR_QUESTION: Suffix = suffix("니", &["ending.interrogative-ni"]);
+const HONORIFIC_FAMILIAR_QUESTION: Suffix =
+    suffix("시니", &["ending.honorific", "ending.interrogative-ni"]);
 
 const PAST_SUFFIXES: &[Suffix] = &[
     GUN,
@@ -1319,6 +1323,16 @@ fn verify_simple_continuation(
         {
             COPULA_COMMON_ENDINGS
         }
+        ContinuationState::StemEnding
+            if following.starts_with('니')
+                && !anchor.chars().next_back().is_some_and(has_rieul_final) =>
+        {
+            &[FAMILIAR_QUESTION]
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with('니') => {
+            &[FAMILIAR_QUESTION]
+        }
+        ContinuationState::Eu if following.starts_with("시니") => &[HONORIFIC_FAMILIAR_QUESTION],
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('죠') || following.starts_with("지요") =>
         {
