@@ -413,7 +413,7 @@ pub(super) fn has_exact_fine_pos(
     matched
 }
 
-fn has_exact_sequence(
+pub(super) fn has_exact_sequence(
     resource: &ComponentResource,
     text: &str,
     expected: &[StructuralPos],

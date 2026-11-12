@@ -418,7 +418,7 @@ initial = "eu"
 forms = ["시", "으시"]
 required = []
 forbidden = []
-next = ["ending.past", "ending.future", "ending.final-da", "ending.polite-declarative", "ending.connective-go", "ending.present-adnominal", "ending.propositive", "ending.imperative-formal", "ending.imperative-formal-short"]
+next = ["ending.past", "ending.future", "ending.final-da", "ending.polite-declarative", "ending.connective-go", "ending.present-adnominal", "ending.propositive", "ending.imperative-formal", "ending.imperative-formal-short", "ending.intentive-ryeomyeon"]
 terminal = false
 
 [[ending]]
@@ -486,6 +486,26 @@ id = "ending.prospective-quotative"
 category = "connective"
 initial = "eu"
 forms = ["리라고", "으리라고"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.intentive-ryeo"
+category = "connective"
+initial = "eu"
+forms = ["려", "으려"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.intentive-ryeomyeon"
+category = "connective"
+initial = "eu"
+forms = ["려면", "으려면"]
 required = []
 forbidden = []
 next = []

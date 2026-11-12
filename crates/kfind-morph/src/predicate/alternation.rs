@@ -281,30 +281,6 @@ pub(super) fn eu_anchor(
     }))
 }
 
-pub(super) fn conditional_surface(
-    entry: &PredicateEntry,
-    stem: &str,
-) -> Result<Option<DerivedSurface>, GenerateError> {
-    let Some((base, mut rules)) = conditional_base(entry, stem)? else {
-        return Ok(None);
-    };
-    let core_len = base.len();
-    rules.push(rule("ending.conditional"));
-    Ok(Some(derived(format!("{base}면"), core_len, rules)))
-}
-
-pub(super) fn coordinate_surface(
-    entry: &PredicateEntry,
-    stem: &str,
-) -> Result<Option<DerivedSurface>, GenerateError> {
-    let Some((base, mut rules)) = conditional_base(entry, stem)? else {
-        return Ok(None);
-    };
-    let core_len = base.len();
-    rules.push(rule("ending.coordinate-myeo"));
-    Ok(Some(derived(format!("{base}며"), core_len, rules)))
-}
-
 pub(super) fn intentive_surface(
     entry: &PredicateEntry,
     stem: &str,
@@ -365,22 +341,6 @@ pub(super) fn bieup_ending_base(
         format!("{base}읍")
     };
     Ok(Some(derived(inflected, core_len, rules)))
-}
-
-pub(super) fn honorific_anchor(
-    entry: &PredicateEntry,
-    stem: &str,
-) -> Result<Option<DerivedSurface>, GenerateError> {
-    if entry.alternation == LexicalAlternation::Regular
-        && has_rieul_final(stem.chars().next_back().expect("stem"))
-    {
-        return Ok(None);
-    }
-    let Some((base, rules)) = conditional_base(entry, stem)? else {
-        return Ok(None);
-    };
-    let core_len = base.len();
-    Ok(Some(derived(base, core_len, rules)))
 }
 
 fn conditional_base(

@@ -19,10 +19,9 @@ mod continuation;
 pub use continuation::{PredicateContinuationMatch, verify_predicate_continuation};
 
 use alternation::{
-    aeo_surfaces, bieup_ending_base, conditional_surface, coordinate_surface, ending_base,
-    eu_anchor, future_adnominal, honorific_anchor, intentive_adnominal_surface, intentive_surface,
-    nominalizer_surface, past_adnominal, polite_declarative, present_adnominal,
-    present_declarative,
+    aeo_surfaces, bieup_ending_base, ending_base, eu_anchor, future_adnominal,
+    intentive_adnominal_surface, intentive_surface, nominalizer_surface, past_adnominal,
+    polite_declarative, present_adnominal, present_declarative,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -461,18 +460,33 @@ fn compile_productive(
             ContinuationState::Eu,
             eu.rules,
         );
-    } else if let Some(conditional) = conditional_surface(entry, stem)? {
-        push_derived(branches, entry, conditional, ContinuationState::Terminal);
-        if let Some(coordinate) = coordinate_surface(entry, stem)? {
-            push_derived(branches, entry, coordinate, ContinuationState::Terminal);
+    } else if let Some(base) = ending_base(entry, stem)? {
+        for ending in [
+            continuation::CONDITIONAL,
+            continuation::COORDINATE,
+            continuation::INTENTIVE_CONDITIONAL,
+        ]
+        .into_iter()
+        .chain(entry.pos.is_action().then_some(continuation::INTENTIVE))
+        {
+            let mut rules = base.rules.clone();
+            rules.extend(ending.rules.iter().map(|id| rule(id)));
+            push_branch(
+                branches,
+                entry,
+                format!("{}{}", base.surface, ending.surface),
+                base.core_len,
+                ContinuationState::Terminal,
+                rules,
+            );
         }
         if entry.alternation == LexicalAlternation::Regular
             && has_rieul_final(stem.chars().next_back().expect("stem"))
         {
             compile_rieul_eu_endings(entry, stem, branches);
             compile_rieul_honorific(entry, stem, branches);
-        } else if let Some(honorific) = honorific_anchor(entry, stem)? {
-            push_derived(branches, entry, honorific, ContinuationState::Eu);
+        } else {
+            push_derived(branches, entry, base, ContinuationState::Eu);
         }
     }
 
@@ -650,6 +664,15 @@ fn compile_rieul_honorific(
 ) {
     let base = drop_last_final(stem).expect("rieul-final stem");
     let core_len = base.len();
+    let intentive = continuation::HONORIFIC_INTENTIVE_CONDITIONAL;
+    push_branch(
+        branches,
+        entry,
+        format!("{base}{}", intentive.surface),
+        core_len,
+        ContinuationState::Terminal,
+        intentive.rules.iter().map(|id| rule(id)).collect(),
+    );
     let past_base = replace_last_vowel(&format!("{base}시"), JUNG_YEO)
         .expect("honorific syllable accepts a vowel replacement");
     let past =
@@ -785,6 +808,11 @@ fn compile_copula(
             format!("{stem}므로"),
             ContinuationState::Terminal,
             "ending.connective-meuro",
+        ),
+        (
+            format!("{stem}려면"),
+            ContinuationState::Terminal,
+            "ending.intentive-ryeomyeon",
         ),
     ] {
         push_branch(

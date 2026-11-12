@@ -4,8 +4,8 @@ use crate::structure::lexical::{
     complete_nominal_particle_host, complete_predicate_connective_ji_path,
     complete_predicate_ending_path, copular_frame, exact_analysis_ends_with_pos,
     exact_analysis_starts_with_pos, has_auxiliary_adnominal_split, has_complete_object_phrase,
-    has_copular_adnominal_split, has_exact_fine_pos, has_unambiguous_proper_name,
-    has_verb_nominalization, nominal_particle_hosts,
+    has_copular_adnominal_split, has_exact_fine_pos, has_exact_sequence,
+    has_unambiguous_proper_name, has_verb_nominalization, nominal_particle_hosts,
 };
 use crate::structure::selection::components::{
     attached_nominal_suffix_is_supported, component_is_shadowed_by_predicate,
@@ -36,6 +36,9 @@ pub(in crate::structure) enum StructureSelection {
     NominalWhole,
     VerbAdnominal,
     ConnectiveJiNominalFrame {
+        fallback: Box<StructureSelection>,
+    },
+    SourceAlignedConnective {
         fallback: Box<StructureSelection>,
     },
     NominalSpan {
@@ -72,7 +75,8 @@ impl StructureSelection {
             Self::RuntimeCompatible { graph_nominal_host } => graph_nominal_host.as_ref(),
             Self::NumeralSequence { fallback } => fallback.graph_nominal_host(),
             Self::AdnominalDerivation { fallback } => fallback.graph_nominal_host(),
-            Self::ConnectiveJiNominalFrame { fallback } => fallback.graph_nominal_host(),
+            Self::ConnectiveJiNominalFrame { fallback }
+            | Self::SourceAlignedConnective { fallback } => fallback.graph_nominal_host(),
             _ => None,
         }
     }
@@ -90,6 +94,11 @@ impl StructureSelection {
         };
         if let Self::ConnectiveJiNominalFrame { fallback } = self {
             return !pattern.fine_pos.is_predicate()
+                && fallback.accepts(support, spans, patterns, text, evidence);
+        }
+        if let Self::SourceAlignedConnective { fallback } = self {
+            return !(pattern.fine_pos.is_predicate()
+                && support.evidence == StructuralEvidence::RuntimeComponent)
                 && fallback.accepts(support, spans, patterns, text, evidence);
         }
         if query_nominal_particle_path(pattern, spans) {
@@ -142,7 +151,9 @@ impl StructureSelection {
                 support.evidence == StructuralEvidence::Whole && pattern.fine_pos.is_nominal()
             }
             Self::VerbAdnominal => !matches!(pattern.fine_pos, DataFinePos::Va | DataFinePos::Vcn),
-            Self::ConnectiveJiNominalFrame { .. } => unreachable!("handled before shared rules"),
+            Self::ConnectiveJiNominalFrame { .. } | Self::SourceAlignedConnective { .. } => {
+                unreachable!("handled before shared rules")
+            }
             Self::NominalSpan {
                 selected,
                 allow_components,
@@ -512,6 +523,25 @@ pub(in crate::structure) fn select_structure(
     };
     if connective_ji_before_nominal && (has_whole_nominal || has_exact_whole_nominal) {
         StructureSelection::ConnectiveJiNominalFrame {
+            fallback: Box::new(fallback),
+        }
+    } else if context.current.ends_with('려')
+        && evidence.has_whole(DataFinePos::Vv)
+        && context
+            .next
+            .and_then(|next| next.strip_suffix('게'))
+            .is_some_and(|stem| {
+                !stem.is_empty()
+                    && has_exact_sequence(resource, stem, &[StructuralPos::VV])
+                    && has_exact_sequence(resource, "게", &[StructuralPos::EC])
+            })
+        && has_exact_sequence(
+            resource,
+            context.current,
+            &[StructuralPos::VV, StructuralPos::EC],
+        )
+    {
+        StructureSelection::SourceAlignedConnective {
             fallback: Box::new(fallback),
         }
     } else {
