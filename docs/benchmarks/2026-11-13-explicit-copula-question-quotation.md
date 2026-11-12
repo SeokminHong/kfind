@@ -12,6 +12,11 @@ KAIST test `MH2_0180-s334`의 `진리인가라는`에서 `인가`를 회수했�
 [UD 회귀](../../data/fixtures/ud_morphology_cases.tsv) ·
 [한국어기초사전 인용 조사 `라고`](https://krdict.korean.go.kr/eng/dicSearch/SearchView?ParaWordNo=70074)
 
+직접 인용한 `‘인가?’`는 명사 `인가`를 되묻는 말과 수사 `이`에 지정사 의문형이 결합한
+준말이 모두 가능합니다. 수사와 행정 절차의 두 문맥에서 같은 표면 범위를 확인했습니다.
+[동형이의 대조](../../tools/morph-compare/copula-interrogative-context-cases.jsonl) ·
+[국립국어원 지정사 의문형 축약](https://m.korean.go.kr/front/onlineQna/onlineQnaView.do?mn_id=216&pageIndex=1&qna_seq=314264)
+
 GSD test, KAIST dev/test, KSL dev/test의 인용 표면 381문장을 동일하게 실행했습니다.
 반환 범위가 달라진 문장은 `MH2_0180-s334` 한 건입니다. 기존 `점이다`의 `이다`와
 새 `인가`가 함께 반환됐습니다. 이 381문장은 범위 변화를 검토하는 진단 입력입니다.
@@ -26,6 +31,7 @@ GSD 양성 및 회귀 양성은 정확한 범위로, 회귀 음성과 KAIST 양�
 | 지정사 의문 대조 8건 smart | 기준선 | 2, 0, 3, 3 | 100.00, 40.00, 57.14 | 2, 0, 3, 3 | 100.00, 40.00, 57.14 | 0 |
 | 지정사 의문 대조 8건 smart | 후보 | 5, 0, 3, 0 | 100.00, 100.00, 100.00 | 5, 0, 3, 0 | 100.00, 100.00, 100.00 | 0 |
 | 지정사 의문 대조 8건 any | 양쪽 | 5, 3, 0, 0 | 62.50, 100.00, 76.92 | 5, 3, 0, 0 | 62.50, 100.00, 76.92 | 0 |
+| 인가 동형이의 대조 2건 smart·any | 양쪽 | 1, 1, 0, 0 | 50.00, 100.00, 66.67 | 2, 0, 0, 0 | 100.00, 100.00, 100.00 | 1 |
 | GSD 원본 양성 9,335건 smart | 양쪽 | 8087, 0, 0, 1248 | 100.00, 86.63, 92.84 | 8087, 0, 0, 1248 | 100.00, 86.63, 92.84 | 0 |
 | KAIST dev 교정 2,532건 smart | 양쪽 | 1265, 1, 1266, 0 | 99.92, 100.00, 99.96 | 1266, 0, 1266, 0 | 100.00, 100.00, 100.00 | 1 |
 | KAIST test 2,592건 smart | 양쪽 | 1289, 2, 1294, 7 | 99.85, 99.46, 99.65 | 1290, 0, 1298, 0 | 100.00, 100.00, 100.00 | 25 |
@@ -59,6 +65,7 @@ cargo build --release --locked --manifest-path tools/morph-compare/runner/Cargo.
 | 입력 | SHA-256 |
 | --- | --- |
 | 지정사 의문 대조 JSONL | `3063d21bf9457020c11a7e999b736ece1ab8190877657706b2b6cdaca1d2b1b9` |
+| 인가 동형이의 대조 JSONL | `afa63a9af3f01ecb3834cfa32b4b01fec6a009dbea097b12b3ef060bd684b3e3` |
 | 인용 표면 381건 JSONL | `cdd502b4a9a62b6a9d227fc59c70b5ca7ad735e6991b5e4cd12fe4e1e73b06a7` |
 
 [KAIST 교정 입력](2026-11-13-short-nominal-derivation.md#성능) ·

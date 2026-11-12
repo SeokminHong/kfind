@@ -351,6 +351,8 @@ regression.explicit-copula.quote-polite	이다	adjective	smart-exact	41	47	제�
 regression.explicit-copula.nominal-subject	이다	adjective	no-match	10	16	관청의 인가가 나왔다.
 regression.explicit-copula.nominal-derived-verb	이다	adjective	no-match	24	30	정부가 그 사업을 인가했다.
 regression.explicit-copula.nominal-object	이다	adjective	no-match	7	13	사업 인가를 받았다.
+regression.interrogative-copula.homograph-numeral-two	이다	adjective	smart-exact	77	83	내가 비밀번호 끝자리를 두 손가락으로 알려 주자 그는 ‘인가?’라고 되물었다.
+regression.interrogative-copula.homograph-approval-echo	이다	adjective	smart-exact	60	66	내가 사업에 인가가 필요하다고 하자 그는 ‘인가?’라고 되물었다.
 corpus.ud-kaist.dev.MH2_0069-s25.compound-nominal	사용	noun	smart-exact	14	20	그 상품의 사용가치에 커다란 변화를 줄 수 있다.
 corpus.ud-kaist.dev.MH2_0069-s36.compound-nominal	사용	noun	smart-exact	40	46	정보와 오락성은 언론 상품의 사용가치를 보장한다.
 corpus.ud-kaist.dev.MH2_0069-s37.compound-nominal	사용	noun	smart-exact	23	29	구매자는 새로운 사용가치를 원하게 된다.
