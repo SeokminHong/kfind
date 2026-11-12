@@ -590,3 +590,9 @@ regression.adnominal-proper-name.compound-person-name.verb	알리다	verb	no-mat
 regression.adnominal-proper-name.compound-person-name.noun	알린	noun	smart-exact	3	9	‘알린 로페스’라는 이름을 들었다.
 regression.adnominal-proper-name.rank-relative.verb	오르다	verb	smart-exact	16	22	좌의정까지 오른 김안로는 권력을 휘둘렀다.
 regression.adnominal-proper-name.right-side.determiner	오른	determiner	smart-exact	0	6	오른 가장자리부터 선을 그었다.
+corpus.ud-gsd.test.test-s426.verb.causal-copula	있다	verb	smart-exact	34	49	힐튼 호텔 요리사 경력이 있어서인가 솜씨가 좋아요.
+corpus.ud-gsd.test.test-s571.verb.causal-copula	있다	verb	smart-exact	108	123	시의 동쪽 외곽에 있으며 붉은 성이라는 이름은 성의 거대한 벽이 붉은빛을 띠고 있어서이다.
+corpus.ud-gsd.test.test-s106.verb.causal-copula-past	되다	verb	smart-exact	69	84	이러한 인문주의가 다시 꽃피게 되는 것은 15세기가 되어서였다.
+regression.causal-copula.adjective	늦다	adjective	smart-exact	35	50	불이 꺼진 건 이미 시간이 늦어서이다.
+regression.causal-copula.vowel-harmony	좁다	adjective	smart-exact	10	25	골목이 좁아서인가 차가 못 들어왔다.
+regression.causal-copula.separate-words	늦다	adjective	smart-exact	10	19	시간이 늦어서 이 일은 내일 하자.
