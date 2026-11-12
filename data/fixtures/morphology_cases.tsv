@@ -790,3 +790,32 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 하다	verb	아침부터 음식을 많이 하시게.	match	honorific-ge
 하다	verb	갈 준비를 다 하셨게?	match	honorific-past-ge
 밝다	adjective	장사가 잘됐나 봐? 표정이 밝으시게.	match	honorific-ge
+가다	verb	지금 어디에 가오?	match	hao-final
+먹다	verb	이리 와서 과일을 함께 먹으오.	match	hao-final
+살다	verb	앞으로 오래오래 사오.	match	hao-rieul
+파랗다	adjective	하늘이 어찌 그리 파라오?	match	hao-irregular
+듣다	verb	제 말을 잘 들으오.	match	hao-irregular
+크다	adjective	얼마나 심려가 크시오?	match	hao-honorific
+하다	verb	지금 뭐 하시오?	match	hao-honorific
+이다	copula	그분이 옆집 새댁이우?	match	fused-copula-ending
+없다	adjective	지금 담당자가 없으오니 조금 뒤에 다시 전화해 주세요.	match	hao-respectful-connective
+드리다	verb	정녕 가신다면 고이 보내 드리오리다.	match	hao-respectful-final
+먹다	verb	이제 그만 먹으오리다.	match	hao-respectful-final
+가다	verb	제가 먼저 가오리이까?	match	hao-respectful-final
+없다	adjective	그런 물건은 없우.	match	hao-final-u
+나다	verb	흰머리가 자꾸 난다우.	match	hao-declarative-u
+먹다	verb	이것도 좀 먹으우.	match	hao-final-u
+도와주다	verb	여기로 와서 좀 도와주우.	match	hao-final-u
+읽다	verb	책은 이미 읽었우.	match	hao-past
+가다	verb	이제 가겠소.	match	hao-future
+받다	verb	마음만 받겠소다.	match	hao-future
+이기다	verb	선생께서 정당하게 이겼소이까?	match	hao-past
+고맙다	adjective	정말 고맙소이다.	match	hao-final-soida
+하다	verb	가을에는 사랑하게 하소서.	match	entreaty-soseo
+받다	verb	새해 복 많이 받으소서.	match	entreaty-soseo
+주다	verb	그 주소는 맞아요?	no-match	lexical-context
+먹다	verb	이것을 먹오.	no-match	hao-final
+가다	verb	이제 가으오.	no-match	hao-final
+없다	adjective	그런 물건은 없으우.	no-match	hao-final-u
+나오다	verb	물이 안 나오면 시청에까지 쫓아간다.	match	standard-negative-spacing
+나다	verb	물이 안 나오면 시청에까지 쫓아간다.	no-match	lexical-context

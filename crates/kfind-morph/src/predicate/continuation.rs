@@ -1,5 +1,8 @@
 use crate::{ContinuationState, PredicatePos, RuleId};
 
+mod hao;
+pub(super) use hao::{HAO_ENDINGS, HONORIFIC_HAO_AFTER_ACTION, HONORIFIC_HAO_ENDINGS, SOSEO};
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PredicateContinuationMatch {
     /// Byte offset of the verified token end in `anchor + following`.
@@ -85,7 +88,6 @@ const COPULA_COMMON_ENDINGS: &[Suffix] = &[
     suffix("야", &["ending.copula-ya"]),
     suffix("어요", &["ending.copula-polite"]),
     suffix("에요", &["ending.copula-polite"]),
-    suffix("오", &["ending.copula-common-final"]),
     suffix("자", &["ending.copula-common-connective"]),
     suffix("죠", &["ending.copula-common-final"]),
     suffix("지요", &["ending.copula-common-final"]),
@@ -689,8 +691,8 @@ pub fn verify_predicate_continuation(
         ContinuationState::StemEnding
             if (pos == PredicatePos::Copula || anchor == "아니")
                 && following.starts_with([
-                    '게', '고', '구', '군', '길', '네', '니', '면', '세', '야', '어', '에', '오',
-                    '자', '죠', '지',
+                    '게', '고', '구', '군', '길', '네', '니', '면', '세', '야', '어', '에', '자',
+                    '죠', '지',
                 ]) =>
         {
             COPULA_COMMON_ENDINGS
@@ -743,7 +745,7 @@ pub fn verify_predicate_continuation(
         ContinuationState::Past if following.starts_with('을') => PAST_RIEUL_FINAL,
         ContinuationState::Eu if following.starts_with('실') => HONORIFIC_RIEUL_FINAL,
         ContinuationState::Eu if following.starts_with("셨을") => HONORIFIC_PAST_RIEUL_FINAL,
-        _ => &[],
+        _ => hao::additional_endings(state, pos, anchor, following),
     };
 
     let suffix = candidates
@@ -809,6 +811,7 @@ fn declarative_suffix(following: &str) -> Option<&'static Suffix> {
         '니' => Some(&DECLARATIVE_NI),
         '며' => Some(&DECLARATIVE_MYEO),
         '지' => Some(&DECLARATIVE_JI),
+        '우' => Some(&hao::HAO_U),
         _ => None,
     }
 }
