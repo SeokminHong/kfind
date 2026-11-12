@@ -9,6 +9,8 @@ use kfind_testkit::{GoldHarness, load_morphology_cases};
 
 const WALK_HANG_STRESS: &str = include_str!("../../../../data/fixtures/walk_hang_stress.txt");
 const UD_MORPHOLOGY_CASES: &str = include_str!("../../../../data/fixtures/ud_morphology_cases.tsv");
+const INTERROGATIVE_CASES: &str =
+    include_str!("../../../../data/fixtures/interrogative_span_cases.tsv");
 const ENRICHED_PREDICATES_SOURCE: &str = "data/enriched/predicates.tsv";
 const ENRICHED_PREDICATES: &str = include_str!("../../../../data/enriched/predicates.tsv");
 
@@ -61,11 +63,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     verify_walk_hang_stress(&harness)?;
-    let ud_harness =
+    let enriched_harness =
         harness.with_enriched_predicates(ENRICHED_PREDICATES_SOURCE, ENRICHED_PREDICATES)?;
-    verify_ud_morphology(&ud_harness)?;
-    verify_context_homographs(&ud_harness)?;
-    verify_copula_conditionals(&ud_harness)?;
+    verify_span_cases(&enriched_harness, "UD morphology", UD_MORPHOLOGY_CASES)?;
+    verify_span_cases(
+        &enriched_harness,
+        "interrogative endings",
+        INTERROGATIVE_CASES,
+    )?;
+    verify_context_homographs(&enriched_harness)?;
+    verify_copula_conditionals(&enriched_harness)?;
 
     println!(
         "morphology gold with auto-POS coverage: {} cases and walk/hang stress passed",
@@ -294,10 +301,14 @@ fn verify_copula_conditionals(harness: &GoldHarness) -> Result<(), Box<dyn Error
     Ok(())
 }
 
-fn verify_ud_morphology(harness: &GoldHarness) -> Result<(), Box<dyn Error>> {
+fn verify_span_cases(
+    harness: &GoldHarness,
+    fixture: &str,
+    cases: &str,
+) -> Result<(), Box<dyn Error>> {
     let mut failures = Vec::new();
-    for (index, line) in UD_MORPHOLOGY_CASES.lines().enumerate().skip(1) {
-        let invalid_row = || format!("invalid UD morphology fixture row {}", index + 1);
+    for (index, line) in cases.lines().enumerate().skip(1) {
+        let invalid_row = || format!("invalid {fixture} fixture row {}", index + 1);
         let fields = line.split('\t').collect::<Vec<_>>();
         let [id, query, pos, expected, start, end, text] = fields.as_slice() else {
             return Err(invalid_row().into());
@@ -354,7 +365,7 @@ fn verify_ud_morphology(harness: &GoldHarness) -> Result<(), Box<dyn Error>> {
         }
     }
     if !failures.is_empty() {
-        return Err(format!("UD morphology mismatches:\n{}", failures.join("\n")).into());
+        return Err(format!("{fixture} mismatches:\n{}", failures.join("\n")).into());
     }
     Ok(())
 }

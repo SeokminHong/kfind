@@ -1,0 +1,93 @@
+id	query	pos	expected	byte_start	byte_end	text
+krdict.ㄴ가:1	바쁘다	adjective	exact	17	26	요즘도 많이 바쁜가?
+krdict.ㄴ가:2	아프다	adjective	exact	20	29	자네는 어디가 아픈가?
+krdict.ㄴ가:3	이다	adjective	exact	39	45	회사를 그만둔다는 것이 사실인가?
+krdict.ㄴ가:4	힘들다	adjective	exact	35	44	여보게, 새로 시작한 일이 힘든가?
+krdict.ㄴ가:5	바쁘다	adjective	exact	55	64	민준이가 요즘 연락이 뜸한 걸 보니 많이 바쁜가 보네.
+krdict.ㄴ가:6	한가하다	adjective	exact	55	67	난 네가 시험이 끝났다고 하길래 이제 좀 한가한가 했지.
+stdict.ㄴ가:7	이다	adjective	exact	13	19	그게 정말인가?
+stdict.ㄴ가:8	아프다	adjective	exact	14	23	자네 어디 아픈가?
+stdict.ㄴ가:9	안녕하다	adjective	exact	21	36	그래, 아버님은 안녕하신가?
+stdict.ㄴ가:10	그르다	adjective	exact	28	37	과연 누가 옳고 누가 그른가 묻고 싶었다.
+stdict.ㄴ가:11	이다	adjective	exact	30	39	난 혹시 저분이 어머니이신가 했지.
+stdict.ㄴ가:12	아프다	adjective	exact	44	53	얼굴에 핏기가 없는 것이 어디가 아픈가 싶다.
+stdict.ㄴ가:13	차다	adjective	exact	7	13	물이 찬가 보다.
+stdict.ㄴ가:14	이다	adjective	exact	53	59	매년 반복되는 재해의 예방 방법은 무엇인가.
+stdict.ㄴ가:15	이다	adjective	exact	52	58	위기의 우리 사회, 어디서 답을 찾을 것인가.
+stdict.ㄴ가:16	푸르다	adjective	exact	50	59	넓게 펼쳐진 동해의 바닷물은 얼마나 푸른가.
+krdict.ㄴ지:1	비싸다	adjective	exact	10	19	어찌나 비싼지 차마 그 물건을 살 수 없었다.
+krdict.ㄴ지:2	이다	adjective	exact	37	43	집에 가는 길에 불량 청소년인지 어떤 학생이 나에게 시비를 걸었어.
+krdict.ㄴ지:3	건강하다	adjective	exact	7	22	요즘 건강하신지?
+krdict.ㄴ지:4	빠르다	adjective	exact	20	29	세월이 어찌나 빠른지!
+krdict.ㄴ지:5	편안하다	adjective	exact	28	43	어디 불편한 곳 없고 편안하신지.
+stdict.ㄴ지:6	부지런하다	adjective	exact	10	25	얼마나 부지런한지 세 사람 몫의 일을 해낸다.
+stdict.ㄴ지:7	안녕하다	adjective	exact	30	45	아버님, 어머님께서도 안녕하신지.
+krdict.는가:1	하다	verb	exact	7	16	무엇 하는가? 어서 가지 않고.
+krdict.는가:2	떠나다	verb	exact	31	43	김 군은 미국으로 언제 떠나는가?
+krdict.는가:3	있다	verb	exact	48	57	자네 표정이 좋지 않은데 무슨 일이 있는가?
+krdict.는가:4	기다리다	verb	exact	7	22	오래 기다렸는가?
+krdict.는가:5	없다	adjective	exact	37	46	머뭇거리는 걸 보니 자신이 없는가 보구나.
+krdict.는가:6	가다	verb	exact	25	34	나는 그가 왜 그냥 갔는가 하며 궁금해했다.
+krdict.는가:7	오다	verb	exact	45	54	땅이 질척이는 걸 보니 비가 많이 왔는가 보다.
+stdict.는가:8	있다	verb	exact	11	20	시간 좀 있는가?
+stdict.는가:9	없다	adjective	exact	15	24	가진 돈 좀 없는가?
+stdict.는가:10	하다	verb	exact	11	23	지금 뭐 하시는가?
+stdict.는가:11	먹다	verb	exact	15	27	자네 뭘 좀 먹었는가?
+stdict.는가:12	가다	verb	exact	17	29	자네도 같이 가겠는가?
+stdict.는가:13	오다	verb	exact	28	37	과연 이 땅에도 봄은 오는가?
+stdict.는가:14	저러다	verb	exact	22	34	저는 저 애가 왜 저러는가 했지요.
+stdict.는가:15	있다	verb	exact	14	26	무슨 일이 있었는가 싶었다.
+stdict.는가:16	오다	verb	exact	24	33	거기는 비가 많이 왔는가 보다.
+stdict.는가:17	있다	verb	exact	39	48	기후 위기, 어떻게 대처할 수 있는가.
+krdict.는지:1	나가다	verb	exact	31	43	동생이 내 신발을 신고 나갔는지 신발이 안 보였다.
+krdict.는지:2	나가다	verb	exact	7	22	다들 나가셨는지 집에 아무도 없었다.
+krdict.는지:3	계시다	verb	exact	23	35	외할머니께서 안 계시는지 초인종을 눌러도 대답이 없었다.
+krdict.는지:4	치다	verb	exact	24	33	승규가 시험은 잘 쳤는지.
+krdict.는지:5	계시다	verb	exact	28	40	집안 어른들은 다 잘 계시는지?
+krdict.는지:6	있다	verb	exact	51	60	갑자기 직장을 그만둔 말 못할 이유가 있는지.
+krdict.는지:7	당황스럽다	adjective	exact	51	72	지수가 갑자기 그런 말을 해서 얼마나 당황스러웠는지!
+krdict.는지:8	맞다	verb	exact	58	67	오늘 열한 시에 상담을 예약하고 오신 분이 맞는지?
+stdict.는지:9	떠들다	verb	exact	23	35	아이들이 얼마나 떠드는지 책을 읽을 수가 없었다.
+stdict.는지:10	불다	verb	exact	27	36	바람이 얼마나 세게 부는지 가로수 가지들이 꺾였다.
+stdict.는지:11	틀리다	verb	exact	10	22	무엇이 틀렸는지 답을 맞춰 보자.
+stdict.는지:12	다녀오다	verb	exact	17	35	고향에는 잘 다녀오셨는지.
+krdict.은가:1	적다	adjective	exact	24	33	그대가 받은 돈이 적은가?
+krdict.은가:2	붉다	adjective	exact	28	37	자네 얼굴은 왜 그리 붉은가?
+krdict.은가:3	옳다	adjective	exact	54	63	자네가 그 상황이라면 어떻게 하는 것이 옳은가?
+krdict.은가:4	많다	adjective	exact	40	49	여기에 모인 사람들이 얼마나 많은가?
+krdict.은가:5	좋다	adjective	exact	17	26	집의 상태가 좋은가 하면 집값이 비쌌다.
+krdict.은가:6	않다	adjective	exact	76	85	자꾸 실수를 하는 것을 보니 마치 내가 그 일에 적합하지 않은가 싶었다.
+krdict.은가:7	싫다	adjective	exact	26	35	민준이는 바닷가가 싫은가 본데.
+stdict.은가:8	깊다	adjective	exact	24	33	이 우물은 얼마나 깊은가?
+stdict.은가:9	좋다	adjective	exact	24	33	그 사람이 그렇게 좋은가?
+stdict.은가:10	좋다	adjective	exact	25	34	그 친구 머리가 꽤 좋은가 보다.
+stdict.은가:11	않다	adjective	exact	38	47	제 분수에 그 정도면 족하지 않은가 싶어서, 결국 그 집을 사기로 하였습니다.
+stdict.은가:12	좋다	adjective	exact	34	43	천당인가 하는 데가 좋긴 좋은가 보군.
+stdict.은가:13	괜찮다	adjective	exact	44	56	늘어나는 일회용품 사용, 이대로 괜찮은가.
+stdict.은가:14	작다	adjective	exact	43	52	우주에서 바라본 지구는 얼마나 작은가.
+stdict.은가:15	붉다	adjective	exact	54	63	가을이 되어 단풍이 든 나뭇잎은 얼마나 붉은가.
+krdict.은지:1	괜찮다	adjective	exact	40	52	영수는 사려는 과일의 상태가 괜찮은지 살펴보았다.
+krdict.은지:2	좋다	adjective	exact	20	29	어찌나 기분이 좋은지 콧노래가 절로 나왔다.
+krdict.은지:3	않다	adjective	exact	41	50	점원이 추천한 옷은 입고 싶지 않은지 손님은 다른 옷을 보았다.
+krdict.은지:4	깊다	adjective	exact	17	26	강이 얼마나 깊은지 알아봅시다.
+krdict.은지:5	같다	adjective	exact	20	29	지수와 나이가 같은지?
+krdict.은지:6	좋다	adjective	exact	27	36	이 책으로 선택해도 좋은지.
+krdict.은지:7	괜찮다	adjective	exact	27	39	지금 저녁을 먹어도 괜찮은지?
+krdict.은지:8	않다	adjective	exact	30	39	여행 자금이 충분하지 않은지?
+stdict.은지:9	좋다	adjective	exact	10	19	기분이 좋은지 휘파람을 분다.
+stdict.은지:10	않다	adjective	exact	32	41	나 외엔 더 깨우고 싶지 않은지 강도의 목소리는 무척 낮고 조심스러웠다.
+stdict.은지:11	좋다	adjective	exact	28	37	요즘은 어때? 건강은 좋은지?
+stdict.은지:12	옳다	adjective	exact	54	63	마을 사람들은 어느 말을 정말로 믿어야 옳은지 몰라서 멀거니 두 사람의 입을 쳐다보고만 있었다.
+changa-predicate-positive	차다	adjective	exact	7	13	물이 찬가 보다.
+changa-predicate-context	차다	adjective	exact	13	19	합창단이 찬가 한 곡을 불렀다.
+changa-noun-context	찬가	noun	exact	7	13	물이 찬가 보다.
+changa-noun-positive	찬가	noun	exact	13	19	합창단이 찬가 한 곡을 불렀다.
+danga-predicate-positive	달다	adjective	exact	11	17	이 차가 단가?
+danga-predicate-context	달다	adjective	exact	17	23	이번 계약의 단가 조정은 끝났다.
+danga-noun-context	단가	noun	exact	11	17	이 차가 단가?
+danga-noun-positive	단가	noun	exact	17	23	이번 계약의 단가 조정은 끝났다.
+polite-1	바쁘다	adjective	exact	17	29	요즘도 많이 바쁜가요?
+polite-2	하다	verb	exact	11	26	어떤 일 하시는지요?
+polite-3	가다	verb	exact	7	22	다들 가셨는가요?
+polite-4	좋다	adjective	exact	10	31	얼마나 좋으시겠는지요.
+kaist.MH2_0110-s264	어떻다	adjective	exact	17	26	반면 미국은 어떤가.

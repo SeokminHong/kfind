@@ -289,6 +289,8 @@ mod tests {
         let harness = GoldHarness::embedded().expect("embedded lexicons must be valid");
         for (query, text, target) in [
             ("v:가다", "내일 같이 갈까요?", "갈까요"),
+            ("adj:바쁘다", "요즘도 많이 바쁜가요?", "바쁜가요"),
+            ("v:하다", "어떤 일 하시는지요?", "하시는지요"),
             ("adj:좋다", "날씨가 좋을수록 사람이 많다.", "좋을수록"),
             ("v:먹다", "먼저 먹으라면서 재촉했다.", "먹으라면서"),
             ("v:들다", "먼저 드시라고 했다.", "드시라고"),
