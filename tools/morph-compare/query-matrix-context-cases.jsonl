@@ -1,0 +1,6 @@
+{"id":"matrix:neg:ud-korean-kaist:MH2_0010-s151:1","query":"불과","pos":"noun","text":"남극의 내륙고원지대에서는 1년에 불과 수미터를 움직이나 바닷가로 가까이 오면서 빨라져 1킬로미터 이상이 된다.","expected":false,"gold_byte_start":46,"gold_byte_end":52,"paired_case_id":"bulgwa-noun"}
+{"id":"bulgwa-noun","query":"불과","pos":"noun","text":"그가 바라는 것은 불과, 곧 부처의 깨달음이다.","expected":true,"gold_byte_start":24,"gold_byte_end":30,"paired_case_id":"matrix:neg:ud-korean-kaist:MH2_0010-s151:1"}
+{"id":"matrix:neg:ud-korean-kaist:MH2_0180-s155:2","query":"제","pos":"pronoun","text":"셋째로 서로 모순하는 제 규정의 통일은 그 규정들이 통일 속에서 서로 지양함으로써 본래적인 자기다.","expected":false,"gold_byte_start":30,"gold_byte_end":33,"paired_case_id":"je-pronoun"}
+{"id":"je-pronoun","query":"제","pos":"pronoun","text":"그건 제 규정이 아니라 위원회가 정한 규정입니다.","expected":true,"gold_byte_start":7,"gold_byte_end":10,"paired_case_id":"matrix:neg:ud-korean-kaist:MH2_0180-s155:2"}
+{"id":"matrix:neg:ud-korean-kaist:M2TA_070-s32:1","query":"만","pos":"numeral","text":"열석 달 만에 월급으로 받은 쌀이 분량도 제대로 채워지지 않았고 겨까지 섞여 있었다.","expected":false,"gold_byte_start":11,"gold_byte_end":17,"paired_case_id":"man-numeral"}
+{"id":"man-numeral","query":"만","pos":"numeral","text":"그 값은 천이 아니라 만에 가깝습니다.","expected":true,"gold_byte_start":28,"gold_byte_end":34,"paired_case_id":"matrix:neg:ud-korean-kaist:M2TA_070-s32:1"}

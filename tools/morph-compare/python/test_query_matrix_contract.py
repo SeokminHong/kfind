@@ -16,19 +16,34 @@ HEADER = (
 
 
 class QueryMatrixContractReviewTests(unittest.TestCase):
-    def test_reviewed_resultatives_have_matching_context_pairs(self) -> None:
+    def test_reviewed_homographs_have_matching_context_pairs(self) -> None:
         root = Path(__file__).resolve().parents[1]
+        for prefix, split in (("resultative", "resultative"), ("query-matrix", "test")):
+            with self.subTest(dataset=prefix):
+                self.assert_context_pairs(root, prefix, split)
+
+    def assert_context_pairs(self, root: Path, prefix: str, split: str) -> None:
         cases = [
             json.loads(line)
-            for line in (root / "resultative-context-cases.jsonl").read_text(
+            for line in (root / f"{prefix}-context-cases.jsonl").read_text(
                 encoding="utf-8"
             ).splitlines()
         ]
         by_id = {case["id"]: case for case in cases}
         self.assertEqual(len(cases), len(by_id))
-        reviews = load_contract_reviews(root / "resultative-contract-reviews.tsv")
+        reviews = [
+            review
+            for review in load_contract_reviews(root / f"{prefix}-contract-reviews.tsv")
+            if review.contract_reason in {
+                "same-pos-homograph", "structurally-indistinguishable-homograph"
+            }
+        ]
+        self.assertEqual(
+            {review.case_id for review in reviews},
+            {case["id"] for case in cases if not case["expected"]},
+        )
         apply_contract_reviews(
-            cases, reviews, query_mode="explicit-pos", split="resultative"
+            cases, reviews, query_mode="explicit-pos", split=split
         )
 
         for case in cases:

@@ -64,7 +64,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let ud_harness =
         harness.with_enriched_predicates(ENRICHED_PREDICATES_SOURCE, ENRICHED_PREDICATES)?;
     verify_ud_morphology(&ud_harness)?;
-    verify_resultative_homographs(&ud_harness)?;
+    verify_context_homographs(&ud_harness)?;
 
     println!(
         "morphology gold with auto-POS coverage: {} cases and walk/hang stress passed",
@@ -73,7 +73,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn verify_resultative_homographs(harness: &GoldHarness) -> Result<(), Box<dyn Error>> {
+fn verify_context_homographs(harness: &GoldHarness) -> Result<(), Box<dyn Error>> {
     for (query, pos, text, surface) in [
         (
             "되다",
@@ -114,6 +114,24 @@ fn verify_resultative_homographs(harness: &GoldHarness) -> Result<(), Box<dyn Er
         ),
         ("가지", CoarsePos::Noun, "가지는 보라색 채소다.", "가지는"),
         ("가다", CoarsePos::Verb, "그곳에 가지는 않았다.", "가지는"),
+        (
+            "불과",
+            CoarsePos::Noun,
+            "그가 바라는 것은 불과, 곧 부처의 깨달음이다.",
+            "불과",
+        ),
+        (
+            "제",
+            CoarsePos::Pronoun,
+            "그건 제 규정이 아니라 위원회가 정한 규정입니다.",
+            "제",
+        ),
+        (
+            "만",
+            CoarsePos::Numeral,
+            "그 값은 천이 아니라 만에 가깝습니다.",
+            "만에",
+        ),
     ] {
         let start = text.find(surface).expect("target appears in the fixture");
         for boundary in [BoundaryPolicy::Smart, BoundaryPolicy::Any] {
