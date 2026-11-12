@@ -990,6 +990,7 @@ impl MorphMatcher {
                 has_competing_hao_connective(haystack, candidate, branch, resolver)
                     || has_nominal_quotative_frame(haystack, candidate, branch, resolver)
                     || has_counted_unit_copula(haystack, candidate, branch, resolver)
+                    || has_elapsed_measure_frame(haystack, candidate, branch, atom, resolver)
                     || has_transitive_jiyo_frame(haystack, candidate, branch, resolver)
                     || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
                     || has_prayer_object_frame(haystack, candidate, branch, atom, resolver)
@@ -2137,6 +2138,37 @@ fn has_counted_unit_copula(
         .is_some_and(|unit| {
             resolver.has_counted_unit_frame(&previous, &unit.nfc().collect::<String>())
         })
+}
+
+fn has_elapsed_measure_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let core = &candidate.verified.core;
+    let consumed = &candidate.consumed;
+    if (branch.anchor.as_ref() != "만".as_bytes()
+        && branch.anchor.as_ref() != "\u{1106}\u{1161}\u{11ab}".as_bytes())
+        || !candidate
+            .suffix_rules
+            .first()
+            .is_some_and(|rule| matches!(rule.as_str(), "particle.locative" | "particle.genitive"))
+        || !branch.origins.iter().all(|origin| {
+            atom.analyses
+                .get(usize::from(origin.analysis_index))
+                .is_some_and(|analysis| analysis.coarse_pos == kfind_morph::CoarsePos::Numeral)
+        })
+        || !is_boundary_before(haystack, core.start)
+        || !is_boundary_after(haystack, consumed.end)
+    {
+        return false;
+    }
+    context::previous_word_with_start(haystack, core.start).is_some_and(|(start, measure)| {
+        let count = context::previous_word(haystack, start);
+        resolver.has_elapsed_measure(&measure, count.as_deref())
+    })
 }
 
 fn has_jiyo_suffix(haystack: &[u8], suffix: Range<usize>) -> bool {

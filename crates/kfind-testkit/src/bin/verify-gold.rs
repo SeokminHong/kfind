@@ -26,6 +26,8 @@ const TOPIC_PREDICATE_CASES: &str =
 const ENRICHED_PREDICATES_SOURCE: &str = "data/enriched/predicates.tsv";
 const DEPENDENT_SUBJECT_CASES: &str =
     include_str!("../../../../data/fixtures/dependent_subject_cases.tsv");
+const ELAPSED_MEASURE_CASES: &str =
+    include_str!("../../../../data/fixtures/elapsed_measure_cases.tsv");
 const BIEUP_ADVERBIAL_CASES: &str =
     include_str!("../../../../data/fixtures/bieup_adverbial_cases.tsv");
 const ENRICHED_PREDICATES: &str = include_str!("../../../../data/enriched/predicates.tsv");
@@ -87,6 +89,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "dependent noun subject",
         DEPENDENT_SUBJECT_CASES,
     )?;
+    verify_span_cases(&enriched_harness, "elapsed measure", ELAPSED_MEASURE_CASES)?;
     verify_span_cases(&enriched_harness, "bieup adverbials", BIEUP_ADVERBIAL_CASES)?;
     verify_span_cases(
         &enriched_harness,
@@ -183,12 +186,6 @@ fn verify_context_homographs(harness: &GoldHarness) -> Result<(), Box<dyn Error>
             CoarsePos::Pronoun,
             "그건 제 규정이 아니라 위원회가 정한 규정입니다.",
             "제",
-        ),
-        (
-            "만",
-            CoarsePos::Numeral,
-            "그 값은 천이 아니라 만에 가깝습니다.",
-            "만에",
         ),
     ] {
         let start = text.find(surface).expect("target appears in the fixture");

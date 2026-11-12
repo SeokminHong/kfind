@@ -135,6 +135,8 @@ Strict 지표는 gold와 다른 표제어·품사 결과를 false positive로 �
 Contract-adjusted 지표는 같은 품사의 동형 활용처럼 bounded 구조가 같은 결과만
 contract positive로 재분류한다. 품사 또는 인접 성분 배치로 구분 가능한 결과는
 현재 구현이 제거하지 못해도 FPᶜ로 유지한다.
+동형이의 검토에는 각 해석이 성립하는 문장을 한 쌍으로 등록한다. 문법 구조로 구분되는
+쌍은 strict 기대값을 유지하고 양성과 음성의 검색 결과를 각각 검증한다.
 
 #### 19.5.1 현실 기술 코퍼스 blind fixture
 
