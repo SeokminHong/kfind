@@ -612,6 +612,9 @@ const HONORIFIC_EARNEST_REQUEST: Suffix = suffix(
     &["ending.honorific", "ending.earnest-request-sisa"],
 );
 pub(super) const INTENTIVE: Suffix = suffix("려", &["ending.intentive-ryeo"]);
+const INTENTIVE_RYEOGO: Suffix = suffix("려고", &["ending.intentive-ryeogo"]);
+const HONORIFIC_INTENTIVE_RYEOGO: Suffix =
+    suffix("시려고", &["ending.honorific", "ending.intentive-ryeogo"]);
 pub(super) const CONDITIONAL: Suffix = suffix("면", &["ending.conditional"]);
 pub(super) const COORDINATE: Suffix = suffix("며", &["ending.coordinate-myeo"]);
 pub(super) const INTENTIVE_CONDITIONAL: Suffix = suffix("려면", &["ending.intentive-ryeomyeon"]);
@@ -749,6 +752,8 @@ const EU_SUFFIXES: &[Suffix] = &[
     HONORIFIC_PROPOSITIVE,
     HONORIFIC_EARNEST_REQUEST,
     INTENTIVE,
+    INTENTIVE_RYEOGO,
+    HONORIFIC_INTENTIVE_RYEOGO,
     INTENTIVE_CONDITIONAL,
     HONORIFIC_INTENTIVE_CONDITIONAL,
     suffix("면서", &["ending.simultaneous-myeonseo"]),
@@ -1172,7 +1177,7 @@ fn with_connective_politeness(
         && matched.rule_path.last().is_some_and(|rule| {
             matches!(
                 rule.as_str(),
-                "ending.connective-go" | "ending.quotative-go"
+                "ending.connective-go" | "ending.quotative-go" | "ending.intentive-ryeogo"
             )
         })
     {
@@ -1283,6 +1288,15 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding
+            if following.starts_with("려고")
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| last == '시' || has_rieul_final(last)) =>
+        {
+            &[INTENTIVE_RYEOGO]
+        }
         ContinuationState::StemEnding if following.starts_with('진') => &[NEGATIVE_TOPIC],
         ContinuationState::Eu if following.starts_with("시진") => &[HONORIFIC_NEGATIVE_TOPIC],
         ContinuationState::StemEnding if following.starts_with("지만") => &[JIMAN],
@@ -1563,6 +1577,7 @@ fn verify_simple_continuation(
                                 | "ending.propositive"
                                 | "ending.earnest-request-sisa"
                                 | "ending.intentive-ryeo"
+                                | "ending.intentive-ryeogo"
                                 | "ending.intentive-adnominal"
                                 | "ending.purpose-reo"
                                 | "ending.present-adnominal"
