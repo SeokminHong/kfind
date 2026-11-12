@@ -143,8 +143,29 @@ impl ReferenceMatcher {
                 if !accepts_left_context(left_context, text, start) {
                     return None;
                 }
-                let (mut consumed, mut rules) =
-                    reference_predicate_continuation(*continuation, *pos, consumption_following)?;
+                let (mut consumed, mut rules) = reference_predicate_continuation(
+                    *continuation,
+                    *pos,
+                    consumption_anchor,
+                    consumption_following,
+                )?;
+                if *pos == PredicatePos::Copula
+                    && rules.first().is_some_and(|rule| {
+                        matches!(
+                            rule.as_str(),
+                            "ending.copula-reporting-final"
+                                | "ending.copula-reporting-connective"
+                                | "ending.copula-ro-final"
+                                | "ending.copula-ro-connective"
+                        )
+                    })
+                    && !text[..start]
+                        .chars()
+                        .next_back()
+                        .is_some_and(is_reference_token_character)
+                {
+                    return None;
+                }
                 if !branch.consumption.allows_rule_path(&rules) {
                     return None;
                 }
@@ -664,6 +685,7 @@ const fn reference_suffix(
 fn reference_predicate_continuation(
     state: ContinuationState,
     pos: PredicatePos,
+    anchor: &str,
     following: &str,
 ) -> Option<(usize, Vec<RuleId>)> {
     const AEO: &[ReferenceSuffix] = &[
@@ -1135,6 +1157,33 @@ fn reference_predicate_continuation(
         ContinuationState::Prospective => PROSPECTIVE,
     };
     let additional_endings = match state {
+        ContinuationState::StemEnding
+            if (pos == PredicatePos::Copula || anchor == "아니")
+                && following.starts_with(['란', '람', '랍', '래', '로']) =>
+        {
+            &[
+                reference_suffix("란다", &["ending.copula-reporting-final"]),
+                reference_suffix("람", &["ending.copula-reporting-final"]),
+                reference_suffix("랍니까", &["ending.copula-reporting-final"]),
+                reference_suffix("랍니다", &["ending.copula-reporting-final"]),
+                reference_suffix("랍시고", &["ending.copula-reporting-connective"]),
+                reference_suffix("래", &["ending.copula-reporting-final"]),
+                reference_suffix(
+                    "래요",
+                    &["ending.copula-reporting-final", "ending.polite-yo"],
+                ),
+                reference_suffix("로고", &["ending.copula-ro-final"]),
+                reference_suffix("로구나", &["ending.copula-ro-final"]),
+                reference_suffix("로구려", &["ending.copula-ro-final"]),
+                reference_suffix("로구먼", &["ending.copula-ro-final"]),
+                reference_suffix("로군", &["ending.copula-ro-final"]),
+                reference_suffix("로다", &["ending.copula-ro-final"]),
+                reference_suffix("로되", &["ending.copula-ro-connective"]),
+                reference_suffix("로라", &["ending.copula-ro-final"]),
+                reference_suffix("로서니", &["ending.copula-ro-connective"]),
+                reference_suffix("로세", &["ending.copula-ro-final"]),
+            ]
+        }
         ContinuationState::NieunEnding => NIEUN_EXTENSIONS,
         ContinuationState::Past | ContinuationState::Future
             if reference_nieun_tail(following, "는") =>
@@ -1170,6 +1219,16 @@ fn reference_predicate_continuation(
             NEUNDE
         }
         ContinuationState::Eu if following.starts_with("시냐") => SI_NYA,
+        ContinuationState::Eu if following.starts_with("시로") => &[
+            reference_suffix("시로구나", &["ending.honorific", "ending.copula-ro-final"]),
+            reference_suffix("시로구려", &["ending.honorific", "ending.copula-ro-final"]),
+            reference_suffix("시로구먼", &["ending.honorific", "ending.copula-ro-final"]),
+            reference_suffix("시로군", &["ending.honorific", "ending.copula-ro-final"]),
+            reference_suffix(
+                "시로되",
+                &["ending.honorific", "ending.copula-ro-connective"],
+            ),
+        ],
         ContinuationState::Eu if following.starts_with("시느냐") => SI_NEUNYA,
         ContinuationState::Eu if following.starts_with("셨냐") => SYEOT_NYA,
         ContinuationState::Eu if following.starts_with("셨느냐") => SYEOT_NEUNYA,

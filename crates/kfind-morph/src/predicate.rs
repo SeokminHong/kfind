@@ -261,7 +261,7 @@ fn verify_complete_copula_surface(surface: &str) -> bool {
 /// Verifies an explicit or phonologically contracted copula after a nominal surface.
 #[must_use]
 pub fn verify_copula_surface_after_nominal(preceding: char, surface: &str) -> bool {
-    if is_omitted_copula_ra_ending(surface) {
+    if is_omitted_copula_ending(surface) {
         return preceding_allows_copula_contraction(preceding);
     }
     if !verify_complete_copula_surface(surface) {
@@ -272,8 +272,8 @@ pub fn verify_copula_surface_after_nominal(preceding: char, surface: &str) -> bo
 
 /// Tests the ending after a vowel-final nominal when `이-` is omitted.
 #[must_use]
-pub fn is_omitted_copula_ra_ending(surface: &str) -> bool {
-    continuation::is_copula_ra_ending(surface.strip_prefix('시').unwrap_or(surface))
+pub fn is_omitted_copula_ending(surface: &str) -> bool {
+    continuation::is_copula_omission_ending(surface.strip_prefix('시').unwrap_or(surface))
 }
 
 fn preceding_allows_copula_contraction(preceding: char) -> bool {

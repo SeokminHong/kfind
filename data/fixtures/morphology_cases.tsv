@@ -729,6 +729,14 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 이다	copula	그분은 의삽디다.	match	fused-copula-ending
 이다	copula	갑디까?	no-match	fused-copula-ending
 이다	copula	압디까?	no-match	fused-copula-ending
+이다	copula	사람이 왜 저 모양이래?	match	fused-copula-ending
+이다	copula	저게 무슨 컴퓨터래?	match	fused-copula-ending
+이다	copula	김 선생님은 훌륭한 작가시란다.	match	fused-copula-ending
+이다	copula	이제 봄이로구나.	match	fused-copula-ending
+이다	copula	이야기로되 교훈은 남는다.	match	fused-copula-ending
+이다	copula	왜 이래?	no-match	fused-copula-ending
+이다	copula	제가 말한 건 미래요.	no-match	fused-copula-ending
+많다	adjective	연세는 많으시로되 아직 정정하시다.	match	honorific-ro-ending
 가다	verb	할머니는 벌써 가셨을꼬?	match	rieul-interrogative-honorific-past
 듣다	verb	누가 이야기를 들을세라 목소리를 낮췄다.	match	rieul-concern
 좋다	adjective	날씨가 좋을수록 사람이 많다.	match	rieul-proportional

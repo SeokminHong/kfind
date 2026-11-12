@@ -382,6 +382,46 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.copula-reporting-final"
+category = "final"
+initial = "other"
+forms = ["란다", "람", "랍니까", "랍니다", "래", "래요"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.copula-reporting-connective"
+category = "connective"
+initial = "other"
+forms = ["랍시고"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.copula-ro-final"
+category = "final"
+initial = "other"
+forms = ["로고", "로구나", "로구려", "로구먼", "로군", "로다", "로라", "로세"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.copula-ro-connective"
+category = "connective"
+initial = "other"
+forms = ["로되", "로서니"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.quotative-adnominal"
 category = "adnominal"
 initial = "attach-nieun"
