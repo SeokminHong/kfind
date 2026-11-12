@@ -473,11 +473,17 @@ pub(in crate::structure) fn select_structure(
     {
         return StructureSelection::Adverb;
     }
-    let connective_ji_before_nominal = next_is_unambiguous_nominal
-        && context.current.ends_with('지')
-        && (exact_analysis_ends_with_pos(resource, context.current, |pos| {
-            pos == StructuralPos::EC
-        }) || complete_predicate_connective_ji_path(resource, context.current));
+    let connective_ji_before_nominal = (has_whole_nominal || has_exact_whole_nominal)
+        && (next_is_unambiguous_nominal
+            || (context.current.ends_with('치')
+                && context
+                    .next
+                    .is_some_and(|next| has_complete_object_phrase(resource, next))))
+        && ((context.current.ends_with('지')
+            && exact_analysis_ends_with_pos(resource, context.current, |pos| {
+                pos == StructuralPos::EC
+            }))
+            || complete_predicate_connective_ji_path(resource, context.current));
     if previous_is_determiner && has_whole_nominal && !current_modifies_next_nominal {
         return StructureSelection::NominalWhole;
     }
@@ -543,7 +549,7 @@ pub(in crate::structure) fn select_structure(
     } else {
         fallback
     };
-    if connective_ji_before_nominal && (has_whole_nominal || has_exact_whole_nominal) {
+    if connective_ji_before_nominal {
         StructureSelection::ConnectiveJiNominalFrame {
             fallback: Box::new(fallback),
         }

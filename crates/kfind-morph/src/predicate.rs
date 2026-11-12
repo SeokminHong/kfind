@@ -386,6 +386,18 @@ fn push_fallback_stem(
     Ok(())
 }
 
+pub(crate) fn ha_ji_contracts_after(base: &str) -> bool {
+    base.chars()
+        .next_back()
+        .and_then(decompose_syllable)
+        .is_some_and(|syllable| {
+            matches!(
+                syllable.jongseong,
+                JONG_NONE | JONG_RIEUL | JONG_NIEUN | JONG_MIEUM | JONG_IEUNG
+            )
+        })
+}
+
 fn compile_productive(
     entry: &PredicateEntry,
     stem: &str,
@@ -403,16 +415,7 @@ fn compile_productive(
     );
     if entry.alternation == LexicalAlternation::Ha
         && let Some(base) = stem.strip_suffix('하')
-        && base
-            .chars()
-            .next_back()
-            .and_then(decompose_syllable)
-            .is_some_and(|syllable| {
-                matches!(
-                    syllable.jongseong,
-                    JONG_NONE | JONG_RIEUL | JONG_NIEUN | JONG_MIEUM | JONG_IEUNG
-                )
-            })
+        && ha_ji_contracts_after(base)
     {
         let surface = format!("{base}치");
         let core_len = surface.len();
