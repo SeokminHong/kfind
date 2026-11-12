@@ -163,6 +163,19 @@ corpus.ud-gsd.test.test-s228.verb.하다	하다	verb	smart-exact	58	70	사장님
 corpus.ud-gsd.test.test-s352.verb.어울리다	어울리다	verb	smart-exact	23	38	김치도 묵은지라 어울리고요
 corpus.ud-gsd.test.test-s866.verb.바뀌다	바뀌다	verb	smart-exact	37	52	그늘 식당이 청담 식당으로 바뀌었고요.
 corpus.ud-gsd.test.test-s903.verb.하다	하다	verb	smart-exact	47	62	여기 모든 반찬은 직접 만드신다고 하더라고요.
+corpus.ud-gsd.test.test-s569.verb.작업하다	작업하다	verb	smart-exact	37	58	체인점인데 직접 동태 사서 작업하신다네요
+corpus.ud-gsd.test.test-s870.verb.준비하다	준비하다	verb	smart-exact	74	92	조미료를 일절 사용하지 않고 몸에 좋은 재료만 골라서 준비하신다고 합니다.
+corpus.ud-gsd.test.test-s870.verb.하다	하다	verb	smart-exact	93	102	조미료를 일절 사용하지 않고 몸에 좋은 재료만 골라서 준비하신다고 합니다.
+corpus.ud-gsd.test.test-s903.verb.만들다	만들다	verb	smart-exact	31	46	여기 모든 반찬은 직접 만드신다고 하더라고요.
+corpus.ud-gsd.test.test-s893.adjective.필요하다	필요하다	adjective	smart-exact	0	18	필요하시다면 방문 수리 및 방문 설치가 가능합니다.
+regression.honorific-declarative.adjective	좋다	adjective	smart-exact	10	25	기분이 좋으시다고 들었어요.
+regression.honorific-declarative.adnominal	듣다	verb	smart-exact	10	25	설명을 들으신다는 이야기를 들었다.
+regression.honorific-declarative.nonhonorific-verb	먹다	verb	smart-exact	4	19	잘 먹는다네요.
+regression.honorific-declarative.nonhonorific-adjective	크다	adjective	smart-exact	14	26	가격 차가 크다네요.
+regression.honorific-declarative.action-only	크다	adjective	no-match	25	37	아이들이 한 뼘 더 크신다고 하셨다.
+regression.honorific-declarative.rieul-adjective	길다	adjective	smart-exact	23	35	선생님은 머리가 기시다고 들었어요.
+regression.honorific-declarative.go	가다	verb	smart-exact	47	59	특히 사람들이 많이 붐비는 시간에 가신다면 음식을 먹으며 지불하는 돈에 대한 제대로 된 서비스를 받지 못할 것입니다.
+regression.honorific-declarative.grind	갈다	verb	smart-exact	24	36	손님이 칼을 직접 가신다면 숫돌을 드리겠습니다.
 corpus.ud-gsd.test.test-s979.adjective.있다	있다	adjective	smart-exact	87	102	식사를 마치시면 밖에 난로와 군고구마도 즐길 수 있는 하우스도 있더라고요.
 regression.go-yo.past	좋다	adjective	smart-exact	10	22	날씨가 좋았고요.
 regression.go-yo.future	좋다	adjective	smart-exact	10	22	날씨가 좋겠고요.

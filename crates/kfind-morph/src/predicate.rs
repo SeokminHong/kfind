@@ -917,16 +917,22 @@ fn compile_rieul_honorific(
             vec![rule("ending.honorific"), rule("ending.future-adnominal")],
         ),
     ] {
+        let continuation = if !entry.pos.is_action() && surface.ends_with("시다") {
+            ContinuationState::Declarative
+        } else {
+            ContinuationState::Terminal
+        };
+        push_branch(branches, entry, surface, core_len, continuation, rules);
+    }
+    if entry.pos.is_action() {
         push_branch(
             branches,
             entry,
-            surface,
+            format!("{base}신다"),
             core_len,
-            ContinuationState::Terminal,
-            rules,
+            ContinuationState::Declarative,
+            vec![rule("ending.honorific"), rule("ending.declarative")],
         );
-    }
-    if entry.pos.is_action() {
         for suffix in continuation::HONORIFIC_BIEUP_ENDINGS {
             push_branch(
                 branches,

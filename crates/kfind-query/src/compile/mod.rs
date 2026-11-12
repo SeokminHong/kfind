@@ -99,6 +99,7 @@ const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.quotative-neunde",
     "ending.quotative-ji",
     "ending.final-da",
+    "ending.declarative",
     "ending.connective-go",
     "ending.honorific",
     "ending.polite-imperative",

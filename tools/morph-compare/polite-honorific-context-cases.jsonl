@@ -1,2 +1,4 @@
 {"id":"roll-drink-context","query":"말다","pos":"verb","text":"물잔을 들어 입에 대세요. 이렇게 마셔요.","expected":false,"gold_byte_start":45,"gold_byte_end":54,"paired_case_id":"roll-positive"}
 {"id":"roll-positive","query":"말다","pos":"verb","text":"김 위에 밥을 펴고 속을 올리세요. 이렇게 마셔요.","expected":true,"gold_byte_start":56,"gold_byte_end":65,"paired_case_id":"roll-drink-context"}
+{"id":"gsd:test-s907:verb:갈다","query":"갈다","pos":"verb","text":"특히 사람들이 많이 붐비는 시간에 가신다면 음식을 먹으며 지불하는 돈에 대한 제대로 된 서비스를 받지 못할 것입니다.","expected":false,"gold_byte_start":47,"gold_byte_end":59,"paired_case_id":"grind-conditional-positive"}
+{"id":"grind-conditional-positive","query":"갈다","pos":"verb","text":"손님이 칼을 직접 가신다면 숫돌을 드리겠습니다.","expected":true,"gold_byte_start":24,"gold_byte_end":36,"paired_case_id":"gsd:test-s907:verb:갈다"}
