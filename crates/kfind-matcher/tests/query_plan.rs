@@ -2990,6 +2990,26 @@ fn adverb_topic_canonical_candidates_keep_the_whole_syllable() {
 }
 
 #[test]
+fn numeric_distributive_accepts_a_decomposed_unit_and_suffix() {
+    let matcher = compile_embedded_with_resource(
+        "n:개",
+        CompileOptions {
+            normalization: NormalizationMode::Canonical,
+            ..Default::default()
+        },
+        component_resource_from_entries([component_entry("개", "NNBC")]),
+    );
+    let text: String = "1개씩".nfd().collect();
+    let unit: String = "개".nfd().collect();
+    let diagnostics = kfind_matcher::SearchDiagnostics::default();
+    assert_eq!(
+        matcher.find_span_at_with_diagnostics(text.as_bytes(), 0, &diagnostics),
+        Some(1..1 + unit.len())
+    );
+    assert!(!diagnostics.structural_verification_incomplete());
+}
+
+#[test]
 fn structural_diagnostics_are_scoped_and_preserve_matches() {
     use kfind_matcher::SearchDiagnostics;
     for query in ["n:명사", "n:명사 n:사용자"] {

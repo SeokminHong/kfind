@@ -21,3 +21,62 @@ pyeongbang-meter	평방미터	noun	exact	22	37	창고의 면적은 15평방미�
 pyeongbang-kilometer	평방킬로미터	noun	exact	23	44	그 섬의 면적은 12평방킬로미터에 이른다.
 unrelated-compound	패	noun	no-match	8	14	그는 3패물을 보관했다.
 incomplete-suffix	년대	noun	no-match	11	20	그는 1980년대사를 공부했다.
+krdict-counter-28118	가닥	noun	exact	1	7	1가닥.
+krdict-counter-14863	가래	noun	exact	1	7	1가래.
+krdict-counter-57276	게임	noun	exact	1	7	2게임.
+krdict-counter-23937	계단	noun	exact	1	7	1계단.
+krdict-counter-27585	곡조	noun	exact	1	7	1곡조.
+krdict-counter-36164	굽이	noun	exact	1	7	1굽이.
+krdict-counter-89894	까풀	noun	exact	1	7	1까풀.
+krdict-counter-26529	꺼풀	noun	exact	1	7	1꺼풀.
+krdict-counter-40680	꼬치	noun	exact	1	7	1꼬치.
+krdict-counter-17557	꿰미	noun	exact	1	7	2꿰미.
+krdict-counter-38436	끼니	noun	exact	1	7	1끼니.
+krdict-counter-26299	낱	noun	exact	1	4	1낱.
+krdict-counter-47069	대접	noun	exact	1	7	1대접.
+krdict-counter-47083	도막	noun	exact	1	7	3도막.
+krdict-counter-64691	돌림	noun	exact	1	7	5돌림.
+krdict-counter-48850	동강	noun	exact	1	7	2동강.
+krdict-counter-50959	드럼	noun	exact	1	7	5드럼.
+krdict-counter-54074	떨기	noun	exact	1	7	2떨기.
+krdict-counter-54160	뙈기	noun	exact	1	7	1뙈기.
+krdict-counter-57330	박스	noun	exact	1	7	1박스.
+krdict-counter-15870	발자국	noun	exact	1	10	1발자국.
+krdict-counter-59275	보시기	noun	exact	1	10	1보시기.
+krdict-counter-59925	봉	noun	exact	1	4	3봉.
+krdict-counter-89240	사단	noun	exact	1	7	5사단.
+krdict-counter-61915	사리	noun	exact	1	7	1사리.
+krdict-counter-61186	삼태기	noun	exact	1	10	1삼태기.
+krdict-counter-62053	세기	noun	exact	1	7	1세기.
+krdict-counter-65277	스푼	noun	exact	1	7	2스푼.
+krdict-counter-66345	쌈지	noun	exact	1	7	3쌈지.
+krdict-counter-66757	알갱이	noun	exact	1	10	2알갱이.
+krdict-counter-71531	음절	noun	exact	1	7	1음절.
+krdict-counter-73955	자락	noun	exact	1	7	1자락.
+krdict-counter-77506	젓갈	noun	exact	1	7	1젓갈.
+krdict-counter-91756	종	noun	exact	1	4	2종.
+krdict-counter-76084	종지	noun	exact	1	7	3종지.
+krdict-counter-76697	죽	noun	exact	1	4	2죽.
+krdict-counter-93644	차시	noun	exact	1	7	1차시.
+krdict-counter-32792	컵	noun	exact	1	4	1컵.
+krdict-counter-79598	타래	noun	exact	1	7	4타래.
+krdict-counter-81961	페이지	noun	exact	1	10	2페이지.
+krdict-counter-71353	표	noun	exact	1	4	1표.
+krdict-counter-84325	학점	noun	exact	1	7	3학점.
+krdict-counter-84966	행	noun	exact	1	4	7행.
+krdict-counter-86781	호봉	noun	exact	1	7	1호봉.
+distributive-catalog	켜	noun	exact	11	14	과일을 1켜씩 넣었다.
+distributive-source	개	noun	exact	11	14	과일을 1개씩 넣었다.
+distributive-spaced	켜	noun	exact	12	15	과일을 1 켜씩 넣었다.
+distributive-topic	개	noun	exact	8	11	과일 1개씩은 남겨 두었다.
+distributive-invalid-particle	개	noun	no-match	8	11	과일 1개씩는 남겨 두었다.
+distributive-incomplete	개	noun	no-match	11	14	기계의 1개씩짜리라는 표기는 잘못됐다.
+distributive-nonunit	책상	noun	no-match	11	17	책상을 1책상씩 옮겼다.
+unit-not-substring	사단	noun	no-match	1	7	1사단장이 도착했다.
+quarter	분기	noun	exact	11	23	회사는 3분기부터 흑자를 냈다.
+book-volume	책	noun	exact	25	34	그 필사본은 모두 2책으로 묶였다.
+regiment	연대	noun	exact	8	17	육군 3연대가 이동했다.
+article-number	항	noun	exact	8	14	공고 3항에 기준이 있다.
+ordinal-article	항	noun	exact	11	17	공고 제3항에 기준이 있다.
+ordinal-class	기	noun	exact	4	10	제3기가 출범했다.
+ordinal-nonunit	책상	noun	no-match	4	10	제3책상에서 회의를 열었다.
