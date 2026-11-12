@@ -74,8 +74,11 @@ def main() -> None:
         raise ValueError("등록한 접미사 뜻풀이에 대응하는 단어 용례가 빠졌습니다.")
     print("// 접미사 표제어:뜻풀이, 독립 명사 표제어")
     print("const STDICT_ATTACHED_NOMINAL_USAGES: &[(&str, &str)] = &[")
-    for word, suffix, suffix_id, sense_id, noun_id in sorted(rows):
-        print(f'    ("{word}", "{suffix}"), // {suffix_id}:{sense_id}, {noun_id}')
+    for suffix, word, suffix_id, sense_id, noun_id in sorted(
+        (suffix, word, suffix_id, sense_id, noun_id)
+        for word, suffix, suffix_id, sense_id, noun_id in rows
+    ):
+        print(f'    ("{suffix}", "{word}"), // {suffix_id}:{sense_id}, {noun_id}')
     print("];")
 
 
