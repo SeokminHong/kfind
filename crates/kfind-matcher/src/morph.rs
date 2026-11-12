@@ -1113,6 +1113,26 @@ impl MorphMatcher {
             return true;
         }
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
+        let core = &candidate.verified.core;
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        ) && *core == candidate.consumed
+            && whole.start < core.start
+            && core.end < whole.end
+            && patterns.iter().any(|pattern| {
+                pattern.fine_pos == DataFinePos::Nng
+                    && pattern.component_capability.allows_runtime()
+            })
+        {
+            let parts = [whole.start..core.start, core.clone(), core.end..whole.end];
+            if let [Some(prefix), Some(noun), Some(suffix)] =
+                parts.map(|span| context::normalized_token(haystack, span))
+                && resolver.has_prefixed_nominal_derivation_copula(&prefix, &noun, &suffix)
+            {
+                return true;
+            }
+        }
         if matches!(
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }

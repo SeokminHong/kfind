@@ -239,6 +239,10 @@
   query 후보를 유지한다. `Ambiguous`와 경쟁 proof 전체는 진단 evaluator에서만 물질화한다.
 - program이 보존한 모든 query `Origin`은 결과 provenance에 남기되, corpus 의미 분석을
   추가하지 않는다.
+- 접두사, 독립 일반 명사, 명사 파생 접미사, 지정사 활용이 어절 끝까지 이어지면
+  일반 명사의 범위를 검색한다. 지정사 앞부분에 사전의 완성 명사가 있으면 기존
+  어휘 성분 판정을 사용한다. `비실체적인`의 `실체`와 `반사회적인`의 `사회`가
+  여기에 해당한다.
 - exact component 근거는 완전한 graph path에서 query와 같은 세부 품사 node의 span이
   query core와 정확히 일치할 때만 성립한다. 더 큰 node의 substring이나 여러 component
   경계를 가로지르는 span은 근거가 아니다. nominal component path는 source가 선언한

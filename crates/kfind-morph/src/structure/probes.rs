@@ -4,7 +4,7 @@ use crate::structure::graph::EdgeGraph;
 use crate::structure::lexical::{
     complete_dependent_noun_particle_suffix, complete_nominal_host, complete_nominal_particle_host,
     complete_suffix, exact_analysis_starts_with_pos, has_complete_object_phrase,
-    has_exact_fine_pos, numeric_unit_path_at, predicate_pos_matches,
+    has_exact_fine_pos, has_exact_sequence, numeric_unit_path_at, predicate_pos_matches,
     structural_predicate_pos_matches,
 };
 use crate::structure::paths::predicate::{
@@ -51,6 +51,36 @@ impl ConstraintResolver {
     #[must_use]
     pub fn is_dictionary_numeric_unit(unit: &str) -> bool {
         DICTIONARY_NUMERIC_UNITS.binary_search(&unit).is_ok()
+    }
+
+    #[must_use]
+    pub fn has_prefixed_nominal_derivation_copula(
+        &self,
+        prefix: &str,
+        noun: &str,
+        suffix: &str,
+    ) -> bool {
+        if !has_exact_sequence(&self.resource, prefix, &[StructuralPos::XPN])
+            || !has_exact_sequence(&self.resource, noun, &[StructuralPos::NNG])
+            || !suffix.char_indices().skip(1).any(|(split, _)| {
+                let (derivation, copula) = suffix.split_at(split);
+                derivation
+                    .chars()
+                    .next_back()
+                    .is_some_and(|preceding| verify_copula_surface_after_nominal(preceding, copula))
+                    && complete_suffix(&self.resource, derivation, |pos| pos == StructuralPos::XSN)
+            })
+        {
+            return false;
+        }
+        let mut host = String::with_capacity(prefix.len() + noun.len() + suffix.len());
+        host.push_str(prefix);
+        host.push_str(noun);
+        if self.has_exact_nominal_surface(&host) {
+            return false;
+        }
+        host.push_str(suffix);
+        !self.has_exact_nominal_surface(&host) && !self.has_whole_modifier(&host)
     }
 
     #[must_use]
