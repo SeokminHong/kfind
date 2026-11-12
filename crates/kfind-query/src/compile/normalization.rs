@@ -72,7 +72,7 @@ pub(super) fn normalize_and_merge(
         });
     let mut anchor_heads = HashMap::<Box<[u8]>, usize>::with_capacity(form_capacity);
     let mut merged = Vec::<MergedProgram>::with_capacity(form_capacity);
-    for draft in drafts {
+    for mut draft in drafts {
         let allow_attached = matches!(
             draft.consumption,
             CandidateConsumption::DirectParticleHost { .. }
@@ -80,7 +80,10 @@ pub(super) fn normalize_and_merge(
         let boundary_proof =
             boundary_proof(boundary, draft.smart_left, one_scalar_atom, allow_attached);
         let decision = candidate_decision(boundary, draft.decision);
-        'forms: for (anchor, core_mapping) in normalized_forms(&draft, mode, atom_index)? {
+        let forms = normalized_forms(&draft, mode, atom_index)?;
+        let form_count = forms.len();
+        'forms: for (form_index, (anchor, core_mapping)) in forms.into_iter().enumerate() {
+            let last_form = form_index + 1 == form_count;
             if let Some(head) = anchor_heads.get_mut(anchor.as_bytes()) {
                 let previous_head = *head;
                 let mut current = Some(previous_head);
@@ -97,9 +100,17 @@ pub(super) fn normalize_and_merge(
                             .consumption
                             .merge_source_positions(&draft.consumption);
                         let origins = &mut program.origins;
-                        for origin in &draft.origins {
-                            if !origins.contains(origin) {
-                                origins.push(origin.clone());
+                        if last_form {
+                            for origin in draft.origins.drain(..) {
+                                if !origins.contains(&origin) {
+                                    origins.push(origin);
+                                }
+                            }
+                        } else {
+                            for origin in &draft.origins {
+                                if !origins.contains(origin) {
+                                    origins.push(origin.clone());
+                                }
                             }
                         }
                         origins.sort();
@@ -108,32 +119,34 @@ pub(super) fn normalize_and_merge(
                     current = merged[index].next_same_anchor;
                 }
 
+                let (consumption, origins) = draft.metadata_for_form(last_form);
                 let index = merged.len();
                 merged.push(MergedProgram {
                     key: ProgramKey {
                         anchor: anchor.into_bytes().into_boxed_slice(),
-                        consumption: draft.consumption.clone(),
+                        consumption,
                         core_mapping,
                         boundary: boundary_proof,
                         decision,
                     },
-                    origins: draft.origins.clone(),
+                    origins,
                     next_same_anchor: Some(previous_head),
                 });
                 *head = index;
             } else {
+                let (consumption, origins) = draft.metadata_for_form(last_form);
                 let index = merged.len();
                 let anchor = anchor.into_bytes().into_boxed_slice();
                 anchor_heads.insert(anchor.clone(), index);
                 merged.push(MergedProgram {
                     key: ProgramKey {
                         anchor,
-                        consumption: draft.consumption.clone(),
+                        consumption,
                         core_mapping,
                         boundary: boundary_proof,
                         decision,
                     },
-                    origins: draft.origins.clone(),
+                    origins,
                     next_same_anchor: None,
                 });
             }
@@ -143,6 +156,19 @@ pub(super) fn normalize_and_merge(
         .into_iter()
         .map(|merged| materialize_program(merged, analyses))
         .collect())
+}
+
+impl DraftBranch {
+    fn metadata_for_form(&mut self, last_form: bool) -> (CandidateConsumption, Vec<Origin>) {
+        if last_form {
+            (
+                std::mem::replace(&mut self.consumption, CandidateConsumption::Anchor),
+                std::mem::take(&mut self.origins),
+            )
+        } else {
+            (self.consumption.clone(), self.origins.clone())
+        }
+    }
 }
 
 fn candidate_decision(policy: BoundaryPolicy, requested: DraftDecision) -> DraftDecision {
@@ -222,8 +248,8 @@ fn normalized_forms(
                     })?;
                     let normalized_length = match form {
                         NormalizedForm::Raw => prefix.len(),
-                        NormalizedForm::Nfc => prefix.nfc().collect::<String>().len(),
-                        NormalizedForm::Nfd => prefix.nfd().collect::<String>().len(),
+                        NormalizedForm::Nfc => prefix.nfc().map(char::len_utf8).sum(),
+                        NormalizedForm::Nfd => prefix.nfd().map(char::len_utf8).sum(),
                     };
                     CoreMapping::PrefixBytes(normalized_length)
                 }
