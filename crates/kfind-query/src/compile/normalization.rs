@@ -80,10 +80,15 @@ pub(super) fn normalize_and_merge(
         let boundary_proof =
             boundary_proof(boundary, draft.smart_left, one_scalar_atom, allow_attached);
         let decision = candidate_decision(boundary, draft.decision);
+        let anchor_mode = if matches!(draft.consumption, CandidateConsumption::FusedCopulaEnding) {
+            NormalizationMode::Nfc
+        } else {
+            mode
+        };
         let (first, second) = normalized_forms(
             std::mem::take(&mut draft.anchor),
             draft.core_mapping,
-            mode,
+            anchor_mode,
             atom_index,
         )?;
         let has_second = second.is_some();

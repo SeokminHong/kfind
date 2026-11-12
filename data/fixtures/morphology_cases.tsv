@@ -710,6 +710,14 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 먹다	verb	아침에 무엇을 먹을까?	match	rieul-interrogative-coda
 걷다	verb	천천히 걸을까요?	match	rieul-interrogative-irregular
 이다	copula	그 사람이 정말 범인일까?	match	rieul-interrogative-copula
+이다	copula	집 앞을 서성대는 저 사람들은 누굴까?	match	fused-copula-ending
+이다	copula	그 가방은 얼만데?	match	fused-copula-ending
+이다	copula	갈까?	no-match	fused-copula-ending
+이다	copula	“누구요?” “날세.”	match	fused-copula-ending
+이다	copula	이 병에 든 게 상했다.	no-match	fused-copula-ending
+이다	copula	저 하늘을 훨훨 날아다닐 텐데.	match	fused-copula-ending
+이다	copula	반말을 해도 되는 겁니까?	match	fused-copula-ending
+이다	copula	언젠가 알게 되겠지.	no-match	fused-copula-ending
 가다	verb	할머니는 벌써 가셨을꼬?	match	rieul-interrogative-honorific-past
 듣다	verb	누가 이야기를 들을세라 목소리를 낮췄다.	match	rieul-concern
 좋다	adjective	날씨가 좋을수록 사람이 많다.	match	rieul-proportional

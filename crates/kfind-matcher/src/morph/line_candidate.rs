@@ -8,7 +8,7 @@ pub(super) fn find(matcher: &MorphMatcher, haystack: &[u8]) -> Option<LineMatchK
         return first_anchor(matcher, haystack);
     }
 
-    let mut hits = matcher.anchor_engine.hits(haystack, 0);
+    let mut hits = matcher.anchor_hits(haystack, 0);
     let mut current = hits.next()?;
     let mut covered_atoms = vec![false; matcher.plan.atoms.len()];
 
@@ -41,8 +41,7 @@ pub(super) fn find(matcher: &MorphMatcher, haystack: &[u8]) -> Option<LineMatchK
 
 fn first_anchor(matcher: &MorphMatcher, haystack: &[u8]) -> Option<LineMatchKind> {
     matcher
-        .anchor_engine
-        .hits(haystack, 0)
+        .anchor_hits(haystack, 0)
         .next()
         .map(|hit| LineMatchKind::Candidate(hit.span.start))
 }
