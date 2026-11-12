@@ -254,8 +254,10 @@ voice 접미사를 추측하거나 target 표면을 base의 단순 alias로 취�
 저장하지 않는다. 남은 surface만 `lexical.dictionary-conjugation`으로 기록하며
 `inflection`과 `derivation`에서 사용할 수 있다.
 
-형용사 `-이` 부사형은 importer가 `-없다`, `-같다` 계열의 `어간 + 이`와 `르 → ㄹ리` 후보만
-계산한다. 일반 정규 어간 전체에는 적용하지 않는다.
+형용사 `-이` 부사형은 importer가 `-없다`, `-같다` 계열의 `어간 + 이`, `르 → ㄹ리`,
+ㅂ 불규칙 활용이 확인된 어간에서 끝 ㅂ을 뺀 뒤 `-이`가 붙는 후보를 계산한다.
+활용형이 비어 있는 record는 같은 표제어의 다른 한국어기초사전·표준국어대사전 record에서
+확인된 활용을 참고한다.
 한국어기초사전과 표준국어대사전의 `일반어` record가 각각 원형을 형용사로, 같은 후보 표면을
 부사로 독립 등재한 경우에만 `lexical.dictionary-adverbial-i`로 승격한다. 이 표면형은
 `inflection`과 `derivation`에서 사용할 수 있다. 원형·결과 표제어의 source record ID를 함께

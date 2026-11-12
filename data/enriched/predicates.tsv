@@ -279,6 +279,8 @@ lemma	pos	alternation	flags	overrides	derivations
 희부옇다	VA	DropH			
 희뿌옇다	VA	DropH			
 힘겹다	VA	BToWo			
+가깝다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=가까이	
+가볍다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=가벼이	
 간데없다	VA	SurfaceOnly		lexical.dictionary-conjugation=간데없는	
 간데없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=간데없이	
 감쪽같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=감쪽같이	
@@ -294,6 +296,7 @@ lemma	pos	alternation	flags	overrides	derivations
 겸연스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=겸연스레	
 고러다	VV	SurfaceOnly		lexical.dictionary-conjugation=고래	
 고집스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=고집스레	
+곱다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=고이	
 공연스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=공연스레	
 관계없다	VA	SurfaceOnly		lexical.dictionary-conjugation=관계없는	
 관계없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=관계없이	
@@ -308,6 +311,7 @@ lemma	pos	alternation	flags	overrides	derivations
 그지없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=그지없이	
 극성스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=극성스레	
 급작스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=급작스레	
+기껍다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=기꺼이	
 기탄없다	VA	SurfaceOnly		lexical.dictionary-conjugation=기탄없는	
 기탄없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=기탄없이	
 까딱없다	VA	SurfaceOnly		lexical.dictionary-conjugation=까딱없는	
@@ -325,6 +329,7 @@ lemma	pos	alternation	flags	overrides	derivations
 끝없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=끝없이	
 난데없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=난데없이	
 남다르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=남달리	
+너그럽다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=너그러이	
 너르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=널리	
 넉살스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=넉살스레	
 누렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=누러니	
@@ -336,10 +341,10 @@ lemma	pos	alternation	flags	overrides	derivations
 다름없다	VA	SurfaceOnly		lexical.dictionary-conjugation=다름없는	
 다름없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=다름없이	
 다정스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=다정스레	
-다채롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=다채로이	
+다채롭다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=다채로이	
 다행스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=다행스레	
-단조롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=단조로이	
-대수롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=대수로이	
+단조롭다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=단조로이	
+대수롭다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=대수로이	
 대중없다	VA	SurfaceOnly		lexical.dictionary-conjugation=대중없는	
 대중없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=대중없이	
 더없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=더없이	
@@ -348,10 +353,11 @@ lemma	pos	alternation	flags	overrides	derivations
 동트다	VV	SurfaceOnly		lexical.dictionary-conjugation=동터	
 두말없다	VA	SurfaceOnly		lexical.dictionary-conjugation=두말없는	
 두말없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=두말없이	
+두텁다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=두터이	
 둥그렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=둥그러니	
 둥그렇다	VA	SurfaceOnly		lexical.dictionary-conjugation=둥그레	
 듣잡다	VV	SurfaceOnly		lexical.dictionary-conjugation=듣자오니	
-따사롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=따사로이	
+따사롭다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=따사로이	
 똑같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=똑같이	
 뜬금없다	VA	SurfaceOnly		lexical.dictionary-conjugation=뜬금없는	
 뜬금없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=뜬금없이	
@@ -361,7 +367,6 @@ lemma	pos	alternation	flags	overrides	derivations
 만족스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=만족스레	
 많다	VA	SurfaceOnly		lexical.dictionary-related-adverb=많이	
 말끔하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=말끔히	
-말다	VV	SurfaceOnly		lexical.dictionary-conjugation=마오	
 맛깔스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=맛깔스레	
 맛없다	VA	SurfaceOnly		lexical.dictionary-conjugation=맛없는	
 맛없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=맛없이	
@@ -377,7 +382,7 @@ lemma	pos	alternation	flags	overrides	derivations
 멀겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=멀게	
 멋없다	VA	SurfaceOnly		lexical.dictionary-conjugation=멋없는	
 멋있다	VA	SurfaceOnly		lexical.dictionary-conjugation=멋있는	
-명예롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=명예로이	
+명예롭다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=명예로이	
 못쓰다	VV	SurfaceOnly		lexical.dictionary-conjugation=못써	
 문제없다	VA	SurfaceOnly		lexical.dictionary-conjugation=문제없는	
 문제없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=문제없이	
@@ -386,12 +391,13 @@ lemma	pos	alternation	flags	overrides	derivations
 물샐틈없다	VA	SurfaceOnly		lexical.dictionary-conjugation=물샐틈없는	
 물샐틈없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=물샐틈없이	
 미련스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=미련스레	
+반갑다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=반가이	
 받아쓰다	VV	SurfaceOnly		lexical.dictionary-conjugation=받아써	
 받잡다	VV	SurfaceOnly		lexical.dictionary-conjugation=받자오니	
 배부르다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=배불리	
 버릇없다	VA	SurfaceOnly		lexical.dictionary-conjugation=버릇없는	
 버릇없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=버릇없이	
-번거롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=번거로이	
+번거롭다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=번거로이	
 벌겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=벌거니	
 벌겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=벌게	
 변함없다	VA	SurfaceOnly		lexical.dictionary-conjugation=변함없는	
@@ -423,11 +429,11 @@ lemma	pos	alternation	flags	overrides	derivations
 뻔뻔스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=뻔뻔스레	
 뻘겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=뻘거니	
 뻘겋다	VA	SurfaceOnly		lexical.dictionary-conjugation=뻘게	
-사사롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=사사로이	
+사사롭다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=사사로이	
 상관없다	VA	SurfaceOnly		lexical.dictionary-conjugation=상관없는	
 상관없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=상관없이	
 상관있다	VA	SurfaceOnly		lexical.dictionary-conjugation=상관있는	
-새롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=새로이	
+새롭다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=새로이	
 새삼스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=새삼스레	
 서슴없다	VA	SurfaceOnly		lexical.dictionary-conjugation=서슴없는	
 서슴없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=서슴없이	
@@ -442,10 +448,11 @@ lemma	pos	alternation	flags	overrides	derivations
 속절없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=속절없이	
 손색없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=손색없이	
 손쓰다	VV	SurfaceOnly		lexical.dictionary-conjugation=손써	
-수고롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=수고로이	
+수고롭다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=수고로이	
 수고스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=수고스레	
 수없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=수없이	
-순조롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=순조로이	
+순조롭다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=순조로이	
+쉽다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=쉬이	
 스스럼없다	VA	SurfaceOnly		lexical.dictionary-conjugation=스스럼없는	
 스스럼없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=스스럼없이	
 슬프다	VA	SurfaceOnly		lexical.dictionary-related-adverb=슬피	
@@ -483,6 +490,7 @@ lemma	pos	alternation	flags	overrides	derivations
 어림없다	VA	SurfaceOnly		lexical.dictionary-conjugation=어림없는	
 어이없다	VA	SurfaceOnly		lexical.dictionary-conjugation=어이없는	
 어이없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=어이없이	
+어지럽다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=어지러이	
 어쩌다	VV	SurfaceOnly		lexical.dictionary-conjugation=어째	
 어처구니없다	VA	SurfaceOnly		lexical.dictionary-conjugation=어처구니없는	
 어처구니없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=어처구니없이	
@@ -495,7 +503,7 @@ lemma	pos	alternation	flags	overrides	derivations
 영락없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=영락없이	
 온데간데없다	VA	SurfaceOnly		lexical.dictionary-conjugation=온데간데없는	
 온데간데없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=온데간데없이	
-외롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=외로이	
+외롭다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=외로이	
 요란스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=요란스레	
 요러다	VV	SurfaceOnly		lexical.dictionary-conjugation=요래	
 원만하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=원만히	
@@ -512,7 +520,7 @@ lemma	pos	alternation	flags	overrides	derivations
 있다	VA	SurfaceOnly		lexical.dictionary-conjugation=있는	
 자랑스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=자랑스레	
 자연스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=자연스레	
-자유롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=자유로이	
+자유롭다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=자유로이	
 잠잠하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=잠잠히	
 장렬하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=장렬히	
 재미없다	VA	SurfaceOnly		lexical.dictionary-conjugation=재미없는	
@@ -528,7 +536,7 @@ lemma	pos	alternation	flags	overrides	derivations
 조심스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=조심스레	
 주책없다	VA	SurfaceOnly		lexical.dictionary-conjugation=주책없는	
 주책없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=주책없이	
-즐겁다	VA	SurfaceOnly		lexical.dictionary-related-adverb=즐거이	
+즐겁다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=즐거이	
 지독스럽다	VA	SurfaceOnly		lexical.dictionary-related-adverb=지독스레	
 지독하다	VA	SurfaceOnly		lexical.dictionary-related-adverb=지독히	
 진배없다	VA	SurfaceOnly		lexical.dictionary-conjugation=진배없는	
@@ -553,7 +561,7 @@ lemma	pos	alternation	flags	overrides	derivations
 하염없다	VA	SurfaceOnly		lexical.dictionary-conjugation=하염없는	
 하염없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=하염없이	
 하잘것없다	VA	SurfaceOnly		lexical.dictionary-conjugation=하잘것없는	
-한가롭다	VA	SurfaceOnly		lexical.dictionary-related-adverb=한가로이	
+한가롭다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=한가로이	
 한결같다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=한결같이	
 한량없다	VA	SurfaceOnly		lexical.dictionary-conjugation=한량없는	
 한량없다	VA	SurfaceOnly		lexical.dictionary-adverbial-i=한량없이	

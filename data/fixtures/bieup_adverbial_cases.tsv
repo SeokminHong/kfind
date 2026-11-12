@@ -1,0 +1,23 @@
+id	query	pos	expected	byte_start	byte_end	text
+bieup-adverbial-1	가깝다	adjective	exact	0	9	가까이 다가와서 앉으세요.
+bieup-adverbial-2	곱다	adjective	exact	0	6	고이 접어 서랍에 넣었다.
+bieup-adverbial-3	기껍다	adjective	exact	0	9	기꺼이 그 제안을 받아들였다.
+bieup-adverbial-4	너그럽다	adjective	exact	0	12	너그러이 용서해 주세요.
+bieup-adverbial-5	다채롭다	adjective	exact	0	12	다채로이 꾸민 무대가 눈길을 끌었다.
+bieup-adverbial-6	단조롭다	adjective	exact	0	12	단조로이 이어지는 선율이 들렸다.
+bieup-adverbial-7	대수롭다	adjective	exact	0	12	대수로이 여길 일은 아니었다.
+bieup-adverbial-8	두텁다	adjective	exact	0	9	두터이 쌓아 온 신뢰를 지켰다.
+bieup-adverbial-9	따사롭다	adjective	exact	0	12	따사로이 비치는 햇살이 반가웠다.
+bieup-adverbial-10	명예롭다	adjective	exact	0	12	명예로이 선수 생활을 마쳤다.
+bieup-adverbial-11	반갑다	adjective	exact	0	9	반가이 웃으며 손님을 맞았다.
+bieup-adverbial-12	번거롭다	adjective	exact	0	12	번거로이 여기지 않고 부탁을 들어주었다.
+bieup-adverbial-13	사사롭다	adjective	exact	0	12	사사로이 회사 물품을 쓰면 안 된다.
+bieup-adverbial-14	새롭다	adjective	exact	0	9	새로이 문을 연 도서관에 갔다.
+bieup-adverbial-15	수고롭다	adjective	exact	0	12	수고로이 찾아 주셔서 고맙습니다.
+bieup-adverbial-16	순조롭다	adjective	exact	0	12	순조로이 진행되던 공사가 끝났다.
+bieup-adverbial-17	쉽다	adjective	exact	0	6	쉬이 잠들지 못했다.
+bieup-adverbial-18	어지럽다	adjective	exact	0	12	어지러이 흩어진 종이를 주웠다.
+bieup-adverbial-19	외롭다	adjective	exact	0	9	외로이 홀로 밤을 보냈다.
+bieup-adverbial-20	자유롭다	adjective	exact	0	12	자유로이 의견을 나눌 수 있다.
+bieup-adverbial-21	즐겁다	adjective	exact	0	9	즐거이 노래를 불렀다.
+bieup-adverbial-22	한가롭다	adjective	exact	0	12	한가로이 산책하며 오후를 보냈다.

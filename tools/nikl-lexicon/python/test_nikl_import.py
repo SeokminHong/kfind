@@ -159,6 +159,9 @@ class NiklImportTest(unittest.TestCase):
         self.assertEqual(adverbial_i_candidates("같다"), ("같이",))
         self.assertEqual(adverbial_i_candidates("없다"), ("없이",))
         self.assertEqual(adverbial_i_candidates("다르다"), ("달리",))
+        self.assertEqual(adverbial_i_candidates("가볍다", ("가벼워",)), ("가벼이",))
+        self.assertEqual(adverbial_i_candidates("곱다", ("고와",)), ("고이",))
+        self.assertEqual(adverbial_i_candidates("곱다", ("곱아",)), ())
         self.assertEqual(adverbial_i_candidates("깊다"), ())
         self.assertEqual(adverbial_i_candidates("명사"), ())
 

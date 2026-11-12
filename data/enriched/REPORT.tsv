@@ -2068,6 +2068,8 @@ lemma	pos	alternation	flags	surface	target_lemma	krdict_ids	stdict_ids	opendict_
 힘겹다	VA	BToWo				88912	508646:508646001	477469:1	promoted
 힘닿다	VV	Regular				88916	386422:386422001	403628:1	regular-control
 힘입다	VV	Regular				89924	508499:508499001	444128:1|447696:1|448625:1	regular-control
+가깝다	VA	SurfaceOnly		가까이		65200>62494	385349:385349001>387496:387496001	31506:1>551445:1|31506:1>554617:1|31506:1>558058:1|31777:1>551445:1|31777:1>554617:1|31777:1>558058:1|62354:1>551445:1|62354:1>554617:1|62354:1>558058:1|62762:1>551445:1|62762:1>554617:1|62762:1>558058:1|72852:1>551445:1|72852:1>554617:1|72852:1>558058:1|72853:1>551445:1|72853:1>554617:1|72853:1>558058:1	dictionary-adverbial-i
+가볍다	VA	SurfaceOnly		가벼이		26788>14970	510305:510305001>510300:510300001	589783:1>589766:1|589783:1>589767:1|589783:1>589768:1|589783:1>589769:1|589783:1>589772:1|589783:1>589773:1|589783:1>589774:1|589783:1>589775:1|589783:1>589776:1|589783:1>589777:1|589783:1>589779:1|589783:1>589780:1|589784:1>589766:1|589784:1>589767:1|589784:1>589768:1|589784:1>589769:1|589784:1>589772:1|589784:1>589773:1|589784:1>589774:1|589784:1>589775:1|589784:1>589776:1|589784:1>589777:1|589784:1>589779:1|589784:1>589780:1|589785:1>589766:1|589785:1>589767:1|589785:1>589768:1|589785:1>589769:1|589785:1>589772:1|589785:1>589773:1|589785:1>589774:1|589785:1>589775:1|589785:1>589776:1|589785:1>589777:1|589785:1>589779:1|589785:1>589780:1|589786:1>589766:1|589786:1>589767:1|589786:1>589768:1|589786:1>589769:1|589786:1>589772:1|589786:1>589773:1|589786:1>589774:1|589786:1>589775:1|589786:1>589776:1|589786:1>589777:1|589786:1>589779:1|589786:1>589780:1|589787:1>589766:1|589787:1>589767:1|589787:1>589768:1|589787:1>589769:1|589787:1>589772:1|589787:1>589773:1|589787:1>589774:1|589787:1>589775:1|589787:1>589776:1|589787:1>589777:1|589787:1>589779:1|589787:1>589780:1|589788:1>589766:1|589788:1>589767:1|589788:1>589768:1|589788:1>589769:1|589788:1>589772:1|589788:1>589773:1|589788:1>589774:1|589788:1>589775:1|589788:1>589776:1|589788:1>589777:1|589788:1>589779:1|589788:1>589780:1|589789:1>589766:1|589789:1>589767:1|589789:1>589768:1|589789:1>589769:1|589789:1>589772:1|589789:1>589773:1|589789:1>589774:1|589789:1>589775:1|589789:1>589776:1|589789:1>589777:1|589789:1>589779:1|589789:1>589780:1|589790:1>589766:1|589790:1>589767:1|589790:1>589768:1|589790:1>589769:1|589790:1>589772:1|589790:1>589773:1|589790:1>589774:1|589790:1>589775:1|589790:1>589776:1|589790:1>589777:1|589790:1>589779:1|589790:1>589780:1|589791:1>589766:1|589791:1>589767:1|589791:1>589768:1|589791:1>589769:1|589791:1>589772:1|589791:1>589773:1|589791:1>589774:1|589791:1>589775:1|589791:1>589776:1|589791:1>589777:1|589791:1>589779:1|589791:1>589780:1|589792:1>589766:1|589792:1>589767:1|589792:1>589768:1|589792:1>589769:1|589792:1>589772:1|589792:1>589773:1|589792:1>589774:1|589792:1>589775:1|589792:1>589776:1|589792:1>589777:1|589792:1>589779:1|589792:1>589780:1|589794:1>589766:1|589794:1>589767:1|589794:1>589768:1|589794:1>589769:1|589794:1>589772:1|589794:1>589773:1|589794:1>589774:1|589794:1>589775:1|589794:1>589776:1|589794:1>589777:1|589794:1>589779:1|589794:1>589780:1|589795:1>589766:1|589795:1>589767:1|589795:1>589768:1|589795:1>589769:1|589795:1>589772:1|589795:1>589773:1|589795:1>589774:1|589795:1>589775:1|589795:1>589776:1|589795:1>589777:1|589795:1>589779:1|589795:1>589780:1|589796:1>589766:1|589796:1>589767:1|589796:1>589768:1|589796:1>589769:1|589796:1>589772:1|589796:1>589773:1|589796:1>589774:1|589796:1>589775:1|589796:1>589776:1|589796:1>589777:1|589796:1>589779:1|589796:1>589780:1|589797:1>589766:1|589797:1>589767:1|589797:1>589768:1|589797:1>589769:1|589797:1>589772:1|589797:1>589773:1|589797:1>589774:1|589797:1>589775:1|589797:1>589776:1|589797:1>589777:1|589797:1>589779:1|589797:1>589780:1|589798:1>589766:1|589798:1>589767:1|589798:1>589768:1|589798:1>589769:1|589798:1>589772:1|589798:1>589773:1|589798:1>589774:1|589798:1>589775:1|589798:1>589776:1|589798:1>589777:1|589798:1>589779:1|589798:1>589780:1	dictionary-adverbial-i
 간데없다	VA	SurfaceOnly		간데없는		56084	5510:5510001		dictionary-conjugation
 간데없다	VA	SurfaceOnly		간데없이		56084>90385	5510:5510001>5511:5511001	559643:1>522890:1|589724:1>522890:1	dictionary-adverbial-i
 감쪽같다	VA	SurfaceOnly		감쪽같이		22422>22429	7662:7662001>7663:7663001	523051:1>339265:1	dictionary-adverbial-i
@@ -2083,6 +2085,7 @@ lemma	pos	alternation	flags	surface	target_lemma	krdict_ids	stdict_ids	opendict_
 겸연스럽다	VA	SurfaceOnly		겸연스레		87214			dictionary-related-adverb
 고러다	VV	SurfaceOnly		고래		91459	22038:22038001		dictionary-conjugation
 고집스럽다	VA	SurfaceOnly		고집스레		27552			dictionary-related-adverb
+곱다	VA	SurfaceOnly		고이		24959>18824	394919:394919001>396520:396520001	33736:1>331218:1|33736:1>334485:1|33736:1>337655:1|33736:1>338331:1|33736:1>338545:1|3893:1>331218:1|3893:1>334485:1|3893:1>337655:1|3893:1>338331:1|3893:1>338545:1|588052:1>331218:1|588052:1>334485:1|588052:1>337655:1|588052:1>338331:1|588052:1>338545:1|63350:1>331218:1|63350:1>334485:1|63350:1>337655:1|63350:1>338331:1|63350:1>338545:1|68931:1>331218:1|68931:1>334485:1|68931:1>337655:1|68931:1>338331:1|68931:1>338545:1|71499:1>331218:1|71499:1>334485:1|71499:1>337655:1|71499:1>338331:1|71499:1>338545:1|72338:1>331218:1|72338:1>334485:1|72338:1>337655:1|72338:1>338331:1|72338:1>338545:1|72352:1>331218:1|72352:1>334485:1|72352:1>337655:1|72352:1>338331:1|72352:1>338545:1|73198:1>331218:1|73198:1>334485:1|73198:1>337655:1|73198:1>338331:1|73198:1>338545:1	dictionary-adverbial-i
 공연스럽다	VA	SurfaceOnly		공연스레		88305			dictionary-related-adverb
 관계없다	VA	SurfaceOnly		관계없는		22264	398015:398015001		dictionary-conjugation
 관계없다	VA	SurfaceOnly		관계없이		22264>23972	398015:398015001>32432:32432001	33805:1>33806:1|33805:1>4888:1|4842:1>33806:1|4842:1>4888:1	dictionary-adverbial-i
@@ -2097,6 +2100,7 @@ lemma	pos	alternation	flags	surface	target_lemma	krdict_ids	stdict_ids	opendict_
 그지없다	VA	SurfaceOnly		그지없이		32103>32104	401838:401838001>46751:46751001	34818:1>34857:1|34818:1>6918:1|6917:1>34857:1|6917:1>6918:1	dictionary-adverbial-i
 극성스럽다	VA	SurfaceOnly		극성스레		32207			dictionary-related-adverb
 급작스럽다	VA	SurfaceOnly		급작스레		41465			dictionary-related-adverb
+기껍다	VA	SurfaceOnly		기꺼이		38777>38776	49031:49031001>404903:404903001	106627:1>106626:1	dictionary-adverbial-i
 기탄없다	VA	SurfaceOnly		기탄없는		38471	51968:51968001		dictionary-conjugation
 기탄없다	VA	SurfaceOnly		기탄없이		38471>89878	51968:51968001>51969:51969001	342953:1>342954:1	dictionary-adverbial-i
 까딱없다	VA	SurfaceOnly		까딱없는		45206	52653:52653001		dictionary-conjugation
@@ -2114,6 +2118,7 @@ lemma	pos	alternation	flags	surface	target_lemma	krdict_ids	stdict_ids	opendict_
 끝없다	VA	SurfaceOnly		끝없이		16281>16288	58033:58033001>406805:406805001	490332:1>563736:1	dictionary-adverbial-i
 난데없다	VA	SurfaceOnly		난데없이		37258>37264	402869:402869001>59484:59484001	112306:1>112307:1	dictionary-adverbial-i
 남다르다	VA	SurfaceOnly		남달리		36949>36996	62251:62251001>62256:62256001	113097:1>113101:1	dictionary-adverbial-i
+너그럽다	VA	SurfaceOnly		너그러이		40249>40248	406433:406433001>64952:64952001	441894:1>453838:1|444932:1>453838:1|448045:1>453838:1|448677:1>453838:1	dictionary-adverbial-i
 너르다	VA	SurfaceOnly		널리		40266>28560	64666:64666001>65084:65084001	10042:1>36481:1|10042:1>9945:1|36600:1>36481:1|36600:1>9945:1	dictionary-adverbial-i
 넉살스럽다	VA	SurfaceOnly		넉살스레		42803			dictionary-related-adverb
 누렇다	VA	SurfaceOnly		누러니		45598	71262:71262001		dictionary-conjugation
@@ -2125,10 +2130,10 @@ lemma	pos	alternation	flags	surface	target_lemma	krdict_ids	stdict_ids	opendict_
 다름없다	VA	SurfaceOnly		다름없는		28348	410586:410586001		dictionary-conjugation
 다름없다	VA	SurfaceOnly		다름없이		28348>90470	410586:410586001>73307:73307001	344350:1>380821:1	dictionary-adverbial-i
 다정스럽다	VA	SurfaceOnly		다정스레		40586			dictionary-related-adverb
-다채롭다	VA	SurfaceOnly		다채로이		41919			dictionary-related-adverb
+다채롭다	VA	SurfaceOnly		다채로이		41919>90474	412763:412763001>74816:74816001	417651:1>528122:1	dictionary-adverbial-i
 다행스럽다	VA	SurfaceOnly		다행스레		41923			dictionary-related-adverb
-단조롭다	VA	SurfaceOnly		단조로이		41990			dictionary-related-adverb
-대수롭다	VA	SurfaceOnly		대수로이		41874			dictionary-related-adverb
+단조롭다	VA	SurfaceOnly		단조로이		41990>90394	74761:74761001>413137:413137001	417315:1>120502:1	dictionary-adverbial-i
+대수롭다	VA	SurfaceOnly		대수로이		41874>90420	79419:79419001>411457:411457001	491798:1>528347:1	dictionary-adverbial-i
 대중없다	VA	SurfaceOnly		대중없는		90423	409117:409117001		dictionary-conjugation
 대중없다	VA	SurfaceOnly		대중없이		90423>90424	409117:409117001>82042:82042001	404733:1>38217:1|404733:1>7193:1|408040:1>38217:1|408040:1>7193:1	dictionary-adverbial-i
 더없다	VA	SurfaceOnly		더없이		47394>47395	414907:414907001>84176:84176001	127504:1>127505:1	dictionary-adverbial-i
@@ -2137,10 +2142,11 @@ lemma	pos	alternation	flags	surface	target_lemma	krdict_ids	stdict_ids	opendict_
 동트다	VV	SurfaceOnly		동터		48125	414774:414774001		dictionary-conjugation
 두말없다	VA	SurfaceOnly		두말없는		90910	417165:417165001		dictionary-conjugation
 두말없다	VA	SurfaceOnly		두말없이		90910>48351	417165:417165001>91334:91334001	514722:1>2215:1|514722:1>38062:1|518720:1>2215:1|518720:1>38062:1	dictionary-adverbial-i
+두텁다	VA	SurfaceOnly		두터이		48292>48267	415179:415179001>93296:93296001	135604:1>551361:1	dictionary-adverbial-i
 둥그렇다	VA	SurfaceOnly		둥그러니		50261	419865:419865001		dictionary-conjugation
 둥그렇다	VA	SurfaceOnly		둥그레		50261	419865:419865001		dictionary-conjugation
 듣잡다	VV	SurfaceOnly		듣자오니		50558	419817:419817001		dictionary-conjugation
-따사롭다	VA	SurfaceOnly		따사로이		49679			dictionary-related-adverb
+따사롭다	VA	SurfaceOnly		따사로이		49679>90922	416645:416645001>95110:95110001	134947:1>134948:1	dictionary-adverbial-i
 똑같다	VA	SurfaceOnly		똑같이		70801>52143	417719:417719001>93561:93561001	2107:1>2108:1|2107:1>39420:1|2107:1>64275:1|2107:1>69927:1|39419:1>2108:1|39419:1>39420:1|39419:1>64275:1|39419:1>69927:1|64274:1>2108:1|64274:1>39420:1|64274:1>64275:1|64274:1>69927:1	dictionary-adverbial-i
 뜬금없다	VA	SurfaceOnly		뜬금없는		53965	100787:100787001		dictionary-conjugation
 뜬금없다	VA	SurfaceOnly		뜬금없이		53965>53966	100787:100787001>414831:414831001	566741:1>139522:1	dictionary-adverbial-i
@@ -2150,7 +2156,6 @@ lemma	pos	alternation	flags	surface	target_lemma	krdict_ids	stdict_ids	opendict_
 만족스럽다	VA	SurfaceOnly		만족스레		15837			dictionary-related-adverb
 많다	VA	SurfaceOnly		많이		69295			dictionary-related-adverb
 말끔하다	VA	SurfaceOnly		말끔히		51696			dictionary-related-adverb
-말다	VV	SurfaceOnly		마오		69296	111115:111115001|420109:420109001|426667:426667001		dictionary-conjugation
 맛깔스럽다	VA	SurfaceOnly		맛깔스레		51586			dictionary-related-adverb
 맛없다	VA	SurfaceOnly		맛없는		29721	420354:420354001		dictionary-conjugation
 맛없다	VA	SurfaceOnly		맛없이		29721>91108	420354:420354001>111914:111914001	39764:1>441428:1|39764:1>445294:1|39764:1>448062:1|6030:1>441428:1|6030:1>445294:1|6030:1>448062:1|63869:1>441428:1|63869:1>445294:1|63869:1>448062:1	dictionary-adverbial-i
@@ -2166,7 +2171,7 @@ lemma	pos	alternation	flags	surface	target_lemma	krdict_ids	stdict_ids	opendict_
 멀겋다	VA	SurfaceOnly		멀게		54852	110310:110310001|420156:420156001		dictionary-conjugation
 멋없다	VA	SurfaceOnly		멋없는		54987	421522:421522001		dictionary-conjugation
 멋있다	VA	SurfaceOnly		멋있는		15989	115111:115111001		dictionary-conjugation
-명예롭다	VA	SurfaceOnly		명예로이		55354			dictionary-related-adverb
+명예롭다	VA	SurfaceOnly		명예로이		55354>90980	115869:115869001>115870:115870001	148733:1>567744:1	dictionary-adverbial-i
 못쓰다	VV	SurfaceOnly		못써		54781	423021:423021001		dictionary-conjugation
 문제없다	VA	SurfaceOnly		문제없는		56922	424818:424818001		dictionary-conjugation
 문제없다	VA	SurfaceOnly		문제없이		56922>56923	424818:424818001>124735:124735001	421347:1>156474:1	dictionary-adverbial-i
@@ -2175,12 +2180,13 @@ lemma	pos	alternation	flags	surface	target_lemma	krdict_ids	stdict_ids	opendict_
 물샐틈없다	VA	SurfaceOnly		물샐틈없는		56370	425178:425178001		dictionary-conjugation
 물샐틈없다	VA	SurfaceOnly		물샐틈없이		56370>91201	425178:425178001>126733:126733001	156109:1>156110:1	dictionary-adverbial-i
 미련스럽다	VA	SurfaceOnly		미련스레		56279			dictionary-related-adverb
+반갑다	VA	SurfaceOnly		반가이		70861>56746	427373:427373001>132081:132081001	160214:1>159837:1	dictionary-adverbial-i
 받아쓰다	VV	SurfaceOnly		받아써		56546	131730:131730001		dictionary-conjugation
 받잡다	VV	SurfaceOnly		받자오니		56543	132002:132002001		dictionary-conjugation
 배부르다	VA	SurfaceOnly		배불리		58913>59138	429911:429911001>429892:429892001	10351:1>166916:1|42087:1>166916:1|65404:1>166916:1|69699:1>166916:1	dictionary-adverbial-i
 버릇없다	VA	SurfaceOnly		버릇없는		58308	139739:139739001		dictionary-conjugation
 버릇없다	VA	SurfaceOnly		버릇없이		58308>58307	139739:139739001>144165:144165001	569564:1>422293:1	dictionary-adverbial-i
-번거롭다	VA	SurfaceOnly		번거로이		14499			dictionary-related-adverb
+번거롭다	VA	SurfaceOnly		번거로이		14499>91299	140459:140459001>432147:432147001	165578:1>496210:1|30264:1>496210:1|61937:1>496210:1	dictionary-adverbial-i
 벌겋다	VA	SurfaceOnly		벌거니		59091	431382:431382001		dictionary-conjugation
 벌겋다	VA	SurfaceOnly		벌게		59091	431382:431382001		dictionary-conjugation
 변함없다	VA	SurfaceOnly		변함없는		58764	436097:436097001		dictionary-conjugation
@@ -2212,11 +2218,11 @@ lemma	pos	alternation	flags	surface	target_lemma	krdict_ids	stdict_ids	opendict_
 뻔뻔스럽다	VA	SurfaceOnly		뻔뻔스레		61984			dictionary-related-adverb
 뻘겋다	VA	SurfaceOnly		뻘거니		61276	438578:438578001		dictionary-conjugation
 뻘겋다	VA	SurfaceOnly		뻘게		61276	438578:438578001		dictionary-conjugation
-사사롭다	VA	SurfaceOnly		사사로이		61152			dictionary-related-adverb
+사사롭다	VA	SurfaceOnly		사사로이		61152>61151	439907:439907001>171035:171035001	183441:1>424319:1	dictionary-adverbial-i
 상관없다	VA	SurfaceOnly		상관없는		16206	441431:441431001		dictionary-conjugation
 상관없다	VA	SurfaceOnly		상관없이		16206>16217	441431:441431001>170570:170570001	12942:1>12943:1|12942:1>43950:1|43949:1>12943:1|43949:1>43950:1	dictionary-adverbial-i
 상관있다	VA	SurfaceOnly		상관있는		62212	170327:170327001		dictionary-conjugation
-새롭다	VA	SurfaceOnly		새로이		29029			dictionary-related-adverb
+새롭다	VA	SurfaceOnly		새로이		29029>16233	435588:435588001>181436:181436001	13439:1>13440:1|13439:1>45397:1|45396:1>13440:1|45396:1>45397:1|65391:1>13440:1|65391:1>45397:1	dictionary-adverbial-i
 새삼스럽다	VA	SurfaceOnly		새삼스레		63350			dictionary-related-adverb
 서슴없다	VA	SurfaceOnly		서슴없는		62702	176523:176523001		dictionary-conjugation
 서슴없다	VA	SurfaceOnly		서슴없이		62702>62703	176523:176523001>176524:176524001	194162:1>194163:1	dictionary-adverbial-i
@@ -2231,10 +2237,11 @@ lemma	pos	alternation	flags	surface	target_lemma	krdict_ids	stdict_ids	opendict_
 속절없다	VA	SurfaceOnly		속절없이		64268>64267	192162:192162001>449320:449320001	200814:1>200815:1	dictionary-adverbial-i
 손색없다	VA	SurfaceOnly		손색없이		63797>63798	191908:191908001>191909:191909001	500143:1>426339:1	dictionary-adverbial-i
 손쓰다	VV	SurfaceOnly		손써		63950	193142:193142001		dictionary-conjugation
-수고롭다	VA	SurfaceOnly		수고로이		64023			dictionary-related-adverb
+수고롭다	VA	SurfaceOnly		수고로이		64023>64088	190757:190757001>448186:448186001	203677:1>203678:1	dictionary-adverbial-i
 수고스럽다	VA	SurfaceOnly		수고스레		64028			dictionary-related-adverb
 수없다	VA	SurfaceOnly		수없이		64602>15637	194921:194921001>443766:443766001	537269:1>463620:1	dictionary-adverbial-i
-순조롭다	VA	SurfaceOnly		순조로이		64590			dictionary-related-adverb
+순조롭다	VA	SurfaceOnly		순조로이		64590>64589	450842:450842001>194290:194290001	537495:1>206759:1	dictionary-adverbial-i
+쉽다	VA	SurfaceOnly		쉬이		66314>65229	449909:449909001>197981:197981001	15282:1>14936:1|15282:1>46444:1|15282:1>65661:1|45944:1>14936:1|45944:1>46444:1|45944:1>65661:1|65602:1>14936:1|65602:1>46444:1|65602:1>65661:1	dictionary-adverbial-i
 스스럼없다	VA	SurfaceOnly		스스럼없는		65065	203661:203661001		dictionary-conjugation
 스스럼없다	VA	SurfaceOnly		스스럼없이		65065>65079	203661:203661001>451271:451271001	390420:1>537682:1	dictionary-adverbial-i
 슬프다	VA	SurfaceOnly		슬피		65103			dictionary-related-adverb
@@ -2272,6 +2279,7 @@ lemma	pos	alternation	flags	surface	target_lemma	krdict_ids	stdict_ids	opendict_
 어림없다	VA	SurfaceOnly		어림없는		70506	461095:461095001		dictionary-conjugation
 어이없다	VA	SurfaceOnly		어이없는		67108	460918:460918001		dictionary-conjugation
 어이없다	VA	SurfaceOnly		어이없이		67108>67109	460918:460918001>224613:224613001	502464:1>465637:1	dictionary-adverbial-i
+어지럽다	VA	SurfaceOnly		어지러이		14588>67086	458446:458446001>227944:227944001	224398:1>369303:1|224398:1>372636:1|224398:1>374701:1|224398:1>375091:1|31027:1>369303:1|31027:1>372636:1|31027:1>374701:1|31027:1>375091:1|62395:1>369303:1|62395:1>372636:1|62395:1>374701:1|62395:1>375091:1|69308:1>369303:1|69308:1>372636:1|69308:1>374701:1|69308:1>375091:1|71708:1>369303:1|71708:1>372636:1|71708:1>374701:1|71708:1>375091:1	dictionary-adverbial-i
 어쩌다	VV	SurfaceOnly		어째		29765	461380:461380001		dictionary-conjugation
 어처구니없다	VA	SurfaceOnly		어처구니없는		91843	227854:227854001		dictionary-conjugation
 어처구니없다	VA	SurfaceOnly		어처구니없이		91843>67150	227854:227854001>227855:227855001	465927:1>502783:1	dictionary-adverbial-i
@@ -2284,7 +2292,7 @@ lemma	pos	alternation	flags	surface	target_lemma	krdict_ids	stdict_ids	opendict_
 영락없다	VA	SurfaceOnly		영락없이		67685>93468	232636:232636001>460276:460276001	231144:1>231145:1	dictionary-adverbial-i
 온데간데없다	VA	SurfaceOnly		온데간데없는		68620	459072:459072001		dictionary-conjugation
 온데간데없다	VA	SurfaceOnly		온데간데없이		68620>68621	459072:459072001>237314:237314001	235698:1>503843:1	dictionary-adverbial-i
-외롭다	VA	SurfaceOnly		외로이		67854			dictionary-related-adverb
+외롭다	VA	SurfaceOnly		외로이		67854>68151	466964:466964001>244986:244986001	430345:1>467291:1	dictionary-adverbial-i
 요란스럽다	VA	SurfaceOnly		요란스레		69268			dictionary-related-adverb
 요러다	VV	SurfaceOnly		요래		89713	248700:248700001		dictionary-conjugation
 원만하다	VA	SurfaceOnly		원만히		69863			dictionary-related-adverb
@@ -2301,7 +2309,7 @@ lemma	pos	alternation	flags	surface	target_lemma	krdict_ids	stdict_ids	opendict_
 있다	VA	SurfaceOnly		있는		68797	275069:275069002		dictionary-conjugation
 자랑스럽다	VA	SurfaceOnly		자랑스레		70800			dictionary-related-adverb
 자연스럽다	VA	SurfaceOnly		자연스레		69512			dictionary-related-adverb
-자유롭다	VA	SurfaceOnly		자유로이		71198			dictionary-related-adverb
+자유롭다	VA	SurfaceOnly		자유로이		71198>73574	471736:471736001>270373:270373001	543281:1>469711:1	dictionary-adverbial-i
 잠잠하다	VA	SurfaceOnly		잠잠히		73671			dictionary-related-adverb
 장렬하다	VA	SurfaceOnly		장렬히		73393			dictionary-related-adverb
 재미없다	VA	SurfaceOnly		재미없는		57315	474279:474279001		dictionary-conjugation
@@ -2317,7 +2325,7 @@ lemma	pos	alternation	flags	surface	target_lemma	krdict_ids	stdict_ids	opendict_
 조심스럽다	VA	SurfaceOnly		조심스레		91752			dictionary-related-adverb
 주책없다	VA	SurfaceOnly		주책없는		77098	301404:301404001		dictionary-conjugation
 주책없다	VA	SurfaceOnly		주책없이		77098>77099	301404:301404001>482574:482574001	276057:1>276281:1	dictionary-adverbial-i
-즐겁다	VA	SurfaceOnly		즐거이		62101			dictionary-related-adverb
+즐겁다	VA	SurfaceOnly		즐거이		62101>77337	483118:483118001>313753:313753001	361670:1>279124:1	dictionary-adverbial-i
 지독스럽다	VA	SurfaceOnly		지독스레		76929			dictionary-related-adverb
 지독하다	VA	SurfaceOnly		지독히		76931			dictionary-related-adverb
 진배없다	VA	SurfaceOnly		진배없는		76262	483357:483357001		dictionary-conjugation
@@ -2342,7 +2350,7 @@ lemma	pos	alternation	flags	surface	target_lemma	krdict_ids	stdict_ids	opendict_
 하염없다	VA	SurfaceOnly		하염없는		84012	501488:501488001		dictionary-conjugation
 하염없다	VA	SurfaceOnly		하염없이		84012>84013	501488:501488001>361312:361312001	27651:1>370480:1|27651:1>373985:1|59396:1>370480:1|59396:1>373985:1	dictionary-adverbial-i
 하잘것없다	VA	SurfaceOnly		하잘것없는		84536	363118:363118001		dictionary-conjugation
-한가롭다	VA	SurfaceOnly		한가로이		84077			dictionary-related-adverb
+한가롭다	VA	SurfaceOnly		한가로이		84077>84554	495047:495047001>363026:363026001	314714:1>314715:1	dictionary-adverbial-i
 한결같다	VA	SurfaceOnly		한결같이		84091>84092	504740:504740001>360417:360417001	406935:1>27700:1|406935:1>59403:1|410495:1>27700:1|410495:1>59403:1	dictionary-adverbial-i
 한량없다	VA	SurfaceOnly		한량없는		84882	502976:502976001		dictionary-conjugation
 한량없다	VA	SurfaceOnly		한량없이		84882>84883	502976:502976001>366572:366572001	312769:1>312770:1	dictionary-adverbial-i

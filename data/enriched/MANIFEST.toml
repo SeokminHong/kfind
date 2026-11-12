@@ -12,7 +12,7 @@ predicate_count = 14141
 predicate_with_conjugations_count = 6510
 related_adverb_count = 153
 related_voice_derivation_count = 255
-attested_adverbial_count = 88
+attested_adverbial_count = 111
 sanitized_byte_count = 7
 sanitized_locations = ["1_5000_20260619.xml:7177584", "1_5000_20260619.xml:7707029", "2_5000_20260619.xml:26688097", "3_5000_20260619.xml:1622737", "5_5000_20260619.xml:2780232", "5_5000_20260619.xml:25054056", "5_5000_20260619.xml:25059684"]
 
@@ -25,7 +25,7 @@ predicate_count = 69873
 predicate_with_conjugations_count = 67990
 related_adverb_count = 0
 related_voice_derivation_count = 0
-attested_adverbial_count = 223
+attested_adverbial_count = 340
 sanitized_byte_count = 0
 sanitized_locations = []
 
@@ -38,6 +38,6 @@ predicate_count = 136724
 predicate_with_conjugations_count = 93507
 related_adverb_count = 0
 related_voice_derivation_count = 0
-attested_adverbial_count = 586
+attested_adverbial_count = 1139
 sanitized_byte_count = 0
 sanitized_locations = []
