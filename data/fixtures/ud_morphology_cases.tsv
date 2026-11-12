@@ -82,6 +82,10 @@ corpus.ud-kaist.test.MH2_0010-s199.verb.가다	가다	verb	match	118	127	이때�
 corpus.ud-kaist.test.MH2_0010-s264.adjective.없다	없다	adjective	match	44	50	얼음에 갇힌 바다는 물결도 거의 없이 잔잔하다.
 corpus.ud-kaist.test.MH2_0010-s318.pronoun.누구	누구	pronoun	match	0	12	누군가가 중국기지까지 걸어갈 수 있겠단다.
 corpus.ud-kaist.test.MH2_0010-s330.adjective.이다	이다	adjective	smart-exact	40	46	아니면 주변 어디에 남아있는 걸까?
+corpus.ud-kaist.dev.MH2_0149-s108.adjective.이다	이다	adjective	no-match	123	129	그리고 볼셰비키 당은 이러한 프롤레타리아트의 임무를 수행하고자 대담하게 권력을 장악하였다.
+regression.copula-past.준수하였다	이다	adjective	no-match	26	32	법적 의무를 준수하였다.
+regression.copula-past.예외였다	이다	adjective	smart-exact	20	26	그 결정은 예외였다.
+regression.copula-past.오류였다	이다	adjective	smart-exact	26	32	그것은 명백한 오류였다.
 corpus.ud-kaist.test.MH2_0070-s138.adjective.다르다	다르다	adjective	match	10	16	이와는 달리 우리나라 신발수출은 91 년 11.3 % 감소한 이후 92년 8월 말까지 16.6 %나 줄었다.
 corpus.ud-kaist.test.MH2_0070-s73.adjective.같다	같다	adjective	match	110	116	또한 각국의 소비지출은 1 개월 평균, 자국통화로 된 금액을 이용하였으며, 미국과 같이 연간단위로 된 통계자료는 월평균으로 환산하여 사용하였다.
 corpus.ud-kaist.test.MH2_0180-s113.pronoun.무어	무어	pronoun	match	39	48	일반적으로는 사항에 관해서 무언가 새로운 것을 경험하려고 하여 주어의 토대를 뛰어넘고 있는 것이다.

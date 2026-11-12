@@ -732,6 +732,21 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_derived_ha_past(&self, host: &str, ending: &str) -> bool {
+        let Some(noun) = host.strip_suffix('하') else {
+            return false;
+        };
+        let Some(tail) = ending.strip_prefix('였').filter(|tail| !tail.is_empty()) else {
+            return false;
+        };
+        !self.has_exact_nominal_surface(host)
+            && self.has_complete_nominal_surface(noun)
+            && has_exact_sequence(&self.resource, "하", &[StructuralPos::XSV])
+            && has_exact_sequence(&self.resource, "였", &[StructuralPos::EP])
+            && complete_suffix(&self.resource, tail, StructuralPos::is_ending)
+    }
+
+    #[must_use]
     pub fn has_nominal_genitive_surface(&self, text: &str) -> bool {
         text.strip_suffix('의').is_some_and(|host| {
             !self.has_exact_nominal_surface(text) && self.has_complete_nominal_surface(host)
