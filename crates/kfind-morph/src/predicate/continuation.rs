@@ -207,6 +207,7 @@ macro_rules! retrospective_endings {
     ($prefix:literal $(, $prior:literal)*) => {
         &[
             suffix(concat!($prefix, "더라"), &[$($prior,)* "ending.retrospective-deora"]),
+            suffix(concat!($prefix, "더라오"), &[$($prior,)* "ending.retrospective-deora", "ending.hao-reporting-dao"]),
             suffix(concat!($prefix, "더라고"), &[$($prior,)* "ending.retrospective-deora", "ending.quotative-go"]),
             suffix(concat!($prefix, "더라고요"), &[$($prior,)* "ending.retrospective-deora", "ending.quotative-go", "ending.polite-yo"]),
             suffix(concat!($prefix, "더구나"), &[$($prior,)* "ending.retrospective-exclamatory"]),
@@ -333,6 +334,40 @@ const DECLARATIVE_CONDITIONAL: Suffix = suffix("면", &["ending.conditional"]);
 const DECLARATIVE_NI: Suffix = suffix("니", &["ending.quotative-ni"]);
 const DECLARATIVE_MYEO: Suffix = suffix("며", &["ending.quotative-myeo"]);
 const DECLARATIVE_JI: Suffix = suffix("지", &["ending.quotative-ji"]);
+const DECLARATIVE_O: Suffix = suffix("오", &["ending.hao-reporting-dao"]);
+const DAO: &[Suffix] = &[suffix("다오", &["ending.hao-reporting-dao"])];
+const HONORIFIC_DAO: &[Suffix] = &[
+    suffix(
+        "신다오",
+        &[
+            "ending.honorific",
+            "ending.declarative",
+            "ending.hao-reporting-dao",
+        ],
+    ),
+    suffix("시다오", &["ending.honorific", "ending.hao-reporting-dao"]),
+    suffix(
+        "셨다오",
+        &[
+            "ending.honorific",
+            "ending.past",
+            "ending.hao-reporting-dao",
+        ],
+    ),
+    suffix(
+        "시겠다오",
+        &[
+            "ending.honorific",
+            "ending.future",
+            "ending.hao-reporting-dao",
+        ],
+    ),
+];
+const HONORIFIC_NIEUN_DAO: &[Suffix] = &[suffix(
+    "다오",
+    &["ending.declarative", "ending.hao-reporting-dao"],
+)];
+const NEGATIVE_RAO: &[Suffix] = &[suffix("라오", &["ending.copula-ra-final"])];
 
 const HONORIFIC_FORMAL: Suffix =
     suffix("십시오", &["ending.honorific", "ending.imperative-formal"]);
@@ -643,6 +678,7 @@ macro_rules! prospective_suffixes {
             suffix(concat!($prefix, "렷다"), &[$($rule,)* "ending.ryeotda"]),
             suffix(concat!($prefix, "리"), &[$($rule,)* "ending.prospective-final"]),
             suffix(concat!($prefix, "리라"), &[$($rule,)* "ending.prospective-final"]),
+            suffix(concat!($prefix, "리라오"), &[$($rule,)* "ending.prospective-final", "ending.hao-reporting-dao"]),
             suffix(concat!($prefix, "리라고"), &[$($rule,)* "ending.prospective-quotative"]),
             suffix(concat!($prefix, "리다"), &[$($rule,)* "ending.prospective-final"]),
             suffix(concat!($prefix, "리오"), &[$($rule,)* "ending.prospective-final"]),
@@ -854,6 +890,30 @@ fn verify_simple_continuation(
             GOSEO
         }
         ContinuationState::Eu if following.starts_with("시고서") => HONORIFIC_GOSEO,
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("다오") => {
+            DAO
+        }
+        ContinuationState::StemEnding
+            if anchor.ends_with('시') && following.starts_with("다오") =>
+        {
+            DAO
+        }
+        ContinuationState::NieunEnding
+            if pos.is_action() && anchor.ends_with('신') && following.starts_with("다오") =>
+        {
+            HONORIFIC_NIEUN_DAO
+        }
+        ContinuationState::Eu
+            if following.starts_with("시다오")
+                || following.starts_with("셨다오")
+                || following.starts_with("시겠다오")
+                || (pos.is_action() && following.starts_with("신다오")) =>
+        {
+            HONORIFIC_DAO
+        }
+        ContinuationState::StemEnding if anchor == "아니" && following.starts_with("라오") => {
+            NEGATIVE_RAO
+        }
         ContinuationState::Eu | ContinuationState::Prospective
             if pos != PredicatePos::Copula && following.starts_with('므') =>
         {
@@ -1071,6 +1131,7 @@ fn declarative_suffix(following: &str) -> Option<&'static Suffix> {
         '니' => Some(&DECLARATIVE_NI),
         '며' => Some(&DECLARATIVE_MYEO),
         '지' => Some(&DECLARATIVE_JI),
+        '오' => Some(&DECLARATIVE_O),
         '우' => Some(&hao::HAO_U),
         _ => None,
     }

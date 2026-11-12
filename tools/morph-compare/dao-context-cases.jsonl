@@ -1,0 +1,16 @@
+{"id":"gandao-first","query":"가다","pos":"verb","text":"그 사람은 쉬는 날이면 산에 간다오.","surface":"간다오","expected":true,"gold_byte_start":38,"gold_byte_end":47,"paired_case_id":"gandao-first-context"}
+{"id":"gandao-first-context","query":"가다","pos":"verb","text":"그 사람은 칼이 무뎌지면 직접 간다오.","surface":"간다오","expected":false,"gold_byte_start":41,"gold_byte_end":50,"paired_case_id":"gandao-first"}
+{"id":"gandao-second-context","query":"갈다","pos":"verb","text":"그 사람은 쉬는 날이면 산에 간다오.","surface":"간다오","expected":false,"gold_byte_start":38,"gold_byte_end":47,"paired_case_id":"gandao-second"}
+{"id":"gandao-second","query":"갈다","pos":"verb","text":"그 사람은 칼이 무뎌지면 직접 간다오.","surface":"간다오","expected":true,"gold_byte_start":41,"gold_byte_end":50,"paired_case_id":"gandao-second-context"}
+{"id":"nandao-first","query":"나다","pos":"verb","text":"저 헛간에서는 밤마다 이상한 소리가 난다오.","surface":"난다오","expected":true,"gold_byte_start":50,"gold_byte_end":59,"paired_case_id":"nandao-first-context"}
+{"id":"nandao-first-context","query":"나다","pos":"verb","text":"저 새는 밤에도 방향을 잃지 않고 잘 난다오.","surface":"난다오","expected":false,"gold_byte_start":49,"gold_byte_end":58,"paired_case_id":"nandao-first"}
+{"id":"nandao-second-context","query":"날다","pos":"verb","text":"저 헛간에서는 밤마다 이상한 소리가 난다오.","surface":"난다오","expected":false,"gold_byte_start":50,"gold_byte_end":59,"paired_case_id":"nandao-second"}
+{"id":"nandao-second","query":"날다","pos":"verb","text":"저 새는 밤에도 방향을 잃지 않고 잘 난다오.","surface":"난다오","expected":true,"gold_byte_start":49,"gold_byte_end":58,"paired_case_id":"nandao-second-context"}
+{"id":"sandao-first","query":"사다","pos":"verb","text":"우리 딸은 과일을 꼭 시장에서 산다오.","surface":"산다오","expected":true,"gold_byte_start":41,"gold_byte_end":50,"paired_case_id":"sandao-first-context"}
+{"id":"sandao-first-context","query":"사다","pos":"verb","text":"우리 딸은 지금 부산에 산다오.","surface":"산다오","expected":false,"gold_byte_start":31,"gold_byte_end":40,"paired_case_id":"sandao-first"}
+{"id":"sandao-second-context","query":"살다","pos":"verb","text":"우리 딸은 과일을 꼭 시장에서 산다오.","surface":"산다오","expected":false,"gold_byte_start":41,"gold_byte_end":50,"paired_case_id":"sandao-second"}
+{"id":"sandao-second","query":"살다","pos":"verb","text":"우리 딸은 지금 부산에 산다오.","surface":"산다오","expected":true,"gold_byte_start":31,"gold_byte_end":40,"paired_case_id":"sandao-second-context"}
+{"id":"pandao-first","query":"파다","pos":"verb","text":"그 사람은 지금도 우물을 손으로 판다오.","surface":"판다오","expected":true,"gold_byte_start":44,"gold_byte_end":53,"paired_case_id":"pandao-first-context"}
+{"id":"pandao-first-context","query":"파다","pos":"verb","text":"그 가게는 동네에서 만든 빵만 판다오.","surface":"판다오","expected":false,"gold_byte_start":41,"gold_byte_end":50,"paired_case_id":"pandao-first"}
+{"id":"pandao-second-context","query":"팔다","pos":"verb","text":"그 사람은 지금도 우물을 손으로 판다오.","surface":"판다오","expected":false,"gold_byte_start":44,"gold_byte_end":53,"paired_case_id":"pandao-second"}
+{"id":"pandao-second","query":"팔다","pos":"verb","text":"그 가게는 동네에서 만든 빵만 판다오.","surface":"판다오","expected":true,"gold_byte_start":41,"gold_byte_end":50,"paired_case_id":"pandao-second-context"}

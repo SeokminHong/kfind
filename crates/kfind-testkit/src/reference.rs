@@ -743,6 +743,7 @@ fn reference_simple_continuation(
         ($prefix:literal $(, $prior:literal)*) => {
             &[
                 reference_suffix(concat!($prefix, "더라"), &[$($prior,)* "ending.retrospective-deora"]),
+                reference_suffix(concat!($prefix, "더라오"), &[$($prior,)* "ending.retrospective-deora", "ending.hao-reporting-dao"]),
                 reference_suffix(concat!($prefix, "더라고"), &[$($prior,)* "ending.retrospective-deora", "ending.quotative-go"]),
                 reference_suffix(concat!($prefix, "더라고요"), &[$($prior,)* "ending.retrospective-deora", "ending.quotative-go", "ending.polite-yo"]),
                 reference_suffix(concat!($prefix, "더구나"), &[$($prior,)* "ending.retrospective-exclamatory"]),
@@ -826,6 +827,7 @@ fn reference_simple_continuation(
         reference_suffix("니", &["ending.quotative-ni"]),
         reference_suffix("며", &["ending.quotative-myeo"]),
         reference_suffix("지", &["ending.quotative-ji"]),
+        reference_suffix("오", &["ending.hao-reporting-dao"]),
         reference_suffix("우", &["ending.hao-final-u"]),
     ];
     const EU: &[ReferenceSuffix] = &[
@@ -1187,6 +1189,7 @@ fn reference_simple_continuation(
                 reference_suffix(concat!($prefix, "렷다"), &[$($rule,)* "ending.ryeotda"]),
                 reference_suffix(concat!($prefix, "리"), &[$($rule,)* "ending.prospective-final"]),
                 reference_suffix(concat!($prefix, "리라"), &[$($rule,)* "ending.prospective-final"]),
+                reference_suffix(concat!($prefix, "리라오"), &[$($rule,)* "ending.prospective-final", "ending.hao-reporting-dao"]),
                 reference_suffix(concat!($prefix, "리라고"), &[$($rule,)* "ending.prospective-quotative"]),
                 reference_suffix(concat!($prefix, "리다"), &[$($rule,)* "ending.prospective-final"]),
                 reference_suffix(concat!($prefix, "리오"), &[$($rule,)* "ending.prospective-final"]),
@@ -1388,6 +1391,59 @@ fn reference_simple_continuation(
             reference_suffix("시고서", &["ending.honorific", "ending.connective-goseo"]),
             reference_suffix("시고서야", &["ending.honorific", "ending.connective-goseo"]),
         ],
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("다오") => {
+            &[reference_suffix("다오", &["ending.hao-reporting-dao"])]
+        }
+        ContinuationState::StemEnding
+            if anchor.ends_with('시') && following.starts_with("다오") =>
+        {
+            &[reference_suffix("다오", &["ending.hao-reporting-dao"])]
+        }
+        ContinuationState::NieunEnding
+            if pos.is_action() && anchor.ends_with('신') && following.starts_with("다오") =>
+        {
+            &[reference_suffix(
+                "다오",
+                &["ending.declarative", "ending.hao-reporting-dao"],
+            )]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시다오")
+                || following.starts_with("셨다오")
+                || following.starts_with("시겠다오")
+                || (pos.is_action() && following.starts_with("신다오")) =>
+        {
+            &[
+                reference_suffix(
+                    "신다오",
+                    &[
+                        "ending.honorific",
+                        "ending.declarative",
+                        "ending.hao-reporting-dao",
+                    ],
+                ),
+                reference_suffix("시다오", &["ending.honorific", "ending.hao-reporting-dao"]),
+                reference_suffix(
+                    "셨다오",
+                    &[
+                        "ending.honorific",
+                        "ending.past",
+                        "ending.hao-reporting-dao",
+                    ],
+                ),
+                reference_suffix(
+                    "시겠다오",
+                    &[
+                        "ending.honorific",
+                        "ending.future",
+                        "ending.hao-reporting-dao",
+                    ],
+                ),
+            ]
+        }
+        ContinuationState::StemEnding if anchor == "아니" && following.starts_with("라오") => {
+            &[reference_suffix("라오", &["ending.copula-ra-final"])]
+        }
         ContinuationState::Eu | ContinuationState::Prospective
             if pos != PredicatePos::Copula && following.starts_with('므') =>
         {

@@ -1,0 +1,9 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	dao	gandao-first-context	가다	verb	false	cfce52437beb85720dee73187bc6074cf970076cb4d4eab813cb748c957463be	contract-positive	same-pos-homograph	이동과 날을 가는 동사의 활용이 같은 표면을 갖는다.
+explicit-pos	dao	gandao-second-context	갈다	verb	false	c79f846f952020745808ebf0959ef9f6c0592e3143317a8b47c936378067eb5e	contract-positive	same-pos-homograph	이동과 날을 가는 동사의 활용이 같은 표면을 갖는다.
+explicit-pos	dao	nandao-first-context	나다	verb	false	0f809990ec2d920c8b5ea8e33b18aca238b844d3c82d21ee6397a4212593f257	contract-positive	same-pos-homograph	소리가 생기는 동사와 공중을 나는 동사의 활용이 같은 표면을 갖는다.
+explicit-pos	dao	nandao-second-context	날다	verb	false	d3b55ae2b356330938abdc49bae904557b1966ee4b7b61f4a094d4abd4a5ceb4	contract-positive	same-pos-homograph	소리가 생기는 동사와 공중을 나는 동사의 활용이 같은 표면을 갖는다.
+explicit-pos	dao	sandao-first-context	사다	verb	false	630d616c8439b9d56d4e35854c1cbd245cddf1b1aa9b2b3946817c578add4dac	contract-positive	same-pos-homograph	물건을 사는 동사와 거주하는 동사의 활용이 같은 표면을 갖는다.
+explicit-pos	dao	sandao-second-context	살다	verb	false	f6ea2f471121ce417e98f6d56f4eddd26e4f40b70744b86c67da3f8dd97898b1	contract-positive	same-pos-homograph	물건을 사는 동사와 거주하는 동사의 활용이 같은 표면을 갖는다.
+explicit-pos	dao	pandao-first-context	파다	verb	false	e4c83478a44b20d0054a879f35c05edf32dfbbfc38336d25ce31a8bae5c83be5	contract-positive	same-pos-homograph	땅을 파는 동사와 물건을 파는 동사의 활용이 같은 표면을 갖는다.
+explicit-pos	dao	pandao-second-context	팔다	verb	false	1f4a063070f678a9435fc7086ea944dbe00c53cffbf85cc8cafd742c0dcef870	contract-positive	same-pos-homograph	땅을 파는 동사와 물건을 파는 동사의 활용이 같은 표면을 갖는다.
