@@ -611,6 +611,25 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_exact_proper_name_surface(&self, text: &str) -> bool {
+        has_exact_fine_pos(&self.resource, text, |pos| pos == DataFinePos::Nnp)
+    }
+
+    #[must_use]
+    pub fn has_exact_pronoun_case_surface(&self, text: &str) -> bool {
+        let mut matched = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
+                matched |= length == text.len()
+                    && matches!(
+                        positions,
+                        [StructuralPos::NP, StructuralPos::JKS | StructuralPos::JKC]
+                    );
+            });
+        matched
+    }
+
+    #[must_use]
     pub fn has_exact_action_predicate_surface(&self, text: &str) -> bool {
         exact_analysis_starts_with_pos(&self.resource, text, |pos| {
             matches!(pos, StructuralPos::VV | StructuralPos::VX)

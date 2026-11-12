@@ -21,7 +21,9 @@ use kfind_query::{
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
 use crate::SearchDiagnostics;
-use crate::boundary::{accepts_requirements, is_boundary_before, surrounding_token_span};
+use crate::boundary::{
+    accepts_requirements, is_boundary_before, is_sentence_end_after, surrounding_token_span,
+};
 use crate::{AnchorBuildError, AnchorBuildLimits, AnchorEngine, AnchorHit};
 
 mod candidates;
@@ -744,15 +746,11 @@ impl MorphMatcher {
                     &consumption_following,
                 )?;
                 if *pos == kfind_morph::PredicatePos::Copula
-                    && matched.rule_path.first().is_some_and(|rule| {
-                        matches!(
-                            rule.as_str(),
-                            "ending.copula-reporting-final"
-                                | "ending.copula-reporting-connective"
-                                | "ending.copula-ro-final"
-                                | "ending.copula-ro-connective"
-                        )
-                    })
+                    && *continuation == kfind_morph::ContinuationState::StemEnding
+                    && matched
+                        .rule_path
+                        .iter()
+                        .any(|rule| rule.as_str().starts_with("ending.copula-"))
                     && is_boundary_before(haystack, hit.span.start)
                 {
                     return None;
@@ -798,6 +796,12 @@ impl MorphMatcher {
                 }
                 let token = std::str::from_utf8(haystack.get(whole.clone())?).ok()?;
                 let normalized_token = token.nfc().collect::<String>();
+                if *pos == kfind_morph::PredicatePos::Copula
+                    && resolver.has_exact_pronoun_case_surface(&normalized_token)
+                    && !resolver.has_exact_predicate_ending_path(&normalized_token, *pos)
+                {
+                    return None;
+                }
                 let normalized_anchor = anchor.nfc().collect::<String>();
                 let normalized_core_len = std::str::from_utf8(haystack.get(core.clone())?)
                     .ok()?
@@ -884,6 +888,19 @@ impl MorphMatcher {
         };
         let token_end = hit.span.end.checked_add(consumed_bytes)?;
         if token_end > haystack.len() || !is_utf8_boundary(haystack, token_end) {
+            return None;
+        }
+        if matches!(
+            &branch.consumption,
+            CandidateConsumption::PredicateContinuation {
+                pos: kfind_morph::PredicatePos::Copula,
+                ..
+            }
+        ) && suffix_rules
+            .iter()
+            .any(|rule| rule.as_str() == "ending.copula-ya")
+            && !is_sentence_end_after(haystack, token_end)
+        {
             return None;
         }
         let token = hit.span.start..token_end;
@@ -1389,7 +1406,9 @@ impl MorphMatcher {
         resolver.has_exact_lost_span_copula_ending_path(&normalized)
             || (matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
                 && (fused_copula::accepts_fused_retrospective(&normalized, resolver)
-                    || fused_copula::accepts_omitted_copula(&normalized, resolver)))
+                    || fused_copula::accepts_omitted_copula(&normalized, resolver, || {
+                        is_sentence_end_after(haystack, candidate.verified.token.end)
+                    })))
     }
 
     fn licensed_nominal_copula_trailing(
@@ -1425,6 +1444,11 @@ impl MorphMatcher {
             return None;
         }
         if kfind_morph::is_omitted_copula_ending(&suffix) {
+            if matches!(suffix.as_ref(), "네" | "네요")
+                && !is_sentence_end_after(haystack, whole.end)
+            {
+                return None;
+            }
             let host = std::str::from_utf8(
                 haystack.get(candidate.consumed.start..candidate.consumed.end)?,
             )

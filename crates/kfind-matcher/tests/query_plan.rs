@@ -2599,6 +2599,73 @@ fn copula_reporting_and_ro_endings_preserve_explicit_and_omitted_spans() {
 }
 
 #[test]
+fn common_copula_endings_distinguish_connectives_politeness_and_address() {
+    let matcher = compile_embedded_with_resource(
+        "adj:이다",
+        CompileOptions::default(),
+        component_resource_from_entries([
+            component_entry("학생", "NNG"),
+            component_entry("어디", "NP"),
+            component_entry("모자", "NNG"),
+            component_entry("영숙", "NNP"),
+            component_entry("동생", "NNG"),
+            component_entry("뭐야", "NP+VCP+EC"),
+            component_entry("차례", "NNG"),
+            component_entry("집", "NNG"),
+            component_entry("아니", "VCN"),
+            component_entry("철수", "NNP"),
+            component_entry("친구", "NNG"),
+            component_entry("하다", "NNG"),
+            component_entry("하시", "NNG"),
+            component_entry("하", "VV"),
+            component_entry("다니", "EC"),
+            component_entry("이자", "NNG"),
+        ]),
+    );
+    let text = "학생이자 어디니? 학생이에요. 모자예요. 영숙이예요. 동생이야. 뭐야? 차례네. 집예요. 아니예요. 철수야! 집이야 언제든 비어 있다. 친구네 갔다. 하다니. 하시지요. 이자 비용이 올랐다.";
+    assert_eq!(
+        matcher
+            .find_all_with_meta(text.as_bytes())
+            .iter()
+            .map(|matched| &text[matched.span.clone()])
+            .collect::<Vec<_>>(),
+        [
+            "이자",
+            "어디니",
+            "이에요",
+            "모자예요",
+            "영숙이예요",
+            "이야",
+            "뭐야",
+            "차례네"
+        ],
+    );
+}
+
+#[test]
+fn standalone_pronoun_subject_does_not_use_the_copula_ending_fallback() {
+    let matcher = compile_with_full_pos_and_resource(
+        "adj:이다",
+        CompileOptions::default(),
+        component_resource_from_entries([
+            component_entry("이", "VCP"),
+            component_entry("게", "EC"),
+            component_entry("이게", "NP+JKS"),
+            component_entry("뭐야", "NP+VCP+EC"),
+        ]),
+    );
+    let text = "이게 뭐야?";
+    assert_eq!(
+        matcher
+            .find_all_with_meta(text.as_bytes())
+            .iter()
+            .map(|matched| &text[matched.span.clone()])
+            .collect::<Vec<_>>(),
+        ["뭐야"],
+    );
+}
+
+#[test]
 fn direct_particle_plans_validate_the_attached_host_in_smart_mode() {
     let options = CompileOptions {
         global_pos: Some(CoarsePos::Particle),

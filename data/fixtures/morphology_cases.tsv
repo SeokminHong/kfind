@@ -116,7 +116,7 @@ query	pos	text	expected	feature
 백	numeral	백이면 백 모두 통과한다.	match	particle-connector-myeon
 공부	noun	공부면 공부, 운동이면 운동 모두 잘한다.	match	particle-connector-myeon
 백	numeral	백면 모두 통과한다.	no-match	particle-connector-myeon
-공부	noun	공부이면 시작한다.	no-match	particle-connector-myeon
+공부	noun	오늘 할 일이 공부이면 지금 시작하자.	match	nominal-copula-conditional
 백	numeral	백이면도 모두 통과한다.	no-match	particle-connector-myeon
 나	pronoun	내가 확인했다.	match	pronoun-override
 너	pronoun	네가 확인했다.	match	pronoun-override
@@ -737,6 +737,23 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 이다	copula	왜 이래?	no-match	fused-copula-ending
 이다	copula	제가 말한 건 미래요.	no-match	fused-copula-ending
 많다	adjective	연세는 많으시로되 아직 정정하시다.	match	honorific-ro-ending
+이다	copula	그는 학생이자 작가다.	match	fused-copula-ending
+이다	copula	너 지금 어디니?	match	fused-copula-ending
+이다	copula	저는 학생이에요.	match	fused-copula-ending
+이다	copula	이건 모자예요.	match	fused-copula-ending
+이다	copula	제 이름은 영숙이예요.	match	fused-copula-ending
+이다	copula	얘는 내 동생이야.	match	fused-copula-ending
+이다	copula	이게 뭐야?	match	fused-copula-ending
+이다	copula	이제 내 차례네.	match	fused-copula-ending
+이다	copula	집예요.	no-match	fused-copula-ending
+이다	copula	아니예요.	no-match	fused-copula-ending
+이다	copula	철수야!	no-match	fused-copula-ending
+이다	copula	집이야 언제든 비어 있다.	no-match	fused-copula-ending
+이다	copula	친구네 갔다.	no-match	fused-copula-ending
+이다	copula	하기 싫은데 하다니.	no-match	fused-copula-ending
+이다	copula	지금 하시지요.	no-match	fused-copula-ending
+이다	copula	이자 비용이 올랐다.	no-match	fused-copula-ending
+이다	copula	이게 깨졌다.	no-match	fused-copula-ending
 가다	verb	할머니는 벌써 가셨을꼬?	match	rieul-interrogative-honorific-past
 듣다	verb	누가 이야기를 들을세라 목소리를 낮췄다.	match	rieul-concern
 좋다	adjective	날씨가 좋을수록 사람이 많다.	match	rieul-proportional

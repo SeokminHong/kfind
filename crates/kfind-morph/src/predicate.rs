@@ -276,6 +276,28 @@ pub fn is_omitted_copula_ending(surface: &str) -> bool {
     continuation::is_copula_omission_ending(surface.strip_prefix('시').unwrap_or(surface))
 }
 
+/// Tests whether a syllable can begin a registered ending with an omitted copula stem.
+#[must_use]
+pub fn starts_omitted_copula_ending(character: char) -> bool {
+    matches!(
+        character,
+        '라' | '란'
+            | '람'
+            | '랍'
+            | '래'
+            | '로'
+            | '구'
+            | '군'
+            | '네'
+            | '니'
+            | '면'
+            | '죠'
+            | '지'
+            | '예'
+            | '여'
+    )
+}
+
 fn preceding_allows_copula_contraction(preceding: char) -> bool {
     decompose_syllable(preceding).is_some_and(|syllable| syllable.jongseong == JONG_NONE)
 }
