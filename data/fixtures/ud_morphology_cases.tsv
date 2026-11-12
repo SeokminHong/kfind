@@ -687,3 +687,6 @@ regression.coordinating-endings.geona-resultative	이루다	verb	smart-exact	10	
 regression.coordinating-endings.jiman-resultative	다루다	verb	smart-exact	21	36	이 문제는 자주 다뤄지지만 결론은 나지 않았다.
 regression.coordinating-endings.jiman-nominal	모임	noun	smart-exact	14	20	어제 만든 모임이지만 사람이 많다.
 regression.coordinating-endings.geona-copula	이다	adjective	smart-exact	3	12	일이거나 취미일 겁니다.
+regression.resultative-possession.asset	가다	verb	no-match	17	26	그는 재산을 가지지 않았다.
+regression.resultative-possession.stock	가다	verb	no-match	24	33	그 회사는 주식을 가지지 않았다.
+regression.resultative-possession.route	가다	verb	smart-exact	38	47	계속 발을 내디뎌도 그 길을 가지지 않았다.

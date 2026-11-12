@@ -1103,6 +1103,7 @@ impl MorphMatcher {
                     || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
                     || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
                     || has_prayer_object_frame(haystack, candidate, branch, atom, resolver)
+                    || has_possession_object_frame(haystack, candidate, branch, atom, resolver)
                     || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
                     || has_nominal_interrogative_frame(haystack, candidate, branch, resolver)
                     || has_nonpredicate_report_frame(haystack, candidate, branch, resolver)
@@ -2700,6 +2701,57 @@ fn has_jiyo_suffix(haystack: &[u8], suffix: Range<usize>) -> bool {
                 || (suffix.starts_with('ᄌ')
                     && (suffix.nfc().eq("죠".chars()) || suffix.nfc().eq("지요".chars())))
         })
+}
+
+fn has_possession_object_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    use kfind_morph::PredicatePos;
+    let start = candidate.verified.core.start;
+    if !matches!(
+        branch.consumption,
+        CandidateConsumption::PredicateContinuation {
+            pos: PredicatePos::Verb,
+            ..
+        } | CandidateConsumption::StructuralPredicateEnding {
+            pos: PredicatePos::Verb,
+            ..
+        }
+    ) || !(haystack[start..].starts_with("가지".as_bytes())
+        || haystack[start..].starts_with("ᄀ".as_bytes()))
+        || !is_boundary_before(haystack, start)
+        || !branch.origins.iter().all(|origin| {
+            atom.analyses
+                .get(usize::from(origin.analysis_index))
+                .is_some_and(|analysis| analysis.lemma.as_ref() == "가다")
+        })
+    {
+        return false;
+    }
+    // The accusative of 가다 can mark a destination, route, activity, or duration.
+    context::previous_word(haystack, start).is_some_and(|previous| {
+        previous
+            .strip_suffix(['을', '를'])
+            .is_some_and(|noun| matches!(noun, "재산" | "주식" | "소유권"))
+            && resolver.has_object_marked_nominal(&previous)
+            && context::normalized_token(
+                haystack,
+                surrounding_token_span(haystack, candidate.verified.core.clone()),
+            )
+            .is_some_and(|token| {
+                token.starts_with("가지")
+                    && resolver.supports_predicate_ending_path(
+                        &token,
+                        "가지".len(),
+                        PredicatePos::Verb,
+                        DEFAULT_LATTICE_NODE_LIMIT,
+                    )
+            })
+    })
 }
 
 fn has_topic_before_independent_predicate(
