@@ -42,7 +42,7 @@ role = "case"
 hosts = ["nominal"]
 forms = ["과", "와"]
 selection = "final-pair"
-next = ["particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
+next = ["particle.genitive", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
 terminal = true
 
 [[particle]]
@@ -105,7 +105,7 @@ role = "case"
 hosts = ["nominal"]
 forms = ["에서"]
 selection = "literal"
-next = ["particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
+next = ["particle.from", "particle.genitive", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado"]
 terminal = true
 
 [[particle]]
@@ -141,7 +141,7 @@ role = "case"
 hosts = ["nominal"]
 forms = ["의"]
 selection = "literal"
-next = ["particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
+next = ["particle.topic", "particle.additive", "particle.only", "particle.even.jocha", "particle.even.majeo"]
 terminal = true
 
 [[particle]]
@@ -168,7 +168,7 @@ role = "auxiliary"
 hosts = ["nominal", "adverb", "predicate-ending"]
 forms = ["까지"]
 selection = "literal"
-next = ["particle.topic", "particle.additive", "particle.only", "particle.even.jocha", "particle.even.majeo"]
+next = ["particle.genitive", "particle.topic", "particle.additive", "particle.only", "particle.even.jocha", "particle.even.majeo"]
 terminal = true
 
 [[particle]]
