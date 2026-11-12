@@ -124,6 +124,8 @@ COPY --from=runner-builder \
     /usr/local/bin/generate-corpus
 COPY --from=corpus-builder /benchmark /opt/morph-benchmark/data
 COPY --from=corpus-builder /corpora/*LICENSE.txt /opt/morph-benchmark/licenses/
+COPY --from=corpus-builder /build/resultative-context-cases.jsonl \
+    /build/resultative-contract-reviews.tsv /opt/morph-benchmark/
 COPY --from=runner-builder /benchmark/full-pos /opt/morph-benchmark/full-pos
 COPY --from=runner-builder /benchmark/morphology /opt/morph-benchmark/morphology
 COPY --from=runner-builder /benchmark/component /opt/morph-benchmark/component
