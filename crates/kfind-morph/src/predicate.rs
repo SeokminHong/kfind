@@ -641,18 +641,10 @@ fn compile_rieul_eu_endings(
     push_branch(
         branches,
         entry,
-        format!("{stem}리라"),
+        stem.to_owned(),
         stem.len(),
-        ContinuationState::Terminal,
-        vec![rule("ending.prospective-final")],
-    );
-    push_branch(
-        branches,
-        entry,
-        format!("{stem}리라고"),
-        stem.len(),
-        ContinuationState::Terminal,
-        vec![rule("ending.prospective-quotative")],
+        ContinuationState::Prospective,
+        Vec::new(),
     );
 }
 
@@ -715,6 +707,14 @@ fn compile_rieul_honorific(
         format!("{base}십"),
         core_len,
         ContinuationState::BieupFinal,
+        vec![rule("ending.honorific")],
+    );
+    push_branch(
+        branches,
+        entry,
+        format!("{base}시"),
+        core_len,
+        ContinuationState::Prospective,
         vec![rule("ending.honorific")],
     );
     for (surface, rules) in [
@@ -787,6 +787,14 @@ fn compile_copula(
         "일".to_owned(),
         stem.len(),
         ContinuationState::RieulFinal,
+        vec![rule("lexical.copula")],
+    );
+    push_branch(
+        branches,
+        entry,
+        stem.to_owned(),
+        stem.len(),
+        ContinuationState::Prospective,
         vec![rule("lexical.copula")],
     );
     for suffix in continuation::YAJI_ENDINGS {
