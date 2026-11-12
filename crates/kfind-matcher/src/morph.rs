@@ -1988,6 +1988,11 @@ fn stem_accepts_ending(
     if suffix.starts_with("너라") && !anchor.ends_with('오') {
         return false;
     }
+    if class != PredicateStemClass::Consonant
+        && matches!(suffix, "습니다" | "습니까" | "습디까" | "습디다")
+    {
+        return false;
+    }
     if class == PredicateStemClass::Consonant
         && [
             "니", "니까", "니깐", "며", "면서", "면", "려", "리", "세", "셔", "시", "십",

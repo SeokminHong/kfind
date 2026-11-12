@@ -703,6 +703,9 @@ fn reference_predicate_continuation(
         reference_suffix("라", &["ending.imperative-ra"]),
     ];
     const PAST: &[ReferenceSuffix] = &[
+        reference_suffix("습니까", &["ending.formal-interrogative"]),
+        reference_suffix("습디까", &["ending.retrospective-interrogative"]),
+        reference_suffix("습디다", &["ending.retrospective-declarative"]),
         reference_suffix("어야지", &["ending.necessity-yaji"]),
         reference_suffix("어야지요", &["ending.necessity-yaji-polite"]),
         reference_suffix("어야죠", &["ending.necessity-yaji-polite"]),
@@ -726,6 +729,9 @@ fn reference_predicate_continuation(
         reference_suffix("어요", &["ending.past-polite-yo"]),
     ];
     const FUTURE: &[ReferenceSuffix] = &[
+        reference_suffix("습니까", &["ending.formal-interrogative"]),
+        reference_suffix("습디까", &["ending.retrospective-interrogative"]),
+        reference_suffix("습디다", &["ending.retrospective-declarative"]),
         reference_suffix("습니다", &["ending.polite-declarative"]),
         reference_suffix("으되", &["ending.connective-eudoe"]),
         reference_suffix("지만", &["ending.connective-jiman"]),
@@ -745,6 +751,66 @@ fn reference_predicate_continuation(
         reference_suffix("지", &["ending.quotative-ji"]),
     ];
     const EU: &[ReferenceSuffix] = &[
+        reference_suffix(
+            "십니까",
+            &["ending.honorific", "ending.formal-interrogative"],
+        ),
+        reference_suffix(
+            "십디까",
+            &["ending.honorific", "ending.retrospective-interrogative"],
+        ),
+        reference_suffix(
+            "십디다",
+            &["ending.honorific", "ending.retrospective-declarative"],
+        ),
+        reference_suffix(
+            "셨습니까",
+            &[
+                "ending.honorific",
+                "ending.past",
+                "ending.formal-interrogative",
+            ],
+        ),
+        reference_suffix(
+            "셨습디까",
+            &[
+                "ending.honorific",
+                "ending.past",
+                "ending.retrospective-interrogative",
+            ],
+        ),
+        reference_suffix(
+            "셨습디다",
+            &[
+                "ending.honorific",
+                "ending.past",
+                "ending.retrospective-declarative",
+            ],
+        ),
+        reference_suffix(
+            "시겠습니까",
+            &[
+                "ending.honorific",
+                "ending.future",
+                "ending.formal-interrogative",
+            ],
+        ),
+        reference_suffix(
+            "시겠습디까",
+            &[
+                "ending.honorific",
+                "ending.future",
+                "ending.retrospective-interrogative",
+            ],
+        ),
+        reference_suffix(
+            "시겠습디다",
+            &[
+                "ending.honorific",
+                "ending.future",
+                "ending.retrospective-declarative",
+            ],
+        ),
         reference_suffix(
             "셔야지",
             &["ending.honorific", "ending.aoeo", "ending.necessity-yaji"],
@@ -921,6 +987,13 @@ fn reference_predicate_continuation(
         ),
     ];
 
+    const BIEUP_FINAL: &[ReferenceSuffix] = &[
+        reference_suffix("니다", &["ending.polite-declarative"]),
+        reference_suffix("니까", &["ending.formal-interrogative"]),
+        reference_suffix("디까", &["ending.retrospective-interrogative"]),
+        reference_suffix("디다", &["ending.retrospective-declarative"]),
+    ];
+
     let candidates = match state {
         ContinuationState::Terminal => return Some((0, Vec::new())),
         ContinuationState::AOrEo => AEO,
@@ -930,6 +1003,7 @@ fn reference_predicate_continuation(
         ContinuationState::Eu => EU,
         ContinuationState::Geodeun => GEODEUN,
         ContinuationState::RieulFinal => RIEUL_FINAL,
+        ContinuationState::BieupFinal => BIEUP_FINAL,
     };
     let rieul_endings = match state {
         ContinuationState::Past => PAST_RIEUL_FINAL,
@@ -959,7 +1033,10 @@ fn reference_predicate_continuation(
     if matched.is_none()
         && matches!(
             state,
-            ContinuationState::Eu | ContinuationState::Geodeun | ContinuationState::RieulFinal
+            ContinuationState::Eu
+                | ContinuationState::Geodeun
+                | ContinuationState::RieulFinal
+                | ContinuationState::BieupFinal
         )
     {
         return None;

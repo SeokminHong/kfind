@@ -19,9 +19,9 @@ mod continuation;
 pub use continuation::{PredicateContinuationMatch, verify_predicate_continuation};
 
 use alternation::{
-    aeo_surfaces, bieup_ending_base, ending_base, eu_anchor, future_adnominal,
+    aeo_surfaces, bieup_ending_base, ending_base, eu_anchor, formal_bieup_anchor, future_adnominal,
     intentive_adnominal_surface, intentive_surface, nominalizer_surface, past_adnominal,
-    polite_declarative, present_adnominal, present_declarative,
+    present_adnominal, present_declarative,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -588,8 +588,8 @@ fn compile_productive(
     push_derived(
         branches,
         entry,
-        polite_declarative(stem)?,
-        ContinuationState::Terminal,
+        formal_bieup_anchor(stem)?,
+        ContinuationState::BieupFinal,
     );
 
     Ok(())
@@ -709,6 +709,14 @@ fn compile_rieul_honorific(
             rule("ending.past"),
         ],
     );
+    push_branch(
+        branches,
+        entry,
+        format!("{base}십"),
+        core_len,
+        ContinuationState::BieupFinal,
+        vec![rule("ending.honorific")],
+    );
     for (surface, rules) in [
         (
             format!("{base}시다"),
@@ -717,10 +725,6 @@ fn compile_rieul_honorific(
         (
             format!("{base}시고"),
             vec![rule("ending.honorific"), rule("ending.connective-go")],
-        ),
-        (
-            format!("{base}십니다"),
-            vec![rule("ending.honorific"), rule("ending.polite-declarative")],
         ),
         (
             format!("{base}시면"),
@@ -880,9 +884,9 @@ fn compile_copula(
         );
     }
 
-    let mut polite = polite_declarative(stem)?;
+    let mut polite = formal_bieup_anchor(stem)?;
     polite.rules.insert(0, rule("lexical.copula"));
-    push_derived(branches, entry, polite, ContinuationState::Terminal);
+    push_derived(branches, entry, polite, ContinuationState::BieupFinal);
 
     let past = add_final(&format!("{stem}어"), JONG_SSANGSIOT)
         .expect("copula vowel ending accepts a past final");
