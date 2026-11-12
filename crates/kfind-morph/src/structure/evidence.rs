@@ -231,7 +231,7 @@ impl TokenEvidence {
                 let from_whole_nominal = whole_nominal_analysis && pos.is_nominal();
                 has_whole_nominal_source_components |= from_whole_nominal;
                 if pos.is_nominal()
-                    && span.start == edge.span.start
+                    && (span.start == edge.span.start || span.end == edge.span.end)
                     && let Some(host_pos) = nominal_analysis_pos
                 {
                     nominal_source_component_candidates.push((
@@ -335,10 +335,14 @@ impl TokenEvidence {
         let mut unambiguous_nominal_source_components = nominal_source_component_candidates
             .into_iter()
             .filter_map(|(component, host_pos)| {
-                atomic_nominal_analyses
-                    .binary_search(&(component.host_start, component.host_end, host_pos))
-                    .is_err()
-                    .then_some(component)
+                let host_span = (component.host_start, component.host_end);
+                let competing_atomic = if component.component_start == component.host_start {
+                    atomic_nominal_analyses.binary_search(&(host_span.0, host_span.1, host_pos))
+                } else {
+                    atomic_nominal_analyses
+                        .binary_search_by_key(&host_span, |&(start, end, _)| (start, end))
+                };
+                competing_atomic.is_err().then_some(component)
             })
             .collect::<Vec<_>>();
         unambiguous_nominal_source_components.sort_unstable();

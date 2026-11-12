@@ -1,0 +1,19 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	gsd:test-s29:noun:자	자	noun	false	9ef7577d4339c7a04ea3753361e06aff907940dde9a25d3fe528b7fb69813177	contract-positive	aligned-source-component	교직자들을의 마지막 명사 성분은 사전 분석에서 자(者)로 정렬된다.
+explicit-pos	corpus-negatives	gsd:test-s57:noun:자	자	noun	false	d24f5e38da197b0f447b945bb1d33344d9e90098db495fc6deda74c230935328	contract-positive	aligned-source-component	관계자는의 마지막 명사 성분은 사전 분석에서 자(者)로 정렬된다.
+explicit-pos	corpus-negatives	gsd:test-s191:noun:문	문	noun	false	8ca616391b72530e9a91a62bab61b05e3b6731514aaff85debb170b2c7f64432	contract-positive	aligned-source-component	건의문에서의 마지막 명사 성분은 사전 분석에서 문(文)로 정렬된다.
+explicit-pos	corpus-negatives	gsd:test-s925:noun:산	산	noun	false	fc4a8b7b7a310c3f740906a21da7a619b92b457db37005fa8fab35c69aa2dba0	contract-positive	aligned-source-component	뒷산에의 마지막 명사 성분은 사전 분석에서 산(山)로 정렬된다.
+explicit-pos	corpus-negatives	pud:n01016019:noun:가	가	noun	false	083a81dafc0baf02427bd6cebc3350941cbbe6a271350e7533c0283ce26dec22	contract-positive	aligned-source-component	분석가들은의 마지막 명사 성분은 사전 분석에서 가(家)로 정렬된다.
+explicit-pos	corpus-negatives	pud:n01107005:noun:수	수	noun	false	825ffa8c8e83d3d9235981e8badc7ce870c8058b8e1ff5e004186c42baf3f28e	contract-positive	aligned-source-component	속임수를의 마지막 명사 성분은 사전 분석에서 수(手)로 정렬된다.
+explicit-pos	corpus-negatives	pud:n01141020:noun:자	자	noun	false	3d0afcd448bd89d0f16f40989df6b2eae52e45a66ab7636721d4377edca9e916	contract-positive	aligned-source-component	사용자가의 마지막 명사 성분은 사전 분석에서 자(者)로 정렬된다.
+explicit-pos	corpus-negatives	pud:n01145028:noun:자	자	noun	false	0b3c4f2a3133040225e91ae1dd91019b22fa88d7e0f1b8687507525d8b0ee32a	contract-positive	aligned-source-component	봉사자만의 마지막 명사 성분은 사전 분석에서 자(者)로 정렬된다.
+explicit-pos	corpus-negatives	pud:w01020019:noun:지	지	noun	false	0ff4fb56e52a718f51a3f81eccb57d29f8a31f91c151f29c02929696205d462b	contract-positive	aligned-source-component	식민지로의 마지막 명사 성분은 사전 분석에서 지(地)로 정렬된다.
+explicit-pos	corpus-negatives	pud:w01029015:noun:색	색	noun	false	395bbe6118accf7f5d1e54dd1de59e0bef89659183186fdd3576f28f1bf1b7df	contract-positive	aligned-source-component	노란색에서의 마지막 명사 성분은 사전 분석에서 색(色)로 정렬된다.
+explicit-pos	corpus-negatives	pud:w01047071:noun:자	자	noun	false	25ffd784530fe6ed2012e2c9ac4b7a0032a79317f45030c20440b68b5a1ac948	contract-positive	aligned-source-component	과학자들과의의 마지막 명사 성분은 사전 분석에서 자(者)로 정렬된다.
+explicit-pos	corpus-negatives	pud:w01065018:noun:형	형	noun	false	50116821b86bf1007dfd1920589fcaad6782dc730e0adb39077f7092d90ba260	contract-positive	aligned-source-component	정사각형의의 마지막 명사 성분은 사전 분석에서 형(形)로 정렬된다.
+explicit-pos	corpus-negatives	pud:w01085006:noun:자	자	noun	false	106f65d68294356f9a73c6ee2de86ffda8576c0b284706977e593a4c7ed7f3c7	contract-positive	aligned-source-component	자원봉사자와의 마지막 명사 성분은 사전 분석에서 자(者)로 정렬된다.
+explicit-pos	corpus-negatives	pud:w01096074:noun:전	전	noun	false	383692e42cc0c18b4191950d7bac55c0786a95605e24ea754008a281c3152600	contract-positive	aligned-source-component	지상전은의 마지막 명사 성분은 사전 분석에서 전(戰)로 정렬된다.
+explicit-pos	corpus-negatives	pud:w01135036:noun:해	해	noun	false	e1d5c19341382bc90035956e8870d5eb1352140856a46dc5b771ca603c2bb88d	contract-positive	aligned-source-component	그해에의 마지막 명사 성분은 사전 분석에서 해로 정렬된다.
+explicit-pos	corpus-negatives	pud:n03006016:noun:자	자	noun	false	6832148811eacc4c446de1333ef2f87f87b06aff329b75fbed24cb3088b571a6	contract-positive	aligned-source-component	근로자들이의 마지막 명사 성분은 사전 분석에서 자(者)로 정렬된다.
+explicit-pos	corpus-negatives	pud:w02008010:noun:지	지	noun	false	89495ea02bc926595946cd127291c756e1e884dfe0b5afed21e931972e274c33	contract-positive	aligned-source-component	유적지의의 마지막 명사 성분은 사전 분석에서 지(地)로 정렬된다.
+explicit-pos	corpus-negatives	pud:w05010026:noun:원	원	noun	false	3725029ccb676f29c6e7e8a32a1d1ddd2525e2135f98a3dade6c98e22b67f0d2	contract-positive	aligned-source-component	원로원으로부터의 마지막 명사 성분은 사전 분석에서 원(院)로 정렬된다.

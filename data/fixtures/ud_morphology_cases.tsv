@@ -415,3 +415,57 @@ regression.short-nominal-derivation.catalog-17	인	noun	smart-exact	24	27	이 �
 regression.short-nominal-derivation.catalog-18	종	noun	smart-exact	34	37	이 조직에는 위계에 따른 종적 관계가 있다.
 regression.short-nominal-derivation.catalog-19	학	noun	smart-exact	14	17	그 설명은 학적 근거가 충분하다.
 regression.short-nominal-derivation.catalog-20	횡	noun	smart-exact	14	17	부서 간에 횡적 협력이 필요하다.
+regression.final-nominal-component.editorial-1	결	noun	smart-exact	16	22	장인은 나뭇결도 살려 탁자를 만들었다.
+regression.final-nominal-component.editorial-2	곡	noun	smart-exact	25	31	음악회에서는 합창곡도 불렀다.
+regression.final-nominal-component.editorial-3	극	noun	smart-exact	22	28	축제에서는 무언극도 공연했다.
+regression.final-nominal-component.editorial-4	기	noun	smart-exact	20	26	국물에 뜬 기름기도 걷어 냈다.
+regression.final-nominal-component.editorial-5	난	noun	smart-exact	20	26	새 노선은 교통난도 덜어 줄 것이다.
+regression.final-nominal-component.editorial-6	당	noun	smart-exact	28	34	연구자는 카르보나리당도 조사했다.
+regression.final-nominal-component.editorial-7	례	noun	smart-exact	19	25	변호사는 판결례도 함께 검토했다.
+regression.final-nominal-component.editorial-8	법	noun	smart-exact	29	35	이 사건에서는 거행지법도 검토 대상이었다.
+regression.final-nominal-component.editorial-9	병	noun	smart-exact	16	22	부대는 휴가병도 수송하기로 했다.
+regression.final-nominal-component.editorial-10	병	noun	smart-exact	17	23	그 책은 간질병도 자세히 다뤘다.
+regression.final-nominal-component.editorial-11	불	noun	smart-exact	22	28	전시에는 무량수불도 출품됐다.
+regression.final-nominal-component.editorial-12	비	noun	smart-exact	19	25	공원에는 기념비도 세웠다.
+regression.final-nominal-component.editorial-13	상	noun	smart-exact	19	25	연구진은 액체상도 따로 분석했다.
+regression.final-nominal-component.editorial-14	상	noun	smart-exact	32	38	올해 시상식에서는 인기상도 준다.
+regression.final-nominal-component.editorial-15	선	noun	smart-exact	16	22	도면의 완성선도 다시 그렸다.
+regression.final-nominal-component.editorial-16	실	noun	smart-exact	25	31	기자들은 국무총리실도 방문했다.
+regression.final-nominal-component.editorial-17	액	noun	smart-exact	19	25	정비사는 냉각액도 보충했다.
+regression.final-nominal-component.editorial-18	염	noun	smart-exact	20	26	진찰 결과 구내염도 있었다.
+regression.final-nominal-component.editorial-19	전	noun	smart-exact	20	26	그 작가는 자서전도 냈다.
+regression.final-nominal-component.editorial-20	점	noun	smart-exact	19	25	학생들은 중심점도 표시했다.
+regression.final-nominal-component.editorial-21	죄	noun	smart-exact	19	25	재판부는 간통죄도 함께 심리했다.
+regression.final-nominal-component.editorial-22	직	noun	smart-exact	13	19	그는 경관직도 그만뒀다.
+regression.final-nominal-component.editorial-23	찜	noun	smart-exact	22	28	잔칫상에는 갈비찜도 올렸다.
+regression.final-nominal-component.editorial-24	초	noun	smart-exact	19	25	요리사는 생강초도 곁들였다.
+regression.final-nominal-component.editorial-25	침	noun	smart-exact	19	25	의료진은 주사침도 교체했다.
+regression.final-nominal-component.editorial-26	탄	noun	smart-exact	22	28	그곳에서는 조개탄도 연료로 썼다.
+regression.final-nominal-component.editorial-27	탄	noun	smart-exact	22	28	무기고에는 철갑탄도 있었다.
+regression.final-nominal-component.editorial-28	탕	noun	smart-exact	16	22	식당은 설렁탕도 팔았다.
+regression.final-nominal-component.editorial-29	터	noun	smart-exact	26	32	저수지 옆에는 낚시터도 있다.
+regression.final-nominal-component.editorial-30	패	noun	smart-exact	22	28	퇴임식에서 감사패도 전달했다.
+regression.final-nominal-component.editorial-31	표	noun	smart-exact	20	26	원고 끝에 마침표도 찍었다.
+regression.final-nominal-component.editorial-32	함	noun	smart-exact	19	25	항구에는 전투함도 정박했다.
+regression.final-nominal-component.editorial-33	회	noun	smart-exact	22	28	학교에서는 친목회도 열렸다.
+corpus.ud-pud.w01019014.climate-conditions	조	noun	no-match	17	20	사헬의 기후 조건은 북쪽에 있는 사하라 사막의 기후와 상당히 비슷하지만 그 정도로 극단적이지는 않다.
+regression.final-nominal-component.climate-conditions-joined	조	noun	no-match	19	22	원문에 ‘기후조건은’이라고 붙여 적혀 있다.
+regression.final-nominal-component.migratory-bird	조	noun	smart-exact	17	23	그 책은 기후조도 소개한다.
+corpus.final-nominal-component.gsd.test-s29	자	noun	smart-exact	54	63	정교회는 급여를 지불할 수 없게 된 교직자들을 해고했다.
+corpus.final-nominal-component.gsd.test-s57	자	noun	smart-exact	10	16	IBM 관계자는 참여를 원하는 도시가 지원 자원을 활용할 수 있다고 말했다.
+corpus.final-nominal-component.gsd.test-s191	문	noun	smart-exact	62	71	김 시장은 문화체육관광부 장관에게 보낸 건의문에서 축제 취소를 설명했다.
+corpus.final-nominal-component.gsd.test-s925	산	noun	smart-exact	3	9	뒷산에 인후공원이 있어서 운동이나 산책에 좋다.
+corpus.final-nominal-component.pud.n01016019	가	noun	smart-exact	13	22	몇몇 분석가들은 삼성의 사업 실패로 화웨이가 이득을 봤다고 주장했다.
+corpus.final-nominal-component.pud.n01107005	수	noun	smart-exact	37	43	폭스바겐이 몇 년 동안 속임수를 썼다는 뉴스가 보도됐다.
+corpus.final-nominal-component.pud.n01141020	자	noun	smart-exact	16	22	회사는 사용자가 자사 제품을 생산성 도구 이상으로 생각하기를 바랐다.
+corpus.final-nominal-component.pud.n01145028	자	noun	smart-exact	33	39	그는 퍼레이드 자원 봉사자만 해도 12,000명이라고 말했다.
+corpus.final-nominal-component.pud.w01020019	지	noun	smart-exact	60	66	두 국가는 지중해 해안선 지역을 폭넓게 식민지로 만들었다.
+corpus.final-nominal-component.pud.w01029015	색	noun	smart-exact	19	28	이파리는 노란색에서 파란색까지 다양한 색을 띠었다.
+corpus.final-nominal-component.pud.w01047071	자	noun	smart-exact	50	62	그녀는 기밀 정보를 제공한 정부 과학자들과의 개인적인 친분을 이용했다.
+corpus.final-nominal-component.pud.w01065018	형	noun	smart-exact	29	35	유적지에는 큰 정사각형의 석조가 놓여 있었다.
+corpus.final-nominal-component.pud.w01085006	자	noun	smart-exact	51	57	플로리다에서 벌어진 전쟁은 자원봉사자와 민병대에 의존했다.
+corpus.final-nominal-component.pud.w01096074	전	noun	smart-exact	6	12	지상전은 제1차 세계 대전 당시보다 기동성이 높은 방식으로 바뀌었다.
+corpus.final-nominal-component.pud.w01135036	해	noun	smart-exact	3	9	그해에 그녀는 디즈니의 영화에 잠깐 출연했다.
+corpus.final-nominal-component.pud.n03006016	자	noun	smart-exact	6	15	근로자들이 자신의 책상에 종교 관련 물품을 놓을 수 있는가?
+corpus.final-nominal-component.pud.w02008010	지	noun	smart-exact	27	33	그 시대는 많은 유적지의 설립 시기로 알려져 있다.
+corpus.final-nominal-component.pud.w05010026	원	noun	smart-exact	13	28	그는 원로원으로부터 집정관과의 대결을 금지한다는 답을 받았다.

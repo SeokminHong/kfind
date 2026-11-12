@@ -210,7 +210,7 @@ impl StructureSelection {
                             || ((nominal_component_is_supported(
                                 *allow_components,
                                 support.evidence,
-                                &spans.core,
+                                spans,
                                 selected,
                                 evidence,
                                 pattern.fine_pos,
