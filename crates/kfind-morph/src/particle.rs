@@ -2,6 +2,8 @@
 
 use std::sync::Arc;
 
+use kfind_data::ParticleTransitionRule;
+
 use crate::RuleId;
 use crate::hangul::{decompose_syllable, has_final, has_rieul_final};
 
@@ -314,29 +316,52 @@ impl ParticleVerifier {
     /// Returns the longest grammatical particle-chain prefix after `core`.
     #[must_use]
     pub fn verify_prefix(&self, core: &str, following: &str) -> ParticleMatch {
+        self.verify_prefix_for_host(core, following, true)
+    }
+
+    /// Returns the longest particle prefix after a non-nominal host.
+    #[must_use]
+    pub fn verify_non_nominal_prefix(&self, core: &str, following: &str) -> ParticleMatch {
+        self.verify_prefix_for_host(core, following, false)
+    }
+
+    fn verify_prefix_for_host(
+        &self,
+        core: &str,
+        following: &str,
+        nominal_host: bool,
+    ) -> ParticleMatch {
         let mut consumed = 0;
         let mut rule_path = Vec::new();
         let mut previous = core.chars().next_back();
         let mut previous_rule = None;
+        let mut first_particle = true;
+        let mut previous_was_nominal_initial = false;
+        let plural;
 
         if self.model.allow_plural && self.model.max_rules > 0 && following.starts_with('들') {
             consumed += '들'.len_utf8();
             previous = Some('들');
-            let plural = RuleId::from("particle.plural");
+            plural = RuleId::from("particle.plural");
             rule_path.push(plural.clone());
-            previous_rule = Some(plural);
+            previous_rule = Some(&plural);
         }
 
         for _ in rule_path.len()..self.model.max_rules {
-            let Some(particle) =
-                self.longest_match(&following[consumed..], previous, previous_rule.as_ref())
-            else {
+            let Some(particle) = self.longest_match(
+                &following[consumed..],
+                previous,
+                previous_rule,
+                previous_was_nominal_initial,
+            ) else {
                 break;
             };
             consumed += particle.surface.len();
             previous = particle.surface.chars().next_back();
             rule_path.push(particle.rule_id.clone());
-            previous_rule = Some(particle.rule_id.clone());
+            previous_rule = Some(&particle.rule_id);
+            previous_was_nominal_initial = nominal_host && first_particle;
+            first_particle = false;
         }
 
         ParticleMatch {
@@ -356,8 +381,9 @@ impl ParticleVerifier {
     /// Verifies a non-empty particle chain whose every rule is auxiliary.
     #[must_use]
     pub fn verify_auxiliary_exact(&self, core: &str, following: &str) -> Option<ParticleMatch> {
-        let matched = self.verify_exact(core, following)?;
-        (!matched.rule_path.is_empty()
+        let matched = self.verify_non_nominal_prefix(core, following);
+        (matched.consumed_bytes == following.len()
+            && !matched.rule_path.is_empty()
             && matched.rule_path.iter().all(|rule| {
                 self.model.allomorphs.iter().any(|allomorph| {
                     allomorph.rule_id == *rule && allomorph.role == ParticleRole::Auxiliary
@@ -366,11 +392,26 @@ impl ParticleVerifier {
         .then_some(matched)
     }
 
+    fn nominal_initial_rule<'a>(&'a self, rule: &'a RuleId) -> &'a RuleId {
+        self.model
+            .transitions
+            .iter()
+            .find(|transition| {
+                transition
+                    .rule_id
+                    .as_str()
+                    .strip_suffix(ParticleTransitionRule::NOMINAL_INITIAL_SUFFIX)
+                    == Some(rule.as_str())
+            })
+            .map_or(rule, |transition| &transition.rule_id)
+    }
+
     fn longest_match(
         &self,
         remaining: &str,
         previous: Option<char>,
         previous_rule: Option<&RuleId>,
+        previous_was_nominal_initial: bool,
     ) -> Option<&ParticleAllomorph> {
         let previous = previous?;
         self.model
@@ -379,7 +420,14 @@ impl ParticleVerifier {
             .filter(|form| {
                 remaining.starts_with(form.surface.as_ref())
                     && form.condition.accepts(previous)
-                    && self.transition_allows(previous_rule, &form.rule_id)
+                    && self.transition_allows(
+                        if previous_was_nominal_initial {
+                            previous_rule.map(|rule| self.nominal_initial_rule(rule))
+                        } else {
+                            previous_rule
+                        },
+                        &form.rule_id,
+                    )
             })
             .max_by_key(|form| form.surface.len())
     }
@@ -670,6 +718,17 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
         transition("particle.concessive.inama-nama", &[]),
         transition("particle.concessive.irado-rado", &[]),
         transition("particle.emphasis.yamallo", &[]),
+        transition(
+            "particle.only.nominal-initial",
+            &[
+                "particle.topic",
+                "particle.additive",
+                "particle.subject",
+                "particle.object",
+                "particle.genitive",
+                "particle.direction",
+            ],
+        ),
         transition("particle.comitative.irang-rang", FOCUS),
     ])
 }
@@ -782,6 +841,35 @@ mod tests {
                 "accepted 사용자{suffix}"
             );
         }
+    }
+
+    #[test]
+    fn selects_case_after_the_first_nominal_particle_without_changing_its_id() {
+        let verifier = ParticleVerifier::default();
+        let matched = verifier
+            .verify_exact("사람", "들만으로는")
+            .expect("plural nominal accepts only before the directional particle");
+        let rules = matched
+            .rule_path
+            .iter()
+            .map(RuleId::as_str)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            rules,
+            [
+                "particle.plural",
+                "particle.only",
+                "particle.direction",
+                "particle.topic"
+            ]
+        );
+        assert!(verifier.verify_exact("책", "으로만으로").is_none());
+        assert_eq!(
+            verifier
+                .verify_non_nominal_prefix("먹고", "만으로")
+                .consumed_bytes,
+            "만".len()
+        );
     }
 
     #[test]

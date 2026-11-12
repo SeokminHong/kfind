@@ -3,7 +3,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::validation::{require_nfc, require_rule_id};
 use crate::{DataError, DataErrorKind};
 
-use super::{ParticleHost, ParticleRuleRole, ParticleSelection, RuleLocations, RuleSet};
+use super::{
+    ParticleHost, ParticleRuleRole, ParticleSelection, ParticleTransitionRule, RuleLocations,
+    RuleSet,
+};
 
 pub(super) fn validate_rules(rules: &RuleSet, locations: &RuleLocations) -> Result<(), DataError> {
     let mut ids = BTreeMap::<&str, &str>::new();
@@ -264,7 +267,38 @@ fn validate_particles(rules: &RuleSet, locations: &RuleLocations) -> Result<(), 
         .map(|rule| rule.id.as_str())
         .collect::<BTreeSet<_>>();
     for rule in &rules.particles {
-        validate_forms(source, &rule.id, &rule.forms, locations)?;
+        if let Some(base) = rule
+            .id
+            .strip_suffix(ParticleTransitionRule::NOMINAL_INITIAL_SUFFIX)
+        {
+            let base_rule = rules
+                .particles
+                .iter()
+                .find(|candidate| candidate.id == base);
+            if !rule.forms.is_empty()
+                || rule.hosts != [ParticleHost::Nominal]
+                || rule.role != ParticleRuleRole::Auxiliary
+                || rule.selection != ParticleSelection::Literal
+                || !base_rule.is_some_and(|candidate| {
+                    !candidate.forms.is_empty()
+                        && candidate.role == rule.role
+                        && candidate.hosts.contains(&ParticleHost::Nominal)
+                        && candidate.terminal == rule.terminal
+                        && candidate.next.iter().all(|next| rule.next.contains(next))
+                })
+            {
+                return Err(invalid_rule_value(
+                    locations,
+                    source,
+                    &rule.id,
+                    "id",
+                    &rule.id,
+                    "첫 체언 결합 상태는 보조사에 연결되고 기본 전이와 종료 조건을 보존해야 합니다",
+                ));
+            }
+        } else {
+            validate_forms(source, &rule.id, &rule.forms, locations)?;
+        }
         let hosts = rule.hosts.iter().copied().collect::<BTreeSet<_>>();
         if hosts.len() != rule.hosts.len() || hosts.is_empty() {
             return Err(invalid_rule_value(
@@ -319,6 +353,16 @@ fn validate_particles(rules: &RuleSet, locations: &RuleLocations) -> Result<(), 
         }
         for next in &rule.next {
             require_reference(source, &rule.id, next, &particle_ids, locations)?;
+            if next.ends_with(ParticleTransitionRule::NOMINAL_INITIAL_SUFFIX) {
+                return Err(invalid_rule_value(
+                    locations,
+                    source,
+                    &rule.id,
+                    "next",
+                    next,
+                    "첫 체언 결합 상태는 다른 조사에서 시작할 수 없습니다",
+                ));
+            }
         }
         validate_terminal_transition(source, &rule.id, rule.terminal, &rule.next, locations)?;
     }

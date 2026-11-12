@@ -1,0 +1,12 @@
+id	query	pos	expected	byte_start	byte_end	text
+ud-only-direction	기술	noun	exact	33	48	객관적인 정보의 분석과 기술만으로 문학의 본질에 대한 해명을 기대할 수 없으며, 거꾸로 직관적 취미의 가치 평가만으로 세계의 경험적 총화를 이해하는 데 만족할 수 없기 때문이다.
+ud-only-subject	땅	noun	exact	0	9	땅만이 아니다.
+gsd-test-s225	이유	noun	exact	33	48	그러나 종교가 다르다는 이유만으로 연인은 죽임을 당하고 생전 그와의 사이에서 새 생명을 잉태한 여인은 출산 후 아이를 고아원으로 떠나보낸다.
+gsd-test-s277	혈통	noun	exact	7	19	부의 혈통만이 성으로 표현되고 모의 혈통은 성에 반영되지 않게 되어 개인의 혈통 관계가 모두 성에 반영되지 못한다.
+gsd-test-s989	것	noun	exact	34	43	모든 재료는 항상 신선한 것만을 쓰기 때문에 오랜 단골들에게 인정받고 사랑받는 요리 주점입니다.
+only-object	책	noun	exact	4	13	이 책만을 참고했다.
+only-genitive	책	noun	exact	4	13	이 책만의 독특한 장점이다.
+direction-before-only	기술	noun	exact	0	12	기술로만 해결할 수 없다.
+plural-only-direction-topic	사람	noun	exact	0	21	사람들만으로는 이 일을 끝낼 수 없다.
+adverb-only	지금	adverb	exact	0	9	지금만 기다려 주세요.
+direction-only-repeat-direction	책	noun	no-match	0	18	책으로만으로는 이 일을 끝낼 수 없다.

@@ -715,6 +715,28 @@ fn particle_graph_rejects_cycles_without_rejecting_long_bounded_paths() {
 }
 
 #[test]
+fn first_nominal_particle_state_cannot_be_reached_from_another_particle() {
+    let particles = read("rules/particles.toml").replacen(
+        "next = [\"particle.contrast.keonyeong\"]",
+        "next = [\"particle.only.nominal-initial\"]",
+        1,
+    );
+    let error = parse_rule_set(RuleSources {
+        endings: &read("rules/endings.toml"),
+        alternations: &read("rules/alternations.toml"),
+        contractions: &read("rules/contractions.toml"),
+        derivations: &read("rules/derivations.toml"),
+        particles: &particles,
+    })
+    .unwrap_err();
+    assert!(matches!(
+        *error.kind,
+        DataErrorKind::InvalidValue { ref field, ref reason, .. }
+            if field == "next" && reason == "첫 체언 결합 상태는 다른 조사에서 시작할 수 없습니다"
+    ));
+}
+
+#[test]
 fn particle_lexicon_variants_must_match_their_rule_forms() {
     let valid = load_data_dir(data_root()).unwrap();
     let mut lexicon = valid.lexicon.clone();
