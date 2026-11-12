@@ -132,7 +132,13 @@ pub(super) fn complete_predicate_adnominal_path(resource: &ComponentResource, te
         } else if endings.iter().all(|pos| *pos == StructuralPos::EP) {
             let suffix = &text[length..];
             matched = has_exact_sequence(resource, suffix, &[StructuralPos::ETM])
-                || has_exact_sequence(resource, suffix, &[StructuralPos::EP, StructuralPos::ETM]);
+                || has_exact_sequence(resource, suffix, &[StructuralPos::EP, StructuralPos::ETM])
+                || suffix.char_indices().skip(1).any(|(split, _)| {
+                    has_exact_sequence(resource, &suffix[split..], &[StructuralPos::ETM])
+                        && complete_suffix(resource, &suffix[..split], |pos| {
+                            pos == StructuralPos::EP
+                        })
+                });
         }
     });
     matched

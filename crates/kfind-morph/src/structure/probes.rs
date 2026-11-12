@@ -16,6 +16,15 @@ use std::ops::Range;
 
 impl ConstraintResolver {
     #[must_use]
+    pub fn has_dependent_noun_subject_path(&self, previous: &str, text: &str) -> bool {
+        super::lexical::has_exact_sequence(
+            &self.resource,
+            text,
+            &[StructuralPos::NNB, StructuralPos::JKS],
+        ) && super::lexical::complete_predicate_adnominal_path(&self.resource, previous)
+    }
+
+    #[must_use]
     pub fn has_numeric_unit_before_dependent_noun(&self, text: &str, unit: &str) -> bool {
         numeric_unit_path_at(&self.resource, text, 0)
             .is_some_and(|path| path.dependent_tail.is_some() && &text[path.unit] == unit)

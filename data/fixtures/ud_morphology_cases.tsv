@@ -103,3 +103,4 @@ corpus.ud-kaist.dev.MH2_0069-s271.determiner.주	주	determiner	exact	10	13	상�
 corpus.ud-kaist.dev.MH2_0159-s86.adjective.적잖다	적잖다	adjective	exact	43	52	인간의 새로운 가치관 형성에도 적잖은 영향을 끼친다는 사실
 corpus.ud-kaist.dev.MH2_0159-s341.adjective.가볍다	가볍다	adjective	exact	66	75	이면을 바라보는 사회학적 콘텍스트 접근을 훨씬 가벼이 여겨 왔던 것이다.
 corpus.ud-kaist.dev.MH2_0169-s738.noun.년	년	noun	exact	45	48	봉건 시대가 우리나라에만 1,500여 년간 유지되었다.
+corpus.ud-kaist.dev.MH2_0169-s101.noun.거	거	noun	exact	83	86	이것은 후보의 한계라기보다 우리 민중 운동의 한계라고 하는 게 훨씬 정확하다.

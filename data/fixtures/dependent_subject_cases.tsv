@@ -1,0 +1,5 @@
+id	query	pos	expected	byte_start	byte_end	text
+ge-after-future-adnominal	거	noun	exact	7	10	먹을 게 없다.
+ge-after-past-adnominal	거	noun	exact	10	13	먹었던 게 기억난다.
+crab-as-object	거	noun	no-match	0	3	게를 삶았다.
+crab-noun-as-object	게	noun	exact	0	6	게를 삶았다.

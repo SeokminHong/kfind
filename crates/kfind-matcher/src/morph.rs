@@ -1069,6 +1069,23 @@ impl MorphMatcher {
         if patterns.is_empty() {
             return false;
         }
+        if matches!(branch.consumption, CandidateConsumption::Anchor)
+            && branch.origins.iter().any(|origin| {
+                origin
+                    .rule_path
+                    .iter()
+                    .any(|rule| rule.as_str() == "contraction.dependent-subject-ge")
+            })
+        {
+            return self.accepts_token_boundary(haystack, &candidate.verified, branch)
+                && context::normalized_token(haystack, candidate.anchor.clone()).is_some_and(
+                    |token| {
+                        context::previous_word(haystack, candidate.anchor.start).is_some_and(
+                            |previous| resolver.has_dependent_noun_subject_path(&previous, &token),
+                        )
+                    },
+                );
+        }
         if matches!(
             branch.consumption,
             CandidateConsumption::CopulaHostEndingCompose | CandidateConsumption::FusedCopulaEnding
