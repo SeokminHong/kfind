@@ -394,6 +394,14 @@ impl TokenEvidence {
             .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.span == *span)
     }
 
+    pub(super) fn has_nominal_source_component(&self, span: &Range<usize>) -> bool {
+        self.units.all().iter().any(|unit| {
+            unit.span == *span
+                && unit.pos.is_nominal()
+                && unit.evidence == StructuralEvidence::SourceComponent
+        })
+    }
+
     pub(super) fn has_whole_nominal_source_component(
         &self,
         span: &Range<usize>,

@@ -163,6 +163,8 @@
   whole nominal 또는 source nominal component와 일치하면 predicate query를 유지한다.
   이 규칙은 `걷기`, `걸음`, `발걸음`, `걸음걸이`처럼 명사형 자체와 compound 내부의
   정렬된 component에 적용한다.
+  체언과 조사 구조가 선택된 경우, 체언 앞부분에만 일치한 명사형에는 source component
+  근거가 필요하다.
 - 앞 token이 관형형 어미로 끝나고 현재 token에 의존명사 whole 분석이 있으면 현재
   token의 동형 predicate 분석보다 의존명사 구조를 선택한다. 따라서 `걷곤 하는 걸`의
   `걸`은 `v:걸다`에 매칭하지 않는다.

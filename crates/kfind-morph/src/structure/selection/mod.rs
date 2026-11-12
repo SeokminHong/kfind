@@ -193,7 +193,8 @@ impl StructureSelection {
                         && spans.anchor.end <= selected.end
                         && (spans.consumed.end == spans.token.end
                             || spans.anchor.start > selected.start
-                            || spans.anchor.end < selected.end
+                            || (spans.anchor.end < selected.end
+                                && evidence.has_nominal_source_component(&spans.anchor))
                             || (spans.anchor != spans.token
                                 && evidence.units.all().iter().any(|unit| {
                                     unit.span == spans.token
