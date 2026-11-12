@@ -314,6 +314,8 @@ fn compile_productive(
         ("더니", "ending.retrospective-connective"),
         ("더라도", "ending.concessive-deorado"),
         ("도록", "ending.purpose-dorok"),
+        ("다가", "ending.connective-daga"),
+        ("더군요", "ending.final-deogunyo"),
     ] {
         push_branch(
             branches,
@@ -324,6 +326,19 @@ fn compile_productive(
             vec![rule(ending_rule)],
         );
     }
+    let neyo_base = if has_rieul_final(stem.chars().next_back().expect("stem")) {
+        drop_last_final(stem).expect("rieul-final stem")
+    } else {
+        stem.to_owned()
+    };
+    push_branch(
+        branches,
+        entry,
+        format!("{neyo_base}네요"),
+        neyo_base.len(),
+        ContinuationState::Terminal,
+        vec![rule("ending.final-neyo")],
+    );
     push_branch(
         branches,
         entry,
@@ -485,6 +500,32 @@ fn compile_rieul_eu_endings(
     branches: &mut Vec<SurfaceBranchSpec>,
 ) {
     let dropped = drop_last_final(stem).expect("rieul-final stem");
+    for (base, suffix, rule_id) in [
+        (stem, "면서", "ending.simultaneous-myeonseo"),
+        (&dropped, "나", "ending.connective-na"),
+    ]
+    .into_iter()
+    .chain(
+        entry
+            .pos
+            .is_action()
+            .then_some([
+                (stem, "러", "ending.purpose-reo"),
+                (stem, "려던", "ending.intentive-adnominal"),
+                (&dropped, "시오", "ending.imperative-sio"),
+            ])
+            .into_iter()
+            .flatten(),
+    ) {
+        push_branch(
+            branches,
+            entry,
+            format!("{base}{suffix}"),
+            base.len(),
+            ContinuationState::Terminal,
+            vec![rule(rule_id)],
+        );
+    }
     for ending in ["니", "니까", "니까는", "니깐"] {
         push_branch(
             branches,
@@ -542,6 +583,10 @@ fn compile_rieul_honorific(
             vec![rule("ending.honorific"), rule("ending.final-da")],
         ),
         (
+            format!("{base}시고"),
+            vec![rule("ending.honorific"), rule("ending.connective-go")],
+        ),
+        (
             format!("{base}십니다"),
             vec![rule("ending.honorific"), rule("ending.polite-declarative")],
         ),
@@ -565,6 +610,16 @@ fn compile_rieul_honorific(
             core_len,
             ContinuationState::Terminal,
             rules,
+        );
+    }
+    if entry.pos.is_action() {
+        push_branch(
+            branches,
+            entry,
+            format!("{base}시는"),
+            core_len,
+            ContinuationState::Terminal,
+            vec![rule("ending.honorific"), rule("ending.present-adnominal")],
         );
     }
 }

@@ -48,6 +48,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
     suffix("으되", &["ending.connective-eudoe"]),
     suffix("느냐는", &["ending.interrogative-neunya", "particle.topic"]),
     suffix("으면", &["ending.conditional"]),
+    suffix("으며", &["ending.coordinate-myeo"]),
     suffix("지만", &["ending.connective-jiman"]),
     suffix("는데", &["ending.connective-neunde"]),
     suffix("다고", &["ending.quotative-go"]),
@@ -79,6 +80,11 @@ const DECLARATIVE_MYEO: Suffix = suffix("며", &["ending.quotative-myeo"]);
 const DECLARATIVE_JI: Suffix = suffix("지", &["ending.quotative-ji"]);
 
 const EU_SUFFIXES: &[Suffix] = &[
+    suffix("면서", &["ending.simultaneous-myeonseo"]),
+    suffix("려던", &["ending.intentive-adnominal"]),
+    suffix("러", &["ending.purpose-reo"]),
+    suffix("나", &["ending.connective-na"]),
+    suffix("시오", &["ending.imperative-sio"]),
     suffix("리라고", &["ending.prospective-quotative"]),
     suffix("리라", &["ending.prospective-final"]),
     suffix(
@@ -116,6 +122,8 @@ const EU_SUFFIXES: &[Suffix] = &[
     suffix("세요", &["ending.honorific", "ending.polite-imperative"]),
     suffix("십니다", &["ending.honorific", "ending.polite-declarative"]),
     suffix("시다", &["ending.honorific", "ending.final-da"]),
+    suffix("시는", &["ending.honorific", "ending.present-adnominal"]),
+    suffix("시고", &["ending.honorific", "ending.connective-go"]),
     suffix("시면", &["ending.honorific", "ending.conditional"]),
     suffix("신", &["ending.honorific", "ending.past-adnominal"]),
     suffix("실", &["ending.honorific", "ending.future-adnominal"]),
@@ -152,7 +160,17 @@ pub fn verify_predicate_continuation(
         .iter()
         .filter(|suffix| {
             following.starts_with(suffix.surface)
-                && (!suffix.rules.contains(&"ending.imperative-ra") || pos.is_action())
+                && (pos.is_action()
+                    || !suffix.rules.iter().any(|rule| {
+                        matches!(
+                            *rule,
+                            "ending.imperative-ra"
+                                | "ending.imperative-sio"
+                                | "ending.intentive-adnominal"
+                                | "ending.purpose-reo"
+                                | "ending.present-adnominal"
+                        )
+                    }))
         })
         .max_by_key(|suffix| suffix.surface.len());
     if suffix.is_none() && state == ContinuationState::Eu {

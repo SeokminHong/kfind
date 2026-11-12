@@ -98,7 +98,7 @@ initial = "a-or-eo"
 forms = ["았", "었"]
 required = []
 forbidden = []
-next = ["ending.final-da", "ending.polite-declarative", "ending.past-polite-yo", "ending.conditional", "ending.connective-eudoe", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go", "ending.future-adnominal", "ending.retrospective-adnominal", "ending.quotative-go", "ending.interrogative-neunya"]
+next = ["ending.final-da", "ending.polite-declarative", "ending.past-polite-yo", "ending.conditional", "ending.connective-eudoe", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go", "ending.coordinate-myeo", "ending.future-adnominal", "ending.retrospective-adnominal", "ending.quotative-go", "ending.interrogative-neunya"]
 terminal = true
 
 [[ending]]
@@ -418,7 +418,7 @@ initial = "eu"
 forms = ["시", "으시"]
 required = []
 forbidden = []
-next = ["ending.past", "ending.future", "ending.final-da", "ending.polite-declarative"]
+next = ["ending.past", "ending.future", "ending.final-da", "ending.polite-declarative", "ending.connective-go", "ending.present-adnominal"]
 terminal = false
 
 [[ending]]
@@ -505,7 +505,7 @@ terminal = true
 id = "ending.intentive-adnominal"
 category = "adnominal"
 initial = "eu"
-forms = ["려는", "으려는"]
+forms = ["려는", "으려는", "려던", "으려던"]
 required = ["action-verb"]
 forbidden = []
 next = []
@@ -519,6 +519,76 @@ forms = ["자"]
 required = ["action-verb"]
 forbidden = []
 next = ["ending.quotative-go"]
+terminal = true
+
+[[ending]]
+id = "ending.purpose-reo"
+category = "connective"
+initial = "eu"
+forms = ["러", "으러"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.imperative-sio"
+category = "final"
+initial = "eu"
+forms = ["시오", "으시오"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.connective-na"
+category = "connective"
+initial = "eu"
+forms = ["나", "으나"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.simultaneous-myeonseo"
+category = "connective"
+initial = "eu"
+forms = ["면서", "으면서"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.connective-daga"
+category = "connective"
+initial = "consonant"
+forms = ["다가"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.final-neyo"
+category = "final"
+initial = "consonant"
+forms = ["네요"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.final-deogunyo"
+category = "final"
+initial = "consonant"
+forms = ["더군요"]
+required = []
+forbidden = []
+next = []
 terminal = true
 
 [[ending]]
