@@ -695,5 +695,16 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 먹다	verb	밥을 먹냐고 물었다.	match	interrogative-quotation-spoken
 가다	verb	어디 가셨느냐고 물었다.	match	interrogative-quotation-honorific-past
 이다	copula	내일이 휴일이냐고 물었다.	match	interrogative-quotation-copula
+예쁘다	adjective	꽃이 어찌 그리 예쁜고?	match	interrogative-nieun
+높다	adjective	어찌 이리 높은고?	match	interrogative-eun
+가다	verb	지금 어디로 가는고?	match	interrogative-neun
+하다	verb	그때 무엇을 하던고?	match	interrogative-deon
+이다	copula	이게 무슨 일인고?	match	interrogative-nieun-copula
+이다	copula	이 얼마나 자랑스러운 일이겠는고.	match	interrogative-neun-copula-future
+찾다	verb	선생님께서 너를 계속 찾으시던걸.	match	explanatory-ngeol-honorific
+많다	adjective	생각보다 훨씬 많은걸요.	match	explanatory-ngeol
+보다	verb	나도 어제 그 영화를 본걸.	match	explanatory-ngeol-completed
+듣다	verb	당사자의 말을 직접 들은바 이 사실은 틀림없을 것이다.	match	connective-nba-completed
+읽다	verb	어제 읽은 바를 적었다.	match	adnominal-before-dependent-noun
 치다	verb	지구온난화는 여러 측면에 영향을 미친다.	no-match	structural-whole-predicate
 다	noun	저 친구는 왕친입니다.	no-match	structural-ending-component

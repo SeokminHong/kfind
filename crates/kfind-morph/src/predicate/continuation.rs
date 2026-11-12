@@ -491,6 +491,39 @@ const INTERROGATIVE: &[Suffix] = &[
     suffix("고요", &["ending.quotative-go", "ending.polite-yo"]),
 ];
 
+macro_rules! nieun_extensions {
+    ($prefix:literal $(, $prior:literal)*) => {
+        &[
+            suffix(concat!($prefix, "고"), &[$($prior,)* "ending.interrogative-ngo"]),
+            suffix(concat!($prefix, "걸"), &[$($prior,)* "ending.explanatory-ngeol"]),
+            suffix(concat!($prefix, "걸요"), &[$($prior,)* "ending.explanatory-ngeol", "ending.polite-yo"]),
+            suffix(concat!($prefix, "바"), &[$($prior,)* "ending.connective-nba"]),
+        ]
+    };
+}
+
+const NIEUN_EXTENSIONS: &[Suffix] = nieun_extensions!("");
+const NEUN_EXTENSIONS: &[Suffix] = nieun_extensions!("는");
+const DEON_EXTENSIONS: &[Suffix] = nieun_extensions!("던");
+const SIDEON_EXTENSIONS: &[Suffix] = nieun_extensions!("시던", "ending.honorific");
+const SIN_EXTENSIONS: &[Suffix] = nieun_extensions!("신", "ending.honorific");
+const SINEUN_EXTENSIONS: &[Suffix] = nieun_extensions!("시는", "ending.honorific");
+const SYEOTNEUN_EXTENSIONS: &[Suffix] =
+    nieun_extensions!("셨는", "ending.honorific", "ending.past");
+const SIGETNEUN_EXTENSIONS: &[Suffix] =
+    nieun_extensions!("시겠는", "ending.honorific", "ending.future");
+const COMPLETED_NIEUN: &[Suffix] = &[
+    suffix("걸", &["ending.explanatory-ngeol"]),
+    suffix("걸요", &["ending.explanatory-ngeol", "ending.polite-yo"]),
+    suffix("바", &["ending.connective-nba"]),
+];
+
+fn nieun_tail(following: &str, prefix: &str) -> bool {
+    following
+        .strip_prefix(prefix)
+        .is_some_and(|tail| tail.starts_with(['고', '걸', '바']))
+}
+
 /// Consumes the longest suffix accepted by a predicate branch's verifier state.
 #[must_use]
 pub fn verify_predicate_continuation(
@@ -511,13 +544,26 @@ pub fn verify_predicate_continuation(
         }
         ContinuationState::Eu => EU_SUFFIXES,
         ContinuationState::StemEnding => GEODEUN_ENDINGS,
-        ContinuationState::Background => BACKGROUND,
+        ContinuationState::NieunEnding => BACKGROUND,
+        ContinuationState::CompletedNieunEnding => COMPLETED_NIEUN,
         ContinuationState::Interrogative => INTERROGATIVE,
         ContinuationState::RieulFinal => RIEUL_FINAL,
         ContinuationState::BieupFinal => BIEUP_FINAL,
         ContinuationState::Prospective => PROSPECTIVE,
     };
     let additional_endings = match state {
+        ContinuationState::NieunEnding => NIEUN_EXTENSIONS,
+        ContinuationState::Past | ContinuationState::Future if nieun_tail(following, "는") => {
+            NEUN_EXTENSIONS
+        }
+        ContinuationState::StemEnding | ContinuationState::Past if nieun_tail(following, "던") => {
+            DEON_EXTENSIONS
+        }
+        ContinuationState::Eu if nieun_tail(following, "신") => SIN_EXTENSIONS,
+        ContinuationState::Eu if nieun_tail(following, "시던") => SIDEON_EXTENSIONS,
+        ContinuationState::Eu if nieun_tail(following, "시는") => SINEUN_EXTENSIONS,
+        ContinuationState::Eu if nieun_tail(following, "셨는") => SYEOTNEUN_EXTENSIONS,
+        ContinuationState::Eu if nieun_tail(following, "시겠는") => SIGETNEUN_EXTENSIONS,
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('냐') =>
         {
@@ -583,7 +629,8 @@ pub fn verify_predicate_continuation(
             state,
             ContinuationState::Eu
                 | ContinuationState::StemEnding
-                | ContinuationState::Background
+                | ContinuationState::NieunEnding
+                | ContinuationState::CompletedNieunEnding
                 | ContinuationState::RieulFinal
                 | ContinuationState::BieupFinal
                 | ContinuationState::Prospective

@@ -1092,6 +1092,39 @@ fn reference_predicate_continuation(
         reference_suffix("고요", &["ending.quotative-go", "ending.polite-yo"]),
     ];
 
+    macro_rules! nieun_extensions {
+        ($prefix:literal $(, $prior:literal)*) => {
+            &[
+                reference_suffix(concat!($prefix, "고"), &[$($prior,)* "ending.interrogative-ngo"]),
+                reference_suffix(concat!($prefix, "걸"), &[$($prior,)* "ending.explanatory-ngeol"]),
+                reference_suffix(concat!($prefix, "걸요"), &[$($prior,)* "ending.explanatory-ngeol", "ending.polite-yo"]),
+                reference_suffix(concat!($prefix, "바"), &[$($prior,)* "ending.connective-nba"]),
+            ]
+        };
+    }
+
+    const NIEUN_EXTENSIONS: &[ReferenceSuffix] = nieun_extensions!("");
+    const NEUN_EXTENSIONS: &[ReferenceSuffix] = nieun_extensions!("는");
+    const DEON_EXTENSIONS: &[ReferenceSuffix] = nieun_extensions!("던");
+    const SIDEON_EXTENSIONS: &[ReferenceSuffix] = nieun_extensions!("시던", "ending.honorific");
+    const SIN_EXTENSIONS: &[ReferenceSuffix] = nieun_extensions!("신", "ending.honorific");
+    const SINEUN_EXTENSIONS: &[ReferenceSuffix] = nieun_extensions!("시는", "ending.honorific");
+    const SYEOTNEUN_EXTENSIONS: &[ReferenceSuffix] =
+        nieun_extensions!("셨는", "ending.honorific", "ending.past");
+    const SIGETNEUN_EXTENSIONS: &[ReferenceSuffix] =
+        nieun_extensions!("시겠는", "ending.honorific", "ending.future");
+    const COMPLETED_NIEUN: &[ReferenceSuffix] = &[
+        reference_suffix("걸", &["ending.explanatory-ngeol"]),
+        reference_suffix("걸요", &["ending.explanatory-ngeol", "ending.polite-yo"]),
+        reference_suffix("바", &["ending.connective-nba"]),
+    ];
+
+    fn reference_nieun_tail(following: &str, prefix: &str) -> bool {
+        following
+            .strip_prefix(prefix)
+            .is_some_and(|tail| tail.starts_with(['고', '걸', '바']))
+    }
+
     let candidates = match state {
         ContinuationState::Terminal => return Some((0, Vec::new())),
         ContinuationState::AOrEo => AEO,
@@ -1100,13 +1133,32 @@ fn reference_predicate_continuation(
         ContinuationState::Declarative => DECLARATIVE,
         ContinuationState::Eu => EU,
         ContinuationState::StemEnding => GEODEUN,
-        ContinuationState::Background => BACKGROUND,
+        ContinuationState::NieunEnding => BACKGROUND,
+        ContinuationState::CompletedNieunEnding => COMPLETED_NIEUN,
         ContinuationState::Interrogative => INTERROGATIVE,
         ContinuationState::RieulFinal => RIEUL_FINAL,
         ContinuationState::BieupFinal => BIEUP_FINAL,
         ContinuationState::Prospective => PROSPECTIVE,
     };
     let additional_endings = match state {
+        ContinuationState::NieunEnding => NIEUN_EXTENSIONS,
+        ContinuationState::Past | ContinuationState::Future
+            if reference_nieun_tail(following, "는") =>
+        {
+            NEUN_EXTENSIONS
+        }
+        ContinuationState::StemEnding | ContinuationState::Past
+            if reference_nieun_tail(following, "던") =>
+        {
+            DEON_EXTENSIONS
+        }
+        ContinuationState::Eu if reference_nieun_tail(following, "신") => SIN_EXTENSIONS,
+        ContinuationState::Eu if reference_nieun_tail(following, "시던") => SIDEON_EXTENSIONS,
+        ContinuationState::Eu if reference_nieun_tail(following, "시는") => SINEUN_EXTENSIONS,
+        ContinuationState::Eu if reference_nieun_tail(following, "셨는") => SYEOTNEUN_EXTENSIONS,
+        ContinuationState::Eu if reference_nieun_tail(following, "시겠는") => {
+            SIGETNEUN_EXTENSIONS
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('냐') =>
         {
@@ -1168,7 +1220,8 @@ fn reference_predicate_continuation(
             state,
             ContinuationState::Eu
                 | ContinuationState::StemEnding
-                | ContinuationState::Background
+                | ContinuationState::NieunEnding
+                | ContinuationState::CompletedNieunEnding
                 | ContinuationState::RieulFinal
                 | ContinuationState::BieupFinal
                 | ContinuationState::Prospective

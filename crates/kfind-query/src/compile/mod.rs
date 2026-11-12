@@ -802,7 +802,8 @@ fn compile_predicate_with_generated(
                             | kfind_morph::ContinuationState::RieulFinal
                             | kfind_morph::ContinuationState::BieupFinal
                             | kfind_morph::ContinuationState::Prospective
-                            | kfind_morph::ContinuationState::Background
+                            | kfind_morph::ContinuationState::NieunEnding
+                            | kfind_morph::ContinuationState::CompletedNieunEnding
                             | kfind_morph::ContinuationState::Interrogative
                     ) {
                         return false;

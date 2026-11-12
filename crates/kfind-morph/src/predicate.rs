@@ -583,6 +583,16 @@ fn compile_productive(
         );
     }
     let past = past_adnominal(entry, stem)?;
+    if entry.pos.is_action() {
+        let mut completed = past.clone();
+        completed.rules.pop();
+        push_derived(
+            branches,
+            entry,
+            completed,
+            ContinuationState::CompletedNieunEnding,
+        );
+    }
     let mut background = if uses_neun {
         let present = present_adnominal(stem)?;
         let question_stem = present
@@ -611,7 +621,7 @@ fn compile_productive(
     };
     push_derived(branches, entry, past, ContinuationState::Terminal);
     background.rules.pop();
-    push_derived(branches, entry, background, ContinuationState::Background);
+    push_derived(branches, entry, background, ContinuationState::NieunEnding);
     let mut rieul = future_adnominal(entry, stem)?;
     push_derived(branches, entry, rieul.clone(), ContinuationState::Terminal);
     rieul.rules.pop();
@@ -766,13 +776,21 @@ fn compile_rieul_honorific(
         ContinuationState::Prospective,
         vec![rule("ending.honorific")],
     );
+    push_branch(
+        branches,
+        entry,
+        format!("{base}시"),
+        core_len,
+        ContinuationState::StemEnding,
+        vec![rule("ending.honorific")],
+    );
     for anchor in [format!("{base}신"), format!("{base}시는")] {
         push_branch(
             branches,
             entry,
             anchor,
             core_len,
-            ContinuationState::Background,
+            ContinuationState::NieunEnding,
             vec![rule("ending.honorific")],
         );
     }
@@ -869,6 +887,30 @@ fn compile_copula(
         ContinuationState::Prospective,
         vec![rule("lexical.copula")],
     );
+    for (surface, rules) in [
+        ("이", vec![rule("lexical.copula")]),
+        (
+            "이시",
+            vec![rule("lexical.copula"), rule("ending.honorific")],
+        ),
+    ] {
+        push_branch(
+            branches,
+            entry,
+            surface.to_owned(),
+            stem.len(),
+            ContinuationState::StemEnding,
+            rules,
+        );
+    }
+    push_branch(
+        branches,
+        entry,
+        "이겠".to_owned(),
+        stem.len(),
+        ContinuationState::Future,
+        vec![rule("lexical.copula"), rule("ending.future")],
+    );
     for surface in ["인", "이신", "이시는"] {
         let mut rules = vec![rule("lexical.copula")];
         if surface != "인" {
@@ -879,7 +921,7 @@ fn compile_copula(
             entry,
             surface.to_owned(),
             stem.len(),
-            ContinuationState::Background,
+            ContinuationState::NieunEnding,
             rules,
         );
     }
