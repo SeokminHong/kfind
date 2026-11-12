@@ -5,3 +5,5 @@ pig-before-derived-adjective	되다	verb	no-match	0	9	돼지는 영리하다.
 pig-noun-before-derived-adjective	돼지	noun	smart-exact	0	9	돼지는 영리하다.
 eggplant-before-adjective	가다	verb	no-match	0	9	가지는 맛있다.
 eggplant-noun-before-adjective	가지	noun	smart-exact	0	9	가지는 맛있다.
+pig-before-copula	되다	verb	no-match	0	9	돼지는 잡식 동물이다.
+eggplant-before-copula	가다	verb	no-match	0	9	가지는 보라색 채소다.

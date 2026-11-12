@@ -2703,8 +2703,24 @@ fn has_topic_before_independent_predicate(
                 .strip_suffix('는')
                 .is_some_and(|host| resolver.has_exact_nominal_surface(host))
         })
-        && context::next_word(haystack, end)
-            .is_some_and(|next| resolver.has_independent_final_predicate(&next))
+        && context::next_word_with_end(haystack, end).is_some_and(|(next_end, next)| {
+            resolver.has_independent_final_predicate(&next)
+                || (context::previous_word(haystack, span.start).is_none()
+                    && resolver.has_exact_nominal_surface(&next)
+                    && !resolver.has_exact_non_copula_predicate_surface(&next)
+                    && context::next_word_with_end(haystack, next_end).is_some_and(
+                        |(predicate_end, predicate)| {
+                            is_sentence_end_after(haystack, predicate_end)
+                                && (resolver.has_final_copula_after_nominal(&predicate)
+                                    || predicate.strip_suffix('다').is_some_and(|noun| {
+                                        noun.chars().next_back().is_some_and(|last| {
+                                            kfind_morph::decompose_syllable(last)
+                                                .is_some_and(|syllable| syllable.jongseong == 0)
+                                        }) && resolver.has_exact_nominal_surface(noun)
+                                    }))
+                        },
+                    ))
+        })
 }
 
 fn has_interrogative_auxiliary_frame(

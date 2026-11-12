@@ -1071,11 +1071,12 @@ impl ConstraintResolver {
     pub fn has_final_copula_after_nominal(&self, text: &str) -> bool {
         text.char_indices().skip(1).any(|(split, initial)| {
             (initial == '이' || crate::drop_final(initial) == Some('이'))
-                && self.has_exact_predicate_ending_path_matching(
-                    &text[split..],
-                    |pos| pos == StructuralPos::VCP,
-                    |ending| ending == StructuralPos::EF,
-                )
+                && (&text[split..] == "이다"
+                    || self.has_exact_predicate_ending_path_matching(
+                        &text[split..],
+                        |pos| pos == StructuralPos::VCP,
+                        |ending| ending == StructuralPos::EF,
+                    ))
                 && self.has_complete_nominal_surface(&text[..split])
         })
     }
