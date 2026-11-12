@@ -56,10 +56,10 @@ kfind --literal 걸었다 docs
 
 ## 자동화 출력 [#automation-output]
 
-네이티브 CLI에서는 다음처럼 사전·품사·경계·출력을 명시합니다. `any`는 더 넓은 후보를 반환하므로 원문 문맥을 읽어 불필요한 결과를 제외합니다.
+네이티브 CLI에서는 다음처럼 품사·경계·출력을 명시합니다. `any`는 더 넓은 후보를 반환하므로 원문 문맥을 읽어 불필요한 결과를 제외합니다.
 
 ```bash
-kfind --embedded --boundary any --pos verb --json 걷다 src
+kfind --boundary any --pos verb --json 걷다 src
 ```
 
 [JSON Lines](/reference/jsonl)는 네이티브의 byte 좌표와 npm의 UTF-16 좌표를 구분합니다. 결과가 없다는 상태는 관련 내용이 전혀 없다는 보장이 아닙니다.

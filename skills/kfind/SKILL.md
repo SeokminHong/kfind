@@ -25,7 +25,7 @@ For Korean lemma and inflection searches in source code or documentation, load a
 ## 에이전트 검색 절차
 
 1. 모든 형태 atom의 품사를 정합니다.
-2. 재현 가능하고 재현율 중심인 `--embedded --boundary any --json`으로 시작합니다.
+2. `--boundary any --json`으로 시작합니다. 설치된 full POS 사전을 자동으로 사용합니다.
 3. 검색 질의를 넓히기 전에 path, `--glob` 또는 `--type`으로 범위를 제한합니다.
 4. stdout의 JSON Lines를 parse하고 stderr의 진단을 분리합니다.
 5. 일치한 문맥을 읽고 false positive를 제외합니다. 후보가 많으면 `--boundary smart`로 다시 검색합니다.
@@ -33,14 +33,14 @@ For Korean lemma and inflection searches in source code or documentation, load a
 한 품사의 검색 질의에는 `--pos`를 사용합니다.
 
 ```sh
-kfind --embedded --boundary any --pos verb --json '검증하다' src docs
+kfind --boundary any --pos verb --json '검증하다' src docs
 ```
 
 여러 atom 중 하나를 찾으려면 `|`를 사용하고 shell 해석을 막기 위해 query 전체를
 따옴표로 묶습니다. Alternative마다 품사 태그를 붙일 수 있습니다.
 
 ```sh
-kfind --embedded --boundary any --json 'v:걷다 | n:사용자 | n:검증' src docs
+kfind --boundary any --json 'v:걷다 | n:사용자 | n:검증' src docs
 ```
 
 `|`는 구 전체를 대안으로 선택할 수 있습니다. 괄호로 대안을 묶으면 뒤의 atom과
@@ -48,13 +48,13 @@ kfind --embedded --boundary any --json 'v:걷다 | n:사용자 | n:검증' src d
 인용합니다.
 
 ```sh
-kfind --embedded --boundary any --json '(n:권한 | n:역할) v:검증하다' src
+kfind --boundary any --json '(n:권한 | n:역할) v:검증하다' src
 ```
 
 품사가 섞인 구는 atom마다 태그를 붙입니다.
 
 ```sh
-kfind --embedded --boundary any --json 'n:권한 v:검증하다' src
+kfind --boundary any --json 'n:권한 v:검증하다' src
 ```
 
 형태 확장 없이 표면형만 찾을 때는 `--literal`을 사용합니다.
@@ -86,8 +86,8 @@ atom 안에 유지하려면 따옴표를 사용하고, 다음 문자를 escape�
 사용합니다.
 
 ```sh
-kfind --embedded --boundary any --json 'det:새 n:기능' docs
-kfind --embedded --boundary any --json 'n:권한 "접근 제어" v:검증하다' src
+kfind --boundary any --json 'det:새 n:기능' docs
+kfind --boundary any --json 'n:권한 "접근 제어" v:검증하다' src
 ```
 
 구 atom은 한 줄에서 순서대로 나타나야 합니다. `--max-gap N`은 인접한 검증
@@ -103,7 +103,7 @@ token 사이의 최대 Unicode scalar 수를 지정하며 기본값은 24입니�
 ignore 파일을 따르고 기본적으로 숨김 경로를 제외합니다.
 
 ```sh
-kfind --embedded --boundary any --pos noun --json \
+kfind --boundary any --pos noun --json \
   --glob '*.rs' --glob '!target/**' '사용자' crates
 ```
 

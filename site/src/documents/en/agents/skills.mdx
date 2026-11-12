@@ -27,7 +27,7 @@ Trusted integration hooks instruct the agent to use kfind for Korean lemma and i
 For exact error messages or surface forms, `rg -F`, `grep -F`, `git grep -F`, `--fixed-strings`, and `fgrep` are allowed. You can also use `kfind --literal` or IDE fixed-string search. Regular expressions are outside this exception.
 
 ```bash
-kfind --embedded --boundary any --pos verb --json 걷다 src
+kfind --boundary any --pos verb --json 걷다 src
 kfind --uninstall --agent codex
 ```
 

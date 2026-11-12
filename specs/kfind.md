@@ -635,7 +635,7 @@ crates/
 18. WASM binary는 compact artifact를 포함하지 않고, 외부 또는 별도 정적 asset bytes를 받은
     생성자에서 schema·source·digest를 검증한다.
 19. man page와 한국어 README가 사람용 무품사 기본 경로와 에이전트 자동화 경로를 구분하고,
-    에이전트 예시는 명시적 품사, `any`, embedded와 JSON 출력을 사용한다.
+    에이전트 예시는 명시적 품사, `any`, 기본 사전 모드와 JSON 출력을 사용한다.
 20. 품사를 생략한 held-out 검색의 품질·성능 benchmark가 별도 fixture와 보고서 절로 존재한다.
 21. `kfind --init`은 TTY checkbox, 반복 `--agent`, 비TTY stdin에서 같은 agent 대상 집합을
     설치한다.

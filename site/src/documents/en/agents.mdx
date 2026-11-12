@@ -22,7 +22,7 @@ kfind does not select a word sense. The agent reads the code around each broadly
 
 2.  **[Recall](/reference/glossary#recall)-first boundary**
 
-    Use `--embedded --boundary any` to avoid resource startup and structural rejection.
+    Use `--boundary any` to collect a broad set of candidates. kfind automatically uses the installed full POS lexicon when available.
 
 3.  **Structured output**
 
@@ -33,8 +33,8 @@ kfind does not select a word sense. The agent reads the code around each broadly
     Inspect adjacent code and discard irrelevant homographs.
 
 ```bash
-kfind --embedded --boundary any --json 'n:사용자 v:검증하다' src
-kfind --embedded --boundary any --pos verb --json 걷다 crates
+kfind --boundary any --json 'n:사용자 v:검증하다' src
+kfind --boundary any --pos verb --json 걷다 crates
 ```
 
 ## Integration installation and removal [#skill-installation]
@@ -80,10 +80,10 @@ A forbidden-expression check can use the `--quiet` exit status. Refactoring disc
 
 ```bash
 kfind --pos verb --quiet 사용하다 docs && exit 1
-kfind --embedded --boundary any --json 'n:권한 v:검증하다' src | jq -c 'select(.type == "match")'
+kfind --boundary any --json 'n:권한 v:검증하다' src | jq -c 'select(.type == "match")'
 ```
 
-Reduce the path and glob before changing the search policy when output is large. A separate full-POS `smart` search is available when a human workflow needs structural [precision](/reference/glossary#precision).
+When output is large, narrow the search paths and globs first. Retry with `--boundary smart` when you need structural [precision](/reference/glossary#precision).
 
 ## Integration contract [#integration-contract]
 
