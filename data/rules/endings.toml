@@ -1482,6 +1482,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.volitional-mse"
+category = "final"
+initial = "attach-mieum"
+forms = ["ㅁ세", "음세"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.nominalizer-gi"
 category = "nominalizer"
 initial = "consonant"

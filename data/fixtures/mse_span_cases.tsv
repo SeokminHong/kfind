@@ -1,0 +1,46 @@
+id	query	pos	expected	byte_start	byte_end	text
+krdict.ㅁ세:1	연락하다	verb	exact	35	47	올해가 가기 전에 내가 꼭 연락함세.
+krdict.ㅁ세:2	가져가다	verb	exact	35	47	자네가 빌린 책은 내가 좀 가져감세.
+krdict.ㅁ세:3	주다	verb	exact	48	54	아무리 그래도 내 딸은 자네에게 못 줌세.
+krdict.ㅁ세:4	보다	verb	exact	48	54	그럼 그때 우리가 잘 가던 찻집에서 봄세.
+krdict.ㅁ세:5	보다	verb	exact	57	63	새해가 되었으니 새 마음으로 일을 시작해 봄세.
+krdict.ㅁ세:6	사다	verb	exact	24	30	오늘 저녁은 내가 삼세.
+stdict.ㅁ세:7	주다	verb	exact	17	23	내가 거들어 줌세.
+stdict.ㅁ세:8	하다	verb	exact	18	24	그 일은 내가 함세.
+stdict.ㅁ세:9	하다	verb	exact	13	19	우리끼리 함세.
+stdict.ㅁ세:10	주다	verb	exact	14	20	책을 사다 줌세.
+krdict.음세:1	입다	verb	exact	32	41	자네가 준 옷은 내가 잘 입음세.
+krdict.음세:2	닫다	verb	exact	35	44	오늘 가게 문은 내가 일찍 닫음세.
+krdict.음세:3	읽다	verb	exact	60	69	혼자서는 이해하기 어려운 책이니 우리 같이 읽음세.
+krdict.음세:4	받다	verb	exact	39	48	자네 못 받은 돈은 내가 대신 받음세.
+stdict.음세:5	갚다	verb	exact	14	23	일간 빚을 갚음세.
+stdict.음세:6	먹다	verb	exact	11	20	곧 밥을 먹음세.
+stdict.음세:7	먹다	verb	exact	14	23	우리 같이 먹음세.
+stdict.음세:8	찍다	verb	exact	24	33	자네의 책은 내가 찍음세.
+stdict.음세:9	읽다	verb	exact	53	62	한 학기 동안 우리 이 논문을 같이 한번 읽음세.
+gamse-verb	가다	verb	exact	48	54	자네는 천천히 준비하게. 나는 먼저 감세.
+gamse-verb-context	가다	verb	exact	61	67	이번 세법 개정에서 가장 주목할 대목은 역시 감세.
+gamse-noun-context	감세	noun	exact	48	54	자네는 천천히 준비하게. 나는 먼저 감세.
+gamse-noun	감세	noun	exact	61	67	이번 세법 개정에서 가장 주목할 대목은 역시 감세.
+samse-verb	사다	verb	exact	45	51	저녁값은 걱정 말게. 오늘은 내가 삼세.
+samse-verb-context	사다	verb	exact	23	29	불교에서 말하는 삼세 개념은 과거·현재·미래를 아우른다.
+samse-noun-context	삼세	noun	exact	45	51	저녁값은 걱정 말게. 오늘은 내가 삼세.
+samse-noun	삼세	noun	exact	23	29	불교에서 말하는 삼세 개념은 과거·현재·미래를 아우른다.
+rieul	만들다	verb	exact	35	44	그 선반은 자네 대신 내가 만듦세.
+irregular-d	걷다	verb	exact	35	44	그 길은 나도 자네와 함께 걸음세.
+irregular-b	돕다	verb	exact	31	40	이번 이사는 내가 직접 도움세.
+irregular-s	짓다	verb	exact	21	30	집은 내 손으로 지음세.
+trial-attached	읽다	verb	exact	30	42	자네가 추천한 책부터 읽어봄세.
+trial-spaced	보다	verb	exact	37	43	자네가 추천한 책부터 읽어 봄세.
+naerimse-verb	내리다	verb	exact	44	53	비가 그쳤으니 짐은 내가 차에서 내림세.
+naerimse-verb-context	내리다	verb	exact	36	45	전문가들은 하반기 집값의 내림세 지속을 예상했다.
+naerimse-noun-context	내림세	noun	exact	44	53	비가 그쳤으니 짐은 내가 차에서 내림세.
+naerimse-noun	내림세	noun	exact	36	45	전문가들은 하반기 집값의 내림세 지속을 예상했다.
+oreumse-verb	오르다	verb	exact	48	57	자네는 쉬게. 전망대에는 내가 먼저 오름세.
+oreumse-verb-context	오르다	verb	exact	17	26	최근의 금값 오름세 때문에 투자자들이 금으로 몰렸다.
+oreumse-noun-context	오름세	noun	exact	48	57	자네는 쉬게. 전망대에는 내가 먼저 오름세.
+oreumse-noun	오름세	noun	exact	17	26	최근의 금값 오름세 때문에 투자자들이 금으로 몰렸다.
+meomchumse-verb	멈추다	verb	exact	59	68	자네가 숨을 고를 수 있게 나도 여기서 잠시 멈춤세.
+meomchumse-verb-context	멈추다	verb	exact	33	42	증권가는 당분간 주가의 멈춤세 지속을 예상했다.
+meomchumse-noun-context	멈춤세	noun	exact	59	68	자네가 숨을 고를 수 있게 나도 여기서 잠시 멈춤세.
+meomchumse-noun	멈춤세	noun	exact	33	42	증권가는 당분간 주가의 멈춤세 지속을 예상했다.

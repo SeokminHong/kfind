@@ -1,0 +1,11 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	mse	gamse-verb-context	가다	verb	false	9eed4d07985bc2caa5daec003cdea7b77c579457981b7d762c5f0f0bd5171249	contract-positive	structurally-indistinguishable-homograph	세금을 줄이는 명사와 이동을 뜻하는 동사 활용이 같은 표면을 갖는다.
+explicit-pos	mse	gamse-noun-context	감세	noun	false	bcf14804c1099a3f485987e0f4dcfa7e52d78ebab60ac71a70c984df3a3c8b4c	contract-positive	structurally-indistinguishable-homograph	세금을 줄이는 명사와 이동을 뜻하는 동사 활용이 같은 표면을 갖는다.
+explicit-pos	mse	samse-verb-context	사다	verb	false	a18de373646c2f742a7050fbda3bec1e2d881c15d47119845e3c0283d17351c4	contract-positive	structurally-indistinguishable-homograph	불교 용어인 명사와 값을 치르는 동사 활용이 같은 표면을 갖는다.
+explicit-pos	mse	samse-noun-context	삼세	noun	false	129dd48701e60a34db0acbf461ac844e59183525990fdf603e3776ebe2139f3c	contract-positive	structurally-indistinguishable-homograph	불교 용어인 명사와 값을 치르는 동사 활용이 같은 표면을 갖는다.
+explicit-pos	mse	naerimse-verb-context	내리다	verb	false	258cde9a8f37928727f02716e431eaeb71712de1a50986a1ad1ac657d4b3ba8c	contract-positive	structurally-indistinguishable-homograph	차에서 짐을 내리는 동사와 가격이 떨어지는 추세를 뜻하는 명사가 같은 표면을 갖는다.
+explicit-pos	mse	naerimse-noun-context	내림세	noun	false	12b89bdb4db9a998c856fd870759441f1670d3baabf723434be24886a149dc64	contract-positive	structurally-indistinguishable-homograph	차에서 짐을 내리는 동사와 가격이 떨어지는 추세를 뜻하는 명사가 같은 표면을 갖는다.
+explicit-pos	mse	oreumse-verb-context	오르다	verb	false	5f1e7771c47ecf2e30a0f9d7e2212aadf339c972606045252b7d8e1966311c56	contract-positive	structurally-indistinguishable-homograph	높은 곳으로 올라가는 동사와 가격이 오르는 추세를 뜻하는 명사가 같은 표면을 갖는다.
+explicit-pos	mse	oreumse-noun-context	오름세	noun	false	809de302e96deb7978b93de126e9f9b1b21ef6b0c26e6d70e53ffde55b9f997f	contract-positive	structurally-indistinguishable-homograph	높은 곳으로 올라가는 동사와 가격이 오르는 추세를 뜻하는 명사가 같은 표면을 갖는다.
+explicit-pos	mse	meomchumse-verb-context	멈추다	verb	false	c58cfb42ecedaa853d134f90b62f7475b5f98a89efb7fae6768b224eef7d144b	contract-positive	structurally-indistinguishable-homograph	움직임을 멈추는 동사와 시세가 거의 변동하지 않는다는 뜻의 명사가 같은 표면을 갖는다.
+explicit-pos	mse	meomchumse-noun-context	멈춤세	noun	false	ee24e4deab9c81ea9838003a3846537fe6874a4f9356ad003b87d7c9b453552e	contract-positive	structurally-indistinguishable-homograph	움직임을 멈추는 동사와 시세가 거의 변동하지 않는다는 뜻의 명사가 같은 표면을 갖는다.

@@ -1775,6 +1775,7 @@ fn reference_attached_auxiliary(
         ("볼", RieulFinal, true, &["ending.future-adnominal"]),
         ("봅시다", Terminal, true, &["ending.propositive"]),
         ("봅", BieupFinal, false, &[]),
+        ("봄세", Terminal, true, &["ending.volitional-mse"]),
         ("봄", Terminal, true, &["ending.nominalizer"]),
         ("봤", Past, false, &["ending.past"]),
         ("보았", Past, false, &["ending.past"]),

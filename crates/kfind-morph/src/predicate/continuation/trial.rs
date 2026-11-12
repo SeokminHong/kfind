@@ -26,6 +26,9 @@ pub(super) fn verify(anchor_len: usize, following: &str) -> Option<PredicateCont
         }
         '본' => ("본", CompletedNieunEnding, Some("ending.past-adnominal")),
         '볼' => ("볼", RieulFinal, Some("ending.future-adnominal")),
+        '봄' if following.starts_with("봄세") => {
+            ("봄세", Terminal, Some("ending.volitional-mse"))
+        }
         '봄' => ("봄", Terminal, Some("ending.nominalizer")),
         '봅' if following.starts_with("봅시다") => {
             ("봅시다", Terminal, Some("ending.propositive"))
