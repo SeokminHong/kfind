@@ -991,6 +991,7 @@ impl MorphMatcher {
                     || has_nominal_quotative_frame(haystack, candidate, branch, resolver)
                     || has_counted_unit_copula(haystack, candidate, branch, resolver)
                     || has_elapsed_measure_frame(haystack, candidate, branch, atom, resolver)
+                    || has_quantifying_adverb_frame(haystack, candidate, branch, atom, resolver)
                     || has_transitive_jiyo_frame(haystack, candidate, branch, resolver)
                     || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
                     || has_prayer_object_frame(haystack, candidate, branch, atom, resolver)
@@ -2168,6 +2169,33 @@ fn has_elapsed_measure_frame(
     context::previous_word_with_start(haystack, core.start).is_some_and(|(start, measure)| {
         let count = context::previous_word(haystack, start);
         resolver.has_elapsed_measure(&measure, count.as_deref())
+    })
+}
+
+fn has_quantifying_adverb_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let core = &candidate.verified.core;
+    if (branch.anchor.as_ref() != "불과".as_bytes()
+        && branch.anchor.as_ref() != "\u{1107}\u{116e}\u{11af}\u{1100}\u{116a}".as_bytes())
+        || *core != candidate.consumed
+        || !is_boundary_before(haystack, core.start)
+        || !is_boundary_after(haystack, core.end)
+        || !branch.origins.iter().all(|origin| {
+            atom.analyses
+                .get(usize::from(origin.analysis_index))
+                .is_some_and(|analysis| analysis.coarse_pos == kfind_morph::CoarsePos::Noun)
+        })
+    {
+        return false;
+    }
+    context::next_word_with_end(haystack, core.end).is_some_and(|(end, next)| {
+        let unit = context::next_word(haystack, end);
+        resolver.has_quantity_expression(&next, unit.as_deref())
     })
 }
 

@@ -1,0 +1,10 @@
+id	query	pos	expected	byte_start	byte_end	text
+ud-adverb	불과	adverb	exact	48	54	남극의 내륙 고원 지대에서는 1년에 불과 수 미터를 움직이나 바닷가로 가까이 오면서 빨라져 1킬로미터 이상이 된다.
+ud-no-noun	불과	noun	no-match	48	54	남극의 내륙 고원 지대에서는 1년에 불과 수 미터를 움직이나 바닷가로 가까이 오면서 빨라져 1킬로미터 이상이 된다.
+digits-adverb	불과	adverb	exact	17	23	거리 차이는 불과 3미터였다.
+digits-no-noun	불과	noun	no-match	17	23	거리 차이는 불과 3미터였다.
+case-marked-noun	불과	noun	exact	7	16	그는 불과를 얻기 위해 오랫동안 수행했다.
+case-marked-no-adverb	불과	adverb	no-match	7	16	그는 불과를 얻기 위해 오랫동안 수행했다.
+apposition-noun	불과	noun	exact	24	30	그가 바라는 것은 불과, 곧 부처의 깨달음이다.
+period-noun	불과	noun	no-match	23	29	답장을 받기까지 불과 나흘이 걸렸다.
+relative-day-noun	불과	noun	no-match	11	17	그 일은 불과 엊그제 일어났다.
