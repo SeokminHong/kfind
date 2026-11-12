@@ -163,7 +163,7 @@ pub(super) fn accepts_omitted_copula(
 ) -> bool {
     let mut nominal_frame = false;
     let accepted = omitted_copula_hosts(token).any(|(host, suffix)| {
-        if matches!(suffix, "라면" | "라도") {
+        if matches!(suffix, "라면" | "라도" | "랴" | "렷다") {
             return !host
                 .strip_suffix('이')
                 .is_some_and(|prefix| resolver.has_complete_nominal_surface(prefix))

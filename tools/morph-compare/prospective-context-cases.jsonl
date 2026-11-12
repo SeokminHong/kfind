@@ -1,0 +1,8 @@
+{"id":"garya-copula-positive","query":"이다","pos":"adjective","text":"세 글자 중 첫 글자가 정녕 가랴?","surface":"가랴","expected":true,"gold_byte_start":36,"gold_byte_end":42,"paired_case_id":"garya-copula-context"}
+{"id":"garya-copula-context","query":"이다","pos":"adjective","text":"눈보라가 치는데 내가 거기까지 가랴?","surface":"가랴","expected":false,"gold_byte_start":43,"gold_byte_end":49,"paired_case_id":"garya-copula-positive"}
+{"id":"garya-verb-context","query":"가다","pos":"verb","text":"세 글자 중 첫 글자가 정녕 가랴?","surface":"가랴","expected":false,"gold_byte_start":36,"gold_byte_end":42,"paired_case_id":"garya-verb-positive"}
+{"id":"garya-verb-positive","query":"가다","pos":"verb","text":"눈보라가 치는데 내가 거기까지 가랴?","surface":"가랴","expected":true,"gold_byte_start":43,"gold_byte_end":49,"paired_case_id":"garya-verb-context"}
+{"id":"garyeotda-copula-positive","query":"이다","pos":"adjective","text":"이름의 첫 글자가 분명 가렷다.","surface":"가렷다","expected":true,"gold_byte_start":31,"gold_byte_end":40,"paired_case_id":"garyeotda-copula-context"}
+{"id":"garyeotda-copula-context","query":"이다","pos":"adjective","text":"너는 날이 밝으면 곧장 관아로 가렷다.","surface":"가렷다","expected":false,"gold_byte_start":41,"gold_byte_end":50,"paired_case_id":"garyeotda-copula-positive"}
+{"id":"garyeotda-verb-context","query":"가다","pos":"verb","text":"이름의 첫 글자가 분명 가렷다.","surface":"가렷다","expected":false,"gold_byte_start":31,"gold_byte_end":40,"paired_case_id":"garyeotda-verb-positive"}
+{"id":"garyeotda-verb-positive","query":"가다","pos":"verb","text":"너는 날이 밝으면 곧장 관아로 가렷다.","surface":"가렷다","expected":true,"gold_byte_start":41,"gold_byte_end":50,"paired_case_id":"garyeotda-verb-context"}

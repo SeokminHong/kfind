@@ -11,6 +11,8 @@ const WALK_HANG_STRESS: &str = include_str!("../../../../data/fixtures/walk_hang
 const UD_MORPHOLOGY_CASES: &str = include_str!("../../../../data/fixtures/ud_morphology_cases.tsv");
 const INTERROGATIVE_CASES: &str =
     include_str!("../../../../data/fixtures/interrogative_span_cases.tsv");
+const PROSPECTIVE_CASES: &str =
+    include_str!("../../../../data/fixtures/prospective_span_cases.tsv");
 const ENRICHED_PREDICATES_SOURCE: &str = "data/enriched/predicates.tsv";
 const ENRICHED_PREDICATES: &str = include_str!("../../../../data/enriched/predicates.tsv");
 
@@ -71,6 +73,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         "interrogative endings",
         INTERROGATIVE_CASES,
     )?;
+    verify_span_cases(&enriched_harness, "prospective endings", PROSPECTIVE_CASES)?;
     verify_context_homographs(&enriched_harness)?;
     verify_copula_conditionals(&enriched_harness)?;
 
@@ -324,7 +327,7 @@ fn verify_span_cases(
         };
         let expectation = *expected;
         let expected = match expectation {
-            "match" | "exact" => true,
+            "match" | "exact" | "smart-exact" => true,
             "no-match" => false,
             _ => return Err(invalid_row().into()),
         };
@@ -335,11 +338,12 @@ fn verify_span_cases(
             return Err(invalid_row().into());
         }
         for boundary in [BoundaryPolicy::Smart, BoundaryPolicy::Any] {
-            if boundary == BoundaryPolicy::Any && !expected {
+            if boundary == BoundaryPolicy::Any && (!expected || expectation == "smart-exact") {
                 continue;
             }
             let matches = harness.find_lemma_matches(query, text, pos, boundary)?;
-            let spans = if expectation == "exact" {
+            let exact = matches!(expectation, "exact" | "smart-exact");
+            let spans = if exact {
                 matches
                     .into_iter()
                     .map(|matched| matched.span)
@@ -351,7 +355,7 @@ fn verify_span_cases(
                     .collect::<Vec<_>>()
             };
             let found = spans.iter().any(|span| {
-                if expectation == "exact" {
+                if exact {
                     *span == (start..end)
                 } else {
                     span.start < end && start < span.end

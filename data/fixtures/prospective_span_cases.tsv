@@ -1,0 +1,60 @@
+id	query	pos	expected	byte_start	byte_end	text
+krdict.것다:1	속이다	verb	exact	28	40	감히 어린 네가 나를 속였것다.
+krdict.것다:2	이다	adjective	exact	56	65	어린아이를 업고 언덕을 넘으려면 꽤 고생이것다.
+stdict.것다:3	하다	verb	exact	31	40	이번에도 네가 일 등을 했것다.
+krdict.랴:1	배부르다	adjective	exact	10	22	첫술에 배부르랴.
+krdict.랴:2	지키다	verb	exact	37	46	우리가 아니면 누가 나라를 지키랴.
+krdict.랴:3	지다	verb	exact	48	54	설마 우승했던 우리 팀이 꼴찌 팀에 지랴.
+krdict.랴:4	하다	verb	exact	39	45	아버지가 너희들에게 한마디 하랴?
+krdict.랴:5	주다	verb	exact	50	56	시간이 늦었는데 내가 집까지 데려다 주랴?
+krdict.랴:6	챙기다	verb	exact	61	70	네 일은 스스로 해야지 아직도 엄마가 일일이 챙기랴?
+stdict.랴:7	벌다	verb	exact	34	40	네가 돈을 번다면 얼마나 벌랴?
+stdict.랴:8	주다	verb	exact	7	13	무얼 주랴?
+stdict.랴:9	가다	verb	exact	7	13	내가 가랴?
+opendict.랴:10	두렵다	adjective	exact	30	42	잘못이 없는데 무엇이 두려우랴?
+krdict.렷다:1	오다	verb	exact	27	36	오늘 저녁에는 비가 오렷다.
+krdict.렷다:2	나타나다	verb	exact	34	49	내일이면 그 자가 반드시 나타나렷다.
+krdict.렷다:3	이다	adjective	smart-exact	37	46	소문을 퍼뜨린 사람이 분명 너렷다.
+krdict.렷다:4	알다	verb	exact	18	27	네 죄를 네가 알렷다.
+krdict.렷다:5	거행하다	verb	exact	13	28	분부대로 거행하렷다.
+krdict.렷다:6	오다	verb	exact	24	33	죄인을 당장 잡아 오렷다.
+krdict.렷다:7	말하다	verb	exact	35	47	큰 벌을 내리기 전에 어서 말하렷다!
+krdict.렷다:8	열다	verb	exact	25	34	여봐라! 어서 문을 열렷다.
+stdict.렷다:9	하다	verb	exact	21	30	다시는 두말 못 하렷다.
+stdict.렷다:10	이다	adjective	exact	20	29	네가 바로 길동이렷다.
+stdict.렷다:11	거행하다	verb	exact	17	32	이르는 대로 거행하렷다.
+stdict.렷다:12	말다	verb	exact	34	43	다시는 내 앞에 나타나지 말렷다.
+krdict.으랴:1	받다	verb	exact	20	29	점원은 주문을 받으랴 계산을 하랴 정신이 없다.
+krdict.으랴:2	먹다	verb	exact	46	55	승규는 노래하랴, 술 마시랴, 안주 먹으랴 바쁘다.
+krdict.으랴:3	받다	verb	exact	72	81	아이스크림 장수는 아이스크림을 주랴 손님에게 돈을 받으랴 무척 바쁘다.
+krdict.으랴:4	잊다	verb	exact	21	30	이 사고를 누가 잊으랴.
+krdict.으랴:5	막다	verb	exact	27	36	흐르는 강물을 누가 막으랴.
+krdict.으랴:6	갚다	verb	exact	34	43	부모님의 은혜를 어찌 다 갚으랴.
+krdict.으랴:7	잘하다	verb	exact	40	52	깔끔한 지수가 청소를 어련히 잘했으랴.
+krdict.으랴:8	놓다	verb	exact	24	33	의자를 책상 옆에 놓으랴?
+krdict.으랴:9	찾다	verb	exact	37	46	네가 잃어버린 열쇠를 내가 찾으랴?
+krdict.으랴:10	먹다	verb	exact	46	55	네가 밥을 다 못 먹으면 내가 대신 먹으랴?
+stdict.으랴:11	잊다	verb	exact	27	36	그날의 고통을 어찌 잊으랴.
+stdict.으랴:12	있다	verb	exact	37	46	이런 행운이 살아생전에 또 있으랴?
+stdict.으랴:13	참다	verb	exact	18	27	그럼 며칠 더 참으랴?
+stdict.으랴:14	삶다	verb	exact	10	19	감자를 삶으랴?
+krdict.으렷다:1	건너다	verb	exact	33	48	지금쯤이면 적군이 강을 건넜으렷다.
+krdict.으렷다:2	있다	verb	exact	48	60	너와 함께 음모를 꾸민 자가 분명히 있으렷다.
+krdict.으렷다:3	없다	adjective	exact	59	71	네가 아무리 다른 방법을 써 봐도 별 소용이 없으렷다.
+krdict.으렷다:4	받다	verb	exact	20	32	죄인은 사약을 받으렷다.
+krdict.으렷다:5	꿇다	verb	exact	34	46	주인 어른께 냉큼 무릎을 꿇으렷다.
+krdict.으렷다:6	묶다	verb	exact	43	55	이놈이 도망가지 못하도록 당장 묶으렷다.
+krdict.으렷다:7	적다	verb	exact	35	47	내가 하는 말을 모두 받아 적으렷다.
+stdict.으렷다:8	없다	adjective	exact	21	33	네 말에 거짓이 없으렷다.
+stdict.으렷다:9	있다	verb	exact	28	40	너도 그 일에 책임이 있으렷다.
+stdict.으렷다:10	읽다	verb	exact	24	39	지금쯤은 책을 다 읽었으렷다.
+stdict.으렷다:11	꿇다	verb	exact	17	29	냉큼 무릎을 꿇으렷다.
+stdict.으렷다:12	묶다	verb	exact	21	33	당장 그 죄인을 묶으렷다.
+garya-copula-positive	이다	adjective	smart-exact	36	42	세 글자 중 첫 글자가 정녕 가랴?
+garya-copula-context	이다	adjective	smart-exact	43	49	눈보라가 치는데 내가 거기까지 가랴?
+garya-verb-context	가다	verb	exact	36	42	세 글자 중 첫 글자가 정녕 가랴?
+garya-verb-positive	가다	verb	exact	43	49	눈보라가 치는데 내가 거기까지 가랴?
+garyeotda-copula-positive	이다	adjective	smart-exact	31	40	이름의 첫 글자가 분명 가렷다.
+garyeotda-copula-context	이다	adjective	smart-exact	41	50	너는 날이 밝으면 곧장 관아로 가렷다.
+garyeotda-verb-context	가다	verb	exact	31	40	이름의 첫 글자가 분명 가렷다.
+garyeotda-verb-positive	가다	verb	exact	41	50	너는 날이 밝으면 곧장 관아로 가렷다.

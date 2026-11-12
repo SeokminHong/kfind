@@ -282,6 +282,8 @@ pub fn starts_omitted_copula_ending(character: char) -> bool {
     matches!(
         character,
         '라' | '란'
+            | '랴'
+            | '렷'
             | '게'
             | '람'
             | '랍'

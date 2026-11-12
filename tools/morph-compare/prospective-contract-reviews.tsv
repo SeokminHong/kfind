@@ -1,0 +1,5 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	prospective	garya-copula-context	이다	adjective	false	809c612346e5ddc0bead39b9d784749654bac4e21b23d4aaf882fd9cd0670a39	contract-positive	structurally-indistinguishable-homograph	가랴에는 이동 동사와 글자 이름 뒤의 지정사 활용이 모두 성립한다.
+explicit-pos	prospective	garya-verb-context	가다	verb	false	20a164790d8d95a99c4c709b9e6c56c6853f45f1b7afda8883f13a0f81fffdd7	contract-positive	structurally-indistinguishable-homograph	가랴에는 이동 동사와 글자 이름 뒤의 지정사 활용이 모두 성립한다.
+explicit-pos	prospective	garyeotda-copula-context	이다	adjective	false	2d57115cb5aeabd67a68010ea48493d09a9680eaaf84aa25a2668ddd8ba647c0	contract-positive	structurally-indistinguishable-homograph	가렷다에는 이동 동사와 글자 이름 뒤의 지정사 활용이 모두 성립한다.
+explicit-pos	prospective	garyeotda-verb-context	가다	verb	false	1bd369e01cab3e77d2ee66315860b87859e61e5f66da4cb75445c65c492a9207	contract-positive	structurally-indistinguishable-homograph	가렷다에는 이동 동사와 글자 이름 뒤의 지정사 활용이 모두 성립한다.
