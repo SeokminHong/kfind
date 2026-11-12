@@ -201,6 +201,22 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_negative_copula_after_focus(&self, text: &str) -> bool {
+        has_exact_sequence(&self.resource, "가", &[StructuralPos::JX])
+            && (self.has_exact_predicate_ending_path_matching(
+                text,
+                |pos| pos == StructuralPos::VCN,
+                |_| true,
+            ) || text
+                .strip_prefix("아니")
+                .filter(|suffix| !suffix.is_empty())
+                .is_some_and(|suffix| {
+                    has_exact_sequence(&self.resource, "아니", &[StructuralPos::VCN])
+                        && complete_suffix(&self.resource, suffix, StructuralPos::is_ending)
+                }))
+    }
+
+    #[must_use]
     pub fn has_exact_predicate_connective_path(
         &self,
         text: &str,

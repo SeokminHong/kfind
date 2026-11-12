@@ -127,6 +127,11 @@ regression.honorific-purpose-reo.vowel	보다	verb	smart-exact	23	32	선생님�
 regression.honorific-purpose-reo.consonant	읽다	verb	smart-exact	20	32	선생님은 책을 읽으시러 도서관에 가셨다.
 regression.honorific-purpose-reo.rieul	만들다	verb	smart-exact	23	35	선생님은 작품을 만드시러 공방에 가셨다.
 regression.honorific-purpose-reo.adjective	좋다	adjective	no-match	0	12	좋으시러라는 활용을 검색에 넣지 않았다.
+corpus.ud-kaist.dev.MH2_0169-s296.adjective.없다	없다	adjective	smart-exact	71	80	우리가 선거에 소극적인 것은 미리 확보해 놓은 돈이 없어서가 아니다.
+regression.causal-focus-particle.ha	부족하다	adjective	smart-exact	47	59	이번에 참여하지 않은 것은 시간이 부족해서가 아니라 일정이 겹쳤기 때문이다.
+regression.causal-focus-particle.verb	피하다	verb	smart-exact	27	36	일정이 겹치는 날을 피해서가 아니다.
+regression.causal-focus-particle.causal	없다	adjective	smart-exact	7	16	돈이 없어서 은행에서 빌렸다.
+regression.causal-focus-particle.question	없다	adjective	smart-exact	24	33	그건 자기 생각이 없어서가 아닐까?
 corpus.ud-kaist.test.MH2_0070-s138.adjective.다르다	다르다	adjective	match	10	16	이와는 달리 우리나라 신발수출은 91 년 11.3 % 감소한 이후 92년 8월 말까지 16.6 %나 줄었다.
 corpus.ud-kaist.test.MH2_0070-s73.adjective.같다	같다	adjective	match	110	116	또한 각국의 소비지출은 1 개월 평균, 자국통화로 된 금액을 이용하였으며, 미국과 같이 연간단위로 된 통계자료는 월평균으로 환산하여 사용하였다.
 corpus.ud-kaist.test.MH2_0180-s113.pronoun.무어	무어	pronoun	match	39	48	일반적으로는 사항에 관해서 무언가 새로운 것을 경험하려고 하여 주어의 토대를 뛰어넘고 있는 것이다.

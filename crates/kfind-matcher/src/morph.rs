@@ -1457,6 +1457,10 @@ impl MorphMatcher {
             };
         let licensed = (matches!(trailing, "까" | "까요") && has_rule("ending.future-adnominal"))
             || (trailing == "서도" && has_rule("ending.connective-go"))
+            || (matches!(trailing, "가" | "가")
+                && has_rule("ending.aoeo-seo")
+                && context::next_word(haystack, whole.end)
+                    .is_some_and(|next| resolver.has_negative_copula_after_focus(&next)))
             || (trailing == "도" && has_rule("ending.connective-neunde"))
             || (trailing.starts_with("잖") && has_rule("ending.past"))
             || (trailing.starts_with(['아', '어', '여'])
