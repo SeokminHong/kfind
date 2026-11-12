@@ -14,6 +14,25 @@ corpus.ud-gsd.test.test-s365.verb.받다	받다	verb	match	7	19	전화 받으시
 corpus.ud-gsd.test.test-s366.verb.전하다	전하다	verb	exact	120	132	같은 날 후쿠시마현 재해대책본부를 방문하여 보도진에게 「방사능의 리스크가 정확하게 전해지지 않고 있으나, 지금의 수준이라면 요드제의 투여는 불필요하다」라고 강조했다.
 corpus.ud-gsd.test.test-s468.adjective.무관하다	무관하다	adjective	match	355	364	삼성 관계자는 "이 회장의 신년사를 보면 '누구와도 손잡을 수 있어야 하고 모자라는 부분은 기꺼이 협력하는 용기와 결단이 필요하다'고 지적하면서 창의성과 스피드를 강하게 주문했다"며 "이 같은 당부가 제대로 이행되지 않고 있다는 생각을 하는 것도 정기 출근과 무관치 않을 수 있다"고 전했다.
 corpus.ud-gsd.test.test-s551.verb.찾다	찾다	verb	match	20	32	석양 이미지를 찾으시오
+corpus.ud-gsd.test.test-s502.verb.휴식하다	휴식하다	verb	smart-exact	57	72	아주 조용하고 물 깨끗하고 도시를 벗어나 휴식하기엔 딱 좋은 곳!
+regression.locative-topic.full	휴식하다	verb	smart-exact	20	38	도시를 벗어나 휴식하기에는 좋은 곳이다.
+regression.locative-topic.irregular	걷다	verb	smart-exact	10	19	한낮에 걷기엔 너무 덥다.
+regression.locative-topic.resultative	이루다	verb	smart-exact	10	25	협상이 이뤄지기엔 아직 이르다.
+regression.locative-topic.resultative-second	다루다	verb	smart-exact	14	29	이 문제가 다뤄지기엔 시간이 부족하다.
+regression.locative-topic.noun	학교	noun	smart-exact	0	9	학교엔 도서관이 있다.
+regression.locative-topic.noun-final	일본	noun	smart-exact	0	9	일본엔 눈이 많이 내린다.
+regression.locative-topic.noun-compound	일본	noun	smart-exact	0	6	일본엔화 시세를 확인했다.
+regression.locative-topic.invalid-object-chain	걷다	verb	no-match	0	9	걷기엔을 적었다.
+corpus.ud-gsd.test.test-s227.noun.시즌	시즌	noun	smart-exact	12	21	특히 2007 시즌엔 전기리그 준우승, 후기리그 우승, 그랜드 파이널 우승이라는 눈부신 성적을 이끌어냈고, 프로리그 사상 최초로 3개의 MVP를 독식하며 에이스로서의 자신의 가치를 입증했다.
+corpus.ud-gsd.test.test-s235.noun.예전	예전	noun	smart-exact	0	9	예전엔 맛있어서 갈비 먹으러 자주 갔는데 고기 가격도 오르고 양념 맛도 변하고 고기도 부드럽지 않고 퍽퍽해서 다신 안 갈래요...!
+corpus.ud-gsd.test.test-s324.noun.겨울	겨울	noun	smart-exact	0	9	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
+corpus.ud-gsd.test.test-s324.noun.여름	여름	noun	smart-exact	23	32	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
+corpus.ud-gsd.test.test-s356.noun.예전	예전	noun	smart-exact	7	16	단지 예전엔 일회용 식기를 안 썼는데 지금은 일회용 식기더군요
+corpus.ud-gsd.test.test-s374.noun.정원	정원	noun	smart-exact	0	9	정원엔 토끼가 다니고 아침 식사가 만족스러운 호텔입니다
+corpus.ud-gsd.test.test-s471.noun.다음	다음	noun	smart-exact	0	9	다음엔 친구들 데리고 같이 갈 생각입니다
+corpus.ud-gsd.test.test-s474.noun.첨	첨	noun	smart-exact	50	56	갈 때마다 버섯칼국수를 시켜 먹는데 첨엔 샤브샤브 식으로 버섯과 미나리를 건져 먹고 칼국수 면을 넣어서 먹어요
+corpus.ud-gsd.test.test-s973.noun.정원	정원	noun	smart-exact	0	9	정원엔 토끼가 다니고 아침 식사가 만족스러운 호텔입니다.
+corpus.ud-kaist.dev.MH2_0069-s338.noun.로마	로마	noun	smart-exact	65	74	파피루스가 그리스에 들어간 것은 7 세기경이고, 로마엔 3 세기경이다.
 corpus.ud-gsd.test.test-s570.verb.주무시다	주무시다	verb	match	37	49	겨울에는 무조건 내복 입고 주무세요.
 corpus.ud-gsd.test.test-s674.verb.느끼다	느끼다	verb	match	146	158	도 특사경 유흥수 팀장은 "행정적 위반 업소 단속이 많지만 가끔 검찰과 현장 합동단속을 벌일 때는 긴박감도 느껴진다"고 했다.
 corpus.ud-gsd.test.test-s723.verb.이루어지다	이루어지다	verb	match	86	98	이곳에서 문화재 발굴은 형촌마을 서쪽 구릉과 남쪽 저지대에서 이뤄지고 있었다.

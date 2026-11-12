@@ -917,7 +917,7 @@ impl MorphMatcher {
                 let following = valid_utf8_prefix(&haystack[hit.span.end..]);
                 let (consumption_anchor, consumption_following) =
                     normalized_consumption_text(anchor, following);
-                let matched = if *allowed_rule_ids == self.plan.auxiliary_particle_rules {
+                let mut matched = if *allowed_rule_ids == self.plan.auxiliary_particle_rules {
                     // A trailing jamo can belong to the last syllable of the adverb.
                     if matches!(&consumption_anchor, Cow::Owned(_))
                         && consumption_anchor
@@ -936,6 +936,24 @@ impl MorphMatcher {
                     self.particle_verifier
                         .verify_prefix(&consumption_anchor, &consumption_following)
                 };
+                if let Some((prefix, trailing)) =
+                    consumption_following.split_at_checked(matched.consumed_bytes)
+                    && let Some(uncontracted_prefix) = prefix.strip_suffix('엔')
+                    && trailing
+                        .chars()
+                        .next()
+                        .is_some_and(crate::is_token_character)
+                    && matches!(
+                        matched.rule_path.as_slice(),
+                        [.., locative, topic]
+                            if locative.as_str() == "particle.locative"
+                                && topic.as_str() == "particle.topic"
+                    )
+                {
+                    matched = self
+                        .particle_verifier
+                        .verify_prefix(&consumption_anchor, uncontracted_prefix);
+                }
                 if !branch.consumption.allows_rule_path(&matched.rule_path) {
                     return None;
                 }

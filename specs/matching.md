@@ -1060,6 +1060,8 @@ coverage를 검증하는 근거다. 조사 표제어가 있다고 해서 임의�
 candidate를 제거하지 않지만 유효한 조사 연쇄가 있으면 그 끝까지 token span을 확장한다.
 query provenance에는 `ending.nominalizer-gi` 또는 `ending.nominalizer` 뒤에 소비한 조사 rule
 path를 순서대로 남긴다.
+`휴식하기엔`, `학교엔`처럼 어절 끝의 `에 + 는`이 `엔`으로 줄면 두 조사 전이를
+확인하고 원문의 한 음절을 소비한다.
 
 ### 9.4 어휘 사전이 필요한 교체
 

@@ -347,9 +347,37 @@ impl ParticleVerifier {
             previous_rule = Some(&plural);
         }
 
-        for _ in rule_path.len()..self.model.max_rules {
+        while rule_path.len() < self.model.max_rules {
+            let remaining = &following[consumed..];
+            if nominal_host
+                && remaining.starts_with('엔')
+                && rule_path.len() + 2 <= self.model.max_rules
+                && let Some(locative) =
+                    self.longest_match("에", previous, previous_rule, previous_was_nominal_initial)
+                && locative.rule_id.as_str() == "particle.locative"
+                && let Some(topic) = self.longest_match(
+                    "는",
+                    Some('에'),
+                    Some(if nominal_host && first_particle {
+                        self.nominal_initial_rule(&locative.rule_id)
+                    } else {
+                        &locative.rule_id
+                    }),
+                    false,
+                )
+                && topic.rule_id.as_str() == "particle.topic"
+            {
+                consumed += '엔'.len_utf8();
+                rule_path.push(locative.rule_id.clone());
+                rule_path.push(topic.rule_id.clone());
+                previous = Some('엔');
+                previous_rule = Some(&topic.rule_id);
+                previous_was_nominal_initial = false;
+                first_particle = false;
+                continue;
+            }
             let Some(particle) = self.longest_match(
-                &following[consumed..],
+                remaining,
                 previous,
                 previous_rule,
                 previous_was_nominal_initial,
@@ -757,6 +785,21 @@ mod tests {
                 "rejected 사용자{suffix}"
             );
         }
+    }
+
+    #[test]
+    fn contracted_locative_topic_consumes_one_syllable_and_two_transitions() {
+        let mut verifier = ParticleVerifier::default();
+        let matched = verifier
+            .verify_exact("학교", "엔")
+            .expect("the locative accepts the topic particle");
+        assert_eq!(
+            matched.rule_path,
+            verifier.verify_prefix("학교", "에는").rule_path
+        );
+        assert_eq!(matched.consumed_bytes, '엔'.len_utf8());
+        verifier.model.max_rules = 1;
+        assert!(verifier.verify_exact("학교", "엔").is_none());
     }
 
     #[test]
