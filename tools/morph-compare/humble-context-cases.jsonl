@@ -1,0 +1,8 @@
+{"id":"binaida-pray","query":"빌다","pos":"verb","text":"일월성신께 백성의 안녕을 비나이다.","surface":"비나이다","expected":true,"gold_byte_start":36,"gold_byte_end":48,"paired_case_id":"binaida-pray-context"}
+{"id":"binaida-pray-context","query":"빌다","pos":"verb","text":"물이 새니 독이 자꾸 비나이다.","surface":"비나이다","expected":false,"gold_byte_start":28,"gold_byte_end":40,"paired_case_id":"binaida-pray"}
+{"id":"binaida-empty-context","query":"비다","pos":"verb","text":"일월성신께 백성의 안녕을 비나이다.","surface":"비나이다","expected":false,"gold_byte_start":36,"gold_byte_end":48,"paired_case_id":"binaida-empty"}
+{"id":"binaida-empty","query":"비다","pos":"verb","text":"물이 새니 독이 자꾸 비나이다.","surface":"비나이다","expected":true,"gold_byte_start":28,"gold_byte_end":40,"paired_case_id":"binaida-empty-context"}
+{"id":"biopnaida-pray","query":"빌다","pos":"verb","text":"두 손 모아 폐하의 만수무강을 비옵나이다.","surface":"비옵나이다","expected":true,"gold_byte_start":41,"gold_byte_end":56,"paired_case_id":"biopnaida-pray-context"}
+{"id":"biopnaida-pray-context","query":"빌다","pos":"verb","text":"군사들이 떠날 때마다 병영이 하루가 다르게 비옵나이다.","surface":"비옵나이다","expected":false,"gold_byte_start":60,"gold_byte_end":75,"paired_case_id":"biopnaida-pray"}
+{"id":"biopnaida-empty-context","query":"비다","pos":"verb","text":"두 손 모아 폐하의 만수무강을 비옵나이다.","surface":"비옵나이다","expected":false,"gold_byte_start":41,"gold_byte_end":56,"paired_case_id":"biopnaida-empty"}
+{"id":"biopnaida-empty","query":"비다","pos":"verb","text":"군사들이 떠날 때마다 병영이 하루가 다르게 비옵나이다.","surface":"비옵나이다","expected":true,"gold_byte_start":60,"gold_byte_end":75,"paired_case_id":"biopnaida-empty-context"}

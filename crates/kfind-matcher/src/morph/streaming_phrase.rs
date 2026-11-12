@@ -132,7 +132,7 @@ impl<'matcher, 'haystack> CandidateStream<'matcher, 'haystack> {
                     self.haystack,
                     &hit,
                     branch,
-                    atom.boundary,
+                    atom,
                     self.metadata,
                     &mut self.structural_cache,
                 ) {

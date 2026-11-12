@@ -1512,6 +1512,46 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.archaic-humble"
+category = "prefinal"
+initial = "other"
+forms = ["옵", "으옵", "사옵", "자옵", "삽", "잡", "사오", "자오"]
+required = []
+forbidden = []
+next = ["ending.archaic-naida", "ending.archaic-ida", "ending.entreaty-soseo", "ending.polite-declarative", "ending.formal-interrogative", "ending.retrospective-declarative", "ending.retrospective-interrogative", "ending.connective-go", "ending.retrospective-connective", "ending.connective-jiman", "ending.connective-geondae", "ending.honorific", "ending.connective-ni", "ending.conditional", "ending.prospective-final"]
+terminal = false
+
+[[ending]]
+id = "ending.archaic-naida"
+category = "final"
+initial = "consonant"
+forms = ["나이다", "나이까"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.connective-geondae"
+category = "connective"
+initial = "consonant"
+forms = ["건대"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.archaic-ida"
+category = "final"
+initial = "other"
+forms = ["이다"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.nominalizer-gi"
 category = "nominalizer"
 initial = "consonant"

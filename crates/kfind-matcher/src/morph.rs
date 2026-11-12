@@ -15,7 +15,7 @@ use kfind_morph::{
     verify_copula_surface_after_nominal, verify_predicate_continuation,
 };
 use kfind_query::{
-    BoundaryPolicy, CandidateConsumption, CandidateDecision, CandidateLeftContext,
+    AtomPlan, BoundaryPolicy, CandidateConsumption, CandidateDecision, CandidateLeftContext,
     CandidateProgram, CoreMapping, Origin, PhraseMatch, QueryPlan, RoutedMatch, VerifiedSpan,
 };
 use unicode_normalization::{UnicodeNormalization, is_nfc};
@@ -608,13 +608,8 @@ impl MorphMatcher {
                 ) else {
                     continue;
                 };
-                if !self.accepts_program(
-                    haystack,
-                    &candidate,
-                    branch,
-                    atom.boundary,
-                    &mut structural_cache,
-                ) {
+                if !self.accepts_program(haystack, &candidate, branch, atom, &mut structural_cache)
+                {
                     if matches!(&branch.decision, CandidateDecision::Structural(_)) {
                         counters.structural_candidate_hits += 1;
                         let window =
@@ -672,7 +667,7 @@ impl MorphMatcher {
                     haystack,
                     &hit,
                     branch,
-                    self.plan.atoms[0].boundary,
+                    &self.plan.atoms[0],
                     metadata,
                     structural_cache,
                 ) else {
@@ -705,12 +700,12 @@ impl MorphMatcher {
         haystack: &'a [u8],
         hit: &AnchorHit,
         branch: &CandidateProgram,
-        boundary: BoundaryPolicy,
+        atom: &AtomPlan,
         metadata: MatchMetadata,
         structural_cache: &mut StructuralCache<'a>,
     ) -> Option<VerifiedSpan> {
         let candidate = self.execute_program_without_decision(haystack, hit, branch, metadata)?;
-        self.accepts_program(haystack, &candidate, branch, boundary, structural_cache)
+        self.accepts_program(haystack, &candidate, branch, atom, structural_cache)
             .then_some(candidate.verified)
     }
 
@@ -927,9 +922,10 @@ impl MorphMatcher {
         haystack: &'a [u8],
         candidate: &ExecutedCandidate,
         branch: &CandidateProgram,
-        boundary: BoundaryPolicy,
+        atom: &AtomPlan,
         structural_cache: &mut StructuralCache<'a>,
     ) -> bool {
+        let boundary = atom.boundary;
         if boundary == BoundaryPolicy::Smart
             && matches!(
                 branch.consumption,
@@ -970,6 +966,7 @@ impl MorphMatcher {
                     || has_nominal_quotative_frame(haystack, candidate, branch, resolver)
                     || has_counted_unit_copula(haystack, candidate, branch, resolver)
                     || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
+                    || has_prayer_object_frame(haystack, candidate, branch, atom, resolver)
             })
         {
             return false;
@@ -2028,6 +2025,69 @@ fn has_counted_unit_copula(
         .and_then(|bytes| std::str::from_utf8(bytes).ok())
         .is_some_and(|unit| {
             resolver.has_counted_unit_frame(&previous, &unit.nfc().collect::<String>())
+        })
+}
+
+fn has_prayer_object_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    use kfind_morph::{ContinuationState, PredicatePos};
+    let core = &candidate.verified.core;
+    let consumed = &candidate.consumed;
+    if !matches!(
+        branch.consumption,
+        CandidateConsumption::PredicateContinuation {
+            pos: PredicatePos::Verb,
+            ..
+        } | CandidateConsumption::StructuralPredicateEnding {
+            pos: PredicatePos::Verb,
+            ..
+        }
+    ) || branch.origins.is_empty()
+        || !branch.origins.iter().all(|origin| {
+            atom.analyses
+                .get(usize::from(origin.analysis_index))
+                .is_some_and(|analysis| analysis.lemma.as_ref() == "비다")
+        })
+        || !is_boundary_before(haystack, core.start)
+        || !is_boundary_after(haystack, consumed.end)
+        || context::normalized_token(haystack, core.clone()).as_deref() != Some("비")
+    {
+        return false;
+    }
+    let Some(previous) = context::previous_word(haystack, core.start) else {
+        return false;
+    };
+    // An accusative-marked duration can also precede the intransitive verb.
+    if !previous.strip_suffix(['을', '를']).is_some_and(|noun| {
+        matches!(
+            noun,
+            "안녕" | "평안" | "만수무강" | "건강" | "행복" | "소원" | "용서"
+        )
+    }) || !resolver.has_object_marked_nominal(&previous)
+    {
+        return false;
+    }
+    let Some(ending) = context::normalized_token(haystack, core.end..consumed.end) else {
+        return false;
+    };
+    // The structural fallback carries a generic rule ID. Verify its ending too.
+    [ContinuationState::StemEnding, ContinuationState::Eu]
+        .into_iter()
+        .any(|state| {
+            verify_predicate_continuation(state, PredicatePos::Verb, "비", &ending).is_some_and(
+                |matched| {
+                    matched.consumed_bytes == ending.len()
+                        && matched
+                            .rule_path
+                            .last()
+                            .is_some_and(|rule| rule.as_str() == "ending.archaic-naida")
+                },
+            )
         })
 }
 

@@ -1,0 +1,107 @@
+id	query	pos	expected	byte_start	byte_end	text
+stdict.나이까:1	가다	verb	exact	18	33	주여, 어디로 가시나이까?
+stdict.나이까:2	부르다	verb	exact	11	29	주인님, 부르셨나이까?
+stdict.나이까:3	거역하다	verb	exact	24	45	어찌 감히 어명을 거역하겠나이까?
+stdict.나이까:4	하다	verb	exact	28	49	제가 어찌 그런 말을 하겠사옵나이까?
+stdict.나이다:1	빌다	verb	exact	13	25	신령님께 비나이다.
+stdict.나이다:2	바라다	verb	exact	26	44	부디 쾌차하시기를 바라옵나이다.
+stdict.나이다:3	이르다	verb	exact	17	35	마침 이곳에 이르렀나이다.
+stdict.나이다:4	거행하다	verb	exact	10	31	명대로 거행하겠나이다.
+stdict.나이다:5	이다	adjective	exact	44	59	나라를 위하여 죽는 것이 제 소원이옵나이다.
+stdict.나이다:6	원하다	verb	exact	43	61	제 소원을 들어주시기를 간절히 원하옵나이다.
+opendict.사오:1	믿다	verb	exact	10	22	당신을 믿사오니 힘내세요.
+stdict.사오니까:1	먹다	verb	exact	21	36	이제는 밥을 좀 먹사오니까?
+stdict.사오리까:1	먹다	verb	exact	11	26	밥을 좀 먹사오리까?
+stdict.사오리다:1	많다	adjective	exact	23	38	대나무는 남쪽에 많사오리다.
+stdict.사오리다:2	따르다	verb	exact	17	38	당신의 뜻을 따르겠사오리다.
+stdict.사오리이까:1	믿다	verb	exact	17	35	이제 누구를 믿사오리이까?
+stdict.사오리이까:2	받다	verb	exact	17	35	제가 이것을 받사오리이까?
+stdict.사오리이다:1	받다	verb	exact	10	28	감사히 받사오리이다.
+stdict.사오이다:1	하다	verb	exact	7	25	제가 하겠사오이다.
+stdict.사오이다:2	좋다	adjective	exact	10	25	보기에 좋사오이다.
+stdict.사옵:1	믿다	verb	exact	10	22	당신을 믿사옵고 따르옵니다.
+stdict.사옵나이까:1	깊다	adjective	exact	17	35	그렇게 병이 깊사옵나이까?
+stdict.사옵나이다:1	깊다	adjective	exact	7	25	병이 깊사옵나이다.
+stdict.사옵나이다:2	좋다	adjective	exact	10	28	날씨가 좋사옵나이다.
+stdict.사옵니까:1	듣다	verb	exact	30	48	어디서 그런 이야기를 들었사옵니까?
+stdict.사옵니다:1	보다	verb	exact	24	42	어제 해괴한 것을 보았사옵니다.
+stdict.사옵니다:2	가다	verb	exact	32	50	시간이 다 되어 저 먼저 가겠사옵니다.
+stdict.사옵디까:1	깊다	adjective	exact	17	32	물이 그렇게 깊사옵디까?
+stdict.사옵디다:1	좋다	adjective	exact	10	25	사람은 좋사옵디다.
+stdict.사옵시:1	깊다	adjective	exact	23	38	어머니의 은혜가 깊사옵시고 크옵니다.
+opendict.삽:1	먹다	verb	exact	7	16	밥을 먹삽고.
+opendict.삽:2	믿다	verb	exact	24	39	저희가 그 사람을 믿었삽더니.
+krdict.소서:1	하다	verb	exact	26	35	가을에는 사랑하게 하소서.
+krdict.소서:2	여기다	verb	exact	33	45	방황하는 영혼을 가엾게 여기소서.
+krdict.소서:3	내리다	verb	exact	38	50	전하, 소인에게 어서 분부를 내리소서.
+krdict.소서:4	주다	verb	exact	45	54	주여! 부디 저에게 지혜와 용기를 주소서.
+stdict.소서:5	용서하다	verb	exact	0	15	용서하소서.
+stdict.소서:6	누리다	verb	exact	10	22	만복을 누리소서.
+stdict.소서:7	건강하다	adjective	exact	0	15	건강하소서.
+krdict.옵:1	주다	verb	exact	34	46	부디 백성을 버리지 말아 주옵소서.
+krdict.옵:2	가다	verb	exact	37	52	가시는 발걸음 조심히 살펴 가시옵소서.
+stdict.옵:3	가다	verb	exact	0	9	가옵고.
+stdict.옵:4	가다	verb	exact	0	12	가옵더니.
+stdict.옵:5	가다	verb	exact	0	12	가옵시면.
+stdict.옵:6	가다	verb	exact	0	12	가옵지만.
+stdict.옵:7	가다	verb	exact	0	15	가시옵소서.
+stdict.옵나이까:1	가다	verb	exact	10	28	어디로 가시옵나이까?
+stdict.옵나이까:2	이다	adjective	exact	23	38	저분은 어떤 사람이옵나이까?
+stdict.옵나이다:1	빌다	verb	exact	15	30	두 손 모아 비옵나이다.
+stdict.옵나이다:2	황공하다	adjective	exact	10	31	정말로 황공하옵나이다.
+stdict.옵니까:1	가다	verb	exact	7	22	벌써 가시옵니까?
+stdict.옵니다:1	그러하다	adjective	exact	10	28	사실이 그러하옵니다.
+stdict.옵니다:2	이다	adjective	exact	23	35	이분이 저의 스승이옵니다.
+stdict.옵디까:1	말씀하다	verb	exact	10	28	그렇게 말씀하옵디까?
+stdict.옵디다:1	이다	adjective	exact	20	32	듣던 대로 미인이옵디다.
+stdict.옵소서:1	가다	verb	exact	7	22	먼저 가시옵소서.
+stdict.옵소서:2	주다	verb	exact	0	15	주시옵소서.
+stdict.옵시:1	주다	verb	exact	33	45	우리에게 일용할 양식을 주옵시고.
+krdict.으소서:1	듣다	verb	exact	31	43	신이시여, 저의 기도를 들으소서.
+krdict.으소서:2	묻다	verb	exact	40	52	자세한 이야기는 하인을 불러 물으소서.
+krdict.으소서:3	받다	verb	exact	39	51	조상님께서는 자손들의 절을 받으소서.
+krdict.으소서:4	모으다	verb	exact	61	73	장군, 적군이 쳐들어오기 전에 서둘러 군사를 모으소서.
+stdict.으소서:5	참다	verb	exact	7	19	부디 참으소서.
+stdict.으소서:6	받다	verb	exact	18	30	새해 복 많이 받으소서.
+stdict.으소서:7	듣다	verb	exact	17	29	저의 말씀을 들으소서.
+krdict.으옵:1	받다	verb	exact	40	55	저희가 정성껏 준비한 선물을 받으옵소서.
+krdict.으옵:2	믿다	verb	exact	50	65	다소 마음에 들지 않으시더라도 저를 믿으옵소서.
+krdict.으옵:3	읽다	verb	exact	33	45	선생님께서 저의 원고를 읽으옵고 미비한 점이 있으면 지적해 주십시오.
+krdict.으옵:4	참다	verb	exact	67	82	아직 손자가 어려 철이 없는 것이니 할아버님께서 참으옵소서.
+stdict.으옵:5	읽다	verb	exact	0	12	읽으옵고.
+stdict.으옵:6	잡다	verb	exact	0	18	잡으옵나이다.
+stdict.으옵:7	벗다	verb	exact	0	15	벗으옵더니.
+stdict.으옵:8	같다	adjective	exact	0	15	같으옵지만.
+stdict.으옵나이까:1	깊다	adjective	exact	7	25	병이 깊으옵나이까?
+stdict.으옵나이다:1	깊다	adjective	exact	10	28	근심이 깊으옵나이다.
+stdict.으옵니까:1	읽다	verb	exact	24	39	그 사람은 무엇을 읽으옵니까?
+stdict.으옵니까:2	깊다	adjective	exact	34	49	저 아이의 병세가 그토록 깊으옵니까?
+stdict.으옵니다:1	믿다	verb	exact	40	55	언젠가는 그이가 돌아올 것을 믿으옵니다.
+stdict.으옵니다:2	높다	adjective	exact	27	42	오늘은 하늘이 더욱 높으옵니다.
+stdict.으옵디까:1	깊다	adjective	exact	20	35	냇물이 그렇게 깊으옵디까?
+stdict.으옵디다:1	잡다	verb	exact	24	39	그이가 나의 손을 잡으옵디다.
+stdict.으옵디다:2	깊다	adjective	exact	17	32	우물이 너무 깊으옵디다.
+stdict.으옵소서:1	참다	verb	exact	0	15	참으옵소서.
+stdict.으옵소서:2	받다	verb	exact	0	15	받으옵소서.
+stdict.으옵시:1	깊다	adjective	exact	23	38	부모님의 은혜는 깊으옵시어 갚을 길이 없어라.
+opendict.자오:1	듣다	verb	exact	0	12	듣자오니.
+opendict.자오:2	듣다	verb	exact	0	12	듣자오면.
+stdict.자옵:1	받다	verb	exact	0	15	받자옵건대.
+stdict.자옵:2	듣다	verb	exact	7	19	소식 듣자옵고.
+stdict.자옵:3	좇다	verb	exact	7	22	뜻을 좇자옵시면.
+stdict.자옵:4	받다	verb	exact	7	25	분부 받자옵나이다.
+stdict.자옵시:1	받다	verb	exact	0	15	받자옵시고.
+stdict.자옵시:2	듣다	verb	exact	0	15	듣자옵시니.
+opendict.잡:1	좇다	verb	exact	17	32	스승의 뜻을 좇잡나이다.
+opendict.잡:2	받다	verb	exact	17	26	폐하의 명을 받잡고 소신 먼 길을 떠나왔습니다.
+binaida-pray	빌다	verb	exact	36	48	일월성신께 백성의 안녕을 비나이다.
+binaida-empty-context	비다	verb	no-match	36	48	일월성신께 백성의 안녕을 비나이다.
+binaida-pray-context	빌다	verb	exact	28	40	물이 새니 독이 자꾸 비나이다.
+binaida-empty	비다	verb	exact	28	40	물이 새니 독이 자꾸 비나이다.
+binaida-empty-duration	비다	verb	exact	24	36	이 별채는 닷새를 비나이다.
+biopnaida-pray	빌다	verb	exact	41	56	두 손 모아 폐하의 만수무강을 비옵나이다.
+biopnaida-empty-context	비다	verb	no-match	41	56	두 손 모아 폐하의 만수무강을 비옵나이다.
+biopnaida-pray-context	빌다	verb	exact	60	75	군사들이 떠날 때마다 병영이 하루가 다르게 비옵나이다.
+biopnaida-empty	비다	verb	exact	60	75	군사들이 떠날 때마다 병영이 하루가 다르게 비옵나이다.
+biopnaida-empty-duration	비다	verb	exact	27	42	동쪽 객방은 보름을 비옵나이다.
+attached-trial	가다	verb	exact	18	33	부디 이 길로 가보옵소서.
