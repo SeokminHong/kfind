@@ -1098,7 +1098,7 @@ impl MorphMatcher {
                     || has_elapsed_measure_frame(haystack, candidate, branch, atom, resolver)
                     || has_quantifying_adverb_frame(haystack, candidate, branch, atom, resolver)
                     || has_whole_alternative_conjunction(haystack, candidate, branch, resolver)
-                    || has_transitive_jiyo_frame(haystack, candidate, branch, resolver)
+                    || has_verbal_jiyo_frame(haystack, candidate, branch, resolver)
                     || has_conflicting_honorific(haystack, candidate, branch, atom, resolver)
                     || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
                     || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
@@ -3057,7 +3057,7 @@ fn has_object_inside_adnominal_result(
         })
 }
 
-fn has_transitive_jiyo_frame(
+fn has_verbal_jiyo_frame(
     haystack: &[u8],
     candidate: &ExecutedCandidate,
     branch: &CandidateProgram,
@@ -3080,18 +3080,32 @@ fn has_transitive_jiyo_frame(
     let Some(stem) = context::normalized_token(haystack, core.clone()) else {
         return false;
     };
-    // The direct object of these transitive senses denotes a text or a physical target.
-    let objects: &[&str] = match stem.as_ref() {
-        "쓰" => &["글", "동화", "소설", "수필", "편지"],
-        "차" => &["공", "축구공", "제기", "깡통"],
-        _ => return false,
-    };
+    if !matches!(stem.as_ref(), "쓰" | "차" | "늦") {
+        return false;
+    }
     let whole = surrounding_token_span(haystack, core.clone());
     if whole.start != core.start || !has_jiyo_suffix(haystack, core.end..whole.end) {
         return false;
     }
     let Some((start, previous)) = context::previous_word_with_start(haystack, core.start) else {
         return false;
+    };
+    if stem == "늦" {
+        return (matches!(previous.as_ref(), "약속에" | "모임에" | "학교에" | "수업에")
+            || (previous == "시간에"
+                && context::previous_word(haystack, start).is_some_and(|modifier| {
+                    matches!(
+                        modifier.as_ref(),
+                        "도착" | "업무" | "출발" | "수업" | "약속" | "등교"
+                    )
+                })))
+            && resolver.has_nominal_oblique(&previous);
+    }
+    // The direct object of these transitive senses denotes a text or a physical target.
+    let objects: &[&str] = if stem == "쓰" {
+        &["글", "동화", "소설", "수필", "편지"]
+    } else {
+        &["공", "축구공", "제기", "깡통"]
     };
     let object = if stem == "차" && previous == "힘껏" {
         let Some(object) = context::previous_word(haystack, start) else {
