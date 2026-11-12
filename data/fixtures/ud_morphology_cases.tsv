@@ -326,3 +326,18 @@ regression.adverb-topic.after-object	때로	adverb	smart-exact	7	16	일을 때�
 regression.adverb-topic.ijen	이제	adverb	smart-exact	0	6	이젠 걱정하지 않아도 된다.
 regression.adverb-topic.gsd-dasin	다시	adverb	smart-exact	151	157	예전엔 맛있어서 갈비 먹으러 자주 갔는데 고기 가격도 오르고 양념 맛도 변하고 고기도 부드럽지 않고 퍽퍽해서 다신 안 갈래요...!
 regression.adverb-topic.gsd-jedaero	제대로	adverb	smart-exact	107	116	특히 사람들이 많이 붐비는 시간에 가신다면 음식을 먹으며 지불하는 돈에 대한 제대로 된 서비스를 받지 못할 것입니다.
+corpus.ud-kaist.dev.MH2_0069-s222.compound-copula	이다	adjective	smart-exact	113	131	물론 국가에 의한 개입방식이 시대에 따라 방법을 달리하기도 하였으나 국가에 의한 출판통제라는 큰 물줄기는 변하지 않고 있다.
+corpus.ud-kaist.dev.MH2_0069-s191.compound-copula	이다	adjective	smart-exact	0	18	검인정제라고 규정했다.
+corpus.ud-kaist.dev.MH2_0069-s287.compound-copula	이다	adjective	smart-exact	0	18	인쇄매체라고 부른다.
+corpus.ud-kaist.dev.MH2_0159-s64.compound-copula	이다	adjective	smart-exact	0	18	문학연구라는 상위 개념이 있다.
+corpus.ud-kaist.dev.MH2_0169-s3.compound-copula	이다	adjective	smart-exact	0	24	민중민주주의라고 바꿔 불렀다.
+corpus.ud-kaist.dev.MH2_0169-s300.compound-copula	이다	adjective	smart-exact	0	18	선거대비라는 말이 나왔다.
+corpus.ud-kaist.dev.MH2_0169-s734.compound-copula	이다	adjective	smart-exact	0	18	봉건시대라고 하니까 아주 먼 옛날 일 같다.
+corpus.ud-kaist.test.M2TA_090-s52.compound-copula	이다	adjective	smart-exact	0	18	코카콜라라는 브랜드를 바꿨다.
+corpus.ud-kaist.test.MH2_0010-s353.compound-copula	이다	adjective	smart-exact	0	18	남극연구라는 공통된 목표가 있다.
+regression.compound-copula.quoted-polite	이다	adjective	smart-exact	0	21	가격통제라고요?
+regression.compound-copula.direct-quote	이다	adjective	no-match	0	24	‘코카콜라’라는 글자가 보인다.
+regression.compound-copula.command-not-copula	이다	adjective	no-match	10	25	자료를 출력하라는 지시를 받았다.
+regression.compound-copula.command-verb	출력하다	verb	smart-exact	10	25	자료를 출력하라는 지시를 받았다.
+regression.compound-copula.quoted-finite-predicate	이다	adjective	no-match	0	18	충분하다라는 표현을 지웠다.
+corpus.ud-kaist.dev.MH2_0169-s169.quoted-explicit-copula	이다	adjective	smart-exact	16	22	유일한 대안인가라는 질문이 나왔다.

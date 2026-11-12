@@ -207,7 +207,11 @@ pub(super) fn accepts_omitted_copula(
             .is_some_and(|prefix| resolver.has_complete_nominal_surface(prefix))
             && !resolver.has_exact_action_predicate_surface(host)
             && !(matches!(suffix, "라고" | "라고요" | "라는") && resolver.has_whole_modifier(host))
-            && resolver.has_exact_nominal_surface(host)
+            && (resolver.has_exact_nominal_surface(host)
+                || (matches!(suffix, "라고" | "라고요" | "라는")
+                    && resolver.has_compound_noun_surface(host)
+                    && !resolver.has_independent_final_predicate(host)
+                    && !resolver.has_final_copula_after_nominal(host)))
             && !(matches!(
                 suffix,
                 "니" | "니까"

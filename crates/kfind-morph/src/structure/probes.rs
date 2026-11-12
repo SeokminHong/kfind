@@ -847,6 +847,51 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_compound_noun_surface(&self, text: &str) -> bool {
+        if text.chars().take(4).count() < 4 {
+            return false;
+        }
+        let mut reachable = vec![false; text.len() + 1];
+        reachable[0] = true;
+        for (start, _) in text.char_indices() {
+            if !reachable[start] {
+                continue;
+            }
+            self.resource.common_prefix_positions(
+                &text.as_bytes()[start..],
+                |length, positions| {
+                    let end = start + length;
+                    if length == text.len()
+                        || !matches!(positions, [StructuralPos::NNG | StructuralPos::NNP])
+                    {
+                        return;
+                    }
+                    if let Some(noun) = text.get(start..end)
+                        && noun.chars().nth(1).is_some()
+                        && !self.has_exact_action_predicate_surface(noun)
+                    {
+                        reachable[end] = true;
+                    }
+                },
+            );
+        }
+        reachable[text.len()]
+    }
+
+    #[must_use]
+    pub fn has_final_copula_after_nominal(&self, text: &str) -> bool {
+        text.char_indices().skip(1).any(|(split, initial)| {
+            (initial == '이' || crate::drop_final(initial) == Some('이'))
+                && self.has_exact_predicate_ending_path_matching(
+                    &text[split..],
+                    |pos| pos == StructuralPos::VCP,
+                    |ending| ending == StructuralPos::EF,
+                )
+                && self.has_complete_nominal_surface(&text[..split])
+        })
+    }
+
+    #[must_use]
     pub fn has_comparative_nominal_surface(&self, text: &str) -> bool {
         ["이상", "이하", "미만", "초과"].iter().any(|&noun| {
             text.strip_prefix(noun).is_some_and(|tail| {
