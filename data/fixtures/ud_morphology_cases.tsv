@@ -275,3 +275,7 @@ regression.exclamative.action-honorific-plain	읽다	verb	smart-exact	20	35	선�
 corpus.ud-gsd.test.test-s465-s818.noun.순두부찌개	순두부찌개	noun	smart-exact	74	89	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.
 corpus.ud-gsd.test.test-s465-s818.noun.순두부	순두부	noun	smart-exact	74	83	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.
 corpus.ud-gsd.test.test-s465-s818.not-verb.찌다	찌다	verb	no-match	74	89	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.
+corpus.ud-kaist.dev.MH2_0169-s704.verb.하다	하다	verb	smart-exact	34	43	그러나 보람도 없는 일을 하라고 요구할 권리는 그 누구에게도 없다.
+corpus.ud-kaist.dev.MH2_0169-s704.not-copula	이다	adjective	no-match	34	43	그러나 보람도 없는 일을 하라고 요구할 권리는 그 누구에게도 없다.
+regression.quotative-adnominal.copula	이다	adjective	smart-exact	17	26	몸집이 작은 새라고 설명했다.
+regression.quotative-adnominal.not-verb	새다	verb	no-match	17	26	몸집이 작은 새라고 설명했다.
