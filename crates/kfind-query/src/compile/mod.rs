@@ -63,6 +63,7 @@ const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.connective-do",
     "ending.connective-ya",
     "ending.polite-yo",
+    "ending.final-ne",
     "ending.imperative-ra",
     "ending.polite-declarative",
     "ending.formal-interrogative",

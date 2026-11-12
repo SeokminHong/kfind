@@ -619,3 +619,18 @@ regression.prohibitive-short.polite	말다	verb	exact	17	23	그렇게 하지 마
 regression.prohibitive-short.uncontracted	말다	verb	exact	13	22	걱정하지 말아라.
 regression.prohibitive-short.noun	말다	verb	no-match	24	27	이 뿌리의 이름은 마.
 regression.prohibitive-short.other-sentence	말다	verb	no-match	11	14	손대지. 마.
+corpus.ud-gsd.test.test-s310.adjective.honorific-neyo	착하다	adjective	smart-exact	71	86	제가 지금 입원 중인데 간호사 선생님들이 다 예쁘고 착하시네요.
+regression.honorific-neyo.consonant	좋다	adjective	smart-exact	23	38	선생님은 기분이 좋으시네요.
+regression.honorific-neyo.rieul	알다	verb	smart-exact	24	36	선생님도 그 일을 아시네요.
+regression.honorific-neyo.vowel	가다	verb	smart-exact	20	32	선생님이 집에 가시네요.
+regression.honorific-neyo.past	오다	verb	smart-exact	20	32	선생님이 벌써 오셨네요.
+regression.honorific-neyo.future	가다	verb	smart-exact	20	35	선생님도 내일 가시겠네요.
+corpus.ud-gsd.test.test-s381.verb.honorific-neyo-auxiliary	주다	verb	smart-exact	154	166	원장 선생님이 학생이나 강사들에게 돈을 벌려는 마음으로 대하시는 게 아니라 한 아이 한 아이 정성스럽게 이끌어 주시네요.
+corpus.ud-gsd.test.test-s381.verb.honorific-neyo-not-decrease	줄다	verb	no-match	154	166	원장 선생님이 학생이나 강사들에게 돈을 벌려는 마음으로 대하시는 게 아니라 한 아이 한 아이 정성스럽게 이끌어 주시네요.
+corpus.ud-gsd.test.test-s282.verb.past-neyo	느끼다	verb	smart-exact	111	123	위에 말씀하신 분처럼 저도 중앙식당을 몇 번 가 보았는데 불친절하다는 것을 많이 느꼈네요.
+corpus.ud-gsd.test.test-s336.verb.future-neyo	있다	verb	smart-exact	62	74	종류가 그리 많지는 않지만 부담 없이 먹을 수 있겠네요.
+corpus.ud-gsd.test.test-s642.verb.past-neyo	다녀오다	verb	smart-exact	18	33	벌써 여러 번 다녀왔네요.
+corpus.ud-gsd.test.test-s668.verb.past-neyo	거부당하다	verb	smart-exact	17	35	카드 결제를 거부당했네요.
+corpus.ud-gsd.test.test-s856.adjective.honorific-neyo	같다	adjective	smart-exact	33	48	친절하고 따뜻한 어머니 같으시네요.
+corpus.ud-gsd.test.test-s892.verb.past-neyo	발견하다	verb	smart-exact	23	38	맛있는 피자집을 발견했네요!
+corpus.ud-gsd.test.test-s982.verb.honorific-neyo	하다	verb	smart-exact	120	132	주문 후 한 시간이 다 되도록 소식이 없어 전화해 보니 이미 왔었는데 주소를 못 찾았다고 하시네요.

@@ -339,7 +339,47 @@ pub(super) const FAMILIAR_QUESTION: Suffix = suffix("니", &["ending.interrogati
 const HONORIFIC_FAMILIAR_QUESTION: Suffix =
     suffix("시니", &["ending.honorific", "ending.interrogative-ni"]);
 
+const NE: Suffix = suffix("네", &["ending.final-ne"]);
+const NE_YO: Suffix = suffix("네요", &["ending.final-ne", "ending.polite-yo"]);
+pub(super) const HONORIFIC_NE_ENDINGS: [Suffix; 2] = [
+    suffix("시네", &["ending.honorific", "ending.final-ne"]),
+    suffix(
+        "시네요",
+        &["ending.honorific", "ending.final-ne", "ending.polite-yo"],
+    ),
+];
+const HONORIFIC_PREFINAL_NE_ENDINGS: &[Suffix] = &[
+    suffix(
+        "셨네",
+        &["ending.honorific", "ending.past", "ending.final-ne"],
+    ),
+    suffix(
+        "셨네요",
+        &[
+            "ending.honorific",
+            "ending.past",
+            "ending.final-ne",
+            "ending.polite-yo",
+        ],
+    ),
+    suffix(
+        "시겠네",
+        &["ending.honorific", "ending.future", "ending.final-ne"],
+    ),
+    suffix(
+        "시겠네요",
+        &[
+            "ending.honorific",
+            "ending.future",
+            "ending.final-ne",
+            "ending.polite-yo",
+        ],
+    ),
+];
+
 const PAST_SUFFIXES: &[Suffix] = &[
+    NE,
+    NE_YO,
     GUN,
     GUN_YO,
     suffix("습니까", &["ending.formal-interrogative"]),
@@ -399,6 +439,8 @@ const HONORIFIC_MEURO_ENDINGS: &[Suffix] = &[
 ];
 
 const FUTURE_SUFFIXES: &[Suffix] = &[
+    NE,
+    NE_YO,
     GUN,
     GUN_YO,
     suffix("습니까", &["ending.formal-interrogative"]),
@@ -1218,6 +1260,12 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::Eu if following.starts_with("시네") => &HONORIFIC_NE_ENDINGS,
+        ContinuationState::Eu
+            if following.starts_with("셨네") || following.starts_with("시겠네") =>
+        {
+            HONORIFIC_PREFINAL_NE_ENDINGS
+        }
         ContinuationState::NieunEnding
             if (following.starts_with('군') || following.starts_with("구나"))
                 && anchor.ends_with('는')

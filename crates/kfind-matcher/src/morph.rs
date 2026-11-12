@@ -1099,7 +1099,7 @@ impl MorphMatcher {
                     || has_quantifying_adverb_frame(haystack, candidate, branch, atom, resolver)
                     || has_whole_alternative_conjunction(haystack, candidate, branch, resolver)
                     || has_transitive_jiyo_frame(haystack, candidate, branch, resolver)
-                    || has_conflicting_polite_honorific(haystack, candidate, branch, atom, resolver)
+                    || has_conflicting_honorific(haystack, candidate, branch, atom, resolver)
                     || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
                     || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
                     || has_prayer_object_frame(haystack, candidate, branch, atom, resolver)
@@ -3016,7 +3016,7 @@ fn has_transitive_jiyo_frame(
         && resolver.has_object_marked_nominal(&object)
 }
 
-fn has_conflicting_polite_honorific(
+fn has_conflicting_honorific(
     haystack: &[u8],
     candidate: &ExecutedCandidate,
     branch: &CandidateProgram,
@@ -3025,10 +3025,12 @@ fn has_conflicting_polite_honorific(
 ) -> bool {
     if branch.origins.is_empty()
         || !branch.origins.iter().all(|origin| {
-            origin
-                .rule_path
-                .last()
-                .is_some_and(|rule| rule.as_str() == "ending.polite-imperative")
+            let mut rules = origin.rule_path.iter().map(RuleId::as_str);
+            let honorific = rules.any(|rule| rule == "ending.honorific");
+            honorific
+                && rules
+                    .chain(candidate.suffix_rules.iter().map(RuleId::as_str))
+                    .any(|rule| matches!(rule, "ending.polite-imperative" | "ending.final-ne"))
         })
     {
         return false;
