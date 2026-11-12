@@ -79,7 +79,7 @@ stdict.은지:10	않다	adjective	exact	32	41	나 외엔 더 깨우고 싶지 �
 stdict.은지:11	좋다	adjective	exact	28	37	요즘은 어때? 건강은 좋은지?
 stdict.은지:12	옳다	adjective	exact	54	63	마을 사람들은 어느 말을 정말로 믿어야 옳은지 몰라서 멀거니 두 사람의 입을 쳐다보고만 있었다.
 changa-predicate-positive	차다	adjective	exact	7	13	물이 찬가 보다.
-changa-predicate-context	차다	adjective	exact	13	19	합창단이 찬가 한 곡을 불렀다.
+changa-predicate-context	차다	adjective	no-match	13	19	합창단이 찬가 한 곡을 불렀다.
 changa-noun-context	찬가	noun	exact	7	13	물이 찬가 보다.
 changa-noun-positive	찬가	noun	exact	13	19	합창단이 찬가 한 곡을 불렀다.
 danga-predicate-positive	달다	adjective	exact	11	17	이 차가 단가?
