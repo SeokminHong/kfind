@@ -993,6 +993,7 @@ impl MorphMatcher {
                     || has_transitive_jiyo_frame(haystack, candidate, branch, resolver)
                     || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
                     || has_prayer_object_frame(haystack, candidate, branch, atom, resolver)
+                    || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
             })
         {
             return false;
@@ -2107,6 +2108,50 @@ fn has_jiyo_suffix(haystack: &[u8], suffix: Range<usize>) -> bool {
                 || (suffix.starts_with('ᄌ')
                     && (suffix.nfc().eq("죠".chars()) || suffix.nfc().eq("지요".chars())))
         })
+}
+
+fn has_topic_before_independent_predicate(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let span = &candidate.consumed;
+    let end = match candidate.suffix_rules.as_slice() {
+        [prefix @ .., last]
+            if last.as_str() == "ending.present-adnominal"
+                && prefix
+                    .iter()
+                    .any(|rule| rule.as_str() == "ending.auxiliary-jida") =>
+        {
+            span.end
+        }
+        [] if branch.origins.iter().all(|origin| {
+            origin
+                .rule_path
+                .last()
+                .is_some_and(|rule| rule.as_str() == "ending.connective-ji")
+        }) =>
+        {
+            let token = surrounding_token_span(haystack, span.clone());
+            if !context::normalized_token(haystack, span.end..token.end)
+                .is_some_and(|suffix| suffix == "는")
+            {
+                return false;
+            }
+            token.end
+        }
+        _ => return false,
+    };
+    is_boundary_before(haystack, span.start)
+        && is_boundary_after(haystack, end)
+        && context::normalized_token(haystack, span.start..end).is_some_and(|token| {
+            token
+                .strip_suffix('는')
+                .is_some_and(|host| resolver.has_exact_nominal_surface(host))
+        })
+        && context::next_word(haystack, end)
+            .is_some_and(|next| resolver.has_independent_final_predicate(&next))
 }
 
 fn has_transitive_jiyo_frame(
