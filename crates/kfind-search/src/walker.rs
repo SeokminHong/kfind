@@ -103,22 +103,21 @@ pub(crate) fn worker_threads(options: &WalkOptions) -> usize {
 }
 
 fn is_hidden(entry: &ignore::DirEntry) -> bool {
-    if entry.file_name().to_string_lossy().starts_with('.') {
-        return true;
-    }
+    let dot_prefixed = entry.file_name().to_string_lossy().starts_with('.');
 
     #[cfg(windows)]
     {
         use std::os::windows::fs::MetadataExt as _;
 
         const FILE_ATTRIBUTE_HIDDEN: u32 = 0x2;
-        entry
-            .metadata()
-            .is_ok_and(|metadata| metadata.file_attributes() & FILE_ATTRIBUTE_HIDDEN != 0)
+        dot_prefixed
+            || entry
+                .metadata()
+                .is_ok_and(|metadata| metadata.file_attributes() & FILE_ATTRIBUTE_HIDDEN != 0)
     }
 
     #[cfg(not(windows))]
-    false
+    dot_prefixed
 }
 
 #[derive(Debug)]
