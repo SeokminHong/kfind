@@ -103,7 +103,8 @@ def annotated_host(tokens, word, stem, predicates):
             continue
         tag = token.tag.partition("-")[0]
         if tag == "VCP" and token.start + token.len <= suffix_start:
-            visible_copula = token.len == 1 and "이" <= word.string[token.start] <= "잏"
+            surface = word.string[token.start:token.start + 1]
+            visible_copula = token.len == 1 and ("이" <= surface <= "잏" or surface in ("여", "였"))
             start = token.start if visible_copula else word.start()
             hosts.append(("이다", "adjective", start))
         if token.start >= suffix_start:
@@ -114,6 +115,10 @@ def annotated_host(tokens, word, stem, predicates):
             if previous.start >= word.start() and previous.start + previous.len == token.start:
                 lemma = previous.form + lemma
         pos = {"VV": "verb", "VA": "adjective", "XSV": "verb", "XSA": "adjective"}.get(tag)
+        if pos and tag in ("VV", "VA") and token.start > word.start():
+            compound = word.string[word.start():token.start] + lemma
+            if pos in predicates.get(compound, ()):
+                lemma = compound
         if pos and pos in predicates.get(lemma, ()):
             hosts.append((lemma, pos, word.start()))
     return hosts[-1] if hosts else None

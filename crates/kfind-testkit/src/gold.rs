@@ -220,7 +220,7 @@ mod tests {
 
     use super::*;
 
-    const EXPECTED_CASES: usize = 709;
+    const EXPECTED_CASES: usize = 719;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {
@@ -270,6 +270,23 @@ mod tests {
             cases.len(),
             failures.join("\n"),
         );
+    }
+
+    #[test]
+    fn rieul_endings_match_the_complete_eojeol() {
+        let harness = GoldHarness::embedded().expect("embedded lexicons must be valid");
+        for (query, text, target) in [
+            ("v:가다", "내일 같이 갈까요?", "갈까요"),
+            ("adj:좋다", "날씨가 좋을수록 사람이 많다.", "좋을수록"),
+        ] {
+            let start = text.find(target).expect("target appears in the fixture");
+            assert_eq!(
+                harness
+                    .find_all(query, text)
+                    .expect("fixture query compiles"),
+                vec![start..start + target.len()],
+            );
+        }
     }
 
     #[test]
