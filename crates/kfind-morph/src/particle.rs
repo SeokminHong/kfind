@@ -7,6 +7,12 @@ use kfind_data::ParticleTransitionRule;
 use crate::RuleId;
 use crate::hangul::{decompose_syllable, has_final, has_rieul_final};
 
+const CONTRACTED_CASE_TOPICS: [(&str, &str, &str); 3] = [
+    ("엔", "에", "particle.locative"),
+    ("에선", "에서", "particle.source"),
+    ("보단", "보다", "particle.comparison.boda"),
+];
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ParticleKind {
     Catalog,
@@ -319,6 +325,31 @@ impl ParticleVerifier {
         self.verify_prefix_for_host(core, following, true)
     }
 
+    /// Returns the prefix before a final contracted case and topic pair.
+    #[must_use]
+    pub fn before_contracted_case_topic<'a>(prefix: &'a str, rules: &[RuleId]) -> Option<&'a str> {
+        let [.., case, topic] = rules else {
+            return None;
+        };
+        if topic.as_str() != "particle.topic" {
+            return None;
+        }
+        CONTRACTED_CASE_TOPICS
+            .iter()
+            .find_map(|(short, full, rule)| {
+                if case.as_str() != *rule || !prefix.ends_with(short) {
+                    return None;
+                }
+                let unchanged = short
+                    .chars()
+                    .zip(full.chars())
+                    .take_while(|(short, full)| short == full)
+                    .map(|(character, _)| character.len_utf8())
+                    .sum::<usize>();
+                prefix.get(..prefix.len() - short.len() + unchanged)
+            })
+    }
+
     /// Returns the longest particle prefix after a non-nominal host.
     #[must_use]
     pub fn verify_non_nominal_prefix(&self, core: &str, following: &str) -> ParticleMatch {
@@ -350,27 +381,30 @@ impl ParticleVerifier {
         while rule_path.len() < self.model.max_rules {
             let remaining = &following[consumed..];
             if nominal_host
-                && remaining.starts_with('엔')
                 && rule_path.len() + 2 <= self.model.max_rules
-                && let Some(locative) =
-                    self.longest_match("에", previous, previous_rule, previous_was_nominal_initial)
-                && locative.rule_id.as_str() == "particle.locative"
+                && let Some(&(short, full, rule)) = CONTRACTED_CASE_TOPICS
+                    .iter()
+                    .find(|(short, _, _)| remaining.starts_with(short))
+                && let Some(case) =
+                    self.longest_match(full, previous, previous_rule, previous_was_nominal_initial)
+                && case.rule_id.as_str() == rule
+                && case.surface.as_ref() == full
                 && let Some(topic) = self.longest_match(
                     "는",
-                    Some('에'),
-                    Some(if nominal_host && first_particle {
-                        self.nominal_initial_rule(&locative.rule_id)
+                    full.chars().next_back(),
+                    Some(if first_particle {
+                        self.nominal_initial_rule(&case.rule_id)
                     } else {
-                        &locative.rule_id
+                        &case.rule_id
                     }),
                     false,
                 )
                 && topic.rule_id.as_str() == "particle.topic"
             {
-                consumed += '엔'.len_utf8();
-                rule_path.push(locative.rule_id.clone());
+                consumed += short.len();
+                rule_path.push(case.rule_id.clone());
                 rule_path.push(topic.rule_id.clone());
-                previous = Some('엔');
+                previous = short.chars().next_back();
                 previous_rule = Some(&topic.rule_id);
                 previous_was_nominal_initial = false;
                 first_particle = false;

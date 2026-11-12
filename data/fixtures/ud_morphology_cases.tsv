@@ -33,6 +33,10 @@ corpus.ud-gsd.test.test-s471.noun.다음	다음	noun	smart-exact	0	9	다음엔 �
 corpus.ud-gsd.test.test-s474.noun.첨	첨	noun	smart-exact	50	56	갈 때마다 버섯칼국수를 시켜 먹는데 첨엔 샤브샤브 식으로 버섯과 미나리를 건져 먹고 칼국수 면을 넣어서 먹어요
 corpus.ud-gsd.test.test-s973.noun.정원	정원	noun	smart-exact	0	9	정원엔 토끼가 다니고 아침 식사가 만족스러운 호텔입니다.
 corpus.ud-kaist.dev.MH2_0069-s338.noun.로마	로마	noun	smart-exact	65	74	파피루스가 그리스에 들어간 것은 7 세기경이고, 로마엔 3 세기경이다.
+corpus.ud-gsd.test.test-s323.noun.방법	방법	noun	smart-exact	37	49	실제로 그녀가 복수를 하는 방법에선 뛰어난 두뇌임이 증명됐다.
+corpus.ud-gsd.test.test-s573.noun.예전	예전	noun	smart-exact	10	22	요즘은 예전보단 덜 맛있는 것 같지만 여전히 굿
+corpus.ud-gsd.test.test-s857.noun.순창	순창	noun	smart-exact	0	12	순창에선 가장 넓고 쾌적하고 시설이 좋은 노래방!
+regression.nominal-topic-contraction.indefinite	어디	pronoun	smart-exact	0	9	어디에선가 소리가 났다.
 corpus.ud-gsd.test.test-s570.verb.주무시다	주무시다	verb	match	37	49	겨울에는 무조건 내복 입고 주무세요.
 corpus.ud-gsd.test.test-s674.verb.느끼다	느끼다	verb	match	146	158	도 특사경 유흥수 팀장은 "행정적 위반 업소 단속이 많지만 가끔 검찰과 현장 합동단속을 벌일 때는 긴박감도 느껴진다"고 했다.
 corpus.ud-gsd.test.test-s723.verb.이루어지다	이루어지다	verb	match	86	98	이곳에서 문화재 발굴은 형촌마을 서쪽 구릉과 남쪽 저지대에서 이뤄지고 있었다.
