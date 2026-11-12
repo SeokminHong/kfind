@@ -1,0 +1,9 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	casual-prefinal	walk-formal-context	걷다	verb	false	1fd9c2818a8d8bd151ecc39d8e302ead41dea00aedad52c8923ed248687de942	contract-positive	same-pos-homograph	걸다와 걷다의 활용은 문법 구조가 같고 문맥에서 동작의 뜻을 구분한다.
+explicit-pos	casual-prefinal	hang-formal-context	걸다	verb	false	9c88b3f35c4358bd0f47d3144cb688075494dbcc1f716cfd529f24f4d7b753d5	contract-positive	same-pos-homograph	걸다와 걷다의 활용은 문법 구조가 같고 문맥에서 동작의 뜻을 구분한다.
+explicit-pos	casual-prefinal	listen-formal-context	듣다	verb	false	346c9cb7ed877bda75af79e5958e3dce337e0984a1bd6a8c8678eaea28544533	contract-positive	same-pos-homograph	들다와 듣다의 활용은 목적어를 취하는 문법 구조가 같고 문맥에서 동작의 뜻을 구분한다.
+explicit-pos	casual-prefinal	lift-formal-context	들다	verb	false	cb4b54412172d26d46083afd0b0b56823dbf3309d0872c6ab16fd5d7c629123b	contract-positive	same-pos-homograph	들다와 듣다의 활용은 목적어를 취하는 문법 구조가 같고 문맥에서 동작의 뜻을 구분한다.
+explicit-pos	casual-prefinal	walk-casual-context	걷다	verb	false	99ec787ac11d926f1d941436665fb54286b0608a462bed53f1c41168810cbade	contract-positive	same-pos-homograph	걸다와 걷다의 활용은 문법 구조가 같고 문맥에서 동작의 뜻을 구분한다.
+explicit-pos	casual-prefinal	hang-casual-context	걸다	verb	false	d8e785780705147a81f62f1a94eb7117a4e708c00d16f9f99491c0d64d38b332	contract-positive	same-pos-homograph	걸다와 걷다의 활용은 문법 구조가 같고 문맥에서 동작의 뜻을 구분한다.
+explicit-pos	casual-prefinal	listen-casual-context	듣다	verb	false	69d4eb790ae711366b2088e75e5bf2c4b72f837cd68a30e6dc13c7771227be73	contract-positive	same-pos-homograph	들다와 듣다의 활용은 목적어를 취하는 문법 구조가 같고 문맥에서 동작의 뜻을 구분한다.
+explicit-pos	casual-prefinal	lift-casual-context	들다	verb	false	8b7b8b582db9b2b25a639ec110421fe3311f277a1108efd599acda7593fb57ad	contract-positive	same-pos-homograph	들다와 듣다의 활용은 목적어를 취하는 문법 구조가 같고 문맥에서 동작의 뜻을 구분한다.

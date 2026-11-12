@@ -278,6 +278,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
     suffix("을", &["ending.future-adnominal"]),
     suffix("다", &["ending.final-da"]),
     suffix("고", &["ending.connective-go"]),
+    suffix("어", &["ending.prefinal-eo"]),
     suffix("어요", &["ending.past-polite-yo"]),
     suffix("게", &["ending.final-ge"]),
 ];
@@ -320,6 +321,7 @@ const FUTURE_SUFFIXES: &[Suffix] = &[
     suffix("는데", &["ending.connective-neunde"]),
     suffix("다", &["ending.final-da"]),
     suffix("고", &["ending.connective-go"]),
+    suffix("어", &["ending.prefinal-eo"]),
     suffix("어요", &["ending.aoeo", "ending.polite-yo"]),
 ];
 
@@ -606,6 +608,27 @@ const EU_SUFFIXES: &[Suffix] = &[
     suffix(
         "셨다",
         &["ending.honorific", "ending.past", "ending.final-da"],
+    ),
+    suffix(
+        "셨어",
+        &["ending.honorific", "ending.past", "ending.prefinal-eo"],
+    ),
+    suffix(
+        "셨어요",
+        &["ending.honorific", "ending.past", "ending.past-polite-yo"],
+    ),
+    suffix(
+        "시겠어",
+        &["ending.honorific", "ending.future", "ending.prefinal-eo"],
+    ),
+    suffix(
+        "시겠어요",
+        &[
+            "ending.honorific",
+            "ending.future",
+            "ending.aoeo",
+            "ending.polite-yo",
+        ],
     ),
     suffix(
         "셨던",

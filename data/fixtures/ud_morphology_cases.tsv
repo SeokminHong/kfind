@@ -40,6 +40,7 @@ corpus.ud-gsd.test.test-s534.verb.하다.6	하다	verb	exact	32	41	결혼에 대
 corpus.ud-gsd.test.test-s534.verb.하다.8	하다	verb	exact	46	55	결혼에 대해서 묻자 "안 했는지 못 했는지 모르겠다"며 웃었다.
 corpus.ud-gsd.test.test-s587.verb.대다.16	대다	verb	exact	142	151	반면 이정수의 아버지 이도원 씨는 "선발전 당시 정수가 삐끗하기는 했지만 경기 도중 누가 엉덩이에 손을 댔는지 알 수 없는 상황이었다"며 "그 동영상으로 도움받았다고 판정하는 것은 수긍할 수 없다"고 말했다.
 corpus.ud-gsd.test.test-s867.verb.있다.5	있다	verb	exact	49	58	원장님이 어린이집을 운영할 자질이 있는지 의문이네요.
+corpus.ud-gsd.test.test-s884.adjective.친절하다	친절하다	adjective	exact	111	129	저희 어머니께서 편찮으셔서 입원을 하셨었는데 간호사분들과 의사 선생님 모두가 친절하셨어요.
 corpus.ud-pud.test.w04002055.verb.타다	타다	verb	match	98	110	1976년 경마장이 문을 닫았으며, 1990년 화재로 인해 목재로 된 큰 스탠드가 타버렸고 그 잔해는 축사와 함께 나중에 철거되었다.
 corpus.ud-pud.test.w01112098.verb.이루어지다	이루어지다	verb	match	145	157	디즈니는 아카데미 명예상을 또 수상했는데 이 명예상은 100% 크기의 오스카 트로피 하나와 7개의 미니어처로 이뤄졌다.
 corpus.ud-pud.test.w01137087.verb.넘다	넘다	verb	match	121	133	5월, 체코 국경 수비대는 수비대의 정지 명령에도 아랑곳하지 않고 체코슬로바키아 국경을 넘으려던 두 명의 주데텐 독일 농부를 총으로 쐈다.
