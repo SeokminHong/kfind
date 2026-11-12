@@ -101,6 +101,27 @@ regression.conjunction-adverb.혹	혹	adverb	smart-exact	0	3	혹 비가 오면 �
 regression.conjunction-noun.혹	혹	noun	smart-exact	0	6	혹은 작아졌지만 통증은 그대로였다.
 regression.conjunction-adverb.또	또	adverb	no-match	26	32	이메일을 보내거나 또는 전화를 주세요.
 regression.conjunction-adverb.또는	또는	adverb	smart-exact	26	32	이메일을 보내거나 또는 전화를 주세요.
+regression.go-yo.gsd-good	좋다	adjective	smart-exact	40	49	지역에 비해 분위기나 공간이 좋고요
+corpus.ud-gsd.test.test-s318.verb.하다	하다	verb	smart-exact	101	110	체크인할 때 얘기하면 체크아웃을 조금 늦은 시간에 할 수 있도록 해주기도 하고요.
+corpus.ud-gsd.test.test-s410.adjective.편하다	편하다	adjective	smart-exact	45	57	조미료도 별로 안 들어간 듯 속이 편하고요
+regression.go-yo.gsd-delicious-corrected	맛있다	adjective	smart-exact	36	48	음식도 너무너무 깔끔하고 맛있고요
+corpus.ud-gsd.test.test-s180.adjective.괜찮다	괜찮다	adjective	smart-exact	7	25	그거 괜찮더라고요~
+corpus.ud-gsd.test.test-s195.adjective.좋다	좋다	adjective	smart-exact	50	65	진짜 LP판 틀어 놓아서 분위기가 너무 좋더라고요
+corpus.ud-gsd.test.test-s228.verb.하다	하다	verb	smart-exact	58	70	사장님 내외분께서 돌아가시면서 새벽까지 하시고요
+corpus.ud-gsd.test.test-s352.verb.어울리다	어울리다	verb	smart-exact	23	38	김치도 묵은지라 어울리고요
+corpus.ud-gsd.test.test-s866.verb.바뀌다	바뀌다	verb	smart-exact	37	52	그늘 식당이 청담 식당으로 바뀌었고요.
+corpus.ud-gsd.test.test-s903.verb.하다	하다	verb	smart-exact	47	62	여기 모든 반찬은 직접 만드신다고 하더라고요.
+corpus.ud-gsd.test.test-s979.adjective.있다	있다	adjective	smart-exact	87	102	식사를 마치시면 밖에 난로와 군고구마도 즐길 수 있는 하우스도 있더라고요.
+regression.go-yo.past	좋다	adjective	smart-exact	10	22	날씨가 좋았고요.
+regression.go-yo.future	좋다	adjective	smart-exact	10	22	날씨가 좋겠고요.
+regression.go-yo.honorific	가다	verb	smart-exact	13	25	선생님도 가시고요.
+regression.go-yo.honorific-past	보다	verb	smart-exact	13	25	선생님도 보셨고요.
+regression.go-yo.honorific-eu-past	듣다	verb	smart-exact	10	25	손님도 들으셨고요.
+regression.go-yo.copula	이다	adjective	smart-exact	17	26	그 일은 처음이고요.
+regression.go-yo.verb	읽다	verb	smart-exact	7	16	책을 읽고요.
+regression.go-yo.verb-future	걷다	verb	smart-exact	10	22	내일도 걷겠고요.
+regression.go-yo.quotative	맛있다	adjective	smart-exact	10	25	음식이 맛있다고요.
+regression.go-yo.attached	가다	verb	smart-exact	13	22	그는 걸어가고요.
 corpus.ud-kaist.test.MH2_0070-s138.adjective.다르다	다르다	adjective	match	10	16	이와는 달리 우리나라 신발수출은 91 년 11.3 % 감소한 이후 92년 8월 말까지 16.6 %나 줄었다.
 corpus.ud-kaist.test.MH2_0070-s73.adjective.같다	같다	adjective	match	110	116	또한 각국의 소비지출은 1 개월 평균, 자국통화로 된 금액을 이용하였으며, 미국과 같이 연간단위로 된 통계자료는 월평균으로 환산하여 사용하였다.
 corpus.ud-kaist.test.MH2_0180-s113.pronoun.무어	무어	pronoun	match	39	48	일반적으로는 사항에 관해서 무언가 새로운 것을 경험하려고 하여 주어의 토대를 뛰어넘고 있는 것이다.
