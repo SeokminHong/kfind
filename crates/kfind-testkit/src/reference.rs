@@ -873,6 +873,8 @@ fn reference_simple_continuation(
         };
     }
     const PAST: &[ReferenceSuffix] = &[
+        reference_suffix("군", &["ending.final-gun"]),
+        reference_suffix("군요", &["ending.final-gun", "ending.polite-yo"]),
         reference_suffix("습니까", &["ending.formal-interrogative"]),
         reference_suffix("습디까", &["ending.retrospective-interrogative"]),
         reference_suffix("습디다", &["ending.retrospective-declarative"]),
@@ -901,6 +903,8 @@ fn reference_simple_continuation(
         reference_suffix("게", &["ending.final-ge"]),
     ];
     const FUTURE: &[ReferenceSuffix] = &[
+        reference_suffix("군", &["ending.final-gun"]),
+        reference_suffix("군요", &["ending.final-gun", "ending.polite-yo"]),
         reference_suffix("습니까", &["ending.formal-interrogative"]),
         reference_suffix("습디까", &["ending.retrospective-interrogative"]),
         reference_suffix("습디다", &["ending.retrospective-declarative"]),
@@ -913,6 +917,14 @@ fn reference_simple_continuation(
         reference_suffix("어요", &["ending.aoeo", "ending.polite-yo"]),
     ];
     const DECLARATIVE: &[ReferenceSuffix] = &[
+        reference_suffix(
+            "는군요",
+            &[
+                "ending.quotative-adnominal",
+                "ending.final-neun-exclamative",
+                "ending.polite-yo",
+            ],
+        ),
         reference_suffix("더니마는", &["ending.retrospective-contrast"]),
         reference_suffix("더니만", &["ending.retrospective-contrast"]),
         reference_suffix("더니", &["ending.retrospective-connective"]),
@@ -1271,7 +1283,7 @@ fn reference_simple_continuation(
                 $prefix,
                 &[$($prior,)* "ending.directive-ra"],
                 &[$($prior,)* "ending.directive-quotative"];
-                "거나", "거든", "거든요", "거들랑", "고", "고요", "기에", "나", "는", "는구나", "는군", "는데", "는데요", "느니", "니", "니까", "니까는", "니까요", "니깐", "니요", "더군", "더군요", "더니", "더라", "던", "던가", "던데", "던데요", "데", "든지", "며", "면", "면서", "손", "오", "지", "죠"
+                "거나", "거든", "거든요", "거들랑", "고", "고요", "기에", "나", "는", "는구나", "는군", "는군요", "는데", "는데요", "느니", "니", "니까", "니까는", "니까요", "니깐", "니요", "더군", "더군요", "더니", "더라", "던", "던가", "던데", "던데요", "데", "든지", "며", "면", "면서", "손", "오", "지", "죠"
             )
         };
     }
@@ -1457,6 +1469,14 @@ fn reference_simple_continuation(
             reference_suffix("고", &["ending.copula-quotative-go"]),
             reference_suffix("고요", &["ending.copula-quotative-go", "ending.polite-yo"]),
             reference_suffix("는", &["ending.copula-quotative-adnominal"]),
+            reference_suffix(
+                "는군요",
+                &[
+                    "ending.copula-quotative-adnominal",
+                    "ending.final-neun-exclamative",
+                    "ending.polite-yo",
+                ],
+            ),
             reference_suffix("나", &["ending.copula-ra-final"]),
             reference_suffix("네", &["ending.copula-ra-final"]),
             reference_suffix("느니", &["ending.copula-ra-connective"]),
@@ -1539,6 +1559,95 @@ fn reference_simple_continuation(
         reference_suffix("겠죠", &["ending.future", "ending.confirmation-jiyo"]),
     ];
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::NieunEnding
+            if (following.starts_with('군') || following.starts_with("구나"))
+                && anchor.ends_with('는')
+                && (pos.is_action() || anchor.ends_with("있는") || anchor.ends_with("없는")) =>
+        {
+            &[
+                reference_suffix("구나", &["ending.final-neun-exclamative"]),
+                reference_suffix("군", &["ending.final-neun-exclamative"]),
+                reference_suffix(
+                    "군요",
+                    &["ending.final-neun-exclamative", "ending.polite-yo"],
+                ),
+            ]
+        }
+        ContinuationState::StemEnding
+            if following.starts_with('군')
+                && !pos.is_action()
+                && pos != PredicatePos::Copula
+                && anchor != "아니" =>
+        {
+            &[
+                reference_suffix("군", &["ending.final-gun"]),
+                reference_suffix("군요", &["ending.final-gun", "ending.polite-yo"]),
+            ]
+        }
+        ContinuationState::Prospective if following.starts_with('군') && anchor.ends_with('시') => {
+            &[
+                reference_suffix("군", &["ending.final-gun"]),
+                reference_suffix("군요", &["ending.final-gun", "ending.polite-yo"]),
+            ]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시는군")
+                && (pos.is_action() || anchor.ends_with(['있', '없'])) =>
+        {
+            &[
+                reference_suffix(
+                    "시는군",
+                    &["ending.honorific", "ending.final-neun-exclamative"],
+                ),
+                reference_suffix(
+                    "시는군요",
+                    &[
+                        "ending.honorific",
+                        "ending.final-neun-exclamative",
+                        "ending.polite-yo",
+                    ],
+                ),
+            ]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시군")
+                || following.starts_with("셨군")
+                || following.starts_with("시겠군") =>
+        {
+            &[
+                reference_suffix("시군", &["ending.honorific", "ending.final-gun"]),
+                reference_suffix(
+                    "셨군",
+                    &["ending.honorific", "ending.past", "ending.final-gun"],
+                ),
+                reference_suffix(
+                    "시겠군",
+                    &["ending.honorific", "ending.future", "ending.final-gun"],
+                ),
+                reference_suffix(
+                    "시군요",
+                    &["ending.honorific", "ending.final-gun", "ending.polite-yo"],
+                ),
+                reference_suffix(
+                    "셨군요",
+                    &[
+                        "ending.honorific",
+                        "ending.past",
+                        "ending.final-gun",
+                        "ending.polite-yo",
+                    ],
+                ),
+                reference_suffix(
+                    "시겠군요",
+                    &[
+                        "ending.honorific",
+                        "ending.future",
+                        "ending.final-gun",
+                        "ending.polite-yo",
+                    ],
+                ),
+            ]
+        }
         ContinuationState::StemEnding
             if (pos == PredicatePos::Copula || anchor == "아니")
                 && (following.starts_with('죠') || following.starts_with("지요")) =>
@@ -1722,6 +1831,7 @@ fn reference_simple_continuation(
                 reference_suffix("구려", &["ending.copula-common-final"]),
                 reference_suffix("구먼", &["ending.copula-common-final"]),
                 reference_suffix("군", &["ending.copula-common-final"]),
+                reference_suffix("군요", &["ending.copula-common-final", "ending.polite-yo"]),
                 reference_suffix("길래", &["ending.copula-common-connective"]),
                 reference_suffix("네", &["ending.copula-common-final"]),
                 reference_suffix("네요", &["ending.copula-common-final", "ending.polite-yo"]),
@@ -1761,6 +1871,7 @@ fn reference_simple_continuation(
                 reference_suffix("로구려", &["ending.copula-ro-final"]),
                 reference_suffix("로구먼", &["ending.copula-ro-final"]),
                 reference_suffix("로군", &["ending.copula-ro-final"]),
+                reference_suffix("로군요", &["ending.copula-ro-final", "ending.polite-yo"]),
                 reference_suffix("로다", &["ending.copula-ro-final"]),
                 reference_suffix("로되", &["ending.copula-ro-connective"]),
                 reference_suffix("로라", &["ending.copula-ro-final"]),
@@ -1842,6 +1953,14 @@ fn reference_simple_continuation(
             reference_suffix("시로구려", &["ending.honorific", "ending.copula-ro-final"]),
             reference_suffix("시로구먼", &["ending.honorific", "ending.copula-ro-final"]),
             reference_suffix("시로군", &["ending.honorific", "ending.copula-ro-final"]),
+            reference_suffix(
+                "시로군요",
+                &[
+                    "ending.honorific",
+                    "ending.copula-ro-final",
+                    "ending.polite-yo",
+                ],
+            ),
             reference_suffix(
                 "시로되",
                 &["ending.honorific", "ending.copula-ro-connective"],
@@ -2333,6 +2452,7 @@ mod tests {
         "천천히 걸으시겠습니다. 꽃이 예뻐라.\n",
         "사용자는은 오류다. 사용자도만 오류다.\n",
         "선생님이 먼저 간대요. 엄마가 나중에 먹으랬어. 다 먹었냬요. 친구가 같이 가재요.\n",
+        "꽃이 예쁘군요. 집까지 걸으시는군요.\n",
     );
 
     #[test]
