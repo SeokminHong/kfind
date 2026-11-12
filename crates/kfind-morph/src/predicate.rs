@@ -592,6 +592,7 @@ fn compile_productive(
         if let Some(base) = bieup_ending_base(entry, stem)? {
             for (suffix, ending) in [
                 ("시다", "ending.propositive"),
+                ("시사", "ending.earnest-request-sisa"),
                 ("시오", "ending.imperative-formal"),
                 ("쇼", "ending.imperative-formal-short"),
             ] {

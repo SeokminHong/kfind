@@ -762,3 +762,21 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 받다	verb	전화를 받을라치면 꼭 끊긴다.	match	rieul-conditional
 치다	verb	지구온난화는 여러 측면에 영향을 미친다.	no-match	structural-whole-predicate
 다	noun	저 친구는 왕친입니다.	no-match	structural-ending-component
+이다	copula	그는 서울 사람입네 하고 거들먹거린다.	match	fused-copula-ending
+이다	copula	형님이 잘되는 일이면 저에게도 좋은 일입죠.	match	fused-copula-ending
+이다	copula	김 박사는 존경할 만한 의사입딘다.	match	fused-copula-ending
+알다	verb	잘 압네 하며 뽐냈다.	match	formal-bieup-ending
+가다	verb	내일 일찍 갑지요.	match	formal-bieup-ending
+짜다	adjective	바닷물은 짭늰다.	match	formal-bieup-ending
+좋다	adjective	계절 음식은 몸에 좋습늰다.	match	formal-bieup-ending
+먹다	verb	아이가 가리지 않고 잘 먹습딘다.	match	formal-bieup-ending
+많다	adjective	별일들이 많습죠.	match	formal-bieup-ending
+오다	verb	외국에서 왔습네 하고 뽐냈다.	match	formal-bieup-ending
+하다	verb	자기가 하겠습네 하고서는 가 버렸다.	match	formal-bieup-ending
+도착하다	verb	벌써 도착했겠습지요?	match	formal-bieup-ending
+읽다	verb	벌써 읽으십죠?	match	formal-bieup-ending
+먹다	verb	벌써 먹읍죠?	no-match	formal-bieup-ending
+말다	verb	제발 그러지 맙시사.	match	earnest-request-sisa
+참다	verb	모두 조금만 참읍시사.	match	earnest-request-sisa
+참다	verb	조금만 참으십시사.	match	earnest-request-sisa
+좋다	adjective	이 음식이 좋읍시사.	no-match	earnest-request-sisa

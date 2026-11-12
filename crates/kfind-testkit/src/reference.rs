@@ -899,6 +899,10 @@ fn reference_predicate_continuation(
             &["ending.honorific", "ending.imperative-formal-short"],
         ),
         reference_suffix("십시다", &["ending.honorific", "ending.propositive"]),
+        reference_suffix(
+            "십시사",
+            &["ending.honorific", "ending.earnest-request-sisa"],
+        ),
         reference_suffix("면서", &["ending.simultaneous-myeonseo"]),
         reference_suffix("려던", &["ending.intentive-adnominal"]),
         reference_suffix("러", &["ending.purpose-reo"]),
@@ -1000,6 +1004,28 @@ fn reference_predicate_continuation(
         reference_suffix("디까", &["ending.retrospective-interrogative"]),
         reference_suffix("디다", &["ending.retrospective-declarative"]),
     ];
+
+    macro_rules! formal_bieup_extensions {
+        ($prefix:literal $(, $prior:literal)*) => {
+            &[
+                reference_suffix(concat!($prefix, "네"), &[$($prior,)* "ending.formal-boast-ne"]),
+                reference_suffix(concat!($prefix, "늰다"), &[$($prior,)* "ending.formal-declarative-neunda"]),
+                reference_suffix(concat!($prefix, "딘다"), &[$($prior,)* "ending.formal-retrospective-dinda"]),
+                reference_suffix(concat!($prefix, "지요"), &[$($prior,)* "ending.formal-confirmation-jiyo"]),
+                reference_suffix(concat!($prefix, "죠"), &[$($prior,)* "ending.formal-confirmation-jiyo"]),
+            ]
+        };
+    }
+
+    const BIEUP_EXTENSIONS: &[ReferenceSuffix] = formal_bieup_extensions!("");
+    const SEUP_EXTENSIONS: &[ReferenceSuffix] = formal_bieup_extensions!("습");
+    const GET_SEUP_EXTENSIONS: &[ReferenceSuffix] =
+        formal_bieup_extensions!("겠습", "ending.future");
+    const SIP_EXTENSIONS: &[ReferenceSuffix] = formal_bieup_extensions!("십", "ending.honorific");
+    const SYEOT_SEUP_EXTENSIONS: &[ReferenceSuffix] =
+        formal_bieup_extensions!("셨습", "ending.honorific", "ending.past");
+    const SIGET_SEUP_EXTENSIONS: &[ReferenceSuffix] =
+        formal_bieup_extensions!("시겠습", "ending.honorific", "ending.future");
 
     macro_rules! prospective_suffixes {
         ($prefix:literal $(, $rule:literal)*) => {
@@ -1170,6 +1196,14 @@ fn reference_predicate_continuation(
         ContinuationState::Prospective => PROSPECTIVE,
     };
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::BieupFinal => BIEUP_EXTENSIONS,
+        ContinuationState::Past | ContinuationState::Future if following.starts_with('습') => {
+            SEUP_EXTENSIONS
+        }
+        ContinuationState::Past if following.starts_with("겠습") => GET_SEUP_EXTENSIONS,
+        ContinuationState::Eu if following.starts_with('십') => SIP_EXTENSIONS,
+        ContinuationState::Eu if following.starts_with("셨습") => SYEOT_SEUP_EXTENSIONS,
+        ContinuationState::Eu if following.starts_with("시겠습") => SIGET_SEUP_EXTENSIONS,
         ContinuationState::StemEnding
             if (pos == PredicatePos::Copula || anchor == "아니")
                 && following.starts_with([
@@ -1311,6 +1345,7 @@ fn reference_predicate_continuation(
                                 | "십시오"
                                 | "십쇼"
                                 | "십시다"
+                                | "십시사"
                                 | "려"
                                 | "려던"
                                 | "러"
