@@ -940,7 +940,7 @@ fn predicate_environment(
     branch: &kfind_morph::SurfaceBranchSpec,
 ) -> CandidateLeftContext {
     let is_contracted_copula = predicate.alternation == kfind_morph::LexicalAlternation::Copula
-        && matches!(branch.anchor.as_ref(), "다" | "였" | "여서");
+        && (matches!(branch.anchor.as_ref(), "다" | "였") || branch.anchor.starts_with('여'));
     if !is_contracted_copula {
         return CandidateLeftContext::Any;
     }

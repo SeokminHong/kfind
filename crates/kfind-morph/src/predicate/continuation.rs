@@ -15,7 +15,40 @@ pub(super) struct Suffix {
     pub(super) rules: &'static [&'static str],
 }
 
+const YAJI: Suffix = suffix("야지", &["ending.necessity-yaji"]);
+const YAJI_POLITE: Suffix = suffix("야지요", &["ending.necessity-yaji-polite"]);
+const YAJI_CONTRACTED: Suffix = suffix("야죠", &["ending.necessity-yaji-polite"]);
+pub(super) const YAJI_ENDINGS: &[Suffix] = &[YAJI, YAJI_POLITE, YAJI_CONTRACTED];
+const HONORIFIC_YAJI: Suffix = suffix(
+    "셔야지",
+    &["ending.honorific", "ending.aoeo", "ending.necessity-yaji"],
+);
+const HONORIFIC_YAJI_POLITE: Suffix = suffix(
+    "셔야지요",
+    &[
+        "ending.honorific",
+        "ending.aoeo",
+        "ending.necessity-yaji-polite",
+    ],
+);
+const HONORIFIC_YAJI_CONTRACTED: Suffix = suffix(
+    "셔야죠",
+    &[
+        "ending.honorific",
+        "ending.aoeo",
+        "ending.necessity-yaji-polite",
+    ],
+);
+pub(super) const HONORIFIC_YAJI_ENDINGS: &[Suffix] = &[
+    HONORIFIC_YAJI,
+    HONORIFIC_YAJI_POLITE,
+    HONORIFIC_YAJI_CONTRACTED,
+];
+
 const A_OR_EO_SUFFIXES: &[Suffix] = &[
+    YAJI,
+    YAJI_POLITE,
+    YAJI_CONTRACTED,
     suffix("지거들랑", &["ending.auxiliary-jida", "ending.geodeun"]),
     suffix("지건", &["ending.auxiliary-jida", "ending.geodeun-short"]),
     suffix("지거든", &["ending.auxiliary-jida", "ending.geodeun"]),
@@ -51,6 +84,9 @@ const A_OR_EO_SUFFIXES: &[Suffix] = &[
 ];
 
 const PAST_SUFFIXES: &[Suffix] = &[
+    suffix("어야지", &["ending.necessity-yaji"]),
+    suffix("어야지요", &["ending.necessity-yaji-polite"]),
+    suffix("어야죠", &["ending.necessity-yaji-polite"]),
     GEON,
     GEODEUN,
     GEODEUN_POLITE,
@@ -130,6 +166,9 @@ pub(super) const HONORIFIC_GEODEUN_ENDINGS: &[Suffix] = &[
 ];
 
 const EU_SUFFIXES: &[Suffix] = &[
+    HONORIFIC_YAJI,
+    HONORIFIC_YAJI_POLITE,
+    HONORIFIC_YAJI_CONTRACTED,
     HONORIFIC_GEODEUN,
     HONORIFIC_GEODEUN_POLITE,
     HONORIFIC_GEODEULLANG,

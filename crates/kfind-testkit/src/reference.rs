@@ -666,6 +666,9 @@ fn reference_predicate_continuation(
     following: &str,
 ) -> Option<(usize, Vec<RuleId>)> {
     const AEO: &[ReferenceSuffix] = &[
+        reference_suffix("야지", &["ending.necessity-yaji"]),
+        reference_suffix("야지요", &["ending.necessity-yaji-polite"]),
+        reference_suffix("야죠", &["ending.necessity-yaji-polite"]),
         reference_suffix("지거들랑", &["ending.auxiliary-jida", "ending.geodeun"]),
         reference_suffix("지건", &["ending.auxiliary-jida", "ending.geodeun-short"]),
         reference_suffix("지거든", &["ending.auxiliary-jida", "ending.geodeun"]),
@@ -700,6 +703,9 @@ fn reference_predicate_continuation(
         reference_suffix("라", &["ending.imperative-ra"]),
     ];
     const PAST: &[ReferenceSuffix] = &[
+        reference_suffix("어야지", &["ending.necessity-yaji"]),
+        reference_suffix("어야지요", &["ending.necessity-yaji-polite"]),
+        reference_suffix("어야죠", &["ending.necessity-yaji-polite"]),
         reference_suffix("건", &["ending.geodeun-short"]),
         reference_suffix("거든", &["ending.geodeun"]),
         reference_suffix("거든요", &["ending.geodeun-polite"]),
@@ -739,6 +745,26 @@ fn reference_predicate_continuation(
         reference_suffix("지", &["ending.quotative-ji"]),
     ];
     const EU: &[ReferenceSuffix] = &[
+        reference_suffix(
+            "셔야지",
+            &["ending.honorific", "ending.aoeo", "ending.necessity-yaji"],
+        ),
+        reference_suffix(
+            "셔야지요",
+            &[
+                "ending.honorific",
+                "ending.aoeo",
+                "ending.necessity-yaji-polite",
+            ],
+        ),
+        reference_suffix(
+            "셔야죠",
+            &[
+                "ending.honorific",
+                "ending.aoeo",
+                "ending.necessity-yaji-polite",
+            ],
+        ),
         reference_suffix("시건", &["ending.honorific", "ending.geodeun-short"]),
         reference_suffix(
             "셨건",

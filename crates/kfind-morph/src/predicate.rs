@@ -673,7 +673,10 @@ fn compile_rieul_honorific(
 ) {
     let base = drop_last_final(stem).expect("rieul-final stem");
     let core_len = base.len();
-    for suffix in continuation::HONORIFIC_GEODEUN_ENDINGS {
+    for suffix in continuation::HONORIFIC_GEODEUN_ENDINGS
+        .iter()
+        .chain(continuation::HONORIFIC_YAJI_ENDINGS)
+    {
         push_branch(
             branches,
             entry,
@@ -775,6 +778,20 @@ fn compile_copula(
             lemma: entry.lemma.clone(),
             alternation: entry.alternation,
         });
+    }
+    for suffix in continuation::YAJI_ENDINGS {
+        let rules = [rule("lexical.copula"), rule("ending.aoeo")]
+            .into_iter()
+            .chain(suffix.rules.iter().map(|id| rule(id)))
+            .collect();
+        push_branch(
+            branches,
+            entry,
+            format!("여{}", suffix.surface),
+            stem.len(),
+            ContinuationState::Terminal,
+            rules,
+        );
     }
     for suffix in continuation::GEODEUN_ENDINGS {
         let rules = std::iter::once(rule("lexical.copula"))
