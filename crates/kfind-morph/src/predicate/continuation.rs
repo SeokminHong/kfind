@@ -63,14 +63,64 @@ const COPULA_REPORTING_AND_RO_ENDINGS: &[Suffix] = &[
     suffix("로세", &["ending.copula-ro-final"]),
 ];
 
+const COPULA_COMMON_ENDINGS: &[Suffix] = &[
+    suffix("고말고", &["ending.copula-common-final"]),
+    suffix("고요", &["ending.connective-go", "ending.polite-yo"]),
+    suffix("구나", &["ending.copula-common-final"]),
+    suffix("구려", &["ending.copula-common-final"]),
+    suffix("구먼", &["ending.copula-common-final"]),
+    suffix("군", &["ending.copula-common-final"]),
+    suffix("길래", &["ending.copula-common-connective"]),
+    suffix("네", &["ending.copula-common-final"]),
+    suffix("네요", &["ending.copula-common-final", "ending.polite-yo"]),
+    suffix("니", &["ending.copula-common-connective"]),
+    suffix("니까", &["ending.copula-common-connective"]),
+    suffix("니까는", &["ending.copula-common-connective"]),
+    suffix("니깐", &["ending.copula-common-connective"]),
+    suffix("니라", &["ending.copula-common-final"]),
+    suffix("면", &["ending.copula-common-connective"]),
+    suffix("면서", &["ending.copula-common-connective"]),
+    suffix("세요", &["ending.honorific", "ending.copula-polite"]),
+    suffix("야", &["ending.copula-ya"]),
+    suffix("어요", &["ending.copula-polite"]),
+    suffix("에요", &["ending.copula-polite"]),
+    suffix("오", &["ending.copula-common-final"]),
+    suffix("자", &["ending.copula-common-connective"]),
+    suffix("죠", &["ending.copula-common-final"]),
+    suffix("지요", &["ending.copula-common-final"]),
+];
+
+fn copula_common_omission(surface: &str) -> bool {
+    matches!(
+        surface,
+        "구나"
+            | "구려"
+            | "구먼"
+            | "군"
+            | "네"
+            | "네요"
+            | "니"
+            | "니까"
+            | "니까는"
+            | "니깐"
+            | "면"
+            | "면서"
+            | "죠"
+            | "지요"
+            | "예요"
+            | "여요"
+    )
+}
+
 pub(super) fn is_copula_omission_ending(surface: &str) -> bool {
     surface.strip_prefix('라').is_some_and(|tail| {
         COPULA_RA_SUFFIXES
             .iter()
             .any(|ending| ending.surface == tail)
-    }) || COPULA_REPORTING_AND_RO_ENDINGS
-        .iter()
-        .any(|ending| ending.surface == surface)
+    }) || copula_common_omission(surface)
+        || COPULA_REPORTING_AND_RO_ENDINGS
+            .iter()
+            .any(|ending| ending.surface == surface)
 }
 const HONORIFIC_RO_ENDINGS: &[Suffix] = &[
     suffix("시로구나", &["ending.honorific", "ending.copula-ro-final"]),
@@ -593,6 +643,15 @@ pub fn verify_predicate_continuation(
                 && following.starts_with(['란', '람', '랍', '래', '로']) =>
         {
             COPULA_REPORTING_AND_RO_ENDINGS
+        }
+        ContinuationState::StemEnding
+            if (pos == PredicatePos::Copula || anchor == "아니")
+                && following.starts_with([
+                    '고', '구', '군', '길', '네', '니', '면', '세', '야', '어', '에', '오', '자',
+                    '죠', '지',
+                ]) =>
+        {
+            COPULA_COMMON_ENDINGS
         }
         ContinuationState::NieunEnding => NIEUN_EXTENSIONS,
         ContinuationState::Past | ContinuationState::Future if nieun_tail(following, "는") => {

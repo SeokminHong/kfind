@@ -150,15 +150,10 @@ impl ReferenceMatcher {
                     consumption_following,
                 )?;
                 if *pos == PredicatePos::Copula
-                    && rules.first().is_some_and(|rule| {
-                        matches!(
-                            rule.as_str(),
-                            "ending.copula-reporting-final"
-                                | "ending.copula-reporting-connective"
-                                | "ending.copula-ro-final"
-                                | "ending.copula-ro-connective"
-                        )
-                    })
+                    && *continuation == ContinuationState::StemEnding
+                    && rules
+                        .iter()
+                        .any(|rule| rule.as_str().starts_with("ending.copula-"))
                     && !text[..start]
                         .chars()
                         .next_back()
@@ -207,6 +202,24 @@ impl ReferenceMatcher {
             normalized_consumed
         };
         let token = start..anchor_end.checked_add(consumed)?;
+        if matches!(
+            &branch.consumption,
+            CandidateConsumption::PredicateContinuation {
+                pos: PredicatePos::Copula,
+                ..
+            }
+        ) && suffix_rules
+            .iter()
+            .any(|rule| rule.as_str() == "ending.copula-ya")
+            && !text.get(token.end..)?.chars().next().is_none_or(|next| {
+                matches!(
+                    next,
+                    '.' | '!' | '?' | '…' | '。' | '！' | '？' | '\n' | '\r' | '"' | '”' | '’'
+                )
+            })
+        {
+            return None;
+        }
         if !accepts_boundaries(text, &core, &token, branch) {
             return None;
         }
@@ -1156,7 +1169,41 @@ fn reference_predicate_continuation(
         ContinuationState::BieupFinal => BIEUP_FINAL,
         ContinuationState::Prospective => PROSPECTIVE,
     };
-    let additional_endings = match state {
+    let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding
+            if (pos == PredicatePos::Copula || anchor == "아니")
+                && following.starts_with([
+                    '고', '구', '군', '길', '네', '니', '면', '세', '야', '어', '에', '오', '자',
+                    '죠', '지',
+                ]) =>
+        {
+            &[
+                reference_suffix("고말고", &["ending.copula-common-final"]),
+                reference_suffix("고요", &["ending.connective-go", "ending.polite-yo"]),
+                reference_suffix("구나", &["ending.copula-common-final"]),
+                reference_suffix("구려", &["ending.copula-common-final"]),
+                reference_suffix("구먼", &["ending.copula-common-final"]),
+                reference_suffix("군", &["ending.copula-common-final"]),
+                reference_suffix("길래", &["ending.copula-common-connective"]),
+                reference_suffix("네", &["ending.copula-common-final"]),
+                reference_suffix("네요", &["ending.copula-common-final", "ending.polite-yo"]),
+                reference_suffix("니", &["ending.copula-common-connective"]),
+                reference_suffix("니까", &["ending.copula-common-connective"]),
+                reference_suffix("니까는", &["ending.copula-common-connective"]),
+                reference_suffix("니깐", &["ending.copula-common-connective"]),
+                reference_suffix("니라", &["ending.copula-common-final"]),
+                reference_suffix("면", &["ending.copula-common-connective"]),
+                reference_suffix("면서", &["ending.copula-common-connective"]),
+                reference_suffix("세요", &["ending.honorific", "ending.copula-polite"]),
+                reference_suffix("야", &["ending.copula-ya"]),
+                reference_suffix("어요", &["ending.copula-polite"]),
+                reference_suffix("에요", &["ending.copula-polite"]),
+                reference_suffix("오", &["ending.copula-common-final"]),
+                reference_suffix("자", &["ending.copula-common-connective"]),
+                reference_suffix("죠", &["ending.copula-common-final"]),
+                reference_suffix("지요", &["ending.copula-common-final"]),
+            ]
+        }
         ContinuationState::StemEnding
             if (pos == PredicatePos::Copula || anchor == "아니")
                 && following.starts_with(['란', '람', '랍', '래', '로']) =>

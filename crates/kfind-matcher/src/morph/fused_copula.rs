@@ -4,7 +4,7 @@ use std::iter::Peekable;
 use kfind_morph::hangul::{JONG_BIEUP, JONG_NIEUN, JONG_RIEUL};
 use kfind_morph::{
     ConstraintResolver, decompose_syllable, drop_final, is_omitted_copula_ending,
-    replace_last_final,
+    replace_last_final, starts_omitted_copula_ending,
 };
 use kfind_query::{NormalizationMode, is_coda_initial_ending};
 use unicode_normalization::{UnicodeNormalization, is_nfc};
@@ -111,9 +111,10 @@ fn has_fused_ending(token: &str, normalization: NormalizationMode) -> bool {
         Cow::Borrowed(token)
     };
     normalized.char_indices().rev().any(|(start, character)| {
-        if matches!(character, '라' | '란' | '람' | '랍' | '래' | '로')
+        if ((starts_omitted_copula_ending(character)
+            && is_omitted_copula_ending(&normalized[start..]))
+            || (character == '야' && start + character.len_utf8() == normalized.len()))
             && vowel_final(&normalized[..start])
-            && is_omitted_copula_ending(&normalized[start..])
         {
             return true;
         }
@@ -135,7 +136,7 @@ fn has_fused_ending(token: &str, normalization: NormalizationMode) -> bool {
 
 fn omitted_copula_hosts(token: &str) -> impl Iterator<Item = (&str, &str)> {
     token
-        .rmatch_indices(['라', '란', '람', '랍', '래', '로'])
+        .rmatch_indices(starts_omitted_copula_ending)
         .filter(move |(start, _)| is_omitted_copula_ending(&token[*start..]))
         .flat_map(move |(start, _)| {
             let (host, suffix) = token.split_at(start);
@@ -154,23 +155,58 @@ fn vowel_final(host: &str) -> bool {
         .is_some_and(|syllable| syllable.jongseong == 0)
 }
 
-pub(super) fn accepts_omitted_copula(token: &str, resolver: &ConstraintResolver) -> bool {
+pub(super) fn accepts_omitted_copula(
+    token: &str,
+    resolver: &ConstraintResolver,
+    is_sentence_end: impl Fn() -> bool,
+) -> bool {
     omitted_copula_hosts(token).any(|(host, suffix)| {
+        if matches!(suffix, "예요" | "여요") {
+            return !resolver.has_exact_non_copula_predicate_surface(host)
+                && (resolver.has_exact_nominal_surface(host)
+                    || host.strip_suffix('이').is_some_and(|name| {
+                        name.chars().next_back().is_some_and(kfind_morph::has_final)
+                            && resolver.has_exact_proper_name_surface(name)
+                    }));
+        }
+        if matches!(suffix, "네" | "네요") && !is_sentence_end() {
+            return false;
+        }
         !host
             .strip_suffix('이')
             .is_some_and(|prefix| resolver.has_complete_nominal_surface(prefix))
             && !resolver.has_exact_action_predicate_surface(host)
             && !(matches!(suffix, "라고" | "라고요" | "라는") && resolver.has_whole_modifier(host))
             && resolver.has_exact_nominal_surface(host)
+            && !(matches!(
+                suffix,
+                "니" | "니까"
+                    | "니까는"
+                    | "니깐"
+                    | "면"
+                    | "면서"
+                    | "네"
+                    | "네요"
+                    | "지요"
+                    | "죠"
+                    | "구나"
+                    | "구려"
+                    | "구먼"
+                    | "군"
+            ) && host
+                .strip_suffix('시')
+                .is_some_and(|stem| resolver.has_exact_non_copula_predicate_surface(stem)))
             && !(suffix == "래요"
                 && token
                     .strip_suffix('요')
                     .is_some_and(|nominal| resolver.has_exact_nominal_surface(nominal)))
-            && !(suffix == "라"
-                && host.char_indices().skip(1).any(|(split, _)| {
-                    resolver.has_exact_action_predicate_surface(&token[..split])
-                        && resolver.has_exact_ending_surface(&token[split..])
-                }))
+            && !(matches!(
+                suffix,
+                "라" | "니" | "니까" | "니까는" | "니깐" | "면" | "면서" | "네" | "네요"
+            ) && host.char_indices().skip(1).any(|(split, _)| {
+                resolver.has_exact_non_copula_predicate_surface(&token[..split])
+                    && resolver.has_exact_ending_surface(&token[split..])
+            }))
     }) && !resolver.has_whole_modifier(token)
         && !resolver.has_exact_nominal_surface(token)
         && !resolver.has_exact_non_copula_predicate_surface(token)

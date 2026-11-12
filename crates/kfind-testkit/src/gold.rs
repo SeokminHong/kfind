@@ -220,7 +220,7 @@ mod tests {
 
     use super::*;
 
-    const EXPECTED_CASES: usize = 746;
+    const EXPECTED_CASES: usize = 763;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {
@@ -394,6 +394,19 @@ mod tests {
             entry("이래", "VA+EF", 0),
             entry("미", "NNG", 0),
             entry("미래", "NNG", 0),
+            entry("학생", "NNG", 0),
+            entry("어디", "NP", 0),
+            entry("모자", "NNG", 0),
+            entry("영숙", "NNP", 0),
+            entry("뭐야", "NP+VCP+EC", 0),
+            entry("차례", "NNG", 0),
+            entry("집", "NNG", 0),
+            entry("철수", "NNP", 0),
+            entry("하다", "NNG", 0),
+            entry("다니", "EC", 0),
+            entry("이자", "NNG", 0),
+            entry("하시", "NNG", 0),
+            entry("이게", "NP+JKS", 0),
         ];
         encode_component_resource(COMPONENT_RESOURCE_SOURCE_DIGEST, &entries).unwrap()
     }

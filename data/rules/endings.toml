@@ -382,6 +382,46 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.copula-common-final"
+category = "final"
+initial = "other"
+forms = ["고말고", "구나", "구려", "구먼", "군", "네", "네요", "니라", "오", "죠", "지요"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.copula-common-connective"
+category = "connective"
+initial = "other"
+forms = ["길래", "니", "니까", "니까는", "니깐", "면", "면서", "자"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.copula-ya"
+category = "final"
+initial = "other"
+forms = ["야"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.copula-polite"
+category = "final"
+initial = "other"
+forms = ["에요", "어요", "예요", "여요", "세요"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.copula-reporting-final"
 category = "final"
 initial = "other"

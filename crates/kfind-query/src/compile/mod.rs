@@ -37,6 +37,10 @@ const INTERNAL_PROVENANCE_IDS: &[&str] = &[
     "structural.fused-copula-ending",
 ];
 const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
+    "ending.copula-common-final",
+    "ending.copula-common-connective",
+    "ending.copula-ya",
+    "ending.copula-polite",
     "ending.copula-reporting-final",
     "ending.copula-reporting-connective",
     "ending.copula-ro-final",
