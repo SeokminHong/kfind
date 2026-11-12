@@ -1,0 +1,54 @@
+id	query	pos	expected	byte_start	byte_end	text
+krdict.ㄴ다오:1	알다	verb	exact	41	50	내가 유명한 의사 선생님을 잘 안다오.
+krdict.ㄴ다오:2	가다	verb	exact	44	53	다른 사람들은 모두 바쁘니 내가 간다오.
+krdict.ㄴ다오:3	울다	verb	exact	48	57	두 살배기 우리 딸은 새벽마다 깨서 운다오.
+krdict.ㄴ다오:4	가다	verb	exact	73	82	집사람이 그림을 좋아해서 우리 내외는 매주 미술관에 간다오.
+krdict.ㄴ다오:5	기다리다	verb	exact	69	84	우리는 명절 기차표를 구하려고 아침부터 창구에서 기다린다오.
+krdict.ㄴ다오:6	하다	verb	exact	52	61	우리 아들은 술도 안 마시고 담배도 안 한다오.
+stdict.ㄴ다오:7	자라다	verb	exact	14	26	아기도 잘 자란다오.
+stdict.ㄴ다오:8	피다	verb	exact	25	34	이 꽃은 이른 봄에 핀다오.
+krdict.는다오:1	믿다	verb	exact	52	64	아이들은 아직도 산타클로스가 있다고 믿는다오.
+krdict.는다오:2	받다	verb	exact	54	66	지수는 인사를 잘해서 어딜 가나 사랑을 받는다오.
+krdict.는다오:3	찾다	verb	exact	70	82	동네 앞을 지키는 소나무는 유명해서 사람들이 많이 찾는다오.
+krdict.는다오:4	씻다	verb	exact	58	70	우리 딸은 외출하고 들어오면 손과 발을 꼭 씻는다오.
+stdict.는다오:5	맺다	verb	exact	31	43	이 나무는 열매를 많이 맺는다오.
+krdict.다오:1	건강하다	adjective	exact	17	32	우리 아들은 건강하다오.
+krdict.다오:2	아름답다	adjective	exact	27	42	여기는 경치가 매우 아름답다오.
+krdict.다오:3	힘들다	adjective	exact	65	77	승규가 너무 바빠서 같이 사는 나도 얼굴 보기가 힘들다오.
+stdict.다오:4	좋다	adjective	exact	17	26	인삼은 몸에 좋다오.
+stdict.다오:5	후하다	adjective	exact	31	43	이 고장은 인심이 아주 후하다오.
+stdict.다오:6	편찮다	adjective	exact	62	80	할머니께서 돌아가신 후 할아버지께서는 내내 편찮으시다오.
+krdict.라오:1	이다	adjective	exact	33	42	어머니의 김치 맛은 일품이라오.
+krdict.라오:2	이다	adjective	exact	52	61	우리 아이는 전교에서 알아주는 우등생이라오.
+krdict.라오:3	이다	adjective	exact	43	52	이 음식점은 맛있다고 소문난 집이라오.
+stdict.라오:4	이다	adjective	exact	33	42	우리 고장은 사과가 자랑이라오.
+gandao-first	가다	verb	exact	38	47	그 사람은 쉬는 날이면 산에 간다오.
+gandao-first-context	가다	verb	exact	41	50	그 사람은 칼이 무뎌지면 직접 간다오.
+gandao-second-context	갈다	verb	exact	38	47	그 사람은 쉬는 날이면 산에 간다오.
+gandao-second	갈다	verb	exact	41	50	그 사람은 칼이 무뎌지면 직접 간다오.
+nandao-first	나다	verb	exact	50	59	저 헛간에서는 밤마다 이상한 소리가 난다오.
+nandao-first-context	나다	verb	exact	49	58	저 새는 밤에도 방향을 잃지 않고 잘 난다오.
+nandao-second-context	날다	verb	exact	50	59	저 헛간에서는 밤마다 이상한 소리가 난다오.
+nandao-second	날다	verb	exact	49	58	저 새는 밤에도 방향을 잃지 않고 잘 난다오.
+sandao-first	사다	verb	exact	41	50	우리 딸은 과일을 꼭 시장에서 산다오.
+sandao-first-context	사다	verb	exact	31	40	우리 딸은 지금 부산에 산다오.
+sandao-second-context	살다	verb	exact	41	50	우리 딸은 과일을 꼭 시장에서 산다오.
+sandao-second	살다	verb	exact	31	40	우리 딸은 지금 부산에 산다오.
+pandao-first	파다	verb	exact	44	53	그 사람은 지금도 우물을 손으로 판다오.
+pandao-first-context	파다	verb	exact	41	50	그 가게는 동네에서 만든 빵만 판다오.
+pandao-second-context	팔다	verb	exact	44	53	그 사람은 지금도 우물을 손으로 판다오.
+pandao-second	팔다	verb	exact	41	50	그 가게는 동네에서 만든 빵만 판다오.
+honorific-action	읽다	verb	exact	45	60	할아버지께서는 아침마다 신문을 읽으신다오.
+honorific-rieul-action	살다	verb	exact	43	55	선생님께서는 지금도 그 동네에 사신다오.
+honorific-rieul-adj	멀다	adjective	exact	24	36	부모님은 댁이 꽤 머시다오.
+honorific-past	찾다	verb	exact	33	48	선생님께서 방금 자네를 찾으셨다오.
+honorific-future	읽다	verb	exact	34	52	선생님께서 이 책을 직접 읽으시겠다오.
+past	뜨다	verb	exact	47	56	우리 손주가 나를 주려고 목도리를 떴다오.
+future	오다	verb	exact	27	39	아들이 저녁에는 꼭 오겠다오.
+negative-copula	아니다	adjective	exact	49	61	유민이가 그러는데 민준이는 반장이 아니라오.
+directive-vowel	하다	verb	exact	33	42	도착하는 대로 전화부터 하라오.
+directive-consonant	잡다	verb	exact	32	44	애 엄마가 저 아이를 좀 잡으라오.
+directive-rieul	살다	verb	exact	36	45	아버님은 우리더러 고향에 살라오.
+directive-b	돕다	verb	exact	28	40	시간 나면 집안일 좀 도우라오.
+retrospective	보다	verb	exact	55	67	동네 사람들 말이 마음이 허한지 먼 산만 보더라오.
+prospective	되다	verb	exact	41	53	그 어른은 머지않아 큰 인물이 되리라오.

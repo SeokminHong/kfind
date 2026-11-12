@@ -1492,6 +1492,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.hao-reporting-dao"
+category = "final"
+initial = "other"
+forms = ["ㄴ다오", "는다오", "다오", "라오"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.nominalizer-gi"
 category = "nominalizer"
 initial = "consonant"
