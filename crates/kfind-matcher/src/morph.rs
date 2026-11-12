@@ -2225,8 +2225,12 @@ fn contracted_copula_surface_follows(
 }
 
 fn follows_predicate_adnominal(haystack: &[u8], at: usize, resolver: &ConstraintResolver) -> bool {
-    context::previous_word(haystack, at)
-        .is_some_and(|previous| resolver.has_predicate_adnominal_surface(&previous))
+    context::previous_word_with_start(haystack, at).is_some_and(|(start, previous)| {
+        resolver.has_predicate_adnominal_surface(&previous)
+            && !(resolver.has_object_marked_nominal(&previous)
+                && context::previous_word(haystack, start)
+                    .is_some_and(|modifier| resolver.has_predicate_adnominal_surface(&modifier)))
+    })
 }
 
 fn has_counted_unit_copula(
