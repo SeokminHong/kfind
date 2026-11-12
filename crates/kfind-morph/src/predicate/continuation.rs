@@ -176,6 +176,7 @@ const A_OR_EO_SUFFIXES: &[Suffix] = &[
     suffix("가야", &["ending.auxiliary-gada", "ending.connective-ya"]),
     suffix("서도", &["ending.aoeo-seo", "particle.additive"]),
     suffix("서", &["ending.aoeo-seo"]),
+    suffix("서야", &["ending.aoeo-seoya"]),
     suffix("도", &["ending.connective-do"]),
     suffix("야", &["ending.connective-ya"]),
     suffix("요", &["ending.polite-yo"]),
@@ -277,6 +278,14 @@ const PAST_SUFFIXES: &[Suffix] = &[
 ];
 
 const GEOTDA: &[Suffix] = &[suffix("것다", &["ending.geotda"])];
+const GOSEO: &[Suffix] = &[
+    suffix("고서", &["ending.connective-goseo"]),
+    suffix("고서야", &["ending.connective-goseo"]),
+];
+const HONORIFIC_GOSEO: &[Suffix] = &[
+    suffix("시고서", &["ending.honorific", "ending.connective-goseo"]),
+    suffix("시고서야", &["ending.honorific", "ending.connective-goseo"]),
+];
 
 const FUTURE_SUFFIXES: &[Suffix] = &[
     suffix("습니까", &["ending.formal-interrogative"]),
@@ -817,6 +826,12 @@ fn verify_simple_continuation(
         ContinuationState::Prospective => PROSPECTIVE,
     };
     let additional_endings = match state {
+        ContinuationState::StemEnding
+            if (pos.is_action() || anchor == "아니") && following.starts_with("고서") =>
+        {
+            GOSEO
+        }
+        ContinuationState::Eu if following.starts_with("시고서") => HONORIFIC_GOSEO,
         ContinuationState::Eu
             if pos.is_action()
                 && (following.starts_with('렴') || following.starts_with("려무나")) =>

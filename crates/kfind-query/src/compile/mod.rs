@@ -55,6 +55,8 @@ const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.ryeotda",
     "ending.geotda",
     "ending.aoeo-seo",
+    "ending.aoeo-seoya",
+    "ending.connective-goseo",
     "particle.additive",
     "ending.connective-do",
     "ending.connective-ya",

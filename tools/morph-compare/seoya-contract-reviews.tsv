@@ -1,0 +1,9 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	seoya	makaseoya-first-context	막다	verb	false	791a357ebf13b19c866485e5406171a91d36b27446f1af9409147beaf3285c5f	contract-positive	structurally-indistinguishable-homograph	막아서야의 다른 활용 분석이 같은 표면에서 성립한다.
+explicit-pos	seoya	makaseoya-second-context	막아서다	verb	false	5ea38ae9ac5f32b95d9253e06d16d715fb7ddede77909c3df975efda752e1b28	contract-positive	structurally-indistinguishable-homograph	막아서야의 다른 활용 분석이 같은 표면에서 성립한다.
+explicit-pos	seoya	doraseoya-first-context	돌다	verb	false	1ca744bf3b9258d984837538cdda18bc8b7ab5b2c41d68a2317b6127dd9e034a	contract-positive	structurally-indistinguishable-homograph	돌아서야의 다른 활용 분석이 같은 표면에서 성립한다.
+explicit-pos	seoya	doraseoya-second-context	돌아서다	verb	false	fb8a0c8f2ffec50627fdd5d0fcd56d3295a9e0d06cf3fd484ef09a173ed94ebb	contract-positive	structurally-indistinguishable-homograph	돌아서야의 다른 활용 분석이 같은 표면에서 성립한다.
+explicit-pos	seoya	naseoya-first-context	나다	verb	false	80052d8bb650144644b5e9ba7e28ddd9e8a022c57318447c214c12e2c2f6df33	contract-positive	structurally-indistinguishable-homograph	나서야의 다른 활용 분석이 같은 표면에서 성립한다.
+explicit-pos	seoya	naseoya-second-context	나서다	verb	false	4eaaa6d59be95d11db0c0df6c8b36b43d091ecf280e2f31867275db0a7317cd2	contract-positive	structurally-indistinguishable-homograph	나서야의 다른 활용 분석이 같은 표면에서 성립한다.
+explicit-pos	seoya	balgaseoya-first-context	밝다	verb	false	41f3495fd3b0260d1b5e2fd4c292420f62948f96bac19fee10c81580758cca39	contract-positive	structurally-indistinguishable-homograph	밝아서야의 다른 활용 분석이 같은 표면에서 성립한다.
+explicit-pos	seoya	balgaseoya-second-context	밝다	adjective	false	a28c878f315a06c3297f79a22d62a9ba13f0ab2fb838071310423174a0a1e69f	contract-positive	structurally-indistinguishable-homograph	밝아서야의 다른 활용 분석이 같은 표면에서 성립한다.
