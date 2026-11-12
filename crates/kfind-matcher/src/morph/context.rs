@@ -358,6 +358,10 @@ fn adjacent_token_span(
 }
 
 pub(super) fn previous_word(bytes: &[u8], at: usize) -> Option<Cow<'_, str>> {
+    previous_word_with_start(bytes, at).map(|(_, word)| word)
+}
+
+pub(super) fn previous_word_with_start(bytes: &[u8], at: usize) -> Option<(usize, Cow<'_, str>)> {
     let span = adjacent_token_span(
         bytes,
         at,
@@ -369,7 +373,8 @@ pub(super) fn previous_word(bytes: &[u8], at: usize) -> Option<Cow<'_, str>> {
     if !separator.chars().all(char::is_whitespace) {
         return None;
     }
-    normalized_token(bytes, span)
+    let start = span.start;
+    normalized_token(bytes, span).map(|word| (start, word))
 }
 
 pub(super) fn next_word(bytes: &[u8], at: usize) -> Option<Cow<'_, str>> {

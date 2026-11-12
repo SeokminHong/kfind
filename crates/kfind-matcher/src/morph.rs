@@ -965,6 +965,7 @@ impl MorphMatcher {
                 has_competing_hao_connective(haystack, candidate, branch, resolver)
                     || has_nominal_quotative_frame(haystack, candidate, branch, resolver)
                     || has_counted_unit_copula(haystack, candidate, branch, resolver)
+                    || has_transitive_jiyo_frame(haystack, candidate, branch, resolver)
                     || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
                     || has_prayer_object_frame(haystack, candidate, branch, atom, resolver)
             })
@@ -2005,14 +2006,7 @@ fn has_counted_unit_copula(
     };
     let core = &candidate.verified.core;
     if pos == kfind_morph::PredicatePos::Copula
-        || !haystack
-            .get(core.end..candidate.consumed.end)
-            .and_then(|bytes| std::str::from_utf8(bytes).ok())
-            .is_some_and(|suffix| {
-                matches!(suffix, "죠" | "지요")
-                    || (suffix.starts_with('ᄌ')
-                        && (suffix.nfc().eq("죠".chars()) || suffix.nfc().eq("지요".chars())))
-            })
+        || !has_jiyo_suffix(haystack, core.end..candidate.consumed.end)
         || !is_boundary_before(haystack, core.start)
     {
         return false;
@@ -2026,6 +2020,67 @@ fn has_counted_unit_copula(
         .is_some_and(|unit| {
             resolver.has_counted_unit_frame(&previous, &unit.nfc().collect::<String>())
         })
+}
+
+fn has_jiyo_suffix(haystack: &[u8], suffix: Range<usize>) -> bool {
+    haystack
+        .get(suffix)
+        .and_then(|bytes| std::str::from_utf8(bytes).ok())
+        .is_some_and(|suffix| {
+            matches!(suffix, "죠" | "지요")
+                || (suffix.starts_with('ᄌ')
+                    && (suffix.nfc().eq("죠".chars()) || suffix.nfc().eq("지요".chars())))
+        })
+}
+
+fn has_transitive_jiyo_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    use kfind_morph::PredicatePos;
+    if !matches!(
+        branch.consumption,
+        CandidateConsumption::PredicateContinuation {
+            pos: PredicatePos::Adjective,
+            ..
+        } | CandidateConsumption::StructuralPredicateEnding {
+            pos: PredicatePos::Adjective,
+            ..
+        }
+    ) {
+        return false;
+    }
+    let core = &candidate.verified.core;
+    let Some(stem) = context::normalized_token(haystack, core.clone()) else {
+        return false;
+    };
+    // The direct object of these transitive senses denotes a text or a physical target.
+    let objects: &[&str] = match stem.as_ref() {
+        "쓰" => &["글", "동화", "소설", "수필", "편지"],
+        "차" => &["공", "축구공", "제기", "깡통"],
+        _ => return false,
+    };
+    let whole = surrounding_token_span(haystack, core.clone());
+    if whole.start != core.start || !has_jiyo_suffix(haystack, core.end..whole.end) {
+        return false;
+    }
+    let Some((start, previous)) = context::previous_word_with_start(haystack, core.start) else {
+        return false;
+    };
+    let object = if stem == "차" && previous == "힘껏" {
+        let Some(object) = context::previous_word(haystack, start) else {
+            return false;
+        };
+        object
+    } else {
+        previous
+    };
+    object
+        .strip_suffix(['을', '를'])
+        .is_some_and(|noun| objects.contains(&noun))
+        && resolver.has_object_marked_nominal(&object)
 }
 
 fn has_prayer_object_frame(
