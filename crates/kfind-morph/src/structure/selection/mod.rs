@@ -214,11 +214,9 @@ impl StructureSelection {
                                     ))))
                         && spans.consumed.end == spans.token.end
                         && runtime_position_is_supported(pattern, spans, text, evidence))
-                    || (matches!(
-                        pattern.fine_pos,
-                        DataFinePos::Np | DataFinePos::Nr | DataFinePos::Mm
-                    ) && spans.core.start == selected.start
-                        && (spans.consumed == spans.core || spans.consumed.end == spans.token.end))
+                    || (matches!(pattern.fine_pos, DataFinePos::Np | DataFinePos::Nr)
+                        && spans.core == *selected
+                        && spans.consumed.end == spans.token.end)
             }
             Self::CopularFrame { nominal, copula } => {
                 (spans.core == *nominal && pattern.fine_pos.is_nominal())
@@ -343,6 +341,9 @@ pub(in crate::structure) fn select_structure(
     }
     let previous_is_determiner = context.previous.is_some_and(|previous| {
         has_exact_fine_pos(resource, previous, |pos| pos == DataFinePos::Mm)
+            && !has_exact_fine_pos(resource, previous, |pos| {
+                matches!(pos, DataFinePos::Mag | DataFinePos::Maj)
+            })
     });
     let has_whole_nominal = evidence
         .units
