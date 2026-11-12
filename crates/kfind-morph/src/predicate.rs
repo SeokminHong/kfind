@@ -739,6 +739,15 @@ fn compile_rieul_eu_endings(
             vec![rule("ending.connective-ni")],
         );
     }
+    let question = continuation::FAMILIAR_QUESTION;
+    push_branch(
+        branches,
+        entry,
+        format!("{dropped}{}", question.surface),
+        dropped.len(),
+        ContinuationState::Terminal,
+        question.rules.iter().map(|id| rule(id)).collect(),
+    );
     push_branch(
         branches,
         entry,

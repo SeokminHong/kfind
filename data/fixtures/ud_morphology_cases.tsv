@@ -552,3 +552,33 @@ regression.grammatical-nominal-suffix.additive-goods	들	noun	no-match	13	16	다
 regression.grammatical-nominal-suffix.additive-celebrities	들	noun	no-match	9	12	연예인들도 자주 찾는다.
 regression.grammatical-nominal-suffix.dative-customers	들	noun	no-match	13	16	오랜 단골들에게 사랑받는 식당이다.
 regression.grammatical-nominal-suffix.predicate-tail	들	noun	no-match	13	16	모형을 만들고 남은 재료를 정리했다.
+regression.familiar-direct-question.existential	있다	verb	smart-exact	37	43	대전역까지 지하철로 갈 수 있니?
+regression.familiar-direct-question.negative-existential	없다	adjective	smart-exact	20	26	오늘은 약속이 없니?
+regression.familiar-direct-question.closed-stem	먹다	verb	smart-exact	14	20	너는 밥을 먹니?
+regression.familiar-direct-question.open-stem	자다	verb	smart-exact	35	41	아직 열 시밖에 안 됐는데 자니?
+regression.familiar-direct-question.past	먹다	verb	smart-exact	14	23	너는 밥을 먹었니?
+regression.familiar-direct-question.future	먹다	verb	smart-exact	17	26	나중에 밥을 먹겠니?
+regression.familiar-direct-question.past-future	먹다	verb	smart-exact	27	39	고양이가 벌써 밥을 먹었겠니?
+regression.familiar-direct-question.honorific	읽다	verb	smart-exact	24	36	선생님은 이 책을 읽으시니?
+regression.familiar-direct-question.honorific-past	읽다	verb	smart-exact	31	43	선생님은 이미 이 책을 읽으셨니?
+regression.familiar-direct-question.honorific-future	읽다	verb	smart-exact	24	39	선생님도 그 책을 읽으시겠니?
+regression.familiar-direct-question.rieul-drop	만들다	verb	smart-exact	17	26	너는 무엇을 만드니?
+regression.familiar-direct-question.rieul-honorific	만들다	verb	smart-exact	30	42	아버지는 지금 무엇을 만드시니?
+regression.familiar-direct-question.hieut-adjective	파랗다	adjective	smart-exact	30	39	하늘이 어쩌면 이렇게 파라니?
+regression.familiar-direct-question.bieup-adjective	춥다	adjective	smart-exact	14	20	오늘 많이 춥니?
+regression.familiar-direct-question.bieup-eu-adjective	춥다	adjective	smart-exact	14	23	오늘 많이 추우니?
+regression.familiar-direct-question.digeut-verb	듣다	verb	smart-exact	27	33	너는 라디오를 매일 듣니?
+regression.familiar-direct-question.siot-verb	짓다	verb	smart-exact	31	37	저 사람은 아직도 집을 짓니?
+regression.familiar-direct-question.contracted-past	하다	verb	smart-exact	21	27	오늘 숙제를 다 했니?
+regression.familiar-direct-question.repeated-past	하다	verb	smart-exact	30	39	너도 예전에는 운동을 했었니?
+regression.familiar-direct-question.hieut-direct	파랗다	adjective	smart-exact	27	36	하늘이 정말 그렇게 파랗니?
+regression.familiar-direct-question.honorific-uncontracted	읽다	verb	smart-exact	30	45	할아버지도 이 소설을 읽으시었니?
+regression.familiar-direct-question.auxiliary-resultative	이루다	verb	smart-exact	24	36	그 계획은 어떻게 이뤄지니?
+regression.familiar-direct-question.auxiliary-resultative-parallel	다루다	verb	smart-exact	27	39	이 안건은 어디에서 다뤄지니?
+regression.familiar-direct-question.auxiliary-resultative-past	다루다	verb	smart-exact	21	33	그 안건은 어제 다뤄졌니?
+regression.familiar-direct-question.auxiliary-trial-past	읽다	verb	smart-exact	18	30	너는 그 책을 읽어봤니?
+regression.familiar-direct-question.rieul-retained	만들다	verb	no-match	17	26	너는 무엇을 만들니?
+regression.familiar-direct-question.raw-gsd-future-go	가다	verb	smart-exact	44	53	대전까지 길이 막히면 얼마 만에 가겠니?
+regression.familiar-direct-question.raw-gsd-future-become	되다	verb	smart-exact	44	53	서울 시내에 차를 가지고 나가도 되겠니?
+regression.familiar-direct-question.formal-copula	입다	verb	no-match	29	35	아빠는 이탈리아 사람입니다.
+regression.familiar-direct-question.wear-question	입다	verb	smart-exact	24	30	오늘은 어떤 옷을 입니?
