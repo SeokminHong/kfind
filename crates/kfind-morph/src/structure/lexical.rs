@@ -140,6 +140,39 @@ pub(super) fn complete_predicate_ending_path(resource: &ComponentResource, text:
         })
 }
 
+pub(super) fn has_verb_nominalization(resource: &ComponentResource, text: &str) -> bool {
+    let exact = |surface: &str| {
+        let mut matched = false;
+        resource.common_prefix_positions(surface.as_bytes(), |length, positions| {
+            if length == surface.len() {
+                matched |= matches!(positions, [StructuralPos::VV, middle @ .., StructuralPos::ETN]
+                    if middle.iter().all(|pos| pos.is_ending()));
+            }
+        });
+        matched
+    };
+    exact(text)
+        || text.strip_suffix(['기', '음']).is_some_and(|stem| {
+            !stem.is_empty()
+                && exact_analysis_starts_with_pos(resource, stem, |pos| pos == StructuralPos::VV)
+                && has_exact_sequence(resource, &text[stem.len()..], &[StructuralPos::ETN])
+        })
+}
+
+pub(super) fn has_auxiliary_adnominal_split(resource: &ComponentResource, text: &str) -> bool {
+    text.char_indices().skip(1).any(|(split, _)| {
+        has_exact_sequence(
+            resource,
+            &text[..split],
+            &[StructuralPos::VV, StructuralPos::EC],
+        ) && has_exact_sequence(
+            resource,
+            &text[split..],
+            &[StructuralPos::VX, StructuralPos::ETM],
+        )
+    })
+}
+
 pub(super) fn complete_predicate_connective_ji_path(
     resource: &ComponentResource,
     text: &str,
@@ -232,6 +265,27 @@ pub(super) fn complete_nominal_particle_host(
         })
         .max()
         .map(|end| 0..end)
+}
+
+pub(super) fn has_complete_object_phrase(resource: &ComponentResource, text: &str) -> bool {
+    let Some(host) = text.strip_suffix(['을', '를']) else {
+        return false;
+    };
+    !host.is_empty()
+        && (has_exact_fine_pos(resource, host, DataFinePos::is_nominal)
+            || complete_nominal_host(resource, host))
+        && has_exact_sequence(resource, &text[host.len()..], &[StructuralPos::JKO])
+}
+
+pub(super) fn has_unambiguous_proper_name(resource: &ComponentResource, text: &str) -> bool {
+    let proper_name = |stem| {
+        has_exact_fine_pos(resource, stem, |pos| pos == DataFinePos::Nnp)
+            && !exact_analysis_starts_with_pos(resource, stem, |pos| pos != StructuralPos::NNP)
+    };
+    proper_name(text)
+        || nominal_particle_hosts(resource, text)
+            .iter()
+            .any(|host| proper_name(&text[host.clone()]))
 }
 
 pub(super) fn complete_nominal_host(resource: &ComponentResource, text: &str) -> bool {
@@ -359,7 +413,7 @@ pub(super) fn has_exact_fine_pos(
     matched
 }
 
-fn has_exact_sequence(
+pub(super) fn has_exact_sequence(
     resource: &ComponentResource,
     text: &str,
     expected: &[StructuralPos],

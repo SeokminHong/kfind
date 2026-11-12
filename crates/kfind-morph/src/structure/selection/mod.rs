@@ -3,8 +3,9 @@ use crate::structure::lexical::{
     adnominal_suffix_is_supported, complete_ha_predicate_path, complete_nominal_host,
     complete_nominal_particle_host, complete_predicate_connective_ji_path,
     complete_predicate_ending_path, copular_frame, exact_analysis_ends_with_pos,
-    exact_analysis_starts_with_pos, has_copular_adnominal_split, has_exact_fine_pos,
-    nominal_particle_hosts,
+    exact_analysis_starts_with_pos, has_auxiliary_adnominal_split, has_complete_object_phrase,
+    has_copular_adnominal_split, has_exact_fine_pos, has_exact_sequence,
+    has_unambiguous_proper_name, has_verb_nominalization, nominal_particle_hosts,
 };
 use crate::structure::selection::components::{
     attached_nominal_suffix_is_supported, component_is_shadowed_by_predicate,
@@ -28,9 +29,16 @@ pub(super) mod runtime;
 pub(in crate::structure) enum StructureSelection {
     Whole,
     Adverb,
-    AdjacentDeterminer,
-    DeterminerWhole,
+    AdjacentDeterminer {
+        excludes_pronoun: bool,
+        excludes_predicate: bool,
+    },
+    NominalWhole,
+    VerbAdnominal,
     ConnectiveJiNominalFrame {
+        fallback: Box<StructureSelection>,
+    },
+    SourceAlignedConnective {
         fallback: Box<StructureSelection>,
     },
     NominalSpan {
@@ -67,7 +75,8 @@ impl StructureSelection {
             Self::RuntimeCompatible { graph_nominal_host } => graph_nominal_host.as_ref(),
             Self::NumeralSequence { fallback } => fallback.graph_nominal_host(),
             Self::AdnominalDerivation { fallback } => fallback.graph_nominal_host(),
-            Self::ConnectiveJiNominalFrame { fallback } => fallback.graph_nominal_host(),
+            Self::ConnectiveJiNominalFrame { fallback }
+            | Self::SourceAlignedConnective { fallback } => fallback.graph_nominal_host(),
             _ => None,
         }
     }
@@ -87,6 +96,11 @@ impl StructureSelection {
             return !pattern.fine_pos.is_predicate()
                 && fallback.accepts(support, spans, patterns, text, evidence);
         }
+        if let Self::SourceAlignedConnective { fallback } = self {
+            return !(pattern.fine_pos.is_predicate()
+                && support.evidence == StructuralEvidence::RuntimeComponent)
+                && fallback.accepts(support, spans, patterns, text, evidence);
+        }
         if query_nominal_particle_path(pattern, spans) {
             return true;
         }
@@ -95,6 +109,16 @@ impl StructureSelection {
         }
         if nominal_derivation_before_predicate(pattern, spans, evidence) {
             return true;
+        }
+        if matches!(pattern.fine_pos, DataFinePos::Va | DataFinePos::Vcn)
+            && support.evidence == StructuralEvidence::RuntimeComponent
+            && spans.core.start > spans.token.start
+            && evidence
+                .leading_predicate_spans
+                .iter()
+                .any(|stem| stem.end >= spans.core.end)
+        {
+            return false;
         }
         let selected_nominal_particle_tail = matches!(
             self,
@@ -111,18 +135,25 @@ impl StructureSelection {
                 support.evidence == StructuralEvidence::Whole
                     && pattern.fine_pos == DataFinePos::Mag
             }
-            Self::AdjacentDeterminer => {
+            Self::AdjacentDeterminer {
+                excludes_pronoun,
+                excludes_predicate,
+            } => {
                 (support.evidence == StructuralEvidence::Whole
                     && pattern.fine_pos == DataFinePos::Mm)
-                    || !matches!(
+                    || (!matches!(
                         pattern.fine_pos,
                         DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
-                    )
+                    ) && (!excludes_pronoun || pattern.fine_pos != DataFinePos::Np)
+                        && (!excludes_predicate || !pattern.fine_pos.is_predicate()))
             }
-            Self::DeterminerWhole => {
+            Self::NominalWhole => {
                 support.evidence == StructuralEvidence::Whole && pattern.fine_pos.is_nominal()
             }
-            Self::ConnectiveJiNominalFrame { .. } => unreachable!("handled before shared rules"),
+            Self::VerbAdnominal => !matches!(pattern.fine_pos, DataFinePos::Va | DataFinePos::Vcn),
+            Self::ConnectiveJiNominalFrame { .. } | Self::SourceAlignedConnective { .. } => {
+                unreachable!("handled before shared rules")
+            }
             Self::NominalSpan {
                 selected,
                 allow_components,
@@ -193,7 +224,8 @@ impl StructureSelection {
                         && spans.anchor.end <= selected.end
                         && (spans.consumed.end == spans.token.end
                             || spans.anchor.start > selected.start
-                            || spans.anchor.end < selected.end
+                            || (spans.anchor.end < selected.end
+                                && evidence.has_nominal_source_component(&spans.anchor))
                             || (spans.anchor != spans.token
                                 && evidence.units.all().iter().any(|unit| {
                                     unit.span == spans.token
@@ -214,11 +246,9 @@ impl StructureSelection {
                                     ))))
                         && spans.consumed.end == spans.token.end
                         && runtime_position_is_supported(pattern, spans, text, evidence))
-                    || (matches!(
-                        pattern.fine_pos,
-                        DataFinePos::Np | DataFinePos::Nr | DataFinePos::Mm
-                    ) && spans.core.start == selected.start
-                        && (spans.consumed == spans.core || spans.consumed.end == spans.token.end))
+                    || (matches!(pattern.fine_pos, DataFinePos::Np | DataFinePos::Nr)
+                        && spans.core == *selected
+                        && spans.consumed.end == spans.token.end)
             }
             Self::CopularFrame { nominal, copula } => {
                 (spans.core == *nominal && pattern.fine_pos.is_nominal())
@@ -296,54 +326,64 @@ pub(in crate::structure) fn select_structure(
     {
         return StructureSelection::Adverb;
     }
-    let (next_starts_nominal, next_is_unambiguous_nominal, next_starts_determiner_nominal) =
-        context.next.map_or((false, false, false), |next| {
-            let mut exact_nominal = false;
-            let mut exact_dependent_or_counter_nominal = false;
-            let mut exact_competitor = false;
-            let mut exact_lexical_competitor = false;
-            resource.common_prefix_positions(next.as_bytes(), |length, positions| {
-                if length != next.len() {
-                    return;
-                }
-                let Some(pos) = positions.first().copied() else {
-                    return;
-                };
-                exact_nominal |= pos.is_nominal_tag();
-                exact_dependent_or_counter_nominal |=
-                    matches!(pos, StructuralPos::NNB | StructuralPos::NNBC);
-                exact_competitor |= !pos.is_nominal_tag();
-                exact_lexical_competitor |=
-                    !pos.is_nominal_tag() && !matches!(pos, StructuralPos::XSN | StructuralPos::XR);
-            });
-            let complete_nominal = complete_nominal_host(resource, next)
-                || complete_nominal_particle_host(resource, next).is_some();
-            let unambiguous_nominal = (exact_nominal || complete_nominal)
-                && !exact_competitor
-                && !complete_predicate_ending_path(resource, next);
-            let starts_nominal = !nominal_particle_hosts(resource, next).is_empty()
-                || (!exact_competitor && (exact_nominal || complete_nominal));
-            let starts_determiner_nominal =
-                starts_nominal || (exact_dependent_or_counter_nominal && !exact_lexical_competitor);
-            (
-                starts_nominal,
-                unambiguous_nominal,
-                starts_determiner_nominal,
-            )
+    let demonstrative = matches!(context.current, "이" | "그" | "저");
+    let (
+        next_starts_nominal,
+        next_is_unambiguous_nominal,
+        next_starts_determiner_nominal,
+        next_is_counter,
+    ) = context.next.map_or((false, false, false, false), |next| {
+        let mut exact_nominal = false;
+        let mut exact_dependent_or_counter_nominal = false;
+        let mut exact_counter = false;
+        let mut exact_competitor = false;
+        let mut exact_lexical_competitor = false;
+        resource.common_prefix_positions(next.as_bytes(), |length, positions| {
+            if length != next.len() {
+                return;
+            }
+            let Some(pos) = positions.first().copied() else {
+                return;
+            };
+            exact_nominal |= pos.is_nominal_tag();
+            exact_dependent_or_counter_nominal |=
+                matches!(pos, StructuralPos::NNB | StructuralPos::NNBC);
+            exact_counter |=
+                pos == StructuralPos::NNBC && positions[1..].iter().all(|pos| pos.is_particle());
+            exact_competitor |= !pos.is_nominal_tag();
+            exact_lexical_competitor |=
+                !pos.is_nominal_tag() && !matches!(pos, StructuralPos::XSN | StructuralPos::XR);
         });
+        let complete_nominal = complete_nominal_host(resource, next)
+            || complete_nominal_particle_host(resource, next).is_some();
+        let unambiguous_nominal = (exact_nominal || complete_nominal)
+            && !exact_competitor
+            && !complete_predicate_ending_path(resource, next);
+        let starts_nominal = !nominal_particle_hosts(resource, next).is_empty()
+            || (!exact_competitor && (exact_nominal || complete_nominal));
+        let starts_determiner_nominal = starts_nominal
+            || (exact_dependent_or_counter_nominal && (demonstrative || !exact_lexical_competitor));
+        (
+            starts_nominal,
+            unambiguous_nominal,
+            starts_determiner_nominal,
+            exact_counter,
+        )
+    });
     let particle_host = evidence.nominal_particle_hosts.last().cloned();
-    if next_starts_determiner_nominal
+    let excludes_predicate = next_is_counter && evidence.adnominal_ends.is_empty();
+    if (next_starts_determiner_nominal || excludes_predicate)
         && context.current.chars().count() == 1
         && evidence.has_whole(DataFinePos::Mm)
     {
-        return StructureSelection::AdjacentDeterminer;
+        return StructureSelection::AdjacentDeterminer {
+            excludes_pronoun: demonstrative && next_starts_determiner_nominal,
+            excludes_predicate,
+        };
     }
     if let Some((nominal, copula)) = copular_frame(resource, context) {
         return StructureSelection::CopularFrame { nominal, copula };
     }
-    let previous_is_determiner = context.previous.is_some_and(|previous| {
-        has_exact_fine_pos(resource, previous, |pos| pos == DataFinePos::Mm)
-    });
     let has_whole_nominal = evidence
         .units
         .all()
@@ -351,14 +391,76 @@ pub(in crate::structure) fn select_structure(
         .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal());
     let has_exact_whole_nominal =
         has_exact_fine_pos(resource, context.current, DataFinePos::is_nominal);
+    if has_whole_nominal
+        && context.previous.is_some_and(|previous| {
+            has_exact_fine_pos(resource, previous, |pos| pos == DataFinePos::Mm)
+        })
+        && exact_analysis_ends_with_pos(resource, context.current, |pos| pos == StructuralPos::NNBC)
+    {
+        return StructureSelection::NominalWhole;
+    }
+    if evidence.has_whole(DataFinePos::Nnp)
+        && !evidence.has_whole(DataFinePos::Nng)
+        && evidence.has_whole_predicate()
+        && context
+            .next
+            .is_some_and(|next| has_unambiguous_proper_name(resource, next))
+    {
+        return StructureSelection::NominalWhole;
+    }
+    if evidence.adnominal_ends.contains(&context.current.len())
+        && evidence.has_whole(DataFinePos::Vv)
+        && evidence.has_whole(DataFinePos::Va)
+        && context
+            .previous
+            .is_some_and(|previous| has_complete_object_phrase(resource, previous))
+    {
+        return StructureSelection::VerbAdnominal;
+    }
+    let previous_is_determiner = context.previous.is_some_and(|previous| {
+        has_exact_fine_pos(resource, previous, |pos| pos == DataFinePos::Mm)
+            && !has_exact_fine_pos(resource, previous, |pos| {
+                matches!(pos, DataFinePos::Mag | DataFinePos::Maj)
+            })
+    });
     let current_modifies_next_nominal = next_starts_nominal && !evidence.adnominal_ends.is_empty();
+    if has_whole_nominal
+        && evidence.adnominal_ends.contains(&context.current.len())
+        && context.next.is_some_and(|next| {
+            (!evidence.has_whole_predicate()
+                && has_exact_fine_pos(resource, next, |pos| {
+                    matches!(pos, DataFinePos::Mag | DataFinePos::Maj)
+                })
+                && has_auxiliary_adnominal_split(resource, context.current))
+                || (evidence.has_whole(DataFinePos::Nng)
+                    && context
+                        .previous
+                        .is_some_and(|previous| has_unambiguous_proper_name(resource, previous))
+                    && has_verb_nominalization(resource, next))
+        })
+    {
+        return StructureSelection::NominalWhole;
+    }
+    if has_whole_nominal
+        && evidence.has_whole(DataFinePos::Mag)
+        && !next_starts_nominal
+        && exact_analysis_ends_with_pos(resource, context.current, |pos| pos == StructuralPos::ETM)
+        && !exact_analysis_ends_with_pos(resource, context.current, |pos| {
+            matches!(pos, StructuralPos::EC | StructuralPos::EF)
+        })
+        && context
+            .next
+            .is_some_and(|next| complete_predicate_ending_path(resource, next))
+    {
+        return StructureSelection::Adverb;
+    }
     let connective_ji_before_nominal = next_is_unambiguous_nominal
         && context.current.ends_with('지')
         && (exact_analysis_ends_with_pos(resource, context.current, |pos| {
             pos == StructuralPos::EC
         }) || complete_predicate_connective_ji_path(resource, context.current));
     if previous_is_determiner && has_whole_nominal && !current_modifies_next_nominal {
-        return StructureSelection::DeterminerWhole;
+        return StructureSelection::NominalWhole;
     }
     if evidence.has_whole(DataFinePos::Mag)
         && particle_host.is_none()
@@ -421,6 +523,25 @@ pub(in crate::structure) fn select_structure(
     };
     if connective_ji_before_nominal && (has_whole_nominal || has_exact_whole_nominal) {
         StructureSelection::ConnectiveJiNominalFrame {
+            fallback: Box::new(fallback),
+        }
+    } else if context.current.ends_with('려')
+        && evidence.has_whole(DataFinePos::Vv)
+        && context
+            .next
+            .and_then(|next| next.strip_suffix('게'))
+            .is_some_and(|stem| {
+                !stem.is_empty()
+                    && has_exact_sequence(resource, stem, &[StructuralPos::VV])
+                    && has_exact_sequence(resource, "게", &[StructuralPos::EC])
+            })
+        && has_exact_sequence(
+            resource,
+            context.current,
+            &[StructuralPos::VV, StructuralPos::EC],
+        )
+    {
+        StructureSelection::SourceAlignedConnective {
             fallback: Box::new(fallback),
         }
     } else {

@@ -63,6 +63,12 @@ const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.past-adnominal",
     "ending.future-adnominal",
     "ending.coordinate-myeo",
+    "ending.simultaneous-myeonseo",
+    "ending.intentive-adnominal",
+    "ending.purpose-reo",
+    "ending.connective-na",
+    "ending.imperative-sio",
+    "ending.present-adnominal",
 ];
 const NOMINAL_CONSUMPTION_RULE_IDS: &[&str] = &[
     "particle.plural",

@@ -453,7 +453,18 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
         transition("particle.subject", FOCUS),
         transition("particle.object", FOCUS),
         transition("particle.topic", &["particle.contrast.keonyeong"]),
-        transition("particle.comitative", FOCUS),
+        transition(
+            "particle.comitative",
+            &[
+                "particle.genitive",
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.limit.ggaji",
+                "particle.even.jocha",
+                "particle.even.majeo",
+            ],
+        ),
         transition("particle.connector-myeon", &[]),
         transition(
             "particle.direction",
@@ -509,6 +520,7 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
             "particle.source",
             &[
                 "particle.from",
+                "particle.genitive",
                 "particle.topic",
                 "particle.additive",
                 "particle.only",
@@ -565,12 +577,22 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
                 "particle.concessive.irado-rado",
             ],
         ),
-        transition("particle.genitive", FOCUS),
+        transition(
+            "particle.genitive",
+            &[
+                "particle.topic",
+                "particle.additive",
+                "particle.only",
+                "particle.even.jocha",
+                "particle.even.majeo",
+            ],
+        ),
         transition("particle.additive", &[]),
         transition("particle.only", &["particle.topic", "particle.additive"]),
         transition(
             "particle.limit.ggaji",
             &[
+                "particle.genitive",
                 "particle.topic",
                 "particle.additive",
                 "particle.only",

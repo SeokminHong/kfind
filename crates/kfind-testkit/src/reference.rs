@@ -697,6 +697,7 @@ fn reference_predicate_continuation(
         reference_suffix("으되", &["ending.connective-eudoe"]),
         reference_suffix("느냐는", &["ending.interrogative-neunya", "particle.topic"]),
         reference_suffix("으면", &["ending.conditional"]),
+        reference_suffix("으며", &["ending.coordinate-myeo"]),
         reference_suffix("지만", &["ending.connective-jiman"]),
         reference_suffix("는데", &["ending.connective-neunde"]),
         reference_suffix("다고", &["ending.quotative-go"]),
@@ -727,6 +728,23 @@ fn reference_predicate_continuation(
         reference_suffix("지", &["ending.quotative-ji"]),
     ];
     const EU: &[ReferenceSuffix] = &[
+        reference_suffix("려", &["ending.intentive-ryeo"]),
+        reference_suffix("려면", &["ending.intentive-ryeomyeon"]),
+        reference_suffix(
+            "시려면",
+            &["ending.honorific", "ending.intentive-ryeomyeon"],
+        ),
+        reference_suffix("십시오", &["ending.honorific", "ending.imperative-formal"]),
+        reference_suffix(
+            "십쇼",
+            &["ending.honorific", "ending.imperative-formal-short"],
+        ),
+        reference_suffix("십시다", &["ending.honorific", "ending.propositive"]),
+        reference_suffix("면서", &["ending.simultaneous-myeonseo"]),
+        reference_suffix("려던", &["ending.intentive-adnominal"]),
+        reference_suffix("러", &["ending.purpose-reo"]),
+        reference_suffix("나", &["ending.connective-na"]),
+        reference_suffix("시오", &["ending.imperative-sio"]),
         reference_suffix("리라고", &["ending.prospective-quotative"]),
         reference_suffix("리라", &["ending.prospective-final"]),
         reference_suffix(
@@ -751,6 +769,8 @@ fn reference_predicate_continuation(
         ),
         reference_suffix("십니다", &["ending.honorific", "ending.polite-declarative"]),
         reference_suffix("시다", &["ending.honorific", "ending.final-da"]),
+        reference_suffix("시는", &["ending.honorific", "ending.present-adnominal"]),
+        reference_suffix("시고", &["ending.honorific", "ending.connective-go"]),
         reference_suffix("시면", &["ending.honorific", "ending.conditional"]),
         reference_suffix("신", &["ending.honorific", "ending.past-adnominal"]),
         reference_suffix("실", &["ending.honorific", "ending.future-adnominal"]),
@@ -774,7 +794,18 @@ fn reference_predicate_continuation(
         .iter()
         .filter(|suffix| {
             following.starts_with(suffix.surface)
-                && (!suffix.rules.contains(&"ending.imperative-ra") || pos.is_action())
+                && (pos.is_action()
+                    || !matches!(
+                        suffix.surface,
+                        "라" | "시오"
+                            | "십시오"
+                            | "십쇼"
+                            | "십시다"
+                            | "려"
+                            | "려던"
+                            | "러"
+                            | "시는"
+                    ))
         })
         .max_by_key(|suffix| suffix.surface.len());
     if matched.is_none() && state == ContinuationState::Eu {

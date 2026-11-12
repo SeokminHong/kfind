@@ -45,6 +45,44 @@ Runtime compiler는 catalog를 어휘 목록으로 사용합니다. 모든 어�
 결합하는 허가 목록으로 사용하지 않습니다. 종성 조건, 불규칙 교체, 어미 순서,
 보조 용언 경로와 전체 표제어 충돌은 별도 구조 조건입니다.
 
+### 검색 범위 검사
+
+`audit_ending_runtime.py`는 catalog의 모든 표면형을 순회합니다. 고정 사전의
+용례에서 어미 위치와 용언 표제어가 정렬되는 사례를 runner 입력으로 만듭니다.
+사전이 본말을 명시한 준말은 본말 용례에서 검사 입력을 만들 수 있습니다.
+`--kiwi`를 지정하면 외부 형태 분석으로 용언 후보를 보강합니다. 이 경우
+`tools/morph-compare/external/Dockerfile`에 지정된 Kiwi와 모델 버전을 사용합니다.
+결과는 `target` 아래에 저장하며, 자동 정렬 결과는 어미 결합 규칙을 검토할 후보로 사용합니다.
+자동 정렬이 어려운 용례는 `--reviewed`로 추가합니다. TSV 열은 `ending`, `query`,
+`pos`, `surface`, `source_id`, `alignment`, `text` 순서이며, `surface`의 첫 출현을
+표적으로 사용합니다.
+
+```sh
+downloads=${KFIND_NIKL_DOWNLOADS:-"$HOME/Downloads"}
+cache=${KFIND_NIKL_CACHE:-"${XDG_CACHE_HOME:-"$HOME/.cache"}/kfind/nikl"}
+output=target/ending-runtime
+python3 tools/nikl-lexicon/audit_ending_runtime.py \
+  --krdict "$downloads/전체 내려받기_한국어기초사전_xml_20260619.zip" \
+  --stdict "$downloads/전체 내려받기_표준국어대사전_xml_20260705.zip" \
+  --opendict "$downloads/전체 내려받기_우리말샘_xml_20260702.zip" \
+  --cache-dir "$cache" --catalog data/rules/nikl-modern-endings.tsv \
+  --output-dir "$output"
+
+cargo build --release --locked --manifest-path tools/morph-compare/runner/Cargo.toml
+runner=tools/morph-compare/runner/target/release/morph-benchmark-runner
+for boundary in smart any; do
+  "$runner" boundary full-pos "$boundary" "$output/cases.jsonl" "$output/$boundary.json"
+done
+python3 tools/nikl-lexicon/report_ending_runtime.py \
+  --directory "$output" --revision "$(git rev-parse HEAD)"
+```
+
+Runner에는 `KFIND_FULL_POS_LEXICON`, `KFIND_ENRICHED_PREDICATES`와
+`KFIND_COMPONENT_RESOURCE`로 사용하는 사전과 component 파일을 전달합니다.
+`report.json`은 어미별 전체 일치, 부분 일치, 누락, 용례 정렬이 필요한 항목과
+표준어 참조 표제어를 기록합니다. 표적 범위의 일부만 반환하는 결과도 검색 근거와 함께
+남습니다.
+
 ## 조사 catalog
 
 `scripts/audit-nikl-particles.sh`는 같은 snapshot에서

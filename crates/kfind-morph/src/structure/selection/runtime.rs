@@ -19,6 +19,24 @@ pub(in crate::structure) fn runtime_position_is_supported(
     let modifier_without_nominal_tail = pattern.fine_pos == DataFinePos::Mm
         && spans.core != spans.token
         && !modifier_has_complete_nominal_tail(&spans.core, &spans.token, evidence);
+    let modifier_inside_longer_analysis = pattern.fine_pos == DataFinePos::Mm
+        && starts_token
+        && spans.core.end < spans.token.end
+        && (evidence
+            .leading_predicate_spans
+            .iter()
+            .any(|stem| stem.end > spans.core.end)
+            || evidence.units.all().iter().any(|unit| {
+                unit.pos == DataFinePos::Nnp
+                    && unit.span.start == spans.token.start
+                    && unit.span.end > spans.core.end
+                    && minimum_unit_path(
+                        &(unit.span.end..spans.token.end),
+                        evidence,
+                        DataFinePos::is_nominal,
+                    )
+                    .is_some()
+            }));
     let predicate = matches!(pattern.continuation, MorphContinuation::Predicate { .. });
     let terminal_predicate_component = matches!(
         pattern.continuation,
@@ -40,6 +58,11 @@ pub(in crate::structure) fn runtime_position_is_supported(
         && spans.core.start != spans.token.start
         && spans.consumed == spans.core
         && !attached_auxiliary;
+    let competes_with_nominal_copula = predicate
+        && pattern.fine_pos != DataFinePos::Vcp
+        && !attached_auxiliary
+        && !starts_token
+        && evidence.has_nominal_copula_host(&(spans.token.start..spans.core.start));
     let modifier_before_predicate = predicate
         && !copula_nominal_host
         && !attached_auxiliary
@@ -106,8 +129,10 @@ pub(in crate::structure) fn runtime_position_is_supported(
 
     (!leading_only || starts_token)
         && !modifier_without_nominal_tail
+        && !modifier_inside_longer_analysis
         && !trailing_predicate_subspan
         && !internal_runtime_predicate
+        && !competes_with_nominal_copula
         && !modifier_before_predicate
         && !trailing_exact_subspan
         && !trailing_nominal_chain

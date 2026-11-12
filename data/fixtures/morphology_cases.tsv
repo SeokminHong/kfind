@@ -535,6 +535,18 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 듣다	verb	설명을 들으려고 가까이 갔다.	match	d-irregular
 돕다	verb	친구를 도우려고 먼저 나섰다.	match	b-irregular
 좋다	adjective	기분이 좋으려고 웃었다.	no-match	regular
+먹다	verb	밥을 먹으려 자리에 앉았다.	match	intentive
+가다	verb	도서관에 가려면 지금 출발해야 한다.	match	intentive-conditional
+살다	verb	오래 살려면 꾸준히 걸어야 한다.	match	intentive-conditional
+듣다	verb	설명을 들으려면 가까이 와야 한다.	match	intentive-conditional
+짓다	verb	집을 지으려면 땅이 필요하다.	match	intentive-conditional
+돕다	verb	친구를 도우려 손을 내밀었다.	match	intentive
+걸다	verb	친구에게 전화를 걸려 했다.	match	intentive-homograph
+좋다	adjective	기분이 좋으려 자리에서 웃었다.	no-match	intentive-pos
+맑다	adjective	날씨가 맑으려면 구름이 걷혀야 한다.	match	intentive-conditional
+유지하다	verb	건강을 유지하시려면 담배를 끊으세요.	match	intentive-conditional-honorific
+살다	verb	건강하게 사시려면 꾸준히 걸으세요.	match	intentive-conditional-honorific
+이다	copula	이 책이 선물이려면 포장부터 해야 한다.	match	intentive-conditional-copula
 부르다	verb	친구들이 노래를 불렀을 때 감동했다.	match	reu-irregular
 좋다	adjective	결과가 좋았을 때를 기억한다.	match	regular
 먹다	verb	밥을 먹었을 때 연락했다.	match	regular
@@ -587,5 +599,24 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 들어오다	verb	내 방으로 들어오너라.	match	imperative-neora
 가다	verb	이제 집으로 가너라.	no-match	imperative-neora
 오다	verb	날이 밝기 전에 오거라.	match	imperative-geora
+오다	verb	어서 옵쇼.	match	imperative-formal-short
+가다	verb	안녕히 갑쇼.	match	imperative-formal-short
+읽다	verb	이것을 읽읍쇼.	match	imperative-formal-short
+앉다	verb	여기 앉읍쇼.	match	imperative-formal-short
+믿다	verb	그를 믿읍쇼.	match	imperative-formal-short
+들다	verb	어서 자리에 듭시오.	match	imperative-formal
+읽다	verb	이것을 읽읍시오.	match	imperative-formal
+앉다	verb	여기 앉읍시오.	match	imperative-formal
+믿다	verb	그를 믿읍시오.	match	imperative-formal
+앉다	verb	모두 자리에 앉으십시오.	match	imperative-formal-honorific
+듣다	verb	제 말을 잘 들으십시오.	match	imperative-formal-honorific
+살다	verb	오래 사십시오.	match	imperative-formal-honorific
+가다	verb	안녕히 가십쇼.	match	imperative-formal-short-honorific
+믿다	verb	제 말을 믿으십쇼.	match	imperative-formal-short-honorific
+앉다	verb	모두 자리에 앉으십시다.	match	propositive-honorific
+들다	verb	어서 방에 드십시다.	match	propositive-honorific
+가다	verb	안녕히 가읍쇼.	no-match	imperative-formal-allomorph
+읽다	verb	이것을 읽쇼.	no-match	imperative-formal-allomorph
+좋다	adjective	이 결과가 좋읍쇼.	no-match	imperative-formal-pos
 치다	verb	지구온난화는 여러 측면에 영향을 미친다.	no-match	structural-whole-predicate
 다	noun	저 친구는 왕친입니다.	no-match	structural-ending-component

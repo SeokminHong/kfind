@@ -10,8 +10,8 @@ use kfind_data::{
 use kfind_matcher::{MorphMatcher, MorphMatcherBuildError};
 use kfind_morph::CoarsePos;
 use kfind_query::{
-    CompileError, CompileOptionOverrides, CompileOptions, LexiconQueryAnalyzer, Lexicons,
-    compile_query,
+    BoundaryPolicy, CompileError, CompileOptionOverrides, CompileOptions, LexiconQueryAnalyzer,
+    Lexicons, compile_query,
 };
 
 const FIXTURE_SOURCE: &str = "data/fixtures/morphology_cases.tsv";
@@ -115,18 +115,32 @@ impl GoldHarness {
     }
 
     pub fn find_all(&self, query: &str, text: &str) -> Result<Vec<Range<usize>>, GoldCaseError> {
-        let plan = compile_query(query, &CompileOptions::default(), &self.analyzer)
-            .map_err(GoldCaseError::Compile)?;
-        let matcher = if let Some(resource) = &self.component_resource {
-            MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(resource))
-        } else {
-            MorphMatcher::new(Arc::new(plan))
-        }
-        .map_err(GoldCaseError::Matcher)?;
+        let matcher = self.matcher(query, &CompileOptions::default())?;
         Ok(matcher
             .find_all_with_meta(text.as_bytes())
             .into_iter()
             .map(|matched| matched.span)
+            .collect())
+    }
+
+    pub fn find_lemma_cores(
+        &self,
+        query: &str,
+        text: &str,
+        pos: CoarsePos,
+        boundary: BoundaryPolicy,
+    ) -> Result<Vec<Range<usize>>, GoldCaseError> {
+        let options = CompileOptions::resolve(CompileOptionOverrides {
+            pos: Some(pos),
+            boundary: Some(boundary),
+            ..CompileOptionOverrides::default()
+        })
+        .expect("gold fixture uses compatible options");
+        Ok(self
+            .matcher(query, &options)?
+            .find_all_with_meta(text.as_bytes())
+            .into_iter()
+            .flat_map(|matched| matched.atoms.into_iter().map(|atom| atom.core))
             .collect())
     }
 
@@ -140,19 +154,26 @@ impl GoldHarness {
             ..CompileOptionOverrides::default()
         })
         .expect("gold POS overrides never conflict");
-        let plan =
-            compile_query(&case.query, &options, &self.analyzer).map_err(GoldCaseError::Compile)?;
-        let matcher = if let Some(resource) = &self.component_resource {
-            MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(resource))
-        } else {
-            MorphMatcher::new(Arc::new(plan))
-        }
-        .map_err(GoldCaseError::Matcher)?;
+        let matcher = self.matcher(&case.query, &options)?;
         let actual_match = matcher.find_at_with_meta(case.text.as_bytes(), 0).is_some();
         Ok(GoldCaseOutcome {
             expected_match: case.expected == ExpectedMatch::Match,
             actual_match,
         })
+    }
+
+    fn matcher(
+        &self,
+        query: &str,
+        options: &CompileOptions,
+    ) -> Result<MorphMatcher, GoldCaseError> {
+        let plan = compile_query(query, options, &self.analyzer).map_err(GoldCaseError::Compile)?;
+        if let Some(resource) = &self.component_resource {
+            MorphMatcher::with_component_resource(Arc::new(plan), Arc::clone(resource))
+        } else {
+            MorphMatcher::new(Arc::new(plan))
+        }
+        .map_err(GoldCaseError::Matcher)
     }
 }
 
@@ -199,7 +220,7 @@ mod tests {
 
     use super::*;
 
-    const EXPECTED_CASES: usize = 590;
+    const EXPECTED_CASES: usize = 621;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {

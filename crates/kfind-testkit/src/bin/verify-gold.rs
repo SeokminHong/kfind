@@ -3,9 +3,12 @@ use std::error::Error;
 use std::io;
 use std::path::PathBuf;
 
+use kfind_morph::CoarsePos;
+use kfind_query::BoundaryPolicy;
 use kfind_testkit::{GoldHarness, load_morphology_cases};
 
 const WALK_HANG_STRESS: &str = include_str!("../../../../data/fixtures/walk_hang_stress.txt");
+const UD_MORPHOLOGY_CASES: &str = include_str!("../../../../data/fixtures/ud_morphology_cases.tsv");
 
 fn main() -> Result<(), Box<dyn Error>> {
     let arguments = env::args_os()
@@ -56,11 +59,61 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     verify_walk_hang_stress(&harness)?;
+    verify_ud_morphology(&harness)?;
 
     println!(
         "morphology gold with auto-POS coverage: {} cases and walk/hang stress passed",
         cases.len()
     );
+    Ok(())
+}
+
+fn verify_ud_morphology(harness: &GoldHarness) -> Result<(), Box<dyn Error>> {
+    let mut failures = Vec::new();
+    for (index, line) in UD_MORPHOLOGY_CASES.lines().enumerate().skip(1) {
+        let invalid_row = || format!("invalid UD morphology fixture row {}", index + 1);
+        let fields = line.split('\t').collect::<Vec<_>>();
+        let [id, query, pos, expected, start, end, text] = fields.as_slice() else {
+            return Err(invalid_row().into());
+        };
+        let pos = match *pos {
+            "noun" => CoarsePos::Noun,
+            "pronoun" => CoarsePos::Pronoun,
+            "verb" => CoarsePos::Verb,
+            "adjective" => CoarsePos::Adjective,
+            "determiner" => CoarsePos::Determiner,
+            "adverb" => CoarsePos::Adverb,
+            _ => return Err(invalid_row().into()),
+        };
+        let expected = match *expected {
+            "match" => true,
+            "no-match" => false,
+            _ => return Err(invalid_row().into()),
+        };
+        let start: usize = start.parse()?;
+        let end: usize = end.parse()?;
+        let target = text.get(start..end).ok_or_else(invalid_row)?;
+        if target.is_empty() {
+            return Err(invalid_row().into());
+        }
+        for boundary in [BoundaryPolicy::Smart, BoundaryPolicy::Any] {
+            if boundary == BoundaryPolicy::Any && !expected {
+                continue;
+            }
+            let cores = harness.find_lemma_cores(query, text, pos, boundary)?;
+            let found = cores
+                .iter()
+                .any(|core| core.start < end && start < core.end);
+            if found != expected {
+                failures.push(format!(
+                    "{id} {boundary:?}: target={target:?}, expected={expected}, cores={cores:?}"
+                ));
+            }
+        }
+    }
+    if !failures.is_empty() {
+        return Err(format!("UD morphology mismatches:\n{}", failures.join("\n")).into());
+    }
     Ok(())
 }
 

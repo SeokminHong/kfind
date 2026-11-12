@@ -10,9 +10,9 @@ pub struct PredicateContinuationMatch {
 }
 
 #[derive(Debug, Clone, Copy)]
-struct Suffix {
-    surface: &'static str,
-    rules: &'static [&'static str],
+pub(super) struct Suffix {
+    pub(super) surface: &'static str,
+    pub(super) rules: &'static [&'static str],
 }
 
 const A_OR_EO_SUFFIXES: &[Suffix] = &[
@@ -48,6 +48,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
     suffix("으되", &["ending.connective-eudoe"]),
     suffix("느냐는", &["ending.interrogative-neunya", "particle.topic"]),
     suffix("으면", &["ending.conditional"]),
+    suffix("으며", &["ending.coordinate-myeo"]),
     suffix("지만", &["ending.connective-jiman"]),
     suffix("는데", &["ending.connective-neunde"]),
     suffix("다고", &["ending.quotative-go"]),
@@ -78,7 +79,39 @@ const DECLARATIVE_NI: Suffix = suffix("니", &["ending.quotative-ni"]);
 const DECLARATIVE_MYEO: Suffix = suffix("며", &["ending.quotative-myeo"]);
 const DECLARATIVE_JI: Suffix = suffix("지", &["ending.quotative-ji"]);
 
+const HONORIFIC_FORMAL: Suffix =
+    suffix("십시오", &["ending.honorific", "ending.imperative-formal"]);
+const HONORIFIC_FORMAL_SHORT: Suffix = suffix(
+    "십쇼",
+    &["ending.honorific", "ending.imperative-formal-short"],
+);
+const HONORIFIC_PROPOSITIVE: Suffix = suffix("십시다", &["ending.honorific", "ending.propositive"]);
+pub(super) const INTENTIVE: Suffix = suffix("려", &["ending.intentive-ryeo"]);
+pub(super) const CONDITIONAL: Suffix = suffix("면", &["ending.conditional"]);
+pub(super) const COORDINATE: Suffix = suffix("며", &["ending.coordinate-myeo"]);
+pub(super) const INTENTIVE_CONDITIONAL: Suffix = suffix("려면", &["ending.intentive-ryeomyeon"]);
+pub(super) const HONORIFIC_INTENTIVE_CONDITIONAL: Suffix = suffix(
+    "시려면",
+    &["ending.honorific", "ending.intentive-ryeomyeon"],
+);
+
+pub(super) const HONORIFIC_BIEUP_ENDINGS: &[Suffix] = &[
+    HONORIFIC_FORMAL,
+    HONORIFIC_FORMAL_SHORT,
+    HONORIFIC_PROPOSITIVE,
+];
 const EU_SUFFIXES: &[Suffix] = &[
+    HONORIFIC_FORMAL,
+    HONORIFIC_FORMAL_SHORT,
+    HONORIFIC_PROPOSITIVE,
+    INTENTIVE,
+    INTENTIVE_CONDITIONAL,
+    HONORIFIC_INTENTIVE_CONDITIONAL,
+    suffix("면서", &["ending.simultaneous-myeonseo"]),
+    suffix("려던", &["ending.intentive-adnominal"]),
+    suffix("러", &["ending.purpose-reo"]),
+    suffix("나", &["ending.connective-na"]),
+    suffix("시오", &["ending.imperative-sio"]),
     suffix("리라고", &["ending.prospective-quotative"]),
     suffix("리라", &["ending.prospective-final"]),
     suffix(
@@ -116,11 +149,13 @@ const EU_SUFFIXES: &[Suffix] = &[
     suffix("세요", &["ending.honorific", "ending.polite-imperative"]),
     suffix("십니다", &["ending.honorific", "ending.polite-declarative"]),
     suffix("시다", &["ending.honorific", "ending.final-da"]),
+    suffix("시는", &["ending.honorific", "ending.present-adnominal"]),
+    suffix("시고", &["ending.honorific", "ending.connective-go"]),
     suffix("시면", &["ending.honorific", "ending.conditional"]),
     suffix("신", &["ending.honorific", "ending.past-adnominal"]),
     suffix("실", &["ending.honorific", "ending.future-adnominal"]),
-    suffix("면", &["ending.conditional"]),
-    suffix("며", &["ending.coordinate-myeo"]),
+    CONDITIONAL,
+    COORDINATE,
     suffix("니까는", &["ending.connective-ni"]),
     suffix("니까", &["ending.connective-ni"]),
     suffix("니깐", &["ending.connective-ni"]),
@@ -152,7 +187,21 @@ pub fn verify_predicate_continuation(
         .iter()
         .filter(|suffix| {
             following.starts_with(suffix.surface)
-                && (!suffix.rules.contains(&"ending.imperative-ra") || pos.is_action())
+                && (pos.is_action()
+                    || !suffix.rules.iter().any(|rule| {
+                        matches!(
+                            *rule,
+                            "ending.imperative-ra"
+                                | "ending.imperative-sio"
+                                | "ending.imperative-formal"
+                                | "ending.imperative-formal-short"
+                                | "ending.propositive"
+                                | "ending.intentive-ryeo"
+                                | "ending.intentive-adnominal"
+                                | "ending.purpose-reo"
+                                | "ending.present-adnominal"
+                        )
+                    }))
         })
         .max_by_key(|suffix| suffix.surface.len());
     if suffix.is_none() && state == ContinuationState::Eu {

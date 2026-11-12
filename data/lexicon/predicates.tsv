@@ -50,6 +50,7 @@ lemma	pos	alternation	flags	overrides
 오르다	VV	ReuDoubleL		
 자르다	VV	ReuDoubleL		
 좋다	VA	Regular		
+주무시다	VV	Regular		ending.polite-imperative=주무세요
 짓다	VV	DropS		
 쉽다	VA	BToWo		
 춥다	VA	BToWo		
