@@ -2541,6 +2541,36 @@ fn copula_ra_endings_distinguish_nominal_hosts_from_commands_and_particles() {
 }
 
 #[test]
+fn retrospective_bieup_fusion_checks_nominal_hosts_and_competing_predicates() {
+    let matcher = compile_embedded_with_resource(
+        "adj:이다",
+        CompileOptions::default(),
+        component_resource_from_entries([
+            component_entry("누구", "NP"),
+            component_entry("의사", "NNG"),
+            component_entry("거", "NNB"),
+            component_entry("거", "VV"),
+            component_entry("겁니다", "NNB+VCP+EF"),
+            component_entry("가", "NNG"),
+            component_entry("가", "VV"),
+            component_entry("갑니다", "NNG+VCP+EF"),
+            component_entry("갑니다", "VV+EF"),
+            component_entry("아", "NNG"),
+            component_entry("알", "VV"),
+        ]),
+    );
+    let text = "누굽디까? 의삽디다. 겁디까? 갑디까? 압디까? 의사입디까?";
+    assert_eq!(
+        matcher
+            .find_all_with_meta(text.as_bytes())
+            .iter()
+            .map(|matched| &text[matched.span.clone()])
+            .collect::<Vec<_>>(),
+        ["누굽디까", "의삽디다", "겁디까", "입디까"],
+    );
+}
+
+#[test]
 fn direct_particle_plans_validate_the_attached_host_in_smart_mode() {
     let options = CompileOptions {
         global_pos: Some(CoarsePos::Particle),

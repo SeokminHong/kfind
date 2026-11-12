@@ -2,7 +2,10 @@ use std::borrow::Cow;
 use std::iter::Peekable;
 
 use kfind_morph::hangul::{JONG_BIEUP, JONG_NIEUN, JONG_RIEUL};
-use kfind_morph::{decompose_syllable, is_omitted_copula_ra_ending};
+use kfind_morph::{
+    ConstraintResolver, decompose_syllable, drop_final, is_omitted_copula_ra_ending,
+    replace_last_final,
+};
 use kfind_query::{NormalizationMode, is_coda_initial_ending};
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
@@ -135,7 +138,7 @@ fn has_fused_ending(token: &str, normalization: NormalizationMode) -> bool {
     })
 }
 
-pub(super) fn omitted_ra_hosts(token: &str) -> impl Iterator<Item = (&str, &str)> {
+fn omitted_ra_hosts(token: &str) -> impl Iterator<Item = (&str, &str)> {
     token.rfind('라').into_iter().flat_map(move |start| {
         let (host, suffix) = token.split_at(start);
         [Some(host), host.strip_suffix('시')]
@@ -149,4 +152,66 @@ pub(super) fn omitted_ra_hosts(token: &str) -> impl Iterator<Item = (&str, &str)
             })
             .map(move |host| (host, suffix))
     })
+}
+
+pub(super) fn accepts_omitted_ra(token: &str, resolver: &ConstraintResolver) -> bool {
+    omitted_ra_hosts(token).any(|(host, suffix)| {
+        !host
+            .strip_suffix('이')
+            .is_some_and(|prefix| resolver.has_complete_nominal_surface(prefix))
+            && !resolver.has_exact_action_predicate_surface(host)
+            && !(matches!(suffix, "라고" | "라고요" | "라는") && resolver.has_whole_modifier(host))
+            && resolver.has_exact_nominal_surface(host)
+            && !(suffix == "라"
+                && host.char_indices().skip(1).any(|(split, _)| {
+                    resolver.has_exact_action_predicate_surface(&token[..split])
+                        && resolver.has_exact_ending_surface(&token[split..])
+                }))
+    }) && !resolver.has_whole_modifier(token)
+        && !resolver.has_exact_nominal_surface(token)
+}
+
+pub(super) fn accepts_fused_retrospective(token: &str, resolver: &ConstraintResolver) -> bool {
+    let Some(stem) = token
+        .strip_suffix("디까")
+        .or_else(|| token.strip_suffix("디다"))
+    else {
+        return false;
+    };
+    let Some(last) = stem.chars().next_back() else {
+        return false;
+    };
+    if !decompose_syllable(last).is_some_and(|syllable| syllable.jongseong == JONG_BIEUP)
+        || resolver.has_exact_non_copula_predicate_surface(token)
+        || resolver.has_exact_nominal_surface(token)
+        || resolver.has_whole_modifier(token)
+    {
+        return false;
+    }
+    let Some(vowel) = drop_final(last) else {
+        return false;
+    };
+    let mut host = stem[..stem.len() - last.len_utf8()].to_owned();
+    host.push(vowel);
+    if host
+        .strip_suffix('이')
+        .is_some_and(|nominal| resolver.has_complete_nominal_surface(nominal))
+    {
+        return false;
+    }
+    let sibling = format!("{stem}니다");
+    if resolver.has_exact_lost_span_copula_ending_path(&sibling)
+        && !resolver.has_exact_non_copula_predicate_surface(&sibling)
+    {
+        return true;
+    }
+    [Some(host.as_str()), host.strip_suffix('시')]
+        .into_iter()
+        .flatten()
+        .any(|nominal| {
+            resolver.has_exact_nominal_surface(nominal)
+                && !resolver.has_exact_non_copula_predicate_surface(nominal)
+                && !replace_last_final(nominal, JONG_RIEUL)
+                    .is_some_and(|rieul| resolver.has_exact_non_copula_predicate_surface(&rieul))
+        })
 }
