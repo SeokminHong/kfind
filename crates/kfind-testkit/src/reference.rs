@@ -763,6 +763,7 @@ fn reference_predicate_continuation(
         reference_suffix("다", &["ending.final-da"]),
         reference_suffix("고", &["ending.connective-go"]),
         reference_suffix("어요", &["ending.past-polite-yo"]),
+        reference_suffix("게", &["ending.final-ge"]),
     ];
     const FUTURE: &[ReferenceSuffix] = &[
         reference_suffix("습니까", &["ending.formal-interrogative"]),
@@ -787,6 +788,11 @@ fn reference_predicate_continuation(
         reference_suffix("지", &["ending.quotative-ji"]),
     ];
     const EU: &[ReferenceSuffix] = &[
+        reference_suffix("시게", &["ending.honorific", "ending.adverbial-ge"]),
+        reference_suffix(
+            "셨게",
+            &["ending.honorific", "ending.past", "ending.final-ge"],
+        ),
         reference_suffix(
             "십니까",
             &["ending.honorific", "ending.formal-interrogative"],
@@ -1207,11 +1213,12 @@ fn reference_predicate_continuation(
         ContinuationState::StemEnding
             if (pos == PredicatePos::Copula || anchor == "아니")
                 && following.starts_with([
-                    '고', '구', '군', '길', '네', '니', '면', '세', '야', '어', '에', '오', '자',
-                    '죠', '지',
+                    '게', '고', '구', '군', '길', '네', '니', '면', '세', '야', '어', '에', '오',
+                    '자', '죠', '지',
                 ]) =>
         {
             &[
+                reference_suffix("게", &["ending.copula-ge"]),
                 reference_suffix("고말고", &["ending.copula-common-final"]),
                 reference_suffix("고요", &["ending.connective-go", "ending.polite-yo"]),
                 reference_suffix("구나", &["ending.copula-common-final"]),
