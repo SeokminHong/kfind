@@ -31,6 +31,8 @@ const ELAPSED_MEASURE_CASES: &str =
 const EMPHATIC_PARTICLE_CASES: &str =
     include_str!("../../../../data/fixtures/emphatic_particle_cases.tsv");
 const NOMINAL_ONLY_CASES: &str = include_str!("../../../../data/fixtures/nominal_only_cases.tsv");
+const DICTIONARY_NUMERIC_UNIT_CASES: &str =
+    include_str!("../../../../data/fixtures/dictionary_numeric_unit_cases.tsv");
 const QUERY_MATRIX_POS_REVIEW_CASES: &str =
     include_str!("../../../../data/fixtures/query_matrix_pos_review_cases.tsv");
 const QUANTIFYING_ADVERB_CASES: &str =
@@ -103,6 +105,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         EMPHATIC_PARTICLE_CASES,
     )?;
     verify_span_cases(&enriched_harness, "nominal only", NOMINAL_ONLY_CASES)?;
+    verify_span_cases(
+        &enriched_harness,
+        "dictionary numeric units",
+        DICTIONARY_NUMERIC_UNIT_CASES,
+    )?;
     verify_span_cases(
         &enriched_harness,
         "query matrix POS review",

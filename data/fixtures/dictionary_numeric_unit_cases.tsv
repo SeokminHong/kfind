@@ -1,0 +1,23 @@
+id	query	pos	expected	byte_start	byte_end	text
+giga-unit	기가	noun	exact	26	35	이 장치는 메모리 16기가를 사용한다.
+giga-cohort	기	noun	exact	15	21	교육 과정 3기가 출범했다.
+giga-ambiguous-reading	기가	noun	exact	15	21	교육 과정 3기가 출범했다.
+giga-memory-reading	기가	noun	exact	14	20	메모리는 3기가 이상이어야 한다.
+day-counter	날	noun	exact	8	14	그는 3날을 꼬박 기다렸다.
+decade-unit	년대	noun	exact	4	16	1980년대에는 출판계가 빠르게 성장했다.
+decade-spaced	년대	noun	exact	5	17	1980 년대에는 출판계가 빠르게 성장했다.
+kaist-decade	년대	noun	exact	12	24	따라서 80년대에는 사회 변혁이 출판의 영역에서 중심의 축으로 자리 잡으며, 변혁의 논리를 전파하는 데 있어서 출판이 큰 역할을 수행하였다.
+year-unit	년도	noun	exact	18	30	이 기준은 2026년도부터 적용된다.
+year-with-additive	년	noun	exact	4	10	2026년도 이 기준에 해당한다.
+year-ambiguous-reading	년도	noun	exact	4	10	2026년도 이 기준에 해당한다.
+year-calendar-reading	년도	noun	exact	4	10	2026년도 예산안을 검토했다.
+mega-unit	메가	noun	exact	20	29	회선 속도를 100메가로 제한했다.
+seom-area-unit	섬지기	noun	exact	15	27	농부가 밭 2섬지기를 갈았다.
+portion-unit	인분	noun	exact	14	23	친구들과 3인분을 주문했다.
+square-kilometer	제곱킬로미터	noun	exact	19	40	섬의 면적은 30제곱킬로미터에 이른다.
+series-counter	탄	noun	exact	1	13	2탄에서는 앞선 내용을 더 자세히 설명한다.
+loss-counter	패	noun	exact	23	29	그 팀은 올 시즌 3패를 기록했다.
+pyeongbang-meter	평방미터	noun	exact	22	37	창고의 면적은 15평방미터에 이른다.
+pyeongbang-kilometer	평방킬로미터	noun	exact	23	44	그 섬의 면적은 12평방킬로미터에 이른다.
+unrelated-compound	패	noun	no-match	8	14	그는 3패물을 보관했다.
+incomplete-suffix	년대	noun	no-match	11	20	그는 1980년대사를 공부했다.

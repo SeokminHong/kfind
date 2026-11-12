@@ -30,7 +30,29 @@ const DURATION_NOUNS: &[&str] = &[
     "반년",
 ];
 
+// Numeric noun senses from the pinned Korean Basic Dictionary absent as
+// complete NNB, NNBC, or NR entries in the compact component resource.
+const DICTIONARY_NUMERIC_UNITS: &[&str] = &[
+    "기가",
+    "날",
+    "년대",
+    "년도",
+    "메가",
+    "섬지기",
+    "인분",
+    "제곱킬로미터",
+    "탄",
+    "패",
+    "평방미터",
+    "평방킬로미터",
+];
+
 impl ConstraintResolver {
+    #[must_use]
+    pub fn is_dictionary_numeric_unit(unit: &str) -> bool {
+        DICTIONARY_NUMERIC_UNITS.binary_search(&unit).is_ok()
+    }
+
     #[must_use]
     pub fn has_dependent_noun_subject_path(&self, previous: &str, text: &str) -> bool {
         super::lexical::has_exact_sequence(
