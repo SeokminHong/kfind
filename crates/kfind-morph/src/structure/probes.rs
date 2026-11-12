@@ -125,8 +125,23 @@ const DICTIONARY_NUMERIC_UNITS: &[&str] = &[
 
 const SHORT_NOMINAL_DERIVATIONS: &str =
     include_str!("../../../../data/rules/stdict-short-nominal-derivations.tsv");
+include!("../../../../data/rules/stdict-attested-nominal-suffix-usages.rs");
 
 impl ConstraintResolver {
+    #[must_use]
+    pub fn has_attested_nominal_suffix(suffix: &str) -> bool {
+        STDICT_ATTACHED_NOMINAL_USAGES
+            .binary_search_by_key(&suffix, |&(registered, _)| registered)
+            .is_ok()
+    }
+
+    #[must_use]
+    pub fn has_attested_nominal_suffix_usage(word: &str, suffix: &str) -> bool {
+        STDICT_ATTACHED_NOMINAL_USAGES
+            .binary_search(&(suffix, word))
+            .is_ok()
+    }
+
     #[must_use]
     pub fn has_attested_short_nominal_derivation(
         &self,

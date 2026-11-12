@@ -291,6 +291,9 @@
   span을 source component로 함께 선언한 기존 exact component는 보존한다. 이 체언 검증은 용언
   program을 바꾸지 않으므로 `가다`는 `그래 네가 가.`에서 token 전체 명령형 `가`를 계속
   회수한다.
+- 표준국어대사전의 접미사와 독립 명사에 같은 뜻이 있고 해당 결합을 용례로 제시한 경우,
+  그 용례 뒤의 조사 연쇄가 어절 끝까지 이어지면 마지막 명사 성분을 검색한다.
+  `작품명도`의 `명도`와 `저축왕도`의 `왕도`가 여기에 해당한다.
 - token을 임의 품사의 edge로 끝까지 덮을 수 있다는 사실만으로 token보다 짧은 query 품사의
   runtime component를 합성하지 않는다. 특히 `NP`·`MM`·`MAG/MAJ` 내부 component는 query
   core와 같은 span의 같은 세부 품사 node가 완전한 typed path에 있어야 한다. 이 조건은 query가

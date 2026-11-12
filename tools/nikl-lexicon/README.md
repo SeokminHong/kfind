@@ -100,3 +100,8 @@ Catalog는 원자 조사 어휘와 host class를 기록합니다. 조사 결합�
 `audit_lexemes.py`는 명시한 표제어를 세 snapshot에서 찾아 구조화 품사와 lexical
 relation을 JSON으로 기록합니다. 사전 기반 표제어·파생·준말 근거와 corpus 용례나
 자유 text 정의를 구분해야 하는 failure triage에 사용합니다.
+
+`audit_attested_nominal_usages.py`는 표준국어대사전의 접미사 뜻풀이와 독립 명사
+표제어를 연결한 목록에서 한 단어로 제시된 용례를 추출합니다. `--stdict`에 고정 ZIP,
+`--cache-dir`에 사전 캐시를 지정하면 표제어·뜻풀이 식별자를 포함한 Rust 목록을 표준 출력으로
+기록합니다.

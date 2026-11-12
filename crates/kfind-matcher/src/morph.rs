@@ -1226,6 +1226,28 @@ impl MorphMatcher {
         if matches!(
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }
+        ) && core.start > whole.start
+            && core.end < whole.end
+            && candidate.consumed.end == whole.end
+            && patterns.iter().any(|pattern| {
+                pattern.fine_pos == DataFinePos::Nng
+                    && pattern.component_capability.allows_runtime()
+                    && ConstraintResolver::has_attested_nominal_suffix(&pattern.lexical_form)
+                    && context::normalized_token(haystack, whole.start..core.end).is_some_and(
+                        |word| {
+                            ConstraintResolver::has_attested_nominal_suffix_usage(
+                                &word,
+                                &pattern.lexical_form,
+                            )
+                        },
+                    )
+            })
+        {
+            return true;
+        }
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
         ) && *core == candidate.consumed
             && core.start == whole.start
             && core.end < whole.end

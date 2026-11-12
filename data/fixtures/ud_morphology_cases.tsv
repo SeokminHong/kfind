@@ -469,3 +469,31 @@ corpus.final-nominal-component.pud.w01135036	해	noun	smart-exact	3	9	그해에 
 corpus.final-nominal-component.pud.n03006016	자	noun	smart-exact	6	15	근로자들이 자신의 책상에 종교 관련 물품을 놓을 수 있는가?
 corpus.final-nominal-component.pud.w02008010	지	noun	smart-exact	27	33	그 시대는 많은 유적지의 설립 시기로 알려져 있다.
 corpus.final-nominal-component.pud.w05010026	원	noun	smart-exact	13	28	그는 원로원으로부터 집정관과의 대결을 금지한다는 답을 받았다.
+regression.attested-nominal-suffix.stdict-1	명	noun	smart-exact	26	32	도판 아래에는 작품명도 적혀 있었다.
+regression.attested-nominal-suffix.stdict-2	명	noun	smart-exact	26	32	도서 목록에는 저자명도 표시된다.
+regression.attested-nominal-suffix.stdict-3	부	noun	smart-exact	26	32	이번 인사에는 인사부도 참여했다.
+regression.attested-nominal-suffix.stdict-4	부	noun	smart-exact	26	32	개정판 준비에 출판부도 참여했다.
+regression.attested-nominal-suffix.stdict-5	부	noun	smart-exact	33	39	신제품 발표 준비에 홍보부도 참여했다.
+regression.attested-nominal-suffix.stdict-6	사	noun	smart-exact	29	35	유가족은 식순에 추모사도 넣었다.
+regression.attested-nominal-suffix.stdict-7	선	noun	smart-exact	26	32	논문은 거미의 방적선도 설명했다.
+regression.attested-nominal-suffix.stdict-8	선	noun	smart-exact	29	35	연구자는 표본의 혈관선도 확인했다.
+regression.attested-nominal-suffix.stdict-9	실	noun	smart-exact	33	39	조직 개편안을 두고 기획실도 의견을 냈다.
+regression.attested-nominal-suffix.stdict-10	계	noun	smart-exact	23	29	서류 작성에 관리계도 참여했다.
+regression.attested-nominal-suffix.stdict-11	계	noun	smart-exact	25	31	인수인계에는 서무계도 참여했다.
+regression.attested-nominal-suffix.stdict-12	왕	noun	smart-exact	16	22	소문난 싸움왕도 먼저 싸움을 걸지는 않았다.
+regression.attested-nominal-suffix.stdict-13	왕	noun	smart-exact	26	32	은행은 어린이 저축왕도 뽑았다.
+regression.attested-nominal-suffix.stdict-14	왕	noun	smart-exact	19	25	반에서 컴퓨터왕도 한 명 뽑았다.
+regression.attested-nominal-suffix.stdict-15	곡	noun	smart-exact	26	32	공연 마지막에 인기곡도 연주했다.
+regression.attested-nominal-suffix.stdict-16	층	noun	smart-exact	29	35	가격이 내려가자 고객층도 달라졌다.
+regression.attested-nominal-suffix.stdict-17	층	noun	smart-exact	27	33	이 잡지는 당시 식자층도 즐겨 읽었다.
+regression.attested-nominal-suffix.stdict-18	치	noun	smart-exact	23	29	표에는 연간 최고치도 나와 있다.
+regression.attested-nominal-suffix.stdict-19	치	noun	smart-exact	16	22	기기는 한계치도 화면에 표시한다.
+regression.attested-nominal-suffix.stdict-20	파	noun	smart-exact	13	19	당내 소신파도 반대 의견을 냈다.
+regression.attested-nominal-suffix.stdict-21	급	noun	smart-exact	23	29	재산 규모로 재벌급도 따로 분류했다.
+regression.attested-nominal-suffix.stdict-22	급	noun	smart-exact	29	35	이번 발굴품에는 보물급도 섞여 있었다.
+regression.attested-nominal-suffix.stdict-23	기	noun	smart-exact	23	29	그 문집에는 유람기도 실려 있다.
+regression.attested-nominal-suffix.stdict-24	기	noun	smart-exact	27	33	그는 젊은 시절 방황기도 기록했다.
+regression.attested-nominal-suffix.stdict-25	남	noun	smart-exact	36	42	저녁 식사에는 동생의 약혼남도 함께했다.
+regression.attested-nominal-suffix.contrast-1	명	noun	no-match	17	20	화가는 작품 명도를 조금 높였다.
+regression.attested-nominal-suffix.contrast-2	부	noun	no-match	6	9	오늘부로 계약이 끝난다.
+regression.attested-nominal-suffix.contrast-3	왕	noun	no-match	13	16	공부에는 왕도가 없다.
