@@ -58,27 +58,89 @@ const NON_OBJECT_RESULT_HADA_HOSTS: &[&str] = &[
 const NON_OBJECT_RESULT_NADA_HOSTS: &[&str] =
     &["거듭", "결판", "끝", "나타", "달아", "밀려", "소문"];
 
-// Numeric noun senses from the pinned Korean Basic Dictionary absent as
-// complete NNB, NNBC, or NR entries in the compact component resource.
+// Numeric senses attested by the pinned Korean Basic Dictionary and licensed
+// in digit-led unit constructions.
 const DICTIONARY_NUMERIC_UNITS: &[&str] = &[
+    "가닥",
+    "가래",
+    "게임",
+    "계단",
+    "곡조",
+    "굽이",
     "기가",
+    "까풀",
+    "꺼풀",
+    "꼬치",
+    "꿰미",
+    "끼니",
     "날",
+    "낱",
     "년대",
     "년도",
+    "대접",
+    "도막",
+    "돌림",
+    "동강",
+    "드럼",
+    "떨기",
+    "뙈기",
     "메가",
+    "박스",
+    "발자국",
+    "보시기",
+    "봉",
+    "분기",
+    "사단",
+    "사리",
+    "삼태기",
     "섬지기",
+    "세기",
+    "스푼",
+    "쌈지",
+    "알갱이",
+    "연대",
+    "음절",
     "인분",
+    "자락",
+    "젓갈",
     "제곱킬로미터",
+    "종",
+    "종지",
+    "죽",
+    "차시",
+    "책",
+    "컵",
+    "타래",
     "탄",
     "패",
+    "페이지",
     "평방미터",
     "평방킬로미터",
+    "표",
+    "학점",
+    "항",
+    "행",
+    "호봉",
 ];
 
 impl ConstraintResolver {
     #[must_use]
     pub fn is_dictionary_numeric_unit(unit: &str) -> bool {
         DICTIONARY_NUMERIC_UNITS.binary_search(&unit).is_ok()
+    }
+
+    #[must_use]
+    pub fn has_exact_numeric_unit(&self, unit: &str) -> bool {
+        if Self::is_dictionary_numeric_unit(unit) {
+            return true;
+        }
+        let mut matched = false;
+        self.resource
+            .common_prefix_positions(unit.as_bytes(), |length, positions| {
+                matched |= length == unit.len()
+                    && matches!(positions, [StructuralPos::NNB | StructuralPos::NNBC]);
+            });
+        matched
     }
 
     #[must_use]

@@ -1272,23 +1272,12 @@ impl MorphMatcher {
         if matches!(
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }
-        ) && candidate.consumed.end == whole.end
-            && patterns
-                .iter()
-                .any(|pattern| pattern.fine_pos == DataFinePos::Nnb)
-            && context::normalized_token(haystack, candidate.verified.core.clone())
-                .is_some_and(|unit| ConstraintResolver::is_dictionary_numeric_unit(&unit))
+        ) && patterns
+            .iter()
+            .any(|pattern| pattern.fine_pos == DataFinePos::Nnb)
+            && self.accepts_numeric_unit(haystack, candidate, &whole, resolver)
         {
-            let prefix = &haystack[whole.start..candidate.verified.core.start];
-            let preceded_by_number = if prefix.is_empty() {
-                context::previous_word(haystack, whole.start)
-                    .is_some_and(|previous| previous.bytes().all(|byte| byte.is_ascii_digit()))
-            } else {
-                prefix.iter().all(u8::is_ascii_digit)
-            };
-            if preceded_by_number {
-                return true;
-            }
+            return true;
         }
         if matches!(
             branch.consumption,
@@ -1418,6 +1407,67 @@ impl MorphMatcher {
             diagnostics.record_unavailable();
         }
         decision.is_some_and(|decision| ProductPolicy::RecallFirst.accepts(&decision))
+    }
+
+    fn accepts_numeric_unit(
+        &self,
+        haystack: &[u8],
+        candidate: &ExecutedCandidate,
+        whole: &Range<usize>,
+        resolver: &ConstraintResolver,
+    ) -> bool {
+        let core = &candidate.verified.core;
+        let complete = candidate.consumed.end == whole.end;
+        if !complete && candidate.consumed != *core {
+            return false;
+        }
+        let prefix = &haystack[whole.start..core.start];
+        let digits = |bytes: &[u8]| !bytes.is_empty() && bytes.iter().all(u8::is_ascii_digit);
+        if complete
+            && (prefix.starts_with("제".as_bytes()) || prefix.starts_with("ᄌ".as_bytes()))
+            && context::normalized_token(haystack, whole.start..core.start).is_some_and(|prefix| {
+                prefix
+                    .strip_prefix('제')
+                    .is_some_and(|number| digits(number.as_bytes()))
+            })
+        {
+            return context::normalized_token(haystack, core.clone())
+                .is_some_and(|unit| resolver.has_exact_numeric_unit(&unit));
+        }
+        let Some(unit) = context::normalized_token(haystack, core.clone()) else {
+            return false;
+        };
+        let supported = if complete {
+            ConstraintResolver::is_dictionary_numeric_unit(&unit)
+        } else {
+            let tail = core.end..whole.end;
+            haystack[tail.clone()].starts_with("씩".as_bytes())
+                || haystack[tail].starts_with("ᄊ".as_bytes())
+        };
+        if !supported {
+            return false;
+        }
+        let preceded_by_number = if prefix.is_empty() {
+            context::previous_word(haystack, whole.start)
+                .is_some_and(|previous| digits(previous.as_bytes()))
+        } else {
+            digits(prefix)
+        };
+        if !preceded_by_number {
+            return false;
+        }
+        if complete {
+            return true;
+        }
+        context::normalized_token(haystack, core.end..whole.end).is_some_and(|suffix| {
+            suffix.strip_prefix('씩').is_some_and(|particles| {
+                resolver.has_exact_numeric_unit(&unit)
+                    && self
+                        .particle_verifier
+                        .verify_exact("씩", particles)
+                        .is_some()
+            })
+        })
     }
 
     fn has_lexicalized_time_modifier(
