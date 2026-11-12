@@ -52,18 +52,36 @@ impl AnchorEngine {
         limits: AnchorBuildLimits,
     ) -> Result<Self, AnchorBuildError> {
         validate_anchors(anchors, limits.max_anchors)?;
+        Self::build(anchors, limits)
+    }
 
+    pub(crate) fn from_unique_anchors(
+        anchors: &[&[u8]],
+        limits: AnchorBuildLimits,
+    ) -> Result<Self, AnchorBuildError> {
+        validate_anchor_count(anchors.len(), limits.max_anchors)?;
+        if let Some(index) = anchors.iter().position(|anchor| anchor.is_empty()) {
+            return Err(AnchorBuildError::EmptyAnchor(index));
+        }
+        Self::build(anchors, limits)
+    }
+
+    fn build(
+        anchors: &[impl AsRef<[u8]>],
+        limits: AnchorBuildLimits,
+    ) -> Result<Self, AnchorBuildError> {
         if anchors.len() == 1 {
+            let anchor = anchors[0].as_ref();
             let engine = Self::One {
-                finder: Box::new(Finder::new(&anchors[0]).into_owned()),
-                anchor_len: anchors[0].len(),
+                finder: Box::new(Finder::new(anchor).into_owned()),
+                anchor_len: anchor.len(),
             };
             return enforce_memory_limit(engine, limits.max_memory_bytes);
         }
 
         let finders = anchors
             .iter()
-            .map(|anchor| Finder::new(anchor).into_owned())
+            .map(|anchor| Finder::new(anchor.as_ref()).into_owned())
             .collect::<Box<[_]>>();
         enforce_memory_limit(
             Self::Many {
@@ -275,17 +293,21 @@ impl fmt::Display for AnchorBuildError {
 
 impl Error for AnchorBuildError {}
 
-fn validate_anchors(anchors: &[Box<[u8]>], max_anchors: usize) -> Result<(), AnchorBuildError> {
-    if anchors.is_empty() {
+fn validate_anchor_count(count: usize, max_anchors: usize) -> Result<(), AnchorBuildError> {
+    if count == 0 {
         return Err(AnchorBuildError::EmptySet);
     }
-    if anchors.len() > max_anchors {
+    if count > max_anchors {
         return Err(AnchorBuildError::TooManyAnchors {
-            actual: anchors.len(),
+            actual: count,
             limit: max_anchors,
         });
     }
+    Ok(())
+}
 
+fn validate_anchors(anchors: &[Box<[u8]>], max_anchors: usize) -> Result<(), AnchorBuildError> {
+    validate_anchor_count(anchors.len(), max_anchors)?;
     let mut seen = HashMap::<&[u8], usize>::with_capacity(anchors.len());
     for (index, anchor) in anchors.iter().enumerate() {
         if anchor.is_empty() {

@@ -302,7 +302,7 @@ impl MorphMatcher {
         let (anchors, anchor_programs) = unique_anchors(&plan);
         let max_anchor_bytes = anchors.iter().map(|anchor| anchor.len()).max().unwrap_or(0);
         let is_line_local = anchors.iter().all(|anchor| !anchor.contains(&b'\n'));
-        let anchor_engine = AnchorEngine::new_with_limits(
+        let anchor_engine = AnchorEngine::from_unique_anchors(
             &anchors,
             AnchorBuildLimits {
                 max_anchors: plan.limits.max_programs,
@@ -2113,24 +2113,20 @@ struct ProgramRef {
     program_index: usize,
 }
 
-type AnchorsAndPrograms = (Vec<Box<[u8]>>, Vec<Box<[ProgramRef]>>);
+type AnchorsAndPrograms<'a> = (Vec<&'a [u8]>, Vec<Box<[ProgramRef]>>);
 
-fn unique_anchors(plan: &QueryPlan) -> AnchorsAndPrograms {
-    let mut anchor_indices = HashMap::<Box<[u8]>, usize>::new();
-    let mut anchors = Vec::<Box<[u8]>>::new();
+fn unique_anchors(plan: &QueryPlan) -> AnchorsAndPrograms<'_> {
+    let mut anchor_indices = HashMap::<&[u8], usize>::new();
+    let mut anchors = Vec::<&[u8]>::new();
     let mut program_lists = Vec::<Vec<ProgramRef>>::new();
     for (atom_index, atom) in plan.atoms.iter().enumerate() {
         for (program_index, branch) in atom.programs.iter().enumerate() {
-            let anchor_index = if let Some(index) = anchor_indices.get(branch.anchor.as_ref()) {
-                *index
-            } else {
+            let anchor_index = *anchor_indices.entry(&branch.anchor).or_insert_with(|| {
                 let index = anchors.len();
-                let anchor = branch.anchor.clone();
-                anchor_indices.insert(anchor.clone(), index);
-                anchors.push(anchor);
+                anchors.push(&branch.anchor);
                 program_lists.push(Vec::new());
                 index
-            };
+            });
             program_lists[anchor_index].push(ProgramRef {
                 atom_index,
                 program_index,
