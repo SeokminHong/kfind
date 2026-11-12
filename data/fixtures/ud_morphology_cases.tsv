@@ -644,3 +644,6 @@ regression.plain-report-adnominal.concern	우려하다	verb	smart-exact	24	39	�
 regression.plain-report-adnominal.start	시작하다	verb	smart-exact	20	35	드디어 공사를 시작했다는 소식을 들었다.
 regression.plain-report-adnominal.put	넣다	verb	smart-exact	17	29	소금을 이미 넣었다는 말을 들었다.
 regression.plain-report-adnominal.resultative	옮기다	verb	smart-exact	27	42	자료가 다른 곳으로 옮겨졌다는 통보를 받았다.
+corpus.ud-gsd.test.test-s34.verb.기대하다	기대하다	verb	smart-exact	296	305	그는 이어 "만약 이 서비스가 제대로 정착만 된다면 중국 및 동남아 부유층 유치에 일대 전기를 마련하게 되는 계기가 될 것"이라며 "외국인도 이용 가능한 상품으로 기획되었다는 점에서 국내 골프 투어 수출 시대의 개막도 기대해 봄직하다"고 강한 자신감을 나타냈다.
+corpus.ud-gsd.test.test-s53.verb.고생하다	고생하다	verb	smart-exact	42	60	알레르기성 비염이랑 천식으로 고생했었는데 한 달 조금 넘게 꾸준히 다녔더니 그 후 일 년 넘게 아무렇지도 않네요.
+corpus.ud-gsd.test.test-s136.verb.발전시키다	발전시키다	verb	smart-exact	108	120	저자는 이 책에서 자신의 실제 매매와 소프트웨어 개발, 강의 경험 등 그간 연구, 발전시켜 온 트레이딩 기법을 낱낱이 공개했다.
