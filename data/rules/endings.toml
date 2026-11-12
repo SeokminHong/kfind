@@ -212,6 +212,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.report-contraction"
+category = "final"
+initial = "other"
+forms = ["대", "ㄴ대", "는대", "래", "으래", "냬", "으냬", "느냬", "재"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.directive-ra"
 category = "final"
 initial = "eu"

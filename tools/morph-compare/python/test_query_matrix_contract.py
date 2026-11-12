@@ -33,6 +33,7 @@ class QueryMatrixContractReviewTests(unittest.TestCase):
             ("humble", "humble"),
             ("casual-prefinal", "casual-prefinal"),
             ("request-dalla", "request-dalla"),
+            ("indirect-quote", "indirect-quote"),
         ):
             with self.subTest(dataset=prefix):
                 self.assert_context_pairs(root, prefix, split)

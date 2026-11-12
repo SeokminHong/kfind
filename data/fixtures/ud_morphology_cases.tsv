@@ -192,3 +192,45 @@ corpus.ud-kaist.dev.MH2_0159-s341.adjective.가볍다	가볍다	adjective	exact	
 corpus.ud-kaist.dev.MH2_0169-s738.noun.년	년	noun	exact	45	48	봉건 시대가 우리나라에만 1,500여 년간 유지되었다.
 corpus.ud-kaist.dev.MH2_0169-s101.noun.거	거	noun	exact	83	86	이것은 후보의 한계라기보다 우리 민중 운동의 한계라고 하는 게 훨씬 정확하다.
 corpus.ud-gsd.test.test-s746.noun.국회	국회	noun	exact	47	62	사법 개혁과 검찰 개혁을 부르짖던 국회야말로 개혁의 대상이다.
+regression.indirect-quote.report-open	오다	verb	smart-exact	14	20	주말에 비 온대.
+regression.indirect-quote.report-open-past	오다	verb	smart-exact	17	26	친구가 내일 온댔어.
+regression.indirect-quote.report-open-polite	가다	verb	smart-exact	41	50	승규가 방학 때 바닷가에 놀러 간대요.
+regression.indirect-quote.report-rieul	알다	verb	smart-exact	35	41	지수는 이 내용을 이미 다 안대?
+regression.indirect-quote.report-closed	먹다	verb	smart-exact	17	26	오늘은 늦게 먹는대.
+regression.indirect-quote.report-closed-polite	입다	verb	smart-exact	28	40	동생이 내일 새 옷을 입는대요.
+regression.indirect-quote.report-adjective	슬프다	adjective	smart-exact	14	23	그 영화가 슬프대.
+regression.indirect-quote.report-adjective-polite	허전하다	adjective	smart-exact	27	45	할머니가 요즘 집이 허전하시대요.
+regression.indirect-quote.report-verb-past	하다	verb	smart-exact	21	27	숙제를 벌써 다 했대?
+regression.indirect-quote.report-verb-future	가다	verb	smart-exact	17	26	친구는 먼저 가겠대.
+regression.indirect-quote.report-copula	이다	adjective	smart-exact	27	33	그 사람은 아직 학생이래.
+regression.indirect-quote.directive-open	오다	verb	smart-exact	27	36	선생님이 오늘 일찍 오래요.
+regression.indirect-quote.directive-closed	먹다	verb	smart-exact	14	23	누가 라면 먹으래?
+regression.indirect-quote.directive-rieul	말다	verb	smart-exact	23	32	선생님이 나가지 말래요.
+regression.indirect-quote.directive-past-open	오다	verb	smart-exact	24	33	친구가 내일 일찍 오랬다.
+regression.indirect-quote.directive-past-closed	먹다	verb	smart-exact	27	39	의사 선생님이 약을 먹으랬어.
+regression.indirect-quote.directive-past-request	달다	verb	smart-exact	24	33	아이가 용돈을 더 달랬다.
+regression.indirect-quote.question-past	하다	verb	smart-exact	21	30	아빠가 숙제 다 했냬요.
+regression.indirect-quote.question-adjective	괜찮다	adjective	smart-exact	17	29	친구가 몸은 괜찮으냬.
+regression.indirect-quote.suggestion-open	가다	verb	smart-exact	24	33	친구가 오늘 같이 가재요.
+regression.indirect-quote.suggestion-closed	먹다	verb	smart-exact	21	27	동생이 먼저 밥 먹재.
+regression.indirect-quote.suggestion-past	가다	verb	smart-exact	24	33	친구가 오늘 같이 가쟀다.
+regression.indirect-quote.report-adverb-competition	오다	verb	no-match	20	26	나는 병원에서 오래 기다렸다.
+regression.indirect-quote.report-temperate-competition	오다	verb	no-match	14	20	이 지역은 온대 기후에 속한다.
+regression.indirect-quote.report-blindfold-competition	알다	verb	no-match	7	13	그는 안대를 착용했다.
+regression.indirect-quote.report-crayfish-competition	가다	verb	no-match	0	6	가재 두 마리가 보인다.
+regression.indirect-quote.report-inflection-competition	가다	verb	smart-exact	14	20	너도 같이 갈래?
+regression.indirect-quote.report-verb-honorific	가다	verb	smart-exact	20	32	선생님이 먼저 가시대요.
+regression.indirect-quote.report-verb-honorific-n	가다	verb	smart-exact	20	32	선생님이 먼저 가신대요.
+regression.indirect-quote.report-verb-closed-coda	들다	verb	smart-exact	24	33	내일은 그 가방을 든대요.
+regression.indirect-quote.report-directive-irregular	듣다	verb	smart-exact	17	29	선생님이 잘 들으래요.
+regression.indirect-quote.report-question-verb	먹다	verb	smart-exact	18	27	엄마가 왜 안 먹느냬.
+regression.indirect-quote.report-question-rieul	살다	verb	smart-exact	17	29	친구가 어디 사느냬요.
+regression.indirect-quote.report-question-rieul-colloquial	살다	verb	smart-exact	17	26	친구가 어디 사냬요.
+regression.indirect-quote.report-question-rieul-adjective	멀다	adjective	smart-exact	17	23	동생이 역이 머냬.
+regression.indirect-quote.report-question-existential	있다	adjective	smart-exact	17	29	친구가 시간 있느냬요.
+regression.indirect-quote.report-verb-honorific-rieul	살다	verb	smart-exact	26	38	할아버지가 서울에 사시대요.
+regression.indirect-quote.report-verb-honorific-rieul-n	살다	verb	smart-exact	26	38	할아버지가 서울에 사신대요.
+regression.report-homograph.orae-verb-positive	오다	verb	smart-exact	21	27	선생님이 뭐래? 오래.
+regression.report-homograph.orae-verb-context	오다	verb	smart-exact	24	30	얼마나 기다렸어? 오래.
+regression.report-homograph.orae-adverb-positive	오래	adverb	smart-exact	24	30	얼마나 기다렸어? 오래.
+regression.report-homograph.orae-adverb-context	오래	adverb	smart-exact	21	27	선생님이 뭐래? 오래.

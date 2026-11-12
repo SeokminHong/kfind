@@ -1039,6 +1039,7 @@ impl MorphMatcher {
                     || has_prayer_object_frame(haystack, candidate, branch, atom, resolver)
                     || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
                     || has_nominal_interrogative_frame(haystack, candidate, branch, resolver)
+                    || has_nonpredicate_report_frame(haystack, candidate, branch, resolver)
             })
         {
             return false;
@@ -2409,6 +2410,61 @@ fn has_nominal_interrogative_frame(
                     && resolver.has_object_marked_nominal(&counter)
             })
         })
+}
+
+fn has_nonpredicate_report_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let end = candidate.consumed.end;
+    let Some(tail) = end
+        .checked_sub(3)
+        .and_then(|start| haystack.get(start..end))
+    else {
+        return false;
+    };
+    if !["대", "래", "재", "냬", "ᅢ", "ᅤ"]
+        .iter()
+        .any(|ending| tail == ending.as_bytes())
+    {
+        return false;
+    }
+    let is_report = |rule: &RuleId| rule.as_str() == "ending.report-contraction";
+    if !(candidate.suffix_rules.iter().any(is_report)
+        || (!branch.origins.is_empty()
+            && branch
+                .origins
+                .iter()
+                .all(|origin| origin.rule_path.iter().any(is_report))))
+        || !is_boundary_before(haystack, candidate.consumed.start)
+        || !is_boundary_after(haystack, candidate.consumed.end)
+    {
+        return false;
+    }
+    let Some((next_end, next)) = context::next_word_with_end(haystack, candidate.consumed.end)
+    else {
+        return false;
+    };
+    let Some(token) = context::normalized_token(haystack, candidate.consumed.clone()) else {
+        return false;
+    };
+    if resolver.has_exact_adverb_surface(&token) && resolver.has_independent_final_predicate(&next)
+    {
+        return true;
+    }
+    if !resolver.has_exact_nominal_surface(&token) {
+        return false;
+    }
+    context::next_word(haystack, next_end).is_some_and(|following| {
+        let unit = following
+            .strip_suffix(['이', '가', '을', '를', '은', '는'])
+            .unwrap_or(&following);
+        resolver.has_counted_unit_frame(&next, unit)
+            || (resolver.has_complete_nominal_surface(&next)
+                && resolver.has_independent_final_predicate(&following))
+    })
 }
 
 fn has_whole_alternative_conjunction(

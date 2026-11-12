@@ -1,0 +1,4 @@
+{"id":"orae-verb-positive","query":"오다","pos":"verb","text":"선생님이 뭐래? 오래.","expected":true,"paired_case_id":"orae-verb-context","gold_byte_start":21,"gold_byte_end":27}
+{"id":"orae-verb-context","query":"오다","pos":"verb","text":"얼마나 기다렸어? 오래.","expected":false,"paired_case_id":"orae-verb-positive","gold_byte_start":24,"gold_byte_end":30}
+{"id":"orae-adverb-positive","query":"오래","pos":"adverb","text":"얼마나 기다렸어? 오래.","expected":true,"paired_case_id":"orae-adverb-context","gold_byte_start":24,"gold_byte_end":30}
+{"id":"orae-adverb-context","query":"오래","pos":"adverb","text":"선생님이 뭐래? 오래.","expected":false,"paired_case_id":"orae-adverb-positive","gold_byte_start":21,"gold_byte_end":27}

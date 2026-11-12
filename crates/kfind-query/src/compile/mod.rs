@@ -868,6 +868,7 @@ fn compile_predicate_with_generated(
                             | kfind_morph::ContinuationState::CompletedNieunEnding
                             | kfind_morph::ContinuationState::Interrogative
                             | kfind_morph::ContinuationState::CopulaRa
+                            | kfind_morph::ContinuationState::ReportEnding
                     ) {
                         return false;
                     }
