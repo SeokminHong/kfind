@@ -707,4 +707,55 @@ impl ConstraintResolver {
             pos.is_predicate() && pos != StructuralPos::VCP
         })
     }
+
+    #[must_use]
+    pub fn has_independent_final_predicate(&self, text: &str) -> bool {
+        let has_final_ending = |length: usize, endings: &[StructuralPos]| {
+            if length == text.len() {
+                return endings.split_last().is_some_and(|(last, prefinals)| {
+                    *last == StructuralPos::EF
+                        && prefinals.iter().all(|pos| *pos == StructuralPos::EP)
+                });
+            }
+            endings.iter().all(|pos| *pos == StructuralPos::EP)
+                && super::lexical::has_exact_sequence(
+                    &self.resource,
+                    &text[length..],
+                    &[StructuralPos::EF],
+                )
+        };
+        let mut has_final_predicate = false;
+        let mut has_final_auxiliary = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
+                let Some((&predicate, endings)) = positions.split_first() else {
+                    return;
+                };
+                match predicate {
+                    StructuralPos::VV | StructuralPos::VA => {
+                        has_final_predicate |= has_final_ending(length, endings);
+                    }
+                    StructuralPos::VX => {
+                        has_final_auxiliary |= has_final_ending(length, endings);
+                    }
+                    StructuralPos::NNG | StructuralPos::XR
+                        if length < text.len() && endings.is_empty() =>
+                    {
+                        self.resource.common_prefix_positions(
+                            &text.as_bytes()[length..],
+                            |suffix_len, positions| {
+                                if let Some((&(StructuralPos::XSV | StructuralPos::XSA), endings)) =
+                                    positions.split_first()
+                                {
+                                    has_final_predicate |=
+                                        has_final_ending(length + suffix_len, endings);
+                                }
+                            },
+                        );
+                    }
+                    _ => {}
+                }
+            });
+        has_final_predicate && !has_final_auxiliary && !self.has_exact_nominal_surface(text)
+    }
 }

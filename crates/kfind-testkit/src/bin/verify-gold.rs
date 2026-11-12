@@ -21,6 +21,8 @@ const JIYO_CASES: &str = include_str!("../../../../data/fixtures/jiyo_span_cases
 const HUMBLE_CASES: &str = include_str!("../../../../data/fixtures/humble_span_cases.tsv");
 const CASUAL_PREFINAL_CASES: &str =
     include_str!("../../../../data/fixtures/casual_prefinal_span_cases.tsv");
+const TOPIC_PREDICATE_CASES: &str =
+    include_str!("../../../../data/fixtures/topic_predicate_span_cases.tsv");
 const ENRICHED_PREDICATES_SOURCE: &str = "data/enriched/predicates.tsv";
 const ENRICHED_PREDICATES: &str = include_str!("../../../../data/enriched/predicates.tsv");
 
@@ -93,6 +95,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         "casual prefinal endings",
         CASUAL_PREFINAL_CASES,
     )?;
+    verify_span_cases(
+        &enriched_harness,
+        "topic before predicate",
+        TOPIC_PREDICATE_CASES,
+    )?;
     verify_context_homographs(&enriched_harness)?;
     verify_copula_conditionals(&enriched_harness)?;
 
@@ -144,6 +151,8 @@ fn verify_context_homographs(harness: &GoldHarness) -> Result<(), Box<dyn Error>
         ),
         ("가지", CoarsePos::Noun, "가지는 보라색 채소다.", "가지는"),
         ("가다", CoarsePos::Verb, "그곳에 가지는 않았다.", "가지는"),
+        ("가다", CoarsePos::Verb, "그곳에 가지는 못했다.", "가지는"),
+        ("가다", CoarsePos::Verb, "그곳에 가지는 마라.", "가지는"),
         (
             "불과",
             CoarsePos::Noun,

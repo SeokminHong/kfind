@@ -1,0 +1,7 @@
+id	query	pos	expected	byte_start	byte_end	text
+pig-before-verb	되다	verb	no-match	0	9	돼지는 자랐다.
+pig-noun-before-verb	돼지	noun	smart-exact	0	9	돼지는 자랐다.
+pig-before-derived-adjective	되다	verb	no-match	0	9	돼지는 영리하다.
+pig-noun-before-derived-adjective	돼지	noun	smart-exact	0	9	돼지는 영리하다.
+eggplant-before-adjective	가다	verb	no-match	0	9	가지는 맛있다.
+eggplant-noun-before-adjective	가지	noun	smart-exact	0	9	가지는 맛있다.
