@@ -70,7 +70,7 @@ pub(in crate::structure) fn component_is_shadowed_by_predicate(
 pub(in crate::structure) fn nominal_component_is_supported(
     allow_components: bool,
     support: StructuralEvidence,
-    core: &Range<usize>,
+    spans: &CandidateSpans,
     selected: &Range<usize>,
     evidence: &TokenEvidence,
     pos: DataFinePos,
@@ -79,9 +79,11 @@ pub(in crate::structure) fn nominal_component_is_supported(
     if allow_components {
         return true;
     }
+    let core = &spans.core;
     match support {
         StructuralEvidence::SourceComponent => {
-            evidence.has_unambiguous_nominal_source_component(selected, core, pos)
+            ((core.start == selected.start || spans.consumed.end == spans.token.end)
+                && evidence.has_unambiguous_nominal_source_component(selected, core, pos))
                 || nominal_source_component_is_on_preferred_path(core, selected, evidence)
         }
         StructuralEvidence::RuntimeComponent => {
