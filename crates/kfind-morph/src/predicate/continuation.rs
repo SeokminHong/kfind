@@ -71,6 +71,8 @@ const COPULA_REPORTING_AND_RO_ENDINGS: &[Suffix] = &[
 ];
 
 const GO_YO: Suffix = suffix("고요", &["ending.connective-go"]);
+const PURPOSE_REO: Suffix = suffix("러", &["ending.purpose-reo"]);
+const HONORIFIC_PURPOSE_REO: Suffix = suffix("시러", &["ending.honorific", "ending.purpose-reo"]);
 
 const COPULA_COMMON_ENDINGS: &[Suffix] = &[
     suffix("랴", &["ending.rya"]),
@@ -587,7 +589,8 @@ const EU_SUFFIXES: &[Suffix] = &[
     HONORIFIC_INTENTIVE_CONDITIONAL,
     suffix("면서", &["ending.simultaneous-myeonseo"]),
     suffix("려던", &["ending.intentive-adnominal"]),
-    suffix("러", &["ending.purpose-reo"]),
+    PURPOSE_REO,
+    HONORIFIC_PURPOSE_REO,
     suffix("나", &["ending.connective-na"]),
     suffix("시오", &["ending.imperative-sio"]),
     suffix("쇼", &["ending.imperative-sio-short"]),
@@ -1093,6 +1096,9 @@ fn verify_simple_continuation(
             GOSEO
         }
         ContinuationState::Eu if following.starts_with("시고서") => HONORIFIC_GOSEO,
+        ContinuationState::StemEnding if anchor.ends_with('시') && following.starts_with('러') => {
+            &[PURPOSE_REO]
+        }
         ContinuationState::Past | ContinuationState::Future if following.starts_with("다오") => {
             DAO
         }
