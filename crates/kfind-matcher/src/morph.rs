@@ -938,17 +938,12 @@ impl MorphMatcher {
                 };
                 if let Some((prefix, trailing)) =
                     consumption_following.split_at_checked(matched.consumed_bytes)
-                    && let Some(uncontracted_prefix) = prefix.strip_suffix('엔')
                     && trailing
                         .chars()
                         .next()
                         .is_some_and(crate::is_token_character)
-                    && matches!(
-                        matched.rule_path.as_slice(),
-                        [.., locative, topic]
-                            if locative.as_str() == "particle.locative"
-                                && topic.as_str() == "particle.topic"
-                    )
+                    && let Some(uncontracted_prefix) =
+                        ParticleVerifier::before_contracted_case_topic(prefix, &matched.rule_path)
                 {
                     matched = self
                         .particle_verifier
