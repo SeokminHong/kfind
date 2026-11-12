@@ -9,6 +9,8 @@ use kfind_testkit::{GoldHarness, load_morphology_cases};
 
 const WALK_HANG_STRESS: &str = include_str!("../../../../data/fixtures/walk_hang_stress.txt");
 const UD_MORPHOLOGY_CASES: &str = include_str!("../../../../data/fixtures/ud_morphology_cases.tsv");
+const ENRICHED_PREDICATES_SOURCE: &str = "data/enriched/predicates.tsv";
+const ENRICHED_PREDICATES: &str = include_str!("../../../../data/enriched/predicates.tsv");
 
 fn main() -> Result<(), Box<dyn Error>> {
     let arguments = env::args_os()
@@ -59,12 +61,73 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     verify_walk_hang_stress(&harness)?;
-    verify_ud_morphology(&harness)?;
+    let ud_harness =
+        harness.with_enriched_predicates(ENRICHED_PREDICATES_SOURCE, ENRICHED_PREDICATES)?;
+    verify_ud_morphology(&ud_harness)?;
+    verify_resultative_homographs(&ud_harness)?;
 
     println!(
         "morphology gold with auto-POS coverage: {} cases and walk/hang stress passed",
         cases.len()
     );
+    Ok(())
+}
+
+fn verify_resultative_homographs(harness: &GoldHarness) -> Result<(), Box<dyn Error>> {
+    for (query, pos, text, surface) in [
+        (
+            "되다",
+            CoarsePos::Verb,
+            "신청만으로 자동 승인이 돼지는 건 아니에요.",
+            "돼지는",
+        ),
+        (
+            "되다",
+            CoarsePos::Verb,
+            "첫 번째 기능은 업데이트하면 자동으로 돼지고요, 두 번째는 따로 켜야 해요.",
+            "돼지고요",
+        ),
+        (
+            "가다",
+            CoarsePos::Verb,
+            "물살이 세서 앞으로 잘 가지지 않았다.",
+            "가지지",
+        ),
+        (
+            "가다",
+            CoarsePos::Verb,
+            "밀물이 시작되자 노를 젓지 않아도 배가 앞으로 가지는 게 신기했다.",
+            "가지는",
+        ),
+        ("돼지", CoarsePos::Noun, "돼지는 잡식 동물이다.", "돼지는"),
+        (
+            "돼지",
+            CoarsePos::Noun,
+            "이쪽은 돼지고요, 저쪽은 소예요.",
+            "돼지",
+        ),
+        (
+            "가지다",
+            CoarsePos::Verb,
+            "그는 재산을 가지지 않았다.",
+            "가지지",
+        ),
+        ("가지", CoarsePos::Noun, "가지는 보라색 채소다.", "가지는"),
+        ("가다", CoarsePos::Verb, "그곳에 가지는 않았다.", "가지는"),
+    ] {
+        let start = text.find(surface).expect("target appears in the fixture");
+        for boundary in [BoundaryPolicy::Smart, BoundaryPolicy::Any] {
+            let matches = harness.find_lemma_matches(query, text, pos, boundary)?;
+            if !matches
+                .iter()
+                .any(|matched| matched.span == (start..start + surface.len()))
+            {
+                return Err(
+                    format!("{query} {boundary:?}: expected {surface:?} in {text:?}").into(),
+                );
+            }
+        }
+    }
     Ok(())
 }
 
@@ -85,8 +148,9 @@ fn verify_ud_morphology(harness: &GoldHarness) -> Result<(), Box<dyn Error>> {
             "adverb" => CoarsePos::Adverb,
             _ => return Err(invalid_row().into()),
         };
-        let expected = match *expected {
-            "match" => true,
+        let expectation = *expected;
+        let expected = match expectation {
+            "match" | "exact" => true,
             "no-match" => false,
             _ => return Err(invalid_row().into()),
         };
@@ -100,13 +164,28 @@ fn verify_ud_morphology(harness: &GoldHarness) -> Result<(), Box<dyn Error>> {
             if boundary == BoundaryPolicy::Any && !expected {
                 continue;
             }
-            let cores = harness.find_lemma_cores(query, text, pos, boundary)?;
-            let found = cores
-                .iter()
-                .any(|core| core.start < end && start < core.end);
+            let matches = harness.find_lemma_matches(query, text, pos, boundary)?;
+            let spans = if expectation == "exact" {
+                matches
+                    .into_iter()
+                    .map(|matched| matched.span)
+                    .collect::<Vec<_>>()
+            } else {
+                matches
+                    .into_iter()
+                    .flat_map(|matched| matched.atoms.into_iter().map(|atom| atom.core))
+                    .collect::<Vec<_>>()
+            };
+            let found = spans.iter().any(|span| {
+                if expectation == "exact" {
+                    *span == (start..end)
+                } else {
+                    span.start < end && start < span.end
+                }
+            });
             if found != expected {
                 failures.push(format!(
-                    "{id} {boundary:?}: target={target:?}, expected={expected}, cores={cores:?}"
+                    "{id} {boundary:?}: target={target:?}, expected={expectation}, spans={spans:?}"
                 ));
             }
         }

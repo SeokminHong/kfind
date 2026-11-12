@@ -1,0 +1,8 @@
+{"id":"fixture-lexical-context-14","query":"되다","pos":"verb","text":"돼지는 잡식 동물이다.","expected":false,"gold_byte_start":0,"gold_byte_end":9,"paired_case_id":"paired-dwaejineun-verb"}
+{"id":"paired-dwaejineun-verb","query":"되다","pos":"verb","text":"신청만으로 자동 승인이 돼지는 건 아니에요.","expected":true,"gold_byte_start":33,"gold_byte_end":42,"paired_case_id":"fixture-lexical-context-14"}
+{"id":"fixture-lexical-context-15","query":"되다","pos":"verb","text":"이쪽은 돼지고요, 저쪽은 소예요.","expected":false,"gold_byte_start":10,"gold_byte_end":22,"paired_case_id":"paired-dwaejigoyo-verb"}
+{"id":"paired-dwaejigoyo-verb","query":"되다","pos":"verb","text":"첫 번째 기능은 업데이트하면 자동으로 돼지고요, 두 번째는 따로 켜야 해요.","expected":true,"gold_byte_start":53,"gold_byte_end":65,"paired_case_id":"fixture-lexical-context-15"}
+{"id":"fixture-lexical-context-16","query":"가다","pos":"verb","text":"그는 재산을 가지지 않았다.","expected":false,"gold_byte_start":17,"gold_byte_end":26,"paired_case_id":"fixture-resultative-negative-connective-current"}
+{"id":"fixture-resultative-negative-connective-current","query":"가다","pos":"verb","text":"물살이 세서 앞으로 잘 가지지 않았다.","expected":true,"gold_byte_start":31,"gold_byte_end":40,"paired_case_id":"fixture-lexical-context-16"}
+{"id":"fixture-lexical-context-20","query":"가다","pos":"verb","text":"가지는 보라색 채소다.","expected":false,"gold_byte_start":0,"gold_byte_end":9,"paired_case_id":"paired-gajineun-verb"}
+{"id":"paired-gajineun-verb","query":"가다","pos":"verb","text":"밀물이 시작되자 노를 젓지 않아도 배가 앞으로 가지는 게 신기했다.","expected":true,"gold_byte_start":64,"gold_byte_end":73,"paired_case_id":"fixture-lexical-context-20"}

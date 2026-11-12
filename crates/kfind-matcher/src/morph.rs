@@ -760,11 +760,12 @@ impl MorphMatcher {
                 }
                 let mut normalized_consumed = matched.consumed_bytes;
                 let mut rule_path = matched.rule_path;
-                if *nominal_particle_transition {
-                    let particle = self.particle_verifier.verify_prefix(
-                        &consumption_anchor,
-                        &consumption_following[normalized_consumed..],
-                    );
+                if let Some(host) = resultative_nominal_host(&rule_path)
+                    .or_else(|| nominal_particle_transition.then_some(consumption_anchor.as_ref()))
+                {
+                    let particle = self
+                        .particle_verifier
+                        .verify_prefix(host, &consumption_following[normalized_consumed..]);
                     normalized_consumed =
                         normalized_consumed.checked_add(particle.consumed_bytes)?;
                     rule_path.extend(particle.rule_path);
@@ -2576,7 +2577,20 @@ fn starts_with_resultative_auxiliary(surface: &str) -> bool {
     surface
         .chars()
         .next()
-        .is_some_and(|first| matches!(first, '지' | '졌' | '진' | '질'))
+        .is_some_and(|first| matches!(first, '지' | '졌' | '진' | '질' | '져' | '집' | '짐'))
+}
+
+fn resultative_nominal_host(rule_path: &[RuleId]) -> Option<&'static str> {
+    match rule_path {
+        [auxiliary, nominalizer] if auxiliary.as_str() == "ending.auxiliary-jida" => {
+            match nominalizer.as_str() {
+                "ending.nominalizer-gi" => Some("기"),
+                "ending.nominalizer" => Some("짐"),
+                _ => None,
+            }
+        }
+        _ => None,
+    }
 }
 
 fn merge_origins(origins: &mut Vec<Origin>, additional: Vec<Origin>) {

@@ -11,7 +11,7 @@ use kfind_matcher::{MorphMatcher, MorphMatcherBuildError};
 use kfind_morph::CoarsePos;
 use kfind_query::{
     BoundaryPolicy, CompileError, CompileOptionOverrides, CompileOptions, LexiconQueryAnalyzer,
-    Lexicons, compile_query,
+    Lexicons, PhraseMatch, compile_query,
 };
 
 const FIXTURE_SOURCE: &str = "data/fixtures/morphology_cases.tsv";
@@ -82,6 +82,17 @@ impl GoldHarness {
         ))
     }
 
+    pub fn with_enriched_predicates(
+        mut self,
+        source: &str,
+        input: &str,
+    ) -> Result<Self, DataError> {
+        let mut lexicons = self.analyzer.lexicons().as_ref().clone();
+        lexicons.load_enriched_predicates(source, input)?;
+        self.analyzer = LexiconQueryAnalyzer::new(Arc::new(lexicons));
+        Ok(self)
+    }
+
     fn new(lexicons: Lexicons, component_resource: Option<Arc<ComponentResource>>) -> Self {
         Self {
             analyzer: LexiconQueryAnalyzer::new(Arc::new(lexicons)),
@@ -123,13 +134,13 @@ impl GoldHarness {
             .collect())
     }
 
-    pub fn find_lemma_cores(
+    pub fn find_lemma_matches(
         &self,
         query: &str,
         text: &str,
         pos: CoarsePos,
         boundary: BoundaryPolicy,
-    ) -> Result<Vec<Range<usize>>, GoldCaseError> {
+    ) -> Result<Vec<PhraseMatch>, GoldCaseError> {
         let options = CompileOptions::resolve(CompileOptionOverrides {
             pos: Some(pos),
             boundary: Some(boundary),
@@ -138,10 +149,7 @@ impl GoldHarness {
         .expect("gold fixture uses compatible options");
         Ok(self
             .matcher(query, &options)?
-            .find_all_with_meta(text.as_bytes())
-            .into_iter()
-            .flat_map(|matched| matched.atoms.into_iter().map(|atom| atom.core))
-            .collect())
+            .find_all_with_meta(text.as_bytes()))
     }
 
     fn evaluate_with_pos(
@@ -220,7 +228,7 @@ mod tests {
 
     use super::*;
 
-    const EXPECTED_CASES: usize = 852;
+    const EXPECTED_CASES: usize = 875;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {
@@ -288,6 +296,16 @@ mod tests {
             ("v:다루다", "이 주제는 다음 장에서 다뤄진다.", "다뤄진다"),
             ("v:이루다", "합의는 단계적으로 이뤄진다.", "이뤄진다"),
             ("adj:흐리다", "하늘이 흐려지더니 비가 왔다.", "흐려지더니"),
+            ("adj:춥다", "날씨가 추워지는 때입니다.", "추워지는"),
+            ("adj:춥다", "갑자기 추워져서 외투를 꺼냈다.", "추워져서"),
+            ("adj:춥다", "밤이 되어도 추워지지 않았다.", "추워지지"),
+            ("adj:춥다", "해가 지면 더 추워집니다.", "추워집니다"),
+            ("adj:넓다", "주민들은 길이 넓어지기를 바랐다.", "넓어지기를"),
+            (
+                "adj:넓다",
+                "이 기록에서 도로가 넓어짐을 확인했다.",
+                "넓어짐을",
+            ),
         ] {
             let start = text.find(target).expect("target appears in the fixture");
             assert_eq!(

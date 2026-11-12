@@ -851,3 +851,26 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 말하다	verb	그 친구가 그렇게 말하던가?	match	retrospective-question
 확인하다	verb	한 번만 확인했던들 이런 실수는 없었을 텐데.	match	retrospective-condition
 내리다	verb	어제 비가 어찌나 세게 내리던지 우산이 망가졌어.	match	retrospective-connective
+춥다	adjective	날씨가 추워지니깐 따끈한 호떡이 생각난다.	match	resultative-reason
+춥다	adjective	날씨가 추워지는 때입니다.	match	resultative-present-adnominal
+춥다	adjective	갑자기 추워져서 외투를 꺼냈다.	match	resultative-vowel-contraction
+춥다	adjective	밤이 되어도 추워지지 않았다.	match	resultative-negative-connective
+춥다	adjective	해가 지면 더 추워집니다.	match	resultative-formal-declarative
+춥다	adjective	밤에는 더 추워질까요?	match	resultative-rieul-interrogative
+넓다	adjective	주민들은 길이 넓어지기를 바랐다.	match	resultative-nominalization
+넓다	adjective	이 기록에서 도로가 넓어짐을 확인했다.	match	resultative-nominalization
+넓다	adjective	길이 넓어지기을 바랐다.	no-match	resultative-nominalization-allomorph
+넓다	adjective	도로가 넓어짐를 확인했다.	no-match	resultative-nominalization-allomorph
+춥다	adjective	해가 지면 훨씬 추워지더라고요.	match	resultative-retrospective-quote
+맞다	verb	그래, 네 말이 맞더라고.	match	retrospective-quote
+많다	adjective	점심때는 사람이 많았겠더라.	match	retrospective-past-future
+좋다	adjective	할머니는 건강이 많이 좋으시더라.	match	retrospective-honorific
+가지다	verb	그는 재산을 가지지 않았다.	match	lexical-context
+춥다	adjective	날씨가 추워지려나?	match	resultative-conjecture
+춥다	adjective	해가 지면 추워지려니와 바람도 세질 것이다.	match	resultative-concession
+가다	verb	물살이 세서 앞으로 잘 가지지 않았다.	match	resultative-negative-connective
+되다	verb	신청만으로 자동 승인이 돼지는 건 아니에요.	match	resultative-homograph
+되다	verb	첫 번째 기능은 업데이트하면 자동으로 돼지고요, 두 번째는 따로 켜야 해요.	match	resultative-homograph
+가다	verb	밀물이 시작되자 노를 젓지 않아도 배가 앞으로 가지는 게 신기했다.	match	resultative-homograph
+돼지	noun	돼지는 잡식 동물이다.	match	resultative-homograph
+가지	noun	가지는 보라색 채소다.	match	resultative-homograph

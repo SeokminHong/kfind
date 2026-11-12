@@ -1,6 +1,7 @@
 use crate::{ContinuationState, PredicatePos, RuleId};
 
 mod hao;
+mod resultative;
 pub(super) use hao::{HAO_ENDINGS, HONORIFIC_HAO_AFTER_ACTION, HONORIFIC_HAO_ENDINGS, SOSEO};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -175,19 +176,42 @@ const A_OR_EO_SUFFIXES: &[Suffix] = &[
     suffix("라", &["ending.imperative-ra"]),
 ];
 
-const RESULTATIVE_STEM_ENDINGS: &[Suffix] = &[
-    suffix("면", &["ending.conditional"]),
+pub(super) const STEM_FIXED_ENDINGS: &[Suffix] = &[
     suffix("고", &["ending.connective-go"]),
-    suffix("다", &["ending.final-da"]),
+    suffix("지", &["ending.connective-ji"]),
+    suffix("게", &["ending.adverbial-ge"]),
+    suffix("던", &["ending.retrospective-adnominal"]),
     suffix("더니", &["ending.retrospective-connective"]),
     suffix("더라도", &["ending.concessive-deorado"]),
-    suffix("던", &["ending.retrospective-adnominal"]),
+    suffix("도록", &["ending.purpose-dorok"]),
+    suffix("다가", &["ending.connective-daga"]),
 ];
 const DEON_RECOLLECTION: &[Suffix] = &[
     suffix("던가", &["ending.retrospective-question-deon"]),
     suffix("던감", &["ending.retrospective-question-deon"]),
     suffix("던들", &["ending.retrospective-connective-deon"]),
     suffix("던지", &["ending.retrospective-connective-deon"]),
+];
+
+macro_rules! deora_endings {
+    ($prefix:literal $(, $prior:literal)*) => {
+        &[
+            suffix(concat!($prefix, "더라"), &[$($prior,)* "ending.retrospective-deora"]),
+            suffix(concat!($prefix, "더라고"), &[$($prior,)* "ending.retrospective-deora", "ending.quotative-go"]),
+            suffix(concat!($prefix, "더라고요"), &[$($prior,)* "ending.retrospective-deora", "ending.quotative-go", "ending.polite-yo"]),
+        ]
+    };
+}
+
+const DEORA: &[Suffix] = deora_endings!("");
+const GET_DEORA: &[Suffix] = deora_endings!("겠", "ending.future");
+const SI_DEORA: &[Suffix] = deora_endings!("시", "ending.honorific");
+const SYEOT_DEORA: &[Suffix] = deora_endings!("셨", "ending.honorific", "ending.past");
+const SIGET_DEORA: &[Suffix] = deora_endings!("시겠", "ending.honorific", "ending.future");
+const RYEO_CONJECTURE: &[Suffix] = &[
+    suffix("려나", &["ending.conjecture-ryeo"]),
+    suffix("려니", &["ending.conjecture-ryeo"]),
+    suffix("려니와", &["ending.concessive-ryeoniwa"]),
 ];
 
 const PAST_SUFFIXES: &[Suffix] = &[
@@ -228,6 +252,7 @@ const FUTURE_SUFFIXES: &[Suffix] = &[
     suffix("는데", &["ending.connective-neunde"]),
     suffix("다", &["ending.final-da"]),
     suffix("고", &["ending.connective-go"]),
+    suffix("어요", &["ending.aoeo", "ending.polite-yo"]),
 ];
 
 const DECLARATIVE_MYEONSEO: Suffix = suffix("면서", &["ending.quotative-myeonseo"]);
@@ -669,16 +694,25 @@ pub fn verify_predicate_continuation(
     anchor: &str,
     following: &str,
 ) -> Option<PredicateContinuationMatch> {
+    if state == ContinuationState::AOrEo
+        && let Some(resultative) = resultative::verify(anchor.len(), following)
+    {
+        return Some(resultative);
+    }
+    verify_simple_continuation(state, pos, anchor, following)
+}
+
+fn verify_simple_continuation(
+    state: ContinuationState,
+    pos: PredicatePos,
+    anchor: &str,
+    following: &str,
+) -> Option<PredicateContinuationMatch> {
     let candidates = match state {
         ContinuationState::Terminal => {
             return Some(matched(anchor.len(), None));
         }
-        ContinuationState::AOrEo => {
-            if let Some(resultative) = resultative_continuation(anchor.len(), following) {
-                return Some(resultative);
-            }
-            A_OR_EO_SUFFIXES
-        }
+        ContinuationState::AOrEo => A_OR_EO_SUFFIXES,
         ContinuationState::Past => PAST_SUFFIXES,
         ContinuationState::Future => FUTURE_SUFFIXES,
         ContinuationState::Declarative => {
@@ -695,6 +729,11 @@ pub fn verify_predicate_continuation(
         ContinuationState::Prospective => PROSPECTIVE,
     };
     let additional_endings = match state {
+        ContinuationState::Eu | ContinuationState::Prospective
+            if following.starts_with("려나") || following.starts_with("려니") =>
+        {
+            RYEO_CONJECTURE
+        }
         ContinuationState::Eu | ContinuationState::Prospective
             if pos != PredicatePos::Copula && following.starts_with('라') =>
         {
@@ -754,6 +793,15 @@ pub fn verify_predicate_continuation(
         {
             DEON_RECOLLECTION
         }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("더라") =>
+        {
+            DEORA
+        }
+        ContinuationState::Past if following.starts_with("겠더라") => GET_DEORA,
+        ContinuationState::Eu if following.starts_with("시더라") => SI_DEORA,
+        ContinuationState::Eu if following.starts_with("셨더라") => SYEOT_DEORA,
+        ContinuationState::Eu if following.starts_with("시겠더라") => SIGET_DEORA,
         ContinuationState::Past | ContinuationState::Future if following.starts_with("는데") => {
             NEUNDE
         }
@@ -830,64 +878,6 @@ pub fn verify_predicate_continuation(
         return None;
     }
     Some(matched(anchor.len(), suffix))
-}
-
-fn resultative_continuation(
-    anchor_len: usize,
-    following: &str,
-) -> Option<PredicateContinuationMatch> {
-    let (form, rule, suffix) = match following.chars().next()? {
-        '진' => {
-            if let Some(tail) = following.strip_prefix("진다") {
-                ("진다", Some("ending.declarative"), declarative_suffix(tail))
-            } else {
-                ("진", Some("ending.past-adnominal"), None)
-            }
-        }
-        '질' => ("질", Some("ending.future-adnominal"), None),
-        '졌' => ("졌", Some("ending.past"), None),
-        '지' if following.starts_with("지겠") => ("지겠", Some("ending.future"), None),
-        '지' => {
-            let tail = following.strip_prefix('지')?;
-            let suffix = RESULTATIVE_STEM_ENDINGS
-                .iter()
-                .chain(GEODEUN_ENDINGS)
-                .chain(DEON_RECOLLECTION)
-                .filter(|suffix| tail.starts_with(suffix.surface))
-                .max_by_key(|suffix| suffix.surface.len())?;
-            ("지", None, Some(suffix))
-        }
-        _ => return None,
-    };
-    let mut continuation = match form {
-        "졌" | "지겠" => {
-            let state = if form == "졌" {
-                ContinuationState::Past
-            } else {
-                ContinuationState::Future
-            };
-            let matched = verify_predicate_continuation(
-                state,
-                PredicatePos::AuxiliaryVerb,
-                form,
-                &following[form.len()..],
-            )?;
-            if matched.consumed_bytes == 0 {
-                return None;
-            }
-            matched
-        }
-        _ => matched(form.len(), suffix),
-    };
-    continuation.token_end += anchor_len;
-    continuation.consumed_bytes += form.len();
-    if let Some(rule) = rule {
-        continuation.rule_path.insert(0, RuleId::from(rule));
-    }
-    continuation
-        .rule_path
-        .insert(0, RuleId::from("ending.auxiliary-jida"));
-    Some(continuation)
 }
 
 fn declarative_suffix(following: &str) -> Option<&'static Suffix> {

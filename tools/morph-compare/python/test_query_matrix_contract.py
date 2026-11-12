@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -15,6 +16,35 @@ HEADER = (
 
 
 class QueryMatrixContractReviewTests(unittest.TestCase):
+    def test_reviewed_resultatives_have_matching_context_pairs(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        cases = [
+            json.loads(line)
+            for line in (root / "resultative-context-cases.jsonl").read_text(
+                encoding="utf-8"
+            ).splitlines()
+        ]
+        by_id = {case["id"]: case for case in cases}
+        self.assertEqual(len(cases), len(by_id))
+        reviews = load_contract_reviews(root / "resultative-contract-reviews.tsv")
+        apply_contract_reviews(
+            cases, reviews, query_mode="explicit-pos", split="resultative"
+        )
+
+        for case in cases:
+            with self.subTest(case=case["id"]):
+                other = by_id[case["paired_case_id"]]
+                self.assertEqual(case["id"], other["paired_case_id"])
+                self.assertNotEqual(case["text"], other["text"])
+                self.assertNotEqual(case["expected"], other["expected"])
+                self.assertEqual((case["query"], case["pos"]), (other["query"], other["pos"]))
+                surface = case["text"].encode()[case["gold_byte_start"]:case["gold_byte_end"]]
+                other_surface = other["text"].encode()[other["gold_byte_start"]:other["gold_byte_end"]]
+                self.assertTrue(surface)
+                self.assertEqual(surface.decode(), other_surface.decode())
+                if not case["expected"]:
+                    self.assertIs(case["contract_expected"], True)
+
     def test_applies_all_contract_review_statuses(self) -> None:
         cases = [
             self.case("ambiguous", "불과", "noun", False, "불과 수미터"),
