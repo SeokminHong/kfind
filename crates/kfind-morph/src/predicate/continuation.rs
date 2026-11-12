@@ -579,6 +579,12 @@ pub(super) const HONORIFIC_GEODEUN_ENDINGS: &[Suffix] = &[
     HONORIFIC_GEON,
 ];
 
+pub(super) const POLITE_HONORIFIC_ENDINGS: &[Suffix] = &[
+    suffix("시어요", &["ending.honorific", "ending.polite-imperative"]),
+    suffix("셔요", &["ending.honorific", "ending.polite-imperative"]),
+    suffix("세요", &["ending.honorific", "ending.polite-imperative"]),
+];
+
 const EU_SUFFIXES: &[Suffix] = &[
     suffix("시것다", &["ending.honorific", "ending.geotda"]),
     suffix(

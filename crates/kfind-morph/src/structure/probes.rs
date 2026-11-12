@@ -394,6 +394,15 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_vowel_connective_host(&self, text: &str) -> bool {
+        has_exact_sequence(
+            &self.resource,
+            text,
+            &[StructuralPos::VV, StructuralPos::EC],
+        ) && !has_exact_sequence(&self.resource, text, &[StructuralPos::VV])
+    }
+
+    #[must_use]
     pub fn supports_predicate_ending_path(
         &self,
         text: &str,

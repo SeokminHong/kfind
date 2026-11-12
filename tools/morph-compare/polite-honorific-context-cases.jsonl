@@ -1,0 +1,2 @@
+{"id":"roll-drink-context","query":"말다","pos":"verb","text":"물잔을 들어 입에 대세요. 이렇게 마셔요.","expected":false,"gold_byte_start":45,"gold_byte_end":54,"paired_case_id":"roll-positive"}
+{"id":"roll-positive","query":"말다","pos":"verb","text":"김 위에 밥을 펴고 속을 올리세요. 이렇게 마셔요.","expected":true,"gold_byte_start":56,"gold_byte_end":65,"paired_case_id":"roll-drink-context"}

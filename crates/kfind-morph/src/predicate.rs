@@ -797,6 +797,7 @@ fn compile_rieul_honorific(
     for suffix in continuation::HONORIFIC_GEODEUN_ENDINGS
         .iter()
         .chain(continuation::HONORIFIC_YAJI_ENDINGS)
+        .chain(continuation::POLITE_HONORIFIC_ENDINGS)
         .chain(if entry.pos.is_action() {
             continuation::HONORIFIC_HAO_AFTER_ACTION
         } else {

@@ -1,0 +1,2 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	polite-honorific	roll-drink-context	말다	verb	false	c9141a4c059563fa9ce7ffbe20bd22220eedddb258955588c6292e91670e9a97	contract-positive	structurally-indistinguishable-homograph	같은 문장에서 마셔요는 마시다와 말다의 활용으로 성립하고 앞 문장의 의미가 해석을 가른다.
