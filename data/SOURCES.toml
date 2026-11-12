@@ -47,14 +47,14 @@ license_notice_path = "enriched/NOTICE.md"
 
 [[artifact]]
 path = "enriched/predicates.tsv"
-artifact_sha256 = "8c2f1f22a0e898c4afc9f1c5498778802d27fe8c47ba4df09bc955c06d532a5f"
+artifact_sha256 = "67e99dc49c8d74d7584b370d1ca26e2e07e30ad5dce9391a7615734fadcc668e"
 sources = ["krdict", "stdict", "opendict"]
 license = "CC-BY-SA-2.0-KR"
 generator_command = "scripts/build-enriched-predicates.sh"
 
 [[artifact]]
 path = "enriched/REPORT.tsv"
-artifact_sha256 = "313fc4d0777c4352c2ad86296f174fafe7b9b957a1d7c783a9f96c2e31b99538"
+artifact_sha256 = "951e0065447e7d7995c0f5d95e3ed7dba0328a421a836a95ecb8f395b34bf98e"
 sources = ["krdict", "stdict", "opendict"]
 license = "CC-BY-SA-2.0-KR"
 generator_command = "scripts/build-enriched-predicates.sh"
