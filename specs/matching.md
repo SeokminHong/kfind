@@ -251,6 +251,8 @@
   path와 함께 있으면 recall-first 정책에 따라 용언 후보를 유지한다. 따라서 `어떻다`는
   `어떤가`에서 회수하지만, predicate path가 없거나 조사까지 더 남는 후보는 열지 않는다.
   그 밖의 runtime compound와 해결되지 않은 complete path 경쟁은 순위를 매기지 않는다.
+- 완성된 명사 뒤의 지정사 의문형 `-인가`에 인용 표지 `라고`, `라고요`, `라는`이
+  바로 붙으면 지정사 활용의 범위만 검색한다. `진리인가라는`의 반환 범위는 `인가`다.
 - 구조적 경쟁이 여전히 모호하면 `ProductPolicy`는 recall을 우선해 지원 가능한
   query 후보를 유지한다. `Ambiguous`와 경쟁 proof 전체는 진단 evaluator에서만 물질화한다.
 - program이 보존한 모든 query `Origin`은 결과 provenance에 남기되, corpus 의미 분석을

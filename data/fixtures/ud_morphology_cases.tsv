@@ -344,6 +344,13 @@ regression.compound-copula.command-not-copula	이다	adjective	no-match	10	25	�
 regression.compound-copula.command-verb	출력하다	verb	smart-exact	10	25	자료를 출력하라는 지시를 받았다.
 regression.compound-copula.quoted-finite-predicate	이다	adjective	no-match	0	18	충분하다라는 표현을 지웠다.
 corpus.ud-kaist.dev.MH2_0169-s169.quoted-explicit-copula	이다	adjective	smart-exact	16	22	유일한 대안인가라는 질문이 나왔다.
+corpus.ud-kaist.test.MH2_0180-s334.quoted-explicit-copula	이다	adjective	smart-exact	46	52	보다 적절히는 무엇이 현실의 진리인가라는 점이다.
+regression.explicit-copula.quote-adnominal	이다	adjective	smart-exact	26	32	우리는 그것이 진실인가라는 질문부터 다시 검토했다.
+regression.explicit-copula.quote-direct	이다	adjective	smart-exact	34	40	그는 우리가 본 것이 사실인가라고 물었다.
+regression.explicit-copula.quote-polite	이다	adjective	smart-exact	41	47	제가 묻고 싶은 건 여기가 학교인가라고요?
+regression.explicit-copula.nominal-subject	이다	adjective	no-match	10	16	관청의 인가가 나왔다.
+regression.explicit-copula.nominal-derived-verb	이다	adjective	no-match	24	30	정부가 그 사업을 인가했다.
+regression.explicit-copula.nominal-object	이다	adjective	no-match	7	13	사업 인가를 받았다.
 corpus.ud-kaist.dev.MH2_0069-s25.compound-nominal	사용	noun	smart-exact	14	20	그 상품의 사용가치에 커다란 변화를 줄 수 있다.
 corpus.ud-kaist.dev.MH2_0069-s36.compound-nominal	사용	noun	smart-exact	40	46	정보와 오락성은 언론 상품의 사용가치를 보장한다.
 corpus.ud-kaist.dev.MH2_0069-s37.compound-nominal	사용	noun	smart-exact	23	29	구매자는 새로운 사용가치를 원하게 된다.
