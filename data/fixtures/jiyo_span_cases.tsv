@@ -1,0 +1,113 @@
+id	query	pos	expected	byte_start	byte_end	text
+krdict.죠:1	지루하다	adjective	exact	25	37	오늘 본 영화는 좀 지루했죠.
+krdict.죠:2	피다	verb	exact	31	40	며칠 뒤면 벚꽃이 활짝 피겠죠.
+krdict.죠:3	즐겁다	adjective	exact	40	52	우리 지난해 제주도에서 아주 즐거웠죠.
+krdict.죠:4	좋다	adjective	exact	21	27	오늘 날씨가 참 좋죠?
+krdict.죠:5	피곤하다	adjective	exact	27	42	하루 종일 일하느라 피곤하셨죠?
+krdict.죠:6	바쁘다	adjective	exact	34	46	요새 결혼 준비를 하느라 바쁘시죠?
+krdict.죠:7	예쁘다	adjective	exact	25	34	제 여자 친구 정말 예쁘죠?
+krdict.죠:8	이다	adjective	exact	43	52	저희 아버지는 정말 따뜻하신 분이었죠.
+krdict.죠:9	알다	verb	exact	48	54	저와 승규는 오랜 친구라 서로를 잘 알죠.
+krdict.죠:10	이다	adjective	exact	65	71	지금은 교사를 하고 있지만 제 어릴 적 꿈은 가수였죠.
+krdict.죠:11	이다	adjective	smart-exact	11	17	지금 몇 시죠?
+krdict.죠:12	이다	adjective	smart-exact	14	23	이 사과는 얼마죠?
+krdict.죠:13	이다	adjective	exact	45	51	아이가 참 예쁘네요. 아이가 몇 살이죠?
+krdict.죠:14	걷다	verb	exact	32	38	비가 와요! 빨리 빨래를 걷죠!
+krdict.죠:15	일어나다	verb	exact	34	46	일찍 출발해야 되니 그만 일어나죠.
+krdict.죠:16	돌아가다	verb	exact	40	52	시간이 늦었으니 우리도 이만 돌아가죠.
+krdict.죠:17	일어나다	verb	exact	27	39	그러니까 조금 일찍 일어나죠. 늦었잖아요.
+krdict.죠:18	오다	verb	exact	57	66	이렇게 갑자기 오시다니, 전화라도 하시고 오시죠.
+krdict.죠:19	쉬다	verb	exact	34	43	몸도 안 좋으신데 집에서 쉬시죠. 왜 무리하셨어요.
+stdict.죠:20	가다	verb	exact	14	20	그만 집에 가죠.
+stdict.죠:21	붉다	adjective	exact	21	27	저녁 하늘이 참 붉죠.
+krdict.지요:1	덥다	adjective	exact	27	39	지난해 여름은 정말 더웠지요.
+krdict.지요:2	하다	verb	exact	32	41	참, 우리 오늘 만나기로 했지요.
+krdict.지요:3	없다	adjective	exact	57	66	지수처럼 정직한 아이가 거짓말을 할 리가 없지요.
+krdict.지요:4	대단하다	adjective	exact	51	66	어제 경기에서 이 선수의 활약은 정말 대단했지요.
+krdict.지요:5	맞다	verb	exact	22	31	보세요, 제 말이 맞지요?
+krdict.지요:6	오다	verb	exact	31	40	어제는 눈이 정말 많이 왔지요?
+krdict.지요:7	재미있다	adjective	exact	38	53	제가 추천해 드린 영화 정말 재미있지요?
+krdict.지요:8	성공하다	verb	exact	33	48	남들보다 열심히 살아야 성공하지요.
+krdict.지요:9	나오다	verb	exact	37	49	지수와 저는 같은 대학교를 나왔지요.
+krdict.지요:10	넘다	verb	exact	39	51	제가 교사가 된 지도 십 년이 넘었지요.
+krdict.지요:11	하다	verb	exact	21	30	우리는 이제 뭘 하지요?
+krdict.지요:12	되다	verb	exact	45	54	시청에 가려면 몇 번 버스를 타야 되지요?
+krdict.지요:13	좋다	adjective	exact	53	62	선생님께서 화가 많이 나셨는데 어쩌면 좋지요?
+krdict.지요:14	이다	adjective	smart-exact	30	42	여기 가까운 화장실이 어디지요?
+krdict.지요:15	오다	verb	exact	13	25	이쪽으로 오시지요.
+krdict.지요:16	들어가다	verb	exact	20	38	추운데 안으로 들어가시지요.
+krdict.지요:17	하다	verb	exact	46	55	오랜만에 만났으니 함께 식사라도 하지요.
+krdict.지요:18	가다	verb	exact	41	50	오래 걸었으니 우리 잠시 쉬어 가지요.
+krdict.지요:19	주다	verb	exact	34	46	버릴 거였으면 그냥 저를 주시지요.
+krdict.지요:20	오다	verb	exact	53	65	불꽃놀이는 벌써 끝났는데 조금만 일찍 오시지요.
+krdict.지요:21	두다	verb	exact	58	67	마감이 다 돼서 서두르지 말고 미리미리 해 두지요.
+stdict.지요:22	가다	verb	exact	14	23	저도 같이 가지요.
+stdict.지요:23	가다	verb	exact	7	16	어서 가지요.
+stdict.지요:24	떠나다	verb	exact	7	22	그만 떠나시지요.
+stdict.지요:25	그렇다	adjective	exact	10	22	우리도 그렇지요.
+stdict.지요:26	이다	adjective	exact	10	19	그런 법이지요.
+stdict.지요:27	이다	adjective	exact	13	25	그게 무엇이었지요?
+stdict.지요:28	건강하다	adjective	exact	7	28	모두 건강하시겠지요?
+sseu-jiyo-verb	쓰다	verb	exact	51	60	그 작가는 요즘 어린이를 위한 동화를 쓰지요.
+sseu-jiyo-verb-context	쓰다	verb	exact	29	38	이 약은 물에 타도 꽤 쓰지요.
+sseu-jiyo-adj-context	쓰다	adjective	exact	51	60	그 작가는 요즘 어린이를 위한 동화를 쓰지요.
+sseu-jiyo-adj	쓰다	adjective	exact	29	38	이 약은 물에 타도 꽤 쓰지요.
+sseu-jyo-verb	쓰다	verb	exact	51	57	그 작가는 요즘 어린이를 위한 동화를 쓰죠.
+sseu-jyo-verb-context	쓰다	verb	exact	29	35	이 약은 물에 타도 꽤 쓰죠.
+sseu-jyo-adj-context	쓰다	adjective	exact	51	57	그 작가는 요즘 어린이를 위한 동화를 쓰죠.
+sseu-jyo-adj	쓰다	adjective	exact	29	35	이 약은 물에 타도 꽤 쓰죠.
+cha-jiyo-verb	차다	verb	exact	41	50	그 선수는 왼발로도 공을 힘껏 차지요.
+cha-jiyo-verb-context	차다	verb	exact	41	50	새벽에 길어 온 우물물은 아주 차지요.
+cha-jiyo-adj-context	차다	adjective	exact	41	50	그 선수는 왼발로도 공을 힘껏 차지요.
+cha-jiyo-adj	차다	adjective	exact	41	50	새벽에 길어 온 우물물은 아주 차지요.
+cha-jyo-verb	차다	verb	exact	41	47	그 선수는 왼발로도 공을 힘껏 차죠.
+cha-jyo-verb-context	차다	verb	exact	41	47	새벽에 길어 온 우물물은 아주 차죠.
+cha-jyo-adj-context	차다	adjective	exact	41	47	그 선수는 왼발로도 공을 힘껏 차죠.
+cha-jyo-adj	차다	adjective	exact	41	47	새벽에 길어 온 우물물은 아주 차죠.
+balg-jiyo-verb	밝다	verb	exact	45	54	이 계절에는 보통 여섯 시쯤 날이 밝지요.
+balg-jiyo-verb-context	밝다	verb	exact	44	53	그 휴대폰은 한낮에도 화면이 꽤 밝지요.
+balg-jiyo-adj-context	밝다	adjective	exact	45	54	이 계절에는 보통 여섯 시쯤 날이 밝지요.
+balg-jiyo-adj	밝다	adjective	exact	44	53	그 휴대폰은 한낮에도 화면이 꽤 밝지요.
+balg-jyo-verb	밝다	verb	exact	45	51	이 계절에는 보통 여섯 시쯤 날이 밝죠.
+balg-jyo-verb-context	밝다	verb	exact	44	50	그 휴대폰은 한낮에도 화면이 꽤 밝죠.
+balg-jyo-adj-context	밝다	adjective	exact	45	51	이 계절에는 보통 여섯 시쯤 날이 밝죠.
+balg-jyo-adj	밝다	adjective	exact	44	50	그 휴대폰은 한낮에도 화면이 꽤 밝죠.
+keu-jiyo-verb	크다	verb	exact	40	49	아이들은 방학 동안에도 부쩍 크지요.
+keu-jiyo-verb-context	크다	verb	exact	51	60	그 모니터는 제 책상에 두기에는 너무 크지요.
+keu-jiyo-adj-context	크다	adjective	exact	40	49	아이들은 방학 동안에도 부쩍 크지요.
+keu-jiyo-adj	크다	adjective	exact	51	60	그 모니터는 제 책상에 두기에는 너무 크지요.
+keu-jyo-verb	크다	verb	exact	40	46	아이들은 방학 동안에도 부쩍 크죠.
+keu-jyo-verb-context	크다	verb	exact	51	57	그 모니터는 제 책상에 두기에는 너무 크죠.
+keu-jyo-adj-context	크다	adjective	exact	40	46	아이들은 방학 동안에도 부쩍 크죠.
+keu-jyo-adj	크다	adjective	exact	51	57	그 모니터는 제 책상에 두기에는 너무 크죠.
+neuj-jiyo-verb	늦다	verb	exact	47	56	민수는 모임이 있을 때마다 약속에 늦지요.
+neuj-jiyo-verb-context	늦다	verb	exact	50	59	지금 다시 출발하기에는 시간이 너무 늦지요.
+neuj-jiyo-adj-context	늦다	adjective	exact	47	56	민수는 모임이 있을 때마다 약속에 늦지요.
+neuj-jiyo-adj	늦다	adjective	exact	50	59	지금 다시 출발하기에는 시간이 너무 늦지요.
+neuj-jyo-verb	늦다	verb	exact	47	53	민수는 모임이 있을 때마다 약속에 늦죠.
+neuj-jyo-verb-context	늦다	verb	exact	50	56	지금 다시 출발하기에는 시간이 너무 늦죠.
+neuj-jyo-adj-context	늦다	adjective	exact	47	53	민수는 모임이 있을 때마다 약속에 늦죠.
+neuj-jyo-adj	늦다	adjective	exact	50	56	지금 다시 출발하기에는 시간이 너무 늦죠.
+iss-jiyo-verb	있다	verb	exact	54	63	아이들이 돌아올 때까지 저는 이 자리에 있지요.
+iss-jiyo-verb-context	있다	verb	exact	54	63	그 마을에는 오래된 느티나무가 한 그루 있지요.
+iss-jiyo-adj-context	있다	adjective	exact	54	63	아이들이 돌아올 때까지 저는 이 자리에 있지요.
+iss-jiyo-adj	있다	adjective	exact	54	63	그 마을에는 오래된 느티나무가 한 그루 있지요.
+iss-jyo-verb	있다	verb	exact	54	60	아이들이 돌아올 때까지 저는 이 자리에 있죠.
+iss-jyo-verb-context	있다	verb	exact	54	60	그 마을에는 오래된 느티나무가 한 그루 있죠.
+iss-jyo-adj-context	있다	adjective	exact	54	60	아이들이 돌아올 때까지 저는 이 자리에 있죠.
+iss-jyo-adj	있다	adjective	exact	54	60	그 마을에는 오래된 느티나무가 한 그루 있죠.
+honorific-past	걷다	verb	exact	42	57	선생님께서는 오늘도 산책로를 걸으셨지요.
+honorific-rieul	알다	verb	exact	34	43	선생님께서도 그 일을 잘 아시죠?
+double-prefinal	읽다	verb	exact	48	66	지금쯤이면 선생님께서도 안내문을 읽으셨겠지요.
+double-tense	먹다	verb	exact	47	59	시간이 이만큼 지났으니 벌써 밥을 먹었겠죠.
+trial	읽다	verb	exact	38	50	요즘은 처음 보는 글도 먼저 읽어보죠.
+resultative	다루다	verb	exact	31	43	그 주제는 다음 시간에 다뤄지죠.
+resultative-different	굳다	verb	exact	44	56	시간이 지나면 풀이 더 단단하게 굳어지죠.
+죠-copula	이다	adjective	smart-exact	11	17	지금 몇 시죠?
+죠-copula-context	이다	adjective	no-match	43	49	이 귤은 잘 익은 것 같은데도 꽤 시죠?
+죠-adj-context	시다	adjective	no-match	11	17	지금 몇 시죠?
+죠-adj	시다	adjective	exact	43	49	이 귤은 잘 익은 것 같은데도 꽤 시죠?
+지요-copula	이다	adjective	smart-exact	24	33	방송이 끝나면 두 시지요?
+지요-copula-context	이다	adjective	no-match	42	51	이 포도는 색이 진해도 아직 꽤 시지요?
+지요-adj-context	시다	adjective	no-match	24	33	방송이 끝나면 두 시지요?
+지요-adj	시다	adjective	exact	42	51	이 포도는 색이 진해도 아직 꽤 시지요?

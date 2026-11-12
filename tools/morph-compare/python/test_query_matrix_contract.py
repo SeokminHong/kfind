@@ -29,6 +29,7 @@ class QueryMatrixContractReviewTests(unittest.TestCase):
             ("meuro", "meuro"),
             ("mse", "mse"),
             ("dao", "dao"),
+            ("jiyo", "jiyo"),
         ):
             with self.subTest(dataset=prefix):
                 self.assert_context_pairs(root, prefix, split)

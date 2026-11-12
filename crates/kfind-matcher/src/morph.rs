@@ -967,6 +967,7 @@ impl MorphMatcher {
             && self.constraint_resolver.as_ref().is_some_and(|resolver| {
                 has_competing_hao_connective(haystack, candidate, branch, resolver)
                     || has_nominal_quotative_frame(haystack, candidate, branch, resolver)
+                    || has_counted_unit_copula(haystack, candidate, branch, resolver)
             })
         {
             return false;
@@ -1441,6 +1442,12 @@ impl MorphMatcher {
                                 candidate.verified.token.start,
                                 resolver,
                             )
+                        },
+                        |unit| {
+                            context::previous_word(haystack, candidate.verified.token.start)
+                                .is_some_and(|previous| {
+                                    resolver.has_counted_unit_frame(&previous, unit)
+                                })
                         },
                     )))
     }
@@ -1984,6 +1991,42 @@ fn contracted_copula_surface_follows(
 fn follows_predicate_adnominal(haystack: &[u8], at: usize, resolver: &ConstraintResolver) -> bool {
     context::previous_word(haystack, at)
         .is_some_and(|previous| resolver.has_predicate_adnominal_surface(&previous))
+}
+
+fn has_counted_unit_copula(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let (CandidateConsumption::PredicateContinuation { pos, .. }
+    | CandidateConsumption::StructuralPredicateEnding { pos, .. }) = branch.consumption
+    else {
+        return false;
+    };
+    let core = &candidate.verified.core;
+    if pos == kfind_morph::PredicatePos::Copula
+        || !haystack
+            .get(core.end..candidate.consumed.end)
+            .and_then(|bytes| std::str::from_utf8(bytes).ok())
+            .is_some_and(|suffix| {
+                matches!(suffix, "죠" | "지요")
+                    || (suffix.starts_with('ᄌ')
+                        && (suffix.nfc().eq("죠".chars()) || suffix.nfc().eq("지요".chars())))
+            })
+        || !is_boundary_before(haystack, core.start)
+    {
+        return false;
+    }
+    let Some(previous) = context::previous_word(haystack, core.start) else {
+        return false;
+    };
+    haystack
+        .get(core.clone())
+        .and_then(|bytes| std::str::from_utf8(bytes).ok())
+        .is_some_and(|unit| {
+            resolver.has_counted_unit_frame(&previous, &unit.nfc().collect::<String>())
+        })
 }
 
 fn has_nominal_quotative_frame(

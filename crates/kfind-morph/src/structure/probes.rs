@@ -611,6 +611,18 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_counted_unit_frame(&self, previous: &str, unit: &str) -> bool {
+        exact_analysis_starts_with_pos(&self.resource, unit, |pos| pos == StructuralPos::NNBC)
+            && (has_exact_fine_pos(&self.resource, previous, |pos| pos == DataFinePos::Nr)
+                || (has_exact_fine_pos(&self.resource, previous, |pos| pos == DataFinePos::Mm)
+                    && !(has_exact_fine_pos(&self.resource, unit, |pos| pos == DataFinePos::Vx)
+                        && self.has_exact_predicate_connective_path(
+                            previous,
+                            PredicatePosSet::one(PredicatePos::Verb),
+                        ))))
+    }
+
+    #[must_use]
     pub fn has_copula_conditional_adverbial_host(&self, text: &str) -> bool {
         has_exact_fine_pos(&self.resource, text, |pos| pos == DataFinePos::Mag)
             || complete_nominal_particle_host(&self.resource, text).is_some()

@@ -17,6 +17,7 @@ const SEOYA_CASES: &str = include_str!("../../../../data/fixtures/seoya_span_cas
 const MEURO_CASES: &str = include_str!("../../../../data/fixtures/meuro_span_cases.tsv");
 const MSE_CASES: &str = include_str!("../../../../data/fixtures/mse_span_cases.tsv");
 const DAO_CASES: &str = include_str!("../../../../data/fixtures/dao_span_cases.tsv");
+const JIYO_CASES: &str = include_str!("../../../../data/fixtures/jiyo_span_cases.tsv");
 const ENRICHED_PREDICATES_SOURCE: &str = "data/enriched/predicates.tsv";
 const ENRICHED_PREDICATES: &str = include_str!("../../../../data/enriched/predicates.tsv");
 
@@ -82,6 +83,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     verify_span_cases(&enriched_harness, "meuro endings", MEURO_CASES)?;
     verify_span_cases(&enriched_harness, "mse endings", MSE_CASES)?;
     verify_span_cases(&enriched_harness, "dao endings", DAO_CASES)?;
+    verify_span_cases(&enriched_harness, "jiyo endings", JIYO_CASES)?;
     verify_context_homographs(&enriched_harness)?;
     verify_copula_conditionals(&enriched_harness)?;
 
