@@ -1,7 +1,8 @@
 use crate::{ContinuationState, PredicatePos, RuleId};
 
+mod auxiliary;
 mod hao;
-mod resultative;
+mod trial;
 pub(super) use hao::{HAO_ENDINGS, HONORIFIC_HAO_AFTER_ACTION, HONORIFIC_HAO_ENDINGS, SOSEO};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -726,9 +727,14 @@ pub fn verify_predicate_continuation(
     following: &str,
 ) -> Option<PredicateContinuationMatch> {
     if state == ContinuationState::AOrEo
-        && let Some(resultative) = resultative::verify(anchor.len(), following)
+        && let Some(auxiliary) = match following.chars().next() {
+            Some('보' | '봐' | '봤' | '본' | '볼' | '봅' | '봄') if pos.is_action() => {
+                trial::verify(anchor.len(), following)
+            }
+            _ => auxiliary::verify_resultative(anchor.len(), following),
+        }
     {
-        return Some(resultative);
+        return Some(auxiliary);
     }
     verify_simple_continuation(state, pos, anchor, following)
 }

@@ -146,6 +146,28 @@ fn verify_context_homographs(harness: &GoldHarness) -> Result<(), Box<dyn Error>
             }
         }
     }
+    for (ask, text) in [
+        (true, "면접에서는 무엇을 물어보더냐?"),
+        (false, "새 장난감을 주니까 강아지가 물어보더냐?"),
+    ] {
+        let surface = "물어보더냐";
+        let start = text.find(surface).expect("target appears in the fixture");
+        for (query, contextual_match) in [("묻다", ask), ("물다", !ask)] {
+            // Both forms are valid at the same span. Sentence meaning supplies the raw label.
+            for boundary in [BoundaryPolicy::Smart, BoundaryPolicy::Any] {
+                let matches = harness.find_lemma_matches(query, text, CoarsePos::Verb, boundary)?;
+                if !matches
+                    .iter()
+                    .any(|matched| matched.span == (start..start + surface.len()))
+                {
+                    return Err(format!(
+                        "{query} {boundary:?}: expected {surface:?} in {text:?}, contextual_match={contextual_match}"
+                    )
+                    .into());
+                }
+            }
+        }
+    }
     Ok(())
 }
 

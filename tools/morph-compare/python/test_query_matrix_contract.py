@@ -18,7 +18,11 @@ HEADER = (
 class QueryMatrixContractReviewTests(unittest.TestCase):
     def test_reviewed_homographs_have_matching_context_pairs(self) -> None:
         root = Path(__file__).resolve().parents[1]
-        for prefix, split in (("resultative", "resultative"), ("query-matrix", "test")):
+        for prefix, split in (
+            ("resultative", "resultative"),
+            ("query-matrix", "test"),
+            ("trial", "trial"),
+        ):
             with self.subTest(dataset=prefix):
                 self.assert_context_pairs(root, prefix, split)
 

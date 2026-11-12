@@ -166,7 +166,7 @@ impl ReferenceMatcher {
                 }
                 if *nominal_particle_transition
                     || matches!(rules.as_slice(), [auxiliary, nominalizer]
-                        if auxiliary.as_str() == "ending.auxiliary-jida"
+                        if matches!(auxiliary.as_str(), "ending.auxiliary-jida" | "ending.auxiliary-boda")
                             && matches!(nominalizer.as_str(), "ending.nominalizer" | "ending.nominalizer-gi"))
                 {
                     let host = format!(
@@ -706,9 +706,9 @@ fn reference_predicate_continuation(
     following: &str,
 ) -> Option<(usize, Vec<RuleId>)> {
     if state == ContinuationState::AOrEo
-        && let Some(resultative) = reference_resultative(following)
+        && let Some(auxiliary) = reference_attached_auxiliary(pos, following)
     {
-        return Some(resultative);
+        return Some(auxiliary);
     }
     reference_simple_continuation(state, pos, anchor, following)
 }
@@ -1624,14 +1624,22 @@ fn reference_simple_continuation(
     ))
 }
 
-fn reference_resultative(following: &str) -> Option<(usize, Vec<RuleId>)> {
+fn reference_attached_auxiliary(
+    pos: PredicatePos,
+    following: &str,
+) -> Option<(usize, Vec<RuleId>)> {
     use ContinuationState::{
         AOrEo, BieupFinal, CompletedNieunEnding, Declarative, Eu, Future, Interrogative,
         NieunEnding, Past, RieulFinal, StemEnding, Terminal,
     };
-    let mut best = None;
-    for (form, state, standalone, rules) in [
-        ("진다", Declarative, true, &["ending.declarative"][..]),
+    type AuxiliaryForm = (
+        &'static str,
+        ContinuationState,
+        bool,
+        &'static [&'static str],
+    );
+    const RESULTATIVE: &[AuxiliaryForm] = &[
+        ("진다", Declarative, true, &["ending.declarative"]),
         ("진", CompletedNieunEnding, true, &["ending.past-adnominal"]),
         ("질", RieulFinal, true, &["ending.future-adnominal"]),
         ("집", BieupFinal, false, &[]),
@@ -1650,7 +1658,41 @@ fn reference_resultative(following: &str) -> Option<(usize, Vec<RuleId>)> {
         ("지기", Terminal, true, &["ending.nominalizer-gi"]),
         ("지", StemEnding, false, &[]),
         ("지", Eu, false, &[]),
-    ] {
+    ];
+    const TRIAL: &[AuxiliaryForm] = &[
+        ("본다", Declarative, true, &["ending.declarative"]),
+        ("본", CompletedNieunEnding, true, &["ending.past-adnominal"]),
+        ("볼", RieulFinal, true, &["ending.future-adnominal"]),
+        ("봅시다", Terminal, true, &["ending.propositive"]),
+        ("봅", BieupFinal, false, &[]),
+        ("봄", Terminal, true, &["ending.nominalizer"]),
+        ("봤", Past, false, &["ending.past"]),
+        ("보았", Past, false, &["ending.past"]),
+        ("봐", AOrEo, true, &["contraction.o-a", "ending.aoeo"]),
+        ("보아", AOrEo, true, &["ending.aoeo"]),
+        ("보겠", Future, false, &["ending.future"]),
+        ("보는", NieunEnding, true, &["ending.present-adnominal"]),
+        (
+            "보느냐",
+            Interrogative,
+            true,
+            &["ending.interrogative-neunya"],
+        ),
+        ("보기", Terminal, true, &["ending.nominalizer-gi"]),
+        ("보", StemEnding, false, &[]),
+        ("보", Eu, false, &[]),
+    ];
+    let (forms, stem, auxiliary) = match following.chars().next()? {
+        '보' | '봤' | '봐' | '본' | '볼' | '봅' | '봄' if pos.is_action() => {
+            (TRIAL, '보', "ending.auxiliary-boda")
+        }
+        '지' | '진' | '질' | '짐' | '집' | '져' | '졌' => {
+            (RESULTATIVE, '지', "ending.auxiliary-jida")
+        }
+        _ => return None,
+    };
+    let mut best = None;
+    for &(form, state, standalone, rules) in forms {
         let Some(rest) = following.strip_prefix(form) else {
             continue;
         };
@@ -1666,7 +1708,7 @@ fn reference_resultative(following: &str) -> Option<(usize, Vec<RuleId>)> {
             } else {
                 rules
             };
-        let mut path = vec!["ending.auxiliary-jida".into()];
+        let mut path = vec![auxiliary.into()];
         path.extend(rules.iter().copied().map(RuleId::from));
         path.extend(suffix);
         let end = form.len() + consumed;
@@ -1695,18 +1737,23 @@ fn reference_resultative(following: &str) -> Option<(usize, Vec<RuleId>)> {
         reference_suffix("는구나", &["ending.final-neun-exclamative"]),
         reference_suffix("는군", &["ending.final-neun-exclamative"]),
     ];
-    if let Some(rest) = following.strip_prefix('지')
+    const TRIAL_ONLY: &[ReferenceSuffix] = &[
+        reference_suffix("렴", &["ending.imperative-ryeom"]),
+        reference_suffix("려무나", &["ending.imperative-ryeom"]),
+    ];
+    if let Some(rest) = following.strip_prefix(stem)
         && let Some(fixed) = FIXED
             .iter()
+            .chain(if stem == '보' { TRIAL_ONLY } else { &[] })
             .filter(|suffix| rest.starts_with(suffix.surface))
             .max_by_key(|suffix| suffix.surface.len())
         && best
             .as_ref()
-            .is_none_or(|(previous, _)| '지'.len_utf8() + fixed.surface.len() >= *previous)
+            .is_none_or(|(previous, _)| stem.len_utf8() + fixed.surface.len() >= *previous)
     {
-        let mut path = vec!["ending.auxiliary-jida".into()];
+        let mut path = vec![auxiliary.into()];
         path.extend(fixed.rules.iter().copied().map(RuleId::from));
-        return Some(('지'.len_utf8() + fixed.surface.len(), path));
+        return Some((stem.len_utf8() + fixed.surface.len(), path));
     }
     best
 }

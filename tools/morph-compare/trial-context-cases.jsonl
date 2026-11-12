@@ -1,0 +1,4 @@
+{"id":"mureobodeonya-ask-positive","query":"묻다","pos":"verb","text":"면접에서는 무엇을 물어보더냐?","expected":true,"gold_byte_start":26,"gold_byte_end":41,"paired_case_id":"mureobodeonya-ask-negative"}
+{"id":"mureobodeonya-ask-negative","query":"묻다","pos":"verb","text":"새 장난감을 주니까 강아지가 물어보더냐?","expected":false,"gold_byte_start":40,"gold_byte_end":55,"paired_case_id":"mureobodeonya-ask-positive"}
+{"id":"mureobodeonya-bite-negative","query":"물다","pos":"verb","text":"면접에서는 무엇을 물어보더냐?","expected":false,"gold_byte_start":26,"gold_byte_end":41,"paired_case_id":"mureobodeonya-bite-positive"}
+{"id":"mureobodeonya-bite-positive","query":"물다","pos":"verb","text":"새 장난감을 주니까 강아지가 물어보더냐?","expected":true,"gold_byte_start":40,"gold_byte_end":55,"paired_case_id":"mureobodeonya-bite-negative"}

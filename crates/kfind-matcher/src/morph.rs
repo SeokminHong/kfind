@@ -760,7 +760,7 @@ impl MorphMatcher {
                 }
                 let mut normalized_consumed = matched.consumed_bytes;
                 let mut rule_path = matched.rule_path;
-                if let Some(host) = resultative_nominal_host(&rule_path)
+                if let Some(host) = auxiliary_nominal_host(&rule_path)
                     .or_else(|| nominal_particle_transition.then_some(consumption_anchor.as_ref()))
                 {
                     let particle = self
@@ -2082,7 +2082,7 @@ fn has_conflicting_whole_predicate(
     let generated_auxiliary = candidate.suffix_rules.iter().any(|rule| {
         matches!(
             rule.as_str(),
-            "ending.auxiliary-gada" | "ending.auxiliary-jida"
+            "ending.auxiliary-gada" | "ending.auxiliary-jida" | "ending.auxiliary-boda"
         )
     });
     let extends_non_internal_core = !internal_core
@@ -2580,15 +2580,16 @@ fn starts_with_resultative_auxiliary(surface: &str) -> bool {
         .is_some_and(|first| matches!(first, '지' | '졌' | '진' | '질' | '져' | '집' | '짐'))
 }
 
-fn resultative_nominal_host(rule_path: &[RuleId]) -> Option<&'static str> {
+fn auxiliary_nominal_host(rule_path: &[RuleId]) -> Option<&'static str> {
     match rule_path {
-        [auxiliary, nominalizer] if auxiliary.as_str() == "ending.auxiliary-jida" => {
-            match nominalizer.as_str() {
-                "ending.nominalizer-gi" => Some("기"),
-                "ending.nominalizer" => Some("짐"),
-                _ => None,
+        [auxiliary, nominalizer] => match (auxiliary.as_str(), nominalizer.as_str()) {
+            ("ending.auxiliary-jida" | "ending.auxiliary-boda", "ending.nominalizer-gi") => {
+                Some("기")
             }
-        }
+            ("ending.auxiliary-jida", "ending.nominalizer") => Some("짐"),
+            ("ending.auxiliary-boda", "ending.nominalizer") => Some("봄"),
+            _ => None,
+        },
         _ => None,
     }
 }

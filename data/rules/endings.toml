@@ -78,7 +78,7 @@ initial = "a-or-eo"
 forms = ["아", "어"]
 required = []
 forbidden = []
-next = ["ending.connective-seo", "ending.connective-do", "ending.connective-ya", "ending.polite-yo", "ending.imperative-ra", "ending.auxiliary-gada", "ending.auxiliary-jida", "ending.necessity-yaji", "ending.necessity-yaji-polite"]
+next = ["ending.connective-seo", "ending.connective-do", "ending.connective-ya", "ending.polite-yo", "ending.imperative-ra", "ending.auxiliary-gada", "ending.auxiliary-jida", "ending.auxiliary-boda", "ending.necessity-yaji", "ending.necessity-yaji-polite"]
 terminal = true
 
 [[ending]]
@@ -710,6 +710,26 @@ required = []
 forbidden = []
 next = ["ending.connective-go", "ending.connective-ya"]
 terminal = false
+
+[[ending]]
+id = "ending.auxiliary-boda"
+category = "prefinal"
+initial = "other"
+forms = ["보"]
+required = ["action-verb"]
+forbidden = []
+next = ["ending.past", "ending.future", "ending.declarative", "ending.final-da", "ending.conditional", "ending.connective-go", "ending.present-adnominal", "ending.past-adnominal", "ending.future-adnominal", "ending.nominalizer", "ending.nominalizer-gi", "ending.imperative-ryeom", "ending.retrospective-direct-question", "ending.propositive"]
+terminal = false
+
+[[ending]]
+id = "ending.imperative-ryeom"
+category = "final"
+initial = "eu"
+forms = ["렴", "으렴", "려무나", "으려무나"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
 
 [[ending]]
 id = "ending.auxiliary-jida"
