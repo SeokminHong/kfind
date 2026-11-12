@@ -369,6 +369,68 @@ const HONORIFIC_NIEUN_DAO: &[Suffix] = &[suffix(
 )];
 const NEGATIVE_RAO: &[Suffix] = &[suffix("라오", &["ending.copula-ra-final"])];
 
+const JIYO: Suffix = suffix("지요", &["ending.confirmation-jiyo"]);
+const JYO: Suffix = suffix("죠", &["ending.confirmation-jiyo"]);
+const CONFIRMATION_JIYO: &[Suffix] = &[JIYO, JYO];
+const HONORIFIC_JIYO: &[Suffix] = &[
+    suffix("시지요", &["ending.honorific", "ending.confirmation-jiyo"]),
+    suffix("시죠", &["ending.honorific", "ending.confirmation-jiyo"]),
+    suffix(
+        "셨지요",
+        &[
+            "ending.honorific",
+            "ending.past",
+            "ending.confirmation-jiyo",
+        ],
+    ),
+    suffix(
+        "셨죠",
+        &[
+            "ending.honorific",
+            "ending.past",
+            "ending.confirmation-jiyo",
+        ],
+    ),
+    suffix(
+        "시겠지요",
+        &[
+            "ending.honorific",
+            "ending.future",
+            "ending.confirmation-jiyo",
+        ],
+    ),
+    suffix(
+        "시겠죠",
+        &[
+            "ending.honorific",
+            "ending.future",
+            "ending.confirmation-jiyo",
+        ],
+    ),
+    suffix(
+        "셨겠지요",
+        &[
+            "ending.honorific",
+            "ending.past",
+            "ending.future",
+            "ending.confirmation-jiyo",
+        ],
+    ),
+    suffix(
+        "셨겠죠",
+        &[
+            "ending.honorific",
+            "ending.past",
+            "ending.future",
+            "ending.confirmation-jiyo",
+        ],
+    ),
+];
+const PAST_FUTURE_JIYO: &[Suffix] = &[
+    suffix("겠지요", &["ending.future", "ending.confirmation-jiyo"]),
+    suffix("겠죠", &["ending.future", "ending.confirmation-jiyo"]),
+];
+
 const HONORIFIC_FORMAL: Suffix =
     suffix("십시오", &["ending.honorific", "ending.imperative-formal"]);
 const HONORIFIC_FORMAL_SHORT: Suffix = suffix(
@@ -980,6 +1042,25 @@ fn verify_simple_continuation(
                 ]) =>
         {
             COPULA_COMMON_ENDINGS
+        }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with('죠') || following.starts_with("지요") =>
+        {
+            CONFIRMATION_JIYO
+        }
+        ContinuationState::Past
+            if following.starts_with("겠죠") || following.starts_with("겠지요") =>
+        {
+            PAST_FUTURE_JIYO
+        }
+        ContinuationState::Eu
+            if ["시", "셨", "시겠", "셨겠"].iter().any(|prefix| {
+                following
+                    .strip_prefix(*prefix)
+                    .is_some_and(|tail| tail.starts_with('죠') || tail.starts_with("지요"))
+            }) =>
+        {
+            HONORIFIC_JIYO
         }
         ContinuationState::NieunEnding if nieun_question_tail(following, "") => NIEUN_QUESTIONS,
         ContinuationState::Past | ContinuationState::Future

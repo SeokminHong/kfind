@@ -1,11 +1,13 @@
 use crate::{ContinuationState, PredicatePos, RuleId};
 
 use super::{
-    PredicateContinuationMatch, STEM_FIXED_ENDINGS, Suffix, matched, suffix,
+    JIYO, JYO, PredicateContinuationMatch, STEM_FIXED_ENDINGS, Suffix, matched, suffix,
     verify_simple_continuation,
 };
 
 const RESULTATIVE_STEM_ENDINGS: &[Suffix] = &[
+    JIYO,
+    JYO,
     suffix("다", &["ending.final-da"]),
     suffix("고요", &["ending.connective-go", "ending.polite-yo"]),
     suffix("네", &["ending.final-ne"]),

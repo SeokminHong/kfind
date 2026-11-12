@@ -1502,6 +1502,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.confirmation-jiyo"
+category = "final"
+initial = "consonant"
+forms = ["지요", "죠"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.nominalizer-gi"
 category = "nominalizer"
 initial = "consonant"
