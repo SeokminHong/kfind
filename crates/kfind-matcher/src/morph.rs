@@ -903,13 +903,39 @@ impl MorphMatcher {
                 if !branch.consumption.allows_rule_path(&matched.rule_path) {
                     return None;
                 }
-                let consumed_bytes = match &consumption_following {
-                    Cow::Borrowed(_) => matched.consumed_bytes,
-                    Cow::Owned(normalized) => {
-                        map_normalized_prefix(following, normalized, matched.consumed_bytes)?
-                    }
-                };
-                (consumed_bytes, matched.rule_path)
+                let subject_starts_copula = branch.decision.is_structural()
+                    && matches!(
+                        branch.consumption,
+                        CandidateConsumption::NominalParticleChain { .. }
+                    )
+                    && matches!(matched.rule_path.as_slice(), [rule] if rule.as_str() == "particle.subject")
+                    && consumption_following.get(..matched.consumed_bytes) == Some("이")
+                    && consumption_following[matched.consumed_bytes..]
+                        .chars()
+                        .next()
+                        .is_some_and(crate::is_token_character)
+                    && core == hit.span
+                    && is_boundary_before(haystack, core.start)
+                    && consumption_anchor
+                        .chars()
+                        .next_back()
+                        .is_some_and(|preceding| {
+                            let whole = surrounding_token_span(haystack, core.clone());
+                            context::normalized_token(haystack, core.end..whole.end).is_some_and(
+                                |ending| verify_copula_surface_after_nominal(preceding, &ending),
+                            )
+                        });
+                if subject_starts_copula {
+                    (0, Vec::new())
+                } else {
+                    let consumed_bytes = match &consumption_following {
+                        Cow::Borrowed(_) => matched.consumed_bytes,
+                        Cow::Owned(normalized) => {
+                            map_normalized_prefix(following, normalized, matched.consumed_bytes)?
+                        }
+                    };
+                    (consumed_bytes, matched.rule_path)
+                }
             }
             CandidateConsumption::DirectParticleHost { rule_id } => {
                 if requires_direct_particle_host(branch)
