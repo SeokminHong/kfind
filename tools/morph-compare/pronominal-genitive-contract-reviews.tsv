@@ -1,0 +1,2 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	pronominal-genitive	four-apples	너	pronoun	false	6199d17d23048d3e3a370875e24925b7e5e02653c84ea185b18a60d30e1b5b7e	contract-positive	structurally-indistinguishable-homograph	수 관형사와 소유를 나타내는 대명사 준말이 같은 명사를 수식하고 앞 문장의 의미가 해석을 가른다.

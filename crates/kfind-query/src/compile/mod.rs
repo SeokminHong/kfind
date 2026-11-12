@@ -527,11 +527,18 @@ fn compile_analysis(
                 decision: DraftDecision::Structural(ComponentCapability::SourceAndRuntime),
             });
             for override_form in &nominal.overrides {
-                output.push(exact_branch(
+                output.push(exact_branch_with_decision(
                     &override_form.surface,
                     analysis_index,
                     vec![override_form.rule_id.clone()],
                     true,
+                    if override_form.rule_id.as_str() == "particle.genitive"
+                        && matches!(override_form.surface.as_ref(), "내" | "네")
+                    {
+                        DraftDecision::Structural(ComponentCapability::Source)
+                    } else {
+                        DraftDecision::Boundary
+                    },
                 ));
             }
             compile_nominal_contractions(

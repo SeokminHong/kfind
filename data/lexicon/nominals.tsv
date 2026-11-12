@@ -2,8 +2,8 @@ lemma	pos	flags	overrides
 검증	NNG	DERIVABLE	
 권한	NNG		
 길	NNG		
-나	NP		particle.subject=내가
-너	NP		particle.subject=네가
+나	NP		particle.subject=내가;particle.genitive=내
+너	NP		particle.subject=네가;particle.genitive=네
 누구	NP		particle.subject=누가
 단순	NNG	DERIVABLE	
 사용자	NNG		
