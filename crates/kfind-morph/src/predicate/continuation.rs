@@ -279,6 +279,8 @@ const PAST_SUFFIXES: &[Suffix] = &[
     suffix("다", &["ending.final-da"]),
     suffix("고", &["ending.connective-go"]),
     suffix("어", &["ending.prefinal-eo"]),
+    suffix("어도", &["ending.aoeo", "ending.connective-do"]),
+    suffix("어야", &["ending.aoeo", "ending.connective-ya"]),
     suffix("어요", &["ending.past-polite-yo"]),
     suffix("게", &["ending.final-ge"]),
 ];
@@ -929,6 +931,18 @@ pub fn verify_predicate_continuation(
     anchor: &str,
     following: &str,
 ) -> Option<PredicateContinuationMatch> {
+    verify_predicate_continuation_with_prefinal_context(state, pos, anchor, following, || true)
+}
+
+/// The caller may require source evidence before composing prefinals inside a token.
+#[must_use]
+pub fn verify_predicate_continuation_with_prefinal_context(
+    state: ContinuationState,
+    pos: PredicatePos,
+    anchor: &str,
+    following: &str,
+    allows_prefinal_chain: impl FnOnce() -> bool,
+) -> Option<PredicateContinuationMatch> {
     if state == ContinuationState::AOrEo
         && let Some(auxiliary) = match following.chars().next() {
             Some('보' | '봐' | '봤' | '본' | '볼' | '봅' | '봄') if pos.is_action() => {
@@ -939,7 +953,84 @@ pub fn verify_predicate_continuation(
     {
         return Some(auxiliary);
     }
-    verify_simple_continuation(state, pos, anchor, following)
+    let ordinary = verify_simple_continuation(state, pos, anchor, following);
+    if let Some(stacked) = verify_prefinal_chain(state, pos, anchor.len(), following)
+        && ordinary
+            .as_ref()
+            .is_none_or(|matched| stacked.consumed_bytes > matched.consumed_bytes)
+        && allows_prefinal_chain()
+    {
+        return Some(stacked);
+    }
+    ordinary
+}
+
+fn verify_prefinal_chain(
+    state: ContinuationState,
+    pos: PredicatePos,
+    anchor_len: usize,
+    following: &str,
+) -> Option<PredicateContinuationMatch> {
+    use ContinuationState::{Eu, Future, Past};
+
+    let mut tail = following;
+    let mut state = state;
+    let mut honorific = false;
+    if state == Eu {
+        let (prefix, next_state) = if following.starts_with("시겠") {
+            ("시겠", Future)
+        } else if following.starts_with("시었") {
+            ("시었", Past)
+        } else if following.starts_with('셨') {
+            ("셨", Past)
+        } else {
+            return None;
+        };
+        tail = &tail[prefix.len()..];
+        state = next_state;
+        honorific = true;
+    } else if state != Past {
+        return None;
+    }
+    let repeated_past = state == Past && tail.starts_with('었');
+    if repeated_past {
+        tail = &tail['었'.len_utf8()..];
+    }
+    let past_with_future = state == Past && tail.starts_with('겠');
+    if past_with_future {
+        tail = &tail['겠'.len_utf8()..];
+        state = Future;
+    }
+    let prefix_len = following.len() - tail.len();
+    if prefix_len == 0 {
+        return None;
+    }
+    let prefix = &following[..prefix_len];
+    let matched = verify_simple_continuation(state, pos, prefix, tail)?;
+    if matched.consumed_bytes == 0 {
+        return None;
+    }
+    let mut rule_path = Vec::new();
+    if honorific {
+        rule_path.push(RuleId::from("ending.honorific"));
+        rule_path.push(RuleId::from(if prefix.starts_with("시겠") {
+            "ending.future"
+        } else {
+            "ending.past"
+        }));
+    }
+    if repeated_past {
+        rule_path.push(RuleId::from("ending.past"));
+    }
+    if past_with_future {
+        rule_path.push(RuleId::from("ending.future"));
+    }
+    rule_path.extend(matched.rule_path);
+    Some(PredicateContinuationMatch {
+        token_end: anchor_len + matched.token_end,
+        consumed_bytes: prefix_len + matched.consumed_bytes,
+        rule_path,
+    })
 }
 
 fn verify_simple_continuation(

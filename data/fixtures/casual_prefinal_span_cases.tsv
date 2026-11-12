@@ -18,6 +18,12 @@ future-honorific	걷다	verb	exact	13	28	어르신도 걸으시겠어?
 future-honorific-polite	걷다	verb	exact	13	31	어르신도 걸으시겠어요?
 krdict.어:9	주다	verb	exact	35	41	너 그 애한테 직접 편지를 줬어?
 krdict.었:2	재미있다	adjective	exact	21	36	어제 본 영화는 재미있었어?
+past-future-casual	먹다	verb	exact	14	26	벌써 밥을 먹었겠어.
+honorific-past-uncontracted	가다	verb	exact	16	28	할머니께서 가시었어.
+pluperfect-casual	하다	verb	exact	28	37	나도 한때는 그 일을 했었어.
+past-concessive	오다	verb	exact	7	16	눈이 왔어도 바다에 갔어.
+past-necessity	가다	verb	exact	14	23	그때 바로 갔어야 했다.
+honorific-pluperfect-future	오다	verb	exact	10	28	그분도 오셨었겠어요.
 walk-formal-context	걷다	verb	exact	10	19	전화를 걸었다.
 hang-formal-context	걸다	verb	exact	21	30	비가 와도 계속 걸었다.
 listen-formal-context	듣다	verb	exact	10	19	가방을 들었다.

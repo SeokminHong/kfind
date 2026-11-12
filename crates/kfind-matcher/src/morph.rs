@@ -13,6 +13,7 @@ use kfind_morph::{
     ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, MorphContinuation, ParticleChainModel,
     ParticleVerifier, PredicateStemClass, PreparedTokenGraph, ProductPolicy, RuleId,
     verify_copula_surface_after_nominal, verify_predicate_continuation,
+    verify_predicate_continuation_with_prefinal_context,
 };
 use kfind_query::{
     AtomPlan, BoundaryPolicy, CandidateConsumption, CandidateDecision, CandidateLeftContext,
@@ -725,6 +726,7 @@ impl MorphMatcher {
             CandidateConsumption::PredicateContinuation {
                 continuation,
                 pos,
+                source_positions,
                 nominal_particle_transition,
                 left_context,
                 ..
@@ -735,11 +737,25 @@ impl MorphMatcher {
                 let following = valid_utf8_prefix(&haystack[hit.span.end..]);
                 let (consumption_anchor, consumption_following) =
                     normalized_consumption_text(anchor, following);
-                let matched = verify_predicate_continuation(
+                let matched = verify_predicate_continuation_with_prefinal_context(
                     *continuation,
                     *pos,
                     &consumption_anchor,
                     &consumption_following,
+                    || {
+                        !branch.decision.is_structural()
+                            || is_boundary_before(haystack, core.start)
+                            || self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                                let whole = surrounding_token_span(haystack, core.clone());
+                                source_aligned_compound_predicate_position(
+                                    haystack,
+                                    &core,
+                                    &whole,
+                                    *source_positions,
+                                    resolver,
+                                )
+                            })
+                    },
                 )?;
                 if *pos == kfind_morph::PredicatePos::Copula
                     && *continuation == kfind_morph::ContinuationState::StemEnding
@@ -1621,7 +1637,7 @@ impl MorphMatcher {
             || adnominal_interrogative;
         let source_aligned_compound = source_aligned_compound_predicate_position(
             haystack,
-            candidate,
+            &candidate.verified.core,
             whole,
             source_positions,
             resolver,
@@ -2380,7 +2396,7 @@ fn has_conflicting_whole_predicate(
     let normalized_core_end = normalized_core_start + core.nfc().collect::<String>().len();
     if source_aligned_compound_predicate_position(
         haystack,
-        candidate,
+        &candidate.verified.core,
         &whole,
         source_positions,
         resolver,
@@ -2406,12 +2422,12 @@ fn has_conflicting_whole_predicate(
 
 fn source_aligned_compound_predicate_position(
     haystack: &[u8],
-    candidate: &ExecutedCandidate,
+    core: &Range<usize>,
     whole: &Range<usize>,
     source_positions: kfind_morph::PredicatePosSet,
     resolver: &ConstraintResolver,
 ) -> bool {
-    if candidate.verified.core.start <= whole.start || candidate.verified.core.end > whole.end {
+    if core.start <= whole.start || core.end > whole.end {
         return false;
     }
     let Some(token) = haystack
@@ -2421,13 +2437,13 @@ fn source_aligned_compound_predicate_position(
         return false;
     };
     let Some(prefix) = haystack
-        .get(whole.start..candidate.verified.core.start)
+        .get(whole.start..core.start)
         .and_then(|bytes| std::str::from_utf8(bytes).ok())
     else {
         return false;
     };
     let Some(core) = haystack
-        .get(candidate.verified.core.clone())
+        .get(core.clone())
         .and_then(|bytes| std::str::from_utf8(bytes).ok())
     else {
         return false;
