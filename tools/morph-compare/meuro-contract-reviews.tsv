@@ -1,0 +1,3 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	meuro	nauseum-verb-context	낫다	verb	false	ba910081b5f816768c8123b21281a6b3a16b1fcf98b1a9b31abc9664c124bc88	contract-positive	structurally-indistinguishable-homograph	회복을 뜻하는 동사와 비교 우위를 뜻하는 형용사의 활용이 같은 표면을 갖는다.
+explicit-pos	meuro	nauseum-adj-context	낫다	adjective	false	d518858799f5e3d9ea37229df0531c8fd5178e8adfd67c7c67dbc8304976ea7f	contract-positive	structurally-indistinguishable-homograph	비교 우위를 뜻하는 형용사와 회복을 뜻하는 동사의 활용이 같은 표면을 갖는다.

@@ -290,6 +290,24 @@ const HONORIFIC_GOSEO: &[Suffix] = &[
     suffix("시고서야", &["ending.honorific", "ending.connective-goseo"]),
 ];
 
+const MEURO: &[Suffix] = &[suffix("므로", &["ending.connective-meuro"])];
+const EUMEURO: &[Suffix] = &[suffix("으므로", &["ending.connective-meuro"])];
+const HONORIFIC_MEURO_ENDINGS: &[Suffix] = &[
+    suffix("시므로", &["ending.honorific", "ending.connective-meuro"]),
+    suffix(
+        "셨으므로",
+        &["ending.honorific", "ending.past", "ending.connective-meuro"],
+    ),
+    suffix(
+        "시겠으므로",
+        &[
+            "ending.honorific",
+            "ending.future",
+            "ending.connective-meuro",
+        ],
+    ),
+];
+
 const FUTURE_SUFFIXES: &[Suffix] = &[
     suffix("습니까", &["ending.formal-interrogative"]),
     suffix("습디까", &["ending.retrospective-interrogative"]),
@@ -836,6 +854,28 @@ fn verify_simple_continuation(
             GOSEO
         }
         ContinuationState::Eu if following.starts_with("시고서") => HONORIFIC_GOSEO,
+        ContinuationState::Eu | ContinuationState::Prospective
+            if pos != PredicatePos::Copula && following.starts_with('므') =>
+        {
+            MEURO
+        }
+        ContinuationState::StemEnding
+            if pos == PredicatePos::Copula && anchor == "이" && following.starts_with('므') =>
+        {
+            MEURO
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으므") => {
+            EUMEURO
+        }
+        ContinuationState::Eu | ContinuationState::StemEnding
+            if (state == ContinuationState::Eu
+                || (pos == PredicatePos::Copula && anchor == "이"))
+                && (following.starts_with("시므")
+                    || following.starts_with("셨으므")
+                    || following.starts_with("시겠으므")) =>
+        {
+            HONORIFIC_MEURO_ENDINGS
+        }
         ContinuationState::Eu
             if pos.is_action()
                 && (following.starts_with('렴') || following.starts_with("려무나")) =>

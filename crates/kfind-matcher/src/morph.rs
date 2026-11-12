@@ -810,6 +810,10 @@ impl MorphMatcher {
                     .collect::<String>()
                     .len();
                 let suffix = normalized_token.get(normalized_anchor.len()..)?;
+                // This fallback starts at the token boundary. A causal copula needs a host.
+                if *pos == kfind_morph::PredicatePos::Copula && suffix.ends_with("므로") {
+                    return None;
+                }
                 let ending_path = branch.consumption.allows_structural_suffix(suffix)
                     && stem_accepts_ending(
                         *pos,
@@ -925,6 +929,22 @@ impl MorphMatcher {
         boundary: BoundaryPolicy,
         structural_cache: &mut StructuralCache<'a>,
     ) -> bool {
+        if boundary == BoundaryPolicy::Smart
+            && matches!(
+                branch.consumption,
+                CandidateConsumption::PredicateContinuation {
+                    pos: kfind_morph::PredicatePos::Copula,
+                    ..
+                }
+            )
+            && is_boundary_before(haystack, candidate.verified.core.start)
+            && candidate
+                .suffix_rules
+                .iter()
+                .any(|rule| rule.as_str() == "ending.connective-meuro")
+        {
+            return false;
+        }
         if boundary == BoundaryPolicy::Smart
             && matches!(
                 branch.consumption,

@@ -314,8 +314,8 @@ terminal = true
 [[ending]]
 id = "ending.connective-meuro"
 category = "connective"
-initial = "consonant"
-forms = ["므로"]
+initial = "eu"
+forms = ["므로", "으므로"]
 required = []
 forbidden = []
 next = []

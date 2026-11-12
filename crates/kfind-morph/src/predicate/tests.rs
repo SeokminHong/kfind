@@ -608,7 +608,6 @@ fn ha_rieul_and_copula_rules_cover_required_forms() {
             "이라는",
             "이지",
             "이며",
-            "이므로",
         ],
     );
 
@@ -661,7 +660,19 @@ fn action_present_declarative_and_copula_past_are_compiled() {
 
 #[test]
 fn complete_copula_surface_requires_an_exact_generated_inflection() {
-    for surface in ["이다", "입니다", "이었다", "인", "다", "였다", "여서"] {
+    for surface in [
+        "이다",
+        "입니다",
+        "이었다",
+        "인",
+        "다",
+        "였다",
+        "여서",
+        "이므로",
+        "이시므로",
+        "이셨으므로",
+        "이시겠으므로",
+    ] {
         assert!(verify_complete_copula_surface(surface), "{surface}");
     }
     for surface in ["이", "입", "이어", "이었", "였", "이기는", "이다른"] {

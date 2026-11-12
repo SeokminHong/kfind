@@ -1,0 +1,4 @@
+{"id":"nauseum-verb","query":"낫다","pos":"verb","text":"이 약을 먹으면 감기가 더 빨리 나으므로 여행 전까지는 회복할 수 있다.","surface":"나으므로","expected":true,"gold_byte_start":42,"gold_byte_end":54,"paired_case_id":"nauseum-verb-context"}
+{"id":"nauseum-verb-context","query":"낫다","pos":"verb","text":"요금이 같다면 역에서 가까운 숙소가 더 나으므로 그쪽을 예약하자.","surface":"나으므로","expected":false,"gold_byte_start":54,"gold_byte_end":66,"paired_case_id":"nauseum-verb"}
+{"id":"nauseum-adj-context","query":"낫다","pos":"adjective","text":"이 약을 먹으면 감기가 더 빨리 나으므로 여행 전까지는 회복할 수 있다.","surface":"나으므로","expected":false,"gold_byte_start":42,"gold_byte_end":54,"paired_case_id":"nauseum-adj"}
+{"id":"nauseum-adj","query":"낫다","pos":"adjective","text":"요금이 같다면 역에서 가까운 숙소가 더 나으므로 그쪽을 예약하자.","surface":"나으므로","expected":true,"gold_byte_start":54,"gold_byte_end":66,"paired_case_id":"nauseum-adj-context"}
