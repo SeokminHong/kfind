@@ -4,5 +4,5 @@
 {"id":"changa-noun-positive","query":"찬가","pos":"noun","text":"합창단이 찬가 한 곡을 불렀다.","surface":"찬가","gold_byte_start":13,"gold_byte_end":19,"expected":true,"paired_case_id":"changa-noun-context"}
 {"id":"danga-predicate-positive","query":"달다","pos":"adjective","text":"이 차가 단가?","surface":"단가","gold_byte_start":11,"gold_byte_end":17,"expected":true,"paired_case_id":"danga-predicate-context"}
 {"id":"danga-predicate-context","query":"달다","pos":"adjective","text":"이번 계약의 단가 조정은 끝났다.","surface":"단가","gold_byte_start":17,"gold_byte_end":23,"expected":false,"paired_case_id":"danga-predicate-positive"}
-{"id":"danga-noun-context","query":"단가","pos":"noun","text":"이 차가 단가?","surface":"단가","gold_byte_start":11,"gold_byte_end":17,"expected":false,"paired_case_id":"danga-noun-positive"}
-{"id":"danga-noun-positive","query":"단가","pos":"noun","text":"이번 계약의 단가 조정은 끝났다.","surface":"단가","gold_byte_start":17,"gold_byte_end":23,"expected":true,"paired_case_id":"danga-noun-context"}
+{"id":"danga-noun-context","query":"단가","pos":"noun","text":"차를 한 모금 마신 그가 되물었다. ‘단가?’","surface":"단가","gold_byte_start":49,"gold_byte_end":55,"expected":false,"paired_case_id":"danga-noun-positive"}
+{"id":"danga-noun-positive","query":"단가","pos":"noun","text":"견적서를 훑던 그가 되물었다. ‘단가?’","surface":"단가","gold_byte_start":44,"gold_byte_end":50,"expected":true,"paired_case_id":"danga-noun-context"}

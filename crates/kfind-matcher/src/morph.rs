@@ -1399,6 +1399,19 @@ impl MorphMatcher {
         if self.has_lexicalized_time_modifier(haystack, candidate, branch, &whole, resolver) {
             return false;
         }
+        if *core == whole
+            && candidate.consumed == whole
+            && matches!(
+                branch.consumption,
+                CandidateConsumption::NominalParticleChain { .. }
+            )
+            && patterns.iter().any(|pattern| {
+                pattern.fine_pos == DataFinePos::Nng && pattern.lexical_form.ends_with('가')
+            })
+            && has_interrogative_auxiliary_frame(haystack, &whole, resolver)
+        {
+            return false;
+        }
         let licensed_trailing =
             self.licensed_structural_trailing(haystack, candidate, branch, resolver);
         if licensed_trailing.is_none()
@@ -2670,6 +2683,32 @@ fn has_topic_before_independent_predicate(
         })
         && context::next_word(haystack, end)
             .is_some_and(|next| resolver.has_independent_final_predicate(&next))
+}
+
+fn has_interrogative_auxiliary_frame(
+    haystack: &[u8],
+    token: &Range<usize>,
+    resolver: &ConstraintResolver,
+) -> bool {
+    use kfind_morph::{PredicatePos, decompose_syllable, hangul::JONG_NIEUN};
+
+    let Some(text) = context::normalized_token(haystack, token.clone()) else {
+        return false;
+    };
+    if !text
+        .strip_suffix('가')
+        .and_then(|head| head.chars().next_back())
+        .and_then(decompose_syllable)
+        .is_some_and(|syllable| syllable.jongseong == JONG_NIEUN)
+    {
+        return false;
+    }
+    context::next_word_with_end(haystack, token.end)
+        .is_some_and(|(end, next)| next == "보다" && is_sentence_end_after(haystack, end))
+        && context::previous_word(haystack, token.start)
+            .is_some_and(|previous| resolver.has_subject_marked_nominal(&previous))
+        && (resolver.has_exact_predicate_ending_path(&text, PredicatePos::Adjective)
+            || resolver.has_exact_lost_span_copula_ending_path(&text))
 }
 
 fn has_nominal_interrogative_frame(
