@@ -1,4 +1,5 @@
 use crate::PredicatePos;
+use crate::predicate::ha_ji_contracts_after;
 use crate::structure::BoundedTokenContext;
 use kfind_data::{ComponentPos as StructuralPos, ComponentResource, DataFinePos};
 use std::ops::Range;
@@ -213,6 +214,13 @@ pub(super) fn complete_predicate_connective_ji_path(
     resource: &ComponentResource,
     text: &str,
 ) -> bool {
+    if let Some(base) = text.strip_suffix('치') {
+        return ha_ji_contracts_after(base)
+            && complete_nominal_host(resource, base)
+            && (has_exact_sequence(resource, "하", &[StructuralPos::XSV])
+                || has_exact_sequence(resource, "하", &[StructuralPos::XSA]))
+            && has_exact_sequence(resource, "지", &[StructuralPos::EC]);
+    }
     let Some(predicate) = text.strip_suffix('지') else {
         return false;
     };
