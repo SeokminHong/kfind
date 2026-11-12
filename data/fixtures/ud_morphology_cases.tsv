@@ -37,6 +37,22 @@ corpus.ud-gsd.test.test-s323.noun.방법	방법	noun	smart-exact	37	49	실제로
 corpus.ud-gsd.test.test-s573.noun.예전	예전	noun	smart-exact	10	22	요즘은 예전보단 덜 맛있는 것 같지만 여전히 굿
 corpus.ud-gsd.test.test-s857.noun.순창	순창	noun	smart-exact	0	12	순창에선 가장 넓고 쾌적하고 시설이 좋은 노래방!
 regression.nominal-topic-contraction.indefinite	어디	pronoun	smart-exact	0	9	어디에선가 소리가 났다.
+corpus.ud-gsd.test.test-s66.verb.원하다	원하다	verb	smart-exact	27	36	들깨가루 같은 것도 원하는 대로 넣을 수도 있고, 밥도 무한 리필이고 해서 어린애들 동반해서 가족끼리 가서 먹기에는 좋은 곳이라고 생각합니다.
+corpus.ud-gsd.test.test-s127.verb.노력하다	노력하다	verb	smart-exact	320	329	이날 국립중앙박물관에서 박 박사는 "그 의궤가 영원히 한국 땅에 남아있게 하고 '대여'란 말을 없애기 위해서는 여러분이 협심해서 손에 손을 잡고 장기간 노력하지 않으면 안 된다"며 "의궤가 다시 불란서에 가지 않고 한국에 영원히 남도록 노력해 주길 부탁한다"고 거듭 강조했다.
+corpus.ud-gsd.test.test-s142.verb.촉구하다	촉구하다	verb	smart-exact	150	159	미국 국채를 1조 달러 이상 보유하고 있는 `큰 손` 중국은 이미 여러 차례 미국 정부에 재정문제의 조속한 해결을 촉구해 왔다.
+corpus.ud-gsd.test.test-s167.verb.구하다	구하다	verb	smart-exact	27	33	친절하고 없는 책도 구해 주시려고 노력합니다
+corpus.ud-gsd.test.test-s177.verb.교체하다	교체하다	verb	smart-exact	110	119	그는 "이런 상황에서 삼성테크윈은 새 부품을 개발하기보다는 종전 부품으로 단순 교체해 주는 작업으로 문제를 키운 측면이 있다"고 말했다.
+corpus.ud-gsd.test.test-s207.verb.기거하다	기거하다	verb	smart-exact	113	122	일리노이 중부 블루밍튼의 노숙자 쉼터 '홈 스위트 홈 미니스트리즈'에 수 주 전부터 기거해 온 맥키는 전날 욕실 안에서 비상 도움을 요청했으며 쉼터 측 신고로 현장에 출동한 경찰은 뚜껑이 닫혀 있던 변기 안에서 신생아를 발견했다.
+corpus.ud-gsd.test.test-s237.verb.되다	되다	verb	smart-exact	31	37	맛도 별론데 장사가 잘 되나 봐요
+corpus.ud-gsd.test.test-s294.verb.주다	주다	verb	smart-exact	42	54	절 제자로 삼아 비법 좀 전수해 주십시오!
+corpus.ud-gsd.test.test-s411.verb.불편하다	불편하다	verb	smart-exact	47	62	음식은 맛있는데 주차장이 없어 좀 불편하네요...
+corpus.ud-gsd.test.test-s470.verb.바꾸다	바꾸다	verb	smart-exact	10	22	오디오 바꾸려고 여기저기 알아봤는데 가격이 제일 괜찮아서 여기서 구입했어요~!
+corpus.ud-gsd.test.test-s470.verb.알다	알다	verb	smart-exact	36	51	오디오 바꾸려고 여기저기 알아봤는데 가격이 제일 괜찮아서 여기서 구입했어요~!
+corpus.ud-gsd.test.test-s522.verb.홀대하다	홀대하다	verb	smart-exact	30	48	유모차 가지고 갔더니 홀대하더이다...
+corpus.ud-gsd.test.test-s952.verb.악화되다	악화되다	verb	smart-exact	34	46	약을 끊으면 점점 증상이 악화돼서 무척 괴로웠습니다.
+corpus.ud-gsd.test.test-s664.adjective.있다	있다	adjective	smart-exact	36	45	그 옆에 돌 없이 평평한 곳 있어서 맨발로 재밌게 놀았어요
+corpus.ud-gsd.test.test-s671.verb.켜다	켜다	verb	smart-exact	30	36	남양주 진접에서 내비 켜고 찾아갔는데 진짜 잘 갔다 생각 들었어요.
+corpus.ud-gsd.test.test-s958.verb.가다	가다	verb	smart-exact	56	62	오후 10시까지만 영업을 하기 때문에 일찍 가야 합니다.
 corpus.ud-gsd.test.test-s570.verb.주무시다	주무시다	verb	match	37	49	겨울에는 무조건 내복 입고 주무세요.
 corpus.ud-gsd.test.test-s674.verb.느끼다	느끼다	verb	match	146	158	도 특사경 유흥수 팀장은 "행정적 위반 업소 단속이 많지만 가끔 검찰과 현장 합동단속을 벌일 때는 긴박감도 느껴진다"고 했다.
 corpus.ud-gsd.test.test-s723.verb.이루어지다	이루어지다	verb	match	86	98	이곳에서 문화재 발굴은 형촌마을 서쪽 구릉과 남쪽 저지대에서 이뤄지고 있었다.
