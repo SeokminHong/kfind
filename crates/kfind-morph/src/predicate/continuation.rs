@@ -251,6 +251,80 @@ const EU_SUFFIXES: &[Suffix] = &[
     suffix("니", &["ending.connective-ni"]),
 ];
 
+const RIEUL_FINAL: &[Suffix] = &[
+    suffix("세", &["ending.final-rieulse"]),
+    suffix("지", &["ending.doubt-rieulji"]),
+    suffix("지요", &["ending.doubt-rieulji"]),
+    suffix("는지", &["ending.doubt-rieulneunji"]),
+    suffix("는지요", &["ending.doubt-rieulneunji"]),
+    suffix("걸", &["ending.conjecture-rieulgeol"]),
+    suffix("걸요", &["ending.conjecture-rieulgeol"]),
+];
+
+const PAST_RIEUL_FINAL: &[Suffix] = &[
+    suffix("을지", &["ending.doubt-rieulji"]),
+    suffix("을지요", &["ending.doubt-rieulji"]),
+    suffix("을는지", &["ending.doubt-rieulneunji"]),
+    suffix("을는지요", &["ending.doubt-rieulneunji"]),
+    suffix("을걸", &["ending.conjecture-rieulgeol"]),
+    suffix("을걸요", &["ending.conjecture-rieulgeol"]),
+];
+
+const EU_RIEUL_FINAL: &[Suffix] = &[
+    suffix("실지", &["ending.honorific", "ending.doubt-rieulji"]),
+    suffix("실지요", &["ending.honorific", "ending.doubt-rieulji"]),
+    suffix("실는지", &["ending.honorific", "ending.doubt-rieulneunji"]),
+    suffix(
+        "실는지요",
+        &["ending.honorific", "ending.doubt-rieulneunji"],
+    ),
+    suffix("실걸", &["ending.honorific", "ending.conjecture-rieulgeol"]),
+    suffix(
+        "실걸요",
+        &["ending.honorific", "ending.conjecture-rieulgeol"],
+    ),
+    suffix(
+        "셨을지",
+        &["ending.honorific", "ending.past", "ending.doubt-rieulji"],
+    ),
+    suffix(
+        "셨을지요",
+        &["ending.honorific", "ending.past", "ending.doubt-rieulji"],
+    ),
+    suffix(
+        "셨을는지",
+        &[
+            "ending.honorific",
+            "ending.past",
+            "ending.doubt-rieulneunji",
+        ],
+    ),
+    suffix(
+        "셨을는지요",
+        &[
+            "ending.honorific",
+            "ending.past",
+            "ending.doubt-rieulneunji",
+        ],
+    ),
+    suffix(
+        "셨을걸",
+        &[
+            "ending.honorific",
+            "ending.past",
+            "ending.conjecture-rieulgeol",
+        ],
+    ),
+    suffix(
+        "셨을걸요",
+        &[
+            "ending.honorific",
+            "ending.past",
+            "ending.conjecture-rieulgeol",
+        ],
+    ),
+];
+
 /// Consumes the longest suffix accepted by a predicate branch's verifier state.
 #[must_use]
 pub fn verify_predicate_continuation(
@@ -271,10 +345,17 @@ pub fn verify_predicate_continuation(
         }
         ContinuationState::Eu => EU_SUFFIXES,
         ContinuationState::Geodeun => GEODEUN_ENDINGS,
+        ContinuationState::RieulFinal => RIEUL_FINAL,
+    };
+    let rieul_endings = match state {
+        ContinuationState::Past => PAST_RIEUL_FINAL,
+        ContinuationState::Eu => EU_RIEUL_FINAL,
+        _ => &[],
     };
 
     let suffix = candidates
         .iter()
+        .chain(rieul_endings)
         .filter(|suffix| {
             following.starts_with(suffix.surface)
                 && (pos.is_action()
@@ -295,7 +376,12 @@ pub fn verify_predicate_continuation(
                     }))
         })
         .max_by_key(|suffix| suffix.surface.len());
-    if suffix.is_none() && matches!(state, ContinuationState::Eu | ContinuationState::Geodeun) {
+    if suffix.is_none()
+        && matches!(
+            state,
+            ContinuationState::Eu | ContinuationState::Geodeun | ContinuationState::RieulFinal
+        )
+    {
         return None;
     }
     Some(matched(anchor.len(), suffix))

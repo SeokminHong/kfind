@@ -581,20 +581,10 @@ fn compile_productive(
         past_adnominal(entry, stem)?,
         ContinuationState::Terminal,
     );
-    push_derived(
-        branches,
-        entry,
-        future_adnominal(entry, stem)?,
-        ContinuationState::Terminal,
-    );
-    let mut rieulse = future_adnominal(entry, stem)?;
-    rieulse.surface.push('세');
-    let ending = rieulse
-        .rules
-        .last_mut()
-        .expect("future adnominal surface has an ending rule");
-    *ending = rule("ending.final-rieulse");
-    push_derived(branches, entry, rieulse, ContinuationState::Terminal);
+    let mut rieul = future_adnominal(entry, stem)?;
+    push_derived(branches, entry, rieul.clone(), ContinuationState::Terminal);
+    rieul.rules.pop();
+    push_derived(branches, entry, rieul, ContinuationState::RieulFinal);
     push_derived(
         branches,
         entry,
@@ -673,6 +663,14 @@ fn compile_rieul_honorific(
 ) {
     let base = drop_last_final(stem).expect("rieul-final stem");
     let core_len = base.len();
+    push_branch(
+        branches,
+        entry,
+        format!("{base}실"),
+        core_len,
+        ContinuationState::RieulFinal,
+        vec![rule("ending.honorific")],
+    );
     for suffix in continuation::HONORIFIC_GEODEUN_ENDINGS
         .iter()
         .chain(continuation::HONORIFIC_YAJI_ENDINGS)
@@ -779,6 +777,14 @@ fn compile_copula(
             alternation: entry.alternation,
         });
     }
+    push_branch(
+        branches,
+        entry,
+        "일".to_owned(),
+        stem.len(),
+        ContinuationState::RieulFinal,
+        vec![rule("lexical.copula")],
+    );
     for suffix in continuation::YAJI_ENDINGS {
         let rules = [rule("lexical.copula"), rule("ending.aoeo")]
             .into_iter()

@@ -793,7 +793,11 @@ fn compile_predicate_with_generated(
             branches
                 .iter()
                 .filter(|branch| {
-                    if branch.continuation == kfind_morph::ContinuationState::Geodeun {
+                    if matches!(
+                        branch.continuation,
+                        kfind_morph::ContinuationState::Geodeun
+                            | kfind_morph::ContinuationState::RieulFinal
+                    ) {
                         return false;
                     }
                     branch.continuation != kfind_morph::ContinuationState::Terminal
