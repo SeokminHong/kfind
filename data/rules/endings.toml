@@ -225,7 +225,17 @@ terminal = true
 id = "ending.connective-neunde"
 category = "connective"
 initial = "other"
-forms = ["는데"]
+forms = ["ㄴ데", "은데", "는데"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.connective-deonde"
+category = "connective"
+initial = "consonant"
+forms = ["던데"]
 required = []
 forbidden = []
 next = []
@@ -396,6 +406,16 @@ id = "ending.interrogative-neunya"
 category = "final"
 initial = "other"
 forms = ["느냐"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.interrogative-nya"
+category = "final"
+initial = "other"
+forms = ["냐", "으냐"]
 required = []
 forbidden = []
 next = []

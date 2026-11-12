@@ -1017,6 +1017,81 @@ fn reference_predicate_continuation(
     const HONORIFIC_PAST_PROSPECTIVE: &[ReferenceSuffix] =
         prospective_suffixes!("셨으", "ending.honorific", "ending.past");
 
+    macro_rules! question {
+        ($surface:literal, $rule:literal $(, $prior:literal)*) => {
+            &[
+                reference_suffix($surface, &[$($prior,)* $rule]),
+                reference_suffix(concat!($surface, "고"), &[$($prior,)* $rule, "ending.quotative-go"]),
+                reference_suffix(concat!($surface, "고요"), &[$($prior,)* $rule, "ending.quotative-go", "ending.polite-yo"]),
+            ]
+        };
+    }
+
+    macro_rules! background {
+        ($surface:literal, $rule:literal $(, $prior:literal)*) => {
+            &[
+                reference_suffix($surface, &[$($prior,)* $rule]),
+                reference_suffix(concat!($surface, "도"), &[$($prior,)* $rule, "particle.additive"]),
+                reference_suffix(concat!($surface, "요"), &[$($prior,)* $rule, "ending.polite-yo"]),
+            ]
+        };
+    }
+
+    const NYA: &[ReferenceSuffix] = question!("냐", "ending.interrogative-nya");
+    const NEUNYA: &[ReferenceSuffix] = question!("느냐", "ending.interrogative-neunya");
+    const SI_NYA: &[ReferenceSuffix] =
+        question!("시냐", "ending.interrogative-nya", "ending.honorific");
+    const SI_NEUNYA: &[ReferenceSuffix] =
+        question!("시느냐", "ending.interrogative-neunya", "ending.honorific");
+    const DEONDE: &[ReferenceSuffix] = background!("던데", "ending.connective-deonde");
+    const NEUNDE: &[ReferenceSuffix] = background!("는데", "ending.connective-neunde");
+    const SINDE: &[ReferenceSuffix] =
+        background!("신데", "ending.connective-neunde", "ending.honorific");
+    const SINEUNDE: &[ReferenceSuffix] =
+        background!("시는데", "ending.connective-neunde", "ending.honorific");
+    const SYEOTNEUNDE: &[ReferenceSuffix] = background!(
+        "셨는데",
+        "ending.connective-neunde",
+        "ending.honorific",
+        "ending.past"
+    );
+    const SIGETNEUNDE: &[ReferenceSuffix] = background!(
+        "시겠는데",
+        "ending.connective-neunde",
+        "ending.honorific",
+        "ending.future"
+    );
+    const BACKGROUND: &[ReferenceSuffix] = background!("데", "ending.connective-neunde");
+    const SYEOT_NYA: &[ReferenceSuffix] = question!(
+        "셨냐",
+        "ending.interrogative-nya",
+        "ending.honorific",
+        "ending.past"
+    );
+    const SYEOT_NEUNYA: &[ReferenceSuffix] = question!(
+        "셨느냐",
+        "ending.interrogative-neunya",
+        "ending.honorific",
+        "ending.past"
+    );
+    const SIGET_NYA: &[ReferenceSuffix] = question!(
+        "시겠냐",
+        "ending.interrogative-nya",
+        "ending.honorific",
+        "ending.future"
+    );
+    const SIGET_NEUNYA: &[ReferenceSuffix] = question!(
+        "시겠느냐",
+        "ending.interrogative-neunya",
+        "ending.honorific",
+        "ending.future"
+    );
+
+    const INTERROGATIVE: &[ReferenceSuffix] = &[
+        reference_suffix("고", &["ending.quotative-go"]),
+        reference_suffix("고요", &["ending.quotative-go", "ending.polite-yo"]),
+    ];
+
     let candidates = match state {
         ContinuationState::Terminal => return Some((0, Vec::new())),
         ContinuationState::AOrEo => AEO,
@@ -1024,12 +1099,40 @@ fn reference_predicate_continuation(
         ContinuationState::Future => FUTURE,
         ContinuationState::Declarative => DECLARATIVE,
         ContinuationState::Eu => EU,
-        ContinuationState::Geodeun => GEODEUN,
+        ContinuationState::StemEnding => GEODEUN,
+        ContinuationState::Background => BACKGROUND,
+        ContinuationState::Interrogative => INTERROGATIVE,
         ContinuationState::RieulFinal => RIEUL_FINAL,
         ContinuationState::BieupFinal => BIEUP_FINAL,
         ContinuationState::Prospective => PROSPECTIVE,
     };
     let additional_endings = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with('냐') =>
+        {
+            NYA
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("느냐") => {
+            NEUNYA
+        }
+        ContinuationState::StemEnding | ContinuationState::Past
+            if following.starts_with("던데") =>
+        {
+            DEONDE
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("는데") => {
+            NEUNDE
+        }
+        ContinuationState::Eu if following.starts_with("시냐") => SI_NYA,
+        ContinuationState::Eu if following.starts_with("시느냐") => SI_NEUNYA,
+        ContinuationState::Eu if following.starts_with("셨냐") => SYEOT_NYA,
+        ContinuationState::Eu if following.starts_with("셨느냐") => SYEOT_NEUNYA,
+        ContinuationState::Eu if following.starts_with("시겠냐") => SIGET_NYA,
+        ContinuationState::Eu if following.starts_with("시겠느냐") => SIGET_NEUNYA,
+        ContinuationState::Eu if following.starts_with("신데") => SINDE,
+        ContinuationState::Eu if following.starts_with("시는데") => SINEUNDE,
+        ContinuationState::Eu if following.starts_with("셨는데") => SYEOTNEUNDE,
+        ContinuationState::Eu if following.starts_with("시겠는데") => SIGETNEUNDE,
         ContinuationState::Past | ContinuationState::Future if following.starts_with("으리") => {
             PREFINAL_PROSPECTIVE
         }
@@ -1064,7 +1167,8 @@ fn reference_predicate_continuation(
         && matches!(
             state,
             ContinuationState::Eu
-                | ContinuationState::Geodeun
+                | ContinuationState::StemEnding
+                | ContinuationState::Background
                 | ContinuationState::RieulFinal
                 | ContinuationState::BieupFinal
                 | ContinuationState::Prospective

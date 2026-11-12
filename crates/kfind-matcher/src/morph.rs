@@ -953,6 +953,20 @@ impl MorphMatcher {
             return false;
         }
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::PredicateContinuation {
+                continuation: kfind_morph::ContinuationState::Background,
+                ..
+            }
+        ) && candidate.consumed == whole
+            && starts_sentence_before_comma(haystack, &whole)
+            && std::str::from_utf8(&haystack[whole.clone()]).is_ok_and(|token| {
+                resolver.has_exact_conjunctive_adverb(&token.nfc().collect::<String>())
+            })
+        {
+            return false;
+        }
         if licensed_trailing.is_none()
             && matches!(
                 branch.consumption,
@@ -1798,6 +1812,16 @@ impl MorphMatcher {
                     && form.condition.accepts(previous)
             })
     }
+}
+
+fn starts_sentence_before_comma(haystack: &[u8], token: &Range<usize>) -> bool {
+    haystack.get(token.end) == Some(&b',')
+        && haystack[..token.start]
+            .iter()
+            .rev()
+            .copied()
+            .find(|byte| !matches!(byte, b' ' | b'\t'))
+            .is_none_or(|byte| matches!(byte, b'.' | b'!' | b'?' | b'\n' | b'\r'))
 }
 
 fn nominal_copula_surface_at(haystack: &[u8], start: usize, end: usize) -> bool {

@@ -14,6 +14,16 @@ use std::ops::Range;
 
 impl ConstraintResolver {
     #[must_use]
+    pub fn has_exact_conjunctive_adverb(&self, text: &str) -> bool {
+        let mut matched = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
+                matched |= length == text.len() && positions == [StructuralPos::MAJ];
+            });
+        matched
+    }
+
+    #[must_use]
     pub fn has_whole_modifier(&self, text: &str) -> bool {
         let mut matched = false;
         self.resource

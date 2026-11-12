@@ -798,10 +798,12 @@ fn compile_predicate_with_generated(
                 .filter(|branch| {
                     if matches!(
                         branch.continuation,
-                        kfind_morph::ContinuationState::Geodeun
+                        kfind_morph::ContinuationState::StemEnding
                             | kfind_morph::ContinuationState::RieulFinal
                             | kfind_morph::ContinuationState::BieupFinal
                             | kfind_morph::ContinuationState::Prospective
+                            | kfind_morph::ContinuationState::Background
+                            | kfind_morph::ContinuationState::Interrogative
                     ) {
                         return false;
                     }
