@@ -1,12 +1,12 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
 explicit-pos	jiyo	sseu-jiyo-verb-context	쓰다	verb	false	79a25008d7253060f8a09872bb38d281627f2e9339ca38bf841e58a04cf61a88	contract-positive	structurally-indistinguishable-homograph	동사와 형용사의 활용이 같은 표면을 갖고 문맥에서 뜻을 구분한다.
-explicit-pos	jiyo	sseu-jiyo-adj-context	쓰다	adjective	false	a533f65ba42f98920cb2925cec19b35794f79128ea5a7c2566c24d4be597ac57	contract-positive	structurally-indistinguishable-homograph	동사와 형용사의 활용이 같은 표면을 갖고 문맥에서 뜻을 구분한다.
+explicit-pos	jiyo	sseu-jiyo-adj-context	쓰다	adjective	false	a533f65ba42f98920cb2925cec19b35794f79128ea5a7c2566c24d4be597ac57	confirmed	implementation-target	동화가 목적격 조사와 결합해 글을 짓는 동사 쓰다의 목적어로 쓰였다.
 explicit-pos	jiyo	sseu-jyo-verb-context	쓰다	verb	false	e5e00cd6ce35b30af02a610b5434438bdfb5762d728a56c036c867e904275a1a	contract-positive	structurally-indistinguishable-homograph	동사와 형용사의 활용이 같은 표면을 갖고 문맥에서 뜻을 구분한다.
-explicit-pos	jiyo	sseu-jyo-adj-context	쓰다	adjective	false	d6f9600a864006e6e2ab5b7d7409aa7cf89e8b1b9070a9a5f837ab0429e0d10c	contract-positive	structurally-indistinguishable-homograph	동사와 형용사의 활용이 같은 표면을 갖고 문맥에서 뜻을 구분한다.
+explicit-pos	jiyo	sseu-jyo-adj-context	쓰다	adjective	false	d6f9600a864006e6e2ab5b7d7409aa7cf89e8b1b9070a9a5f837ab0429e0d10c	confirmed	implementation-target	동화가 목적격 조사와 결합해 글을 짓는 동사 쓰다의 목적어로 쓰였다.
 explicit-pos	jiyo	cha-jiyo-verb-context	차다	verb	false	ae6320b79201b9796024a5ebfe32677fb592271537a6ffb58a02579c06214209	contract-positive	structurally-indistinguishable-homograph	동사와 형용사의 활용이 같은 표면을 갖고 문맥에서 뜻을 구분한다.
-explicit-pos	jiyo	cha-jiyo-adj-context	차다	adjective	false	1ef980a82ab5877015fa63c68751d0bdcd6f3ee49c8ad1a027260f1ba214b237	contract-positive	structurally-indistinguishable-homograph	동사와 형용사의 활용이 같은 표면을 갖고 문맥에서 뜻을 구분한다.
+explicit-pos	jiyo	cha-jiyo-adj-context	차다	adjective	false	1ef980a82ab5877015fa63c68751d0bdcd6f3ee49c8ad1a027260f1ba214b237	confirmed	implementation-target	공이 목적격 조사와 결합해 발로 지르는 동사 차다의 목적어로 쓰였다.
 explicit-pos	jiyo	cha-jyo-verb-context	차다	verb	false	58b158a212f5ddc74de83d24be14a8c07cf24aab83e15ecf6611b81fc76b8b01	contract-positive	structurally-indistinguishable-homograph	동사와 형용사의 활용이 같은 표면을 갖고 문맥에서 뜻을 구분한다.
-explicit-pos	jiyo	cha-jyo-adj-context	차다	adjective	false	e0fb35f6e096f13ff55913d2a86289142f99de955770ccdb6d87d29ffe29fda9	contract-positive	structurally-indistinguishable-homograph	동사와 형용사의 활용이 같은 표면을 갖고 문맥에서 뜻을 구분한다.
+explicit-pos	jiyo	cha-jyo-adj-context	차다	adjective	false	e0fb35f6e096f13ff55913d2a86289142f99de955770ccdb6d87d29ffe29fda9	confirmed	implementation-target	공이 목적격 조사와 결합해 발로 지르는 동사 차다의 목적어로 쓰였다.
 explicit-pos	jiyo	balg-jiyo-verb-context	밝다	verb	false	b1fae9a1e3943170960e2f10a50c2db9f53b08a8cc1344d81ee219b3ef208c79	contract-positive	structurally-indistinguishable-homograph	동사와 형용사의 활용이 같은 표면을 갖고 문맥에서 뜻을 구분한다.
 explicit-pos	jiyo	balg-jiyo-adj-context	밝다	adjective	false	39908b6906ffbacba120fb206baf81b462bd2bf635bbdc8b79a6543f0360fd45	contract-positive	structurally-indistinguishable-homograph	동사와 형용사의 활용이 같은 표면을 갖고 문맥에서 뜻을 구분한다.
 explicit-pos	jiyo	balg-jyo-verb-context	밝다	verb	false	3f30b8c0b14f5050781c7e18280f016b4754382bf98de006409ec94329baecbb	contract-positive	structurally-indistinguishable-homograph	동사와 형용사의 활용이 같은 표면을 갖고 문맥에서 뜻을 구분한다.
