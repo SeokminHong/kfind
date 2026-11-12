@@ -1073,6 +1073,9 @@ impl MorphMatcher {
             return true;
         }
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
+        if self.has_lexicalized_time_modifier(haystack, candidate, branch, &whole, resolver) {
+            return false;
+        }
         let licensed_trailing =
             self.licensed_structural_trailing(haystack, candidate, branch, resolver);
         if licensed_trailing.is_none()
@@ -1178,6 +1181,54 @@ impl MorphMatcher {
             diagnostics.record_unavailable();
         }
         decision.is_some_and(|decision| ProductPolicy::RecallFirst.accepts(&decision))
+    }
+
+    fn has_lexicalized_time_modifier(
+        &self,
+        haystack: &[u8],
+        candidate: &ExecutedCandidate,
+        branch: &CandidateProgram,
+        whole: &Range<usize>,
+        resolver: &ConstraintResolver,
+    ) -> bool {
+        if candidate.verified.core.start != whole.start
+            || candidate.consumed.end >= whole.end
+            || !matches!(
+                branch.consumption,
+                CandidateConsumption::PredicateContinuation { .. }
+            )
+        {
+            return false;
+        }
+        let trailing = candidate.consumed.end..whole.end;
+        if !haystack.get(trailing.clone()).is_some_and(|bytes| {
+            bytes.starts_with("때".as_bytes()) || bytes.starts_with("ᄄ".as_bytes())
+        }) || !branch.origins.iter().any(|origin| {
+            candidate
+                .suffix_rules
+                .last()
+                .or_else(|| origin.rule_path.last())
+                .is_some_and(|rule| ADNOMINAL_RULE_IDS.contains(&rule.as_str()))
+        }) {
+            return false;
+        }
+        let Some(trailing) = context::normalized_token(haystack, trailing) else {
+            return false;
+        };
+        let Some(particles) = trailing.strip_prefix('때') else {
+            return false;
+        };
+        let Some(prefix) = context::normalized_token(haystack, whole.start..candidate.consumed.end)
+        else {
+            return false;
+        };
+        let modifier = format!("{prefix}때");
+        resolver.has_whole_modifier(&modifier)
+            && self
+                .particle_verifier
+                .verify_prefix(&modifier, particles)
+                .consumed_bytes
+                == particles.len()
     }
 
     fn licensed_structural_trailing(
