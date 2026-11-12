@@ -220,7 +220,7 @@ mod tests {
 
     use super::*;
 
-    const EXPECTED_CASES: usize = 820;
+    const EXPECTED_CASES: usize = 841;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {
@@ -277,11 +277,14 @@ mod tests {
     }
 
     #[test]
-    fn rieul_endings_match_the_complete_eojeol() {
+    fn generated_endings_match_the_complete_eojeol() {
         let harness = GoldHarness::embedded().expect("embedded lexicons must be valid");
         for (query, text, target) in [
             ("v:가다", "내일 같이 갈까요?", "갈까요"),
             ("adj:좋다", "날씨가 좋을수록 사람이 많다.", "좋을수록"),
+            ("v:먹다", "먼저 먹으라면서 재촉했다.", "먹으라면서"),
+            ("v:들다", "먼저 드시라고 했다.", "드시라고"),
+            ("adj:좋다", "듣기 좋으라고 칭찬을 보탰다.", "좋으라고"),
         ] {
             let start = text.find(target).expect("target appears in the fixture");
             assert_eq!(
@@ -397,6 +400,15 @@ mod tests {
             entry("모양", "NNG", 0),
             entry("컴퓨터", "NNG", 0),
             entry("작가", "NNG", 0),
+            entry("가지", "NNG", 0),
+            entry("가지", "VV", 0),
+            entry("넣", "VV", 0),
+            entry("을", "ETM", 0),
+            entry("잘", "VV+ETM", 0),
+            entry("잘", "MAG", 0),
+            entry("자", "NNG", 0),
+            entry("먹", "VV", 0),
+            entry("라고", "EC", 0),
             entry("봄", "NNG", 0),
             entry("이야기", "NNG", 0),
             entry("이래", "VA+EF", 0),

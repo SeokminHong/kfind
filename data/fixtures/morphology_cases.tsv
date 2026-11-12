@@ -819,3 +819,24 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 없다	adjective	그런 물건은 없으우.	no-match	hao-final-u
 나오다	verb	물이 안 나오면 시청에까지 쫓아간다.	match	standard-negative-spacing
 나다	verb	물이 안 나오면 시청에까지 쫓아간다.	no-match	lexical-context
+먹다	verb	저녁은 집에서 먹으라.	match	directive-ra
+먹다	verb	저녁은 집에서 먹으라고 했다.	match	directive-quote
+좋다	adjective	듣기 좋으라고 칭찬을 보탰다.	match	directive-purpose
+있다	verb	앞날에 영광이 있으라.	match	directive-wish
+사랑하다	verb	네 이웃을 사랑하라.	match	directive-ra
+듣다	verb	그의 말을 들으라고 했다.	match	directive-irregular
+말다	verb	늦게 다니지 말라고 했다.	match	directive-rieul
+살다	verb	그곳에서 살라며 권했다.	match	directive-rieul
+앉다	verb	어르신께 앉으시라고 자리를 비웠다.	match	directive-honorific
+들다	verb	먼저 드시라고 했다.	match	directive-honorific
+먹다	verb	늦었으니 먼저 먹으라니까.	match	directive-quote
+읽다	verb	책을 읽으라면서 건넸다.	match	directive-quote
+먹다	verb	아무리 먹으라손 치더라도.	match	directive-quote
+읽다	verb	어느 책을 읽으라는 거야?	match	directive-quote
+먹다	verb	저녁은 집에서 먹라고 했다.	no-match	lexical-context
+살다	verb	그곳에서 살으라며 권했다.	no-match	directive-rieul
+가다	verb	그분을 작가라고 소개했다.	no-match	lexical-context
+가지다	verb	그건 볶음에 넣을 가지라고 했다.	no-match	lexical-context
+가지다	verb	그는 이 기회를 가지라고 했다.	match	lexical-context
+이다	copula	그건 볶음에 넣을 가지라고 했다.	match	fused-copula-ending
+자다	verb	잠을 잘 자라고 아이 방의 조명을 어둡게 했다.	match	lexical-context

@@ -945,6 +945,7 @@ impl MorphMatcher {
         if boundary == BoundaryPolicy::Smart
             && self.constraint_resolver.as_ref().is_some_and(|resolver| {
                 has_competing_hao_connective(haystack, candidate, branch, resolver)
+                    || has_nominal_quotative_frame(haystack, candidate, branch, resolver)
             })
         {
             return false;
@@ -1409,9 +1410,18 @@ impl MorphMatcher {
         resolver.has_exact_lost_span_copula_ending_path(&normalized)
             || (matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
                 && (fused_copula::accepts_fused_retrospective(&normalized, resolver)
-                    || fused_copula::accepts_omitted_copula(&normalized, resolver, || {
-                        is_sentence_end_after(haystack, candidate.verified.token.end)
-                    })))
+                    || fused_copula::accepts_omitted_copula(
+                        &normalized,
+                        resolver,
+                        || is_sentence_end_after(haystack, candidate.verified.token.end),
+                        || {
+                            follows_predicate_adnominal(
+                                haystack,
+                                candidate.verified.token.start,
+                                resolver,
+                            )
+                        },
+                    )))
     }
 
     fn licensed_nominal_copula_trailing(
@@ -1950,6 +1960,49 @@ fn contracted_copula_surface_follows(
         })
 }
 
+fn follows_predicate_adnominal(haystack: &[u8], at: usize, resolver: &ConstraintResolver) -> bool {
+    context::previous_word(haystack, at)
+        .is_some_and(|previous| resolver.has_predicate_adnominal_surface(&previous))
+}
+
+fn has_nominal_quotative_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let (CandidateConsumption::PredicateContinuation { pos, .. }
+    | CandidateConsumption::StructuralPredicateEnding { pos, .. }) = branch.consumption
+    else {
+        return false;
+    };
+    let core = &candidate.verified.core;
+    if pos == kfind_morph::PredicatePos::Copula {
+        return false;
+    }
+    let Some(suffix) = haystack
+        .get(core.end..candidate.consumed.end)
+        .and_then(|bytes| std::str::from_utf8(bytes).ok())
+    else {
+        return false;
+    };
+    if !suffix.starts_with(['라', 'ᄅ'])
+        || !["라고", "라고요", "라는"]
+            .iter()
+            .any(|ending| suffix.nfc().eq(ending.chars()))
+        || !is_boundary_before(haystack, core.start)
+    {
+        return false;
+    }
+    haystack
+        .get(core.clone())
+        .and_then(|bytes| std::str::from_utf8(bytes).ok())
+        .is_some_and(|nominal| {
+            resolver.has_exact_nominal_surface(&nominal.nfc().collect::<String>())
+        })
+        && follows_predicate_adnominal(haystack, core.start, resolver)
+}
+
 fn has_competing_hao_connective(
     haystack: &[u8],
     candidate: &ExecutedCandidate,
@@ -2196,7 +2249,7 @@ fn stem_accepts_ending(
     }
     if class == PredicateStemClass::Consonant
         && [
-            "니", "니까", "니깐", "며", "면서", "면", "려", "리", "세", "셔", "시", "십",
+            "니", "니까", "니깐", "라", "며", "면서", "면", "려", "리", "세", "셔", "시", "십",
         ]
         .iter()
         .any(|prefix| suffix.starts_with(prefix))

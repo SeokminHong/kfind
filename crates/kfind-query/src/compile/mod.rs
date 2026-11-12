@@ -100,6 +100,8 @@ const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.purpose-reo",
     "ending.connective-na",
     "ending.imperative-sio",
+    "ending.directive-ra",
+    "ending.directive-quotative",
     "ending.present-adnominal",
 ];
 const NOMINAL_CONSUMPTION_RULE_IDS: &[&str] = &[

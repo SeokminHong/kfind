@@ -357,6 +357,21 @@ fn adjacent_token_span(
     }
 }
 
+pub(super) fn previous_word(bytes: &[u8], at: usize) -> Option<Cow<'_, str>> {
+    let span = adjacent_token_span(
+        bytes,
+        at,
+        Direction::Previous,
+        DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes,
+    )
+    .ok()??;
+    let separator = std::str::from_utf8(bytes.get(span.end..at)?).ok()?;
+    if !separator.chars().all(char::is_whitespace) {
+        return None;
+    }
+    normalized_token(bytes, span)
+}
+
 fn normalized_token(bytes: &[u8], span: Range<usize>) -> Option<Cow<'_, str>> {
     let token = std::str::from_utf8(bytes.get(span)?).ok()?;
     Some(if is_nfc(token) {
