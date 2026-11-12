@@ -457,26 +457,18 @@ pub(super) fn future_adnominal(
     Ok(derived(surface, core_len, rules))
 }
 
-pub(super) fn polite_declarative(stem: &str) -> Result<DerivedSurface, GenerateError> {
+pub(super) fn formal_bieup_anchor(stem: &str) -> Result<DerivedSurface, GenerateError> {
     let last = stem.chars().next_back().expect("stem");
     let syllable =
         decompose_syllable(last).ok_or_else(|| GenerateError::InvalidLemma(stem.into()))?;
-    let (base, surface) = if syllable.jongseong == JONG_NONE {
-        let base = add_final(stem, JONG_BIEUP).expect("vowel-final stem");
-        let surface = format!("{base}니다");
-        (base, surface)
+    let surface = if syllable.jongseong == JONG_NONE {
+        add_final(stem, JONG_BIEUP).expect("vowel-final stem")
     } else if syllable.jongseong == JONG_RIEUL {
-        let base = replace_last_final(stem, JONG_BIEUP).expect("rieul-final stem");
-        let surface = format!("{base}니다");
-        (base, surface)
+        replace_last_final(stem, JONG_BIEUP).expect("rieul-final stem")
     } else {
-        (stem.to_owned(), format!("{stem}습니다"))
+        format!("{stem}습")
     };
-    Ok(derived(
-        surface,
-        base.len(),
-        vec![rule("ending.polite-declarative")],
-    ))
+    Ok(derived(surface, stem.len(), Vec::new()))
 }
 
 pub(super) fn nominalizer_surface(

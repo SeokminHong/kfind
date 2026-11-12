@@ -84,6 +84,9 @@ const A_OR_EO_SUFFIXES: &[Suffix] = &[
 ];
 
 const PAST_SUFFIXES: &[Suffix] = &[
+    suffix("습니까", &["ending.formal-interrogative"]),
+    suffix("습디까", &["ending.retrospective-interrogative"]),
+    suffix("습디다", &["ending.retrospective-declarative"]),
     suffix("어야지", &["ending.necessity-yaji"]),
     suffix("어야지요", &["ending.necessity-yaji-polite"]),
     suffix("어야죠", &["ending.necessity-yaji-polite"]),
@@ -108,6 +111,9 @@ const PAST_SUFFIXES: &[Suffix] = &[
 ];
 
 const FUTURE_SUFFIXES: &[Suffix] = &[
+    suffix("습니까", &["ending.formal-interrogative"]),
+    suffix("습디까", &["ending.retrospective-interrogative"]),
+    suffix("습디다", &["ending.retrospective-declarative"]),
     suffix("습니다", &["ending.polite-declarative"]),
     suffix("으되", &["ending.connective-eudoe"]),
     suffix("지만", &["ending.connective-jiman"]),
@@ -166,6 +172,66 @@ pub(super) const HONORIFIC_GEODEUN_ENDINGS: &[Suffix] = &[
 ];
 
 const EU_SUFFIXES: &[Suffix] = &[
+    suffix(
+        "십니까",
+        &["ending.honorific", "ending.formal-interrogative"],
+    ),
+    suffix(
+        "십디까",
+        &["ending.honorific", "ending.retrospective-interrogative"],
+    ),
+    suffix(
+        "십디다",
+        &["ending.honorific", "ending.retrospective-declarative"],
+    ),
+    suffix(
+        "셨습니까",
+        &[
+            "ending.honorific",
+            "ending.past",
+            "ending.formal-interrogative",
+        ],
+    ),
+    suffix(
+        "셨습디까",
+        &[
+            "ending.honorific",
+            "ending.past",
+            "ending.retrospective-interrogative",
+        ],
+    ),
+    suffix(
+        "셨습디다",
+        &[
+            "ending.honorific",
+            "ending.past",
+            "ending.retrospective-declarative",
+        ],
+    ),
+    suffix(
+        "시겠습니까",
+        &[
+            "ending.honorific",
+            "ending.future",
+            "ending.formal-interrogative",
+        ],
+    ),
+    suffix(
+        "시겠습디까",
+        &[
+            "ending.honorific",
+            "ending.future",
+            "ending.retrospective-interrogative",
+        ],
+    ),
+    suffix(
+        "시겠습디다",
+        &[
+            "ending.honorific",
+            "ending.future",
+            "ending.retrospective-declarative",
+        ],
+    ),
     HONORIFIC_YAJI,
     HONORIFIC_YAJI_POLITE,
     HONORIFIC_YAJI_CONTRACTED,
@@ -325,6 +391,13 @@ const EU_RIEUL_FINAL: &[Suffix] = &[
     ),
 ];
 
+const BIEUP_FINAL: &[Suffix] = &[
+    suffix("니다", &["ending.polite-declarative"]),
+    suffix("니까", &["ending.formal-interrogative"]),
+    suffix("디까", &["ending.retrospective-interrogative"]),
+    suffix("디다", &["ending.retrospective-declarative"]),
+];
+
 /// Consumes the longest suffix accepted by a predicate branch's verifier state.
 #[must_use]
 pub fn verify_predicate_continuation(
@@ -346,6 +419,7 @@ pub fn verify_predicate_continuation(
         ContinuationState::Eu => EU_SUFFIXES,
         ContinuationState::Geodeun => GEODEUN_ENDINGS,
         ContinuationState::RieulFinal => RIEUL_FINAL,
+        ContinuationState::BieupFinal => BIEUP_FINAL,
     };
     let rieul_endings = match state {
         ContinuationState::Past => PAST_RIEUL_FINAL,
@@ -379,7 +453,10 @@ pub fn verify_predicate_continuation(
     if suffix.is_none()
         && matches!(
             state,
-            ContinuationState::Eu | ContinuationState::Geodeun | ContinuationState::RieulFinal
+            ContinuationState::Eu
+                | ContinuationState::Geodeun
+                | ContinuationState::RieulFinal
+                | ContinuationState::BieupFinal
         )
     {
         return None;

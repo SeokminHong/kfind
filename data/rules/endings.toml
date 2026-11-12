@@ -98,7 +98,7 @@ initial = "a-or-eo"
 forms = ["았", "었"]
 required = []
 forbidden = []
-next = ["ending.final-da", "ending.polite-declarative", "ending.past-polite-yo", "ending.conditional", "ending.connective-eudoe", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go", "ending.coordinate-myeo", "ending.future-adnominal", "ending.retrospective-adnominal", "ending.quotative-go", "ending.interrogative-neunya", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite", "ending.necessity-yaji", "ending.necessity-yaji-polite", "ending.doubt-rieulji", "ending.doubt-rieulneunji", "ending.conjecture-rieulgeol"]
+next = ["ending.final-da", "ending.polite-declarative", "ending.past-polite-yo", "ending.conditional", "ending.connective-eudoe", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go", "ending.coordinate-myeo", "ending.future-adnominal", "ending.retrospective-adnominal", "ending.quotative-go", "ending.interrogative-neunya", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite", "ending.necessity-yaji", "ending.necessity-yaji-polite", "ending.doubt-rieulji", "ending.doubt-rieulneunji", "ending.conjecture-rieulgeol", "ending.formal-interrogative", "ending.retrospective-interrogative", "ending.retrospective-declarative"]
 terminal = true
 
 [[ending]]
@@ -428,7 +428,7 @@ initial = "consonant"
 forms = ["겠"]
 required = []
 forbidden = []
-next = ["ending.final-da", "ending.polite-declarative", "ending.connective-eudoe"]
+next = ["ending.final-da", "ending.polite-declarative", "ending.connective-eudoe", "ending.formal-interrogative", "ending.retrospective-interrogative", "ending.retrospective-declarative"]
 terminal = true
 
 [[ending]]
@@ -438,7 +438,7 @@ initial = "eu"
 forms = ["시", "으시"]
 required = []
 forbidden = []
-next = ["ending.past", "ending.future", "ending.final-da", "ending.polite-declarative", "ending.connective-go", "ending.present-adnominal", "ending.propositive", "ending.imperative-formal", "ending.imperative-formal-short", "ending.intentive-ryeomyeon", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite", "ending.doubt-rieulji", "ending.doubt-rieulneunji", "ending.conjecture-rieulgeol"]
+next = ["ending.past", "ending.future", "ending.final-da", "ending.polite-declarative", "ending.connective-go", "ending.present-adnominal", "ending.propositive", "ending.imperative-formal", "ending.imperative-formal-short", "ending.intentive-ryeomyeon", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite", "ending.doubt-rieulji", "ending.doubt-rieulneunji", "ending.conjecture-rieulgeol", "ending.formal-interrogative", "ending.retrospective-interrogative", "ending.retrospective-declarative"]
 terminal = false
 
 [[ending]]
@@ -746,6 +746,36 @@ id = "ending.polite-declarative"
 category = "final"
 initial = "attach-bieup"
 forms = ["ㅂ니다", "습니다"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.formal-interrogative"
+category = "final"
+initial = "attach-bieup"
+forms = ["ㅂ니까", "습니까"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.retrospective-interrogative"
+category = "final"
+initial = "attach-bieup"
+forms = ["ㅂ디까", "습디까"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.retrospective-declarative"
+category = "final"
+initial = "attach-bieup"
+forms = ["ㅂ디다", "습디다"]
 required = []
 forbidden = []
 next = []

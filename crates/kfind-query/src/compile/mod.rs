@@ -43,6 +43,9 @@ const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.polite-yo",
     "ending.imperative-ra",
     "ending.polite-declarative",
+    "ending.formal-interrogative",
+    "ending.retrospective-interrogative",
+    "ending.retrospective-declarative",
     "ending.connective-eudoe",
     "ending.conditional",
     "ending.connective-jiman",
@@ -797,6 +800,7 @@ fn compile_predicate_with_generated(
                         branch.continuation,
                         kfind_morph::ContinuationState::Geodeun
                             | kfind_morph::ContinuationState::RieulFinal
+                            | kfind_morph::ContinuationState::BieupFinal
                     ) {
                         return false;
                     }

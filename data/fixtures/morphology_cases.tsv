@@ -657,5 +657,17 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 앉다	verb	어르신이 어디에 앉으실는지 모르겠다.	match	doubt-rieulneunji-honorific
 살다	verb	어르신은 오래 사실걸요.	match	conjecture-rieulgeol-honorific
 이다	copula	그곳이 새 학교일는지 모르겠다.	match	doubt-rieulneunji-copula
+가다	verb	지금 어디로 갑니까?	match	formal-interrogative
+알다	verb	이 사실을 얼마나 압디까?	match	retrospective-interrogative
+예쁘다	adjective	실물도 예쁩디다.	match	retrospective-declarative
+좋다	adjective	현장 분위기가 좋습디까?	match	retrospective-interrogative
+낫다	adjective	어느 쪽이 더 낫습니까?	match	formal-interrogative-consonant
+먹다	verb	밥은 먹었습니까?	match	formal-interrogative-past
+앉다	verb	여기에 앉으시겠습니까?	match	formal-interrogative-honorific-future
+가다	verb	어르신도 먼저 가십니까?	match	formal-interrogative-honorific
+살다	verb	그분도 여기 사십니까?	match	formal-interrogative-honorific-rieul
+이다	copula	내일이 휴일입니까?	match	formal-interrogative-copula
+먹다	verb	어제 이곳에서 먹으니까 배가 부르더군요.	match	connective-ni
+살다	verb	이 동네에서 살습니까?	no-match	formal-interrogative-rieul-allomorph
 치다	verb	지구온난화는 여러 측면에 영향을 미친다.	no-match	structural-whole-predicate
 다	noun	저 친구는 왕친입니다.	no-match	structural-ending-component
