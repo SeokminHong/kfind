@@ -359,3 +359,50 @@ corpus.ud-gsd.test.test-s643.compound-nominal	지속	noun	smart-exact	10	16	회�
 corpus.ud-gsd.test.test-s778.compound-market	주택	noun	smart-exact	0	6	주택시장이 침체돼 주택가격이 내려갔다.
 corpus.ud-gsd.test.test-s778.compound-price	주택	noun	smart-exact	26	32	주택시장이 침체돼 주택가격이 내려갔다.
 regression.compound-nominal.incorrect-object	학교	noun	no-match	13	19	학생들이 학교을 세웠다는 문장을 교정했다.
+corpus.ud-kaist.dev.MH2_0069-s8.short-nominal-derivation	양	noun	smart-exact	60	63	오늘날에 와서 출판에 관한 연구가 출판계의 양적인 팽창에 따라 활성화를 띠는 경향이 있으나 여전히 사회적인 관계 속에서의 출판 연구는 미미한 실정이다.
+regression.short-nominal-derivation.amount-adnominal	양	noun	smart-exact	10	13	올해는 양적 성장이 두드러졌다.
+regression.short-nominal-derivation.amount-predicate	양	noun	smart-exact	17	20	이번 변화는 양적이다.
+regression.short-nominal-derivation.amount-dependent	양	noun	smart-exact	21	24	나는 이 변화가 양적인 줄 알았지만 품질도 달라졌다.
+regression.short-nominal-derivation.amount-adverbial	양	noun	smart-exact	20	23	올해는 수출이 양적으로 늘었다.
+regression.short-nominal-derivation.quality-adnominal	질	noun	smart-exact	17	20	이 과정에는 질적인 변화가 필요하다.
+regression.short-nominal-derivation.thief-whole	도	noun	no-match	27	30	그는 마을을 떠돌던 도적이다.
+regression.short-nominal-derivation.goal-whole	목	noun	no-match	20	23	이것이 연구의 목적인지 확인했다.
+regression.short-nominal-derivation.target-whole	표	noun	no-match	31	34	이 표식이 우리가 찾던 표적이다.
+regression.short-nominal-derivation.amount-register	양	noun	smart-exact	27	30	박물관은 그 문서가 양적인 줄 알고 들여왔지만 노비 명부였다.
+regression.short-nominal-derivation.sexual-adnominal	성	noun	smart-exact	14	17	나는 이게 성적인 줄 알았는데, 배우들은 상처를 치료하는 장면을 찍고 있었다.
+regression.short-nominal-derivation.score-adnominal	성	noun	smart-exact	14	17	나는 이게 성적인 줄 알았는데, 채점표가 아니라 출석부였다.
+regression.short-nominal-derivation.emotion-adnominal	정	noun	smart-exact	20	23	그는 이성보다 정적인 태도를 보였다.
+regression.short-nominal-derivation.static-adnominal	정	noun	smart-exact	0	3	정적인 화면에 자막만 움직였다.
+corpus.short-nominal-derivation.gsd.test-s84.performance	실	noun	no-match	24	27	한컴은 사상 최대 실적을 달성했으며, 7년 연속 흑자 실적의 기록을 이어 갔다고 밝혔다.
+corpus.short-nominal-derivation.gsd.test-s126.performance	실	noun	no-match	30	33	관련 종목은 파격적인 실적뿐 아니라 특급 호재도 앞두고 있었다.
+corpus.short-nominal-derivation.gsd.test-s146.performance	실	noun	no-match	24	27	이에 따라 분기별 실적 개선세가 약해지고 4분기 실적은 매출액 1조 2,000억 원으로 추정됐다.
+corpus.short-nominal-derivation.gsd.test-s206.performance	실	noun	no-match	25	28	아이패드 2 출시가 실적 개선의 신호탄이 되어 실적 성장을 이끌 것으로 보인다.
+corpus.short-nominal-derivation.gsd.test-s754.performance	실	noun	no-match	33	36	우리산업의 상반기 누적 실적은 매출액과 영업 이익이 각각 645억 원, 17억 원으로 추정됐다.
+corpus.short-nominal-derivation.gsd.test-s227.score-object	성	noun	no-match	74	77	그는 전기 리그 준우승과 후기 리그 우승이라는 눈부신 성적을 이끌어 냈다.
+corpus.short-nominal-derivation.pud.n01115013.score-object	성	noun	no-match	29	32	나는 2017년에 더 좋은 성적을 거두기 위한 대열에 합류할 준비가 되어 있다.
+corpus.short-nominal-derivation.pud.n03001019.rival-subject	정	noun	no-match	36	39	그는 민주당원이었던 그의 정적이 당선된다면 그녀가 몇 년간 조사를 받을 것이라고 확신했다.
+corpus.short-nominal-derivation.pud.w01096074.static-adnominal	정	noun	smart-exact	42	45	지상전은 제1차 세계 대전 당시 정적인 전선 형성에서 기동성과 복합전이 증가한 방식으로 바뀌었다.
+corpus.short-nominal-derivation.pud.n02058056.intellect	지	noun	smart-exact	71	74	경찰은 내가 귄터 데 브로인 작가를 아는지와 우리가 지적 동류인지 물었다.
+corpus.short-nominal-derivation.pud.w02019048.public	공	noun	smart-exact	42	45	스프링거는 사적으로뿐 아니라 공적으로도 유대인과 화해하기 위한 노력을 적극적으로 펼쳤다.
+corpus.short-nominal-derivation.pud.w03009029.full	전	noun	smart-exact	0	3	전적으로 베르나르 타피에의 재정 지원을 받은 해당 학교는 타피에가 파산한 1994년에 문을 닫았다.
+corpus.short-nominal-derivation.gsd.test-s115.legal	법	noun	smart-exact	29	32	에드워즈 대변인은 “법적 근거가 강력하다”며 필립모리스가 결국 승소할 것이라고 말했다.
+regression.short-nominal-derivation.catalog-1	공	noun	smart-exact	20	23	시민의 세금은 공적인 일에 쓰여야 한다.
+regression.short-nominal-derivation.catalog-2	극	noun	smart-exact	17	20	경기 막판에 극적인 역전이 나왔다.
+regression.short-nominal-derivation.catalog-3	단	noun	smart-exact	38	41	그 결과는 문제를 보여 주는 단적인 사례다.
+regression.short-nominal-derivation.catalog-4	물	noun	smart-exact	13	16	태풍으로 물적 피해가 컸다.
+regression.short-nominal-derivation.catalog-5	미	noun	smart-exact	20	23	복원 작업에는 미적인 판단도 필요하다.
+regression.short-nominal-derivation.catalog-6	병	noun	smart-exact	17	20	그는 승패에 병적으로 집착했다.
+regression.short-nominal-derivation.catalog-7	사	noun	smart-exact	23	26	연구자는 사건의 사적 배경을 살폈다.
+regression.short-nominal-derivation.catalog-8	사	noun	smart-exact	24	27	그는 업무 중에는 사적인 연락을 받지 않는다.
+regression.short-nominal-derivation.catalog-9	수	noun	smart-exact	14	17	원정 팀이 수적 우위를 점했다.
+regression.short-nominal-derivation.catalog-10	시	noun	smart-exact	27	30	안개가 낀 풍경에서 시적인 정취가 느껴졌다.
+regression.short-nominal-derivation.catalog-11	신	noun	smart-exact	17	20	그 신화에는 신적 존재가 여럿 등장한다.
+regression.short-nominal-derivation.catalog-12	심	noun	smart-exact	30	33	사고를 목격한 사람은 심적인 충격을 받았다.
+regression.short-nominal-derivation.catalog-13	암	noun	smart-exact	30	33	오래된 관행이 조직에 암적 요인으로 작용했다.
+regression.short-nominal-derivation.catalog-14	영	noun	smart-exact	21	24	그는 명상 중에 영적인 체험을 했다고 말했다.
+regression.short-nominal-derivation.catalog-15	외	noun	smart-exact	20	23	사건에는 여러 외적 요인이 작용했다.
+regression.short-nominal-derivation.catalog-16	육	noun	smart-exact	14	17	그 소설은 육적 욕망을 적나라하게 묘사했다.
+regression.short-nominal-derivation.catalog-17	인	noun	smart-exact	24	27	이 사업은 양국의 인적 교류를 늘리기 위해 마련됐다.
+regression.short-nominal-derivation.catalog-18	종	noun	smart-exact	34	37	이 조직에는 위계에 따른 종적 관계가 있다.
+regression.short-nominal-derivation.catalog-19	학	noun	smart-exact	14	17	그 설명은 학적 근거가 충분하다.
+regression.short-nominal-derivation.catalog-20	횡	noun	smart-exact	14	17	부서 간에 횡적 협력이 필요하다.

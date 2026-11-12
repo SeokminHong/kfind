@@ -123,7 +123,30 @@ const DICTIONARY_NUMERIC_UNITS: &[&str] = &[
     "호봉",
 ];
 
+const SHORT_NOMINAL_DERIVATIONS: &str =
+    include_str!("../../../../data/rules/stdict-short-nominal-derivations.tsv");
+
 impl ConstraintResolver {
+    #[must_use]
+    pub fn has_attested_short_nominal_derivation(
+        &self,
+        root: &str,
+        suffix: &str,
+        particle: Option<&str>,
+    ) -> bool {
+        SHORT_NOMINAL_DERIVATIONS.lines().skip(1).any(|line| {
+            let mut fields = line.split('\t');
+            fields.next() == Some(root)
+                && fields.next() == Some(suffix)
+                && particle.is_none_or(|particle| {
+                    fields
+                        .next_back()
+                        .is_some_and(|prefix| prefix == "*" || particle.starts_with(prefix))
+                })
+        }) && has_exact_sequence(&self.resource, root, &[StructuralPos::NNG])
+            && has_exact_sequence(&self.resource, suffix, &[StructuralPos::XSN])
+    }
+
     #[must_use]
     pub fn is_dictionary_numeric_unit(unit: &str) -> bool {
         DICTIONARY_NUMERIC_UNITS.binary_search(&unit).is_ok()
