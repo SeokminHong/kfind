@@ -20,6 +20,7 @@ COPY tools/morph-compare/mse-context-cases.jsonl tools/morph-compare/mse-contrac
 COPY tools/morph-compare/dao-context-cases.jsonl tools/morph-compare/dao-contract-reviews.tsv ./
 COPY tools/morph-compare/jiyo-context-cases.jsonl tools/morph-compare/jiyo-contract-reviews.tsv ./
 COPY tools/morph-compare/humble-context-cases.jsonl tools/morph-compare/humble-contract-reviews.tsv ./
+COPY tools/morph-compare/casual-prefinal-context-cases.jsonl tools/morph-compare/casual-prefinal-contract-reviews.tsv ./
 COPY tools/morph-compare/python ./python
 RUN python -m unittest discover --start-directory python --pattern 'test_*.py'
 RUN python python/fetch_sources.py --manifest sources.json --output /corpora \

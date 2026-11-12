@@ -1,0 +1,16 @@
+{"id":"walk-formal","query":"걷다","pos":"verb","expected":true,"gold_byte_start":21,"gold_byte_end":30,"text":"비가 와도 계속 걸었다.","surface":"걸었다","paired_case_id":"walk-formal-context"}
+{"id":"walk-formal-context","query":"걷다","pos":"verb","expected":false,"gold_byte_start":10,"gold_byte_end":19,"text":"전화를 걸었다.","surface":"걸었다","paired_case_id":"walk-formal"}
+{"id":"hang-formal","query":"걸다","pos":"verb","expected":true,"gold_byte_start":10,"gold_byte_end":19,"text":"전화를 걸었다.","surface":"걸었다","paired_case_id":"hang-formal-context"}
+{"id":"hang-formal-context","query":"걸다","pos":"verb","expected":false,"gold_byte_start":21,"gold_byte_end":30,"text":"비가 와도 계속 걸었다.","surface":"걸었다","paired_case_id":"hang-formal"}
+{"id":"listen-formal","query":"듣다","pos":"verb","expected":true,"gold_byte_start":10,"gold_byte_end":19,"text":"음악을 들었다.","surface":"들었다","paired_case_id":"listen-formal-context"}
+{"id":"listen-formal-context","query":"듣다","pos":"verb","expected":false,"gold_byte_start":10,"gold_byte_end":19,"text":"가방을 들었다.","surface":"들었다","paired_case_id":"listen-formal"}
+{"id":"lift-formal","query":"들다","pos":"verb","expected":true,"gold_byte_start":10,"gold_byte_end":19,"text":"가방을 들었다.","surface":"들었다","paired_case_id":"lift-formal-context"}
+{"id":"lift-formal-context","query":"들다","pos":"verb","expected":false,"gold_byte_start":10,"gold_byte_end":19,"text":"음악을 들었다.","surface":"들었다","paired_case_id":"lift-formal"}
+{"id":"walk-casual","query":"걷다","pos":"verb","expected":true,"gold_byte_start":14,"gold_byte_end":23,"text":"나는 오래 걸었어.","surface":"걸었어","paired_case_id":"walk-casual-context"}
+{"id":"walk-casual-context","query":"걷다","pos":"verb","expected":false,"gold_byte_start":10,"gold_byte_end":19,"text":"전화를 걸었어.","surface":"걸었어","paired_case_id":"walk-casual"}
+{"id":"hang-casual","query":"걸다","pos":"verb","expected":true,"gold_byte_start":10,"gold_byte_end":19,"text":"전화를 걸었어.","surface":"걸었어","paired_case_id":"hang-casual-context"}
+{"id":"hang-casual-context","query":"걸다","pos":"verb","expected":false,"gold_byte_start":14,"gold_byte_end":23,"text":"나는 오래 걸었어.","surface":"걸었어","paired_case_id":"hang-casual"}
+{"id":"listen-casual","query":"듣다","pos":"verb","expected":true,"gold_byte_start":10,"gold_byte_end":19,"text":"음악을 들었어.","surface":"들었어","paired_case_id":"listen-casual-context"}
+{"id":"listen-casual-context","query":"듣다","pos":"verb","expected":false,"gold_byte_start":10,"gold_byte_end":19,"text":"가방을 들었어.","surface":"들었어","paired_case_id":"listen-casual"}
+{"id":"lift-casual","query":"들다","pos":"verb","expected":true,"gold_byte_start":10,"gold_byte_end":19,"text":"가방을 들었어.","surface":"들었어","paired_case_id":"lift-casual-context"}
+{"id":"lift-casual-context","query":"들다","pos":"verb","expected":false,"gold_byte_start":10,"gold_byte_end":19,"text":"음악을 들었어.","surface":"들었어","paired_case_id":"lift-casual"}

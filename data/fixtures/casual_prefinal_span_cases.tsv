@@ -1,0 +1,28 @@
+id	query	pos	expected	byte_start	byte_end	text
+walk-formal	걷다	verb	exact	21	30	비가 와도 계속 걸었다.
+hang-formal	걸다	verb	exact	10	19	전화를 걸었다.
+listen-formal	듣다	verb	exact	10	19	음악을 들었다.
+lift-formal	들다	verb	exact	10	19	가방을 들었다.
+walk-casual	걷다	verb	exact	14	23	나는 오래 걸었어.
+hang-casual	걸다	verb	exact	10	19	전화를 걸었어.
+listen-casual	듣다	verb	exact	10	19	음악을 들었어.
+lift-casual	들다	verb	exact	10	19	가방을 들었어.
+past-regular	먹다	verb	exact	7	16	밥을 먹었어.
+past-vowel	가다	verb	exact	14	20	먼저 집에 갔어.
+future	걷다	verb	exact	10	19	내일은 걷겠어.
+past-adjective	좋다	adjective	exact	10	19	날씨가 좋았어.
+past-copula	이다	adjective	exact	16	25	어제는 휴일이었어.
+past-honorific	걷다	verb	exact	13	25	어르신도 걸으셨어.
+past-honorific-polite	걷다	verb	exact	13	28	어르신도 걸으셨어요.
+future-honorific	걷다	verb	exact	13	28	어르신도 걸으시겠어?
+future-honorific-polite	걷다	verb	exact	13	31	어르신도 걸으시겠어요?
+krdict.어:9	주다	verb	exact	35	41	너 그 애한테 직접 편지를 줬어?
+krdict.었:2	재미있다	adjective	exact	21	36	어제 본 영화는 재미있었어?
+walk-formal-context	걷다	verb	exact	10	19	전화를 걸었다.
+hang-formal-context	걸다	verb	exact	21	30	비가 와도 계속 걸었다.
+listen-formal-context	듣다	verb	exact	10	19	가방을 들었다.
+lift-formal-context	들다	verb	exact	10	19	음악을 들었다.
+walk-casual-context	걷다	verb	exact	10	19	전화를 걸었어.
+hang-casual-context	걸다	verb	exact	14	23	나는 오래 걸었어.
+listen-casual-context	듣다	verb	exact	10	19	가방을 들었어.
+lift-casual-context	들다	verb	exact	10	19	음악을 들었어.
