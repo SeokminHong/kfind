@@ -211,6 +211,12 @@ impl<'a> PreparedStructuralContextAnalysis<'a> {
             .normalized_span(span)
             .is_some_and(|span| self.prepared.has_nominal_copula_host(&span))
     }
+
+    pub(super) fn has_compound_nominal_prefix(&self, span: Range<usize>) -> bool {
+        self.current
+            .normalized_span(span)
+            .is_some_and(|span| self.prepared.has_compound_nominal_prefix(&span))
+    }
 }
 
 impl PreparedStructuralContextCache {

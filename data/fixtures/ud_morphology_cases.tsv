@@ -344,3 +344,18 @@ regression.compound-copula.command-not-copula	이다	adjective	no-match	10	25	�
 regression.compound-copula.command-verb	출력하다	verb	smart-exact	10	25	자료를 출력하라는 지시를 받았다.
 regression.compound-copula.quoted-finite-predicate	이다	adjective	no-match	0	18	충분하다라는 표현을 지웠다.
 corpus.ud-kaist.dev.MH2_0169-s169.quoted-explicit-copula	이다	adjective	smart-exact	16	22	유일한 대안인가라는 질문이 나왔다.
+corpus.ud-kaist.dev.MH2_0069-s25.compound-nominal	사용	noun	smart-exact	14	20	그 상품의 사용가치에 커다란 변화를 줄 수 있다.
+corpus.ud-kaist.dev.MH2_0069-s36.compound-nominal	사용	noun	smart-exact	40	46	정보와 오락성은 언론 상품의 사용가치를 보장한다.
+corpus.ud-kaist.dev.MH2_0069-s37.compound-nominal	사용	noun	smart-exact	23	29	구매자는 새로운 사용가치를 원하게 된다.
+corpus.ud-kaist.dev.MH2_0209-s118.spaced-nominal	기술	noun	smart-exact	10	16	내용과 기술 면에서 모두 신선하고 아름답다.
+corpus.ud-kaist.dev.MH2_0069-s463.spaced-nominal	면	noun	smart-exact	27	36	유럽은 언어와 종교 면에서 꼭 같아야 한다.
+corpus.ud-gsd.test.test-s209.spaced-nominal	문경	noun	smart-exact	0	6	문경 가면 꼭 들러보세요.
+corpus.ud-gsd.test.test-s246.nominal-not-copula-fragment	원인	noun	no-match	16	22	30유로는 몇 원인가요?
+regression.compound-nominal.cause	원인	noun	smart-exact	10	19	고장의 원인을 조사했다.
+corpus.ud-gsd.test.test-s414.nominal-not-pronoun-fragment	무언	noun	no-match	17	23	표준 이상의 무언가와도 관련되어 있다.
+regression.compound-nominal.silence	무언	noun	smart-exact	7	19	그는 무언으로 응답했다.
+corpus.ud-gsd.test.test-s533.compound-nominal	박사	noun	smart-exact	16	22	지도교수는 박사과정을 밟을 것을 권유했다.
+corpus.ud-gsd.test.test-s643.compound-nominal	지속	noun	smart-exact	10	16	회사는 지속가능경영에 역량을 집중했다.
+corpus.ud-gsd.test.test-s778.compound-market	주택	noun	smart-exact	0	6	주택시장이 침체돼 주택가격이 내려갔다.
+corpus.ud-gsd.test.test-s778.compound-price	주택	noun	smart-exact	26	32	주택시장이 침체돼 주택가격이 내려갔다.
+regression.compound-nominal.incorrect-object	학교	noun	no-match	13	19	학생들이 학교을 세웠다는 문장을 교정했다.
