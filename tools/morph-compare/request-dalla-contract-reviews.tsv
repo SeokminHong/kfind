@@ -1,0 +1,3 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	request-dalla	dalla-adjective-context	다르다	adjective	false	c7fbf74df2886ed754fc5c7db44d09f754ee4c03530dde8b0778113d0d568d3e	contract-positive	structurally-indistinguishable-homograph	보조사 만은 주어나 목적어를 가리지 않으며 표지를 달라는 해석은 앞 절의 뜻에 따른다.
+explicit-pos	request-dalla	dalla-verb-context	달다	verb	false	5b2c1331b0c3ea23e7a6e5b112ac8e17e36a0df7837a07378f8af86488340468	contract-positive	structurally-indistinguishable-homograph	보조사 만은 주어나 목적어를 가리지 않으며 표지가 다르다는 해석은 앞 절의 뜻에 따른다.

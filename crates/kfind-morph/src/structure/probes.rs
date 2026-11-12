@@ -180,6 +180,32 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_exact_adverb_surface(&self, text: &str) -> bool {
+        has_exact_fine_pos(&self.resource, text, |pos| pos == DataFinePos::Mag)
+    }
+
+    #[must_use]
+    pub fn has_boi_predicate(&self, text: &str) -> bool {
+        ["보이", "보여", "보였", "보인", "보일", "보입", "보임"]
+            .iter()
+            .any(|stem| text.starts_with(stem))
+            && (self.has_exact_predicate_ending_path(text, PredicatePos::Verb)
+                || complete_predicate_ending_path(&self.resource, text))
+    }
+
+    #[must_use]
+    pub fn has_request_auxiliary_host(&self, text: &str) -> bool {
+        has_exact_sequence(
+            &self.resource,
+            text,
+            &[StructuralPos::VV, StructuralPos::EC],
+        ) || text.strip_suffix(['아', '어', '여']).is_some_and(|stem| {
+            has_exact_sequence(&self.resource, stem, &[StructuralPos::VV])
+                && has_exact_sequence(&self.resource, &text[stem.len()..], &[StructuralPos::EC])
+        })
+    }
+
+    #[must_use]
     pub fn supports_predicate_ending_path(
         &self,
         text: &str,
