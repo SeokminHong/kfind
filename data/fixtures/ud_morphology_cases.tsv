@@ -666,3 +666,6 @@ corpus.ud-gsd.test.test-s726.determiner.맨	맨	determiner	no-match	7	16	그는 
 corpus.ud-gsd.test.test-s728.determiner.이	이	determiner	no-match	10	22	범인은 이정범의 아들인 안수현이다.
 corpus.ud-gsd.test.test-s764.determiner.모	모	determiner	smart-exact	85	88	이 사고로 갓길에서 사진을 찍고 있던 사진 동호회 회원 54살 이 모 씨 등 3명이 숨지고, 1명이 다쳤습니다.
 regression.anonymous-name-title.enumeration	모	determiner	smart-exact	4	7	이 모 씨 등이 참석했다.
+corpus.ud-gsd.test.test-s168.adjective.맛있다	맛있다	adjective	smart-exact	36	48	음식도 너무너무 깔끔하고 맛있고요.
+corpus.ud-gsd.test.test-s180.adjective.괜찮다	괜찮다	adjective	smart-exact	7	25	그거 괜찮더라고요.
+corpus.ud-gsd.test.test-s195.adjective.좋다	좋다	adjective	smart-exact	50	65	진짜 LP판 틀어 놓아서 분위기가 너무 좋더라고요.
