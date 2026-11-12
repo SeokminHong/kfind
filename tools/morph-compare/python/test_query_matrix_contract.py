@@ -58,9 +58,12 @@ class QueryMatrixContractReviewTests(unittest.TestCase):
             cases, reviews, query_mode="explicit-pos", split=split
         )
         expected_by_review = {
-            review.case_id: review.contract_reason in {
-                "same-pos-homograph", "structurally-indistinguishable-homograph"
-            }
+            review.case_id: (
+                None
+                if review.contract_status == "excluded"
+                else review.contract_reason
+                in {"same-pos-homograph", "structurally-indistinguishable-homograph"}
+            )
             for review in reviews
         }
 
@@ -80,7 +83,7 @@ class QueryMatrixContractReviewTests(unittest.TestCase):
 
     def test_applies_all_contract_review_statuses(self) -> None:
         cases = [
-            self.case("ambiguous", "불과", "noun", False, "불과 수미터"),
+            self.case("ambiguous", "걷다", "verb", False, "친구에게 전화를 걸었다."),
             self.case("misaligned", "이", "pronoun", True, "이중 구조"),
             self.case("target", "없다", "adjective", True, "거의 없이"),
             self.case("nonstandard", "옆", "noun", True, "빙원옆에"),
@@ -89,7 +92,7 @@ class QueryMatrixContractReviewTests(unittest.TestCase):
             self.row(
                 cases[0],
                 "contract-positive",
-                "structurally-indistinguishable-homograph",
+                "same-pos-homograph",
             ),
             self.row(cases[1], "contract-negative", "gold-alignment-error"),
             self.row(cases[2], "confirmed", "implementation-target"),
@@ -111,17 +114,17 @@ class QueryMatrixContractReviewTests(unittest.TestCase):
         self.assertEqual(1, summary["excluded_cases"])
 
     def test_rejects_changed_case_identity(self) -> None:
-        case = self.case("ambiguous", "불과", "noun", False, "불과 수미터")
+        case = self.case("ambiguous", "걷다", "verb", False, "친구에게 전화를 걸었다.")
         review = self.load_reviews(
             [
                 self.row(
                     case,
                     "contract-positive",
-                    "structurally-indistinguishable-homograph",
+                    "same-pos-homograph",
                 )
             ]
         )[0]
-        case["text"] = "불과 몇 미터"
+        case["text"] = "친구에게 다시 전화를 걸었다."
 
         with self.assertRaisesRegex(ValueError, "identity differs"):
             apply_contract_reviews(

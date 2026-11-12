@@ -10,9 +10,25 @@ use crate::structure::lexical::{
 use crate::structure::paths::predicate::{
     has_complete_attached_auxiliary_path, is_attached_auxiliary_whole_path,
 };
-use crate::{PredicatePos, PredicatePosSet};
+use crate::{PredicatePos, PredicatePosSet, verify_copula_surface_after_nominal};
 use kfind_data::{ComponentPos as StructuralPos, DataFinePos};
 use std::ops::Range;
+
+const DURATION_NOUNS: &[&str] = &[
+    "하루",
+    "이틀",
+    "사흘",
+    "나흘",
+    "닷새",
+    "엿새",
+    "이레",
+    "여드레",
+    "아흐레",
+    "열흘",
+    "보름",
+    "반달",
+    "반년",
+];
 
 impl ConstraintResolver {
     #[must_use]
@@ -677,22 +693,7 @@ impl ConstraintResolver {
             "리",
             "걸음",
         ];
-        const STANDALONE: &[&str] = &[
-            "하루",
-            "이틀",
-            "사흘",
-            "나흘",
-            "닷새",
-            "엿새",
-            "이레",
-            "여드레",
-            "아흐레",
-            "열흘",
-            "보름",
-            "반달",
-            "반년",
-        ];
-        STANDALONE.contains(&measure)
+        DURATION_NOUNS.contains(&measure)
             || UNITS.iter().any(|unit| {
                 measure.strip_suffix(unit).is_some_and(|attached| {
                     let count = if attached.is_empty() {
@@ -723,6 +724,60 @@ impl ConstraintResolver {
                         .is_some_and(|ones| ones.is_empty() || NATIVE_ONES.contains(&ones))
                 })
                 || has_exact_fine_pos(&self.resource, text, |pos| pos == DataFinePos::Nr))
+    }
+
+    #[must_use]
+    pub fn has_quantity_expression(&self, first: &str, second: Option<&str>) -> bool {
+        const RELATIVE_TIMES: &[&str] = &[
+            "그제",
+            "어제",
+            "엊그제",
+            "그끄저께",
+            "그저께",
+            "오늘",
+            "내일",
+            "모레",
+            "글피",
+            "방금",
+            "지금",
+        ];
+        let digit_end = first.bytes().take_while(u8::is_ascii_digit).count();
+        if digit_end != 0 {
+            return digit_end == first.len() || self.has_quantity_unit(&first[digit_end..]);
+        }
+        if (first == "수" || self.has_measure_count(first))
+            && second.is_some_and(|unit| self.has_quantity_unit(unit))
+        {
+            return true;
+        }
+        let mut matched = false;
+        self.resource
+            .common_prefix_positions(first.as_bytes(), |len, positions| {
+                let host = &first[..len];
+                matched |= (positions == [StructuralPos::NR]
+                    || DURATION_NOUNS.contains(&host)
+                    || RELATIVE_TIMES.contains(&host))
+                    && self.has_quantity_nominal_tail(host, &first[len..]);
+            });
+        matched
+    }
+
+    fn has_quantity_unit(&self, text: &str) -> bool {
+        let mut matched = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |len, positions| {
+                matched |= matches!(positions, [StructuralPos::NNB | StructuralPos::NNBC])
+                    && self.has_quantity_nominal_tail(&text[..len], &text[len..]);
+            });
+        matched
+    }
+
+    fn has_quantity_nominal_tail(&self, host: &str, suffix: &str) -> bool {
+        complete_suffix(&self.resource, suffix, StructuralPos::is_particle)
+            || host
+                .chars()
+                .next_back()
+                .is_some_and(|preceding| verify_copula_surface_after_nominal(preceding, suffix))
     }
 
     #[must_use]
