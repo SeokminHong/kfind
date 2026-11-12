@@ -122,6 +122,11 @@ regression.go-yo.verb	읽다	verb	smart-exact	7	16	책을 읽고요.
 regression.go-yo.verb-future	걷다	verb	smart-exact	10	22	내일도 걷겠고요.
 regression.go-yo.quotative	맛있다	adjective	smart-exact	10	25	음식이 맛있다고요.
 regression.go-yo.attached	가다	verb	smart-exact	13	22	그는 걸어가고요.
+corpus.ud-gsd.test.test-s15.verb.들다	들다	verb	smart-exact	7	16	고기 드시러 간다면 실망스러울 수 있지만 야채쌈과 해물뚝배기는 좋습니다.
+regression.honorific-purpose-reo.vowel	보다	verb	smart-exact	23	32	선생님은 전시를 보시러 미술관에 가셨다.
+regression.honorific-purpose-reo.consonant	읽다	verb	smart-exact	20	32	선생님은 책을 읽으시러 도서관에 가셨다.
+regression.honorific-purpose-reo.rieul	만들다	verb	smart-exact	23	35	선생님은 작품을 만드시러 공방에 가셨다.
+regression.honorific-purpose-reo.adjective	좋다	adjective	no-match	0	12	좋으시러라는 활용을 검색에 넣지 않았다.
 corpus.ud-kaist.test.MH2_0070-s138.adjective.다르다	다르다	adjective	match	10	16	이와는 달리 우리나라 신발수출은 91 년 11.3 % 감소한 이후 92년 8월 말까지 16.6 %나 줄었다.
 corpus.ud-kaist.test.MH2_0070-s73.adjective.같다	같다	adjective	match	110	116	또한 각국의 소비지출은 1 개월 평균, 자국통화로 된 금액을 이용하였으며, 미국과 같이 연간단위로 된 통계자료는 월평균으로 환산하여 사용하였다.
 corpus.ud-kaist.test.MH2_0180-s113.pronoun.무어	무어	pronoun	match	39	48	일반적으로는 사항에 관해서 무언가 새로운 것을 경험하려고 하여 주어의 토대를 뛰어넘고 있는 것이다.
