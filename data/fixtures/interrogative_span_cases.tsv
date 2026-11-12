@@ -83,7 +83,7 @@ changa-predicate-context	차다	adjective	exact	13	19	합창단이 찬가 한 �
 changa-noun-context	찬가	noun	exact	7	13	물이 찬가 보다.
 changa-noun-positive	찬가	noun	exact	13	19	합창단이 찬가 한 곡을 불렀다.
 danga-predicate-positive	달다	adjective	exact	11	17	이 차가 단가?
-danga-predicate-context	달다	adjective	exact	17	23	이번 계약의 단가 조정은 끝났다.
+danga-predicate-context	달다	adjective	no-match	17	23	이번 계약의 단가 조정은 끝났다.
 danga-noun-context	단가	noun	exact	11	17	이 차가 단가?
 danga-noun-positive	단가	noun	exact	17	23	이번 계약의 단가 조정은 끝났다.
 polite-1	바쁘다	adjective	exact	17	29	요즘도 많이 바쁜가요?
