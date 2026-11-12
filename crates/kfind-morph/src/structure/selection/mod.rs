@@ -321,9 +321,10 @@ pub(in crate::structure) fn select_structure(
             .all()
             .iter()
             .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal())
-        && context
-            .next
-            .is_some_and(|next| complete_ha_predicate_path(resource, next))
+        && context.next.is_some_and(|next| {
+            complete_ha_predicate_path(resource, next)
+                && !has_exact_fine_pos(resource, next, DataFinePos::is_nominal)
+        })
     {
         return StructureSelection::Adverb;
     }

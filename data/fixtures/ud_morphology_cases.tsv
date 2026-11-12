@@ -94,3 +94,8 @@ corpus.ud-kaist.test.MH2_0190-s434.noun.잠식당	잠식당	noun	match	175	190	1
 corpus.ud-kaist.dev.M2TA_089-s29.adverb.내내	내내	adverb	exact	39	45	멋 내는 돈을 버느라고 한 달 내내 일한 셈이다.
 corpus.ud-kaist.dev.MH2_0149-s20.adverb.축	축	adverb	exact	47	50	모든 것을 말의 실수로 돌리고서는 축 늘어졌다.
 corpus.ud-gsd.test.test-s933.adverb.참	참	adverb	exact	10	13	태도는 참 가관이었습니다.
+corpus.ud-kaist.dev.MH2_0159-s26.adjective.있다	있다	adjective	exact	27	33	문학 비평에는 격식 있는 글 읽기가 요구된다.
+corpus.ud-kaist.dev.MH2_0069-s34.determiner.첫	첫	determiner	exact	10	13	이것은 첫번째에서 논의한 언론상품의 사용가치의 핵심이 정보나 오락 등 비실체적인 것과도 직접적인 관련이 있다.
+corpus.ud-kaist.dev.MH2_0069-s112.numeral.수천	수천	numeral	exact	20	26	책의 소비자가 수천 가지가 넘는 상품 중에서 어떤 책을 집어 들 것인가는 표지에 의하여 결정이 난다.
+corpus.ud-kaist.dev.MH2_0169-s336.pronoun.뭐	뭐	pronoun	exact	166	169	그곳에서 연설을 하려다 보니 도대체 안양 시민들에게 안양 지역에서 활동한 민중 진영이 제대로 도움이 되었던 활동이라고 뭐 하나 자랑할 만한 게 없었다.
+corpus.ud-kaist.dev.MH2_0169-s328.pronoun.무어	무어	pronoun	exact	71	77	이러한 활동 때문에 국민을 대상으로 한 우리 활동은 뭔가 어색했다.
