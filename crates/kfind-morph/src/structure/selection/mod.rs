@@ -3,8 +3,8 @@ use crate::structure::lexical::{
     adnominal_suffix_is_supported, complete_ha_predicate_path, complete_nominal_host,
     complete_nominal_particle_host, complete_predicate_connective_ji_path,
     complete_predicate_ending_path, copular_frame, exact_analysis_ends_with_pos,
-    exact_analysis_starts_with_pos, has_copular_adnominal_split, has_exact_fine_pos,
-    nominal_particle_hosts,
+    exact_analysis_starts_with_pos, has_complete_object_phrase, has_copular_adnominal_split,
+    has_exact_fine_pos, has_unambiguous_proper_name, nominal_particle_hosts,
 };
 use crate::structure::selection::components::{
     attached_nominal_suffix_is_supported, component_is_shadowed_by_predicate,
@@ -32,7 +32,8 @@ pub(in crate::structure) enum StructureSelection {
         excludes_pronoun: bool,
         excludes_predicate: bool,
     },
-    DeterminerWhole,
+    NominalWhole,
+    VerbAdnominal,
     ConnectiveJiNominalFrame {
         fallback: Box<StructureSelection>,
     },
@@ -126,9 +127,10 @@ impl StructureSelection {
                     ) && (!excludes_pronoun || pattern.fine_pos != DataFinePos::Np)
                         && (!excludes_predicate || !pattern.fine_pos.is_predicate()))
             }
-            Self::DeterminerWhole => {
+            Self::NominalWhole => {
                 support.evidence == StructuralEvidence::Whole && pattern.fine_pos.is_nominal()
             }
+            Self::VerbAdnominal => !matches!(pattern.fine_pos, DataFinePos::Va | DataFinePos::Vcn),
             Self::ConnectiveJiNominalFrame { .. } => unreachable!("handled before shared rules"),
             Self::NominalSpan {
                 selected,
@@ -360,12 +362,6 @@ pub(in crate::structure) fn select_structure(
     if let Some((nominal, copula)) = copular_frame(resource, context) {
         return StructureSelection::CopularFrame { nominal, copula };
     }
-    let previous_is_determiner = context.previous.is_some_and(|previous| {
-        has_exact_fine_pos(resource, previous, |pos| pos == DataFinePos::Mm)
-            && !has_exact_fine_pos(resource, previous, |pos| {
-                matches!(pos, DataFinePos::Mag | DataFinePos::Maj)
-            })
-    });
     let has_whole_nominal = evidence
         .units
         .all()
@@ -373,6 +369,38 @@ pub(in crate::structure) fn select_structure(
         .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal());
     let has_exact_whole_nominal =
         has_exact_fine_pos(resource, context.current, DataFinePos::is_nominal);
+    if has_whole_nominal
+        && context.previous.is_some_and(|previous| {
+            has_exact_fine_pos(resource, previous, |pos| pos == DataFinePos::Mm)
+        })
+        && exact_analysis_ends_with_pos(resource, context.current, |pos| pos == StructuralPos::NNBC)
+    {
+        return StructureSelection::NominalWhole;
+    }
+    if evidence.has_whole(DataFinePos::Nnp)
+        && !evidence.has_whole(DataFinePos::Nng)
+        && evidence.has_whole_predicate()
+        && context
+            .next
+            .is_some_and(|next| has_unambiguous_proper_name(resource, next))
+    {
+        return StructureSelection::NominalWhole;
+    }
+    if evidence.adnominal_ends.contains(&context.current.len())
+        && evidence.has_whole(DataFinePos::Vv)
+        && evidence.has_whole(DataFinePos::Va)
+        && context
+            .previous
+            .is_some_and(|previous| has_complete_object_phrase(resource, previous))
+    {
+        return StructureSelection::VerbAdnominal;
+    }
+    let previous_is_determiner = context.previous.is_some_and(|previous| {
+        has_exact_fine_pos(resource, previous, |pos| pos == DataFinePos::Mm)
+            && !has_exact_fine_pos(resource, previous, |pos| {
+                matches!(pos, DataFinePos::Mag | DataFinePos::Maj)
+            })
+    });
     let current_modifies_next_nominal = next_starts_nominal && !evidence.adnominal_ends.is_empty();
     let connective_ji_before_nominal = next_is_unambiguous_nominal
         && context.current.ends_with('지')
@@ -380,7 +408,7 @@ pub(in crate::structure) fn select_structure(
             pos == StructuralPos::EC
         }) || complete_predicate_connective_ji_path(resource, context.current));
     if previous_is_determiner && has_whole_nominal && !current_modifies_next_nominal {
-        return StructureSelection::DeterminerWhole;
+        return StructureSelection::NominalWhole;
     }
     if evidence.has_whole(DataFinePos::Mag)
         && particle_host.is_none()

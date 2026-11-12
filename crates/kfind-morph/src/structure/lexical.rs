@@ -234,6 +234,27 @@ pub(super) fn complete_nominal_particle_host(
         .map(|end| 0..end)
 }
 
+pub(super) fn has_complete_object_phrase(resource: &ComponentResource, text: &str) -> bool {
+    let Some(host) = text.strip_suffix(['을', '를']) else {
+        return false;
+    };
+    !host.is_empty()
+        && (has_exact_fine_pos(resource, host, DataFinePos::is_nominal)
+            || complete_nominal_host(resource, host))
+        && has_exact_sequence(resource, &text[host.len()..], &[StructuralPos::JKO])
+}
+
+pub(super) fn has_unambiguous_proper_name(resource: &ComponentResource, text: &str) -> bool {
+    let proper_name = |stem| {
+        has_exact_fine_pos(resource, stem, |pos| pos == DataFinePos::Nnp)
+            && !exact_analysis_starts_with_pos(resource, stem, |pos| pos != StructuralPos::NNP)
+    };
+    proper_name(text)
+        || nominal_particle_hosts(resource, text)
+            .iter()
+            .any(|host| proper_name(&text[host.clone()]))
+}
+
 pub(super) fn complete_nominal_host(resource: &ComponentResource, text: &str) -> bool {
     let mut visited = vec![[false; 2]; text.len() + 1];
     let mut pending = vec![(0, false)];
