@@ -666,6 +666,13 @@ fn reference_predicate_continuation(
     following: &str,
 ) -> Option<(usize, Vec<RuleId>)> {
     const AEO: &[ReferenceSuffix] = &[
+        reference_suffix("지거들랑", &["ending.auxiliary-jida", "ending.geodeun"]),
+        reference_suffix("지건", &["ending.auxiliary-jida", "ending.geodeun-short"]),
+        reference_suffix("지거든", &["ending.auxiliary-jida", "ending.geodeun"]),
+        reference_suffix(
+            "지거든요",
+            &["ending.auxiliary-jida", "ending.geodeun-polite"],
+        ),
         reference_suffix("가고", &["ending.auxiliary-gada", "ending.connective-go"]),
         reference_suffix("가야", &["ending.auxiliary-gada", "ending.connective-ya"]),
         reference_suffix(
@@ -693,6 +700,10 @@ fn reference_predicate_continuation(
         reference_suffix("라", &["ending.imperative-ra"]),
     ];
     const PAST: &[ReferenceSuffix] = &[
+        reference_suffix("건", &["ending.geodeun-short"]),
+        reference_suffix("거든", &["ending.geodeun"]),
+        reference_suffix("거든요", &["ending.geodeun-polite"]),
+        reference_suffix("거들랑", &["ending.geodeun"]),
         reference_suffix("습니다", &["ending.polite-declarative"]),
         reference_suffix("으되", &["ending.connective-eudoe"]),
         reference_suffix("느냐는", &["ending.interrogative-neunya", "particle.topic"]),
@@ -728,6 +739,26 @@ fn reference_predicate_continuation(
         reference_suffix("지", &["ending.quotative-ji"]),
     ];
     const EU: &[ReferenceSuffix] = &[
+        reference_suffix("시건", &["ending.honorific", "ending.geodeun-short"]),
+        reference_suffix(
+            "셨건",
+            &["ending.honorific", "ending.past", "ending.geodeun-short"],
+        ),
+        reference_suffix("시거든", &["ending.honorific", "ending.geodeun"]),
+        reference_suffix("시거든요", &["ending.honorific", "ending.geodeun-polite"]),
+        reference_suffix("시거들랑", &["ending.honorific", "ending.geodeun"]),
+        reference_suffix(
+            "셨거든",
+            &["ending.honorific", "ending.past", "ending.geodeun"],
+        ),
+        reference_suffix(
+            "셨거든요",
+            &["ending.honorific", "ending.past", "ending.geodeun-polite"],
+        ),
+        reference_suffix(
+            "셨거들랑",
+            &["ending.honorific", "ending.past", "ending.geodeun"],
+        ),
         reference_suffix("려", &["ending.intentive-ryeo"]),
         reference_suffix("려면", &["ending.intentive-ryeomyeon"]),
         reference_suffix(
@@ -745,6 +776,7 @@ fn reference_predicate_continuation(
         reference_suffix("러", &["ending.purpose-reo"]),
         reference_suffix("나", &["ending.connective-na"]),
         reference_suffix("시오", &["ending.imperative-sio"]),
+        reference_suffix("쇼", &["ending.imperative-sio-short"]),
         reference_suffix("리라고", &["ending.prospective-quotative"]),
         reference_suffix("리라", &["ending.prospective-final"]),
         reference_suffix(
@@ -798,6 +830,7 @@ fn reference_predicate_continuation(
                     || !matches!(
                         suffix.surface,
                         "라" | "시오"
+                            | "쇼"
                             | "십시오"
                             | "십쇼"
                             | "십시다"

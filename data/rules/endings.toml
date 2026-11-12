@@ -98,7 +98,7 @@ initial = "a-or-eo"
 forms = ["았", "었"]
 required = []
 forbidden = []
-next = ["ending.final-da", "ending.polite-declarative", "ending.past-polite-yo", "ending.conditional", "ending.connective-eudoe", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go", "ending.coordinate-myeo", "ending.future-adnominal", "ending.retrospective-adnominal", "ending.quotative-go", "ending.interrogative-neunya"]
+next = ["ending.final-da", "ending.polite-declarative", "ending.past-polite-yo", "ending.conditional", "ending.connective-eudoe", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go", "ending.coordinate-myeo", "ending.future-adnominal", "ending.retrospective-adnominal", "ending.quotative-go", "ending.interrogative-neunya", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite"]
 terminal = true
 
 [[ending]]
@@ -398,7 +398,7 @@ initial = "other"
 forms = ["지"]
 required = []
 forbidden = []
-next = ["ending.past", "ending.final-da", "ending.conditional", "ending.connective-go", "ending.past-adnominal", "ending.future-adnominal", "ending.polite-declarative"]
+next = ["ending.past", "ending.final-da", "ending.conditional", "ending.connective-go", "ending.past-adnominal", "ending.future-adnominal", "ending.polite-declarative", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite"]
 terminal = true
 
 [[ending]]
@@ -418,7 +418,7 @@ initial = "eu"
 forms = ["시", "으시"]
 required = []
 forbidden = []
-next = ["ending.past", "ending.future", "ending.final-da", "ending.polite-declarative", "ending.connective-go", "ending.present-adnominal", "ending.propositive", "ending.imperative-formal", "ending.imperative-formal-short", "ending.intentive-ryeomyeon"]
+next = ["ending.past", "ending.future", "ending.final-da", "ending.polite-declarative", "ending.connective-go", "ending.present-adnominal", "ending.propositive", "ending.imperative-formal", "ending.imperative-formal-short", "ending.intentive-ryeomyeon", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite"]
 terminal = false
 
 [[ending]]
@@ -492,6 +492,36 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.geodeun"
+category = "connective"
+initial = "consonant"
+forms = ["거든", "거들랑"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.geodeun-polite"
+category = "final"
+initial = "consonant"
+forms = ["거든요"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.geodeun-short"
+category = "connective"
+initial = "consonant"
+forms = ["건"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.intentive-ryeo"
 category = "connective"
 initial = "eu"
@@ -556,6 +586,16 @@ id = "ending.imperative-sio"
 category = "final"
 initial = "eu"
 forms = ["시오", "으시오"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.imperative-sio-short"
+category = "final"
+initial = "eu"
+forms = ["쇼", "으쇼"]
 required = ["action-verb"]
 forbidden = []
 next = []
