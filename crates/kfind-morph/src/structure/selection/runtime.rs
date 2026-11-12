@@ -58,6 +58,11 @@ pub(in crate::structure) fn runtime_position_is_supported(
         && spans.core.start != spans.token.start
         && spans.consumed == spans.core
         && !attached_auxiliary;
+    let competes_with_nominal_copula = predicate
+        && pattern.fine_pos != DataFinePos::Vcp
+        && !attached_auxiliary
+        && !starts_token
+        && evidence.has_nominal_copula_host(&(spans.token.start..spans.core.start));
     let modifier_before_predicate = predicate
         && !copula_nominal_host
         && !attached_auxiliary
@@ -127,6 +132,7 @@ pub(in crate::structure) fn runtime_position_is_supported(
         && !modifier_inside_longer_analysis
         && !trailing_predicate_subspan
         && !internal_runtime_predicate
+        && !competes_with_nominal_copula
         && !modifier_before_predicate
         && !trailing_exact_subspan
         && !trailing_nominal_chain

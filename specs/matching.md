@@ -258,6 +258,8 @@
   세부 품사의 edge가 query core부터 token 끝까지 있다는 사실만으로 독립 용언 stem을 만들지
   않는다. 완성된 체언+조사 path와 경쟁하는 임의의 compound predicate path도 내부 용언 근거로
   사용하지 않는다. 보조용언 path와 token 전체의 `MAG/MAJ` 분석이 경쟁하면 통째 부사 분석을 선택한다.
+  `체언 + VCP + 어미`가 어절을 덮으면 지정사와 같은 위치에서 시작하는 runtime 동사·형용사
+  후보를 거부한다. 정렬된 합성·보조용언은 각 품사 경로로 검증한다.
   체언 뒤 `XSV/XSA + E*`가 완성된 파생 용언 path에서는 파생 접미사 시작 span의 runtime
   체언 후보도 source가 체언 component를 정렬해 선언하지 않은 한 거부한다.
 - token 왼쪽 경계부터 `용언 + EP* + EC + 용언 + E* + J*` 순서로 끝까지 이어지는 source path가

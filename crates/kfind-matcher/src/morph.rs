@@ -979,7 +979,12 @@ impl MorphMatcher {
         );
         let include_nominal_copula = copula_program
             || (patterns.iter().any(|pattern| pattern.fine_pos.is_nominal())
-                && nominal_copula_surface_follows(haystack, candidate));
+                && nominal_copula_surface_at(haystack, candidate.verified.core.end, whole.end))
+            || (candidate.verified.core.start > whole.start
+                && patterns
+                    .iter()
+                    .any(|pattern| pattern.fine_pos.is_predicate())
+                && nominal_copula_surface_at(haystack, candidate.verified.core.start, whole.end));
         let include_nominal_derivation_predicate = patterns.iter().any(|pattern| {
             pattern.fine_pos.is_nominal()
                 && matches!(pattern.continuation, MorphContinuation::NominalParticles)
@@ -1795,10 +1800,9 @@ impl MorphMatcher {
     }
 }
 
-fn nominal_copula_surface_follows(haystack: &[u8], candidate: &ExecutedCandidate) -> bool {
-    let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
+fn nominal_copula_surface_at(haystack: &[u8], start: usize, end: usize) -> bool {
     haystack
-        .get(candidate.verified.core.end..whole.end)
+        .get(start..end)
         .and_then(|suffix| std::str::from_utf8(suffix).ok())
         .and_then(|suffix| suffix.nfc().next())
         .is_some_and(|character| matches!(character, '이' | '입'))
