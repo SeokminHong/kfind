@@ -242,6 +242,36 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.interrogative-ngo"
+category = "final"
+initial = "other"
+forms = ["ㄴ고", "은고", "는고", "던고"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.explanatory-ngeol"
+category = "final"
+initial = "other"
+forms = ["ㄴ걸", "은걸", "는걸", "던걸"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.connective-nba"
+category = "connective"
+initial = "other"
+forms = ["ㄴ바", "은바", "는바", "던바"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.connective-meuro"
 category = "connective"
 initial = "consonant"

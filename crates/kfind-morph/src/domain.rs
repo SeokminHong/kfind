@@ -245,7 +245,8 @@ pub enum ContinuationState {
     RieulFinal,
     BieupFinal,
     Prospective,
-    Background,
+    NieunEnding,
+    CompletedNieunEnding,
     Interrogative,
 }
 

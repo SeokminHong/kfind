@@ -878,10 +878,14 @@ impl MorphMatcher {
             && matches!(
                 branch.consumption,
                 CandidateConsumption::PredicateContinuation {
-                    continuation: kfind_morph::ContinuationState::Background,
+                    continuation: kfind_morph::ContinuationState::NieunEnding,
                     ..
                 }
             )
+            && candidate
+                .suffix_rules
+                .iter()
+                .any(|rule| rule.as_str() == "ending.connective-neunde")
             && self.constraint_resolver.as_ref().is_some_and(|resolver| {
                 rejects_background_conjunction(haystack, candidate, resolver)
             })
