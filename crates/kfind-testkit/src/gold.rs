@@ -228,7 +228,7 @@ mod tests {
 
     use super::*;
 
-    const EXPECTED_CASES: usize = 875;
+    const EXPECTED_CASES: usize = 901;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {
@@ -305,6 +305,33 @@ mod tests {
                 "adj:넓다",
                 "이 기록에서 도로가 넓어짐을 확인했다.",
                 "넓어짐을",
+            ),
+            ("v:하다", "선생님이 직접 설명도 하시더구나.", "하시더구나"),
+            (
+                "adj:심하다",
+                "어제는 통증이 꽤 심했겠더구나.",
+                "심했겠더구나",
+            ),
+            ("v:오다", "먼 데서 친척들도 오셨더구먼.", "오셨더구먼"),
+            (
+                "adj:아름답다",
+                "그날 할머니는 얼마나 아름다우시더뇨?",
+                "아름다우시더뇨",
+            ),
+            (
+                "v:지르다",
+                "아버지는 한참 소리를 지르시더니마는 이내 조용해지셨다.",
+                "지르시더니마는",
+            ),
+            (
+                "adj:좋다",
+                "오늘은 몸이 안 좋다더니 먼저 집에 갔구나.",
+                "좋다더니",
+            ),
+            (
+                "v:공부하다",
+                "요새 열심히 공부한다더니만 시험도 잘 봤구나.",
+                "공부한다더니만",
             ),
         ] {
             let start = text.find(target).expect("target appears in the fixture");

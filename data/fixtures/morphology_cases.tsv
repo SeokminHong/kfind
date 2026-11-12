@@ -874,3 +874,29 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 가다	verb	밀물이 시작되자 노를 젓지 않아도 배가 앞으로 가지는 게 신기했다.	match	resultative-homograph
 돼지	noun	돼지는 잡식 동물이다.	match	resultative-homograph
 가지	noun	가지는 보라색 채소다.	match	resultative-homograph
+하다	verb	선생님이 직접 설명도 하시더구나.	match	retrospective-exclamation
+심하다	adjective	어제는 통증이 꽤 심했겠더구나.	match	retrospective-exclamation
+좋다	adjective	할머니는 생각보다 기분이 좋으시더구나.	match	retrospective-exclamation
+이다	copula	알고 보니 남은 사람이 둘이더구먼.	match	retrospective-copula
+오다	verb	먼 데서 친척들도 오셨더구먼.	match	retrospective-exclamation
+이다	copula	오랜만에 만난 그는 참 다정한 사람이더군.	match	retrospective-copula
+좋다	adjective	할아버지는 요즘 기운이 좋으시더군.	match	retrospective-exclamation
+지내다	verb	할머니는 요즘 어떻게 지내시더냐?	match	retrospective-question
+아름답다	adjective	그날 할머니는 얼마나 아름다우시더뇨?	match	retrospective-question
+이다	copula	그분은 대체 누구의 벗이었더뇨?	match	retrospective-copula
+무섭다	adjective	할아버지도 그 개가 무서우시더니 이제는 잘 돌보신다.	match	retrospective-connective
+이다	copula	그 일이 참말이더니?	match	retrospective-copula
+잡수다	verb	할머니는 국을 잡수시더니 잠깐 쉬셨다.	match	retrospective-connective
+아름답다	adjective	할머니가 그날 아름다우시더니 사진도 잘 나왔다.	match	retrospective-connective
+지내다	verb	스승님은 산골에서 지내셨더니라.	match	retrospective-final
+지르다	verb	아버지는 한참 소리를 지르시더니마는 이내 조용해지셨다.	match	retrospective-connective
+춥다	adjective	아침에는 춥더니마는 지금은 따뜻하다.	match	retrospective-connective
+춥다	adjective	할머니도 오늘은 추우시더라니까.	match	retrospective-report
+좋다	adjective	의사가 할아버지는 기운이 좋으시더라며 안심시켰다.	match	retrospective-report
+이다	copula	동생은 그분이 새 선생님이더라며 알려 주었다.	match	retrospective-copula
+넓다	adjective	친구는 그 집이 생각보다 넓더라면서 웃었다.	match	retrospective-report
+이다	copula	저분이 네 동생이더라면서?	match	retrospective-copula
+잘하다	verb	옛날에도 어른께서 그렇게 잘하시더이까?	match	retrospective-question
+좋다	adjective	오늘은 몸이 안 좋다더니 먼저 집에 갔구나.	match	retrospective-quotative
+되다	verb	이제 일이 잘 된다더니만 다음 주부터 바쁘겠다.	match	retrospective-quotative
+공부하다	verb	요새 열심히 공부한다더니만 시험도 잘 봤구나.	match	retrospective-quotative

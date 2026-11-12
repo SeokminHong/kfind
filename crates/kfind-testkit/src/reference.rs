@@ -738,12 +738,38 @@ fn reference_simple_continuation(
         reference_suffix("던들", &["ending.retrospective-connective-deon"]),
         reference_suffix("던지", &["ending.retrospective-connective-deon"]),
     ];
-    macro_rules! deora {
+    macro_rules! retrospective {
         ($prefix:literal $(, $prior:literal)*) => {
             &[
                 reference_suffix(concat!($prefix, "더라"), &[$($prior,)* "ending.retrospective-deora"]),
                 reference_suffix(concat!($prefix, "더라고"), &[$($prior,)* "ending.retrospective-deora", "ending.quotative-go"]),
                 reference_suffix(concat!($prefix, "더라고요"), &[$($prior,)* "ending.retrospective-deora", "ending.quotative-go", "ending.polite-yo"]),
+                reference_suffix(concat!($prefix, "더구나"), &[$($prior,)* "ending.retrospective-exclamatory"]),
+                reference_suffix(concat!($prefix, "더구려"), &[$($prior,)* "ending.retrospective-exclamatory"]),
+                reference_suffix(concat!($prefix, "더구먼"), &[$($prior,)* "ending.retrospective-exclamatory"]),
+                reference_suffix(concat!($prefix, "더군"), &[$($prior,)* "ending.final-deogun"]),
+                reference_suffix(concat!($prefix, "더냐"), &[$($prior,)* "ending.retrospective-direct-question"]),
+                reference_suffix(concat!($prefix, "더뇨"), &[$($prior,)* "ending.retrospective-direct-question"]),
+                reference_suffix(concat!($prefix, "더니이까"), &[$($prior,)* "ending.retrospective-direct-question"]),
+                reference_suffix(concat!($prefix, "더이까"), &[$($prior,)* "ending.retrospective-direct-question"]),
+                reference_suffix(concat!($prefix, "더니라"), &[$($prior,)* "ending.retrospective-direct-final"]),
+                reference_suffix(concat!($prefix, "더니이다"), &[$($prior,)* "ending.retrospective-direct-final"]),
+                reference_suffix(concat!($prefix, "더이다"), &[$($prior,)* "ending.retrospective-direct-final"]),
+                reference_suffix(concat!($prefix, "더람"), &[$($prior,)* "ending.retrospective-direct-final"]),
+                reference_suffix(concat!($prefix, "더니"), &[$($prior,)* "ending.retrospective-connective"]),
+                reference_suffix(concat!($prefix, "더니마는"), &[$($prior,)* "ending.retrospective-contrast"]),
+                reference_suffix(concat!($prefix, "더니만"), &[$($prior,)* "ending.retrospective-contrast"]),
+                reference_suffix(concat!($prefix, "더라나"), &[$($prior,)* "ending.retrospective-deora-report"]),
+                reference_suffix(concat!($prefix, "더라니"), &[$($prior,)* "ending.retrospective-deora-report"]),
+                reference_suffix(concat!($prefix, "더라니까"), &[$($prior,)* "ending.retrospective-deora-report"]),
+                reference_suffix(concat!($prefix, "더라며"), &[$($prior,)* "ending.retrospective-deora-report"]),
+                reference_suffix(concat!($prefix, "더라면서"), &[$($prior,)* "ending.retrospective-deora-report"]),
+                reference_suffix(concat!($prefix, "더라지"), &[$($prior,)* "ending.retrospective-deora-report"]),
+                reference_suffix(concat!($prefix, "더라면"), &[$($prior,)* "ending.retrospective-deora-condition"]),
+                reference_suffix(concat!($prefix, "더라손"), &[$($prior,)* "ending.retrospective-deora-condition"]),
+                reference_suffix(concat!($prefix, "더라도"), &[$($prior,)* "ending.concessive-deorado"]),
+                reference_suffix(concat!($prefix, "더군요"), &[$($prior,)* "ending.final-deogun", "ending.polite-yo"]),
+                reference_suffix(concat!($prefix, "더라니까요"), &[$($prior,)* "ending.retrospective-deora-report", "ending.polite-yo"]),
             ]
         };
     }
@@ -787,6 +813,9 @@ fn reference_simple_continuation(
         reference_suffix("어요", &["ending.aoeo", "ending.polite-yo"]),
     ];
     const DECLARATIVE: &[ReferenceSuffix] = &[
+        reference_suffix("더니마는", &["ending.retrospective-contrast"]),
+        reference_suffix("더니만", &["ending.retrospective-contrast"]),
+        reference_suffix("더니", &["ending.retrospective-connective"]),
         reference_suffix("면서", &["ending.quotative-myeonseo"]),
         reference_suffix("는데", &["ending.quotative-neunde"]),
         reference_suffix("고", &["ending.quotative-go"]),
@@ -1435,21 +1464,21 @@ fn reference_simple_continuation(
             DEON_RECOLLECTION
         }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
-            if following.starts_with("더라") =>
+            if following.starts_with('더') =>
         {
-            deora!("")
+            retrospective!("")
         }
-        ContinuationState::Past if following.starts_with("겠더라") => {
-            deora!("겠", "ending.future")
+        ContinuationState::Past if following.starts_with("겠더") => {
+            retrospective!("겠", "ending.future")
         }
-        ContinuationState::Eu if following.starts_with("시더라") => {
-            deora!("시", "ending.honorific")
+        ContinuationState::Eu if following.starts_with("시더") => {
+            retrospective!("시", "ending.honorific")
         }
-        ContinuationState::Eu if following.starts_with("셨더라") => {
-            deora!("셨", "ending.honorific", "ending.past")
+        ContinuationState::Eu if following.starts_with("셨더") => {
+            retrospective!("셨", "ending.honorific", "ending.past")
         }
-        ContinuationState::Eu if following.starts_with("시겠더라") => {
-            deora!("시겠", "ending.honorific", "ending.future")
+        ContinuationState::Eu if following.starts_with("시겠더") => {
+            retrospective!("시겠", "ending.honorific", "ending.future")
         }
         ContinuationState::Past | ContinuationState::Future if following.starts_with("는데") => {
             NEUNDE
