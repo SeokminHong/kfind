@@ -234,3 +234,41 @@ regression.report-homograph.orae-verb-positive	오다	verb	smart-exact	21	27	선
 regression.report-homograph.orae-verb-context	오다	verb	smart-exact	24	30	얼마나 기다렸어? 오래.
 regression.report-homograph.orae-adverb-positive	오래	adverb	smart-exact	24	30	얼마나 기다렸어? 오래.
 regression.report-homograph.orae-adverb-context	오래	adverb	smart-exact	21	27	선생님이 뭐래? 오래.
+regression.exclamative.gsd-s469-spelling	알다	verb	smart-exact	40	52	일반적인 쌈밥집이 비슷한 줄 알았는데 기대 이하군요
+regression.exclamative.gsd-s469-benchmark-noun	기대	noun	smart-exact	53	59	일반적인 쌈밥집이 비슷한 줄 알았는데 기대 이하군요
+regression.exclamative.gsd-s469-not-lean	기대다	verb	no-match	53	59	일반적인 쌈밥집이 비슷한 줄 알았는데 기대 이하군요
+regression.exclamative.gsd-s469-comparison	이하	noun	smart-exact	60	66	일반적인 쌈밥집이 비슷한 줄 알았는데 기대 이하군요
+regression.exclamative.gsd-s469-not-derived-verb	이하다	verb	no-match	60	72	일반적인 쌈밥집이 비슷한 줄 알았는데 기대 이하군요
+regression.exclamative.gsd-s469-omitted-copula	이다	adjective	smart-exact	60	72	일반적인 쌈밥집이 비슷한 줄 알았는데 기대 이하군요
+regression.exclamative.gsd-s356-noun	식기	noun	smart-exact	71	77	단지 예전엔 일회용 식기를 안 썼는데 지금은 일회용 식기더군요
+regression.exclamative.gsd-s356-omitted-retrospective	이다	adjective	smart-exact	71	86	단지 예전엔 일회용 식기를 안 썼는데 지금은 일회용 식기더군요
+regression.exclamative.comparative-above-not-lean	기대다	verb	no-match	10	16	결과는 기대 이상이었다.
+regression.exclamative.comparative-lean	기대다	verb	smart-exact	7	13	벽에 기대 한숨을 쉬었다.
+regression.exclamative.comparative-lean-genitive	기대다	verb	smart-exact	7	13	벽에 기대 이상의 시를 읽었다.
+regression.exclamative.copula-omission	이다	adjective	smart-exact	4	16	새 환자군요.
+regression.exclamative.copula-omission-host	환자	noun	smart-exact	4	10	새 환자군요.
+regression.exclamative.copula-vowel-explicit	이다	adjective	smart-exact	6	15	의사이군요.
+regression.exclamative.copula-consonant-explicit	이다	adjective	smart-exact	6	15	학생이군요.
+regression.exclamative.copula-consonant-host	학생	noun	smart-exact	0	6	학생이군요.
+regression.exclamative.copula-consonant-no-omission	이다	adjective	no-match	0	12	학생군요.
+regression.exclamative.ro-omitted	이다	adjective	smart-exact	14	29	제가 찾던 열쇠로군요.
+regression.exclamative.ro-explicit	이다	adjective	smart-exact	23	35	우리가 찾던 학생이로군요.
+regression.exclamative.retrospective-explicit	이다	adjective	smart-exact	6	18	학생이더군요.
+regression.exclamative.adjective	예쁘다	adjective	smart-exact	7	19	꽃이 예쁘군요.
+regression.exclamative.adjective-past	예쁘다	adjective	smart-exact	7	19	꽃이 예뻤군요.
+regression.exclamative.action	읽다	verb	smart-exact	7	19	책을 읽는군요.
+regression.exclamative.action-rieul	살다	verb	smart-exact	10	22	서울에 사는군요.
+regression.exclamative.action-past	가다	verb	smart-exact	7	16	이미 갔군요.
+regression.exclamative.action-honorific	읽다	verb	smart-exact	20	38	선생님이 책을 읽으시는군요.
+regression.exclamative.action-rieul-honorific	살다	verb	smart-exact	26	41	할아버지가 서울에 사시는군요.
+regression.exclamative.adjective-honorific	예쁘다	adjective	smart-exact	24	39	오늘 선생님이 참 예쁘시군요.
+regression.exclamative.copula-honorific	이다	adjective	smart-exact	6	18	학생이시군요.
+regression.exclamative.action-no-unmarked	읽다	verb	no-match	7	16	책을 읽군요.
+regression.exclamative.action-future	읽다	verb	smart-exact	7	19	책을 읽겠군요.
+regression.exclamative.report-declarative	떠나다	verb	smart-exact	14	32	그가 내일 떠난다는군요.
+regression.exclamative.report-directive	달다	verb	smart-exact	20	35	아이가 용돈을 달라는군요.
+regression.exclamative.report-copula	이다	adjective	smart-exact	10	28	그분은 의사라는군요.
+regression.exclamative.retrospective-action	주다	verb	smart-exact	24	36	동생이 꽃에 물을 주더군요.
+regression.exclamative.retrospective-action-not-copula	이다	adjective	no-match	24	36	동생이 꽃에 물을 주더군요.
+regression.exclamative.action-rieul-guna	살다	verb	smart-exact	10	22	여기에 사는구나.
+regression.exclamative.action-honorific-plain	읽다	verb	smart-exact	20	35	선생님이 책을 읽으시는군.

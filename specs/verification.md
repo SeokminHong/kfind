@@ -317,7 +317,8 @@ recall 개선 보고서는 `PNᶜ`, `FNᶜ`와 `recallᶜ = TPᶜ / PNᶜ`를 �
 완성 어휘 내부의 다른 품사 span에 잘못 정렬된 `gold-alignment-error`에만 사용한다. strict
 기대값을 검토 후 유지한 case는 `implementation-target`으로 기록한다.
 동형이의 판정은 표적의 두 형태 분석과 각 분석이 문장 안에서 성립하는 근거를 대조한다.
-조사, 어미, 수식 관계로 한쪽 분석을 배제할 수 있는 사례는 strict 기대값을 유지한다.
+두 분석을 의미 문맥으로만 구분할 수 있는 사례를 등록할 때는 각 분석이 자연스럽게 성립하는
+대조 문장 쌍을 회귀 fixture에 추가한다.
 
 `contract_expected=null`은 계약 평가 제외다. 현재 비문·비표준 띄어쓰기처럼 표준문 형태 검색의
 입력 계약을 어긴 `nonstandard-input`만 제외 사유로 허용한다. 현재 구현 profile이 지원하지 않는

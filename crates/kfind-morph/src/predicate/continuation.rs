@@ -31,6 +31,14 @@ const COPULA_RA_SUFFIXES: &[Suffix] = &[
     suffix("고", &["ending.copula-quotative-go"]),
     suffix("고요", &["ending.copula-quotative-go", "ending.polite-yo"]),
     suffix("는", &["ending.copula-quotative-adnominal"]),
+    suffix(
+        "는군요",
+        &[
+            "ending.copula-quotative-adnominal",
+            "ending.final-neun-exclamative",
+            "ending.polite-yo",
+        ],
+    ),
     suffix("나", &["ending.copula-ra-final"]),
     suffix("네", &["ending.copula-ra-final"]),
     suffix("느니", &["ending.copula-ra-connective"]),
@@ -64,6 +72,7 @@ const COPULA_REPORTING_AND_RO_ENDINGS: &[Suffix] = &[
     suffix("로구려", &["ending.copula-ro-final"]),
     suffix("로구먼", &["ending.copula-ro-final"]),
     suffix("로군", &["ending.copula-ro-final"]),
+    suffix("로군요", &["ending.copula-ro-final", "ending.polite-yo"]),
     suffix("로다", &["ending.copula-ro-final"]),
     suffix("로되", &["ending.copula-ro-connective"]),
     suffix("로라", &["ending.copula-ro-final"]),
@@ -85,6 +94,7 @@ const COPULA_COMMON_ENDINGS: &[Suffix] = &[
     suffix("구려", &["ending.copula-common-final"]),
     suffix("구먼", &["ending.copula-common-final"]),
     suffix("군", &["ending.copula-common-final"]),
+    suffix("군요", &["ending.copula-common-final", "ending.polite-yo"]),
     suffix("길래", &["ending.copula-common-connective"]),
     suffix("네", &["ending.copula-common-final"]),
     suffix("네요", &["ending.copula-common-final", "ending.polite-yo"]),
@@ -113,6 +123,9 @@ fn copula_common_omission(surface: &str) -> bool {
             | "구려"
             | "구먼"
             | "군"
+            | "군요"
+            | "더군"
+            | "더군요"
             | "네"
             | "네요"
             | "니"
@@ -143,6 +156,14 @@ const HONORIFIC_RO_ENDINGS: &[Suffix] = &[
     suffix("시로구려", &["ending.honorific", "ending.copula-ro-final"]),
     suffix("시로구먼", &["ending.honorific", "ending.copula-ro-final"]),
     suffix("시로군", &["ending.honorific", "ending.copula-ro-final"]),
+    suffix(
+        "시로군요",
+        &[
+            "ending.honorific",
+            "ending.copula-ro-final",
+            "ending.polite-yo",
+        ],
+    ),
     suffix(
         "시로되",
         &["ending.honorific", "ending.copula-ro-connective"],
@@ -190,6 +211,60 @@ const A_OR_EO_SEO_SUFFIXES: &[Suffix] = &[
     suffix("서도", &["ending.aoeo-seo", "particle.additive"]),
     suffix("서", &["ending.aoeo-seo"]),
     suffix("서야", &["ending.aoeo-seoya"]),
+];
+
+const GUN: Suffix = suffix("군", &["ending.final-gun"]);
+const GUN_YO: Suffix = suffix("군요", &["ending.final-gun", "ending.polite-yo"]);
+const NEUN_GUN: Suffix = suffix("군", &["ending.final-neun-exclamative"]);
+const NEUN_GUN_YO: Suffix = suffix(
+    "군요",
+    &["ending.final-neun-exclamative", "ending.polite-yo"],
+);
+const NEUN_GUNA: Suffix = suffix("구나", &["ending.final-neun-exclamative"]);
+const HONORIFIC_NEUN_GUN: Suffix = suffix(
+    "시는군",
+    &["ending.honorific", "ending.final-neun-exclamative"],
+);
+const HONORIFIC_NEUN_GUN_YO: Suffix = suffix(
+    "시는군요",
+    &[
+        "ending.honorific",
+        "ending.final-neun-exclamative",
+        "ending.polite-yo",
+    ],
+);
+const HONORIFIC_GUN_ENDINGS: &[Suffix] = &[
+    suffix("시군", &["ending.honorific", "ending.final-gun"]),
+    suffix(
+        "셨군",
+        &["ending.honorific", "ending.past", "ending.final-gun"],
+    ),
+    suffix(
+        "시겠군",
+        &["ending.honorific", "ending.future", "ending.final-gun"],
+    ),
+    suffix(
+        "시군요",
+        &["ending.honorific", "ending.final-gun", "ending.polite-yo"],
+    ),
+    suffix(
+        "셨군요",
+        &[
+            "ending.honorific",
+            "ending.past",
+            "ending.final-gun",
+            "ending.polite-yo",
+        ],
+    ),
+    suffix(
+        "시겠군요",
+        &[
+            "ending.honorific",
+            "ending.future",
+            "ending.final-gun",
+            "ending.polite-yo",
+        ],
+    ),
 ];
 
 pub(super) const STEM_FIXED_ENDINGS: &[Suffix] = &[
@@ -260,6 +335,8 @@ const RYEO_CONJECTURE: &[Suffix] = &[
 ];
 
 const PAST_SUFFIXES: &[Suffix] = &[
+    GUN,
+    GUN_YO,
     suffix("습니까", &["ending.formal-interrogative"]),
     suffix("습디까", &["ending.retrospective-interrogative"]),
     suffix("습디다", &["ending.retrospective-declarative"]),
@@ -317,6 +394,8 @@ const HONORIFIC_MEURO_ENDINGS: &[Suffix] = &[
 ];
 
 const FUTURE_SUFFIXES: &[Suffix] = &[
+    GUN,
+    GUN_YO,
     suffix("습니까", &["ending.formal-interrogative"]),
     suffix("습디까", &["ending.retrospective-interrogative"]),
     suffix("습디다", &["ending.retrospective-declarative"]),
@@ -334,6 +413,14 @@ const DECLARATIVE_MYEONSEO: Suffix = suffix("면서", &["ending.quotative-myeons
 const DECLARATIVE_NEUNDE: Suffix = suffix("는데", &["ending.quotative-neunde"]);
 const DECLARATIVE_GO: Suffix = suffix("고", &["ending.quotative-go"]);
 const DECLARATIVE_ADNOMINAL: Suffix = suffix("는", &["ending.quotative-adnominal"]);
+const DECLARATIVE_NEUN_GUN_YO: Suffix = suffix(
+    "는군요",
+    &[
+        "ending.quotative-adnominal",
+        "ending.final-neun-exclamative",
+        "ending.polite-yo",
+    ],
+);
 const DECLARATIVE_RETROSPECTIVE: Suffix = suffix("던", &["ending.quotative-retrospective"]);
 const DECLARATIVE_DEONI: Suffix = suffix("더니", &["ending.retrospective-connective"]);
 const DECLARATIVE_DEONIMAN: Suffix = suffix("더니만", &["ending.retrospective-contrast"]);
@@ -755,7 +842,7 @@ macro_rules! all_directive_endings {
             $prefix,
             &[$($prior,)* "ending.directive-ra"],
             &[$($prior,)* "ending.directive-quotative"];
-            "거나", "거든", "거든요", "거들랑", "고", "고요", "기에", "나", "는", "는구나", "는군", "는데", "는데요", "느니", "니", "니까", "니까는", "니까요", "니깐", "니요", "더군", "더군요", "더니", "더라", "던", "던가", "던데", "던데요", "데", "든지", "며", "면", "면서", "손", "오", "지", "죠"
+            "거나", "거든", "거든요", "거들랑", "고", "고요", "기에", "나", "는", "는구나", "는군", "는군요", "는데", "는데요", "느니", "니", "니까", "니까는", "니까요", "니깐", "니요", "더군", "더군요", "더니", "더라", "던", "던가", "던데", "던데요", "데", "든지", "며", "면", "면서", "손", "오", "지", "죠"
         )
     };
 }
@@ -1098,7 +1185,38 @@ fn verify_simple_continuation(
     if let Some(continuation) = humble::verify(state, pos, anchor, following) {
         return Some(continuation);
     }
-    let additional_endings = match state {
+    let additional_endings: &[Suffix] = match state {
+        ContinuationState::NieunEnding
+            if (following.starts_with('군') || following.starts_with("구나"))
+                && anchor.ends_with('는')
+                && (pos.is_action() || anchor.ends_with("있는") || anchor.ends_with("없는")) =>
+        {
+            &[NEUN_GUN, NEUN_GUN_YO, NEUN_GUNA]
+        }
+        ContinuationState::StemEnding
+            if following.starts_with('군')
+                && !pos.is_action()
+                && pos != PredicatePos::Copula
+                && anchor != "아니" =>
+        {
+            &[GUN, GUN_YO]
+        }
+        ContinuationState::Prospective if following.starts_with('군') && anchor.ends_with('시') => {
+            &[GUN, GUN_YO]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시는군")
+                && (pos.is_action() || anchor.ends_with(['있', '없'])) =>
+        {
+            &[HONORIFIC_NEUN_GUN, HONORIFIC_NEUN_GUN_YO]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시군")
+                || following.starts_with("셨군")
+                || following.starts_with("시겠군") =>
+        {
+            HONORIFIC_GUN_ENDINGS
+        }
         ContinuationState::AOrEo if following.starts_with('서') => A_OR_EO_SEO_SUFFIXES,
         ContinuationState::StemEnding
             if following.starts_with("고서") && (pos.is_action() || anchor == "아니") =>
@@ -1358,6 +1476,9 @@ fn declarative_suffix(following: &str) -> Option<&'static Suffix> {
         '면' if following.starts_with(DECLARATIVE_MYEONSEO.surface) => Some(&DECLARATIVE_MYEONSEO),
         '면' => Some(&DECLARATIVE_CONDITIONAL),
         '는' if following.starts_with(DECLARATIVE_NEUNDE.surface) => Some(&DECLARATIVE_NEUNDE),
+        '는' if following.starts_with(DECLARATIVE_NEUN_GUN_YO.surface) => {
+            Some(&DECLARATIVE_NEUN_GUN_YO)
+        }
         '는' => Some(&DECLARATIVE_ADNOMINAL),
         '고' => Some(&DECLARATIVE_GO),
         '던' => Some(&DECLARATIVE_RETROSPECTIVE),

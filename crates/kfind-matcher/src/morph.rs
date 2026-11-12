@@ -1040,6 +1040,7 @@ impl MorphMatcher {
                     || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
                     || has_nominal_interrogative_frame(haystack, candidate, branch, resolver)
                     || has_nonpredicate_report_frame(haystack, candidate, branch, resolver)
+                    || has_comparative_nominal_frame(haystack, candidate, branch, resolver)
             })
         {
             return false;
@@ -1650,6 +1651,12 @@ impl MorphMatcher {
             Cow::Owned(token.nfc().collect::<String>())
         };
         if !self.accepts_token_boundary(haystack, &candidate.verified, branch) {
+            return false;
+        }
+        if (normalized.ends_with("더군") || normalized.ends_with("더군요"))
+            && context::previous_word(haystack, candidate.verified.token.start)
+                .is_some_and(|previous| resolver.has_object_marked_nominal(&previous))
+        {
             return false;
         }
         resolver.has_exact_lost_span_copula_ending_path(&normalized)
@@ -2465,6 +2472,35 @@ fn has_nonpredicate_report_frame(
             || (resolver.has_complete_nominal_surface(&next)
                 && resolver.has_independent_final_predicate(&following))
     })
+}
+
+fn has_comparative_nominal_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let span = &candidate.consumed;
+    if !candidate.suffix_rules.is_empty()
+        || !matches!(
+            branch.consumption,
+            CandidateConsumption::PredicateContinuation {
+                continuation: kfind_morph::ContinuationState::AOrEo,
+                ..
+            }
+        )
+        || !is_boundary_before(haystack, span.start)
+        || !is_boundary_after(haystack, span.end)
+    {
+        return false;
+    }
+    context::next_word(haystack, span.end)
+        .is_some_and(|next| resolver.has_comparative_nominal_surface(&next))
+        && context::normalized_token(haystack, span.clone())
+            .is_some_and(|token| resolver.has_exact_nominal_surface(&token))
+        && !context::previous_word(haystack, span.start).is_some_and(|previous| {
+            resolver.has_nominal_oblique(&previous) || resolver.has_object_marked_nominal(&previous)
+        })
 }
 
 fn has_whole_alternative_conjunction(

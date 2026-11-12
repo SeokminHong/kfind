@@ -302,6 +302,7 @@ pub fn starts_omitted_copula_ending(character: char) -> bool {
             | '로'
             | '구'
             | '군'
+            | '더'
             | '네'
             | '니'
             | '면'

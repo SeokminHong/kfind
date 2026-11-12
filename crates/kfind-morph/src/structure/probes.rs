@@ -822,6 +822,27 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_comparative_nominal_surface(&self, text: &str) -> bool {
+        ["이상", "이하", "미만", "초과"].iter().any(|&noun| {
+            text.strip_prefix(noun).is_some_and(|tail| {
+                has_exact_sequence(&self.resource, noun, &[StructuralPos::NNG])
+                    && noun
+                        .chars()
+                        .next_back()
+                        .is_some_and(|last| verify_copula_surface_after_nominal(last, tail))
+            })
+        })
+    }
+
+    #[must_use]
+    pub fn has_nominal_oblique(&self, text: &str) -> bool {
+        text.char_indices().skip(1).any(|(split, _)| {
+            has_exact_sequence(&self.resource, &text[split..], &[StructuralPos::JKB])
+                && self.has_complete_nominal_surface(&text[..split])
+        })
+    }
+
+    #[must_use]
     pub fn has_derived_ha_past(&self, host: &str, ending: &str) -> bool {
         let Some(noun) = host.strip_suffix('하') else {
             return false;
