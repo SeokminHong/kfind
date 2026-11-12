@@ -170,12 +170,13 @@ fn compile_stem(
     stem: &str,
     branches: &mut Vec<SurfaceBranchSpec>,
 ) -> Result<(), GenerateError> {
-    let final_da_continuation = if matches!(
+    let final_da_continuation = if (matches!(
         entry.pos,
         PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
-    ) && !entry
-        .flags
-        .contains(PredicateFlags::NO_DECLARATIVE_CONTINUATION)
+    ) || matches!(stem, "있" | "없" | "계시"))
+        && !entry
+            .flags
+            .contains(PredicateFlags::NO_DECLARATIVE_CONTINUATION)
     {
         ContinuationState::Declarative
     } else {

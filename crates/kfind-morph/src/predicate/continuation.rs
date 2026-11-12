@@ -380,6 +380,7 @@ const HONORIFIC_PREFINAL_NE_ENDINGS: &[Suffix] = &[
 const PAST_SUFFIXES: &[Suffix] = &[
     NE,
     NE_YO,
+    PLAIN_QUOTATIVE_ADNOMINAL,
     GUN,
     GUN_YO,
     suffix("습니까", &["ending.formal-interrogative"]),
@@ -441,6 +442,7 @@ const HONORIFIC_MEURO_ENDINGS: &[Suffix] = &[
 const FUTURE_SUFFIXES: &[Suffix] = &[
     NE,
     NE_YO,
+    PLAIN_QUOTATIVE_ADNOMINAL,
     GUN,
     GUN_YO,
     suffix("습니까", &["ending.formal-interrogative"]),
@@ -460,6 +462,7 @@ const DECLARATIVE_MYEONSEO: Suffix = suffix("면서", &["ending.quotative-myeons
 const DECLARATIVE_NEUNDE: Suffix = suffix("는데", &["ending.quotative-neunde"]);
 const DECLARATIVE_GO: Suffix = suffix("고", &["ending.quotative-go"]);
 const DECLARATIVE_ADNOMINAL: Suffix = suffix("는", &["ending.quotative-adnominal"]);
+const PLAIN_QUOTATIVE_ADNOMINAL: Suffix = suffix("다는", &["ending.quotative-adnominal"]);
 const DECLARATIVE_NEUN_GUN_YO: Suffix = suffix(
     "는군요",
     &[
