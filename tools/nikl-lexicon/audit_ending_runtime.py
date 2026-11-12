@@ -103,7 +103,7 @@ def annotated_host(tokens, word, stem, predicates):
             continue
         tag = token.tag.partition("-")[0]
         if tag == "VCP" and token.start + token.len <= suffix_start:
-            visible_copula = token.len == 1 and word.string[token.start] == "이"
+            visible_copula = token.len == 1 and "이" <= word.string[token.start] <= "잏"
             start = token.start if visible_copula else word.start()
             hosts.append(("이다", "adjective", start))
         if token.start >= suffix_start:
