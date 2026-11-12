@@ -11,6 +11,7 @@ COPY tools/morph-compare/quality-contract-reviews.tsv ./quality-contract-reviews
 COPY tools/morph-compare/resultative-context-cases.jsonl tools/morph-compare/resultative-contract-reviews.tsv ./
 COPY tools/morph-compare/query-matrix-context-cases.jsonl ./
 COPY tools/morph-compare/trial-context-cases.jsonl tools/morph-compare/trial-contract-reviews.tsv ./
+COPY tools/morph-compare/copula-conditional-context-cases.jsonl tools/morph-compare/copula-conditional-contract-reviews.tsv ./
 COPY tools/morph-compare/python ./python
 RUN python -m unittest discover --start-directory python --pattern 'test_*.py'
 RUN python python/fetch_sources.py --manifest sources.json --output /corpora \
@@ -132,6 +133,8 @@ COPY --from=corpus-builder /build/query-matrix-context-cases.jsonl \
     /build/query-matrix-contract-reviews.tsv /opt/morph-benchmark/
 COPY --from=corpus-builder /build/trial-context-cases.jsonl \
     /build/trial-contract-reviews.tsv /opt/morph-benchmark/
+COPY --from=corpus-builder /build/copula-conditional-context-cases.jsonl \
+    /build/copula-conditional-contract-reviews.tsv /opt/morph-benchmark/
 COPY --from=runner-builder /benchmark/full-pos /opt/morph-benchmark/full-pos
 COPY --from=runner-builder /benchmark/morphology /opt/morph-benchmark/morphology
 COPY --from=runner-builder /benchmark/component /opt/morph-benchmark/component

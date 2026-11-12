@@ -1,0 +1,8 @@
+{"id":"sanchaeg-irado-copula","query":"이다","pos":"adjective","text":"운동이 산책이라도 준비는 필요하다.","expected":true,"gold_byte_start":16,"gold_byte_end":25,"paired_case_id":"sanchaeg-irado-context"}
+{"id":"sanchaeg-irado-context","query":"이다","pos":"adjective","text":"산책이라도 하자.","expected":false,"gold_byte_start":6,"gold_byte_end":15,"paired_case_id":"sanchaeg-irado-copula"}
+{"id":"yeonghwa-rado-copula","query":"이다","pos":"adjective","text":"이게 영화라도 결말이 너무 뻔해.","expected":true,"gold_byte_start":7,"gold_byte_end":19,"paired_case_id":"yeonghwa-rado-context"}
+{"id":"yeonghwa-rado-context","query":"이다","pos":"adjective","text":"영화라도 한 편 보자.","expected":false,"gold_byte_start":0,"gold_byte_end":12,"paired_case_id":"yeonghwa-rado-copula"}
+{"id":"sae-ramyeon-copula","query":"이다","pos":"adjective","text":"내가 만약 새라면 저 하늘을 훨훨 날아다닐 텐데.","expected":true,"gold_byte_start":14,"gold_byte_end":23,"paired_case_id":"sae-ramyeon-context"}
+{"id":"sae-ramyeon-context","query":"이다","pos":"adjective","text":"길 안내원이 여기서 옆길로 새라면 그대로 가면 돼.","expected":false,"gold_byte_start":37,"gold_byte_end":46,"paired_case_id":"sae-ramyeon-copula"}
+{"id":"ga-ramyeon-copula","query":"이다","pos":"adjective","text":"그 글자가 가라면 첫 칸에 써.","expected":true,"gold_byte_start":14,"gold_byte_end":23,"paired_case_id":"ga-ramyeon-context"}
+{"id":"ga-ramyeon-context","query":"이다","pos":"adjective","text":"아이들이 가라면 먼저 보낼게요.","expected":false,"gold_byte_start":13,"gold_byte_end":22,"paired_case_id":"ga-ramyeon-copula"}
