@@ -222,6 +222,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.prohibitive-short"
+category = "final"
+initial = "other"
+forms = ["마"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.prohibitive-short-polite"
+category = "final"
+initial = "other"
+forms = ["마요"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.report-contraction"
 category = "final"
 initial = "other"

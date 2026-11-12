@@ -1030,6 +1030,27 @@ impl MorphMatcher {
     ) -> bool {
         let boundary = atom.boundary;
         if boundary == BoundaryPolicy::Smart
+            && !branch.origins.is_empty()
+            && branch.origins.iter().all(|origin| {
+                origin.rule_path.last().is_some_and(|rule| {
+                    matches!(
+                        rule.as_str(),
+                        "ending.prohibitive-short" | "ending.prohibitive-short-polite"
+                    )
+                })
+            })
+        {
+            return self.accepts_token_boundary(haystack, &candidate.verified, branch)
+                && context::previous_word(haystack, candidate.verified.core.start).is_some_and(
+                    |previous| {
+                        previous.ends_with('지')
+                            && self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                                resolver.has_negative_connective_host(&previous)
+                            })
+                    },
+                );
+        }
+        if boundary == BoundaryPolicy::Smart
             && let Some(resolver) = self.constraint_resolver.as_ref()
             && let Some(accepts) = decide_request_dalla(haystack, candidate, branch, atom, resolver)
         {

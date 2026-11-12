@@ -614,3 +614,8 @@ regression.polite-honorific.roll	말다	verb	smart-exact	56	65	김 위에 밥을
 regression.polite-honorific.drink	마시다	verb	smart-exact	45	54	물잔을 들어 입에 대세요. 이렇게 마셔요.
 corpus.ud-gsd.test.test-s140.verb.polite-honorific	말다	verb	smart-exact	60	69	처음 오시는 분은 후회하지 마시고 들어가지 마세요.
 corpus.ud-gsd.test.test-s680.verb.polite-honorific	말다	verb	smart-exact	33	42	그런데 거기서 포장하지 마세요.
+regression.prohibitive-short.plain	말다	verb	exact	13	16	걱정하지 마.
+regression.prohibitive-short.polite	말다	verb	exact	17	23	그렇게 하지 마요.
+regression.prohibitive-short.uncontracted	말다	verb	exact	13	22	걱정하지 말아라.
+regression.prohibitive-short.noun	말다	verb	no-match	24	27	이 뿌리의 이름은 마.
+regression.prohibitive-short.other-sentence	말다	verb	no-match	11	14	손대지. 마.

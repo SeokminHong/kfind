@@ -819,6 +819,12 @@ fn compile_predicate_with_generated(
         let dictionary_adverbial = rule_path
             .iter()
             .any(|rule| rule.as_str() == DICTIONARY_ADVERBIAL_I_RULE_ID);
+        let short_prohibitive = rule_path.last().is_some_and(|rule| {
+            matches!(
+                rule.as_str(),
+                "ending.prohibitive-short" | "ending.prohibitive-short-polite"
+            )
+        });
         let smart_left = predicate.alternation != kfind_morph::LexicalAlternation::Copula
             && !(analysis.source == AnalysisSource::Forced
                 && rule_path
@@ -852,6 +858,7 @@ fn compile_predicate_with_generated(
                 || predicate.alternation == kfind_morph::LexicalAlternation::Copula
                 || exact_component
                 || structural_future_adnominal
+                || short_prohibitive
             {
                 DraftDecision::Structural(ComponentCapability::SourceAndRuntime)
             } else {
