@@ -64,25 +64,70 @@ fn main() -> Result<(), Box<dyn Error>> {
     let ud_harness =
         harness.with_enriched_predicates(ENRICHED_PREDICATES_SOURCE, ENRICHED_PREDICATES)?;
     verify_ud_morphology(&ud_harness)?;
-    let negative_clause = "그곳에 가지는 않았다.";
-    let connective_start = negative_clause.find("가지").expect("fixture contains 가지");
-    let matches = ud_harness.find_lemma_matches(
-        "가다",
-        negative_clause,
-        CoarsePos::Verb,
-        BoundaryPolicy::Smart,
-    )?;
-    if !matches.iter().any(|matched| {
-        matched.span.start == connective_start
-            && matched.span.end >= connective_start + "가지".len()
-    }) {
-        return Err("가다 must match the connective before the negative auxiliary".into());
-    }
+    verify_resultative_homographs(&ud_harness)?;
 
     println!(
         "morphology gold with auto-POS coverage: {} cases and walk/hang stress passed",
         cases.len()
     );
+    Ok(())
+}
+
+fn verify_resultative_homographs(harness: &GoldHarness) -> Result<(), Box<dyn Error>> {
+    for (query, pos, text, surface) in [
+        (
+            "되다",
+            CoarsePos::Verb,
+            "신청만으로 자동 승인이 돼지는 건 아니에요.",
+            "돼지는",
+        ),
+        (
+            "되다",
+            CoarsePos::Verb,
+            "첫 번째 기능은 업데이트하면 자동으로 돼지고요, 두 번째는 따로 켜야 해요.",
+            "돼지고요",
+        ),
+        (
+            "가다",
+            CoarsePos::Verb,
+            "물살이 세서 앞으로 잘 가지지 않았다.",
+            "가지지",
+        ),
+        (
+            "가다",
+            CoarsePos::Verb,
+            "밀물이 시작되자 노를 젓지 않아도 배가 앞으로 가지는 게 신기했다.",
+            "가지는",
+        ),
+        ("돼지", CoarsePos::Noun, "돼지는 잡식 동물이다.", "돼지는"),
+        (
+            "돼지",
+            CoarsePos::Noun,
+            "이쪽은 돼지고요, 저쪽은 소예요.",
+            "돼지",
+        ),
+        (
+            "가지다",
+            CoarsePos::Verb,
+            "그는 재산을 가지지 않았다.",
+            "가지지",
+        ),
+        ("가지", CoarsePos::Noun, "가지는 보라색 채소다.", "가지는"),
+        ("가다", CoarsePos::Verb, "그곳에 가지는 않았다.", "가지는"),
+    ] {
+        let start = text.find(surface).expect("target appears in the fixture");
+        for boundary in [BoundaryPolicy::Smart, BoundaryPolicy::Any] {
+            let matches = harness.find_lemma_matches(query, text, pos, boundary)?;
+            if !matches
+                .iter()
+                .any(|matched| matched.span == (start..start + surface.len()))
+            {
+                return Err(
+                    format!("{query} {boundary:?}: expected {surface:?} in {text:?}").into(),
+                );
+            }
+        }
+    }
     Ok(())
 }
 

@@ -869,3 +869,8 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 춥다	adjective	날씨가 추워지려나?	match	resultative-conjecture
 춥다	adjective	해가 지면 추워지려니와 바람도 세질 것이다.	match	resultative-concession
 가다	verb	물살이 세서 앞으로 잘 가지지 않았다.	match	resultative-negative-connective
+되다	verb	신청만으로 자동 승인이 돼지는 건 아니에요.	match	resultative-homograph
+되다	verb	첫 번째 기능은 업데이트하면 자동으로 돼지고요, 두 번째는 따로 켜야 해요.	match	resultative-homograph
+가다	verb	밀물이 시작되자 노를 젓지 않아도 배가 앞으로 가지는 게 신기했다.	match	resultative-homograph
+돼지	noun	돼지는 잡식 동물이다.	match	resultative-homograph
+가지	noun	가지는 보라색 채소다.	match	resultative-homograph
