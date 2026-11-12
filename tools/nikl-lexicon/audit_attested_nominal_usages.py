@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import re
 import sys
 from collections.abc import Iterator
@@ -61,7 +60,7 @@ def catalog_rows(item: Element) -> Iterator[tuple[str, str, str, str, str]]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="표준국어대사전 접미사 용례의 명사 성분을 TSV로 출력합니다."
+        description="표준국어대사전 접미사 용례의 명사 성분 목록을 출력합니다."
     )
     parser.add_argument("--stdict", required=True, type=Path)
     parser.add_argument("--cache-dir", required=True, type=Path)
@@ -73,9 +72,11 @@ def main() -> None:
     )
     if {row[3] for row in rows} != NOUNS_BY_SUFFIX_SENSE.keys():
         raise ValueError("등록한 접미사 뜻풀이에 대응하는 단어 용례가 빠졌습니다.")
-    writer = csv.writer(sys.stdout, delimiter="\t", lineterminator="\n")
-    writer.writerow(("word", "suffix", "suffix_id", "suffix_sense_id", "noun_id"))
-    writer.writerows(sorted(rows))
+    print("// 접미사 표제어:뜻풀이, 독립 명사 표제어")
+    print("const STDICT_ATTACHED_NOMINAL_USAGES: &[(&str, &str)] = &[")
+    for word, suffix, suffix_id, sense_id, noun_id in sorted(rows):
+        print(f'    ("{word}", "{suffix}"), // {suffix_id}:{sense_id}, {noun_id}')
+    print("];")
 
 
 if __name__ == "__main__":

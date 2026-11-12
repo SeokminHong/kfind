@@ -125,16 +125,14 @@ const DICTIONARY_NUMERIC_UNITS: &[&str] = &[
 
 const SHORT_NOMINAL_DERIVATIONS: &str =
     include_str!("../../../../data/rules/stdict-short-nominal-derivations.tsv");
-const STDICT_ATTACHED_NOMINAL_USAGES: &str =
-    include_str!("../../../../data/rules/stdict-attested-nominal-suffix-usages.tsv");
+include!("../../../../data/rules/stdict-attested-nominal-suffix-usages.rs");
 
 impl ConstraintResolver {
     #[must_use]
     pub fn has_attested_nominal_suffix_usage(word: &str, suffix: &str) -> bool {
-        STDICT_ATTACHED_NOMINAL_USAGES.lines().skip(1).any(|row| {
-            let mut fields = row.split('\t');
-            fields.next() == Some(word) && fields.next() == Some(suffix)
-        })
+        STDICT_ATTACHED_NOMINAL_USAGES
+            .binary_search(&(word, suffix))
+            .is_ok()
     }
 
     #[must_use]
