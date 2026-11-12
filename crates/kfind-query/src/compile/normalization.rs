@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use unicode_normalization::UnicodeNormalization;
+use unicode_normalization::{UnicodeNormalization, is_nfc};
 
 use crate::{
     Analysis, BoundaryPolicy, BoundaryProof, CandidateConsumption, CandidateDecision,
@@ -27,7 +27,6 @@ pub(super) enum DraftDecision {
 
 #[derive(Debug)]
 struct ProgramKey {
-    anchor: Box<[u8]>,
     consumption: CandidateConsumption,
     core_mapping: CoreMapping,
     boundary: BoundaryProof,
@@ -35,6 +34,7 @@ struct ProgramKey {
 }
 
 struct MergedProgram {
+    anchor: Option<Box<[u8]>>,
     key: ProgramKey,
     origins: Vec<Origin>,
     next_same_anchor: Option<usize>,
@@ -80,10 +80,16 @@ pub(super) fn normalize_and_merge(
         let boundary_proof =
             boundary_proof(boundary, draft.smart_left, one_scalar_atom, allow_attached);
         let decision = candidate_decision(boundary, draft.decision);
-        let forms = normalized_forms(&draft, mode, atom_index)?;
-        let form_count = forms.len();
-        'forms: for (form_index, (anchor, core_mapping)) in forms.into_iter().enumerate() {
-            let last_form = form_index + 1 == form_count;
+        let (first, second) = normalized_forms(
+            std::mem::take(&mut draft.anchor),
+            draft.core_mapping,
+            mode,
+            atom_index,
+        )?;
+        let has_second = second.is_some();
+        let forms = std::iter::once(first).chain(second);
+        'forms: for (form_index, (anchor, core_mapping)) in forms.enumerate() {
+            let last_form = !has_second || form_index == 1;
             if let Some(head) = anchor_heads.get_mut(anchor.as_bytes()) {
                 let previous_head = *head;
                 let mut current = Some(previous_head);
@@ -122,8 +128,8 @@ pub(super) fn normalize_and_merge(
                 let (consumption, origins) = draft.metadata_for_form(last_form);
                 let index = merged.len();
                 merged.push(MergedProgram {
+                    anchor: None,
                     key: ProgramKey {
-                        anchor: anchor.into_bytes().into_boxed_slice(),
                         consumption,
                         core_mapping,
                         boundary: boundary_proof,
@@ -137,10 +143,10 @@ pub(super) fn normalize_and_merge(
                 let (consumption, origins) = draft.metadata_for_form(last_form);
                 let index = merged.len();
                 let anchor = anchor.into_bytes().into_boxed_slice();
-                anchor_heads.insert(anchor.clone(), index);
+                anchor_heads.insert(anchor, index);
                 merged.push(MergedProgram {
+                    anchor: None,
                     key: ProgramKey {
-                        anchor,
                         consumption,
                         core_mapping,
                         boundary: boundary_proof,
@@ -151,6 +157,13 @@ pub(super) fn normalize_and_merge(
                 });
             }
         }
+    }
+    for (anchor, mut index) in anchor_heads {
+        while let Some(next) = merged[index].next_same_anchor {
+            merged[index].anchor = Some(anchor.clone());
+            index = next;
+        }
+        merged[index].anchor = Some(anchor);
     }
     Ok(merged
         .into_iter()
@@ -180,9 +193,14 @@ fn candidate_decision(policy: BoundaryPolicy, requested: DraftDecision) -> Draft
 }
 
 fn materialize_program(merged: MergedProgram, analyses: &[Analysis]) -> CandidateProgram {
-    let MergedProgram { key, origins, .. } = merged;
+    let MergedProgram {
+        anchor,
+        key,
+        origins,
+        ..
+    } = merged;
     let mut program = CandidateProgram {
-        anchor: key.anchor,
+        anchor: anchor.expect("each program belongs to an anchor group"),
         core_mapping: key.core_mapping,
         consumption: key.consumption,
         origins,
@@ -219,51 +237,39 @@ fn boundary_proof(
     }
 }
 
+type NormalizedAnchor = (String, CoreMapping);
+
 fn normalized_forms(
-    draft: &DraftBranch,
+    anchor: String,
+    core_mapping: CoreMapping,
     mode: NormalizationMode,
     atom_index: usize,
-) -> Result<Vec<(String, CoreMapping)>, CompileError> {
-    let forms = match mode {
-        NormalizationMode::None => vec![(draft.anchor.clone(), NormalizedForm::Raw)],
-        NormalizationMode::Nfc => vec![(draft.anchor.nfc().collect(), NormalizedForm::Nfc)],
-        NormalizationMode::Canonical => {
-            let nfc = draft.anchor.nfc().collect::<String>();
-            let nfd = draft.anchor.nfd().collect::<String>();
-            if nfc == nfd {
-                vec![(nfc, NormalizedForm::Nfc)]
-            } else {
-                vec![(nfc, NormalizedForm::Nfc), (nfd, NormalizedForm::Nfd)]
-            }
-        }
+) -> Result<(NormalizedAnchor, Option<NormalizedAnchor>), CompileError> {
+    let prefix = match core_mapping {
+        CoreMapping::WholeAnchor => None,
+        CoreMapping::PrefixBytes(length) => Some(anchor.get(..length).ok_or_else(|| {
+            CompileError::new(Some(atom_index), CompileErrorKind::InvalidCoreMapping)
+        })?),
     };
-    forms
-        .into_iter()
-        .map(|(anchor, form)| {
-            let mapping = match draft.core_mapping {
-                CoreMapping::WholeAnchor => CoreMapping::WholeAnchor,
-                CoreMapping::PrefixBytes(length) => {
-                    let prefix = draft.anchor.get(..length).ok_or_else(|| {
-                        CompileError::new(Some(atom_index), CompileErrorKind::InvalidCoreMapping)
-                    })?;
-                    let normalized_length = match form {
-                        NormalizedForm::Raw => prefix.len(),
-                        NormalizedForm::Nfc => prefix.nfc().map(char::len_utf8).sum(),
-                        NormalizedForm::Nfd => prefix.nfd().map(char::len_utf8).sum(),
-                    };
-                    CoreMapping::PrefixBytes(normalized_length)
-                }
-            };
-            Ok((anchor, mapping))
-        })
-        .collect()
-}
-
-#[derive(Clone, Copy)]
-enum NormalizedForm {
-    Raw,
-    Nfc,
-    Nfd,
+    if mode == NormalizationMode::None {
+        return Ok(((anchor, core_mapping), None));
+    }
+    let decomposed = (mode == NormalizationMode::Canonical).then(|| {
+        let mapping = prefix.map_or(CoreMapping::WholeAnchor, |prefix| {
+            CoreMapping::PrefixBytes(prefix.nfd().map(char::len_utf8).sum())
+        });
+        (anchor.nfd().collect::<String>(), mapping)
+    });
+    let composed = if is_nfc(&anchor) {
+        (anchor, core_mapping)
+    } else {
+        let mapping = prefix.map_or(CoreMapping::WholeAnchor, |prefix| {
+            CoreMapping::PrefixBytes(prefix.nfc().map(char::len_utf8).sum())
+        });
+        (anchor.nfc().collect(), mapping)
+    };
+    let decomposed = decomposed.filter(|(anchor, _)| *anchor != composed.0);
+    Ok((composed, decomposed))
 }
 
 pub(super) fn normalize_atom(atom: &QueryAtom, mode: NormalizationMode) -> QueryAtom {
