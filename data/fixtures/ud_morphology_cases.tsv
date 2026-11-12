@@ -67,3 +67,17 @@ corpus.ud-pud.test.w01107124.adjective.비다	비다	adjective	no-match	13	16	�
 corpus.ud-pud.test.w01150047.adjective.달다	달다	adjective	no-match	171	183	오스만 제국이 마케도니아의 통치권을 잃고 알바니아와의 영토 관계가 단절된 후 강대국들은 자신들의 결정을 번복해야 한다고 깨달았다.
 corpus.ud-pud.test.n01082014.adverb.늘	늘	adverb	no-match	30	36	“신용 대출자가 점점 늘고 있는데 지금은 대출금을 관리할 수 있는 수준일지 몰라도 상황이 급변하면 빚더미에 올라앉을 수 있다.”
 corpus.ud-pud.test.n01079015.determiner.두	두	determiner	no-match	47	56	구석에 있는 여자가 머리 스카프를 두르고 청바지를 입고 있어서 나는 그녀가 또 한 명의 보좌관일 거라는 생각은 미처 하지 못했다.
+corpus.ud-kaist.test.M2TA_080-s9.adjective.같다	같다	adjective	match	39	45	르쁠레는 가족유형을 다음과 같이 세 가지로 분류하였다.
+corpus.ud-kaist.test.MH2_0010-s199.verb.가다	가다	verb	match	118	127	이때는 낮 시간이 밤 시간보다 짧기는 하지만 거의 같아지며 남극 전체의 기온도 서서히 올라가 남극반도 일원은 간혹 영상으로 된다.
+corpus.ud-kaist.test.MH2_0010-s264.adjective.없다	없다	adjective	match	44	50	얼음에 갇힌 바다는 물결도 거의 없이 잔잔하다.
+corpus.ud-kaist.test.MH2_0010-s318.pronoun.누구	누구	pronoun	match	0	12	누군가가 중국기지까지 걸어갈 수 있겠단다.
+corpus.ud-kaist.test.MH2_0010-s330.adjective.이다	이다	adjective	smart-exact	40	46	아니면 주변 어디에 남아있는 걸까?
+corpus.ud-kaist.test.MH2_0070-s138.adjective.다르다	다르다	adjective	match	10	16	이와는 달리 우리나라 신발수출은 91 년 11.3 % 감소한 이후 92년 8월 말까지 16.6 %나 줄었다.
+corpus.ud-kaist.test.MH2_0070-s73.adjective.같다	같다	adjective	match	110	116	또한 각국의 소비지출은 1 개월 평균, 자국통화로 된 금액을 이용하였으며, 미국과 같이 연간단위로 된 통계자료는 월평균으로 환산하여 사용하였다.
+corpus.ud-kaist.test.MH2_0180-s113.pronoun.무어	무어	pronoun	match	39	48	일반적으로는 사항에 관해서 무언가 새로운 것을 경험하려고 하여 주어의 토대를 뛰어넘고 있는 것이다.
+corpus.ud-kaist.test.MH2_0180-s142.adjective.똑같다	똑같다	adjective	match	83	92	그렇지만 그것에 의해서 규정은 자기 자신에게 규정하는 것과 똑같이 규정되게 된다.
+corpus.ud-kaist.test.MH2_0190-s184.verb.나다	나다	verb	match	125	134	이 밖에 개체호(個體戶)라고 불리는 개인기업의 설립을 허용하자 개인기업들이 우후죽순처럼 생겨나 현재는 약 1,800만 개에 달한다.
+corpus.ud-kaist.test.MH2_0190-s23.noun.하	하	noun	match	20	35	기업도 자신의 책임하에서 자유롭게 업종을 선택하여 투자할 수 있다.
+corpus.ud-kaist.test.MH2_0190-s410.verb.밀다	밀다	verb	match	100	106	즉 정부가 자주성을 가지고 국내산업을 보호해야 하는데, 강대국의 압력에 밀려 시장개방을 서두르고 있다는 것이다.
+corpus.ud-kaist.test.MH2_0190-s433.verb.오다	오다	verb	match	14	29	1970년대에 들어와서는 두 차례의 석유파동으로 각국의 경제사정이 악화되어 경제통합에 별로 진척이 없었다.
+corpus.ud-kaist.test.MH2_0190-s434.noun.잠식당	잠식당	noun	match	175	190	1980년대에는 EC 경제가 장기침체를 겪으면서 미국과 일본에 비해 경쟁력이 크게 떨어졌고, 역내시장이 아시아 신흥공업국들에 의해 잠식당하기 시작하였다.
