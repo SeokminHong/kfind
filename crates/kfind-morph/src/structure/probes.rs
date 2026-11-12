@@ -457,6 +457,23 @@ impl ConstraintResolver {
         )
     }
 
+    #[must_use]
+    pub fn has_negative_connective_host(&self, text: &str) -> bool {
+        let Some(stem) = text.strip_suffix('지') else {
+            return false;
+        };
+        let positions = PredicatePosSet::one(PredicatePos::Verb)
+            | PredicatePosSet::one(PredicatePos::Adjective)
+            | PredicatePosSet::one(PredicatePos::AuxiliaryVerb)
+            | PredicatePosSet::one(PredicatePos::AuxiliaryAdjective);
+        self.has_exact_predicate_connective_path(text, positions)
+            || (!stem.is_empty()
+                && (self.has_exact_non_copula_predicate_surface(stem)
+                    || stem
+                        .strip_suffix('하')
+                        .is_some_and(|host| self.has_complete_nominal_surface(host))))
+    }
+
     fn has_exact_predicate_ending_path_matching(
         &self,
         text: &str,
