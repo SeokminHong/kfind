@@ -747,10 +747,10 @@ impl MorphMatcher {
                 )?;
                 if *pos == kfind_morph::PredicatePos::Copula
                     && *continuation == kfind_morph::ContinuationState::StemEnding
-                    && matched
-                        .rule_path
-                        .iter()
-                        .any(|rule| rule.as_str().starts_with("ending.copula-"))
+                    && matched.rule_path.iter().any(|rule| {
+                        rule.as_str().starts_with("ending.copula-")
+                            || rule.as_str().starts_with("ending.hao-")
+                    })
                     && is_boundary_before(haystack, hit.span.start)
                 {
                     return None;
@@ -942,6 +942,13 @@ impl MorphMatcher {
         {
             return false;
         }
+        if boundary == BoundaryPolicy::Smart
+            && self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                has_competing_hao_connective(haystack, candidate, branch, resolver)
+            })
+        {
+            return false;
+        }
         match &branch.decision {
             CandidateDecision::Boundary(_) => {
                 self.accepts_token_boundary(haystack, &candidate.verified, branch)
@@ -1026,6 +1033,7 @@ impl MorphMatcher {
         if self.accepts_lexical_adverb_particle_frame(haystack, candidate, branch, patterns) {
             return true;
         }
+        let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
         let licensed_trailing =
             self.licensed_structural_trailing(haystack, candidate, branch, resolver);
         if licensed_trailing.is_none()
@@ -1033,7 +1041,6 @@ impl MorphMatcher {
         {
             return false;
         }
-        let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
         if licensed_trailing.is_none()
             && matches!(
                 branch.consumption,
@@ -1506,6 +1513,9 @@ impl MorphMatcher {
             "ending.connective-ni",
             "ending.conditional",
             "ending.prospective-final",
+            "ending.hao-final-so",
+            "ending.hao-final",
+            "ending.hao-final-u",
         ]
         .iter()
         .any(|rule| has_rule(rule));
@@ -1938,6 +1948,64 @@ fn contracted_copula_surface_follows(
         .is_some_and(|character| {
             matches!(character, '였' | '여') || (character == '다' && !preserve_numeral_da)
         })
+}
+
+fn has_competing_hao_connective(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let CandidateConsumption::PredicateContinuation {
+        continuation,
+        pos,
+        source_positions,
+        ..
+    } = branch.consumption
+    else {
+        return false;
+    };
+    let respectful = candidate
+        .suffix_rules
+        .last()
+        .is_some_and(|rule| rule.as_str() == "ending.hao-respectful-connective");
+    let contracted_aoeo = continuation == kfind_morph::ContinuationState::AOrEo
+        && candidate.consumed == candidate.verified.core
+        && ["오", "ᄋ"]
+            .iter()
+            .any(|syllable| haystack[candidate.consumed.end..].starts_with(syllable.as_bytes()));
+    if !respectful && !contracted_aoeo {
+        return false;
+    }
+    let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
+    if candidate.verified.core.start != whole.start {
+        return false;
+    }
+    if !respectful
+        && !haystack
+            .get(candidate.consumed.end..whole.end)
+            .and_then(|bytes| std::str::from_utf8(bytes).ok())
+            .is_some_and(|tail| tail.nfc().eq("오면".chars()) || tail.nfc().eq("오니".chars()))
+    {
+        return false;
+    }
+    let Some(token) = haystack
+        .get(whole)
+        .and_then(|bytes| std::str::from_utf8(bytes).ok())
+    else {
+        return false;
+    };
+    let normalized = token.nfc().collect::<String>();
+    let core_len = token[..candidate.verified.core.len()]
+        .nfc()
+        .map(char::len_utf8)
+        .sum();
+    resolver.has_extended_predicate_prefix_path(
+        &normalized,
+        core_len,
+        source_positions | kfind_morph::PredicatePosSet::one(pos),
+        DEFAULT_LATTICE_NODE_LIMIT,
+    )
 }
 
 fn has_conflicting_whole_predicate(

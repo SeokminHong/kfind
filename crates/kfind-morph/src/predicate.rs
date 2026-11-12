@@ -723,6 +723,19 @@ fn compile_rieul_eu_endings(
             vec![rule("ending.connective-ni")],
         );
     }
+    for suffix in continuation::HAO_ENDINGS
+        .iter()
+        .chain([&continuation::SOSEO])
+    {
+        push_branch(
+            branches,
+            entry,
+            format!("{dropped}{}", suffix.surface),
+            dropped.len(),
+            ContinuationState::Terminal,
+            suffix.rules.iter().map(|id| rule(id)).collect(),
+        );
+    }
     push_branch(
         branches,
         entry,
@@ -751,6 +764,11 @@ fn compile_rieul_honorific(
     for suffix in continuation::HONORIFIC_GEODEUN_ENDINGS
         .iter()
         .chain(continuation::HONORIFIC_YAJI_ENDINGS)
+        .chain(if entry.pos.is_action() {
+            continuation::HONORIFIC_HAO_AFTER_ACTION
+        } else {
+            continuation::HONORIFIC_HAO_ENDINGS
+        })
     {
         push_branch(
             branches,
