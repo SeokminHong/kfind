@@ -220,7 +220,7 @@ mod tests {
 
     use super::*;
 
-    const EXPECTED_CASES: usize = 841;
+    const EXPECTED_CASES: usize = 852;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {
@@ -285,6 +285,9 @@ mod tests {
             ("v:먹다", "먼저 먹으라면서 재촉했다.", "먹으라면서"),
             ("v:들다", "먼저 드시라고 했다.", "드시라고"),
             ("adj:좋다", "듣기 좋으라고 칭찬을 보탰다.", "좋으라고"),
+            ("v:다루다", "이 주제는 다음 장에서 다뤄진다.", "다뤄진다"),
+            ("v:이루다", "합의는 단계적으로 이뤄진다.", "이뤄진다"),
+            ("adj:흐리다", "하늘이 흐려지더니 비가 왔다.", "흐려지더니"),
         ] {
             let start = text.find(target).expect("target appears in the fixture");
             assert_eq!(

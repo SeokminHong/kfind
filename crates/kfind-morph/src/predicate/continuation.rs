@@ -165,38 +165,29 @@ const A_OR_EO_SUFFIXES: &[Suffix] = &[
     YAJI,
     YAJI_POLITE,
     YAJI_CONTRACTED,
-    suffix("지거들랑", &["ending.auxiliary-jida", "ending.geodeun"]),
-    suffix("지건", &["ending.auxiliary-jida", "ending.geodeun-short"]),
-    suffix("지거든", &["ending.auxiliary-jida", "ending.geodeun"]),
-    suffix(
-        "지거든요",
-        &["ending.auxiliary-jida", "ending.geodeun-polite"],
-    ),
     suffix("가고", &["ending.auxiliary-gada", "ending.connective-go"]),
     suffix("가야", &["ending.auxiliary-gada", "ending.connective-ya"]),
-    suffix(
-        "졌습니다",
-        &[
-            "ending.auxiliary-jida",
-            "ending.past",
-            "ending.polite-declarative",
-        ],
-    ),
     suffix("서도", &["ending.aoeo-seo", "particle.additive"]),
-    suffix(
-        "졌다",
-        &["ending.auxiliary-jida", "ending.past", "ending.final-da"],
-    ),
-    suffix("지면", &["ending.auxiliary-jida", "ending.conditional"]),
-    suffix("지고", &["ending.auxiliary-jida", "ending.connective-go"]),
-    suffix("진", &["ending.auxiliary-jida", "ending.past-adnominal"]),
-    suffix("질", &["ending.auxiliary-jida", "ending.future-adnominal"]),
-    suffix("지다", &["ending.auxiliary-jida", "ending.final-da"]),
     suffix("서", &["ending.aoeo-seo"]),
     suffix("도", &["ending.connective-do"]),
     suffix("야", &["ending.connective-ya"]),
     suffix("요", &["ending.polite-yo"]),
     suffix("라", &["ending.imperative-ra"]),
+];
+
+const RESULTATIVE_STEM_ENDINGS: &[Suffix] = &[
+    suffix("면", &["ending.conditional"]),
+    suffix("고", &["ending.connective-go"]),
+    suffix("다", &["ending.final-da"]),
+    suffix("더니", &["ending.retrospective-connective"]),
+    suffix("더라도", &["ending.concessive-deorado"]),
+    suffix("던", &["ending.retrospective-adnominal"]),
+];
+const DEON_RECOLLECTION: &[Suffix] = &[
+    suffix("던가", &["ending.retrospective-question-deon"]),
+    suffix("던감", &["ending.retrospective-question-deon"]),
+    suffix("던들", &["ending.retrospective-connective-deon"]),
+    suffix("던지", &["ending.retrospective-connective-deon"]),
 ];
 
 const PAST_SUFFIXES: &[Suffix] = &[
@@ -682,7 +673,12 @@ pub fn verify_predicate_continuation(
         ContinuationState::Terminal => {
             return Some(matched(anchor.len(), None));
         }
-        ContinuationState::AOrEo => A_OR_EO_SUFFIXES,
+        ContinuationState::AOrEo => {
+            if let Some(resultative) = resultative_continuation(anchor.len(), following) {
+                return Some(resultative);
+            }
+            A_OR_EO_SUFFIXES
+        }
         ContinuationState::Past => PAST_SUFFIXES,
         ContinuationState::Future => FUTURE_SUFFIXES,
         ContinuationState::Declarative => {
@@ -752,6 +748,11 @@ pub fn verify_predicate_continuation(
             if following.starts_with("던데") =>
         {
             DEONDE
+        }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with('던') =>
+        {
+            DEON_RECOLLECTION
         }
         ContinuationState::Past | ContinuationState::Future if following.starts_with("는데") => {
             NEUNDE
@@ -829,6 +830,64 @@ pub fn verify_predicate_continuation(
         return None;
     }
     Some(matched(anchor.len(), suffix))
+}
+
+fn resultative_continuation(
+    anchor_len: usize,
+    following: &str,
+) -> Option<PredicateContinuationMatch> {
+    let (form, rule, suffix) = match following.chars().next()? {
+        '진' => {
+            if let Some(tail) = following.strip_prefix("진다") {
+                ("진다", Some("ending.declarative"), declarative_suffix(tail))
+            } else {
+                ("진", Some("ending.past-adnominal"), None)
+            }
+        }
+        '질' => ("질", Some("ending.future-adnominal"), None),
+        '졌' => ("졌", Some("ending.past"), None),
+        '지' if following.starts_with("지겠") => ("지겠", Some("ending.future"), None),
+        '지' => {
+            let tail = following.strip_prefix('지')?;
+            let suffix = RESULTATIVE_STEM_ENDINGS
+                .iter()
+                .chain(GEODEUN_ENDINGS)
+                .chain(DEON_RECOLLECTION)
+                .filter(|suffix| tail.starts_with(suffix.surface))
+                .max_by_key(|suffix| suffix.surface.len())?;
+            ("지", None, Some(suffix))
+        }
+        _ => return None,
+    };
+    let mut continuation = match form {
+        "졌" | "지겠" => {
+            let state = if form == "졌" {
+                ContinuationState::Past
+            } else {
+                ContinuationState::Future
+            };
+            let matched = verify_predicate_continuation(
+                state,
+                PredicatePos::AuxiliaryVerb,
+                form,
+                &following[form.len()..],
+            )?;
+            if matched.consumed_bytes == 0 {
+                return None;
+            }
+            matched
+        }
+        _ => matched(form.len(), suffix),
+    };
+    continuation.token_end += anchor_len;
+    continuation.consumed_bytes += form.len();
+    if let Some(rule) = rule {
+        continuation.rule_path.insert(0, RuleId::from(rule));
+    }
+    continuation
+        .rule_path
+        .insert(0, RuleId::from("ending.auxiliary-jida"));
+    Some(continuation)
 }
 
 fn declarative_suffix(following: &str) -> Option<&'static Suffix> {
@@ -1144,6 +1203,54 @@ mod tests {
         )
         .expect("change auxiliary");
         assert_eq!(changed.consumed_bytes, "졌다".len());
+    }
+
+    #[test]
+    fn resultative_uses_the_auxiliary_verbs_ending_and_provenance() {
+        for (pos, anchor, following, rules) in [
+            (
+                PredicatePos::Verb,
+                "다뤄",
+                "진다",
+                &["ending.declarative"][..],
+            ),
+            (
+                PredicatePos::Verb,
+                "바꿔",
+                "진다고",
+                &["ending.declarative", "ending.quotative-go"],
+            ),
+            (
+                PredicatePos::Adjective,
+                "흐려",
+                "지더니",
+                &["ending.retrospective-connective"],
+            ),
+            (
+                PredicatePos::Verb,
+                "버려",
+                "졌던가",
+                &["ending.past", "ending.retrospective-question-deon"],
+            ),
+            (
+                PredicatePos::Adjective,
+                "넓어",
+                "지겠다",
+                &["ending.future", "ending.final-da"],
+            ),
+        ] {
+            let matched =
+                verify_predicate_continuation(ContinuationState::AOrEo, pos, anchor, following)
+                    .expect("resultative continuation");
+            assert_eq!(matched.token_end, anchor.len() + following.len());
+            assert!(
+                matched
+                    .rule_path
+                    .iter()
+                    .map(RuleId::as_str)
+                    .eq(std::iter::once("ending.auxiliary-jida").chain(rules.iter().copied()))
+            );
+        }
     }
 
     #[test]

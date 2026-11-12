@@ -840,3 +840,14 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 가지다	verb	그는 이 기회를 가지라고 했다.	match	lexical-context
 이다	copula	그건 볶음에 넣을 가지라고 했다.	match	fused-copula-ending
 자다	verb	잠을 잘 자라고 아이 방의 조명을 어둡게 했다.	match	lexical-context
+다루다	verb	이 주제는 다음 장에서 다뤄진다.	match	resultative-declarative
+이루다	verb	합의는 단계적으로 이뤄진다.	match	resultative-declarative
+흐리다	adjective	하늘이 흐려지더니 비가 왔다.	match	resultative-retrospective
+바꾸다	verb	규칙이 다음 달부터 바꿔진다고 들었다.	match	resultative-quotative
+춥다	adjective	날씨가 추워졌지만 창문을 열었다.	match	resultative-past
+넓다	adjective	공사가 끝나면 길이 넓어지겠다.	match	resultative-future
+되다	verb	주말에 돼지고기를 구웠다.	no-match	resultative-nominal-contrast
+버리다	verb	개발에 매몰되어 얼마나 많은 전통 가치가 버려졌던가.	match	resultative-retrospective-question
+말하다	verb	그 친구가 그렇게 말하던가?	match	retrospective-question
+확인하다	verb	한 번만 확인했던들 이런 실수는 없었을 텐데.	match	retrospective-condition
+내리다	verb	어제 비가 어찌나 세게 내리던지 우산이 망가졌어.	match	retrospective-connective
