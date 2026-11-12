@@ -611,6 +611,41 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_predicate_adnominal_surface(&self, text: &str) -> bool {
+        let mut matched = false;
+        let mut modifier = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
+                let Some((first, endings)) = positions.split_first() else {
+                    return;
+                };
+                if length == text.len() {
+                    modifier |= matches!(
+                        *first,
+                        StructuralPos::MM | StructuralPos::MAG | StructuralPos::MAJ
+                    );
+                }
+                if !first.is_predicate() || !endings.iter().all(|pos| pos.is_ending()) {
+                    return;
+                }
+                matched |= if length == text.len() {
+                    endings.last() == Some(&StructuralPos::ETM)
+                } else {
+                    let mut terminal_adnominal = false;
+                    self.resource.common_prefix_positions(
+                        &text.as_bytes()[length..],
+                        |suffix_len, suffix| {
+                            terminal_adnominal |=
+                                length + suffix_len == text.len() && suffix == [StructuralPos::ETM];
+                        },
+                    );
+                    terminal_adnominal
+                };
+            });
+        matched && !modifier
+    }
+
+    #[must_use]
     pub fn has_exact_proper_name_surface(&self, text: &str) -> bool {
         has_exact_fine_pos(&self.resource, text, |pos| pos == DataFinePos::Nnp)
     }

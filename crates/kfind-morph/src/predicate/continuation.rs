@@ -517,6 +517,31 @@ const SYEOT_SEUP_EXTENSIONS: &[Suffix] =
 const SIGET_SEUP_EXTENSIONS: &[Suffix] =
     formal_bieup_extensions!("시겠습", "ending.honorific", "ending.future");
 
+macro_rules! directive_endings {
+    ($prefix:literal, $base:expr, $quote:expr; $($tail:literal),*) => {
+        &[
+            suffix($prefix, $base),
+            $(
+                suffix(concat!($prefix, $tail), $quote),
+            )*
+        ]
+    };
+}
+
+macro_rules! all_directive_endings {
+    ($prefix:literal $(, $prior:literal)*) => {
+        directive_endings!(
+            $prefix,
+            &[$($prior,)* "ending.directive-ra"],
+            &[$($prior,)* "ending.directive-quotative"];
+            "거나", "거든", "거든요", "거들랑", "고", "고요", "기에", "나", "는", "는구나", "는군", "는데", "는데요", "느니", "니", "니까", "니까는", "니까요", "니깐", "니요", "더군", "더군요", "더니", "더라", "던", "던가", "던데", "던데요", "데", "든지", "며", "면", "면서", "손", "오", "지", "죠"
+        )
+    };
+}
+
+const DIRECTIVE_ENDINGS: &[Suffix] = all_directive_endings!("라");
+const HONORIFIC_DIRECTIVE_ENDINGS: &[Suffix] = all_directive_endings!("시라", "ending.honorific");
+
 macro_rules! prospective_suffixes {
     ($prefix:literal $(, $rule:literal)*) => {
         &[
@@ -674,6 +699,12 @@ pub fn verify_predicate_continuation(
         ContinuationState::Prospective => PROSPECTIVE,
     };
     let additional_endings = match state {
+        ContinuationState::Eu | ContinuationState::Prospective
+            if pos != PredicatePos::Copula && following.starts_with('라') =>
+        {
+            DIRECTIVE_ENDINGS
+        }
+        ContinuationState::Eu if following.starts_with("시라") => HONORIFIC_DIRECTIVE_ENDINGS,
         ContinuationState::BieupFinal => BIEUP_EXTENSIONS,
         ContinuationState::Past | ContinuationState::Future if following.starts_with('습') => {
             SEUP_EXTENSIONS

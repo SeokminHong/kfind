@@ -159,8 +159,18 @@ pub(super) fn accepts_omitted_copula(
     token: &str,
     resolver: &ConstraintResolver,
     is_sentence_end: impl Fn() -> bool,
+    follows_adnominal: impl Fn() -> bool,
 ) -> bool {
-    omitted_copula_hosts(token).any(|(host, suffix)| {
+    let mut nominal_frame = false;
+    let accepted = omitted_copula_hosts(token).any(|(host, suffix)| {
+        if matches!(suffix, "라고" | "라고요" | "라는")
+            && resolver.has_exact_nominal_surface(host)
+            && resolver.has_exact_non_copula_predicate_surface(host)
+            && follows_adnominal()
+        {
+            nominal_frame = true;
+            return true;
+        }
         if matches!(suffix, "예요" | "여요") {
             return !resolver.has_exact_non_copula_predicate_surface(host)
                 && (resolver.has_exact_nominal_surface(host)
@@ -212,9 +222,11 @@ pub(super) fn accepts_omitted_copula(
                 resolver.has_exact_non_copula_predicate_surface(&token[..split])
                     && resolver.has_exact_ending_surface(&token[split..])
             }))
-    }) && !resolver.has_whole_modifier(token)
+    });
+    accepted
+        && !resolver.has_whole_modifier(token)
         && !resolver.has_exact_nominal_surface(token)
-        && !resolver.has_exact_non_copula_predicate_surface(token)
+        && (nominal_frame || !resolver.has_exact_non_copula_predicate_surface(token))
 }
 
 pub(super) fn accepts_fused_retrospective(token: &str, resolver: &ConstraintResolver) -> bool {
