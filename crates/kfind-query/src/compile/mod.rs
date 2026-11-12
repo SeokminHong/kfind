@@ -793,6 +793,9 @@ fn compile_predicate_with_generated(
             branches
                 .iter()
                 .filter(|branch| {
+                    if branch.continuation == kfind_morph::ContinuationState::Geodeun {
+                        return false;
+                    }
                     branch.continuation != kfind_morph::ContinuationState::Terminal
                         || branch.rule_path.last().is_some_and(|rule| {
                             matches!(

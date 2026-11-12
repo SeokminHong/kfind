@@ -231,6 +231,7 @@ pub fn verify_predicate_continuation(
             return Some(matched(anchor.len(), declarative_suffix(following)));
         }
         ContinuationState::Eu => EU_SUFFIXES,
+        ContinuationState::Geodeun => GEODEUN_ENDINGS,
     };
 
     let suffix = candidates
@@ -255,7 +256,7 @@ pub fn verify_predicate_continuation(
                     }))
         })
         .max_by_key(|suffix| suffix.surface.len());
-    if suffix.is_none() && state == ContinuationState::Eu {
+    if suffix.is_none() && matches!(state, ContinuationState::Eu | ContinuationState::Geodeun) {
         return None;
     }
     Some(matched(anchor.len(), suffix))

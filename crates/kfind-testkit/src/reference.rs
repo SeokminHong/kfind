@@ -814,6 +814,13 @@ fn reference_predicate_continuation(
         reference_suffix("니", &["ending.connective-ni"]),
     ];
 
+    const GEODEUN: &[ReferenceSuffix] = &[
+        reference_suffix("거든", &["ending.geodeun"]),
+        reference_suffix("거든요", &["ending.geodeun-polite"]),
+        reference_suffix("거들랑", &["ending.geodeun"]),
+        reference_suffix("건", &["ending.geodeun-short"]),
+    ];
+
     let candidates = match state {
         ContinuationState::Terminal => return Some((0, Vec::new())),
         ContinuationState::AOrEo => AEO,
@@ -821,6 +828,7 @@ fn reference_predicate_continuation(
         ContinuationState::Future => FUTURE,
         ContinuationState::Declarative => DECLARATIVE,
         ContinuationState::Eu => EU,
+        ContinuationState::Geodeun => GEODEUN,
     };
     let matched = candidates
         .iter()
@@ -841,7 +849,7 @@ fn reference_predicate_continuation(
                     ))
         })
         .max_by_key(|suffix| suffix.surface.len());
-    if matched.is_none() && state == ContinuationState::Eu {
+    if matched.is_none() && matches!(state, ContinuationState::Eu | ContinuationState::Geodeun) {
         return None;
     }
     Some(matched.map_or_else(

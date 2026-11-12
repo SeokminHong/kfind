@@ -345,16 +345,14 @@ fn compile_productive(
     stem: &str,
     branches: &mut Vec<SurfaceBranchSpec>,
 ) -> Result<(), GenerateError> {
-    for suffix in continuation::GEODEUN_ENDINGS {
-        push_branch(
-            branches,
-            entry,
-            format!("{stem}{}", suffix.surface),
-            stem.len(),
-            ContinuationState::Terminal,
-            suffix.rules.iter().map(|id| rule(id)).collect(),
-        );
-    }
+    push_branch(
+        branches,
+        entry,
+        stem.to_owned(),
+        stem.len(),
+        ContinuationState::Geodeun,
+        Vec::new(),
+    );
     if entry.alternation == LexicalAlternation::Ha
         && let Some(base) = stem.strip_suffix('하')
         && base
