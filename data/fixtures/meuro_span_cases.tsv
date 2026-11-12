@@ -1,0 +1,38 @@
+id	query	pos	expected	byte_start	byte_end	text
+krdict.므로:1	부지런하다	adjective	exact	13	31	민준이는 부지런하므로 어디서나 신뢰를 받는다.
+krdict.므로:2	되다	verb	exact	20	29	공연에 방해가 되므로 공연 중에는 입장할 수 없습니다.
+krdict.므로:3	들리다	verb	exact	25	37	소리가 작아 잘 안 들리므로 다음에는 볼륨을 좀 높여야 할 것 같다.
+krdict.므로:4	가다	verb	exact	50	59	운동도 지나치면 오히려 몸에 무리가 가므로 적당히 조절해야 한다.
+krdict.80268-dialogue	이다	adjective	exact	37	46	죄송합니다. 지금은 공연 중이므로 입장하실 수 없습니다.
+stdict.므로:5	이다	adjective	exact	34	43	상대가 너무 힘이 센 선수이므로 조심해야 한다.
+stdict.므로:6	부지런하다	adjective	exact	7	25	그는 부지런하므로 성공할 것이다.
+stdict.므로:7	오다	verb	exact	7	16	비가 오므로 외출하지 않았다.
+stdict.므로:8	졸다	verb	exact	27	36	그는 수업 시간마다 졸므로 시험 성적이 좋을 리가 없다.
+stdict.므로:9	높다	adjective	exact	23	38	선생님은 인격이 높으시므로, 모든 이에게 존경을 받는다.
+krdict.으므로:1	다하다	verb	exact	17	32	정말 최선을 다했으므로 더 이상 아쉬움은 없다.
+krdict.으므로:2	읽다	verb	exact	34	49	최근에 산 책을 재미있게 읽었으므로 소개하고자 합니다.
+krdict.으므로:3	있다	adjective	exact	48	60	전기 제품에 물이 닿으면 위험할 수 있으므로 조심해야 한다.
+krdict.으므로:4	먹다	verb	exact	61	73	어린이들은 칫솔질이 서툴고, 단 음식을 즐겨 먹으므로 이가 썩기 쉽다.
+krdict.으므로:5	깊다	adjective	exact	10	22	바다가 깊으므로 조심해서 수영을 하셔야 합니다.
+stdict.으므로:6	깊다	adjective	exact	10	22	강물이 깊으므로 배 없이는 건널 수 없다.
+stdict.으므로:7	보다	verb	exact	10	25	자네도 보았으므로 잘 알 게 아닌가?
+stdict.으므로:8	이다	adjective	exact	20	35	그는 모범 학생이었으므로 늘 칭찬을 받았다.
+nauseum-verb	낫다	verb	exact	42	54	이 약을 먹으면 감기가 더 빨리 나으므로 여행 전까지는 회복할 수 있다.
+nauseum-adj	낫다	adjective	exact	54	66	요금이 같다면 역에서 가까운 숙소가 더 나으므로 그쪽을 예약하자.
+imeuro-verb	이다	verb	exact	67	76	이 마을에서는 집집마다 겨울이 오기 전에 지붕을 이므로 볏짚이 많이 필요하다.
+imeuro-adj	이다	adjective	exact	26	35	오늘은 마을 잔칫날이므로 저녁에 회관 앞으로 모이세요.
+irregular-b	미끄럽다	adjective	exact	10	28	계단이 미끄러우므로 난간을 잡으세요.
+irregular-h	그렇다	adjective	exact	20	32	누구나 처음엔 그러므로 너무 걱정하지 마세요.
+irregular-d	걷다	verb	exact	25	37	이 구간은 다 같이 걸으므로 편한 신발을 신으세요.
+future	오다	verb	exact	24	39	태풍이 오늘 밤에 오겠으므로 항구의 배를 미리 옮겨야 한다.
+past-honorific	오다	verb	exact	23	38	선생님께서 이미 오셨으므로 회의를 시작하겠습니다.
+future-honorific	오다	verb	exact	20	38	선생님께서 곧 오시겠으므로 자리에서 조금만 기다려 주세요.
+honorific-copula	이다	adjective	exact	33	45	이분은 이 분야의 전문가이시므로 조언을 구해 보세요.
+neg-copula	아니다	adjective	exact	27	39	지금은 시험 기간이 아니므로 도서관을 일찍 닫는다.
+past-copula-contracted	이다	adjective	exact	23	35	그곳은 임시 숙소였으므로 오래 머무를 수 없었다.
+trial-past	입다	verb	exact	7	25	옷을 입어봤으므로 이제 치수를 알 수 있다.
+resultative-past	높다	adjective	exact	7	25	물이 높아졌으므로 배를 옮겨야 한다.
+nauseum-verb-context	낫다	verb	exact	54	66	요금이 같다면 역에서 가까운 숙소가 더 나으므로 그쪽을 예약하자.
+nauseum-adj-context	낫다	adjective	exact	42	54	이 약을 먹으면 감기가 더 빨리 나으므로 여행 전까지는 회복할 수 있다.
+imeuro-verb-context	이다	verb	no-match	26	35	오늘은 마을 잔칫날이므로 저녁에 회관 앞으로 모이세요.
+imeuro-adj-context	이다	adjective	no-match	67	76	이 마을에서는 집집마다 겨울이 오기 전에 지붕을 이므로 볏짚이 많이 필요하다.

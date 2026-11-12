@@ -26,6 +26,7 @@ class QueryMatrixContractReviewTests(unittest.TestCase):
             ("interrogative", "interrogative"),
             ("prospective", "prospective"),
             ("seoya", "seoya"),
+            ("meuro", "meuro"),
         ):
             with self.subTest(dataset=prefix):
                 self.assert_context_pairs(root, prefix, split)

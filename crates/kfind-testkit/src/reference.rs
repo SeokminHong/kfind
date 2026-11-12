@@ -1388,6 +1388,42 @@ fn reference_simple_continuation(
             reference_suffix("시고서", &["ending.honorific", "ending.connective-goseo"]),
             reference_suffix("시고서야", &["ending.honorific", "ending.connective-goseo"]),
         ],
+        ContinuationState::Eu | ContinuationState::Prospective
+            if pos != PredicatePos::Copula && following.starts_with('므') =>
+        {
+            &[reference_suffix("므로", &["ending.connective-meuro"])]
+        }
+        ContinuationState::StemEnding
+            if pos == PredicatePos::Copula && anchor == "이" && following.starts_with('므') =>
+        {
+            &[reference_suffix("므로", &["ending.connective-meuro"])]
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으므") => {
+            &[reference_suffix("으므로", &["ending.connective-meuro"])]
+        }
+        ContinuationState::Eu | ContinuationState::StemEnding
+            if (state == ContinuationState::Eu
+                || (pos == PredicatePos::Copula && anchor == "이"))
+                && (following.starts_with("시므")
+                    || following.starts_with("셨으므")
+                    || following.starts_with("시겠으므")) =>
+        {
+            &[
+                reference_suffix("시므로", &["ending.honorific", "ending.connective-meuro"]),
+                reference_suffix(
+                    "셨으므로",
+                    &["ending.honorific", "ending.past", "ending.connective-meuro"],
+                ),
+                reference_suffix(
+                    "시겠으므로",
+                    &[
+                        "ending.honorific",
+                        "ending.future",
+                        "ending.connective-meuro",
+                    ],
+                ),
+            ]
+        }
         ContinuationState::Eu
             if pos.is_action()
                 && (following.starts_with('렴') || following.starts_with("려무나")) =>

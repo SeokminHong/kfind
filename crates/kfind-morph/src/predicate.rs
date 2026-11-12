@@ -1061,11 +1061,6 @@ fn compile_copula(
             "ending.coordinate-myeo",
         ),
         (
-            format!("{stem}므로"),
-            ContinuationState::Terminal,
-            "ending.connective-meuro",
-        ),
-        (
             format!("{stem}려면"),
             ContinuationState::Terminal,
             "ending.intentive-ryeomyeon",
