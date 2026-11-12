@@ -20,6 +20,7 @@ lemma	pos	rule_id	variants	flags
 보다	JKB	particle.comparison.boda	보다	
 부터	JX	particle.from	부터	
 뿐	JX	particle.restrictive.ppun	뿐	
+야말로	JX	particle.emphasis.yamallo	이야말로|야말로	
 에게	JKB	particle.dative	에게|한테|께	
 에	JKB	particle.locative	에	
 에서	JKB	particle.source	에서	
