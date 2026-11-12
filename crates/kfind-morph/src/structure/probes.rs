@@ -3,7 +3,8 @@ use crate::structure::evidence::TokenEvidence;
 use crate::structure::graph::EdgeGraph;
 use crate::structure::lexical::{
     complete_dependent_noun_particle_suffix, complete_nominal_host, complete_suffix,
-    has_exact_fine_pos, predicate_pos_matches, structural_predicate_pos_matches,
+    exact_analysis_starts_with_pos, has_exact_fine_pos, predicate_pos_matches,
+    structural_predicate_pos_matches,
 };
 use crate::structure::paths::predicate::{
     has_complete_attached_auxiliary_path, is_attached_auxiliary_whole_path,
@@ -611,15 +612,15 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_exact_action_predicate_surface(&self, text: &str) -> bool {
-        let mut matched = false;
-        self.resource
-            .common_prefix_positions(text.as_bytes(), |length, positions| {
-                matched |= length == text.len()
-                    && matches!(
-                        positions.first().copied(),
-                        Some(StructuralPos::VV | StructuralPos::VX)
-                    );
-            });
-        matched
+        exact_analysis_starts_with_pos(&self.resource, text, |pos| {
+            matches!(pos, StructuralPos::VV | StructuralPos::VX)
+        })
+    }
+
+    #[must_use]
+    pub fn has_exact_non_copula_predicate_surface(&self, text: &str) -> bool {
+        exact_analysis_starts_with_pos(&self.resource, text, |pos| {
+            pos.is_predicate() && pos != StructuralPos::VCP
+        })
     }
 }

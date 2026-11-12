@@ -1374,22 +1374,8 @@ impl MorphMatcher {
         }
         resolver.has_exact_lost_span_copula_ending_path(&normalized)
             || (matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
-                && fused_copula::omitted_ra_hosts(&normalized).any(|(host, suffix)| {
-                    !host
-                        .strip_suffix('이')
-                        .is_some_and(|prefix| resolver.has_complete_nominal_surface(prefix))
-                        && !resolver.has_exact_action_predicate_surface(host)
-                        && !(matches!(suffix, "라고" | "라고요" | "라는")
-                            && resolver.has_whole_modifier(host))
-                        && resolver.has_exact_nominal_surface(host)
-                        && !(suffix == "라"
-                            && host.char_indices().skip(1).any(|(split, _)| {
-                                resolver.has_exact_action_predicate_surface(&normalized[..split])
-                                    && resolver.has_exact_ending_surface(&normalized[split..])
-                            }))
-                })
-                && !resolver.has_whole_modifier(&normalized)
-                && !resolver.has_exact_nominal_surface(&normalized))
+                && (fused_copula::accepts_fused_retrospective(&normalized, resolver)
+                    || fused_copula::accepts_omitted_ra(&normalized, resolver)))
     }
 
     fn licensed_nominal_copula_trailing(
