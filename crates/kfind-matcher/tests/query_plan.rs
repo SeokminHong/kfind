@@ -1433,6 +1433,18 @@ fn numeric_unit_path_keeps_only_a_dependent_noun_tail() {
     let ordinary_tail = compile_embedded_with_resource("사", options, resource);
 
     assert!(year.find_at_with_meta("1년간".as_bytes(), 0).is_some());
+    assert_eq!(
+        year.find_at_with_meta("1,500여 년간".as_bytes(), 0)
+            .map(|matched| matched.span),
+        Some("1,500여 ".len().."1,500여 년".len())
+    );
+    assert_eq!(
+        year.find_at_with_meta("3 년간의".as_bytes(), 0)
+            .map(|matched| matched.span),
+        Some("3 ".len().."3 년".len())
+    );
+    // A comma between the number and the unit must not license the spaced path.
+    assert!(year.find_at_with_meta("3, 년간".as_bytes(), 0).is_none());
     assert!(period.find_at_with_meta("1년간".as_bytes(), 0).is_some());
     assert!(period.find_at_with_meta("1년간의".as_bytes(), 0).is_some());
     assert!(time.find_at_with_meta("10시간".as_bytes(), 0).is_some());

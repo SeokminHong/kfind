@@ -4,7 +4,8 @@ use crate::structure::graph::EdgeGraph;
 use crate::structure::lexical::{
     complete_dependent_noun_particle_suffix, complete_nominal_host, complete_nominal_particle_host,
     complete_suffix, exact_analysis_starts_with_pos, has_complete_object_phrase,
-    has_exact_fine_pos, predicate_pos_matches, structural_predicate_pos_matches,
+    has_exact_fine_pos, numeric_unit_path_at, predicate_pos_matches,
+    structural_predicate_pos_matches,
 };
 use crate::structure::paths::predicate::{
     has_complete_attached_auxiliary_path, is_attached_auxiliary_whole_path,
@@ -14,6 +15,12 @@ use kfind_data::{ComponentPos as StructuralPos, DataFinePos};
 use std::ops::Range;
 
 impl ConstraintResolver {
+    #[must_use]
+    pub fn has_numeric_unit_before_dependent_noun(&self, text: &str, unit: &str) -> bool {
+        numeric_unit_path_at(&self.resource, text, 0)
+            .is_some_and(|path| path.dependent_tail.is_some() && &text[path.unit] == unit)
+    }
+
     #[must_use]
     pub fn has_object_marked_nominal(&self, text: &str) -> bool {
         has_complete_object_phrase(&self.resource, text)

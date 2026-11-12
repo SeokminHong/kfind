@@ -39,6 +39,14 @@ pub(super) fn numeric_unit_path(
     if numeric_end == 0 || numeric_end == text.len() {
         return None;
     }
+    numeric_unit_path_at(resource, text, numeric_end)
+}
+
+pub(super) fn numeric_unit_path_at(
+    resource: &ComponentResource,
+    text: &str,
+    numeric_end: usize,
+) -> Option<NumericUnitPath> {
     let mut selected = None;
     resource.common_prefix_positions(&text.as_bytes()[numeric_end..], |unit_length, positions| {
         if !matches!(
