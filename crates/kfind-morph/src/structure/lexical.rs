@@ -313,6 +313,21 @@ pub(super) fn has_complete_object_phrase(resource: &ComponentResource, text: &st
         && has_exact_sequence(resource, &text[host.len()..], &[StructuralPos::JKO])
 }
 
+pub(super) fn has_adnominal_result_complement(resource: &ComponentResource, text: &str) -> bool {
+    [("것", "으로"), ("걸", "로"), ("거", "로")]
+        .into_iter()
+        .any(|(noun, particle)| {
+            text.strip_prefix(noun)
+                .and_then(|rest| rest.strip_prefix(particle))
+                .is_some_and(|tail| {
+                    has_exact_sequence(resource, noun, &[StructuralPos::NNB])
+                        && has_exact_sequence(resource, particle, &[StructuralPos::JKB])
+                        && (tail.is_empty()
+                            || complete_suffix(resource, tail, StructuralPos::is_particle))
+                })
+        })
+}
+
 pub(super) fn has_unambiguous_proper_name(resource: &ComponentResource, text: &str) -> bool {
     let proper_name = |stem| {
         has_exact_fine_pos(resource, stem, |pos| pos == DataFinePos::Nnp)

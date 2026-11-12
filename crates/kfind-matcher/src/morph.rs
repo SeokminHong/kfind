@@ -1001,6 +1001,7 @@ impl MorphMatcher {
                     || has_elapsed_measure_frame(haystack, candidate, branch, atom, resolver)
                     || has_quantifying_adverb_frame(haystack, candidate, branch, atom, resolver)
                     || has_transitive_jiyo_frame(haystack, candidate, branch, resolver)
+                    || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
                     || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
                     || has_prayer_object_frame(haystack, candidate, branch, atom, resolver)
                     || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
@@ -2344,6 +2345,45 @@ fn has_genitive_nominal_interrogative_frame(
             .is_some_and(|previous| resolver.has_nominal_genitive_surface(&previous))
         && context::next_word(haystack, end)
             .is_some_and(|next| resolver.has_complete_nominal_surface(&next))
+}
+
+fn has_object_inside_adnominal_result(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    use kfind_morph::PredicatePos;
+    if !matches!(
+        branch.consumption,
+        CandidateConsumption::PredicateContinuation {
+            pos: PredicatePos::Adjective,
+            ..
+        } | CandidateConsumption::StructuralPredicateEnding {
+            pos: PredicatePos::Adjective,
+            ..
+        }
+    ) || !branch.origins.iter().any(|origin| {
+        candidate
+            .suffix_rules
+            .last()
+            .or_else(|| origin.rule_path.last())
+            .is_some_and(|rule| ADNOMINAL_RULE_IDS.contains(&rule.as_str()))
+    }) {
+        return false;
+    }
+    let span = &candidate.consumed;
+    let Some((end, next)) = context::next_word_with_end(haystack, span.end) else {
+        return false;
+    };
+    resolver.has_adnominal_result_complement(&next)
+        && is_boundary_before(haystack, span.start)
+        && context::previous_word(haystack, span.start)
+            .is_some_and(|previous| resolver.has_object_marked_nominal(&previous))
+        && context::next_word_with_end(haystack, end).is_some_and(|(predicate_end, predicate)| {
+            is_sentence_end_after(haystack, predicate_end)
+                && resolver.has_independent_final_predicate_without_object(&predicate)
+        })
 }
 
 fn has_transitive_jiyo_frame(

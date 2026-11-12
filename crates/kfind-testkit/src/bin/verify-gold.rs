@@ -35,6 +35,8 @@ const DICTIONARY_NUMERIC_UNIT_CASES: &str =
     include_str!("../../../../data/fixtures/dictionary_numeric_unit_cases.tsv");
 const PREFIXED_NOMINAL_COPULA_CASES: &str =
     include_str!("../../../../data/fixtures/prefixed_nominal_copula_cases.tsv");
+const ADNOMINAL_OBJECT_ATTACHMENT_CASES: &str =
+    include_str!("../../../../data/fixtures/adnominal_object_attachment_cases.tsv");
 const QUERY_MATRIX_POS_REVIEW_CASES: &str =
     include_str!("../../../../data/fixtures/query_matrix_pos_review_cases.tsv");
 const QUANTIFYING_ADVERB_CASES: &str =
@@ -116,6 +118,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         &enriched_harness,
         "prefixed nominal copula",
         PREFIXED_NOMINAL_COPULA_CASES,
+    )?;
+    verify_span_cases(
+        &enriched_harness,
+        "adnominal object attachment",
+        ADNOMINAL_OBJECT_ATTACHMENT_CASES,
     )?;
     verify_span_cases(
         &enriched_harness,

@@ -1,0 +1,24 @@
+id	query	pos	expected	byte_start	byte_end	text
+kaist-result-complement	이러하다	adjective	exact	10	19	주어를 이러한 것으로도 그러한 것으로도 규정할 수 있고, 한 관점에서는 그러하고 다른 관점에서는 달리 규정될 수 있다.
+usage-reading-verb	쓰다	verb	exact	45	48	투약 기록을 본 감사팀은 이 약을 쓴 것으로 판단했다.
+usage-reading-adjective	쓰다	adjective	exact	45	48	투약 기록을 본 감사팀은 이 약을 쓴 것으로 판단했다.
+bitter-reading-adjective	쓰다	adjective	exact	45	48	시식 결과를 본 연구팀은 이 약을 쓴 것으로 분류했다.
+bitter-reading-verb	쓰다	verb	exact	45	48	시식 결과를 본 연구팀은 이 약을 쓴 것으로 분류했다.
+short-usage-reading-verb	쓰다	verb	exact	45	48	투약 기록을 본 감사팀은 이 약을 쓴 걸로 판단했다.
+short-usage-reading-adjective	쓰다	adjective	exact	45	48	투약 기록을 본 감사팀은 이 약을 쓴 걸로 판단했다.
+short-bitter-reading-adjective	쓰다	adjective	exact	45	48	시식 결과를 본 연구팀은 이 약을 쓴 걸로 분류했다.
+short-bitter-reading-verb	쓰다	verb	exact	45	48	시식 결과를 본 연구팀은 이 약을 쓴 걸로 분류했다.
+colloquial-usage-reading-verb	쓰다	verb	exact	45	48	투약 기록을 본 감사팀은 이 약을 쓴 거로도 판단했다.
+colloquial-usage-reading-adjective	쓰다	adjective	exact	45	48	투약 기록을 본 감사팀은 이 약을 쓴 거로도 판단했다.
+colloquial-bitter-reading-adjective	쓰다	adjective	exact	45	48	시식 결과를 본 연구팀은 이 약을 쓴 거로도 분류했다.
+colloquial-bitter-reading-verb	쓰다	verb	exact	45	48	시식 결과를 본 연구팀은 이 약을 쓴 거로도 분류했다.
+object-adnominal-verb	쓰다	verb	exact	16	19	선글라스를 쓴 아이가 뛰어왔다.
+object-adnominal-no-adjective	쓰다	adjective	no-match	16	19	선글라스를 쓴 아이가 뛰어왔다.
+outer-adjective-verb	쓰다	verb	exact	16	19	선글라스를 쓴 것으로 충분하다.
+outer-adjective-no-adjective	쓰다	adjective	no-match	16	19	선글라스를 쓴 것으로 충분하다.
+outer-hada-past-verb	쓰다	verb	exact	16	19	선글라스를 쓴 걸로 충분했다.
+outer-hada-past-no-adjective	쓰다	adjective	no-match	16	19	선글라스를 쓴 걸로 충분했다.
+outer-intransitive-verb	쓰다	verb	exact	16	19	선글라스를 쓴 것으로 끝났다.
+outer-intransitive-no-adjective	쓰다	adjective	no-match	16	19	선글라스를 쓴 것으로 끝났다.
+outer-intransitive-formal-verb	쓰다	verb	exact	16	19	선글라스를 쓴 걸로 결판났습니다.
+outer-intransitive-formal-no-adjective	쓰다	adjective	no-match	16	19	선글라스를 쓴 걸로 결판났습니다.

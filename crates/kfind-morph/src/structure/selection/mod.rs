@@ -3,9 +3,9 @@ use crate::structure::lexical::{
     adnominal_suffix_is_supported, complete_ha_predicate_path, complete_nominal_host,
     complete_nominal_particle_host, complete_predicate_adnominal_path,
     complete_predicate_connective_ji_path, complete_predicate_ending_path, copular_frame,
-    exact_analysis_ends_with_pos, exact_analysis_starts_with_pos, has_auxiliary_adnominal_split,
-    has_complete_object_phrase, has_copular_adnominal_split, has_exact_fine_pos,
-    has_exact_sequence, has_unambiguous_proper_name, has_verb_nominalization,
+    exact_analysis_ends_with_pos, exact_analysis_starts_with_pos, has_adnominal_result_complement,
+    has_auxiliary_adnominal_split, has_complete_object_phrase, has_copular_adnominal_split,
+    has_exact_fine_pos, has_exact_sequence, has_unambiguous_proper_name, has_verb_nominalization,
     nominal_particle_hosts,
 };
 use crate::structure::selection::components::{
@@ -427,6 +427,9 @@ pub(in crate::structure) fn select_structure(
     if evidence.adnominal_ends.contains(&context.current.len())
         && evidence.has_whole(DataFinePos::Vv)
         && evidence.has_whole(DataFinePos::Va)
+        && !context
+            .next
+            .is_some_and(|next| has_adnominal_result_complement(resource, next))
         && context
             .previous
             .is_some_and(|previous| has_complete_object_phrase(resource, previous))
