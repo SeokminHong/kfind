@@ -497,3 +497,20 @@ regression.attested-nominal-suffix.stdict-25	남	noun	smart-exact	36	42	저녁 �
 regression.attested-nominal-suffix.contrast-1	명	noun	no-match	17	20	화가는 작품 명도를 조금 높였다.
 regression.attested-nominal-suffix.contrast-2	부	noun	no-match	6	9	오늘부로 계약이 끝난다.
 regression.attested-nominal-suffix.contrast-3	왕	noun	no-match	13	16	공부에는 왕도가 없다.
+regression.nominal-tail-copula.manager-adnominal	자	noun	smart-exact	27	30	그는 이 사업의 책임자인 김 과장을 만났다.
+regression.nominal-tail-copula.manager-past	자	noun	smart-exact	20	23	그는 현장 책임자였다.
+regression.nominal-tail-copula.manager-coordination	자	noun	smart-exact	36	39	사무실에 남은 사람은 책임자이고 나는 동료다.
+regression.nominal-tail-copula.song-copula	곡	noun	smart-exact	17	20	이 곡은 합창곡이다.
+regression.nominal-tail-copula.fishing-copula	터	noun	smart-exact	16	19	이곳은 낚시터였다.
+regression.nominal-tail-copula.title-copula	명	noun	smart-exact	33	36	안내판에 적힌 것은 작품명이다.
+regression.nominal-tail-copula.king-copula	왕	noun	smart-exact	43	46	이번 대회 우승자는 어린이 저축왕이다.
+regression.nominal-tail-copula.chair	자	noun	no-match	27	30	옆에 놓인 물건은 의자이다.
+regression.nominal-tail-copula.mountain-path	길	noun	no-match	34	37	그가 매일 오르는 길은 산길이다.
+regression.nominal-tail-copula.extension	실	noun	no-match	19	22	발표자는 기획실장이다.
+regression.nominal-tail-copula.gsd.test-s120.residence	지	noun	smart-exact	90	93	쉐자 구는 평포족 시라야족 소롱사의 지사인 학갑사(學甲社)의 거주지였다.
+regression.nominal-tail-copula.gsd.test-s853.soup	국	noun	smart-exact	53	56	설렁탕을 정말 먹고 싶었는데 국물도 진국이고 아이들이 정말 좋아하는 것 같아요.
+regression.nominal-tail-copula.pud.n01091017.manager	자	noun	smart-exact	20	23	자연 정책 책임자인 제프 노트는 어떤 법이 도입되든 놀랍다고 말했다.
+regression.nominal-tail-copula.pud.n01107008.manager	자	noun	smart-exact	72	75	그 조사는 6월에 시작됐고, 자동차 회사의 브랜드 책임자인 헤르베리트 디스와 빈터코른에 집중됐다.
+regression.nominal-tail-copula.gsd.test-s179.count	수	noun	smart-exact	92	95	몽정을 할 경우 심리적인 죄책감이나 부끄러움을 느끼는 사람이 상당수이며 이것은 올바른 성 의식이 확립되지 않았기 때문이라 할 수 있다.
+regression.nominal-tail-copula.literal-soup	국	noun	smart-exact	13	16	국물은 진국이고 건더기도 넉넉했다.
+regression.nominal-tail-copula.figurative-person	국	noun	smart-exact	17	20	그 친구는 진국이고 어려울 때마다 먼저 나서서 도와줬다.

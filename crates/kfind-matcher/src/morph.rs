@@ -952,7 +952,16 @@ impl MorphMatcher {
                                             .is_some_and(|host| {
                                                 resolver.has_numeric_unit_surface(&host)
                                             })
-                                    })))
+                                    }))
+                                || self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                                    has_nominal_component_before_copula(
+                                        haystack,
+                                        &whole,
+                                        &core,
+                                        branch.structural_patterns(),
+                                        resolver,
+                                    )
+                                }))
                                 && context::normalized_token(haystack, core.end..whole.end)
                                     .is_some_and(|ending| {
                                         verify_copula_surface_after_nominal(preceding, &ending)
@@ -1223,6 +1232,27 @@ impl MorphMatcher {
         }
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
         let core = &candidate.verified.core;
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        ) && core.start > whole.start
+            && *core == candidate.consumed
+            && core.end < whole.end
+            && context::normalized_token(haystack, core.end..whole.end).is_some_and(|tail| {
+                tail.chars().next().is_some_and(|initial| {
+                    matches!(
+                        kfind_morph::drop_final(initial).unwrap_or(initial),
+                        '이' | '여' | '예'
+                    )
+                }) && has_nominal_component_before_copula(
+                    haystack, &whole, core, patterns, resolver,
+                ) && context::normalized_token(haystack, core.clone())
+                    .and_then(|surface| surface.chars().next_back())
+                    .is_some_and(|preceding| verify_copula_surface_after_nominal(preceding, &tail))
+            })
+        {
+            return true;
+        }
         if matches!(
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }
@@ -3212,6 +3242,25 @@ fn has_competing_hao_connective(
         source_positions | kfind_morph::PredicatePosSet::one(pos),
         DEFAULT_LATTICE_NODE_LIMIT,
     )
+}
+
+fn has_nominal_component_before_copula(
+    haystack: &[u8],
+    whole: &Range<usize>,
+    core: &Range<usize>,
+    patterns: &[kfind_morph::QueryMorphPattern],
+    resolver: &ConstraintResolver,
+) -> bool {
+    core.start > whole.start
+        && patterns.iter().any(|pattern| {
+            pattern.fine_pos == DataFinePos::Nng
+                && pattern.component_capability.allows_runtime()
+                && context::normalized_token(haystack, whole.start..core.end).is_some_and(|host| {
+                    let suffix = &pattern.lexical_form;
+                    ConstraintResolver::has_attested_nominal_suffix_usage(&host, suffix)
+                        || resolver.has_unambiguous_final_nominal_component(&host, suffix)
+                })
+        })
 }
 
 fn has_conflicting_whole_predicate(
