@@ -70,6 +70,8 @@ const COPULA_REPORTING_AND_RO_ENDINGS: &[Suffix] = &[
     suffix("로세", &["ending.copula-ro-final"]),
 ];
 
+const GO_YO: Suffix = suffix("고요", &["ending.connective-go"]);
+
 const COPULA_COMMON_ENDINGS: &[Suffix] = &[
     suffix("랴", &["ending.rya"]),
     suffix("렷다", &["ending.ryeotda"]),
@@ -950,7 +952,7 @@ pub fn verify_predicate_continuation_with_prefinal_context(
             _ => auxiliary::verify_resultative(anchor.len(), following),
         }
     {
-        return Some(auxiliary);
+        return Some(with_connective_politeness(auxiliary, following));
     }
     let ordinary = verify_simple_continuation(state, pos, anchor, following);
     if let Some(stacked) = verify_prefinal_chain(state, pos, anchor.len(), following)
@@ -959,9 +961,30 @@ pub fn verify_predicate_continuation_with_prefinal_context(
             .is_none_or(|matched| stacked.consumed_bytes > matched.consumed_bytes)
         && allows_prefinal_chain()
     {
-        return Some(stacked);
+        return Some(with_connective_politeness(stacked, following));
     }
-    ordinary
+    ordinary.map(|matched| with_connective_politeness(matched, following))
+}
+
+fn with_connective_politeness(
+    mut matched: PredicateContinuationMatch,
+    following: &str,
+) -> PredicateContinuationMatch {
+    if following
+        .get(matched.consumed_bytes..)
+        .is_some_and(|tail| tail.starts_with('요'))
+        && matched.rule_path.last().is_some_and(|rule| {
+            matches!(
+                rule.as_str(),
+                "ending.connective-go" | "ending.quotative-go"
+            )
+        })
+    {
+        let polite_len = '요'.len_utf8();
+        matched.consumed_bytes += polite_len;
+        matched.token_end += polite_len;
+    }
+    matched
 }
 
 fn verify_prefinal_chain(
@@ -1049,6 +1072,7 @@ fn verify_simple_continuation(
             return Some(matched(anchor.len(), declarative_suffix(following)));
         }
         ContinuationState::Eu => EU_SUFFIXES,
+        ContinuationState::StemEnding if following.starts_with("고요") => &[GO_YO],
         ContinuationState::StemEnding => GEODEUN_ENDINGS,
         ContinuationState::NieunEnding => BACKGROUND,
         ContinuationState::CompletedNieunEnding => COMPLETED_NIEUN,
