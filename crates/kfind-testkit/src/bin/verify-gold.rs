@@ -28,6 +28,8 @@ const DEPENDENT_SUBJECT_CASES: &str =
     include_str!("../../../../data/fixtures/dependent_subject_cases.tsv");
 const ELAPSED_MEASURE_CASES: &str =
     include_str!("../../../../data/fixtures/elapsed_measure_cases.tsv");
+const QUERY_MATRIX_POS_REVIEW_CASES: &str =
+    include_str!("../../../../data/fixtures/query_matrix_pos_review_cases.tsv");
 const BIEUP_ADVERBIAL_CASES: &str =
     include_str!("../../../../data/fixtures/bieup_adverbial_cases.tsv");
 const ENRICHED_PREDICATES: &str = include_str!("../../../../data/enriched/predicates.tsv");
@@ -90,6 +92,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         DEPENDENT_SUBJECT_CASES,
     )?;
     verify_span_cases(&enriched_harness, "elapsed measure", ELAPSED_MEASURE_CASES)?;
+    verify_span_cases(
+        &enriched_harness,
+        "query matrix POS review",
+        QUERY_MATRIX_POS_REVIEW_CASES,
+    )?;
     verify_span_cases(&enriched_harness, "bieup adverbials", BIEUP_ADVERBIAL_CASES)?;
     verify_span_cases(
         &enriched_harness,

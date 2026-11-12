@@ -67253,6 +67253,6 @@
     "platform": "Linux-6.12.76-linuxkit-aarch64-with-glibc2.36",
     "python": "3.12.13"
   },
-  "fixture_sha256": "3a889a0928249e7b4d4adf55ecbd1b99ed0af8288d18a67ef497eecd53458d62",
+  "fixture_sha256": "8ec922e3bce56f43bdd070e729af55e4163bbab6e091c69fb551bb906cccf435",
   "schema_version": 2
 }

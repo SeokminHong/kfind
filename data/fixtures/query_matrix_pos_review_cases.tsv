@@ -1,0 +1,11 @@
+id	query	pos	expected	byte_start	byte_end	text
+inal-as-noun	이날	noun	exact	13	22	그보다는 이날이 북반구에서 낮 시간이 제일 길듯이 남반구에서 밤이 제일 길어 그만큼 생활하기 어려운 날이라고 할 수 있다.
+inal-no-pronoun	이	pronoun	no-match	13	22	그보다는 이날이 북반구에서 낮 시간이 제일 길듯이 남반구에서 밤이 제일 길어 그만큼 생활하기 어려운 날이라고 할 수 있다.
+i-as-pronoun	이	pronoun	exact	18	24	여러 의견 중 이를 최종안으로 골랐다.
+geuttae-as-noun	그때	noun	exact	0	12	그때부터 남아 있는 사람들이 취향에 따라 경음악 테이프에 맞추어서 노래를 불렀다.
+geuttae-no-pronoun	그	pronoun	no-match	0	12	그때부터 남아 있는 사람들이 취향에 따라 경음악 테이프에 맞추어서 노래를 불렀다.
+geu-as-determiner	그	determiner	smart-exact	70	73	따라서 동북아 경제권의 형성은 아직 논의 단계이며 그 실현에는 상당한 기간이 소요될 것이다.
+geu-determiner-no-pronoun	그	pronoun	no-match	70	73	따라서 동북아 경제권의 형성은 아직 논의 단계이며 그 실현에는 상당한 기간이 소요될 것이다.
+geu-as-pronoun	그	pronoun	exact	0	6	그가 먼저 노래를 불렀다.
+geugeot-as-pronoun	그것	pronoun	match	0	6	그것이야말로 헤겔이 확실히 확정한 선험적 철학의 의미인 것이다.
+geugeot-no-internal-pronoun	그	pronoun	no-match	0	6	그것이야말로 헤겔이 확실히 확정한 선험적 철학의 의미인 것이다.
