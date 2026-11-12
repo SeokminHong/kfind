@@ -1913,6 +1913,22 @@ fn has_conflicting_whole_predicate(
     if extends_non_internal_core && resolver.has_attached_auxiliary_whole_path(&normalized_token) {
         return false;
     }
+    if extends_non_internal_core
+        && candidate.consumed == whole
+        && candidate
+            .suffix_rules
+            .iter()
+            .any(|rule| rule.as_str() == "ending.auxiliary-jida")
+        && branch
+            .origins
+            .iter()
+            .flat_map(|origin| &origin.rule_path)
+            .any(|rule| rule.as_str() == "contraction.u-eo")
+        && resolver
+            .has_exact_predicate_connective_path(&core.nfc().collect::<String>(), source_positions)
+    {
+        return false;
+    }
     let Some(prefix) = haystack
         .get(whole.start..candidate.verified.core.start)
         .and_then(|bytes| std::str::from_utf8(bytes).ok())

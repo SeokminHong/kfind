@@ -239,6 +239,43 @@ fn generated_auxiliary_does_not_reclassify_a_different_whole_predicate() {
 }
 
 #[test]
+fn source_connective_supports_a_contracted_resultative_with_a_whole_analysis() {
+    for (lemma, anchor, surface) in [
+        ("이루다", "이뤄", "이뤄지고"),
+        ("다루다", "다뤄", "다뤄지고"),
+    ] {
+        let entries = [
+            component_entry(surface, "VV+EC", 0),
+            component_entry(anchor, "VV+EC", 0),
+        ];
+        for (source_entries, expected) in [
+            (&entries[..1], None),
+            (&entries[..], Some(0..surface.len())),
+        ] {
+            let bytes = encode_component_resource([9; 32], source_entries).unwrap();
+            let resource = Arc::new(decode_component_resource("fixture", bytes, &[9; 32]).unwrap());
+            let matcher = structural_predicate_matcher_with_rules(
+                anchor,
+                anchor.len(),
+                ContinuationState::AOrEo,
+                rules(&["ending.auxiliary-jida", "ending.connective-go"]),
+                vec![origin(0, &["contraction.u-eo", "ending.aoeo"])],
+                predicate_analysis(lemma, LexicalAlternation::Regular),
+                resource,
+            );
+
+            assert_eq!(
+                matcher
+                    .find_at_with_meta(surface.as_bytes(), 0)
+                    .map(|matched| matched.span),
+                expected,
+                "{lemma} {surface}",
+            );
+        }
+    }
+}
+
+#[test]
 fn source_ending_surface_requires_a_licensed_eu_allomorph() {
     for surface in ["으니까", "으나", "으며", "으되", "음을"] {
         assert!(
