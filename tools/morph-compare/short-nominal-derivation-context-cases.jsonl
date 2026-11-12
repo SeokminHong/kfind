@@ -1,0 +1,6 @@
+{"id":"amount-adnominal","query":"양","pos":"noun","text":"나는 이 변화가 양적인 줄 알았지만 품질도 달라졌다.","expected":true,"gold_byte_start":21,"gold_byte_end":30,"paired_case_id":"amount-register"}
+{"id":"amount-register","query":"양","pos":"noun","text":"박물관은 그 문서가 양적인 줄 알고 들여왔지만 노비 명부였다.","expected":false,"gold_byte_start":27,"gold_byte_end":36,"paired_case_id":"amount-adnominal"}
+{"id":"sexual-adnominal","query":"성","pos":"noun","text":"나는 이게 성적인 줄 알았는데, 배우들은 상처를 치료하는 장면을 찍고 있었다.","expected":true,"gold_byte_start":14,"gold_byte_end":23,"paired_case_id":"score-adnominal"}
+{"id":"score-adnominal","query":"성","pos":"noun","text":"나는 이게 성적인 줄 알았는데, 채점표가 아니라 출석부였다.","expected":false,"gold_byte_start":14,"gold_byte_end":23,"paired_case_id":"sexual-adnominal"}
+{"id":"emotion-adnominal","query":"정","pos":"noun","text":"그는 이성보다 정적인 태도를 보였다.","expected":true,"gold_byte_start":20,"gold_byte_end":29,"paired_case_id":"static-adnominal"}
+{"id":"static-adnominal","query":"정","pos":"noun","text":"지상전은 제1차 세계 대전 당시 정적인 전선 형성에서 기동성과 복합전이 증가한 방식으로 바뀌었다.","expected":false,"gold_byte_start":42,"gold_byte_end":51,"paired_case_id":"emotion-adnominal"}

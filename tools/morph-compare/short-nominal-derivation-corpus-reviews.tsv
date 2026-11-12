@@ -1,0 +1,5 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	pud:w01096074:noun:정	정	noun	false	383692e42cc0c18b4191950d7bac55c0786a95605e24ea754008a281c3152600	contract-positive	same-pos-homograph	전선의 정적인은 靜的이며 情的의 관형형과 형태가 같다. 대조 예문은 context fixture에 있다.
+explicit-pos	corpus-negatives	pud:n02058056:noun:지	지	noun	false	c7085d85249244a3f7b2a7a57e2aea58e9b593a2fa8e32149e7307bcd1141d56	contract-positive	aligned-source-component	지적 동류의 지적은 知的으로 표준국어대사전에서 知 명사에 결합한 파생형이다.
+explicit-pos	corpus-negatives	pud:w02019048:noun:공	공	noun	false	4a286ad8db74cbc33a34f490115888b593d80d3cd5bb25e74aba0478bbc8c8e7	contract-positive	aligned-source-component	공적으로도의 공적은 公的으로 한국어기초사전에 조사 으로가 붙은 용례가 있다.
+explicit-pos	corpus-negatives	pud:w03009029:noun:전	전	noun	false	e72358a6c0fef5adedf067920289e79aa63041f12704f81516dd70ea9a902fd8	contract-positive	aligned-source-component	전적으로의 전적은 全的으로 표준국어대사전에 조사 으로가 붙은 용례가 있다.

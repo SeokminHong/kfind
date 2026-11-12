@@ -34,6 +34,7 @@ class QueryMatrixContractReviewTests(unittest.TestCase):
             ("casual-prefinal", "casual-prefinal"),
             ("request-dalla", "request-dalla"),
             ("indirect-quote", "indirect-quote"),
+            ("short-nominal-derivation", "short-nominal-derivation"),
         ):
             with self.subTest(dataset=prefix):
                 self.assert_context_pairs(root, prefix, split)

@@ -1,0 +1,4 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	short-nominal-derivation	amount-register	양	noun	false	a4f4d2ccd2f852efba4eaa15c3996a461bcf85b52e4558ca5018cad87599ad43	contract-positive	structurally-indistinguishable-homograph	量的의 지정사 관형형과 良籍에 붙은 지정사 관형형이 같은 표면형을 이루며 명부라는 의미 문맥이 良籍을 지지한다.
+explicit-pos	short-nominal-derivation	score-adnominal	성	noun	false	bcafff602cef87d30bc5a64a18d67b6d9aac768ca032610488ffcc1c3318512f	contract-positive	structurally-indistinguishable-homograph	性的의 지정사 관형형과 成績에 붙은 지정사 관형형이 같은 표면형을 이루며 채점표와 출석부를 대조하는 문맥이 成績을 지지한다.
+explicit-pos	short-nominal-derivation	static-adnominal	정	noun	false	f8a82040dc494693cb27d2e1e69f135938cf09aaaba34b2b27a325c8710ffb86	contract-positive	same-pos-homograph	情的과 靜的이 같은 관형형을 이루며 전선의 기동성을 대조하는 의미 문맥이 靜的을 지지한다.

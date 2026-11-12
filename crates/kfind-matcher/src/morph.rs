@@ -1227,6 +1227,37 @@ impl MorphMatcher {
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }
         ) && *core == candidate.consumed
+            && core.start == whole.start
+            && core.end < whole.end
+            && (haystack[core.end..whole.end].starts_with("적".as_bytes())
+                || haystack[core.end..whole.end].starts_with("ᄌ".as_bytes()))
+            && patterns.iter().any(|pattern| {
+                pattern.fine_pos == DataFinePos::Nng
+                    && pattern.component_capability.allows_runtime()
+                    && pattern.lexical_form.chars().count() == 1
+            })
+            && context::normalized_token(haystack, core.clone()).is_some_and(|root| {
+                context::normalized_token(haystack, core.end..whole.end).is_some_and(|suffix| {
+                    suffix.strip_prefix('적').is_some_and(|trailing| {
+                        let particle = (!trailing.is_empty()
+                            && !verify_copula_surface_after_nominal('적', trailing))
+                        .then_some(trailing);
+                        resolver.has_attested_short_nominal_derivation(&root, "적", particle)
+                            && particle.is_none_or(|particle| {
+                                self.particle_verifier
+                                    .verify_exact("적", particle)
+                                    .is_some()
+                            })
+                    })
+                })
+            })
+        {
+            return true;
+        }
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        ) && *core == candidate.consumed
             && whole.start < core.start
             && core.end < whole.end
             && haystack[whole.start..core.start]
