@@ -311,3 +311,18 @@ regression.numeric-copula.nominal-question	이다	adjective	smart-exact	14	23	�
 regression.numeric-copula.coda-nominal-no-omission	이다	adjective	no-match	0	9	학생냐?
 regression.numeric-copula.action-question	개다	verb	smart-exact	27	33	언니는 이불을 벌써 개냐?
 regression.numeric-copula.action-question-not-copula	이다	adjective	no-match	27	33	언니는 이불을 벌써 개냐?
+regression.adverb-context.kaist-all-adverb	모두	adverb	smart-exact	47	53	여기서 선택된 남자들은 백이면 백 모두 흑인들이다.
+regression.adverb-context.kaist-all-nominal	모두	noun	smart-exact	47	53	여기서 선택된 남자들은 백이면 백 모두 흑인들이다.
+regression.adverb-context.all-subject	모두	noun	smart-exact	0	9	모두가 자리에서 일어났다.
+regression.adverb-context.all-subject-not-adverb	모두	adverb	no-match	0	9	모두가 자리에서 일어났다.
+regression.adverb-context.all-object	모두	adverb	smart-exact	10	16	서류를 모두 확인했다.
+regression.adverb-topic.kaist-ttae-ron	때로	adverb	smart-exact	60	66	시에 관한 비평적 자기견해를 표출하는 것도 때론 필요하지 않을까 생각해 본다.
+regression.adverb-topic.uncontracted	때로	adverb	smart-exact	0	9	때로는 침묵이 필요하다.
+regression.adverb-topic.nominal	때	noun	smart-exact	13	16	어려웠던 때론 돌아가고 싶지 않다.
+regression.adverb-topic.nominal-not-adverb	때로	adverb	no-match	13	19	어려웠던 때론 돌아가고 싶지 않다.
+regression.adverb-topic.nominal-full-not-adverb	때로	adverb	no-match	13	22	어려웠던 때로는 돌아가고 싶지 않다.
+regression.adverb-topic.nominal-bare-not-adverb	때로	adverb	no-match	13	19	어려웠던 때로 돌아가고 싶지 않다.
+regression.adverb-topic.after-object	때로	adverb	smart-exact	7	16	일을 때로는 혼자 한다.
+regression.adverb-topic.ijen	이제	adverb	smart-exact	0	6	이젠 걱정하지 않아도 된다.
+regression.adverb-topic.gsd-dasin	다시	adverb	smart-exact	151	157	예전엔 맛있어서 갈비 먹으러 자주 갔는데 고기 가격도 오르고 양념 맛도 변하고 고기도 부드럽지 않고 퍽퍽해서 다신 안 갈래요...!
+regression.adverb-topic.gsd-jedaero	제대로	adverb	smart-exact	107	116	특히 사람들이 많이 붐비는 시간에 가신다면 음식을 먹으며 지불하는 돈에 대한 제대로 된 서비스를 받지 못할 것입니다.

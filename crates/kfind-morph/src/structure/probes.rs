@@ -200,6 +200,16 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_adverb_topic_contraction(&self, adverb: &str, contracted: &str) -> bool {
+        has_exact_sequence(&self.resource, adverb, &[StructuralPos::MAG])
+            && has_exact_sequence(
+                &self.resource,
+                contracted,
+                &[StructuralPos::MAG, StructuralPos::JX],
+            )
+    }
+
+    #[must_use]
     pub fn has_boi_predicate(&self, text: &str) -> bool {
         ["보이", "보여", "보였", "보인", "보일", "보입", "보임"]
             .iter()
