@@ -88,6 +88,16 @@ initial = "a-or-eo"
 forms = ["아서", "어서"]
 required = []
 forbidden = []
+next = ["ending.aoeo-seo-copula"]
+terminal = true
+
+[[ending]]
+id = "ending.aoeo-seo-copula"
+category = "connective"
+initial = "a-or-eo"
+forms = ["아서이다", "어서이다", "여서이다"]
+required = []
+forbidden = []
 next = []
 terminal = true
 

@@ -1041,6 +1041,27 @@ pub fn verify_predicate_continuation_with_prefinal_context(
     allows_prefinal_chain: impl FnOnce() -> bool,
 ) -> Option<PredicateContinuationMatch> {
     if state == ContinuationState::AOrEo
+        && pos != PredicatePos::Copula
+        && let Some(copula_tail) = following
+            .strip_prefix('서')
+            .filter(|tail| tail.starts_with(['이', '인', '일', '입', '임', '였', '여']))
+        && let copula = copula_tail
+            .split(|c: char| !c.is_alphanumeric() && c != '_')
+            .next()
+            .unwrap_or_default()
+        && super::verify_complete_copula_surface(copula)
+    {
+        let consumed_bytes = '서'.len_utf8() + copula.len();
+        return Some(PredicateContinuationMatch {
+            token_end: anchor.len() + consumed_bytes,
+            consumed_bytes,
+            rule_path: vec![
+                RuleId::from("ending.aoeo-seo"),
+                RuleId::from("ending.aoeo-seo-copula"),
+            ],
+        });
+    }
+    if state == ContinuationState::AOrEo
         && let Some(auxiliary) = match following.chars().next() {
             Some('보' | '봐' | '봤' | '본' | '볼' | '봅' | '봄') if pos.is_action() => {
                 trial::verify(anchor.len(), following)
