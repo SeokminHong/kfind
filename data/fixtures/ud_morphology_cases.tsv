@@ -657,3 +657,10 @@ regression.pronominal-genitive.locative	나	pronoun	no-match	7	10	한국 내 개
 regression.pronominal-genitive.context-positive	너	pronoun	smart-exact	48	51	각자 자기 사과를 가져가기로 했어. 네 사과가 남았어.
 corpus.ud-pud.test.n01144023.pronoun.genitive	나	pronoun	smart-exact	21	24	그 녀석이 계속 내 헛간에 나타나길래 자기가 팔리는 것을 원치 않는 게 확실하다고 농담조로 말했어요.
 corpus.ud-pud.test.w01043065.pronoun.locative	나	pronoun	no-match	91	94	반면, 나일강을 추가적으로 통제한 결과 게지라섬과 도시 수변 지역 내 발전이 크게 일어났다.
+corpus.ud-gsd.test.test-s308.pronoun.어디	어디	pronoun	smart-exact	10	16	커피숍 어디 있어?
+corpus.ud-gsd.test.test-s54.determiner.세	세	determiner	no-match	46	58	허블이 계산한 안드로메다에 있는 세페이드 변광성까지의 거리는 대논쟁을 확실히 끝맺었다.
+corpus.ud-gsd.test.test-s424.determiner.어	어	determiner	no-match	0	12	어그부츠 파는 곳 알려 주세요.
+corpus.ud-gsd.test.test-s583.determiner.이	이	determiner	no-match	12	18	13-23장은 이방 민족들에 대한 심판 선언을 담고 있는데, 부분적으로만 이사야와 관련시킬 수 있다.
+corpus.ud-gsd.test.test-s641.determiner.모	모	determiner	no-match	50	59	최근 구글의 모토로라 인수를 계기로 모바일 OS의 중요성이 급격히 대두되고 있어 관심이 모아지고 있다.
+corpus.ud-gsd.test.test-s726.determiner.맨	맨	determiner	no-match	7	16	그는 맨유에 입단한 이후 놀라울 정도로 발전하고 있다.
+corpus.ud-gsd.test.test-s728.determiner.이	이	determiner	no-match	10	22	범인은 이정범의 아들인 안수현이다.
