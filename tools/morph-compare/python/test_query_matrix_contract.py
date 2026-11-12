@@ -46,9 +46,7 @@ class QueryMatrixContractReviewTests(unittest.TestCase):
         reviews = [
             review
             for review in load_contract_reviews(root / f"{prefix}-contract-reviews.tsv")
-            if review.contract_reason in {
-                "same-pos-homograph", "structurally-indistinguishable-homograph"
-            }
+            if review.case_id in by_id
         ]
         self.assertEqual(
             {review.case_id for review in reviews},
@@ -57,6 +55,12 @@ class QueryMatrixContractReviewTests(unittest.TestCase):
         apply_contract_reviews(
             cases, reviews, query_mode="explicit-pos", split=split
         )
+        expected_by_review = {
+            review.case_id: review.contract_reason in {
+                "same-pos-homograph", "structurally-indistinguishable-homograph"
+            }
+            for review in reviews
+        }
 
         for case in cases:
             with self.subTest(case=case["id"]):
@@ -70,7 +74,7 @@ class QueryMatrixContractReviewTests(unittest.TestCase):
                 self.assertTrue(surface)
                 self.assertEqual(surface.decode(), other_surface.decode())
                 if not case["expected"]:
-                    self.assertIs(case["contract_expected"], True)
+                    self.assertIs(case["contract_expected"], expected_by_review[case["id"]])
 
     def test_applies_all_contract_review_statuses(self) -> None:
         cases = [
