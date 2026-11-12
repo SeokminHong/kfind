@@ -5,8 +5,8 @@ use std::fmt;
 use std::sync::OnceLock;
 
 use crate::hangul::{
-    JONG_NONE, JONG_RIEUL, JONG_SSANGSIOT, JUNG_YEO, add_final, decompose_syllable,
-    drop_last_final, has_rieul_final, replace_last_vowel,
+    JONG_IEUNG, JONG_MIEUM, JONG_NIEUN, JONG_NONE, JONG_RIEUL, JONG_SSANGSIOT, JUNG_U, JUNG_WEO,
+    JUNG_YEO, add_final, decompose_syllable, drop_last_final, has_rieul_final, replace_last_vowel,
 };
 use crate::{
     ContinuationState, LexicalAlternation, PredicateDerivation, PredicateEntry, PredicateFlags,
@@ -117,53 +117,13 @@ pub fn generate_predicate_branches(
     }
 
     let mut branches = Vec::new();
-    let final_da_continuation = if matches!(
-        entry.pos,
-        PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
-    ) && !entry
-        .flags
-        .contains(PredicateFlags::NO_DECLARATIVE_CONTINUATION)
-    {
-        ContinuationState::Declarative
-    } else {
-        ContinuationState::Terminal
-    };
-    push_branch(
-        &mut branches,
-        entry,
-        entry.lemma.to_string(),
-        stem.len(),
-        final_da_continuation,
-        vec![rule("ending.final-da")],
-    );
-
-    if !matches!(
-        entry.alternation,
-        LexicalAlternation::Suppletive | LexicalAlternation::SurfaceOnly
-    ) {
-        push_branch(
-            &mut branches,
-            entry,
-            format!("{stem}기"),
-            stem.len(),
-            ContinuationState::Terminal,
-            vec![rule("ending.nominalizer-gi")],
-        );
-        push_derived(
-            &mut branches,
-            entry,
-            nominalizer_surface(entry, stem)?,
-            ContinuationState::Terminal,
-        );
-    }
-
-    if entry.alternation == LexicalAlternation::Copula {
-        compile_copula(entry, stem, &mut branches)?;
-    } else if !matches!(
-        entry.alternation,
-        LexicalAlternation::Suppletive | LexicalAlternation::SurfaceOnly
-    ) {
-        compile_productive(entry, stem, &mut branches)?;
+    compile_stem(entry, stem, &mut branches)?;
+    if let Some(contracted) = contract_eoji_stem(entry, stem) {
+        let first_alias = branches.len();
+        compile_stem(entry, &contracted, &mut branches)?;
+        for branch in &mut branches[first_alias..] {
+            branch.rule_path.insert(0, rule("contraction.u-eo"));
+        }
     }
 
     for override_form in &entry.overrides {
@@ -186,8 +146,78 @@ pub fn generate_predicate_branches(
             vec![override_form.rule_id.clone()],
         );
     }
-
     Ok(branches)
+}
+
+fn contract_eoji_stem(entry: &PredicateEntry, stem: &str) -> Option<String> {
+    if !entry.pos.is_action() || entry.alternation != LexicalAlternation::Regular {
+        return None;
+    }
+    let base = stem.strip_suffix("어지")?;
+    let last = decompose_syllable(base.chars().next_back()?)?;
+    if last.jungseong != JUNG_U || last.jongseong != JONG_NONE {
+        return None;
+    }
+    let mut contracted = replace_last_vowel(base, JUNG_WEO)?;
+    contracted.push('지');
+    Some(contracted)
+}
+
+fn compile_stem(
+    entry: &PredicateEntry,
+    stem: &str,
+    branches: &mut Vec<SurfaceBranchSpec>,
+) -> Result<(), GenerateError> {
+    let final_da_continuation = if matches!(
+        entry.pos,
+        PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
+    ) && !entry
+        .flags
+        .contains(PredicateFlags::NO_DECLARATIVE_CONTINUATION)
+    {
+        ContinuationState::Declarative
+    } else {
+        ContinuationState::Terminal
+    };
+    push_branch(
+        branches,
+        entry,
+        format!("{stem}다"),
+        stem.len(),
+        final_da_continuation,
+        vec![rule("ending.final-da")],
+    );
+
+    if !matches!(
+        entry.alternation,
+        LexicalAlternation::Suppletive | LexicalAlternation::SurfaceOnly
+    ) {
+        push_branch(
+            branches,
+            entry,
+            format!("{stem}기"),
+            stem.len(),
+            ContinuationState::Terminal,
+            vec![rule("ending.nominalizer-gi")],
+        );
+        push_derived(
+            branches,
+            entry,
+            nominalizer_surface(entry, stem)?,
+            ContinuationState::Terminal,
+        );
+    }
+
+    if entry.alternation == LexicalAlternation::Copula {
+        compile_copula(entry, stem, branches)?;
+    } else if !matches!(
+        entry.alternation,
+        LexicalAlternation::Suppletive | LexicalAlternation::SurfaceOnly
+    ) {
+        compile_productive(entry, stem, branches)?;
+    }
+
+    Ok(())
 }
 
 /// Returns whether the whole surface is a generated inflection of the copula `이다`.
@@ -255,6 +285,16 @@ pub fn generate_predicate_fallback_stems(
         .ok_or_else(|| GenerateError::InvalidLemma(entry.lemma.clone()))?;
     let mut stems = Vec::new();
     push_fallback_stem(&mut stems, entry, stem.to_owned(), stem.len(), Vec::new())?;
+    if let Some(contracted) = contract_eoji_stem(entry, stem) {
+        let core_len = contracted.len();
+        push_fallback_stem(
+            &mut stems,
+            entry,
+            contracted,
+            core_len,
+            vec![rule("contraction.u-eo")],
+        )?;
+    }
     if let Some(eu) = eu_anchor(entry, stem)? {
         push_fallback_stem(&mut stems, entry, eu.surface, eu.core_len, eu.rules)?;
     }
@@ -306,6 +346,30 @@ fn compile_productive(
     stem: &str,
     branches: &mut Vec<SurfaceBranchSpec>,
 ) -> Result<(), GenerateError> {
+    if entry.alternation == LexicalAlternation::Ha
+        && let Some(base) = stem.strip_suffix('하')
+        && base
+            .chars()
+            .next_back()
+            .and_then(decompose_syllable)
+            .is_some_and(|syllable| {
+                matches!(
+                    syllable.jongseong,
+                    JONG_NONE | JONG_RIEUL | JONG_NIEUN | JONG_MIEUM | JONG_IEUNG
+                )
+            })
+    {
+        let surface = format!("{base}치");
+        let core_len = surface.len();
+        push_branch(
+            branches,
+            entry,
+            surface,
+            core_len,
+            ContinuationState::Terminal,
+            vec![rule("contraction.ha-ji"), rule("ending.connective-ji")],
+        );
+    }
     for (suffix, ending_rule) in [
         ("고", "ending.connective-go"),
         ("지", "ending.connective-ji"),

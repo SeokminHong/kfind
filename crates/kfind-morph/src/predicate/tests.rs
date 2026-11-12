@@ -22,6 +22,29 @@ fn surfaces(entry: &PredicateEntry) -> BTreeSet<String> {
         .collect()
 }
 
+#[test]
+fn contracted_eoji_stems_keep_productive_endings() {
+    for (lemma, full, contracted) in [
+        ("이루어지다", "이루어지고", "이뤄지고"),
+        ("다루어지다", "다루어졌다", "다뤄졌다"),
+    ] {
+        let forms = surfaces(&entry(
+            lemma,
+            PredicatePos::Verb,
+            LexicalAlternation::Regular,
+        ));
+        assert!(forms.contains(full));
+        assert!(forms.contains(contracted));
+    }
+    let forms = surfaces(&entry(
+        "굳어지다",
+        PredicatePos::Verb,
+        LexicalAlternation::Regular,
+    ));
+    assert!(forms.contains("굳어지고"));
+    assert!(!forms.contains("궈지고"));
+}
+
 fn test_surfaces(branch: &SurfaceBranchSpec) -> Vec<String> {
     match branch.continuation {
         ContinuationState::Terminal | ContinuationState::AOrEo => {

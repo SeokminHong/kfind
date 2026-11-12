@@ -73,6 +73,14 @@ result = "놔"
 ending_ids = ["ending.aoeo", "ending.aoeo-seo", "ending.past"]
 
 [[contraction]]
+id = "contraction.ha-ji"
+kind = "stem-rewrite"
+left = "하"
+right = "지"
+result = "치"
+ending_ids = ["ending.connective-ji"]
+
+[[contraction]]
 id = "contraction.nominal-topic-neun"
 kind = "nominal-particle-compose"
 left = "거"

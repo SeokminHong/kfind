@@ -32,6 +32,7 @@ pub const JONG_MIEUM: u8 = 16;
 pub const JONG_BIEUP: u8 = 17;
 pub const JONG_SIOT: u8 = 19;
 pub const JONG_SSANGSIOT: u8 = 20;
+pub const JONG_IEUNG: u8 = 21;
 pub const JONG_HIEUH: u8 = 27;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
