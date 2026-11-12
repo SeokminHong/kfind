@@ -2,8 +2,8 @@ use crate::structure::ConstraintResolver;
 use crate::structure::evidence::TokenEvidence;
 use crate::structure::graph::EdgeGraph;
 use crate::structure::lexical::{
-    complete_dependent_noun_particle_suffix, complete_nominal_host, complete_suffix,
-    exact_analysis_starts_with_pos, has_exact_fine_pos, predicate_pos_matches,
+    complete_dependent_noun_particle_suffix, complete_nominal_host, complete_nominal_particle_host,
+    complete_suffix, exact_analysis_starts_with_pos, has_exact_fine_pos, predicate_pos_matches,
     structural_predicate_pos_matches,
 };
 use crate::structure::paths::predicate::{
@@ -608,6 +608,12 @@ impl ConstraintResolver {
     #[must_use]
     pub fn has_exact_nominal_surface(&self, text: &str) -> bool {
         has_exact_fine_pos(&self.resource, text, DataFinePos::is_nominal)
+    }
+
+    #[must_use]
+    pub fn has_copula_conditional_adverbial_host(&self, text: &str) -> bool {
+        has_exact_fine_pos(&self.resource, text, |pos| pos == DataFinePos::Mag)
+            || complete_nominal_particle_host(&self.resource, text).is_some()
     }
 
     #[must_use]

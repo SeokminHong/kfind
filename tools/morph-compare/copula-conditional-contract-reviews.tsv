@@ -1,0 +1,5 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	copula-conditional	sanchaeg-irado-context	이다	adjective	false	3950433ec55dbe121796f2cd87d4f83d4c55e72dbea42f7d5edcd5c5adbdfb20	contract-positive	structurally-indistinguishable-homograph	이 문장은 보조사 해석이며 같은 표면에 지정사 해석도 성립한다.
+explicit-pos	copula-conditional	yeonghwa-rado-context	이다	adjective	false	30325f3984b697066fb41233b586d49e9e28c9cf76988fbf192d6e6f7f908675	contract-positive	structurally-indistinguishable-homograph	이 문장은 보조사 해석이며 같은 표면에 지정사 해석도 성립한다.
+explicit-pos	copula-conditional	sae-ramyeon-context	이다	adjective	false	522c32839d8a605cd34fd259a2ea195b536a465bae8702c6bd5c86ee9ac29b1d	contract-positive	structurally-indistinguishable-homograph	이 문장은 명령 인용 해석이며 같은 표면에 지정사 해석도 성립한다.
+explicit-pos	copula-conditional	ga-ramyeon-context	이다	adjective	false	eeb55d1493ad65a5c6ddaf4d0069b7525c8f19460447dccaf0fd9b0f4b9af09f	contract-positive	structurally-indistinguishable-homograph	이 문장은 명령 인용 해석이며 같은 표면에 지정사 해석도 성립한다.

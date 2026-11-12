@@ -722,7 +722,7 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 이다	copula	둘도 없는 친구라네.	match	fused-copula-ending
 이다	copula	너희 어머니시라니!	match	fused-copula-ending
 이다	copula	지금 가라니?	no-match	fused-copula-ending
-이다	copula	산책이라도 하자.	no-match	fused-copula-ending
+이다	copula	산책이라도 하자.	match	fused-copula-ending
 이다	copula	뭐라고 해도 소용없다.	no-match	fused-copula-ending
 이다	copula	하노라.	no-match	fused-copula-ending
 이다	copula	범인이 누굽디까?	match	fused-copula-ending

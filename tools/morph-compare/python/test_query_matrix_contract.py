@@ -22,6 +22,7 @@ class QueryMatrixContractReviewTests(unittest.TestCase):
             ("resultative", "resultative"),
             ("query-matrix", "test"),
             ("trial", "trial"),
+            ("copula-conditional", "copula-conditional"),
         ):
             with self.subTest(dataset=prefix):
                 self.assert_context_pairs(root, prefix, split)

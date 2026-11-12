@@ -1326,6 +1326,7 @@ fn reference_simple_continuation(
             reference_suffix("나", &["ending.copula-ra-final"]),
             reference_suffix("네", &["ending.copula-ra-final"]),
             reference_suffix("느니", &["ending.copula-ra-connective"]),
+            reference_suffix("도", &["ending.copula-ra-connective"]),
             reference_suffix("니", &["ending.copula-ra-final"]),
             reference_suffix("니까", &["ending.copula-ra-final"]),
             reference_suffix("며", &["ending.copula-ra-connective"]),

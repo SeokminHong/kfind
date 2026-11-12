@@ -1931,6 +1931,7 @@ fn compiled_nominal_plan_covers_dictionary_consensus_particle_families() {
         "사용자나 관리자가 처리한다.",
         "사용자나마 남았다.",
         "사용자라도 처리한다.",
+        "관리자와 같은 권한을 가진 사용자이라도 본인 확인은 필요하다.",
         "사용자랑 관리자가 처리한다.",
     ] {
         assert!(
@@ -1941,7 +1942,6 @@ fn compiled_nominal_plan_covers_dictionary_consensus_particle_families() {
     for text in [
         "사용자이나",
         "사용자이나마",
-        "사용자이라도",
         "사용자이랑",
         "사용자은커녕",
         "사용자ㄴ커녕",
@@ -2510,7 +2510,7 @@ fn fused_copula_endings_restore_the_whole_token_in_search_order() {
 }
 
 #[test]
-fn copula_ra_endings_distinguish_nominal_hosts_from_commands_and_particles() {
+fn copula_ra_endings_keep_concessive_ambiguity_and_require_nominal_evidence() {
     let matcher = compile_embedded_with_resource(
         "adj:이다",
         CompileOptions::default(),
@@ -2522,6 +2522,7 @@ fn copula_ra_endings_distinguish_nominal_hosts_from_commands_and_particles() {
             component_entry("가", "VV"),
             component_entry("산책", "NNG"),
             component_entry("이라도", "JX"),
+            component_entry("라면", "NNG"),
             component_entry("뭐", "NP"),
             component_entry("뭐", "MAG"),
             component_entry("하노", "NNP"),
@@ -2529,14 +2530,14 @@ fn copula_ra_endings_distinguish_nominal_hosts_from_commands_and_particles() {
             component_entry("노라", "EF"),
         ]),
     );
-    let text = "동생이라네 친구라네 어머니시라니. 가라니? 산책이라도 하자. 뭐라고 해도. 하노라.";
+    let text = "동생이라네 친구라네 어머니시라니. 가라니? 산책이라도 하자. 뭐라고 해도. 하노라. 라면을 먹자.";
     assert_eq!(
         matcher
             .find_all_with_meta(text.as_bytes())
             .iter()
             .map(|matched| &text[matched.span.clone()])
             .collect::<Vec<_>>(),
-        ["이라네", "친구라네", "어머니시라니"],
+        ["이라네", "친구라네", "어머니시라니", "이라도"],
     );
 }
 
@@ -2676,7 +2677,7 @@ fn direct_particle_plans_validate_the_attached_host_in_smart_mode() {
         ("로", ["길로", "학교로"], ["길으로", "집로"]),
         ("나", ["집이나", "바다나"], ["집나", "바다이나"]),
         ("나마", ["집이나마", "바다나마"], ["집나마", "바다이나마"]),
-        ("라도", ["집이라도", "바다라도"], ["집라도", "바다이라도"]),
+        ("라도", ["집이라도", "바다라도"], ["집라도", "사용자이라도"]),
         ("랑", ["집이랑", "바다랑"], ["집랑", "바다이랑"]),
     ] {
         let matcher = compile(query, options.clone());

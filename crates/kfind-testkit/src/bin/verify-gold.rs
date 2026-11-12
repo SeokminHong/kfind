@@ -65,6 +65,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         harness.with_enriched_predicates(ENRICHED_PREDICATES_SOURCE, ENRICHED_PREDICATES)?;
     verify_ud_morphology(&ud_harness)?;
     verify_context_homographs(&ud_harness)?;
+    verify_copula_conditionals(&ud_harness)?;
 
     println!(
         "morphology gold with auto-POS coverage: {} cases and walk/hang stress passed",
@@ -165,6 +166,128 @@ fn verify_context_homographs(harness: &GoldHarness) -> Result<(), Box<dyn Error>
                     )
                     .into());
                 }
+            }
+        }
+    }
+    Ok(())
+}
+
+fn verify_copula_conditionals(harness: &GoldHarness) -> Result<(), Box<dyn Error>> {
+    // Omitted copulas require the structural analysis used by Smart.
+    for (query, text, surface, omitted) in [
+        (
+            "이다",
+            "가까운 가족이라도 지켜야 할 예절이 있다.",
+            "이라도",
+            false,
+        ),
+        (
+            "이다",
+            "설사 그 소문이 진짜라도 우리와는 상관없는 일이야.",
+            "진짜라도",
+            true,
+        ),
+        (
+            "이다",
+            "네 말이 전부 거짓말이라도 나는 너를 아직 믿고 싶어.",
+            "이라도",
+            false,
+        ),
+        (
+            "이다",
+            "내가 아무리 수험생이라도 하루 종일 공부만 할 수는 없다.",
+            "이라도",
+            false,
+        ),
+        (
+            "이다",
+            "내가 그 사람이라도 화가 났을 거야.",
+            "이라도",
+            false,
+        ),
+        (
+            "이다",
+            "너와 함께라면 난 어디든지 갈 수 있어.",
+            "함께라면",
+            true,
+        ),
+        ("이다", "내가 너라면 그런 일은 하지 않겠다.", "너라면", true),
+        (
+            "이다",
+            "저에게라면 얼마든지 말씀하셔도 됩니다.",
+            "저에게라면",
+            true,
+        ),
+        (
+            "새다",
+            "길 안내원이 여기서 옆길로 새라면 그대로 가면 돼.",
+            "새라면",
+            false,
+        ),
+        (
+            "아니다",
+            "고의가 아니라도 사과는 해야지.",
+            "아니라도",
+            false,
+        ),
+        (
+            "아니다",
+            "범인이 아니라면 누가 한 짓이지?",
+            "아니라면",
+            false,
+        ),
+        (
+            "이다",
+            "그분이 선생님이시라도 규칙은 같아요.",
+            "이시라도",
+            false,
+        ),
+        (
+            "이다",
+            "그분이 선생님이시라면 설명해 주실 거예요.",
+            "이시라면",
+            false,
+        ),
+        (
+            "이다",
+            "운동이 산책이라도 준비는 필요하다.",
+            "이라도",
+            false,
+        ),
+        ("이다", "산책이라도 하자.", "이라도", false),
+        ("이다", "이게 영화라도 결말이 너무 뻔해.", "영화라도", true),
+        ("이다", "영화라도 한 편 보자.", "영화라도", true),
+        (
+            "이다",
+            "내가 만약 새라면 저 하늘을 훨훨 날아다닐 텐데.",
+            "새라면",
+            true,
+        ),
+        (
+            "이다",
+            "길 안내원이 여기서 옆길로 새라면 그대로 가면 돼.",
+            "새라면",
+            true,
+        ),
+        ("이다", "그 글자가 가라면 첫 칸에 써.", "가라면", true),
+        ("이다", "아이들이 가라면 먼저 보낼게요.", "가라면", true),
+    ] {
+        let start = text.find(surface).expect("target appears in the fixture");
+        let pos = if query == "새다" {
+            CoarsePos::Verb
+        } else {
+            CoarsePos::Adjective
+        };
+        for boundary in [BoundaryPolicy::Smart, BoundaryPolicy::Any] {
+            let matches = harness.find_lemma_matches(query, text, pos, boundary)?;
+            let exact = matches
+                .iter()
+                .any(|matched| matched.span == (start..start + surface.len()));
+            if exact != (!omitted || boundary == BoundaryPolicy::Smart) {
+                return Err(format!(
+                    "{query} {boundary:?}: unexpected range for {surface:?} in {text:?}"
+                )
+                .into());
             }
         }
     }

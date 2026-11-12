@@ -32,6 +32,7 @@ const COPULA_RA_SUFFIXES: &[Suffix] = &[
     suffix("나", &["ending.copula-ra-final"]),
     suffix("네", &["ending.copula-ra-final"]),
     suffix("느니", &["ending.copula-ra-connective"]),
+    suffix("도", &["ending.copula-ra-connective"]),
     suffix("니", &["ending.copula-ra-final"]),
     suffix("니까", &["ending.copula-ra-final"]),
     suffix("며", &["ending.copula-ra-connective"]),
