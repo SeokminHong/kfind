@@ -35,8 +35,8 @@ pub use particle::{
 };
 pub use predicate::{
     GenerateError, PredicateContinuationMatch, generate_predicate_branches,
-    generate_predicate_fallback_stems, verify_copula_surface_after_nominal,
-    verify_predicate_continuation,
+    generate_predicate_fallback_stems, is_omitted_copula_ra_ending,
+    verify_copula_surface_after_nominal, verify_predicate_continuation,
 };
 pub use structure::{
     BoundedTokenContext, ConstraintDecision, ConstraintOutcome, ConstraintResolver,

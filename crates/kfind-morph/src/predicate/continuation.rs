@@ -19,6 +19,34 @@ const YAJI: Suffix = suffix("야지", &["ending.necessity-yaji"]);
 const YAJI_POLITE: Suffix = suffix("야지요", &["ending.necessity-yaji-polite"]);
 const YAJI_CONTRACTED: Suffix = suffix("야죠", &["ending.necessity-yaji-polite"]);
 pub(super) const YAJI_ENDINGS: &[Suffix] = &[YAJI, YAJI_POLITE, YAJI_CONTRACTED];
+const COPULA_RA_SUFFIXES: &[Suffix] = &[
+    suffix("", &["ending.copula-ra-connective"]),
+    suffix("고", &["ending.copula-quotative-go"]),
+    suffix("고요", &["ending.copula-quotative-go", "ending.polite-yo"]),
+    suffix("는", &["ending.copula-quotative-adnominal"]),
+    suffix("나", &["ending.copula-ra-final"]),
+    suffix("네", &["ending.copula-ra-final"]),
+    suffix("느니", &["ending.copula-ra-connective"]),
+    suffix("니", &["ending.copula-ra-final"]),
+    suffix("니까", &["ending.copula-ra-final"]),
+    suffix("며", &["ending.copula-ra-connective"]),
+    suffix("면", &["ending.copula-ra-connective"]),
+    suffix("면서", &["ending.copula-ra-connective"]),
+    suffix("서", &["ending.copula-ra-connective"]),
+    suffix("손", &["ending.copula-ra-connective"]),
+    suffix("야", &["ending.copula-ra-connective"]),
+    suffix("야만", &["ending.copula-ra-connective"]),
+    suffix("오", &["ending.copula-ra-final"]),
+    suffix("지", &["ending.copula-ra-final"]),
+];
+
+pub(super) fn is_copula_ra_ending(surface: &str) -> bool {
+    surface.strip_prefix('라').is_some_and(|tail| {
+        COPULA_RA_SUFFIXES
+            .iter()
+            .any(|ending| ending.surface == tail)
+    })
+}
 const HONORIFIC_YAJI: Suffix = suffix(
     "셔야지",
     &["ending.honorific", "ending.aoeo", "ending.necessity-yaji"],
@@ -519,6 +547,7 @@ pub fn verify_predicate_continuation(
         ContinuationState::NieunEnding => BACKGROUND,
         ContinuationState::CompletedNieunEnding => COMPLETED_NIEUN,
         ContinuationState::Interrogative => INTERROGATIVE,
+        ContinuationState::CopulaRa => COPULA_RA_SUFFIXES,
         ContinuationState::RieulFinal => RIEUL_FINAL,
         ContinuationState::BieupFinal => BIEUP_FINAL,
         ContinuationState::Prospective => PROSPECTIVE,
@@ -599,6 +628,15 @@ pub fn verify_predicate_continuation(
                     }))
         })
         .max_by_key(|suffix| suffix.surface.len());
+    if state == ContinuationState::CopulaRa
+        && suffix.is_some_and(|suffix| suffix.surface.is_empty())
+        && following
+            .chars()
+            .next()
+            .is_some_and(|next| next.is_alphanumeric() || next == '_')
+    {
+        return None;
+    }
     if suffix.is_none()
         && matches!(
             state,

@@ -3,13 +3,13 @@ use crate::structure::evidence::TokenEvidence;
 use crate::structure::graph::EdgeGraph;
 use crate::structure::lexical::{
     complete_dependent_noun_particle_suffix, complete_nominal_host, complete_suffix,
-    predicate_pos_matches, structural_predicate_pos_matches,
+    has_exact_fine_pos, predicate_pos_matches, structural_predicate_pos_matches,
 };
 use crate::structure::paths::predicate::{
     has_complete_attached_auxiliary_path, is_attached_auxiliary_whole_path,
 };
 use crate::{PredicatePos, PredicatePosSet};
-use kfind_data::ComponentPos as StructuralPos;
+use kfind_data::{ComponentPos as StructuralPos, DataFinePos};
 use std::ops::Range;
 
 impl ConstraintResolver {
@@ -602,5 +602,24 @@ impl ConstraintResolver {
     #[must_use]
     pub fn has_complete_nominal_surface(&self, text: &str) -> bool {
         !text.is_empty() && complete_nominal_host(&self.resource, text)
+    }
+
+    #[must_use]
+    pub fn has_exact_nominal_surface(&self, text: &str) -> bool {
+        has_exact_fine_pos(&self.resource, text, DataFinePos::is_nominal)
+    }
+
+    #[must_use]
+    pub fn has_exact_action_predicate_surface(&self, text: &str) -> bool {
+        let mut matched = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |length, positions| {
+                matched |= length == text.len()
+                    && matches!(
+                        positions.first().copied(),
+                        Some(StructuralPos::VV | StructuralPos::VX)
+                    );
+            });
+        matched
     }
 }

@@ -1110,6 +1110,26 @@ fn reference_predicate_continuation(
         ContinuationState::NieunEnding => BACKGROUND,
         ContinuationState::CompletedNieunEnding => COMPLETED_NIEUN,
         ContinuationState::Interrogative => INTERROGATIVE,
+        ContinuationState::CopulaRa => &[
+            reference_suffix("", &["ending.copula-ra-connective"]),
+            reference_suffix("고", &["ending.copula-quotative-go"]),
+            reference_suffix("고요", &["ending.copula-quotative-go", "ending.polite-yo"]),
+            reference_suffix("는", &["ending.copula-quotative-adnominal"]),
+            reference_suffix("나", &["ending.copula-ra-final"]),
+            reference_suffix("네", &["ending.copula-ra-final"]),
+            reference_suffix("느니", &["ending.copula-ra-connective"]),
+            reference_suffix("니", &["ending.copula-ra-final"]),
+            reference_suffix("니까", &["ending.copula-ra-final"]),
+            reference_suffix("며", &["ending.copula-ra-connective"]),
+            reference_suffix("면", &["ending.copula-ra-connective"]),
+            reference_suffix("면서", &["ending.copula-ra-connective"]),
+            reference_suffix("서", &["ending.copula-ra-connective"]),
+            reference_suffix("손", &["ending.copula-ra-connective"]),
+            reference_suffix("야", &["ending.copula-ra-connective"]),
+            reference_suffix("야만", &["ending.copula-ra-connective"]),
+            reference_suffix("오", &["ending.copula-ra-final"]),
+            reference_suffix("지", &["ending.copula-ra-final"]),
+        ],
         ContinuationState::RieulFinal => RIEUL_FINAL,
         ContinuationState::BieupFinal => BIEUP_FINAL,
         ContinuationState::Prospective => PROSPECTIVE,
@@ -1192,6 +1212,15 @@ fn reference_predicate_continuation(
                         )))
         })
         .max_by_key(|suffix| suffix.surface.len());
+    if state == ContinuationState::CopulaRa
+        && matched.is_some_and(|suffix| suffix.surface.is_empty())
+        && following
+            .chars()
+            .next()
+            .is_some_and(|next| next.is_alphanumeric() || next == '_')
+    {
+        return None;
+    }
     if matched.is_none()
         && matches!(
             state,

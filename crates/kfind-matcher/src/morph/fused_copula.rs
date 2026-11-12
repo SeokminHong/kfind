@@ -1,8 +1,8 @@
 use std::borrow::Cow;
 use std::iter::Peekable;
 
-use kfind_morph::decompose_syllable;
 use kfind_morph::hangul::{JONG_BIEUP, JONG_NIEUN, JONG_RIEUL};
+use kfind_morph::{decompose_syllable, is_omitted_copula_ra_ending};
 use kfind_query::{NormalizationMode, is_coda_initial_ending};
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
@@ -102,6 +102,14 @@ impl FusedCopulaHits<'_> {
 }
 
 fn has_fused_ending(token: &str, normalization: NormalizationMode) -> bool {
+    let normalized = if normalization == NormalizationMode::Canonical && !is_nfc(token) {
+        Cow::Owned(token.nfc().collect::<String>())
+    } else {
+        Cow::Borrowed(token)
+    };
+    if omitted_ra_hosts(&normalized).next().is_some() {
+        return true;
+    }
     token.char_indices().rev().any(|(start, character)| {
         let coda = match character {
             'ᆫ' => 'ㄴ',
@@ -124,5 +132,21 @@ fn has_fused_ending(token: &str, normalization: NormalizationMode) -> bool {
             Cow::Borrowed(suffix)
         };
         is_coda_initial_ending(coda, &suffix)
+    })
+}
+
+pub(super) fn omitted_ra_hosts(token: &str) -> impl Iterator<Item = (&str, &str)> {
+    token.rfind('라').into_iter().flat_map(move |start| {
+        let (host, suffix) = token.split_at(start);
+        [Some(host), host.strip_suffix('시')]
+            .into_iter()
+            .flatten()
+            .filter(move |host| {
+                is_omitted_copula_ra_ending(suffix)
+                    && host.chars().next_back().is_some_and(|last| {
+                        decompose_syllable(last).is_some_and(|syllable| syllable.jongseong == 0)
+                    })
+            })
+            .map(move |host| (host, suffix))
     })
 }

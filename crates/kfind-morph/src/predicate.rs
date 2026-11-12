@@ -252,6 +252,7 @@ fn verify_complete_copula_surface(surface: &str) -> bool {
                 .is_some_and(|matched| {
                     matched.token_end == surface.len()
                         && (branch.continuation == ContinuationState::Terminal
+                            || !matched.rule_path.is_empty()
                             || matched.consumed_bytes > 0)
                 })
         })
@@ -260,10 +261,19 @@ fn verify_complete_copula_surface(surface: &str) -> bool {
 /// Verifies an explicit or phonologically contracted copula after a nominal surface.
 #[must_use]
 pub fn verify_copula_surface_after_nominal(preceding: char, surface: &str) -> bool {
+    if is_omitted_copula_ra_ending(surface) {
+        return preceding_allows_copula_contraction(preceding);
+    }
     if !verify_complete_copula_surface(surface) {
         return false;
     }
     !is_contracted_copula_surface(surface) || preceding_allows_copula_contraction(preceding)
+}
+
+/// Tests the ending after a vowel-final nominal when `이-` is omitted.
+#[must_use]
+pub fn is_omitted_copula_ra_ending(surface: &str) -> bool {
+    continuation::is_copula_ra_ending(surface.strip_prefix('시').unwrap_or(surface))
 }
 
 fn preceding_allows_copula_contraction(preceding: char) -> bool {
@@ -999,16 +1009,6 @@ fn compile_copula(
             "ending.future-adnominal",
         ),
         (
-            format!("{stem}라고"),
-            ContinuationState::Terminal,
-            "ending.copula-quotative-go",
-        ),
-        (
-            format!("{stem}라는"),
-            ContinuationState::Terminal,
-            "ending.copula-quotative-adnominal",
-        ),
-        (
             format!("{stem}지"),
             ContinuationState::Terminal,
             "ending.connective-ji",
@@ -1036,6 +1036,22 @@ fn compile_copula(
             stem.len(),
             continuation,
             vec![rule("lexical.copula"), rule(ending_rule)],
+        );
+    }
+    for (surface, rules) in [
+        ("이라", vec![rule("lexical.copula")]),
+        (
+            "이시라",
+            vec![rule("lexical.copula"), rule("ending.honorific")],
+        ),
+    ] {
+        push_branch(
+            branches,
+            entry,
+            surface.to_owned(),
+            stem.len(),
+            ContinuationState::CopulaRa,
+            rules,
         );
     }
 
