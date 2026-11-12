@@ -101,7 +101,7 @@ impl AnchorEngine {
                 let searched_bytes = haystack.len().saturating_sub(at);
                 let work_bytes = searched_bytes.saturating_mul(finders.len());
                 let previous_work = searched_work_bytes
-                    .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |current| {
+                    .try_update(Ordering::Relaxed, Ordering::Relaxed, |current| {
                         Some(current.saturating_add(work_bytes))
                     })
                     .unwrap_or_else(|current| current);
