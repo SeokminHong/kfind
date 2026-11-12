@@ -647,3 +647,13 @@ regression.plain-report-adnominal.resultative	옮기다	verb	smart-exact	27	42	�
 corpus.ud-gsd.test.test-s34.verb.기대하다	기대하다	verb	smart-exact	296	305	그는 이어 "만약 이 서비스가 제대로 정착만 된다면 중국 및 동남아 부유층 유치에 일대 전기를 마련하게 되는 계기가 될 것"이라며 "외국인도 이용 가능한 상품으로 기획되었다는 점에서 국내 골프 투어 수출 시대의 개막도 기대해 봄직하다"고 강한 자신감을 나타냈다.
 corpus.ud-gsd.test.test-s53.verb.고생하다	고생하다	verb	smart-exact	42	60	알레르기성 비염이랑 천식으로 고생했었는데 한 달 조금 넘게 꾸준히 다녔더니 그 후 일 년 넘게 아무렇지도 않네요.
 corpus.ud-gsd.test.test-s136.verb.발전시키다	발전시키다	verb	smart-exact	108	120	저자는 이 책에서 자신의 실제 매매와 소프트웨어 개발, 강의 경험 등 그간 연구, 발전시켜 온 트레이딩 기법을 낱낱이 공개했다.
+corpus.ud-gsd.test.test-s510.pronoun.genitive	나	pronoun	smart-exact	0	3	내 주변 지도를 좀 보여 줄래?
+regression.pronominal-genitive.second	너	pronoun	smart-exact	0	3	네 생각을 들려줘.
+regression.pronominal-genitive.particle	나	pronoun	smart-exact	0	3	내 친구를 만났다.
+corpus.ud-gsd.test.test-s386.pronoun.ordinal	너	pronoun	no-match	27	30	어느덧 천막 안에서 네 해째 겨울을 맞이했다.
+regression.pronominal-genitive.count	너	pronoun	no-match	0	3	네 명이 들어왔다.
+regression.pronominal-genitive.reply	너	pronoun	no-match	0	3	네, 알겠습니다.
+regression.pronominal-genitive.locative	나	pronoun	no-match	7	10	한국 내 개신교 선교사들이 방문했다.
+regression.pronominal-genitive.context-positive	너	pronoun	smart-exact	48	51	각자 자기 사과를 가져가기로 했어. 네 사과가 남았어.
+corpus.ud-pud.test.n01144023.pronoun.genitive	나	pronoun	smart-exact	21	24	그 녀석이 계속 내 헛간에 나타나길래 자기가 팔리는 것을 원치 않는 게 확실하다고 농담조로 말했어요.
+corpus.ud-pud.test.w01043065.pronoun.locative	나	pronoun	no-match	91	94	반면, 나일강을 추가적으로 통제한 결과 게지라섬과 도시 수변 지역 내 발전이 크게 일어났다.

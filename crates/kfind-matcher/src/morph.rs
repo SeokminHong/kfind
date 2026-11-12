@@ -1179,6 +1179,28 @@ impl MorphMatcher {
         if patterns.is_empty() {
             return false;
         }
+        if matches!(branch.consumption, CandidateConsumption::Anchor)
+            && !branch.origins.is_empty()
+            && branch.origins.iter().all(|origin| {
+                origin
+                    .rule_path
+                    .last()
+                    .is_some_and(|rule| rule.as_str() == "particle.genitive")
+            })
+        {
+            let span = &candidate.verified.token;
+            return self.accepts_token_boundary(haystack, &candidate.verified, branch)
+                && context::normalized_token(haystack, span.clone()).is_some_and(|token| {
+                    !(token == "내"
+                        && context::previous_word(haystack, span.start).is_some_and(|previous| {
+                            matches!(previous.as_ref(), "한국" | "지역" | "구역" | "범위")
+                        }))
+                        && context::next_word(haystack, span.end).is_some_and(|next| {
+                            resolver.has_nominal_with_optional_particles(&next)
+                                && !resolver.has_inflected_counted_unit(&token, &next)
+                        })
+                });
+        }
         if patterns.iter().any(|pattern| {
             pattern.fine_pos == DataFinePos::Mag
                 && pattern.lexical_form.ends_with('로')

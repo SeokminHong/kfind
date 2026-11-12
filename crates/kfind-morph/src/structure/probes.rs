@@ -1125,6 +1125,21 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_nominal_with_optional_particles(&self, text: &str) -> bool {
+        self.has_complete_nominal_surface(text)
+            || complete_nominal_particle_host(&self.resource, text).is_some()
+    }
+
+    #[must_use]
+    pub fn has_inflected_counted_unit(&self, previous: &str, text: &str) -> bool {
+        text.strip_suffix("째")
+            .is_some_and(|unit| self.has_counted_unit_frame(previous, unit))
+            || complete_nominal_particle_host(&self.resource, text)
+                .is_some_and(|host| self.has_counted_unit_frame(previous, &text[host]))
+            || self.has_counted_unit_frame(previous, text)
+    }
+
+    #[must_use]
     pub fn has_counted_unit_frame(&self, previous: &str, unit: &str) -> bool {
         exact_analysis_starts_with_pos(&self.resource, unit, |pos| pos == StructuralPos::NNBC)
             && (has_exact_fine_pos(&self.resource, previous, |pos| pos == DataFinePos::Nr)

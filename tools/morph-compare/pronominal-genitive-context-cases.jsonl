@@ -1,0 +1,2 @@
+{"id":"four-apples","query":"너","pos":"pronoun","text":"나무에 사과가 다섯 개 달려 있었는데 하나는 떨어졌어. 네 사과가 남았어.","expected":false,"gold_byte_start":75,"gold_byte_end":78,"paired_case_id":"your-apples"}
+{"id":"your-apples","query":"너","pos":"pronoun","text":"각자 자기 사과를 가져가기로 했어. 네 사과가 남았어.","expected":true,"gold_byte_start":48,"gold_byte_end":51,"paired_case_id":"four-apples"}
