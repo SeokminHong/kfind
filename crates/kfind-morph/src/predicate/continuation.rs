@@ -40,13 +40,48 @@ const COPULA_RA_SUFFIXES: &[Suffix] = &[
     suffix("지", &["ending.copula-ra-final"]),
 ];
 
-pub(super) fn is_copula_ra_ending(surface: &str) -> bool {
+const COPULA_REPORTING_AND_RO_ENDINGS: &[Suffix] = &[
+    suffix("란다", &["ending.copula-reporting-final"]),
+    suffix("람", &["ending.copula-reporting-final"]),
+    suffix("랍니까", &["ending.copula-reporting-final"]),
+    suffix("랍니다", &["ending.copula-reporting-final"]),
+    suffix("랍시고", &["ending.copula-reporting-connective"]),
+    suffix("래", &["ending.copula-reporting-final"]),
+    suffix(
+        "래요",
+        &["ending.copula-reporting-final", "ending.polite-yo"],
+    ),
+    suffix("로고", &["ending.copula-ro-final"]),
+    suffix("로구나", &["ending.copula-ro-final"]),
+    suffix("로구려", &["ending.copula-ro-final"]),
+    suffix("로구먼", &["ending.copula-ro-final"]),
+    suffix("로군", &["ending.copula-ro-final"]),
+    suffix("로다", &["ending.copula-ro-final"]),
+    suffix("로되", &["ending.copula-ro-connective"]),
+    suffix("로라", &["ending.copula-ro-final"]),
+    suffix("로서니", &["ending.copula-ro-connective"]),
+    suffix("로세", &["ending.copula-ro-final"]),
+];
+
+pub(super) fn is_copula_omission_ending(surface: &str) -> bool {
     surface.strip_prefix('라').is_some_and(|tail| {
         COPULA_RA_SUFFIXES
             .iter()
             .any(|ending| ending.surface == tail)
-    })
+    }) || COPULA_REPORTING_AND_RO_ENDINGS
+        .iter()
+        .any(|ending| ending.surface == surface)
 }
+const HONORIFIC_RO_ENDINGS: &[Suffix] = &[
+    suffix("시로구나", &["ending.honorific", "ending.copula-ro-final"]),
+    suffix("시로구려", &["ending.honorific", "ending.copula-ro-final"]),
+    suffix("시로구먼", &["ending.honorific", "ending.copula-ro-final"]),
+    suffix("시로군", &["ending.honorific", "ending.copula-ro-final"]),
+    suffix(
+        "시로되",
+        &["ending.honorific", "ending.copula-ro-connective"],
+    ),
+];
 const HONORIFIC_YAJI: Suffix = suffix(
     "셔야지",
     &["ending.honorific", "ending.aoeo", "ending.necessity-yaji"],
@@ -553,6 +588,12 @@ pub fn verify_predicate_continuation(
         ContinuationState::Prospective => PROSPECTIVE,
     };
     let additional_endings = match state {
+        ContinuationState::StemEnding
+            if (pos == PredicatePos::Copula || anchor == "아니")
+                && following.starts_with(['란', '람', '랍', '래', '로']) =>
+        {
+            COPULA_REPORTING_AND_RO_ENDINGS
+        }
         ContinuationState::NieunEnding => NIEUN_EXTENSIONS,
         ContinuationState::Past | ContinuationState::Future if nieun_tail(following, "는") => {
             NEUN_EXTENSIONS
@@ -582,6 +623,7 @@ pub fn verify_predicate_continuation(
             NEUNDE
         }
         ContinuationState::Eu if following.starts_with("시냐") => SI_NYA,
+        ContinuationState::Eu if following.starts_with("시로") => HONORIFIC_RO_ENDINGS,
         ContinuationState::Eu if following.starts_with("시느냐") => SI_NEUNYA,
         ContinuationState::Eu if following.starts_with("셨냐") => SYEOT_NYA,
         ContinuationState::Eu if following.starts_with("셨느냐") => SYEOT_NEUNYA,

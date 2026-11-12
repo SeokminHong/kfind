@@ -21,7 +21,7 @@ use kfind_query::{
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
 use crate::SearchDiagnostics;
-use crate::boundary::{accepts_requirements, surrounding_token_span};
+use crate::boundary::{accepts_requirements, is_boundary_before, surrounding_token_span};
 use crate::{AnchorBuildError, AnchorBuildLimits, AnchorEngine, AnchorHit};
 
 mod candidates;
@@ -743,6 +743,20 @@ impl MorphMatcher {
                     &consumption_anchor,
                     &consumption_following,
                 )?;
+                if *pos == kfind_morph::PredicatePos::Copula
+                    && matched.rule_path.first().is_some_and(|rule| {
+                        matches!(
+                            rule.as_str(),
+                            "ending.copula-reporting-final"
+                                | "ending.copula-reporting-connective"
+                                | "ending.copula-ro-final"
+                                | "ending.copula-ro-connective"
+                        )
+                    })
+                    && is_boundary_before(haystack, hit.span.start)
+                {
+                    return None;
+                }
                 if !branch.consumption.allows_rule_path(&matched.rule_path) {
                     return None;
                 }
@@ -1375,7 +1389,7 @@ impl MorphMatcher {
         resolver.has_exact_lost_span_copula_ending_path(&normalized)
             || (matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
                 && (fused_copula::accepts_fused_retrospective(&normalized, resolver)
-                    || fused_copula::accepts_omitted_ra(&normalized, resolver)))
+                    || fused_copula::accepts_omitted_copula(&normalized, resolver)))
     }
 
     fn licensed_nominal_copula_trailing(
@@ -1410,7 +1424,7 @@ impl MorphMatcher {
         if resolver.has_whole_modifier(&token) {
             return None;
         }
-        if kfind_morph::is_omitted_copula_ra_ending(&suffix) {
+        if kfind_morph::is_omitted_copula_ending(&suffix) {
             let host = std::str::from_utf8(
                 haystack.get(candidate.consumed.start..candidate.consumed.end)?,
             )

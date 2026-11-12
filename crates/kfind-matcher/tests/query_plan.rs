@@ -2571,6 +2571,34 @@ fn retrospective_bieup_fusion_checks_nominal_hosts_and_competing_predicates() {
 }
 
 #[test]
+fn copula_reporting_and_ro_endings_preserve_explicit_and_omitted_spans() {
+    let matcher = compile_embedded_with_resource(
+        "adj:이다",
+        CompileOptions::default(),
+        component_resource_from_entries([
+            component_entry("모양", "NNG"),
+            component_entry("컴퓨터", "NNG"),
+            component_entry("작가", "NNG"),
+            component_entry("봄", "NNG"),
+            component_entry("이야기", "NNG"),
+            component_entry("이", "NP"),
+            component_entry("이래", "VA+EF"),
+            component_entry("미", "NNG"),
+            component_entry("미래", "NNG"),
+        ]),
+    );
+    let text = "모양이래? 컴퓨터래요. 작가시란다. 봄이로구나. 이야기로되. 이래? 미래요.";
+    assert_eq!(
+        matcher
+            .find_all_with_meta(text.as_bytes())
+            .iter()
+            .map(|matched| &text[matched.span.clone()])
+            .collect::<Vec<_>>(),
+        ["이래", "컴퓨터래요", "작가시란다", "이로구나", "이야기로되"],
+    );
+}
+
+#[test]
 fn direct_particle_plans_validate_the_attached_host_in_smart_mode() {
     let options = CompileOptions {
         global_pos: Some(CoarsePos::Particle),

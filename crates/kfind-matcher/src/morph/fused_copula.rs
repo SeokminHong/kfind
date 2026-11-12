@@ -3,7 +3,7 @@ use std::iter::Peekable;
 
 use kfind_morph::hangul::{JONG_BIEUP, JONG_NIEUN, JONG_RIEUL};
 use kfind_morph::{
-    ConstraintResolver, decompose_syllable, drop_final, is_omitted_copula_ra_ending,
+    ConstraintResolver, decompose_syllable, drop_final, is_omitted_copula_ending,
     replace_last_final,
 };
 use kfind_query::{NormalizationMode, is_coda_initial_ending};
@@ -110,10 +110,13 @@ fn has_fused_ending(token: &str, normalization: NormalizationMode) -> bool {
     } else {
         Cow::Borrowed(token)
     };
-    if omitted_ra_hosts(&normalized).next().is_some() {
-        return true;
-    }
-    token.char_indices().rev().any(|(start, character)| {
+    normalized.char_indices().rev().any(|(start, character)| {
+        if matches!(character, '라' | '란' | '람' | '랍' | '래' | '로')
+            && vowel_final(&normalized[..start])
+            && is_omitted_copula_ending(&normalized[start..])
+        {
+            return true;
+        }
         let coda = match character {
             'ᆫ' => 'ㄴ',
             'ᆯ' => 'ㄹ',
@@ -125,43 +128,44 @@ fn has_fused_ending(token: &str, normalization: NormalizationMode) -> bool {
                 _ => return false,
             },
         };
-        let suffix = &token[start + character.len_utf8()..];
-        if suffix.is_empty() {
-            return false;
-        }
-        let suffix = if normalization == NormalizationMode::Canonical && !is_nfc(suffix) {
-            Cow::Owned(suffix.nfc().collect::<String>())
-        } else {
-            Cow::Borrowed(suffix)
-        };
-        is_coda_initial_ending(coda, &suffix)
+        let suffix = &normalized[start + character.len_utf8()..];
+        !suffix.is_empty() && is_coda_initial_ending(coda, suffix)
     })
 }
 
-fn omitted_ra_hosts(token: &str) -> impl Iterator<Item = (&str, &str)> {
-    token.rfind('라').into_iter().flat_map(move |start| {
-        let (host, suffix) = token.split_at(start);
-        [Some(host), host.strip_suffix('시')]
-            .into_iter()
-            .flatten()
-            .filter(move |host| {
-                is_omitted_copula_ra_ending(suffix)
-                    && host.chars().next_back().is_some_and(|last| {
-                        decompose_syllable(last).is_some_and(|syllable| syllable.jongseong == 0)
-                    })
-            })
-            .map(move |host| (host, suffix))
-    })
+fn omitted_copula_hosts(token: &str) -> impl Iterator<Item = (&str, &str)> {
+    token
+        .rmatch_indices(['라', '란', '람', '랍', '래', '로'])
+        .filter(move |(start, _)| is_omitted_copula_ending(&token[*start..]))
+        .flat_map(move |(start, _)| {
+            let (host, suffix) = token.split_at(start);
+            [Some(host), host.strip_suffix('시')]
+                .into_iter()
+                .flatten()
+                .filter(|host| vowel_final(host))
+                .map(move |host| (host, suffix))
+        })
 }
 
-pub(super) fn accepts_omitted_ra(token: &str, resolver: &ConstraintResolver) -> bool {
-    omitted_ra_hosts(token).any(|(host, suffix)| {
+fn vowel_final(host: &str) -> bool {
+    host.chars()
+        .next_back()
+        .and_then(decompose_syllable)
+        .is_some_and(|syllable| syllable.jongseong == 0)
+}
+
+pub(super) fn accepts_omitted_copula(token: &str, resolver: &ConstraintResolver) -> bool {
+    omitted_copula_hosts(token).any(|(host, suffix)| {
         !host
             .strip_suffix('이')
             .is_some_and(|prefix| resolver.has_complete_nominal_surface(prefix))
             && !resolver.has_exact_action_predicate_surface(host)
             && !(matches!(suffix, "라고" | "라고요" | "라는") && resolver.has_whole_modifier(host))
             && resolver.has_exact_nominal_surface(host)
+            && !(suffix == "래요"
+                && token
+                    .strip_suffix('요')
+                    .is_some_and(|nominal| resolver.has_exact_nominal_surface(nominal)))
             && !(suffix == "라"
                 && host.char_indices().skip(1).any(|(split, _)| {
                     resolver.has_exact_action_predicate_surface(&token[..split])
@@ -169,6 +173,7 @@ pub(super) fn accepts_omitted_ra(token: &str, resolver: &ConstraintResolver) -> 
                 }))
     }) && !resolver.has_whole_modifier(token)
         && !resolver.has_exact_nominal_surface(token)
+        && !resolver.has_exact_non_copula_predicate_surface(token)
 }
 
 pub(super) fn accepts_fused_retrospective(token: &str, resolver: &ConstraintResolver) -> bool {
