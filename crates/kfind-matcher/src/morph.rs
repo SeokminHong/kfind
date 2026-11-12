@@ -1659,6 +1659,14 @@ impl MorphMatcher {
         {
             return false;
         }
+        if normalized
+            .strip_suffix("렷다")
+            .or_else(|| normalized.strip_suffix('랴'))
+            .is_some_and(|stem| resolver.has_exact_action_predicate_surface(stem))
+            && has_directed_motion_frame(haystack, candidate.verified.token.start, resolver)
+        {
+            return false;
+        }
         resolver.has_exact_lost_span_copula_ending_path(&normalized)
             || (matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
                 && (fused_copula::accepts_fused_retrospective(&normalized, resolver)
@@ -2472,6 +2480,21 @@ fn has_nonpredicate_report_frame(
             || (resolver.has_complete_nominal_surface(&next)
                 && resolver.has_independent_final_predicate(&following))
     })
+}
+
+fn has_directed_motion_frame(haystack: &[u8], start: usize, resolver: &ConstraintResolver) -> bool {
+    let Some((previous_start, previous)) = context::previous_word_with_start(haystack, start)
+    else {
+        return false;
+    };
+    let is_destination = |word: &str| word.ends_with('로') && resolver.has_nominal_oblique(word);
+    if previous == "곧장" {
+        return context::previous_word(haystack, previous_start)
+            .is_some_and(|destination| is_destination(&destination));
+    }
+    previous.ends_with('로')
+        && context::previous_word(haystack, previous_start).is_some_and(|adverb| adverb == "곧장")
+        && is_destination(&previous)
 }
 
 fn has_comparative_nominal_frame(

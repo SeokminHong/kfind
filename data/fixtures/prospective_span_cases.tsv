@@ -55,6 +55,11 @@ garya-copula-context	이다	adjective	smart-exact	43	49	눈보라가 치는데 �
 garya-verb-context	가다	verb	exact	36	42	세 글자 중 첫 글자가 정녕 가랴?
 garya-verb-positive	가다	verb	exact	43	49	눈보라가 치는데 내가 거기까지 가랴?
 garyeotda-copula-positive	이다	adjective	smart-exact	31	40	이름의 첫 글자가 분명 가렷다.
-garyeotda-copula-context	이다	adjective	smart-exact	41	50	너는 날이 밝으면 곧장 관아로 가렷다.
+garyeotda-copula-context	이다	adjective	no-match	41	50	너는 날이 밝으면 곧장 관아로 가렷다.
 garyeotda-verb-context	가다	verb	exact	31	40	이름의 첫 글자가 분명 가렷다.
 garyeotda-verb-positive	가다	verb	exact	41	50	너는 날이 밝으면 곧장 관아로 가렷다.
+garya-directed-not-copula	이다	adjective	no-match	24	30	내가 관아로 곧장 가랴?
+garya-directed-verb	가다	verb	exact	24	30	내가 관아로 곧장 가랴?
+oryeotda-directed-not-copula	이다	adjective	no-match	24	33	너도 곧장 관아로 오렷다.
+oryeotda-directed-verb	오다	verb	exact	24	33	너도 곧장 관아로 오렷다.
+oryeotda-letter-copula	이다	adjective	smart-exact	31	40	도장의 첫 글자가 분명 오렷다.
