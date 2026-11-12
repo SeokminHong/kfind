@@ -747,6 +747,15 @@ impl MorphMatcher {
                             || is_boundary_before(haystack, core.start)
                             || self.constraint_resolver.as_ref().is_some_and(|resolver| {
                                 let whole = surrounding_token_span(haystack, core.clone());
+                                if *pos == kfind_morph::PredicatePos::Copula {
+                                    return context::normalized_token(
+                                        haystack,
+                                        whole.start..core.start,
+                                    )
+                                    .is_some_and(|host| {
+                                        resolver.has_complete_nominal_surface(&host)
+                                    });
+                                }
                                 source_aligned_compound_predicate_position(
                                     haystack,
                                     &core,

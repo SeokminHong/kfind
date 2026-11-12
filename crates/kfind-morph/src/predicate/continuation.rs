@@ -267,13 +267,11 @@ const PAST_SUFFIXES: &[Suffix] = &[
     GEODEULLANG,
     suffix("습니다", &["ending.polite-declarative"]),
     suffix("으되", &["ending.connective-eudoe"]),
-    suffix("느냐는", &["ending.interrogative-neunya", "particle.topic"]),
     suffix("으면", &["ending.conditional"]),
     suffix("으며", &["ending.coordinate-myeo"]),
     suffix("지만", &["ending.connective-jiman"]),
     suffix("는데", &["ending.connective-neunde"]),
     suffix("다고", &["ending.quotative-go"]),
-    suffix("느냐", &["ending.interrogative-neunya"]),
     suffix("던", &["ending.retrospective-adnominal"]),
     suffix("을", &["ending.future-adnominal"]),
     suffix("다", &["ending.final-da"]),
@@ -800,6 +798,7 @@ macro_rules! question {
             suffix($surface, &[$($prior,)* $rule]),
             suffix(concat!($surface, "고"), &[$($prior,)* $rule, "ending.quotative-go"]),
             suffix(concat!($surface, "고요"), &[$($prior,)* $rule, "ending.quotative-go", "ending.polite-yo"]),
+            suffix(concat!($surface, "는"), &[$($prior,)* $rule, "particle.topic"]),
         ]
     };
 }
