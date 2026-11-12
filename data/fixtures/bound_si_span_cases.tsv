@@ -1,0 +1,98 @@
+id	query	pos	expected	byte_start	byte_end	text
+stdict.5668.noun	시	noun	no-match	13	16	그는 간접시도 언급했다.
+stdict.19485.noun	시	noun	no-match	13	16	그는 결정시도 언급했다.
+stdict.19485.verb	시	noun	no-match	27	30	그는 그 사실을 결정시했다.
+stdict.21105.noun	시	noun	no-match	13	16	그는 경원시도 언급했다.
+stdict.21105.verb	시	noun	no-match	27	30	그는 그 사실을 경원시했다.
+stdict.30726.noun	시	noun	no-match	13	16	그는 과대시도 언급했다.
+stdict.30726.verb	시	noun	no-match	27	30	그는 그 사실을 과대시했다.
+stdict.397609.noun	시	noun	no-match	13	16	그는 과소시도 언급했다.
+stdict.397609.verb	시	noun	no-match	27	30	그는 그 사실을 과소시했다.
+stdict.517802.noun	시	noun	no-match	13	16	그는 금기시도 언급했다.
+stdict.517802.verb	시	noun	no-match	27	30	그는 그 사실을 금기시했다.
+stdict.64475.noun	시	noun	no-match	13	16	그는 냉안시도 언급했다.
+stdict.64475.verb	시	noun	no-match	27	30	그는 그 사실을 냉안시했다.
+stdict.66159.noun	시	noun	no-match	13	16	그는 노예시도 언급했다.
+stdict.66159.verb	시	noun	no-match	27	30	그는 그 사실을 노예시했다.
+stdict.509940.noun	시	noun	no-match	13	16	그는 단일시도 언급했다.
+stdict.413590.noun	시	noun	no-match	13	16	그는 당연시도 언급했다.
+stdict.413590.verb	시	noun	no-match	27	30	그는 그 사실을 당연시했다.
+stdict.85233.noun	시	noun	no-match	13	16	그는 도구시도 언급했다.
+stdict.85233.verb	시	noun	no-match	27	30	그는 그 사실을 도구시했다.
+stdict.416258.noun	시	noun	no-match	13	16	그는 도외시도 언급했다.
+stdict.416258.verb	시	noun	no-match	27	30	그는 그 사실을 도외시했다.
+stdict.88824.noun	시	noun	no-match	13	16	그는 동일시도 언급했다.
+stdict.88824.verb	시	noun	no-match	27	30	그는 그 사실을 동일시했다.
+stdict.96347.noun	시	noun	no-match	13	16	그는 등한시도 언급했다.
+stdict.96347.verb	시	noun	no-match	27	30	그는 그 사실을 등한시했다.
+stdict.128893.noun	시	noun	no-match	13	16	그는 문제시도 언급했다.
+stdict.128893.verb	시	noun	no-match	27	30	그는 그 사실을 문제시했다.
+stdict.130111.noun	시	noun	no-match	13	16	그는 박명시도 언급했다.
+stdict.134016.noun	시	noun	no-match	13	16	그는 방관시도 언급했다.
+stdict.134016.verb	시	noun	no-match	27	30	그는 그 사실을 방관시했다.
+stdict.433863.noun	시	noun	no-match	13	16	그는 백안시도 언급했다.
+stdict.433863.verb	시	noun	no-match	27	30	그는 그 사실을 백안시했다.
+stdict.141773.noun	시	noun	no-match	13	16	그는 범죄시도 언급했다.
+stdict.141773.verb	시	noun	no-match	27	30	그는 그 사실을 범죄시했다.
+stdict.150438.noun	시	noun	no-match	13	16	그는 부동시도 언급했다.
+stdict.158712.noun	시	noun	no-match	13	16	그는 부차시도 언급했다.
+stdict.158712.verb	시	noun	no-match	27	30	그는 그 사실을 부차시했다.
+stdict.164806.noun	시	noun	no-match	13	16	그는 사갈시도 언급했다.
+stdict.164806.verb	시	noun	no-match	27	30	그는 그 사실을 사갈시했다.
+stdict.187478.noun	시	noun	no-match	13	16	그는 소외시도 언급했다.
+stdict.187478.verb	시	noun	no-match	27	30	그는 그 사실을 소외시했다.
+stdict.196726.noun	시	noun	no-match	13	16	그는 수단시도 언급했다.
+stdict.196726.verb	시	noun	no-match	27	30	그는 그 사실을 수단시했다.
+stdict.200021.noun	시	noun	no-match	13	16	그는 순간시도 언급했다.
+stdict.208351.noun	시	noun	no-match	13	16	그는 신성시도 언급했다.
+stdict.208351.verb	시	noun	no-match	27	30	그는 그 사실을 신성시했다.
+stdict.219526.noun	시	noun	no-match	13	16	그는 야만시도 언급했다.
+stdict.219526.verb	시	noun	no-match	27	30	그는 그 사실을 야만시했다.
+stdict.512380.noun	시	noun	no-match	13	16	그는 양안시도 언급했다.
+stdict.512560.noun	시	noun	no-match	13	16	그는 열등시도 언급했다.
+stdict.512560.verb	시	noun	no-match	27	30	그는 그 사실을 열등시했다.
+stdict.251799.noun	시	noun	no-match	13	16	그는 우상시도 언급했다.
+stdict.251799.verb	시	noun	no-match	27	30	그는 그 사실을 우상시했다.
+stdict.249213.noun	시	noun	no-match	13	16	그는 우선시도 언급했다.
+stdict.249213.verb	시	noun	no-match	27	30	그는 그 사실을 우선시했다.
+stdict.466276.noun	시	noun	no-match	13	16	그는 위험시도 언급했다.
+stdict.466276.verb	시	noun	no-match	27	30	그는 그 사실을 위험시했다.
+stdict.256748.noun	시	noun	no-match	13	16	그는 유력시도 언급했다.
+stdict.256748.verb	시	noun	no-match	27	30	그는 그 사실을 유력시했다.
+stdict.267527.noun	시	noun	no-match	13	16	그는 의문시도 언급했다.
+stdict.267527.verb	시	noun	no-match	27	30	그는 그 사실을 의문시했다.
+stdict.263251.noun	시	noun	no-match	13	16	그는 이단시도 언급했다.
+stdict.263251.verb	시	noun	no-match	27	30	그는 그 사실을 이단시했다.
+stdict.266061.noun	시	noun	no-match	13	16	그는 이적시도 언급했다.
+stdict.266061.verb	시	noun	no-match	27	30	그는 그 사실을 이적시했다.
+stdict.260013.noun	시	noun	no-match	13	16	그는 이중시도 언급했다.
+stdict.268977.noun	시	noun	no-match	13	16	그는 입체시도 언급했다.
+stdict.282729.noun	시	noun	no-match	13	16	그는 적대시도 언급했다.
+stdict.282729.verb	시	noun	no-match	27	30	그는 그 사실을 적대시했다.
+stdict.297558.noun	시	noun	no-match	13	16	그는 존중시도 언급했다.
+stdict.297558.verb	시	noun	no-match	27	30	그는 그 사실을 존중시했다.
+stdict.297118.noun	시	noun	no-match	13	16	그는 죄악시도 언급했다.
+stdict.297118.verb	시	noun	no-match	27	30	그는 그 사실을 죄악시했다.
+stdict.309513.noun	시	noun	no-match	13	16	그는 주간시도 언급했다.
+stdict.480506.noun	시	noun	no-match	13	16	그는 주변시도 언급했다.
+stdict.297441.noun	시	noun	no-match	13	16	그는 주요시도 언급했다.
+stdict.297441.verb	시	noun	no-match	27	30	그는 그 사실을 주요시했다.
+stdict.310056.noun	시	noun	no-match	13	16	그는 중대시도 언급했다.
+stdict.310056.verb	시	noun	no-match	27	30	그는 그 사실을 중대시했다.
+stdict.307998.noun	시	noun	no-match	13	16	그는 중심시도 언급했다.
+stdict.311443.noun	시	noun	no-match	13	16	그는 중요시도 언급했다.
+stdict.311443.verb	시	noun	no-match	27	30	그는 그 사실을 중요시했다.
+stdict.317274.noun	시	noun	no-match	13	16	그는 직접시도 언급했다.
+stdict.325991.noun	시	noun	no-match	13	16	그는 청안시도 언급했다.
+stdict.325991.verb	시	noun	no-match	27	30	그는 그 사실을 청안시했다.
+stdict.327583.noun	시	noun	no-match	13	16	그는 초개시도 언급했다.
+stdict.327583.verb	시	noun	no-match	27	30	그는 그 사실을 초개시했다.
+stdict.347118.verb	시	noun	no-match	27	30	그는 그 사실을 통상시했다.
+stdict.369846.noun	시	noun	no-match	13	16	그는 현실시도 언급했다.
+stdict.369846.verb	시	noun	no-match	27	30	그는 그 사실을 현실시했다.
+stdict.375335.noun	시	noun	no-match	13	16	그는 혼동시도 언급했다.
+stdict.375335.verb	시	noun	no-match	27	30	그는 그 사실을 혼동시했다.
+stdict.501974.noun	시	noun	no-match	13	16	그는 확실시도 언급했다.
+stdict.501974.verb	시	noun	no-match	27	30	그는 그 사실을 확실시했다.
+stdict.504622.noun	시	noun	no-match	13	16	그는 확정시도 언급했다.
+stdict.504622.verb	시	noun	no-match	27	30	그는 그 사실을 확정시했다.

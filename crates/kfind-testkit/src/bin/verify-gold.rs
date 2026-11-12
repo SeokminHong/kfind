@@ -9,6 +9,7 @@ use kfind_testkit::{GoldHarness, load_morphology_cases};
 
 const WALK_HANG_STRESS: &str = include_str!("../../../../data/fixtures/walk_hang_stress.txt");
 const UD_MORPHOLOGY_CASES: &str = include_str!("../../../../data/fixtures/ud_morphology_cases.tsv");
+const BOUND_SI_CASES: &str = include_str!("../../../../data/fixtures/bound_si_span_cases.tsv");
 const INTERROGATIVE_CASES: &str =
     include_str!("../../../../data/fixtures/interrogative_span_cases.tsv");
 const PROSPECTIVE_CASES: &str =
@@ -97,6 +98,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let enriched_harness =
         harness.with_enriched_predicates(ENRICHED_PREDICATES_SOURCE, ENRICHED_PREDICATES)?;
     verify_span_cases(&enriched_harness, "UD morphology", UD_MORPHOLOGY_CASES)?;
+    verify_span_cases(&enriched_harness, "bound si suffix", BOUND_SI_CASES)?;
     verify_span_cases(
         &enriched_harness,
         "dependent noun subject",

@@ -37,6 +37,7 @@ class QueryMatrixContractReviewTests(unittest.TestCase):
             ("short-nominal-derivation", "short-nominal-derivation"),
             ("copula-interrogative", "copula-interrogative"),
             ("nominal-tail-copula", "nominal-tail-copula"),
+            ("bound-si", "bound-si"),
         ):
             with self.subTest(dataset=prefix):
                 self.assert_context_pairs(root, prefix, split)

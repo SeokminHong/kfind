@@ -1,0 +1,4 @@
+{"id":"ordinary-time","query":"시","pos":"noun","text":"비상시뿐 아니라 통상시에도 담당자가 있어야 한다.","expected":true,"gold_byte_start":23,"gold_byte_end":38,"paired_case_id":"ordinary-regard"}
+{"id":"ordinary-regard","query":"시","pos":"noun","text":"보고서는 폭언의 통상시에도 문제가 있다고 보았다.","expected":false,"gold_byte_start":23,"gold_byte_end":38,"paired_case_id":"ordinary-time"}
+{"id":"twilight-time","query":"시","pos":"noun","text":"한낮뿐 아니라 황혼시도 촬영 일정에 넣었다.","expected":true,"gold_byte_start":20,"gold_byte_end":32,"paired_case_id":"twilight-vision"}
+{"id":"twilight-vision","query":"시","pos":"noun","text":"시력 검사에서는 황혼시도 측정할 수 있다.","expected":false,"gold_byte_start":23,"gold_byte_end":35,"paired_case_id":"twilight-time"}
