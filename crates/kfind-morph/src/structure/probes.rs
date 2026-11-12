@@ -143,6 +143,33 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_unambiguous_final_nominal_component(&self, word: &str, suffix: &str) -> bool {
+        let Some(prefix) = word
+            .strip_suffix(suffix)
+            .filter(|prefix| !prefix.is_empty())
+        else {
+            return false;
+        };
+        let mut atomic = false;
+        let mut aligned = false;
+        self.resource
+            .common_prefix_analysis_refs(word.as_bytes(), |length, analysis| {
+                if length != word.len() {
+                    return;
+                }
+                if !matches!(analysis.positions(), [pos] if pos.is_nominal()) {
+                    return;
+                }
+                let last = analysis.components().last();
+                atomic |= last.is_none();
+                aligned |= last.is_some_and(|component| {
+                    component.pos == "NNG" && component.span == (prefix.len()..length)
+                });
+            });
+        aligned && !atomic
+    }
+
+    #[must_use]
     pub fn has_attested_short_nominal_derivation(
         &self,
         root: &str,

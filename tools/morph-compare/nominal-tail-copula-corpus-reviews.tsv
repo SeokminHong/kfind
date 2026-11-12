@@ -1,0 +1,5 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	gsd:test-s120:noun:지	지	noun	false	5926ce0ce329807565893f7f04c682ef2b89a82619cc0589ea462e82c023a4ac	contract-positive	aligned-source-component	거주지의 명사 성분 지(地)는 뒤의 지정사 과거 활용 앞에 놓인다.
+explicit-pos	corpus-negatives	gsd:test-s853:noun:국	국	noun	false	d8f891c5edd8cdc4483d38573411dff838b9b88767c6a5d7660e9029dae1f8b9	contract-positive	aligned-source-component	진국의 명사 성분 국은 국물을 뜻하는 문장에서 지정사 활용 앞에 놓인다.
+explicit-pos	corpus-negatives	pud:n01091017:noun:자	자	noun	false	1f47f5c3545fe37a6e404cad3f71a3297b2bf090349f2138dbae00f27a5434ff	contract-positive	aligned-source-component	책임자의 명사 성분 자(者)는 뒤의 지정사 관형형 앞에 놓인다.
+explicit-pos	corpus-negatives	pud:n01107008:noun:자	자	noun	false	9da06a1263c39b64671f20f5c6282f0989ebb02a4a96c90b39076593b993d2ca	contract-positive	aligned-source-component	책임자의 명사 성분 자(者)는 뒤의 지정사 관형형 앞에 놓인다.

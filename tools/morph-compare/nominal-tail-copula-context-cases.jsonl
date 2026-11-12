@@ -1,0 +1,2 @@
+{"id":"literal-soup","query":"국","pos":"noun","text":"국물은 진국이고 건더기도 넉넉했다.","expected":true,"gold_byte_start":10,"gold_byte_end":22,"paired_case_id":"figurative-person"}
+{"id":"figurative-person","query":"국","pos":"noun","text":"그 친구는 진국이고 어려울 때마다 먼저 나서서 도와줬다.","expected":false,"gold_byte_start":14,"gold_byte_end":26,"paired_case_id":"literal-soup"}
