@@ -666,6 +666,9 @@ fn reference_predicate_continuation(
     following: &str,
 ) -> Option<(usize, Vec<RuleId>)> {
     const AEO: &[ReferenceSuffix] = &[
+        reference_suffix("야지", &["ending.necessity-yaji"]),
+        reference_suffix("야지요", &["ending.necessity-yaji-polite"]),
+        reference_suffix("야죠", &["ending.necessity-yaji-polite"]),
         reference_suffix("지거들랑", &["ending.auxiliary-jida", "ending.geodeun"]),
         reference_suffix("지건", &["ending.auxiliary-jida", "ending.geodeun-short"]),
         reference_suffix("지거든", &["ending.auxiliary-jida", "ending.geodeun"]),
@@ -700,6 +703,9 @@ fn reference_predicate_continuation(
         reference_suffix("라", &["ending.imperative-ra"]),
     ];
     const PAST: &[ReferenceSuffix] = &[
+        reference_suffix("어야지", &["ending.necessity-yaji"]),
+        reference_suffix("어야지요", &["ending.necessity-yaji-polite"]),
+        reference_suffix("어야죠", &["ending.necessity-yaji-polite"]),
         reference_suffix("건", &["ending.geodeun-short"]),
         reference_suffix("거든", &["ending.geodeun"]),
         reference_suffix("거든요", &["ending.geodeun-polite"]),
@@ -739,6 +745,26 @@ fn reference_predicate_continuation(
         reference_suffix("지", &["ending.quotative-ji"]),
     ];
     const EU: &[ReferenceSuffix] = &[
+        reference_suffix(
+            "셔야지",
+            &["ending.honorific", "ending.aoeo", "ending.necessity-yaji"],
+        ),
+        reference_suffix(
+            "셔야지요",
+            &[
+                "ending.honorific",
+                "ending.aoeo",
+                "ending.necessity-yaji-polite",
+            ],
+        ),
+        reference_suffix(
+            "셔야죠",
+            &[
+                "ending.honorific",
+                "ending.aoeo",
+                "ending.necessity-yaji-polite",
+            ],
+        ),
         reference_suffix("시건", &["ending.honorific", "ending.geodeun-short"]),
         reference_suffix(
             "셨건",
@@ -821,6 +847,80 @@ fn reference_predicate_continuation(
         reference_suffix("건", &["ending.geodeun-short"]),
     ];
 
+    const RIEUL_FINAL: &[ReferenceSuffix] = &[
+        reference_suffix("세", &["ending.final-rieulse"]),
+        reference_suffix("지", &["ending.doubt-rieulji"]),
+        reference_suffix("지요", &["ending.doubt-rieulji"]),
+        reference_suffix("는지", &["ending.doubt-rieulneunji"]),
+        reference_suffix("는지요", &["ending.doubt-rieulneunji"]),
+        reference_suffix("걸", &["ending.conjecture-rieulgeol"]),
+        reference_suffix("걸요", &["ending.conjecture-rieulgeol"]),
+    ];
+
+    const PAST_RIEUL_FINAL: &[ReferenceSuffix] = &[
+        reference_suffix("을지", &["ending.doubt-rieulji"]),
+        reference_suffix("을지요", &["ending.doubt-rieulji"]),
+        reference_suffix("을는지", &["ending.doubt-rieulneunji"]),
+        reference_suffix("을는지요", &["ending.doubt-rieulneunji"]),
+        reference_suffix("을걸", &["ending.conjecture-rieulgeol"]),
+        reference_suffix("을걸요", &["ending.conjecture-rieulgeol"]),
+    ];
+
+    const EU_RIEUL_FINAL: &[ReferenceSuffix] = &[
+        reference_suffix("실지", &["ending.honorific", "ending.doubt-rieulji"]),
+        reference_suffix("실지요", &["ending.honorific", "ending.doubt-rieulji"]),
+        reference_suffix("실는지", &["ending.honorific", "ending.doubt-rieulneunji"]),
+        reference_suffix(
+            "실는지요",
+            &["ending.honorific", "ending.doubt-rieulneunji"],
+        ),
+        reference_suffix("실걸", &["ending.honorific", "ending.conjecture-rieulgeol"]),
+        reference_suffix(
+            "실걸요",
+            &["ending.honorific", "ending.conjecture-rieulgeol"],
+        ),
+        reference_suffix(
+            "셨을지",
+            &["ending.honorific", "ending.past", "ending.doubt-rieulji"],
+        ),
+        reference_suffix(
+            "셨을지요",
+            &["ending.honorific", "ending.past", "ending.doubt-rieulji"],
+        ),
+        reference_suffix(
+            "셨을는지",
+            &[
+                "ending.honorific",
+                "ending.past",
+                "ending.doubt-rieulneunji",
+            ],
+        ),
+        reference_suffix(
+            "셨을는지요",
+            &[
+                "ending.honorific",
+                "ending.past",
+                "ending.doubt-rieulneunji",
+            ],
+        ),
+        reference_suffix(
+            "셨을걸",
+            &[
+                "ending.honorific",
+                "ending.past",
+                "ending.conjecture-rieulgeol",
+            ],
+        ),
+        reference_suffix(
+            "셨을걸요",
+            &[
+                "ending.honorific",
+                "ending.past",
+                "ending.conjecture-rieulgeol",
+            ],
+        ),
+    ];
+
     let candidates = match state {
         ContinuationState::Terminal => return Some((0, Vec::new())),
         ContinuationState::AOrEo => AEO,
@@ -829,9 +929,16 @@ fn reference_predicate_continuation(
         ContinuationState::Declarative => DECLARATIVE,
         ContinuationState::Eu => EU,
         ContinuationState::Geodeun => GEODEUN,
+        ContinuationState::RieulFinal => RIEUL_FINAL,
+    };
+    let rieul_endings = match state {
+        ContinuationState::Past => PAST_RIEUL_FINAL,
+        ContinuationState::Eu => EU_RIEUL_FINAL,
+        _ => &[],
     };
     let matched = candidates
         .iter()
+        .chain(rieul_endings)
         .filter(|suffix| {
             following.starts_with(suffix.surface)
                 && (pos.is_action()
@@ -849,7 +956,12 @@ fn reference_predicate_continuation(
                     ))
         })
         .max_by_key(|suffix| suffix.surface.len());
-    if matched.is_none() && matches!(state, ContinuationState::Eu | ContinuationState::Geodeun) {
+    if matched.is_none()
+        && matches!(
+            state,
+            ContinuationState::Eu | ContinuationState::Geodeun | ContinuationState::RieulFinal
+        )
+    {
         return None;
     }
     Some(matched.map_or_else(

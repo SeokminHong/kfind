@@ -242,6 +242,7 @@ pub enum ContinuationState {
     Declarative,
     Eu,
     Geodeun,
+    RieulFinal,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

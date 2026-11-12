@@ -636,5 +636,26 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 먹다	verb	먼저 밥을 먹쇼.	no-match	imperative-sio-allomorph
 사다	verb	네가 사건 말건 상관없어.	match	geodeun-short
 하다	verb	다른 사람이 뭘 하건 간에 관심이 없어 보였다.	match	geodeun-short
+받다	verb	신청서를 먼저 받아야지.	match	necessity-yaji
+걷다	verb	건강을 위해 매일 걸어야지요.	match	necessity-yaji
+하다	verb	출근 준비를 미리 하여야지.	match	necessity-yaji
+하다	verb	출근 준비를 미리 해야죠.	match	necessity-yaji
+높다	adjective	점수가 더 높아야지.	match	necessity-yaji
+이다	copula	정답은 이 숫자이어야지.	match	necessity-yaji-copula
+이다	copula	선물은 책이어야지.	match	necessity-yaji-copula
+이다	copula	정답은 이 숫자여야죠.	match	necessity-yaji-copula
+이다	copula	선물은 책여야죠.	no-match	necessity-yaji-copula-boundary
+하다	verb	늦으면 연락이라도 했어야지.	match	necessity-yaji-past
+먹다	verb	어르신도 진지를 먹으셔야죠.	match	necessity-yaji-honorific
+살다	verb	어르신께서 오래 사셔야지요.	match	necessity-yaji-honorific
+가다	verb	내일 갈는지 모르겠다.	match	doubt-rieulneunji
+먹다	verb	밥을 먹을는지 아직 모른다.	match	doubt-rieulneunji
+벌다	verb	돈을 벌는지 모르겠다.	match	doubt-rieulneunji
+듣다	verb	그 말을 들을지요.	match	doubt-rieulji
+되다	verb	아마 잘 될걸.	match	conjecture-rieulgeol
+먹다	verb	배가 고팠으면 먹었을걸.	match	conjecture-rieulgeol-past
+앉다	verb	어르신이 어디에 앉으실는지 모르겠다.	match	doubt-rieulneunji-honorific
+살다	verb	어르신은 오래 사실걸요.	match	conjecture-rieulgeol-honorific
+이다	copula	그곳이 새 학교일는지 모르겠다.	match	doubt-rieulneunji-copula
 치다	verb	지구온난화는 여러 측면에 영향을 미친다.	no-match	structural-whole-predicate
 다	noun	저 친구는 왕친입니다.	no-match	structural-ending-component

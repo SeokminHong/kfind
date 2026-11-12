@@ -75,6 +75,10 @@ fn test_surfaces(branch: &SurfaceBranchSpec) -> Vec<String> {
             format!("{}시다", branch.anchor),
             format!("{}십니다", branch.anchor),
         ],
+        ContinuationState::RieulFinal => ["세", "지", "는지", "걸"]
+            .into_iter()
+            .map(|suffix| format!("{}{suffix}", branch.anchor))
+            .collect(),
         ContinuationState::Geodeun => ["거든", "거든요", "거들랑", "건"]
             .into_iter()
             .map(|suffix| format!("{}{suffix}", branch.anchor))
