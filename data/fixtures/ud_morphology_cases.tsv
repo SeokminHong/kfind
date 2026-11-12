@@ -90,6 +90,11 @@ corpus.ud-kaist.dev.MH2_0169-s521.verb.정하다	정하다	verb	no-match	33	39	�
 corpus.ud-kaist.dev.MH2_0169-s521.noun.정치	정치	noun	smart-exact	33	39	우리나라의 경우 재벌이 정치 참여를 삼갈 더 근본적인 이유는 그들이 막대한 은행빚을 지고 있다는 점이다.
 regression.contracted-connective-ji.정하다	정하다	verb	smart-exact	17	23	아직 가격을 정치 않았다.
 regression.contracted-connective-ji.만만하다	만만하다	adjective	smart-exact	14	23	그 제안은 만만치 않았다.
+corpus.ud-kaist.dev.MH2_0149-s11.noun.말	말	noun	smart-exact	50	53	저기서 얻은 전리품으로 갑부가 된단 말이거든.
+regression.nominal-explicit-copula.말	말	noun	smart-exact	21	24	그건 처음 듣는 말이거든.
+regression.nominal-explicit-copula.이다	이다	adjective	smart-exact	24	33	그건 처음 듣는 말이거든.
+regression.nominal-subject-particle.말	말	noun	smart-exact	0	6	말이 들렸다.
+regression.nominal-omitted-copula.얘기	얘기	noun	smart-exact	21	27	그건 처음 듣는 얘기거든.
 corpus.ud-kaist.test.MH2_0070-s138.adjective.다르다	다르다	adjective	match	10	16	이와는 달리 우리나라 신발수출은 91 년 11.3 % 감소한 이후 92년 8월 말까지 16.6 %나 줄었다.
 corpus.ud-kaist.test.MH2_0070-s73.adjective.같다	같다	adjective	match	110	116	또한 각국의 소비지출은 1 개월 평균, 자국통화로 된 금액을 이용하였으며, 미국과 같이 연간단위로 된 통계자료는 월평균으로 환산하여 사용하였다.
 corpus.ud-kaist.test.MH2_0180-s113.pronoun.무어	무어	pronoun	match	39	48	일반적으로는 사항에 관해서 무언가 새로운 것을 경험하려고 하여 주어의 토대를 뛰어넘고 있는 것이다.
