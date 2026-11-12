@@ -252,6 +252,10 @@ const HONORIFIC_FORMAL_SHORT: Suffix = suffix(
     &["ending.honorific", "ending.imperative-formal-short"],
 );
 const HONORIFIC_PROPOSITIVE: Suffix = suffix("십시다", &["ending.honorific", "ending.propositive"]);
+const HONORIFIC_EARNEST_REQUEST: Suffix = suffix(
+    "십시사",
+    &["ending.honorific", "ending.earnest-request-sisa"],
+);
 pub(super) const INTENTIVE: Suffix = suffix("려", &["ending.intentive-ryeo"]);
 pub(super) const CONDITIONAL: Suffix = suffix("면", &["ending.conditional"]);
 pub(super) const COORDINATE: Suffix = suffix("며", &["ending.coordinate-myeo"]);
@@ -265,6 +269,7 @@ pub(super) const HONORIFIC_BIEUP_ENDINGS: &[Suffix] = &[
     HONORIFIC_FORMAL,
     HONORIFIC_FORMAL_SHORT,
     HONORIFIC_PROPOSITIVE,
+    HONORIFIC_EARNEST_REQUEST,
 ];
 const GEODEUN: Suffix = suffix("거든", &["ending.geodeun"]);
 const GEODEUN_POLITE: Suffix = suffix("거든요", &["ending.geodeun-polite"]);
@@ -371,6 +376,7 @@ const EU_SUFFIXES: &[Suffix] = &[
     HONORIFIC_FORMAL,
     HONORIFIC_FORMAL_SHORT,
     HONORIFIC_PROPOSITIVE,
+    HONORIFIC_EARNEST_REQUEST,
     INTENTIVE,
     INTENTIVE_CONDITIONAL,
     HONORIFIC_INTENTIVE_CONDITIONAL,
@@ -480,6 +486,27 @@ const BIEUP_FINAL: &[Suffix] = &[
     suffix("디까", &["ending.retrospective-interrogative"]),
     suffix("디다", &["ending.retrospective-declarative"]),
 ];
+
+macro_rules! formal_bieup_extensions {
+    ($prefix:literal $(, $prior:literal)*) => {
+        &[
+            suffix(concat!($prefix, "네"), &[$($prior,)* "ending.formal-boast-ne"]),
+            suffix(concat!($prefix, "늰다"), &[$($prior,)* "ending.formal-declarative-neunda"]),
+            suffix(concat!($prefix, "딘다"), &[$($prior,)* "ending.formal-retrospective-dinda"]),
+            suffix(concat!($prefix, "지요"), &[$($prior,)* "ending.formal-confirmation-jiyo"]),
+            suffix(concat!($prefix, "죠"), &[$($prior,)* "ending.formal-confirmation-jiyo"]),
+        ]
+    };
+}
+
+const BIEUP_EXTENSIONS: &[Suffix] = formal_bieup_extensions!("");
+const SEUP_EXTENSIONS: &[Suffix] = formal_bieup_extensions!("습");
+const GET_SEUP_EXTENSIONS: &[Suffix] = formal_bieup_extensions!("겠습", "ending.future");
+const SIP_EXTENSIONS: &[Suffix] = formal_bieup_extensions!("십", "ending.honorific");
+const SYEOT_SEUP_EXTENSIONS: &[Suffix] =
+    formal_bieup_extensions!("셨습", "ending.honorific", "ending.past");
+const SIGET_SEUP_EXTENSIONS: &[Suffix] =
+    formal_bieup_extensions!("시겠습", "ending.honorific", "ending.future");
 
 macro_rules! prospective_suffixes {
     ($prefix:literal $(, $rule:literal)*) => {
@@ -638,6 +665,14 @@ pub fn verify_predicate_continuation(
         ContinuationState::Prospective => PROSPECTIVE,
     };
     let additional_endings = match state {
+        ContinuationState::BieupFinal => BIEUP_EXTENSIONS,
+        ContinuationState::Past | ContinuationState::Future if following.starts_with('습') => {
+            SEUP_EXTENSIONS
+        }
+        ContinuationState::Past if following.starts_with("겠습") => GET_SEUP_EXTENSIONS,
+        ContinuationState::Eu if following.starts_with('십') => SIP_EXTENSIONS,
+        ContinuationState::Eu if following.starts_with("셨습") => SYEOT_SEUP_EXTENSIONS,
+        ContinuationState::Eu if following.starts_with("시겠습") => SIGET_SEUP_EXTENSIONS,
         ContinuationState::StemEnding
             if (pos == PredicatePos::Copula || anchor == "아니")
                 && following.starts_with(['란', '람', '랍', '래', '로']) =>
@@ -719,6 +754,7 @@ pub fn verify_predicate_continuation(
                                 | "ending.imperative-formal"
                                 | "ending.imperative-formal-short"
                                 | "ending.propositive"
+                                | "ending.earnest-request-sisa"
                                 | "ending.intentive-ryeo"
                                 | "ending.intentive-adnominal"
                                 | "ending.purpose-reo"

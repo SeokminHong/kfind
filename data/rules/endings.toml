@@ -98,7 +98,7 @@ initial = "a-or-eo"
 forms = ["았", "었"]
 required = []
 forbidden = []
-next = ["ending.final-da", "ending.polite-declarative", "ending.past-polite-yo", "ending.conditional", "ending.connective-eudoe", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go", "ending.coordinate-myeo", "ending.future-adnominal", "ending.retrospective-adnominal", "ending.quotative-go", "ending.interrogative-neunya", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite", "ending.necessity-yaji", "ending.necessity-yaji-polite", "ending.doubt-rieulji", "ending.doubt-rieulneunji", "ending.conjecture-rieulgeol", "ending.formal-interrogative", "ending.retrospective-interrogative", "ending.retrospective-declarative", "ending.prospective-final", "ending.prospective-connective", "ending.prospective-quotative"]
+next = ["ending.final-da", "ending.polite-declarative", "ending.past-polite-yo", "ending.conditional", "ending.connective-eudoe", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go", "ending.coordinate-myeo", "ending.future-adnominal", "ending.retrospective-adnominal", "ending.quotative-go", "ending.interrogative-neunya", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite", "ending.necessity-yaji", "ending.necessity-yaji-polite", "ending.doubt-rieulji", "ending.doubt-rieulneunji", "ending.conjecture-rieulgeol", "ending.formal-interrogative", "ending.retrospective-interrogative", "ending.retrospective-declarative", "ending.formal-boast-ne", "ending.formal-declarative-neunda", "ending.formal-retrospective-dinda", "ending.formal-confirmation-jiyo", "ending.prospective-final", "ending.prospective-connective", "ending.prospective-quotative"]
 terminal = true
 
 [[ending]]
@@ -578,7 +578,7 @@ initial = "consonant"
 forms = ["겠"]
 required = []
 forbidden = []
-next = ["ending.final-da", "ending.polite-declarative", "ending.connective-eudoe", "ending.formal-interrogative", "ending.retrospective-interrogative", "ending.retrospective-declarative", "ending.prospective-final", "ending.prospective-connective", "ending.prospective-quotative"]
+next = ["ending.final-da", "ending.polite-declarative", "ending.connective-eudoe", "ending.formal-interrogative", "ending.retrospective-interrogative", "ending.retrospective-declarative", "ending.formal-boast-ne", "ending.formal-declarative-neunda", "ending.formal-retrospective-dinda", "ending.formal-confirmation-jiyo", "ending.prospective-final", "ending.prospective-connective", "ending.prospective-quotative"]
 terminal = true
 
 [[ending]]
@@ -588,7 +588,7 @@ initial = "eu"
 forms = ["시", "으시"]
 required = []
 forbidden = []
-next = ["ending.past", "ending.future", "ending.final-da", "ending.polite-declarative", "ending.connective-go", "ending.present-adnominal", "ending.propositive", "ending.imperative-formal", "ending.imperative-formal-short", "ending.intentive-ryeomyeon", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite", "ending.doubt-rieulji", "ending.doubt-rieulneunji", "ending.conjecture-rieulgeol", "ending.formal-interrogative", "ending.retrospective-interrogative", "ending.retrospective-declarative", "ending.prospective-final", "ending.prospective-connective", "ending.prospective-quotative"]
+next = ["ending.past", "ending.future", "ending.final-da", "ending.polite-declarative", "ending.connective-go", "ending.present-adnominal", "ending.propositive", "ending.earnest-request-sisa", "ending.imperative-formal", "ending.imperative-formal-short", "ending.intentive-ryeomyeon", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite", "ending.doubt-rieulji", "ending.doubt-rieulneunji", "ending.conjecture-rieulgeol", "ending.formal-interrogative", "ending.retrospective-interrogative", "ending.retrospective-declarative", "ending.formal-boast-ne", "ending.formal-declarative-neunda", "ending.formal-retrospective-dinda", "ending.formal-confirmation-jiyo", "ending.prospective-final", "ending.prospective-connective", "ending.prospective-quotative"]
 terminal = false
 
 [[ending]]
@@ -1022,6 +1022,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.earnest-request-sisa"
+category = "final"
+initial = "attach-bieup"
+forms = ["ㅂ시사", "읍시사"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.imperative-formal"
 category = "final"
 initial = "attach-bieup"
@@ -1076,6 +1086,46 @@ id = "ending.retrospective-declarative"
 category = "final"
 initial = "attach-bieup"
 forms = ["ㅂ디다", "습디다"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.formal-boast-ne"
+category = "final"
+initial = "attach-bieup"
+forms = ["ㅂ네", "습네"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.formal-declarative-neunda"
+category = "final"
+initial = "attach-bieup"
+forms = ["ㅂ늰다", "습늰다"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.formal-retrospective-dinda"
+category = "final"
+initial = "attach-bieup"
+forms = ["ㅂ딘다", "습딘다"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.formal-confirmation-jiyo"
+category = "final"
+initial = "attach-bieup"
+forms = ["ㅂ지요", "습지요", "ㅂ죠", "습죠"]
 required = []
 forbidden = []
 next = []
