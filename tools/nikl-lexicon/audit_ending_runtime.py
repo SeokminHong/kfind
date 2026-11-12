@@ -103,7 +103,9 @@ def annotated_host(tokens, word, stem, predicates):
             continue
         tag = token.tag.partition("-")[0]
         if tag == "VCP" and token.start + token.len <= suffix_start:
-            hosts.append(("이다", "adjective"))
+            visible_copula = token.len == 1 and word.string[token.start] == "이"
+            start = token.start if visible_copula else word.start()
+            hosts.append(("이다", "adjective", start))
         if token.start >= suffix_start:
             continue
         lemma = token.form + "다"
@@ -113,7 +115,7 @@ def annotated_host(tokens, word, stem, predicates):
                 lemma = previous.form + lemma
         pos = {"VV": "verb", "VA": "adjective", "XSV": "verb", "XSA": "adjective"}.get(tag)
         if pos and pos in predicates.get(lemma, ()):
-            hosts.append((lemma, pos))
+            hosts.append((lemma, pos, word.start()))
     return hosts[-1] if hosts else None
 
 
@@ -153,21 +155,21 @@ def example_candidates(ending, examples, predicates, conjugations, annotate):
                 if last % 28 == 0 and drops_rieul:
                     rieul_lemma = stem[:-1] + chr(ord(stem[-1]) + 8) + "다"
                     analyses.update((rieul_lemma, pos) for pos in predicates.get(rieul_lemma, ()))
-            inferred = annotated if annotated else analyses
+            inferred = annotated or {(lemma, pos, word.start()) for lemma, pos in analyses}
             if len(inferred) == 1:
-                query, pos = next(iter(inferred))
-                candidates.append((query, pos, word, bool(annotated)))
+                query, pos, start = next(iter(inferred))
+                candidates.append((query, pos, start, word.end(), bool(annotated)))
         if len(candidates) != 1:
             continue
-        query, pos, word, annotated = candidates[0]
+        query, pos, start, end, annotated = candidates[0]
         yield {
             "ending": ending,
             "query": query,
             "pos": pos,
             "text": text,
-            "surface": word[0],
-            "gold_byte_start": len(text[:word.start()].encode()),
-            "gold_byte_end": len(text[:word.end()].encode()),
+            "surface": text[start:end],
+            "gold_byte_start": len(text[:start].encode()),
+            "gold_byte_end": len(text[:end].encode()),
             "expected": True,
             "source": source,
             "source_id": source_id,
