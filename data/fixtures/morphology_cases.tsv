@@ -587,5 +587,24 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 들어오다	verb	내 방으로 들어오너라.	match	imperative-neora
 가다	verb	이제 집으로 가너라.	no-match	imperative-neora
 오다	verb	날이 밝기 전에 오거라.	match	imperative-geora
+오다	verb	어서 옵쇼.	match	imperative-formal-short
+가다	verb	안녕히 갑쇼.	match	imperative-formal-short
+읽다	verb	이것을 읽읍쇼.	match	imperative-formal-short
+앉다	verb	여기 앉읍쇼.	match	imperative-formal-short
+믿다	verb	그를 믿읍쇼.	match	imperative-formal-short
+들다	verb	어서 자리에 듭시오.	match	imperative-formal
+읽다	verb	이것을 읽읍시오.	match	imperative-formal
+앉다	verb	여기 앉읍시오.	match	imperative-formal
+믿다	verb	그를 믿읍시오.	match	imperative-formal
+앉다	verb	모두 자리에 앉으십시오.	match	imperative-formal-honorific
+듣다	verb	제 말을 잘 들으십시오.	match	imperative-formal-honorific
+살다	verb	오래 사십시오.	match	imperative-formal-honorific
+가다	verb	안녕히 가십쇼.	match	imperative-formal-short-honorific
+믿다	verb	제 말을 믿으십쇼.	match	imperative-formal-short-honorific
+앉다	verb	모두 자리에 앉으십시다.	match	propositive-honorific
+들다	verb	어서 방에 드십시다.	match	propositive-honorific
+가다	verb	안녕히 가읍쇼.	no-match	imperative-formal-allomorph
+읽다	verb	이것을 읽쇼.	no-match	imperative-formal-allomorph
+좋다	adjective	이 결과가 좋읍쇼.	no-match	imperative-formal-pos
 치다	verb	지구온난화는 여러 측면에 영향을 미친다.	no-match	structural-whole-predicate
 다	noun	저 친구는 왕친입니다.	no-match	structural-ending-component

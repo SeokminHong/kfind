@@ -728,6 +728,12 @@ fn reference_predicate_continuation(
         reference_suffix("지", &["ending.quotative-ji"]),
     ];
     const EU: &[ReferenceSuffix] = &[
+        reference_suffix("십시오", &["ending.honorific", "ending.imperative-formal"]),
+        reference_suffix(
+            "십쇼",
+            &["ending.honorific", "ending.imperative-formal-short"],
+        ),
+        reference_suffix("십시다", &["ending.honorific", "ending.propositive"]),
         reference_suffix("면서", &["ending.simultaneous-myeonseo"]),
         reference_suffix("려던", &["ending.intentive-adnominal"]),
         reference_suffix("러", &["ending.purpose-reo"]),
@@ -783,7 +789,10 @@ fn reference_predicate_continuation(
         .filter(|suffix| {
             following.starts_with(suffix.surface)
                 && (pos.is_action()
-                    || !matches!(suffix.surface, "라" | "시오" | "려던" | "러" | "시는"))
+                    || !matches!(
+                        suffix.surface,
+                        "라" | "시오" | "십시오" | "십쇼" | "십시다" | "려던" | "러" | "시는"
+                    ))
         })
         .max_by_key(|suffix| suffix.surface.len());
     if matched.is_none() && state == ContinuationState::Eu {

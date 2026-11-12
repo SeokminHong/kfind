@@ -10,9 +10,9 @@ pub struct PredicateContinuationMatch {
 }
 
 #[derive(Debug, Clone, Copy)]
-struct Suffix {
-    surface: &'static str,
-    rules: &'static [&'static str],
+pub(super) struct Suffix {
+    pub(super) surface: &'static str,
+    pub(super) rules: &'static [&'static str],
 }
 
 const A_OR_EO_SUFFIXES: &[Suffix] = &[
@@ -79,7 +79,24 @@ const DECLARATIVE_NI: Suffix = suffix("니", &["ending.quotative-ni"]);
 const DECLARATIVE_MYEO: Suffix = suffix("며", &["ending.quotative-myeo"]);
 const DECLARATIVE_JI: Suffix = suffix("지", &["ending.quotative-ji"]);
 
+const HONORIFIC_FORMAL: Suffix =
+    suffix("십시오", &["ending.honorific", "ending.imperative-formal"]);
+const HONORIFIC_FORMAL_SHORT: Suffix = suffix(
+    "십쇼",
+    &["ending.honorific", "ending.imperative-formal-short"],
+);
+const HONORIFIC_PROPOSITIVE: Suffix = suffix("십시다", &["ending.honorific", "ending.propositive"]);
+
+pub(super) const HONORIFIC_BIEUP_ENDINGS: &[Suffix] = &[
+    HONORIFIC_FORMAL,
+    HONORIFIC_FORMAL_SHORT,
+    HONORIFIC_PROPOSITIVE,
+];
+
 const EU_SUFFIXES: &[Suffix] = &[
+    HONORIFIC_FORMAL,
+    HONORIFIC_FORMAL_SHORT,
+    HONORIFIC_PROPOSITIVE,
     suffix("면서", &["ending.simultaneous-myeonseo"]),
     suffix("려던", &["ending.intentive-adnominal"]),
     suffix("러", &["ending.purpose-reo"]),
@@ -166,6 +183,9 @@ pub fn verify_predicate_continuation(
                             *rule,
                             "ending.imperative-ra"
                                 | "ending.imperative-sio"
+                                | "ending.imperative-formal"
+                                | "ending.imperative-formal-short"
+                                | "ending.propositive"
                                 | "ending.intentive-adnominal"
                                 | "ending.purpose-reo"
                                 | "ending.present-adnominal"

@@ -418,7 +418,7 @@ initial = "eu"
 forms = ["시", "으시"]
 required = []
 forbidden = []
-next = ["ending.past", "ending.future", "ending.final-da", "ending.polite-declarative", "ending.connective-go", "ending.present-adnominal"]
+next = ["ending.past", "ending.future", "ending.final-da", "ending.polite-declarative", "ending.connective-go", "ending.present-adnominal", "ending.propositive", "ending.imperative-formal", "ending.imperative-formal-short"]
 terminal = false
 
 [[ending]]
@@ -606,6 +606,26 @@ id = "ending.propositive"
 category = "final"
 initial = "attach-bieup"
 forms = ["ㅂ시다", "읍시다"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.imperative-formal"
+category = "final"
+initial = "attach-bieup"
+forms = ["ㅂ시오", "읍시오"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.imperative-formal-short"
+category = "final"
+initial = "attach-bieup"
+forms = ["ㅂ쇼", "읍쇼"]
 required = ["action-verb"]
 forbidden = []
 next = []

@@ -339,11 +339,11 @@ pub(super) fn intentive_adnominal_surface(
     Ok(Some(derived(format!("{base}려는"), core_len, rules)))
 }
 
-pub(super) fn propositive_surface(
+pub(super) fn bieup_ending_base(
     entry: &PredicateEntry,
     stem: &str,
 ) -> Result<Option<DerivedSurface>, GenerateError> {
-    let (base, core_len, mut rules) = if let Some(base) = eu_anchor(entry, stem)? {
+    let (base, core_len, rules) = if let Some(base) = eu_anchor(entry, stem)? {
         (base.surface, base.core_len, base.rules)
     } else {
         let Some((base, rules)) = conditional_base(entry, stem)? else {
@@ -355,17 +355,16 @@ pub(super) fn propositive_surface(
     let last = base
         .chars()
         .next_back()
-        .expect("non-empty propositive base");
+        .expect("non-empty bieup ending base");
     let syllable = decompose_syllable(last).ok_or_else(|| mismatch(entry))?;
     let inflected = if syllable.jongseong == JONG_NONE {
-        add_final(&base, JONG_BIEUP).expect("vowel-final propositive base")
+        add_final(&base, JONG_BIEUP).expect("vowel-final bieup ending base")
     } else if syllable.jongseong == JONG_RIEUL {
-        replace_last_final(&base, JONG_BIEUP).expect("rieul-final propositive base")
+        replace_last_final(&base, JONG_BIEUP).expect("rieul-final bieup ending base")
     } else {
         format!("{base}읍")
     };
-    rules.push(rule("ending.propositive"));
-    Ok(Some(derived(format!("{inflected}시다"), core_len, rules)))
+    Ok(Some(derived(inflected, core_len, rules)))
 }
 
 pub(super) fn honorific_anchor(

@@ -19,10 +19,10 @@ mod continuation;
 pub use continuation::{PredicateContinuationMatch, verify_predicate_continuation};
 
 use alternation::{
-    aeo_surfaces, conditional_surface, coordinate_surface, ending_base, eu_anchor,
-    future_adnominal, honorific_anchor, intentive_adnominal_surface, intentive_surface,
+    aeo_surfaces, bieup_ending_base, conditional_surface, coordinate_surface, ending_base,
+    eu_anchor, future_adnominal, honorific_anchor, intentive_adnominal_surface, intentive_surface,
     nominalizer_surface, past_adnominal, polite_declarative, present_adnominal,
-    present_declarative, propositive_surface,
+    present_declarative,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -522,8 +522,23 @@ fn compile_productive(
         if let Some(intentive) = intentive_adnominal_surface(entry, stem)? {
             push_derived(branches, entry, intentive, ContinuationState::Terminal);
         }
-        if let Some(propositive) = propositive_surface(entry, stem)? {
-            push_derived(branches, entry, propositive, ContinuationState::Terminal);
+        if let Some(base) = bieup_ending_base(entry, stem)? {
+            for (suffix, ending) in [
+                ("시다", "ending.propositive"),
+                ("시오", "ending.imperative-formal"),
+                ("쇼", "ending.imperative-formal-short"),
+            ] {
+                let mut rules = base.rules.clone();
+                rules.push(rule(ending));
+                push_branch(
+                    branches,
+                    entry,
+                    format!("{}{suffix}", base.surface),
+                    base.core_len,
+                    ContinuationState::Terminal,
+                    rules,
+                );
+            }
         }
         push_derived(
             branches,
@@ -687,6 +702,16 @@ fn compile_rieul_honorific(
         );
     }
     if entry.pos.is_action() {
+        for suffix in continuation::HONORIFIC_BIEUP_ENDINGS {
+            push_branch(
+                branches,
+                entry,
+                format!("{base}{}", suffix.surface),
+                core_len,
+                ContinuationState::Terminal,
+                suffix.rules.iter().map(|id| rule(id)).collect(),
+            );
+        }
         push_branch(
             branches,
             entry,
