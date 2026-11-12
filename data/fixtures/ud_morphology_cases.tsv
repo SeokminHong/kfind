@@ -634,3 +634,13 @@ corpus.ud-gsd.test.test-s668.verb.past-neyo	거부당하다	verb	smart-exact	17	
 corpus.ud-gsd.test.test-s856.adjective.honorific-neyo	같다	adjective	smart-exact	33	48	친절하고 따뜻한 어머니 같으시네요.
 corpus.ud-gsd.test.test-s892.verb.past-neyo	발견하다	verb	smart-exact	23	38	맛있는 피자집을 발견했네요!
 corpus.ud-gsd.test.test-s982.verb.honorific-neyo	하다	verb	smart-exact	120	132	주문 후 한 시간이 다 되도록 소식이 없어 전화해 보니 이미 왔었는데 주소를 못 찾았다고 하시네요.
+regression.plain-report-adnominal.auxiliary	있다	verb	smart-exact	20	29	귀를 기울이고 있다는 점을 똑바로 봐야 할 것이다.
+regression.plain-report-adnominal.past	있다	verb	smart-exact	20	32	현장에 사람이 있었다는 제보를 받았다.
+regression.plain-report-adnominal.derived	기획되다	verb	smart-exact	43	61	외국인도 이용 가능한 상품으로 기획되었다는 점을 강조했다.
+regression.plain-report-adnominal.adjective	없다	adjective	smart-exact	11	20	갈 곳이 없다는 소식을 들었다.
+regression.plain-report-adnominal.future	가다	verb	smart-exact	17	29	민수가 먼저 가겠다는 뜻을 밝혔다.
+regression.plain-report-adnominal.honorific	계시다	verb	smart-exact	23	35	선생님이 교실에 계시다는 말을 들었다.
+regression.plain-report-adnominal.concern	우려하다	verb	smart-exact	24	39	그는 비용 증가를 우려했다는 사실을 인정했다.
+regression.plain-report-adnominal.start	시작하다	verb	smart-exact	20	35	드디어 공사를 시작했다는 소식을 들었다.
+regression.plain-report-adnominal.put	넣다	verb	smart-exact	17	29	소금을 이미 넣었다는 말을 들었다.
+regression.plain-report-adnominal.resultative	옮기다	verb	smart-exact	27	42	자료가 다른 곳으로 옮겨졌다는 통보를 받았다.
