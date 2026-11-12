@@ -524,3 +524,31 @@ regression.bound-si.same-regard	시	noun	no-match	50	53	그는 친구의 의견�
 regression.bound-si.action-time	시	noun	smart-exact	7	16	행위 시에는 피해 상황을 먼저 살폈다.
 regression.bound-si.accident-time	시	noun	smart-exact	30	33	바다에서는 사고 발생 시 즉시 대응할 수 있도록 장비를 점검해야 한다.
 regression.bound-si.fixed-time	시	noun	smart-exact	6	9	필요시 담당자에게 연락해 주세요.
+regression.grammatical-nominal-suffix.plural-people	들	noun	no-match	6	9	사람들도 대피했다.
+regression.grammatical-nominal-suffix.plural-event	들	noun	no-match	6	9	사건들도 기록했다.
+regression.grammatical-nominal-suffix.plural-pronoun	들	noun	no-match	3	6	그들도 대피했다.
+regression.grammatical-nominal-suffix.field-noun	들	noun	smart-exact	7	16	가을 들에도 꽃이 피었다.
+regression.grammatical-nominal-suffix.distributive	씩	noun	no-match	26	29	그는 대출금을 조금씩도 갚지 못했다.
+regression.grammatical-nominal-suffix.distributive-counter	씩	noun	no-match	7	10	두 개씩이나 샀다.
+regression.grammatical-nominal-suffix.dialect-wildcat	씩	noun	smart-exact	0	6	씩이 산비탈에서 달아났다.
+regression.grammatical-nominal-suffix.pronoun-subject	들	noun	no-match	24	27	그들이 떠난 뒤 이들이 남았다.
+regression.grammatical-nominal-suffix.pronoun-topic	들	noun	no-match	3	6	이들은 바로 출발했다.
+regression.grammatical-nominal-suffix.pronoun-comitative	들	noun	no-match	3	6	이들과 함께 일했다.
+regression.grammatical-nominal-suffix.genitive-community	들	noun	no-match	12	15	기독교인들의 활동을 기록했다.
+regression.grammatical-nominal-suffix.topic-people	들	noun	no-match	6	9	여성들은 설문에 참여했다.
+regression.grammatical-nominal-suffix.dative-people	들	noun	no-match	13	16	많은 여성들에게 사랑받았다.
+regression.grammatical-nominal-suffix.genitive-children	들	noun	no-match	6	9	아이들의 건강을 살폈다.
+regression.grammatical-nominal-suffix.subject-children	들	noun	no-match	6	9	아이들이 먼저 도착했다.
+regression.grammatical-nominal-suffix.additive-children	들	noun	no-match	6	9	아이들도 전시를 봤다.
+regression.grammatical-nominal-suffix.compound-host	들	noun	no-match	19	22	개신교 선교사들과 만났다.
+regression.grammatical-nominal-suffix.bare-animals	들	noun	no-match	6	9	동물들 관리가 잘 되었다.
+regression.grammatical-nominal-suffix.locative-people	들	noun	no-match	6	9	사람들에 떠밀려 앞으로 갔다.
+regression.grammatical-nominal-suffix.bare-people	들	noun	no-match	6	9	사람들 많을 때는 물이 잘 나오지 않았다.
+regression.grammatical-nominal-suffix.comitative-workers	들	noun	no-match	9	12	근로자들과 환담을 나눴다.
+regression.grammatical-nominal-suffix.topic-workers	들	noun	no-match	19	22	생산직 근로자들은 특별 상여금을 받았다.
+regression.grammatical-nominal-suffix.topic-locals	들	noun	no-match	26	29	곤지암에 사는 사람들은 여기에 자주 간다.
+regression.grammatical-nominal-suffix.bare-books	들	noun	no-match	16	19	기독교 서적들 외에 각종 물품이 있다.
+regression.grammatical-nominal-suffix.additive-goods	들	noun	no-match	13	16	다른 물품들도 준비했다.
+regression.grammatical-nominal-suffix.additive-celebrities	들	noun	no-match	9	12	연예인들도 자주 찾는다.
+regression.grammatical-nominal-suffix.dative-customers	들	noun	no-match	13	16	오랜 단골들에게 사랑받는 식당이다.
+regression.grammatical-nominal-suffix.predicate-tail	들	noun	no-match	13	16	모형을 만들고 남은 재료를 정리했다.
