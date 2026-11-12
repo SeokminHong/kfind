@@ -9,3 +9,9 @@ geu-determiner-no-pronoun	그	pronoun	no-match	70	73	따라서 동북아 경제�
 geu-as-pronoun	그	pronoun	exact	0	6	그가 먼저 노래를 불렀다.
 geugeot-as-pronoun	그것	pronoun	exact	0	18	그것이야말로 헤겔이 확실히 확정한 선험적 철학의 의미인 것이다.
 geugeot-no-internal-pronoun	그	pronoun	no-match	0	6	그것이야말로 헤겔이 확실히 확정한 선험적 철학의 의미인 것이다.
+kaist-dev-geu-determiner	그	determiner	smart-exact	75	78	중소기업의 토대가 허약한 가운데 재벌기업이 쓰러지면 그 혼란을 누가 감당할 수 있을 것인가?
+kaist-dev-geu-no-pronoun	그	pronoun	no-match	75	78	중소기업의 토대가 허약한 가운데 재벌기업이 쓰러지면 그 혼란을 누가 감당할 수 있을 것인가?
+kaist-dev-jeo-determiner	저	determiner	smart-exact	54	57	그 집념의 진동이 어찌나 강렬한지 가슴 저 밑바닥을 뒤흔드는 감동에 젖게 된다.
+kaist-dev-jeo-no-pronoun	저	pronoun	no-match	54	57	그 집념의 진동이 어찌나 강렬한지 가슴 저 밑바닥을 뒤흔드는 감동에 젖게 된다.
+kaist-dev-i-determiner	이	determiner	smart-exact	0	3	이 주장 때문에 백기완 선거운동 본부는 대학로 유세를 마치고 시위를 하게 되었다.
+kaist-dev-i-no-pronoun	이	pronoun	no-match	0	3	이 주장 때문에 백기완 선거운동 본부는 대학로 유세를 마치고 시위를 하게 되었다.
