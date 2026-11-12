@@ -6,7 +6,7 @@ use std::sync::Arc;
 use kfind_data::{ParticleHost, ParticleRuleRole, ParticleSelection};
 use kfind_morph::{
     CoarsePos, FinalCondition, FinePos, ParticleAllomorph, ParticleKind, ParticleRole,
-    ParticleTransition, PredicateEntry, PredicatePos, RuleId,
+    ParticleTransition, PredicateEntry, PredicatePos, QueryMorphPattern, RuleId,
 };
 
 use crate::lexicons::predicate_shape_alternation;
@@ -55,6 +55,19 @@ pub struct Analysis {
     pub fine_pos: FinePos,
     pub morphology: Morphology,
     pub source: AnalysisSource,
+}
+
+impl Analysis {
+    pub(crate) fn structural_pattern_defaults(&self) -> Vec<QueryMorphPattern> {
+        let lexical_form = match &self.morphology {
+            Morphology::Predicate(predicate) => predicate
+                .lemma
+                .strip_suffix('다')
+                .unwrap_or(&predicate.lemma),
+            Morphology::Nominal(_) | Morphology::Particle(_) | Morphology::Exact => &self.lemma,
+        };
+        QueryMorphPattern::from_fine_pos(self.fine_pos, lexical_form)
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

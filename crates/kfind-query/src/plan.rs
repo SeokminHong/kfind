@@ -9,8 +9,8 @@ use kfind_morph::{
 };
 
 use crate::{
-    Analysis, BoundaryPolicy, Morphology, NormalizationMode, PhrasePolicy, PlanLimits,
-    QueryComposition, QueryGraph,
+    Analysis, BoundaryPolicy, NormalizationMode, PhrasePolicy, PlanLimits, QueryComposition,
+    QueryGraph,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -285,15 +285,27 @@ impl CandidateProgram {
         analyses: &[Analysis],
         component_capability: ComponentCapability,
     ) {
+        let defaults = analyses
+            .iter()
+            .map(Analysis::structural_pattern_defaults)
+            .collect::<Vec<_>>();
+        self.apply_structural_pattern_defaults(&defaults, component_capability);
+    }
+
+    pub(crate) fn apply_structural_pattern_defaults(
+        &mut self,
+        defaults: &[Vec<QueryMorphPattern>],
+        component_capability: ComponentCapability,
+    ) {
         self.decision = CandidateDecision::Structural(StructuralConstraint {
-            patterns: self.query_morph_patterns(analyses, component_capability),
+            patterns: self.query_morph_patterns(defaults, component_capability),
             boundary: self.boundary(),
         });
     }
 
     fn query_morph_patterns(
         &self,
-        analyses: &[Analysis],
+        defaults: &[Vec<QueryMorphPattern>],
         component_capability: ComponentCapability,
     ) -> Vec<QueryMorphPattern> {
         let Some((token_relation, continuation)) = self.morph_contract() else {
@@ -319,20 +331,11 @@ impl CandidateProgram {
                 }
                 continue;
             }
-            let Some(analysis) = analyses.get(usize::from(origin.analysis_index)) else {
+            let Some(source_patterns) = defaults.get(usize::from(origin.analysis_index)) else {
                 continue;
             };
-            let lexical_form = match &analysis.morphology {
-                Morphology::Predicate(predicate) => predicate
-                    .lemma
-                    .strip_suffix('다')
-                    .unwrap_or(&predicate.lemma),
-                Morphology::Nominal(_) | Morphology::Particle(_) | Morphology::Exact => {
-                    &analysis.lemma
-                }
-            };
-            for pattern in QueryMorphPattern::from_fine_pos(analysis.fine_pos, lexical_form) {
-                let pattern = pattern.with_candidate_contract(
+            for pattern in source_patterns {
+                let pattern = pattern.clone().with_candidate_contract(
                     token_relation,
                     continuation,
                     component_capability,
