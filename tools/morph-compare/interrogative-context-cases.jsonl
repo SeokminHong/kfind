@@ -1,0 +1,8 @@
+{"id":"changa-predicate-positive","query":"차다","pos":"adjective","text":"물이 찬가 보다.","surface":"찬가","gold_byte_start":7,"gold_byte_end":13,"expected":true,"paired_case_id":"changa-predicate-context"}
+{"id":"changa-predicate-context","query":"차다","pos":"adjective","text":"합창단이 찬가 한 곡을 불렀다.","surface":"찬가","gold_byte_start":13,"gold_byte_end":19,"expected":false,"paired_case_id":"changa-predicate-positive"}
+{"id":"changa-noun-context","query":"찬가","pos":"noun","text":"물이 찬가 보다.","surface":"찬가","gold_byte_start":7,"gold_byte_end":13,"expected":false,"paired_case_id":"changa-noun-positive"}
+{"id":"changa-noun-positive","query":"찬가","pos":"noun","text":"합창단이 찬가 한 곡을 불렀다.","surface":"찬가","gold_byte_start":13,"gold_byte_end":19,"expected":true,"paired_case_id":"changa-noun-context"}
+{"id":"danga-predicate-positive","query":"달다","pos":"adjective","text":"이 차가 단가?","surface":"단가","gold_byte_start":11,"gold_byte_end":17,"expected":true,"paired_case_id":"danga-predicate-context"}
+{"id":"danga-predicate-context","query":"달다","pos":"adjective","text":"이번 계약의 단가 조정은 끝났다.","surface":"단가","gold_byte_start":17,"gold_byte_end":23,"expected":false,"paired_case_id":"danga-predicate-positive"}
+{"id":"danga-noun-context","query":"단가","pos":"noun","text":"이 차가 단가?","surface":"단가","gold_byte_start":11,"gold_byte_end":17,"expected":false,"paired_case_id":"danga-noun-positive"}
+{"id":"danga-noun-positive","query":"단가","pos":"noun","text":"이번 계약의 단가 조정은 끝났다.","surface":"단가","gold_byte_start":17,"gold_byte_end":23,"expected":true,"paired_case_id":"danga-noun-context"}

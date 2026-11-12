@@ -690,32 +690,29 @@ fn adnominal_dependent_noun_particle_uses_a_complete_source_path() {
 }
 
 #[test]
-fn adnominal_interrogative_uses_a_complete_source_predicate_path() {
+fn interrogative_ending_requires_the_complete_eojeol() {
     let options = CompileOptions {
         global_pos: Some(CoarsePos::Adjective),
         ..CompileOptions::default()
     };
     for matcher in [
+        compile("어떻다", CompileOptions::default()),
         compile_embedded_with_component("어떻다", options.clone()),
         compile_with_full_pos("어떻다", options),
     ] {
         let text = "반면 미국은 어떤가.";
         let matched = matcher
             .find_at_with_meta(text.as_bytes(), 0)
-            .expect("adnominal interrogative source path was rejected");
+            .expect("the complete interrogative was rejected");
 
         assert_eq!(&text[matched.atoms[0].core.clone()], "어떤");
+        assert_eq!(&text[matched.span], "어떤가");
         assert!(
             matcher
                 .find_at_with_meta("어떤가를".as_bytes(), 0)
                 .is_none()
         );
     }
-    assert!(
-        compile("어떻다", CompileOptions::default())
-            .find_at_with_meta("어떤가".as_bytes(), 0)
-            .is_none()
-    );
 }
 
 #[test]

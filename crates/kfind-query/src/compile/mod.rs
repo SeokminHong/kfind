@@ -49,6 +49,8 @@ const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.copula-ra-connective",
     "ending.copula-quotative-go",
     "ending.copula-quotative-adnominal",
+    "ending.interrogative-nga",
+    "ending.interrogative-nji",
     "ending.aoeo-seo",
     "particle.additive",
     "ending.connective-do",

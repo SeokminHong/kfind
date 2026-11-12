@@ -717,6 +717,31 @@ const COMPLETED_NIEUN: &[Suffix] = &[
     suffix("바", &["ending.connective-nba"]),
 ];
 
+macro_rules! nieun_questions {
+    ($prefix:literal $(, $prior:literal)*) => {
+        &[
+            suffix(concat!($prefix, "가"), &[$($prior,)* "ending.interrogative-nga"]),
+            suffix(concat!($prefix, "가요"), &[$($prior,)* "ending.interrogative-nga", "ending.polite-yo"]),
+            suffix(concat!($prefix, "지"), &[$($prior,)* "ending.interrogative-nji"]),
+            suffix(concat!($prefix, "지요"), &[$($prior,)* "ending.interrogative-nji", "ending.polite-yo"]),
+        ]
+    };
+}
+
+const NIEUN_QUESTIONS: &[Suffix] = nieun_questions!("");
+const NEUN_QUESTIONS: &[Suffix] = nieun_questions!("는");
+const SIN_QUESTIONS: &[Suffix] = nieun_questions!("신", "ending.honorific");
+const SINEUN_QUESTIONS: &[Suffix] = nieun_questions!("시는", "ending.honorific");
+const SYEOTNEUN_QUESTIONS: &[Suffix] = nieun_questions!("셨는", "ending.honorific", "ending.past");
+const SIGETNEUN_QUESTIONS: &[Suffix] =
+    nieun_questions!("시겠는", "ending.honorific", "ending.future");
+
+fn nieun_question_tail(following: &str, prefix: &str) -> bool {
+    following
+        .strip_prefix(prefix)
+        .is_some_and(|tail| tail.starts_with(['가', '지']))
+}
+
 fn nieun_tail(following: &str, prefix: &str) -> bool {
     following
         .strip_prefix(prefix)
@@ -811,6 +836,16 @@ fn verify_simple_continuation(
         {
             COPULA_COMMON_ENDINGS
         }
+        ContinuationState::NieunEnding if nieun_question_tail(following, "") => NIEUN_QUESTIONS,
+        ContinuationState::Past | ContinuationState::Future
+            if nieun_question_tail(following, "는") =>
+        {
+            NEUN_QUESTIONS
+        }
+        ContinuationState::Eu if nieun_question_tail(following, "신") => SIN_QUESTIONS,
+        ContinuationState::Eu if nieun_question_tail(following, "시는") => SINEUN_QUESTIONS,
+        ContinuationState::Eu if nieun_question_tail(following, "셨는") => SYEOTNEUN_QUESTIONS,
+        ContinuationState::Eu if nieun_question_tail(following, "시겠는") => SIGETNEUN_QUESTIONS,
         ContinuationState::NieunEnding => NIEUN_EXTENSIONS,
         ContinuationState::Past | ContinuationState::Future if nieun_tail(following, "는") => {
             NEUN_EXTENSIONS

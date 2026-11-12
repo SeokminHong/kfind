@@ -1301,6 +1301,23 @@ fn reference_simple_continuation(
         reference_suffix("바", &["ending.connective-nba"]),
     ];
 
+    macro_rules! questions {
+        ($prefix:literal $(, $prior:literal)*) => {
+            &[
+                reference_suffix(concat!($prefix, "가"), &[$($prior,)* "ending.interrogative-nga"]),
+                reference_suffix(concat!($prefix, "가요"), &[$($prior,)* "ending.interrogative-nga", "ending.polite-yo"]),
+                reference_suffix(concat!($prefix, "지"), &[$($prior,)* "ending.interrogative-nji"]),
+                reference_suffix(concat!($prefix, "지요"), &[$($prior,)* "ending.interrogative-nji", "ending.polite-yo"]),
+            ]
+        };
+    }
+
+    let is_question = |prefix| {
+        following
+            .strip_prefix(prefix)
+            .is_some_and(|tail| tail.starts_with(['가', '지']))
+    };
+
     fn reference_nieun_tail(following: &str, prefix: &str) -> bool {
         following
             .strip_prefix(prefix)
@@ -1436,6 +1453,18 @@ fn reference_simple_continuation(
                 reference_suffix("로서니", &["ending.copula-ro-connective"]),
                 reference_suffix("로세", &["ending.copula-ro-final"]),
             ]
+        }
+        ContinuationState::NieunEnding if is_question("") => questions!(""),
+        ContinuationState::Past | ContinuationState::Future if is_question("는") => {
+            questions!("는")
+        }
+        ContinuationState::Eu if is_question("신") => questions!("신", "ending.honorific"),
+        ContinuationState::Eu if is_question("시는") => questions!("시는", "ending.honorific"),
+        ContinuationState::Eu if is_question("셨는") => {
+            questions!("셨는", "ending.honorific", "ending.past")
+        }
+        ContinuationState::Eu if is_question("시겠는") => {
+            questions!("시겠는", "ending.honorific", "ending.future")
         }
         ContinuationState::NieunEnding => NIEUN_EXTENSIONS,
         ContinuationState::Past | ContinuationState::Future
