@@ -1116,6 +1116,27 @@ impl MorphMatcher {
         if matches!(
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }
+        ) && candidate.consumed.end == whole.end
+            && patterns
+                .iter()
+                .any(|pattern| pattern.fine_pos == DataFinePos::Nnb)
+            && context::normalized_token(haystack, candidate.verified.core.clone())
+                .is_some_and(|unit| ConstraintResolver::is_dictionary_numeric_unit(&unit))
+        {
+            let prefix = &haystack[whole.start..candidate.verified.core.start];
+            let preceded_by_number = if prefix.is_empty() {
+                context::previous_word(haystack, whole.start)
+                    .is_some_and(|previous| previous.bytes().all(|byte| byte.is_ascii_digit()))
+            } else {
+                prefix.iter().all(u8::is_ascii_digit)
+            };
+            if preceded_by_number {
+                return true;
+            }
+        }
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
         ) && candidate.verified.core.start == whole.start
             && candidate.verified.core.end < whole.end
             && patterns
