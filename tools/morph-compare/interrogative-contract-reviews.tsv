@@ -1,5 +1,5 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
 explicit-pos	interrogative	changa-predicate-context	차다	adjective	false	53f8e4745fb52d10beea8e2db39e0eecbe132f5c6e6b9f06b726d08d5429aa29	contract-positive	structurally-indistinguishable-homograph	찬가에는 명사와 형용사 의문형 분석이 모두 성립한다.
 explicit-pos	interrogative	changa-noun-context	찬가	noun	false	91cb95faa0146e89f450fb7ede8195e766d9a888d2ff3bdc7fa78e05c4bd365d	contract-positive	structurally-indistinguishable-homograph	찬가에는 명사와 형용사 의문형 분석이 모두 성립한다.
-explicit-pos	interrogative	danga-predicate-context	달다	adjective	false	56dea13508466c6fa462314e562a9cf40d8c708f19275ceb13333f72844a8051	contract-positive	structurally-indistinguishable-homograph	단가에는 명사와 형용사 의문형 분석이 모두 성립한다.
+explicit-pos	interrogative	danga-predicate-context	달다	adjective	false	56dea13508466c6fa462314e562a9cf40d8c708f19275ceb13333f72844a8051	confirmed	implementation-target	계약의가 수식하는 단가 조정은 명사구다.
 explicit-pos	interrogative	danga-noun-context	단가	noun	false	9ca1ac71cf64378a5136b1d7b8b454a366d1f89a37a77f5a44a84bc2aef30e2f	contract-positive	structurally-indistinguishable-homograph	단가에는 명사와 형용사 의문형 분석이 모두 성립한다.

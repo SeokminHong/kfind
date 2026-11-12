@@ -994,6 +994,9 @@ impl MorphMatcher {
                     || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
                     || has_prayer_object_frame(haystack, candidate, branch, atom, resolver)
                     || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
+                    || has_genitive_nominal_interrogative_frame(
+                        haystack, candidate, branch, resolver,
+                    )
             })
         {
             return false;
@@ -2152,6 +2155,51 @@ fn has_topic_before_independent_predicate(
         })
         && context::next_word(haystack, end)
             .is_some_and(|next| resolver.has_independent_final_predicate(&next))
+}
+
+fn has_genitive_nominal_interrogative_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let rule = candidate.suffix_rules.last().or_else(|| {
+        let (first, rest) = branch.origins.split_first()?;
+        let rule = first.rule_path.last()?;
+        rest.iter()
+            .all(|origin| origin.rule_path.last() == Some(rule))
+            .then_some(rule)
+    });
+    let Some(rule) = rule.map(RuleId::as_str) else {
+        return false;
+    };
+    let span = &candidate.consumed;
+    let end = if rule == "ending.interrogative-nga" {
+        span.end
+    } else if ADNOMINAL_RULE_IDS.contains(&rule) {
+        if !haystack.get(span.end..).is_some_and(|tail| {
+            tail.starts_with("가".as_bytes()) || tail.starts_with("ᄀ".as_bytes())
+        }) {
+            return false;
+        }
+        let token = surrounding_token_span(haystack, span.clone());
+        if !context::normalized_token(haystack, span.end..token.end)
+            .is_some_and(|suffix| suffix == "가")
+        {
+            return false;
+        }
+        token.end
+    } else {
+        return false;
+    };
+    is_boundary_before(haystack, span.start)
+        && is_boundary_after(haystack, end)
+        && context::normalized_token(haystack, span.start..end)
+            .is_some_and(|token| resolver.has_exact_nominal_surface(&token))
+        && context::previous_word(haystack, span.start)
+            .is_some_and(|previous| resolver.has_nominal_genitive_surface(&previous))
+        && context::next_word(haystack, end)
+            .is_some_and(|next| resolver.has_complete_nominal_surface(&next))
 }
 
 fn has_transitive_jiyo_frame(
