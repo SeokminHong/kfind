@@ -53,9 +53,10 @@ Runtime compiler는 catalog를 어휘 목록으로 사용합니다. 모든 어�
 `--kiwi`를 지정하면 외부 형태 분석으로 용언 후보를 보강합니다. 이 경우
 `tools/morph-compare/external/Dockerfile`에 지정된 Kiwi와 모델 버전을 사용합니다.
 결과는 `target` 아래에 저장하며, 자동 정렬 결과는 어미 결합 규칙을 검토할 후보로 사용합니다.
+Kiwi가 지정사 `이`의 원문 위치를 식별하면 체언 뒤의 지정사부터 어절 끝까지 비교합니다.
 자동 정렬이 어려운 용례는 `--reviewed`로 추가합니다. TSV 열은 `ending`, `query`,
-`pos`, `surface`, `source_id`, `alignment`, `text` 순서이며, `surface`의 첫 출현을
-표적으로 사용합니다.
+`pos`, `surface`, `source_id`, `alignment`, `text` 순서이며 `surface`의 첫 출현을 표적으로
+사용합니다.
 
 ```sh
 downloads=${KFIND_NIKL_DOWNLOADS:-"$HOME/Downloads"}

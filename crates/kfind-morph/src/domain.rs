@@ -241,6 +241,7 @@ pub enum ContinuationState {
     Future,
     Declarative,
     Eu,
+    Geodeun,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

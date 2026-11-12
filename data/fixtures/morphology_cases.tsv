@@ -618,5 +618,23 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 가다	verb	안녕히 가읍쇼.	no-match	imperative-formal-allomorph
 읽다	verb	이것을 읽쇼.	no-match	imperative-formal-allomorph
 좋다	adjective	이 결과가 좋읍쇼.	no-match	imperative-formal-pos
+도착하다	verb	역에 도착하거든 연락해 주세요.	match	geodeun
+좋다	adjective	이쪽이 경치가 좋거든요.	match	geodeun-polite
+이다	copula	내일이 휴일이거든요.	match	geodeun-copula
+하다	verb	어제 못 했거든요.	match	geodeun-past
+오다	verb	손님이 오시거든 차를 내어 드리세요.	match	geodeun-honorific
+읽다	verb	벌써 읽으셨거든요.	match	geodeun-honorific-past
+알다	verb	어르신이 아시거든 여쭤보세요.	match	geodeun-honorific
+가다	verb	시골에 가거들랑 편지해라.	match	geodeullang
+정하다	verb	날짜가 정해지거든 알려 주세요.	match	geodeun-auxiliary
+좋다	adjective	그게 좋건 네가 가져라.	match	geodeun-short
+이다	copula	꼭 하실 말씀이건 지금 하시지요.	match	geodeun-short
+하다	verb	어서 하쇼.	match	imperative-sio-short
+먹다	verb	먼저 밥을 먹으쇼.	match	imperative-sio-short
+듣다	verb	내 말을 잘 들으쇼.	match	imperative-sio-short
+알다	verb	그렇게 아쇼.	match	imperative-sio-short
+먹다	verb	먼저 밥을 먹쇼.	no-match	imperative-sio-allomorph
+사다	verb	네가 사건 말건 상관없어.	match	geodeun-short
+하다	verb	다른 사람이 뭘 하건 간에 관심이 없어 보였다.	match	geodeun-short
 치다	verb	지구온난화는 여러 측면에 영향을 미친다.	no-match	structural-whole-predicate
 다	noun	저 친구는 왕친입니다.	no-match	structural-ending-component

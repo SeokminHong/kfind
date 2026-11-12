@@ -391,6 +391,20 @@ pub(in crate::structure) fn select_structure(
         .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal());
     let has_exact_whole_nominal =
         has_exact_fine_pos(resource, context.current, DataFinePos::is_nominal);
+    if context.current.ends_with('건')
+        && evidence.has_whole(DataFinePos::Nng)
+        && (next_starts_nominal
+            || context.previous.is_some_and(|previous| {
+                exact_analysis_ends_with_pos(resource, previous, |pos| pos == StructuralPos::ETM)
+            }))
+        && !context
+            .next
+            .and_then(|next| next.strip_suffix('건'))
+            .is_some_and(|stem| has_exact_fine_pos(resource, stem, DataFinePos::is_predicate))
+        && !evidence.has_whole_predicate()
+    {
+        return StructureSelection::NominalWhole;
+    }
     if has_whole_nominal
         && context.previous.is_some_and(|previous| {
             has_exact_fine_pos(resource, previous, |pos| pos == DataFinePos::Mm)

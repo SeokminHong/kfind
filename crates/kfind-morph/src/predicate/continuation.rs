@@ -16,6 +16,13 @@ pub(super) struct Suffix {
 }
 
 const A_OR_EO_SUFFIXES: &[Suffix] = &[
+    suffix("지거들랑", &["ending.auxiliary-jida", "ending.geodeun"]),
+    suffix("지건", &["ending.auxiliary-jida", "ending.geodeun-short"]),
+    suffix("지거든", &["ending.auxiliary-jida", "ending.geodeun"]),
+    suffix(
+        "지거든요",
+        &["ending.auxiliary-jida", "ending.geodeun-polite"],
+    ),
     suffix("가고", &["ending.auxiliary-gada", "ending.connective-go"]),
     suffix("가야", &["ending.auxiliary-gada", "ending.connective-ya"]),
     suffix(
@@ -44,6 +51,10 @@ const A_OR_EO_SUFFIXES: &[Suffix] = &[
 ];
 
 const PAST_SUFFIXES: &[Suffix] = &[
+    GEON,
+    GEODEUN,
+    GEODEUN_POLITE,
+    GEODEULLANG,
     suffix("습니다", &["ending.polite-declarative"]),
     suffix("으되", &["ending.connective-eudoe"]),
     suffix("느냐는", &["ending.interrogative-neunya", "particle.topic"]),
@@ -100,7 +111,45 @@ pub(super) const HONORIFIC_BIEUP_ENDINGS: &[Suffix] = &[
     HONORIFIC_FORMAL_SHORT,
     HONORIFIC_PROPOSITIVE,
 ];
+const GEODEUN: Suffix = suffix("거든", &["ending.geodeun"]);
+const GEODEUN_POLITE: Suffix = suffix("거든요", &["ending.geodeun-polite"]);
+const GEODEULLANG: Suffix = suffix("거들랑", &["ending.geodeun"]);
+const GEON: Suffix = suffix("건", &["ending.geodeun-short"]);
+const HONORIFIC_GEODEUN: Suffix = suffix("시거든", &["ending.honorific", "ending.geodeun"]);
+const HONORIFIC_GEODEUN_POLITE: Suffix =
+    suffix("시거든요", &["ending.honorific", "ending.geodeun-polite"]);
+const HONORIFIC_GEODEULLANG: Suffix = suffix("시거들랑", &["ending.honorific", "ending.geodeun"]);
+const HONORIFIC_GEON: Suffix = suffix("시건", &["ending.honorific", "ending.geodeun-short"]);
+
+pub(super) const GEODEUN_ENDINGS: &[Suffix] = &[GEODEUN, GEODEUN_POLITE, GEODEULLANG, GEON];
+pub(super) const HONORIFIC_GEODEUN_ENDINGS: &[Suffix] = &[
+    HONORIFIC_GEODEUN,
+    HONORIFIC_GEODEUN_POLITE,
+    HONORIFIC_GEODEULLANG,
+    HONORIFIC_GEON,
+];
+
 const EU_SUFFIXES: &[Suffix] = &[
+    HONORIFIC_GEODEUN,
+    HONORIFIC_GEODEUN_POLITE,
+    HONORIFIC_GEODEULLANG,
+    HONORIFIC_GEON,
+    suffix(
+        "셨건",
+        &["ending.honorific", "ending.past", "ending.geodeun-short"],
+    ),
+    suffix(
+        "셨거든",
+        &["ending.honorific", "ending.past", "ending.geodeun"],
+    ),
+    suffix(
+        "셨거든요",
+        &["ending.honorific", "ending.past", "ending.geodeun-polite"],
+    ),
+    suffix(
+        "셨거들랑",
+        &["ending.honorific", "ending.past", "ending.geodeun"],
+    ),
     HONORIFIC_FORMAL,
     HONORIFIC_FORMAL_SHORT,
     HONORIFIC_PROPOSITIVE,
@@ -112,6 +161,7 @@ const EU_SUFFIXES: &[Suffix] = &[
     suffix("러", &["ending.purpose-reo"]),
     suffix("나", &["ending.connective-na"]),
     suffix("시오", &["ending.imperative-sio"]),
+    suffix("쇼", &["ending.imperative-sio-short"]),
     suffix("리라고", &["ending.prospective-quotative"]),
     suffix("리라", &["ending.prospective-final"]),
     suffix(
@@ -181,6 +231,7 @@ pub fn verify_predicate_continuation(
             return Some(matched(anchor.len(), declarative_suffix(following)));
         }
         ContinuationState::Eu => EU_SUFFIXES,
+        ContinuationState::Geodeun => GEODEUN_ENDINGS,
     };
 
     let suffix = candidates
@@ -193,6 +244,7 @@ pub fn verify_predicate_continuation(
                             *rule,
                             "ending.imperative-ra"
                                 | "ending.imperative-sio"
+                                | "ending.imperative-sio-short"
                                 | "ending.imperative-formal"
                                 | "ending.imperative-formal-short"
                                 | "ending.propositive"
@@ -204,7 +256,7 @@ pub fn verify_predicate_continuation(
                     }))
         })
         .max_by_key(|suffix| suffix.surface.len());
-    if suffix.is_none() && state == ContinuationState::Eu {
+    if suffix.is_none() && matches!(state, ContinuationState::Eu | ContinuationState::Geodeun) {
         return None;
     }
     Some(matched(anchor.len(), suffix))

@@ -345,6 +345,14 @@ fn compile_productive(
     stem: &str,
     branches: &mut Vec<SurfaceBranchSpec>,
 ) -> Result<(), GenerateError> {
+    push_branch(
+        branches,
+        entry,
+        stem.to_owned(),
+        stem.len(),
+        ContinuationState::Geodeun,
+        Vec::new(),
+    );
     if entry.alternation == LexicalAlternation::Ha
         && let Some(base) = stem.strip_suffix('하')
         && base
@@ -616,6 +624,7 @@ fn compile_rieul_eu_endings(
                 (stem, "러", "ending.purpose-reo"),
                 (stem, "려던", "ending.intentive-adnominal"),
                 (&dropped, "시오", "ending.imperative-sio"),
+                (&dropped, "쇼", "ending.imperative-sio-short"),
             ])
             .into_iter()
             .flatten(),
@@ -664,6 +673,16 @@ fn compile_rieul_honorific(
 ) {
     let base = drop_last_final(stem).expect("rieul-final stem");
     let core_len = base.len();
+    for suffix in continuation::HONORIFIC_GEODEUN_ENDINGS {
+        push_branch(
+            branches,
+            entry,
+            format!("{base}{}", suffix.surface),
+            core_len,
+            ContinuationState::Terminal,
+            suffix.rules.iter().map(|id| rule(id)).collect(),
+        );
+    }
     let intentive = continuation::HONORIFIC_INTENTIVE_CONDITIONAL;
     push_branch(
         branches,
@@ -756,6 +775,19 @@ fn compile_copula(
             lemma: entry.lemma.clone(),
             alternation: entry.alternation,
         });
+    }
+    for suffix in continuation::GEODEUN_ENDINGS {
+        let rules = std::iter::once(rule("lexical.copula"))
+            .chain(suffix.rules.iter().map(|id| rule(id)))
+            .collect();
+        push_branch(
+            branches,
+            entry,
+            format!("{stem}{}", suffix.surface),
+            stem.len(),
+            ContinuationState::Terminal,
+            rules,
+        );
     }
     for (surface, continuation, ending_rule) in [
         (
