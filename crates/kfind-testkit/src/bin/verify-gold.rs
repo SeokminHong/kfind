@@ -24,6 +24,8 @@ const CASUAL_PREFINAL_CASES: &str =
 const TOPIC_PREDICATE_CASES: &str =
     include_str!("../../../../data/fixtures/topic_predicate_span_cases.tsv");
 const ENRICHED_PREDICATES_SOURCE: &str = "data/enriched/predicates.tsv";
+const DEPENDENT_SUBJECT_CASES: &str =
+    include_str!("../../../../data/fixtures/dependent_subject_cases.tsv");
 const BIEUP_ADVERBIAL_CASES: &str =
     include_str!("../../../../data/fixtures/bieup_adverbial_cases.tsv");
 const ENRICHED_PREDICATES: &str = include_str!("../../../../data/enriched/predicates.tsv");
@@ -80,6 +82,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let enriched_harness =
         harness.with_enriched_predicates(ENRICHED_PREDICATES_SOURCE, ENRICHED_PREDICATES)?;
     verify_span_cases(&enriched_harness, "UD morphology", UD_MORPHOLOGY_CASES)?;
+    verify_span_cases(
+        &enriched_harness,
+        "dependent noun subject",
+        DEPENDENT_SUBJECT_CASES,
+    )?;
     verify_span_cases(&enriched_harness, "bieup adverbials", BIEUP_ADVERBIAL_CASES)?;
     verify_span_cases(
         &enriched_harness,

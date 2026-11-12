@@ -577,12 +577,14 @@ fn compile_nominal_contractions(
     particle_rules: &Arc<[RuleId]>,
     output: &mut Vec<DraftBranch>,
 ) {
-    if analysis.coarse_pos != CoarsePos::Pronoun {
+    let pronoun = analysis.coarse_pos == CoarsePos::Pronoun;
+    let dependent_noun = analysis.fine_pos == FinePos::DependentNoun;
+    if !pronoun && !dependent_noun {
         return;
     }
     for rule in &analyzer.lexicons().rules().contractions {
         match rule.kind.as_str() {
-            "nominal-particle-compose" => {
+            "nominal-particle-compose" if pronoun => {
                 let Some(prefix) = analysis.lemma.strip_suffix(&rule.left) else {
                     continue;
                 };
@@ -593,7 +595,18 @@ fn compile_nominal_contractions(
                     true,
                 ));
             }
-            "nominal-copula-ending-compose" if analysis.lemma.as_ref() == rule.left => {
+            "dependent-noun-subject-compose"
+                if dependent_noun && analysis.lemma.as_ref() == rule.left =>
+            {
+                output.push(exact_branch_with_decision(
+                    &rule.result,
+                    analysis_index,
+                    vec![RuleId::from(rule.id.clone())],
+                    true,
+                    DraftDecision::Structural(ComponentCapability::Source),
+                ));
+            }
+            "nominal-copula-ending-compose" if pronoun && analysis.lemma.as_ref() == rule.left => {
                 output.push(DraftBranch {
                     anchor: rule.result.clone(),
                     consumption: CandidateConsumption::NominalCopulaEndingChain {

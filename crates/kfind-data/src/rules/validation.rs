@@ -125,6 +125,7 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
         "vowel-compose",
         "stem-rewrite",
         "nominal-particle-compose",
+        "dependent-noun-subject-compose",
         "nominal-copula-ending-compose",
         "copula-host-ending-compose",
     ];
@@ -174,6 +175,7 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
         if matches!(
             rule.kind.as_str(),
             "nominal-particle-compose"
+                | "dependent-noun-subject-compose"
                 | "nominal-copula-ending-compose"
                 | "copula-host-ending-compose"
         ) && !rule.ending_ids.is_empty()
@@ -197,6 +199,20 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
                 "right",
                 &rule.right,
                 "nominal host를 허용하는 particle surface여야 합니다",
+            ));
+        }
+        if rule.kind == "dependent-noun-subject-compose"
+            && !rules.particles.iter().any(|particle| {
+                particle.id == "particle.subject" && particle.forms.contains(&rule.right)
+            })
+        {
+            return Err(invalid_rule_value(
+                locations,
+                source,
+                &rule.id,
+                "right",
+                &rule.right,
+                "주격 조사 표면형이어야 합니다",
             ));
         }
     }
