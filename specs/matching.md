@@ -49,6 +49,9 @@
   edge가 없어도 체언 core를 유지한다. `대영제국의`, `캠브리지는`처럼 host 내부가 여러 명사
   edge로만 구성된 경우를 복구하며, host의 내부 substring이나 crossing span은 이 근거로
   열지 않는다.
+- 어절 첫 일반 명사 뒤의 문자열이 조사와 같은 글자로 시작하는 경우에도, 각각 두 음절
+  이상인 일반 명사 두 개가 조사 연쇄까지 완성하는 명사 경로의 첫 성분이면 첫 명사의
+  범위를 유지한다. `사용가치를`의 `사용`이 여기에 해당한다.
 - `ConstraintResolver`는 query pattern의 structural signature가 선택된 corpus 구조와
   일치하면 `Supported`, 다른 구조가 유일하게 선택되면 `Contradicted`, resource 오류나
   상한 초과는 `Unavailable`로 반환한다.

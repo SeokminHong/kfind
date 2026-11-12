@@ -1353,9 +1353,31 @@ impl MorphMatcher {
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }
         );
+        let terminal_particle_conflict = rejected_suffix
+            && nominal_particle_chain
+            && self.has_terminal_particle_conflict(haystack, candidate, &whole);
+        let possible_compound_prefix = rejected_suffix
+            && nominal_particle_chain
+            && candidate.verified.core.start == whole.start
+            && candidate.consumed == candidate.verified.core
+            && patterns.iter().any(|pattern| {
+                pattern.fine_pos == DataFinePos::Nng
+                    && pattern.component_capability.allows_runtime()
+                    && pattern.lexical_form.chars().nth(1).is_some()
+            })
+            && context::normalized_token(haystack, candidate.consumed.end..whole.end).is_some_and(
+                |suffix| {
+                    !self
+                        .particle_verifier
+                        .model()
+                        .allomorphs
+                        .iter()
+                        .any(|form| suffix == form.surface.as_ref())
+                },
+            );
         if rejected_suffix
             && (!nominal_particle_chain
-                || self.has_terminal_particle_conflict(haystack, candidate, &whole))
+                || (terminal_particle_conflict && !possible_compound_prefix))
         {
             return false;
         }
@@ -1388,7 +1410,12 @@ impl MorphMatcher {
             }
             return false;
         };
-        if rejected_suffix && !context.has_nominal_copula_host(candidate.verified.core.clone()) {
+        if rejected_suffix
+            && !(possible_compound_prefix
+                && context.has_compound_nominal_prefix(candidate.verified.core.clone()))
+            && (terminal_particle_conflict
+                || !context.has_nominal_copula_host(candidate.verified.core.clone()))
+        {
             return false;
         }
         let decision = context.resolve(StructuralRequest {

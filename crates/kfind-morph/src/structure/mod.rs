@@ -296,6 +296,33 @@ impl PreparedStructuralContext {
     }
 
     #[must_use]
+    pub fn has_compound_nominal_prefix(&self, span: &Range<usize>) -> bool {
+        let token = self.token.as_ref();
+        let evidence = &token.evidence;
+        evidence
+            .complete_nominal_particle_host
+            .as_ref()
+            .is_some_and(|host| {
+                span.start == host.start
+                    && span.end < host.end
+                    && !evidence.nominal_particle_hosts.contains(host)
+                    && evidence::minimum_unit_path(span, evidence, |pos| pos == DataFinePos::Nng)
+                        == Some(1)
+                    && evidence.units.starting_at(span.end).iter().any(|unit| {
+                        unit.pos == DataFinePos::Nng
+                            && unit.span.end <= host.end
+                            && token.text[unit.span.clone()].chars().nth(1).is_some()
+                            && evidence::minimum_unit_path(
+                                &(unit.span.end..host.end),
+                                evidence,
+                                DataFinePos::is_nominal,
+                            )
+                            .is_some()
+                    })
+            })
+    }
+
+    #[must_use]
     pub fn resolve_candidate(
         &self,
         spans: CandidateSpans,
