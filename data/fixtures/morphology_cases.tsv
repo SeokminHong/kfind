@@ -634,5 +634,7 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 듣다	verb	내 말을 잘 들으쇼.	match	imperative-sio-short
 알다	verb	그렇게 아쇼.	match	imperative-sio-short
 먹다	verb	먼저 밥을 먹쇼.	no-match	imperative-sio-allomorph
+사다	verb	네가 사건 말건 상관없어.	match	geodeun-short
+하다	verb	다른 사람이 뭘 하건 간에 관심이 없어 보였다.	match	geodeun-short
 치다	verb	지구온난화는 여러 측면에 영향을 미친다.	no-match	structural-whole-predicate
 다	noun	저 친구는 왕친입니다.	no-match	structural-ending-component

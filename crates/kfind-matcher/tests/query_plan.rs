@@ -370,6 +370,32 @@ fn generated_predicate_branch_consumes_a_complete_source_ending_path() {
 }
 
 #[test]
+fn geon_connective_competes_with_whole_nominal_in_context() {
+    let resource = component_resource_from_entries([
+        component_entry("물건", "NNG"),
+        component_entry("비싼", "VA+ETM"),
+        component_entry("사건", "NNG"),
+        component_entry("말", "VV"),
+        component_entry("말", "NNG"),
+        component_entry("건", "JX"),
+    ]);
+    let options = CompileOptions {
+        global_pos: Some(CoarsePos::Verb),
+        ..CompileOptions::default()
+    };
+    let bite = compile_with_full_pos_and_resource("물다", options.clone(), Arc::clone(&resource));
+    assert!(
+        bite.find_at_with_meta("비싼 물건 하나를 샀다.".as_bytes(), 0)
+            .is_none()
+    );
+    let buy = compile_with_full_pos_and_resource("사다", options, resource);
+    assert!(
+        buy.find_at_with_meta("네가 사건 말건 상관없어.".as_bytes(), 0)
+            .is_some()
+    );
+}
+
+#[test]
 fn source_ending_path_composes_split_prefinal_and_nominalizer_particle_edges() {
     let split_prefinal = compile_with_full_pos_and_resource(
         "오다",
