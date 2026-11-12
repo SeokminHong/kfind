@@ -7,7 +7,7 @@ use crate::{
     CandidateProgram, CompileError, CompileErrorKind, CoreMapping, NormalizationMode, Origin,
     QueryAtom,
 };
-use kfind_morph::ComponentCapability;
+use kfind_morph::{ComponentCapability, QueryMorphPattern};
 
 #[derive(Clone)]
 pub(super) struct DraftBranch {
@@ -170,9 +170,17 @@ pub(super) fn normalize_and_merge(
         }
         merged[index].anchor = Some(anchor);
     }
+    let defaults = if boundary == BoundaryPolicy::Smart {
+        analyses
+            .iter()
+            .map(Analysis::structural_pattern_defaults)
+            .collect::<Vec<_>>()
+    } else {
+        Vec::new()
+    };
     Ok(merged
         .into_iter()
-        .map(|merged| materialize_program(merged, analyses))
+        .map(|merged| materialize_program(merged, &defaults))
         .collect())
 }
 
@@ -197,7 +205,10 @@ fn candidate_decision(policy: BoundaryPolicy, requested: DraftDecision) -> Draft
     }
 }
 
-fn materialize_program(merged: MergedProgram, analyses: &[Analysis]) -> CandidateProgram {
+fn materialize_program(
+    merged: MergedProgram,
+    defaults: &[Vec<QueryMorphPattern>],
+) -> CandidateProgram {
     let MergedProgram {
         anchor,
         key,
@@ -212,7 +223,7 @@ fn materialize_program(merged: MergedProgram, analyses: &[Analysis]) -> Candidat
         decision: CandidateDecision::Boundary(key.boundary),
     };
     if let DraftDecision::Structural(component_capability) = key.decision {
-        program.apply_structural_constraint(analyses, component_capability);
+        program.apply_structural_pattern_defaults(defaults, component_capability);
     }
     program
 }
