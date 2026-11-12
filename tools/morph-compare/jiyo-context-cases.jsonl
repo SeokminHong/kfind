@@ -1,0 +1,48 @@
+{"id":"sseu-jiyo-verb","query":"쓰다","pos":"verb","text":"그 작가는 요즘 어린이를 위한 동화를 쓰지요.","surface":"쓰지요","expected":true,"gold_byte_start":51,"gold_byte_end":60,"paired_case_id":"sseu-jiyo-verb-context"}
+{"id":"sseu-jiyo-verb-context","query":"쓰다","pos":"verb","text":"이 약은 물에 타도 꽤 쓰지요.","surface":"쓰지요","expected":false,"gold_byte_start":29,"gold_byte_end":38,"paired_case_id":"sseu-jiyo-verb"}
+{"id":"sseu-jiyo-adj-context","query":"쓰다","pos":"adjective","text":"그 작가는 요즘 어린이를 위한 동화를 쓰지요.","surface":"쓰지요","expected":false,"gold_byte_start":51,"gold_byte_end":60,"paired_case_id":"sseu-jiyo-adj"}
+{"id":"sseu-jiyo-adj","query":"쓰다","pos":"adjective","text":"이 약은 물에 타도 꽤 쓰지요.","surface":"쓰지요","expected":true,"gold_byte_start":29,"gold_byte_end":38,"paired_case_id":"sseu-jiyo-adj-context"}
+{"id":"sseu-jyo-verb","query":"쓰다","pos":"verb","text":"그 작가는 요즘 어린이를 위한 동화를 쓰죠.","surface":"쓰죠","expected":true,"gold_byte_start":51,"gold_byte_end":57,"paired_case_id":"sseu-jyo-verb-context"}
+{"id":"sseu-jyo-verb-context","query":"쓰다","pos":"verb","text":"이 약은 물에 타도 꽤 쓰죠.","surface":"쓰죠","expected":false,"gold_byte_start":29,"gold_byte_end":35,"paired_case_id":"sseu-jyo-verb"}
+{"id":"sseu-jyo-adj-context","query":"쓰다","pos":"adjective","text":"그 작가는 요즘 어린이를 위한 동화를 쓰죠.","surface":"쓰죠","expected":false,"gold_byte_start":51,"gold_byte_end":57,"paired_case_id":"sseu-jyo-adj"}
+{"id":"sseu-jyo-adj","query":"쓰다","pos":"adjective","text":"이 약은 물에 타도 꽤 쓰죠.","surface":"쓰죠","expected":true,"gold_byte_start":29,"gold_byte_end":35,"paired_case_id":"sseu-jyo-adj-context"}
+{"id":"cha-jiyo-verb","query":"차다","pos":"verb","text":"그 선수는 왼발로도 공을 힘껏 차지요.","surface":"차지요","expected":true,"gold_byte_start":41,"gold_byte_end":50,"paired_case_id":"cha-jiyo-verb-context"}
+{"id":"cha-jiyo-verb-context","query":"차다","pos":"verb","text":"새벽에 길어 온 우물물은 아주 차지요.","surface":"차지요","expected":false,"gold_byte_start":41,"gold_byte_end":50,"paired_case_id":"cha-jiyo-verb"}
+{"id":"cha-jiyo-adj-context","query":"차다","pos":"adjective","text":"그 선수는 왼발로도 공을 힘껏 차지요.","surface":"차지요","expected":false,"gold_byte_start":41,"gold_byte_end":50,"paired_case_id":"cha-jiyo-adj"}
+{"id":"cha-jiyo-adj","query":"차다","pos":"adjective","text":"새벽에 길어 온 우물물은 아주 차지요.","surface":"차지요","expected":true,"gold_byte_start":41,"gold_byte_end":50,"paired_case_id":"cha-jiyo-adj-context"}
+{"id":"cha-jyo-verb","query":"차다","pos":"verb","text":"그 선수는 왼발로도 공을 힘껏 차죠.","surface":"차죠","expected":true,"gold_byte_start":41,"gold_byte_end":47,"paired_case_id":"cha-jyo-verb-context"}
+{"id":"cha-jyo-verb-context","query":"차다","pos":"verb","text":"새벽에 길어 온 우물물은 아주 차죠.","surface":"차죠","expected":false,"gold_byte_start":41,"gold_byte_end":47,"paired_case_id":"cha-jyo-verb"}
+{"id":"cha-jyo-adj-context","query":"차다","pos":"adjective","text":"그 선수는 왼발로도 공을 힘껏 차죠.","surface":"차죠","expected":false,"gold_byte_start":41,"gold_byte_end":47,"paired_case_id":"cha-jyo-adj"}
+{"id":"cha-jyo-adj","query":"차다","pos":"adjective","text":"새벽에 길어 온 우물물은 아주 차죠.","surface":"차죠","expected":true,"gold_byte_start":41,"gold_byte_end":47,"paired_case_id":"cha-jyo-adj-context"}
+{"id":"balg-jiyo-verb","query":"밝다","pos":"verb","text":"이 계절에는 보통 여섯 시쯤 날이 밝지요.","surface":"밝지요","expected":true,"gold_byte_start":45,"gold_byte_end":54,"paired_case_id":"balg-jiyo-verb-context"}
+{"id":"balg-jiyo-verb-context","query":"밝다","pos":"verb","text":"그 휴대폰은 한낮에도 화면이 꽤 밝지요.","surface":"밝지요","expected":false,"gold_byte_start":44,"gold_byte_end":53,"paired_case_id":"balg-jiyo-verb"}
+{"id":"balg-jiyo-adj-context","query":"밝다","pos":"adjective","text":"이 계절에는 보통 여섯 시쯤 날이 밝지요.","surface":"밝지요","expected":false,"gold_byte_start":45,"gold_byte_end":54,"paired_case_id":"balg-jiyo-adj"}
+{"id":"balg-jiyo-adj","query":"밝다","pos":"adjective","text":"그 휴대폰은 한낮에도 화면이 꽤 밝지요.","surface":"밝지요","expected":true,"gold_byte_start":44,"gold_byte_end":53,"paired_case_id":"balg-jiyo-adj-context"}
+{"id":"balg-jyo-verb","query":"밝다","pos":"verb","text":"이 계절에는 보통 여섯 시쯤 날이 밝죠.","surface":"밝죠","expected":true,"gold_byte_start":45,"gold_byte_end":51,"paired_case_id":"balg-jyo-verb-context"}
+{"id":"balg-jyo-verb-context","query":"밝다","pos":"verb","text":"그 휴대폰은 한낮에도 화면이 꽤 밝죠.","surface":"밝죠","expected":false,"gold_byte_start":44,"gold_byte_end":50,"paired_case_id":"balg-jyo-verb"}
+{"id":"balg-jyo-adj-context","query":"밝다","pos":"adjective","text":"이 계절에는 보통 여섯 시쯤 날이 밝죠.","surface":"밝죠","expected":false,"gold_byte_start":45,"gold_byte_end":51,"paired_case_id":"balg-jyo-adj"}
+{"id":"balg-jyo-adj","query":"밝다","pos":"adjective","text":"그 휴대폰은 한낮에도 화면이 꽤 밝죠.","surface":"밝죠","expected":true,"gold_byte_start":44,"gold_byte_end":50,"paired_case_id":"balg-jyo-adj-context"}
+{"id":"keu-jiyo-verb","query":"크다","pos":"verb","text":"아이들은 방학 동안에도 부쩍 크지요.","surface":"크지요","expected":true,"gold_byte_start":40,"gold_byte_end":49,"paired_case_id":"keu-jiyo-verb-context"}
+{"id":"keu-jiyo-verb-context","query":"크다","pos":"verb","text":"그 모니터는 제 책상에 두기에는 너무 크지요.","surface":"크지요","expected":false,"gold_byte_start":51,"gold_byte_end":60,"paired_case_id":"keu-jiyo-verb"}
+{"id":"keu-jiyo-adj-context","query":"크다","pos":"adjective","text":"아이들은 방학 동안에도 부쩍 크지요.","surface":"크지요","expected":false,"gold_byte_start":40,"gold_byte_end":49,"paired_case_id":"keu-jiyo-adj"}
+{"id":"keu-jiyo-adj","query":"크다","pos":"adjective","text":"그 모니터는 제 책상에 두기에는 너무 크지요.","surface":"크지요","expected":true,"gold_byte_start":51,"gold_byte_end":60,"paired_case_id":"keu-jiyo-adj-context"}
+{"id":"keu-jyo-verb","query":"크다","pos":"verb","text":"아이들은 방학 동안에도 부쩍 크죠.","surface":"크죠","expected":true,"gold_byte_start":40,"gold_byte_end":46,"paired_case_id":"keu-jyo-verb-context"}
+{"id":"keu-jyo-verb-context","query":"크다","pos":"verb","text":"그 모니터는 제 책상에 두기에는 너무 크죠.","surface":"크죠","expected":false,"gold_byte_start":51,"gold_byte_end":57,"paired_case_id":"keu-jyo-verb"}
+{"id":"keu-jyo-adj-context","query":"크다","pos":"adjective","text":"아이들은 방학 동안에도 부쩍 크죠.","surface":"크죠","expected":false,"gold_byte_start":40,"gold_byte_end":46,"paired_case_id":"keu-jyo-adj"}
+{"id":"keu-jyo-adj","query":"크다","pos":"adjective","text":"그 모니터는 제 책상에 두기에는 너무 크죠.","surface":"크죠","expected":true,"gold_byte_start":51,"gold_byte_end":57,"paired_case_id":"keu-jyo-adj-context"}
+{"id":"neuj-jiyo-verb","query":"늦다","pos":"verb","text":"민수는 모임이 있을 때마다 약속에 늦지요.","surface":"늦지요","expected":true,"gold_byte_start":47,"gold_byte_end":56,"paired_case_id":"neuj-jiyo-verb-context"}
+{"id":"neuj-jiyo-verb-context","query":"늦다","pos":"verb","text":"지금 다시 출발하기에는 시간이 너무 늦지요.","surface":"늦지요","expected":false,"gold_byte_start":50,"gold_byte_end":59,"paired_case_id":"neuj-jiyo-verb"}
+{"id":"neuj-jiyo-adj-context","query":"늦다","pos":"adjective","text":"민수는 모임이 있을 때마다 약속에 늦지요.","surface":"늦지요","expected":false,"gold_byte_start":47,"gold_byte_end":56,"paired_case_id":"neuj-jiyo-adj"}
+{"id":"neuj-jiyo-adj","query":"늦다","pos":"adjective","text":"지금 다시 출발하기에는 시간이 너무 늦지요.","surface":"늦지요","expected":true,"gold_byte_start":50,"gold_byte_end":59,"paired_case_id":"neuj-jiyo-adj-context"}
+{"id":"neuj-jyo-verb","query":"늦다","pos":"verb","text":"민수는 모임이 있을 때마다 약속에 늦죠.","surface":"늦죠","expected":true,"gold_byte_start":47,"gold_byte_end":53,"paired_case_id":"neuj-jyo-verb-context"}
+{"id":"neuj-jyo-verb-context","query":"늦다","pos":"verb","text":"지금 다시 출발하기에는 시간이 너무 늦죠.","surface":"늦죠","expected":false,"gold_byte_start":50,"gold_byte_end":56,"paired_case_id":"neuj-jyo-verb"}
+{"id":"neuj-jyo-adj-context","query":"늦다","pos":"adjective","text":"민수는 모임이 있을 때마다 약속에 늦죠.","surface":"늦죠","expected":false,"gold_byte_start":47,"gold_byte_end":53,"paired_case_id":"neuj-jyo-adj"}
+{"id":"neuj-jyo-adj","query":"늦다","pos":"adjective","text":"지금 다시 출발하기에는 시간이 너무 늦죠.","surface":"늦죠","expected":true,"gold_byte_start":50,"gold_byte_end":56,"paired_case_id":"neuj-jyo-adj-context"}
+{"id":"iss-jiyo-verb","query":"있다","pos":"verb","text":"아이들이 돌아올 때까지 저는 이 자리에 있지요.","surface":"있지요","expected":true,"gold_byte_start":54,"gold_byte_end":63,"paired_case_id":"iss-jiyo-verb-context"}
+{"id":"iss-jiyo-verb-context","query":"있다","pos":"verb","text":"그 마을에는 오래된 느티나무가 한 그루 있지요.","surface":"있지요","expected":false,"gold_byte_start":54,"gold_byte_end":63,"paired_case_id":"iss-jiyo-verb"}
+{"id":"iss-jiyo-adj-context","query":"있다","pos":"adjective","text":"아이들이 돌아올 때까지 저는 이 자리에 있지요.","surface":"있지요","expected":false,"gold_byte_start":54,"gold_byte_end":63,"paired_case_id":"iss-jiyo-adj"}
+{"id":"iss-jiyo-adj","query":"있다","pos":"adjective","text":"그 마을에는 오래된 느티나무가 한 그루 있지요.","surface":"있지요","expected":true,"gold_byte_start":54,"gold_byte_end":63,"paired_case_id":"iss-jiyo-adj-context"}
+{"id":"iss-jyo-verb","query":"있다","pos":"verb","text":"아이들이 돌아올 때까지 저는 이 자리에 있죠.","surface":"있죠","expected":true,"gold_byte_start":54,"gold_byte_end":60,"paired_case_id":"iss-jyo-verb-context"}
+{"id":"iss-jyo-verb-context","query":"있다","pos":"verb","text":"그 마을에는 오래된 느티나무가 한 그루 있죠.","surface":"있죠","expected":false,"gold_byte_start":54,"gold_byte_end":60,"paired_case_id":"iss-jyo-verb"}
+{"id":"iss-jyo-adj-context","query":"있다","pos":"adjective","text":"아이들이 돌아올 때까지 저는 이 자리에 있죠.","surface":"있죠","expected":false,"gold_byte_start":54,"gold_byte_end":60,"paired_case_id":"iss-jyo-adj"}
+{"id":"iss-jyo-adj","query":"있다","pos":"adjective","text":"그 마을에는 오래된 느티나무가 한 그루 있죠.","surface":"있죠","expected":true,"gold_byte_start":54,"gold_byte_end":60,"paired_case_id":"iss-jyo-adj-context"}

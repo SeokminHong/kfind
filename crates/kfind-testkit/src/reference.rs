@@ -1378,7 +1378,96 @@ fn reference_simple_continuation(
         ContinuationState::BieupFinal => BIEUP_FINAL,
         ContinuationState::Prospective => PROSPECTIVE,
     };
+    const JIYO: ReferenceSuffix = reference_suffix("지요", &["ending.confirmation-jiyo"]);
+    const JYO: ReferenceSuffix = reference_suffix("죠", &["ending.confirmation-jiyo"]);
+    const CONFIRMATION_JIYO: &[ReferenceSuffix] = &[JIYO, JYO];
+    const HONORIFIC_JIYO: &[ReferenceSuffix] = &[
+        reference_suffix("시지요", &["ending.honorific", "ending.confirmation-jiyo"]),
+        reference_suffix("시죠", &["ending.honorific", "ending.confirmation-jiyo"]),
+        reference_suffix(
+            "셨지요",
+            &[
+                "ending.honorific",
+                "ending.past",
+                "ending.confirmation-jiyo",
+            ],
+        ),
+        reference_suffix(
+            "셨죠",
+            &[
+                "ending.honorific",
+                "ending.past",
+                "ending.confirmation-jiyo",
+            ],
+        ),
+        reference_suffix(
+            "시겠지요",
+            &[
+                "ending.honorific",
+                "ending.future",
+                "ending.confirmation-jiyo",
+            ],
+        ),
+        reference_suffix(
+            "시겠죠",
+            &[
+                "ending.honorific",
+                "ending.future",
+                "ending.confirmation-jiyo",
+            ],
+        ),
+        reference_suffix(
+            "셨겠지요",
+            &[
+                "ending.honorific",
+                "ending.past",
+                "ending.future",
+                "ending.confirmation-jiyo",
+            ],
+        ),
+        reference_suffix(
+            "셨겠죠",
+            &[
+                "ending.honorific",
+                "ending.past",
+                "ending.future",
+                "ending.confirmation-jiyo",
+            ],
+        ),
+    ];
+    const PAST_FUTURE_JIYO: &[ReferenceSuffix] = &[
+        reference_suffix("겠지요", &["ending.future", "ending.confirmation-jiyo"]),
+        reference_suffix("겠죠", &["ending.future", "ending.confirmation-jiyo"]),
+    ];
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding
+            if (pos == PredicatePos::Copula || anchor == "아니")
+                && (following.starts_with('죠') || following.starts_with("지요")) =>
+        {
+            &[
+                reference_suffix("죠", &["ending.copula-common-final"]),
+                reference_suffix("지요", &["ending.copula-common-final"]),
+            ]
+        }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with('죠') || following.starts_with("지요") =>
+        {
+            CONFIRMATION_JIYO
+        }
+        ContinuationState::Past
+            if following.starts_with("겠죠") || following.starts_with("겠지요") =>
+        {
+            PAST_FUTURE_JIYO
+        }
+        ContinuationState::Eu
+            if ["시", "셨", "시겠", "셨겠"].iter().any(|prefix| {
+                following
+                    .strip_prefix(*prefix)
+                    .is_some_and(|tail| tail.starts_with('죠') || tail.starts_with("지요"))
+            }) =>
+        {
+            HONORIFIC_JIYO
+        }
         ContinuationState::StemEnding
             if (pos.is_action() || anchor == "아니") && following.starts_with("고서") =>
         {
@@ -1884,6 +1973,8 @@ fn reference_attached_auxiliary(
         }
     }
     const FIXED: &[ReferenceSuffix] = &[
+        reference_suffix("지요", &["ending.confirmation-jiyo"]),
+        reference_suffix("죠", &["ending.confirmation-jiyo"]),
         reference_suffix("다", &["ending.final-da"]),
         reference_suffix("고", &["ending.connective-go"]),
         reference_suffix("고요", &["ending.connective-go", "ending.polite-yo"]),
