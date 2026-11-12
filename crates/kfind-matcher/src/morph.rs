@@ -1481,6 +1481,15 @@ impl MorphMatcher {
             return false;
         };
         let host = host.nfc().collect::<String>();
+        if host.ends_with('하')
+            && context::previous_word(haystack, whole.start)
+                .is_some_and(|previous| resolver.has_object_marked_nominal(&previous))
+            && token
+                .get(host.len()..)
+                .is_some_and(|ending| resolver.has_derived_ha_past(&host, ending))
+        {
+            return false;
+        }
         resolver.has_complete_nominal_surface(&host)
             || host
                 .char_indices()
