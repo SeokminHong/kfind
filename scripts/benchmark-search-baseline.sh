@@ -20,7 +20,7 @@ OUTPUT_DIR=${1:-"$ROOT/target/benchmark/search-baseline/$REVISION"}
 FULL_POS_DIR=${KFIND_SEARCH_BASELINE_FULL_POS_DIR:-"$ROOT/target/full-pos"}
 COMPONENT_DIR=${KFIND_SEARCH_BASELINE_COMPONENT_DIR:-"$ROOT/target/component-resource"}
 DATA_DIR="$OUTPUT_DIR/resources"
-FULL_POS_SHA256=012a2ecfc9ee049cb48f655eb240fa2ed6fc739dfde01526078a976549246e88
+FULL_POS_SHA256=47bb7a3a31d6985f0b31dab5632b0d0a07feefa7cd2d94f220ec5d5483ac735f
 COMPONENT_SHA256=$(<"$ROOT/data/generated/morphology-component-compact.sha256")
 
 fail() {

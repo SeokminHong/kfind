@@ -634,6 +634,48 @@ fn enriched_predicates_recover_irregular_surfaces_and_mixed_regular_analysis() {
 }
 
 #[test]
+fn auto_pos_does_not_expand_reviewed_inflected_aliases() {
+    let temp = TempDir::new();
+    let extraction = extract_mecab_ko_dic(
+        "mecab-ko-dic.csv",
+        Cursor::new(concat!(
+            "그,2420,3577,8137,VV,*,F,그,*,*,*,*\n",
+            "그,2420,3577,8137,VV,*,F,그,Inflect,VV,VV,긋/VV/*\n",
+            "그,1,1,0,NP,*,F,그,*,*,*,*\n",
+        )),
+    )
+    .unwrap();
+    temp.write_bytes(
+        FULL_POS_FILE,
+        &encode_pos_lexicon(&extraction.into_pos_lexicon()).unwrap(),
+    );
+    temp.write_bytes(COMPONENT_RESOURCE_FILE, &component_resource());
+    temp.write(
+        ENRICHED_PREDICATES_FILE,
+        "lemma\tpos\talternation\tflags\toverrides\n긋다\tVV\tDropS\t\t\n",
+    );
+    for (query, sentence, expected) in [
+        ("그다", "그는 서류에 줄을 그었다.\n", ExitStatus::NoMatch),
+        ("그다", "그 선수는 금메달을 땄다.\n", ExitStatus::NoMatch),
+        (
+            "그다",
+            "내일은 지금보다 더 추울 것이다.\n",
+            ExitStatus::NoMatch,
+        ),
+        ("그다", "거기에 열쇠를 두었다.\n", ExitStatus::NoMatch),
+        ("그다", "뒤늦게 문제가 불거졌다.\n", ExitStatus::NoMatch),
+        ("그", "그는 서류에 줄을 그었다.\n", ExitStatus::Match),
+        ("긋다", "그는 서류에 줄을 그었다.\n", ExitStatus::Match),
+    ] {
+        let args =
+            Args::try_parse_from(["kfind", "--data-dir", temp.0.to_str().unwrap(), query]).unwrap();
+        let (status, _, stderr) = run(args, sentence.as_bytes(), false);
+        assert_eq!(status, expected, "{query} in {sentence}");
+        assert!(stderr.is_empty());
+    }
+}
+
+#[test]
 fn embedded_mode_skips_enriched_predicates() {
     let temp = TempDir::new();
     temp.write(
