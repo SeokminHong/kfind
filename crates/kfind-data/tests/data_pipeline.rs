@@ -824,6 +824,30 @@ fn mecab_extractor_preserves_predicate_pos_candidates() {
 }
 
 #[test]
+fn mecab_extractor_does_not_promote_reviewed_inflected_aliases() {
+    let csv = concat!(
+        "그,2420,3577,8137,VV,*,F,그,*,*,*,*\n",
+        "그,2420,3577,8137,VV,*,F,그,Inflect,VV,VV,긋/VV/*\n",
+        "그,1,1,0,NP,*,F,그,*,*,*,*\n",
+        "긋,1,1,0,VV,*,T,긋,*,*,*,*\n",
+        "그렇,2420,3578,7845,VV,*,T,그렇,*,*,*,*\n",
+        "그렇,1,1,0,VA,*,T,그렇,*,*,*,*\n",
+        "가,1,1,0,VV,*,F,가,*,*,*,*\n",
+        "가,1,1,0,VV,*,F,가,Inflect,VV,VV,갈/VV/*\n",
+    );
+    let lexicon = extract_mecab_ko_dic("mecab-ko-dic.csv", Cursor::new(csv))
+        .unwrap()
+        .into_pos_lexicon();
+    let decoded = decode_pos_lexicon(&encode_pos_lexicon(&lexicon).unwrap()).unwrap();
+
+    assert!(decoded.lookup("그다").is_empty());
+    assert!(decoded.lookup_fine_pos("그").eq([DataFinePos::Np]));
+    assert!(decoded.lookup_fine_pos("긋다").eq([DataFinePos::Vv]));
+    assert!(decoded.lookup_fine_pos("그렇다").eq([DataFinePos::Va]));
+    assert!(decoded.lookup_fine_pos("가다").eq([DataFinePos::Vv]));
+}
+
+#[test]
 fn mecab_extractor_rejects_contextual_copula_surfaces() {
     let csv = concat!(
         "이,1,1,1,VCP,*,F,이,*,*,*,*\n",

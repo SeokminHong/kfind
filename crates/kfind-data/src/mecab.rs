@@ -7,6 +7,8 @@ use crate::lexicon::DataFinePos;
 use crate::{DataError, DataErrorKind};
 
 const MAX_CONNECTION_COSTS: usize = 1 << 24;
+const INFLECTED_PREDICATE_ALIAS_ROWS: &[&str] =
+    include!("../../../data/rules/mecab-inflected-predicate-aliases.rs");
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct MecabConnectionMatrix {
@@ -172,7 +174,9 @@ pub fn extract_mecab_ko_dic(
             skipped_unsupported_pos += 1;
             continue;
         };
-        if matches!(fields[8].as_str(), "Inflect" | "Preanalysis") {
+        if matches!(fields[8].as_str(), "Inflect" | "Preanalysis")
+            || (pos.is_predicate() && INFLECTED_PREDICATE_ALIAS_ROWS.binary_search(&line).is_ok())
+        {
             skipped_analysis_rows += 1;
             continue;
         }
