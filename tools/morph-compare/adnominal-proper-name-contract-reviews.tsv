@@ -1,0 +1,2 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	adnominal-proper-name	personal-name	알리다	verb	false	5f5bff743fc80c5005225e3fc3dbdcea1aaa9126516ac39b0e03a6efa77686a7	contract-positive	structurally-indistinguishable-homograph	같은 문장에서 목적어가 관형절의 알리다와 바깥 절의 묻다에 각각 연결될 수 있고 앞 문장이 해석을 가른다.

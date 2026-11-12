@@ -188,21 +188,27 @@ impl<'a> PreparedStructuralContextAnalysis<'a> {
         prepared.map(|prepared| Self { current, prepared })
     }
 
-    pub(super) fn resolve(&self, request: StructuralRequest<'_>) -> Option<ConstraintDecision> {
+    pub(super) fn resolve(
+        &self,
+        request: StructuralRequest<'_>,
+        has_proper_name_subject_frame: impl FnOnce() -> bool,
+    ) -> Option<ConstraintDecision> {
         let core = self
             .current
             .normalized_span(request.candidate.core.clone())?;
         let anchor = self.current.normalized_span(request.anchor)?;
         let consumed = self.current.normalized_span(request.consumed)?;
         let token = 0..self.current.normalized().len();
-        Some(self.prepared.resolve_candidate(
-            CandidateSpans {
-                core,
-                anchor,
-                consumed,
-                token,
-            },
+        let spans = CandidateSpans {
+            core,
+            anchor,
+            consumed,
+            token,
+        };
+        Some(self.prepared.resolve_candidate_with_adnominal_context(
+            spans,
             request.patterns,
+            has_proper_name_subject_frame,
         ))
     }
 
@@ -385,6 +391,32 @@ pub(super) fn previous_word_with_start(bytes: &[u8], at: usize) -> Option<(usize
 
 pub(super) fn next_word(bytes: &[u8], at: usize) -> Option<Cow<'_, str>> {
     next_word_with_end(bytes, at).map(|(_, word)| word)
+}
+
+pub(super) fn has_proper_name_subject_frame(
+    haystack: &[u8],
+    token: &Range<usize>,
+    resolver: &ConstraintResolver,
+) -> bool {
+    if !previous_word(haystack, token.start)
+        .is_some_and(|word| resolver.has_object_marked_nominal(&word))
+    {
+        return false;
+    }
+    let Some((subject_end, subject)) = next_word_with_end(haystack, token.end) else {
+        return false;
+    };
+    if !resolver.has_subject_or_topic_marked_proper_name(&subject) {
+        return false;
+    }
+    let Some((object_end, object)) = next_word_with_end(haystack, subject_end) else {
+        return false;
+    };
+    resolver.has_object_marked_nominal(&object)
+        && next_word_with_end(haystack, object_end).is_some_and(|(end, predicate)| {
+            crate::boundary::is_sentence_end_after(haystack, end)
+                && resolver.has_independent_final_predicate(&predicate)
+        })
 }
 
 pub(super) fn next_word_with_end(bytes: &[u8], at: usize) -> Option<(usize, Cow<'_, str>)> {

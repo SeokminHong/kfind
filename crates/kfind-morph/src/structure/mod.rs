@@ -328,6 +328,36 @@ impl PreparedStructuralContext {
         spans: CandidateSpans,
         patterns: &[QueryMorphPattern],
     ) -> ConstraintDecision {
+        self.resolve_with_selection(spans, patterns, &self.selection)
+    }
+
+    #[must_use]
+    pub fn resolve_candidate_with_adnominal_context(
+        &self,
+        spans: CandidateSpans,
+        patterns: &[QueryMorphPattern],
+        has_proper_name_subject_frame: impl FnOnce() -> bool,
+    ) -> ConstraintDecision {
+        let selection = if matches!(
+            self.selection,
+            StructureSelection::ProperNameOrAdnominal { .. }
+        ) && has_proper_name_subject_frame()
+        {
+            &StructureSelection::ProperNameOrAdnominal {
+                only_adnominal: true,
+            }
+        } else {
+            &self.selection
+        };
+        self.resolve_with_selection(spans, patterns, selection)
+    }
+
+    fn resolve_with_selection(
+        &self,
+        spans: CandidateSpans,
+        patterns: &[QueryMorphPattern],
+        selection: &StructureSelection,
+    ) -> ConstraintDecision {
         let token = self.token.as_ref();
         if !spans.is_valid_for(&token.text)
             || spans.token != (0..token.text.len())
@@ -339,7 +369,7 @@ impl PreparedStructuralContext {
             &token.evidence,
             &spans,
             patterns,
-            self.selection.graph_nominal_host(),
+            selection.graph_nominal_host(),
         );
         if raw.is_empty() {
             return ConstraintDecision {
@@ -350,8 +380,7 @@ impl PreparedStructuralContext {
         let mut supported = raw
             .into_iter()
             .filter(|support| {
-                self.selection
-                    .accepts(support, &spans, patterns, &token.text, &token.evidence)
+                selection.accepts(support, &spans, patterns, &token.text, &token.evidence)
             })
             .collect::<Vec<_>>();
         supported.sort_unstable_by_key(|support| (support.pattern_index, support.evidence as u8));

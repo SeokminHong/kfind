@@ -1515,12 +1515,15 @@ impl MorphMatcher {
         {
             return false;
         }
-        let decision = context.resolve(StructuralRequest {
-            candidate: &candidate.verified,
-            anchor: candidate.anchor.clone(),
-            consumed,
-            patterns,
-        });
+        let decision = context.resolve(
+            StructuralRequest {
+                candidate: &candidate.verified,
+                anchor: candidate.anchor.clone(),
+                consumed,
+                patterns,
+            },
+            || context::has_proper_name_subject_frame(haystack, &whole, resolver),
+        );
         if decision.as_ref().is_none_or(|decision| {
             matches!(
                 decision.outcome,
