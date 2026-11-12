@@ -3,11 +3,13 @@ corpus.ud-gsd.test.test-s39.adjective.좋다	좋다	adjective	match	90	99	괜찮
 corpus.ud-gsd.test.test-s154.verb.먹다	먹다	verb	match	105	114	푸짐한 음식과 맛도 좋고 양에 비해 가격 저렴하고 얼큰한 바르미 샤브 칼국수 먹으러 와 보세요
 corpus.ud-gsd.test.test-s200.verb.결제하다	결제하다	verb	match	89	107	오만 원 이상 카드 결제를 하는데 부가세 별도라며 오천 원을 추가 결제하더군요
 corpus.ud-gsd.test.test-s250.adjective.좋다	좋다	adjective	match	41	50	팬 앤 패드법의 경우는 효과는 좋으나 패드의 탈부착이 어렵고 겨울에 시설 내 광 투과율이 떨어지는 문제가 있다.
+corpus.ud-gsd.test.test-s280.adjective.약하다	약하다	adjective	match	59	71	그러자 일시적으로 기압이 상승하며 파도가 약해졌고, 이에 완전히 태풍이 북동쪽에 있다고 확신한 홀시 제독은 경로를 남서쪽으로 완전히 바꾸어 이동하였다.
 corpus.ud-gsd.test.test-s353.verb.않다	않다	verb	match	66	75	체인 빵집이 싫어 갔는데 특별히 더 좋은 것 같진 않네요
 corpus.ud-gsd.test.test-s365.verb.받다	받다	verb	match	7	19	전화 받으시는 목소리가 매우 친절합니다.
 corpus.ud-gsd.test.test-s468.adjective.무관하다	무관하다	adjective	match	355	364	삼성 관계자는 "이 회장의 신년사를 보면 '누구와도 손잡을 수 있어야 하고 모자라는 부분은 기꺼이 협력하는 용기와 결단이 필요하다'고 지적하면서 창의성과 스피드를 강하게 주문했다"며 "이 같은 당부가 제대로 이행되지 않고 있다는 생각을 하는 것도 정기 출근과 무관치 않을 수 있다"고 전했다.
 corpus.ud-gsd.test.test-s551.verb.찾다	찾다	verb	match	20	32	석양 이미지를 찾으시오
 corpus.ud-gsd.test.test-s570.verb.주무시다	주무시다	verb	match	37	49	겨울에는 무조건 내복 입고 주무세요.
+corpus.ud-gsd.test.test-s674.verb.느끼다	느끼다	verb	match	146	158	도 특사경 유흥수 팀장은 "행정적 위반 업소 단속이 많지만 가끔 검찰과 현장 합동단속을 벌일 때는 긴박감도 느껴진다"고 했다.
 corpus.ud-gsd.test.test-s723.verb.이루어지다	이루어지다	verb	match	86	98	이곳에서 문화재 발굴은 형촌마을 서쪽 구릉과 남쪽 저지대에서 이뤄지고 있었다.
 corpus.ud-gsd.test.test-s723.verb.이루다	이루다	verb	match	86	98	이곳에서 문화재 발굴은 형촌마을 서쪽 구릉과 남쪽 저지대에서 이뤄지고 있었다.
 corpus.ud-gsd.test.test-s782.verb.털어놓다	털어놓다	verb	match	124	136	조인성은 입대할 당시 심경과 군 복무를 하며 생긴 배우로서의 공백기에 대해 솔직한 생각을 털어놨다.

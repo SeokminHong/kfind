@@ -714,29 +714,63 @@ fn reference_predicate_continuation(
         ),
         reference_suffix("가고", &["ending.auxiliary-gada", "ending.connective-go"]),
         reference_suffix("가야", &["ending.auxiliary-gada", "ending.connective-ya"]),
-        reference_suffix(
-            "졌습니다",
-            &[
-                "ending.auxiliary-jida",
-                "ending.past",
-                "ending.polite-declarative",
-            ],
-        ),
         reference_suffix("서도", &["ending.aoeo-seo", "particle.additive"]),
-        reference_suffix(
-            "졌다",
-            &["ending.auxiliary-jida", "ending.past", "ending.final-da"],
-        ),
         reference_suffix("지면", &["ending.auxiliary-jida", "ending.conditional"]),
         reference_suffix("지고", &["ending.auxiliary-jida", "ending.connective-go"]),
         reference_suffix("진", &["ending.auxiliary-jida", "ending.past-adnominal"]),
         reference_suffix("질", &["ending.auxiliary-jida", "ending.future-adnominal"]),
         reference_suffix("지다", &["ending.auxiliary-jida", "ending.final-da"]),
+        reference_suffix(
+            "지던",
+            &["ending.auxiliary-jida", "ending.retrospective-adnominal"],
+        ),
+        reference_suffix(
+            "지더니",
+            &["ending.auxiliary-jida", "ending.retrospective-connective"],
+        ),
+        reference_suffix(
+            "지더라도",
+            &["ending.auxiliary-jida", "ending.concessive-deorado"],
+        ),
+        reference_suffix(
+            "지던가",
+            &[
+                "ending.auxiliary-jida",
+                "ending.retrospective-question-deon",
+            ],
+        ),
+        reference_suffix(
+            "지던감",
+            &[
+                "ending.auxiliary-jida",
+                "ending.retrospective-question-deon",
+            ],
+        ),
+        reference_suffix(
+            "지던들",
+            &[
+                "ending.auxiliary-jida",
+                "ending.retrospective-connective-deon",
+            ],
+        ),
+        reference_suffix(
+            "지던지",
+            &[
+                "ending.auxiliary-jida",
+                "ending.retrospective-connective-deon",
+            ],
+        ),
         reference_suffix("서", &["ending.aoeo-seo"]),
         reference_suffix("도", &["ending.connective-do"]),
         reference_suffix("야", &["ending.connective-ya"]),
         reference_suffix("요", &["ending.polite-yo"]),
         reference_suffix("라", &["ending.imperative-ra"]),
+    ];
+    const DEON_RECOLLECTION: &[ReferenceSuffix] = &[
+        reference_suffix("던가", &["ending.retrospective-question-deon"]),
+        reference_suffix("던감", &["ending.retrospective-question-deon"]),
+        reference_suffix("던들", &["ending.retrospective-connective-deon"]),
+        reference_suffix("던지", &["ending.retrospective-connective-deon"]),
     ];
     const PAST: &[ReferenceSuffix] = &[
         reference_suffix("습니까", &["ending.formal-interrogative"]),
@@ -1270,7 +1304,28 @@ fn reference_predicate_continuation(
 
     let candidates = match state {
         ContinuationState::Terminal => return Some((0, Vec::new())),
-        ContinuationState::AOrEo => AEO,
+        ContinuationState::AOrEo => {
+            for (form, next, rule) in [
+                ("진다", ContinuationState::Declarative, "ending.declarative"),
+                ("졌", ContinuationState::Past, "ending.past"),
+                ("지겠", ContinuationState::Future, "ending.future"),
+            ] {
+                if let Some(tail) = following.strip_prefix(form)
+                    && let Some((len, rules)) = reference_predicate_continuation(
+                        next,
+                        PredicatePos::AuxiliaryVerb,
+                        form,
+                        tail,
+                    )
+                    && (len > 0 || next == ContinuationState::Declarative)
+                {
+                    let mut path = vec!["ending.auxiliary-jida".into(), rule.into()];
+                    path.extend(rules);
+                    return Some((form.len() + len, path));
+                }
+            }
+            AEO
+        }
         ContinuationState::Past => PAST,
         ContinuationState::Future => FUTURE,
         ContinuationState::Declarative => DECLARATIVE,
@@ -1409,6 +1464,11 @@ fn reference_predicate_continuation(
             if following.starts_with("던데") =>
         {
             DEONDE
+        }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with('던') =>
+        {
+            DEON_RECOLLECTION
         }
         ContinuationState::Past | ContinuationState::Future if following.starts_with("는데") => {
             NEUNDE

@@ -342,6 +342,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.retrospective-question-deon"
+category = "final"
+initial = "other"
+forms = ["던가", "던감"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.retrospective-connective-deon"
+category = "connective"
+initial = "other"
+forms = ["던들", "던지"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.purpose-dorok"
 category = "connective"
 initial = "other"
@@ -608,7 +628,7 @@ initial = "other"
 forms = ["지"]
 required = []
 forbidden = []
-next = ["ending.past", "ending.final-da", "ending.conditional", "ending.connective-go", "ending.past-adnominal", "ending.future-adnominal", "ending.polite-declarative", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite"]
+next = ["ending.past", "ending.future", "ending.declarative", "ending.final-da", "ending.conditional", "ending.connective-go", "ending.past-adnominal", "ending.future-adnominal", "ending.retrospective-adnominal", "ending.retrospective-connective", "ending.retrospective-question-deon", "ending.retrospective-connective-deon", "ending.concessive-deorado", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite"]
 terminal = true
 
 [[ending]]
