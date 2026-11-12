@@ -199,12 +199,20 @@ fn compile_stem(
             ContinuationState::Terminal,
             vec![rule("ending.nominalizer-gi")],
         );
-        push_derived(
-            branches,
-            entry,
-            nominalizer_surface(entry, stem)?,
-            ContinuationState::Terminal,
-        );
+        let nominalizer = nominalizer_surface(entry, stem)?;
+        if entry.pos.is_action() {
+            let mut rules = nominalizer.rules.clone();
+            *rules.last_mut().expect("nominalizer ending") = rule("ending.volitional-mse");
+            push_branch(
+                branches,
+                entry,
+                format!("{}세", nominalizer.surface),
+                nominalizer.core_len,
+                ContinuationState::Terminal,
+                rules,
+            );
+        }
+        push_derived(branches, entry, nominalizer, ContinuationState::Terminal);
     }
 
     if entry.alternation == LexicalAlternation::Copula {

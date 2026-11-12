@@ -1,0 +1,20 @@
+{"id":"gamse-verb","query":"가다","pos":"verb","text":"자네는 천천히 준비하게. 나는 먼저 감세.","surface":"감세","expected":true,"gold_byte_start":48,"gold_byte_end":54,"paired_case_id":"gamse-verb-context"}
+{"id":"gamse-verb-context","query":"가다","pos":"verb","text":"이번 세법 개정에서 가장 주목할 대목은 역시 감세.","surface":"감세","expected":false,"gold_byte_start":61,"gold_byte_end":67,"paired_case_id":"gamse-verb"}
+{"id":"gamse-noun-context","query":"감세","pos":"noun","text":"자네는 천천히 준비하게. 나는 먼저 감세.","surface":"감세","expected":false,"gold_byte_start":48,"gold_byte_end":54,"paired_case_id":"gamse-noun"}
+{"id":"gamse-noun","query":"감세","pos":"noun","text":"이번 세법 개정에서 가장 주목할 대목은 역시 감세.","surface":"감세","expected":true,"gold_byte_start":61,"gold_byte_end":67,"paired_case_id":"gamse-noun-context"}
+{"id":"samse-verb","query":"사다","pos":"verb","text":"저녁값은 걱정 말게. 오늘은 내가 삼세.","surface":"삼세","expected":true,"gold_byte_start":45,"gold_byte_end":51,"paired_case_id":"samse-verb-context"}
+{"id":"samse-verb-context","query":"사다","pos":"verb","text":"불교에서 말하는 삼세 개념은 과거·현재·미래를 아우른다.","surface":"삼세","expected":false,"gold_byte_start":23,"gold_byte_end":29,"paired_case_id":"samse-verb"}
+{"id":"samse-noun-context","query":"삼세","pos":"noun","text":"저녁값은 걱정 말게. 오늘은 내가 삼세.","surface":"삼세","expected":false,"gold_byte_start":45,"gold_byte_end":51,"paired_case_id":"samse-noun"}
+{"id":"samse-noun","query":"삼세","pos":"noun","text":"불교에서 말하는 삼세 개념은 과거·현재·미래를 아우른다.","surface":"삼세","expected":true,"gold_byte_start":23,"gold_byte_end":29,"paired_case_id":"samse-noun-context"}
+{"id":"naerimse-verb","query":"내리다","pos":"verb","text":"비가 그쳤으니 짐은 내가 차에서 내림세.","surface":"내림세","expected":true,"gold_byte_start":44,"gold_byte_end":53,"paired_case_id":"naerimse-verb-context"}
+{"id":"naerimse-verb-context","query":"내리다","pos":"verb","text":"전문가들은 하반기 집값의 내림세 지속을 예상했다.","surface":"내림세","expected":false,"gold_byte_start":36,"gold_byte_end":45,"paired_case_id":"naerimse-verb"}
+{"id":"naerimse-noun-context","query":"내림세","pos":"noun","text":"비가 그쳤으니 짐은 내가 차에서 내림세.","surface":"내림세","expected":false,"gold_byte_start":44,"gold_byte_end":53,"paired_case_id":"naerimse-noun"}
+{"id":"naerimse-noun","query":"내림세","pos":"noun","text":"전문가들은 하반기 집값의 내림세 지속을 예상했다.","surface":"내림세","expected":true,"gold_byte_start":36,"gold_byte_end":45,"paired_case_id":"naerimse-noun-context"}
+{"id":"oreumse-verb","query":"오르다","pos":"verb","text":"자네는 쉬게. 전망대에는 내가 먼저 오름세.","surface":"오름세","expected":true,"gold_byte_start":48,"gold_byte_end":57,"paired_case_id":"oreumse-verb-context"}
+{"id":"oreumse-verb-context","query":"오르다","pos":"verb","text":"최근의 금값 오름세 때문에 투자자들이 금으로 몰렸다.","surface":"오름세","expected":false,"gold_byte_start":17,"gold_byte_end":26,"paired_case_id":"oreumse-verb"}
+{"id":"oreumse-noun-context","query":"오름세","pos":"noun","text":"자네는 쉬게. 전망대에는 내가 먼저 오름세.","surface":"오름세","expected":false,"gold_byte_start":48,"gold_byte_end":57,"paired_case_id":"oreumse-noun"}
+{"id":"oreumse-noun","query":"오름세","pos":"noun","text":"최근의 금값 오름세 때문에 투자자들이 금으로 몰렸다.","surface":"오름세","expected":true,"gold_byte_start":17,"gold_byte_end":26,"paired_case_id":"oreumse-noun-context"}
+{"id":"meomchumse-verb","query":"멈추다","pos":"verb","text":"자네가 숨을 고를 수 있게 나도 여기서 잠시 멈춤세.","surface":"멈춤세","expected":true,"gold_byte_start":59,"gold_byte_end":68,"paired_case_id":"meomchumse-verb-context"}
+{"id":"meomchumse-verb-context","query":"멈추다","pos":"verb","text":"증권가는 당분간 주가의 멈춤세 지속을 예상했다.","surface":"멈춤세","expected":false,"gold_byte_start":33,"gold_byte_end":42,"paired_case_id":"meomchumse-verb"}
+{"id":"meomchumse-noun-context","query":"멈춤세","pos":"noun","text":"자네가 숨을 고를 수 있게 나도 여기서 잠시 멈춤세.","surface":"멈춤세","expected":false,"gold_byte_start":59,"gold_byte_end":68,"paired_case_id":"meomchumse-noun"}
+{"id":"meomchumse-noun","query":"멈춤세","pos":"noun","text":"증권가는 당분간 주가의 멈춤세 지속을 예상했다.","surface":"멈춤세","expected":true,"gold_byte_start":33,"gold_byte_end":42,"paired_case_id":"meomchumse-noun-context"}
