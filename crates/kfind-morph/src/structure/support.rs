@@ -15,7 +15,10 @@ pub(super) fn collect_pattern_supports(
     graph_nominal_host: Option<&Range<usize>>,
 ) -> Vec<ConstraintSupport> {
     let mut supports = Vec::new();
+    let core_is_grammatical_suffix = evidence.grammatical_nominal_suffixes.contains(&spans.core);
     for (pattern_index, pattern) in patterns.iter().enumerate() {
+        let allows_runtime = pattern.component_capability.allows_runtime()
+            && !(core_is_grammatical_suffix && pattern.fine_pos.is_nominal());
         let support_start = supports.len();
         for unit in evidence.units.all() {
             if unit.span != spans.core || unit.pos != pattern.fine_pos {
@@ -24,9 +27,7 @@ pub(super) fn collect_pattern_supports(
             let allowed = match unit.evidence {
                 StructuralEvidence::Whole => true,
                 StructuralEvidence::SourceComponent => pattern.component_capability.allows_source(),
-                StructuralEvidence::RuntimeComponent => {
-                    pattern.component_capability.allows_runtime()
-                }
+                StructuralEvidence::RuntimeComponent => allows_runtime,
             };
             if allowed {
                 supports.push(ConstraintSupport {
@@ -49,7 +50,7 @@ pub(super) fn collect_pattern_supports(
             }
         }
         if supports.len() == support_start
-            && pattern.component_capability.allows_runtime()
+            && allows_runtime
             && supports_runtime_pattern(pattern, spans, evidence, graph_nominal_host)
         {
             supports.push(ConstraintSupport {

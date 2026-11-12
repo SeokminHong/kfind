@@ -33,6 +33,7 @@ pub(super) struct TokenEvidence {
     pub(super) complete_nominal_particle_host: Option<Range<usize>>,
     pub(super) has_whole_nominal_source_components: bool,
     pub(super) runtime_spans: Vec<Range<usize>>,
+    pub(super) grammatical_nominal_suffixes: Box<[Range<usize>]>,
     pub(super) compound_predicate_components: Box<[PredicateComponent]>,
     pub(super) attached_auxiliary_spans: Box<[Range<usize>]>,
     pub(super) nominal_copula_hosts: Box<[Range<usize>]>,
@@ -55,6 +56,7 @@ impl TokenEvidence {
                 * std::mem::size_of::<NominalSourceComponent>()
             + self.nominal_particle_hosts.len() * std::mem::size_of::<Range<usize>>()
             + self.runtime_spans.capacity() * std::mem::size_of::<Range<usize>>()
+            + self.grammatical_nominal_suffixes.len() * std::mem::size_of::<Range<usize>>()
             + self.compound_predicate_components.len() * std::mem::size_of::<PredicateComponent>()
             + self.attached_auxiliary_spans.len() * std::mem::size_of::<Range<usize>>()
             + self.nominal_copula_hosts.len() * std::mem::size_of::<Range<usize>>()
@@ -175,6 +177,7 @@ impl TokenEvidence {
         let mut nominal_source_component_candidates = Vec::new();
         let mut has_whole_nominal_source_components = false;
         let mut runtime_spans = Vec::new();
+        let mut grammatical_nominal_suffixes = Vec::new();
         let mut adnominal_ends = Vec::new();
         for (index, edge) in edges.iter().enumerate() {
             let eligible = if has_complete_path {
@@ -187,6 +190,14 @@ impl TokenEvidence {
             }
             runtime_spans.push(edge.span.clone());
             let positions = graph.positions(edge);
+            if positions == [StructuralPos::XSN]
+                && edge.span.start > 0
+                && path_facts.nominal_prefix[edge.span.start][1]
+                && path_facts.particle_suffix[edge.span.end]
+                && matches!(&text[edge.span.clone()], "들" | "씩")
+            {
+                grammatical_nominal_suffixes.push(edge.span.clone());
+            }
             if positions.last() == Some(&StructuralPos::ETM) {
                 adnominal_ends.push(edge.span.end);
             }
@@ -328,6 +339,7 @@ impl TokenEvidence {
         });
         runtime_spans.sort_unstable_by_key(|span| (span.start, span.end));
         runtime_spans.dedup();
+        grammatical_nominal_suffixes.dedup();
         adnominal_ends.sort_unstable();
         adnominal_ends.dedup();
         atomic_nominal_analyses.sort_unstable();
@@ -355,6 +367,7 @@ impl TokenEvidence {
             complete_nominal_particle_host: nominal_paths.complete_particle_host,
             has_whole_nominal_source_components,
             runtime_spans,
+            grammatical_nominal_suffixes: grammatical_nominal_suffixes.into_boxed_slice(),
             compound_predicate_components,
             attached_auxiliary_spans,
             nominal_copula_hosts,
