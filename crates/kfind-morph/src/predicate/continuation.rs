@@ -72,7 +72,6 @@ const COPULA_REPORTING_AND_RO_ENDINGS: &[Suffix] = &[
 const COPULA_COMMON_ENDINGS: &[Suffix] = &[
     suffix("랴", &["ending.rya"]),
     suffix("렷다", &["ending.ryeotda"]),
-    suffix("것다", &["ending.geotda"]),
     suffix("게", &["ending.copula-ge"]),
     suffix("고말고", &["ending.copula-common-final"]),
     suffix("고요", &["ending.connective-go", "ending.polite-yo"]),
@@ -184,7 +183,6 @@ const A_OR_EO_SUFFIXES: &[Suffix] = &[
 ];
 
 pub(super) const STEM_FIXED_ENDINGS: &[Suffix] = &[
-    suffix("것다", &["ending.geotda"]),
     suffix("고", &["ending.connective-go"]),
     suffix("지", &["ending.connective-ji"]),
     suffix("게", &["ending.adverbial-ge"]),
@@ -251,7 +249,6 @@ const RYEO_CONJECTURE: &[Suffix] = &[
 ];
 
 const PAST_SUFFIXES: &[Suffix] = &[
-    suffix("것다", &["ending.geotda"]),
     suffix("습니까", &["ending.formal-interrogative"]),
     suffix("습디까", &["ending.retrospective-interrogative"]),
     suffix("습디다", &["ending.retrospective-declarative"]),
@@ -278,6 +275,8 @@ const PAST_SUFFIXES: &[Suffix] = &[
     suffix("어요", &["ending.past-polite-yo"]),
     suffix("게", &["ending.final-ge"]),
 ];
+
+const GEOTDA: &[Suffix] = &[suffix("것다", &["ending.geotda"])];
 
 const FUTURE_SUFFIXES: &[Suffix] = &[
     suffix("습니까", &["ending.formal-interrogative"]),
@@ -843,6 +842,11 @@ fn verify_simple_continuation(
         ContinuationState::Eu if following.starts_with('십') => SIP_EXTENSIONS,
         ContinuationState::Eu if following.starts_with("셨습") => SYEOT_SEUP_EXTENSIONS,
         ContinuationState::Eu if following.starts_with("시겠습") => SIGET_SEUP_EXTENSIONS,
+        ContinuationState::StemEnding | ContinuationState::Past
+            if following.starts_with("것다") =>
+        {
+            GEOTDA
+        }
         ContinuationState::StemEnding
             if (pos == PredicatePos::Copula || anchor == "아니")
                 && following.starts_with(['란', '람', '랍', '래', '로']) =>
@@ -853,7 +857,7 @@ fn verify_simple_continuation(
             if (pos == PredicatePos::Copula || anchor == "아니")
                 && following.starts_with([
                     '게', '고', '구', '군', '길', '네', '니', '면', '세', '야', '어', '에', '자',
-                    '죠', '지', '랴', '렷', '것',
+                    '죠', '지', '랴', '렷',
                 ]) =>
         {
             COPULA_COMMON_ENDINGS

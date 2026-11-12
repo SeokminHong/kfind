@@ -774,7 +774,6 @@ fn reference_simple_continuation(
         };
     }
     const PAST: &[ReferenceSuffix] = &[
-        reference_suffix("것다", &["ending.geotda"]),
         reference_suffix("습니까", &["ending.formal-interrogative"]),
         reference_suffix("습디까", &["ending.retrospective-interrogative"]),
         reference_suffix("습디다", &["ending.retrospective-declarative"]),
@@ -1408,18 +1407,22 @@ fn reference_simple_continuation(
         ContinuationState::Eu if following.starts_with('십') => SIP_EXTENSIONS,
         ContinuationState::Eu if following.starts_with("셨습") => SYEOT_SEUP_EXTENSIONS,
         ContinuationState::Eu if following.starts_with("시겠습") => SIGET_SEUP_EXTENSIONS,
+        ContinuationState::StemEnding | ContinuationState::Past
+            if following.starts_with("것다") =>
+        {
+            &[reference_suffix("것다", &["ending.geotda"])]
+        }
         ContinuationState::StemEnding
             if (pos == PredicatePos::Copula || anchor == "아니")
                 && following.starts_with([
                     '게', '고', '구', '군', '길', '네', '니', '면', '세', '야', '어', '에', '자',
-                    '죠', '지', '랴', '렷', '것',
+                    '죠', '지', '랴', '렷',
                 ]) =>
         {
             &[
                 reference_suffix("게", &["ending.copula-ge"]),
                 reference_suffix("랴", &["ending.rya"]),
                 reference_suffix("렷다", &["ending.ryeotda"]),
-                reference_suffix("것다", &["ending.geotda"]),
                 reference_suffix("고말고", &["ending.copula-common-final"]),
                 reference_suffix("고요", &["ending.connective-go", "ending.polite-yo"]),
                 reference_suffix("구나", &["ending.copula-common-final"]),
@@ -1775,7 +1778,6 @@ fn reference_attached_auxiliary(
         }
     }
     const FIXED: &[ReferenceSuffix] = &[
-        reference_suffix("것다", &["ending.geotda"]),
         reference_suffix("다", &["ending.final-da"]),
         reference_suffix("고", &["ending.connective-go"]),
         reference_suffix("고요", &["ending.connective-go", "ending.polite-yo"]),
