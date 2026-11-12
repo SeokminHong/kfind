@@ -164,7 +164,11 @@ impl ReferenceMatcher {
                 if !branch.consumption.allows_rule_path(&rules) {
                     return None;
                 }
-                if *nominal_particle_transition {
+                if *nominal_particle_transition
+                    || matches!(rules.as_slice(), [auxiliary, nominalizer]
+                        if auxiliary.as_str() == "ending.auxiliary-jida"
+                            && matches!(nominalizer.as_str(), "ending.nominalizer" | "ending.nominalizer-gi"))
+                {
                     let host = format!(
                         "{consumption_anchor}{}",
                         consumption_following.get(..consumed)?
@@ -701,65 +705,27 @@ fn reference_predicate_continuation(
     anchor: &str,
     following: &str,
 ) -> Option<(usize, Vec<RuleId>)> {
+    if state == ContinuationState::AOrEo
+        && let Some(resultative) = reference_resultative(following)
+    {
+        return Some(resultative);
+    }
+    reference_simple_continuation(state, pos, anchor, following)
+}
+
+fn reference_simple_continuation(
+    state: ContinuationState,
+    pos: PredicatePos,
+    anchor: &str,
+    following: &str,
+) -> Option<(usize, Vec<RuleId>)> {
     const AEO: &[ReferenceSuffix] = &[
         reference_suffix("야지", &["ending.necessity-yaji"]),
         reference_suffix("야지요", &["ending.necessity-yaji-polite"]),
         reference_suffix("야죠", &["ending.necessity-yaji-polite"]),
-        reference_suffix("지거들랑", &["ending.auxiliary-jida", "ending.geodeun"]),
-        reference_suffix("지건", &["ending.auxiliary-jida", "ending.geodeun-short"]),
-        reference_suffix("지거든", &["ending.auxiliary-jida", "ending.geodeun"]),
-        reference_suffix(
-            "지거든요",
-            &["ending.auxiliary-jida", "ending.geodeun-polite"],
-        ),
         reference_suffix("가고", &["ending.auxiliary-gada", "ending.connective-go"]),
         reference_suffix("가야", &["ending.auxiliary-gada", "ending.connective-ya"]),
         reference_suffix("서도", &["ending.aoeo-seo", "particle.additive"]),
-        reference_suffix("지면", &["ending.auxiliary-jida", "ending.conditional"]),
-        reference_suffix("지고", &["ending.auxiliary-jida", "ending.connective-go"]),
-        reference_suffix("진", &["ending.auxiliary-jida", "ending.past-adnominal"]),
-        reference_suffix("질", &["ending.auxiliary-jida", "ending.future-adnominal"]),
-        reference_suffix("지다", &["ending.auxiliary-jida", "ending.final-da"]),
-        reference_suffix(
-            "지던",
-            &["ending.auxiliary-jida", "ending.retrospective-adnominal"],
-        ),
-        reference_suffix(
-            "지더니",
-            &["ending.auxiliary-jida", "ending.retrospective-connective"],
-        ),
-        reference_suffix(
-            "지더라도",
-            &["ending.auxiliary-jida", "ending.concessive-deorado"],
-        ),
-        reference_suffix(
-            "지던가",
-            &[
-                "ending.auxiliary-jida",
-                "ending.retrospective-question-deon",
-            ],
-        ),
-        reference_suffix(
-            "지던감",
-            &[
-                "ending.auxiliary-jida",
-                "ending.retrospective-question-deon",
-            ],
-        ),
-        reference_suffix(
-            "지던들",
-            &[
-                "ending.auxiliary-jida",
-                "ending.retrospective-connective-deon",
-            ],
-        ),
-        reference_suffix(
-            "지던지",
-            &[
-                "ending.auxiliary-jida",
-                "ending.retrospective-connective-deon",
-            ],
-        ),
         reference_suffix("서", &["ending.aoeo-seo"]),
         reference_suffix("도", &["ending.connective-do"]),
         reference_suffix("야", &["ending.connective-ya"]),
@@ -772,6 +738,15 @@ fn reference_predicate_continuation(
         reference_suffix("던들", &["ending.retrospective-connective-deon"]),
         reference_suffix("던지", &["ending.retrospective-connective-deon"]),
     ];
+    macro_rules! deora {
+        ($prefix:literal $(, $prior:literal)*) => {
+            &[
+                reference_suffix(concat!($prefix, "더라"), &[$($prior,)* "ending.retrospective-deora"]),
+                reference_suffix(concat!($prefix, "더라고"), &[$($prior,)* "ending.retrospective-deora", "ending.quotative-go"]),
+                reference_suffix(concat!($prefix, "더라고요"), &[$($prior,)* "ending.retrospective-deora", "ending.quotative-go", "ending.polite-yo"]),
+            ]
+        };
+    }
     const PAST: &[ReferenceSuffix] = &[
         reference_suffix("습니까", &["ending.formal-interrogative"]),
         reference_suffix("습디까", &["ending.retrospective-interrogative"]),
@@ -809,6 +784,7 @@ fn reference_predicate_continuation(
         reference_suffix("는데", &["ending.connective-neunde"]),
         reference_suffix("다", &["ending.final-da"]),
         reference_suffix("고", &["ending.connective-go"]),
+        reference_suffix("어요", &["ending.aoeo", "ending.polite-yo"]),
     ];
     const DECLARATIVE: &[ReferenceSuffix] = &[
         reference_suffix("면서", &["ending.quotative-myeonseo"]),
@@ -1304,28 +1280,7 @@ fn reference_predicate_continuation(
 
     let candidates = match state {
         ContinuationState::Terminal => return Some((0, Vec::new())),
-        ContinuationState::AOrEo => {
-            for (form, next, rule) in [
-                ("진다", ContinuationState::Declarative, "ending.declarative"),
-                ("졌", ContinuationState::Past, "ending.past"),
-                ("지겠", ContinuationState::Future, "ending.future"),
-            ] {
-                if let Some(tail) = following.strip_prefix(form)
-                    && let Some((len, rules)) = reference_predicate_continuation(
-                        next,
-                        PredicatePos::AuxiliaryVerb,
-                        form,
-                        tail,
-                    )
-                    && (len > 0 || next == ContinuationState::Declarative)
-                {
-                    let mut path = vec!["ending.auxiliary-jida".into(), rule.into()];
-                    path.extend(rules);
-                    return Some((form.len() + len, path));
-                }
-            }
-            AEO
-        }
+        ContinuationState::AOrEo => AEO,
         ContinuationState::Past => PAST,
         ContinuationState::Future => FUTURE,
         ContinuationState::Declarative => DECLARATIVE,
@@ -1359,6 +1314,15 @@ fn reference_predicate_continuation(
         ContinuationState::Prospective => PROSPECTIVE,
     };
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Eu | ContinuationState::Prospective
+            if following.starts_with("려나") || following.starts_with("려니") =>
+        {
+            &[
+                reference_suffix("려나", &["ending.conjecture-ryeo"]),
+                reference_suffix("려니", &["ending.conjecture-ryeo"]),
+                reference_suffix("려니와", &["ending.concessive-ryeoniwa"]),
+            ]
+        }
         ContinuationState::Eu | ContinuationState::Prospective
             if pos != PredicatePos::Copula && following.starts_with('라') =>
         {
@@ -1469,6 +1433,23 @@ fn reference_predicate_continuation(
             if following.starts_with('던') =>
         {
             DEON_RECOLLECTION
+        }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("더라") =>
+        {
+            deora!("")
+        }
+        ContinuationState::Past if following.starts_with("겠더라") => {
+            deora!("겠", "ending.future")
+        }
+        ContinuationState::Eu if following.starts_with("시더라") => {
+            deora!("시", "ending.honorific")
+        }
+        ContinuationState::Eu if following.starts_with("셨더라") => {
+            deora!("셨", "ending.honorific", "ending.past")
+        }
+        ContinuationState::Eu if following.starts_with("시겠더라") => {
+            deora!("시겠", "ending.honorific", "ending.future")
         }
         ContinuationState::Past | ContinuationState::Future if following.starts_with("는데") => {
             NEUNDE
@@ -1612,6 +1593,93 @@ fn reference_predicate_continuation(
             )
         },
     ))
+}
+
+fn reference_resultative(following: &str) -> Option<(usize, Vec<RuleId>)> {
+    use ContinuationState::{
+        AOrEo, BieupFinal, CompletedNieunEnding, Declarative, Eu, Future, Interrogative,
+        NieunEnding, Past, RieulFinal, StemEnding, Terminal,
+    };
+    let mut best = None;
+    for (form, state, standalone, rules) in [
+        ("진다", Declarative, true, &["ending.declarative"][..]),
+        ("진", CompletedNieunEnding, true, &["ending.past-adnominal"]),
+        ("질", RieulFinal, true, &["ending.future-adnominal"]),
+        ("집", BieupFinal, false, &[]),
+        ("짐", Terminal, true, &["ending.nominalizer"]),
+        ("졌", Past, false, &["ending.past"]),
+        ("져", AOrEo, true, &["contraction.i-eo", "ending.aoeo"]),
+        ("지겠", Future, false, &["ending.future"]),
+        ("지는", NieunEnding, true, &["ending.present-adnominal"]),
+        (
+            "지느냐",
+            Interrogative,
+            true,
+            &["ending.interrogative-neunya"],
+        ),
+        ("지어", AOrEo, true, &["ending.aoeo"]),
+        ("지기", Terminal, true, &["ending.nominalizer-gi"]),
+        ("지", StemEnding, false, &[]),
+        ("지", Eu, false, &[]),
+    ] {
+        let Some(rest) = following.strip_prefix(form) else {
+            continue;
+        };
+        let (consumed, suffix) =
+            reference_simple_continuation(state, PredicatePos::AuxiliaryVerb, form, rest)
+                .unwrap_or_default();
+        if consumed == 0 && !standalone {
+            continue;
+        }
+        let rules =
+            if consumed > 0 && matches!(state, CompletedNieunEnding | NieunEnding | RieulFinal) {
+                &[]
+            } else {
+                rules
+            };
+        let mut path = vec!["ending.auxiliary-jida".into()];
+        path.extend(rules.iter().copied().map(RuleId::from));
+        path.extend(suffix);
+        let end = form.len() + consumed;
+        if best.as_ref().is_none_or(|(previous, _)| end >= *previous) {
+            best = Some((end, path));
+        }
+    }
+    const FIXED: &[ReferenceSuffix] = &[
+        reference_suffix("다", &["ending.final-da"]),
+        reference_suffix("고", &["ending.connective-go"]),
+        reference_suffix("고요", &["ending.connective-go", "ending.polite-yo"]),
+        reference_suffix("지", &["ending.connective-ji"]),
+        reference_suffix("게", &["ending.adverbial-ge"]),
+        reference_suffix("던", &["ending.retrospective-adnominal"]),
+        reference_suffix("더니", &["ending.retrospective-connective"]),
+        reference_suffix("더라도", &["ending.concessive-deorado"]),
+        reference_suffix("도록", &["ending.purpose-dorok"]),
+        reference_suffix("다가", &["ending.connective-daga"]),
+        reference_suffix("네", &["ending.final-ne"]),
+        reference_suffix("네요", &["ending.final-ne", "ending.polite-yo"]),
+        reference_suffix("더군", &["ending.final-deogun"]),
+        reference_suffix("더군요", &["ending.final-deogun", "ending.polite-yo"]),
+        reference_suffix("지만", &["ending.connective-jiman"]),
+        reference_suffix("므로", &["ending.connective-meuro"]),
+        reference_suffix("기에", &["ending.connective-gie"]),
+        reference_suffix("는구나", &["ending.final-neun-exclamative"]),
+        reference_suffix("는군", &["ending.final-neun-exclamative"]),
+    ];
+    if let Some(rest) = following.strip_prefix('지')
+        && let Some(fixed) = FIXED
+            .iter()
+            .filter(|suffix| rest.starts_with(suffix.surface))
+            .max_by_key(|suffix| suffix.surface.len())
+        && best
+            .as_ref()
+            .is_none_or(|(previous, _)| '지'.len_utf8() + fixed.surface.len() >= *previous)
+    {
+        let mut path = vec!["ending.auxiliary-jida".into()];
+        path.extend(fixed.rules.iter().copied().map(RuleId::from));
+        return Some(('지'.len_utf8() + fixed.surface.len(), path));
+    }
+    best
 }
 
 fn requires_direct_particle_host(branch: &CandidateProgram) -> bool {

@@ -9,6 +9,8 @@ use kfind_testkit::{GoldHarness, load_morphology_cases};
 
 const WALK_HANG_STRESS: &str = include_str!("../../../../data/fixtures/walk_hang_stress.txt");
 const UD_MORPHOLOGY_CASES: &str = include_str!("../../../../data/fixtures/ud_morphology_cases.tsv");
+const ENRICHED_PREDICATES_SOURCE: &str = "data/enriched/predicates.tsv";
+const ENRICHED_PREDICATES: &str = include_str!("../../../../data/enriched/predicates.tsv");
 
 fn main() -> Result<(), Box<dyn Error>> {
     let arguments = env::args_os()
@@ -59,7 +61,23 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     verify_walk_hang_stress(&harness)?;
-    verify_ud_morphology(&harness)?;
+    let ud_harness =
+        harness.with_enriched_predicates(ENRICHED_PREDICATES_SOURCE, ENRICHED_PREDICATES)?;
+    verify_ud_morphology(&ud_harness)?;
+    let negative_clause = "그곳에 가지는 않았다.";
+    let connective_start = negative_clause.find("가지").expect("fixture contains 가지");
+    let matches = ud_harness.find_lemma_matches(
+        "가다",
+        negative_clause,
+        CoarsePos::Verb,
+        BoundaryPolicy::Smart,
+    )?;
+    if !matches.iter().any(|matched| {
+        matched.span.start == connective_start
+            && matched.span.end >= connective_start + "가지".len()
+    }) {
+        return Err("가다 must match the connective before the negative auxiliary".into());
+    }
 
     println!(
         "morphology gold with auto-POS coverage: {} cases and walk/hang stress passed",
@@ -85,8 +103,9 @@ fn verify_ud_morphology(harness: &GoldHarness) -> Result<(), Box<dyn Error>> {
             "adverb" => CoarsePos::Adverb,
             _ => return Err(invalid_row().into()),
         };
-        let expected = match *expected {
-            "match" => true,
+        let expectation = *expected;
+        let expected = match expectation {
+            "match" | "exact" => true,
             "no-match" => false,
             _ => return Err(invalid_row().into()),
         };
@@ -100,13 +119,28 @@ fn verify_ud_morphology(harness: &GoldHarness) -> Result<(), Box<dyn Error>> {
             if boundary == BoundaryPolicy::Any && !expected {
                 continue;
             }
-            let cores = harness.find_lemma_cores(query, text, pos, boundary)?;
-            let found = cores
-                .iter()
-                .any(|core| core.start < end && start < core.end);
+            let matches = harness.find_lemma_matches(query, text, pos, boundary)?;
+            let spans = if expectation == "exact" {
+                matches
+                    .into_iter()
+                    .map(|matched| matched.span)
+                    .collect::<Vec<_>>()
+            } else {
+                matches
+                    .into_iter()
+                    .flat_map(|matched| matched.atoms.into_iter().map(|atom| atom.core))
+                    .collect::<Vec<_>>()
+            };
+            let found = spans.iter().any(|span| {
+                if expectation == "exact" {
+                    *span == (start..end)
+                } else {
+                    span.start < end && start < span.end
+                }
+            });
             if found != expected {
                 failures.push(format!(
-                    "{id} {boundary:?}: target={target:?}, expected={expected}, cores={cores:?}"
+                    "{id} {boundary:?}: target={target:?}, expected={expectation}, spans={spans:?}"
                 ));
             }
         }

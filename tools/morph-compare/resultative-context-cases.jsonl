@@ -1,0 +1,4 @@
+{"id":"fixture-lexical-context-14","query":"되다","pos":"verb","text":"돼지는 잡식 동물이다.","expected":false,"gold_byte_start":0,"gold_byte_end":9}
+{"id":"fixture-lexical-context-15","query":"되다","pos":"verb","text":"이쪽은 돼지고요, 저쪽은 소예요.","expected":false,"gold_byte_start":10,"gold_byte_end":22}
+{"id":"fixture-lexical-context-16","query":"가다","pos":"verb","text":"그는 재산을 가지지 않았다.","expected":false,"gold_byte_start":17,"gold_byte_end":26}
+{"id":"fixture-lexical-context-20","query":"가다","pos":"verb","text":"가지는 보라색 채소다.","expected":false,"gold_byte_start":0,"gold_byte_end":9}

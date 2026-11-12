@@ -1,0 +1,122 @@
+use crate::{ContinuationState, PredicatePos, RuleId};
+
+use super::{
+    PredicateContinuationMatch, STEM_FIXED_ENDINGS, Suffix, matched, suffix,
+    verify_simple_continuation,
+};
+
+const RESULTATIVE_STEM_ENDINGS: &[Suffix] = &[
+    suffix("다", &["ending.final-da"]),
+    suffix("고요", &["ending.connective-go", "ending.polite-yo"]),
+    suffix("네", &["ending.final-ne"]),
+    suffix("네요", &["ending.final-ne", "ending.polite-yo"]),
+    suffix("더군", &["ending.final-deogun"]),
+    suffix("더군요", &["ending.final-deogun", "ending.polite-yo"]),
+    suffix("지만", &["ending.connective-jiman"]),
+    suffix("므로", &["ending.connective-meuro"]),
+    suffix("기에", &["ending.connective-gie"]),
+    suffix("는구나", &["ending.final-neun-exclamative"]),
+    suffix("는군", &["ending.final-neun-exclamative"]),
+];
+
+pub(super) fn verify(anchor_len: usize, following: &str) -> Option<PredicateContinuationMatch> {
+    use ContinuationState::{
+        AOrEo, BieupFinal, CompletedNieunEnding, Declarative, Future, Interrogative, NieunEnding,
+        Past, RieulFinal, Terminal,
+    };
+
+    let (form, state, initial_rule) = match following.chars().next()? {
+        '진' if following.starts_with("진다") => {
+            ("진다", Declarative, Some("ending.declarative"))
+        }
+        '진' => ("진", CompletedNieunEnding, Some("ending.past-adnominal")),
+        '질' => ("질", RieulFinal, Some("ending.future-adnominal")),
+        '짐' => ("짐", Terminal, Some("ending.nominalizer")),
+        '집' => ("집", BieupFinal, None),
+        '져' => ("져", AOrEo, Some("contraction.i-eo")),
+        '졌' => ("졌", Past, Some("ending.past")),
+        '지' if following.starts_with("지겠") => ("지겠", Future, Some("ending.future")),
+        '지' if following.starts_with("지느냐") => {
+            ("지느냐", Interrogative, Some("ending.interrogative-neunya"))
+        }
+        '지' if following.starts_with("지어") => ("지어", AOrEo, Some("ending.aoeo")),
+        '지' if following.starts_with("지기") => {
+            ("지기", Terminal, Some("ending.nominalizer-gi"))
+        }
+        '지' => {
+            let tail = &following['지'.len_utf8()..];
+            if let Some(background) = tail.strip_prefix('는')
+                && !background.starts_with('군')
+                && !background.starts_with("구나")
+            {
+                ("지는", NieunEnding, Some("ending.present-adnominal"))
+            } else {
+                return resultative_stem_continuation(anchor_len, tail);
+            }
+        }
+        _ => return None,
+    };
+    let tail = &following[form.len()..];
+    let mut continuation =
+        verify_simple_continuation(state, PredicatePos::AuxiliaryVerb, form, tail).or_else(
+            || {
+                matches!(state, CompletedNieunEnding | NieunEnding | RieulFinal)
+                    .then(|| matched(form.len(), None))
+            },
+        )?;
+    if matches!(state, Past | Future) && continuation.consumed_bytes == 0 {
+        return None;
+    }
+    let initial_rule = match (state, continuation.consumed_bytes) {
+        (RieulFinal | NieunEnding | CompletedNieunEnding, consumed) if consumed > 0 => None,
+        _ => initial_rule,
+    };
+    if form == "져" {
+        continuation
+            .rule_path
+            .insert(0, RuleId::from("ending.aoeo"));
+    }
+    Some(with_resultative(
+        anchor_len,
+        form,
+        initial_rule,
+        continuation,
+    ))
+}
+
+fn resultative_stem_continuation(
+    anchor_len: usize,
+    tail: &str,
+) -> Option<PredicateContinuationMatch> {
+    let fixed = STEM_FIXED_ENDINGS
+        .iter()
+        .chain(RESULTATIVE_STEM_ENDINGS)
+        .filter(|suffix| tail.starts_with(suffix.surface))
+        .max_by_key(|suffix| suffix.surface.len())
+        .map(|suffix| matched("지".len(), Some(suffix)));
+    let continuation = [ContinuationState::StemEnding, ContinuationState::Eu]
+        .into_iter()
+        .filter_map(|state| {
+            verify_simple_continuation(state, PredicatePos::AuxiliaryVerb, "지", tail)
+        })
+        .chain(fixed)
+        .max_by_key(|matched| matched.consumed_bytes)?;
+    Some(with_resultative(anchor_len, "지", None, continuation))
+}
+
+fn with_resultative(
+    anchor_len: usize,
+    form: &str,
+    initial_rule: Option<&str>,
+    mut continuation: PredicateContinuationMatch,
+) -> PredicateContinuationMatch {
+    continuation.token_end += anchor_len;
+    continuation.consumed_bytes += form.len();
+    if let Some(rule) = initial_rule {
+        continuation.rule_path.insert(0, RuleId::from(rule));
+    }
+    continuation
+        .rule_path
+        .insert(0, RuleId::from("ending.auxiliary-jida"));
+    continuation
+}

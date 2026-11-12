@@ -1,0 +1,5 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	resultative	fixture-lexical-context-14	되다	verb	false	7de54177a00b6b8b8149a2195b7c01950608f854a598eb8611a7832ee8b771bf	contract-positive	structurally-indistinguishable-homograph	돼지+는과 되다의 축약 연결형 뒤에 지다+는이 오는 분석은 문장 뜻으로 가릅니다.
+explicit-pos	resultative	fixture-lexical-context-15	되다	verb	false	d9262e9b647dbed75007af3206f30c1c8947cdc6b8a072ddddf9ecc27c0add5e	contract-positive	structurally-indistinguishable-homograph	돼지+지정사 생략+고요와 되다의 축약 연결형 뒤에 지다+고요가 오는 분석은 문장 뜻으로 가릅니다.
+explicit-pos	resultative	fixture-lexical-context-16	가다	verb	false	0b3740f1a36594f7bbacae41a77dc05a17d7c22405d8c401fa1c34b952677e7c	contract-positive	structurally-indistinguishable-homograph	소유 동사 가지다와 이동 동사 가다에 -아지다가 붙은 활용은 의미로 가릅니다.
+explicit-pos	resultative	fixture-lexical-context-20	가다	verb	false	44601df45df8a88f9380dfb4870edfe371c2d3c3a5a7ac30435f83f6288c01d3	contract-positive	structurally-indistinguishable-homograph	채소 명사 가지+는과 가다에 -아지다 및 -는이 붙은 분석은 문장 뜻으로 가릅니다.

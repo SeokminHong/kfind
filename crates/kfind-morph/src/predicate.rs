@@ -412,23 +412,14 @@ fn compile_productive(
             vec![rule("contraction.ha-ji"), rule("ending.connective-ji")],
         );
     }
-    for (suffix, ending_rule) in [
-        ("고", "ending.connective-go"),
-        ("지", "ending.connective-ji"),
-        ("게", "ending.adverbial-ge"),
-        ("던", "ending.retrospective-adnominal"),
-        ("더니", "ending.retrospective-connective"),
-        ("더라도", "ending.concessive-deorado"),
-        ("도록", "ending.purpose-dorok"),
-        ("다가", "ending.connective-daga"),
-    ] {
+    for ending in continuation::STEM_FIXED_ENDINGS {
         push_branch(
             branches,
             entry,
-            format!("{stem}{suffix}"),
+            format!("{stem}{}", ending.surface),
             stem.len(),
             ContinuationState::Terminal,
-            vec![rule(ending_rule)],
+            ending.rules.iter().map(|id| rule(id)).collect(),
         );
     }
     let neyo_base = if has_rieul_final(stem.chars().next_back().expect("stem")) {

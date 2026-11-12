@@ -302,6 +302,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.connective-gie"
+category = "connective"
+initial = "consonant"
+forms = ["기에"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.final-neun-exclamative"
+category = "final"
+initial = "consonant"
+forms = ["는구나", "는군"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.connective-eudoe"
 category = "connective"
 initial = "other"
@@ -339,6 +359,16 @@ forms = ["더니"]
 required = []
 forbidden = []
 next = []
+terminal = true
+
+[[ending]]
+id = "ending.retrospective-deora"
+category = "final"
+initial = "other"
+forms = ["더라"]
+required = []
+forbidden = []
+next = ["ending.quotative-go"]
 terminal = true
 
 [[ending]]
@@ -628,7 +658,7 @@ initial = "other"
 forms = ["지"]
 required = []
 forbidden = []
-next = ["ending.past", "ending.future", "ending.declarative", "ending.final-da", "ending.conditional", "ending.connective-go", "ending.past-adnominal", "ending.future-adnominal", "ending.retrospective-adnominal", "ending.retrospective-connective", "ending.retrospective-question-deon", "ending.retrospective-connective-deon", "ending.concessive-deorado", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite"]
+next = ["ending.past", "ending.future", "ending.declarative", "ending.final-da", "ending.conditional", "ending.connective-go", "ending.connective-ji", "ending.present-adnominal", "ending.past-adnominal", "ending.future-adnominal", "ending.retrospective-adnominal", "ending.retrospective-connective", "ending.retrospective-question-deon", "ending.retrospective-connective-deon", "ending.concessive-deorado", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite", "ending.nominalizer", "ending.nominalizer-gi", "ending.polite-declarative", "ending.formal-interrogative", "ending.connective-gie", "ending.final-neun-exclamative"]
 terminal = true
 
 [[ending]]
@@ -937,6 +967,26 @@ category = "connective"
 initial = "eu"
 forms = ["려", "으려"]
 required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.conjecture-ryeo"
+category = "final"
+initial = "eu"
+forms = ["려나", "으려나", "려니", "으려니"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.concessive-ryeoniwa"
+category = "connective"
+initial = "eu"
+forms = ["려니와", "으려니와"]
+required = []
 forbidden = []
 next = []
 terminal = true

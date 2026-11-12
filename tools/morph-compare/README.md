@@ -31,6 +31,10 @@ Registry는 의미로 구분할 수 없는 동형이의, source에 정렬된 내
 오류를 재분류하며 제품 입력 계약 밖의 비표준 사례를 제외할 수 있습니다. 구현이
 어렵거나 지원하지 않는 표준 문법은 제외하지 않습니다.
 
+같은 표면에 유효한 형태 분석이 둘 이상 있고 어느 뜻인지 문장 의미로만 가릴 수 있으면,
+문맥 gold와 형태 검색 계약을 모두 기록합니다. 유효한 질의 분석을 contract-positive로
+기록한 사례는 일치하면 TPc, 빠지면 FNc입니다.
+
 Review registry가 없는 fixture도 두 지표를 모두 기록합니다. 이 경우 raw confusion
 matrix를 contract-adjusted 값으로 사용하고 `reviewed_cases=0`을 명시합니다.
 Contract-adjusted 값만 표시하거나 raw 오류를 숨기지 않습니다.

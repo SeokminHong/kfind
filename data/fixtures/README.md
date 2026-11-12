@@ -20,8 +20,10 @@
 원문 형태로 검증합니다.
 출처 라이선스는 [GSD CC BY-SA 4.0](https://github.com/UniversalDependencies/UD_Korean-GSD/blob/r2.18/LICENSE.txt),
 [PUD CC BY-SA 3.0](https://github.com/UniversalDependencies/UD_Korean-PUD/blob/r2.18/LICENSE.txt)입니다.
-`verify-gold`는 full POS에서 명시적 품사와 `smart`로 표적 UTF-8 범위를 확인합니다.
+`verify-gold`는 full POS와 보강 용언 사전을 사용해 명시적 품사와 `smart`로 표적 UTF-8
+범위를 확인합니다.
 양성 사례는 `any`에서도 같은 위치의 검색 여부를 확인합니다.
+`exact` 사례는 두 모드에서 반환한 범위가 표적의 시작·끝 위치와 같아야 합니다.
 
 `walk_hang_stress.txt`는 직접 구성한 회귀 fixture입니다. 동형 동사 활용의 합집합,
 생산적 어미, 복합어 안의 용언 명사형, 보조 용언 continuation과 별도 파생 표제어
