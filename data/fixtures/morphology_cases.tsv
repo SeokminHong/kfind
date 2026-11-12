@@ -902,3 +902,25 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 공부하다	verb	요새 열심히 공부한다더니만 시험도 잘 봤구나.	match	retrospective-quotative
 묻다	verb	면접에서는 무엇을 물어보더냐?	match	auxiliary-boda
 묻다	verb	궁금한 것이 있으면 선생님한테 물어보렴.	match	auxiliary-boda
+자다	verb	이제 그만 자려무나.	match	imperative-ryeom
+나가다	verb	밖이 추우니 따뜻하게 입고 나가려무나.	match	imperative-ryeom
+쓰다	verb	필요하면 내 볼펜을 가져가서 쓰려무나.	match	imperative-ryeom
+가다	verb	더 놀다 가려무나.	match	imperative-ryeom
+오다	verb	얘들아, 간식 먹으러 오렴.	match	imperative-ryeom
+하다	verb	무엇을 선택하든 네 뜻대로 하렴.	match	imperative-ryeom
+쉬다	verb	민준아, 많이 피곤해 보이는데 좀 쉬렴.	match	imperative-ryeom
+가다	verb	더 놀다 가렴.	match	imperative-ryeom
+하다	verb	잘 놀았으니 이제 공부를 열심히 하렴.	match	imperative-ryeom
+벗다	verb	실내는 따뜻하니 외투는 벗으려무나.	match	imperative-ryeom
+앉다	verb	무거운 물건은 내려놓고 일단 앉으려무나.	match	imperative-ryeom
+찾다	verb	힘든 일이 있으면 언제라도 나를 찾으려무나.	match	imperative-ryeom
+먹다	verb	어서 먹으려무나.	match	imperative-ryeom
+있다	verb	있고 싶으면 있으려무나.	match	imperative-ryeom
+잡다	verb	눈길이 미끄러우니 내 손을 꼭 잡으렴.	match	imperative-ryeom
+담다	verb	음식은 접시 가운데에 보기 좋게 담으렴.	match	imperative-ryeom
+적다	verb	내가 편지를 보낼 주소를 불러 줄 테니 받아 적으렴.	match	imperative-ryeom
+참다	verb	네가 좀 참으렴.	match	imperative-ryeom
+먹다	verb	이것 좀 먹으렴.	match	imperative-ryeom
+살다	verb	앞으로 건강하게 살렴.	match	imperative-ryeom
+살다	verb	너는 네가 원하는 대로 살려무나.	match	imperative-ryeom
+듣다	verb	선생님 말씀을 잘 들으렴.	match	imperative-ryeom

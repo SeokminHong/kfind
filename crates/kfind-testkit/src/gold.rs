@@ -228,7 +228,7 @@ mod tests {
 
     use super::*;
 
-    const EXPECTED_CASES: usize = 903;
+    const EXPECTED_CASES: usize = 925;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {
@@ -352,6 +352,37 @@ mod tests {
                 vec![start..start + target.len()],
                 "{query} in {text:?}",
             );
+        }
+    }
+
+    #[test]
+    fn imperative_ryeom_preserves_regular_and_irregular_stems() {
+        let harness = GoldHarness::embedded()
+            .expect("embedded lexicons are valid")
+            .with_enriched_predicates(
+                "data/enriched/predicates.tsv",
+                include_str!("../../../data/enriched/predicates.tsv"),
+            )
+            .expect("enriched predicates are valid");
+        for (query, text, target) in [
+            ("오다", "얘들아, 이리 오렴.", "오렴"),
+            ("살다", "앞으로 건강하게 살려무나.", "살려무나"),
+            ("먹다", "이것 좀 먹으려무나.", "먹으려무나"),
+            ("듣다", "선생님 말씀을 잘 들으렴.", "들으렴"),
+            ("낫다", "유민아, 빨리 나으렴.", "나으렴"),
+        ] {
+            let start = text.find(target).expect("target appears in the fixture");
+            for boundary in [BoundaryPolicy::Smart, BoundaryPolicy::Any] {
+                let matches = harness
+                    .find_lemma_matches(query, text, CoarsePos::Verb, boundary)
+                    .expect("fixture query compiles");
+                assert!(
+                    matches
+                        .iter()
+                        .any(|matched| matched.span == (start..start + target.len())),
+                    "{query} {boundary:?} in {text:?}: {matches:?}",
+                );
+            }
         }
     }
 

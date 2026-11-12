@@ -304,6 +304,10 @@ const HONORIFIC_FORMAL_SHORT: Suffix = suffix(
     &["ending.honorific", "ending.imperative-formal-short"],
 );
 const HONORIFIC_PROPOSITIVE: Suffix = suffix("십시다", &["ending.honorific", "ending.propositive"]);
+const RYEOM_IMPERATIVES: &[Suffix] = &[
+    suffix("렴", &["ending.imperative-ryeom"]),
+    suffix("려무나", &["ending.imperative-ryeom"]),
+];
 const HONORIFIC_EARNEST_REQUEST: Suffix = suffix(
     "십시사",
     &["ending.honorific", "ending.earnest-request-sisa"],
@@ -766,6 +770,12 @@ fn verify_simple_continuation(
         ContinuationState::Prospective => PROSPECTIVE,
     };
     let additional_endings = match state {
+        ContinuationState::Eu
+            if pos.is_action()
+                && (following.starts_with('렴') || following.starts_with("려무나")) =>
+        {
+            RYEOM_IMPERATIVES
+        }
         ContinuationState::Eu | ContinuationState::Prospective
             if following.starts_with("려나") || following.starts_with("려니") =>
         {
