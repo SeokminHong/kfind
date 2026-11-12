@@ -88,11 +88,9 @@ npm install \
   --no-fund \
   --prefix "$packed_consumer_dir/consumer" \
   "${packed_tarballs[0]}" >/dev/null
-cmp "$enriched_source" \
-  "$packed_consumer_dir/consumer/node_modules/@kfind/kfind/assets/predicates.enriched.tsv"
 cp "$repo_root/scripts/test-npm-assets.mjs" \
   "$packed_consumer_dir/consumer/test-npm-assets.mjs"
-node "$packed_consumer_dir/consumer/test-npm-assets.mjs"
+node "$packed_consumer_dir/consumer/test-npm-assets.mjs" "$enriched_source"
 
 cp -R "$repo_root/scripts/fixtures/npm-spa/." \
   "$packed_consumer_dir/consumer"
@@ -101,4 +99,4 @@ cp -R "$repo_root/scripts/fixtures/npm-spa/." \
   pnpm --silent dlx vite@8.1.4 build
 )
 node "$repo_root/scripts/test-npm-spa-assets.mjs" \
-  "$packed_consumer_dir/consumer/dist"
+  "$packed_consumer_dir/consumer/dist" "$enriched_source"
