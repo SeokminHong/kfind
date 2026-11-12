@@ -1,0 +1,10 @@
+id	query	pos	expected	byte_start	byte_end	text
+kaist-prefixed-copula	실체	noun	exact	94	100	다시 말하면 언론 상품의 사용 가치는 정보나 오락 등으로 표현되는 비실체적인 것이다.
+negative-prefix	현실	noun	exact	3	9	비현실적인 계획이다.
+counter-prefix	사회	noun	exact	3	9	반사회적인 행위다.
+closed-copula	현실	noun	exact	17	23	그 계획은 비현실적이었다.
+prefixed-bare	실체	noun	exact	3	9	비실체적 가치를 설명했다.
+ordinary-nominal	실체	noun	exact	0	6	실체적인 설명이다.
+whole-prefix-compound	환경	noun	exact	3	9	친환경적인 설계다.
+lexicalized-host	구니	noun	no-match	3	9	비구니적인 삶을 묘사했다.
+split-inside-stem	체	noun	no-match	6	9	비실체적인 설명이다.
