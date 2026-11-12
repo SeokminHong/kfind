@@ -1369,8 +1369,27 @@ impl MorphMatcher {
         } else {
             Cow::Owned(token.nfc().collect::<String>())
         };
+        if !self.accepts_token_boundary(haystack, &candidate.verified, branch) {
+            return false;
+        }
         resolver.has_exact_lost_span_copula_ending_path(&normalized)
-            && self.accepts_token_boundary(haystack, &candidate.verified, branch)
+            || (matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
+                && fused_copula::omitted_ra_hosts(&normalized).any(|(host, suffix)| {
+                    !host
+                        .strip_suffix('이')
+                        .is_some_and(|prefix| resolver.has_complete_nominal_surface(prefix))
+                        && !resolver.has_exact_action_predicate_surface(host)
+                        && !(matches!(suffix, "라고" | "라고요" | "라는")
+                            && resolver.has_whole_modifier(host))
+                        && resolver.has_exact_nominal_surface(host)
+                        && !(suffix == "라"
+                            && host.char_indices().skip(1).any(|(split, _)| {
+                                resolver.has_exact_action_predicate_surface(&normalized[..split])
+                                    && resolver.has_exact_ending_surface(&normalized[split..])
+                            }))
+                })
+                && !resolver.has_whole_modifier(&normalized)
+                && !resolver.has_exact_nominal_surface(&normalized))
     }
 
     fn licensed_nominal_copula_trailing(
@@ -1404,6 +1423,17 @@ impl MorphMatcher {
         };
         if resolver.has_whole_modifier(&token) {
             return None;
+        }
+        if kfind_morph::is_omitted_copula_ra_ending(&suffix) {
+            let host = std::str::from_utf8(
+                haystack.get(candidate.consumed.start..candidate.consumed.end)?,
+            )
+            .ok()?
+            .nfc()
+            .collect::<String>();
+            if resolver.has_exact_action_predicate_surface(&host) {
+                return None;
+            }
         }
         let preceding = haystack
             .get(candidate.consumed.start..candidate.consumed.end)

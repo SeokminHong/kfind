@@ -2510,6 +2510,37 @@ fn fused_copula_endings_restore_the_whole_token_in_search_order() {
 }
 
 #[test]
+fn copula_ra_endings_distinguish_nominal_hosts_from_commands_and_particles() {
+    let matcher = compile_embedded_with_resource(
+        "adj:이다",
+        CompileOptions::default(),
+        component_resource_from_entries([
+            component_entry("동생", "NNG"),
+            component_entry("친구", "NNG"),
+            component_entry("어머니", "NNG"),
+            component_entry("가", "NNG"),
+            component_entry("가", "VV"),
+            component_entry("산책", "NNG"),
+            component_entry("이라도", "JX"),
+            component_entry("뭐", "NP"),
+            component_entry("뭐", "MAG"),
+            component_entry("하노", "NNP"),
+            component_entry("하", "VV"),
+            component_entry("노라", "EF"),
+        ]),
+    );
+    let text = "동생이라네 친구라네 어머니시라니. 가라니? 산책이라도 하자. 뭐라고 해도. 하노라.";
+    assert_eq!(
+        matcher
+            .find_all_with_meta(text.as_bytes())
+            .iter()
+            .map(|matched| &text[matched.span.clone()])
+            .collect::<Vec<_>>(),
+        ["이라네", "친구라네", "어머니시라니"],
+    );
+}
+
+#[test]
 fn direct_particle_plans_validate_the_attached_host_in_smart_mode() {
     let options = CompileOptions {
         global_pos: Some(CoarsePos::Particle),

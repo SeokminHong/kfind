@@ -362,6 +362,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.copula-ra-final"
+category = "final"
+initial = "other"
+forms = ["라나", "라네", "라니", "라니까", "라오", "라지"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.copula-ra-connective"
+category = "connective"
+initial = "other"
+forms = ["라", "라느니", "라며", "라면", "라면서", "라서", "라손", "라야", "라야만"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.quotative-adnominal"
 category = "adnominal"
 initial = "attach-nieun"

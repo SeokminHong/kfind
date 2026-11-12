@@ -37,6 +37,10 @@ const INTERNAL_PROVENANCE_IDS: &[&str] = &[
     "structural.fused-copula-ending",
 ];
 const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
+    "ending.copula-ra-final",
+    "ending.copula-ra-connective",
+    "ending.copula-quotative-go",
+    "ending.copula-quotative-adnominal",
     "ending.aoeo-seo",
     "particle.additive",
     "ending.connective-do",
@@ -817,6 +821,7 @@ fn compile_predicate_with_generated(
                             | kfind_morph::ContinuationState::NieunEnding
                             | kfind_morph::ContinuationState::CompletedNieunEnding
                             | kfind_morph::ContinuationState::Interrogative
+                            | kfind_morph::ContinuationState::CopulaRa
                     ) {
                         return false;
                     }
