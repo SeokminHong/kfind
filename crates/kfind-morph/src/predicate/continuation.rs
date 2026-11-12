@@ -2,6 +2,7 @@ use crate::{ContinuationState, PredicatePos, RuleId};
 
 mod auxiliary;
 mod hao;
+mod humble;
 mod trial;
 pub(super) use hao::{HAO_ENDINGS, HONORIFIC_HAO_AFTER_ACTION, HONORIFIC_HAO_ENDINGS, SOSEO};
 
@@ -944,6 +945,9 @@ fn verify_simple_continuation(
         ContinuationState::BieupFinal => BIEUP_FINAL,
         ContinuationState::Prospective => PROSPECTIVE,
     };
+    if let Some(continuation) = humble::verify(state, pos, anchor, following) {
+        return Some(continuation);
+    }
     let additional_endings = match state {
         ContinuationState::AOrEo if following.starts_with('서') => A_OR_EO_SEO_SUFFIXES,
         ContinuationState::StemEnding

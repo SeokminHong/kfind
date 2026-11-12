@@ -690,6 +690,8 @@ fn compile_rieul_eu_endings(
     for (base, suffix, rule_id) in [
         (stem, "면서", "ending.simultaneous-myeonseo"),
         (&dropped, "나", "ending.connective-na"),
+        (&dropped, "나이다", "ending.archaic-naida"),
+        (&dropped, "나이까", "ending.archaic-naida"),
     ]
     .into_iter()
     .chain(
@@ -726,6 +728,14 @@ fn compile_rieul_eu_endings(
             vec![rule("ending.connective-ni")],
         );
     }
+    push_branch(
+        branches,
+        entry,
+        format!("{dropped}옵"),
+        dropped.len(),
+        ContinuationState::StemEnding,
+        vec![rule("ending.archaic-humble")],
+    );
     for suffix in continuation::HAO_ENDINGS
         .iter()
         .chain([&continuation::SOSEO])

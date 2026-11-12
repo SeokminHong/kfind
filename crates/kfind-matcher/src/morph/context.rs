@@ -387,7 +387,7 @@ pub(super) fn next_word(bytes: &[u8], at: usize) -> Option<Cow<'_, str>> {
     normalized_token(bytes, span)
 }
 
-fn normalized_token(bytes: &[u8], span: Range<usize>) -> Option<Cow<'_, str>> {
+pub(super) fn normalized_token(bytes: &[u8], span: Range<usize>) -> Option<Cow<'_, str>> {
     let token = std::str::from_utf8(bytes.get(span)?).ok()?;
     Some(if is_nfc(token) {
         Cow::Borrowed(token)
