@@ -572,23 +572,23 @@ next = []
 terminal = true
 
 [[ending]]
-id = "ending.final-neyo"
+id = "ending.final-ne"
 category = "final"
 initial = "consonant"
-forms = ["네요"]
+forms = ["네"]
 required = []
 forbidden = []
-next = []
+next = ["ending.polite-yo"]
 terminal = true
 
 [[ending]]
-id = "ending.final-deogunyo"
+id = "ending.final-deogun"
 category = "final"
 initial = "consonant"
-forms = ["더군요"]
+forms = ["더군"]
 required = []
 forbidden = []
-next = []
+next = ["ending.polite-yo"]
 terminal = true
 
 [[ending]]

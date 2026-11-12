@@ -315,7 +315,6 @@ fn compile_productive(
         ("더라도", "ending.concessive-deorado"),
         ("도록", "ending.purpose-dorok"),
         ("다가", "ending.connective-daga"),
-        ("더군요", "ending.final-deogunyo"),
     ] {
         push_branch(
             branches,
@@ -331,14 +330,25 @@ fn compile_productive(
     } else {
         stem.to_owned()
     };
-    push_branch(
-        branches,
-        entry,
-        format!("{neyo_base}네요"),
-        neyo_base.len(),
-        ContinuationState::Terminal,
-        vec![rule("ending.final-neyo")],
-    );
+    for (base, suffix, ending_rule) in [
+        (neyo_base.as_str(), "네", "ending.final-ne"),
+        (stem, "더군", "ending.final-deogun"),
+    ] {
+        for polite in ["", "요"] {
+            let mut rules = vec![rule(ending_rule)];
+            if !polite.is_empty() {
+                rules.push(rule("ending.polite-yo"));
+            }
+            push_branch(
+                branches,
+                entry,
+                format!("{base}{suffix}{polite}"),
+                base.len(),
+                ContinuationState::Terminal,
+                rules,
+            );
+        }
+    }
     push_branch(
         branches,
         entry,
