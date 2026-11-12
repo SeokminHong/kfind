@@ -5,8 +5,6 @@ use super::{PredicateContinuationMatch, Suffix, auxiliary, suffix};
 const AUXILIARY: &str = "ending.auxiliary-boda";
 const STEM_ENDINGS: &[Suffix] = &[
     suffix("다", &["ending.final-da"]),
-    suffix("렴", &["ending.imperative-ryeom"]),
-    suffix("려무나", &["ending.imperative-ryeom"]),
     suffix("고요", &["ending.connective-go", "ending.polite-yo"]),
     suffix("네요", &["ending.final-ne", "ending.polite-yo"]),
     suffix("네", &["ending.final-ne"]),

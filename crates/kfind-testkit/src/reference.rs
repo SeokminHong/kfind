@@ -1343,6 +1343,15 @@ fn reference_simple_continuation(
         ContinuationState::Prospective => PROSPECTIVE,
     };
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Eu
+            if pos.is_action()
+                && (following.starts_with('렴') || following.starts_with("려무나")) =>
+        {
+            &[
+                reference_suffix("렴", &["ending.imperative-ryeom"]),
+                reference_suffix("려무나", &["ending.imperative-ryeom"]),
+            ]
+        }
         ContinuationState::Eu | ContinuationState::Prospective
             if following.starts_with("려나") || following.starts_with("려니") =>
         {
@@ -1737,14 +1746,9 @@ fn reference_attached_auxiliary(
         reference_suffix("는구나", &["ending.final-neun-exclamative"]),
         reference_suffix("는군", &["ending.final-neun-exclamative"]),
     ];
-    const TRIAL_ONLY: &[ReferenceSuffix] = &[
-        reference_suffix("렴", &["ending.imperative-ryeom"]),
-        reference_suffix("려무나", &["ending.imperative-ryeom"]),
-    ];
     if let Some(rest) = following.strip_prefix(stem)
         && let Some(fixed) = FIXED
             .iter()
-            .chain(if stem == '보' { TRIAL_ONLY } else { &[] })
             .filter(|suffix| rest.starts_with(suffix.surface))
             .max_by_key(|suffix| suffix.surface.len())
         && best
