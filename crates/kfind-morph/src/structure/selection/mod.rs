@@ -484,7 +484,14 @@ pub(in crate::structure) fn select_structure(
                 pos == StructuralPos::EC
             }))
             || complete_predicate_connective_ji_path(resource, context.current));
-    if previous_is_determiner && has_whole_nominal && !current_modifies_next_nominal {
+    if previous_is_determiner
+        && has_whole_nominal
+        && !current_modifies_next_nominal
+        && !(evidence.has_whole(DataFinePos::Mag)
+            && context.previous.is_some_and(|previous| {
+                has_exact_fine_pos(resource, previous, |pos| pos == DataFinePos::Nr)
+            }))
+    {
         return StructureSelection::NominalWhole;
     }
     if evidence.has_whole(DataFinePos::Mag)

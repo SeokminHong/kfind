@@ -1134,6 +1134,48 @@ impl MorphMatcher {
         if patterns.is_empty() {
             return false;
         }
+        if patterns.iter().any(|pattern| {
+            pattern.fine_pos == DataFinePos::Mag
+                && pattern.lexical_form.ends_with('로')
+                && context::previous_word(haystack, candidate.anchor.start).is_some_and(
+                    |previous| {
+                        !resolver.has_object_marked_nominal(&previous)
+                            && resolver.has_predicate_adnominal_surface(&previous)
+                    },
+                )
+                && resolver.has_nominal_oblique(&pattern.lexical_form)
+                && context::next_word(haystack, candidate.consumed.end).is_some_and(|next| {
+                    resolver.has_independent_final_predicate(&next)
+                        || resolver.has_exact_predicate_connective_path(
+                            &next,
+                            kfind_morph::PredicatePosSet::one(kfind_morph::PredicatePos::Verb),
+                        )
+                        || next
+                            .strip_suffix('고')
+                            .is_some_and(|stem| resolver.has_exact_action_predicate_surface(stem))
+                })
+        }) {
+            return false;
+        }
+        if matches!(branch.consumption, CandidateConsumption::Anchor)
+            && branch.origins.iter().any(|origin| {
+                origin
+                    .rule_path
+                    .iter()
+                    .any(|rule| rule.as_str() == "contraction.adverb-topic-neun")
+            })
+        {
+            return self.accepts_token_boundary(haystack, &candidate.verified, branch)
+                && context::normalized_token(haystack, candidate.anchor.clone()).is_some_and(
+                    |token| {
+                        patterns.iter().any(|pattern| {
+                            pattern.fine_pos == DataFinePos::Mag
+                                && resolver
+                                    .has_adverb_topic_contraction(&pattern.lexical_form, &token)
+                        })
+                    },
+                );
+        }
         if matches!(branch.consumption, CandidateConsumption::Anchor)
             && branch.origins.iter().any(|origin| {
                 origin

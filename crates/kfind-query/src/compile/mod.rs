@@ -29,6 +29,7 @@ const INTERNAL_PROVENANCE_IDS: &[&str] = &[
     "contraction.eu-drop",
     "contraction.h-irregular",
     "contraction.identical-vowel",
+    "contraction.adverb-topic-neun",
     DICTIONARY_ADVERBIAL_I_RULE_ID,
     DICTIONARY_CONJUGATION_RULE_ID,
     DICTIONARY_VOICE_DERIVATION_RULE_ID,
@@ -458,6 +459,19 @@ fn compile_analysis(
                 smart_left: true,
                 decision,
             });
+            if options.boundary == crate::BoundaryPolicy::Smart
+                && analysis.fine_pos == FinePos::GeneralAdverb
+                && let Some(contracted) =
+                    kfind_morph::add_final(atom_surface, kfind_morph::hangul::JONG_NIEUN)
+            {
+                output.push(exact_branch_with_decision(
+                    &contracted,
+                    analysis_index,
+                    vec![RuleId::from("contraction.adverb-topic-neun")],
+                    true,
+                    DraftDecision::Structural(ComponentCapability::Source),
+                ));
+            }
         } else {
             output.push(exact_branch_with_decision(
                 atom_surface,
