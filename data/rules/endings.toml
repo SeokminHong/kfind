@@ -822,6 +822,36 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.rya"
+category = "final"
+initial = "eu"
+forms = ["랴", "으랴"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.ryeotda"
+category = "final"
+initial = "eu"
+forms = ["렷다", "으렷다"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.geotda"
+category = "final"
+initial = "consonant"
+forms = ["것다"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.prospective-final"
 category = "final"
 initial = "eu"

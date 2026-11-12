@@ -774,6 +774,7 @@ fn reference_simple_continuation(
         };
     }
     const PAST: &[ReferenceSuffix] = &[
+        reference_suffix("것다", &["ending.geotda"]),
         reference_suffix("습니까", &["ending.formal-interrogative"]),
         reference_suffix("습디까", &["ending.retrospective-interrogative"]),
         reference_suffix("습디다", &["ending.retrospective-declarative"]),
@@ -828,6 +829,11 @@ fn reference_simple_continuation(
         reference_suffix("우", &["ending.hao-final-u"]),
     ];
     const EU: &[ReferenceSuffix] = &[
+        reference_suffix("시것다", &["ending.honorific", "ending.geotda"]),
+        reference_suffix(
+            "셨것다",
+            &["ending.honorific", "ending.past", "ending.geotda"],
+        ),
         reference_suffix("시게", &["ending.honorific", "ending.adverbial-ge"]),
         reference_suffix(
             "셨게",
@@ -1177,6 +1183,8 @@ fn reference_simple_continuation(
     macro_rules! prospective_suffixes {
         ($prefix:literal $(, $rule:literal)*) => {
             &[
+                reference_suffix(concat!($prefix, "랴"), &[$($rule,)* "ending.rya"]),
+                reference_suffix(concat!($prefix, "렷다"), &[$($rule,)* "ending.ryeotda"]),
                 reference_suffix(concat!($prefix, "리"), &[$($rule,)* "ending.prospective-final"]),
                 reference_suffix(concat!($prefix, "리라"), &[$($rule,)* "ending.prospective-final"]),
                 reference_suffix(concat!($prefix, "리라고"), &[$($rule,)* "ending.prospective-quotative"]),
@@ -1198,6 +1206,13 @@ fn reference_simple_continuation(
         prospective_suffixes!("시", "ending.honorific");
     const HONORIFIC_PAST_PROSPECTIVE: &[ReferenceSuffix] =
         prospective_suffixes!("셨으", "ending.honorific", "ending.past");
+    const HONORIFIC_FUTURE_PROSPECTIVE: &[ReferenceSuffix] =
+        prospective_suffixes!("시겠으", "ending.honorific", "ending.future");
+    let starts_prospective = |prefix| {
+        following
+            .strip_prefix(prefix)
+            .is_some_and(|tail| tail.starts_with(['리', '랴', '렷']))
+    };
 
     macro_rules! question {
         ($surface:literal, $rule:literal $(, $prior:literal)*) => {
@@ -1397,11 +1412,14 @@ fn reference_simple_continuation(
             if (pos == PredicatePos::Copula || anchor == "아니")
                 && following.starts_with([
                     '게', '고', '구', '군', '길', '네', '니', '면', '세', '야', '어', '에', '자',
-                    '죠', '지',
+                    '죠', '지', '랴', '렷', '것',
                 ]) =>
         {
             &[
                 reference_suffix("게", &["ending.copula-ge"]),
+                reference_suffix("랴", &["ending.rya"]),
+                reference_suffix("렷다", &["ending.ryeotda"]),
+                reference_suffix("것다", &["ending.geotda"]),
                 reference_suffix("고말고", &["ending.copula-common-final"]),
                 reference_suffix("고요", &["ending.connective-go", "ending.polite-yo"]),
                 reference_suffix("구나", &["ending.copula-common-final"]),
@@ -1542,12 +1560,13 @@ fn reference_simple_continuation(
         ContinuationState::Eu if following.starts_with("시는데") => SINEUNDE,
         ContinuationState::Eu if following.starts_with("셨는데") => SYEOTNEUNDE,
         ContinuationState::Eu if following.starts_with("시겠는데") => SIGETNEUNDE,
-        ContinuationState::Past | ContinuationState::Future if following.starts_with("으리") => {
+        ContinuationState::Past | ContinuationState::Future if starts_prospective("으") => {
             PREFINAL_PROSPECTIVE
         }
-        ContinuationState::Eu if following.starts_with('리') => PROSPECTIVE,
-        ContinuationState::Eu if following.starts_with("시리") => HONORIFIC_PROSPECTIVE,
-        ContinuationState::Eu if following.starts_with("셨으리") => HONORIFIC_PAST_PROSPECTIVE,
+        ContinuationState::Eu if starts_prospective("") => PROSPECTIVE,
+        ContinuationState::Eu if starts_prospective("시") => HONORIFIC_PROSPECTIVE,
+        ContinuationState::Eu if starts_prospective("셨으") => HONORIFIC_PAST_PROSPECTIVE,
+        ContinuationState::Eu if starts_prospective("시겠으") => HONORIFIC_FUTURE_PROSPECTIVE,
         ContinuationState::Past if following.starts_with('을') => PAST_RIEUL_FINAL,
         ContinuationState::Eu if following.starts_with('실') => HONORIFIC_RIEUL_FINAL,
         ContinuationState::Eu if following.starts_with("셨을") => HONORIFIC_PAST_RIEUL_FINAL,
@@ -1756,6 +1775,7 @@ fn reference_attached_auxiliary(
         }
     }
     const FIXED: &[ReferenceSuffix] = &[
+        reference_suffix("것다", &["ending.geotda"]),
         reference_suffix("다", &["ending.final-da"]),
         reference_suffix("고", &["ending.connective-go"]),
         reference_suffix("고요", &["ending.connective-go", "ending.polite-yo"]),
