@@ -267,8 +267,6 @@ const EU_SUFFIXES: &[Suffix] = &[
     suffix("나", &["ending.connective-na"]),
     suffix("시오", &["ending.imperative-sio"]),
     suffix("쇼", &["ending.imperative-sio-short"]),
-    suffix("리라고", &["ending.prospective-quotative"]),
-    suffix("리라", &["ending.prospective-final"]),
     suffix(
         "시겠습니다",
         &[
@@ -398,6 +396,30 @@ const BIEUP_FINAL: &[Suffix] = &[
     suffix("디다", &["ending.retrospective-declarative"]),
 ];
 
+macro_rules! prospective_suffixes {
+    ($prefix:literal $(, $rule:literal)*) => {
+        &[
+            suffix(concat!($prefix, "리"), &[$($rule,)* "ending.prospective-final"]),
+            suffix(concat!($prefix, "리라"), &[$($rule,)* "ending.prospective-final"]),
+            suffix(concat!($prefix, "리라고"), &[$($rule,)* "ending.prospective-quotative"]),
+            suffix(concat!($prefix, "리다"), &[$($rule,)* "ending.prospective-final"]),
+            suffix(concat!($prefix, "리오"), &[$($rule,)* "ending.prospective-final"]),
+            suffix(concat!($prefix, "리까"), &[$($rule,)* "ending.prospective-final"]),
+            suffix(concat!($prefix, "리니라"), &[$($rule,)* "ending.prospective-final"]),
+            suffix(concat!($prefix, "리로다"), &[$($rule,)* "ending.prospective-final"]),
+            suffix(concat!($prefix, "리니"), &[$($rule,)* "ending.prospective-connective"]),
+            suffix(concat!($prefix, "리만치"), &[$($rule,)* "ending.prospective-connective"]),
+            suffix(concat!($prefix, "리만큼"), &[$($rule,)* "ending.prospective-connective"]),
+        ]
+    };
+}
+
+const PROSPECTIVE: &[Suffix] = prospective_suffixes!("");
+const PREFINAL_PROSPECTIVE: &[Suffix] = prospective_suffixes!("으");
+const HONORIFIC_PROSPECTIVE: &[Suffix] = prospective_suffixes!("시", "ending.honorific");
+const HONORIFIC_PAST_PROSPECTIVE: &[Suffix] =
+    prospective_suffixes!("셨으", "ending.honorific", "ending.past");
+
 /// Consumes the longest suffix accepted by a predicate branch's verifier state.
 #[must_use]
 pub fn verify_predicate_continuation(
@@ -420,8 +442,15 @@ pub fn verify_predicate_continuation(
         ContinuationState::Geodeun => GEODEUN_ENDINGS,
         ContinuationState::RieulFinal => RIEUL_FINAL,
         ContinuationState::BieupFinal => BIEUP_FINAL,
+        ContinuationState::Prospective => PROSPECTIVE,
     };
-    let rieul_endings = match state {
+    let additional_endings = match state {
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으리") => {
+            PREFINAL_PROSPECTIVE
+        }
+        ContinuationState::Eu if following.starts_with('리') => PROSPECTIVE,
+        ContinuationState::Eu if following.starts_with("시리") => HONORIFIC_PROSPECTIVE,
+        ContinuationState::Eu if following.starts_with("셨으리") => HONORIFIC_PAST_PROSPECTIVE,
         ContinuationState::Past => PAST_RIEUL_FINAL,
         ContinuationState::Eu => EU_RIEUL_FINAL,
         _ => &[],
@@ -429,7 +458,7 @@ pub fn verify_predicate_continuation(
 
     let suffix = candidates
         .iter()
-        .chain(rieul_endings)
+        .chain(additional_endings)
         .filter(|suffix| {
             following.starts_with(suffix.surface)
                 && (pos.is_action()
@@ -457,6 +486,7 @@ pub fn verify_predicate_continuation(
                 | ContinuationState::Geodeun
                 | ContinuationState::RieulFinal
                 | ContinuationState::BieupFinal
+                | ContinuationState::Prospective
         )
     {
         return None;

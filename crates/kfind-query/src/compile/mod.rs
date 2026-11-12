@@ -801,6 +801,7 @@ fn compile_predicate_with_generated(
                         kfind_morph::ContinuationState::Geodeun
                             | kfind_morph::ContinuationState::RieulFinal
                             | kfind_morph::ContinuationState::BieupFinal
+                            | kfind_morph::ContinuationState::Prospective
                     ) {
                         return false;
                     }
