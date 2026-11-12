@@ -92,6 +92,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.connective-goseo"
+category = "connective"
+initial = "consonant"
+forms = ["고서", "고서야"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.aoeo-seoya"
+category = "connective"
+initial = "a-or-eo"
+forms = ["아서야", "어서야", "여서야"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.past"
 category = "prefinal"
 initial = "a-or-eo"

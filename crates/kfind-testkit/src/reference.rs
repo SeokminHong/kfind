@@ -727,6 +727,7 @@ fn reference_simple_continuation(
         reference_suffix("가야", &["ending.auxiliary-gada", "ending.connective-ya"]),
         reference_suffix("서도", &["ending.aoeo-seo", "particle.additive"]),
         reference_suffix("서", &["ending.aoeo-seo"]),
+        reference_suffix("서야", &["ending.aoeo-seoya"]),
         reference_suffix("도", &["ending.connective-do"]),
         reference_suffix("야", &["ending.connective-ya"]),
         reference_suffix("요", &["ending.polite-yo"]),
@@ -1375,6 +1376,18 @@ fn reference_simple_continuation(
         ContinuationState::Prospective => PROSPECTIVE,
     };
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding
+            if (pos.is_action() || anchor == "아니") && following.starts_with("고서") =>
+        {
+            &[
+                reference_suffix("고서", &["ending.connective-goseo"]),
+                reference_suffix("고서야", &["ending.connective-goseo"]),
+            ]
+        }
+        ContinuationState::Eu if following.starts_with("시고서") => &[
+            reference_suffix("시고서", &["ending.honorific", "ending.connective-goseo"]),
+            reference_suffix("시고서야", &["ending.honorific", "ending.connective-goseo"]),
+        ],
         ContinuationState::Eu
             if pos.is_action()
                 && (following.starts_with('렴') || following.starts_with("려무나")) =>

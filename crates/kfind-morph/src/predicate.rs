@@ -1036,6 +1036,11 @@ fn compile_copula(
             "ending.aoeo-seo",
         ),
         (
+            "여서야".to_owned(),
+            ContinuationState::Terminal,
+            "ending.aoeo-seoya",
+        ),
+        (
             "인".to_owned(),
             ContinuationState::Terminal,
             "ending.past-adnominal",
