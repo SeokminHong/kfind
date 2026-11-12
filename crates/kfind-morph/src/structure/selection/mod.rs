@@ -28,7 +28,10 @@ pub(super) mod runtime;
 pub(in crate::structure) enum StructureSelection {
     Whole,
     Adverb,
-    AdjacentDeterminer,
+    AdjacentDeterminer {
+        excludes_pronoun: bool,
+        excludes_predicate: bool,
+    },
     DeterminerWhole,
     ConnectiveJiNominalFrame {
         fallback: Box<StructureSelection>,
@@ -111,13 +114,17 @@ impl StructureSelection {
                 support.evidence == StructuralEvidence::Whole
                     && pattern.fine_pos == DataFinePos::Mag
             }
-            Self::AdjacentDeterminer => {
+            Self::AdjacentDeterminer {
+                excludes_pronoun,
+                excludes_predicate,
+            } => {
                 (support.evidence == StructuralEvidence::Whole
                     && pattern.fine_pos == DataFinePos::Mm)
-                    || !matches!(
+                    || (!matches!(
                         pattern.fine_pos,
                         DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
-                    )
+                    ) && (!excludes_pronoun || pattern.fine_pos != DataFinePos::Np)
+                        && (!excludes_predicate || !pattern.fine_pos.is_predicate()))
             }
             Self::DeterminerWhole => {
                 support.evidence == StructuralEvidence::Whole && pattern.fine_pos.is_nominal()
@@ -295,47 +302,60 @@ pub(in crate::structure) fn select_structure(
     {
         return StructureSelection::Adverb;
     }
-    let (next_starts_nominal, next_is_unambiguous_nominal, next_starts_determiner_nominal) =
-        context.next.map_or((false, false, false), |next| {
-            let mut exact_nominal = false;
-            let mut exact_dependent_or_counter_nominal = false;
-            let mut exact_competitor = false;
-            let mut exact_lexical_competitor = false;
-            resource.common_prefix_positions(next.as_bytes(), |length, positions| {
-                if length != next.len() {
-                    return;
-                }
-                let Some(pos) = positions.first().copied() else {
-                    return;
-                };
-                exact_nominal |= pos.is_nominal_tag();
-                exact_dependent_or_counter_nominal |=
-                    matches!(pos, StructuralPos::NNB | StructuralPos::NNBC);
-                exact_competitor |= !pos.is_nominal_tag();
-                exact_lexical_competitor |=
-                    !pos.is_nominal_tag() && !matches!(pos, StructuralPos::XSN | StructuralPos::XR);
-            });
-            let complete_nominal = complete_nominal_host(resource, next)
-                || complete_nominal_particle_host(resource, next).is_some();
-            let unambiguous_nominal = (exact_nominal || complete_nominal)
-                && !exact_competitor
-                && !complete_predicate_ending_path(resource, next);
-            let starts_nominal = !nominal_particle_hosts(resource, next).is_empty()
-                || (!exact_competitor && (exact_nominal || complete_nominal));
-            let starts_determiner_nominal =
-                starts_nominal || (exact_dependent_or_counter_nominal && !exact_lexical_competitor);
-            (
-                starts_nominal,
-                unambiguous_nominal,
-                starts_determiner_nominal,
-            )
+    let demonstrative = matches!(context.current, "이" | "그" | "저");
+    let (
+        next_starts_nominal,
+        next_is_unambiguous_nominal,
+        next_starts_determiner_nominal,
+        next_is_counter,
+    ) = context.next.map_or((false, false, false, false), |next| {
+        let mut exact_nominal = false;
+        let mut exact_dependent_or_counter_nominal = false;
+        let mut exact_counter = false;
+        let mut exact_competitor = false;
+        let mut exact_lexical_competitor = false;
+        resource.common_prefix_positions(next.as_bytes(), |length, positions| {
+            if length != next.len() {
+                return;
+            }
+            let Some(pos) = positions.first().copied() else {
+                return;
+            };
+            exact_nominal |= pos.is_nominal_tag();
+            exact_dependent_or_counter_nominal |=
+                matches!(pos, StructuralPos::NNB | StructuralPos::NNBC);
+            exact_counter |=
+                pos == StructuralPos::NNBC && positions[1..].iter().all(|pos| pos.is_particle());
+            exact_competitor |= !pos.is_nominal_tag();
+            exact_lexical_competitor |=
+                !pos.is_nominal_tag() && !matches!(pos, StructuralPos::XSN | StructuralPos::XR);
         });
+        let complete_nominal = complete_nominal_host(resource, next)
+            || complete_nominal_particle_host(resource, next).is_some();
+        let unambiguous_nominal = (exact_nominal || complete_nominal)
+            && !exact_competitor
+            && !complete_predicate_ending_path(resource, next);
+        let starts_nominal = !nominal_particle_hosts(resource, next).is_empty()
+            || (!exact_competitor && (exact_nominal || complete_nominal));
+        let starts_determiner_nominal = starts_nominal
+            || (exact_dependent_or_counter_nominal && (demonstrative || !exact_lexical_competitor));
+        (
+            starts_nominal,
+            unambiguous_nominal,
+            starts_determiner_nominal,
+            exact_counter,
+        )
+    });
     let particle_host = evidence.nominal_particle_hosts.last().cloned();
-    if next_starts_determiner_nominal
+    let excludes_predicate = next_is_counter && evidence.adnominal_ends.is_empty();
+    if (next_starts_determiner_nominal || excludes_predicate)
         && context.current.chars().count() == 1
         && evidence.has_whole(DataFinePos::Mm)
     {
-        return StructureSelection::AdjacentDeterminer;
+        return StructureSelection::AdjacentDeterminer {
+            excludes_pronoun: demonstrative && next_starts_determiner_nominal,
+            excludes_predicate,
+        };
     }
     if let Some((nominal, copula)) = copular_frame(resource, context) {
         return StructureSelection::CopularFrame { nominal, copula };
