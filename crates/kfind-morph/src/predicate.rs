@@ -16,7 +16,10 @@ use crate::{
 mod alternation;
 mod continuation;
 
-pub use continuation::{PredicateContinuationMatch, verify_predicate_continuation};
+pub use continuation::{
+    PredicateContinuationMatch, verify_predicate_continuation,
+    verify_predicate_continuation_with_prefinal_context,
+};
 
 use alternation::{
     aeo_surfaces, bieup_ending_base, ending_base, eu_anchor, formal_bieup_anchor, future_adnominal,

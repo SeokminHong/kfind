@@ -18,6 +18,30 @@ future-honorific	걷다	verb	exact	13	28	어르신도 걸으시겠어?
 future-honorific-polite	걷다	verb	exact	13	31	어르신도 걸으시겠어요?
 krdict.어:9	주다	verb	exact	35	41	너 그 애한테 직접 편지를 줬어?
 krdict.었:2	재미있다	adjective	exact	21	36	어제 본 영화는 재미있었어?
+past-future-casual	먹다	verb	exact	14	26	벌써 밥을 먹었겠어.
+past-future-question-topic	하다	verb	exact	4	19	왜 했겠느냐는 말이다.
+honorific-past-uncontracted	가다	verb	exact	16	28	할머니께서 가시었어.
+pluperfect-casual	하다	verb	exact	28	37	나도 한때는 그 일을 했었어.
+past-concessive	오다	verb	exact	7	16	눈이 왔어도 바다에 갔어.
+past-necessity	가다	verb	exact	14	23	그때 바로 갔어야 했다.
+honorific-pluperfect-future	오다	verb	exact	10	28	그분도 오셨었겠어요.
+lexicalized-adverb-topic	하다	verb	no-match	7	16	나도 한때는 그 일을 했었어.
+lexicalized-adverb	하다	verb	no-match	7	13	나도 한때 그 일을 했었어.
+separate-adnominal	하다	verb	exact	11	14	그 일을 한 때를 기억한다.
+krdict.겠:1	끝나다	verb	exact	17	29	수업이 벌써 끝났겠다.
+stdict.겠:21	끝내다	verb	exact	33	45	고향에서는 벌써 추수를 끝냈겠다.
+opendict.시:4	오다	verb	exact	16	28	아버님께서 오시었다.
+krdict.았었:1	작다	adjective	exact	37	49	유민이는 초등학교 때 키가 작았었다.
+krdict.았었:2	살다	verb	exact	40	52	승규는 중학교 때까지 대전에 살았었다.
+stdict.았었:3	많다	adjective	exact	50	62	작년만 해도 이 저수지에는 물고기가 많았었다.
+stdict.어도:6	보다	verb	exact	14	23	시험을 못 봤어도 괜찮아.
+stdict.어요:10	하다	verb	exact	27	42	그동안 맘고생 많이 하셨겠어요.
+krdict.었었:1	적다	adjective	exact	41	53	그 식당은 개업 초기에 손님이 적었었다.
+stdict.었었:2	적다	adjective	exact	50	62	작년만 해도 이 저수지에는 물고기가 적었었다.
+stdict.었었:3	이다	adjective	exact	74	86	이번에 농구 선수로 활약한 저 선수는 왕년에 배구 선수이었었다.
+stdict.였었:1	하다	verb	exact	44	56	전에 일하던 사람은 노력을 많이 하였었다.
+stdict.였었:2	가득하다	adjective	exact	50	68	물이 오염되기 전에 이곳은 물고기로 가득하였었다.
+stdict.으시:3	잡다	verb	exact	24	39	아버지는 손을 꼭 잡으시었다.
 walk-formal-context	걷다	verb	exact	10	19	전화를 걸었다.
 hang-formal-context	걸다	verb	exact	21	30	비가 와도 계속 걸었다.
 listen-formal-context	듣다	verb	exact	10	19	가방을 들었다.

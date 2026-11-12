@@ -41,6 +41,15 @@ corpus.ud-gsd.test.test-s534.verb.하다.8	하다	verb	exact	46	55	결혼에 대
 corpus.ud-gsd.test.test-s587.verb.대다.16	대다	verb	exact	142	151	반면 이정수의 아버지 이도원 씨는 "선발전 당시 정수가 삐끗하기는 했지만 경기 도중 누가 엉덩이에 손을 댔는지 알 수 없는 상황이었다"며 "그 동영상으로 도움받았다고 판정하는 것은 수긍할 수 없다"고 말했다.
 corpus.ud-gsd.test.test-s867.verb.있다.5	있다	verb	exact	49	58	원장님이 어린이집을 운영할 자질이 있는지 의문이네요.
 corpus.ud-gsd.test.test-s884.adjective.친절하다	친절하다	adjective	exact	111	129	저희 어머니께서 편찮으셔서 입원을 하셨었는데 간호사분들과 의사 선생님 모두가 친절하셨어요.
+corpus.ud-gsd.test.test-s252.verb.상연되다	상연되다	verb	exact	169	187	그리고 당시는 아직 여배우가 없었으며, 여자 역은 변성기 이전의 소년배우(주로 성가대 출신의 소년배우 극단에 소속)가 맡아 상연되었었다.
+corpus.ud-gsd.test.test-s274.verb.다져주다	다져주다	verb	exact	54	72	적어도 그런 경우는 없게끔 항상 마음을 다져주셨으면 좋겠어요.
+corpus.ud-gsd.test.test-s403.verb.제출하다	제출하다	verb	exact	263	278	앞서 한나라당 유승민 의원은 현재 실행 중인 복무기간 단축계획을 조정, 22개월로 늘리고 정부가 재량으로 조정할 수 있는 복무기간을 기존 '6개월 이내'에서 '2개월 이내'로 줄이는 병역법 개정안을 제출했었다.
+corpus.ud-gsd.test.test-s563.verb.하다	하다	verb	exact	75	90	그렇다면 심증적으로 요미우리가 없는 얘기를 지어내서 했겠느냐는 점에 많은 사람들이 귀를 기울이고 있다는 점을 똑바로 봐야 할 것이다.
+corpus.ud-gsd.test.test-s637.verb.떨어지다	떨어지다	verb	exact	43	58	음식은 맛있는데 소스나 김치가 떨어졌어도 돌아보질 않아요
+corpus.ud-gsd.test.test-s853.adjective.싶다	싶다	adjective	exact	27	42	설렁탕이 정말 먹고 싶었었는데 정말 국물도 진국이고 애들이 정말 좋아하는 것 같아요.
+corpus.ud-gsd.test.test-s884.verb.하다	하다	verb	exact	49	64	저희 어머니께서 편찮으셔서 입원을 하셨었는데 간호사분들과 의사 선생님 모두가 친절하셨어요.
+corpus.ud-gsd.test.test-s941.verb.오다	오다	verb	exact	68	77	아침이 되어 저와 남편의 학창 시절 때 수학여행을 왔었던 불국사로 향하였습니다.
+corpus.ud-gsd.test.test-s982.verb.오다	오다	verb	exact	77	89	주문 후 1시간이 다 되도록 소식이 없어 전화해 보니 이미 왔었는데 주소를 못 찾았다고 하시네요.
 corpus.ud-pud.test.w04002055.verb.타다	타다	verb	match	98	110	1976년 경마장이 문을 닫았으며, 1990년 화재로 인해 목재로 된 큰 스탠드가 타버렸고 그 잔해는 축사와 함께 나중에 철거되었다.
 corpus.ud-pud.test.w01112098.verb.이루어지다	이루어지다	verb	match	145	157	디즈니는 아카데미 명예상을 또 수상했는데 이 명예상은 100% 크기의 오스카 트로피 하나와 7개의 미니어처로 이뤄졌다.
 corpus.ud-pud.test.w01137087.verb.넘다	넘다	verb	match	121	133	5월, 체코 국경 수비대는 수비대의 정지 명령에도 아랑곳하지 않고 체코슬로바키아 국경을 넘으려던 두 명의 주데텐 독일 농부를 총으로 쐈다.

@@ -13,6 +13,7 @@ use kfind_morph::{
     ConstraintResolver, DEFAULT_LATTICE_NODE_LIMIT, MorphContinuation, ParticleChainModel,
     ParticleVerifier, PredicateStemClass, PreparedTokenGraph, ProductPolicy, RuleId,
     verify_copula_surface_after_nominal, verify_predicate_continuation,
+    verify_predicate_continuation_with_prefinal_context,
 };
 use kfind_query::{
     AtomPlan, BoundaryPolicy, CandidateConsumption, CandidateDecision, CandidateLeftContext,
@@ -725,6 +726,7 @@ impl MorphMatcher {
             CandidateConsumption::PredicateContinuation {
                 continuation,
                 pos,
+                source_positions,
                 nominal_particle_transition,
                 left_context,
                 ..
@@ -735,11 +737,34 @@ impl MorphMatcher {
                 let following = valid_utf8_prefix(&haystack[hit.span.end..]);
                 let (consumption_anchor, consumption_following) =
                     normalized_consumption_text(anchor, following);
-                let matched = verify_predicate_continuation(
+                let matched = verify_predicate_continuation_with_prefinal_context(
                     *continuation,
                     *pos,
                     &consumption_anchor,
                     &consumption_following,
+                    || {
+                        !branch.decision.is_structural()
+                            || is_boundary_before(haystack, core.start)
+                            || self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                                let whole = surrounding_token_span(haystack, core.clone());
+                                if *pos == kfind_morph::PredicatePos::Copula {
+                                    return context::normalized_token(
+                                        haystack,
+                                        whole.start..core.start,
+                                    )
+                                    .is_some_and(|host| {
+                                        resolver.has_complete_nominal_surface(&host)
+                                    });
+                                }
+                                source_aligned_compound_predicate_position(
+                                    haystack,
+                                    &core,
+                                    &whole,
+                                    *source_positions,
+                                    resolver,
+                                )
+                            })
+                    },
                 )?;
                 if *pos == kfind_morph::PredicatePos::Copula
                     && *continuation == kfind_morph::ContinuationState::StemEnding
@@ -1057,6 +1082,9 @@ impl MorphMatcher {
             return true;
         }
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
+        if self.has_lexicalized_time_modifier(haystack, candidate, branch, &whole, resolver) {
+            return false;
+        }
         let licensed_trailing =
             self.licensed_structural_trailing(haystack, candidate, branch, resolver);
         if licensed_trailing.is_none()
@@ -1162,6 +1190,54 @@ impl MorphMatcher {
             diagnostics.record_unavailable();
         }
         decision.is_some_and(|decision| ProductPolicy::RecallFirst.accepts(&decision))
+    }
+
+    fn has_lexicalized_time_modifier(
+        &self,
+        haystack: &[u8],
+        candidate: &ExecutedCandidate,
+        branch: &CandidateProgram,
+        whole: &Range<usize>,
+        resolver: &ConstraintResolver,
+    ) -> bool {
+        if candidate.verified.core.start != whole.start
+            || candidate.consumed.end >= whole.end
+            || !matches!(
+                branch.consumption,
+                CandidateConsumption::PredicateContinuation { .. }
+            )
+        {
+            return false;
+        }
+        let trailing = candidate.consumed.end..whole.end;
+        if !haystack.get(trailing.clone()).is_some_and(|bytes| {
+            bytes.starts_with("때".as_bytes()) || bytes.starts_with("ᄄ".as_bytes())
+        }) || !branch.origins.iter().any(|origin| {
+            candidate
+                .suffix_rules
+                .last()
+                .or_else(|| origin.rule_path.last())
+                .is_some_and(|rule| ADNOMINAL_RULE_IDS.contains(&rule.as_str()))
+        }) {
+            return false;
+        }
+        let Some(trailing) = context::normalized_token(haystack, trailing) else {
+            return false;
+        };
+        let Some(particles) = trailing.strip_prefix('때') else {
+            return false;
+        };
+        let Some(prefix) = context::normalized_token(haystack, whole.start..candidate.consumed.end)
+        else {
+            return false;
+        };
+        let modifier = format!("{prefix}때");
+        resolver.has_whole_modifier(&modifier)
+            && self
+                .particle_verifier
+                .verify_prefix(&modifier, particles)
+                .consumed_bytes
+                == particles.len()
     }
 
     fn licensed_structural_trailing(
@@ -1621,7 +1697,7 @@ impl MorphMatcher {
             || adnominal_interrogative;
         let source_aligned_compound = source_aligned_compound_predicate_position(
             haystack,
-            candidate,
+            &candidate.verified.core,
             whole,
             source_positions,
             resolver,
@@ -2380,7 +2456,7 @@ fn has_conflicting_whole_predicate(
     let normalized_core_end = normalized_core_start + core.nfc().collect::<String>().len();
     if source_aligned_compound_predicate_position(
         haystack,
-        candidate,
+        &candidate.verified.core,
         &whole,
         source_positions,
         resolver,
@@ -2406,12 +2482,12 @@ fn has_conflicting_whole_predicate(
 
 fn source_aligned_compound_predicate_position(
     haystack: &[u8],
-    candidate: &ExecutedCandidate,
+    core: &Range<usize>,
     whole: &Range<usize>,
     source_positions: kfind_morph::PredicatePosSet,
     resolver: &ConstraintResolver,
 ) -> bool {
-    if candidate.verified.core.start <= whole.start || candidate.verified.core.end > whole.end {
+    if core.start <= whole.start || core.end > whole.end {
         return false;
     }
     let Some(token) = haystack
@@ -2421,13 +2497,13 @@ fn source_aligned_compound_predicate_position(
         return false;
     };
     let Some(prefix) = haystack
-        .get(whole.start..candidate.verified.core.start)
+        .get(whole.start..core.start)
         .and_then(|bytes| std::str::from_utf8(bytes).ok())
     else {
         return false;
     };
     let Some(core) = haystack
-        .get(candidate.verified.core.clone())
+        .get(core.clone())
         .and_then(|bytes| std::str::from_utf8(bytes).ok())
     else {
         return false;
