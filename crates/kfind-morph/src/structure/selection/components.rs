@@ -36,7 +36,9 @@ pub(in crate::structure) fn component_is_shadowed_by_predicate(
     spans: &CandidateSpans,
     evidence: &TokenEvidence,
 ) -> bool {
-    let modifier_inside_derived_nominal = pattern.fine_pos == DataFinePos::Mm
+    let runtime_adverb = support == StructuralEvidence::RuntimeComponent
+        && matches!(pattern.fine_pos, DataFinePos::Mag | DataFinePos::Maj);
+    let modifier_inside_derived_nominal = (pattern.fine_pos == DataFinePos::Mm || runtime_adverb)
         && evidence
             .runtime_nominal_derivation_spans
             .iter()
@@ -46,21 +48,23 @@ pub(in crate::structure) fn component_is_shadowed_by_predicate(
     }
 
     let unsupported_runtime_component = support == StructuralEvidence::RuntimeComponent
-        && (((pattern.fine_pos.is_nominal() && pattern.lexical_form.as_ref() == "못")
+        && ((pattern.fine_pos.is_nominal() && pattern.lexical_form.as_ref() == "못")
             || (matches!(pattern.fine_pos, DataFinePos::Nng | DataFinePos::Nnp)
                 && pattern.lexical_form.chars().count() == 1))
-            && evidence
-                .runtime_nominal_derivation_spans
-                .contains(&spans.core)
-            || matches!(pattern.fine_pos, DataFinePos::Mag | DataFinePos::Maj));
+        && evidence
+            .runtime_nominal_derivation_spans
+            .contains(&spans.core);
     let source_backed_nonderivational_nominal = support == StructuralEvidence::SourceComponent
         && pattern.fine_pos.is_nominal()
         && pattern.lexical_form.as_ref() == "못";
-    (unsupported_runtime_component || source_backed_nonderivational_nominal)
-        && evidence
-            .leading_predicate_spans
-            .iter()
-            .any(|predicate| predicate.start == spans.core.start && predicate.end > spans.core.end)
+    let bare_adverb_prefix =
+        runtime_adverb && spans.consumed.end == spans.core.end && spans.core.end < spans.token.end;
+    (unsupported_runtime_component || source_backed_nonderivational_nominal || runtime_adverb)
+        && evidence.leading_predicate_spans.iter().any(|predicate| {
+            predicate.start == spans.core.start
+                && (predicate.end > spans.core.end
+                    || (bare_adverb_prefix && predicate.end == spans.core.end))
+        })
 }
 
 pub(in crate::structure) fn nominal_component_is_supported(
