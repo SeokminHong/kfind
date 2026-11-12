@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createReadStream } from "node:fs";
-import { stat } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { createServer } from "node:http";
 
 import {
@@ -10,16 +10,19 @@ import {
 
 const componentResourcePath = "/morphology-component-compact.kfc";
 const componentResourceSize = 37_103_813;
-const enrichedPredicatesSize = 42_910;
+const enrichedSourcePath = process.argv[2];
+assert(enrichedSourcePath, "usage: test-npm-assets.mjs ENRICHED_SOURCE");
 
 assert.equal(componentResourceFileUrl.protocol, "file:");
 assert.equal(enrichedPredicatesFileUrl.protocol, "file:");
 
 const componentResourceStat = await stat(componentResourceFileUrl);
-const enrichedPredicatesStat = await stat(enrichedPredicatesFileUrl);
 
 assert.equal(componentResourceStat.size, componentResourceSize);
-assert.equal(enrichedPredicatesStat.size, enrichedPredicatesSize);
+assert.deepEqual(
+  await readFile(enrichedPredicatesFileUrl),
+  await readFile(enrichedSourcePath),
+);
 
 const server = createServer((request, response) => {
   if (request.url !== componentResourcePath) {

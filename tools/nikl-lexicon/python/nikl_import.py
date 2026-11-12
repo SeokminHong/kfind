@@ -399,13 +399,19 @@ def attach_attested_adverbials(
     source: str,
     path: Path,
     cache_directory: Path | None,
+    conjugations_by_lemma: dict[str, tuple[str, ...]],
 ) -> tuple[list[PredicateRecord], int]:
     records = list(records)
+
+    def candidate_surfaces(record: PredicateRecord) -> tuple[str, ...]:
+        conjugations = record.conjugations or conjugations_by_lemma.get(record.lemma, ())
+        return adverbial_i_candidates(record.lemma, conjugations)
+
     requested = {
         surface
         for record in records
         if record.pos == "VA" and record.lexical_status == "일반어"
-        for surface in adverbial_i_candidates(record.lemma)
+        for surface in candidate_surfaces(record)
     }
     target_ids: dict[str, set[str]] = {}
     sha256 = file_sha256(path)
@@ -423,7 +429,7 @@ def attach_attested_adverbials(
         attested = tuple(
             sorted(
                 (surface, target_id)
-                for surface in adverbial_i_candidates(record.lemma)
+                for surface in candidate_surfaces(record)
                 for target_id in target_ids.get(surface, ())
             )
         ) if record.pos == "VA" and record.lexical_status == "일반어" else ()
@@ -431,13 +437,25 @@ def attach_attested_adverbials(
     return enriched, sum(len(record.attested_adverbials) for record in enriched)
 
 
-def adverbial_i_candidates(lemma: str) -> tuple[str, ...]:
+def adverbial_i_candidates(
+    lemma: str, conjugations: tuple[str, ...] = ()
+) -> tuple[str, ...]:
     stem = lemma.removesuffix("다")
     if not stem or stem == lemma:
         return ()
     candidates = set()
     if stem.endswith(("없", "같")):
         candidates.add(f"{stem}이")
+    codepoint = ord(stem[-1])
+    offset = codepoint - 0xAC00
+    bieup_final = 17
+    if 0 <= offset < 11172 and offset % 28 == bieup_final:
+        open_stem = f"{stem[:-1]}{chr(codepoint - bieup_final)}"
+        irregular_prefixes = tuple(
+            f"{open_stem}{ending}" for ending in ("우", "워", "와", "운", "울")
+        )
+        if any(form.startswith(irregular_prefixes) for form in conjugations):
+            candidates.add(f"{open_stem}이")
     if stem.endswith("르") and len(stem) > 1:
         prefix = stem[:-1]
         final = add_rieul_final(prefix[-1])

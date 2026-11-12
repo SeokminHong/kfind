@@ -4,6 +4,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 package_dir="$repo_root/packages/kfind"
+enriched_source="$repo_root/data/enriched/predicates.tsv"
 
 "$repo_root/scripts/test-npm-package.sh"
 
@@ -29,7 +30,7 @@ npm pack --ignore-scripts --dry-run --json "$package_dir" | node -e '
     throw new Error("missing or invalid " + asset);
   }
   const enriched = "assets/predicates.enriched.tsv";
-  if (files.get(enriched) !== 42910) {
+  if (files.get(enriched) !== Number(process.argv[1])) {
     throw new Error("missing or invalid " + enriched);
   }
   for (const required of [
@@ -53,7 +54,7 @@ npm pack --ignore-scripts --dry-run --json "$package_dir" | node -e '
   if (executable.mode !== 0o755) {
     throw new Error("bin/kfind.js is not executable");
   }
-'
+' "$(wc -c < "$enriched_source")"
 
 grep -Fq "원자료 저작자·제공자는 국립국어원입니다." \
   "$package_dir/assets/LICENSES/NIKL-derived-data-NOTICE.md"
@@ -89,7 +90,7 @@ npm install \
   "${packed_tarballs[0]}" >/dev/null
 cp "$repo_root/scripts/test-npm-assets.mjs" \
   "$packed_consumer_dir/consumer/test-npm-assets.mjs"
-node "$packed_consumer_dir/consumer/test-npm-assets.mjs"
+node "$packed_consumer_dir/consumer/test-npm-assets.mjs" "$enriched_source"
 
 cp -R "$repo_root/scripts/fixtures/npm-spa/." \
   "$packed_consumer_dir/consumer"
@@ -98,4 +99,4 @@ cp -R "$repo_root/scripts/fixtures/npm-spa/." \
   pnpm --silent dlx vite@8.1.4 build
 )
 node "$repo_root/scripts/test-npm-spa-assets.mjs" \
-  "$packed_consumer_dir/consumer/dist"
+  "$packed_consumer_dir/consumer/dist" "$enriched_source"

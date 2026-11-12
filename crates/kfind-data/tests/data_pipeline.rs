@@ -212,11 +212,11 @@ fn repository_data_is_complete_and_valid() {
     for (artifact, expected_sha256) in [
         (
             "enriched/predicates.tsv",
-            "8c2f1f22a0e898c4afc9f1c5498778802d27fe8c47ba4df09bc955c06d532a5f",
+            "67e99dc49c8d74d7584b370d1ca26e2e07e30ad5dce9391a7615734fadcc668e",
         ),
         (
             "enriched/REPORT.tsv",
-            "313fc4d0777c4352c2ad86296f174fafe7b9b957a1d7c783a9f96c2e31b99538",
+            "951e0065447e7d7995c0f5d95e3ed7dba0328a421a836a95ecb8f395b34bf98e",
         ),
         (
             "rules/nikl-modern-endings.tsv",
@@ -310,7 +310,7 @@ fn repository_enriched_predicates_are_valid_and_disjoint_from_core() {
         .iter()
         .filter(|entry| entry.alternation == DataAlternation::SurfaceOnly)
         .collect::<Vec<_>>();
-    assert_eq!(surface_only.len(), 520);
+    assert_eq!(surface_only.len(), 528);
     assert!(read("enriched/predicates.tsv").len() <= 64 * 1024);
     assert_eq!(
         surface_only
@@ -321,7 +321,7 @@ fn repository_enriched_predicates_are_valid_and_disjoint_from_core() {
                 })
             )
             .count(),
-        130
+        129
     );
     assert_eq!(
         surface_only
@@ -332,7 +332,7 @@ fn repository_enriched_predicates_are_valid_and_disjoint_from_core() {
                 })
             )
             .count(),
-        77
+        63
     );
     assert_eq!(
         surface_only
@@ -343,7 +343,7 @@ fn repository_enriched_predicates_are_valid_and_disjoint_from_core() {
                 })
             )
             .count(),
-        88
+        111
     );
     assert_eq!(
         surface_only

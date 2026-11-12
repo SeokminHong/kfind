@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+from collections import defaultdict
 from dataclasses import replace
 from pathlib import Path
 
@@ -61,6 +62,8 @@ def main() -> int:
     )
     records = []
     stats = []
+    imported_sources = []
+    adjective_conjugations: dict[str, set[str]] = defaultdict(set)
     for (
         source,
         path,
@@ -89,8 +92,18 @@ def main() -> int:
                 related_adverb_count=related_adverb_count,
                 related_voice_derivation_count=related_voice_derivation_count,
             )
+        if source in {"krdict", "stdict"}:
+            for record in imported:
+                if record.pos == "VA" and record.lexical_status == "일반어":
+                    adjective_conjugations[record.lemma].update(record.conjugations)
+        imported_sources.append((imported, source_stats, source, path))
+
+    conjugations_by_lemma = {
+        lemma: tuple(sorted(forms)) for lemma, forms in adjective_conjugations.items()
+    }
+    for imported, source_stats, source, path in imported_sources:
         imported, attested_adverbial_count = attach_attested_adverbials(
-            imported, source, path, args.cache_dir
+            imported, source, path, args.cache_dir, conjugations_by_lemma
         )
         source_stats = replace(
             source_stats, attested_adverbial_count=attested_adverbial_count

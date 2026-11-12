@@ -2,6 +2,11 @@ query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	c
 explicit-pos	dev	pos:ud-korean-kaist:MH2_0169-s386:2:0	안나다	verb	true	4613c5ce35a128e512e6406c3f37cc5e5382ffb19cef736ec3ccea96efea8001	excluded	nonstandard-input	안 나오면을 붙여 쓰고 source가 안나다로 정렬한 입력이라 표준문 계약에서 제외한다.
 explicit-pos	dev	pos:ud-korean-kaist:M2TA_069-s25:2:0	착하다	adjective	true	0dde57a6768c66bb638c1d8b459cffe258d971d829f6f886e3a753bebb6d6210	excluded	nonstandard-input	착하다 보니를 붙여 쓴 입력이라 표준문 계약에서 제외한다.
 explicit-pos	dev	pos:ud-korean-kaist:MH2_0209-s100:7:0	저	pronoun	true	6ad786c7572d327c74afc4f41cec725cff6ff00e86500123591a5489fdfcbced	contract-negative	gold-alignment-error	저 밑바닥에서 저가 밑바닥을 꾸미는 지시 관형사로 쓰였다.
+explicit-pos	dev	pos:ud-korean-kaist:MH2_0069-s271:7:0	주	noun	true	2769df7eb88ef343ccbd1b642cf1db92759ac2a573d163251e76f56e9034d85d	contract-negative	gold-alignment-error	주가 가치의 성격을 나타내는 관형사로 쓰였다.
+explicit-pos	dev	pos:ud-korean-kaist:MH2_0159-s26:2:0	격식있다	adjective	true	80d39711e87114ce06c76a0e33e00be87c22f6105b0b8f1771fb26fa33797d53	excluded	nonstandard-input	격식 있는을 붙여 쓴 입력이다.
+explicit-pos	dev	pos:ud-korean-kaist:MH2_0069-s34:2:0	첫	numeral	true	e09880d06dff355c5c4bb9fe5a52700bf7688218386d05312028af12dc171478	contract-negative	gold-alignment-error	첫번째의 붙여쓰기는 허용되며 첫은 번째를 꾸미는 관형사다.
+explicit-pos	dev	pos:ud-korean-kaist:MH2_0069-s112:3:0	수천	numeral	true	5167ff15ad2206260d5db20f65974f035d3f404ff0a3d7a39fd4af4472b968ad	excluded	nonstandard-input	수천 가지에서 의존 명사 가지는 띄어 쓴다.
+explicit-pos	dev	pos:ud-korean-kaist:MH2_0159-s86:12:0	적다	verb	true	826d7c4ac65941f47e06f6a6990c903bddef8ce19cb408b53bcb63eac3b4d232	contract-negative	gold-alignment-error	영향을 꾸미는 적잖은은 형용사 적잖다의 관형형이다.
 explicit-pos	test	pos:ud-korean-kaist:MH2_0010-s407:1:0	그	pronoun	true	376190a50401f6a6f4bf343ca338aa010e107a515f94023130a213425fb6f521	contract-negative	gold-alignment-error	그때부터는 사전 표제어 그때에 보조사 부터가 붙은 말이다.
 explicit-pos	test	pos:ud-korean-kaist:MH2_0190-s366:2:0	권위있다	adjective	true	52921104d2daa5fb136f33706f63c4a12be7746e9759fcc3009a9c658045ec06	excluded	nonstandard-input	권위 있는을 붙여 쓴 입력이라 표준문 계약에서 제외한다.
 explicit-pos	test	pos:ud-korean-kaist:MH2_0190-s422:1:0	국경없다	adjective	true	3eb9ff24f69e15137dc4aedda0df93dd113b803cd11a1bb157d777f564534366	excluded	nonstandard-input	국경 없는을 붙여 쓴 입력이라 표준문 계약에서 제외한다.

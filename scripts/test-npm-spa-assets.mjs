@@ -5,8 +5,9 @@ import { createServer } from "node:http";
 import { resolve } from "node:path";
 
 const distDirectory = process.argv[2];
-if (distDirectory === undefined) {
-  throw new Error("usage: test-npm-spa-assets.mjs DIST_DIRECTORY");
+const enrichedSourcePath = process.argv[3];
+if (distDirectory === undefined || enrichedSourcePath === undefined) {
+  throw new Error("usage: test-npm-spa-assets.mjs DIST_DIRECTORY ENRICHED_SOURCE");
 }
 
 const absoluteDistDirectory = resolve(distDirectory);
@@ -35,10 +36,8 @@ const entryScript = exactlyOne(
 const componentAssetPath = resolve(assetsDirectory, componentAsset);
 const enrichedAssetPath = resolve(assetsDirectory, enrichedAsset);
 const componentResourceSize = 37_103_813;
-const enrichedPredicatesSize = 42_910;
 
 assert.equal((await stat(componentAssetPath)).size, componentResourceSize);
-assert.equal((await stat(enrichedAssetPath)).size, enrichedPredicatesSize);
 
 const entrySource = await readFile(
   resolve(assetsDirectory, entryScript),
@@ -101,9 +100,11 @@ try {
     await streamedByteLength(`${origin}/assets/${componentAsset}`),
     componentResourceSize,
   );
-  assert.equal(
-    await streamedByteLength(`${origin}/assets/${enrichedAsset}`),
-    enrichedPredicatesSize,
+  const enrichedResponse = await fetch(`${origin}/assets/${enrichedAsset}`);
+  assert.equal(enrichedResponse.status, 200);
+  assert.deepEqual(
+    Buffer.from(await enrichedResponse.arrayBuffer()),
+    await readFile(enrichedSourcePath),
   );
 } finally {
   await new Promise((resolvePromise, reject) => {

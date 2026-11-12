@@ -99,3 +99,6 @@ corpus.ud-kaist.dev.MH2_0069-s34.determiner.첫	첫	determiner	exact	10	13	이�
 corpus.ud-kaist.dev.MH2_0069-s112.numeral.수천	수천	numeral	exact	20	26	책의 소비자가 수천 가지가 넘는 상품 중에서 어떤 책을 집어 들 것인가는 표지에 의하여 결정이 난다.
 corpus.ud-kaist.dev.MH2_0169-s336.pronoun.뭐	뭐	pronoun	exact	166	169	그곳에서 연설을 하려다 보니 도대체 안양 시민들에게 안양 지역에서 활동한 민중 진영이 제대로 도움이 되었던 활동이라고 뭐 하나 자랑할 만한 게 없었다.
 corpus.ud-kaist.dev.MH2_0169-s328.pronoun.무어	무어	pronoun	exact	71	77	이러한 활동 때문에 국민을 대상으로 한 우리 활동은 뭔가 어색했다.
+corpus.ud-kaist.dev.MH2_0069-s271.determiner.주	주	determiner	exact	10	13	상품의 주 가치로 하는 상품이기 때문에 다른 여타의 일반 상품과는 다른 특성을 지니기도 한다.
+corpus.ud-kaist.dev.MH2_0159-s86.adjective.적잖다	적잖다	adjective	exact	43	52	인간의 새로운 가치관 형성에도 적잖은 영향을 끼친다는 사실
+corpus.ud-kaist.dev.MH2_0159-s341.adjective.가볍다	가볍다	adjective	exact	66	75	이면을 바라보는 사회학적 콘텍스트 접근을 훨씬 가벼이 여겨 왔던 것이다.
