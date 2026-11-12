@@ -80,12 +80,15 @@ stdict.은지:11	좋다	adjective	exact	28	37	요즘은 어때? 건강은 좋은
 stdict.은지:12	옳다	adjective	exact	54	63	마을 사람들은 어느 말을 정말로 믿어야 옳은지 몰라서 멀거니 두 사람의 입을 쳐다보고만 있었다.
 changa-predicate-positive	차다	adjective	exact	7	13	물이 찬가 보다.
 changa-predicate-context	차다	adjective	no-match	13	19	합창단이 찬가 한 곡을 불렀다.
-changa-noun-context	찬가	noun	exact	7	13	물이 찬가 보다.
+changa-noun-context	찬가	noun	no-match	7	13	물이 찬가 보다.
 changa-noun-positive	찬가	noun	exact	13	19	합창단이 찬가 한 곡을 불렀다.
+changa-noun-object	찬가	noun	exact	13	22	합창단이 찬가를 본다.
 danga-predicate-positive	달다	adjective	exact	11	17	이 차가 단가?
 danga-predicate-context	달다	adjective	no-match	17	23	이번 계약의 단가 조정은 끝났다.
-danga-noun-context	단가	noun	exact	11	17	이 차가 단가?
-danga-noun-positive	단가	noun	exact	17	23	이번 계약의 단가 조정은 끝났다.
+danga-noun-context	단가	noun	exact	49	55	차를 한 모금 마신 그가 되물었다. ‘단가?’
+danga-noun-positive	단가	noun	exact	44	50	견적서를 훑던 그가 되물었다. ‘단가?’
+danga-auxiliary-predicate	달다	adjective	exact	42	48	손님이 물을 타는 걸 보니 차가 단가 보다.
+danga-auxiliary-noun	단가	noun	no-match	42	48	손님이 물을 타는 걸 보니 차가 단가 보다.
 polite-1	바쁘다	adjective	exact	17	29	요즘도 많이 바쁜가요?
 polite-2	하다	verb	exact	11	26	어떤 일 하시는지요?
 polite-3	가다	verb	exact	7	22	다들 가셨는가요?

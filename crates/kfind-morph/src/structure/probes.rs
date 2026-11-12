@@ -286,6 +286,14 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_subject_marked_nominal(&self, text: &str) -> bool {
+        text.strip_suffix(['이', '가']).is_some_and(|host| {
+            self.has_complete_nominal_surface(host)
+                && has_exact_sequence(&self.resource, &text[host.len()..], &[StructuralPos::JKS])
+        })
+    }
+
+    #[must_use]
     pub fn has_subject_or_topic_marked_proper_name(&self, text: &str) -> bool {
         let Some((host, position)) = text
             .strip_suffix(['이', '가'])
