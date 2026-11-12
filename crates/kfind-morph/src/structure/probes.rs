@@ -127,6 +127,21 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_numeric_unit_surface(&self, text: &str) -> bool {
+        let digits = text.bytes().take_while(u8::is_ascii_digit).count();
+        if digits == 0 || digits == text.len() {
+            return false;
+        }
+        Self::is_dictionary_numeric_unit(&text[digits..])
+            || numeric_unit_path_at(&self.resource, text, digits).is_some_and(|path| {
+                path.dependent_tail.as_ref().unwrap_or(&path.unit).end == text.len()
+                    && exact_analysis_starts_with_pos(&self.resource, &text[path.unit], |pos| {
+                        matches!(pos, StructuralPos::NNB | StructuralPos::NNBC)
+                    })
+            })
+    }
+
+    #[must_use]
     pub fn has_object_marked_nominal(&self, text: &str) -> bool {
         has_complete_object_phrase(&self.resource, text)
     }

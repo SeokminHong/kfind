@@ -706,8 +706,19 @@ impl MorphMatcher {
         structural_cache: &mut StructuralCache<'a>,
     ) -> Option<VerifiedSpan> {
         let candidate = self.execute_program_without_decision(haystack, hit, branch, metadata)?;
-        self.accepts_program(haystack, &candidate, branch, atom, structural_cache)
-            .then_some(candidate.verified)
+        if !self.accepts_program(haystack, &candidate, branch, atom, structural_cache) {
+            return None;
+        }
+        let mut verified = candidate.verified;
+        if matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding) {
+            let digits = haystack[hit.span.clone()]
+                .iter()
+                .take_while(|byte| byte.is_ascii_digit())
+                .count();
+            verified.core.start += digits;
+            verified.token.start += digits;
+        }
+        Some(verified)
     }
 
     fn execute_program_without_decision(
@@ -915,15 +926,25 @@ impl MorphMatcher {
                         .next()
                         .is_some_and(crate::is_token_character)
                     && core == hit.span
-                    && is_boundary_before(haystack, core.start)
                     && consumption_anchor
                         .chars()
                         .next_back()
                         .is_some_and(|preceding| {
                             let whole = surrounding_token_span(haystack, core.clone());
-                            context::normalized_token(haystack, core.end..whole.end).is_some_and(
-                                |ending| verify_copula_surface_after_nominal(preceding, &ending),
-                            )
+                            (whole.start == core.start
+                                || (haystack[whole.start..core.start]
+                                    .iter()
+                                    .all(u8::is_ascii_digit)
+                                    && self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                                        context::normalized_token(haystack, whole.start..core.end)
+                                            .is_some_and(|host| {
+                                                resolver.has_numeric_unit_surface(&host)
+                                            })
+                                    })))
+                                && context::normalized_token(haystack, core.end..whole.end)
+                                    .is_some_and(|ending| {
+                                        verify_copula_surface_after_nominal(preceding, &ending)
+                                    })
                         });
                 if subject_starts_copula {
                     (0, Vec::new())
@@ -1148,6 +1169,33 @@ impl MorphMatcher {
         }
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
         let core = &candidate.verified.core;
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        ) && *core == candidate.consumed
+            && whole.start < core.start
+            && core.end < whole.end
+            && haystack[whole.start..core.start]
+                .iter()
+                .all(u8::is_ascii_digit)
+            && patterns
+                .iter()
+                .any(|pattern| matches!(pattern.fine_pos, DataFinePos::Nnb | DataFinePos::Nr))
+            && context::normalized_token(haystack, whole.start..core.end).is_some_and(|host| {
+                resolver.has_numeric_unit_surface(&host)
+                    && context::normalized_token(haystack, core.end..whole.end).is_some_and(
+                        |ending| {
+                            (!matches!(ending.as_ref(), "게" | "네" | "네요")
+                                || is_sentence_end_after(haystack, whole.end))
+                                && host.chars().next_back().is_some_and(|preceding| {
+                                    verify_copula_surface_after_nominal(preceding, &ending)
+                                })
+                        },
+                    )
+            })
+        {
+            return true;
+        }
         if matches!(
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }
@@ -1536,7 +1584,14 @@ impl MorphMatcher {
         {
             return false;
         }
-        resolver.has_complete_nominal_surface(&host)
+        ((host.bytes().all(|byte| byte.is_ascii_digit())
+            || resolver.has_numeric_unit_surface(&host))
+            && token.get(host.len()..).is_some_and(|ending| {
+                host.chars()
+                    .next_back()
+                    .is_some_and(|preceding| verify_copula_surface_after_nominal(preceding, ending))
+            }))
+            || resolver.has_complete_nominal_surface(&host)
             || host
                 .char_indices()
                 .map(|(offset, _)| offset)
