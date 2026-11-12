@@ -102,7 +102,16 @@ regression.conjunction-noun.혹	혹	noun	smart-exact	0	6	혹은 작아졌지만 
 regression.conjunction-adverb.또	또	adverb	no-match	26	32	이메일을 보내거나 또는 전화를 주세요.
 regression.conjunction-adverb.또는	또는	adverb	smart-exact	26	32	이메일을 보내거나 또는 전화를 주세요.
 regression.go-yo.gsd-good	좋다	adjective	smart-exact	40	49	지역에 비해 분위기나 공간이 좋고요
+corpus.ud-gsd.test.test-s318.verb.하다	하다	verb	smart-exact	101	110	체크인할 때 얘기하면 체크아웃을 조금 늦은 시간에 할 수 있도록 해주기도 하고요.
+corpus.ud-gsd.test.test-s410.adjective.편하다	편하다	adjective	smart-exact	45	57	조미료도 별로 안 들어간 듯 속이 편하고요
 regression.go-yo.gsd-delicious-corrected	맛있다	adjective	smart-exact	36	48	음식도 너무너무 깔끔하고 맛있고요
+corpus.ud-gsd.test.test-s180.adjective.괜찮다	괜찮다	adjective	smart-exact	7	25	그거 괜찮더라고요~
+corpus.ud-gsd.test.test-s195.adjective.좋다	좋다	adjective	smart-exact	50	65	진짜 LP판 틀어 놓아서 분위기가 너무 좋더라고요
+corpus.ud-gsd.test.test-s228.verb.하다	하다	verb	smart-exact	58	70	사장님 내외분께서 돌아가시면서 새벽까지 하시고요
+corpus.ud-gsd.test.test-s352.verb.어울리다	어울리다	verb	smart-exact	23	38	김치도 묵은지라 어울리고요
+corpus.ud-gsd.test.test-s866.verb.바뀌다	바뀌다	verb	smart-exact	37	52	그늘 식당이 청담 식당으로 바뀌었고요.
+corpus.ud-gsd.test.test-s903.verb.하다	하다	verb	smart-exact	47	62	여기 모든 반찬은 직접 만드신다고 하더라고요.
+corpus.ud-gsd.test.test-s979.adjective.있다	있다	adjective	smart-exact	87	102	식사를 마치시면 밖에 난로와 군고구마도 즐길 수 있는 하우스도 있더라고요.
 regression.go-yo.past	좋다	adjective	smart-exact	10	22	날씨가 좋았고요.
 regression.go-yo.future	좋다	adjective	smart-exact	10	22	날씨가 좋겠고요.
 regression.go-yo.honorific	가다	verb	smart-exact	13	25	선생님도 가시고요.
