@@ -3,6 +3,7 @@ use crate::{ContinuationState, PredicatePos, RuleId};
 mod auxiliary;
 mod hao;
 mod humble;
+mod report;
 mod trial;
 pub(super) use hao::{HAO_ENDINGS, HONORIFIC_HAO_AFTER_ACTION, HONORIFIC_HAO_ENDINGS, SOSEO};
 
@@ -957,7 +958,15 @@ pub fn verify_predicate_continuation_with_prefinal_context(
     {
         return Some(with_connective_politeness(auxiliary, following));
     }
-    let ordinary = verify_simple_continuation(state, pos, anchor, following);
+    let reported = following
+        .starts_with(['대', '댔', '래', '랬', '재', '쟀', '냬', '시', '신', '셨'])
+        || following.starts_with("는대")
+        || following.starts_with("는댔")
+        || following.starts_with("느냬");
+    let ordinary = reported
+        .then(|| report::verify(state, pos, anchor, following))
+        .flatten()
+        .or_else(|| verify_simple_continuation(state, pos, anchor, following));
     if let Some(stacked) = verify_prefinal_chain(state, pos, anchor.len(), following)
         && ordinary
             .as_ref()
@@ -1084,6 +1093,7 @@ fn verify_simple_continuation(
         ContinuationState::RieulFinal => RIEUL_FINAL,
         ContinuationState::BieupFinal => BIEUP_FINAL,
         ContinuationState::Prospective => PROSPECTIVE,
+        ContinuationState::ReportEnding => return None,
     };
     if let Some(continuation) = humble::verify(state, pos, anchor, following) {
         return Some(continuation);

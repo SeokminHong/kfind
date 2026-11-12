@@ -529,18 +529,20 @@ fn compile_productive(
         if entry.alternation == LexicalAlternation::Regular
             && has_rieul_final(stem.chars().next_back().expect("stem"))
         {
+            let dropped = drop_last_final(stem).expect("rieul-final stem");
+            let base = DerivedSurface {
+                core_len: dropped.len(),
+                surface: dropped,
+                rules: Vec::new(),
+            };
+            push_derived(
+                branches,
+                entry,
+                base.clone(),
+                ContinuationState::ReportEnding,
+            );
             if !uses_neun {
-                let dropped = drop_last_final(stem).expect("rieul-final stem");
-                let core_len = dropped.len();
-                push_adjective_question(
-                    branches,
-                    entry,
-                    DerivedSurface {
-                        surface: dropped,
-                        core_len,
-                        rules: Vec::new(),
-                    },
-                );
+                push_adjective_question(branches, entry, base);
             }
             compile_rieul_eu_endings(entry, stem, branches);
             compile_rieul_honorific(entry, stem, branches);
@@ -616,12 +618,13 @@ fn compile_productive(
                 );
             }
         }
-        push_derived(
-            branches,
-            entry,
-            present_declarative(stem)?,
-            ContinuationState::Declarative,
-        );
+        let declarative = present_declarative(stem)?;
+        if declarative.surface.len() == declarative.core_len + '다'.len_utf8() {
+            let mut report = declarative.clone();
+            report.surface.pop();
+            push_derived(branches, entry, report, ContinuationState::ReportEnding);
+        }
+        push_derived(branches, entry, declarative, ContinuationState::Declarative);
     }
     let past = past_adnominal(entry, stem)?;
     if entry.pos.is_action() {

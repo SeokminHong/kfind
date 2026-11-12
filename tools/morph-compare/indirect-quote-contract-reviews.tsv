@@ -1,0 +1,3 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	indirect-quote	orae-verb-context	오다	verb	false	b1729d0f2b1745ed6cfb0195bedf331bf285955a8ba7cd2b98c08efb07995edd	contract-positive	structurally-indistinguishable-homograph	독립 발화 오래는 오라고 해의 준말과 시간을 나타내는 부사가 모두 성립한다.
+explicit-pos	indirect-quote	orae-adverb-context	오래	adverb	false	186fb2107472160c06b987f4c9cd597a0af84e46762aa122e132682970cb0403	contract-positive	structurally-indistinguishable-homograph	독립 발화 오래는 오라고 해의 준말과 시간을 나타내는 부사가 모두 성립한다.

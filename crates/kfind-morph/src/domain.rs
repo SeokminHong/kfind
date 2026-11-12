@@ -249,6 +249,7 @@ pub enum ContinuationState {
     CompletedNieunEnding,
     Interrogative,
     CopulaRa,
+    ReportEnding,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

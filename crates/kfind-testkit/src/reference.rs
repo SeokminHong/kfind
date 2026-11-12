@@ -4,7 +4,7 @@ use std::fmt::{self, Display, Formatter};
 use std::ops::Range;
 use std::sync::Arc;
 
-use kfind_morph::{ContinuationState, PredicatePos, RuleId};
+use kfind_morph::{ContinuationState, PredicatePos, RuleId, has_final, has_rieul_final};
 use kfind_query::{
     CandidateConsumption, CandidateLeftContext, CandidateProgram, CoreMapping, Origin,
     PhraseJoinError, PhraseMatch, QueryPlan, VerifiedSpan, join_phrase_spans,
@@ -710,7 +710,104 @@ fn reference_predicate_continuation(
     {
         return Some(auxiliary);
     }
-    reference_simple_continuation(state, pos, anchor, following)
+    reference_report_contraction(state, pos, anchor, following)
+        .or_else(|| reference_simple_continuation(state, pos, anchor, following))
+}
+
+fn reference_report_contraction(
+    state: ContinuationState,
+    pos: PredicatePos,
+    anchor: &str,
+    following: &str,
+) -> Option<(usize, Vec<RuleId>)> {
+    use ContinuationState::{Eu, Future, NieunEnding, Past, Prospective, ReportEnding, StemEnding};
+
+    let stem = anchor.chars().next_back();
+    let rieul = stem.is_some_and(has_rieul_final);
+    let prefinal = matches!(state, Past | Future);
+    let fused_declarative = state == ReportEnding && pos.is_action() && stem.is_some_and(has_final);
+    let (prefix, tail) = if state == Eu {
+        ["셨겠", "시겠", "셨", "신", "시"]
+            .into_iter()
+            .find_map(|prefix| {
+                let rest = following.strip_prefix(prefix)?;
+                let allowed = rest.starts_with(['대', '댔']) && (prefix != "신" || pos.is_action())
+                    || rest.starts_with('냬') && prefix != "신"
+                    || rest.starts_with(['래', '랬']) && prefix == "시" && pos.is_action();
+                allowed.then_some((prefix, rest))
+            })
+            .unwrap_or(("", following))
+    } else {
+        ("", following)
+    };
+    let declarative = prefinal
+        || fused_declarative
+        || !prefix.is_empty()
+        || (state == StemEnding
+            && !pos.is_action()
+            && pos != PredicatePos::Copula
+            && anchor != "아니")
+        || (state == Prospective && anchor.ends_with('시'))
+        || (state == NieunEnding && pos.is_action() && anchor.ends_with('신'));
+    let closed_declarative =
+        state == StemEnding && pos.is_action() && stem.is_some_and(has_final) && !rieul;
+    let directive = pos.is_action() && matches!(state, Eu | Prospective);
+    let question = prefinal
+        || (state == StemEnding && !rieul)
+        || (state == ReportEnding && !fused_declarative)
+        || (state == Eu && (!pos.is_action() || !prefix.is_empty()));
+    let full_question = prefinal
+        || (state == StemEnding && !rieul && (pos.is_action() || anchor.ends_with(['있', '없'])))
+        || (state == ReportEnding && !fused_declarative && pos.is_action());
+    let proposal = state == StemEnding && pos.is_action();
+    let (form, past) = [
+        ("대", declarative, false),
+        ("댔", declarative, true),
+        ("는대", closed_declarative, false),
+        ("는댔", closed_declarative, true),
+        ("래", directive, false),
+        (
+            "랬",
+            directive || (state == StemEnding && (pos == PredicatePos::Copula || anchor == "아니")),
+            true,
+        ),
+        ("냬", question, false),
+        ("느냬", full_question, false),
+        ("재", proposal, false),
+        ("쟀", proposal, true),
+    ]
+    .into_iter()
+    .find_map(|(form, enabled, past)| {
+        (enabled && tail.starts_with(form)).then_some((form, past))
+    })?;
+    let rest = &tail[form.len()..];
+    let mut path = Vec::new();
+    if !prefix.is_empty() {
+        path.push(RuleId::from("ending.honorific"));
+        if prefix.starts_with('셨') {
+            path.push(RuleId::from("ending.past"));
+        }
+        if prefix.ends_with('겠') {
+            path.push(RuleId::from("ending.future"));
+        }
+    }
+    path.push(RuleId::from("ending.report-contraction"));
+    let continuation_len = if past {
+        let (consumed, suffix) =
+            reference_simple_continuation(Past, PredicatePos::Verb, form, rest)?;
+        if consumed == 0 {
+            return None;
+        }
+        path.push(RuleId::from("ending.past"));
+        path.extend(suffix);
+        consumed
+    } else if rest.starts_with('요') {
+        path.push(RuleId::from("ending.polite-yo"));
+        '요'.len_utf8()
+    } else {
+        0
+    };
+    Some((prefix.len() + form.len() + continuation_len, path))
 }
 
 fn reference_simple_continuation(
@@ -799,6 +896,7 @@ fn reference_simple_continuation(
         reference_suffix("을", &["ending.future-adnominal"]),
         reference_suffix("다", &["ending.final-da"]),
         reference_suffix("고", &["ending.connective-go"]),
+        reference_suffix("어", &["ending.prefinal-eo"]),
         reference_suffix("어요", &["ending.past-polite-yo"]),
         reference_suffix("게", &["ending.final-ge"]),
     ];
@@ -1352,6 +1450,7 @@ fn reference_simple_continuation(
         ContinuationState::StemEnding => GEODEUN,
         ContinuationState::NieunEnding => BACKGROUND,
         ContinuationState::CompletedNieunEnding => COMPLETED_NIEUN,
+        ContinuationState::ReportEnding => return None,
         ContinuationState::Interrogative => INTERROGATIVE,
         ContinuationState::CopulaRa => &[
             reference_suffix("", &["ending.copula-ra-connective"]),
@@ -2233,6 +2332,7 @@ mod tests {
         "학생인 친구는 학교여서 가까운 길로 갔다. 집으로 돌아왔다.\n",
         "천천히 걸으시겠습니다. 꽃이 예뻐라.\n",
         "사용자는은 오류다. 사용자도만 오류다.\n",
+        "선생님이 먼저 간대요. 엄마가 나중에 먹으랬어. 다 먹었냬요. 친구가 같이 가재요.\n",
     );
 
     #[test]
@@ -2241,6 +2341,8 @@ mod tests {
         for query in [
             "걷다",
             "예쁘다",
+            "가다",
+            "먹다",
             "사용자",
             "n:사용자 n:권한",
             "n:권한 v:검증하다",

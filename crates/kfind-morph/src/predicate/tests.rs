@@ -95,6 +95,25 @@ fn test_surfaces(branch: &SurfaceBranchSpec) -> Vec<String> {
             .into_iter()
             .map(|suffix| format!("{}{suffix}", branch.anchor))
             .collect(),
+        ContinuationState::ReportEnding => {
+            let endings = if branch.pos.is_action()
+                && branch
+                    .anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(crate::has_final)
+            {
+                &["대", "대요"][..]
+            } else if branch.pos.is_action() {
+                &["냬", "냬요", "느냬", "느냬요"][..]
+            } else {
+                &["냬", "냬요"][..]
+            };
+            endings
+                .iter()
+                .map(|suffix| format!("{}{suffix}", branch.anchor))
+                .collect()
+        }
         ContinuationState::Interrogative => ["", "고", "고요"]
             .into_iter()
             .map(|suffix| format!("{}{suffix}", branch.anchor))
