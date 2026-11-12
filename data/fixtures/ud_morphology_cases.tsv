@@ -272,3 +272,6 @@ regression.exclamative.retrospective-action	주다	verb	smart-exact	24	36	동생
 regression.exclamative.retrospective-action-not-copula	이다	adjective	no-match	24	36	동생이 꽃에 물을 주더군요.
 regression.exclamative.action-rieul-guna	살다	verb	smart-exact	10	22	여기에 사는구나.
 regression.exclamative.action-honorific-plain	읽다	verb	smart-exact	20	35	선생님이 책을 읽으시는군.
+corpus.ud-gsd.test.test-s465-s818.noun.순두부찌개	순두부찌개	noun	smart-exact	74	89	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.
+corpus.ud-gsd.test.test-s465-s818.noun.순두부	순두부	noun	smart-exact	74	83	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.
+corpus.ud-gsd.test.test-s465-s818.not-verb.찌다	찌다	verb	no-match	74	89	이 식당 그레이스 박 대표는 레지스터와의 인터뷰에서 "순두부찌개 맛의 비결은 남편에게도 비밀"이라며 맛에 대한 자신감을 드러냈다.
