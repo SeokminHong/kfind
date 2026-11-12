@@ -1465,7 +1465,16 @@ impl MorphMatcher {
                 && has_rule("ending.past")
                 && resolver.supports_ending_suffix_path(trailing, 0, DEFAULT_LATTICE_NODE_LIMIT))
             || (ADNOMINAL_RULE_IDS.iter().any(|rule| has_rule(rule))
-                && ["때", "게"].iter().any(|noun| trailing.starts_with(noun)))
+                && (trailing.starts_with(['때', '게'])
+                    || context::normalized_token(haystack, candidate.consumed.end..whole.end)
+                        .is_some_and(|tail| {
+                            resolver.has_adnominal_auxiliary_tail(
+                                &tail,
+                                has_rule("ending.future-adnominal"),
+                                has_rule("ending.present-adnominal")
+                                    || has_rule("ending.past-adnominal"),
+                            )
+                        })))
             || source_attached_auxiliary
             || source_predicate_continuation;
         licensed.then_some(candidate.consumed.start..whole.end)
