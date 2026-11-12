@@ -780,3 +780,13 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 참다	verb	모두 조금만 참읍시사.	match	earnest-request-sisa
 참다	verb	조금만 참으십시사.	match	earnest-request-sisa
 좋다	adjective	이 음식이 좋읍시사.	no-match	earnest-request-sisa
+이다	copula	저 애가 민준이 동생이게?	match	fused-copula-ending
+이다	copula	그럼 얘가 수재게?	match	fused-copula-ending
+이다	copula	그 사람이 사기꾼이었게?	match	fused-copula-ending
+이다	copula	내 별명이 뭐였게?	match	fused-copula-ending
+이다	copula	이게 왜 깨졌어?	no-match	fused-copula-ending
+이다	copula	모퉁이에 있는 곳은 가게?	no-match	fused-copula-ending
+이다	copula	차도 안 마시고 그냥 가시게?	no-match	fused-copula-ending
+하다	verb	아침부터 음식을 많이 하시게.	match	honorific-ge
+하다	verb	갈 준비를 다 하셨게?	match	honorific-past-ge
+밝다	adjective	장사가 잘됐나 봐? 표정이 밝으시게.	match	honorific-ge

@@ -169,7 +169,12 @@ pub(super) fn accepts_omitted_copula(
                             && resolver.has_exact_proper_name_surface(name)
                     }));
         }
-        if matches!(suffix, "네" | "네요") && !is_sentence_end() {
+        if matches!(suffix, "게" | "네" | "네요") && !is_sentence_end() {
+            return false;
+        }
+        if suffix == "게"
+            && (resolver.has_exact_nominal_surface(token) || resolver.has_whole_modifier(token))
+        {
             return false;
         }
         !host

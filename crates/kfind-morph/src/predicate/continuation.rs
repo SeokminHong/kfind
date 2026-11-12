@@ -64,6 +64,7 @@ const COPULA_REPORTING_AND_RO_ENDINGS: &[Suffix] = &[
 ];
 
 const COPULA_COMMON_ENDINGS: &[Suffix] = &[
+    suffix("게", &["ending.copula-ge"]),
     suffix("고말고", &["ending.copula-common-final"]),
     suffix("고요", &["ending.connective-go", "ending.polite-yo"]),
     suffix("구나", &["ending.copula-common-final"]),
@@ -93,7 +94,7 @@ const COPULA_COMMON_ENDINGS: &[Suffix] = &[
 fn copula_common_omission(surface: &str) -> bool {
     matches!(
         surface,
-        "구나"
+        "게" | "구나"
             | "구려"
             | "구먼"
             | "군"
@@ -221,6 +222,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
     suffix("다", &["ending.final-da"]),
     suffix("고", &["ending.connective-go"]),
     suffix("어요", &["ending.past-polite-yo"]),
+    suffix("게", &["ending.final-ge"]),
 ];
 
 const FUTURE_SUFFIXES: &[Suffix] = &[
@@ -290,6 +292,11 @@ pub(super) const HONORIFIC_GEODEUN_ENDINGS: &[Suffix] = &[
 ];
 
 const EU_SUFFIXES: &[Suffix] = &[
+    suffix("시게", &["ending.honorific", "ending.adverbial-ge"]),
+    suffix(
+        "셨게",
+        &["ending.honorific", "ending.past", "ending.final-ge"],
+    ),
     suffix(
         "십니까",
         &["ending.honorific", "ending.formal-interrogative"],
@@ -682,8 +689,8 @@ pub fn verify_predicate_continuation(
         ContinuationState::StemEnding
             if (pos == PredicatePos::Copula || anchor == "아니")
                 && following.starts_with([
-                    '고', '구', '군', '길', '네', '니', '면', '세', '야', '어', '에', '오', '자',
-                    '죠', '지',
+                    '게', '고', '구', '군', '길', '네', '니', '면', '세', '야', '어', '에', '오',
+                    '자', '죠', '지',
                 ]) =>
         {
             COPULA_COMMON_ENDINGS

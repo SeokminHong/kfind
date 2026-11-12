@@ -890,16 +890,12 @@ impl MorphMatcher {
         if token_end > haystack.len() || !is_utf8_boundary(haystack, token_end) {
             return None;
         }
-        if matches!(
-            &branch.consumption,
-            CandidateConsumption::PredicateContinuation {
-                pos: kfind_morph::PredicatePos::Copula,
-                ..
-            }
-        ) && suffix_rules
-            .iter()
-            .any(|rule| rule.as_str() == "ending.copula-ya")
-            && !is_sentence_end_after(haystack, token_end)
+        if suffix_rules.last().is_some_and(|rule| {
+            matches!(
+                rule.as_str(),
+                "ending.copula-ya" | "ending.copula-ge" | "ending.final-ge"
+            )
+        }) && !is_sentence_end_after(haystack, token_end)
         {
             return None;
         }
@@ -1444,8 +1440,9 @@ impl MorphMatcher {
             return None;
         }
         if kfind_morph::is_omitted_copula_ending(&suffix) {
-            if matches!(suffix.as_ref(), "네" | "네요")
-                && !is_sentence_end_after(haystack, whole.end)
+            if (matches!(suffix.as_ref(), "게" | "네" | "네요")
+                && !is_sentence_end_after(haystack, whole.end))
+                || (suffix == "게" && resolver.has_exact_nominal_surface(&token))
             {
                 return None;
             }
