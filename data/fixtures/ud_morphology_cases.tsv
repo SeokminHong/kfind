@@ -6,6 +6,9 @@ corpus.ud-gsd.test.test-s185.verb.굽다	굽다	verb	exact	14	26	맛있고 다 �
 corpus.ud-gsd.test.test-s200.verb.결제하다	결제하다	verb	match	89	107	오만 원 이상 카드 결제를 하는데 부가세 별도라며 오천 원을 추가 결제하더군요
 corpus.ud-gsd.test.test-s250.adjective.좋다	좋다	adjective	match	41	50	팬 앤 패드법의 경우는 효과는 좋으나 패드의 탈부착이 어렵고 겨울에 시설 내 광 투과율이 떨어지는 문제가 있다.
 corpus.ud-gsd.test.test-s280.adjective.약하다	약하다	adjective	match	59	71	그러자 일시적으로 기압이 상승하며 파도가 약해졌고, 이에 완전히 태풍이 북동쪽에 있다고 확신한 홀시 제독은 경로를 남서쪽으로 완전히 바꾸어 이동하였다.
+corpus.ud-gsd.test.test-s336.adjective.많다	많다	adjective	smart-exact	17	23	종류가 그리 많진 않지만 부담 없이 먹을 수 있겠네요.
+corpus.ud-gsd.test.test-s162.verb.대다	대다	verb	no-match	109	112	연초부터 중동•북아프리카 사태가 터지면서 유가가 폭등했고, 3월에는 일본에서 대지진이 발생, 세계 경제가 큰 타격을 받으면서부터다.
+corpus.ud-gsd.test.test-s353.adjective.같다	같다	adjective	smart-exact	59	65	체인 빵집이 싫어 갔는데 특별히 더 좋은 것 같진 않네요
 corpus.ud-gsd.test.test-s353.verb.않다	않다	verb	match	66	75	체인 빵집이 싫어 갔는데 특별히 더 좋은 것 같진 않네요
 corpus.ud-gsd.test.test-s365.verb.받다	받다	verb	match	7	19	전화 받으시는 목소리가 매우 친절합니다.
 corpus.ud-gsd.test.test-s366.verb.전하다	전하다	verb	exact	120	132	같은 날 후쿠시마현 재해대책본부를 방문하여 보도진에게 「방사능의 리스크가 정확하게 전해지지 않고 있으나, 지금의 수준이라면 요드제의 투여는 불필요하다」라고 강조했다.
@@ -629,6 +632,14 @@ corpus.ud-gsd.test.test-s381.verb.honorific-neyo-auxiliary	주다	verb	smart-exa
 corpus.ud-gsd.test.test-s381.verb.honorific-neyo-not-decrease	줄다	verb	no-match	154	166	원장 선생님이 학생이나 강사들에게 돈을 벌려는 마음으로 대하시는 게 아니라 한 아이 한 아이 정성스럽게 이끌어 주시네요.
 corpus.ud-gsd.test.test-s282.verb.past-neyo	느끼다	verb	smart-exact	111	123	위에 말씀하신 분처럼 저도 중앙식당을 몇 번 가 보았는데 불친절하다는 것을 많이 느꼈네요.
 corpus.ud-gsd.test.test-s336.verb.future-neyo	있다	verb	smart-exact	62	74	종류가 그리 많지는 않지만 부담 없이 먹을 수 있겠네요.
+corpus.ud-gsd.test.test-s751.verb.성숙하다	성숙하다	verb	smart-exact	57	69	다나는 최근 자신의 미니홈피를 통해 한층 성숙해진 모습이 담긴 사진을 게재했다.
+regression.negative-topic.verb	먹다	verb	smart-exact	7	13	밥은 먹진 못했어요.
+regression.negative-topic.past	먹다	verb	smart-exact	14	23	그 음식을 먹었진 않아요.
+regression.negative-topic.honorific	가다	verb	smart-exact	20	29	아버지는 아직 가시진 않았어요.
+regression.negative-topic.irregular	듣다	verb	smart-exact	14	20	그 방송을 듣진 않아요.
+regression.negative-topic.resultative	이루다	verb	smart-exact	10	22	협상이 이뤄지진 않았어요.
+regression.negative-topic.resultative-second	다루다	verb	smart-exact	27	39	그 사건은 회의에서 다뤄지진 않았다.
+regression.negative-topic.resultative-adnominal	이루다	verb	smart-exact	10	19	협상이 이뤄진 이유를 조사했다.
 corpus.ud-gsd.test.test-s642.verb.past-neyo	다녀오다	verb	smart-exact	18	33	벌써 여러 번 다녀왔네요.
 corpus.ud-gsd.test.test-s668.verb.past-neyo	거부당하다	verb	smart-exact	17	35	카드 결제를 거부당했네요.
 corpus.ud-gsd.test.test-s856.adjective.honorific-neyo	같다	adjective	smart-exact	33	48	친절하고 따뜻한 어머니 같으시네요.
