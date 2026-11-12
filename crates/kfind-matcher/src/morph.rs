@@ -1118,12 +1118,25 @@ impl MorphMatcher {
                         resolver.has_unambiguous_attached_auxiliary_whole_path(token)
                     });
                     let resultative_contraction = starts_with_resultative_auxiliary(trailing);
+                    let aligned_auxiliary = complete_attached_path
+                        && resolver.supports_auxiliary_with_fused_prefinal(
+                            trailing,
+                            DEFAULT_LATTICE_NODE_LIMIT,
+                        )
+                        && haystack
+                            .get(whole.start..candidate.consumed.end)
+                            .and_then(|surface| std::str::from_utf8(surface).ok())
+                            .is_some_and(|surface| {
+                                resolver
+                                    .has_exact_predicate_connective_path(surface, source_positions)
+                            });
                     (complete_attached_path
                         && (visible_connective
                             || unambiguous_contraction
                             || resultative_contraction))
                         || (source_auxiliary_suffix
                             && (unambiguous_contraction
+                                || aligned_auxiliary
                                 || extended_predicate_prefix
                                 || unambiguous_whole_path
                                 || resultative_contraction))

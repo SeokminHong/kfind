@@ -45,6 +45,36 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_exact_predicate_ending_path(&self, text: &str, pos: PredicatePos) -> bool {
+        self.has_exact_predicate_ending_path_matching(
+            text,
+            |actual| structural_predicate_pos_matches(actual, pos),
+            |_| true,
+        )
+    }
+
+    #[must_use]
+    pub fn has_exact_predicate_connective_path(
+        &self,
+        text: &str,
+        source_positions: PredicatePosSet,
+    ) -> bool {
+        self.has_exact_predicate_ending_path_matching(
+            text,
+            |actual| {
+                source_positions
+                    .iter()
+                    .any(|pos| structural_predicate_pos_matches(actual, pos))
+            },
+            |last| last == StructuralPos::EC,
+        )
+    }
+
+    fn has_exact_predicate_ending_path_matching(
+        &self,
+        text: &str,
+        accepts_predicate: impl Fn(StructuralPos) -> bool,
+        accepts_last_ending: impl Fn(StructuralPos) -> bool,
+    ) -> bool {
         let mut matched = false;
         self.resource
             .common_prefix_positions(text.as_bytes(), |length, positions| {
@@ -54,8 +84,8 @@ impl ConstraintResolver {
                 let Some((first, endings)) = positions.split_first() else {
                     return;
                 };
-                matched |= structural_predicate_pos_matches(*first, pos)
-                    && !endings.is_empty()
+                matched |= accepts_predicate(*first)
+                    && endings.last().copied().is_some_and(&accepts_last_ending)
                     && endings.iter().all(|position| position.is_ending());
             });
         matched
@@ -329,6 +359,22 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn supports_auxiliary_sequence(&self, text: &str, node_limit: usize) -> bool {
+        self.supports_auxiliary_sequence_matching(text, node_limit, |_| true)
+    }
+
+    #[must_use]
+    pub fn supports_auxiliary_with_fused_prefinal(&self, text: &str, node_limit: usize) -> bool {
+        self.supports_auxiliary_sequence_matching(text, node_limit, |endings| {
+            endings.first() == Some(&StructuralPos::EP)
+        })
+    }
+
+    fn supports_auxiliary_sequence_matching(
+        &self,
+        text: &str,
+        node_limit: usize,
+        accepts_auxiliary_endings: impl Fn(&[StructuralPos]) -> bool,
+    ) -> bool {
         if text.is_empty() {
             return false;
         }
@@ -352,6 +398,7 @@ impl ConstraintResolver {
                     let allowed = if start == 0 {
                         positions.first() == Some(&StructuralPos::VX)
                             && positions[1..].iter().all(|pos| pos.is_ending())
+                            && accepts_auxiliary_endings(&positions[1..])
                     } else {
                         positions.iter().all(|pos| pos.is_ending())
                     };
