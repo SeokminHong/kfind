@@ -19,7 +19,10 @@ const RESULTATIVE_STEM_ENDINGS: &[Suffix] = &[
     suffix("는군", &["ending.final-neun-exclamative"]),
 ];
 
-pub(super) fn verify(anchor_len: usize, following: &str) -> Option<PredicateContinuationMatch> {
+pub(super) fn verify_resultative(
+    anchor_len: usize,
+    following: &str,
+) -> Option<PredicateContinuationMatch> {
     use ContinuationState::{
         AOrEo, BieupFinal, CompletedNieunEnding, Declarative, Future, Interrogative, NieunEnding,
         Past, RieulFinal, Terminal,
@@ -51,11 +54,36 @@ pub(super) fn verify(anchor_len: usize, following: &str) -> Option<PredicateCont
             {
                 ("지는", NieunEnding, Some("ending.present-adnominal"))
             } else {
-                return resultative_stem_continuation(anchor_len, tail);
+                return verify_stem(
+                    anchor_len,
+                    "지",
+                    tail,
+                    "ending.auxiliary-jida",
+                    RESULTATIVE_STEM_ENDINGS,
+                );
             }
         }
         _ => return None,
     };
+    verify_form(
+        anchor_len,
+        following,
+        form,
+        state,
+        initial_rule,
+        "ending.auxiliary-jida",
+    )
+}
+
+pub(super) fn verify_form(
+    anchor_len: usize,
+    following: &str,
+    form: &str,
+    state: ContinuationState,
+    initial_rule: Option<&str>,
+    auxiliary_rule: &str,
+) -> Option<PredicateContinuationMatch> {
+    use ContinuationState::{CompletedNieunEnding, Future, NieunEnding, Past, RieulFinal};
     let tail = &following[form.len()..];
     let mut continuation =
         verify_simple_continuation(state, PredicatePos::AuxiliaryVerb, form, tail).or_else(
@@ -71,44 +99,57 @@ pub(super) fn verify(anchor_len: usize, following: &str) -> Option<PredicateCont
         (RieulFinal | NieunEnding | CompletedNieunEnding, consumed) if consumed > 0 => None,
         _ => initial_rule,
     };
-    if form == "져" {
+    if initial_rule.is_some_and(|id| id.starts_with("contraction."))
+        && state == ContinuationState::AOrEo
+    {
         continuation
             .rule_path
             .insert(0, RuleId::from("ending.aoeo"));
     }
-    Some(with_resultative(
+    Some(with_auxiliary(
         anchor_len,
         form,
         initial_rule,
         continuation,
+        auxiliary_rule,
     ))
 }
 
-fn resultative_stem_continuation(
+pub(super) fn verify_stem(
     anchor_len: usize,
+    stem: &str,
     tail: &str,
+    auxiliary_rule: &str,
+    stem_endings: &[Suffix],
 ) -> Option<PredicateContinuationMatch> {
     let fixed = STEM_FIXED_ENDINGS
         .iter()
-        .chain(RESULTATIVE_STEM_ENDINGS)
+        .chain(stem_endings)
         .filter(|suffix| tail.starts_with(suffix.surface))
         .max_by_key(|suffix| suffix.surface.len())
-        .map(|suffix| matched("지".len(), Some(suffix)));
+        .map(|suffix| matched(stem.len(), Some(suffix)));
     let continuation = [ContinuationState::StemEnding, ContinuationState::Eu]
         .into_iter()
         .filter_map(|state| {
-            verify_simple_continuation(state, PredicatePos::AuxiliaryVerb, "지", tail)
+            verify_simple_continuation(state, PredicatePos::AuxiliaryVerb, stem, tail)
         })
         .chain(fixed)
         .max_by_key(|matched| matched.consumed_bytes)?;
-    Some(with_resultative(anchor_len, "지", None, continuation))
+    Some(with_auxiliary(
+        anchor_len,
+        stem,
+        None,
+        continuation,
+        auxiliary_rule,
+    ))
 }
 
-fn with_resultative(
+fn with_auxiliary(
     anchor_len: usize,
     form: &str,
     initial_rule: Option<&str>,
     mut continuation: PredicateContinuationMatch,
+    auxiliary_rule: &str,
 ) -> PredicateContinuationMatch {
     continuation.token_end += anchor_len;
     continuation.consumed_bytes += form.len();
@@ -117,6 +158,6 @@ fn with_resultative(
     }
     continuation
         .rule_path
-        .insert(0, RuleId::from("ending.auxiliary-jida"));
+        .insert(0, RuleId::from(auxiliary_rule));
     continuation
 }

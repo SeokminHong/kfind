@@ -900,3 +900,5 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 좋다	adjective	오늘은 몸이 안 좋다더니 먼저 집에 갔구나.	match	retrospective-quotative
 되다	verb	이제 일이 잘 된다더니만 다음 주부터 바쁘겠다.	match	retrospective-quotative
 공부하다	verb	요새 열심히 공부한다더니만 시험도 잘 봤구나.	match	retrospective-quotative
+묻다	verb	면접에서는 무엇을 물어보더냐?	match	auxiliary-boda
+묻다	verb	궁금한 것이 있으면 선생님한테 물어보렴.	match	auxiliary-boda

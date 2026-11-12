@@ -1,0 +1,3 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	trial	mureobodeonya-ask-negative	묻다	verb	false	1e920ce48328cc6276fa3d9db0a29b3aa18dec56e55da291c398e5c454939dee	contract-positive	structurally-indistinguishable-homograph	질문하는 묻다와 깨무는 물다는 둘 다 물어보더냐로 활용되며 이 문장에서는 깨무는 뜻이다.
+explicit-pos	trial	mureobodeonya-bite-negative	물다	verb	false	8f879e014b9eee11b3120423ee46b65a2854c2cc8f5f20560ae1150c2dcc594d	contract-positive	structurally-indistinguishable-homograph	질문하는 묻다와 깨무는 물다는 둘 다 물어보더냐로 활용되며 이 문장에서는 질문하는 뜻이다.

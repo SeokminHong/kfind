@@ -26,6 +26,15 @@ corpus.ud-gsd.test.test-s266.adjective.길다	길다	adjective	match	7	13	또한
 corpus.ud-gsd.test.test-s204.noun.바다	바다	noun	match	22	37	특히 김 청장은 "바다에서의 각종 사고는 예고가 없기 때문에 사고 발생 시 즉시 대응할 수 있도록 평소 인명 구조 장비 점검 등 관리에 만전을 다해 줄 것"도 각별히 주문했다.
 corpus.ud-gsd.test.test-s255.noun.야당	야당	noun	match	50	62	이날 회의에서는 비준안 처리 시기와 야당과의 협상 대책 등이 집중 논의될 것으로 알려졌다.
 corpus.ud-gsd.test.test-s187.verb.활동하다	활동하다	verb	match	130	145	2001년 미국 프로 야구 LA 다저스에 입단하여 뉴욕 메츠, 텍사스 레인저스, 시애틀 매리너스 등에서 활동하다가, 2008년 12월 계약금 6만 달러와 연봉 24만 달러를 합친 총액 30만 달러(약 4억 3천만 원)의 조건으로 한화 이글스와 계약을 맺었다.
+corpus.ud-gsd.test.test-s196.verb.먹다	먹다	verb	exact	7	22	가서 먹어보세요!
+corpus.ud-gsd.test.test-s209.verb.들르다	들르다	verb	exact	18	33	문경 가면 꼭 들러보세요.
+corpus.ud-gsd.test.test-s282.verb.가다	가다	verb	exact	61	76	위에 말씀하신 분처럼 저도 중앙식당을 몇 번 가보았는데 불친절하다는 것을 많이 느꼈네요
+corpus.ud-gsd.test.test-s483.verb.가다	가다	verb	exact	94	106	시외버스 터미널 근처라 포항 시외버스 이용하시는 분이라면 꼭 한 번 가보라고 추천하고 싶은 곳!
+corpus.ud-gsd.test.test-s561.verb.먹다	먹다	verb	exact	0	9	먹어본 중 최고!
+corpus.ud-gsd.test.test-s861.verb.가다	가다	verb	exact	7	19	오늘 가봤는데 자장면은 괜찮았어요.
+corpus.ud-gsd.test.test-s935.verb.먹다	먹다	verb	exact	21	30	모든 메뉴를 다 먹어본 건 아니지만 생각보다 넓으며 맛도 좋습니다.
+corpus.ud-gsd.test.test-s972.verb.가다	가다	verb	exact	20	26	제가 한국에서 가본 태국 음식점 중 최고입니다!
+corpus.ud-gsd.test.test-s982.verb.전화하다	전화하다	verb	exact	53	62	주문 후 1시간이 다 되도록 소식이 없어 전화해 보니 이미 왔었는데 주소를 못 찾았다고 하시네요.
 corpus.ud-pud.test.w04002055.verb.타다	타다	verb	match	98	110	1976년 경마장이 문을 닫았으며, 1990년 화재로 인해 목재로 된 큰 스탠드가 타버렸고 그 잔해는 축사와 함께 나중에 철거되었다.
 corpus.ud-pud.test.w01112098.verb.이루어지다	이루어지다	verb	match	145	157	디즈니는 아카데미 명예상을 또 수상했는데 이 명예상은 100% 크기의 오스카 트로피 하나와 7개의 미니어처로 이뤄졌다.
 corpus.ud-pud.test.w01137087.verb.넘다	넘다	verb	match	121	133	5월, 체코 국경 수비대는 수비대의 정지 명령에도 아랑곳하지 않고 체코슬로바키아 국경을 넘으려던 두 명의 주데텐 독일 농부를 총으로 쐈다.

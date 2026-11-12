@@ -228,7 +228,7 @@ mod tests {
 
     use super::*;
 
-    const EXPECTED_CASES: usize = 901;
+    const EXPECTED_CASES: usize = 903;
 
     #[test]
     fn embedded_morphology_gold_matches_expected() {
@@ -301,6 +301,16 @@ mod tests {
             ("adj:춥다", "밤이 되어도 추워지지 않았다.", "추워지지"),
             ("adj:춥다", "해가 지면 더 추워집니다.", "추워집니다"),
             ("adj:넓다", "주민들은 길이 넓어지기를 바랐다.", "넓어지기를"),
+            ("v:묻다", "면접에서는 무엇을 물어보더냐?", "물어보더냐"),
+            (
+                "v:묻다",
+                "궁금한 것이 있으면 선생님한테 물어보렴.",
+                "물어보렴",
+            ),
+            ("v:먹다", "이것도 같이 먹어볼까요?", "먹어볼까요"),
+            ("v:먹다", "이것도 같이 먹어봅시다.", "먹어봅시다"),
+            ("v:먹다", "아이도 먹어보기를 바랐다.", "먹어보기를"),
+            ("v:먹다", "이것도 한번 먹어 보세요.", "먹어"),
             (
                 "adj:넓다",
                 "이 기록에서 도로가 넓어짐을 확인했다.",
@@ -340,6 +350,7 @@ mod tests {
                     .find_all(query, text)
                     .expect("fixture query compiles"),
                 vec![start..start + target.len()],
+                "{query} in {text:?}",
             );
         }
     }
