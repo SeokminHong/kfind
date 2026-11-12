@@ -1026,6 +1026,7 @@ impl MorphMatcher {
                     || has_counted_unit_copula(haystack, candidate, branch, resolver)
                     || has_elapsed_measure_frame(haystack, candidate, branch, atom, resolver)
                     || has_quantifying_adverb_frame(haystack, candidate, branch, atom, resolver)
+                    || has_whole_alternative_conjunction(haystack, candidate, branch, resolver)
                     || has_transitive_jiyo_frame(haystack, candidate, branch, resolver)
                     || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
                     || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
@@ -2380,6 +2381,29 @@ fn has_genitive_nominal_interrogative_frame(
             .is_some_and(|previous| resolver.has_nominal_genitive_surface(&previous))
         && context::next_word(haystack, end)
             .is_some_and(|next| resolver.has_complete_nominal_surface(&next))
+}
+
+fn has_whole_alternative_conjunction(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    if !matches!(candidate.suffix_rules.as_slice(), [rule] if rule.as_str() == "particle.topic")
+        || !branch
+            .structural_patterns()
+            .iter()
+            .any(|pattern| matches!(pattern.fine_pos, DataFinePos::Mag | DataFinePos::Maj))
+    {
+        return false;
+    }
+    let span = &candidate.consumed;
+    is_boundary_before(haystack, span.start)
+        && is_boundary_after(haystack, span.end)
+        && context::normalized_token(haystack, span.clone())
+            .is_some_and(|token| resolver.has_exact_conjunctive_adverb(&token))
+        && context::previous_word(haystack, span.start)
+            .is_some_and(|previous| resolver.has_alternative_connective(&previous))
 }
 
 fn has_object_inside_adnominal_result(
