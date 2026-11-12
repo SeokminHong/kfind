@@ -345,12 +345,14 @@ fn compile_productive(
     stem: &str,
     branches: &mut Vec<SurfaceBranchSpec>,
 ) -> Result<(), GenerateError> {
+    let uses_neun =
+        entry.pos.is_action() || stem.ends_with("있") || stem.ends_with("없") || stem == "계시";
     push_branch(
         branches,
         entry,
         stem.to_owned(),
         stem.len(),
-        ContinuationState::Geodeun,
+        ContinuationState::StemEnding,
         Vec::new(),
     );
     if entry.alternation == LexicalAlternation::Ha
@@ -460,14 +462,10 @@ fn compile_productive(
     }
 
     if let Some(eu) = eu_anchor(entry, stem)? {
-        push_branch(
-            branches,
-            entry,
-            eu.surface,
-            eu.core_len,
-            ContinuationState::Eu,
-            eu.rules,
-        );
+        if !uses_neun {
+            push_adjective_question(branches, entry, eu.clone());
+        }
+        push_derived(branches, entry, eu, ContinuationState::Eu);
     } else if let Some(base) = ending_base(entry, stem)? {
         for ending in [
             continuation::CONDITIONAL,
@@ -491,9 +489,25 @@ fn compile_productive(
         if entry.alternation == LexicalAlternation::Regular
             && has_rieul_final(stem.chars().next_back().expect("stem"))
         {
+            if !uses_neun {
+                let dropped = drop_last_final(stem).expect("rieul-final stem");
+                let core_len = dropped.len();
+                push_adjective_question(
+                    branches,
+                    entry,
+                    DerivedSurface {
+                        surface: dropped,
+                        core_len,
+                        rules: Vec::new(),
+                    },
+                );
+            }
             compile_rieul_eu_endings(entry, stem, branches);
             compile_rieul_honorific(entry, stem, branches);
         } else {
+            if !uses_neun && base.surface != stem {
+                push_adjective_question(branches, entry, base.clone());
+            }
             push_derived(branches, entry, base, ContinuationState::Eu);
         }
     }
@@ -505,7 +519,6 @@ fn compile_productive(
                 "자고",
                 vec![rule("ending.propositive-ja"), rule("ending.quotative-go")],
             ),
-            ("느냐", vec![rule("ending.interrogative-neunya")]),
             (
                 "곤",
                 vec![rule("ending.connective-go"), rule("particle.topic")],
@@ -565,22 +578,40 @@ fn compile_productive(
         push_derived(
             branches,
             entry,
-            present_adnominal(stem)?,
-            ContinuationState::Terminal,
-        );
-        push_derived(
-            branches,
-            entry,
             present_declarative(stem)?,
             ContinuationState::Declarative,
         );
     }
-    push_derived(
-        branches,
-        entry,
-        past_adnominal(entry, stem)?,
-        ContinuationState::Terminal,
-    );
+    let past = past_adnominal(entry, stem)?;
+    let mut background = if uses_neun {
+        let present = present_adnominal(stem)?;
+        let question_stem = present
+            .surface
+            .strip_suffix('는')
+            .expect("present adnominal ends in 는");
+        push_branch(
+            branches,
+            entry,
+            format!("{question_stem}느냐"),
+            present.core_len,
+            ContinuationState::Interrogative,
+            vec![rule("ending.interrogative-neunya")],
+        );
+        if entry.pos.is_action() {
+            push_derived(
+                branches,
+                entry,
+                present.clone(),
+                ContinuationState::Terminal,
+            );
+        }
+        present
+    } else {
+        past.clone()
+    };
+    push_derived(branches, entry, past, ContinuationState::Terminal);
+    background.rules.pop();
+    push_derived(branches, entry, background, ContinuationState::Background);
     let mut rieul = future_adnominal(entry, stem)?;
     push_derived(branches, entry, rieul.clone(), ContinuationState::Terminal);
     rieul.rules.pop();
@@ -593,6 +624,16 @@ fn compile_productive(
     );
 
     Ok(())
+}
+
+fn push_adjective_question(
+    branches: &mut Vec<SurfaceBranchSpec>,
+    entry: &PredicateEntry,
+    mut base: DerivedSurface,
+) {
+    base.surface.push('냐');
+    base.rules.push(rule("ending.interrogative-nya"));
+    push_derived(branches, entry, base, ContinuationState::Interrogative);
 }
 
 fn compile_rieul_eu_endings(
@@ -692,6 +733,14 @@ fn compile_rieul_honorific(
     push_branch(
         branches,
         entry,
+        format!("{base}시겠"),
+        core_len,
+        ContinuationState::Future,
+        vec![rule("ending.honorific"), rule("ending.future")],
+    );
+    push_branch(
+        branches,
+        entry,
         past,
         core_len,
         ContinuationState::Past,
@@ -717,6 +766,29 @@ fn compile_rieul_honorific(
         ContinuationState::Prospective,
         vec![rule("ending.honorific")],
     );
+    for anchor in [format!("{base}신"), format!("{base}시는")] {
+        push_branch(
+            branches,
+            entry,
+            anchor,
+            core_len,
+            ContinuationState::Background,
+            vec![rule("ending.honorific")],
+        );
+    }
+    for (suffix, ending) in [
+        ("시냐", "ending.interrogative-nya"),
+        ("시느냐", "ending.interrogative-neunya"),
+    ] {
+        push_branch(
+            branches,
+            entry,
+            format!("{base}{suffix}"),
+            core_len,
+            ContinuationState::Interrogative,
+            vec![rule("ending.honorific"), rule(ending)],
+        );
+    }
     for (surface, rules) in [
         (
             format!("{base}시다"),
@@ -797,6 +869,39 @@ fn compile_copula(
         ContinuationState::Prospective,
         vec![rule("lexical.copula")],
     );
+    for surface in ["인", "이신", "이시는"] {
+        let mut rules = vec![rule("lexical.copula")];
+        if surface != "인" {
+            rules.push(rule("ending.honorific"));
+        }
+        push_branch(
+            branches,
+            entry,
+            surface.to_owned(),
+            stem.len(),
+            ContinuationState::Background,
+            rules,
+        );
+    }
+    for (surface, ending) in [
+        ("이냐", "ending.interrogative-nya"),
+        ("이시냐", "ending.interrogative-nya"),
+        ("이시느냐", "ending.interrogative-neunya"),
+    ] {
+        let mut rules = vec![rule("lexical.copula")];
+        if surface.starts_with("이시") {
+            rules.push(rule("ending.honorific"));
+        }
+        rules.push(rule(ending));
+        push_branch(
+            branches,
+            entry,
+            surface.to_owned(),
+            stem.len(),
+            ContinuationState::Interrogative,
+            rules,
+        );
+    }
     for suffix in continuation::YAJI_ENDINGS {
         let rules = [rule("lexical.copula"), rule("ending.aoeo")]
             .into_iter()

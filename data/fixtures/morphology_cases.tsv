@@ -678,5 +678,22 @@ lit:걸어	literal	길을 걸었다.	no-match	homonym-union
 이다	copula	정답은 이 숫자이리라.	match	prospective-copula
 살다	verb	그분은 이곳에 사시리라.	match	prospective-honorific-rieul
 먹다	verb	그 음식은 내가 먹리라.	no-match	prospective-consonant-allomorph
+좋다	adjective	날씨가 좋은데요.	match	background-adjective-coda
+그렇다	adjective	그런데, 문제가 생겼다.	no-match	lexical-context
+그렇다	adjective	상황이 그런데, 무엇을 더 할 수 있겠나?	match	lexical-context
+예쁘다	adjective	이 옷은 예쁜데 얇다.	match	background-adjective-vowel
+멀다	adjective	거리가 먼데도 걸었다.	match	background-adjective-rieul
+춥다	adjective	날씨가 추운데도 창문을 열었다.	match	background-adjective-irregular
+맛있다	adjective	국이 맛있는데 조금 맵다.	match	background-adjective-existential
+살다	verb	이 동네에 사는데요.	match	background-verb-rieul
+가다	verb	먼저 갔는데도 늦었다.	match	background-past
+살다	verb	어르신이 혼자 사시는데요.	match	background-honorific
+이다	copula	오늘은 휴일인데요.	match	background-copula
+넓다	adjective	정원이 넓으냐고 물었다.	match	interrogative-quotation-adjective
+멀다	adjective	집이 얼마나 머냐고 물었다.	match	interrogative-quotation-adjective-rieul
+살다	verb	어디에 사느냐고 물었다.	match	interrogative-quotation-verb
+먹다	verb	밥을 먹냐고 물었다.	match	interrogative-quotation-spoken
+가다	verb	어디 가셨느냐고 물었다.	match	interrogative-quotation-honorific-past
+이다	copula	내일이 휴일이냐고 물었다.	match	interrogative-quotation-copula
 치다	verb	지구온난화는 여러 측면에 영향을 미친다.	no-match	structural-whole-predicate
 다	noun	저 친구는 왕친입니다.	no-match	structural-ending-component

@@ -420,6 +420,77 @@ const HONORIFIC_PROSPECTIVE: &[Suffix] = prospective_suffixes!("시", "ending.ho
 const HONORIFIC_PAST_PROSPECTIVE: &[Suffix] =
     prospective_suffixes!("셨으", "ending.honorific", "ending.past");
 
+macro_rules! question {
+    ($surface:literal, $rule:literal $(, $prior:literal)*) => {
+        &[
+            suffix($surface, &[$($prior,)* $rule]),
+            suffix(concat!($surface, "고"), &[$($prior,)* $rule, "ending.quotative-go"]),
+            suffix(concat!($surface, "고요"), &[$($prior,)* $rule, "ending.quotative-go", "ending.polite-yo"]),
+        ]
+    };
+}
+
+macro_rules! background {
+    ($surface:literal, $rule:literal $(, $prior:literal)*) => {
+        &[
+            suffix($surface, &[$($prior,)* $rule]),
+            suffix(concat!($surface, "도"), &[$($prior,)* $rule, "particle.additive"]),
+            suffix(concat!($surface, "요"), &[$($prior,)* $rule, "ending.polite-yo"]),
+        ]
+    };
+}
+
+const NYA: &[Suffix] = question!("냐", "ending.interrogative-nya");
+const NEUNYA: &[Suffix] = question!("느냐", "ending.interrogative-neunya");
+const SI_NYA: &[Suffix] = question!("시냐", "ending.interrogative-nya", "ending.honorific");
+const SI_NEUNYA: &[Suffix] = question!("시느냐", "ending.interrogative-neunya", "ending.honorific");
+const DEONDE: &[Suffix] = background!("던데", "ending.connective-deonde");
+const NEUNDE: &[Suffix] = background!("는데", "ending.connective-neunde");
+const SINDE: &[Suffix] = background!("신데", "ending.connective-neunde", "ending.honorific");
+const SINEUNDE: &[Suffix] = background!("시는데", "ending.connective-neunde", "ending.honorific");
+const SYEOTNEUNDE: &[Suffix] = background!(
+    "셨는데",
+    "ending.connective-neunde",
+    "ending.honorific",
+    "ending.past"
+);
+const SIGETNEUNDE: &[Suffix] = background!(
+    "시겠는데",
+    "ending.connective-neunde",
+    "ending.honorific",
+    "ending.future"
+);
+const BACKGROUND: &[Suffix] = background!("데", "ending.connective-neunde");
+const SYEOT_NYA: &[Suffix] = question!(
+    "셨냐",
+    "ending.interrogative-nya",
+    "ending.honorific",
+    "ending.past"
+);
+const SYEOT_NEUNYA: &[Suffix] = question!(
+    "셨느냐",
+    "ending.interrogative-neunya",
+    "ending.honorific",
+    "ending.past"
+);
+const SIGET_NYA: &[Suffix] = question!(
+    "시겠냐",
+    "ending.interrogative-nya",
+    "ending.honorific",
+    "ending.future"
+);
+const SIGET_NEUNYA: &[Suffix] = question!(
+    "시겠느냐",
+    "ending.interrogative-neunya",
+    "ending.honorific",
+    "ending.future"
+);
+
+const INTERROGATIVE: &[Suffix] = &[
+    suffix("고", &["ending.quotative-go"]),
+    suffix("고요", &["ending.quotative-go", "ending.polite-yo"]),
+];
+
 /// Consumes the longest suffix accepted by a predicate branch's verifier state.
 #[must_use]
 pub fn verify_predicate_continuation(
@@ -439,12 +510,40 @@ pub fn verify_predicate_continuation(
             return Some(matched(anchor.len(), declarative_suffix(following)));
         }
         ContinuationState::Eu => EU_SUFFIXES,
-        ContinuationState::Geodeun => GEODEUN_ENDINGS,
+        ContinuationState::StemEnding => GEODEUN_ENDINGS,
+        ContinuationState::Background => BACKGROUND,
+        ContinuationState::Interrogative => INTERROGATIVE,
         ContinuationState::RieulFinal => RIEUL_FINAL,
         ContinuationState::BieupFinal => BIEUP_FINAL,
         ContinuationState::Prospective => PROSPECTIVE,
     };
     let additional_endings = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with('냐') =>
+        {
+            NYA
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("느냐") => {
+            NEUNYA
+        }
+        ContinuationState::StemEnding | ContinuationState::Past
+            if following.starts_with("던데") =>
+        {
+            DEONDE
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("는데") => {
+            NEUNDE
+        }
+        ContinuationState::Eu if following.starts_with("시냐") => SI_NYA,
+        ContinuationState::Eu if following.starts_with("시느냐") => SI_NEUNYA,
+        ContinuationState::Eu if following.starts_with("셨냐") => SYEOT_NYA,
+        ContinuationState::Eu if following.starts_with("셨느냐") => SYEOT_NEUNYA,
+        ContinuationState::Eu if following.starts_with("시겠냐") => SIGET_NYA,
+        ContinuationState::Eu if following.starts_with("시겠느냐") => SIGET_NEUNYA,
+        ContinuationState::Eu if following.starts_with("신데") => SINDE,
+        ContinuationState::Eu if following.starts_with("시는데") => SINEUNDE,
+        ContinuationState::Eu if following.starts_with("셨는데") => SYEOTNEUNDE,
+        ContinuationState::Eu if following.starts_with("시겠는데") => SIGETNEUNDE,
         ContinuationState::Past | ContinuationState::Future if following.starts_with("으리") => {
             PREFINAL_PROSPECTIVE
         }
@@ -483,7 +582,8 @@ pub fn verify_predicate_continuation(
         && matches!(
             state,
             ContinuationState::Eu
-                | ContinuationState::Geodeun
+                | ContinuationState::StemEnding
+                | ContinuationState::Background
                 | ContinuationState::RieulFinal
                 | ContinuationState::BieupFinal
                 | ContinuationState::Prospective
