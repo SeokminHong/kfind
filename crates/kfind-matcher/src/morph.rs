@@ -808,6 +808,19 @@ impl MorphMatcher {
                         map_normalized_prefix(following, normalized, normalized_consumed)?
                     }
                 };
+                if matches!(
+                    rule_path.as_slice(),
+                    [.., connective, particle]
+                        if connective.as_str() == "ending.connective-ji"
+                            && particle.as_str() == "particle.topic"
+                ) {
+                    let end = hit.span.end + consumed_bytes;
+                    if !context::next_word(haystack, end).is_some_and(|next| {
+                        has_negative_auxiliary(&next, *pos, self.constraint_resolver.as_ref())
+                    }) {
+                        return None;
+                    }
+                }
                 (consumed_bytes, rule_path)
             }
             CandidateConsumption::StructuralPredicateEnding {
@@ -3727,6 +3740,35 @@ fn normalized_consumption_text<'a>(
 fn requires_direct_particle_host(branch: &CandidateProgram) -> bool {
     let boundary = branch.boundary();
     !boundary.require_left && boundary.require_right
+}
+
+fn has_negative_auxiliary(
+    word: &str,
+    host: kfind_morph::PredicatePos,
+    resolver: Option<&ConstraintResolver>,
+) -> bool {
+    use kfind_morph::{ContinuationState, PredicatePos};
+    let (anchor, state) = match word.chars().next() {
+        Some('않') if word.starts_with("않았") => ("않았", ContinuationState::Past),
+        Some('않') if word.starts_with("않아") => ("않아", ContinuationState::AOrEo),
+        Some('않') => ("않", ContinuationState::StemEnding),
+        Some('못') => match word.chars().nth(1) {
+            Some('하') => ("못하", ContinuationState::StemEnding),
+            Some('했') => ("못했", ContinuationState::Past),
+            Some('해') => ("못해", ContinuationState::AOrEo),
+            _ => return false,
+        },
+        Some('마') if host.is_action() && matches!(word, "마" | "마요") => return true,
+        Some('말') if host.is_action() => ("말", ContinuationState::StemEnding),
+        _ => return false,
+    };
+    let suffix = &word[anchor.len()..];
+    (state == ContinuationState::AOrEo || !suffix.is_empty())
+        && (verify_predicate_continuation(state, PredicatePos::AuxiliaryVerb, anchor, suffix)
+            .is_some_and(|matched| matched.token_end == word.len())
+            || resolver.is_some_and(|resolver| {
+                resolver.supports_ending_suffix_path(word, anchor.len(), DEFAULT_LATTICE_NODE_LIMIT)
+            }))
 }
 
 fn accepts_left_context(
