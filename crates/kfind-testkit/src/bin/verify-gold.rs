@@ -153,6 +153,15 @@ fn verify_context_homographs(harness: &GoldHarness) -> Result<(), Box<dyn Error>
         ("가다", CoarsePos::Verb, "그곳에 가지는 않았다.", "가지는"),
         ("가다", CoarsePos::Verb, "그곳에 가지는 못했다.", "가지는"),
         ("가다", CoarsePos::Verb, "그곳에 가지는 마라.", "가지는"),
+        ("뭐", CoarsePos::Pronoun, "지금 뭐 하나?", "뭐"),
+        ("뭐", CoarsePos::Pronoun, "지금 뭔가?", "뭔가"),
+        ("무엇", CoarsePos::Pronoun, "뭔가를 찾고 있다.", "뭔가를"),
+        (
+            "어디",
+            CoarsePos::Pronoun,
+            "어딘가에서 전화가 왔다.",
+            "어딘가에서",
+        ),
         (
             "불과",
             CoarsePos::Noun,
@@ -347,6 +356,7 @@ fn verify_span_cases(
         let pos = match *pos {
             "noun" => CoarsePos::Noun,
             "pronoun" => CoarsePos::Pronoun,
+            "numeral" => CoarsePos::Numeral,
             "verb" => CoarsePos::Verb,
             "adjective" => CoarsePos::Adjective,
             "determiner" => CoarsePos::Determiner,
