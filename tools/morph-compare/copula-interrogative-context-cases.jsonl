@@ -1,0 +1,2 @@
+{"id":"numeral-two","query":"이다","pos":"adjective","text":"내가 비밀번호 끝자리를 두 손가락으로 알려 주자 그는 ‘인가?’라고 되물었다.","expected":true,"gold_byte_start":77,"gold_byte_end":83,"paired_case_id":"approval-echo"}
+{"id":"approval-echo","query":"이다","pos":"adjective","text":"내가 사업에 인가가 필요하다고 하자 그는 ‘인가?’라고 되물었다.","expected":false,"gold_byte_start":60,"gold_byte_end":66,"paired_case_id":"numeral-two"}

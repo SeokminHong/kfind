@@ -1,0 +1,2 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	copula-interrogative	approval-echo	이다	adjective	false	f9de2b64a808485fa8fa306fc826c7eb9e35d992317ce5135b7191b33d282542	contract-positive	structurally-indistinguishable-homograph	인가의 명사 되묻기와 수사 이 뒤의 지정사 의문형 축약이 같은 직접 인용 구문에 놓인다.

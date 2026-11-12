@@ -1717,8 +1717,19 @@ impl MorphMatcher {
             return false;
         }
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
-        if candidate.verified.core.start <= whole.start || candidate.consumed.end != whole.end {
+        if candidate.verified.core.start <= whole.start {
             return false;
+        }
+        if candidate.consumed.end != whole.end {
+            return candidate.consumed.end < whole.end
+                && candidate
+                    .suffix_rules
+                    .last()
+                    .is_some_and(|rule| rule.as_str() == "ending.interrogative-nga")
+                && context::normalized_token(haystack, candidate.consumed.end..whole.end)
+                    .is_some_and(|quote| matches!(quote.as_ref(), "라고" | "라고요" | "라는"))
+                && context::normalized_token(haystack, whole.start..candidate.verified.core.start)
+                    .is_some_and(|host| resolver.has_complete_nominal_surface(&host));
         }
         let Some(token) = haystack
             .get(whole.clone())
