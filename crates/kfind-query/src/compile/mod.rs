@@ -88,6 +88,7 @@ const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.connective-eudoe",
     "ending.conditional",
     "ending.connective-jiman",
+    "ending.connective-geona",
     "ending.connective-neunde",
     "ending.quotative-go",
     "ending.quotative-adnominal",

@@ -302,6 +302,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.connective-geona"
+category = "connective"
+initial = "consonant"
+forms = ["거나"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.connective-ra"
 category = "connective"
 initial = "other"

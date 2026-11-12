@@ -336,6 +336,15 @@ const RYEO_CONJECTURE: &[Suffix] = &[
 ];
 
 pub(super) const FAMILIAR_QUESTION: Suffix = suffix("니", &["ending.interrogative-ni"]);
+const JIMAN: Suffix = suffix("지만", &["ending.connective-jiman"]);
+const GEONA: Suffix = suffix("거나", &["ending.connective-geona"]);
+const CONCESSIVE_NA: Suffix = suffix("나", &["ending.connective-na"]);
+const CONCESSIVE_EUNA: Suffix = suffix("으나", &["ending.connective-na"]);
+const HONORIFIC_COORDINATING_ENDINGS: &[Suffix] = &[
+    suffix("시지만", &["ending.honorific", "ending.connective-jiman"]),
+    suffix("시거나", &["ending.honorific", "ending.connective-geona"]),
+    suffix("시나", &["ending.honorific", "ending.connective-na"]),
+];
 const HONORIFIC_FAMILIAR_QUESTION: Suffix =
     suffix("시니", &["ending.honorific", "ending.interrogative-ni"]);
 
@@ -378,6 +387,8 @@ const HONORIFIC_PREFINAL_NE_ENDINGS: &[Suffix] = &[
 ];
 
 const PAST_SUFFIXES: &[Suffix] = &[
+    GEONA,
+    CONCESSIVE_EUNA,
     NE,
     NE_YO,
     PLAIN_QUOTATIVE_ADNOMINAL,
@@ -397,7 +408,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
     suffix("으되", &["ending.connective-eudoe"]),
     suffix("으면", &["ending.conditional"]),
     suffix("으며", &["ending.coordinate-myeo"]),
-    suffix("지만", &["ending.connective-jiman"]),
+    JIMAN,
     suffix("는데", &["ending.connective-neunde"]),
     suffix("다고", &["ending.quotative-go"]),
     suffix("던", &["ending.retrospective-adnominal"]),
@@ -440,6 +451,8 @@ const HONORIFIC_MEURO_ENDINGS: &[Suffix] = &[
 ];
 
 const FUTURE_SUFFIXES: &[Suffix] = &[
+    GEONA,
+    CONCESSIVE_EUNA,
     NE,
     NE_YO,
     PLAIN_QUOTATIVE_ADNOMINAL,
@@ -450,7 +463,7 @@ const FUTURE_SUFFIXES: &[Suffix] = &[
     suffix("습디다", &["ending.retrospective-declarative"]),
     suffix("습니다", &["ending.polite-declarative"]),
     suffix("으되", &["ending.connective-eudoe"]),
-    suffix("지만", &["ending.connective-jiman"]),
+    JIMAN,
     suffix("는데", &["ending.connective-neunde"]),
     suffix("다", &["ending.final-da"]),
     suffix("고", &["ending.connective-go"]),
@@ -735,7 +748,7 @@ const EU_SUFFIXES: &[Suffix] = &[
     suffix("려던", &["ending.intentive-adnominal"]),
     PURPOSE_REO,
     HONORIFIC_PURPOSE_REO,
-    suffix("나", &["ending.connective-na"]),
+    CONCESSIVE_NA,
     suffix("시오", &["ending.imperative-sio"]),
     suffix("쇼", &["ending.imperative-sio-short"]),
     suffix(
@@ -1263,6 +1276,18 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding if following.starts_with("지만") => &[JIMAN],
+        ContinuationState::StemEnding if following.starts_with("거나") => &[GEONA],
+        ContinuationState::StemEnding if anchor.ends_with('시') && following.starts_with('나') => {
+            &[CONCESSIVE_NA]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시지만")
+                || following.starts_with("시거나")
+                || following.starts_with("시나") =>
+        {
+            HONORIFIC_COORDINATING_ENDINGS
+        }
         ContinuationState::Eu if following.starts_with("시네") => &HONORIFIC_NE_ENDINGS,
         ContinuationState::Eu
             if following.starts_with("셨네") || following.starts_with("시겠네") =>
