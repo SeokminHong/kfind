@@ -635,6 +635,8 @@ any: 왼쪽과 오른쪽 경계를 검사하지 않는 부분 문자열 검색
 ```
 
 `canonical`은 완전한 임의 혼합 정규화 비교가 아니라, 쿼리 branch의 NFC·NFD 두 형태를 검색하는 모드다. Exact branch는 선택된 형태의 anchor bytes 자체가 검증 결과이므로 anchor 뒤 입력을 NFC로 변환하지 않는다. 형태 continuation을 소비하는 branch만 bounded suffix를 NFC로 변환하고 원문 byte offset으로 다시 매핑한다.
+부사의 조사 continuation이 시작되는 위치가 분해형 한글 음절 내부이면, 마지막 음절을
+완성하는 받침을 별도의 조사 후보로 보내지 않는다.
 
 ### 8.2 필요한 음절 연산
 
