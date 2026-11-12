@@ -146,6 +146,22 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_alternative_connective(&self, text: &str) -> bool {
+        let Some(stem) = text.strip_suffix("거나") else {
+            return false;
+        };
+        has_exact_sequence(&self.resource, "거나", &[StructuralPos::EC])
+            && (exact_analysis_starts_with_pos(
+                &self.resource,
+                stem,
+                StructuralPos::is_predicate_tag,
+            ) || stem.strip_suffix('이').is_some_and(|noun| {
+                has_exact_sequence(&self.resource, "이", &[StructuralPos::VCP])
+                    && self.has_complete_nominal_surface(noun)
+            }))
+    }
+
+    #[must_use]
     pub fn has_whole_modifier(&self, text: &str) -> bool {
         let mut matched = false;
         self.resource
