@@ -6,6 +6,14 @@ regression.promise-ma.consonant	갚다	verb	smart-exact	7	16	빚을 갚으마.
 regression.promise-ma.vowel	가다	verb	smart-exact	7	13	내가 가마.
 regression.promise-ma.rieul	살다	verb	smart-exact	7	13	같이 살마.
 regression.promise-ma.invalid-adjective	좋다	adjective	no-match	10	19	결과가 좋으마.
+regression.self-question-dam.vowel	가다	verb	smart-exact	10	16	어디로 간담?
+regression.self-question-dam.rieul	살다	verb	smart-exact	10	16	어디서 산담?
+regression.self-question-dam.consonant	읽다	verb	smart-exact	14	23	누가 책을 읽는담?
+regression.self-question-dam.honorific	읽다	verb	smart-exact	14	26	누가 책을 읽으신담?
+regression.self-question-dam.adjective	좁다	adjective	smart-exact	14	20	왜 이렇게 좁담?
+regression.self-question-dam.past	떠나다	verb	smart-exact	11	20	왜 벌써 떠났담?
+regression.self-question-dam.future	떠나다	verb	smart-exact	11	23	왜 벌써 떠나겠담?
+regression.self-question-dam.honorific-past	떠나다	verb	smart-exact	11	23	왜 벌써 떠나셨담?
 regression.dependent-subject-ge.derived-adnominal	것	noun	smart-exact	13	16	전환하는 게 좋겠다.
 regression.dependent-subject-ge.derived-connective	것	noun	no-match	10	13	전환해 게 두 마리를 찾았다.
 regression.dependent-subject-ge.geot	것	noun	smart-exact	7	10	읽는 게 좋다.
