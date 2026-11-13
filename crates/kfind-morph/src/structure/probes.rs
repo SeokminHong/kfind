@@ -229,7 +229,10 @@ impl ConstraintResolver {
             &self.resource,
             text,
             &[StructuralPos::NNB, StructuralPos::JKS],
-        ) && super::lexical::complete_predicate_adnominal_path(&self.resource, previous)
+        ) && (super::lexical::complete_predicate_adnominal_path(&self.resource, previous)
+            || previous
+                .strip_suffix('인')
+                .is_some_and(|host| self.has_complete_nominal_surface(host)))
     }
 
     #[must_use]

@@ -97,6 +97,14 @@ result = "게"
 ending_ids = []
 
 [[contraction]]
+id = "contraction.dependent-subject-ge-from-geot"
+kind = "dependent-noun-subject-compose"
+left = "것"
+right = "이"
+result = "게"
+ending_ids = []
+
+[[contraction]]
 id = "contraction.pronoun-copula-nuga"
 kind = "nominal-copula-ending-compose"
 left = "누구"
