@@ -794,11 +794,29 @@ impl MorphMatcher {
                 {
                     return None;
                 }
-                if !branch.consumption.allows_rule_path(&matched.rule_path) {
-                    return None;
-                }
                 let mut normalized_consumed = matched.consumed_bytes;
                 let mut rule_path = matched.rule_path;
+                if consumption_following[normalized_consumed..]
+                    .strip_prefix('도')
+                    .is_some_and(|tail| !tail.starts_with(crate::is_token_character))
+                    && rule_path.last().map_or_else(
+                        || {
+                            !branch.origins.is_empty()
+                                && branch.origins.iter().all(|origin| {
+                                    origin.rule_path.last().is_some_and(|rule| {
+                                        rule.as_str() == "ending.simultaneous-myeonseo"
+                                    })
+                                })
+                        },
+                        |rule| rule.as_str() == "ending.simultaneous-myeonseo",
+                    )
+                {
+                    normalized_consumed += '도'.len_utf8();
+                    rule_path.push(RuleId::from("particle.additive"));
+                }
+                if !branch.consumption.allows_rule_path(&rule_path) {
+                    return None;
+                }
                 if let Some(host) = continuation_nominal_host(
                     &rule_path,
                     &consumption_following[..normalized_consumed],
