@@ -1,4 +1,6 @@
 id	query	pos	expected	byte_start	byte_end	text
+regression.dependent-subject-ge.derived-adnominal	것	noun	smart-exact	13	16	전환하는 게 좋겠다.
+regression.dependent-subject-ge.derived-connective	것	noun	no-match	10	13	전환해 게 두 마리를 찾았다.
 regression.dependent-subject-ge.geot	것	noun	smart-exact	7	10	읽는 게 좋다.
 regression.dependent-subject-ge.crab	것	noun	no-match	0	3	게 두 마리가 기어간다.
 corpus.ud-gsd.test.test-s66.compound-noun	들깨	noun	smart-exact	0	6	들깨가루 같은 것도 원하는대로 넣을 수도 있고, 밥도 무한 리필이고 해서 어린애들 동반해서 가족끼리 가서 먹기에는 좋은 곳이라고 생각합니다.
