@@ -1,2 +1,2 @@
 query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
-explicit-pos	corpus-negatives	gsd:test-s288:verb:짓다	짓다	verb	false	988aecb2276454f559b799695761dd93070e71e788dd96aa192bd45032c211ad	contract-positive	corpus-annotation-error	만리장성을 건축했다는 뜻의 지었제는 짓다의 활용형이다.
+explicit-pos	corpus-negatives	gsd:test-s288:verb:짓다	짓다	verb	false	988aecb2276454f559b799695761dd93070e71e788dd96aa192bd45032c211ad	contract-positive	aligned-source-component	만리장성을 건축했다는 뜻의 지었제는 짓다의 활용형이다.
