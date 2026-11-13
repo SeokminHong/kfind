@@ -422,6 +422,10 @@ const HONORIFIC_PREFINAL_NE_ENDINGS: &[Suffix] = &[
 const PAST_SUFFIXES: &[Suffix] = &[
     PREFINAL_DAMYEON,
     PREFINAL_DAMYEONSEO,
+    PREFINAL_EUNI,
+    PREFINAL_EUNIKKA,
+    PREFINAL_EUNIKKANEUN,
+    PREFINAL_EUNIKKAN,
     DAGA,
     suffix("자", &["ending.concessive-eotja"]),
     NAM,
@@ -509,6 +513,10 @@ const HONORIFIC_NOMINALIZER_GIL: Suffix = suffix(
 const FUTURE_SUFFIXES: &[Suffix] = &[
     PREFINAL_DAMYEON,
     PREFINAL_DAMYEONSEO,
+    PREFINAL_EUNI,
+    PREFINAL_EUNIKKA,
+    PREFINAL_EUNIKKANEUN,
+    PREFINAL_EUNIKKAN,
     NAM,
     suffix("지", &["ending.confirmation-jiyo"]),
     NOMINALIZER_EUM,
@@ -534,6 +542,10 @@ const FUTURE_SUFFIXES: &[Suffix] = &[
     suffix("어요", &["ending.aoeo", "ending.polite-yo"]),
 ];
 
+const PREFINAL_EUNI: Suffix = suffix("으니", &["ending.connective-ni"]);
+const PREFINAL_EUNIKKA: Suffix = suffix("으니까", &["ending.connective-ni"]);
+const PREFINAL_EUNIKKANEUN: Suffix = suffix("으니까는", &["ending.connective-ni"]);
+const PREFINAL_EUNIKKAN: Suffix = suffix("으니깐", &["ending.connective-ni"]);
 const DECLARATIVE_MYEONSEO: Suffix = suffix("면서", &["ending.quotative-myeonseo"]);
 const DECLARATIVE_NEUNDE: Suffix = suffix("는데", &["ending.quotative-neunde"]);
 const DECLARATIVE_GO: Suffix = suffix("고", &["ending.quotative-go"]);
@@ -1820,6 +1832,12 @@ fn verify_simple_continuation(
         )
         .filter(|suffix| {
             following.starts_with(suffix.surface)
+                && (suffix.rules != ["ending.connective-ni"]
+                    || !suffix.surface.starts_with('으')
+                    || !following[suffix.surface.len()..]
+                        .chars()
+                        .next()
+                        .is_some_and(|next| next.is_alphanumeric() || next == '_'))
                 && (pos.is_action()
                     || !suffix.rules.iter().any(|rule| {
                         matches!(
