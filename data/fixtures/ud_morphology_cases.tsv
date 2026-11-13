@@ -1039,3 +1039,10 @@ regression.coordinating-endings.geona-copula	이다	adjective	smart-exact	3	12	�
 regression.resultative-possession.asset	가다	verb	no-match	17	26	그는 재산을 가지지 않았다.
 regression.resultative-possession.stock	가다	verb	no-match	24	33	그 회사는 주식을 가지지 않았다.
 regression.resultative-possession.route	가다	verb	smart-exact	38	47	계속 발을 내디뎌도 그 길을 가지지 않았다.
+regression.hago.comparison	예전	noun	smart-exact	7	19	맛이 예전하고 틀려서 이젠 집에서 만들어 먹어요
+regression.hago.coordination	사과	noun	smart-exact	0	12	사과하고 배를 샀어요.
+regression.hago.association	동생	noun	smart-exact	0	12	동생하고 같이 갔어요.
+regression.hago.topic	동생	noun	smart-exact	0	15	동생하고는 먼저 헤어졌어요.
+regression.hago.predicate-adjective	편	noun	no-match	7	19	속이 편하고요.
+regression.hago.predicate-negative	못	noun	no-match	10	19	우승을 못하고 있어요.
+regression.hago.predicate-object	당	noun	no-match	10	19	죽임을 당하고 쓰러졌다.

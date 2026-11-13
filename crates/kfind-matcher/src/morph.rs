@@ -1210,7 +1210,12 @@ impl MorphMatcher {
         }
         if boundary == BoundaryPolicy::Smart
             && self.constraint_resolver.as_ref().is_some_and(|resolver| {
-                has_competing_iran_particle_analysis(haystack, candidate, resolver)
+                (candidate
+                    .suffix_rules
+                    .iter()
+                    .any(|rule| rule.as_str() == "particle.comitative.hago")
+                    && has_hago_predicate_frame(haystack, &candidate.verified.token, resolver))
+                    || has_competing_iran_particle_analysis(haystack, candidate, resolver)
                     || lacks_contracted_quotative_head(haystack, candidate, branch, resolver)
                     || has_competing_hao_connective(haystack, candidate, branch, resolver)
                     || has_nominal_quotative_frame(haystack, candidate, branch, resolver)
@@ -2829,7 +2834,8 @@ impl MorphMatcher {
             .allomorphs
             .iter()
             .any(|form| {
-                normalized.starts_with(form.surface.as_ref()) && !is_short_source_particle(form)
+                normalized.starts_with(form.surface.as_ref())
+                    && is_structural_suffix_particle(form, branch)
             });
         if particle_shaped {
             return true;
@@ -2855,7 +2861,8 @@ impl MorphMatcher {
                 .allomorphs
                 .iter()
                 .any(|form| {
-                    remainder.starts_with(form.surface.as_ref()) && !is_short_source_particle(form)
+                    remainder.starts_with(form.surface.as_ref())
+                        && is_structural_suffix_particle(form, branch)
                 });
             if !particle_remainder {
                 return false;
@@ -4565,6 +4572,48 @@ fn has_parenthesized_latin_name(haystack: &[u8], end: usize) -> bool {
 
 fn is_short_source_particle(form: &kfind_morph::ParticleAllomorph) -> bool {
     form.rule_id.as_str() == "particle.source" && form.surface.as_ref() == "서"
+}
+
+fn is_structural_suffix_particle(
+    form: &kfind_morph::ParticleAllomorph,
+    branch: &CandidateProgram,
+) -> bool {
+    !is_short_source_particle(form)
+        && !(form.rule_id.as_str() == "particle.comitative.hago"
+            && matches!(
+                branch.consumption,
+                CandidateConsumption::PredicateContinuation { .. }
+            ))
+}
+
+fn has_hago_predicate_frame(
+    haystack: &[u8],
+    token: &Range<usize>,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let Some(surface) = context::normalized_token(haystack, token.clone()) else {
+        return false;
+    };
+    let Some(stem) = surface
+        .strip_suffix("고요")
+        .or_else(|| surface.strip_suffix('고'))
+    else {
+        return false;
+    };
+    let previous = context::previous_word(haystack, token.start);
+    let next = context::next_word(haystack, token.end);
+    (previous.as_deref().is_some_and(|word| {
+        resolver.has_object_marked_nominal(word) || resolver.has_negative_connective_host(word)
+    }) || next.as_deref().is_some_and(|word| {
+        word.starts_with('있') && resolver.has_exact_non_copula_predicate_surface("있")
+    })) && resolver.has_exact_action_predicate_surface(stem)
+        || (previous
+            .as_deref()
+            .is_some_and(|word| resolver.has_subject_marked_nominal(word))
+            || next
+                .as_deref()
+                .is_some_and(|word| resolver.has_subject_marked_nominal(word)))
+            && resolver.has_exact_adjective_surface(stem)
 }
 
 fn starts_with_resultative_auxiliary(surface: &str) -> bool {

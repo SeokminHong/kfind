@@ -1548,6 +1548,11 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_exact_adjective_surface(&self, text: &str) -> bool {
+        exact_analysis_starts_with_pos(&self.resource, text, |pos| pos == StructuralPos::VA)
+    }
+
+    #[must_use]
     pub fn has_exact_non_copula_predicate_surface(&self, text: &str) -> bool {
         exact_analysis_starts_with_pos(&self.resource, text, |pos| {
             pos.is_predicate() && pos != StructuralPos::VCP
