@@ -116,6 +116,11 @@ regression.attached-give.contracted-request	하다	verb	smart-exact	14	26	설명
 regression.attached-give.contracted-adnominal	하다	verb	smart-exact	13	22	어머니가 해주신 음식입니다.
 regression.attached-give.contracted-city-topic	하다	verb	no-match	0	12	해주시는 올해 예산을 늘렸다.
 regression.attached-give.nominal-competition	사다	verb	no-match	0	15	사주일가의 지분을 조사했다.
+regression.attached-give.nominalizer-instrumental	보이다	verb	smart-exact	0	18	보여줌으로써 설명했다.
+regression.attached-give.nominalizer-object	보이다	verb	smart-exact	0	12	보여줌을 꺼렸다.
+regression.attached-give.nominalizer-particle-allomorph	보이다	verb	no-match	0	15	보여줌로써 설명했다.
+regression.attached-give.nominalizer-derived-voice	보다	verb	no-match	0	18	보여줌으로써 설명했다.
+regression.attached-give.nominalizer-contracted-host	보다	verb	smart-exact	0	15	봐줌으로써 도왔다.
 regression.honorific-vowel-connective.not-decrease	줄다	verb	no-match	10	19	정리해 주셔서 고맙습니다.
 corpus.ud-gsd.test.test-s228.verb.honorific-simultaneous	돌아가다	verb	smart-exact	26	44	사장님 내외분께서 돌아가시면서 새벽까지 하시고요
 regression.honorific-simultaneous.consonant	읽다	verb	exact	0	15	읽으시면서 메모하셨다.
