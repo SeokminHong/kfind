@@ -104,4 +104,7 @@ biopnaida-empty-context	비다	verb	no-match	41	56	두 손 모아 폐하의 만�
 biopnaida-pray-context	빌다	verb	exact	60	75	군사들이 떠날 때마다 병영이 하루가 다르게 비옵나이다.
 biopnaida-empty	비다	verb	exact	60	75	군사들이 떠날 때마다 병영이 하루가 다르게 비옵나이다.
 biopnaida-empty-duration	비다	verb	exact	27	42	동쪽 객방은 보름을 비옵나이다.
+biopnaida-object-verb	빌다	verb	exact	17	32	부디 합격을 비옵나이다.
+biopnaida-object-no-empty	비다	verb	no-match	17	32	부디 합격을 비옵나이다.
+binaida-counted-duration	비다	verb	exact	24	36	연회장은 두 주를 비나이다.
 attached-trial	가다	verb	exact	18	33	부디 이 길로 가보옵소서.
