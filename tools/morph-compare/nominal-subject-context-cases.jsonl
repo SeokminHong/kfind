@@ -1,0 +1,5 @@
+{"id":"bare-subject","query":"살","pos":"noun","text":"살 빠졌냐고 물었다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"adnominal-place","query":"살","pos":"noun","text":"살 곳을 구했다.","expected":false,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"adnominal-possibility","query":"살","pos":"noun","text":"아기가 살 수 있다.","expected":false,"gold_byte_start":10,"gold_byte_end":13}
+{"id":"connected-verb","query":"살","pos":"noun","text":"살아 돌아왔다.","expected":false,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"adverb-interior","query":"살","pos":"noun","text":"살금살금 걸어왔다.","expected":false,"gold_byte_start":6,"gold_byte_end":9}
