@@ -1552,7 +1552,7 @@ impl MorphMatcher {
             return self
                 .accepts_lost_span_copula_ending(haystack, candidate, branch, resolver, patterns);
         }
-        if self.accepts_pronoun_copula_ending(haystack, candidate, branch, resolver, patterns) {
+        if self.accepts_nominal_copula_ending(haystack, candidate, branch, resolver, patterns) {
             return true;
         }
         if self.accepts_product_copula_frame(haystack, candidate, branch, resolver, patterns) {
@@ -2442,7 +2442,7 @@ impl MorphMatcher {
         )
     }
 
-    fn accepts_pronoun_copula_ending(
+    fn accepts_nominal_copula_ending(
         &self,
         haystack: &[u8],
         candidate: &ExecutedCandidate,
@@ -2454,7 +2454,7 @@ impl MorphMatcher {
             branch.consumption,
             CandidateConsumption::NominalCopulaEndingChain { .. }
         ) || !patterns.iter().any(|pattern| {
-            pattern.fine_pos == DataFinePos::Np
+            matches!(pattern.fine_pos, DataFinePos::Np | DataFinePos::Nnb)
                 && matches!(
                     pattern.continuation,
                     kfind_morph::MorphContinuation::NominalCopulaEnding
@@ -2473,8 +2473,16 @@ impl MorphMatcher {
             return false;
         };
         let normalized = anchor.nfc().collect::<String>();
-        resolver.has_exact_pronoun_copula_ending_path(&normalized)
-            && self.accepts_token_boundary(haystack, &candidate.verified, branch)
+        self.accepts_token_boundary(haystack, &candidate.verified, branch)
+            && ((patterns
+                .iter()
+                .any(|pattern| pattern.fine_pos == DataFinePos::Np)
+                && resolver.has_exact_pronoun_copula_ending_path(&normalized))
+                || (patterns
+                    .iter()
+                    .any(|pattern| pattern.fine_pos == DataFinePos::Nnb)
+                    && follows_predicate_adnominal(haystack, whole.start, resolver)
+                    && resolver.has_exact_dependent_copula_ending_path(&normalized)))
     }
 
     fn accepts_lost_span_copula_ending(

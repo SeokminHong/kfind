@@ -661,7 +661,10 @@ fn compile_nominal_contractions(
                     DraftDecision::Structural(ComponentCapability::Source),
                 ));
             }
-            "nominal-copula-ending-compose" if pronoun && analysis.lemma.as_ref() == rule.left => {
+            "nominal-copula-ending-compose"
+                if (pronoun || (dependent_noun && boundary == crate::BoundaryPolicy::Smart))
+                    && analysis.lemma.as_ref() == rule.left =>
+            {
                 output.push(DraftBranch {
                     anchor: rule.result.clone(),
                     consumption: CandidateConsumption::NominalCopulaEndingChain {

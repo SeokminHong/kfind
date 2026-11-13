@@ -209,6 +209,38 @@ result = "걸까"
 ending_ids = []
 
 [[contraction]]
+id = "contraction.dependent-geot-formal-declarative"
+kind = "nominal-copula-ending-compose"
+left = "것"
+right = "ㅂ니다"
+result = "겁니다"
+ending_ids = []
+
+[[contraction]]
+id = "contraction.dependent-geot-formal-interrogative"
+kind = "nominal-copula-ending-compose"
+left = "것"
+right = "ㅂ니까"
+result = "겁니까"
+ending_ids = []
+
+[[contraction]]
+id = "contraction.dependent-geo-formal-declarative"
+kind = "nominal-copula-ending-compose"
+left = "거"
+right = "ㅂ니다"
+result = "겁니다"
+ending_ids = []
+
+[[contraction]]
+id = "contraction.dependent-geo-formal-interrogative"
+kind = "nominal-copula-ending-compose"
+left = "거"
+right = "ㅂ니까"
+result = "겁니까"
+ending_ids = []
+
+[[contraction]]
 id = "contraction.geos-copula-nieun-go"
 kind = "copula-host-ending-compose"
 left = "것"
