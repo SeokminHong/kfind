@@ -7,6 +7,14 @@ regression.causal-mae.resultative	어둡다	adjective	smart-exact	10	25	날씨�
 regression.causal-mae.honorific	앉다	verb	smart-exact	13	25	선생님이 앉으시매 수업을 시작했다.
 regression.causal-mae.future	먹다	verb	smart-exact	7	19	그가 먹겠으매 음식을 준비했다.
 regression.causal-mae.copula	이다	adjective	smart-exact	13	19	오랜 친구이매 마음이 편했다.
+regression.archaic-nira.consonant	좁다	adjective	smart-exact	7	19	길이 좁으니라.
+regression.archaic-nira.irregular	가볍다	adjective	smart-exact	7	22	짐이 가벼우니라.
+regression.archaic-nira.rieul	힘들다	adjective	smart-exact	10	22	살림이 힘드니라.
+regression.archaic-nira.existential	있다	verb	smart-exact	7	19	때가 있느니라.
+regression.archaic-nira.action-rieul	알다	verb	smart-exact	10	22	누구나 아느니라.
+regression.archaic-nira.past	그렇다	adjective	smart-exact	13	28	예전에는 그랬느니라.
+regression.archaic-nira.copula	이다	adjective	smart-exact	16	25	이것이 진실이니라.
+regression.archaic-nira.honorific	앉다	verb	smart-exact	13	28	어르신이 앉으시니라.
 regression.polite-honorific.consonant-contracted	읽다	verb	smart-exact	7	19	책을 읽으셔요.
 regression.polite-honorific.consonant-full	앉다	verb	smart-exact	7	22	여기 앉으시어요.
 regression.polite-honorific.consonant-invalid	앉다	verb	no-match	7	16	여기 앉셔요.
