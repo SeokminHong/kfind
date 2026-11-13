@@ -36,22 +36,24 @@ const colloquialPos = options.includes('--colloquial-pos');
 const residualContext = options.includes('--residual-context');
 const proofreadingJoins = options.includes('--proofreading-joins');
 const spatialSpacing = options.includes('--spatial-spacing');
+const nominalSpelling = options.includes('--nominal-spelling');
 const derivedWholeNouns = options.includes('--derived-whole-nouns');
 const helpCompany = options.includes('--help-company');
 const alignedNominalSpans = options.includes('--aligned-nominal-spans');
 const mayorTitle = options.includes('--mayor-title');
 const anonymousMo = options.includes('--anonymous-mo');
 if (!input || (restored && !shared) || (proofread && !restored)
-    || (independent || contextAnnotations || nominalModifiers || derivedNominals || scopeNominals || jiNominals || motSpacing || ijenContext || quantifierAnnotations || lexicalWhole || contextLexemes || receiveDerivation || missegmentedLexemes || properBoundaries || nominalDerivedBoundaries || compoundBoundaries || predicateReanalysis || auxiliaryPos || derivedPredicatePos || nominalHada || derivedSegmentation || colloquialLemma || odaSpacing || linkedMainVerbSpacing || lexicalPredicates || predicateContinuations || colloquialPos || residualContext || proofreadingJoins || spatialSpacing || anonymousMo || mayorTitle || alignedNominalSpans || helpCompany || derivedWholeNouns ? options.length !== 1
+    || (independent || contextAnnotations || nominalModifiers || derivedNominals || scopeNominals || jiNominals || motSpacing || ijenContext || quantifierAnnotations || lexicalWhole || contextLexemes || receiveDerivation || missegmentedLexemes || properBoundaries || nominalDerivedBoundaries || compoundBoundaries || predicateReanalysis || auxiliaryPos || derivedPredicatePos || nominalHada || derivedSegmentation || colloquialLemma || odaSpacing || linkedMainVerbSpacing || lexicalPredicates || predicateContinuations || colloquialPos || residualContext || proofreadingJoins || spatialSpacing || anonymousMo || mayorTitle || alignedNominalSpans || helpCompany || derivedWholeNouns || nominalSpelling ? options.length !== 1
       : options.length !== Number(contract) + Number(shared) + Number(restored) + Number(proofread))) {
-  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals | --scope-nominals | --ji-nominals | --mot-spacing | --ijen-context | --quantifier-annotations | --lexical-whole | --context-lexemes | --receive-derivation | --missegmented-lexemes | --proper-boundaries | --nominal-derived-boundaries | --compound-boundaries | --predicate-reanalysis | --auxiliary-pos | --derived-predicate-pos | --nominal-hada | --derived-segmentation | --colloquial-lemma | --oda-spacing | --linked-main-verb-spacing | --lexical-predicates | --predicate-continuations | --colloquial-pos | --residual-context | --proofreading-joins | --spatial-spacing | --anonymous-mo | --mayor-title | --aligned-nominal-spans | --help-company | --derived-whole-nouns)');
+  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals | --scope-nominals | --ji-nominals | --mot-spacing | --ijen-context | --quantifier-annotations | --lexical-whole | --context-lexemes | --receive-derivation | --missegmented-lexemes | --proper-boundaries | --nominal-derived-boundaries | --compound-boundaries | --predicate-reanalysis | --auxiliary-pos | --derived-predicate-pos | --nominal-hada | --derived-segmentation | --colloquial-lemma | --oda-spacing | --linked-main-verb-spacing | --lexical-predicates | --predicate-continuations | --colloquial-pos | --residual-context | --proofreading-joins | --spatial-spacing | --anonymous-mo | --mayor-title | --aligned-nominal-spans | --help-company | --derived-whole-nouns | --nominal-spelling)');
 }
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
 const previousInput = 'd34735e79fad865a62685522859f2664e56d9f37330a1a11d17614aab82cda1e';
 const currentFixtureInput = '8f3aa236f20a0913e78e04139539b636835a538ab5d552891856a73a5e77e5da';
 const contextPosReviewInput = '120ad5000b84b3d61fef05214b6d703e0f573eb55330f0741cf455583806dce9';
-if (derivedWholeNouns ? checksum !== '88b7817096118165f11f9640a4ef4c14f84e5b5ef3ed1e9f81754671c114cb96'
+if (nominalSpelling ? checksum !== '31926841e4cd7b7bb456ffc56a3972b9b3d2c03e23c9e155771dbdb04a508032'
+  : derivedWholeNouns ? checksum !== '88b7817096118165f11f9640a4ef4c14f84e5b5ef3ed1e9f81754671c114cb96'
   : helpCompany ? checksum !== 'cd25113ad12ef849cac7e549005cecf410588223cc306119ee626db78a68c8bb'
   : alignedNominalSpans ? checksum !== 'e377250a4850f15eafc9d0a54b48b103389aeda1d2a6780a6c330525535d5eda'
   : mayorTitle ? checksum !== '569a6f9f9d66793d920603fe872ddf64df0be409430d72a42758430c1e99fe8a'
@@ -97,6 +99,7 @@ function tsv(path) {
 
 const editsBySentence = new Map();
 const sentenceEdits = derivedWholeNouns || alignedNominalSpans || mayorTitle || anonymousMo || proofreadingJoins || residualContext || colloquialPos || predicateContinuations || lexicalPredicates || derivedSegmentation || nominalHada || derivedNominals || scopeNominals || jiNominals || ijenContext || quantifierAnnotations || lexicalWhole || receiveDerivation || properBoundaries || nominalDerivedBoundaries || compoundBoundaries ? [] : tsv(linkedMainVerbSpacing ? './gsd-linked-main-verb-spacing-edits.tsv'
+  : nominalSpelling ? './gsd-nominal-spelling-edits.tsv'
   : helpCompany ? './gsd-help-company-edits.tsv'
   : spatialSpacing ? './gsd-spatial-spacing-edits.tsv'
   : odaSpacing ? './gsd-oda-spacing-edits.tsv'
@@ -121,7 +124,8 @@ for (const [id, source, replacement, reason] of sentenceEdits) {
 }
 
 const annotations = new Map();
-const annotationEdits = tsv(derivedWholeNouns ? './gsd-derived-whole-nouns-annotations.tsv'
+const annotationEdits = tsv(nominalSpelling ? './gsd-nominal-spelling-annotations.tsv'
+  : derivedWholeNouns ? './gsd-derived-whole-nouns-annotations.tsv'
   : helpCompany ? './gsd-help-company-annotations.tsv'
   : alignedNominalSpans ? './gsd-aligned-nominal-spans-annotations.tsv'
   : mayorTitle ? './gsd-mayor-title-annotations.tsv'
