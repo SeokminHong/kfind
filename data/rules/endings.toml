@@ -1062,6 +1062,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.connective-rieulppundeoreo"
+category = "connective"
+initial = "attach-rieul"
+forms = ["ㄹ뿐더러", "을뿐더러"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.interrogative-rieulkka"
 category = "final"
 initial = "attach-rieul"

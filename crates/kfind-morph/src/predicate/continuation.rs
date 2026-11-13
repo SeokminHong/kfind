@@ -1058,6 +1058,7 @@ macro_rules! rieul_endings {
             suffix(concat!($prefix, "라"), &[$($prior,)* "ending.concern-rieulra"]),
             suffix(concat!($prefix, "세라"), &[$($prior,)* "ending.concern-rieulsera"]),
             suffix(concat!($prefix, "수록"), &[$($prior,)* "ending.connective-rieulsurok"]),
+            suffix(concat!($prefix, "뿐더러"), &[$($prior,)* "ending.connective-rieulppundeoreo"]),
             suffix(concat!($prefix, "망정"), &[$($prior,)* "ending.concessive-rieul"]),
             suffix(concat!($prefix, "지라도"), &[$($prior,)* "ending.concessive-rieul"]),
             suffix(concat!($prefix, "지언정"), &[$($prior,)* "ending.concessive-rieul"]),
