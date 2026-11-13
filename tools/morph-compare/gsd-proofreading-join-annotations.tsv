@@ -1,0 +1,13 @@
+case_id	query	pos	form	lemma	xpos	gold_form
+gsd:test-s100:13	전화번호	noun	전화번호별로	전화번호+별+로	NNG+XSN+JKB	전화번호
+gsd:test-s100:14	-
+gsd:test-s270:16	역모죄	noun	역모죄로	역모죄+로	NNG+JKB	역모죄로
+gsd:test-s270:17	-
+gsd:test-s571:11	붉은빛	noun	붉은빛을	붉은빛+을	NNG+JKO	붉은빛을
+gsd:test-s571:12	-
+gsd:test-s648:1	창밖	noun	창밖의	창밖+의	NNG+JKG	창밖의
+gsd:test-s648:2	-
+gsd:test-s743:5	달	noun	달간의	달+간+의	NNG+XSN+JKG	달
+gsd:test-s743:6	-
+gsd:test-s819:2	모래주머니	noun	모래주머니	모래주머니	NNG	모래주머니
+gsd:test-s819:3	-
