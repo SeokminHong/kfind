@@ -1,0 +1,5 @@
+case_id	query	pos	form	lemma	xpos	gold_form
+gsd:test-s7:21	여회사원	noun	여회사원과	여+회사원+과	XPN+NNG+JC	여회사원과
+gsd:test-s369:19	건수	noun	건수는	건수+는	NNG+JX	건수는
+gsd:test-s503:5	총동창회장	noun	총동창회장에	총+동창회장+에	XPN+NNG+JKB	총동창회장에
+gsd:test-s753:9	극빈곤층	noun	극빈곤층으로	극+빈곤+층+으로	XR+NNG+XSN+JKB	극빈곤층으로
