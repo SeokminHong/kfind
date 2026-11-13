@@ -2249,6 +2249,30 @@ impl MorphMatcher {
                                 || unambiguous_whole_path
                                 || resultative_contraction))
                         || supported_connective
+                        || token.is_some_and(|token| {
+                            let auxiliary_start = candidate.consumed.end - whole.start;
+                            let host = &token[..auxiliary_start];
+                            if !resolver.has_exact_predicate_connective_path(host, source_positions)
+                                || branch.origins.iter().all(|origin| {
+                                    origin
+                                        .rule_path
+                                        .iter()
+                                        .any(|rule| rule.as_str() == "lexical.dictionary-voice")
+                                })
+                            {
+                                return false;
+                            }
+                            trailing.char_indices().skip(1).any(|(split, _)| {
+                                let (auxiliary, particles) = trailing.split_at(split);
+                                self.particle_verifier
+                                    .verify_exact(auxiliary, particles)
+                                    .is_some()
+                                    && resolver.has_nominalized_attached_auxiliary_path(
+                                        &token[..auxiliary_start + split],
+                                        DEFAULT_LATTICE_NODE_LIMIT,
+                                    )
+                            })
+                        })
                 }
                 _ => false,
             };

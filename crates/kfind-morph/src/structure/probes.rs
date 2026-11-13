@@ -1049,6 +1049,17 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_nominalized_attached_auxiliary_path(&self, text: &str, node_limit: usize) -> bool {
+        EdgeGraph::collect(&self.resource, text, node_limit).is_ok_and(|graph| {
+            crate::structure::paths::predicate::has_attached_auxiliary_path_ending_in(
+                text.len(),
+                &graph,
+                |pos| pos == StructuralPos::ETN,
+            )
+        })
+    }
+
+    #[must_use]
     pub fn has_complete_nominal_surface(&self, text: &str) -> bool {
         !text.is_empty() && complete_nominal_host(&self.resource, text)
     }
