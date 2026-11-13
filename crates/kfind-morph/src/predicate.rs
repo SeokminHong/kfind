@@ -391,7 +391,7 @@ fn push_fallback_stem(
     Ok(())
 }
 
-pub(crate) fn ha_ji_contracts_after(base: &str) -> bool {
+pub(crate) fn ha_aspirates_after(base: &str) -> bool {
     base.chars()
         .next_back()
         .and_then(decompose_syllable)
@@ -420,7 +420,7 @@ fn compile_productive(
     );
     if entry.alternation == LexicalAlternation::Ha
         && let Some(base) = stem.strip_suffix('하')
-        && ha_ji_contracts_after(base)
+        && ha_aspirates_after(base)
     {
         let surface = format!("{base}치");
         let core_len = surface.len();
@@ -431,6 +431,16 @@ fn compile_productive(
             core_len,
             ContinuationState::Terminal,
             vec![rule("contraction.ha-ji"), rule("ending.connective-ji")],
+        );
+        let surface = format!("{base}키");
+        let core_len = surface.len();
+        push_branch(
+            branches,
+            entry,
+            surface,
+            core_len,
+            ContinuationState::Terminal,
+            vec![rule("contraction.ha-gi"), rule("ending.nominalizer-gi")],
         );
     }
     for ending in continuation::STEM_FIXED_ENDINGS {
