@@ -417,6 +417,7 @@ const HONORIFIC_PREFINAL_NE_ENDINGS: &[Suffix] = &[
 ];
 
 const PAST_SUFFIXES: &[Suffix] = &[
+    PREFINAL_EUNI,
     NOMINALIZER_EUM,
     NOMINALIZER_GI,
     NEGATIVE_TOPIC,
@@ -499,6 +500,7 @@ const HONORIFIC_NOMINALIZER_GIL: Suffix = suffix(
 );
 
 const FUTURE_SUFFIXES: &[Suffix] = &[
+    PREFINAL_EUNI,
     suffix("지", &["ending.confirmation-jiyo"]),
     NOMINALIZER_EUM,
     NOMINALIZER_GI,
@@ -523,6 +525,7 @@ const FUTURE_SUFFIXES: &[Suffix] = &[
     suffix("어요", &["ending.aoeo", "ending.polite-yo"]),
 ];
 
+const PREFINAL_EUNI: Suffix = suffix("으니", &["ending.connective-ni"]);
 const DECLARATIVE_MYEONSEO: Suffix = suffix("면서", &["ending.quotative-myeonseo"]);
 const DECLARATIVE_NEUNDE: Suffix = suffix("는데", &["ending.quotative-neunde"]);
 const DECLARATIVE_GO: Suffix = suffix("고", &["ending.quotative-go"]);

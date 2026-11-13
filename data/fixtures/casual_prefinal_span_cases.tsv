@@ -50,3 +50,8 @@ walk-casual-context	걷다	verb	exact	10	19	전화를 걸었어.
 hang-casual-context	걸다	verb	exact	14	23	나는 오래 걸었어.
 listen-casual-context	듣다	verb	exact	10	19	가방을 들었어.
 lift-casual-context	들다	verb	exact	10	19	음악을 들었어.
+으니:2	끝나다	verb	exact	17	29	오늘 수업은 끝났으니 돌아가셔도 좋습니다.
+으니:5	완성되다	verb	exact	31	49	오랜 작업 끝에 작품이 완성되었으니 이것이 작가의 대표작이 되었다.
+으니:14	하다	verb	exact	10	19	약속을 했으니 가기 싫어도 갈 수밖에.
+으니:17	이다	adjective	exact	23	32	그는 불행한 천재였으니 나이 겨우 서른 남짓에 세상을 떠났다.
+future-euni	어렵다	adjective	exact	7	22	일이 어렵겠으니 일찍 시작하자.
