@@ -9,17 +9,19 @@ const proofread = options.includes('--proofread');
 const independent = options.includes('--independent-proofreading');
 const contextAnnotations = options.includes('--context-annotations');
 const nominalModifiers = options.includes('--nominal-modifiers');
+const derivedNominals = options.includes('--derived-nominals');
 if (!input || (restored && !shared) || (proofread && !restored)
-    || (independent || contextAnnotations || nominalModifiers ? options.length !== 1
+    || (independent || contextAnnotations || nominalModifiers || derivedNominals ? options.length !== 1
       : options.length !== Number(contract) + Number(shared) + Number(restored) + Number(proofread))) {
-  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers)');
+  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals)');
 }
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
 const previousInput = 'd34735e79fad865a62685522859f2664e56d9f37330a1a11d17614aab82cda1e';
 const currentFixtureInput = '8f3aa236f20a0913e78e04139539b636835a538ab5d552891856a73a5e77e5da';
 const contextPosReviewInput = '120ad5000b84b3d61fef05214b6d703e0f573eb55330f0741cf455583806dce9';
-if (nominalModifiers ? checksum !== '1d8380f3c6c6f892fab50f510b0013ad8db55ea1105901ac24f15508510c4bb2'
+if (derivedNominals ? checksum !== '957dad65dbc029053f56d531d8969638c4a52cb4270fa8b898c8380f722eef9d'
+  : nominalModifiers ? checksum !== '1d8380f3c6c6f892fab50f510b0013ad8db55ea1105901ac24f15508510c4bb2'
   : contextAnnotations ? checksum !== '457c654f940283ce6010293d8497b9cd70faf39d254560b551fdb0eeb2f691ae'
   : independent ? checksum !== contextPosReviewInput
   : checksum !== previousInput && !(shared && checksum === currentFixtureInput)) {
@@ -32,7 +34,7 @@ function tsv(path) {
 }
 
 const editsBySentence = new Map();
-const sentenceEdits = tsv(nominalModifiers ? './gsd-nominal-modifier-edits.tsv'
+const sentenceEdits = derivedNominals ? [] : tsv(nominalModifiers ? './gsd-nominal-modifier-edits.tsv'
   : contextAnnotations ? './gsd-context-annotation-edits.tsv'
   : independent ? './gsd-independent-proofreading-edits.tsv' : './gsd-sentence-edits.tsv');
 if (shared) sentenceEdits.push(...tsv('./gsd-shared-sentence-edits.tsv'));
@@ -46,7 +48,8 @@ for (const [id, source, replacement, reason] of sentenceEdits) {
 }
 
 const annotations = new Map();
-const annotationEdits = tsv(nominalModifiers ? './gsd-nominal-modifier-annotations.tsv'
+const annotationEdits = tsv(derivedNominals ? './gsd-derived-nominal-annotations.tsv'
+  : nominalModifiers ? './gsd-nominal-modifier-annotations.tsv'
   : contextAnnotations ? './gsd-context-annotations.tsv'
   : independent ? './gsd-independent-proofreading-annotations.tsv' : './gsd-sentence-edit-annotations.tsv');
 if (shared) annotationEdits.push(...tsv('./gsd-shared-sentence-annotations.tsv'));

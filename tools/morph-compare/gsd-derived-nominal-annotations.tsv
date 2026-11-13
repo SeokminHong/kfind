@@ -1,0 +1,8 @@
+case_id	query	pos	form	lemma	xpos
+gsd:test-s441:15	대만전	noun	대만전에	대만전+에	NNG+JKB
+gsd:test-s453:5	사무전	noun	사무전이	사무전+이	NNP+JKS
+gsd:test-s489:3	유럽여자프로골프	noun	유럽여자프로골프	유럽여자프로골프	NNP
+gsd:test-s558:3	대구광역시교육감상	noun	대구광역시교육감상	대구광역시교육감상	NNP
+gsd:test-s670:15	플레이오프전	noun	플레이오프전을	플레이오프전+을	NNG+JKO
+gsd:test-s705:4	일본전	noun	일본전에서	일본전+에서	NNG+JKB
+gsd:test-s776:2	현대미술	noun	현대미술은	현대미술+은	NNG+JX
