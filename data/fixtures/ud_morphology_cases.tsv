@@ -86,6 +86,7 @@ regression.quotative-ran.noun-consonant	사람	noun	smart-exact	0	12	사람이�
 regression.quotative-ran.noun-vowel	친구	noun	smart-exact	0	9	친구란 모름지기 서로 돕는다.
 regression.quotative-ran.subordinate-subject	이다	adjective	smart-exact	29	35	발표자는 결과가 합격이란 사실을 알렸다.
 corpus.ud-gsd.test.test-s33.quotative-ran	이다	adjective	smart-exact	45	51	지난달 2일 RBA는 금리를 동결할 것이란 시장 예상과 달리 6개월 만에 기준금리를 4.75%로 0.25%p 인상했다.
+corpus.ud-gsd.test.test-s33.nominal-before-quotative-ran	것	noun	smart-exact	42	45	지난달 2일 RBA는 금리를 동결할 것이란 시장 예상과 달리 6개월 만에 기준금리를 4.75%로 0.25%p 인상했다.
 corpus.ud-gsd.test.test-s742.topic-ran	이다	adjective	no-match	12	18	입체음향이란 방향과 거리, 공간감각을 느낄 수 있는 소리를 말한다.
 regression.quotative-ran.nominal-after-coordination	만남	noun	smart-exact	10	22	이별과 만남이란 주제로 전시회를 열었다.
 corpus.ud-pud.test.n01024010.adnominal-ran	자	noun	no-match	20	26	지구 씨앗에서 자란 식물이 17일 후 살아있을 확률은 70%를 약간 넘고 우주 씨앗에서 자란 식물이 생존할확률은 이보다 약간 낮은 66% 정도였다.

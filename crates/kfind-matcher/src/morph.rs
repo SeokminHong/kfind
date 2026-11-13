@@ -1186,6 +1186,21 @@ impl MorphMatcher {
         {
             return false;
         }
+        if boundary == BoundaryPolicy::Smart
+            && matches!(
+                branch.consumption,
+                CandidateConsumption::NominalParticleChain { .. }
+            )
+            && let Some(resolver) = self.constraint_resolver.as_ref()
+            && has_dependent_quotative_frame(haystack, candidate, resolver)
+        {
+            candidate.consumed.end = candidate.verified.core.end;
+            candidate.verified.token.end = candidate.verified.core.end;
+            if !candidate.verified.origins.is_empty() {
+                candidate.verified.origins.clone_from(&branch.origins);
+            }
+            candidate.suffix_rules.clear();
+        }
         match &branch.decision {
             CandidateDecision::Boundary(_) => {
                 self.accepts_token_boundary(haystack, &candidate.verified, branch)
@@ -2823,6 +2838,22 @@ fn has_competing_iran_particle_analysis(
                         || resolver.has_object_marked_nominal(&previous)
                 }))
     })
+}
+
+fn has_dependent_quotative_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let core = &candidate.verified.core;
+    matches!(candidate.suffix_rules.as_slice(), [rule] if rule.as_str() == "particle.topic.iran-ran")
+        && is_boundary_before(haystack, core.start)
+        && is_boundary_after(haystack, candidate.consumed.end)
+        && context::normalized_token(haystack, core.clone()).is_some_and(|nominal| {
+            context::previous_word(haystack, core.start)
+                .is_some_and(|previous| resolver.has_adnominal_dependent_noun(&previous, &nominal))
+        })
+        && has_quotative_adnominal_head(haystack, candidate.consumed.end, resolver)
 }
 
 fn has_counted_unit_copula(
