@@ -45,6 +45,29 @@ pub(super) fn verify_progression_oda(
     )
 }
 
+pub(super) fn verify_progression_gada(
+    anchor_len: usize,
+    following: &str,
+) -> Option<PredicateContinuationMatch> {
+    let (form, state, rule) = if following.starts_with('갈') {
+        (
+            "갈",
+            ContinuationState::RieulFinal,
+            "ending.future-adnominal",
+        )
+    } else {
+        ("갔", ContinuationState::Past, "ending.past")
+    };
+    verify_form(
+        anchor_len,
+        following,
+        form,
+        state,
+        Some(rule),
+        "ending.auxiliary-gada",
+    )
+}
+
 pub(super) fn verify_resultative(
     anchor_len: usize,
     following: &str,
