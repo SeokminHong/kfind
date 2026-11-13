@@ -545,6 +545,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
     suffix("는데", &["ending.connective-neunde"]),
     suffix("다고", &["ending.quotative-go"]),
     suffix("던", &["ending.retrospective-adnominal"]),
+    suffix("던들", &["ending.counterfactual-deondeul"]),
     suffix("을", &["ending.future-adnominal"]),
     suffix("다", &["ending.final-da"]),
     suffix("고", &["ending.connective-go"]),
@@ -1279,7 +1280,9 @@ const SYEOTNEUN_EXTENSIONS: &[Suffix] =
     nieun_extensions!("셨는", "ending.honorific", "ending.past");
 const SIGETNEUN_EXTENSIONS: &[Suffix] =
     nieun_extensions!("시겠는", "ending.honorific", "ending.future");
+const NIEUNDEUL: Suffix = suffix("들", &["ending.concessive-nieundeul"]);
 const COMPLETED_NIEUN: &[Suffix] = &[
+    NIEUNDEUL,
     suffix("걸", &["ending.explanatory-ngeol"]),
     suffix("걸요", &["ending.explanatory-ngeol", "ending.polite-yo"]),
     suffix("바", &["ending.connective-nba"]),
@@ -1655,6 +1658,23 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding
+            if following.starts_with("은들") && anchor.ends_with(['있', '없']) =>
+        {
+            &[suffix("은들", &["ending.concessive-nieundeul"])]
+        }
+        ContinuationState::Eu if following.starts_with("신들") => &[suffix(
+            "신들",
+            &["ending.honorific", "ending.concessive-nieundeul"],
+        )],
+        ContinuationState::Eu if following.starts_with("셨던들") => &[suffix(
+            "셨던들",
+            &[
+                "ending.honorific",
+                "ending.past",
+                "ending.counterfactual-deondeul",
+            ],
+        )],
         ContinuationState::StemEnding
             if following.starts_with("으되") && anchor.ends_with(['있', '없']) =>
         {
@@ -2086,6 +2106,11 @@ fn verify_simple_continuation(
         ContinuationState::Eu if nieun_question_tail(following, "시는") => SINEUN_QUESTIONS,
         ContinuationState::Eu if nieun_question_tail(following, "셨는") => SYEOTNEUN_QUESTIONS,
         ContinuationState::Eu if nieun_question_tail(following, "시겠는") => SIGETNEUN_QUESTIONS,
+        ContinuationState::NieunEnding
+            if !anchor.ends_with('는') && following.starts_with('들') =>
+        {
+            &[NIEUNDEUL]
+        }
         ContinuationState::NieunEnding => NIEUN_EXTENSIONS,
         ContinuationState::Past | ContinuationState::Future if nieun_tail(following, "는") => {
             NEUN_EXTENSIONS
@@ -2175,6 +2200,8 @@ fn verify_simple_continuation(
                 suffix.rules.last().copied(),
                 Some(
                     "ending.connective-daganeun"
+                        | "ending.concessive-nieundeul"
+                        | "ending.counterfactual-deondeul"
                         | "ending.dialect-past-je"
                         | "ending.colloquial-rieulramyeon"
                 )

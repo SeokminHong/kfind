@@ -55,6 +55,14 @@ regression.doe.consonant-stem	적다	verb	smart-exact	0	6	적되 어법에 맞�
 regression.doe.honorific	말하다	verb	smart-exact	0	12	말하시되 상대를 배려하세요.
 regression.doe.existential-compound	재미있다	adjective	smart-exact	0	15	재미있으되 내용은 어렵다.
 regression.doe.prefinal	오다	verb	smart-exact	7	16	봄은 왔으되 여전히 춥다.
+regression.deul.rieul-stem	살다	verb	smart-exact	7	13	여기 산들 달라질 게 없다.
+regression.deul.existential	있다	adjective	smart-exact	7	16	돈이 있은들 소용없다.
+regression.deul.copula	이다	adjective	smart-exact	16	22	아무리 장사인들 버티겠느냐.
+regression.deul.honorific-past	오다	verb	smart-exact	7	19	일찍 오셨던들 못 보셨을 것이다.
+regression.deul.plural	살다	verb	no-match	0	6	산들이 보인다.
+regression.deul.plural-compound	사다	verb	no-match	0	9	사진들 속에서 그를 찾았다.
+regression.deul.adnominal-lexeme	말다	verb	no-match	0	6	만들 것을 약속했다.
+regression.deul.adnominal-dependent	말다	verb	no-match	0	6	만들 수 있다.
 regression.doe.token-interior	작다	adjective	no-match	3	9	시작되었고그 자동차 회사는 남았다.
 regression.archaic-nira.consonant	좁다	adjective	smart-exact	7	19	길이 좁으니라.
 regression.archaic-nira.irregular	가볍다	adjective	smart-exact	7	22	짐이 가벼우니라.

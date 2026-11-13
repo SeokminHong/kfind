@@ -1270,6 +1270,47 @@ impl MorphMatcher {
     ) -> bool {
         let boundary = atom.boundary;
         if boundary == BoundaryPolicy::Smart
+            && candidate.suffix_rules.iter().any(|rule| {
+                matches!(
+                    rule.as_str(),
+                    "ending.concessive-nieundeul" | "ending.counterfactual-deondeul"
+                )
+            })
+            && !branch
+                .structural_patterns()
+                .iter()
+                .any(|pattern| pattern.fine_pos == DataFinePos::Vcp)
+            && (!is_boundary_before(haystack, candidate.verified.core.start)
+                || self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                    context::normalized_token(haystack, candidate.consumed.clone()).is_some_and(
+                        |word| {
+                            let plural_nominal = word.strip_suffix('들').is_some_and(|host| {
+                                resolver.has_exact_nominal_surface(host)
+                                    && !resolver.has_predicate_adnominal_surface(host)
+                                    && !resolver.has_exact_predicate_connective_path(
+                                        &word,
+                                        kfind_morph::PredicatePosSet::one(
+                                            kfind_morph::PredicatePos::Verb,
+                                        ) | kfind_morph::PredicatePosSet::one(
+                                            kfind_morph::PredicatePos::Adjective,
+                                        ),
+                                    )
+                            });
+                            plural_nominal
+                                || (resolver.has_exact_non_copula_predicate_surface(&word)
+                                    && context::next_word(haystack, candidate.consumed.end)
+                                        .is_some_and(|next| {
+                                            resolver.has_adnominal_dependent_noun(&word, &next)
+                                                || (resolver.has_predicate_adnominal_surface(&word)
+                                                    && resolver.has_independent_nominal_head(&next))
+                                        }))
+                        },
+                    )
+                }))
+        {
+            return false;
+        }
+        if boundary == BoundaryPolicy::Smart
             && !is_boundary_before(haystack, candidate.verified.core.start)
             && !is_boundary_after(haystack, candidate.consumed.end)
             && branch
