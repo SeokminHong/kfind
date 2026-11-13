@@ -2013,7 +2013,12 @@ impl MorphMatcher {
                                 resolver.has_derived_predicate_connective_surface(
                                     surface,
                                     source_positions,
-                                )
+                                ) || (whole.start == candidate.verified.core.start
+                                    && has_rule("contraction.ha-yeo")
+                                    && resolver.has_exact_predicate_connective_path(
+                                        surface,
+                                        source_positions,
+                                    ))
                             });
                     (complete_attached_path
                         && (visible_connective
