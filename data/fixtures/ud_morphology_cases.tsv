@@ -853,6 +853,9 @@ regression.polite-honorific.short-hao	말다	verb	smart-exact	14	20	열어 두�
 regression.polite-honorific.internal	물다	verb	no-match	40	49	겨울에는 무조건 내복 입고 주무세요.
 regression.polite-honorific.auxiliary	줄다	verb	no-match	14	23	여기로 와 주세요.
 regression.polite-honorific.destination	갈다	verb	no-match	13	22	병원으로 가세요.
+corpus.ud-gsd.test.test-s131.proper-title	지	noun	smart-exact	13	16	소녀시대 지 비디오 찾아줘
+corpus.ud-gsd.test.test-s350.proper-title	지	noun	smart-exact	13	16	소녀시대 지 뮤직 비디오를 찾아줘
+regression.adjacent-determiner.native-count	한	noun	no-match	7	10	기록 한 장을 더 찾았다.
 regression.polite-honorific.instrument	갈다	verb	smart-exact	21	30	이 숫돌로 칼을 가세요.
 regression.polite-honorific.roll	말다	verb	smart-exact	56	65	김 위에 밥을 펴고 속을 올리세요. 이렇게 마셔요.
 regression.polite-honorific.drink	마시다	verb	smart-exact	45	54	물잔을 들어 입에 대세요. 이렇게 마셔요.
