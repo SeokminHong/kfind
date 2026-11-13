@@ -1021,6 +1021,13 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_adnominal_dependent_noun(&self, previous: &str, text: &str) -> bool {
+        has_exact_sequence(&self.resource, text, &[StructuralPos::NNB])
+            && (super::lexical::complete_predicate_adnominal_path(&self.resource, previous)
+                || super::lexical::complete_derived_adnominal_path(&self.resource, previous))
+    }
+
+    #[must_use]
     pub fn has_compound_noun_surface(&self, text: &str) -> bool {
         if text.chars().take(4).count() < 4 {
             return false;
