@@ -1,0 +1,27 @@
+case_id	fixture_id	reason
+gsd:test-s53:4	corpus.ud-gsd.test.test-s53.verb.고생하다	배경 연결 어미 -는데
+gsd:test-s55:11	corpus.ud-gsd.test.test-s55.noun.일품	-었습니다 표기와 지정사 앞 명사 범위
+gsd:test-s66:4	corpus.ud-gsd.test.test-s66.verb.원하다	관형형 뒤 의존 명사 대로 띄어쓰기
+gsd:test-s73:2	corpus.ud-gsd.test.test-s73.noun.모임	받침 있는 체언 뒤 -이었-과 지정사 앞 명사 범위
+gsd:test-s104:3	corpus.ud-gsd.test.test-s104.verb.하다	의도 연결 어미 -려고요
+gsd:test-s119:2	corpus.ud-gsd.test.test-s119.noun.전문점	받침 있는 체언 뒤 -이었-과 지정사 앞 명사 범위
+gsd:test-s136:16	corpus.ud-gsd.test.test-s136.verb.발전시키다	세 음절 이상인 파생 용언 활용형 뒤 보조 용언 띄어쓰기
+gsd:test-s142:21	corpus.ud-gsd.test.test-s142.verb.촉구하다	세 음절 이상인 파생 용언 활용형 뒤 보조 용언 띄어쓰기
+gsd:test-s168:4	corpus.ud-gsd.test.test-s168.adjective.맛있다	연결 어미 -고와 보조사 요
+gsd:test-s177:12	corpus.ud-gsd.test.test-s177.verb.교체하다	세 음절 이상인 파생 용언 활용형 뒤 보조 용언 띄어쓰기
+gsd:test-s207:16	corpus.ud-gsd.test.test-s207.verb.기거하다	세 음절 이상인 파생 용언 활용형 뒤 보조 용언 띄어쓰기
+gsd:test-s228:5	corpus.ud-gsd.test.test-s228.verb.하다	연결 어미 -고와 보조사 요
+gsd:test-s237:5	corpus.ud-gsd.test.test-s237.verb.되다	-나 뒤 추측 보조 용언 띄어쓰기
+gsd:test-s294:7	corpus.ud-gsd.test.test-s294.verb.주다	격식체 종결 어미 -십시오 표기
+gsd:test-s324:5	corpus.ud-gsd.test.test-s324.noun.곳	받침 있는 체언 뒤 -이어서와 지정사 앞 명사 범위
+gsd:test-s352:3	corpus.ud-gsd.test.test-s352.verb.어울리다	연결 어미 -고와 보조사 요
+gsd:test-s411:6	corpus.ud-gsd.test.test-s411.verb.불편하다	종결 어미 -네요 표기
+gsd:test-s470:2	corpus.ud-gsd.test.test-s470.verb.바꾸다	의도 연결 어미 -려고
+gsd:test-s470:4	corpus.ud-gsd.test.test-s470.verb.알다	보조 용언 보다의 과거형 봤
+gsd:test-s481:4	corpus.ud-gsd.test.test-s481.noun.느낌	받침 있는 체언 뒤 -이어서와 지정사 앞 명사 범위
+gsd:test-s488:7	corpus.ud-gsd.test.test-s488.noun.이상	받침 있는 체언 뒤 -이었-과 지정사 앞 명사 범위
+gsd:test-s657:19	corpus.ud-gsd.test.test-s657.verb.되다	되었음의 준말 됐음
+gsd:test-s866:5	corpus.ud-gsd.test.test-s866.verb.바뀌다	연결 어미 -고와 보조사 요
+gsd:test-s903:5	corpus.ud-gsd.test.test-s903.verb.만들다	주체 높임 앞 ㄹ 탈락
+gsd:test-s903:6	corpus.ud-gsd.test.test-s903.verb.하다	회상 어미 -더라고와 보조사 요
+gsd:test-s952:5	corpus.ud-gsd.test.test-s952.verb.악화되다	되어서의 준말 돼서
