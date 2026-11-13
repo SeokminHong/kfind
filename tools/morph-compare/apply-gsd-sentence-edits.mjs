@@ -36,18 +36,20 @@ const colloquialPos = options.includes('--colloquial-pos');
 const residualContext = options.includes('--residual-context');
 const proofreadingJoins = options.includes('--proofreading-joins');
 const spatialSpacing = options.includes('--spatial-spacing');
+const mayorTitle = options.includes('--mayor-title');
 const anonymousMo = options.includes('--anonymous-mo');
 if (!input || (restored && !shared) || (proofread && !restored)
-    || (independent || contextAnnotations || nominalModifiers || derivedNominals || scopeNominals || jiNominals || motSpacing || ijenContext || quantifierAnnotations || lexicalWhole || contextLexemes || receiveDerivation || missegmentedLexemes || properBoundaries || nominalDerivedBoundaries || compoundBoundaries || predicateReanalysis || auxiliaryPos || derivedPredicatePos || nominalHada || derivedSegmentation || colloquialLemma || odaSpacing || linkedMainVerbSpacing || lexicalPredicates || predicateContinuations || colloquialPos || residualContext || proofreadingJoins || spatialSpacing || anonymousMo ? options.length !== 1
+    || (independent || contextAnnotations || nominalModifiers || derivedNominals || scopeNominals || jiNominals || motSpacing || ijenContext || quantifierAnnotations || lexicalWhole || contextLexemes || receiveDerivation || missegmentedLexemes || properBoundaries || nominalDerivedBoundaries || compoundBoundaries || predicateReanalysis || auxiliaryPos || derivedPredicatePos || nominalHada || derivedSegmentation || colloquialLemma || odaSpacing || linkedMainVerbSpacing || lexicalPredicates || predicateContinuations || colloquialPos || residualContext || proofreadingJoins || spatialSpacing || anonymousMo || mayorTitle ? options.length !== 1
       : options.length !== Number(contract) + Number(shared) + Number(restored) + Number(proofread))) {
-  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals | --scope-nominals | --ji-nominals | --mot-spacing | --ijen-context | --quantifier-annotations | --lexical-whole | --context-lexemes | --receive-derivation | --missegmented-lexemes | --proper-boundaries | --nominal-derived-boundaries | --compound-boundaries | --predicate-reanalysis | --auxiliary-pos | --derived-predicate-pos | --nominal-hada | --derived-segmentation | --colloquial-lemma | --oda-spacing | --linked-main-verb-spacing | --lexical-predicates | --predicate-continuations | --colloquial-pos | --residual-context | --proofreading-joins | --spatial-spacing | --anonymous-mo)');
+  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals | --scope-nominals | --ji-nominals | --mot-spacing | --ijen-context | --quantifier-annotations | --lexical-whole | --context-lexemes | --receive-derivation | --missegmented-lexemes | --proper-boundaries | --nominal-derived-boundaries | --compound-boundaries | --predicate-reanalysis | --auxiliary-pos | --derived-predicate-pos | --nominal-hada | --derived-segmentation | --colloquial-lemma | --oda-spacing | --linked-main-verb-spacing | --lexical-predicates | --predicate-continuations | --colloquial-pos | --residual-context | --proofreading-joins | --spatial-spacing | --anonymous-mo | --mayor-title)');
 }
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
 const previousInput = 'd34735e79fad865a62685522859f2664e56d9f37330a1a11d17614aab82cda1e';
 const currentFixtureInput = '8f3aa236f20a0913e78e04139539b636835a538ab5d552891856a73a5e77e5da';
 const contextPosReviewInput = '120ad5000b84b3d61fef05214b6d703e0f573eb55330f0741cf455583806dce9';
-if (anonymousMo ? checksum !== '776e8c66af108cfef3aad202ed57455ca3736c26c76e15592dedf4929ddff416'
+if (mayorTitle ? checksum !== '569a6f9f9d66793d920603fe872ddf64df0be409430d72a42758430c1e99fe8a'
+  : anonymousMo ? checksum !== '776e8c66af108cfef3aad202ed57455ca3736c26c76e15592dedf4929ddff416'
   : spatialSpacing ? checksum !== 'a928472937bc4f14f40b16d24446f3b5a94a1748ad38c561680d979bfaafbed5'
   : proofreadingJoins ? checksum !== 'bc9e38af4f43f07f27e10d10d483afbfdda1c4d7b4236ddf28b4519df64747ae'
   : residualContext ? checksum !== '8c0d2aec14a1d21cacac510953ed674a5a2a30aef52a1a5a8a53a280f8ab96ed'
@@ -88,7 +90,7 @@ function tsv(path) {
 }
 
 const editsBySentence = new Map();
-const sentenceEdits = anonymousMo || proofreadingJoins || residualContext || colloquialPos || predicateContinuations || lexicalPredicates || derivedSegmentation || nominalHada || derivedNominals || scopeNominals || jiNominals || ijenContext || quantifierAnnotations || lexicalWhole || receiveDerivation || properBoundaries || nominalDerivedBoundaries || compoundBoundaries ? [] : tsv(linkedMainVerbSpacing ? './gsd-linked-main-verb-spacing-edits.tsv'
+const sentenceEdits = mayorTitle || anonymousMo || proofreadingJoins || residualContext || colloquialPos || predicateContinuations || lexicalPredicates || derivedSegmentation || nominalHada || derivedNominals || scopeNominals || jiNominals || ijenContext || quantifierAnnotations || lexicalWhole || receiveDerivation || properBoundaries || nominalDerivedBoundaries || compoundBoundaries ? [] : tsv(linkedMainVerbSpacing ? './gsd-linked-main-verb-spacing-edits.tsv'
   : spatialSpacing ? './gsd-spatial-spacing-edits.tsv'
   : odaSpacing ? './gsd-oda-spacing-edits.tsv'
   : colloquialLemma ? './gsd-colloquial-lemma-edits.tsv'
@@ -112,7 +114,8 @@ for (const [id, source, replacement, reason] of sentenceEdits) {
 }
 
 const annotations = new Map();
-const annotationEdits = tsv(anonymousMo ? './gsd-anonymous-mo-annotations.tsv'
+const annotationEdits = tsv(mayorTitle ? './gsd-mayor-title-annotations.tsv'
+  : anonymousMo ? './gsd-anonymous-mo-annotations.tsv'
   : spatialSpacing ? './gsd-spatial-spacing-annotations.tsv'
   : proofreadingJoins ? './gsd-proofreading-join-annotations.tsv'
   : residualContext ? './gsd-residual-context-annotations.tsv'
