@@ -742,6 +742,19 @@ fn compile_rieul_eu_endings(
         );
     }
     let question = continuation::FAMILIAR_QUESTION;
+    let declarative = if entry.pos.is_action() {
+        continuation::NEUNIRA
+    } else {
+        continuation::NIRA
+    };
+    push_branch(
+        branches,
+        entry,
+        format!("{dropped}{}", declarative.surface),
+        dropped.len(),
+        ContinuationState::Terminal,
+        declarative.rules.iter().map(|id| rule(id)).collect(),
+    );
     push_branch(
         branches,
         entry,
@@ -801,6 +814,7 @@ fn compile_rieul_honorific(
         .chain(continuation::HONORIFIC_YAJI_ENDINGS)
         .chain(continuation::POLITE_HONORIFIC_ENDINGS)
         .chain(continuation::HONORIFIC_VOWEL_CONNECTIVES)
+        .chain(continuation::HONORIFIC_NIRA)
         .chain([&continuation::HONORIFIC_DAM])
         .chain(&continuation::HONORIFIC_NE_ENDINGS)
         .chain(if entry.pos.is_action() {

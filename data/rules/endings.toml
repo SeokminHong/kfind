@@ -822,6 +822,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.archaic-nira"
+category = "final"
+initial = "eu"
+forms = ["니라", "으니라", "느니라"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.interrogative-ni"
 category = "final"
 initial = "consonant"
