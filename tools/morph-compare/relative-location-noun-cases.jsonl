@@ -1,0 +1,14 @@
+{"id":"front","query":"앞","pos":"noun","text":"학교 앞 가게가 문을 열었다.","expected":true,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"back","query":"뒤","pos":"noun","text":"건물 뒤 골목을 걸었다.","expected":true,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"above","query":"위","pos":"noun","text":"책상 위 물건을 치웠다.","expected":true,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"below","query":"아래","pos":"noun","text":"다리 아래 그늘에서 쉬었다.","expected":true,"gold_byte_start":7,"gold_byte_end":13}
+{"id":"under","query":"밑","pos":"noun","text":"책상 밑 서랍을 열었다.","expected":true,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"beside","query":"옆","pos":"noun","text":"책장 옆 창문을 열었다.","expected":true,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"inside","query":"안","pos":"noun","text":"상자 안 물건을 정리했다.","expected":true,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"in","query":"속","pos":"noun","text":"화보 속 박하선은 웃었다.","expected":true,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"outside","query":"밖","pos":"noun","text":"울타리 밖 풀을 깎았다.","expected":true,"gold_byte_start":10,"gold_byte_end":13}
+{"id":"genitive","query":"안","pos":"noun","text":"방의 안 물건을 정리했다.","expected":true,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"negation","query":"안","pos":"noun","text":"친구는 안 먹었다.","expected":false,"gold_byte_start":10,"gold_byte_end":13}
+{"id":"negative-adverb","query":"안","pos":"adverb","text":"친구는 안 먹었다.","expected":true,"gold_byte_start":10,"gold_byte_end":13}
+{"id":"ranking","query":"위","pos":"noun","text":"팀이 3위를 차지했다.","expected":true,"gold_byte_start":8,"gold_byte_end":14}
+{"id":"ordinary-determiner","query":"새","pos":"noun","text":"화보 새 사진을 골랐다.","expected":false,"gold_byte_start":7,"gold_byte_end":10}

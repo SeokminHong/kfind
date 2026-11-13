@@ -23,6 +23,8 @@ use crate::{CandidateSpans, MorphContinuation, QueryMorphPattern};
 use kfind_data::{ComponentPos as StructuralPos, ComponentResource, DataFinePos};
 use std::ops::Range;
 
+include!("../../../../../data/rules/nikl-relative-location-nouns.rs");
+
 pub(super) mod components;
 pub(super) mod runtime;
 
@@ -474,6 +476,24 @@ pub(in crate::structure) fn select_structure(
             )
         });
     let particle_host = evidence.nominal_particle_hosts.last().cloned();
+    if next_starts_determiner_nominal
+        && !next_is_counter
+        && RELATIVE_LOCATION_NOUNS.contains(&context.current)
+        && evidence.has_whole(DataFinePos::Nng)
+        && context.next.is_some_and(|next| {
+            !complete_predicate_ending_path(resource, next)
+                || has_complete_object_phrase(resource, next)
+        })
+        && context.previous.is_some_and(|previous| {
+            (has_exact_fine_pos(resource, previous, DataFinePos::is_nominal)
+                || complete_nominal_particle_host(resource, previous).is_some_and(|host| {
+                    has_exact_sequence(resource, &previous[host.end..], &[StructuralPos::JKG])
+                }))
+                && !complete_predicate_ending_path(resource, previous)
+        })
+    {
+        return StructureSelection::NominalWhole;
+    }
     if evidence.has_whole(DataFinePos::Mag)
         && evidence
             .units
