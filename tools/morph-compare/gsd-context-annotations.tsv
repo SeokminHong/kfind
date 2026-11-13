@@ -1,0 +1,6 @@
+case_id	query	pos	form	lemma	xpos	gold_form	reason
+gsd:test-s38:4	킬로	noun	킬로야	킬로+이+야	NNB+VCP+EF	킬로	거리 단위와 문장 종결 지정사
+gsd:test-s425:3	킬로	noun	킬로야	킬로+이+야	NNB+VCP+EF	킬로	거리 단위와 문장 종결 지정사
+gsd:test-s386:14	네	determiner	네	네	MM	네	해째를 수식하는 수 관형사
+gsd:test-s416:3	어디	pronoun	어디야	어디+이+야	NP+VCP+EF	어디	빵집의 위치를 묻는 종결 지정사
+gsd:test-s554:3	어디	pronoun	어디야	어디+이+야	NP+VCP+EF	어디	주차장의 위치를 묻는 종결 지정사
