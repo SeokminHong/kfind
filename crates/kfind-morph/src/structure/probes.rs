@@ -1300,7 +1300,12 @@ impl ConstraintResolver {
                     || Self::is_mixed_cardinal(cardinal)
                     || has_exact_fine_pos(&self.resource, cardinal, |pos| pos == DataFinePos::Nr)
             }))
-            && has_exact_sequence(&self.resource, unit, &[StructuralPos::NNBC])
+            && self.has_exact_counter(unit)
+    }
+
+    #[must_use]
+    pub fn has_exact_counter(&self, unit: &str) -> bool {
+        has_exact_sequence(&self.resource, unit, &[StructuralPos::NNBC])
     }
 
     #[must_use]

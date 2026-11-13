@@ -948,6 +948,10 @@ regression.pronominal-genitive.copula	나	pronoun	smart-exact	0	3	내 방이었�
 regression.pronominal-genitive.auxiliary-particle	나	pronoun	smart-exact	0	3	내 집만 하겠어요?
 regression.pronominal-genitive.determiner-tail	나	pronoun	no-match	7	10	정당 내 모든 사람들이 모였다.
 corpus.ud-gsd.test.test-s386.pronoun.ordinal	너	pronoun	no-match	27	30	어느덧 천막 안에서 네 해째 겨울을 맞이했다.
+regression.counted-ordinal.first	번	noun	smart-exact	4	10	첫 번째 임기를 마쳤다.
+regression.counted-ordinal.spaced	해	noun	smart-exact	4	13	네 해째는 추웠다.
+regression.counted-ordinal.attached	일	noun	smart-exact	1	10	3일째에 돌아왔다.
+regression.counted-ordinal.no-count	해	noun	no-match	10	19	상자를 해째로 들었다.
 regression.pronominal-genitive.count	너	pronoun	no-match	0	3	네 명이 들어왔다.
 regression.pronominal-genitive.reply	너	pronoun	no-match	0	3	네, 알겠습니다.
 regression.pronominal-genitive.locative	나	pronoun	no-match	7	10	한국 내 개신교 선교사들이 방문했다.
