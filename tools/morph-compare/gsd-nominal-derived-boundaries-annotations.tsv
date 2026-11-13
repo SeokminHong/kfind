@@ -1,0 +1,12 @@
+case_id	query	pos	form	lemma	xpos	gold_form
+gsd:test-s66:15	가족	noun	가족끼리	가족+끼리	NNG+XSN	가족
+gsd:test-s185:6	기름	noun	기름기가	기름+기+가	NNG+XSN+JKS	기름
+gsd:test-s366:17	요드	noun	요드제의	요드+제+의	NNG+XSN+JKG	요드
+gsd:test-s495:11	제작	noun	제작기	제작+기	NNG+XSN	제작
+gsd:test-s519:8	무기	noun	무기류	무기+류	NNG+XSN	무기
+gsd:test-s610:3	나무	noun	나무꾼으로	나무+꾼+으로	NNG+XSN+JKB	나무
+gsd:test-s627:11	지지	noun	지지율	지지+율	NNG+XSN	지지
+gsd:test-s794:1	이슬람	noun	이슬람권에서는	이슬람+권+에서+는	NNP+XSN+JKB+JX	이슬람
+gsd:test-s869:1	국내	noun	국내산	국내+산	NNG+XSN	국내
+gsd:test-s921:5	주	noun	주님의	주+님+의	NNG+XSN+JKG	주
+gsd:test-s964:6	간호사	noun	간호사분들이	간호사+분+들+이	NNG+XSN+XSN+JKS	간호사

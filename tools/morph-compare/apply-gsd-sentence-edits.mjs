@@ -20,17 +20,19 @@ const contextLexemes = options.includes('--context-lexemes');
 const receiveDerivation = options.includes('--receive-derivation');
 const missegmentedLexemes = options.includes('--missegmented-lexemes');
 const properBoundaries = options.includes('--proper-boundaries');
+const nominalDerivedBoundaries = options.includes('--nominal-derived-boundaries');
 if (!input || (restored && !shared) || (proofread && !restored)
-    || (independent || contextAnnotations || nominalModifiers || derivedNominals || scopeNominals || jiNominals || motSpacing || ijenContext || quantifierAnnotations || lexicalWhole || contextLexemes || receiveDerivation || missegmentedLexemes || properBoundaries ? options.length !== 1
+    || (independent || contextAnnotations || nominalModifiers || derivedNominals || scopeNominals || jiNominals || motSpacing || ijenContext || quantifierAnnotations || lexicalWhole || contextLexemes || receiveDerivation || missegmentedLexemes || properBoundaries || nominalDerivedBoundaries ? options.length !== 1
       : options.length !== Number(contract) + Number(shared) + Number(restored) + Number(proofread))) {
-  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals | --scope-nominals | --ji-nominals | --mot-spacing | --ijen-context | --quantifier-annotations | --lexical-whole | --context-lexemes | --receive-derivation | --missegmented-lexemes | --proper-boundaries)');
+  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals | --scope-nominals | --ji-nominals | --mot-spacing | --ijen-context | --quantifier-annotations | --lexical-whole | --context-lexemes | --receive-derivation | --missegmented-lexemes | --proper-boundaries | --nominal-derived-boundaries)');
 }
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
 const previousInput = 'd34735e79fad865a62685522859f2664e56d9f37330a1a11d17614aab82cda1e';
 const currentFixtureInput = '8f3aa236f20a0913e78e04139539b636835a538ab5d552891856a73a5e77e5da';
 const contextPosReviewInput = '120ad5000b84b3d61fef05214b6d703e0f573eb55330f0741cf455583806dce9';
-if (properBoundaries ? checksum !== '6184892a41099170a8a1085ec1b619f96765a60cdf64cef20b00540864626b8e'
+if (nominalDerivedBoundaries ? checksum !== '05de72d018f39d9a03e2787f95f36c2fcf052e0d82313e8bf7c1714135e6f39d'
+  : properBoundaries ? checksum !== '6184892a41099170a8a1085ec1b619f96765a60cdf64cef20b00540864626b8e'
   : missegmentedLexemes ? checksum !== '2766c3fc291cab4c945c4d57fa3ed94c117a2df0d78d90612158249c77459985'
   : receiveDerivation ? checksum !== '03ef9ff20b40e0f6756a45dab2488e357ad814c08faf904d2954ebda2d24f006'
   : contextLexemes ? checksum !== '247faf42cb30ea97665ed7e7495b2b4402f0721825545490723c96a7a84ea7fd'
@@ -54,7 +56,7 @@ function tsv(path) {
 }
 
 const editsBySentence = new Map();
-const sentenceEdits = derivedNominals || scopeNominals || jiNominals || ijenContext || quantifierAnnotations || lexicalWhole || receiveDerivation || properBoundaries ? [] : tsv(missegmentedLexemes ? './gsd-missegmented-lexemes-edits.tsv'
+const sentenceEdits = derivedNominals || scopeNominals || jiNominals || ijenContext || quantifierAnnotations || lexicalWhole || receiveDerivation || properBoundaries || nominalDerivedBoundaries ? [] : tsv(missegmentedLexemes ? './gsd-missegmented-lexemes-edits.tsv'
   : motSpacing ? './gsd-mot-spacing-edits.tsv'
   : nominalModifiers ? './gsd-nominal-modifier-edits.tsv'
   : contextAnnotations ? './gsd-context-annotation-edits.tsv'
@@ -71,7 +73,8 @@ for (const [id, source, replacement, reason] of sentenceEdits) {
 }
 
 const annotations = new Map();
-const annotationEdits = tsv(properBoundaries ? './gsd-proper-boundaries-annotations.tsv'
+const annotationEdits = tsv(nominalDerivedBoundaries ? './gsd-nominal-derived-boundaries-annotations.tsv'
+  : properBoundaries ? './gsd-proper-boundaries-annotations.tsv'
   : missegmentedLexemes ? './gsd-missegmented-lexemes-annotations.tsv'
   : receiveDerivation ? './gsd-receive-derivation-annotations.tsv'
   : contextLexemes ? './gsd-context-lexemes-annotations.tsv'
