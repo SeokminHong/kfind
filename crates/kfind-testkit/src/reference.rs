@@ -879,6 +879,9 @@ fn reference_simple_continuation(
         };
     }
     const PAST: &[ReferenceSuffix] = &[
+        reference_suffix("다가는", &["ending.connective-daganeun"]),
+        reference_suffix("다간", &["ending.connective-daganeun"]),
+        reference_suffix("단", &["ending.connective-daganeun"]),
         reference_suffix("자", &["ending.concessive-eotja"]),
         reference_suffix("남", &["ending.self-question-nam"]),
         reference_suffix("군", &["ending.final-gun"]),
@@ -912,6 +915,9 @@ fn reference_simple_continuation(
     ];
     const FUTURE: &[ReferenceSuffix] = &[
         reference_suffix("남", &["ending.self-question-nam"]),
+        reference_suffix("다가는", &["ending.connective-daganeun"]),
+        reference_suffix("다간", &["ending.connective-daganeun"]),
+        reference_suffix("단", &["ending.connective-daganeun"]),
         reference_suffix("군", &["ending.final-gun"]),
         reference_suffix("군요", &["ending.final-gun", "ending.polite-yo"]),
         reference_suffix("습니까", &["ending.formal-interrogative"]),
@@ -951,6 +957,63 @@ fn reference_simple_continuation(
     ];
     const EU: &[ReferenceSuffix] = &[
         reference_suffix("시남", &["ending.honorific", "ending.self-question-nam"]),
+        reference_suffix(
+            "시다가는",
+            &["ending.honorific", "ending.connective-daganeun"],
+        ),
+        reference_suffix(
+            "시다간",
+            &["ending.honorific", "ending.connective-daganeun"],
+        ),
+        reference_suffix("시단", &["ending.honorific", "ending.connective-daganeun"]),
+        reference_suffix(
+            "셨다가는",
+            &[
+                "ending.honorific",
+                "ending.past",
+                "ending.connective-daganeun",
+            ],
+        ),
+        reference_suffix(
+            "셨다간",
+            &[
+                "ending.honorific",
+                "ending.past",
+                "ending.connective-daganeun",
+            ],
+        ),
+        reference_suffix(
+            "셨단",
+            &[
+                "ending.honorific",
+                "ending.past",
+                "ending.connective-daganeun",
+            ],
+        ),
+        reference_suffix(
+            "시겠다가는",
+            &[
+                "ending.honorific",
+                "ending.future",
+                "ending.connective-daganeun",
+            ],
+        ),
+        reference_suffix(
+            "시겠다간",
+            &[
+                "ending.honorific",
+                "ending.future",
+                "ending.connective-daganeun",
+            ],
+        ),
+        reference_suffix(
+            "시겠단",
+            &[
+                "ending.honorific",
+                "ending.future",
+                "ending.connective-daganeun",
+            ],
+        ),
         reference_suffix("시것다", &["ending.honorific", "ending.geotda"]),
         reference_suffix(
             "셨것다",
@@ -1594,6 +1657,11 @@ fn reference_simple_continuation(
         ContinuationState::StemEnding if pos.is_action() && following.starts_with('남') => {
             &[reference_suffix("남", &["ending.self-question-nam"])]
         }
+        ContinuationState::StemEnding if following.starts_with(['다', '단']) => &[
+            reference_suffix("다가는", &["ending.connective-daganeun"]),
+            reference_suffix("다간", &["ending.connective-daganeun"]),
+            reference_suffix("단", &["ending.connective-daganeun"]),
+        ],
         ContinuationState::NieunEnding
             if (following.starts_with('군') || following.starts_with("구나"))
                 && anchor.ends_with('는')
@@ -2080,6 +2148,11 @@ fn reference_simple_continuation(
         .chain(additional_endings)
         .filter(|suffix| {
             following.starts_with(suffix.surface)
+                && (suffix.rules.last() != Some(&"ending.connective-daganeun")
+                    || !following[suffix.surface.len()..]
+                        .chars()
+                        .next()
+                        .is_some_and(|next| next.is_alphanumeric() || next == '_'))
                 && (pos.is_action()
                     || (!suffix.rules.contains(&"ending.intent-rieulrae")
                         && !suffix.rules.contains(&"ending.conditional-rieulrachimyeon")
