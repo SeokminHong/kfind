@@ -50,6 +50,9 @@ walk-casual-context	걷다	verb	exact	10	19	전화를 걸었어.
 hang-casual-context	걸다	verb	exact	14	23	나는 오래 걸었어.
 listen-casual-context	듣다	verb	exact	10	19	가방을 들었어.
 lift-casual-context	들다	verb	exact	10	19	음악을 들었어.
+다가:2	가다	verb	exact	23	32	유민이가 여행을 갔다가 돌아왔다.
+다가:10	이다	adjective	exact	19	31	10년 동안 과장이었다가 부장이 된 사람.
+다가:13	잡다	verb	exact	10	22	고기를 잡았다가 놓쳤다.
 다면:1	예쁘다	adjective	exact	15	27	내가 좀 더 예뻤다면 인기가 많았을 텐데.
 다면:2	이다	adjective	exact	19	31	선의의 거짓말이었다면 용서받을 수 있을 거야.
 다면:7	삼키다	verb	exact	20	32	아이가 동전을 삼켰다면 큰일이다.
