@@ -410,10 +410,13 @@ regression.numeric-copula.question	이다	adjective	smart-exact	12	18	배낭은 
 regression.numeric-copula.grouped-question	이다	adjective	smart-exact	22	28	오늘 목표는 1,500개냐?
 regression.numeric-copula.bare-number	이다	adjective	smart-exact	12	18	정답은 37이다.
 regression.numeric-copula.spaced-count-question	이다	adjective	smart-exact	4	10	몇 개냐?
+corpus.ud-gsd.test.test-s370.noun.개	개	noun	smart-exact	25	28	사람 뼈는 모두 몇 개냐
+regression.numeric-copula.count-question-not-action	개다	verb	no-match	25	31	사람 뼈는 모두 몇 개냐
 regression.numeric-copula.nominal-question	이다	adjective	smart-exact	14	23	그 사람은 의사냐?
 regression.numeric-copula.coda-nominal-no-omission	이다	adjective	no-match	0	9	학생냐?
 regression.numeric-copula.action-question	개다	verb	smart-exact	27	33	언니는 이불을 벌써 개냐?
 regression.numeric-copula.action-question-not-copula	이다	adjective	no-match	27	33	언니는 이불을 벌써 개냐?
+regression.numeric-copula.action-question-not-unit	개	noun	no-match	27	30	언니는 이불을 벌써 개냐?
 regression.adverb-context.kaist-all-adverb	모두	adverb	smart-exact	47	53	여기서 선택된 남자들은 백이면 백 모두 흑인들이다.
 regression.adverb-context.kaist-all-nominal	모두	noun	smart-exact	47	53	여기서 선택된 남자들은 백이면 백 모두 흑인들이다.
 regression.adverb-context.all-subject	모두	noun	smart-exact	0	9	모두가 자리에서 일어났다.

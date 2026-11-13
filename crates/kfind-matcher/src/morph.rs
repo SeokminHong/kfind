@@ -1668,6 +1668,14 @@ impl MorphMatcher {
         let Some(unit) = context::normalized_token(haystack, core.clone()) else {
             return false;
         };
+        if !complete
+            && prefix.is_empty()
+            && has_counted_unit_copula_ending(haystack, core.end..whole.end)
+            && context::previous_word(haystack, whole.start)
+                .is_some_and(|previous| resolver.has_counted_unit_frame(&previous, &unit))
+        {
+            return true;
+        }
         let supported = if complete {
             ConstraintResolver::is_dictionary_numeric_unit(&unit)
         } else {
@@ -2647,7 +2655,7 @@ fn has_counted_unit_copula(
     };
     let core = &candidate.verified.core;
     if pos == kfind_morph::PredicatePos::Copula
-        || !has_jiyo_suffix(haystack, core.end..candidate.consumed.end)
+        || !has_counted_unit_copula_ending(haystack, core.end..candidate.consumed.end)
         || !is_boundary_before(haystack, core.start)
     {
         return false;
@@ -2661,6 +2669,11 @@ fn has_counted_unit_copula(
         .is_some_and(|unit| {
             resolver.has_counted_unit_frame(&previous, &unit.nfc().collect::<String>())
         })
+}
+
+fn has_counted_unit_copula_ending(haystack: &[u8], suffix: Range<usize>) -> bool {
+    has_jiyo_suffix(haystack, suffix.clone())
+        || matches!(haystack.get(suffix), Some(bytes) if bytes == "냐".as_bytes() || bytes == "냐".as_bytes())
 }
 
 fn has_elapsed_measure_frame(
