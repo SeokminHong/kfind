@@ -1,4 +1,9 @@
 id	query	pos	expected	byte_start	byte_end	text
+corpus.ud-gsd.test.test-s25.proper-name-suffix	백석	noun	smart-exact	135	147	2세를 못 낳고 지난해 죽은 고릴라 '고리롱'을 보기 위해 동물원에 들른 비뇨기과 전문의 박정원 씨가 백석이의 고환을 만지던 중 왼쪽 고환이 없는 것을 발견했다.
+regression.proper-name-suffix.subject	영숙	noun	smart-exact	0	12	영숙이가 왔다.
+regression.proper-name-suffix.object	영숙	noun	smart-exact	0	12	영숙이를 불렀다.
+regression.proper-name-suffix.restrictive	영숙	noun	smart-exact	0	15	영숙이밖에 몰랐다.
+regression.proper-name-suffix.lexical-competitor	고양이	noun	smart-exact	0	12	고양이의 꼬리가 길다.
 corpus.ud-gsd.test.test-s481.adverb-after-topic-contraction	약간	adverb	smart-exact	4	10	전 약간 비린 느낌이어서 좀 별로더라고요.
 regression.adverb-after-topic-contraction.other-pronoun	약간	adverb	smart-exact	4	10	넌 약간 피곤해 보여.
 regression.adverb-after-topic-contraction.nominal-genitive	약간	adverb	no-match	4	10	난 약간의 돈을 받았다.
