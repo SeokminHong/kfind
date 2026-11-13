@@ -1270,6 +1270,18 @@ impl MorphMatcher {
     ) -> bool {
         let boundary = atom.boundary;
         if boundary == BoundaryPolicy::Smart
+            && !is_boundary_before(haystack, candidate.verified.core.start)
+            && !is_boundary_after(haystack, candidate.consumed.end)
+            && branch
+                .origins
+                .iter()
+                .flat_map(|origin| &origin.rule_path)
+                .chain(&candidate.suffix_rules)
+                .any(|rule| rule.as_str() == "ending.connective-doe")
+        {
+            return false;
+        }
+        if boundary == BoundaryPolicy::Smart
             && !branch.origins.is_empty()
             && branch.origins.iter().all(|origin| {
                 origin.rule_path.last().is_some_and(|rule| {

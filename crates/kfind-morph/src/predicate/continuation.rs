@@ -304,6 +304,7 @@ const DAGA: Suffix = suffix("다가", &["ending.connective-daga"]);
 
 pub(super) const STEM_FIXED_ENDINGS: &[Suffix] = &[
     suffix("고", &["ending.connective-go"]),
+    suffix("되", &["ending.connective-doe"]),
     suffix("지", &["ending.connective-ji"]),
     suffix("게", &["ending.adverbial-ge"]),
     suffix("던", &["ending.retrospective-adnominal"]),
@@ -460,6 +461,7 @@ const HONORIFIC_COORDINATING_ENDINGS: &[Suffix] = &[
     suffix("시거나", &["ending.honorific", "ending.connective-geona"]),
     suffix("시나", &["ending.honorific", "ending.connective-na"]),
 ];
+const EUDOE: Suffix = suffix("으되", &["ending.connective-eudoe"]);
 const HONORIFIC_FAMILIAR_QUESTION: Suffix =
     suffix("시니", &["ending.honorific", "ending.interrogative-ni"]);
 
@@ -535,7 +537,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
     GEODEUN_POLITE,
     GEODEULLANG,
     suffix("습니다", &["ending.polite-declarative"]),
-    suffix("으되", &["ending.connective-eudoe"]),
+    EUDOE,
     suffix("으면", &["ending.conditional"]),
     suffix("으며", &["ending.coordinate-myeo"]),
     JIMAN,
@@ -629,7 +631,7 @@ const FUTURE_SUFFIXES: &[Suffix] = &[
     suffix("습디까", &["ending.retrospective-interrogative"]),
     suffix("습디다", &["ending.retrospective-declarative"]),
     suffix("습니다", &["ending.polite-declarative"]),
-    suffix("으되", &["ending.connective-eudoe"]),
+    EUDOE,
     JIMAN,
     JIMANEUN,
     suffix("는데", &["ending.connective-neunde"]),
@@ -1653,6 +1655,15 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding
+            if following.starts_with("으되") && anchor.ends_with(['있', '없']) =>
+        {
+            &[EUDOE]
+        }
+        ContinuationState::Eu if following.starts_with("시되") => &[suffix(
+            "시되",
+            &["ending.honorific", "ending.connective-doe"],
+        )],
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('구') =>
         {
