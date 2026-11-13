@@ -3377,9 +3377,16 @@ fn has_object_inside_adnominal_result(
         && is_boundary_before(haystack, span.start)
         && context::previous_word(haystack, span.start)
             .is_some_and(|previous| resolver.has_object_marked_nominal(&previous))
-        && context::next_word_with_end(haystack, end).is_some_and(|(predicate_end, predicate)| {
-            is_sentence_end_after(haystack, predicate_end)
-                && resolver.has_independent_final_adjective(&predicate)
+        && context::next_word_with_end(haystack, end).is_some_and(|(next_end, next)| {
+            let predicate = if resolver.has_subject_marked_nominal(&next) {
+                context::next_word_with_end(haystack, next_end)
+            } else {
+                Some((next_end, next))
+            };
+            predicate.is_some_and(|(predicate_end, predicate)| {
+                is_sentence_end_after(haystack, predicate_end)
+                    && resolver.has_independent_final_predicate_without_object(&predicate)
+            })
         })
 }
 

@@ -15,10 +15,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "python"))
 
+from nikl_catalog import load_catalog_records
 from nikl_import import (
     INVALID_XML_BYTE,
     KRDICT_INVALID_BYTE_LOCATIONS,
     KRDICT_SHA256,
+    STDICT_SHA256,
     direct_feat,
     file_sha256,
     normalize_headword,
@@ -27,6 +29,7 @@ from nikl_import import (
 
 PREDICATE_POS = {"동사": "VV", "형용사": "VA"}
 SLOT = re.compile(r"(?<!\d)\d([^\s()\d]+)")
+STDICT_OBJECT_SLOT = re.compile(r"(?:…|/)[을를](?![가-힣])")
 
 
 def iter_entries(archive: Path):
@@ -67,16 +70,41 @@ def collect_frames(archive: Path):
     return predicates
 
 
+def stdict_object_frames(item: ET.Element):
+    lemma, _ = normalize_headword(item.findtext("./word_info/word", ""))
+    if not lemma.endswith("다"):
+        return
+    for pos_info in item.findall("./word_info/pos_info"):
+        pos = PREDICATE_POS.get(pos_info.findtext("./pos"))
+        if pos and any(
+            pattern.text and STDICT_OBJECT_SLOT.search(pattern.text)
+            for pattern in pos_info.findall(".//pattern")
+        ):
+            yield lemma, pos
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("archive", type=Path)
+    parser.add_argument("--stdict", type=Path)
+    parser.add_argument("--cache-dir", type=Path)
     args = parser.parse_args()
     predicates = collect_frames(args.archive)
+    stdict_objects = set()
+    if args.stdict is not None:
+        if args.cache_dir is None:
+            parser.error("--stdict requires --cache-dir")
+        stdict_objects.update(
+            load_catalog_records(
+                "stdict", args.stdict, STDICT_SHA256, "item", stdict_object_frames, args.cache_dir
+            )
+        )
     writer = csv.writer(sys.stdout, delimiter="\t", lineterminator="\n")
     writer.writerow(
         ("lemma", "pos", "senses", "framed_senses", "annotated_senses", "object_slot", "ro_slot")
     )
-    for (lemma, pos), senses in sorted(predicates.items()):
+    for lemma, pos in sorted(predicates.keys() | stdict_objects):
+        senses = predicates.get((lemma, pos), [])
         slots = {
             choice
             for frames, _ in senses
@@ -91,7 +119,7 @@ def main() -> None:
                 len(senses),
                 sum(bool(frames) for frames, _ in senses),
                 sum(annotated for _, annotated in senses),
-                int(not slots.isdisjoint({"을", "를"})),
+                int((lemma, pos) in stdict_objects or not slots.isdisjoint({"을", "를"})),
                 int(not slots.isdisjoint({"으로", "로"})),
             )
         )
