@@ -7,17 +7,19 @@ const shared = options.includes('--align-shared-sentences');
 const restored = options.includes('--restore-source-passages');
 const proofread = options.includes('--proofread');
 const independent = options.includes('--independent-proofreading');
+const contextAnnotations = options.includes('--context-annotations');
 if (!input || (restored && !shared) || (proofread && !restored)
-    || (independent ? options.length !== 1
+    || (independent || contextAnnotations ? options.length !== 1
       : options.length !== Number(contract) + Number(shared) + Number(restored) + Number(proofread))) {
-  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading)');
+  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations)');
 }
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
 const previousInput = 'd34735e79fad865a62685522859f2664e56d9f37330a1a11d17614aab82cda1e';
 const currentFixtureInput = '8f3aa236f20a0913e78e04139539b636835a538ab5d552891856a73a5e77e5da';
 const contextPosReviewInput = '120ad5000b84b3d61fef05214b6d703e0f573eb55330f0741cf455583806dce9';
-if (independent ? checksum !== contextPosReviewInput
+if (contextAnnotations ? checksum !== '457c654f940283ce6010293d8497b9cd70faf39d254560b551fdb0eeb2f691ae'
+  : independent ? checksum !== contextPosReviewInput
   : checksum !== previousInput && !(shared && checksum === currentFixtureInput)) {
   throw new Error(`unexpected GSD input SHA-256: ${checksum}`);
 }
@@ -28,7 +30,8 @@ function tsv(path) {
 }
 
 const editsBySentence = new Map();
-const sentenceEdits = tsv(independent ? './gsd-independent-proofreading-edits.tsv' : './gsd-sentence-edits.tsv');
+const sentenceEdits = tsv(contextAnnotations ? './gsd-context-annotation-edits.tsv'
+  : independent ? './gsd-independent-proofreading-edits.tsv' : './gsd-sentence-edits.tsv');
 if (shared) sentenceEdits.push(...tsv('./gsd-shared-sentence-edits.tsv'));
 if (restored) sentenceEdits.push(...tsv('./gsd-source-restoration-edits.tsv'));
 if (proofread) sentenceEdits.push(...tsv('./gsd-proofreading-edits.tsv'));
@@ -40,16 +43,18 @@ for (const [id, source, replacement, reason] of sentenceEdits) {
 }
 
 const annotations = new Map();
-const annotationEdits = tsv(independent ? './gsd-independent-proofreading-annotations.tsv' : './gsd-sentence-edit-annotations.tsv');
+const annotationEdits = tsv(contextAnnotations ? './gsd-context-annotations.tsv'
+  : independent ? './gsd-independent-proofreading-annotations.tsv' : './gsd-sentence-edit-annotations.tsv');
 if (shared) annotationEdits.push(...tsv('./gsd-shared-sentence-annotations.tsv'));
 if (restored) annotationEdits.push(...tsv('./gsd-source-restoration-annotations.tsv'));
 if (proofread) annotationEdits.push(...tsv('./gsd-proofreading-annotations.tsv'));
-for (const [id, query, pos, form, lemma, xpos] of annotationEdits) {
-  if (annotations.has(id) || (query !== '-' && (!query || !pos || !form || !lemma || !xpos))) {
+for (const [id, query, pos, form, lemma, xpos, goldForm = form] of annotationEdits) {
+  if (annotations.has(id) || (query !== '-' && (!query || !pos || !form || !lemma || !xpos
+      || !goldForm || !form.startsWith(goldForm)))) {
     throw new Error(`invalid annotation: ${id}`);
   }
   // A joined word can replace two original annotations with one searchable lexeme.
-  annotations.set(id, query === '-' ? null : { query, pos, form, lemma, xpos });
+  annotations.set(id, query === '-' ? null : { goldForm, fields: { query, pos, form, lemma, xpos } });
 }
 
 const excludedSentences = new Set();
@@ -102,7 +107,7 @@ const output = original.toString('utf8').trimEnd().split('\n').flatMap(line => {
   let span = { text: row.text, start: row.gold_byte_start, end: row.gold_byte_end };
   const originalSpan = Buffer.from(span.text).subarray(span.start, span.end);
   for (const edit of edits ?? []) span = applyEdit(span.text, span.start, span.end, edit);
-  if ((shared || independent) && edits) {
+  if ((shared || independent || contextAnnotations) && edits) {
     const aligned = alignedSentences.get(sentenceId);
     if (aligned !== undefined && aligned !== span.text) {
       throw new Error(`inconsistent shared sentence: ${sentenceId}`);
@@ -115,14 +120,14 @@ const output = original.toString('utf8').trimEnd().split('\n').flatMap(line => {
   if (annotations.has(row.id)) {
     annotations.delete(row.id);
     if (!annotation) return [];
-    const form = Buffer.from(annotation.form);
+    const form = Buffer.from(annotation.fields.form);
     const offset = Buffer.from(span.text).indexOf(form, span.start);
     if (offset < 0 || offset >= span.end) {
       throw new Error(`corrected form missing from aligned span: ${row.id} in ${candidate}`);
     }
     span.start = offset;
-    span.end = span.start + form.length;
-    Object.assign(row, annotation);
+    span.end = span.start + Buffer.byteLength(annotation.goldForm);
+    Object.assign(row, annotation.fields);
   } else if (!candidate.equals(originalSpan)) {
     throw new Error(`annotation required: ${row.id}: ${originalSpan} → ${candidate}`);
   }
