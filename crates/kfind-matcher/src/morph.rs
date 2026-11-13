@@ -967,11 +967,40 @@ impl MorphMatcher {
             }
             | CandidateConsumption::NominalCopulaEndingChain {
                 allowed_rule_ids, ..
-            } => {
+            } => 'nominal: {
                 let following = valid_utf8_prefix(&haystack[hit.span.end..]);
                 let (consumption_anchor, consumption_following) =
                     normalized_consumption_text(anchor, following);
-                let mut matched = if *allowed_rule_ids == self.plan.auxiliary_particle_rules {
+                let adverb_host = *allowed_rule_ids == self.plan.auxiliary_particle_rules;
+                if adverb_host
+                    && consumption_following.starts_with(['이', '입', '였'])
+                    && is_boundary_before(haystack, hit.span.start)
+                    && let Some(suffix) = consumption_following
+                        .split(|character: char| !crate::is_token_character(character))
+                        .next()
+                    && consumption_anchor
+                        .chars()
+                        .next_back()
+                        .is_some_and(|host| verify_copula_surface_after_nominal(host, suffix))
+                {
+                    let consumed_bytes = match &consumption_following {
+                        Cow::Borrowed(_) => suffix.len(),
+                        Cow::Owned(normalized) => {
+                            map_normalized_prefix(following, normalized, suffix.len())?
+                        }
+                    };
+                    let token_end = hit.span.end.checked_add(consumed_bytes)?;
+                    if !self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                        context::normalized_token(haystack, hit.span.start..token_end)
+                            .is_some_and(|word| resolver.has_whole_modifier(&word))
+                    }) {
+                        break 'nominal (
+                            consumed_bytes,
+                            vec![RuleId::from("structural.adverb-copula")],
+                        );
+                    }
+                }
+                let mut matched = if adverb_host {
                     // A trailing jamo can belong to the last syllable of the adverb.
                     if matches!(&consumption_anchor, Cow::Owned(_))
                         && consumption_anchor
