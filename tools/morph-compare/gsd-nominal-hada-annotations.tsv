@@ -1,0 +1,6 @@
+case_id	query	pos	form	lemma	xpos
+gsd:test-s89:1	천안함	noun	천안함	천안함	NNP
+gsd:test-s121:2	예전	noun	예전하고	예전+하고	NNG+JKB
+gsd:test-s540:4	은하	noun	은하는	은하+는	NNG+JX
+gsd:test-s733:1	나하	noun	나하는	나하+는	NNP+JX
+gsd:test-s796:1	천안함	noun	천안함	천안함	NNP
