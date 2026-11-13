@@ -1804,6 +1804,36 @@ fn forced_nominal_host_consumes_a_complete_particle_chain_without_a_dictionary_e
 }
 
 #[test]
+fn any_nominal_phrase_keeps_a_particle_free_path_at_the_next_atom() {
+    let options = CompileOptions {
+        global_pos: Some(CoarsePos::Noun),
+        boundary: BoundaryPolicy::Any,
+        ..CompileOptions::default()
+    };
+    for query in ["예금 이자", "예금 (이자 | 이론)"] {
+        let matcher = compile_with_full_pos(query, options.clone());
+        for (text, first_end, second_start, end) in [
+            ("예금이자를 받았다.", 6, 6, 15),
+            ("예금이 이자를 낳았다.", 9, 10, 19),
+        ] {
+            let matched = matcher.find_at_with_meta(text.as_bytes(), 0).unwrap();
+            assert_eq!(matched.atoms[0].token, 0..first_end, "{query}: {text}");
+            assert_eq!(matched.atoms[1].token, second_start..end, "{query}: {text}");
+        }
+        assert!(
+            matcher
+                .find_at_with_meta("예금이자".as_bytes(), 0)
+                .is_some()
+        );
+        assert!(
+            matcher
+                .find_at_with_meta("예금이 자를".as_bytes(), 0)
+                .is_none()
+        );
+    }
+}
+
+#[test]
 fn composed_nominal_query_matches_a_contiguous_multi_node_subpath() {
     let prefix = compile_with_full_pos_and_resource(
         "경영전략",
