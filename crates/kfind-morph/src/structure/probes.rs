@@ -34,6 +34,22 @@ const DURATION_NOUNS: &[&str] = &[
     "반년",
 ];
 
+const DURATION_UNITS: &[&str] = &[
+    "밀리초",
+    "주일",
+    "개월",
+    "시간",
+    "세기",
+    "년",
+    "해",
+    "달",
+    "주",
+    "일",
+    "날",
+    "분",
+    "초",
+];
+
 // Numeric senses attested by the pinned Korean Basic Dictionary and licensed
 // in digit-led unit constructions.
 const DICTIONARY_NUMERIC_UNITS: &[&str] = &[
@@ -1396,21 +1412,24 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_duration_suffix_host(
+        &self,
+        unit: &str,
+        count: Option<&str>,
+        attached: bool,
+    ) -> bool {
+        (!attached && DURATION_NOUNS.contains(&unit))
+            || (DURATION_UNITS.contains(&unit)
+                && count.is_some_and(|count| {
+                    self.has_measure_count(count)
+                        || Self::is_mixed_cardinal(count)
+                        || self.has_standalone_counted_unit(count, unit)
+                }))
+    }
+
+    #[must_use]
     pub fn has_elapsed_measure(&self, measure: &str, previous: Option<&str>) -> bool {
-        const UNITS: &[&str] = &[
-            "밀리초",
-            "주일",
-            "개월",
-            "시간",
-            "세기",
-            "년",
-            "해",
-            "달",
-            "주",
-            "일",
-            "날",
-            "분",
-            "초",
+        const OTHER_MEASURES: &[&str] = &[
             "번",
             "차례",
             "밀리미터",
@@ -1423,7 +1442,7 @@ impl ConstraintResolver {
             "걸음",
         ];
         DURATION_NOUNS.contains(&measure)
-            || UNITS.iter().any(|unit| {
+            || DURATION_UNITS.iter().chain(OTHER_MEASURES).any(|unit| {
                 measure.strip_suffix(unit).is_some_and(|attached| {
                     let count = if attached.is_empty() {
                         previous.unwrap_or_default()

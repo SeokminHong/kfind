@@ -1832,6 +1832,34 @@ impl MorphMatcher {
             CandidateConsumption::NominalParticleChain { .. }
         ) && candidate.consumed == *core
             && haystack.get(core.end..whole.end).is_some_and(|tail| {
+                tail.starts_with("간".as_bytes()) || tail.starts_with("간".as_bytes())
+            })
+            && patterns.iter().any(|pattern| pattern.fine_pos.is_nominal())
+            && let Some(unit) = context::normalized_token(haystack, core.clone())
+        {
+            let attached = core.start != whole.start;
+            let count = if !attached {
+                context::previous_word(haystack, whole.start)
+            } else {
+                context::normalized_token(haystack, whole.start..core.start)
+            };
+            if resolver.has_duration_suffix_host(&unit, count.as_deref(), attached)
+                && context::normalized_token(haystack, core.end..whole.end).is_some_and(|tail| {
+                    tail.strip_prefix('간').is_some_and(|particles| {
+                        self.particle_verifier
+                            .verify_exact("간", particles)
+                            .is_some()
+                    })
+                })
+            {
+                return true;
+            }
+        }
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        ) && candidate.consumed == *core
+            && haystack.get(core.end..whole.end).is_some_and(|tail| {
                 tail.starts_with("째".as_bytes()) || tail.starts_with("ᄍ".as_bytes())
             })
             && patterns.iter().any(|pattern| pattern.fine_pos.is_nominal())
