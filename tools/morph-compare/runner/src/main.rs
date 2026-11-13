@@ -750,10 +750,10 @@ fn find_all_spans(matcher: &MorphMatcher, text: &str) -> Vec<Span> {
         let Some(found) = matcher.find_at_with_meta(text.as_bytes(), at) else {
             break;
         };
-        spans.extend(found.atoms.iter().map(|atom| Span {
-            byte_start: atom.token.start,
-            byte_end: atom.token.end,
-        }));
+        spans.push(Span {
+            byte_start: found.span.start,
+            byte_end: found.span.end,
+        });
         if found.span.end > at {
             at = found.span.end;
         } else {
@@ -821,6 +821,26 @@ mod tests {
         assert!(!KfindBoundary::parse("token").unwrap().requires_component());
         assert!(!KfindBoundary::parse("any").unwrap().requires_component());
         assert!(KfindBoundary::parse("non-smart").is_err());
+    }
+
+    #[test]
+    fn benchmark_reports_each_phrase_as_one_span() {
+        let options = CompileOptions {
+            boundary: BoundaryPolicy::Any,
+            ..CompileOptions::default()
+        };
+        let plan = compile_query("나름 가수다", &options, &analyzer()).unwrap();
+        let matcher = MorphMatcher::new(Arc::new(plan)).unwrap();
+        let phrase = "나름 가수다";
+        let text = format!("{phrase}\n{phrase}");
+        let spans = find_all_spans(&matcher, &text);
+        assert_eq!(
+            spans
+                .iter()
+                .map(|span| &text[span.byte_start..span.byte_end])
+                .collect::<Vec<_>>(),
+            [phrase, phrase]
+        );
     }
 
     #[test]
