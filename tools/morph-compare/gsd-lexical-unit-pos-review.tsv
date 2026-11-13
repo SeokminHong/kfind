@@ -1,0 +1,10 @@
+case_id	original_query	original_lemma	original_xpos	query	lemma	xpos	reason	form	original_pos
+gsd:test-s54:5	세	세+페이드	MM+NNG	세페이드	세페이드	NNG	변광성의 유형을 가리키는 명사	세페이드	determiner
+gsd:test-s87:2	바	바+비키+ㅁ+과	MAG+VV+ETN+JC	바비킴	바비킴+과	NNP+JC	공연한 가수 이름과 접속 조사	바비킴과	adverb
+gsd:test-s220:6	두	두+잇	MM+NNG	두잇	두잇	NNP	인용부호 안의 멸균 두유 제품명	두잇	determiner
+gsd:test-s424:1	어	어+그부츠	MM+NNG	어그부츠	어그부츠	NNG	판매 대상을 나타내는 명사	어그부츠	determiner
+gsd:test-s583:2	이	이+방	MM+NNG	이방	이방	NNG	민족의 속성을 나타내는 명사	이방	determiner
+gsd:test-s641:6	모	모+바+이+ㄹ	MM+NNB+VCP+ETM	모바일	모바일	NNG	OS의 유형을 나타내는 명사	모바일	determiner
+gsd:test-s726:2	맨	맨+유+에	MM+NNG+JKB	맨유	맨유+에	NNP+JKB	입단 대상 구단 이름의 준말과 부사격 조사	맨유에	determiner
+gsd:test-s728:2	이	이+정범+의	MM+NNG+JKG	이정범	이정범+의	NNP+JKG	사람 이름과 관형격 조사	이정범의	determiner
+gsd:test-s733:12	이시가하다	이+시가+하+기+와	MM+NNG+XSV+ETN+JKB	이시가키	이시가키+와	NNP+JC	미야코와 병렬로 나열한 섬 이름	이시가키와	verb
