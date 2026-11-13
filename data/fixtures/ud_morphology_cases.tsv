@@ -1,5 +1,5 @@
 id	query	pos	expected	byte_start	byte_end	text
-corpus.ud-gsd.test.test-s188.angle-bracket-title	프루프	noun	smart-exact	92	101	배우 강혜정, 이윤지, 남명렬, 정원중 등이 참여해 화제를 모은 연극 <프루프>는 영화 <뷰티풀 마인드>의 천재수학자 존 내쉬와 그의 가상의 딸을 소재로 쓰여진 작품으로 생동감 있고 참신한 드라마로 평가받고 있다.
+corpus.ud-gsd.test.test-s188.angle-bracket-title	프루프	noun	smart-exact	92	101	배우 강혜정, 이윤지, 남명렬, 정원중 등이 참여해 화제를 모은 연극 <프루프>는 영화 <뷰티풀 마인드>의 천재수학자 존 내쉬와 그의 가상의 딸을 소재로 쓰인 작품으로 생동감 있고 참신한 드라마로 평가받고 있다.
 corpus.ud-gsd.test.test-s398.genitive	음식	noun	smart-exact	37	46	인간미 없는 사람의 음식은 음식의 느낌을 떨어뜨린다.
 corpus.ud-gsd.test.test-s661.quoted-alternatives	또는	adverb	smart-exact	76	82	이때에는 본디의 뜻과 구별하기 위해 가타카나로 イタイ 또는 イタい라고 쓰는 경우도 많으며, 이때는 '한심하다', '부끄럽다', '가엾다' 등의 뜻으로 사용된다.
 regression.compound-noun.contracted-copula-prefix	가족	noun	smart-exact	0	6	가족여행에서 다섯 살인 아이도 맛나게 먹을 수 있는 곳.
@@ -9,7 +9,7 @@ corpus.ud-gsd.test.test-s90.nominal-honorific	사장	noun	smart-exact	0	6	사장
 corpus.ud-gsd.test.test-s202.nominal-honorific-proper	예수	noun	smart-exact	68	74	눈물 흘리는 성모님 말고도 성당 안에 매달려 계신 예수님과 성모님께도 관심을 가져주세요.
 corpus.ud-gsd.test.test-s501.nominal-honorific-plural	선생	noun	smart-exact	0	6	선생님들 너무 친절하시고 가격도 괜찮고 무척 맘에 듦!
 corpus.ud-gsd.test.test-s501.nominalized-rieul	들다	verb	smart-exact	70	73	선생님들 너무 친절하시고 가격도 괜찮고 무척 맘에 듦!
-corpus.ud-gsd.test.test-s1.compound-noun-genitive	통화	noun	smart-exact	50	56	현대증권 배성영 수석연구원은 "미국 통화당국의 경기부양 기조 유지 가능성과 주요20개국(G20) 정상회의를 앞둔 위안화 절상 압력의 고조로 인해 당분간 원화 강세 압력은 더 지속될 전망"이라며 "환차익을 노린 외국인 매수세가 지속될 수 있다"고 내다봤다.
+corpus.ud-gsd.test.test-s1.compound-noun-genitive	통화	noun	smart-exact	50	56	현대증권 배성영 수석연구원은 "미국 통화당국의 경기부양 기조 유지 가능성과 주요 20개국(G20) 정상회의를 앞둔 위안화 절상 압력의 고조로 인해 당분간 원화 강세 압력은 더 지속될 전망"이라며 "환차익을 노린 외국인 매수세가 지속될 수 있다"고 내다봤다.
 corpus.ud-gsd.test.test-s16.compound-noun-bare	생활	noun	smart-exact	171	177	경찰청에 따르면 부산지방청에 소속된 프로파일러들은 김길태가 이번 사건의 유력한 용의자로 떠오를 때부터 그의 범죄 이력과 생활습관, 성향, 심리 등을 분석했다.
 regression.causal-mae.consonant	먹다	verb	smart-exact	7	16	그가 먹으매 마음이 놓였다.
 regression.causal-mae.vowel	고이다	verb	smart-exact	7	16	물이 고이매 길이 미끄러웠다.
@@ -48,9 +48,9 @@ regression.dependent-subject-ge.geot	것	noun	smart-exact	7	10	읽는 게 좋다
 regression.dependent-subject-ge.crab	것	noun	no-match	0	3	게 두 마리가 기어간다.
 corpus.ud-gsd.test.test-s66.compound-noun	들깨	noun	smart-exact	0	6	들깨가루 같은 것도 원하는 대로 넣을 수도 있고, 밥도 무한 리필이고 해서 어린애들 동반해서 가족끼리 가서 먹기에는 좋은 곳이라고 생각합니다.
 corpus.ud-gsd.test.test-s84.compound-noun	영업	noun	smart-exact	59	65	한컴은 2009년에 487억 원의 매출과 512억 원의 영업이익, 144억 원의 순이익을 기록해 사상 최대 실적을 달성했으며, 7년 연속 흑자 실적의 기록을 이어갔다고 밝혔다.
-corpus.ud-gsd.test.test-s105.compound-noun	공식	noun	smart-exact	66	72	김 대변인은 "어제 서울G20정상회의 환영리셉션과 공식만찬에서 각국 정상들의 활발한 발언과 토론이 있었다"고 덧붙였다.
+corpus.ud-gsd.test.test-s105.compound-noun	공식	noun	smart-exact	69	75	김 대변인은 "어제 서울 G20 정상회의 환영 리셉션과 공식 만찬에서 각국 정상들의 활발한 발언과 토론이 있었다"고 덧붙였다.
 corpus.ud-gsd.test.test-s146.compound-noun	영업	noun	smart-exact	150	156	이에 따라 삼성SDI의 분기별 실적 모멘텀은 약화될 것이라며 4분기 IFRS 연결기준 실적은 매출액 1조2000억 원(-10 %), 영업이익 804억 원(-35%)로 추정했다.
-corpus.ud-gsd.test.test-s354.compound-noun	부가	noun	smart-exact	32	38	구 관계자는 "MICE산업은 부가가치가 높은 21세기형 산업이라며 적극적인 해외 마케팅 활동을 펼쳐 강남을 세계에서 손꼽히는 컨벤션 도시로 키우겠다"고 말했다.
+corpus.ud-gsd.test.test-s354.compound-noun	부가	noun	smart-exact	33	39	구 관계자는 "MICE 산업은 부가가치가 높은 21세기형 산업"이라며 "적극적인 해외 마케팅 활동을 펼쳐 강남을 세계에서 손꼽히는 컨벤션 도시로 키우겠다"고 말했다.
 corpus.ud-gsd.test.test-s459.compound-noun	관광	noun	smart-exact	161	167	김 의원은 "장생포가 가지고 있는 고래역사 문화, 근대 포경과 연관된 독특한 지역문화를 바탕으로 국내유일의 고래테마 관광도시로서의 성장기반을 구축하는 사업인 만큼 앞으로도 최선을 다해 돕겠다"고 말했다.
 corpus.ud-gsd.test.test-s754.compound-noun	영업	noun	smart-exact	56	62	우리산업의 상반기 누적 실적은 매출액과 영업이익이 각각 645억원, 17억원으로 추정됐다.
 regression.compound-noun.true-subject	영업	noun	smart-exact	0	9	영업이 끝났다.
@@ -161,7 +161,7 @@ regression.prefinal-nominal.honorific-past	듣다	verb	smart-exact	10	25	안내�
 regression.prefinal-nominal.contracted-past	되다	verb	smart-exact	11	20	그 일이 됐음을 알렸다.
 regression.prefinal-nominal.invalid-particle	되다	verb	no-match	0	9	됐음를 적었다.
 corpus.ud-gsd.test.test-s175.adjective.먹을만하다	먹을만하다	adjective	smart-exact	67	82	인심은 잘 모르겠으나 쌈장과 배추가 맛있어 그냥 먹을만했음
-corpus.ud-gsd.test.test-s337.verb.되다	되다	verb	smart-exact	11	23	잘 교육 되었겠지 했는데 펌 다 끝나고 나니 어깨 너머 모발이 모두 타 있었어요
+corpus.ud-gsd.test.test-s337.verb.교육되다	교육되다	verb	smart-exact	4	22	잘 교육되었겠지 했는데 펌 다 끝나고 나니 어깨 너머 모발이 모두 타 있었어요
 corpus.ud-gsd.test.test-s658.verb.하다	하다	verb	smart-exact	34	49	직원들은 표정 관리를 좀 해야겠어요
 corpus.ud-kaist.test.MH2_0190-s471.verb.바꾸다	바꾸다	verb	smart-exact	88	103	한국과 ASEAN 전역을 엔블록으로 만들었고, 일본기업의 생산기지로 바꾸었음을 주목해야 한다.
 corpus.ud-gsd.test.test-s227.noun.시즌	시즌	noun	smart-exact	12	21	특히 2007 시즌엔 전기리그 준우승, 후기리그 우승, 그랜드 파이널 우승이라는 눈부신 성적을 이끌어냈고, 프로리그 사상 최초로 3개의 MVP를 독식하며 에이스로서의 자신의 가치를 입증했다.
@@ -254,7 +254,7 @@ corpus.ud-gsd.test.test-s218.adjective.길다	길다	adjective	no-match	13	16	�
 corpus.ud-gsd.test.test-s53.pronoun.그	그	pronoun	no-match	106	109	알레르기성 비염이랑 천식으로 고생했었는데 한 달 조금 넘게 꾸준히 다녔더니 그 후 일 년 넘게 아무렇지도 않네요
 corpus.ud-gsd.test.test-s136.pronoun.저	저	pronoun	no-match	0	9	저자는 이 책에서 자신의 실제 매매와 소프트웨어 개발, 강의 경험 등 그간 연구, 발전시켜 온 트레이딩 기법을 낱낱이 공개했다.
 corpus.ud-gsd.test.test-s228.determiner.새	새	determiner	no-match	45	57	사장님 내외분께서 돌아가시면서 새벽까지 하시고요
-corpus.ud-gsd.test.test-s243.determiner.두	두	determiner	no-match	10	25	박지원 두산중공업 사장이(오른쪽 네 번째) 13일 예비 신입사원 부모 초청 감사 행사에서 이날 생일을 맞은 한 신입사원의 가족들과 케이크 커팅을 하고 있다.
+corpus.ud-gsd.test.test-s243.determiner.두	두	determiner	no-match	10	25	박지원 두산중공업 사장(오른쪽 네 번째)이 13일 예비 신입사원 부모 초청 감사 행사에서 이날 생일을 맞은 한 신입사원의 가족들과 케이크 커팅을 하고 있다.
 corpus.ud-gsd.test.test-s223.determiner.세	세	determiner	no-match	153	162	삼삼 자리에 적이 들어오면 귀의 실리를 다 내줘야 하기 때문에 귀의 실리를 확보하는 데에는 약점이 있으나, 대신 세력을 쌓기에 유리하다.
 corpus.ud-gsd.test.test-s18.adverb.다	다	adverb	no-match	107	119	폭포가 바로 보이는 아늑한 방에서 오리 불고기를 먹었는데 양도 많고 밑반찬도 다양해서 좋았어요
 corpus.ud-gsd.test.test-s427.adverb.늘	늘	adverb	no-match	44	59	그러나 그만큼 글에 대한 안목이 늘었으리라 믿는다.
@@ -297,7 +297,7 @@ regression.conjunction-adverb.또는	또는	adverb	smart-exact	26	32	이메일�
 regression.go-yo.gsd-good	좋다	adjective	smart-exact	40	49	지역에 비해 분위기나 공간이 좋고요
 corpus.ud-gsd.test.test-s318.verb.하다	하다	verb	smart-exact	101	110	체크인할 때 얘기하면 체크아웃을 조금 늦은 시간에 할 수 있도록 해주기도 하고요.
 corpus.ud-gsd.test.test-s410.adjective.편하다	편하다	adjective	smart-exact	45	57	조미료도 별로 안 들어간 듯 속이 편하고요
-regression.go-yo.gsd-delicious-corrected	맛있다	adjective	smart-exact	36	48	음식도 너무너무 깔끔하고 맛있고요
+regression.go-yo.gsd-delicious-corrected	맛있다	adjective	smart-exact	30	42	음식도 넘넘 깔끔하고 맛있고요
 corpus.ud-gsd.test.test-s180.adjective.괜찮다	괜찮다	adjective	smart-exact	7	25	그거 괜찮더라고요~
 corpus.ud-gsd.test.test-s195.adjective.좋다	좋다	adjective	smart-exact	50	65	진짜 LP판 틀어 놓아서 분위기가 너무 좋더라고요
 corpus.ud-gsd.test.test-s228.verb.하다	하다	verb	smart-exact	58	70	사장님 내외분께서 돌아가시면서 새벽까지 하시고요
