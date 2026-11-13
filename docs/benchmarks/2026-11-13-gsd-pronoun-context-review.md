@@ -23,3 +23,17 @@ node tools/morph-compare/apply-gsd-context-pos-review.mjs "$proofread_input" --p
 
 교정 입력 SHA-256은 `0824c82573c7ccf16fbd22758d08fe3c8155b2c871b8395b800f82b2cd7c204f`입니다.
 [이전 입력과 실행 환경](2026-11-13-gsd-independent-proofreading.md)
+
+## 동형 표면의 음성 대조
+
+교정 전의 질의를 같은 문장과 범위에 다시 실행했습니다. 목표 범위와 겹치는 반환을
+오탐으로 채점했습니다. 다른 위치의 적법한 반환은 허용합니다.
+[음성 대조 7건](../../tools/morph-compare/gsd-pronoun-context-negatives.jsonl)
+
+| full POS smart | Raw 행렬 | Raw 비율 (%) | 계약 보정 행렬 | 계약 보정 비율 (%) |
+| --- | --- | --- | --- | --- |
+| 동형 표면 음성 7건 | 0, 6, 1, 0 | 0.00, 0.00, 0.00 | 0, 6, 1, 0 | 0.00, 0.00, 0.00 |
+
+계약 검토는 0건입니다. `거기`에 대한 `것` 질의만 목표 범위를 반환하지 않았습니다.
+나머지 6건은 기존 검색이 잘못된 품사도 반환하는 오탐입니다.
+입력 SHA-256은 `15c3b90cc8ca128d5ea3a6fda157180e9fdc59ee3f0cc09d1318fffb0142a97c`입니다.
