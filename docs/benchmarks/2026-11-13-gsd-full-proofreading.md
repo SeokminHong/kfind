@@ -2,20 +2,20 @@
 
 UD Korean-GSD test 원문 989개와 고정 양성 입력의 문장 ID 989개를 대조했습니다.
 GSD 출처가 표시된 회귀 fixture의 227행(고유 텍스트 194개)도 따로 읽었습니다.
-맞춤법·문법이 분명한 129개 문장에 교정을 적용했습니다. 질의 1,577건의 본문,
-840건의 UTF-8 범위와 71건의 형태 주석이 바뀌었습니다. 회귀 fixture 7행을
+근거가 분명한 130개 문장에 교정을 적용했습니다. 질의 1,586건의 본문,
+845건의 UTF-8 범위와 71건의 형태 주석이 바뀌었습니다. 회귀 fixture 7행을
 교정했고, 전체 양성 질의 ID와 9,332건의 분모를 유지했습니다.
 
 조사·의존 명사·문장 부호는 [국립국어원 어문 규범](https://korean.go.kr/kornorms/m/m_regltn.do?regltn_code=0001)에
 따랐습니다. `쓰여진`은 [피동사 용례](https://korean.go.kr/front/mcfaq/mcfaqView.do?mcfaq_seq=6154&mn_id=217&pageIndex=1)에
 따라 `쓰인`으로, `다음날인 6일`은 [이튿날을 나타내는 띄어쓰기](https://korean.go.kr/front/onlineQna/onlineQnaView.do?mn_id=216&pageIndex=1&qna_seq=311632)에
 따라 `다음 날인 6일`로 고쳤습니다. `<7광구`처럼 문장 안에서 경계가 확인되는
-제목은 닫는 부호를 복원했습니다.
+제목은 닫는 부호를 복원했습니다. `test-s174`의 옛 지명 한자 `竿蓁林`은
+[가오슝시 강산구청 역사 자료](https://gangshan.kcg.gov.tw/cp.aspx?n=359C063D33D9F8E9)에서 확인했습니다.
 
 `넘넘`, `맘`, `내비`처럼 의도적으로 줄인 말과 문체는 보존했습니다. 어문 규범에서
-별도로 정하지 않은 백분율 기호의 띄어쓰기, 허용된 보조 용언·전문 용어 표기,
-그리고 `test-s174`의 한자 자리처럼 누락된 내용을 이 입력만으로 확정할 수 없는
-표기도 유지했습니다. 문장 0/989개, 질의 0/9,332건을 계약 평가에서 제외했습니다.
+별도로 정하지 않은 백분율 기호의 띄어쓰기와 허용된 보조 용언·전문 용어 표기도
+유지했습니다. 문장 0/989개, 질의 0/9,332건을 계약 평가에서 제외했습니다.
 
 같은 full POS `smart` 실행 파일과 사전으로 UTF-8 정확 일치를 평가했습니다. 행렬은
 TP, FP, TN, FN 순서, 비율은 precision, recall, F1 순서입니다. 양성 입력에 한정된
@@ -36,7 +36,7 @@ TP, FP, TN, FN 순서, 비율은 precision, recall, F1 순서입니다. 양성 �
 | --- | --- |
 | UD 원문 | `3d1df99bda4800235e14bcfd915baf706eafa1a3935a75ffd32420a51e57f5aa` |
 | 복원 문장 교정 | `b29c500d8f0ebd1795b1ddf27975cfcd40c97b2f14ad12e9e8e89ee4f71ee0dc` |
-| 전체 재점검 교정 | `0ff79e6d0a67dd778017c7425bf27bd0a71f0ade30b8e12613635464067f8d98` |
+| 전체 재점검 교정 | `e2845d0937a5ba073d8fdfbfc0c77470cc071f75641be6c8f753d96238ad894d` |
 | 검색 실행 파일 | `ee060ef7ae23d50392f6c80b0abf8315d163311d571b958685a8c1503933d4b1` |
 | full POS lexicon | `47bb7a3a31d6985f0b31dab5632b0d0a07feefa7cd2d94f220ec5d5483ac735f` |
 | compact component | `eb59a212200441a7b37554d334541332b6dfc386a77a513c0f63c9660ba9ec42` |
