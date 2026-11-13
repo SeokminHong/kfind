@@ -16,8 +16,9 @@ use kfind_morph::{
     verify_predicate_continuation_with_prefinal_context,
 };
 use kfind_query::{
-    AtomPlan, BoundaryPolicy, CandidateConsumption, CandidateDecision, CandidateLeftContext,
-    CandidateProgram, CoreMapping, Origin, PhraseMatch, QueryPlan, RoutedMatch, VerifiedSpan,
+    AnalysisSource, AtomPlan, BoundaryPolicy, CandidateConsumption, CandidateDecision,
+    CandidateLeftContext, CandidateProgram, CoreMapping, Origin, PhraseMatch, QueryComposition,
+    QueryPlan, RoutedMatch, VerifiedSpan,
 };
 use unicode_normalization::{UnicodeNormalization, is_nfc};
 
@@ -1201,7 +1202,7 @@ impl MorphMatcher {
             }
             candidate.suffix_rules.clear();
         }
-        match &branch.decision {
+        let accepted = match &branch.decision {
             CandidateDecision::Boundary(_) => {
                 self.accepts_token_boundary(haystack, &candidate.verified, branch)
                     || self.accepts_boundary_adnominal_interrogative(haystack, candidate, branch)
@@ -1209,6 +1210,64 @@ impl MorphMatcher {
             CandidateDecision::Structural(_) => {
                 self.accepts_structural(haystack, candidate, branch, structural_cache)
             }
+        };
+        accepted
+            || (self.plan.composition == QueryComposition::Phrase
+                && self.plan.atoms.len() > 1
+                && self.accepts_joined_nominal_phrase_component(haystack, candidate, branch, atom))
+    }
+
+    fn accepts_joined_nominal_phrase_component(
+        &self,
+        haystack: &[u8],
+        candidate: &ExecutedCandidate,
+        branch: &CandidateProgram,
+        atom: &AtomPlan,
+    ) -> bool {
+        let core = &candidate.verified.core;
+        if atom.boundary != BoundaryPolicy::Smart
+            || !matches!(
+                branch.consumption,
+                CandidateConsumption::NominalParticleChain { .. }
+            )
+        {
+            return false;
+        }
+        let Some(resolver) = self.constraint_resolver.as_ref() else {
+            return false;
+        };
+        let split = if *core == candidate.consumed
+            && branch.origins.iter().any(|origin| {
+                atom.analyses
+                    .get(usize::from(origin.analysis_index))
+                    .is_some_and(|analysis| analysis.source == AnalysisSource::Heuristic)
+            })
+            && is_boundary_before(haystack, core.start)
+            && !is_boundary_after(haystack, core.end)
+        {
+            core.end
+        } else if !candidate.suffix_rules.is_empty()
+            && branch.structural_patterns().iter().any(|pattern| {
+                pattern.fine_pos == DataFinePos::Nng
+                    && pattern.component_capability.allows_runtime()
+            })
+            && !is_boundary_before(haystack, core.start)
+            && is_boundary_after(haystack, candidate.consumed.end)
+            && context::normalized_token(haystack, core.clone())
+                .is_some_and(|head| resolver.has_exact_nominal_surface(&head))
+        {
+            core.start
+        } else {
+            return false;
+        };
+        let whole = surrounding_token_span(haystack, core.clone());
+        let parts = [whole.start..split, split..whole.end, whole];
+        if let [Some(modifier), Some(head), Some(whole)] =
+            parts.map(|span| context::normalized_token(haystack, span))
+        {
+            resolver.has_joined_nominal_modifier(&modifier, &head, &whole)
+        } else {
+            false
         }
     }
 

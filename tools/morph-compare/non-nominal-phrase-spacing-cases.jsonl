@@ -1,0 +1,16 @@
+{"id":"따뜻한 구름:spaced","query":"따뜻한 구름","text":"따뜻한 구름","expected":true,"pos":"noun"}
+{"id":"따뜻한 구름:joined","query":"따뜻한 구름","text":"따뜻한구름","expected":true,"pos":"noun"}
+{"id":"강조의 허위:spaced","query":"강조의 허위","text":"강조의 허위","expected":true,"pos":"noun"}
+{"id":"강조의 허위:joined","query":"강조의 허위","text":"강조의허위","expected":true,"pos":"noun"}
+{"id":"무릎 대어 돌리기:spaced","query":"무릎 대어 돌리기","text":"무릎 대어 돌리기","expected":true,"pos":"noun"}
+{"id":"무릎 대어 돌리기:joined","query":"무릎 대어 돌리기","text":"무릎대어돌리기","expected":true,"pos":"noun"}
+{"id":"무릎 구부려 서기:spaced","query":"무릎 구부려 서기","text":"무릎 구부려 서기","expected":true,"pos":"noun"}
+{"id":"무릎 구부려 서기:joined","query":"무릎 구부려 서기","text":"무릎구부려서기","expected":true,"pos":"noun"}
+{"id":"자음 동화와 모음 동화:spaced","query":"자음 동화와 모음 동화","text":"자음 동화와 모음 동화","expected":true,"pos":"noun"}
+{"id":"자음 동화와 모음 동화:joined","query":"자음 동화와 모음 동화","text":"자음동화와 모음동화","expected":true,"pos":"noun"}
+{"id":"관형형:조사","query":"따뜻한 구름","text":"따뜻한구름은 관측됐다.","expected":true,"pos":"noun"}
+{"id":"관형격:조사","query":"강조의 허위","text":"강조의허위를 설명한다.","expected":true,"pos":"noun"}
+{"id":"관형형:다른 머리","query":"따뜻한 날씨","text":"따뜻한날씨가 이어진다.","expected":true,"pos":"noun"}
+{"id":"관형격:다른 머리","query":"논증의 오류","text":"논증의오류가 드러났다.","expected":true,"pos":"noun"}
+{"id":"관형형:체언 없음","query":"따뜻한 구름","text":"따뜻한구름뿜","expected":false,"pos":"noun"}
+{"id":"관형격:체언 없음","query":"강조의 허위","text":"강조의허위뿜","expected":false,"pos":"noun"}

@@ -1181,6 +1181,16 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_joined_nominal_modifier(&self, modifier: &str, head: &str, whole: &str) -> bool {
+        (self.has_nominal_genitive_surface(modifier)
+            || super::lexical::complete_predicate_adnominal_path(&self.resource, modifier)
+            || super::lexical::complete_derived_adnominal_path(&self.resource, modifier))
+            && self.has_independent_nominal_head(head)
+            && !self.has_exact_nominal_surface(whole)
+            && !self.has_whole_modifier(whole)
+    }
+
+    #[must_use]
     pub fn has_nominal_with_optional_particles(&self, text: &str) -> bool {
         self.has_complete_nominal_surface(text)
             || complete_nominal_particle_host(&self.resource, text).is_some()
