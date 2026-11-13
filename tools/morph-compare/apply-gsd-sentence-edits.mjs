@@ -1,13 +1,17 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
-const [input, contract, ...extra] = process.argv.slice(2);
-if (!input || (contract && contract !== '--review-contract') || extra.length) {
-  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl [--review-contract]');
+const [input, ...options] = process.argv.slice(2);
+const contract = options.includes('--review-contract');
+const shared = options.includes('--align-shared-sentences');
+if (!input || options.length !== Number(contract) + Number(shared)) {
+  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl [--review-contract] [--align-shared-sentences]');
 }
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
-if (checksum !== 'd34735e79fad865a62685522859f2664e56d9f37330a1a11d17614aab82cda1e') {
+const previousInput = 'd34735e79fad865a62685522859f2664e56d9f37330a1a11d17614aab82cda1e';
+const currentFixtureInput = '8f3aa236f20a0913e78e04139539b636835a538ab5d552891856a73a5e77e5da';
+if (checksum !== previousInput && !(shared && checksum === currentFixtureInput)) {
   throw new Error(`unexpected GSD input SHA-256: ${checksum}`);
 }
 
@@ -17,7 +21,9 @@ function tsv(path) {
 }
 
 const editsBySentence = new Map();
-for (const [id, source, replacement, reason] of tsv('./gsd-sentence-edits.tsv')) {
+const sentenceEdits = tsv('./gsd-sentence-edits.tsv');
+if (shared) sentenceEdits.push(...tsv('./gsd-shared-sentence-edits.tsv'));
+for (const [id, source, replacement, reason] of sentenceEdits) {
   if (!source || source === replacement || !reason) throw new Error(`invalid edit: ${id}`);
   const edits = editsBySentence.get(id) ?? [];
   edits.push({ source, replacement });
@@ -25,7 +31,9 @@ for (const [id, source, replacement, reason] of tsv('./gsd-sentence-edits.tsv'))
 }
 
 const annotations = new Map();
-for (const [id, query, pos, form, lemma, xpos] of tsv('./gsd-sentence-edit-annotations.tsv')) {
+const annotationEdits = tsv('./gsd-sentence-edit-annotations.tsv');
+if (shared) annotationEdits.push(...tsv('./gsd-shared-sentence-annotations.tsv'));
+for (const [id, query, pos, form, lemma, xpos] of annotationEdits) {
   if (annotations.has(id) || (query !== '-' && (!query || !pos || !form || !lemma || !xpos))) {
     throw new Error(`invalid annotation: ${id}`);
   }
@@ -45,7 +53,9 @@ if (contract) {
 
 function applyEdit(text, start, end, { source, replacement }) {
   const index = text.indexOf(source);
-  if (index < 0 && text.includes(replacement)) return { text, start, end };
+  if (text.includes(replacement) && (index < 0 || replacement.includes(source))) {
+    return { text, start, end };
+  }
   if (index < 0 || text.indexOf(source, index + source.length) >= 0) {
     throw new Error(`edit source must occur once: ${source} in ${text}`);
   }
@@ -70,6 +80,7 @@ function applyEdit(text, start, end, { source, replacement }) {
 }
 
 const usedSentences = new Set();
+const alignedSentences = new Map();
 const output = original.toString('utf8').trimEnd().split('\n').flatMap(line => {
   const row = JSON.parse(line);
   const sentenceId = row.id.split(':')[1];
@@ -80,6 +91,13 @@ const output = original.toString('utf8').trimEnd().split('\n').flatMap(line => {
   let span = { text: row.text, start: row.gold_byte_start, end: row.gold_byte_end };
   const originalSpan = Buffer.from(span.text).subarray(span.start, span.end);
   for (const edit of edits ?? []) span = applyEdit(span.text, span.start, span.end, edit);
+  if (shared && edits) {
+    const aligned = alignedSentences.get(sentenceId);
+    if (aligned !== undefined && aligned !== span.text) {
+      throw new Error(`inconsistent shared sentence: ${sentenceId}`);
+    }
+    alignedSentences.set(sentenceId, span.text);
+  }
 
   const candidate = Buffer.from(span.text).subarray(span.start, span.end);
   const annotation = annotations.get(row.id);
