@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
-const [input] = process.argv.slice(2);
-if (!input || process.argv.length !== 3) {
-  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl');
+const [input, contract, ...extra] = process.argv.slice(2);
+if (!input || (contract && contract !== '--review-contract') || extra.length) {
+  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl [--review-contract]');
 }
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
@@ -31,6 +31,16 @@ for (const [id, query, pos, form, lemma, xpos] of tsv('./gsd-sentence-edit-annot
   }
   // A joined word can replace two original annotations with one searchable lexeme.
   annotations.set(id, query === '-' ? null : { query, pos, form, lemma, xpos });
+}
+
+const excludedSentences = new Set();
+if (contract) {
+  for (const [id, reason, contrast] of tsv('./gsd-nonstandard-sentences.tsv')) {
+    if (!reason || !contrast || excludedSentences.has(id)) {
+      throw new Error(`invalid sentence exclusion: ${id}`);
+    }
+    excludedSentences.add(id);
+  }
 }
 
 function applyEdit(text, start, end, { source, replacement }) {
@@ -64,11 +74,12 @@ const output = original.toString('utf8').trimEnd().split('\n').flatMap(line => {
   const row = JSON.parse(line);
   const sentenceId = row.id.split(':')[1];
   const edits = editsBySentence.get(sentenceId);
-  if (!edits) return line;
-  usedSentences.add(sentenceId);
+  const excluded = excludedSentences.has(sentenceId);
+  if (!edits && !excluded) return line;
+  if (edits) usedSentences.add(sentenceId);
   let span = { text: row.text, start: row.gold_byte_start, end: row.gold_byte_end };
   const originalSpan = Buffer.from(span.text).subarray(span.start, span.end);
-  for (const edit of edits) span = applyEdit(span.text, span.start, span.end, edit);
+  for (const edit of edits ?? []) span = applyEdit(span.text, span.start, span.end, edit);
 
   const candidate = Buffer.from(span.text).subarray(span.start, span.end);
   const annotation = annotations.get(row.id);
@@ -93,6 +104,10 @@ const output = original.toString('utf8').trimEnd().split('\n').flatMap(line => {
   if (gold.length !== span.end - span.start || !gold.length
       || !gold.equals(Buffer.from(gold.toString('utf8')))) {
     throw new Error(`invalid corrected UTF-8 span: ${row.id}`);
+  }
+  if (excluded) {
+    row.contract_expected = null;
+    row.contract_reason = 'nonstandard-input';
   }
   return JSON.stringify(row);
 });
