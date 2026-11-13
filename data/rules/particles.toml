@@ -100,6 +100,15 @@ next = ["particle.direction", "particle.from", "particle.genitive", "particle.to
 terminal = true
 
 [[particle]]
+id = "particle.locative.edaga"
+role = "case"
+hosts = ["nominal"]
+forms = ["에다가", "에다"]
+selection = "literal"
+next = ["particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji"]
+terminal = true
+
+[[particle]]
 id = "particle.source"
 role = "case"
 hosts = ["nominal"]
