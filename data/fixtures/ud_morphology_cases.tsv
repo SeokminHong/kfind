@@ -47,6 +47,10 @@ regression.ppundeoreo.rieul-stem	살다	verb	smart-exact	7	19	같이 살뿐더�
 regression.ppundeoreo.past	구하다	verb	smart-exact	7	25	집을 구했을뿐더러 일자리도 찾았다.
 regression.ppundeoreo.copula	이다	adjective	smart-exact	10	22	같은 반일뿐더러 이웃이다.
 regression.ppundeoreo.dependent-noun	살다	verb	smart-exact	7	10	같이 살 뿐 다른 계획은 없다.
+regression.jimaneun.full	듣다	verb	smart-exact	0	18	들었겠지마는 꼭 알려 주렴.
+regression.jimaneun.honorific	좋다	adjective	smart-exact	0	18	좋으시지마는 조금 멀다.
+regression.jimaneun.omitted-copula	이다	adjective	smart-exact	7	22	짧은 거리지마는 버스로 간다.
+regression.jimaneun.competing-verb	이다	adjective	no-match	7	22	자주 거리지마는 별일 없다.
 regression.archaic-nira.consonant	좁다	adjective	smart-exact	7	19	길이 좁으니라.
 regression.archaic-nira.irregular	가볍다	adjective	smart-exact	7	22	짐이 가벼우니라.
 regression.archaic-nira.rieul	힘들다	adjective	smart-exact	10	22	살림이 힘드니라.

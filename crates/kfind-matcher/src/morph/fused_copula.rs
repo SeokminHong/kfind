@@ -222,7 +222,8 @@ pub(super) fn accepts_omitted_copula(
         !host
             .strip_suffix('이')
             .is_some_and(|prefix| resolver.has_complete_nominal_surface(prefix))
-            && !resolver.has_exact_action_predicate_surface(host)
+            && (!resolver.has_exact_action_predicate_surface(host)
+                || (matches!(suffix, "지만" | "지마는") && follows_adnominal()))
             && !(matches!(suffix, "라고" | "라고요" | "라는") && resolver.has_whole_modifier(host))
             && (resolver.has_exact_nominal_surface(host)
                 || (matches!(suffix, "라고" | "라고요" | "라는")

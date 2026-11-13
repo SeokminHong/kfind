@@ -161,6 +161,8 @@ fn copula_common_omission(surface: &str) -> bool {
             | "면서"
             | "죠"
             | "지요"
+            | "지만"
+            | "지마는"
             | "예요"
             | "여요"
     )
@@ -396,6 +398,7 @@ pub(super) const HONORIFIC_NIRA: &[Suffix] = &[
     suffix("시느니라", &["ending.honorific", "ending.archaic-nira"]),
 ];
 const JIMAN: Suffix = suffix("지만", &["ending.connective-jiman"]);
+const JIMANEUN: Suffix = suffix("지마는", &["ending.connective-jiman"]);
 const GEONA: Suffix = suffix("거나", &["ending.connective-geona"]);
 const IMMEDIATE: Suffix = suffix("자마자", &["ending.connective-jamaja"]);
 const HONORIFIC_IMMEDIATE: Suffix = suffix(
@@ -453,6 +456,7 @@ const HONORIFIC_INTERROGATIVE_NA_YO: Suffix =
 const CONCESSIVE_EUNA: Suffix = suffix("으나", &["ending.connective-na"]);
 const HONORIFIC_COORDINATING_ENDINGS: &[Suffix] = &[
     suffix("시지만", &["ending.honorific", "ending.connective-jiman"]),
+    suffix("시지마는", &["ending.honorific", "ending.connective-jiman"]),
     suffix("시거나", &["ending.honorific", "ending.connective-geona"]),
     suffix("시나", &["ending.honorific", "ending.connective-na"]),
 ];
@@ -535,6 +539,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
     suffix("으면", &["ending.conditional"]),
     suffix("으며", &["ending.coordinate-myeo"]),
     JIMAN,
+    JIMANEUN,
     suffix("는데", &["ending.connective-neunde"]),
     suffix("다고", &["ending.quotative-go"]),
     suffix("던", &["ending.retrospective-adnominal"]),
@@ -626,6 +631,7 @@ const FUTURE_SUFFIXES: &[Suffix] = &[
     suffix("습니다", &["ending.polite-declarative"]),
     suffix("으되", &["ending.connective-eudoe"]),
     JIMAN,
+    JIMANEUN,
     suffix("는데", &["ending.connective-neunde"]),
     suffix("다", &["ending.final-da"]),
     suffix("고", &["ending.connective-go"]),
@@ -1835,13 +1841,18 @@ fn verify_simple_continuation(
         ContinuationState::Eu if following.starts_with("시진") || following.starts_with("시질") => {
             HONORIFIC_NEGATIVE_PARTICLES
         }
-        ContinuationState::StemEnding if following.starts_with("지만") => &[JIMAN],
+        ContinuationState::StemEnding
+            if following.starts_with("지만") || following.starts_with("지마는") =>
+        {
+            &[JIMAN, JIMANEUN]
+        }
         ContinuationState::StemEnding if following.starts_with("거나") => &[GEONA],
         ContinuationState::StemEnding if anchor.ends_with('시') && following.starts_with('나') => {
             &[CONCESSIVE_NA]
         }
         ContinuationState::Eu
             if following.starts_with("시지만")
+                || following.starts_with("시지마는")
                 || following.starts_with("시거나")
                 || following.starts_with("시나") =>
         {
