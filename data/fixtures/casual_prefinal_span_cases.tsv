@@ -50,3 +50,8 @@ walk-casual-context	걷다	verb	exact	10	19	전화를 걸었어.
 hang-casual-context	걸다	verb	exact	14	23	나는 오래 걸었어.
 listen-casual-context	듣다	verb	exact	10	19	가방을 들었어.
 lift-casual-context	들다	verb	exact	10	19	음악을 들었어.
+았자:2	좋다	adjective	exact	27	36	몸이 아프니 날씨가 좋았자 나가서 놀지도 못한다.
+었자:1	이다	adjective	exact	30	39	아무리 많이 먹는 사람이었자 이 많은 음식을 혼자서 먹지는 못할 거요.
+었자:2	먹다	verb	exact	17	26	약을 열심히 먹었자 운동을 하지 않으면 건강을 되찾을 수 없어.
+었자:3	길다	adjective	exact	17	26	뱁새 다리가 길었자 황새만 하랴?
+였자:1	하다	verb	exact	33	42	집안일은 아무리 열심히 하였자 티도 나지 않는다.
