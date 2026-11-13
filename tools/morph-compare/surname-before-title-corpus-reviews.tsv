@@ -1,0 +1,3 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	pud:n01005024:noun:조	조	noun	false	817bbaaa16e3c9b4cc28e34d3e2ed92055ceb8a86c534f33bcc2aebab640e298	contract-positive	aligned-source-component	원문에서 조는 인명 조 스턴리엡의 독립 고유 명사다.
+explicit-pos	corpus-negatives	pud:w01048027:noun:원	원	noun	false	fc35ce50de5c2ea6981bd9acc01a709ffe7faef75559f81711e71ed604573475	contract-positive	aligned-source-component	원문에서 원은 왕조 이름의 독립 고유 명사다.
