@@ -2141,6 +2141,14 @@ impl MorphMatcher {
         {
             return false;
         }
+        if let Some(stem) = normalized
+            .strip_suffix("렷다")
+            .or_else(|| normalized.strip_suffix('랴'))
+            && resolver.has_exact_action_predicate_surface(stem)
+            && has_directional_adverbial_frame(haystack, candidate.verified.token.start, resolver)
+        {
+            return false;
+        }
         resolver.has_exact_lost_span_copula_ending_path(&normalized)
             || (matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
                 && (fused_copula::accepts_fused_retrospective(&normalized, resolver)
@@ -2701,6 +2709,21 @@ fn contracted_copula_surface_follows(
         .is_some_and(|character| {
             matches!(character, '였' | '여') || (character == '다' && !preserve_numeral_da)
         })
+}
+
+fn has_directional_adverbial_frame(
+    haystack: &[u8],
+    at: usize,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let Some((start, adjacent)) = context::previous_word_with_start(haystack, at) else {
+        return false;
+    };
+    let is_directional = |word: &str| word.ends_with('로') && resolver.has_nominal_oblique(word);
+    context::previous_word(haystack, start).is_some_and(|previous| {
+        (is_directional(&adjacent) && resolver.has_exact_adverb_surface(&previous))
+            || (is_directional(&previous) && resolver.has_exact_adverb_surface(&adjacent))
+    })
 }
 
 fn follows_predicate_adnominal(haystack: &[u8], at: usize, resolver: &ConstraintResolver) -> bool {
