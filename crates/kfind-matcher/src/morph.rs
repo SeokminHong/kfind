@@ -1210,11 +1210,18 @@ impl MorphMatcher {
         }
         if boundary == BoundaryPolicy::Smart
             && self.constraint_resolver.as_ref().is_some_and(|resolver| {
-                (candidate
-                    .suffix_rules
-                    .iter()
-                    .any(|rule| rule.as_str() == "particle.comitative.hago")
-                    && has_hago_predicate_frame(haystack, &candidate.verified.token, resolver))
+                (branch.origins.iter().any(|origin| {
+                    origin
+                        .rule_path
+                        .iter()
+                        .any(|rule| rule.as_str() == "contraction.ha-gi")
+                }) && context::normalized_token(haystack, candidate.anchor.clone())
+                    .is_some_and(|anchor| resolver.has_exact_nominal_surface(&anchor)))
+                    || (candidate
+                        .suffix_rules
+                        .iter()
+                        .any(|rule| rule.as_str() == "particle.comitative.hago")
+                        && has_hago_predicate_frame(haystack, &candidate.verified.token, resolver))
                     || has_competing_iran_particle_analysis(haystack, candidate, resolver)
                     || lacks_contracted_quotative_head(haystack, candidate, branch, resolver)
                     || has_competing_hao_connective(haystack, candidate, branch, resolver)

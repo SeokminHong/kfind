@@ -1046,3 +1046,7 @@ regression.hago.topic	동생	noun	smart-exact	0	15	동생하고는 먼저 헤어
 regression.hago.predicate-adjective	편	noun	no-match	7	19	속이 편하고요.
 regression.hago.predicate-negative	못	noun	no-match	10	19	우승을 못하고 있어요.
 regression.hago.predicate-object	당	noun	no-match	10	19	죽임을 당하고 쓰러졌다.
+regression.contracted-ha-gi.validation	검증하다	verb	smart-exact	0	12	검증키로 했다.
+regression.contracted-ha-gi.vowel	연구하다	verb	smart-exact	0	12	연구키로 했다.
+regression.contracted-ha-gi.unvoiced	생각하다	verb	no-match	0	12	생각키로 했다.
+regression.contracted-ha-gi.nominal	스하다	verb	no-match	0	9	스키를 탔다.

@@ -81,6 +81,14 @@ result = "치"
 ending_ids = ["ending.connective-ji"]
 
 [[contraction]]
+id = "contraction.ha-gi"
+kind = "stem-rewrite"
+left = "하"
+right = "기"
+result = "키"
+ending_ids = ["ending.nominalizer-gi"]
+
+[[contraction]]
 id = "contraction.nominal-topic-neun"
 kind = "nominal-particle-compose"
 left = "거"
