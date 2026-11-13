@@ -63,6 +63,11 @@ regression.deul.plural	살다	verb	no-match	0	6	산들이 보인다.
 regression.deul.plural-compound	사다	verb	no-match	0	9	사진들 속에서 그를 찾았다.
 regression.deul.adnominal-lexeme	말다	verb	no-match	0	6	만들 것을 약속했다.
 regression.deul.adnominal-dependent	말다	verb	no-match	0	6	만들 수 있다.
+regression.ryeonman.consonant	좋다	adjective	smart-exact	0	12	좋으련만 사정이 여의치 않다.
+regression.ryeonman.rieul	살다	verb	smart-exact	0	12	살련마는 그럴 수 없다.
+regression.ryeonman.honorific	오다	verb	smart-exact	0	12	오시련만 길이 막혔다.
+regression.ryeonman.past	가다	verb	smart-exact	0	15	갔으련마는 비가 왔다.
+regression.ryeonman.bad-vowel	가다	verb	no-match	0	12	가으련만 비가 왔다.
 regression.doe.token-interior	작다	adjective	no-match	3	9	시작되었고그 자동차 회사는 남았다.
 regression.archaic-nira.consonant	좁다	adjective	smart-exact	7	19	길이 좁으니라.
 regression.archaic-nira.irregular	가볍다	adjective	smart-exact	7	22	짐이 가벼우니라.
