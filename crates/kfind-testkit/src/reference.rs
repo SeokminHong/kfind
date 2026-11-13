@@ -879,6 +879,7 @@ fn reference_simple_continuation(
         };
     }
     const PAST: &[ReferenceSuffix] = &[
+        reference_suffix("자", &["ending.concessive-eotja"]),
         reference_suffix("군", &["ending.final-gun"]),
         reference_suffix("군요", &["ending.final-gun", "ending.polite-yo"]),
         reference_suffix("습니까", &["ending.formal-interrogative"]),
