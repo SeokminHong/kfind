@@ -1214,6 +1214,50 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_scope_nominal_host(&self, text: &str) -> bool {
+        (self.has_exact_nominal_surface(text) || self.has_complete_nominal_surface(text))
+            && !self.has_whole_modifier(text)
+            && !self.has_derived_predicate_connective_surface(
+                text,
+                PredicatePosSet::one(PredicatePos::Verb)
+                    | PredicatePosSet::one(PredicatePos::Adjective),
+            )
+            && !complete_ha_predicate_path(&self.resource, text)
+            && !self.has_scope_competing_connective(text)
+            && !self.has_object_marked_nominal(text)
+            && !self.has_subject_marked_nominal(text)
+            && !text.strip_suffix(['은', '는']).is_some_and(|host| {
+                self.has_complete_nominal_surface(host)
+                    && host.chars().next_back().is_some_and(|last| {
+                        crate::drop_final(last).is_some() == text.ends_with('은')
+                    })
+            })
+            && (self.has_unambiguous_proper_name_surface(text) || !self.has_nominal_oblique(text))
+    }
+
+    pub fn has_scope_competing_connective(&self, text: &str) -> bool {
+        text.char_indices().any(|(start, _)| {
+                let mut complete = false;
+                self.resource.common_prefix_positions(&text.as_bytes()[start..], |length, positions| {
+                    if start + length != text.len() {
+                        return;
+                    }
+                    complete |= if start == 0 {
+                        matches!(positions, [predicate, middle @ .., StructuralPos::EC]
+                            if predicate.is_predicate_tag() && middle.iter().all(|pos| pos.is_ending()))
+                    } else {
+                        matches!(positions, [middle @ .., StructuralPos::EC] if middle.iter().all(|pos| pos.is_ending()))
+                            && exact_analysis_starts_with_pos(&self.resource, &text[..start], StructuralPos::is_predicate_tag)
+                            || matches!(positions, [StructuralPos::VCP, middle @ .., StructuralPos::EC]
+                                if middle.iter().all(|pos| pos.is_ending()))
+                                && self.has_nominal_with_optional_particles(&text[..start])
+                    };
+                });
+                complete
+        })
+    }
+
+    #[must_use]
     pub fn has_competing_nominal_after_connective(
         &self,
         text: &str,
