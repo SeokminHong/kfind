@@ -90,6 +90,9 @@ fn repository_data_is_complete_and_valid() {
         ("particle.dative", "particle.direction"),
         ("particle.locative", "particle.genitive"),
         ("particle.capacity.roseo", "particle.additive"),
+        ("particle.capacity.roseo", "particle.genitive"),
+        ("particle.dative", "particle.genitive"),
+        ("particle.source.egeseo", "particle.genitive"),
         ("particle.instrument.rosseo", "particle.topic"),
     ] {
         let rule = data

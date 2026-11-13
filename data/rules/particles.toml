@@ -69,7 +69,7 @@ role = "case"
 hosts = ["nominal"]
 forms = ["으로서", "로서"]
 selection = "euro-ro"
-next = ["particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
+next = ["particle.genitive", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo"]
 terminal = true
 
 [[particle]]
@@ -87,7 +87,7 @@ role = "case"
 hosts = ["nominal"]
 forms = ["에게", "한테", "께"]
 selection = "literal"
-next = ["particle.direction", "particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado", "particle.emphasis.yamallo"]
+next = ["particle.direction", "particle.from", "particle.genitive", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado", "particle.emphasis.yamallo"]
 terminal = true
 
 [[particle]]
@@ -123,7 +123,7 @@ role = "case"
 hosts = ["nominal"]
 forms = ["에게서"]
 selection = "literal"
-next = ["particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado", "particle.emphasis.yamallo"]
+next = ["particle.from", "particle.genitive", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado", "particle.emphasis.yamallo"]
 terminal = true
 
 [[particle]]
