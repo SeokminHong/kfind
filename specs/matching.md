@@ -1300,6 +1300,8 @@ right consumption:
 `kind=nominal-particle-compose` contraction 하나로 합성한다. 완전형 `그거는`을 보존하고 축약형
 `그건`을 alias로 추가하며, 품사가 대명사가 아니거나 `거`로 끝나지 않는 표제어에는 적용하지
 않는다.
+`smart`는 `저는·나는·너는`의 준말 `전·난·넌`을 사전의
+대명사와 보조사 결합 분석이 뒷받침할 때 반환한다.
 `누구·무어·무엇·뭐·어디 + 이(VCP) + -ㄴ가(EC/EF)`의 축약은
 `kind=nominal-copula-ending-compose`의 표제어별 표면 대응으로 제한한다. `token`과 `any`는
 선언된 표면과 선택적 조사 연쇄만 소비한다. `smart`는 축약 표면 전체에 `NP + VCP + E+`가

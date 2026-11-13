@@ -1424,6 +1424,29 @@ impl MorphMatcher {
                     .is_some_and(|next| resolver.has_independent_nominal_head(&next));
         }
         if matches!(branch.consumption, CandidateConsumption::Anchor)
+            && branch.origins.iter().any(|origin| {
+                origin
+                    .rule_path
+                    .last()
+                    .is_some_and(|rule| rule.as_str().starts_with("contraction.pronoun-topic-"))
+            })
+        {
+            let span = &candidate.verified.token;
+            return self.accepts_token_boundary(haystack, &candidate.verified, branch)
+                && context::normalized_token(haystack, span.clone()).is_some_and(|token| {
+                    resolver.has_pronoun_topic_contraction(&token)
+                        && !context::previous_word(haystack, span.start).is_some_and(|host| {
+                            (resolver.has_nominal_genitive_surface(&host)
+                                && resolver.has_exact_nominal_surface(&token))
+                                || (resolver.has_unambiguous_proper_name_surface(&host)
+                                    && resolver.has_whole_determiner(&token)
+                                    && context::next_word(haystack, span.end).is_some_and(|head| {
+                                        resolver.has_nominal_with_optional_particles(&head)
+                                    }))
+                        })
+                });
+        }
+        if matches!(branch.consumption, CandidateConsumption::Anchor)
             && !branch.origins.is_empty()
             && branch.origins.iter().all(|origin| {
                 origin
