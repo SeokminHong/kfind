@@ -578,7 +578,16 @@ const HONORIFIC_MEURO_ENDINGS: &[Suffix] = &[
 
 const NOMINALIZER_EUM: Suffix = suffix("음", &["ending.nominalizer"]);
 const NOMINALIZER_GI: Suffix = suffix("기", &["ending.nominalizer-gi"]);
+const NOMINALIZER_GIN: Suffix = suffix("긴", &["ending.nominalizer-gi", "particle.topic"]);
 const NOMINALIZER_GIL: Suffix = suffix("길", &["ending.nominalizer-gi", "particle.object"]);
+const HONORIFIC_NOMINALIZER_GIN: Suffix = suffix(
+    "시긴",
+    &[
+        "ending.honorific",
+        "ending.nominalizer-gi",
+        "particle.topic",
+    ],
+);
 const HONORIFIC_NOMINALIZER_GIL: Suffix = suffix(
     "시길",
     &[
@@ -1749,6 +1758,12 @@ fn verify_simple_continuation(
             &[HONORIFIC_INTERROGATIVE_NA_YO]
         }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if pos != PredicatePos::Copula && following.starts_with('긴') =>
+        {
+            &[NOMINALIZER_GIN]
+        }
+        ContinuationState::Eu if following.starts_with("시긴") => &[HONORIFIC_NOMINALIZER_GIN],
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if pos != PredicatePos::Copula && following.starts_with('길') =>
         {
             &[NOMINALIZER_GIL]
@@ -2243,6 +2258,49 @@ mod tests {
                     .iter()
                     .any(|rule| rule.as_str() == "ending.connective-daganeun")),
                 "accepted an internal connective ending in {text}",
+            );
+        }
+    }
+
+    #[test]
+    fn consumes_contracted_nominalizer_with_topic_particle() {
+        for (state, pos, anchor, suffix, expected_rules) in [
+            (
+                ContinuationState::StemEnding,
+                PredicatePos::Adjective,
+                "맛있",
+                "긴",
+                &["ending.nominalizer-gi", "particle.topic"][..],
+            ),
+            (
+                ContinuationState::Past,
+                PredicatePos::Verb,
+                "읽었",
+                "긴",
+                &["ending.nominalizer-gi", "particle.topic"][..],
+            ),
+            (
+                ContinuationState::Eu,
+                PredicatePos::Verb,
+                "읽으",
+                "시긴",
+                &[
+                    "ending.honorific",
+                    "ending.nominalizer-gi",
+                    "particle.topic",
+                ][..],
+            ),
+        ] {
+            let following = format!("{suffix} 하다");
+            let found = verify_predicate_continuation(state, pos, anchor, &following)
+                .expect("nominalized predicate with a topic particle");
+            assert_eq!(found.consumed_bytes, suffix.len());
+            assert!(
+                found
+                    .rule_path
+                    .iter()
+                    .map(RuleId::as_str)
+                    .eq(expected_rules.iter().copied())
             );
         }
     }
