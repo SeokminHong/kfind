@@ -973,7 +973,37 @@ impl MorphMatcher {
                     normalized_consumption_text(anchor, following);
                 let adverb_host = *allowed_rule_ids == self.plan.auxiliary_particle_rules;
                 if adverb_host
-                    && consumption_following.starts_with(['이', '입', '였'])
+                    && branch.origins.iter().any(|origin| {
+                        origin
+                            .rule_path
+                            .iter()
+                            .any(|rule| rule.as_str() == "structural.adverb-copula-nieun")
+                    })
+                {
+                    if !is_boundary_before(haystack, hit.span.start) {
+                        return None;
+                    }
+                    let tail = consumption_following
+                        .split(|character: char| !crate::is_token_character(character))
+                        .next()
+                        .filter(|tail| !tail.is_empty())?;
+                    let host = kfind_morph::drop_final(consumption_anchor.chars().next_back()?)?;
+                    if !verify_copula_surface_after_nominal(host, &format!("인{tail}")) {
+                        return None;
+                    }
+                    let consumed_bytes = match &consumption_following {
+                        Cow::Borrowed(_) => tail.len(),
+                        Cow::Owned(normalized) => {
+                            map_normalized_prefix(following, normalized, tail.len())?
+                        }
+                    };
+                    break 'nominal (
+                        consumed_bytes,
+                        vec![RuleId::from("structural.adverb-copula")],
+                    );
+                }
+                if adverb_host
+                    && consumption_following.starts_with(['이', '인', '일', '임', '입', '였'])
                     && is_boundary_before(haystack, hit.span.start)
                     && let Some(suffix) = consumption_following
                         .split(|character: char| !crate::is_token_character(character))
