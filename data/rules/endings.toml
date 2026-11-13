@@ -828,7 +828,7 @@ initial = "other"
 forms = ["가"]
 required = []
 forbidden = []
-next = ["ending.connective-go", "ending.connective-ya"]
+next = ["ending.connective-go", "ending.connective-ya", "ending.simultaneous-myeonseo"]
 terminal = false
 
 [[ending]]
@@ -1387,6 +1387,16 @@ category = "connective"
 initial = "eu"
 forms = ["면서", "으면서"]
 required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.connective-jamaja"
+category = "connective"
+initial = "consonant"
+forms = ["자마자"]
+required = ["action-verb"]
 forbidden = []
 next = []
 terminal = true

@@ -14,6 +14,16 @@ corpus.ud-gsd.test.test-s365.verb.받다	받다	verb	match	7	19	전화 받으시
 corpus.ud-gsd.test.test-s366.verb.전하다	전하다	verb	exact	120	132	같은 날 후쿠시마현 재해대책본부를 방문하여 보도진에게 「방사능의 리스크가 정확하게 전해지지 않고 있으나, 지금의 수준이라면 요드제의 투여는 불필요하다」라고 강조했다.
 corpus.ud-gsd.test.test-s468.adjective.무관하다	무관하다	adjective	match	355	364	삼성 관계자는 "이 회장의 신년사를 보면 '누구와도 손잡을 수 있어야 하고 모자라는 부분은 기꺼이 협력하는 용기와 결단이 필요하다'고 지적하면서 창의성과 스피드를 강하게 주문했다"며 "이 같은 당부가 제대로 이행되지 않고 있다는 생각을 하는 것도 정기 출근과 무관치 않을 수 있다"고 전했다.
 corpus.ud-gsd.test.test-s551.verb.찾다	찾다	verb	match	20	32	석양 이미지를 찾으시오
+corpus.ud-gsd.test.test-s682.verb.쓰다	쓰다	verb	smart-exact	33	45	순리를 벗어난 무리수를 써가면서 강행한 그 폐해를 잊지 말아야 한다.
+corpus.ud-gsd.test.test-s806.verb.시작되다	시작되다	verb	smart-exact	21	39	6시 30분 회의가 시작되자마자 격론이 벌어졌다.
+regression.progression-myeonseo.spaced	쓰다	verb	smart-exact	20	23	필요한 내용을 써 가면서 정리했다.
+regression.progression-myeonseo.state	크다	adjective	smart-exact	10	22	나무가 커가면서 그늘도 넓어진다.
+regression.immediate.honorific	듣다	verb	smart-exact	10	28	소식을 들으시자마자 달려오셨다.
+regression.immediate.rieul-honorific	알다	verb	smart-exact	14	29	그 사실을 아시자마자 알려 주셨다.
+regression.immediate.irregular	걷다	verb	smart-exact	7	19	다시 걷자마자 발목이 아팠다.
+regression.immediate.resultative	이루다	verb	smart-exact	10	28	합의가 이뤄지자마자 발표했다.
+regression.immediate.resultative-second	다루다	verb	smart-exact	10	28	안건이 다뤄지자마자 이의가 제기됐다.
+regression.immediate.state	크다	adjective	no-match	18	30	아이가 한 뼘 크자마자 옷을 바꿨다.
 corpus.ud-gsd.test.test-s502.verb.휴식하다	휴식하다	verb	smart-exact	57	72	아주 조용하고 물 깨끗하고 도시를 벗어나 휴식하기엔 딱 좋은 곳!
 regression.locative-topic.full	휴식하다	verb	smart-exact	20	38	도시를 벗어나 휴식하기에는 좋은 곳이다.
 regression.locative-topic.irregular	걷다	verb	smart-exact	10	19	한낮에 걷기엔 너무 덥다.
