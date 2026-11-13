@@ -367,19 +367,6 @@ pub(in crate::structure) fn select_structure(
     {
         return StructureSelection::Adverb;
     }
-    if evidence.has_whole(DataFinePos::Mag)
-        && evidence
-            .units
-            .all()
-            .iter()
-            .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal())
-        && context.next.is_some_and(|next| {
-            complete_ha_predicate_path(resource, next)
-                && !has_exact_fine_pos(resource, next, DataFinePos::is_nominal)
-        })
-    {
-        return StructureSelection::Adverb;
-    }
     if let Some(tail) = context.next.and_then(|next| next.strip_prefix('씨'))
         && context.current.chars().count() == 1
         && evidence.has_whole(DataFinePos::Nnp)
@@ -487,6 +474,23 @@ pub(in crate::structure) fn select_structure(
             )
         });
     let particle_host = evidence.nominal_particle_hosts.last().cloned();
+    if evidence.has_whole(DataFinePos::Mag)
+        && evidence
+            .units
+            .all()
+            .iter()
+            .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal())
+        && context.next.is_some_and(|next| {
+            complete_ha_predicate_path(resource, next)
+                && !has_exact_fine_pos(resource, next, DataFinePos::is_nominal)
+        })
+    {
+        return if next_is_numeral {
+            StructureSelection::NominalOrAdverbWhole
+        } else {
+            StructureSelection::Adverb
+        };
+    }
     let excludes_predicate = next_is_counter && evidence.adnominal_ends.is_empty();
     if (next_starts_determiner_nominal || excludes_predicate)
         && context.current.chars().count() == 1
