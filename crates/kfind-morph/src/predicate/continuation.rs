@@ -419,6 +419,8 @@ const HONORIFIC_PREFINAL_NE_ENDINGS: &[Suffix] = &[
 ];
 
 const PAST_SUFFIXES: &[Suffix] = &[
+    PREFINAL_DAMYEON,
+    PREFINAL_DAMYEONSEO,
     DAGA,
     suffix("자", &["ending.concessive-eotja"]),
     NOMINALIZER_EUM,
@@ -503,6 +505,8 @@ const HONORIFIC_NOMINALIZER_GIL: Suffix = suffix(
 );
 
 const FUTURE_SUFFIXES: &[Suffix] = &[
+    PREFINAL_DAMYEON,
+    PREFINAL_DAMYEONSEO,
     suffix("지", &["ending.confirmation-jiyo"]),
     NOMINALIZER_EUM,
     NOMINALIZER_GI,
@@ -545,6 +549,8 @@ const DECLARATIVE_DEONI: Suffix = suffix("더니", &["ending.retrospective-conne
 const DECLARATIVE_DEONIMAN: Suffix = suffix("더니만", &["ending.retrospective-contrast"]);
 const DECLARATIVE_DEONIMANEUN: Suffix = suffix("더니마는", &["ending.retrospective-contrast"]);
 const DECLARATIVE_CONDITIONAL: Suffix = suffix("면", &["ending.conditional"]);
+const PREFINAL_DAMYEON: Suffix = suffix("다면", &["ending.conditional"]);
+const PREFINAL_DAMYEONSEO: Suffix = suffix("다면서", &["ending.quotative-myeonseo"]);
 const DECLARATIVE_NI: Suffix = suffix("니", &["ending.quotative-ni"]);
 const DECLARATIVE_MYEO: Suffix = suffix("며", &["ending.quotative-myeo"]);
 const DECLARATIVE_JI: Suffix = suffix("지", &["ending.quotative-ji"]);
