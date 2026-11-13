@@ -83,6 +83,7 @@ const COPULA_REPORTING_AND_RO_ENDINGS: &[Suffix] = &[
 
 const GO_YO: Suffix = suffix("고요", &["ending.connective-go"]);
 const DAM: Suffix = suffix("담", &["ending.self-question-dam"]);
+const NAM: Suffix = suffix("남", &["ending.self-question-nam"]);
 const NEUNDAM: Suffix = suffix("는담", &["ending.self-question-dam"]);
 pub(super) const HONORIFIC_DAM: Suffix =
     suffix("시담", &["ending.honorific", "ending.self-question-dam"]);
@@ -421,6 +422,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
     PREFINAL_DAMYEONSEO,
     PREFINAL_EUNI,
     suffix("자", &["ending.concessive-eotja"]),
+    NAM,
     NOMINALIZER_EUM,
     NOMINALIZER_GI,
     NEGATIVE_TOPIC,
@@ -506,6 +508,7 @@ const FUTURE_SUFFIXES: &[Suffix] = &[
     PREFINAL_DAMYEON,
     PREFINAL_DAMYEONSEO,
     PREFINAL_EUNI,
+    NAM,
     suffix("지", &["ending.confirmation-jiyo"]),
     NOMINALIZER_EUM,
     NOMINALIZER_GI,
@@ -733,6 +736,7 @@ pub(super) const HONORIFIC_VOWEL_CONNECTIVES: &[Suffix] = &[
 ];
 
 const EU_SUFFIXES: &[Suffix] = &[
+    suffix("시남", &["ending.honorific", "ending.self-question-nam"]),
     suffix("시것다", &["ending.honorific", "ending.geotda"]),
     suffix(
         "셨것다",
@@ -1407,6 +1411,7 @@ fn verify_simple_continuation(
         }
         ContinuationState::Eu => EU_SUFFIXES,
         ContinuationState::StemEnding if following.starts_with("고요") => &[GO_YO],
+        ContinuationState::StemEnding if pos.is_action() && following.starts_with('남') => &[NAM],
         ContinuationState::StemEnding => GEODEUN_ENDINGS,
         ContinuationState::NieunEnding => BACKGROUND,
         ContinuationState::CompletedNieunEnding => COMPLETED_NIEUN,
