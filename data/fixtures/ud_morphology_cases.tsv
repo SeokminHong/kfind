@@ -893,6 +893,10 @@ corpus.ud-gsd.test.test-s510.pronoun.genitive	나	pronoun	smart-exact	0	3	내 �
 regression.pronominal-genitive.second	너	pronoun	smart-exact	0	3	네 생각을 들려줘.
 corpus.ud-gsd.test.test-s30.pronoun.uri-short	우리	pronoun	smart-exact	33	36	가족여행에서 다섯 살인 울 꼬맹이도 맛나게 먹을 수 있는 곳.
 corpus.ud-gsd.test.test-s875.pronoun.uri-short	우리	pronoun	smart-exact	5	8	5살 울 아들 양념고기만 먹는데 이 집 삼겹살 완전 잘 먹어요.
+corpus.ud-gsd.test.test-s564.pronoun.eda	거기	pronoun	smart-exact	0	12	거기에다 장미 혁명, 오렌지 혁명 이후 서방 세계와 더 밀접한 관계를 맺었기 때문에, 러시아와의 관계는 급속도로 냉각되었다.
+regression.particle.edaga.nominal	책상	noun	smart-exact	0	15	책상에다가 펜을 두었어요.
+regression.particle.edaga.additive	거기	pronoun	smart-exact	0	18	거기에다가도 펜을 두었어요.
+regression.particle.edaga.object	거기	pronoun	no-match	0	15	거기에다를 말했다.
 regression.pronominal-short.uri-standalone	우리	pronoun	no-match	0	3	울 것 같다.
 regression.pronominal-short.uri-ambiguous	우리	pronoun	smart-exact	0	3	울 아이가 먼저 나왔어요.
 regression.pronominal-short.ulda-ambiguous	울다	verb	smart-exact	0	3	울 아이가 먼저 나왔어요.
