@@ -1,4 +1,7 @@
 id	query	pos	expected	byte_start	byte_end	text
+corpus.ud-gsd.test.test-s90.nominal-honorific	사장	noun	smart-exact	0	6	사장님부터 직원들까지 늘 친절하고 안주도 실패작이 없었습니다.
+corpus.ud-gsd.test.test-s202.nominal-honorific-proper	예수	noun	smart-exact	68	74	눈물 흘리는 성모님 말고도 성당 안에 매달려 계신 예수님과 성모님께도 관심을 가져주세요.
+corpus.ud-gsd.test.test-s501.nominal-honorific-plural	선생	noun	smart-exact	0	6	선생님들 너무 친절하시고 가격도 괜찮고 무척 맘에 듬!
 regression.causal-mae.consonant	먹다	verb	smart-exact	7	16	그가 먹으매 마음이 놓였다.
 regression.causal-mae.vowel	고이다	verb	smart-exact	7	16	물이 고이매 길이 미끄러웠다.
 regression.causal-mae.rieul	돌다	verb	smart-exact	7	13	달이 돌매 밤이 깊어 갔다.
