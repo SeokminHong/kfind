@@ -869,7 +869,6 @@ const EU_SUFFIXES: &[Suffix] = &[
         "셨고",
         &["ending.honorific", "ending.past", "ending.connective-go"],
     ),
-    suffix("세요", &["ending.honorific", "ending.polite-imperative"]),
     suffix("십니다", &["ending.honorific", "ending.polite-declarative"]),
     suffix("시다", &["ending.honorific", "ending.final-da"]),
     suffix("시는", &["ending.honorific", "ending.present-adnominal"]),
@@ -1696,6 +1695,15 @@ fn verify_simple_continuation(
     let suffix = candidates
         .iter()
         .chain(additional_endings)
+        .chain(
+            if state == ContinuationState::Eu
+                && (following.starts_with("시어") || following.starts_with(['셔', '세']))
+            {
+                POLITE_HONORIFIC_ENDINGS
+            } else {
+                &[]
+            },
+        )
         .filter(|suffix| {
             following.starts_with(suffix.surface)
                 && (pos.is_action()
