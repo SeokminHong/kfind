@@ -909,6 +909,13 @@ fn compile_rieul_honorific(
             vec![rule("ending.honorific"), rule("ending.conditional")],
         ),
         (
+            format!("{base}시면서"),
+            vec![
+                rule("ending.honorific"),
+                rule("ending.simultaneous-myeonseo"),
+            ],
+        ),
+        (
             format!("{base}신"),
             vec![rule("ending.honorific"), rule("ending.past-adnominal")],
         ),
