@@ -1481,6 +1481,24 @@ impl MorphMatcher {
         }
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
         let core = &candidate.verified.core;
+        if *core == whole
+            && candidate.consumed == whole
+            && matches!(
+                branch.consumption,
+                CandidateConsumption::NominalParticleChain { .. }
+            )
+            && patterns.iter().any(|pattern| {
+                pattern.fine_pos == DataFinePos::Nnb && pattern.lexical_form.as_ref() == "내"
+            })
+            && let Some(host) = context::previous_word(haystack, whole.start)
+        {
+            if resolver.has_scope_nominal_host(&host) {
+                return true;
+            }
+            if resolver.has_scope_competing_connective(&host) {
+                return false;
+            }
+        }
         if core.start > whole.start
             && patterns.iter().any(|pattern| {
                 pattern.fine_pos.is_nominal() && pattern.lexical_form.as_ref() == "시"
