@@ -11,17 +11,19 @@ const contextAnnotations = options.includes('--context-annotations');
 const nominalModifiers = options.includes('--nominal-modifiers');
 const derivedNominals = options.includes('--derived-nominals');
 const scopeNominals = options.includes('--scope-nominals');
+const jiNominals = options.includes('--ji-nominals');
 if (!input || (restored && !shared) || (proofread && !restored)
-    || (independent || contextAnnotations || nominalModifiers || derivedNominals || scopeNominals ? options.length !== 1
+    || (independent || contextAnnotations || nominalModifiers || derivedNominals || scopeNominals || jiNominals ? options.length !== 1
       : options.length !== Number(contract) + Number(shared) + Number(restored) + Number(proofread))) {
-  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals | --scope-nominals)');
+  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals | --scope-nominals | --ji-nominals)');
 }
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
 const previousInput = 'd34735e79fad865a62685522859f2664e56d9f37330a1a11d17614aab82cda1e';
 const currentFixtureInput = '8f3aa236f20a0913e78e04139539b636835a538ab5d552891856a73a5e77e5da';
 const contextPosReviewInput = '120ad5000b84b3d61fef05214b6d703e0f573eb55330f0741cf455583806dce9';
-if (scopeNominals ? checksum !== 'e09e933e865128f1f2bfd937a5d192e26d5250967800a82e4e786108c5554ff3'
+if (jiNominals ? checksum !== 'a990e0f0fa2eb5488ff817b3f177fa38c7561c06cae3a9df92437cad63edaeef'
+  : scopeNominals ? checksum !== 'e09e933e865128f1f2bfd937a5d192e26d5250967800a82e4e786108c5554ff3'
   : derivedNominals ? checksum !== '957dad65dbc029053f56d531d8969638c4a52cb4270fa8b898c8380f722eef9d'
   : nominalModifiers ? checksum !== '1d8380f3c6c6f892fab50f510b0013ad8db55ea1105901ac24f15508510c4bb2'
   : contextAnnotations ? checksum !== '457c654f940283ce6010293d8497b9cd70faf39d254560b551fdb0eeb2f691ae'
@@ -36,7 +38,7 @@ function tsv(path) {
 }
 
 const editsBySentence = new Map();
-const sentenceEdits = derivedNominals || scopeNominals ? [] : tsv(nominalModifiers ? './gsd-nominal-modifier-edits.tsv'
+const sentenceEdits = derivedNominals || scopeNominals || jiNominals ? [] : tsv(nominalModifiers ? './gsd-nominal-modifier-edits.tsv'
   : contextAnnotations ? './gsd-context-annotation-edits.tsv'
   : independent ? './gsd-independent-proofreading-edits.tsv' : './gsd-sentence-edits.tsv');
 if (shared) sentenceEdits.push(...tsv('./gsd-shared-sentence-edits.tsv'));
@@ -50,7 +52,8 @@ for (const [id, source, replacement, reason] of sentenceEdits) {
 }
 
 const annotations = new Map();
-const annotationEdits = tsv(scopeNominals ? './gsd-scope-nominal-annotations.tsv'
+const annotationEdits = tsv(jiNominals ? './gsd-ji-nominal-annotations.tsv'
+  : scopeNominals ? './gsd-scope-nominal-annotations.tsv'
   : derivedNominals ? './gsd-derived-nominal-annotations.tsv'
   : nominalModifiers ? './gsd-nominal-modifier-annotations.tsv'
   : contextAnnotations ? './gsd-context-annotations.tsv'
