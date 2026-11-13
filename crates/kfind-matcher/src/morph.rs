@@ -1812,6 +1812,14 @@ impl MorphMatcher {
         let Some(unit) = context::normalized_token(haystack, core.clone()) else {
             return false;
         };
+        if complete
+            && prefix.is_empty()
+            && context::previous_word(haystack, whole.start)
+                .is_some_and(|previous| ConstraintResolver::is_mixed_cardinal(&previous))
+            && resolver.has_exact_numeric_unit(&unit)
+        {
+            return true;
+        }
         if !complete
             && prefix.is_empty()
             && has_counted_unit_copula_ending(haystack, core.end..whole.end)
