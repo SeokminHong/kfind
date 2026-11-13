@@ -1685,6 +1685,9 @@ fn verify_simple_continuation(
             HONORIFIC_GUN_ENDINGS
         }
         ContinuationState::AOrEo if following.starts_with('서') => A_OR_EO_SEO_SUFFIXES,
+        ContinuationState::AOrEo if pos.is_action() && following.starts_with("다가") => {
+            &[suffix("다가", &["ending.aoeo-daga"])]
+        }
         ContinuationState::StemEnding
             if following.starts_with("고서") && (pos.is_action() || anchor == "아니") =>
         {

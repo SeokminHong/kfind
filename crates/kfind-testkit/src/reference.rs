@@ -1666,6 +1666,9 @@ fn reference_simple_continuation(
         reference_suffix("겠죠", &["ending.future", "ending.confirmation-jiyo"]),
     ];
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::AOrEo if pos.is_action() && following.starts_with("다가") => {
+            &[reference_suffix("다가", &["ending.aoeo-daga"])]
+        }
         ContinuationState::StemEnding
             if pos.is_action()
                 && following.starts_with("는답")
