@@ -459,6 +459,9 @@ const HONORIFIC_GOSEO: &[Suffix] = &[
     suffix("시고서야", &["ending.honorific", "ending.connective-goseo"]),
 ];
 
+const MAE: Suffix = suffix("매", &["ending.connective-mae"]);
+const EUMAE: Suffix = suffix("으매", &["ending.connective-mae"]);
+const HONORIFIC_MAE: Suffix = suffix("시매", &["ending.honorific", "ending.connective-mae"]);
 const MEURO: &[Suffix] = &[suffix("므로", &["ending.connective-meuro"])];
 const EUMEURO: &[Suffix] = &[suffix("으므로", &["ending.connective-meuro"])];
 const HONORIFIC_MEURO_ENDINGS: &[Suffix] = &[
@@ -1562,6 +1565,13 @@ fn verify_simple_continuation(
         ContinuationState::StemEnding if anchor == "아니" && following.starts_with("라오") => {
             NEGATIVE_RAO
         }
+        ContinuationState::Eu | ContinuationState::Prospective if following.starts_with('매') => {
+            &[MAE]
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("으매") => {
+            &[EUMAE]
+        }
+        ContinuationState::Eu if following.starts_with("시매") => &[HONORIFIC_MAE],
         ContinuationState::Eu | ContinuationState::Prospective
             if pos != PredicatePos::Copula && following.starts_with('므') =>
         {
@@ -2032,6 +2042,19 @@ mod tests {
                 rules.into_iter().map(RuleId::from).collect::<Vec<_>>()
             );
         }
+    }
+
+    #[test]
+    fn causal_mae_does_not_consume_a_bare_ending_after_a_consonant() {
+        assert!(
+            verify_predicate_continuation(
+                ContinuationState::StemEnding,
+                PredicatePos::Verb,
+                "먹",
+                "매 기쁘다."
+            )
+            .is_none()
+        );
     }
 
     #[test]
