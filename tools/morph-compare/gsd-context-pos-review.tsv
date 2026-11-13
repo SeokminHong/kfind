@@ -1,0 +1,10 @@
+case_id	original_query	original_pos	form	query	pos	lemma	xpos	reason
+gsd:test-s30:4	울	noun	울	우리	pronoun	우리	NP	꼬맹이를 수식하는 대명사의 구어 축약
+gsd:test-s143:1	전	noun	전	저	pronoun	저+는	NP+JX	화자의 신분을 나타내는 대명사와 주제 조사
+gsd:test-s238:9	전	noun	전	전	determiner	전	MM	국무총리 앞에서 이전 직위를 나타내는 관형사
+gsd:test-s238:13	전	noun	전	전	determiner	전	MM	원내대표 앞에서 이전 직위를 나타내는 관형사
+gsd:test-s272:1	진짜	noun	진짜	진짜	adverb	진짜	MAG	맛있어요의 정도를 강조하는 부사
+gsd:test-s358:3	연	noun	연	열다	verb	열+ㄴ	VV+ETM	문을 목적어로 취하고 음식점을 수식하는 관형형
+gsd:test-s481:1	전	noun	전	저	pronoun	저+는	NP+JX	화자의 평가를 도입하는 대명사와 주제 조사
+gsd:test-s808:2	전	noun	전	전	determiner	전	MM	대표 앞에서 이전 직위를 나타내는 관형사
+gsd:test-s875:2	울	noun	울	우리	pronoun	우리	NP	아들을 수식하는 대명사의 구어 축약
