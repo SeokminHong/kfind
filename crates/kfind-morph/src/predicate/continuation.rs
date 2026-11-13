@@ -1167,6 +1167,8 @@ macro_rules! prospective_suffixes {
             suffix(concat!($prefix, "리니라"), &[$($rule,)* "ending.prospective-final"]),
             suffix(concat!($prefix, "리로다"), &[$($rule,)* "ending.prospective-final"]),
             suffix(concat!($prefix, "리니"), &[$($rule,)* "ending.prospective-connective"]),
+            suffix(concat!($prefix, "련마는"), &[$($rule,)* "ending.prospective-connective"]),
+            suffix(concat!($prefix, "련만"), &[$($rule,)* "ending.prospective-connective"]),
             suffix(concat!($prefix, "리만치"), &[$($rule,)* "ending.prospective-connective"]),
             suffix(concat!($prefix, "리만큼"), &[$($rule,)* "ending.prospective-connective"]),
         ]
@@ -1182,9 +1184,11 @@ const HONORIFIC_FUTURE_PROSPECTIVE: &[Suffix] =
     prospective_suffixes!("시겠으", "ending.honorific", "ending.future");
 
 fn starts_prospective(following: &str, prefix: &str) -> bool {
-    following
-        .strip_prefix(prefix)
-        .is_some_and(|tail| tail.starts_with(['리', '랴', '렷']))
+    following.strip_prefix(prefix).is_some_and(|tail| {
+        tail.starts_with(['리', '랴', '렷'])
+            || tail.starts_with("련마는")
+            || tail.starts_with("련만")
+    })
 }
 
 macro_rules! question {
