@@ -919,6 +919,10 @@ regression.pronominal-short.uri-standalone	우리	pronoun	no-match	0	3	울 것 �
 regression.pronominal-short.uri-ambiguous	우리	pronoun	smart-exact	0	3	울 아이가 먼저 나왔어요.
 regression.pronominal-short.ulda-ambiguous	울다	verb	smart-exact	0	3	울 아이가 먼저 나왔어요.
 regression.pronominal-genitive.particle	나	pronoun	smart-exact	0	3	내 친구를 만났다.
+regression.pronominal-genitive.common-noun-with-unit-sense	나	pronoun	smart-exact	0	3	내 손을 꼭 잡아라.
+regression.pronominal-genitive.copula	나	pronoun	smart-exact	0	3	내 방이었다.
+regression.pronominal-genitive.auxiliary-particle	나	pronoun	smart-exact	0	3	내 집만 하겠어요?
+regression.pronominal-genitive.determiner-tail	나	pronoun	no-match	7	10	정당 내 모든 사람들이 모였다.
 corpus.ud-gsd.test.test-s386.pronoun.ordinal	너	pronoun	no-match	27	30	어느덧 천막 안에서 네 해째 겨울을 맞이했다.
 regression.pronominal-genitive.count	너	pronoun	no-match	0	3	네 명이 들어왔다.
 regression.pronominal-genitive.reply	너	pronoun	no-match	0	3	네, 알겠습니다.
