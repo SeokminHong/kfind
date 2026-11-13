@@ -958,6 +958,44 @@ impl MorphMatcher {
                         .particle_verifier
                         .verify_prefix(&consumption_anchor, uncontracted_prefix);
                 }
+                if matches!(
+                    branch.consumption,
+                    CandidateConsumption::NominalParticleChain { .. }
+                ) && consumption_following.starts_with('서')
+                    && matched
+                        .rule_path
+                        .first()
+                        .is_some_and(|rule| rule.as_str() == "particle.source")
+                {
+                    let tail = &consumption_following[matched.consumed_bytes..];
+                    let competing_lexeme = branch.decision.is_structural()
+                        && self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                            let whole = surrounding_token_span(haystack, core.clone());
+                            context::normalized_token(haystack, whole).is_some_and(|token| {
+                                let aligned_pronoun =
+                                    branch.structural_patterns().iter().any(|pattern| {
+                                        pattern.fine_pos == DataFinePos::Np
+                                            && resolver
+                                                .has_complete_nominal_surface(&consumption_anchor)
+                                    });
+                                resolver.has_exact_predicate_ending_path(
+                                    &token,
+                                    kfind_morph::PredicatePos::Verb,
+                                ) || (!aligned_pronoun
+                                    && (resolver.has_whole_modifier(&token)
+                                        || resolver.has_exact_nominal_surface(&token)
+                                        || token.strip_suffix('의').is_some_and(|host| {
+                                            resolver.has_exact_nominal_surface(host)
+                                        })))
+                            })
+                        });
+                    if competing_lexeme || tail.starts_with(crate::is_token_character) {
+                        // An incomplete shortened case chain can also start a compound component.
+                        matched = self
+                            .particle_verifier
+                            .verify_prefix(&consumption_anchor, "");
+                    }
+                }
                 if !branch.consumption.allows_rule_path(&matched.rule_path) {
                     return None;
                 }
@@ -2435,7 +2473,9 @@ impl MorphMatcher {
             .model()
             .allomorphs
             .iter()
-            .any(|form| normalized.starts_with(form.surface.as_ref()));
+            .any(|form| {
+                normalized.starts_with(form.surface.as_ref()) && !is_short_source_particle(form)
+            });
         if particle_shaped {
             return true;
         }
@@ -2459,7 +2499,9 @@ impl MorphMatcher {
                 .model()
                 .allomorphs
                 .iter()
-                .any(|form| remainder.starts_with(form.surface.as_ref()));
+                .any(|form| {
+                    remainder.starts_with(form.surface.as_ref()) && !is_short_source_particle(form)
+                });
             if !particle_remainder {
                 return false;
             }
@@ -3977,6 +4019,10 @@ fn licensed_source_ending_surface(surface: &str) -> bool {
         || EU_INITIAL_ENDINGS
             .iter()
             .any(|ending| surface.starts_with(ending))
+}
+
+fn is_short_source_particle(form: &kfind_morph::ParticleAllomorph) -> bool {
+    form.rule_id.as_str() == "particle.source" && form.surface.as_ref() == "서"
 }
 
 fn starts_with_resultative_auxiliary(surface: &str) -> bool {

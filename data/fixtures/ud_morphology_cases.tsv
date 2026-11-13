@@ -1,4 +1,7 @@
 id	query	pos	expected	byte_start	byte_end	text
+regression.source-contraction.pronoun	여기	pronoun	smart-exact	0	12	여기서도 만날 수 있다.
+regression.source-contraction.consonant	서울	noun	smart-exact	0	15	서울서부터 눈이 왔다.
+regression.source-contraction.compound	상업	noun	smart-exact	0	6	상업서적을 샀다.
 corpus.ud-gsd.test.test-s666.interrogative-nayo	막히다	verb	smart-exact	11	23	이 근처 막히나요?
 corpus.ud-gsd.test.test-s110.interrogative-nayo	걸리다	verb	smart-exact	32	44	맥도날드까지 얼마만큼 걸리나요?
 regression.interrogative-nayo.consonant	먹다	verb	smart-exact	17	26	아이도 밥을 먹나요?
