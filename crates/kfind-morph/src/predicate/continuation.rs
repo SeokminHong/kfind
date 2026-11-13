@@ -392,6 +392,8 @@ const HONORIFIC_PREFINAL_NE_ENDINGS: &[Suffix] = &[
 ];
 
 const PAST_SUFFIXES: &[Suffix] = &[
+    NOMINALIZER_EUM,
+    NOMINALIZER_GI,
     NEGATIVE_TOPIC,
     GEONA,
     CONCESSIVE_EUNA,
@@ -456,7 +458,13 @@ const HONORIFIC_MEURO_ENDINGS: &[Suffix] = &[
     ),
 ];
 
+const NOMINALIZER_EUM: Suffix = suffix("음", &["ending.nominalizer"]);
+const NOMINALIZER_GI: Suffix = suffix("기", &["ending.nominalizer-gi"]);
+
 const FUTURE_SUFFIXES: &[Suffix] = &[
+    suffix("지", &["ending.confirmation-jiyo"]),
+    NOMINALIZER_EUM,
+    NOMINALIZER_GI,
     NEGATIVE_TOPIC,
     GEONA,
     CONCESSIVE_EUNA,
@@ -1291,6 +1299,29 @@ fn verify_simple_continuation(
     anchor: &str,
     following: &str,
 ) -> Option<PredicateContinuationMatch> {
+    let necessity_prefix = match state {
+        ContinuationState::AOrEo => "야겠",
+        ContinuationState::Eu => "셔야겠",
+        _ => "",
+    };
+    if !necessity_prefix.is_empty()
+        && let Some(tail) = following.strip_prefix(necessity_prefix)
+        && let Some(ending) = verify_simple_continuation(ContinuationState::Future, pos, "겠", tail)
+        && ending.consumed_bytes != 0
+    {
+        let consumed_bytes = necessity_prefix.len() + ending.consumed_bytes;
+        return Some(PredicateContinuationMatch {
+            token_end: anchor.len() + consumed_bytes,
+            consumed_bytes,
+            rule_path: (state == ContinuationState::Eu)
+                .then_some("ending.honorific")
+                .into_iter()
+                .chain(["ending.connective-ya", "ending.future"])
+                .map(RuleId::from)
+                .chain(ending.rule_path)
+                .collect(),
+        });
+    }
     let candidates = match state {
         ContinuationState::Terminal => {
             return Some(matched(anchor.len(), None));
