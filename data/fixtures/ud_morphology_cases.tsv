@@ -1034,6 +1034,15 @@ regression.pronominal-genitive.context-positive	너	pronoun	smart-exact	48	51	�
 corpus.ud-pud.test.n01144023.pronoun.genitive	나	pronoun	smart-exact	21	24	그 녀석이 계속 내 헛간에 나타나길래 자기가 팔리는 것을 원치 않는 게 확실하다고 농담조로 말했어요.
 corpus.ud-pud.test.w01043065.pronoun.locative	나	pronoun	no-match	91	94	반면, 나일강을 추가적으로 통제한 결과 게지라섬과 도시 수변 지역 내 발전이 크게 일어났다.
 corpus.ud-gsd.test.test-s308.pronoun.어디	어디	pronoun	smart-exact	10	16	커피숍 어디 있어?
+regression.locative-contraction.eodi	어디	pronoun	smart-exact	0	9	어딨어?
+regression.locative-contraction.eodi-na	어디	pronoun	smart-exact	7	16	이거 어딨나?
+regression.locative-contraction.eodi-ji	어디	pronoun	smart-exact	7	16	아빠 어딨지?
+regression.locative-contraction.eodi-pol	어디	pronoun	smart-exact	10	22	커피숍 어딨어요?
+regression.locative-contraction.yeogi	여기	pronoun	smart-exact	0	9	여깄네.
+regression.locative-contraction.yeogi-pol	여기	pronoun	smart-exact	7	19	열쇠 여깄어요.
+regression.locative-contraction.interior	어디	pronoun	no-match	6	15	엑스어딨어표를 붙였다.
+regression.locative-contraction.stem	어디	pronoun	no-match	7	13	그는 어딨이라고 적었다.
+regression.locative-contraction.bad-ending	여기	pronoun	no-match	0	12	여깄기구를 만들었다.
 corpus.ud-gsd.test.test-s54.determiner.세	세	determiner	no-match	46	58	허블이 계산한 안드로메다에 있는 세페이드 변광성까지의 거리는 대논쟁을 확실히 끝맺었다.
 corpus.ud-gsd.test.test-s424.determiner.어	어	determiner	no-match	0	12	어그부츠 파는 곳 알려 주세요.
 corpus.ud-gsd.test.test-s583.determiner.이	이	determiner	no-match	12	18	13-23장은 이방 민족들에 대한 심판 선언을 담고 있는데, 부분적으로만 이사야와 관련시킬 수 있다.

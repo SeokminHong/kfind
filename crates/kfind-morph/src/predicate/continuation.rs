@@ -447,6 +447,7 @@ const HONORIFIC_NEGATIVE_PARTICLES: &[Suffix] = &[
 ];
 const CONCESSIVE_NA: Suffix = suffix("나", &["ending.connective-na"]);
 const INTERROGATIVE_NA_YO: Suffix = suffix("나요", &["ending.interrogative-na"]);
+const INTERROGATIVE_NA: Suffix = suffix("나", &["ending.interrogative-na"]);
 const HONORIFIC_INTERROGATIVE_NA_YO: Suffix =
     suffix("시나요", &["ending.honorific", "ending.interrogative-na"]);
 const CONCESSIVE_EUNA: Suffix = suffix("으나", &["ending.connective-na"]);
@@ -1764,6 +1765,15 @@ fn verify_simple_continuation(
             &[HONORIFIC_NDAM]
         }
         ContinuationState::Eu if following.starts_with("시담") => &[HONORIFIC_DAM],
+        ContinuationState::StemEnding
+            if following.strip_prefix('나').is_some_and(|tail| {
+                tail.trim_start().starts_with('?')
+                    && (pos.is_action() || anchor.ends_with(['있', '없']))
+                    && !anchor.chars().next_back().is_some_and(has_rieul_final)
+            }) =>
+        {
+            &[INTERROGATIVE_NA]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if pos != PredicatePos::Copula
                 && following.starts_with("나요")

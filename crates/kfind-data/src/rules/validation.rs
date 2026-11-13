@@ -130,6 +130,7 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
         "nominal-particle-compose",
         "pronoun-topic-compose",
         "pronoun-attributive-shortening",
+        "locative-pronoun-iss-compose",
         "dependent-noun-subject-compose",
         "nominal-copula-ending-compose",
         "dependent-noun-copula-ending-compose",
@@ -183,6 +184,7 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
             "nominal-particle-compose"
                 | "pronoun-topic-compose"
                 | "pronoun-attributive-shortening"
+                | "locative-pronoun-iss-compose"
                 | "dependent-noun-subject-compose"
                 | "nominal-copula-ending-compose"
                 | "dependent-noun-copula-ending-compose"

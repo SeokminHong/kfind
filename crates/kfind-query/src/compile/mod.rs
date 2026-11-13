@@ -571,10 +571,11 @@ fn compile_analysis(
                 analysis,
                 analysis_index,
                 analyzer,
+                predicate_rules,
                 particle_rules,
                 options.boundary,
                 output,
-            );
+            )?;
             if options.expand == ExpandMode::Derivation {
                 compile_derivations(
                     analysis,
@@ -624,17 +625,52 @@ fn compile_nominal_contractions(
     analysis: &Analysis,
     analysis_index: u16,
     analyzer: &LexiconQueryAnalyzer,
+    predicate_rules: &Arc<[RuleId]>,
     particle_rules: &Arc<[RuleId]>,
     boundary: crate::BoundaryPolicy,
     output: &mut Vec<DraftBranch>,
-) {
+) -> Result<(), CompileError> {
     let pronoun = analysis.coarse_pos == CoarsePos::Pronoun;
     let dependent_noun = analysis.fine_pos == FinePos::DependentNoun;
     if !pronoun && !dependent_noun {
-        return;
+        return Ok(());
     }
     for rule in &analyzer.lexicons().rules().contractions {
         match rule.kind.as_str() {
+            "locative-pronoun-iss-compose" if pronoun && analysis.lemma.as_ref() == rule.left => {
+                let predicate = kfind_morph::PredicateEntry::new(
+                    format!("{}다", rule.right),
+                    kfind_morph::PredicatePos::Verb,
+                    kfind_morph::LexicalAlternation::Regular,
+                );
+                let branches = generate_predicate_branches(&predicate)
+                    .map_err(|error| CompileError::new(None, CompileErrorKind::Generate(error)))?;
+                for branch in branches {
+                    let Some(suffix) = branch.anchor.strip_prefix(&rule.right) else {
+                        continue;
+                    };
+                    let mut rule_path = vec![RuleId::from(rule.id.clone())];
+                    rule_path.extend(branch.rule_path);
+                    output.push(DraftBranch {
+                        anchor: format!("{}{suffix}", rule.result),
+                        consumption: CandidateConsumption::PredicateContinuation {
+                            continuation: branch.continuation,
+                            pos: branch.pos,
+                            source_positions: PredicatePosSet::one(branch.pos),
+                            allowed_rule_ids: Arc::clone(predicate_rules),
+                            nominal_particle_transition: false,
+                            left_context: CandidateLeftContext::Any,
+                        },
+                        core_mapping: CoreMapping::WholeAnchor,
+                        origins: vec![Origin {
+                            analysis_index,
+                            rule_path,
+                        }],
+                        smart_left: true,
+                        decision: DraftDecision::Boundary,
+                    });
+                }
+            }
             "pronoun-topic-compose"
                 if pronoun
                     && boundary == crate::BoundaryPolicy::Smart
@@ -717,6 +753,7 @@ fn compile_nominal_contractions(
             _ => {}
         }
     }
+    Ok(())
 }
 
 fn compile_copula_host_ending_contractions(
