@@ -1,0 +1,4 @@
+{"id":"colloquial-noun-copula-yo","query":"짱","pos":"noun","text":"이 집은 짱입니다요.","expected":true,"gold_byte_start":11,"gold_byte_end":14}
+{"id":"colloquial-noun-copula-plain","query":"짱","pos":"noun","text":"이 집은 짱입니다.","expected":true,"gold_byte_start":11,"gold_byte_end":14}
+{"id":"colloquial-noun-copula-comparison","query":"최고","pos":"noun","text":"이 집은 최고입니다요.","expected":true,"gold_byte_start":11,"gold_byte_end":17}
+{"id":"colloquial-noun-copula-other-noun","query":"짱","pos":"noun","text":"이 음식은 보신탕입니다요.","expected":false}
