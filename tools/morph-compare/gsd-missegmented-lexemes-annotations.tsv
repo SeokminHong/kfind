@@ -1,0 +1,9 @@
+case_id	query	pos	form	lemma	xpos	gold_form
+gsd:test-s127:21	협심하다	verb	협심해서	협심하+아서	VV+EC	협심해서
+gsd:test-s363:2	구이	noun	구이	구이	NNG	구이
+gsd:test-s532:1	사람	noun	사람들에게	사람+들+에게	NNG+XSN+JKB	사람들에게
+gsd:test-s599:4	세묜	noun	세묜	세묜	NNP	세묜
+gsd:test-s695:4	주관사	noun	주관사는	주관사+는	NNG+JX	주관사는
+gsd:test-s713:10	안전구	noun	안전구	안전구	NNG	안전구
+gsd:test-s737:5	로켓포탄	noun	로켓포탄	로켓포탄	NNG	로켓포탄
+gsd:test-s924:6	사다	verb	사	사+아	VV+EC	사
