@@ -1998,13 +1998,18 @@ impl MorphMatcher {
                                 resolver
                                     .has_exact_predicate_connective_path(surface, source_positions)
                             });
+                    let contracted_host = whole.start == candidate.verified.core.start
+                        && has_rule("contraction.ha-yeo");
                     let supported_connective = source_auxiliary_suffix
                         && trailing.starts_with(['주', '줘', '줬', '준', '줄', '줌', '줍'])
                         && token.is_some_and(|token| {
                             !resolver.has_competing_nominal_after_connective(
                                 token,
                                 candidate.consumed.end - whole.start,
-                            )
+                            ) || (contracted_host
+                                && has_contracted_auxiliary_host_context(
+                                    haystack, &whole, trailing, resolver,
+                                ))
                         })
                         && haystack
                             .get(whole.start..candidate.consumed.end)
@@ -2013,8 +2018,7 @@ impl MorphMatcher {
                                 resolver.has_derived_predicate_connective_surface(
                                     surface,
                                     source_positions,
-                                ) || (whole.start == candidate.verified.core.start
-                                    && has_rule("contraction.ha-yeo")
+                                ) || (contracted_host
                                     && resolver.has_exact_predicate_connective_path(
                                         surface,
                                         source_positions,
@@ -3419,6 +3423,30 @@ fn has_object_inside_adnominal_result(
                     && resolver.has_independent_final_predicate_without_object(&predicate)
             })
         })
+}
+
+fn has_contracted_auxiliary_host_context(
+    haystack: &[u8],
+    token: &Range<usize>,
+    auxiliary: &str,
+    resolver: &ConstraintResolver,
+) -> bool {
+    context::previous_word(haystack, token.start).is_some_and(|previous| {
+        resolver.has_exact_predicate_connective_path(
+            &previous,
+            kfind_morph::PredicatePosSet::one(kfind_morph::PredicatePos::Verb),
+        ) || (previous
+            .strip_suffix("도록")
+            .is_some_and(|stem| resolver.has_exact_non_copula_predicate_surface(stem)))
+            || (is_sentence_end_after(haystack, token.end)
+                && (resolver.has_exact_adverb_surface(&previous)
+                    || resolver.has_object_marked_nominal(&previous)))
+            || (resolver.has_predicate_adnominal_surface(auxiliary)
+                && (resolver.has_subject_marked_nominal(&previous)
+                    || resolver.has_nominal_oblique(&previous))
+                && context::next_word(haystack, token.end)
+                    .is_some_and(|next| resolver.has_independent_nominal_head(&next)))
+    })
 }
 
 fn has_conflicting_honorific(
