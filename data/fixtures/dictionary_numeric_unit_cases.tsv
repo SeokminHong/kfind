@@ -80,3 +80,6 @@ article-number	항	noun	exact	8	14	공고 3항에 기준이 있다.
 ordinal-article	항	noun	exact	11	17	공고 제3항에 기준이 있다.
 ordinal-class	기	noun	exact	4	10	제3기가 출범했다.
 ordinal-nonunit	책상	noun	no-match	4	10	제3책상에서 회의를 열었다.
+mixed-place-value-currency	원	noun	exact	11	14	2천100억 원)으로 나타났다.
+mixed-place-value-currency-bare	원	noun	exact	5	8	5억 원 정도를 편성했다.
+mixed-place-value-invalid-order	원	noun	no-match	8	11	2만억 원)으로 적었다.

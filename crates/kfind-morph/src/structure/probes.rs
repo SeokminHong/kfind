@@ -1218,12 +1218,58 @@ impl ConstraintResolver {
     pub fn has_counted_unit_frame(&self, previous: &str, unit: &str) -> bool {
         exact_analysis_starts_with_pos(&self.resource, unit, |pos| pos == StructuralPos::NNBC)
             && (has_exact_fine_pos(&self.resource, previous, |pos| pos == DataFinePos::Nr)
+                || Self::is_mixed_cardinal(previous)
                 || (has_exact_fine_pos(&self.resource, previous, |pos| pos == DataFinePos::Mm)
                     && !(has_exact_fine_pos(&self.resource, unit, |pos| pos == DataFinePos::Vx)
                         && self.has_exact_predicate_connective_path(
                             previous,
                             PredicatePosSet::one(PredicatePos::Verb),
                         ))))
+    }
+
+    #[must_use]
+    pub fn is_mixed_cardinal(text: &str) -> bool {
+        let mut small_rank = 4;
+        let mut large_rank = 6;
+        let mut digit_run = false;
+        let mut has_digits = false;
+        let mut has_rank = false;
+        for character in text.chars() {
+            if character.is_ascii_digit() {
+                digit_run = true;
+                has_digits = true;
+                continue;
+            }
+            let (rank, large) = match character {
+                '십' => (1, false),
+                '백' => (2, false),
+                '천' => (3, false),
+                '만' => (1, true),
+                '억' => (2, true),
+                '조' => (3, true),
+                '경' => (4, true),
+                '해' => (5, true),
+                _ => return false,
+            };
+            if !digit_run && (!large || small_rank == 4) {
+                return false;
+            }
+            let ceiling = if large {
+                &mut large_rank
+            } else {
+                &mut small_rank
+            };
+            if rank >= *ceiling {
+                return false;
+            }
+            *ceiling = rank;
+            if large {
+                small_rank = 4;
+            }
+            digit_run = false;
+            has_rank = true;
+        }
+        has_digits && has_rank
     }
 
     #[must_use]
