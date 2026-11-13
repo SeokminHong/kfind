@@ -816,6 +816,16 @@ fn compile_rieul_honorific(
 ) {
     let base = drop_last_final(stem).expect("rieul-final stem");
     let core_len = base.len();
+    for (surface, rules) in continuation::HONORIFIC_CONNECTIVE_BASES {
+        push_branch(
+            branches,
+            entry,
+            format!("{base}{surface}"),
+            core_len,
+            ContinuationState::AOrEo,
+            rules.iter().map(|id| rule(id)).collect(),
+        );
+    }
     push_branch(
         branches,
         entry,

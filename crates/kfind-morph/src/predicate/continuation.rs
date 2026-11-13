@@ -827,6 +827,14 @@ pub(super) const HONORIFIC_VOWEL_CONNECTIVES: &[Suffix] = &[
     ),
 ];
 
+pub(super) const HONORIFIC_CONNECTIVE_BASES: &[(&str, &[&str])] = &[
+    ("시어", &["ending.honorific", "ending.aoeo"]),
+    (
+        "셔",
+        &["ending.honorific", "contraction.i-eo", "ending.aoeo"],
+    ),
+];
+
 const EU_SUFFIXES: &[Suffix] = &[
     suffix("시남", &["ending.honorific", "ending.self-question-nam"]),
     suffix("시것다", &["ending.honorific", "ending.geotda"]),
@@ -1318,6 +1326,19 @@ pub fn verify_predicate_continuation_with_prefinal_context(
                 RuleId::from("ending.aoeo-seo-copula"),
             ],
         });
+    }
+    if state == ContinuationState::Eu && pos.is_action() {
+        for &(prefix, rules) in HONORIFIC_CONNECTIVE_BASES {
+            if let Some(tail) = following.strip_prefix(prefix)
+                && let Some(mut auxiliary) = trial::verify(anchor.len() + prefix.len(), tail)
+            {
+                auxiliary.consumed_bytes += prefix.len();
+                auxiliary
+                    .rule_path
+                    .splice(0..0, rules.iter().copied().map(RuleId::from));
+                return Some(with_connective_politeness(auxiliary, following));
+            }
+        }
     }
     if state == ContinuationState::AOrEo
         && let Some(auxiliary) = match following.chars().next() {
