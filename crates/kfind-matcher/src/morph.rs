@@ -1490,12 +1490,18 @@ impl MorphMatcher {
             && patterns.iter().any(|pattern| {
                 pattern.fine_pos == DataFinePos::Nnb && pattern.lexical_form.as_ref() == "내"
             })
-            && let Some(host) = context::previous_word(haystack, whole.start)
         {
-            if resolver.has_scope_nominal_host(&host) {
-                return true;
+            if let Some(host) = context::previous_word(haystack, whole.start) {
+                if resolver.has_scope_nominal_host(&host) {
+                    return true;
+                }
+                if resolver.has_scope_competing_connective(&host) {
+                    return false;
+                }
             }
-            if resolver.has_scope_competing_connective(&host) {
+            if context::next_word(haystack, whole.end)
+                .is_some_and(|next| resolver.has_exact_adverb_surface(&next))
+            {
                 return false;
             }
         }
