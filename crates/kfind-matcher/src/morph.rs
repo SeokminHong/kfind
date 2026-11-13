@@ -1177,6 +1177,7 @@ impl MorphMatcher {
                     || has_conflicting_honorific(haystack, candidate, branch, atom, resolver)
                     || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
                     || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
+                    || has_humble_object_frame(haystack, candidate, branch, atom, resolver)
                     || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
                     || has_nominal_interrogative_frame(haystack, candidate, branch, resolver)
                     || has_nonpredicate_report_frame(haystack, candidate, branch, resolver)
@@ -3370,6 +3371,44 @@ fn verifies_directive(stem: &str, ending: &str, accepts_rule: impl FnOnce(&str) 
             matched.consumed_bytes == ending.len()
                 && matches!(matched.rule_path.as_slice(), [rule] if accepts_rule(rule.as_str()))
         })
+}
+
+fn has_humble_object_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    if branch.origins.is_empty()
+        || !branch.origins.iter().all(|origin| {
+            atom.analyses
+                .get(usize::from(origin.analysis_index))
+                .is_some_and(|analysis| analysis.lemma.as_ref() == "비다")
+        })
+    {
+        return false;
+    }
+    let core = &candidate.verified.core;
+    let whole = surrounding_token_span(haystack, core.clone());
+    if whole.start != core.start
+        || !is_sentence_end_after(haystack, whole.end)
+        || !context::normalized_token(haystack, core.end..whole.end).is_some_and(|ending| {
+            matches!(
+                ending.as_ref(),
+                "나이다" | "나이까" | "옵나이다" | "옵나이까"
+            )
+        })
+    {
+        return false;
+    }
+    context::previous_word_with_start(haystack, whole.start).is_some_and(|(start, previous)| {
+        resolver.has_object_marked_nominal(&previous)
+            && previous.strip_suffix(['을', '를']).is_some_and(|host| {
+                let count = context::previous_word(haystack, start);
+                !resolver.has_elapsed_measure(host, count.as_deref())
+            })
+    })
 }
 
 fn has_nominal_frame_for_volitional(
