@@ -1,0 +1,58 @@
+{"id":"만성 골수성 백혈병:phrase-spaced","query":"만성 골수성 백혈병","pos":"noun","text":"만성 골수성 백혈병","expected":true}
+{"id":"만성 골수성 백혈병:phrase-joined","query":"만성 골수성 백혈병","pos":"noun","text":"만성골수성백혈병","expected":true}
+{"id":"만성 골수성 백혈병:whole-joined","query":"만성골수성백혈병","pos":"noun","text":"만성골수성백혈병","expected":true}
+{"id":"중거리 탄도 유도탄:phrase-spaced","query":"중거리 탄도 유도탄","pos":"noun","text":"중거리 탄도 유도탄","expected":true}
+{"id":"중거리 탄도 유도탄:phrase-joined","query":"중거리 탄도 유도탄","pos":"noun","text":"중거리탄도유도탄","expected":true}
+{"id":"중거리 탄도 유도탄:whole-joined","query":"중거리탄도유도탄","pos":"noun","text":"중거리탄도유도탄","expected":true}
+{"id":"무역 수지:phrase-spaced","query":"무역 수지","pos":"noun","text":"무역 수지","expected":true}
+{"id":"무역 수지:phrase-joined","query":"무역 수지","pos":"noun","text":"무역수지","expected":true}
+{"id":"무역 수지:whole-joined","query":"무역수지","pos":"noun","text":"무역수지","expected":true}
+{"id":"음운 변화:phrase-spaced","query":"음운 변화","pos":"noun","text":"음운 변화","expected":true}
+{"id":"음운 변화:phrase-joined","query":"음운 변화","pos":"noun","text":"음운변화","expected":true}
+{"id":"음운 변화:whole-joined","query":"음운변화","pos":"noun","text":"음운변화","expected":true}
+{"id":"상대성 이론:phrase-spaced","query":"상대성 이론","pos":"noun","text":"상대성 이론","expected":true}
+{"id":"상대성 이론:phrase-joined","query":"상대성 이론","pos":"noun","text":"상대성이론","expected":true}
+{"id":"상대성 이론:whole-joined","query":"상대성이론","pos":"noun","text":"상대성이론","expected":true}
+{"id":"국제 음성 기호:phrase-spaced","query":"국제 음성 기호","pos":"noun","text":"국제 음성 기호","expected":true}
+{"id":"국제 음성 기호:phrase-joined","query":"국제 음성 기호","pos":"noun","text":"국제음성기호","expected":true}
+{"id":"국제 음성 기호:whole-joined","query":"국제음성기호","pos":"noun","text":"국제음성기호","expected":true}
+{"id":"긴급 재정 처분:phrase-spaced","query":"긴급 재정 처분","pos":"noun","text":"긴급 재정 처분","expected":true}
+{"id":"긴급 재정 처분:phrase-joined","query":"긴급 재정 처분","pos":"noun","text":"긴급재정처분","expected":true}
+{"id":"긴급 재정 처분:whole-joined","query":"긴급재정처분","pos":"noun","text":"긴급재정처분","expected":true}
+{"id":"무한 책임 사원:phrase-spaced","query":"무한 책임 사원","pos":"noun","text":"무한 책임 사원","expected":true}
+{"id":"무한 책임 사원:phrase-joined","query":"무한 책임 사원","pos":"noun","text":"무한책임사원","expected":true}
+{"id":"무한 책임 사원:whole-joined","query":"무한책임사원","pos":"noun","text":"무한책임사원","expected":true}
+{"id":"배당 준비 적립금:phrase-spaced","query":"배당 준비 적립금","pos":"noun","text":"배당 준비 적립금","expected":true}
+{"id":"배당 준비 적립금:phrase-joined","query":"배당 준비 적립금","pos":"noun","text":"배당준비적립금","expected":true}
+{"id":"배당 준비 적립금:whole-joined","query":"배당준비적립금","pos":"noun","text":"배당준비적립금","expected":true}
+{"id":"후천 면역 결핍증:phrase-spaced","query":"후천 면역 결핍증","pos":"noun","text":"후천 면역 결핍증","expected":true}
+{"id":"후천 면역 결핍증:phrase-joined","query":"후천 면역 결핍증","pos":"noun","text":"후천면역결핍증","expected":true}
+{"id":"후천 면역 결핍증:whole-joined","query":"후천면역결핍증","pos":"noun","text":"후천면역결핍증","expected":true}
+{"id":"지구 중심설:phrase-spaced","query":"지구 중심설","pos":"noun","text":"지구 중심설","expected":true}
+{"id":"지구 중심설:phrase-joined","query":"지구 중심설","pos":"noun","text":"지구중심설","expected":true}
+{"id":"지구 중심설:whole-joined","query":"지구중심설","pos":"noun","text":"지구중심설","expected":true}
+{"id":"탄소 동화 작용:phrase-spaced","query":"탄소 동화 작용","pos":"noun","text":"탄소 동화 작용","expected":true}
+{"id":"탄소 동화 작용:phrase-joined","query":"탄소 동화 작용","pos":"noun","text":"탄소동화작용","expected":true}
+{"id":"탄소 동화 작용:whole-joined","query":"탄소동화작용","pos":"noun","text":"탄소동화작용","expected":true}
+{"id":"해양성 기후:phrase-spaced","query":"해양성 기후","pos":"noun","text":"해양성 기후","expected":true}
+{"id":"해양성 기후:phrase-joined","query":"해양성 기후","pos":"noun","text":"해양성기후","expected":true}
+{"id":"해양성 기후:whole-joined","query":"해양성기후","pos":"noun","text":"해양성기후","expected":true}
+{"id":"자음 동화:phrase-spaced","query":"자음 동화","pos":"noun","text":"자음 동화","expected":true}
+{"id":"자음 동화:phrase-joined","query":"자음 동화","pos":"noun","text":"자음동화","expected":true}
+{"id":"자음 동화:whole-joined","query":"자음동화","pos":"noun","text":"자음동화","expected":true}
+{"id":"모음 동화:phrase-spaced","query":"모음 동화","pos":"noun","text":"모음 동화","expected":true}
+{"id":"모음 동화:phrase-joined","query":"모음 동화","pos":"noun","text":"모음동화","expected":true}
+{"id":"모음 동화:whole-joined","query":"모음동화","pos":"noun","text":"모음동화","expected":true}
+{"id":"예금 이자:phrase-spaced","query":"예금 이자","pos":"noun","text":"예금 이자","expected":true}
+{"id":"예금 이자:phrase-joined","query":"예금 이자","pos":"noun","text":"예금이자","expected":true}
+{"id":"예금 이자:whole-joined","query":"예금이자","pos":"noun","text":"예금이자","expected":true}
+{"id":"대한 중학교:phrase-spaced","query":"대한 중학교","pos":"noun","text":"대한 중학교","expected":true}
+{"id":"대한 중학교:phrase-joined","query":"대한 중학교","pos":"noun","text":"대한중학교","expected":true}
+{"id":"대한 중학교:whole-joined","query":"대한중학교","pos":"noun","text":"대한중학교","expected":true}
+{"id":"한국 대학교:phrase-spaced","query":"한국 대학교","pos":"noun","text":"한국 대학교","expected":true}
+{"id":"한국 대학교:phrase-joined","query":"한국 대학교","pos":"noun","text":"한국대학교","expected":true}
+{"id":"한국 대학교:whole-joined","query":"한국대학교","pos":"noun","text":"한국대학교","expected":true}
+{"id":"control-0","query":"예금 이자","text":"예금이자를 받았다.","pos":"noun","expected":true}
+{"id":"control-1","query":"예금 (이자 | 이론)","text":"예금이자를 받았다.","pos":"noun","expected":true}
+{"id":"control-2","query":"예금 이자","text":"예금이 이자를 낳았다.","pos":"noun","expected":true}
+{"id":"control-3","query":"예금 이자","text":"예금이 자를","pos":"noun","expected":false}
