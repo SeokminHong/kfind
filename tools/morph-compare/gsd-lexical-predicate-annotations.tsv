@@ -1,0 +1,4 @@
+case_id	query	pos	form	lemma	xpos	gold_form
+gsd:test-s260:8	끝내주다	verb	끝내주네요	끝내주+네요	VV+EF	끝내주네요
+gsd:test-s413:7	끝내주다	verb	끝내줍니다	끝내주+ㅂ니다	VV+EF	끝내줍니다
+gsd:test-s647:1	맛있다	adjective	맛있긴	맛있+기+ㄴ	VA+ETN+JX	맛있긴
