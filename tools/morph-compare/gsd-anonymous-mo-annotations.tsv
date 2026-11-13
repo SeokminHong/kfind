@@ -1,0 +1,3 @@
+case_id	query	pos	form	lemma	xpos	gold_form
+gsd:test-s101:8	모	determiner	모	모	MM	모
+gsd:test-s764:12	모	pronoun	모	모	NP	모
