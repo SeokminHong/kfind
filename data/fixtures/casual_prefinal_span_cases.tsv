@@ -72,3 +72,11 @@ future-euni	어렵다	adjective	exact	7	22	일이 어렵겠으니 일찍 시작�
 남:3	주다	verb	exact	47	53	민준아, 공부 좀 하자. 공부해서 남 주남?
 남:6	그러다	verb	exact	20	32	아버지가 괜히 그러시남?
 남:8	하다	verb	exact	33	45	그렇게 해서까지 결혼을 해야겠남?
+다가는:1	읽다	verb	exact	34	46	승규는 조금 전까지 책을 읽다가는 갑자기 나갔다.
+다가는:7	잡다	verb	exact	21	36	고기를 거의 다 잡았다가는 놓치고 말았다.
+다간:4	마시다	verb	exact	27	39	술을 그렇게 급하게 마시다간 금방 취해 버린다.
+단:3	씻다	verb	exact	7	13	발을 씻단 물기도 안 닦고 그냥 나오면 어떻게 하니?
+daganeun-honorific	읽다	verb	exact	7	25	책을 읽으시다가는 눈이 피로해집니다.
+daganeun-future	읽다	verb	exact	7	22	책을 읽겠다가는 약속에 늦는다.
+daganeun-copula	이다	adjective	exact	6	18	학생이다가는 평생 졸업을 못 하겠다.
+daganeun-adjective	춥다	adjective	exact	7	19	계속 춥다가는 수도가 얼겠다.
