@@ -2706,9 +2706,13 @@ impl MorphMatcher {
             .get(candidate.consumed.start..candidate.consumed.end)
             .and_then(|bytes| std::str::from_utf8(bytes).ok())
             .and_then(|consumed| consumed.nfc().last());
-        if !preceding
-            .is_some_and(|preceding| verify_copula_surface_after_nominal(preceding, &suffix))
-        {
+        if !preceding.is_some_and(|preceding| {
+            verify_copula_surface_after_nominal(preceding, &suffix)
+                || suffix
+                    .strip_suffix('요')
+                    .filter(|form| form.ends_with("니다"))
+                    .is_some_and(|form| verify_copula_surface_after_nominal(preceding, form))
+        }) {
             return None;
         }
         Some(candidate.consumed.start..whole.end)

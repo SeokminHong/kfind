@@ -22,11 +22,16 @@ const reviews = new Map([
     registry: './gsd-numeral-copula-span-review.tsv',
     pos: 'numeral',
   }],
+  ['--after-colloquial-pos', {
+    checksum: '5e5b16769d5489b5589e1aceb5980ab726e6cdd3aab55fad4cb628e1da844f62',
+    registry: './gsd-colloquial-noun-copula-span-review.tsv',
+    pos: 'noun',
+  }],
 ]);
 const [input, mode, ...extra] = process.argv.slice(2);
 const selectedReview = reviews.get(mode);
 if (!input || !selectedReview || extra.length) {
-  throw new Error('usage: node apply-gsd-copula-span-review.mjs GSD_POSITIVES.jsonl [--after-name-review|--pronouns|--numerals]');
+  throw new Error('usage: node apply-gsd-copula-span-review.mjs GSD_POSITIVES.jsonl [--after-name-review|--pronouns|--numerals|--after-colloquial-pos]');
 }
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
