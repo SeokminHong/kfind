@@ -1,0 +1,6 @@
+case_id	query	pos	form	lemma	xpos
+gsd:test-s53:13	일	numeral	일	일	NR
+gsd:test-s55:6	사골	noun	사골	사골	NNG
+gsd:test-s55:7	굴	noun	굴을	굴+을	NNG+JKO
+gsd:test-s55:10	떡국	noun	떡국	떡국	NNG
+gsd:test-s481:6	별로	adverb	별로	별로	MAG

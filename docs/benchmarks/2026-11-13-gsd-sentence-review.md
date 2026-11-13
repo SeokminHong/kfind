@@ -10,6 +10,7 @@
 | 이전 교정 | `d34735e79fad865a62685522859f2664e56d9f37330a1a11d17614aab82cda1e` |
 | 문장·주석 교정 후보 | `e561b8522b58fd625805186a4f868e2078019fb1cfb12c9bd2e7a7f66dbed132` |
 | 문장·주석 교정 및 계약 검토 | `5491013e680698c880a2b5667edb1fb9220cc95a47d4b1c6920e3286a4e738bf` |
+| 동일 문장 교정 통일 및 계약 검토 | `f4d50bd8964371a3f5d5f722d6de470dc0efa4c7353c69836b0eb97b67431e59` |
 
 같은 full POS `smart` 실행 파일과 리소스로 UTF-8 정확 일치를 평가했습니다.
 행렬은 TP, FP, TN, FN 순서, 비율은 precision, recall, F1 순서입니다.
@@ -20,9 +21,13 @@
 | 이전 교정 9,335건 | 8809, 0, 0, 526 | 100.00, 94.37, 97.10 | 8809, 0, 0, 526 | 100.00, 94.37, 97.10 |
 | 문장·주석 교정 후보 9,334건 | 8821, 0, 0, 513 | 100.00, 94.50, 97.17 | 8821, 0, 0, 513 | 100.00, 94.50, 97.17 |
 | 문장·주석 교정 및 계약 검토 | 8821, 0, 0, 513 | 100.00, 94.50, 97.17 | 8768, 0, 0, 511 | 100.00, 94.49, 97.17 |
+| 동일 문장 교정 통일 및 계약 검토 | 8824, 0, 0, 510 | 100.00, 94.54, 97.19 | 8771, 0, 0, 508 | 100.00, 94.53, 97.19 |
 
 `한결 같아요`의 기존 두 주석을 `한결같아요`의 한 주석으로 합쳤습니다.
-교정 후 부분 일치는 326건, 겹치는 반환이 없는 사례는 187건입니다.
+동일 문장 교정을 통일한 뒤 부분 일치는 324건, 겹치는 반환이 없는 사례는 186건입니다.
+이전 계약 검토 입력에서 같은 문장 ID에 두 텍스트가 있던 23개 문장을 통일했습니다.
+질의 192건의 문장 또는 주석이 바뀌었고, 질의 ID와 계약 분모는 유지했습니다.
+`test-s168`은 원문의 `넘넘`을 복원하고 `맛있고요`의 범위를 `[30, 42)`로 옮겼습니다.
 
 누락된 원문을 추정해야 하는 3개 문장(989개 중 0.30%)에 속한 질의 55건
 (9,334건 중 0.59%)은 `nonstandard-input`으로 계약 평가에서 제외했습니다.
@@ -36,11 +41,14 @@
 | `test-s661` | 19 | 가타카나 인용 표기 누락 |
 
 ```sh
-node tools/morph-compare/apply-gsd-sentence-edits.mjs "$previous_input" --review-contract > "$corrected_input"
+node tools/morph-compare/apply-gsd-sentence-edits.mjs "$previous_input" \
+  --review-contract --align-shared-sentences > "$corrected_input"
 "$runner" boundary full-pos smart "$corrected_input" "$corrected_output"
 ```
 
 [문장 교정 근거](../../tools/morph-compare/gsd-sentence-edits.tsv) ·
 [교정 주석](../../tools/morph-compare/gsd-sentence-edit-annotations.tsv) ·
+[동일 문장 교정](../../tools/morph-compare/gsd-shared-sentence-edits.tsv) ·
+[동일 문장의 교정 주석](../../tools/morph-compare/gsd-shared-sentence-annotations.tsv) ·
 [계약 제외 근거와 대조 예문](../../tools/morph-compare/gsd-nonstandard-sentences.tsv) ·
 [이전 평가와 실행 환경](2026-11-13-gsd-test-s501-spelling.md)
