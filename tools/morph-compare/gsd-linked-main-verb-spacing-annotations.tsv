@@ -1,0 +1,6 @@
+case_id	query	pos	form	lemma	xpos
+gsd:test-s262:8	고르다	verb	골라	고르+아	VV+EC
+gsd:test-s264:18	부르다	verb	불러	부르+어	VV+EC
+gsd:test-s747:18	날리다	verb	날려	날리+어	VV+EC
+gsd:test-s923:6	비비다	verb	비벼	비비+어	VV+EC
+gsd:test-s960:7	시키다	verb	시켜	시키+어	VV+EC
