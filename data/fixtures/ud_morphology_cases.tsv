@@ -209,6 +209,8 @@ corpus.ud-gsd.test.test-s857.noun.순창	순창	noun	smart-exact	0	12	순창에�
 regression.nominal-topic-contraction.indefinite	어디	pronoun	smart-exact	0	9	어디에선가 소리가 났다.
 corpus.ud-gsd.test.test-s66.verb.원하다	원하다	verb	smart-exact	27	36	들깨가루 같은 것도 원하는 대로 넣을 수도 있고, 밥도 무한 리필이고 해서 어린애들 동반해서 가족끼리 가서 먹기에는 좋은 곳이라고 생각합니다.
 corpus.ud-gsd.test.test-s127.verb.노력하다	노력하다	verb	smart-exact	320	329	이날 국립중앙박물관에서 박 박사는 "그 의궤가 영원히 한국 땅에 남아있게 하고 '대여'란 말을 없애기 위해서는 여러분이 협심해서 손에 손을 잡고 장기간 노력하지 않으면 안 된다"며 "의궤가 다시 불란서에 가지 않고 한국에 영원히 남도록 노력해 주길 부탁한다"고 거듭 강조했다.
+corpus.ud-gsd.test.test-s127.verb.connective-topic	위하다	verb	smart-exact	137	149	이날 국립중앙박물관에서 박 박사는 "그 의궤가 영원히 한국 땅에 남아있게 하고 '대여'란 말을 없애기 위해서는 여러분이 협심해서 손에 손을 잡고 장기간 노력하지 않으면 안 된다"며 "의궤가 다시 불란서에 가지 않고 한국에 영원히 남도록 노력해 주길 부탁한다"고 거듭 강조했다.
+corpus.ud-pud.test.n01101012.verb.connective-topic	취임하다	verb	smart-exact	71	86	친중국 입법자들이 이끄는 홍콩 정부는 그 두 사람이 취임해서는 안 된다고 주장했다.
 corpus.ud-gsd.test.test-s142.verb.촉구하다	촉구하다	verb	smart-exact	151	160	미국 국채를 1조 달러 이상 보유하고 있는 `큰 손` 중국은 이미 여러 차례 미국 정부에 재정 문제의 조속한 해결을 촉구해 왔다.
 corpus.ud-gsd.test.test-s167.verb.구하다	구하다	verb	smart-exact	27	33	친절하고 없는 책도 구해 주시려고 노력합니다
 corpus.ud-gsd.test.test-s177.verb.교체하다	교체하다	verb	smart-exact	110	119	그는 "이런 상황에서 삼성테크윈은 새 부품을 개발하기보다는 종전 부품으로 단순 교체해 주는 작업으로 문제를 키운 측면이 있다"고 말했다.

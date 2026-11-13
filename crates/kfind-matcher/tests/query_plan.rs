@@ -526,19 +526,26 @@ fn declarative_adnominal_uses_a_complete_source_ending_path() {
 }
 
 #[test]
-fn connective_topic_uses_an_ending_then_particle_source_path() {
-    for (query, pos, text) in [
+fn connective_topic_returns_the_complete_ending_and_particle() {
+    for (query, pos, text, surface) in [
         (
             "위하다",
             CoarsePos::Verb,
             "취업하기 위해서는 준비가 필요하다.",
+            "위해서는",
         ),
         (
             "대하다",
             CoarsePos::Verb,
             "그 문제에 대해서는 의견이 다르다.",
+            "대해서는",
         ),
-        ("없다", CoarsePos::Adjective, "문제가 없지는 않다."),
+        (
+            "걷다",
+            CoarsePos::Verb,
+            "도로로 걸어서는 안 된다.",
+            "걸어서는",
+        ),
     ] {
         let matcher = compile_with_full_pos(
             query,
@@ -548,11 +555,22 @@ fn connective_topic_uses_an_ending_then_particle_source_path() {
             },
         );
 
-        assert!(
-            matcher.find_at_with_meta(text.as_bytes(), 0).is_some(),
-            "connective topic source path was rejected for {query} in {text}"
-        );
+        let matched = matcher.find_at_with_meta(text.as_bytes(), 0).unwrap();
+        assert_eq!(&text[matched.span], surface);
     }
+
+    let negative_connective = compile_with_full_pos(
+        "없다",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Adjective),
+            ..CompileOptions::default()
+        },
+    );
+    assert!(
+        negative_connective
+            .find_at_with_meta("문제가 없지는 않다.".as_bytes(), 0)
+            .is_some()
+    );
 
     for (query, pos, text) in [
         ("위하다", CoarsePos::Verb, "문서에 위해서를 적었다."),
