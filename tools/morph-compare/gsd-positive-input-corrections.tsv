@@ -1,4 +1,11 @@
 case_id	fixture_id	reason
+gsd:test-s66:1	corpus.ud-gsd.test.test-s66.compound-noun	합성명사 첫 성분 범위
+gsd:test-s84:8	corpus.ud-gsd.test.test-s84.compound-noun	합성명사 첫 성분 범위
+gsd:test-s105:7	corpus.ud-gsd.test.test-s105.compound-noun	합성명사 첫 성분 범위
+gsd:test-s146:21	corpus.ud-gsd.test.test-s146.compound-noun	합성명사 첫 성분 범위
+gsd:test-s354:5	corpus.ud-gsd.test.test-s354.compound-noun	합성명사 첫 성분 범위
+gsd:test-s459:18	corpus.ud-gsd.test.test-s459.compound-noun	합성명사 첫 성분 범위
+gsd:test-s754:6	corpus.ud-gsd.test.test-s754.compound-noun	합성명사 첫 성분 범위
 gsd:test-s53:4	corpus.ud-gsd.test.test-s53.verb.고생하다	배경 연결 어미 -는데
 gsd:test-s55:11	corpus.ud-gsd.test.test-s55.noun.일품	-었습니다 표기와 지정사 앞 명사 범위
 gsd:test-s66:4	corpus.ud-gsd.test.test-s66.verb.원하다	관형형 뒤 의존 명사 대로 띄어쓰기

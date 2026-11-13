@@ -1,4 +1,12 @@
 id	query	pos	expected	byte_start	byte_end	text
+corpus.ud-gsd.test.test-s66.compound-noun	들깨	noun	smart-exact	0	6	들깨가루 같은 것도 원하는대로 넣을 수도 있고, 밥도 무한 리필이고 해서 어린애들 동반해서 가족끼리 가서 먹기에는 좋은 곳이라고 생각합니다.
+corpus.ud-gsd.test.test-s84.compound-noun	영업	noun	smart-exact	59	65	한컴은 2009년에 487억 원의 매출과 512억 원의 영업이익, 144억 원의 순이익을 기록해 사상 최대 실적을 달성했으며, 7년 연속 흑자 실적의 기록을 이어갔다고 밝혔다.
+corpus.ud-gsd.test.test-s105.compound-noun	공식	noun	smart-exact	66	72	김 대변인은 "어제 서울G20정상회의 환영리셉션과 공식만찬에서 각국 정상들의 활발한 발언과 토론이 있었다"고 덧붙였다.
+corpus.ud-gsd.test.test-s146.compound-noun	영업	noun	smart-exact	150	156	이에 따라 삼성SDI의 분기별 실적 모멘텀은 약화될 것이라며 4분기 IFRS 연결기준 실적은 매출액 1조2000억 원(-10 %), 영업이익 804억 원(-35%)로 추정했다.
+corpus.ud-gsd.test.test-s354.compound-noun	부가	noun	smart-exact	32	38	구 관계자는 "MICE산업은 부가가치가 높은 21세기형 산업이라며 적극적인 해외 마케팅 활동을 펼쳐 강남을 세계에서 손꼽히는 컨벤션 도시로 키우겠다"고 말했다.
+corpus.ud-gsd.test.test-s459.compound-noun	관광	noun	smart-exact	161	167	김 의원은 "장생포가 가지고 있는 고래역사 문화, 근대 포경과 연관된 독특한 지역문화를 바탕으로 국내유일의 고래테마 관광도시로서의 성장기반을 구축하는 사업인 만큼 앞으로도 최선을 다해 돕겠다"고 말했다.
+corpus.ud-gsd.test.test-s754.compound-noun	영업	noun	smart-exact	56	62	우리산업의 상반기 누적 실적은 매출액과 영업이익이 각각 645억원, 17억원으로 추정됐다.
+regression.compound-noun.true-subject	영업	noun	smart-exact	0	9	영업이 끝났다.
 regression.source-contraction.pronoun	여기	pronoun	smart-exact	0	12	여기서도 만날 수 있다.
 regression.source-contraction.consonant	서울	noun	smart-exact	0	15	서울서부터 눈이 왔다.
 regression.source-contraction.compound	상업	noun	smart-exact	0	6	상업서적을 샀다.
