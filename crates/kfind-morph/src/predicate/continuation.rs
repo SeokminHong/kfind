@@ -1466,6 +1466,31 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Eu
+            if pos == PredicatePos::Adjective
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| !has_final(last))
+                && following.strip_prefix('이').is_some_and(|tail| {
+                    tail.chars()
+                        .next()
+                        .is_none_or(|next| !next.is_alphanumeric() && next != '_')
+                }) =>
+        {
+            &[suffix("이", &["ending.familiar-final-i"])]
+        }
+        ContinuationState::StemEnding
+            if pos == PredicatePos::Adjective
+                && anchor.chars().next_back().is_some_and(has_rieul_final)
+                && following.strip_prefix("으이").is_some_and(|tail| {
+                    tail.chars()
+                        .next()
+                        .is_none_or(|next| !next.is_alphanumeric() && next != '_')
+                }) =>
+        {
+            &[suffix("으이", &["ending.familiar-final-i"])]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if starts_with_daganeun(following) =>
         {
