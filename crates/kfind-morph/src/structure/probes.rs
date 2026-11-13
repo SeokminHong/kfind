@@ -1337,6 +1337,14 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_unambiguous_proper_name_surface(&self, text: &str) -> bool {
+        self.has_exact_proper_name_surface(text)
+            && !exact_analysis_starts_with_pos(&self.resource, text, |pos| {
+                pos != StructuralPos::NNP
+            })
+    }
+
+    #[must_use]
     pub fn has_exact_pronoun_case_surface(&self, text: &str) -> bool {
         let mut matched = false;
         self.resource
