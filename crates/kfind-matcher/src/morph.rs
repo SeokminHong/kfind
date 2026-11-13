@@ -4070,7 +4070,10 @@ fn has_conflicting_whole_predicate(
     let generated_auxiliary = candidate.suffix_rules.iter().any(|rule| {
         matches!(
             rule.as_str(),
-            "ending.auxiliary-gada" | "ending.auxiliary-jida" | "ending.auxiliary-boda"
+            "ending.auxiliary-gada"
+                | "ending.auxiliary-jida"
+                | "ending.auxiliary-boda"
+                | "ending.auxiliary-gopeuda"
         )
     });
     let extends_non_internal_core = !internal_core
@@ -4092,6 +4095,19 @@ fn has_conflicting_whole_predicate(
         return false;
     };
     let normalized_token = token.nfc().collect::<String>();
+    if candidate
+        .suffix_rules
+        .iter()
+        .any(|rule| rule.as_str() == "ending.auxiliary-gopeuda")
+        && normalized_token
+            .rsplit_once('고')
+            .is_some_and(|(host, tail)| {
+                tail.starts_with(['프', '픈', '플', '픕', '픔', '파', '팠'])
+                    && resolver.has_exact_adjective_surface(&format!("{host}고프"))
+            })
+    {
+        return true;
+    }
     if extends_non_internal_core && resolver.has_attached_auxiliary_whole_path(&normalized_token) {
         return false;
     }

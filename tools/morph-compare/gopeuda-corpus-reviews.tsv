@@ -1,0 +1,2 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	gsd:test-s597:verb:들다	들다	verb	false	9e67736d00ed5c6a725b621951ba7b40eb5b42e52937d06dc19ea028252194fc	contract-positive	aligned-source-component	드시고픈의 드시는 들다의 어간에서 ㄹ이 탈락하고 높임 선어말 어미 -시-가 결합한 형태다.

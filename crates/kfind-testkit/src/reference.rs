@@ -741,6 +741,12 @@ fn reference_predicate_continuation(
     anchor: &str,
     following: &str,
 ) -> Option<(usize, Vec<RuleId>)> {
+    if pos.is_action()
+        && matches!(state, ContinuationState::StemEnding | ContinuationState::Eu)
+        && let Some(auxiliary) = reference_gopeuda(state, following)
+    {
+        return Some(auxiliary);
+    }
     if state == ContinuationState::Eu && pos.is_action() {
         for (prefix, contraction) in [("시어", None), ("셔", Some("contraction.i-eo"))] {
             if let Some(tail) = following.strip_prefix(prefix)
@@ -764,6 +770,52 @@ fn reference_predicate_continuation(
     }
     reference_report_contraction(state, pos, anchor, following)
         .or_else(|| reference_simple_continuation(state, pos, anchor, following))
+}
+
+fn reference_gopeuda(state: ContinuationState, following: &str) -> Option<(usize, Vec<RuleId>)> {
+    use ContinuationState::{AOrEo, BieupFinal, Eu, NieunEnding, Past, RieulFinal, Terminal};
+    let (prefix, honorific) = if state == Eu && following.starts_with("시고") {
+        ("시고", Some("ending.honorific"))
+    } else {
+        ("고", None)
+    };
+    let tail = following.strip_prefix(prefix)?;
+    let (form, next, initial) = [
+        ("픈", NieunEnding, Some("ending.past-adnominal")),
+        ("플", RieulFinal, Some("ending.future-adnominal")),
+        ("픕", BieupFinal, None),
+        ("픔", Terminal, Some("ending.nominalizer")),
+        ("파", AOrEo, Some("ending.aoeo")),
+        ("팠", Past, Some("ending.past")),
+        ("프다", Terminal, Some("ending.final-da")),
+        ("프기", Terminal, Some("ending.nominalizer-gi")),
+        ("프", Eu, None),
+    ]
+    .into_iter()
+    .find(|(form, _, _)| tail.starts_with(form))?;
+    let remaining = tail.strip_prefix(form)?;
+    let (extra, rules) =
+        reference_simple_continuation(next, PredicatePos::AuxiliaryAdjective, form, remaining)
+            .or_else(|| matches!(next, NieunEnding | RieulFinal).then(|| (0, Vec::new())))?;
+    if (matches!(next, Eu | Past) && extra == 0)
+        || remaining[extra..]
+            .chars()
+            .next()
+            .is_some_and(|next| next.is_alphanumeric() || next == '_')
+    {
+        return None;
+    }
+    let initial = initial.filter(|_| !matches!(next, NieunEnding | RieulFinal) || extra == 0);
+    Some((
+        prefix.len() + form.len() + extra,
+        honorific
+            .into_iter()
+            .chain(["ending.connective-go", "ending.auxiliary-gopeuda"])
+            .chain(initial)
+            .map(RuleId::from)
+            .chain(rules)
+            .collect(),
+    ))
 }
 
 fn reference_report_contraction(
