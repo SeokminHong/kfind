@@ -80,3 +80,8 @@ daganeun-honorific	읽다	verb	exact	7	25	책을 읽으시다가는 눈이 피�
 daganeun-future	읽다	verb	exact	7	22	책을 읽겠다가는 약속에 늦는다.
 daganeun-copula	이다	adjective	exact	6	18	학생이다가는 평생 졸업을 못 하겠다.
 daganeun-adjective	춥다	adjective	exact	7	19	계속 춥다가는 수도가 얼겠다.
+formal-dap-rieul	살다	verb	exact	0	12	산답니다.
+formal-dap-closed	읽다	verb	exact	0	15	읽는답니까?
+formal-dap-adjective	춥다	adjective	exact	0	12	춥답니까?
+formal-dap-past	가다	verb	exact	0	12	갔답니까?
+formal-dap-auxiliary	있다	verb	exact	7	19	읽고 있답니다.
