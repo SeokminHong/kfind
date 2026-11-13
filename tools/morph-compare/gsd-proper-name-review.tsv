@@ -1,0 +1,2 @@
+case_id	original_query	original_lemma	original_xpos	query	lemma	xpos	reason
+gsd:test-s782:1	조인	조인+성+은	NNG+XSN+JX	조인성	조인성+은	NNP+JX	입대와 배우 활동을 언급하는 문맥에서 조인성은 인명
