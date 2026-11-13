@@ -363,6 +363,14 @@ impl ConstraintResolver {
         ) || text.strip_suffix(['아', '어', '여']).is_some_and(|stem| {
             has_exact_sequence(&self.resource, stem, &[StructuralPos::VV])
                 && has_exact_sequence(&self.resource, &text[stem.len()..], &[StructuralPos::EC])
+        }) || text.strip_suffix('해').is_some_and(|root| {
+            !root.is_empty()
+                && self.has_complete_nominal_surface(root)
+                && has_exact_sequence(
+                    &self.resource,
+                    "해",
+                    &[StructuralPos::XSV, StructuralPos::EC],
+                )
         })
     }
 

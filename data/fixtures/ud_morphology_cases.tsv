@@ -1,4 +1,11 @@
 id	query	pos	expected	byte_start	byte_end	text
+regression.honorific-vowel-connective.contracted-cause	오다	verb	smart-exact	0	9	오셔서 다행입니다.
+regression.honorific-vowel-connective.uncontracted-cause	읽다	verb	smart-exact	0	15	읽으시어서 알게 되었다.
+regression.honorific-vowel-connective.rieul-concession	들다	verb	smart-exact	0	9	드셔도 괜찮습니다.
+regression.honorific-vowel-connective.uncontracted-concession	오다	verb	smart-exact	0	12	오시어도 됩니다.
+regression.honorific-vowel-connective.allomorph	읽다	verb	no-match	0	9	읽셔도 괜찮습니다.
+regression.honorific-vowel-connective.auxiliary	주다	verb	smart-exact	10	19	정리해 주셔서 고맙습니다.
+regression.honorific-vowel-connective.not-decrease	줄다	verb	no-match	10	19	정리해 주셔서 고맙습니다.
 corpus.ud-gsd.test.test-s228.verb.honorific-simultaneous	돌아가다	verb	smart-exact	26	44	사장님 내외분께서 돌아가시면서 새벽까지 하시구요
 regression.honorific-simultaneous.consonant	읽다	verb	exact	0	15	읽으시면서 메모하셨다.
 regression.honorific-simultaneous.rieul	살다	verb	exact	0	12	사시면서 많이 배우셨다.
