@@ -111,6 +111,10 @@ regression.attached-give.derived-adnominal	검안하다	verb	smart-exact	0	15	�
 regression.attached-give.contracted-past	하다	verb	smart-exact	14	26	그가 일을 해주었다.
 regression.attached-give.contracted-past-polite	하다	verb	smart-exact	17	32	동생이 일을 해주었어요.
 regression.attached-give.contracted-name	하다	verb	no-match	0	6	해주 출신입니다.
+regression.attached-give.contracted-purpose	하다	verb	smart-exact	18	30	쉴 수 있도록 해주기도 하고요.
+regression.attached-give.contracted-request	하다	verb	smart-exact	14	26	설명을 잘 해주세요.
+regression.attached-give.contracted-adnominal	하다	verb	smart-exact	13	22	어머니가 해주신 음식입니다.
+regression.attached-give.contracted-city-topic	하다	verb	no-match	0	12	해주시는 올해 예산을 늘렸다.
 regression.attached-give.nominal-competition	사다	verb	no-match	0	15	사주일가의 지분을 조사했다.
 regression.honorific-vowel-connective.not-decrease	줄다	verb	no-match	10	19	정리해 주셔서 고맙습니다.
 corpus.ud-gsd.test.test-s228.verb.honorific-simultaneous	돌아가다	verb	smart-exact	26	44	사장님 내외분께서 돌아가시면서 새벽까지 하시고요
