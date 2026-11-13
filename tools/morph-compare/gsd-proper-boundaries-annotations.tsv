@@ -1,0 +1,16 @@
+case_id	query	pos	form	lemma	xpos	gold_form
+gsd:test-s49:4	주	noun	주	주	NNG	주
+gsd:test-s76:4	지쿠고	noun	지쿠고	지쿠고	NNP	지쿠고
+gsd:test-s76:7	지쿠젠	noun	지쿠젠	지쿠젠	NNP	지쿠젠
+gsd:test-s76:10	부젠	noun	부젠	부젠	NNP	부젠
+gsd:test-s82:24	은평구민체육센터	noun	은평구민체육센터에서	은평구민체육센터+에서	NNP+JKB	은평구민체육센터에서
+gsd:test-s165:3	주	noun	주	주	NNG	주
+gsd:test-s314:1	북측	noun	북측	북측	NNG	북측
+gsd:test-s354:1	구	noun	구	구	NNG	구
+gsd:test-s366:3	후쿠시마현	noun	후쿠시마현	후쿠시마현	NNP	후쿠시마현
+gsd:test-s384:8	자유선진당	noun	자유선진당을	자유선진당+을	NNP+JKO	자유선진당을
+gsd:test-s702:1	기아차	noun	기아차도	기아차+도	NNP+JX	기아차도
+gsd:test-s716:2	민주노동당	noun	민주노동당에	민주노동당+에	NNP+JKB	민주노동당에
+gsd:test-s730:7	정부중앙청사	noun	정부중앙청사에서	정부중앙청사+에서	NNP+JKB	정부중앙청사에서
+gsd:test-s775:24	은평구민체육센터	noun	은평구민체육센터에서	은평구민체육센터+에서	NNP+JKB	은평구민체육센터에서
+gsd:test-s901:4	영인면	noun	영인면의	영인면+의	NNP+JKG	영인면의
