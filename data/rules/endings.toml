@@ -1592,6 +1592,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.formal-report-dap"
+category = "final"
+initial = "other"
+forms = ["답니다", "답니까", "ㄴ답니다", "ㄴ답니까", "는답니다", "는답니까"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.formal-interrogative"
 category = "final"
 initial = "attach-bieup"
