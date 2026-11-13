@@ -131,6 +131,7 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
         "pronoun-attributive-shortening",
         "dependent-noun-subject-compose",
         "nominal-copula-ending-compose",
+        "dependent-noun-copula-ending-compose",
         "copula-host-ending-compose",
     ];
     let ending_ids = rules
@@ -182,6 +183,7 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
                 | "pronoun-attributive-shortening"
                 | "dependent-noun-subject-compose"
                 | "nominal-copula-ending-compose"
+                | "dependent-noun-copula-ending-compose"
                 | "copula-host-ending-compose"
         ) && !rule.ending_ids.is_empty()
         {
