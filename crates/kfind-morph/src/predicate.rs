@@ -518,8 +518,11 @@ fn compile_productive(
             continuation::INTENTIVE_CONDITIONAL,
         ]
         .into_iter()
-        .chain(entry.pos.is_action().then_some(continuation::INTENTIVE))
-        {
+        .chain(
+            [continuation::INTENTIVE, continuation::INTENTIVE_RYEODEUN]
+                .into_iter()
+                .filter(|_| entry.pos.is_action()),
+        ) {
             let mut rules = base.rules.clone();
             rules.extend(ending.rules.iter().map(|id| rule(id)));
             push_branch(

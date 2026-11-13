@@ -1645,6 +1645,18 @@ impl MorphMatcher {
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }
         );
+        if nominal_particle_chain
+            && candidate.suffix_rules.iter().any(|rule| {
+                matches!(
+                    rule.as_str(),
+                    "particle.alternative.ideun-deun" | "particle.alternative.ideunji-deunji"
+                )
+            })
+            && context::normalized_token(haystack, whole.clone())
+                .is_some_and(|word| resolver.has_unambiguous_proper_name_surface(&word))
+        {
+            return false;
+        }
         let terminal_particle_conflict = rejected_suffix
             && nominal_particle_chain
             && self.has_terminal_particle_conflict(haystack, candidate, &whole);

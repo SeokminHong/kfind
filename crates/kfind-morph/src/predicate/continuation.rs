@@ -665,6 +665,7 @@ const HONORIFIC_INTENTIVE_RYEOGO: Suffix =
 pub(super) const CONDITIONAL: Suffix = suffix("면", &["ending.conditional"]);
 pub(super) const COORDINATE: Suffix = suffix("며", &["ending.coordinate-myeo"]);
 pub(super) const INTENTIVE_CONDITIONAL: Suffix = suffix("려면", &["ending.intentive-ryeomyeon"]);
+pub(super) const INTENTIVE_RYEODEUN: Suffix = suffix("려든", &["ending.intentive-ryeodeun"]);
 pub(super) const HONORIFIC_INTENTIVE_CONDITIONAL: Suffix = suffix(
     "시려면",
     &["ending.honorific", "ending.intentive-ryeomyeon"],
@@ -823,6 +824,7 @@ const EU_SUFFIXES: &[Suffix] = &[
     INTENTIVE_RYEOGO,
     HONORIFIC_INTENTIVE_RYEOGO,
     INTENTIVE_CONDITIONAL,
+    INTENTIVE_RYEODEUN,
     HONORIFIC_INTENTIVE_CONDITIONAL,
     suffix("면서", &["ending.simultaneous-myeonseo"]),
     suffix("려던", &["ending.intentive-adnominal"]),
@@ -1813,6 +1815,7 @@ fn verify_simple_continuation(
                                 | "ending.earnest-request-sisa"
                                 | "ending.intentive-ryeo"
                                 | "ending.intentive-ryeogo"
+                                | "ending.intentive-ryeodeun"
                                 | "ending.intentive-adnominal"
                                 | "ending.purpose-reo"
                                 | "ending.present-adnominal"

@@ -897,6 +897,10 @@ corpus.ud-gsd.test.test-s564.pronoun.eda	거기	pronoun	smart-exact	0	12	거기�
 regression.particle.edaga.nominal	책상	noun	smart-exact	0	15	책상에다가 펜을 두었어요.
 regression.particle.edaga.additive	거기	pronoun	smart-exact	0	18	거기에다가도 펜을 두었어요.
 regression.particle.edaga.object	거기	pronoun	no-match	0	15	거기에다를 말했다.
+regression.particle.deun.pronoun	누구	pronoun	smart-exact	0	9	누구든 가면 후회하지 않는다.
+regression.particle.ideunji.consonant	책	noun	smart-exact	0	12	책이든지 잡지든지 하나를 골라 보세요.
+regression.particle.deunji.vowel	잡지	noun	smart-exact	0	12	잡지든지 신문이든지 하나를 골라 보세요.
+regression.particle.deun.consonant-without-i	책	noun	no-match	0	6	책든 고르세요.
 regression.pronominal-short.uri-standalone	우리	pronoun	no-match	0	3	울 것 같다.
 regression.pronominal-short.uri-ambiguous	우리	pronoun	smart-exact	0	3	울 아이가 먼저 나왔어요.
 regression.pronominal-short.ulda-ambiguous	울다	verb	smart-exact	0	3	울 아이가 먼저 나왔어요.

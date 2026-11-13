@@ -334,6 +334,24 @@ next = []
 terminal = true
 
 [[particle]]
+id = "particle.alternative.ideun-deun"
+role = "auxiliary"
+hosts = ["nominal"]
+forms = ["이든", "든"]
+selection = "final-pair"
+next = []
+terminal = true
+
+[[particle]]
+id = "particle.alternative.ideunji-deunji"
+role = "auxiliary"
+hosts = ["nominal"]
+forms = ["이든지", "든지"]
+selection = "final-pair"
+next = []
+terminal = true
+
+[[particle]]
 id = "particle.concessive.inama-nama"
 role = "auxiliary"
 hosts = ["nominal", "predicate-ending"]
