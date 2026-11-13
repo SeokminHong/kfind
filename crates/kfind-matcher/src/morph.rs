@@ -1314,10 +1314,13 @@ impl MorphMatcher {
         }
         if matches!(branch.consumption, CandidateConsumption::Anchor)
             && branch.origins.iter().any(|origin| {
-                origin
-                    .rule_path
-                    .iter()
-                    .any(|rule| rule.as_str() == "contraction.dependent-subject-ge")
+                origin.rule_path.iter().any(|rule| {
+                    matches!(
+                        rule.as_str(),
+                        "contraction.dependent-subject-ge"
+                            | "contraction.dependent-subject-ge-from-geot"
+                    )
+                })
             })
         {
             return self.accepts_token_boundary(haystack, &candidate.verified, branch)
