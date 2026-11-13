@@ -458,6 +458,7 @@ const HONORIFIC_PREFINAL_NE_ENDINGS: &[Suffix] = &[
 const PAST_SUFFIXES: &[Suffix] = &[
     PREFINAL_DAMYEON,
     PREFINAL_DAMYEONSEO,
+    JI,
     PREFINAL_EUNI,
     PREFINAL_EUNIKKA,
     PREFINAL_EUNIKKANEUN,
@@ -554,7 +555,7 @@ const FUTURE_SUFFIXES: &[Suffix] = &[
     PREFINAL_EUNIKKANEUN,
     PREFINAL_EUNIKKAN,
     NAM,
-    suffix("지", &["ending.confirmation-jiyo"]),
+    JI,
     NOMINALIZER_EUM,
     NOMINALIZER_GI,
     NEGATIVE_TOPIC,
@@ -642,6 +643,7 @@ const HONORIFIC_NIEUN_DAO: &[Suffix] = &[suffix(
 )];
 const NEGATIVE_RAO: &[Suffix] = &[suffix("라오", &["ending.copula-ra-final"])];
 
+const JI: Suffix = suffix("지", &["ending.confirmation-jiyo"]);
 const JIYO: Suffix = suffix("지요", &["ending.confirmation-jiyo"]);
 const JYO: Suffix = suffix("죠", &["ending.confirmation-jiyo"]);
 const CONFIRMATION_JIYO: &[Suffix] = &[JIYO, JYO];
