@@ -280,6 +280,8 @@ const HONORIFIC_GUN_ENDINGS: &[Suffix] = &[
     ),
 ];
 
+const DAGA: Suffix = suffix("다가", &["ending.connective-daga"]);
+
 pub(super) const STEM_FIXED_ENDINGS: &[Suffix] = &[
     suffix("고", &["ending.connective-go"]),
     suffix("지", &["ending.connective-ji"]),
@@ -288,7 +290,7 @@ pub(super) const STEM_FIXED_ENDINGS: &[Suffix] = &[
     suffix("더니", &["ending.retrospective-connective"]),
     suffix("더라도", &["ending.concessive-deorado"]),
     suffix("도록", &["ending.purpose-dorok"]),
-    suffix("다가", &["ending.connective-daga"]),
+    DAGA,
 ];
 const DEON_RECOLLECTION: &[Suffix] = &[
     suffix("던가", &["ending.retrospective-question-deon"]),
@@ -421,6 +423,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
     PREFINAL_DAMYEON,
     PREFINAL_DAMYEONSEO,
     JI,
+    DAGA,
     suffix("자", &["ending.concessive-eotja"]),
     NAM,
     NOMINALIZER_EUM,
