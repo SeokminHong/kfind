@@ -1,0 +1,7 @@
+{"id":"gsd:test-s377:16:pronoun","query":"나","pos":"pronoun","text":"1941년 유고슬라비아 왕국의 붕괴 이후, 파르티잔은 공산주의자가 이끄는 인민 해방 전쟁에 휩쓸렸고, 피비린내 나는 내전 끝에 추축국 세력을 물리쳤다.","expected":false,"gold_byte_start":148,"gold_byte_end":154}
+{"id":"gsd:test-s814:1:verb","query":"나다","pos":"verb","text":"나는 바르셀로나의 메시와 아르헨티나의 메시가 다르다는 것에 주목한다.","expected":false,"gold_byte_start":0,"gold_byte_end":6}
+{"id":"gsd:test-s871:1:noun","query":"것","pos":"noun","text":"거기 가서 먹고 오면, 열 번 중 다섯 번은 아이들이 설사를 합니다.","expected":false,"gold_byte_start":0,"gold_byte_end":6}
+{"id":"gsd:test-s873:1:verb","query":"절다","pos":"verb","text":"저는 시원한 해산물이 생각나면 자주 가는데 후회 없습니다.","expected":false,"gold_byte_start":0,"gold_byte_end":6}
+{"id":"gsd:test-s910:1:verb","query":"절다","pos":"verb","text":"저는 손님 몰리는 시간 피해서 아침 열 시 반쯤에 갔습니다.","expected":false,"gold_byte_start":0,"gold_byte_end":6}
+{"id":"gsd:test-s930:1:verb","query":"절다","pos":"verb","text":"저는 서동에 거주하지는 않지만 업무차 자주 방문합니다","expected":false,"gold_byte_start":0,"gold_byte_end":6}
+{"id":"gsd:test-s961:1:verb","query":"여기다","pos":"verb","text":"여기는 연예인들도 자주 찾는 유명 맛집입니다.","expected":false,"gold_byte_start":0,"gold_byte_end":9}
