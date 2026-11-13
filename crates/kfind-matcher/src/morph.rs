@@ -2202,6 +2202,20 @@ impl MorphMatcher {
         {
             return false;
         }
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::CopulaHostEndingCompose
+        ) && branch.origins.iter().any(|origin| {
+            origin
+                .rule_path
+                .last()
+                .is_some_and(|rule| rule.as_str() == "contraction.geos-copula-nieun-go")
+        }) {
+            return is_sentence_end_after(haystack, candidate.verified.token.end)
+                && context::previous_word(haystack, candidate.verified.token.start).is_some_and(
+                    |previous| resolver.has_adnominal_dependent_noun(&previous, "것"),
+                );
+        }
         resolver.has_exact_lost_span_copula_ending_path(&normalized)
             || (matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
                 && (fused_copula::accepts_fused_retrospective(&normalized, resolver)

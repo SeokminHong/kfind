@@ -191,3 +191,11 @@ left = "것"
 right = "ㄹ까"
 result = "걸까"
 ending_ids = []
+
+[[contraction]]
+id = "contraction.geos-copula-nieun-go"
+kind = "copula-host-ending-compose"
+left = "것"
+right = "ㄴ고"
+result = "건고"
+ending_ids = []
