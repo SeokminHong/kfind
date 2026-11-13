@@ -126,23 +126,45 @@ pub(super) fn complete_predicate_adnominal_path(resource: &ComponentResource, te
         if matched || !predicate.is_predicate_tag() {
             return;
         }
-        if length == text.len() {
-            matched = endings.split_last().is_some_and(|(last, prefinals)| {
-                *last == StructuralPos::ETM && prefinals.iter().all(|pos| *pos == StructuralPos::EP)
-            });
-        } else if endings.iter().all(|pos| *pos == StructuralPos::EP) {
-            let suffix = &text[length..];
-            matched = has_exact_sequence(resource, suffix, &[StructuralPos::ETM])
-                || has_exact_sequence(resource, suffix, &[StructuralPos::EP, StructuralPos::ETM])
-                || suffix.char_indices().skip(1).any(|(split, _)| {
-                    has_exact_sequence(resource, &suffix[split..], &[StructuralPos::ETM])
-                        && complete_suffix(resource, &suffix[..split], |pos| {
-                            pos == StructuralPos::EP
-                        })
-                });
-        }
+        matched = complete_adnominal_ending(resource, endings, &text[length..]);
     });
     matched
+}
+
+pub(super) fn complete_derived_adnominal_path(resource: &ComponentResource, text: &str) -> bool {
+    let mut matched = false;
+    resource.common_prefix_positions(text.as_bytes(), |root_end, root| {
+        if matched || !matches!(root, [StructuralPos::NNG | StructuralPos::XR]) {
+            return;
+        }
+        let suffix = &text[root_end..];
+        resource.common_prefix_positions(suffix.as_bytes(), |end, positions| {
+            let [StructuralPos::XSV | StructuralPos::XSA, endings @ ..] = positions else {
+                return;
+            };
+            matched |= complete_adnominal_ending(resource, endings, &suffix[end..]);
+        });
+    });
+    matched
+}
+
+fn complete_adnominal_ending(
+    resource: &ComponentResource,
+    endings: &[StructuralPos],
+    suffix: &str,
+) -> bool {
+    if suffix.is_empty() {
+        return endings.split_last().is_some_and(|(last, prefinals)| {
+            *last == StructuralPos::ETM && prefinals.iter().all(|pos| *pos == StructuralPos::EP)
+        });
+    }
+    endings.iter().all(|pos| *pos == StructuralPos::EP)
+        && (has_exact_sequence(resource, suffix, &[StructuralPos::ETM])
+            || has_exact_sequence(resource, suffix, &[StructuralPos::EP, StructuralPos::ETM])
+            || suffix.char_indices().skip(1).any(|(split, _)| {
+                has_exact_sequence(resource, &suffix[split..], &[StructuralPos::ETM])
+                    && complete_suffix(resource, &suffix[..split], |pos| pos == StructuralPos::EP)
+            }))
 }
 
 pub(super) fn exact_analysis_starts_with_pos(
