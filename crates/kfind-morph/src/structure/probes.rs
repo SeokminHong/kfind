@@ -1028,6 +1028,12 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_quotative_adnominal_dependent_noun(&self, previous: &str, text: &str) -> bool {
+        !self.has_object_marked_nominal(previous)
+            && self.has_adnominal_dependent_noun(previous, text)
+    }
+
+    #[must_use]
     pub fn has_dependent_noun_particle_contraction(
         &self,
         previous: &str,

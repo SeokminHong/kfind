@@ -162,6 +162,7 @@ pub(super) fn accepts_omitted_copula(
     follows_adnominal: impl Fn() -> bool,
     has_quotative_head: impl Fn() -> bool,
     supports_counted_unit: impl Fn(&str) -> bool,
+    supports_adnominal_dependent_noun: impl Fn(&str) -> bool,
 ) -> bool {
     let mut nominal_frame = false;
     let accepted = omitted_copula_hosts(token).any(|(host, suffix)| {
@@ -181,6 +182,15 @@ pub(super) fn accepts_omitted_copula(
                 .is_some_and(|prefix| resolver.has_complete_nominal_surface(prefix))
                 && (resolver.has_exact_nominal_surface(host)
                     || (suffix == "라면" && resolver.has_copula_conditional_adverbial_host(host)));
+        }
+        if matches!(suffix, "라고" | "라고요" | "라는")
+            && !host
+                .strip_suffix('이')
+                .is_some_and(|prefix| resolver.has_complete_nominal_surface(prefix))
+            && (supports_counted_unit(host) || supports_adnominal_dependent_noun(host))
+        {
+            nominal_frame = true;
+            return true;
         }
         if matches!(suffix, "라고" | "라고요" | "라는")
             && resolver.has_exact_nominal_surface(host)
