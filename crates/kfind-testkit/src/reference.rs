@@ -1098,6 +1098,10 @@ fn reference_simple_continuation(
         reference_suffix("시는", &["ending.honorific", "ending.present-adnominal"]),
         reference_suffix("시고", &["ending.honorific", "ending.connective-go"]),
         reference_suffix("시면", &["ending.honorific", "ending.conditional"]),
+        reference_suffix(
+            "시면서",
+            &["ending.honorific", "ending.simultaneous-myeonseo"],
+        ),
         reference_suffix("신", &["ending.honorific", "ending.past-adnominal"]),
         reference_suffix("실", &["ending.honorific", "ending.future-adnominal"]),
         reference_suffix("면", &["ending.conditional"]),

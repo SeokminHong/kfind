@@ -841,6 +841,10 @@ const EU_SUFFIXES: &[Suffix] = &[
     suffix("시는", &["ending.honorific", "ending.present-adnominal"]),
     suffix("시고", &["ending.honorific", "ending.connective-go"]),
     suffix("시면", &["ending.honorific", "ending.conditional"]),
+    suffix(
+        "시면서",
+        &["ending.honorific", "ending.simultaneous-myeonseo"],
+    ),
     suffix("신", &["ending.honorific", "ending.past-adnominal"]),
     suffix("실", &["ending.honorific", "ending.future-adnominal"]),
     CONDITIONAL,

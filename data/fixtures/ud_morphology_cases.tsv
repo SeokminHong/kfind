@@ -1,4 +1,9 @@
 id	query	pos	expected	byte_start	byte_end	text
+corpus.ud-gsd.test.test-s228.verb.honorific-simultaneous	돌아가다	verb	smart-exact	26	44	사장님 내외분께서 돌아가시면서 새벽까지 하시구요
+regression.honorific-simultaneous.consonant	읽다	verb	exact	0	15	읽으시면서 메모하셨다.
+regression.honorific-simultaneous.rieul	살다	verb	exact	0	12	사시면서 많이 배우셨다.
+regression.honorific-simultaneous.adjective	좋다	adjective	exact	0	15	좋으시면서 왜 그러세요?
+regression.honorific-simultaneous.allomorph	읽다	verb	no-match	0	12	읽시면서 메모하셨다.
 corpus.ud-gsd.test.test-s39.adjective.좋다	좋다	adjective	match	90	99	괜찮은 인테리어는 아닌데 시장 횟집 분위기에 매운탕도 좋고 회가 좋네요
 corpus.ud-gsd.test.test-s64.adjective.맵다	맵다	adjective	exact	44	56	맛있고 친절해서 좋은데 점점 더 매워지는 것 같아요
 corpus.ud-gsd.test.test-s154.verb.먹다	먹다	verb	match	105	114	푸짐한 음식과 맛도 좋고 양에 비해 가격 저렴하고 얼큰한 바르미 샤브 칼국수 먹으러 와 보세요
