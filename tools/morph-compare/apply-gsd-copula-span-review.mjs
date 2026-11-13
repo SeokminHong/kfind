@@ -17,11 +17,16 @@ const reviews = new Map([
     registry: './gsd-pronoun-copula-span-review.tsv',
     pos: 'pronoun',
   }],
+  ['--numerals', {
+    checksum: '2599698e1404840a25bc5119b771dffcb7dc7a8a1d5d47c66d302b73e168c49d',
+    registry: './gsd-numeral-copula-span-review.tsv',
+    pos: 'numeral',
+  }],
 ]);
 const [input, mode, ...extra] = process.argv.slice(2);
 const selectedReview = reviews.get(mode);
 if (!input || !selectedReview || extra.length) {
-  throw new Error('usage: node apply-gsd-copula-span-review.mjs GSD_POSITIVES.jsonl [--after-name-review|--pronouns]');
+  throw new Error('usage: node apply-gsd-copula-span-review.mjs GSD_POSITIVES.jsonl [--after-name-review|--pronouns|--numerals]');
 }
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
@@ -31,11 +36,13 @@ if (checksum !== selectedReview.checksum) {
 const review = readFileSync(new URL(selectedReview.registry, import.meta.url), 'utf8');
 const cases = new Map();
 for (const line of review.trimEnd().split('\n').slice(1)) {
-  const [id, query, form, reason] = line.split('\t');
-  if (cases.has(id) || !query || !form?.startsWith(query) || form === query || !reason) {
+  const [id, query, form, reason, goldForm = query, lemma, xpos, ...rest] = line.split('\t');
+  if (cases.has(id) || !query || !form?.startsWith(goldForm) || !goldForm.startsWith(query)
+      || form === goldForm || !reason || Boolean(lemma) !== Boolean(xpos) || rest.length
+      || (lemma && (!lemma.startsWith(query + '+') || !xpos.split('+').includes('VCP')))) {
     throw new Error(`invalid review: ${line}`);
   }
-  cases.set(id, { query, form });
+  cases.set(id, { query, form, goldForm, lemma, xpos });
 }
 const output = original.toString('utf8').trimEnd().split('\n').map(line => {
   const row = JSON.parse(line);
@@ -44,11 +51,16 @@ const output = original.toString('utf8').trimEnd().split('\n').map(line => {
   const gold = Buffer.from(row.text).subarray(row.gold_byte_start, row.gold_byte_end);
   if (row.pos !== selectedReview.pos || row.expected !== true || row.query !== corrected.query
       || row.form !== corrected.form || !gold.equals(Buffer.from(corrected.form))
-      || !row.lemma.startsWith(row.query + '+이+')) {
+      || (corrected.lemma ? !row.xpos.split('+').includes('VCP')
+        : !row.lemma.startsWith(row.query + '+이+'))) {
     throw new Error(`review no longer matches original annotation: ${row.id}`);
   }
   cases.delete(row.id);
-  row.gold_byte_end = row.gold_byte_start + Buffer.byteLength(row.query);
+  row.gold_byte_end = row.gold_byte_start + Buffer.byteLength(corrected.goldForm);
+  if (corrected.lemma) {
+    row.lemma = corrected.lemma;
+    row.xpos = corrected.xpos;
+  }
   return JSON.stringify(row);
 });
 if (cases.size) throw new Error(`unused reviews: ${[...cases.keys()]}`);

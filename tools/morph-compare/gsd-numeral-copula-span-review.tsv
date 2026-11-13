@@ -1,0 +1,6 @@
+case_id	query	form	reason	gold_form	lemma	xpos
+gsd:test-s60:17	하나	하나이기도	수사 뒤 지정사 이와 명사형 어미 기 및 보조사 도
+gsd:test-s75:1	일흔	일흔이라는	나이를 인용하는 수사 뒤 지정사 이와 관형형 어미 라는	일흔	일흔+이+라는	NR+VCP+ETM
+gsd:test-s479:14	하나	하나뿐임	수사 뒤 한정 보조사 뿐과 지정사 이 및 명사형 어미 ㅁ	하나뿐	하나+뿐+이+ㅁ	NR+JX+VCP+ETN
+gsd:test-s540:5	하나	하나뿐이라는	수사 뒤 한정 보조사 뿐과 지정사 이 및 관형형 어미 라는	하나뿐	하나+뿐+이+라는	NR+JX+VCP+ETM
+gsd:test-s678:15	하나	하나이다	수사 뒤 지정사 이와 종결 어미 다
