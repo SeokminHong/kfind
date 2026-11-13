@@ -1,4 +1,12 @@
 id	query	pos	expected	byte_start	byte_end	text
+regression.causal-mae.consonant	먹다	verb	smart-exact	7	16	그가 먹으매 마음이 놓였다.
+regression.causal-mae.vowel	고이다	verb	smart-exact	7	16	물이 고이매 길이 미끄러웠다.
+regression.causal-mae.rieul	돌다	verb	smart-exact	7	13	달이 돌매 밤이 깊어 갔다.
+regression.causal-mae.past	들다	verb	smart-exact	7	19	그가 드셨으매 빈 상을 치웠다.
+regression.causal-mae.resultative	어둡다	adjective	smart-exact	10	25	날씨가 어두워지매 쌀쌀한 바람이 불었다.
+regression.causal-mae.honorific	앉다	verb	smart-exact	13	25	선생님이 앉으시매 수업을 시작했다.
+regression.causal-mae.future	먹다	verb	smart-exact	7	19	그가 먹겠으매 음식을 준비했다.
+regression.causal-mae.copula	이다	adjective	smart-exact	13	19	오랜 친구이매 마음이 편했다.
 regression.polite-honorific.consonant-contracted	읽다	verb	smart-exact	7	19	책을 읽으셔요.
 regression.polite-honorific.consonant-full	앉다	verb	smart-exact	7	22	여기 앉으시어요.
 regression.polite-honorific.consonant-invalid	앉다	verb	no-match	7	16	여기 앉셔요.

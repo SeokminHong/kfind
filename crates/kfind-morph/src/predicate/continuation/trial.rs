@@ -1,6 +1,6 @@
 use crate::ContinuationState;
 
-use super::{JIYO, JYO, PredicateContinuationMatch, Suffix, auxiliary, suffix};
+use super::{JIYO, JYO, MAE, PredicateContinuationMatch, Suffix, auxiliary, suffix};
 
 const AUXILIARY: &str = "ending.auxiliary-boda";
 const STEM_ENDINGS: &[Suffix] = &[
@@ -12,6 +12,7 @@ const STEM_ENDINGS: &[Suffix] = &[
     suffix("네", &["ending.final-ne"]),
     suffix("지만", &["ending.connective-jiman"]),
     suffix("므로", &["ending.connective-meuro"]),
+    MAE,
     suffix("기에", &["ending.connective-gie"]),
     suffix("는구나", &["ending.final-neun-exclamative"]),
     suffix("는군", &["ending.final-neun-exclamative"]),

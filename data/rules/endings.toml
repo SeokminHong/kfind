@@ -372,6 +372,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.connective-mae"
+category = "connective"
+initial = "eu"
+forms = ["매", "으매"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.connective-meuro"
 category = "connective"
 initial = "eu"
