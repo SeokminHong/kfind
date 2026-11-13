@@ -1,0 +1,5 @@
+{"id":"bare-object-coordinate","query":"약","pos":"noun","text":"우리 아이도 약 먹고 키가 많이 자랐답니다.","expected":true,"gold_byte_start":17,"gold_byte_end":20}
+{"id":"marked-object-coordinate","query":"약","pos":"noun","text":"약을 먹고 쉬었다.","expected":true,"gold_byte_start":0,"gold_byte_end":6}
+{"id":"coordinate-verb-not-noun","query":"해","pos":"noun","text":"반반으로 해 달라고 하니까 안 된다고 하네요.","expected":false}
+{"id":"demonstrative-before-noun","query":"이","pos":"pronoun","text":"이 도자기들은 비싸다.","expected":false}
+{"id":"numeral-determiner-before-counter","query":"세","pos":"determiner","text":"세 가지인데 맛도 좋다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
