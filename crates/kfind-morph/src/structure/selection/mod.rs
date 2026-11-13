@@ -35,6 +35,7 @@ pub(in crate::structure) enum StructureSelection {
         excludes_predicate: bool,
         preserves_proper_name: bool,
         preserves_proper_name_tail: bool,
+        preserves_counted_noun: bool,
     },
     NominalWhole,
     NominalOrAdverbWhole,
@@ -150,11 +151,13 @@ impl StructureSelection {
                 excludes_predicate,
                 preserves_proper_name,
                 preserves_proper_name_tail,
+                preserves_counted_noun,
             } => {
                 (support.evidence == StructuralEvidence::Whole
                     && (pattern.fine_pos == DataFinePos::Mm
                         || (*preserves_proper_name && pattern.fine_pos == DataFinePos::Nnp)
-                        || (*preserves_proper_name_tail && pattern.fine_pos == DataFinePos::Nng)))
+                        || ((*preserves_proper_name_tail || *preserves_counted_noun)
+                            && pattern.fine_pos == DataFinePos::Nng)))
                     || (!matches!(
                         pattern.fine_pos,
                         DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
@@ -397,12 +400,15 @@ pub(in crate::structure) fn select_structure(
         next_starts_determiner_nominal,
         next_is_counter,
         next_has_counted_head,
+        next_is_numeral,
     ) = context
         .next
-        .map_or((false, false, false, false, false), |next| {
+        .map_or((false, false, false, false, false, false), |next| {
             let mut exact_nominal = false;
             let mut exact_dependent_or_counter_nominal = false;
             let mut exact_counter = false;
+            let mut exact_numeral = false;
+            let mut exact_non_numeral = false;
             let mut exact_competitor = false;
             let mut exact_lexical_competitor = false;
             resource.common_prefix_positions(next.as_bytes(), |length, positions| {
@@ -417,6 +423,10 @@ pub(in crate::structure) fn select_structure(
                     matches!(pos, StructuralPos::NNB | StructuralPos::NNBC);
                 exact_counter |= pos == StructuralPos::NNBC
                     && positions[1..].iter().all(|pos| pos.is_particle());
+                exact_numeral |= pos == StructuralPos::NR
+                    && positions[1..].iter().all(|pos| pos.is_particle())
+                    && !positions[1..].contains(&StructuralPos::JKG);
+                exact_non_numeral |= pos != StructuralPos::NR;
                 exact_competitor |= !pos.is_nominal_tag();
                 exact_lexical_competitor |=
                     !pos.is_nominal_tag() && !matches!(pos, StructuralPos::XSN | StructuralPos::XR);
@@ -459,6 +469,21 @@ pub(in crate::structure) fn select_structure(
                             )
                         })
                     }),
+                !exact_counter
+                    && ((exact_numeral && !exact_lexical_competitor)
+                        || (evidence.has_whole(DataFinePos::Mm)
+                            && evidence.has_whole(DataFinePos::Nng)
+                            && !exact_non_numeral
+                            && particle_hosts.last().is_some_and(|host| {
+                                let head = &next[host.clone()];
+                                !has_exact_sequence(
+                                    resource,
+                                    &next[host.end..],
+                                    &[StructuralPos::JKG],
+                                ) && has_exact_fine_pos(resource, head, |pos| {
+                                    pos == DataFinePos::Nr
+                                }) && !has_exact_sequence(resource, head, &[StructuralPos::NNBC])
+                            }))),
             )
         });
     let particle_host = evidence.nominal_particle_hosts.last().cloned();
@@ -481,6 +506,9 @@ pub(in crate::structure) fn select_structure(
         return StructureSelection::AdjacentDeterminer {
             excludes_pronoun: demonstrative && next_starts_determiner_nominal,
             excludes_predicate,
+            preserves_counted_noun: !demonstrative
+                && evidence.has_whole(DataFinePos::Nng)
+                && next_is_numeral,
             preserves_proper_name_tail: !demonstrative
                 && !next_is_counter
                 && evidence.has_whole(DataFinePos::Nng)

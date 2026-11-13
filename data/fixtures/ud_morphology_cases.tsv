@@ -1034,6 +1034,9 @@ regression.pronominal-genitive.context-positive	너	pronoun	smart-exact	48	51	�
 corpus.ud-pud.test.n01144023.pronoun.genitive	나	pronoun	smart-exact	21	24	그 녀석이 계속 내 헛간에 나타나길래 자기가 팔리는 것을 원치 않는 게 확실하다고 농담조로 말했어요.
 corpus.ud-pud.test.w01043065.pronoun.locative	나	pronoun	no-match	91	94	반면, 나일강을 추가적으로 통제한 결과 게지라섬과 도시 수변 지역 내 발전이 크게 일어났다.
 corpus.ud-gsd.test.test-s308.pronoun.어디	어디	pronoun	smart-exact	10	16	커피숍 어디 있어?
+regression.nominal-before-numeral.topic	일	noun	smart-exact	0	3	일 하나는 똑소리 나데요
+regression.nominal-before-numeral.counter	한	noun	no-match	0	3	한 번만 확인했다.
+regression.nominal-before-numeral.genitive	한	noun	no-match	0	3	한 아이의 학부모로서 참석했다.
 regression.locative-contraction.eodi	어디	pronoun	smart-exact	0	9	어딨어?
 regression.locative-contraction.eodi-na	어디	pronoun	smart-exact	7	16	이거 어딨나?
 regression.locative-contraction.eodi-ji	어디	pronoun	smart-exact	7	16	아빠 어딨지?
