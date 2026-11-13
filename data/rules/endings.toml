@@ -962,6 +962,16 @@ next = ["ending.past", "ending.future", "ending.declarative", "ending.final-da",
 terminal = false
 
 [[ending]]
+id = "ending.interrogative-ryeon"
+category = "final"
+initial = "eu"
+forms = ["련", "으련"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.imperative-ryeom"
 category = "final"
 initial = "eu"

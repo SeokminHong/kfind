@@ -780,6 +780,7 @@ const RYEOM_IMPERATIVES: &[Suffix] = &[
     suffix("렴", &["ending.imperative-ryeom"]),
     suffix("려무나", &["ending.imperative-ryeom"]),
 ];
+const RYEON_QUESTION: Suffix = suffix("련", &["ending.interrogative-ryeon"]);
 const HONORIFIC_EARNEST_REQUEST: Suffix = suffix(
     "십시사",
     &["ending.honorific", "ending.earnest-request-sisa"],
@@ -1996,6 +1997,13 @@ fn verify_simple_continuation(
         {
             HONORIFIC_MEURO_ENDINGS
         }
+        ContinuationState::Eu | ContinuationState::Prospective
+            if pos.is_action()
+                && following.starts_with('련')
+                && !starts_prospective(following, "") =>
+        {
+            &[RYEON_QUESTION]
+        }
         ContinuationState::Eu
             if pos.is_action()
                 && (following.starts_with('렴') || following.starts_with("려무나")) =>
@@ -2204,6 +2212,7 @@ fn verify_simple_continuation(
                 suffix.rules.last().copied(),
                 Some(
                     "ending.connective-daganeun"
+                        | "ending.interrogative-ryeon"
                         | "ending.concessive-nieundeul"
                         | "ending.counterfactual-deondeul"
                         | "ending.dialect-past-je"
