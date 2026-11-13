@@ -1,4 +1,4 @@
-use crate::{ContinuationState, PredicatePos, RuleId, has_rieul_final};
+use crate::{ContinuationState, PredicatePos, RuleId, has_final, has_rieul_final};
 
 mod auxiliary;
 mod hao;
@@ -82,6 +82,11 @@ const COPULA_REPORTING_AND_RO_ENDINGS: &[Suffix] = &[
 ];
 
 const GO_YO: Suffix = suffix("고요", &["ending.connective-go"]);
+const DAM: Suffix = suffix("담", &["ending.self-question-dam"]);
+const NEUNDAM: Suffix = suffix("는담", &["ending.self-question-dam"]);
+pub(super) const HONORIFIC_DAM: Suffix =
+    suffix("시담", &["ending.honorific", "ending.self-question-dam"]);
+const HONORIFIC_NDAM: Suffix = suffix("신담", &["ending.honorific", "ending.self-question-dam"]);
 const PURPOSE_REO: Suffix = suffix("러", &["ending.purpose-reo"]);
 const PROMISE_MA: Suffix = suffix("마", &["ending.promise-ma"]);
 const HONORIFIC_PURPOSE_REO: Suffix = suffix("시러", &["ending.honorific", "ending.purpose-reo"]);
@@ -1389,6 +1394,13 @@ fn verify_simple_continuation(
         ContinuationState::RieulFinal => RIEUL_FINAL,
         ContinuationState::BieupFinal => BIEUP_FINAL,
         ContinuationState::Prospective => PROSPECTIVE,
+        ContinuationState::ReportEnding
+            if pos.is_action()
+                && following.starts_with('담')
+                && anchor.chars().next_back().is_some_and(has_final) =>
+        {
+            &[DAM]
+        }
         ContinuationState::ReportEnding => return None,
     };
     if let Some(continuation) = humble::verify(state, pos, anchor, following) {
@@ -1403,6 +1415,33 @@ fn verify_simple_continuation(
         {
             &[PROMISE_MA]
         }
+        ContinuationState::StemEnding
+            if pos.is_action()
+                && following.starts_with("는담")
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| has_final(last) && !has_rieul_final(last)) =>
+        {
+            &[NEUNDAM]
+        }
+        ContinuationState::StemEnding
+            if following.starts_with('담') && !pos.is_action() && pos != PredicatePos::Copula =>
+        {
+            &[DAM]
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with('담') => {
+            &[DAM]
+        }
+        ContinuationState::NieunEnding
+            if pos.is_action() && anchor.ends_with('신') && following.starts_with('담') =>
+        {
+            &[DAM]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("신담") => {
+            &[HONORIFIC_NDAM]
+        }
+        ContinuationState::Eu if following.starts_with("시담") => &[HONORIFIC_DAM],
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if pos != PredicatePos::Copula
                 && following.starts_with("나요")
@@ -1760,6 +1799,7 @@ fn verify_simple_continuation(
                 | ContinuationState::RieulFinal
                 | ContinuationState::BieupFinal
                 | ContinuationState::Prospective
+                | ContinuationState::ReportEnding
         )
     {
         return None;
@@ -2002,6 +2042,38 @@ mod tests {
         ] {
             let result = verify_predicate_continuation(state, pos, anchor, "마.");
             assert_eq!(result.map_or(0, |matched| matched.consumed_bytes), 0);
+        }
+    }
+
+    #[test]
+    fn self_question_dam_preserves_stem_and_position_constraints() {
+        for (state, pos, anchor, tail) in [
+            (
+                ContinuationState::StemEnding,
+                PredicatePos::Verb,
+                "마시",
+                "담?",
+            ),
+            (
+                ContinuationState::StemEnding,
+                PredicatePos::Verb,
+                "읽",
+                "담?",
+            ),
+            (
+                ContinuationState::StemEnding,
+                PredicatePos::Verb,
+                "살",
+                "는담?",
+            ),
+            (
+                ContinuationState::ReportEnding,
+                PredicatePos::Adjective,
+                "좋은",
+                "담?",
+            ),
+        ] {
+            assert!(verify_predicate_continuation(state, pos, anchor, tail).is_none());
         }
     }
 

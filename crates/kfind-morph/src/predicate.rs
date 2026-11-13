@@ -801,6 +801,7 @@ fn compile_rieul_honorific(
         .chain(continuation::HONORIFIC_YAJI_ENDINGS)
         .chain(continuation::POLITE_HONORIFIC_ENDINGS)
         .chain(continuation::HONORIFIC_VOWEL_CONNECTIVES)
+        .chain([&continuation::HONORIFIC_DAM])
         .chain(&continuation::HONORIFIC_NE_ENDINGS)
         .chain(if entry.pos.is_action() {
             continuation::HONORIFIC_HAO_AFTER_ACTION

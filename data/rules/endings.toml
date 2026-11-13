@@ -582,6 +582,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.self-question-dam"
+category = "final"
+initial = "other"
+forms = ["ㄴ담", "는담", "담"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.interrogative-nga"
 category = "final"
 initial = "attach-nieun"
