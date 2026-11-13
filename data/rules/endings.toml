@@ -1522,6 +1522,16 @@ next = ["ending.polite-yo"]
 terminal = true
 
 [[ending]]
+id = "ending.familiar-final-i"
+category = "final"
+initial = "eu"
+forms = ["이", "으이"]
+required = ["descriptive-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.final-deogun"
 category = "final"
 initial = "consonant"
@@ -1586,6 +1596,16 @@ id = "ending.polite-declarative"
 category = "final"
 initial = "attach-bieup"
 forms = ["ㅂ니다", "습니다"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.formal-report-dap"
+category = "final"
+initial = "other"
+forms = ["답니다", "답니까", "ㄴ답니다", "ㄴ답니까", "는답니다", "는답니까"]
 required = []
 forbidden = []
 next = []

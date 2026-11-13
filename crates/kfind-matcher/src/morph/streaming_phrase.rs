@@ -2,7 +2,9 @@ use std::cmp::Ordering;
 use std::collections::{BTreeMap, BinaryHeap};
 use std::rc::Rc;
 
-use kfind_query::{PhraseMatch, PhrasePolicy, QueryGraph, VerifiedSpan};
+use kfind_query::{
+    BoundaryPolicy, CandidateConsumption, PhraseMatch, PhrasePolicy, QueryGraph, VerifiedSpan,
+};
 
 use crate::{AnchorHit, SearchDiagnostics};
 
@@ -135,12 +137,59 @@ impl<'matcher, 'haystack> CandidateStream<'matcher, 'haystack> {
                     self.metadata,
                     &mut self.structural_cache,
                 ) {
+                    if atom.boundary == BoundaryPolicy::Any
+                        && matches!(
+                            branch.consumption,
+                            CandidateConsumption::NominalParticleChain { .. }
+                        )
+                        && span.core.end == hit.span.end
+                        && span.core.end < span.token.end
+                        && !crate::boundary::is_boundary_after(self.haystack, span.token.end)
+                        && self.has_adjacent_nominal_successor(branch_ref.atom_index, span.core.end)
+                    {
+                        self.pending.push(PendingCandidate {
+                            atom_index: branch_ref.atom_index,
+                            span: VerifiedSpan {
+                                core: span.core.clone(),
+                                token: span.core.clone(),
+                                origins: if matches!(self.metadata, MatchMetadata::Provenance) {
+                                    branch.origins.clone()
+                                } else {
+                                    Vec::new()
+                                },
+                            },
+                        });
+                    }
                     self.pending.push(PendingCandidate {
                         atom_index: branch_ref.atom_index,
                         span,
                     });
                 }
             }
+        }
+    }
+
+    fn has_adjacent_nominal_successor(&self, current: usize, start: usize) -> bool {
+        let has_nominal_anchor = |index: usize| {
+            self.matcher.plan.atoms.get(index).is_some_and(|atom| {
+                atom.programs.iter().any(|program| {
+                    matches!(
+                        program.consumption,
+                        CandidateConsumption::NominalParticleChain { .. }
+                    ) && self.haystack[start..].starts_with(&program.anchor)
+                })
+            })
+        };
+        if let Some(graph) = &self.matcher.plan.graph {
+            graph
+                .predecessors
+                .iter()
+                .enumerate()
+                .any(|(index, predecessors)| {
+                    predecessors.contains(&current) && has_nominal_anchor(index)
+                })
+        } else {
+            has_nominal_anchor(current + 1)
         }
     }
 

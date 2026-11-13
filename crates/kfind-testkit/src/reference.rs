@@ -1565,6 +1565,10 @@ fn reference_simple_continuation(
         ContinuationState::StemEnding => GEODEUN,
         ContinuationState::NieunEnding => BACKGROUND,
         ContinuationState::CompletedNieunEnding => COMPLETED_NIEUN,
+        ContinuationState::ReportEnding if pos.is_action() && following.starts_with('답') => &[
+            reference_suffix("답니다", &["ending.formal-report-dap"]),
+            reference_suffix("답니까", &["ending.formal-report-dap"]),
+        ],
         ContinuationState::ReportEnding => return None,
         ContinuationState::Interrogative => INTERROGATIVE,
         ContinuationState::CopulaRa => &[
@@ -1664,6 +1668,116 @@ fn reference_simple_continuation(
     let additional_endings: &[ReferenceSuffix] = match state {
         ContinuationState::AOrEo if pos.is_action() && following.starts_with("다가") => {
             &[reference_suffix("다가", &["ending.aoeo-daga"])]
+        }
+        ContinuationState::StemEnding
+            if pos.is_action()
+                && following.starts_with("는답")
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| has_final(last) && !has_rieul_final(last)) =>
+        {
+            &[
+                reference_suffix("는답니다", &["ending.formal-report-dap"]),
+                reference_suffix("는답니까", &["ending.formal-report-dap"]),
+            ]
+        }
+        ContinuationState::StemEnding
+            if (matches!(
+                pos,
+                PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
+            ) || (pos.is_action() && anchor == "있"))
+                && following.starts_with('답') =>
+        {
+            &[
+                reference_suffix("답니다", &["ending.formal-report-dap"]),
+                reference_suffix("답니까", &["ending.formal-report-dap"]),
+            ]
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with('답') => &[
+            reference_suffix("답니다", &["ending.formal-report-dap"]),
+            reference_suffix("답니까", &["ending.formal-report-dap"]),
+        ],
+        ContinuationState::Eu if pos.is_action() && following.starts_with("신답") => &[
+            reference_suffix(
+                "신답니다",
+                &["ending.honorific", "ending.formal-report-dap"],
+            ),
+            reference_suffix(
+                "신답니까",
+                &["ending.honorific", "ending.formal-report-dap"],
+            ),
+        ],
+        ContinuationState::Eu if following.starts_with("시답") => &[
+            reference_suffix(
+                "시답니다",
+                &["ending.honorific", "ending.formal-report-dap"],
+            ),
+            reference_suffix(
+                "시답니까",
+                &["ending.honorific", "ending.formal-report-dap"],
+            ),
+        ],
+        ContinuationState::Eu if following.starts_with("셨답") => &[
+            reference_suffix(
+                "셨답니다",
+                &[
+                    "ending.honorific",
+                    "ending.past",
+                    "ending.formal-report-dap",
+                ],
+            ),
+            reference_suffix(
+                "셨답니까",
+                &[
+                    "ending.honorific",
+                    "ending.past",
+                    "ending.formal-report-dap",
+                ],
+            ),
+        ],
+        ContinuationState::Eu if following.starts_with("시겠답") => &[
+            reference_suffix(
+                "시겠답니다",
+                &[
+                    "ending.honorific",
+                    "ending.future",
+                    "ending.formal-report-dap",
+                ],
+            ),
+            reference_suffix(
+                "시겠답니까",
+                &[
+                    "ending.honorific",
+                    "ending.future",
+                    "ending.formal-report-dap",
+                ],
+            ),
+        ],
+        ContinuationState::StemEnding | ContinuationState::Eu
+            if pos == PredicatePos::Adjective
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| !has_final(last))
+                && following.strip_prefix('이').is_some_and(|tail| {
+                    tail.chars()
+                        .next()
+                        .is_none_or(|next| !next.is_alphanumeric() && next != '_')
+                }) =>
+        {
+            &[reference_suffix("이", &["ending.familiar-final-i"])]
+        }
+        ContinuationState::StemEnding
+            if pos == PredicatePos::Adjective
+                && anchor.chars().next_back().is_some_and(has_rieul_final)
+                && following.strip_prefix("으이").is_some_and(|tail| {
+                    tail.chars()
+                        .next()
+                        .is_none_or(|next| !next.is_alphanumeric() && next != '_')
+                }) =>
+        {
+            &[reference_suffix("으이", &["ending.familiar-final-i"])]
         }
         ContinuationState::StemEnding if pos.is_action() && following.starts_with('남') => {
             &[reference_suffix("남", &["ending.self-question-nam"])]
