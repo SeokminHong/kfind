@@ -1,4 +1,4 @@
-use super::{PredicateContinuationMatch, Suffix, matched, suffix};
+use super::{JIMAN, JIMANEUN, PredicateContinuationMatch, Suffix, matched, suffix};
 use crate::hangul::JONG_RIEUL;
 use crate::{ContinuationState, PredicatePos, RuleId, decompose_syllable, has_final};
 
@@ -38,7 +38,8 @@ const OP_FOLLOWING: &[Suffix] = &[
     suffix("디까", &["ending.retrospective-interrogative"]),
     suffix("고", &["ending.connective-go"]),
     suffix("더니", &["ending.retrospective-connective"]),
-    suffix("지만", &["ending.connective-jiman"]),
+    JIMAN,
+    JIMANEUN,
     suffix("건대", &["ending.connective-geondae"]),
     suffix("시고", &[HONORIFIC, "ending.connective-go"]),
     suffix("시니", &[HONORIFIC, "ending.connective-ni"]),
