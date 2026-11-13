@@ -822,7 +822,7 @@ impl MorphMatcher {
                     rule_path.as_slice(),
                     [.., connective, particle]
                         if connective.as_str() == "ending.connective-ji"
-                            && particle.as_str() == "particle.topic"
+                            && matches!(particle.as_str(), "particle.topic" | "particle.object")
                 ) {
                     let end = hit.span.end + consumed_bytes;
                     if !context::next_word(haystack, end).is_some_and(|next| {
@@ -4207,16 +4207,31 @@ fn has_negative_auxiliary(
             Some('해') => ("못해", ContinuationState::AOrEo),
             _ => return false,
         },
-        Some('마') if host.is_action() && matches!(word, "마" | "마요") => return true,
+        Some('마') if host.is_action() => {
+            return matches!(word, "마" | "마요" | "마라" | "마세요" | "마십시오");
+        }
         Some('말') if host.is_action() => ("말", ContinuationState::StemEnding),
         _ => return false,
     };
     let suffix = &word[anchor.len()..];
+    let (anchor, suffix, state) = match (state, suffix.strip_prefix('는')) {
+        (ContinuationState::StemEnding, Some(tail)) if tail.starts_with('데') => (
+            &word[..anchor.len() + '는'.len_utf8()],
+            tail,
+            ContinuationState::NieunEnding,
+        ),
+        _ => (anchor, suffix, state),
+    };
     (state == ContinuationState::AOrEo || !suffix.is_empty())
         && (verify_predicate_continuation(state, PredicatePos::AuxiliaryVerb, anchor, suffix)
             .is_some_and(|matched| matched.token_end == word.len())
             || resolver.is_some_and(|resolver| {
-                resolver.supports_ending_suffix_path(word, anchor.len(), DEFAULT_LATTICE_NODE_LIMIT)
+                !resolver.has_subject_marked_nominal(word)
+                    && resolver.supports_ending_suffix_path(
+                        word,
+                        anchor.len(),
+                        DEFAULT_LATTICE_NODE_LIMIT,
+                    )
             }))
 }
 

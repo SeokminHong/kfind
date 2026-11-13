@@ -905,6 +905,16 @@ regression.negative-topic.irregular	듣다	verb	smart-exact	14	20	그 방송을 
 regression.negative-topic.resultative	이루다	verb	smart-exact	10	22	협상이 이뤄지진 않았어요.
 regression.negative-topic.resultative-second	다루다	verb	smart-exact	27	39	그 사건은 회의에서 다뤄지진 않았다.
 regression.negative-topic.resultative-adnominal	이루다	verb	smart-exact	10	19	협상이 이뤄진 이유를 조사했다.
+corpus.ud-gsd.test.test-s637.verb.dorabojil	돌아보다	verb	smart-exact	59	71	음식은 맛있는데 소스나 김치가 떨어졌어도 돌아보질 않아요
+corpus.ud-gsd.test.test-s909.verb.boijil	보이다	verb	smart-exact	56	65	지하 흡연 미팅 룸에 티비 화질 안 좋아서 보이질 않는데 교체 부탁해요.
+regression.negative-object.inability	먹다	verb	smart-exact	0	6	먹질 못했어요.
+regression.negative-object.prohibitive	가다	verb	smart-exact	0	6	가질 마세요.
+regression.negative-object.past	먹다	verb	smart-exact	0	9	먹었질 않아요.
+regression.negative-object.future	먹다	verb	smart-exact	0	9	먹겠질 않아요.
+regression.negative-object.honorific	먹다	verb	smart-exact	0	12	먹으시질 않았어요.
+regression.negative-object.adjective	좋다	adjective	smart-exact	0	6	좋질 않아요.
+regression.negative-object.lexical-future	가다	verb	no-match	0	6	가질 물건을 골랐다.
+regression.negative-object.nominal-subject	먹다	verb	no-match	0	6	먹질 말이 안 된다.
 corpus.ud-gsd.test.test-s642.verb.past-neyo	다녀오다	verb	smart-exact	18	33	벌써 여러 번 다녀왔네요.
 corpus.ud-gsd.test.test-s668.verb.past-neyo	거부당하다	verb	smart-exact	17	35	카드 결제를 거부당했네요.
 corpus.ud-gsd.test.test-s856.adjective.honorific-neyo	같다	adjective	smart-exact	33	48	친절하고 따뜻한 어머니 같으시네요.
