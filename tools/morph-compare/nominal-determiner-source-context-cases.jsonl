@@ -1,0 +1,8 @@
+{"id":"picture-noun","query":"속","pos":"noun","text":"화보 속 박하선은 웃었다.","expected":true,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"picture-determiner","query":"속","pos":"determiner","text":"화보 속 박하선은 웃었다.","expected":false,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"picture-particle","query":"속","pos":"noun","text":"화보 속에서 박하선이 웃었다.","expected":true,"gold_byte_start":7,"gold_byte_end":16}
+{"id":"book-noun","query":"속","pos":"noun","text":"책 속 이야기를 읽었다.","expected":true,"gold_byte_start":4,"gold_byte_end":7}
+{"id":"byeol-determiner","query":"별","pos":"determiner","text":"별 사람이 다 있네.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"byeol-noun","query":"별","pos":"noun","text":"밤하늘 별 하나가 반짝였다.","expected":true,"gold_byte_start":10,"gold_byte_end":13}
+{"id":"saint-determiner","query":"성","pos":"determiner","text":"성 파트리치오의 날이다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"young-determiner","query":"소","pos":"determiner","text":"소 플리니우스는 서신을 남겼다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
