@@ -1,0 +1,3 @@
+case_id	query	pos	form	lemma	xpos	gold_form
+gsd:test-s126:4	분출주	noun	분출주로	분출주+로	NNG+JKB	분출주로
+gsd:test-s901:3	가다	verb	가실라면	가+시+ㄹ라면	VV+EP+EC	가실라면
