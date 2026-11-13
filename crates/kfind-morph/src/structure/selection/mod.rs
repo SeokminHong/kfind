@@ -33,6 +33,7 @@ pub(in crate::structure) enum StructureSelection {
     AdjacentDeterminer {
         excludes_pronoun: bool,
         excludes_predicate: bool,
+        preserves_proper_name: bool,
     },
     NominalWhole,
     ProperNameOrAdnominal {
@@ -142,9 +143,11 @@ impl StructureSelection {
             Self::AdjacentDeterminer {
                 excludes_pronoun,
                 excludes_predicate,
+                preserves_proper_name,
             } => {
                 (support.evidence == StructuralEvidence::Whole
-                    && pattern.fine_pos == DataFinePos::Mm)
+                    && (pattern.fine_pos == DataFinePos::Mm
+                        || (*preserves_proper_name && pattern.fine_pos == DataFinePos::Nnp)))
                     || (!matches!(
                         pattern.fine_pos,
                         DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
@@ -405,6 +408,30 @@ pub(in crate::structure) fn select_structure(
         return StructureSelection::AdjacentDeterminer {
             excludes_pronoun: demonstrative && next_starts_determiner_nominal,
             excludes_predicate,
+            preserves_proper_name: !demonstrative
+                && !next_is_counter
+                && !matches!(
+                    context.current,
+                    "한" | "두"
+                        | "세"
+                        | "네"
+                        | "석"
+                        | "서"
+                        | "넉"
+                        | "너"
+                        | "열"
+                        | "쉰"
+                        | "몇"
+                        | "수"
+                )
+                && evidence.has_whole(DataFinePos::Nnp)
+                && context.next.is_some_and(|next| {
+                    has_exact_fine_pos(resource, next, |pos| pos == DataFinePos::Nng)
+                })
+                && context.previous.is_some_and(|previous| {
+                    complete_nominal_host(resource, previous)
+                        && complete_nominal_particle_host(resource, previous).is_none()
+                }),
         };
     }
     if let Some((nominal, copula)) = copular_frame(resource, context) {
