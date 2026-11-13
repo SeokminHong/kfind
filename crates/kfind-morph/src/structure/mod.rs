@@ -305,6 +305,20 @@ impl PreparedStructuralContext {
         self.has_compound_nominal_prefix_in(span, true)
     }
 
+    #[must_use]
+    pub fn has_bare_compound_nominal_prefix(&self, span: &Range<usize>) -> bool {
+        let token = self.token.as_ref();
+        let whole = 0..token.text.len();
+        let evidence = &token.evidence;
+        self.has_compound_nominal_prefix(span)
+            || (evidence.has_complete_path
+                && evidence::minimum_unit_path(&(span.end..whole.end), evidence, |pos| {
+                    matches!(pos, DataFinePos::Nng | DataFinePos::Nnp)
+                })
+                .is_some()
+                && self.has_compound_nominal_prefix_in(span, true))
+    }
+
     fn has_compound_nominal_prefix_in(&self, span: &Range<usize>, include_whole: bool) -> bool {
         let token = self.token.as_ref();
         let evidence = &token.evidence;

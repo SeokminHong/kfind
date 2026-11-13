@@ -4,6 +4,7 @@ corpus.ud-gsd.test.test-s398.genitive	음식	noun	smart-exact	37	46	인간미 �
 corpus.ud-gsd.test.test-s661.quoted-alternatives	또는	adverb	smart-exact	76	82	이때에는 본디의 뜻과 구별하기 위해 가타카나로 イタイ 또는 イタい라고 쓰는 경우도 많으며, 이때는 '한심하다', '부끄럽다', '가엾다' 등의 뜻으로 사용된다.
 regression.compound-noun.contracted-copula-prefix	가족	noun	smart-exact	0	6	가족여행에서 다섯 살인 아이도 맛나게 먹을 수 있는 곳.
 regression.compound-noun.contracted-copula-actual	가수	noun	smart-exact	7	13	그는 가수였다.
+corpus.ud-gsd.test.test-s422.compound-noun	국가	noun	smart-exact	0	6	국가과도위원회(NTC) 위원인 파티 투르벨은 "카다피가 트리폴리에 없다는 것을 확신한다"며 "카다피를 생포하는 것은 시간문제"라고 말했다.
 corpus.ud-gsd.test.test-s90.nominal-honorific	사장	noun	smart-exact	0	6	사장님부터 직원들까지 늘 친절하고 안주도 실패작이 없었습니다.
 corpus.ud-gsd.test.test-s202.nominal-honorific-proper	예수	noun	smart-exact	68	74	눈물 흘리는 성모님 말고도 성당 안에 매달려 계신 예수님과 성모님께도 관심을 가져주세요.
 corpus.ud-gsd.test.test-s501.nominal-honorific-plural	선생	noun	smart-exact	0	6	선생님들 너무 친절하시고 가격도 괜찮고 무척 맘에 듦!

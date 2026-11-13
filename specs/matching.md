@@ -55,6 +55,8 @@
   `사용가치를`의 `사용`과 `영업이익`의 `영업`이 여기에 해당한다.
   뒤 성분의 첫 음절이 축약 지정사의 표면형과 겹쳐도 완성된 명사 경로를 먼저
   확인한다. `가족여행에서`의 `가족`이 여기에 해당한다.
+  조사가 없는 어절도 두 음절 이상인 첫 일반 명사와 다음 일반 명사부터 어절 끝까지
+  이어지는 완성 명사 경로가 있으면 같은 범위를 검색한다.
 - `ConstraintResolver`는 query pattern의 structural signature가 선택된 corpus 구조와
   일치하면 `Supported`, 다른 구조가 유일하게 선택되면 `Contradicted`, resource 오류나
   상한 초과는 `Unavailable`로 반환한다.
