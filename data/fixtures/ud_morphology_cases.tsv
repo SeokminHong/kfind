@@ -1077,3 +1077,8 @@ regression.gopeuda.past	가다	verb	smart-exact	0	12	가고팠다.
 regression.gopeuda.conditional	보다	verb	smart-exact	0	12	보고프면 연락해.
 regression.gopeuda.background	먹다	verb	smart-exact	0	12	먹고픈데 시간이 없다.
 regression.gopeuda.separate	먹다	verb	smart-exact	0	6	먹고 싶다.
+regression.gopeuda.lexical-adjective	배다	verb	no-match	0	12	배고프다.
+regression.gopeuda.lexical-adjective-past	배다	verb	no-match	0	12	배고팠다.
+regression.gopeuda.lexical-adjective-connective	배다	verb	no-match	0	12	배고프고 힘들었다.
+regression.gopeuda.lexical-adjective-positive	배고프다	adjective	smart-exact	0	12	배고팠다.
+regression.gopeuda.connective	먹다	verb	smart-exact	0	12	먹고프고 목도 말랐다.

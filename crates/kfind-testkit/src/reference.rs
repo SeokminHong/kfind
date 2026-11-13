@@ -789,6 +789,7 @@ fn reference_gopeuda(state: ContinuationState, following: &str) -> Option<(usize
         ("팠", Past, Some("ending.past")),
         ("프다", Terminal, Some("ending.final-da")),
         ("프기", Terminal, Some("ending.nominalizer-gi")),
+        ("프고", Terminal, Some("ending.connective-go")),
         ("프", Eu, None),
     ]
     .into_iter()

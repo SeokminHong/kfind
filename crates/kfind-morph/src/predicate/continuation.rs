@@ -1434,6 +1434,8 @@ fn verify_gopeuda(
         matched(form.len(), Some(&suffix("다", &["ending.final-da"])))
     } else if form == "프" && remaining.starts_with('기') {
         matched(form.len(), Some(&NOMINALIZER_GI))
+    } else if form == "프" && remaining.starts_with('고') {
+        matched(form.len(), Some(&suffix("고", &["ending.connective-go"])))
     } else {
         verify_simple_continuation(next, PredicatePos::AuxiliaryAdjective, form, remaining)
             .or_else(|| {

@@ -1563,6 +1563,22 @@ impl MorphMatcher {
         }
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
         let core = &candidate.verified.core;
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::PredicateContinuation { .. }
+        ) && candidate.consumed.end < whole.end
+            && haystack
+                .get(candidate.consumed.clone())
+                .is_some_and(|surface| {
+                    surface.ends_with("고".as_bytes()) || surface.ends_with("고".as_bytes())
+                })
+            && context::normalized_token(haystack, candidate.consumed.end..whole.end)
+                .is_some_and(|tail| tail.starts_with(['프', '픈', '플', '픕', '픔', '파', '팠']))
+            && context::normalized_token(haystack, whole.clone())
+                .is_some_and(|token| has_lexical_gopeuda_adjective(&token, resolver))
+        {
+            return false;
+        }
         if *core == whole
             && candidate.consumed == whole
             && matches!(
@@ -4099,12 +4115,7 @@ fn has_conflicting_whole_predicate(
         .suffix_rules
         .iter()
         .any(|rule| rule.as_str() == "ending.auxiliary-gopeuda")
-        && normalized_token
-            .rsplit_once('고')
-            .is_some_and(|(host, tail)| {
-                tail.starts_with(['프', '픈', '플', '픕', '픔', '파', '팠'])
-                    && resolver.has_exact_adjective_surface(&format!("{host}고프"))
-            })
+        && has_lexical_gopeuda_adjective(&normalized_token, resolver)
     {
         return true;
     }
@@ -4162,6 +4173,26 @@ fn has_conflicting_whole_predicate(
             normalized_core_start..normalized_core_end,
             source_pos,
         )
+    })
+}
+
+fn has_lexical_gopeuda_adjective(token: &str, resolver: &ConstraintResolver) -> bool {
+    token.match_indices('고').any(|(start, connective)| {
+        let end = start + connective.len();
+        verify_predicate_continuation(
+            kfind_morph::ContinuationState::StemEnding,
+            kfind_morph::PredicatePos::Verb,
+            &token[..start],
+            &token[start..],
+        )
+        .is_some_and(|matched| {
+            matched.token_end == token.len()
+                && matched
+                    .rule_path
+                    .iter()
+                    .any(|rule| rule.as_str() == "ending.auxiliary-gopeuda")
+                && resolver.has_exact_adjective_surface(&format!("{}프", &token[..end]))
+        })
     })
 }
 
