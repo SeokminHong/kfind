@@ -1,0 +1,8 @@
+case_id	query	pos	form	lemma	xpos	gold_form
+gsd:test-s292:5	맛나다	adjective	맛나네	맛나+네	VA+EF	맛나네
+gsd:test-s313:2	나름 가수다	noun	나름 가수다	나름 가수다	NNP	나름 가수다
+gsd:test-s332:2	나름 가수다	noun	나름 가수다	나름 가수다	NNP	나름 가수다
+gsd:test-s352:2	묵은지	noun	묵은지라	묵은지+이+라	NNG+VCP+EC	묵은지
+gsd:test-s387:11	박칼린	noun	박칼린	박칼린	NNP	박칼린
+gsd:test-s563:6	지어내다	verb	지어내서	지어내+서	VV+EC	지어내서
+gsd:test-s632:3	묵은지	noun	묵은지와	묵은지+와	NNG+JC	묵은지와
