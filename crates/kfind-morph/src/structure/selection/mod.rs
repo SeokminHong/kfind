@@ -202,6 +202,22 @@ impl StructureSelection {
                                         evidence,
                                     ))))
                             || spans.core == *selected
+                            || (selected.end == spans.core.start
+                                && matches!(
+                                    pattern.fine_pos,
+                                    DataFinePos::Nng | DataFinePos::Nnp
+                                )
+                                && matches!(
+                                    pattern.continuation,
+                                    MorphContinuation::NominalParticles
+                                )
+                                && spans.consumed.end == spans.token.end
+                                && text[spans.core.clone()].chars().nth(1).is_some()
+                                && text[selected.clone()].chars().nth(1).is_some()
+                                && !evidence.has_whole_analysis(&spans.token)
+                                && evidence.units.starting_at(spans.core.start).iter().any(
+                                    |unit| unit.span == spans.core && unit.pos == pattern.fine_pos,
+                                ))
                             || (evidence.nominal_particle_hosts.contains(&spans.core)
                                 && spans.consumed == spans.token
                                 && matches!(
