@@ -83,6 +83,7 @@ const COPULA_REPORTING_AND_RO_ENDINGS: &[Suffix] = &[
 
 const GO_YO: Suffix = suffix("고요", &["ending.connective-go"]);
 const PURPOSE_REO: Suffix = suffix("러", &["ending.purpose-reo"]);
+const PROMISE_MA: Suffix = suffix("마", &["ending.promise-ma"]);
 const HONORIFIC_PURPOSE_REO: Suffix = suffix("시러", &["ending.honorific", "ending.purpose-reo"]);
 
 const COPULA_COMMON_ENDINGS: &[Suffix] = &[
@@ -1394,6 +1395,14 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::Eu if pos.is_action() && following.starts_with('마') => &[PROMISE_MA],
+        ContinuationState::StemEnding
+            if pos.is_action()
+                && following.starts_with('마')
+                && anchor.chars().next_back().is_some_and(has_rieul_final) =>
+        {
+            &[PROMISE_MA]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if pos != PredicatePos::Copula
                 && following.starts_with("나요")
@@ -1982,6 +1991,17 @@ mod tests {
                 matched.rule_path,
                 rules.into_iter().map(RuleId::from).collect::<Vec<_>>()
             );
+        }
+    }
+
+    #[test]
+    fn promise_ma_requires_eu_or_retained_rieul_on_action_verbs() {
+        for (state, pos, anchor) in [
+            (ContinuationState::StemEnding, PredicatePos::Verb, "갚"),
+            (ContinuationState::Eu, PredicatePos::Adjective, "좋으"),
+        ] {
+            let result = verify_predicate_continuation(state, pos, anchor, "마.");
+            assert_eq!(result.map_or(0, |matched| matched.consumed_bytes), 0);
         }
     }
 

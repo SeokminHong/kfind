@@ -2,6 +2,10 @@ id	query	pos	expected	byte_start	byte_end	text
 regression.polite-honorific.consonant-contracted	읽다	verb	smart-exact	7	19	책을 읽으셔요.
 regression.polite-honorific.consonant-full	앉다	verb	smart-exact	7	22	여기 앉으시어요.
 regression.polite-honorific.consonant-invalid	앉다	verb	no-match	7	16	여기 앉셔요.
+regression.promise-ma.consonant	갚다	verb	smart-exact	7	16	빚을 갚으마.
+regression.promise-ma.vowel	가다	verb	smart-exact	7	13	내가 가마.
+regression.promise-ma.rieul	살다	verb	smart-exact	7	13	같이 살마.
+regression.promise-ma.invalid-adjective	좋다	adjective	no-match	10	19	결과가 좋으마.
 regression.dependent-subject-ge.derived-adnominal	것	noun	smart-exact	13	16	전환하는 게 좋겠다.
 regression.dependent-subject-ge.derived-connective	것	noun	no-match	10	13	전환해 게 두 마리를 찾았다.
 regression.dependent-subject-ge.geot	것	noun	smart-exact	7	10	읽는 게 좋다.
