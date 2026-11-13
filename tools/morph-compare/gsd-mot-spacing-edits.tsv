@@ -1,0 +1,5 @@
+sentence_id	source	replacement	reason
+test-s26	못하고	못 하고	우승을 하지 못한 상태
+test-s694	못하고	못 하고	우승을 하지 못한 상태
+test-s945	못하면	못 하면	예약을 하지 못하는 조건
+test-s988	못한다고	못 한다고	배달 가능 거리를 벗어나 배달을 하지 못함
