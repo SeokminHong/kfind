@@ -62,4 +62,6 @@ garya-directed-not-copula	이다	adjective	no-match	24	30	내가 관아로 곧�
 garya-directed-verb	가다	verb	exact	24	30	내가 관아로 곧장 가랴?
 oryeotda-directed-not-copula	이다	adjective	no-match	24	33	너도 곧장 관아로 오렷다.
 oryeotda-directed-verb	오다	verb	exact	24	33	너도 곧장 관아로 오렷다.
+garya-directional-adverb-not-copula	이다	adjective	no-match	30	36	내가 마을로 부지런히 가랴?
+garya-directional-adverb-verb	가다	verb	exact	30	36	내가 마을로 부지런히 가랴?
 oryeotda-letter-copula	이다	adjective	smart-exact	31	40	도장의 첫 글자가 분명 오렷다.
