@@ -1049,6 +1049,38 @@ impl MorphMatcher {
                     self.particle_verifier
                         .verify_prefix(&consumption_anchor, &consumption_following)
                 };
+                let mut consumed_name_suffix = false;
+                if !adverb_host
+                    && matches!(
+                        branch.consumption,
+                        CandidateConsumption::NominalParticleChain { .. }
+                    )
+                    && let Some(tail) = consumption_following.strip_prefix('이')
+                    && tail.starts_with(crate::is_token_character)
+                    && consumption_anchor
+                        .chars()
+                        .next_back()
+                        .is_some_and(|last| kfind_morph::drop_final(last).is_some())
+                    && is_boundary_before(haystack, core.start)
+                    && let Some(resolver) = self.constraint_resolver.as_ref()
+                    && resolver.has_exact_proper_name_surface(&consumption_anchor)
+                {
+                    let name = format!("{consumption_anchor}이");
+                    if !resolver.has_exact_nominal_surface(&name) {
+                        let with_suffix = self.particle_verifier.verify_prefix(&name, tail);
+                        let consumed = '이'.len_utf8() + with_suffix.consumed_bytes;
+                        if consumed > matched.consumed_bytes
+                            && with_suffix.consumed_bytes > 0
+                            && !tail[with_suffix.consumed_bytes..]
+                                .starts_with(crate::is_token_character)
+                            && branch.consumption.allows_rule_path(&with_suffix.rule_path)
+                        {
+                            matched = with_suffix;
+                            matched.consumed_bytes = consumed;
+                            consumed_name_suffix = true;
+                        }
+                    }
+                }
                 if let Some((prefix, trailing)) =
                     consumption_following.split_at_checked(matched.consumed_bytes)
                     && trailing
@@ -1179,6 +1211,11 @@ impl MorphMatcher {
                             map_normalized_prefix(following, normalized, matched.consumed_bytes)?
                         }
                     };
+                    if consumed_name_suffix {
+                        matched
+                            .rule_path
+                            .insert(0, RuleId::from("suffix.proper-name-i"));
+                    }
                     (consumed_bytes, matched.rule_path)
                 }
             }
