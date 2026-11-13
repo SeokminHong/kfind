@@ -392,63 +392,88 @@ pub(in crate::structure) fn select_structure(
         next_is_unambiguous_nominal,
         next_starts_determiner_nominal,
         next_is_counter,
-    ) = context.next.map_or((false, false, false, false), |next| {
-        let mut exact_nominal = false;
-        let mut exact_dependent_or_counter_nominal = false;
-        let mut exact_counter = false;
-        let mut exact_competitor = false;
-        let mut exact_lexical_competitor = false;
-        resource.common_prefix_positions(next.as_bytes(), |length, positions| {
-            if length != next.len() {
-                return;
-            }
-            let Some(pos) = positions.first().copied() else {
-                return;
-            };
-            exact_nominal |= pos.is_nominal_tag();
-            exact_dependent_or_counter_nominal |=
-                matches!(pos, StructuralPos::NNB | StructuralPos::NNBC);
-            exact_counter |=
-                pos == StructuralPos::NNBC && positions[1..].iter().all(|pos| pos.is_particle());
-            exact_competitor |= !pos.is_nominal_tag();
-            exact_lexical_competitor |=
-                !pos.is_nominal_tag() && !matches!(pos, StructuralPos::XSN | StructuralPos::XR);
-        });
-        let complete_nominal = complete_nominal_host(resource, next)
-            || complete_nominal_particle_host(resource, next).is_some();
-        let unambiguous_nominal = (exact_nominal || complete_nominal)
-            && !exact_competitor
-            && !complete_predicate_ending_path(resource, next);
-        let starts_nominal = !nominal_particle_hosts(resource, next).is_empty()
-            || (!exact_competitor && (exact_nominal || complete_nominal));
-        let coordinate_verb = !demonstrative
-            && !exact_nominal
-            && next.ends_with('고')
-            && evidence.has_whole(DataFinePos::Nng)
-            && !has_exact_sequence(
-                resource,
-                context.current,
-                &[StructuralPos::VV, StructuralPos::EC],
-            )
-            && next.strip_suffix('고').is_some_and(|stem| {
-                has_exact_sequence(resource, stem, &[StructuralPos::VV])
-                    && has_exact_sequence(resource, "고", &[StructuralPos::EC])
+        next_has_counted_head,
+    ) = context
+        .next
+        .map_or((false, false, false, false, false), |next| {
+            let mut exact_nominal = false;
+            let mut exact_dependent_or_counter_nominal = false;
+            let mut exact_counter = false;
+            let mut exact_competitor = false;
+            let mut exact_lexical_competitor = false;
+            resource.common_prefix_positions(next.as_bytes(), |length, positions| {
+                if length != next.len() {
+                    return;
+                }
+                let Some(pos) = positions.first().copied() else {
+                    return;
+                };
+                exact_nominal |= pos.is_nominal_tag();
+                exact_dependent_or_counter_nominal |=
+                    matches!(pos, StructuralPos::NNB | StructuralPos::NNBC);
+                exact_counter |= pos == StructuralPos::NNBC
+                    && positions[1..].iter().all(|pos| pos.is_particle());
+                exact_competitor |= !pos.is_nominal_tag();
+                exact_lexical_competitor |=
+                    !pos.is_nominal_tag() && !matches!(pos, StructuralPos::XSN | StructuralPos::XR);
             });
-        let starts_determiner_nominal = (starts_nominal && !coordinate_verb)
-            || (exact_dependent_or_counter_nominal && (demonstrative || !exact_lexical_competitor));
-        (
-            starts_nominal,
-            unambiguous_nominal,
-            starts_determiner_nominal,
-            exact_counter,
-        )
-    });
+            let complete_nominal = complete_nominal_host(resource, next)
+                || complete_nominal_particle_host(resource, next).is_some();
+            let unambiguous_nominal = (exact_nominal || complete_nominal)
+                && !exact_competitor
+                && !complete_predicate_ending_path(resource, next);
+            let particle_hosts = nominal_particle_hosts(resource, next);
+            let starts_nominal = !particle_hosts.is_empty()
+                || (!exact_competitor && (exact_nominal || complete_nominal));
+            let coordinate_verb = !demonstrative
+                && !exact_nominal
+                && next.ends_with('고')
+                && evidence.has_whole(DataFinePos::Nng)
+                && !has_exact_sequence(
+                    resource,
+                    context.current,
+                    &[StructuralPos::VV, StructuralPos::EC],
+                )
+                && next.strip_suffix('고').is_some_and(|stem| {
+                    has_exact_sequence(resource, stem, &[StructuralPos::VV])
+                        && has_exact_sequence(resource, "고", &[StructuralPos::EC])
+                });
+            let starts_determiner_nominal = (starts_nominal && !coordinate_verb)
+                || (exact_dependent_or_counter_nominal
+                    && (demonstrative || !exact_lexical_competitor));
+            (
+                starts_nominal,
+                unambiguous_nominal,
+                starts_determiner_nominal,
+                exact_counter,
+                evidence.has_whole(DataFinePos::Nr)
+                    && particle_hosts.iter().any(|host| {
+                        exact_analysis_starts_with_pos(resource, &next[host.clone()], |pos| {
+                            matches!(
+                                pos,
+                                StructuralPos::NNB | StructuralPos::NNBC | StructuralPos::NR
+                            )
+                        })
+                    }),
+            )
+        });
     let particle_host = evidence.nominal_particle_hosts.last().cloned();
     let excludes_predicate = next_is_counter && evidence.adnominal_ends.is_empty();
     if (next_starts_determiner_nominal || excludes_predicate)
         && context.current.chars().count() == 1
         && evidence.has_whole(DataFinePos::Mm)
     {
+        let before_ordinary_nominal = evidence.has_whole(DataFinePos::Nr)
+            && next_is_unambiguous_nominal
+            && !next_has_counted_head
+            && context.next.is_some_and(|next| {
+                !exact_analysis_starts_with_pos(resource, next, |pos| {
+                    matches!(
+                        pos,
+                        StructuralPos::NNB | StructuralPos::NNBC | StructuralPos::NR
+                    )
+                })
+            });
         return StructureSelection::AdjacentDeterminer {
             excludes_pronoun: demonstrative && next_starts_determiner_nominal,
             excludes_predicate,
@@ -483,13 +508,13 @@ pub(in crate::structure) fn select_structure(
                         | "수"
                 )
                 && evidence.has_whole(DataFinePos::Nnp)
-                && context.next.is_some_and(|next| {
-                    has_exact_fine_pos(resource, next, |pos| pos == DataFinePos::Nng)
-                })
-                && context.previous.is_some_and(|previous| {
-                    complete_nominal_host(resource, previous)
-                        && complete_nominal_particle_host(resource, previous).is_none()
-                }),
+                && (before_ordinary_nominal
+                    || (context.next.is_some_and(|next| {
+                        has_exact_fine_pos(resource, next, |pos| pos == DataFinePos::Nng)
+                    }) && context.previous.is_some_and(|previous| {
+                        complete_nominal_host(resource, previous)
+                            && complete_nominal_particle_host(resource, previous).is_none()
+                    }))),
         };
     }
     if let Some((nominal, copula)) = copular_frame(resource, context) {

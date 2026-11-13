@@ -1,4 +1,9 @@
 id	query	pos	expected	byte_start	byte_end	text
+corpus.ud-gsd.test.test-s816.surname-before-title	오	noun	smart-exact	0	3	오 시장은 지난 3월 초 영화 <아이들>을 보고, 실종 아동 문제에 대한 심각성을 인식, 관심을 기울여 왔다.
+corpus.ud-gsd.test.test-s779.surname-before-title	오	noun	smart-exact	14	17	이 때문에 오 시장이 주민투표 문제를 매듭짓고 대선에 출마하는 시나리오를 염두에 두고 있다는 분석이 여권에서 나온다.
+corpus.ud-pud.test.w01048027.proper-name-before-common-noun	원	noun	smart-exact	24	27	1350년대에 중국의 원 왕조가 무너지기 시작하면서공민왕은 마침내 자유롭게고려 정부를 개편할수 있었다.
+regression.proper-name-before-common-noun.numeral	오	numeral	smart-exact	0	3	오 년이 지났다.
+regression.proper-name-before-common-noun.counter	오	noun	no-match	0	3	오 년이 지났다.
 corpus.ud-gsd.test.test-s531.honorific-surname	이	noun	smart-exact	27	30	검찰은 이를 토대로 이 씨를 집중 추궁했고, 결국 이 씨는 "A 씨와 성관계를 전제로 만났는데 뚱뚱하다는 이유로 무시해 앙심을 품고 고소하게 됐다"는 자백을 받아냈다.
 corpus.ud-gsd.test.test-s531.honorific-not-pronoun	이	pronoun	no-match	27	30	검찰은 이를 토대로 이 씨를 집중 추궁했고, 결국 이 씨는 "A 씨와 성관계를 전제로 만났는데 뚱뚱하다는 이유로 무시해 앙심을 품고 고소하게 됐다"는 자백을 받아냈다.
 corpus.ud-gsd.test.test-s764.anonymous-name-pronoun	모	pronoun	smart-exact	85	88	이 사고로 갓길에서 사진을 찍고 있던 사진 동호회 회원 54살 이 모 씨 등 3명이 숨지고, 1명이 다쳤습니다.
