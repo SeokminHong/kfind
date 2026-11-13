@@ -1,0 +1,16 @@
+{"id":"polite-honorific-destination:source","query":"갈다","pos":"verb","text":"병원으로 가세요.","expected":false,"gold_byte_start":13,"gold_byte_end":22,"paired_case_id":"polite-honorific-destination:contrast"}
+{"id":"polite-honorific-destination:contrast","query":"갈다","pos":"verb","text":"숫돌로 가세요.","expected":true,"gold_byte_start":10,"gold_byte_end":19,"paired_case_id":"polite-honorific-destination:source"}
+{"id":"genitive-locative:source","query":"나","pos":"pronoun","text":"한국 내 개신교 선교사들이 방문했다.","expected":false,"gold_byte_start":7,"gold_byte_end":10,"paired_case_id":"genitive-locative:contrast"}
+{"id":"genitive-locative:contrast","query":"나","pos":"pronoun","text":"제가 맡은 개신교 선교사들은 지금 한국에 있습니다. 한국 내 개신교 선교사들이 방문했다.","expected":true,"gold_byte_start":78,"gold_byte_end":81,"paired_case_id":"genitive-locative:source"}
+{"id":"genitive-pud-locative:source","query":"나","pos":"pronoun","text":"반면, 나일강을 추가적으로 통제한 결과 게지라섬과 도시 수변 지역 내 발전이 크게 일어났다.","expected":false,"gold_byte_start":91,"gold_byte_end":94,"paired_case_id":"genitive-pud-locative:contrast"}
+{"id":"genitive-pud-locative:contrast","query":"나","pos":"pronoun","text":"작년에 내 발전이 두드러졌다고 동료가 말했다.","expected":true,"gold_byte_start":10,"gold_byte_end":13,"paired_case_id":"genitive-pud-locative:source"}
+{"id":"resultative-asset:source","query":"가다","pos":"verb","text":"그는 재산을 가지지 않았다.","expected":false,"gold_byte_start":17,"gold_byte_end":26,"paired_case_id":"resultative-asset:contrast"}
+{"id":"resultative-asset:contrast","query":"가다","pos":"verb","text":"그는 산길을 가지지 않았다.","expected":true,"gold_byte_start":17,"gold_byte_end":26,"paired_case_id":"resultative-asset:source"}
+{"id":"resultative-stock:source","query":"가다","pos":"verb","text":"그 회사는 주식을 가지지 않았다.","expected":false,"gold_byte_start":24,"gold_byte_end":33,"paired_case_id":"resultative-stock:contrast"}
+{"id":"resultative-stock:contrast","query":"가다","pos":"verb","text":"그 회사는 지름길을 가지지 않았다.","expected":true,"gold_byte_start":27,"gold_byte_end":36,"paired_case_id":"resultative-stock:source"}
+{"id":"jiyo-appointment:source","query":"늦다","pos":"adjective","text":"민수는 모임이 있을 때마다 약속에 늦지요.","expected":false,"gold_byte_start":47,"gold_byte_end":56,"paired_case_id":"jiyo-appointment:contrast"}
+{"id":"jiyo-appointment:contrast","query":"늦다","pos":"adjective","text":"민수의 시계는 모임이 있을 때마다 실제 시각보다 늦지요.","expected":true,"gold_byte_start":67,"gold_byte_end":76,"paired_case_id":"jiyo-appointment:source"}
+{"id":"jyo-appointment:source","query":"늦다","pos":"adjective","text":"민수는 모임이 있을 때마다 약속에 늦죠.","expected":false,"gold_byte_start":47,"gold_byte_end":53,"paired_case_id":"jyo-appointment:contrast"}
+{"id":"jyo-appointment:contrast","query":"늦다","pos":"adjective","text":"민수의 시계는 모임이 있을 때마다 실제 시각보다 늦죠.","expected":true,"gold_byte_start":67,"gold_byte_end":73,"paired_case_id":"jyo-appointment:source"}
+{"id":"jyo-scheduled-time:source","query":"늦다","pos":"adjective","text":"그 학생은 등교 시간에 늦죠.","expected":false,"gold_byte_start":31,"gold_byte_end":37,"paired_case_id":"jyo-scheduled-time:contrast"}
+{"id":"jyo-scheduled-time:contrast","query":"늦다","pos":"adjective","text":"그 시계는 아침에 늦죠.","expected":true,"gold_byte_start":24,"gold_byte_end":30,"paired_case_id":"jyo-scheduled-time:source"}
