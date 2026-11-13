@@ -37,6 +37,7 @@ pub(in crate::structure) enum StructureSelection {
         preserves_proper_name_tail: bool,
     },
     NominalWhole,
+    NominalOrAdverbWhole,
     BeforeHonorificSsi {
         preserves_anonymous_pronoun: bool,
     },
@@ -160,8 +161,11 @@ impl StructureSelection {
                     ) && (!excludes_pronoun || pattern.fine_pos != DataFinePos::Np)
                         && (!excludes_predicate || !pattern.fine_pos.is_predicate()))
             }
-            Self::NominalWhole => {
-                support.evidence == StructuralEvidence::Whole && pattern.fine_pos.is_nominal()
+            Self::NominalWhole | Self::NominalOrAdverbWhole => {
+                support.evidence == StructuralEvidence::Whole
+                    && (pattern.fine_pos.is_nominal()
+                        || (matches!(self, Self::NominalOrAdverbWhole)
+                            && pattern.fine_pos == DataFinePos::Mag))
             }
             Self::BeforeHonorificSsi {
                 preserves_anonymous_pronoun,
@@ -527,6 +531,12 @@ pub(in crate::structure) fn select_structure(
         .any(|unit| unit.evidence == StructuralEvidence::Whole && unit.pos.is_nominal());
     let has_exact_whole_nominal =
         has_exact_fine_pos(resource, context.current, DataFinePos::is_nominal);
+    let previous_is_determiner = context.previous.is_some_and(|previous| {
+        has_exact_fine_pos(resource, previous, |pos| pos == DataFinePos::Mm)
+            && !has_exact_fine_pos(resource, previous, |pos| {
+                matches!(pos, DataFinePos::Mag | DataFinePos::Maj)
+            })
+    });
     if context.current.ends_with('건')
         && evidence.has_whole(DataFinePos::Nng)
         && (next_starts_nominal
@@ -539,7 +549,11 @@ pub(in crate::structure) fn select_structure(
             .is_some_and(|stem| has_exact_fine_pos(resource, stem, DataFinePos::is_predicate))
         && !evidence.has_whole_predicate()
     {
-        return StructureSelection::NominalWhole;
+        return if previous_is_determiner {
+            StructureSelection::NominalWhole
+        } else {
+            StructureSelection::NominalOrAdverbWhole
+        };
     }
     if has_whole_nominal
         && context.previous.is_some_and(|previous| {
@@ -615,12 +629,6 @@ pub(in crate::structure) fn select_structure(
     {
         return StructureSelection::VerbAdnominal;
     }
-    let previous_is_determiner = context.previous.is_some_and(|previous| {
-        has_exact_fine_pos(resource, previous, |pos| pos == DataFinePos::Mm)
-            && !has_exact_fine_pos(resource, previous, |pos| {
-                matches!(pos, DataFinePos::Mag | DataFinePos::Maj)
-            })
-    });
     let current_modifies_next_nominal = next_starts_nominal && !evidence.adnominal_ends.is_empty();
     if has_whole_nominal
         && evidence.adnominal_ends.contains(&context.current.len())
