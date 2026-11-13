@@ -672,6 +672,27 @@ pub(super) const POLITE_HONORIFIC_ENDINGS: &[Suffix] = &[
     suffix("세요", &["ending.honorific", "ending.polite-imperative"]),
 ];
 
+pub(super) const HONORIFIC_VOWEL_CONNECTIVES: &[Suffix] = &[
+    suffix("시어서", &["ending.honorific", "ending.aoeo-seo"]),
+    suffix(
+        "셔서",
+        &["ending.honorific", "contraction.i-eo", "ending.aoeo-seo"],
+    ),
+    suffix(
+        "시어도",
+        &["ending.honorific", "ending.aoeo", "ending.connective-do"],
+    ),
+    suffix(
+        "셔도",
+        &[
+            "ending.honorific",
+            "contraction.i-eo",
+            "ending.aoeo",
+            "ending.connective-do",
+        ],
+    ),
+];
+
 const EU_SUFFIXES: &[Suffix] = &[
     suffix("시것다", &["ending.honorific", "ending.geotda"]),
     suffix(
@@ -1366,6 +1387,9 @@ fn verify_simple_continuation(
         }
         ContinuationState::Eu if pos.is_action() && following.starts_with("시자마자") => {
             &[HONORIFIC_IMMEDIATE]
+        }
+        ContinuationState::Eu if following.starts_with("시어") || following.starts_with('셔') => {
+            HONORIFIC_VOWEL_CONNECTIVES
         }
         ContinuationState::StemEnding
             if following.starts_with("려고")

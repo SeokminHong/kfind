@@ -3037,7 +3037,15 @@ fn has_conflicting_honorific(
             honorific
                 && rules
                     .chain(candidate.suffix_rules.iter().map(RuleId::as_str))
-                    .any(|rule| matches!(rule, "ending.polite-imperative" | "ending.final-ne"))
+                    .any(|rule| {
+                        matches!(
+                            rule,
+                            "ending.polite-imperative"
+                                | "ending.final-ne"
+                                | "ending.aoeo-seo"
+                                | "ending.connective-do"
+                        )
+                    })
         })
     {
         return false;

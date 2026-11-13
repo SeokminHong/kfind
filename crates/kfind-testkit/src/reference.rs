@@ -1098,6 +1098,24 @@ fn reference_simple_continuation(
         reference_suffix("시는", &["ending.honorific", "ending.present-adnominal"]),
         reference_suffix("시고", &["ending.honorific", "ending.connective-go"]),
         reference_suffix("시면", &["ending.honorific", "ending.conditional"]),
+        reference_suffix("시어서", &["ending.honorific", "ending.aoeo-seo"]),
+        reference_suffix(
+            "셔서",
+            &["ending.honorific", "contraction.i-eo", "ending.aoeo-seo"],
+        ),
+        reference_suffix(
+            "시어도",
+            &["ending.honorific", "ending.aoeo", "ending.connective-do"],
+        ),
+        reference_suffix(
+            "셔도",
+            &[
+                "ending.honorific",
+                "contraction.i-eo",
+                "ending.aoeo",
+                "ending.connective-do",
+            ],
+        ),
         reference_suffix(
             "시면서",
             &["ending.honorific", "ending.simultaneous-myeonseo"],
