@@ -218,10 +218,19 @@ impl<'a> PreparedStructuralContextAnalysis<'a> {
             .is_some_and(|span| self.prepared.has_nominal_copula_host(&span))
     }
 
-    pub(super) fn has_compound_nominal_prefix(&self, span: Range<usize>) -> bool {
-        self.current
-            .normalized_span(span)
-            .is_some_and(|span| self.prepared.has_compound_nominal_prefix(&span))
+    pub(super) fn has_compound_nominal_prefix(
+        &self,
+        span: Range<usize>,
+        consumed_particle: bool,
+    ) -> bool {
+        self.current.normalized_span(span).is_some_and(|span| {
+            if consumed_particle {
+                self.prepared
+                    .has_compound_nominal_prefix_after_partial_particle(&span)
+            } else {
+                self.prepared.has_compound_nominal_prefix(&span)
+            }
+        })
     }
 }
 

@@ -1580,10 +1580,10 @@ impl MorphMatcher {
         let terminal_particle_conflict = rejected_suffix
             && nominal_particle_chain
             && self.has_terminal_particle_conflict(haystack, candidate, &whole);
-        let possible_compound_prefix = rejected_suffix
-            && nominal_particle_chain
+        let possible_compound_prefix = nominal_particle_chain
             && candidate.verified.core.start == whole.start
-            && candidate.consumed == candidate.verified.core
+            && candidate.consumed.end < whole.end
+            && (rejected_suffix || candidate.consumed != candidate.verified.core)
             && patterns.iter().any(|pattern| {
                 pattern.fine_pos == DataFinePos::Nng
                     && pattern.component_capability.allows_runtime()
@@ -1634,19 +1634,28 @@ impl MorphMatcher {
             }
             return false;
         };
+        let compound_prefix = possible_compound_prefix
+            && context.has_compound_nominal_prefix(
+                candidate.verified.core.clone(),
+                candidate.consumed != candidate.verified.core,
+            );
         if rejected_suffix
-            && !(possible_compound_prefix
-                && context.has_compound_nominal_prefix(candidate.verified.core.clone()))
+            && !compound_prefix
             && (terminal_particle_conflict
                 || !context.has_nominal_copula_host(candidate.verified.core.clone()))
         {
             return false;
         }
+        let trim_particle = compound_prefix && candidate.verified.token != candidate.verified.core;
         let decision = context.resolve(
             StructuralRequest {
                 candidate: &candidate.verified,
                 anchor: candidate.anchor.clone(),
-                consumed,
+                consumed: if trim_particle {
+                    candidate.verified.core.clone()
+                } else {
+                    consumed
+                },
                 patterns,
             },
             || context::has_proper_name_subject_frame(haystack, &whole, resolver),
@@ -1662,7 +1671,13 @@ impl MorphMatcher {
         }
         let accepted =
             decision.is_some_and(|decision| ProductPolicy::RecallFirst.accepts(&decision));
-        if accepted && attached_auxiliary {
+        if accepted && trim_particle {
+            candidate.verified.token = candidate.verified.core.clone();
+            if !candidate.verified.origins.is_empty() {
+                candidate.verified.origins.clone_from(&branch.origins);
+            }
+            candidate.suffix_rules.clear();
+        } else if accepted && attached_auxiliary {
             candidate.verified.token.end = consumed_end;
         }
         accepted

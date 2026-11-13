@@ -297,12 +297,23 @@ impl PreparedStructuralContext {
 
     #[must_use]
     pub fn has_compound_nominal_prefix(&self, span: &Range<usize>) -> bool {
+        self.has_compound_nominal_prefix_in(span, false)
+    }
+
+    #[must_use]
+    pub fn has_compound_nominal_prefix_after_partial_particle(&self, span: &Range<usize>) -> bool {
+        self.has_compound_nominal_prefix_in(span, true)
+    }
+
+    fn has_compound_nominal_prefix_in(&self, span: &Range<usize>, include_whole: bool) -> bool {
         let token = self.token.as_ref();
         let evidence = &token.evidence;
+        let whole = 0..token.text.len();
         evidence
             .complete_nominal_particle_host
-            .as_ref()
-            .is_some_and(|host| {
+            .iter()
+            .chain(include_whole.then_some(&whole))
+            .any(|host| {
                 span.start == host.start
                     && span.end < host.end
                     && !evidence.nominal_particle_hosts.contains(host)
