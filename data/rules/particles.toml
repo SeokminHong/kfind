@@ -298,6 +298,15 @@ next = ["particle.topic", "particle.additive", "particle.only"]
 terminal = true
 
 [[particle]]
+id = "particle.standard.chigo"
+role = "auxiliary"
+hosts = ["nominal"]
+forms = ["치고"]
+selection = "literal"
+next = ["particle.topic"]
+terminal = true
+
+[[particle]]
 id = "particle.contrast.keonyeong"
 role = "auxiliary"
 hosts = ["nominal"]
