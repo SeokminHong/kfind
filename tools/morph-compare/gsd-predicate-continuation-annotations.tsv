@@ -1,0 +1,3 @@
+case_id	query	pos	form	lemma	xpos	gold_form
+gsd:test-s129:8	잇다	verb	이어가게	잇+어+가+게	VV+EC+VX+EC	이어가게
+gsd:test-s487:2	맵다	adjective	맵긴	맵+기+ㄴ	VA+ETN+JX	맵긴
