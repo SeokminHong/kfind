@@ -188,6 +188,12 @@ regression.adnominal-particle.capacity-final	공인	noun	smart-exact	0	18	공인
 regression.adnominal-particle.dative	수재민	noun	smart-exact	0	18	수재민에게의 구호품 전달이 시작됐다.
 regression.adnominal-particle.source	친구	noun	smart-exact	0	18	친구에게서의 선물 배달을 기다렸다.
 regression.adnominal-particle.wrong-allomorph	학생	noun	no-match	0	15	학생로서의 책임을 다했다.
+regression.directional-genitive.vowel	바다	noun	smart-exact	0	12	바다로의 접근 경로를 확인했다.
+regression.directional-genitive.final	형식	noun	smart-exact	0	15	형식으로의 회귀가 시작됐다.
+regression.directional-genitive.dative	친구	noun	smart-exact	0	18	친구에게로의 편지 전달을 부탁했다.
+regression.directional-genitive.reciprocal	서	noun	no-match	0	9	서로의 차이점을 인정했다.
+regression.directional-genitive.currency	유	noun	no-match	0	9	유로의 환율이 올랐다.
+regression.directional-genitive.rail	선	noun	no-match	0	9	선로의 완공을 기다렸다.
 corpus.ud-gsd.test.test-s235.noun.예전	예전	noun	smart-exact	0	9	예전엔 맛있어서 갈비 먹으러 자주 갔는데 고기 가격도 오르고 양념 맛도 변하고 고기도 부드럽지 않고 퍽퍽해서 다신 안 갈래요...!
 corpus.ud-gsd.test.test-s324.noun.겨울	겨울	noun	smart-exact	0	9	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
 corpus.ud-gsd.test.test-s324.noun.여름	여름	noun	smart-exact	23	32	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
