@@ -2,8 +2,8 @@
 
 UD Korean-GSD test 원문 989개와 고정 양성 입력의 문장 ID 989개를 대조했습니다.
 GSD 출처가 표시된 회귀 fixture의 227행(고유 텍스트 194개)도 따로 읽었습니다.
-근거가 분명한 130개 문장에 교정을 적용했습니다. 질의 1,586건의 본문,
-845건의 UTF-8 범위와 71건의 형태 주석이 바뀌었습니다. 회귀 fixture 7행을
+근거가 분명한 132개 문장에 교정을 적용했습니다. 질의 1,615건의 본문,
+856건의 UTF-8 범위와 72건의 형태 주석이 바뀌었습니다. 회귀 fixture 7행을
 교정했고, 전체 양성 질의 ID와 9,332건의 분모를 유지했습니다.
 
 조사·의존 명사·문장 부호는 [국립국어원 어문 규범](https://korean.go.kr/kornorms/m/m_regltn.do?regltn_code=0001)에
@@ -36,7 +36,7 @@ TP, FP, TN, FN 순서, 비율은 precision, recall, F1 순서입니다. 양성 �
 | --- | --- |
 | UD 원문 | `3d1df99bda4800235e14bcfd915baf706eafa1a3935a75ffd32420a51e57f5aa` |
 | 복원 문장 교정 | `b29c500d8f0ebd1795b1ddf27975cfcd40c97b2f14ad12e9e8e89ee4f71ee0dc` |
-| 전체 재점검 교정 | `e2845d0937a5ba073d8fdfbfc0c77470cc071f75641be6c8f753d96238ad894d` |
+| 전체 재점검 교정 | `c1ee2680c8faba318b3d19245933a690d27f193df17458fd2b05ac6a1780c4d0` |
 | 검색 실행 파일 | `7ca3ddc5437091c3ce2186c90c68faf1f77deebfd148a38c1f50fab55160ae1a` |
 | full POS lexicon | `47bb7a3a31d6985f0b31dab5632b0d0a07feefa7cd2d94f220ec5d5483ac735f` |
 | compact component | `eb59a212200441a7b37554d334541332b6dfc386a77a513c0f63c9660ba9ec42` |

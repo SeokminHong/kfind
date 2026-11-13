@@ -2,6 +2,7 @@ case_id	query	pos	form	lemma	xpos
 gsd:test-s30:5	꼬맹이	noun	꼬맹이도	꼬맹이+도	NNG+JX
 gsd:test-s40:1	고기	noun	고깃집	고기+ㅅ+집	NNG+XSN+NNG
 gsd:test-s47:3	얼마	noun	얼마	얼마	NNG
+gsd:test-s60:18	하다	verb	하다	하+다	VX+EF
 gsd:test-s72:1	프라이드	noun	프라이드랑	프라이드+랑	NNG+JC
 gsd:test-s100:15	그루핑하다	verb	그루핑하는	그루핑+하+는	NNG+XSV+ETM
 gsd:test-s143:2	마니아	noun	마니아	마니아	NNG
