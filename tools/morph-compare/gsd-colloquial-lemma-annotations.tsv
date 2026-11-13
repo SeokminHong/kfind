@@ -1,0 +1,4 @@
+case_id	query	pos	form	lemma	xpos
+gsd:test-s288:3	짓다	verb	지었제	짓+었+제	VV+EP+EF
+gsd:test-s344:5	비추	noun	비추	비추	NNG
+gsd:test-s499:14	알다	verb	알았음	알+았+음	VV+EP+ETN
