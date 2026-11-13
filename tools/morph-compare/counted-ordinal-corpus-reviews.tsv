@@ -1,0 +1,2 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	pud:n01095019:noun:일	일	noun	false	a97891c0f5619ded45edc5440adba0a9aeb349b2e59f416ce3e503cf27045a11	contract-positive	aligned-source-component	3일째에에서 일은 숫자 3이 수식하는 날짜 단위이며 차례 접미사와 조사가 이어진다. regression.counted-ordinal.attached의 동일 구조와 숫자 없이 통째로가 쓰인 regression.counted-ordinal.whole을 대조한다.

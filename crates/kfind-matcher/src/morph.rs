@@ -1676,6 +1676,44 @@ impl MorphMatcher {
         if matches!(
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }
+        ) && candidate.consumed == *core
+            && haystack.get(core.end..whole.end).is_some_and(|tail| {
+                tail.starts_with("째".as_bytes()) || tail.starts_with("ᄍ".as_bytes())
+            })
+            && patterns.iter().any(|pattern| pattern.fine_pos.is_nominal())
+            && context::normalized_token(haystack, core.clone()).is_some_and(|unit| {
+                let counted = if core.start == whole.start {
+                    context::previous_word(haystack, whole.start).is_some_and(|count| {
+                        (count == "첫" && unit == "번")
+                            || resolver.has_standalone_counted_unit(&count, &unit)
+                    })
+                } else {
+                    context::normalized_token(haystack, whole.start..core.start).is_some_and(
+                        |count| {
+                            (count.bytes().all(|b| b.is_ascii_digit())
+                                || ConstraintResolver::is_mixed_cardinal(&count))
+                                && resolver.has_exact_counter(&unit)
+                        },
+                    )
+                };
+                counted
+                    && context::normalized_token(haystack, core.end..whole.end).is_some_and(
+                        |tail| {
+                            tail.strip_prefix('째').is_some_and(|particles| {
+                                self.particle_verifier
+                                    .verify_exact("째", particles)
+                                    .is_some()
+                            })
+                        },
+                    )
+            })
+        {
+            candidate.verified.token.end = whole.end;
+            return true;
+        }
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
         ) && candidate.verified.core.start == whole.start
             && candidate.verified.core.end < whole.end
             && patterns
