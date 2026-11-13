@@ -225,6 +225,22 @@ result = "어딘가"
 ending_ids = []
 
 [[contraction]]
+id = "contraction.locative-pronoun-iss-eodi"
+kind = "locative-pronoun-iss-compose"
+left = "어디"
+right = "있"
+result = "어딨"
+ending_ids = []
+
+[[contraction]]
+id = "contraction.locative-pronoun-iss-yeogi"
+kind = "locative-pronoun-iss-compose"
+left = "여기"
+right = "있"
+result = "여깄"
+ending_ids = []
+
+[[contraction]]
 id = "contraction.geos-copula-rieul-kka"
 kind = "copula-host-ending-compose"
 left = "것"

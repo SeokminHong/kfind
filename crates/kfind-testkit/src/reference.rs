@@ -1778,6 +1778,15 @@ fn reference_simple_continuation(
         reference_suffix("겠죠", &["ending.future", "ending.confirmation-jiyo"]),
     ];
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding
+            if following.strip_prefix('나').is_some_and(|tail| {
+                tail.trim_start().starts_with('?')
+                    && (pos.is_action() || anchor.ends_with(['있', '없']))
+                    && !anchor.chars().next_back().is_some_and(has_rieul_final)
+            }) =>
+        {
+            &[reference_suffix("나", &["ending.interrogative-na"])]
+        }
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if following.starts_with('구') =>
         {
