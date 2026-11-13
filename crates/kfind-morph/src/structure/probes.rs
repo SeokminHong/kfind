@@ -1187,12 +1187,16 @@ impl ConstraintResolver {
     }
 
     #[must_use]
-    pub fn has_lexical_nominal_with_optional_particles(&self, text: &str) -> bool {
-        self.has_exact_nominal_surface(text)
-            || text.char_indices().skip(1).any(|(split, _)| {
-                self.has_exact_nominal_surface(&text[..split])
-                    && complete_suffix(&self.resource, &text[split..], StructuralPos::is_particle)
-            })
+    pub fn has_competing_nominal_after_connective(
+        &self,
+        text: &str,
+        connective_end: usize,
+    ) -> bool {
+        text.char_indices().any(|(split, _)| {
+            split > connective_end
+                && self.has_exact_nominal_surface(&text[..split])
+                && self.has_nominal_with_optional_particles(&text[split..])
+        }) || self.has_exact_nominal_surface(text)
     }
 
     #[must_use]
