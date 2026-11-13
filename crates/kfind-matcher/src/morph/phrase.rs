@@ -376,6 +376,31 @@ mod tests {
         );
     }
 
+    #[test]
+    fn streaming_settles_replayed_matches_at_end_of_input() {
+        let text = "x".repeat(20);
+        let atom_spans = vec![
+            vec![span(1, 2), span(1, 3), span(14, 15)],
+            vec![span(2, 3), span(15, 19), span(16, 17)],
+            vec![span(3, 4), span(17, 18)],
+        ];
+        let streamed = super::super::streaming_phrase::select_verified_spans(
+            &text,
+            &atom_spans,
+            PhrasePolicy { max_gap: 12 },
+            PhraseMatchLimit::All,
+        );
+
+        assert_eq!(
+            streamed
+                .matches
+                .into_iter()
+                .map(|matched| matched.span)
+                .collect::<Vec<_>>(),
+            [1..4, 14..18]
+        );
+    }
+
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(1_024))]
 

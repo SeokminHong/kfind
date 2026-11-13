@@ -61,8 +61,7 @@ pub(super) fn select_with_diagnostics<'a>(
         }
     }
 
-    selector.clear_active();
-    selector.settle();
+    selector.settle_with_input(false);
     selector.finish()
 }
 
@@ -395,16 +394,22 @@ impl StreamingSelector {
     }
 
     fn settle(&mut self) -> bool {
+        self.settle_with_input(true)
+    }
+
+    fn settle_with_input(&mut self, has_more_input: bool) -> bool {
         loop {
             let Some((&complete_start, _)) = self.completed.first_key_value() else {
                 return false;
             };
-            let active_start = self
-                .layers
-                .iter()
-                .filter_map(ActiveLayer::minimum_first_start)
-                .min();
-            if active_start.is_some_and(|active| active <= complete_start) {
+            if has_more_input
+                && self
+                    .layers
+                    .iter()
+                    .filter_map(ActiveLayer::minimum_first_start)
+                    .min()
+                    .is_some_and(|active| active <= complete_start)
+            {
                 return false;
             }
 
@@ -429,12 +434,6 @@ impl StreamingSelector {
                 return true;
             }
             self.rebuild_from_history();
-        }
-    }
-
-    fn clear_active(&mut self) {
-        for layer in &mut self.layers {
-            layer.clear();
         }
     }
 
@@ -1010,7 +1009,6 @@ pub(super) fn select_verified_spans(
             return selector.finish();
         }
     }
-    selector.clear_active();
-    selector.settle();
+    selector.settle_with_input(false);
     selector.finish()
 }
