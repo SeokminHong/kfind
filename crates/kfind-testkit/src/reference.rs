@@ -879,6 +879,10 @@ fn reference_simple_continuation(
         };
     }
     const PAST: &[ReferenceSuffix] = &[
+        reference_suffix("으니", &["ending.connective-ni"]),
+        reference_suffix("으니까", &["ending.connective-ni"]),
+        reference_suffix("으니까는", &["ending.connective-ni"]),
+        reference_suffix("으니깐", &["ending.connective-ni"]),
         reference_suffix("자", &["ending.concessive-eotja"]),
         reference_suffix("남", &["ending.self-question-nam"]),
         reference_suffix("군", &["ending.final-gun"]),
@@ -911,6 +915,10 @@ fn reference_simple_continuation(
         reference_suffix("게", &["ending.final-ge"]),
     ];
     const FUTURE: &[ReferenceSuffix] = &[
+        reference_suffix("으니", &["ending.connective-ni"]),
+        reference_suffix("으니까", &["ending.connective-ni"]),
+        reference_suffix("으니까는", &["ending.connective-ni"]),
+        reference_suffix("으니깐", &["ending.connective-ni"]),
         reference_suffix("남", &["ending.self-question-nam"]),
         reference_suffix("군", &["ending.final-gun"]),
         reference_suffix("군요", &["ending.final-gun", "ending.polite-yo"]),
@@ -2105,6 +2113,12 @@ fn reference_simple_continuation(
         .chain(additional_endings)
         .filter(|suffix| {
             following.starts_with(suffix.surface)
+                && (suffix.rules != ["ending.connective-ni"]
+                    || !suffix.surface.starts_with('으')
+                    || !following[suffix.surface.len()..]
+                        .chars()
+                        .next()
+                        .is_some_and(|next| next.is_alphanumeric() || next == '_'))
                 && (pos.is_action()
                     || (!suffix.rules.contains(&"ending.intent-rieulrae")
                         && !suffix.rules.contains(&"ending.conditional-rieulrachimyeon")
