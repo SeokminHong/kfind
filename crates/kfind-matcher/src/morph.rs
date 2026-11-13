@@ -1354,8 +1354,12 @@ impl MorphMatcher {
             return self.accepts_token_boundary(haystack, &candidate.verified, branch)
                 && context::normalized_token(haystack, span.clone()).is_some_and(|token| {
                     context::next_word(haystack, span.end).is_some_and(|next| {
-                        resolver.has_nominal_with_optional_particles(&next)
-                            && !resolver.has_inflected_counted_unit(&token, &next)
+                        (resolver.has_nominal_with_optional_particles(&next)
+                            || resolver.has_explicit_copula_after_nominal(&next))
+                            && (!resolver.has_whole_determiner(&next)
+                                || resolver.has_exact_nominal_surface(&next))
+                            && (token != "네"
+                                || !resolver.has_inflected_counted_unit(&token, &next))
                     })
                 });
         }

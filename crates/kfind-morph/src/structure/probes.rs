@@ -338,6 +338,11 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_whole_determiner(&self, text: &str) -> bool {
+        has_exact_sequence(&self.resource, text, &[StructuralPos::MM])
+    }
+
+    #[must_use]
     pub fn has_exact_adverb_surface(&self, text: &str) -> bool {
         has_exact_fine_pos(&self.resource, text, |pos| pos == DataFinePos::Mag)
     }
@@ -1194,6 +1199,18 @@ impl ConstraintResolver {
     pub fn has_nominal_with_optional_particles(&self, text: &str) -> bool {
         self.has_complete_nominal_surface(text)
             || complete_nominal_particle_host(&self.resource, text).is_some()
+    }
+
+    #[must_use]
+    pub fn has_explicit_copula_after_nominal(&self, text: &str) -> bool {
+        text.char_indices().skip(1).any(|(split, initial)| {
+            crate::drop_final(initial).unwrap_or(initial) == '이'
+                && text[..split]
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| verify_copula_surface_after_nominal(last, &text[split..]))
+                && self.has_complete_nominal_surface(&text[..split])
+        })
     }
 
     #[must_use]
