@@ -1,0 +1,7 @@
+{"id":"adverb-copula-nieun-gsd","query":"별로","pos":"adverb","text":"맛도 별론데 장사가 잘 되나 봐요","expected":true,"gold_byte_start":7,"gold_byte_end":16}
+{"id":"adverb-copula-nieun-first","query":"먼저","pos":"adverb","text":"순서는 내가 먼전데 왜 그랬어?","expected":true,"gold_byte_start":17,"gold_byte_end":26}
+{"id":"adverb-copula-nieun-question","query":"별로","pos":"adverb","text":"맛이 별론지 물었다.","expected":true,"gold_byte_start":7,"gold_byte_end":16}
+{"id":"adverb-copula-nieun-explicit","query":"제법","pos":"adverb","text":"이 정도면 제법인데 조금 아쉽다.","expected":true,"gold_byte_start":14,"gold_byte_end":26}
+{"id":"adverb-copula-nieun-noun","query":"별로","pos":"adverb","text":"별론을 제시했다.","expected":false}
+{"id":"adverb-copula-nieun-noun-copula","query":"별로","pos":"adverb","text":"그건 별론이다.","expected":false}
+{"id":"adverb-copula-nieun-invalid-tail","query":"별로","pos":"adverb","text":"말이 별론데리다.","expected":false}

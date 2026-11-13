@@ -30,6 +30,7 @@ const INTERNAL_PROVENANCE_IDS: &[&str] = &[
     "contraction.h-irregular",
     "contraction.identical-vowel",
     "contraction.adverb-topic-neun",
+    "structural.adverb-copula-nieun",
     DICTIONARY_ADVERBIAL_I_RULE_ID,
     DICTIONARY_CONJUGATION_RULE_ID,
     DICTIONARY_VOICE_DERIVATION_RULE_ID,
@@ -470,18 +471,34 @@ fn compile_analysis(
                 smart_left: true,
                 decision,
             });
-            if options.boundary == crate::BoundaryPolicy::Smart
-                && analysis.fine_pos == FinePos::GeneralAdverb
+            if analysis.fine_pos == FinePos::GeneralAdverb
                 && let Some(contracted) =
                     kfind_morph::add_final(atom_surface, kfind_morph::hangul::JONG_NIEUN)
             {
-                output.push(exact_branch_with_decision(
-                    &contracted,
-                    analysis_index,
-                    vec![RuleId::from("contraction.adverb-topic-neun")],
-                    true,
-                    DraftDecision::Structural(ComponentCapability::Source),
-                ));
+                if options.boundary == crate::BoundaryPolicy::Smart {
+                    output.push(exact_branch_with_decision(
+                        &contracted,
+                        analysis_index,
+                        vec![RuleId::from("contraction.adverb-topic-neun")],
+                        true,
+                        DraftDecision::Structural(ComponentCapability::Source),
+                    ));
+                }
+                output.push(DraftBranch {
+                    anchor: contracted,
+                    consumption: CandidateConsumption::NominalParticleChain {
+                        initial_allowed_rule_ids: Arc::clone(adverb_initial_particle_rules),
+                        allowed_rule_ids: Arc::clone(auxiliary_particle_rules),
+                        blocked_rule_ids: Arc::from([]),
+                    },
+                    core_mapping: CoreMapping::WholeAnchor,
+                    origins: vec![Origin {
+                        analysis_index,
+                        rule_path: vec![RuleId::from("structural.adverb-copula-nieun")],
+                    }],
+                    smart_left: true,
+                    decision,
+                });
             }
         } else {
             output.push(exact_branch_with_decision(
