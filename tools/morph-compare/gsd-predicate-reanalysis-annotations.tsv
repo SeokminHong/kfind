@@ -1,0 +1,12 @@
+case_id	query	pos	form	lemma	xpos	gold_form
+gsd:test-s182:4	난방식	noun	난방식	난방식	NNG	난방식
+gsd:test-s188:22	내쉬	noun	내쉬와	내쉬+와	NNP+JC	내쉬와
+gsd:test-s395:6	두말하다	verb	두말할	두말하+ㄹ	VV+ETM	두말할
+gsd:test-s395:7	-	-	-	-	-	-
+gsd:test-s436:9	따르다	verb	따라	따르+아	VV+EC	따라
+gsd:test-s511:26	불어넣다	verb	불어넣었다는	불어넣+었+다는	VV+EP+ETM	불어넣었다는
+gsd:test-s511:27	-	-	-	-	-	-
+gsd:test-s675:6	그래도	adverb	그래도	그래도	MAG	그래도
+gsd:test-s675:12	그래도	adverb	그래도	그래도	MAG	그래도
+gsd:test-s833:8	분양하다	verb	분양한다	분양+하+ㄴ다	NNG+XSV+EF	분양한다
+gsd:test-s893:1	필요하다	adjective	필요하시다면	필요+하+시+다면	NNG+XSA+EP+EC	필요하시다면
