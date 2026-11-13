@@ -1372,6 +1372,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.interrogative-na"
+category = "final"
+initial = "consonant"
+forms = ["나요"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.connective-na"
 category = "connective"
 initial = "eu"

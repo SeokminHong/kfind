@@ -117,6 +117,7 @@ const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.intentive-ryeogo",
     "ending.purpose-reo",
     "ending.connective-na",
+    "ending.interrogative-na",
     "ending.imperative-sio",
     "ending.directive-ra",
     "ending.directive-quotative",

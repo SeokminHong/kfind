@@ -1,4 +1,16 @@
 id	query	pos	expected	byte_start	byte_end	text
+corpus.ud-gsd.test.test-s666.interrogative-nayo	막히다	verb	smart-exact	11	23	이 근처 막히나요?
+corpus.ud-gsd.test.test-s110.interrogative-nayo	걸리다	verb	smart-exact	32	44	맥도날드까지 얼마만큼 걸리나요?
+regression.interrogative-nayo.consonant	먹다	verb	smart-exact	17	26	아이도 밥을 먹나요?
+regression.interrogative-nayo.honorific	먹다	verb	smart-exact	20	35	할머니도 밥을 먹으시나요?
+regression.interrogative-nayo.rieul-drop	살다	verb	smart-exact	17	26	지금 어디에 사나요?
+regression.interrogative-nayo.rieul-retained	살다	verb	no-match	17	26	지금 어디에 살나요?
+regression.interrogative-nayo.adjective	춥다	adjective	smart-exact	14	23	오늘 많이 춥나요?
+regression.interrogative-nayo.past	먹다	verb	smart-exact	10	22	점심은 먹었나요?
+regression.interrogative-nayo.honorific-past	먹다	verb	smart-exact	30	45	할머니도 드시기 전에 먹으셨나요?
+regression.interrogative-nayo.future	오다	verb	smart-exact	14	26	내일 비가 오겠나요?
+regression.interrogative-nayo.connective	가다	verb	smart-exact	13	19	학교에는 가나 수업에는 들어가지 않는다.
+regression.interrogative-nayo.invalid-eu	먹다	verb	no-match	7	19	밥을 먹으나요?
 regression.nominalizer-gil.consonant	읽다	verb	smart-exact	7	13	책을 읽길 바란다.
 regression.nominalizer-gil.honorific-consonant	읽다	verb	smart-exact	7	19	책을 읽으시길 바랍니다.
 regression.nominalizer-gil.honorific-vowel	삼가다	verb	smart-exact	10	22	외출을 삼가시길 바랍니다.
