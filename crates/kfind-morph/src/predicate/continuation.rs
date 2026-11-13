@@ -237,6 +237,7 @@ const A_OR_EO_SUFFIXES: &[Suffix] = &[
 
 const A_OR_EO_SEO_SUFFIXES: &[Suffix] = &[
     suffix("서도", &["ending.aoeo-seo", "particle.additive"]),
+    suffix("서는", &["ending.aoeo-seo", "particle.topic"]),
     suffix("서", &["ending.aoeo-seo"]),
     suffix("서야", &["ending.aoeo-seoya"]),
 ];
