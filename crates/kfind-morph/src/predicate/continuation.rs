@@ -417,6 +417,7 @@ const HONORIFIC_PREFINAL_NE_ENDINGS: &[Suffix] = &[
 ];
 
 const PAST_SUFFIXES: &[Suffix] = &[
+    suffix("자", &["ending.concessive-eotja"]),
     NOMINALIZER_EUM,
     NOMINALIZER_GI,
     NEGATIVE_TOPIC,
