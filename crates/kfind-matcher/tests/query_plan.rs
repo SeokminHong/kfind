@@ -1804,6 +1804,38 @@ fn forced_nominal_host_consumes_a_complete_particle_chain_without_a_dictionary_e
 }
 
 #[test]
+fn smart_nominal_phrase_preserves_a_noun_that_overlaps_the_particle_path() {
+    let matcher = compile_with_full_pos_and_resource(
+        "상대성 이론",
+        CompileOptions {
+            global_pos: Some(CoarsePos::Noun),
+            ..CompileOptions::default()
+        },
+        component_resource_from_entries([
+            component_entry("상대성", "NNG"),
+            component_entry("이론", "NNG"),
+            component_entry("이", "JKS"),
+            component_entry("론", "JKB+JX"),
+            component_entry("을", "JKO"),
+        ]),
+    );
+    for (text, second_start, end) in [
+        ("상대성이론", 9, 15),
+        ("상대성이론을", 9, 18),
+        ("상대성 이론", 10, 16),
+    ] {
+        let found = matcher.find_at_with_meta(text.as_bytes(), 0).unwrap();
+        assert_eq!(found.atoms[0].token, 0..9);
+        assert_eq!(found.atoms[1].token, second_start..end);
+    }
+    assert!(
+        matcher
+            .find_at_with_meta("상대성이 론".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn composed_nominal_query_matches_a_contiguous_multi_node_subpath() {
     let prefix = compile_with_full_pos_and_resource(
         "경영전략",
