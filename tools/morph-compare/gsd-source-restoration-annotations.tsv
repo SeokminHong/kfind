@@ -1,0 +1,7 @@
+case_id	query	pos	form	lemma	xpos
+gsd:test-s398:5	음식	noun	음식의	음식+의	NNG+JKG
+gsd:test-s661:1	이때	noun	이때에는	이때+에+는	NNG+JKB+JX
+gsd:test-s661:2	-
+gsd:test-s661:8	또는	adverb	또는	또는	MAG
+gsd:test-s661:14	이때	noun	이때는	이때+는	NNG+JX
+gsd:test-s661:15	-
