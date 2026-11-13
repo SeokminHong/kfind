@@ -1071,3 +1071,9 @@ regression.honorific-trial.uncontracted	들다	verb	smart-exact	0	18	드시어�
 regression.honorific-trial.regular	읽다	verb	smart-exact	0	18	읽으셔보시면 압니다.
 regression.honorific-trial.separate	들다	verb	smart-exact	0	6	드셔 보시면 압니다.
 regression.honorific-trial.token-interior	들다	verb	no-match	0	15	드셔보리밥
+regression.gopeuda.honorific-rieul	들다	verb	smart-exact	0	12	드시고픈 분께 추천합니다.
+regression.gopeuda.honorific-regular	읽다	verb	smart-exact	0	15	읽으시고픈 책을 골라 보세요.
+regression.gopeuda.past	가다	verb	smart-exact	0	12	가고팠다.
+regression.gopeuda.conditional	보다	verb	smart-exact	0	12	보고프면 연락해.
+regression.gopeuda.background	먹다	verb	smart-exact	0	12	먹고픈데 시간이 없다.
+regression.gopeuda.separate	먹다	verb	smart-exact	0	6	먹고 싶다.

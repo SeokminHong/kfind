@@ -1351,6 +1351,12 @@ pub fn verify_predicate_continuation_with_prefinal_context(
     {
         return Some(with_connective_politeness(auxiliary, following));
     }
+    if pos.is_action()
+        && matches!(state, ContinuationState::StemEnding | ContinuationState::Eu)
+        && let Some(auxiliary) = verify_gopeuda(state, anchor.len(), following)
+    {
+        return Some(auxiliary);
+    }
     let reported = following
         .starts_with(['대', '댔', '래', '랬', '재', '쟀', '냬', '시', '신', '셨'])
         || following.starts_with("는대")
@@ -1396,6 +1402,68 @@ pub fn verify_predicate_continuation_with_prefinal_context(
         return Some(with_connective_politeness(stacked, following));
     }
     ordinary.map(|matched| with_connective_politeness(matched, following))
+}
+
+fn verify_gopeuda(
+    state: ContinuationState,
+    anchor_len: usize,
+    following: &str,
+) -> Option<PredicateContinuationMatch> {
+    use ContinuationState::{AOrEo, BieupFinal, Eu, NieunEnding, Past, RieulFinal, Terminal};
+    let (prefix, honorific, tail) = if state == Eu && following.starts_with("시고") {
+        (
+            "시고",
+            Some("ending.honorific"),
+            following.strip_prefix("시고")?,
+        )
+    } else {
+        ("고", None, following.strip_prefix('고')?)
+    };
+    let (form, next, rule) = match tail.chars().next()? {
+        '픈' => ("픈", NieunEnding, Some("ending.past-adnominal")),
+        '플' => ("플", RieulFinal, Some("ending.future-adnominal")),
+        '픕' => ("픕", BieupFinal, None),
+        '픔' => ("픔", Terminal, Some("ending.nominalizer")),
+        '파' => ("파", AOrEo, Some("ending.aoeo")),
+        '팠' => ("팠", Past, Some("ending.past")),
+        '프' => ("프", Eu, None),
+        _ => return None,
+    };
+    let remaining = &tail[form.len()..];
+    let matched = if form == "프" && remaining.starts_with('다') {
+        matched(form.len(), Some(&suffix("다", &["ending.final-da"])))
+    } else if form == "프" && remaining.starts_with('기') {
+        matched(form.len(), Some(&NOMINALIZER_GI))
+    } else {
+        verify_simple_continuation(next, PredicatePos::AuxiliaryAdjective, form, remaining)
+            .or_else(|| {
+                matches!(next, NieunEnding | RieulFinal).then(|| matched(form.len(), None))
+            })?
+    };
+    if matches!(next, Eu | Past) && matched.consumed_bytes == 0 {
+        return None;
+    }
+    if remaining[matched.consumed_bytes..]
+        .chars()
+        .next()
+        .is_some_and(|next| next.is_alphanumeric() || next == '_')
+    {
+        return None;
+    }
+    let consumed_bytes = prefix.len() + form.len() + matched.consumed_bytes;
+    Some(PredicateContinuationMatch {
+        token_end: anchor_len + consumed_bytes,
+        consumed_bytes,
+        rule_path: honorific
+            .into_iter()
+            .chain(["ending.connective-go", "ending.auxiliary-gopeuda"])
+            .chain(rule.filter(|_| {
+                !matches!(next, NieunEnding | RieulFinal) || matched.consumed_bytes == 0
+            }))
+            .map(RuleId::from)
+            .chain(matched.rule_path)
+            .collect(),
+    })
 }
 
 fn with_connective_politeness(

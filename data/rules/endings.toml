@@ -22,6 +22,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.auxiliary-gopeuda"
+category = "prefinal"
+initial = "other"
+forms = ["프", "픈", "플", "픕", "픔", "파", "팠"]
+required = ["action-verb"]
+forbidden = []
+next = ["ending.final-da", "ending.past-adnominal", "ending.future-adnominal", "ending.nominalizer", "ending.nominalizer-gi"]
+terminal = false
+
+[[ending]]
 id = "ending.connective-ji"
 category = "connective"
 initial = "consonant"
