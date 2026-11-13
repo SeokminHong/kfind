@@ -224,6 +224,7 @@ const A_OR_EO_SUFFIXES: &[Suffix] = &[
     YAJI_POLITE,
     YAJI_CONTRACTED,
     suffix("가고", &["ending.auxiliary-gada", "ending.connective-go"]),
+    suffix("가게", &["ending.auxiliary-gada", "ending.adverbial-ge"]),
     suffix("가야", &["ending.auxiliary-gada", "ending.connective-ya"]),
     suffix(
         "가면서",
@@ -1355,6 +1356,7 @@ pub fn verify_predicate_continuation_with_prefinal_context(
                 trial::verify(anchor.len(), following)
             }
             Some('온' | '왔') => auxiliary::verify_progression_oda(anchor.len(), following),
+            Some('갈' | '갔') => auxiliary::verify_progression_gada(anchor.len(), following),
             _ => auxiliary::verify_resultative(anchor.len(), following),
         }
     {
@@ -2714,6 +2716,38 @@ mod tests {
         )
         .expect("progression requirement");
         assert_eq!(required.consumed_bytes, "가야".len());
+
+        for (anchor, following, surface, rules) in [
+            ("이어", "가게 되었다", "가게", &["ending.adverbial-ge"][..]),
+            (
+                "이어",
+                "갈 전망이다",
+                "갈",
+                &["ending.future-adnominal"][..],
+            ),
+            (
+                "굳어져",
+                "갔다.",
+                "갔다",
+                &["ending.past", "ending.final-da"][..],
+            ),
+        ] {
+            let progression = verify_predicate_continuation(
+                ContinuationState::AOrEo,
+                PredicatePos::Verb,
+                anchor,
+                following,
+            )
+            .expect("progression auxiliary");
+            assert_eq!(progression.consumed_bytes, surface.len());
+            assert!(
+                progression
+                    .rule_path
+                    .iter()
+                    .map(RuleId::as_str)
+                    .eq(std::iter::once("ending.auxiliary-gada").chain(rules.iter().copied()))
+            );
+        }
 
         let unsupported = verify_predicate_continuation(
             ContinuationState::AOrEo,

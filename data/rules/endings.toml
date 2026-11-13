@@ -908,7 +908,7 @@ initial = "other"
 forms = ["가"]
 required = []
 forbidden = []
-next = ["ending.connective-go", "ending.connective-ya", "ending.simultaneous-myeonseo"]
+next = ["ending.connective-go", "ending.connective-ya", "ending.simultaneous-myeonseo", "ending.adverbial-ge", "ending.future-adnominal", "ending.past"]
 terminal = false
 
 [[ending]]
