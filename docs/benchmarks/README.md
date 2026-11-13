@@ -305,6 +305,10 @@ Development의 비표준 붙여쓰기와 잘못 정렬된 표제어는 수동 re
 `contract_expected`가 있는 fixture에는 TPᶜ·FPᶜ·TNᶜ·FNᶜ와 contract-adjusted
 precision·recall·F1을 추가한다. Contract registry는 문법 구조로 구분할 수 없는 동형이의와
 source component를 contract positive로, gold 정렬 오류를 contract negative로 교정한다.
+동형이의를 검토할 때는 같은 표면형의 양쪽 해석이 각각 성립하는 문장을 회귀로 등록한다.
+품사, 조사 또는 인접 성분의 문법 구조로 판별할 수 있으면 해당 구조에 따른 기대값으로
+채점한다. 원본 gold가 그 기대값과 일치하면 그대로 유지하며, 오탐과 누락은 raw와
+contract-adjusted 양쪽에 집계한다.
 비문·비표준 입력만 분모에서 제외하며 비용, profile과 미구현 표준 문법은 제외하지 않는다.
 kfind와 외부 제품의 모든 품질 표·차트는 raw와 contract-adjusted를 나란히 표시하고 두 지표를
 합치거나 raw 오류를 숨기지 않는다. Contract review가 없는 fixture는 raw confusion matrix를
