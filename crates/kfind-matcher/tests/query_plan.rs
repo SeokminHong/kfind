@@ -1834,6 +1834,63 @@ fn any_nominal_phrase_keeps_a_particle_free_path_at_the_next_atom() {
 }
 
 #[test]
+fn smart_phrase_matches_a_joined_nominal_modifier_at_its_exact_boundary() {
+    let resource = component_resource_from_entries([
+        component_entry("따뜻", "XR"),
+        component_entry("한", "XSA+ETM"),
+        component_entry("강조", "NNG"),
+        component_entry("의", "JKG"),
+        component_entry("구름", "NNG"),
+        component_entry("허위", "NNG"),
+        component_entry("말", "NNG"),
+        component_entry("는", "JX"),
+        component_entry("은", "JX"),
+        component_entry("강조의말", "NNP"),
+    ]);
+    for (query, joined, spaced, joined_head_end, spaced_head_end) in [
+        ("따뜻한 구름", "따뜻한구름은", "따뜻한 구름은", 18, 19),
+        ("강조의 허위", "강조의허위는", "강조의 허위는", 18, 19),
+    ] {
+        let matcher = compile_with_full_pos_and_resource(
+            query,
+            CompileOptions::default(),
+            Arc::clone(&resource),
+        );
+        for (text, head_start, head_end) in
+            [(joined, 9, joined_head_end), (spaced, 10, spaced_head_end)]
+        {
+            let matched = matcher.find_at_with_meta(text.as_bytes(), 0).unwrap();
+            assert_eq!(matched.atoms[0].token, 0..9, "{text}");
+            assert_eq!(matched.atoms[1].token, head_start..head_end, "{text}");
+        }
+    }
+    let competing_name = compile_with_full_pos_and_resource(
+        "강조의 말",
+        CompileOptions::default(),
+        Arc::clone(&resource),
+    );
+    assert!(
+        competing_name
+            .find_at_with_meta("강조의 말".as_bytes(), 0)
+            .is_some()
+    );
+    assert!(
+        competing_name
+            .find_at_with_meta("강조의말".as_bytes(), 0)
+            .is_none()
+    );
+    let modifier =
+        compile_with_full_pos_and_resource("강조의 허위", CompileOptions::default(), resource);
+    // An unrelated prefix or a non-nominal tail cannot establish this modifier.
+    for text in ["재강조의허위", "강조의허위뿜"] {
+        assert!(
+            modifier.find_at_with_meta(text.as_bytes(), 0).is_none(),
+            "{text}"
+        );
+    }
+}
+
+#[test]
 fn smart_nominal_phrase_preserves_a_noun_that_overlaps_the_particle_path() {
     let matcher = compile_with_full_pos_and_resource(
         "상대성 이론",
