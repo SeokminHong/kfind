@@ -1,10 +1,11 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
-const [input, spanCorrection] = process.argv.slice(2);
-if (!input || process.argv.length > 4
-    || (spanCorrection && spanCorrection !== '--explicit-copula-noun-spans')) {
-  throw new Error('usage: node apply-gsd-positive-corrections.mjs GSD_POSITIVES.jsonl [--explicit-copula-noun-spans]');
+const [input, ...spanCorrections] = process.argv.slice(2);
+const explicitCopula = spanCorrections.includes('--explicit-copula-noun-spans');
+const fusedCopula = spanCorrections.includes('--fused-copula-noun-spans');
+if (!input || spanCorrections.length !== Number(explicitCopula) + Number(fusedCopula)) {
+  throw new Error('usage: node apply-gsd-positive-corrections.mjs GSD_POSITIVES.jsonl [--explicit-copula-noun-spans] [--fused-copula-noun-spans]');
 }
 
 const original = readFileSync(input);
@@ -36,24 +37,35 @@ for (const row of tsv('../../data/fixtures/ud_morphology_cases.tsv', 7)) {
   fixtures.set(row[0], row);
 }
 
-const particleSurfaces = spanCorrection
+const particleSurfaces = explicitCopula
   ? new Set(tsv('../../data/lexicon/particles.tsv', 5)
     .flatMap(([, , , variants]) => variants.split('|')))
   : new Set();
+
+const fusedCopulaEndings = new Map([
+  ['인', 'ㄴ'], ['입니다', 'ㅂ니다'], ['다', '다'],
+]);
 
 const output = original.toString('utf8').trimEnd().split('\n').map(line => {
   const row = JSON.parse(line);
   const fixture = corrections.get(row.id);
   if (!fixture) {
-    if (!spanCorrection || row.pos !== 'noun' || row.expected !== true
+    if ((!explicitCopula && !fusedCopula) || row.pos !== 'noun' || row.expected !== true
         || !/^(NNG|NNB|NNP)\+VCP(?:\+EP)*\+(EC|EF|ETM)$/.test(row.xpos)
         || !row.lemma.startsWith(row.query + '+이+')
-        || !row.form.startsWith(row.query + '이')
-        || particleSurfaces.has(row.form.slice(row.query.length))
+        || !row.form.startsWith(row.query)
         || Buffer.from(row.text).subarray(row.gold_byte_start, row.gold_byte_end)
           .toString('utf8') !== row.form) {
       return line;
     }
+    const tail = row.form.slice(row.query.length);
+    const explicit = explicitCopula && tail.startsWith('이') && !particleSurfaces.has(tail);
+    const ending = fusedCopulaEndings.get(tail);
+    const last = row.query.codePointAt(row.query.length - 1);
+    const openSyllable = last >= 0xac00 && last <= 0xd7a3 && (last - 0xac00) % 28 === 0;
+    const fused = fusedCopula && ending && (tail !== '다' || openSyllable)
+      && row.lemma === row.query + '+이+' + ending;
+    if (!explicit && !fused) return line;
     row.gold_byte_end = row.gold_byte_start + Buffer.byteLength(row.query);
     return JSON.stringify(row);
   }
