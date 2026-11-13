@@ -393,7 +393,20 @@ pub(in crate::structure) fn select_structure(
             && !complete_predicate_ending_path(resource, next);
         let starts_nominal = !nominal_particle_hosts(resource, next).is_empty()
             || (!exact_competitor && (exact_nominal || complete_nominal));
-        let starts_determiner_nominal = starts_nominal
+        let coordinate_verb = !demonstrative
+            && !exact_nominal
+            && next.ends_with('고')
+            && evidence.has_whole(DataFinePos::Nng)
+            && !has_exact_sequence(
+                resource,
+                context.current,
+                &[StructuralPos::VV, StructuralPos::EC],
+            )
+            && next.strip_suffix('고').is_some_and(|stem| {
+                has_exact_sequence(resource, stem, &[StructuralPos::VV])
+                    && has_exact_sequence(resource, "고", &[StructuralPos::EC])
+            });
+        let starts_determiner_nominal = (starts_nominal && !coordinate_verb)
             || (exact_dependent_or_counter_nominal && (demonstrative || !exact_lexical_competitor));
         (
             starts_nominal,

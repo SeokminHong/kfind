@@ -1,0 +1,2 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	pud:n01064113:noun:일	일	noun	false	ffcbd4c08f284f9f54b48b9f641ce437b236710dbaac21aef22f594ee628e681	contract-positive	aligned-source-component	일부와 별개로 같은 문장의 합리적이지 않은 일에 독립 명사가 쓰였다.
