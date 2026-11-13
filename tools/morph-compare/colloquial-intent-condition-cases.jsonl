@@ -1,0 +1,8 @@
+{"id":"colloquial-intent-honorific","query":"가다","pos":"verb","text":"요양 병원 가실라면 영인면의 상성 요양병원으로 가세요.","expected":true,"gold_byte_start":14,"gold_byte_end":26}
+{"id":"colloquial-intent-vowel","query":"가다","pos":"verb","text":"갈라면 지금 가라.","expected":true,"gold_byte_start":0,"gold_byte_end":9}
+{"id":"colloquial-intent-consonant","query":"먹다","pos":"verb","text":"먹을라면 지금 먹어.","expected":true,"gold_byte_start":0,"gold_byte_end":12}
+{"id":"colloquial-intent-honorific-consonant","query":"먹다","pos":"verb","text":"먹으실라면 지금 드세요.","expected":true,"gold_byte_start":0,"gold_byte_end":15}
+{"id":"colloquial-intent-rieul-stem","query":"살다","pos":"verb","text":"살라면 방법을 찾아야지.","expected":true,"gold_byte_start":0,"gold_byte_end":9}
+{"id":"colloquial-intent-standard","query":"가다","pos":"verb","text":"가시려면 지금 가세요.","expected":true,"gold_byte_start":0,"gold_byte_end":12}
+{"id":"colloquial-intent-copula","query":"가다","pos":"verb","text":"그 수준이라면 괜찮다.","expected":false}
+{"id":"colloquial-intent-adjective","query":"작다","pos":"adjective","text":"작으면 비교부터 해야지.","expected":true,"gold_byte_start":0,"gold_byte_end":9}
