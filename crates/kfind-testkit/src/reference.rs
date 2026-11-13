@@ -880,6 +880,7 @@ fn reference_simple_continuation(
     }
     const PAST: &[ReferenceSuffix] = &[
         reference_suffix("자", &["ending.concessive-eotja"]),
+        reference_suffix("남", &["ending.self-question-nam"]),
         reference_suffix("군", &["ending.final-gun"]),
         reference_suffix("군요", &["ending.final-gun", "ending.polite-yo"]),
         reference_suffix("습니까", &["ending.formal-interrogative"]),
@@ -910,6 +911,7 @@ fn reference_simple_continuation(
         reference_suffix("게", &["ending.final-ge"]),
     ];
     const FUTURE: &[ReferenceSuffix] = &[
+        reference_suffix("남", &["ending.self-question-nam"]),
         reference_suffix("군", &["ending.final-gun"]),
         reference_suffix("군요", &["ending.final-gun", "ending.polite-yo"]),
         reference_suffix("습니까", &["ending.formal-interrogative"]),
@@ -948,6 +950,7 @@ fn reference_simple_continuation(
         reference_suffix("우", &["ending.hao-final-u"]),
     ];
     const EU: &[ReferenceSuffix] = &[
+        reference_suffix("시남", &["ending.honorific", "ending.self-question-nam"]),
         reference_suffix("시것다", &["ending.honorific", "ending.geotda"]),
         reference_suffix(
             "셨것다",
@@ -1588,6 +1591,9 @@ fn reference_simple_continuation(
         reference_suffix("겠죠", &["ending.future", "ending.confirmation-jiyo"]),
     ];
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding if pos.is_action() && following.starts_with('남') => {
+            &[reference_suffix("남", &["ending.self-question-nam"])]
+        }
         ContinuationState::NieunEnding
             if (following.starts_with('군') || following.starts_with("구나"))
                 && anchor.ends_with('는')
