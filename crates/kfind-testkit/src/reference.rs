@@ -523,6 +523,12 @@ const REFERENCE_PARTICLES: &[ReferenceParticle] = &[
         ReferenceFinalCondition::Any,
     ),
     reference_particle(
+        "치고",
+        "particle.standard.chigo",
+        ReferenceParticleRole::Auxiliary,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
         "커녕",
         "particle.contrast.keonyeong",
         ReferenceParticleRole::Auxiliary,

@@ -1,4 +1,7 @@
 id	query	pos	expected	byte_start	byte_end	text
+regression.nominal-chigo.bare	경차	noun	smart-exact	0	12	경차치고 실내가 넓다.
+regression.nominal-chigo.topic	겨울	noun	smart-exact	0	15	겨울치고는 따뜻하다.
+regression.nominal-chigo.invalid-chain	겨울	noun	no-match	0	15	겨울치고를 따뜻하다.
 regression.honorific-vowel-connective.contracted-cause	오다	verb	smart-exact	0	9	오셔서 다행입니다.
 regression.honorific-vowel-connective.uncontracted-cause	읽다	verb	smart-exact	0	15	읽으시어서 알게 되었다.
 regression.honorific-vowel-connective.rieul-concession	들다	verb	smart-exact	0	9	드셔도 괜찮습니다.
