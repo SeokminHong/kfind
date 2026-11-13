@@ -72,6 +72,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.concessive-nieundeul"
+category = "connective"
+initial = "attach-nieun"
+forms = ["ㄴ들", "은들"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.counterfactual-deondeul"
+category = "connective"
+initial = "consonant"
+forms = ["던들"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.future-adnominal"
 category = "adnominal"
 initial = "attach-rieul"
