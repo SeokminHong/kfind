@@ -1064,6 +1064,15 @@ fn reference_simple_continuation(
         reference_suffix("우", &["ending.hao-final-u"]),
     ];
     const EU: &[ReferenceSuffix] = &[
+        reference_suffix("시구", &["ending.honorific", "ending.connective-go"]),
+        reference_suffix(
+            "셨구",
+            &["ending.honorific", "ending.past", "ending.connective-go"],
+        ),
+        reference_suffix(
+            "시겠구",
+            &["ending.honorific", "ending.future", "ending.connective-go"],
+        ),
         reference_suffix("시남", &["ending.honorific", "ending.self-question-nam"]),
         reference_suffix(
             "시다가는",
@@ -1769,6 +1778,11 @@ fn reference_simple_continuation(
         reference_suffix("겠죠", &["ending.future", "ending.confirmation-jiyo"]),
     ];
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with('구') =>
+        {
+            &[reference_suffix("구", &["ending.connective-go"])]
+        }
         ContinuationState::AOrEo if pos.is_action() && following.starts_with("다가") => {
             &[reference_suffix("다가", &["ending.aoeo-daga"])]
         }
@@ -2379,8 +2393,10 @@ fn reference_simple_continuation(
                 && ((!matches!(
                     suffix.rules.last().copied(),
                     Some("ending.connective-daganeun" | "ending.dialect-past-je")
-                ) && (suffix.rules != ["ending.connective-ni"]
-                    || !suffix.surface.starts_with('으')))
+                ) && !(suffix.rules.last() == Some(&"ending.connective-go")
+                    && suffix.surface.ends_with('구'))
+                    && (suffix.rules != ["ending.connective-ni"]
+                        || !suffix.surface.starts_with('으')))
                     || !following[suffix.surface.len()..]
                         .chars()
                         .next()

@@ -1083,6 +1083,17 @@ regression.past-final-je.irregular	짓다	verb	smart-exact	20	29	만리장성 �
 regression.past-final-je.contracted	가다	verb	smart-exact	0	6	갔제?
 regression.past-final-je.adjective	춥다	adjective	smart-exact	0	9	추웠제?
 regression.past-final-je.token-interior	짓다	verb	no-match	0	9	지었제품
+regression.colloquial-connective.proper-name	대다	verb	no-match	7	13	이후 대구 상동으로 이사했다.
+regression.colloquial-connective.object-before-homograph	대다	verb	smart-exact	7	13	차를 대구 기다려.
+regression.colloquial-connective.adj	좋다	adjective	smart-exact	14	20	커피 맛도 좋구 빵도 맛있어요.
+regression.colloquial-connective.verb	먹다	verb	smart-exact	7	13	밥을 먹구 나갔어요.
+regression.colloquial-connective.past	가다	verb	smart-exact	20	26	어제는 시장에 갔구 오늘은 집에 있어요.
+regression.colloquial-connective.future	가다	verb	smart-exact	14	23	저는 먼저 가겠구 동생은 남을 거예요.
+regression.colloquial-connective.honorific	먹다	verb	smart-exact	20	32	할머니는 밥을 먹으시구 차도 드세요.
+regression.colloquial-connective.honorific-past	가다	verb	smart-exact	20	29	아버지는 먼저 가셨구 동생은 남았어요.
+regression.colloquial-connective.honorific-future	가다	verb	smart-exact	20	32	아버지는 먼저 가시겠구 동생은 남겠어요.
+regression.colloquial-connective.lexical	살다	verb	no-match	0	6	살구 두 개를 샀어요.
+regression.colloquial-connective.internal	먹다	verb	no-match	0	6	먹구름이 몰려왔어요.
 regression.myeonseo-buteo.bare	받다	verb	smart-exact	0	18	받으면서부터 달라졌다.
 regression.myeonseo-buteo.contracted-copula	받다	verb	smart-exact	0	21	받으면서부터다.
 regression.myeonseo-buteo.explicit-copula	가다	verb	smart-exact	0	21	가면서부터이다.

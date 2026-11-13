@@ -82,6 +82,7 @@ const COPULA_REPORTING_AND_RO_ENDINGS: &[Suffix] = &[
 ];
 
 const GO_YO: Suffix = suffix("고요", &["ending.connective-go"]);
+const COLLOQUIAL_GU: Suffix = suffix("구", &["ending.connective-go"]);
 const DAM: Suffix = suffix("담", &["ending.self-question-dam"]);
 const NAM: Suffix = suffix("남", &["ending.self-question-nam"]);
 const NEUNDAM: Suffix = suffix("는담", &["ending.self-question-dam"]);
@@ -846,6 +847,15 @@ pub(super) const HONORIFIC_CONNECTIVE_BASES: &[(&str, &[&str])] = &[
 ];
 
 const EU_SUFFIXES: &[Suffix] = &[
+    suffix("시구", &["ending.honorific", "ending.connective-go"]),
+    suffix(
+        "셨구",
+        &["ending.honorific", "ending.past", "ending.connective-go"],
+    ),
+    suffix(
+        "시겠구",
+        &["ending.honorific", "ending.future", "ending.connective-go"],
+    ),
     suffix("시남", &["ending.honorific", "ending.self-question-nam"]),
     suffix("시것다", &["ending.honorific", "ending.geotda"]),
     suffix(
@@ -1635,6 +1645,11 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with('구') =>
+        {
+            &[COLLOQUIAL_GU]
+        }
         ContinuationState::StemEnding
             if pos.is_action()
                 && following.starts_with("는답")
@@ -2123,16 +2138,18 @@ fn verify_simple_continuation(
             },
         )
         .filter(|suffix| {
+            let requires_token_end = matches!(
+                suffix.rules.last().copied(),
+                Some(
+                    "ending.connective-daganeun"
+                        | "ending.dialect-past-je"
+                        | "ending.colloquial-rieulramyeon"
+                )
+            ) || (suffix.rules.last() == Some(&"ending.connective-go")
+                && suffix.surface.ends_with('구'))
+                || (suffix.rules == ["ending.connective-ni"] && suffix.surface.starts_with('으'));
             following.starts_with(suffix.surface)
-                && ((!matches!(
-                    suffix.rules.last().copied(),
-                    Some(
-                        "ending.connective-daganeun"
-                            | "ending.dialect-past-je"
-                            | "ending.colloquial-rieulramyeon"
-                    )
-                ) && (suffix.rules != ["ending.connective-ni"]
-                    || !suffix.surface.starts_with('으')))
+                && (!requires_token_end
                     || !following[suffix.surface.len()..]
                         .chars()
                         .next()
