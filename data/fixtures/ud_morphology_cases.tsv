@@ -1,7 +1,8 @@
 id	query	pos	expected	byte_start	byte_end	text
 corpus.ud-gsd.test.test-s90.nominal-honorific	사장	noun	smart-exact	0	6	사장님부터 직원들까지 늘 친절하고 안주도 실패작이 없었습니다.
 corpus.ud-gsd.test.test-s202.nominal-honorific-proper	예수	noun	smart-exact	68	74	눈물 흘리는 성모님 말고도 성당 안에 매달려 계신 예수님과 성모님께도 관심을 가져주세요.
-corpus.ud-gsd.test.test-s501.nominal-honorific-plural	선생	noun	smart-exact	0	6	선생님들 너무 친절하시고 가격도 괜찮고 무척 맘에 듬!
+corpus.ud-gsd.test.test-s501.nominal-honorific-plural	선생	noun	smart-exact	0	6	선생님들 너무 친절하시고 가격도 괜찮고 무척 맘에 듦!
+corpus.ud-gsd.test.test-s501.nominalized-rieul	들다	verb	smart-exact	70	73	선생님들 너무 친절하시고 가격도 괜찮고 무척 맘에 듦!
 corpus.ud-gsd.test.test-s1.compound-noun-genitive	통화	noun	smart-exact	50	56	현대증권 배성영 수석연구원은 "미국 통화당국의 경기부양 기조 유지 가능성과 주요20개국(G20) 정상회의를 앞둔 위안화 절상 압력의 고조로 인해 당분간 원화 강세 압력은 더 지속될 전망"이라며 "환차익을 노린 외국인 매수세가 지속될 수 있다"고 내다봤다.
 corpus.ud-gsd.test.test-s16.compound-noun-bare	생활	noun	smart-exact	171	177	경찰청에 따르면 부산지방청에 소속된 프로파일러들은 김길태가 이번 사건의 유력한 용의자로 떠오를 때부터 그의 범죄 이력과 생활습관, 성향, 심리 등을 분석했다.
 regression.causal-mae.consonant	먹다	verb	smart-exact	7	16	그가 먹으매 마음이 놓였다.
