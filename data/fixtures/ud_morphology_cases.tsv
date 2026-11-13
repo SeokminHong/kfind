@@ -23,6 +23,24 @@ regression.locative-topic.noun	학교	noun	smart-exact	0	9	학교엔 도서관�
 regression.locative-topic.noun-final	일본	noun	smart-exact	0	9	일본엔 눈이 많이 내린다.
 regression.locative-topic.noun-compound	일본	noun	smart-exact	0	6	일본엔화 시세를 확인했다.
 regression.locative-topic.invalid-object-chain	걷다	verb	no-match	0	9	걷기엔을 적었다.
+corpus.ud-gsd.test.test-s985.verb.가다	가다	verb	smart-exact	37	52	집도 가까워서 자주 먹으러 가야겠어요.
+corpus.ud-gsd.test.test-s629.verb.구입하다	구입하다	verb	smart-exact	37	58	사실 때 꼼꼼히 확인하시고 구입해야겠네요.
+corpus.ud-gsd.test.test-s657.verb.되다	되다	verb	smart-exact	159	165	솔직히 떡볶이 맛은 첨에 좀 별로였지만 자기 딸과 딸 친구들에게 파는 떡볶이 고대로 먹이시는 거 보고 완전 신뢰하게 됐음.
+regression.necessity-future.irregular	걷다	verb	smart-exact	20	35	이제는 집까지 걸어야겠다.
+regression.necessity-future.honorific	오다	verb	smart-exact	7	25	직접 오셔야겠군요.
+regression.necessity-future.adjective	좋다	adjective	smart-exact	20	35	적어도 음질은 좋아야겠지.
+regression.necessity-future.resultative	이루다	verb	smart-exact	17	38	먼저 합의가 이뤄져야겠어요.
+regression.prefinal-nominal.past-object	먹다	verb	smart-exact	7	19	밥을 먹었음을 확인했다.
+regression.prefinal-nominal.past-locative	하다	verb	smart-exact	18	30	그 일을 이미 했기에는 시간이 너무 짧다.
+regression.prefinal-nominal.future-object	가다	verb	smart-exact	7	19	내일 가겠음을 알렸다.
+regression.prefinal-nominal.repeated-past	하다	verb	smart-exact	7	19	직접 했었음을 밝혔다.
+regression.prefinal-nominal.honorific-past	듣다	verb	smart-exact	10	25	안내를 들으셨음을 확인했다.
+regression.prefinal-nominal.contracted-past	되다	verb	smart-exact	11	20	그 일이 됐음을 알렸다.
+regression.prefinal-nominal.invalid-particle	되다	verb	no-match	0	9	됐음를 적었다.
+corpus.ud-gsd.test.test-s175.adjective.먹을만하다	먹을만하다	adjective	smart-exact	67	82	인심은 잘 모르겠으나 쌈장과 배추가 맛있어 그냥 먹을만했음
+corpus.ud-gsd.test.test-s337.verb.되다	되다	verb	smart-exact	11	23	잘 교육 되었겠지 했는데 펌 다 끝나고 나니 어깨 너머 모발이 모두 타 있었어요
+corpus.ud-gsd.test.test-s658.verb.하다	하다	verb	smart-exact	34	49	직원들은 표정 관리를 좀 해야겠어요
+corpus.ud-kaist.test.MH2_0190-s471.verb.바꾸다	바꾸다	verb	smart-exact	88	103	한국과 ASEAN 전역을 엔블록으로 만들었고, 일본기업의 생산기지로 바꾸었음을 주목해야 한다.
 corpus.ud-gsd.test.test-s227.noun.시즌	시즌	noun	smart-exact	12	21	특히 2007 시즌엔 전기리그 준우승, 후기리그 우승, 그랜드 파이널 우승이라는 눈부신 성적을 이끌어냈고, 프로리그 사상 최초로 3개의 MVP를 독식하며 에이스로서의 자신의 가치를 입증했다.
 corpus.ud-gsd.test.test-s235.noun.예전	예전	noun	smart-exact	0	9	예전엔 맛있어서 갈비 먹으러 자주 갔는데 고기 가격도 오르고 양념 맛도 변하고 고기도 부드럽지 않고 퍽퍽해서 다신 안 갈래요...!
 corpus.ud-gsd.test.test-s324.noun.겨울	겨울	noun	smart-exact	0	9	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.

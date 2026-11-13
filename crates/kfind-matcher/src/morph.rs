@@ -792,8 +792,11 @@ impl MorphMatcher {
                 }
                 let mut normalized_consumed = matched.consumed_bytes;
                 let mut rule_path = matched.rule_path;
-                if let Some(host) = auxiliary_nominal_host(&rule_path)
-                    .or_else(|| nominal_particle_transition.then_some(consumption_anchor.as_ref()))
+                if let Some(host) = continuation_nominal_host(
+                    &rule_path,
+                    &consumption_following[..normalized_consumed],
+                )
+                .or_else(|| nominal_particle_transition.then_some(consumption_anchor.as_ref()))
                 {
                     let particle = self
                         .particle_verifier
@@ -4079,18 +4082,19 @@ fn starts_with_resultative_auxiliary(surface: &str) -> bool {
         .is_some_and(|first| matches!(first, '지' | '졌' | '진' | '질' | '져' | '집' | '짐'))
 }
 
-fn auxiliary_nominal_host(rule_path: &[RuleId]) -> Option<&'static str> {
-    match rule_path {
-        [auxiliary, nominalizer] => match (auxiliary.as_str(), nominalizer.as_str()) {
-            ("ending.auxiliary-jida" | "ending.auxiliary-boda", "ending.nominalizer-gi") => {
-                Some("기")
-            }
-            ("ending.auxiliary-jida", "ending.nominalizer") => Some("짐"),
-            ("ending.auxiliary-boda", "ending.nominalizer") => Some("봄"),
-            _ => None,
-        },
-        _ => None,
-    }
+fn continuation_nominal_host<'a>(rule_path: &[RuleId], consumed: &'a str) -> Option<&'a str> {
+    let nominalized = matches!(
+        rule_path.last().map(RuleId::as_str),
+        Some("ending.nominalizer" | "ending.nominalizer-gi")
+    );
+    nominalized
+        .then(|| {
+            consumed
+                .char_indices()
+                .next_back()
+                .map(|(start, _)| &consumed[start..])
+        })
+        .flatten()
 }
 
 fn merge_origins(origins: &mut Vec<Origin>, additional: Vec<Origin>) {
