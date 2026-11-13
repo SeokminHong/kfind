@@ -1272,6 +1272,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.promise-ma"
+category = "final"
+initial = "eu"
+forms = ["마", "으마"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.hao-final"
 category = "final"
 initial = "eu"
