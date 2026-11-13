@@ -128,7 +128,17 @@ initial = "a-or-eo"
 forms = ["았", "었"]
 required = []
 forbidden = []
-next = ["ending.prefinal-eo", "ending.final-da", "ending.hao-final-u", "ending.hao-final-so", "ending.hao-final-soda", "ending.hao-final-soida", "ending.hao-respectful-connective", "ending.hao-respectful-final", "ending.final-ge", "ending.polite-declarative", "ending.past-polite-yo", "ending.conditional", "ending.connective-eudoe", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go", "ending.coordinate-myeo", "ending.future-adnominal", "ending.retrospective-adnominal", "ending.quotative-go", "ending.interrogative-neunya", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite", "ending.necessity-yaji", "ending.necessity-yaji-polite", "ending.doubt-rieulji", "ending.doubt-rieulneunji", "ending.conjecture-rieulgeol", "ending.interrogative-ni", "ending.formal-interrogative", "ending.retrospective-interrogative", "ending.retrospective-declarative", "ending.formal-boast-ne", "ending.formal-declarative-neunda", "ending.formal-retrospective-dinda", "ending.formal-confirmation-jiyo", "ending.prospective-final", "ending.prospective-connective", "ending.prospective-quotative"]
+next = ["ending.concessive-eotja", "ending.prefinal-eo", "ending.final-da", "ending.hao-final-u", "ending.hao-final-so", "ending.hao-final-soda", "ending.hao-final-soida", "ending.hao-respectful-connective", "ending.hao-respectful-final", "ending.final-ge", "ending.polite-declarative", "ending.past-polite-yo", "ending.conditional", "ending.connective-eudoe", "ending.connective-jiman", "ending.connective-neunde", "ending.connective-go", "ending.coordinate-myeo", "ending.future-adnominal", "ending.retrospective-adnominal", "ending.quotative-go", "ending.interrogative-neunya", "ending.geodeun", "ending.geodeun-short", "ending.geodeun-polite", "ending.necessity-yaji", "ending.necessity-yaji-polite", "ending.doubt-rieulji", "ending.doubt-rieulneunji", "ending.conjecture-rieulgeol", "ending.interrogative-ni", "ending.formal-interrogative", "ending.retrospective-interrogative", "ending.retrospective-declarative", "ending.formal-boast-ne", "ending.formal-declarative-neunda", "ending.formal-retrospective-dinda", "ending.formal-confirmation-jiyo", "ending.prospective-final", "ending.prospective-connective", "ending.prospective-quotative"]
+terminal = true
+
+[[ending]]
+id = "ending.concessive-eotja"
+category = "connective"
+initial = "consonant"
+forms = ["자"]
+required = []
+forbidden = []
+next = []
 terminal = true
 
 [[ending]]
