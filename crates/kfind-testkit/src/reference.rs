@@ -164,6 +164,30 @@ impl ReferenceMatcher {
                 if !branch.consumption.allows_rule_path(&rules) {
                     return None;
                 }
+                if let Some(tail) = consumption_following[consumed..].strip_prefix("부터")
+                    && rules.last().map_or_else(
+                        || {
+                            !branch.origins.is_empty()
+                                && branch.origins.iter().all(|origin| {
+                                    origin.rule_path.last().is_some_and(|rule| {
+                                        rule.as_str() == "ending.simultaneous-myeonseo"
+                                    })
+                                })
+                        },
+                        |rule| rule.as_str() == "ending.simultaneous-myeonseo",
+                    )
+                {
+                    let end = tail
+                        .find(|character| !is_reference_token_character(character))
+                        .unwrap_or(tail.len());
+                    if matches!(&tail[..end], "" | "다" | "이다") {
+                        consumed += "부터".len() + end;
+                        rules.push(RuleId::from("particle.from"));
+                        if end != 0 {
+                            rules.push(RuleId::from("ending.final-da"));
+                        }
+                    }
+                }
                 if *nominal_particle_transition
                     || matches!(rules.as_slice(), [auxiliary, nominalizer]
                         if matches!(auxiliary.as_str(), "ending.auxiliary-jida" | "ending.auxiliary-boda")
