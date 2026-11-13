@@ -1,0 +1,36 @@
+case_id	query	pos	form	lemma	xpos
+gsd:test-s6:9	요구르트	noun	요구르트가	요구르트+가	NNG+JKS
+gsd:test-s7:5	한강	noun	한강	한강	NNP
+gsd:test-s44:5	스마트	noun	스마트	스마트	NNG
+gsd:test-s44:26	전기	noun	전기	전기	NNG
+gsd:test-s70:7	스타	noun	스타	스타	NNG
+gsd:test-s116:4	-
+gsd:test-s127:41	노력하다	verb	노력해	노력+하+아	NNG+XSV+EC
+gsd:test-s142:18	재정	noun	재정	재정	NNG
+gsd:test-s188:20	천재	noun	천재	천재	NNG
+gsd:test-s204:17	인명	noun	인명	인명	NNG
+gsd:test-s222:3	핵심	noun	핵심	핵심	NNG
+gsd:test-s243:14	감사	noun	감사	감사	NNG
+gsd:test-s250:11	시설	noun	시설	시설	NNG
+gsd:test-s255:4	처리	noun	처리	처리	NNG
+gsd:test-s255:6	협상	noun	협상	협상	NNG
+gsd:test-s256:1	소비	noun	소비	소비	NNG
+gsd:test-s263:15	대북	noun	대북	대북	NNG
+gsd:test-s263:16	교역	noun	교역	교역	NNG
+gsd:test-s264:23	진검	noun	진검	진검	NNG
+gsd:test-s325:6	등	noun	등	등	NNB
+gsd:test-s403:8	단축	noun	단축	단축	NNG
+gsd:test-s479:11	스키	noun	스키	스키	NNG
+gsd:test-s516:7	충청	noun	충청	충청	NNP
+gsd:test-s627:7	원전	noun	원전	원전	NNG
+gsd:test-s627:20	최고	noun	최고	최고	NNG
+gsd:test-s661:8	또는	adverb	또는	또는	MAG
+gsd:test-s667:35	들어오다	verb	들어와	들어오+아	VV+EC
+gsd:test-s698:2	불법	noun	불법	불법	NNG
+gsd:test-s698:18	전산	noun	전산	전산	NNG
+gsd:test-s782:5	군	noun	군	군	NNG
+gsd:test-s788:6	포터	noun	포터	포터	NNP
+gsd:test-s816:11	실종	noun	실종	실종	NNG
+gsd:test-s816:18	기울이다	verb	기울여	기울이+어	VV+EC
+gsd:test-s884:7	-
+gsd:test-s941:5	학창	noun	학창	학창	NNG
