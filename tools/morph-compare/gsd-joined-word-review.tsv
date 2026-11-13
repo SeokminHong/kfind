@@ -1,0 +1,17 @@
+first_id	second_id	first_form	second_form	query	pos	lemma	xpos
+gsd:test-s95:3	gsd:test-s95:4	한	층	한층	adverb	한층	MAG
+gsd:test-s130:4	gsd:test-s130:5	이	곳에서	이곳	pronoun	이곳+에서	NP+JKB
+gsd:test-s178:2	gsd:test-s178:3	그	동안	그동안	noun	그동안	NNG
+gsd:test-s181:2	gsd:test-s181:3	그	때	그때	noun	그때	NNG
+gsd:test-s243:15	gsd:test-s243:16	이	날	이날	noun	이날	NNG
+gsd:test-s285:6	gsd:test-s285:7	관계	없이	관계없이	adverb	관계없이	MAG
+gsd:test-s290:5	gsd:test-s290:6	또	다시	또다시	adverb	또다시	MAG
+gsd:test-s298:2	gsd:test-s298:3	그	동안	그동안	noun	그동안	NNG
+gsd:test-s304:1	gsd:test-s304:2	그	때	그때	noun	그때	NNG
+gsd:test-s383:4	gsd:test-s383:5	이	곳	이곳	pronoun	이곳	NP
+gsd:test-s475:1	gsd:test-s475:2	이	때	이때	noun	이때	NNG
+gsd:test-s495:1	gsd:test-s495:2	올	여름	올여름	noun	올여름	NNG
+gsd:test-s690:23	gsd:test-s690:24	한	눈에	한눈	noun	한눈+에	NNG+JKB
+gsd:test-s874:2	gsd:test-s874:3	그	때	그때	noun	그때	NNG
+gsd:test-s929:5	gsd:test-s929:6	이	곳에	이곳	pronoun	이곳+에	NP+JKB
+gsd:test-s936:7	gsd:test-s936:8	이	곳으로	이곳	pronoun	이곳+으로	NP+JKB
