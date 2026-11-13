@@ -1902,6 +1902,13 @@ impl MorphMatcher {
         if complete
             && prefix.is_empty()
             && context::previous_word(haystack, whole.start)
+                .is_some_and(|previous| resolver.has_standalone_counted_unit(&previous, &unit))
+        {
+            return true;
+        }
+        if complete
+            && prefix.is_empty()
+            && context::previous_word(haystack, whole.start)
                 .is_some_and(|previous| ConstraintResolver::is_mixed_cardinal(&previous))
             && resolver.has_exact_numeric_unit(&unit)
         {

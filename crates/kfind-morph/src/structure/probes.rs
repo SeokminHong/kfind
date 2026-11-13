@@ -1290,6 +1290,12 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_standalone_counted_unit(&self, count: &str, unit: &str) -> bool {
+        (count == "수" || self.has_measure_count(count))
+            && has_exact_sequence(&self.resource, unit, &[StructuralPos::NNBC])
+    }
+
+    #[must_use]
     pub fn has_counted_unit_frame(&self, previous: &str, unit: &str) -> bool {
         exact_analysis_starts_with_pos(&self.resource, unit, |pos| pos == StructuralPos::NNBC)
             && (has_exact_fine_pos(&self.resource, previous, |pos| pos == DataFinePos::Nr)
