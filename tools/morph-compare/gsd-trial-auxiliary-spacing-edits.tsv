@@ -1,0 +1,3 @@
+sentence_id	original	corrected	reason
+test-s34	기대해봄직하다	기대해 봄직하다	세 음절인 파생 본용언 활용형 뒤의 보조 용언을 띄어 쓴다.
+test-s982	전화해보니	전화해 보니	세 음절인 파생 본용언 활용형 뒤의 보조 용언을 띄어 쓴다.

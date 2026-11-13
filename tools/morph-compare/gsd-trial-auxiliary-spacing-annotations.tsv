@@ -1,0 +1,3 @@
+case_id	query	pos	form	lemma	xpos	gold_form
+gsd:test-s34:36	기대하다	verb	기대해	기대+하+아	NNG+XSV+EC	기대해
+gsd:test-s982:8	전화하다	verb	전화해	전화+하+아	NNG+XSV+EC	전화해
