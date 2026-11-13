@@ -2,14 +2,17 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
 const [input, mode, ...extra] = process.argv.slice(2);
-if (!input || (mode !== undefined && !['--person-names', '--entity-names'].includes(mode)) || extra.length) {
-  throw new Error('usage: node apply-gsd-proper-name-review.mjs GSD_POSITIVES.jsonl [--person-names|--entity-names]');
+if (!input || (mode !== undefined && !['--person-names', '--entity-names', '--lexical-units'].includes(mode)) || extra.length) {
+  throw new Error('usage: node apply-gsd-proper-name-review.mjs GSD_POSITIVES.jsonl [--person-names|--entity-names|--lexical-units]');
 }
 const personNames = mode === '--person-names';
 const entityNames = mode === '--entity-names';
+const lexicalUnits = mode === '--lexical-units';
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
-const expectedChecksum = entityNames
+const expectedChecksum = lexicalUnits
+  ? 'e9e89fc3fc5e0b385963e6eb346c2fb2db381660d1ccda35f51981afc5504eac'
+  : entityNames
   ? 'b7a0726517a62c72866525ff882bab0c9dda293a705e9ae886e15bd334e2f617'
   : personNames
   ? '149aa2f31b2ccaf769bea4afe09ec213b080c47dd9ca37f447cd8177cf2487aa'
@@ -18,7 +21,8 @@ if (checksum !== expectedChecksum) {
   throw new Error(`unexpected GSD input SHA-256: ${checksum}`);
 }
 const reviews = new Map();
-const registryPath = entityNames ? './gsd-entity-name-review.tsv'
+const registryPath = lexicalUnits ? './gsd-lexical-unit-pos-review.tsv'
+  : entityNames ? './gsd-entity-name-review.tsv'
   : personNames ? './gsd-person-name-review.tsv' : './gsd-proper-name-review.tsv';
 const registry = readFileSync(new URL(registryPath, import.meta.url), 'utf8');
 for (const line of registry.trimEnd().split('\n').slice(1)) {
