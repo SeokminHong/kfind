@@ -50,3 +50,8 @@ walk-casual-context	걷다	verb	exact	10	19	전화를 걸었어.
 hang-casual-context	걸다	verb	exact	14	23	나는 오래 걸었어.
 listen-casual-context	듣다	verb	exact	10	19	가방을 들었어.
 lift-casual-context	들다	verb	exact	10	19	음악을 들었어.
+다면:1	예쁘다	adjective	exact	15	27	내가 좀 더 예뻤다면 인기가 많았을 텐데.
+다면:2	이다	adjective	exact	19	31	선의의 거짓말이었다면 용서받을 수 있을 거야.
+다면:7	삼키다	verb	exact	20	32	아이가 동전을 삼켰다면 큰일이다.
+다면:8	하다	verb	exact	17	29	굳이 그렇게 하겠다면 네 마음대로 해라.
+다면서:5	살다	verb	exact	18	33	돈이 없어 못 살겠다면서?
