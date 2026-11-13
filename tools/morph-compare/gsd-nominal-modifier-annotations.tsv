@@ -1,0 +1,12 @@
+case_id	query	pos	form	lemma	xpos
+gsd:test-s153:10	강남	noun	강남	강남	NNP
+gsd:test-s160:6	경남	noun	경남	경남	NNP
+gsd:test-s194:18	한국	noun	한국	한국	NNP
+gsd:test-s239:11	중국	noun	중국	중국	NNP
+gsd:test-s239:17	국내	noun	국내	국내	NNG
+gsd:test-s254:18	청국	noun	청국	청국	NNP
+gsd:test-s518:1	삼성	noun	삼성	삼성	NNP
+gsd:test-s660:1	아시아	noun	아시아	아시아	NNP
+gsd:test-s731:1	이명박	noun	이명박	이명박	NNP
+gsd:test-s748:1	아시아	noun	아시아	아시아	NNP
+gsd:test-s772:6	경남	noun	경남	경남	NNP
