@@ -16,6 +16,27 @@
 별도 주석 판정 대상으로 남겼습니다. `경남도지사` 원문 대조에서는 `경남도`가
 반환됐고 `경남 도지사`에서는 `경남`이 반환됐습니다.
 
+한글 맞춤법 제2항은 단어별 띄어쓰기를 원칙으로 합니다. 제46항은 연속된
+단음절 단어, 제49항은 고유 명사의 단위, 제50항은 전문 용어에 대해 붙여 쓰기를
+허용합니다. 교정본의 띄어쓰기와 원문의 붙여 쓴 입력에서 검색이 반환하는
+범위는 따로 검증했습니다. 11개 원문과 교정문을 짝지어 첫 명사의 바이트 범위를
+측정하는 입력에 보존했습니다. [한글 맞춤법](https://www.korean.go.kr/kornorms/m/m_regltn.do?regltn_code=0001) ·
+[붙여 쓴 원문과 띄어 쓴 대조문](../../tools/morph-compare/gsd-nominal-modifier-spacing-pairs.jsonl)
+
+교정문은 두 경계 모두 11/11건이 일치했습니다. 붙여 쓴 원문은 smart 9/11건,
+any 8/11건이 일치했습니다. 두 경계에서 `경남도지사` 2건의 `경남도`가 반환됐고,
+any에서만 `한국이름은`의 `한국이`가 반환됐습니다. 이 결과는 첫 명사의
+정확한 범위를 비교한 값이며, 붙여 쓴 입력에 대한 품질 지표를 교정본으로
+대체하지 않습니다.
+
+| 경계 | 짝지은 입력 | Raw 행렬 | Raw 비율 (%) | 계약 보정 행렬 | 계약 보정 비율 (%) |
+| --- | --- | --- | --- | --- | --- |
+| smart | 원문 | 9, 0, 0, 2 | 100.00, 81.82, 90.00 | 9, 0, 0, 2 | 100.00, 81.82, 90.00 |
+| any | 원문 | 8, 0, 0, 3 | 100.00, 72.73, 84.21 | 8, 0, 0, 3 | 100.00, 72.73, 84.21 |
+| smart·any | 교정문 | 11, 0, 0, 0 | 100.00, 100.00, 100.00 | 11, 0, 0, 0 | 100.00, 100.00, 100.00 |
+
+대조 입력의 계약 검토는 0건입니다.
+
 기준선과 교정본에 같은 full POS 실행 파일 `8581bac664494819874fd78381ac0030879e71c5`를
 사용했습니다. 행렬은 TP, FP, TN, FN 순이며 비율은 precision, recall, F1입니다.
 계약 검토는 0건입니다.
@@ -36,6 +57,7 @@
 node tools/morph-compare/apply-gsd-sentence-edits.mjs "$input" --nominal-modifiers > "$corrected"
 "$runner" boundary full-pos "$boundary" "$input" "$baseline"
 "$runner" boundary full-pos "$boundary" "$corrected" "$output"
+"$runner" boundary full-pos "$boundary" tools/morph-compare/gsd-nominal-modifier-spacing-pairs.jsonl "$pairs_output"
 ```
 
 교정 입력 SHA-256은 `957dad65dbc029053f56d531d8969638c4a52cb4270fa8b898c8380f722eef9d`입니다.

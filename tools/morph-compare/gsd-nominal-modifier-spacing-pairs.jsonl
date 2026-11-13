@@ -1,0 +1,22 @@
+{"id":"gsd:test-s153:10:source","query":"강남","pos":"noun","text":"재계약 시기를 맞은 단지의 전셋값이 강세를 보이면서 지난해 서울 강남지역 전셋값 상승률은 7.6%로 나타났습니다.","expected":true,"gold_byte_start":90,"gold_byte_end":96}
+{"id":"gsd:test-s160:6:source","query":"경남","pos":"noun","text":"이달곤 행정안전부 장관이 6.2 지방선거에서 경남도지사 후보로 출마하기 위해 사퇴한다고 행안부가 4일 밝혔다.","expected":true,"gold_byte_start":59,"gold_byte_end":65}
+{"id":"gsd:test-s194:18:source","query":"한국","pos":"noun","text":"앨리스 해먼드 샤프(Alice Hammond Sharp) 또는 사부인(史婦人)은 미국 감리교회의 선교사로 한국이름은 사애리시(史愛理施)이다.","expected":true,"gold_byte_start":115,"gold_byte_end":121}
+{"id":"gsd:test-s239:11:source","query":"중국","pos":"noun","text":"이들 품목들은 워낙 우리나라의 품질경쟁력이 뛰어나기 때문에 관세 철폐 시 중국시장 공략은 더 쉬워질 것이고, 국내시장 역시 얼마든지 수성(守城)이 가능하다는 평가다.","expected":true,"gold_byte_start":103,"gold_byte_end":109}
+{"id":"gsd:test-s239:17:source","query":"국내","pos":"noun","text":"이들 품목들은 워낙 우리나라의 품질경쟁력이 뛰어나기 때문에 관세 철폐 시 중국시장 공략은 더 쉬워질 것이고, 국내시장 역시 얼마든지 수성(守城)이 가능하다는 평가다.","expected":true,"gold_byte_start":151,"gold_byte_end":157}
+{"id":"gsd:test-s254:18:source","query":"청국","pos":"noun","text":"이때 청나라가 우리나라와 미국이 직접 외교관계를 맺지 못하도록 국서(國書)의 수교를 방해하였으나, 이상재는 청국공사와 담판을 벌여 직접 국서를 전달하게 했다.","expected":true,"gold_byte_start":150,"gold_byte_end":156}
+{"id":"gsd:test-s518:1:source","query":"삼성","pos":"noun","text":"삼성본사 스트리트뷰를 보여주세요","expected":true,"gold_byte_start":0,"gold_byte_end":6}
+{"id":"gsd:test-s660:1:source","query":"아시아","pos":"noun","text":"아시아통화들도 대부분 달러화에 대해 강세를 보이면서 원화 강세에 영향을 미쳤다.","expected":true,"gold_byte_start":0,"gold_byte_end":9}
+{"id":"gsd:test-s731:1:source","query":"이명박","pos":"noun","text":"이명박정권은 대한민국 인권의 시계를 거꾸로 돌리고, 민중의 삶을 벼랑으로 몰아넣고, 장애인운동의 소중한 성과를 거꾸로 돌리고 있다.","expected":true,"gold_byte_start":0,"gold_byte_end":9}
+{"id":"gsd:test-s748:1:source","query":"아시아","pos":"noun","text":"아시아통화들도 대부분 달러화에 대해 강세를 보이면서 원화 강세에 영향을 미쳤다.","expected":true,"gold_byte_start":0,"gold_byte_end":9}
+{"id":"gsd:test-s772:6:source","query":"경남","pos":"noun","text":"이달곤 행정안전부 장관이 6.2 지방선거에서 경남도지사 후보로 출마하기 위해 사퇴한다고 행안부가 4일 밝혔다.","expected":true,"gold_byte_start":59,"gold_byte_end":65}
+{"id":"gsd:test-s153:10:spaced","query":"강남","pos":"noun","text":"재계약 시기를 맞은 단지의 전셋값이 강세를 보이면서 지난해 서울 강남 지역 전셋값 상승률은 7.6%로 나타났습니다.","expected":true,"gold_byte_start":90,"gold_byte_end":96}
+{"id":"gsd:test-s160:6:spaced","query":"경남","pos":"noun","text":"이달곤 행정안전부 장관이 6.2 지방선거에서 경남 도지사 후보로 출마하기 위해 사퇴한다고 행안부가 4일 밝혔다.","expected":true,"gold_byte_start":59,"gold_byte_end":65}
+{"id":"gsd:test-s194:18:spaced","query":"한국","pos":"noun","text":"앨리스 해먼드 샤프(Alice Hammond Sharp) 또는 사부인(史婦人)은 미국 감리교회의 선교사로 한국 이름은 사애리시(史愛理施)이다.","expected":true,"gold_byte_start":115,"gold_byte_end":121}
+{"id":"gsd:test-s239:11:spaced","query":"중국","pos":"noun","text":"이들 품목들은 워낙 우리나라의 품질경쟁력이 뛰어나기 때문에 관세 철폐 시 중국 시장 공략은 더 쉬워질 것이고, 국내 시장 역시 얼마든지 수성(守城)이 가능하다는 평가다.","expected":true,"gold_byte_start":103,"gold_byte_end":109}
+{"id":"gsd:test-s239:17:spaced","query":"국내","pos":"noun","text":"이들 품목들은 워낙 우리나라의 품질경쟁력이 뛰어나기 때문에 관세 철폐 시 중국 시장 공략은 더 쉬워질 것이고, 국내 시장 역시 얼마든지 수성(守城)이 가능하다는 평가다.","expected":true,"gold_byte_start":152,"gold_byte_end":158}
+{"id":"gsd:test-s254:18:spaced","query":"청국","pos":"noun","text":"이때 청나라가 우리나라와 미국이 직접 외교관계를 맺지 못하도록 국서(國書)의 수교를 방해하였으나, 이상재는 청국 공사와 담판을 벌여 직접 국서를 전달하게 했다.","expected":true,"gold_byte_start":150,"gold_byte_end":156}
+{"id":"gsd:test-s518:1:spaced","query":"삼성","pos":"noun","text":"삼성 본사 스트리트뷰를 보여주세요","expected":true,"gold_byte_start":0,"gold_byte_end":6}
+{"id":"gsd:test-s660:1:spaced","query":"아시아","pos":"noun","text":"아시아 통화들도 대부분 달러화에 대해 강세를 보이면서 원화 강세에 영향을 미쳤다.","expected":true,"gold_byte_start":0,"gold_byte_end":9}
+{"id":"gsd:test-s731:1:spaced","query":"이명박","pos":"noun","text":"이명박 정권은 대한민국 인권의 시계를 거꾸로 돌리고, 민중의 삶을 벼랑으로 몰아넣고, 장애인운동의 소중한 성과를 거꾸로 돌리고 있다.","expected":true,"gold_byte_start":0,"gold_byte_end":9}
+{"id":"gsd:test-s748:1:spaced","query":"아시아","pos":"noun","text":"아시아 통화들도 대부분 달러화에 대해 강세를 보이면서 원화 강세에 영향을 미쳤다.","expected":true,"gold_byte_start":0,"gold_byte_end":9}
+{"id":"gsd:test-s772:6:spaced","query":"경남","pos":"noun","text":"이달곤 행정안전부 장관이 6.2 지방선거에서 경남 도지사 후보로 출마하기 위해 사퇴한다고 행안부가 4일 밝혔다.","expected":true,"gold_byte_start":59,"gold_byte_end":65}
