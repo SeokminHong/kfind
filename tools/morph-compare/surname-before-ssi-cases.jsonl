@@ -1,0 +1,8 @@
+{"id":"surname-before-bare-ssi","query":"구","pos":"noun","text":"구 씨, 어린이 등이 다쳤다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"surname-before-ssi-with-particle","query":"신","pos":"noun","text":"신 씨와 이야기를 나눴다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"surname-with-demonstrative-homograph","query":"이","pos":"noun","text":"이 씨는 이를 토대로 판단했다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"demonstrative-pronoun-next-to-surname","query":"이","pos":"pronoun","text":"이 씨는 이를 토대로 판단했다.","expected":true,"gold_byte_start":11,"gold_byte_end":17}
+{"id":"seed-with-demonstrative-determiner","query":"이","pos":"determiner","text":"이 씨를 심었다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"seed-is-not-honorific","query":"이","pos":"noun","text":"이 씨앗을 심었다.","expected":false}
+{"id":"anonymous-name-pronoun","query":"모","pos":"pronoun","text":"이 모 씨 등 3명이 숨졌다.","expected":true,"gold_byte_start":4,"gold_byte_end":7}
+{"id":"anonymous-name-not-determiner","query":"모","pos":"determiner","text":"이 모 씨 등 3명이 숨졌다.","expected":false}
