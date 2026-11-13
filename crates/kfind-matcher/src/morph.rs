@@ -1349,6 +1349,44 @@ impl MorphMatcher {
                     },
                 );
         }
+        if matches!(branch.consumption, CandidateConsumption::Anchor)
+            && patterns
+                .iter()
+                .any(|pattern| pattern.fine_pos == DataFinePos::Nnb)
+            && let Some(rule) = branch
+                .origins
+                .iter()
+                .filter_map(|origin| origin.rule_path.last())
+                .find(|rule| {
+                    matches!(
+                        rule.as_str(),
+                        "contraction.nominal-topic-neun"
+                            | "contraction.dependent-topic-geot"
+                            | "contraction.dependent-object-geo"
+                            | "contraction.dependent-object-geot"
+                    )
+                })
+        {
+            let object = matches!(
+                rule.as_str(),
+                "contraction.dependent-object-geo" | "contraction.dependent-object-geot"
+            );
+            return self.accepts_token_boundary(haystack, &candidate.verified, branch)
+                && context::normalized_token(haystack, candidate.anchor.clone()).is_some_and(
+                    |token| {
+                        context::previous_word(haystack, candidate.anchor.start).is_some_and(
+                            |previous| {
+                                resolver.has_dependent_noun_particle_contraction(
+                                    &previous,
+                                    &token,
+                                    object,
+                                    DEFAULT_LATTICE_NODE_LIMIT,
+                                )
+                            },
+                        )
+                    },
+                );
+        }
         if matches!(
             branch.consumption,
             CandidateConsumption::CopulaHostEndingCompose | CandidateConsumption::FusedCopulaEnding

@@ -46,6 +46,12 @@ regression.dependent-subject-ge.derived-adnominal	것	noun	smart-exact	13	16	전
 regression.dependent-subject-ge.derived-connective	것	noun	no-match	10	13	전환해 게 두 마리를 찾았다.
 regression.dependent-subject-ge.geot	것	noun	smart-exact	7	10	읽는 게 좋다.
 regression.dependent-subject-ge.crab	것	noun	no-match	0	3	게 두 마리가 기어간다.
+regression.dependent-topic-geot	것	noun	smart-exact	7	10	읽는 건 어렵다.
+regression.dependent-topic-geot-auxiliary	것	noun	smart-exact	17	20	내가 먹어본 건 조금 매웠어.
+regression.dependent-object-geot	것	noun	smart-exact	7	10	읽는 걸 즐긴다.
+regression.dependent-object-geo	거	noun	smart-exact	10	13	있다는 걸 알게 되었다.
+regression.dependent-object-geot-final	것	noun	no-match	13	16	아마 그럴걸.
+regression.dependent-topic-geot-unit	것	noun	no-match	10	13	법원은 건 단위로 계산했다.
 corpus.ud-gsd.test.test-s66.compound-noun	들깨	noun	smart-exact	0	6	들깨가루 같은 것도 원하는 대로 넣을 수도 있고, 밥도 무한 리필이고 해서 어린애들 동반해서 가족끼리 가서 먹기에는 좋은 곳이라고 생각합니다.
 corpus.ud-gsd.test.test-s84.compound-noun	영업	noun	smart-exact	59	65	한컴은 2009년에 487억 원의 매출과 512억 원의 영업이익, 144억 원의 순이익을 기록해 사상 최대 실적을 달성했으며, 7년 연속 흑자 실적의 기록을 이어갔다고 밝혔다.
 corpus.ud-gsd.test.test-s105.compound-noun	공식	noun	smart-exact	69	75	김 대변인은 "어제 서울 G20 정상회의 환영 리셉션과 공식 만찬에서 각국 정상들의 활발한 발언과 토론이 있었다"고 덧붙였다.

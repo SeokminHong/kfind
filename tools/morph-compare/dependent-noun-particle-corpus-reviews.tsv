@@ -1,0 +1,2 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	pud:w01052038:noun:거	거	noun	false	5c9ea683b632c8559e38aa9f76abecdfd63225f67189291256b52ff1c33b8446	contract-positive	aligned-source-component	거의와 같은 문장의 있다는 걸에서 의존 명사 거와 목적격 조사가 결합한다. 새 반환 범위는 114..117이다.

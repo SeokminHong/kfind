@@ -616,15 +616,23 @@ fn compile_nominal_contractions(
     }
     for rule in &analyzer.lexicons().rules().contractions {
         match rule.kind.as_str() {
-            "nominal-particle-compose" if pronoun => {
+            "nominal-particle-compose"
+                if (pronoun && rule.id == "contraction.nominal-topic-neun")
+                    || (dependent_noun && analysis.lemma.as_ref() == rule.left) =>
+            {
                 let Some(prefix) = analysis.lemma.strip_suffix(&rule.left) else {
                     continue;
                 };
-                output.push(exact_branch(
+                output.push(exact_branch_with_decision(
                     &format!("{prefix}{}", rule.result),
                     analysis_index,
                     vec![RuleId::from(rule.id.clone())],
                     true,
+                    if dependent_noun {
+                        DraftDecision::Structural(ComponentCapability::Source)
+                    } else {
+                        DraftDecision::Boundary
+                    },
                 ));
             }
             "dependent-noun-subject-compose"
