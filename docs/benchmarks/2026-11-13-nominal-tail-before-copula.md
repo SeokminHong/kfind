@@ -18,7 +18,8 @@ GSD·PUD 원본 음성에서 `거주지였다`, `진국이고`, `책임자인` �
 GSD 양성의 `상당수이며`에 새 범위가 추가됐고, 같은 문장의 기존 정답 `할 수 있다`도
 계속 일치했습니다.
 [이번 음성 계약 검토](../../tools/morph-compare/nominal-tail-copula-corpus-reviews.tsv) ·
-[이전 음성 계약 검토](2026-11-13-final-nominal-components.md#품질)
+[이전 음성 계약 검토](2026-11-13-final-nominal-components.md#품질) ·
+[원문 대조 예문](../../tools/morph-compare/contract-contrast-evidence.jsonl)
 
 GSD, 회귀 양성, 동형이의 대조는 정확한 범위로 채점했습니다. KAIST 양성과 회귀 음성은
 표적과의 겹침, 범위가 없는 음성은 반환 여부를 사용했습니다. 행렬 순서는 TP, FP, TN, FN이고

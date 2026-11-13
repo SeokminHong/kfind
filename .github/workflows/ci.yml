@@ -72,6 +72,9 @@ jobs:
           python3 -m unittest discover
           --start-directory tools/morph-compare/real_corpus
           --pattern 'test_*.py'
+      - name: Check contract review contrast examples
+        working-directory: tools/morph-compare
+        run: python3 -m unittest test_contract_contrast
       - name: Test the release tooling
         run: >-
           python3 -m unittest discover

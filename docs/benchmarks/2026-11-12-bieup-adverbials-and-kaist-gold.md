@@ -17,11 +17,12 @@
 
 고정 KAIST dev의 원본 gold로 raw를 계산했습니다. 기존 검토 3건에
 `격식있는·수천가지`의 비표준 표기 2건과 `첫·주·적잖은`의 품사·표제어
-오류 3건을 추가했습니다. 두 revision에 같은 검토 목록을 적용하면 기준선의
-FNc는 6건이며, 후보는 `가벼이`를 찾으므로 5건입니다. 교정본 5건은
+오류 3건을 추가했습니다. 두 revision에 같은 검토 목록을 적용했습니다. 후보는
+`가벼이`를 찾아 raw FN이 13건에서 12건으로, FNᶜ가 6건에서 5건으로 줄었습니다. 교정본 5건은
 두 revision에서 모두 정확히 일치했습니다.
 [UD 회귀](../../data/fixtures/ud_morphology_cases.tsv) ·
 [계약 검토](../../tools/morph-compare/quality-contract-reviews.tsv) ·
+[대조 예문](../../tools/morph-compare/contract-contrast-evidence.jsonl) ·
 [국립국어원 첫 번째](https://www.korean.go.kr/front/mcfaq/mcfaqView.do?mcfaq_seq=9149&mn_id=62)
 
 대조·교정본·GSD는 정확한 범위 기준입니다. KAIST는 기존 겹침 기준을 사용했습니다.

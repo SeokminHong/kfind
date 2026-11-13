@@ -46,8 +46,9 @@ GSD에서 고른 9건과 사전 예문 2건을 대조했습니다. GSD의 `문�
 
 질문하는 `묻다`와 깨무는 `물다`가 모두 `물어보더냐`로 활용됩니다. 면접에서
 질문하는 문장과 강아지가 장난감을 무는 문장을 짝으로 두고, 각 문장에 두 질의를
-실행했습니다. 후보에서는 두 모드 모두 정확한 범위로 TPc 4건을 반환했습니다.
-기준선의 `any`는 `물어`까지만 반환하여 FNc 4건이었습니다.
+실행했습니다. 후보의 두 모드는 모두 정확한 범위를 반환해 raw TP 2건, FP 2건,
+계약 TPᶜ 4건을 기록했습니다. 기준선의 `any`는 `물어`까지만 반환해 raw FN 2건,
+FNᶜ 4건을 기록했습니다.
 [문맥 예문](../../tools/morph-compare/trial-context-cases.jsonl) ·
 [문맥 검토](../../tools/morph-compare/trial-contract-reviews.tsv) ·
 [KAIST 검토](../../tools/morph-compare/quality-contract-reviews.tsv)

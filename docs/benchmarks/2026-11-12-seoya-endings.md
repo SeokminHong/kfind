@@ -17,7 +17,7 @@
 [반환 범위 fixture](../../data/fixtures/seoya_span_cases.tsv)
 
 `막아서야`, `돌아서야`, `나서야`, `밝아서야`의 각 해석이 자연스러운 문장을 짝지어
-두 분석을 실행했습니다. 두 모드에서 raw FP 8건은 계약 TPc로 집계됐습니다.
+두 분석을 실행했습니다. 두 모드에서 raw FP 8건은 계약 TPᶜ로 집계됐습니다.
 문맥 대조는 검토 8건, KAIST dev·test는 각각 검토 3건입니다.
 다른 입력은 각각 검토 0건이며 보정 지표는 raw와 같습니다.
 [문맥 예문](../../tools/morph-compare/seoya-context-cases.jsonl) ·

@@ -40,7 +40,7 @@ Full-POS에서 대조·GSD·문맥 쌍은 정확한 양성 범위를, KAIST는 �
 | 문맥 대조 6건 any | 양쪽 | 3, 3, 0, 0 | 50.00, 100.00, 66.67 | 4, 1, 0, 0 | 80.00, 100.00, 88.89 | 2 |
 
 대조 입력에서 `usage-reading-adjective` 또는 `bitter-reading-verb`로 끝나는 ID
-6개는 raw 음성, 계약 양성입니다. 후보 smart의 raw FP 6건이 이 사례입니다.
+6개는 raw 음성, 계약 양성입니다. 후보 smart에서는 이 6건이 raw FP와 계약 TPᶜ로 집계됐습니다.
 
 ## 성능
 
