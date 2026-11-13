@@ -555,6 +555,7 @@ fn compile_analysis(
                 analysis_index,
                 analyzer,
                 particle_rules,
+                options.boundary,
                 output,
             );
             if options.expand == ExpandMode::Derivation {
@@ -607,6 +608,7 @@ fn compile_nominal_contractions(
     analysis_index: u16,
     analyzer: &LexiconQueryAnalyzer,
     particle_rules: &Arc<[RuleId]>,
+    boundary: crate::BoundaryPolicy,
     output: &mut Vec<DraftBranch>,
 ) {
     let pronoun = analysis.coarse_pos == CoarsePos::Pronoun;
@@ -616,6 +618,19 @@ fn compile_nominal_contractions(
     }
     for rule in &analyzer.lexicons().rules().contractions {
         match rule.kind.as_str() {
+            "pronoun-attributive-shortening"
+                if pronoun
+                    && boundary == crate::BoundaryPolicy::Smart
+                    && analysis.lemma.as_ref() == rule.left =>
+            {
+                output.push(exact_branch_with_decision(
+                    &rule.result,
+                    analysis_index,
+                    vec![RuleId::from(rule.id.clone())],
+                    true,
+                    DraftDecision::Structural(ComponentCapability::Source),
+                ));
+            }
             "nominal-particle-compose"
                 if (pronoun && rule.id == "contraction.nominal-topic-neun")
                     || (dependent_noun && analysis.lemma.as_ref() == rule.left) =>

@@ -128,6 +128,7 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
         "vowel-compose",
         "stem-rewrite",
         "nominal-particle-compose",
+        "pronoun-attributive-shortening",
         "dependent-noun-subject-compose",
         "nominal-copula-ending-compose",
         "copula-host-ending-compose",
@@ -178,6 +179,7 @@ fn validate_contractions(rules: &RuleSet, locations: &RuleLocations) -> Result<(
         if matches!(
             rule.kind.as_str(),
             "nominal-particle-compose"
+                | "pronoun-attributive-shortening"
                 | "dependent-noun-subject-compose"
                 | "nominal-copula-ending-compose"
                 | "copula-host-ending-compose"

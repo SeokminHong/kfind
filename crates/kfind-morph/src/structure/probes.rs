@@ -1154,6 +1154,16 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_independent_nominal_head(&self, text: &str) -> bool {
+        if self.has_complete_nominal_surface(text) {
+            return !has_exact_sequence(&self.resource, text, &[StructuralPos::NNB]);
+        }
+        complete_nominal_particle_host(&self.resource, text).is_some_and(|span| {
+            !has_exact_sequence(&self.resource, &text[span], &[StructuralPos::NNB])
+        })
+    }
+
+    #[must_use]
     pub fn has_inflected_counted_unit(&self, previous: &str, text: &str) -> bool {
         text.strip_suffix("째")
             .is_some_and(|unit| self.has_counted_unit_frame(previous, unit))

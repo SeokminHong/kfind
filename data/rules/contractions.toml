@@ -89,6 +89,14 @@ result = "건"
 ending_ids = []
 
 [[contraction]]
+id = "contraction.uri-attributive-ul"
+kind = "pronoun-attributive-shortening"
+left = "우리"
+right = "리"
+result = "울"
+ending_ids = []
+
+[[contraction]]
 id = "contraction.dependent-topic-geot"
 kind = "nominal-particle-compose"
 left = "것"

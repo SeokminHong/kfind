@@ -1270,6 +1270,19 @@ impl MorphMatcher {
             return false;
         }
         if matches!(branch.consumption, CandidateConsumption::Anchor)
+            && branch.origins.iter().any(|origin| {
+                origin
+                    .rule_path
+                    .last()
+                    .is_some_and(|rule| rule.as_str() == "contraction.uri-attributive-ul")
+            })
+        {
+            let span = &candidate.verified.token;
+            return self.accepts_token_boundary(haystack, &candidate.verified, branch)
+                && context::next_word(haystack, span.end)
+                    .is_some_and(|next| resolver.has_independent_nominal_head(&next));
+        }
+        if matches!(branch.consumption, CandidateConsumption::Anchor)
             && !branch.origins.is_empty()
             && branch.origins.iter().all(|origin| {
                 origin
