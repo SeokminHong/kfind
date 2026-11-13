@@ -480,6 +480,29 @@ pub(in crate::structure) fn select_structure(
             has_exact_fine_pos(resource, previous, |pos| pos == DataFinePos::Mm)
         })
         && exact_analysis_ends_with_pos(resource, context.current, |pos| pos == StructuralPos::NNBC)
+        && !context.next.is_some_and(|next| {
+            let (anchor, state) = if next.starts_with("있었") {
+                ("있었", crate::ContinuationState::Past)
+            } else {
+                ("있", crate::ContinuationState::Eu)
+            };
+            next.strip_prefix(anchor).is_some_and(|tail| {
+                (tail == "다"
+                    || crate::verify_predicate_continuation(
+                        state,
+                        crate::PredicatePos::AuxiliaryVerb,
+                        anchor,
+                        tail,
+                    )
+                    .is_some_and(|matched| matched.consumed_bytes == tail.len()))
+                    && has_exact_sequence(
+                        resource,
+                        context.current,
+                        &[StructuralPos::VV, StructuralPos::EC],
+                    )
+                    && has_exact_sequence(resource, "있", &[StructuralPos::VX])
+            })
+        })
     {
         return StructureSelection::NominalWhole;
     }
