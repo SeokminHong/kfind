@@ -1000,6 +1000,32 @@ impl MorphMatcher {
                 if !branch.consumption.allows_rule_path(&matched.rule_path) {
                     return None;
                 }
+
+                if let [direction, genitive, ..] = matched.rule_path.as_slice()
+                    && direction.as_str() == "particle.direction"
+                    && genitive.as_str() == "particle.genitive"
+                    && let Some(direction_surface) = ["으로", "로"]
+                        .into_iter()
+                        .find(|form| consumption_following.starts_with(form))
+                {
+                    let accepts = branch.decision.is_structural()
+                        && self.constraint_resolver.as_ref().is_some_and(|resolver| {
+                            let host = format!("{consumption_anchor}{direction_surface}");
+                            !resolver.has_exact_nominal_surface(&host)
+                                && !resolver.has_whole_modifier(&host)
+                        });
+                    if !accepts {
+                        let prefix = if branch.decision.is_structural() {
+                            ""
+                        } else {
+                            direction_surface
+                        };
+                        matched = self
+                            .particle_verifier
+                            .verify_prefix(&consumption_anchor, prefix);
+                    }
+                }
+
                 let subject_starts_copula = branch.decision.is_structural()
                     && matches!(
                         branch.consumption,

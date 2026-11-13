@@ -60,7 +60,7 @@ role = "case"
 hosts = ["nominal"]
 forms = ["으로", "로"]
 selection = "euro-ro"
-next = ["particle.from", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado", "particle.emphasis.yamallo"]
+next = ["particle.from", "particle.genitive", "particle.topic", "particle.additive", "particle.only", "particle.limit.ggaji", "particle.even.jocha", "particle.even.majeo", "particle.alternative.ina-na", "particle.concessive.inama-nama", "particle.concessive.irado-rado", "particle.emphasis.yamallo"]
 terminal = true
 
 [[particle]]
