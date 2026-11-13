@@ -166,6 +166,9 @@ pub(super) fn accepts_omitted_copula(
 ) -> bool {
     let mut nominal_frame = false;
     let accepted = omitted_copula_hosts(token).any(|(host, suffix)| {
+        if suffix == "시던고" && !is_sentence_end() {
+            return false;
+        }
         if suffix == "란" && !has_quotative_head() {
             return false;
         }
