@@ -1,0 +1,11 @@
+case_id	query	pos	form	lemma	xpos	gold_form
+gsd:test-s314:26	북남	noun	북남적십자관계자들의	북남+적십자+관계자+들+의	NNP+NNP+NNG+XSN+JKG	북남
+gsd:test-s435:7	개신교	noun	개신교선교사들	개신교+선교사+들	NNG+NNG+XSN	개신교
+gsd:test-s435:9	기독교	noun	기독교신자들로부터	기독교+신자+들+부터	NNG+NNG+XSN+JX	기독교
+gsd:test-s508:22	감축	noun	감축사업이다	감축+사업+이+다	NNG+NNG+VCP+EF	감축
+gsd:test-s524:1	국제	noun	국제교육수도회인	국제+교육+수도회+이+ㄴ	NNG+NNG+NNG+VCP+ETM	국제
+gsd:test-s604:3	명문	noun	명문사학인	명문+사학+이+ㄴ	NNG+NNG+VCP+ETM	명문
+gsd:test-s713:1	야구	noun	야구용품류	야구+용품+류	NNG+NNG+XSN	야구
+gsd:test-s716:14	시민	noun	시민사회단체들이	시민+사회단체+들+이	NNG+NNG+XSN+JKS	시민
+gsd:test-s736:3	기술	noun	기술집약형	기술+집약+형	NNG+NNG+XSN	기술
+gsd:test-s752:14	투자	noun	투자회사들에	투자+회사+들+에	NNG+NNG+XSN+JKB	투자
