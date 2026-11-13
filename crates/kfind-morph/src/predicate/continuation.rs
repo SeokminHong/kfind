@@ -1968,6 +1968,37 @@ mod tests {
     use super::*;
 
     #[test]
+    fn daganeun_continuation_requires_the_end_of_the_token() {
+        for ending in ["다가는", "다간", "단"] {
+            let text = format!("{ending}.");
+            let found = verify_predicate_continuation(
+                ContinuationState::StemEnding,
+                PredicatePos::Verb,
+                "읽",
+                &text,
+            )
+            .expect("connective ending before punctuation");
+            assert_eq!(found.consumed_bytes, ending.len());
+            assert_eq!(found.rule_path[0].as_str(), "ending.connective-daganeun");
+
+            let text = format!("{ending}다");
+            let found = verify_predicate_continuation(
+                ContinuationState::StemEnding,
+                PredicatePos::Verb,
+                "읽",
+                &text,
+            );
+            assert!(
+                found.is_none_or(|matched| !matched
+                    .rule_path
+                    .iter()
+                    .any(|rule| rule.as_str() == "ending.connective-daganeun")),
+                "accepted an internal connective ending in {text}",
+            );
+        }
+    }
+
+    #[test]
     fn past_state_consumes_a_bounded_suffix() {
         let matched = verify_predicate_continuation(
             ContinuationState::Past,
