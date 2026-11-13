@@ -601,7 +601,7 @@ impl MorphMatcher {
             for branch_ref in &self.anchor_programs[hit.anchor_index] {
                 let atom = &self.plan.atoms[branch_ref.atom_index];
                 let branch = &atom.programs[branch_ref.program_index];
-                let Some(candidate) = self.execute_program_without_decision(
+                let Some(mut candidate) = self.execute_program_without_decision(
                     haystack,
                     &hit,
                     branch,
@@ -609,8 +609,13 @@ impl MorphMatcher {
                 ) else {
                     continue;
                 };
-                if !self.accepts_program(haystack, &candidate, branch, atom, &mut structural_cache)
-                {
+                if !self.accepts_program(
+                    haystack,
+                    &mut candidate,
+                    branch,
+                    atom,
+                    &mut structural_cache,
+                ) {
                     if matches!(&branch.decision, CandidateDecision::Structural(_)) {
                         counters.structural_candidate_hits += 1;
                         let window =
@@ -705,8 +710,9 @@ impl MorphMatcher {
         metadata: MatchMetadata,
         structural_cache: &mut StructuralCache<'a>,
     ) -> Option<VerifiedSpan> {
-        let candidate = self.execute_program_without_decision(haystack, hit, branch, metadata)?;
-        if !self.accepts_program(haystack, &candidate, branch, atom, structural_cache) {
+        let mut candidate =
+            self.execute_program_without_decision(haystack, hit, branch, metadata)?;
+        if !self.accepts_program(haystack, &mut candidate, branch, atom, structural_cache) {
             return None;
         }
         let mut verified = candidate.verified;
@@ -1052,7 +1058,7 @@ impl MorphMatcher {
     fn accepts_program<'a>(
         &self,
         haystack: &'a [u8],
-        candidate: &ExecutedCandidate,
+        candidate: &mut ExecutedCandidate,
         branch: &CandidateProgram,
         atom: &AtomPlan,
         structural_cache: &mut StructuralCache<'a>,
@@ -1195,7 +1201,7 @@ impl MorphMatcher {
     fn accepts_structural<'a>(
         &self,
         haystack: &'a [u8],
-        candidate: &ExecutedCandidate,
+        candidate: &mut ExecutedCandidate,
         branch: &CandidateProgram,
         structural_cache: &mut StructuralCache<'a>,
     ) -> bool {
@@ -1479,7 +1485,7 @@ impl MorphMatcher {
         {
             return false;
         }
-        let licensed_trailing =
+        let (licensed_trailing, attached_auxiliary) =
             self.licensed_structural_trailing(haystack, candidate, branch, resolver);
         if licensed_trailing.is_none()
             && has_conflicting_whole_predicate(haystack, candidate, branch, resolver)
@@ -1524,6 +1530,7 @@ impl MorphMatcher {
                 && pattern.component_capability.allows_runtime()
         });
         let consumed = licensed_trailing.unwrap_or_else(|| candidate.consumed.clone());
+        let consumed_end = consumed.end;
         let rejected_suffix =
             self.has_rejected_structural_suffix(haystack, candidate, &consumed, branch, resolver);
         let nominal_particle_chain = matches!(
@@ -1613,7 +1620,12 @@ impl MorphMatcher {
         {
             diagnostics.record_unavailable();
         }
-        decision.is_some_and(|decision| ProductPolicy::RecallFirst.accepts(&decision))
+        let accepted =
+            decision.is_some_and(|decision| ProductPolicy::RecallFirst.accepts(&decision));
+        if accepted && attached_auxiliary {
+            candidate.verified.token.end = consumed_end;
+        }
+        accepted
     }
 
     fn accepts_numeric_unit(
@@ -1739,25 +1751,32 @@ impl MorphMatcher {
         candidate: &ExecutedCandidate,
         branch: &CandidateProgram,
         resolver: &ConstraintResolver,
-    ) -> Option<Range<usize>> {
+    ) -> (Option<Range<usize>>, bool) {
         if matches!(
             branch.consumption,
             CandidateConsumption::NominalParticleChain { .. }
         ) {
-            return self.licensed_nominal_copula_trailing(haystack, candidate, resolver);
+            return (
+                self.licensed_nominal_copula_trailing(haystack, candidate, resolver),
+                false,
+            );
         }
         if !matches!(
             branch.consumption,
             CandidateConsumption::PredicateContinuation { .. }
         ) {
-            return None;
+            return (None, false);
         }
         let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
         if candidate.consumed.end >= whole.end {
-            return None;
+            return (None, false);
         }
-        let trailing =
-            std::str::from_utf8(haystack.get(candidate.consumed.end..whole.end)?).ok()?;
+        let Some(trailing) = haystack
+            .get(candidate.consumed.end..whole.end)
+            .and_then(|bytes| std::str::from_utf8(bytes).ok())
+        else {
+            return (None, false);
+        };
         let has_rule = |expected: &str| {
             branch
                 .origins
@@ -1852,7 +1871,10 @@ impl MorphMatcher {
                         })))
             || source_attached_auxiliary
             || source_predicate_continuation;
-        licensed.then_some(candidate.consumed.start..whole.end)
+        (
+            licensed.then_some(candidate.consumed.start..whole.end),
+            source_attached_auxiliary,
+        )
     }
 
     fn accepts_product_copula_frame(
