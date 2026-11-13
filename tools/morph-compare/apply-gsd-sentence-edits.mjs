@@ -4,8 +4,10 @@ import { readFileSync } from 'node:fs';
 const [input, ...options] = process.argv.slice(2);
 const contract = options.includes('--review-contract');
 const shared = options.includes('--align-shared-sentences');
-if (!input || options.length !== Number(contract) + Number(shared)) {
-  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl [--review-contract] [--align-shared-sentences]');
+const restored = options.includes('--restore-source-passages');
+if (!input || (restored && !shared)
+    || options.length !== Number(contract) + Number(shared) + Number(restored)) {
+  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl [--review-contract] [--align-shared-sentences [--restore-source-passages]]');
 }
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
@@ -23,6 +25,7 @@ function tsv(path) {
 const editsBySentence = new Map();
 const sentenceEdits = tsv('./gsd-sentence-edits.tsv');
 if (shared) sentenceEdits.push(...tsv('./gsd-shared-sentence-edits.tsv'));
+if (restored) sentenceEdits.push(...tsv('./gsd-source-restoration-edits.tsv'));
 for (const [id, source, replacement, reason] of sentenceEdits) {
   if (!source || source === replacement || !reason) throw new Error(`invalid edit: ${id}`);
   const edits = editsBySentence.get(id) ?? [];
@@ -33,6 +36,7 @@ for (const [id, source, replacement, reason] of sentenceEdits) {
 const annotations = new Map();
 const annotationEdits = tsv('./gsd-sentence-edit-annotations.tsv');
 if (shared) annotationEdits.push(...tsv('./gsd-shared-sentence-annotations.tsv'));
+if (restored) annotationEdits.push(...tsv('./gsd-source-restoration-annotations.tsv'));
 for (const [id, query, pos, form, lemma, xpos] of annotationEdits) {
   if (annotations.has(id) || (query !== '-' && (!query || !pos || !form || !lemma || !xpos))) {
     throw new Error(`invalid annotation: ${id}`);
@@ -42,7 +46,7 @@ for (const [id, query, pos, form, lemma, xpos] of annotationEdits) {
 }
 
 const excludedSentences = new Set();
-if (contract) {
+if (contract && !restored) {
   for (const [id, reason, contrast] of tsv('./gsd-nonstandard-sentences.tsv')) {
     if (!reason || !contrast || excludedSentences.has(id)) {
       throw new Error(`invalid sentence exclusion: ${id}`);
