@@ -211,10 +211,10 @@ fn source_attached_auxiliary_requires_visible_or_unambiguous_connective_evidence
     assert!(go.find_at_with_meta("가리키는지".as_bytes(), 0).is_none());
     assert!(do_it.find_at_with_meta("해가며".as_bytes(), 0).is_none());
     assert!(remove.find_at_with_meta("빼놓을".as_bytes(), 0).is_some());
-    assert!(
-        walk.find_at_with_meta("걸어가십니까".as_bytes(), 0)
-            .is_some()
-    );
+    let text = "걸어가십니까";
+    let found = walk.find_at_with_meta(text.as_bytes(), 0).unwrap();
+    assert_eq!(found.atoms[0].token, 0..text.len());
+    assert_eq!(found.atoms[0].core, 0.."걸".len());
 }
 
 #[test]
