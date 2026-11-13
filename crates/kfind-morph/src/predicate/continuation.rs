@@ -400,10 +400,21 @@ const HONORIFIC_IMMEDIATE: Suffix = suffix(
     &["ending.honorific", "ending.connective-jamaja"],
 );
 const NEGATIVE_TOPIC: Suffix = suffix("진", &["ending.connective-ji", "particle.topic"]);
-const HONORIFIC_NEGATIVE_TOPIC: Suffix = suffix(
-    "시진",
-    &["ending.honorific", "ending.connective-ji", "particle.topic"],
-);
+const NEGATIVE_OBJECT: Suffix = suffix("질", &["ending.connective-ji", "particle.object"]);
+const HONORIFIC_NEGATIVE_PARTICLES: &[Suffix] = &[
+    suffix(
+        "시진",
+        &["ending.honorific", "ending.connective-ji", "particle.topic"],
+    ),
+    suffix(
+        "시질",
+        &[
+            "ending.honorific",
+            "ending.connective-ji",
+            "particle.object",
+        ],
+    ),
+];
 const CONCESSIVE_NA: Suffix = suffix("나", &["ending.connective-na"]);
 const INTERROGATIVE_NA_YO: Suffix = suffix("나요", &["ending.interrogative-na"]);
 const HONORIFIC_INTERROGATIVE_NA_YO: Suffix =
@@ -469,6 +480,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
     NOMINALIZER_EUM,
     NOMINALIZER_GI,
     NEGATIVE_TOPIC,
+    NEGATIVE_OBJECT,
     GEONA,
     CONCESSIVE_EUNA,
     NE,
@@ -559,6 +571,7 @@ const FUTURE_SUFFIXES: &[Suffix] = &[
     NOMINALIZER_EUM,
     NOMINALIZER_GI,
     NEGATIVE_TOPIC,
+    NEGATIVE_OBJECT,
     GEONA,
     CONCESSIVE_EUNA,
     NE,
@@ -1636,7 +1649,10 @@ fn verify_simple_continuation(
             &[INTENTIVE_RYEOGO]
         }
         ContinuationState::StemEnding if following.starts_with('진') => &[NEGATIVE_TOPIC],
-        ContinuationState::Eu if following.starts_with("시진") => &[HONORIFIC_NEGATIVE_TOPIC],
+        ContinuationState::StemEnding if following.starts_with('질') => &[NEGATIVE_OBJECT],
+        ContinuationState::Eu if following.starts_with("시진") || following.starts_with("시질") => {
+            HONORIFIC_NEGATIVE_PARTICLES
+        }
         ContinuationState::StemEnding if following.starts_with("지만") => &[JIMAN],
         ContinuationState::StemEnding if following.starts_with("거나") => &[GEONA],
         ContinuationState::StemEnding if anchor.ends_with('시') && following.starts_with('나') => {
