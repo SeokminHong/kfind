@@ -347,6 +347,12 @@ const RYEO_CONJECTURE: &[Suffix] = &[
 ];
 
 pub(super) const FAMILIAR_QUESTION: Suffix = suffix("니", &["ending.interrogative-ni"]);
+pub(super) const NIRA: Suffix = suffix("니라", &["ending.archaic-nira"]);
+pub(super) const NEUNIRA: Suffix = suffix("느니라", &["ending.archaic-nira"]);
+pub(super) const HONORIFIC_NIRA: &[Suffix] = &[
+    suffix("시니라", &["ending.honorific", "ending.archaic-nira"]),
+    suffix("시느니라", &["ending.honorific", "ending.archaic-nira"]),
+];
 const JIMAN: Suffix = suffix("지만", &["ending.connective-jiman"]);
 const GEONA: Suffix = suffix("거나", &["ending.connective-geona"]);
 const IMMEDIATE: Suffix = suffix("자마자", &["ending.connective-jamaja"]);
@@ -1623,6 +1629,36 @@ fn verify_simple_continuation(
             if following.starts_with("것다") =>
         {
             GEOTDA
+        }
+        ContinuationState::StemEnding
+            if pos == PredicatePos::Copula
+                && matches!(anchor, "이" | "이시")
+                && following.starts_with("니라") =>
+        {
+            &[NIRA]
+        }
+        ContinuationState::StemEnding
+            if pos == PredicatePos::Copula
+                && anchor == "이시"
+                && following.starts_with("느니라") =>
+        {
+            &[NEUNIRA]
+        }
+        ContinuationState::Eu if !pos.is_action() && following.starts_with("니라") => &[NIRA],
+        ContinuationState::StemEnding
+            if (pos.is_action() || anchor.ends_with(['있', '없']) || anchor == "계시")
+                && !anchor.chars().next_back().is_some_and(has_rieul_final)
+                && following.starts_with("느니라") =>
+        {
+            &[NEUNIRA]
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("느니라") => {
+            &[NEUNIRA]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시니라") || following.starts_with("시느니라") =>
+        {
+            HONORIFIC_NIRA
         }
         ContinuationState::StemEnding
             if (pos == PredicatePos::Copula || anchor == "아니")
