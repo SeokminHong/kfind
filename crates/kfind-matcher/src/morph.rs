@@ -1127,7 +1127,9 @@ impl MorphMatcher {
         }
         if boundary == BoundaryPolicy::Smart
             && self.constraint_resolver.as_ref().is_some_and(|resolver| {
-                has_competing_hao_connective(haystack, candidate, branch, resolver)
+                has_competing_iran_particle_analysis(haystack, candidate, resolver)
+                    || lacks_contracted_quotative_head(haystack, candidate, branch, resolver)
+                    || has_competing_hao_connective(haystack, candidate, branch, resolver)
                     || has_nominal_quotative_frame(haystack, candidate, branch, resolver)
                     || has_counted_unit_copula(haystack, candidate, branch, resolver)
                     || has_elapsed_measure_frame(haystack, candidate, branch, atom, resolver)
@@ -2080,6 +2082,7 @@ impl MorphMatcher {
                                 resolver,
                             )
                         },
+                        || has_quotative_adnominal_head(haystack, candidate.consumed.end, resolver),
                         |unit| {
                             context::previous_word(haystack, candidate.verified.token.start)
                                 .is_some_and(|previous| {
@@ -2629,6 +2632,95 @@ fn follows_predicate_adnominal(haystack: &[u8], at: usize, resolver: &Constraint
             && !(resolver.has_object_marked_nominal(&previous)
                 && context::previous_word(haystack, start)
                     .is_some_and(|modifier| resolver.has_predicate_adnominal_surface(&modifier)))
+    })
+}
+
+fn lacks_contracted_quotative_head(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    resolver: &ConstraintResolver,
+) -> bool {
+    matches!(
+        branch.consumption,
+        CandidateConsumption::PredicateContinuation {
+            pos: kfind_morph::PredicatePos::Copula,
+            ..
+        }
+    ) && candidate
+        .suffix_rules
+        .last()
+        .is_some_and(|rule| rule.as_str() == "ending.copula-quotative-adnominal")
+        && std::str::from_utf8(&haystack[candidate.anchor.end..candidate.consumed.end])
+            .is_ok_and(|suffix| suffix.nfc().eq("란".chars()))
+        && !has_quotative_adnominal_head(haystack, candidate.consumed.end, resolver)
+}
+
+fn has_quotative_adnominal_head(
+    haystack: &[u8],
+    end: usize,
+    resolver: &ConstraintResolver,
+) -> bool {
+    context::next_word_with_end(haystack, end).is_some_and(|(next_end, next)| {
+        // Enumerative (이)며 takes a nominal coordinate, not a clause starting with an adverb.
+        if next
+            .strip_suffix("이며")
+            .is_some_and(|host| resolver.has_complete_nominal_surface(host))
+            && context::next_word(haystack, next_end)
+                .is_some_and(|following| resolver.has_exact_adverb_surface(&following))
+        {
+            return false;
+        }
+        if is_sentence_end_after(haystack, next_end)
+            && (resolver.has_independent_final_predicate(&next)
+                || resolver.has_final_copula_after_nominal(&next))
+        {
+            return false;
+        }
+        (!resolver.has_exact_adverb_surface(&next)
+            && !resolver.has_nominal_genitive_surface(&next)
+            && !next.strip_suffix(['과', '와']).is_some_and(|host| {
+                resolver.has_complete_nominal_surface(host)
+                    && context::next_word(haystack, next_end).is_some_and(|coordinate| {
+                        resolver.has_nominal_with_optional_particles(&coordinate)
+                    })
+            })
+            && resolver.has_nominal_with_optional_particles(&next))
+            || (resolver.has_predicate_adnominal_surface(&next)
+                && context::next_word(haystack, next_end)
+                    .is_some_and(|head| resolver.has_nominal_with_optional_particles(&head)))
+    })
+}
+
+fn has_competing_iran_particle_analysis(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    resolver: &ConstraintResolver,
+) -> bool {
+    if !candidate
+        .suffix_rules
+        .last()
+        .is_some_and(|rule| rule.as_str() == "particle.topic.iran-ran")
+    {
+        return false;
+    }
+    let whole = surrounding_token_span(haystack, candidate.verified.core.clone());
+    let before = &haystack[..whole.start];
+    if whole.start == candidate.verified.core.start
+        && (before.ends_with(b"\"") || before.ends_with("”".as_bytes()))
+    {
+        return true;
+    }
+    context::normalized_token(haystack, whole.clone()).is_some_and(|token| {
+        (resolver.has_exact_nominal_surface(&token)
+            && context::next_word(haystack, whole.end)
+                .is_some_and(|next| resolver.has_nominal_genitive_surface(&next)))
+            || (resolver.has_predicate_adnominal_surface(&token)
+                && has_quotative_adnominal_head(haystack, whole.end, resolver)
+                && context::previous_word(haystack, whole.start).is_some_and(|previous| {
+                    resolver.has_nominal_oblique(&previous)
+                        || resolver.has_object_marked_nominal(&previous)
+                }))
     })
 }
 

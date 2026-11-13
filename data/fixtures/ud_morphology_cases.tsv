@@ -1,4 +1,18 @@
 id	query	pos	expected	byte_start	byte_end	text
+regression.quotative-ran.explicit	이다	adjective	smart-exact	22	28	심사위원은 그것이란 답을 골랐다.
+regression.quotative-ran.omitted	이다	adjective	smart-exact	10	19	장인은 도구란 이름을 붙였다.
+regression.quotative-ran.consonant-topic	이다	adjective	no-match	6	12	사람이란 모름지기 서로를 존중해야 한다.
+regression.quotative-ran.vowel-topic	이다	adjective	no-match	6	9	친구란 모름지기 서로 돕는다.
+regression.quotative-ran.topic-pause	이다	adjective	no-match	6	12	행복이란, 나누면 커진다.
+regression.quotative-ran.topic-question	이다	adjective	no-match	7	13	이 책이란 무엇인가?
+regression.quotative-ran.topic-connective	이다	adjective	no-match	3	9	법이란 무엇이며 왜 법을 지켜야 하는가?
+regression.quotative-ran.noun-consonant	사람	noun	smart-exact	0	12	사람이란 모름지기 서로를 존중해야 한다.
+regression.quotative-ran.noun-vowel	친구	noun	smart-exact	0	9	친구란 모름지기 서로 돕는다.
+regression.quotative-ran.subordinate-subject	이다	adjective	smart-exact	29	35	발표자는 결과가 합격이란 사실을 알렸다.
+corpus.ud-gsd.test.test-s33.quotative-ran	이다	adjective	smart-exact	45	51	지난달 2일 RBA는 금리를 동결할 것이란 시장 예상과 달리 6개월 만에 기준금리를 4.75%로 0.25%p 인상했다.
+corpus.ud-gsd.test.test-s742.topic-ran	이다	adjective	no-match	12	18	입체음향이란 방향과 거리, 공간감각을 느낄 수 있는 소리를 말한다.
+corpus.ud-pud.test.n01024010.adnominal-ran	자	noun	no-match	20	26	지구 씨앗에서 자란 식물이 17일 후 살아있을 확률은 70%를 약간 넘고 우주 씨앗에서 자란 식물이 생존할확률은 이보다 약간 낮은 66% 정도였다.
+corpus.ud-pud.test.w01060040.proper-name-ran	거	noun	no-match	22	28	그는 1075년 여름 거란 요나라의 특사로서 파견된이후 법정에서 자신의 명성을 다시 한 번 떨쳤다.
 regression.nominal-chigo.bare	경차	noun	smart-exact	0	12	경차치고 실내가 넓다.
 regression.nominal-chigo.topic	겨울	noun	smart-exact	0	15	겨울치고는 따뜻하다.
 regression.nominal-chigo.invalid-chain	겨울	noun	no-match	0	15	겨울치고를 따뜻하다.

@@ -160,10 +160,14 @@ pub(super) fn accepts_omitted_copula(
     resolver: &ConstraintResolver,
     is_sentence_end: impl Fn() -> bool,
     follows_adnominal: impl Fn() -> bool,
+    has_quotative_head: impl Fn() -> bool,
     supports_counted_unit: impl Fn(&str) -> bool,
 ) -> bool {
     let mut nominal_frame = false;
     let accepted = omitted_copula_hosts(token).any(|(host, suffix)| {
+        if suffix == "란" && !has_quotative_head() {
+            return false;
+        }
         if (matches!(suffix, "죠" | "지요" | "냐") && supports_counted_unit(host))
             || (resolver.has_numeric_unit_surface(host)
                 && (!matches!(suffix, "게" | "네" | "네요") || is_sentence_end()))

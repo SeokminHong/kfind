@@ -11,6 +11,7 @@ lemma	pos	rule_id	variants	flags
 도	JX	particle.additive	도	
 로	JKB	particle.direction	으로|로	RIEUL_AS_VOWEL
 라도	JX	particle.concessive.irado-rado	이라도|라도	
+란	JX	particle.topic.iran-ran	이란|란	
 랑	JC	particle.comitative.irang-rang	이랑|랑	
 마다	JX	particle.distributive.mada	마다	
 만	JX	particle.only	만	
