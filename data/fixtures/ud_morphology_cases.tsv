@@ -930,6 +930,13 @@ regression.simultaneous-additive.auxiliary	걷다	verb	smart-exact	0	18	걸어�
 regression.simultaneous-additive.separate	알다	verb	smart-exact	0	9	알면서 도와주었다.
 corpus.ud-pud.test.n01074020.verb.simultaneous-additive	임하다	verb	smart-exact	37	52	그는 경기에 대해 진지하게 임하면서도 공을 처리하는 솜씨가 유연하다.
 corpus.ud-pud.test.n02066010.verb.simultaneous-additive	알다	verb	smart-exact	167	179	그 비행기 추락 사고를 조사하는 캐나다 조사관 랠리 밴스는 슈피겔(SPIEGEL)과의 인터뷰에서 조종사 중 한 명이 가라앉을 것을 알면서도 의도적으로 비행기를 해수면에 착륙시킨 것 같다고 밝혔다.
+corpus.ud-gsd.test.test-s473.verb.doubt-topic	바뀌다	verb	smart-exact	144	156	지금 세계 게임시장의 주도권을 비디오게임이 쥐고 있지만 향후 3년 이후만 해도 게임산업의 지형이 어떻게 바뀔지는 상상하기 힘든데요.
+regression.doubt-topic.irregular	걷다	verb	smart-exact	0	12	걸을지는 모르겠다.
+regression.doubt-topic.past-honorific	가다	verb	smart-exact	0	15	가셨을지는 모르겠다.
+regression.doubt-topic.rieul-neunji	먹다	verb	smart-exact	0	15	먹을는지는 모르겠다.
+regression.doubt-topic.present	먹다	verb	smart-exact	0	12	먹는지는 모르겠다.
+regression.doubt-topic.adjective	좋다	adjective	smart-exact	0	12	좋은지는 모르겠다.
+regression.doubt-topic.boundary	가다	verb	smart-exact	0	3	간 지는 오래됐다.
 corpus.ud-pud.test.n01137010.verb.negative-additive	보다	verb	smart-exact	24	33	에피소드를 몇 편 보지도 않았는데 내 휴대폰에 불이 들어오기 시작했다.
 corpus.ud-gsd.test.test-s642.verb.past-neyo	다녀오다	verb	smart-exact	18	33	벌써 여러 번 다녀왔네요.
 corpus.ud-gsd.test.test-s668.verb.past-neyo	거부당하다	verb	smart-exact	17	35	카드 결제를 거부당했네요.

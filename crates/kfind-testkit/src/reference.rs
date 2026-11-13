@@ -1223,8 +1223,10 @@ fn reference_simple_continuation(
             &[
                 $($extension,)*
                 reference_suffix(concat!($prefix, "지"), &[$($prior,)* "ending.doubt-rieulji"]),
+                reference_suffix(concat!($prefix, "지는"), &[$($prior,)* "ending.doubt-rieulji", "particle.topic"]),
                 reference_suffix(concat!($prefix, "지요"), &[$($prior,)* "ending.doubt-rieulji"]),
                 reference_suffix(concat!($prefix, "는지"), &[$($prior,)* "ending.doubt-rieulneunji"]),
+                reference_suffix(concat!($prefix, "는지는"), &[$($prior,)* "ending.doubt-rieulneunji", "particle.topic"]),
                 reference_suffix(concat!($prefix, "는지요"), &[$($prior,)* "ending.doubt-rieulneunji"]),
                 reference_suffix(concat!($prefix, "걸"), &[$($prior,)* "ending.conjecture-rieulgeol"]),
                 reference_suffix(concat!($prefix, "걸요"), &[$($prior,)* "ending.conjecture-rieulgeol"]),
@@ -1538,6 +1540,7 @@ fn reference_simple_continuation(
                 reference_suffix(concat!($prefix, "가"), &[$($prior,)* "ending.interrogative-nga"]),
                 reference_suffix(concat!($prefix, "가요"), &[$($prior,)* "ending.interrogative-nga", "ending.polite-yo"]),
                 reference_suffix(concat!($prefix, "지"), &[$($prior,)* "ending.interrogative-nji"]),
+                reference_suffix(concat!($prefix, "지는"), &[$($prior,)* "ending.interrogative-nji", "particle.topic"]),
                 reference_suffix(concat!($prefix, "지요"), &[$($prior,)* "ending.interrogative-nji", "ending.polite-yo"]),
             ]
         };
