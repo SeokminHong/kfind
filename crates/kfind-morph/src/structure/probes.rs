@@ -1291,7 +1291,15 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_standalone_counted_unit(&self, count: &str, unit: &str) -> bool {
-        (count == "수" || self.has_measure_count(count))
+        (matches!(
+            count,
+            "수" | "여러" | "한두" | "두세" | "서너" | "너덧" | "네댓" | "대여섯"
+        ) || self.has_measure_count(count)
+            || count.strip_suffix('여').is_some_and(|cardinal| {
+                (!cardinal.is_empty() && cardinal.bytes().all(|byte| byte.is_ascii_digit()))
+                    || Self::is_mixed_cardinal(cardinal)
+                    || has_exact_fine_pos(&self.resource, cardinal, |pos| pos == DataFinePos::Nr)
+            }))
             && has_exact_sequence(&self.resource, unit, &[StructuralPos::NNBC])
     }
 

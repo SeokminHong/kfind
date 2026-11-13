@@ -204,6 +204,11 @@ corpus.ud-gsd.test.test-s177.verb.교체하다	교체하다	verb	smart-exact	110
 corpus.ud-gsd.test.test-s207.verb.기거하다	기거하다	verb	smart-exact	113	122	일리노이 중부 블루밍튼의 노숙자 쉼터 '홈 스위트 홈 미니스트리즈'에 수 주 전부터 기거해 온 맥키는 전날 욕실 안에서 비상 도움을 요청했으며 쉼터 측 신고로 현장에 출동한 경찰은 뚜껑이 닫혀 있던 변기 안에서 신생아를 발견했다.
 corpus.ud-gsd.test.test-s207.noun.주	주	noun	smart-exact	99	102	일리노이 중부 블루밍튼의 노숙자 쉼터 '홈 스위트 홈 미니스트리즈'에 수 주 전부터 기거해 온 맥키는 전날 욕실 안에서 비상 도움을 요청했으며 쉼터 측 신고로 현장에 출동한 경찰은 뚜껑이 닫혀 있던 변기 안에서 신생아를 발견했다.
 regression.standalone-counted-unit.day	일	noun	smart-exact	4	7	수 일 전부터 준비했다.
+regression.standalone-counted-unit.interrogative	주	noun	smart-exact	4	7	몇 주 전부터 준비했나요?
+regression.standalone-counted-unit.native-cardinal	주	noun	smart-exact	4	7	두 주 전부터 준비했다.
+regression.standalone-counted-unit.indefinite	주	noun	smart-exact	7	10	여러 주 전부터 준비했다.
+regression.standalone-counted-unit.native-approximate	주	noun	smart-exact	7	10	한두 주 전부터 준비했다.
+regression.standalone-counted-unit.suffixed-approximate	주	noun	smart-exact	6	9	10여 주 전부터 준비했다.
 regression.standalone-counted-unit.hour	시	noun	smart-exact	4	7	몇 시 이후에 문을 닫나요?
 regression.standalone-counted-unit.modifier	주	noun	no-match	0	3	주 업무를 정했다.
 regression.standalone-counted-unit.new	새	noun	no-match	13	16	사이에서 새 생명이 태어났다.
