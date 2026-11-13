@@ -343,6 +343,18 @@ pub(super) fn has_complete_object_phrase(resource: &ComponentResource, text: &st
         && has_exact_sequence(resource, &text[host.len()..], &[StructuralPos::JKO])
 }
 
+pub(super) fn has_complete_subject_phrase(resource: &ComponentResource, text: &str) -> bool {
+    let Some(host) = text.strip_suffix(['이', '가']) else {
+        return false;
+    };
+    host.chars().next_back().is_some_and(|last| {
+        crate::drop_final(last).is_some() == text.ends_with('이')
+            && (has_exact_fine_pos(resource, host, DataFinePos::is_nominal)
+                || complete_nominal_host(resource, host))
+            && has_exact_sequence(resource, &text[host.len()..], &[StructuralPos::JKS])
+    })
+}
+
 pub(super) fn has_adnominal_result_complement(resource: &ComponentResource, text: &str) -> bool {
     [("것", "으로"), ("걸", "로"), ("거", "로")]
         .into_iter()
