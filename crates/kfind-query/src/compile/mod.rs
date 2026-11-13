@@ -108,6 +108,7 @@ const PREDICATE_CONSUMPTION_RULE_IDS: &[&str] = &[
     "ending.future",
     "ending.nominalizer",
     "ending.nominalizer-gi",
+    "particle.object",
     "ending.past-adnominal",
     "ending.future-adnominal",
     "ending.coordinate-myeo",

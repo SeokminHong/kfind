@@ -1,4 +1,10 @@
 id	query	pos	expected	byte_start	byte_end	text
+regression.nominalizer-gil.consonant	읽다	verb	smart-exact	7	13	책을 읽길 바란다.
+regression.nominalizer-gil.honorific-consonant	읽다	verb	smart-exact	7	19	책을 읽으시길 바랍니다.
+regression.nominalizer-gil.honorific-vowel	삼가다	verb	smart-exact	10	22	외출을 삼가시길 바랍니다.
+regression.nominalizer-gil.double-case	읽다	verb	no-match	7	16	책을 읽길을 바란다.
+regression.nominalizer-gil.lexical-noun	가다	verb	no-match	16	22	등산로에서 갓길을 조심하세요.
+corpus.ud-gsd.test.test-s268.nominalizer-gil	지연되다	verb	smart-exact	105	117	중국도 유로화 가치 급락으로 유로존 수출시장이 위축되거나 세계경제 회복이 지연되길 바라지 않기 때문이다.
 regression.quotative-ran.explicit	이다	adjective	smart-exact	22	28	심사위원은 그것이란 답을 골랐다.
 regression.quotative-ran.omitted	이다	adjective	smart-exact	10	19	장인은 도구란 이름을 붙였다.
 regression.quotative-ran.consonant-topic	이다	adjective	no-match	6	12	사람이란 모름지기 서로를 존중해야 한다.

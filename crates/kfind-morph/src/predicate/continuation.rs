@@ -470,6 +470,15 @@ const HONORIFIC_MEURO_ENDINGS: &[Suffix] = &[
 
 const NOMINALIZER_EUM: Suffix = suffix("음", &["ending.nominalizer"]);
 const NOMINALIZER_GI: Suffix = suffix("기", &["ending.nominalizer-gi"]);
+const NOMINALIZER_GIL: Suffix = suffix("길", &["ending.nominalizer-gi", "particle.object"]);
+const HONORIFIC_NOMINALIZER_GIL: Suffix = suffix(
+    "시길",
+    &[
+        "ending.honorific",
+        "ending.nominalizer-gi",
+        "particle.object",
+    ],
+);
 
 const FUTURE_SUFFIXES: &[Suffix] = &[
     suffix("지", &["ending.confirmation-jiyo"]),
@@ -1383,6 +1392,12 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if pos != PredicatePos::Copula && following.starts_with('길') =>
+        {
+            &[NOMINALIZER_GIL]
+        }
+        ContinuationState::Eu if following.starts_with("시길") => &[HONORIFIC_NOMINALIZER_GIL],
         ContinuationState::StemEnding if pos.is_action() && following.starts_with("자마자") => {
             &[IMMEDIATE]
         }
