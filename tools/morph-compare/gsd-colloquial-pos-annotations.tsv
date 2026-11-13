@@ -1,0 +1,4 @@
+case_id	query	pos	form	lemma	xpos	gold_form
+gsd:test-s293:14	짱	noun	짱입니다요	짱+이+ㅂ니다+요	NNG+VCP+EF+JX	짱입니다요
+gsd:test-s647:2	존나	adverb	존나	존나	MAG	존나
+gsd:test-s647:4	존나	adverb	존나	존나	MAG	존나
