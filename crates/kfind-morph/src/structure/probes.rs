@@ -961,6 +961,36 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_derived_predicate_connective_surface(
+        &self,
+        text: &str,
+        source_positions: PredicatePosSet,
+    ) -> bool {
+        let mut found = false;
+        self.resource
+            .common_prefix_positions(text.as_bytes(), |length, root| {
+                if length >= text.len() || !matches!(root, [StructuralPos::NNG | StructuralPos::XR])
+                {
+                    return;
+                }
+                let tail = &text[length..];
+                found |= (source_positions.contains(PredicatePos::Verb)
+                    && has_exact_sequence(
+                        &self.resource,
+                        tail,
+                        &[StructuralPos::XSV, StructuralPos::EC],
+                    ))
+                    || (source_positions.contains(PredicatePos::Adjective)
+                        && has_exact_sequence(
+                            &self.resource,
+                            tail,
+                            &[StructuralPos::XSA, StructuralPos::EC],
+                        ));
+            });
+        found
+    }
+
+    #[must_use]
     pub fn has_extended_predicate_prefix_path(
         &self,
         text: &str,
@@ -1154,6 +1184,19 @@ impl ConstraintResolver {
     pub fn has_nominal_with_optional_particles(&self, text: &str) -> bool {
         self.has_complete_nominal_surface(text)
             || complete_nominal_particle_host(&self.resource, text).is_some()
+    }
+
+    #[must_use]
+    pub fn has_competing_nominal_after_connective(
+        &self,
+        text: &str,
+        connective_end: usize,
+    ) -> bool {
+        text.char_indices().any(|(split, _)| {
+            split > connective_end
+                && self.has_exact_nominal_surface(&text[..split])
+                && self.has_nominal_with_optional_particles(&text[split..])
+        }) || self.has_exact_nominal_surface(text)
     }
 
     #[must_use]

@@ -106,6 +106,9 @@ regression.honorific-vowel-connective.rieul-concession	들다	verb	smart-exact	0
 regression.honorific-vowel-connective.uncontracted-concession	오다	verb	smart-exact	0	12	오시어도 됩니다.
 regression.honorific-vowel-connective.allomorph	읽다	verb	no-match	0	9	읽셔도 괜찮습니다.
 regression.honorific-vowel-connective.auxiliary	주다	verb	smart-exact	10	19	정리해 주셔서 고맙습니다.
+regression.attached-give.derived-honorific	배달하다	verb	smart-exact	20	44	오늘도 음식을 배달해주시더군요.
+regression.attached-give.derived-adnominal	검안하다	verb	smart-exact	0	15	검안해주신 분께 감사했다.
+regression.attached-give.nominal-competition	사다	verb	no-match	0	15	사주일가의 지분을 조사했다.
 regression.honorific-vowel-connective.not-decrease	줄다	verb	no-match	10	19	정리해 주셔서 고맙습니다.
 corpus.ud-gsd.test.test-s228.verb.honorific-simultaneous	돌아가다	verb	smart-exact	26	44	사장님 내외분께서 돌아가시면서 새벽까지 하시고요
 regression.honorific-simultaneous.consonant	읽다	verb	exact	0	15	읽으시면서 메모하셨다.
