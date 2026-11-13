@@ -1,0 +1,13 @@
+case_id	original_query	original_lemma	original_xpos	query	lemma	xpos	reason	form	original_pos
+gsd:test-s49:5	윌리엄스	윌리엄스+버그	NNP+NNG	윌리엄스버그	윌리엄스버그	NNP	버지니아의 도시 이름	윌리엄스버그	noun
+gsd:test-s49:12	제임스	제임스+타운+을	NNP+NNG+JKO	제임스타운	제임스타운+을	NNP+JKO	건설한 정착지의 이름	제임스타운을	noun
+gsd:test-s115:10	필립	필립+모리스+가	NNP+NNP+JKS	필립모리스	필립모리스+가	NNP+JKS	승소 주체인 회사 이름	필립모리스가	noun
+gsd:test-s118:10	센트	센트+이+랄	NNB+VCP+ETM	센트랄	센트랄	NNP	오슬로 센트랄 역 이름의 구성 요소	센트랄	noun
+gsd:test-s177:5	삼성	삼성+테크윈+은	NNP+NNG+JX	삼성테크윈	삼성테크윈+은	NNP+JX	제품 개발 주체인 회사 이름	삼성테크윈은	noun
+gsd:test-s193:12	삼성	삼성+테크윈	NNP+NNG	삼성테크윈	삼성테크윈	NNP	주가를 나열한 회사 이름	삼성테크윈	noun
+gsd:test-s367:3	김	김+경주+의	NNP+NNG+JKG	김경주	김경주+의	NNP+JKG	감정을 표현하는 인물의 이름	김경주의	noun
+gsd:test-s542:1	윤	윤+은혜+는	NNP+NNG+JX	윤은혜	윤은혜+는	NNP+JX	직접 인용문의 화자 이름	윤은혜는	noun
+gsd:test-s567:11	투스	투스+카니+보다	NNP+NNP+JKB	투스카니	투스카니+보다	NNP+JKB	비교 기준인 차종 이름	투스카니보다	noun
+gsd:test-s691:6	유	유+스트림+을	NNP+NNG+JKO	유스트림	유스트림+을	NNP+JKO	인터넷 방송 서비스 이름	유스트림을	noun
+gsd:test-s754:1	우리	우리+산업+의	NP+NNG+JKG	우리산업	우리산업+의	NNP+JKG	누적 실적의 주체인 회사 이름	우리산업의	pronoun
+gsd:test-s793:2	그랜드	그랜드+성형외과	NNP+NNG	그랜드성형외과	그랜드성형외과	NNP	홈페이지 운영 주체인 병원 이름	그랜드성형외과	noun
