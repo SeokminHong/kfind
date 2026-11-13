@@ -1,0 +1,4 @@
+case_id	original_query	original_lemma	original_xpos	query	lemma	xpos	reason	form	original_pos
+gsd:test-s356:3	일	일+회+용	NR+NNB+XSN	일회용	일회용	NNG	한 번 쓰고 버리는 용도를 나타내는 사전 등재 명사	일회용	numeral
+gsd:test-s356:8	일	일+회+용	NR+NNB+XSN	일회용	일회용	NNG	한 번 쓰고 버리는 용도를 나타내는 사전 등재 명사	일회용	numeral
+gsd:test-s960:3	일	일+주일+에	NR+NNB+JKB	일주일	일주일+에	NNG+JKB	칠 일을 뜻하는 사전 등재 명사와 부사격 조사	일주일에	numeral
