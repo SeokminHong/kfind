@@ -7,11 +7,12 @@ const reviewsByMode = new Map([
   ['--entity-names', ['b7a0726517a62c72866525ff882bab0c9dda293a705e9ae886e15bd334e2f617', './gsd-entity-name-review.tsv']],
   ['--lexical-units', ['e9e89fc3fc5e0b385963e6eb346c2fb2db381660d1ccda35f51981afc5504eac', './gsd-lexical-unit-pos-review.tsv']],
   ['--numeral-compounds', ['2a936b51b352b1ecd5ad2388e60303d89b398fb5c5eb42c1dc4b102aad620188', './gsd-numeral-compound-review.tsv']],
+  ['--compound-names', ['7499b197f9f01116b4d8ffc6f70ceb2da723fa0daf348cc48c3b317eca4147eb', './gsd-compound-name-review.tsv']],
 ]);
 const [input, mode, ...extra] = process.argv.slice(2);
 const reviewSource = reviewsByMode.get(mode);
 if (!input || !reviewSource || extra.length) {
-  throw new Error('usage: node apply-gsd-proper-name-review.mjs GSD_POSITIVES.jsonl [--person-names|--entity-names|--lexical-units|--numeral-compounds]');
+  throw new Error('usage: node apply-gsd-proper-name-review.mjs GSD_POSITIVES.jsonl [--person-names|--entity-names|--lexical-units|--numeral-compounds|--compound-names]');
 }
 const [expectedChecksum, registryPath] = reviewSource;
 const original = readFileSync(input);

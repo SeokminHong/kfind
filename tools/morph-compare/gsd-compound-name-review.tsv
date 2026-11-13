@@ -1,0 +1,30 @@
+case_id	original_query	original_lemma	original_xpos	query	lemma	xpos	reason	form
+gsd:test-s24:1	인천	인천+공항+까지	NNP+NNG+JX	인천공항	인천공항+까지	NNP+JX	문장이 가리키는 고유명 전체	인천공항까지
+gsd:test-s50:1	강남	강남+사거리	NNP+NNG	강남사거리	강남사거리	NNP	문장이 가리키는 고유명 전체	강남사거리
+gsd:test-s144:1	인천	인천+공항+까지	NNP+NNG+JX	인천공항	인천공항+까지	NNP+JX	문장이 가리키는 고유명 전체	인천공항까지
+gsd:test-s211:1	인천국제공항	인천국제공항+철도	NNP+NNG	인천국제공항철도	인천국제공항철도	NNP	문장이 가리키는 고유명 전체	인천국제공항철도
+gsd:test-s211:2	운서	운서+역+이	NNP+NNG+JKS	운서역	운서역+이	NNP+JKS	문장이 가리키는 고유명 전체	운서역이
+gsd:test-s219:2	한국	한국+도예+협회	NNP+NNG+NNG	한국도예협회	한국도예협회	NNP	문장이 가리키는 고유명 전체	한국도예협회
+gsd:test-s243:2	두산	두산+중공업	NNP+NNG	두산중공업	두산중공업	NNP	문장이 가리키는 고유명 전체	두산중공업
+gsd:test-s314:2	조선	조선+적십자회+는	NNP+NNG+JX	조선적십자회	조선적십자회+는	NNP+JX	문장이 가리키는 고유명 전체	조선적십자회는
+gsd:test-s351:1	인천	인천+공항	NNP+NNG	인천공항	인천공항	NNP	문장이 가리키는 고유명 전체	인천공항
+gsd:test-s421:1	유신	유신+참치+로	NNP+NNG+JKB	유신참치	유신참치+로	NNP+JKB	문장이 가리키는 고유명 전체	유신참치로
+gsd:test-s443:1	인천	인천+공항+까지	NNP+NNG+JX	인천공항	인천공항+까지	NNP+JX	문장이 가리키는 고유명 전체	인천공항까지
+gsd:test-s454:6	옥포	옥포+조선소+에서	NNP+NNG+JKB	옥포조선소	옥포조선소+에서	NNP+JKB	문장이 가리키는 고유명 전체	옥포조선소에서
+gsd:test-s467:1	고려	고려+신용+정보	NNP+NNG+NNG	고려신용정보	고려신용정보	NNP	문장이 가리키는 고유명 전체	고려신용정보
+gsd:test-s484:2	그랜드	그랜드+성형외과	NNP+NNG	그랜드성형외과	그랜드성형외과	NNP	문장이 가리키는 고유명 전체	그랜드성형외과
+gsd:test-s503:2	조지워싱턴대	조지워싱턴대+학교	NNP+NNG	조지워싱턴대학교	조지워싱턴대학교	NNP	문장이 가리키는 고유명 전체	조지워싱턴대학교
+gsd:test-s503:3	한국	한국+총+동창회+는	NNP+NNG+NNG+JX	한국총동창회	한국총동창회+는	NNP+JX	문장이 가리키는 고유명 전체	한국총동창회는
+gsd:test-s524:2	노트르담	노트르담+수녀회+가	NNP+NNG+JKS	노트르담수녀회	노트르담수녀회+가	NNP+JKS	문장이 가리키는 고유명 전체	노트르담수녀회가
+gsd:test-s524:5	박문	박문+여고+는	NNP+NNG+JX	박문여고	박문여고+는	NNP+JX	문장이 가리키는 고유명 전체	박문여고는
+gsd:test-s544:2	강남	강남+사거리	NNP+NNG	강남사거리	강남사거리	NNP	문장이 가리키는 고유명 전체	강남사거리
+gsd:test-s584:2	제주	제주+지법	NNP+NNG	제주지법	제주지법	NNP	문장이 가리키는 고유명 전체	제주지법
+gsd:test-s584:3	민	민+사과+에	NNP+NNG+JKB	민사과	민사과+에	NNG+JKB	법원에서 민사 사무를 맡는 부서 명사	민사과에
+gsd:test-s692:1	청림	청림+마을+로	NNP+NNG+JKB	청림마을	청림마을+로	NNP+JKB	문장이 가리키는 고유명 전체	청림마을로
+gsd:test-s698:5	서울	서울+중앙+지검	NNP+NNG+NNG	서울중앙지검	서울중앙지검	NNP	문장이 가리키는 고유명 전체	서울중앙지검
+gsd:test-s707:1	대한	대한+팔경+의	NNP+NNG+JKG	대한팔경	대한팔경+의	NNP+JKG	문장이 가리키는 고유명 전체	대한팔경의
+gsd:test-s847:3	화도	화도+파출소	NNP+NNG	화도파출소	화도파출소	NNP	문장이 가리키는 고유명 전체	화도파출소
+gsd:test-s887:1	유곡	유곡+동+으로	NNP+NNG+JKB	유곡동	유곡동+으로	NNP+JKB	문장이 가리키는 고유명 전체	유곡동으로
+gsd:test-s925:2	인후	인후+공원+이	NNP+NNG+JKS	인후공원	인후공원+이	NNP+JKS	문장이 가리키는 고유명 전체	인후공원이
+gsd:test-s928:3	춘천	춘천+고속도로+를	NNP+NNG+JKO	춘천고속도로	춘천고속도로+를	NNP+JKO	문장이 가리키는 고유명 전체	춘천고속도로를
+gsd:test-s951:1	삼화	삼화+고속	NNP+NNG	삼화고속	삼화고속	NNP	문장이 가리키는 고유명 전체	삼화고속
