@@ -901,6 +901,8 @@ regression.particle.deun.pronoun	누구	pronoun	smart-exact	0	9	누구든 가면
 regression.particle.ideunji.consonant	책	noun	smart-exact	0	12	책이든지 잡지든지 하나를 골라 보세요.
 regression.particle.deunji.vowel	잡지	noun	smart-exact	0	12	잡지든지 신문이든지 하나를 골라 보세요.
 regression.particle.deun.consonant-without-i	책	noun	no-match	0	6	책든 고르세요.
+regression.particle.deun.proper-name	고	noun	no-match	7	13	조셉 고든 레빗이 출연했다.
+regression.ending.euryeodeun	먹다	verb	smart-exact	11	23	죽도 못 먹으려든 하물며 쌀밥이라니.
 regression.pronominal-short.uri-standalone	우리	pronoun	no-match	0	3	울 것 같다.
 regression.pronominal-short.uri-ambiguous	우리	pronoun	smart-exact	0	3	울 아이가 먼저 나왔어요.
 regression.pronominal-short.ulda-ambiguous	울다	verb	smart-exact	0	3	울 아이가 먼저 나왔어요.
