@@ -228,7 +228,7 @@ impl<'a> PreparedStructuralContextAnalysis<'a> {
                 self.prepared
                     .has_compound_nominal_prefix_after_partial_particle(&span)
             } else {
-                self.prepared.has_compound_nominal_prefix(&span)
+                self.prepared.has_bare_compound_nominal_prefix(&span)
             }
         })
     }

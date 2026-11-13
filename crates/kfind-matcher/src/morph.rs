@@ -1585,9 +1585,6 @@ impl MorphMatcher {
         let possible_compound_prefix = nominal_particle_chain
             && candidate.verified.core.start == whole.start
             && candidate.consumed.end < whole.end
-            && (contracted_copula
-                || rejected_suffix
-                || candidate.consumed != candidate.verified.core)
             && patterns.iter().any(|pattern| {
                 pattern.fine_pos == DataFinePos::Nng
                     && pattern.component_capability.allows_runtime()
@@ -1607,6 +1604,23 @@ impl MorphMatcher {
             || (rejected_suffix
                 && (!nominal_particle_chain
                     || (terminal_particle_conflict && !possible_compound_prefix)))
+        {
+            return false;
+        }
+        if possible_compound_prefix
+            && rejected_suffix
+            && context::normalized_token(haystack, whole.clone()).is_some_and(|token| {
+                context::previous_word(haystack, whole.start).is_some_and(|previous| {
+                    token.char_indices().skip(1).any(|(end, character)| {
+                        matches!(character, '이' | '인' | '입')
+                            && resolver.has_counted_unit_frame(&previous, &token[..end])
+                            && token[..end].chars().next_back().is_some_and(|last| {
+                                verify_copula_surface_after_nominal(last, &token[end..])
+                                    || (character == '인' && token[end..].starts_with("인가"))
+                            })
+                    })
+                })
+            })
         {
             return false;
         }
