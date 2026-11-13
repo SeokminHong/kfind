@@ -401,6 +401,33 @@ const HONORIFIC_IMMEDIATE: Suffix = suffix(
 );
 const NEGATIVE_TOPIC: Suffix = suffix("진", &["ending.connective-ji", "particle.topic"]);
 const NEGATIVE_OBJECT: Suffix = suffix("질", &["ending.connective-ji", "particle.object"]);
+const NEGATIVE_WITH_PARTICLE: &[Suffix] = &[
+    suffix("지도", &["ending.connective-ji", "particle.additive"]),
+    suffix("지는", &["ending.connective-ji", "particle.topic"]),
+    suffix("지를", &["ending.connective-ji", "particle.object"]),
+];
+const HONORIFIC_NEGATIVE_WITH_PARTICLE: &[Suffix] = &[
+    suffix(
+        "시지도",
+        &[
+            "ending.honorific",
+            "ending.connective-ji",
+            "particle.additive",
+        ],
+    ),
+    suffix(
+        "시지는",
+        &["ending.honorific", "ending.connective-ji", "particle.topic"],
+    ),
+    suffix(
+        "시지를",
+        &[
+            "ending.honorific",
+            "ending.connective-ji",
+            "particle.object",
+        ],
+    ),
+];
 const HONORIFIC_NEGATIVE_PARTICLES: &[Suffix] = &[
     suffix(
         "시진",
@@ -1650,6 +1677,20 @@ fn verify_simple_continuation(
         }
         ContinuationState::StemEnding if following.starts_with('진') => &[NEGATIVE_TOPIC],
         ContinuationState::StemEnding if following.starts_with('질') => &[NEGATIVE_OBJECT],
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following
+                .strip_prefix('지')
+                .is_some_and(|tail| tail.starts_with(['도', '는', '를'])) =>
+        {
+            NEGATIVE_WITH_PARTICLE
+        }
+        ContinuationState::Eu
+            if following
+                .strip_prefix("시지")
+                .is_some_and(|tail| tail.starts_with(['도', '는', '를'])) =>
+        {
+            HONORIFIC_NEGATIVE_WITH_PARTICLE
+        }
         ContinuationState::Eu if following.starts_with("시진") || following.starts_with("시질") => {
             HONORIFIC_NEGATIVE_PARTICLES
         }

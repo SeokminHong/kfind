@@ -822,7 +822,7 @@ impl MorphMatcher {
                     rule_path.as_slice(),
                     [.., connective, particle]
                         if connective.as_str() == "ending.connective-ji"
-                            && matches!(particle.as_str(), "particle.topic" | "particle.object")
+                            && matches!(particle.as_str(), "particle.topic" | "particle.object" | "particle.additive")
                 ) {
                     let end = hit.span.end + consumed_bytes;
                     if !context::next_word(haystack, end).is_some_and(|next| {

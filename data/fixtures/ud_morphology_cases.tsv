@@ -915,6 +915,13 @@ regression.negative-object.honorific	먹다	verb	smart-exact	0	12	먹으시질 �
 regression.negative-object.adjective	좋다	adjective	smart-exact	0	6	좋질 않아요.
 regression.negative-object.lexical-future	가다	verb	no-match	0	6	가질 물건을 골랐다.
 regression.negative-object.nominal-subject	먹다	verb	no-match	0	6	먹질 말이 안 된다.
+corpus.ud-gsd.test.test-s53.adjective.negative-additive	아무렇다	adjective	smart-exact	129	144	알레르기성 비염이랑 천식으로 고생했었는데 한 달 조금 넘게 꾸준히 다녔더니 그 후 일 년 넘게 아무렇지도 않네요.
+corpus.ud-gsd.test.test-s638.adjective.negative-additive	맵다	adjective	smart-exact	0	9	맵지도 않고 얘들도 잘 먹었고 다른 말이 필요 없어요
+corpus.ud-gsd.test.test-s930.verb.negative-topic	거주하다	verb	smart-exact	17	32	저는 서동에 거주하지는 않지만 업무차 자주 방문합니다
+regression.negative-particle.past-additive	먹다	verb	smart-exact	0	12	먹었지도 않아요.
+regression.negative-particle.honorific-additive	먹다	verb	smart-exact	0	15	먹으시지도 않았어요.
+regression.negative-particle.prohibitive-object	먹다	verb	smart-exact	0	9	먹지를 마세요.
+corpus.ud-pud.test.n01137010.verb.negative-additive	보다	verb	smart-exact	24	33	에피소드를 몇 편 보지도 않았는데 내 휴대폰에 불이 들어오기 시작했다.
 corpus.ud-gsd.test.test-s642.verb.past-neyo	다녀오다	verb	smart-exact	18	33	벌써 여러 번 다녀왔네요.
 corpus.ud-gsd.test.test-s668.verb.past-neyo	거부당하다	verb	smart-exact	17	35	카드 결제를 거부당했네요.
 corpus.ud-gsd.test.test-s856.adjective.honorific-neyo	같다	adjective	smart-exact	33	48	친절하고 따뜻한 어머니 같으시네요.
