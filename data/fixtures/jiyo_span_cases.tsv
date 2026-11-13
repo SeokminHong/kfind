@@ -116,3 +116,9 @@ resultative-different	굳다	verb	exact	44	56	시간이 지나면 풀이 더 단
 지요-copula-context	이다	adjective	no-match	42	51	이 포도는 색이 진해도 아직 꽤 시지요?
 지요-adj-context	시다	adjective	no-match	24	33	방송이 끝나면 두 시지요?
 지요-adj	시다	adjective	exact	42	51	이 포도는 색이 진해도 아직 꽤 시지요?
+copula-final-past	이다	adjective	exact	13	22	그는 학생이었지.
+copula-connective-past	이다	adjective	exact	13	22	그가 학생이었지 않느냐?
+copula-contracted-past	이다	adjective	exact	13	19	그는 의사였지.
+verb-past	먹다	verb	exact	17	26	어제는 밥을 먹었지.
+adjective-past	좋다	adjective	exact	20	29	지난번 날씨는 좋았지.
+negative-copula-past	아니다	adjective	exact	24	36	그 사람은 학생이 아니었지.
