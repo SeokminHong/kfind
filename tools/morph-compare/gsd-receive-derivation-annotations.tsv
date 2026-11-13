@@ -1,0 +1,8 @@
+case_id	query	pos	form	lemma	xpos	gold_form
+gsd:test-s28:8	지적	noun	지적받고	지적+받+고	NNG+XSV+EC	지적
+gsd:test-s188:33	평가	noun	평가받고	평가+받+고	NNG+XSV+EC	평가
+gsd:test-s334:2	구박	noun	구박받는	구박+받+는	NNG+XSV+ETM	구박
+gsd:test-s676:10	숭배	noun	숭배받았다	숭배+받+았+다	NNG+XSV+EP+EF	숭배
+gsd:test-s712:2	구박	noun	구박받는	구박+받+는	NNG+XSV+ETM	구박
+gsd:test-s868:3	대접	noun	대접받을	대접+받+을	NNG+XSV+ETM	대접
+gsd:test-s989:11	사랑	noun	사랑받는	사랑+받+는	NNG+XSV+ETM	사랑

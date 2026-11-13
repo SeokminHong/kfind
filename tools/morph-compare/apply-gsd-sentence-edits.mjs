@@ -17,17 +17,19 @@ const ijenContext = options.includes('--ijen-context');
 const quantifierAnnotations = options.includes('--quantifier-annotations');
 const lexicalWhole = options.includes('--lexical-whole');
 const contextLexemes = options.includes('--context-lexemes');
+const receiveDerivation = options.includes('--receive-derivation');
 if (!input || (restored && !shared) || (proofread && !restored)
-    || (independent || contextAnnotations || nominalModifiers || derivedNominals || scopeNominals || jiNominals || motSpacing || ijenContext || quantifierAnnotations || lexicalWhole || contextLexemes ? options.length !== 1
+    || (independent || contextAnnotations || nominalModifiers || derivedNominals || scopeNominals || jiNominals || motSpacing || ijenContext || quantifierAnnotations || lexicalWhole || contextLexemes || receiveDerivation ? options.length !== 1
       : options.length !== Number(contract) + Number(shared) + Number(restored) + Number(proofread))) {
-  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals | --scope-nominals | --ji-nominals | --mot-spacing | --ijen-context | --quantifier-annotations | --lexical-whole | --context-lexemes)');
+  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals | --scope-nominals | --ji-nominals | --mot-spacing | --ijen-context | --quantifier-annotations | --lexical-whole | --context-lexemes | --receive-derivation)');
 }
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
 const previousInput = 'd34735e79fad865a62685522859f2664e56d9f37330a1a11d17614aab82cda1e';
 const currentFixtureInput = '8f3aa236f20a0913e78e04139539b636835a538ab5d552891856a73a5e77e5da';
 const contextPosReviewInput = '120ad5000b84b3d61fef05214b6d703e0f573eb55330f0741cf455583806dce9';
-if (contextLexemes ? checksum !== '247faf42cb30ea97665ed7e7495b2b4402f0721825545490723c96a7a84ea7fd'
+if (receiveDerivation ? checksum !== '03ef9ff20b40e0f6756a45dab2488e357ad814c08faf904d2954ebda2d24f006'
+  : contextLexemes ? checksum !== '247faf42cb30ea97665ed7e7495b2b4402f0721825545490723c96a7a84ea7fd'
   : lexicalWhole ? checksum !== '13bf24075dd714060f0366e04ddcf17a385bc902cc704a88d1d6cda3457a2152'
   : quantifierAnnotations ? checksum !== 'cb67ca3aacdeda3cf5a8b756c60489684142591abfba8950f9fe5e7318df321d'
   : ijenContext ? checksum !== 'a1a77de82af73f1e801cae68f309c1ae245e5fcbdf3f97857d9cd51c27aa7165'
@@ -48,7 +50,7 @@ function tsv(path) {
 }
 
 const editsBySentence = new Map();
-const sentenceEdits = derivedNominals || scopeNominals || jiNominals || ijenContext || quantifierAnnotations || lexicalWhole ? [] : tsv(motSpacing ? './gsd-mot-spacing-edits.tsv'
+const sentenceEdits = derivedNominals || scopeNominals || jiNominals || ijenContext || quantifierAnnotations || lexicalWhole || receiveDerivation ? [] : tsv(motSpacing ? './gsd-mot-spacing-edits.tsv'
   : nominalModifiers ? './gsd-nominal-modifier-edits.tsv'
   : contextAnnotations ? './gsd-context-annotation-edits.tsv'
   : independent ? './gsd-independent-proofreading-edits.tsv'
@@ -64,7 +66,8 @@ for (const [id, source, replacement, reason] of sentenceEdits) {
 }
 
 const annotations = new Map();
-const annotationEdits = tsv(contextLexemes ? './gsd-context-lexemes-annotations.tsv'
+const annotationEdits = tsv(receiveDerivation ? './gsd-receive-derivation-annotations.tsv'
+  : contextLexemes ? './gsd-context-lexemes-annotations.tsv'
   : lexicalWhole ? './gsd-lexical-whole-annotations.tsv'
   : quantifierAnnotations ? './gsd-quantifier-annotations.tsv'
   : ijenContext ? './gsd-ijen-context-annotations.tsv'
