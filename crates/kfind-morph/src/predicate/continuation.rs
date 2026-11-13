@@ -2314,6 +2314,25 @@ mod tests {
     }
 
     #[test]
+    fn colloquial_intent_condition_is_terminal_and_requires_an_action() {
+        for (pos, following, expected) in [
+            (PredicatePos::Verb, "라면 지금 가라.", true),
+            (PredicatePos::Verb, "라면집", false),
+            (PredicatePos::Adjective, "라면 지금", false),
+        ] {
+            let found =
+                verify_predicate_continuation(ContinuationState::RieulFinal, pos, "갈", following);
+            assert_eq!(
+                found.is_some_and(|matched| matched
+                    .rule_path
+                    .iter()
+                    .any(|rule| rule.as_str() == "ending.colloquial-rieulramyeon")),
+                expected
+            );
+        }
+    }
+
+    #[test]
     fn past_state_consumes_a_bounded_suffix() {
         let matched = verify_predicate_continuation(
             ContinuationState::Past,

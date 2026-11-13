@@ -5,4 +5,4 @@
 {"id":"colloquial-intent-rieul-stem","query":"살다","pos":"verb","text":"살라면 방법을 찾아야지.","expected":true,"gold_byte_start":0,"gold_byte_end":9}
 {"id":"colloquial-intent-standard","query":"가다","pos":"verb","text":"가시려면 지금 가세요.","expected":true,"gold_byte_start":0,"gold_byte_end":12}
 {"id":"colloquial-intent-copula","query":"가다","pos":"verb","text":"그 수준이라면 괜찮다.","expected":false}
-{"id":"colloquial-intent-adjective","query":"작다","pos":"adjective","text":"작을라면 비교부터 해야지.","expected":false,"gold_byte_start":0,"gold_byte_end":12}
+{"id":"colloquial-intent-adjective","query":"작다","pos":"adjective","text":"작으면 비교부터 해야지.","expected":true,"gold_byte_start":0,"gold_byte_end":9}
