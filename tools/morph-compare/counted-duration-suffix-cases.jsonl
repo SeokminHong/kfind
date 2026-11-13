@@ -1,0 +1,11 @@
+{"id":"duration-suffix-gsd","query":"달","pos":"noun","text":"여자농구는 내년 3월까지 다섯 달간의 대장정을 계속합니다.","expected":true,"gold_byte_start":41,"gold_byte_end":44}
+{"id":"duration-suffix-weeks","query":"주","pos":"noun","text":"몇 주간 이어진다.","expected":true,"gold_byte_start":4,"gold_byte_end":7}
+{"id":"duration-suffix-attached-months","query":"개월","pos":"noun","text":"6개월간 쉰다.","expected":true,"gold_byte_start":1,"gold_byte_end":7}
+{"id":"duration-suffix-attached-years","query":"년","pos":"noun","text":"12년간 보관한다.","expected":true,"gold_byte_start":2,"gold_byte_end":5}
+{"id":"duration-suffix-day","query":"하루","pos":"noun","text":"하루간 쉬었다.","expected":true,"gold_byte_start":0,"gold_byte_end":6}
+{"id":"duration-suffix-weekly","query":"주","pos":"noun","text":"시사주간을 읽었다.","expected":false}
+{"id":"duration-suffix-daily","query":"일","pos":"noun","text":"그 일간지는 폐간됐다.","expected":false}
+{"id":"duration-suffix-adverb","query":"분","pos":"noun","text":"당분간 쉽니다.","expected":false}
+{"id":"duration-suffix-distance","query":"리","pos":"noun","text":"세 리간 이동했다.","expected":false}
+{"id":"duration-suffix-pud","query":"주","pos":"noun","text":"570만 명이 넘는 플로리다 주민들이 직접 가서 투표하는약 2주간의 조기 투표에 이미 참여했다.","expected":true,"gold_byte_start":78,"gold_byte_end":81}
+{"id":"duration-suffix-pud-resident","query":"주","pos":"noun","text":"570만 명이 넘는 플로리다 주민들이 직접 가서 투표했다.","expected":false}

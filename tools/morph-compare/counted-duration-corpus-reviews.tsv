@@ -1,0 +1,2 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	corpus-negatives	pud:n01131007:noun:주	주	noun	false	671edd1f51207da8e184b2cce4f909613567e83aa2fecc0d156277d28abf83cb	contract-positive	aligned-source-component	같은 문장의 2주간의에서 주는 숫자 2가 수식하는 기간 단위다. 주민들이에서는 해당 분석이 성립하지 않는다.
