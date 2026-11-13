@@ -12,3 +12,11 @@
 {"id":"negative-adverb","query":"안","pos":"adverb","text":"친구는 안 먹었다.","expected":true,"gold_byte_start":10,"gold_byte_end":13}
 {"id":"ranking","query":"위","pos":"noun","text":"팀이 3위를 차지했다.","expected":true,"gold_byte_start":8,"gold_byte_end":14}
 {"id":"ordinary-determiner","query":"새","pos":"noun","text":"화보 새 사진을 골랐다.","expected":false,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"interval-noun","query":"사이","pos":"noun","text":"책상 사이 통로를 걸었다.","expected":true,"gold_byte_start":7,"gold_byte_end":13}
+{"id":"interval-determiner","query":"사이","pos":"determiner","text":"책상 사이 통로를 걸었다.","expected":false}
+{"id":"direction-noun","query":"쪽","pos":"noun","text":"학교 쪽 통로를 걸었다.","expected":true,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"direction-adverb","query":"쪽","pos":"adverb","text":"학교 쪽 통로를 걸었다.","expected":false}
+{"id":"independent-adverb","query":"쪽","pos":"adverb","text":"주스를 쪽 빨았다.","expected":true,"gold_byte_start":10,"gold_byte_end":13}
+{"id":"under-before-subject","query":"밑","pos":"noun","text":"담장 밑 풀이 자랐다.","expected":true,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"under-before-subject-adverb","query":"밑","pos":"adverb","text":"담장 밑 풀이 자랐다.","expected":false}
+{"id":"independent-determiner","query":"일대","pos":"determiner","text":"그는 일대 전기를 마련했다.","expected":true,"gold_byte_start":7,"gold_byte_end":13}

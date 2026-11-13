@@ -5,8 +5,9 @@ use crate::structure::lexical::{
     complete_predicate_connective_ji_path, complete_predicate_ending_path, complete_suffix,
     copular_frame, exact_analysis_ends_with_pos, exact_analysis_starts_with_pos,
     has_adnominal_result_complement, has_auxiliary_adnominal_split, has_complete_object_phrase,
-    has_copular_adnominal_split, has_exact_fine_pos, has_exact_sequence,
-    has_unambiguous_proper_name, has_verb_nominalization, nominal_particle_hosts,
+    has_complete_subject_phrase, has_copular_adnominal_split, has_exact_fine_pos,
+    has_exact_sequence, has_unambiguous_proper_name, has_verb_nominalization,
+    nominal_particle_hosts,
 };
 use crate::structure::selection::components::{
     attached_nominal_suffix_is_supported, component_is_shadowed_by_predicate,
@@ -483,13 +484,13 @@ pub(in crate::structure) fn select_structure(
         && context.next.is_some_and(|next| {
             !complete_predicate_ending_path(resource, next)
                 || has_complete_object_phrase(resource, next)
+                || has_complete_subject_phrase(resource, next)
         })
         && context.previous.is_some_and(|previous| {
-            (has_exact_fine_pos(resource, previous, DataFinePos::is_nominal)
-                || complete_nominal_particle_host(resource, previous).is_some_and(|host| {
-                    has_exact_sequence(resource, &previous[host.end..], &[StructuralPos::JKG])
-                }))
-                && !complete_predicate_ending_path(resource, previous)
+            complete_nominal_particle_host(resource, previous).map_or_else(
+                || has_exact_fine_pos(resource, previous, DataFinePos::is_nominal),
+                |host| has_exact_sequence(resource, &previous[host.end..], &[StructuralPos::JKG]),
+            ) && !complete_predicate_ending_path(resource, previous)
         })
     {
         return StructureSelection::NominalWhole;
