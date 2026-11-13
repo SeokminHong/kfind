@@ -1990,6 +1990,22 @@ impl MorphMatcher {
                                 resolver
                                     .has_exact_predicate_connective_path(surface, source_positions)
                             });
+                    let supported_connective = source_auxiliary_suffix
+                        && trailing.starts_with(['주', '줘', '줬', '준', '줄', '줌', '줍'])
+                        && token.is_some_and(|token| {
+                            !resolver.has_lexical_nominal_with_optional_particles(token)
+                        })
+                        && haystack
+                            .get(whole.start..candidate.consumed.end)
+                            .and_then(|surface| std::str::from_utf8(surface).ok())
+                            .is_some_and(|surface| {
+                                resolver
+                                    .has_exact_predicate_connective_path(surface, source_positions)
+                                    || resolver.has_derived_predicate_connective_surface(
+                                        surface,
+                                        source_positions,
+                                    )
+                            });
                     (complete_attached_path
                         && (visible_connective
                             || unambiguous_contraction
@@ -2000,6 +2016,7 @@ impl MorphMatcher {
                                 || extended_predicate_prefix
                                 || unambiguous_whole_path
                                 || resultative_contraction))
+                        || supported_connective
                 }
                 _ => false,
             };
