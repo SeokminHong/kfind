@@ -8,6 +8,7 @@
 - `data/rules/nikl-modern-endings.tsv`
 - `data/rules/nikl-modern-particles.tsv`
 - `data/rules/nikl-attached-nominal-suffixes.tsv`
+- `data/rules/krdict-non-accusative-predicate-anchors.rs`
 
 가공 과정은 필요한 표제어·품사·활용형·관련 형태와 source ID의 추출, Unicode
 정규화, 동형이의 identity 보존, 중복 제거, 현대어·문법 범주 분류와 여러 사전의
