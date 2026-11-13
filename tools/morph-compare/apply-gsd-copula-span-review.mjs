@@ -1,16 +1,21 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
-const [input] = process.argv.slice(2);
-if (!input || process.argv.length !== 3) {
-  throw new Error('usage: node apply-gsd-copula-span-review.mjs GSD_POSITIVES.jsonl');
+const [input, mode, ...extra] = process.argv.slice(2);
+if (!input || (mode !== undefined && mode !== '--after-name-review') || extra.length) {
+  throw new Error('usage: node apply-gsd-copula-span-review.mjs GSD_POSITIVES.jsonl [--after-name-review]');
 }
+const afterNameReview = mode === '--after-name-review';
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
-if (checksum !== 'c1ee2680c8faba318b3d19245933a690d27f193df17458fd2b05ac6a1780c4d0') {
+const expectedChecksum = afterNameReview
+  ? '132f6c5dd4efea5000e9a9b0cdaa064da9b058226e0b0eff2af4ff5e42b3d365'
+  : 'c1ee2680c8faba318b3d19245933a690d27f193df17458fd2b05ac6a1780c4d0';
+if (checksum !== expectedChecksum) {
   throw new Error(`unexpected GSD input SHA-256: ${checksum}`);
 }
-const review = readFileSync(new URL('./gsd-copula-span-review.tsv', import.meta.url), 'utf8');
+const registry = afterNameReview ? './gsd-copula-boundary-audit.tsv' : './gsd-copula-span-review.tsv';
+const review = readFileSync(new URL(registry, import.meta.url), 'utf8');
 const cases = new Map();
 for (const line of review.trimEnd().split('\n').slice(1)) {
   const [id, query, form, reason] = line.split('\t');
