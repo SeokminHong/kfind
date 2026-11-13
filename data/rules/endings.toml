@@ -78,7 +78,17 @@ initial = "a-or-eo"
 forms = ["아", "어"]
 required = []
 forbidden = []
-next = ["ending.connective-seo", "ending.connective-do", "ending.connective-ya", "ending.polite-yo", "ending.imperative-ra", "ending.auxiliary-gada", "ending.auxiliary-jida", "ending.auxiliary-boda", "ending.necessity-yaji", "ending.necessity-yaji-polite"]
+next = ["ending.connective-seo", "ending.connective-do", "ending.connective-ya", "ending.polite-yo", "ending.imperative-ra", "ending.auxiliary-gada", "ending.auxiliary-jida", "ending.auxiliary-boda", "ending.necessity-yaji", "ending.necessity-yaji-polite", "ending.aoeo-daga"]
+terminal = true
+
+[[ending]]
+id = "ending.aoeo-daga"
+category = "connective"
+initial = "other"
+forms = ["다가"]
+required = ["action-verb"]
+forbidden = []
+next = []
 terminal = true
 
 [[ending]]
