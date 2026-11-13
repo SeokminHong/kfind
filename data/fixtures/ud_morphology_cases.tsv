@@ -556,6 +556,10 @@ corpus.ud-kaist.dev.MH2_0169-s734.compound-copula	이다	adjective	smart-exact	0
 corpus.ud-kaist.test.M2TA_090-s52.compound-copula	이다	adjective	smart-exact	0	18	코카콜라라는 브랜드를 바꿨다.
 corpus.ud-kaist.test.MH2_0010-s353.compound-copula	이다	adjective	smart-exact	0	18	남극연구라는 공통된 목표가 있다.
 regression.compound-copula.quoted-polite	이다	adjective	smart-exact	0	21	가격통제라고요?
+regression.omitted-copula.quoted-counted-unit	이다	adjective	smart-exact	23	32	난 또 이 개가 네 개라고.
+regression.omitted-copula.quoted-dependent-noun	이다	adjective	smart-exact	37	46	그것이 내가 잘못해서 그런 거라고.
+regression.omitted-copula.quoted-fold-command	이다	adjective	no-match	10	19	종이를 개라고 했다.
+regression.omitted-copula.explicit-after-modifier	이다	adjective	smart-exact	10	19	아는 사이라고 말했다.
 regression.compound-copula.direct-quote	이다	adjective	no-match	0	24	‘코카콜라’라는 글자가 보인다.
 regression.compound-copula.command-not-copula	이다	adjective	no-match	10	25	자료를 출력하라는 지시를 받았다.
 regression.compound-copula.command-verb	출력하다	verb	smart-exact	10	25	자료를 출력하라는 지시를 받았다.
