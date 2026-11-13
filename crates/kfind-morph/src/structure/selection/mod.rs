@@ -669,6 +669,11 @@ pub(in crate::structure) fn select_structure(
         && !(evidence.has_whole(DataFinePos::Mag)
             && context.previous.is_some_and(|previous| {
                 has_exact_fine_pos(resource, previous, |pos| pos == DataFinePos::Nr)
+                    || has_exact_sequence(
+                        resource,
+                        previous,
+                        &[StructuralPos::NP, StructuralPos::JX],
+                    )
             }))
     {
         return StructureSelection::NominalWhole;
