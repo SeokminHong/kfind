@@ -1127,12 +1127,9 @@ impl MorphMatcher {
                     || has_elapsed_measure_frame(haystack, candidate, branch, atom, resolver)
                     || has_quantifying_adverb_frame(haystack, candidate, branch, atom, resolver)
                     || has_whole_alternative_conjunction(haystack, candidate, branch, resolver)
-                    || has_verbal_jiyo_frame(haystack, candidate, branch, resolver)
                     || has_conflicting_honorific(haystack, candidate, branch, atom, resolver)
                     || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
                     || has_nominal_frame_for_volitional(haystack, candidate, branch, resolver)
-                    || has_prayer_object_frame(haystack, candidate, branch, atom, resolver)
-                    || has_possession_object_frame(haystack, candidate, branch, atom, resolver)
                     || has_topic_before_independent_predicate(haystack, candidate, branch, resolver)
                     || has_nominal_interrogative_frame(haystack, candidate, branch, resolver)
                     || has_nonpredicate_report_frame(haystack, candidate, branch, resolver)
@@ -1209,23 +1206,6 @@ impl MorphMatcher {
         if patterns.is_empty() {
             return false;
         }
-        if patterns.iter().any(|pattern| {
-            pattern.fine_pos == DataFinePos::Mm && pattern.lexical_form.as_ref() == "모"
-        }) && self.accepts_token_boundary(haystack, &candidate.verified, branch)
-            && context::next_word_with_end(haystack, candidate.consumed.end).is_some_and(
-                |(end, title)| {
-                    title == "씨"
-                        && context::next_word(haystack, end).is_some_and(|next| {
-                            next == "등"
-                                || next.strip_prefix("등").is_some_and(|tail| {
-                                    self.particle_verifier.verify_exact("등", tail).is_some()
-                                })
-                        })
-                },
-            )
-        {
-            return true;
-        }
         if matches!(branch.consumption, CandidateConsumption::Anchor)
             && !branch.origins.is_empty()
             && branch.origins.iter().all(|origin| {
@@ -1238,14 +1218,10 @@ impl MorphMatcher {
             let span = &candidate.verified.token;
             return self.accepts_token_boundary(haystack, &candidate.verified, branch)
                 && context::normalized_token(haystack, span.clone()).is_some_and(|token| {
-                    !(token == "내"
-                        && context::previous_word(haystack, span.start).is_some_and(|previous| {
-                            matches!(previous.as_ref(), "한국" | "지역" | "구역" | "범위")
-                        }))
-                        && context::next_word(haystack, span.end).is_some_and(|next| {
-                            resolver.has_nominal_with_optional_particles(&next)
-                                && !resolver.has_inflected_counted_unit(&token, &next)
-                        })
+                    context::next_word(haystack, span.end).is_some_and(|next| {
+                        resolver.has_nominal_with_optional_particles(&next)
+                            && !resolver.has_inflected_counted_unit(&token, &next)
+                    })
                 });
         }
         if patterns.iter().any(|pattern| {
@@ -2068,14 +2044,6 @@ impl MorphMatcher {
         {
             return false;
         }
-        if normalized
-            .strip_suffix("렷다")
-            .or_else(|| normalized.strip_suffix('랴'))
-            .is_some_and(|stem| resolver.has_exact_action_predicate_surface(stem))
-            && has_directed_motion_frame(haystack, candidate.verified.token.start, resolver)
-        {
-            return false;
-        }
         resolver.has_exact_lost_span_copula_ending_path(&normalized)
             || (matches!(branch.consumption, CandidateConsumption::FusedCopulaEnding)
                 && (fused_copula::accepts_fused_retrospective(&normalized, resolver)
@@ -2745,57 +2713,6 @@ fn has_jiyo_suffix(haystack: &[u8], suffix: Range<usize>) -> bool {
         })
 }
 
-fn has_possession_object_frame(
-    haystack: &[u8],
-    candidate: &ExecutedCandidate,
-    branch: &CandidateProgram,
-    atom: &AtomPlan,
-    resolver: &ConstraintResolver,
-) -> bool {
-    use kfind_morph::PredicatePos;
-    let start = candidate.verified.core.start;
-    if !matches!(
-        branch.consumption,
-        CandidateConsumption::PredicateContinuation {
-            pos: PredicatePos::Verb,
-            ..
-        } | CandidateConsumption::StructuralPredicateEnding {
-            pos: PredicatePos::Verb,
-            ..
-        }
-    ) || !(haystack[start..].starts_with("가지".as_bytes())
-        || haystack[start..].starts_with("ᄀ".as_bytes()))
-        || !is_boundary_before(haystack, start)
-        || !branch.origins.iter().all(|origin| {
-            atom.analyses
-                .get(usize::from(origin.analysis_index))
-                .is_some_and(|analysis| analysis.lemma.as_ref() == "가다")
-        })
-    {
-        return false;
-    }
-    // The accusative of 가다 can mark a destination, route, activity, or duration.
-    context::previous_word(haystack, start).is_some_and(|previous| {
-        previous
-            .strip_suffix(['을', '를'])
-            .is_some_and(|noun| matches!(noun, "재산" | "주식" | "소유권"))
-            && resolver.has_object_marked_nominal(&previous)
-            && context::normalized_token(
-                haystack,
-                surrounding_token_span(haystack, candidate.verified.core.clone()),
-            )
-            .is_some_and(|token| {
-                token.starts_with("가지")
-                    && resolver.supports_predicate_ending_path(
-                        &token,
-                        "가지".len(),
-                        PredicatePos::Verb,
-                        DEFAULT_LATTICE_NODE_LIMIT,
-                    )
-            })
-    })
-}
-
 fn has_topic_before_independent_predicate(
     haystack: &[u8],
     candidate: &ExecutedCandidate,
@@ -2993,21 +2910,6 @@ fn has_nonpredicate_report_frame(
     })
 }
 
-fn has_directed_motion_frame(haystack: &[u8], start: usize, resolver: &ConstraintResolver) -> bool {
-    let Some((previous_start, previous)) = context::previous_word_with_start(haystack, start)
-    else {
-        return false;
-    };
-    let is_destination = |word: &str| word.ends_with('로') && resolver.has_nominal_oblique(word);
-    if previous == "곧장" {
-        return context::previous_word(haystack, previous_start)
-            .is_some_and(|destination| is_destination(&destination));
-    }
-    previous.ends_with('로')
-        && context::previous_word(haystack, previous_start).is_some_and(|adverb| adverb == "곧장")
-        && is_destination(&previous)
-}
-
 fn has_comparative_nominal_frame(
     haystack: &[u8],
     candidate: &ExecutedCandidate,
@@ -3095,72 +2997,8 @@ fn has_object_inside_adnominal_result(
             .is_some_and(|previous| resolver.has_object_marked_nominal(&previous))
         && context::next_word_with_end(haystack, end).is_some_and(|(predicate_end, predicate)| {
             is_sentence_end_after(haystack, predicate_end)
-                && resolver.has_independent_final_predicate_without_object(&predicate)
+                && resolver.has_independent_final_adjective(&predicate)
         })
-}
-
-fn has_verbal_jiyo_frame(
-    haystack: &[u8],
-    candidate: &ExecutedCandidate,
-    branch: &CandidateProgram,
-    resolver: &ConstraintResolver,
-) -> bool {
-    use kfind_morph::PredicatePos;
-    if !matches!(
-        branch.consumption,
-        CandidateConsumption::PredicateContinuation {
-            pos: PredicatePos::Adjective,
-            ..
-        } | CandidateConsumption::StructuralPredicateEnding {
-            pos: PredicatePos::Adjective,
-            ..
-        }
-    ) {
-        return false;
-    }
-    let core = &candidate.verified.core;
-    let Some(stem) = context::normalized_token(haystack, core.clone()) else {
-        return false;
-    };
-    if !matches!(stem.as_ref(), "쓰" | "차" | "늦") {
-        return false;
-    }
-    let whole = surrounding_token_span(haystack, core.clone());
-    if whole.start != core.start || !has_jiyo_suffix(haystack, core.end..whole.end) {
-        return false;
-    }
-    let Some((start, previous)) = context::previous_word_with_start(haystack, core.start) else {
-        return false;
-    };
-    if stem == "늦" {
-        return (matches!(previous.as_ref(), "약속에" | "모임에" | "학교에" | "수업에")
-            || (previous == "시간에"
-                && context::previous_word(haystack, start).is_some_and(|modifier| {
-                    matches!(
-                        modifier.as_ref(),
-                        "도착" | "업무" | "출발" | "수업" | "약속" | "등교"
-                    )
-                })))
-            && resolver.has_nominal_oblique(&previous);
-    }
-    // The direct object of these transitive senses denotes a text or a physical target.
-    let objects: &[&str] = if stem == "쓰" {
-        &["글", "동화", "소설", "수필", "편지"]
-    } else {
-        &["공", "축구공", "제기", "깡통"]
-    };
-    let object = if stem == "차" && previous == "힘껏" {
-        let Some(object) = context::previous_word(haystack, start) else {
-            return false;
-        };
-        object
-    } else {
-        previous
-    };
-    object
-        .strip_suffix(['을', '를'])
-        .is_some_and(|noun| objects.contains(&noun))
-        && resolver.has_object_marked_nominal(&object)
 }
 
 fn has_conflicting_honorific(
@@ -3191,20 +3029,13 @@ fn has_conflicting_honorific(
                     .is_some_and(|prefix| !resolver.has_vowel_connective_host(&prefix))
         });
     }
-    let Some(previous) = context::previous_word(haystack, start) else {
-        return false;
-    };
+    // Auxiliary 주다 takes an -아/-어 connective. Its honorific overlaps with 줄다.
     branch.origins.iter().all(|origin| {
         atom.analyses
             .get(usize::from(origin.analysis_index))
-            .is_some_and(|analysis| match analysis.lemma.as_ref() {
-                "줄다" => resolver.has_request_auxiliary_host(&previous),
-                "갈다" => {
-                    previous.ends_with("병원으로") && resolver.has_nominal_oblique(&previous)
-                }
-                _ => false,
-            })
-    })
+            .is_some_and(|analysis| analysis.lemma.as_ref() == "줄다")
+    }) && context::previous_word(haystack, start)
+        .is_some_and(|previous| resolver.has_request_auxiliary_host(&previous))
 }
 
 fn decide_request_dalla(
@@ -3304,69 +3135,6 @@ fn verifies_directive(stem: &str, ending: &str, accepts_rule: impl FnOnce(&str) 
         .is_some_and(|matched| {
             matched.consumed_bytes == ending.len()
                 && matches!(matched.rule_path.as_slice(), [rule] if accepts_rule(rule.as_str()))
-        })
-}
-
-fn has_prayer_object_frame(
-    haystack: &[u8],
-    candidate: &ExecutedCandidate,
-    branch: &CandidateProgram,
-    atom: &AtomPlan,
-    resolver: &ConstraintResolver,
-) -> bool {
-    use kfind_morph::{ContinuationState, PredicatePos};
-    let core = &candidate.verified.core;
-    let consumed = &candidate.consumed;
-    if !matches!(
-        branch.consumption,
-        CandidateConsumption::PredicateContinuation {
-            pos: PredicatePos::Verb,
-            ..
-        } | CandidateConsumption::StructuralPredicateEnding {
-            pos: PredicatePos::Verb,
-            ..
-        }
-    ) || branch.origins.is_empty()
-        || !branch.origins.iter().all(|origin| {
-            atom.analyses
-                .get(usize::from(origin.analysis_index))
-                .is_some_and(|analysis| analysis.lemma.as_ref() == "비다")
-        })
-        || !is_boundary_before(haystack, core.start)
-        || !is_boundary_after(haystack, consumed.end)
-        || context::normalized_token(haystack, core.clone()).as_deref() != Some("비")
-    {
-        return false;
-    }
-    let Some(previous) = context::previous_word(haystack, core.start) else {
-        return false;
-    };
-    // An accusative-marked duration can also precede the intransitive verb.
-    if !previous.strip_suffix(['을', '를']).is_some_and(|noun| {
-        matches!(
-            noun,
-            "안녕" | "평안" | "만수무강" | "건강" | "행복" | "소원" | "용서"
-        )
-    }) || !resolver.has_object_marked_nominal(&previous)
-    {
-        return false;
-    }
-    let Some(ending) = context::normalized_token(haystack, core.end..consumed.end) else {
-        return false;
-    };
-    // The structural fallback carries a generic rule ID. Verify its ending too.
-    [ContinuationState::StemEnding, ContinuationState::Eu]
-        .into_iter()
-        .any(|state| {
-            verify_predicate_continuation(state, PredicatePos::Verb, "비", &ending).is_some_and(
-                |matched| {
-                    matched.consumed_bytes == ending.len()
-                        && matched
-                            .rule_path
-                            .last()
-                            .is_some_and(|rule| rule.as_str() == "ending.archaic-naida")
-                },
-            )
         })
 }
 
