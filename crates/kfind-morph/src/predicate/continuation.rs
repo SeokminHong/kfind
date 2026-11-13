@@ -292,6 +292,27 @@ pub(super) const STEM_FIXED_ENDINGS: &[Suffix] = &[
     suffix("도록", &["ending.purpose-dorok"]),
     DAGA,
 ];
+
+macro_rules! daganeun_endings {
+    ($prefix:literal $(, $prior:literal)*) => {
+        &[
+            suffix(concat!($prefix, "다가는"), &[$($prior,)* "ending.connective-daganeun"]),
+            suffix(concat!($prefix, "다간"), &[$($prior,)* "ending.connective-daganeun"]),
+            suffix(concat!($prefix, "단"), &[$($prior,)* "ending.connective-daganeun"]),
+        ]
+    };
+}
+
+const DAGANEUN_ENDINGS: &[Suffix] = daganeun_endings!("");
+const SI_DAGANEUN_ENDINGS: &[Suffix] = daganeun_endings!("시", "ending.honorific");
+const SYEOT_DAGANEUN_ENDINGS: &[Suffix] =
+    daganeun_endings!("셨", "ending.honorific", "ending.past");
+const SIGET_DAGANEUN_ENDINGS: &[Suffix] =
+    daganeun_endings!("시겠", "ending.honorific", "ending.future");
+
+fn starts_with_daganeun(following: &str) -> bool {
+    following.starts_with("다간") || following.starts_with("다가는") || following.starts_with('단')
+}
 const DEON_RECOLLECTION: &[Suffix] = &[
     suffix("던가", &["ending.retrospective-question-deon"]),
     suffix("던감", &["ending.retrospective-question-deon"]),
@@ -1447,6 +1468,32 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if starts_with_daganeun(following) =>
+        {
+            DAGANEUN_ENDINGS
+        }
+        ContinuationState::Eu
+            if following
+                .strip_prefix('시')
+                .is_some_and(starts_with_daganeun) =>
+        {
+            SI_DAGANEUN_ENDINGS
+        }
+        ContinuationState::Eu
+            if following
+                .strip_prefix('셨')
+                .is_some_and(starts_with_daganeun) =>
+        {
+            SYEOT_DAGANEUN_ENDINGS
+        }
+        ContinuationState::Eu
+            if following
+                .strip_prefix("시겠")
+                .is_some_and(starts_with_daganeun) =>
+        {
+            SIGET_DAGANEUN_ENDINGS
+        }
         ContinuationState::Eu if pos.is_action() && following.starts_with('마') => &[PROMISE_MA],
         ContinuationState::StemEnding
             if pos.is_action()
@@ -1831,8 +1878,9 @@ fn verify_simple_continuation(
         )
         .filter(|suffix| {
             following.starts_with(suffix.surface)
-                && (suffix.rules != ["ending.connective-ni"]
-                    || !suffix.surface.starts_with('으')
+                && ((suffix.rules.last() != Some(&"ending.connective-daganeun")
+                    && (suffix.rules != ["ending.connective-ni"]
+                        || !suffix.surface.starts_with('으')))
                     || !following[suffix.surface.len()..]
                         .chars()
                         .next()
@@ -1937,6 +1985,37 @@ const fn suffix(surface: &'static str, rules: &'static [&'static str]) -> Suffix
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn daganeun_continuation_requires_the_end_of_the_token() {
+        for ending in ["다가는", "다간", "단"] {
+            let text = format!("{ending}.");
+            let found = verify_predicate_continuation(
+                ContinuationState::StemEnding,
+                PredicatePos::Verb,
+                "읽",
+                &text,
+            )
+            .expect("connective ending before punctuation");
+            assert_eq!(found.consumed_bytes, ending.len());
+            assert_eq!(found.rule_path[0].as_str(), "ending.connective-daganeun");
+
+            let text = format!("{ending}다");
+            let found = verify_predicate_continuation(
+                ContinuationState::StemEnding,
+                PredicatePos::Verb,
+                "읽",
+                &text,
+            );
+            assert!(
+                found.is_none_or(|matched| !matched
+                    .rule_path
+                    .iter()
+                    .any(|rule| rule.as_str() == "ending.connective-daganeun")),
+                "accepted an internal connective ending in {text}",
+            );
+        }
+    }
 
     #[test]
     fn past_state_consumes_a_bounded_suffix() {
