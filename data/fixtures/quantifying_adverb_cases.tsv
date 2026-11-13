@@ -8,3 +8,5 @@ case-marked-no-adverb	불과	adverb	no-match	7	16	그는 불과를 얻기 위해
 apposition-noun	불과	noun	exact	24	30	그가 바라는 것은 불과, 곧 부처의 깨달음이다.
 period-noun	불과	noun	no-match	23	29	답장을 받기까지 불과 나흘이 걸렸다.
 relative-day-noun	불과	noun	no-match	11	17	그 일은 불과 엊그제 일어났다.
+relative-day-adverb	불과	adverb	exact	11	17	그 일은 불과 엊그제 일어났다.
+recent-day-noun	불과	noun	no-match	7	13	그건 불과 어저께 생긴 문제다.

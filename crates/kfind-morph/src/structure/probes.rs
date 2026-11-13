@@ -1198,6 +1198,13 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_quantity_expression(&self, first: &str, second: Option<&str>) -> bool {
+        // These lexicalized dates measure proximity to the time of speaking.
+        if matches!(
+            first,
+            "어제" | "어저께" | "그제" | "그저께" | "그끄제" | "그끄저께" | "엊그제" | "엊그저께"
+        ) {
+            return true;
+        }
         let digit_end = first.bytes().take_while(u8::is_ascii_digit).count();
         if digit_end != 0 {
             return digit_end == first.len() || self.has_quantity_unit(&first[digit_end..]);
