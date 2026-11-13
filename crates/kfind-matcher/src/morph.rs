@@ -1537,7 +1537,7 @@ impl MorphMatcher {
         {
             return false;
         }
-        if licensed_trailing.is_none()
+        let contracted_copula = licensed_trailing.is_none()
             && matches!(
                 branch.consumption,
                 CandidateConsumption::NominalParticleChain { .. }
@@ -1550,10 +1550,7 @@ impl MorphMatcher {
                 patterns
                     .iter()
                     .any(|pattern| pattern.fine_pos == DataFinePos::Nr),
-            )
-        {
-            return false;
-        }
+            );
         let copula_program = matches!(
             branch.consumption,
             CandidateConsumption::PredicateContinuation {
@@ -1588,7 +1585,9 @@ impl MorphMatcher {
         let possible_compound_prefix = nominal_particle_chain
             && candidate.verified.core.start == whole.start
             && candidate.consumed.end < whole.end
-            && (rejected_suffix || candidate.consumed != candidate.verified.core)
+            && (contracted_copula
+                || rejected_suffix
+                || candidate.consumed != candidate.verified.core)
             && patterns.iter().any(|pattern| {
                 pattern.fine_pos == DataFinePos::Nng
                     && pattern.component_capability.allows_runtime()
@@ -1604,9 +1603,10 @@ impl MorphMatcher {
                         .any(|form| suffix == form.surface.as_ref())
                 },
             );
-        if rejected_suffix
-            && (!nominal_particle_chain
-                || (terminal_particle_conflict && !possible_compound_prefix))
+        if (contracted_copula && !possible_compound_prefix)
+            || (rejected_suffix
+                && (!nominal_particle_chain
+                    || (terminal_particle_conflict && !possible_compound_prefix)))
         {
             return false;
         }
@@ -1644,10 +1644,11 @@ impl MorphMatcher {
                 candidate.verified.core.clone(),
                 candidate.consumed != candidate.verified.core,
             );
-        if rejected_suffix
-            && !compound_prefix
-            && (terminal_particle_conflict
-                || !context.has_nominal_copula_host(candidate.verified.core.clone()))
+        if !compound_prefix
+            && (contracted_copula
+                || (rejected_suffix
+                    && (terminal_particle_conflict
+                        || !context.has_nominal_copula_host(candidate.verified.core.clone()))))
         {
             return false;
         }
