@@ -1,0 +1,2 @@
+query_mode	split	case_id	query	pos	strict_expected	text_sha256	contract_status	contract_reason	note
+explicit-pos	possessive-inner-scope	school-scope	나	pronoun	false	f98dc75610b959ffb9d5c3c0bc97581fc3cd85a556fe58cb073a66f10630e413	contract-positive	structurally-indistinguishable-homograph	학교 내 시설에서 내는 앞 명사가 정한 범위 또는 뒤 명사의 소유를 나타낼 수 있으며 앞 문장이 해석을 가른다.

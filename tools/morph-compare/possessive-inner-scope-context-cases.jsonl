@@ -1,0 +1,2 @@
+{"id":"school-scope","query":"나","pos":"pronoun","text":"그는 학교 시설을 조사하는 사람입니다. 학교 내 시설을 확인했습니다.","expected":false,"gold_byte_start":61,"gold_byte_end":64,"paired_case_id":"school-possessive"}
+{"id":"school-possessive","query":"나","pos":"pronoun","text":"제가 소유한 시설을 학교에 빌려줬습니다. 학교 내 시설을 확인했습니다.","expected":true,"gold_byte_start":64,"gold_byte_end":67,"paired_case_id":"school-scope"}
