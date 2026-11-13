@@ -1,0 +1,9 @@
+case_id	original_query	original_lemma	original_xpos	query	lemma	xpos	reason	form
+gsd:test-s22:7	김	김+남기+ㄹ	NNP+VV+ETM	김남길	김남길	NNP	화보집 제목에 쓰인 인명	김남길
+gsd:test-s71:3	박	박+하선+은	NNP+NNG+JX	박하선	박하선+은	NNP+JX	배우 이름과 주제 보조사	박하선은
+gsd:test-s71:19	박	박+하선+은	NNP+NNG+JX	박하선	박하선+은	NNP+JX	앞에서 언급한 배우의 이름과 주제 보조사	박하선은
+gsd:test-s212:4	하그	하그+리브스+를	NNP+NNP+JKO	하그리브스	하그리브스+를	NNP+JKO	맨유의 영입 대상인 선수의 성과 목적격 조사	하그리브스를
+gsd:test-s240:7	사마	사마+월+이+었+고	NNP+NNB+VCP+EP+EC	사마월	사마월+이+었+고	NNP+VCP+EP+EC	장방을 공격한 인명과 지정사 활용	사마월이었고
+gsd:test-s703:1	박	박+하선+은	NNP+NNG+JX	박하선	박하선+은	NNP+JX	드라마에 출연한 배우 이름과 주제 보조사	박하선은
+gsd:test-s757:9	카이	카이+이+라	NNP+VCP+EC	카이라	카이라	NNP	뒤의 세드윅과 함께 수상자의 이름을 구성	카이라
+gsd:test-s769:7	김	김+여지+ㄴ+은	NNP+NNG+JX+JX	김여진	김여진+은	NNP+JX	결혼과 임신을 언급하는 인명과 주제 보조사	김여진은
