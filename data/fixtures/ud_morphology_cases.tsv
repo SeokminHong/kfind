@@ -605,6 +605,8 @@ corpus.short-nominal-derivation.pud.n02058056.intellect	지	noun	smart-exact	71	
 corpus.short-nominal-derivation.pud.w02019048.public	공	noun	smart-exact	42	45	스프링거는 사적으로뿐 아니라 공적으로도 유대인과 화해하기 위한 노력을 적극적으로 펼쳤다.
 corpus.short-nominal-derivation.pud.w03009029.full	전	noun	smart-exact	0	3	전적으로 베르나르 타피에의 재정 지원을 받은 해당 학교는 타피에가 파산한 1994년에 문을 닫았다.
 corpus.short-nominal-derivation.gsd.test-s115.legal	법	noun	smart-exact	29	32	에드워즈 대변인은 “법적 근거가 강력하다”며 필립모리스가 결국 승소할 것이라고 말했다.
+regression.nominal-derivation.pirate	해적	noun	smart-exact	0	9	해적이 총탄을 발사했다.
+regression.nominal-derivation.pirate-not-base	해	noun	no-match	0	9	해적이 총탄을 발사했다.
 regression.short-nominal-derivation.catalog-1	공	noun	smart-exact	20	23	시민의 세금은 공적인 일에 쓰여야 한다.
 regression.short-nominal-derivation.catalog-2	극	noun	smart-exact	17	20	경기 막판에 극적인 역전이 나왔다.
 regression.short-nominal-derivation.catalog-3	단	noun	smart-exact	38	41	그 결과는 문제를 보여 주는 단적인 사례다.
