@@ -78,7 +78,7 @@ initial = "a-or-eo"
 forms = ["아", "어"]
 required = []
 forbidden = []
-next = ["ending.connective-seo", "ending.connective-do", "ending.connective-ya", "ending.polite-yo", "ending.imperative-ra", "ending.auxiliary-gada", "ending.auxiliary-jida", "ending.auxiliary-boda", "ending.necessity-yaji", "ending.necessity-yaji-polite", "ending.aoeo-daga"]
+next = ["ending.connective-seo", "ending.connective-do", "ending.connective-ya", "ending.polite-yo", "ending.imperative-ra", "ending.auxiliary-gada", "ending.auxiliary-oda", "ending.auxiliary-jida", "ending.auxiliary-boda", "ending.necessity-yaji", "ending.necessity-yaji-polite", "ending.aoeo-daga"]
 terminal = true
 
 [[ending]]
@@ -899,6 +899,16 @@ forms = ["가"]
 required = []
 forbidden = []
 next = ["ending.connective-go", "ending.connective-ya", "ending.simultaneous-myeonseo"]
+terminal = false
+
+[[ending]]
+id = "ending.auxiliary-oda"
+category = "prefinal"
+initial = "other"
+forms = ["오"]
+required = []
+forbidden = []
+next = ["ending.past", "ending.past-adnominal"]
 terminal = false
 
 [[ending]]

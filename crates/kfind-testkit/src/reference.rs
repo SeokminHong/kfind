@@ -2428,6 +2428,19 @@ fn reference_attached_auxiliary(
         ("보", Eu, false, &[]),
     ];
     let (forms, stem, auxiliary) = match following.chars().next()? {
+        '온' | '왔' => (
+            &[
+                (
+                    "온",
+                    CompletedNieunEnding,
+                    true,
+                    &["ending.past-adnominal"][..],
+                ),
+                ("왔", Past, false, &["ending.past"][..]),
+            ][..],
+            '오',
+            "ending.auxiliary-oda",
+        ),
         '보' | '봤' | '봐' | '본' | '볼' | '봅' | '봄' if pos.is_action() => {
             (TRIAL, '보', "ending.auxiliary-boda")
         }

@@ -1058,3 +1058,6 @@ regression.myeonseo-buteo.bare	받다	verb	smart-exact	0	18	받으면서부터 �
 regression.myeonseo-buteo.contracted-copula	받다	verb	smart-exact	0	21	받으면서부터다.
 regression.myeonseo-buteo.explicit-copula	가다	verb	smart-exact	0	21	가면서부터이다.
 regression.myeonseo-buteo.token-interior	받다	verb	no-match	0	21	받으면서부터다리
+regression.attached-oda.adnominal	하다	verb	smart-exact	0	6	해온 일을 정리했다.
+regression.attached-oda.past	읽다	verb	smart-exact	0	18	읽어왔습니다.
+regression.attached-oda.separate	하다	verb	smart-exact	0	3	해 온 일을 정리했다.
