@@ -1,0 +1,6 @@
+case_id	original_query	original_pos	form	query	pos	lemma	xpos	reason
+gsd:test-s173:2	하다	verb	한산동은	한산동	noun	한산동+은	NNP+JX	미륵불을 자칭한 사람의 이름과 주제 보조사
+gsd:test-s239:4	우리	pronoun	우리나라의	우리나라	noun	우리나라+의	NNG+JKG	대한민국을 가리키는 한 단어와 관형격 조사
+gsd:test-s254:3	우리	pronoun	우리나라와	우리나라	noun	우리나라+와	NNG+JC	미국과 함께 열거된 우리나라 표제어와 접속 조사
+gsd:test-s526:2	우리	pronoun	우리나라	우리나라	noun	우리나라	NNG	뒤의 방방곡곡을 수식하는 우리나라 표제어
+gsd:test-s739:2	우리	pronoun	우리나라에서	우리나라	noun	우리나라+에서	NNG+JKB	국내 통계의 범위를 나타내는 우리나라 표제어와 부사격 조사
