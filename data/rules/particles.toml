@@ -343,6 +343,15 @@ next = []
 terminal = true
 
 [[particle]]
+id = "particle.topic.iran-ran"
+role = "auxiliary"
+hosts = ["nominal"]
+forms = ["이란", "란"]
+selection = "final-pair"
+next = []
+terminal = true
+
+[[particle]]
 id = "particle.emphasis.yamallo"
 role = "auxiliary"
 hosts = ["nominal", "adverb"]

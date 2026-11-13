@@ -57,6 +57,7 @@ const COPULA_RA_SUFFIXES: &[Suffix] = &[
 ];
 
 const COPULA_REPORTING_AND_RO_ENDINGS: &[Suffix] = &[
+    suffix("란", &["ending.copula-quotative-adnominal"]),
     suffix("란다", &["ending.copula-reporting-final"]),
     suffix("람", &["ending.copula-reporting-final"]),
     suffix("랍니까", &["ending.copula-reporting-final"]),
