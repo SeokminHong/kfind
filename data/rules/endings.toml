@@ -462,6 +462,16 @@ next = ["ending.polite-yo"]
 terminal = true
 
 [[ending]]
+id = "ending.connective-doe"
+category = "connective"
+initial = "consonant"
+forms = ["되"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.connective-eudoe"
 category = "connective"
 initial = "other"

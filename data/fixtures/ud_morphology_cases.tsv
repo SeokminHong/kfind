@@ -51,6 +51,11 @@ regression.jimaneun.full	듣다	verb	smart-exact	0	18	들었겠지마는 꼭 알
 regression.jimaneun.honorific	좋다	adjective	smart-exact	0	18	좋으시지마는 조금 멀다.
 regression.jimaneun.omitted-copula	이다	adjective	smart-exact	7	22	짧은 거리지마는 버스로 간다.
 regression.jimaneun.competing-verb	이다	adjective	no-match	7	22	자주 거리지마는 별일 없다.
+regression.doe.consonant-stem	적다	verb	smart-exact	0	6	적되 어법에 맞춘다.
+regression.doe.honorific	말하다	verb	smart-exact	0	12	말하시되 상대를 배려하세요.
+regression.doe.existential-compound	재미있다	adjective	smart-exact	0	15	재미있으되 내용은 어렵다.
+regression.doe.prefinal	오다	verb	smart-exact	7	16	봄은 왔으되 여전히 춥다.
+regression.doe.token-interior	작다	adjective	no-match	3	9	시작되었고그 자동차 회사는 남았다.
 regression.archaic-nira.consonant	좁다	adjective	smart-exact	7	19	길이 좁으니라.
 regression.archaic-nira.irregular	가볍다	adjective	smart-exact	7	22	짐이 가벼우니라.
 regression.archaic-nira.rieul	힘들다	adjective	smart-exact	10	22	살림이 힘드니라.
