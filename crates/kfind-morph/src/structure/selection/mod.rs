@@ -686,7 +686,7 @@ pub(in crate::structure) fn select_structure(
             .next
             .is_some_and(|next| complete_predicate_ending_path(resource, next))
     {
-        return StructureSelection::Adverb;
+        return StructureSelection::NominalOrAdverbWhole;
     }
     let connective_ji_before_nominal = (has_whole_nominal || has_exact_whole_nominal)
         && (next_is_unambiguous_nominal

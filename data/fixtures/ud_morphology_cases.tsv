@@ -1037,6 +1037,9 @@ corpus.ud-gsd.test.test-s308.pronoun.어디	어디	pronoun	smart-exact	10	16	커
 regression.nominal-before-numeral.topic	일	noun	smart-exact	0	3	일 하나는 똑소리 나데요
 regression.nominal-before-numeral.counter	한	noun	no-match	0	3	한 번만 확인했다.
 regression.nominal-before-numeral.genitive	한	noun	no-match	0	3	한 아이의 학부모로서 참석했다.
+regression.nominal-subject.bare-quote	살	noun	smart-exact	0	3	살 빠졌냐고 물었다.
+regression.nominal-subject.marked	살	noun	smart-exact	0	6	살이 빠졌다고 말했다.
+regression.nominal-subject.other-verb	살	noun	no-match	0	3	살펴보고 돌아왔다.
 regression.locative-contraction.eodi	어디	pronoun	smart-exact	0	9	어딨어?
 regression.locative-contraction.eodi-na	어디	pronoun	smart-exact	7	16	이거 어딨나?
 regression.locative-contraction.eodi-ji	어디	pronoun	smart-exact	7	16	아빠 어딨지?
