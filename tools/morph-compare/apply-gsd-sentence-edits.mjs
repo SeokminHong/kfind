@@ -25,17 +25,19 @@ const compoundBoundaries = options.includes('--compound-boundaries');
 const predicateReanalysis = options.includes('--predicate-reanalysis');
 const auxiliaryPos = options.includes('--auxiliary-pos');
 const derivedPredicatePos = options.includes('--derived-predicate-pos');
+const nominalHada = options.includes('--nominal-hada');
 if (!input || (restored && !shared) || (proofread && !restored)
-    || (independent || contextAnnotations || nominalModifiers || derivedNominals || scopeNominals || jiNominals || motSpacing || ijenContext || quantifierAnnotations || lexicalWhole || contextLexemes || receiveDerivation || missegmentedLexemes || properBoundaries || nominalDerivedBoundaries || compoundBoundaries || predicateReanalysis || auxiliaryPos || derivedPredicatePos ? options.length !== 1
+    || (independent || contextAnnotations || nominalModifiers || derivedNominals || scopeNominals || jiNominals || motSpacing || ijenContext || quantifierAnnotations || lexicalWhole || contextLexemes || receiveDerivation || missegmentedLexemes || properBoundaries || nominalDerivedBoundaries || compoundBoundaries || predicateReanalysis || auxiliaryPos || derivedPredicatePos || nominalHada ? options.length !== 1
       : options.length !== Number(contract) + Number(shared) + Number(restored) + Number(proofread))) {
-  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals | --scope-nominals | --ji-nominals | --mot-spacing | --ijen-context | --quantifier-annotations | --lexical-whole | --context-lexemes | --receive-derivation | --missegmented-lexemes | --proper-boundaries | --nominal-derived-boundaries | --compound-boundaries | --predicate-reanalysis | --auxiliary-pos | --derived-predicate-pos)');
+  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals | --scope-nominals | --ji-nominals | --mot-spacing | --ijen-context | --quantifier-annotations | --lexical-whole | --context-lexemes | --receive-derivation | --missegmented-lexemes | --proper-boundaries | --nominal-derived-boundaries | --compound-boundaries | --predicate-reanalysis | --auxiliary-pos | --derived-predicate-pos | --nominal-hada)');
 }
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
 const previousInput = 'd34735e79fad865a62685522859f2664e56d9f37330a1a11d17614aab82cda1e';
 const currentFixtureInput = '8f3aa236f20a0913e78e04139539b636835a538ab5d552891856a73a5e77e5da';
 const contextPosReviewInput = '120ad5000b84b3d61fef05214b6d703e0f573eb55330f0741cf455583806dce9';
-if (derivedPredicatePos ? checksum !== '6f7c07b7d8ff5a568fb9741ba0559c35cda2e111d6de13d1f3d525c53d89ee5f'
+if (nominalHada ? checksum !== 'e5f6483836dd29d8ebc03afc714dd20fd94547713a7a5015a004f1d0de5e9b0a'
+  : derivedPredicatePos ? checksum !== '6f7c07b7d8ff5a568fb9741ba0559c35cda2e111d6de13d1f3d525c53d89ee5f'
   : auxiliaryPos ? checksum !== '354cec7eeb316c1c210caf58015c23371f81dedbbba6f75dad8e5ee53da66753'
   : predicateReanalysis ? checksum !== 'cdde94ed29316f0cf4e32b7b02aebda5d0b7dc19100122382a9b4ea2bc954fa7'
   : compoundBoundaries ? checksum !== '78846cf33374a9df14391b28003e0e5bb6f09953d7db8420499be051068d7434'
@@ -64,7 +66,7 @@ function tsv(path) {
 }
 
 const editsBySentence = new Map();
-const sentenceEdits = derivedNominals || scopeNominals || jiNominals || ijenContext || quantifierAnnotations || lexicalWhole || receiveDerivation || properBoundaries || nominalDerivedBoundaries || compoundBoundaries ? [] : tsv(derivedPredicatePos ? './gsd-derived-predicate-pos-edits.tsv'
+const sentenceEdits = nominalHada || derivedNominals || scopeNominals || jiNominals || ijenContext || quantifierAnnotations || lexicalWhole || receiveDerivation || properBoundaries || nominalDerivedBoundaries || compoundBoundaries ? [] : tsv(derivedPredicatePos ? './gsd-derived-predicate-pos-edits.tsv'
   : auxiliaryPos ? './gsd-auxiliary-pos-edits.tsv'
   : predicateReanalysis ? './gsd-predicate-reanalysis-edits.tsv'
   : missegmentedLexemes ? './gsd-missegmented-lexemes-edits.tsv'
@@ -84,7 +86,8 @@ for (const [id, source, replacement, reason] of sentenceEdits) {
 }
 
 const annotations = new Map();
-const annotationEdits = tsv(derivedPredicatePos ? './gsd-derived-predicate-pos-annotations.tsv'
+const annotationEdits = tsv(nominalHada ? './gsd-nominal-hada-annotations.tsv'
+  : derivedPredicatePos ? './gsd-derived-predicate-pos-annotations.tsv'
   : auxiliaryPos ? './gsd-auxiliary-pos-annotations.tsv'
   : predicateReanalysis ? './gsd-predicate-reanalysis-annotations.tsv'
   : compoundBoundaries ? './gsd-compound-boundaries-annotations.tsv'
