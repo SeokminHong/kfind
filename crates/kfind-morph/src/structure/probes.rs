@@ -358,6 +358,15 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_pronoun_topic_contraction(&self, text: &str) -> bool {
+        has_exact_sequence(
+            &self.resource,
+            text,
+            &[StructuralPos::NP, StructuralPos::JX],
+        )
+    }
+
+    #[must_use]
     pub fn has_boi_predicate(&self, text: &str) -> bool {
         ["보이", "보여", "보였", "보인", "보일", "보입", "보임"]
             .iter()

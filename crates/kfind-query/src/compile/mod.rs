@@ -618,6 +618,19 @@ fn compile_nominal_contractions(
     }
     for rule in &analyzer.lexicons().rules().contractions {
         match rule.kind.as_str() {
+            "pronoun-topic-compose"
+                if pronoun
+                    && boundary == crate::BoundaryPolicy::Smart
+                    && analysis.lemma.as_ref() == rule.left =>
+            {
+                output.push(exact_branch_with_decision(
+                    &rule.result,
+                    analysis_index,
+                    vec![RuleId::from(rule.id.clone())],
+                    true,
+                    DraftDecision::Structural(ComponentCapability::Source),
+                ));
+            }
             "pronoun-attributive-shortening"
                 if pronoun
                     && boundary == crate::BoundaryPolicy::Smart

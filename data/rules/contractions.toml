@@ -97,6 +97,30 @@ result = "건"
 ending_ids = []
 
 [[contraction]]
+id = "contraction.pronoun-topic-jeo"
+kind = "pronoun-topic-compose"
+left = "저"
+right = "는"
+result = "전"
+ending_ids = []
+
+[[contraction]]
+id = "contraction.pronoun-topic-na"
+kind = "pronoun-topic-compose"
+left = "나"
+right = "는"
+result = "난"
+ending_ids = []
+
+[[contraction]]
+id = "contraction.pronoun-topic-neo"
+kind = "pronoun-topic-compose"
+left = "너"
+right = "는"
+result = "넌"
+ending_ids = []
+
+[[contraction]]
 id = "contraction.uri-attributive-ul"
 kind = "pronoun-attributive-shortening"
 left = "우리"
