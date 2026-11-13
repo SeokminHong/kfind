@@ -1054,3 +1054,7 @@ regression.past-final-je.irregular	짓다	verb	smart-exact	20	29	만리장성 �
 regression.past-final-je.contracted	가다	verb	smart-exact	0	6	갔제?
 regression.past-final-je.adjective	춥다	adjective	smart-exact	0	9	추웠제?
 regression.past-final-je.token-interior	짓다	verb	no-match	0	9	지었제품
+regression.myeonseo-buteo.bare	받다	verb	smart-exact	0	18	받으면서부터 달라졌다.
+regression.myeonseo-buteo.contracted-copula	받다	verb	smart-exact	0	21	받으면서부터다.
+regression.myeonseo-buteo.explicit-copula	가다	verb	smart-exact	0	21	가면서부터이다.
+regression.myeonseo-buteo.token-interior	받다	verb	no-match	0	21	받으면서부터다리

@@ -817,6 +817,32 @@ impl MorphMatcher {
                 if !branch.consumption.allows_rule_path(&rule_path) {
                     return None;
                 }
+                let remaining = &consumption_following[normalized_consumed..];
+                if let Some(tail) = remaining.strip_prefix("부터")
+                    && rule_path.last().map_or_else(
+                        || {
+                            !branch.origins.is_empty()
+                                && branch.origins.iter().all(|origin| {
+                                    origin.rule_path.last().is_some_and(|rule| {
+                                        rule.as_str() == "ending.simultaneous-myeonseo"
+                                    })
+                                })
+                        },
+                        |rule| rule.as_str() == "ending.simultaneous-myeonseo",
+                    )
+                {
+                    let end = tail
+                        .find(|character| !crate::is_token_character(character))
+                        .unwrap_or(tail.len());
+                    let ending = &tail[..end];
+                    if matches!(ending, "" | "다" | "이다") {
+                        normalized_consumed += "부터".len() + end;
+                        rule_path.push(RuleId::from("particle.from"));
+                        if !ending.is_empty() {
+                            rule_path.push(RuleId::from("ending.final-da"));
+                        }
+                    }
+                }
                 if let Some(host) = continuation_nominal_host(
                     &rule_path,
                     &consumption_following[..normalized_consumed],
