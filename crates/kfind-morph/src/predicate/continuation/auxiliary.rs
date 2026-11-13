@@ -22,6 +22,29 @@ const RESULTATIVE_STEM_ENDINGS: &[Suffix] = &[
     suffix("는군", &["ending.final-neun-exclamative"]),
 ];
 
+pub(super) fn verify_progression_oda(
+    anchor_len: usize,
+    following: &str,
+) -> Option<PredicateContinuationMatch> {
+    let (form, state, rule) = if following.starts_with('온') {
+        (
+            "온",
+            ContinuationState::CompletedNieunEnding,
+            "ending.past-adnominal",
+        )
+    } else {
+        ("왔", ContinuationState::Past, "ending.past")
+    };
+    verify_form(
+        anchor_len,
+        following,
+        form,
+        state,
+        Some(rule),
+        "ending.auxiliary-oda",
+    )
+}
+
 pub(super) fn verify_resultative(
     anchor_len: usize,
     following: &str,

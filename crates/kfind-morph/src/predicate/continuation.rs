@@ -1324,6 +1324,7 @@ pub fn verify_predicate_continuation_with_prefinal_context(
             Some('보' | '봐' | '봤' | '본' | '볼' | '봅' | '봄') if pos.is_action() => {
                 trial::verify(anchor.len(), following)
             }
+            Some('온' | '왔') => auxiliary::verify_progression_oda(anchor.len(), following),
             _ => auxiliary::verify_resultative(anchor.len(), following),
         }
     {
