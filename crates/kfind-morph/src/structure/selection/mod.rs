@@ -488,6 +488,15 @@ pub(in crate::structure) fn select_structure(
         });
     let particle_host = evidence.nominal_particle_hosts.last().cloned();
     let excludes_predicate = next_is_counter && evidence.adnominal_ends.is_empty();
+    if context.current == "속"
+        && next_starts_determiner_nominal
+        && context.previous.is_some_and(|previous| {
+            has_exact_fine_pos(resource, previous, DataFinePos::is_nominal)
+                && !complete_predicate_ending_path(resource, previous)
+        })
+    {
+        return StructureSelection::NominalWhole;
+    }
     if (next_starts_determiner_nominal || excludes_predicate)
         && context.current.chars().count() == 1
         && evidence.has_whole(DataFinePos::Mm)

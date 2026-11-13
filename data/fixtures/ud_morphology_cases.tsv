@@ -1022,6 +1022,9 @@ regression.pronominal-genitive.count	너	pronoun	no-match	0	3	네 명이 들어�
 regression.pronominal-genitive.reply	너	pronoun	no-match	0	3	네, 알겠습니다.
 regression.pronominal-genitive.locative	나	pronoun	no-match	7	10	한국 내 개신교 선교사들이 방문했다.
 regression.scope-nominal.common	내	noun	smart-exact	7	10	학교 내 시설을 확인했다.
+regression.scope-nominal.picture	속	noun	smart-exact	7	10	화보 속 박하선은 웃었다.
+regression.scope-nominal.book	속	noun	smart-exact	7	10	소설 속 인물을 떠올렸다.
+regression.scope-nominal.counterpart	새	noun	no-match	7	10	화보 새 사진을 골랐다.
 regression.scope-nominal.proper	내	noun	smart-exact	13	16	발칸반도 내 유적을 살폈다.
 regression.scope-nominal.connective	내	noun	no-match	7	10	보니 내 가방이었다.
 regression.scope-nominal.subject	내	noun	no-match	10	13	친구가 내 가방을 찾았다.
