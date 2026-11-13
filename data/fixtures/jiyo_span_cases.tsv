@@ -64,6 +64,8 @@ cha-jyo-verb	차다	verb	exact	41	47	그 선수는 왼발로도 공을 힘껏 �
 cha-jyo-verb-context	차다	verb	exact	41	47	새벽에 길어 온 우물물은 아주 차죠.
 cha-jyo-adj-context	차다	adjective	no-match	41	47	그 선수는 왼발로도 공을 힘껏 차죠.
 cha-jyo-adj	차다	adjective	exact	41	47	새벽에 길어 온 우물물은 아주 차죠.
+sseu-jiyo-two-adverbs	쓰다	adjective	no-match	41	50	그 학생은 보고서를 직접 다시 쓰지요.
+sseu-jiyo-subordinate-object	쓰다	adjective	exact	41	50	그 음료는 레몬을 넣어도 조금 쓰지요.
 balg-jiyo-verb	밝다	verb	exact	45	54	이 계절에는 보통 여섯 시쯤 날이 밝지요.
 balg-jiyo-verb-context	밝다	verb	exact	44	53	그 휴대폰은 한낮에도 화면이 꽤 밝지요.
 balg-jiyo-adj-context	밝다	adjective	exact	45	54	이 계절에는 보통 여섯 시쯤 날이 밝지요.

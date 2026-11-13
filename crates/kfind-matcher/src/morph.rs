@@ -1172,6 +1172,7 @@ impl MorphMatcher {
                     || has_counted_unit_copula(haystack, candidate, branch, resolver)
                     || has_elapsed_measure_frame(haystack, candidate, branch, atom, resolver)
                     || has_quantifying_adverb_frame(haystack, candidate, branch, atom, resolver)
+                    || has_jiyo_object_frame(haystack, candidate, branch, atom, resolver)
                     || has_whole_alternative_conjunction(haystack, candidate, branch, resolver)
                     || has_conflicting_honorific(haystack, candidate, branch, atom, resolver)
                     || has_object_inside_adnominal_result(haystack, candidate, branch, resolver)
@@ -2886,6 +2887,56 @@ fn has_jiyo_suffix(haystack: &[u8], suffix: Range<usize>) -> bool {
                 || (suffix.starts_with('ᄌ')
                     && (suffix.nfc().eq("죠".chars()) || suffix.nfc().eq("지요".chars())))
         })
+}
+
+fn has_jiyo_object_frame(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    branch: &CandidateProgram,
+    atom: &AtomPlan,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let core = &candidate.verified.core;
+    let tail = &haystack[core.end..];
+    if !(tail.starts_with("지요".as_bytes())
+        || tail.starts_with("죠".as_bytes())
+        || tail.starts_with("ᄌ".as_bytes()))
+        || branch.origins.is_empty()
+        || !branch.origins.iter().all(|origin| {
+            atom.analyses
+                .get(usize::from(origin.analysis_index))
+                .is_some_and(|analysis| analysis.coarse_pos == kfind_morph::CoarsePos::Adjective)
+        })
+    {
+        return false;
+    }
+    let span = surrounding_token_span(haystack, core.clone());
+    if core.start != span.start
+        || candidate.consumed.end > span.end
+        || !is_sentence_end_after(haystack, span.end)
+        || !has_jiyo_suffix(haystack, core.end..span.end)
+        || !context::normalized_token(haystack, core.clone())
+            .is_some_and(|stem| resolver.has_exact_action_predicate_surface(&stem))
+    {
+        return false;
+    }
+    let limit = span
+        .start
+        .saturating_sub(crate::DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes);
+    let mut before = span.start;
+    while let Some((start, word)) = context::previous_word_with_start(haystack, before) {
+        if start < limit {
+            break;
+        }
+        if resolver.has_object_marked_nominal(&word) {
+            return true;
+        }
+        if !resolver.has_exact_adverb_surface(&word) {
+            break;
+        }
+        before = start;
+    }
+    false
 }
 
 fn has_topic_before_independent_predicate(
