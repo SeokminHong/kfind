@@ -29,17 +29,19 @@ const nominalHada = options.includes('--nominal-hada');
 const derivedSegmentation = options.includes('--derived-segmentation');
 const colloquialLemma = options.includes('--colloquial-lemma');
 const odaSpacing = options.includes('--oda-spacing');
+const linkedMainVerbSpacing = options.includes('--linked-main-verb-spacing');
 if (!input || (restored && !shared) || (proofread && !restored)
-    || (independent || contextAnnotations || nominalModifiers || derivedNominals || scopeNominals || jiNominals || motSpacing || ijenContext || quantifierAnnotations || lexicalWhole || contextLexemes || receiveDerivation || missegmentedLexemes || properBoundaries || nominalDerivedBoundaries || compoundBoundaries || predicateReanalysis || auxiliaryPos || derivedPredicatePos || nominalHada || derivedSegmentation || colloquialLemma || odaSpacing ? options.length !== 1
+    || (independent || contextAnnotations || nominalModifiers || derivedNominals || scopeNominals || jiNominals || motSpacing || ijenContext || quantifierAnnotations || lexicalWhole || contextLexemes || receiveDerivation || missegmentedLexemes || properBoundaries || nominalDerivedBoundaries || compoundBoundaries || predicateReanalysis || auxiliaryPos || derivedPredicatePos || nominalHada || derivedSegmentation || colloquialLemma || odaSpacing || linkedMainVerbSpacing ? options.length !== 1
       : options.length !== Number(contract) + Number(shared) + Number(restored) + Number(proofread))) {
-  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals | --scope-nominals | --ji-nominals | --mot-spacing | --ijen-context | --quantifier-annotations | --lexical-whole | --context-lexemes | --receive-derivation | --missegmented-lexemes | --proper-boundaries | --nominal-derived-boundaries | --compound-boundaries | --predicate-reanalysis | --auxiliary-pos | --derived-predicate-pos | --nominal-hada | --derived-segmentation | --colloquial-lemma | --oda-spacing)');
+  throw new Error('usage: node apply-gsd-sentence-edits.mjs GSD_POSITIVES.jsonl ([--review-contract] [--align-shared-sentences [--restore-source-passages [--proofread]]] | --independent-proofreading | --context-annotations | --nominal-modifiers | --derived-nominals | --scope-nominals | --ji-nominals | --mot-spacing | --ijen-context | --quantifier-annotations | --lexical-whole | --context-lexemes | --receive-derivation | --missegmented-lexemes | --proper-boundaries | --nominal-derived-boundaries | --compound-boundaries | --predicate-reanalysis | --auxiliary-pos | --derived-predicate-pos | --nominal-hada | --derived-segmentation | --colloquial-lemma | --oda-spacing | --linked-main-verb-spacing)');
 }
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
 const previousInput = 'd34735e79fad865a62685522859f2664e56d9f37330a1a11d17614aab82cda1e';
 const currentFixtureInput = '8f3aa236f20a0913e78e04139539b636835a538ab5d552891856a73a5e77e5da';
 const contextPosReviewInput = '120ad5000b84b3d61fef05214b6d703e0f573eb55330f0741cf455583806dce9';
-if (odaSpacing ? checksum !== '4e21b5c0df73957f9bd50a347e189c26e28e717eebe7355693a7962d191ae8e9'
+if (linkedMainVerbSpacing ? checksum !== 'e3a6c7a8d26b07420e45c11c70ba9ff154122536b5caae8fac0acc18a4d21896'
+  : odaSpacing ? checksum !== '4e21b5c0df73957f9bd50a347e189c26e28e717eebe7355693a7962d191ae8e9'
   : colloquialLemma ? checksum !== 'f181be59898bb2729e4549acf04279d98ba27e90389551762c686de7201eb096'
   : derivedSegmentation ? checksum !== 'a45e484712d290120c639911809d2ddba426ea41452df7b9590c55ad74283ade'
   : nominalHada ? checksum !== 'e5f6483836dd29d8ebc03afc714dd20fd94547713a7a5015a004f1d0de5e9b0a'
@@ -72,7 +74,8 @@ function tsv(path) {
 }
 
 const editsBySentence = new Map();
-const sentenceEdits = derivedSegmentation || nominalHada || derivedNominals || scopeNominals || jiNominals || ijenContext || quantifierAnnotations || lexicalWhole || receiveDerivation || properBoundaries || nominalDerivedBoundaries || compoundBoundaries ? [] : tsv(odaSpacing ? './gsd-oda-spacing-edits.tsv'
+const sentenceEdits = derivedSegmentation || nominalHada || derivedNominals || scopeNominals || jiNominals || ijenContext || quantifierAnnotations || lexicalWhole || receiveDerivation || properBoundaries || nominalDerivedBoundaries || compoundBoundaries ? [] : tsv(linkedMainVerbSpacing ? './gsd-linked-main-verb-spacing-edits.tsv'
+  : odaSpacing ? './gsd-oda-spacing-edits.tsv'
   : colloquialLemma ? './gsd-colloquial-lemma-edits.tsv'
   : derivedPredicatePos ? './gsd-derived-predicate-pos-edits.tsv'
   : auxiliaryPos ? './gsd-auxiliary-pos-edits.tsv'
@@ -94,7 +97,8 @@ for (const [id, source, replacement, reason] of sentenceEdits) {
 }
 
 const annotations = new Map();
-const annotationEdits = tsv(odaSpacing ? './gsd-oda-spacing-annotations.tsv'
+const annotationEdits = tsv(linkedMainVerbSpacing ? './gsd-linked-main-verb-spacing-annotations.tsv'
+  : odaSpacing ? './gsd-oda-spacing-annotations.tsv'
   : colloquialLemma ? './gsd-colloquial-lemma-annotations.tsv'
   : derivedSegmentation ? './gsd-derived-segmentation-annotations.tsv'
   : nominalHada ? './gsd-nominal-hada-annotations.tsv'
