@@ -1,0 +1,25 @@
+# GSD 대명사와 동형 용언의 주석 교정
+
+`나는`, `저는`, `여기는`의 대명사·용언 해석을 문장 전체에서 대조하고,
+장소를 가리키는 `거기`의 표제어를 교정했습니다. 7건의 질의와 품사를 수정했으며
+원문과 UTF-8 정답 범위를 보존했습니다. [위치별 판정](../../tools/morph-compare/gsd-pronoun-context-review.tsv)
+
+같은 full POS `smart` 실행 파일로 정확한 UTF-8 범위를 비교했습니다. 행렬은
+TP, FP, TN, FN 순서이며 비율은 precision, recall, F1입니다. 계약 검토는 양쪽 모두 0건입니다.
+
+| GSD 양성 9,314건 | Raw 행렬 | Raw 비율 (%) | 계약 보정 행렬 | 계약 보정 비율 (%) |
+| --- | --- | --- | --- | --- |
+| 독립 맞춤법 재검토 | 8975, 0, 0, 339 | 100.00, 96.36, 98.15 | 8975, 0, 0, 339 | 100.00, 96.36, 98.15 |
+| 대명사 문맥 교정 | 8976, 0, 0, 338 | 100.00, 96.37, 98.15 | 8976, 0, 0, 338 | 100.00, 96.37, 98.15 |
+
+`거기 가서 먹고 오면`에서 `거기`가 정확히 반환됐습니다. 교정한 나머지 6건도 정확한
+범위를 반환했고 교정 대상 외 9,307건의 범위는 같았습니다. 제품 실행 파일이 같아 성능
+측정은 생략했습니다.
+
+```sh
+node tools/morph-compare/apply-gsd-context-pos-review.mjs "$proofread_input" --pronouns > "$corrected_input"
+"$runner" boundary full-pos smart "$corrected_input" "$output"
+```
+
+교정 입력 SHA-256은 `0824c82573c7ccf16fbd22758d08fe3c8155b2c871b8395b800f82b2cd7c204f`입니다.
+[이전 입력과 실행 환경](2026-11-13-gsd-independent-proofreading.md)

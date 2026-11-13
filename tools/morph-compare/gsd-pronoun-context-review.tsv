@@ -1,0 +1,8 @@
+case_id	original_query	original_pos	form	query	pos	lemma	xpos	reason
+gsd:test-s377:16	나	pronoun	나는	나다	verb	나+는	VV+ETM	피비린내가 나다의 관형절이 내전을 수식
+gsd:test-s814:1	나다	verb	나는	나	pronoun	나+는	NP+JX	주목하다의 주체를 나타내는 대명사와 주제 조사
+gsd:test-s871:1	것	noun	거기	거기	pronoun	거기	NP	가서의 목적지를 가리키는 장소 대명사
+gsd:test-s873:1	절다	verb	저는	저	pronoun	저+는	NP+JX	방문하는 화자를 나타내는 대명사와 주제 조사
+gsd:test-s910:1	절다	verb	저는	저	pronoun	저+는	NP+JX	방문하는 화자를 나타내는 대명사와 주제 조사
+gsd:test-s930:1	절다	verb	저는	저	pronoun	저+는	NP+JX	방문하는 화자를 나타내는 대명사와 주제 조사
+gsd:test-s961:1	여기다	verb	여기는	여기	pronoun	여기+는	NP+JX	유명 맛집이라고 설명하는 장소 대명사와 주제 조사

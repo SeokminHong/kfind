@@ -1,17 +1,22 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
-const [input] = process.argv.slice(2);
-if (!input || process.argv.length !== 3) {
-  throw new Error('usage: node apply-gsd-context-pos-review.mjs GSD_POSITIVES.jsonl');
+const [input, mode, ...extra] = process.argv.slice(2);
+if (!input || (mode !== undefined && mode !== '--pronouns') || extra.length) {
+  throw new Error('usage: node apply-gsd-context-pos-review.mjs GSD_POSITIVES.jsonl [--pronouns]');
 }
+const pronouns = mode === '--pronouns';
 const original = readFileSync(input);
 const checksum = createHash('sha256').update(original).digest('hex');
-if (checksum !== '16efe1b8b9eb19be9bf81bfa7a505362fe77fa6337653db88574ccf45d7abcf1') {
+const expectedChecksum = pronouns
+  ? 'f32a177315f52acff2c691341d527b9191590050b3c1dff28f57ca5fdf17e1ed'
+  : '16efe1b8b9eb19be9bf81bfa7a505362fe77fa6337653db88574ccf45d7abcf1';
+if (checksum !== expectedChecksum) {
   throw new Error(`unexpected GSD input SHA-256: ${checksum}`);
 }
 const reviews = new Map();
-const registry = readFileSync(new URL('./gsd-context-pos-review.tsv', import.meta.url), 'utf8');
+const registryPath = pronouns ? './gsd-pronoun-context-review.tsv' : './gsd-context-pos-review.tsv';
+const registry = readFileSync(new URL(registryPath, import.meta.url), 'utf8');
 for (const line of registry.trimEnd().split('\n').slice(1)) {
   const [id, sourceQuery, sourcePos, form, query, pos, lemma, xpos, reason] = line.split('\t');
   if (reviews.has(id) || !reason || !sourceQuery || !sourcePos || !form
