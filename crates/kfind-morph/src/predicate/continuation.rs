@@ -499,6 +499,8 @@ const DECLARATIVE_CONDITIONAL: Suffix = suffix("면", &["ending.conditional"]);
 const DECLARATIVE_NI: Suffix = suffix("니", &["ending.quotative-ni"]);
 const DECLARATIVE_MYEO: Suffix = suffix("며", &["ending.quotative-myeo"]);
 const DECLARATIVE_JI: Suffix = suffix("지", &["ending.quotative-ji"]);
+const DECLARATIVE_NE: Suffix = suffix("네", &["ending.final-ne"]);
+const DECLARATIVE_NE_YO: Suffix = suffix("네요", &["ending.final-ne", "ending.polite-yo"]);
 const DECLARATIVE_O: Suffix = suffix("오", &["ending.hao-reporting-dao"]);
 const DAO: &[Suffix] = &[suffix("다오", &["ending.hao-reporting-dao"])];
 const HONORIFIC_DAO: &[Suffix] = &[
@@ -1156,6 +1158,33 @@ pub fn verify_predicate_continuation_with_prefinal_context(
         .then(|| report::verify(state, pos, anchor, following))
         .flatten()
         .or_else(|| verify_simple_continuation(state, pos, anchor, following));
+    let honorific_declarative = if state == ContinuationState::Eu {
+        let declarative = if pos.is_action() { "신다" } else { "시다" };
+        following.strip_prefix(declarative).and_then(|tail| {
+            let suffix = declarative_suffix(tail)?;
+            let base_rule = if pos.is_action() {
+                "ending.declarative"
+            } else {
+                "ending.final-da"
+            };
+            let consumed_bytes = declarative.len() + suffix.surface.len();
+            Some(PredicateContinuationMatch {
+                token_end: anchor.len() + consumed_bytes,
+                consumed_bytes,
+                rule_path: ["ending.honorific", base_rule]
+                    .into_iter()
+                    .chain(suffix.rules.iter().copied())
+                    .map(RuleId::from)
+                    .collect(),
+            })
+        })
+    } else {
+        None
+    };
+    let ordinary = ordinary
+        .into_iter()
+        .chain(honorific_declarative)
+        .max_by_key(|matched| matched.consumed_bytes);
     if let Some(stacked) = verify_prefinal_chain(state, pos, anchor.len(), following)
         && ordinary
             .as_ref()
@@ -1623,6 +1652,8 @@ fn declarative_suffix(following: &str) -> Option<&'static Suffix> {
         }
         '는' => Some(&DECLARATIVE_ADNOMINAL),
         '고' => Some(&DECLARATIVE_GO),
+        '네' if following.starts_with("네요") => Some(&DECLARATIVE_NE_YO),
+        '네' => Some(&DECLARATIVE_NE),
         '던' => Some(&DECLARATIVE_RETROSPECTIVE),
         '더' if following.starts_with(DECLARATIVE_DEONIMANEUN.surface) => {
             Some(&DECLARATIVE_DEONIMANEUN)
