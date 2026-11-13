@@ -1091,3 +1091,5 @@ regression.pronoun-topic.na	나	pronoun	smart-exact	0	3	난 간다.
 regression.pronoun-topic.neo	너	pronoun	smart-exact	0	3	넌 누구야?
 regression.pronoun-topic.genitive-head	나	pronoun	no-match	10	13	이괄의 난 때
 regression.pronoun-topic.title-modifier	저	pronoun	no-match	10	13	박근혜 전 대표.
+regression.resultative-connective.past	타다	verb	smart-exact	17	20	모발이 모두 타 있었어요.
+regression.resultative-connective.present	타다	verb	smart-exact	7	10	모두 타 있다.
