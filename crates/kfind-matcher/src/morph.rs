@@ -1812,6 +1812,14 @@ impl MorphMatcher {
         let Some(unit) = context::normalized_token(haystack, core.clone()) else {
             return false;
         };
+        if complete
+            && prefix.is_empty()
+            && context::previous_word(haystack, whole.start)
+                .is_some_and(|previous| ConstraintResolver::is_mixed_cardinal(&previous))
+            && resolver.has_exact_numeric_unit(&unit)
+        {
+            return true;
+        }
         if !complete
             && prefix.is_empty()
             && has_counted_unit_copula_ending(haystack, core.end..whole.end)
@@ -3377,9 +3385,16 @@ fn has_object_inside_adnominal_result(
         && is_boundary_before(haystack, span.start)
         && context::previous_word(haystack, span.start)
             .is_some_and(|previous| resolver.has_object_marked_nominal(&previous))
-        && context::next_word_with_end(haystack, end).is_some_and(|(predicate_end, predicate)| {
-            is_sentence_end_after(haystack, predicate_end)
-                && resolver.has_independent_final_adjective(&predicate)
+        && context::next_word_with_end(haystack, end).is_some_and(|(next_end, next)| {
+            let predicate = if resolver.has_subject_marked_nominal(&next) {
+                context::next_word_with_end(haystack, next_end)
+            } else {
+                Some((next_end, next))
+            };
+            predicate.is_some_and(|(predicate_end, predicate)| {
+                is_sentence_end_after(haystack, predicate_end)
+                    && resolver.has_independent_final_predicate_without_object(&predicate)
+            })
         })
 }
 
