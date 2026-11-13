@@ -1347,6 +1347,7 @@ impl MorphMatcher {
                     || has_competing_iran_particle_analysis(haystack, candidate, resolver)
                     || lacks_contracted_quotative_head(haystack, candidate, branch, resolver)
                     || has_competing_hao_connective(haystack, candidate, branch, resolver)
+                    || has_competing_nominal_with_gu(haystack, candidate, resolver)
                     || has_nominal_quotative_frame(haystack, candidate, branch, resolver)
                     || has_counted_unit_copula(haystack, candidate, branch, resolver)
                     || has_elapsed_measure_frame(haystack, candidate, branch, atom, resolver)
@@ -3651,6 +3652,30 @@ fn has_interrogative_auxiliary_frame(
             .is_some_and(|previous| resolver.has_subject_marked_nominal(&previous))
         && (resolver.has_exact_predicate_ending_path(&text, PredicatePos::Adjective)
             || resolver.has_exact_lost_span_copula_ending_path(&text))
+}
+
+fn has_competing_nominal_with_gu(
+    haystack: &[u8],
+    candidate: &ExecutedCandidate,
+    resolver: &ConstraintResolver,
+) -> bool {
+    let span = &candidate.consumed;
+    candidate
+        .suffix_rules
+        .last()
+        .is_some_and(|rule| rule.as_str() == "ending.connective-go")
+        && *span == candidate.verified.token
+        && haystack
+            .get(span.clone())
+            .is_some_and(|text| text.ends_with("구".as_bytes()) || text.ends_with("구".as_bytes()))
+        && context::normalized_token(haystack, span.clone()).is_some_and(|token| {
+            resolver.has_exact_nominal_surface(&token)
+                && !context::previous_word(haystack, span.start).is_some_and(|previous| {
+                    resolver.has_object_marked_nominal(&previous)
+                        || (resolver.has_exact_adverb_surface(&previous)
+                            && !resolver.has_exact_proper_name_surface(&token))
+                })
+        })
 }
 
 fn has_nominal_interrogative_frame(
