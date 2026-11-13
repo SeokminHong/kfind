@@ -43,6 +43,10 @@ regression.causal-mae.resultative	어둡다	adjective	smart-exact	10	25	날씨�
 regression.causal-mae.honorific	앉다	verb	smart-exact	13	25	선생님이 앉으시매 수업을 시작했다.
 regression.causal-mae.future	먹다	verb	smart-exact	7	19	그가 먹겠으매 음식을 준비했다.
 regression.causal-mae.copula	이다	adjective	smart-exact	13	19	오랜 친구이매 마음이 편했다.
+regression.ppundeoreo.rieul-stem	살다	verb	smart-exact	7	19	같이 살뿐더러 일도 같이 한다.
+regression.ppundeoreo.past	구하다	verb	smart-exact	7	25	집을 구했을뿐더러 일자리도 찾았다.
+regression.ppundeoreo.copula	이다	adjective	smart-exact	10	22	같은 반일뿐더러 이웃이다.
+regression.ppundeoreo.dependent-noun	살다	verb	smart-exact	7	10	같이 살 뿐 다른 계획은 없다.
 regression.archaic-nira.consonant	좁다	adjective	smart-exact	7	19	길이 좁으니라.
 regression.archaic-nira.irregular	가볍다	adjective	smart-exact	7	22	짐이 가벼우니라.
 regression.archaic-nira.rieul	힘들다	adjective	smart-exact	10	22	살림이 힘드니라.
