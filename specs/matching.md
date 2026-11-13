@@ -1422,7 +1422,8 @@ anchor hits
 범위를 벗어나거나 줄을 건넌 state는 즉시 제거한다. 가장 이른 시작점의 연장 가능한 state가
 없어졌을 때만 완성 match를 확정한다. 완성 match 때문에 cursor가 전진하면 이미 지나간 후보 중
 새 cursor 이후에 시작하는 제한된 구간만 재생해, 이전 match와 겹쳐 우선순위에서 밀렸던 다음
-prefix를 복구한다. 재생 구간의 시작은 대기 중인 가장 이른 완성 match의 최종 end를 따라
+prefix를 복구한다. 입력 끝에서는 재생으로 복구한 완성 match도 같은 순서로 확정한다.
+재생 구간의 시작은 대기 중인 가장 이른 완성 match의 최종 end를 따라
 전진하며, 완성 match가 없으면 별도 후보 이력을 유지하지 않는다.
 
 Active DP와 재생 이력 메모리는 줄 전체 candidate 수가 아니라 query atom 수, max-gap 안의 서로
