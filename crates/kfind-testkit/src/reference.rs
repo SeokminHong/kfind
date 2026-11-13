@@ -882,6 +882,10 @@ fn reference_simple_continuation(
         reference_suffix("다가는", &["ending.connective-daganeun"]),
         reference_suffix("다간", &["ending.connective-daganeun"]),
         reference_suffix("단", &["ending.connective-daganeun"]),
+        reference_suffix("으니", &["ending.connective-ni"]),
+        reference_suffix("으니까", &["ending.connective-ni"]),
+        reference_suffix("으니까는", &["ending.connective-ni"]),
+        reference_suffix("으니깐", &["ending.connective-ni"]),
         reference_suffix("자", &["ending.concessive-eotja"]),
         reference_suffix("남", &["ending.self-question-nam"]),
         reference_suffix("군", &["ending.final-gun"]),
@@ -914,6 +918,10 @@ fn reference_simple_continuation(
         reference_suffix("게", &["ending.final-ge"]),
     ];
     const FUTURE: &[ReferenceSuffix] = &[
+        reference_suffix("으니", &["ending.connective-ni"]),
+        reference_suffix("으니까", &["ending.connective-ni"]),
+        reference_suffix("으니까는", &["ending.connective-ni"]),
+        reference_suffix("으니깐", &["ending.connective-ni"]),
         reference_suffix("남", &["ending.self-question-nam"]),
         reference_suffix("다가는", &["ending.connective-daganeun"]),
         reference_suffix("다간", &["ending.connective-daganeun"]),
@@ -2148,7 +2156,9 @@ fn reference_simple_continuation(
         .chain(additional_endings)
         .filter(|suffix| {
             following.starts_with(suffix.surface)
-                && (suffix.rules.last() != Some(&"ending.connective-daganeun")
+                && ((suffix.rules.last() != Some(&"ending.connective-daganeun")
+                    && (suffix.rules != ["ending.connective-ni"]
+                        || !suffix.surface.starts_with('으')))
                     || !following[suffix.surface.len()..]
                         .chars()
                         .next()
