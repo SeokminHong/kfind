@@ -1067,6 +1067,7 @@ macro_rules! present_rieul_endings {
             suffix(concat!($prefix, "래"), &[$($prior,)* "ending.intent-rieulrae"]),
             suffix(concat!($prefix, "래요"), &[$($prior,)* "ending.intent-rieulrae", "ending.polite-yo"]),
             suffix(concat!($prefix, "라치면"), &[$($prior,)* "ending.conditional-rieulrachimyeon"]),
+            suffix(concat!($prefix, "라면"), &[$($prior,)* "ending.colloquial-rieulramyeon"]),
         )
     };
 }
@@ -2125,7 +2126,11 @@ fn verify_simple_continuation(
             following.starts_with(suffix.surface)
                 && ((!matches!(
                     suffix.rules.last().copied(),
-                    Some("ending.connective-daganeun" | "ending.dialect-past-je")
+                    Some(
+                        "ending.connective-daganeun"
+                            | "ending.dialect-past-je"
+                            | "ending.colloquial-rieulramyeon"
+                    )
                 ) && (suffix.rules != ["ending.connective-ni"]
                     || !suffix.surface.starts_with('으')))
                     || !following[suffix.surface.len()..]
@@ -2151,6 +2156,7 @@ fn verify_simple_continuation(
                                 | "ending.present-adnominal"
                                 | "ending.intent-rieulrae"
                                 | "ending.conditional-rieulrachimyeon"
+                                | "ending.colloquial-rieulramyeon"
                         )
                     }))
         })

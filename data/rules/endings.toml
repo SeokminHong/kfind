@@ -1202,6 +1202,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.colloquial-rieulramyeon"
+category = "connective"
+initial = "attach-rieul"
+forms = ["ㄹ라면", "을라면"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.doubt-rieulji"
 category = "final"
 initial = "attach-rieul"
