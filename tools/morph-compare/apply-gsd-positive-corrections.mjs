@@ -1,9 +1,10 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
-const [input] = process.argv.slice(2);
-if (process.argv.length !== 3) {
-  throw new Error('usage: node apply-gsd-positive-corrections.mjs GSD_POSITIVES.jsonl');
+const [input, spanCorrection] = process.argv.slice(2);
+if (!input || process.argv.length > 4
+    || (spanCorrection && spanCorrection !== '--explicit-copula-noun-spans')) {
+  throw new Error('usage: node apply-gsd-positive-corrections.mjs GSD_POSITIVES.jsonl [--explicit-copula-noun-spans]');
 }
 
 const original = readFileSync(input);
@@ -13,8 +14,8 @@ if (checksum !== 'a6955363dbf837f16b5ec4ef6465eabf8e6611df43c591a21588aa638efde1
 }
 
 function tsv(path, width) {
-  return readFileSync(new URL(path, import.meta.url), 'utf8').trimEnd()
-    .split('\n').slice(1).map(line => {
+  return readFileSync(new URL(path, import.meta.url), 'utf8')
+    .split(/\r?\n/).slice(1).filter(line => line.length).map(line => {
       const fields = line.split('\t');
       if (fields.length !== width) throw new Error(`invalid TSV row: ${line}`);
       return fields;
@@ -35,10 +36,27 @@ for (const row of tsv('../../data/fixtures/ud_morphology_cases.tsv', 7)) {
   fixtures.set(row[0], row);
 }
 
+const particleSurfaces = spanCorrection
+  ? new Set(tsv('../../data/lexicon/particles.tsv', 5)
+    .flatMap(([, , , variants]) => variants.split('|')))
+  : new Set();
+
 const output = original.toString('utf8').trimEnd().split('\n').map(line => {
   const row = JSON.parse(line);
   const fixture = corrections.get(row.id);
-  if (!fixture) return line;
+  if (!fixture) {
+    if (!spanCorrection || row.pos !== 'noun' || row.expected !== true
+        || !/^(NNG|NNB|NNP)\+VCP(?:\+EP)*\+(EC|EF|ETM)$/.test(row.xpos)
+        || !row.lemma.startsWith(row.query + '+이+')
+        || !row.form.startsWith(row.query + '이')
+        || particleSurfaces.has(row.form.slice(row.query.length))
+        || Buffer.from(row.text).subarray(row.gold_byte_start, row.gold_byte_end)
+          .toString('utf8') !== row.form) {
+      return line;
+    }
+    row.gold_byte_end = row.gold_byte_start + Buffer.byteLength(row.query);
+    return JSON.stringify(row);
+  }
   const [, query, pos, expectation, start, end, text] = fixtures.get(fixture) ?? [];
   if (query !== row.query || pos !== row.pos || expectation !== 'smart-exact'
       || !fixture.startsWith(`corpus.ud-gsd.test.${row.id.split(':')[1]}.`)
