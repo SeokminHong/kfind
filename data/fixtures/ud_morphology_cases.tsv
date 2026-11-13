@@ -5,6 +5,13 @@ corpus.ud-gsd.test.test-s154.verb.먹다	먹다	verb	match	105	114	푸짐한 음
 corpus.ud-gsd.test.test-s185.verb.굽다	굽다	verb	exact	14	26	맛있고 다 구워져서 나와서 편하고 기름기가 다 빠져서 담백해요!
 corpus.ud-gsd.test.test-s200.verb.결제하다	결제하다	verb	match	89	107	오만 원 이상 카드 결제를 하는데 부가세 별도라며 오천 원을 추가 결제하더군요
 corpus.ud-gsd.test.test-s250.adjective.좋다	좋다	adjective	match	41	50	팬 앤 패드법의 경우는 효과는 좋으나 패드의 탈부착이 어렵고 겨울에 시설 내 광 투과율이 떨어지는 문제가 있다.
+corpus.ud-gsd.test.test-s55.noun.일품	일품	noun	smart-exact	114	120	고기도 맛있고 반찬도 깔끔하지만 무엇보다도 사골 육수에 굴을 넣어 끓인 떡국 맛이 일품이었습니다.
+corpus.ud-gsd.test.test-s73.noun.모임	모임	noun	smart-exact	10	16	친구들 모임이었는데 갈만하네요
+corpus.ud-gsd.test.test-s81.noun.거	거	noun	smart-exact	77	80	포장 뜯을 때부터 헛구역질 나올 정도여서 끓이면 없어질 거라 생각했는데 도저히 먹을 수 없었어요.
+corpus.ud-gsd.test.test-s119.noun.전문점	전문점	noun	smart-exact	13	22	부대찌개 전문점이었는데 이젠 삼겹살도 판다.
+corpus.ud-gsd.test.test-s324.noun.곳	곳	noun	smart-exact	43	46	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
+corpus.ud-gsd.test.test-s481.noun.느낌	느낌	noun	smart-exact	18	24	전 약간 비린 느낌이어서 좀 별로더라고요.
+corpus.ud-gsd.test.test-s488.noun.이상	이상	noun	smart-exact	51	57	동네 분 추천으로 가게 되었는데 기대 이상이었어요.
 corpus.ud-gsd.test.test-s280.adjective.약하다	약하다	adjective	match	59	71	그러자 일시적으로 기압이 상승하며 파도가 약해졌고, 이에 완전히 태풍이 북동쪽에 있다고 확신한 홀시 제독은 경로를 남서쪽으로 완전히 바꾸어 이동하였다.
 corpus.ud-gsd.test.test-s336.adjective.많다	많다	adjective	smart-exact	17	23	종류가 그리 많진 않지만 부담 없이 먹을 수 있겠네요.
 corpus.ud-gsd.test.test-s162.verb.대다	대다	verb	no-match	109	112	연초부터 중동•북아프리카 사태가 터지면서 유가가 폭등했고, 3월에는 일본에서 대지진이 발생, 세계 경제가 큰 타격을 받으면서부터다.
