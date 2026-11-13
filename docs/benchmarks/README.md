@@ -299,13 +299,15 @@ strict와 contract-adjusted 기대값을 각각 적용한 confusion matrix와 �
 canonical 회귀선과 합치거나 대체하지 않는다.
 명시적 품사 `smart` 변경은 고정 development에서 FNᶜ를 우선 줄이고 contract-adjusted precision
 99.00% 하한과 hard-negative 신규 FPᶜ 0을 지킨다. FNᶜ가 같은 후보끼리만 FPᶜ를 비교한다.
-Development의 비표준 붙여쓰기와 잘못 정렬된 표제어는 수동 registry로만 계약 모수에서 제외한다.
-해당 case의 raw FN은 그대로 보존하고 제외 근거와 raw·contract-adjusted 차이를 함께 보고한다.
+Development의 비표준 붙여쓰기는 수동 registry에 계약 평가 제외로 기록한다. gold 정렬 오류는
+계약 음성으로 기록한다. 두 경우 모두 raw 결과를 보존하고 판단 근거와 두 지표의 차이를 보고한다.
 보고서는 corpus-gold TP·FP·TN·FN과 precision·recall·F1을 raw 지표로 보존한다.
 `contract_expected`가 있는 fixture에는 TPᶜ·FPᶜ·TNᶜ·FNᶜ와 contract-adjusted
 precision·recall·F1을 추가한다. Contract registry는 문법 구조로 구분할 수 없는 동형이의와
 source component를 contract positive로, gold 정렬 오류를 contract negative로 교정한다.
-동형이의를 검토할 때는 같은 표면형의 양쪽 해석이 각각 성립하는 문장을 회귀로 등록한다.
+모든 계약 검토에 대조 예문을 남긴다. 동형이의는 같은 표면형의 양쪽 해석이 각각 성립하는
+문장을 등록한다. 구조 판정과 gold 교정은 다른 분석이 성립하는 문장을, 비표준 표기 제외는
+대응하는 표준 표기를 남긴다. 두 문장의 표면형과 판정 근거를 함께 기록한다.
 품사, 조사 또는 인접 성분의 문법 구조로 판별할 수 있으면 해당 구조에 따른 기대값으로
 채점한다. 원본 gold가 그 기대값과 일치하면 그대로 유지하며, 오탐과 누락은 raw와
 contract-adjusted 양쪽에 집계한다.

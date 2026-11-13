@@ -6,7 +6,8 @@
 계약 검토에서 형용사 질의를 음성으로 정정합니다.
 [한국어기초사전 다분히](https://krdict.korean.go.kr/eng/dicSearch/SearchView?ParaWordNo=40533) ·
 [국립국어원 부사 파생 접미사](https://www.korean.go.kr/front/onlineQna/onlineQnaView.do?qna_seq=329003) ·
-[계약 검토](../../tools/morph-compare/query-matrix-contract-reviews.tsv)
+[계약 검토](../../tools/morph-compare/query-matrix-contract-reviews.tsv) ·
+[원문 대조 예문](../../tools/morph-compare/contract-contrast-evidence.jsonl)
 
 교정 진단 입력에서는 `드레퓌스 사건`의 띄어쓰기를 바로잡고 뒤에 나오는 표적의 UTF-8
 범위를 옮겼습니다. 해당 질의의 표제어와 품사를 `다분히/adverb`로 바꾸고, 두 모드에서

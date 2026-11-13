@@ -17,11 +17,12 @@
 `성적을 거두다`, `정적이 당선되다`, `실적을 달성하다`의 검색 결과는 음성으로 검증했습니다.
 `양적인`, `성적인`, `정적인`의 동형 용법은 양쪽 분석이 성립하는 문장을 짝지어
 문맥 기대값과 형태 검색 계약을 함께 기록했습니다. PUD 원본 음성에서 새로 반환된
-네 건 중 `정적인 전선`은 동형이의이며, `지적 동류`, `공적으로도`, `전적으로`는
-원래 음성 정답에 빠진 파생 성분입니다.
+네 건은 raw FP이자 계약 TPᶜ입니다. `정적인 전선`은 동형이의이며, `지적 동류`,
+`공적으로도`, `전적으로`는 원래 음성 정답에 빠진 파생 성분입니다.
 [UD 회귀](../../data/fixtures/ud_morphology_cases.tsv) ·
 [동형이의 대조](../../tools/morph-compare/short-nominal-derivation-context-cases.jsonl) ·
-[GSD·PUD 계약 검토](../../tools/morph-compare/short-nominal-derivation-corpus-reviews.tsv)
+[GSD·PUD 계약 검토](../../tools/morph-compare/short-nominal-derivation-corpus-reviews.tsv) ·
+[원문 대조 예문](../../tools/morph-compare/contract-contrast-evidence.jsonl)
 
 KAIST `MH2_0069-s8`의 `관계속`, `출판연구`를 `관계 속`, `출판 연구`로 고치고
 `양`의 범위를 한 음절로 정렬했습니다. GSD `test-s115:4`의 `법`도 `법적` 전체에서

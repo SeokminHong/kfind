@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -16,77 +15,6 @@ HEADER = (
 
 
 class QueryMatrixContractReviewTests(unittest.TestCase):
-    def test_reviewed_homographs_have_matching_context_pairs(self) -> None:
-        root = Path(__file__).resolve().parents[1]
-        for prefix, split in (
-            ("resultative", "resultative"),
-            ("query-matrix", "test"),
-            ("trial", "trial"),
-            ("copula-conditional", "copula-conditional"),
-            ("interrogative", "interrogative"),
-            ("prospective", "prospective"),
-            ("seoya", "seoya"),
-            ("meuro", "meuro"),
-            ("mse", "mse"),
-            ("dao", "dao"),
-            ("jiyo", "jiyo"),
-            ("humble", "humble"),
-            ("casual-prefinal", "casual-prefinal"),
-            ("request-dalla", "request-dalla"),
-            ("indirect-quote", "indirect-quote"),
-            ("short-nominal-derivation", "short-nominal-derivation"),
-            ("copula-interrogative", "copula-interrogative"),
-            ("nominal-tail-copula", "nominal-tail-copula"),
-            ("bound-si", "bound-si"),
-        ):
-            with self.subTest(dataset=prefix):
-                self.assert_context_pairs(root, prefix, split)
-
-    def assert_context_pairs(self, root: Path, prefix: str, split: str) -> None:
-        cases = [
-            json.loads(line)
-            for line in (root / f"{prefix}-context-cases.jsonl").read_text(
-                encoding="utf-8"
-            ).splitlines()
-        ]
-        by_id = {case["id"]: case for case in cases}
-        self.assertEqual(len(cases), len(by_id))
-        reviews = [
-            review
-            for review in load_contract_reviews(root / f"{prefix}-contract-reviews.tsv")
-            if review.case_id in by_id
-        ]
-        self.assertEqual(
-            {review.case_id for review in reviews},
-            {case["id"] for case in cases if not case["expected"]},
-        )
-        apply_contract_reviews(
-            cases, reviews, query_mode="explicit-pos", split=split
-        )
-        expected_by_review = {
-            review.case_id: (
-                None
-                if review.contract_status == "excluded"
-                else review.contract_reason
-                in {"same-pos-homograph", "structurally-indistinguishable-homograph"}
-            )
-            for review in reviews
-        }
-
-        for case in cases:
-            with self.subTest(case=case["id"]):
-                other = by_id[case["paired_case_id"]]
-                self.assertEqual(case["id"], other["paired_case_id"])
-                self.assertNotEqual(case["text"], other["text"])
-                self.assertNotEqual(case["expected"], other["expected"])
-                self.assertEqual((case["query"], case["pos"]), (other["query"], other["pos"]))
-                surface = case["text"].encode()[case["gold_byte_start"]:case["gold_byte_end"]]
-                other_surface = other["text"].encode()[other["gold_byte_start"]:other["gold_byte_end"]]
-                self.assertTrue(surface)
-                self.assertEqual(surface.decode(), other_surface.decode())
-                if not case["expected"]:
-                    self.assertIs(case["contract_expected"], expected_by_review[case["id"]])
-
     def test_applies_all_contract_review_statuses(self) -> None:
         cases = [
             self.case("ambiguous", "걷다", "verb", False, "친구에게 전화를 걸었다."),

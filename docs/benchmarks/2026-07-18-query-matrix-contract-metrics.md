@@ -60,7 +60,9 @@ Raw FP 4건은 모두 제품이 맞게 찾은 계약 양성이다.
 | gold 정렬 오류 | 1 | `이/pronoun → 이중` | strict positive → contract negative |
 | 현재 비표준 띄어쓰기 | 3 | `국경없는`, `권위있는`, `빙원옆에` | contract 분모 제외 |
 
-나머지 raw FN 14건은 strict positive를 유지한다.
+나머지 raw FN 14건은 strict positive를 유지해 FNᶜ에도 집계한다. 현재 검토 기록별
+판정 근거는 원문과 대조 예문으로 확인할 수 있다.
+[대조 예문](../../tools/morph-compare/contract-contrast-evidence.jsonl)
 
 | 향후 구현 구조 | 건수 | case |
 | --- | ---: | --- |

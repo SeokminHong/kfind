@@ -20,7 +20,7 @@ GSD `있는지/했는지/댔는지`의 범위를 회귀에 등록했습니다. G
 [UD 범위 fixture](../../data/fixtures/ud_morphology_cases.tsv)
 
 `찬가`와 `단가`는 명사와 형용사 의문형이 각각 자연스러운 문장을 짝지었습니다.
-두 질의를 두 문장에 실행해 raw FP 4건을 계약 TPc로 보정했습니다.
+두 질의를 두 문장에 실행해 raw FP 4건을 계약 TPᶜ로 집계했습니다.
 KAIST dev·test는 각각 검토 3건, 문맥 대조는 검토 4건입니다. 나머지 입력은
 각각 검토 0건이며 보정 지표는 raw와 같습니다.
 [문맥 예문](../../tools/morph-compare/interrogative-context-cases.jsonl) ·

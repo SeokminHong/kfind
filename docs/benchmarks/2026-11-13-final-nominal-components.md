@@ -18,10 +18,12 @@
 [UD 회귀](../../data/fixtures/ud_morphology_cases.tsv)
 
 GSD·PUD 원본 음성에서 반환 범위가 바뀐 18건은 `교직자들`, `건의문`, `뒷산`,
-`그해` 등의 사전 성분입니다. 원본 기준으로 새 양성 반환이 된 사례는 15건이고,
-나머지 3건은 기존 반환에 범위가 추가됐습니다. 수정한 예문에서 새 범위를 각각 검사했습니다.
+`그해` 등의 사전 성분입니다. 15건은 새 반환에 따라 raw TN에서 FP로, 계약 FNᶜ에서
+TPᶜ로 바뀌었습니다. 나머지 3건은 기존 반환에 범위가 추가됐습니다. 수정한 예문에서
+새 범위를 각각 검사했습니다.
 [18건 계약 검토](../../tools/morph-compare/final-nominal-component-corpus-reviews.tsv) ·
-[이전 검토 4건](../../tools/morph-compare/short-nominal-derivation-corpus-reviews.tsv)
+[이전 검토 4건](../../tools/morph-compare/short-nominal-derivation-corpus-reviews.tsv) ·
+[원문 대조 예문](../../tools/morph-compare/contract-contrast-evidence.jsonl)
 
 GSD와 회귀 양성은 정확한 범위로, 회귀 음성과 KAIST 양성은 표적 범위의 겹침으로
 채점했습니다. 표적이 없는 음성은 반환 여부를 사용했습니다. 행렬 순서는 TP, FP, TN, FN이며

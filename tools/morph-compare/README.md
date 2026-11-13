@@ -26,26 +26,34 @@ recall과 F1을 함께 기록합니다. 이 계약은 kfind뿐 아니라 Kiwi, L
 KOMORAN에도 동일하게 적용합니다.
 
 Raw의 TP, TN, FP, FN은 원본 corpus gold를 그대로 사용합니다. Contract-adjusted의
-TPc, TNc, FPc, FNc는 실행 전에 고정한 review registry를 같은 예측에 적용합니다.
+TPᶜ, TNᶜ, FPᶜ, FNᶜ는 실행 전에 고정한 계약 기대값을 같은 예측에 적용합니다.
 Registry는 형태·통사 구조로 구분할 수 없는 동형이의, source에 정렬된 내부 성분과 gold span
 오류를 재분류하며 제품 입력 계약 밖의 비표준 사례를 제외할 수 있습니다. 구현이
 어렵거나 지원하지 않는 표준 문법은 제외하지 않습니다.
 
 같은 표면에 유효한 형태 분석이 둘 이상 있고 어느 뜻인지 문장 의미로만 가릴 수 있으면,
 문맥 gold와 형태 검색 계약을 모두 기록합니다. 유효한 질의 분석을 contract-positive로
-기록한 사례는 일치하면 TPc, 빠지면 FNc입니다.
+기록한 사례는 일치하면 TPᶜ, 빠지면 FNᶜ입니다.
 조사 결합, 관형절의 수식 대상, 필수 문장 성분으로 질의의 분석을 배제할 수 있으면
-원래 기대값을 유지합니다. 이때 잘못 잡힌 범위는 FP, 빠진 범위는 FN입니다.
-문맥 동음이의를 회귀에 추가할 때는 같은 표면형의 각 해석이 자연스럽게 성립하는
-예문을 짝으로 등록합니다. 질의가 문장에 해당하는 쪽은 반환 범위까지 확인합니다.
+원래 기대값을 유지합니다. 이 경우 오탐은 raw FP와 FPᶜ, 누락은 raw FN과 FNᶜ에
+각각 집계합니다.
+
+계약 검토의 확인·재분류·제외에는 대조 예문이 필요합니다. 동형이의는 같은 표면형의
+raw 양성·음성 쌍을 `*-context-cases.jsonl`에 연결할 수 있습니다. 그 밖의 검토는
+[대조 예문](contract-contrast-evidence.jsonl)에 원본 파일과 ID, 원문과 대조문,
+두 문장의 표면형과 판정 근거를 기록합니다. 이 파일의 예문은 품질 채점 모수에 넣지
+않습니다. 수록한 UD 2.18 원문에는 [출처별 라이선스](../../data/fixtures/README.md#출처)를
+적용합니다.
+
+저장소의 두 fixture 경로를 함께 검사하려면 `tools/morph-compare`에서
+`python3 -m unittest test_contract_contrast`를 실행합니다.
 
 Review registry가 없는 fixture도 두 지표를 모두 기록합니다. 이 경우 raw confusion
 matrix를 contract-adjusted 값으로 사용하고 `reviewed_cases=0`을 명시합니다.
 Contract-adjusted 값만 표시하거나 raw 오류를 숨기지 않습니다.
 
-예를 들어 raw FN이 4이고 FNc가 0이면 네 누락이 관측되었지만 review 결과 모두 제품
-목표 밖이라는 뜻입니다. 실행 결과에서 네 오류가 사라졌다는 뜻이 아니며, 계약 안의
-false negative가 0이라는 뜻입니다.
+예를 들어 raw FN이 4이고 FNᶜ가 0이면 원본 gold 기준 누락이 네 건입니다. 계약 평가에서는
+네 건 모두 음성으로 교정되었거나 제외되었습니다.
 
 ## 공식 실행
 
@@ -94,7 +102,7 @@ snapshot과 맞지 않으면 갱신 명령을 안내하고 실패합니다.
 품질 보고서는 backend와 평가군마다 다음 항목을 기록합니다.
 
 - raw TP, TN, FP, FN, precision, recall, F1
-- contract-adjusted TPc, TNc, FPc, FNc, precision, recall, F1
+- contract-adjusted TPᶜ, TNᶜ, FPᶜ, FNᶜ, precision, recall, F1
 - reviewed, reclassified, excluded case 수와 registry SHA-256
 - source/POS/noise scope별 결과와 case-level failure cause
 - kfind resource version과 artifact SHA-256
