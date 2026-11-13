@@ -1,4 +1,8 @@
 id	query	pos	expected	byte_start	byte_end	text
+corpus.ud-gsd.test.test-s578.proper-name-hanja	연	noun	smart-exact	40	43	민왕 때 송(宋)을 멸망시키고, 연(燕)의 종묘사직을 쑥대밭으로 만들었는데, 이후 연(燕)의 명장 악의(樂毅)의 주도하에 제국연합의 책모가 있었다.
+regression.proper-name-hanja.without-gloss	연	noun	smart-exact	0	6	연의 종묘사직을 쑥대밭으로 만들었다.
+regression.proper-name-hanja.no-particle	연	noun	no-match	0	3	연(燕) 종묘사직을 부쉈다.
+regression.proper-name-hanja.nominal-tail	연	noun	no-match	0	3	연(燕)의견을 들었다.
 corpus.ud-gsd.test.test-s25.proper-name-suffix	백석	noun	smart-exact	135	147	2세를 못 낳고 지난해 죽은 고릴라 '고리롱'을 보기 위해 동물원에 들른 비뇨기과 전문의 박정원 씨가 백석이의 고환을 만지던 중 왼쪽 고환이 없는 것을 발견했다.
 regression.proper-name-suffix.subject	영숙	noun	smart-exact	0	12	영숙이가 왔다.
 regression.proper-name-suffix.object	영숙	noun	smart-exact	0	12	영숙이를 불렀다.
