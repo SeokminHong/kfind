@@ -1,0 +1,20 @@
+{"id":"ssi-person-noun","query":"이","pos":"noun","text":"이 씨를 안내 데스크로 모셨다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"ssi-person-determiner","query":"이","pos":"determiner","text":"이 씨를 안내 데스크로 모셨다.","expected":false,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"ssi-seed-noun","query":"이","pos":"noun","text":"이 씨를 밭에 심었다.","expected":false,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"ssi-seed-determiner","query":"이","pos":"determiner","text":"이 씨를 밭에 심었다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"gun-person-noun","query":"이","pos":"noun","text":"이 군이 이 문제를 풀었다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"gun-person-determiner","query":"이","pos":"determiner","text":"이 군이 이 문제를 풀었다.","expected":false,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"gun-army-noun","query":"이","pos":"noun","text":"이 군이 전선에서 철수했다.","expected":false,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"gun-army-determiner","query":"이","pos":"determiner","text":"이 군이 전선에서 철수했다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"yang-person-noun","query":"이","pos":"noun","text":"이 양이 먼저 도착했다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"yang-person-determiner","query":"이","pos":"determiner","text":"이 양이 먼저 도착했다.","expected":false,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"yang-quantity-noun","query":"이","pos":"noun","text":"이 양이 정확한지 다시 재었다.","expected":false,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"yang-quantity-determiner","query":"이","pos":"determiner","text":"이 양이 정확한지 다시 재었다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"nim-person-noun","query":"이","pos":"noun","text":"이 님은 예약하신 분입니다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"nim-person-determiner","query":"이","pos":"determiner","text":"이 님은 예약하신 분입니다.","expected":false,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"nim-common-noun","query":"이","pos":"noun","text":"이 님은 내 시에 나오는 그리움의 대상이다.","expected":false,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"nim-common-determiner","query":"이","pos":"determiner","text":"이 님은 내 시에 나오는 그리움의 대상이다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"hyeong-person-noun","query":"이","pos":"noun","text":"이 형이 혼자만 갔다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"hyeong-person-determiner","query":"이","pos":"determiner","text":"이 형이 혼자만 갔다.","expected":false,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"hyeong-type-noun","query":"이","pos":"noun","text":"이 형이 다른 혈액형보다 드물다.","expected":false,"gold_byte_start":0,"gold_byte_end":3}
+{"id":"hyeong-type-determiner","query":"이","pos":"determiner","text":"이 형이 다른 혈액형보다 드물다.","expected":true,"gold_byte_start":0,"gold_byte_end":3}
