@@ -78,6 +78,7 @@ fn repository_data_is_complete_and_valid() {
         "particle.concessive.inama-nama",
         "particle.concessive.irado-rado",
         "particle.comitative.irang-rang",
+        "particle.comitative.hago",
     ] {
         assert!(ids.contains(verifier_rule), "missing {verifier_rule}");
     }

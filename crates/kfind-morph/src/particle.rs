@@ -238,6 +238,7 @@ impl Default for ParticleChainModel {
             allomorph(Object, Case, "를", Vowel, "object"),
             allomorph(Comitative, Case, "과", Consonant, "comitative"),
             allomorph(Comitative, Case, "와", Vowel, "comitative"),
+            allomorph(InformalComitative, Case, "하고", Any, "comitative.hago"),
             allomorph(Connector, Case, "이면", Consonant, "connector-myeon"),
             allomorph(Connector, Case, "면", Vowel, "connector-myeon"),
             allomorph(Topic, Auxiliary, "은", Consonant, "topic"),
@@ -543,6 +544,7 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
                 "particle.topic",
                 "particle.comitative",
                 "particle.comitative.irang-rang",
+                "particle.comitative.hago",
                 "particle.direction",
                 "particle.capacity.roseo",
                 "particle.instrument.rosseo",
@@ -792,6 +794,7 @@ fn default_particle_transitions() -> Arc<[ParticleTransition]> {
             ],
         ),
         transition("particle.comitative.irang-rang", FOCUS),
+        transition("particle.comitative.hago", FOCUS),
     ])
 }
 

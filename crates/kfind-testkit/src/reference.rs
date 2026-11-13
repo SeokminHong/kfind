@@ -547,6 +547,12 @@ const REFERENCE_PARTICLES: &[ReferenceParticle] = &[
         ReferenceFinalCondition::Consonant,
     ),
     reference_particle(
+        "하고",
+        "particle.comitative.hago",
+        ReferenceParticleRole::Case,
+        ReferenceFinalCondition::Any,
+    ),
+    reference_particle(
         "께",
         "particle.dative",
         ReferenceParticleRole::Case,
