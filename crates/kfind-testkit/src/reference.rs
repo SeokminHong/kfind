@@ -741,6 +741,22 @@ fn reference_predicate_continuation(
     anchor: &str,
     following: &str,
 ) -> Option<(usize, Vec<RuleId>)> {
+    if state == ContinuationState::Eu && pos.is_action() {
+        for (prefix, contraction) in [("시어", None), ("셔", Some("contraction.i-eo"))] {
+            if let Some(tail) = following.strip_prefix(prefix)
+                && tail.starts_with(['보', '봐', '봤', '본', '볼', '봅', '봄'])
+                && let Some((consumed, auxiliary)) = reference_attached_auxiliary(pos, tail)
+            {
+                let rules = std::iter::once("ending.honorific")
+                    .chain(contraction)
+                    .chain(["ending.aoeo"])
+                    .map(RuleId::from)
+                    .chain(auxiliary)
+                    .collect();
+                return Some((prefix.len() + consumed, rules));
+            }
+        }
+    }
     if state == ContinuationState::AOrEo
         && let Some(auxiliary) = reference_attached_auxiliary(pos, following)
     {
