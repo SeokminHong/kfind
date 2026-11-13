@@ -2715,7 +2715,8 @@ fn has_competing_iran_particle_analysis(
         (resolver.has_exact_nominal_surface(&token)
             && context::next_word(haystack, whole.end)
                 .is_some_and(|next| resolver.has_nominal_genitive_surface(&next)))
-            || (resolver.has_predicate_adnominal_surface(&token)
+            || (!token.ends_with("이란")
+                && resolver.has_predicate_adnominal_surface(&token)
                 && has_quotative_adnominal_head(haystack, whole.end, resolver)
                 && context::previous_word(haystack, whole.start).is_some_and(|previous| {
                     resolver.has_nominal_oblique(&previous)
