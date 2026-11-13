@@ -1028,6 +1028,31 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_dependent_noun_particle_contraction(
+        &self,
+        previous: &str,
+        text: &str,
+        object: bool,
+        node_limit: usize,
+    ) -> bool {
+        let particle = if object {
+            StructuralPos::JKO
+        } else {
+            StructuralPos::JX
+        };
+        has_exact_sequence(&self.resource, text, &[StructuralPos::NNB, particle])
+            && (super::lexical::complete_predicate_adnominal_path(&self.resource, previous)
+                || super::lexical::complete_derived_adnominal_path(&self.resource, previous)
+                || EdgeGraph::collect(&self.resource, previous, node_limit).is_ok_and(|graph| {
+                    crate::structure::paths::predicate::has_attached_auxiliary_path_ending_in(
+                        previous.len(),
+                        &graph,
+                        |pos| pos == StructuralPos::ETM,
+                    )
+                }))
+    }
+
+    #[must_use]
     pub fn has_compound_noun_surface(&self, text: &str) -> bool {
         if text.chars().take(4).count() < 4 {
             return false;

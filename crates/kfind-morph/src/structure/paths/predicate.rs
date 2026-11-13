@@ -217,15 +217,28 @@ pub(in crate::structure) fn has_complete_attached_auxiliary_path(
     text_len: usize,
     graph: &EdgeGraph<'_>,
 ) -> bool {
+    has_attached_auxiliary_path_ending_in(text_len, graph, StructuralPos::is_ending)
+}
+
+pub(in crate::structure) fn has_attached_auxiliary_path_ending_in(
+    text_len: usize,
+    graph: &EdgeGraph<'_>,
+    accepts_ending: impl Fn(StructuralPos) -> bool,
+) -> bool {
     let mut reachable = vec![[false; ATTACHED_AUXILIARY_STATE_COUNT]; text_len + 1];
     reachable[0][AttachedAuxiliaryState::Start as usize] = true;
     for start in 0..text_len {
         for edge in graph.starting_at(start) {
+            let positions = graph.positions(edge);
+            if edge.span.end == text_len && !positions.last().copied().is_some_and(&accepts_ending)
+            {
+                continue;
+            }
             for state in ATTACHED_AUXILIARY_STATES {
                 if !reachable[start][state as usize] {
                     continue;
                 }
-                if let Some(next) = advance_attached_auxiliary_path(state, graph.positions(edge)) {
+                if let Some(next) = advance_attached_auxiliary_path(state, positions) {
                     reachable[edge.span.end][next as usize] = true;
                 }
             }
