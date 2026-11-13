@@ -1,0 +1,12 @@
+case_id	query	pos	form	lemma	xpos
+gsd:test-s95:6	업그레이드되다	verb	업그레이드된	업그레이드+되+ㄴ	NNG+XSV+ETM
+gsd:test-s95:7	-
+gsd:test-s145:4	듯하다	adjective	듯했는데	듯하+았+는데	VX+EP+EC
+gsd:test-s145:5	-
+gsd:test-s184:1	재미있다	adjective	재미있는	재미있+는	VA+ETM
+gsd:test-s184:2	-
+gsd:test-s337:2	교육되다	verb	교육되었겠지	교육+되+었+겠+지	NNG+XSV+EP+EP+EF
+gsd:test-s337:3	-
+gsd:test-s668:3	거부당하다	verb	거부당했네요	거부+당하+았+네요	NNG+XSV+EP+EF
+gsd:test-s668:4	-
+gsd:test-s687:24	럭셔리하다	adjective	럭셔리하고	럭셔리+하+고	NNG+XSA+EC
