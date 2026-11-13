@@ -114,6 +114,7 @@ corpus.ud-gsd.test.test-s250.adjective.좋다	좋다	adjective	match	41	50	팬 �
 corpus.ud-gsd.test.test-s55.noun.일품	일품	noun	smart-exact	114	120	고기도 맛있고 반찬도 깔끔하지만 무엇보다도 사골 육수에 굴을 넣어 끓인 떡국 맛이 일품이었습니다.
 corpus.ud-gsd.test.test-s73.noun.모임	모임	noun	smart-exact	10	16	친구들 모임이었는데 갈만하네요
 corpus.ud-gsd.test.test-s81.noun.거	거	noun	smart-exact	77	80	포장 뜯을 때부터 헛구역질 나올 정도여서 끓이면 없어질 거라 생각했는데 도저히 먹을 수 없었어요.
+corpus.ud-gsd.test.test-s81.noun.정도	정도	noun	smart-exact	44	50	포장 뜯을 때부터 헛구역질 나올 정도여서 끓이면 없어질 거라 생각했는데 도저히 먹을 수 없었어요.
 corpus.ud-gsd.test.test-s119.noun.전문점	전문점	noun	smart-exact	13	22	부대찌개 전문점이었는데 이젠 삼겹살도 판다.
 corpus.ud-gsd.test.test-s324.noun.곳	곳	noun	smart-exact	43	46	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
 corpus.ud-gsd.test.test-s481.noun.느낌	느낌	noun	smart-exact	18	24	전 약간 비린 느낌이어서 좀 별로더라고요.
