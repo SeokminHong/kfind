@@ -31,33 +31,6 @@ const DURATION_NOUNS: &[&str] = &[
     "반년",
 ];
 
-// Korean Basic Dictionary -하다 predicates with a 로 frame and no accusative.
-// Standard Dictionary and Open Dictionary both attest a transitive 가득하다,
-// so that homograph stays outside the list. The verb 충분하다 is intransitive.
-const NON_OBJECT_RESULT_HADA_HOSTS: &[&str] = &[
-    "가뭇가뭇",
-    "그득",
-    "너끈",
-    "득시글",
-    "득실",
-    "복잡",
-    "빡빡",
-    "빼곡",
-    "빽빽",
-    "유명",
-    "자옥",
-    "자욱",
-    "적합",
-    "족",
-    "충만",
-    "충분",
-];
-
-// All -나다 verbs with a 로/으로 frame and no accusative frame in the Korean
-// Basic Dictionary snapshot. Slash-separated alternatives count as frames.
-const NON_OBJECT_RESULT_NADA_HOSTS: &[&str] =
-    &["거듭", "결판", "끝", "나타", "달아", "밀려", "소문"];
-
 // Numeric senses attested by the pinned Korean Basic Dictionary and licensed
 // in digit-led unit constructions.
 const DICTIONARY_NUMERIC_UNITS: &[&str] = &[
@@ -1213,19 +1186,6 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_quantity_expression(&self, first: &str, second: Option<&str>) -> bool {
-        const RELATIVE_TIMES: &[&str] = &[
-            "그제",
-            "어제",
-            "엊그제",
-            "그끄저께",
-            "그저께",
-            "오늘",
-            "내일",
-            "모레",
-            "글피",
-            "방금",
-            "지금",
-        ];
         let digit_end = first.bytes().take_while(u8::is_ascii_digit).count();
         if digit_end != 0 {
             return digit_end == first.len() || self.has_quantity_unit(&first[digit_end..]);
@@ -1239,9 +1199,7 @@ impl ConstraintResolver {
         self.resource
             .common_prefix_positions(first.as_bytes(), |len, positions| {
                 let host = &first[..len];
-                matched |= (positions == [StructuralPos::NR]
-                    || DURATION_NOUNS.contains(&host)
-                    || RELATIVE_TIMES.contains(&host))
+                matched |= (positions == [StructuralPos::NR] || DURATION_NOUNS.contains(&host))
                     && self.has_quantity_nominal_tail(host, &first[len..]);
             });
         matched
@@ -1341,16 +1299,16 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_independent_final_predicate(&self, text: &str) -> bool {
-        self.independent_final_predicate_evidence(text).0 != PredicatePosSet::EMPTY
+        self.independent_final_predicate_positions(text) != PredicatePosSet::EMPTY
     }
 
     #[must_use]
-    pub fn has_independent_final_predicate_without_object(&self, text: &str) -> bool {
-        let (positions, has_non_object_result) = self.independent_final_predicate_evidence(text);
-        has_non_object_result || positions == PredicatePosSet::one(PredicatePos::Adjective)
+    pub fn has_independent_final_adjective(&self, text: &str) -> bool {
+        self.independent_final_predicate_positions(text)
+            == PredicatePosSet::one(PredicatePos::Adjective)
     }
 
-    fn independent_final_predicate_evidence(&self, text: &str) -> (PredicatePosSet, bool) {
+    fn independent_final_predicate_positions(&self, text: &str) -> PredicatePosSet {
         let has_final_ending = |length: usize, endings: &[StructuralPos]| {
             if length == text.len() {
                 return endings.split_last().is_some_and(|(last, prefinals)| {
@@ -1367,7 +1325,6 @@ impl ConstraintResolver {
         };
         let mut positions_found = PredicatePosSet::EMPTY;
         let mut has_final_auxiliary = false;
-        let mut has_non_object_result = false;
         self.resource
             .common_prefix_positions(text.as_bytes(), |length, positions| {
                 let Some((&predicate, endings)) = positions.split_first() else {
@@ -1376,11 +1333,6 @@ impl ConstraintResolver {
                 match predicate {
                     StructuralPos::VV if has_final_ending(length, endings) => {
                         positions_found |= PredicatePosSet::one(PredicatePos::Verb);
-                        has_non_object_result |= text[..length]
-                            .strip_suffix(['나', '났', '난', '납'])
-                            .is_some_and(|host| {
-                                NON_OBJECT_RESULT_NADA_HOSTS.binary_search(&host).is_ok()
-                            });
                     }
                     StructuralPos::VA if has_final_ending(length, endings) => {
                         positions_found |= PredicatePosSet::one(PredicatePos::Adjective);
@@ -1403,11 +1355,6 @@ impl ConstraintResolver {
                                     } else {
                                         positions_found |=
                                             PredicatePosSet::one(PredicatePos::Adjective);
-                                        has_non_object_result |= text[length..]
-                                            .starts_with(['하', '해', '했', '합'])
-                                            && NON_OBJECT_RESULT_HADA_HOSTS
-                                                .binary_search(&&text[..length])
-                                                .is_ok();
                                     }
                                 }
                             },
@@ -1420,8 +1367,8 @@ impl ConstraintResolver {
             || has_final_auxiliary
             || self.has_exact_nominal_surface(text)
         {
-            return (PredicatePosSet::EMPTY, false);
+            return PredicatePosSet::EMPTY;
         }
-        (positions_found, has_non_object_result)
+        positions_found
     }
 }
