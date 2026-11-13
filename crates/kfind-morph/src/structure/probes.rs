@@ -509,6 +509,15 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_exact_dependent_copula_ending_path(&self, text: &str) -> bool {
+        has_exact_sequence(
+            &self.resource,
+            text,
+            &[StructuralPos::NNB, StructuralPos::VCP, StructuralPos::EF],
+        )
+    }
+
+    #[must_use]
     pub fn has_exact_lost_span_copula_ending_path(&self, text: &str) -> bool {
         let mut matched = false;
         let mut whole_adverb = false;
