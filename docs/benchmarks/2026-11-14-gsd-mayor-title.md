@@ -15,6 +15,10 @@ TN, FN 순서다. 검색 실행 코드 변경이 없어 성능 측정을 생략�
 | smart | 교정 전후 | 9266, 0, 0, 34 | 100.00, 99.63, 99.82 | 9266, 0, 0, 34 | 100.00, 99.63, 99.82 |
 | any | 교정 전후 | 9063, 0, 0, 237 | 100.00, 97.45, 98.71 | 9063, 0, 0, 237 | 100.00, 97.45, 98.71 |
 
+#421 비교군 1,113행은 현재 교정 입력에 ID로 모두 연결된다.
+`smart`는 정확 1,079행, 부분 15행, 누락 19행이다.
+`any`는 정확 948행, 부분 158행, 누락 7행이다.
+
 ```sh
 node tools/morph-compare/apply-gsd-sentence-edits.mjs "$input" --mayor-title > "$corrected"
 "$runner" boundary full-pos "$boundary" "$corrected" "$output"
