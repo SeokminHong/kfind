@@ -1506,6 +1506,28 @@ impl MorphMatcher {
         if patterns.is_empty() {
             return false;
         }
+        let core = &candidate.verified.core;
+        if matches!(
+            branch.consumption,
+            CandidateConsumption::NominalParticleChain { .. }
+        ) && candidate.consumed == *core
+            && is_boundary_before(haystack, core.start)
+            && haystack.get(core.end) == Some(&b'(')
+            && patterns
+                .iter()
+                .any(|pattern| pattern.fine_pos == DataFinePos::Nnp)
+            && let Some(host) = context::normalized_token(haystack, core.clone())
+            && resolver.has_exact_proper_name_surface(&host)
+            && let Some(tail) = after_parenthesized_hanja(haystack, core.end)
+            && let Some(particles) = tail.split(|ch| !crate::is_token_character(ch)).next()
+            && !particles.is_empty()
+            && self
+                .particle_verifier
+                .verify_exact(&host, particles)
+                .is_some()
+        {
+            return true;
+        }
         if matches!(branch.consumption, CandidateConsumption::Anchor)
             && branch.origins.iter().any(|origin| {
                 origin
@@ -4809,6 +4831,19 @@ fn licensed_source_ending_surface(surface: &str) -> bool {
         || EU_INITIAL_ENDINGS
             .iter()
             .any(|ending| surface.starts_with(ending))
+}
+
+fn after_parenthesized_hanja(haystack: &[u8], end: usize) -> Option<&str> {
+    let bytes = haystack.get(end..)?.strip_prefix(b"(")?;
+    let bounded = &bytes[..bytes
+        .len()
+        .min(crate::DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes)];
+    let (name, tail) = valid_utf8_prefix(bounded).split_once(')')?;
+    (!name.is_empty()
+        && name.chars().all(|ch| {
+            matches!(ch, '\u{3400}'..='\u{4dbf}' | '\u{4e00}'..='\u{9fff}' | '\u{f900}'..='\u{faff}')
+        }))
+    .then_some(tail)
 }
 
 fn has_parenthesized_latin_name(haystack: &[u8], end: usize) -> bool {
