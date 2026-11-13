@@ -67,3 +67,6 @@ lift-casual-context	들다	verb	exact	10	19	음악을 들었어.
 남:3	주다	verb	exact	47	53	민준아, 공부 좀 하자. 공부해서 남 주남?
 남:6	그러다	verb	exact	20	32	아버지가 괜히 그러시남?
 남:8	하다	verb	exact	33	45	그렇게 해서까지 결혼을 해야겠남?
+으이:1	옳다	adjective	exact	30	39	이번 일만큼은 자네가 옳으이.
+이:1	뿌듯하다	adjective	exact	54	66	어르신들께 좋은 일을 하고 나니 마음이 뿌듯하이.
+familiar-final-i-dialogue	장하다	adjective	exact	38	47	그렇네. 내 아들이지만 정말 장하이.

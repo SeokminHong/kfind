@@ -1502,6 +1502,16 @@ next = ["ending.polite-yo"]
 terminal = true
 
 [[ending]]
+id = "ending.familiar-final-i"
+category = "final"
+initial = "eu"
+forms = ["이", "으이"]
+required = ["descriptive-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.final-deogun"
 category = "final"
 initial = "consonant"

@@ -1591,6 +1591,31 @@ fn reference_simple_continuation(
         reference_suffix("겠죠", &["ending.future", "ending.confirmation-jiyo"]),
     ];
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Eu
+            if pos == PredicatePos::Adjective
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| !has_final(last))
+                && following.strip_prefix('이').is_some_and(|tail| {
+                    tail.chars()
+                        .next()
+                        .is_none_or(|next| !next.is_alphanumeric() && next != '_')
+                }) =>
+        {
+            &[reference_suffix("이", &["ending.familiar-final-i"])]
+        }
+        ContinuationState::StemEnding
+            if pos == PredicatePos::Adjective
+                && anchor.chars().next_back().is_some_and(has_rieul_final)
+                && following.strip_prefix("으이").is_some_and(|tail| {
+                    tail.chars()
+                        .next()
+                        .is_none_or(|next| !next.is_alphanumeric() && next != '_')
+                }) =>
+        {
+            &[reference_suffix("으이", &["ending.familiar-final-i"])]
+        }
         ContinuationState::StemEnding if pos.is_action() && following.starts_with('남') => {
             &[reference_suffix("남", &["ending.self-question-nam"])]
         }
