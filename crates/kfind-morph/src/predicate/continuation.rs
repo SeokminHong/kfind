@@ -85,6 +85,21 @@ const GO_YO: Suffix = suffix("고요", &["ending.connective-go"]);
 const DAM: Suffix = suffix("담", &["ending.self-question-dam"]);
 const NAM: Suffix = suffix("남", &["ending.self-question-nam"]);
 const NEUNDAM: Suffix = suffix("는담", &["ending.self-question-dam"]);
+macro_rules! formal_dap_endings {
+    ($prefix:literal $(, $prior:literal)*) => {
+        &[
+            suffix(concat!($prefix, "답니다"), &[$($prior,)* "ending.formal-report-dap"]),
+            suffix(concat!($prefix, "답니까"), &[$($prior,)* "ending.formal-report-dap"]),
+        ]
+    };
+}
+
+const FORMAL_DAP: &[Suffix] = formal_dap_endings!("");
+const FORMAL_NEUNDAP: &[Suffix] = formal_dap_endings!("는");
+const FORMAL_SIDAP: &[Suffix] = formal_dap_endings!("시", "ending.honorific");
+const FORMAL_SINDAP: &[Suffix] = formal_dap_endings!("신", "ending.honorific");
+const FORMAL_SYEOTDAP: &[Suffix] = formal_dap_endings!("셨", "ending.honorific", "ending.past");
+const FORMAL_SIGETDAP: &[Suffix] = formal_dap_endings!("시겠", "ending.honorific", "ending.future");
 pub(super) const HONORIFIC_DAM: Suffix =
     suffix("시담", &["ending.honorific", "ending.self-question-dam"]);
 const HONORIFIC_NDAM: Suffix = suffix("신담", &["ending.honorific", "ending.self-question-dam"]);
@@ -1453,6 +1468,9 @@ fn verify_simple_continuation(
         ContinuationState::RieulFinal => RIEUL_FINAL,
         ContinuationState::BieupFinal => BIEUP_FINAL,
         ContinuationState::Prospective => PROSPECTIVE,
+        ContinuationState::ReportEnding if pos.is_action() && following.starts_with('답') => {
+            FORMAL_DAP
+        }
         ContinuationState::ReportEnding
             if pos.is_action()
                 && following.starts_with('담')
@@ -1466,6 +1484,34 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding
+            if pos.is_action()
+                && following.starts_with("는답")
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| has_final(last) && !has_rieul_final(last)) =>
+        {
+            FORMAL_NEUNDAP
+        }
+        ContinuationState::StemEnding
+            if (matches!(
+                pos,
+                PredicatePos::Adjective | PredicatePos::AuxiliaryAdjective
+            ) || (pos.is_action() && anchor == "있"))
+                && following.starts_with('답') =>
+        {
+            FORMAL_DAP
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with('답') => {
+            FORMAL_DAP
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("신답") => {
+            FORMAL_SINDAP
+        }
+        ContinuationState::Eu if following.starts_with("시답") => FORMAL_SIDAP,
+        ContinuationState::Eu if following.starts_with("셨답") => FORMAL_SYEOTDAP,
+        ContinuationState::Eu if following.starts_with("시겠답") => FORMAL_SIGETDAP,
         ContinuationState::StemEnding | ContinuationState::Eu
             if pos == PredicatePos::Adjective
                 && anchor

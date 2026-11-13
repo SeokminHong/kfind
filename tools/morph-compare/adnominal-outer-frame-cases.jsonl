@@ -1,0 +1,10 @@
+{"id":"outer-change:verb","query":"쓰다","pos":"verb","text":"신청서를 쓴 것으로 일이 마무리됐다.","expected":true,"gold_byte_start":13,"gold_byte_end":16}
+{"id":"outer-change:adjective","query":"쓰다","pos":"adjective","text":"신청서를 쓴 것으로 일이 마무리됐다.","expected":false,"gold_byte_start":13,"gold_byte_end":16}
+{"id":"outer-accusative:verb","query":"쓰다","pos":"verb","text":"약을 쓴 것으로 분류했다.","expected":true,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"outer-accusative:adjective","query":"쓰다","pos":"adjective","text":"약을 쓴 것으로 분류했다.","expected":true,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"outer-past-accusative:verb","query":"쓰다","pos":"verb","text":"약을 쓴 걸로 정했습니다.","expected":true,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"outer-past-accusative:adjective","query":"쓰다","pos":"adjective","text":"약을 쓴 걸로 정했습니다.","expected":true,"gold_byte_start":7,"gold_byte_end":10}
+{"id":"outer-intransitive:verb","query":"쓰다","pos":"verb","text":"메모를 쓴 거로 마무리됐다.","expected":true,"gold_byte_start":10,"gold_byte_end":13}
+{"id":"outer-intransitive:adjective","query":"쓰다","pos":"adjective","text":"메모를 쓴 거로 마무리됐다.","expected":false,"gold_byte_start":10,"gold_byte_end":13}
+{"id":"outer-adjective:verb","query":"쓰다","pos":"verb","text":"안경을 쓴 것으로 족하다.","expected":true,"gold_byte_start":10,"gold_byte_end":13}
+{"id":"outer-adjective:adjective","query":"쓰다","pos":"adjective","text":"안경을 쓴 것으로 족하다.","expected":false,"gold_byte_start":10,"gold_byte_end":13}
