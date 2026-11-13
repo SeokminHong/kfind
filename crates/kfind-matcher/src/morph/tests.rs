@@ -312,6 +312,26 @@ fn smart_left_boundary_rejects_compounds_but_any_accepts_them() {
 }
 
 #[test]
+fn adverb_consumes_a_complete_copula_suffix() {
+    let matcher = matcher(
+        vec![atom(
+            BoundaryPolicy::Smart,
+            vec![nominal_branch("제법", Arc::from([]))],
+        )],
+        24,
+    );
+    let matched = matcher
+        .find_at_with_meta("제법이지만 부족하다.".as_bytes(), 0)
+        .expect("adverb followed by a copula");
+    assert_eq!(matched.span, 0.."제법이지만".len());
+    assert!(
+        matcher
+            .find_at_with_meta("제법이지만도 부족하다.".as_bytes(), 0)
+            .is_none()
+    );
+}
+
+#[test]
 fn structural_components_remain_possible_when_whole_analyses_compete() {
     let resource = Arc::new(component_resource());
     let accepted = component_matcher("권한", Arc::clone(&resource));
