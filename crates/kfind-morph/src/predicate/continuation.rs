@@ -202,6 +202,10 @@ const A_OR_EO_SUFFIXES: &[Suffix] = &[
     YAJI_CONTRACTED,
     suffix("가고", &["ending.auxiliary-gada", "ending.connective-go"]),
     suffix("가야", &["ending.auxiliary-gada", "ending.connective-ya"]),
+    suffix(
+        "가면서",
+        &["ending.auxiliary-gada", "ending.simultaneous-myeonseo"],
+    ),
     suffix("도", &["ending.connective-do"]),
     suffix("야", &["ending.connective-ya"]),
     suffix("요", &["ending.polite-yo"]),
@@ -338,6 +342,11 @@ const RYEO_CONJECTURE: &[Suffix] = &[
 pub(super) const FAMILIAR_QUESTION: Suffix = suffix("니", &["ending.interrogative-ni"]);
 const JIMAN: Suffix = suffix("지만", &["ending.connective-jiman"]);
 const GEONA: Suffix = suffix("거나", &["ending.connective-geona"]);
+const IMMEDIATE: Suffix = suffix("자마자", &["ending.connective-jamaja"]);
+const HONORIFIC_IMMEDIATE: Suffix = suffix(
+    "시자마자",
+    &["ending.honorific", "ending.connective-jamaja"],
+);
 const NEGATIVE_TOPIC: Suffix = suffix("진", &["ending.connective-ji", "particle.topic"]);
 const HONORIFIC_NEGATIVE_TOPIC: Suffix = suffix(
     "시진",
@@ -1348,6 +1357,12 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding if pos.is_action() && following.starts_with("자마자") => {
+            &[IMMEDIATE]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시자마자") => {
+            &[HONORIFIC_IMMEDIATE]
+        }
         ContinuationState::StemEnding
             if following.starts_with("려고")
                 && anchor
