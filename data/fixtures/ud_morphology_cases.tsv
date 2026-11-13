@@ -283,6 +283,13 @@ corpus.ud-kaist.test.MH2_0010-s199.verb.가다	가다	verb	match	118	127	이때�
 corpus.ud-kaist.test.MH2_0010-s264.adjective.없다	없다	adjective	match	44	50	얼음에 갇힌 바다는 물결도 거의 없이 잔잔하다.
 corpus.ud-kaist.test.MH2_0010-s318.pronoun.누구	누구	pronoun	match	0	12	누군가가 중국기지까지 걸어갈 수 있겠단다.
 corpus.ud-kaist.test.MH2_0010-s330.adjective.이다	이다	adjective	smart-exact	40	46	아니면 주변 어디에 남아있는 걸까?
+regression.copula-honorific-retrospective.question	이다	adjective	smart-exact	37	52	나의 단잠을 방해한 그대는 누구시던고.
+regression.copula-honorific-retrospective.nominal	이다	adjective	smart-exact	20	35	그때 담당자가 의사시던고?
+regression.copula-honorific-retrospective.explicit	이다	adjective	smart-exact	26	38	그때 담당자가 의사이시던고?
+regression.copula-honorific-retrospective.action	이다	adjective	no-match	14	26	그때 직접 가시던고?
+regression.copula-honorific-retrospective.explanatory	이다	adjective	smart-exact	17	35	그분도 당시 의사시던걸요.
+regression.copula-honorific-retrospective.connective	이다	adjective	smart-exact	23	38	그분은 오랫동안 의사시던바 동네 사정에 밝으셨다.
+regression.copula-honorific-retrospective.explanatory-action	이다	adjective	no-match	14	29	그때 직접 가시던걸요.
 corpus.ud-kaist.dev.MH2_0149-s108.adjective.이다	이다	adjective	no-match	123	129	그리고 볼셰비키 당은 이러한 프롤레타리아트의 임무를 수행하고자 대담하게 권력을 장악하였다.
 regression.copula-past.준수하였다	이다	adjective	no-match	26	32	법적 의무를 준수하였다.
 regression.copula-past.예외였다	이다	adjective	smart-exact	20	26	그 결정은 예외였다.
