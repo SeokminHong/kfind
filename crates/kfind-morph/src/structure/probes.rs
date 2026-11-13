@@ -1290,6 +1290,20 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_standalone_counted_unit(&self, count: &str, unit: &str) -> bool {
+        (matches!(
+            count,
+            "수" | "여러" | "한두" | "두세" | "서너" | "너덧" | "네댓" | "대여섯"
+        ) || self.has_measure_count(count)
+            || count.strip_suffix('여').is_some_and(|cardinal| {
+                (!cardinal.is_empty() && cardinal.bytes().all(|byte| byte.is_ascii_digit()))
+                    || Self::is_mixed_cardinal(cardinal)
+                    || has_exact_fine_pos(&self.resource, cardinal, |pos| pos == DataFinePos::Nr)
+            }))
+            && has_exact_sequence(&self.resource, unit, &[StructuralPos::NNBC])
+    }
+
+    #[must_use]
     pub fn has_counted_unit_frame(&self, previous: &str, unit: &str) -> bool {
         exact_analysis_starts_with_pos(&self.resource, unit, |pos| pos == StructuralPos::NNBC)
             && (has_exact_fine_pos(&self.resource, previous, |pos| pos == DataFinePos::Nr)
