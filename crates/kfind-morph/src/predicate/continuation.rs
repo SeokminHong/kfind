@@ -354,6 +354,9 @@ const HONORIFIC_NEGATIVE_TOPIC: Suffix = suffix(
     &["ending.honorific", "ending.connective-ji", "particle.topic"],
 );
 const CONCESSIVE_NA: Suffix = suffix("나", &["ending.connective-na"]);
+const INTERROGATIVE_NA_YO: Suffix = suffix("나요", &["ending.interrogative-na"]);
+const HONORIFIC_INTERROGATIVE_NA_YO: Suffix =
+    suffix("시나요", &["ending.honorific", "ending.interrogative-na"]);
 const CONCESSIVE_EUNA: Suffix = suffix("으나", &["ending.connective-na"]);
 const HONORIFIC_COORDINATING_ENDINGS: &[Suffix] = &[
     suffix("시지만", &["ending.honorific", "ending.connective-jiman"]),
@@ -1393,6 +1396,17 @@ fn verify_simple_continuation(
     }
     let additional_endings: &[Suffix] = match state {
         ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if pos != PredicatePos::Copula
+                && following.starts_with("나요")
+                && (state != ContinuationState::StemEnding
+                    || !anchor.chars().next_back().is_some_and(has_rieul_final)) =>
+        {
+            &[INTERROGATIVE_NA_YO]
+        }
+        ContinuationState::Eu if pos != PredicatePos::Copula && following.starts_with("시나요") => {
+            &[HONORIFIC_INTERROGATIVE_NA_YO]
+        }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
             if pos != PredicatePos::Copula && following.starts_with('길') =>
         {
             &[NOMINALIZER_GIL]
@@ -1705,7 +1719,11 @@ fn verify_simple_continuation(
                         )
                     }))
         })
-        .max_by_key(|suffix| suffix.surface.len());
+        .max_by_key(|suffix| suffix.surface.len())
+        .filter(|suffix| {
+            !(suffix.rules.last() == Some(&"ending.connective-na")
+                && following[suffix.surface.len()..].starts_with('요'))
+        });
     if state == ContinuationState::CopulaRa
         && suffix.is_some_and(|suffix| suffix.surface.is_empty())
         && following
