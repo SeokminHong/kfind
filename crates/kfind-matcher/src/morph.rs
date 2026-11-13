@@ -1652,8 +1652,11 @@ impl MorphMatcher {
                     "particle.alternative.ideun-deun" | "particle.alternative.ideunji-deunji"
                 )
             })
-            && context::normalized_token(haystack, whole.clone())
-                .is_some_and(|word| resolver.has_unambiguous_proper_name_surface(&word))
+            && context::normalized_token(haystack, whole.clone()).is_some_and(|word| {
+                resolver.has_unambiguous_proper_name_surface(&word)
+                    || (has_parenthesized_latin_name(haystack, whole.end)
+                        && resolver.has_exact_nominal_surface(&word))
+            })
         {
             return false;
         }
@@ -4279,6 +4282,28 @@ fn licensed_source_ending_surface(surface: &str) -> bool {
         || EU_INITIAL_ENDINGS
             .iter()
             .any(|ending| surface.starts_with(ending))
+}
+
+fn has_parenthesized_latin_name(haystack: &[u8], end: usize) -> bool {
+    let Some(tail) = haystack.get(end..).and_then(|tail| tail.strip_prefix(b"(")) else {
+        return false;
+    };
+    let tail = &tail[..tail
+        .len()
+        .min(crate::DEFAULT_ANALYSIS_WINDOW_LIMITS.max_raw_bytes)];
+    let mut words = tail.splitn(2, |byte| *byte == b')');
+    let Some(name) = words.next().filter(|_| words.next().is_some()) else {
+        return false;
+    };
+    let mut parts = name
+        .split(|byte| *byte == b' ')
+        .filter(|part| !part.is_empty());
+    let is_name_part = |part: &[u8]| {
+        part.first().is_some_and(u8::is_ascii_uppercase) && part.iter().all(u8::is_ascii_alphabetic)
+    };
+    parts.next().is_some_and(is_name_part)
+        && parts.next().is_some_and(is_name_part)
+        && parts.all(is_name_part)
 }
 
 fn is_short_source_particle(form: &kfind_morph::ParticleAllomorph) -> bool {
