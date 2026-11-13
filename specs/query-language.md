@@ -86,6 +86,8 @@
 - `token`은 모든 품사에서 core 시작과 완성된 token span 끝의 토큰 경계를 검사한다.
 - `any`는 좌우 경계를 검사하지 않는다.
 - phrase의 `max-gap`은 앞 atom의 `token.end`와 다음 atom의 `token.start` 사이에 있는 Unicode scalar 수다. 음수이거나 순서가 뒤집힌 span은 결합하지 않는다.
+- `any`에서 붙여 쓴 체언 구를 검색할 때, 앞 체언의 조사 후보가 뒤 체언의
+  시작과 겹치면 조사 없는 앞 체언 범위도 구 결합 후보로 유지한다.
 
 ## 6. 쿼리 언어와 파싱
 
