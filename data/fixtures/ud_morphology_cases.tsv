@@ -1,4 +1,8 @@
 id	query	pos	expected	byte_start	byte_end	text
+corpus.ud-gsd.test.test-s531.honorific-surname	이	noun	smart-exact	27	30	검찰은 이를 토대로 이 씨를 집중 추궁했고, 결국 이 씨는 "A 씨와 성관계를 전제로 만났는데 뚱뚱하다는 이유로 무시해 앙심을 품고 고소하게 됐다"는 자백을 받아냈다.
+corpus.ud-gsd.test.test-s531.honorific-not-pronoun	이	pronoun	no-match	27	30	검찰은 이를 토대로 이 씨를 집중 추궁했고, 결국 이 씨는 "A 씨와 성관계를 전제로 만났는데 뚱뚱하다는 이유로 무시해 앙심을 품고 고소하게 됐다"는 자백을 받아냈다.
+corpus.ud-gsd.test.test-s764.anonymous-name-pronoun	모	pronoun	smart-exact	85	88	이 사고로 갓길에서 사진을 찍고 있던 사진 동호회 회원 54살 이 모 씨 등 3명이 숨지고, 1명이 다쳤습니다.
+corpus.ud-gsd.test.test-s788.honorific-surname	신	noun	smart-exact	31	34	이 사고로 택시 운전자 신 씨와 포터 트럭 운전자 구 씨, 어린이 등 16명이 경미한 부상을 입어 병원에서 치료를 받았다.
 corpus.ud-gsd.test.test-s188.angle-bracket-title	프루프	noun	smart-exact	92	101	배우 강혜정, 이윤지, 남명렬, 정원중 등이 참여해 화제를 모은 연극 <프루프>는 영화 <뷰티풀 마인드>의 천재 수학자 존 내쉬와 그의 가상의 딸을 소재로 쓰인 작품으로 생동감 있고 참신한 드라마로 평가받고 있다.
 corpus.ud-gsd.test.test-s398.genitive	음식	noun	smart-exact	37	46	인간미 없는 사람의 음식은 음식의 느낌을 떨어뜨린다.
 corpus.ud-gsd.test.test-s661.quoted-alternatives	또는	adverb	smart-exact	78	84	이때에는 본디의 뜻과 구별하기 위해 가타카나로 'イタイ' 또는 'イタい'라고 쓰는 경우도 많으며, 이때는 '한심하다', '부끄럽다', '가엾다' 등의 뜻으로 사용된다.
