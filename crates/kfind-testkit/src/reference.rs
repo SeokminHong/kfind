@@ -893,6 +893,7 @@ fn reference_simple_continuation(
         reference_suffix("으니까는", &["ending.connective-ni"]),
         reference_suffix("으니깐", &["ending.connective-ni"]),
         reference_suffix("자", &["ending.concessive-eotja"]),
+        reference_suffix("제", &["ending.dialect-past-je"]),
         reference_suffix("남", &["ending.self-question-nam"]),
         reference_suffix("군", &["ending.final-gun"]),
         reference_suffix("군요", &["ending.final-gun", "ending.polite-yo"]),
@@ -2282,9 +2283,11 @@ fn reference_simple_continuation(
         .chain(additional_endings)
         .filter(|suffix| {
             following.starts_with(suffix.surface)
-                && ((suffix.rules.last() != Some(&"ending.connective-daganeun")
-                    && (suffix.rules != ["ending.connective-ni"]
-                        || !suffix.surface.starts_with('으')))
+                && ((!matches!(
+                    suffix.rules.last().copied(),
+                    Some("ending.connective-daganeun" | "ending.dialect-past-je")
+                ) && (suffix.rules != ["ending.connective-ni"]
+                    || !suffix.surface.starts_with('으')))
                     || !following[suffix.surface.len()..]
                         .chars()
                         .next()
