@@ -183,6 +183,11 @@ corpus.ud-gsd.test.test-s337.verb.교육되다	교육되다	verb	smart-exact	4	2
 corpus.ud-gsd.test.test-s658.verb.하다	하다	verb	smart-exact	34	49	직원들은 표정 관리를 좀 해야겠어요
 corpus.ud-kaist.test.MH2_0190-s471.verb.바꾸다	바꾸다	verb	smart-exact	88	103	한국과 ASEAN 전역을 엔블록으로 만들었고, 일본기업의 생산기지로 바꾸었음을 주목해야 한다.
 corpus.ud-gsd.test.test-s227.noun.시즌	시즌	noun	smart-exact	12	21	특히 2007 시즌엔 전기리그 준우승, 후기리그 우승, 그랜드 파이널 우승이라는 눈부신 성적을 이끌어냈고, 프로리그 사상 최초로 3개의 MVP를 독식하며 에이스로서의 자신의 가치를 입증했다.
+regression.adnominal-particle.capacity-vowel	배우	noun	smart-exact	0	15	배우로서의 공백기를 돌아봤다.
+regression.adnominal-particle.capacity-final	공인	noun	smart-exact	0	18	공인으로서의 책임을 다했다.
+regression.adnominal-particle.dative	수재민	noun	smart-exact	0	18	수재민에게의 구호품 전달이 시작됐다.
+regression.adnominal-particle.source	친구	noun	smart-exact	0	18	친구에게서의 선물 배달을 기다렸다.
+regression.adnominal-particle.wrong-allomorph	학생	noun	no-match	0	15	학생로서의 책임을 다했다.
 corpus.ud-gsd.test.test-s235.noun.예전	예전	noun	smart-exact	0	9	예전엔 맛있어서 갈비 먹으러 자주 갔는데 고기 가격도 오르고 양념 맛도 변하고 고기도 부드럽지 않고 퍽퍽해서 다신 안 갈래요...!
 corpus.ud-gsd.test.test-s324.noun.겨울	겨울	noun	smart-exact	0	9	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
 corpus.ud-gsd.test.test-s324.noun.여름	여름	noun	smart-exact	23	32	겨울엔 따뜻하고 여름엔 시원한 곳이어서 좋아요.
