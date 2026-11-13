@@ -15,6 +15,9 @@ use crate::{PredicatePos, PredicatePosSet, verify_copula_surface_after_nominal};
 use kfind_data::{ComponentPos as StructuralPos, DataFinePos};
 use std::ops::Range;
 
+const NON_ACCUSATIVE_PREDICATE_ANCHORS: &[&str] =
+    include!("../../../../data/rules/krdict-non-accusative-predicate-anchors.rs");
+
 const DURATION_NOUNS: &[&str] = &[
     "하루",
     "이틀",
@@ -1176,12 +1179,58 @@ impl ConstraintResolver {
     pub fn has_counted_unit_frame(&self, previous: &str, unit: &str) -> bool {
         exact_analysis_starts_with_pos(&self.resource, unit, |pos| pos == StructuralPos::NNBC)
             && (has_exact_fine_pos(&self.resource, previous, |pos| pos == DataFinePos::Nr)
+                || Self::is_mixed_cardinal(previous)
                 || (has_exact_fine_pos(&self.resource, previous, |pos| pos == DataFinePos::Mm)
                     && !(has_exact_fine_pos(&self.resource, unit, |pos| pos == DataFinePos::Vx)
                         && self.has_exact_predicate_connective_path(
                             previous,
                             PredicatePosSet::one(PredicatePos::Verb),
                         ))))
+    }
+
+    #[must_use]
+    pub fn is_mixed_cardinal(text: &str) -> bool {
+        let mut small_rank = 4;
+        let mut large_rank = 6;
+        let mut digit_run = false;
+        let mut has_digits = false;
+        let mut has_rank = false;
+        for character in text.chars() {
+            if character.is_ascii_digit() {
+                digit_run = true;
+                has_digits = true;
+                continue;
+            }
+            let (rank, large) = match character {
+                '십' => (1, false),
+                '백' => (2, false),
+                '천' => (3, false),
+                '만' => (1, true),
+                '억' => (2, true),
+                '조' => (3, true),
+                '경' => (4, true),
+                '해' => (5, true),
+                _ => return false,
+            };
+            if !digit_run && (!large || small_rank == 4) {
+                return false;
+            }
+            let ceiling = if large {
+                &mut large_rank
+            } else {
+                &mut small_rank
+            };
+            if rank >= *ceiling {
+                return false;
+            }
+            *ceiling = rank;
+            if large {
+                small_rank = 4;
+            }
+            digit_run = false;
+            has_rank = true;
+        }
+        has_digits && has_rank
     }
 
     #[must_use]
@@ -1374,16 +1423,25 @@ impl ConstraintResolver {
 
     #[must_use]
     pub fn has_independent_final_predicate(&self, text: &str) -> bool {
-        self.independent_final_predicate_positions(text) != PredicatePosSet::EMPTY
+        self.independent_final_predicate::<false>(text).0 != PredicatePosSet::EMPTY
     }
 
     #[must_use]
     pub fn has_independent_final_adjective(&self, text: &str) -> bool {
-        self.independent_final_predicate_positions(text)
+        self.independent_final_predicate::<false>(text).0
             == PredicatePosSet::one(PredicatePos::Adjective)
     }
 
-    fn independent_final_predicate_positions(&self, text: &str) -> PredicatePosSet {
+    #[must_use]
+    pub fn has_independent_final_predicate_without_object(&self, text: &str) -> bool {
+        let (positions, excludes_object) = self.independent_final_predicate::<true>(text);
+        positions == PredicatePosSet::one(PredicatePos::Adjective) || excludes_object
+    }
+
+    fn independent_final_predicate<const CHECK_OBJECT: bool>(
+        &self,
+        text: &str,
+    ) -> (PredicatePosSet, bool) {
         let has_final_ending = |length: usize, endings: &[StructuralPos]| {
             if length == text.len() {
                 return endings.split_last().is_some_and(|(last, prefinals)| {
@@ -1400,6 +1458,15 @@ impl ConstraintResolver {
         };
         let mut positions_found = PredicatePosSet::EMPTY;
         let mut has_final_auxiliary = false;
+        let mut excludes_object = true;
+        let mut record = |pos, anchor_end| {
+            positions_found |= PredicatePosSet::one(pos);
+            if CHECK_OBJECT {
+                excludes_object &= NON_ACCUSATIVE_PREDICATE_ANCHORS
+                    .binary_search(&&text[..anchor_end])
+                    .is_ok();
+            }
+        };
         self.resource
             .common_prefix_positions(text.as_bytes(), |length, positions| {
                 let Some((&predicate, endings)) = positions.split_first() else {
@@ -1407,10 +1474,10 @@ impl ConstraintResolver {
                 };
                 match predicate {
                     StructuralPos::VV if has_final_ending(length, endings) => {
-                        positions_found |= PredicatePosSet::one(PredicatePos::Verb);
+                        record(PredicatePos::Verb, length);
                     }
                     StructuralPos::VA if has_final_ending(length, endings) => {
-                        positions_found |= PredicatePosSet::one(PredicatePos::Adjective);
+                        record(PredicatePos::Adjective, length);
                     }
                     StructuralPos::VX => {
                         has_final_auxiliary |= has_final_ending(length, endings);
@@ -1425,12 +1492,12 @@ impl ConstraintResolver {
                                     && matches!(suffix, StructuralPos::XSV | StructuralPos::XSA)
                                     && has_final_ending(length + suffix_len, endings)
                                 {
-                                    if suffix == StructuralPos::XSV {
-                                        positions_found |= PredicatePosSet::one(PredicatePos::Verb);
+                                    let pos = if suffix == StructuralPos::XSV {
+                                        PredicatePos::Verb
                                     } else {
-                                        positions_found |=
-                                            PredicatePosSet::one(PredicatePos::Adjective);
-                                    }
+                                        PredicatePos::Adjective
+                                    };
+                                    record(pos, length + suffix_len);
                                 }
                             },
                         );
@@ -1442,8 +1509,8 @@ impl ConstraintResolver {
             || has_final_auxiliary
             || self.has_exact_nominal_surface(text)
         {
-            return PredicatePosSet::EMPTY;
+            return (PredicatePosSet::EMPTY, false);
         }
-        positions_found
+        (positions_found, excludes_object)
     }
 }

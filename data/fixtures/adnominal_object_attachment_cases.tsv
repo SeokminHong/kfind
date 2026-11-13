@@ -22,3 +22,5 @@ outer-intransitive-verb	쓰다	verb	exact	16	19	선글라스를 쓴 것으로 �
 outer-intransitive-no-adjective	쓰다	adjective	no-match	16	19	선글라스를 쓴 것으로 끝났다.
 outer-intransitive-formal-verb	쓰다	verb	exact	16	19	선글라스를 쓴 걸로 결판났습니다.
 outer-intransitive-formal-no-adjective	쓰다	adjective	no-match	16	19	선글라스를 쓴 걸로 결판났습니다.
+outer-explicit-subject-verb	쓰다	verb	exact	13	16	신청서를 쓴 것으로 일이 마무리됐다.
+outer-explicit-subject-no-adjective	쓰다	adjective	no-match	13	16	신청서를 쓴 것으로 일이 마무리됐다.
