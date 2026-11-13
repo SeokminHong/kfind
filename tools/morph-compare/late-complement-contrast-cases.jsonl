@@ -1,0 +1,9 @@
+{"id":"interview:verb","query":"늦다","pos":"verb","text":"그는 면접에 늦죠.","expected":true,"gold_byte_start":17,"gold_byte_end":23}
+{"id":"interview:adjective","query":"늦다","pos":"adjective","text":"그는 면접에 늦죠.","expected":false,"gold_byte_start":17,"gold_byte_end":23}
+{"id":"deadline:verb","query":"늦다","pos":"verb","text":"그는 마감에 늦죠.","expected":true,"gold_byte_start":17,"gold_byte_end":23}
+{"id":"deadline:adjective","query":"늦다","pos":"adjective","text":"그는 마감에 늦죠.","expected":false,"gold_byte_start":17,"gold_byte_end":23}
+{"id":"adjunct-after-subject:adjective","query":"늦다","pos":"adjective","text":"해가 겨울에 늦죠.","expected":true,"gold_byte_start":17,"gold_byte_end":23}
+{"id":"point-in-time:adjective","query":"늦다","pos":"adjective","text":"시계가 아침에 늦죠.","expected":true,"gold_byte_start":20,"gold_byte_end":26}
+{"id":"frequency-adjunct:adjective","query":"늦다","pos":"adjective","text":"시계가 가끔 늦죠.","expected":true,"gold_byte_start":17,"gold_byte_end":23}
+{"id":"intervening-adverb:verb","query":"늦다","pos":"verb","text":"민수는 회의에 자주 늦죠.","expected":true,"gold_byte_start":27,"gold_byte_end":33}
+{"id":"intervening-adverb:adjective","query":"늦다","pos":"adjective","text":"민수는 회의에 자주 늦죠.","expected":false,"gold_byte_start":27,"gold_byte_end":33}
