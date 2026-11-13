@@ -34,6 +34,7 @@ pub(in crate::structure) enum StructureSelection {
         excludes_pronoun: bool,
         excludes_predicate: bool,
         preserves_proper_name: bool,
+        preserves_proper_name_tail: bool,
     },
     NominalWhole,
     ProperNameOrAdnominal {
@@ -144,10 +145,12 @@ impl StructureSelection {
                 excludes_pronoun,
                 excludes_predicate,
                 preserves_proper_name,
+                preserves_proper_name_tail,
             } => {
                 (support.evidence == StructuralEvidence::Whole
                     && (pattern.fine_pos == DataFinePos::Mm
-                        || (*preserves_proper_name && pattern.fine_pos == DataFinePos::Nnp)))
+                        || (*preserves_proper_name && pattern.fine_pos == DataFinePos::Nnp)
+                        || (*preserves_proper_name_tail && pattern.fine_pos == DataFinePos::Nng)))
                     || (!matches!(
                         pattern.fine_pos,
                         DataFinePos::Nng | DataFinePos::Nnp | DataFinePos::Nnb
@@ -408,6 +411,20 @@ pub(in crate::structure) fn select_structure(
         return StructureSelection::AdjacentDeterminer {
             excludes_pronoun: demonstrative && next_starts_determiner_nominal,
             excludes_predicate,
+            preserves_proper_name_tail: !demonstrative
+                && !next_is_counter
+                && evidence.has_whole(DataFinePos::Nng)
+                && context
+                    .next
+                    .is_some_and(|next| has_unambiguous_proper_name(resource, next))
+                && context.previous.is_some_and(|previous| {
+                    has_exact_fine_pos(resource, previous, |pos| pos == DataFinePos::Nnp)
+                        && has_exact_sequence(
+                            resource,
+                            &format!("{previous}{}", context.current),
+                            &[StructuralPos::NNP],
+                        )
+                }),
             preserves_proper_name: !demonstrative
                 && !next_is_counter
                 && !matches!(

@@ -224,6 +224,10 @@ regression.standalone-counted-unit.native-approximate	주	noun	smart-exact	7	10	
 regression.standalone-counted-unit.suffixed-approximate	주	noun	smart-exact	6	9	10여 주 전부터 준비했다.
 regression.standalone-counted-unit.hour	시	noun	smart-exact	4	7	몇 시 이후에 문을 닫나요?
 regression.standalone-counted-unit.modifier	주	noun	no-match	0	3	주 업무를 정했다.
+regression.administrative-unit.gsd.test-s49	주	noun	smart-exact	27	30	현재 미국 버지니아 주 윌리엄스버그 시내에 북미에서는 최초의 영구 식민지가 된 제임스타운을 건설했다.
+regression.administrative-unit.gsd.test-s165	주	noun	smart-exact	18	21	1936년에 뉴욕 주 뉴욕에서 태어났고, 예사바 대학교에서 철학과 교육학 분야에서 석사학위를 받았다.
+regression.administrative-unit.district	구	noun	smart-exact	14	17	서울 강남 구 역삼동에 산다.
+regression.administrative-unit.modifier	주	noun	no-match	7	10	일본 주 업무를 담당한다.
 regression.standalone-counted-unit.new	새	noun	no-match	13	16	사이에서 새 생명이 태어났다.
 corpus.ud-gsd.test.test-s237.verb.되다	되다	verb	smart-exact	31	37	맛도 별론데 장사가 잘 되나 봐요
 corpus.ud-gsd.test.test-s294.verb.주다	주다	verb	smart-exact	42	54	절 제자로 삼아 비법 좀 전수해 주십시오!
