@@ -1050,3 +1050,7 @@ regression.contracted-ha-gi.validation	검증하다	verb	smart-exact	0	12	검증
 regression.contracted-ha-gi.vowel	연구하다	verb	smart-exact	0	12	연구키로 했다.
 regression.contracted-ha-gi.unvoiced	생각하다	verb	no-match	0	12	생각키로 했다.
 regression.contracted-ha-gi.nominal	스하다	verb	no-match	0	9	스키를 탔다.
+regression.past-final-je.irregular	짓다	verb	smart-exact	20	29	만리장성 누가 지었제?
+regression.past-final-je.contracted	가다	verb	smart-exact	0	6	갔제?
+regression.past-final-je.adjective	춥다	adjective	smart-exact	0	9	추웠제?
+regression.past-final-je.token-interior	짓다	verb	no-match	0	9	지었제품

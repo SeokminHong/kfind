@@ -504,6 +504,7 @@ const PAST_SUFFIXES: &[Suffix] = &[
     PREFINAL_EUNIKKAN,
     DAGA,
     suffix("자", &["ending.concessive-eotja"]),
+    suffix("제", &["ending.dialect-past-je"]),
     NAM,
     NOMINALIZER_EUM,
     NOMINALIZER_GI,
@@ -2013,9 +2014,11 @@ fn verify_simple_continuation(
         )
         .filter(|suffix| {
             following.starts_with(suffix.surface)
-                && ((suffix.rules.last() != Some(&"ending.connective-daganeun")
-                    && (suffix.rules != ["ending.connective-ni"]
-                        || !suffix.surface.starts_with('으')))
+                && ((!matches!(
+                    suffix.rules.last().copied(),
+                    Some("ending.connective-daganeun" | "ending.dialect-past-je")
+                ) && (suffix.rules != ["ending.connective-ni"]
+                    || !suffix.surface.starts_with('으')))
                     || !following[suffix.surface.len()..]
                         .chars()
                         .next()
