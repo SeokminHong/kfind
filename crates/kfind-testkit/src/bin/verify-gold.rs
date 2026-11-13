@@ -97,70 +97,46 @@ fn main() -> Result<(), Box<dyn Error>> {
     verify_walk_hang_stress(&harness)?;
     let enriched_harness =
         harness.with_enriched_predicates(ENRICHED_PREDICATES_SOURCE, ENRICHED_PREDICATES)?;
-    verify_span_cases(&enriched_harness, "UD morphology", UD_MORPHOLOGY_CASES)?;
-    verify_span_cases(&enriched_harness, "bound si suffix", BOUND_SI_CASES)?;
-    verify_span_cases(
-        &enriched_harness,
-        "dependent noun subject",
-        DEPENDENT_SUBJECT_CASES,
-    )?;
-    verify_span_cases(&enriched_harness, "elapsed measure", ELAPSED_MEASURE_CASES)?;
-    verify_span_cases(
-        &enriched_harness,
-        "emphatic particle",
-        EMPHATIC_PARTICLE_CASES,
-    )?;
-    verify_span_cases(&enriched_harness, "nominal only", NOMINAL_ONLY_CASES)?;
-    verify_span_cases(
-        &enriched_harness,
-        "dictionary numeric units",
-        DICTIONARY_NUMERIC_UNIT_CASES,
-    )?;
-    verify_span_cases(
-        &enriched_harness,
-        "prefixed nominal copula",
-        PREFIXED_NOMINAL_COPULA_CASES,
-    )?;
-    verify_span_cases(
-        &enriched_harness,
-        "adnominal object attachment",
-        ADNOMINAL_OBJECT_ATTACHMENT_CASES,
-    )?;
-    verify_span_cases(
-        &enriched_harness,
-        "query matrix POS review",
-        QUERY_MATRIX_POS_REVIEW_CASES,
-    )?;
-    verify_span_cases(
-        &enriched_harness,
-        "quantifying adverbs",
-        QUANTIFYING_ADVERB_CASES,
-    )?;
-    verify_span_cases(&enriched_harness, "bieup adverbials", BIEUP_ADVERBIAL_CASES)?;
-    verify_span_cases(
-        &enriched_harness,
-        "interrogative endings",
-        INTERROGATIVE_CASES,
-    )?;
-    verify_span_cases(&enriched_harness, "prospective endings", PROSPECTIVE_CASES)?;
-    verify_span_cases(&enriched_harness, "seoya endings", SEOYA_CASES)?;
-    verify_span_cases(&enriched_harness, "meuro endings", MEURO_CASES)?;
-    verify_span_cases(&enriched_harness, "mse endings", MSE_CASES)?;
-    verify_span_cases(&enriched_harness, "dao endings", DAO_CASES)?;
-    verify_span_cases(&enriched_harness, "jiyo endings", JIYO_CASES)?;
-    verify_span_cases(&enriched_harness, "humble endings", HUMBLE_CASES)?;
-    verify_span_cases(
-        &enriched_harness,
-        "casual prefinal endings",
-        CASUAL_PREFINAL_CASES,
-    )?;
-    verify_span_cases(
-        &enriched_harness,
-        "topic before predicate",
-        TOPIC_PREDICATE_CASES,
-    )?;
-    verify_context_homographs(&enriched_harness)?;
-    verify_copula_conditionals(&enriched_harness)?;
+    let mut suite_errors = Vec::new();
+    for (fixture, cases) in [
+        ("UD morphology", UD_MORPHOLOGY_CASES),
+        ("bound si suffix", BOUND_SI_CASES),
+        ("dependent noun subject", DEPENDENT_SUBJECT_CASES),
+        ("elapsed measure", ELAPSED_MEASURE_CASES),
+        ("emphatic particle", EMPHATIC_PARTICLE_CASES),
+        ("nominal only", NOMINAL_ONLY_CASES),
+        ("dictionary numeric units", DICTIONARY_NUMERIC_UNIT_CASES),
+        ("prefixed nominal copula", PREFIXED_NOMINAL_COPULA_CASES),
+        (
+            "adnominal object attachment",
+            ADNOMINAL_OBJECT_ATTACHMENT_CASES,
+        ),
+        ("query matrix POS review", QUERY_MATRIX_POS_REVIEW_CASES),
+        ("quantifying adverbs", QUANTIFYING_ADVERB_CASES),
+        ("bieup adverbials", BIEUP_ADVERBIAL_CASES),
+        ("interrogative endings", INTERROGATIVE_CASES),
+        ("prospective endings", PROSPECTIVE_CASES),
+        ("seoya endings", SEOYA_CASES),
+        ("meuro endings", MEURO_CASES),
+        ("mse endings", MSE_CASES),
+        ("dao endings", DAO_CASES),
+        ("jiyo endings", JIYO_CASES),
+        ("humble endings", HUMBLE_CASES),
+        ("casual prefinal endings", CASUAL_PREFINAL_CASES),
+        ("topic before predicate", TOPIC_PREDICATE_CASES),
+    ] {
+        if let Err(error) = verify_span_cases(&enriched_harness, fixture, cases) {
+            suite_errors.push(error.to_string());
+        }
+    }
+    for verify in [verify_context_homographs, verify_copula_conditionals] {
+        if let Err(error) = verify(&enriched_harness) {
+            suite_errors.push(error.to_string());
+        }
+    }
+    if !suite_errors.is_empty() {
+        return Err(suite_errors.join("\n\n").into());
+    }
 
     println!(
         "morphology gold with auto-POS coverage: {} cases and walk/hang stress passed",
