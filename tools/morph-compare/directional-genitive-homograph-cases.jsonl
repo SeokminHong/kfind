@@ -1,0 +1,2 @@
+{"id":"island-group-direction","query":"제도","pos":"noun","text":"영국 제도로의 접근 경로를 확인했다.","expected":true,"gold_byte_start":7,"gold_byte_end":19,"paired_case_id":"busan-road-name"}
+{"id":"busan-road-name","query":"제도","pos":"noun","text":"부산 제도로의 접근 경로를 확인했다.","expected":false,"gold_byte_start":7,"gold_byte_end":19,"paired_case_id":"island-group-direction"}
