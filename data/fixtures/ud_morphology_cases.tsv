@@ -1981,3 +1981,8 @@ regression.archaic-rieulsa.consonant	밝다	adjective	exact	10	19	밝기도 밝�
 regression.archaic-soeda.past	알다	verb	only-exact	4	16	잘 알았쇠다.
 regression.archaic-soeda.future	가다	verb	only-exact	7	19	그만 가겠쇠다.
 regression.archaic-soeda.full	알다	verb	only-exact	4	19	잘 알았소이다.
+regression.alternative-deunga.stem	하다	verb	only-exact	17	26	취미 생활을 하든가 시간을 보내라.
+regression.alternative-deunga.past	먹다	verb	only-exact	7	19	어제 먹었든가 상관없다.
+regression.alternative-deunga.honorific	가다	verb	only-exact	13	25	어머니는 가시든가 해요.
+regression.alternative-deunga.deunji	먹다	verb	only-exact	0	9	먹든지 말든지 해라.
+regression.alternative-deunga.separate	먹다	verb	only-exact	14	20	그 집에서 먹어. 든가라는 말은 처음이다.

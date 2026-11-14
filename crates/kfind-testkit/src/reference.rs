@@ -2338,12 +2338,14 @@ fn reference_simple_continuation(
             &[
                 reference_suffix("든", &["ending.alternative-deunji"]),
                 reference_suffix("든지", &["ending.alternative-deunji"]),
+                reference_suffix("든가", &["ending.alternative-deunji"]),
             ]
         }
         ContinuationState::Eu if following.starts_with("시든") || following.starts_with("셨든") => {
             &[
                 reference_suffix("시든", &["ending.honorific", "ending.alternative-deunji"]),
                 reference_suffix("시든지", &["ending.honorific", "ending.alternative-deunji"]),
+                reference_suffix("시든가", &["ending.honorific", "ending.alternative-deunji"]),
                 reference_suffix(
                     "셨든",
                     &[
@@ -2354,6 +2356,14 @@ fn reference_simple_continuation(
                 ),
                 reference_suffix(
                     "셨든지",
+                    &[
+                        "ending.honorific",
+                        "ending.past",
+                        "ending.alternative-deunji",
+                    ],
+                ),
+                reference_suffix(
+                    "셨든가",
                     &[
                         "ending.honorific",
                         "ending.past",

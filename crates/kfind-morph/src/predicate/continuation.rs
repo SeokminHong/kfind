@@ -2179,12 +2179,14 @@ fn verify_simple_continuation(
             &[
                 suffix("든", &["ending.alternative-deunji"]),
                 suffix("든지", &["ending.alternative-deunji"]),
+                suffix("든가", &["ending.alternative-deunji"]),
             ]
         }
         ContinuationState::Eu if following.starts_with("시든") || following.starts_with("셨든") => {
             &[
                 suffix("시든", &["ending.honorific", "ending.alternative-deunji"]),
                 suffix("시든지", &["ending.honorific", "ending.alternative-deunji"]),
+                suffix("시든가", &["ending.honorific", "ending.alternative-deunji"]),
                 suffix(
                     "셨든",
                     &[
@@ -2195,6 +2197,14 @@ fn verify_simple_continuation(
                 ),
                 suffix(
                     "셨든지",
+                    &[
+                        "ending.honorific",
+                        "ending.past",
+                        "ending.alternative-deunji",
+                    ],
+                ),
+                suffix(
+                    "셨든가",
                     &[
                         "ending.honorific",
                         "ending.past",
@@ -3558,6 +3568,7 @@ fn verify_simple_continuation(
                         | "ending.colloquial-rieulramyeon"
                 )
             ) || dapsigo
+                || suffix.surface.ends_with("든가")
                 || matches!(suffix.surface, "자나" | "자손")
                 || (suffix.rules.last() == Some(&"ending.connective-go")
                     && suffix.surface.ends_with('구'))
