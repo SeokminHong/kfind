@@ -676,6 +676,10 @@ const DECLARATIVE_DEONI: Suffix = suffix("더니", &["ending.retrospective-conne
 const DECLARATIVE_DEONIMAN: Suffix = suffix("더니만", &["ending.retrospective-contrast"]);
 const DECLARATIVE_DEONIMANEUN: Suffix = suffix("더니마는", &["ending.retrospective-contrast"]);
 const DECLARATIVE_CONDITIONAL: Suffix = suffix("면", &["ending.conditional"]);
+const DAMANEUN: Suffix = suffix("다마는", &["ending.concessive-damaneun"]);
+const DAMAN: Suffix = suffix("다만", &["ending.concessive-damaneun"]);
+const MANEUN: Suffix = suffix("마는", &["ending.concessive-damaneun"]);
+const MAN: Suffix = suffix("만", &["ending.concessive-damaneun"]);
 const PREFINAL_DAMYEON: Suffix = suffix("다면", &["ending.conditional"]);
 const PREFINAL_DAMYEONSEO: Suffix = suffix("다면서", &["ending.quotative-myeonseo"]);
 const DECLARATIVE_NI: Suffix = suffix("니", &["ending.quotative-ni"]);
@@ -1680,6 +1684,26 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if (state != ContinuationState::StemEnding || !pos.is_action())
+                && (following.starts_with("다마") || following.starts_with("다만")) =>
+        {
+            &[DAMANEUN, DAMAN]
+        }
+        ContinuationState::Eu
+            if following.starts_with("시다마") || following.starts_with("시다만") =>
+        {
+            &[
+                suffix(
+                    "시다마는",
+                    &["ending.honorific", "ending.concessive-damaneun"],
+                ),
+                suffix(
+                    "시다만",
+                    &["ending.honorific", "ending.concessive-damaneun"],
+                ),
+            ]
+        }
         ContinuationState::StemEnding
             if following.starts_with("은들") && anchor.ends_with(['있', '없']) =>
         {
@@ -2234,6 +2258,7 @@ fn verify_simple_continuation(
                         | "ending.interrogative-ryeon"
                         | "ending.interrogative-ngam"
                         | "ending.concessive-nieundeul"
+                        | "ending.concessive-damaneun"
                         | "ending.counterfactual-deondeul"
                         | "ending.dialect-past-je"
                         | "ending.colloquial-rieulramyeon"
@@ -2308,7 +2333,17 @@ fn verify_simple_continuation(
 }
 
 fn declarative_suffix(following: &str) -> Option<&'static Suffix> {
+    let ends_at_boundary = |suffix| {
+        following.strip_prefix(suffix).is_some_and(|tail| {
+            !tail
+                .chars()
+                .next()
+                .is_some_and(|next| next.is_alphanumeric() || next == '_')
+        })
+    };
     match following.chars().next()? {
+        '마' if ends_at_boundary(MANEUN.surface) => Some(&MANEUN),
+        '만' if ends_at_boundary(MAN.surface) => Some(&MAN),
         '면' if following.starts_with(DECLARATIVE_MYEONSEO.surface) => Some(&DECLARATIVE_MYEONSEO),
         '면' => Some(&DECLARATIVE_CONDITIONAL),
         '는' if following.starts_with(DECLARATIVE_NEUNDE.surface) => Some(&DECLARATIVE_NEUNDE),
