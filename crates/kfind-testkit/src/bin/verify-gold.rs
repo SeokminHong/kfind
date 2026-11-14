@@ -412,9 +412,11 @@ fn verify_span_cases(
         } else {
             *expectation
         };
+        let only_span = matches!(expectation, "only-exact" | "smart-only-exact");
+        let exact = only_span || matches!(expectation, "exact" | "smart-exact");
         let expected = match expectation {
-            "match" | "exact" | "smart-exact" => true,
-            "no-match" => false,
+            "match" | "exact" | "smart-exact" | "only-exact" | "smart-only-exact" => true,
+            "no-match" | "no-match-both" => false,
             _ => return Err(invalid_row().into()),
         };
         let start: usize = start.parse()?;
@@ -424,11 +426,12 @@ fn verify_span_cases(
             return Err(invalid_row().into());
         }
         for boundary in [BoundaryPolicy::Smart, BoundaryPolicy::Any] {
-            if boundary == BoundaryPolicy::Any && (!expected || expectation == "smart-exact") {
+            if boundary == BoundaryPolicy::Any
+                && (expectation == "no-match" || expectation.starts_with("smart-"))
+            {
                 continue;
             }
             let matches = harness.find_lemma_matches(query, text, pos, boundary)?;
-            let exact = matches!(expectation, "exact" | "smart-exact");
             let spans = if exact {
                 matches
                     .into_iter()
@@ -440,13 +443,15 @@ fn verify_span_cases(
                     .flat_map(|matched| matched.atoms.into_iter().map(|atom| atom.core))
                     .collect::<Vec<_>>()
             };
-            let found = spans.iter().any(|span| {
-                if exact {
-                    *span == (start..end)
-                } else {
-                    span.start < end && start < span.end
-                }
-            });
+            let found = if only_span {
+                matches!(spans.as_slice(), [span] if *span == (start..end))
+            } else if exact {
+                spans.contains(&(start..end))
+            } else {
+                spans
+                    .iter()
+                    .any(|span| span.start < end && start < span.end)
+            };
             if found != expected {
                 failures.push(format!(
                     "{id} {boundary:?}: target={target:?}, expected={expectation}, spans={spans:?}"
