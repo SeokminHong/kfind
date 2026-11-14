@@ -1860,6 +1860,26 @@ fn reference_simple_continuation(
                 &["ending.honorific", "ending.retrospective-direct-question"],
             )]
         }
+        ContinuationState::StemEnding
+            if following.starts_with("느니")
+                && (pos.is_action() || anchor.ends_with(['있', '없']) || anchor == "계시")
+                && !anchor.chars().next_back().is_some_and(has_rieul_final) =>
+        {
+            &[
+                reference_suffix("느니", &["ending.neuni"]),
+                reference_suffix("느니만", &["ending.comparative-neuniman"]),
+            ]
+        }
+        ContinuationState::Past | ContinuationState::Future if following.starts_with("느니") => {
+            &[reference_suffix("느니", &["ending.neuni"])]
+        }
+        ContinuationState::Eu if following.starts_with("시느니") => &[
+            reference_suffix("시느니", &["ending.honorific", "ending.neuni"]),
+            reference_suffix(
+                "시느니만",
+                &["ending.honorific", "ending.comparative-neuniman"],
+            ),
+        ],
         ContinuationState::Past | ContinuationState::Future if following.starts_with("으려니") => {
             &[
                 reference_suffix("으려니", &["ending.conjecture-ryeo"]),
@@ -2783,6 +2803,8 @@ fn reference_simple_continuation(
                     suffix.rules.last().copied(),
                     Some(
                         "ending.connective-daganeun"
+                            | "ending.neuni"
+                            | "ending.comparative-neuniman"
                             | "ending.retrospective-de"
                             | "ending.connective-dasipi"
                             | "ending.connective-geoni"
