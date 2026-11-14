@@ -692,6 +692,16 @@ next = ["ending.polite-yo"]
 terminal = true
 
 [[ending]]
+id = "ending.interrogative-ngam"
+category = "final"
+initial = "attach-nieun"
+forms = ["ㄴ감", "은감", "는감"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.interrogative-nji"
 category = "connective"
 initial = "attach-nieun"
