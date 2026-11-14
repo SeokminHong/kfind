@@ -160,7 +160,7 @@ regression.interrogative-nayo.invalid-eu	먹다	verb	no-match	7	19	밥을 먹으
 regression.interrogative-na.adjective	많다	adjective	exact	0	6	많나?
 regression.interrogative-na.embedded-past	먹다	verb	exact	0	9	먹었나 싶었다.
 regression.interrogative-na.future	돕다	verb	exact	0	9	돕겠나?
-regression.interrogative-na.concessive	많다	adjective	exact	0	9	많으나 부족한 부분이 있다.
+regression.interrogative-na.concessive	많다	adjective	only-exact	0	9	많으나 부족한 부분이 있다.
 regression.nominalizer-gil.consonant	읽다	verb	smart-exact	7	13	책을 읽길 바란다.
 regression.nominalizer-gil.honorific-consonant	읽다	verb	smart-exact	7	19	책을 읽으시길 바랍니다.
 regression.nominalizer-gil.honorific-vowel	삼가다	verb	smart-exact	10	22	외출을 삼가시길 바랍니다.
@@ -672,12 +672,12 @@ regression.causal-nimankeum.copula	이다	adjective	smart-exact	16	28	오늘은 
 regression.causal-nimankeum.honorific	읽다	verb	smart-exact	13	31	교수님이 읽으시니만큼 우리도 읽자.
 regression.causal-nimankeum.past	늦다	adjective	smart-exact	10	28	시간이 늦었으니만치 택시로 가자.
 regression.causal-nimankeum.action	읽다	verb	smart-exact	17	32	아이가 글을 읽느니만큼 조용히 하자.
-regression.causal-nimankeum.separate-dependent	읽다	verb	smart-exact	10	16	아이가 읽는 만큼 기다리자.
+regression.causal-nimankeum.separate-dependent	읽다	verb	smart-only-exact	10	16	아이가 읽는 만큼 기다리자.
 regression.causal-jira.completed-action	오다	verb	smart-exact	7	16	눈이 온지라 길이 미끄럽다.
 regression.causal-jira.adjective	좋다	adjective	smart-exact	10	22	기분이 좋은지라 웃음이 났다.
 regression.causal-jira.current-action	계시다	verb	smart-exact	13	28	선생님이 계시는지라 조용히 했다.
 regression.causal-jira.copula	이다	adjective	smart-exact	13	22	오랜 친구인지라 마음이 놓였다.
-regression.causal-jira.separate-dependent	오다	verb	smart-exact	7	10	비가 온 지 오래됐다.
+regression.causal-jira.separate-dependent	오다	verb	smart-only-exact	7	10	비가 온 지 오래됐다.
 regression.causal-jira.embedded-question	오다	verb	smart-exact	7	16	비가 오는지 확인했다.
 regression.respectful-oeda.vowel	떠나다	verb	smart-exact	14	26	나는 오늘 떠나외다.
 regression.respectful-oeda.consonant	맑다	adjective	smart-exact	10	22	날씨는 맑으외다.
@@ -712,17 +712,17 @@ regression.exclamative-njigo.consonant-state	가엾다	adjective	exact	10	25	참
 regression.exclamative-njigo.completed-action	읽다	verb	exact	14	26	참 많이도 읽은지고!
 regression.exclamative-njigo.current-action	하다	verb	exact	14	26	참으로 잘 하는지고!
 regression.exclamative-njigo.honorific	읽다	verb	exact	16	31	선생님께서 읽으신지고!
-regression.exclamative-njigo.separate-word	읽다	verb	exact	7	13	책을 읽은 지 오래다.
+regression.exclamative-njigo.separate-word	읽다	verb	only-exact	7	13	책을 읽은 지 오래다.
 regression.rieul-sentence-endings.jinira	믿다	verb	exact	21	36	너희는 내 말을 믿을지니라.
 regression.rieul-sentence-endings.copula	이다	adjective	exact	20	32	그것은 내 책임일지니라.
 regression.rieul-sentence-endings.reongo-honorific	돌아오다	verb	exact	7	25	언제 돌아오실런고?
 regression.rieul-sentence-endings.ssonga	높다	adjective	exact	13	25	하늘보다 높을쏜가.
-regression.rieul-sentence-endings.separate-question	있다	adjective	exact	14	23	무슨 일이 있을지 모르겠다.
+regression.rieul-sentence-endings.separate-question	있다	adjective	only-exact	14	23	무슨 일이 있을지 모르겠다.
 regression.necessity-yaman.contracted	가다	verb	exact	10	19	반드시 가야만 알 수 있다.
 regression.necessity-yaman.consonant	밝다	adjective	exact	7	19	날이 밝아야만 길이 보인다.
 regression.necessity-yaman.copula	이다	adjective	exact	16	28	이름은 철수이어야만 한다.
 regression.necessity-yaman.honorific	오다	verb	exact	13	25	선생님이 오셔야만 시작한다.
-regression.necessity-yaman.separate-word	가다	verb	exact	10	16	반드시 가야 만날 수 있다.
+regression.necessity-yaman.separate-word	가다	verb	only-exact	10	16	반드시 가야 만날 수 있다.
 regression.necessity-yaman.irregular	걷다	verb	exact	11	23	먼 길을 걸어야만 도착한다.
 regression.formal-intention.question	읽다	verb	exact	10	25	당신이 읽으렵니까?
 regression.formal-intention.rieul	살다	verb	exact	17	29	앞으로 오래 살렵니다.
@@ -745,134 +745,137 @@ regression.causal-nieunjuk.copula	이다	adjective	exact	16	22	그것이 사실�
 regression.causal-nieunjuk.state	맑다	adjective	exact	7	16	물이 맑은즉 반대편이 보인다.
 regression.causal-nieunjuk.state-neun	없다	adjective	exact	10	19	방법이 없은즉 기다리자.
 regression.causal-nieunjuk.past	읽다	verb	exact	7	22	어제 읽었은즉슨 내용을 기억한다.
-regression.causal-nieunjuk.separate-word	읽다	verb	exact	7	13	일단 읽은 즉흥시를 기억했다.
+regression.causal-nieunjuk.separate-word	읽다	verb	only-exact	7	13	일단 읽은 즉흥시를 기억했다.
 regression.causal-nieunjuk.rieul-drop	늘다	verb	exact	10	16	비용이 는즉 예산을 늘렸다.
 regression.connective-dasipi.honorific	보다	verb	exact	0	15	보시다시피 제 손에는 아무것도 없습니다.
 regression.connective-dasipi.stem	주지하다	verb	exact	0	18	주지하다시피 문학은 언어를 표현 수단으로 삼는다.
 regression.connective-dasipi.past	먹다	verb	exact	0	15	먹었다시피 했지만 배가 고프다.
 regression.connective-dasipi.state	없다	adjective	exact	10	22	방법이 없다시피 하다.
-regression.connective-dasipi.separate-word	보다	verb	exact	0	6	보다 다시 확인했다.
+regression.connective-dasipi.separate-word	보다	verb	only-exact	0	6	보다 다시 확인했다.
 regression.connective-geoni.stacked-past	먹다	verb	exact	0	15	먹었겠거니 하고 기다렸다.
 regression.connective-geoniwa.stem	정리하다	verb	exact	0	18	정리하거니와 다시 확인해야 한다.
 regression.connective-geoniwa.honorific	살다	verb	exact	0	15	사시거니와 생활에도 익숙하시다.
 regression.connective-geoniwa.copula	이다	adjective	exact	6	18	학생이거니와 연구에도 참여한다.
-regression.connective-geoni.separate	그렇다	adjective	exact	0	9	그렇다. 거니는 이름이다.
+regression.connective-geoni.separate	그렇다	adjective	only-exact	0	9	그렇다. 거니는 이름이다.
 regression.prefinal-ryeoni.past	먹다	verb	exact	0	15	먹었으려니 생각했다.
 regression.prefinal-ryeoniwa.future	주다	verb	exact	0	18	주겠으려니와 시상식도 준비하겠다.
 regression.prefinal-ryeoniwa.honorific-past	읽다	verb	exact	0	21	읽으셨으려니와 내용도 기억하시겠지.
-regression.prefinal-ryeoni.separate	먹다	verb	exact	0	9	먹었다. 추측일 뿐이다.
+regression.prefinal-ryeoni.separate	먹다	verb	only-exact	0	9	먹었다. 추측일 뿐이다.
 regression.retrospective-de.state	똑똑하다	adjective	exact	0	15	똑똑하데요.
 regression.retrospective-de.copula	이다	adjective	exact	6	15	동창이데요.
 regression.retrospective-de.honorific-past	오다	verb	exact	0	12	오셨데요.
 regression.retrospective-de.past	피다	verb	exact	0	9	폈데요.
-regression.retrospective-de.bound-noun	읽다	verb	exact	0	6	읽는 데 시간이 걸렸다.
+regression.retrospective-de.bound-noun	읽다	verb	only-exact	0	6	읽는 데 시간이 걸렸다.
 regression.connective-go-extension.habit	들르다	verb	exact	0	15	들르시고는 하셨다.
 regression.connective-go-extension.reduced	가다	verb	exact	0	9	가시곤 한다.
 regression.connective-go-extension.contrast	이다	adjective	exact	6	15	학생이고도 모르는 일이 있다.
 regression.connective-go-extension.emphasis	합격하다	verb	exact	0	15	합격하고야 말겠다.
 regression.connective-go-extension.purpose	말씀하다	verb	exact	0	18	말씀하시고자 연락했다.
-regression.connective-go-extension.separate	먹다	verb	exact	0	6	먹고 도서관으로 갔다.
+regression.connective-go-extension.separate	먹다	verb	only-exact	0	6	먹고 도서관으로 갔다.
 regression.retrospective-di.stem	사과하다	verb	exact	0	12	사과하디?
 regression.retrospective-di.honorific-past	오다	verb	exact	0	9	오셨디?
 regression.retrospective-di.future	해내다	verb	exact	0	12	해내겠디?
 regression.retrospective-di.adjective	괜찮다	adjective	exact	0	9	괜찮디?
-regression.retrospective-di.separate	오다	verb	exact	0	6	왔다. 디저트도 먹었다.
+regression.retrospective-di.separate	오다	verb	only-exact	0	6	왔다. 디저트도 먹었다.
 regression.ending-neuni.action	고생하다	verb	exact	0	15	고생하느니 차라리 돌아가자.
 regression.ending-neuni.rieul	살다	verb	exact	0	9	사느니 차라리 떠나겠다.
 regression.ending-neuni.state	없다	adjective	exact	0	9	없느니.
 regression.ending-neuni.honorific	읽다	verb	exact	0	15	읽으시느니 다시 설명해 드리겠습니다.
 regression.ending-neuni.past	있다	verb	exact	0	12	있었느니.
 regression.ending-neuni.comparison	죽다	verb	exact	0	12	죽느니만 못하다.
-regression.ending-neuni.unrelated	읽다	verb	exact	0	6	읽은 니체의 책을 건넸다.
+regression.ending-neuni.unrelated	읽다	verb	only-exact	0	6	읽은 니체의 책을 건넸다.
 regression.conditional-geollang.stem	보다	verb	exact	0	9	보걸랑 연락해 줘.
 regression.conditional-geollang.past	먹다	verb	exact	0	12	먹었걸랑 쉬어라.
 regression.conditional-geollang.state	조용하다	adjective	exact	0	15	조용하걸랑. 잠깐 있어 봐.
 regression.conditional-geollang.honorific	읽다	verb	exact	0	15	읽으시걸랑 책을 가져오세요.
 regression.conditional-geollang.copula	이다	adjective	exact	6	15	학생이걸랑 참고서를 빌려 줘.
 regression.conditional-geollang.long	보다	verb	exact	0	12	보거들랑 연락해 줘.
+regression.conditional-geollang.separate	보다	verb	only-exact	0	6	보고 걸랑 씨에게 전해 줘.
 regression.rieul-promise-ge.vowel	가다	verb	exact	0	6	갈게.
 regression.rieul-promise-ge.consonant	읽다	verb	exact	0	12	읽을게요.
 regression.rieul-promise-ge.rieul	만들다	verb	exact	0	9	만들게.
 regression.rieul-promise-ge.irregular	듣다	verb	exact	0	9	들을게.
-regression.rieul-promise-ge.separate	읽다	verb	exact	0	6	읽을 게 하나 남았다.
+regression.rieul-promise-ge.separate	읽다	verb	only-exact	0	6	읽을 게 하나 남았다.
 regression.connective-gekkeum.action	지나가다	verb	exact	0	15	지나가게끔 길가로 비켜섰다.
 regression.connective-gekkeum.state	없다	adjective	exact	0	9	없게끔 정리해라.
 regression.connective-gekkeum.honorific	듣다	verb	exact	0	15	들으시게끔 크게 말했다.
-regression.connective-gekkeum.separate	읽다	verb	exact	0	6	읽게 끔찍한 소리를 줄였다.
+regression.connective-gekkeum.separate	읽다	verb	only-exact	0	6	읽게 끔찍한 소리를 줄였다.
 regression.propositive-jakkuna.vowel	가다	verb	exact	0	12	가자꾸나.
 regression.propositive-jakkuna.rieul	놀다	verb	exact	0	12	놀자꾸나.
 regression.propositive-jakkuna.resultative	부지런하다	adjective	exact	0	24	부지런해지자꾸나.
-regression.propositive-jakkuna.separate	가다	verb	exact	0	6	가자. 꾸나 씨가 기다린다.
+regression.propositive-jakkuna.separate	가다	verb	only-exact	0	6	가자. 꾸나 씨는 기다린다.
 regression.propositive-quotation.myeo	먹다	verb	exact	0	9	먹자며?
 regression.propositive-quotation.myeonseo	가다	verb	exact	0	12	가자면서?
 regression.propositive-quotation.nikka	떠나다	verb	exact	0	15	떠나자니까.
 regression.propositive-conditional.action	밝다	verb	exact	7	16	날이 밝자면 한참 남았다.
-regression.propositive-quotation.separate	가다	verb	exact	0	6	가자. 며칠 쉬어야 한다.
+regression.propositive-quotation.separate	가다	verb	only-exact	0	6	가자. 며칠 쉬어야 한다.
 regression.imperative-gena.consonant	앉다	verb	exact	0	9	앉게나.
 regression.imperative-gena.rieul	들다	verb	exact	0	9	들게나.
 regression.imperative-gena.honorific	읽다	verb	exact	0	15	읽으시게나.
-regression.imperative-gena.adverbial	읽다	verb	exact	0	6	읽게 나만 남겨 줘.
+regression.imperative-gena.adverbial	읽다	verb	only-exact	0	6	읽게 나만 남겨 줘.
 regression.aoeo-da.a	잡다	verb	exact	0	9	잡아다 매운탕을 끓였다.
 regression.aoeo-da.eo	꺾다	verb	exact	0	9	꺾어다 꽃시계를 만들었다.
 regression.aoeo-da.yeo	복사하다	verb	exact	0	15	복사하여다 붙였다.
 regression.aoeo-da.contraction	모으다	verb	exact	0	9	모아다 줄을 세웠다.
-regression.aoeo-da.separate	잡다	verb	exact	0	6	잡아 다음 칸에 넣어.
+regression.aoeo-da.separate	잡다	verb	only-exact	0	6	잡아 다음 칸에 넣어.
 regression.causal-gillae.state	고프다	adjective	exact	0	12	고프길래 밥을 먹었다.
 regression.causal-gillae.honorific	읽다	verb	exact	0	15	읽으시길래 기다렸다.
 regression.causal-gillae.past	오다	verb	exact	0	9	왔길래 문을 열었다.
 regression.causal-gillae.copula	이다	adjective	exact	6	15	사실이길래 인정했다.
-regression.causal-gillae.nominal	읽다	verb	exact	0	6	읽길 바란다.
+regression.causal-gillae.nominal	읽다	verb	only-exact	0	6	읽길 바란다.
 regression.honorific-request-sipsa.vowel	오다	verb	exact	0	9	오십사 부탁했다.
 regression.honorific-request-sipsa.consonant	읽다	verb	exact	0	12	읽으십사 부탁했다.
 regression.honorific-request-sipsa.rieul	열다	verb	exact	0	9	여십사 청했다.
 regression.honorific-request-sipsa.bieup-proposal	참다	verb	exact	0	12	참읍시사.
+regression.honorific-request-sipsa.separate	가다	verb	only-exact	0	6	가서 십사 명을 데려와라.
 regression.connective-deusi.short	보다	verb	exact	0	6	보듯 결과는 뻔하다.
 regression.connective-deusi.long	오다	verb	exact	0	9	오듯이 갈 것이다.
 regression.connective-deusi.past	말하다	verb	exact	0	9	말했듯 시간이 없다.
 regression.connective-deusi.honorific	읽다	verb	exact	0	15	읽으시듯이 발음했다.
 regression.connective-deusi.copula	이다	adjective	exact	6	15	사실이듯이 전해졌다.
-regression.connective-deusi.bound-noun	읽다	verb	exact	0	6	읽은 듯 고개를 끄덕였다.
+regression.connective-deusi.bound-noun	읽다	verb	only-exact	0	6	읽은 듯 고개를 끄덕였다.
 regression.causal-neurago.stem	읽다	verb	exact	0	12	읽느라고 밤을 새웠다.
 regression.causal-neurago.honorific	듣다	verb	exact	0	18	들으시느라고 답을 놓치셨다.
 regression.causal-neurago.rieul	살다	verb	exact	0	12	사느라고 고생했다.
 regression.causal-neurago.short	먹다	verb	exact	0	9	먹느라 누가 오는 줄도 몰랐다.
-regression.causal-neurago.separate	읽다	verb	exact	0	6	읽고 라디오를 켰다.
+regression.causal-neurago.separate	읽다	verb	only-exact	0	6	읽고 라디오를 켰다.
 regression.affirmative-damada.action	기억하다	verb	exact	0	18	기억하다마다.
 regression.affirmative-damada.past	어렵다	adjective	exact	0	18	어려웠다마다.
+regression.affirmative-damada.separate	가다	verb	only-exact	0	6	가자. 마다할 이유는 없다.
 regression.affirmative-gomalgo.state	좋다	adjective	exact	0	12	좋고말고.
 regression.affirmative-gomalgo.copula	이다	adjective	exact	3	15	일이고말고.
 regression.affirmative-gomalgo.honorific	오다	verb	exact	0	15	오시고말고.
-regression.affirmative-gomalgo.separate	읽다	verb	exact	0	6	읽고 말고는 각자 정해라.
+regression.affirmative-gomalgo.separate	읽다	verb	only-exact	0	6	읽고 말고는 각자 정해라.
 regression.final-rieuljira.rieul	살다	verb	exact	10	19	마땅히 살지라.
 regression.final-rieuljira.consonant	많다	adjective	exact	0	12	많을지라.
 regression.final-rieuljira.honorific	읽다	verb	exact	0	15	읽으실지라.
 regression.final-rieuljira.past	오다	verb	exact	0	12	왔을지라.
 regression.final-rieuljira.copula	이다	adjective	exact	6	15	사실일지라.
-regression.final-rieuljira.separate	찾다	verb	exact	0	6	찾을 지라의 위치를 표시했다.
+regression.final-rieuljira.separate	찾다	verb	only-exact	0	6	찾을 지라의 위치를 표시했다.
 regression.doubt-rieulrago.action	먹다	verb	exact	7	19	설마 먹을라고?
 regression.doubt-rieulrago.adjective	붉다	adjective	exact	0	12	붉을라고?
 regression.doubt-rieulrago.copula	이다	adjective	exact	6	15	학생일라고?
 regression.doubt-rieulrago.past	가다	verb	exact	0	12	갔을라고?
 regression.doubt-rieulrago.honorific	읽다	verb	exact	0	15	읽으실라고?
-regression.doubt-rieulrago.separate	오다	verb	exact	0	3	올 라고 씨를 기다린다.
+regression.doubt-rieulrago.separate	오다	verb	only-exact	0	3	올 라고 씨를 기다린다.
 regression.interrogative-rieulgeona.vowel	보다	verb	exact	0	9	볼거나?
 regression.interrogative-rieulgeona.consonant	먹다	verb	exact	0	12	먹을거나?
 regression.interrogative-rieulgeona.irregular	짓다	verb	exact	0	12	지을거나?
 regression.interrogative-rieulgeona.past	읽다	verb	exact	0	15	읽었을거나?
 regression.interrogative-rieulgeona.honorific	읽다	verb	exact	0	15	읽으실거나?
-regression.interrogative-rieulgeona.separate	먹다	verb	exact	0	9	먹거나 마시거나 편한 대로 하세요.
+regression.interrogative-rieulgeona.separate	먹다	verb	only-exact	0	9	먹거나 마시거나 편한 대로 하세요.
 regression.connective-geoneul.stem	크다	adjective	exact	0	9	크거늘 어찌 보이지 않는다고 하느냐.
 regression.connective-geoneul.past	가다	verb	exact	0	9	갔거늘 어찌 돌아왔느냐.
 regression.connective-geoneul.honorific	읽다	verb	exact	0	15	읽으시거늘 어찌 말리느냐.
 regression.connective-geoneul.copula	이다	adjective	exact	6	15	사실이거늘 어찌 모르느냐.
 regression.connective-geoneul.humble	하다	verb	exact	0	12	하옵거늘 어찌 모르십니까.
-regression.connective-geoneul.separate	오다	verb	exact	0	6	오고 늘 웃었다.
+regression.connective-geoneul.separate	오다	verb	only-exact	0	6	오고 늘 웃었다.
 regression.alternative-deunji.rieul	살다	verb	exact	0	9	살든지 떠나든지 정해라.
 regression.alternative-deunji.adjective	좋다	adjective	exact	0	6	좋든 싫든 해야 한다.
 regression.alternative-deunji.past	오다	verb	exact	0	9	왔든지 갔든지 상관없다.
 regression.alternative-deunji.honorific	읽다	verb	exact	0	15	읽으시든지 접어 두시든지 하세요.
 regression.alternative-deunji.copula	이다	adjective	exact	6	15	사실이든지 소문이든지 확인하세요.
-regression.alternative-deunji.retrospective	읽다	verb	exact	0	9	읽던지 말던지 했던 모습이 기억난다.
+regression.alternative-deunji.retrospective	읽다	verb	only-exact	0	9	읽던지 말던지 했던 모습이 기억난다.
 regression.alternative-deunji.joined-determiner	모다	verb	no-match	15	21	폐지했으며모든 범죄를 조사했다.
 regression.alternative-deunji.detached-verb	모다	verb	exact	10	16	서류를 모든 찢든 네가 결정해라.
 regression.quotative-deora.vowel	오다	verb	exact	0	12	온다더라.
@@ -880,11 +883,11 @@ regression.quotative-deora.consonant	먹다	verb	exact	0	15	먹는다더라.
 regression.quotative-deora.adjective	곱다	adjective	exact	0	12	곱다더라.
 regression.quotative-deora.past	읽다	verb	exact	0	15	읽었다더라.
 regression.quotative-deora.honorific	좋다	adjective	exact	0	18	좋으시다더라.
-regression.quotative-deora.separate	오다	verb	exact	0	6	온다. 더라 씨를 기다린다.
+regression.quotative-deora.separate	오다	verb	only-exact	0	6	온다. 더라 씨를 기다린다.
 regression.quotative-damyeo.past	오르다	verb	exact	0	12	올랐다며?
 regression.quotative-damyeo.future	읽다	verb	exact	0	12	읽겠다며?
 regression.quotative-damyeo.longer	오다	verb	exact	0	12	왔다면서?
-regression.quotative-damyeo.separate	오르다	verb	exact	0	9	올랐다. 며칠 뒤에 내려갔다.
+regression.quotative-damyeo.separate	오르다	verb	only-exact	0	9	올랐다. 며칠 뒤에 내려갔다.
 regression.exclamative-nuna.vowel	뜨다	verb	exact	0	9	뜨누나!
 regression.exclamative-nuna.consonant	먹다	verb	exact	0	9	먹누나!
 regression.exclamative-nuna.honorific	읽다	verb	exact	0	15	읽으시누나!
@@ -892,10 +895,11 @@ regression.concessive-giroseoni.action	읽다	verb	exact	0	15	읽기로서니 �
 regression.concessive-giroseoni.copula	이다	adjective	exact	6	21	학생이기로서니 어찌 약속을 잊겠느냐.
 regression.concessive-giroseoni.past	어기다	verb	exact	0	18	어겼기로서니 기회를 주지 않겠느냐.
 regression.concessive-giroseoni.honorific-past	읽다	verb	exact	0	21	읽으셨기로서니 내용을 모두 아시겠느냐.
-regression.concessive-giroseoni.nominalized	읽다	verb	exact	0	9	읽기로 했다.
+regression.concessive-giroseoni.nominalized	읽다	verb	only-exact	0	9	읽기로 했다.
 regression.concessive-gironi.rieul	벌다	verb	exact	0	12	벌기로니 당장 부자가 되겠느냐.
 regression.concessive-gironi.honorific-past	읽다	verb	exact	0	18	읽으셨기로니 다 기억하실까.
 regression.concessive-gironi.copula	이다	adjective	exact	6	18	학생이기로니 책임이 없겠느냐.
+regression.concessive-gironi.nominalized	읽다	verb	only-exact	0	9	읽기로 마음먹었다.
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.
@@ -984,8 +988,8 @@ regression.explicit-copula.quote-polite	이다	adjective	smart-exact	41	47	제�
 regression.explicit-copula.nominal-subject	이다	adjective	no-match	10	16	관청의 인가가 나왔다.
 regression.explicit-copula.nominal-derived-verb	이다	adjective	no-match	24	30	정부가 그 사업을 인가했다.
 regression.explicit-copula.nominal-object	이다	adjective	no-match	7	13	사업 인가를 받았다.
-regression.interrogative-copula.homograph-numeral-two	이다	adjective	smart-exact	77	83	내가 비밀번호 끝자리를 두 손가락으로 알려 주자 그는 ‘인가?’라고 되물었다.
-regression.interrogative-copula.homograph-approval-echo	이다	adjective	smart-exact	60	66	내가 사업에 인가가 필요하다고 하자 그는 ‘인가?’라고 되물었다.
+regression.interrogative-copula.homograph-numeral-two	이다	adjective	smart-only-exact	77	83	내가 비밀번호 끝자리를 두 손가락으로 알려 주자 그는 ‘인가?’라고 되물었다.
+regression.interrogative-copula.homograph-approval-echo	이다	adjective	smart-only-exact	60	66	내가 사업에 인가가 필요하다고 하자 그는 ‘인가?’라고 되물었다.
 corpus.ud-kaist.dev.MH2_0069-s25.compound-nominal	사용	noun	smart-exact	14	20	그 상품의 사용가치에 커다란 변화를 줄 수 있다.
 corpus.ud-kaist.dev.MH2_0069-s36.compound-nominal	사용	noun	smart-exact	40	46	정보와 오락성은 언론 상품의 사용가치를 보장한다.
 corpus.ud-kaist.dev.MH2_0069-s37.compound-nominal	사용	noun	smart-exact	23	29	구매자는 새로운 사용가치를 원하게 된다.
@@ -1273,7 +1277,7 @@ regression.propositive-sena.consonant	먹다	verb	exact	0	12	먹으세나.
 regression.propositive-sena.consonant-direct	읽다	verb	exact	0	9	읽세나.
 regression.propositive-sena.rieul	살다	verb	exact	0	9	사세나.
 regression.propositive-sena.honorific	읽다	verb	exact	0	15	읽으시세나.
-regression.propositive-sena.adjective	넓다	adjective	no-match	0	12	넓으세나.
+regression.propositive-sena.adjective	넓다	adjective	no-match-both	0	12	넓으세나.
 regression.directive-ram.closed	먹다	verb	smart-exact	10	19	어떻게 먹으람?
 regression.directive-ram.open	가다	verb	smart-exact	10	16	어디로 가람?
 regression.directive-ram.rieul	살다	verb	smart-exact	10	16	어떻게 사람?
@@ -1302,7 +1306,7 @@ corpus.ud-gsd.test.test-s571.verb.causal-copula	있다	verb	smart-exact	108	123	
 corpus.ud-gsd.test.test-s106.verb.causal-copula-past	되다	verb	smart-exact	69	84	이러한 인문주의가 다시 꽃피게 되는 것은 15세기가 되어서였다.
 regression.causal-copula.adjective	늦다	adjective	smart-exact	35	50	불이 꺼진 건 이미 시간이 늦어서이다.
 regression.causal-copula.vowel-harmony	좁다	adjective	smart-exact	10	25	골목이 좁아서인가 차가 못 들어왔다.
-regression.causal-copula.separate-words	늦다	adjective	smart-exact	10	19	시간이 늦어서 이 일은 내일 하자.
+regression.causal-copula.separate-words	늦다	adjective	smart-only-exact	10	19	시간이 늦어서 이 일은 내일 하자.
 regression.polite-honorific.rieul-reside	살다	verb	smart-exact	10	19	어디에 사세요?
 regression.polite-honorific.rieul-sell	팔다	verb	smart-exact	20	29	여기서 과일을 파세요?
 regression.polite-honorific.rieul-open	열다	verb	smart-exact	10	19	창문을 여세요.
@@ -1371,7 +1375,7 @@ corpus.ud-gsd.test.test-s75.adjective.simultaneous-additive	안쓰럽다	adjecti
 regression.simultaneous-additive.rieul	알다	verb	smart-exact	0	12	알면서도 숨겼다.
 regression.simultaneous-additive.rieul-honorific	알다	verb	smart-exact	0	15	아시면서도 숨겼다.
 regression.simultaneous-additive.auxiliary	걷다	verb	smart-exact	0	18	걸어가면서도 긴장했다.
-regression.simultaneous-additive.separate	알다	verb	smart-exact	0	9	알면서 도와주었다.
+regression.simultaneous-additive.separate	알다	verb	smart-only-exact	0	9	알면서 도와주었다.
 corpus.ud-pud.test.n01074020.verb.simultaneous-additive	임하다	verb	smart-exact	37	52	그는 경기에 대해 진지하게 임하면서도 공을 처리하는 솜씨가 유연하다.
 corpus.ud-pud.test.n02066010.verb.simultaneous-additive	알다	verb	smart-exact	167	179	그 비행기 추락 사고를 조사하는 캐나다 조사관 랠리 밴스는 슈피겔(SPIEGEL)과의 인터뷰에서 조종사 중 한 명이 가라앉을 것을 알면서도 의도적으로 비행기를 해수면에 착륙시킨 것 같다고 밝혔다.
 corpus.ud-gsd.test.test-s473.verb.doubt-topic	바뀌다	verb	smart-exact	144	156	지금 세계 게임시장의 주도권을 비디오게임이 쥐고 있지만 향후 3년 이후만 해도 게임산업의 지형이 어떻게 바뀔지는 상상하기 힘든데요.
@@ -1548,18 +1552,18 @@ regression.myeonseo-buteo.explicit-copula	가다	verb	smart-exact	0	21	가면서
 regression.myeonseo-buteo.token-interior	받다	verb	no-match	0	21	받으면서부터다리
 regression.attached-oda.adnominal	하다	verb	smart-exact	0	6	해온 일을 정리했다.
 regression.attached-oda.past	읽다	verb	smart-exact	0	18	읽어왔습니다.
-regression.attached-oda.separate	하다	verb	smart-exact	0	3	해 온 일을 정리했다.
+regression.attached-oda.separate	하다	verb	smart-only-exact	0	3	해 온 일을 마쳤다.
 regression.honorific-trial.rieul	들다	verb	smart-exact	0	15	드셔보시면 압니다.
 regression.honorific-trial.uncontracted	들다	verb	smart-exact	0	18	드시어보시면 압니다.
 regression.honorific-trial.regular	읽다	verb	smart-exact	0	18	읽으셔보시면 압니다.
-regression.honorific-trial.separate	들다	verb	smart-exact	0	6	드셔 보시면 압니다.
+regression.honorific-trial.separate	들다	verb	smart-only-exact	0	6	드셔 보시면 압니다.
 regression.honorific-trial.token-interior	들다	verb	no-match	0	15	드셔보리밥
 regression.gopeuda.honorific-rieul	들다	verb	smart-exact	0	12	드시고픈 분께 추천합니다.
 regression.gopeuda.honorific-regular	읽다	verb	smart-exact	0	15	읽으시고픈 책을 골라 보세요.
 regression.gopeuda.past	가다	verb	smart-exact	0	12	가고팠다.
 regression.gopeuda.conditional	보다	verb	smart-exact	0	12	보고프면 연락해.
 regression.gopeuda.background	먹다	verb	smart-exact	0	12	먹고픈데 시간이 없다.
-regression.gopeuda.separate	먹다	verb	smart-exact	0	6	먹고 싶다.
+regression.gopeuda.separate	먹다	verb	smart-only-exact	0	6	먹고 싶다.
 regression.gopeuda.lexical-adjective	배다	verb	no-match	0	12	배고프다.
 regression.gopeuda.lexical-adjective-past	배다	verb	no-match	0	12	배고팠다.
 regression.gopeuda.lexical-adjective-connective	배다	verb	no-match	0	12	배고프고 힘들었다.
