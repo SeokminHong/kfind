@@ -1852,6 +1852,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.conditional-geodeumyeon"
+category = "connective"
+initial = "consonant"
+forms = ["거드면"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.causal-gwande"
+category = "connective"
+initial = "consonant"
+forms = ["관데"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.geodeun-polite"
 category = "final"
 initial = "consonant"

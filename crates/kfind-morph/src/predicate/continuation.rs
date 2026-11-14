@@ -1860,6 +1860,57 @@ fn verify_simple_continuation(
                 suffix("노라고", &["ending.archaic-nora", "ending.quotative-go"]),
             ]
         }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("거드면") =>
+        {
+            &[suffix("거드면", &["ending.conditional-geodeumyeon"])]
+        }
+        ContinuationState::StemEnding | ContinuationState::Past
+            if following.starts_with("관데") =>
+        {
+            &[suffix("관데", &["ending.causal-gwande"])]
+        }
+        ContinuationState::StemEnding | ContinuationState::Eu
+            if (following.starts_with("시거드면") || following.starts_with("시관데"))
+                && (state == ContinuationState::Eu
+                    || !anchor.chars().next_back().is_some_and(has_final)) =>
+        {
+            &[
+                suffix(
+                    "시거드면",
+                    &["ending.honorific", "ending.conditional-geodeumyeon"],
+                ),
+                suffix("시관데", &["ending.honorific", "ending.causal-gwande"]),
+            ]
+        }
+        ContinuationState::Eu
+            if following.starts_with("셨거드면")
+                || following.starts_with("셨관데")
+                || following.starts_with("시겠거드면") =>
+        {
+            &[
+                suffix(
+                    "셨거드면",
+                    &[
+                        "ending.honorific",
+                        "ending.past",
+                        "ending.conditional-geodeumyeon",
+                    ],
+                ),
+                suffix(
+                    "셨관데",
+                    &["ending.honorific", "ending.past", "ending.causal-gwande"],
+                ),
+                suffix(
+                    "시겠거드면",
+                    &[
+                        "ending.honorific",
+                        "ending.future",
+                        "ending.conditional-geodeumyeon",
+                    ],
+                ),
+            ]
+        }
         ContinuationState::StemEnding if pos.is_action() && following.starts_with("누나") => {
             &[suffix("누나", &["ending.exclamative-nuna"])]
         }
@@ -3187,6 +3238,8 @@ fn verify_simple_continuation(
                         | "ending.causal-rieulsae"
                         | "ending.causal-norani"
                         | "ending.conditional-noramyeon"
+                        | "ending.conditional-geodeumyeon"
+                        | "ending.causal-gwande"
                         | "ending.conditional-rieuljaksimyeon"
                         | "ending.interrogative-rieulgeona"
                         | "ending.final-rieuljira"
