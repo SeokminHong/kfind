@@ -1923,3 +1923,6 @@ regression.copula-rason.directive-verb	가다	verb	only-exact	11	20	너 먼저 �
 regression.copula-rani.pronoun	이다	adjective	smart-only-exact	46	55	네가 몇 년 동안 찾던 사람이 바로 나라니!
 regression.copula-rani.other-pronoun	이다	adjective	smart-only-exact	31	40	그가 찾는 사람이 바로 너라니!
 regression.copula-rani.enumerated-noun	이다	adjective	no-match	0	9	나라니 지역이니 그런 구분은 중요하지 않다.
+regression.copula-raneuni.title	이다	adjective	smart-only-exact	21	33	도둑이 결국 김 씨라느니 아니라느니 하는 소문만 무성했다.
+regression.copula-raneuni.other-title	이다	adjective	smart-only-exact	21	33	범인이 결국 이 씨라느니 아니라느니 얘기가 많았다.
+regression.copula-raneuni.directive-control	이다	adjective	no-match-both	10	22	편지를 쓰라느니 아니라느니 말이 많았다.

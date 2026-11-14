@@ -1765,6 +1765,13 @@ impl ConstraintResolver {
     }
 
     #[must_use]
+    pub fn has_surname_title(&self, surname: &str, title: &str) -> bool {
+        title == "씨"
+            && has_exact_sequence(&self.resource, title, &[StructuralPos::NNB])
+            && self.has_exact_proper_name_surface(surname)
+    }
+
+    #[must_use]
     pub fn has_topic_marked_nominal(&self, text: &str) -> bool {
         text.strip_suffix(['은', '는']).is_some_and(|host| {
             host.chars()
