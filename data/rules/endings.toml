@@ -2672,6 +2672,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.humble-wa"
+category = "connective"
+initial = "consonant"
+forms = ["와", "사와"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.archaic-saoeda"
 category = "final"
 initial = "consonant"

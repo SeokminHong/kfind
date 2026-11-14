@@ -1887,6 +1887,27 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::StemEnding
+            if pos != PredicatePos::Copula
+                && following.starts_with('와')
+                && !anchor.chars().next_back().is_some_and(has_final) =>
+        {
+            &[reference_suffix("와", &["ending.humble-wa"])]
+        }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if pos != PredicatePos::Copula
+                && following.starts_with("사와")
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| has_final(last) && !has_rieul_final(last)) =>
+        {
+            &[reference_suffix("사와", &["ending.humble-wa"])]
+        }
+        ContinuationState::Eu if following.starts_with("시와") => &[reference_suffix(
+            "시와",
+            &["ending.honorific", "ending.humble-wa"],
+        )],
         ContinuationState::Past if following.starts_with("에라") => {
             &[reference_suffix("에라", &["ending.exclamative-era"])]
         }
@@ -3400,6 +3421,7 @@ fn reference_simple_continuation(
                             | "ending.dialect-past-je"
                             | "ending.exclamative-aoeora"
                             | "ending.exclamative-era"
+                            | "ending.humble-wa"
                             | "ending.final-gu-exclamative"
                             | "ending.concessive-nama"
                             | "ending.alternating-rak"

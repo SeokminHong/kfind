@@ -1791,6 +1791,26 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::StemEnding
+            if pos != PredicatePos::Copula
+                && following.starts_with('와')
+                && !anchor.chars().next_back().is_some_and(has_final) =>
+        {
+            &[suffix("와", &["ending.humble-wa"])]
+        }
+        ContinuationState::StemEnding | ContinuationState::Past | ContinuationState::Future
+            if pos != PredicatePos::Copula
+                && following.starts_with("사와")
+                && anchor
+                    .chars()
+                    .next_back()
+                    .is_some_and(|last| has_final(last) && !has_rieul_final(last)) =>
+        {
+            &[suffix("사와", &["ending.humble-wa"])]
+        }
+        ContinuationState::Eu if following.starts_with("시와") => {
+            &[suffix("시와", &["ending.honorific", "ending.humble-wa"])]
+        }
         ContinuationState::Past if following.starts_with("에라") => {
             &[suffix("에라", &["ending.exclamative-era"])]
         }
@@ -3299,6 +3319,7 @@ fn verify_simple_continuation(
                         | "ending.concessive-geonman"
                         | "ending.exclamative-aoeora"
                         | "ending.exclamative-era"
+                        | "ending.humble-wa"
                         | "ending.final-gu-exclamative"
                         | "ending.quotative-na"
                         | "ending.quotative-danda"
