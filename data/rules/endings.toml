@@ -1612,6 +1612,36 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.connective-rieulsi"
+category = "connective"
+initial = "attach-rieul"
+forms = ["ㄹ시", "을시"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.exclamative-rieulsigo"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ시고", "을시고"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.imperative-rieuljieoda"
+category = "final"
+initial = "attach-rieul"
+forms = ["ㄹ지어다", "을지어다"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.contrast-rieuljina"
 category = "connective"
 initial = "attach-rieul"
