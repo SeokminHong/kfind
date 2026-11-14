@@ -1860,6 +1860,25 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Past | ContinuationState::Future
+            if following.starts_with("다고")
+                || following.starts_with("다네")
+                || following.starts_with("다지") =>
+        {
+            &[
+                reference_suffix("다고", &["ending.final-da", "ending.quotative-go"]),
+                reference_suffix(
+                    "다고요",
+                    &["ending.final-da", "ending.quotative-go", "ending.polite-yo"],
+                ),
+                reference_suffix("다네", &["ending.final-da", "ending.final-ne"]),
+                reference_suffix(
+                    "다네요",
+                    &["ending.final-da", "ending.final-ne", "ending.polite-yo"],
+                ),
+                reference_suffix("다지", &["ending.final-da", "ending.quotative-ji"]),
+            ]
+        }
         ContinuationState::Eu
             if pos == PredicatePos::Adjective
                 && anchor == "같으"
@@ -3232,6 +3251,11 @@ fn reference_simple_continuation(
                             | "셨길래"
                             | "노라"
                             | "노라고"
+                            | "다고"
+                            | "다고요"
+                            | "다네"
+                            | "다네요"
+                            | "다지"
                             | "자꾸나"
                     )
                     || !following[suffix.surface.len()..]
