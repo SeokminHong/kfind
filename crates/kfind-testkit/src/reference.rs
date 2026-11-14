@@ -1810,6 +1810,24 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Eu | ContinuationState::Prospective
+            if pos.is_action() && following.starts_with('렵') =>
+        {
+            &[
+                reference_suffix("렵니까", &["ending.formal-intention-question"]),
+                reference_suffix("렵니다", &["ending.formal-intention-statement"]),
+            ]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시렵") => &[
+            reference_suffix(
+                "시렵니까",
+                &["ending.honorific", "ending.formal-intention-question"],
+            ),
+            reference_suffix(
+                "시렵니다",
+                &["ending.honorific", "ending.formal-intention-statement"],
+            ),
+        ],
         ContinuationState::NieunEnding | ContinuationState::CompletedNieunEnding
             if following.starts_with("지라") =>
         {
@@ -2617,6 +2635,8 @@ fn reference_simple_continuation(
                             | "ending.causal-jira"
                             | "ending.exclamative-njigo"
                             | "ending.necessity-yaman"
+                            | "ending.formal-intention-question"
+                            | "ending.formal-intention-statement"
                             | "ending.final-rieuljiroda"
                             | "ending.final-rieuljinira"
                             | "ending.interrogative-rieulreongo"

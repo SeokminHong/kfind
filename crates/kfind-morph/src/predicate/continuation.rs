@@ -1724,6 +1724,24 @@ fn verify_simple_continuation(
         return Some(continuation);
     }
     let additional_endings: &[Suffix] = match state {
+        ContinuationState::Eu | ContinuationState::Prospective
+            if pos.is_action() && following.starts_with('렵') =>
+        {
+            &[
+                suffix("렵니까", &["ending.formal-intention-question"]),
+                suffix("렵니다", &["ending.formal-intention-statement"]),
+            ]
+        }
+        ContinuationState::Eu if pos.is_action() && following.starts_with("시렵") => &[
+            suffix(
+                "시렵니까",
+                &["ending.honorific", "ending.formal-intention-question"],
+            ),
+            suffix(
+                "시렵니다",
+                &["ending.honorific", "ending.formal-intention-statement"],
+            ),
+        ],
         ContinuationState::AOrEo if following.starts_with("야만") => {
             &[suffix("야만", &["ending.necessity-yaman"])]
         }
@@ -2558,6 +2576,8 @@ fn verify_simple_continuation(
                         | "ending.causal-jira"
                         | "ending.exclamative-njigo"
                         | "ending.necessity-yaman"
+                        | "ending.formal-intention-question"
+                        | "ending.formal-intention-statement"
                         | "ending.final-rieuljiroda"
                         | "ending.final-rieuljinira"
                         | "ending.interrogative-rieulreongo"

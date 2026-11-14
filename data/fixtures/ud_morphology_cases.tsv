@@ -693,6 +693,11 @@ regression.necessity-yaman.copula	이다	adjective	exact	16	28	이름은 철수�
 regression.necessity-yaman.honorific	오다	verb	exact	13	25	선생님이 오셔야만 시작한다.
 regression.necessity-yaman.separate-word	가다	verb	exact	10	16	반드시 가야 만날 수 있다.
 regression.necessity-yaman.irregular	걷다	verb	exact	11	23	먼 길을 걸어야만 도착한다.
+regression.formal-intention.question	읽다	verb	exact	10	25	당신이 읽으렵니까?
+regression.formal-intention.rieul	살다	verb	exact	17	29	앞으로 오래 살렵니다.
+regression.formal-intention.honorific	오다	verb	exact	11	26	몇 시에 오시렵니까?
+regression.formal-intention.statement	찾다	verb	exact	18	33	그 사람을 꼭 찾으렵니다.
+regression.formal-intention.ordinary-formal	읽다	verb	exact	10	22	당신이 읽습니까?
 regression.alternating-rak.consonant	접다	verb	exact	17	26	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.vowel	펴다	verb	exact	27	33	아이는 손을 접으락 펴락 했다.
 regression.alternating-rak.irregular	걷다	verb	exact	10	19	그녀는 걸으락 뛰락 했다.

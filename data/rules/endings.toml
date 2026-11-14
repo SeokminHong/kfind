@@ -1582,6 +1582,26 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.formal-intention-question"
+category = "final"
+initial = "eu"
+forms = ["렵니까", "으렵니까"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
+id = "ending.formal-intention-statement"
+category = "final"
+initial = "eu"
+forms = ["렵니다", "으렵니다"]
+required = ["action-verb"]
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.intentive-ryeo"
 category = "connective"
 initial = "eu"
