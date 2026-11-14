@@ -2032,6 +2032,16 @@ next = []
 terminal = true
 
 [[ending]]
+id = "ending.rhetorical-ryeogo"
+category = "final"
+initial = "eu"
+forms = ["려고", "으려고"]
+required = []
+forbidden = []
+next = []
+terminal = true
+
+[[ending]]
 id = "ending.intentive-adnominal"
 category = "adnominal"
 initial = "eu"

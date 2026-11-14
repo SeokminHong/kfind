@@ -1808,6 +1808,14 @@ fn verify_simple_continuation(
         return Some(matched(anchor.len(), Some(ending)));
     }
     let token_endings: &[Suffix] = match state {
+        ContinuationState::Eu | ContinuationState::Prospective
+            if pos == PredicatePos::Adjective && following.starts_with("려고") =>
+        {
+            &[suffix("려고", &["ending.rhetorical-ryeogo"])]
+        }
+        ContinuationState::Past if following.starts_with("으려고") => {
+            &[suffix("으려고", &["ending.rhetorical-ryeogo"])]
+        }
         ContinuationState::StemEnding
             if following.starts_with(NONI.surface)
                 && (pos.is_action() || anchor.ends_with('시'))
@@ -2845,6 +2853,7 @@ fn verify_simple_continuation(
         }
         ContinuationState::StemEnding
             if following.starts_with("려고")
+                && pos.is_action()
                 && anchor
                     .chars()
                     .next_back()

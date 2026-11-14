@@ -234,7 +234,7 @@ impl ReferenceMatcher {
             normalized_consumed
         };
         let token = start..anchor_end.checked_add(consumed)?;
-        if matches!(
+        if (matches!(
             &branch.consumption,
             CandidateConsumption::PredicateContinuation {
                 pos: PredicatePos::Copula,
@@ -243,6 +243,9 @@ impl ReferenceMatcher {
         ) && suffix_rules
             .iter()
             .any(|rule| rule.as_str() == "ending.copula-ya")
+            || suffix_rules
+                .last()
+                .is_some_and(|rule| rule.as_str() == "ending.rhetorical-ryeogo"))
             && !text.get(token.end..)?.chars().next().is_none_or(|next| {
                 matches!(
                     next,
@@ -1894,6 +1897,14 @@ fn reference_simple_continuation(
     ];
     let mut common_copula = false;
     let additional_endings: &[ReferenceSuffix] = match state {
+        ContinuationState::Eu | ContinuationState::Prospective
+            if pos == PredicatePos::Adjective && following.starts_with("려고") =>
+        {
+            &[reference_suffix("려고", &["ending.rhetorical-ryeogo"])]
+        }
+        ContinuationState::Past if following.starts_with("으려고") => {
+            &[reference_suffix("으려고", &["ending.rhetorical-ryeogo"])]
+        }
         ContinuationState::StemEnding
             if following.starts_with("노니")
                 && (pos.is_action() || anchor.ends_with('시'))
@@ -3527,6 +3538,7 @@ fn reference_simple_continuation(
                             | "ending.necessity-yaman"
                             | "ending.formal-intention-question"
                             | "ending.conditional-ryeogeodeun"
+                            | "ending.rhetorical-ryeogo"
                             | "ending.formal-intention-statement"
                             | "ending.exclamative-doda"
                             | "ending.exclamative-neundoda"
